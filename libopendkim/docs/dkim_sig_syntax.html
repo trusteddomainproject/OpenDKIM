@@ -1,0 +1,79 @@
+<html>
+<head><title>dkim_sig_syntax()</title></head>
+<body>
+<!--
+$Id: dkim_sig_syntax.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_sig_syntax()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+
+<a href="dkim_stat.html">DKIM_STAT</a> dkim_sig_syntax(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+	unsigned char *str,
+	size_t len
+);
+</pre>
+Validates the syntax of a signature header, returning a result.  The
+signature is not stored or used, only validated. <p>
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_sig_syntax()</tt> can be called at any time. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>DKIM handle, returned by a prior call to
+	<a href="dkim_sign.html"><tt>dkim_sign()</tt></a> or
+	<a href="dkim_verify.html"><tt>dkim_verify()</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>str</td>
+	<td>Pointer to a buffer containing the signature to be evaluated.
+	</td></tr>
+    <tr valign="top"><td>len</td>
+	<td>Number of bytes available at <tt>str</tt>.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr><th valign="top" align=left>RETURN VALUES</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Return Value</th><th>Description</th></tr>
+    <tr valign="top"><td>DKIM_STAT_OK</td>
+	<td>The signature appeared to be syntactically valid.
+	</td></tr>
+    <tr valign="top"><td>DKIM_STAT_SYNTAX</td>
+	<td>The signature did not appear to be syntactically valid.
+	</td></tr>
+    </table>
+</td></tr>
+
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2008 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

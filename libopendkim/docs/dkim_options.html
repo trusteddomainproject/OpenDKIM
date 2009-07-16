@@ -1,0 +1,295 @@
+<html>
+<head><title>dkim_options()</title></head>
+<body>
+<!--
+$Id: dkim_options.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_options()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_options(
+	<a href="dkim_lib.html"><tt>DKIM_LIB</tt></a> *lib,
+        int op,
+        int opt,
+        void *data,
+        size_t len
+);
+</pre>
+Sets or retrieves options to alter the behaviour of certain aspects
+of the library's operation.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_options()</tt> can be called at any time after acquiring
+    a library handle from
+    <a href="dkim_init.html"><tt>dkim_init()</tt></a>.</td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Library instance handle, returned by
+        <a href="dkim_init.html"><tt>dkim_init</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>op</td>
+	<td>Either <tt>DKIM_OP_SETOPT</tt> to set a current library
+        option, or <tt>DKIM_OP_GETOPT</tt> to retrieve a current library
+        option.
+	</td></tr>
+    <tr valign="top"><td>opt</td>
+	<td>One of the following macros, to indicate which library
+        option should be retrieved or changed.  Possible values:
+        <table border="1" cellspacing=0>
+           <tr bgcolor="#dddddd"><th>Option Name</th><th>Description</th></tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_ALWAYSHDRS</tt></td>
+                            <td><tt>data</tt> refers to a NULL-terminated
+				array of pointers to strings which name
+				headers that should be included in the header
+				lists of signatures even if they were not
+				present for signing.  This list is empty by
+				default.</td></tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_CLOCKDRIFT</tt></td>
+                            <td><tt>data</tt> refers to a <tt>time_t</tt>
+                                which contains the number of seconds of clock
+                                drift that should be tolerated when determining
+				whether or not a signature either has expired
+				or was generated in the future.  The default
+				is 300 seconds (five minutes). </td></tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_FIXEDTIME</tt></td>
+                            <td><tt>data</tt> refers to a <tt>time_t</tt>
+                                which contains a fixed time specification
+                                to use during signature generation.</td></tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_FLAGS</tt></td>
+                            <td><tt>data</tt> refers to an unsigned integer
+                                which contains a bitwise-OR of desired
+                                flags.  See below for the list of known
+                                flags.</td></tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_MUSTBESIGNED</tt></td>
+                            <td><tt>data</tt> refers to an ordered,
+                                NULL-terminated array of header names which,
+                                when verifying a message, must be covered
+				by a signature for the signature to be
+				considered valid.  The default is to make
+				no such assertion.  If <tt>data</tt>
+                                refers to a NULL pointer, the default is
+                                restored. </td></tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_QUERYINFO</tt></td>
+                            <td><tt>data</tt> refers to a string
+                                in which query information is stored.  See
+                                <tt><a href="dkim_query_t.html">dkim_query_t</a></tt>
+                                for more information. </td> </tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_QUERYMETHOD</tt></td>
+                            <td><tt>data</tt> refers to a
+                                <tt><a href="dkim_query_t.html">dkim_query_t</a></tt>
+                                containing a value which should override
+                                any <tt>q=</tt> value in signatures during
+                                verifications. </td></tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_SENDERHDRS</tt></td>
+                            <td><tt>data</tt> refers to an ordered,
+                                NULL-terminated array of header names which
+                                should be searched when trying to determine
+                                the ultimate sender of the message.  The
+                                default is to check <tt>Resent-Sender</tt>,
+                                <tt>Resent-From</tt>, <tt>Sender</tt> and
+                                <tt>From</tt>.  The caller's list completely
+                                replaces this list.  If <tt>data</tt>
+                                refers to a NULL pointer, the default is
+                                restored. </td></tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_SIGNATURETTL</tt></td>
+                            <td><tt>data</tt> refers to a <tt>time_t</tt>
+                                which contains the time-to-live of signatures
+                                to be applied during signature
+                                generation.</td></tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_SIGNHDRS</tt></td>
+                            <td><tt>data</tt> refers to an unordered,
+                                NULL-terminated array of header names which
+                                are the ones that should be included when
+                                signing a message.
+
+                                Wildcarding using the asterisk ("*")
+                                character, meaning "match zero or more
+                                characters", is permitted.
+
+                                The <tt>From</tt> header is mandatory and
+                                thus implicitly added to any list provided
+                                by the caller.
+
+                                The constant <tt>should_signhdrs</tt> may be
+                                specified as the <tt>data</tt>, whicn contains
+				all of the headers RFC4871 section 5.5 says
+				should be signed.
+
+                                The default is to sign all headers.
+
+                                If <tt>data</tt> refers to a NULL pointer,
+                                the default is restored.
+
+                                Attempting <tt>DKIM_OP_GETOPT</tt> on this
+                                option returns an error as it is converted
+                                to regular expressions and not currently
+                                stored in a useable form.</td></tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_SKIPHDRS</tt></td>
+                            <td><tt>data</tt> refers to an unordered,
+                                NULL-terminated array of header names which
+                                are the ones that should be skipped when
+                                processing a message for signing.  The default
+				is to skip no headers.
+
+                                The constant <tt>should_not_signhdrs</tt> may be
+                                specified as the <tt>data</tt>, whicn contains
+				all of the headers RFC4871 section 5.5 says
+				should not be signed.
+
+                                Wildcarding using the asterisk ("*")
+                                character, meaning "match zero or more
+                                characters", is permitted.
+
+                                If <tt>data</tt> refers to a NULL pointer,
+                                the default is restored.
+
+                                Attempting <tt>DKIM_OP_GETOPT</tt> on this
+                                option returns an error as it is converted
+                                to regular expressions and not currently
+                                stored in a useable form.</td></tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_TMPDIR</tt></td>
+                            <td><tt>data</tt> refers to a string which is
+                                the directory <tt>libopendkim</tt> should use for
+                                creating temporary files.</td></tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_TIMEOUT</tt></td>
+                            <td><tt>data</tt> refers to an unsigned integer
+                                indicating the timeout, in seconds, to be
+                                used when doing DNS queries to retrieve key
+                                and policy records.</td></tr>
+        </table>
+	</td></tr>
+    <tr valign="top"><td>data</td>
+	<td>If the operation is <tt>DKIM_OP_GETOPT</tt>, this specifies
+            the address to which to write the retrieved value.  If the
+            operation is <tt>DKIM_OP_SETOPT</tt>, this specifies the address
+            from which to copy the new option value.
+	</td></tr>
+    <tr valign="top"><td>len</td>
+	<td>Number of bytes available for reading/writing at <tt>data</tt>.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Flags ---------->
+<tr>
+<th valign="top" align=left>FLAGS</th> 
+<td>
+When setting or retreiving library flags, the method is to specify
+a bitwise-OR of flag bits in an unsigned integer.  The recognized flags
+are:
+<table border="1" cellspacing=0>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_ACCEPTDK</tt></td>
+  <td>Allow references to key records formatted for DomainKeys (RFC4870).
+      This means a key record retrieved from DNS that has no "v=" tag
+      will be treated slightly differently; specifically, an empty "g="
+      tag in the key matches all senders (the DomainKeys way) rather than
+      no senders (the DKIM way).  This flag has no other effect. </td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_ACCEPTV05</tt></td>
+  <td>Accept signatures with version strings of "0.5", i.e. those which
+      were based on some draft versions of the DKIM specification.  Note that
+      this does not change or relax the rules applied by this implementation,
+      and thus these older signatures still may not verify due to evolutions
+      of the specification that took place during the use of that version
+      string. </td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_CACHE</tt></td>
+  <td>Maintain a local cache of retrieved key and policy records, rather
+      than relying on the DNS servers to do so.  May improve performance
+      if, for example, the DNS server is not local.  Requires that libopendkim
+      be compiled with the <tt>QUERY_CACHE</tt> option since doing so
+      adds a library dependency to the build. </td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_DELAYSIGPROC</tt></td>
+  <td>Normally the key retrieval and public key validation takes place in
+      the <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a> function, and
+      the body hash verification takes place in
+      <a href="dkim_eom.html"><tt>dkim_eom()</tt></a> function.  Setting
+      this flag delays all processing of signatures until <tt>dkim_eom()</tt>.
+      This means the caller will be unable to evaluate signature validity
+      on completion of <tt>dkim_eoh()</tt> and will have to wait until
+      after <tt>dkim_eom()</tt> (or the final processing callback if such
+      is defined). </td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_EOHCHECK</tt></td>
+  <td>Perform a signature check at the end of
+      <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a>.
+      This will cause <tt>dkim_eoh()</tt> to return an error code if no
+      useable signatures were found in the message. </td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_FIXCRLF</tt></td>
+  <td>Convert "naked" CR and LF characters into CRLFs when canonicalizing.
+      Only applies to body processing during signing.
+      </td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_KEEPFILES</tt></td>
+  <td>Keep temporary files for manual debugging purposes.  (Also requires that
+      <tt>DKIM_LIBFLAGS_TMPFILES</tt> be set.)</td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_SIGNLEN</tt></td>
+  <td>When signing messages, include in the signature the number of bytes
+      that were canonicalized even when a length limit wasn't specified
+      by the caller. </td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_TMPFILES</tt></td>
+  <td>Make temporary files for debugging purposes.  See
+      <a href="dkim_reportinfo.html"><tt>dkim_reportinfo()</tt></a> for an
+      example of how this might be useful.</td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_ZTAGS</tt></td>
+  <td>Include the original header set encoded into a "z=" tag in the
+      signature for diagnostic use by the receiver. </td>
+ </tr>
+</table>
+</td>
+</tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

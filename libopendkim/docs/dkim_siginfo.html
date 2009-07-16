@@ -1,0 +1,49 @@
+<html>
+<head><title>DKIM_SIGINFO</title></head>
+<body>
+<!--
+$Id: dkim_siginfo.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>DKIM_SIGINFO</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Purpose</th>
+<td>A <tt>DKIM_SIGINFO</tt> handle stores data having to do with a
+    signature handle discovered during a verification operation.
+    A <a href="dkim.html"><tt>DKIM</tt></a> handle contains an array
+    of these items, one for each signature discovered on an arriving
+    message.  It also contains an optional pointer to user-specific
+    data which can be retrieved by the user during signature processing
+    operations.
+    </td>
+</tr>
+</table>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>More than one of these handles may exist at any given time.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

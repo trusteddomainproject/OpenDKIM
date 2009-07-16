@@ -1,0 +1,89 @@
+<html>
+<head><title>dkim_sig_getflags()</title></head>
+<body>
+<!--
+$Id: dkim_sig_getflags.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_sig_getflags()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+
+unsigned int dkim_sig_getflags(
+	<a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *sig
+);
+</pre>
+Retrieve the flags stored for a specific signature.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_sig_getflags()</tt> can be called in the
+    <a href="dkim_set_prescreen.html">prescreen</a> or
+    <a href="dkim_set_final.html">final</a> or
+    callbacks, if defined, or after
+    <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a>. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>sig</td>
+	<td>Signature-specific handle.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Value ---------->
+<tr><th valign="top" align=left>RETURN VALUE</th><td>
+The value returned is a bitwise-OR of the following constants: <br>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Flag Name</th><th>Description</th></tr>
+    <tr valign="top"><td><tt>DKIM_SIGFLAG_IGNORE</tt></td>
+	<td>The signature has been flagged to be ignored by a prior call
+	    to <a href="dkim_sig_ignore.html"><tt>dkim_sig_ignore()</tt></a>.
+	</td></tr>
+    <tr valign="top"><td><tt>DKIM_SIGFLAG_PROCESSED</tt></td>
+	<td>The signature has had DNS validation attempted.
+	</td></tr>
+    <tr valign="top"><td><tt>DKIM_SIGFLAG_PASSED</tt></td>
+	<td>DNS validation succeeded.
+	</td></tr>
+    <tr valign="top"><td><tt>DKIM_SIGFLAG_TESTKEY</tt></td>
+	<td>Key's "in test" flag was set.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

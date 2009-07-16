@@ -1,0 +1,46 @@
+<html>
+<head><title>dkim_sigkey_t</title></head>
+<body>
+<!--
+$Id: dkim_sigkey_t.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_sigkey_t</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Purpose</th>
+<td>A <tt>dkim_sigkey_t</tt> points to the PEM-formatted private key to be
+    used to sign messages.  (For now, it is simply a pointer to a
+    string of type <tt>unsigned char</tt>.) </td>
+</tr>
+</table>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>The calling application should read the PEM file into memory and
+    pass it in as this data type.  Carriage return and newline characters
+    (ASCII 13 and 10, respectively) need not be stripped.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2005 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

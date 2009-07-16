@@ -1,0 +1,65 @@
+<html>
+<head><title>dkim_param_t</title></head>
+<body>
+<!--
+$Id: dkim_param_t.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_param_t</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Purpose</th>
+<td>A <tt>dkim_param_t</tt> is a value from an enumerated list of the possible
+    signature parameters (tags) available. </td>
+</tr>
+<tr align="left" valign=top>
+<th width="80">Possible Values</th>
+<td>
+<ul>
+<li> <tt>DKIM_PARAM_UNKNOWN</tt> -- tags not known by the API
+<li> <tt>DKIM_PARAM_SIGNATURE</tt> -- base64-encode signature data
+<li> <tt>DKIM_PARAM_SIGNALG</tt> -- DKIM signing algorithm
+<li> <tt>DKIM_PARAM_DOMAIN</tt> -- signing domain
+<li> <tt>DKIM_PARAM_CANONALG</tt> -- canonicalization algorithm(s)
+<li> <tt>DKIM_PARAM_QUERYMETHOD</tt> -- key lookup method
+<li> <tt>DKIM_PARAM_SELECTOR</tt> -- selector
+<li> <tt>DKIM_PARAM_HDRLIST</tt> -- colon-separated header list
+<li> <tt>DKIM_PARAM_VERSION</tt> -- version
+<li> <tt>DKIM_PARAM_IDENTITY</tt> -- sender's identity
+<li> <tt>DKIM_PARAM_TIMESTAMP</tt> -- signature timestamp
+<li> <tt>DKIM_PARAM_EXPIRATION</tt> -- signature expiration
+<li> <tt>DKIM_PARAM_COPIEDHDRS</tt> -- copied headers
+<li> <tt>DKIM_PARAM_BODYHASH</tt> -- body hash
+<li> <tt>DKIM_PARAM_BODYLENGTH</tt> -- body length
+</ul>
+</td>
+</tr>
+</table>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

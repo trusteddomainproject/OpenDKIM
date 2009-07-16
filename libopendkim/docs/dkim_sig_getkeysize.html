@@ -1,0 +1,87 @@
+<html>
+<head><title>dkim_sig_getkeysize()</title></head>
+<body>
+<!--
+$Id: dkim_sig_getkeysize.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_sig_getkeysize()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_sig_getkeysize(
+	<a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *sig,
+        unsigned int *bits
+);
+</pre>
+Retrieve the number of bits in the key used to verify a message.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_sig_getkeysize()</tt> is called after the signature handle
+    has been processed by either an explicit call to
+    <a href="dkim_sig_process.html"><tt>dkim_sig_process()</tt></a>
+    or the completion of <a href="dkim_eom.html"><tt>dkim_eom()</tt></a>
+    to get the number of bits in the key used to validate a message.  </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>sig</td>
+	<td>Signature-specific handle.
+	</td></tr>
+    <tr valign="top"><td>bits</td>
+	<td>A pointer to an <tt>unsigned int</tt> which will receive the number
+        of bits in the key used to verify the message.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr><th valign="top" align=left>RETURN VALUES</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Value</th><th>Description</th></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_INVALID</tt></td>
+	<td>The function was called before the signature was processed
+        either explicitly by <tt>dkim_sig_process()</tt>, or implicitly
+        by <tt>dkim_eom()</tt>.
+	</td></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_OK</tt></td>
+	<td>Successful completion.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

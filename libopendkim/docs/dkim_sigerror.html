@@ -1,0 +1,94 @@
+<html>
+<head><title>DKIM_SIGERROR</title></head>
+<body>
+<!--
+$Id: dkim_sigerror.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>DKIM_SIGERROR</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Purpose</th>
+<td>A <tt>DKIM_SIGERROR</tt> is a mnemonic describing a problem found
+    when processing a DKIM signature.  More than one problem may exist
+    in a signature; only one is reported per attempt to process it.
+</tr>
+<tr align="left" valign=top>
+<th width="80">Possible Values</th>
+<td>
+<ul>
+<li> <tt>DKIM_SIGERROR_UNKNOWN</tt> -- unspecified error
+<li> <tt>DKIM_SIGERROR_OK</tt> -- no problems detected
+<li> <tt>DKIM_SIGERROR_VERSION</tt> -- incompatible/unsupported version
+<li> <tt>DKIM_SIGERROR_DOMAIN</tt> -- signing domain and signing identity
+         do not match
+<li> <tt>DKIM_SIGERROR_EXPIRED</tt> -- signature has expired
+<li> <tt>DKIM_SIGERROR_FUTURE</tt> -- timestamp on signature is in the future
+<li> <tt>DKIM_SIGERROR_TIMESTAMPS</tt> -- expiration time is before signature
+         time
+<li> <tt>DKIM_SIGERROR_MISSING_C</tt> -- canonicalization missing
+<li> <tt>DKIM_SIGERROR_INVALID_HC</tt> -- invalid/unsupported header
+         canonicalization
+<li> <tt>DKIM_SIGERROR_INVALID_BC</tt> -- invalid/unsupported body
+         canonicalization
+<li> <tt>DKIM_SIGERROR_MISSING_A</tt> -- signature algorithm missing
+<li> <tt>DKIM_SIGERROR_INVALID_A</tt> -- invalid/unsupported signature
+         algorithm
+<li> <tt>DKIM_SIGERROR_MISSING_H</tt> -- header list missing
+<li> <tt>DKIM_SIGERROR_INVALID_L</tt> -- body length invalid
+<li> <tt>DKIM_SIGERROR_INVALID_Q</tt> -- invalid/unsupported query method
+<li> <tt>DKIM_SIGERROR_INVALID_QO</tt> -- invalid/unsupported query option
+<li> <tt>DKIM_SIGERROR_MISSING_D</tt> -- signing domain missing
+<li> <tt>DKIM_SIGERROR_EMPTY_D</tt> -- signing domain empty
+<li> <tt>DKIM_SIGERROR_MISSING_S</tt> -- selector missing
+<li> <tt>DKIM_SIGERROR_EMPTY_S</tt> -- selector empty
+<li> <tt>DKIM_SIGERROR_MISSING_B</tt> -- signature missing
+<li> <tt>DKIM_SIGERROR_EMPTY_B</tt> -- signature empty
+<li> <tt>DKIM_SIGERROR_CORRUPT_B</tt> -- signature corrupt
+<li> <tt>DKIM_SIGERROR_NOKEY</tt> -- key not found in DNS
+<li> <tt>DKIM_SIGERROR_DNSSYNTAX</tt> -- DNS reply corrupt
+<li> <tt>DKIM_SIGERROR_KEYFAIL</tt> -- DNS query error
+<li> <tt>DKIM_SIGERROR_MISSING_BH</tt> -- missing body hash
+<li> <tt>DKIM_SIGERROR_EMPTY_BH</tt> -- empty body hash
+<li> <tt>DKIM_SIGERROR_CORRUPT_BH</tt> -- corrupt body hash
+<li> <tt>DKIM_SIGERROR_BADSIG</tt> -- signature failed to verify
+<li> <tt>DKIM_SIGERROR_SUBDOMAIN</tt> -- signature violated SSP regarding
+         subdomains
+<li> <tt>DKIM_SIGERROR_MULTIREPLY</tt> -- multiple DNS replies were returned
+<li> <tt>DKIM_SIGERROR_EMPTY_H</tt> -- header list was empty
+<li> <tt>DKIM_SIGERROR_INVALID_H</tt> -- header list missing required entries
+<li> <tt>DKIM_SIGERROR_TOOLARGE_L</tt> -- length tag value exceeds body size
+<li> <tt>DKIM_SIGERROR_MBSFAILED</tt> -- a header on the "must be signed" list
+         was present but not covered by this signature
+<li> <tt>DKIM_SIGERROR_KEYVERSION</tt> -- unknown key version
+<li> <tt>DKIM_SIGERROR_KEYUNKNOWNHASH</tt> -- unknown key hash
+<li> <tt>DKIM_SIGERROR_KEYHASHMISMATCH</tt> -- signature-key hash mismatch
+<li> <tt>DKIM_SIGERROR_NOTEMAILKEY</tt> -- not an e-mail key
+<li> <tt>DKIM_SIGERROR_GRANULARITY</tt> -- key granularity mismatch
+<li> <tt>DKIM_SIGERROR_KEYTYPEMISSING</tt> -- key type missing
+<li> <tt>DKIM_SIGERROR_KEYTYPEUNKNOWN</tt> -- unknown key type
+<li> <tt>DKIM_SIGERROR_KEYREVOKED</tt> -- key revoked
+<li> <tt>DKIM_SIGERROR_KEYDECODE</tt> -- unable to decode public key
+</ul>
+</td></tr>
+</table>
+
+</td></tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007-2009 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

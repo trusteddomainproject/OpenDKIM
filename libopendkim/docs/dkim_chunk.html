@@ -1,0 +1,113 @@
+<html>
+<head><title>dkim_chunk()</title></head>
+<chunk>
+<!--
+$Id: dkim_chunk.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_chunk()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_chunk(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+	unsigned char *chunkp,
+	size_t len
+);
+</pre>
+Handle a chunk of message input.  The input is a buffer of message data
+which may contain headers or body.  An entire message may be fed to the API
+in one buffer using this function.  The API will determine automatically
+the boundary between header fields and the body of the message and process
+it accordingly. <p>
+
+Lines in the data chunk are expected to be CRLF-terminated in the
+standard way. <p>
+
+<a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a> will be called implicitly
+by this function upon encountering the end of the message's header block,
+but the caller must still use
+<a href="dkim_eom.html"><tt>dkim_eom()</tt></a> to complete processing of
+the message.  Also, this function should be called with a NULL value for
+<tt>chunkp</tt> and/or a zero value for <tt>len</tt> when no more chunks
+are to be passed to the API, prior to calling <tt>dkim_eom()</tt>.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_chunk()</tt> is called zero or more times between creation of
+    the DKIM handle, using 
+    <a href="dkim_sign.html"><tt>dkim_sign()</tt></a> and
+    <a href="dkim_verify.html"><tt>dkim_verify()</tt></a>, and
+    <a href="dkim_eom.html"><tt>dkim_eom()</tt></a>.</td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific handle, returned by <a href="dkim_sign.html">
+        <tt>dkim_sign()</tt></a> or
+        <a href="dkim_verify.html"><tt>dkim_verify()</tt></a>
+	</td></tr>
+    <tr valign="top"><td>chunkp</td>
+	<td>Pointer to the start of this block of message data.  A value
+	of NULL indicates to the API that no more chunks are to follow.
+	</td></tr>
+    <tr valign="top"><td>len</td>
+	<td>The amount of data pointed to by <tt>chunkp</tt>.  A value of
+	0 indicates to the API that no more chunks are to follow.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr>
+<th valign="top" align=left>RETURN VALUES</th> 
+<td>
+<ul>
+<li><tt>DKIM_STAT_INVALID</tt> indicates the <tt>dkim</tt> handle was
+    already used in by one of the non-streaming data input calls
+    (e.g. <tt>dkim_header()</tt>, <tt>dkim_eoh()</tt> or <tt>dkim_body()</tt>.
+<li><tt>DKIM_STAT_INVALID</tt> may also indicate that this function was
+    previously called with terminating arguments (see above), implying
+    data input had finished.
+<li><tt>DKIM_STAT_OK</tt> indicates normal completion.
+</ul>
+</td>
+</tr>
+
+</table>
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li><tt>chunkp</tt> points to a sequence of bytes.  It is <em>not</em> expected
+to be a C string (a sequence of characters that is terminated by '\0').
+</ul>
+</td>
+</tr>
+
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2008 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</chunk>
+</html>

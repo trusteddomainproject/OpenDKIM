@@ -1,0 +1,109 @@
+<html>
+<head><title>dkim_policy()</title></head>
+<body>
+<!--
+$Id: dkim_policy.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_policy()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+<a href="dkim_stat.html">DKIM_STAT</a> dkim_policy(
+	<a href="dkim.html">DKIM</a> *dkim,
+        bool *test,
+	bool *susp,
+	<a href="dkim_policy_t.html">dkim_policy_t</a> *pcode,
+	<a href="dkim_handling_t.html">dkim_handling_t</a> *hcode,
+	<a href="dkim_pstate.html">DKIM_PSTATE *</a> pstate
+);
+</pre>
+Retrieve and evaluate the sender signing policy (SSP) for a message.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_policy()</tt> is called after
+    <a href="dkim_eom.html"><tt>dkim_eom()</tt></a> when <tt>dkim</tt> is a
+    verifying handle, i.e. one returned by an earlier call to
+    <a href="dkim_verify.html"><tt>dkim_verify()</tt></a>. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific handle, returned by <a href="dkim_verify.html">
+        <tt>dkim_verify()</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>test</td>
+	<td>A pointer to boolean that is set to be either TRUE (if the policy
+	indicates the domain is using DKIM in a test mode), or FALSE otherwise.
+	</td></tr>
+    <tr valign="top"><td>susp</td>
+	<td>A pointer to boolean that is set to be either TRUE (if the policy
+	indicates the message is suspicious), or FALSE otherwise.
+	</td></tr>
+    <tr valign="top"><td>pcode</td>
+	<td>A pointer to a <tt>dkim_policy_t</tt> which is updated to contain
+	the policy type retrieved from the sender.  This can be NULL if that
+	information is not of interest to the caller.
+	</td></tr>
+    <tr valign="top"><td>hcode</td>
+	<td>A pointer to a <tt>dkim_handling_t</tt> which is updated to contain
+	the recommendation for handling suspicious messages as retrieved from
+	the sender.  This can be NULL if that information is not of interest
+	to the caller.
+	</td></tr>
+    <tr valign="top"><td>pstate</td>
+	<td>A caller may wish to use this function in a re-entrant manner,
+	such as when using a policy lookup callback that may return
+	<tt>DKIM_CBSTAT_TRYAGAIN</tt>.  In that case, the caller should
+	allocate a <tt><a href="dkim_pstate.html">DKIM_PSTATE</a></tt> and
+	initialize it using <tt>memset()</tt> to fill it with all-zeroes, then
+	pass a pointer to it to this function.  If the callback does return
+	<tt>DKIM_CBSTAT_TRYAGAIN</tt>, <tt>pstate</tt> will be updated to
+	contain internal state information so that subsequent calls to
+	this function will simply re-attempt the lookup that could not
+	be completed on the previous attempt, essentially picking up where
+	it left off (avoiding repeated lookups).  Instead, if <tt>pstate</tt>
+	is NULL, the entire policy process will be repeated on each call.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>It is an error to call this function with a handle that was created
+    using <a href="dkim_sign.html"><tt>dkim_sign()</tt></a>.
+<li>This function will return <tt>DKIM_STAT_SYNTAX</tt> if the sender's
+    domain could not be determined or if the SSP record retrieved is not
+    syntactically valid.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2005, 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

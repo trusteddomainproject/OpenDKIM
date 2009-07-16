@@ -1,0 +1,90 @@
+<html>
+<head><title>dkim_sig_hdrsigned()</title></head>
+<body>
+<!--
+$Id: dkim_sig_hdrsigned.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_sig_hdrsigned()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+
+bool dkim_sig_hdrsigned(
+	<a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *sig,
+	char *hdr
+);
+</pre>
+Determine whether or not a particular header was covered by a specific
+signature on a message.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_sig_hdrsigned()</tt> can be called at any time after
+    headers have been processed for a message being signed or
+    verified, essentially after a call to
+    <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a>. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>sig</td>
+	<td>Signature-specific handle.
+	</td></tr>
+    <tr valign="top"><td>hdr</td>
+	<td>The name of the header to be checked.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr><th valign="top" align=left>RETURN VALUES</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Value</th><th>Description</th></tr>
+    <tr valign="top"><td><tt>TRUE</tt></td>
+	<td>The header named by <tt>hdr</tt> was included in the
+	signature referenced by <tt>sig</tt>.
+	</td></tr>
+    <tr valign="top"><td>FALSE</td>
+	<td><tt>sig</tt> did not cover <tt>hdr</tt>.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>The check performed by this function is fairly simple: it will
+see if <tt>hdr</tt> appears in the "h=" tag for the signature
+identified by <tt>sig</tt>.  It does not guarantee that a specific
+instance of that header was signed, which is relevant for headers
+that appear more than once (e.g. Received:).
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2008 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

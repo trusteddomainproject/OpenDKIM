@@ -1,0 +1,79 @@
+<html>
+<head><title>dkim_get_user_context()</title></head>
+<body>
+<!--
+$Id: dkim_get_user_context.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_get_user_context()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+	void * dkim_get_user_context(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim
+);
+</pre>
+Retrieves an opaque user context pointer previously associated with
+a <tt>DKIM</tt> handle by a call to
+<a href="dkim_set_user_context.html"><tt>dkim_set_user_context()</tt></a>,
+if any.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_get_user_context()</tt> can be called at any time.</td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific signing handle, returned by
+        <a href="dkim_sign.html"><tt>dkim_sign()</tt></a> or
+        <a href="dkim_verify.html"><tt>dkim_verify()</tt></a>.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Value ---------->
+<tr>
+<th valign="top" align=left>RETURN VALUES</th> 
+<td>
+The user-specific context pointer previously associated with the named
+handle via a call to
+<a href="dkim_set_user_context.html"><tt>dkim_set_user_context()</tt></a>,
+if any.  If none has been set, the value NULL will be returned.
+</td>
+</tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions get
+forth in the respective licenses.
+</font>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<html>
+<head><title>rfc2822_mailbox_split()</title></head>
+<body>
+<!--
+$Id: rfc2822_mailbox_split.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>rfc2822_mailbox_split()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+int rfc2822_mailbox_split(
+	char *line,
+	char **user_out,
+	char **domain_out
+);
+</pre>
+Parse an RFC2822 header for a user and hostname.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td>At any time. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>line</td>
+	<td>Input line, not including the name of the header.
+	</td></tr>
+    <tr valign="top"><td>user_out</td>
+	<td> Pointer to a variable of type <tt>(char *)</tt> which will be
+        set to point to the "local-part" (user ID) found in the input.
+	</td></tr>
+    <tr valign="top"><td>domain_out</td>
+	<td> Pointer to a variable of type <tt>(char *)</tt> which will be
+        set to point to the domain found in the input.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Value ---------->
+<tr><th valign="top" align=left>RETURN VALUE</th><td>
+0 on success, other on failure.  The failure codes are internal to the library
+for now.
+</td></tr>
+
+<!----------- Notes ---------->
+<tr><th valign="top" align=left>NOTES</th><td>
+<ul>
+<li><tt>line</tt> is modified.
+<li>This function is not part of the DKIM API specification.  It
+    is provided as a facility to implementors to reduce code duplication.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2004, 2005, 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

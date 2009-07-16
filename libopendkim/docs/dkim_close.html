@@ -1,0 +1,71 @@
+<html>
+<head><title>dkim_close()</title></head>
+<body>
+<!--
+$Id: dkim_close.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_close()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+void dkim_close(
+	<a href="dkim_lib.html"><tt>DKIM_LIB</tt></a> *lib
+);
+</pre>
+Shut down an instantiation of the <b>DKIM</b> service.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_close()</tt> is called shutting down the application.  It
+    deallocates all allocated resources having to do with the DKIM library.
+    It does <i>not</i> deallocate resources associated with any existing
+    <a href="dkim.html"><tt>DKIM</tt></a> handles; those should be cleaned
+    up first with calls to <a href="dkim_free.html"><tt>dkim_free()</tt></a>.
+    </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>lib</td>
+	<td>The library handle to be shut down, previously returned from
+        a call to <a href="dkim_init.html"><tt>dkim_init()</tt></a>.
+	</td></tr>
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>When this function returns, the data referenced by <tt>lib</tt> is no
+    longer usable.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

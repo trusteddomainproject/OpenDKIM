@@ -1,0 +1,126 @@
+<html>
+<head><title>dkim_set_final()</title></head>
+<body>
+<!--
+$Id: dkim_set_final.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_set_final()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_set_final(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+        <a href="dkim_cbstat.html">DKIM_CBSTAT</a> (*func)(<a href="dkim.html">DKIM</a> *dkim, <a href="dkim_siginfo.html">DKIM_SIGINFO</a> **sigs, int nsigs));
+);
+</pre>
+Defines a callback function to be used for final scanning and sorting of
+the signatures discovered on a message. <p>
+
+From within <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a>, an array
+of <a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> handles is
+allocated, and an array of pointers is created referring to them.
+During <tt>dkim_eoh()</tt>, a prescreen callback may be used to do
+initial sorting, analysis and disqualification of discovered signatures. <p>
+
+If this callback function is defined, it will be called by
+<a href="dkim_eom.html"><tt>dkim_eom()</tt></a> to give the caller a
+final opportunity to review the signatures and possibly reorder or flag them
+for special treatment by the library now that the entire body has arrived
+and body hashes can be computed.  <tt>sigs</tt> will refer to the array of
+discovered signatures and <tt>nsigs</tt> will indicate the length of this
+array. <p>
+
+From within this callback you can use
+<a href="dkim_sig_getcontext.html"><tt>dkim_sig_getcontext()</tt></a>
+on any of the <tt>DKIM_SIGINFO</tt> pointers to retrieve the user-allocated
+context specific to that signature as created earlier by the allocation
+callback set by
+<a href="dkim_set_signature_handle.html"><tt>dkim_set_signature_handle()</tt></a>
+and make use of the data found there.  That context is not used by the
+library in any way. <p>
+
+Also available are
+<a href="dkim_sig_getflags.html"><tt>dkim_sig_getflags()</tt></a>
+to retrieve current processing flags assigned to a signature,
+<a href="dkim_sig_getbh.html"><tt>dkim_sig_getbh()</tt></a> to retrieve
+the results of the body hash comparison done (if any) on the signature, and
+<a href="dkim_sig_process.html"><tt>dkim_sig_process()</tt></a> to retrieve
+the key named by the signature and attempt public key verification and body
+hash comparison. <p>
+
+The callback can also use the function
+<a href="dkim_sig_ignore.html"><tt>dkim_sig_ignore()</tt></a> to indicate
+to the library that the signature should be ignored. <p>
+
+The callback should return one of the
+<a href="dkim_cbstat.html"><tt>DKIM_CBSTAT</tt></a> return values.  Any
+other value will cause <tt>dkim_eoh()</tt> to abort and return a status
+of <tt>DKIM_STAT_CBINVALID</tt>. <p>
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_set_final()</tt> must be called before
+<a href="dkim_eom.html"><tt>dkim_eom()</tt></a> has been called.  </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific handle, returned by
+        <a href="dkim_verify.html"><tt>dkim_verify()</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>func</td>
+	<td>A pointer to a function which takes a <tt>DKIM</tt> handle,
+	a pointer to an array of <tt>DKIM_SIGINFO</tt> handles and an
+	integer indicating the length of that array as parameters.  If
+	NULL, no callback will be used.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr>
+<th valign="top" align=left>RETURN VALUES</th> 
+<td>
+<ul>
+<li>DKIM_STAT_OK -- success
+<li>DKIM_STAT_INVALID -- <tt>dkim</tt> referred to a signing handle rather
+    than a verifying handle
+</ul>
+</td>
+</tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

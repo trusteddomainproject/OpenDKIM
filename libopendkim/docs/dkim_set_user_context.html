@@ -1,0 +1,90 @@
+<html>
+<head><title>dkim_set_user_context()</title></head>
+<body>
+<!--
+$Id: dkim_set_user_context.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_set_user_context()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_set_user_context(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+        const char *ctx);
+);
+</pre>
+Specifies an opaque user context pointer to be passed to the
+DNS callback set by
+<a href="dkim_set_dns_callback.html"><tt>dkim_set_dns_callback()</tt></a>,
+if any.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_set_user_context()</tt> can be called at any time prior to
+DNS operations while verifying.</td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific signing handle, returned by
+        <a href="dkim_sign.html"><tt>dkim_sign()</tt></a> or
+        <a href="dkim_verify.html"><tt>dkim_verify()</tt></a>.
+	Note that since DNS operations only take place while verifying,
+	this is really only meaningful in the latter case.
+	</td></tr>
+    <tr valign="top"><td>ctx</td>
+	<td>A pointer to a user-generated context handle referencing
+	data specific to the message being signed or verified by the
+	handle provided above.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Value ---------->
+<tr>
+<th valign="top" align=left>RETURN VALUES</th> 
+<td>
+<ul>
+<li>DKIM_STAT_OK -- success
+</ul>
+</td>
+</tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>The context pointer, if set, will be passed as-is to the DNS callback,
+    if any.  It can also be retrieved by the caller at any time using the
+    <a href="dkim_get_dns_callback.html"><tt>dkim_get_dns_callback()</tt></a>
+    function.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

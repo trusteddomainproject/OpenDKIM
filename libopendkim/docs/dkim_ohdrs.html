@@ -1,0 +1,106 @@
+<html>
+<head><title>dkim_ohdrs()</title></head>
+<body>
+<!--
+$Id: dkim_ohdrs.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_ohdrs()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_ohdrs(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+	<a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *sig,
+        char **ptrs, int *pcnt)
+);
+</pre>
+Retrieve the original header set from the "z=" tag in a received
+signature if present.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_ohdrs()</tt> is called in
+    <a href="dkim_eom.html"><tt>dkim_eom()</tt></a> to get the
+    original header set included in a signature on a message, if present,
+    for diagnostic purposes.  The original headers can be compared to
+    the received headers to detect modifications in transit which prevented
+    successful verification of the message. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific handle, returned by
+        <a href="dkim_verify.html"><tt>dkim_verify</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>sig</td>
+	<td>Signature handle from which the original headers should be
+	extracted.
+	</td></tr>
+    <tr valign="top"><td>ptrs</td>
+	<td>A pointer to a an array of <tt>(char *)</tt> pointers which will
+        be updated to point to the original headers.
+    <tr valign="top"><td>pcnt</td>
+	<td>On input, this is used as the count of available pointers
+        in the <tt>ptrs</tt> array.  When returned, this value indicates
+        the number of headers available.  If it is higher on return than
+	it was when called, then there were more headers than there were
+	pointers provided.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr><th valign="top" align=left>RETURN VALUES</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Value</th><th>Description</th></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_INVALID</tt></td>
+	<td>The function was called before <tt>dkim_eom</tt>, or with
+        a handle that was not opened for verification.
+	</td></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_INVALID</tt></td>
+	<td>The value contained in the "z=" tag contained corruption.
+	</td></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_NORESOURCE</tt></td>
+	<td>A memory allocation operation failed.
+	</td></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_OK</tt></td>
+	<td>Successful completion.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

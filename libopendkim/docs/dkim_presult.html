@@ -1,0 +1,75 @@
+<html>
+<head><title>DKIM_PRESULT</title></head>
+<body>
+<!--
+$Id: dkim_presult.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>DKIM_PRESULT</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Purpose</th>
+<td>A <tt>DKIM_PRESULT</tt> is a constant used to render additional
+    information about the policy result produced by a call to
+    <a href="dkim_policy.html"><tt>dkim_policy()</tt></a>.
+</tr>
+<tr align="left" valign=top>
+<th width="80">Possible Values</th>
+<td>
+<ul>
+<li> <tt>DKIM_PRESULT_NONE</tt> -- no result
+<li> <tt>DKIM_PRESULT_NXDOMAIN</tt> -- no such domain
+<li> <tt>DKIM_PRESULT_AUTHOR</tt> -- policy of author's domain returned
+<li> <tt>DKIM_PRESULT_PARENT</tt> -- policy of author's parent domain returned
+<li> <tt>DKIM_PRESULT_NOPARENT</tt> -- no policy found for author's domain
+     or author's parent domain
+<li> <tt>DKIM_PRESULT_NOSUBDOMAIN</tt> -- policy of author's parent domain
+     found but does not cover subdomains
+</ul>
+</tr>
+</table>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+The policy results described above correspond to the draft DKIM
+sender signing practises policy procedures.  Detailed descriptions, with
+the algorithm steps indicated in square brackets, are included here.
+<ul>
+<li><tt>DKIM_PRESULT_NONE</tt> is returned if no policy check has been done
+    yet for the message.
+<li><tt>DKIM_PRESULT_NXDOMAIN</tt> is returned if the policy check was done
+    and it was discovered that the author's domain does not exist.
+<li><tt>DKIM_PRESULT_AUTHOR</tt> is returned if the policy check has been
+    done and a policy at the author's domain was found and returned.
+<li><tt>DKIM_PRESULT_PARENT</tt> is returned if the policy check has been
+    done and a policy at the parent domain of the author's domain was found
+    and returned.
+<li><tt>DKIM_PRESULT_NOPARENT</tt> is returned if the policy check has been
+    done and no policy was found at either the author's domain or the
+    author's parent domain.
+<li><tt>DKIM_PRESULT_NOSUBDOMAIN</tt> is returned if the policy check has been
+    done and a policy was found at the author's parent domain which explicitly
+    does not apply to subdomains.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

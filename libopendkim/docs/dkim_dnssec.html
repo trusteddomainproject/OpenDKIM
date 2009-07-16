@@ -1,0 +1,45 @@
+<html>
+<head><title>DKIM_DNSSEC</title></head>
+<body>
+<!--
+$Id: dkim_dnssec.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>DKIM_DNSSEC</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Purpose</th>
+<td>A <tt>DKIM_DNSSEC</tt> is a mnemonic describing the security
+    of a key or policy record acquired via the DNS.
+</tr>
+<tr align="left" valign=top>
+<th width="80">Possible Values</th>
+<td>
+<ul>
+<li> <tt>DKIM_DNSSEC_UNKNOWN</tt> -- DNSSEC evaluation not done
+<li> <tt>DKIM_DNSSEC_BOGUS</tt> -- DNS response failed DNSSEC evaluation
+<li> <tt>DKIM_DNSSEC_INSECURE</tt> -- DNS response was not secured by DNSSEC
+<li> <tt>DKIM_DNSSEC_SECURE</tt> -- DNS response was secured by DNSSEC
+</ul>
+</td></tr>
+</table>
+
+</td></tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2008 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

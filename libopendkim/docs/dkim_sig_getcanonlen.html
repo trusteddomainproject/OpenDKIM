@@ -1,0 +1,109 @@
+<html>
+<head><title>dkim_sig_getcanonlen()</title></head>
+<body>
+<!--
+$Id: dkim_sig_getcanonlen.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_sig_getcanonlen()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_sig_getcanonlen(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+	<a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *sig,
+        off_t *msglen,
+        off_t *canonlen,
+        off_t *signlen
+);
+</pre>
+Retrieve the number of bytes of message body presented for signing
+or verifying, and/or the number of bytes actually signed or verified.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_sig_getcanonlen()</tt> is called after
+    <a href="dkim_eom.html"><tt>dkim_eom()</tt></a> to get the number of
+    bytes of message body presented for signing or verifying, and/or
+    the number of bytes actually signed or verified.  This is used to
+    allow a verified to insist on minimum signing volumes or
+    percentages (e.g., a verifier may decide not to trust a message which
+    was only partially signed). </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific handle, returned by
+        <a href="dkim_sign.html"><tt>dkim_sign()</tt></a> or
+        <a href="dkim_verify.html"><tt>dkim_verify</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>sig</td>
+	<td>The <tt>DKIM_SIGINFO</tt> handle representing the signature
+	being evaluated.
+	</td></tr>
+    <tr valign="top"><td>msglen</td>
+	<td>A pointer to an <tt>off_t</tt> which will receive a count of
+        the number of bytes in the <i>canonicalized</i> form of the message.
+        This should always be the number of bytes in the message body
+        plus or minus whatever was required to canonicalize it (so for
+        "simple" canonicalization it should be roughly the exact byte count,
+        while for "relaxed" canonicalization it should be somewhat less).
+        Can be NULL if this information is not needed by the caller.
+	</td></tr>
+    <tr valign="top"><td>canonlen</td>
+	<td>A pointer to an <tt>off_t</tt> which will receive a count of
+        the number of bytes in the <i>canonicalized</i> form of the message
+        that were included in the signed data.  If <tt>msglen</tt> and
+        <tt>canonlen</tt> are the same, then the entire message was signed.
+        If it is less, then the signer didn't sign the entire message.
+        A verifier can compare this value with that of <tt>msglen</tt>
+        to see what portion of the total message was signed by the signer.
+        Note that <tt>msglen</tt> and <tt>canonlen</tt> can differ even if
+	no signature length limit was set if, for example, there were
+	trailing blank lines on the message as these are always stripped.
+	Can be NULL if this information is not needed by the caller.
+	</td></tr>
+    <tr valign="top"><td>signlen</td>
+	<td>A pointer to an <tt>off_t</tt> which will receive the signature
+        length limit for this signature (i.e. the value of the "l=" tag
+	if one was present on the signature).  If no limit was set by
+	the signer, a value of -1 is returned.
+        Can be NULL if this information is not needed by the caller.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2005-2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

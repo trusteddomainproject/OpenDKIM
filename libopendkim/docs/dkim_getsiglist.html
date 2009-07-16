@@ -1,0 +1,93 @@
+<html>
+<head><title>dkim_getsiglist()</title></head>
+<body>
+<!--
+$Id: dkim_getsiglist.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+-->
+<h1>dkim_getsiglist()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+
+<a href="dkim_stat.html">DKIM_STAT</a> dkim_getsiglist(
+	<a href="dkim.html">DKIM</a> *dkim,
+	<a href="dkim_siginfo.html">DKIM_SIGINFO</a> **sigs,
+	int *nsigs
+);
+</pre>
+Retrieve the array of <tt>DKIM_SIGINFO</tt> handles associated with a
+message.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_getsiglist()</tt> can be called at any time after
+    <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a> has been called. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific handle, returned by
+        <a href="dkim_sign.html"><tt>dkim_sign</tt></a> or
+        <a href="dkim_verify.html"><tt>dkim_verify</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>sigs</td>
+	<td>A pointer to an array of <tt>DKIM_SIGINFO</tt> handles
+	representing all of the signatures present on the message being
+	handled (updated).
+	</td></tr>
+    <tr valign="top"><td>nsigs</td>
+	<td>A pointer to an integer which will be updated to contain
+	the number of signatures on the message being handled (and thus,
+	the size of the array referenced by <tt>sigs</tt>).
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr><th valign="top" align=left>RETURN VALUES</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Value</th><th>Description</th></tr>
+    <tr valign="top"><td><tt>NULL</tt></td>
+	<td>No siglist message has been stored for this handle.
+	</td></tr>
+    <tr valign="top"><td>otherwise</td>
+	<td>A pointer to the last stored siglist string.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>
