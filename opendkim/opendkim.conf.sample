@@ -1,0 +1,572 @@
+##
+## opendkim.conf -- configuration file for OpenDKIM filter
+##
+## $Id: opendkim.conf.sample,v 1.1 2009/07/16 20:54:24 cm-msk Exp $
+##
+
+##  ADSPDiscard { yes | no }
+##  	default "no"
+##
+##  Reject messages which are determined to be "suspicious" according to the
+##  sending domain's published signing procedure (ADSP) record if that record
+##  also recommends rejection of such messages.
+
+# ADSPDiscard		No
+
+##  ADSPNoSuchDomain { yes | no }
+##  	default "no"
+##
+##  Reject messages which are determined to be from nonexistent domains during
+##  the Author Domain Signing Practises (ADSP) check.
+
+# ADSPNoSuchDomain	No
+
+##  AllowSHA1Only { yes | no }
+##  	default "no"
+##
+##  By default, the filter will refuse to start if signing mode is enabled
+##  but rsa-sha1 will be used (either because it is the only algorithm
+##  available or because it was explicitly requested) since this violates
+##  the strong recommendations of RFC4871 section 3.3.
+
+# AllowSHA1Only		no
+
+##  AlwaysAddARHeader { yes | no }
+##  	default "no"
+##
+##  Add an "Authentication-Results:" header even to unsigned messages
+##  from domains with no "signs all" policy.  The reported DKIM result
+##  will be "none" in such cases.  Normally unsigned mail from non-strict
+##  domains does not cause the results header to be added.
+
+# AlwaysAddARHeader	no
+
+##  AlwaysSignHeaders header-list
+##  	default (none)
+##
+##  Specifies a list of headers whose names should appear in signatures
+##  whether or not they were signed, preventing their later addition.
+
+# AlwaysSignHeaders	header1,header2,...
+
+##  AuthservID string
+##  	default (local host name)
+##
+##  Defines the "authserv-id" token to be used when generating 
+##  Authentication-Results headers after message verification.
+
+# AuthservID		example.com
+
+##  AuthservIDWithJobID
+##  	default "no"
+##
+##  Appends a "/" followed by the MTA's job ID to the "authserv-id" token
+##  when generating Authentication-Results headers after message verification.
+
+# AuthservIDWithJobId	no
+
+##  AutoRestart { yes | no }
+##  	default "no"
+##
+##  Indicate whether or not the filter should arrange to restart automatically
+##  if it crashes.
+
+# AutoRestart		No
+
+##  AutoRestartCount n
+##  	default 0
+##
+##  Sets the maximum automatic restart count.  After this number of
+##  automatic restarts, the filter will give up and terminate.  A value of 0
+##  implies no limit.
+
+# AutoRestartCount	0
+
+##  AutoRestartRate n/t[u]
+##  	default (none)
+## 
+##  Sets the maximum automatic restart rate.  See the opendkim.conf(5)
+##  man page for the format of this parameter.
+
+# AutoRestartRate	n/tu
+
+##  Background { yes | no }
+##  	default "yes"
+##
+##  Indicate whether or not the filter should run in the background.
+
+# Background		Yes
+
+##  BaseDirectory path
+##  	default (none)
+##
+##  Causes the filter to change to the named directory before beginning
+##  operation.  Thus, cores will be dumped here and configuration files
+##  are read relative to this location.
+
+# BaseDirectory		/var/run/opendkim
+
+##  BodyLengths { yes | no }
+##  	default "no"
+##
+##  Indicate whether or not signatures with body length tags should be
+##  generated.
+
+# BodyLengths		No
+
+##  Canonicalization hdrcanon[/bodycanon]
+##  	default "simple/simple"
+##
+##  Select canonicalizations to use when signing.  If the "bodycanon" is
+##  omitted, "simple" is used.  Valid values for each are "simple" and
+##  "relaxed".
+
+# Canonicalization	simple/simple
+
+##  ClockDrift n
+##  	default 300
+##
+##  Specify the tolerance range for expired signatures or signatures
+##  which appear to have timestamps in the future, allowing for clock
+##  drift.
+
+# ClockDrift		300 
+
+##  Diagnostics { yes | no }
+##  	default "no"
+##
+##  Specifies whether or not signatures with header diagnostic tags should
+##  be generated.
+
+# Diagnostics		No
+
+##  DNSTimeout n
+##  	default 10
+##
+##  Specify the time in seconds to wait for replies from the nameserver when
+##  requesting keys or signing policies.
+
+# DNSTimeout		10
+
+##  Domain name[,...]
+##  	default (none)
+##
+##  Specify for which domain(s) signing should be done.  No default; must
+##  be specified for signing.
+
+Domain			example.com
+
+##  DontSignMailTo	addrlist
+##  	default (none)
+##
+##  Gives a list of recipient addresses or address patterns whose mail should
+##  not be signed.  Wildcard ("*") characters are allowed.
+
+# DontSignMailTo	addr1,addr2,...
+
+##  EnableCoredumps { yes | no }
+##  	default "no"
+##
+##  On systems which have support for such, requests that the kernel dump
+##  core even though the process may change user ID during its execution.
+
+# EnableCoredumps	no
+
+##  ExternalIgnoreList filename
+##
+##  Names a file from which a list of externally-trusted hosts is read.
+##  These are hosts which are allowed to send mail through you for signing.
+##  Automatically contains 127.0.0.1.  See man page for file format.
+
+# ExternalIgnoreList	filename
+
+##  FixCRLF { yes | no }
+##
+##  Requests that the library convert "naked" CR and LF characters to
+##  CRLFs during canonicalization.  The default is "no".
+
+# FixCRLF 		no
+
+##  InternalHosts filename
+##
+##  Names a file from which a list of internal hosts is read.  These are
+##  hosts from which mail should be signed rather than verified.
+##  Automatically contains 127.0.0.1.  See man page for file format.
+
+# InternalHosts		filename
+
+##  KeepTemporaryFiles { yes | no }
+##  	default "no"
+##
+##  If set, causes temporary files generated during message signing or
+##  verifying to be left behind for debugging use.  Not for normal operation;
+##  can fill your disks quite fast on busy systems.
+
+# KeepTemporaryFiles	no
+
+##  KeyFile filename
+##
+##  Specifies the path to the private key to use when signing.  Ignored if
+##  Keylist is set.  No default; must be specified for signing.
+
+KeyFile			/var/db/dkim/example.private
+
+##  KeyList filename
+##
+##  Specifies the path to the list of keys and signing domains to be applied
+##  by the signing filter.  The entries in this file should be of the form:
+##
+##  	pattern:domain:keypath
+##
+##  ...where "pattern" is a pattern of user@host to match, with "*" being
+##  allowed as a wildcard; "domain" is the signing domain; and "keypath"
+##  is the path to the private key to use to generate signatures for such
+##  users.  The selector used will be the filename portion of "keypath".
+##  Blank lines are ignored, and the hash ("#") character is interpreted
+##  as the beginning of a comment.  See opendkim.conf(5) for more
+##  information.
+
+# KeyList		/var/db/dkim/keylist
+
+##  LocalADSP filename
+##
+##  Allows specification of local ADSP overrides for domains.  This should be
+##  a path to a file containing entries, one per line, with comments and
+##  blank lines allowed.  An entry is of the form "domain:policy" where
+##  "domain" is either a fully-qualified domain name (e.g. "foo.example.com")
+##  or a subdomain name preceded by a period (e.g. ".example.com"), and
+##  "policy" is either "unknown", "all", or "discardable", as per the current
+##  ADSP draft specification.  This allows local overrides of policies to
+##  enforce for domains which either don't publish ADSP or publish weaker
+##  policies than the verifier would like to enforce.
+
+# LocalADSP		/etc/mail/local-adsp-rules
+
+##  LogWhy { yes | no }
+##  	default "no"
+##
+##  If logging is enabled (see Syslog below), issues very detailed logging
+##  about the logic behind the filter's decision to either sign a message
+##  or verify it.  The logic behind the decision is non-trivial and can be
+##  confusing to administrators not familiar with its operation.  A
+##  description of how the decision is made can be found in the OPERATIONS
+##  section of the opendkim(8) man page.  This causes a large increase
+##  in the amount of log data generated for each message, so it should be
+##  limited to debugging use and not enabled for general operation.
+
+# LogWhy		no
+
+##  MacroList macro[=value][,...]
+##
+##  Gives a set of MTA-provided macros which should be checked to see
+##  if the sender has been determined to be a local user and therefore
+##  whether or not signing should be done.  See opendkim.conf(5) for
+##  more information.
+
+# MacroList		foo=bar,baz=blivit
+
+##  MaximumHeaders n
+##
+##  Disallow messages whose header blocks are bigger than "n" bytes.
+##  Intended to detect and block a denial-of-service attack.  The default
+##  is 65536.  A value of 0 disables this test.
+
+# MaximumHeaders	n
+
+##  MaximumSignedBytes n
+##
+##  Don't sign more than "n" bytes of the message.  The default is to 
+##  sign the entire message.  Setting this implies "BodyLengths".
+
+# MaximumSignedBytes	n
+
+##  MilterDebug n
+##
+##  Request a debug level of "n" from the milter library.  The default is 0.
+
+# MilterDebug		0
+
+##  Minimum n[% | +]
+##  	default 0
+##
+##  Sets a minimum signing volume; one of the following formats:
+##	n	at least n bytes (or the whole message, whichever is less)
+##		must be signed
+##  	n%	at least n% of the message must be signed
+##	n+	if a length limit was presented in the signature, no more than
+##  		n bytes may have been added
+
+# Minimum		n
+
+##  Mode [sv]
+##  	default sv
+##
+##  Indicates which mode(s) of operation should be provided.  "s" means
+##  "sign", "v" means "verify".
+
+# Mode			sv
+
+##  MTA mtaname[,...]
+##  
+##  Specifies a list of MTAs whos mail should always be signed rather than
+##  verified.  The "mtaname" is extracted from the DaemonPortOptions line
+##  in effect.
+
+# MTA			name
+
+##  MustBeSigned
+##  	default (none)
+##
+##  Defines a list of headers which, if present on a message, must be
+##  signed for the signature to be considered acceptable.
+
+# MustBeSigned		header1,header2,...
+
+##  OmitHeaders headerlist
+##  	default (none)
+##
+##  Specifies a list of headers that should always be omitted when signing.
+##  Header names should be separated by commas.
+
+# OmitHeaders		header1,header2,...
+
+##  On-...
+##
+##  Specifies what to do when certain error conditions are encountered.
+##
+##  See opendkim.conf(5) for more information.
+
+# On-Default
+# On-BadSignature
+# On-DNSError
+# On-InternalError
+# On-NoSignature
+# On-Security
+
+##  PeerList filename
+##
+##  Contains a list of IP addresses, CIDR blocks, hostnames or domain names
+##  whose mail should be neither signed nor verified by this filter.  See man
+##  page for file format.
+
+# PeerList		filename
+
+##  PidFile filename
+## 
+##  Name of the file where the filter should write its pid before beginning
+##  normal operations.
+
+# PidFile		filename
+
+##  POPDBFile filename
+##
+##  Names a database which should be checked for "POP before SMTP" records
+##  as a form of authentication of users who may be sending mail through
+##  the MTA for signing.  Requires special compilation of the filter.
+##  See opendkim.conf(5) for more information.
+
+# POPDBFile		filename
+
+##  Quarantine { yes | no }
+##  	default "no"
+##
+##  Indicates whether or not the filter should arrange to quarantine mail
+##  which fails verification.  Intended for diagnostic use only.
+
+# Quarantine		No
+
+##  QueryCache { yes | no }
+##  	default "no"
+##
+##  Instructs the DKIM library to maintain its own local cache of keys and
+##  policies retrieved from DNS, rather than relying on the nameserver for
+##  caching service.  Useful if the nameserver being used by the filter is
+##  not local.  The filter must be compiled with the QUERY_CACHE flag to enable
+##  this feature, since it adds a library dependency.
+
+# QueryCache		No
+
+##  RemoveARAll { yes | no }
+##  	default "no"
+##
+##  Remove all Authentication-Results: headers on all arriving mail.
+
+# RemoveARAll		No
+
+##  RemoveARFrom list
+##  	default (none)
+##
+##  Remove all Authentication-Results: headers on all arriving mail that
+##  claim to have been added by hosts listed in this parameter.  The list
+##  should be comma-separated.  Entire domains may be specified by preceding
+##  the dopmain name by a single dot (".") character.
+
+# RemoveARFrom		host1,host2,.domain1,.domain2,...
+
+##  RemoveOldSignatures { yes | no }
+##  	default "no"
+##
+##  Remove old signatures on messages, if any, when generating a signature.
+
+# RemoveOldSignatures	No
+
+##  ReportAddress addr
+##  	default (executing user)
+##
+##  Specifies the sending address to be used on From: headers of outgoing
+##  failure reports.  By default, the e-mail address of the user executing
+##  the filter is used.
+
+# ReportAddress		postmaster@example.com
+
+##  RequiredHeaders { yes | no }
+##  	default no
+##
+##  Rejects messages which don't conform to RFC2822 header count requirements.
+
+# RequiredHeaders	No
+
+##  Selector name
+##
+##  The name of the selector to use when signing.  No default; must be
+##  specified for signing.
+
+Selector		my-selector-name
+
+##  SendADSPReports { yes | no }
+##  	default "no"
+##
+##  Specifies whether or not the filter should generate report mail back
+##  to senders when the ADSP (Author Domain Signing Practises) check fails for
+##  a message.  See opendkim.conf(5) for details.
+
+# SendADSPReports	No
+
+##  SendReports { yes | no }
+##  	default "no"
+##
+##  Specifies whether or not the filter should generate report mail back
+##  to senders when verification fails and an address for such a purpose
+##  is provided.  See opendkim.conf(5) for details.
+
+# SendReports		No
+
+##  SignatureAlgorithm signalg
+##  	default "rsa-sha256"
+##
+##  Signature algorithm to use when generating signatures.  Must be either
+##  "rsa-sha1" or "rsa-sha256".
+
+# SignatureAlgorithm	rsa-sha256
+
+##  SignatureTTL seconds
+##  	default "0"
+##
+##  Specifies the lifetime in seconds of signatures generated by the
+##  filter.  A value of 0 means no expiration time is included in the
+##  signature.
+
+# SignatureTTL		0
+
+##  SignHeaders header-list
+##  	default (none)
+##
+##  Specifies the list of headers which should be included when generating
+##  signatures.  The string should be a comma-separated list of header names.
+##  See the opendkim.conf(5) man page for more information.
+
+# SignHeaders		header1,header2,...
+
+##  Socket socketspec
+##
+##  Names the socket where this filter should listen for milter connections
+##  from the MTA.  Required.  Should be in one of these forms:
+##
+##  inet:port@address		to listen on a specific interface
+##  inet:port			to listen on all interfaces
+##  local:/path/to/socket	to listen on a UNIX domain socket
+
+Socket			inet:port@localhost
+
+##  StrictTestMode { yes | no }
+##  	default "no"
+##
+##  Selects strict CRLF mode during testing (see the "-t" command line
+##  flag in the opendkim(8) man page).  Messages for which all header
+##  fields and body lines are not CRLF-terminated are considered malformed
+##  and will produce an error.
+
+# StrictTestMode	no
+
+##  SubDomains { yes | no }
+##  	default "no"
+##
+##  Sign for subdomains as well?
+
+# SubDomains		No
+
+##  Syslog { yes | no }
+##  	default "no"
+##
+##  Log informational and error activity to syslog?
+
+# Syslog		No
+
+##  SyslogFacility      facility
+##  	default "mail"
+##
+##  Valid values are :
+##      auth cron daemon kern lpr mail news security syslog user uucp 
+##      local0 local1 local2 local3 local4 local5 local6 local7
+##
+##  syslog facility to be used
+
+# SyslogFacility	mail
+
+##  SyslogSuccess { yes | no }
+##  	default "no"
+##
+##  Log success activity to syslog?
+
+# SyslogSuccess		No
+
+##  TemporaryDirectory path
+##  	default /var/tmp
+##
+##  Specifies which directory will be used for creating temporary files
+##  during message processing.
+
+# TemporaryDirectory	/var/tmp
+
+##  TestPublicKeys filename
+##  	default (none)
+##
+##  Names a file from which public keys should be read.  Intended for use
+##  only during automated testing.
+
+# TestPublicKeys	/tmp/testkeys
+
+##  UMask mask
+##  	default (none)
+##
+##  Change the process umask for file creation to the specified value.
+##  The system has its own default which will be used (usually 022).
+##  See the umask(2) man page for more information.
+
+# UMask			022
+
+##  Userid userid
+##  	default (none)
+##
+##  Change to user "userid" before starting normal operation?  May include
+##  a group ID as well, separated from the userid by a colon.
+
+# UserID		userid
+
+##  X-Header { yes | no }
+##  	default "no"
+##
+##  Add an X- header to messages passing through this filter to identify
+##  messages it has processed.
+
+# X-Header		No
