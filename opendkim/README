@@ -1,0 +1,156 @@
+$Id: README,v 1.1 2009/07/16 20:51:29 cm-msk Exp $
+
+INTRODUCTION
+============
+
+This is the development area for The OpenDKIM Project's DKIM (DomainKeys
+Identified Mail) filter, which is our implementation of the DKIM service.
+
+The filter implemented here, if plugged into the a Milter-aware MTA, provides
+signing and verification service as per the DKIM specification.
+
+DKIM is a merger of the Yahoo!'s DomainKeys (DK) specification, and Cisco's
+Internet Identified Mail (IIM) proposal.
+
+
+COMPILING
+=========
+
+Requires sendmail v8.13.0 or later, for required milter protocol
+enhancements.
+
+To build this package:
+
+(1) Download and unpack the source package.
+(2) Change to the opendkim-(version) directory.
+(3) Type "./configure".
+(4) Type "make".
+
+
+INSTALLING
+==========
+
+(1) Configure sendmail:
+  (a) Choose a socket at which the MTA and the filter will rendezvous
+      (see the documentation in libmilter for details)
+  (b) Add a line like this example to your sendmail.mc using your desired
+      socket specification:
+	INPUT_MAIL_FILTER(`opendkim', `S=inet:8891@localhost')
+  (c) Rebuild your sendmail.cf in the usual way
+
+(2) Choose a selector name.  Current convention is to use the hostname
+    (hostname only, not the fully-qualified domain name) of the host that
+    will be providing the service, but you are free to choose any name you
+    wish, especially if you have a selector assignment scheme in mind.
+
+(3) Either:
+  (a) Run the script gentxt.csh.  This will generate a public and private
+      key in PEM format and output a TXT record appropriate for insertion
+      into your DNS zone file.  Insert it in your zone file and reload your
+      DNS system so the data is published.
+	-OR-
+  (b) Manually generate a public and private key:
+    (i)   % openssl genrsa -out rsa.private 1024
+    (ii)  % openssl rsa -in rsa.private -out rsa.public -pubout -outform PEM
+    (iii) Add a TXT DNS record containing the base64 encoding of your public
+          key, which is everything between the BEGIN and END lines in the
+          rsa.public file generated above, with spaces and newlines removed.
+          It should be in this form:
+
+	  "v=DKIM1; k=rsa; t=y; p=MFwwDQYJ...AwEAAQ=="
+
+          ...using, of course, your own public key's base64 data.  The name of
+          the TXT record should be SELECTOR._domainkey.example.com (where
+          "SELECTOR" is the name you chose and "example.com" is your domain
+          name).  You might want to set a short TTL on this record.  Reload
+          your nameserver so that the record gets published.  For a translation
+          of the parameter and value pairs shown here, see the draft spec;
+          basically this just announces an RSA public key and also declares
+          that your site is using this key in test mode so nobody should take
+          any real action based on success or failure of the use of this key to
+          verify a message.
+
+(4) Store the private key in a safe place.  We generally use a path like
+    /var/db/dkim/SELECTOR.key.pem (where "SELECTOR" is the name you
+    chose).
+
+(5) Start opendkim.  You will need at least the "-p" option.  The current
+    recommended set of command line options is:
+
+	-l -p SOCKETSPEC -d DOMAIN -k KEYPATH -s SELECTOR
+
+    ...where SOCKETSPEC is the socket you told sendmail to use above,
+    DOMAIN is the domain or set of domains for which you want to sign
+    mail, KEYPATH is the path to the private key file you generated, and
+    SELECTOR is the selector name you picked.  You can tack "-f" on there
+    if you want it to run in the foreground instead of in the background
+    as a daemon.
+
+(6) Restart sendmail.
+
+
+DEBUG FEATURES
+==============
+
+Two configuration file entries are provided to enable detailed debugging
+and forensics when tracking down failed verifications.  These are
+"KeepTemporaryFiles" and "TemporaryDirectory".
+
+When a message is to be signed or verified, its headers and body are passed
+through a selected canonicalization algorithm.  The output of this algorithm
+is stored in a pair of temporary files if "KeepTemporaryFiles" is enabled.
+If a verifier and a signer both produce these files, they can be compared
+after a failed verification to determine how the signed data and verified
+data differ.
+
+"TemporaryDirectory" simply selects the directory to be used to create
+these files, if other than the default (/var/tmp) is desired.
+
+These debug features are useful when using a remote verifier that is equipped
+to send back replies which contain the canonicalization output at the remote
+end.  Such a verifier, when a signature verification fails, will ask the
+sending domain for its sender policy.  If that policy exists and contains
+an "r=" tag, then the verifier will send a message to the address
+contained in that tag which contains the canonicalized forms of the failing
+message as generated at the verifier.  Comparing these forms to the local
+copies of the same (generated as described above) using a utility such as
+"diff" will show how a message was modified between the signing and verifying
+operations.  This will usually reveal the cause of the failed verification.
+
+To become a verifier that sends such responses, start opendkim with the
+"-R" command line option.
+
+
+REUSING DOMAINKEYS RECORDS
+==========================
+
+Published DomainKeys key records are almost totally compatible with DKIM.
+The one area in which they differ is the use of the granularity ("g=") tag.
+
+Under DomainKeys, the default granularity is the empty string.  DomainKeys
+interprets this as "match anyone".  However, DKIM interprets this as
+"match none".  Thus, a key record containing "g=" means one thing to
+DomainKeys but the opposite to DKIM, making it incompatible.
+
+Under DKIM, the default granularity is "*", which means "match anyone".
+
+Since both systems have defaults that mean "match anyone", a DomainKeys
+key record which doesn't have a "g=" string in it at all will work as
+expected with DKIM.  Thus, if you want to use one key record with both
+systems, remove the "g=" portion of the record and reload your nameserver.
+
+
+SUPPORT
+=======
+
+To get support or report bugs, you can access the Sourceforge "tracker"
+facilities at http://sourceforge.net/projects/opendkim.
+
+There are two public mailing lists available for news and questions about
+OpenDKIM.  To keep up to date on the latest developments, please
+subscribe to one or both of the following:
+
+	opendkim-announce@opendkim.org (release announcements)
+	opendkim-discuss@opendkim.org (general discussion)
+
+You can subscribe to these lists via the project URL above.
