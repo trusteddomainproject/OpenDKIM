@@ -1,0 +1,15 @@
+$Id: README,v 1.1 2009/07/16 18:55:20 cm-msk Exp $
+
+
+INTRODUCTION
+============
+
+This is the development area for OpenDKIM's libar, which is a reusable
+(i.e. not tied to any particular package) asynchronous resolver.
+
+
+NOTES
+=====
+
+o Uses pthreads, and thus may not be compatible with applications using
+  other threading systems (state threads, event threads).
