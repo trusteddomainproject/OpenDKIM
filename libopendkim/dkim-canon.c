@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.1 2009/07/16 19:12:03 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.2 2009/07/16 19:18:14 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -652,14 +652,21 @@ dkim_canon_fixcrlf(DKIM *dkim, DKIM_CANON *canon, u_char *buf, size_t buflen)
 	{
 		if (*p == '\n' && prev != '\r')
 		{
+			/* fix a solitary LF */
 			dkim_dstring_catn(dkim->dkim_canonbuf, CRLF, 2);
 		}
-		else if (*p == '\r' && p < eob && *(p + 1) != '\n')
+		else if (*p == '\r')
 		{
-			dkim_dstring_catn(dkim->dkim_canonbuf, CRLF, 2);
+			if (p < eob && *(p + 1) != '\n')
+				/* fix a solitary CR */
+				dkim_dstring_catn(dkim->dkim_canonbuf, CRLF, 2);
+			else
+				/* CR at EOL, or CR followed by a LF */
+				dkim_dstring_cat1(dkim->dkim_canonbuf, *p);
 		}
 		else
 		{
+			/* something else */
 			dkim_dstring_cat1(dkim->dkim_canonbuf, *p);
 		}
 
@@ -1453,7 +1460,8 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 						{
 							cur->canon_blanks++;
 						}
-						else if (wlen == 1)
+						else if (wlen == 1 ||
+						         p == start)
 						{
 							dkim_canon_buffer(cur,
 							                  CRLF,
@@ -1473,13 +1481,23 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 				}
 				else
 				{
-					if (p == start && fixcrlf &&
+					if (p == start &&
 					    cur->canon_lastchar == '\r')
 					{
-						dkim_canon_buffer(cur,
-						                  "\n", 1);
-						cur->canon_lastchar = '\n';
-						cur->canon_blankline = TRUE;
+						if (fixcrlf)
+						{
+							dkim_canon_buffer(cur,
+							                  CRLF,
+							                  2);
+							cur->canon_lastchar = '\n';
+							cur->canon_blankline = TRUE;
+						}
+						else
+						{
+							dkim_canon_buffer(cur,
+							                  "\r",
+							                  1);
+						}
 					}
 
 					if (*p != '\r')
@@ -1507,7 +1525,8 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 						{
 							cur->canon_blanks++;
 						}
-						else if (wlen == 1)
+						else if (wlen == 1 ||
+						         p == start)
 						{
 							dkim_canon_buffer(cur,
 							                  CRLF,
@@ -1527,13 +1546,23 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 				}
 				else
 				{
-					if (p == start && fixcrlf &&
+					if (p == start &&
 					    cur->canon_lastchar == '\r')
 					{
-						dkim_canon_buffer(cur,
-						                  "\n", 1);
-						cur->canon_lastchar = '\n';
-						cur->canon_blankline = TRUE;
+						if (fixcrlf)
+						{
+							dkim_canon_buffer(cur,
+							                  CRLF,
+							                  2);
+							cur->canon_lastchar = '\n';
+							cur->canon_blankline = TRUE;
+						}
+						else
+						{
+							dkim_canon_buffer(cur,
+							                  "\r",
+							                  1);
+						}
 					}
 
 					/* non-space after a space */
@@ -1591,6 +1620,9 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 			assert(0);
 			/* NOTREACHED */
 		}
+
+		if (wlen > 0 && wrote[wlen - 1] == '\r')
+			wlen--;
 
 		dkim_canon_buffer(cur, wrote, wlen);
 	}
