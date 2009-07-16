@@ -1,0 +1,520 @@
+.TH opendkim 8 "The OpenDKIM Project"
+.SH NAME
+.B opendkim
+- DKIM signing and verifying filter for MTAs
+.SH SYNOPSIS
+.B opendkim
+-p socketspec [-a peerlist] [-A] [-b modes] [-c canon] [-C config] [-d domains] [-D] [-f] [-F time] [-i ilist] [-I eilist] [-h] [-k keyfile] [-K] [-l] [-L min] [-m mtas] [-M macro[=value][,...]] [-n] [-o hdrlist] [-P pidfile] [-q] [-r] [-R] [-s selector] [-S signalg] [-t testfile] [-T secs] [-u userid[:group]] [-U popdb] [-v] [-V] [-W] [-x configfile]
+.SH DESCRIPTION
+.B opendkim
+implements the proposed
+.B DKIM
+standard for signing and verifying e-mail messages on a per-domain basis.
+
+.B opendkim
+uses the
+.I milter
+interface, originally distributed as part of version 8.11 of
+.B sendmail(8),
+to provide DKIM signing and/or verifying service for mail transiting
+a milter-aware MTA.
+
+Most, if not all, of the command line options listed below can also be set
+using a configuration file.  See the
+.I -x
+option for details.
+.SH OPTIONS
+.TP
+.I -a peerlist
+Identifies a file of "peers" which identifies clients whose connections
+should be accepted without processing by this filter.  The
+.I peerlist
+should contain on each line a hostname, domain name (e.g. ".example.com"),
+IP address, an IPv6 address (including an IPv4 mapped address), or a
+CIDR-style IP specification (e.g. "192.168.1.0/24").  An entry beginning
+with a bang ("!") character means "not", allowing exclusions of specific
+hosts that are otherwise members of larger sets.  The order of entries
+in this file is therefore significant.
+.TP
+.I -A
+Automatically re-start on failures.  Use with caution; if the filter
+fails instantly after it starts, this can cause a tight
+.I fork(2)
+loop.  This can be mitigated using some values in the configuration file
+to limit restarting.  See
+.I opendkim.conf(5).
+.TP
+.I -b modes
+Selects operating modes.
+.I modes
+is a concatenation of characters that indicate which mode(s) of operation
+are desired.  Valid modes are
+.I s
+(signer) and
+.I v
+(verifier).  The default is
+.I sv
+except in test mode (see
+.I -t
+below) in which case the default is
+.I v.
+.TP
+.I -c canon
+Selects the canonicalization method(s) to be used when signing messages.
+When verifying, the message's DKIM-Signature: header specifies
+the canonicalization method.  The recognized values are
+.I relaxed
+and
+.I simple
+as defined by the DKIM specification.  The default is
+.I simple.
+The value may include two different canonicalizations separated by a
+slash ("/") character, in which case the first will be applied to the
+headers and the second to the body.
+.TP
+.I -C config
+Configuration control.  See the CONFIGURATION section for details.
+.TP
+.I -d domain [,...]
+A comma-separated list of domains whose mail should be signed by this
+filter.  Mail from other domains will be verified rather than being signed.
+
+The value of this parameter may also be a filename from which domain names
+will be read.  The "#" character in such a file is assumed to indicate a
+comment.  An absolute path must be used (i.e. the first character must be
+a "/").
+
+In either case, the domain name(s) may contain the special character "*"
+which is treated as a wildcard character matching zero or more characters
+in a domain name.
+
+Matching is case-insensitive.
+
+This parameter is not required if
+.I -K
+is in use; in that case, the list of signed domains is implied by the
+lines in the key file.
+.TP
+.I -D
+Sign subdomains of those listed by the
+.I -d
+option as well as the actual domains.
+.TP
+.I -f
+Normally
+.I opendkim
+forks and exits immediately, leaving the service running in the background.
+This flag suppresses that behaviour so that it runs in the foreground.
+.TP
+.I -F time
+Specifies a fixed time to use when generating signatures.  Ignored unless
+also used in conjunction with
+.I -t
+(see below).  The time must be expressed in the usual UNIX
+.I time_t
+(seconds since epoch) format.
+.TP
+.I -h
+Causes
+.I opendkim
+to add a header indicating the presence of this filter in the path of
+the message from injection to delivery.  The product's name, version, and
+the job ID are included in the header's contents.
+.TP
+.I -i ilist
+Identifies a file of internal hosts whose mail should be signed rather
+than verified.  Entries in this file follow the same form as those of
+the
+.I -a
+option above.  If not specified, the default of "127.0.0.1" is applied.
+Naturally, providing a value here overrides the default, so if mail from
+127.0.0.1 should be signed, the list provided here should include that
+address explicitly.
+.TP
+.I -I eilist
+Identifies a file of "external" hosts which may send mail through the server
+as one of the signing domains without credentials as such.  Basically
+suppresses the "external host (hostname) tried to send mail as (domain)"
+log messages.  Entries in the
+.I eilist
+file should be of the same form as those of the
+.I -a
+option above.  The list is empty by default.
+.TP
+.I -K
+Requests multiple-key processing.  See also
+.I -k
+below.
+.TP
+.I -k keyfile
+Without
+.I -K,
+gives the location of a PEM-formatted private key to be used for signing
+all messages.  With
+.I -K,
+gives the location of a file listing rules for signing with multiple keys.
+
+In the latter mode, the
+.I keyfile
+should contain a set of lines of the form
+.I sender-pattern:signing-domain:keypath
+where
+.I sender-pattern
+is a pattern to match against message senders (with the special character
+"*" interpreted as "zero or more characters"),
+.I signing-domain
+is the domain to announce as the signing domain when generating signatures, and
+.I keypath
+is the path to the PEM-formatted private key to be used for signing messages
+which match the
+.I sender-pattern.
+The selector used in the signature will be the filename portion of
+.I keypath.
+
+If the file referenced by
+.I keypath
+cannot be opened, the filter will try again by appending ".pem"
+and then ".private" before giving up.
+.TP
+.I -l
+Log via calls to
+.I syslog(3)
+any interesting activity.
+.TP
+.I -L min[%+]
+Instructs the verification code to fail messages for which a partial
+signature was received.  There are three possible formats:
+.I min
+indicating at least
+.I min
+bytes of the message must be signed (or if the message is smaller than
+.I min
+then all of it must be signed);
+.I min%
+requiring that at least
+.I min
+percent of the received message must be signed; and
+.I min+
+meaning there may be no more than
+.I min
+bytes of unsigned data appended to the message for it to be considered
+valid.
+.TP
+.I -m mta[,...]
+A comma-separated list of MTA names (a la the
+.I sendmail(8)
+DaemonPortOptions Name parameter) whose mail should be signed by this
+filter.  If not set, the MTA name is not used when deciding whether or not
+a message should be signed.
+.TP
+.I -M macro[=value][,...]
+Defines a set of MTA-provided
+.I macros
+which should be checked to see if the sender has been determined to be a
+local user and therefore whether or not the message should be signed.  If a
+.I value
+is specified, the value of the macro must match the value specified
+(matching is case-insensitive), otherwise the macro must be defined
+but may contain any value.  Multiple tests may be specified, separated
+by commas.  The set is empty by default, meaning macros are not used when
+deciding whether or not a message should be signed.
+
+The general format of the string is
+.I test1[,test2[,...]]
+where a "test" is of the form
+.I macro[=value1[|value2[|...]]];
+if one or more value is defined then the macro must be set to one of the
+listed values, otherwise the macro must be set but can contain any
+value.
+.TP
+.I -n
+Parse the configuration file and command line arguments, reporting any
+errors found, and then exit.  The exit value will be 0 if the filter would
+start up without complaint, or non-zero otherwise.
+.TP
+.I -o hdrlist
+Specifies a list of headers which should be omitted when generating
+signatures.
+.I hdrlist
+should be a comma-separated list of header names.  If an entry in the list
+names any header which is mandated by the DKIM specification, the entry
+is ignored.  A set of headers is listed in the DKIM specification as
+"SHOULD NOT" be signed; the default list for this parameter contains those
+headers (Return-Path, Received, Comments, Keywords, Bcc, Resent-Bcc and
+DKIM-Signature).  To omit no headers, simply use the string "-" (or any
+string which will match no headers).
+.TP
+.I -p socketspec
+Specifies the socket that should be established by the filter to receive
+connections from
+.I sendmail(8)
+in order to provide service.
+.I socketspec
+is in one of two forms:
+.I local:path
+which creates a UNIX domain socket at the specified
+.I path,
+or
+.I inet:port[@host]
+which creates a TCP socket on the specified
+.I port.
+If the
+.I host
+is not given as either a hostname or an IP address, the socket will be
+listening on all interfaces.  If neither socket type is specified,
+.I local
+is assumed, meaning the parameter is interpreted as a path at which
+the socket should be created.  This parameter is mandatory.
+.TP
+.I -P pidfile
+Writes the process ID of the filter, once started, to the filename given.
+.TP
+.I -q
+Requests that messages which fail verification be quarantined by the
+MTA.  (Requires a sufficiently recent version of the milter library.)
+.TP
+.I -r
+Checks all messages for compliance with RFC2822 header count requirements.
+Non-compliant messages are rejected.
+.TP
+.I -R
+When a signature verification fails and the signing site advertises a
+reporting address (i.e.
+.I r=user@host
+in its policy record), send a structured report to that address containing
+details needed to reproduce the problem.
+.TP
+.I -s selector
+Defines the name of the selector to be used when signing messages.
+See the
+.B DKIM
+specification for details.
+.TP
+.I -S signalg
+Selects the signing algorithm to use when generating signatures.
+If the filter was compiled against version 0.9.8 or later of
+.B OpenSSL
+then both
+.I rsa-sha1
+and 
+.I rsa-sha256
+are available and the latter is the default.  Otherwise, only the former
+is available and it is (obviously) the default.
+.TP
+.I -t testfile
+Evaluates (verifies) an RFC2822-formatted message found in
+.I testfile
+and exits.  The value of
+.I testfile
+may be "-" if the message should be read from standard input.
+.TP
+.I -T secs
+Sets the DNS timeout in seconds.  A value of 0 causes an infinite wait.
+The default is 5.  Ignored if not using the asynchronous resolver package.
+See also the NOTES section below.
+.TP
+.I -u userid[:group]
+Attempts to be come the specified
+.I userid
+before starting operations.  The process will be assigned all of the groups
+and primary group ID of the named
+.I userid
+unless an alternate
+.I group
+is specified.
+.TP
+.I -U popdb
+Requests that the filter consult a POP authentication database for IP
+addresses that should be allowed for signing.  The filter must be specially
+compiled to enable this feature, since it adds a library dependency.
+.TP
+.I -v
+Increase verbose output during test mode (see
+.I -t
+above).  May be specified more than once to request increasing amounts of
+output.
+.TP
+.I -V
+Print the version number and supported canonicalization and signature
+algorithms, and then exit without doing anything else.
+.TP
+.I -W
+If logging is enabled (see
+.I -l
+above), issues very detailed logging about the logic behind the filter's
+decision to either sign a message or verify it.  The "W" stands for "Why?!"
+since the logic behind the decision is non-trivial and can be confusing to
+administrators not familiar with its operation.  A description of how
+the decision is made can be found in the OPERATION section of this
+document.  This causes a large increase in the amount of log data generated
+for each message, so it should be limited to debugging use and not enabled
+for general operation.
+.TP
+.I -x configfile
+Read the named configuration file.  See the
+.I opendkim.conf(5)
+man page for details.  Values in the configuration file are overridden
+when their equivalents are provided on the command line until a configuration
+reload occurs.  The OPERATION section describes how reloads are triggered.
+.SH ACTION CONFIGURATION
+The value of the
+.I -C
+switch is a comma-separated list of settings of the form
+.I result=action
+which defines what the filter should do with messages that produce
+certain results.  Each result and each action has a full name and an
+abbreviated name.  Either is accepted.  Below, the abbreviated name appears
+in parentheses.
+.TP
+.I results
+.I badsignature
+(bad) the signature found in the message did not verify successfully
+against the message;
+.I dnserror
+(dns) an error was encountered attempting to retrieve a public key from
+the nameserver;
+.I internal
+(int) an internal error occurred;
+.I nosignature
+(no) no signature was present on the message;
+.I security
+(sec) the message tripped internal security concerns (e.g. unusually large
+header blocks).  There is also a special result called
+.I default
+(def) whose action is copied onto all of the other results.
+.TP
+.I action
+.I accept
+(a) accept the message;
+.I discard
+(d) discard the message;
+.I tempfail
+(t) temp-fail the message;
+.I reject
+(r) reject the message.
+.PP
+In the interests of minimal initial impact, the defaults for
+.I badsignature
+and
+.I nosignature
+are
+.I accept,
+and the default for the others is
+.I tempfail.
+.PP
+Results and actions are processed in order, so use of the
+.I default
+action can be overridden by later specifications.  For example, using
+"def=a,int=t" sets all result actions to "accept" except for internal
+errors which will generate a temporary failure.
+.SH OPERATION
+A message will be verified unless it conforms to the signing criteria,
+which are: (1) the domain on the From: address or Sender: address (if present)
+must be listed by the
+.I -d
+command line switch or the
+.I Domain
+configuration file setting, and (2) (a) the client connecting to the MTA must
+have authenticated, or (b) the client connecting to the MTA must be listed in
+the file referenced by the
+.I -i
+command line switch (or be in the default list for that option), or (c)
+the client must be connected to a daemon port named by the
+.I -m
+command line switch, or (d) the MTA must have set one or more macros
+matching the criteria set by the
+.I -M
+command line switch.
+
+When signing a message, a
+.I DKIM-Signature:
+header will be prepended to the message.  The signature is computed using
+the private key provided.  You must be running a version of
+.I sendmail(8)
+recent enough to be able to do header prepend operations (8.13.0 or later).
+
+When verifying a message, an
+.I Authentication-Results:
+header will be prepended to indicate the presence of a signature and whether
+or not it could be validated against the body of the message using the
+public key advertised by the sender's nameserver.  The value of this header
+can be used by mail user agents to sort or discard messages that were not
+signed or could not be verified.
+
+Upon receiving SIGUSR1, if the filter was started with a configuration
+file, it will be re-read and the new values used.  Note that any
+command line overrides provided at startup time will be lost when this is
+done.  Also, the following configuration file values (and their corresponding
+command line items, if any) are not reloaded through this process:
+AutoRestart (-A),
+AutoRestartCount,
+AutoRestartRate,
+Background,
+MilterDebug,
+PidFile (-P),
+POPDBFile,
+Quarantine (-q),
+QueryCache,
+Socket (-p),
+StrictTestMode,
+TestPublicKeys,
+UMask,
+UserID (-u).  The filter does not automatically check the configuration
+file for changes and reload.
+.SH ENVIRONMENT
+The following environment variable(s) can be used to adjust the behaviour
+of this filter:
+.TP
+.I DKIM_TMPDIR
+The directory to use when creating temporary files.  The default is
+.I /var/tmp.
+.SH NOTES
+When using DNS timeouts (see the
+.I -T
+option above), be sure not to use a timeout that is larger than the timeout
+being used for interaction between
+.I sendmail
+and the filter.  Otherwise, the MTA could abort a message while waiting for
+a reply from the filter, which in turn is still waiting for a DNS reply.
+
+The POP authentication database is expected to be a Sleepycat DB file
+(formerly known as a Berkeley DB) in hash format with keys containing
+the IP address in text form without a terminating NULL.  The values of
+these records are not checked; only the existence of such records is of
+interest.  The filter will attempt to establish a shared lock on the
+database before reading from it, so any programs which write to the
+database should keep their lock use to a minimum or else this filter
+will appear to hang while waiting for the lock operation to complete.
+
+Features that involve specification of IPv4 addresses or CIDR blocks
+will use the
+.I inet_addr(3)
+function to parse that information.  Users should be familiar with the
+way that function handles the non-trivial cases (for example, "1.2.3/24"
+and "1.2.3.0/24" are not the same thing).
+.SH HISTORY
+DKIM is an amalgam of Yahoo!'s
+.B DomainKeys
+proposal, and Cisco's
+.B Internet Identified Mail
+(IIM) proposal.
+.SH VERSION
+This man page covers version 1.0.0 of
+.I opendkim.
+.SH COPYRIGHT
+Copyright (c) 2005-2008, Sendmail, Inc. and its suppliers.  All rights
+reserved.
+
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+.I opendkim.conf(5), sendmail(8)
+.P
+Sendmail Operations Guide
+.P
+RFC4871 - DomainKeys Identified Mail
+.P
+RFC5321 - Simple Mail Transfer Protocol
+.P
+RFC5322 - Internet Messages
+.P
+RFC5451 - Message Header Field for Indicating Message Authentication Status

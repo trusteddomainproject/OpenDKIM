@@ -1,0 +1,810 @@
+.TH opendkim.conf 5 "The OpenDKIM Project"
+
+.SH NAME
+.B opendkim.conf
+- Configuration file for opendkim
+
+.SH LOCATION
+.I /etc/mail/opendkim.conf
+
+.SH DESCRIPTION
+.I opendkim(8)
+implements the
+.B DKIM
+specification for signing and verifying e-mail messages on a per-domain
+basis.  This file is its configuration file.
+
+Blank lines are ignored.  Lines containing a hash ("#") character are
+truncated at the hash character to allow for comments in the file.
+
+Other content should be the name of a parameter, followed by white space,
+followed by the value of that parameter, each on a separate line.
+
+For parameters which are Boolean in nature, only the first byte of
+the value is processed.  For positive values, the following are accepted:
+"T", "t", "Y", "y", "1".  For negative values, the following are accepted:
+"F", "f", "N", "n", "0".
+
+Many, but not all, of these parameters are also available as command
+line options to
+.I opendkim(8).
+However, new parameters are generally not added as command line options
+so the complete set of options is available here, and thus use of the
+configuration file is encouraged.  In some future release, the
+set of available command line options is likely to get trimmed.
+
+See the 
+.I opendkim(8)
+man page for details about how and when the configuration file contents
+are reloaded.
+
+.SH PARAMETERS
+.TP
+.I ADSPDiscard (Boolean)
+If "true", requests rejection of messages which are determined to be
+suspicious according to the author domain's published signing practises
+(ADSP) record if that record also recommends discard of such messages.
+
+.TP
+.I ADSPNoSuchDomain (Boolean)
+If "true", requests rejection of messages which are determined to be
+from nonexistent domains according to the author domain signing practises
+(ADSP) test.
+
+.TP
+.I AllowSHA1Only (Boolean)
+Permit verify mode when only SHA1 support is available.  RFC4871 requires
+that verifiers implement both SHA1 and SHA256 support.  Setting this
+feature changes the absence of SHA256 support from an error to a warning.
+
+.TP
+.I AlwaysAddARHeader (Boolean)
+Add an "Authentication-Results:" header even to unsigned messages
+from domains with no "signs all" policy.  The reported DKIM result
+will be "none" in such cases.  Normally unsigned mail from non-strict
+domains does not cause the results header to be added.
+
+.TP
+.I AlwaysSignHeaders (string)
+Specifies a list of headers which should be included in all signature
+header lists (the "h=" tag) even if they were not present at the time
+the signature was generated.  The string should be a comma-separated
+list of header names.  The list is empty by default.  The purpose of
+listing an absent header is to prevent its addition between the signer
+and the verifier, since the verifier would include that header if it were
+added when performing verification, which would mean the signed message
+and the verified message were different and the verification would fail.
+
+.TP
+.I AuthservID (string)
+Sets the "authserv-id" to use when generating the Authentication-Results:
+header after verifying a message.  The default is to use the local machine's
+hostname.
+
+.TP
+.I AuthservIDWithJobID (Boolean)
+If "true", requests that the authserv-id portion of the added
+Authentication-Results: headers contain the job ID of the message being
+evaluated.
+
+.TP
+.I AutoRestart (Boolean)
+Automatically re-start on failures.  Use with caution; if the filter
+fails instantly after it starts, this can cause a tight
+.I fork(2)
+loop.
+
+.TP
+.I AutoRestartCount (integer)
+Sets the maximum automatic restart count.  After this number of
+automatic restarts, the filter will give up and terminate.
+A value of 0 implies no limit; this is the default.
+
+.TP
+.I AutoRestartRate (string)
+Sets the maximum automatic restart rate.  If the filter begins restarting
+faster than the rate defined here, it will give up and terminate.
+This is a string of the form
+.I n/t[u]
+where
+.I n
+is an integer limiting the count of restarts in the given interval and
+.I t[u]
+defines the time interval through which the rate is calculated;
+.I t
+is an integer and
+.I u
+defines the units thus represented ("s" or "S" for seconds, the default;
+"m" or "M" for minutes; "h" or "H" for hours; "d" or "D" for days).  For
+example, a value of "10/1h" limits the restarts to 10 in one hour.  There
+is no default, meaning restart rate is not limited.
+
+.TP
+.I Background (Boolean)
+Normally
+.I opendkim
+forks and exits immediately, leaving the service running in the background.
+This flag suppresses that behaviour so that it runs in the foreground.
+
+.TP
+.I BaseDirectory (string)
+If set, instructs the filter to change to the specified directory using
+.I chdir(2)
+before doing anything else.  This means any files referenced elsewhere
+in the configuration file can be specified relative to this directory.
+It's also useful for arranging that any crash dumps will be saved to
+a specific location.
+
+.TP
+.I BodyLengths (Boolean)
+Requests that
+.I opendkim
+include the "l=" body length tag when generating signatures.  This
+indicates to the verifier that only a certain amount of the original
+message was signed, allowing tolerance of things like mailing list
+managers which append list-specific text to the end of mailings
+it processes.  However, this also enables an abuse attack.  See the
+DKIM specification for more information.
+
+.TP
+.I BogusKey (string)
+(Only available if the filter was compiled with libunbound to enable
+DNSSEC support.)
+Instructs the filter to treat a passing signature associated with a bogus
+(forged) key in a special way.  Possible values are
+.I neutral
+(return a "neutral" result),
+.I none
+(take no special action) and
+.I fail
+(return a "fail" result; this is the default).
+
+.TP
+.I BogusPolicy (string)
+(Only available if the filter was compiled with libunbound to enable
+DNSSEC support.)
+Instructs the filter to treat an ADSP policy found in an bogus (forged) DNS
+record in a special way.  Possible values are
+.I apply
+(apply the policy) and
+.I ignore
+(ignore the policy; this is the default).
+
+.TP
+.I Canonicalization (string)
+Selects the canonicalization method(s) to be used when signing messages.
+When verifying, the message's DKIM-Signature: header specifies
+the canonicalization method.  The recognized values are
+.I relaxed
+and
+.I simple
+as defined by the DKIM specification.  The default is
+.I simple.
+The value may include two different canonicalizations separated by a
+slash ("/") character, in which case the first will be applied to the
+headers and the second to the body.
+
+.TP
+.I ClockDrift (integer)
+Sets the tolerance in seconds to be applied when determining whether a
+signature was either expired or generated in the future.  The default
+is 300.
+
+.TP
+.I Diagnostics (Boolean)
+Requests the inclusion of "z=" tags in signatures, which encode the
+original header set for use by verifiers when diagnosing verification
+failures.  Not recommended for normal operation.
+
+.TP
+.I DNSTimeout (integer)
+Sets the DNS timeout in seconds.  A value of 0 causes an infinite wait.
+The default is 5.  Ignored if not using the asynchronous resolver package.
+See also the NOTES section below.
+
+.TP
+.I Domain (string)
+A comma-separated list of domains whose mail should be signed by this
+filter.  Mail from other domains will be verified rather than being signed.
+
+The value of this parameter may also be a filename from which domain names
+will be read.  The "#" character in such a file is assumed to indicate a
+comment.  An absolute path must be used (i.e. the first character must be
+a "/").
+
+In either case, the domain name(s) may contain the special character "*"
+which is treated as a wildcard character matching zero or more characters
+in a domain name.
+
+This parameter is not required if a
+.I KeyList
+is in use; in that case, the list of signed domains is implied by the
+lines in that file.
+
+.TP
+.I DontSignMailTo (string)
+A comma-separated list of e-mail addresses (with "*" allowed as a wildcard
+character), mail to which should never be signed by the filter.  Note that
+this is an "any" feature; if any one of the recipients of the message
+matches a member of this list, the message will not be signed.
+
+.TP
+.I EnableCoredumps (boolean)
+On systems which have such support, make an explicit request to the kernel
+to dump cores when the filter crashes for some reason.  Some modern UNIX
+systems suppress core dumps during crashes for security reasons if the
+user ID has changed during the lifetime of the process.  Currently only
+supported on Linux.
+
+.TP
+.I ExternalIgnoreList (string)
+Identifies a file of "external" hosts which may send mail through the server
+as one of the signing domains without credentials as such.  Basically
+suppresses the "external host (hostname) tried to send mail as (domain)"
+log messages.  Entries in the file should be of the same form as those of
+the
+.I PeerList
+option below.  The list is empty by default.
+
+.TP
+.I FixCRLF (Boolean)
+Requests that the DKIM library convert bare CRs and LFs to CRLFs during
+body canonicalization, anticipating that an MTA somewhere before delivery
+will do that conversion anyway.  The default is to leave them as-is.
+
+.TP
+.I Include (string)
+Names a file to be opened and read as an additional configuration file.
+Nesting is allowed to a maximum of five levels.
+
+.TP
+.I InsecureKey (string)
+(Only available if the filter was compiled with libunbound to enable
+DNSSEC support.)
+Instructs the filter to treat a passing signature associated with an
+insecure key in a special way.  Possible values are
+.I neutral
+(return a "neutral" result),
+.I none
+(take no special action; this is the default) and
+.I fail
+(return a "fail" result).
+
+.TP
+.I InsecurePolicy (string)
+(Only available if the filter was compiled with libunbound to enable
+DNSSEC support.)
+Instructs the filter to treat an ADSP policy found in an insecure DNS
+record in a special way.  Possible values are
+.I apply
+(apply the policy; this is the default) and
+.I ignore
+(ignore the policy).
+
+.TP
+.I InternalHosts (string)
+Identifies a file of internal hosts whose mail should be signed rather
+than verified.  Entries in this file follow the same form as those of
+the
+.I PeerList
+option below.  If not specified, the default of "127.0.0.1" is applied.
+Naturally, providing a value here overrides the default, so if mail from
+127.0.0.1 should be signed, the list provided here should include that
+address explicitly.
+
+.TP
+.I KeepTemporaryFiles (boolean)
+Instructs the filter to create temporary files containing the header and
+body canonicalizations of messages which are signed or verified.
+The location of these files can be set using the
+.I TemporaryDirectory
+parameter.  Intended only for debugging verification problems.
+
+.TP
+.I KeyFile (string)
+Gives the location of a PEM-formatted private key to be used for signing
+all messages.  Ignored if
+.I KeyList
+is defined.
+
+.TP
+.I KeyList (string)
+Gives the location of a file listing rules for signing with multiple keys.
+If present, overrides any
+.I KeyFile
+setting in the conifguration file.  The file named here should contain a
+set of lines of the form
+.I sender-pattern:signing-domain:keypath
+where
+.I sender-pattern
+is a pattern to match against message senders (with the special character
+"*" interpreted as "zero or more characters"),
+.I signing-domain
+is the domain to announce as the signing domain when generating signatures, and
+.I keypath
+is the path to the PEM-formatted private key to be used for signing messages
+which match the
+.I sender-pattern.
+The selector used in the signature will be the filename portion of
+.I keypath.
+If the file referenced by
+.I keypath
+cannot be opened, the filter will try again by appending ".pem"
+and then ".private" before giving up.
+
+.TP
+.I LocalADSP (string)
+Allows specification of local ADSP overrides for domains.  This is expected
+to be a file containing entries, one per line, with comments and blank lines
+allowed.  An entry is of the form
+.I domain:policy
+where
+.I domain
+is either a fully-qualified domain name (e.g. "foo.example.com") or a
+subdomain name preceded by a period (e.g. ".example.com"), and
+.I policy
+is either
+.I unknown,
+.I all,
+or
+.I discardable,
+as per the current ADSP draft specification.  This allows local overrides
+of policies to enforce for domains which either don't publish ADSP or publish
+weaker policies than the verifier would like to enforce.
+
+.TP
+.I LogWhy (boolean)
+If logging is enabled (see
+.I Syslog
+below), issues very detailed logging about the logic behind the filter's
+decision to either sign a message or verify it.  The logic behind the
+decision is non-trivial and can be confusing to administrators not familiar
+with its operation.  A description of how the decision is made can be found
+in the OPERATIONS section of the
+.I opendkim(8)
+man page.  This causes a large increase in the amount of log data generated
+for each message, so it should be limited to debugging use and not enabled
+for general operation.
+
+.TP
+.I MacroList (string)
+Defines a set of MTA-provided
+.I macros
+which should be checked to see if the sender has been determined to be a
+local user and therefore whether or not the message should be signed.  If
+a
+.I value
+is specified, the value of the macro must match a value specified
+(matching is case-sensitive), otherwise the macro must be defined
+but may contain any value.  The set is empty by default, meaning
+macros are not considered when making the sign-verify decision.
+The general format of the string is
+.I test1[,test2[,...]]
+where a "test" is of the form
+.I macro[=value1[|value2[|...]]];
+if one or more value is defined then the macro must be set to one of the
+listed values, otherwise the macro must be set but can contain any
+value.
+
+.TP
+.I MaximumHeaders (integer)
+Defines the maximum number of bytes the header block of a message may
+consume before the filter will reject the message.  This mitigates
+a denial-of-service attack in which a client connects to the MTA
+and begins feeding an unbounded number of header fields of arbitrary
+size; since the filter keeps a cache of these, the attacker could
+cause the filter to allocate an unspecified amount of memory.  The
+default is 65536; a value of 0 removes the limit.
+
+.TP
+.I MaximumSignedBytes (integer)
+Specifies the maximum number of bytes of message body to be signed.
+Messages shorter than this limit will be signed in their entirety.
+Setting this value forces
+.I BodyLengths
+to be "True".
+
+.TP
+.I MilterDebug (integer)
+Sets the debug level to be requested from the milter library.  The
+default is 0.
+
+.TP
+.I Minimum (string)
+Instructs the verification code to fail messages for which a partial
+signature was received.  There are three possible formats:
+.I min
+indicating at least
+.I min
+bytes of the message must be signed (or if the message is smaller than
+.I min
+then all of it must be signed);
+.I min%
+requiring that at least
+.I min
+percent of the received message must be signed; and
+.I min+
+meaning there may be no more than
+.I min
+bytes of unsigned data appended to the message for it to be considered
+valid.
+
+.TP
+.I Mode (string)
+Selects operating modes.  The string is a concatenation of characters which
+indicate which mode(s) of operation are desired.  Valid modes are
+.I s
+(signer) and
+.I v
+(verifier).  The default is
+.I sv
+except in test mode (see the
+.I opendkim(8)
+man page)
+in which case the default is
+.I v.
+
+.TP
+.I MTA (string)
+A comma-separated list of MTA names (a la the
+.I sendmail(8)
+DaemonPortOptions Name parameter) whose mail should be signed by this
+filter.  There is no default, meaning MTA name is not considered when
+making the sign-verify decision.
+
+.TP
+.I MustBeSigned (string)
+Specifies a list of headers which, if present, must be covered by the
+DKIM signature when verifying a message.  The string should be a
+comma-separated list of header names.  If a header in this list is present
+in the message and is not signed, the filter will treat even an otherwise
+valid signature as invalid.  The default is an empty list.
+
+.TP
+.I OmitHeaders (string)
+Specifies a list of headers which should be omitted when generating
+signatures.  The string should be a comma-separated list of header names.
+If an entry in the list names any header which is mandated by the DKIM
+specification, the entry is ignored.  A set of headers is listed in
+the DKIM specification as "SHOULD NOT" be signed; the default list for
+this parameter contains those headers (Return-Path, Received, Comments,
+Keywords, Bcc, Resent-Bcc and DKIM-Signature).  To omit no headers,
+simply use the string "-" (or any string which will match no headers).
+Note that specifying a list with this parameter replaces the default
+entirely.
+
+.TP
+.I On-BadSignature (string)
+Selects the action to be taken when a signature fails to validate.
+Possible values (with abbreviated forms in parentheses):
+.I accept
+(a) accept the message;
+.I discard
+(d) discard the message;
+.I tempfail
+(t) temp-fail the message;
+.I reject
+(r) reject the message.
+The default is
+.I accept.
+
+.TP
+.I On-Default (string)
+Selects the action to be taken when any verification or internal error of
+any kind is encountered.  This is processed before the other "On-" values
+so it can be used as a blanket setting followed by specific overrides.
+
+.TP
+.I On-DNSError (string)
+Selects the action to be taken when a transient DNS error is encountered.
+Possible values are the same as those for
+.I On-BadSignature.
+The default is
+.I tempfail.
+
+.TP
+.I On-InternalError (string)
+Selects the action to be taken when an internal error of some kind is
+encountered.  Possible values are the same as those for
+.I On-BadSignature.
+The default is
+.I tempfail.
+
+.TP
+.I On-NoSignature (string)
+Selects the action to be taken when a message arrives unsigned.
+Possible values are the same as those for
+.I On-BadSignature.
+The default is
+.I accept.
+
+.TP
+.I On-Security (string)
+Selects the action to be taken when a message arrives containing properties
+that may be a security concern.  Possible values are the same as those for
+.I On-BadSignature.
+The default is
+.I tempfail.
+
+.TP
+.I PeerList (string)
+Identifies a file of "peers" which identifies clients whose connections
+should be accepted without processing by this filter.  The file
+should contain on each line a hostname, domain name (e.g. ".example.com"),
+IP address, an IPv6 address (including an IPv4 mapped address), or a
+CIDR-style IP specification (e.g. "192.168.1.0/24").  An entry beginning
+with a bang ("!") character means "not", allowing exclusions of specific
+hosts that are otherwise members of larger sets.  The order of entries
+in this file is therefore significant.
+
+.TP
+.I PidFile (string)
+Specifies the path to a file which should be created at process start
+containing the process ID.
+
+.TP
+.I POPDBFile (string)
+Requests that the filter consult a POP authentication database named
+in the string for IP addresses that should be allowed for signing.  The
+filter must be compiled with the POPAUTH flag to enable this feature, since
+it adds a library dependency.
+
+.TP
+.I Quarantine (Boolean)
+Requests that messages which fail verification be quarantined by the
+MTA.  (Requires a sufficiently recent version of the milter library.)
+
+.TP
+.I QueryCache (Boolean)
+Instructs the DKIM library to maintain its own local cache of keys and
+policies retrieved from DNS, rather than relying on the nameserver for
+caching service.  Useful if the nameserver being used by the filter is
+not local.  The filter must be compiled with the QUERY_CACHE flag to enable
+this feature, since it adds a library dependency.
+
+.TP
+.I RemoveARAll (Boolean)
+Removes all Authentication-Results: header fields which also satisfy the
+requirements of
+.I RemoveARFrom
+below.  By default, only those containing a DKIM result are removed.
+
+.TP
+.I RemoveARFrom (string)
+Lists patterns of hostnames whose Authentication-Results: header fields should
+be removed before the message is passed for delivery.  By default only
+those headers matching the local host's canonical name will be removed.
+If more than one pattern is desired, the list should be comma-separated.
+Matching is only done on full hostnames (e.g. "host.example.com") or on
+domain names (e.g. ".example.com").
+
+.TP
+.I RemoveOldSignatures (Boolean)
+Removes all existing signatures when operating in signing mode.
+
+.TP
+.I ReportAddress (string)
+Specifies the string to use in the From: header field for outgoing reports
+(see
+.I SendReports
+and
+.I SendADSPReports
+below).  If not specified, the executing user and local hostname will be
+used to construct the address.
+
+.TP
+.I RequiredHeaders (boolean)
+Checks all messages for compliance with RFC2822 header count requirements.
+Non-compliant messages are rejected.
+
+.TP
+.I Selector (string)
+Defines the name of the selector to be used when signing messages.
+See the
+.B DKIM
+specification for details.  Used only when signing with a single key;
+see the
+.I KeyList
+parameter above for more information.
+
+.TP
+.I SendADSPReports (Boolean)
+If true, when a policy evaluation fails and the signing site advertises a
+reporting address (i.e.
+.I r=user
+in its policy record) and a request for reports of such failures, the filter
+will send a structured report to that address containing details of the
+incident.
+
+.TP
+.I SendReports (Boolean)
+If true, when a signature verification fails and the signing site advertises a
+reporting address (i.e.
+.I r=user
+in its policy record) and a request for reports of such failures, the filter
+will send a structured report to that address containing details needed to
+reproduce the problem.
+
+.TP
+.I SignatureAlgorithm (string)
+Selects the signing algorithm to use when generating signatures.
+If the filter was compiled against version 0.9.8 or later of
+.B OpenSSL
+then both
+.I rsa-sha1
+and 
+.I rsa-sha256
+are available and the latter is the default.  Otherwise, only the former
+is available and it is (obviously) the default.
+
+.TP
+.I SignatureTTL (integer)
+Sets the time-to-live, in seconds, of signatures generated by the filter.
+If not set, no expiration time is added to signatures.
+
+.TP
+.I SignHeaders (string)
+Specifies the list of headers which should be included when generating
+signatures.  The string should be a comma-separated list of header names.
+If the list omits any header which is mandated by the DKIM specification,
+those headers are implicitly added.  By default, those headers listed in
+the DKIM specification as "SHOULD" be signed will be signed by the filter.
+Specifying a list here replaces that list entirely.  See the
+.I OmitHeaders
+configuration option for more information.
+
+.TP
+.I Socket (string)
+Specifies the socket that should be established by the filter to receive
+connections from
+.I sendmail(8)
+in order to provide service.
+.I socketspec
+is in one of two forms:
+.I local:path
+which creates a UNIX domain socket at the specified
+.I path,
+or
+.I inet:port[@host]
+which creates a TCP socket on the specified
+.I port.
+If the
+.I host
+is not given as either a hostname or an IP address, the socket will be
+listening on all interfaces.  This option is mandatory either in the
+configuration file or on the command line.
+
+.TP
+.I StrictTestMode (Boolean)
+Selects strict CRLF mode during testing (see the
+.I -t
+command line flag in the
+.I opendkim(8)
+man page); messages for which all header fields and body lines are not
+CRLF-terminated are considered malformed and will produce an error.
+
+.TP
+.I SubDomains (Boolean)
+Sign subdomains of those listed by the
+.I Domain
+parameter as well as the actual domains.
+
+.TP
+.I Syslog (Boolean)
+Log via calls to
+.I syslog(3)
+any interesting activity.
+
+.TP
+.I SyslogFacility (string)
+Log via calls to
+.I syslog(3)
+using the named facility.  The facility names are the same as the ones
+allowed in
+.I syslog.conf(5).  The default is "mail".
+
+.TP
+.I SyslogSuccess (Boolean)
+Log via calls to
+.I syslog(3)
+additional entries indicating successful signing or verification of
+messages.
+
+.TP
+.I TemporaryDirectory (string)
+Specifies the directory in which temporary canonicalization files should
+be written.  The default is to use the
+.I libdkim
+default location, currently
+.I /var/tmp.
+
+.TP
+.I TestPublicKeys (string)
+Names a file from which public keys should be read.  Intended for use only
+during automated testing.
+
+.TP
+.I TrustAnchorFile (string)
+Specifies a file from which trust anchor data should be read when doing
+DNS queries and applying the DNSSEC protocol.  Requires that the filter
+be compiled with USE_UNBOUND set.  See the Unbound documentation at
+http://unbound.net for the expected format of this file.
+
+.TP
+.I TrustSignaturesFrom (string)
+Like
+.I Domain,
+this value consists of either a comma-separated list of domain names
+or a file containing a list of domains.  In either case, the list of domains
+is used to decide which domains are considered trustworthy in terms of
+third-party signatures.  That is, if a message arrives with a signature
+from a domain that doesn't match the domain in the From: header,
+this setting determines whether or not that signature will be trusted.
+If this value is undefined, all signatures are trusted.
+
+.TP
+.I UMask (integer)
+Requests a specific permissions mask to be used for file creation.
+This only really applies to creation of the socket when
+.I Socket
+specifies a UNIX domain socket, and to the
+.I PidFile
+(if any); temporary files are created by the
+.I mkstemp(3)
+function which enforces a specific file mode on creation regardless
+of the process umask.  See
+.I umask(2)
+for more information.
+
+.TP
+.I UserID (string)
+Attempts to become the specified userid before starting operations.
+The value is of the form
+.I userid[:group].
+The process will be assigned all of the groups and primary group ID of
+the named
+.I userid
+unless an alternate
+.I group
+is specified.
+
+.TP
+.I X-Header (Boolean)
+Causes
+.I opendkim
+to add a header indicating the presence of this filter in the path of
+the message from injection to delivery.  The product's name, version, and
+the job ID are included in the header's contents.
+
+.SH NOTES
+When using DNS timeouts (see the
+.I DNSTimeout
+option above), be sure not to use a timeout that is larger than the timeout
+being used for interaction between
+.I sendmail
+and the filter.  Otherwise, the MTA could abort a message while waiting for
+a reply from the filter, which in turn is still waiting for a DNS reply.
+
+Features that involve specification of IPv4 addresses or CIDR blocks
+will use the
+.I inet_addr(3) 
+function to parse that information.  Users should be familiar with the
+way that function handles the non-trivial cases (for example, "1.2.3/24"    
+and "1.2.3.0/24" are not the same thing).
+.SH VERSION
+This man page covers version 1.0.0 of
+.I opendkim.
+
+.SH COPYRIGHT
+Copyright (c) 2007, 2008, Sendmail, Inc. and its suppliers.  All rights
+reserved.
+
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+.I opendkim(8), sendmail(8)
+.P
+RFC4871 - DomainKeys Identified Mail
+.P
+RFC5451 - Message Header Field for Indicating Message Authentication Status
+.P
+Author Domain Signing Practises draft (draft-ietf-dkim-ssp-10)

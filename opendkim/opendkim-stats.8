@@ -1,0 +1,87 @@
+.TH OPENDKIM-STATS 8 "The OpenDKIM Project"
+.SH NAME
+opendkim-stats - output opendkim statistics
+.SH SYNOPSIS
+.B opendkim-stats
+.I file
+.SH DESCRIPTION
+The
+.B opendkim-stats
+utility reads from an
+.I opendkim
+statistics database and dumps the data therein to standard output.  It takes as
+its only argument the path to this database.  The
+.I opendkim
+statistics gathering is disabled by default, but can be enabled through a
+.I Statistics
+entry in
+.I /etc/opendkim.conf.
+This is currently an undocumented feature of the
+.I OpenDKIM
+package which must be enabled by a compile-time option.
+.SH OUTPUT
+.B opendkim-stats
+groups statistics output by domain and canonicalization.  Each line begins
+with a domain and a header/body canonicalization.  The canonicalization is
+currently the raw enumerated value taken from the libdkim headers; for
+reference, 0 = simple, 1 = relaxed, and 2 = noswp.  This format looks like:
+
+.SP 1
+.RI "domain:" x / x "\t" x " pass/"  x " fail, last v=" x ", l=" x ", a=" x ", date"
+.SP 1
+
+For each line, the following statistics are shown:
+.TP
+.IB number " pass/" number " fail"
+Count of passes and failures
+.TP
+.BI "last v=" version
+Most recent DKIM signature version seen; this is another integer code starts
+at 0 and goes through 5, with higher numbers representing more recent versions
+of the draft DKIM specification.
+.TP
+.BI "l=" number
+A boolean indicating whether or not the most recent signed message had an "l="
+tag in its signature.
+.TP
+.BI "a=" algorithm
+Most recent algorithm seen (0 = rsa-sha1; 1 = rsa-sha256)
+.TP
+.I date
+Last date a signed message was seen
+.SH EXAMPLES
+.RI "gmail.com:" 1 / 1 "\t" 212 " pass/" 0 " fail, last v=" 2 ", l=" 0 ", a=" 0 ", Sat May  5 17:42:58 2007"
+.PP
+gmail.com, using canonicalization
+.I relaxed/relaxed
+, has sent
+.I 212
+messages that passed signature verification and
+.I 0
+that failed.  The most recently seen signature version was
+.I 2
+, the most recently seen signature algorithm
+was
+.I rsa-sha1
+, and the last message did
+.I not
+include a length tag.  The most recent message was seen on
+.I 2007/05/05
+at
+.I 17:42:58
+in the server's local time zone.
+.SH NOTES
+The output of
+.B opendkim-stats
+is subject to change.  Please be aware of this when upgrading to future
+releases, especially if you develop any scripts that consume the output.
+.SH SEE ALSO
+.I opendkim(8)
+.SH VERSION
+This man page covers the
+.I opendkim-stats
+that shipped with version 1.0.0 of
+.I OpenDKIM.
+.SH HISTORY
+This original version of this man page was contributed by
+Mike Markley <mike@markley.org> for the Debian project.
