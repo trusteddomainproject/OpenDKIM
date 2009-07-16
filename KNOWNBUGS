@@ -1,0 +1,27 @@
+
+
+	     K N O W N   B U G S   I N   O P E N D K I M
+
+
+The following are bugs or deficiencies in the OpenDKIM package that we
+are aware of but which have not been fixed in the current release.  You
+probably want to get the most up to date version of this from
+http://www.opendkim.org.  For descriptions of bugs that
+have been fixed, see the file RELEASE_NOTES.
+
+This list is not guaranteed to be complete.  Check the OpenDKIM web site for
+additional pending bugs and feature requests.
+
+
+SIGNATURE HEADER TRUNCATION
+
+The sendmail MTA caps the length of headers to prevent a known MIME
+header attack.  Unfortunately this can interfere with processing of a
+sufficiently large DKIM-Signature header.  If you are getting failures
+on large signature headers which should otherwise be passing, consider
+adjusting the value of the MaxMimeHeaderLength option to a larger value
+(or to 0 which removes the limit).  See the sendmail MTA configuration
+documentation for more information.
+
+
+$Revision: 1.1 $, Last updated $Date: 2009/07/16 18:42:55 $
