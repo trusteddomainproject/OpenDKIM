@@ -1,0 +1,96 @@
+.TH opendkim-genkey 8 "The OpenDKIM Project"
+.SH NAME
+.B opendkim-genkey
+- DKIM filter key generation tool
+.SH SYNOPSIS
+.B opendkim-genkey
+[options]
+.SH DESCRIPTION
+.B opendkim-genkey
+generates (1) a private key for signing messages using
+.I opendkim(8)
+and (2) a DNS TXT record suitable for inclusion in a zone file which
+publishes the matching public key for use by remote DKIM verifiers.
+
+The filenames of these are based on the selector (see below); the private
+key will have a suffix of ".private" and the TXT record will have a suffix
+of ".txt".
+.SH OPTIONS
+.TP
+.I -b bits
+Specifies the size of the key, in
+.I bits,
+to be generated.  The default is 1024 which is the value recommended by
+the DKIM specification.
+
+.TP
+.I -d domain
+Names the
+.I domain
+which will use this key for signing.  Currently only used in a comment in
+the TXT record file.  The default is "example.com".
+
+.TP
+.I -D directory
+Instructs the tool to change to the named
+.I directory
+prior to creating files.  By default the current directory is used.
+
+.TP
+.I -g granularity
+Defines the key
+.I granularity,
+i.e. the user(s) who may use the key.  The default is "*" meaning any
+user can use the key.
+
+.TP
+.I -h algorithms
+Specifies a list of hash
+.I algorithms
+which can be used with this key.  By default all hash algorithms are allowed.
+
+.TP
+.I -n note
+Includes arbitrary
+.I note
+text in the key record.  By default, no such text is included.
+
+.TP
+.I -r
+Restricts the key for use in e-mail signing only.  The default is to allow
+the key to be used for any service.
+
+.TP
+.I -s selector
+Specifies the
+.I selector,
+or name, of the key pair generated.  The default is "default".
+
+.TP
+.I -S
+Disallows subdomain signing by this key.  By default the key record will be
+generated such that verifiers are told subdomain signing is permitted.
+
+.TP
+.I -t
+Indicates the generated key record should be tagged such that verifiers are
+aware DKIM is in test at the signing domain.
+.SH NOTES
+Requires that the
+.I openssl(8)
+binary be installed and in the executing shell's search path.
+.SH VERSION
+This man page covers the version of
+.I opendkim-genkey
+that shipped with version 1.0.0 of
+.I OpenDKIM.
+.SH COPYRIGHT
+Copyright (c) 2007, 2008 Sendmail, Inc. and its suppliers.  All rights
+reserved.
+
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+.I opendkim(8),
+.I openssl(8)
+.P
+RFC4871 - DomainKeys Identified Mail
