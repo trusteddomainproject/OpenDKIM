@@ -1,0 +1,1259 @@
+			DKIM-MILTER RELEASE NOTES
+	$Id: RELEASE_NOTES.Sendmail,v 1.1 2009/07/16 18:44:26 cm-msk Exp $
+
+
+This listing shows the versions of the dkim-milter package, the date of
+release, and a summary of the changes in that release.
+
+Bug and feature request (RFE) numbers that start with "SF" were logged
+via Sourceforge (http://www.sourceforge.net) trackers.  Those not so labeled
+were logged internally at Sendmail, Inc.
+
+
+2.8.3		2009/05/31
+	Close the configuration file after reading it, plugging a
+		descriptor leak.
+	Release memory associated with old configuration nodes (i.e. strings)
+		as well as the nodes themselves.
+	Connect the configuration handle to its allocated data so cleanup can
+		actually be thorough.
+	Fix an error message reported inside _FFR_REPLACE_RULES.
+	Plug a memory leak in mlfi_header() tripped when errors occur.
+	Since ADSP has not yet been registered by IANA, adjust its method
+		label in Authentication-Results accordingly.
+	Include selector, domain and other text if possible when logging
+		key retrieval failures.
+	Add _FFR_SENDER_HEADERS, allowing user control over which header
+		fields are used to make the sign/verify decision and
+		perform key selection.
+	LIBDKIM: Initialize canon_lastchar in dkim_add_canon().
+	LIBDKIM: Clean up any compiled regular expressions in dkim_close().
+	LIBDKIM: Fix some type-related compiler warnings.
+
+2.8.2		2009/02/17
+	Request a signature with an "i=" tag if signing for subdomains and
+		a keylist entry matches.  Previously this only occurred when
+		using an explicit domain list.  Problem noted by
+		S. Moonesamy of Eland Systems.
+	Fixes in and around dkim_socket_cleanup().  Problem noted by
+		S. Moonesamy of Eland Systems.
+	LIBDKIM: When logging a d2i_PUBKEY_bio() or EVP_PKEY_get1_RSA()
+		failure, also log the selector and domain involved so manual
+		diagnostics are possible.
+	LIBDKIM/LIBAR: Feature request #SF2380508: Add new test for
+		WITHOUT_LIBSM which removes references to libsm's sm_strl*()
+		functions, so that libdkim and libar can stand on their own
+		on systems which provide the strl*() functions.  Requested by
+		Frederik Pettai.
+	LIBDKIM: Report DKIM_STAT_NOSIG if the caller commands that all
+		signatures should be ignored.
+	LIBDKIM: Plug a memory leak caused when responding to a malloc()
+		failure.
+	LIBDKIM: New signature error code DKIM_SIGERROR_KEYDECODE, used if
+		 d2i_PUBKEY_BIO() or EVP_PKEY_get1_RSA fails in
+		dkim_sig_process().
+	LIBAR: Make reference to the "_res" structure more thread-safe.
+	BUILD: Make use of conf_dkim_filter_ENVDEF since site.config.m4.dist
+		refers to it.  Problem noted by S. Moonesamy of Eland Systems.
+
+2.8.1		2009/01/16
+	LIBDKIM: Fix bug #SF2508602: Add a translation string for
+		DKIM_SIGERROR_KEYREVOKED and fix dkim_eom_verify() so it
+		returns DKIM_STAT_REVOKED when appropriate.  Problem noted
+		by Mike Markley of Bank of America.
+
+2.8.0		2009/01/08
+	Add configuration option "EnableCoredumps" which makes an explicit
+		kernel request for cores on crashes.  Currently only meaningful
+		on Linux.
+	Add configuration option "AuthServID" which sets the "authserv-id"
+		token to use when generating Authentication-Results header
+		fields.
+	Report "fail" instead of "hardfail" on authentication failures,
+		in compliance with the Authentication-Results: draft.
+	Add _FFR_REPORT_INTERVALS, experimental support for the "ri" tag
+		extension to DKIM policy and key records for specifying
+		reporting intervals.
+	Feature request #SF1985886: Add _FFR_MULTIPLE_SIGNATURES, allowing
+		one instance of the filter to add multiple signatures.
+		Suggested by Dave Crocker.
+	Add "TemporaryDirectory" configuration file option for requesting that
+		libdkim use an alternate directory for creating temporary
+		files, and "KeepTemporaryFiles" for requesting that libdkim
+		not delete those files for debugging purposes.
+	Add optional support for the "unbound" asynchronous resolver
+		library as it is DNSSEC-aware.  Adds four new configuration
+		file items: "BogusKey", "BogusPolicy", "InsecureKey" and
+		"InsecurePolicy".  Also add dkim_sig_getdnssec()
+		and dkim_policy_getdnssec() to libdkim so callers can tell
+		what the DNSSEC evaluation result was for each query.
+		Based on a patch from John Dickinson.
+	Add "BaseDirectory" configuration file option for specifying
+		the desired current directory of the process.
+	Make use of the key and policy "rs" tag, if present, when doing
+		SMTP rejections.
+	Use MTA macro "$j" as the hostname in generated reports instead of
+		the output of gethostname() since on some systems the latter
+		may not be fully-qualified.
+	Remove ANTICIPATE_SENDMAIL_MUNGE, replacing it with a runtime check
+		for the milter v2 feature which suppresses the addition of
+		spaces in headers.
+	Add _FFR_COMMAIZE which attempts to predict the reformatting
+		the MTA will do to certain header fields to reduce verification
+		failures.
+	Add _FFR_DKIM_REPUTATION enabling a function used to query
+		an open DKIM reputation service regarding the signing user
+		and signing domain.  The service's URL is
+		http://www.dkim-reputation.org. (EXPERIMENTAL)
+	Fix preloading of configuration defaults.
+	Fix bug #SF2236040: Quote all of the POSIX regular expression special
+		characters, not just some of them.  Reported by Mark Martinec.
+	When possible, log the selector and domain of the signature evaluated
+		along with any errors in the libcrypto stack.
+	LIBDKIM: Add "smtpbuf", "smtplen" and "interval" parameters to
+		dkim_sig_getreportinfo() and dkim_policy_getreportinfo().
+		Also, remove the assertion that "addr" be non-NULL.
+	LIBDKIM: Add DKIM_LIBFLAGS_ACCEPTDK which enables compatibility
+		with DomainKeys-formatted key records.
+	LIBDKIM: Adjust signature formatting for legibility.
+	LIBDKIM: Check return status from dkim_canon_getfinal() to avoid
+		bad dereferences.  Problem noted by Chris Behrens of
+		Concentric Network Corporation.
+	LIBDKIM: Render the DKIM handle unusable in dkim_eoh_sign() if a
+		required header was absent.
+	Activate _FFR_REQUIRED_HEADERS.
+
+2.7.2		2008/09/02
+	Avoid memory leaks and infinite loops when releasing thread-specific
+		memory.  Reported by Jeff Earickson.
+
+2.7.1		2008/08/27
+	Set up required callbacks for OpenSSL thread-safety.  Problem
+		noted by Zbigniew Szalbot.
+	Disallow empty "t=" and "x=" tags.
+	Return DKIM_STAT_KEYFAIL for various DNS key retrieval failures
+		instead of DKIM_STAT_INTERNAL.
+
+2.7.0		2008/07/23
+	Update to draft-ietf-dkim-ssp-04.  In doing so, rename "ASPDiscard"
+		to "ADSPDiscard", "ASPNoSuchDomain" to "ADSPNoSuchDomain"
+		and "SendASPReports" to "SendADSPReports" in the configuration
+		file.
+	Feature request #29738: Add "TrustSignaturesFrom" configuration
+		file item allowing fine-grained control over third-party
+		signature handling.
+	Feature request #SF2018848: Add "LocalADSP" feature allowing
+		policy assertions from domains known to have specific policies
+		but which don't publish ADSP records.  Suggested by
+		Bruno Kraychete da Costa.
+	LIBDKIM: Fix an off-by-one overrun check in key and policy record
+		decoding.  Problem noted by John Dickinson.
+	
+2.6.0		2008/06/11
+	Remove "signaturemissing" as an old-style configuration action
+		as it has been superseded by "ASPDiscard" and related
+		functions.
+	Add "SendASPReports" configuration option which generates ASP failure
+		reports if requested by the sending domain.
+	Update report generation for verification failures to use the
+		new Abuse Reporting Format (ARF) and DKIM Reporting
+		draft proposals.
+	Add "MustBeSigned" configuration option, requiring signatures to
+		cover specific headers if present.
+	Rename "UseASPDiscard" to "ASPDiscard".
+	Add "ASPNoSuchDomain" configuration option which rejects mail that
+		appears to come from nonexistent domains as reported by the
+		Author Signing Practises check.
+	Add "ReportAddress" configuration option, used for defining the
+		From: header of reports mailed out.
+	Yet another compatibility fix with respect to Sleepycat DB.
+	Fix processing of "LogWhy" configuration parameter.  Problem noted
+		by Erik Lotspeich.
+	Add "-n" command line flag which parses the command line arguments
+		and configuration file(s), then exits with an appropriate
+		status code.
+	Report DKIM and ASP results separately via the same
+		Authentication-Results header field.  Previous versions would
+		alter the DKIM result based on ASP.
+	Fix bug #SF1976931: Restore function of "nosignature" old-style
+		action configuration, connected to "AlwaysAddARHeader".
+		Problem noted by Lucas Brasilino.
+	Feature request #SF1940233: Add "DontSignMailTo" configuration option,
+		allowing a list of recipient patterns whose mail should not
+		be signed.  Requested by Don Hughes.
+	LIBDKIM: Rename dkim_reportinfo() to dkim_sig_getreportinfo(),
+		and add dkim_policy_getreportinfo().
+	LIBDKIM: Add several more signature error codes covering various
+		key-related errors.
+	LIBDKIM: Add dkim_sig_hdrsigned() utility, DKIM_OPTS_MUSTBESIGNED
+		option, and DKIM_SIGERROR_MBSFAILED error code.
+	LIBDKIM: Fix a bug in the computation of the result for
+		dkim_canon_minbody().
+	LIBDKIM: Report corrupted base64 chunks instead of quietly
+		tolerating them.
+	LIBDKIM: Tidy up the cleanup code in dkim-canon.c.
+	LIBDKIM: Properly handle "tag=" at the end of a data set (i.e.
+		the tag exists and has an empty value).
+	LIBDKIM: Use larger unsigned data types in dkim_sig_future() as
+		was done elsewhere.
+	LIBDKIM: Always populate a DKIM_SIGINFO with domain and selector
+		before there's an opportunity for other parsing
+		short-circuits.
+	LIBDKIM: Fix bug #SF1984685: Remove the "margin" parameter from
+		dkim_getsighdr(); make it controlled by a new function,
+		dkim_set_margin(), so that the signed copy and the
+		user-requested copy are identical.
+	Activate _FFR_AUTHSERV_JOBID.
+
+2.5.5		2008/04/25
+	Fix bug #SF1947301: Close up a logic problem in "UseASPDiscard"
+		handling which could cause false rejections of mail from
+		domains advertising "discardable" policies.  Problem noted
+		by Doug Kingston.
+	LIBDKIM: Another compatibility fix with respect to Sleepycat DB.
+
+2.5.4		2008/04/17
+	Skip signatures with errors in dkimf_authorsigok().
+	Avoid a NULL dereference in dkimf_config_reload() when starting
+		without a configuration file.
+	Fix an alignment problem in dkimf_checkip().  Problem reported
+		by Jeff A. Earickson.
+	LIBDKIM: Fix bug #SF1942387: Per RFC4871, disallow "l=" values
+		that exceed the size of the canonicalized message body.
+
+2.5.3		2008/04/14
+	Add "AllowSHA1Only" configuration option which permits operation
+		of verifiers that only know about SHA1.  Without this, a
+		filter compiled with only SHA1 support will refuse to start
+		in verifier mode.
+	Add "LogWhy" configuration parameter and "-W" command line flag
+		to request detailed logging about why a message was not
+		signed by the filter.  Intended for debugging; not intended
+		for normal operation.
+	Another tweak to parameters passed to db->open().  Based on patches
+		from Jukka Salmi and S. Moonesamy.
+	Fixes in ares_parse() to match the current syntax.  In particular,
+		deal with the fact that some of our tokens can legally appear
+		in e-mail addresses.  Problem noted by S. Moonesamy of
+		Eland Systems.
+	LIBDKIM: Evaluate key granularity against the "i=" value rather than
+		the value of the From: header per RFC4871.  Problem noted by
+		Jason Long.
+	LIBDKIM: Remove the chartable stuff from dkim-tables.c as it is
+		not used anywhere.
+	LIBDKIM: Fix bug #SF1940302: Perform stronger validation of the value
+		of the "h=" tag.
+
+2.5.2		2008/03/28
+	Preserve the sender's domain name outside of mlfi_eoh() as it's
+		now needed in mlfi_eom().  Problem noted by Andy Fiddaman.
+	Fix bug #SF1921873: Pass "-K" command line switch into the new
+		configuration handling code.  Problem noted by Al Smith.
+	TOOLS: Fix flags portion of the TXT record output by dkim-genkey.
+		Problem noted by Michael Carland.
+	BUILD: Fix bug #SF1922422: Fix linker problems when POPAUTH is
+		defined.
+
+2.5.1		2008/03/20
+	Update for draft-kucherawy-sender-auth-header-14.
+	Fix bug #SF1911328: Restore proper behaviour of SignHeaders and
+		OmitHeaders, broken in the prior release's configuration
+		overhaul.  Problem reported by Jason Molzen.
+	Fix bug #SF1912332: Fix parameters passed to db->open().  Problem
+		reported by Tony Earnshaw.
+	Fix bug #SF1912569: Initialize mutexes before entering test mode.
+		Patch from Kaspar Brand.
+	LIBDKIM: Add "subject" to "should_signhdrs" per RFC4871 section 5.5.
+	LIBDKIM: More boundary checking fixes in dkim_canon_selecthdrs().
+		Problem noted by Warren Horvath.
+	LIBDKIM: Fix bug #SF1820084: Return DKIM_STAT_MULTIDNSREPLY
+		if a DNS query returns multiple records.
+
+2.5.0		2008/03/06
+	Add "AutoRestartCount" and "AutoRestartRate" configuration
+		parameters to limit runaway restart loops.
+	Feature request #SF1735573: Add "AlwaysAddARHeader" option, which
+		will add an Authentication-Results of "none" for unsigned
+		messages from domains without a "strict" policy.
+	Feature request #SF1807748: Reload the configuration file on
+		receipt of SIGUSR1.  Requested by Florian Sager.
+	Feature request #SF1811969: Add _FFR_BODYLENGTH_DB which adds a
+		"BodyLengthDBFile" feature, allowing a per-recipient decision
+		on whether or not to use an "l=" tag when signing.  Patch
+		contributed by Daniel Black.
+	Feature request #SF1841955: Add an "Include" facility to the
+		configuration file.
+	Feature request #SF1876941: Make the syslog facility selectable.
+		Based on a patch from Jose-Marcio Martins da Cruz of Ecole
+		des Mines de Paris.
+	Feature request #SF1876943: Add _FFR_AUTHSERV_JOBID allowing the
+		job ID to be included as part of the "authserv-id" in
+		Authentication-Results: headers.  Based on a patch from
+		Jose-Marcio Martins da Cruz of Ecole des Mines de Paris.
+	Feature request #SF1890581: Attempt to clean up a UNIX domain
+		socket in the non-AutoRestart case as well.  Requested
+		by Daniel Black.
+	Add "MilterDebug" configuration file option for requesting debugging
+		output from the filter.
+	Add "FixCRLF" configuration file option which activates the
+		DKIM_LIBFLAGS_FIXCRLF flag (see below).
+	Update to draft-ietf-dkim-ssp-03.  In doing so, rename the
+		"UseSSPDeny" configuration option to "UseASPDiscard".
+	Handle an error from dkim_getsighdr() properly in mlfi_eom().
+	When VERIFY_DOMAINKEYS is active, don't short-circuit mlfi_eoh()
+		between dk_verify() and dk_eoh() or a segmentation fault below
+		dk_body() could result.
+	LIBDKIM: Feature request #SF1823059: Export key, signature and
+		policy syntax checking capability via the API.  Based on
+		a patch from Chris Behrens of Concentric Network Corporation.
+	LIBDKIM: Assert defaults for "c" and "q" tags when parsing
+		signature headers.  Patch from Chris Behrens of Concentric
+		Network Corporation.
+	LIBDKIM: Better handling of truncated DNS replies; instead of
+		just giving up if the "tc" (truncated) bit is set in the
+		reply, see if there was enough of a reply returned to be able
+		to complete the request.
+	LIBDKIM: Fix recycling bug in header canonicalizations which was
+		causing signatures other than the first one to fail in most
+		cases.
+	LIBDKIM: Add new dkim_chunk() interface.
+	LIBDKIM: Enforce DKIM_OPTS_QUERYMETHOD library option even if there
+		were no valid signatures.
+	LIBDKIM: New DKIM_LIBFLAGS_FIXCRLF which requests that "naked"
+		CRs and LFs be converted to CRLFs during canonicalization
+		when signing.
+	LIBDKIM: Fix bounds checking in dkim_canon_selecthdrs().
+	LIBAR: Eliminate a possible race condition in ar_dispatcher().
+	LIBAR: Timeouts passed to select() can't be bigger than 10^8.
+		Problem noted by S. Moonesamy of Eland Systems.
+	BUILD: Feature request #SF1876242: Install the filter in EBINDIR
+		and everything else in UBINDIR.
+
+2.4.4		2008/01/25
+	In mlfi_close(), don't assume the libmilter private context pointer
+		is not NULL.
+	Fail to start up if told to load a key list which resulted in no
+		keys being loaded.
+	When "AutoRestart" is in use, the parent will now wait for the
+		child to terminate before exiting.  Thus, something that
+		signals the process ID in the pid file can also wait on that
+		process to be gone before being sure that the service has
+		actually shut down.
+	Include the job ID when logging about Authentication-Results: headers
+		that can't be parsed.  Problem noted by S. Moonesamy.
+	LIBDKIM: In dkim_policy(), skip invalid signatures during evaluation
+		of step 1 of SSP as the signature handle may not have been
+		fully populated.
+
+2.4.3		2008/01/18
+	Request addition of an "i=" tag in the signature when signing for
+		subdomains.  Patch from Alin Nastac.
+	TOOLS: Fix bug #SF1867259: "echo -n" is not portable.  Problem
+		noted by Gary Mills.
+	TOOLS: Fix bug #SF1867869: Output of the "t=" value was incorrect
+		with respect to the "s" flag.  Reported by Geoff Adams.
+	LIBAR: Further handling of the absence of "nameserver" lines in
+		resolv.conf, this time in the manual processing code.
+	LIBDKIM: Fix bug #SF1867839: 64-bit portability in rfc2822.c.
+		Patch from Geoff Adams.
+	LIBDKIM: Tighten up correctness of the first SSP test ("valid
+		originator signature") in dkim_policy().  Problem noted
+		by Alin Nastac.
+	LIBDKIM: DKIM_SIGINFO handles are now initialized with an error
+		code of DKIM_SIGERROR_UNKNOWN.  The code only becomes
+		DKIM_SIGERROR_OK after the cryptographic verification
+		code returns a success result.
+	BUILD: Fix bug #SF1818906: Update site.config.m4 to include a flag
+		for installing libdkim when compiling static libraries,
+		and installing dkim.h in either case.  Requested by
+		Chris Behrens of Concentric Network Corporation.
+
+2.4.2		2008/01/02
+	Remove "-H" from the usage message.  It was meant to be a command
+		line interface to "AlwaysSignHeaders" but was never
+		implemented.  Problem noted by Jeff Anton.
+	LIBDKIM: Make dkim_islwsp() into a macro to drastically reduce the
+		number of function calls made during canonicalization.
+	LIBDKIM: Fix bug #SF1857484: Fix logic problem in dkim_policy() with
+		the new pstate checks.  Problem noted by Werner Wiethege;
+		patch from Chris Behrens of Concentric Network Corporation.
+
+2.4.1		2007/12/20
+	Update for latest Authentication-Results: header draft.
+	Avoid a NULL dereference in dkim_get_key().  Problem noted by Chris
+		Behrens of Concentric Network Corporation.
+	Fix bug #SF1842970: Make the overall header byte count check
+		configurable, and increase the default.  Also, add
+		"On-Security" (configuration file) and "security" (command
+		line) options for controlling the default reaction to such
+		conditions.  While we're at it, add an "On-Default" and
+		"default" option for making a global action setting.
+		Requested by Mark Martinec.
+	LIBAR: Fix bug #SF1852618: Handle default case of no "nameserver"
+		lines in /etc/resolv.conf.  Problem noted by Mike Markley
+		of Bank of America.
+	LIBDKIM: Fix bug #SF1824876: Add "dkim_pstate" and make dkim_policy()
+		re-entrant.  Requested by Chris Behrens of Concentric
+		Network Corporation.
+	LIBDKIM: Fix bug #SF1843733, SF1843782: Tighten up header name
+		matching in dkim_get_header() and dkim_get_sender().  Patches
+		from Chris Behrens of Concentric Network Corporation.
+	LIBDKIM: Fix bug #SF1843788: Fix an off-by-one length bug in
+		dkim_header().  Patch from Chris Behrens of Concentric
+		Network Corporation.
+	LIBDKIM: Fix bug #SF1850973: Remove MAXHDRCNT; make the arrays it
+		previously defined dynamic.  Reported by Mike Markley of
+		Bank of America.
+	LIBDKIM: Feature request #SF1841974: Numerous performance enhancements
+		from Chris Behrens of Concentric Network Corporation.
+
+2.4.0		2007/11/30
+	Take advantage of some more features that were introduced with
+		milter v2 in sendmail 8.14.0:
+		o If all canonicalizations are satisfied in terms of
+			length limits, advise the MTA to stop sending the
+			message body to reduce unneeded I/O.
+		o Turn off as many unnecessary SMTP protocol steps as
+			possible.
+		o Fail option negotiation if any of the milter features
+			required are not available.
+		o If specific MTA macros are to be used for making the
+			sign vs. verify decision, explicitly request them.
+	Prevent corruption in Authentication-Results: headers caused
+		by signatures that have explicit "i=" values.
+	Report "hardfail" instead of "fail" on authentication failures,
+		in compliance with the Authentication-Results: draft.
+	Amend the "-M" command line option and "MacroList" configuration
+		options to allow a list of possible values for each
+		macro.
+	Add _FFR_SELECTOR_HEADER, adding the means to choose which selector
+		(and thus which key) is used to sign based on the value
+		found in a particular header.  Requested by Steve Jones
+		of Bank of America.
+	Add dkimf_dstring*() (dynamic string) functions and clean up some
+		code by making use of it.
+	Skip all the userid and group changes when either "-u" or "UserID"
+		is in use if the requested user is the same as the
+		executing user.
+	Fix use of "UseSSPDeny" to include handling of unsigned messages.
+	Fix bug #SF1834701: Log a warning and temp-fail the message if
+		a key list is in use that didn't match the sender for a
+		message which should be signed.  Problem noted by Jim
+		Hermann.
+	Patch #SF1796697: Add _FFR_REPLACE_RULES, adding the facility to do
+		substring replacement before signing to anticipate things
+		like the MTA "masquerade" and "genericstable" functions.
+		Requires further development.
+	Replace "gentxt.csh" with more robust "dkim-genkey" utility.
+	Feature request #SF1811962: Add new utilities "dkim-testkey" which
+		verifies that a public key is readable and properly formatted
+		and matches the locally-provided private key, and
+		"dkim-testssp" which retrieves a domain's sender signing
+		practises record and prints it in a human-readable form.
+		Based on code contributed by Daniel Black.
+	Feature request #SF1817253: Add "UMask" configuration file option.
+		Suggested by Daniel Black.
+	Feature request #SF1818863: Add a section to site.config.m4.dist
+		to request a build of the shared object version of libdkim.
+		Requested by Chris Behrens of Concentric Network Corporation.
+	Feature request #SF1834748: Use a more meaningful SMTP reply when
+		rejecting a message at the SMTP level due to SSP.  Suggested
+		by S. Moonesamy of Eland Systems.
+	LIBDKIM: Return DKIM_STAT_NOKEY from dkim_get_key_dns() if the answer
+		count comes back zero, rather than DKIM_STAT_CANTVRFY.
+		Problem noted by Chris Behrens of Concentric Network
+		Corporation.
+	LIBDKIM: Plug a memory leak in dkim_get_key().  Problem noted by
+		Chris Behrens of Concentric Network Corporation.
+	LIBDKIM: Replace a dicey memcpy() call with memmove().  Problem
+		noted by Chris Behrens of Concentric Network Corporation.
+	LIBDKIM: Add DKIM_CBSTAT_NOTFOUND and DKIM_CBSTAT_ERROR callback
+		return codes, and DKIM_STAT_CBERROR return code.  Suggested
+		by Chris Behrens of Concentric Network Corporation.
+	LIBDKIM: Add dkim_minbody() to determine how much more body text
+		is required to satisfy canonicalizations.
+	LIBDKIM: Add dkim_gethandlingstr() and dkim_getpolicystr() for
+		translation of SSP handling and policy codes into printable
+		strings.
+	LIBDKIM: Add _FFR_PARSE_TIME, adding a utility function that can
+		be used to detect that the timestamp on a signature and the
+		value of the Date: header wildly differ.  Incomplete.
+	LIBDKIM: If a message comes in with no properly-formed sender headers,
+		dkim_eoh() now renders the DKIM handle unusable by later
+		data processing calls.
+	LIBDKIM: Fix arithmetic in dkim_sig_expired().
+	LIBDKIM: In dkim_eoh_verify(), check for a NULL user pointer return
+		from rfc2822_mailbox_split() (was previously only checking
+		for an error code or NULL domain).  Problem noted by Chris
+		Behrens of Concentric Network Corporation.
+	LIBDKIM: Fix bug #SF1819489: Fix signature header name check in
+		dkim_header().  Patch from Chris Behrens of Concentric
+		Network Corporation.
+	LIBDKIM: Fix bug #SF1819559: Fix key granularity processing.
+	LIBDKIM: Fix bug #SF1819571: More robust processing of "s=" in keys.
+	LIBDKIM: Fix bug #SF1819607: Allow "t=" and "x=" values up to 64 bits
+		since RFC4871 requires at least 40.
+	LIBDKIM: Fix bug #SF1820017: Don't accept signatures with no "v=" tag.
+	LIBDKIM: Fix bug #SF1820060: The value of "q=" may be a colon-separated
+		list of values to parse.
+	LIBDKIM: Fix bug #SF1820080: The value of "i=" may be quoted-printable
+		so do appropriate decoding.
+	LIBDKIM: Fix bug #SF1820123: "simple" body canonicalization must
+		contain at least CRLF.
+	LIBDKIM: Fix bug #SF1820370: More graceful handling of grossly
+		malformed signature headers.  Problem noted by Chris Behrens
+		of Concentric Network Corporation.
+	LIBDKIM: Fix bug #SF1822287 and SF1822295: Update policy check code
+		to use the draft-ietf-dkim-ssp-01 algorithm.  Problem noted
+		by Chris Behrens of Concentric Network Corporation.
+	LIBDKIM: Fix bug #SF1822329: In dkim_get_policy(), check for and handle
+		error returns from the subordinate lookup functions.  Problem
+		noted by Chris Behrens of Concentric Network Corporation.
+	LIBDKIM: Fix bug #SF1822331: Use consistent return codes in
+		dkim_get_policy_dns().  Problem noted by Chris Behrens of
+		Concentric Network Corporation.
+	LIBDKIM: Fix bug #SF1832703: When looking for headers to canonicalize
+		during verification, disregard spaces between the header name
+		and the colon (":") character.  Problem noted by James
+		Sargent of AOL.
+	LIBDKIM: Fix bug #SF1838826: Several fixes with respect to processing
+		key and policy flags.  Problems noted by Marc Martinec.
+	LIBDKIM: Feature request #SF1821005: Add dkim_getdomain(), an accessor
+		function for dkim_domain.  Requested by Chris Behrens of
+		Concentric Network Corporation.
+	Activate _FFR_QUERY_CACHE (Feature request #SF1675359) and
+		_FFR_SELECT_SIGN_HEADERS.
+
+2.3.2		2007/10/19
+	Fix bug #25896: Fix a bug in parsing of "RemoveARFrom".
+	LIBDKIM: Fix a bug in the key reuse block of dkim_get_key() which
+		assumed that a domain and selector match guaranteed a copied
+		key and key tag list.
+	LIBDKIM: Fix bug #SF1812687: Fix handling check in dkim_get_policy().
+		Patch from Daniel Black.
+
+2.3.1		2007/10/12
+	Fix header loss problem in test mode.
+	Fix bug #SF1808886: Handle missing or empty test inputs more
+		gracefully.  Based on a patch from Kaspar Brand.
+	Fix bug #SF1808881: Check various integer conversions for
+		negative, overflow or inappropriate values.  Suggested
+		by Kaspar Brand.
+	Feature request #SF1809239: Restore performance of test mode on
+		large messages.  Requested by Kaspar Brand.
+	Patch #SF1811132: Include <stdlib.h> in test.c for malloc()
+		prototype.  Patch from Daniel Black.
+	BUILD: Patch #SF1810712: Correct default location for the Tre
+		regular expression library.  Suggested by Daniel Black.
+
+2.3.0		2007/10/06
+	Add "UseSSPDeny" configuration option which causes the filter
+		to reject messages which are determined to be suspicious
+		according to the new draft-ietf-dkim-ssp-01, and whose
+		sending domains advertise a recommended handling of "deny",
+		and whose SSP records are not in "test" mode.
+	Add "MaximumSignedBytes" configuration option limiting the number
+		of bytes of the message body to be signed.
+	Add "-t" command line option for reading an RFC2822-formatted
+		message from a named file and attempting to evaluate it,
+		"-F" command line option for using a fixed signing
+		time, and "-v" command line option for requesting verbose
+		output.  Finally, new configuration option "StrictTestMode"
+		asserts that all lines of input must be CRLF-terminated.
+		Based on patches from Kaspar Brand.
+	Add "TestPublicKeys" setting for instructing libdkim to read public
+		keys from a file, for use during automated testing.
+		Based on a patch from Jeff Barry.
+	When using _FFR_QUERY_CACHE, periodically report cache activity
+		statistics.
+	Don't arbitrarily suppress signing of already-signed messages.
+	Fix bug #25728: When "AutoRestart" is in use, try to remove the
+		socket (if it's a UNIX domain socket) prior to trying to
+		start the child.
+	LIBDKIM: Add dkim_getmode() function.
+	LIBDKIM: Fixes to policy evaluation in dkim_policy().  Based on a
+		patch from Jeff Barry.
+	LIBDKIM: Patch #SF1796687: Add DKIM_LIBFLAGS_ACCEPTV05 which causes
+		the library to accept signatures with version strings of
+		"0.5", i.e. those based on later versions of the DKIM draft
+		specification.  This does not change any other part of
+		signature validation or canonicalization, only the version
+		string test.  Suggested by Jim Fenton of Cisco.
+	LIBDKIM: When closing canonicalizations, flush the temporary files
+		rather than closing them so that things like dkim_reportinfo()
+		return useful descriptors.  Close the temporary files in
+		dkim_canon_free() only.  Problem noted by Jeff Barry.
+	LIBDKIM: Fix variable argument processing by merging dkim_error()
+		and dkim_verror().  The previous code was causing
+		segmentation faults on selected operating systems.
+	Activate the following FFRs:
+		_FFR_KEY_REUSE
+		_FFR_SET_REPLY
+
+2.2.1		2007/09/07
+	Insert VBR headers at the top rather than appending them to be
+		sensitive to legacy DomainKeys operations.  Patch from
+		S. Moonesamy of Eland Systems.
+	Discontinue use of MAXHOSTNAMELEN as the maximum size of a hostname
+		since some vendors set it to 64 (maximum size of a DNS label)
+		and some to 256 (maximum size of an FQDN).  Instead, define
+		and use DKIM_MAXHOSTNAMELEN (256).  Problem noted by
+		Jeff Barry.
+	LIBDKIM: Rename and update the default_signhdrs and default_skiphdrs
+		arrays to match what's in RFC4871 section 5.5 SHOULD and
+		SHOULD NOT lists.
+	LIBDKIM: Apply DKIM_OPTS_SKIPHDRS only when signing.
+	LIBDKIM: Add missing entries to prv_results, and add a
+		dkim_getresultstr() function for translating DKIM_STAT
+		result codes.  Patch from Kaspar Brand.
+	Fix bug #SF1785624: Resolve build problem introduced in previous
+		version when NETINET6 is in use.  Reported by Andrew Benham.
+	Fix bug #SF1786033: Resolve build problem introduced in previous
+		version affecting later versions of Solaris.  Reported by
+		Andy Fiddaman.
+	Fix bug #SF1787473: Initialize the default "-i" list properly (given
+		changes made in the previous version) so that mail from
+		localhost still gets signed.  Reported by Graham Murray.
+
+2.2.0		2007/08/30
+	Change format of the peerfile, internal and external host lists, etc.
+		to allow exclusion entries.  See the man page for additional
+		details.
+	Amend "-u" to include the ability to name a group into which the
+		filter process should be placed.
+	Feature request #SF1783155: Make keylist pattern matching
+		case-insensitive.
+	LIBDKIM: Handle CNAMEs properly when using the standard resolver.
+		Problem noted by Jim Fenton of Cisco.
+	LIBDKIM: Fix bug #SF1782076: Adjust signature header wrapping logic
+		so that a "b=" against the margin gets wrapped consistently
+		when signing and verifying.  Reported by Kaspar Brand.
+
+2.1.2		2007/08/22
+	LIBDKIM: At the end of dkim_eoh_verify(), don't overwrite any existing
+		descriptive error text before returning on verification
+		errors.  Problem noted by Andy Fiddaman.
+	LIBDKIM: Remove redundant assertion of length limits in
+		dkim_canon_bodychunk().  The code in dkim_canon_write() has it
+		correct, so use that instead.  Problem noted by Mark Martinec.
+	LIBDKIM: Fix bug #SF1777332: Fix "relaxed" body canonicalization.
+		Some code from the older implementation was still present
+		conflicting with the newer code.  Reported by Andrey Chernov.
+
+2.1.1		2007/08/13
+	Fix bug #SF1743896 (reopened): Don't crash if a From: header with no
+		domain is found.  Patch from Andy Fiddaman.
+	LIBDKIM: Fix type mismatches regarding restricted lengths.  Problems
+		noted by Jukka Salmi.
+	LIBDKIM: Fix bug #SF1771520: Return an error from dkim_policy() if
+		the sender's domain name could not be determined.  Patch from
+		Andy Fiddaman.
+
+2.1.0		2007/08/10
+	Update to new (draft version 06) Authentication-Results: header format.
+	Do an SSP query for any message that didn't either succeed verification
+		or cause some kind of internal error, not just those that
+		failed to verify.
+	Tighten up the logic used when checking header space allocation.
+	LIBDKIM: Heavy cleanup of dkim_eoh() and dkim_eom() via patches from
+		Chris Behrens of Concentric Network Corporation.
+	LIBDKIM: Add more fine-grained state control enforcing the order in
+		which the message processing functions are called.  There was
+		previously a hole which would allow, for example, more headers
+		to be submitted after a call to dkim_eoh() if a prescreen
+		callback returned a "tryagain" result.
+	LIBDKIM: Add dkim_sig_getidentity().
+	LIBDKIM: Fix bug #SF1769270: Use the default query type to retrieve
+		signing policy for unsigned messages.
+	LIBDKIM: Fix bug #SF1769445: Return the correct policy result from
+		dkim_get_policy_dns() rather than always returning an empty
+		string.  Patch by Andy Fiddaman.
+	LIBDKIM: Amend dkim_sig_getcanonlen() to include a parameter which
+		receives the signature length limit, if any.
+	LIBDKIM: Restore proper value to dkim_bodylen.  Problem noted by
+		Jukka Salmi.
+	LIBDKIM: Don't inexplicably clear sig_signalg.  Problem noted by
+		Jukka Salmi.
+	Feature request #SF1761475: Add "ClockDrift" configuration option
+		for tolerating out-of-synch clocks.  Suggested by Kaspar Brand.
+	Feature request #SF1761481: Add "SyslogSuccess" configuration option
+		for logging successful operations rather than just errors
+		or other informational messages.  Suggested by Kaspar Brand.
+	Feature request #SF1769888: Amend dkim_policy() to be able to return
+		the policy type retrieved from the sending domain.  Also
+		add dkim_getpresult() and associated other code to get
+		additional policy evaluation information.  Requested
+		by Andy Fiddaman.
+
+2.0.2		2007/08/03
+	Fix bug #SF1766313: Make configuration handling 64-bit friendly.
+		Other 64-bit portability issues also addressed.  Problems
+		noted by Chris Box.
+	Add _FFR_DNS_UPGRADE which establishes a second libar instance
+		in TCP mode for handling truncated UDP replies.  Also make
+		some minor fixes in the key and policy DNS lookup functions
+		to provide more consistent handling of such responses.
+		Problems noted by Kaspar Brand; code is still experimental.
+
+2.0.1		2007/08/02
+	Fix bug #SF1760481: Make header space allocations fully dynamic rather
+		that establishing compile-time per-header limits.  There
+		is still an overall cap, however.  Suggested by Ralf
+		Hildebrandt.
+	LIBDKIM: Fixes inside _FFR_KEY_REUSE.
+
+2.0.0		2007/07/27
+	Remove all support for versions older than RFC4871.  Older
+		statistics databases will not be incompatible with the
+		new code since version information is no longer included
+		in the record format.
+	Add "Resent-Sender" and "Resent-From" to the list of headers
+		checked to determine whether or not the message should
+		be signed or verified.
+	Report an authentication result of "permerror" when the message
+		can't be verified for syntax or other non-crypto reasons.
+	New configuration file item "RemoveARFrom" allows specification
+		of hostnames/domains whose existing Authentication-Results:
+		headers should be removed.  Also add "RemoveARAll" which
+		allows selection of whether all such headers should be removed
+		or only those containing a DKIM result.
+	New configuration file item "RemoveOldSignatures" deletes existing
+		signatures when signing.
+	Fix bug #SF1743896: Don't crash if a From: header with no domain
+		is found.  Patch from Andy Fiddaman.
+	Fix bug #SF1743964: Remove the pid file on shutdown or startup
+		failure.  Patch from Mike Markley.
+	LIBAR: Plug descriptor and memory leaks in ar_shutdown().
+	LIBDKIM: Rework _FFR_VBR code to prepare it for extraction into
+		an independent library.
+	LIBDKIM: The key and policy lookup callbacks must now return
+		a DKIM_CBSTAT constant so that they can have their
+		corresponding libdkim functions return DKIM_STAT_CBTRYAGAIN
+		if desired.  Suggested by Chris Behrens of Concentric
+		Network Corporation.
+	LIBDKIM: Add _FFR_DIFFHEADERS which adds dkim_diffheaders() to enable
+		the caller to search for headers that may have been munged
+		in transit thus causing a verification failure.
+	LIBDKIM: Feature request #SF1473131: Overhaul data structures,
+		functions and documentation to allow fine-grained handling
+		of messages bearing multiple signatures.  This included the
+		following changes:
+		o Extend draft-ietf-dkim-ssp-00 support to cover
+			multiply-signed messags.
+		o Introduce DKIM_SIGERROR type/constants for associating
+			an error code with each individual signature.
+		o New libary flag DKIM_LIBFLAG_DELAYSIGPROC delays all
+			signature processing until dkim_eom().
+		o New libary flag DKIM_LIBFLAG_EOHCHECK causes dkim_eoh()
+			to return an error if it was unable to find any
+			valid signatures when verifying.
+		o Add new DKIM_CANON data type, referring to a
+			parallel canonicalization required for signature
+			generation or verification.
+		o New function dkim_getsiglist() retrieves an array of
+			DKIM_SIGINFO handles referring to all of the
+			signatures discovered on a message.
+		o New function dkim_getsignature() retrieves a single
+			DKIM_SIGINFO handle which is the one libdkim will
+			use to return its final result.
+		o New function dkim_sig_getflags() to retrieve flags
+			attached to a signature handle after processing.
+		o New function dkim_sig_geterror() to retrieve the error
+			code associated with a signature handle after
+			processing.
+		o New function dkim_sig_getbh() to retrieve the body
+			hash test result on a signature after processing.
+		o New function dkim_set_final() sets a user-provided
+			callback called by dkim_eom() to do any final
+			processing the caller may desire.
+		o New function dkim_sig_process() manually executes
+			verification of a signature, for use from within the
+			prescreen or final callbacks.
+		o Rename dkim_getcanonlen() to dkim_sig_getcanonlen(),
+			dkim_getsigntime() to dkim_sig_getsigntime(),
+			dkim_getselector() to dkim_sig_getselector(),
+			dkim_getsigndomain() to dkim_sig_getdomain(),
+			dkim_getsignalg() to dkim_sig_getsignalg() and
+			dkim_getkeysize() to dkim_sig_getkeysize()
+			as they now act on a specific signature rather than
+			on an entire message.
+		o The user-provided key and policy lookup functions must
+			now accept a DKIM_SIGINFO handle as an additional
+			parameter.
+		o dkim_reportinfo() and dkim_ohdrs() now also require a
+			DKIM_SIGINFO handle as an additional parameter.
+	LIBDKIM: Fix signal logic in dkim_cache_read_unlock().  Patch from
+		Chris Behrens of Concentric Network Corporation.
+	LIBDKIM: Add _FFR_KEY_REUSE which avoids doing duplicate key
+		lookups if the same key is used on two signatures in the
+		same message.  Suggested by Chris Behrens of Concentric
+		Network Corporation.
+	LIBDKIM: Changed prototype for dkim_policy() to reflect the new code.
+	Remove _FFR_FLUSH_HEADERS.  The functionality it provided is now
+		accessed via the new configuration options described above.
+	Activate _FFR_HASH_BUFFERING.
+	BUILD: More unit tests.
+
+1.2.0		2007/06/26
+	Update sender signing policy (SSP) code to match the new
+		draft-ietf-dkim-ssp-00 specification syntax.  In doing
+		so, remove _FFR_ALLMAN_SSP_02.
+	If "-u" is specified, call initgroups() and setgid() as well.
+		Reported by Mike Markley; based on a patch from S. Moonesamy
+		of Eland Systems.
+	Fix bug #SF1738354: Add "L" data to CMDLINEOPTS.  Reported by
+		Andrey Chernov.
+
+1.1.0		2007/06/15
+	Add a new option to "-L" and "Minimum" allowing a specific maximum
+		number of bytes of appended, unsigned text.  Suggested by
+		Philip Guenther.
+	Documentation and build patches from Gregory Shapiro, and
+		documentation patches from Steve Jones of Bank of America.
+	Under _FFR_VBR, if dkim_vbr_query() returns an error, report the
+		error and then don't add the header.  Reported by
+		S. Moonesamy of Eland Systems.
+	Fix bug #24586: Allow "-?" just to get the usage message; also
+		hint at such if the filter is invoked with no arguments.
+	LIBDKIM: Define DKIM_STAT_CBTRYAGAIN and DKIM_CBSTAT_TRYAGAIN.
+	BUILD: More unit tests.
+
+1.0.0		2007/05/23
+	First release after DKIM issued as a standard (RFC4871).
+	Remove the "-v" command line option and "Version" configuration file
+		item, which permitted selection of the signing version.
+	Remove "nowsp" canonicalization option.
+	LIBDKIM: Define DKIM_VERSION_RFC4871 and make it the default signing
+		version.
+	LIBDKIM: Remove DKIM_CANON_NOWSP and DKIM_VERSION_ALLMAN_BASE_00 which
+		defined it.  Gradually, support for old versions will be
+		phased out.
+
+0.8.1		2007/05/22
+	Portability fixes for Solaris.
+	LIBDKIM: Define DKIM_CBSTAT_* constants which are to be used as
+		return values from callbacks.  Also define new status
+		values DKIM_STAT_CBREJECT and DKIM_STAT_CBINVALID
+		indicating results from callbacks back to the calling
+		applications.  Suggested by James Sargent of AOL.
+	LIBDKIM: Slightly nicer wrapping of "b=", "bh=" and "z=" in
+		dkim_getsighdr().
+	LIBDKIM: Define callbacks with respect to the DKIM library
+		handle rather than each signing/verifying instance.
+		Suggested by James Sargent of AOL.
+	BUILD: Reference libssl and libcrypto in dkim-filter/Makefile.m4
+		rather than in the template site.config.m4 file since
+		it's always required anyway.
+	BUILD: Fix man page entry in dkim-filter/Makefile.m4.
+
+0.8.0		2007/05/17
+	Add a dkim-stats(8) man page.  Contributed by Mike Markley.
+	Add "SignatureTTL", "Diagnostics" and "AlwaysSignHeaders" options to
+		the configuration file and man page.
+	Add _FFR_ZTAGS for optionally saving diagonstic information when a
+		signature fails if the signature contained a "z=" tag.
+	Still more minor fixes in _FFR_STATS related to DB versions.
+	Feature request #SF1473129: Split configuration file details
+		into their own man page.
+	LIBDKIM: Still more minor fixes in _FFR_QUERY_CACHE related to DB
+		versions.  Reported by Ben Lentz.
+	LIBDKIM: Remove dkim_getidentity(), as the function it provides
+		isn't part of DKIM.  Instead, provide that functionality
+		in dkim-filter.
+	LIBDKIM: Add a new option DKIM_OPTS_ALWAYSHDRS which allows
+		specification of a list of header names which should always
+		be included in signature header lists whether or not
+		the headers were actually present, preventing them from
+		being added downstream before verification.
+	LIBDKIM: Add a new option DKIM_OPTS_SIGNATURETTL which allows
+		the caller to assert a time-to-live on signatures generated.
+		This causes the "x=" tag to appear in signatures.
+	LIBDKIM: Add a new library flag DKIM_LIBFLAGS_ZTAGS which causes
+		signatures generated to include the original header set
+		encoded for transport so the verifier can use it to
+		diagnose verification failures.  This causes the "z=" tag to
+		appear in signatures.
+	LIBDKIM: Add dkim_ohdrs() which extracts the sender's set of headers
+		if a "z=" tag was present in the signature.  This can then
+		be used by the caller to diagnose verification failures
+		for signatures which contain them.
+	LIBDKIM: Add the first large (and yet not the smallest) change to
+		support multiple signatures.  There's now a method via
+		a few callbacks to give the caller access to the
+		signatures discovered by the end-of-headers callback.
+		The caller can analyze the signatures, reorder them,
+		or flag some to be ignored.  After reordering, the library
+		still simply runs with the first that appears to be
+		syntactically valid; actual processing of multiple
+		signatures after the re-ordering will be in an upcoming
+		release.
+	LIBDKIM: _FFR_QUERY_CACHE now only covers DNS key lookups, not all
+		key lookups.
+	LIBDKIM: Move the method-specific policy lookup functions into
+		their own new files, dkim-policy.c and dkim-policy.h.
+	LIBDKIM: Slightly nicer wrapping of "h=" in dkim_getsighdr().
+	LIBDKIM: Add dkim_set_signer() for specifying the message's
+		signer for signature generation.
+	BUILD: More unit tests.
+	Activate the following FFRs:
+		_FFR_QUARANTINE
+		_FFR_REPORTINFO
+
+0.7.1		2007/05/09
+	More minor fixes in _FFR_STATS related to DB versions.  Based on
+		a patch by Graham Murray.
+	LIBDKIM: More minor fixes in _FFR_QUERY_CACHE related to DB versions.
+	LIBDKIM: Use read-write locks instead of a mutex in _FFR_QUERY_CACHE
+		when appropriate.
+	LIBDKIM: When using _FFR_QUERY_CACHE with recent enough versions of
+		the DB library, tell the library to use the same temporary
+		directory as libdkim is using.
+	BUILD: Fix bug #SF1715265: Correct a typo which caused libdkim to
+		fail to build against the asynchronous resolver library.
+		Reported by Andy Fiddaman.
+
+0.7.0		2007/05/03
+	Several more fixes in _FFR_STATS related to DB versions.
+	LIBDKIM: Add support for optional callbacks to do key and policy
+		lookups using an API provided by the caller rather than using
+		DNS directly.  New functions dkim_set_key_lookup() and
+		dkim_set_policy_lookup() set these callbacks.  Also add
+		dkim_getdomain() and dkim_getselector() utility functions so
+		those callbacks can extract the data required to make the
+		queries.  Note that these will probably change slightly when
+		support for multiple signatures is finally added.  Suggested
+		by James Sargent of AOL.
+	LIBDKIM: Fix bug #SF1708756: Set dkim_partial earlier during signing
+		so that the "l=" portion is included in the canonicalized
+		signature header.  Reported by Andrey Chernov.
+	LIBDKIM: Algorithm and initialization fixes in policy retrieval found
+		by the new unit tests.
+	LIBDKIM: Several more fixes in _FFR_QUERY_CACHE related to DB
+		versions.
+	LIBDKIM: Fix bug #SF1706248: Rewrite dkim_getidentity() so it returns
+		a more sane value for the sender in all cases.  Another
+		utility function will be added later for obtaining the
+		signer's identity.  Reported by Andrey Chernov.
+	BUILD: Overhaul the build scripts so that all the user editing is
+		done in devtools/Site/site.config.m4 rather than in each
+		individual directory's Makefile.m4.  Include a template for
+		this purpose.
+	BUILD: Begin a collection of automated unit tests.
+	Activate the following FFRs:
+		_FFR_LOG_SSL_ERRORS
+		_FFR_MULTIPLE_KEYS
+		_FFR_OMIT_HEADERS
+		_FFR_QUERY_FILE
+		_FFR_SET_DNS_CALLBACK (Feature request #SF1473171)
+
+0.6.6		2007/04/25
+	Update _FFR_SELECT_CANONICALIZATION for split canonicalization
+		methods.
+	Add _FFR_STATS, creating an optional database for storing pass/fail
+		statistics per domain over time, and a command-line tool
+		for querying the database contents.  Requires Sleepycat DB.
+	LIBDKIM: Patch #SF1705155: Fixes in "relaxed" header canonicalization
+		code.  Problem noted by Ben Lentz.
+	LIBDKIM: Add _FFR_HASH_BUFFERING, experimental code that adds a layer
+		of buffering in front of dkim_canonwrite() so the SHA hashing
+		functions are called less often.
+	LIBDKIM: Only call dkim_flush_blanks() when it will actually do
+		something.
+	LIBDKIM: Fix bug #SF1706530: Call EVP_cleanup() in dkim_close().
+		Suggested by Andy Fiddaman.
+	LIBDKIM: Inside _FFR_QUERY_CACHE, fix cursor operations when compiled
+		against very old versions of Sleepycat DB.
+	LIBDKIM: When opening the database with _FFR_QUERY_CACHE, make sure
+		the library is allowed to create the database.
+
+0.6.5		2007/04/20
+	Further fixes in POPAUTH code for backward-compatibility with
+		older versions of Sleepycat DB.
+	Memory corruption fixes inside _FFR_MULTIPLE_KEYS.  Reported
+		by S. Moonesamy of Eland Systems.
+	Re-implement _FFR_OMIT_HEADERS using the new libdkim option
+		(see below).
+	Return DKIM_STAT_SYNTAX from dkim_eoh() if an empty "d", "s" or "b"
+		tag is discovered on a signature.
+	Export most internal header lists so callers can use them.
+	Fix bug #SF1702708: Don't start in signing mode without at least
+		one key and selector specified.  Reported by Andrey Chernov.
+	Feature request #SF1675359: Add _FFR_QUERY_CACHE, allowing optional
+		caching on-disk of key and policy records retrieved via DNS
+		to reduce the number of round trips to the nameserver.
+		Requires Sleepycat DB.  Requested by Jim Popovitch.
+	Portability fixes for Solaris.
+	LIBDKIM: Enforce mandatory headers in dkim_eoh().
+	LIBDKIM: Add dkim_close() for library shutdown.
+	LIBDKIM: Add option DKIM_OPTS_SKIPHDRS to skip headers that should
+		not be signed or verified.
+	LIBDKIM: Initialize dkiml_fixedtime.
+
+0.6.4		2007/04/16
+	Further fixes in POPAUTH code.  Based on patches from John Merriam.
+	Modify the output of "-V" further so it also includes active code
+		options (as opposed to just FFRs).
+	When linked against libdk, get additional forensic data from
+		dk_geterror() whenever possible.
+	Changes to _FFR_MULTIPLE_KEYS: Add a domain field in the file,
+		and try a couple of filename extensions before giving up
+		when reading private keys.
+	Add more calls to dkim_error() for additional diagnostic information
+		around the DNS queries.
+	Fix bug #SF1700333: Remove the dkim_sig_signerok() check as it
+		actually detects (and rejects) third-party signatures.
+		The code is still there, just disabled, in case we want
+		to use it after SSP addresses that question.  Reported
+		by James Sargent of AOL.
+	Add _FFR_CAPTURE_UNKNOWN_ERRORS which quarantines jobs that
+		cause unexpected results from dkim_eom() to allow more
+		detailed analysis.
+	LIBAR: Fix bug #SF1537476: Update to support IPv6 nameservers.
+
+0.6.3		2007/04/06
+	Avoid deadlock errors in the POPAUTH code by protecting that code
+		with a mutex as well.  Also, "l_end" should be "l_len".
+		Problems noted by John Merriam.
+	Fix bug #SF1693248: Add support for sendmail 8.14.x and its
+		"preserve leading spaces" option.  Based on a patch from
+		Andy Fiddaman.
+	Fix bug #SF1693249: If dkim_eoh() returns DKIM_STAT_NOSIG and then
+		the caller calls dkim_eom() to get policy (which the
+		documentation says is acceptable), assertion failures were
+		tripped because the SHA hash(es) weren't initialized
+		and dkim_domain wasn't set.  Reported by Andy Fiddaman.
+	LIBDKIM: Add _FFR_QUERY_FILE for getting keys and policies from
+		a flat text file rather than DNS for offline or automated
+		testing.  Based on a patch from Jeff Barry.
+	LIBDKIM: New option DKIM_OPTS_FIXEDTIME to use a specific time
+		when generating signatures, to be used for offline or
+		automated testing.  Based on a patch from Jeff Barry.
+	LIBDKIM: Fix bug #SF1691659: Fix a type mismatch so that RSA_sign()
+		returns reasonable results on 64-bit platforms.  Reported
+		by Andy Fiddaman.
+	LIBAR: Fix bug #SF1694130: Block signals that should be caught and
+		handled elsewhere, such as in libmilter.  Patch by Andy
+		Fiddaman.
+
+0.6.2		2007/03/30
+	Don't start if you're in signing mode and no selector was chosen
+		on the command line or in the configuration file.
+	Don't start if the version of OpenSSL used to compile libdkim
+		is not the same as the one used to compile the filter.
+	Print the version of OpenSSL in use when "-V" is used on the command
+		line.
+	Add _FFR_VBR, enabling optional support for the Vouch By Reference
+		domain reputation proposal.
+	Add "BodyLengths" configuration file option which adds the "l="
+		parameter when signing messages so re-mailers (e.g. MLMs)
+		which append text to the message won't interfere with
+		successful verification.
+	Fix bug #SF1689101: Fix a minor error in argv processing when
+		_FFR_OMIT_HEADERS was in use.
+	LIBDKIM: Change DKIM_SIGN_DEFAULT to point to "rsa-sha256" if
+		it's available.
+	LIBDKIM: Add dkim_ssl_version().
+	LIBDKIM: Fix bug #SF1681632: Fix a bug in header selection when
+		signing.  Messages verified just fine, but some headers
+		could accidentally be omitted during signing.  From a patch
+		for bug #SF1541490 for dk-milter, reported by Mark Martinec;
+		essentially the same bug existed in libdkim.
+
+0.6.1		2007/03/07
+	Load the -C values from the configuration file if -C wasn't present
+		on the command line.  Previously, they were ignored.
+	Fix bug #SF1477211: Add an appropriate Authentication-Results:
+		header when a signature uses a hash which the matching
+		key does not authorize.
+	Feature request #SF1497802: Add _FFR_QUARANTINE, allowing optional
+		quarantining of messages which fail verification or policy
+		checks.
+	Feature request #SF1605766: To reduce spurious logging, don't set
+		mctx_status to DKIMF_STATUS_NOSIGNATURE unless the signature
+		was missing on a message from a domain that claims it signs
+		everything.
+	LIBDKIM: Fix a verification version auto-detection bug that was
+		causing some false negatives.
+	LIBDKIM: Fix bug #SF1672787: Fix an additional corruption bug in
+		dkim_getsighdr().
+	LIBDKIM: Select the correct signature to replay into canonicalization,
+		rather than always using the first one.  Problem noted by
+		James Sargent of AOL.
+
+0.6.0		2007/03/01
+	Bring up to currency with "ietf-base-10" which is probably the
+		version that the IETF will issue as an RFC.  This includes:
+		- signature "q=" option delimiter is now "/", and the default
+		  value is now "dns/txt"
+		- if both "t=" and "x=" are present in a signature, make
+		  sure the former is less than the latter
+		- disregard signatures that appear to have been generated in
+		  the future
+		- support for draft and final versions of "v=" tags in both
+		  keys and signatures
+	Activate _FFR_VERIFY_DOMAINKEYS.
+	Complete support for DKIM_QUERY_FILE for use in debugging and testing.
+	Fix a number of minor bugs in signature header generation which
+		could cause corruption and thus validation and/or syntax
+		errors.
+	Fix bug #SF1507535: Fix an FFR-related build issue.  Reported by
+		Frederik Pettai.
+	Patch #SF1505401: Add _FFR_OMIT_HEADERS, copied from dk-milter.
+		This will probably be replaced later by an extension to
+		dkim_options().  Patch provided by Ben Lentz.
+	LIBDKIM: Fix bug #SF1512860: Before returning DKIM_STAT_NOSIG from
+		dkim_eom(), try to retrieve the sending domain's policy.
+	LIBDKIM: Fix bug #SF1608314: Fix processing of config file items
+		"Userid" and "Mode".  Patch from John Villalovos.
+	LIBDKIM: Add dkim_geterror() to retrieve additional diagnostic
+		data from the API when a function call returns
+		DKIM_STAT_INTERNAL or something else whose cause isn't
+		readily apparent.
+	LIBDKIM: Remove an extraneous pointer type in the parameter list
+		for dkim_sign().  Reported by Jeff Barry.
+
+0.5.2		2006/09/18
+	Fix bug #SF1537905: If necessary, try again to get the job ID in
+		mlfi_eom() in case it came down later than expected (e.g.
+		postfix).  Suggested by Mark Martinec.
+	Fix a couple of minor build problems.
+	Fix bug #SF1559406: Change MAXHEADER to 4096.
+	LIBDKIM: Fix bug #SF1544301: Fix an issue with processing a message
+		which has trailing spaces on its last line.  Reported by
+		Mark Martinec.
+	LIBDKIM: Fix bug #SF1558014: Confirm the body hash in the signature
+		matches the actual body hash when verifying.  Reported by
+		Mark Martinec.
+	LIBDKIM: Add preliminary support for the draft-allman-dkim-ssp-02
+		specification as _FFR_ALLMAN_SSP_02.
+	LIBAR: Adapt to the post-bind4 resolver API.  Problem reported by
+		S. Moonesamy of Eland Systems.
+
+0.5.1		2006/06/14
+	Add compile-time option _FFR_ANTICIPATE_SENDMAIL_MUNGE which attempts
+		to replicate some header rewriting the sendmail MTA will
+		do, which otherwise prevents signature validation from
+		succeeding.  Problem noted by Ken Jones.
+	Add support for "ietf-base-02" signing mode (which is really
+		synonymous with "ietf-base-01").
+	LIBDKIM: Report a syntax error when a signature header arrives with
+		any required fields missing.
+
+0.5.0		2006/05/19
+	Fix an assertion failure under _FFR_SELECT_SIGN_HEADERS.  Reported
+		by S. Moonesamy of Eland Systems.
+	Under _FFR_REPORTINFO, only send reports when verification failed.
+		There are other failure modes, but that's the only one for
+		which reports are useful.  Problem noted by Michael
+		Thomas of Cisco.
+	RFC2822 doesn't require any recipient headers, so remove those checks
+		inside _FFR_REQUIRED_HEADERS.
+	Fix bug #SF1481303: Don't verify DomainKeys signatures while in
+		signing mode.  Reported by S. Moonesamy of Eland Systems.
+	Activate _FFR_MACRO_LIST (adds the "-M" command line option) and
+		_FFR_EXTERNAL_IGNORE_LIST (adds the "-I" command line option).
+
+0.4.1		2006/05/02
+	Include the list of supported DKIM versions in the output of "-V".
+	Feature request #SF1238442: Add _FFR_VERIFY_DOMAINKEYS which
+		will verify DomainKey signatures, if present.  Requires
+		libdk, which is available in the dk-milter package.
+	Feature request #SF1453565: Add _FFR_SELECT_SIGN_HEADERS which permits
+		specification of which headers to sign.
+	Add _FFR_SET_DNS_CALLBACK which allows registration of a callback
+		per-handle which is called periodically while waiting for
+		DNS responses.
+	LIBDKIM: Return an error if the signing function returned success but
+		also reported a zero-length signature.  Reported by
+		S. Moonesamy of Eland Systems.
+
+0.4.0		2006/04/18
+	Add preliminary support for IETF DKIM draft 01.  "rsa-sha256" support
+		was already added, but this also adds support for the
+		"bh" (body hash) tag in signatures.
+	Add "-v" command line switch to select DKIM version to use when
+		signing.
+	Add "-x" command line switch to specify a configuration file to read
+		and parse.
+	LIBAR: Fixes regarding retransmissions.
+
+0.3.2		2006/04/05
+	Don't remove the wrong "b=" when canonicalizing the signature header
+		during verification.  Problem noted by Michael Thomas
+		of Cisco.
+	Properly process empty values in parameter sets.  Problem noted by
+		Michael Thomas of Cisco.
+
+0.3.1		2006/03/19
+	Report the size of the key on successful verifications in the
+		Authentication-Results: header.
+	Fix bug #SF1453591: Tolerate empty strings in dkim_process_set(),
+		and just apply defaults.
+	LIBDKIM: Add dkim_getkeysize(), dkim_getsignalg(), dkim_getsigntime().
+
+0.3.0		2006/03/15
+	Add preliminary support for "rsa-sha256" signatures.
+	Rearrange command line arguments somewhat.
+	Include the list of supported canonicalization and signing algorithms
+		in the output when "-V" is specified.
+	Fix an intermittent crash condition caused by an uninitialized
+		variable.
+	Add _FFR_LOG_SSL_ERRORS to log any queued SSL error messages
+		before releasing a message from the filter.
+
+0.2.3		2006/03/03
+	Add a "testing" comment when the key or policy used to verify a
+		message is marked with a test flag.
+	Flush the base64 output stream before sending the reports under
+		_FFR_REPORTINFO so that the reports don't contain truncated
+		data.  Discovered by Tony Hansen of AT&T.
+	Fixes in processing of signature headers that contained extraneous
+		spaces.  Reported by Tony Hansen of AT&T.
+	Fix bug #SF1442606: Clone the configuration string before parsing
+		it so that "ps" doesn't show weird output.
+
+0.2.2		2006/01/24
+	Evaluate the key granularity honouring "*" as a wildcard.
+	Add _FFR_SET_REPLY which requests a more useful SMTP reply code
+		when instructing the MTA to temp-fail or reject messages.
+
+0.2.1		2005/12/09
+	Further fixes to dkim_getsighdr().  Problem reported by Sung-hoon
+		Choi of Dreamwiz.
+	Plug a few small but definite memory leaks.
+	Fix bug #SF1373746: Repair a _FFR_SELECT_CANONICALIZATION build
+		problem introduced in the previous release.  Reported by
+		S. Moonesamy of Eland Systems.
+
+0.2.0		2005/12/02
+	Update for revised ESTG draft.  Mainly this involved changing
+		the "nowsp" canonicalization to "relaxed", and allowing
+		specification of different canonicalizations for header
+		and body.
+	Don't allow the header to end with "\n\t" in dkim_getsighdr().
+		Problem reported by Sung-hoon Choi of Dreamwiz.
+	Report "neutral" instead of "fail" for failed verifications
+		when they key was marked as being in test mode.  Patch from
+		Sung-hoon Choi of Dreamwiz.
+	Allow "-d" to specify a file from which domain names should be read,
+		and allow domain names to contain wildcards.
+	Fix bug #SF1243980: An empty key granularity matches nobody.  Reported
+		by Jim Fenton of Cisco.
+	LIBAR: Fix bug #SF1282755: Fix a build issue introduced in the
+		last release.  Reported by Fredrik Pettai.
+
+0.1.1		2005/07/21
+	Prevent a garbage pointer free() in dkim_free().  Reported by
+		S. Moonesamy of Eland Systems.
+	Fix bug #SF1241118: Don't add an Authentication-Results: header for
+		messages which are unsigned and come from a domain that
+		doesn't advertise a signs-all policy.  Reported by
+		S. Moonesamy of Eland Systems.
+	Report "neutral" instead of "fail" for domains advertising test
+		mode in their policies.
+	Feature request #SF1238617: Add a compile-time option to map
+		smfi_insheader() to smfi_addheader() on machines with older
+		MTA and libmilter versions.
+
+0.1.0		2005/07/13
+	Initial open source release.
