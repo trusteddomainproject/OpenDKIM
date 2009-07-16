@@ -1,0 +1,22 @@
+$Id: README,v 1.1 2009/07/16 19:21:46 cm-msk Exp $
+
+
+ENVIRONMENT VARIABLES
+=====================
+
+The following environment variables are checked and have some impact on
+what libdkim does:
+
+DKIM_TMPDIR	directory in which temporary files are created; default is
+		/var/tmp
+
+
+SELF-TEST
+=========
+
+A number of self-test programs are included here for unit-testing the
+library.  To run them, type "sh Build check".  A brief description of each
+test will be provided before its result.  If the description is followed by
+the word SKIPPED, it means support for the function (e.g. an external
+library) to be tested was not available at compile-time and the test was
+not run.
