@@ -1,0 +1,102 @@
+
+
+	     F E A T U R E S   F O R   F U T U R E   R E L E A S E
+
+
+INTRODUCTION
+============
+
+In the source code for this package may be one or more segments of code
+that are disabled, as they are slated for future release (FFR).  These
+are generally unreleased or incomplete features, or can be new algorithms
+for existing features.  They are often untested and currently unsupported,
+and generally formally become part of the released software in some future
+revision.  There may or may not be documentation for them outside of this
+file.  Use them at your own risk.
+
+To enable an FFR in the source code, find the feature you want to use
+in the list below and arrange to enable that feature at build time by
+adding -D_FFR_<feature-name> to the build.  For example, to add the WIDGET
+feature, you would add -D_FFR_WIDGET to the build.  You would do this
+by adding a line to Makefile.m4 that reads:
+
+	APPENDDEF(`confENVDEF', `-D_FFR_WIDGET')
+
+
+FEATURES
+========
+
+Feature Name	Description
+
+BODYLENGTH_DB	Optionally query a local database of recipient addresses
+		to determine if an "l=" tag should be applied when
+		signing.  (libopendkim, opendkim)
+
+CAPTURE_UNKNOWN_ERRORS
+		When dkim_eom() returns an unexpected error of some kind,
+		quarantine the message for further analysis.  (opendkim)
+
+COMMAIZE	Attempt to anticipate header field rewriting the MTA will
+		do so that verification failures are reduced.  (opendkim)
+
+DIFFHEADERS	When verification fails for a message for which a "z="
+		tag was provided, compare the received headers to the original
+		headers to look for possible munging.  Requires the tre
+		library.  (opendkim, libopendkim)
+
+DKIM_REPUTATION	Add experimental support for querying an open DKIM reputation
+		service.  The service's URL is http://www.dkim-reputation.org.
+		(opendkim, libopendkim)
+
+DNS_UPGRADE	Maintain two libar instances, the second in TCP mode, in case
+		any UDP queries come back truncated.  Not meaningful unless
+		libar is in use.  (libopendkim)
+
+MULTIPLE_SIGNATURES
+		Allow addition of multiple signatures when key lists are
+		in use.  (opendkim)
+
+PARSE_TIME	Adds a utility function reporting the value of the Date:
+		header for easy comparison to signature timestamps in order
+		to detect messages in which those values wildly differ.
+		INCOMPLETE.  (libopendkim)
+
+REPLACE_RULES	Allow specification of a "replacement rules" table
+		for use when signing, replacing certain patterns in
+		address headers with specific strings to anticipate the
+		effects of the "masquerade" and "genericstable" features in
+		the MTA.  (opendkim)
+
+REPORT_INTERVALS
+		Support for report intervals, part of the DKIM reporting
+		extensions.  (opendkim)
+
+SELECT_CANONICALIZATION
+		Optionally override the value of the "-c" command line flag
+		by specifying a preferred canonicalization on a special
+		header line.  Intended mostly for testing, not production
+		use.  (opendkim)
+
+SELECTOR_HEADER	Enable selection of which selector (and thus which key)
+		to use when signing based on the contents of an arbitrary
+		header.  (opendkim)
+
+STATS		Optional generation of statistics about pass/fail sorted
+		by domain and canonicalization.  Requires Sleepycat DB.
+		(opendkim, libopendkim)
+
+VBR		Enable VBR (Vouch By Reference) header addition (outbound)
+		and processing (inbound).  Under revision and may not be
+		stable.  (opendkim, libopendkim)
+
+ZTAGS		Save headers to a file for diagnostics when the signer used
+		a "z=" tag. (opendkim)
+
+
+COPYRIGHT
+=========
+
+Copyright (c) 2009, Sendmail, Inc. and its suppliers.
+	All rights reserved.
+
+$Revision: 1.1 $, Last updated $Date: 2009/07/16 18:46:43 $
