@@ -1,7 +1,7 @@
 OPENDKIM README
 ===============
 
-$Id: README,v 1.1 2009/07/16 18:43:32 cm-msk Exp $
+$Id: README,v 1.2 2009/07/16 18:47:39 cm-msk Exp $
 
 This directory has the latest open source DKIM filter software from The
 OpenDKIM Project.
@@ -26,7 +26,8 @@ and the Internet Identified Mail (IIM) proposal by Cisco.
 OpenDKIM is a code fork from version 2.8.3 of the open source "dkim-milter"
 package developed and maintained by Sendmail, Inc.  As such, it contains
 source code which is covered by the Sendmail Open Source License, reproduced
-here in the file LICENSE.Sendmail.
+here in the file LICENSE.Sendmail.  Check the copyright(s) in each file
+to determine which license(s) apply to it.
 
 This package consists of a library that implements the DKIM service and a
 milter-based filter application that can plug in to any milter-aware MTA to
