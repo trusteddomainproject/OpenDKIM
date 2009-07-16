@@ -1,0 +1,286 @@
+			INSTALLING OPENDKIM
+
+OVERVIEW
+========
+
+In order to install the opendkim as a milter plugin to an MTA you will
+need to perform the following steps:
+
+* Compile the opendkim program itself.
+
+* Configure the DKIM subsystem for signing and verification.
+
+* Install the milter and configure sendmail to use it.
+
+Note that there is a difference between "OpenDKIM" and "opendkim".
+"OpenDKIM" is a package containing a library, a filter and some tools to
+be used in testing your DKIM installation.  "opendkim" is the filter
+program contained in the "OpenDKIM" package.
+
+libopendkim is a library available as an API for programmers everywhere.  That
+API is described in a set of HTML files in the OpenDKIM source code
+package.
+
+opendkim is a plugin that incorporates the libopendkim library and works
+with recent versions of sendmail and Postfix.  It does not work with other
+MTAs that do not support the milter interface.  For more information about
+milter, see <http://www.milter.org> and <http://www.sendmail.org>.
+
+This document describes using opendkim with sendmail.  For information
+about Postfix, see <http://www.postfix.org>.  For other mail systems, contact
+your provider.
+
+
+COMPILING
+=========
+
+The opendkim plugin requires sendmail v8.13.0 or later, for required
+milter protocol enhancements.  If you don't have a current version, go to
+<http://sendmail.org/releases/> for more information.
+
+To build this package you must first have installed or at least have available
+the OpenSSL package and libmilter.  The former is available from
+<http://www.openssl.org> or in package form from your vendor.  At a minimum
+version 0.9.8 is required to meet DKIM requirements.  The application library
+libmilter is part of the sendmail Open Source distribution and can be built
+and installed from there (ftp://ftp.sendmail.org).
+
+The commands shown below assume a UNIX system with standard build tools
+installed.
+
+Steps to compiling the library and the milter:
+
+(1) Download the source from OpenDKIM (http://www.opendkim.org).
+
+(2) Unpack the tarball:
+	% tar -xzvf opendkim-$ver.tar.gz
+
+	Be sure you set $ver to the version number that you downloaded.
+
+(3) Change directories to the release directory (opendkim-<version>) that
+    was created in step 2.
+	% cd opendkim-$ver
+
+(4) Run the "configure" script to configure the package for your operating
+    system.
+	% ./configure
+
+(5) Compile the package.
+	% make
+
+(6) Install the output of the build.  You probably need to become the
+    superuser to run this step.
+	% make install
+
+
+INSTALLING AND CONFIGURING OPENDKIM
+===================================
+
+(1) Choose a selector name.  Current convention is to use a code for the
+    current month and year, or just the year.  However, you are free to
+    choose any name you wish, especially if you have a selector assignment
+    scheme in mind.
+
+(2) Create a public/private keypair for signing:
+
+  (a) Run the script "opendkim-genkey".  (A manual page for this tool is
+      available and will be installed by the above process if you want to
+      see the available options.)
+
+      This will generate a private key in PEM format and a TXT record
+      appropriate for insertion into your DNS zone file.  Insert the contents
+      of the TXT record file into your DNS zone file, increment the
+      serial number, and reload your DNS server so that the new record
+      is published.  This is by far the easiest approach.
+
+  (b) If for some reason you cannot use the "opendkim-genkey" script, manually
+      generate a public and private key.  The steps below are exactly what
+      is performed by the opendkim-genkey script.
+
+    (i) Run this command:
+
+	    % openssl genrsa -out rsa.private 1024
+
+	This generates a private key and writes it to the file "rsa.private".
+	The generated key is in PEM format and is a 1024-bit key, the
+	minimum required by the DKIM specification.
+
+    (ii) Run this command:
+
+	    % openssl rsa -in rsa.private -out rsa.public -pubout -outform PEM
+
+	This reads the private key generated in the previous step and
+	extracts from it the matching public key.  This is written to the
+	file "rsa.public".
+
+    (iii) Add a TXT DNS record containing the base64 encoding of your public
+        key, which is everything between the BEGIN and END lines in the
+        rsa.public file generated above, with spaces and newlines removed.
+        It should be in this form:
+
+	  "g=*; k=rsa; t=y; p=MFwwDQYJ...AwEAAQ=="
+
+        ...using, of course, your own public key's base64 data.  The name of
+        the TXT record should be SELECTOR._domainkey.example.com (where
+        "SELECTOR" is the name you chose and "example.com" is your domain
+        name).  Reload your nameserver so that the record gets published.
+	If you are running BIND 9 the command is "rndc reload"; for other
+	nameservers, consult your vendor documentation.
+
+	If you are using a large key, you may need to format this record
+	in a special way in order for it to be used by your nameserver.
+	See the LARGE KEYS section below.
+
+	For a translation of the parameter and value pairs shown here, see
+	the DKIM specification (RFC4871) section 3.6.  The specification
+	is available in a file in the source code package called
+	"rfc4871.txt".  Basically this key record just announces an RSA
+	public key and also declares that your site is using this key in
+	test mode so nobody should take any real action based on success
+	or failure of the use of this key to verify a message.
+
+(3) Store the private key in a safe place.  We generally use a path like
+    /var/db/dkim/SELECTOR.key.pem (where "SELECTOR" is the name you chose).
+    The /var/db/dkim directory and the associated .pem file should be owned by
+    the user that will be executing the filter (preferably not the
+    superuser) and be mode 0700 and 0600 respectively.
+
+(4) Start opendkim.  You will need at least the "-p" option.  (A manual
+    page for this tool is available and will be installed by the above
+    process if you want to see the available options.)  The current
+    recommended basic set of command line options is:
+
+	-l -p SOCKETSPEC -d DOMAIN -k KEYPATH -s SELECTOR
+
+    ...where SOCKETSPEC is the socket you want the MTA to use (see below),
+    DOMAIN is the domain or set of domains for which you want to sign
+    mail, KEYPATH is the path to the private key file you generated, and
+    SELECTOR is the selector name you picked.  You can tack "-f" on there
+    if you want it to run in the foreground instead of in the background
+    as a daemon.
+
+    The SOCKETSPEC is a socket where the MTA will attempt to connect
+    to your filter.  The filter must therefore be listening there for
+    connections from MTAs in order to process messages.  See the
+    documentation in libmilter (available with the open source sendmail
+    source code) for details on selecting and specifying a socket.
+
+    Instead of command line options, you can also use a configuration file.
+    In that case, you only need to tell the filter where the configuration
+    file is by specifying a command line option of:
+
+	-x CONFPATH
+
+    ...where CONFPATH is the path to the configuration file you wish to
+    use.  A template configuration file can be found in the "opendkim"
+    directory, named "opendkim.conf.sample".
+
+
+
+CONFIGURING AND RESTARTING SENDMAIL
+===================================
+
+(1) Configure sendmail to use the new milter:
+
+  (a) Choose a socket at which the MTA and the filter will rendezvous
+      (see the documentation in libmilter for details).
+
+  (b) Add a line like this example to your sendmail.mc using your desired
+      socket specification:
+
+	INPUT_MAIL_FILTER(`opendkim', `S=inet:8891@localhost')
+
+  (c) Rebuild your sendmail.cf in the usual way.
+
+(2) Restart sendmail.
+
+	% kill -1 `head -1 /var/run/sendmail.pid`
+
+
+LARGE KEYS
+==========
+
+If you wish to use a large key in DNS, there are some limitations of which
+you should be aware.  A TXT record in the DNS consists of a series of
+strings each of which don't exceed 255 bytes.  This is a result of the
+fact that each string is preceded by a length byte (which, of course,
+can't exceed 255).  Furthermore, some DNS implementations don't allow
+packets larger than 512 bytes.  Some RSA keys will exceed the 255 byte
+limit once encoded with base64, so some special formatting must be
+used to make such a record fit.  Failing to do so can cause an incomplete
+record to be published or, worse, the nameserver to refuse to serve the
+record or even the entire zone.
+
+In the case of the BIND nameserver, there are two syntax rules one can use
+to make a large record fit within these boundaries:
+
+1) TXT substrings
+
+	Instead of a record like:
+
+	recname	IN	TXT	"foobarbazblivitalphabravocharliedelta...zulu"
+
+	...one can also do:
+
+	recname	IN	TXT	"foobar" "baz" "blivit" "alpha" ... "zulu"
+
+	(The "..." is mean to indicate continuation and is not a literal set of
+	three "." characters.)
+
+	You simply have to break up the large record into smaller strings such
+	that no string exceeds 255 bytes.  DKIM implementations will
+	reassemble TXT records broken down this way into the full original
+	single string before processing them.
+
+2) Line continuations
+
+	It can be difficult for some to edit very long lines of text.
+	It's therefore desirable to have a mechanism to break very long
+	TXT records down so that they fit nicely within an editor window.
+	In BIND, this is done by enclosing the wrapped lines within
+	parentheses.  Continuing with the example above, this:
+
+	recname	IN	TXT	"foobar" "baz" "blivit" "alpha" ... "zulu"
+
+	...can also be expressed as:
+
+	recname	IN	TXT	( "foobar" "baz" "blivit" "alpha"
+				  "bravo" "charlie" "delta" "echo"
+				  ...
+				  "yankee" "zulu" )
+
+So using these two techniques, a very large public key could be encoded
+in a DNS zone file as follows:
+
+recname	IN	TXT	( "v=DKIM1; g=*; k=rsa; "
+ 			  "p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1Z4F"
+ 			  "JEMHjJDuBmt25zvYFVejlARZGt1L8f0s1+rLxIPYkfCogQi+Y8"
+ 			  "oLEg9vvEKnLx9aogZzuNt6j4Sty3LgXxaIwHnMqk0LldbA/mh3"
+ 			  "wLZb16Wc6btXHON0o3uDipxqGK2iRLTvcgAnNDegseOS+i0aJE"
+ 			  "nNSl663ywRBp/QKezhUC7cnbqR/H8dz8pEOjeawNN3nexdHGsk"
+ 			  "+RaafYvCFvU+70CQORcsk+mxb74SwGT2CGHWxVywQA9yrV+sYk"
+ 			  "JpxaufZLo6xp0Z7RZmbf1eGlCAdhkEy+KYQpQkw2Cdl7iKIK4+"
+ 			  "17gr+XZOrfFLJ5IwpVK/a19m3BLxADf0Kh3oZwIDAQAB" )
+
+
+TESTING
+=======
+
+To test, send a piece of e-mail through the MTA doing signing for your
+domain to sa-test@sendmail.net.  It should be returned to you shortly
+showing your message in the body of a new message, including all of
+the header changes that were made in transit.  The message you generated
+should appear there with a DKIM-Signature: header added, containing
+the signature data your opendkim added, and an Authentication-Results:
+header which the testing machine's opendkim added after verifying the
+signature.  The value of this header should indicate a "pass".  If it
+isn't, something in between has altered your message in a way that
+invalidated the signature.  Perhaps you have other filters running which
+appended or modified a header.
+
+The reply from the test machine will also itself be signed, and in the
+headers of the reply you should see its signature and another
+Authentication-Results: header, which should also read "pass".
+
+
+$Id: INSTALL,v 1.1 2009/07/16 18:52:19 cm-msk Exp $
