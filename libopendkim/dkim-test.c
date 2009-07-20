@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
+static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.3 2009/07/20 21:41:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -295,7 +295,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 	if (dkim == NULL)
 	{
 		if (err != NULL)
-			sm_strlcpy(err, dkim_getresultstr(stat), errlen);
+			strlcpy(err, dkim_getresultstr(stat), errlen);
 		return -1;
 	}
 
@@ -306,7 +306,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 	                        NULL, FALSE);
 	if (stat != DKIM_STAT_OK)
 	{
-		sm_strlcpy(err, "syntax error on input", errlen);
+		strlcpy(err, "syntax error on input", errlen);
 		return -1;
 	}
 
@@ -335,12 +335,12 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			errstr = dkim_geterror(dkim);
 			if (errstr != NULL)
 			{
-				sm_strlcpy(err, errstr, errlen);
+				strlcpy(err, errstr, errlen);
 			}
 			else
 			{
-				sm_strlcpy(err, dkim_getresultstr(stat),
-				           errlen);
+				strlcpy(err, dkim_getresultstr(stat),
+				        errlen);
 			}
 		}
 		(void) dkim_free(dkim);
@@ -354,8 +354,8 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 		{
 			if (err != NULL)
 			{
-				sm_strlcpy(err, "BIO_new_mem_buf() failed",
-				           errlen);
+				strlcpy(err, "BIO_new_mem_buf() failed",
+				        errlen);
 			}
 			(void) dkim_free(dkim);
 			return -1;
@@ -387,9 +387,9 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			(void) dkim_free(dkim);
 			if (err != NULL)
 			{
-				sm_strlcpy(err,
-				           "PEM_read_bio_PrivateKey() failed",
-				           errlen);
+				strlcpy(err,
+				        "PEM_read_bio_PrivateKey() failed",
+				        errlen);
 			}
 			return -1;
 		}
@@ -401,8 +401,8 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			(void) dkim_free(dkim);
 			if (err != NULL)
 			{
-				sm_strlcpy(err, "EVP_PKEY_get1_RSA() failed",
-				           errlen);
+				strlcpy(err, "EVP_PKEY_get1_RSA() failed",
+				        errlen);
 			}
 			return -1;
 		}
@@ -416,7 +416,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			BIO_free(keybuf);
 			(void) dkim_free(dkim);
 			if (err != NULL)
-				sm_strlcpy(err, "BIO_new() failed", errlen);
+				strlcpy(err, "BIO_new() failed", errlen);
 			return -1;
 		}
 
@@ -428,7 +428,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			(void) dkim_free(dkim);
 			if (err != NULL)
 			{
-				sm_strlcpy(err, "i2d_RSA_PUBKEY_bio() failed",
+				strlcpy(err, "i2d_RSA_PUBKEY_bio() failed",
 				           errlen);
 			}
 			return -1;
@@ -442,7 +442,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			status = 1;
 
 		if (status != 0)
-			sm_strlcpy(err, "keys do not match", errlen);
+			strlcpy(err, "keys do not match", errlen);
 
 		BIO_free(keybuf);
 		BIO_free(outkey);
@@ -486,7 +486,7 @@ dkim_test_adsp(DKIM_LIB *lib, const char *domain, dkim_policy_t *presult,
 	if (dkim == NULL)
 	{
 		if (err != NULL)
-			sm_strlcpy(err, dkim_getresultstr(stat), errlen);
+			strlcpy(err, dkim_getresultstr(stat), errlen);
 		return -1;
 	}
 
@@ -504,12 +504,12 @@ dkim_test_adsp(DKIM_LIB *lib, const char *domain, dkim_policy_t *presult,
 			errstr = dkim_geterror(dkim);
 			if (errstr != NULL)
 			{
-				sm_strlcpy(err, errstr, errlen);
+				strlcpy(err, errstr, errlen);
 			}
 			else
 			{
-				sm_strlcpy(err, dkim_getresultstr(stat),
-				           errlen);
+				strlcpy(err, dkim_getresultstr(stat),
+				        errlen);
 			}
 		}
 

@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.3 2009/07/20 21:41:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -141,7 +141,7 @@ void dkim_error __P((DKIM *, const char *, ...));
 			{					\
 				size_t _tmplen;			\
 								\
-				_tmplen = sm_strlcpy(x, y, z);	\
+				_tmplen = strlcpy(x, y, z);	\
 								\
 				if (_tmplen > z)		\
 				{				\
@@ -447,7 +447,7 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 		dkim_error(dkim, "unable to allocate %d byte(s)", len + 1);
 		return DKIM_STAT_INTERNAL;
 	}
-	sm_strlcpy(hcopy, str, len + 1);
+	strlcpy(hcopy, str, len + 1);
 
 	set = (DKIM_SET *) DKIM_MALLOC(dkim, sizeof(DKIM_SET));
 	if (set == NULL)
@@ -914,7 +914,7 @@ dkim_key_smtp(DKIM_SET *set)
 	if (val == NULL)
 		return TRUE;
 
-	sm_strlcpy(buf, val, sizeof buf);
+	strlcpy(buf, val, sizeof buf);
 
 	for (p = strtok_r(buf, ":", &last);
 	     p != NULL;
@@ -991,7 +991,7 @@ dkim_key_granok(DKIM *dkim, DKIM_SIGINFO *sig, u_char *v, u_char *gran,
 		dkim_qp_decode(p, cmp, sizeof cmp);
 	at = strchr(cmp, '@');
 	if (at == NULL || at == cmp)
-		sm_strlcpy(cmp, user, sizeof cmp);
+		strlcpy(cmp, user, sizeof cmp);
 	else
 		*at = '\0';
 
@@ -1024,7 +1024,7 @@ dkim_key_granok(DKIM *dkim, DKIM_SIGINFO *sig, u_char *v, u_char *gran,
 		}
 	}
 
-	if (sm_strlcat(restr, "$", sizeof restr) >= sizeof restr)
+	if (strlcat(restr, "$", sizeof restr) >= sizeof restr)
 		return FALSE;
 
 	status = regcomp(&re, restr, 0);
@@ -1071,7 +1071,7 @@ dkim_key_hashok(DKIM_SIGINFO *sig, u_char *hashlist)
 		{
 			if (x != NULL)
 			{
-				sm_strlcpy(tmp, x, sizeof tmp);
+				strlcpy(tmp, x, sizeof tmp);
 				tmp[y - x] = '\0';
 				hashalg = dkim_name_to_code(hashes, tmp);
 				if (hashalg == sig->sig_hashtype)
@@ -1124,7 +1124,7 @@ dkim_key_hashesok(u_char *hashlist)
 		{
 			if (x != NULL)
 			{
-				sm_strlcpy(tmp, x, sizeof tmp);
+				strlcpy(tmp, x, sizeof tmp);
 				tmp[y - x] = '\0';
 				if (dkim_name_to_code(hashes, tmp) != -1)
 					return TRUE;
@@ -1214,7 +1214,7 @@ dkim_sig_signerok(DKIM *dkim, DKIM_SET *set, u_char **hdrs)
 				else
 					colon += 1;
 
-				sm_strlcpy(buf, colon, sizeof buf);
+				strlcpy(buf, colon, sizeof buf);
 
 				status = rfc2822_mailbox_split(buf, &user,
 				                               &domain);
@@ -1266,7 +1266,7 @@ dkim_sig_hdrlistok(DKIM *dkim, u_char *hdrlist)
 	assert(dkim != NULL);
 	assert(hdrlist != NULL);
 
-	sm_strlcpy(tmp, hdrlist, sizeof tmp);
+	strlcpy(tmp, hdrlist, sizeof tmp);
 
 	/* figure out how many headers were named */
 	c = 0;
@@ -1711,7 +1711,7 @@ dkim_siglist_setup(DKIM *dkim)
 			char *q;
 			char value[BUFRSZ + 1];
 
-			sm_strlcpy(value, param, sizeof value);
+			strlcpy(value, param, sizeof value);
 
 			q = strchr(value, '/');
 			if (q != NULL)
@@ -1840,7 +1840,7 @@ dkim_siglist_setup(DKIM *dkim)
 			u_char tmp[BUFRSZ + 1];
 			u_char qtype[BUFRSZ + 1];
 
-			sm_strlcpy(qtype, param, sizeof qtype);
+			strlcpy(qtype, param, sizeof qtype);
 
 			for (p = strtok_r(qtype, ":", &last);
 			     p != NULL;
@@ -1849,7 +1849,7 @@ dkim_siglist_setup(DKIM *dkim)
 				opts = strchr(p, '/');
 				if (opts != NULL)
 				{
-					sm_strlcpy(tmp, p, sizeof tmp);
+					strlcpy(tmp, p, sizeof tmp);
 					opts = strchr(tmp, '/');
 					*opts = '\0';
 					opts++;
@@ -2248,7 +2248,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen,
 	DKIM_STRLCAT(wp, delim, wlen);
 	DKIM_STRLCAT(wp, "b=", wlen);
 
-	sm_strlcpy(buf, tmphdr, buflen);
+	strlcpy(buf, tmphdr, buflen);
 
 	DKIM_FREE(dkim, always);
 
@@ -2417,7 +2417,7 @@ dkim_get_policy(DKIM *dkim, char *query, _Bool excheck, int *qstatus,
 			char *last;
 			char tmp[BUFRSZ + 1];
 
-			sm_strlcpy(tmp, p, sizeof tmp);
+			strlcpy(tmp, p, sizeof tmp);
 
 			for (t = strtok_r(tmp, ":", &last);
 			     t != NULL;
@@ -2721,7 +2721,7 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig)
 		char *last;
 		char tmp[BUFRSZ + 1];
 
-		sm_strlcpy(tmp, p, sizeof tmp);
+		strlcpy(tmp, p, sizeof tmp);
 
 		for (t = strtok_r(tmp, ":", &last);
 		     t != NULL;
@@ -3238,7 +3238,7 @@ dkim_eom_sign(DKIM *dkim)
 	}
 
 	/* construct the DKIM signature header to be canonicalized */
-	n = sm_strlcpy(tmp, DKIM_SIGNHEADER ": ", sizeof tmp);
+	n = strlcpy(tmp, DKIM_SIGNHEADER ": ", sizeof tmp);
 
 	ret = dkim_getsighdr(dkim, tmp + n, sizeof tmp - n,
 	                     strlen(DKIM_SIGNHEADER) + 2);
@@ -3683,8 +3683,8 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	libhandle->dkiml_skipre = FALSE;
 	libhandle->dkiml_malloc = caller_mallocf;
 	libhandle->dkiml_free = caller_freef;
-	sm_strlcpy(libhandle->dkiml_tmpdir, td, 
-	           sizeof libhandle->dkiml_tmpdir);
+	strlcpy(libhandle->dkiml_tmpdir, td, 
+	        sizeof libhandle->dkiml_tmpdir);
 	libhandle->dkiml_flags = DKIM_LIBFLAGS_DEFAULT;
 	libhandle->dkiml_timeout = DEFTIMEOUT;
 	libhandle->dkiml_senderhdrs = (u_char **) default_senderhdrs;
@@ -3877,18 +3877,18 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 	  case DKIM_OPTS_TMPDIR:
 		if (op == DKIM_OP_GETOPT)
 		{
-			sm_strlcpy((u_char *) ptr,
-			           lib->dkiml_tmpdir, len);
+			strlcpy((u_char *) ptr,
+			        lib->dkiml_tmpdir, len);
 		}
 		else if (ptr == NULL)
 		{
-			sm_strlcpy(lib->dkiml_tmpdir, DEFTMPDIR,
-			           sizeof lib->dkiml_tmpdir);
+			strlcpy(lib->dkiml_tmpdir, DEFTMPDIR,
+			        sizeof lib->dkiml_tmpdir);
 		}
 		else
 		{
-			sm_strlcpy(lib->dkiml_tmpdir, (u_char *) ptr,
-			           sizeof lib->dkiml_tmpdir);
+			strlcpy(lib->dkiml_tmpdir, (u_char *) ptr,
+			        sizeof lib->dkiml_tmpdir);
 		}
 		return DKIM_STAT_OK;
 
@@ -4060,7 +4060,7 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 
 			hdrs = (u_char **) ptr;
 
-			(void) sm_strlcpy(buf, "^(", sizeof buf);
+			(void) strlcpy(buf, "^(", sizeof buf);
 
 			if (!dkim_hdrlist(buf, sizeof buf,
 			                  (u_char **) required_signhdrs, TRUE))
@@ -4068,7 +4068,7 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 			if (!dkim_hdrlist(buf, sizeof buf, hdrs, FALSE))
 				return DKIM_STAT_INVALID;
 
-			if (sm_strlcat(buf, ")$", sizeof buf) >= sizeof buf)
+			if (strlcat(buf, ")$", sizeof buf) >= sizeof buf)
 				return DKIM_STAT_INVALID;
 
 			status = regcomp(&lib->dkiml_hdrre, buf,
@@ -4109,12 +4109,12 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 
 			hdrs = (u_char **) ptr;
 
-			(void) sm_strlcpy(buf, "^(", sizeof buf);
+			(void) strlcpy(buf, "^(", sizeof buf);
 
 			if (!dkim_hdrlist(buf, sizeof buf, hdrs, TRUE))
 				return DKIM_STAT_INVALID;
 
-			if (sm_strlcat(buf, ")$", sizeof buf) >= sizeof buf)
+			if (strlcat(buf, ")$", sizeof buf) >= sizeof buf)
 				return DKIM_STAT_INVALID;
 
 			status = regcomp(&lib->dkiml_skiphdrre, buf,
@@ -4149,12 +4149,12 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 
 		if (op == DKIM_OP_GETOPT)
 		{
-			sm_strlcpy(ptr, lib->dkiml_queryinfo, len);
+			strlcpy(ptr, lib->dkiml_queryinfo, len);
 		}
 		else
 		{
-			sm_strlcpy(lib->dkiml_queryinfo, ptr,
-			           sizeof lib->dkiml_queryinfo);
+			strlcpy(lib->dkiml_queryinfo, ptr,
+			        sizeof lib->dkiml_queryinfo);
 		}
 		return DKIM_STAT_OK;
 
@@ -4613,14 +4613,14 @@ dkim_policy_getreportinfo(DKIM *dkim,
 	{
 		p = dkim_param_get(set, "rf");
 		if (p != NULL)
-			sm_strlcpy(fmt, p, fmtlen);
+			strlcpy(fmt, p, fmtlen);
 	}
 
 	if (opts != NULL)
 	{
 		p = dkim_param_get(set, "ro");
 		if (p != NULL)
-			sm_strlcpy(opts, p, optslen);
+			strlcpy(opts, p, optslen);
 	}
 
 	if (smtp != NULL)
@@ -4975,7 +4975,7 @@ dkim_ohdrs(DKIM *dkim, DKIM_SIGINFO *sig, char **ptrs, int *pcnt)
 	}
 
 	/* copy it */
-	sm_strlcpy(dkim->dkim_zdecode, z, strlen(z));
+	strlcpy(dkim->dkim_zdecode, z, strlen(z));
 
 	/* decode */
 	for (ch = strtok_r(z, "|", &last);
@@ -5245,7 +5245,7 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 		int status;
 		char name[DKIM_MAXHEADER + 1];
 
-		sm_strlcpy(name, hdr, sizeof name);
+		strlcpy(name, hdr, sizeof name);
 		if (end != NULL)
 			name[end - hdr] = '\0';
 
@@ -5770,7 +5770,7 @@ dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
 
 	if (dkim->dkim_b64sig != NULL)
 	{
-		len = sm_strlcat(hdr, dkim->dkim_b64sig, sizeof hdr);
+		len = strlcat(hdr, dkim->dkim_b64sig, sizeof hdr);
 		if (len >= sizeof hdr || len >= buflen)
 		{
 			dkim_error(dkim,
@@ -6111,14 +6111,14 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 	{
 		p = dkim_param_get(set, "rf");
 		if (p != NULL)
-			sm_strlcpy(fmt, p, fmtlen);
+			strlcpy(fmt, p, fmtlen);
 	}
 
 	if (opts != NULL)
 	{
 		p = dkim_param_get(set, "ro");
 		if (p != NULL)
-			sm_strlcpy(opts, p, optslen);
+			strlcpy(opts, p, optslen);
 	}
 
 	if (smtp != NULL)
@@ -6445,7 +6445,7 @@ dkim_set_signer(DKIM *dkim, const char *signer)
 		}
 	}
 
-	sm_strlcpy(dkim->dkim_signer, signer, MAXADDRESS + 1);
+	strlcpy(dkim->dkim_signer, signer, MAXADDRESS + 1);
 
 	return DKIM_STAT_OK;
 }

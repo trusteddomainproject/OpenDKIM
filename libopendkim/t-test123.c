@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test123_c_id[] = "@(#)$Id: t-test123.c,v 1.1 2009/07/16 19:12:04 cm-msk Exp $";
+static char t_test123_c_id[] = "@(#)$Id: t-test123.c,v 1.2 2009/07/20 21:41:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -15,15 +15,11 @@ static char t_test123_c_id[] = "@(#)$Id: t-test123.c,v 1.1 2009/07/16 19:12:04 c
 #include <string.h>
 #include <stdio.h>
 
-/* libsm includes */
-#include <sm/gen.h>
 
 /* libdkim includes */
 #include "dkim.h"
 #include "t-testdata.h"
 
-/* libsm includes */
-#include <sm/string.h>
 
 #define	MAXHEADER	4096
 
@@ -65,7 +61,7 @@ main(int argc, char **argv)
 
 	printf("*** relaxed/simple rsa-sha256 verifying large lines\n");
 
-	sm_strlcpy(gibline, GIBBERISH, sizeof gibline);
+	strlcpy(gibline, GIBBERISH, sizeof gibline);
 	p = strchr(gibline, '\r');
 	if (p != NULL)
 		*p = '\0';
@@ -124,19 +120,19 @@ main(int argc, char **argv)
 
 	while (wlen > GIBBERISHLEN + 2)
 	{
-		sm_strlcat(body, gibline, sizeof body);
+		strlcat(body, gibline, sizeof body);
 		wlen -= strlen(gibline);
 		llen += strlen(gibline);
 
 		if (llen > LARGELINESIZE)
 		{
-			sm_strlcat(body, CRLF, sizeof body);
+			strlcat(body, CRLF, sizeof body);
 			wlen -= 2;
 			llen = 0;
 		}
 	}
 
-	sm_strlcat(body, CRLF, sizeof body);
+	strlcat(body, CRLF, sizeof body);
 
 	status = dkim_body(dkim, body, strlen(body));
 	assert(status == DKIM_STAT_OK);

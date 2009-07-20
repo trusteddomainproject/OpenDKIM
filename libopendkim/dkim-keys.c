@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
+static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.3 2009/07/20 21:41:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -569,7 +569,7 @@ dkim_get_key_file(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 
 		if (strcasecmp(name, buf) == 0)
 		{
-			sm_strlcpy(buf, p2, buflen);
+			strlcpy(buf, p2, buflen);
 			fclose(f);
 			return DKIM_STAT_OK;
 		}

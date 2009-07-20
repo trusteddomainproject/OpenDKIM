@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test57_c_id[] = "@(#)$Id: t-test57.c,v 1.1 2009/07/16 19:12:04 cm-msk Exp $";
+static char t_test57_c_id[] = "@(#)$Id: t-test57.c,v 1.2 2009/07/20 21:41:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -17,15 +17,11 @@ static char t_test57_c_id[] = "@(#)$Id: t-test57.c,v 1.1 2009/07/16 19:12:04 cm-
 #include <stdio.h>
 #include <stdlib.h>
 
-/* libsm includes */
-#include <sm/gen.h>
 
 /* libdkim includes */
 #include "dkim.h"
 #include "t-testdata.h"
 
-/* libsm includes */
-#include <sm/string.h>
 
 #define	MAXHEADER	4096
 
@@ -121,7 +117,7 @@ main(int argc, char **argv)
 
 	while (wlen > strlen(GIBBERISH))
 	{
-		sm_strlcat(body, GIBBERISH, sizeof body);
+		strlcat(body, GIBBERISH, sizeof body);
 		wlen -= strlen(GIBBERISH);
 	}
 

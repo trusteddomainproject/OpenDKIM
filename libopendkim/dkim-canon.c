@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.3 2009/07/20 18:52:39 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.4 2009/07/20 21:41:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -502,7 +502,7 @@ dkim_canon_selecthdrs(DKIM *dkim, u_char *hdrlist, struct dkim_header **ptrs,
 		}
 	}
 
-	sm_strlcpy(dkim->dkim_hdrlist, hdrlist, DKIM_MAXHEADER);
+	strlcpy(dkim->dkim_hdrlist, hdrlist, DKIM_MAXHEADER);
 
 	/* mark all headers as not used */
 	for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)

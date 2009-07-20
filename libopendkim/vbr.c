@@ -8,7 +8,7 @@
 #ifdef _FFR_VBR
 
 #ifndef lint
-static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.1 2009/07/16 19:12:04 cm-msk Exp $";
+static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.2 2009/07/20 21:41:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -29,15 +29,6 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.1 2009/07/16 19:12:04 cm-msk Exp $"
 #else /* __STDC__ */
 # include <varargs.h>
 #endif /* _STDC_ */
-
-/* libsm includes */
-#include <sm/gen.h>
-#ifdef WITHOUT_LIBSM
-# define sm_strlcat	strlcat
-# define sm_strlcpy	strlcpy
-#else /* WITHOUT_LIBSM */
-# include <sm/string.h>
-#endif /* WITHOUT_LIBSM */
 
 /* libar includes */
 #if USE_ARLIB
@@ -674,7 +665,7 @@ vbr_query(VBR *vbr, char **res, char **cert)
 		return VBR_STAT_INVALID;
 	}
 
-	sm_strlcpy(certs, vbr->vbr_cert, sizeof certs);
+	strlcpy(certs, vbr->vbr_cert, sizeof certs);
 
 	for (p = strtok_r(certs, ":", &last);
 	     p != NULL;

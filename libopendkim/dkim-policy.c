@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
+static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.3 2009/07/20 21:41:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -126,7 +126,7 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 			     p++)
 				continue;
 
-			sm_strlcpy(buf, p, buflen);
+			strlcpy(buf, p, buflen);
 
 			*qstatus = NOERROR;
 
@@ -979,7 +979,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	}
 #endif /* QUERY_CACHE */
 
-	sm_strlcpy(buf, outbuf, buflen);
+	strlcpy(buf, outbuf, buflen);
 #endif /* USE_UNBOUND */
 
 	return 1;

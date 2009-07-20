@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.3 2009/07/20 21:41:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -152,7 +152,7 @@ dkim_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 
 		if (!first)
 		{
-			len = sm_strlcat((char *) buf, "|", buflen);
+			len = strlcat((char *) buf, "|", buflen);
 			if (len >= buflen)
 				return FALSE;
 		}

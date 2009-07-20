@@ -8,7 +8,7 @@
 #ifdef QUERY_CACHE
 
 #ifndef lint
-static char dkim_cache_c_id[] = "@(#)$Id: dkim-cache.c,v 1.1 2009/07/16 19:12:03 cm-msk Exp $";
+static char dkim_cache_c_id[] = "@(#)$Id: dkim-cache.c,v 1.2 2009/07/20 21:41:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -20,17 +20,6 @@ static char dkim_cache_c_id[] = "@(#)$Id: dkim-cache.c,v 1.1 2009/07/16 19:12:03
 #include <fcntl.h>
 #include <errno.h>
 #include <pthread.h>
-
-/* libsm includes */
-#include <sm/gen.h>
-#include <sm/types.h>
-#include <sm/cdefs.h>
-#ifdef WITHOUT_LIBSM
-# define sm_strlcat	strlcat
-# define sm_strlcpy	strlcpy
-#else /* WITHOUT_LIBSM */
-# include <sm/string.h>
-#endif /* WITHOUT_LIBSM */
 
 /* libdb includes */
 #include <db.h>
@@ -231,7 +220,7 @@ dkim_cache_query(DB *db, char *str, int ttl, char *buf, size_t *buflen,
 		c_hits++;
 		pthread_mutex_unlock(&cache_stats_lock);
 
-		sm_strlcpy(buf, ce.cache_data, *buflen);
+		strlcpy(buf, ce.cache_data, *buflen);
 		*buflen = strlen(ce.cache_data);
 		return 0;
 	}
@@ -288,7 +277,7 @@ dkim_cache_insert(DB *db, char *str, char *data, int ttl, int *err)
 
 	ce.cache_when = now;
 	ce.cache_ttl = ttl;
-	sm_strlcpy(ce.cache_data, data, sizeof ce.cache_data);
+	strlcpy(ce.cache_data, data, sizeof ce.cache_data);
 
 	pthread_mutex_lock(&cache_lock);
 

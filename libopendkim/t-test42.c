@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test42_c_id[] = "@(#)$Id: t-test42.c,v 1.1 2009/07/16 19:12:04 cm-msk Exp $";
+static char t_test42_c_id[] = "@(#)$Id: t-test42.c,v 1.2 2009/07/20 21:41:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -16,11 +16,7 @@ static char t_test42_c_id[] = "@(#)$Id: t-test42.c,v 1.1 2009/07/16 19:12:04 cm-
 #include <stdio.h>
 #include <arpa/nameser.h>
 
-/* libsm includes */
-#include <sm/string.h>
 
-/* libsm includes */
-#include <sm/gen.h>
 
 /* libdkim includes */
 #include "dkim.h"
@@ -60,7 +56,7 @@ policy_lookup(DKIM *dkim, unsigned char *query, bool excheck,
 
 	pl = 1;
 
-	sm_strlcpy(buf, DKIM_POLICY_DEFAULTTXT, buflen);
+	strlcpy(buf, DKIM_POLICY_DEFAULTTXT, buflen);
 	*qstatus = NOERROR;
 
 	return 0;
