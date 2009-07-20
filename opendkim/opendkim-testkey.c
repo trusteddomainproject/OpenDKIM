@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-testkey.c,v 1.2 2009/07/20 22:51:06 cm-msk Exp $
+**  $Id: opendkim-testkey.c,v 1.3 2009/07/20 23:00:53 cm-msk Exp $
 */
 
 #ifndef lint
-static char dkim_testkey_c[] = "@(#)$Id: opendkim-testkey.c,v 1.2 2009/07/20 22:51:06 cm-msk Exp $";
+static char dkim_testkey_c[] = "@(#)$Id: opendkim-testkey.c,v 1.3 2009/07/20 23:00:53 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -73,8 +73,8 @@ dkimf_log_ssl_errors(void)
 			memset(tmp, '\0', sizeof tmp);
 			(void) ERR_error_string_n(e, tmp, sizeof tmp);
 			if (n != 0)
-				sm_strlcat(errbuf, "; ", sizeof errbuf);
-			sm_strlcat(errbuf, tmp, sizeof errbuf);
+				strlcat(errbuf, "; ", sizeof errbuf);
+			strlcat(errbuf, tmp, sizeof errbuf);
 		}
 
 		fprintf(stderr, "%s\n", errbuf);
