@@ -12,6 +12,8 @@ AC_PROG_CC
 AC_PROG_RANLIB
 
 # Checks for libraries.
+AC_CHECK_LIB(crypto, ERR_peek_error)
+AC_CHECK_LIB(milter, smfi_getsymval)
 
 # Checks for header files.
 AC_HEADER_RESOLV
