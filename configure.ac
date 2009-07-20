@@ -7,6 +7,8 @@ AM_INIT_AUTOMAKE(opendkim, 1.0.0)
 AC_CONFIG_SRCDIR([libar/ar.c])
 AC_CONFIG_HEADERS([build-config.h])
 
+CFLAGS="$CFLAGS -pthread"
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_RANLIB
@@ -18,7 +20,7 @@ AC_SEARCH_LIBS(smfi_getsymval, milter)
 
 # Checks for header files.
 AC_HEADER_RESOLV
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h netdb.h netinet/in.h paths.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h netdb.h netinet/in.h paths.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h libmilter/mfapi.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
