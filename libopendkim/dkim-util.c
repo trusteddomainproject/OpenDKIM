@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.1 2009/07/16 19:12:04 cm-msk Exp $";
+static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -17,17 +17,6 @@ static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.1 2009/07/16 19:12:04 c
 #include <limits.h>
 #include <string.h>
 #include <errno.h>
-
-/* libsm includes */
-#include <sm/gen.h>
-#include <sm/types.h>
-#include <sm/cdefs.h>
-#ifdef WITHOUT_LIBSM
-# define sm_strlcat	strlcat
-# define sm_strlcpy	strlcpy
-#else /* WITHOUT_LIBSM */
-# include <sm/string.h>
-#endif /* WITHOUT_LIBSM */
 
 /* libdkim includes */
 #include "dkim.h"
@@ -133,7 +122,7 @@ dkim_strdup(DKIM *dkim, const unsigned char *str, size_t len)
 */
 
 DKIM_STAT
-dkim_tmpfile(DKIM *dkim, int *fp, bool keep)
+dkim_tmpfile(DKIM *dkim, int *fp, _Bool keep)
 {
 	int fd;
 	char path[MAXPATHLEN + 1];
@@ -184,7 +173,7 @@ dkim_tmpfile(DKIM *dkim, int *fp, bool keep)
 **  	specific size.
 */
 
-static bool
+static _Bool
 dkim_dstring_resize(struct dkim_dstring *dstr, int len)
 {
 	int newsz;
@@ -340,7 +329,7 @@ dkim_dstring_free(struct dkim_dstring *dstr)
 **  	The dstring may be resized.
 */
 
-bool
+_Bool
 dkim_dstring_copy(struct dkim_dstring *dstr, char *str)
 {
 	int len;
@@ -383,7 +372,7 @@ dkim_dstring_copy(struct dkim_dstring *dstr, char *str)
 **  	The dstring may be resized.
 */
 
-bool
+_Bool
 dkim_dstring_cat(struct dkim_dstring *dstr, char *str)
 {
 	size_t len;
@@ -428,7 +417,7 @@ dkim_dstring_cat(struct dkim_dstring *dstr, char *str)
 **  	The dstring may be resized.
 */
 
-bool
+_Bool
 dkim_dstring_cat1(struct dkim_dstring *dstr, int c)
 {
 	int len;
@@ -471,7 +460,7 @@ dkim_dstring_cat1(struct dkim_dstring *dstr, int c)
 **  	The dstring may be resized.
 */
 
-bool
+_Bool
 dkim_dstring_catn(struct dkim_dstring *dstr, char *str, size_t nbytes)
 {
 	size_t needed;

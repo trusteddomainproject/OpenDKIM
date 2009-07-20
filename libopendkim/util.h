@@ -9,7 +9,7 @@
 #define _UTIL_H_
 
 #ifndef lint
-static char util_h_id[] = "@(#)$Id: util.h,v 1.1 2009/07/16 19:12:04 cm-msk Exp $";
+static char util_h_id[] = "@(#)$Id: util.h,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -19,22 +19,17 @@ static char util_h_id[] = "@(#)$Id: util.h,v 1.1 2009/07/16 19:12:04 cm-msk Exp 
 # include <sys/select.h>
 #endif /* USE_UNBOUND */
 
-/* libsm includes */
-#include <sm/gen.h>
-#include <sm/types.h>
-#include <sm/cdefs.h>
-
 /* prototypes */
 extern int dkim_addrcmp __P((u_char *, u_char *));
 extern int dkim_check_dns_reply __P((unsigned char *ansbuf, size_t anslen,
                                      int xclass, int xtype));
 extern void dkim_collapse __P((u_char *));
-extern bool dkim_hdrlist __P((u_char *, size_t, u_char **, bool));
+extern _Bool dkim_hdrlist __P((u_char *, size_t, u_char **, _Bool));
 extern int dkim_hexchar __P((int c));
 extern void dkim_lowerhdr __P((u_char *));
 extern int dkim_qp_decode __P((u_char *, u_char *, int));
 #ifdef USE_UNBOUND
-extern bool dkim_timespec_past __P((struct timespec *tv));
+extern _Bool dkim_timespec_past __P((struct timespec *tv));
 extern int dkim_wait_fd __P((int fd, struct timespec *until));
 #endif /* USE_UNBOUND */
 

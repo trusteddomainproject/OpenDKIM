@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.2 2009/07/16 19:18:14 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.3 2009/07/20 18:52:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -17,17 +17,6 @@ static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.2 2009/07/16 19:18:14
 #include <ctype.h>
 #include <unistd.h>
 #include <limits.h>
-
-/* libsm includes */
-#include <sm/gen.h>
-#include <sm/types.h>
-#include <sm/cdefs.h>
-#ifdef WITHOUT_LIBSM
-# define sm_strlcat	strlcat
-# define sm_strlcpy	strlcpy
-#else /* WITHOUT_LIBSM */
-# include <sm/string.h>
-#endif /* WITHOUT_LIBSM */
 
 /* libdkim includes */
 #include "dkim.h"
@@ -251,9 +240,9 @@ dkim_canon_buffer(DKIM_CANON *canon, u_char *buf, size_t buflen)
 
 static DKIM_STAT
 dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
-                  bool crlf)
+                  _Bool crlf)
 {
-	bool space;
+	_Bool space;
 	int n;
 	u_char *p;
 	u_char *tmp;
@@ -692,7 +681,7 @@ dkim_canon_fixcrlf(DKIM *dkim, DKIM_CANON *canon, u_char *buf, size_t buflen)
 */
 
 DKIM_STAT
-dkim_canon_init(DKIM *dkim, bool tmp, bool keep)
+dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 {
 	int fd;
 	DKIM_STAT status;
@@ -844,7 +833,7 @@ dkim_canon_cleanup(DKIM *dkim)
 */
 
 DKIM_STAT
-dkim_add_canon(DKIM *dkim, bool hdr, dkim_canon_t canon, int hashtype,
+dkim_add_canon(DKIM *dkim, _Bool hdr, dkim_canon_t canon, int hashtype,
                u_char *hdrlist, struct dkim_header *sighdr,
                off_t length, DKIM_CANON **cout)
 {
@@ -950,7 +939,7 @@ dkim_add_canon(DKIM *dkim, bool hdr, dkim_canon_t canon, int hashtype,
 */
 
 DKIM_STAT
-dkim_canon_runheaders(DKIM *dkim, bool signing)
+dkim_canon_runheaders(DKIM *dkim, _Bool signing)
 {
 	u_char savechar;
 	int c;
@@ -1403,7 +1392,7 @@ dkim_canon_minbody(DKIM *dkim)
 DKIM_STAT
 dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 {
-	bool fixcrlf;
+	_Bool fixcrlf;
 	DKIM_STAT status;
 	u_int wlen;
 	DKIM_CANON *cur;

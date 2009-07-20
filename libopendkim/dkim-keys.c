@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.1 2009/07/16 19:12:03 cm-msk Exp $";
+static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -22,17 +22,6 @@ static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.1 2009/07/16 19:12:03 c
 #include <ctype.h>
 #include <string.h>
 #include <errno.h>
-
-/* libsm includes */
-#include <sm/gen.h>
-#include <sm/types.h>
-#include <sm/cdefs.h>
-#ifdef WITHOUT_LIBSM
-# define sm_strlcat	strlcat
-# define sm_strlcpy	strlcpy
-#else /* WITHOUT_LIBSM */
-# include <sm/string.h>
-#endif /* WITHOUT_LIBSM */
 
 /* libar includes */
 #if USE_ARLIB

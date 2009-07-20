@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.1 2009/07/16 19:12:04 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -21,16 +21,6 @@ static char util_c_id[] = "@(#)$Id: util.c,v 1.1 2009/07/16 19:12:04 cm-msk Exp 
 #include <netdb.h>
 #include <resolv.h>
 #include <stdlib.h>
-
-/* libsm includes */
-#include <sm/gen.h>
-#ifdef WITHOUT_LIBSM
-# define sm_strlcat	strlcat
-# define sm_strlcpy	strlcpy
-#else /* WITHOUT_LIBSM */
-/* libsm includes */
-# include <sm/string.h>
-#endif /* WITHOUT_LIBSM */
 
 /* libdkim includes */
 #include "dkim.h"
@@ -143,8 +133,8 @@ dkim_addrcmp(u_char *s1, u_char *s2)
 **  	TRUE iff everything fit.
 */
 
-bool
-dkim_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, bool first)
+_Bool
+dkim_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 {
 	int c;
 	int len;
@@ -490,7 +480,7 @@ dkim_strtoul(const char *str, char **endptr, int base)
 	char start = '+';
 	static char cutlim = ULONG_MAX % 10;
 	char c;
-	bool erange = FALSE;
+	_Bool erange = FALSE;
 	static unsigned long cutoff = ULONG_MAX / 10;
 	unsigned long value = 0;
 	const char *subj;
@@ -569,7 +559,7 @@ dkim_strtoull(const char *str, char **endptr, int base)
 {
 	char start = '+';
 	char c;
-	bool erange = FALSE;
+	_Bool erange = FALSE;
 	static char cutlim = ULLONG_MAX % 10;
 	static unsigned long long cutoff = ULLONG_MAX / 10;
 	unsigned long long value = 0;
@@ -653,7 +643,7 @@ int
 dkim_check_dns_reply(unsigned char *ansbuf, size_t anslen,
                      int xclass, int xtype)
 {
-	bool trunc = FALSE;
+	_Bool trunc = FALSE;
 	int qdcount;
 	int ancount;
 	int n;
@@ -784,7 +774,7 @@ dkim_check_dns_reply(unsigned char *ansbuf, size_t anslen,
 **  	TRUE if "tv" refers to a time in the past, false otherwise.
 */
 
-bool
+_Bool
 dkim_timespec_past(struct timespec *ts)
 {
 	struct timeval now;

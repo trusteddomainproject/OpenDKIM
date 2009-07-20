@@ -9,7 +9,7 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.1 2009/07/16 19:12:04 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -667,7 +667,7 @@ extern DKIM_STAT dkim_chunk __P((DKIM *dkim, u_char *buf, size_t buflen));
 **  	A DKIM_STAT value.
 */
 
-extern DKIM_STAT dkim_eom __P((DKIM *dkim, bool *testkey));
+extern DKIM_STAT dkim_eom __P((DKIM *dkim, _Bool *testkey));
 
 /*
 **  DKIM_KEY_SYNTAX -- process a key record parameter set for valid syntax
@@ -817,7 +817,7 @@ extern DKIM_STAT dkim_getsighdr __P((DKIM *dkim, u_char *buf, size_t len,
 **  	appeared in that list.
 */
 
-extern bool dkim_sig_hdrsigned __P((DKIM_SIGINFO *sig, char *hdr));
+extern _Bool dkim_sig_hdrsigned __P((DKIM_SIGINFO *sig, char *hdr));
 
 #ifdef USE_UNBOUND
 /*
@@ -1150,7 +1150,7 @@ extern DKIM_STAT dkim_set_key_lookup __P((DKIM_LIB *libdkim,
 extern DKIM_STAT dkim_set_policy_lookup __P((DKIM_LIB *libdkim,
                                              DKIM_CBSTAT (*func)(DKIM *dkim,
                                                                  u_char *query,
-                                                                 bool excheck,
+                                                                 _Bool excheck,
                                                                  u_char *buf,
                                                                  size_t buflen,
                                                                  int *qstat)));
@@ -1479,7 +1479,7 @@ extern DKIM_STAT dkim_diffheaders __P((DKIM *dkim, int maxcost, char **ohdrs,
 **  	True iff the signature is to include a body length tag
 */
 
-extern bool dkim_getpartial __P((DKIM *dkim));
+extern _Bool dkim_getpartial __P((DKIM *dkim));
 
 /*
 **  DKIM_SETPARTIAL -- set the DKIM handle to sign using the DKIM body length
@@ -1493,7 +1493,7 @@ extern bool dkim_getpartial __P((DKIM *dkim));
 **  	DKIM_STAT_OK
 */
 
-extern DKIM_STAT dkim_setpartial __P((DKIM *dkim, bool value));
+extern DKIM_STAT dkim_setpartial __P((DKIM *dkim, _Bool value));
 #endif /* _FFR_BODYLENGTH_DB */
 
 /*

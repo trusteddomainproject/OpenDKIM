@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.1 2009/07/16 19:12:03 cm-msk Exp $";
+static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -22,17 +22,6 @@ static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.1 2009/07/16 19:12:
 #include <errno.h>
 #include <assert.h>
 #include <ctype.h>
-
-/* libsm includes */
-#include <sm/gen.h>
-#include <sm/types.h>
-#include <sm/cdefs.h>
-#ifdef WITHOUT_LIBSM
-# define sm_strlcat	strlcat
-# define sm_strlcpy	strlcpy
-#else /* WITHOUT_LIBSM */
-# include <sm/string.h>
-#endif /* WITHOUT_LIBSM */
 
 /* libar includes */
 #if USE_ARLIB
@@ -87,7 +76,7 @@ int
 dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
                      size_t buflen, int *qstatus)
 {
-	bool found;
+	_Bool found;
 	int n;
 	char *path;
 	unsigned char *p;
@@ -554,7 +543,7 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 */
 
 int
-dkim_get_policy_dns(DKIM *dkim, unsigned char *query, bool excheck,
+dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
                     unsigned char *buf, size_t buflen, int *qstatus)
 {
 	int qdcount;

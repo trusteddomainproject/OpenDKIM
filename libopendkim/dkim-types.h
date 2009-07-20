@@ -9,17 +9,12 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.1 2009/07/16 19:12:04 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
 #include <regex.h>
-
-/* libsm includes */
-#include <sm/gen.h>
-#include <sm/types.h>
-#include <sm/cdefs.h>
 
 /* libar includes */
 #if USE_ARLIB
@@ -90,7 +85,7 @@ struct dkim_plist
 /* struct dkim_set -- a set of parameter/value pairs */
 struct dkim_set
 {
-	bool			set_bad;
+	_Bool			set_bad;
 	dkim_set_t		set_type;
 	u_char *		set_data;
 	void *			set_udata;
@@ -155,9 +150,9 @@ struct dkim_sha256
 /* struct dkim_canon -- a canonicalization status handle */
 struct dkim_canon
 {
-	bool			canon_done;
-	bool			canon_hdr;
-	bool			canon_blankline;
+	_Bool			canon_done;
+	_Bool			canon_hdr;
+	_Bool			canon_blankline;
 	int			canon_lastchar;
 	u_int			canon_hashtype;
 	u_int			canon_blanks;
@@ -215,10 +210,10 @@ struct dkim_unbound_cb_data
 /* struct dkim -- a complete DKIM transaction context */
 struct dkim
 {
-	bool			dkim_partial;
-	bool			dkim_bodydone;
-	bool			dkim_subdomain;
-	bool			dkim_skipbody;
+	_Bool			dkim_partial;
+	_Bool			dkim_bodydone;
+	_Bool			dkim_subdomain;
+	_Bool			dkim_skipbody;
 	int			dkim_mode;
 	int			dkim_state;
 	int			dkim_chunkstate;
@@ -285,10 +280,10 @@ struct dkim
 /* struct dkim_lib -- a DKIM library context */
 struct dkim_lib
 {
-	bool			dkiml_signre;
-	bool			dkiml_skipre;
+	_Bool			dkiml_signre;
+	_Bool			dkiml_skipre;
 #ifdef USE_UNBOUND
-	bool			dkiml_ub_poller;
+	_Bool			dkiml_ub_poller;
 #endif /* USE_UNBOUND */
 	u_int			dkiml_flags;
 	u_int			dkiml_timeout;
@@ -325,7 +320,7 @@ struct dkim_lib
 				                     size_t buflen);
 	DKIM_CBSTAT		(*dkiml_policy_lookup) (DKIM *dkim,
 				                        u_char *query,
-				                        bool excheck,
+				                        _Bool excheck,
 				                        u_char *buf,
 				                        size_t buflen,
 				                        int *qstat);

@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.1 2009/07/16 19:12:04 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -31,17 +31,6 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.1 2009/07/16 19:12:04 cm-msk Exp 
 #else /* __STDC__ */
 # include <varargs.h>
 #endif /* _STDC_ */
-
-/* libsm includes */
-#include <sm/gen.h>
-#include <sm/types.h>
-#include <sm/cdefs.h>
-#ifdef WITHOUT_LIBSM
-# define sm_strlcat	strlcat
-# define sm_strlcpy	strlcpy
-#else /* WITHOUT_LIBSM */
-# include <sm/string.h>
-#endif /* WITHOUT_LIBSM */
 
 /* libar includes */
 #if USE_ARLIB
@@ -371,7 +360,7 @@ dkim_param_get(DKIM_SET *set, u_char *param)
 
 static int
 dkim_add_plist(DKIM *dkim, DKIM_SET *set, u_char *param, u_char *value,
-               bool force)
+               _Bool force)
 {
 	DKIM_PLIST *plist;
 
@@ -429,9 +418,9 @@ dkim_add_plist(DKIM *dkim, DKIM_SET *set, u_char *param, u_char *value,
 
 DKIM_STAT
 dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
-                 void *udata, bool syntax)
+                 void *udata, _Bool syntax)
 {
-	bool spaced;
+	_Bool spaced;
 	int state;
 	int status;
 	u_char *p;
@@ -909,7 +898,7 @@ dkim_get_header(DKIM *dkim, u_char *name, size_t namelen, int inst)
 **  	"email" or "*".
 */
 
-static bool
+static _Bool
 dkim_key_smtp(DKIM_SET *set)
 {
 	u_char *val;
@@ -954,7 +943,7 @@ dkim_key_smtp(DKIM_SET *set)
 **  	TRUE iff the value of the granularity is a match for the signer.
 */
 
-static bool
+static _Bool
 dkim_key_granok(DKIM *dkim, DKIM_SIGINFO *sig, u_char *v, u_char *gran,
                 char *user)
 {
@@ -1060,7 +1049,7 @@ dkim_key_granok(DKIM *dkim, DKIM_SIGINFO *sig, u_char *v, u_char *gran,
 **  	TRUE iff a particular hash is in the approved list of hashes.
 */
 
-static bool
+static _Bool
 dkim_key_hashok(DKIM_SIGINFO *sig, u_char *hashlist)
 {
 	int hashalg;
@@ -1116,7 +1105,7 @@ dkim_key_hashok(DKIM_SIGINFO *sig, u_char *hashlist)
 **  	(or doesn't specify)
 */
 
-static bool
+static _Bool
 dkim_key_hashesok(u_char *hashlist)
 {
 	u_char *x, *y;
@@ -1175,7 +1164,7 @@ dkim_key_hashesok(u_char *hashlist)
 **  	yet until SSP addresses this question.
 */
 
-static bool
+static _Bool
 dkim_sig_signerok(DKIM *dkim, DKIM_SET *set, u_char **hdrs)
 {
 	int status;
@@ -1262,11 +1251,11 @@ dkim_sig_signerok(DKIM *dkim, DKIM_SET *set, u_char **hdrs)
 **  	-1 on error
 */
 
-static bool
+static _Bool
 dkim_sig_hdrlistok(DKIM *dkim, u_char *hdrlist)
 {
-	bool in = FALSE;
-	bool found;
+	_Bool in = FALSE;
+	_Bool found;
 	int c;
 	int d;
 	int nh;
@@ -1365,7 +1354,7 @@ dkim_sig_hdrlistok(DKIM *dkim, u_char *hdrlist)
 **  	TRUE iff the "i" parameter and the "d" parameter match up.
 */
 
-static bool
+static _Bool
 dkim_sig_domainok(DKIM *dkim, DKIM_SET *set)
 {
 	char *at;
@@ -1424,7 +1413,7 @@ dkim_sig_domainok(DKIM *dkim, DKIM_SET *set)
 **  	Syntax is not checked here.  It's checked in dkim_process_set().
 */
 
-static bool
+static _Bool
 dkim_sig_expired(DKIM_SET *set, time_t drift)
 {
 	unsigned long long expire;
@@ -1465,7 +1454,7 @@ dkim_sig_expired(DKIM_SET *set, time_t drift)
 **  	Syntax is not checked here.  It's checked in dkim_process_set().
 */
 
-static bool
+static _Bool
 dkim_sig_timestampsok(DKIM_SET *set)
 {
 	unsigned long long signtime;
@@ -1504,7 +1493,7 @@ dkim_sig_timestampsok(DKIM_SET *set)
 **  	Syntax is not checked here.  It's checked in dkim_process_set().
 */
 
-static bool
+static _Bool
 dkim_sig_future(DKIM_SET *set, time_t drift)
 {
 	unsigned long long signtime;
@@ -1543,7 +1532,7 @@ dkim_sig_future(DKIM_SET *set, time_t drift)
 **  	supported by this API.
 */
 
-static bool
+static _Bool
 dkim_sig_versionok(DKIM *dkim, DKIM_SET *set)
 {
 	char *v;
@@ -1843,7 +1832,7 @@ dkim_siglist_setup(DKIM *dkim)
 		param = dkim_param_get(set, "q");
 		if (param != NULL)
 		{
-			bool bad_qo = FALSE;
+			_Bool bad_qo = FALSE;
 			dkim_query_t q = (dkim_query_t) -1;
 			u_char *p;
 			char *last;
@@ -2038,7 +2027,7 @@ static size_t
 dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen,
                char *delim)
 {
-	bool firsthdr;
+	_Bool firsthdr;
 	int n;
 	int status;
 	size_t hashlen;
@@ -2047,7 +2036,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen,
 	u_char *hash;
 	u_char *wp;
 	struct dkim_header *hdr;
-	bool *always = NULL;
+	_Bool *always = NULL;
 	u_char tmp[DKIM_MAXHEADER + 1];
 	u_char tmphdr[DKIM_MAXHEADER + 1];
 	char b64hash[DKIM_MAXHEADER + 1];
@@ -2059,7 +2048,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen,
 
 	memset(tmphdr, '\0', sizeof tmphdr);
 
-	n = dkim->dkim_hdrcnt * sizeof(bool);
+	n = dkim->dkim_hdrcnt * sizeof(_Bool);
 	always = DKIM_MALLOC(dkim, n);
 	memset(always, '\0', n);
 
@@ -2200,7 +2189,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen,
 	/* if diagnostic headers were requested, include 'em */
 	if (dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_ZTAGS)
 	{
-		bool first;
+		_Bool first;
 		char *p;
 		char *q;
 		char *end;
@@ -2318,7 +2307,7 @@ dkim_getsender(DKIM *dkim, u_char **hdrs)
 */
 
 static DKIM_STAT
-dkim_get_policy(DKIM *dkim, char *query, bool excheck, int *qstatus,
+dkim_get_policy(DKIM *dkim, char *query, _Bool excheck, int *qstatus,
                 dkim_policy_t *policy, int *pflags)
 {
 	int status = 0;
@@ -2462,9 +2451,9 @@ dkim_get_policy(DKIM *dkim, char *query, bool excheck, int *qstatus,
 DKIM_STAT
 dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig)
 {
-	bool gotkey = FALSE;			/* key stored */
-	bool gotset = FALSE;			/* set parsed */
-	bool gotreply = FALSE;			/* reply received */
+	_Bool gotkey = FALSE;			/* key stored */
+	_Bool gotset = FALSE;			/* set parsed */
+	_Bool gotreply = FALSE;			/* reply received */
 	int status;
 	int c;
 	DKIM_SIGINFO *osig;
@@ -2760,9 +2749,9 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig)
 static DKIM_STAT
 dkim_eoh_sign(DKIM *dkim)
 {
-	bool found;
-	bool keep;
-	bool tmp;
+	_Bool found;
+	_Bool keep;
+	_Bool tmp;
 	DKIM_STAT status;
 	int c;
 	int hashtype;
@@ -2913,8 +2902,8 @@ dkim_eoh_sign(DKIM *dkim)
 static DKIM_STAT
 dkim_eoh_verify(DKIM *dkim)
 {
-	bool keep;
-	bool tmp;
+	_Bool keep;
+	_Bool tmp;
 	DKIM_STAT status;
 	int c;
 	struct dkim_header *sender;
@@ -3079,7 +3068,7 @@ dkim_eoh_verify(DKIM *dkim)
 
 	if ((lib->dkiml_flags & DKIM_LIBFLAGS_EOHCHECK) != 0)
 	{
-		bool good = FALSE;
+		_Bool good = FALSE;
 		DKIM_SIGINFO *sig;
 
 		for (c = 0; c < dkim->dkim_sigcount; c++)
@@ -3370,7 +3359,7 @@ dkim_eom_sign(DKIM *dkim)
 */
 
 static DKIM_STAT
-dkim_eom_verify(DKIM *dkim, bool *testkey)
+dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 {
 	DKIM_STAT ret;
 	int c;
@@ -5417,7 +5406,7 @@ dkim_body(DKIM *dkim, u_char *buf, size_t buflen)
 */
 
 DKIM_STAT
-dkim_eom(DKIM *dkim, bool *testkey)
+dkim_eom(DKIM *dkim, _Bool *testkey)
 {
 	assert(dkim != NULL);
 
@@ -5793,7 +5782,7 @@ dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
 
 	if (dkim->dkim_margin == 0)
 	{
-		bool first = TRUE;
+		_Bool first = TRUE;
 
 		for (pv = strtok_r(hdr, DELIMITER, &ctx);
 		     pv != NULL;
@@ -5809,8 +5798,8 @@ dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
 	}
 	else
 	{
-		bool first = TRUE;
-		bool forcewrap;
+		_Bool first = TRUE;
+		_Bool forcewrap;
 		char *p;
 		char *q;
 		char *end;
@@ -5856,7 +5845,7 @@ dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
 
 				if (strcmp(which, "h") == 0)
 				{			/* break at colons */
-					bool ifirst = TRUE;
+					_Bool ifirst = TRUE;
 					char *tmp;
 					char *ctx2;
 
@@ -5900,7 +5889,7 @@ dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
 				         strcmp(which, "bh") == 0 ||
 				         strcmp(which, "z") == 0)
 				{			/* break at margins */
-					bool more;
+					_Bool more;
 					int idx;
 					int offset;
 					char *x;
@@ -5974,7 +5963,7 @@ dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
 **  	appeared in that list.
 */
 
-bool
+_Bool
 dkim_sig_hdrsigned(DKIM_SIGINFO *sig, char *hdr)
 {
 	size_t len;
@@ -6492,7 +6481,7 @@ dkim_geterror(DKIM *dkim)
 **      True iff the signature is to include a body length tag
 */
 
-bool
+_Bool
 dkim_getpartial(DKIM *dkim)
 {
 	assert(dkim != NULL);
@@ -6514,7 +6503,7 @@ dkim_getpartial(DKIM *dkim)
 */
 
 DKIM_STAT
-dkim_setpartial(DKIM *dkim, bool value)
+dkim_setpartial(DKIM *dkim, _Bool value)
 {
 	assert(dkim != NULL);
 
@@ -6816,7 +6805,7 @@ dkim_set_key_lookup(DKIM_LIB *libdkim,
 
 DKIM_STAT
 dkim_set_policy_lookup(DKIM_LIB *libdkim,
-                       int (*func)(DKIM *dkim, u_char *query, bool excheck,
+                       int (*func)(DKIM *dkim, u_char *query, _Bool excheck,
                                    u_char *buf, size_t buflen, int *qstat))
 {
 	assert(libdkim != NULL);

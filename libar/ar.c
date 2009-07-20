@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char ar_c_id[] = "@(#)$Id: ar.c,v 1.1 2009/07/16 18:56:00 cm-msk Exp $";
+static char ar_c_id[] = "@(#)$Id: ar.c,v 1.2 2009/07/20 18:49:21 cm-msk Exp $";
 #endif /* !lint */
 
 /* OS stuff */
@@ -37,15 +37,6 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.1 2009/07/16 18:56:00 cm-msk Exp $";
 #include <assert.h>
 #include <signal.h>
 #include <string.h>
-
-/* libsm includes */
-#include <sm/gen.h>
-#ifdef WITHOUT_LIBSM
-# define sm_strlcat	strlcat
-# define sm_strlcpy	strlcpy
-#else /* WITHOUT_LIBSM */
-# include <sm/string.h>
-#endif /* WITHOUT_LIBSM */
 
 /* important macros */
 #ifndef MAXHOSTNAMELEN
@@ -313,7 +304,7 @@ ar_timeleft(struct timeval *start, struct timeval *length,
 **  	TRUE iff length has elapsed since start.
 */
 
-static bool
+static _Bool
 ar_elapsed(struct timeval *start, struct timeval *length)
 {
 	struct timeval now;
@@ -459,7 +450,7 @@ ar_alldead(AR_LIB lib)
 **  	Assumes the caller does not currently hold ar_lock.
 */
 
-static bool
+static _Bool
 ar_reconnect(AR_LIB lib)
 {
 	int c;
@@ -777,8 +768,8 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 static void *
 ar_dispatcher(void *tp)
 {
-	bool wrote;
-	bool usetimeout;
+	_Bool wrote;
+	_Bool usetimeout;
 	int status;
 	int maxfd;
 	AR_LIB lib;
@@ -868,7 +859,7 @@ ar_dispatcher(void *tp)
 		/* read what's available for dispatch */
 		if (READ_READY(rfds, lib->ar_nsfd))
 		{
-			bool requeued = FALSE;
+			_Bool requeued = FALSE;
 			size_t r;
 			u_char *buf;
 			HEADER hdr;
@@ -886,7 +877,7 @@ ar_dispatcher(void *tp)
 			else
 			{
 				u_short len;
-				bool err = FALSE;
+				_Bool err = FALSE;
 				int part;
 				unsigned char *where;
 
@@ -1069,8 +1060,8 @@ ar_dispatcher(void *tp)
 						                 MAXHOSTNAMELEN);
 						q->q_depth--;
 						ar_undot(cname);
-						sm_strlcpy(q->q_name, cname,
-						           sizeof q->q_name);
+						strlcpy(q->q_name, cname,
+						        sizeof q->q_name);
 						ar_requery(lib, q);
 						requeued = TRUE;
 					}
@@ -1679,7 +1670,7 @@ ar_addquery(AR_LIB lib, char *name, int class, int type, int depth,
 			q->q_timeout.tv_usec -= 1000000;
 		}
 	}
-	sm_strlcpy(q->q_name, name, sizeof q->q_name);
+	strlcpy(q->q_name, name, sizeof q->q_name);
 
 	/* enqueue the query and signal the dispatcher */
 	pthread_mutex_lock(&lib->ar_lock);
@@ -1855,8 +1846,8 @@ ar_cancelquery(AR_LIB lib, AR_QUERY query)
 int
 ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 {
-	bool infinite;
-	bool maintimeout = FALSE;
+	_Bool infinite;
+	_Bool maintimeout = FALSE;
 	int status;
 	struct timespec until;
 	struct timeval now;
