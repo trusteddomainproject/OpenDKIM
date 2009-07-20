@@ -2,10 +2,6 @@
 AM_CFLAGS = -pthread --pedantic -Wall -std=c99 -O2 -I../libopendkim -I../libar
 AM_LDFLAGS = -pthread -L../libopendkim -L../libar
 
-if STATS
-AM_CFLAGS += -DUSE_DB -D_FFR_STATS
-endif
-
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
 sbin_PROGRAMS = opendkim opendkim-testkey opendkim-testadsp
@@ -16,6 +12,45 @@ example_DATA = opendkim.conf.sample
 
 opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h config.c config.h stats.c stats.h test.c test.h util.c util.h
 opendkim_LDADD = -lopendkim -lar
+if BODYLENGTHDB
+opendkim_CFLAGS += -D_FFR_BODYLENGTH_DB
+endif
+if CAPTUREERRORS
+opendkim_CFLAGS += -D_FFR_CAPTURE_UNKNOWN_ERRORS
+endif
+if COMMAIZE
+opendkim_CFLAGS += -D_FFR_COMMAIZE
+endif
+if DIFFHEADERS
+opendkim_CFLAGS += -D_FFR_DIFFHEADERS
+endif
+if DKIMREPUTATION
+opendkim_CFLAGS += -D_FFR_DKIM_REPUTATION
+endif
+if MULTIPLESIGS
+opendkim_CFLAGS += -D_FFR_MULTIPLE_SIGNATURES
+endif
+if REPLACERULES
+opendkim_CFLAGS += -D_FFR_REPLACE_RULES
+endif
+if REPORTINTERVALS
+opendkim_CFLAGS += -D_FFR_REPORT_INTERVALS
+endif
+if SELECTORHEADER
+opendkim_CFLAGS += -D_FFR_SELECTOR_HEADER
+endif
+if SENDERHEADERS
+opendkim_CFLAGS += -D_FFR_SENDER_HEADERS
+endif
+if STATS
+opendkim_CFLAGS += -DUSE_DB -D_FFR_STATS
+endif
+if VBR
+opendkim_CFLAGS += -D_FFR_VBR
+endif
+if ZTAGS
+opendkim_CFLAGS += -D_FFR_ZTAGS
+endif
 
 if STATS
 sbin_PROGRAMS += opendkim-stats
