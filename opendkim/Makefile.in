@@ -32,8 +32,11 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-sbin_PROGRAMS = opendkim$(EXEEXT) opendkim-stats$(EXEEXT) \
-	opendkim-testkey$(EXEEXT) opendkim-testadsp$(EXEEXT)
+@STATS_TRUE@am__append_1 = -DUSE_DB -D_FFR_STATS
+sbin_PROGRAMS = opendkim$(EXEEXT) opendkim-testkey$(EXEEXT) \
+	opendkim-testadsp$(EXEEXT) $(am__EXEEXT_1)
+@STATS_TRUE@am__append_2 = opendkim-stats
+@STATS_TRUE@am__append_3 = opendkim-stats.8
 subdir = opendkim
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -43,6 +46,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/build-config.h
 CONFIG_CLEAN_FILES =
+@STATS_TRUE@am__EXEEXT_1 = opendkim-stats$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(sbindir)" \
 	"$(DESTDIR)$(man5dir)" "$(DESTDIR)$(man8dir)" \
 	"$(DESTDIR)$(exampledir)"
@@ -54,15 +58,16 @@ am_opendkim_OBJECTS = opendkim.$(OBJEXT) opendkim-ar.$(OBJEXT) \
 	test.$(OBJEXT) util.$(OBJEXT)
 opendkim_OBJECTS = $(am_opendkim_OBJECTS)
 opendkim_DEPENDENCIES =
-am_opendkim_stats_OBJECTS = opendkim-stats.$(OBJEXT)
+am__opendkim_stats_SOURCES_DIST = opendkim-stats.c
+@STATS_TRUE@am_opendkim_stats_OBJECTS = opendkim-stats.$(OBJEXT)
 opendkim_stats_OBJECTS = $(am_opendkim_stats_OBJECTS)
 opendkim_stats_LDADD = $(LDADD)
 am_opendkim_testadsp_OBJECTS = opendkim-testadsp.$(OBJEXT)
 opendkim_testadsp_OBJECTS = $(am_opendkim_testadsp_OBJECTS)
-opendkim_testadsp_LDADD = $(LDADD)
+opendkim_testadsp_DEPENDENCIES =
 am_opendkim_testkey_OBJECTS = opendkim-testkey.$(OBJEXT)
 opendkim_testkey_OBJECTS = $(am_opendkim_testkey_OBJECTS)
-opendkim_testkey_LDADD = $(LDADD)
+opendkim_testkey_DEPENDENCIES =
 sbinSCRIPT_INSTALL = $(INSTALL_SCRIPT)
 SCRIPTS = $(sbin_SCRIPTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -74,7 +79,7 @@ CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(opendkim_SOURCES) $(opendkim_stats_SOURCES) \
 	$(opendkim_testadsp_SOURCES) $(opendkim_testkey_SOURCES)
-DIST_SOURCES = $(opendkim_SOURCES) $(opendkim_stats_SOURCES) \
+DIST_SOURCES = $(opendkim_SOURCES) $(am__opendkim_stats_SOURCES_DIST) \
 	$(opendkim_testadsp_SOURCES) $(opendkim_testkey_SOURCES)
 man5dir = $(mandir)/man5
 man8dir = $(mandir)/man8
@@ -179,17 +184,21 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # what flags you want to pass to the C compiler & linker
-AM_CFLAGS = -pthread --pedantic -Wall -std=c99 -O2 -I../libopendkim -I../libar
+AM_CFLAGS = -pthread --pedantic -Wall -std=c99 -O2 -I../libopendkim \
+	-I../libar $(am__append_1)
 AM_LDFLAGS = -pthread -L../libopendkim -L../libar
 sbin_SCRIPTS = opendkim-genkey.sh
 exampledir = $(datarootdir)/doc/@PACKAGE@
 example_DATA = opendkim.conf.sample
 opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h config.c config.h stats.c stats.h test.c test.h util.c util.h
 opendkim_LDADD = -lopendkim -lar
-opendkim_stats_SOURCES = opendkim-stats.c
+@STATS_TRUE@opendkim_stats_SOURCES = opendkim-stats.c
 opendkim_testkey_SOURCES = opendkim-testkey.c
+opendkim_testkey_LDADD = -lopendkim -lar
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
-man_MANS = opendkim.conf.5 opendkim-genkey.8 opendkim-stats.8 opendkim-testadsp.8 opendkim-testkey.8 opendkim.8
+opendkim_testadsp_LDADD = -lopendkim -lar
+man_MANS = opendkim.conf.5 opendkim-genkey.8 opendkim-testadsp.8 \
+	opendkim-testkey.8 opendkim.8 $(am__append_3)
 all: all-am
 
 .SUFFIXES:
