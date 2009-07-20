@@ -11,11 +11,12 @@ exampledir = $(datarootdir)/doc/@PACKAGE@
 example_DATA = opendkim.conf.sample
 
 opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h config.c config.h stats.c stats.h test.c test.h util.c util.h
+opendkim_CFLAGS = 
 opendkim_LDADD = -lopendkim -lar
-if BODYLENGTHDB
+if BODYLENGTH_DB
 opendkim_CFLAGS += -D_FFR_BODYLENGTH_DB
 endif
-if CAPTUREERRORS
+if CAPTURE_UNKNOWN_ERRORS
 opendkim_CFLAGS += -D_FFR_CAPTURE_UNKNOWN_ERRORS
 endif
 if COMMAIZE
@@ -24,22 +25,22 @@ endif
 if DIFFHEADERS
 opendkim_CFLAGS += -D_FFR_DIFFHEADERS
 endif
-if DKIMREPUTATION
+if DKIM_REPUTATION
 opendkim_CFLAGS += -D_FFR_DKIM_REPUTATION
 endif
-if MULTIPLESIGS
+if MULTIPLE_SIGNATURES
 opendkim_CFLAGS += -D_FFR_MULTIPLE_SIGNATURES
 endif
-if REPLACERULES
+if REPLACE_RULES
 opendkim_CFLAGS += -D_FFR_REPLACE_RULES
 endif
-if REPORTINTERVALS
+if REPORT_INTERVALS
 opendkim_CFLAGS += -D_FFR_REPORT_INTERVALS
 endif
-if SELECTORHEADER
+if SELECTOR_HEADER
 opendkim_CFLAGS += -D_FFR_SELECTOR_HEADER
 endif
-if SENDERHEADERS
+if SENDER_HEADERS
 opendkim_CFLAGS += -D_FFR_SENDER_HEADERS
 endif
 if STATS
