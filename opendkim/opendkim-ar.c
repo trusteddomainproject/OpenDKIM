@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-ar.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $
+**  $Id: opendkim-ar.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_ar_c_id[] = "@(#)$Id: opendkim-ar.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $";
+static char opendkim_ar_c_id[] = "@(#)$Id: opendkim-ar.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -20,9 +20,6 @@ static char opendkim_ar_c_id[] = "@(#)$Id: opendkim-ar.c,v 1.1 2009/07/16 20:59:
 #ifdef ARTEST
 # include <sysexits.h>
 #endif /* ARTEST */
-
-/* libsm includes */
-#include <sm/string.h>
 
 /* opendkim includes */
 #include "opendkim-ar.h"
@@ -376,7 +373,7 @@ ares_parse(u_char *hdr, struct authres *ar)
 	int n;
 	int ntoks;
 	int c;
-	int r;
+	int r = 0;
 	int state;
 	int prevstate;
 	u_char tmp[DKIM_MAXHEADER + 2];
@@ -410,8 +407,8 @@ ares_parse(u_char *hdr, struct authres *ar)
 			    !isalnum(tokens[c][0]))
 				return -1;
 
-			sm_strlcat(ar->ares_host, tokens[c],
-			           sizeof ar->ares_host);
+			strlcat((char *) ar->ares_host, (char *) tokens[c],
+			        sizeof ar->ares_host);
 
 			prevstate = state;
 			state = 1;
@@ -422,8 +419,9 @@ ares_parse(u_char *hdr, struct authres *ar)
 			if (tokens[c][0] == '.' &&
 			    tokens[c][1] == '\0' && prevstate == 0)
 			{
-				sm_strlcat(ar->ares_host, tokens[c],
-				           sizeof ar->ares_host);
+				strlcat((char *) ar->ares_host,
+				        (char *) tokens[c],
+				        sizeof ar->ares_host);
 
 				prevstate = state;
 				state = 0;
@@ -439,8 +437,9 @@ ares_parse(u_char *hdr, struct authres *ar)
 			else if (isascii(tokens[c][0]) &&
 			         isdigit(tokens[c][0]))
 			{
-				sm_strlcpy(ar->ares_version, tokens[c],
-				           sizeof ar->ares_version);
+				strlcpy((char *) ar->ares_version,
+				        (char *) tokens[c],
+				        sizeof ar->ares_version);
 
 				prevstate = state;
 				state = 2;
@@ -467,7 +466,7 @@ ares_parse(u_char *hdr, struct authres *ar)
 			r = 0;
 
 			ar->ares_result[n - 1].result_method = ares_convert(methods,
-			                                                    tokens[c]);
+			                                                    (char *) tokens[c]);
 			prevstate = state;
 			state = 4;
 
@@ -485,7 +484,7 @@ ares_parse(u_char *hdr, struct authres *ar)
 
 		  case 5:				/* result */
 			ar->ares_result[n - 1].result_result = ares_convert(aresults,
-			                                                    tokens[c]);
+			                                                    (char *) tokens[c]);
 			prevstate = state;
 			state = 6;
 
@@ -502,9 +501,9 @@ ares_parse(u_char *hdr, struct authres *ar)
 			break;
 
 		  case 8:
-			sm_strlcpy(ar->ares_result[n - 1].result_reason,
-			           tokens[c],
-			           sizeof ar->ares_result[n - 1].result_reason);
+			strlcpy((char *) ar->ares_result[n - 1].result_reason,
+			        (char *) tokens[c],
+			        sizeof ar->ares_result[n - 1].result_reason);
 
 			prevstate = state;
 			state = 9;
@@ -521,7 +520,7 @@ ares_parse(u_char *hdr, struct authres *ar)
 				continue;
 			}
 
-			if (strcasecmp(tokens[c], "reason") == 0)
+			if (strcasecmp((char *) tokens[c], "reason") == 0)
 			{				/* reason */
 				prevstate = state;
 				state = 7;
@@ -543,9 +542,9 @@ ares_parse(u_char *hdr, struct authres *ar)
 			{
 				r--;
 
-				sm_strlcat(ar->ares_result[n - 1].result_value[r],
-				           tokens[c],
-				           sizeof ar->ares_result[n - 1].result_value[r]);
+				strlcat((char *) ar->ares_result[n - 1].result_value[r],
+				        (char *) tokens[c],
+				        sizeof ar->ares_result[n - 1].result_value[r]);
 
 				prevstate = state;
 				state = 13;
@@ -565,7 +564,7 @@ ares_parse(u_char *hdr, struct authres *ar)
 			{
 				ares_ptype_t x;
 
-				x = ares_convert(ptypes, tokens[c]);
+				x = ares_convert(ptypes, (char *) tokens[c]);
 				if (x == ARES_PTYPE_UNKNOWN)
 					return -1;
 
@@ -588,9 +587,9 @@ ares_parse(u_char *hdr, struct authres *ar)
 			break;
 
 		  case 11:				/* property */
-			sm_strlcpy(ar->ares_result[n - 1].result_property[r],
-			           tokens[c],
-			           sizeof ar->ares_result[n - 1].result_property[r]);
+			strlcpy((char *) ar->ares_result[n - 1].result_property[r],
+			        (char *) tokens[c],
+			        sizeof ar->ares_result[n - 1].result_property[r]);
 
 			prevstate = state;
 			state = 12;
@@ -608,9 +607,9 @@ ares_parse(u_char *hdr, struct authres *ar)
 			break;
 
 		  case 13:				/* value */
-			sm_strlcat(ar->ares_result[n - 1].result_value[r],
-			           tokens[c],
-			           sizeof ar->ares_result[n - 1].result_value[r]);
+			strlcat((char *) ar->ares_result[n - 1].result_value[r],
+			        (char *) tokens[c],
+			        sizeof ar->ares_result[n - 1].result_value[r]);
 			r++;
 			ar->ares_result[n - 1].result_props = r;
 

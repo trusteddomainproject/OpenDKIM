@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: config.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $
+**  $Id: config.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $
 */
 
 #ifndef lint
-static char config_c_id[] = "@(#)$Id: config.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $";
+static char config_c_id[] = "@(#)$Id: config.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -17,9 +17,6 @@ static char config_c_id[] = "@(#)$Id: config.c,v 1.1 2009/07/16 20:59:11 cm-msk 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-
-/* libsm includes */
-#include <sm/string.h>
 
 /* opendkim includes */
 #include "config.h"
@@ -105,7 +102,7 @@ config_load_level(char *file, struct configdef *def,
 	FILE *in;
 	char *p;
 	char *str = NULL;
-	struct config *new;
+	struct config *new = NULL;
 	struct config *cur = NULL;
 	char buf[BUFRSZ + 1];
 
@@ -133,7 +130,7 @@ config_load_level(char *file, struct configdef *def,
 			if (line != NULL)
 				*line = myline;
 			if (outpath != NULL)
-				sm_strlcpy(outpath, file, outpathlen);
+				strlcpy(outpath, file, outpathlen);
 			return NULL;
 		}
 	}
@@ -248,7 +245,7 @@ config_load_level(char *file, struct configdef *def,
 			if (line != NULL)
 				*line = myline;
 			if (outpath != NULL)
-				sm_strlcpy(outpath, file, outpathlen);
+				strlcpy(outpath, file, outpathlen);
 
 			return NULL;
 		}
@@ -265,7 +262,7 @@ config_load_level(char *file, struct configdef *def,
 				if (line != NULL)
 					*line = myline;
 				if (outpath != NULL)
-					sm_strlcpy(outpath, file, outpathlen);
+					strlcpy(outpath, file, outpathlen);
 
 				return NULL;
 			}
@@ -337,7 +334,7 @@ config_load_level(char *file, struct configdef *def,
 			if (line != NULL)
 				*line = myline;
 			if (outpath != NULL)
-				sm_strlcpy(outpath, file, outpathlen);
+				strlcpy(outpath, file, outpathlen);
 
 			return NULL;
 		}

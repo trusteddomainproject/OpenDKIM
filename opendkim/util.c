@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $
+**  $Id: util.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -301,6 +301,7 @@ dkimf_lowercase(u_char *str)
 	}
 }
 
+#ifdef NETINET6
 /*
 **  DKIMF_LIST_LOOKUP -- look up a name in a peerlist
 **
@@ -327,7 +328,7 @@ dkimf_list_lookup(Peer list, char *data)
 
 	return FALSE;
 }
-
+#endif /* NETINET6 */
 
 /*
 **  DKIMF_CHECKHOST -- check the peerlist for a host and its wildcards
@@ -428,7 +429,7 @@ dkimf_checkip(Peer list, struct sockaddr *ip)
 
 			memset(ipbuf, '\0', sizeof ipbuf);
 
-			sz = sm_strlcpy(ipbuf, "IPv6:", sizeof ipbuf);
+			sz = strlcpy(ipbuf, "IPv6:", sizeof ipbuf);
 			if (sz >= sizeof ipbuf)
 				return FALSE;
 
@@ -945,20 +946,20 @@ dkimf_mkpath(char *path, size_t pathlen, char *root, char *file)
 
 	if (file[0] == '/')				/* explicit path */
 	{
-		sm_strlcpy(path, file, pathlen);
+		strlcpy(path, file, pathlen);
 	}
 	else if (root[0] == '\0')			/* no root, use cwd */
 	{
 		(void) getcwd(path, pathlen);
-		sm_strlcat(path, "/", pathlen);
-		sm_strlcat(path, file, pathlen);
+		strlcat(path, "/", pathlen);
+		strlcat(path, file, pathlen);
 	}
 	else						/* use root */
 	{
-		sm_strlcpy(path, root, pathlen);
+		strlcpy(path, root, pathlen);
 		if (root[strlen(root) - 1] != '/')
-			sm_strlcat(path, "/", pathlen);
-		sm_strlcat(path, file, pathlen);
+			strlcat(path, "/", pathlen);
+		strlcat(path, file, pathlen);
 	}
 }
 
@@ -1168,7 +1169,7 @@ dkimf_dstring_copy(struct dkimf_dstring *dstr, char *str)
 	}
 
 	/* copy */
-	dstr->ds_len = sm_strlcpy(dstr->ds_buf, str, dstr->ds_alloc);
+	dstr->ds_len = strlcpy(dstr->ds_buf, str, dstr->ds_alloc);
 
 	return TRUE;
 }
@@ -1210,7 +1211,7 @@ dkimf_dstring_cat(struct dkimf_dstring *dstr, char *str)
 	}
 
 	/* append */
-	dstr->ds_len = sm_strlcat(dstr->ds_buf, str, dstr->ds_alloc);
+	dstr->ds_len = strlcat(dstr->ds_buf, str, dstr->ds_alloc);
 
 	return TRUE;
 }
@@ -1386,7 +1387,7 @@ dkimf_socket_cleanup(char *sockspec)
 	sock.sun_len = sizeof sock;
 #endif /* BSD */
 	sock.sun_family = PF_UNIX;
-	sm_strlcpy(sock.sun_path, colon + 1, sizeof sock.sun_path);
+	strlcpy(sock.sun_path, colon + 1, sizeof sock.sun_path);
 
 	/* try to connect */
 	if (connect(s, (struct sockaddr *) &sock, (socklen_t) sizeof sock) != 0)

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $
+**  $Id: test.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $
 */
 
 #ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $";
+static char test_c_id[] = "@(#)$Id: test.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -25,6 +25,9 @@ static char test_c_id[] = "@(#)$Id: test.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp 
 
 /* libdkim includes */
 #include <dkim.h>
+
+/* libmilter includes */
+#include <libmilter/mfapi.h>
 
 /* opendkim includes */
 #include "test.h"
@@ -53,11 +56,13 @@ char *envfrom[] =
 	NULL
 };
 
+#ifdef _FFR_BODYLENGTH_DB
 char *envrcpt[] =
 {
 	"<recipient@example.com>",
 	NULL
 };
+#endif /* _FFR_BODYLENGTH_DB */
 
 #define	FCLOSE(x)		if ((x) != stdin) \
 					fclose((x));
@@ -304,6 +309,7 @@ dkimf_testfile(DKIM_LIB *libdkim, char *file, time_t fixedtime, bool strict,
 		return EX_SOFTWARE;
 	}
 
+#ifdef _FFR_BODYLENGTH_DB
 	ms = mlfi_envrcpt((SMFICTX *) tctx, envrcpt);
 	if (MLFI_OUTPUT(ms, tverbose))
 	{
@@ -315,6 +321,7 @@ dkimf_testfile(DKIM_LIB *libdkim, char *file, time_t fixedtime, bool strict,
 		FCLOSE(f);
 		return EX_SOFTWARE;
 	}
+#endif /* _FFR_BODYLENGTH_DB */
 
 	while (!feof(f))
 	{
@@ -415,10 +422,10 @@ dkimf_testfile(DKIM_LIB *libdkim, char *file, time_t fixedtime, bool strict,
 
 			if (line[0] == ' ' || line[0] == '\t')
 			{
-				(void) sm_strlcat(buf, CRLF, sizeof buf);
+				(void) strlcat(buf, CRLF, sizeof buf);
 
-				if (sm_strlcat(buf, line,
-				               sizeof buf) >= sizeof buf)
+				if (strlcat(buf, line,
+				            sizeof buf) >= sizeof buf)
 				{
 					fprintf(stderr,
 					        "%s: %s: line %d: header `%*s...' too large\n",
@@ -470,7 +477,7 @@ dkimf_testfile(DKIM_LIB *libdkim, char *file, time_t fixedtime, bool strict,
 				if (hslineno == 0)
 					hslineno = lineno;
 
-				sm_strlcpy(buf, line, sizeof buf);
+				strlcpy(buf, line, sizeof buf);
 			}
 		}
 		else
@@ -479,7 +486,8 @@ dkimf_testfile(DKIM_LIB *libdkim, char *file, time_t fixedtime, bool strict,
 
 			if (len + buflen >= (int) sizeof buf - 3)
 			{
-				ms = mlfi_body((SMFICTX *) tctx, buf,
+				ms = mlfi_body((SMFICTX *) tctx,
+				               (u_char *) buf,
 				               strlen(buf));
 				if (MLFI_OUTPUT(ms, tverbose))
 				{
@@ -578,7 +586,7 @@ dkimf_testfile(DKIM_LIB *libdkim, char *file, time_t fixedtime, bool strict,
 	/* some body left */
 	if (!inheaders && buf[0] != '\0')
 	{
-		ms = mlfi_body((SMFICTX *) tctx, buf, strlen(buf));
+		ms = mlfi_body((SMFICTX *) tctx, (u_char *) buf, strlen(buf));
 		if (MLFI_OUTPUT(ms, tverbose))
 		{
 			fprintf(stderr, "%s: %s: mlfi_body() returned %s\n",
@@ -608,8 +616,8 @@ dkimf_testfile(DKIM_LIB *libdkim, char *file, time_t fixedtime, bool strict,
 
 		if (sig != NULL && mode == DKIM_MODE_VERIFY)
 		{
-			const char *domain;
-			const char *selector;
+			const u_char *domain;
+			const u_char *selector;
 			u_int flags;
 			u_int bh;
 			u_int keysize;
@@ -712,8 +720,8 @@ dkimf_testfile(DKIM_LIB *libdkim, char *file, time_t fixedtime, bool strict,
 				rem = sizeof hdr - hlen - 2;
 				memset(hdr, '\0', sizeof hdr);
 
-				sm_strlcpy(hdr, DKIM_SIGNHEADER ": ",
-				           sizeof hdr);
+				strlcpy((char *) hdr, DKIM_SIGNHEADER ": ",
+				        sizeof hdr);
 
 				status = dkim_getsighdr(dkim, hdr + hlen + 2,
 				                        rem, hlen + 2);

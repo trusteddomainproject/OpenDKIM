@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-crypto.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $
+**  $Id: opendkim-crypto.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $";
+static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -23,14 +23,12 @@ static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.1 2009/07/1
 #include <openssl/ssl.h>
 #include <openssl/conf.h>
 
-/* libsm includes */
-#include <sm/gen.h>
-
 /* opendkim includes */
 #include "opendkim-crypto.h"
+#include "opendkim.h"
 
 /* globals */
-static bool crypto_init_done = false;
+static _Bool crypto_init_done = FALSE;
 static pthread_mutex_t id_lock;
 static pthread_key_t id_key;
 static unsigned int nmutexes = 0;
@@ -52,8 +50,8 @@ static pthread_mutex_t *mutexes = NULL;
 
 static void
 dkimf_crypto_lock_callback(int mode, int idx,
-                           SM_UNUSED(const char *file),
-                           SM_UNUSED(int line))
+                           /* UNUSED */ const char *file,
+                           /* UNUSED */ int line)
 {
 	int status;
 
@@ -141,8 +139,8 @@ dkimf_crypto_free_id(void *ptr)
 */
 
 static struct CRYPTO_dynlock_value *
-dkimf_crypto_dyn_create(SM_UNUSED(const char *file),
-                        SM_UNUSED(int line))
+dkimf_crypto_dyn_create(/* UNUSED */ const char *file,
+                        /* UNUSED */ int line)
 {
 	int err;
 	pthread_mutex_t *new;
@@ -172,8 +170,8 @@ dkimf_crypto_dyn_create(SM_UNUSED(const char *file),
 
 static void
 dkimf_crypto_dyn_destroy(struct CRYPTO_dynlock_value *lock,
-                         SM_UNUSED(const char *file),
-                         SM_UNUSED(int line))
+                         /* UNUSED */ const char *file,
+                         /* UNUSED */ int line)
 {
 	assert(lock != NULL);
 
@@ -197,8 +195,8 @@ dkimf_crypto_dyn_destroy(struct CRYPTO_dynlock_value *lock,
 
 static void
 dkimf_crypto_dyn_lock(int mode, struct CRYPTO_dynlock_value *lock,
-                      SM_UNUSED(const char *file),
-                      SM_UNUSED(int line))
+                      /* UNUSED */ const char *file,
+                      /* UNUSED */ int line)
 {
 	int status;
 
@@ -303,6 +301,6 @@ dkimf_crypto_free(void)
 		ERR_free_strings();
 		ERR_remove_state(0);
 
-		crypto_init_done = false;
+		crypto_init_done = FALSE;
 	}
 }

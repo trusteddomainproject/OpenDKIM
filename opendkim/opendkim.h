@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.1 2009/07/16 20:59:11 cm-msk Exp $
+**  $Id: opendkim.h,v 1.2 2009/07/20 21:28:19 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.1 2009/07/16 20:59:11 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.2 2009/07/20 21:28:19 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -74,13 +74,13 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.1 2009/07/16 20:59:11 cm-
 typedef struct Peer * Peer;
 struct Peer
 {
-	bool		peer_neg;
+	_Bool		peer_neg;
 	char *		peer_info;
 	struct Peer *	peer_next;
 };
 
 /* externs */
-extern bool dolog;
+extern _Bool dolog;
 extern char *progname;
 
 /* prototypes, exported for test.c */
