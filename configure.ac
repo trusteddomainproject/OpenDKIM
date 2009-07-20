@@ -41,6 +41,20 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strtol strtoul strtoull strlcpy strlcat])
 
 # Conditional stuff
+AM_CONDITIONAL(BODYLENGTH_DB, test "$enable_bodylengthdb" = yes)
+AM_CONDITIONAL(CAPTURE_UNKNOWN_ERRORS, test "$enable_captureerrors" = yes)
+AM_CONDITIONAL(COMMAIZE, test "$enable_commaize" = yes)
+AM_CONDITIONAL(DIFFHEADERS, test "$enable_diffheaders" = yes)
+AM_CONDITIONAL(DKIM_REPUTATION, test "$enable_dkimreputation" = yes)
+AM_CONDITIONAL(DNS_UPGRADE, test "$enable_dnsupgrade" = yes)
+AM_CONDITIONAL(MULTIPLE_SIGNATURES, test "$enable_multiplesigs" = yes)
+AM_CONDITIONAL(PARSE_TIME, test "$enable_parsetime" = yes)
+AM_CONDITIONAL(REPLACE_RULES, test "$enable_replacerules" = yes)
+AM_CONDITIONAL(REPORT_INTERVALS, test "$enable_reportintervals" = yes)
+AM_CONDITIONAL(SELECT_CANONICALIZATION, test "$enable_selectcanon" = yes)
+AM_CONDITIONAL(SELECTOR_HEADER, test "$enable_selectorheader" = yes)
 AM_CONDITIONAL(STATS, test "$enable_stats" = yes)
+AM_CONDITIONAL(VBR, test "$enable_vbr" = yes)
+AM_CONDITIONAL(ZTAGS, test "$enable_ztags" = yes)
 
 AC_OUTPUT(Makefile opendkim/Makefile libopendkim/Makefile libar/Makefile)
