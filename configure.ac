@@ -12,8 +12,9 @@ AC_PROG_CC
 AC_PROG_RANLIB
 
 # Checks for libraries.
-AC_CHECK_LIB(crypto, ERR_peek_error)
-AC_CHECK_LIB(milter, smfi_getsymval)
+AC_SEARCH_LIBS(ERR_peek_error, crypto)
+AC_SEARCH_LIBS(SSL_library_init, ssl)
+AC_SEARCH_LIBS(smfi_getsymval, milter)
 
 # Checks for header files.
 AC_HEADER_RESOLV
