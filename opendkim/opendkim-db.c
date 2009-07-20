@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.2 2009/07/20 22:51:06 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.2 2009/07/20 22:51:06 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef USE_DB
@@ -20,9 +20,6 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.1 2009/07/16 20:59:
 #include <unistd.h>
 #include <fcntl.h>
 #include <assert.h>
-
-/* libsm includes */
-#include <sm/gen.h>
 
 /* opendkim includes */
 #include "opendkim-db.h"
@@ -46,7 +43,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.1 2009/07/16 20:59:
 */
 
 static int
-dkimf_db_open(DB **db, const char *file, bool ro)
+dkimf_db_open(DB **db, const char *file, _Bool ro)
 {
 #if DB_VERSION_CHECK(2,0,0)
 	int flags = 0;
@@ -152,7 +149,7 @@ dkimf_db_open_rw(DB **db, const char *file)
 **  	outbuf -- output buffer
 **  	outbuflen -- IN: number of bytes available at outbuf
 **  	             OUT: number of bytes written to outbuf
-**  	exists -- pointer to a "bool" updated to be TRUE if the record
+**  	exists -- pointer to a "_Bool" updated to be TRUE if the record
 **  	          was found, FALSE otherwise (may be NULL)
 **	lock -- lock for blocking concurrent access (may be NULL)
 **
@@ -163,7 +160,7 @@ dkimf_db_open_rw(DB **db, const char *file)
 
 int
 dkimf_db_get(DB *db, char *buf, void *outbuf, size_t *outbuflen,
-             bool *exists, pthread_mutex_t *lock)
+             _Bool *exists, pthread_mutex_t *lock)
 {
 	DBT d;
 	DBT q;

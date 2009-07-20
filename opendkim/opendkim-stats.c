@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.2 2009/07/20 22:51:06 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.2 2009/07/20 22:51:06 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -22,18 +22,13 @@ static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.1 2009/07/16 
 #include <fcntl.h>
 #include <time.h>
 
-/* sendmail includes */
-#include <sm/gen.h>
-#include <sm/cdefs.h>
-#include <sm/string.h>
-
 /* opendkim includes */
 #include "opendkim-db.h"
 #include "stats.h"
 
 /* globals */
 char *progname;
-bool dolog = FALSE;			/* XXX -- dkim-db shouldn't use this */
+_Bool dolog = FALSE;			/* XXX -- dkim-db shouldn't use this */
 
 /*
 **  DKIMS_DUMP -- dump a database's contents
@@ -49,7 +44,7 @@ static void
 dkims_dump(char *path)
 {
 #if ! DB_VERSION_CHECK(2,0,0)
-	bool first = TRUE;
+	_Bool first = TRUE;
 #endif /* ! DB_VERSION_CHECK(2,0,0) */
 	int status = 0;
 	DB *db;
