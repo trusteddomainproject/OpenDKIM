@@ -40,4 +40,7 @@ AC_FUNC_MKTIME
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strtol strtoul strtoull strlcpy strlcat])
 
+# Conditional stuff
+AM_CONDITIONAL(STATS, test "$enable_stats" = yes)
+
 AC_OUTPUT(Makefile opendkim/Makefile libopendkim/Makefile libar/Makefile)
