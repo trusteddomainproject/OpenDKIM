@@ -14,6 +14,8 @@
 
 @SET_MAKE@
 
+
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -83,7 +85,8 @@ check_PROGRAMS = t-setup$(EXEEXT) t-test00$(EXEEXT) t-test01$(EXEEXT) \
 	t-test125$(EXEEXT) t-test126$(EXEEXT) t-test127$(EXEEXT) \
 	t-signperf$(EXEEXT) t-verifyperf$(EXEEXT) t-cleanup$(EXEEXT)
 subdir = libopendkim
-DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = README $(libopendkiminclude_HEADERS) \
+	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -97,7 +100,9 @@ am__vpath_adj = case $$p in \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(libdir)"
+am__installdirs = "$(DESTDIR)$(libdir)" \
+	"$(DESTDIR)$(libopendkim_adir)" \
+	"$(DESTDIR)$(libopendkimincludedir)"
 libLIBRARIES_INSTALL = $(INSTALL_DATA)
 LIBRARIES = $(lib_LIBRARIES)
 AR = ar
@@ -874,6 +879,10 @@ DIST_SOURCES = $(libopendkim_a_SOURCES) $(t_cleanup_SOURCES) \
 	$(t_test93_SOURCES) $(t_test94_SOURCES) $(t_test95_SOURCES) \
 	$(t_test96_SOURCES) $(t_test97_SOURCES) $(t_test98_SOURCES) \
 	$(t_test99_SOURCES) $(t_verifyperf_SOURCES)
+libopendkim_aDATA_INSTALL = $(INSTALL_DATA)
+DATA = $(libopendkim_a_DATA)
+libopendkimincludeHEADERS_INSTALL = $(INSTALL_HEADER)
+HEADERS = $(libopendkiminclude_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -968,6 +977,45 @@ libopendkim_a_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-poli
 libopendkim_a_CFLAGS = $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
 	$(am__append_7) $(am__append_8)
+libopendkimincludedir = $(includedir)/opendkim
+libopendkiminclude_HEADERS = dkim.h
+libopendkim_adir = $(datadir)/opendkim
+libopendkim_a_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
+	docs/dkim_canon_t.html docs/dkim_cbstat.html docs/dkim_chunk.html \
+	docs/dkim_close.html docs/dkim_dnssec.html docs/dkim_eoh.html \
+	docs/dkim_eom.html docs/dkim_flush_cache.html docs/dkim_free.html \
+	docs/dkim_get_user_context.html docs/dkim_getcachestats.html \
+	docs/dkim_getdomain.html docs/dkim_geterror.html \
+	docs/dkim_getmode.html docs/dkim_getpolicystr.html \
+	docs/dkim_getpresult.html docs/dkim_getpresultstr.html \
+	docs/dkim_getresultstr.html docs/dkim_getsighdr.html \
+	docs/dkim_getsiglist.html docs/dkim_getsignature.html \
+	docs/dkim_header.html docs/dkim_init.html docs/dkim_key_syntax.html \
+	docs/dkim_lib.html docs/dkim_minbody.html docs/dkim_ohdrs.html \
+	docs/dkim_options.html docs/dkim_param_t.html docs/dkim_policy.html \
+	docs/dkim_policy_getdnssec.html docs/dkim_policy_getreportinfo.html \
+	docs/dkim_policy_syntax.html docs/dkim_policy_t.html \
+	docs/dkim_presult.html docs/dkim_pstate.html docs/dkim_query_t.html \
+	docs/dkim_set_dns_callback.html docs/dkim_set_final.html \
+	docs/dkim_set_key_lookup.html docs/dkim_set_margin.html \
+	docs/dkim_set_policy_lookup.html docs/dkim_set_prescreen.html \
+	docs/dkim_set_signature_handle.html \
+	docs/dkim_set_signature_handle_free.html \
+	docs/dkim_set_signature_tagvalues.html docs/dkim_set_signer.html \
+	docs/dkim_set_user_context.html docs/dkim_sig_getbh.html \
+	docs/dkim_sig_getcanonlen.html docs/dkim_sig_getcontext.html \
+	docs/dkim_sig_getdnssec.html docs/dkim_sig_getdomain.html \
+	docs/dkim_sig_geterror.html docs/dkim_sig_geterrorstr.html \
+	docs/dkim_sig_getflags.html docs/dkim_sig_getkeysize.html \
+	docs/dkim_sig_getreportinfo.html docs/dkim_sig_getselector.html \
+	docs/dkim_sig_getsignalg.html docs/dkim_sig_getsigntime.html \
+	docs/dkim_sig_hdrsigned.html docs/dkim_sig_ignore.html \
+	docs/dkim_sig_process.html docs/dkim_sig_syntax.html \
+	docs/dkim_sigerror.html docs/dkim_siginfo.html \
+	docs/dkim_sigkey_t.html docs/dkim_sign.html \
+	docs/dkim_ssl_version.html docs/dkim_stat.html docs/dkim_verify.html \
+	docs/index.html docs/overview.html docs/rfc2822_mailbox_split.html
+
 TESTS = $(check_PROGRAMS)
 t_setup_SOURCES = t-setup.c
 t_setup_LDFLAGS = -L.
@@ -2193,6 +2241,40 @@ libopendkim_a-vbr.obj: vbr.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='vbr.c' object='libopendkim_a-vbr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-vbr.obj `if test -f 'vbr.c'; then $(CYGPATH_W) 'vbr.c'; else $(CYGPATH_W) '$(srcdir)/vbr.c'; fi`
+install-libopendkim_aDATA: $(libopendkim_a_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(libopendkim_adir)" || $(MKDIR_P) "$(DESTDIR)$(libopendkim_adir)"
+	@list='$(libopendkim_a_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(libopendkim_aDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(libopendkim_adir)/$$f'"; \
+	  $(libopendkim_aDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(libopendkim_adir)/$$f"; \
+	done
+
+uninstall-libopendkim_aDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(libopendkim_a_DATA)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(libopendkim_adir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(libopendkim_adir)/$$f"; \
+	done
+install-libopendkimincludeHEADERS: $(libopendkiminclude_HEADERS)
+	@$(NORMAL_INSTALL)
+	test -z "$(libopendkimincludedir)" || $(MKDIR_P) "$(DESTDIR)$(libopendkimincludedir)"
+	@list='$(libopendkiminclude_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(libopendkimincludeHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(libopendkimincludedir)/$$f'"; \
+	  $(libopendkimincludeHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(libopendkimincludedir)/$$f"; \
+	done
+
+uninstall-libopendkimincludeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(libopendkiminclude_HEADERS)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(libopendkimincludedir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(libopendkimincludedir)/$$f"; \
+	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -2344,9 +2426,9 @@ check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
-all-am: Makefile $(LIBRARIES)
+all-am: Makefile $(LIBRARIES) $(DATA) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libopendkim_adir)" "$(DESTDIR)$(libopendkimincludedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -2394,7 +2476,8 @@ info: info-am
 
 info-am:
 
-install-data-am:
+install-data-am: install-libopendkim_aDATA \
+	install-libopendkimincludeHEADERS
 
 install-dvi: install-dvi-am
 
@@ -2429,7 +2512,8 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-libLIBRARIES
+uninstall-am: uninstall-libLIBRARIES uninstall-libopendkim_aDATA \
+	uninstall-libopendkimincludeHEADERS
 
 .MAKE: install-am install-strip
 
@@ -2440,12 +2524,15 @@ uninstall-am: uninstall-libLIBRARIES
 	install-am install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-info install-info-am \
-	install-libLIBRARIES install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
+	install-libLIBRARIES install-libopendkim_aDATA \
+	install-libopendkimincludeHEADERS install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-libLIBRARIES
+	uninstall-am uninstall-libLIBRARIES \
+	uninstall-libopendkim_aDATA \
+	uninstall-libopendkimincludeHEADERS
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
