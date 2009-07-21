@@ -55,7 +55,7 @@ endif
 
 if STATS
 sbin_PROGRAMS += opendkim-stats
-opendkim_stats_SOURCES = opendkim-stats.c
+opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c
 endif
 
 opendkim_testkey_SOURCES = opendkim-testkey.c
