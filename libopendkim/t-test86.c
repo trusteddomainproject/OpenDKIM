@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test86_c_id[] = "@(#)$Id: t-test86.c,v 1.2 2009/07/20 21:41:08 cm-msk Exp $";
+static char t_test86_c_id[] = "@(#)$Id: t-test86.c,v 1.3 2009/07/21 21:11:42 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -46,7 +46,7 @@ static char t_test86_c_id[] = "@(#)$Id: t-test86.c,v 1.2 2009/07/20 21:41:08 cm-
 */
 
 int
-policy_lookup(DKIM *dkim, unsigned char *query, bool excheck,
+policy_lookup(DKIM *dkim, unsigned char *query, _Bool excheck,
               unsigned char *buf, size_t buflen, int *qstatus)
 {
 	assert(dkim != NULL);
