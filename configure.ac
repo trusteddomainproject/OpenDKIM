@@ -42,6 +42,9 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strtol strtoul strtoull strlcpy strlcat])
 
 # Conditional stuff
+AC_ARG_ENABLE(arlib, AS_HELP_STRING(--enable-arlib, enable provided asynchronous resolver library))
+AM_CONDITIONAL(USE_ARLIB, test "$enable_arlib" = yes)
+
 AC_ARG_ENABLE(bodylengthdb, AS_HELP_STRING(--enable-bodylengthdb, support for body length DBs))
 AM_CONDITIONAL(BODYLENGTH_DB, test "$enable_bodylengthdb" = yes)
 
