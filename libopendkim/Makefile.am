@@ -1,6 +1,44 @@
 lib_LIBRARIES = libopendkim.a
 libopendkim_a_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c
 libopendkim_a_CFLAGS = 
+libopendkimincludedir = $(includedir)/opendkim
+libopendkiminclude_HEADERS = dkim.h
+libopendkim_adir = $(libdir)/opendkim
+libopendkim_a_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
+	docs/dkim_canon_t.html docs/dkim_cbstat.html docs/dkim_chunk.html \
+	docs/dkim_close.html docs/dkim_dnssec.html docs/dkim_eoh.html \
+	docs/dkim_eom.html docs/dkim_flush_cache.html docs/dkim_free.html \
+	docs/dkim_get_user_context.html docs/dkim_getcachestats.html \
+	docs/dkim_getdomain.html docs/dkim_geterror.html \
+	docs/dkim_getmode.html docs/dkim_getpolicystr.html \
+	docs/dkim_getpresult.html docs/dkim_getpresultstr.html \
+	docs/dkim_getresultstr.html docs/dkim_getsighdr.html \
+	docs/dkim_getsiglist.html docs/dkim_getsignature.html \
+	docs/dkim_header.html docs/dkim_init.html docs/dkim_key_syntax.html \
+	docs/dkim_lib.html docs/dkim_minbody.html docs/dkim_ohdrs.html \
+	docs/dkim_options.html docs/dkim_param_t.html docs/dkim_policy.html \
+	docs/dkim_policy_getdnssec.html docs/dkim_policy_getreportinfo.html \
+	docs/dkim_policy_syntax.html docs/dkim_policy_t.html \
+	docs/dkim_presult.html docs/dkim_pstate.html docs/dkim_query_t.html \
+	docs/dkim_set_dns_callback.html docs/dkim_set_final.html \
+	docs/dkim_set_key_lookup.html docs/dkim_set_margin.html \
+	docs/dkim_set_policy_lookup.html docs/dkim_set_prescreen.html \
+	docs/dkim_set_signature_handle.html \
+	docs/dkim_set_signature_handle_free.html \
+	docs/dkim_set_signature_tagvalues.html docs/dkim_set_signer.html \
+	docs/dkim_set_user_context.html docs/dkim_sig_getbh.html \
+	docs/dkim_sig_getcanonlen.html docs/dkim_sig_getcontext.html \
+	docs/dkim_sig_getdnssec.html docs/dkim_sig_getdomain.html \
+	docs/dkim_sig_geterror.html docs/dkim_sig_geterrorstr.html \
+	docs/dkim_sig_getflags.html docs/dkim_sig_getkeysize.html \
+	docs/dkim_sig_getreportinfo.html docs/dkim_sig_getselector.html \
+	docs/dkim_sig_getsignalg.html docs/dkim_sig_getsigntime.html \
+	docs/dkim_sig_hdrsigned.html docs/dkim_sig_ignore.html \
+	docs/dkim_sig_process.html docs/dkim_sig_syntax.html \
+	docs/dkim_sigerror.html docs/dkim_siginfo.html \
+	docs/dkim_sigkey_t.html docs/dkim_sign.html \
+	docs/dkim_ssl_version.html docs/dkim_stat.html docs/dkim_verify.html \
+	docs/index.html docs/overview.html docs/rfc2822_mailbox_split.html
 
 if BODYLENGTH_DB
 libopendkim_a_CFLAGS += -D_FFR_BODYLENGTH_DB
