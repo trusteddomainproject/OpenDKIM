@@ -36,7 +36,52 @@ POST_UNINSTALL = :
 @DNS_UPGRADE_TRUE@am__append_4 = -D_FFR_DNS_UPGRADE
 @PARSE_TIME_TRUE@am__append_5 = -D_FFR_PARSE_TIME
 @STATS_TRUE@am__append_6 = -D_FFR_STATS
-@VBR_TRUE@am__append_7 = -D_FFR_VBR
+@USE_ARLIB_TRUE@am__append_7 = -DUSE_ARLIB
+@VBR_TRUE@am__append_8 = -D_FFR_VBR
+check_PROGRAMS = t-setup$(EXEEXT) t-test00$(EXEEXT) t-test01$(EXEEXT) \
+	t-test02$(EXEEXT) t-test03$(EXEEXT) t-test04$(EXEEXT) \
+	t-test05$(EXEEXT) t-test06$(EXEEXT) t-test07$(EXEEXT) \
+	t-test08$(EXEEXT) t-test09$(EXEEXT) t-test10$(EXEEXT) \
+	t-test11$(EXEEXT) t-test12$(EXEEXT) t-test13$(EXEEXT) \
+	t-test14$(EXEEXT) t-test15$(EXEEXT) t-test16$(EXEEXT) \
+	t-test17$(EXEEXT) t-test18$(EXEEXT) t-test19$(EXEEXT) \
+	t-test20$(EXEEXT) t-test21$(EXEEXT) t-test22$(EXEEXT) \
+	t-test23$(EXEEXT) t-test24$(EXEEXT) t-test25$(EXEEXT) \
+	t-test26$(EXEEXT) t-test27$(EXEEXT) t-test28$(EXEEXT) \
+	t-test29$(EXEEXT) t-test30$(EXEEXT) t-test31$(EXEEXT) \
+	t-test32$(EXEEXT) t-test33$(EXEEXT) t-test34$(EXEEXT) \
+	t-test35$(EXEEXT) t-test36$(EXEEXT) t-test37$(EXEEXT) \
+	t-test38$(EXEEXT) t-test39$(EXEEXT) t-test40$(EXEEXT) \
+	t-test41$(EXEEXT) t-test42$(EXEEXT) t-test43$(EXEEXT) \
+	t-test44$(EXEEXT) t-test45$(EXEEXT) t-test46$(EXEEXT) \
+	t-test47$(EXEEXT) t-test48$(EXEEXT) t-test49$(EXEEXT) \
+	t-test50$(EXEEXT) t-test51$(EXEEXT) t-test52$(EXEEXT) \
+	t-test53$(EXEEXT) t-test54$(EXEEXT) t-test55$(EXEEXT) \
+	t-test56$(EXEEXT) t-test57$(EXEEXT) t-test58$(EXEEXT) \
+	t-test59$(EXEEXT) t-test60$(EXEEXT) t-test61$(EXEEXT) \
+	t-test62$(EXEEXT) t-test63$(EXEEXT) t-test64$(EXEEXT) \
+	t-test65$(EXEEXT) t-test66$(EXEEXT) t-test67$(EXEEXT) \
+	t-test68$(EXEEXT) t-test69$(EXEEXT) t-test70$(EXEEXT) \
+	t-test71$(EXEEXT) t-test72$(EXEEXT) t-test73$(EXEEXT) \
+	t-test74$(EXEEXT) t-test75$(EXEEXT) t-test76$(EXEEXT) \
+	t-test77$(EXEEXT) t-test78$(EXEEXT) t-test79$(EXEEXT) \
+	t-test80$(EXEEXT) t-test81$(EXEEXT) t-test82$(EXEEXT) \
+	t-test83$(EXEEXT) t-test84$(EXEEXT) t-test85$(EXEEXT) \
+	t-test86$(EXEEXT) t-test87$(EXEEXT) t-test88$(EXEEXT) \
+	t-test89$(EXEEXT) t-test90$(EXEEXT) t-test91$(EXEEXT) \
+	t-test92$(EXEEXT) t-test93$(EXEEXT) t-test94$(EXEEXT) \
+	t-test95$(EXEEXT) t-test96$(EXEEXT) t-test97$(EXEEXT) \
+	t-test98$(EXEEXT) t-test99$(EXEEXT) t-test100$(EXEEXT) \
+	t-test101$(EXEEXT) t-test102$(EXEEXT) t-test103$(EXEEXT) \
+	t-test104$(EXEEXT) t-test105$(EXEEXT) t-test106$(EXEEXT) \
+	t-test107$(EXEEXT) t-test108$(EXEEXT) t-test109$(EXEEXT) \
+	t-test110$(EXEEXT) t-test111$(EXEEXT) t-test112$(EXEEXT) \
+	t-test113$(EXEEXT) t-test114$(EXEEXT) t-test115$(EXEEXT) \
+	t-test116$(EXEEXT) t-test117$(EXEEXT) t-test118$(EXEEXT) \
+	t-test119$(EXEEXT) t-test120$(EXEEXT) t-test121$(EXEEXT) \
+	t-test122$(EXEEXT) t-test123$(EXEEXT) t-test124$(EXEEXT) \
+	t-test125$(EXEEXT) t-test126$(EXEEXT) t-test127$(EXEEXT) \
+	t-signperf$(EXEEXT) t-verifyperf$(EXEEXT) t-cleanup$(EXEEXT)
 subdir = libopendkim
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -72,6 +117,666 @@ am_libopendkim_a_OBJECTS = libopendkim_a-base64.$(OBJEXT) \
 	libopendkim_a-rfc2822.$(OBJEXT) libopendkim_a-util.$(OBJEXT) \
 	libopendkim_a-vbr.$(OBJEXT)
 libopendkim_a_OBJECTS = $(am_libopendkim_a_OBJECTS)
+am_t_cleanup_OBJECTS = t-cleanup.$(OBJEXT)
+t_cleanup_OBJECTS = $(am_t_cleanup_OBJECTS)
+t_cleanup_DEPENDENCIES = ./libopendkim.a
+t_cleanup_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_cleanup_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_setup_OBJECTS = t-setup.$(OBJEXT)
+t_setup_OBJECTS = $(am_t_setup_OBJECTS)
+t_setup_DEPENDENCIES = ./libopendkim.a
+t_setup_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_setup_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_signperf_OBJECTS = t-signperf.$(OBJEXT)
+t_signperf_OBJECTS = $(am_t_signperf_OBJECTS)
+t_signperf_DEPENDENCIES = ./libopendkim.a
+t_signperf_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_signperf_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test00_OBJECTS = t-test00.$(OBJEXT)
+t_test00_OBJECTS = $(am_t_test00_OBJECTS)
+t_test00_DEPENDENCIES = ./libopendkim.a
+t_test00_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test00_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test01_OBJECTS = t-test01.$(OBJEXT)
+t_test01_OBJECTS = $(am_t_test01_OBJECTS)
+t_test01_DEPENDENCIES = ./libopendkim.a
+t_test01_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test01_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test02_OBJECTS = t-test02.$(OBJEXT)
+t_test02_OBJECTS = $(am_t_test02_OBJECTS)
+t_test02_DEPENDENCIES = ./libopendkim.a
+t_test02_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test02_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test03_OBJECTS = t-test03.$(OBJEXT)
+t_test03_OBJECTS = $(am_t_test03_OBJECTS)
+t_test03_DEPENDENCIES = ./libopendkim.a
+t_test03_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test03_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test04_OBJECTS = t-test04.$(OBJEXT)
+t_test04_OBJECTS = $(am_t_test04_OBJECTS)
+t_test04_DEPENDENCIES = ./libopendkim.a
+t_test04_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test04_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test05_OBJECTS = t-test05.$(OBJEXT)
+t_test05_OBJECTS = $(am_t_test05_OBJECTS)
+t_test05_DEPENDENCIES = ./libopendkim.a
+t_test05_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test05_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test06_OBJECTS = t-test06.$(OBJEXT)
+t_test06_OBJECTS = $(am_t_test06_OBJECTS)
+t_test06_DEPENDENCIES = ./libopendkim.a
+t_test06_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test06_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test07_OBJECTS = t-test07.$(OBJEXT)
+t_test07_OBJECTS = $(am_t_test07_OBJECTS)
+t_test07_DEPENDENCIES = ./libopendkim.a
+t_test07_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test07_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test08_OBJECTS = t-test08.$(OBJEXT)
+t_test08_OBJECTS = $(am_t_test08_OBJECTS)
+t_test08_DEPENDENCIES = ./libopendkim.a
+t_test08_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test08_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test09_OBJECTS = t-test09.$(OBJEXT)
+t_test09_OBJECTS = $(am_t_test09_OBJECTS)
+t_test09_DEPENDENCIES = ./libopendkim.a
+t_test09_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test09_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test10_OBJECTS = t-test10.$(OBJEXT)
+t_test10_OBJECTS = $(am_t_test10_OBJECTS)
+t_test10_DEPENDENCIES = ./libopendkim.a
+t_test10_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test10_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test100_OBJECTS = t-test100.$(OBJEXT)
+t_test100_OBJECTS = $(am_t_test100_OBJECTS)
+t_test100_DEPENDENCIES = ./libopendkim.a
+t_test100_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test100_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test101_OBJECTS = t-test101.$(OBJEXT)
+t_test101_OBJECTS = $(am_t_test101_OBJECTS)
+t_test101_DEPENDENCIES = ./libopendkim.a
+t_test101_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test101_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test102_OBJECTS = t-test102.$(OBJEXT)
+t_test102_OBJECTS = $(am_t_test102_OBJECTS)
+t_test102_DEPENDENCIES = ./libopendkim.a
+t_test102_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test102_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test103_OBJECTS = t-test103.$(OBJEXT)
+t_test103_OBJECTS = $(am_t_test103_OBJECTS)
+t_test103_DEPENDENCIES = ./libopendkim.a
+t_test103_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test103_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test104_OBJECTS = t-test104.$(OBJEXT)
+t_test104_OBJECTS = $(am_t_test104_OBJECTS)
+t_test104_DEPENDENCIES = ./libopendkim.a
+t_test104_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test104_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test105_OBJECTS = t-test105.$(OBJEXT)
+t_test105_OBJECTS = $(am_t_test105_OBJECTS)
+t_test105_DEPENDENCIES = ./libopendkim.a
+t_test105_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test105_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test106_OBJECTS = t-test106.$(OBJEXT)
+t_test106_OBJECTS = $(am_t_test106_OBJECTS)
+t_test106_DEPENDENCIES = ./libopendkim.a
+t_test106_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test106_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test107_OBJECTS = t-test107.$(OBJEXT)
+t_test107_OBJECTS = $(am_t_test107_OBJECTS)
+t_test107_DEPENDENCIES = ./libopendkim.a
+t_test107_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test107_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test108_OBJECTS = t-test108.$(OBJEXT)
+t_test108_OBJECTS = $(am_t_test108_OBJECTS)
+t_test108_DEPENDENCIES = ./libopendkim.a
+t_test108_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test108_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test109_OBJECTS = t-test109.$(OBJEXT)
+t_test109_OBJECTS = $(am_t_test109_OBJECTS)
+t_test109_DEPENDENCIES = ./libopendkim.a
+t_test109_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test109_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test11_OBJECTS = t-test11.$(OBJEXT)
+t_test11_OBJECTS = $(am_t_test11_OBJECTS)
+t_test11_DEPENDENCIES = ./libopendkim.a
+t_test11_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test11_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test110_OBJECTS = t-test110.$(OBJEXT)
+t_test110_OBJECTS = $(am_t_test110_OBJECTS)
+t_test110_DEPENDENCIES = ./libopendkim.a
+t_test110_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test110_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test111_OBJECTS = t-test111.$(OBJEXT)
+t_test111_OBJECTS = $(am_t_test111_OBJECTS)
+t_test111_DEPENDENCIES = ./libopendkim.a
+t_test111_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test111_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test112_OBJECTS = t-test112.$(OBJEXT)
+t_test112_OBJECTS = $(am_t_test112_OBJECTS)
+t_test112_DEPENDENCIES = ./libopendkim.a
+t_test112_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test112_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test113_OBJECTS = t-test113.$(OBJEXT)
+t_test113_OBJECTS = $(am_t_test113_OBJECTS)
+t_test113_DEPENDENCIES = ./libopendkim.a
+t_test113_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test113_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test114_OBJECTS = t-test114.$(OBJEXT)
+t_test114_OBJECTS = $(am_t_test114_OBJECTS)
+t_test114_DEPENDENCIES = ./libopendkim.a
+t_test114_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test114_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test115_OBJECTS = t-test115.$(OBJEXT)
+t_test115_OBJECTS = $(am_t_test115_OBJECTS)
+t_test115_DEPENDENCIES = ./libopendkim.a
+t_test115_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test115_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test116_OBJECTS = t-test116.$(OBJEXT)
+t_test116_OBJECTS = $(am_t_test116_OBJECTS)
+t_test116_DEPENDENCIES = ./libopendkim.a
+t_test116_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test116_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test117_OBJECTS = t-test117.$(OBJEXT)
+t_test117_OBJECTS = $(am_t_test117_OBJECTS)
+t_test117_DEPENDENCIES = ./libopendkim.a
+t_test117_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test117_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test118_OBJECTS = t-test118.$(OBJEXT)
+t_test118_OBJECTS = $(am_t_test118_OBJECTS)
+t_test118_DEPENDENCIES = ./libopendkim.a
+t_test118_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test118_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test119_OBJECTS = t-test119.$(OBJEXT)
+t_test119_OBJECTS = $(am_t_test119_OBJECTS)
+t_test119_DEPENDENCIES = ./libopendkim.a
+t_test119_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test119_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test12_OBJECTS = t-test12.$(OBJEXT)
+t_test12_OBJECTS = $(am_t_test12_OBJECTS)
+t_test12_DEPENDENCIES = ./libopendkim.a
+t_test12_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test12_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test120_OBJECTS = t-test120.$(OBJEXT)
+t_test120_OBJECTS = $(am_t_test120_OBJECTS)
+t_test120_DEPENDENCIES = ./libopendkim.a
+t_test120_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test120_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test121_OBJECTS = t-test121.$(OBJEXT)
+t_test121_OBJECTS = $(am_t_test121_OBJECTS)
+t_test121_DEPENDENCIES = ./libopendkim.a
+t_test121_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test121_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test122_OBJECTS = t-test122.$(OBJEXT)
+t_test122_OBJECTS = $(am_t_test122_OBJECTS)
+t_test122_DEPENDENCIES = ./libopendkim.a
+t_test122_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test122_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test123_OBJECTS = t-test123.$(OBJEXT)
+t_test123_OBJECTS = $(am_t_test123_OBJECTS)
+t_test123_DEPENDENCIES = ./libopendkim.a
+t_test123_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test123_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test124_OBJECTS = t-test124.$(OBJEXT)
+t_test124_OBJECTS = $(am_t_test124_OBJECTS)
+t_test124_DEPENDENCIES = ./libopendkim.a
+t_test124_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test124_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test125_OBJECTS = t-test125.$(OBJEXT)
+t_test125_OBJECTS = $(am_t_test125_OBJECTS)
+t_test125_DEPENDENCIES = ./libopendkim.a
+t_test125_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test125_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test126_OBJECTS = t-test126.$(OBJEXT)
+t_test126_OBJECTS = $(am_t_test126_OBJECTS)
+t_test126_DEPENDENCIES = ./libopendkim.a
+t_test126_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test126_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test127_OBJECTS = t-test127.$(OBJEXT)
+t_test127_OBJECTS = $(am_t_test127_OBJECTS)
+t_test127_DEPENDENCIES = ./libopendkim.a
+t_test127_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test127_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test13_OBJECTS = t-test13.$(OBJEXT)
+t_test13_OBJECTS = $(am_t_test13_OBJECTS)
+t_test13_DEPENDENCIES = ./libopendkim.a
+t_test13_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test13_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test14_OBJECTS = t-test14.$(OBJEXT)
+t_test14_OBJECTS = $(am_t_test14_OBJECTS)
+t_test14_DEPENDENCIES = ./libopendkim.a
+t_test14_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test14_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test15_OBJECTS = t-test15.$(OBJEXT)
+t_test15_OBJECTS = $(am_t_test15_OBJECTS)
+t_test15_DEPENDENCIES = ./libopendkim.a
+t_test15_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test15_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test16_OBJECTS = t-test16.$(OBJEXT)
+t_test16_OBJECTS = $(am_t_test16_OBJECTS)
+t_test16_DEPENDENCIES = ./libopendkim.a
+t_test16_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test16_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test17_OBJECTS = t-test17.$(OBJEXT)
+t_test17_OBJECTS = $(am_t_test17_OBJECTS)
+t_test17_DEPENDENCIES = ./libopendkim.a
+t_test17_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test17_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test18_OBJECTS = t-test18.$(OBJEXT)
+t_test18_OBJECTS = $(am_t_test18_OBJECTS)
+t_test18_DEPENDENCIES = ./libopendkim.a
+t_test18_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test18_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test19_OBJECTS = t-test19.$(OBJEXT)
+t_test19_OBJECTS = $(am_t_test19_OBJECTS)
+t_test19_DEPENDENCIES = ./libopendkim.a
+t_test19_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test19_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test20_OBJECTS = t-test20.$(OBJEXT)
+t_test20_OBJECTS = $(am_t_test20_OBJECTS)
+t_test20_DEPENDENCIES = ./libopendkim.a
+t_test20_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test20_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test21_OBJECTS = t-test21.$(OBJEXT)
+t_test21_OBJECTS = $(am_t_test21_OBJECTS)
+t_test21_DEPENDENCIES = ./libopendkim.a
+t_test21_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test21_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test22_OBJECTS = t-test22.$(OBJEXT)
+t_test22_OBJECTS = $(am_t_test22_OBJECTS)
+t_test22_DEPENDENCIES = ./libopendkim.a
+t_test22_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test22_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test23_OBJECTS = t-test23.$(OBJEXT)
+t_test23_OBJECTS = $(am_t_test23_OBJECTS)
+t_test23_DEPENDENCIES = ./libopendkim.a
+t_test23_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test23_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test24_OBJECTS = t-test24.$(OBJEXT)
+t_test24_OBJECTS = $(am_t_test24_OBJECTS)
+t_test24_DEPENDENCIES = ./libopendkim.a
+t_test24_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test24_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test25_OBJECTS = t-test25.$(OBJEXT)
+t_test25_OBJECTS = $(am_t_test25_OBJECTS)
+t_test25_DEPENDENCIES = ./libopendkim.a
+t_test25_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test25_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test26_OBJECTS = t-test26.$(OBJEXT)
+t_test26_OBJECTS = $(am_t_test26_OBJECTS)
+t_test26_DEPENDENCIES = ./libopendkim.a
+t_test26_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test26_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test27_OBJECTS = t-test27.$(OBJEXT)
+t_test27_OBJECTS = $(am_t_test27_OBJECTS)
+t_test27_DEPENDENCIES = ./libopendkim.a
+t_test27_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test27_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test28_OBJECTS = t-test28.$(OBJEXT)
+t_test28_OBJECTS = $(am_t_test28_OBJECTS)
+t_test28_DEPENDENCIES = ./libopendkim.a
+t_test28_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test28_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test29_OBJECTS = t-test29.$(OBJEXT)
+t_test29_OBJECTS = $(am_t_test29_OBJECTS)
+t_test29_DEPENDENCIES = ./libopendkim.a
+t_test29_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test29_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test30_OBJECTS = t-test30.$(OBJEXT)
+t_test30_OBJECTS = $(am_t_test30_OBJECTS)
+t_test30_DEPENDENCIES = ./libopendkim.a
+t_test30_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test30_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test31_OBJECTS = t-test31.$(OBJEXT)
+t_test31_OBJECTS = $(am_t_test31_OBJECTS)
+t_test31_DEPENDENCIES = ./libopendkim.a
+t_test31_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test31_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test32_OBJECTS = t-test32.$(OBJEXT)
+t_test32_OBJECTS = $(am_t_test32_OBJECTS)
+t_test32_DEPENDENCIES = ./libopendkim.a
+t_test32_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test32_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test33_OBJECTS = t-test33.$(OBJEXT)
+t_test33_OBJECTS = $(am_t_test33_OBJECTS)
+t_test33_DEPENDENCIES = ./libopendkim.a
+t_test33_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test33_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test34_OBJECTS = t-test34.$(OBJEXT)
+t_test34_OBJECTS = $(am_t_test34_OBJECTS)
+t_test34_DEPENDENCIES = ./libopendkim.a
+t_test34_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test34_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test35_OBJECTS = t-test35.$(OBJEXT)
+t_test35_OBJECTS = $(am_t_test35_OBJECTS)
+t_test35_DEPENDENCIES = ./libopendkim.a
+t_test35_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test35_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test36_OBJECTS = t-test36.$(OBJEXT)
+t_test36_OBJECTS = $(am_t_test36_OBJECTS)
+t_test36_DEPENDENCIES = ./libopendkim.a
+t_test36_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test36_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test37_OBJECTS = t-test37.$(OBJEXT)
+t_test37_OBJECTS = $(am_t_test37_OBJECTS)
+t_test37_DEPENDENCIES = ./libopendkim.a
+t_test37_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test37_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test38_OBJECTS = t-test38.$(OBJEXT)
+t_test38_OBJECTS = $(am_t_test38_OBJECTS)
+t_test38_DEPENDENCIES = ./libopendkim.a
+t_test38_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test38_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test39_OBJECTS = t-test39.$(OBJEXT)
+t_test39_OBJECTS = $(am_t_test39_OBJECTS)
+t_test39_DEPENDENCIES = ./libopendkim.a
+t_test39_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test39_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test40_OBJECTS = t-test40.$(OBJEXT)
+t_test40_OBJECTS = $(am_t_test40_OBJECTS)
+t_test40_DEPENDENCIES = ./libopendkim.a
+t_test40_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test40_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test41_OBJECTS = t-test41.$(OBJEXT)
+t_test41_OBJECTS = $(am_t_test41_OBJECTS)
+t_test41_DEPENDENCIES = ./libopendkim.a
+t_test41_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test41_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test42_OBJECTS = t-test42.$(OBJEXT)
+t_test42_OBJECTS = $(am_t_test42_OBJECTS)
+t_test42_DEPENDENCIES = ./libopendkim.a
+t_test42_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test42_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test43_OBJECTS = t-test43.$(OBJEXT)
+t_test43_OBJECTS = $(am_t_test43_OBJECTS)
+t_test43_DEPENDENCIES = ./libopendkim.a
+t_test43_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test43_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test44_OBJECTS = t-test44.$(OBJEXT)
+t_test44_OBJECTS = $(am_t_test44_OBJECTS)
+t_test44_DEPENDENCIES = ./libopendkim.a
+t_test44_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test44_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test45_OBJECTS = t-test45.$(OBJEXT)
+t_test45_OBJECTS = $(am_t_test45_OBJECTS)
+t_test45_DEPENDENCIES = ./libopendkim.a
+t_test45_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test45_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test46_OBJECTS = t-test46.$(OBJEXT)
+t_test46_OBJECTS = $(am_t_test46_OBJECTS)
+t_test46_DEPENDENCIES = ./libopendkim.a
+t_test46_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test46_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test47_OBJECTS = t-test47.$(OBJEXT)
+t_test47_OBJECTS = $(am_t_test47_OBJECTS)
+t_test47_DEPENDENCIES = ./libopendkim.a
+t_test47_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test47_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test48_OBJECTS = t-test48.$(OBJEXT)
+t_test48_OBJECTS = $(am_t_test48_OBJECTS)
+t_test48_DEPENDENCIES = ./libopendkim.a
+t_test48_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test48_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test49_OBJECTS = t-test49.$(OBJEXT)
+t_test49_OBJECTS = $(am_t_test49_OBJECTS)
+t_test49_DEPENDENCIES = ./libopendkim.a
+t_test49_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test49_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test50_OBJECTS = t-test50.$(OBJEXT)
+t_test50_OBJECTS = $(am_t_test50_OBJECTS)
+t_test50_DEPENDENCIES = ./libopendkim.a
+t_test50_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test50_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test51_OBJECTS = t-test51.$(OBJEXT)
+t_test51_OBJECTS = $(am_t_test51_OBJECTS)
+t_test51_DEPENDENCIES = ./libopendkim.a
+t_test51_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test51_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test52_OBJECTS = t-test52.$(OBJEXT)
+t_test52_OBJECTS = $(am_t_test52_OBJECTS)
+t_test52_DEPENDENCIES = ./libopendkim.a
+t_test52_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test52_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test53_OBJECTS = t-test53.$(OBJEXT)
+t_test53_OBJECTS = $(am_t_test53_OBJECTS)
+t_test53_DEPENDENCIES = ./libopendkim.a
+t_test53_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test53_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test54_OBJECTS = t-test54.$(OBJEXT)
+t_test54_OBJECTS = $(am_t_test54_OBJECTS)
+t_test54_DEPENDENCIES = ./libopendkim.a
+t_test54_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test54_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test55_OBJECTS = t-test55.$(OBJEXT)
+t_test55_OBJECTS = $(am_t_test55_OBJECTS)
+t_test55_DEPENDENCIES = ./libopendkim.a
+t_test55_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test55_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test56_OBJECTS = t-test56.$(OBJEXT)
+t_test56_OBJECTS = $(am_t_test56_OBJECTS)
+t_test56_DEPENDENCIES = ./libopendkim.a
+t_test56_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test56_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test57_OBJECTS = t-test57.$(OBJEXT)
+t_test57_OBJECTS = $(am_t_test57_OBJECTS)
+t_test57_DEPENDENCIES = ./libopendkim.a
+t_test57_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test57_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test58_OBJECTS = t-test58.$(OBJEXT)
+t_test58_OBJECTS = $(am_t_test58_OBJECTS)
+t_test58_DEPENDENCIES = ./libopendkim.a
+t_test58_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test58_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test59_OBJECTS = t-test59.$(OBJEXT)
+t_test59_OBJECTS = $(am_t_test59_OBJECTS)
+t_test59_DEPENDENCIES = ./libopendkim.a
+t_test59_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test59_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test60_OBJECTS = t-test60.$(OBJEXT)
+t_test60_OBJECTS = $(am_t_test60_OBJECTS)
+t_test60_DEPENDENCIES = ./libopendkim.a
+t_test60_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test60_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test61_OBJECTS = t-test61.$(OBJEXT)
+t_test61_OBJECTS = $(am_t_test61_OBJECTS)
+t_test61_DEPENDENCIES = ./libopendkim.a
+t_test61_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test61_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test62_OBJECTS = t-test62.$(OBJEXT)
+t_test62_OBJECTS = $(am_t_test62_OBJECTS)
+t_test62_DEPENDENCIES = ./libopendkim.a
+t_test62_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test62_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test63_OBJECTS = t-test63.$(OBJEXT)
+t_test63_OBJECTS = $(am_t_test63_OBJECTS)
+t_test63_DEPENDENCIES = ./libopendkim.a
+t_test63_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test63_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test64_OBJECTS = t-test64.$(OBJEXT)
+t_test64_OBJECTS = $(am_t_test64_OBJECTS)
+t_test64_DEPENDENCIES = ./libopendkim.a
+t_test64_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test64_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test65_OBJECTS = t-test65.$(OBJEXT)
+t_test65_OBJECTS = $(am_t_test65_OBJECTS)
+t_test65_DEPENDENCIES = ./libopendkim.a
+t_test65_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test65_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test66_OBJECTS = t-test66.$(OBJEXT)
+t_test66_OBJECTS = $(am_t_test66_OBJECTS)
+t_test66_DEPENDENCIES = ./libopendkim.a
+t_test66_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test66_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test67_OBJECTS = t-test67.$(OBJEXT)
+t_test67_OBJECTS = $(am_t_test67_OBJECTS)
+t_test67_DEPENDENCIES = ./libopendkim.a
+t_test67_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test67_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test68_OBJECTS = t-test68.$(OBJEXT)
+t_test68_OBJECTS = $(am_t_test68_OBJECTS)
+t_test68_DEPENDENCIES = ./libopendkim.a
+t_test68_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test68_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test69_OBJECTS = t-test69.$(OBJEXT)
+t_test69_OBJECTS = $(am_t_test69_OBJECTS)
+t_test69_DEPENDENCIES = ./libopendkim.a
+t_test69_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test69_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test70_OBJECTS = t-test70.$(OBJEXT)
+t_test70_OBJECTS = $(am_t_test70_OBJECTS)
+t_test70_DEPENDENCIES = ./libopendkim.a
+t_test70_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test70_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test71_OBJECTS = t-test71.$(OBJEXT)
+t_test71_OBJECTS = $(am_t_test71_OBJECTS)
+t_test71_DEPENDENCIES = ./libopendkim.a
+t_test71_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test71_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test72_OBJECTS = t-test72.$(OBJEXT)
+t_test72_OBJECTS = $(am_t_test72_OBJECTS)
+t_test72_DEPENDENCIES = ./libopendkim.a
+t_test72_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test72_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test73_OBJECTS = t-test73.$(OBJEXT)
+t_test73_OBJECTS = $(am_t_test73_OBJECTS)
+t_test73_DEPENDENCIES = ./libopendkim.a
+t_test73_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test73_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test74_OBJECTS = t-test74.$(OBJEXT)
+t_test74_OBJECTS = $(am_t_test74_OBJECTS)
+t_test74_DEPENDENCIES = ./libopendkim.a
+t_test74_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test74_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test75_OBJECTS = t-test75.$(OBJEXT)
+t_test75_OBJECTS = $(am_t_test75_OBJECTS)
+t_test75_DEPENDENCIES = ./libopendkim.a
+t_test75_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test75_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test76_OBJECTS = t-test76.$(OBJEXT)
+t_test76_OBJECTS = $(am_t_test76_OBJECTS)
+t_test76_DEPENDENCIES = ./libopendkim.a
+t_test76_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test76_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test77_OBJECTS = t-test77.$(OBJEXT)
+t_test77_OBJECTS = $(am_t_test77_OBJECTS)
+t_test77_DEPENDENCIES = ./libopendkim.a
+t_test77_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test77_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test78_OBJECTS = t-test78.$(OBJEXT)
+t_test78_OBJECTS = $(am_t_test78_OBJECTS)
+t_test78_DEPENDENCIES = ./libopendkim.a
+t_test78_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test78_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test79_OBJECTS = t-test79.$(OBJEXT)
+t_test79_OBJECTS = $(am_t_test79_OBJECTS)
+t_test79_DEPENDENCIES = ./libopendkim.a
+t_test79_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test79_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test80_OBJECTS = t-test80.$(OBJEXT)
+t_test80_OBJECTS = $(am_t_test80_OBJECTS)
+t_test80_DEPENDENCIES = ./libopendkim.a
+t_test80_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test80_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test81_OBJECTS = t-test81.$(OBJEXT)
+t_test81_OBJECTS = $(am_t_test81_OBJECTS)
+t_test81_DEPENDENCIES = ./libopendkim.a
+t_test81_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test81_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test82_OBJECTS = t-test82.$(OBJEXT)
+t_test82_OBJECTS = $(am_t_test82_OBJECTS)
+t_test82_DEPENDENCIES = ./libopendkim.a
+t_test82_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test82_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test83_OBJECTS = t-test83.$(OBJEXT)
+t_test83_OBJECTS = $(am_t_test83_OBJECTS)
+t_test83_DEPENDENCIES = ./libopendkim.a
+t_test83_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test83_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test84_OBJECTS = t-test84.$(OBJEXT)
+t_test84_OBJECTS = $(am_t_test84_OBJECTS)
+t_test84_DEPENDENCIES = ./libopendkim.a
+t_test84_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test84_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test85_OBJECTS = t-test85.$(OBJEXT)
+t_test85_OBJECTS = $(am_t_test85_OBJECTS)
+t_test85_DEPENDENCIES = ./libopendkim.a
+t_test85_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test85_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test86_OBJECTS = t-test86.$(OBJEXT)
+t_test86_OBJECTS = $(am_t_test86_OBJECTS)
+t_test86_DEPENDENCIES = ./libopendkim.a
+t_test86_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test86_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test87_OBJECTS = t-test87.$(OBJEXT)
+t_test87_OBJECTS = $(am_t_test87_OBJECTS)
+t_test87_DEPENDENCIES = ./libopendkim.a
+t_test87_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test87_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test88_OBJECTS = t-test88.$(OBJEXT)
+t_test88_OBJECTS = $(am_t_test88_OBJECTS)
+t_test88_DEPENDENCIES = ./libopendkim.a
+t_test88_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test88_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test89_OBJECTS = t-test89.$(OBJEXT)
+t_test89_OBJECTS = $(am_t_test89_OBJECTS)
+t_test89_DEPENDENCIES = ./libopendkim.a
+t_test89_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test89_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test90_OBJECTS = t-test90.$(OBJEXT)
+t_test90_OBJECTS = $(am_t_test90_OBJECTS)
+t_test90_DEPENDENCIES = ./libopendkim.a
+t_test90_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test90_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test91_OBJECTS = t-test91.$(OBJEXT)
+t_test91_OBJECTS = $(am_t_test91_OBJECTS)
+t_test91_DEPENDENCIES = ./libopendkim.a
+t_test91_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test91_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test92_OBJECTS = t-test92.$(OBJEXT)
+t_test92_OBJECTS = $(am_t_test92_OBJECTS)
+t_test92_DEPENDENCIES = ./libopendkim.a
+t_test92_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test92_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test93_OBJECTS = t-test93.$(OBJEXT)
+t_test93_OBJECTS = $(am_t_test93_OBJECTS)
+t_test93_DEPENDENCIES = ./libopendkim.a
+t_test93_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test93_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test94_OBJECTS = t-test94.$(OBJEXT)
+t_test94_OBJECTS = $(am_t_test94_OBJECTS)
+t_test94_DEPENDENCIES = ./libopendkim.a
+t_test94_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test94_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test95_OBJECTS = t-test95.$(OBJEXT)
+t_test95_OBJECTS = $(am_t_test95_OBJECTS)
+t_test95_DEPENDENCIES = ./libopendkim.a
+t_test95_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test95_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test96_OBJECTS = t-test96.$(OBJEXT)
+t_test96_OBJECTS = $(am_t_test96_OBJECTS)
+t_test96_DEPENDENCIES = ./libopendkim.a
+t_test96_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test96_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test97_OBJECTS = t-test97.$(OBJEXT)
+t_test97_OBJECTS = $(am_t_test97_OBJECTS)
+t_test97_DEPENDENCIES = ./libopendkim.a
+t_test97_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test97_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test98_OBJECTS = t-test98.$(OBJEXT)
+t_test98_OBJECTS = $(am_t_test98_OBJECTS)
+t_test98_DEPENDENCIES = ./libopendkim.a
+t_test98_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test98_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_test99_OBJECTS = t-test99.$(OBJEXT)
+t_test99_OBJECTS = $(am_t_test99_OBJECTS)
+t_test99_DEPENDENCIES = ./libopendkim.a
+t_test99_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(t_test99_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_t_verifyperf_OBJECTS = t-verifyperf.$(OBJEXT)
+t_verifyperf_OBJECTS = $(am_t_verifyperf_OBJECTS)
+t_verifyperf_DEPENDENCIES = ./libopendkim.a
+t_verifyperf_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(t_verifyperf_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -79,8 +784,96 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libopendkim_a_SOURCES)
-DIST_SOURCES = $(libopendkim_a_SOURCES)
+SOURCES = $(libopendkim_a_SOURCES) $(t_cleanup_SOURCES) \
+	$(t_setup_SOURCES) $(t_signperf_SOURCES) $(t_test00_SOURCES) \
+	$(t_test01_SOURCES) $(t_test02_SOURCES) $(t_test03_SOURCES) \
+	$(t_test04_SOURCES) $(t_test05_SOURCES) $(t_test06_SOURCES) \
+	$(t_test07_SOURCES) $(t_test08_SOURCES) $(t_test09_SOURCES) \
+	$(t_test10_SOURCES) $(t_test100_SOURCES) $(t_test101_SOURCES) \
+	$(t_test102_SOURCES) $(t_test103_SOURCES) $(t_test104_SOURCES) \
+	$(t_test105_SOURCES) $(t_test106_SOURCES) $(t_test107_SOURCES) \
+	$(t_test108_SOURCES) $(t_test109_SOURCES) $(t_test11_SOURCES) \
+	$(t_test110_SOURCES) $(t_test111_SOURCES) $(t_test112_SOURCES) \
+	$(t_test113_SOURCES) $(t_test114_SOURCES) $(t_test115_SOURCES) \
+	$(t_test116_SOURCES) $(t_test117_SOURCES) $(t_test118_SOURCES) \
+	$(t_test119_SOURCES) $(t_test12_SOURCES) $(t_test120_SOURCES) \
+	$(t_test121_SOURCES) $(t_test122_SOURCES) $(t_test123_SOURCES) \
+	$(t_test124_SOURCES) $(t_test125_SOURCES) $(t_test126_SOURCES) \
+	$(t_test127_SOURCES) $(t_test13_SOURCES) $(t_test14_SOURCES) \
+	$(t_test15_SOURCES) $(t_test16_SOURCES) $(t_test17_SOURCES) \
+	$(t_test18_SOURCES) $(t_test19_SOURCES) $(t_test20_SOURCES) \
+	$(t_test21_SOURCES) $(t_test22_SOURCES) $(t_test23_SOURCES) \
+	$(t_test24_SOURCES) $(t_test25_SOURCES) $(t_test26_SOURCES) \
+	$(t_test27_SOURCES) $(t_test28_SOURCES) $(t_test29_SOURCES) \
+	$(t_test30_SOURCES) $(t_test31_SOURCES) $(t_test32_SOURCES) \
+	$(t_test33_SOURCES) $(t_test34_SOURCES) $(t_test35_SOURCES) \
+	$(t_test36_SOURCES) $(t_test37_SOURCES) $(t_test38_SOURCES) \
+	$(t_test39_SOURCES) $(t_test40_SOURCES) $(t_test41_SOURCES) \
+	$(t_test42_SOURCES) $(t_test43_SOURCES) $(t_test44_SOURCES) \
+	$(t_test45_SOURCES) $(t_test46_SOURCES) $(t_test47_SOURCES) \
+	$(t_test48_SOURCES) $(t_test49_SOURCES) $(t_test50_SOURCES) \
+	$(t_test51_SOURCES) $(t_test52_SOURCES) $(t_test53_SOURCES) \
+	$(t_test54_SOURCES) $(t_test55_SOURCES) $(t_test56_SOURCES) \
+	$(t_test57_SOURCES) $(t_test58_SOURCES) $(t_test59_SOURCES) \
+	$(t_test60_SOURCES) $(t_test61_SOURCES) $(t_test62_SOURCES) \
+	$(t_test63_SOURCES) $(t_test64_SOURCES) $(t_test65_SOURCES) \
+	$(t_test66_SOURCES) $(t_test67_SOURCES) $(t_test68_SOURCES) \
+	$(t_test69_SOURCES) $(t_test70_SOURCES) $(t_test71_SOURCES) \
+	$(t_test72_SOURCES) $(t_test73_SOURCES) $(t_test74_SOURCES) \
+	$(t_test75_SOURCES) $(t_test76_SOURCES) $(t_test77_SOURCES) \
+	$(t_test78_SOURCES) $(t_test79_SOURCES) $(t_test80_SOURCES) \
+	$(t_test81_SOURCES) $(t_test82_SOURCES) $(t_test83_SOURCES) \
+	$(t_test84_SOURCES) $(t_test85_SOURCES) $(t_test86_SOURCES) \
+	$(t_test87_SOURCES) $(t_test88_SOURCES) $(t_test89_SOURCES) \
+	$(t_test90_SOURCES) $(t_test91_SOURCES) $(t_test92_SOURCES) \
+	$(t_test93_SOURCES) $(t_test94_SOURCES) $(t_test95_SOURCES) \
+	$(t_test96_SOURCES) $(t_test97_SOURCES) $(t_test98_SOURCES) \
+	$(t_test99_SOURCES) $(t_verifyperf_SOURCES)
+DIST_SOURCES = $(libopendkim_a_SOURCES) $(t_cleanup_SOURCES) \
+	$(t_setup_SOURCES) $(t_signperf_SOURCES) $(t_test00_SOURCES) \
+	$(t_test01_SOURCES) $(t_test02_SOURCES) $(t_test03_SOURCES) \
+	$(t_test04_SOURCES) $(t_test05_SOURCES) $(t_test06_SOURCES) \
+	$(t_test07_SOURCES) $(t_test08_SOURCES) $(t_test09_SOURCES) \
+	$(t_test10_SOURCES) $(t_test100_SOURCES) $(t_test101_SOURCES) \
+	$(t_test102_SOURCES) $(t_test103_SOURCES) $(t_test104_SOURCES) \
+	$(t_test105_SOURCES) $(t_test106_SOURCES) $(t_test107_SOURCES) \
+	$(t_test108_SOURCES) $(t_test109_SOURCES) $(t_test11_SOURCES) \
+	$(t_test110_SOURCES) $(t_test111_SOURCES) $(t_test112_SOURCES) \
+	$(t_test113_SOURCES) $(t_test114_SOURCES) $(t_test115_SOURCES) \
+	$(t_test116_SOURCES) $(t_test117_SOURCES) $(t_test118_SOURCES) \
+	$(t_test119_SOURCES) $(t_test12_SOURCES) $(t_test120_SOURCES) \
+	$(t_test121_SOURCES) $(t_test122_SOURCES) $(t_test123_SOURCES) \
+	$(t_test124_SOURCES) $(t_test125_SOURCES) $(t_test126_SOURCES) \
+	$(t_test127_SOURCES) $(t_test13_SOURCES) $(t_test14_SOURCES) \
+	$(t_test15_SOURCES) $(t_test16_SOURCES) $(t_test17_SOURCES) \
+	$(t_test18_SOURCES) $(t_test19_SOURCES) $(t_test20_SOURCES) \
+	$(t_test21_SOURCES) $(t_test22_SOURCES) $(t_test23_SOURCES) \
+	$(t_test24_SOURCES) $(t_test25_SOURCES) $(t_test26_SOURCES) \
+	$(t_test27_SOURCES) $(t_test28_SOURCES) $(t_test29_SOURCES) \
+	$(t_test30_SOURCES) $(t_test31_SOURCES) $(t_test32_SOURCES) \
+	$(t_test33_SOURCES) $(t_test34_SOURCES) $(t_test35_SOURCES) \
+	$(t_test36_SOURCES) $(t_test37_SOURCES) $(t_test38_SOURCES) \
+	$(t_test39_SOURCES) $(t_test40_SOURCES) $(t_test41_SOURCES) \
+	$(t_test42_SOURCES) $(t_test43_SOURCES) $(t_test44_SOURCES) \
+	$(t_test45_SOURCES) $(t_test46_SOURCES) $(t_test47_SOURCES) \
+	$(t_test48_SOURCES) $(t_test49_SOURCES) $(t_test50_SOURCES) \
+	$(t_test51_SOURCES) $(t_test52_SOURCES) $(t_test53_SOURCES) \
+	$(t_test54_SOURCES) $(t_test55_SOURCES) $(t_test56_SOURCES) \
+	$(t_test57_SOURCES) $(t_test58_SOURCES) $(t_test59_SOURCES) \
+	$(t_test60_SOURCES) $(t_test61_SOURCES) $(t_test62_SOURCES) \
+	$(t_test63_SOURCES) $(t_test64_SOURCES) $(t_test65_SOURCES) \
+	$(t_test66_SOURCES) $(t_test67_SOURCES) $(t_test68_SOURCES) \
+	$(t_test69_SOURCES) $(t_test70_SOURCES) $(t_test71_SOURCES) \
+	$(t_test72_SOURCES) $(t_test73_SOURCES) $(t_test74_SOURCES) \
+	$(t_test75_SOURCES) $(t_test76_SOURCES) $(t_test77_SOURCES) \
+	$(t_test78_SOURCES) $(t_test79_SOURCES) $(t_test80_SOURCES) \
+	$(t_test81_SOURCES) $(t_test82_SOURCES) $(t_test83_SOURCES) \
+	$(t_test84_SOURCES) $(t_test85_SOURCES) $(t_test86_SOURCES) \
+	$(t_test87_SOURCES) $(t_test88_SOURCES) $(t_test89_SOURCES) \
+	$(t_test90_SOURCES) $(t_test91_SOURCES) $(t_test92_SOURCES) \
+	$(t_test93_SOURCES) $(t_test94_SOURCES) $(t_test95_SOURCES) \
+	$(t_test96_SOURCES) $(t_test97_SOURCES) $(t_test98_SOURCES) \
+	$(t_test99_SOURCES) $(t_verifyperf_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -174,7 +967,404 @@ lib_LIBRARIES = libopendkim.a
 libopendkim_a_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c
 libopendkim_a_CFLAGS = $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
-	$(am__append_7)
+	$(am__append_7) $(am__append_8)
+TESTS = $(check_PROGRAMS)
+t_setup_SOURCES = t-setup.c
+t_setup_LDFLAGS = -L.
+t_setup_LDADD = ./libopendkim.a
+t_cleanup_SOURCES = t-cleanup.c
+t_cleanup_LDFLAGS = -L.
+t_cleanup_LDADD = ./libopendkim.a
+t_signperf_SOURCES = t-signperf.c
+t_signperf_LDFLAGS = -L.
+t_signperf_LDADD = ./libopendkim.a
+t_verifyperf_SOURCES = t-verifyperf.c
+t_verifyperf_LDFLAGS = -L.
+t_verifyperf_LDADD = ./libopendkim.a
+t_test00_SOURCES = t-test00.c
+t_test00_LDFLAGS = -L.
+t_test00_LDADD = ./libopendkim.a
+t_test01_SOURCES = t-test01.c
+t_test01_LDFLAGS = -L.
+t_test01_LDADD = ./libopendkim.a
+t_test02_SOURCES = t-test02.c
+t_test02_LDFLAGS = -L.
+t_test02_LDADD = ./libopendkim.a
+t_test03_SOURCES = t-test03.c
+t_test03_LDFLAGS = -L.
+t_test03_LDADD = ./libopendkim.a
+t_test04_SOURCES = t-test04.c
+t_test04_LDFLAGS = -L.
+t_test04_LDADD = ./libopendkim.a
+t_test05_SOURCES = t-test05.c
+t_test05_LDFLAGS = -L.
+t_test05_LDADD = ./libopendkim.a
+t_test06_SOURCES = t-test06.c
+t_test06_LDFLAGS = -L.
+t_test06_LDADD = ./libopendkim.a
+t_test07_SOURCES = t-test07.c
+t_test07_LDFLAGS = -L.
+t_test07_LDADD = ./libopendkim.a
+t_test08_SOURCES = t-test08.c
+t_test08_LDFLAGS = -L.
+t_test08_LDADD = ./libopendkim.a
+t_test09_SOURCES = t-test09.c
+t_test09_LDFLAGS = -L.
+t_test09_LDADD = ./libopendkim.a
+t_test10_SOURCES = t-test10.c
+t_test10_LDFLAGS = -L.
+t_test10_LDADD = ./libopendkim.a
+t_test11_SOURCES = t-test11.c
+t_test11_LDFLAGS = -L.
+t_test11_LDADD = ./libopendkim.a
+t_test12_SOURCES = t-test12.c
+t_test12_LDFLAGS = -L.
+t_test12_LDADD = ./libopendkim.a
+t_test13_SOURCES = t-test13.c
+t_test13_LDFLAGS = -L.
+t_test13_LDADD = ./libopendkim.a
+t_test14_SOURCES = t-test14.c
+t_test14_LDFLAGS = -L.
+t_test14_LDADD = ./libopendkim.a
+t_test15_SOURCES = t-test15.c
+t_test15_LDFLAGS = -L.
+t_test15_LDADD = ./libopendkim.a
+t_test16_SOURCES = t-test16.c
+t_test16_LDFLAGS = -L.
+t_test16_LDADD = ./libopendkim.a
+t_test17_SOURCES = t-test17.c
+t_test17_LDFLAGS = -L.
+t_test17_LDADD = ./libopendkim.a
+t_test18_SOURCES = t-test18.c
+t_test18_LDFLAGS = -L.
+t_test18_LDADD = ./libopendkim.a
+t_test19_SOURCES = t-test19.c
+t_test19_LDFLAGS = -L.
+t_test19_LDADD = ./libopendkim.a
+t_test20_SOURCES = t-test20.c
+t_test20_LDFLAGS = -L.
+t_test20_LDADD = ./libopendkim.a
+t_test21_SOURCES = t-test21.c
+t_test21_LDFLAGS = -L.
+t_test21_LDADD = ./libopendkim.a
+t_test22_SOURCES = t-test22.c
+t_test22_LDFLAGS = -L.
+t_test22_LDADD = ./libopendkim.a
+t_test23_SOURCES = t-test23.c
+t_test23_LDFLAGS = -L.
+t_test23_LDADD = ./libopendkim.a
+t_test24_SOURCES = t-test24.c
+t_test24_LDFLAGS = -L.
+t_test24_LDADD = ./libopendkim.a
+t_test25_SOURCES = t-test25.c
+t_test25_LDFLAGS = -L.
+t_test25_LDADD = ./libopendkim.a
+t_test26_SOURCES = t-test26.c
+t_test26_LDFLAGS = -L.
+t_test26_LDADD = ./libopendkim.a
+t_test27_SOURCES = t-test27.c
+t_test27_LDFLAGS = -L.
+t_test27_LDADD = ./libopendkim.a
+t_test28_SOURCES = t-test28.c
+t_test28_LDFLAGS = -L.
+t_test28_LDADD = ./libopendkim.a
+t_test29_SOURCES = t-test29.c
+t_test29_LDFLAGS = -L.
+t_test29_LDADD = ./libopendkim.a
+t_test30_SOURCES = t-test30.c
+t_test30_LDFLAGS = -L.
+t_test30_LDADD = ./libopendkim.a
+t_test31_SOURCES = t-test31.c
+t_test31_LDFLAGS = -L.
+t_test31_LDADD = ./libopendkim.a
+t_test32_SOURCES = t-test32.c
+t_test32_LDFLAGS = -L.
+t_test32_LDADD = ./libopendkim.a
+t_test33_SOURCES = t-test33.c
+t_test33_LDFLAGS = -L.
+t_test33_LDADD = ./libopendkim.a
+t_test34_SOURCES = t-test34.c
+t_test34_LDFLAGS = -L.
+t_test34_LDADD = ./libopendkim.a
+t_test35_SOURCES = t-test35.c
+t_test35_LDFLAGS = -L.
+t_test35_LDADD = ./libopendkim.a
+t_test36_SOURCES = t-test36.c
+t_test36_LDFLAGS = -L.
+t_test36_LDADD = ./libopendkim.a
+t_test37_SOURCES = t-test37.c
+t_test37_LDFLAGS = -L.
+t_test37_LDADD = ./libopendkim.a
+t_test38_SOURCES = t-test38.c
+t_test38_LDFLAGS = -L.
+t_test38_LDADD = ./libopendkim.a
+t_test39_SOURCES = t-test39.c
+t_test39_LDFLAGS = -L.
+t_test39_LDADD = ./libopendkim.a
+t_test40_SOURCES = t-test40.c
+t_test40_LDFLAGS = -L.
+t_test40_LDADD = ./libopendkim.a
+t_test41_SOURCES = t-test41.c
+t_test41_LDFLAGS = -L.
+t_test41_LDADD = ./libopendkim.a
+t_test42_SOURCES = t-test42.c
+t_test42_LDFLAGS = -L.
+t_test42_LDADD = ./libopendkim.a
+t_test43_SOURCES = t-test43.c
+t_test43_LDFLAGS = -L.
+t_test43_LDADD = ./libopendkim.a
+t_test44_SOURCES = t-test44.c
+t_test44_LDFLAGS = -L.
+t_test44_LDADD = ./libopendkim.a
+t_test45_SOURCES = t-test45.c
+t_test45_LDFLAGS = -L.
+t_test45_LDADD = ./libopendkim.a
+t_test46_SOURCES = t-test46.c
+t_test46_LDFLAGS = -L.
+t_test46_LDADD = ./libopendkim.a
+t_test47_SOURCES = t-test47.c
+t_test47_LDFLAGS = -L.
+t_test47_LDADD = ./libopendkim.a
+t_test48_SOURCES = t-test48.c
+t_test48_LDFLAGS = -L.
+t_test48_LDADD = ./libopendkim.a
+t_test49_SOURCES = t-test49.c
+t_test49_LDFLAGS = -L.
+t_test49_LDADD = ./libopendkim.a
+t_test50_SOURCES = t-test50.c
+t_test50_LDFLAGS = -L.
+t_test50_LDADD = ./libopendkim.a
+t_test51_SOURCES = t-test51.c
+t_test51_LDFLAGS = -L.
+t_test51_LDADD = ./libopendkim.a
+t_test52_SOURCES = t-test52.c
+t_test52_LDFLAGS = -L.
+t_test52_LDADD = ./libopendkim.a
+t_test53_SOURCES = t-test53.c
+t_test53_LDFLAGS = -L.
+t_test53_LDADD = ./libopendkim.a
+t_test54_SOURCES = t-test54.c
+t_test54_LDFLAGS = -L.
+t_test54_LDADD = ./libopendkim.a
+t_test55_SOURCES = t-test55.c
+t_test55_LDFLAGS = -L.
+t_test55_LDADD = ./libopendkim.a
+t_test56_SOURCES = t-test56.c
+t_test56_LDFLAGS = -L.
+t_test56_LDADD = ./libopendkim.a
+t_test57_SOURCES = t-test57.c
+t_test57_LDFLAGS = -L.
+t_test57_LDADD = ./libopendkim.a
+t_test58_SOURCES = t-test58.c
+t_test58_LDFLAGS = -L.
+t_test58_LDADD = ./libopendkim.a
+t_test59_SOURCES = t-test59.c
+t_test59_LDFLAGS = -L.
+t_test59_LDADD = ./libopendkim.a
+t_test60_SOURCES = t-test60.c
+t_test60_LDFLAGS = -L.
+t_test60_LDADD = ./libopendkim.a
+t_test61_SOURCES = t-test61.c
+t_test61_LDFLAGS = -L.
+t_test61_LDADD = ./libopendkim.a
+t_test62_SOURCES = t-test62.c
+t_test62_LDFLAGS = -L.
+t_test62_LDADD = ./libopendkim.a
+t_test63_SOURCES = t-test63.c
+t_test63_LDFLAGS = -L.
+t_test63_LDADD = ./libopendkim.a
+t_test64_SOURCES = t-test64.c
+t_test64_LDFLAGS = -L.
+t_test64_LDADD = ./libopendkim.a
+t_test65_SOURCES = t-test65.c
+t_test65_LDFLAGS = -L.
+t_test65_LDADD = ./libopendkim.a
+t_test66_SOURCES = t-test66.c
+t_test66_LDFLAGS = -L.
+t_test66_LDADD = ./libopendkim.a
+t_test67_SOURCES = t-test67.c
+t_test67_LDFLAGS = -L.
+t_test67_LDADD = ./libopendkim.a
+t_test68_SOURCES = t-test68.c
+t_test68_LDFLAGS = -L.
+t_test68_LDADD = ./libopendkim.a
+t_test69_SOURCES = t-test69.c
+t_test69_LDFLAGS = -L.
+t_test69_LDADD = ./libopendkim.a
+t_test70_SOURCES = t-test70.c
+t_test70_LDFLAGS = -L.
+t_test70_LDADD = ./libopendkim.a
+t_test71_SOURCES = t-test71.c
+t_test71_LDFLAGS = -L.
+t_test71_LDADD = ./libopendkim.a
+t_test72_SOURCES = t-test72.c
+t_test72_LDFLAGS = -L.
+t_test72_LDADD = ./libopendkim.a
+t_test73_SOURCES = t-test73.c
+t_test73_LDFLAGS = -L.
+t_test73_LDADD = ./libopendkim.a
+t_test74_SOURCES = t-test74.c
+t_test74_LDFLAGS = -L.
+t_test74_LDADD = ./libopendkim.a
+t_test75_SOURCES = t-test75.c
+t_test75_LDFLAGS = -L.
+t_test75_LDADD = ./libopendkim.a
+t_test76_SOURCES = t-test76.c
+t_test76_LDFLAGS = -L.
+t_test76_LDADD = ./libopendkim.a
+t_test77_SOURCES = t-test77.c
+t_test77_LDFLAGS = -L.
+t_test77_LDADD = ./libopendkim.a
+t_test78_SOURCES = t-test78.c
+t_test78_LDFLAGS = -L.
+t_test78_LDADD = ./libopendkim.a
+t_test79_SOURCES = t-test79.c
+t_test79_LDFLAGS = -L.
+t_test79_LDADD = ./libopendkim.a
+t_test80_SOURCES = t-test80.c
+t_test80_LDFLAGS = -L.
+t_test80_LDADD = ./libopendkim.a
+t_test81_SOURCES = t-test81.c
+t_test81_LDFLAGS = -L.
+t_test81_LDADD = ./libopendkim.a
+t_test82_SOURCES = t-test82.c
+t_test82_LDFLAGS = -L.
+t_test82_LDADD = ./libopendkim.a
+t_test83_SOURCES = t-test83.c
+t_test83_LDFLAGS = -L.
+t_test83_LDADD = ./libopendkim.a
+t_test84_SOURCES = t-test84.c
+t_test84_LDFLAGS = -L.
+t_test84_LDADD = ./libopendkim.a
+t_test85_SOURCES = t-test85.c
+t_test85_LDFLAGS = -L.
+t_test85_LDADD = ./libopendkim.a
+t_test86_SOURCES = t-test86.c
+t_test86_LDFLAGS = -L.
+t_test86_LDADD = ./libopendkim.a
+t_test87_SOURCES = t-test87.c
+t_test87_LDFLAGS = -L.
+t_test87_LDADD = ./libopendkim.a
+t_test88_SOURCES = t-test88.c
+t_test88_LDFLAGS = -L.
+t_test88_LDADD = ./libopendkim.a
+t_test89_SOURCES = t-test89.c
+t_test89_LDFLAGS = -L.
+t_test89_LDADD = ./libopendkim.a
+t_test90_SOURCES = t-test90.c
+t_test90_LDFLAGS = -L.
+t_test90_LDADD = ./libopendkim.a
+t_test91_SOURCES = t-test91.c
+t_test91_LDFLAGS = -L.
+t_test91_LDADD = ./libopendkim.a
+t_test92_SOURCES = t-test92.c
+t_test92_LDFLAGS = -L.
+t_test92_LDADD = ./libopendkim.a
+t_test93_SOURCES = t-test93.c
+t_test93_LDFLAGS = -L.
+t_test93_LDADD = ./libopendkim.a
+t_test94_SOURCES = t-test94.c
+t_test94_LDFLAGS = -L.
+t_test94_LDADD = ./libopendkim.a
+t_test95_SOURCES = t-test95.c
+t_test95_LDFLAGS = -L.
+t_test95_LDADD = ./libopendkim.a
+t_test96_SOURCES = t-test96.c
+t_test96_LDFLAGS = -L.
+t_test96_LDADD = ./libopendkim.a
+t_test97_SOURCES = t-test97.c
+t_test97_LDFLAGS = -L.
+t_test97_LDADD = ./libopendkim.a
+t_test98_SOURCES = t-test98.c
+t_test98_LDFLAGS = -L.
+t_test98_LDADD = ./libopendkim.a
+t_test99_SOURCES = t-test99.c
+t_test99_LDFLAGS = -L.
+t_test99_LDADD = ./libopendkim.a
+t_test100_SOURCES = t-test100.c
+t_test100_LDFLAGS = -L.
+t_test100_LDADD = ./libopendkim.a
+t_test101_SOURCES = t-test101.c
+t_test101_LDFLAGS = -L.
+t_test101_LDADD = ./libopendkim.a
+t_test102_SOURCES = t-test102.c
+t_test102_LDFLAGS = -L.
+t_test102_LDADD = ./libopendkim.a
+t_test103_SOURCES = t-test103.c
+t_test103_LDFLAGS = -L.
+t_test103_LDADD = ./libopendkim.a
+t_test104_SOURCES = t-test104.c
+t_test104_LDFLAGS = -L.
+t_test104_LDADD = ./libopendkim.a
+t_test105_SOURCES = t-test105.c
+t_test105_LDFLAGS = -L.
+t_test105_LDADD = ./libopendkim.a
+t_test106_SOURCES = t-test106.c
+t_test106_LDFLAGS = -L.
+t_test106_LDADD = ./libopendkim.a
+t_test107_SOURCES = t-test107.c
+t_test107_LDFLAGS = -L.
+t_test107_LDADD = ./libopendkim.a
+t_test108_SOURCES = t-test108.c
+t_test108_LDFLAGS = -L.
+t_test108_LDADD = ./libopendkim.a
+t_test109_SOURCES = t-test109.c
+t_test109_LDFLAGS = -L.
+t_test109_LDADD = ./libopendkim.a
+t_test110_SOURCES = t-test110.c
+t_test110_LDFLAGS = -L.
+t_test110_LDADD = ./libopendkim.a
+t_test111_SOURCES = t-test111.c
+t_test111_LDFLAGS = -L.
+t_test111_LDADD = ./libopendkim.a
+t_test112_SOURCES = t-test112.c
+t_test112_LDFLAGS = -L.
+t_test112_LDADD = ./libopendkim.a
+t_test113_SOURCES = t-test113.c
+t_test113_LDFLAGS = -L.
+t_test113_LDADD = ./libopendkim.a
+t_test114_SOURCES = t-test114.c
+t_test114_LDFLAGS = -L.
+t_test114_LDADD = ./libopendkim.a
+t_test115_SOURCES = t-test115.c
+t_test115_LDFLAGS = -L.
+t_test115_LDADD = ./libopendkim.a
+t_test116_SOURCES = t-test116.c
+t_test116_LDFLAGS = -L.
+t_test116_LDADD = ./libopendkim.a
+t_test117_SOURCES = t-test117.c
+t_test117_LDFLAGS = -L.
+t_test117_LDADD = ./libopendkim.a
+t_test118_SOURCES = t-test118.c
+t_test118_LDFLAGS = -L.
+t_test118_LDADD = ./libopendkim.a
+t_test119_SOURCES = t-test119.c
+t_test119_LDFLAGS = -L.
+t_test119_LDADD = ./libopendkim.a
+t_test120_SOURCES = t-test120.c
+t_test120_LDFLAGS = -L.
+t_test120_LDADD = ./libopendkim.a
+t_test121_SOURCES = t-test121.c
+t_test121_LDFLAGS = -L.
+t_test121_LDADD = ./libopendkim.a
+t_test122_SOURCES = t-test122.c
+t_test122_LDFLAGS = -L.
+t_test122_LDADD = ./libopendkim.a
+t_test123_SOURCES = t-test123.c
+t_test123_LDFLAGS = -L.
+t_test123_LDADD = ./libopendkim.a
+t_test124_SOURCES = t-test124.c
+t_test124_LDFLAGS = -L.
+t_test124_LDADD = ./libopendkim.a
+t_test125_SOURCES = t-test125.c
+t_test125_LDFLAGS = -L.
+t_test125_LDADD = ./libopendkim.a
+t_test126_SOURCES = t-test126.c
+t_test126_LDFLAGS = -L.
+t_test126_LDADD = ./libopendkim.a
+t_test127_SOURCES = t-test127.c
+t_test127_LDFLAGS = -L.
+t_test127_LDADD = ./libopendkim.a
 all: all-am
 
 .SUFFIXES:
@@ -242,6 +1432,405 @@ libopendkim.a: $(libopendkim_a_OBJECTS) $(libopendkim_a_DEPENDENCIES)
 	$(libopendkim_a_AR) libopendkim.a $(libopendkim_a_OBJECTS) $(libopendkim_a_LIBADD)
 	$(RANLIB) libopendkim.a
 
+clean-checkPROGRAMS:
+	-test -z "$(check_PROGRAMS)" || rm -f $(check_PROGRAMS)
+t-cleanup$(EXEEXT): $(t_cleanup_OBJECTS) $(t_cleanup_DEPENDENCIES) 
+	@rm -f t-cleanup$(EXEEXT)
+	$(t_cleanup_LINK) $(t_cleanup_OBJECTS) $(t_cleanup_LDADD) $(LIBS)
+t-setup$(EXEEXT): $(t_setup_OBJECTS) $(t_setup_DEPENDENCIES) 
+	@rm -f t-setup$(EXEEXT)
+	$(t_setup_LINK) $(t_setup_OBJECTS) $(t_setup_LDADD) $(LIBS)
+t-signperf$(EXEEXT): $(t_signperf_OBJECTS) $(t_signperf_DEPENDENCIES) 
+	@rm -f t-signperf$(EXEEXT)
+	$(t_signperf_LINK) $(t_signperf_OBJECTS) $(t_signperf_LDADD) $(LIBS)
+t-test00$(EXEEXT): $(t_test00_OBJECTS) $(t_test00_DEPENDENCIES) 
+	@rm -f t-test00$(EXEEXT)
+	$(t_test00_LINK) $(t_test00_OBJECTS) $(t_test00_LDADD) $(LIBS)
+t-test01$(EXEEXT): $(t_test01_OBJECTS) $(t_test01_DEPENDENCIES) 
+	@rm -f t-test01$(EXEEXT)
+	$(t_test01_LINK) $(t_test01_OBJECTS) $(t_test01_LDADD) $(LIBS)
+t-test02$(EXEEXT): $(t_test02_OBJECTS) $(t_test02_DEPENDENCIES) 
+	@rm -f t-test02$(EXEEXT)
+	$(t_test02_LINK) $(t_test02_OBJECTS) $(t_test02_LDADD) $(LIBS)
+t-test03$(EXEEXT): $(t_test03_OBJECTS) $(t_test03_DEPENDENCIES) 
+	@rm -f t-test03$(EXEEXT)
+	$(t_test03_LINK) $(t_test03_OBJECTS) $(t_test03_LDADD) $(LIBS)
+t-test04$(EXEEXT): $(t_test04_OBJECTS) $(t_test04_DEPENDENCIES) 
+	@rm -f t-test04$(EXEEXT)
+	$(t_test04_LINK) $(t_test04_OBJECTS) $(t_test04_LDADD) $(LIBS)
+t-test05$(EXEEXT): $(t_test05_OBJECTS) $(t_test05_DEPENDENCIES) 
+	@rm -f t-test05$(EXEEXT)
+	$(t_test05_LINK) $(t_test05_OBJECTS) $(t_test05_LDADD) $(LIBS)
+t-test06$(EXEEXT): $(t_test06_OBJECTS) $(t_test06_DEPENDENCIES) 
+	@rm -f t-test06$(EXEEXT)
+	$(t_test06_LINK) $(t_test06_OBJECTS) $(t_test06_LDADD) $(LIBS)
+t-test07$(EXEEXT): $(t_test07_OBJECTS) $(t_test07_DEPENDENCIES) 
+	@rm -f t-test07$(EXEEXT)
+	$(t_test07_LINK) $(t_test07_OBJECTS) $(t_test07_LDADD) $(LIBS)
+t-test08$(EXEEXT): $(t_test08_OBJECTS) $(t_test08_DEPENDENCIES) 
+	@rm -f t-test08$(EXEEXT)
+	$(t_test08_LINK) $(t_test08_OBJECTS) $(t_test08_LDADD) $(LIBS)
+t-test09$(EXEEXT): $(t_test09_OBJECTS) $(t_test09_DEPENDENCIES) 
+	@rm -f t-test09$(EXEEXT)
+	$(t_test09_LINK) $(t_test09_OBJECTS) $(t_test09_LDADD) $(LIBS)
+t-test10$(EXEEXT): $(t_test10_OBJECTS) $(t_test10_DEPENDENCIES) 
+	@rm -f t-test10$(EXEEXT)
+	$(t_test10_LINK) $(t_test10_OBJECTS) $(t_test10_LDADD) $(LIBS)
+t-test100$(EXEEXT): $(t_test100_OBJECTS) $(t_test100_DEPENDENCIES) 
+	@rm -f t-test100$(EXEEXT)
+	$(t_test100_LINK) $(t_test100_OBJECTS) $(t_test100_LDADD) $(LIBS)
+t-test101$(EXEEXT): $(t_test101_OBJECTS) $(t_test101_DEPENDENCIES) 
+	@rm -f t-test101$(EXEEXT)
+	$(t_test101_LINK) $(t_test101_OBJECTS) $(t_test101_LDADD) $(LIBS)
+t-test102$(EXEEXT): $(t_test102_OBJECTS) $(t_test102_DEPENDENCIES) 
+	@rm -f t-test102$(EXEEXT)
+	$(t_test102_LINK) $(t_test102_OBJECTS) $(t_test102_LDADD) $(LIBS)
+t-test103$(EXEEXT): $(t_test103_OBJECTS) $(t_test103_DEPENDENCIES) 
+	@rm -f t-test103$(EXEEXT)
+	$(t_test103_LINK) $(t_test103_OBJECTS) $(t_test103_LDADD) $(LIBS)
+t-test104$(EXEEXT): $(t_test104_OBJECTS) $(t_test104_DEPENDENCIES) 
+	@rm -f t-test104$(EXEEXT)
+	$(t_test104_LINK) $(t_test104_OBJECTS) $(t_test104_LDADD) $(LIBS)
+t-test105$(EXEEXT): $(t_test105_OBJECTS) $(t_test105_DEPENDENCIES) 
+	@rm -f t-test105$(EXEEXT)
+	$(t_test105_LINK) $(t_test105_OBJECTS) $(t_test105_LDADD) $(LIBS)
+t-test106$(EXEEXT): $(t_test106_OBJECTS) $(t_test106_DEPENDENCIES) 
+	@rm -f t-test106$(EXEEXT)
+	$(t_test106_LINK) $(t_test106_OBJECTS) $(t_test106_LDADD) $(LIBS)
+t-test107$(EXEEXT): $(t_test107_OBJECTS) $(t_test107_DEPENDENCIES) 
+	@rm -f t-test107$(EXEEXT)
+	$(t_test107_LINK) $(t_test107_OBJECTS) $(t_test107_LDADD) $(LIBS)
+t-test108$(EXEEXT): $(t_test108_OBJECTS) $(t_test108_DEPENDENCIES) 
+	@rm -f t-test108$(EXEEXT)
+	$(t_test108_LINK) $(t_test108_OBJECTS) $(t_test108_LDADD) $(LIBS)
+t-test109$(EXEEXT): $(t_test109_OBJECTS) $(t_test109_DEPENDENCIES) 
+	@rm -f t-test109$(EXEEXT)
+	$(t_test109_LINK) $(t_test109_OBJECTS) $(t_test109_LDADD) $(LIBS)
+t-test11$(EXEEXT): $(t_test11_OBJECTS) $(t_test11_DEPENDENCIES) 
+	@rm -f t-test11$(EXEEXT)
+	$(t_test11_LINK) $(t_test11_OBJECTS) $(t_test11_LDADD) $(LIBS)
+t-test110$(EXEEXT): $(t_test110_OBJECTS) $(t_test110_DEPENDENCIES) 
+	@rm -f t-test110$(EXEEXT)
+	$(t_test110_LINK) $(t_test110_OBJECTS) $(t_test110_LDADD) $(LIBS)
+t-test111$(EXEEXT): $(t_test111_OBJECTS) $(t_test111_DEPENDENCIES) 
+	@rm -f t-test111$(EXEEXT)
+	$(t_test111_LINK) $(t_test111_OBJECTS) $(t_test111_LDADD) $(LIBS)
+t-test112$(EXEEXT): $(t_test112_OBJECTS) $(t_test112_DEPENDENCIES) 
+	@rm -f t-test112$(EXEEXT)
+	$(t_test112_LINK) $(t_test112_OBJECTS) $(t_test112_LDADD) $(LIBS)
+t-test113$(EXEEXT): $(t_test113_OBJECTS) $(t_test113_DEPENDENCIES) 
+	@rm -f t-test113$(EXEEXT)
+	$(t_test113_LINK) $(t_test113_OBJECTS) $(t_test113_LDADD) $(LIBS)
+t-test114$(EXEEXT): $(t_test114_OBJECTS) $(t_test114_DEPENDENCIES) 
+	@rm -f t-test114$(EXEEXT)
+	$(t_test114_LINK) $(t_test114_OBJECTS) $(t_test114_LDADD) $(LIBS)
+t-test115$(EXEEXT): $(t_test115_OBJECTS) $(t_test115_DEPENDENCIES) 
+	@rm -f t-test115$(EXEEXT)
+	$(t_test115_LINK) $(t_test115_OBJECTS) $(t_test115_LDADD) $(LIBS)
+t-test116$(EXEEXT): $(t_test116_OBJECTS) $(t_test116_DEPENDENCIES) 
+	@rm -f t-test116$(EXEEXT)
+	$(t_test116_LINK) $(t_test116_OBJECTS) $(t_test116_LDADD) $(LIBS)
+t-test117$(EXEEXT): $(t_test117_OBJECTS) $(t_test117_DEPENDENCIES) 
+	@rm -f t-test117$(EXEEXT)
+	$(t_test117_LINK) $(t_test117_OBJECTS) $(t_test117_LDADD) $(LIBS)
+t-test118$(EXEEXT): $(t_test118_OBJECTS) $(t_test118_DEPENDENCIES) 
+	@rm -f t-test118$(EXEEXT)
+	$(t_test118_LINK) $(t_test118_OBJECTS) $(t_test118_LDADD) $(LIBS)
+t-test119$(EXEEXT): $(t_test119_OBJECTS) $(t_test119_DEPENDENCIES) 
+	@rm -f t-test119$(EXEEXT)
+	$(t_test119_LINK) $(t_test119_OBJECTS) $(t_test119_LDADD) $(LIBS)
+t-test12$(EXEEXT): $(t_test12_OBJECTS) $(t_test12_DEPENDENCIES) 
+	@rm -f t-test12$(EXEEXT)
+	$(t_test12_LINK) $(t_test12_OBJECTS) $(t_test12_LDADD) $(LIBS)
+t-test120$(EXEEXT): $(t_test120_OBJECTS) $(t_test120_DEPENDENCIES) 
+	@rm -f t-test120$(EXEEXT)
+	$(t_test120_LINK) $(t_test120_OBJECTS) $(t_test120_LDADD) $(LIBS)
+t-test121$(EXEEXT): $(t_test121_OBJECTS) $(t_test121_DEPENDENCIES) 
+	@rm -f t-test121$(EXEEXT)
+	$(t_test121_LINK) $(t_test121_OBJECTS) $(t_test121_LDADD) $(LIBS)
+t-test122$(EXEEXT): $(t_test122_OBJECTS) $(t_test122_DEPENDENCIES) 
+	@rm -f t-test122$(EXEEXT)
+	$(t_test122_LINK) $(t_test122_OBJECTS) $(t_test122_LDADD) $(LIBS)
+t-test123$(EXEEXT): $(t_test123_OBJECTS) $(t_test123_DEPENDENCIES) 
+	@rm -f t-test123$(EXEEXT)
+	$(t_test123_LINK) $(t_test123_OBJECTS) $(t_test123_LDADD) $(LIBS)
+t-test124$(EXEEXT): $(t_test124_OBJECTS) $(t_test124_DEPENDENCIES) 
+	@rm -f t-test124$(EXEEXT)
+	$(t_test124_LINK) $(t_test124_OBJECTS) $(t_test124_LDADD) $(LIBS)
+t-test125$(EXEEXT): $(t_test125_OBJECTS) $(t_test125_DEPENDENCIES) 
+	@rm -f t-test125$(EXEEXT)
+	$(t_test125_LINK) $(t_test125_OBJECTS) $(t_test125_LDADD) $(LIBS)
+t-test126$(EXEEXT): $(t_test126_OBJECTS) $(t_test126_DEPENDENCIES) 
+	@rm -f t-test126$(EXEEXT)
+	$(t_test126_LINK) $(t_test126_OBJECTS) $(t_test126_LDADD) $(LIBS)
+t-test127$(EXEEXT): $(t_test127_OBJECTS) $(t_test127_DEPENDENCIES) 
+	@rm -f t-test127$(EXEEXT)
+	$(t_test127_LINK) $(t_test127_OBJECTS) $(t_test127_LDADD) $(LIBS)
+t-test13$(EXEEXT): $(t_test13_OBJECTS) $(t_test13_DEPENDENCIES) 
+	@rm -f t-test13$(EXEEXT)
+	$(t_test13_LINK) $(t_test13_OBJECTS) $(t_test13_LDADD) $(LIBS)
+t-test14$(EXEEXT): $(t_test14_OBJECTS) $(t_test14_DEPENDENCIES) 
+	@rm -f t-test14$(EXEEXT)
+	$(t_test14_LINK) $(t_test14_OBJECTS) $(t_test14_LDADD) $(LIBS)
+t-test15$(EXEEXT): $(t_test15_OBJECTS) $(t_test15_DEPENDENCIES) 
+	@rm -f t-test15$(EXEEXT)
+	$(t_test15_LINK) $(t_test15_OBJECTS) $(t_test15_LDADD) $(LIBS)
+t-test16$(EXEEXT): $(t_test16_OBJECTS) $(t_test16_DEPENDENCIES) 
+	@rm -f t-test16$(EXEEXT)
+	$(t_test16_LINK) $(t_test16_OBJECTS) $(t_test16_LDADD) $(LIBS)
+t-test17$(EXEEXT): $(t_test17_OBJECTS) $(t_test17_DEPENDENCIES) 
+	@rm -f t-test17$(EXEEXT)
+	$(t_test17_LINK) $(t_test17_OBJECTS) $(t_test17_LDADD) $(LIBS)
+t-test18$(EXEEXT): $(t_test18_OBJECTS) $(t_test18_DEPENDENCIES) 
+	@rm -f t-test18$(EXEEXT)
+	$(t_test18_LINK) $(t_test18_OBJECTS) $(t_test18_LDADD) $(LIBS)
+t-test19$(EXEEXT): $(t_test19_OBJECTS) $(t_test19_DEPENDENCIES) 
+	@rm -f t-test19$(EXEEXT)
+	$(t_test19_LINK) $(t_test19_OBJECTS) $(t_test19_LDADD) $(LIBS)
+t-test20$(EXEEXT): $(t_test20_OBJECTS) $(t_test20_DEPENDENCIES) 
+	@rm -f t-test20$(EXEEXT)
+	$(t_test20_LINK) $(t_test20_OBJECTS) $(t_test20_LDADD) $(LIBS)
+t-test21$(EXEEXT): $(t_test21_OBJECTS) $(t_test21_DEPENDENCIES) 
+	@rm -f t-test21$(EXEEXT)
+	$(t_test21_LINK) $(t_test21_OBJECTS) $(t_test21_LDADD) $(LIBS)
+t-test22$(EXEEXT): $(t_test22_OBJECTS) $(t_test22_DEPENDENCIES) 
+	@rm -f t-test22$(EXEEXT)
+	$(t_test22_LINK) $(t_test22_OBJECTS) $(t_test22_LDADD) $(LIBS)
+t-test23$(EXEEXT): $(t_test23_OBJECTS) $(t_test23_DEPENDENCIES) 
+	@rm -f t-test23$(EXEEXT)
+	$(t_test23_LINK) $(t_test23_OBJECTS) $(t_test23_LDADD) $(LIBS)
+t-test24$(EXEEXT): $(t_test24_OBJECTS) $(t_test24_DEPENDENCIES) 
+	@rm -f t-test24$(EXEEXT)
+	$(t_test24_LINK) $(t_test24_OBJECTS) $(t_test24_LDADD) $(LIBS)
+t-test25$(EXEEXT): $(t_test25_OBJECTS) $(t_test25_DEPENDENCIES) 
+	@rm -f t-test25$(EXEEXT)
+	$(t_test25_LINK) $(t_test25_OBJECTS) $(t_test25_LDADD) $(LIBS)
+t-test26$(EXEEXT): $(t_test26_OBJECTS) $(t_test26_DEPENDENCIES) 
+	@rm -f t-test26$(EXEEXT)
+	$(t_test26_LINK) $(t_test26_OBJECTS) $(t_test26_LDADD) $(LIBS)
+t-test27$(EXEEXT): $(t_test27_OBJECTS) $(t_test27_DEPENDENCIES) 
+	@rm -f t-test27$(EXEEXT)
+	$(t_test27_LINK) $(t_test27_OBJECTS) $(t_test27_LDADD) $(LIBS)
+t-test28$(EXEEXT): $(t_test28_OBJECTS) $(t_test28_DEPENDENCIES) 
+	@rm -f t-test28$(EXEEXT)
+	$(t_test28_LINK) $(t_test28_OBJECTS) $(t_test28_LDADD) $(LIBS)
+t-test29$(EXEEXT): $(t_test29_OBJECTS) $(t_test29_DEPENDENCIES) 
+	@rm -f t-test29$(EXEEXT)
+	$(t_test29_LINK) $(t_test29_OBJECTS) $(t_test29_LDADD) $(LIBS)
+t-test30$(EXEEXT): $(t_test30_OBJECTS) $(t_test30_DEPENDENCIES) 
+	@rm -f t-test30$(EXEEXT)
+	$(t_test30_LINK) $(t_test30_OBJECTS) $(t_test30_LDADD) $(LIBS)
+t-test31$(EXEEXT): $(t_test31_OBJECTS) $(t_test31_DEPENDENCIES) 
+	@rm -f t-test31$(EXEEXT)
+	$(t_test31_LINK) $(t_test31_OBJECTS) $(t_test31_LDADD) $(LIBS)
+t-test32$(EXEEXT): $(t_test32_OBJECTS) $(t_test32_DEPENDENCIES) 
+	@rm -f t-test32$(EXEEXT)
+	$(t_test32_LINK) $(t_test32_OBJECTS) $(t_test32_LDADD) $(LIBS)
+t-test33$(EXEEXT): $(t_test33_OBJECTS) $(t_test33_DEPENDENCIES) 
+	@rm -f t-test33$(EXEEXT)
+	$(t_test33_LINK) $(t_test33_OBJECTS) $(t_test33_LDADD) $(LIBS)
+t-test34$(EXEEXT): $(t_test34_OBJECTS) $(t_test34_DEPENDENCIES) 
+	@rm -f t-test34$(EXEEXT)
+	$(t_test34_LINK) $(t_test34_OBJECTS) $(t_test34_LDADD) $(LIBS)
+t-test35$(EXEEXT): $(t_test35_OBJECTS) $(t_test35_DEPENDENCIES) 
+	@rm -f t-test35$(EXEEXT)
+	$(t_test35_LINK) $(t_test35_OBJECTS) $(t_test35_LDADD) $(LIBS)
+t-test36$(EXEEXT): $(t_test36_OBJECTS) $(t_test36_DEPENDENCIES) 
+	@rm -f t-test36$(EXEEXT)
+	$(t_test36_LINK) $(t_test36_OBJECTS) $(t_test36_LDADD) $(LIBS)
+t-test37$(EXEEXT): $(t_test37_OBJECTS) $(t_test37_DEPENDENCIES) 
+	@rm -f t-test37$(EXEEXT)
+	$(t_test37_LINK) $(t_test37_OBJECTS) $(t_test37_LDADD) $(LIBS)
+t-test38$(EXEEXT): $(t_test38_OBJECTS) $(t_test38_DEPENDENCIES) 
+	@rm -f t-test38$(EXEEXT)
+	$(t_test38_LINK) $(t_test38_OBJECTS) $(t_test38_LDADD) $(LIBS)
+t-test39$(EXEEXT): $(t_test39_OBJECTS) $(t_test39_DEPENDENCIES) 
+	@rm -f t-test39$(EXEEXT)
+	$(t_test39_LINK) $(t_test39_OBJECTS) $(t_test39_LDADD) $(LIBS)
+t-test40$(EXEEXT): $(t_test40_OBJECTS) $(t_test40_DEPENDENCIES) 
+	@rm -f t-test40$(EXEEXT)
+	$(t_test40_LINK) $(t_test40_OBJECTS) $(t_test40_LDADD) $(LIBS)
+t-test41$(EXEEXT): $(t_test41_OBJECTS) $(t_test41_DEPENDENCIES) 
+	@rm -f t-test41$(EXEEXT)
+	$(t_test41_LINK) $(t_test41_OBJECTS) $(t_test41_LDADD) $(LIBS)
+t-test42$(EXEEXT): $(t_test42_OBJECTS) $(t_test42_DEPENDENCIES) 
+	@rm -f t-test42$(EXEEXT)
+	$(t_test42_LINK) $(t_test42_OBJECTS) $(t_test42_LDADD) $(LIBS)
+t-test43$(EXEEXT): $(t_test43_OBJECTS) $(t_test43_DEPENDENCIES) 
+	@rm -f t-test43$(EXEEXT)
+	$(t_test43_LINK) $(t_test43_OBJECTS) $(t_test43_LDADD) $(LIBS)
+t-test44$(EXEEXT): $(t_test44_OBJECTS) $(t_test44_DEPENDENCIES) 
+	@rm -f t-test44$(EXEEXT)
+	$(t_test44_LINK) $(t_test44_OBJECTS) $(t_test44_LDADD) $(LIBS)
+t-test45$(EXEEXT): $(t_test45_OBJECTS) $(t_test45_DEPENDENCIES) 
+	@rm -f t-test45$(EXEEXT)
+	$(t_test45_LINK) $(t_test45_OBJECTS) $(t_test45_LDADD) $(LIBS)
+t-test46$(EXEEXT): $(t_test46_OBJECTS) $(t_test46_DEPENDENCIES) 
+	@rm -f t-test46$(EXEEXT)
+	$(t_test46_LINK) $(t_test46_OBJECTS) $(t_test46_LDADD) $(LIBS)
+t-test47$(EXEEXT): $(t_test47_OBJECTS) $(t_test47_DEPENDENCIES) 
+	@rm -f t-test47$(EXEEXT)
+	$(t_test47_LINK) $(t_test47_OBJECTS) $(t_test47_LDADD) $(LIBS)
+t-test48$(EXEEXT): $(t_test48_OBJECTS) $(t_test48_DEPENDENCIES) 
+	@rm -f t-test48$(EXEEXT)
+	$(t_test48_LINK) $(t_test48_OBJECTS) $(t_test48_LDADD) $(LIBS)
+t-test49$(EXEEXT): $(t_test49_OBJECTS) $(t_test49_DEPENDENCIES) 
+	@rm -f t-test49$(EXEEXT)
+	$(t_test49_LINK) $(t_test49_OBJECTS) $(t_test49_LDADD) $(LIBS)
+t-test50$(EXEEXT): $(t_test50_OBJECTS) $(t_test50_DEPENDENCIES) 
+	@rm -f t-test50$(EXEEXT)
+	$(t_test50_LINK) $(t_test50_OBJECTS) $(t_test50_LDADD) $(LIBS)
+t-test51$(EXEEXT): $(t_test51_OBJECTS) $(t_test51_DEPENDENCIES) 
+	@rm -f t-test51$(EXEEXT)
+	$(t_test51_LINK) $(t_test51_OBJECTS) $(t_test51_LDADD) $(LIBS)
+t-test52$(EXEEXT): $(t_test52_OBJECTS) $(t_test52_DEPENDENCIES) 
+	@rm -f t-test52$(EXEEXT)
+	$(t_test52_LINK) $(t_test52_OBJECTS) $(t_test52_LDADD) $(LIBS)
+t-test53$(EXEEXT): $(t_test53_OBJECTS) $(t_test53_DEPENDENCIES) 
+	@rm -f t-test53$(EXEEXT)
+	$(t_test53_LINK) $(t_test53_OBJECTS) $(t_test53_LDADD) $(LIBS)
+t-test54$(EXEEXT): $(t_test54_OBJECTS) $(t_test54_DEPENDENCIES) 
+	@rm -f t-test54$(EXEEXT)
+	$(t_test54_LINK) $(t_test54_OBJECTS) $(t_test54_LDADD) $(LIBS)
+t-test55$(EXEEXT): $(t_test55_OBJECTS) $(t_test55_DEPENDENCIES) 
+	@rm -f t-test55$(EXEEXT)
+	$(t_test55_LINK) $(t_test55_OBJECTS) $(t_test55_LDADD) $(LIBS)
+t-test56$(EXEEXT): $(t_test56_OBJECTS) $(t_test56_DEPENDENCIES) 
+	@rm -f t-test56$(EXEEXT)
+	$(t_test56_LINK) $(t_test56_OBJECTS) $(t_test56_LDADD) $(LIBS)
+t-test57$(EXEEXT): $(t_test57_OBJECTS) $(t_test57_DEPENDENCIES) 
+	@rm -f t-test57$(EXEEXT)
+	$(t_test57_LINK) $(t_test57_OBJECTS) $(t_test57_LDADD) $(LIBS)
+t-test58$(EXEEXT): $(t_test58_OBJECTS) $(t_test58_DEPENDENCIES) 
+	@rm -f t-test58$(EXEEXT)
+	$(t_test58_LINK) $(t_test58_OBJECTS) $(t_test58_LDADD) $(LIBS)
+t-test59$(EXEEXT): $(t_test59_OBJECTS) $(t_test59_DEPENDENCIES) 
+	@rm -f t-test59$(EXEEXT)
+	$(t_test59_LINK) $(t_test59_OBJECTS) $(t_test59_LDADD) $(LIBS)
+t-test60$(EXEEXT): $(t_test60_OBJECTS) $(t_test60_DEPENDENCIES) 
+	@rm -f t-test60$(EXEEXT)
+	$(t_test60_LINK) $(t_test60_OBJECTS) $(t_test60_LDADD) $(LIBS)
+t-test61$(EXEEXT): $(t_test61_OBJECTS) $(t_test61_DEPENDENCIES) 
+	@rm -f t-test61$(EXEEXT)
+	$(t_test61_LINK) $(t_test61_OBJECTS) $(t_test61_LDADD) $(LIBS)
+t-test62$(EXEEXT): $(t_test62_OBJECTS) $(t_test62_DEPENDENCIES) 
+	@rm -f t-test62$(EXEEXT)
+	$(t_test62_LINK) $(t_test62_OBJECTS) $(t_test62_LDADD) $(LIBS)
+t-test63$(EXEEXT): $(t_test63_OBJECTS) $(t_test63_DEPENDENCIES) 
+	@rm -f t-test63$(EXEEXT)
+	$(t_test63_LINK) $(t_test63_OBJECTS) $(t_test63_LDADD) $(LIBS)
+t-test64$(EXEEXT): $(t_test64_OBJECTS) $(t_test64_DEPENDENCIES) 
+	@rm -f t-test64$(EXEEXT)
+	$(t_test64_LINK) $(t_test64_OBJECTS) $(t_test64_LDADD) $(LIBS)
+t-test65$(EXEEXT): $(t_test65_OBJECTS) $(t_test65_DEPENDENCIES) 
+	@rm -f t-test65$(EXEEXT)
+	$(t_test65_LINK) $(t_test65_OBJECTS) $(t_test65_LDADD) $(LIBS)
+t-test66$(EXEEXT): $(t_test66_OBJECTS) $(t_test66_DEPENDENCIES) 
+	@rm -f t-test66$(EXEEXT)
+	$(t_test66_LINK) $(t_test66_OBJECTS) $(t_test66_LDADD) $(LIBS)
+t-test67$(EXEEXT): $(t_test67_OBJECTS) $(t_test67_DEPENDENCIES) 
+	@rm -f t-test67$(EXEEXT)
+	$(t_test67_LINK) $(t_test67_OBJECTS) $(t_test67_LDADD) $(LIBS)
+t-test68$(EXEEXT): $(t_test68_OBJECTS) $(t_test68_DEPENDENCIES) 
+	@rm -f t-test68$(EXEEXT)
+	$(t_test68_LINK) $(t_test68_OBJECTS) $(t_test68_LDADD) $(LIBS)
+t-test69$(EXEEXT): $(t_test69_OBJECTS) $(t_test69_DEPENDENCIES) 
+	@rm -f t-test69$(EXEEXT)
+	$(t_test69_LINK) $(t_test69_OBJECTS) $(t_test69_LDADD) $(LIBS)
+t-test70$(EXEEXT): $(t_test70_OBJECTS) $(t_test70_DEPENDENCIES) 
+	@rm -f t-test70$(EXEEXT)
+	$(t_test70_LINK) $(t_test70_OBJECTS) $(t_test70_LDADD) $(LIBS)
+t-test71$(EXEEXT): $(t_test71_OBJECTS) $(t_test71_DEPENDENCIES) 
+	@rm -f t-test71$(EXEEXT)
+	$(t_test71_LINK) $(t_test71_OBJECTS) $(t_test71_LDADD) $(LIBS)
+t-test72$(EXEEXT): $(t_test72_OBJECTS) $(t_test72_DEPENDENCIES) 
+	@rm -f t-test72$(EXEEXT)
+	$(t_test72_LINK) $(t_test72_OBJECTS) $(t_test72_LDADD) $(LIBS)
+t-test73$(EXEEXT): $(t_test73_OBJECTS) $(t_test73_DEPENDENCIES) 
+	@rm -f t-test73$(EXEEXT)
+	$(t_test73_LINK) $(t_test73_OBJECTS) $(t_test73_LDADD) $(LIBS)
+t-test74$(EXEEXT): $(t_test74_OBJECTS) $(t_test74_DEPENDENCIES) 
+	@rm -f t-test74$(EXEEXT)
+	$(t_test74_LINK) $(t_test74_OBJECTS) $(t_test74_LDADD) $(LIBS)
+t-test75$(EXEEXT): $(t_test75_OBJECTS) $(t_test75_DEPENDENCIES) 
+	@rm -f t-test75$(EXEEXT)
+	$(t_test75_LINK) $(t_test75_OBJECTS) $(t_test75_LDADD) $(LIBS)
+t-test76$(EXEEXT): $(t_test76_OBJECTS) $(t_test76_DEPENDENCIES) 
+	@rm -f t-test76$(EXEEXT)
+	$(t_test76_LINK) $(t_test76_OBJECTS) $(t_test76_LDADD) $(LIBS)
+t-test77$(EXEEXT): $(t_test77_OBJECTS) $(t_test77_DEPENDENCIES) 
+	@rm -f t-test77$(EXEEXT)
+	$(t_test77_LINK) $(t_test77_OBJECTS) $(t_test77_LDADD) $(LIBS)
+t-test78$(EXEEXT): $(t_test78_OBJECTS) $(t_test78_DEPENDENCIES) 
+	@rm -f t-test78$(EXEEXT)
+	$(t_test78_LINK) $(t_test78_OBJECTS) $(t_test78_LDADD) $(LIBS)
+t-test79$(EXEEXT): $(t_test79_OBJECTS) $(t_test79_DEPENDENCIES) 
+	@rm -f t-test79$(EXEEXT)
+	$(t_test79_LINK) $(t_test79_OBJECTS) $(t_test79_LDADD) $(LIBS)
+t-test80$(EXEEXT): $(t_test80_OBJECTS) $(t_test80_DEPENDENCIES) 
+	@rm -f t-test80$(EXEEXT)
+	$(t_test80_LINK) $(t_test80_OBJECTS) $(t_test80_LDADD) $(LIBS)
+t-test81$(EXEEXT): $(t_test81_OBJECTS) $(t_test81_DEPENDENCIES) 
+	@rm -f t-test81$(EXEEXT)
+	$(t_test81_LINK) $(t_test81_OBJECTS) $(t_test81_LDADD) $(LIBS)
+t-test82$(EXEEXT): $(t_test82_OBJECTS) $(t_test82_DEPENDENCIES) 
+	@rm -f t-test82$(EXEEXT)
+	$(t_test82_LINK) $(t_test82_OBJECTS) $(t_test82_LDADD) $(LIBS)
+t-test83$(EXEEXT): $(t_test83_OBJECTS) $(t_test83_DEPENDENCIES) 
+	@rm -f t-test83$(EXEEXT)
+	$(t_test83_LINK) $(t_test83_OBJECTS) $(t_test83_LDADD) $(LIBS)
+t-test84$(EXEEXT): $(t_test84_OBJECTS) $(t_test84_DEPENDENCIES) 
+	@rm -f t-test84$(EXEEXT)
+	$(t_test84_LINK) $(t_test84_OBJECTS) $(t_test84_LDADD) $(LIBS)
+t-test85$(EXEEXT): $(t_test85_OBJECTS) $(t_test85_DEPENDENCIES) 
+	@rm -f t-test85$(EXEEXT)
+	$(t_test85_LINK) $(t_test85_OBJECTS) $(t_test85_LDADD) $(LIBS)
+t-test86$(EXEEXT): $(t_test86_OBJECTS) $(t_test86_DEPENDENCIES) 
+	@rm -f t-test86$(EXEEXT)
+	$(t_test86_LINK) $(t_test86_OBJECTS) $(t_test86_LDADD) $(LIBS)
+t-test87$(EXEEXT): $(t_test87_OBJECTS) $(t_test87_DEPENDENCIES) 
+	@rm -f t-test87$(EXEEXT)
+	$(t_test87_LINK) $(t_test87_OBJECTS) $(t_test87_LDADD) $(LIBS)
+t-test88$(EXEEXT): $(t_test88_OBJECTS) $(t_test88_DEPENDENCIES) 
+	@rm -f t-test88$(EXEEXT)
+	$(t_test88_LINK) $(t_test88_OBJECTS) $(t_test88_LDADD) $(LIBS)
+t-test89$(EXEEXT): $(t_test89_OBJECTS) $(t_test89_DEPENDENCIES) 
+	@rm -f t-test89$(EXEEXT)
+	$(t_test89_LINK) $(t_test89_OBJECTS) $(t_test89_LDADD) $(LIBS)
+t-test90$(EXEEXT): $(t_test90_OBJECTS) $(t_test90_DEPENDENCIES) 
+	@rm -f t-test90$(EXEEXT)
+	$(t_test90_LINK) $(t_test90_OBJECTS) $(t_test90_LDADD) $(LIBS)
+t-test91$(EXEEXT): $(t_test91_OBJECTS) $(t_test91_DEPENDENCIES) 
+	@rm -f t-test91$(EXEEXT)
+	$(t_test91_LINK) $(t_test91_OBJECTS) $(t_test91_LDADD) $(LIBS)
+t-test92$(EXEEXT): $(t_test92_OBJECTS) $(t_test92_DEPENDENCIES) 
+	@rm -f t-test92$(EXEEXT)
+	$(t_test92_LINK) $(t_test92_OBJECTS) $(t_test92_LDADD) $(LIBS)
+t-test93$(EXEEXT): $(t_test93_OBJECTS) $(t_test93_DEPENDENCIES) 
+	@rm -f t-test93$(EXEEXT)
+	$(t_test93_LINK) $(t_test93_OBJECTS) $(t_test93_LDADD) $(LIBS)
+t-test94$(EXEEXT): $(t_test94_OBJECTS) $(t_test94_DEPENDENCIES) 
+	@rm -f t-test94$(EXEEXT)
+	$(t_test94_LINK) $(t_test94_OBJECTS) $(t_test94_LDADD) $(LIBS)
+t-test95$(EXEEXT): $(t_test95_OBJECTS) $(t_test95_DEPENDENCIES) 
+	@rm -f t-test95$(EXEEXT)
+	$(t_test95_LINK) $(t_test95_OBJECTS) $(t_test95_LDADD) $(LIBS)
+t-test96$(EXEEXT): $(t_test96_OBJECTS) $(t_test96_DEPENDENCIES) 
+	@rm -f t-test96$(EXEEXT)
+	$(t_test96_LINK) $(t_test96_OBJECTS) $(t_test96_LDADD) $(LIBS)
+t-test97$(EXEEXT): $(t_test97_OBJECTS) $(t_test97_DEPENDENCIES) 
+	@rm -f t-test97$(EXEEXT)
+	$(t_test97_LINK) $(t_test97_OBJECTS) $(t_test97_LDADD) $(LIBS)
+t-test98$(EXEEXT): $(t_test98_OBJECTS) $(t_test98_DEPENDENCIES) 
+	@rm -f t-test98$(EXEEXT)
+	$(t_test98_LINK) $(t_test98_OBJECTS) $(t_test98_LDADD) $(LIBS)
+t-test99$(EXEEXT): $(t_test99_OBJECTS) $(t_test99_DEPENDENCIES) 
+	@rm -f t-test99$(EXEEXT)
+	$(t_test99_LINK) $(t_test99_OBJECTS) $(t_test99_LDADD) $(LIBS)
+t-verifyperf$(EXEEXT): $(t_verifyperf_OBJECTS) $(t_verifyperf_DEPENDENCIES) 
+	@rm -f t-verifyperf$(EXEEXT)
+	$(t_verifyperf_LINK) $(t_verifyperf_OBJECTS) $(t_verifyperf_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -262,6 +1851,138 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-rfc2822.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-util.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-vbr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-cleanup.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-setup.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-signperf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test00.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test01.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test02.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test03.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test04.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test05.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test06.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test07.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test08.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test09.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test10.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test100.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test101.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test102.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test103.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test104.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test105.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test106.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test107.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test108.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test109.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test11.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test110.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test111.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test112.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test113.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test114.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test115.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test116.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test117.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test118.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test119.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test12.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test120.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test121.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test122.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test123.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test124.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test125.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test126.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test127.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test13.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test14.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test15.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test16.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test17.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test18.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test19.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test20.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test21.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test22.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test23.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test24.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test25.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test26.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test27.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test28.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test29.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test30.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test31.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test32.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test33.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test34.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test35.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test36.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test37.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test38.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test39.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test40.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test41.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test42.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test43.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test44.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test45.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test46.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test47.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test48.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test49.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test50.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test51.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test52.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test53.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test54.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test55.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test56.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test57.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test58.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test59.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test60.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test61.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test62.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test63.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test64.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test65.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test66.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test67.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test68.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test69.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test70.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test71.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test72.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test73.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test74.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test75.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test76.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test77.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test78.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test79.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test80.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test81.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test82.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test83.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test84.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test85.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test86.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test87.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test88.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test89.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test90.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test91.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test92.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test93.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test94.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test95.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test96.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test97.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test98.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-test99.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-verifyperf.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -520,6 +2241,79 @@ GTAGS:
 distclean-tags:
 	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
 
+check-TESTS: $(TESTS)
+	@failed=0; all=0; xfail=0; xpass=0; skip=0; ws='[	 ]'; \
+	srcdir=$(srcdir); export srcdir; \
+	list=' $(TESTS) '; \
+	if test -n "$$list"; then \
+	  for tst in $$list; do \
+	    if test -f ./$$tst; then dir=./; \
+	    elif test -f $$tst; then dir=; \
+	    else dir="$(srcdir)/"; fi; \
+	    if $(TESTS_ENVIRONMENT) $${dir}$$tst; then \
+	      all=`expr $$all + 1`; \
+	      case " $(XFAIL_TESTS) " in \
+	      *$$ws$$tst$$ws*) \
+		xpass=`expr $$xpass + 1`; \
+		failed=`expr $$failed + 1`; \
+		echo "XPASS: $$tst"; \
+	      ;; \
+	      *) \
+		echo "PASS: $$tst"; \
+	      ;; \
+	      esac; \
+	    elif test $$? -ne 77; then \
+	      all=`expr $$all + 1`; \
+	      case " $(XFAIL_TESTS) " in \
+	      *$$ws$$tst$$ws*) \
+		xfail=`expr $$xfail + 1`; \
+		echo "XFAIL: $$tst"; \
+	      ;; \
+	      *) \
+		failed=`expr $$failed + 1`; \
+		echo "FAIL: $$tst"; \
+	      ;; \
+	      esac; \
+	    else \
+	      skip=`expr $$skip + 1`; \
+	      echo "SKIP: $$tst"; \
+	    fi; \
+	  done; \
+	  if test "$$failed" -eq 0; then \
+	    if test "$$xfail" -eq 0; then \
+	      banner="All $$all tests passed"; \
+	    else \
+	      banner="All $$all tests behaved as expected ($$xfail expected failures)"; \
+	    fi; \
+	  else \
+	    if test "$$xpass" -eq 0; then \
+	      banner="$$failed of $$all tests failed"; \
+	    else \
+	      banner="$$failed of $$all tests did not behave as expected ($$xpass unexpected passes)"; \
+	    fi; \
+	  fi; \
+	  dashes="$$banner"; \
+	  skipped=""; \
+	  if test "$$skip" -ne 0; then \
+	    skipped="($$skip tests were not run)"; \
+	    test `echo "$$skipped" | wc -c` -le `echo "$$banner" | wc -c` || \
+	      dashes="$$skipped"; \
+	  fi; \
+	  report=""; \
+	  if test "$$failed" -ne 0 && test -n "$(PACKAGE_BUGREPORT)"; then \
+	    report="Please report to $(PACKAGE_BUGREPORT)"; \
+	    test `echo "$$report" | wc -c` -le `echo "$$banner" | wc -c` || \
+	      dashes="$$report"; \
+	  fi; \
+	  dashes=`echo "$$dashes" | sed s/./=/g`; \
+	  echo "$$dashes"; \
+	  echo "$$banner"; \
+	  test -z "$$skipped" || echo "$$skipped"; \
+	  test -z "$$report" || echo "$$report"; \
+	  echo "$$dashes"; \
+	  test "$$failed" -eq 0; \
+	else :; fi
+
 distdir: $(DISTFILES)
 	@srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
@@ -547,6 +2341,8 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
+	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
+	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
 all-am: Makefile $(LIBRARIES)
 installdirs:
@@ -579,7 +2375,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLIBRARIES mostlyclean-am
+clean-am: clean-checkPROGRAMS clean-generic clean-libLIBRARIES \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -636,15 +2433,16 @@ uninstall-am: uninstall-libLIBRARIES
 
 .MAKE: install-am install-strip
 
-.PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-libLIBRARIES ctags distclean distclean-compile \
-	distclean-generic distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-libLIBRARIES install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
+.PHONY: CTAGS GTAGS all all-am check check-TESTS check-am clean \
+	clean-checkPROGRAMS clean-generic clean-libLIBRARIES ctags \
+	distclean distclean-compile distclean-generic distclean-tags \
+	distdir dvi dvi-am html html-am info info-am install \
+	install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am \
+	install-libLIBRARIES install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am uninstall-libLIBRARIES

@@ -34,7 +34,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 sbin_PROGRAMS = opendkim$(EXEEXT) opendkim-testkey$(EXEEXT) \
 	opendkim-testadsp$(EXEEXT) $(am__EXEEXT_1)
-@BODYLENGTH_DB_TRUE@am__append_1 = -D_FFR_BODYLENGTH_DB
+@BODYLENGTH_DB_TRUE@am__append_1 = -DUSE_DB -D_FFR_BODYLENGTH_DB
 @CAPTURE_UNKNOWN_ERRORS_TRUE@am__append_2 = -D_FFR_CAPTURE_UNKNOWN_ERRORS
 @COMMAIZE_TRUE@am__append_3 = -D_FFR_COMMAIZE
 @DIFFHEADERS_TRUE@am__append_4 = -D_FFR_DIFFHEADERS
@@ -45,10 +45,11 @@ sbin_PROGRAMS = opendkim$(EXEEXT) opendkim-testkey$(EXEEXT) \
 @SELECTOR_HEADER_TRUE@am__append_9 = -D_FFR_SELECTOR_HEADER
 @SENDER_HEADERS_TRUE@am__append_10 = -D_FFR_SENDER_HEADERS
 @STATS_TRUE@am__append_11 = -DUSE_DB -D_FFR_STATS
-@VBR_TRUE@am__append_12 = -D_FFR_VBR
-@ZTAGS_TRUE@am__append_13 = -D_FFR_ZTAGS
-@STATS_TRUE@am__append_14 = opendkimstats
-@STATS_TRUE@am__append_15 = opendkimstats.8
+@USE_ARLIB_TRUE@am__append_12 = -DUSE_ARLIB
+@VBR_TRUE@am__append_13 = -D_FFR_VBR
+@ZTAGS_TRUE@am__append_14 = -D_FFR_ZTAGS
+@STATS_TRUE@am__append_15 = opendkim-stats
+@STATS_TRUE@am__append_16 = opendkim-stats.8
 subdir = opendkim
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -58,7 +59,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/build-config.h
 CONFIG_CLEAN_FILES =
-@STATS_TRUE@am__EXEEXT_1 = opendkimstats$(EXEEXT)
+@STATS_TRUE@am__EXEEXT_1 = opendkim-stats$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(sbindir)" \
 	"$(DESTDIR)$(man5dir)" "$(DESTDIR)$(man8dir)" \
 	"$(DESTDIR)$(exampledir)"
@@ -72,19 +73,28 @@ am_opendkim_OBJECTS = opendkim-opendkim.$(OBJEXT) \
 	opendkim-util.$(OBJEXT)
 opendkim_OBJECTS = $(am_opendkim_OBJECTS)
 opendkim_DEPENDENCIES =
-opendkim_LINK = $(CCLD) $(opendkim_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
-am_opendkim_testadsp_OBJECTS = opendkim-testadsp.$(OBJEXT)
+opendkim_LINK = $(CCLD) $(opendkim_CFLAGS) $(CFLAGS) \
+	$(opendkim_LDFLAGS) $(LDFLAGS) -o $@
+am__opendkim_stats_SOURCES_DIST = opendkim-db.c opendkim-stats.c
+@STATS_TRUE@am_opendkim_stats_OBJECTS =  \
+@STATS_TRUE@	opendkim_stats-opendkim-db.$(OBJEXT) \
+@STATS_TRUE@	opendkim_stats-opendkim-stats.$(OBJEXT)
+opendkim_stats_OBJECTS = $(am_opendkim_stats_OBJECTS)
+opendkim_stats_DEPENDENCIES =
+opendkim_stats_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(opendkim_stats_LDFLAGS) $(LDFLAGS) -o $@
+am_opendkim_testadsp_OBJECTS =  \
+	opendkim_testadsp-opendkim-testadsp.$(OBJEXT)
 opendkim_testadsp_OBJECTS = $(am_opendkim_testadsp_OBJECTS)
 opendkim_testadsp_DEPENDENCIES =
-am_opendkim_testkey_OBJECTS = opendkim-testkey.$(OBJEXT)
+opendkim_testadsp_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(opendkim_testadsp_LDFLAGS) $(LDFLAGS) -o $@
+am_opendkim_testkey_OBJECTS =  \
+	opendkim_testkey-opendkim-testkey.$(OBJEXT)
 opendkim_testkey_OBJECTS = $(am_opendkim_testkey_OBJECTS)
 opendkim_testkey_DEPENDENCIES =
-am__opendkimstats_SOURCES_DIST = opendkim-db.c opendkimstats.c
-@STATS_TRUE@am_opendkimstats_OBJECTS = opendkim-db.$(OBJEXT) \
-@STATS_TRUE@	opendkimstats.$(OBJEXT)
-opendkimstats_OBJECTS = $(am_opendkimstats_OBJECTS)
-opendkimstats_LDADD = $(LDADD)
+opendkim_testkey_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(opendkim_testkey_LDFLAGS) $(LDFLAGS) -o $@
 sbinSCRIPT_INSTALL = $(INSTALL_SCRIPT)
 SCRIPTS = $(sbin_SCRIPTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -94,10 +104,10 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(opendkim_SOURCES) $(opendkim_testadsp_SOURCES) \
-	$(opendkim_testkey_SOURCES) $(opendkimstats_SOURCES)
-DIST_SOURCES = $(opendkim_SOURCES) $(opendkim_testadsp_SOURCES) \
-	$(opendkim_testkey_SOURCES) $(am__opendkimstats_SOURCES_DIST)
+SOURCES = $(opendkim_SOURCES) $(opendkim_stats_SOURCES) \
+	$(opendkim_testadsp_SOURCES) $(opendkim_testkey_SOURCES)
+DIST_SOURCES = $(opendkim_SOURCES) $(am__opendkim_stats_SOURCES_DIST) \
+	$(opendkim_testadsp_SOURCES) $(opendkim_testkey_SOURCES)
 man5dir = $(mandir)/man5
 man8dir = $(mandir)/man8
 NROFF = nroff
@@ -201,8 +211,8 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # what flags you want to pass to the C compiler & linker
-AM_CFLAGS = -pthread --pedantic -Wall -std=c99 -O2 -I../libopendkim -I../libar
-AM_LDFLAGS = -pthread -L../libopendkim -L../libar
+AM_CFLAGS = -pthread --pedantic -Wall -std=c99 -O2
+AM_LDFLAGS = -pthread
 sbin_SCRIPTS = opendkim-genkey.sh
 exampledir = $(datarootdir)/doc/@PACKAGE@
 example_DATA = opendkim.conf.sample
@@ -211,15 +221,24 @@ opendkim_CFLAGS = $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
 	$(am__append_7) $(am__append_8) $(am__append_9) \
 	$(am__append_10) $(am__append_11) $(am__append_12) \
-	$(am__append_13)
+	$(am__append_13) $(am__append_14)
+opendkim_CPPFLAGS = -I../libopendkim -I../libar
+opendkim_LDFLAGS = -L../libopendkim -L../libar
 opendkim_LDADD = -lopendkim -lar
-@STATS_TRUE@opendkimstats_SOURCES = opendkim-db.c opendkimstats.c
+@STATS_TRUE@opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c
+@STATS_TRUE@opendkim_stats_CPPFLAGS = -I../libopendkim -I../libar
+@STATS_TRUE@opendkim_stats_LDFLAGS = -L../libopendkim -L../libar
+@STATS_TRUE@opendkim_stats_LDADD = -lopendkim -lar
 opendkim_testkey_SOURCES = opendkim-testkey.c
+opendkim_testkey_CPPFLAGS = -I../libopendkim -I../libar
+opendkim_testkey_LDFLAGS = -L../libopendkim -L../libar
 opendkim_testkey_LDADD = -lopendkim -lar
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
+opendkim_testadsp_CPPFLAGS = -I../libopendkim -I../libar
+opendkim_testadsp_LDFLAGS = -L../libopendkim -L../libar
 opendkim_testadsp_LDADD = -lopendkim -lar
 man_MANS = opendkim.conf.5 opendkim-genkey.8 opendkim-testadsp.8 \
-	opendkim-testkey.8 opendkim.8 $(am__append_15)
+	opendkim-testkey.8 opendkim.8 $(am__append_16)
 all: all-am
 
 .SUFFIXES:
@@ -279,15 +298,15 @@ clean-sbinPROGRAMS:
 opendkim$(EXEEXT): $(opendkim_OBJECTS) $(opendkim_DEPENDENCIES) 
 	@rm -f opendkim$(EXEEXT)
 	$(opendkim_LINK) $(opendkim_OBJECTS) $(opendkim_LDADD) $(LIBS)
+opendkim-stats$(EXEEXT): $(opendkim_stats_OBJECTS) $(opendkim_stats_DEPENDENCIES) 
+	@rm -f opendkim-stats$(EXEEXT)
+	$(opendkim_stats_LINK) $(opendkim_stats_OBJECTS) $(opendkim_stats_LDADD) $(LIBS)
 opendkim-testadsp$(EXEEXT): $(opendkim_testadsp_OBJECTS) $(opendkim_testadsp_DEPENDENCIES) 
 	@rm -f opendkim-testadsp$(EXEEXT)
-	$(LINK) $(opendkim_testadsp_OBJECTS) $(opendkim_testadsp_LDADD) $(LIBS)
+	$(opendkim_testadsp_LINK) $(opendkim_testadsp_OBJECTS) $(opendkim_testadsp_LDADD) $(LIBS)
 opendkim-testkey$(EXEEXT): $(opendkim_testkey_OBJECTS) $(opendkim_testkey_DEPENDENCIES) 
 	@rm -f opendkim-testkey$(EXEEXT)
-	$(LINK) $(opendkim_testkey_OBJECTS) $(opendkim_testkey_LDADD) $(LIBS)
-opendkimstats$(EXEEXT): $(opendkimstats_OBJECTS) $(opendkimstats_DEPENDENCIES) 
-	@rm -f opendkimstats$(EXEEXT)
-	$(LINK) $(opendkimstats_OBJECTS) $(opendkimstats_LDADD) $(LIBS)
+	$(opendkim_testkey_LINK) $(opendkim_testkey_OBJECTS) $(opendkim_testkey_LDADD) $(LIBS)
 install-sbinSCRIPTS: $(sbin_SCRIPTS)
 	@$(NORMAL_INSTALL)
 	test -z "$(sbindir)" || $(MKDIR_P) "$(DESTDIR)$(sbindir)"
@@ -315,7 +334,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim-config.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim-db.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim-opendkim-ar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim-opendkim-arf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim-opendkim-crypto.Po@am__quote@
@@ -323,10 +341,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim-opendkim.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim-stats.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim-test.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim-testadsp.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim-testkey.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim-util.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkimstats.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim_stats-opendkim-db.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim_stats-opendkim-stats.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim_testadsp-opendkim-testadsp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opendkim_testkey-opendkim-testkey.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -343,130 +362,186 @@ distclean-compile:
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
 
 opendkim-opendkim.o: opendkim.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim.o -MD -MP -MF $(DEPDIR)/opendkim-opendkim.Tpo -c -o opendkim-opendkim.o `test -f 'opendkim.c' || echo '$(srcdir)/'`opendkim.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim.o -MD -MP -MF $(DEPDIR)/opendkim-opendkim.Tpo -c -o opendkim-opendkim.o `test -f 'opendkim.c' || echo '$(srcdir)/'`opendkim.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-opendkim.Tpo $(DEPDIR)/opendkim-opendkim.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim.c' object='opendkim-opendkim.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim.o `test -f 'opendkim.c' || echo '$(srcdir)/'`opendkim.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim.o `test -f 'opendkim.c' || echo '$(srcdir)/'`opendkim.c
 
 opendkim-opendkim.obj: opendkim.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim.obj -MD -MP -MF $(DEPDIR)/opendkim-opendkim.Tpo -c -o opendkim-opendkim.obj `if test -f 'opendkim.c'; then $(CYGPATH_W) 'opendkim.c'; else $(CYGPATH_W) '$(srcdir)/opendkim.c'; fi`
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim.obj -MD -MP -MF $(DEPDIR)/opendkim-opendkim.Tpo -c -o opendkim-opendkim.obj `if test -f 'opendkim.c'; then $(CYGPATH_W) 'opendkim.c'; else $(CYGPATH_W) '$(srcdir)/opendkim.c'; fi`
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-opendkim.Tpo $(DEPDIR)/opendkim-opendkim.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim.c' object='opendkim-opendkim.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim.obj `if test -f 'opendkim.c'; then $(CYGPATH_W) 'opendkim.c'; else $(CYGPATH_W) '$(srcdir)/opendkim.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim.obj `if test -f 'opendkim.c'; then $(CYGPATH_W) 'opendkim.c'; else $(CYGPATH_W) '$(srcdir)/opendkim.c'; fi`
 
 opendkim-opendkim-ar.o: opendkim-ar.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-ar.o -MD -MP -MF $(DEPDIR)/opendkim-opendkim-ar.Tpo -c -o opendkim-opendkim-ar.o `test -f 'opendkim-ar.c' || echo '$(srcdir)/'`opendkim-ar.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-ar.o -MD -MP -MF $(DEPDIR)/opendkim-opendkim-ar.Tpo -c -o opendkim-opendkim-ar.o `test -f 'opendkim-ar.c' || echo '$(srcdir)/'`opendkim-ar.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-opendkim-ar.Tpo $(DEPDIR)/opendkim-opendkim-ar.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-ar.c' object='opendkim-opendkim-ar.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-ar.o `test -f 'opendkim-ar.c' || echo '$(srcdir)/'`opendkim-ar.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-ar.o `test -f 'opendkim-ar.c' || echo '$(srcdir)/'`opendkim-ar.c
 
 opendkim-opendkim-ar.obj: opendkim-ar.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-ar.obj -MD -MP -MF $(DEPDIR)/opendkim-opendkim-ar.Tpo -c -o opendkim-opendkim-ar.obj `if test -f 'opendkim-ar.c'; then $(CYGPATH_W) 'opendkim-ar.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-ar.c'; fi`
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-ar.obj -MD -MP -MF $(DEPDIR)/opendkim-opendkim-ar.Tpo -c -o opendkim-opendkim-ar.obj `if test -f 'opendkim-ar.c'; then $(CYGPATH_W) 'opendkim-ar.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-ar.c'; fi`
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-opendkim-ar.Tpo $(DEPDIR)/opendkim-opendkim-ar.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-ar.c' object='opendkim-opendkim-ar.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-ar.obj `if test -f 'opendkim-ar.c'; then $(CYGPATH_W) 'opendkim-ar.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-ar.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-ar.obj `if test -f 'opendkim-ar.c'; then $(CYGPATH_W) 'opendkim-ar.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-ar.c'; fi`
 
 opendkim-opendkim-arf.o: opendkim-arf.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-arf.o -MD -MP -MF $(DEPDIR)/opendkim-opendkim-arf.Tpo -c -o opendkim-opendkim-arf.o `test -f 'opendkim-arf.c' || echo '$(srcdir)/'`opendkim-arf.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-arf.o -MD -MP -MF $(DEPDIR)/opendkim-opendkim-arf.Tpo -c -o opendkim-opendkim-arf.o `test -f 'opendkim-arf.c' || echo '$(srcdir)/'`opendkim-arf.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-opendkim-arf.Tpo $(DEPDIR)/opendkim-opendkim-arf.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-arf.c' object='opendkim-opendkim-arf.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-arf.o `test -f 'opendkim-arf.c' || echo '$(srcdir)/'`opendkim-arf.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-arf.o `test -f 'opendkim-arf.c' || echo '$(srcdir)/'`opendkim-arf.c
 
 opendkim-opendkim-arf.obj: opendkim-arf.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-arf.obj -MD -MP -MF $(DEPDIR)/opendkim-opendkim-arf.Tpo -c -o opendkim-opendkim-arf.obj `if test -f 'opendkim-arf.c'; then $(CYGPATH_W) 'opendkim-arf.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-arf.c'; fi`
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-arf.obj -MD -MP -MF $(DEPDIR)/opendkim-opendkim-arf.Tpo -c -o opendkim-opendkim-arf.obj `if test -f 'opendkim-arf.c'; then $(CYGPATH_W) 'opendkim-arf.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-arf.c'; fi`
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-opendkim-arf.Tpo $(DEPDIR)/opendkim-opendkim-arf.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-arf.c' object='opendkim-opendkim-arf.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-arf.obj `if test -f 'opendkim-arf.c'; then $(CYGPATH_W) 'opendkim-arf.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-arf.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-arf.obj `if test -f 'opendkim-arf.c'; then $(CYGPATH_W) 'opendkim-arf.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-arf.c'; fi`
 
 opendkim-opendkim-crypto.o: opendkim-crypto.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-crypto.o -MD -MP -MF $(DEPDIR)/opendkim-opendkim-crypto.Tpo -c -o opendkim-opendkim-crypto.o `test -f 'opendkim-crypto.c' || echo '$(srcdir)/'`opendkim-crypto.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-crypto.o -MD -MP -MF $(DEPDIR)/opendkim-opendkim-crypto.Tpo -c -o opendkim-opendkim-crypto.o `test -f 'opendkim-crypto.c' || echo '$(srcdir)/'`opendkim-crypto.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-opendkim-crypto.Tpo $(DEPDIR)/opendkim-opendkim-crypto.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-crypto.c' object='opendkim-opendkim-crypto.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-crypto.o `test -f 'opendkim-crypto.c' || echo '$(srcdir)/'`opendkim-crypto.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-crypto.o `test -f 'opendkim-crypto.c' || echo '$(srcdir)/'`opendkim-crypto.c
 
 opendkim-opendkim-crypto.obj: opendkim-crypto.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-crypto.obj -MD -MP -MF $(DEPDIR)/opendkim-opendkim-crypto.Tpo -c -o opendkim-opendkim-crypto.obj `if test -f 'opendkim-crypto.c'; then $(CYGPATH_W) 'opendkim-crypto.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-crypto.c'; fi`
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-crypto.obj -MD -MP -MF $(DEPDIR)/opendkim-opendkim-crypto.Tpo -c -o opendkim-opendkim-crypto.obj `if test -f 'opendkim-crypto.c'; then $(CYGPATH_W) 'opendkim-crypto.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-crypto.c'; fi`
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-opendkim-crypto.Tpo $(DEPDIR)/opendkim-opendkim-crypto.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-crypto.c' object='opendkim-opendkim-crypto.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-crypto.obj `if test -f 'opendkim-crypto.c'; then $(CYGPATH_W) 'opendkim-crypto.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-crypto.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-crypto.obj `if test -f 'opendkim-crypto.c'; then $(CYGPATH_W) 'opendkim-crypto.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-crypto.c'; fi`
 
 opendkim-opendkim-db.o: opendkim-db.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-db.o -MD -MP -MF $(DEPDIR)/opendkim-opendkim-db.Tpo -c -o opendkim-opendkim-db.o `test -f 'opendkim-db.c' || echo '$(srcdir)/'`opendkim-db.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-db.o -MD -MP -MF $(DEPDIR)/opendkim-opendkim-db.Tpo -c -o opendkim-opendkim-db.o `test -f 'opendkim-db.c' || echo '$(srcdir)/'`opendkim-db.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-opendkim-db.Tpo $(DEPDIR)/opendkim-opendkim-db.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-db.c' object='opendkim-opendkim-db.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-db.o `test -f 'opendkim-db.c' || echo '$(srcdir)/'`opendkim-db.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-db.o `test -f 'opendkim-db.c' || echo '$(srcdir)/'`opendkim-db.c
 
 opendkim-opendkim-db.obj: opendkim-db.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-db.obj -MD -MP -MF $(DEPDIR)/opendkim-opendkim-db.Tpo -c -o opendkim-opendkim-db.obj `if test -f 'opendkim-db.c'; then $(CYGPATH_W) 'opendkim-db.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-db.c'; fi`
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim-db.obj -MD -MP -MF $(DEPDIR)/opendkim-opendkim-db.Tpo -c -o opendkim-opendkim-db.obj `if test -f 'opendkim-db.c'; then $(CYGPATH_W) 'opendkim-db.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-db.c'; fi`
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-opendkim-db.Tpo $(DEPDIR)/opendkim-opendkim-db.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-db.c' object='opendkim-opendkim-db.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-db.obj `if test -f 'opendkim-db.c'; then $(CYGPATH_W) 'opendkim-db.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-db.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-opendkim-db.obj `if test -f 'opendkim-db.c'; then $(CYGPATH_W) 'opendkim-db.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-db.c'; fi`
 
 opendkim-config.o: config.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-config.o -MD -MP -MF $(DEPDIR)/opendkim-config.Tpo -c -o opendkim-config.o `test -f 'config.c' || echo '$(srcdir)/'`config.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-config.o -MD -MP -MF $(DEPDIR)/opendkim-config.Tpo -c -o opendkim-config.o `test -f 'config.c' || echo '$(srcdir)/'`config.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-config.Tpo $(DEPDIR)/opendkim-config.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='config.c' object='opendkim-config.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-config.o `test -f 'config.c' || echo '$(srcdir)/'`config.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-config.o `test -f 'config.c' || echo '$(srcdir)/'`config.c
 
 opendkim-config.obj: config.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-config.obj -MD -MP -MF $(DEPDIR)/opendkim-config.Tpo -c -o opendkim-config.obj `if test -f 'config.c'; then $(CYGPATH_W) 'config.c'; else $(CYGPATH_W) '$(srcdir)/config.c'; fi`
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-config.obj -MD -MP -MF $(DEPDIR)/opendkim-config.Tpo -c -o opendkim-config.obj `if test -f 'config.c'; then $(CYGPATH_W) 'config.c'; else $(CYGPATH_W) '$(srcdir)/config.c'; fi`
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-config.Tpo $(DEPDIR)/opendkim-config.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='config.c' object='opendkim-config.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-config.obj `if test -f 'config.c'; then $(CYGPATH_W) 'config.c'; else $(CYGPATH_W) '$(srcdir)/config.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-config.obj `if test -f 'config.c'; then $(CYGPATH_W) 'config.c'; else $(CYGPATH_W) '$(srcdir)/config.c'; fi`
 
 opendkim-stats.o: stats.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-stats.o -MD -MP -MF $(DEPDIR)/opendkim-stats.Tpo -c -o opendkim-stats.o `test -f 'stats.c' || echo '$(srcdir)/'`stats.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-stats.o -MD -MP -MF $(DEPDIR)/opendkim-stats.Tpo -c -o opendkim-stats.o `test -f 'stats.c' || echo '$(srcdir)/'`stats.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-stats.Tpo $(DEPDIR)/opendkim-stats.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='stats.c' object='opendkim-stats.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-stats.o `test -f 'stats.c' || echo '$(srcdir)/'`stats.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-stats.o `test -f 'stats.c' || echo '$(srcdir)/'`stats.c
 
 opendkim-stats.obj: stats.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-stats.obj -MD -MP -MF $(DEPDIR)/opendkim-stats.Tpo -c -o opendkim-stats.obj `if test -f 'stats.c'; then $(CYGPATH_W) 'stats.c'; else $(CYGPATH_W) '$(srcdir)/stats.c'; fi`
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-stats.obj -MD -MP -MF $(DEPDIR)/opendkim-stats.Tpo -c -o opendkim-stats.obj `if test -f 'stats.c'; then $(CYGPATH_W) 'stats.c'; else $(CYGPATH_W) '$(srcdir)/stats.c'; fi`
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-stats.Tpo $(DEPDIR)/opendkim-stats.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='stats.c' object='opendkim-stats.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-stats.obj `if test -f 'stats.c'; then $(CYGPATH_W) 'stats.c'; else $(CYGPATH_W) '$(srcdir)/stats.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-stats.obj `if test -f 'stats.c'; then $(CYGPATH_W) 'stats.c'; else $(CYGPATH_W) '$(srcdir)/stats.c'; fi`
 
 opendkim-test.o: test.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-test.o -MD -MP -MF $(DEPDIR)/opendkim-test.Tpo -c -o opendkim-test.o `test -f 'test.c' || echo '$(srcdir)/'`test.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-test.o -MD -MP -MF $(DEPDIR)/opendkim-test.Tpo -c -o opendkim-test.o `test -f 'test.c' || echo '$(srcdir)/'`test.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-test.Tpo $(DEPDIR)/opendkim-test.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='test.c' object='opendkim-test.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-test.o `test -f 'test.c' || echo '$(srcdir)/'`test.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-test.o `test -f 'test.c' || echo '$(srcdir)/'`test.c
 
 opendkim-test.obj: test.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-test.obj -MD -MP -MF $(DEPDIR)/opendkim-test.Tpo -c -o opendkim-test.obj `if test -f 'test.c'; then $(CYGPATH_W) 'test.c'; else $(CYGPATH_W) '$(srcdir)/test.c'; fi`
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-test.obj -MD -MP -MF $(DEPDIR)/opendkim-test.Tpo -c -o opendkim-test.obj `if test -f 'test.c'; then $(CYGPATH_W) 'test.c'; else $(CYGPATH_W) '$(srcdir)/test.c'; fi`
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-test.Tpo $(DEPDIR)/opendkim-test.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='test.c' object='opendkim-test.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-test.obj `if test -f 'test.c'; then $(CYGPATH_W) 'test.c'; else $(CYGPATH_W) '$(srcdir)/test.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-test.obj `if test -f 'test.c'; then $(CYGPATH_W) 'test.c'; else $(CYGPATH_W) '$(srcdir)/test.c'; fi`
 
 opendkim-util.o: util.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-util.o -MD -MP -MF $(DEPDIR)/opendkim-util.Tpo -c -o opendkim-util.o `test -f 'util.c' || echo '$(srcdir)/'`util.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-util.o -MD -MP -MF $(DEPDIR)/opendkim-util.Tpo -c -o opendkim-util.o `test -f 'util.c' || echo '$(srcdir)/'`util.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-util.Tpo $(DEPDIR)/opendkim-util.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util.c' object='opendkim-util.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-util.o `test -f 'util.c' || echo '$(srcdir)/'`util.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-util.o `test -f 'util.c' || echo '$(srcdir)/'`util.c
 
 opendkim-util.obj: util.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-util.obj -MD -MP -MF $(DEPDIR)/opendkim-util.Tpo -c -o opendkim-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-util.obj -MD -MP -MF $(DEPDIR)/opendkim-util.Tpo -c -o opendkim-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim-util.Tpo $(DEPDIR)/opendkim-util.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util.c' object='opendkim-util.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -c -o opendkim-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
+
+opendkim_stats-opendkim-db.o: opendkim-db.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_stats_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT opendkim_stats-opendkim-db.o -MD -MP -MF $(DEPDIR)/opendkim_stats-opendkim-db.Tpo -c -o opendkim_stats-opendkim-db.o `test -f 'opendkim-db.c' || echo '$(srcdir)/'`opendkim-db.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim_stats-opendkim-db.Tpo $(DEPDIR)/opendkim_stats-opendkim-db.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-db.c' object='opendkim_stats-opendkim-db.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_stats_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o opendkim_stats-opendkim-db.o `test -f 'opendkim-db.c' || echo '$(srcdir)/'`opendkim-db.c
+
+opendkim_stats-opendkim-db.obj: opendkim-db.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_stats_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT opendkim_stats-opendkim-db.obj -MD -MP -MF $(DEPDIR)/opendkim_stats-opendkim-db.Tpo -c -o opendkim_stats-opendkim-db.obj `if test -f 'opendkim-db.c'; then $(CYGPATH_W) 'opendkim-db.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-db.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim_stats-opendkim-db.Tpo $(DEPDIR)/opendkim_stats-opendkim-db.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-db.c' object='opendkim_stats-opendkim-db.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_stats_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o opendkim_stats-opendkim-db.obj `if test -f 'opendkim-db.c'; then $(CYGPATH_W) 'opendkim-db.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-db.c'; fi`
+
+opendkim_stats-opendkim-stats.o: opendkim-stats.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_stats_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT opendkim_stats-opendkim-stats.o -MD -MP -MF $(DEPDIR)/opendkim_stats-opendkim-stats.Tpo -c -o opendkim_stats-opendkim-stats.o `test -f 'opendkim-stats.c' || echo '$(srcdir)/'`opendkim-stats.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim_stats-opendkim-stats.Tpo $(DEPDIR)/opendkim_stats-opendkim-stats.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-stats.c' object='opendkim_stats-opendkim-stats.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_stats_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o opendkim_stats-opendkim-stats.o `test -f 'opendkim-stats.c' || echo '$(srcdir)/'`opendkim-stats.c
+
+opendkim_stats-opendkim-stats.obj: opendkim-stats.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_stats_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT opendkim_stats-opendkim-stats.obj -MD -MP -MF $(DEPDIR)/opendkim_stats-opendkim-stats.Tpo -c -o opendkim_stats-opendkim-stats.obj `if test -f 'opendkim-stats.c'; then $(CYGPATH_W) 'opendkim-stats.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-stats.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim_stats-opendkim-stats.Tpo $(DEPDIR)/opendkim_stats-opendkim-stats.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-stats.c' object='opendkim_stats-opendkim-stats.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_stats_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o opendkim_stats-opendkim-stats.obj `if test -f 'opendkim-stats.c'; then $(CYGPATH_W) 'opendkim-stats.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-stats.c'; fi`
+
+opendkim_testadsp-opendkim-testadsp.o: opendkim-testadsp.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_testadsp_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT opendkim_testadsp-opendkim-testadsp.o -MD -MP -MF $(DEPDIR)/opendkim_testadsp-opendkim-testadsp.Tpo -c -o opendkim_testadsp-opendkim-testadsp.o `test -f 'opendkim-testadsp.c' || echo '$(srcdir)/'`opendkim-testadsp.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim_testadsp-opendkim-testadsp.Tpo $(DEPDIR)/opendkim_testadsp-opendkim-testadsp.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-testadsp.c' object='opendkim_testadsp-opendkim-testadsp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_testadsp_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o opendkim_testadsp-opendkim-testadsp.o `test -f 'opendkim-testadsp.c' || echo '$(srcdir)/'`opendkim-testadsp.c
+
+opendkim_testadsp-opendkim-testadsp.obj: opendkim-testadsp.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_testadsp_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT opendkim_testadsp-opendkim-testadsp.obj -MD -MP -MF $(DEPDIR)/opendkim_testadsp-opendkim-testadsp.Tpo -c -o opendkim_testadsp-opendkim-testadsp.obj `if test -f 'opendkim-testadsp.c'; then $(CYGPATH_W) 'opendkim-testadsp.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-testadsp.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim_testadsp-opendkim-testadsp.Tpo $(DEPDIR)/opendkim_testadsp-opendkim-testadsp.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-testadsp.c' object='opendkim_testadsp-opendkim-testadsp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_testadsp_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o opendkim_testadsp-opendkim-testadsp.obj `if test -f 'opendkim-testadsp.c'; then $(CYGPATH_W) 'opendkim-testadsp.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-testadsp.c'; fi`
+
+opendkim_testkey-opendkim-testkey.o: opendkim-testkey.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_testkey_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT opendkim_testkey-opendkim-testkey.o -MD -MP -MF $(DEPDIR)/opendkim_testkey-opendkim-testkey.Tpo -c -o opendkim_testkey-opendkim-testkey.o `test -f 'opendkim-testkey.c' || echo '$(srcdir)/'`opendkim-testkey.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim_testkey-opendkim-testkey.Tpo $(DEPDIR)/opendkim_testkey-opendkim-testkey.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-testkey.c' object='opendkim_testkey-opendkim-testkey.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_testkey_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o opendkim_testkey-opendkim-testkey.o `test -f 'opendkim-testkey.c' || echo '$(srcdir)/'`opendkim-testkey.c
+
+opendkim_testkey-opendkim-testkey.obj: opendkim-testkey.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_testkey_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT opendkim_testkey-opendkim-testkey.obj -MD -MP -MF $(DEPDIR)/opendkim_testkey-opendkim-testkey.Tpo -c -o opendkim_testkey-opendkim-testkey.obj `if test -f 'opendkim-testkey.c'; then $(CYGPATH_W) 'opendkim-testkey.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-testkey.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/opendkim_testkey-opendkim-testkey.Tpo $(DEPDIR)/opendkim_testkey-opendkim-testkey.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-testkey.c' object='opendkim_testkey-opendkim-testkey.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_testkey_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o opendkim_testkey-opendkim-testkey.obj `if test -f 'opendkim-testkey.c'; then $(CYGPATH_W) 'opendkim-testkey.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-testkey.c'; fi`
 install-man5: $(man5_MANS) $(man_MANS)
 	@$(NORMAL_INSTALL)
 	test -z "$(man5dir)" || $(MKDIR_P) "$(DESTDIR)$(man5dir)"
