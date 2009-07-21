@@ -1,6 +1,6 @@
 # what flags you want to pass to the C compiler & linker
-AM_CFLAGS = -pthread --pedantic -Wall -std=c99 -O2 -I../libopendkim -I../libar
-AM_LDFLAGS = -pthread -L../libopendkim -L../libar
+AM_CFLAGS = -pthread --pedantic -Wall -std=c99 -O2
+AM_LDFLAGS = -pthread
 
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
@@ -12,9 +12,11 @@ example_DATA = opendkim.conf.sample
 
 opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h config.c config.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CFLAGS = 
+opendkim_CPPFLAGS = -I../libopendkim -I../libar
+opendkim_LDFLAGS = -L../libopendkim -L../libar
 opendkim_LDADD = -lopendkim -lar
 if BODYLENGTH_DB
-opendkim_CFLAGS += -D_FFR_BODYLENGTH_DB
+opendkim_CFLAGS += -DUSE_DB -D_FFR_BODYLENGTH_DB
 endif
 if CAPTURE_UNKNOWN_ERRORS
 opendkim_CFLAGS += -D_FFR_CAPTURE_UNKNOWN_ERRORS
@@ -56,12 +58,19 @@ endif
 if STATS
 sbin_PROGRAMS += opendkim-stats
 opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c
+opendkim_stats_CPPFLAGS = -I../libopendkim -I../libar
+opendkim_stats_LDFLAGS = -L../libopendkim -L../libar
+opendkim_stats_LDADD = -lopendkim -lar
 endif
 
 opendkim_testkey_SOURCES = opendkim-testkey.c
+opendkim_testkey_CPPFLAGS = -I../libopendkim -I../libar
+opendkim_testkey_LDFLAGS = -L../libopendkim -L../libar
 opendkim_testkey_LDADD = -lopendkim -lar
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
+opendkim_testadsp_CPPFLAGS = -I../libopendkim -I../libar
+opendkim_testadsp_LDFLAGS = -L../libopendkim -L../libar
 opendkim_testadsp_LDADD = -lopendkim -lar
 
 man_MANS = opendkim.conf.5 opendkim-genkey.8 opendkim-testadsp.8 opendkim-testkey.8 opendkim.8
