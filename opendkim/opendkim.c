@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $
+**  $Id: opendkim.c,v 1.3 2009/07/21 20:50:45 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.3 2009/07/21 20:50:45 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -5480,8 +5480,7 @@ dkimf_commaize_hdr(char *name)
 static sfsistat
 mlfi_negotiate(SMFICTX *ctx,
 	unsigned long f0, unsigned long f1,
-	SM_UNUSED(unsigned long f2),
-	SM_UNUSED(unsigned long f3),
+	unsigned long f2, unsigned long f3,
 	unsigned long *pf0, unsigned long *pf1,
 	unsigned long *pf2, unsigned long *pf3)
 {
