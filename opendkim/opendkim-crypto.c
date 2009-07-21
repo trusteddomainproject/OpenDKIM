@@ -4,14 +4,16 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-crypto.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $
+**  $Id: opendkim-crypto.c,v 1.3 2009/07/21 23:36:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $";
+static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.3 2009/07/21 23:36:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
+#include <sys/types.h>
+#include <stdbool.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <assert.h>

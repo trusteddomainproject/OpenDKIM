@@ -6,12 +6,13 @@
 */
 
 #ifndef lint
-static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
+static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.3 2009/07/21 23:36:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
+#include <stdbool.h>
 #include <assert.h>
 #include <unistd.h>
 #include <limits.h>

@@ -9,12 +9,13 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.3 2009/07/21 23:36:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
 #include <sys/param.h>
+#include <stdbool.h>
 
 /* openssl includes */
 #include <openssl/sha.h>

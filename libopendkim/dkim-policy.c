@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.3 2009/07/20 21:41:08 cm-msk Exp $";
+static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.4 2009/07/21 23:36:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -15,6 +15,7 @@ static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.3 2009/07/20 21:41:
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <arpa/nameser.h>
+#include <stdbool.h>
 #include <netdb.h>
 #include <resolv.h>
 #include <string.h>

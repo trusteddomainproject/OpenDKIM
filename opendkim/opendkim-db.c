@@ -4,16 +4,18 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.2 2009/07/20 22:51:06 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.3 2009/07/21 23:36:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.2 2009/07/20 22:51:06 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.3 2009/07/21 23:36:39 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef USE_DB
 
 /* system includes */
+#include <sys/types.h>
+#include <stdbool.h>
 #include <string.h>
 #include <syslog.h>
 #include <errno.h>

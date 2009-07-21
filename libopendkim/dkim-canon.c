@@ -6,12 +6,13 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.4 2009/07/20 21:41:08 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.5 2009/07/21 23:36:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
+#include <stdbool.h>
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>

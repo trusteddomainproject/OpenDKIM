@@ -9,7 +9,7 @@
 #define _UTIL_H_
 
 #ifndef lint
-static char util_h_id[] = "@(#)$Id: util.h,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
+static char util_h_id[] = "@(#)$Id: util.h,v 1.3 2009/07/21 23:36:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -18,6 +18,7 @@ static char util_h_id[] = "@(#)$Id: util.h,v 1.2 2009/07/20 18:52:39 cm-msk Exp 
 #ifdef USE_UNBOUND
 # include <sys/select.h>
 #endif /* USE_UNBOUND */
+#include <stdbool.h>
 
 /* prototypes */
 extern int dkim_addrcmp __P((u_char *, u_char *));

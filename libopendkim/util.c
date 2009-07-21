@@ -6,18 +6,19 @@
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.3 2009/07/20 21:41:08 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.4 2009/07/21 23:36:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
+#include <arpa/inet.h>
+#include <arpa/nameser.h>
+#include <netinet/in.h>
+#include <stdbool.h>
 #include <ctype.h>
 #include <assert.h>
 #include <string.h>
 #include <errno.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <arpa/nameser.h>
 #include <netdb.h>
 #include <resolv.h>
 #include <stdlib.h>

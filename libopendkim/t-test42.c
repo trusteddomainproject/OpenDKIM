@@ -6,17 +6,16 @@
 */
 
 #ifndef lint
-static char t_test42_c_id[] = "@(#)$Id: t-test42.c,v 1.3 2009/07/21 21:11:42 cm-msk Exp $";
+static char t_test42_c_id[] = "@(#)$Id: t-test42.c,v 1.4 2009/07/21 23:36:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
+#include <arpa/nameser.h>
+#include <stdbool.h>
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
-#include <arpa/nameser.h>
-
-
 
 /* libdkim includes */
 #include "dkim.h"

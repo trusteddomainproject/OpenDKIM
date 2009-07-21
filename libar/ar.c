@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char ar_c_id[] = "@(#)$Id: ar.c,v 1.2 2009/07/20 18:49:21 cm-msk Exp $";
+static char ar_c_id[] = "@(#)$Id: ar.c,v 1.3 2009/07/21 23:36:38 cm-msk Exp $";
 #endif /* !lint */
 
 /* OS stuff */
@@ -29,6 +29,7 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.2 2009/07/20 18:49:21 cm-msk Exp $";
 #include <ctype.h>
 #include <resolv.h>
 #include <netdb.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 #include <errno.h>
