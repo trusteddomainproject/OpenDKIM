@@ -48,6 +48,9 @@ endif
 if STATS
 opendkim_CFLAGS += -DUSE_DB -D_FFR_STATS
 endif
+if USE_ARLIB
+opendkim_CFLAGS += -DUSE_ARLIB
+endif
 if VBR
 opendkim_CFLAGS += -D_FFR_VBR
 endif
