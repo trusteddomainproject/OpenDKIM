@@ -3,7 +3,7 @@ libopendkim_a_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-poli
 libopendkim_a_CFLAGS = 
 libopendkimincludedir = $(includedir)/opendkim
 libopendkiminclude_HEADERS = dkim.h
-libopendkim_adir = $(libdir)/opendkim
+libopendkim_adir = $(datadir)/opendkim
 libopendkim_a_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
 	docs/dkim_canon_t.html docs/dkim_cbstat.html docs/dkim_chunk.html \
 	docs/dkim_close.html docs/dkim_dnssec.html docs/dkim_eoh.html \
