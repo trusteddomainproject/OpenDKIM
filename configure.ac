@@ -41,52 +41,52 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strtol strtoul strtoull strlcpy strlcat])
 
 # Conditional stuff
-AC_ARG_ENABLE(bodylengthdb, AS_HELP_STRING(--with-bodylengthdb, support for body length DBs))
+AC_ARG_ENABLE(bodylengthdb, AS_HELP_STRING(--enable-bodylengthdb, support for body length DBs))
 AM_CONDITIONAL(BODYLENGTH_DB, test "$enable_bodylengthdb" = yes)
 
-AC_ARG_ENABLE(captureerrors, AS_HELP_STRING(--with-captureerrors, quarantine unknown verification failures))
+AC_ARG_ENABLE(captureerrors, AS_HELP_STRING(--enable-captureerrors, quarantine unknown verification failures))
 AM_CONDITIONAL(CAPTURE_UNKNOWN_ERRORS, test "$enable_captureerrors" = yes)
 
-AC_ARG_ENABLE(commaize, AS_HELP_STRING(--with-commaize, clone sendmail header commaizing))
+AC_ARG_ENABLE(commaize, AS_HELP_STRING(--enable-commaize, clone sendmail header commaizing))
 AM_CONDITIONAL(COMMAIZE, test "$enable_commaize" = yes)
 
-AC_ARG_ENABLE(diffheaders, AS_HELP_STRING(--with-diffheaders, compare signed and verified headers when possible))
+AC_ARG_ENABLE(diffheaders, AS_HELP_STRING(--enable-diffheaders, compare signed and verified headers when possible))
 AM_CONDITIONAL(DIFFHEADERS, test "$enable_diffheaders" = yes)
 
-AC_ARG_ENABLE(dkimreputation, AS_HELP_STRING(--with-dkimreputation, experimental DKIM reputation checks))
+AC_ARG_ENABLE(dkimreputation, AS_HELP_STRING(--enable-dkimreputation, experimental DKIM reputation checks))
 AM_CONDITIONAL(DKIM_REPUTATION, test "$enable_dkimreputation" = yes)
 
-AC_ARG_ENABLE(dnsupgrade, AS_HELP_STRING(--with-dnsupgrade, upgrade DNS to TCP when needed))
+AC_ARG_ENABLE(dnsupgrade, AS_HELP_STRING(--enable-dnsupgrade, upgrade DNS to TCP when needed))
 AM_CONDITIONAL(DNS_UPGRADE, test "$enable_dnsupgrade" = yes)
 
-AC_ARG_ENABLE(multiplesigs, AS_HELP_STRING(--with-multiplesigs, support for multiple signatures))
+AC_ARG_ENABLE(multiplesigs, AS_HELP_STRING(--enable-multiplesigs, support for multiple signatures))
 AM_CONDITIONAL(MULTIPLE_SIGNATURES, test "$enable_multiplesigs" = yes)
 
-AC_ARG_ENABLE(parsetime, AS_HELP_STRING(--with-parsetime, parse From: headers for sending times))
+AC_ARG_ENABLE(parsetime, AS_HELP_STRING(--enable-parsetime, parse From: headers for sending times))
 AM_CONDITIONAL(PARSE_TIME, test "$enable_parsetime" = yes)
 
-AC_ARG_ENABLE(replacerules, AS_HELP_STRING(--with-replacerules, support for string substitution when signing))
+AC_ARG_ENABLE(replacerules, AS_HELP_STRING(--enable-replacerules, support for string substitution when signing))
 AM_CONDITIONAL(REPLACE_RULES, test "$enable_replacerules" = yes)
 
-AC_ARG_ENABLE(reportintervals, AS_HELP_STRING(--with-reportintervals, support for requested report intervals when reporting))
+AC_ARG_ENABLE(reportintervals, AS_HELP_STRING(--enable-reportintervals, support for requested report intervals when reporting))
 AM_CONDITIONAL(REPORT_INTERVALS, test "$enable_reportintervals" = yes)
 
-AC_ARG_ENABLE(selectcanon, AS_HELP_STRING(--with-selectcanon, allow sender to select canonicalization))
+AC_ARG_ENABLE(selectcanon, AS_HELP_STRING(--enable-selectcanon, allow sender to select canonicalization))
 AM_CONDITIONAL(SELECT_CANONICALIZATION, test "$enable_selectcanon" = yes)
 
-AC_ARG_ENABLE(senderheaders, AS_HELP_STRING(--with-senderheaders, configurable sender header list))
+AC_ARG_ENABLE(senderheaders, AS_HELP_STRING(--enable-senderheaders, configurable sender header list))
 AM_CONDITIONAL(SENDER_HEADERS, test "$enable_senderheaders" = yes)
 
-AC_ARG_ENABLE(selectorheader, AS_HELP_STRING(--with-selectorheader, special header to choose signing key))
+AC_ARG_ENABLE(selectorheader, AS_HELP_STRING(--enable-selectorheader, special header to choose signing key))
 AM_CONDITIONAL(SELECTOR_HEADER, test "$enable_selectorheader" = yes)
 
-AC_ARG_ENABLE(stats, AS_HELP_STRING(--with-stats, stats recording and reporting))
+AC_ARG_ENABLE(stats, AS_HELP_STRING(--enable-stats, stats recording and reporting))
 AM_CONDITIONAL(STATS, test "$enable_stats" = yes)
 
-AC_ARG_ENABLE(vbr, AS_HELP_STRING(--with-vbr, Vouch-By-Reference support))
+AC_ARG_ENABLE(vbr, AS_HELP_STRING(--enable-vbr, Vouch-By-Reference support))
 AM_CONDITIONAL(VBR, test "$enable_vbr" = yes)
 
-AC_ARG_ENABLE(ztags, AS_HELP_STRING(--with-ztags, sign/verify with z= tags))
+AC_ARG_ENABLE(ztags, AS_HELP_STRING(--enable-ztags, sign/verify with z= tags))
 AM_CONDITIONAL(ZTAGS, test "$enable_ztags" = yes)
 
 AC_OUTPUT(Makefile opendkim/Makefile libopendkim/Makefile libar/Makefile)
