@@ -14,6 +14,7 @@
 
 @SET_MAKE@
 
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -31,7 +32,8 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 subdir = libar
-DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = README $(libarinclude_HEADERS) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -45,7 +47,8 @@ am__vpath_adj = case $$p in \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(man3dir)"
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(man3dir)" \
+	"$(DESTDIR)$(libarincludedir)"
 libLIBRARIES_INSTALL = $(INSTALL_DATA)
 LIBRARIES = $(lib_LIBRARIES)
 AR = ar
@@ -66,6 +69,8 @@ DIST_SOURCES = $(libar_a_SOURCES)
 man3dir = $(mandir)/man3
 NROFF = nroff
 MANS = $(man_MANS)
+libarincludeHEADERS_INSTALL = $(INSTALL_HEADER)
+HEADERS = $(libarinclude_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -157,7 +162,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LIBRARIES = libar.a
 libar_a_SOURCES = ar.c manual.c
+libarincludedir = $(includedir)/ar
+libarinclude_HEADERS = ar.h
 man_MANS = ar.3
+EXTRA_DIST = $(man_MANS)
 all: all-am
 
 .SUFFIXES:
@@ -292,6 +300,23 @@ uninstall-man3:
 	  echo " rm -f '$(DESTDIR)$(man3dir)/$$inst'"; \
 	  rm -f "$(DESTDIR)$(man3dir)/$$inst"; \
 	done
+install-libarincludeHEADERS: $(libarinclude_HEADERS)
+	@$(NORMAL_INSTALL)
+	test -z "$(libarincludedir)" || $(MKDIR_P) "$(DESTDIR)$(libarincludedir)"
+	@list='$(libarinclude_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(libarincludeHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(libarincludedir)/$$f'"; \
+	  $(libarincludeHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(libarincludedir)/$$f"; \
+	done
+
+uninstall-libarincludeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(libarinclude_HEADERS)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(libarincludedir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(libarincludedir)/$$f"; \
+	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -368,9 +393,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(MANS)
+all-am: Makefile $(LIBRARIES) $(MANS) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(man3dir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(man3dir)" "$(DESTDIR)$(libarincludedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -417,7 +442,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-man
+install-data-am: install-libarincludeHEADERS install-man
 
 install-dvi: install-dvi-am
 
@@ -452,7 +477,8 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-libLIBRARIES uninstall-man
+uninstall-am: uninstall-libLIBRARIES uninstall-libarincludeHEADERS \
+	uninstall-man
 
 uninstall-man: uninstall-man3
 
@@ -464,13 +490,14 @@ uninstall-man: uninstall-man3
 	html-am info info-am install install-am install-data \
 	install-data-am install-dvi install-dvi-am install-exec \
 	install-exec-am install-html install-html-am install-info \
-	install-info-am install-libLIBRARIES install-man install-man3 \
+	install-info-am install-libLIBRARIES \
+	install-libarincludeHEADERS install-man install-man3 \
 	install-pdf install-pdf-am install-ps install-ps-am \
 	install-strip installcheck installcheck-am installdirs \
 	maintainer-clean maintainer-clean-generic mostlyclean \
 	mostlyclean-compile mostlyclean-generic pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-libLIBRARIES \
-	uninstall-man uninstall-man3
+	uninstall-libarincludeHEADERS uninstall-man uninstall-man3
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

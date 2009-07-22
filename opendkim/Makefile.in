@@ -239,6 +239,7 @@ opendkim_testadsp_LDFLAGS = -L../libopendkim -L../libar
 opendkim_testadsp_LDADD = -lopendkim -lar
 man_MANS = opendkim.conf.5 opendkim-genkey.8 opendkim-testadsp.8 \
 	opendkim-testkey.8 opendkim.8 $(am__append_16)
+EXTRA_DIST = $(example_DATA) $(man_MANS) opendkim-stats.8 $(sbin_SCRIPTS)
 all: all-am
 
 .SUFFIXES:
