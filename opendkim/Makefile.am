@@ -81,4 +81,4 @@ if STATS
 man_MANS += opendkim-stats.8
 endif
 
-EXTRA_DIST = $(example_DATA) $(man_MANS) opendkim-stats.8
+EXTRA_DIST = $(example_DATA) $(man_MANS) opendkim-stats.8 $(sbin_SCRIPTS)
