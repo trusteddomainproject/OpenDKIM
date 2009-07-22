@@ -1,6 +1,8 @@
 AUTOMAKE_OPTIONS = foreign
 SUBDIRS = libar libopendkim opendkim
-EXTRA_DIST = docs/draft-ietf-dkim-deployment-05.txt \
+EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
+	RELEASE_NOTES.Sendmail \
+	docs/draft-ietf-dkim-deployment-05.txt \
 	docs/draft-ietf-dkim-rfc4871-errata-07.txt \
 	docs/draft-ietf-dkim-ssp-10.txt \
 	docs/draft-kucherawy-dkim-reporting-04.txt \
