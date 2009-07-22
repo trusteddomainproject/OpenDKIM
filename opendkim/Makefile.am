@@ -80,3 +80,5 @@ man_MANS = opendkim.conf.5 opendkim-genkey.8 opendkim-testadsp.8 opendkim-testke
 if STATS
 man_MANS += opendkim-stats.8
 endif
+
+EXTRA_DIST = $(example_DATA) $(man_MANS) opendkim-stats.8
