@@ -5,5 +5,8 @@
 	- need "--with" for configure to specify lib/include location
 	- need "--enable" for configure to set the compile flag
 - add shared object support
+- test on more platforms
+	- Linux
+	- Solaris
 
-$Id: TODO,v 1.1 2009/07/22 18:39:04 cm-msk Exp $
+$Id: TODO,v 1.2 2009/07/22 18:39:35 cm-msk Exp $
