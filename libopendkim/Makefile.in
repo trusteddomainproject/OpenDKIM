@@ -37,9 +37,10 @@ POST_UNINSTALL = :
 @DKIM_REPUTATION_TRUE@am__append_3 = -D_FFR_DKIM_REPUTATION
 @DNS_UPGRADE_TRUE@am__append_4 = -D_FFR_DNS_UPGRADE
 @PARSE_TIME_TRUE@am__append_5 = -D_FFR_PARSE_TIME
-@STATS_TRUE@am__append_6 = -D_FFR_STATS
-@USE_ARLIB_TRUE@am__append_7 = -DUSE_ARLIB
-@VBR_TRUE@am__append_8 = -D_FFR_VBR
+@QUERY_CACHE_TRUE@am__append_6 = -DUSE_DB -DQUERY_CACHE
+@STATS_TRUE@am__append_7 = -D_FFR_STATS
+@USE_ARLIB_TRUE@am__append_8 = -DUSE_ARLIB
+@VBR_TRUE@am__append_9 = -D_FFR_VBR
 check_PROGRAMS = t-setup$(EXEEXT) t-test00$(EXEEXT) t-test01$(EXEEXT) \
 	t-test02$(EXEEXT) t-test03$(EXEEXT) t-test04$(EXEEXT) \
 	t-test05$(EXEEXT) t-test06$(EXEEXT) t-test07$(EXEEXT) \
@@ -115,6 +116,7 @@ am_libopendkim_a_OBJECTS = libopendkim_a-base64.$(OBJEXT) \
 	libopendkim_a-dkim-keys.$(OBJEXT) \
 	libopendkim_a-dkim-policy.$(OBJEXT) \
 	libopendkim_a-dkim-rep.$(OBJEXT) \
+	libopendkim_a-dkim-strl.$(OBJEXT) \
 	libopendkim_a-dkim-tables.$(OBJEXT) \
 	libopendkim_a-dkim-test.$(OBJEXT) \
 	libopendkim_a-dkim-ub.$(OBJEXT) \
@@ -973,10 +975,10 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LIBRARIES = libopendkim.a
-libopendkim_a_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c base64.h dkim-cache.h dkim-canon.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h vbr.h
+libopendkim_a_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c base64.h dkim-cache.h dkim-canon.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h vbr.h
 libopendkim_a_CFLAGS = $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
-	$(am__append_7) $(am__append_8)
+	$(am__append_7) $(am__append_8) $(am__append_9)
 libopendkimincludedir = $(includedir)/opendkim
 libopendkiminclude_HEADERS = dkim.h
 libopendkim_adir = $(datadir)/opendkim
@@ -1891,6 +1893,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-keys.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-policy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-rep.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-strl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-tables.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-ub.Po@am__quote@
@@ -2129,6 +2132,20 @@ libopendkim_a-dkim-rep.obj: dkim-rep.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-rep.c' object='libopendkim_a-dkim-rep.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-rep.obj `if test -f 'dkim-rep.c'; then $(CYGPATH_W) 'dkim-rep.c'; else $(CYGPATH_W) '$(srcdir)/dkim-rep.c'; fi`
+
+libopendkim_a-dkim-strl.o: dkim-strl.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-strl.o -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-strl.Tpo -c -o libopendkim_a-dkim-strl.o `test -f 'dkim-strl.c' || echo '$(srcdir)/'`dkim-strl.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-strl.Tpo $(DEPDIR)/libopendkim_a-dkim-strl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-strl.c' object='libopendkim_a-dkim-strl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-strl.o `test -f 'dkim-strl.c' || echo '$(srcdir)/'`dkim-strl.c
+
+libopendkim_a-dkim-strl.obj: dkim-strl.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-strl.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-strl.Tpo -c -o libopendkim_a-dkim-strl.obj `if test -f 'dkim-strl.c'; then $(CYGPATH_W) 'dkim-strl.c'; else $(CYGPATH_W) '$(srcdir)/dkim-strl.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-strl.Tpo $(DEPDIR)/libopendkim_a-dkim-strl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-strl.c' object='libopendkim_a-dkim-strl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-strl.obj `if test -f 'dkim-strl.c'; then $(CYGPATH_W) 'dkim-strl.c'; else $(CYGPATH_W) '$(srcdir)/dkim-strl.c'; fi`
 
 libopendkim_a-dkim-tables.o: dkim-tables.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-tables.o -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-tables.Tpo -c -o libopendkim_a-dkim-tables.o `test -f 'dkim-tables.c' || echo '$(srcdir)/'`dkim-tables.c
