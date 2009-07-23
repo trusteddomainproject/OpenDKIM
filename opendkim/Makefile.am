@@ -71,19 +71,19 @@ if STATS
 sbin_PROGRAMS += opendkim-stats
 opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c
 opendkim_stats_CPPFLAGS = -I../libopendkim -I../libar
-opendkim_stats_LDFLAGS = -L../libopendkim -L../libar
-opendkim_stats_LDADD = -lopendkim -lar
+opendkim_stats_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
+opendkim_stats_LDADD = -lopendkim -lar $(LIBUNBOUND_LIBS)
 endif
 
 opendkim_testkey_SOURCES = opendkim-testkey.c
 opendkim_testkey_CPPFLAGS = -I../libopendkim -I../libar
-opendkim_testkey_LDFLAGS = -L../libopendkim -L../libar
-opendkim_testkey_LDADD = -lopendkim -lar
+opendkim_testkey_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
+opendkim_testkey_LDADD = -lopendkim -lar $(LIBUNBOUND_LIBS)
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
 opendkim_testadsp_CPPFLAGS = -I../libopendkim -I../libar
-opendkim_testadsp_LDFLAGS = -L../libopendkim -L../libar
-opendkim_testadsp_LDADD = -lopendkim -lar
+opendkim_testadsp_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
+opendkim_testadsp_LDADD = -lopendkim -lar $(LIBUNBOUND_LIBS)
 
 man_MANS = opendkim.conf.5 opendkim-genkey.8 opendkim-testadsp.8 opendkim-testkey.8 opendkim.8
 if STATS
