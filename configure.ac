@@ -18,6 +18,7 @@ AC_PROG_RANLIB
 AC_SEARCH_LIBS(ERR_peek_error, crypto)
 AC_SEARCH_LIBS(SSL_library_init, ssl)
 AC_SEARCH_LIBS(smfi_getsymval, milter)
+AC_SEARCH_LIBS(res_mkquery, resolv)
 
 # Checks for header files.
 AC_HEADER_RESOLV
