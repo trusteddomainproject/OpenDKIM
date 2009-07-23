@@ -45,7 +45,7 @@ AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr mem
 # Libmilter
 AC_MSG_CHECKING(for milter library and includes)
 AC_ARG_WITH(milter,
-	AS_HELP_STRING(--with-milter, location of milter includes and library),
+	AS_HELP_STRING(--with-milter, location of milter includes and library (required)),
 	milterpath="$withval", milterpath="auto")
 milterdirs="/usr /usr/local"
 if test "$milterpath" = "auto"
@@ -78,6 +78,34 @@ LIBMILTER_LIBS="$milterpath/lib"
 AC_SUBST(LIBMILTER_INCLUDES)
 AC_SUBST(LIBMILTER_LIBS)
 AC_MSG_RESULT($milterpath)
+
+# Libunbound
+AC_MSG_CHECKING(for libunbound)
+AC_ARG_WITH(unbound,
+	AS_HELP_STRING(--with-unbound, location of Unbound includes and library),
+	unboundpath="$withval", unboundpath="no")
+if test x"$unboundpath" != x"no"
+then
+	if test -f $d/include/unbound.h
+	then
+		AC_MSG_RESULT(yes)
+		LIBUNBOUND_INCDIRS="-I$unboundpath/include"
+		LIBUNBOUND_LIBDIRS="-L$unboundpath/lib"
+		LIBUNBOUND_LIBS="-lunbound"
+	else
+		AC_MSG_ERROR(not found at $unboundpath)
+		LIBUNBOUND_INCDIRS=""
+		LIBUNBOUND_LIBDIRS=""
+		LIBUNBOUND_LIBS=""
+	fi
+else
+	AC_MSG_RESULT(no)
+fi
+
+AM_CONDITIONAL(USE_UNBOUND, test x"$unboundpath" != x"no")
+AC_SUBST(LIBUNBOUND_INCDIRS)
+AC_SUBST(LIBUNBOUND_LIBDIRS)
+AC_SUBST(LIBUNBOUND_LIBS)
 
 # Conditional stuff
 AC_ARG_ENABLE(arlib, AS_HELP_STRING(--enable-arlib, enable provided asynchronous resolver library))
