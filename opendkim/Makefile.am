@@ -12,9 +12,9 @@ example_DATA = opendkim.conf.sample
 
 opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h config.c config.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CFLAGS = 
-opendkim_CPPFLAGS = -I../libopendkim -I../libar
-opendkim_LDFLAGS = -L../libopendkim -L../libar
-opendkim_LDADD = -lopendkim -lar
+opendkim_CPPFLAGS = -I../libopendkim -I../libar -I$(LIBMILTER_INCLUDES)
+opendkim_LDFLAGS = -L../libopendkim -L../libar -L$(LIBMILTER_LIBS)
+opendkim_LDADD = -lopendkim -lar -lmilter
 if BODYLENGTH_DB
 opendkim_CFLAGS += -DUSE_DB -D_FFR_BODYLENGTH_DB
 endif
