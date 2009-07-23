@@ -8,7 +8,7 @@
 #ifdef _FFR_VBR
 
 #ifndef lint
-static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.3 2009/07/23 17:40:26 cm-msk Exp $";
+static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.4 2009/07/23 17:54:40 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -39,6 +39,7 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.3 2009/07/23 17:40:26 cm-msk Exp $"
 #ifdef _FFR_VBR
 # include "vbr.h"
 #endif /* _FFR_VBR */
+#include "dkim-strl.h"
 
 /* local definitions needed for DNS queries */
 #define MAXPACKET		8192

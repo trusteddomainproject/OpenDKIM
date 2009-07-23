@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.5 2009/07/23 17:40:23 cm-msk Exp $";
+static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.6 2009/07/23 17:54:40 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -41,6 +41,7 @@ static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.5 2009/07/23 17:40:
 #endif /* USE_UNBOUND */
 #include "dkim-test.h"
 #include "util.h"
+#include "dkim-strl.h"
 
 /* prototypes */
 extern void dkim_error __P((DKIM *, const char *, ...));

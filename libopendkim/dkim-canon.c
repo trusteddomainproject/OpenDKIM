@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.6 2009/07/23 17:40:23 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.7 2009/07/23 17:54:40 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -24,6 +24,7 @@ static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.6 2009/07/23 17:40:23
 #include "dkim-types.h"
 #include "dkim-canon.h"
 #include "dkim-util.h"
+#include "dkim-strl.h"
 #include "util.h"
 
 /* definitions */
