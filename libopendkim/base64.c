@@ -6,14 +6,14 @@
 */
 
 #ifndef lint
-static char base64_c_id[] = "@(#)$Id: base64.c,v 1.1 2009/07/16 19:12:03 cm-msk Exp $";
+static char base64_c_id[] = "@(#)$Id: base64.c,v 1.2 2009/07/23 17:40:23 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
 #include <assert.h>
 
-/* libdkim includes */
+/* libopendkim includes */
 #include "base64.h"
 
 /* base64 alphabet */

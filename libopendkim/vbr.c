@@ -8,7 +8,7 @@
 #ifdef _FFR_VBR
 
 #ifndef lint
-static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.2 2009/07/20 21:41:08 cm-msk Exp $";
+static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.3 2009/07/23 17:40:26 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -35,7 +35,7 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.2 2009/07/20 21:41:08 cm-msk Exp $"
 # include <ar.h>
 #endif /* USE_ARLIB */
 
-/* libdkim includes */
+/* libopendkim includes */
 #ifdef _FFR_VBR
 # include "vbr.h"
 #endif /* _FFR_VBR */

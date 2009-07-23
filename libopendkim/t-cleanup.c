@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_cleanup_c_id[] = "@(#)$Id: t-cleanup.c,v 1.2 2009/07/20 21:41:08 cm-msk Exp $";
+static char t_cleanup_c_id[] = "@(#)$Id: t-cleanup.c,v 1.3 2009/07/23 17:40:24 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -14,7 +14,7 @@ static char t_cleanup_c_id[] = "@(#)$Id: t-cleanup.c,v 1.2 2009/07/20 21:41:08 c
 #include <unistd.h>
 
 
-/* libdkim includes */
+/* libopendkim includes */
 #include "t-testdata.h"
 
 /*

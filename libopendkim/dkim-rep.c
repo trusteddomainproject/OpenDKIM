@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: dkim-rep.c,v 1.2 2009/07/20 21:41:08 cm-msk Exp $
+**  $Id: dkim-rep.c,v 1.3 2009/07/23 17:40:23 cm-msk Exp $
 */
 
 #ifndef lint
-static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.2 2009/07/20 21:41:08 cm-msk Exp $";
+static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.3 2009/07/23 17:40:23 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_DKIM_REPUTATION
@@ -34,7 +34,7 @@ static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.2 2009/07/20 21:41:08 cm-
 /* openssl includes */
 #include <openssl/md5.h>
 
-/* libdkim includes */
+/* libopendkim includes */
 #include "dkim.h"
 #include "dkim-types.h"
 

@@ -9,13 +9,13 @@
 #define _DKIM_UB_H_
 
 #ifndef lint
-static char dkim_ub_h_id[] = "@(#)$Id: dkim-ub.h,v 1.2 2009/07/20 21:41:08 cm-msk Exp $";
+static char dkim_ub_h_id[] = "@(#)$Id: dkim-ub.h,v 1.3 2009/07/23 17:40:24 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
 
-/* libdkim includes */
+/* libopendkim includes */
 #include "dkim-types.h"
 
 /* prototypes */

@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_tables_c_id[] = "@(#)$Id: dkim-tables.c,v 1.2 2009/07/20 18:52:39 cm-msk Exp $";
+static char dkim_tables_c_id[] = "@(#)$Id: dkim-tables.c,v 1.3 2009/07/23 17:40:24 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -14,7 +14,7 @@ static char dkim_tables_c_id[] = "@(#)$Id: dkim-tables.c,v 1.2 2009/07/20 18:52:
 #include <string.h>
 #include <assert.h>
 
-/* libdkim includes */
+/* libopendkim includes */
 #include "dkim-tables.h"
 #include "dkim.h"
 

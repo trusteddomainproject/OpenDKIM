@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.3 2009/07/21 23:36:39 cm-msk Exp $";
+static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.4 2009/07/23 17:40:24 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -19,7 +19,7 @@ static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.3 2009/07/21 23:36:39 c
 #include <string.h>
 #include <errno.h>
 
-/* libdkim includes */
+/* libopendkim includes */
 #include "dkim.h"
 #include "dkim-types.h"
 #include "dkim-util.h"

@@ -9,7 +9,7 @@
 #define _DKIM_UTIL_H_
 
 #ifndef lint
-static char dkim_util_h_id[] = "@(#)$Id: dkim-util.h,v 1.3 2009/07/21 23:36:39 cm-msk Exp $";
+static char dkim_util_h_id[] = "@(#)$Id: dkim-util.h,v 1.4 2009/07/23 17:40:24 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -17,7 +17,7 @@ static char dkim_util_h_id[] = "@(#)$Id: dkim-util.h,v 1.3 2009/07/21 23:36:39 c
 #include <sys/param.h>
 #include <stdbool.h>
 
-/* libdkim includes */
+/* libopendkim includes */
 #include "dkim.h"
 
 /* macros */

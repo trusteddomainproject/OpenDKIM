@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_ub_c_id[] = "@(#)$Id: dkim-ub.c,v 1.1 2009/07/16 19:12:04 cm-msk Exp $";
+static char dkim_ub_c_id[] = "@(#)$Id: dkim-ub.c,v 1.2 2009/07/23 17:40:24 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef USE_UNBOUND
@@ -18,7 +18,7 @@ static char dkim_ub_c_id[] = "@(#)$Id: dkim-ub.c,v 1.1 2009/07/16 19:12:04 cm-ms
 #include <assert.h>
 #include <pthread.h>
 
-/* libdkim includes */
+/* libopendkim includes */
 #include "dkim-types.h"
 #include "util.h"
 

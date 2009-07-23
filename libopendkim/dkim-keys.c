@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.3 2009/07/20 21:41:08 cm-msk Exp $";
+static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.4 2009/07/23 17:40:23 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -28,7 +28,7 @@ static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.3 2009/07/20 21:41:08 c
 # include <ar.h>
 #endif /* USE_ARLIB */
 
-/* libdkim includes */
+/* libopendkim includes */
 #include "dkim-types.h"
 #include "dkim-keys.h"
 #include "dkim-cache.h"
@@ -508,7 +508,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 ** 
 **  		<selector>._domainkey.<domain> <space> key-data
 **
-**  	Case matching on the left is case-sensitive, but libdkim already
+**  	Case matching on the left is case-sensitive, but libopendkim already
 **  	wraps the domain name to lowercase.
 */
 
