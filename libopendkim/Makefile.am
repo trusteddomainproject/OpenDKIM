@@ -1,5 +1,5 @@
 lib_LIBRARIES = libopendkim.a
-libopendkim_a_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c base64.h dkim-cache.h dkim-canon.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h vbr.h
+libopendkim_a_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c base64.h dkim-cache.h dkim-canon.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h vbr.h
 libopendkim_a_CFLAGS = 
 libopendkimincludedir = $(includedir)/opendkim
 libopendkiminclude_HEADERS = dkim.h
@@ -58,6 +58,10 @@ endif
 
 if PARSE_TIME
 libopendkim_a_CFLAGS += -D_FFR_PARSE_TIME
+endif
+
+if QUERY_CACHE
+libopendkim_a_CFLAGS += -DUSE_DB -DQUERY_CACHE
 endif
 
 if STATS
