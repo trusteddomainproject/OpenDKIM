@@ -22,7 +22,7 @@ AC_SEARCH_LIBS(res_mkquery, resolv)
 
 # Checks for header files.
 AC_HEADER_RESOLV
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h netdb.h netinet/in.h paths.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h libmilter/mfapi.h], , AC_MSG_ERROR(required header file missing))
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h netdb.h netinet/in.h paths.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h], , AC_MSG_ERROR(required header file missing))
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -43,19 +43,41 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strtol strtoul strtoull strlcpy strlcat])
 
 # Libmilter
+AC_MSG_CHECKING(for milter library and includes)
 AC_ARG_WITH(milter,
 	AS_HELP_STRING(--with-milter, location of milter includes and library),
-	[],
-	[with_milter=/usr/local])
-AS_IF([test "x$with_milter" != x],
-LIBMILTER_INCLUDES=/usr/local/include
-LIBMILTER_LIBS=/usr/local/lib
-,
-LIBMILTER_INCLUDES=$(with_milter)/include
-LIBMILTER_LIBS=$(with_milter)/lib
-)
+	milterpath="$withval", milterpath="auto")
+milterdirs="/usr /usr/local"
+if test "$milterpath" = "auto"
+then
+	for d in $milterdirs
+	do
+		if test -f $d/include/libmilter/mfapi.h
+		then
+			milterpath=$d
+			break
+		fi
+	done
+fi
+case "$milterpath" in
+	no)
+		AC_MSG_ERROR(milter is required)
+		;;
+	auto)
+		AC_MSG_ERROR(milter not found)
+		;;
+	*/*)
+		;;
+	*)
+		AC_MSG_ERROR(milter not found)
+		;;
+esac
+
+LIBMILTER_INCLUDES="$milterpath/include"
+LIBMILTER_LIBS="$milterpath/lib"
 AC_SUBST(LIBMILTER_INCLUDES)
 AC_SUBST(LIBMILTER_LIBS)
+AC_MSG_RESULT($milterpath)
 
 # Conditional stuff
 AC_ARG_ENABLE(arlib, AS_HELP_STRING(--enable-arlib, enable provided asynchronous resolver library))
