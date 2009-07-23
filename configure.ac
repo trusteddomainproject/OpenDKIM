@@ -70,6 +70,9 @@ AM_CONDITIONAL(MULTIPLE_SIGNATURES, test "$enable_multiplesigs" = yes)
 AC_ARG_ENABLE(parsetime, AS_HELP_STRING(--enable-parsetime, parse From: headers for sending times))
 AM_CONDITIONAL(PARSE_TIME, test "$enable_parsetime" = yes)
 
+AC_ARG_ENABLE(querycache, AS_HELP_STRING(--enable-querycache, local key/policy caching))
+AM_CONDITIONAL(QUERY_CACHE, test "$enable_querycache" = yes)
+
 AC_ARG_ENABLE(replacerules, AS_HELP_STRING(--enable-replacerules, support for string substitution when signing))
 AM_CONDITIONAL(REPLACE_RULES, test "$enable_replacerules" = yes)
 
