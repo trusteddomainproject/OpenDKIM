@@ -84,22 +84,38 @@ AC_MSG_CHECKING(for libunbound)
 AC_ARG_WITH(unbound,
 	AS_HELP_STRING(--with-unbound, location of Unbound includes and library),
 	unboundpath="$withval", unboundpath="no")
-if test x"$unboundpath" != x"no"
+
+if test x"$unboundpath" = x"yes"
 then
-	if test -f $d/include/unbound.h
+	unbounddirs="/usr /usr/local"
+	for d in $unbounddirs
+	do
+		if test -f $d/include/unbound.h
+		then
+			unboundpath=$d
+			AC_MSG_RESULT($d)
+			LIBUNBOUND_INCDIRS="-I$unboundpath/include"
+			LIBUNBOUND_LIBDIRS="-L$unboundpath/lib"
+			LIBUNBOUND_LIBS="-lunbound"
+			break;
+		fi
+	done
+elif test x"$unboundpath" = x"no"
+then
+	AC_MSG_RESULT(no)
+	LIBUNBOUND_INCDIRS=""
+	LIBUNBOUND_LIBDIRS=""
+	LIBUNBOUND_LIBS=""
+else
+	if test -f $unboundpath/include/unbound.h
 	then
-		AC_MSG_RESULT(yes)
+		AC_MSG_RESULT($unboundpath)
 		LIBUNBOUND_INCDIRS="-I$unboundpath/include"
 		LIBUNBOUND_LIBDIRS="-L$unboundpath/lib"
 		LIBUNBOUND_LIBS="-lunbound"
 	else
 		AC_MSG_ERROR(not found at $unboundpath)
-		LIBUNBOUND_INCDIRS=""
-		LIBUNBOUND_LIBDIRS=""
-		LIBUNBOUND_LIBS=""
 	fi
-else
-	AC_MSG_RESULT(no)
 fi
 
 AM_CONDITIONAL(USE_UNBOUND, test x"$unboundpath" != x"no")
