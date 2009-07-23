@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-testadsp.c,v 1.3 2009/07/20 22:59:33 cm-msk Exp $
+**  $Id: opendkim-testadsp.c,v 1.4 2009/07/23 18:08:41 cm-msk Exp $
 */
 
 #ifndef lint
-static char dkim_testssp_c[] = "@(#)$Id: opendkim-testadsp.c,v 1.3 2009/07/20 22:59:33 cm-msk Exp $";
+static char dkim_testssp_c[] = "@(#)$Id: opendkim-testadsp.c,v 1.4 2009/07/23 18:08:41 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -21,7 +21,7 @@ static char dkim_testssp_c[] = "@(#)$Id: opendkim-testadsp.c,v 1.3 2009/07/20 22
 #include <sysexits.h>
 #include <string.h>
 
-/* libdkim includes */
+/* libopendkim includes */
 #include <dkim.h>
 #include <dkim-test.h>
 

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.4 2009/07/21 23:36:39 cm-msk Exp $
+**  $Id: opendkim.c,v 1.5 2009/07/23 18:08:41 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.4 2009/07/21 23:36:39 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.5 2009/07/23 18:08:41 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -63,7 +63,7 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.4 2009/07/21 23:36:39 cm-
 #include "libmilter/mfapi.h"
 
 /* libopendkim includes */
-#include <opendkim.h>
+#include <dkim.h>
 #ifdef _FFR_VBR
 # include <vbr.h>
 #endif /* _FFR_VBR */
@@ -278,7 +278,7 @@ struct dkimf_config
 	Peer		conf_peerlist;		/* queue of "peers" */
 	Peer		conf_internal;		/* queue of "internal" hosts */
 	Peer		conf_exignore;		/* "external ignore" hosts */
-	DKIM_LIB *	conf_libdkim;		/* DKIM library handle */
+	DKIM_LIB *	conf_libopendkim;	/* DKIM library handle */
 	struct handling	conf_handling;		/* message handling */
 };
 
@@ -1861,8 +1861,8 @@ dkimf_config_free(struct dkimf_config *conf)
 
 	dkimf_zapkey(conf);
 
-	if (conf->conf_libdkim != NULL)
-		dkim_close(conf->conf_libdkim);
+	if (conf->conf_libopendkim != NULL)
+		dkim_close(conf->conf_libopendkim);
 
 	if (conf->conf_domains != NULL)
 		free(conf->conf_domains);
@@ -3721,14 +3721,14 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	DKIM_LIB *lib;
 	assert(conf != NULL);
 
-	lib = conf->conf_libdkim;
+	lib = conf->conf_libopendkim;
 	if (lib == NULL)
 	{
 		lib = dkim_init(NULL, NULL);
 		if (lib == NULL)
 			return FALSE;
 
-		conf->conf_libdkim = lib;
+		conf->conf_libopendkim = lib;
 	}
 
 	(void) dkim_options(lib, DKIM_OP_GETOPT, DKIM_OPTS_FLAGS,
@@ -3792,7 +3792,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	{
 		u_int opts;
 
-		status = dkim_options(conf->conf_libdkim, DKIM_OP_GETOPT,
+		status = dkim_options(conf->conf_libopendkim, DKIM_OP_GETOPT,
 		                      DKIM_OPTS_FLAGS, &opts, sizeof opts);
 
 		if (status != DKIM_STAT_OK)
@@ -3809,7 +3809,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		if (conf->conf_fixcrlf)
 			opts |= DKIM_LIBFLAGS_FIXCRLF;
 
-		status = dkim_options(conf->conf_libdkim, DKIM_OP_SETOPT,
+		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_FLAGS, &opts, sizeof opts);
 
 		if (status != DKIM_STAT_OK)
@@ -3818,7 +3818,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 
 	if (conf->conf_alwayshdrs != NULL)
 	{
-		status = dkim_options(conf->conf_libdkim, DKIM_OP_SETOPT,
+		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_ALWAYSHDRS,
 		                      conf->conf_alwayshdrs,
 		                      sizeof conf->conf_alwayshdrs);
@@ -3829,7 +3829,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 
 	if (conf->conf_mbs != NULL)
 	{
-		status = dkim_options(conf->conf_libdkim, DKIM_OP_SETOPT,
+		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_MUSTBESIGNED,
 		                      conf->conf_mbs, sizeof conf->conf_mbs);
 
@@ -3839,7 +3839,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 
 	if (conf->conf_omithdrs != NULL)
 	{
-		status = dkim_options(conf->conf_libdkim, DKIM_OP_SETOPT,
+		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SKIPHDRS,
 		                      conf->conf_omithdrs,
 		                      sizeof conf->conf_omithdrs);
@@ -3849,7 +3849,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	}
 	else
 	{
-		status = dkim_options(conf->conf_libdkim, DKIM_OP_SETOPT,
+		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SKIPHDRS,
 		                      (void *) should_not_signhdrs,
 		                      sizeof (u_char **));
@@ -3860,7 +3860,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 
 	if (conf->conf_signhdrs != NULL)
 	{
-		status = dkim_options(conf->conf_libdkim, DKIM_OP_SETOPT,
+		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SIGNHDRS, conf->conf_signhdrs,
 		                      sizeof conf->conf_signhdrs);
 
@@ -3869,7 +3869,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	}
 	else
 	{
-		status = dkim_options(conf->conf_libdkim, DKIM_OP_SETOPT,
+		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SIGNHDRS,
 		                      (void *) should_signhdrs,
 		                      sizeof (u_char **));
@@ -3878,7 +3878,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 			return FALSE;
 	}
 
-	status = dkim_options(conf->conf_libdkim, DKIM_OP_SETOPT,
+	status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 	                      DKIM_OPTS_TMPDIR,
 	                      (void *) conf->conf_tmpdir,
 	                      sizeof conf->conf_tmpdir);
@@ -3888,14 +3888,14 @@ dkimf_config_setlib(struct dkimf_config *conf)
 
 	if (conf->conf_thirdparty != NULL)
 	{
-		status = dkim_set_prescreen(conf->conf_libdkim,
+		status = dkim_set_prescreen(conf->conf_libopendkim,
 		                            dkimf_prescreen);
 		if (status != DKIM_STAT_OK)
 			return FALSE;
 	}
 	else
 	{
-		status = dkim_set_prescreen(conf->conf_libdkim, NULL);
+		status = dkim_set_prescreen(conf->conf_libopendkim, NULL);
 		if (status != DKIM_STAT_OK)
 			return FALSE;
 	}
@@ -4346,7 +4346,7 @@ dkimf_cleanup(SMFICTX *ctx)
 }
 
 /*
-**  DKIMF_LIBSTATUS -- process a final status returned from libdkim
+**  DKIMF_LIBSTATUS -- process a final status returned from libopendkim
 **
 **  Parameters:
 **  	ctx -- milter context
@@ -4398,7 +4398,7 @@ dkimf_libstatus(SMFICTX *ctx, char *where, int status)
 				err = strerror(errno);
 
 			syslog(LOG_ERR,
-			       "%s: %s%sinternal error from libdkim: %s",
+			       "%s: %s%sinternal error from libopendkim: %s",
 			       JOBID(dfc->mctx_jobid),
 			       where == NULL ? "" : where,
 			       where == NULL ? "" : ": ", err);
@@ -6715,7 +6715,7 @@ mlfi_eoh(SMFICTX *ctx)
 	/* grab an appropriate handle for message processing */
 	if (!dfc->mctx_signing)
 	{
-		dfc->mctx_dkim = dkim_verify(conf->conf_libdkim,
+		dfc->mctx_dkim = dkim_verify(conf->conf_libopendkim,
 		                             dfc->mctx_jobid, NULL,
 		                             &status);
 	}
@@ -6732,7 +6732,7 @@ mlfi_eoh(SMFICTX *ctx)
 			else
 				sdomain = dfc->mctx_domain;
 
-			sr->srq_dkim = dkim_sign(conf->conf_libdkim,
+			sr->srq_dkim = dkim_sign(conf->conf_libopendkim,
 			                         dfc->mctx_jobid, NULL,
 			                         (dkim_sigkey_t) sr->srq_key->key_data,
 			                         sr->srq_key->key_selector,
@@ -6773,7 +6773,7 @@ mlfi_eoh(SMFICTX *ctx)
 		else
 			sdomain = dfc->mctx_domain;
 
-		dfc->mctx_dkim = dkim_sign(conf->conf_libdkim,
+		dfc->mctx_dkim = dkim_sign(conf->conf_libopendkim,
 		                           dfc->mctx_jobid, NULL,
 		                           (dkim_sigkey_t) dfc->mctx_key->key_data,
 		                           dfc->mctx_key->key_selector,
@@ -6785,7 +6785,7 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 	else
 	{
-		dfc->mctx_dkim = dkim_sign(conf->conf_libdkim,
+		dfc->mctx_dkim = dkim_sign(conf->conf_libopendkim,
 		                           dfc->mctx_jobid, NULL,
 		                           conf->conf_seckey,
 		                           conf->conf_selector,
@@ -7065,7 +7065,7 @@ mlfi_eoh(SMFICTX *ctx)
 	if (ms != SMFIS_CONTINUE)
 		return ms;
 
-	/* signal end of headers to libdkim */
+	/* signal end of headers to libopendkim */
 #ifdef _FFR_MULTIPLE_SIGNATURES
 	if (dfc->mctx_signing && dfc->mctx_srhead != NULL)
 	{
@@ -10135,10 +10135,10 @@ main(int argc, char **argv)
 	{
 		dkim_query_t qtype = DKIM_QUERY_FILE;
 
-		(void) dkim_options(curconf->conf_libdkim, DKIM_OP_SETOPT,
+		(void) dkim_options(curconf->conf_libopendkim, DKIM_OP_SETOPT,
 		                    DKIM_OPTS_QUERYMETHOD,
 		                    &qtype, sizeof qtype);
-		(void) dkim_options(curconf->conf_libdkim, DKIM_OP_SETOPT,
+		(void) dkim_options(curconf->conf_libopendkim, DKIM_OP_SETOPT,
 		                    DKIM_OPTS_QUERYINFO,
 		                    testpubkeys, strlen(testpubkeys));
 	}
@@ -10242,9 +10242,9 @@ main(int argc, char **argv)
 	/* perform test mode */
 	if (testfile != NULL)
 	{
-		status = dkimf_testfile(curconf->conf_libdkim, testfile,
+		status = dkimf_testfile(curconf->conf_libopendkim, testfile,
 		                        fixedtime, stricttest, verbose);
-		dkim_close(curconf->conf_libdkim);
+		dkim_close(curconf->conf_libopendkim);
 		return status;
 	}
 

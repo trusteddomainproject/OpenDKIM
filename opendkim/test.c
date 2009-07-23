@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $
+**  $Id: test.c,v 1.3 2009/07/23 18:08:41 cm-msk Exp $
 */
 
 #ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp $";
+static char test_c_id[] = "@(#)$Id: test.c,v 1.3 2009/07/23 18:08:41 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -23,7 +23,7 @@ static char test_c_id[] = "@(#)$Id: test.c,v 1.2 2009/07/20 21:28:19 cm-msk Exp 
 #include <time.h>
 #include <assert.h>
 
-/* libdkim includes */
+/* libopendkim includes */
 #include <dkim.h>
 
 /* libmilter includes */
@@ -208,7 +208,7 @@ dkimf_test_getsymval(void *ctx, char *sym)
 **  DKIMF_TESTFILE -- read a message and test it
 **
 **  Parameters:
-**  	libdkim -- DKIM_LIB handle
+**  	libopendkim -- DKIM_LIB handle
 **  	file -- input file path
 **  	fixedtime -- time to use on signatures (or -1)
 **  	strict -- strict CRLF mode?
@@ -218,8 +218,8 @@ dkimf_test_getsymval(void *ctx, char *sym)
 */
 
 int
-dkimf_testfile(DKIM_LIB *libdkim, char *file, time_t fixedtime, bool strict,
-               int verbose)
+dkimf_testfile(DKIM_LIB *libopendkim, char *file, time_t fixedtime,
+               bool strict, int verbose)
 {
 	char buf[MAXBUFRSZ];
 	char line[MAXBUFRSZ];
@@ -236,7 +236,7 @@ dkimf_testfile(DKIM_LIB *libdkim, char *file, time_t fixedtime, bool strict,
 	bool inheaders = TRUE;
 	struct sockaddr_in sin;
 
-	assert(libdkim != NULL);
+	assert(libopendkim != NULL);
 	assert(file != NULL);
 
 	tverbose = verbose;
@@ -244,7 +244,7 @@ dkimf_testfile(DKIM_LIB *libdkim, char *file, time_t fixedtime, bool strict,
 	/* pass fixed signing time to the library */
 	if (fixedtime != (time_t) -1)
 	{
-		(void) dkim_options(libdkim, DKIM_OP_SETOPT,
+		(void) dkim_options(libopendkim, DKIM_OP_SETOPT,
 		                    DKIM_OPTS_FIXEDTIME,
 		                    &fixedtime, sizeof fixedtime);
 	}
