@@ -151,6 +151,8 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
+LIBMILTER_INCLUDES = @LIBMILTER_INCLUDES@
+LIBMILTER_LIBS = @LIBMILTER_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LTLIBOBJS = @LTLIBOBJS@
@@ -225,9 +227,9 @@ opendkim_CFLAGS = $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_10) $(am__append_11) $(am__append_12) \
 	$(am__append_13) $(am__append_14) $(am__append_15) \
 	$(am__append_16)
-opendkim_CPPFLAGS = -I../libopendkim -I../libar
-opendkim_LDFLAGS = -L../libopendkim -L../libar
-opendkim_LDADD = -lopendkim -lar
+opendkim_CPPFLAGS = -I../libopendkim -I../libar -I$(LIBMILTER_INCLUDES)
+opendkim_LDFLAGS = -L../libopendkim -L../libar -L$(LIBMILTER_LIBS)
+opendkim_LDADD = -lopendkim -lar -lmilter
 @STATS_TRUE@opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c
 @STATS_TRUE@opendkim_stats_CPPFLAGS = -I../libopendkim -I../libar
 @STATS_TRUE@opendkim_stats_LDFLAGS = -L../libopendkim -L../libar
