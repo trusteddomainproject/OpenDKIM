@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.7 2009/07/24 18:58:37 cm-msk Exp $
+**  $Id: opendkim.c,v 1.8 2009/07/24 19:44:29 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.7 2009/07/24 18:58:37 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.8 2009/07/24 19:44:29 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -8814,6 +8814,10 @@ mlfi_eom(SMFICTX *ctx)
 
 	  case DKIMF_STATUS_BAD:
 		ret = dkimf_libstatus(ctx, "mlfi_eom()", DKIM_STAT_BADSIG);
+		if ((ret == SMFIS_REJECT || ret == SMFIS_TEMPFAIL ||
+		     ret == SMFIS_DISCARD) &&
+		    testkey)
+			ret = SMFIS_ACCEPT;
 		break;
 
 	  case DKIMF_STATUS_NOKEY:
