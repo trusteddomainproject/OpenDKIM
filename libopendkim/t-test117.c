@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test117_c_id[] = "@(#)$Id: t-test117.c,v 1.3 2009/07/23 17:40:24 cm-msk Exp $";
+static char t_test117_c_id[] = "@(#)$Id: t-test117.c,v 1.4 2009/07/24 19:37:05 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -14,7 +14,7 @@ static char t_test117_c_id[] = "@(#)$Id: t-test117.c,v 1.3 2009/07/23 17:40:24 c
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
-
+#include <stdlib.h>
 
 /* libopendkim includes */
 #include "dkim.h"
@@ -58,6 +58,7 @@ main(int argc, char **argv)
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
 	char path[MAXPATHLEN + 1];
+	char *td = NULL;
 
 	printf("*** general utility functions\n");
 
@@ -81,7 +82,10 @@ main(int argc, char **argv)
 	status = dkim_options(lib, DKIM_OP_GETOPT, DKIM_OPTS_TMPDIR,
 	                      path, sizeof path);
 	assert(status == DKIM_STAT_OK);
-	assert(strcmp(path, DEFTMPDIR) == 0);
+	td = getenv("DKIM_TMPDIR");
+	if (td == NULL || td[0] == '\0')
+		td = DEFTMPDIR;
+	assert(strcmp(path, td) == 0);
 
 	fixed_time = 1172620939;
 	status = dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FIXEDTIME,
