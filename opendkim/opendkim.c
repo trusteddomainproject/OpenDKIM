@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.6 2009/07/23 22:38:37 cm-msk Exp $
+**  $Id: opendkim.c,v 1.7 2009/07/24 18:58:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.6 2009/07/23 22:38:37 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.7 2009/07/24 18:58:37 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -9000,9 +9000,7 @@ usage(void)
 	                "\t-M macrolist\tMTA macros which enable signing\n"
 			"\t-o hdrlist  \tlist of headers to omit from signing\n"
 	                "\t-P pidfile  \tfile to which to write pid\n"
-#if _FFR_REQUIRE_HEADERS
 	                "\t-r          \trequire basic RFC2822 header compliance\n"
-#endif /* _FFR_REQUIRE_HEADERS */
 	                "\t-R          \tgenerate verification failure reports\n"
 	                "\t-s selector \tselector to use when signing\n"
 	                "\t-S signalg  \tsignature algorithm to use when signing\n"
