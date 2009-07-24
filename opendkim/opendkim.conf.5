@@ -628,14 +628,11 @@ reproduce the problem.
 .TP
 .I SignatureAlgorithm (string)
 Selects the signing algorithm to use when generating signatures.
-If the filter was compiled against version 0.9.8 or later of
-.B OpenSSL
-then both
-.I rsa-sha1
-and 
+Use 'dkim-filter -V' to see the list of supported algorithms.
+The default is
 .I rsa-sha256
-are available and the latter is the default.  Otherwise, only the former
-is available and it is (obviously) the default.
+if it is available, otherwise it will be
+.I rsa-sha1.
 
 .TP
 .I SignatureTTL (integer)
