@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test100_c_id[] = "@(#)$Id: t-test100.c,v 1.3 2009/07/23 17:40:24 cm-msk Exp $";
+static char t_test100_c_id[] = "@(#)$Id: t-test100.c,v 1.4 2009/07/24 19:26:25 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -14,7 +14,7 @@ static char t_test100_c_id[] = "@(#)$Id: t-test100.c,v 1.3 2009/07/23 17:40:24 c
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
-
+#include <limits.h>
 
 /* libopendkim includes */
 #include "dkim.h"
