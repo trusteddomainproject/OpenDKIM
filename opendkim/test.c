@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.c,v 1.4 2009/07/23 22:38:37 cm-msk Exp $
+**  $Id: test.c,v 1.5 2009/07/24 23:21:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.4 2009/07/23 22:38:37 cm-msk Exp $";
+static char test_c_id[] = "@(#)$Id: test.c,v 1.5 2009/07/24 23:21:27 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -213,6 +213,7 @@ dkimf_test_getsymval(void *ctx, char *sym)
 **  	file -- input file path
 **  	fixedtime -- time to use on signatures (or -1)
 **  	strict -- strict CRLF mode?
+**  	verbose -- verbose level
 **
 **  Return value:
 **  	An EX_* constant (see sysexits.h)
