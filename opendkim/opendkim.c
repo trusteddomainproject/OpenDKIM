@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.8 2009/07/24 19:44:29 cm-msk Exp $
+**  $Id: opendkim.c,v 1.9 2009/07/26 16:35:36 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.8 2009/07/24 19:44:29 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.9 2009/07/26 16:35:36 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -525,16 +525,6 @@ struct lookup dkimf_policyactions[] =
 	{ NULL,			-1 },
 };
 #endif /* USE_UNBOUND */
-
-/* sender headers, in order */
-char *senderhdr[] =
-{
-	"Resent-Sender",
-	"Resent-From",
-	"Sender",
-	"From"
-};
-#define	NSENDERHDRS	4
 
 /* default internal list */
 char *defilist[] =
