@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.9 2009/07/26 16:35:36 cm-msk Exp $
+**  $Id: opendkim.c,v 1.10 2009/07/27 16:36:17 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.9 2009/07/26 16:35:36 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.10 2009/07/27 16:36:17 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1872,7 +1872,7 @@ dkimf_config_free(struct dkimf_config *conf)
 
 #ifdef _FFR_SENDER_HEADERS
 	if (conf->conf_senderhdrs != NULL &&
-	    conf->conf_senderhdrs != default_senderhdrs)
+	    conf->conf_senderhdrs != (char **) default_senderhdrs)
 		free(conf->conf_senderhdrs);
 #endif /* _FFR_SENDER_HEADERS */
 
@@ -3868,6 +3868,29 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		if (status != DKIM_STAT_OK)
 			return FALSE;
 	}
+
+#ifdef _FFR_SENDER_HEADERS
+	if (conf->conf_senderhdrs != NULL)
+	{
+		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
+		                      DKIM_OPTS_SENDERHDRS,
+		                      conf->conf_senderhdrs,
+		                      sizeof conf->conf_senderhdrs);
+
+		if (status != DKIM_STAT_OK)
+			return FALSE;
+	}
+	else
+	{
+		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
+		                      DKIM_OPTS_SENDERHDRS,
+		                      (void *) default_senderhdrs,
+		                      sizeof (u_char **));
+
+		if (status != DKIM_STAT_OK)
+			return FALSE;
+	}
+#endif /* _FFR_SENDER_HEADERS */
 
 	status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 	                      DKIM_OPTS_TMPDIR,
