@@ -12,12 +12,14 @@ example_DATA = opendkim.conf.sample
 
 opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h config.c config.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CFLAGS = 
-opendkim_CPPFLAGS = -I../libopendkim -I../libar -I$(LIBMILTER_INCLUDES)
+opendkim_CPPFLAGS = -I../libopendkim -I../libar
 opendkim_LDFLAGS = -L../libopendkim -L../libar -L$(LIBMILTER_LIBS) $(LIBUNBOUND_LIBDIRS)
 opendkim_LDADD = -lopendkim -lar -lmilter $(LIBUNBOUND_LIBS)
 if BODYLENGTH_DB
 opendkim_CFLAGS += -DUSE_DB -D_FFR_BODYLENGTH_DB
 opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
+opendkim_LDFLAGS += $(LIBDB_LIBDIRS)
+opendkim_LDADD += $(LIBDB_LIBS)
 endif
 if CAPTURE_UNKNOWN_ERRORS
 opendkim_CFLAGS += -D_FFR_CAPTURE_UNKNOWN_ERRORS
@@ -43,6 +45,8 @@ endif
 if QUERY_CACHE
 opendkim_CFLAGS += -DUSE_DB -DQUERY_CACHE
 opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
+opendkim_LDFLAGS += $(LIBDB_LIBDIRS)
+opendkim_LDADD += $(LIBDB_LIBS)
 endif
 if REPLACE_RULES
 opendkim_CFLAGS += -D_FFR_REPLACE_RULES
@@ -59,6 +63,8 @@ endif
 if STATS
 opendkim_CFLAGS += -DUSE_DB -D_FFR_STATS
 opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
+opendkim_LDFLAGS += $(LIBDB_LIBDIRS)
+opendkim_LDADD += $(LIBDB_LIBS)
 endif
 if USE_ARLIB
 opendkim_CFLAGS += -DUSE_ARLIB
@@ -72,6 +78,8 @@ endif
 if ZTAGS
 opendkim_CFLAGS += -D_FFR_ZTAGS
 endif
+
+opendkim_CPPFLAGS += -I$(LIBMILTER_INCLUDES)
 
 if STATS
 sbin_PROGRAMS += opendkim-stats
