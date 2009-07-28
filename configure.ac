@@ -134,7 +134,7 @@ then
 	bdbdirs="/usr /usr/local /usr/local/BerkeleyDB"
 	for d in $bdbdirs
 	do
-		if test -f $d/include/db.h
+		if test -f $d/include/db.h -a -f $d/lib/libdb.a
 		then
 			bdb=$d
 			AC_MSG_RESULT($d)
@@ -151,7 +151,7 @@ then
 	LIBDB_LIBDIRS=""
 	LIBDB_LIBS=""
 else
-	if test -f $bdb/include/db.h
+	if test -f $d/include/db.h -a -f $d/lib/libdb.a
 	then
 		AC_MSG_RESULT($bdb)
 		LIBDB_INCDIRS="-I$bdb/include"
