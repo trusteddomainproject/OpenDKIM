@@ -1,13 +1,13 @@
-lib_LIBRARIES = libopendkim.a
-libopendkim_a_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c base64.h dkim-cache.h dkim-canon.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h vbr.h
-libopendkim_a_CFLAGS = $(LIBUNBOUND_INCDIRS)
+lib_LTLIBRARIES = libopendkim.la
+libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c base64.h dkim-cache.h dkim-canon.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h vbr.h
+libopendkIm_la_CFLAGS = $(LIBUNBOUND_INCDIRS)
 if DEBUG
-libopendkim_a_CFLAGS += -g
+libopendkIm_la_CFLAGS += -g
 endif
 libopendkimincludedir = $(includedir)/opendkim
 libopendkiminclude_HEADERS = dkim.h
-libopendkim_adir = $(datadir)/opendkim
-libopendkim_a_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
+libopendkIm_ladir = $(datadir)/opendkim
+libopendkIm_la_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
 	docs/dkim_canon_t.html docs/dkim_cbstat.html docs/dkim_chunk.html \
 	docs/dkim_close.html docs/dkim_dnssec.html docs/dkim_eoh.html \
 	docs/dkim_eom.html docs/dkim_flush_cache.html docs/dkim_free.html \
@@ -44,43 +44,43 @@ libopendkim_a_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
 	docs/index.html docs/overview.html docs/rfc2822_mailbox_split.html
 
 if BODYLENGTH_DB
-libopendkim_a_CFLAGS += -D_FFR_BODYLENGTH_DB
+libopendkIm_la_CFLAGS += -D_FFR_BODYLENGTH_DB
 endif
 
 if DIFFHEADERS
-libopendkim_a_CFLAGS += -D_FFR_DIFFHEADERS
+libopendkIm_la_CFLAGS += -D_FFR_DIFFHEADERS
 endif
 
 if DKIM_REPUTATION
-libopendkim_a_CFLAGS += -D_FFR_DKIM_REPUTATION
+libopendkIm_la_CFLAGS += -D_FFR_DKIM_REPUTATION
 endif
 
 if DNS_UPGRADE
-libopendkim_a_CFLAGS += -D_FFR_DNS_UPGRADE
+libopendkIm_la_CFLAGS += -D_FFR_DNS_UPGRADE
 endif
 
 if PARSE_TIME
-libopendkim_a_CFLAGS += -D_FFR_PARSE_TIME
+libopendkIm_la_CFLAGS += -D_FFR_PARSE_TIME
 endif
 
 if QUERY_CACHE
-libopendkim_a_CFLAGS += -DUSE_DB -I$(LIBDB_INCDIRS) -DQUERY_CACHE
+libopendkIm_la_CFLAGS += -DUSE_DB -I$(LIBDB_INCDIRS) -DQUERY_CACHE
 endif
 
 if STATS
-libopendkim_a_CFLAGS += -D_FFR_STATS
+libopendkIm_la_CFLAGS += -D_FFR_STATS
 endif
 
 if USE_ARLIB
-libopendkim_a_CFLAGS += -DUSE_ARLIB
+libopendkIm_la_CFLAGS += -DUSE_ARLIB
 endif
 
 if USE_UNBOUND
-libopendkim_a_CFLAGS += -DUSE_UNBOUND
+libopendkIm_la_CFLAGS += -DUSE_UNBOUND
 endif
 
 if VBR
-libopendkim_a_CFLAGS += -D_FFR_VBR
+libopendkIm_la_CFLAGS += -D_FFR_VBR
 endif
 
 check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \

@@ -9,6 +9,9 @@
 /* Define to 1 if you have the <arpa/nameser.h> header file. */
 #undef HAVE_ARPA_NAMESER_H
 
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
 /* Define to 1 if you have the `dup2' function. */
 #undef HAVE_DUP2
 
@@ -166,6 +169,10 @@
 
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 #undef NO_MINUS_C_MINUS_O

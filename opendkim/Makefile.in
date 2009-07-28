@@ -32,6 +32,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+build_triplet = @build@
+host_triplet = @host@
 sbin_PROGRAMS = opendkim$(EXEEXT) opendkim-testkey$(EXEEXT) \
 	opendkim-testadsp$(EXEEXT) $(am__EXEEXT_1)
 @BODYLENGTH_DB_TRUE@am__append_1 = -DUSE_DB -D_FFR_BODYLENGTH_DB
@@ -89,31 +91,40 @@ am__DEPENDENCIES_1 =
 @BODYLENGTH_DB_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
 @QUERY_CACHE_TRUE@am__DEPENDENCIES_3 = $(am__DEPENDENCIES_1)
 @STATS_TRUE@am__DEPENDENCIES_4 = $(am__DEPENDENCIES_1)
-opendkim_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2) \
+opendkim_DEPENDENCIES = ../libopendkim/.libs/libopendkim.so \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2) \
 	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_4)
-opendkim_LINK = $(CCLD) $(opendkim_CFLAGS) $(CFLAGS) \
+opendkim_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(opendkim_CFLAGS) $(CFLAGS) \
 	$(opendkim_LDFLAGS) $(LDFLAGS) -o $@
 am__opendkim_stats_SOURCES_DIST = opendkim-db.c opendkim-stats.c
 @STATS_TRUE@am_opendkim_stats_OBJECTS =  \
 @STATS_TRUE@	opendkim_stats-opendkim-db.$(OBJEXT) \
 @STATS_TRUE@	opendkim_stats-opendkim-stats.$(OBJEXT)
 opendkim_stats_OBJECTS = $(am_opendkim_stats_OBJECTS)
-@STATS_TRUE@opendkim_stats_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-@STATS_TRUE@	$(am__DEPENDENCIES_1)
-opendkim_stats_LINK = $(CCLD) $(opendkim_stats_CFLAGS) $(CFLAGS) \
-	$(opendkim_stats_LDFLAGS) $(LDFLAGS) -o $@
+@STATS_TRUE@opendkim_stats_DEPENDENCIES =  \
+@STATS_TRUE@	../libopendkim/.libs/libopendkim.so \
+@STATS_TRUE@	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+opendkim_stats_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(opendkim_stats_CFLAGS) \
+	$(CFLAGS) $(opendkim_stats_LDFLAGS) $(LDFLAGS) -o $@
 am_opendkim_testadsp_OBJECTS =  \
 	opendkim_testadsp-opendkim-testadsp.$(OBJEXT)
 opendkim_testadsp_OBJECTS = $(am_opendkim_testadsp_OBJECTS)
-opendkim_testadsp_DEPENDENCIES = $(am__DEPENDENCIES_1)
-opendkim_testadsp_LINK = $(CCLD) $(opendkim_testadsp_CFLAGS) $(CFLAGS) \
+opendkim_testadsp_DEPENDENCIES = ../libopendkim/.libs/libopendkim.so \
+	$(am__DEPENDENCIES_1)
+opendkim_testadsp_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(opendkim_testadsp_CFLAGS) $(CFLAGS) \
 	$(opendkim_testadsp_LDFLAGS) $(LDFLAGS) -o $@
 am_opendkim_testkey_OBJECTS =  \
 	opendkim_testkey-opendkim-testkey.$(OBJEXT)
 opendkim_testkey_OBJECTS = $(am_opendkim_testkey_OBJECTS)
-opendkim_testkey_DEPENDENCIES = $(am__DEPENDENCIES_1)
-opendkim_testkey_LINK = $(CCLD) $(opendkim_testkey_CFLAGS) $(CFLAGS) \
-	$(opendkim_testkey_LDFLAGS) $(LDFLAGS) -o $@
+opendkim_testkey_DEPENDENCIES = ../libopendkim/.libs/libopendkim.so \
+	$(am__DEPENDENCIES_1)
+opendkim_testkey_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(opendkim_testkey_CFLAGS) \
+	$(CFLAGS) $(opendkim_testkey_LDFLAGS) $(LDFLAGS) -o $@
 sbinSCRIPT_INSTALL = $(INSTALL_SCRIPT)
 SCRIPTS = $(sbin_SCRIPTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -121,8 +132,13 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 SOURCES = $(opendkim_SOURCES) $(opendkim_stats_SOURCES) \
 	$(opendkim_testadsp_SOURCES) $(opendkim_testkey_SOURCES)
 DIST_SOURCES = $(opendkim_SOURCES) $(am__opendkim_stats_SOURCES_DIST) \
@@ -144,6 +160,7 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -153,14 +170,21 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CXX = @CXX@
+CXXCPP = @CXXCPP@
+CXXDEPMODE = @CXXDEPMODE@
+CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
+F77 = @F77@
+FFLAGS = @FFLAGS@
 GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -175,9 +199,11 @@ LIBMILTER_INCLUDES = @LIBMILTER_INCLUDES@
 LIBMILTER_LIBS = @LIBMILTER_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
+LIBTOOL = @LIBTOOL@
 LIBUNBOUND_INCDIRS = @LIBUNBOUND_INCDIRS@
 LIBUNBOUND_LIBDIRS = @LIBUNBOUND_LIBDIRS@
 LIBUNBOUND_LIBS = @LIBUNBOUND_LIBS@
+LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
@@ -190,6 +216,7 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -199,20 +226,30 @@ abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_CC = @ac_ct_CC@
+ac_ct_CXX = @ac_ct_CXX@
+ac_ct_F77 = @ac_ct_F77@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
+build = @build@
 build_alias = @build_alias@
+build_cpu = @build_cpu@
+build_os = @build_os@
+build_vendor = @build_vendor@
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+host = @host@
 host_alias = @host_alias@
+host_cpu = @host_cpu@
+host_os = @host_os@
+host_vendor = @host_vendor@
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -255,22 +292,23 @@ opendkim_CPPFLAGS = -I../libopendkim -I../libar $(am__append_2) \
 opendkim_LDFLAGS = -L../libopendkim -L../libar -L$(LIBMILTER_LIBS) \
 	$(LIBUNBOUND_LIBDIRS) $(am__append_3) $(am__append_14) \
 	$(am__append_22)
-opendkim_LDADD = -lopendkim -lar -lmilter $(LIBUNBOUND_LIBS) \
-	$(am__append_4) $(am__append_15) $(am__append_23)
+opendkim_LDADD = ../libopendkim/.libs/libopendkim.so -lar -lmilter \
+	$(LIBUNBOUND_LIBS) $(am__append_4) $(am__append_15) \
+	$(am__append_23)
 @STATS_TRUE@opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c
 @STATS_TRUE@opendkim_stats_CPPFLAGS = -DUSE_DB -I../libopendkim -I../libar $(LIBDB_INCDIRS)
 @STATS_TRUE@opendkim_stats_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS) $(LIBDB_LIBDIRS)
-@STATS_TRUE@opendkim_stats_LDADD = -lopendkim -lar $(LIBUNBOUND_LIBS) $(LIBDB_LIBS)
+@STATS_TRUE@opendkim_stats_LDADD = ../libopendkim/.libs/libopendkim.so -lar $(LIBUNBOUND_LIBS) $(LIBDB_LIBS)
 @DEBUG_TRUE@opendkim_stats_CFLAGS = -g
 opendkim_testkey_SOURCES = opendkim-testkey.c
 opendkim_testkey_CPPFLAGS = -I../libopendkim -I../libar
 opendkim_testkey_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
-opendkim_testkey_LDADD = -lopendkim -lar $(LIBUNBOUND_LIBS)
+opendkim_testkey_LDADD = ../libopendkim/.libs/libopendkim.so -lar $(LIBUNBOUND_LIBS)
 @DEBUG_TRUE@opendkim_testkey_CFLAGS = -g
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
 opendkim_testadsp_CPPFLAGS = -I../libopendkim -I../libar
 opendkim_testadsp_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
-opendkim_testadsp_LDADD = -lopendkim -lar $(LIBUNBOUND_LIBS)
+opendkim_testadsp_LDADD = ../libopendkim/.libs/libopendkim.so -lar $(LIBUNBOUND_LIBS)
 @DEBUG_TRUE@opendkim_testadsp_CFLAGS = -g
 man_MANS = opendkim.conf.5 opendkim-genkey.8 opendkim-testadsp.8 \
 	opendkim-testkey.8 opendkim.8 $(am__append_29)
@@ -278,7 +316,7 @@ EXTRA_DIST = $(example_DATA) $(man_MANS) opendkim-stats.8 $(sbin_SCRIPTS)
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .o .obj
+.SUFFIXES: .c .lo .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -314,10 +352,11 @@ install-sbinPROGRAMS: $(sbin_PROGRAMS)
 	@list='$(sbin_PROGRAMS)'; for p in $$list; do \
 	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
 	  if test -f $$p \
+	     || test -f $$p1 \
 	  ; then \
 	    f=`echo "$$p1" | sed 's,^.*/,,;$(transform);s/$$/$(EXEEXT)/'`; \
-	   echo " $(INSTALL_PROGRAM_ENV) $(sbinPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(sbindir)/$$f'"; \
-	   $(INSTALL_PROGRAM_ENV) $(sbinPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(sbindir)/$$f" || exit 1; \
+	   echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(sbinPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(sbindir)/$$f'"; \
+	   $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(sbinPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(sbindir)/$$f" || exit 1; \
 	  else :; fi; \
 	done
 
@@ -330,7 +369,11 @@ uninstall-sbinPROGRAMS:
 	done
 
 clean-sbinPROGRAMS:
-	-test -z "$(sbin_PROGRAMS)" || rm -f $(sbin_PROGRAMS)
+	@list='$(sbin_PROGRAMS)'; for p in $$list; do \
+	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  echo " rm -f $$p $$f"; \
+	  rm -f $$p $$f ; \
+	done
 opendkim$(EXEEXT): $(opendkim_OBJECTS) $(opendkim_DEPENDENCIES) 
 	@rm -f opendkim$(EXEEXT)
 	$(opendkim_LINK) $(opendkim_OBJECTS) $(opendkim_LDADD) $(LIBS)
@@ -396,6 +439,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
+
+.c.lo:
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
 opendkim-opendkim.o: opendkim.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_CPPFLAGS) $(CPPFLAGS) $(opendkim_CFLAGS) $(CFLAGS) -MT opendkim-opendkim.o -MD -MP -MF $(DEPDIR)/opendkim-opendkim.Tpo -c -o opendkim-opendkim.o `test -f 'opendkim.c' || echo '$(srcdir)/'`opendkim.c
@@ -578,6 +628,12 @@ opendkim_testkey-opendkim-testkey.obj: opendkim-testkey.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='opendkim-testkey.c' object='opendkim_testkey-opendkim-testkey.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(opendkim_testkey_CPPFLAGS) $(CPPFLAGS) $(opendkim_testkey_CFLAGS) $(CFLAGS) -c -o opendkim_testkey-opendkim-testkey.obj `if test -f 'opendkim-testkey.c'; then $(CYGPATH_W) 'opendkim-testkey.c'; else $(CYGPATH_W) '$(srcdir)/opendkim-testkey.c'; fi`
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
 install-man5: $(man5_MANS) $(man_MANS)
 	@$(NORMAL_INSTALL)
 	test -z "$(man5dir)" || $(MKDIR_P) "$(DESTDIR)$(man5dir)"
@@ -792,7 +848,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-sbinPROGRAMS mostlyclean-am
+clean-am: clean-generic clean-libtool clean-sbinPROGRAMS \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -835,7 +892,8 @@ maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic
+mostlyclean-am: mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool
 
 pdf: pdf-am
 
@@ -853,17 +911,18 @@ uninstall-man: uninstall-man5 uninstall-man8
 .MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-sbinPROGRAMS ctags distclean distclean-compile \
-	distclean-generic distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dvi install-dvi-am install-exampleDATA \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-man5 \
-	install-man8 install-pdf install-pdf-am install-ps \
-	install-ps-am install-sbinPROGRAMS install-sbinSCRIPTS \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic pdf pdf-am ps ps-am \
+	clean-libtool clean-sbinPROGRAMS ctags distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exampleDATA install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-man5 install-man8 \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-sbinPROGRAMS install-sbinSCRIPTS install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-exampleDATA \
 	uninstall-man uninstall-man5 uninstall-man8 \
 	uninstall-sbinPROGRAMS uninstall-sbinSCRIPTS

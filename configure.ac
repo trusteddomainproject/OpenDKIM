@@ -12,7 +12,7 @@ CFLAGS="$CFLAGS -pthread"
 # Checks for programs.
 AC_PROG_CC
 AM_PROG_CC_C_O
-AC_PROG_RANLIB
+AC_PROG_LIBTOOL
 
 # Checks for libraries.
 AC_SEARCH_LIBS(ERR_peek_error, crypto)

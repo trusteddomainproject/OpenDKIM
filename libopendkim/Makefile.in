@@ -32,6 +32,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+build_triplet = @build@
+host_triplet = @host@
 @DEBUG_TRUE@am__append_1 = -g
 @BODYLENGTH_DB_TRUE@am__append_2 = -D_FFR_BODYLENGTH_DB
 @DIFFHEADERS_TRUE@am__append_3 = -D_FFR_DIFFHEADERS
@@ -104,696 +106,821 @@ am__vpath_adj = case $$p in \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)" \
-	"$(DESTDIR)$(libopendkim_adir)" \
+	"$(DESTDIR)$(libopendkIm_ladir)" \
 	"$(DESTDIR)$(libopendkimincludedir)"
-libLIBRARIES_INSTALL = $(INSTALL_DATA)
-LIBRARIES = $(lib_LIBRARIES)
-AR = ar
-ARFLAGS = cru
-libopendkim_a_AR = $(AR) $(ARFLAGS)
-libopendkim_a_LIBADD =
-am_libopendkim_a_OBJECTS = libopendkim_a-base64.$(OBJEXT) \
-	libopendkim_a-dkim-cache.$(OBJEXT) \
-	libopendkim_a-dkim-canon.$(OBJEXT) \
-	libopendkim_a-dkim-keys.$(OBJEXT) \
-	libopendkim_a-dkim-policy.$(OBJEXT) \
-	libopendkim_a-dkim-rep.$(OBJEXT) \
-	libopendkim_a-dkim-strl.$(OBJEXT) \
-	libopendkim_a-dkim-tables.$(OBJEXT) \
-	libopendkim_a-dkim-test.$(OBJEXT) \
-	libopendkim_a-dkim-ub.$(OBJEXT) \
-	libopendkim_a-dkim-util.$(OBJEXT) libopendkim_a-dkim.$(OBJEXT) \
-	libopendkim_a-rfc2822.$(OBJEXT) libopendkim_a-util.$(OBJEXT) \
-	libopendkim_a-vbr.$(OBJEXT)
-libopendkim_a_OBJECTS = $(am_libopendkim_a_OBJECTS)
+libLTLIBRARIES_INSTALL = $(INSTALL)
+LTLIBRARIES = $(lib_LTLIBRARIES)
+libopendkim_la_LIBADD =
+am_libopendkim_la_OBJECTS = base64.lo dkim-cache.lo dkim-canon.lo \
+	dkim-keys.lo dkim-policy.lo dkim-rep.lo dkim-strl.lo \
+	dkim-tables.lo dkim-test.lo dkim-ub.lo dkim-util.lo dkim.lo \
+	rfc2822.lo util.lo vbr.lo
+libopendkim_la_OBJECTS = $(am_libopendkim_la_OBJECTS)
 am_t_cleanup_OBJECTS = t_cleanup-t-cleanup.$(OBJEXT)
 t_cleanup_OBJECTS = $(am_t_cleanup_OBJECTS)
 t_cleanup_DEPENDENCIES = ./libopendkim.a
-t_cleanup_LINK = $(CCLD) $(t_cleanup_CFLAGS) $(CFLAGS) \
-	$(t_cleanup_LDFLAGS) $(LDFLAGS) -o $@
+t_cleanup_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_cleanup_CFLAGS) \
+	$(CFLAGS) $(t_cleanup_LDFLAGS) $(LDFLAGS) -o $@
 am_t_setup_OBJECTS = t_setup-t-setup.$(OBJEXT)
 t_setup_OBJECTS = $(am_t_setup_OBJECTS)
 t_setup_DEPENDENCIES = ./libopendkim.a
-t_setup_LINK = $(CCLD) $(t_setup_CFLAGS) $(CFLAGS) $(t_setup_LDFLAGS) \
-	$(LDFLAGS) -o $@
+t_setup_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_setup_CFLAGS) $(CFLAGS) \
+	$(t_setup_LDFLAGS) $(LDFLAGS) -o $@
 am_t_signperf_OBJECTS = t_signperf-t-signperf.$(OBJEXT)
 t_signperf_OBJECTS = $(am_t_signperf_OBJECTS)
 t_signperf_DEPENDENCIES = ./libopendkim.a
-t_signperf_LINK = $(CCLD) $(t_signperf_CFLAGS) $(CFLAGS) \
-	$(t_signperf_LDFLAGS) $(LDFLAGS) -o $@
+t_signperf_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_signperf_CFLAGS) \
+	$(CFLAGS) $(t_signperf_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test00_OBJECTS = t_test00-t-test00.$(OBJEXT)
 t_test00_OBJECTS = $(am_t_test00_OBJECTS)
 t_test00_DEPENDENCIES = ./libopendkim.a
-t_test00_LINK = $(CCLD) $(t_test00_CFLAGS) $(CFLAGS) \
+t_test00_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test00_CFLAGS) $(CFLAGS) \
 	$(t_test00_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test01_OBJECTS = t_test01-t-test01.$(OBJEXT)
 t_test01_OBJECTS = $(am_t_test01_OBJECTS)
 t_test01_DEPENDENCIES = ./libopendkim.a
-t_test01_LINK = $(CCLD) $(t_test01_CFLAGS) $(CFLAGS) \
+t_test01_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test01_CFLAGS) $(CFLAGS) \
 	$(t_test01_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test02_OBJECTS = t_test02-t-test02.$(OBJEXT)
 t_test02_OBJECTS = $(am_t_test02_OBJECTS)
 t_test02_DEPENDENCIES = ./libopendkim.a
-t_test02_LINK = $(CCLD) $(t_test02_CFLAGS) $(CFLAGS) \
+t_test02_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test02_CFLAGS) $(CFLAGS) \
 	$(t_test02_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test03_OBJECTS = t_test03-t-test03.$(OBJEXT)
 t_test03_OBJECTS = $(am_t_test03_OBJECTS)
 t_test03_DEPENDENCIES = ./libopendkim.a
-t_test03_LINK = $(CCLD) $(t_test03_CFLAGS) $(CFLAGS) \
+t_test03_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test03_CFLAGS) $(CFLAGS) \
 	$(t_test03_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test04_OBJECTS = t_test04-t-test04.$(OBJEXT)
 t_test04_OBJECTS = $(am_t_test04_OBJECTS)
 t_test04_DEPENDENCIES = ./libopendkim.a
-t_test04_LINK = $(CCLD) $(t_test04_CFLAGS) $(CFLAGS) \
+t_test04_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test04_CFLAGS) $(CFLAGS) \
 	$(t_test04_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test05_OBJECTS = t_test05-t-test05.$(OBJEXT)
 t_test05_OBJECTS = $(am_t_test05_OBJECTS)
 t_test05_DEPENDENCIES = ./libopendkim.a
-t_test05_LINK = $(CCLD) $(t_test05_CFLAGS) $(CFLAGS) \
+t_test05_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test05_CFLAGS) $(CFLAGS) \
 	$(t_test05_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test06_OBJECTS = t_test06-t-test06.$(OBJEXT)
 t_test06_OBJECTS = $(am_t_test06_OBJECTS)
 t_test06_DEPENDENCIES = ./libopendkim.a
-t_test06_LINK = $(CCLD) $(t_test06_CFLAGS) $(CFLAGS) \
+t_test06_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test06_CFLAGS) $(CFLAGS) \
 	$(t_test06_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test07_OBJECTS = t_test07-t-test07.$(OBJEXT)
 t_test07_OBJECTS = $(am_t_test07_OBJECTS)
 t_test07_DEPENDENCIES = ./libopendkim.a
-t_test07_LINK = $(CCLD) $(t_test07_CFLAGS) $(CFLAGS) \
+t_test07_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test07_CFLAGS) $(CFLAGS) \
 	$(t_test07_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test08_OBJECTS = t_test08-t-test08.$(OBJEXT)
 t_test08_OBJECTS = $(am_t_test08_OBJECTS)
 t_test08_DEPENDENCIES = ./libopendkim.a
-t_test08_LINK = $(CCLD) $(t_test08_CFLAGS) $(CFLAGS) \
+t_test08_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test08_CFLAGS) $(CFLAGS) \
 	$(t_test08_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test09_OBJECTS = t_test09-t-test09.$(OBJEXT)
 t_test09_OBJECTS = $(am_t_test09_OBJECTS)
 t_test09_DEPENDENCIES = ./libopendkim.a
-t_test09_LINK = $(CCLD) $(t_test09_CFLAGS) $(CFLAGS) \
+t_test09_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test09_CFLAGS) $(CFLAGS) \
 	$(t_test09_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test10_OBJECTS = t_test10-t-test10.$(OBJEXT)
 t_test10_OBJECTS = $(am_t_test10_OBJECTS)
 t_test10_DEPENDENCIES = ./libopendkim.a
-t_test10_LINK = $(CCLD) $(t_test10_CFLAGS) $(CFLAGS) \
+t_test10_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test10_CFLAGS) $(CFLAGS) \
 	$(t_test10_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test100_OBJECTS = t_test100-t-test100.$(OBJEXT)
 t_test100_OBJECTS = $(am_t_test100_OBJECTS)
 t_test100_DEPENDENCIES = ./libopendkim.a
-t_test100_LINK = $(CCLD) $(t_test100_CFLAGS) $(CFLAGS) \
-	$(t_test100_LDFLAGS) $(LDFLAGS) -o $@
+t_test100_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test100_CFLAGS) \
+	$(CFLAGS) $(t_test100_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test101_OBJECTS = t_test101-t-test101.$(OBJEXT)
 t_test101_OBJECTS = $(am_t_test101_OBJECTS)
 t_test101_DEPENDENCIES = ./libopendkim.a
-t_test101_LINK = $(CCLD) $(t_test101_CFLAGS) $(CFLAGS) \
-	$(t_test101_LDFLAGS) $(LDFLAGS) -o $@
+t_test101_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test101_CFLAGS) \
+	$(CFLAGS) $(t_test101_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test102_OBJECTS = t_test102-t-test102.$(OBJEXT)
 t_test102_OBJECTS = $(am_t_test102_OBJECTS)
 t_test102_DEPENDENCIES = ./libopendkim.a
-t_test102_LINK = $(CCLD) $(t_test102_CFLAGS) $(CFLAGS) \
-	$(t_test102_LDFLAGS) $(LDFLAGS) -o $@
+t_test102_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test102_CFLAGS) \
+	$(CFLAGS) $(t_test102_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test103_OBJECTS = t_test103-t-test103.$(OBJEXT)
 t_test103_OBJECTS = $(am_t_test103_OBJECTS)
 t_test103_DEPENDENCIES = ./libopendkim.a
-t_test103_LINK = $(CCLD) $(t_test103_CFLAGS) $(CFLAGS) \
-	$(t_test103_LDFLAGS) $(LDFLAGS) -o $@
+t_test103_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test103_CFLAGS) \
+	$(CFLAGS) $(t_test103_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test104_OBJECTS = t_test104-t-test104.$(OBJEXT)
 t_test104_OBJECTS = $(am_t_test104_OBJECTS)
 t_test104_DEPENDENCIES = ./libopendkim.a
-t_test104_LINK = $(CCLD) $(t_test104_CFLAGS) $(CFLAGS) \
-	$(t_test104_LDFLAGS) $(LDFLAGS) -o $@
+t_test104_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test104_CFLAGS) \
+	$(CFLAGS) $(t_test104_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test105_OBJECTS = t_test105-t-test105.$(OBJEXT)
 t_test105_OBJECTS = $(am_t_test105_OBJECTS)
 t_test105_DEPENDENCIES = ./libopendkim.a
-t_test105_LINK = $(CCLD) $(t_test105_CFLAGS) $(CFLAGS) \
-	$(t_test105_LDFLAGS) $(LDFLAGS) -o $@
+t_test105_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test105_CFLAGS) \
+	$(CFLAGS) $(t_test105_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test106_OBJECTS = t_test106-t-test106.$(OBJEXT)
 t_test106_OBJECTS = $(am_t_test106_OBJECTS)
 t_test106_DEPENDENCIES = ./libopendkim.a
-t_test106_LINK = $(CCLD) $(t_test106_CFLAGS) $(CFLAGS) \
-	$(t_test106_LDFLAGS) $(LDFLAGS) -o $@
+t_test106_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test106_CFLAGS) \
+	$(CFLAGS) $(t_test106_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test107_OBJECTS = t_test107-t-test107.$(OBJEXT)
 t_test107_OBJECTS = $(am_t_test107_OBJECTS)
 t_test107_DEPENDENCIES = ./libopendkim.a
-t_test107_LINK = $(CCLD) $(t_test107_CFLAGS) $(CFLAGS) \
-	$(t_test107_LDFLAGS) $(LDFLAGS) -o $@
+t_test107_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test107_CFLAGS) \
+	$(CFLAGS) $(t_test107_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test108_OBJECTS = t_test108-t-test108.$(OBJEXT)
 t_test108_OBJECTS = $(am_t_test108_OBJECTS)
 t_test108_DEPENDENCIES = ./libopendkim.a
-t_test108_LINK = $(CCLD) $(t_test108_CFLAGS) $(CFLAGS) \
-	$(t_test108_LDFLAGS) $(LDFLAGS) -o $@
+t_test108_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test108_CFLAGS) \
+	$(CFLAGS) $(t_test108_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test109_OBJECTS = t_test109-t-test109.$(OBJEXT)
 t_test109_OBJECTS = $(am_t_test109_OBJECTS)
 t_test109_DEPENDENCIES = ./libopendkim.a
-t_test109_LINK = $(CCLD) $(t_test109_CFLAGS) $(CFLAGS) \
-	$(t_test109_LDFLAGS) $(LDFLAGS) -o $@
+t_test109_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test109_CFLAGS) \
+	$(CFLAGS) $(t_test109_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test11_OBJECTS = t_test11-t-test11.$(OBJEXT)
 t_test11_OBJECTS = $(am_t_test11_OBJECTS)
 t_test11_DEPENDENCIES = ./libopendkim.a
-t_test11_LINK = $(CCLD) $(t_test11_CFLAGS) $(CFLAGS) \
+t_test11_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test11_CFLAGS) $(CFLAGS) \
 	$(t_test11_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test110_OBJECTS = t_test110-t-test110.$(OBJEXT)
 t_test110_OBJECTS = $(am_t_test110_OBJECTS)
 t_test110_DEPENDENCIES = ./libopendkim.a
-t_test110_LINK = $(CCLD) $(t_test110_CFLAGS) $(CFLAGS) \
-	$(t_test110_LDFLAGS) $(LDFLAGS) -o $@
+t_test110_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test110_CFLAGS) \
+	$(CFLAGS) $(t_test110_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test111_OBJECTS = t_test111-t-test111.$(OBJEXT)
 t_test111_OBJECTS = $(am_t_test111_OBJECTS)
 t_test111_DEPENDENCIES = ./libopendkim.a
-t_test111_LINK = $(CCLD) $(t_test111_CFLAGS) $(CFLAGS) \
-	$(t_test111_LDFLAGS) $(LDFLAGS) -o $@
+t_test111_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test111_CFLAGS) \
+	$(CFLAGS) $(t_test111_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test112_OBJECTS = t_test112-t-test112.$(OBJEXT)
 t_test112_OBJECTS = $(am_t_test112_OBJECTS)
 t_test112_DEPENDENCIES = ./libopendkim.a
-t_test112_LINK = $(CCLD) $(t_test112_CFLAGS) $(CFLAGS) \
-	$(t_test112_LDFLAGS) $(LDFLAGS) -o $@
+t_test112_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test112_CFLAGS) \
+	$(CFLAGS) $(t_test112_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test113_OBJECTS = t_test113-t-test113.$(OBJEXT)
 t_test113_OBJECTS = $(am_t_test113_OBJECTS)
 t_test113_DEPENDENCIES = ./libopendkim.a
-t_test113_LINK = $(CCLD) $(t_test113_CFLAGS) $(CFLAGS) \
-	$(t_test113_LDFLAGS) $(LDFLAGS) -o $@
+t_test113_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test113_CFLAGS) \
+	$(CFLAGS) $(t_test113_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test114_OBJECTS = t_test114-t-test114.$(OBJEXT)
 t_test114_OBJECTS = $(am_t_test114_OBJECTS)
 t_test114_DEPENDENCIES = ./libopendkim.a
-t_test114_LINK = $(CCLD) $(t_test114_CFLAGS) $(CFLAGS) \
-	$(t_test114_LDFLAGS) $(LDFLAGS) -o $@
+t_test114_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test114_CFLAGS) \
+	$(CFLAGS) $(t_test114_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test115_OBJECTS = t_test115-t-test115.$(OBJEXT)
 t_test115_OBJECTS = $(am_t_test115_OBJECTS)
 t_test115_DEPENDENCIES = ./libopendkim.a
-t_test115_LINK = $(CCLD) $(t_test115_CFLAGS) $(CFLAGS) \
-	$(t_test115_LDFLAGS) $(LDFLAGS) -o $@
+t_test115_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test115_CFLAGS) \
+	$(CFLAGS) $(t_test115_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test116_OBJECTS = t_test116-t-test116.$(OBJEXT)
 t_test116_OBJECTS = $(am_t_test116_OBJECTS)
 t_test116_DEPENDENCIES = ./libopendkim.a
-t_test116_LINK = $(CCLD) $(t_test116_CFLAGS) $(CFLAGS) \
-	$(t_test116_LDFLAGS) $(LDFLAGS) -o $@
+t_test116_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test116_CFLAGS) \
+	$(CFLAGS) $(t_test116_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test117_OBJECTS = t_test117-t-test117.$(OBJEXT)
 t_test117_OBJECTS = $(am_t_test117_OBJECTS)
 t_test117_DEPENDENCIES = ./libopendkim.a
-t_test117_LINK = $(CCLD) $(t_test117_CFLAGS) $(CFLAGS) \
-	$(t_test117_LDFLAGS) $(LDFLAGS) -o $@
+t_test117_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test117_CFLAGS) \
+	$(CFLAGS) $(t_test117_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test118_OBJECTS = t_test118-t-test118.$(OBJEXT)
 t_test118_OBJECTS = $(am_t_test118_OBJECTS)
 t_test118_DEPENDENCIES = ./libopendkim.a
-t_test118_LINK = $(CCLD) $(t_test118_CFLAGS) $(CFLAGS) \
-	$(t_test118_LDFLAGS) $(LDFLAGS) -o $@
+t_test118_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test118_CFLAGS) \
+	$(CFLAGS) $(t_test118_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test119_OBJECTS = t_test119-t-test119.$(OBJEXT)
 t_test119_OBJECTS = $(am_t_test119_OBJECTS)
 t_test119_DEPENDENCIES = ./libopendkim.a
-t_test119_LINK = $(CCLD) $(t_test119_CFLAGS) $(CFLAGS) \
-	$(t_test119_LDFLAGS) $(LDFLAGS) -o $@
+t_test119_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test119_CFLAGS) \
+	$(CFLAGS) $(t_test119_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test12_OBJECTS = t_test12-t-test12.$(OBJEXT)
 t_test12_OBJECTS = $(am_t_test12_OBJECTS)
 t_test12_DEPENDENCIES = ./libopendkim.a
-t_test12_LINK = $(CCLD) $(t_test12_CFLAGS) $(CFLAGS) \
+t_test12_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test12_CFLAGS) $(CFLAGS) \
 	$(t_test12_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test120_OBJECTS = t_test120-t-test120.$(OBJEXT)
 t_test120_OBJECTS = $(am_t_test120_OBJECTS)
 t_test120_DEPENDENCIES = ./libopendkim.a
-t_test120_LINK = $(CCLD) $(t_test120_CFLAGS) $(CFLAGS) \
-	$(t_test120_LDFLAGS) $(LDFLAGS) -o $@
+t_test120_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test120_CFLAGS) \
+	$(CFLAGS) $(t_test120_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test121_OBJECTS = t_test121-t-test121.$(OBJEXT)
 t_test121_OBJECTS = $(am_t_test121_OBJECTS)
 t_test121_DEPENDENCIES = ./libopendkim.a
-t_test121_LINK = $(CCLD) $(t_test121_CFLAGS) $(CFLAGS) \
-	$(t_test121_LDFLAGS) $(LDFLAGS) -o $@
+t_test121_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test121_CFLAGS) \
+	$(CFLAGS) $(t_test121_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test122_OBJECTS = t_test122-t-test122.$(OBJEXT)
 t_test122_OBJECTS = $(am_t_test122_OBJECTS)
 t_test122_DEPENDENCIES = ./libopendkim.a
-t_test122_LINK = $(CCLD) $(t_test122_CFLAGS) $(CFLAGS) \
-	$(t_test122_LDFLAGS) $(LDFLAGS) -o $@
+t_test122_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test122_CFLAGS) \
+	$(CFLAGS) $(t_test122_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test123_OBJECTS = t_test123-t-test123.$(OBJEXT)
 t_test123_OBJECTS = $(am_t_test123_OBJECTS)
 t_test123_DEPENDENCIES = ./libopendkim.a
-t_test123_LINK = $(CCLD) $(t_test123_CFLAGS) $(CFLAGS) \
-	$(t_test123_LDFLAGS) $(LDFLAGS) -o $@
+t_test123_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test123_CFLAGS) \
+	$(CFLAGS) $(t_test123_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test124_OBJECTS = t_test124-t-test124.$(OBJEXT)
 t_test124_OBJECTS = $(am_t_test124_OBJECTS)
 t_test124_DEPENDENCIES = ./libopendkim.a
-t_test124_LINK = $(CCLD) $(t_test124_CFLAGS) $(CFLAGS) \
-	$(t_test124_LDFLAGS) $(LDFLAGS) -o $@
+t_test124_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test124_CFLAGS) \
+	$(CFLAGS) $(t_test124_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test125_OBJECTS = t_test125-t-test125.$(OBJEXT)
 t_test125_OBJECTS = $(am_t_test125_OBJECTS)
 t_test125_DEPENDENCIES = ./libopendkim.a
-t_test125_LINK = $(CCLD) $(t_test125_CFLAGS) $(CFLAGS) \
-	$(t_test125_LDFLAGS) $(LDFLAGS) -o $@
+t_test125_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test125_CFLAGS) \
+	$(CFLAGS) $(t_test125_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test126_OBJECTS = t_test126-t-test126.$(OBJEXT)
 t_test126_OBJECTS = $(am_t_test126_OBJECTS)
 t_test126_DEPENDENCIES = ./libopendkim.a
-t_test126_LINK = $(CCLD) $(t_test126_CFLAGS) $(CFLAGS) \
-	$(t_test126_LDFLAGS) $(LDFLAGS) -o $@
+t_test126_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test126_CFLAGS) \
+	$(CFLAGS) $(t_test126_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test127_OBJECTS = t_test127-t-test127.$(OBJEXT)
 t_test127_OBJECTS = $(am_t_test127_OBJECTS)
 t_test127_DEPENDENCIES = ./libopendkim.a
-t_test127_LINK = $(CCLD) $(t_test127_CFLAGS) $(CFLAGS) \
-	$(t_test127_LDFLAGS) $(LDFLAGS) -o $@
+t_test127_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_test127_CFLAGS) \
+	$(CFLAGS) $(t_test127_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test13_OBJECTS = t_test13-t-test13.$(OBJEXT)
 t_test13_OBJECTS = $(am_t_test13_OBJECTS)
 t_test13_DEPENDENCIES = ./libopendkim.a
-t_test13_LINK = $(CCLD) $(t_test13_CFLAGS) $(CFLAGS) \
+t_test13_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test13_CFLAGS) $(CFLAGS) \
 	$(t_test13_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test14_OBJECTS = t_test14-t-test14.$(OBJEXT)
 t_test14_OBJECTS = $(am_t_test14_OBJECTS)
 t_test14_DEPENDENCIES = ./libopendkim.a
-t_test14_LINK = $(CCLD) $(t_test14_CFLAGS) $(CFLAGS) \
+t_test14_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test14_CFLAGS) $(CFLAGS) \
 	$(t_test14_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test15_OBJECTS = t_test15-t-test15.$(OBJEXT)
 t_test15_OBJECTS = $(am_t_test15_OBJECTS)
 t_test15_DEPENDENCIES = ./libopendkim.a
-t_test15_LINK = $(CCLD) $(t_test15_CFLAGS) $(CFLAGS) \
+t_test15_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test15_CFLAGS) $(CFLAGS) \
 	$(t_test15_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test16_OBJECTS = t_test16-t-test16.$(OBJEXT)
 t_test16_OBJECTS = $(am_t_test16_OBJECTS)
 t_test16_DEPENDENCIES = ./libopendkim.a
-t_test16_LINK = $(CCLD) $(t_test16_CFLAGS) $(CFLAGS) \
+t_test16_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test16_CFLAGS) $(CFLAGS) \
 	$(t_test16_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test17_OBJECTS = t_test17-t-test17.$(OBJEXT)
 t_test17_OBJECTS = $(am_t_test17_OBJECTS)
 t_test17_DEPENDENCIES = ./libopendkim.a
-t_test17_LINK = $(CCLD) $(t_test17_CFLAGS) $(CFLAGS) \
+t_test17_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test17_CFLAGS) $(CFLAGS) \
 	$(t_test17_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test18_OBJECTS = t_test18-t-test18.$(OBJEXT)
 t_test18_OBJECTS = $(am_t_test18_OBJECTS)
 t_test18_DEPENDENCIES = ./libopendkim.a
-t_test18_LINK = $(CCLD) $(t_test18_CFLAGS) $(CFLAGS) \
+t_test18_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test18_CFLAGS) $(CFLAGS) \
 	$(t_test18_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test19_OBJECTS = t_test19-t-test19.$(OBJEXT)
 t_test19_OBJECTS = $(am_t_test19_OBJECTS)
 t_test19_DEPENDENCIES = ./libopendkim.a
-t_test19_LINK = $(CCLD) $(t_test19_CFLAGS) $(CFLAGS) \
+t_test19_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test19_CFLAGS) $(CFLAGS) \
 	$(t_test19_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test20_OBJECTS = t_test20-t-test20.$(OBJEXT)
 t_test20_OBJECTS = $(am_t_test20_OBJECTS)
 t_test20_DEPENDENCIES = ./libopendkim.a
-t_test20_LINK = $(CCLD) $(t_test20_CFLAGS) $(CFLAGS) \
+t_test20_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test20_CFLAGS) $(CFLAGS) \
 	$(t_test20_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test21_OBJECTS = t_test21-t-test21.$(OBJEXT)
 t_test21_OBJECTS = $(am_t_test21_OBJECTS)
 t_test21_DEPENDENCIES = ./libopendkim.a
-t_test21_LINK = $(CCLD) $(t_test21_CFLAGS) $(CFLAGS) \
+t_test21_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test21_CFLAGS) $(CFLAGS) \
 	$(t_test21_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test22_OBJECTS = t_test22-t-test22.$(OBJEXT)
 t_test22_OBJECTS = $(am_t_test22_OBJECTS)
 t_test22_DEPENDENCIES = ./libopendkim.a
-t_test22_LINK = $(CCLD) $(t_test22_CFLAGS) $(CFLAGS) \
+t_test22_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test22_CFLAGS) $(CFLAGS) \
 	$(t_test22_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test23_OBJECTS = t_test23-t-test23.$(OBJEXT)
 t_test23_OBJECTS = $(am_t_test23_OBJECTS)
 t_test23_DEPENDENCIES = ./libopendkim.a
-t_test23_LINK = $(CCLD) $(t_test23_CFLAGS) $(CFLAGS) \
+t_test23_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test23_CFLAGS) $(CFLAGS) \
 	$(t_test23_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test24_OBJECTS = t_test24-t-test24.$(OBJEXT)
 t_test24_OBJECTS = $(am_t_test24_OBJECTS)
 t_test24_DEPENDENCIES = ./libopendkim.a
-t_test24_LINK = $(CCLD) $(t_test24_CFLAGS) $(CFLAGS) \
+t_test24_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test24_CFLAGS) $(CFLAGS) \
 	$(t_test24_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test25_OBJECTS = t_test25-t-test25.$(OBJEXT)
 t_test25_OBJECTS = $(am_t_test25_OBJECTS)
 t_test25_DEPENDENCIES = ./libopendkim.a
-t_test25_LINK = $(CCLD) $(t_test25_CFLAGS) $(CFLAGS) \
+t_test25_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test25_CFLAGS) $(CFLAGS) \
 	$(t_test25_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test26_OBJECTS = t_test26-t-test26.$(OBJEXT)
 t_test26_OBJECTS = $(am_t_test26_OBJECTS)
 t_test26_DEPENDENCIES = ./libopendkim.a
-t_test26_LINK = $(CCLD) $(t_test26_CFLAGS) $(CFLAGS) \
+t_test26_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test26_CFLAGS) $(CFLAGS) \
 	$(t_test26_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test27_OBJECTS = t_test27-t-test27.$(OBJEXT)
 t_test27_OBJECTS = $(am_t_test27_OBJECTS)
 t_test27_DEPENDENCIES = ./libopendkim.a
-t_test27_LINK = $(CCLD) $(t_test27_CFLAGS) $(CFLAGS) \
+t_test27_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test27_CFLAGS) $(CFLAGS) \
 	$(t_test27_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test28_OBJECTS = t_test28-t-test28.$(OBJEXT)
 t_test28_OBJECTS = $(am_t_test28_OBJECTS)
 t_test28_DEPENDENCIES = ./libopendkim.a
-t_test28_LINK = $(CCLD) $(t_test28_CFLAGS) $(CFLAGS) \
+t_test28_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test28_CFLAGS) $(CFLAGS) \
 	$(t_test28_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test29_OBJECTS = t_test29-t-test29.$(OBJEXT)
 t_test29_OBJECTS = $(am_t_test29_OBJECTS)
 t_test29_DEPENDENCIES = ./libopendkim.a
-t_test29_LINK = $(CCLD) $(t_test29_CFLAGS) $(CFLAGS) \
+t_test29_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test29_CFLAGS) $(CFLAGS) \
 	$(t_test29_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test30_OBJECTS = t_test30-t-test30.$(OBJEXT)
 t_test30_OBJECTS = $(am_t_test30_OBJECTS)
 t_test30_DEPENDENCIES = ./libopendkim.a
-t_test30_LINK = $(CCLD) $(t_test30_CFLAGS) $(CFLAGS) \
+t_test30_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test30_CFLAGS) $(CFLAGS) \
 	$(t_test30_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test31_OBJECTS = t_test31-t-test31.$(OBJEXT)
 t_test31_OBJECTS = $(am_t_test31_OBJECTS)
 t_test31_DEPENDENCIES = ./libopendkim.a
-t_test31_LINK = $(CCLD) $(t_test31_CFLAGS) $(CFLAGS) \
+t_test31_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test31_CFLAGS) $(CFLAGS) \
 	$(t_test31_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test32_OBJECTS = t_test32-t-test32.$(OBJEXT)
 t_test32_OBJECTS = $(am_t_test32_OBJECTS)
 t_test32_DEPENDENCIES = ./libopendkim.a
-t_test32_LINK = $(CCLD) $(t_test32_CFLAGS) $(CFLAGS) \
+t_test32_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test32_CFLAGS) $(CFLAGS) \
 	$(t_test32_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test33_OBJECTS = t_test33-t-test33.$(OBJEXT)
 t_test33_OBJECTS = $(am_t_test33_OBJECTS)
 t_test33_DEPENDENCIES = ./libopendkim.a
-t_test33_LINK = $(CCLD) $(t_test33_CFLAGS) $(CFLAGS) \
+t_test33_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test33_CFLAGS) $(CFLAGS) \
 	$(t_test33_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test34_OBJECTS = t_test34-t-test34.$(OBJEXT)
 t_test34_OBJECTS = $(am_t_test34_OBJECTS)
 t_test34_DEPENDENCIES = ./libopendkim.a
-t_test34_LINK = $(CCLD) $(t_test34_CFLAGS) $(CFLAGS) \
+t_test34_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test34_CFLAGS) $(CFLAGS) \
 	$(t_test34_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test35_OBJECTS = t_test35-t-test35.$(OBJEXT)
 t_test35_OBJECTS = $(am_t_test35_OBJECTS)
 t_test35_DEPENDENCIES = ./libopendkim.a
-t_test35_LINK = $(CCLD) $(t_test35_CFLAGS) $(CFLAGS) \
+t_test35_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test35_CFLAGS) $(CFLAGS) \
 	$(t_test35_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test36_OBJECTS = t_test36-t-test36.$(OBJEXT)
 t_test36_OBJECTS = $(am_t_test36_OBJECTS)
 t_test36_DEPENDENCIES = ./libopendkim.a
-t_test36_LINK = $(CCLD) $(t_test36_CFLAGS) $(CFLAGS) \
+t_test36_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test36_CFLAGS) $(CFLAGS) \
 	$(t_test36_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test37_OBJECTS = t_test37-t-test37.$(OBJEXT)
 t_test37_OBJECTS = $(am_t_test37_OBJECTS)
 t_test37_DEPENDENCIES = ./libopendkim.a
-t_test37_LINK = $(CCLD) $(t_test37_CFLAGS) $(CFLAGS) \
+t_test37_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test37_CFLAGS) $(CFLAGS) \
 	$(t_test37_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test38_OBJECTS = t_test38-t-test38.$(OBJEXT)
 t_test38_OBJECTS = $(am_t_test38_OBJECTS)
 t_test38_DEPENDENCIES = ./libopendkim.a
-t_test38_LINK = $(CCLD) $(t_test38_CFLAGS) $(CFLAGS) \
+t_test38_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test38_CFLAGS) $(CFLAGS) \
 	$(t_test38_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test39_OBJECTS = t_test39-t-test39.$(OBJEXT)
 t_test39_OBJECTS = $(am_t_test39_OBJECTS)
 t_test39_DEPENDENCIES = ./libopendkim.a
-t_test39_LINK = $(CCLD) $(t_test39_CFLAGS) $(CFLAGS) \
+t_test39_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test39_CFLAGS) $(CFLAGS) \
 	$(t_test39_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test40_OBJECTS = t_test40-t-test40.$(OBJEXT)
 t_test40_OBJECTS = $(am_t_test40_OBJECTS)
 t_test40_DEPENDENCIES = ./libopendkim.a
-t_test40_LINK = $(CCLD) $(t_test40_CFLAGS) $(CFLAGS) \
+t_test40_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test40_CFLAGS) $(CFLAGS) \
 	$(t_test40_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test41_OBJECTS = t_test41-t-test41.$(OBJEXT)
 t_test41_OBJECTS = $(am_t_test41_OBJECTS)
 t_test41_DEPENDENCIES = ./libopendkim.a
-t_test41_LINK = $(CCLD) $(t_test41_CFLAGS) $(CFLAGS) \
+t_test41_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test41_CFLAGS) $(CFLAGS) \
 	$(t_test41_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test42_OBJECTS = t_test42-t-test42.$(OBJEXT)
 t_test42_OBJECTS = $(am_t_test42_OBJECTS)
 t_test42_DEPENDENCIES = ./libopendkim.a
-t_test42_LINK = $(CCLD) $(t_test42_CFLAGS) $(CFLAGS) \
+t_test42_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test42_CFLAGS) $(CFLAGS) \
 	$(t_test42_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test43_OBJECTS = t_test43-t-test43.$(OBJEXT)
 t_test43_OBJECTS = $(am_t_test43_OBJECTS)
 t_test43_DEPENDENCIES = ./libopendkim.a
-t_test43_LINK = $(CCLD) $(t_test43_CFLAGS) $(CFLAGS) \
+t_test43_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test43_CFLAGS) $(CFLAGS) \
 	$(t_test43_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test44_OBJECTS = t_test44-t-test44.$(OBJEXT)
 t_test44_OBJECTS = $(am_t_test44_OBJECTS)
 t_test44_DEPENDENCIES = ./libopendkim.a
-t_test44_LINK = $(CCLD) $(t_test44_CFLAGS) $(CFLAGS) \
+t_test44_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test44_CFLAGS) $(CFLAGS) \
 	$(t_test44_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test45_OBJECTS = t_test45-t-test45.$(OBJEXT)
 t_test45_OBJECTS = $(am_t_test45_OBJECTS)
 t_test45_DEPENDENCIES = ./libopendkim.a
-t_test45_LINK = $(CCLD) $(t_test45_CFLAGS) $(CFLAGS) \
+t_test45_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test45_CFLAGS) $(CFLAGS) \
 	$(t_test45_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test46_OBJECTS = t_test46-t-test46.$(OBJEXT)
 t_test46_OBJECTS = $(am_t_test46_OBJECTS)
 t_test46_DEPENDENCIES = ./libopendkim.a
-t_test46_LINK = $(CCLD) $(t_test46_CFLAGS) $(CFLAGS) \
+t_test46_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test46_CFLAGS) $(CFLAGS) \
 	$(t_test46_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test47_OBJECTS = t_test47-t-test47.$(OBJEXT)
 t_test47_OBJECTS = $(am_t_test47_OBJECTS)
 t_test47_DEPENDENCIES = ./libopendkim.a
-t_test47_LINK = $(CCLD) $(t_test47_CFLAGS) $(CFLAGS) \
+t_test47_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test47_CFLAGS) $(CFLAGS) \
 	$(t_test47_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test48_OBJECTS = t_test48-t-test48.$(OBJEXT)
 t_test48_OBJECTS = $(am_t_test48_OBJECTS)
 t_test48_DEPENDENCIES = ./libopendkim.a
-t_test48_LINK = $(CCLD) $(t_test48_CFLAGS) $(CFLAGS) \
+t_test48_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test48_CFLAGS) $(CFLAGS) \
 	$(t_test48_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test49_OBJECTS = t_test49-t-test49.$(OBJEXT)
 t_test49_OBJECTS = $(am_t_test49_OBJECTS)
 t_test49_DEPENDENCIES = ./libopendkim.a
-t_test49_LINK = $(CCLD) $(t_test49_CFLAGS) $(CFLAGS) \
+t_test49_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test49_CFLAGS) $(CFLAGS) \
 	$(t_test49_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test50_OBJECTS = t_test50-t-test50.$(OBJEXT)
 t_test50_OBJECTS = $(am_t_test50_OBJECTS)
 t_test50_DEPENDENCIES = ./libopendkim.a
-t_test50_LINK = $(CCLD) $(t_test50_CFLAGS) $(CFLAGS) \
+t_test50_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test50_CFLAGS) $(CFLAGS) \
 	$(t_test50_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test51_OBJECTS = t_test51-t-test51.$(OBJEXT)
 t_test51_OBJECTS = $(am_t_test51_OBJECTS)
 t_test51_DEPENDENCIES = ./libopendkim.a
-t_test51_LINK = $(CCLD) $(t_test51_CFLAGS) $(CFLAGS) \
+t_test51_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test51_CFLAGS) $(CFLAGS) \
 	$(t_test51_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test52_OBJECTS = t_test52-t-test52.$(OBJEXT)
 t_test52_OBJECTS = $(am_t_test52_OBJECTS)
 t_test52_DEPENDENCIES = ./libopendkim.a
-t_test52_LINK = $(CCLD) $(t_test52_CFLAGS) $(CFLAGS) \
+t_test52_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test52_CFLAGS) $(CFLAGS) \
 	$(t_test52_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test53_OBJECTS = t_test53-t-test53.$(OBJEXT)
 t_test53_OBJECTS = $(am_t_test53_OBJECTS)
 t_test53_DEPENDENCIES = ./libopendkim.a
-t_test53_LINK = $(CCLD) $(t_test53_CFLAGS) $(CFLAGS) \
+t_test53_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test53_CFLAGS) $(CFLAGS) \
 	$(t_test53_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test54_OBJECTS = t_test54-t-test54.$(OBJEXT)
 t_test54_OBJECTS = $(am_t_test54_OBJECTS)
 t_test54_DEPENDENCIES = ./libopendkim.a
-t_test54_LINK = $(CCLD) $(t_test54_CFLAGS) $(CFLAGS) \
+t_test54_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test54_CFLAGS) $(CFLAGS) \
 	$(t_test54_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test55_OBJECTS = t_test55-t-test55.$(OBJEXT)
 t_test55_OBJECTS = $(am_t_test55_OBJECTS)
 t_test55_DEPENDENCIES = ./libopendkim.a
-t_test55_LINK = $(CCLD) $(t_test55_CFLAGS) $(CFLAGS) \
+t_test55_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test55_CFLAGS) $(CFLAGS) \
 	$(t_test55_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test56_OBJECTS = t_test56-t-test56.$(OBJEXT)
 t_test56_OBJECTS = $(am_t_test56_OBJECTS)
 t_test56_DEPENDENCIES = ./libopendkim.a
-t_test56_LINK = $(CCLD) $(t_test56_CFLAGS) $(CFLAGS) \
+t_test56_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test56_CFLAGS) $(CFLAGS) \
 	$(t_test56_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test57_OBJECTS = t_test57-t-test57.$(OBJEXT)
 t_test57_OBJECTS = $(am_t_test57_OBJECTS)
 t_test57_DEPENDENCIES = ./libopendkim.a
-t_test57_LINK = $(CCLD) $(t_test57_CFLAGS) $(CFLAGS) \
+t_test57_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test57_CFLAGS) $(CFLAGS) \
 	$(t_test57_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test58_OBJECTS = t_test58-t-test58.$(OBJEXT)
 t_test58_OBJECTS = $(am_t_test58_OBJECTS)
 t_test58_DEPENDENCIES = ./libopendkim.a
-t_test58_LINK = $(CCLD) $(t_test58_CFLAGS) $(CFLAGS) \
+t_test58_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test58_CFLAGS) $(CFLAGS) \
 	$(t_test58_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test59_OBJECTS = t_test59-t-test59.$(OBJEXT)
 t_test59_OBJECTS = $(am_t_test59_OBJECTS)
 t_test59_DEPENDENCIES = ./libopendkim.a
-t_test59_LINK = $(CCLD) $(t_test59_CFLAGS) $(CFLAGS) \
+t_test59_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test59_CFLAGS) $(CFLAGS) \
 	$(t_test59_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test60_OBJECTS = t_test60-t-test60.$(OBJEXT)
 t_test60_OBJECTS = $(am_t_test60_OBJECTS)
 t_test60_DEPENDENCIES = ./libopendkim.a
-t_test60_LINK = $(CCLD) $(t_test60_CFLAGS) $(CFLAGS) \
+t_test60_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test60_CFLAGS) $(CFLAGS) \
 	$(t_test60_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test61_OBJECTS = t_test61-t-test61.$(OBJEXT)
 t_test61_OBJECTS = $(am_t_test61_OBJECTS)
 t_test61_DEPENDENCIES = ./libopendkim.a
-t_test61_LINK = $(CCLD) $(t_test61_CFLAGS) $(CFLAGS) \
+t_test61_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test61_CFLAGS) $(CFLAGS) \
 	$(t_test61_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test62_OBJECTS = t_test62-t-test62.$(OBJEXT)
 t_test62_OBJECTS = $(am_t_test62_OBJECTS)
 t_test62_DEPENDENCIES = ./libopendkim.a
-t_test62_LINK = $(CCLD) $(t_test62_CFLAGS) $(CFLAGS) \
+t_test62_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test62_CFLAGS) $(CFLAGS) \
 	$(t_test62_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test63_OBJECTS = t_test63-t-test63.$(OBJEXT)
 t_test63_OBJECTS = $(am_t_test63_OBJECTS)
 t_test63_DEPENDENCIES = ./libopendkim.a
-t_test63_LINK = $(CCLD) $(t_test63_CFLAGS) $(CFLAGS) \
+t_test63_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test63_CFLAGS) $(CFLAGS) \
 	$(t_test63_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test64_OBJECTS = t_test64-t-test64.$(OBJEXT)
 t_test64_OBJECTS = $(am_t_test64_OBJECTS)
 t_test64_DEPENDENCIES = ./libopendkim.a
-t_test64_LINK = $(CCLD) $(t_test64_CFLAGS) $(CFLAGS) \
+t_test64_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test64_CFLAGS) $(CFLAGS) \
 	$(t_test64_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test65_OBJECTS = t_test65-t-test65.$(OBJEXT)
 t_test65_OBJECTS = $(am_t_test65_OBJECTS)
 t_test65_DEPENDENCIES = ./libopendkim.a
-t_test65_LINK = $(CCLD) $(t_test65_CFLAGS) $(CFLAGS) \
+t_test65_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test65_CFLAGS) $(CFLAGS) \
 	$(t_test65_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test66_OBJECTS = t_test66-t-test66.$(OBJEXT)
 t_test66_OBJECTS = $(am_t_test66_OBJECTS)
 t_test66_DEPENDENCIES = ./libopendkim.a
-t_test66_LINK = $(CCLD) $(t_test66_CFLAGS) $(CFLAGS) \
+t_test66_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test66_CFLAGS) $(CFLAGS) \
 	$(t_test66_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test67_OBJECTS = t_test67-t-test67.$(OBJEXT)
 t_test67_OBJECTS = $(am_t_test67_OBJECTS)
 t_test67_DEPENDENCIES = ./libopendkim.a
-t_test67_LINK = $(CCLD) $(t_test67_CFLAGS) $(CFLAGS) \
+t_test67_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test67_CFLAGS) $(CFLAGS) \
 	$(t_test67_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test68_OBJECTS = t_test68-t-test68.$(OBJEXT)
 t_test68_OBJECTS = $(am_t_test68_OBJECTS)
 t_test68_DEPENDENCIES = ./libopendkim.a
-t_test68_LINK = $(CCLD) $(t_test68_CFLAGS) $(CFLAGS) \
+t_test68_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test68_CFLAGS) $(CFLAGS) \
 	$(t_test68_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test69_OBJECTS = t_test69-t-test69.$(OBJEXT)
 t_test69_OBJECTS = $(am_t_test69_OBJECTS)
 t_test69_DEPENDENCIES = ./libopendkim.a
-t_test69_LINK = $(CCLD) $(t_test69_CFLAGS) $(CFLAGS) \
+t_test69_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test69_CFLAGS) $(CFLAGS) \
 	$(t_test69_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test70_OBJECTS = t_test70-t-test70.$(OBJEXT)
 t_test70_OBJECTS = $(am_t_test70_OBJECTS)
 t_test70_DEPENDENCIES = ./libopendkim.a
-t_test70_LINK = $(CCLD) $(t_test70_CFLAGS) $(CFLAGS) \
+t_test70_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test70_CFLAGS) $(CFLAGS) \
 	$(t_test70_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test71_OBJECTS = t_test71-t-test71.$(OBJEXT)
 t_test71_OBJECTS = $(am_t_test71_OBJECTS)
 t_test71_DEPENDENCIES = ./libopendkim.a
-t_test71_LINK = $(CCLD) $(t_test71_CFLAGS) $(CFLAGS) \
+t_test71_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test71_CFLAGS) $(CFLAGS) \
 	$(t_test71_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test72_OBJECTS = t_test72-t-test72.$(OBJEXT)
 t_test72_OBJECTS = $(am_t_test72_OBJECTS)
 t_test72_DEPENDENCIES = ./libopendkim.a
-t_test72_LINK = $(CCLD) $(t_test72_CFLAGS) $(CFLAGS) \
+t_test72_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test72_CFLAGS) $(CFLAGS) \
 	$(t_test72_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test73_OBJECTS = t_test73-t-test73.$(OBJEXT)
 t_test73_OBJECTS = $(am_t_test73_OBJECTS)
 t_test73_DEPENDENCIES = ./libopendkim.a
-t_test73_LINK = $(CCLD) $(t_test73_CFLAGS) $(CFLAGS) \
+t_test73_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test73_CFLAGS) $(CFLAGS) \
 	$(t_test73_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test74_OBJECTS = t_test74-t-test74.$(OBJEXT)
 t_test74_OBJECTS = $(am_t_test74_OBJECTS)
 t_test74_DEPENDENCIES = ./libopendkim.a
-t_test74_LINK = $(CCLD) $(t_test74_CFLAGS) $(CFLAGS) \
+t_test74_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test74_CFLAGS) $(CFLAGS) \
 	$(t_test74_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test75_OBJECTS = t_test75-t-test75.$(OBJEXT)
 t_test75_OBJECTS = $(am_t_test75_OBJECTS)
 t_test75_DEPENDENCIES = ./libopendkim.a
-t_test75_LINK = $(CCLD) $(t_test75_CFLAGS) $(CFLAGS) \
+t_test75_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test75_CFLAGS) $(CFLAGS) \
 	$(t_test75_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test76_OBJECTS = t_test76-t-test76.$(OBJEXT)
 t_test76_OBJECTS = $(am_t_test76_OBJECTS)
 t_test76_DEPENDENCIES = ./libopendkim.a
-t_test76_LINK = $(CCLD) $(t_test76_CFLAGS) $(CFLAGS) \
+t_test76_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test76_CFLAGS) $(CFLAGS) \
 	$(t_test76_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test77_OBJECTS = t_test77-t-test77.$(OBJEXT)
 t_test77_OBJECTS = $(am_t_test77_OBJECTS)
 t_test77_DEPENDENCIES = ./libopendkim.a
-t_test77_LINK = $(CCLD) $(t_test77_CFLAGS) $(CFLAGS) \
+t_test77_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test77_CFLAGS) $(CFLAGS) \
 	$(t_test77_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test78_OBJECTS = t_test78-t-test78.$(OBJEXT)
 t_test78_OBJECTS = $(am_t_test78_OBJECTS)
 t_test78_DEPENDENCIES = ./libopendkim.a
-t_test78_LINK = $(CCLD) $(t_test78_CFLAGS) $(CFLAGS) \
+t_test78_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test78_CFLAGS) $(CFLAGS) \
 	$(t_test78_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test79_OBJECTS = t_test79-t-test79.$(OBJEXT)
 t_test79_OBJECTS = $(am_t_test79_OBJECTS)
 t_test79_DEPENDENCIES = ./libopendkim.a
-t_test79_LINK = $(CCLD) $(t_test79_CFLAGS) $(CFLAGS) \
+t_test79_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test79_CFLAGS) $(CFLAGS) \
 	$(t_test79_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test80_OBJECTS = t_test80-t-test80.$(OBJEXT)
 t_test80_OBJECTS = $(am_t_test80_OBJECTS)
 t_test80_DEPENDENCIES = ./libopendkim.a
-t_test80_LINK = $(CCLD) $(t_test80_CFLAGS) $(CFLAGS) \
+t_test80_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test80_CFLAGS) $(CFLAGS) \
 	$(t_test80_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test81_OBJECTS = t_test81-t-test81.$(OBJEXT)
 t_test81_OBJECTS = $(am_t_test81_OBJECTS)
 t_test81_DEPENDENCIES = ./libopendkim.a
-t_test81_LINK = $(CCLD) $(t_test81_CFLAGS) $(CFLAGS) \
+t_test81_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test81_CFLAGS) $(CFLAGS) \
 	$(t_test81_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test82_OBJECTS = t_test82-t-test82.$(OBJEXT)
 t_test82_OBJECTS = $(am_t_test82_OBJECTS)
 t_test82_DEPENDENCIES = ./libopendkim.a
-t_test82_LINK = $(CCLD) $(t_test82_CFLAGS) $(CFLAGS) \
+t_test82_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test82_CFLAGS) $(CFLAGS) \
 	$(t_test82_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test83_OBJECTS = t_test83-t-test83.$(OBJEXT)
 t_test83_OBJECTS = $(am_t_test83_OBJECTS)
 t_test83_DEPENDENCIES = ./libopendkim.a
-t_test83_LINK = $(CCLD) $(t_test83_CFLAGS) $(CFLAGS) \
+t_test83_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test83_CFLAGS) $(CFLAGS) \
 	$(t_test83_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test84_OBJECTS = t_test84-t-test84.$(OBJEXT)
 t_test84_OBJECTS = $(am_t_test84_OBJECTS)
 t_test84_DEPENDENCIES = ./libopendkim.a
-t_test84_LINK = $(CCLD) $(t_test84_CFLAGS) $(CFLAGS) \
+t_test84_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test84_CFLAGS) $(CFLAGS) \
 	$(t_test84_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test85_OBJECTS = t_test85-t-test85.$(OBJEXT)
 t_test85_OBJECTS = $(am_t_test85_OBJECTS)
 t_test85_DEPENDENCIES = ./libopendkim.a
-t_test85_LINK = $(CCLD) $(t_test85_CFLAGS) $(CFLAGS) \
+t_test85_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test85_CFLAGS) $(CFLAGS) \
 	$(t_test85_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test86_OBJECTS = t_test86-t-test86.$(OBJEXT)
 t_test86_OBJECTS = $(am_t_test86_OBJECTS)
 t_test86_DEPENDENCIES = ./libopendkim.a
-t_test86_LINK = $(CCLD) $(t_test86_CFLAGS) $(CFLAGS) \
+t_test86_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test86_CFLAGS) $(CFLAGS) \
 	$(t_test86_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test87_OBJECTS = t_test87-t-test87.$(OBJEXT)
 t_test87_OBJECTS = $(am_t_test87_OBJECTS)
 t_test87_DEPENDENCIES = ./libopendkim.a
-t_test87_LINK = $(CCLD) $(t_test87_CFLAGS) $(CFLAGS) \
+t_test87_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test87_CFLAGS) $(CFLAGS) \
 	$(t_test87_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test88_OBJECTS = t_test88-t-test88.$(OBJEXT)
 t_test88_OBJECTS = $(am_t_test88_OBJECTS)
 t_test88_DEPENDENCIES = ./libopendkim.a
-t_test88_LINK = $(CCLD) $(t_test88_CFLAGS) $(CFLAGS) \
+t_test88_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test88_CFLAGS) $(CFLAGS) \
 	$(t_test88_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test89_OBJECTS = t_test89-t-test89.$(OBJEXT)
 t_test89_OBJECTS = $(am_t_test89_OBJECTS)
 t_test89_DEPENDENCIES = ./libopendkim.a
-t_test89_LINK = $(CCLD) $(t_test89_CFLAGS) $(CFLAGS) \
+t_test89_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test89_CFLAGS) $(CFLAGS) \
 	$(t_test89_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test90_OBJECTS = t_test90-t-test90.$(OBJEXT)
 t_test90_OBJECTS = $(am_t_test90_OBJECTS)
 t_test90_DEPENDENCIES = ./libopendkim.a
-t_test90_LINK = $(CCLD) $(t_test90_CFLAGS) $(CFLAGS) \
+t_test90_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test90_CFLAGS) $(CFLAGS) \
 	$(t_test90_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test91_OBJECTS = t_test91-t-test91.$(OBJEXT)
 t_test91_OBJECTS = $(am_t_test91_OBJECTS)
 t_test91_DEPENDENCIES = ./libopendkim.a
-t_test91_LINK = $(CCLD) $(t_test91_CFLAGS) $(CFLAGS) \
+t_test91_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test91_CFLAGS) $(CFLAGS) \
 	$(t_test91_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test92_OBJECTS = t_test92-t-test92.$(OBJEXT)
 t_test92_OBJECTS = $(am_t_test92_OBJECTS)
 t_test92_DEPENDENCIES = ./libopendkim.a
-t_test92_LINK = $(CCLD) $(t_test92_CFLAGS) $(CFLAGS) \
+t_test92_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test92_CFLAGS) $(CFLAGS) \
 	$(t_test92_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test93_OBJECTS = t_test93-t-test93.$(OBJEXT)
 t_test93_OBJECTS = $(am_t_test93_OBJECTS)
 t_test93_DEPENDENCIES = ./libopendkim.a
-t_test93_LINK = $(CCLD) $(t_test93_CFLAGS) $(CFLAGS) \
+t_test93_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test93_CFLAGS) $(CFLAGS) \
 	$(t_test93_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test94_OBJECTS = t_test94-t-test94.$(OBJEXT)
 t_test94_OBJECTS = $(am_t_test94_OBJECTS)
 t_test94_DEPENDENCIES = ./libopendkim.a
-t_test94_LINK = $(CCLD) $(t_test94_CFLAGS) $(CFLAGS) \
+t_test94_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test94_CFLAGS) $(CFLAGS) \
 	$(t_test94_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test95_OBJECTS = t_test95-t-test95.$(OBJEXT)
 t_test95_OBJECTS = $(am_t_test95_OBJECTS)
 t_test95_DEPENDENCIES = ./libopendkim.a
-t_test95_LINK = $(CCLD) $(t_test95_CFLAGS) $(CFLAGS) \
+t_test95_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test95_CFLAGS) $(CFLAGS) \
 	$(t_test95_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test96_OBJECTS = t_test96-t-test96.$(OBJEXT)
 t_test96_OBJECTS = $(am_t_test96_OBJECTS)
 t_test96_DEPENDENCIES = ./libopendkim.a
-t_test96_LINK = $(CCLD) $(t_test96_CFLAGS) $(CFLAGS) \
+t_test96_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test96_CFLAGS) $(CFLAGS) \
 	$(t_test96_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test97_OBJECTS = t_test97-t-test97.$(OBJEXT)
 t_test97_OBJECTS = $(am_t_test97_OBJECTS)
 t_test97_DEPENDENCIES = ./libopendkim.a
-t_test97_LINK = $(CCLD) $(t_test97_CFLAGS) $(CFLAGS) \
+t_test97_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test97_CFLAGS) $(CFLAGS) \
 	$(t_test97_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test98_OBJECTS = t_test98-t-test98.$(OBJEXT)
 t_test98_OBJECTS = $(am_t_test98_OBJECTS)
 t_test98_DEPENDENCIES = ./libopendkim.a
-t_test98_LINK = $(CCLD) $(t_test98_CFLAGS) $(CFLAGS) \
+t_test98_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test98_CFLAGS) $(CFLAGS) \
 	$(t_test98_LDFLAGS) $(LDFLAGS) -o $@
 am_t_test99_OBJECTS = t_test99-t-test99.$(OBJEXT)
 t_test99_OBJECTS = $(am_t_test99_OBJECTS)
 t_test99_DEPENDENCIES = ./libopendkim.a
-t_test99_LINK = $(CCLD) $(t_test99_CFLAGS) $(CFLAGS) \
+t_test99_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(t_test99_CFLAGS) $(CFLAGS) \
 	$(t_test99_LDFLAGS) $(LDFLAGS) -o $@
 am_t_verifyperf_OBJECTS = t_verifyperf-t-verifyperf.$(OBJEXT)
 t_verifyperf_OBJECTS = $(am_t_verifyperf_OBJECTS)
 t_verifyperf_DEPENDENCIES = ./libopendkim.a
-t_verifyperf_LINK = $(CCLD) $(t_verifyperf_CFLAGS) $(CFLAGS) \
-	$(t_verifyperf_LDFLAGS) $(LDFLAGS) -o $@
+t_verifyperf_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_verifyperf_CFLAGS) \
+	$(CFLAGS) $(t_verifyperf_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libopendkim_a_SOURCES) $(t_cleanup_SOURCES) \
+LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+SOURCES = $(libopendkim_la_SOURCES) $(t_cleanup_SOURCES) \
 	$(t_setup_SOURCES) $(t_signperf_SOURCES) $(t_test00_SOURCES) \
 	$(t_test01_SOURCES) $(t_test02_SOURCES) $(t_test03_SOURCES) \
 	$(t_test04_SOURCES) $(t_test05_SOURCES) $(t_test06_SOURCES) \
@@ -838,7 +965,7 @@ SOURCES = $(libopendkim_a_SOURCES) $(t_cleanup_SOURCES) \
 	$(t_test93_SOURCES) $(t_test94_SOURCES) $(t_test95_SOURCES) \
 	$(t_test96_SOURCES) $(t_test97_SOURCES) $(t_test98_SOURCES) \
 	$(t_test99_SOURCES) $(t_verifyperf_SOURCES)
-DIST_SOURCES = $(libopendkim_a_SOURCES) $(t_cleanup_SOURCES) \
+DIST_SOURCES = $(libopendkim_la_SOURCES) $(t_cleanup_SOURCES) \
 	$(t_setup_SOURCES) $(t_signperf_SOURCES) $(t_test00_SOURCES) \
 	$(t_test01_SOURCES) $(t_test02_SOURCES) $(t_test03_SOURCES) \
 	$(t_test04_SOURCES) $(t_test05_SOURCES) $(t_test06_SOURCES) \
@@ -883,8 +1010,8 @@ DIST_SOURCES = $(libopendkim_a_SOURCES) $(t_cleanup_SOURCES) \
 	$(t_test93_SOURCES) $(t_test94_SOURCES) $(t_test95_SOURCES) \
 	$(t_test96_SOURCES) $(t_test97_SOURCES) $(t_test98_SOURCES) \
 	$(t_test99_SOURCES) $(t_verifyperf_SOURCES)
-libopendkim_aDATA_INSTALL = $(INSTALL_DATA)
-DATA = $(libopendkim_a_DATA)
+libopendkIm_laDATA_INSTALL = $(INSTALL_DATA)
+DATA = $(libopendkIm_la_DATA)
 libopendkimincludeHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(libopendkiminclude_HEADERS)
 ETAGS = etags
@@ -892,6 +1019,7 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -901,14 +1029,21 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CXX = @CXX@
+CXXCPP = @CXXCPP@
+CXXDEPMODE = @CXXDEPMODE@
+CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
+F77 = @F77@
+FFLAGS = @FFLAGS@
 GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -923,9 +1058,11 @@ LIBMILTER_INCLUDES = @LIBMILTER_INCLUDES@
 LIBMILTER_LIBS = @LIBMILTER_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
+LIBTOOL = @LIBTOOL@
 LIBUNBOUND_INCDIRS = @LIBUNBOUND_INCDIRS@
 LIBUNBOUND_LIBDIRS = @LIBUNBOUND_LIBDIRS@
 LIBUNBOUND_LIBS = @LIBUNBOUND_LIBS@
+LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
@@ -938,6 +1075,7 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -947,20 +1085,30 @@ abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_CC = @ac_ct_CC@
+ac_ct_CXX = @ac_ct_CXX@
+ac_ct_F77 = @ac_ct_F77@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
+build = @build@
 build_alias = @build_alias@
+build_cpu = @build_cpu@
+build_os = @build_os@
+build_vendor = @build_vendor@
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+host = @host@
 host_alias = @host_alias@
+host_cpu = @host_cpu@
+host_os = @host_os@
+host_vendor = @host_vendor@
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -984,17 +1132,17 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-lib_LIBRARIES = libopendkim.a
-libopendkim_a_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c base64.h dkim-cache.h dkim-canon.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h vbr.h
-libopendkim_a_CFLAGS = $(LIBUNBOUND_INCDIRS) $(am__append_1) \
+lib_LTLIBRARIES = libopendkim.la
+libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c base64.h dkim-cache.h dkim-canon.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h vbr.h
+libopendkIm_la_CFLAGS = $(LIBUNBOUND_INCDIRS) $(am__append_1) \
 	$(am__append_2) $(am__append_3) $(am__append_4) \
 	$(am__append_5) $(am__append_6) $(am__append_7) \
 	$(am__append_8) $(am__append_9) $(am__append_10) \
 	$(am__append_11)
 libopendkimincludedir = $(includedir)/opendkim
 libopendkiminclude_HEADERS = dkim.h
-libopendkim_adir = $(datadir)/opendkim
-libopendkim_a_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
+libopendkIm_ladir = $(datadir)/opendkim
+libopendkIm_la_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
 	docs/dkim_canon_t.html docs/dkim_cbstat.html docs/dkim_chunk.html \
 	docs/dkim_close.html docs/dkim_dnssec.html docs/dkim_eoh.html \
 	docs/dkim_eom.html docs/dkim_flush_cache.html docs/dkim_free.html \
@@ -1562,7 +1710,7 @@ t_test127_LDADD = ./libopendkim.a
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .o .obj
+.SUFFIXES: .c .lo .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -1592,42 +1740,42 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-install-libLIBRARIES: $(lib_LIBRARIES)
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	test -z "$(libdir)" || $(MKDIR_P) "$(DESTDIR)$(libdir)"
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
 	  if test -f $$p; then \
 	    f=$(am__strip_dir) \
-	    echo " $(libLIBRARIES_INSTALL) '$$p' '$(DESTDIR)$(libdir)/$$f'"; \
-	    $(libLIBRARIES_INSTALL) "$$p" "$(DESTDIR)$(libdir)/$$f"; \
-	  else :; fi; \
-	done
-	@$(POST_INSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    p=$(am__strip_dir) \
-	    echo " $(RANLIB) '$(DESTDIR)$(libdir)/$$p'"; \
-	    $(RANLIB) "$(DESTDIR)$(libdir)/$$p"; \
+	    echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(libLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) '$$p' '$(DESTDIR)$(libdir)/$$f'"; \
+	    $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(libLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) "$$p" "$(DESTDIR)$(libdir)/$$f"; \
 	  else :; fi; \
 	done
 
-uninstall-libLIBRARIES:
+uninstall-libLTLIBRARIES:
 	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
 	  p=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(libdir)/$$p'"; \
-	  rm -f "$(DESTDIR)$(libdir)/$$p"; \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$p'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$p"; \
 	done
 
-clean-libLIBRARIES:
-	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-libopendkim.a: $(libopendkim_a_OBJECTS) $(libopendkim_a_DEPENDENCIES) 
-	-rm -f libopendkim.a
-	$(libopendkim_a_AR) libopendkim.a $(libopendkim_a_OBJECTS) $(libopendkim_a_LIBADD)
-	$(RANLIB) libopendkim.a
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+libopendkim.la: $(libopendkim_la_OBJECTS) $(libopendkim_la_DEPENDENCIES) 
+	$(LINK) -rpath $(libdir) $(libopendkim_la_OBJECTS) $(libopendkim_la_LIBADD) $(LIBS)
 
 clean-checkPROGRAMS:
-	-test -z "$(check_PROGRAMS)" || rm -f $(check_PROGRAMS)
+	@list='$(check_PROGRAMS)'; for p in $$list; do \
+	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  echo " rm -f $$p $$f"; \
+	  rm -f $$p $$f ; \
+	done
 t-cleanup$(EXEEXT): $(t_cleanup_OBJECTS) $(t_cleanup_DEPENDENCIES) 
 	@rm -f t-cleanup$(EXEEXT)
 	$(t_cleanup_LINK) $(t_cleanup_OBJECTS) $(t_cleanup_LDADD) $(LIBS)
@@ -2031,21 +2179,19 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-base64.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-cache.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-canon.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-keys.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-policy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-rep.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-strl.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-tables.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-test.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-ub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim-util.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-dkim.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-rfc2822.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-util.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libopendkim_a-vbr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/base64.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dkim-cache.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dkim-canon.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dkim-keys.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dkim-policy.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dkim-rep.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dkim-strl.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dkim-tables.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dkim-test.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dkim-ub.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dkim-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dkim.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rfc2822.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_cleanup-t-cleanup.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_setup-t-setup.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_signperf-t-signperf.Po@am__quote@
@@ -2178,6 +2324,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_test98-t-test98.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_test99-t-test99.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t_verifyperf-t-verifyperf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vbr.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -2193,215 +2341,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
 
-libopendkim_a-base64.o: base64.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-base64.o -MD -MP -MF $(DEPDIR)/libopendkim_a-base64.Tpo -c -o libopendkim_a-base64.o `test -f 'base64.c' || echo '$(srcdir)/'`base64.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-base64.Tpo $(DEPDIR)/libopendkim_a-base64.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='base64.c' object='libopendkim_a-base64.o' libtool=no @AMDEPBACKSLASH@
+.c.lo:
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-base64.o `test -f 'base64.c' || echo '$(srcdir)/'`base64.c
-
-libopendkim_a-base64.obj: base64.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-base64.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-base64.Tpo -c -o libopendkim_a-base64.obj `if test -f 'base64.c'; then $(CYGPATH_W) 'base64.c'; else $(CYGPATH_W) '$(srcdir)/base64.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-base64.Tpo $(DEPDIR)/libopendkim_a-base64.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='base64.c' object='libopendkim_a-base64.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-base64.obj `if test -f 'base64.c'; then $(CYGPATH_W) 'base64.c'; else $(CYGPATH_W) '$(srcdir)/base64.c'; fi`
-
-libopendkim_a-dkim-cache.o: dkim-cache.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-cache.o -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-cache.Tpo -c -o libopendkim_a-dkim-cache.o `test -f 'dkim-cache.c' || echo '$(srcdir)/'`dkim-cache.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-cache.Tpo $(DEPDIR)/libopendkim_a-dkim-cache.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-cache.c' object='libopendkim_a-dkim-cache.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-cache.o `test -f 'dkim-cache.c' || echo '$(srcdir)/'`dkim-cache.c
-
-libopendkim_a-dkim-cache.obj: dkim-cache.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-cache.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-cache.Tpo -c -o libopendkim_a-dkim-cache.obj `if test -f 'dkim-cache.c'; then $(CYGPATH_W) 'dkim-cache.c'; else $(CYGPATH_W) '$(srcdir)/dkim-cache.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-cache.Tpo $(DEPDIR)/libopendkim_a-dkim-cache.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-cache.c' object='libopendkim_a-dkim-cache.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-cache.obj `if test -f 'dkim-cache.c'; then $(CYGPATH_W) 'dkim-cache.c'; else $(CYGPATH_W) '$(srcdir)/dkim-cache.c'; fi`
-
-libopendkim_a-dkim-canon.o: dkim-canon.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-canon.o -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-canon.Tpo -c -o libopendkim_a-dkim-canon.o `test -f 'dkim-canon.c' || echo '$(srcdir)/'`dkim-canon.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-canon.Tpo $(DEPDIR)/libopendkim_a-dkim-canon.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-canon.c' object='libopendkim_a-dkim-canon.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-canon.o `test -f 'dkim-canon.c' || echo '$(srcdir)/'`dkim-canon.c
-
-libopendkim_a-dkim-canon.obj: dkim-canon.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-canon.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-canon.Tpo -c -o libopendkim_a-dkim-canon.obj `if test -f 'dkim-canon.c'; then $(CYGPATH_W) 'dkim-canon.c'; else $(CYGPATH_W) '$(srcdir)/dkim-canon.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-canon.Tpo $(DEPDIR)/libopendkim_a-dkim-canon.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-canon.c' object='libopendkim_a-dkim-canon.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-canon.obj `if test -f 'dkim-canon.c'; then $(CYGPATH_W) 'dkim-canon.c'; else $(CYGPATH_W) '$(srcdir)/dkim-canon.c'; fi`
-
-libopendkim_a-dkim-keys.o: dkim-keys.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-keys.o -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-keys.Tpo -c -o libopendkim_a-dkim-keys.o `test -f 'dkim-keys.c' || echo '$(srcdir)/'`dkim-keys.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-keys.Tpo $(DEPDIR)/libopendkim_a-dkim-keys.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-keys.c' object='libopendkim_a-dkim-keys.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-keys.o `test -f 'dkim-keys.c' || echo '$(srcdir)/'`dkim-keys.c
-
-libopendkim_a-dkim-keys.obj: dkim-keys.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-keys.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-keys.Tpo -c -o libopendkim_a-dkim-keys.obj `if test -f 'dkim-keys.c'; then $(CYGPATH_W) 'dkim-keys.c'; else $(CYGPATH_W) '$(srcdir)/dkim-keys.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-keys.Tpo $(DEPDIR)/libopendkim_a-dkim-keys.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-keys.c' object='libopendkim_a-dkim-keys.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-keys.obj `if test -f 'dkim-keys.c'; then $(CYGPATH_W) 'dkim-keys.c'; else $(CYGPATH_W) '$(srcdir)/dkim-keys.c'; fi`
-
-libopendkim_a-dkim-policy.o: dkim-policy.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-policy.o -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-policy.Tpo -c -o libopendkim_a-dkim-policy.o `test -f 'dkim-policy.c' || echo '$(srcdir)/'`dkim-policy.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-policy.Tpo $(DEPDIR)/libopendkim_a-dkim-policy.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-policy.c' object='libopendkim_a-dkim-policy.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-policy.o `test -f 'dkim-policy.c' || echo '$(srcdir)/'`dkim-policy.c
-
-libopendkim_a-dkim-policy.obj: dkim-policy.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-policy.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-policy.Tpo -c -o libopendkim_a-dkim-policy.obj `if test -f 'dkim-policy.c'; then $(CYGPATH_W) 'dkim-policy.c'; else $(CYGPATH_W) '$(srcdir)/dkim-policy.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-policy.Tpo $(DEPDIR)/libopendkim_a-dkim-policy.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-policy.c' object='libopendkim_a-dkim-policy.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-policy.obj `if test -f 'dkim-policy.c'; then $(CYGPATH_W) 'dkim-policy.c'; else $(CYGPATH_W) '$(srcdir)/dkim-policy.c'; fi`
-
-libopendkim_a-dkim-rep.o: dkim-rep.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-rep.o -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-rep.Tpo -c -o libopendkim_a-dkim-rep.o `test -f 'dkim-rep.c' || echo '$(srcdir)/'`dkim-rep.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-rep.Tpo $(DEPDIR)/libopendkim_a-dkim-rep.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-rep.c' object='libopendkim_a-dkim-rep.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-rep.o `test -f 'dkim-rep.c' || echo '$(srcdir)/'`dkim-rep.c
-
-libopendkim_a-dkim-rep.obj: dkim-rep.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-rep.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-rep.Tpo -c -o libopendkim_a-dkim-rep.obj `if test -f 'dkim-rep.c'; then $(CYGPATH_W) 'dkim-rep.c'; else $(CYGPATH_W) '$(srcdir)/dkim-rep.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-rep.Tpo $(DEPDIR)/libopendkim_a-dkim-rep.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-rep.c' object='libopendkim_a-dkim-rep.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-rep.obj `if test -f 'dkim-rep.c'; then $(CYGPATH_W) 'dkim-rep.c'; else $(CYGPATH_W) '$(srcdir)/dkim-rep.c'; fi`
-
-libopendkim_a-dkim-strl.o: dkim-strl.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-strl.o -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-strl.Tpo -c -o libopendkim_a-dkim-strl.o `test -f 'dkim-strl.c' || echo '$(srcdir)/'`dkim-strl.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-strl.Tpo $(DEPDIR)/libopendkim_a-dkim-strl.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-strl.c' object='libopendkim_a-dkim-strl.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-strl.o `test -f 'dkim-strl.c' || echo '$(srcdir)/'`dkim-strl.c
-
-libopendkim_a-dkim-strl.obj: dkim-strl.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-strl.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-strl.Tpo -c -o libopendkim_a-dkim-strl.obj `if test -f 'dkim-strl.c'; then $(CYGPATH_W) 'dkim-strl.c'; else $(CYGPATH_W) '$(srcdir)/dkim-strl.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-strl.Tpo $(DEPDIR)/libopendkim_a-dkim-strl.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-strl.c' object='libopendkim_a-dkim-strl.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-strl.obj `if test -f 'dkim-strl.c'; then $(CYGPATH_W) 'dkim-strl.c'; else $(CYGPATH_W) '$(srcdir)/dkim-strl.c'; fi`
-
-libopendkim_a-dkim-tables.o: dkim-tables.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-tables.o -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-tables.Tpo -c -o libopendkim_a-dkim-tables.o `test -f 'dkim-tables.c' || echo '$(srcdir)/'`dkim-tables.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-tables.Tpo $(DEPDIR)/libopendkim_a-dkim-tables.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-tables.c' object='libopendkim_a-dkim-tables.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-tables.o `test -f 'dkim-tables.c' || echo '$(srcdir)/'`dkim-tables.c
-
-libopendkim_a-dkim-tables.obj: dkim-tables.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-tables.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-tables.Tpo -c -o libopendkim_a-dkim-tables.obj `if test -f 'dkim-tables.c'; then $(CYGPATH_W) 'dkim-tables.c'; else $(CYGPATH_W) '$(srcdir)/dkim-tables.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-tables.Tpo $(DEPDIR)/libopendkim_a-dkim-tables.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-tables.c' object='libopendkim_a-dkim-tables.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-tables.obj `if test -f 'dkim-tables.c'; then $(CYGPATH_W) 'dkim-tables.c'; else $(CYGPATH_W) '$(srcdir)/dkim-tables.c'; fi`
-
-libopendkim_a-dkim-test.o: dkim-test.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-test.o -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-test.Tpo -c -o libopendkim_a-dkim-test.o `test -f 'dkim-test.c' || echo '$(srcdir)/'`dkim-test.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-test.Tpo $(DEPDIR)/libopendkim_a-dkim-test.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-test.c' object='libopendkim_a-dkim-test.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-test.o `test -f 'dkim-test.c' || echo '$(srcdir)/'`dkim-test.c
-
-libopendkim_a-dkim-test.obj: dkim-test.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-test.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-test.Tpo -c -o libopendkim_a-dkim-test.obj `if test -f 'dkim-test.c'; then $(CYGPATH_W) 'dkim-test.c'; else $(CYGPATH_W) '$(srcdir)/dkim-test.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-test.Tpo $(DEPDIR)/libopendkim_a-dkim-test.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-test.c' object='libopendkim_a-dkim-test.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-test.obj `if test -f 'dkim-test.c'; then $(CYGPATH_W) 'dkim-test.c'; else $(CYGPATH_W) '$(srcdir)/dkim-test.c'; fi`
-
-libopendkim_a-dkim-ub.o: dkim-ub.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-ub.o -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-ub.Tpo -c -o libopendkim_a-dkim-ub.o `test -f 'dkim-ub.c' || echo '$(srcdir)/'`dkim-ub.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-ub.Tpo $(DEPDIR)/libopendkim_a-dkim-ub.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-ub.c' object='libopendkim_a-dkim-ub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-ub.o `test -f 'dkim-ub.c' || echo '$(srcdir)/'`dkim-ub.c
-
-libopendkim_a-dkim-ub.obj: dkim-ub.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-ub.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-ub.Tpo -c -o libopendkim_a-dkim-ub.obj `if test -f 'dkim-ub.c'; then $(CYGPATH_W) 'dkim-ub.c'; else $(CYGPATH_W) '$(srcdir)/dkim-ub.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-ub.Tpo $(DEPDIR)/libopendkim_a-dkim-ub.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-ub.c' object='libopendkim_a-dkim-ub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-ub.obj `if test -f 'dkim-ub.c'; then $(CYGPATH_W) 'dkim-ub.c'; else $(CYGPATH_W) '$(srcdir)/dkim-ub.c'; fi`
-
-libopendkim_a-dkim-util.o: dkim-util.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-util.o -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-util.Tpo -c -o libopendkim_a-dkim-util.o `test -f 'dkim-util.c' || echo '$(srcdir)/'`dkim-util.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-util.Tpo $(DEPDIR)/libopendkim_a-dkim-util.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-util.c' object='libopendkim_a-dkim-util.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-util.o `test -f 'dkim-util.c' || echo '$(srcdir)/'`dkim-util.c
-
-libopendkim_a-dkim-util.obj: dkim-util.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim-util.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim-util.Tpo -c -o libopendkim_a-dkim-util.obj `if test -f 'dkim-util.c'; then $(CYGPATH_W) 'dkim-util.c'; else $(CYGPATH_W) '$(srcdir)/dkim-util.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim-util.Tpo $(DEPDIR)/libopendkim_a-dkim-util.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim-util.c' object='libopendkim_a-dkim-util.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim-util.obj `if test -f 'dkim-util.c'; then $(CYGPATH_W) 'dkim-util.c'; else $(CYGPATH_W) '$(srcdir)/dkim-util.c'; fi`
-
-libopendkim_a-dkim.o: dkim.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim.o -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim.Tpo -c -o libopendkim_a-dkim.o `test -f 'dkim.c' || echo '$(srcdir)/'`dkim.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim.Tpo $(DEPDIR)/libopendkim_a-dkim.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim.c' object='libopendkim_a-dkim.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim.o `test -f 'dkim.c' || echo '$(srcdir)/'`dkim.c
-
-libopendkim_a-dkim.obj: dkim.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-dkim.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-dkim.Tpo -c -o libopendkim_a-dkim.obj `if test -f 'dkim.c'; then $(CYGPATH_W) 'dkim.c'; else $(CYGPATH_W) '$(srcdir)/dkim.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-dkim.Tpo $(DEPDIR)/libopendkim_a-dkim.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='dkim.c' object='libopendkim_a-dkim.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-dkim.obj `if test -f 'dkim.c'; then $(CYGPATH_W) 'dkim.c'; else $(CYGPATH_W) '$(srcdir)/dkim.c'; fi`
-
-libopendkim_a-rfc2822.o: rfc2822.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-rfc2822.o -MD -MP -MF $(DEPDIR)/libopendkim_a-rfc2822.Tpo -c -o libopendkim_a-rfc2822.o `test -f 'rfc2822.c' || echo '$(srcdir)/'`rfc2822.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-rfc2822.Tpo $(DEPDIR)/libopendkim_a-rfc2822.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='rfc2822.c' object='libopendkim_a-rfc2822.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-rfc2822.o `test -f 'rfc2822.c' || echo '$(srcdir)/'`rfc2822.c
-
-libopendkim_a-rfc2822.obj: rfc2822.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-rfc2822.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-rfc2822.Tpo -c -o libopendkim_a-rfc2822.obj `if test -f 'rfc2822.c'; then $(CYGPATH_W) 'rfc2822.c'; else $(CYGPATH_W) '$(srcdir)/rfc2822.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-rfc2822.Tpo $(DEPDIR)/libopendkim_a-rfc2822.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='rfc2822.c' object='libopendkim_a-rfc2822.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-rfc2822.obj `if test -f 'rfc2822.c'; then $(CYGPATH_W) 'rfc2822.c'; else $(CYGPATH_W) '$(srcdir)/rfc2822.c'; fi`
-
-libopendkim_a-util.o: util.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-util.o -MD -MP -MF $(DEPDIR)/libopendkim_a-util.Tpo -c -o libopendkim_a-util.o `test -f 'util.c' || echo '$(srcdir)/'`util.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-util.Tpo $(DEPDIR)/libopendkim_a-util.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util.c' object='libopendkim_a-util.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-util.o `test -f 'util.c' || echo '$(srcdir)/'`util.c
-
-libopendkim_a-util.obj: util.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-util.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-util.Tpo -c -o libopendkim_a-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-util.Tpo $(DEPDIR)/libopendkim_a-util.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util.c' object='libopendkim_a-util.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
-
-libopendkim_a-vbr.o: vbr.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-vbr.o -MD -MP -MF $(DEPDIR)/libopendkim_a-vbr.Tpo -c -o libopendkim_a-vbr.o `test -f 'vbr.c' || echo '$(srcdir)/'`vbr.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-vbr.Tpo $(DEPDIR)/libopendkim_a-vbr.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='vbr.c' object='libopendkim_a-vbr.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-vbr.o `test -f 'vbr.c' || echo '$(srcdir)/'`vbr.c
-
-libopendkim_a-vbr.obj: vbr.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -MT libopendkim_a-vbr.obj -MD -MP -MF $(DEPDIR)/libopendkim_a-vbr.Tpo -c -o libopendkim_a-vbr.obj `if test -f 'vbr.c'; then $(CYGPATH_W) 'vbr.c'; else $(CYGPATH_W) '$(srcdir)/vbr.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libopendkim_a-vbr.Tpo $(DEPDIR)/libopendkim_a-vbr.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='vbr.c' object='libopendkim_a-vbr.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libopendkim_a_CFLAGS) $(CFLAGS) -c -o libopendkim_a-vbr.obj `if test -f 'vbr.c'; then $(CYGPATH_W) 'vbr.c'; else $(CYGPATH_W) '$(srcdir)/vbr.c'; fi`
+@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
 t_cleanup-t-cleanup.o: t-cleanup.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(t_cleanup_CFLAGS) $(CFLAGS) -MT t_cleanup-t-cleanup.o -MD -MP -MF $(DEPDIR)/t_cleanup-t-cleanup.Tpo -c -o t_cleanup-t-cleanup.o `test -f 't-cleanup.c' || echo '$(srcdir)/'`t-cleanup.c
@@ -4250,22 +4195,28 @@ t_verifyperf-t-verifyperf.obj: t-verifyperf.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='t-verifyperf.c' object='t_verifyperf-t-verifyperf.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(t_verifyperf_CFLAGS) $(CFLAGS) -c -o t_verifyperf-t-verifyperf.obj `if test -f 't-verifyperf.c'; then $(CYGPATH_W) 't-verifyperf.c'; else $(CYGPATH_W) '$(srcdir)/t-verifyperf.c'; fi`
-install-libopendkim_aDATA: $(libopendkim_a_DATA)
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
+install-libopendkIm_laDATA: $(libopendkIm_la_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(libopendkim_adir)" || $(MKDIR_P) "$(DESTDIR)$(libopendkim_adir)"
-	@list='$(libopendkim_a_DATA)'; for p in $$list; do \
+	test -z "$(libopendkIm_ladir)" || $(MKDIR_P) "$(DESTDIR)$(libopendkIm_ladir)"
+	@list='$(libopendkIm_la_DATA)'; for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  f=$(am__strip_dir) \
-	  echo " $(libopendkim_aDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(libopendkim_adir)/$$f'"; \
-	  $(libopendkim_aDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(libopendkim_adir)/$$f"; \
+	  echo " $(libopendkIm_laDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(libopendkIm_ladir)/$$f'"; \
+	  $(libopendkIm_laDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(libopendkIm_ladir)/$$f"; \
 	done
 
-uninstall-libopendkim_aDATA:
+uninstall-libopendkIm_laDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(libopendkim_a_DATA)'; for p in $$list; do \
+	@list='$(libopendkIm_la_DATA)'; for p in $$list; do \
 	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(libopendkim_adir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(libopendkim_adir)/$$f"; \
+	  echo " rm -f '$(DESTDIR)$(libopendkIm_ladir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(libopendkIm_ladir)/$$f"; \
 	done
 install-libopendkimincludeHEADERS: $(libopendkiminclude_HEADERS)
 	@$(NORMAL_INSTALL)
@@ -4435,9 +4386,9 @@ check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
-all-am: Makefile $(LIBRARIES) $(DATA) $(HEADERS)
+all-am: Makefile $(LTLIBRARIES) $(DATA) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libopendkim_adir)" "$(DESTDIR)$(libopendkimincludedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libopendkIm_ladir)" "$(DESTDIR)$(libopendkimincludedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -4466,8 +4417,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-checkPROGRAMS clean-generic clean-libLIBRARIES \
-	mostlyclean-am
+clean-am: clean-checkPROGRAMS clean-generic clean-libLTLIBRARIES \
+	clean-libtool mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -4485,12 +4436,12 @@ info: info-am
 
 info-am:
 
-install-data-am: install-libopendkim_aDATA \
+install-data-am: install-libopendkIm_laDATA \
 	install-libopendkimincludeHEADERS
 
 install-dvi: install-dvi-am
 
-install-exec-am: install-libLIBRARIES
+install-exec-am: install-libLTLIBRARIES
 
 install-html: install-html-am
 
@@ -4511,7 +4462,8 @@ maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic
+mostlyclean-am: mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool
 
 pdf: pdf-am
 
@@ -4521,26 +4473,27 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-libLIBRARIES uninstall-libopendkim_aDATA \
+uninstall-am: uninstall-libLTLIBRARIES uninstall-libopendkIm_laDATA \
 	uninstall-libopendkimincludeHEADERS
 
 .MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-TESTS check-am clean \
-	clean-checkPROGRAMS clean-generic clean-libLIBRARIES ctags \
-	distclean distclean-compile distclean-generic distclean-tags \
-	distdir dvi dvi-am html html-am info info-am install \
-	install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am \
-	install-libLIBRARIES install-libopendkim_aDATA \
-	install-libopendkimincludeHEADERS install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-libLIBRARIES \
-	uninstall-libopendkim_aDATA \
+	clean-checkPROGRAMS clean-generic clean-libLTLIBRARIES \
+	clean-libtool ctags distclean distclean-compile \
+	distclean-generic distclean-libtool distclean-tags distdir dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-libLTLIBRARIES \
+	install-libopendkIm_laDATA install-libopendkimincludeHEADERS \
+	install-man install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
+	uninstall-am uninstall-libLTLIBRARIES \
+	uninstall-libopendkIm_laDATA \
 	uninstall-libopendkimincludeHEADERS
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
