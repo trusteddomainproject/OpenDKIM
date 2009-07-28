@@ -17,6 +17,7 @@ opendkim_LDFLAGS = -L../libopendkim -L../libar -L$(LIBMILTER_LIBS) $(LIBUNBOUND_
 opendkim_LDADD = -lopendkim -lar -lmilter $(LIBUNBOUND_LIBS)
 if BODYLENGTH_DB
 opendkim_CFLAGS += -DUSE_DB -D_FFR_BODYLENGTH_DB
+opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
 endif
 if CAPTURE_UNKNOWN_ERRORS
 opendkim_CFLAGS += -D_FFR_CAPTURE_UNKNOWN_ERRORS
@@ -41,6 +42,7 @@ opendkim_CFLAGS += -D_FFR_PARSE_TIME
 endif
 if QUERY_CACHE
 opendkim_CFLAGS += -DUSE_DB -DQUERY_CACHE
+opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
 endif
 if REPLACE_RULES
 opendkim_CFLAGS += -D_FFR_REPLACE_RULES
@@ -56,6 +58,7 @@ opendkim_CFLAGS += -D_FFR_SENDER_HEADERS
 endif
 if STATS
 opendkim_CFLAGS += -DUSE_DB -D_FFR_STATS
+opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
 endif
 if USE_ARLIB
 opendkim_CFLAGS += -DUSE_ARLIB
@@ -73,9 +76,9 @@ endif
 if STATS
 sbin_PROGRAMS += opendkim-stats
 opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c
-opendkim_stats_CPPFLAGS = -I../libopendkim -I../libar
-opendkim_stats_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
-opendkim_stats_LDADD = -lopendkim -lar $(LIBUNBOUND_LIBS)
+opendkim_stats_CPPFLAGS = -DUSE_DB -I../libopendkim -I../libar $(LIBDB_INCDIRS)
+opendkim_stats_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS) $(LIBDB_LIBDIRS)
+opendkim_stats_LDADD = -lopendkim -lar $(LIBUNBOUND_LIBS) $(LIBDB_LIBS)
 endif
 if DEBUG
 opendkim_stats_CFLAGS = -g
