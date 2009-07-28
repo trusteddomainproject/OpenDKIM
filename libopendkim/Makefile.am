@@ -64,7 +64,7 @@ libopendkim_a_CFLAGS += -D_FFR_PARSE_TIME
 endif
 
 if QUERY_CACHE
-libopendkim_a_CFLAGS += -DUSE_DB -DQUERY_CACHE
+libopendkim_a_CFLAGS += -DUSE_DB -I$(LIBDB_INCDIRS) -DQUERY_CACHE
 endif
 
 if STATS

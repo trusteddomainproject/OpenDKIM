@@ -123,6 +123,50 @@ AC_SUBST(LIBUNBOUND_INCDIRS)
 AC_SUBST(LIBUNBOUND_LIBDIRS)
 AC_SUBST(LIBUNBOUND_LIBS)
 
+# libdb
+AC_MSG_CHECKING(for BerkeleyDB)
+AC_ARG_WITH(db,
+	AS_HELP_STRING(--with-db, location of BerkeleyDB includes and library),
+	bdb="$withval", bdb="no")
+
+if test x"$bdb" = x"yes"
+then
+	bdbdirs="/usr /usr/local /usr/local/BerkeleyDB"
+	for d in $bdbdirs
+	do
+		if test -f $d/include/db.h
+		then
+			bdb=$d
+			AC_MSG_RESULT($d)
+			LIBDB_INCDIRS="-I$bdb/include"
+			LIBDB_LIBDIRS="-L$bdb/lib"
+			LIBDB_LIBS="-ldb"
+			break;
+		fi
+	done
+elif test x"$bdb" = x"no"
+then
+	AC_MSG_RESULT(no)
+	LIBDB_INCDIRS=""
+	LIBDB_LIBDIRS=""
+	LIBDB_LIBS=""
+else
+	if test -f $bdb/include/db.h
+	then
+		AC_MSG_RESULT($bdb)
+		LIBDB_INCDIRS="-I$bdb/include"
+		LIBDB_LIBDIRS="-L$bdb/lib"
+		LIBDB_LIBS="-ldb"
+	else
+		AC_MSG_ERROR(not found at $bdb)
+	fi
+fi
+
+AM_CONDITIONAL(USE_DB, test x"$bdb" != x"no")
+AC_SUBST(LIBDB_INCDIRS)
+AC_SUBST(LIBDB_LIBDIRS)
+AC_SUBST(LIBDB_LIBS)
+
 # Conditional stuff
 AC_ARG_ENABLE(arlib, AS_HELP_STRING(--enable-arlib, enable provided asynchronous resolver library))
 AM_CONDITIONAL(USE_ARLIB, test "$enable_arlib" = yes)
