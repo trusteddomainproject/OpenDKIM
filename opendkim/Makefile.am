@@ -24,6 +24,9 @@ endif
 if COMMAIZE
 opendkim_CFLAGS += -D_FFR_COMMAIZE
 endif
+if DEBUG
+opendkim_CFLAGS += -g
+endif
 if DIFFHEADERS
 opendkim_CFLAGS += -D_FFR_DIFFHEADERS
 endif
@@ -74,16 +77,25 @@ opendkim_stats_CPPFLAGS = -I../libopendkim -I../libar
 opendkim_stats_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
 opendkim_stats_LDADD = -lopendkim -lar $(LIBUNBOUND_LIBS)
 endif
+if DEBUG
+opendkim_stats_CFLAGS = -g
+endif
 
 opendkim_testkey_SOURCES = opendkim-testkey.c
 opendkim_testkey_CPPFLAGS = -I../libopendkim -I../libar
 opendkim_testkey_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
 opendkim_testkey_LDADD = -lopendkim -lar $(LIBUNBOUND_LIBS)
+if DEBUG
+opendkim_testkey_CFLAGS = -g
+endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
 opendkim_testadsp_CPPFLAGS = -I../libopendkim -I../libar
 opendkim_testadsp_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
 opendkim_testadsp_LDADD = -lopendkim -lar $(LIBUNBOUND_LIBS)
+if DEBUG
+opendkim_testadsp_CFLAGS = -g
+endif
 
 man_MANS = opendkim.conf.5 opendkim-genkey.8 opendkim-testadsp.8 opendkim-testkey.8 opendkim.8
 if STATS

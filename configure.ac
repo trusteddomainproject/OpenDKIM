@@ -136,6 +136,9 @@ AM_CONDITIONAL(CAPTURE_UNKNOWN_ERRORS, test "$enable_captureerrors" = yes)
 AC_ARG_ENABLE(commaize, AS_HELP_STRING(--enable-commaize, clone sendmail header commaizing))
 AM_CONDITIONAL(COMMAIZE, test "$enable_commaize" = yes)
 
+AC_ARG_ENABLE(debug, AS_HELP_STRING(--enable-debug, produce debugging binaries and libraries))
+AM_CONDITIONAL(DEBUG, test "$enable_debug" = yes)
+
 AC_ARG_ENABLE(diffheaders, AS_HELP_STRING(--enable-diffheaders, compare signed and verified headers when possible))
 AM_CONDITIONAL(DIFFHEADERS, test "$enable_diffheaders" = yes)
 
