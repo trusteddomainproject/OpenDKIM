@@ -14,7 +14,7 @@ opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-ar
 opendkim_CFLAGS = 
 opendkim_CPPFLAGS = -I../libopendkim -I../libar
 opendkim_LDFLAGS = -L../libopendkim -L../libar -L$(LIBMILTER_LIBS) $(LIBUNBOUND_LIBDIRS)
-opendkim_LDADD = ../libopendkim/.libs/libopendkim.so -lar -lmilter $(LIBUNBOUND_LIBS)
+opendkim_LDADD = ../libopendkim/libopendkim.la -lar -lmilter $(LIBUNBOUND_LIBS)
 if BODYLENGTH_DB
 opendkim_CFLAGS += -DUSE_DB -D_FFR_BODYLENGTH_DB
 opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
@@ -86,7 +86,7 @@ sbin_PROGRAMS += opendkim-stats
 opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c
 opendkim_stats_CPPFLAGS = -DUSE_DB -I../libopendkim -I../libar $(LIBDB_INCDIRS)
 opendkim_stats_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS) $(LIBDB_LIBDIRS)
-opendkim_stats_LDADD = ../libopendkim/.libs/libopendkim.so -lar $(LIBUNBOUND_LIBS) $(LIBDB_LIBS)
+opendkim_stats_LDADD = ../libopendkim/libopendkim.la -lar $(LIBUNBOUND_LIBS) $(LIBDB_LIBS)
 endif
 if DEBUG
 opendkim_stats_CFLAGS = -g
@@ -95,7 +95,7 @@ endif
 opendkim_testkey_SOURCES = opendkim-testkey.c
 opendkim_testkey_CPPFLAGS = -I../libopendkim -I../libar
 opendkim_testkey_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
-opendkim_testkey_LDADD = ../libopendkim/.libs/libopendkim.so -lar $(LIBUNBOUND_LIBS)
+opendkim_testkey_LDADD = ../libopendkim/libopendkim.la -lar $(LIBUNBOUND_LIBS)
 if DEBUG
 opendkim_testkey_CFLAGS = -g
 endif
@@ -103,7 +103,7 @@ endif
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
 opendkim_testadsp_CPPFLAGS = -I../libopendkim -I../libar
 opendkim_testadsp_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
-opendkim_testadsp_LDADD = ../libopendkim/.libs/libopendkim.so -lar $(LIBUNBOUND_LIBS)
+opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la -lar $(LIBUNBOUND_LIBS)
 if DEBUG
 opendkim_testadsp_CFLAGS = -g
 endif

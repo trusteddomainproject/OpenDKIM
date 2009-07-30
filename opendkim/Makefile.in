@@ -91,7 +91,7 @@ am__DEPENDENCIES_1 =
 @BODYLENGTH_DB_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
 @QUERY_CACHE_TRUE@am__DEPENDENCIES_3 = $(am__DEPENDENCIES_1)
 @STATS_TRUE@am__DEPENDENCIES_4 = $(am__DEPENDENCIES_1)
-opendkim_DEPENDENCIES = ../libopendkim/.libs/libopendkim.so \
+opendkim_DEPENDENCIES = ../libopendkim/libopendkim.la \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2) \
 	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_4)
 opendkim_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -103,7 +103,7 @@ am__opendkim_stats_SOURCES_DIST = opendkim-db.c opendkim-stats.c
 @STATS_TRUE@	opendkim_stats-opendkim-stats.$(OBJEXT)
 opendkim_stats_OBJECTS = $(am_opendkim_stats_OBJECTS)
 @STATS_TRUE@opendkim_stats_DEPENDENCIES =  \
-@STATS_TRUE@	../libopendkim/.libs/libopendkim.so \
+@STATS_TRUE@	../libopendkim/libopendkim.la \
 @STATS_TRUE@	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 opendkim_stats_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(opendkim_stats_CFLAGS) \
@@ -111,7 +111,7 @@ opendkim_stats_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 am_opendkim_testadsp_OBJECTS =  \
 	opendkim_testadsp-opendkim-testadsp.$(OBJEXT)
 opendkim_testadsp_OBJECTS = $(am_opendkim_testadsp_OBJECTS)
-opendkim_testadsp_DEPENDENCIES = ../libopendkim/.libs/libopendkim.so \
+opendkim_testadsp_DEPENDENCIES = ../libopendkim/libopendkim.la \
 	$(am__DEPENDENCIES_1)
 opendkim_testadsp_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) \
@@ -120,7 +120,7 @@ opendkim_testadsp_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 am_opendkim_testkey_OBJECTS =  \
 	opendkim_testkey-opendkim-testkey.$(OBJEXT)
 opendkim_testkey_OBJECTS = $(am_opendkim_testkey_OBJECTS)
-opendkim_testkey_DEPENDENCIES = ../libopendkim/.libs/libopendkim.so \
+opendkim_testkey_DEPENDENCIES = ../libopendkim/libopendkim.la \
 	$(am__DEPENDENCIES_1)
 opendkim_testkey_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(opendkim_testkey_CFLAGS) \
@@ -292,23 +292,23 @@ opendkim_CPPFLAGS = -I../libopendkim -I../libar $(am__append_2) \
 opendkim_LDFLAGS = -L../libopendkim -L../libar -L$(LIBMILTER_LIBS) \
 	$(LIBUNBOUND_LIBDIRS) $(am__append_3) $(am__append_14) \
 	$(am__append_22)
-opendkim_LDADD = ../libopendkim/.libs/libopendkim.so -lar -lmilter \
+opendkim_LDADD = ../libopendkim/libopendkim.la -lar -lmilter \
 	$(LIBUNBOUND_LIBS) $(am__append_4) $(am__append_15) \
 	$(am__append_23)
 @STATS_TRUE@opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c
 @STATS_TRUE@opendkim_stats_CPPFLAGS = -DUSE_DB -I../libopendkim -I../libar $(LIBDB_INCDIRS)
 @STATS_TRUE@opendkim_stats_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS) $(LIBDB_LIBDIRS)
-@STATS_TRUE@opendkim_stats_LDADD = ../libopendkim/.libs/libopendkim.so -lar $(LIBUNBOUND_LIBS) $(LIBDB_LIBS)
+@STATS_TRUE@opendkim_stats_LDADD = ../libopendkim/libopendkim.la -lar $(LIBUNBOUND_LIBS) $(LIBDB_LIBS)
 @DEBUG_TRUE@opendkim_stats_CFLAGS = -g
 opendkim_testkey_SOURCES = opendkim-testkey.c
 opendkim_testkey_CPPFLAGS = -I../libopendkim -I../libar
 opendkim_testkey_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
-opendkim_testkey_LDADD = ../libopendkim/.libs/libopendkim.so -lar $(LIBUNBOUND_LIBS)
+opendkim_testkey_LDADD = ../libopendkim/libopendkim.la -lar $(LIBUNBOUND_LIBS)
 @DEBUG_TRUE@opendkim_testkey_CFLAGS = -g
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
 opendkim_testadsp_CPPFLAGS = -I../libopendkim -I../libar
 opendkim_testadsp_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
-opendkim_testadsp_LDADD = ../libopendkim/.libs/libopendkim.so -lar $(LIBUNBOUND_LIBS)
+opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la -lar $(LIBUNBOUND_LIBS)
 @DEBUG_TRUE@opendkim_testadsp_CFLAGS = -g
 man_MANS = opendkim.conf.5 opendkim-genkey.8 opendkim-testadsp.8 \
 	opendkim-testkey.8 opendkim.8 $(am__append_29)
