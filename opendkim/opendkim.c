@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.11 2009/08/03 18:17:44 cm-msk Exp $
+**  $Id: opendkim.c,v 1.12 2009/08/03 18:55:38 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.11 2009/08/03 18:17:44 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.12 2009/08/03 18:55:38 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -17,14 +17,12 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.11 2009/08/03 18:17:44 cm
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
-#if SOLARIS
-# if SOLARIS > 20700
-#  include <iso/limits_iso.h>
-# else /* SOLARIS > 20700 */
-#  include <limits.h>
-# endif /* SOLARIS > 20700 */
-# define _POSIX_PTHREAD_SEMANTICS
-#endif /* SOLARIS */
+#ifdef HAVE_ISO_LIMITS_ISO_H
+# include <iso/limits_iso.h>
+#endif /* HAVE_ISO_LIMITS_ISO_H */
+#ifdef HAVE_LIMITS_H
+# include <limits.h>
+#endif /* HAVE_LIMITS_H */
 #ifdef __linux__
 # include <sys/prctl.h>
 #endif /* __linux__ */
