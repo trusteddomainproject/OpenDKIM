@@ -9,8 +9,18 @@
 #define _DKIM_TABLES_H_
 
 #ifndef lint
-static char dkim_tables_h_id[] = "@(#)$Id: dkim-tables.h,v 1.1 2009/07/16 19:12:03 cm-msk Exp $";
+static char dkim_tables_h_id[] = "@(#)$Id: dkim-tables.h,v 1.2 2009/08/03 18:44:40 cm-msk Exp $";
 #endif /* !lint */
+
+#ifdef __STDC__
+# ifndef __P
+#  define __P(x)  x
+# endif /* ! __P */
+#else /* __STDC__ */
+# ifndef __P
+#  define __P(x)  ()
+# endif /* ! __P */
+#endif /* __STDC__ */
 
 /* structures */
 struct nametable
