@@ -10,10 +10,11 @@
 */
 
 #ifndef lint
-static char ar_strl_c_id[] = "@(#)$Id: ar-strl.c,v 1.1 2009/07/23 17:58:49 cm-msk Exp $";
+static char ar_strl_c_id[] = "@(#)$Id: ar-strl.c,v 1.2 2009/08/03 18:22:04 cm-msk Exp $";
 #endif /* !lint */
 
 #include <sys/types.h>
+#include <string.h>
 
 /*
 **  XXX the type of the length parameter has been changed
