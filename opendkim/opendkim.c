@@ -4,12 +4,17 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.12 2009/08/03 18:55:38 cm-msk Exp $
+**  $Id: opendkim.c,v 1.13 2009/08/03 19:11:05 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.12 2009/08/03 18:55:38 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.13 2009/08/03 19:11:05 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
+#ifndef _POSIX_PTHREAD_SEMANTICS
+# define _POSIX_PTHREAD_SEMANTICS
+#endif /* ! _POSIX_PTHREAD_SEMANTICS */
 
 /* system includes */
 #include <sys/types.h>
