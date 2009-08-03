@@ -9,7 +9,7 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.4 2009/07/23 17:40:24 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.5 2009/08/03 18:31:04 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -58,6 +58,16 @@ static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.4 2009/07/23 17:40:24 cm-msk Exp 
 #ifndef MAX
 # define MAX(x,y)		((x) > (y) ? (x) : (y))
 #endif /* ! MAX */
+
+#ifdef __STDC__
+# ifndef __P
+#  define __P(x)  x
+# endif /* ! __P */
+#else /* __STDC__ */
+# ifndef __P
+#  define __P(x)  ()
+# endif /* ! __P */
+#endif /* __STDC__ */
 
 /* limits, macros, etc. */
 #define	BUFRSZ			1024	/* base temp buffer size */
