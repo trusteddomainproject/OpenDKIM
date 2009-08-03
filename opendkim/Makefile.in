@@ -62,9 +62,13 @@ sbin_PROGRAMS = opendkim$(EXEEXT) opendkim-testkey$(EXEEXT) \
 @USE_ARLIB_TRUE@am__append_24 = -DUSE_ARLIB
 @USE_UNBOUND_TRUE@am__append_25 = -DUSE_UNBOUND
 @VBR_TRUE@am__append_26 = -D_FFR_VBR
-@ZTAGS_TRUE@am__append_27 = -D_FFR_ZTAGS
-@STATS_TRUE@am__append_28 = opendkim-stats
-@STATS_TRUE@am__append_29 = opendkim-stats.8
+@VERIFY_DOMAINKEYS_TRUE@am__append_27 = -DVERIFY_DOMAINKEYS
+@VERIFY_DOMAINKEYS_TRUE@am__append_28 = $(LIBDK_INCDIRS)
+@VERIFY_DOMAINKEYS_TRUE@am__append_29 = $(LIBDK_LIBDIRS)
+@VERIFY_DOMAINKEYS_TRUE@am__append_30 = $(LIBDK_LIBS)
+@ZTAGS_TRUE@am__append_31 = -D_FFR_ZTAGS
+@STATS_TRUE@am__append_32 = opendkim-stats
+@STATS_TRUE@am__append_33 = opendkim-stats.8
 subdir = opendkim
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -92,9 +96,11 @@ am__DEPENDENCIES_1 =
 @BODYLENGTH_DB_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
 @QUERY_CACHE_TRUE@am__DEPENDENCIES_3 = $(am__DEPENDENCIES_1)
 @STATS_TRUE@am__DEPENDENCIES_4 = $(am__DEPENDENCIES_1)
+@VERIFY_DOMAINKEYS_TRUE@am__DEPENDENCIES_5 = $(am__DEPENDENCIES_1)
 opendkim_DEPENDENCIES = ../libopendkim/libopendkim.la \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2) \
-	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_4)
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_4) \
+	$(am__DEPENDENCIES_5)
 opendkim_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(opendkim_CFLAGS) $(CFLAGS) \
 	$(opendkim_LDFLAGS) $(LDFLAGS) -o $@
@@ -196,6 +202,9 @@ LDFLAGS = @LDFLAGS@
 LIBDB_INCDIRS = @LIBDB_INCDIRS@
 LIBDB_LIBDIRS = @LIBDB_LIBDIRS@
 LIBDB_LIBS = @LIBDB_LIBS@
+LIBDK_INCDIRS = @LIBDK_INCDIRS@
+LIBDK_LIBDIRS = @LIBDK_LIBDIRS@
+LIBDK_LIBS = @LIBDK_LIBS@
 LIBMILTER_INCLUDES = @LIBMILTER_INCLUDES@
 LIBMILTER_LIBS = @LIBMILTER_LIBS@
 LIBOBJS = @LIBOBJS@
@@ -291,15 +300,17 @@ opendkim_CFLAGS = $(am__append_1) $(am__append_5) $(am__append_6) \
 	$(am__append_10) $(am__append_11) $(am__append_12) \
 	$(am__append_16) $(am__append_17) $(am__append_18) \
 	$(am__append_19) $(am__append_20) $(am__append_24) \
-	$(am__append_25) $(am__append_26) $(am__append_27)
+	$(am__append_25) $(am__append_26) $(am__append_27) \
+	$(am__append_31)
 opendkim_CPPFLAGS = -I../libopendkim -I../libar $(am__append_2) \
-	$(am__append_13) $(am__append_21) -I$(LIBMILTER_INCLUDES)
+	$(am__append_13) $(am__append_21) $(am__append_28) \
+	-I$(LIBMILTER_INCLUDES)
 opendkim_LDFLAGS = -L../libopendkim -L../libar -L$(LIBMILTER_LIBS) \
 	$(LIBUNBOUND_LIBDIRS) $(am__append_3) $(am__append_14) \
-	$(am__append_22)
+	$(am__append_22) $(am__append_29)
 opendkim_LDADD = ../libopendkim/libopendkim.la -lar -lmilter \
 	$(LIBUNBOUND_LIBS) $(am__append_4) $(am__append_15) \
-	$(am__append_23)
+	$(am__append_23) $(am__append_30)
 @STATS_TRUE@opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c
 @STATS_TRUE@opendkim_stats_CPPFLAGS = -DUSE_DB -I../libopendkim -I../libar $(LIBDB_INCDIRS)
 @STATS_TRUE@opendkim_stats_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS) $(LIBDB_LIBDIRS)
@@ -316,7 +327,7 @@ opendkim_testadsp_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
 opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la -lar $(LIBUNBOUND_LIBS)
 @DEBUG_TRUE@opendkim_testadsp_CFLAGS = -g
 man_MANS = opendkim.conf.5 opendkim-genkey.8 opendkim-testadsp.8 \
-	opendkim-testkey.8 opendkim.8 $(am__append_29)
+	opendkim-testkey.8 opendkim.8 $(am__append_33)
 EXTRA_DIST = $(example_DATA) $(man_MANS) opendkim-stats.8 $(sbin_SCRIPTS)
 all: all-am
 

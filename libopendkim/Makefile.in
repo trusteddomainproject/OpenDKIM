@@ -1055,6 +1055,9 @@ LDFLAGS = @LDFLAGS@
 LIBDB_INCDIRS = @LIBDB_INCDIRS@
 LIBDB_LIBDIRS = @LIBDB_LIBDIRS@
 LIBDB_LIBS = @LIBDB_LIBS@
+LIBDK_INCDIRS = @LIBDK_INCDIRS@
+LIBDK_LIBDIRS = @LIBDK_LIBDIRS@
+LIBDK_LIBS = @LIBDK_LIBS@
 LIBMILTER_INCLUDES = @LIBMILTER_INCLUDES@
 LIBMILTER_LIBS = @LIBMILTER_LIBS@
 LIBOBJS = @LIBOBJS@
@@ -1138,7 +1141,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libopendkim.la
-libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c base64.h dkim-cache.h dkim-canon.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h vbr.h
+libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h vbr.h
 libopendkIm_la_CFLAGS = $(LIBUNBOUND_INCDIRS) $(am__append_1) \
 	$(am__append_2) $(am__append_3) $(am__append_4) \
 	$(am__append_5) $(am__append_6) $(am__append_7) \
