@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.10 2009/07/27 16:36:17 cm-msk Exp $
+**  $Id: opendkim.c,v 1.11 2009/08/03 18:17:44 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.10 2009/07/27 16:36:17 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.11 2009/08/03 18:17:44 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -50,14 +50,15 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.10 2009/07/27 16:36:17 cm
 #include <openssl/bio.h>
 #include <openssl/evp.h>
 
-#if SOLARIS
-# define _PATH_DEVNULL		"/dev/null"
-# ifndef _PATH_SENDMAIL
-#  define _PATH_SENDMAIL	"/usr/sbin/sendmail"
-# endif /* ! _PATH_SENDMAIL */
-#else /* SOLARIS */
+#ifdef HAVE_PATHS_H
 # include <paths.h>
-#endif /* SOLARIS */
+#endif /* HAVE_PATHS_H */
+#ifndef _PATH_DEVNULL
+# define _PATH_DEVNULL		"/dev/null"
+#endif /* ! _PATH_DEVNULL */
+#ifndef _PATH_SENDMAIL
+#  define _PATH_SENDMAIL	"/usr/sbin/sendmail"
+#endif /* ! _PATH_SENDMAIL */
 
 /* libmilter includes */
 #include "libmilter/mfapi.h"
