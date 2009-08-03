@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char ar_c_id[] = "@(#)$Id: ar.c,v 1.4 2009/07/23 17:58:30 cm-msk Exp $";
+static char ar_c_id[] = "@(#)$Id: ar.c,v 1.5 2009/08/03 18:56:41 cm-msk Exp $";
 #endif /* !lint */
 
 /* OS stuff */
@@ -70,6 +70,7 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.4 2009/07/23 17:58:30 cm-msk Exp $";
 /* ar includes */
 #include "ar.h"
 #include "ar-strl.h"
+#include "manual.h"
 
 /*
 **  DATA TYPES
