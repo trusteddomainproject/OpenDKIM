@@ -11,6 +11,7 @@ AC_CONFIG_HEADERS([build-config.h])
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_LIBTOOL
 
@@ -21,8 +22,8 @@ CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CC="$PTHREAD_CC"
 
 # Checks for libraries.
-AC_SEARCH_LIBS(ERR_peek_error, crypto)
-AC_SEARCH_LIBS(SSL_library_init, ssl)
+AC_SEARCH_LIBS(ERR_peek_error, crypto, , AC_MSG_ERROR(libcrypto not found))
+AC_SEARCH_LIBS(SSL_library_init, ssl, , AC_MSG_ERROR(libssl not found))
 AC_SEARCH_LIBS(smfi_getsymval, milter)
 AC_SEARCH_LIBS(res_mkquery, resolv)
 
