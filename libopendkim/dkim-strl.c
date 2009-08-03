@@ -10,6 +10,7 @@
 */
 
 #include <sys/types.h>
+#include <string.h>
 
 /*
 **  XXX the type of the length parameter has been changed
