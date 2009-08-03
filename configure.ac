@@ -26,6 +26,8 @@ AC_SEARCH_LIBS(ERR_peek_error, crypto, , AC_MSG_ERROR(libcrypto not found))
 AC_SEARCH_LIBS(SSL_library_init, ssl, , AC_MSG_ERROR(libssl not found))
 AC_SEARCH_LIBS(smfi_getsymval, milter)
 AC_SEARCH_LIBS(res_mkquery, resolv)
+AC_SEARCH_LIBS(inet_addr, nsl)
+AC_SEARCH_LIBS(socket, socket)
 
 # Checks for header files.
 AC_HEADER_RESOLV
@@ -44,10 +46,6 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 
 # Checks for library functions.
-AC_FUNC_FORK
-AC_FUNC_MALLOC
-AC_FUNC_MKTIME
-AC_FUNC_REALLOC
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strtol strtoul strtoull strlcpy strlcat])
 
 # Libmilter
