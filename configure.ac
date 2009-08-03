@@ -2,17 +2,23 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.62)
+sinclude(acx_pthread.m4)
+
 AC_INIT(OpenDKIM, 1.0.0, bugs@opendkim.org)
 AM_INIT_AUTOMAKE(opendkim, 1.0.0)
 AC_CONFIG_SRCDIR([libar/ar.c])
 AC_CONFIG_HEADERS([build-config.h])
 
-CFLAGS="$CFLAGS -pthread"
-
 # Checks for programs.
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_LIBTOOL
+
+# Check for how to compile threaded stuff
+ACX_PTHREAD
+LIBS="$PTHREAD_LIBS $LIBS"
+CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+CC="$PTHREAD_CC"
 
 # Checks for libraries.
 AC_SEARCH_LIBS(ERR_peek_error, crypto)
