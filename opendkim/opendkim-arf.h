@@ -4,18 +4,28 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-arf.h,v 1.2 2009/07/20 21:28:19 cm-msk Exp $
+**  $Id: opendkim-arf.h,v 1.3 2009/08/03 19:10:47 cm-msk Exp $
 */
 
 #ifndef _DKIM_ARF_H_
 #define _DKIM_ARF_H_
 
 #ifndef lint
-static char dkim_arf_h_id[] = "@(#)$Id: opendkim-arf.h,v 1.2 2009/07/20 21:28:19 cm-msk Exp $";
+static char dkim_arf_h_id[] = "@(#)$Id: opendkim-arf.h,v 1.3 2009/08/03 19:10:47 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
+
+#ifdef __STDC__
+# ifndef __P
+#  define __P(x)  x
+# endif /* ! __P */
+#else /* __STDC__ */
+# ifndef __P
+#  define __P(x)  ()
+# endif /* ! __P */
+#endif /* __STDC__ */
 
 #define	ARF_VERSION		"0.1"
 

@@ -4,15 +4,25 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-crypto.h,v 1.1 2009/07/16 20:59:11 cm-msk Exp $
+**  $Id: opendkim-crypto.h,v 1.2 2009/08/03 19:14:12 cm-msk Exp $
 */
 
 #ifndef _DKIM_CRYPTO_H_
 #define _DKIM_CRYPTO_H_
 
 #ifndef lint
-static char dkim_crypto_h_id[] = "@(#)$Id: opendkim-crypto.h,v 1.1 2009/07/16 20:59:11 cm-msk Exp $";
+static char dkim_crypto_h_id[] = "@(#)$Id: opendkim-crypto.h,v 1.2 2009/08/03 19:14:12 cm-msk Exp $";
 #endif /* !lint */
+
+#ifdef __STDC__
+# ifndef __P
+#  define __P(x)  x
+# endif /* ! __P */
+#else /* __STDC__ */
+# ifndef __P
+#  define __P(x)  ()
+# endif /* ! __P */
+#endif /* __STDC__ */
 
 /* PROTOTYPES */
 extern int dkimf_crypto_init __P((void));
