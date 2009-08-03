@@ -173,6 +173,50 @@ AC_SUBST(LIBDB_INCDIRS)
 AC_SUBST(LIBDB_LIBDIRS)
 AC_SUBST(LIBDB_LIBS)
 
+# libdk
+AC_MSG_CHECKING(for DomainKeys)
+AC_ARG_WITH(domainkeys,
+	AS_HELP_STRING(--with-domainkeys, location of libdk includes and library),
+	dk="$withval", dk="no")
+
+if test x"$dk" = x"yes"
+then
+	dkdirs="/usr /usr/local"
+	for d in $dkdirs
+	do
+		if test -f $d/include/dk.h -a -f $d/lib/libdk.a
+		then
+			dk=$d
+			AC_MSG_RESULT($d)
+			LIBDK_INCDIRS="-I$dk/include"
+			LIBDK_LIBDIRS="-L$dk/lib"
+			LIBDK_LIBS="-ldk"
+			break;
+		fi
+	done
+elif test x"$dk" = x"no"
+then
+	AC_MSG_RESULT(no)
+	LIBDK_INCDIRS=""
+	LIBDK_LIBDIRS=""
+	LIBDK_LIBS=""
+else
+	if test -f $d/include/dk.h -a -f $d/lib/libdk.a
+	then
+		AC_MSG_RESULT($dk)
+		LIBDK_INCDIRS="-I$dk/include"
+		LIBDK_LIBDIRS="-L$dk/lib"
+		LIBDK_LIBS="-ldk"
+	else
+		AC_MSG_ERROR(not found at $dk)
+	fi
+fi
+
+AM_CONDITIONAL(VERIFY_DOMAINKEYS, test x"$dk" != x"no")
+AC_SUBST(LIBDK_INCDIRS)
+AC_SUBST(LIBDK_LIBDIRS)
+AC_SUBST(LIBDK_LIBS)
+
 # Conditional stuff
 AC_ARG_ENABLE(arlib, AS_HELP_STRING(--enable-arlib, enable provided asynchronous resolver library))
 AM_CONDITIONAL(USE_ARLIB, test "$enable_arlib" = yes)

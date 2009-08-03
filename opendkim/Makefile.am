@@ -75,6 +75,12 @@ endif
 if VBR
 opendkim_CFLAGS += -D_FFR_VBR
 endif
+if VERIFY_DOMAINKEYS
+opendkim_CFLAGS += -DVERIFY_DOMAINKEYS
+opendkim_CPPFLAGS += $(LIBDK_INCDIRS)
+opendkim_LDFLAGS += $(LIBDK_LIBDIRS)
+opendkim_LDADD += $(LIBDK_LIBS)
+endif
 if ZTAGS
 opendkim_CFLAGS += -D_FFR_ZTAGS
 endif
