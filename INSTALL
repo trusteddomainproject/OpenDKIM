@@ -31,6 +31,48 @@ about Postfix, see <http://www.postfix.org>.  For other mail systems, contact
 your provider.
 
 
+OPTIONAL PACKAGES
+=================
+
+OpenDKIM supports a few optional packages that can be included in the build
+to provide additional services.  A few of these become mandatory when
+enabling certain features above.  Specifying only the "--with-xxx" parameter
+to the "configure" command (described below) enables the package and makes a
+guess at where it might be installed on your system.  If the configure script
+doesn't find it, you will need to specify the location with
+"--with-xxx=location".
+
+--with-db	BerkeleyDB include file and library.  Required for the
+		following features: bodylengthdb, querycache, stats
+
+--with-domainkeys
+		Sendmail's "libdk" include file and library for verifying
+		messages signed with the older DomainKeys specification.
+
+--with-milter	(REQUIRED) Sendmail's "milter" include file and library.
+
+--with-unbound	The "unbound" asynchronous resolver library and include file.
+
+
+FEATURES
+========
+
+There are several compile-time features you may select.  Some of these
+are present but unsupported while others are fully-supported.  Read the
+FEATURES file for a description of the unsupported features.
+
+The supported features are as follows.  The can be turned on at compile
+time by adding "--enable-xxx" to the "configure" command line (described
+below), where "xxx" is the name of the feature.
+
+arlib		Use the provided asynchronous resolver library.
+
+debug		Produce debug-enabled libraries and executables.
+
+querycache	Cache DNS replies in a local database.  Requires the
+		BerkeleyDB database.  (See "--with-db" above.)
+
+
 COMPILING
 =========
 
@@ -283,4 +325,4 @@ headers of the reply you should see its signature and another
 Authentication-Results: header, which should also read "pass".
 
 
-$Id: INSTALL,v 1.1 2009/07/16 18:52:19 cm-msk Exp $
+$Id: INSTALL,v 1.2 2009/08/03 21:32:06 cm-msk Exp $
