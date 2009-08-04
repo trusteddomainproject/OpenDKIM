@@ -17,18 +17,37 @@
 	</div>
 </div>
 <div id="bodytext">
-<h1>OpenDKIM mailing lists</h1>
+<h1>The OpenDKIM Project</h1>
 <p>
 The OpenDKIM Project is a community effort to develop and maintain a C
 library for producing DKIM-aware applications and an open source milter for
 providing DKIM service.
 </p>
 <p>
-The mailing lists will be accessible soon.
+The project started from a code fork of version 2.8.3 of the open source
+<a href="http://sourceforge.net/projects/dkim-milter>dkim-milter</a> package
+developed and maintained by
+<a href="http://www.sendmail.com">Sendmail, Inc.</a>
+</p>
+<p>
+OpenDKIM is an open source implementation of the DKIM sender authentication
+system proposed by the E-mail Signing Technology Group (ESTG), now a proposed
+standard of the IETF (RFC4871).
+</p>
+<p>
+The OpenDKIM package consists of a library that implements the DKIM service
+and a milter-based filter application that can plug in to any milter-aware
+MTA to provide that service to sufficiently recent sendmail MTAs and other
+MTAs that support the milter protocol.
+</p>
+<p>
+An optional asynchronous resolver library is also provided to work around
+limitations of the basic BIND resolver which comes installed on most
+systems.
 </p>
 </div>
 <div id="footer">
-	&copy; 2009 The OpenDKIM Project -- $Id: index.html,v 1.3 2009/08/04 17:37:24 cm-msk Exp $
+	&copy; 2009 The OpenDKIM Project -- $Id: index.html,v 1.4 2009/08/04 17:50:18 cm-msk Exp $
  </div>
 </body>
 </html>
