@@ -200,13 +200,17 @@ if test x"$enable_bodylengthdb" = x"yes" -o \
         x"$enable_querycache" = x"yes" -o \
         x"$enable_stats" = x"yes"
 then
-	if test x"$bdb" = x"auto"
+	bdbrequired="yes"
+else
+	bdbrequired="no"
+fi
+
+if test x"$bdb" = x"auto"
+then
+	if test x"$bdbrequired" = x"yes"
 	then
 		bdb="yes"
-	fi
-else
-	if test x"$bdb" = x"auto"
-	then
+	else
 		bdb="no"
 	fi
 fi
@@ -281,13 +285,11 @@ then
 elif test x"$bdb" = x"no"
 then
 	AC_MSG_CHECKING(for BerkeleyDB)
-	if test x"$enable_bodylengthdb" = x"yes" -o \
-	        x"$enable_querycache" = x"yes" -o \
-	        x"$enable_stats" = x"yes"
+	if test x"$bdbrequired" = x"yes"
 	then
 		AC_MSG_ERROR(disabled but required by requested features)
 	fi
-	AC_MSG_RESULT(disabled)
+	AC_MSG_RESULT(not required or disabled)
 	LIBDB_INCDIRS=""
 	LIBDB_LIBDIRS=""
 	LIBDB_LIBS=""
