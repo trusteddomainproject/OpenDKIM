@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.3 2009/07/23 22:38:37 cm-msk Exp $
+**  $Id: stats.c,v 1.4 2009/08/05 17:50:50 subman Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.3 2009/07/23 22:38:37 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.4 2009/08/05 17:50:50 subman Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_STATS
@@ -111,7 +111,7 @@ dkimf_stats_record(const char *path, const char *sigdomain,
 
 	reckey.sk_hdrcanon = hdrcanon;
 	reckey.sk_bodycanon = bodycanon;
-	sm_strlcpy(reckey.sk_sigdomain, sigdomain, sizeof reckey.sk_sigdomain);
+	strlcpy(reckey.sk_sigdomain, sigdomain, sizeof reckey.sk_sigdomain);
 
 	/* see if this key already exists */
 	memset(&key, '\0', sizeof key);
