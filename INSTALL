@@ -69,6 +69,8 @@ arlib		Use the provided asynchronous resolver library.
 
 debug		Produce debug-enabled libraries and executables.
 
+popauth		Enable POP-before-SMTP support.
+
 querycache	Cache DNS replies in a local database.  Requires the
 		BerkeleyDB database.  (See "--with-db" above.)
 
@@ -325,4 +327,4 @@ headers of the reply you should see its signature and another
 Authentication-Results: header, which should also read "pass".
 
 
-$Id: INSTALL,v 1.2 2009/08/03 21:32:06 cm-msk Exp $
+$Id: INSTALL,v 1.3 2009/08/05 19:44:25 cm-msk Exp $

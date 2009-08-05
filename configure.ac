@@ -79,6 +79,9 @@ AM_CONDITIONAL(MULTIPLE_SIGNATURES, test "$enable_multiplesigs" = yes)
 AC_ARG_ENABLE(parsetime, AS_HELP_STRING(--enable-parsetime, parse From: headers for sending times))
 AM_CONDITIONAL(PARSE_TIME, test "$enable_parsetime" = yes)
 
+AC_ARG_ENABLE(popauth, AS_HELP_STRING(--enable-popauth, enable POP-before-SMTP support))
+AM_CONDITIONAL(POPAUTH, test "$enable_popauth" = yes)
+
 AC_ARG_ENABLE(querycache, AS_HELP_STRING(--enable-querycache, local key/policy caching))
 AM_CONDITIONAL(QUERY_CACHE, test "$enable_querycache" = yes)
 
@@ -197,6 +200,7 @@ LIBDB_LIBDIRS=""
 LIBDB_LIBS=""
 
 if test x"$enable_bodylengthdb" = x"yes" -o \
+        x"$enable_popauth" = x"yes" -o \
         x"$enable_querycache" = x"yes" -o \
         x"$enable_stats" = x"yes"
 then

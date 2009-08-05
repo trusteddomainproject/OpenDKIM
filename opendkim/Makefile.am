@@ -42,6 +42,12 @@ endif
 if PARSE_TIME
 opendkim_CFLAGS += -D_FFR_PARSE_TIME
 endif
+if POPAUTH
+opendkim_CFLAGS += -DUSE_DB -DPOPAUTH
+opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
+opendkim_LDFLAGS += $(LIBDB_LIBDIRS)
+opendkim_LDADD += $(LIBDB_LIBS)
+endif
 if QUERY_CACHE
 opendkim_CFLAGS += -DUSE_DB -DQUERY_CACHE
 opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
