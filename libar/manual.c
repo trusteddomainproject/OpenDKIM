@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char manual_c_id[] = "@(#)$Id: manual.c,v 1.1 2009/07/16 18:56:24 cm-msk Exp $";
+static char manual_c_id[] = "@(#)$Id: manual.c,v 1.2 2009/08/05 19:02:17 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -23,6 +23,7 @@ static char manual_c_id[] = "@(#)$Id: manual.c,v 1.1 2009/07/16 18:56:24 cm-msk 
 #include <ctype.h>
 #include <string.h>
 #include <assert.h>
+#include <time.h>
 
 /* macros */
 #ifndef _PATH_RESCONF
@@ -66,10 +67,10 @@ static char manual_c_id[] = "@(#)$Id: manual.c,v 1.1 2009/07/16 18:56:24 cm-msk 
 int
 #ifdef AF_INET6
 ar_res_parse(int *nscount, struct sockaddr_storage *out,
-             int *retry, int *retrans)
 #else /* AF_INET6 */
-ar_res_parse(int *nscount, struct sockaddr_in *out, int *retry, int *retrans)
+ar_res_parse(int *nscount, struct sockaddr_in *out,
 #endif /* AF_INET6 */
+             time_t *retry, time_t *retrans)
 {
 	int data;
 	int ns = 0;

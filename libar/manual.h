@@ -6,19 +6,20 @@
 #define _MANUAL_H_
 
 #ifndef lint
-static char manual_h_id[] = "@(#)$Id: manual.h,v 1.1 2009/08/03 18:43:10 cm-msk Exp $";
+static char manual_h_id[] = "@(#)$Id: manual.h,v 1.2 2009/08/05 19:02:17 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <time.h>
 
 /* PROTOTYPES */
 #ifdef AF_INET6
-extern int ar_res_parse(int *, struct sockaddr_storage *, int *, int *);
+extern int ar_res_parse(int *, struct sockaddr_storage *, time_t *, time_t *);
 #else /* AF_INET6 */
-extern int ar_res_parse(int *, struct sockaddr_in *, int *, int *);
+extern int ar_res_parse(int *, struct sockaddr_in *, time_t *, time_t *);
 #endif /* AF_INET6 */
 
 #endif /* ! _MANUAL_H_ */
