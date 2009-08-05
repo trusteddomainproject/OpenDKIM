@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.6 2009/07/23 17:54:40 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.7 2009/08/05 18:47:52 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -60,6 +60,9 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.6 2009/07/23 17:54:40 cm-msk Exp 
 #ifdef _FFR_DKIM_REPUTATION
 # include "dkim-rep.h"
 #endif /* _FFR_DKIM_REPUTATION */
+#ifdef USE_UNBOUND
+# include "dkim-ub.h"
+#endif /* USE_UNBOUND */
 #include "util.h"
 #include "base64.h"
 #include "dkim-strl.h"
