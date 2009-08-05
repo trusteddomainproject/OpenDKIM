@@ -95,10 +95,10 @@ opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c
 opendkim_stats_CPPFLAGS = -DUSE_DB -I../libopendkim $(LIBDB_INCDIRS)
 opendkim_stats_LDFLAGS = -L../libopendkim $(LIBUNBOUND_LIBDIRS) $(LIBDB_LIBDIRS)
 opendkim_stats_LDADD = ../libopendkim/libopendkim.la $(LIBUNBOUND_LIBS) $(LIBDB_LIBS)
- if USE_ARLIB
- 	opendkim_stats_LDFLAGS += -L../libar
- 	opendkim_stats_LDADD += -lar
- endif
+if USE_ARLIB
+opendkim_stats_LDFLAGS += -L../libar
+opendkim_stats_LDADD += -lar
+endif
 endif
 if DEBUG
 opendkim_stats_CFLAGS = -g
@@ -109,8 +109,8 @@ opendkim_testkey_CPPFLAGS = -I../libopendkim
 opendkim_testkey_LDFLAGS = -L../libopendkim -L../libar $(LIBUNBOUND_LIBDIRS)
 opendkim_testkey_LDADD = ../libopendkim/libopendkim.la -lar $(LIBUNBOUND_LIBS)
 if USE_ARLIB
-	opendkim_testkey_LDFLAGS += -L../libar
-	opendkim_testkey_LDADD += -lar
+opendkim_testkey_LDFLAGS += -L../libar
+opendkim_testkey_LDADD += -lar
 endif
 if DEBUG
 opendkim_testkey_CFLAGS = -g
@@ -121,8 +121,8 @@ opendkim_testadsp_CPPFLAGS = -I../libopendkim
 opendkim_testadsp_LDFLAGS = -L../libopendkim $(LIBUNBOUND_LIBDIRS)
 opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la $(LIBUNBOUND_LIBS)
 if USE_ARLIB
-	opendkim_testadsp_LDFLAGS += -L../libar
-	opendkim_testadsp_LDADD += -lar
+opendkim_testadsp_LDFLAGS += -L../libar
+opendkim_testadsp_LDADD += -lar
 endif
 if DEBUG
 opendkim_testadsp_CFLAGS = -g
