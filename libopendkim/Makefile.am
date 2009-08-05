@@ -72,7 +72,7 @@ libopendkim_la_CFLAGS += -D_FFR_STATS
 endif
 
 if USE_ARLIB
-libopendkim_la_CFLAGS += -DUSE_ARLIB
+libopendkim_la_CFLAGS += -DUSE_ARLIB -I../libar
 endif
 
 if USE_UNBOUND
