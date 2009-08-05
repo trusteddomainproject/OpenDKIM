@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.13 2009/08/03 19:11:05 cm-msk Exp $
+**  $Id: opendkim.c,v 1.14 2009/08/05 17:48:16 subman Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.13 2009/08/03 19:11:05 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.14 2009/08/05 17:48:16 subman Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5462,7 +5462,7 @@ dkimf_commaize_hdr(char *name)
 
 	for (c = 0; commaize_hdrs[c] != NULL; c++)
 	{
-		if (sm_strcasecmp(name, commaize_hdrs[c]) == 0)
+		if (strcasecmp(name, commaize_hdrs[c]) == 0)
 			return TRUE;
 	}
 
