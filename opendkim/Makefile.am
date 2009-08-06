@@ -15,7 +15,7 @@ sbin_PROGRAMS += opendkim
 opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h config.c config.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CFLAGS = 
 opendkim_CPPFLAGS = -I../libopendkim
-opendkim_LDFLAGS = -L../libopendkim -L$(LIBMILTER_LIBS) $(LIBUNBOUND_LIBDIRS) $(LIBCRYPTO_LIBDIRS)
+opendkim_LDFLAGS = -L../libopendkim $(LIBMILTER_LIBDIRS) $(LIBUNBOUND_LIBDIRS) $(LIBCRYPTO_LIBDIRS)
 opendkim_LDADD = ../libopendkim/libopendkim.la -lmilter $(LIBUNBOUND_LIBS)
 if BODYLENGTH_DB
 opendkim_CFLAGS += -DUSE_DB -D_FFR_BODYLENGTH_DB
@@ -95,7 +95,7 @@ if ZTAGS
 opendkim_CFLAGS += -D_FFR_ZTAGS
 endif
 
-opendkim_CPPFLAGS += -I$(LIBMILTER_INCLUDES)
+opendkim_CPPFLAGS += $(LIBMILTER_INCDIRS)
 endif
 
 if STATS
