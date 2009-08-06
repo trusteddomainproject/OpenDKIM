@@ -197,10 +197,10 @@ case "$milterpath" in
 		;;
 esac
 
-LIBMILTER_INCLUDES="$milterpath/include"
-LIBMILTER_LIBS="$milterpath/lib"
-AC_SUBST(LIBMILTER_INCLUDES)
-AC_SUBST(LIBMILTER_LIBS)
+LIBMILTER_INCDIRS="-L$milterpath/include"
+LIBMILTER_LIBDIRS="-L$milterpath/lib"
+AC_SUBST(LIBMILTER_INCDIRS)
+AC_SUBST(LIBMILTER_LIBDIRS)
 AC_MSG_RESULT($milterpath)
 
 # Libunbound
