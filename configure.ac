@@ -73,6 +73,9 @@ AM_CONDITIONAL(DKIM_REPUTATION, test "$enable_dkimreputation" = yes)
 AC_ARG_ENABLE(dnsupgrade, AS_HELP_STRING(--enable-dnsupgrade, upgrade DNS to TCP when needed))
 AM_CONDITIONAL(DNS_UPGRADE, test "$enable_dnsupgrade" = yes)
 
+AC_ARG_ENABLE(filter, AS_HELP_STRING(--disable-filter, do not compile the opendkim filter), enable_filter=$enableval, enable_filter=yes)
+AM_CONDITIONAL(BUILD_FILTER, test "$enable_filter" = yes)
+
 AC_ARG_ENABLE(multiplesigs, AS_HELP_STRING(--enable-multiplesigs, support for multiple signatures))
 AM_CONDITIONAL(MULTIPLE_SIGNATURES, test "$enable_multiplesigs" = yes)
 

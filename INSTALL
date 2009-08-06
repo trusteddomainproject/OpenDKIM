@@ -69,6 +69,10 @@ arlib		Use the provided asynchronous resolver library.
 
 debug		Produce debug-enabled libraries and executables.
 
+filter		Compile the opendkim filter.  Requires libmilter (see
+		"--with-milter" above).  This is on by default; if you
+		don't want the filter, specify "--disable-filter".
+
 popauth		Enable POP-before-SMTP support.
 
 querycache	Cache DNS replies in a local database.  Requires the
@@ -327,4 +331,4 @@ headers of the reply you should see its signature and another
 Authentication-Results: header, which should also read "pass".
 
 
-$Id: INSTALL,v 1.3 2009/08/05 19:44:25 cm-msk Exp $
+$Id: INSTALL,v 1.4 2009/08/06 19:06:17 cm-msk Exp $

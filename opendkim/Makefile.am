@@ -4,12 +4,14 @@ AM_LDFLAGS = -pthread
 
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
-sbin_PROGRAMS = opendkim opendkim-testkey opendkim-testadsp
+sbin_PROGRAMS = opendkim-testkey opendkim-testadsp
 sbin_SCRIPTS = opendkim-genkey.sh
 
 exampledir = $(datarootdir)/doc/@PACKAGE@
 example_DATA = opendkim.conf.sample
 
+if BUILD_FILTER
+sbin_PROGRAMS += opendkim
 opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h config.c config.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CFLAGS = 
 opendkim_CPPFLAGS = -I../libopendkim
@@ -94,6 +96,7 @@ opendkim_CFLAGS += -D_FFR_ZTAGS
 endif
 
 opendkim_CPPFLAGS += -I$(LIBMILTER_INCLUDES)
+endif
 
 if STATS
 sbin_PROGRAMS += opendkim-stats
@@ -134,7 +137,10 @@ if DEBUG
 opendkim_testadsp_CFLAGS = -g
 endif
 
-man_MANS = opendkim.conf.5 opendkim-genkey.8 opendkim-testadsp.8 opendkim-testkey.8 opendkim.8
+man_MANS = opendkim-genkey.8 opendkim-testadsp.8 opendkim-testkey.8
+if BUILD_FILTER
+man_MANS += opendkim.conf.5 opendkim.8
+endif
 if STATS
 man_MANS += opendkim-stats.8
 endif
