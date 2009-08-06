@@ -42,14 +42,19 @@ guess at where it might be installed on your system.  If the configure script
 doesn't find it, you will need to specify the location with
 "--with-xxx=location".
 
---with-db	BerkeleyDB include file and library.  Required for the
+--with-db	BerkeleyDB include file and library.  If enabled without
+		a specific path, the /usr/local/BerkeleyDB, /usr/local and
+		/usr directories will be searched for both the required
+		includes and the required libraries.  Required for the
 		following features: bodylengthdb, querycache, stats
 
 --with-domainkeys
 		Sendmail's "libdk" include file and library for verifying
 		messages signed with the older DomainKeys specification.
 
---with-milter	(REQUIRED) Sendmail's "milter" include file and library.
+--with-milter	Sendmail's "milter" include file and library.  Required
+		unless compilation fo the filter is disabled (see below).
+		Enabled by default.
 
 --with-unbound	The "unbound" asynchronous resolver library and include file.
 
@@ -331,4 +336,4 @@ headers of the reply you should see its signature and another
 Authentication-Results: header, which should also read "pass".
 
 
-$Id: INSTALL,v 1.4 2009/08/06 19:06:17 cm-msk Exp $
+$Id: INSTALL,v 1.5 2009/08/06 20:17:27 cm-msk Exp $
