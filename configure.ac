@@ -24,7 +24,6 @@ CC="$PTHREAD_CC"
 # Checks for libraries.
 AC_SEARCH_LIBS(ERR_peek_error, crypto, , AC_MSG_ERROR(libcrypto not found))
 AC_SEARCH_LIBS(SSL_library_init, ssl, , AC_MSG_ERROR(libssl not found))
-AC_SEARCH_LIBS(smfi_getsymval, milter)
 AC_SEARCH_LIBS(res_mkquery, resolv)
 AC_SEARCH_LIBS(inet_addr, nsl)
 AC_SEARCH_LIBS(socket, socket)
@@ -131,7 +130,10 @@ then
 fi
 case "$milterpath" in
 	no)
-		AC_MSG_ERROR(milter is required)
+		if test x"$enable_filter" = x"yes"
+		then
+			AC_MSG_ERROR(milter is required)
+		fi
 		;;
 	auto)
 		AC_MSG_ERROR(milter not found)
