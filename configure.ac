@@ -22,8 +22,6 @@ CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CC="$PTHREAD_CC"
 
 # Checks for libraries.
-AC_SEARCH_LIBS(ERR_peek_error, crypto, , AC_MSG_ERROR(libcrypto not found))
-AC_SEARCH_LIBS(SSL_library_init, ssl, , AC_MSG_ERROR(libssl not found))
 AC_SEARCH_LIBS(res_mkquery, resolv)
 AC_SEARCH_LIBS(inet_addr, nsl)
 AC_SEARCH_LIBS(socket, socket)
@@ -31,7 +29,6 @@ AC_SEARCH_LIBS(socket, socket)
 # Checks for header files.
 AC_HEADER_RESOLV
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h iso/limits_iso.h netdb.h netinet/in.h paths.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h])
-AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], , AC_MSG_ERROR(required OpenSSL header not found))
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -111,12 +108,67 @@ AM_CONDITIONAL(VBR, test "$enable_vbr" = yes)
 AC_ARG_ENABLE(ztags, AS_HELP_STRING(--enable-ztags, sign/verify with z= tags))
 AM_CONDITIONAL(ZTAGS, test "$enable_ztags" = yes)
 
+# openssl
+AC_MSG_CHECKING(for OpenSSL library and includes)
+AC_ARG_WITH(openssl,
+	AS_HELP_STRING(--with-openssl, location of OpenSSL includes and library (required)),
+	sslpath="$withval", sslpath="auto")
+ssldirs="/usr/local/ssl /usr/local /usr"
+if test "$sslpath" = "auto"
+then
+	for d in $ssldirs
+	do
+		if test -f $d/include/openssl/opensslconf.h
+		then
+			sslpath=$d
+			break
+		fi
+	done
+fi
+case "$sslpath" in
+	no)
+		AC_MSG_ERROR(OpenSSL is required)
+		;;
+	auto)
+		AC_MSG_ERROR(OpenSSL not found)
+		;;
+	*/*)
+		AC_MSG_RESULT($sslpath)
+		;;
+	*)
+		AC_MSG_ERROR(OpenSSL not found)
+		;;
+esac
+
+saved_CFLAGS="$CFLAGS"
+saved_LDFLAGS="$LDFLAGS"
+
+CFLAGS="-I$sslpath/include $saved_CFLAGS"
+LDFLAGS="-L$sslpath/lib $saved_LDFLAGS"
+
+AC_CHECK_HEADERS(openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h, ,
+	AC_MSG_ERROR(required OpenSSL header not found))
+AC_SEARCH_LIBS(ERR_peek_error, crypto, , AC_MSG_ERROR(libcrypto not found))
+AC_SEARCH_LIBS(SSL_library_init, ssl, , AC_MSG_ERROR(libssl not found))
+AC_CHECK_DECL(SHA256_DIGEST_LENGTH, ,
+	AC_MSG_WARN(SHA256 is required for DKIM but is not supported with your version of OpenSSL),
+	[#include <openssl/sha.h>])
+
+CFLAGS="$saved_CFLAGS"
+LDFLAGS="$saved_LDFLAGS"
+
+LIBCRYPTO_INCDIRS="-I$sslpath/include"
+LIBCRYPTO_LIBDIRS="-L$sslpath/lib"
+
+AC_SUBST(LIBCRYPTO_INCDIRS)
+AC_SUBST(LIBCRYPTO_LIBDIRS)
+
 # Libmilter
 AC_MSG_CHECKING(for milter library and includes)
 AC_ARG_WITH(milter,
-	AS_HELP_STRING(--with-milter, location of milter includes and library (required)),
+	AS_HELP_STRING(--with-milter, location of milter includes and library),
 	milterpath="$withval", milterpath="auto")
-milterdirs="/usr /usr/local"
+milterdirs="/usr/local /usr"
 if test "$milterpath" = "auto"
 then
 	for d in $milterdirs
