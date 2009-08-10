@@ -1,7 +1,7 @@
 OPENDKIM README
 ===============
 
-$Id: README,v 1.3 2009/08/10 20:33:52 cm-msk Exp $
+$Id: README,v 1.4 2009/08/10 21:33:27 cm-msk Exp $
 
 This directory has the latest open source DKIM filter software from The
 OpenDKIM Project.
@@ -70,7 +70,16 @@ General information about DKIM can be found at http://www.mipassoc.org/dkim.
 
 Mailing lists discussing and supporting the DKIM software found in this
 package are maintained via a list server at opendkim.org.  Visit
-http://www.opendkim.org to subscribe or browse archives.
+http://www.opendkim.org to subscribe or browse archives.  The available
+lists are:
+
+	opendkim-announce	(moderated) Release announcements.
+
+	opendkim-users		General OpenDKIM user questions and answers.
+
+	opendkim-dev		Chatter among OpenDKIM developers.
+
+	opendkim-cvs		Source code change announcements.
 
 Bug tracking is done via the trackers on SourceForge at
 http://sourceforge.net/projects/opendkim.  You can enter new bug
