@@ -1,7 +1,7 @@
 OPENDKIM README
 ===============
 
-$Id: README,v 1.4 2009/08/10 21:33:27 cm-msk Exp $
+$Id: README,v 1.5 2009/08/10 21:35:16 cm-msk Exp $
 
 This directory has the latest open source DKIM filter software from The
 OpenDKIM Project.
@@ -79,7 +79,7 @@ lists are:
 
 	opendkim-dev		Chatter among OpenDKIM developers.
 
-	opendkim-cvs		Source code change announcements.
+	opendkim-cvs		Automated source code change announcements.
 
 Bug tracking is done via the trackers on SourceForge at
 http://sourceforge.net/projects/opendkim.  You can enter new bug
