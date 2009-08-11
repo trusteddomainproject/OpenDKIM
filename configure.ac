@@ -191,6 +191,10 @@ case "$milterpath" in
 		AC_MSG_ERROR(milter not found)
 		;;
 	*/*)
+		if ! test -f $milterpath/include/libmilter/mfapi.h
+		then
+			AC_MSG_ERROR(milter includes not found at $milterpath)
+		fi
 		;;
 	*)
 		AC_MSG_ERROR(milter not found)
