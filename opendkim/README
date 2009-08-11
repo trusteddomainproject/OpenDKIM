@@ -1,42 +1,49 @@
-$Id: README,v 1.1 2009/07/16 20:51:29 cm-msk Exp $
+$Id: README,v 1.2 2009/08/11 16:38:42 cm-msk Exp $
 
 INTRODUCTION
 ============
 
-This is the development area for The OpenDKIM Project's DKIM (DomainKeys
-Identified Mail) filter, which is our implementation of the DKIM service.
+This is the development area for The OpenDKIM Project's DKIM filter, which is
+our implementation of the DKIM service.
 
 The filter implemented here, if plugged into the a Milter-aware MTA, provides
 signing and verification service as per the DKIM specification.
 
-DKIM is a merger of the Yahoo!'s DomainKeys (DK) specification, and Cisco's
-Internet Identified Mail (IIM) proposal.
-
-
 COMPILING
 =========
 
-Requires sendmail v8.13.0 or later, for required milter protocol
-enhancements.
+Requires sendmail v8.13.0 or Postfix 2.3, or later, for required milter
+protocol enhancements.
 
-To build this package:
+To build and install this package:
 
 (1) Download and unpack the source package.
 (2) Change to the opendkim-(version) directory.
 (3) Type "./configure".
 (4) Type "make".
+(5) Type "make install"
 
 
 INSTALLING
 ==========
 
-(1) Configure sendmail:
-  (a) Choose a socket at which the MTA and the filter will rendezvous
-      (see the documentation in libmilter for details)
-  (b) Add a line like this example to your sendmail.mc using your desired
-      socket specification:
-	INPUT_MAIL_FILTER(`opendkim', `S=inet:8891@localhost')
-  (c) Rebuild your sendmail.cf in the usual way
+(1) Configure your MTA:
+
+    For sendmail:
+    (a) Choose a socket at which the MTA and the filter will rendezvous
+        (see the documentation in libmilter for details)
+    (b) Add a line like this example to your sendmail.mc using your desired
+        socket specification:
+	    INPUT_MAIL_FILTER(`opendkim', `S=inet:8891@localhost')
+    (c) Rebuild your sendmail.cf in the usual way
+
+    For Postfix:
+    (a) Choose a socket at which the MTA and the filter will rendezvous
+        (see the documentation in libmilter for details)
+    (b) Add a line like this example to your postfix main.cf using your
+        desired socket specification:
+
+	    smtpd_milters = inet:8891@localhost
 
 (2) Choose a selector name.  Current convention is to use the hostname
     (hostname only, not the fully-qualified domain name) of the host that
@@ -86,7 +93,7 @@ INSTALLING
     if you want it to run in the foreground instead of in the background
     as a daemon.
 
-(6) Restart sendmail.
+(6) Restart your MTA.
 
 
 DEBUG FEATURES
@@ -143,14 +150,16 @@ systems, remove the "g=" portion of the record and reload your nameserver.
 SUPPORT
 =======
 
-To get support or report bugs, you can access the Sourceforge "tracker"
-facilities at http://sourceforge.net/projects/opendkim.
-
 There are two public mailing lists available for news and questions about
 OpenDKIM.  To keep up to date on the latest developments, please
 subscribe to one or both of the following:
 
-	opendkim-announce@opendkim.org (release announcements)
-	opendkim-discuss@opendkim.org (general discussion)
+	opendkim-announce@lists.opendkim.org (release announcements)
+	opendkim-users@lists.opendkim.org (general discussion)
 
-You can subscribe to these lists via the project URL above.
+Send an email to opendkim-announce-request@lists.opendkim.org with subscribe
+as the subject to receive release announcements.  You can find more
+information about our mailing lists at http://www.opendkim.org.
+
+To report bugs, you can access the Sourceforge "tracker"
+facilities at http://sourceforge.net/projects/opendkim.
