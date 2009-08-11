@@ -251,6 +251,11 @@ AC_SUBST(LIBUNBOUND_INCDIRS)
 AC_SUBST(LIBUNBOUND_LIBDIRS)
 AC_SUBST(LIBUNBOUND_LIBS)
 
+if test x"$unboundpath" != x"no" -a x"$enable_arlilb" != no
+then
+	AC_MSG_ERROR(cannot use both arlib and unbound)
+fi
+
 # libdb
 AC_ARG_WITH(db,
 	AS_HELP_STRING(--with-db, location of BerkeleyDB includes and library),
