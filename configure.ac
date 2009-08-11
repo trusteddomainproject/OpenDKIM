@@ -197,7 +197,7 @@ case "$milterpath" in
 		;;
 esac
 
-LIBMILTER_INCDIRS="-L$milterpath/include"
+LIBMILTER_INCDIRS="-I$milterpath/include"
 LIBMILTER_LIBDIRS="-L$milterpath/lib"
 AC_SUBST(LIBMILTER_INCDIRS)
 AC_SUBST(LIBMILTER_LIBDIRS)
