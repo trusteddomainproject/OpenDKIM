@@ -1,12 +1,12 @@
 OPENDKIM README
 ===============
 
-$Id: README,v 1.5 2009/08/10 21:35:16 cm-msk Exp $
+$Id: README,v 1.6 2009/08/11 16:35:22 cm-msk Exp $
 
 This directory has the latest open source DKIM filter software from The
 OpenDKIM Project.
 
-Report any bugs to opendkim-discuss@opendkim.org.
+Report any bugs to opendkim-users@lists.opendkim.org.
 
 There is a web site at http://www.opendkim.org that is home for the latest
 updates.
@@ -16,22 +16,30 @@ updates.
 | INTRODUCTION |
 +--------------+
 
-OpenDKIM is an open source implementation of the DKIM sender authentication
-system proposed by the E-mail Signing Technology Group (ESTG), now a proposed
-standard of the IETF (RFC4871).
+The OpenDKIM Project is a community effort to develop and maintain an open
+source library for producing DKIM-aware applications, and a "milter"-based
+filter for providing DKIM service.
 
-DKIM is an amalgamation of the DomainKeys (DK) proposal by Yahoo!, Inc.
-and the Internet Identified Mail (IIM) proposal by Cisco.
+The DKIM sender authentication system was originally created by the E-mail
+Signing Technology Group (ESTG) and is now a proposed standard of the
+IETF (RFC4871).  DKIM is an amalgamation of the DomainKeys (DK) proposal by
+Yahoo!, Inc. and the Internet Identified Mail (IIM) proposal by Cisco.
 
-OpenDKIM is a code fork from version 2.8.3 of the open source "dkim-milter"
-package developed and maintained by Sendmail, Inc.  As such, it contains
-source code which is covered by the Sendmail Open Source License, reproduced
-here in the file LICENSE.Sendmail.  Check the copyright(s) in each file
-to determine which license(s) apply to it.
+"milter" is a portmanteau of "mail filter" and refers to a protocol and API
+for communicating mail traffic information between MTAs and mail filtering
+plug-in applications.  It was originally invented at Sendmail, Inc. but
+has also been adapted to other MTAs.
+
+The OpenDKIM project started as a code fork of version 2.8.3 of the open source
+"dkim-milter" package developed and maintained by Sendmail, Inc.  The license
+used by The OpenDKIM project is found in the LICENSE file.  Portions of this
+project are also covered by the Sendmail Open Source License, available in
+this distribution in the file "LICENSE.Sendmail".  See the copyright notice(s)
+in each source file to determine whether or not it is covered by both licenses.
 
 This package consists of a library that implements the DKIM service and a
 milter-based filter application that can plug in to any milter-aware MTA to
-provide that service to sufficiently recent sendmail MTAs and other MTAs
+provide that service to sufficiently recent sendmail, Postfix or other MTAs
 that support the milter protocol.
 
 An optional asynchronous resolver library is also provided to work around
@@ -50,8 +58,7 @@ o OpenSSL (http://www.openssl.org, or ask your software vendor for a package)
   to be able to sign or verify messages using the SHA256 message digest
   algorithm)
 
-o sendmail v8.13.0 (or later), and libmilter from the same distribution
-  (http://www.sendmail.org)
+o sendmail v8.13.0 (or later), or Postfix 2.3, (or later) and libmilter.
 
 o Access to a working nameserver (required only for verification).
 
@@ -61,12 +68,14 @@ o Access to a working nameserver (required only for verification).
 +-----------------------+
 
 The man page for opendkim (the actual filter program) is present in the
-opendkim directory of this source distribution.
+opendkim directory of this source distribution.  There is additional
+information in the INSTALL and FEATURES files, and in the README file in the
+opendkim directory.  Changes are documented in the RELEASE_NOTES file.
 
 HTML-style documentation for libopendkim is available in libopendkim/docs in
 this source distribution.
 
-General information about DKIM can be found at http://www.mipassoc.org/dkim.
+General information about DKIM can be found at http://www.dkim.org
 
 Mailing lists discussing and supporting the DKIM software found in this
 package are maintained via a list server at opendkim.org.  Visit
@@ -186,11 +195,11 @@ d2i_PUBKEY_bio() failed
 
   error:0D0680A8:asn1 encoding routines:ASN1_CHECK_TLEN:wrong tag;
   error:0D07803A:asn1 encoding routines:ASN1_ITEM_EX_D2I:nested asn1 error
- 
 
-+--------------------------------+
-| MASQUERADING AND GENERICSTABLE |
-+--------------------------------+
+
++-----------------------------------------+
+| Sendmail MASQUERADING AND GENERICSTABLE |
++-----------------------------------------+
 
 There are two features of the sendmail MTA which, if activated, can interfere
 with successful use of the DKIM service.  The two features are MASQUERADE_AS
@@ -219,15 +228,3 @@ The suggested solutions to this problem are:
     first daemon port (port 25) does the header rewriting and then routes
     the message to the second port; the latter does no rewriting but does the
     signing and then sends the message on its way.
-
-    [include further instructions, e.g. m4 examples, here]
-
-+-------------------------------------+
-| OPERATING SYSTEM AND COMPILE QUIRKS |
-+-------------------------------------+
-
-For a more comprehensive set of entries in this area, check the README
-in the sendmail distribution.  This section contains entries copied from
-there which have been reported specifically about the opendkim package.
-
-(TBD)
