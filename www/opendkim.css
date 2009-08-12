@@ -2,7 +2,7 @@ body {
 	margin:0; padding: 0; line-height:1.5em;
 	color:#303030; background: #fff;
 	line-height: 1.4;
-	font-family:Helvetica, Arial; font-size:12px;
+	font-family:Helvetica, Arial; font-size:medium;
 	}
 
 ul { list-style-type: none; }
@@ -12,7 +12,7 @@ a.logo { color: #fff; text-decoration: none;}
 
 #header {
 	background-color: #333;
-	height: 70px;
+	height: 3em;
 	color: #fff;
 	font-size: 2.0em;
 	font-weight: bolder;
@@ -50,13 +50,14 @@ a.logo { color: #fff; text-decoration: none;}
 	border-bottom-style: solid;
 	border-bottom-width: 1px;
 	border-bottom-color: #006600;
+	font-size: large;
 	}
 
 #bodytext ul {list-style-type: square;	}
 #bodytext li { padding-bottom:10px; }
 
 #footer {
-	font-family: Helvetica; line-height:11px; font-size:11px;
+	font-family: Helvetica, Arial; line-height:11px; font-size:x-small;
 	background-color: #FFF;
 	color: #000;
 	padding: 0.5em;
