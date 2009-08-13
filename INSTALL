@@ -10,7 +10,7 @@ need to perform the following steps:
 
 * Configure the DKIM subsystem for signing and verification.
 
-* Install the milter and configure sendmail to use it.
+* Install the milter and configure your MTA to use it.
 
 Note that there is a difference between "OpenDKIM" and "opendkim".
 "OpenDKIM" is a package containing a library, a filter and some tools to
@@ -325,8 +325,8 @@ TESTING
 =======
 
 To test, send a piece of e-mail through the MTA doing signing for your
-domain to sa-test@sendmail.net.  It should be returned to you shortly
-showing your message in the body of a new message, including all of
+domain to autorespond+dkim@dk.elandsys.com.  It should be returned to you
+shortly showing your message in the body of a new message, including all of
 the header changes that were made in transit.  The message you generated
 should appear there with a DKIM-Signature: header added, containing
 the signature data your opendkim added, and an Authentication-Results:
@@ -341,4 +341,4 @@ headers of the reply you should see its signature and another
 Authentication-Results: header, which should also read "pass".
 
 
-$Id: INSTALL,v 1.6 2009/08/06 23:14:54 cm-msk Exp $
+$Id: INSTALL,v 1.7 2009/08/13 16:13:10 subman Exp $
