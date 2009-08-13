@@ -4,15 +4,15 @@ EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
 	RELEASE_NOTES.Sendmail \
 	docs/draft-ietf-dkim-deployment-05.txt \
 	docs/draft-ietf-dkim-rfc4871-errata-07.txt \
-	docs/draft-ietf-dkim-ssp-10.txt \
 	docs/draft-kucherawy-dkim-reporting-04.txt \
 	docs/draft-shafranovich-feedback-report-07.txt \
-	docs/rfc5585.txt \
+	docs/rfc4686.txt \
 	docs/rfc4871.txt \
 	docs/rfc5016.txt \
 	docs/rfc5451.txt \
 	docs/rfc5518.txt \
-	docs/rfc4686.txt \
+	docs/rfc5585.txt \
+	docs/rfc5617.txt \
 	libopendkim/docs/dkim.html \
 	libopendkim/docs/dkim_alg_t.html \
 	libopendkim/docs/dkim_body.html \
