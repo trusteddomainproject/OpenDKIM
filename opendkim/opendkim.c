@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.15 2009/08/07 07:00:31 subman Exp $
+**  $Id: opendkim.c,v 1.16 2009/08/13 05:11:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.15 2009/08/07 07:00:31 subman Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.16 2009/08/13 05:11:07 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -9069,6 +9069,7 @@ main(int argc, char **argv)
 	sigset_t sigset;
 	time_t fixedtime = (time_t) -1;
 	time_t maxrestartrate_t = 0;
+	pthread_t rt;
 	unsigned long tmpl;
 	const char *args = CMDLINEOPTS;
 	FILE *f;
@@ -10140,6 +10141,34 @@ main(int argc, char **argv)
 		}
 	}
 
+	/*
+	**  Block SIGUSR1 for use of our reload thread, and SIGHUP, SIGINT
+	**  and SIGTERM for use of libmilter's signal handling thread.
+	*/
+
+	sigemptyset(&sigset);
+	sigaddset(&sigset, SIGUSR1);
+	sigaddset(&sigset, SIGHUP);
+	sigaddset(&sigset, SIGTERM);
+	sigaddset(&sigset, SIGINT);
+	status = pthread_sigmask(SIG_BLOCK, &sigset, NULL);
+	if (status != 0)
+	{
+		if (curconf->conf_dolog)
+		{
+			syslog(LOG_ERR, "pthread_sigprocmask(): %s",
+			       strerror(status));
+		}
+
+		fprintf(stderr, "%s: pthread_sigprocmask(): %s\n", progname,
+		        strerror(status));
+
+		dkimf_zapkey(curconf);
+
+		return EX_OSERR;
+	}
+
+	/* initialize libcrypto mutexes */
 	status = dkimf_crypto_init();
 	if (status != 0)
 	{
@@ -10147,6 +10176,7 @@ main(int argc, char **argv)
 		        progname, strerror(status));
 	}
 
+	/* initialize DKIM library */
 	if (!dkimf_config_setlib(curconf))
 	{
 		if (curconf->conf_dolog)
@@ -10156,6 +10186,7 @@ main(int argc, char **argv)
 		}
 	}
 
+	/* set up for test mode if selected */
 	if (testpubkeys != NULL)
 	{
 		dkim_query_t qtype = DKIM_QUERY_FILE;
@@ -10340,32 +10371,19 @@ main(int argc, char **argv)
 		       DKIMF_VERSION, argstr);
 	}
 
-	/* block SIGUSR1 for use of the reload thread */
-	sigemptyset(&sigset);
-	sigaddset(&sigset, SIGUSR1);
-	if (sigprocmask(SIG_BLOCK, &sigset, NULL) != 0)
+	/* spawn the SIGUSR1 handler */
+	status = pthread_create(&rt, NULL, dkimf_reloader, NULL);
+	if (status != 0)
 	{
 		if (curconf->conf_dolog)
-			syslog(LOG_ERR, "sigprocmask(): %s", strerror(errno));
-	}
-	else
-	{
-		pthread_t rt;
-
-		/* launch the reload thread */
-		status = pthread_create(&rt, NULL, dkimf_reloader, NULL);
-		if (status != 0)
 		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_ERR, "pthread_create(): %s",
-				       strerror(status));
+			syslog(LOG_ERR, "pthread_create(): %s",
+			       strerror(status));
 
-				if (!autorestart && pidfile != NULL)
-					(void) unlink(pidfile);
+			if (!autorestart && pidfile != NULL)
+				(void) unlink(pidfile);
 
-				return EX_OSERR;
-			}
+			return EX_OSERR;
 		}
 	}
 
