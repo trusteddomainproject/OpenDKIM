@@ -1,33 +1,38 @@
-# $Id: opendkim.spec,v 1.1 2009/08/13 08:54:09 mmarkley Exp $
+# $Id: opendkim.spec,v 1.2 2009/08/14 05:58:11 mmarkley Exp $
 
-Summary: Open-source DKIM milter
+Summary: An open source milter for providing DKIM service
 Name: opendkim
 Version: 1.0.0
 Release: 1
 License: BSD
-Group: Mail
+Group: System Environment/Daemons
 Requires: libopendkim
+BuildRequires: sendmail-devel, openssl-devel
 Source: opendkim-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Prefix: %{_prefix}
 
 %description
-An open source milter for providing DKIM service
+The OpenDKIM Project is a community effort to develop and maintain a C library
+for producing DKIM-aware applications and an open source milter for providing
+DKIM service.
 
 %package -n libopendkim
-Summary: Open source DKIM library
-Group: Mail
+Summary: An open source DKIM library
+Group: System Environment/Libraries
 
 %description -n libopendkim
-A C library for producing DKIM-aware applications
+This package contains the library files required for running services built
+using libopendkim.
 
 %package -n libopendkim-devel
-Summary: Open source DKIM library development files
+Summary: Development files for libopendkim
 Group: Development/Libraries
 Requires: libopendkim
 
 %description -n libopendkim-devel
-Header files for development with libopendkim
+This package contains the static libraries, headers, and other support files
+required for developing applications against libopendkim.
 
 %prep
 %setup
@@ -37,7 +42,7 @@ Header files for development with libopendkim
 if [ -d /usr/include/kerberos ]; then
 	INCLUDES="$INCLUDES -I/usr/include/kerberos"
 fi
-./configure --prefix=%{_prefix} --libdir=%{_libdir} --mandir=\${prefix}/share/man CPPFLAGS="$INCLUDES"
+./configure --prefix=%{_prefix} --libdir=%{_libdir} --mandir=%{_mandir} CPPFLAGS="$INCLUDES"
 
 make
 
@@ -92,8 +97,8 @@ fi
 /etc/init.d/opendkim
 %{_prefix}/sbin
 %{_prefix}/share/doc
-%{_prefix}/share/man/man5
-%{_prefix}/share/man/man8
+%{_mandir}/man5
+%{_mandir}/man8
 
 %files -n libopendkim
 %defattr(-,root,root)
@@ -107,6 +112,6 @@ fi
 %{_libdir}/*.a
 %{_libdir}/*.la
 %{_libdir}/*.so
-%{_prefix}/share/man/man3
+%{_mandir}/man3
 %{_prefix}/share/opendkim
 
