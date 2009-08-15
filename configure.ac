@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.38 2009/08/13 23:27:18 cm-msk Exp $
+# $Id: configure.ac,v 1.39 2009/08/15 01:57:41 mmarkley Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -252,7 +252,7 @@ AC_SUBST(LIBUNBOUND_INCDIRS)
 AC_SUBST(LIBUNBOUND_LIBDIRS)
 AC_SUBST(LIBUNBOUND_LIBS)
 
-if test x"$unboundpath" != x"no" -a x"$enable_arlilb" != no
+if test x"$unboundpath" != x"no" -a x"$enable_arlib" == x"yes"
 then
 	AC_MSG_ERROR(cannot use both arlib and unbound)
 fi
