@@ -45,16 +45,10 @@ if PARSE_TIME
 opendkim_CFLAGS += -D_FFR_PARSE_TIME
 endif
 if POPAUTH
-opendkim_CFLAGS += -DUSE_DB -DPOPAUTH
-opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
-opendkim_LDFLAGS += $(LIBDB_LIBDIRS)
-opendkim_LDADD += $(LIBDB_LIBS)
+opendkim_CFLAGS += -DPOPAUTH
 endif
 if QUERY_CACHE
-opendkim_CFLAGS += -DUSE_DB -DQUERY_CACHE
-opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
-opendkim_LDFLAGS += $(LIBDB_LIBDIRS)
-opendkim_LDADD += $(LIBDB_LIBS)
+opendkim_CFLAGS += -DQUERY_CACHE
 endif
 if REPLACE_RULES
 opendkim_CFLAGS += -D_FFR_REPLACE_RULES
@@ -69,15 +63,18 @@ if SENDER_HEADERS
 opendkim_CFLAGS += -D_FFR_SENDER_HEADERS
 endif
 if STATS
-opendkim_CFLAGS += -DUSE_DB -D_FFR_STATS
-opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
-opendkim_LDFLAGS += $(LIBDB_LIBDIRS)
-opendkim_LDADD += $(LIBDB_LIBS)
+opendkim_CFLAGS += -D_FFR_STATS
 endif
 if USE_ARLIB
 opendkim_CFLAGS += -DUSE_ARLIB
 opendkim_LDFLAGS += -L../libar
 opendkim_LDADD += -lar
+endif
+if USE_DB
+opendkim_CFLAGS += -DUSE_DB
+opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
+opendkim_LDFLAGS += $(LIBDB_LIBDIRS)
+opendkim_LDADD += $(LIBDB_LIBS)
 endif
 if USE_UNBOUND
 opendkim_CFLAGS += -DUSE_UNBOUND
@@ -108,33 +105,55 @@ if USE_ARLIB
 opendkim_stats_LDFLAGS += -L../libar
 opendkim_stats_LDADD += -lar
 endif
-endif
 if DEBUG
 opendkim_stats_CFLAGS = -g
+endif
 endif
 
 opendkim_testkey_SOURCES = opendkim-testkey.c
 opendkim_testkey_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_INCDIRS)
-opendkim_testkey_LDFLAGS = -L../libopendkim -L../libar $(LIBCRYPTO_LIBDIRS) $(LIBUNBOUND_LIBDIRS)
-opendkim_testkey_LDADD = ../libopendkim/libopendkim.la -lar $(LIBUNBOUND_LIBS)
+opendkim_testkey_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS)
+opendkim_testkey_LDADD = ../libopendkim/libopendkim.la
+opendkim_testkey_CFLAGS = 
 if USE_ARLIB
 opendkim_testkey_LDFLAGS += -L../libar
 opendkim_testkey_LDADD += -lar
 endif
+if USE_DB
+opendkim_testkey_CFLAGS += -DUSE_DB
+opendkim_testkey_CPPFLAGS += $(LIBDB_INCDIRS)
+opendkim_testkey_LDFLAGS += $(LIBDB_LIBDIRS)
+opendkim_testkey_LDADD += $(LIBDB_LIBS)
+endif
+if USE_UNBOUND
+opendkim_testkey_LDFLAGS += $(LIBUNBOUND_LIBDIRS)
+opendkim_testkey_LDADD += $(LIBUNBOUND_LIBS)
+endif
 if DEBUG
-opendkim_testkey_CFLAGS = -g
+opendkim_testkey_CFLAGS += -g
 endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
 opendkim_testadsp_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_INCDIRS)
-opendkim_testadsp_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS) $(LIBUNBOUND_LIBDIRS)
-opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la $(LIBUNBOUND_LIBS)
+opendkim_testadsp_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS)
+opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la
+opendkim_testadsp_CFLAGS = 
 if USE_ARLIB
 opendkim_testadsp_LDFLAGS += -L../libar
 opendkim_testadsp_LDADD += -lar
 endif
+if USE_DB
+opendkim_testadsp_CFLAGS += -DUSE_DB
+opendkim_testadsp_CPPFLAGS += $(LIBDB_INCDIRS)
+opendkim_testadsp_LDFLAGS += $(LIBDB_LIBDIRS)
+opendkim_testadsp_LDADD += $(LIBDB_LIBS)
+endif
+if USE_UNBOUND
+opendkim_testadsp_LDFLAGS += $(LIBUNBOUND_LIBDIRS)
+opendkim_testadsp_LDADD += $(LIBUNBOUND_LIBS)
+endif
 if DEBUG
-opendkim_testadsp_CFLAGS = -g
+opendkim_testadsp_CFLAGS += -g
 endif
 
 man_MANS = opendkim-genkey.8 opendkim-testadsp.8 opendkim-testkey.8
