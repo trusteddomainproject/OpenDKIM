@@ -120,8 +120,6 @@ opendkim_testkey_LDFLAGS += -L../libar
 opendkim_testkey_LDADD += -lar
 endif
 if USE_DB
-opendkim_testkey_CFLAGS += -DUSE_DB
-opendkim_testkey_CPPFLAGS += $(LIBDB_INCDIRS)
 opendkim_testkey_LDFLAGS += $(LIBDB_LIBDIRS)
 opendkim_testkey_LDADD += $(LIBDB_LIBS)
 endif
@@ -143,8 +141,6 @@ opendkim_testadsp_LDFLAGS += -L../libar
 opendkim_testadsp_LDADD += -lar
 endif
 if USE_DB
-opendkim_testadsp_CFLAGS += -DUSE_DB
-opendkim_testadsp_CPPFLAGS += $(LIBDB_INCDIRS)
 opendkim_testadsp_LDFLAGS += $(LIBDB_LIBDIRS)
 opendkim_testadsp_LDADD += $(LIBDB_LIBS)
 endif
