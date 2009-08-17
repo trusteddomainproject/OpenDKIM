@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.40 2009/08/15 06:44:43 cm-msk Exp $
+# $Id: configure.ac,v 1.41 2009/08/17 23:05:53 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -376,7 +376,7 @@ else
 	fi
 fi
 
-AM_CONDITIONAL(USE_DB, test x"$bdb" != x"no")
+AM_CONDITIONAL(USE_DB, test x"$bdb" != x"no" -o x"$enable_querycache" = x"yes" -o x"$enable_bodylengthdb" = x"yes" -o x"$enable_popauth" = x"yes" -o x"$enable_stats" = x"yes")
 AC_SUBST(LIBDB_INCDIRS)
 AC_SUBST(LIBDB_LIBDIRS)
 AC_SUBST(LIBDB_LIBS)
