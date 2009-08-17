@@ -66,7 +66,7 @@ libopendkim_la_CFLAGS += -D_FFR_PARSE_TIME
 endif
 
 if QUERY_CACHE
-libopendkim_la_CFLAGS += -DUSE_DB -I$(LIBDB_INCDIRS) -DQUERY_CACHE
+libopendkim_la_CFLAGS += -DQUERY_CACHE
 endif
 
 if STATS
@@ -76,6 +76,12 @@ endif
 if USE_ARLIB
 libopendkim_la_CFLAGS += -DUSE_ARLIB -I../libar
 libopendkim_la_LIBADD += ../libar/libar.a
+endif
+
+if USE_DB
+libopendkim_la_CFLAGS += -DUSE_DB -I$(LIBDB_INCDIRS)
+libopendkim_la_LDFLAGS += $(LIBDB_LIBDIRS)
+libopendkim_la_LIBADD += $(LIBDB_LIBS)
 endif
 
 if USE_UNBOUND
