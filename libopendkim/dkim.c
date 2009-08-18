@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.7 2009/08/05 18:47:52 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.8 2009/08/18 18:48:17 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -165,9 +165,6 @@ void dkim_error __P((DKIM *, const char *, ...));
 /* list of headers which may contain the sender */
 const u_char *default_senderhdrs[] =
 {
-	"resent-sender",
-	"resent-from",
-	"sender",
 	"from",
 	NULL
 };
