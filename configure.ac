@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.41 2009/08/17 23:05:53 cm-msk Exp $
+# $Id: configure.ac,v 1.42 2009/08/18 18:49:23 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -93,9 +93,6 @@ AM_CONDITIONAL(REPORT_INTERVALS, test "$enable_reportintervals" = yes)
 
 AC_ARG_ENABLE(selectcanon, AS_HELP_STRING(--enable-selectcanon, allow sender to select canonicalization))
 AM_CONDITIONAL(SELECT_CANONICALIZATION, test "$enable_selectcanon" = yes)
-
-AC_ARG_ENABLE(senderheaders, AS_HELP_STRING(--enable-senderheaders, configurable sender header list))
-AM_CONDITIONAL(SENDER_HEADERS, test "$enable_senderheaders" = yes)
 
 AC_ARG_ENABLE(selectorheader, AS_HELP_STRING(--enable-selectorheader, special header to choose signing key))
 AM_CONDITIONAL(SELECTOR_HEADER, test "$enable_selectorheader" = yes)

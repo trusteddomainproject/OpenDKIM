@@ -20,7 +20,7 @@ truncated at the hash character to allow for comments in the file.
 Other content should be the name of a parameter, followed by white space,
 followed by the value of that parameter, each on a separate line.
 
-For parameters which are Boolean in nature, only the first byte of
+For parameters that are Boolean in nature, only the first byte of
 the value is processed.  For positive values, the following are accepted:
 "T", "t", "Y", "y", "1".  For negative values, the following are accepted:
 "F", "f", "N", "n", "0".
@@ -41,13 +41,13 @@ are reloaded.
 .SH PARAMETERS
 .TP
 .I ADSPDiscard (Boolean)
-If "true", requests rejection of messages which are determined to be
+If "true", requests rejection of messages that are determined to be
 suspicious according to the author domain's published signing practises
 (ADSP) record if that record also recommends discard of such messages.
 
 .TP
 .I ADSPNoSuchDomain (Boolean)
-If "true", requests rejection of messages which are determined to be
+If "true", requests rejection of messages that are determined to be
 from nonexistent domains according to the author domain signing practises
 (ADSP) test.
 
@@ -59,14 +59,14 @@ feature changes the absence of SHA256 support from an error to a warning.
 
 .TP
 .I AlwaysAddARHeader (Boolean)
-Add an "Authentication-Results:" header even to unsigned messages
+Add an "Authentication-Results:" header field even to unsigned messages
 from domains with no "signs all" policy.  The reported DKIM result
 will be "none" in such cases.  Normally unsigned mail from non-strict
 domains does not cause the results header to be added.
 
 .TP
 .I AlwaysSignHeaders (string)
-Specifies a list of headers which should be included in all signature
+Specifies a list of header fields that should be included in all signature
 header lists (the "h=" tag) even if they were not present at the time
 the signature was generated.  The string should be a comma-separated
 list of header names.  The list is empty by default.  The purpose of
@@ -142,7 +142,7 @@ Requests that
 include the "l=" body length tag when generating signatures.  This
 indicates to the verifier that only a certain amount of the original
 message was signed, allowing tolerance of things like mailing list
-managers which append list-specific text to the end of mailings
+managers that append list-specific text to the end of mailings
 it processes.  However, this also enables an abuse attack.  See the
 DKIM specification for more information.
 
@@ -230,7 +230,7 @@ matches a member of this list, the message will not be signed.
 
 .TP
 .I EnableCoredumps (boolean)
-On systems which have such support, make an explicit request to the kernel
+On systems that have such support, make an explicit request to the kernel
 to dump cores when the filter crashes for some reason.  Some modern UNIX
 systems suppress core dumps during crashes for security reasons if the
 user ID has changed during the lifetime of the process.  Currently only
@@ -238,7 +238,7 @@ supported on Linux.
 
 .TP
 .I ExternalIgnoreList (string)
-Identifies a file of "external" hosts which may send mail through the server
+Identifies a file of "external" hosts that may send mail through the server
 as one of the signing domains without credentials as such.  Basically
 suppresses the "external host (hostname) tried to send mail as (domain)"
 log messages.  Entries in the file should be of the same form as those of
@@ -295,7 +295,7 @@ address explicitly.
 .TP
 .I KeepTemporaryFiles (boolean)
 Instructs the filter to create temporary files containing the header and
-body canonicalizations of messages which are signed or verified.
+body canonicalizations of messages that are signed or verified.
 The location of these files can be set using the
 .I TemporaryDirectory
 parameter.  Intended only for debugging verification problems.
@@ -323,7 +323,7 @@ is a pattern to match against message senders (with the special character
 is the domain to announce as the signing domain when generating signatures, and
 .I keypath
 is the path to the PEM-formatted private key to be used for signing messages
-which match the
+that match the
 .I sender-pattern.
 The selector used in the signature will be the filename portion of
 .I keypath.
@@ -349,7 +349,7 @@ is either
 or
 .I discardable,
 as per the current ADSP draft specification.  This allows local overrides
-of policies to enforce for domains which either don't publish ADSP or publish
+of policies to enforce for domains that either don't publish ADSP or publish
 weaker policies than the verifier would like to enforce.
 
 .TP
@@ -370,7 +370,7 @@ for general operation.
 .I MacroList (string)
 Defines a set of MTA-provided
 .I macros
-which should be checked to see if the sender has been determined to be a
+that should be checked to see if the sender has been determined to be a
 local user and therefore whether or not the message should be signed.  If
 a
 .I value
@@ -431,7 +431,7 @@ valid.
 
 .TP
 .I Mode (string)
-Selects operating modes.  The string is a concatenation of characters which
+Selects operating modes.  The string is a concatenation of characters that
 indicate which mode(s) of operation are desired.  Valid modes are
 .I s
 (signer) and
@@ -454,7 +454,7 @@ making the sign-verify decision.
 
 .TP
 .I MustBeSigned (string)
-Specifies a list of headers which, if present, must be covered by the
+Specifies a list of headers that, if present, must be covered by the
 DKIM signature when verifying a message.  The string should be a
 comma-separated list of header names.  If a header in this list is present
 in the message and is not signed, the filter will treat even an otherwise
@@ -462,14 +462,14 @@ valid signature as invalid.  The default is an empty list.
 
 .TP
 .I OmitHeaders (string)
-Specifies a list of headers which should be omitted when generating
+Specifies a list of header fields that should be omitted when generating
 signatures.  The string should be a comma-separated list of header names.
-If an entry in the list names any header which is mandated by the DKIM
+If an entry in the list names any header that is mandated by the DKIM
 specification, the entry is ignored.  A set of headers is listed in
 the DKIM specification as "SHOULD NOT" be signed; the default list for
 this parameter contains those headers (Return-Path, Received, Comments,
 Keywords, Bcc, Resent-Bcc and DKIM-Signature).  To omit no headers,
-simply use the string "-" (or any string which will match no headers).
+simply use the string "-" (or any string that will match no headers).
 Note that specifying a list with this parameter replaces the default
 entirely.
 
@@ -528,7 +528,7 @@ The default is
 
 .TP
 .I PeerList (string)
-Identifies a file of "peers" which identifies clients whose connections
+Identifies a file of "peers" that identifies clients whose connections
 should be accepted without processing by this filter.  The file
 should contain on each line a hostname, domain name (e.g. ".example.com"),
 IP address, an IPv6 address (including an IPv4 mapped address), or a
@@ -539,7 +539,7 @@ in this file is therefore significant.
 
 .TP
 .I PidFile (string)
-Specifies the path to a file which should be created at process start
+Specifies the path to a file that should be created at process start
 containing the process ID.
 
 .TP
@@ -551,7 +551,7 @@ it adds a library dependency.
 
 .TP
 .I Quarantine (Boolean)
-Requests that messages which fail verification be quarantined by the
+Requests that messages that fail verification be quarantined by the
 MTA.  (Requires a sufficiently recent version of the milter library.)
 
 .TP
@@ -564,7 +564,7 @@ this feature, since it adds a library dependency.
 
 .TP
 .I RemoveARAll (Boolean)
-Removes all Authentication-Results: header fields which also satisfy the
+Removes all Authentication-Results: header fields that also satisfy the
 requirements of
 .I RemoveARFrom
 below.  By default, only those containing a DKIM result are removed.
@@ -594,8 +594,8 @@ used to construct the address.
 
 .TP
 .I RequiredHeaders (boolean)
-Checks all messages for compliance with RFC2822 header count requirements.
-Non-compliant messages are rejected.
+Checks all messages for compliance with RFC2822 header field count
+requirements.  Non-compliant messages are rejected.
 
 .TP
 .I Selector (string)
@@ -615,6 +615,15 @@ reporting address (i.e.
 in its policy record) and a request for reports of such failures, the filter
 will send a structured report to that address containing details of the
 incident.
+
+.TP
+.I SenderHeaders (string)
+Specifies an ordered list of header fields that should be searched to
+determine the sender of a message.  This is mainly used when verifying a
+message to determine the origin domain, particularly for doing domain policy
+queries.  The string should be a comma-separated list of header names.  By
+default, the DKIM library's internal list is used, which consists solely of
+the "From" header field.
 
 .TP
 .I SendReports (Boolean)
@@ -641,9 +650,9 @@ If not set, no expiration time is added to signatures.
 
 .TP
 .I SignHeaders (string)
-Specifies the list of headers which should be included when generating
+Specifies the list of headers that should be included when generating
 signatures.  The string should be a comma-separated list of header names.
-If the list omits any header which is mandated by the DKIM specification,
+If the list omits any header that is mandated by the DKIM specification,
 those headers are implicitly added.  By default, those headers listed in
 the DKIM specification as "SHOULD" be signed will be signed by the filter.
 Specifying a list here replaces that list entirely.  See the
@@ -658,11 +667,11 @@ connections from
 in order to provide service.
 .I socketspec
 is in one of two forms:
-.I local:path
+.I local:path,
 which creates a UNIX domain socket at the specified
 .I path,
 or
-.I inet:port[@host]
+.I inet:port[@host],
 which creates a TCP socket on the specified
 .I port.
 If the
@@ -748,7 +757,7 @@ specifies a UNIX domain socket, and to the
 .I PidFile
 (if any); temporary files are created by the
 .I mkstemp(3)
-function which enforces a specific file mode on creation regardless
+function that enforces a specific file mode on creation regardless
 of the process umask.  See
 .I umask(2)
 for more information.

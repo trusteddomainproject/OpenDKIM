@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.16 2009/08/13 05:11:07 cm-msk Exp $
+**  $Id: opendkim.c,v 1.17 2009/08/18 18:49:23 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.16 2009/08/13 05:11:07 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.17 2009/08/18 18:49:23 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1879,11 +1879,9 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_alwayshdrs != NULL)
 		free(conf->conf_alwayshdrs);
 
-#ifdef _FFR_SENDER_HEADERS
 	if (conf->conf_senderhdrs != NULL &&
 	    conf->conf_senderhdrs != (char **) default_senderhdrs)
 		free(conf->conf_senderhdrs);
-#endif /* _FFR_SENDER_HEADERS */
 
 	if (conf->conf_mtas != NULL)
 		free(conf->conf_mtas);
@@ -2739,7 +2737,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		conf->conf_alwayshdrs[n] = NULL;
 	}
 
-#ifdef _FFR_SENDER_HEADERS
 	str = NULL;
 	if (data != NULL)
 		(void) config_get(data, "SenderHeaders", &str, sizeof str);
@@ -2776,9 +2773,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	{
 		conf->conf_senderhdrs = (char **) default_senderhdrs;
 	}
-#else /* _FFR_SENDER_HEADERS */
-	conf->conf_senderhdrs = (char **) default_senderhdrs;
-#endif /* _FFR_SENDER_HEADERS */
 
 #if _FFR_VBR
 	if (data != NULL)
@@ -3878,7 +3872,6 @@ dkimf_config_setlib(struct dkimf_config *conf)
 			return FALSE;
 	}
 
-#ifdef _FFR_SENDER_HEADERS
 	if (conf->conf_senderhdrs != NULL)
 	{
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
@@ -3899,7 +3892,6 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		if (status != DKIM_STAT_OK)
 			return FALSE;
 	}
-#endif /* _FFR_SENDER_HEADERS */
 
 	status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 	                      DKIM_OPTS_TMPDIR,
@@ -6168,9 +6160,7 @@ mlfi_eoh(SMFICTX *ctx)
 	_Bool setidentity = FALSE;
 	_Bool domainok;
 	_Bool originok;
-#ifdef _FFR_SENDER_HEADERS
 	_Bool didfrom = FALSE;
-#endif /* _FFR_SENDER_HEADERS */
 	int c;
 	DKIM_STAT status;
 	sfsistat ms = SMFIS_CONTINUE;
@@ -6209,20 +6199,16 @@ mlfi_eoh(SMFICTX *ctx)
 
 	for (c = 0; conf->conf_senderhdrs[c] != NULL; c++)
 	{
-#ifdef _FFR_SENDER_HEADERS
 		if (strcasecmp("from", conf->conf_senderhdrs[c]) == 0)
 			didfrom = TRUE;
-#endif /* _FFR_SENDER_HEADERS */
 
 		from = dkimf_findheader(dfc, conf->conf_senderhdrs[c], 0);
 		if (from != NULL)
 			break;
 	}
 
-#ifdef _FFR_SENDER_HEADERS
 	if (from == NULL && !didfrom)
 		from = dkimf_findheader(dfc, "from", 0);
-#endif /* _FFR_SENDER_HEADERS */
 
 	if (from == NULL)
 	{

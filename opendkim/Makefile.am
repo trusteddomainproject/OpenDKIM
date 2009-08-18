@@ -59,9 +59,6 @@ endif
 if SELECTOR_HEADER
 opendkim_CFLAGS += -D_FFR_SELECTOR_HEADER
 endif
-if SENDER_HEADERS
-opendkim_CFLAGS += -D_FFR_SENDER_HEADERS
-endif
 if STATS
 opendkim_CFLAGS += -D_FFR_STATS
 endif
