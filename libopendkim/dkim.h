@@ -9,7 +9,7 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.5 2009/08/03 18:31:04 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.6 2009/08/18 18:55:46 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -29,7 +29,7 @@ static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.5 2009/08/03 18:31:04 cm-msk Exp 
 **  	pp == patch number
 */
 
-#define	DKIM_LIB_VERSION	0x02080300
+#define	OPENDKIM_LIB_VERSION	0x01010000
 
 /* the basics */
 #ifndef NULL
