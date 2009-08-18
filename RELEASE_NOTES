@@ -1,9 +1,15 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.5 2009/08/14 07:32:59 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.6 2009/08/18 18:45:44 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
+
+1.1.0		2009/??/??
+	LIBOPENDKIM: Change "default_senderheaders" list to include only
+		"from", per RFC5617.  Problem noted by Erik Lotspeich.
+	Activate _FFR_SENDER_HEADERS, adding "SenderHeaders" to the
+		configuration file.
 
 1.0.0		2009/08/14
 	Initial release after code fork from dkim-milter package (v2.8.3).
@@ -13,7 +19,7 @@ release, and a summary of the changes in that release.
 	Fix bug #SF2835208: Set the signal mask earlier so that signals
 		of interest aren't delivered to threads that can't handle
 		them.  Problem noted by Mike Markley.
-	LIBDKIM: Fix bug #SF2795523: Correct canonicalization problem
+	LIBOPENDKIM: Fix bug #SF2795523: Correct canonicalization problem
 		when a CRLF is split across body chunks and consecutive
 		blank line counting is in progress.  Reported by Mark
 		Martinec.
