@@ -953,8 +953,9 @@ endif
 t_test115_SOURCES = t-test115.c t-testdata.h
 t_test115_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
 t_test115_LDADD = ./libopendkim.la
+t_test115_CFLAGS = $(LIBCRYPTO_INCDIRS)
 if DEBUG
-t_test115_CFLAGS = -g
+t_test115_CFLAGS += -g
 endif
 
 t_test116_SOURCES = t-test116.c t-testdata.h
