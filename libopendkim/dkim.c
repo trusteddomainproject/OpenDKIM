@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.9 2009/08/19 00:36:18 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.10 2009/08/19 00:49:46 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -141,23 +141,6 @@ void dkim_error __P((DKIM *, const char *, ...));
 				dkim_dstring_free((x)); \
 				(x) = NULL; \
 			}
-
-#define	DKIM_STRLCAT(x,y,z) do					\
-			{					\
-				size_t _tmplen;			\
-								\
-				_tmplen = strlcpy(x, y, z);	\
-								\
-				if (_tmplen > z)		\
-				{				\
-					z = 0;			\
-				}				\
-				else				\
-				{				\
-					z -= _tmplen;		\
-					x += _tmplen;		\
-				}				\
-			} while(0)
 
 /* macros */
 #define DKIM_ISLWSP(x)  ((x) == 011 || (x) == 013 || (x) == 014 || (x) == 040)
@@ -2032,10 +2015,8 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	int n;
 	int status;
 	size_t hashlen;
-	size_t wlen;
 	size_t tmplen;
 	u_char *hash;
-	u_char *wp;
 	struct dkim_header *hdr;
 	_Bool *always = NULL;
 	u_char tmp[DKIM_MAXHEADER + 1];
@@ -2232,7 +2213,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 				}
 			}
 
-			DKIM_STRLCAT(wp, tmp, wlen);
+			dkim_dstring_cat(dstr, tmp);
 		}
 	}
 
