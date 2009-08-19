@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.17 2009/08/18 18:49:23 cm-msk Exp $
+**  $Id: opendkim.c,v 1.18 2009/08/19 00:42:30 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.17 2009/08/18 18:49:23 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.18 2009/08/19 00:42:30 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7319,9 +7319,22 @@ mlfi_eom(SMFICTX *ctx)
 		if (status == DKIM_STAT_OK && nsigs > 1)
 		{
 			if (dfc->mctx_tmpstr == NULL)
+			{
 				dfc->mctx_tmpstr = dkimf_dstring_new(BUFRSZ, 0);
+
+				if (dfc->mctx_tmpstr == NULL)
+				{
+					syslog(LOG_WARNING,
+					       "%s dkimf_dstring_new() failed",
+					       dfc->mctx_jobid);
+
+					return SMFIS_TEMPFAIL;
+				}
+			}
 			else
+			{
 				dkimf_dstring_blank(dfc->mctx_tmpstr);
+			}
 
 			dkimf_dstring_cat(dfc->mctx_tmpstr,
 			                  "message has signatures from ");
@@ -7722,17 +7735,26 @@ mlfi_eom(SMFICTX *ctx)
 			size_t len;
 			u_char *start;
 
-			memset(header, '\0', sizeof header);
+			if (dfc->mctx_tmpstr == NULL)
+			{
+				dfc->mctx_tmpstr = dkimf_dstring_new(BUFRSZ, 0);
 
-			len = sizeof header;
-			start = header;
+				if (dfc->mctx_tmpstr == NULL)
+				{
+					syslog(LOG_WARNING,
+					       "%s dkimf_dstring_new() failed",
+					       dfc->mctx_jobid);
+
+					return SMFIS_TEMPFAIL;
+				}
+			}
+			else
+			{
+				dkimf_dstring_blank(dfc->mctx_tmpstr);
+			}
 
 			if (cc->cctx_noleadspc)
-			{
-				len--;
-				header[0] = ' ';
-				start++;
-			}
+				dkimf_dstring_cat1(dfc->mctx_tmpstr, ' ');
 
 #ifdef _FFR_MULTIPLE_SIGNATURES
 			if (dfc->mctx_srhead != NULL)
@@ -7743,9 +7765,9 @@ mlfi_eom(SMFICTX *ctx)
 				     sr != NULL;
 				     sr = sr->srq_next)
 				{
-					status = dkim_getsighdr(sr->srq_dkim,
-				                                start, len,
-				                                strlen(DKIM_SIGNHEADER) + 2);
+					status = dkim_getsighdr_d(sr->srq_dkim,
+				                                  strlen(DKIM_SIGNHEADER) + 2),
+				                                  &start, &len);
 					if (status != DKIM_STAT_OK)
 					{
 						if (conf->conf_dolog)
@@ -7758,11 +7780,13 @@ mlfi_eom(SMFICTX *ctx)
 						return SMFIS_TEMPFAIL;
 					}
 
-					dkimf_stripcr(header);
+					dkimf_stripcr(start);
+					dkimf_dstring_cat(dfc->mctx_tmpstr,
+					                  start);
 
 					if (dkimf_insheader(ctx, 1,
 					                    DKIM_SIGNHEADER,
-					                    header) == MI_FAILURE)
+					                    dkimf_dstring_get(dfc->mctx_tmpstr)) == MI_FAILURE)
 					{
 						if (conf->conf_dolog)
 						{
@@ -7777,8 +7801,9 @@ mlfi_eom(SMFICTX *ctx)
 			else
 			{
 #endif /* _FFR_MULTIPLE_SIGNATURES */
-			status = dkim_getsighdr(dfc->mctx_dkim, start, len,
-			                        strlen(DKIM_SIGNHEADER) + 2);
+			status = dkim_getsighdr_d(dfc->mctx_dkim,
+			                          strlen(DKIM_SIGNHEADER) + 2,
+			                          &start, &len);
 			if (status != DKIM_STAT_OK)
 			{
 				if (conf->conf_dolog)
@@ -7791,10 +7816,11 @@ mlfi_eom(SMFICTX *ctx)
 				return SMFIS_TEMPFAIL;
 			}
 
-			dkimf_stripcr((char *) header);
+			dkimf_stripcr(start);
+			dkimf_dstring_cat(dfc->mctx_tmpstr, start);
 
 			if (dkimf_insheader(ctx, 1, DKIM_SIGNHEADER,
-			                    (char *) header) == MI_FAILURE)
+			                    dkimf_dstring_get(dfc->mctx_tmpstr)) == MI_FAILURE)
 			{
 				if (conf->conf_dolog)
 				{
