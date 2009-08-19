@@ -9,7 +9,7 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.6 2009/08/18 18:55:46 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.7 2009/08/19 00:36:18 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -806,7 +806,7 @@ extern DKIM_SIGINFO *dkim_getsignature __P((DKIM *dkim));
 **  Parameters:
 **  	dkim -- a DKIM handle previously returned by dkim_sign()
 **  	buf -- buffer into which to write the signature
-**  	len -- number of bytes available at "sig"
+**  	len -- number of bytes available at "buf"
 **  	initial -- width of the first line
 **
 **  Return value:
@@ -815,6 +815,23 @@ extern DKIM_SIGINFO *dkim_getsignature __P((DKIM *dkim));
 
 extern DKIM_STAT dkim_getsighdr __P((DKIM *dkim, u_char *buf, size_t len,
                                      size_t initial));
+
+/*
+**  DKIM_GETSIGHDR_D -- compute and return a signature header for a message,
+**                      but do it dynamically
+**
+**  Parameters:
+**  	dkim -- a DKIM handle previously returned by dkim_sign()
+**  	initial -- width of the first line
+**  	buf -- location of generated header (returned)
+**  	len -- number of bytes available at "buf" (returned)
+**
+**  Return value:
+**  	A DKIM_STAT value.
+*/
+
+extern DKIM_STAT dkim_getsighdr_d __P((DKIM *dkim, size_t initial,
+                                       u_char **buf, size_t *len));
 
 /*
 **  DKIM_SIG_HDRSIGNED -- retrieve the header list from a signature

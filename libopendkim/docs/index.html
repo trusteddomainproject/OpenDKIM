@@ -4,7 +4,7 @@
 </head>
 <body>
 <!--
-$Id: index.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+$Id: index.html,v 1.2 2009/08/19 00:36:18 cm-msk Exp $
 -->
 
 <h1>Sendmail DomainKeys Identified Mail (DKIM) Library</h1>
@@ -209,7 +209,13 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
 
  <tr>
   <td> <a href="dkim_getsighdr.html"> <tt>dkim_getsighdr()</tt> </a> </td>
-  <td> Generate and return a signature header. </td>
+  <td> Generate and return a signature header into a fixed-size buffer. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_getsighdr_d.html"> <tt>dkim_getsighdr_d()</tt> </a> </td>
+  <td> Generate and return a signature header in a dynamically-allocated
+       buffer. </td>
  </tr>
 
  <tr>

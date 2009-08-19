@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.8 2009/08/18 18:48:17 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.9 2009/08/19 00:36:18 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -2017,16 +2017,15 @@ dkim_siglist_setup(DKIM *dkim)
 **  Parameters:
 **  	dkim -- DKIM handle
 **  	sig -- DKIM_SIGINFO handle
-**  	buf -- where to write
-**  	buflen -- bytes available at "buf"
+**  	dstr -- dstring to which to write
 **  	delim -- delimiter
 **
 **  Return value:
-**  	Number of bytes written to "buf".
+**  	Number of bytes written to "dstr".
 */
 
 static size_t
-dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen,
+dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
                char *delim)
 {
 	_Bool firsthdr;
@@ -2040,15 +2039,12 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen,
 	struct dkim_header *hdr;
 	_Bool *always = NULL;
 	u_char tmp[DKIM_MAXHEADER + 1];
-	u_char tmphdr[DKIM_MAXHEADER + 1];
 	char b64hash[DKIM_MAXHEADER + 1];
 
 	assert(dkim != NULL);
 	assert(sig != NULL);
-	assert(buf != NULL);
+	assert(dstr != NULL);
 	assert(delim != NULL);
-
-	memset(tmphdr, '\0', sizeof tmphdr);
 
 	n = dkim->dkim_hdrcnt * sizeof(_Bool);
 	always = DKIM_MALLOC(dkim, n);
@@ -2060,36 +2056,33 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen,
 	*/
 
 	/* basic required stuff */
-	tmplen = snprintf(tmphdr, sizeof tmphdr,
-	                  "v=%s;%sa=%s;%sc=%s/%s;%sd=%s;%ss=%s;%st=%llu",
-	                  DKIM_VERSION_SIG, delim,
-	                  dkim_code_to_name(algorithms, sig->sig_signalg),
-	                  delim,
-	                  dkim_code_to_name(canonicalizations,
-	                                    sig->sig_hdrcanonalg),
-	                  dkim_code_to_name(canonicalizations,
-	                                    sig->sig_bodycanonalg),
-	                  delim,
-	                  sig->sig_domain, delim,
-	                  sig->sig_selector, delim,
-	                  sig->sig_timestamp);
-
-	wp = tmphdr + tmplen;
-	wlen = sizeof tmphdr - tmplen;
+	tmplen = dkim_dstring_printf(dstr,
+	                             "v=%s;%sa=%s;%sc=%s/%s;%sd=%s;%ss=%s;%st=%llu",
+	                             DKIM_VERSION_SIG, delim,
+	                             dkim_code_to_name(algorithms,
+	                                               sig->sig_signalg),
+	                             delim,
+	                             dkim_code_to_name(canonicalizations,
+	                                               sig->sig_hdrcanonalg),
+	                             dkim_code_to_name(canonicalizations,
+	                                               sig->sig_bodycanonalg),
+	                             delim,
+	                             sig->sig_domain, delim,
+	                             sig->sig_selector, delim,
+	                             sig->sig_timestamp);
 
 	if (dkim->dkim_libhandle->dkiml_sigttl != 0)
 	{
 		unsigned long long expire;
 
 		expire = sig->sig_timestamp + (unsigned long long) dkim->dkim_libhandle->dkiml_sigttl;
-		snprintf(tmp, sizeof tmp, ";%sx=%llu", delim, expire);
-		DKIM_STRLCAT(wp, tmp, wlen);
+		dkim_dstring_printf(dstr, ";%sx=%llu", delim, expire);
 	}
 
 	if (dkim->dkim_signer != NULL)
 	{
-		snprintf(tmp, sizeof tmp, ";%si=%s", delim, dkim->dkim_signer);
-		DKIM_STRLCAT(wp, tmp, wlen);
+		dkim_dstring_printf(dstr, ";%si=%s", delim,
+		                    dkim->dkim_signer);
 	}
 
 	memset(b64hash, '\0', sizeof b64hash);
@@ -2105,15 +2098,13 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen,
 	status = dkim_base64_encode(hash, hashlen,
 	                            b64hash, sizeof b64hash);
 
-	snprintf(tmp, sizeof tmp, ";%sbh=%s", delim, b64hash);
-	DKIM_STRLCAT(wp, tmp, wlen);
+	dkim_dstring_printf(dstr, ";%sbh=%s", delim, b64hash);
 
 	/* l= */
 	if (dkim->dkim_partial)
 	{
-		snprintf(tmp, sizeof tmp, ";%sl=%lu", delim,
-		         (u_long) sig->sig_bodycanon->canon_wrote);
-		DKIM_STRLCAT(wp, tmp, wlen);
+		dkim_dstring_printf(dstr, ";%sl=%lu", delim,
+		                    (u_long) sig->sig_bodycanon->canon_wrote);
 	}
 
 	/* h= */
@@ -2133,18 +2124,18 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen,
 
 		if (!firsthdr)
 		{
-			DKIM_STRLCAT(wp, ":", wlen);
+			dkim_dstring_cat(dstr, ":");
 		}
 		else
 		{
-			DKIM_STRLCAT(wp, ";", wlen);
-			DKIM_STRLCAT(wp, delim, wlen);
-			DKIM_STRLCAT(wp, "h=", wlen);
+			dkim_dstring_cat(dstr, ";");
+			dkim_dstring_cat(dstr, delim);
+			dkim_dstring_cat(dstr, "h=");
 		}
 
 		firsthdr = FALSE;
 
-		DKIM_STRLCAT(wp, tmp, wlen);
+		dkim_dstring_cat(dstr, tmp);
 
 		if (dkim->dkim_libhandle->dkiml_alwayshdrs != NULL)
 		{
@@ -2172,18 +2163,18 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen,
 			{
 				if (!firsthdr)
 				{
-					DKIM_STRLCAT(wp, ":", wlen);
+					dkim_dstring_cat(dstr, ":");
 				}
 				else
 				{
-					DKIM_STRLCAT(wp, ";", wlen);
-					DKIM_STRLCAT(wp, delim, wlen);
-					DKIM_STRLCAT(wp, "h=", wlen);
+					dkim_dstring_cat(dstr, ";");
+					dkim_dstring_cat(dstr, delim);
+					dkim_dstring_cat(dstr, "h=");
 				}
 
 				firsthdr = FALSE;
 
-				DKIM_STRLCAT(wp, ah[n], wlen);
+				dkim_dstring_cat(dstr, ah[n]);
 			}
 		}
 	}
@@ -2201,9 +2192,9 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen,
 
 		end = tmp + sizeof tmp - 1;
 
-		DKIM_STRLCAT(wp, ";", wlen);
-		DKIM_STRLCAT(wp, delim, wlen);
-		DKIM_STRLCAT(wp, "z=", wlen);
+		dkim_dstring_cat(dstr, ";");
+		dkim_dstring_cat(dstr, delim);
+		dkim_dstring_cat(dstr, "z=");
 
 		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
 		{
@@ -2246,15 +2237,13 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen,
 	}
 
 	/* and finally, an empty b= */
-	DKIM_STRLCAT(wp, ";", wlen);
-	DKIM_STRLCAT(wp, delim, wlen);
-	DKIM_STRLCAT(wp, "b=", wlen);
-
-	strlcpy(buf, tmphdr, buflen);
+	dkim_dstring_cat(dstr, ";");
+	dkim_dstring_cat(dstr, delim);
+	dkim_dstring_cat(dstr, "b=");
 
 	DKIM_FREE(dkim, always);
 
-	return strlen(buf);
+	return dkim_dstring_len(dstr);
 }
 
 /*
@@ -5710,14 +5699,14 @@ dkim_getsignature(DKIM *dkim)
 }
 
 /*
-**  DKIM_GETSIGHDR -- for signing operations, retrieve the complete signature
-**                    header
+**  DKIM_GETSIGHDR_D -- for signing operations, retrieve the complete signature
+**                      header, doing so dynamically
 **
 **  Parameters:
 **  	dkim -- DKIM handle
-**  	buf -- buffer for the signature
-**  	buflen -- bytes available at "buf"
 **  	initial -- initial line width
+**  	buf -- pointer to buffer containing the signature (returned)
+**  	buflen -- number of bytes at "buf" (returned)
 **
 **  Return value:
 **  	A DKIM_STAT_* constant.
@@ -5728,19 +5717,18 @@ dkim_getsignature(DKIM *dkim)
 */
 
 DKIM_STAT
-dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
+dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 {
 	size_t len;
 	char *ctx;
 	char *pv;
-	u_char *bp;
 	size_t blen;
 	DKIM_SIGINFO *sig;
-	u_char hdr[DKIM_MAXHEADER + 1];
+	struct dkim_dstring *tmpbuf;
 
 	assert(dkim != NULL);
 	assert(buf != NULL);
-	assert(buflen != 0);
+	assert(buflen != NULL);
 
 	if (dkim->dkim_state != DKIM_STATE_EOM2 ||
 	    dkim->dkim_mode != DKIM_MODE_SIGN)
@@ -5748,52 +5736,46 @@ dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
 
 #define	DELIMITER	"\001"
 
-	bp = buf;
-	blen = buflen;
-
 	sig = dkim->dkim_signature;
 	if (sig == NULL)
 		sig = dkim->dkim_siglist[0];
 
-	/* compute and extract the signature header */
-	memset(hdr, '\0', sizeof hdr);
-	len = dkim_gensighdr(dkim, sig, hdr, sizeof hdr, DELIMITER);
-	if (len == DKIM_MAXHEADER)
-	{
-		dkim_error(dkim,
-		           "generated signature header too large (max %d)",
-		           DKIM_MAXHEADER);
+	tmpbuf = dkim_dstring_new(dkim, BUFRSZ, MAXBUFRSZ);
+	if (tmpbuf == NULL)
 		return DKIM_STAT_NORESOURCE;
-	}
-	else if (len == (size_t) -1)
-	{
-		return DKIM_STAT_INTERNAL;
-	}
 
-	if (dkim->dkim_b64sig != NULL)
+	if (dkim->dkim_hdrbuf == NULL)
 	{
-		len = strlcat(hdr, dkim->dkim_b64sig, sizeof hdr);
-		if (len >= sizeof hdr || len >= buflen)
+		dkim->dkim_hdrbuf = dkim_dstring_new(dkim, BUFRSZ, MAXBUFRSZ);
+		if (dkim->dkim_hdrbuf == NULL)
 		{
-			dkim_error(dkim,
-			           "generated signature header too large (max %d)",
-			           DKIM_MAXHEADER);
+			dkim_dstring_free(tmpbuf);
 			return DKIM_STAT_NORESOURCE;
 		}
 	}
+	else
+	{
+		dkim_dstring_blank(dkim->dkim_hdrbuf);
+	}
+
+	/* compute and extract the signature header */
+	len = dkim_gensighdr(dkim, sig, tmpbuf, DELIMITER);
+
+	if (dkim->dkim_b64sig != NULL)
+		dkim_dstring_cat(tmpbuf, dkim->dkim_b64sig);
 
 	if (dkim->dkim_margin == 0)
 	{
 		_Bool first = TRUE;
 
-		for (pv = strtok_r(hdr, DELIMITER, &ctx);
+		for (pv = strtok_r(dkim_dstring_get(tmpbuf), DELIMITER, &ctx);
 		     pv != NULL;
 		     pv = strtok_r(NULL, DELIMITER, &ctx))
 		{
 			if (!first)
-				DKIM_STRLCAT(bp, " ", blen);
+				dkim_dstring_cat(dkim->dkim_hdrbuf, " ");
 
-			DKIM_STRLCAT(bp, pv, blen);
+			dkim_dstring_cat(dkim->dkim_hdrbuf, pv);
 
 			first = FALSE;
 		}
@@ -5810,7 +5792,7 @@ dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
 		len = initial;
 		end = which + MAXTAGNAME;
 
-		for (pv = strtok_r(hdr, DELIMITER, &ctx);
+		for (pv = strtok_r(dkim_dstring_get(tmpbuf), DELIMITER, &ctx);
 		     pv != NULL;
 		     pv = strtok_r(NULL, DELIMITER, &ctx))
 		{
@@ -5834,7 +5816,7 @@ dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
 
 			if (len == 0 || first)
 			{
-				DKIM_STRLCAT(bp, pv, blen);
+				dkim_dstring_cat(dkim->dkim_hdrbuf, pv);
 				len += strlen(pv);
 				first = FALSE;
 			}
@@ -5842,7 +5824,7 @@ dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
 			         len + strlen(pv) > dkim->dkim_margin)
 			{
 				forcewrap = FALSE;
-				DKIM_STRLCAT(bp, "\r\n\t", blen);
+				dkim_dstring_cat(dkim->dkim_hdrbuf, "\r\n\t");
 				len = 8;
 
 				if (strcmp(which, "h") == 0)
@@ -5857,31 +5839,30 @@ dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
 					{
 						if (ifirst)
 						{
-							DKIM_STRLCAT(bp, pv,
-							             blen);
+							dkim_dstring_cat(dkim->dkim_hdrbuf,
+							                 pv);
 							len += strlen(pv);
 							ifirst = FALSE;
 						}
 						else if (len + strlen(tmp) + 1 > dkim->dkim_margin)
 						{
-							DKIM_STRLCAT(bp, ":",
-							             blen);
+							dkim_dstring_cat(dkim->dkim_hdrbuf,
+							                 ":");
 							len += 1;
-							DKIM_STRLCAT(bp,
-							             "\r\n\t ",
-							             blen);
+							dkim_dstring_cat(dkim->dkim_hdrbuf,
+							                 "\r\n\t ");
 							len = 9;
-							DKIM_STRLCAT(bp, tmp,
-							             blen);
+							dkim_dstring_cat(dkim->dkim_hdrbuf,
+							                 tmp);
 							len += strlen(tmp);
 						}
 						else
 						{
-							DKIM_STRLCAT(bp, ":",
-							             blen);
+							dkim_dstring_cat(dkim->dkim_hdrbuf,
+							                 ":");
 							len += 1;
-							DKIM_STRLCAT(bp, tmp,
-							             blen);
+							dkim_dstring_cat(dkim->dkim_hdrbuf,
+							                 tmp);
 							len += strlen(tmp);
 						}
 					}
@@ -5892,46 +5873,39 @@ dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
 				         strcmp(which, "z") == 0)
 				{			/* break at margins */
 					_Bool more;
-					int idx;
 					int offset;
 					char *x;
 
 					offset = strlen(which) + 1;
 
-					DKIM_STRLCAT(bp, which, blen);
-					DKIM_STRLCAT(bp, "=", blen);
+					dkim_dstring_cat(dkim->dkim_hdrbuf,
+					                 which);
+					dkim_dstring_cat(dkim->dkim_hdrbuf,
+					                 "=");
 
 					len += offset;
 
-					idx = bp - buf;
-
-					for (x = pv + offset;
-					     *x != '\0' && idx < buflen - 2;
-					     x++)
+					for (x = pv + offset; *x != '\0'; x++)
 					{
 						more = (*(x + 1) != '\0');
 
-						buf[idx] = *x;
-						idx++;
-						bp++;
-						blen--;
-						buf[idx] = '\0';
+						dkim_dstring_cat1(dkim->dkim_hdrbuf,
+						                  *x);
 						len++;
 
 						if (len >= dkim->dkim_margin &&
 						    more)
 						{
-							DKIM_STRLCAT(bp,
-							             "\r\n\t ",
-							             blen);
+							dkim_dstring_cat(dkim->dkim_hdrbuf,
+							                 "\r\n\t ");
 							len = 9;
-							idx += 4;
 						}
 					}
 				}
 				else
 				{			/* break at delimiter */
-					DKIM_STRLCAT(bp, pv, blen);
+					dkim_dstring_cat(dkim->dkim_hdrbuf,
+					                 pv);
 					len += strlen(pv);
 				}
 			}
@@ -5939,16 +5913,58 @@ dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
 			{
 				if (!first)
 				{
-					DKIM_STRLCAT(bp, " ", blen);
+					dkim_dstring_cat(dkim->dkim_hdrbuf,
+					                 " ");
 					len += 1;
 				}
 
 				first = FALSE;
-				DKIM_STRLCAT(bp, pv, blen);
+				dkim_dstring_cat(dkim->dkim_hdrbuf, pv);
 				len += strlen(pv);
 			}
 		}
 	}
+
+	*buf = dkim_dstring_get(dkim->dkim_hdrbuf);
+	*buflen = dkim_dstring_len(dkim->dkim_hdrbuf);
+
+	dkim_dstring_free(tmpbuf);
+
+	return DKIM_STAT_OK;
+}
+
+/*
+**  DKIM_GETSIGHDR -- retrieve signature header into a user-provided buffer
+**
+**  Parameters:
+**  	dkim -- libopendkim handle
+**  	buf -- buffer into which to write
+**  	buflen -- bytes available at "buf"
+**  	initial -- width aleady consumed for the first line
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+DKIM_STAT
+dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
+{
+	u_char *p;
+	size_t len;
+	DKIM_STAT status;
+
+	assert(dkim != NULL);
+	assert(buf != NULL);
+	assert(buflen > 0);
+
+	status = dkim_getsighdr_d(dkim, initial, &p, &len);
+	if (status != DKIM_STAT_OK)
+		return status;
+
+	if (len > buflen)
+		return DKIM_STAT_NORESOURCE;
+
+	strlcpy(buf, p, buflen);
 
 	return DKIM_STAT_OK;
 }

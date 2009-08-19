@@ -4,7 +4,7 @@
 </head>
 <body>
 <!--
-$Id: overview.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+$Id: overview.html,v 1.2 2009/08/19 00:36:18 cm-msk Exp $
 -->
 
 <h1>Overview</h1>
@@ -132,6 +132,10 @@ any given time. <p>
 Note that the new <tt>dkim_chunk()</tt> interface can replace the
 <tt>dkim_header()</tt>-<tt>dkim_eoh()</tt>-<tt>dkim_body()</tt> sequence
 for applications that don't have the headers individually separated. <p>
+
+One can also use new <tt>dkim_getsighdr_d()</tt> in place of
+<tt>dkim_getsighdr()</tt> to allow larger-than-normal signatures to be
+generated. <p>
 
 <hr size="1">
 <font size="-1">
