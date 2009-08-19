@@ -1,11 +1,13 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.7 2009/08/19 00:33:52 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.8 2009/08/19 00:36:53 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 1.1.0		2009/??/??
+	LIBOPENDKIM: Add dkim_getsighdr_d(), a dynamic-length version of
+		dkim_getsighdr().
 	LIBOPENDKIM: Add dkim_dstring_printf().
 	LIBOPENDKIM: Change "default_senderheaders" list to include only
 		"from", per RFC5617.  Problem noted by Erik Lotspeich.
