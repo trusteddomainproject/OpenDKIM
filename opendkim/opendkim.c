@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.18 2009/08/19 00:42:30 cm-msk Exp $
+**  $Id: opendkim.c,v 1.19 2009/08/19 00:45:54 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.18 2009/08/19 00:42:30 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.19 2009/08/19 00:45:54 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7780,6 +7780,8 @@ mlfi_eom(SMFICTX *ctx)
 						return SMFIS_TEMPFAIL;
 					}
 
+					/* XXX -- check "len" for oversize? */
+
 					dkimf_stripcr(start);
 					dkimf_dstring_cat(dfc->mctx_tmpstr,
 					                  start);
@@ -7815,6 +7817,8 @@ mlfi_eom(SMFICTX *ctx)
 
 				return SMFIS_TEMPFAIL;
 			}
+
+			/* XXX -- check "len" for oversize? */
 
 			dkimf_stripcr(start);
 			dkimf_dstring_cat(dfc->mctx_tmpstr, start);
