@@ -1,16 +1,20 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.8 2009/08/19 00:36:53 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.9 2009/08/19 00:41:53 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 1.1.0		2009/??/??
+	Fix bug #SF2831720: Use new dynamic signature header generation
+		code (see below).
 	LIBOPENDKIM: Add dkim_getsighdr_d(), a dynamic-length version of
-		dkim_getsighdr().
+		dkim_getsighdr().  The old function interface remains
+		unchanged for backward compatibility.
 	LIBOPENDKIM: Add dkim_dstring_printf().
-	LIBOPENDKIM: Change "default_senderheaders" list to include only
-		"from", per RFC5617.  Problem noted by Erik Lotspeich.
+	LIBOPENDKIM: Fix bug #SF2839858: Change "default_senderheaders" list
+		to include only "from", per RFC5617.  Problem noted
+		by Erik Lotspeich.
 	Activate _FFR_SENDER_HEADERS, adding "SenderHeaders" to the
 		configuration file.
 
