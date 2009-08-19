@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.7 2009/07/23 17:54:40 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.8 2009/08/19 00:55:35 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -947,7 +947,7 @@ dkim_canon_runheaders(DKIM *dkim, _Bool signing)
 	int c;
 	int n;
 	int in;
-	int nhdrs;
+	int nhdrs = 0;
 	int last = '\0';
 	DKIM_STAT status;
 	u_char *tmp;

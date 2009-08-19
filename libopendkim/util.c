@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.6 2009/07/23 17:54:40 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.7 2009/08/19 00:55:35 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -649,8 +649,8 @@ dkim_check_dns_reply(unsigned char *ansbuf, size_t anslen,
 	int qdcount;
 	int ancount;
 	int n;
-	uint16_t type;
-	uint16_t class;
+	uint16_t type = (uint16_t) -1;
+	uint16_t class = (uint16_t) -1;
 	uint32_t ttl;
 	unsigned char *cp;
 	unsigned char *eom;

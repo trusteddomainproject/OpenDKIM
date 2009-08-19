@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.10 2009/08/19 00:49:46 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.11 2009/08/19 00:55:35 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1555,7 +1555,7 @@ DKIM_STAT
 dkim_siglist_setup(DKIM *dkim)
 {
 	int c;
-	int hashtype;
+	int hashtype = DKIM_HASHTYPE_UNKNOWN;
 	int hstatus;
 	size_t b64siglen;
 	size_t len;
@@ -2726,7 +2726,7 @@ dkim_eoh_sign(DKIM *dkim)
 	_Bool tmp;
 	DKIM_STAT status;
 	int c;
-	int hashtype;
+	int hashtype = DKIM_HASHTYPE_UNKNOWN;
 	size_t len = 0;
 	DKIM_CANON *bc;
 	DKIM_CANON *hc;
@@ -3090,12 +3090,12 @@ dkim_eom_sign(DKIM *dkim)
 	int status;
 	u_int l;
 	size_t diglen;
-	size_t siglen;
+	size_t siglen = 0;
 	size_t n;
 	size_t len;
 	DKIM_STAT ret;
 	u_char *digest;
-	u_char *signature;
+	u_char *signature = NULL;
 	BIO *key;
 	DKIM_SIGINFO *sig;
 	DKIM_CANON *hc;
@@ -5703,7 +5703,6 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 	size_t len;
 	char *ctx;
 	char *pv;
-	size_t blen;
 	DKIM_SIGINFO *sig;
 	struct dkim_dstring *tmpbuf;
 
