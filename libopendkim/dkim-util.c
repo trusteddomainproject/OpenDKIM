@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.4 2009/07/23 17:40:24 cm-msk Exp $";
+static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.5 2009/08/19 00:33:52 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -544,4 +544,47 @@ dkim_dstring_blank(struct dkim_dstring *dstr)
 
 	dstr->ds_len = 0;
 	dstr->ds_buf[0] = '\0';
+}
+
+/*
+**  DKIM_DSTRING_PRINTF -- write variable length formatted output to a dstring
+**
+**  Parameters:
+**  	dstr -- DKIM_STRING handle to be updated
+**  	fmt -- format
+**  	... -- variable arguments
+**
+**  Return value:
+**  	New size, or -1 on error.
+*/
+
+size_t
+dkim_dstring_printf(struct dkim_dstring *dstr, char *fmt, ...)
+{
+	size_t len;
+	va_list ap;
+	va_list ap2;
+
+	assert(dstr != NULL);
+	assert(fmt != NULL);
+
+	va_start(ap, fmt);
+	va_copy(ap2, ap);
+	len = vsnprintf(dstr->ds_buf + dstr->ds_len, dstr->ds_alloc, fmt, ap);
+	va_end(ap);
+
+	if (len > dstr->ds_len)
+	{
+		if (!dkim_dstring_resize(dstr, len + 1))
+			return (size_t) -1;
+
+		len = vsnprintf(dstr->ds_buf + dstr->ds_len, dstr->ds_alloc,
+		                fmt, ap2);
+
+		va_end(ap2);
+	}
+
+	dstr->ds_len += len;
+
+	return dstr->ds_len;
 }

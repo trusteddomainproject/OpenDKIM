@@ -9,7 +9,7 @@
 #define _DKIM_UTIL_H_
 
 #ifndef lint
-static char dkim_util_h_id[] = "@(#)$Id: dkim-util.h,v 1.4 2009/07/23 17:40:24 cm-msk Exp $";
+static char dkim_util_h_id[] = "@(#)$Id: dkim-util.h,v 1.5 2009/08/19 00:33:52 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -40,5 +40,7 @@ extern void dkim_dstring_free __P((struct dkim_dstring *));
 extern char *dkim_dstring_get __P((struct dkim_dstring *));
 extern int dkim_dstring_len __P((struct dkim_dstring *));
 extern struct dkim_dstring *dkim_dstring_new __P((DKIM *, int, int));
+extern size_t dkim_dstring_printf __P((struct dkim_dstring *dstr, char *fmt,
+                                       ...));
 
 #endif /* _DKIM_UTIL_H_ */
