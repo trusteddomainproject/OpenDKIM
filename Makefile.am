@@ -1,5 +1,9 @@
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = libar libopendkim opendkim
+SUBDIRS = 
+if USE_ARLIB
+SUBDIRS += libar
+endif
+SUBDIRS += libopendkim opendkim
 EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
 	RELEASE_NOTES.Sendmail \
 	contrib/opendkim.init \
