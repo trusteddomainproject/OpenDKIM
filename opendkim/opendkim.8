@@ -424,6 +424,11 @@ matching the criteria set by the
 .I -M
 command line switch.
 
+For (a) above, the test is whether or not the MTA macro "{auth_type}" is set
+and contains any non-empty value.  This means the MTA must pass the value of
+that macro to the filter in order for its value to be tested.  Check your
+MTA's configuration documentation for details.
+
 When signing a message, a
 .I DKIM-Signature:
 header will be prepended to the message.  The signature is computed using
