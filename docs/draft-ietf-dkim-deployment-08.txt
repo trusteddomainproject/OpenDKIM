@@ -4,16 +4,16 @@
 DomainKeys Identified Mail                                     T. Hansen
 Internet-Draft                                         AT&T Laboratories
 Intended status: Informational                                 E. Siegel
-Expires: January 12, 2010
+Expires: February 26, 2010
                                                          P. Hallam-Baker
                                              Default Deny Security, Inc.
                                                               D. Crocker
                                              Brandenburg InternetWorking
-                                                           July 11, 2009
+                                                         August 25, 2009
 
 
 DomainKeys Identified Mail (DKIM) Development, Deployment and Operations
-                     draft-ietf-dkim-deployment-07
+                     draft-ietf-dkim-deployment-08
 
 Status of this Memo
 
@@ -36,7 +36,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on January 12, 2010.
+   This Internet-Draft will expire on February 26, 2010.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Hansen, et al.          Expires January 12, 2010                [Page 1]
+Hansen, et al.          Expires February 26, 2010               [Page 1]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
 Abstract
@@ -108,9 +108,9 @@ Abstract
 
 
 
-Hansen, et al.          Expires January 12, 2010                [Page 2]
+Hansen, et al.          Expires February 26, 2010               [Page 2]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
 Table of Contents
@@ -164,9 +164,9 @@ Table of Contents
 
 
 
-Hansen, et al.          Expires January 12, 2010                [Page 3]
+Hansen, et al.          Expires February 26, 2010               [Page 3]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
      8.5.  Mail User Agent  . . . . . . . . . . . . . . . . . . . . . 39
@@ -180,7 +180,7 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
      A.2.  Migrating Hash Algorithms  . . . . . . . . . . . . . . . . 47
      A.3.  Migrating Signing Algorithms . . . . . . . . . . . . . . . 48
    Appendix B.  General Coding Criteria for Cryptographic
-                Applications  . . . . . . . . . . . . . . . . . . . . 49
+                Applications  . . . . . . . . . . . . . . . . . . . . 48
    Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 49
 
 
@@ -220,9 +220,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010                [Page 4]
+Hansen, et al.          Expires February 26, 2010               [Page 4]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
 1.  Introduction
@@ -276,9 +276,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010                [Page 5]
+Hansen, et al.          Expires February 26, 2010               [Page 5]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    of the associated identity.  An identity can use different
@@ -332,9 +332,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010                [Page 6]
+Hansen, et al.          Expires February 26, 2010               [Page 6]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    affects handling of the message is, of course, determined later, by
@@ -358,10 +358,10 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
             |         .       .                       ^ ^
             V         .       .                       | |
    +------------------.-------.--------------------+  | |
-   | +------+------+  . . . . .   +-------------+  |  | |  +-------------+
-   | | Identifier  |              |  Identifier +--|--+ +--+ Assessment  |
-   | |   Signer    +------------->|  Validator  |  |       | Databases   |
-   | +-------------+              +-------------+  |       +-------------+
+   | +------+------+  . . . . .   +-------------+  |  | |  +-----------+
+   | | Identifier  |              | Identifier  +--|--+ +--+ Assessment|
+   | |   Signer    +------------->| Validator   |  |       | Databases |
+   | +-------------+              +-------------+  |       +-----------+
    |                 DKIM Service                  |
    +-----------------------------------------------+
 
@@ -384,13 +384,13 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
    determinism needed for this collaborative exchange from the signer to
    the assessor, the core model needs to specify what the signer is
    required to provide to the assessor.  The Update to RFC4871
-   [rfc4871-update]now specifies:
+   [I-D.ietf-dkim-rfc4871-errata]now specifies:
 
 
 
-Hansen, et al.          Expires January 12, 2010                [Page 7]
+Hansen, et al.          Expires February 26, 2010               [Page 7]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
       DKIM's primary task is to communicate from the Signer to a
@@ -444,9 +444,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010                [Page 8]
+Hansen, et al.          Expires February 26, 2010               [Page 8]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
          the service at the time of message posting.  Therefore it is
@@ -478,9 +478,10 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 2.3.  Choosing the Signing Domain Name
 
-   A DKIM signing entity can serve different roles, such as author of
-   content, versus operator of the mail service, versus operator of a
-   reputation service.  In these different roles, the basis for
+   A DKIM signing entity can serve different roles, such as being the
+   author of content, or the operator of the mail service, or the
+   operator of a reputation service that also provides signing services
+   on behalf of its customers.  In these different roles, the basis for
    distinguishing among portions of email traffic can vary.  For an
    entity creating DKIM signatures it is likely that different portions
    of its mail will warrant different levels of trust.  For example:
@@ -499,10 +500,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-
-Hansen, et al.          Expires January 12, 2010                [Page 9]
+Hansen, et al.          Expires February 26, 2010               [Page 9]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
       *  Mail originating outside an operator's system, such as when it
@@ -542,12 +542,12 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
    use content-oriented labels or service-oriented labels.  For example:
 
 
-   transaction.example.com
-   newsletter.example.com
-   bugreport.example.com
-   support.example.com
-   sales.example.com
-   marketing.example.com
+                          transaction.example.com
+                          newsletter.example.com
+                          bugreport.example.com
+                          support.example.com
+                          sales.example.com
+                          marketing.example.com
 
    where the choices are best dictated by whether they provide the
    Identity Assessor with the ability to discriminate usefully among
@@ -556,9 +556,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 10]
+Hansen, et al.          Expires February 26, 2010              [Page 10]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    fine a granularity is that related message streams that are labeled
@@ -577,9 +577,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
    or class of customer, such as:
 
 
-   premier.example.net
-   free.example.net
-   certified.example.net
+                           premier.example.net
+                           free.example.net
+                           certified.example.net
 
    Prior to using domain names for distinguishing among sources of data,
    IP Addresses have been the basis for distinction.  Service operators
@@ -612,9 +612,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 11]
+Hansen, et al.          Expires February 26, 2010              [Page 11]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    the signer might be the author's ADMD, one of the operators along the
@@ -668,9 +668,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 12]
+Hansen, et al.          Expires February 26, 2010              [Page 12]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    stream signed by that organization.  While it might seem that higher
@@ -724,9 +724,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 13]
+Hansen, et al.          Expires February 26, 2010              [Page 13]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    problematic mail, rather than redirecting it, but also of course
@@ -780,9 +780,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 14]
+Hansen, et al.          Expires February 26, 2010              [Page 14]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    legitimate holder of the DNS zone example.com claims responsibility
@@ -836,9 +836,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 15]
+Hansen, et al.          Expires February 26, 2010              [Page 15]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    Best practices for management of cryptographic keying material
@@ -892,9 +892,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 16]
+Hansen, et al.          Expires February 26, 2010              [Page 16]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    domain name, and not include the selector.  While past practice of a
@@ -948,9 +948,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 17]
+Hansen, et al.          Expires February 26, 2010              [Page 17]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    Domain holders SHOULD adopt a least privilege approach and grant
@@ -1004,9 +1004,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 18]
+Hansen, et al.          Expires February 26, 2010              [Page 18]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
 3.5.2.  Example Key Termination Process
@@ -1060,9 +1060,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 19]
+Hansen, et al.          Expires February 26, 2010              [Page 19]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    o  A trusted module, called the Signing Module, which is within the
@@ -1116,9 +1116,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 20]
+Hansen, et al.          Expires February 26, 2010              [Page 20]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    for use during email transit, rather than for long-term storage, it
@@ -1172,9 +1172,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 21]
+Hansen, et al.          Expires February 26, 2010              [Page 21]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    the signer's system (e.g. a missing key record) or that the message
@@ -1228,9 +1228,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 22]
+Hansen, et al.          Expires February 26, 2010              [Page 22]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    o  Ownership of the DNS zone may have changed.
@@ -1284,9 +1284,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 23]
+Hansen, et al.          Expires February 26, 2010              [Page 23]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
 5.6.  Generation, Transmission and Use of Results Headers
@@ -1340,9 +1340,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 24]
+Hansen, et al.          Expires February 26, 2010              [Page 24]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    a DKIM signature.
@@ -1350,9 +1350,10 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 6.1.  Single Domain Signature
 
    Perhaps the simplest case is when an organization signs its own
-   outbound email using its own domain in the SDID [rfc4871-update] of
-   the signature.  For example, Company A would sign the outbound mail
-   from its employees with d=companyA.example.
+   outbound email using its own domain in the SDID
+   [I-D.ietf-dkim-rfc4871-errata] of the signature.  For example,
+   Company A would sign the outbound mail from its employees with
+   d=companyA.example.
 
    In the most straightforward configuration, the addresses in the
    RFC5322.From would also be in the companyA.example domain, but that
@@ -1360,8 +1361,8 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
    A special case of the Single Domain Signature is an Author Signature
    as defined by the Author Domain Signing Practices specification
-   [I-D.ietf-dkim-ssp].  Author signatures are signatures from an
-   author's organization that have an SDID value that matches that of an
+   [RFC5617].  Author signatures are signatures from an author's
+   organization that have an SDID value that matches that of an
    RFC5322.From address of the signed message.
 
    Although an author signature might in some cases be proof against
@@ -1392,15 +1393,15 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
    sales.domain.example, and engineering.domain.example might all use a
    signature where d=domain.example.
 
-   This approach has the virtue of simplicity, but it is important to
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 25]
+Hansen, et al.          Expires February 26, 2010              [Page 25]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
+   This approach has the virtue of simplicity, but it is important to
    consider the implications of such a choice.  As discussed in
    Section 2.3, if the type of mail sent from the different subdomains
    is significantly different or if there is reason to believe that the
@@ -1412,10 +1413,10 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
    signature may work well.
 
    Another approach to distinguishing the streams using a single DKIM
-   key would be to leverage the AUID [rfc4871-update] (i= tag) in the
-   DKIM signature to differentiate the mail streams.  For example,
-   marketing email would be signed with i=marketing.domain.example and
-   d=domain.example.
+   key would be to leverage the AUID [I-D.ietf-dkim-rfc4871-errata] (i=
+   tag) in the DKIM signature to differentiate the mail streams.  For
+   example, marketing email would be signed with
+   i=marketing.domain.example and d=domain.example.
 
    It's important to remember, however, that under core DKIM semantics
    the AUID is opaque to receivers.  That means that it will only be an
@@ -1448,15 +1449,15 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
    the use of the address in the From: header is authorized.
 
    For others, that relevance is tied strictly to the recorded
-   behavioral data assigned to the identity in question, i.e. its trust
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 26]
+Hansen, et al.          Expires February 26, 2010              [Page 26]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
+   behavioral data assigned to the identity in question, i.e. its trust
    assessment or reputation.  The reasoning here is that an identity
    with a good reputation is unlikely to maintain that good reputation
    if it is in the habit of vouching for messages that are unwanted or
@@ -1504,15 +1505,15 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
    A different model arises when an organization uses a trusted third
    party sender for certain key business functions, but still wants that
    email to benefit from the organization's own identity and reputation:
-   in other words, the mail would come out of the trusted third party's
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 27]
+Hansen, et al.          Expires February 26, 2010              [Page 27]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
+   in other words, the mail would come out of the trusted third party's
    mail servers, but the signature applied would be that of the
    controlling organization.
 
@@ -1560,15 +1561,15 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
    have more than one identity claiming responsibility for the same
    message.
 
-   There are a number of situations where applying more than one DKIM
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 28]
+Hansen, et al.          Expires February 26, 2010              [Page 28]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
+   There are a number of situations where applying more than one DKIM
    signature to the same message might make sense.  A few examples are:
 
    Companies with multiple subdomain identities:  A company that has
@@ -1616,15 +1617,15 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
       to receivers, it is possible that they, or other organizations
       willing to put their "seal of approval" on an email stream might
       choose to use a DKIM signature to do it.  In nearly all cases,
-      this "reputation" signature would be in addition to the author or
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 29]
+Hansen, et al.          Expires February 26, 2010              [Page 29]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
+      this "reputation" signature would be in addition to the author or
       originator signature.
 
    One important caveat to the use of multiple signatures is that there
@@ -1655,7 +1656,7 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
    The simplest DKIM configuration is to have some mail from a given
    organization (Company A) be signed with the same d= value (e.g.
    d=companya.example).  If there is a desire to associate additional
-   information, the AUID [rfc4871-update] value can become
+   information, the AUID [I-D.ietf-dkim-rfc4871-errata] value can become
    uniqueID@companya.example, or @uniqueID.companya.example.
 
    In this scenario, Company A need only generate a single signing key
@@ -1675,10 +1676,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-
-Hansen, et al.          Expires January 12, 2010               [Page 30]
+Hansen, et al.          Expires February 26, 2010              [Page 30]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
 7.3.  Author Domain Signing Practices
@@ -1703,7 +1703,7 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
    undelivered mail.
 
    This section covers some examples of ADSP usage: for the complete
-   specification, see [I-D.ietf-dkim-ssp]
+   specification, see [RFC5617]
 
 7.3.2.  A Few Definitions
 
@@ -1722,9 +1722,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
    (treated as if they are not present).
 
    Signers wishing to publish an Author Domain Signing Practices (ADSP)
-   [I-D.ietf-dkim-ssp] record describing their signing practices will
-   thus want to include an author signature on their outbound mail to
-   avoid ADSP verification failures.  For example, if the address in the
+   [RFC5617] record describing their signing practices will thus want to
+   include an author signature on their outbound mail to avoid ADSP
+   verification failures.  For example, if the address in the
    RFC5322.From is bob@company.example, the SDID value of the author
    signature must be company.example.
 
@@ -1732,9 +1732,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 31]
+Hansen, et al.          Expires February 26, 2010              [Page 31]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
 7.3.3.  Some ADSP Examples
@@ -1764,9 +1764,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
    Because the semantics of an ADSP author signature are more
    constrained than the semantics of a "pure" DKIM signature, it is
    important to make sure the nuances are well understood before
-   deploying an ADSP record.  The ADSP specification [I-D.ietf-dkim-ssp]
-   provides some fairly extensive lookup examples (in Appendix A) and
-   usage examples (in Appendix B).
+   deploying an ADSP record.  The ADSP specification [RFC5617] provides
+   some fairly extensive lookup examples (in Appendix A) and usage
+   examples (in Appendix B).
 
    In particular, in order to prevent mail from being negatively
    impacted or even discarded at the receiver, it is essential to
@@ -1788,9 +1788,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 32]
+Hansen, et al.          Expires February 26, 2010              [Page 32]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    If Company A wants to ensure that all of the mail sent on its behalf
@@ -1844,9 +1844,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 33]
+Hansen, et al.          Expires February 26, 2010              [Page 33]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
 7.6.  Mail Streams Based on Behavioral Assessment
@@ -1900,9 +1900,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 34]
+Hansen, et al.          Expires February 26, 2010              [Page 34]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
 8.  Usage Considerations
@@ -1956,9 +1956,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 35]
+Hansen, et al.          Expires February 26, 2010              [Page 35]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
 8.2.  Protection of Internal Mail
@@ -2012,9 +2012,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 36]
+Hansen, et al.          Expires February 26, 2010              [Page 36]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    In most cases, it would be impractical to sign email on a per-user
@@ -2068,9 +2068,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 37]
+Hansen, et al.          Expires February 26, 2010              [Page 37]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
 
@@ -2124,9 +2124,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 38]
+Hansen, et al.          Expires February 26, 2010              [Page 38]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
          +  Sign the modified message including the verification results
@@ -2180,9 +2180,9 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 39]
+Hansen, et al.          Expires February 26, 2010              [Page 39]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
          signature was verified MAY be used as input into a reputation
@@ -2215,11 +2215,10 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 11.  Informative References
 
-   [I-D.ietf-dkim-ssp]
-              field, h., Domain, A., error, r., Allman, E., Fenton, J.,
-              Delany, M., and J. Levine, "DomainKeys Identified Mail
-              (DKIM) Author Domain Signing Practices (ADSP)",
-              draft-ietf-dkim-ssp-10 (work in progress), May 2009.
+   [I-D.ietf-dkim-rfc4871-errata]
+              Crocker, D., "RFC 4871 DomainKeys Identified Mail (DKIM)
+              Signatures -- Update", draft-ietf-dkim-rfc4871-errata-07
+              (work in progress), June 2009.
 
    [RFC0989]  Linn, J. and IAB Privacy Task Force, "Privacy enhancement
               for Internet electronic mail: Part I: Message encipherment
@@ -2236,9 +2235,10 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 40]
+
+Hansen, et al.          Expires February 26, 2010              [Page 40]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    [RFC2440]  Callas, J., Donnerhacke, L., Finney, H., and R. Thayer,
@@ -2292,15 +2292,14 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 41]
+Hansen, et al.          Expires February 26, 2010              [Page 41]
 
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
-   [rfc4871-update]
-              Crocker, D., Ed., "RFC 4871 DomainKeys Identified Mail
-              (DKIM) Signatures -- Update",
-              I-D draft-ietf-dkim-rfc4871-errata-03, April 2009.
+   [RFC5617]  Allman, E., Fenton, J., Delany, M., and J. Levine,
+              "DomainKeys Identified Mail (DKIM) Author Domain Signing
+              Practices (ADSP)", RFC 5617, August 2009.
 
 
 Appendix A.  Migration Strategies
@@ -2345,15 +2344,15 @@ A.1.1.  Signers
    2.  how much does the signer care about those receivers?
 
    If no one is looking at the DK signature any more, then it's no
-
-
-
-Hansen, et al.          Expires January 12, 2010               [Page 42]
-
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
-
-
    longer necessary to sign with DK.  Or if all "large players" are
+
+
+
+Hansen, et al.          Expires February 26, 2010              [Page 42]
+
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
+
+
    looking at DKIM in addition to or instead of DK, a signer MAY choose
    to stop signing with DK.
 
@@ -2400,17 +2399,15 @@ Internet-Draft   DKIM Development/Deployment/Operations        July 2009
 
    o  switch the DKIM signatures to use the new selector
 
-
-
-
-
-Hansen, et al.          Expires January 12, 2010               [Page 43]
-
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
-
-
    o  when it's decided that DK signatures are no longer necessary, stop
       signing with DK
+
+
+
+Hansen, et al.          Expires February 26, 2010              [Page 43]
+
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
+
 
    o  eventually remove the old DK selector DNS record
 
@@ -2457,17 +2454,17 @@ A.1.1.1.  DNS Selector Key Records
       empty field.  In that way, the DK semantics will remain the same,
       and the DKIM semantics will match.
 
-
-
-
-Hansen, et al.          Expires January 12, 2010               [Page 44]
-
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
-
-
    If your DNS key record does not have an empty "g" field in it
    ("g=;"), it's probable that the record can be left alone.  But your
    best course of action would still be to make sure it has a "v" field.
+
+
+
+Hansen, et al.          Expires February 26, 2010              [Page 44]
+
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
+
+
    When the decision is made to stop supporting DomainKeys and to only
    support DKIM, you MUST verify that the "g" field is compatible with
    DKIM, and it SHOULD have "v=DKIM1;" in it.  It is highly RECOMMENDED
@@ -2510,20 +2507,19 @@ A.1.1.2.  Removing DomainKeys Signatures
    reasonable for a DK signer to decide to follow the "flash cut"
    scenario described above.
 
-
-
-
-
-
-
-Hansen, et al.          Expires January 12, 2010               [Page 45]
-
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
-
-
 A.1.2.  Verifiers
 
    As a verifier, several issues must be considered:
+
+
+
+
+
+
+Hansen, et al.          Expires February 26, 2010              [Page 45]
+
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
+
 
 A.1.2.1.  Should DK signature verification be performed?
 
@@ -2568,18 +2564,18 @@ A.1.2.3.  DNS Selector Key Records
    field ("g=;") and it does not have a "v" field ("v=DKIM1;") at its
    beginning, it is faced with deciding if this record was
 
-
-
-
-
-Hansen, et al.          Expires January 12, 2010               [Page 46]
-
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
-
-
    1.  from a DK signer that transitioned to supporting DKIM but forgot
        to remove the "g" field (so that it could be used by both DK and
        DKIM verifiers), or
+
+
+
+
+
+Hansen, et al.          Expires February 26, 2010              [Page 46]
+
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
+
 
    2.  from a DKIM signer that truly meant to use the empty "g" field
        but forgot to put in the "v" field.  It is RECOMMENDED that you
@@ -2625,18 +2621,18 @@ A.2.1.  Signers
    be completely compatible for all hash algorithms.  The key selector
    has an optional "h=" field that may be used to list the hash
    algorithms being used; it also is used to limit the algorithms that a
-
-
-
-Hansen, et al.          Expires January 12, 2010               [Page 47]
-
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
-
-
    verifier will accept.  If the signer is not currently using the key-
    selector "h=" field, no change is required.  If the signer is
    currently using the key-selector "h=" field, NEWHASH will need to be
    added to the list, as in "h=sha256:NEWHASH;".  (When the signer is no
+
+
+
+Hansen, et al.          Expires February 26, 2010              [Page 47]
+
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
+
+
    longer using sha256, it can be removed from the "h=" list.)
 
 A.2.2.  Verifiers
@@ -2682,16 +2678,17 @@ A.3.2.  Verifiers
    verifier to start supporting it as quickly as possible.
 
 
-
-
-Hansen, et al.          Expires January 12, 2010               [Page 48]
-
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
-
-
 Appendix B.  General Coding Criteria for Cryptographic Applications
 
    NOTE: This section could possibly be changed into a reference to
+
+
+
+Hansen, et al.          Expires February 26, 2010              [Page 48]
+
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
+
+
    something else, such as another rfc.
 
    Correct implementation of a cryptographic algorithm is a necessary
@@ -2728,23 +2725,6 @@ Appendix B.  General Coding Criteria for Cryptographic Applications
    time and support a wide range of cryptographic hardware.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-Hansen, et al.          Expires January 12, 2010               [Page 49]
-
-Internet-Draft   DKIM Development/Deployment/Operations        July 2009
-
-
 Authors' Addresses
 
    Tony Hansen
@@ -2754,6 +2734,15 @@ Authors' Addresses
    USA
 
    Email: tony+dkimov@maillennium.att.com
+
+
+
+
+
+
+Hansen, et al.          Expires February 26, 2010              [Page 49]
+
+Internet-Draft   DKIM Development/Deployment/Operations      August 2009
 
 
    Ellen Siegel
@@ -2796,6 +2785,17 @@ Authors' Addresses
 
 
 
-Hansen, et al.          Expires January 12, 2010               [Page 50]
+
+
+
+
+
+
+
+
+
+
+
+Hansen, et al.          Expires February 26, 2010              [Page 50]
 
 

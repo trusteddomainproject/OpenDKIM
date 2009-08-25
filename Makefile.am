@@ -8,7 +8,7 @@ EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
 	RELEASE_NOTES.Sendmail \
 	contrib/opendkim.init \
 	contrib/opendkim.spec \
-	docs/draft-ietf-dkim-deployment-07.txt \
+	docs/draft-ietf-dkim-deployment-08.txt \
 	docs/draft-ietf-dkim-rfc4871-errata-07.txt \
 	docs/draft-kucherawy-dkim-reporting-04.txt \
 	docs/draft-shafranovich-feedback-report-07.txt \
