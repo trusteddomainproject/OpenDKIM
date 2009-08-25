@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.19 2009/08/19 00:45:54 cm-msk Exp $
+**  $Id: opendkim.c,v 1.20 2009/08/25 20:05:20 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.19 2009/08/19 00:45:54 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.20 2009/08/25 20:05:20 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6752,24 +6752,28 @@ mlfi_eoh(SMFICTX *ctx)
 			                         conf->conf_signbytes,
 			                         &status);
 
-			if (setidentity &&
-			    dkimf_subdomain(dfc->mctx_domain, sdomain))
-			{
-				char identity[MAXADDRESS + 1];
-
-				snprintf(identity, sizeof identity, "@%s",
-				         dfc->mctx_domain);
-
-				dkim_set_signer(sr->srq_dkim, identity);
-			}
-
 			if (sr->srq_dkim == NULL && status != DKIM_STAT_OK)
 			{
-				return dkimf_libstatus(ctx, "dkim_new()",
+				return dkimf_libstatus(ctx, "dkim_sign()",
 				                       status);
 			}
+			else
+			{
+				if (setidentity &&
+				    dkimf_subdomain(dfc->mctx_domain, sdomain))
+				{
+					char identity[MAXADDRESS + 1];
 
-			(void) dkim_set_user_context(sr->srq_dkim, ctx);
+					snprintf(identity, sizeof identity,
+					         "@%s", dfc->mctx_domain);
+
+					dkim_set_signer(sr->srq_dkim,
+					                identity);
+				}
+
+				(void) dkim_set_user_context(sr->srq_dkim,
+				                             ctx);
+			}
 		}
 	}
 #endif /* _FFR_MULTIPLE_SIGNATURES */
