@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.21 2009/08/26 18:52:16 cm-msk Exp $
+**  $Id: opendkim.c,v 1.22 2009/08/26 19:22:28 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.21 2009/08/26 18:52:16 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.22 2009/08/26 19:22:28 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -440,7 +440,7 @@ struct lookup dkimf_params[] =
 	{ "sec",		HNDL_SECURITY },
 	{ "security",		HNDL_SECURITY },
 	{ "key",		HNDL_NOKEY },
-	{ "nokey",		HNDL_NOKEY },
+	{ "keynotfound",	HNDL_NOKEY },
 	{ "def",		HNDL_DEFAULT },
 	{ "default",		HNDL_DEFAULT },
 	{ NULL,			-1 },
