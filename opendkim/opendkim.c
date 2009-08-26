@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.22 2009/08/26 19:22:28 cm-msk Exp $
+**  $Id: opendkim.c,v 1.23 2009/08/26 22:52:33 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.22 2009/08/26 19:22:28 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.23 2009/08/26 22:52:33 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4405,6 +4405,8 @@ dkimf_libstatus(SMFICTX *ctx, char *where, int status)
 	assert(dfc != NULL);
 	conf = cc->cctx_config;
 
+	memset(smtpprefix, '\0', sizeof smtpprefix);
+
 	switch (status)
 	{
 	  case DKIM_STAT_OK:
@@ -4567,7 +4569,7 @@ dkimf_libstatus(SMFICTX *ctx, char *where, int status)
 		xcode = "5.7.0";
 		break;
 
-	  case SMFIS_DISCARD:
+	  case SMFIS_TEMPFAIL:
 		rcode = "451";
 		xcode = "4.7.0";
 		break;
