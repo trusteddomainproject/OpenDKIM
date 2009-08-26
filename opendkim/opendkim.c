@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.20 2009/08/25 20:05:20 cm-msk Exp $
+**  $Id: opendkim.c,v 1.21 2009/08/26 18:52:16 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.20 2009/08/25 20:05:20 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.21 2009/08/26 18:52:16 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -138,6 +138,7 @@ struct handling
 {
 	int		hndl_nosig;		/* no signature */
 	int		hndl_badsig;		/* bad signature */
+	int		hndl_nokey;		/* no key in DNS */
 	int		hndl_dnserr;		/* DNS error */
 	int		hndl_internal;		/* internal error */
 	int		hndl_security;		/* security concerns */
@@ -147,6 +148,7 @@ struct handling defaults =
 {
 	SMFIS_ACCEPT,
 	/* SMFIS_REJECT, */ SMFIS_ACCEPT,
+	SMFIS_ACCEPT,
 	SMFIS_TEMPFAIL,
 	SMFIS_TEMPFAIL,
 	SMFIS_TEMPFAIL
@@ -389,6 +391,7 @@ struct lookup
 #define	HNDL_DNSERROR		3
 #define	HNDL_INTERNAL		4
 #define	HNDL_SECURITY		5
+#define	HNDL_NOKEY		6
 
 #define	DKIMF_MODE_SIGNER	0x01
 #define	DKIMF_MODE_VERIFIER	0x02
@@ -436,6 +439,8 @@ struct lookup dkimf_params[] =
 	{ "internal",		HNDL_INTERNAL },
 	{ "sec",		HNDL_SECURITY },
 	{ "security",		HNDL_SECURITY },
+	{ "key",		HNDL_NOKEY },
+	{ "nokey",		HNDL_NOKEY },
 	{ "def",		HNDL_DEFAULT },
 	{ "default",		HNDL_DEFAULT },
 	{ NULL,			-1 },
@@ -1739,6 +1744,10 @@ dkimf_parseconfig(char *confstr, struct dkimf_config *conf)
 			conf->conf_handling.hndl_dnserr = vs;
 			break;
 
+		  case HNDL_NOKEY:
+			conf->conf_handling.hndl_nokey = vs;
+			break;
+
 		  case HNDL_INTERNAL:
 			conf->conf_handling.hndl_internal = vs;
 			break;
@@ -1749,6 +1758,7 @@ dkimf_parseconfig(char *confstr, struct dkimf_config *conf)
 
 		  case HNDL_DEFAULT:
 			conf->conf_handling.hndl_nosig = vs;
+			conf->conf_handling.hndl_nokey = vs;
 			conf->conf_handling.hndl_badsig = vs;
 			conf->conf_handling.hndl_dnserr = vs;
 			conf->conf_handling.hndl_internal = vs;
@@ -2120,6 +2130,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		dkimf_parseconfig2(data, "On-BadSignature", "bad",
 		                   confstr, sizeof confstr);
 		dkimf_parseconfig2(data, "On-DNSError", "dns", confstr,
+		                   sizeof confstr);
+		dkimf_parseconfig2(data, "On-NoKey", "key", confstr,
 		                   sizeof confstr);
 		dkimf_parseconfig2(data, "On-InternalError", "int",
 		                   confstr, sizeof confstr);
@@ -4491,7 +4503,10 @@ dkimf_libstatus(SMFICTX *ctx, char *where, int status)
 
 	  case DKIM_STAT_KEYFAIL:
 	  case DKIM_STAT_NOKEY:
-		retcode = conf->conf_handling.hndl_dnserr;
+		if (status == DKIM_STAT_KEYFAIL)
+			retcode = conf->conf_handling.hndl_dnserr;
+		else
+			retcode = conf->conf_handling.hndl_nokey;
 		if (conf->conf_dolog)
 		{
 			const char *err;
