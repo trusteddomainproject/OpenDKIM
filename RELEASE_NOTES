@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.13 2009/08/26 18:52:15 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.14 2009/08/26 19:23:37 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -8,9 +8,9 @@ release, and a summary of the changes in that release.
 1.1.0		2009/??/??
 	Fix bug #SF2831720: Use new dynamic signature header generation
 		code (see below).
-	Add new exception handling code "nokey" (short form "key"), which
-		handles keys not found in DNS separately from other DNS
-		errors.
+	Add new exception handling code "keynotfound" (short form "key")
+		and "On-KeyNotFound", which handles keys not found in DNS
+		separately from other DNS errors.
 	LIBOPENDKIM: Add dkim_getsighdr_d(), a dynamic-length version of
 		dkim_getsighdr().  The old function interface remains
 		unchanged for backward compatibility.
