@@ -1,11 +1,13 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.16 2009/08/27 22:11:37 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.17 2009/08/27 22:36:54 subman Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 1.1.0		2009/08/31
+	Fix inside dkimf_libstatus() to return extended status code 
+		4.7.5 if temp-fail is due to key retrieval failure.
 	Fix bug #SF2831720: Use new dynamic signature header generation
 		code (see below).
 	Add new exception handling code "keynotfound" (short form "key")
