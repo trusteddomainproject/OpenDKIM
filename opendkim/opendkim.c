@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.24 2009/08/27 21:13:15 subman Exp $
+**  $Id: opendkim.c,v 1.25 2009/08/27 22:02:23 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.24 2009/08/27 21:13:15 subman Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.25 2009/08/27 22:02:23 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4571,13 +4571,10 @@ dkimf_libstatus(SMFICTX *ctx, char *where, int status)
 
 	  case SMFIS_TEMPFAIL:
 		rcode = "451";
-		if ((status == DKIM_STAT_KEYFAIL) || (status == DKIM_STAT_NOKEY))		{
+		if (status == DKIM_STAT_KEYFAIL || status == DKIM_STAT_NOKEY)
 			xcode = "4.7.5";
-		}
 		else
-		{
 			xcode = "4.7.0";
-		}
 		break;
 
 	  default:
