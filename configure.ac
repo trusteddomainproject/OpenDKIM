@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.43 2009/08/19 17:35:07 cm-msk Exp $
+# $Id: configure.ac,v 1.44 2009/08/29 10:47:52 subman Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -72,6 +72,9 @@ AM_CONDITIONAL(DNS_UPGRADE, test "$enable_dnsupgrade" = yes)
 
 AC_ARG_ENABLE(filter, AS_HELP_STRING(--disable-filter, do not compile the opendkim filter), enable_filter=$enableval, enable_filter=yes)
 AM_CONDITIONAL(BUILD_FILTER, test "$enable_filter" = yes)
+
+AC_ARG_ENABLE(identityheader, AS_HELP_STRING(--enable-identityheader, special header to set identity))
+AM_CONDITIONAL(IDENTITY_HEADER, test "$enable_identityheader" = yes)
 
 AC_ARG_ENABLE(multiplesigs, AS_HELP_STRING(--enable-multiplesigs, support for multiple signatures))
 AM_CONDITIONAL(MULTIPLE_SIGNATURES, test "$enable_multiplesigs" = yes)
