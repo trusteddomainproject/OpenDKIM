@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.26 2009/08/29 10:54:15 subman Exp $
+**  $Id: opendkim.c,v 1.27 2009/08/29 18:48:20 subman Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.26 2009/08/29 10:54:15 subman Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.27 2009/08/29 18:48:20 subman Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7888,7 +7888,7 @@ mlfi_eom(SMFICTX *ctx)
 				     sr = sr->srq_next)
 				{
 					status = dkim_getsighdr_d(sr->srq_dkim,
-				                                  strlen(DKIM_SIGNHEADER) + 2),
+				                                  strlen(DKIM_SIGNHEADER) + 2,
 				                                  &start, &len);
 					if (status != DKIM_STAT_OK)
 					{
