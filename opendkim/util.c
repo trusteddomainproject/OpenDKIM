@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.4 2009/08/18 18:49:23 cm-msk Exp $
+**  $Id: util.c,v 1.5 2009/08/29 18:52:36 subman Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.4 2009/08/18 18:49:23 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.5 2009/08/29 18:52:36 subman Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -106,6 +106,10 @@ static char *optlist[] =
 #if _FFR_DNS_UPGRADE
 	"_FFR_DNS_UPGRADE",
 #endif /* _FFR_DNS_UPGRADE */
+
+#if _FFR_IDENTITY_HEADER
+	"_FFR_IDENTITY_HEADER"
+#endif /* _FFR_IDENTITY_HEADER */
 
 #if _FFR_MULTIPLE_SIGNATURES
 	"_FFR_MULTIPLE_SIGNATURES",
