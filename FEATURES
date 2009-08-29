@@ -47,6 +47,9 @@ dnsupgrade	Maintain two libar instances, the second in TCP mode, in case
 		any UDP queries come back truncated.  Not meaningful unless
 		libar is in use.  (libopendkim)
 
+identityheader	Enable selection of an identity for signing based on the
+		value found in a particular header. (opendkim)
+
 multiplesigs	Allow addition of multiple signatures when key lists are
 		in use.  (opendkim)
 
@@ -95,4 +98,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.2 $, Last updated $Date: 2009/07/21 15:59:33 $
+$Revision: 1.3 $, Last updated $Date: 2009/08/29 19:26:35 $
