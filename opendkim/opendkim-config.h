@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.4 2009/08/26 19:22:28 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.5 2009/08/29 10:52:31 subman Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.4 2009/08/26 19:22:28 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.5 2009/08/29 10:52:31 subman Exp $";
 #endif /* !lint */
 
 struct configdef dkimf_config[] =
@@ -109,8 +109,13 @@ struct configdef dkimf_config[] =
 #endif /* _FFR_DKIM_REPUTATION */
 	{ "RequiredHeaders",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "Selector",			CONFIG_TYPE_STRING,	FALSE },
+#ifdef _FFR_IDENTITY_HEADER
+	{ "IdentityHeader",		CONFIG_TYPE_STRING,     FALSE },
+	{ "IdentityHeaderRemove",	CONFIG_TYPE_BOOLEAN,    FALSE },
+#endif /* _FFR_IDENTITY_HEADER */
 #ifdef _FFR_SELECTOR_HEADER
 	{ "SelectorHeader",		CONFIG_TYPE_STRING,	FALSE },
+	{ "SelectorHeaderRemove",	CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* _FFR_SELECTOR_HEADER */
 	{ "SendADSPReports",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "SenderHeaders",		CONFIG_TYPE_STRING,	FALSE },
