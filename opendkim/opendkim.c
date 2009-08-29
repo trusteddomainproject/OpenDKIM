@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.25 2009/08/27 22:02:23 cm-msk Exp $
+**  $Id: opendkim.c,v 1.26 2009/08/29 10:54:15 subman Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.25 2009/08/27 22:02:23 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.26 2009/08/29 10:54:15 subman Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -243,8 +243,13 @@ struct dkimf_config
 	char *		conf_canonstr;		/* canonicalization(s) string */
 	char *		conf_siglimit;		/* signing limits */
 	char *		conf_selector;		/* key selector */
+#ifdef _FFR_IDENTITY_HEADER
+	char *		conf_identityhdr;	/* identity header */
+	_Bool		conf_rmidentityhdr;	/* remove identity header */
+#endif /* _FFR_IDENTITY_HEADER */
 #ifdef _FFR_SELECTOR_HEADER
 	char *		conf_selectorhdr;	/* selector header */
+	_Bool           conf_rmselectorhdr;     /* remove selector header */
 #endif /* _FFR_SELECTOR_HEADER */
 #ifdef _FFR_ZTAGS
 	char *		conf_diagdir;		/* diagnostics directory */
@@ -2080,6 +2085,15 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "MaximumHeaders", &conf->conf_maxhdrsz,
 		                  sizeof conf->conf_maxhdrsz);
 
+#ifdef	_FFR_IDENTITY_HEADER
+		(void) config_get(data, "IdentityHeader",
+				  &conf->conf_identityhdr, 
+				  sizeof conf->conf_identityhdr);
+
+		(void) config_get(data, "IdentityHeaderRemove",
+				&conf->conf_rmidentityhdr,
+				sizeof conf->conf_rmidentityhdr);
+#endif /* _FFR_IDENTITY_HEADER */
 #ifdef _FFR_DKIM_REPUTATION
 		(void) config_get(data, "ReputationFail", &conf->conf_repfail,
 		                  sizeof conf->conf_repfail);
@@ -2165,6 +2179,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "SelectorHeader",
 		                  &conf->conf_selectorhdr,
 		                  sizeof conf->conf_selectorhdr);
+
+		(void) config_get(data, "SelectorHeaderRemove",
+				&conf->conf_rmselectorhdr,
+				sizeof conf->conf_rmselectorhdr);
 #endif /* _FFR_SELECTOR_HEADER */
 
 		if (!conf->conf_sendreports)
@@ -6907,8 +6925,40 @@ mlfi_eoh(SMFICTX *ctx)
 #endif /* _FFR_MULTIPLE_SIGNATURES */
 	{
 		char identity[MAXADDRESS + 1];
+		_Bool idset = FALSE;
 
-		snprintf(identity, sizeof identity, "@%s", dfc->mctx_domain);
+#ifdef _FFR_IDENTITY_HEADER
+		if (conf->conf_identityhdr != NULL)
+		{
+			struct Header *hdr;
+			hdr = dkimf_findheader(dfc, conf->conf_identityhdr, 0);
+			if (hdr != NULL)
+			{
+				char *user;
+				char *domain;
+
+				status = rfc2822_mailbox_split(hdr->hdr_val,
+						&user, &domain);
+				if (status == 0 && domain != NULL)
+				{
+					snprintf(identity, sizeof identity,
+						"%s@%s",
+						user == NULL ? "" : user,
+						domain);
+					idset = TRUE;
+				}
+			}
+		
+			if (!idset)
+				syslog(LOG_INFO,
+					"%s: cannot find identity header",
+					dfc->mctx_jobid);
+		}
+#endif /* _FFR_IDENTITY_HEADER */
+				
+		if (!idset)
+			snprintf(identity, sizeof identity, "@%s",
+					dfc->mctx_domain);
 
 		dkim_set_signer(dfc->mctx_dkim, identity);
 	}
@@ -7332,6 +7382,54 @@ mlfi_eom(SMFICTX *ctx)
 			}
 		}
 	}
+
+#ifdef _FFR_IDENTITY_HEADER
+	/* remove identity header if such was requested when signing */
+	if (conf->conf_rmidentityhdr && conf->conf_identityhdr != NULL
+		&& dfc->mctx_signing)
+	{
+		struct Header *hdr;
+		
+		hdr = dkimf_findheader(dfc, conf->conf_identityhdr, 0);
+		if (hdr != NULL)
+		{
+			if (smfi_chgheader(ctx, conf->conf_identityhdr,
+				0, NULL) != MI_SUCCESS)
+			{
+				if (conf->conf_dolog)
+				{
+					syslog(LOG_WARNING,
+						"failed to remove %s: header",
+						conf->conf_identityhdr);
+				}
+			}
+		}
+	}
+#endif /* _FFR_IDENTITY_HEADER */
+					
+#ifdef _FFR_SELECTOR_HEADER
+	/* remove selector header if such was requested when signing */
+	if (conf->conf_rmselectorhdr && conf->conf_selectorhdr != NULL
+		&& dfc->mctx_signing)
+	{
+		struct Header *hdr;
+		
+		hdr = dkimf_findheader(dfc, conf->conf_selectorhdr, 0);
+		if (hdr != NULL)
+		{
+			if (smfi_chgheader(ctx, conf->conf_selectorhdr,
+				0, NULL) != MI_SUCCESS)
+			{
+				if (conf->conf_dolog)
+				{
+					syslog(LOG_WARNING,
+						"failed to remove %s: header",
+						conf->conf_selectorhdr);
+				}
+			}
+		}
+	}
+#endif /* _FFR_SELECTOR_HEADER */
 
 	/* log something if the message was multiply signed */
 	if (!dfc->mctx_signing && dfc->mctx_dkim != NULL && conf->conf_dolog)
