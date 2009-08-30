@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.c,v 1.6 2009/08/30 08:55:18 cm-msk Exp $
+**  $Id: test.c,v 1.7 2009/08/30 09:00:23 cm-msk Exp $
 */
 
 #ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.6 2009/08/30 08:55:18 cm-msk Exp $";
+static char test_c_id[] = "@(#)$Id: test.c,v 1.7 2009/08/30 09:00:23 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -199,6 +199,31 @@ dkimf_test_chgheader(void *ctx, char *hname, int idx, char *hvalue)
 		fprintf(stdout,
 		        "### CHGHEADER: hname=`%s' idx=%d hvalue=`%s'\n",
 		        STRORNULL(hname), idx, STRORNULL(hvalue));
+	}
+
+	return MI_SUCCESS;
+}
+
+/*
+**  DKIMF_TEST_QUARANTINE -- request message quarantine
+**
+**  Parameters:
+**  	ctx -- context pointer
+**  	reason -- reason string
+**
+**  Return value:
+**  	MI_SUCCESS
+*/
+
+int
+dkimf_test_quarantine(void *ctx, char *reason)
+{
+	assert(ctx != NULL);
+
+	if (tverbose > 1)
+	{
+		fprintf(stdout,
+		        "### QUARANTINE: reason=`%s'\n", STRORNULL(reason));
 	}
 
 	return MI_SUCCESS;
