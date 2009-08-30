@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.28 2009/08/30 08:38:26 cm-msk Exp $
+**  $Id: opendkim.c,v 1.29 2009/08/30 08:47:09 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.28 2009/08/30 08:38:26 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.29 2009/08/30 08:47:09 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2091,8 +2091,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				  sizeof conf->conf_identityhdr);
 
 		(void) config_get(data, "IdentityHeaderRemove",
-				&conf->conf_rmidentityhdr,
-				sizeof conf->conf_rmidentityhdr);
+		                  &conf->conf_rmidentityhdr,
+		                  sizeof conf->conf_rmidentityhdr);
 #endif /* _FFR_IDENTITY_HEADER */
 #ifdef _FFR_DKIM_REPUTATION
 		(void) config_get(data, "ReputationFail", &conf->conf_repfail,
