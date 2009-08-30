@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.c,v 1.5 2009/07/24 23:21:27 cm-msk Exp $
+**  $Id: test.c,v 1.6 2009/08/30 08:55:18 cm-msk Exp $
 */
 
 #ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.5 2009/07/24 23:21:27 cm-msk Exp $";
+static char test_c_id[] = "@(#)$Id: test.c,v 1.6 2009/08/30 08:55:18 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -171,6 +171,34 @@ dkimf_test_insheader(void *ctx, int idx, char *hname, char *hvalue)
 		fprintf(stdout,
 		        "### INSHEADER: idx=%d hname=`%s' hvalue=`%s'\n",
 		        idx, STRORNULL(hname), STRORNULL(hvalue));
+	}
+
+	return MI_SUCCESS;
+}
+
+/*
+**  DKIMF_TEST_CHGHEADER -- change a header
+**
+**  Parameters:
+**  	ctx -- context pointer
+**  	hname -- header name
+**  	idx -- header index
+**  	hvalue -- header value
+**
+**  Return value:
+**  	MI_SUCCESS
+*/
+
+int
+dkimf_test_chgheader(void *ctx, char *hname, int idx, char *hvalue)
+{
+	assert(ctx != NULL);
+
+	if (tverbose > 1)
+	{
+		fprintf(stdout,
+		        "### CHGHEADER: hname=`%s' idx=%d hvalue=`%s'\n",
+		        STRORNULL(hname), idx, STRORNULL(hvalue));
 	}
 
 	return MI_SUCCESS;
