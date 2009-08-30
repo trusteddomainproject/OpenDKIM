@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.29 2009/08/30 08:47:09 cm-msk Exp $
+**  $Id: opendkim.c,v 1.30 2009/08/30 08:55:55 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.29 2009/08/30 08:47:09 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.30 2009/08/30 08:55:55 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -605,6 +605,7 @@ sfsistat mlfi_eoh __P((SMFICTX *));
 sfsistat mlfi_eom __P((SMFICTX *));
 sfsistat mlfi_header __P((SMFICTX *, char *, char *));
 
+sfsistat dkimf_chgheader __P((SMFICTX *, char *, int, char *));
 static void dkimf_cleanup __P((SMFICTX *));
 static void dkimf_config_reload __P((void));
 static Header dkimf_findheader __P((msgctx, char *, int));
@@ -774,6 +775,31 @@ dkimf_insheader(SMFICTX *ctx, int idx, char *hname, char *hvalue)
 		return dkimf_test_insheader(ctx, idx, hname, hvalue);
 	else
 		return smfi_insheader(ctx, idx, hname, hvalue);
+}
+
+/*
+**  DKIMF_CHGHEADER -- wrapper for smfi_chgheader()
+**
+**  Parameters:
+**  	ctx -- milter (or test) context
+**  	hname -- header name
+**  	idx -- index of header to be changed
+**  	hvalue -- header value
+**
+**  Return value:
+**  	An sfsistat.
+*/
+
+sfsistat
+dkimf_chgheader(SMFICTX *ctx, char *hname, int idx, char *hvalue)
+{
+	assert(ctx != NULL);
+	assert(hname != NULL);
+
+	if (testmode)
+		return dkimf_test_chgheader(ctx, hname, idx, hvalue);
+	else
+		return smfi_chgheader(ctx, hname, idx, hvalue);
 }
 
 /*
@@ -7379,8 +7405,8 @@ mlfi_eom(SMFICTX *ctx)
 		{
 			if (strcasecmp(hdr->hdr_hdr, DKIM_SIGNHEADER) == 0)
 			{
-				if (smfi_chgheader(ctx, hdr->hdr_hdr,
-				                   0, NULL) != MI_SUCCESS)
+				if (dkimf_chgheader(ctx, hdr->hdr_hdr,
+				                    0, NULL) != MI_SUCCESS)
 				{
 					if (conf->conf_dolog)
 					{
@@ -7403,8 +7429,8 @@ mlfi_eom(SMFICTX *ctx)
 		hdr = dkimf_findheader(dfc, conf->conf_identityhdr, 0);
 		if (hdr != NULL)
 		{
-			if (smfi_chgheader(ctx, conf->conf_identityhdr,
-				0, NULL) != MI_SUCCESS)
+			if (dkimf_chgheader(ctx, conf->conf_identityhdr,
+			                    0, NULL) != MI_SUCCESS)
 			{
 				if (conf->conf_dolog)
 				{
@@ -7427,14 +7453,14 @@ mlfi_eom(SMFICTX *ctx)
 		hdr = dkimf_findheader(dfc, conf->conf_selectorhdr, 0);
 		if (hdr != NULL)
 		{
-			if (smfi_chgheader(ctx, conf->conf_selectorhdr,
-				0, NULL) != MI_SUCCESS)
+			if (dkimf_chgheader(ctx, conf->conf_selectorhdr,
+			                    0, NULL) != MI_SUCCESS)
 			{
 				if (conf->conf_dolog)
 				{
 					syslog(LOG_WARNING,
-						"failed to remove %s: header",
-						conf->conf_selectorhdr);
+					       "failed to remove %s: header",
+					       conf->conf_selectorhdr);
 				}
 			}
 		}
@@ -7575,9 +7601,9 @@ mlfi_eom(SMFICTX *ctx)
 				/* delete if we found both */
 				if (dkimres && hostmatch)
 				{
-					if (smfi_chgheader(ctx, hdr->hdr_hdr,
-					                   c,
-					                   NULL) != MI_SUCCESS)
+					if (dkimf_chgheader(ctx, hdr->hdr_hdr,
+					                    c,
+					                    NULL) != MI_SUCCESS)
 					{
 						if (conf->conf_dolog)
 						{
