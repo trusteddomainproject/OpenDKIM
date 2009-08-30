@@ -2,7 +2,7 @@
 <head><title>dkim_eom()</title></head>
 <body>
 <!--
-$Id: dkim_eom.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+$Id: dkim_eom.html,v 1.2 2009/08/30 21:17:32 cm-msk Exp $
 -->
 <h1>dkim_eom()</h1>
 
@@ -16,7 +16,8 @@ $Id: dkim_eom.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
 	bool *testkey
 );
 </pre>
-Denote end-of-message for a message.
+Denote end-of-message for a message.  Process signatures in order until a
+valid one is found.
 </td></tr>
 
 <!----------- Description ---------->
@@ -69,7 +70,15 @@ Denote end-of-message for a message.
 <th valign="top" align=left>NOTES</th> 
 <td>
 <ul>
-<li>None.
+<li>This function only processes signatures, in order, until one is found
+that is valid.  There may be other signatures before or after that one in
+the message whose evaluation might be meaningful to the calling application.
+In that case, the calling application should use the final handling callback
+(see <a href="dkim_set_final.html"><tt>dkim_set_final()</tt></a> to get
+an opportunity to process all of the signatures and possibly reorder them
+as per the application's preference.  This function will use the signatures
+as reordered by that function (or in arrival order if no reordering is done)
+and act on the first valid one, or the first one if none are valid.
 </ul>
 </td>
 </tr>
