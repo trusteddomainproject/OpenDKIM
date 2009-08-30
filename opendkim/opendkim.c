@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.30 2009/08/30 08:55:55 cm-msk Exp $
+**  $Id: opendkim.c,v 1.31 2009/08/30 09:00:51 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.30 2009/08/30 08:55:55 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.31 2009/08/30 09:00:51 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -609,12 +609,13 @@ sfsistat dkimf_chgheader __P((SMFICTX *, char *, int, char *));
 static void dkimf_cleanup __P((SMFICTX *));
 static void dkimf_config_reload __P((void));
 static Header dkimf_findheader __P((msgctx, char *, int));
+static void dkimf_freekeys __P((struct dkimf_config *));
 void *dkimf_getpriv __P((SMFICTX *));
 char * dkimf_getsymval __P((SMFICTX *, char *));
 sfsistat dkimf_insheader __P((SMFICTX *, int, char *, char *));
 static int dkimf_loadkeys __P((char *, struct dkimf_config *));
-static void dkimf_freekeys __P((struct dkimf_config *));
 static void dkimf_policyreport __P((msgctx, struct dkimf_config *, char *));
+sfsistat dkimf_quarantine __P((SMFICTX *, char *));
 void dkimf_sendprogress __P((void *));
 sfsistat dkimf_setpriv __P((SMFICTX *, void *));
 sfsistat dkimf_setreply __P((SMFICTX *, char *, char *, char *));
@@ -800,6 +801,28 @@ dkimf_chgheader(SMFICTX *ctx, char *hname, int idx, char *hvalue)
 		return dkimf_test_chgheader(ctx, hname, idx, hvalue);
 	else
 		return smfi_chgheader(ctx, hname, idx, hvalue);
+}
+
+/*
+**  DKIMF_QUARANTINE -- wrapper for smfi_quarantine()
+**
+**  Parameters:
+**  	ctx -- milter (or test) context
+**  	reason -- quarantine reason
+**
+**  Return value:
+**  	An sfsistat.
+*/
+
+sfsistat
+dkimf_quarantine(SMFICTX *ctx, char *reason)
+{
+	assert(ctx != NULL);
+
+	if (testmode)
+		return dkimf_test_quarantine(ctx, reason);
+	else
+		return smfi_quarantine(ctx, reason);
 }
 
 /*
@@ -7707,8 +7730,8 @@ mlfi_eom(SMFICTX *ctx)
 # ifdef SMFIF_QUARANTINE
 			if (dfc->mctx_capture)
 			{
-				if (smfi_quarantine(ctx,
-				                    "capture requested") != MI_SUCCESS)
+				if (dkimf_quarantine(ctx,
+				                     "capture requested") != MI_SUCCESS)
 				{
 					if (conf->conf_dolog)
 					{
@@ -8390,7 +8413,7 @@ mlfi_eom(SMFICTX *ctx)
 
 			snprintf(qreason, sizeof qreason,
 			         "%s: %s: %s", progname, failstatus, comment);
-			if (smfi_quarantine(ctx, qreason) != MI_SUCCESS)
+			if (dkimf_quarantine(ctx, qreason) != MI_SUCCESS)
 			{
 				if (conf->conf_dolog)
 				{
