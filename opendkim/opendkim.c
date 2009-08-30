@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.27 2009/08/29 18:48:20 subman Exp $
+**  $Id: opendkim.c,v 1.28 2009/08/30 08:38:26 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.27 2009/08/29 18:48:20 subman Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.28 2009/08/30 08:38:26 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6918,6 +6918,11 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 	}
 
+#ifdef _FFR_IDENTITY_HEADER
+	if (conf->conf_identityhdr != NULL)
+		setidentity = TRUE;
+#endif /* _FFR_IDENTITY_HEADER */
+
 #ifdef _FFR_MULTIPLE_SIGNATURES
 	if (dfc->mctx_signing && setidentity && !conf->conf_multisig)
 #else /* _FFR_MULTIPLE_SIGNATURES */
@@ -6950,15 +6955,20 @@ mlfi_eoh(SMFICTX *ctx)
 			}
 		
 			if (!idset)
+			{
 				syslog(LOG_INFO,
-					"%s: cannot find identity header",
-					dfc->mctx_jobid);
+				       "%s: cannot find identity header %s",
+				       dfc->mctx_jobid,
+				       conf->conf_identityhdr);
+			}
 		}
 #endif /* _FFR_IDENTITY_HEADER */
 				
 		if (!idset)
+		{
 			snprintf(identity, sizeof identity, "@%s",
-					dfc->mctx_domain);
+			         dfc->mctx_domain);
+		}
 
 		dkim_set_signer(dfc->mctx_dkim, identity);
 	}
@@ -7385,8 +7395,8 @@ mlfi_eom(SMFICTX *ctx)
 
 #ifdef _FFR_IDENTITY_HEADER
 	/* remove identity header if such was requested when signing */
-	if (conf->conf_rmidentityhdr && conf->conf_identityhdr != NULL
-		&& dfc->mctx_signing)
+	if (conf->conf_rmidentityhdr && conf->conf_identityhdr != NULL &&
+	    dfc->mctx_signing)
 	{
 		struct Header *hdr;
 		
@@ -7409,8 +7419,8 @@ mlfi_eom(SMFICTX *ctx)
 					
 #ifdef _FFR_SELECTOR_HEADER
 	/* remove selector header if such was requested when signing */
-	if (conf->conf_rmselectorhdr && conf->conf_selectorhdr != NULL
-		&& dfc->mctx_signing)
+	if (conf->conf_rmselectorhdr && conf->conf_selectorhdr != NULL &&
+	    dfc->mctx_signing)
 	{
 		struct Header *hdr;
 		
