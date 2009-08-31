@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.33 2009/08/31 07:22:53 cm-msk Exp $
+**  $Id: opendkim.c,v 1.34 2009/08/31 07:58:20 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.33 2009/08/31 07:22:53 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.34 2009/08/31 07:58:20 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6846,18 +6846,6 @@ mlfi_eoh(SMFICTX *ctx)
 			}
 			else
 			{
-				if (setidentity &&
-				    dkimf_subdomain(dfc->mctx_domain, sdomain))
-				{
-					char identity[MAXADDRESS + 1];
-
-					snprintf(identity, sizeof identity,
-					         "@%s", dfc->mctx_domain);
-
-					dkim_set_signer(sr->srq_dkim,
-					                identity);
-				}
-
 				(void) dkim_set_user_context(sr->srq_dkim,
 				                             ctx);
 			}
@@ -6972,11 +6960,7 @@ mlfi_eoh(SMFICTX *ctx)
 		setidentity = TRUE;
 #endif /* _FFR_IDENTITY_HEADER */
 
-#ifdef _FFR_MULTIPLE_SIGNATURES
-	if (dfc->mctx_signing && setidentity && !conf->conf_multisig)
-#else /* _FFR_MULTIPLE_SIGNATURES */
 	if (dfc->mctx_signing && setidentity)
-#endif /* _FFR_MULTIPLE_SIGNATURES */
 	{
 		char identity[MAXADDRESS + 1];
 		_Bool idset = FALSE;
@@ -7019,7 +7003,25 @@ mlfi_eoh(SMFICTX *ctx)
 			         dfc->mctx_domain);
 		}
 
+#ifdef _FFR_MULTIPLE_SIGNATURES
+		if (dfc->mctx_srhead == NULL)
+		{
+			dkim_set_signer(dfc->mctx_dkim, identity);
+		}
+		else
+		{
+			struct signreq *sr;
+
+			for (sr = dfc->mctx_srhead;
+			     sr != NULL;
+			     sr = sr->srq_next)
+			{
+				dkim_set_signer(sr->srq_dkim, identity);
+			}
+		}
+#else /* _FFR_MULTIPLE_SIGNATURES */
 		dkim_set_signer(dfc->mctx_dkim, identity);
+#endif /* _FFR_MULTIPLE_SIGNATURES */
 	}
 
 #if _FFR_BODYLENGTH_DB
