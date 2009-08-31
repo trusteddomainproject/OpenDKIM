@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.34 2009/08/31 07:58:20 cm-msk Exp $
+**  $Id: opendkim.c,v 1.35 2009/08/31 08:10:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.34 2009/08/31 07:58:20 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.35 2009/08/31 08:10:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7117,6 +7117,11 @@ mlfi_eoh(SMFICTX *ctx)
 		{
 			dkimf_dstring_blank(dfc->mctx_tmpstr);
 		}
+
+		/*
+		**  XXX -- skip headers we know we're going to delete before
+		**  signing here (e.g. identity header when set to remove)
+		*/
 
 		dkimf_dstring_copy(dfc->mctx_tmpstr, hdr->hdr_hdr);
 		dkimf_dstring_cat1(dfc->mctx_tmpstr, ':');
