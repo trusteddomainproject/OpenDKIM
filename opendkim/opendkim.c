@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.32 2009/08/30 19:45:58 cm-msk Exp $
+**  $Id: opendkim.c,v 1.33 2009/08/31 07:22:53 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.32 2009/08/30 19:45:58 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.33 2009/08/31 07:22:53 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7934,9 +7934,6 @@ mlfi_eom(SMFICTX *ctx)
 				dkimf_dstring_blank(dfc->mctx_tmpstr);
 			}
 
-			if (cc->cctx_noleadspc)
-				dkimf_dstring_cat1(dfc->mctx_tmpstr, ' ');
-
 #ifdef _FFR_MULTIPLE_SIGNATURES
 			if (dfc->mctx_srhead != NULL)
 			{
@@ -7947,6 +7944,11 @@ mlfi_eom(SMFICTX *ctx)
 				     sr = sr->srq_next)
 				{
 					dkimf_dstring_blank(dfc->mctx_tmpstr);
+					if (cc->cctx_noleadspc)
+					{
+						dkimf_dstring_cat1(dfc->mctx_tmpstr,
+						                   ' ');
+					}
 
 					status = dkim_getsighdr_d(sr->srq_dkim,
 				                                  strlen(DKIM_SIGNHEADER) + 2,
@@ -7986,6 +7988,9 @@ mlfi_eom(SMFICTX *ctx)
 			else
 			{
 #endif /* _FFR_MULTIPLE_SIGNATURES */
+			if (cc->cctx_noleadspc)
+				dkimf_dstring_cat1(dfc->mctx_tmpstr, ' ');
+
 			status = dkim_getsighdr_d(dfc->mctx_dkim,
 			                          strlen(DKIM_SIGNHEADER) + 2,
 			                          &start, &len);
