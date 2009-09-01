@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.6 2009/08/29 18:55:19 subman Exp $
+**  $Id: util.c,v 1.7 2009/09/01 08:10:24 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.6 2009/08/29 18:55:19 subman Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.7 2009/09/01 08:10:24 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1642,7 +1642,7 @@ dkimf_commaize(struct dkimf_dstring *dst, char *src, size_t ilen,
 		if (isascii(*p) && isspace(*p))
 		{
 			/* don't eat the first space unless appropriate */
-			if (p == src && noleadspc)
+			if (p != src || noleadspc)
 				dkimf_dstring_cat1(dst, ' ');
 			continue;
 		}
