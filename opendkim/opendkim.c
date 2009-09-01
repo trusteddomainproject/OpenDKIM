@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.35 2009/08/31 08:10:52 cm-msk Exp $
+**  $Id: opendkim.c,v 1.36 2009/09/01 07:10:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.35 2009/08/31 08:10:52 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.36 2009/09/01 07:10:12 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7119,9 +7119,25 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 
 		/*
-		**  XXX -- skip headers we know we're going to delete before
-		**  signing here (e.g. identity header when set to remove)
+		**  Skip headers we know we're going to delete before
+		**  signing here (e.g. identity header when set to remove).
 		*/
+
+#ifdef _FFR_IDENTITY_HEADER
+		if (conf->conf_identityhdr != NULL &&
+		    conf->conf_rmidentityhdr && 
+		    dfc->mctx_signing &&
+		    strcasecmp(conf->conf_identityhdr, hdr->hdr_hdr) == 0)
+			continue;
+#endif /* _FFR_IDENTITY_HEADER */
+
+#ifdef _FFR_SELECTOR_HEADER
+		if (conf->conf_selectorhdr != NULL &&
+		    conf->conf_rmselectorhdr && 
+		    dfc->mctx_signing &&
+		    strcasecmp(conf->conf_selectorhdr, hdr->hdr_hdr) == 0)
+			continue;
+#endif /* _FFR_SELECTOR_HEADER */
 
 		dkimf_dstring_copy(dfc->mctx_tmpstr, hdr->hdr_hdr);
 		dkimf_dstring_cat1(dfc->mctx_tmpstr, ':');
