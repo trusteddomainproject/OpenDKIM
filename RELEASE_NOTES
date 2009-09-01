@@ -1,14 +1,13 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.20 2009/09/01 08:21:43 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.21 2009/09/01 08:43:12 subman Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 1.1.0		2009/09/02
-	Add _FFR_IDENTITY_HEADER, to set an identity (i=) for signing based on 
-        	the value found in a particular header.  Requested by
-		Florian Sager.
+	Feature request #SF2839110: Add _FFR_IDENTITY_HEADER, to set an         		identity (i=) for signing based on the value found in a
+		particular header.  Requested by Florian Sager. 
 	Fixes related to _FFR_COMMAIZE sometimes dropping leading header
 		field spaces when it shouldn't.
 	Fix inside dkimf_libstatus() to return extended status code 
