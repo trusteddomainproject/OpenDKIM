@@ -38,6 +38,9 @@ endif
 if DKIM_REPUTATION
 opendkim_CFLAGS += -D_FFR_DKIM_REPUTATION
 endif
+if DNS_UPGRADE
+opendkim_CFLAGS += -D_FFR_DNS_UPGRADE
+endif
 if IDENTITY_HEADER
 opendkim_CFLAGS += -D_FFR_IDENTITY_HEADER
 endif
