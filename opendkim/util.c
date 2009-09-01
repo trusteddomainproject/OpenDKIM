@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.7 2009/09/01 08:10:24 cm-msk Exp $
+**  $Id: util.c,v 1.8 2009/09/01 17:14:19 subman Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.7 2009/09/01 08:10:24 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.8 2009/09/01 17:14:19 subman Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -74,6 +74,10 @@ static char *optlist[] =
 #if QUERY_CACHE
 	"QUERY_CACHE",
 #endif /* QUERY_CACHE */
+
+#if USE_ARLIB
+	"USE_ARLIB",
+#endif /* USE_ARLIB */
 
 #if USE_UNBOUND
 	"USE_UNBOUND",
