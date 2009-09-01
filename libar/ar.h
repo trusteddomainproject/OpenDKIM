@@ -9,7 +9,7 @@
 #define _AR_H_
 
 #ifndef lint
-static char ar_h_id[] = "@(#)$Id: ar.h,v 1.1 2009/07/16 18:56:09 cm-msk Exp $";
+static char ar_h_id[] = "@(#)$Id: ar.h,v 1.2 2009/09/01 19:04:19 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -27,7 +27,6 @@ static char ar_h_id[] = "@(#)$Id: ar.h,v 1.1 2009/07/16 18:56:09 cm-msk Exp $";
 # define TRUE	1
 #endif /* ! TRUE */
 
-
 /* DATA TYPES */
 struct ar_libhandle;
 typedef struct ar_libhandle * AR_LIB;
@@ -35,11 +34,9 @@ typedef struct ar_libhandle * AR_LIB;
 struct ar_query;
 typedef struct ar_query * AR_QUERY;
 
-
 /* TYPES */
 typedef void *ar_malloc_t(void *, size_t);
 typedef void ar_free_t(void *, void *);
-
 
 /* DEFINITIONS */
 #define	AR_FLAG_USETCP		0x01		/* use TCP instead of UDP */
