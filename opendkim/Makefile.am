@@ -1,3 +1,5 @@
+# $Id: Makefile.am,v 1.35 2009/09/01 17:30:34 cm-msk Exp $
+
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -pthread --pedantic -Wall -O2
 AM_LDFLAGS = -pthread
