@@ -1,3 +1,5 @@
+# $Id: Makefile.am,v 1.9 2009/09/01 17:47:06 cm-msk Exp $
+
 AUTOMAKE_OPTIONS = foreign
 SUBDIRS = 
 if USE_ARLIB
