@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.36 2009/09/01 07:10:12 cm-msk Exp $
+**  $Id: opendkim.c,v 1.37 2009/09/01 08:09:49 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.36 2009/09/01 07:10:12 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.37 2009/09/01 08:09:49 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6054,24 +6054,30 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 		**  it).
 		*/
 
+#ifdef _FFR_COMMAIZE
+		if (conf->conf_commaize && dkimf_commaize_hdr(headerf))
+		{
+			dkimf_commaize(dfc->mctx_tmpstr, headerv,
+			               strlen(headerf) + 2, MTAMARGIN,
+			               cc->cctx_noleadspc);
+		}
+		else
+		{
+			char *p;
+
+			p = headerv;
+			if (isascii(*p) && isspace(*p))
+				p++;
+
+			dkimf_dstring_copy(dfc->mctx_tmpstr, p);
+		}
+#else /* _FFR_COMMAIZE */
 		char *p;
 
 		p = headerv;
 		if (isascii(*p) && isspace(*p))
 			p++;
 
-#ifdef _FFR_COMMAIZE
-		if (conf->conf_commaize && dkimf_commaize_hdr(headerf))
-		{
-			dkimf_commaize(dfc->mctx_tmpstr, p,
-			               strlen(headerf) + 2, MTAMARGIN,
-			               cc->cctx_noleadspc);
-		}
-		else
-		{
-			dkimf_dstring_copy(dfc->mctx_tmpstr, p);
-		}
-#else /* _FFR_COMMAIZE */
 		dkimf_dstring_copy(dfc->mctx_tmpstr, p);
 #endif /* _FFR_COMMAIZE */
 	}
