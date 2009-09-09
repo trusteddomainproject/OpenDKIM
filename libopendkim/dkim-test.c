@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.6 2009/08/03 20:51:03 cm-msk Exp $";
+static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.7 2009/09/09 18:30:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -148,8 +148,6 @@ dkim_test_dns_get(DKIM *dkim, u_char *buf, size_t buflen)
 	cp = answer + HFIXEDSZ;
 	end = answer + sizeof answer;
 
-	/* dn_comp(const char *exp_dn, u_char *comp_dn, int length, u_char **dnptrs, uchar **lastdnptr) */
-	
 	/* repeat the question */
 	n = dn_comp(td->dns_query, cp, end - cp, NULL, NULL);
 	if (n < 0)
