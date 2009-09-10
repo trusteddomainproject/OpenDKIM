@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.35 2009/09/01 17:30:34 cm-msk Exp $
+# $Id: Makefile.am,v 1.36 2009/09/10 22:08:39 cm-msk Exp $
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -pthread --pedantic -Wall -O2
@@ -20,10 +20,7 @@ opendkim_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_INCDIRS)
 opendkim_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS) $(LIBMILTER_LIBDIRS) $(LIBUNBOUND_LIBDIRS)
 opendkim_LDADD = ../libopendkim/libopendkim.la -lmilter $(LIBUNBOUND_LIBS)
 if BODYLENGTH_DB
-opendkim_CFLAGS += -DUSE_DB -D_FFR_BODYLENGTH_DB
-opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
-opendkim_LDFLAGS += $(LIBDB_LIBDIRS)
-opendkim_LDADD += $(LIBDB_LIBS)
+opendkim_CFLAGS += -D_FFR_BODYLENGTH_DB
 endif
 if CAPTURE_UNKNOWN_ERRORS
 opendkim_CFLAGS += -D_FFR_CAPTURE_UNKNOWN_ERRORS
@@ -75,7 +72,7 @@ opendkim_CFLAGS += -DUSE_ARLIB
 opendkim_LDFLAGS += -L../libar
 opendkim_LDADD += -lar
 endif
-if USE_DB
+if USE_DB_OPENDKIM
 opendkim_CFLAGS += -DUSE_DB
 opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
 opendkim_LDFLAGS += $(LIBDB_LIBDIRS)
@@ -124,7 +121,7 @@ if USE_ARLIB
 opendkim_testkey_LDFLAGS += -L../libar
 opendkim_testkey_LDADD += -lar
 endif
-if USE_DB
+if USE_DB_OPENDKIM
 opendkim_testkey_LDFLAGS += $(LIBDB_LIBDIRS)
 opendkim_testkey_LDADD += $(LIBDB_LIBS)
 endif
@@ -145,7 +142,7 @@ if USE_ARLIB
 opendkim_testadsp_LDFLAGS += -L../libar
 opendkim_testadsp_LDADD += -lar
 endif
-if USE_DB
+if USE_DB_OPENDKIM
 opendkim_testadsp_LDFLAGS += $(LIBDB_LIBDIRS)
 opendkim_testadsp_LDADD += $(LIBDB_LIBS)
 endif

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.24 2009/09/08 06:56:00 cm-msk Exp $
+# $Id: Makefile.am,v 1.25 2009/09/10 22:08:39 cm-msk Exp $
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h vbr.h
@@ -80,7 +80,7 @@ libopendkim_la_CFLAGS += -DUSE_ARLIB -I../libar
 libopendkim_la_LIBADD += ../libar/libar.a
 endif
 
-if USE_DB
+if USE_DB_LIBOPENDKIM
 libopendkim_la_CFLAGS += -DUSE_DB -I$(LIBDB_INCDIRS)
 libopendkim_la_LDFLAGS += $(LIBDB_LIBDIRS)
 libopendkim_la_LIBADD += $(LIBDB_LIBS)
