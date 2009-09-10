@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.11 2009/08/19 00:55:35 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.12 2009/09/10 16:21:46 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -3737,6 +3737,11 @@ dkim_close(DKIM_LIB *lib)
 #ifdef USE_ARLIB
 	if (lib->dkiml_arlib != NULL)
 		(void) ar_shutdown(lib->dkiml_arlib);
+
+# ifdef _FFR_DNS_UPGRADE
+	if (lib->dkiml_arlibtcp != NULL)
+		(void) ar_shutdown(lib->dkiml_arlibtcp);
+# endif /* _FFR_DNS_UPGRADE */
 #endif /* USE_ARLIB */
 
 #ifdef USE_UNBOUND
