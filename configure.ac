@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.45 2009/09/10 22:08:39 cm-msk Exp $
+# $Id: configure.ac,v 1.46 2009/09/11 18:17:48 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -24,6 +24,7 @@ CC="$PTHREAD_CC"
 
 # Checks for libraries.
 AC_SEARCH_LIBS(res_mkquery, resolv)
+AC_SEARCH_LIBS(dn_expand, resolv)
 AC_SEARCH_LIBS(inet_addr, nsl)
 AC_SEARCH_LIBS(socket, socket)
 
