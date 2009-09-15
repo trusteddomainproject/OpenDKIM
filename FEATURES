@@ -31,12 +31,6 @@ bodylengthdb	Optionally query a local database of recipient addresses
 captureerrors	When dkim_eom() returns an unexpected error of some kind,
 		quarantine the message for further analysis.  (opendkim)
 
-commaize	Attempt to anticipate header field rewriting the MTA will
-		do so that verification failures are reduced.  The actual
-		rewriting done by the MTA is rather complicated, so this
-		feature only promises a best-effort.  Currently under
-		revision.  (opendkim)
-
 diffheaders	When verification fails for a message for which a "z="
 		tag was provided, compare the received headers to the original
 		headers to look for possible munging.  Requires the tre
@@ -101,4 +95,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.4 $, Last updated $Date: 2009/09/03 09:09:48 $
+$Revision: 1.5 $, Last updated $Date: 2009/09/15 22:29:37 $

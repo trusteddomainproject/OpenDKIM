@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.46 2009/09/11 18:17:48 cm-msk Exp $
+# $Id: configure.ac,v 1.47 2009/09/15 22:29:38 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -55,9 +55,6 @@ AM_CONDITIONAL(BODYLENGTH_DB, test "$enable_bodylengthdb" = yes)
 
 AC_ARG_ENABLE(captureerrors, AS_HELP_STRING(--enable-captureerrors, quarantine unknown verification failures))
 AM_CONDITIONAL(CAPTURE_UNKNOWN_ERRORS, test "$enable_captureerrors" = yes)
-
-AC_ARG_ENABLE(commaize, AS_HELP_STRING(--enable-commaize, clone sendmail header commaizing))
-AM_CONDITIONAL(COMMAIZE, test "$enable_commaize" = yes)
 
 AC_ARG_ENABLE(debug, AS_HELP_STRING(--enable-debug, produce debugging binaries and libraries))
 AM_CONDITIONAL(DEBUG, test "$enable_debug" = yes)

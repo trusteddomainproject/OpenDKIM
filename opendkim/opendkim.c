@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.37 2009/09/01 08:09:49 cm-msk Exp $
+**  $Id: opendkim.c,v 1.38 2009/09/15 22:29:38 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.37 2009/09/01 08:09:49 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.38 2009/09/15 22:29:38 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -175,9 +175,6 @@ struct dkimf_config
 {
 	_Bool		conf_addxhdr;		/* add identifying header? */
 	_Bool		conf_blen;		/* use "l=" when signing */
-#ifdef _FFR_COMMAIZE
-	_Bool		conf_commaize;		/* clone MTA's commaize() */
-#endif /* _FFR_COMMAIZE */
 	_Bool		conf_ztags;		/* use "z=" when signing */
 	_Bool		conf_alwaysaddar;	/* always add Auth-Results:? */
 	_Bool		conf_sendreports;	/* verify failure reports */
@@ -551,38 +548,6 @@ char *defilist[] =
 	"127.0.0.1",
 	NULL
 };
-
-#ifdef _FFR_COMMAIZE
-/*
-**  List of header fields that the MTA might rewrite, taken from
-**  sendmail/conf.c
-*/
-
-char *commaize_hdrs[] =
-{
-	/* sender headers */
-	"resent-sender",
-	"resent-from",
-	"resent-reply-to",
-	"sender",
-	"from",
-	"reply-to",
-	"errors-to",
-	"disposition-notification-to",
-
-	/* recipient headers */
-	"to",
-	"resent-to",
-	"cc",
-	"resent-cc",
-	"bcc",
-	"resent-bcc",
-	"apparently-to",
-
-	/* end */
-	NULL
-};
-#endif /* _FFR_COMMAIZE */
 
 /* PROTOTYPES */
 #ifdef LEAK_TRACKING
@@ -2093,11 +2058,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 		(void) config_get(data, "ClockDrift", &conf->conf_clockdrift,
 		                  sizeof conf->conf_clockdrift);
-
-#ifdef _FFR_COMMAIZE
-		(void) config_get(data, "Commaize", &conf->conf_commaize,
-		                  sizeof conf->conf_commaize);
-#endif /* _FFR_COMMAIZE */
 
 		(void) config_get(data, "Diagnostics", &conf->conf_ztags,
 		                  sizeof conf->conf_ztags);
@@ -5525,35 +5485,6 @@ dkimf_policyreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	}
 }
 
-#ifdef _FFR_COMMAIZE
-/*
-**  DKIMF_COMMAIZE_HDR -- consult list of header fields MTA would rewrite
-**
-**  Parameters:
-**  	name -- name of header field being considered
-**
-**  Return value:
-**  	TRUE iff the header field's name appears in the list of header
-**  	fields the MTA would rewrite.
-*/
-
-static _Bool
-dkimf_commaize_hdr(char *name)
-{
-	int c;
-
-	assert(name != NULL);
-
-	for (c = 0; commaize_hdrs[c] != NULL; c++)
-	{
-		if (strcasecmp(name, commaize_hdrs[c]) == 0)
-			return TRUE;
-	}
-
-	return FALSE;
-}
-#endif /* _FFR_COMMAIZE */
-
 /*
 **  END private section
 **  ==================================================================
@@ -6054,49 +5985,17 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 		**  it).
 		*/
 
-#ifdef _FFR_COMMAIZE
-		if (conf->conf_commaize && dkimf_commaize_hdr(headerf))
-		{
-			dkimf_commaize(dfc->mctx_tmpstr, headerv,
-			               strlen(headerf) + 2, MTAMARGIN,
-			               cc->cctx_noleadspc);
-		}
-		else
-		{
-			char *p;
-
-			p = headerv;
-			if (isascii(*p) && isspace(*p))
-				p++;
-
-			dkimf_dstring_copy(dfc->mctx_tmpstr, p);
-		}
-#else /* _FFR_COMMAIZE */
 		char *p;
 
 		p = headerv;
-		if (isascii(*p) && isspace(*p))
+		while (isascii(*p) && isspace(*p))
 			p++;
 
 		dkimf_dstring_copy(dfc->mctx_tmpstr, p);
-#endif /* _FFR_COMMAIZE */
 	}
 	else
 	{
-#ifdef _FFR_COMMAIZE
-		if (conf->conf_commaize && dkimf_commaize_hdr(headerf))
-		{
-			dkimf_commaize(dfc->mctx_tmpstr, headerv,
-			               strlen(headerf) + 1, MTAMARGIN,
-			               cc->cctx_noleadspc);
-		}
-		else
-		{
-			dkimf_dstring_copy(dfc->mctx_tmpstr, headerv);
-		}
-#else /* _FFR_COMMAIZE */
 		dkimf_dstring_copy(dfc->mctx_tmpstr, headerv);
-#endif /* _FFR_COMMAIZE */
 	}
 
 #ifdef _FFR_REPLACE_RULES

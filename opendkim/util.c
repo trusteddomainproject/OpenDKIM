@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.10 2009/09/10 20:50:29 cm-msk Exp $
+**  $Id: util.c,v 1.11 2009/09/15 22:29:38 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.10 2009/09/10 20:50:29 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.11 2009/09/15 22:29:38 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -94,10 +94,6 @@ static char *optlist[] =
 #if _FFR_CAPTURE_UNKNOWN_ERRORS
 	"_FFR_CAPTURE_UNKNOWN_ERRORS",
 #endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
-
-#if _FFR_COMMAIZE
-	"_FFR_COMMAIZE",
-#endif /* _FFR_COMMAIZE */
 
 #if _FFR_DIFFHEADERS
 	"_FFR_DIFFHEADERS",
@@ -1595,177 +1591,6 @@ dkimf_base64_encode_file(infd, out, lm, rm, initial)
 		fputc('=', out);
 	}
 }
-
-#ifdef _FFR_COMMAIZE
-/*
-**  DKIMF_COMMAIZE -- reformat a header field which contains a comma-separated
-**                    list of addresses; attempts to mimic what
-**                    commaize() in sendmail/headers.c does
-**
-**  Parameters:
-**  	dst -- destination string object
-**  	src -- source string
-**  	ilen -- initial string length
-**  	margin -- wrap length
-** 	noleadspc -- "no leading spaces" has been set (i.e. milter v2 in use)
-**
-**  Return value:
-**  	Number of addresses found. 
-*/
-
-int
-dkimf_commaize(struct dkimf_dstring *dst, char *src, size_t ilen,
-               size_t margin, bool noleadspc)
-{
-	bool incomment;
-	bool infocus;
-	bool quoted;
-	bool escaped;
-	bool first;
-	int acnt;
-	size_t len;
-	size_t alen;
-	char *p;
-	char *end;
-	char *start = NULL;
-
-	assert(dst != NULL);
-	assert(src != NULL);
-
-	end = src + strlen(src);
-	len = ilen;
-	incomment = FALSE;
-	infocus = FALSE;
-	quoted = FALSE;
-	escaped = FALSE;
-	first = TRUE;
-	acnt = 0;
-
-	for (p = src; p < end; p++)
-	{
-		/* discard the first space if appropriate */
-		if (isascii(*p) && isspace(*p) && p == src && !noleadspc)
-			continue;
-
-		if (*p == '(' && !escaped)
-		{
-			incomment = TRUE;
-			if (start == NULL)
-				start = p;
-			continue;
-		}
-
-		if (*p == ')' && !escaped)
-		{
-			incomment = FALSE;
-			if (start == NULL)
-				start = p;
-			continue;
-		}
-
-		if (*p == '<' && !escaped)
-		{
-			infocus = TRUE;
-			if (start == NULL)
-				start = p;
-			continue;
-		}
-
-		if (*p == '>' && !escaped)
-		{
-			infocus = FALSE;
-			if (start == NULL)
-				start = p;
-			continue;
-		}
-
-		if (*p == '\"' && !escaped)
-		{
-			quoted = !quoted;
-			if (start == NULL)
-				start = p;
-			continue;
-		}
-
-		if (escaped)
-		{
-			escaped = FALSE;
-			if (start == NULL)
-				start = p;
-			continue;
-		}
-
-		if (*p == '\\')
-		{
-			escaped = TRUE;
-			if (start == NULL)
-				start = p;
-			continue;
-		}
-
-		if (*p == ',' && !incomment && !infocus && !quoted)
-		{
-			if (start == NULL)
-				continue;
-
-			*p = '\0';
-
-			alen = strlen(start);
-			if (len + alen + 2 > margin && !first)
-			{
-				if (acnt > 0)
-				{
-					dkimf_dstring_cat(dst,
-					                  ",\r\n        ");
-				}
-				dkimf_dstring_cat(dst, start);
-				len = 8 + alen;
-				first = TRUE;
-			}
-			else
-			{
-				if (acnt > 0)
-					dkimf_dstring_cat(dst, ", ");
-				dkimf_dstring_cat(dst, start);
-				len = len + alen + 2;
-				first = FALSE;
-			}
-
-			*p = ',';
-
-			start = NULL;
-
-			acnt++;
-
-			continue;
-		}
-
-		if (start == NULL && (first || !isascii(*p) || !isspace(*p)))
-			start = p;
-	}
-
-	if (start != NULL)
-	{
-		alen = strlen(start);
-
-		if (len + alen + 2 > margin && !first)
-		{
-			dkimf_dstring_cat(dst, ",\r\n        ");
-			dkimf_dstring_cat(dst, start);
-		}
-		else
-		{
-			if (acnt > 0)
-				dkimf_dstring_cat(dst, ", ");
-			dkimf_dstring_cat(dst, start);
-		}
-
-		acnt++;
-	}
-
-	return acnt;
-}
-#endif /* _FFR_COMMAIZE */
 
 /*
 **  DKIMF_SUBDOMAIN -- determine whether or not one domain is a subdomain
