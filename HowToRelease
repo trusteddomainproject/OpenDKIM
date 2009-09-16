@@ -60,4 +60,6 @@ Release procedures for OpenDKIM
 12) Mark any bug fixes or feature requests, etc. as closed if this release
     contained them.
 
-$Id: HowToRelease,v 1.1 2009/09/16 19:47:46 cm-msk Exp $
+13) Update our entry on FreshMeat (http://www.freshmeat.net)
+
+$Id: HowToRelease,v 1.2 2009/09/16 20:58:23 cm-msk Exp $
