@@ -1,11 +1,11 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.23 2009/09/15 22:29:38 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.24 2009/09/16 18:38:19 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-1.1.0		2009/09/15
+1.1.0		2009/09/16
 	Feature request #SF2839110: Add _FFR_IDENTITY_HEADER, to set an
        		identity (i=) for signing based on the value found in a
 		particular header.  Requested by Florian Sager. 
