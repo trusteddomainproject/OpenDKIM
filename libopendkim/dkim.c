@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.12 2009/09/10 16:21:46 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.13 2009/09/16 17:36:11 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -4400,7 +4400,8 @@ dkim_policy(DKIM *dkim, dkim_policy_t *pcode, DKIM_PSTATE *pstate)
 	**  Apply draft-ietf-dkim-ssp-04 sender signing policy algorithm:
 	*/
 
-	/*  Verify Domain Scope:   An ADSP verifier implementation MUST
+	/*
+	**  Verify Domain Scope:   An ADSP verifier implementation MUST
 	**  determine whether a given Author Domain is within scope for
 	**  ADSP.  Given the background in Section 3.1 the verifier MUST
 	**  decide which degree of over-approximation is acceptable.  The
@@ -4430,7 +4431,6 @@ dkim_policy(DKIM *dkim, dkim_policy_t *pcode, DKIM_PSTATE *pstate)
 	**  that the Author domain does not exist for mail, e.g., the domain
 	**  has no MX, A, or AAAA record, the verifier SHOULD terminate with
 	**  an error indicating that the domain is out of scope.
-	**
 	*/
 
 	if (pstate == NULL || pstate->ps_state < 1)
