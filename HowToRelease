@@ -62,4 +62,7 @@ Release procedures for OpenDKIM
 
 13) Update our entry on FreshMeat (http://www.freshmeat.net)
 
-$Id: HowToRelease,v 1.2 2009/09/16 20:58:23 cm-msk Exp $
+14) Apply a CVS tag to the release.  Make sure you're tagging from the
+    top-level directory, and use a tag name of "rel-opendkim-x-y-z".
+
+$Id: HowToRelease,v 1.3 2009/09/17 07:06:50 cm-msk Exp $
