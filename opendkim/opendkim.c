@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.38 2009/09/15 22:29:38 cm-msk Exp $
+**  $Id: opendkim.c,v 1.39 2009/09/18 02:43:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.38 2009/09/15 22:29:38 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.39 2009/09/18 02:43:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1482,9 +1482,6 @@ dkimf_local_adsp(struct dkimf_config *conf, char *domain, dkim_policy_t *pcode)
 				policy = conf->conf_localadsp_policy[c];
 				break;
 			}
-
-			if (policy != NULL)
-				break;
 		}
 
 		if (policy != NULL)
@@ -2950,6 +2947,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			{
 				snprintf(err, errlen, "strdup(): %s",
 				         strerror(errno));
+				fclose(f);
 				return -1;
 			}
 
@@ -2964,6 +2962,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (conf->conf_localadsp_policy == NULL)
 		{
 			snprintf(err, errlen, "malloc(): %s", strerror(errno));
+			fclose(f);
 			return -1;
 		}
 
@@ -2985,6 +2984,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				{
 					snprintf(err, errlen,
 					         "unknown ADSP `%s'", p + 1);
+					fclose(f);
 					return -1;
 				}
 
@@ -3064,6 +3064,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 						snprintf(err, errlen,
 						         "malloc(): %s",
 						         strerror(errno));
+						fclose(f);
 						return -1;
 					}
 				}
@@ -3073,6 +3074,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				{
 					snprintf(err, errlen, "strdup(): %s",
 					         strerror(errno));
+					fclose(f);
 					return -1;
 				}
 
@@ -3190,6 +3192,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 						snprintf(err, errlen,
 						         "malloc(): %s",
 						         strerror(errno));
+						fclose(f);
 						return -1;
 					}
 				}
@@ -3200,6 +3203,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 					snprintf(err, errlen,
 					         "strdup(): %s",
 					         strerror(errno));
+					fclose(f);
 					return -1;
 				}
 
@@ -5532,21 +5536,26 @@ mlfi_negotiate(SMFICTX *ctx,
 
 	/* initialize connection context */
 	cc = malloc(sizeof(struct connctx));
-	if (cc != NULL)
+	if (cc == NULL)
 	{
-		memset(cc, '\0', sizeof(struct connctx));
+		if (conf->conf_dolog)
+		{
+			syslog(LOG_ERR, "mlfi_negotiate(): malloc(): %s",
+			       strerror(errno));
+		}
 
-		pthread_mutex_lock(&conf_lock);
-
-		cc->cctx_config = curconf;
-		curconf->conf_refcnt++;
-
-		conf = curconf;
-
-		pthread_mutex_unlock(&conf_lock);
-
-		dkimf_setpriv(ctx, cc);
+		return SMFIS_TEMPFAIL;
 	}
+
+	memset(cc, '\0', sizeof(struct connctx));
+
+	pthread_mutex_lock(&conf_lock);
+
+	cc->cctx_config = curconf;
+	curconf->conf_refcnt++;
+	conf = curconf;
+
+	pthread_mutex_unlock(&conf_lock);
 
 	/* verify the actions we need are available */
 	if (quarantine)
@@ -5562,6 +5571,12 @@ mlfi_negotiate(SMFICTX *ctx,
 			       "mlfi_negotiate(): required milter action(s) not available (got 0x%lx, need 0x%lx)",
 			       f0, reqactions);
 		}
+
+		pthread_mutex_lock(&conf_lock);
+		conf->conf_refcnt--;
+		pthread_mutex_unlock(&conf_lock);
+
+		free(cc);
 
 		return SMFIS_REJECT;
 	}
@@ -5614,6 +5629,12 @@ mlfi_negotiate(SMFICTX *ctx,
 					       "mlfi_negotiate(): macro list overflow");
 				}
 
+				pthread_mutex_lock(&conf_lock);
+				conf->conf_refcnt--;
+				pthread_mutex_unlock(&conf_lock);
+
+				free(cc);
+
 				return SMFIS_REJECT;
 			}
 		}
@@ -5623,6 +5644,12 @@ mlfi_negotiate(SMFICTX *ctx,
 			if (conf->conf_dolog)
 				syslog(LOG_ERR, "smfi_setsymlist() failed");
 
+			pthread_mutex_lock(&conf_lock);
+			conf->conf_refcnt--;
+			pthread_mutex_unlock(&conf_lock);
+
+			free(cc);
+
 			return SMFIS_REJECT;
 		}
 	}
@@ -5630,6 +5657,8 @@ mlfi_negotiate(SMFICTX *ctx,
 	/* set "milterv2" flag if SMFIP_SKIP was available */
 	if ((f1 & SMFIP_SKIP) != 0)
 		cc->cctx_milterv2 = TRUE;
+
+	(void) dkimf_setpriv(ctx, cc);
 
 	return SMFIS_CONTINUE;
 }
@@ -5712,7 +5741,8 @@ mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
 		}
 	}
 
-	strlcpy(cc->cctx_host, host, sizeof cc->cctx_host);
+	if (host != NULL)
+		strlcpy(cc->cctx_host, host, sizeof cc->cctx_host);
 
 	if (ip == NULL)
 	{

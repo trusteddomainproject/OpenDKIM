@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.7 2009/09/09 18:30:39 cm-msk Exp $";
+static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.8 2009/09/18 02:43:09 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -307,14 +307,18 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 	if (stat != DKIM_STAT_OK)
 	{
 		strlcpy(err, "syntax error on input", errlen);
+		(void) dkim_free(dkim);
 		return -1;
 	}
 
 	dkim->dkim_sigcount = 1;
 
 	stat = dkim_siglist_setup(dkim);
-	if (status != DKIM_STAT_OK)
+	if (stat != DKIM_STAT_OK)
+	{
+		(void) dkim_free(dkim);
 		return -1;
+	}
 
 	sig = dkim->dkim_siglist[0];
 
@@ -343,6 +347,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 				        errlen);
 			}
 		}
+
 		(void) dkim_free(dkim);
 		return -1;
 	}
@@ -357,6 +362,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 				strlcpy(err, "BIO_new_mem_buf() failed",
 				        errlen);
 			}
+
 			(void) dkim_free(dkim);
 			return -1;
 		}

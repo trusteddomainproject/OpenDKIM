@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.13 2009/09/16 17:36:11 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.14 2009/09/18 02:43:09 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -2073,6 +2073,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	if (status != DKIM_STAT_OK)
 	{
 		dkim_error(dkim, "dkim_canon_getfinal() failed");
+		(void) DKIM_FREE(dkim, always);
 		return (size_t) -1;
 	}
 

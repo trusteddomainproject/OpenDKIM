@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: config.c,v 1.3 2009/07/23 22:38:37 cm-msk Exp $
+**  $Id: config.c,v 1.4 2009/09/18 02:43:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char config_c_id[] = "@(#)$Id: config.c,v 1.3 2009/07/23 22:38:37 cm-msk Exp $";
+static char config_c_id[] = "@(#)$Id: config.c,v 1.4 2009/09/18 02:43:10 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -250,6 +250,9 @@ config_load_level(char *file, struct configdef *def,
 			if (outpath != NULL)
 				strlcpy(outpath, file, outpathlen);
 
+			if (in != stdin)
+				fclose(in);
+
 			return NULL;
 		}
 
@@ -266,6 +269,9 @@ config_load_level(char *file, struct configdef *def,
 					*line = myline;
 				if (outpath != NULL)
 					strlcpy(outpath, file, outpathlen);
+
+				if (in != stdin)
+					fclose(in);
 
 				return NULL;
 			}
@@ -284,7 +290,12 @@ config_load_level(char *file, struct configdef *def,
 			incl = config_load_level(str, def, line, outpath,
 			                         outpathlen, level + 1);
 			if (incl == NULL)
+			{
+				if (in != stdin)
+					fclose(in);
+
 				return NULL;
+			}
 
 			config_attach(incl, cur);
 			new = incl;

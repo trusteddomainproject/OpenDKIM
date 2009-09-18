@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-crypto.c,v 1.3 2009/07/21 23:36:39 cm-msk Exp $
+**  $Id: opendkim-crypto.c,v 1.4 2009/09/18 02:43:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.3 2009/07/21 23:36:39 cm-msk Exp $";
+static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.4 2009/09/18 02:43:10 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -153,7 +153,10 @@ dkimf_crypto_dyn_create(/* UNUSED */ const char *file,
 
 	err = pthread_mutex_init(new, NULL);
 	if (err != 0)
+	{
+		free(new);
 		return NULL;
+	}
 
 	return (void *) new;
 }

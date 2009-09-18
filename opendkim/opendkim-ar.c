@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-ar.c,v 1.3 2009/07/23 22:38:37 cm-msk Exp $
+**  $Id: opendkim-ar.c,v 1.4 2009/09/18 02:43:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_ar_c_id[] = "@(#)$Id: opendkim-ar.c,v 1.3 2009/07/23 22:38:37 cm-msk Exp $";
+static char opendkim_ar_c_id[] = "@(#)$Id: opendkim-ar.c,v 1.4 2009/09/18 02:43:10 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -134,6 +134,10 @@ ares_tokenize(u_char *input, u_char *outbuf, size_t outbuflen,
 			*q = *p;
 			q++;
 			escaped = FALSE;
+		}
+		else if (*p == '\\')			/* escape */
+		{
+			escaped = TRUE;
 		}
 		else if (*p == '"')			/* quoting */
 		{

@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.8 2009/08/19 00:55:35 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.9 2009/09/18 02:43:09 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -525,7 +525,10 @@ dkim_canon_selecthdrs(DKIM *dkim, u_char *hdrlist, struct dkim_header **ptrs,
 	n = sizeof(u_char *) * shcnt;
 	hdrs = DKIM_MALLOC(dkim, n);
 	if (hdrs == NULL)
+	{
+		(void) DKIM_FREE(dkim, lhdrs);
 		return -1;
+	}
 	memset(hdrs, '\0', n);
 
 	n = 0;
