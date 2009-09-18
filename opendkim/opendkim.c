@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.39 2009/09/18 02:43:10 cm-msk Exp $
+**  $Id: opendkim.c,v 1.40 2009/09/18 02:58:30 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.39 2009/09/18 02:43:10 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.40 2009/09/18 02:58:30 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5007,7 +5007,7 @@ dkimf_freekeys(struct dkimf_config *conf)
 		if (cur->key_domain != NULL)
 			free(cur->key_domain);
 		if (cur->key_data != NULL)
-			free(cur->key_domain);
+			free(cur->key_data);
 		regfree(&cur->key_re);
 
 		free(cur);

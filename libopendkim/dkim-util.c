@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.5 2009/08/19 00:33:52 cm-msk Exp $";
+static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.6 2009/09/18 02:58:30 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -576,13 +576,16 @@ dkim_dstring_printf(struct dkim_dstring *dstr, char *fmt, ...)
 	if (len > dstr->ds_len)
 	{
 		if (!dkim_dstring_resize(dstr, len + 1))
+		{
+			va_end(ap2);
 			return (size_t) -1;
+		}
 
 		len = vsnprintf(dstr->ds_buf + dstr->ds_len, dstr->ds_alloc,
 		                fmt, ap2);
-
-		va_end(ap2);
 	}
+
+	va_end(ap2);
 
 	dstr->ds_len += len;
 
