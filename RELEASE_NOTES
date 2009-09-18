@@ -1,9 +1,15 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.24 2009/09/16 18:38:19 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.25 2009/09/18 03:13:14 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
+
+1.1.1		2009/??/??
+	Plug a number of potential memory and file handle leaks, remove
+		some dead code, guard against NULL dereferences, fix an
+		errant return code check, fix a double-free(), and several
+		other fixes found by a code analysis tool.
 
 1.1.0		2009/09/16
 	Feature request #SF2839110: Add _FFR_IDENTITY_HEADER, to set an
