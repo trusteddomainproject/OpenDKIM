@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.41 2009/09/21 18:12:24 cm-msk Exp $
+**  $Id: opendkim.c,v 1.42 2009/09/21 18:16:19 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.41 2009/09/21 18:12:24 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.42 2009/09/21 18:16:19 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5539,7 +5539,7 @@ mlfi_negotiate(SMFICTX *ctx,
 	cc = malloc(sizeof(struct connctx));
 	if (cc == NULL)
 	{
-		if (conf->conf_dolog)
+		if (curconf->conf_dolog)
 		{
 			syslog(LOG_ERR, "mlfi_negotiate(): malloc(): %s",
 			       strerror(errno));
