@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.8 2009/09/18 02:43:09 cm-msk Exp $";
+static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.9 2009/09/21 18:09:20 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -531,5 +531,5 @@ dkim_test_adsp(DKIM_LIB *lib, const char *domain, dkim_policy_t *presult,
 	dkim->dkim_domain = NULL;
 	(void) dkim_free(dkim);
 
-	return (stat == DKIM_STAT_OK ? 0 : -1);
+	return 0;
 }
