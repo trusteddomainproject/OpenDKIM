@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.40 2009/09/18 02:58:30 cm-msk Exp $
+**  $Id: opendkim.c,v 1.41 2009/09/21 18:12:24 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.40 2009/09/18 02:58:30 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.41 2009/09/21 18:12:24 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2938,6 +2938,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 					snprintf(err, errlen,
 					         "malloc(): %s",
 					         strerror(errno));
+					fclose(f);
 					return -1;
 				}
 			}
