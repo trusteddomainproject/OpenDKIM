@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.9 2009/09/01 17:47:06 cm-msk Exp $
+# $Id: Makefile.am,v 1.10 2009/09/29 17:49:19 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 SUBDIRS = 
@@ -11,7 +11,6 @@ EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
 	contrib/opendkim.init \
 	contrib/opendkim.spec \
 	docs/draft-ietf-dkim-deployment-08.txt \
-	docs/draft-ietf-dkim-rfc4871-errata-07.txt \
 	docs/draft-kucherawy-dkim-reporting-04.txt \
 	docs/draft-shafranovich-feedback-report-07.txt \
 	docs/rfc4686.txt \
@@ -21,6 +20,7 @@ EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
 	docs/rfc5518.txt \
 	docs/rfc5585.txt \
 	docs/rfc5617.txt \
+	docs/rfc5672.txt \
 	libopendkim/docs/dkim.html \
 	libopendkim/docs/dkim_alg_t.html \
 	libopendkim/docs/dkim_body.html \
