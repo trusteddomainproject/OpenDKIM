@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.6 2009/09/15 22:29:38 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.7 2009/10/01 21:37:22 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.6 2009/09/15 22:29:38 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.7 2009/10/01 21:37:22 cm-msk Exp $";
 #endif /* !lint */
 
 struct configdef dkimf_config[] =
@@ -116,6 +116,9 @@ struct configdef dkimf_config[] =
 #endif /* _FFR_SELECTOR_HEADER */
 	{ "SendADSPReports",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "SenderHeaders",		CONFIG_TYPE_STRING,	FALSE },
+#ifdef _FFR_SENDER_MACRO
+	{ "SenderMacro",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_SENDER_MACRO */
 	{ "SendReports",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "SignatureAlgorithm",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SignatureTTL",		CONFIG_TYPE_INTEGER,	FALSE },

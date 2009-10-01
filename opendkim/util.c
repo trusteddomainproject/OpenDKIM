@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.11 2009/09/15 22:29:38 cm-msk Exp $
+**  $Id: util.c,v 1.12 2009/10/01 21:37:22 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.11 2009/09/15 22:29:38 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.12 2009/10/01 21:37:22 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -130,6 +130,10 @@ static char *optlist[] =
 #if _FFR_SELECTOR_HEADER
 	"_FFR_SELECTOR_HEADER",
 #endif /* _FFR_SELECTOR_HEADER */
+
+#if _FFR_SENDER_MACRO
+	"_FFR_SENDER_MACRO",
+#endif /* _FFR_SENDER_MACRO */
 
 #if _FFR_STATS
 	"_FFR_STATS",

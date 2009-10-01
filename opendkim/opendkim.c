@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.42 2009/09/21 18:16:19 cm-msk Exp $
+**  $Id: opendkim.c,v 1.43 2009/10/01 21:37:22 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.42 2009/09/21 18:16:19 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.43 2009/10/01 21:37:22 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -240,6 +240,9 @@ struct dkimf_config
 	char *		conf_canonstr;		/* canonicalization(s) string */
 	char *		conf_siglimit;		/* signing limits */
 	char *		conf_selector;		/* key selector */
+#ifdef _FFR_SENDER_MACRO
+	char *		conf_sendermacro;	/* macro containing sender */
+#endif /* _FFR_SENDER_MACRO */
 #ifdef _FFR_IDENTITY_HEADER
 	char *		conf_identityhdr;	/* identity header */
 	_Bool		conf_rmidentityhdr;	/* remove identity header */
@@ -6190,6 +6193,9 @@ mlfi_eoh(SMFICTX *ctx)
 	connctx cc;
 	msgctx dfc;
 	char *p;
+#ifdef _FFR_SENDER_MACRO
+	char *macrosender = NULL;
+#endif /* _FFR_SENDER_MACRO */
 	char *user;
 	char *domain;
 #ifdef _FFR_VBR
@@ -6220,6 +6226,49 @@ mlfi_eoh(SMFICTX *ctx)
 	/* find the Sender: or From: header */
 	memset(addr, '\0', sizeof addr);
 
+#ifdef _FFR_SENDER_MACRO
+	if (conf->conf_sendermacro != NULL)
+	{
+		macrosender = dkimf_getsymval(ctx, conf->conf_sendermacro);
+		if (macrosender != NULL)
+			strlcpy(addr, macrosender, sizeof addr);
+	}
+
+	if (macrosender == NULL)
+	{
+		for (c = 0; conf->conf_senderhdrs[c] != NULL; c++)
+		{
+			if (strcasecmp("from", conf->conf_senderhdrs[c]) == 0)
+				didfrom = TRUE;
+
+			from = dkimf_findheader(dfc, conf->conf_senderhdrs[c],
+			                        0);
+			if (from != NULL)
+				break;
+		}
+
+		if (from == NULL && !didfrom)
+			from = dkimf_findheader(dfc, "from", 0);
+
+		if (from == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_INFO,
+				       "%s: can't determine message sender; accepting",
+				       dfc->mctx_jobid);
+			}
+
+			dfc->mctx_addheader = TRUE;
+			dfc->mctx_headeronly = TRUE;
+			dfc->mctx_status = DKIMF_STATUS_BADFORMAT;
+			return SMFIS_CONTINUE;
+		}
+
+		/* extract the sender's domain */
+		strlcpy(addr, from->hdr_val, sizeof addr);
+	}
+#else /* _FFR_SENDER_MACRO */
 	for (c = 0; conf->conf_senderhdrs[c] != NULL; c++)
 	{
 		if (strcasecmp("from", conf->conf_senderhdrs[c]) == 0)
@@ -6238,7 +6287,7 @@ mlfi_eoh(SMFICTX *ctx)
 		if (conf->conf_dolog)
 		{
 			syslog(LOG_INFO,
-			       "%s: no sender header found; accepting",
+			       "%s: can't determine message sender; accepting",
 			       dfc->mctx_jobid);
 		}
 
@@ -6250,15 +6299,34 @@ mlfi_eoh(SMFICTX *ctx)
 
 	/* extract the sender's domain */
 	strlcpy(addr, from->hdr_val, sizeof addr);
+#endif /* _FFR_SENDER_MACRO */
+
 	status = rfc2822_mailbox_split(addr, &user, &domain);
 	if (status != 0 || user == NULL || domain == NULL ||
 	    user[0] == '\0' || domain[0] == '\0')
 	{
 		if (conf->conf_dolog)
 		{
+#ifdef _FFR_SENDER_MACRO
+			if (macrosender != NULL)
+			{
+				syslog(LOG_INFO,
+				       "%s: can't parse macro %s header value `%s'",
+				       dfc->mctx_jobid, conf->conf_sendermacro,
+				       macrosender);
+			}
+			else
+			{
+				syslog(LOG_INFO,
+				       "%s: can't parse %s: header value `%s'",
+				       dfc->mctx_jobid, from->hdr_hdr,
+				       from->hdr_val);
+			}
+#else /* _FFR_SENDER_MACRO */
 			syslog(LOG_INFO,
 			       "%s: can't parse %s: header value `%s'",
 			       dfc->mctx_jobid, from->hdr_hdr, from->hdr_val);
+#endif /* _FFR_SENDER_MACRO */
 		}
 
 		dfc->mctx_addheader = TRUE;
