@@ -38,7 +38,7 @@
 **
 **		char *s, buf[BUFSIZ];
 **		...
-**		if (sm_strlcpy(buf, s, sizeof(buf)) >= sizeof(buf))
+**		if (dkim_strlcpy(buf, s, sizeof(buf)) >= sizeof(buf))
 **			goto overflow;
 **
 **	Parameters:
@@ -85,7 +85,7 @@ dkim_strlcpy(dst, src, size)
 **
 **		char *s, buf[BUFSIZ];
 **		...
-**		if (sm_strlcat(buf, s, sizeof(buf)) >= sizeof(buf))
+**		if (dkim_strlcat(buf, s, sizeof(buf)) >= sizeof(buf))
 **			goto overflow;
 **
 **	Parameters:
