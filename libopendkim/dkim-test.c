@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.9 2009/09/21 18:09:20 cm-msk Exp $";
+static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.10 2009/10/06 17:47:24 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -123,7 +123,7 @@ dkim_test_dns_get(DKIM *dkim, u_char *buf, size_t buflen)
 {
 	int n;
 	int len;
-	int testttl;
+	uint32_t testttl;
 	struct dkim_test_dns_data *td;
 	u_char *cp;
 	u_char *p;

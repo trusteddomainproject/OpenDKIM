@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.6 2009/07/23 17:54:40 cm-msk Exp $";
+static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.7 2009/10/06 17:45:55 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -556,7 +556,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	int type = -1;
 	int class = -1;
 #ifdef QUERY_CACHE
-	int ttl;
+	uint32_t ttl;
 #endif /* QUERY_CACHE */
 #if USE_UNBOUND
 	struct dkim_unbound_cb_data cb_data;

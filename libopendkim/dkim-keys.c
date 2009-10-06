@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.6 2009/09/18 02:43:09 cm-msk Exp $";
+static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.7 2009/10/06 17:45:55 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -69,7 +69,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 {
 #ifdef QUERY_CACHE
 	bool cached = FALSE;
-	int ttl = 0;
+	uint32_t ttl = 0;
 #endif /* QUERY_CACHE */
 	int status;
 	int qdcount;
