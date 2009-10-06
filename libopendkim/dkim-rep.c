@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: dkim-rep.c,v 1.3 2009/07/23 17:40:23 cm-msk Exp $
+**  $Id: dkim-rep.c,v 1.4 2009/10/06 17:47:57 cm-msk Exp $
 */
 
 #ifndef lint
-static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.3 2009/07/23 17:40:23 cm-msk Exp $";
+static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.4 2009/10/06 17:47:57 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_DKIM_REPUTATION
@@ -37,6 +37,7 @@ static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.3 2009/07/23 17:40:23 cm-
 /* libopendkim includes */
 #include "dkim.h"
 #include "dkim-types.h"
+#include "util.h"
 
 /* prototypes */
 extern void dkim_error __P((DKIM *, const char *, ...));
@@ -150,6 +151,9 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 	int type;
 	int class;
 	int status;
+#ifdef QUERY_CACHE
+	uint32_t ttl;
+#endif /* QUERY_CACHE */
 #ifdef USE_ARLIB
 	int error;
 	AR_LIB ar;
