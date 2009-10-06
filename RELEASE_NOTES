@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.27 2009/10/01 21:37:21 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.28 2009/10/06 17:48:18 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -11,6 +11,8 @@ release, and a summary of the changes in that release.
 		errant return code check, fix a double-free(), and several
 		other fixes found by a code analysis tool, used by courtesy
 		of Cloudmark.
+	BUILD: Some compilation fixes and type cleanup.  Based on patches
+		provided by Daniel Black.
 	Add _FFR_SENDER_MACRO: Determine the message sender based on the
 		contents of a macro instead of on a header field.
 		Based on a patch from Ondrej Sury.
