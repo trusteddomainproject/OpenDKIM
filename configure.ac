@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.49 2009/10/01 21:37:21 cm-msk Exp $
+# $Id: configure.ac,v 1.50 2009/10/06 23:09:19 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -257,6 +257,54 @@ AM_CONDITIONAL(USE_UNBOUND, test x"$unboundpath" != x"no")
 AC_SUBST(LIBUNBOUND_INCDIRS)
 AC_SUBST(LIBUNBOUND_LIBDIRS)
 AC_SUBST(LIBUNBOUND_LIBS)
+
+# libtre
+AC_MSG_CHECKING(for libtre)
+AC_ARG_WITH(tre,
+	AS_HELP_STRING(--with-tre, location of TRE includes and library),
+	trepath="$withval", trepath="no")
+
+if test x"$trepath" == x"no" -a x"$enable_diffheaders" == x"yes"
+then
+	AC_MSG_ERROR(cannot use diffheaders without TRE library)
+fi
+
+if test x"$trepath" = x"yes"
+then
+	tredirs="/usr /usr/local"
+	for d in $tredirs
+	do
+		if test -f $d/include/regex.h
+		then
+			trepath=$d
+			AC_MSG_RESULT($d)
+			LIBTRE_INCDIRS="-I$trepath/include"
+			LIBTRE_LIBDIRS="-L$trepath/lib"
+			LIBTRE_LIBS="-ltre"
+			break;
+		fi
+	done
+elif test x"$trepath" = x"no"
+then
+	AC_MSG_RESULT(no)
+	LIBTRE_INCDIRS=""
+	LIBTRE_LIBDIRS=""
+	LIBTRE_LIBS=""
+else
+	if test -f $trepath/include/regex.h
+	then
+		AC_MSG_RESULT($trepath)
+		LIBTRE_INCDIRS="-I$trepath/include"
+		LIBTRE_LIBDIRS="-L$trepath/lib"
+		LIBTRE_LIBS="-ltre"
+	else
+		AC_MSG_ERROR(not found at $trepath)
+	fi
+fi
+
+AC_SUBST(LIBTRE_INCDIRS)
+AC_SUBST(LIBTRE_LIBDIRS)
+AC_SUBST(LIBTRE_LIBS)
 
 # libdb
 AC_ARG_WITH(db,

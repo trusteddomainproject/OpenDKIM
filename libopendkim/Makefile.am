@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.25 2009/09/10 22:08:39 cm-msk Exp $
+# $Id: Makefile.am,v 1.26 2009/10/06 23:09:20 cm-msk Exp $
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h vbr.h
@@ -52,7 +52,9 @@ libopendkim_la_CFLAGS += -D_FFR_BODYLENGTH_DB
 endif
 
 if DIFFHEADERS
-libopendkim_la_CFLAGS += -D_FFR_DIFFHEADERS
+libopendkim_la_CFLAGS += -D_FFR_DIFFHEADERS $(LIBTRE_INCDIRS)
+libopendkim_la_LDFLAGS += $(LIBTRE_LIBDIRS)
+libopendkim_la_LIBADD += $(LIBTRE_LIBS)
 endif
 
 if DKIM_REPUTATION
@@ -90,7 +92,7 @@ if USE_UNBOUND
 libopendkim_la_CFLAGS += -DUSE_UNBOUND
 libopendkim_la_CFLAGS += $(LIBUNBOUND_INCDIRS)
 libopendkim_la_LDFLAGS += $(LIBUNBOUND_LIBDIRS)
-libopendkim_la_LIBADD += -lunbound
+libopendkim_la_LIBS += $(LIBUNBOUND_LIBS)
 endif
 
 if VBR

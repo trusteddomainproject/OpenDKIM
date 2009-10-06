@@ -59,6 +59,12 @@ doesn't find it, you will need to specify the location with
 		the /usr/local and /usr directories will be searched for
 		the required includes and libraries.
 
+--with-tre	Location of the TRE installation on your system.  This
+		is required if you are using the "diffheaders" feature.
+		If no specific location is provided, the /usr/local and
+		/usr directories will be searched for the required includes
+		and libraries.
+
 --with-unbound	The "unbound" asynchronous resolver library and include file.
 
 
@@ -361,4 +367,4 @@ headers of the reply you should see its signature and another
 Authentication-Results: header, which should also read "pass".
 
 
-$Id: INSTALL,v 1.8 2009/08/13 16:45:12 cm-msk Exp $
+$Id: INSTALL,v 1.9 2009/10/06 23:09:19 cm-msk Exp $
