@@ -34,7 +34,8 @@ captureerrors	When dkim_eom() returns an unexpected error of some kind,
 diffheaders	When verification fails for a message for which a "z="
 		tag was provided, compare the received headers to the original
 		headers to look for possible munging.  Requires the tre
-		library.  (opendkim, libopendkim)
+		library, available at http://laurikari.net/tre.
+		(opendkim, libopendkim)
 
 dkimreputation	Add experimental support for querying an open DKIM reputation
 		service.  The service's URL is http://www.dkim-reputation.org.
@@ -99,4 +100,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.6 $, Last updated $Date: 2009/10/01 21:37:21 $
+$Revision: 1.7 $, Last updated $Date: 2009/10/06 17:36:29 $
