@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_signperf_c_id[] = "@(#)$Id: t-signperf.c,v 1.3 2009/07/23 17:40:24 cm-msk Exp $";
+static char t_signperf_c_id[] = "@(#)$Id: t-signperf.c,v 1.4 2009/10/06 17:36:10 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -17,7 +17,6 @@ static char t_signperf_c_id[] = "@(#)$Id: t-signperf.c,v 1.3 2009/07/23 17:40:24
 #include <time.h>
 #include <unistd.h>
 #include <sysexits.h>
-
 
 /* libopendkim includes */
 #include "dkim.h"
@@ -86,7 +85,11 @@ main(int argc, char **argv)
 	time_t testint = DEFTESTINT;
 	dkim_canon_t hcanon = DKIM_CANON_RELAXED;
 	dkim_canon_t bcanon = DKIM_CANON_SIMPLE;
+#ifdef DKIM_SIGN_RSASHA256
+	dkim_alg_t signalg = DKIM_SIGN_RSASHA256;
+#else /* DKIM_SIGN_RSASHA256 */
 	dkim_alg_t signalg = DKIM_SIGN_RSASHA1;
+#endif /* DKIM_SIGN_RSASHA256 */
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 

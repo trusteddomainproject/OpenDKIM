@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_verifyperf_c_id[] = "@(#)$Id: t-verifyperf.c,v 1.3 2009/07/23 17:40:26 cm-msk Exp $";
+static char t_verifyperf_c_id[] = "@(#)$Id: t-verifyperf.c,v 1.4 2009/10/06 17:36:11 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -17,7 +17,6 @@ static char t_verifyperf_c_id[] = "@(#)$Id: t-verifyperf.c,v 1.3 2009/07/23 17:4
 #include <time.h>
 #include <unistd.h>
 #include <sysexits.h>
-
 
 /* libopendkim includes */
 #include "dkim.h"
@@ -80,7 +79,11 @@ main(int argc, char **argv)
 	time_t testint = DEFTESTINT;
 	dkim_canon_t hcanon = DKIM_CANON_RELAXED;
 	dkim_canon_t bcanon = DKIM_CANON_SIMPLE;
+#ifdef DKIM_SIGN_RSASHA256
+	dkim_alg_t signalg = DKIM_SIGN_RSASHA256;
+#else /* DKIM_SIGN_RSASHA256 */
 	dkim_alg_t signalg = DKIM_SIGN_RSASHA1;
+#endif /* DKIM_SIGN_RSASHA256 */
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	char *p;
 	DKIM *dkim;
