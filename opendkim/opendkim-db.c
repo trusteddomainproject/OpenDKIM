@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.3 2009/07/21 23:36:39 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.4 2009/10/06 17:37:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.3 2009/07/21 23:36:39 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.4 2009/10/06 17:37:52 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef USE_DB
@@ -22,6 +22,9 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.3 2009/07/21 23:36:
 #include <unistd.h>
 #include <fcntl.h>
 #include <assert.h>
+
+/* flock function defination */
+#include <sys/file.h>
 
 /* opendkim includes */
 #include "opendkim-db.h"
