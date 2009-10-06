@@ -8,7 +8,7 @@
 #ifdef _FFR_VBR
 
 #ifndef lint
-static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.4 2009/07/23 17:54:40 cm-msk Exp $";
+static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.5 2009/10/06 17:40:15 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -235,7 +235,7 @@ vbr_error(VBR *vbr, const char *format, ...)
 **  	TRUE iff ansbuf contains an IN TXT reply that could be deocde.
 */
 
-static bool
+static _Bool
 vbr_txt_decode(u_char *ansbuf, size_t anslen, u_char *buf, size_t buflen)
 {
 	int type;
