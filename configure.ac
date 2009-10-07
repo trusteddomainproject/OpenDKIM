@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.51 2009/10/07 00:32:27 cm-msk Exp $
+# $Id: configure.ac,v 1.52 2009/10/07 01:00:59 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -262,7 +262,13 @@ AC_SUBST(LIBUNBOUND_LIBS)
 AC_MSG_CHECKING(for libtre)
 AC_ARG_WITH(tre,
 	AS_HELP_STRING(--with-tre, location of TRE includes and library),
-	trepath="$withval", trepath="no")
+	trepath="$withval",
+if test x"$enable_diffheaders" = x"yes"
+then
+	trepath="yes"
+else
+	trepath="no"
+fi)
 
 if test x"$trepath" == x"no" -a x"$enable_diffheaders" == x"yes"
 then
@@ -302,6 +308,7 @@ else
 	fi
 fi
 
+AM_CONDITIONAL(USE_TRE, test x"$trepath" != x"no")
 AC_SUBST(LIBTRE_INCDIRS)
 AC_SUBST(LIBTRE_LIBDIRS)
 AC_SUBST(LIBTRE_LIBS)

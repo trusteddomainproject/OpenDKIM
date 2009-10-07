@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.40 2009/10/06 23:11:18 cm-msk Exp $
+# $Id: Makefile.am,v 1.41 2009/10/07 01:01:00 cm-msk Exp $
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -pthread --pedantic -Wall -O2
@@ -17,8 +17,8 @@ sbin_PROGRAMS += opendkim
 opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h config.c config.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CFLAGS = 
 opendkim_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_INCDIRS)
-opendkim_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS) $(LIBMILTER_LIBDIRS) $(LIBUNBOUND_LIBDIRS)
-opendkim_LDADD = ../libopendkim/libopendkim.la -lmilter $(LIBUNBOUND_LIBS)
+opendkim_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS) $(LIBMILTER_LIBDIRS) $(LIBUNBOUND_LIBDIRS) $(LIBTRE_LIBDIRS)
+opendkim_LDADD = ../libopendkim/libopendkim.la -lmilter $(LIBUNBOUND_LIBS) $(LIBTRE_LIBS)
 if BODYLENGTH_DB
 opendkim_CFLAGS += -D_FFR_BODYLENGTH_DB
 endif
@@ -102,8 +102,8 @@ if STATS
 sbin_PROGRAMS += opendkim-stats
 opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c
 opendkim_stats_CPPFLAGS = -DUSE_DB -I../libopendkim $(LIBCRYPTO_INCDIRS) $(LIBDB_INCDIRS)
-opendkim_stats_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS) $(LIBUNBOUND_LIBDIRS) $(LIBDB_LIBDIRS)
-opendkim_stats_LDADD = ../libopendkim/libopendkim.la $(LIBUNBOUND_LIBS) $(LIBDB_LIBS)
+opendkim_stats_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS) $(LIBUNBOUND_LIBDIRS) $(LIBDB_LIBDIRS) $(LIBTRE_LIBDIRS)
+opendkim_stats_LDADD = ../libopendkim/libopendkim.la $(LIBUNBOUND_LIBS) $(LIBDB_LIBS) $(LIBTRE_LIBS)
 if USE_ARLIB
 opendkim_stats_LDFLAGS += -L../libar
 opendkim_stats_LDADD += -lar
@@ -126,6 +126,10 @@ if USE_DB_OPENDKIM
 opendkim_testkey_LDFLAGS += $(LIBDB_LIBDIRS)
 opendkim_testkey_LDADD += $(LIBDB_LIBS)
 endif
+if USE_TRE
+opendkim_testkey_LDFLAGS += $(LIBTRE_LIBDIRS)
+opendkim_testkey_LDADD += $(LIBTRE_LIBS)
+endif
 if USE_UNBOUND
 opendkim_testkey_LDFLAGS += $(LIBUNBOUND_LIBDIRS)
 opendkim_testkey_LDADD += $(LIBUNBOUND_LIBS)
@@ -146,6 +150,10 @@ endif
 if USE_DB_OPENDKIM
 opendkim_testadsp_LDFLAGS += $(LIBDB_LIBDIRS)
 opendkim_testadsp_LDADD += $(LIBDB_LIBS)
+endif
+if USE_TRE
+opendkim_testadsp_LDFLAGS += $(LIBTRE_LIBDIRS)
+opendkim_testadsp_LDADD += $(LIBTRE_LIBS)
 endif
 if USE_UNBOUND
 opendkim_testadsp_LDFLAGS += $(LIBUNBOUND_LIBDIRS)

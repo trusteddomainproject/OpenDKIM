@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.15 2009/10/07 00:32:27 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.16 2009/10/07 01:01:00 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -25,10 +25,15 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.15 2009/10/07 00:32:27 cm-msk Exp
 #include <limits.h>
 #include <unistd.h>
 #include <resolv.h>
-#include <regex.h>
-#ifdef _FFR_DIFFHEADERS
+#ifdef USE_TRE
 # include <tre/tre.h>
-#endif /* _FFR_DIFFHEADERS */
+# define regcomp	tre_regcomp
+# define regexec	tre_regexec
+# define regfree	tre_regfree
+# define regerror	tre_regerror
+#else /* USE_TRE */
+# include <regex.h>
+#endif /* USE_TRE */
 
 #ifdef __STDC__
 # include <stdarg.h>
@@ -5101,14 +5106,14 @@ dkim_diffheaders(DKIM *dkim, int maxcost, char **ohdrs, int nohdrs,
 
 		*q = '$';
 
-		status = regcomp(&re, restr, REG_NOSUB);
+		status = tre_regcomp(&re, restr, REG_NOSUB);
 		if (status != 0)
 		{
 			char err[BUFRSZ + 1];
 
 			memset(err, '\0', sizeof err);
 
-			(void) regerror(status, &re, err, sizeof err);
+			(void) tre_regerror(status, &re, err, sizeof err);
 
 			dkim_error(dkim, err);
 
@@ -5123,7 +5128,8 @@ dkim_diffheaders(DKIM *dkim, int maxcost, char **ohdrs, int nohdrs,
 			if (strcmp(ohdrs[c], hdr->hdr_text) == 0)
 				continue;
 
-			status = regaexec(&re, ohdrs[c], &matches, params, 0);
+			status = tre_regaexec(&re, ohdrs[c], &matches,
+			                      params, 0);
 
 			if (status == 0)
 			{
@@ -5173,7 +5179,7 @@ dkim_diffheaders(DKIM *dkim, int maxcost, char **ohdrs, int nohdrs,
 			}
 		}
 
-		regfree(&re);
+		tre_regfree(&re);
 	}
 
 	*out = diffs;
