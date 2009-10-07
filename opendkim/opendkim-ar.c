@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-ar.c,v 1.4 2009/09/18 02:43:10 cm-msk Exp $
+**  $Id: opendkim-ar.c,v 1.5 2009/10/07 18:06:17 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_ar_c_id[] = "@(#)$Id: opendkim-ar.c,v 1.4 2009/09/18 02:43:10 cm-msk Exp $";
+static char opendkim_ar_c_id[] = "@(#)$Id: opendkim-ar.c,v 1.5 2009/10/07 18:06:17 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -46,11 +46,11 @@ struct lookup methods[] =
 {
 	{ "auth",		ARES_METHOD_AUTH },
 	{ "dkim",		ARES_METHOD_DKIM },
+	{ "dkim-adsp",		ARES_METHOD_DKIMADSP },
 	{ "domainkeys",		ARES_METHOD_DOMAINKEYS },
 	{ "iprev",		ARES_METHOD_IPREV },
 	{ "sender-id",		ARES_METHOD_SENDERID },
 	{ "spf",		ARES_METHOD_SPF },
-	{ "x-dkim-adsp",	ARES_METHOD_DKIMADSP },
 	{ NULL,			ARES_METHOD_UNKNOWN }
 };
 

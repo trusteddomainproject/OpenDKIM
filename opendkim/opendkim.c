@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.43 2009/10/01 21:37:22 cm-msk Exp $
+**  $Id: opendkim.c,v 1.44 2009/10/07 18:06:18 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.43 2009/10/01 21:37:22 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.44 2009/10/07 18:06:18 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8528,7 +8528,7 @@ mlfi_eom(SMFICTX *ctx)
 				        sizeof header);
 			}
 
-			strlcat((char *) header, "x-dkim-adsp=",
+			strlcat((char *) header, "dkim-adsp=",
 			        sizeof header);
 
 			if (!dfc->mctx_policy)
