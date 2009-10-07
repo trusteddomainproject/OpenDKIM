@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.50 2009/10/06 23:09:19 cm-msk Exp $
+# $Id: configure.ac,v 1.51 2009/10/07 00:32:27 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -274,7 +274,7 @@ then
 	tredirs="/usr /usr/local"
 	for d in $tredirs
 	do
-		if test -f $d/include/regex.h
+		if test -f $d/include/tre/tre.h
 		then
 			trepath=$d
 			AC_MSG_RESULT($d)
@@ -291,7 +291,7 @@ then
 	LIBTRE_LIBDIRS=""
 	LIBTRE_LIBS=""
 else
-	if test -f $trepath/include/regex.h
+	if test -f $trepath/include/tre/tre.h
 	then
 		AC_MSG_RESULT($trepath)
 		LIBTRE_INCDIRS="-I$trepath/include"

@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.14 2009/09/18 02:43:09 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.15 2009/10/07 00:32:27 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -26,6 +26,9 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.14 2009/09/18 02:43:09 cm-msk Exp
 #include <unistd.h>
 #include <resolv.h>
 #include <regex.h>
+#ifdef _FFR_DIFFHEADERS
+# include <tre/tre.h>
+#endif /* _FFR_DIFFHEADERS */
 
 #ifdef __STDC__
 # include <stdarg.h>
