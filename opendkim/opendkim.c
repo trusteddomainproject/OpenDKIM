@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.44 2009/10/07 18:06:18 cm-msk Exp $
+**  $Id: opendkim.c,v 1.45 2009/10/08 18:38:20 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.44 2009/10/07 18:06:18 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.45 2009/10/08 18:38:20 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8260,6 +8260,9 @@ mlfi_eom(SMFICTX *ctx)
 					syslog(LOG_ERR, "%s ADSP query: %s",
 					       dfc->mctx_jobid, err);
 				}
+
+				dkimf_cleanup(ctx);
+				return conf->conf_handling.hndl_dnserr;
 			}
 		}
 	}
