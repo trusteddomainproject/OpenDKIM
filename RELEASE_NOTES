@@ -1,13 +1,13 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.29 2009/10/07 18:06:55 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.30 2009/10/08 06:10:47 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-1.1.1		2009/??/??
-	Plug a number of potential memory and file handle leaks, remove
-		some dead code, guard against NULL dereferences, fix an
+1.1.1		2009/10/09
+	Plug a number of potential but minor memory and file handle leaks,
+		remove some dead code, guard against NULL dereferences, fix an
 		errant return code check, fix a double-free(), and several
 		other fixes found by a code analysis tool, used by courtesy
 		of Cloudmark.
