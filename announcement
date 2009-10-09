@@ -1,47 +1,34 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v1.1.0 released
+Subject: OpenDKIM v1.1.1 released
 
-The OpenDKIM project announces availability of OpenDKIM v1.1.0, now available
+The OpenDKIM project announces availability of OpenDKIM v1.1.1, now available
 for download from SourceForge.
 
-The main changes in this release include several minor bug fixes, a new
-configuration value for dealing with DNS issues, and several build fixes.
-The new configuration value may be of particular interest; it allows one
-to specify an action to be taken when a key is not found in the DNS,
-allowing that case to be treated differently than other DNS errors.
-See the updated documentation for more information.
+This release tidies up a number of minor coding issues that generally only
+occurred during unusual error conditions and thus went undetected until now.
+Also, with the publication of RFC5617, ADSP is now official and thus the
+name to be used when annotating results of those checks has changed.  A
+correction was made to handling of ADSP when the retrieval of an ADSP
+record ran into trouble.  And finally, a new FFR is available that allows
+sender selection based on MTA macros instead of just headers.
 
 The RELEASE_NOTES for this version:
 
-1.1.0		2009/09/16
-	Feature request #SF2839110: Add _FFR_IDENTITY_HEADER, to set an
-       		identity (i=) for signing based on the value found in a
-		particular header.  Requested by Florian Sager. 
-	Fix inside dkimf_libstatus() to return extended status code 
-		4.7.5 if temp-fail is due to key retrieval failure.
-	Fix bug #SF2831720: Use new dynamic signature header generation
-		code (see below).
-	Add new exception handling code "keynotfound" (short form "key")
-		and "On-KeyNotFound", which handles keys not found in DNS
-		separately from other DNS errors.
-	Fixes inside dkimf_libstatus() so that SMTP reply codes get set
-		properly for temp-fails.
-	Remove _FFR_COMMAIZE.
-	LIBOPENDKIM: Add dkim_getsighdr_d(), a dynamic-length version of
-		dkim_getsighdr().  The old function interface remains
-		unchanged for backward compatibility.
-	LIBOPENDKIM: Add dkim_dstring_printf().
-	LIBOPENDKIM: Fix bug #SF2839858: Change "default_senderheaders" list
-		to include only "from", per RFC5617.  Problem noted
-		by Erik Lotspeich.
-	Activate _FFR_SENDER_HEADERS, adding "SenderHeaders" to the
-		configuration file.
-	BUILD: Fix bug #SF2841499: Fix building of opendkim tools so that
-		they link against libdb when necessary.
-	BUILD: Fix building of libopendkim/t-test115 so it agrees with
-		what SHA methods are found by libopendkim itself.
-	BUILD: Don't bother building libar unless --enable-arlib is specified.
+1.1.1		2009/10/09
+	Plug a number of potential but minor memory and file handle leaks,
+		remove some dead code, guard against NULL dereferences, fix an
+		errant return code check, fix a double-free(), and several
+		other fixes found by a code analysis tool, used by courtesy
+		of Cloudmark.
+	Change "x-dkim-adsp" to "dkim-adsp" in Authentication-Results header
+		field code now that RFC5617 is published.
+	Apply "On-DNSError" setting when policy queries fail.
+	BUILD: Some compilation fixes and type cleanup.  Based on patches
+		provided by Daniel Black.
+	Add _FFR_SENDER_MACRO: Determine the message sender based on the
+		contents of a macro instead of on a header field.
+		Based on a patch from Ondrej Sury.
 
 Please use the mailing lists at http://lists.sourceforge.net and the
 project trackers at http://sourceforge.net/projects/opendkim to report
