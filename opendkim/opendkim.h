@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.7 2009/10/20 18:16:59 cm-msk Exp $
+**  $Id: opendkim.h,v 1.8 2009/10/20 23:13:56 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.7 2009/10/20 18:16:59 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.8 2009/10/20 23:13:56 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -59,6 +59,9 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.7 2009/10/20 18:16:59 cm-
 #define AUTHRESULTSHDR	"Authentication-Results"
 
 #define	XHEADERNAME	"X-DKIM"
+#ifdef _FFR_REDIRECT
+# define XORCPTHEADER	"X-Original-Recipient"
+#endif /* _FFR_REDIRECT */
 #define	XSELECTCANONHDR	"X-Canonicalization"
 
 #ifdef _FFR_VBR

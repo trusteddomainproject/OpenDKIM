@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.52 2009/10/07 01:00:59 cm-msk Exp $
+# $Id: configure.ac,v 1.53 2009/10/20 23:13:55 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -85,6 +85,9 @@ AM_CONDITIONAL(POPAUTH, test "$enable_popauth" = yes)
 
 AC_ARG_ENABLE(querycache, AS_HELP_STRING(--enable-querycache, local key/policy caching))
 AM_CONDITIONAL(QUERY_CACHE, test "$enable_querycache" = yes)
+
+AC_ARG_ENABLE(redirect, AS_HELP_STRING(--enable-redirect, support for redirect on failure))
+AM_CONDITIONAL(REDIRECT, test "$enable_redirect" = yes)
 
 AC_ARG_ENABLE(replacerules, AS_HELP_STRING(--enable-replacerules, support for string substitution when signing))
 AM_CONDITIONAL(REPLACE_RULES, test "$enable_replacerules" = yes)

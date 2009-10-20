@@ -56,6 +56,9 @@ parsetime	Adds a utility function reporting the value of the Date:
 		to detect messages in which those values wildly differ.
 		INCOMPLETE.  (libopendkim)
 
+redirect	Option to redirect messages to a specific address on
+		verification or ADSP failure.  (opendkim)
+
 replacerules	Allow specification of a "replacement rules" table
 		for use when signing, replacing certain patterns in
 		address headers with specific strings to anticipate the
@@ -100,4 +103,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.7 $, Last updated $Date: 2009/10/06 17:36:29 $
+$Revision: 1.8 $, Last updated $Date: 2009/10/20 23:13:55 $

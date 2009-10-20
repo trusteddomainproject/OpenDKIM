@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.46 2009/10/20 18:52:34 cm-msk Exp $
+**  $Id: opendkim.c,v 1.47 2009/10/20 23:13:55 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.46 2009/10/20 18:52:34 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.47 2009/10/20 23:13:55 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -262,6 +262,9 @@ struct dkimf_config
 #endif /* _FFR_DKIM_REPUTATION */
 	char *		conf_reportaddr;	/* report sender address */
 	char *		conf_localadsp_file;	/* local ADSP file */
+#ifdef _FFR_REDIRECT
+	char *		conf_redirect;		/* redirect failures to */
+#endif /* _FFR_REDIRECT */
 	struct keytable * conf_keyhead;		/* key list */
 	struct keytable * conf_keytail;		/* key list */
 #ifdef _FFR_REPLACE_RULES
@@ -584,7 +587,7 @@ sfsistat dkimf_insheader __P((SMFICTX *, int, char *, char *));
 static int dkimf_loadkeys __P((char *, struct dkimf_config *));
 static void dkimf_policyreport __P((msgctx, struct dkimf_config *, char *));
 sfsistat dkimf_quarantine __P((SMFICTX *, char *));
-void dkimf_sendprogress __P((void *));
+void dkimf_sendprogress __P((const void *));
 sfsistat dkimf_setpriv __P((SMFICTX *, void *));
 sfsistat dkimf_setreply __P((SMFICTX *, char *, char *, char *));
 static void dkimf_sigreport __P((msgctx, struct dkimf_config *, char *));
@@ -2067,6 +2070,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_diagdir,
 		                  sizeof conf->conf_diagdir);
 #endif /* _FFR_ZTAGS */
+
+#ifdef _FFR_REDIRECT
+		(void) config_get(data, "RedirectFailuresTo",
+		                  &conf->conf_redirect,
+		                  sizeof conf->conf_redirect);
+#endif /* _FFR_REDIRECT */
 
 		if (conf->conf_dnstimeout == DEFTIMEOUT)
 		{
@@ -4202,7 +4211,7 @@ dkimf_stdio(void)
 */
 
 void
-dkimf_sendprogress(void *ctx)
+dkimf_sendprogress(const void *ctx)
 {
 	assert(ctx != NULL);
 
@@ -5840,7 +5849,6 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 	connctx cc;
 	msgctx dfc;
 	struct dkimf_config *conf;
-	struct addrlist *a;
 	char addr[MAXADDRESS + 1];
 
 	assert(ctx != NULL);
@@ -5852,18 +5860,27 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 	assert(dfc != NULL);
 	conf = cc->cctx_config;
 
+	if (conf->conf_dontsignto != NULL
 #ifdef _FFR_BODYLENGTH_DB
-	if (conf->conf_dontsignto != NULL || bldb != NULL)
-#else /* _FFR_BODYLENGTH_DB */
-	if (conf->conf_dontsignto != NULL)
+	    || bldb != NULL
 #endif /* _FFR_BODYLENGTH_DB */
+#ifdef _FFR_REDIRECT
+	    || conf->conf_redirect != NULL
+#endif /* _FFR_REDIRECT */
+	   )
 	{
 		strlcpy(addr, envrcpt[0], sizeof addr);
 		dkimf_stripbrackets(addr);
 	}
 
-	if (conf->conf_dontsignto != NULL)
+	if (conf->conf_dontsignto != NULL
+#ifdef _FFR_REDIRECT
+	    || conf->conf_redirect != NULL
+#endif /* _FFR_REDIRECT */
+	   )
 	{
+		struct addrlist *a;
+
 		copy = strdup(addr);
 		if (copy == NULL)
 		{
@@ -7770,6 +7787,57 @@ mlfi_eom(SMFICTX *ctx)
 			}
 # endif /* ! SMFIF_QUARANTINE */
 #endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
+#ifdef _FFR_REDIRECT
+			if (conf->conf_redirect != NULL)
+			{
+				struct addrlist *a;
+
+				/* convert all recipients to headers */
+				for (a = dfc->mctx_rcptlist;
+				     a != NULL;
+				     a = a->a_next)
+				{
+					if (smfi_delrcpt(ctx,
+					                 a->a_addr) != MI_SUCCESS)
+					{
+						if (conf->conf_dolog)
+						{
+							syslog(LOG_ERR,
+							       "%s smfi_delrcpt() failed",
+							       dfc->mctx_jobid);
+						}
+
+						return SMFIS_TEMPFAIL;
+					}
+
+					if (smfi_addheader(ctx, XORCPTHEADER,
+					                   a->a_addr) != MI_SUCCESS)
+					{
+						if (conf->conf_dolog)
+						{
+							syslog(LOG_ERR,
+							       "%s smfi_addheader() failed",
+							       dfc->mctx_jobid);
+						}
+
+						return SMFIS_TEMPFAIL;
+					}
+				}
+
+				/* add our recipient */
+				if (smfi_addrcpt(ctx, conf->conf_redirect) != MI_SUCCESS)
+				{
+					if (conf->conf_dolog)
+					{
+						syslog(LOG_ERR,
+						       "%s smfi_addrcpt() failed",
+						       dfc->mctx_jobid);
+					}
+
+					return SMFIS_TEMPFAIL;
+				}
+			}
+#endif /* _FFR_REDIRECT */
 			return status;
 		}
 
