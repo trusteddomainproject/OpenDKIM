@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.47 2009/10/20 23:13:55 cm-msk Exp $
+**  $Id: opendkim.c,v 1.48 2009/10/20 23:20:57 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.47 2009/10/20 23:13:55 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.48 2009/10/20 23:20:57 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7810,8 +7810,10 @@ mlfi_eom(SMFICTX *ctx)
 						return SMFIS_TEMPFAIL;
 					}
 
-					if (smfi_addheader(ctx, XORCPTHEADER,
-					                   a->a_addr) != MI_SUCCESS)
+					snprintf(header, sizeof header,
+					         "rfc822;%s", a->a_addr);
+					if (smfi_addheader(ctx, ORCPTHEADER,
+					                   header) != MI_SUCCESS)
 					{
 						if (conf->conf_dolog)
 						{
