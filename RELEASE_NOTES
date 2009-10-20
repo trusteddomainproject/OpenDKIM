@@ -1,11 +1,14 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.33 2009/10/20 18:42:18 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.34 2009/10/20 18:51:15 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 1.1.2		2009/??/??
+	LIBOPENDKIM: Have dkim_dns_set_callback() return
+		DKIM_STAT_NOTIMPLEMENT if the underlying resolver doesn't
+		have a callback facility.  Suggested by Daniel Black.
 	BUILD: Fix bug #SF2882206, patch #SF2880986: Handle libtre
 		installations where "--enable-system-abi" was selected.
 		Patch from Daniel Black.
