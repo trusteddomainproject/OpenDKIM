@@ -2,7 +2,7 @@
 <head><title>dkim_set_dns_callback()</title></head>
 <body>
 <!--
-$Id: dkim_set_dns_callback.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+$Id: dkim_set_dns_callback.html,v 1.2 2009/10/20 18:50:33 cm-msk Exp $
 -->
 <h1>dkim_set_dns_callback()</h1>
 
@@ -53,17 +53,19 @@ function (if any) as the parameter to that function.
         for a DNS reply.  If NULL, no callback will be used.
 	</td></tr>
     <tr valign="top"><td>interval</td>
-	<td>Interval, in seconds, between calls to <tt>func</tt>.
+	<td>Desired interval, in seconds, between calls to <tt>func</tt>.
 	</td></tr>
     </table>
 </td></tr>
 
-<!----------- Notes ---------->
+<!----------- Return Values ---------->
 <tr>
-<th valign="top" align=left>NOTES</th> 
+<th valign="top" align=left>RETURN VALUES</th> 
 <td>
 <ul>
-<li>None.
+<li>DKIM_STAT_OK -- the callback and interval were successfully registered
+<li>DKIM_STAT_NOTIMPLEMENT -- the underlying DNS resolution service does not
+    provide a callback facility
 </ul>
 </td>
 </tr>

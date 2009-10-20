@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.17 2009/10/20 18:35:51 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.18 2009/10/20 18:50:33 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -6653,7 +6653,7 @@ dkim_set_dns_callback(DKIM_LIB *libopendkim, void (*func)(const void *context),
 
 	return DKIM_STAT_OK;
 #else /* USE_ARLIB || USE_UNBOUND */
-	return DKIM_STAT_INVALID;
+	return DKIM_STAT_NOTIMPLEMENT;
 #endif /* USE_ARLIB || USE_UNBOUND */
 }
 
