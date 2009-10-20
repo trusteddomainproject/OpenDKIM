@@ -1,9 +1,13 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.31 2009/10/08 18:40:04 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.32 2009/10/20 18:40:18 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
+
+1.1.2		2009/??/??
+	BUILD: Handle libtre installations where "--enable-system-abi" was
+		selected.  Patch from Daniel Black.
 
 1.1.1		2009/10/09
 	Plug a number of potential but minor memory and file handle leaks,
