@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.45 2009/10/08 18:38:20 cm-msk Exp $
+**  $Id: opendkim.c,v 1.46 2009/10/20 18:52:34 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.45 2009/10/08 18:38:20 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.46 2009/10/20 18:52:34 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3785,10 +3785,8 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FLAGS,
 	                    &opts, sizeof opts);
 
-#if USE_ARLIB
 	/* set the DNS callback */
 	(void) dkim_set_dns_callback(lib, dkimf_sendprogress, CBINTERVAL);
-#endif /* USE_ARLIB */
 
 #ifdef USE_UNBOUND
 	if (conf->conf_trustanchorpath != NULL)
