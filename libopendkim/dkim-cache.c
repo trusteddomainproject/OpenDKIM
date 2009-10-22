@@ -8,7 +8,7 @@
 #ifdef QUERY_CACHE
 
 #ifndef lint
-static char dkim_cache_c_id[] = "@(#)$Id: dkim-cache.c,v 1.5 2009/08/05 19:17:46 cm-msk Exp $";
+static char dkim_cache_c_id[] = "@(#)$Id: dkim-cache.c,v 1.6 2009/10/22 19:35:00 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -26,7 +26,7 @@ static char dkim_cache_c_id[] = "@(#)$Id: dkim-cache.c,v 1.5 2009/08/05 19:17:46
 #include <db.h>
 
 /* libopendkim includes */
-#include "dkim.h"
+#include "dkim-internal.h"
 #include "dkim-cache.h"
 #include "dkim-strl.h"
 

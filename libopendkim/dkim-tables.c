@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_tables_c_id[] = "@(#)$Id: dkim-tables.c,v 1.3 2009/07/23 17:40:24 cm-msk Exp $";
+static char dkim_tables_c_id[] = "@(#)$Id: dkim-tables.c,v 1.4 2009/10/22 19:35:00 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -16,7 +16,7 @@ static char dkim_tables_c_id[] = "@(#)$Id: dkim-tables.c,v 1.3 2009/07/23 17:40:
 
 /* libopendkim includes */
 #include "dkim-tables.h"
-#include "dkim.h"
+#include "dkim-internal.h"
 
 /* lookup tables */
 static struct nametable prv_keyparams[] =	/* key parameters */

@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.7 2009/10/06 17:45:55 cm-msk Exp $";
+static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.8 2009/10/22 19:35:00 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -30,7 +30,7 @@ static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.7 2009/10/06 17:45:
 #endif /* USE_ARLIB */
 
 /* libopendkim includes */
-#include "dkim.h"
+#include "dkim-internal.h"
 #include "dkim-types.h"
 #include "dkim-policy.h"
 #ifdef QUERY_CACHE

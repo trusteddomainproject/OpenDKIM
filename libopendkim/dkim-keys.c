@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.7 2009/10/06 17:45:55 cm-msk Exp $";
+static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.8 2009/10/22 19:35:00 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -29,6 +29,7 @@ static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.7 2009/10/06 17:45:55 c
 #endif /* USE_ARLIB */
 
 /* libopendkim includes */
+#include "dkim-internal.h"
 #include "dkim-types.h"
 #include "dkim-keys.h"
 #include "dkim-cache.h"
@@ -37,7 +38,6 @@ static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.7 2009/10/06 17:45:55 c
 # include "dkim-ub.h"
 #endif /* USE_UNBOUND */
 #include "util.h"
-#include "dkim.h"
 #include "dkim-strl.h"
 
 /* prototypes */

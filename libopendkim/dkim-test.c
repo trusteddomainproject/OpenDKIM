@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.10 2009/10/06 17:47:24 cm-msk Exp $";
+static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.11 2009/10/22 19:35:00 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -27,12 +27,11 @@ static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.10 2009/10/06 17:47:24 
 #include <openssl/evp.h>
 
 /* libopendkim includes */
+#include "dkim-internal.h"
 #include "dkim-types.h"
 #include "dkim-keys.h"
 #include "dkim-util.h"
 #include "dkim-test.h"
-#include "dkim.h"
-#include "dkim-internal.h"
 #include "dkim-strl.h"
 
 /* definitions */

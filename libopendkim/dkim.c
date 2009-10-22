@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.18 2009/10/20 18:50:33 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.19 2009/10/22 19:35:00 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -57,7 +57,7 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.18 2009/10/20 18:50:33 cm-msk Exp
 #include <openssl/sha.h>
 
 /* libopendkim includes */
-#include "dkim.h"
+#include "dkim-internal.h"
 #include "dkim-types.h"
 #include "dkim-tables.h"
 #include "dkim-keys.h"
