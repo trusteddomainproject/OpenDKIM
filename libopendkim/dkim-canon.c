@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.11 2009/10/20 18:35:51 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.12 2009/10/22 19:35:50 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -30,7 +30,7 @@ static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.11 2009/10/20 18:35:5
 #endif /* USE_TRE */
 
 /* libopendkim includes */
-#include "dkim.h"
+#include "dkim-internal.h"
 #include "dkim-types.h"
 #include "dkim-canon.h"
 #include "dkim-util.h"
@@ -1047,7 +1047,7 @@ dkim_canon_runheaders(DKIM *dkim, _Bool signing)
 
 			/* tag headers to be signed */
 			for (hdr = dkim->dkim_hhead;
-			     hdr != NULL && nhdrs < MAXHEADERS;
+			     hdr != NULL;
 			     hdr = hdr->hdr_next)
 			{
 				if (!lib->dkiml_signre)
