@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.53 2009/10/20 23:13:55 cm-msk Exp $
+# $Id: configure.ac,v 1.54 2009/10/22 22:24:54 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -119,7 +119,7 @@ AC_ARG_WITH(openssl,
 	AS_HELP_STRING(--with-openssl, location of OpenSSL includes and library (required)),
 	sslpath="$withval", sslpath="auto")
 ssldirs="/usr/local/ssl /usr/local /usr"
-if test "$sslpath" = "auto"
+if test "$sslpath" = "auto" -o "$sslpath" = "yes"
 then
 	for d in $ssldirs
 	do
@@ -174,7 +174,7 @@ AC_ARG_WITH(milter,
 	AS_HELP_STRING(--with-milter, location of milter includes and library),
 	milterpath="$withval", milterpath="auto")
 milterdirs="/usr/local /usr"
-if test "$milterpath" = "auto"
+if test "$milterpath" = "auto" -o "$milterpath" = "yes"
 then
 	for d in $milterdirs
 	do
@@ -335,7 +335,7 @@ else
 	bdbrequired="no"
 fi
 
-if test x"$bdb" = x"auto"
+if test x"$bdb" = x"auto" -o x"$bdb" = x"yes"
 then
 	if test x"$bdbrequired" = x"yes"
 	then
