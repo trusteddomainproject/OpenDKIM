@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.36 2009/10/20 23:22:56 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.37 2009/10/22 19:55:31 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -14,6 +14,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Have dkim_dns_set_callback() return
 		DKIM_STAT_NOTIMPLEMENT if the underlying resolver doesn't
 		have a callback facility.  Suggested by Daniel Black.
+	LIBOPENDKIM: Move internal-only types and macros from dkim.h
+		to dkim-internal.h.  Based on an idea from Daniel Black.
 	BUILD: Fix bug #SF2882206, patch #SF2880986: Handle libtre
 		installations where "--enable-system-abi" was selected.
 		Reported by Stevan Bajic; patch from Daniel Black.
