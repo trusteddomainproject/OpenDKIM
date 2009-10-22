@@ -9,7 +9,7 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.9 2009/10/22 19:33:48 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.10 2009/10/22 22:00:58 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -976,7 +976,9 @@ extern DKIM_STAT dkim_set_signer __P((DKIM *dkim, const char *signer));
 **  	interval -- how often to call back
 **
 **  Return value:
-**  	None.
+**  	DKIM_STAT_OK -- success
+**  	DKIM_STAT_INVALID -- invalid use
+**  	DKIM_STAT_NOTIMPLEMENT -- underlying resolver doesn't support callbacks
 */
 
 extern DKIM_STAT dkim_set_dns_callback __P((DKIM_LIB *libopendkim,

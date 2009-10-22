@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.19 2009/10/22 19:35:00 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.20 2009/10/22 22:00:58 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -6636,6 +6636,7 @@ dkim_getpolicystr(int policy)
 **  Return value:
 **  	DKIM_STAT_OK -- success
 **  	DKIM_STAT_INVALID -- invalid use
+**  	DKIM_STAT_NOTIMPLEMENT -- underlying resolver doesn't support callbacks
 */
 
 DKIM_STAT
