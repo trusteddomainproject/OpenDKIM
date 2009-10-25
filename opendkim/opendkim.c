@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.49 2009/10/25 22:37:09 cm-msk Exp $
+**  $Id: opendkim.c,v 1.50 2009/10/25 22:53:01 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.49 2009/10/25 22:37:09 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.50 2009/10/25 22:53:01 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2191,6 +2191,15 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                  &conf->conf_selector,
 			                  sizeof conf->conf_selector);
 		}
+
+#ifdef _FFR_SENDER_MACRO
+		if (conf->conf_sendermacro == NULL)
+		{
+			(void) config_get(data, "SenderMacro",
+			                  &conf->conf_sendermacro,
+			                  sizeof conf->conf_sendermacro);
+		}
+#endif /* _FFR_SENDER_MACRO */
 
 #ifdef _FFR_SELECTOR_HEADER
 		(void) config_get(data, "SelectorHeader",
