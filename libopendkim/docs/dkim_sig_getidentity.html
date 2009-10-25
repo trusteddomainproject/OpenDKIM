@@ -1,0 +1,83 @@
+<html>
+<head><title>dkim_sig_getidentity()</title></head>
+<body>
+<!--
+$Id: dkim_sig_getidentity.html,v 1.1 2009/10/25 22:56:35 cm-msk Exp $
+-->
+<h1>dkim_sig_getidentity()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_sig_getidentity(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+	<a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *sig,
+        char *val,
+        size_t vallen
+);
+</pre>
+Retrieve the signing identity from a signature handle.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_sig_getidentity()</tt> is called after
+    <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a> to determine
+    the identity associated with a signature.  </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific handle, returned by
+        <a href="dkim_sign.html"><tt>dkim_sign()</tt></a> or
+        <a href="dkim_verify.html"><tt>dkim_verify</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>sig</td>
+	<td>The <tt>DKIM_SIGINFO</tt> handle representing the signature
+	being evaluated.
+	</td></tr>
+    <tr valign="top"><td>val</td>
+	<td>A character buffer to receive the identity extracted
+	    from the signature.  The value may be explicitly defined
+	    in the signature's "i=" tag, or inferred from its absence.
+	    </td></tr>
+    <tr valign="top"><td>vallen</td>
+	<td>Number of bytes available at <tt>val</tt>. </td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr>
+<th valign="top" align=left>RETURN VALUES</th> 
+<td>
+<ul>
+<li>DKIM_STAT_OK -- successful completion
+<li>DKIM_STAT_NORESOURCE -- <tt>val</tt> did not contain enough space
+    for the complete identity string
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2005-2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

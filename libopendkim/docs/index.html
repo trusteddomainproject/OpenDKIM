@@ -4,7 +4,7 @@
 </head>
 <body>
 <!--
-$Id: index.html,v 1.2 2009/08/19 00:36:18 cm-msk Exp $
+$Id: index.html,v 1.3 2009/10/25 22:56:35 cm-msk Exp $
 -->
 
 <h1>Sendmail DomainKeys Identified Mail (DKIM) Library</h1>
@@ -14,7 +14,7 @@ $Id: index.html,v 1.2 2009/08/19 00:36:18 cm-msk Exp $
 <b>DomainKeys Identified Mail</b> ("DKIM") is a specification for signing
 messages at the domain level using simple cryptographic methods to prevent
 the falsification of sender domains.  While the most obvious application of
-this is to defense against spam, other applications can make use of this
+this is to defend against forged mail, other applications can make use of this
 capability. <p>
 
 DKIM is an amalgamation of DomainKeys, created by Yahoo!, Inc., and
@@ -23,8 +23,8 @@ as historical RFCs documents via the IETF web sites.  More information
 about DomainKeys can be found
 <a href="http://antispam.yahoo.com/domainkeys">here</a>. <p>
 
-This API (<tt>libopendkim</tt>) allows an application to sign or verify messages
-according to the <b>DKIM</b> proposed standard.  Also provided
+This API (<tt>libopendkim</tt>) allows an application to sign or verify
+messages according to the <b>DKIM</b> proposed standard.  Also provided
 is an implementation of a filter, using Sendmail's <b>milter</b>
 package, that uses <tt>libopendkim</tt> to implement this facility. <p>
 
@@ -141,6 +141,17 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
+  <td> <a href="dkim_get_user_context.html"> <tt>dkim_get_user_context()</tt> </a> </td>
+  <td> Retrieve a specific user context pointer for a sign or verify operation
+       previously set by a call to <tt>dkim_set_user_context()</tt>. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_libfeature.html"> <tt>dkim_libfeature()</tt> </a> </td>
+  <td> Test for availability of a particular feature in the library. </td>
+ </tr>
+
+ <tr>
   <td> <a href="dkim_set_dns_callback.html"> <tt>dkim_set_dns_callback()</tt> </a> </td>
   <td> Request a call back into the main program from time to time while
        waiting for DNS results. </td>
@@ -189,6 +200,18 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
+  <td> <a href="dkim_set_trust_anchor.html"> <tt>dkim_set_trust_anchor()</tt> </a> </td>
+  <td> Provide the location of a trust anchor file in support of
+       DNSSEC operations. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_set_user_context.html"> <tt>dkim_set_user_context()</tt> </a> </td>
+  <td> Set a specific user context pointer for a sign or verify operation
+       which will be passed to user callbacks. </td>
+ </tr>
+
+ <tr>
   <td> <a href="dkim_ssl_version.html"> <tt>dkim_ssl_version()</tt> </a> </td>
   <td> Retrieve the OpenSSL version used when the library was compiled. </td>
  </tr>
@@ -205,6 +228,11 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  <tr>
   <td> <a href="dkim_sign.html"> <tt>dkim_sign()</tt> </a> </td>
   <td> Allocate a new <b>DKIM</b> handle for signing a message. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_getpartial.html"> <tt>dkim_getpartial()</tt> </a> </td>
+  <td> Check partial signature request flag. </td>
  </tr>
 
  <tr>
@@ -229,6 +257,11 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
+  <td> <a href="dkim_setpartial.html"> <tt>dkim_setpartial()</tt> </a> </td>
+  <td> Request "l=" tag on a signature. </td>
+ </tr>
+
+ <tr>
   <td colspan="2"> <b>Verifying</b>
  </tr>
 
@@ -245,9 +278,8 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
-  <td> <a href="dkim_get_user_context.html"> <tt>dkim_get_user_context()</tt> </a> </td>
-  <td> Retrieve a specific user context pointer for a sign or verify operation
-       previously set by a call to <tt>dkim_set_user_context()</tt>. </td>
+  <td> <a href="dkim_get_reputation.html"> <tt>dkim_get_reputation()</tt> </a> </td>
+  <td> Query a DKIM reputation service. </td>
  </tr>
 
  <tr>
@@ -328,12 +360,6 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
-  <td> <a href="dkim_set_user_context.html"> <tt>dkim_set_user_context()</tt> </a> </td>
-  <td> Set a specific user context pointer for a sign or verify operation
-       which will be passed to user callbacks. </td>
- </tr>
-
- <tr>
   <td> <a href="dkim_sig_getbh.html"> <tt>dkim_sig_getbh()</tt> </a> </td>
   <td> Retrieve body hash test result from a signature handle. </td>
  </tr>
@@ -342,6 +368,11 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
   <td> <a href="dkim_sig_getcanonlen.html"> <tt>dkim_sig_getcanonlen()</tt> </a> </td>
   <td> Retrieve information regarding total canonicalized body length, and
        the size of what was actually signed. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_sig_getcanons.html"> <tt>dkim_sig_getcanons()</tt> </a> </td>
+  <td> Retrieve the canonicalization modes used to generate a signature. </td>
  </tr>
 
  <tr>
@@ -453,6 +484,12 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
 
  <tr>
   <td colspan="2"> <b>Utility</b>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_get_msgdate.html"> <tt>dkim_get_msgdate()</tt> </a> </td>
+  <td> Attempt to parse the Date: header field of a message and return its
+       UNIX <tt>time_t</tt> conversion. </td>
  </tr>
 
  <tr>

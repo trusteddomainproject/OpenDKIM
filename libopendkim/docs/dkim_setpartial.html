@@ -1,0 +1,89 @@
+<html>
+<head><title>dkim_setpartial()</title></head>
+<body>
+<!--
+$Id: dkim_setpartial.html,v 1.1 2009/10/25 22:56:35 cm-msk Exp $
+-->
+<h1>dkim_setpartial()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_setpartial(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+	<tt>_Bool</tt> value
+);
+</pre>
+
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_setpartial()</tt> can be called at any time after
+	a DKIM handle has been initialized by
+	<a href="dkim_sign.html"><tt>dkim_sign()</tt></a>.
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific handle, returned by
+            <a href="dkim_sign.html"><tt>dkim_sign()</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>value</td>
+	<td>Either TRUE or FALSE, indicating wether or not the
+	    message being processed should have a signature generated
+	    with the "l=" tag.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr><th valign="top" align=left>RETURN VALUES</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Value</th><th>Description</th></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_OK</tt></td>
+	<td>Successful completion.
+	</td></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_INVALID</tt></td>
+	<td>The message-specific handle is not a signing handle. </td>
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>Regardless if the setting of this bit inside a message-specific
+    handle, a signature with "l=" will be generated if the
+    <tt>DKIM_LIBFLAGS_SIGNLEN</tt> flag was set on the library
+    handle.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

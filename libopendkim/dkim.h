@@ -9,7 +9,7 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.10 2009/10/22 22:00:58 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.11 2009/10/25 22:56:34 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -29,7 +29,7 @@ static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.10 2009/10/22 22:00:58 cm-msk Exp
 **  	pp == patch number
 */
 
-#define	OPENDKIM_LIB_VERSION	0x01010100
+#define	OPENDKIM_LIB_VERSION	0x01010200
 
 #ifdef __STDC__
 # ifndef __P
@@ -275,21 +275,17 @@ typedef int dkim_opts_t;
 
 #define	DKIM_LIBFLAGS_DEFAULT		DKIM_LIBFLAGS_NONE
 
-#ifdef _FFR_DKIM_REPUTATION
-# define DKIM_REP_DEFREJECT	1001
-# define DKIM_REP_ROOT		"al.dkim-reputation.org"
-#endif /* _FFR_DKIM_REPUTATION */
+#define DKIM_REP_DEFREJECT	1001
+#define DKIM_REP_ROOT		"al.dkim-reputation.org"
 
-#ifdef USE_UNBOUND
 /*
 **  DKIM_DNSSEC -- results of DNSSEC queries
 */
 
-# define DKIM_DNSSEC_UNKNOWN	(-1)
-# define DKIM_DNSSEC_BOGUS	0
-# define DKIM_DNSSEC_INSECURE	1
-# define DKIM_DNSSEC_SECURE	2
-#endif /* USE_UNBOUND */
+#define DKIM_DNSSEC_UNKNOWN	(-1)
+#define DKIM_DNSSEC_BOGUS	0
+#define DKIM_DNSSEC_INSECURE	1
+#define DKIM_DNSSEC_SECURE	2
 
 /*
 **  DKIM_LIB -- library handle
@@ -335,7 +331,6 @@ typedef struct dkim_siginfo DKIM_SIGINFO;
 struct dkim_pstate;
 typedef struct dkim_pstate DKIM_PSTATE;
 
-#ifdef _FFR_DIFFHEADERS
 /*
 **  DKIM_HDRDIFF -- header differences
 */
@@ -345,13 +340,11 @@ struct dkim_hdrdiff
 	u_char *		hd_old;
 	u_char *		hd_new;
 };
-#endif /* _FFR_DIFFHEADERS */
 
 /*
 **  PROTOTYPES
 */
 
-#ifdef USE_UNBOUND
 /*
 **  DKIM_SET_TRUST_ANCHOR -- set trust anchor file path
 **
@@ -364,7 +357,6 @@ struct dkim_hdrdiff
 */
 
 extern DKIM_STAT dkim_set_trust_anchor __P((DKIM_LIB *lib, char *tafile));
-#endif /* USE_UNBOUND */
 
 /*
 **  DKIM_INIT -- initialize the DKIM package
@@ -559,7 +551,6 @@ extern DKIM_STAT dkim_policy_syntax __P((DKIM *dkim, u_char *str, size_t len));
 
 extern DKIM_STAT dkim_sig_syntax __P((DKIM *dkim, u_char *str, size_t len));
 
-#ifdef QUERY_CACHE
 /*
 **  DKIM_GETCACHESTATS -- retrieve cache statistics
 **
@@ -569,15 +560,16 @@ extern DKIM_STAT dkim_sig_syntax __P((DKIM *dkim, u_char *str, size_t len));
 **  	expired -- number of expired hits (returned)
 **
 **  Return value:
-**  	None.
+**  	DKIM_STAT_OK -- statistics returned
+**  	DKIM_STAT_NOTIMPLEMENT -- function not implemented
 **
 **  Notes:
 **  	Any of the parameters may be NULL if the corresponding datum
 **  	is not of interest.
 */
 
-extern void dkim_getcachestats __P((u_int *queries, u_int *hits,
-                                    u_int *expired));
+extern DKIM_STAT dkim_getcachestats __P((u_int *queries, u_int *hits,
+                                         u_int *expired));
 
 /*
 **  DKIM_FLUSH_CACHE -- purge expired records from the database, reclaiming
@@ -592,7 +584,6 @@ extern void dkim_getcachestats __P((u_int *queries, u_int *hits,
 */
 
 extern int dkim_flush_cache __P((DKIM_LIB *lib));
-#endif /* QUERY_CACHE */
 
 /*
 **  DKIM_MINBODY -- return number of bytes still expected
@@ -683,7 +674,6 @@ extern DKIM_STAT dkim_getsighdr_d __P((DKIM *dkim, size_t initial,
 
 extern _Bool dkim_sig_hdrsigned __P((DKIM_SIGINFO *sig, char *hdr));
 
-#ifdef USE_UNBOUND
 /*
 **  DKIM_SIG_GETDNSSEC -- retrieve DNSSEC results for a signature
 **
@@ -695,7 +685,6 @@ extern _Bool dkim_sig_hdrsigned __P((DKIM_SIGINFO *sig, char *hdr));
 */
 
 extern u_int dkim_sig_getdnssec __P((DKIM_SIGINFO *sig));
-#endif /* USE_UNBOUND */
 
 /*
 **  DKIM_SIG_GETREPORTINFO -- retrieve reporting information from a key
@@ -874,7 +863,6 @@ extern unsigned char *dkim_sig_getselector __P((DKIM_SIGINFO *sig));
 
 extern unsigned char *dkim_sig_getdomain __P((DKIM_SIGINFO *sig));
 
-#ifdef _FFR_STATS
 /*
 **  DKIM_SIG_GETCANONS -- retrieve canonicaliztions after verifying
 **
@@ -882,12 +870,11 @@ extern unsigned char *dkim_sig_getdomain __P((DKIM_SIGINFO *sig));
 **  	sig -- DKIM_SIGINFO handle
 **
 **  Return value:
-**  	Pointer to the signing domain.
+**  	DKIM_STAT_OK -- success
 */
 
 extern DKIM_STAT dkim_sig_getcanons __P((DKIM_SIGINFO *sig, dkim_canon_t *hdr,
                                          dkim_canon_t *body));
-#endif /* _FFR_STATS */
 
 /*
 **  DKIM_SET_USER_CONTEXT -- set DKIM handle user context
@@ -914,7 +901,6 @@ extern DKIM_STAT dkim_set_user_context __P((DKIM *dkim, const void *ctx));
 
 extern const void *dkim_get_user_context __P((DKIM *dkim));
 
-#ifdef _FFR_PARSE_TIME
 /*
 **  DKIM_GET_MSGDATE -- retrieve value extracted from the Date: header
 **
@@ -927,7 +913,6 @@ extern const void *dkim_get_user_context __P((DKIM *dkim));
 */
 
 extern time_t dkim_get_msgdate __P((DKIM *dkim));
-#endif /* _FFR_PARSE_TIME */
 
 /*
 **  DKIM_GETMODE -- return the mode (signing, verifying, etc.) of a handle
@@ -1166,7 +1151,6 @@ extern void dkim_sig_ignore __P((DKIM_SIGINFO *siginfo));
 extern DKIM_STAT dkim_policy __P((DKIM *dkim, dkim_policy_t *pcode,
                                   DKIM_PSTATE *pstate));
 
-#ifdef USE_UNBOUND
 /*
 **  DKIM_POLICY_GETDNSSEC -- retrieve DNSSEC results for a policy
 **
@@ -1178,7 +1162,6 @@ extern DKIM_STAT dkim_policy __P((DKIM *dkim, dkim_policy_t *pcode,
 */
 
 extern u_int dkim_policy_getdnssec __P((DKIM *dkim));
-#endif /* USE_UNBOUND */
 
 /*
 **  DKIM_POLICY_GETREPORTINFO -- retrieve reporting information from policy
@@ -1309,7 +1292,6 @@ extern const char *dkim_getpolicystr __P((int policy));
 extern DKIM_STAT dkim_ohdrs __P((DKIM *dkim, DKIM_SIGINFO *sig, char **ptrs,
                                  int *pcnt));
 
-#ifdef _FFR_DIFFHEADERS
 /*
 **  DKIM_DIFFHEADERS -- compare original headers with received headers
 **
@@ -1332,9 +1314,7 @@ extern DKIM_STAT dkim_ohdrs __P((DKIM *dkim, DKIM_SIGINFO *sig, char **ptrs,
 extern DKIM_STAT dkim_diffheaders __P((DKIM *dkim, int maxcost, char **ohdrs,
                                        int nohdrs, struct dkim_hdrdiff **out,
                                        int *nout));
-#endif /* _FFR_DIFFHEADERS */
 
-#ifdef _FFR_BODYLENGTH_DB
 /*
 **  DKIM_GETPARTIAL -- return a DKIM handle's "body length tag" flag
 **
@@ -1360,7 +1340,6 @@ extern _Bool dkim_getpartial __P((DKIM *dkim));
 */
 
 extern DKIM_STAT dkim_setpartial __P((DKIM *dkim, _Bool value));
-#endif /* _FFR_BODYLENGTH_DB */
 
 /*
 **  DKIM_SET_MARGIN -- set the margin to use when generating signatures
@@ -1377,7 +1356,6 @@ extern DKIM_STAT dkim_setpartial __P((DKIM *dkim, _Bool value));
 
 extern DKIM_STAT dkim_set_margin __P((DKIM *dkim, int value));
 
-#ifdef _FFR_DKIM_REPUTATION
 /*
 **  DKIM_GET_REPUTATION -- query reputation service about a signature
 **
@@ -1392,12 +1370,11 @@ extern DKIM_STAT dkim_set_margin __P((DKIM *dkim, int value));
 **  	DKIM_STAT_NOKEY -- no reputation data available
 **  	DKIM_STAT_CANTVRFY -- data retrieval error of some kind
 **  	DKIM_STAT_INTERNAL -- internal error of some kind
+**  	DKIM_STAT_NOTIMPLEMENT -- not implemented
 */
 
-extern DKIM_STAT
-dkim_get_reputation __P((DKIM *dkim, DKIM_SIGINFO *sig, char *qroot,
-                         int *rep));
-#endif /* _FFR_DKIM_REPUTATION */
+extern DKIM_STAT dkim_get_reputation __P((DKIM *dkim, DKIM_SIGINFO *sig,
+                                          char *qroot, int *rep));
 
 /*
 **  RFC2822_MAILBOX_SPLIT -- extract the userid and host from a structured
@@ -1427,11 +1404,34 @@ extern int rfc2822_mailbox_split __P((char *addr, char **user, char **domain));
 
 extern unsigned long dkim_ssl_version __P((void));
 
+/*
+**  DKIM_LIBFEATURE -- check for a library feature
+**
+**  Parameters:
+**  	lib -- DKIM_LIB handle
+**  	fc -- feature code
+**
+**  Return value:
+**  	TRUE iff the library was compiled with the requested feature
+*/
+
+#define DKIM_FEATURE_DIFFHEADERS	0
+#define DKIM_FEATURE_DKIM_REPUTATION	1
+#define DKIM_FEATURE_PARSE_TIME		2
+#define DKIM_FEATURE_QUERY_CACHE	3
+#define DKIM_FEATURE_SHA256		4
+#define DKIM_FEATURE_ASYNC_DNS		5
+#define DKIM_FEATURE_DNSSEC		6
+
+#define	DKIM_FEATURE_MAX		6
+
+extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
+
 /* default list of sender headers */
 extern const u_char *default_senderhdrs[];
 
 /* list of headers that should be signed, per RFC4871 section 5.5 */
-extern const u_char *should_signhdrs[];
+extern const u_char *should_signhdrs[]; 
 
 /* list of headers that should not be signed, per RFC4871 section 5.5 */
 extern const u_char *should_not_signhdrs[];

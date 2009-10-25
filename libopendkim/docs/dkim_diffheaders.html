@@ -1,0 +1,129 @@
+<html>
+<head><title>dkim_diffheaders()</title></head>
+<body>
+<!--
+$Id: dkim_diffheaders.html,v 1.1 2009/10/25 22:56:34 cm-msk Exp $
+-->
+<h1>dkim_diffheaders()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_diffheaders(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+	int maxcost,
+	char **ohdrs,
+	int nohdrs,
+	struct dkim_hdrdiff **out,
+        int *nout);
+);
+</pre>
+Attempts to discern how signed header fields were changed in transit in order
+to debug verification problems.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_diffheaders()</tt> can be called at any time after end-of-headers
+processing (i.e. <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a>) while
+verifying. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific signing handle, returned by
+        <a href="dkim_verify.html"><tt>dkim_verify()</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>maxcost</td>
+	<td>When comparing two header fields, a "cost" is computed for each
+	difference observed.  The library computes the cost of a match by
+	computing the number of character insertions, removals or replacements
+	that would be needed to transition from the first header field to
+	the second; insertions and removals each have a cost of 1 and
+	replacements a cost of 2.  Two header fields are considered a match
+	for the purposes of this function if the cost of a comparison is
+	below the value of <tt>maxcost</tt>.  Thus, larger values are more
+	prone to mismatches, but smaller values might not detect serious
+	munging of headers in transit.  Insertions and removals are given
+	lower costs because it is presumed most munging in transit changes
+	spaces, but doesn't actually rewrite other content.
+	</td></tr>
+    <tr valign="top"><td>ohdrs</td>
+	<td>An array of pointers to NULL-terminated strings containing copies
+	of the original signed headers as extracted from a signature.
+	This can be obtained from signatures that had "z=" tags by using
+	the <a href="dkim_ohdrs.html"><tt>dkim_ohdrs()</tt></a> function.
+	</td></tr>
+    <tr valign="top"><td>nohdrs</td>
+	<td>The number of elements in the <tt>ohdrs</tt> array.
+	</td></tr>
+    <tr valign="top"><td>out</td>
+	<td>A pointer to an array of <tt>struct dkim_hdrdiff</tt> objects
+	that will be allocated by this function.  Each object contains
+	a character pointer called <tt>hd_old</tt> that refers to the
+	original signed header, and one called <tt>hd_new</tt> that refers
+	to its corresponding value in the received message.
+	</td></tr>
+    <tr valign="top"><td>nout</td>
+	<td>A pointer to an integer that will be updated to contain the
+	number of elements that are placed in the <tt>out</tt> array.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Value ---------->
+<tr>
+<th valign="top" align=left>RETURN VALUES</th> 
+<td>
+<ul>
+<li>DKIM_STAT_OK -- success
+<li>DKIM_STAT_INVALID -- the message handle was not initialized for verifying,
+    or a <tt>maxcost</tt> of 0 was specified
+<li>DKIM_STAT_INTERNAL -- a regular expression processing error occurred
+<li>DKIM_STAT_NORESOURCE -- memory exhaustion occurred
+<li>DKIM_STAT_NOTIMPLEMENT -- the required regular expression library was not
+    available when the library was compiled
+</ul>
+</td>
+</tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>The library must be compiled with an approximate regular expression
+    library in order to provide this service.
+<li>The returned array of pairs of strings refer to header fields present
+    in both the original header field set and the received header field set
+    that were not the same, but close enough to be considered a match
+    based on the <tt>maxcost</tt> parameter.  This function does not
+    currently detect header fields removed in transit.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

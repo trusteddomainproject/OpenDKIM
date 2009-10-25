@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.20 2009/10/22 22:00:58 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.21 2009/10/25 22:56:34 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -3692,6 +3692,43 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	libhandle->dkiml_final = NULL;
 	libhandle->dkiml_dns_callback = NULL;
 	
+#define FEATURE_INDEX(x)	((x) / (8 * sizeof(u_int)))
+#define FEATURE_OFFSET(x)	((x) % (8 * sizeof(u_int)))
+#define FEATURE_ADD(lib,x)	(lib)->dkiml_flist[FEATURE_INDEX((x))] |= (1 << FEATURE_OFFSET(x))
+
+	libhandle->dkiml_flsize = (FEATURE_INDEX(DKIM_FEATURE_MAX)) + 1;
+	libhandle->dkiml_flist = (u_int *) malloc(sizeof(u_int) * libhandle->dkiml_flsize);
+	if (libhandle->dkiml_flist == NULL)
+	{
+		free(libhandle);
+		return NULL;
+	}
+	memset(libhandle->dkiml_flist, '\0',
+	       sizeof(u_int) * libhandle->dkiml_flsize);
+
+#ifdef _FFR_DIFFHEADERS
+	FEATURE_ADD(libhandle, DKIM_FEATURE_DIFFHEADERS);
+#endif /* _FFR_DIFFHEADERS */
+#ifdef _FFR_DKIM_REPUTATION
+	FEATURE_ADD(libhandle, DKIM_FEATURE_DKIM_REPUTATION);
+#endif /* _FFR_DKIM_REPUTATION */
+#ifdef _FFR_PARSE_TIME
+	FEATURE_ADD(libhandle, DKIM_FEATURE_PARSE_TIME);
+#endif /* _FFR_PARSE_TIME */
+#ifdef QUERY_CACHE
+	FEATURE_ADD(libhandle, DKIM_FEATURE_QUERY_CACHE);
+#endif /* QUERY_CACHE */
+#ifdef SHA256_DIGEST_LENGTH
+	FEATURE_ADD(libhandle, DKIM_FEATURE_SHA256);
+#endif /* SHA256_DIGEST_LENGTH */
+#ifdef USE_ARLIB
+	FEATURE_ADD(libhandle, DKIM_FEATURE_ASYNC_DNS);
+#endif /* USE_ARLIB */
+#ifdef USE_UNBOUND
+	FEATURE_ADD(libhandle, DKIM_FEATURE_ASYNC_DNS);
+	FEATURE_ADD(libhandle, DKIM_FEATURE_DNSSEC);
+#endif /* USE_UNBOUND */
+
 #ifdef USE_UNBOUND
 	/* initialize the unbound resolver */
 	if (dkim_unbound_init(libhandle) != 0)
@@ -4524,7 +4561,6 @@ dkim_policy(DKIM *dkim, dkim_policy_t *pcode, DKIM_PSTATE *pstate)
 	return DKIM_STAT_OK;
 }
 
-#ifdef USE_UNBOUND
 /*
 **  DKIM_POLICY_GETDNSSEC -- retrieve DNSSEC results for a policy
 **
@@ -4540,9 +4576,12 @@ dkim_policy_getdnssec(DKIM *dkim)
 {
 	assert(dkim != NULL);
 
+#ifdef USE_UNBOUND
 	return dkim->dkim_dnssec_policy;
-}
+#else /* USE_UNBOUND */
+	return DKIM_DNSSEC_UNKNOWN;
 #endif /* USE_UNBOUND */
+}
 
 /*
 **  DKIM_POLICY_GETREPORTINFO -- retrieve reporting information from policy
@@ -5006,11 +5045,9 @@ dkim_ohdrs(DKIM *dkim, DKIM_SIGINFO *sig, char **ptrs, int *pcnt)
 	return DKIM_STAT_OK;
 }
 
-#ifdef _FFR_DIFFHEADERS
-
-# if !defined(TRE_APPROX) || (TRE_APPROX == 0)
-#  error _FFR_DIFFHEADERS requires approximate regular expression matching
-# endif /* !defined(TRE_APPROX) || (TRE_APPROX == 0) */
+#if defined(_FFR_DIFFHEADERS) && (!defined(TRE_APPROX) || (TRE_APPROX == 0))
+# error _FFR_DIFFHEADERS requires approximate regular expression matching
+#endif /* defined(_FFR_DIFFHEADERS) && (!defined(TRE_APPROX) || (TRE_APPROX == 0)) */
 
 /*
 **  DKIM_DIFFHEADERS -- compare original headers with received headers
@@ -5035,6 +5072,7 @@ DKIM_STAT
 dkim_diffheaders(DKIM *dkim, int maxcost, char **ohdrs, int nohdrs,
                  struct dkim_hdrdiff **out, int *nout)
 {
+#ifdef _FFR_DIFFHEADERS
 	int n = 0;
 	int a = 0;
 	int c;
@@ -5188,8 +5226,10 @@ dkim_diffheaders(DKIM *dkim, int maxcost, char **ohdrs, int nohdrs,
 	*nout = n;
 
 	return DKIM_STAT_OK;
-}
+#else /* _FFR_DIFFHEADERS */
+	return DKIM_STAT_NOTIMPLEMENT;
 #endif /* _FFR_DIFFHEADERS */
+}
 
 /*
 **  DKIM_HEADER -- process a header
@@ -5570,7 +5610,6 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 
 	return DKIM_STAT_OK;
 }
-
 
 /*
 **  DKIM_MINBODY -- return number of bytes still expected
@@ -6044,7 +6083,6 @@ dkim_sig_hdrsigned(DKIM_SIGINFO *sig, char *hdr)
 	return FALSE;
 }
 
-#ifdef USE_UNBOUND
 /*
 **  DKIM_SIG_GETDNSSEC -- retrieve DNSSEC results for a signature
 **
@@ -6060,9 +6098,12 @@ dkim_sig_getdnssec(DKIM_SIGINFO *sig)
 {
 	assert(sig != NULL);
 
+#ifdef USE_UNBOUND
 	return sig->sig_dnssec_key;
-}
+#else /* USE_UNBOUND */
+	return DKIM_DNSSEC_UNKNOWN;
 #endif /* USE_UNBOUND */
+}
 
 /*
 **  DKIM_SIG_GETREPORTINFO -- retrieve reporting information from a key
@@ -6400,7 +6441,6 @@ dkim_sig_getsigntime(DKIM_SIGINFO *sig, time_t *when)
 	return DKIM_STAT_OK;
 }
 
-#ifdef _FFR_STATS
 /*
 **  DKIM_SIG_GETCANONS -- retrieve canonicalizations used when signing
 **
@@ -6427,7 +6467,6 @@ dkim_sig_getcanons(DKIM_SIGINFO *sig, dkim_canon_t *hdr, dkim_canon_t *body)
 
 	return DKIM_STAT_OK;
 }
-#endif /* _FFR_STATS */
 
 /*
 **  DKIM_SET_SIGNER -- set DKIM signature's signer
@@ -6484,7 +6523,6 @@ dkim_geterror(DKIM *dkim)
 	return (const char *) dkim->dkim_error;
 }
 
-#ifdef _FFR_BODYLENGTH_DB
 /*
 **  DKIM_GETPARTIAL -- return if the DKIM handle is to be signed using
 **                     the bodylength tag (l=)
@@ -6529,7 +6567,6 @@ dkim_setpartial(DKIM *dkim, _Bool value)
 
 	return DKIM_STAT_OK;
 }
-#endif /* _FFR_BODYLENGTH_DB */
 
 /*
 **  DKIM_SET_MARGIN -- set the margin to use when generating signatures
@@ -6658,7 +6695,6 @@ dkim_set_dns_callback(DKIM_LIB *libopendkim, void (*func)(const void *context),
 #endif /* USE_ARLIB || USE_UNBOUND */
 }
 
-#ifdef USE_UNBOUND
 /*
 **  DKIM_SET_TRUST_ANCHOR -- set path to trust anchor file
 **
@@ -6669,6 +6705,7 @@ dkim_set_dns_callback(DKIM_LIB *libopendkim, void (*func)(const void *context),
 **  Return value:
 **  	DKIM_STAT_OK -- success
 **  	DKIM_STAT_INVALID -- invalid use
+**  	DKIM_STAT_NOTIMPLENT -- function not implemented
 */
 
 DKIM_STAT
@@ -6679,14 +6716,17 @@ dkim_set_trust_anchor(DKIM_LIB *libopendkim, char *tafile)
 	assert(libopendkim != NULL);
 	assert(tafile != NULL);
 
+#ifdef USE_UNBOUND
 	status = dkim_unbound_add_trustanchor(libopendkim, tafile);
 
 	if (status != 0)
 		return DKIM_STAT_INVALID;
 
 	return DKIM_STAT_OK;
-}
+#else /* USE_UNBOUND */
+	return DKIM_STAT_NOTIMPLEMENT;
 #endif /* USE_UNBOUND */
+}
 
 /*
 **  DKIM_SET_USER_CONTEXT -- set user context pointer
@@ -6727,7 +6767,6 @@ dkim_get_user_context(DKIM *dkim)
 	return dkim->dkim_user_context;
 }
 
-#ifdef _FFR_PARSE_TIME
 /*
 **  DKIM_GET_MSGDATE -- retrieve value extracted from the Date: header
 **
@@ -6744,9 +6783,12 @@ dkim_get_msgdate(DKIM *dkim)
 {
 	assert(dkim != NULL);
 
+#ifdef _FFR_PARSE_TIME
 	return dkim->dkim_msgdate;
-}
+#else /* _FFR_PARSE_TIME */
+	return 0;
 #endif /* _FFR_PARSE_TIME */
+}
 
 /*
 **  DKIM_GETMODE -- return the mode (signing, verifying, etc.) of a handle
@@ -7072,7 +7114,6 @@ dkim_ssl_version(void)
 	return OPENSSL_VERSION_NUMBER;
 }
 
-#ifdef QUERY_CACHE
 /*
 **  DKIM_FLUSH_CACHE -- purge expired records from the cache
 **
@@ -7091,10 +7132,14 @@ dkim_flush_cache(DKIM_LIB *lib)
 
 	assert(lib != NULL);
 
+#ifdef QUERY_CACHE
 	if (lib->dkiml_cache == NULL)
 		return -1;
 
 	return dkim_cache_expire(lib->dkiml_cache, 0, &err);
+#else /* QUERY_CACHE */
+	return -1;
+#endif /* QUERY_CACHE */
 }
 
 /*
@@ -7106,21 +7151,25 @@ dkim_flush_cache(DKIM_LIB *lib)
 **  	expired -- number of expired hits (returned)
 **
 **  Return value:
-**  	None.
+**  	DKIM_STAT_OK -- request completed
+**  	DKIM_STAT_NOTIMPLEMENT -- function not implemented
 **
 **  Notes:
 **  	Any of the parameters may be NULL if the corresponding datum
 **  	is not of interest.
 */
 
-void
+DKIM_STAT
 dkim_getcachestats(u_int *queries, u_int *hits, u_int *expired)
 {
+#ifdef QUERY_CACHE
 	dkim_cache_stats(queries, hits, expired);
-}
+	return DKIM_STAT_OK;
+#else /* QUERY_CACHE */
+	return DKIM_STAT_NOTIMPLEMENT;
 #endif /* QUERY_CACHE */
+}
 
-#ifdef _FFR_DKIM_REPUTATION
 /*
 **  DKIM_GET_REPUTATION -- query reputation service about a signature
 **
@@ -7135,11 +7184,13 @@ dkim_getcachestats(u_int *queries, u_int *hits, u_int *expired)
 **  	DKIM_STAT_NOKEY -- no reputation data available
 **  	DKIM_STAT_CANTVRFY -- data retrieval error of some kind
 **  	DKIM_STAT_INTERNAL -- internal error of some kind
+**  	DKIM_STAT_NOTIMPLEMENT -- not implemented
 */
 
 DKIM_STAT
 dkim_get_reputation(DKIM *dkim, DKIM_SIGINFO *sig, char *qroot, int *rep)
 {
+#ifdef _FFR_DKIM_REPUTATION
 	int status;
 	int lrep;
 
@@ -7167,5 +7218,33 @@ dkim_get_reputation(DKIM *dkim, DKIM_SIGINFO *sig, char *qroot, int *rep)
 	  default:
 		return DKIM_STAT_INTERNAL;
 	}
-}
+#else /* _FFR_DKIM_REPUTATION */
+	return DKIM_STAT_NOTIMPLEMENT;
 #endif /* _FFR_DKIM_REPUTATION */
+}
+
+/*
+**  DKIM_LIBFEATURE -- determine whether or not a particular library feature
+**                     is actually available
+**
+**  Parameters:
+**  	lib -- library handle
+**  	fc -- feature code to check
+**
+**  Return value:
+**  	TRUE iff the specified feature was compiled in
+*/
+
+_Bool
+dkim_libfeature(DKIM_LIB *lib, u_int fc)
+{
+	u_int idx;
+	u_int offset;
+
+	idx = fc / (8 * sizeof(int));
+	offset = fc % (8 * sizeof(int));
+
+	if (idx > lib->dkiml_flsize)
+		return FALSE;
+	return ((lib->dkiml_flist[idx] & (1 << offset)) != 0);
+}

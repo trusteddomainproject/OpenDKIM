@@ -1,0 +1,86 @@
+<html>
+<head><title>dkim_sig_getcanons()</title></head>
+<body>
+<!--
+$Id: dkim_sig_getcanons.html,v 1.1 2009/10/25 22:56:35 cm-msk Exp $
+-->
+<h1>dkim_sig_getcanons()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_sig_getcanons(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+	<a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *sig,
+        <a href="dkim_canon_t.html"><tt>dkim_canon_t</tt></a> *hdr,
+        <a href="dkim_canon_t.html"><tt>dkim_canon_t</tt></a> *body
+);
+</pre>
+Retrieve the canonicalizations used to apply a signature to a message.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_sig_getcanons()</tt> is called after
+    <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a> to get the header and
+    body canonicalization modes used to sign a message.  </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific handle, returned by
+        <a href="dkim_sign.html"><tt>dkim_sign()</tt></a> or
+        <a href="dkim_verify.html"><tt>dkim_verify</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>sig</td>
+	<td>The <tt>DKIM_SIGINFO</tt> handle representing the signature
+	being evaluated.
+	</td></tr>
+    <tr valign="top"><td>hdr</td>
+	<td>A pointer to a <tt>dkim_canon_t</tt> which will receive the
+        header canonicalization mode used when generating the provided
+	signature.  Can be NULL if this information is not needed by the
+	caller.
+	</td></tr>
+    <tr valign="top"><td>body</td>
+	<td>A pointer to a <tt>dkim_canon_t</tt> which will receive the
+        body canonicalization mode used when generating the provided
+	signature.  Can be NULL if this information is not needed by the
+	caller.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2005-2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

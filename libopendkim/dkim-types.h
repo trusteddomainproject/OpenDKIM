@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.6 2009/10/22 22:32:22 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.7 2009/10/25 22:56:34 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -294,10 +294,12 @@ struct dkim_lib
 	u_int			dkiml_timeout;
 	u_int			dkiml_version;
 	u_int			dkiml_callback_int;
+	u_int			dkiml_flsize;
 	time_t			dkiml_fixedtime;
 	unsigned long		dkiml_sigttl;
 	unsigned long		dkiml_clockdrift;
 	dkim_query_t		dkiml_querymethod;
+	u_int *			dkiml_flist;
 	void *			(*dkiml_malloc) (void *closure, size_t nbytes);
 	void			(*dkiml_free) (void *closure, void *p);
 #if USE_ARLIB

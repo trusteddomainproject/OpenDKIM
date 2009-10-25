@@ -1,0 +1,100 @@
+<html>
+<head><title>dkim_libfeature()</title></head>
+<body>
+<!--
+$Id: dkim_libfeature.html,v 1.1 2009/10/25 22:56:35 cm-msk Exp $
+-->
+<h1>dkim_libfeature()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+
+_Bool dkim_libfeature(
+	<a href="dkim_lib.html"><tt>DKIM_LIB</tt></a> *lib,
+        u_int fc
+);
+</pre>
+Tests for availability of a specific feature in the library.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_libfeature()</tt> can be called at any time after acquiring
+    a library handle from
+    <a href="dkim_init.html"><tt>dkim_init()</tt></a>.</td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Library instance handle, returned by
+        <a href="dkim_init.html"><tt>dkim_init</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>fc</td>
+	<td>A code representing a specific feature of the library.  Possible
+	    values:
+        <table border="1" cellspacing=0>
+           <tr bgcolor="#dddddd"><th>Feature Name</th><th>Description</th></tr>
+           <tr valign="top"><td><tt>DKIM_FEATURE_DIFFHEADERS</tt></td>
+                            <td>Underlying code required to provide the
+	                        <a href="dkim_diffheaders.html"><tt>dkim_diffheaders()</tt></a>
+	                        facility. </td> </tr>
+           <tr valign="top"><td><tt>DKIM_FEATURE_DKIM_REPUTATION</tt></td>
+                            <td>Underlying code required to provide the
+	                        <a href="dkim_get_reputation.html"><tt>dkim_get_reputation()</tt></a>
+	                        facility. </td> </tr>
+           <tr valign="top"><td><tt>DKIM_FEATURE_PARSE_TIME</tt></td>
+                            <td>Underlying code required to provide the
+	                        <a href="dkim_get_msgdate.html"><tt>dkim_get_msgdate()</tt></a>
+	                        facility. </td> </tr>
+           <tr valign="top"><td><tt>DKIM_FEATURE_QUERY_CACHE</tt></td>
+                            <td>Underlying code required to do local caching
+	                        of DNS replies (i.e. key and policy records).
+	                        </td> </tr>
+           <tr valign="top"><td><tt>DKIM_FEATURE_SHA256</tt></td>
+                            <td>Underlying code required to SHA256 hashing
+	                        when signing or verifying.  </td> </tr>
+           <tr valign="top"><td><tt>DKIM_FEATURE_ASYNC_DNS</tt></td>
+                            <td>Underlying code required to asynchronous
+	                        DNS processing.  </td> </tr>
+           <tr valign="top"><td><tt>DKIM_FEATURE_DNSSEC</tt></td>
+                            <td>Underlying code required to conduct DNSSEC
+	                        evaluation of replies.  </td> </tr>
+	</table>
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

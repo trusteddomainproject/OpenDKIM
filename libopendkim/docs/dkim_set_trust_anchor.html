@@ -1,0 +1,86 @@
+<html>
+<head><title>dkim_set_trust_anchor()</title></head>
+<body>
+<!--
+$Id: dkim_set_trust_anchor.html,v 1.1 2009/10/25 22:56:35 cm-msk Exp $
+-->
+<h1>dkim_set_trust_anchor()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_set_trust_anchor(
+	<a href="dkim_lib.html"><tt>DKIM_LIB</tt></a> *lib,
+        char *tafile);
+);
+</pre>
+Sets the path to a local trust anchor file, used when doing DNSSEC
+evaluations.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_set_trust_anchor()</tt> can be called at any time after
+initializing the library with
+<a href="dkim_init.html"><tt>dkim_init()</tt></a> but prior to
+any DNS operations done during verifying.</td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>lib</td>
+	<td>Library-specific context handle created by a call to
+        <a href="dkim_init.html"><tt>dkim_init()</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>tafile</td>
+	<td>A pointer to a character string identifying the trust
+	anchor file to be used when performing DNSSEC queries.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Value ---------->
+<tr>
+<th valign="top" align=left>RETURN VALUES</th> 
+<td>
+<ul>
+<li>DKIM_STAT_OK -- success
+<li>DKIM_STAT_INVALID -- the trust anchor file could not be used
+<li>DKIM_STAT_NOTIMPLEMENT -- the underlying DNS system used when
+    the library was compiled did not have DNSSEC support
+</ul>
+</td>
+</tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

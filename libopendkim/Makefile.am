@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.28 2009/10/07 01:00:59 cm-msk Exp $
+# $Id: Makefile.am,v 1.29 2009/10/25 22:56:34 cm-msk Exp $
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c vbr.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h vbr.h
@@ -45,7 +45,12 @@ libopendkim_la_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
 	docs/dkim_sigerror.html docs/dkim_siginfo.html \
 	docs/dkim_sigkey_t.html docs/dkim_sign.html \
 	docs/dkim_ssl_version.html docs/dkim_stat.html docs/dkim_verify.html \
-	docs/index.html docs/overview.html docs/rfc2822_mailbox_split.html
+	docs/index.html docs/overview.html docs/rfc2822_mailbox_split.html \
+	docs/dkim_diffheaders.html docs/dkim_get_msgdate.html \
+	docs/dkim_getpartial.html docs/dkim_get_reputation.html \
+	docs/dkim_setpartial.html docs/dkim_set_trust_anchor.html \
+	docs/dkim_sig_getidentity.html docs/dkim_sig_getcanons.html \
+	docs/dkim_libfeature.html
 
 if BODYLENGTH_DB
 libopendkim_la_CFLAGS += -D_FFR_BODYLENGTH_DB

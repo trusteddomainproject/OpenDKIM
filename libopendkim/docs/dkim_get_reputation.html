@@ -1,0 +1,104 @@
+<html>
+<head><title>dkim_get_reputation()</title></head>
+<body>
+<!--
+$Id: dkim_get_reputation.html,v 1.1 2009/10/25 22:56:35 cm-msk Exp $
+-->
+<h1>dkim_get_reputation()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_get_reputation(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+	<a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *sig,
+	char *qroot,
+	int *rep
+);
+</pre>
+Query an experimental DKIM reputation service.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_get_reputation()</tt> can be called at any time after
+    the signature information handles are initialized in the call to
+    <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a>. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific handle.
+	</td></tr>
+    <tr valign="top"><td>sig</td>
+	<td>Signature-specific handle.
+	</td></tr>
+    <tr valign="top"><td>qroot</td>
+	<td>The root of the reputation query.  This is a location in the
+	DNS at which the published reputation data are rooted.
+	</td></tr>
+    <tr valign="top"><td>rep</td>
+	<td>A pointer to an integer that will be updated to contain the
+	reputation reported about the message's signer.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr><th valign="top" align=left>RETURN VALUES</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Value</th><th>Description</th></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_OK</tt></td>
+	<td>A reputation was retrieved.
+	</td></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_NOKEY</tt></td>
+	<td>No reputation data was available for this signer.
+	</td></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_CANTVRFY</tt></td>
+	<td>An error occurred retrieving the reputation data.
+	</td></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_INTERNAL</tt></td>
+	<td>An internal error occurred.
+	</td></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_NOTIMPLEMENT</tt></td>
+	<td>The required code supporting this feature was not enabled when
+	the library was built.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>For details about this service, visit
+    <a href="http://www.dkim-reputation.org">http://www.dkim-reputation.org</a>.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>
