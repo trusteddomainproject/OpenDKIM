@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.48 2009/10/20 23:20:57 cm-msk Exp $
+**  $Id: opendkim.c,v 1.49 2009/10/25 22:37:09 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.48 2009/10/20 23:20:57 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.49 2009/10/25 22:37:09 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -352,7 +352,6 @@ struct msgctx
 	struct addrlist * mctx_rcptlist;	/* recipient list */
 	char		mctx_domain[DKIM_MAXHOSTNAMELEN + 1];
 						/* primary domain */
-	char		mctx_hlist[MAXHEADERS];	/* header buffer */
 };
 
 /*
