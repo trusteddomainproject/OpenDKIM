@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.54 2009/10/22 22:24:54 cm-msk Exp $
+# $Id: configure.ac,v 1.55 2009/10/25 22:36:44 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -218,7 +218,7 @@ AC_ARG_WITH(unbound,
 	AS_HELP_STRING(--with-unbound, location of Unbound includes and library),
 	unboundpath="$withval", unboundpath="no")
 
-if test x"$unboundpath" != x"no" -a x"$enable_arlib" == x"yes"
+if test x"$unboundpath" != x"no" -a x"$enable_arlib" = x"yes"
 then
 	AC_MSG_ERROR(cannot use both arlib and unbound)
 fi
@@ -273,10 +273,9 @@ else
 	trepath="no"
 fi)
 
-if test x"$trepath" == x"no" -a x"$enable_diffheaders" == x"yes"
-then
-	AC_MSG_ERROR(cannot use diffheaders without TRE library)
-fi
+LIBTRE_INCDIRS=""
+LIBTRE_LIBDIRS=""
+LIBTRE_LIBS=""
 
 if test x"$trepath" = x"yes"
 then
@@ -309,6 +308,11 @@ else
 	else
 		AC_MSG_ERROR(not found at $trepath)
 	fi
+fi
+
+if test x"$enable_diffheaders" = x"yes" -a x"$LIBTRE_LIBS" = x""
+then
+	AC_MSG_ERROR(cannot use diffheaders without TRE library)
 fi
 
 AM_CONDITIONAL(USE_TRE, test x"$trepath" != x"no")
