@@ -1,11 +1,13 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.38 2009/10/22 22:25:21 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.39 2009/10/25 22:53:40 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 1.1.2		2009/??/??
+	Under _FFR_SENDER_MACRO, need to check the value of "SenderMacro"
+		in the configuration file.  Noted by Daniel Black.
 	Feature request #SF2873901: Add _FFR_REDIRECT which optionally
 		redirects messages that fail verification to a specific
 		address, storing the original recipients in
