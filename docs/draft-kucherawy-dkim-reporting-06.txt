@@ -2,22 +2,28 @@
 
 
 Individual submission                                       M. Kucherawy
-Internet-Draft                                            Sendmail, Inc.
-Intended status: Standards Track                           July 10, 2008
-Expires: January 11, 2009
+Internet-Draft                                                 Cloudmark
+Intended status: Standards Track                        October 19, 2009
+Expires: April 22, 2010
 
 
                 Reporting of DKIM Verification Failures
-                   draft-kucherawy-dkim-reporting-04
+                   draft-kucherawy-dkim-reporting-06
 
 Status of this Memo
 
-   By submitting this Internet-Draft, each author represents that any
-   applicable patent or other IPR claims of which he or she is aware
-   have been or will be disclosed, and any of which he or she becomes
-   aware will be disclosed, in accordance with Section 6 of BCP 79.
-   This document may not be modified, and derivative works of it may not
-   be created.
+   This Internet-Draft is submitted to IETF in full conformance with the
+   provisions of BCP 78 and BCP 79.  This document may contain material
+   from IETF Documents or IETF Contributions published or made publicly
+   available before November 10, 2008.  The person(s) controlling the
+   copyright in some of this material may not have granted the IETF
+   Trust the right to allow modifications of such material outside the
+   IETF Standards Process.  Without obtaining an adequate license from
+   the person(s) controlling the copyright in such materials, this
+   document may not be modified outside the IETF Standards Process, and
+   derivative works of it may not be created outside the IETF Standards
+   Process, except to format it for publication as an RFC or to
+   translate it into languages other than English.
 
    Internet-Drafts are working documents of the Internet Engineering
    Task Force (IETF), its areas, and its working groups.  Note that
@@ -35,26 +41,76 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on January 11, 2009.
+   This Internet-Draft will expire on April 22, 2010.
 
 Copyright Notice
 
-   Copyright (C) The IETF Trust (2008).
+   Copyright (c) 2009 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
 
 
 
-
-
-
-
-
-
-
-
-
-Kucherawy               Expires January 11, 2009                [Page 1]
+Kucherawy                Expires April 22, 2010                 [Page 1]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
+
+
+   Provisions Relating to IETF Documents in effect on the date of
+   publication of this document (http://trustee.ietf.org/license-info).
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kucherawy                Expires April 22, 2010                 [Page 2]
+
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 Abstract
@@ -68,49 +124,49 @@ Abstract
 
 Table of Contents
 
-   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
-   2.  Definitions  . . . . . . . . . . . . . . . . . . . . . . . . .  4
-     2.1.  Keywords . . . . . . . . . . . . . . . . . . . . . . . . .  4
-     2.2.  Imported Definitions . . . . . . . . . . . . . . . . . . .  4
-   3.  Optional Key Reporting Address for DKIM  . . . . . . . . . . .  5
-   4.  Optional Key Reporting Address for DKIM-ADSP . . . . . . . . .  7
-   5.  Requested Reports  . . . . . . . . . . . . . . . . . . . . . .  9
-     5.1.  Requested Reports for DKIM Failures  . . . . . . . . . . .  9
-     5.2.  Requested Reports for DKIM ADSP Failures . . . . . . . . .  9
-   6.  Reporting Formats  . . . . . . . . . . . . . . . . . . . . . . 10
-   7.  Extension ARF Fields for DKIM Reporting  . . . . . . . . . . . 11
-     7.1.  New ARF Feedback Type  . . . . . . . . . . . . . . . . . . 11
-     7.2.  New ARF Header Names . . . . . . . . . . . . . . . . . . . 11
-     7.3.  DKIM Failure Types . . . . . . . . . . . . . . . . . . . . 12
-   8.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 13
-     8.1.  DKIM Key Tag Registration  . . . . . . . . . . . . . . . . 13
-     8.2.  DKIM ADSP Tag Registration . . . . . . . . . . . . . . . . 13
-     8.3.  Updates to ARF Feedback Types  . . . . . . . . . . . . . . 13
-     8.4.  Updates to ARF Header Names  . . . . . . . . . . . . . . . 14
-   9.  Security Considerations  . . . . . . . . . . . . . . . . . . . 15
-     9.1.  Forgeries  . . . . . . . . . . . . . . . . . . . . . . . . 15
-     9.2.  Automatic Generation . . . . . . . . . . . . . . . . . . . 15
-     9.3.  Envelope Sender Selection  . . . . . . . . . . . . . . . . 15
-     9.4.  Reporting Multiple Incidents . . . . . . . . . . . . . . . 16
-   10. References . . . . . . . . . . . . . . . . . . . . . . . . . . 17
-     10.1. Normative References . . . . . . . . . . . . . . . . . . . 17
-     10.2. Informative References . . . . . . . . . . . . . . . . . . 17
-   Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 18
-   Appendix B.  Examples  . . . . . . . . . . . . . . . . . . . . . . 19
-     B.1.  Example Use of DKIM Key Extension Tags . . . . . . . . . . 19
-     B.2.  Example Use of DKIM ADSP Extension Tags  . . . . . . . . . 19
-     B.3.  Example Use of ARF Extension Headers . . . . . . . . . . . 20
-   Appendix C.  Public Discussion . . . . . . . . . . . . . . . . . . 21
-   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 22
-   Intellectual Property and Copyright Statements . . . . . . . . . . 23
+   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  4
+   2.  Definitions  . . . . . . . . . . . . . . . . . . . . . . . . .  5
+     2.1.  Keywords . . . . . . . . . . . . . . . . . . . . . . . . .  5
+     2.2.  Imported Definitions . . . . . . . . . . . . . . . . . . .  5
+   3.  Optional Key Reporting Address for DKIM  . . . . . . . . . . .  6
+   4.  Optional Key Reporting Address for DKIM-ADSP . . . . . . . . .  8
+   5.  Requested Reports  . . . . . . . . . . . . . . . . . . . . . . 10
+     5.1.  Requested Reports for DKIM Failures  . . . . . . . . . . . 10
+     5.2.  Requested Reports for DKIM ADSP Failures . . . . . . . . . 10
+   6.  Reporting Formats  . . . . . . . . . . . . . . . . . . . . . . 11
+   7.  Extension ARF Fields for DKIM Reporting  . . . . . . . . . . . 12
+     7.1.  New ARF Feedback Type  . . . . . . . . . . . . . . . . . . 12
+     7.2.  New ARF Header Names . . . . . . . . . . . . . . . . . . . 12
+     7.3.  DKIM Failure Types . . . . . . . . . . . . . . . . . . . . 13
+   8.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 14
+     8.1.  DKIM Key Tag Registration  . . . . . . . . . . . . . . . . 14
+     8.2.  DKIM ADSP Tag Registration . . . . . . . . . . . . . . . . 14
+     8.3.  Updates to ARF Feedback Types  . . . . . . . . . . . . . . 14
+     8.4.  Updates to ARF Header Names  . . . . . . . . . . . . . . . 15
+   9.  Security Considerations  . . . . . . . . . . . . . . . . . . . 16
+     9.1.  Forgeries  . . . . . . . . . . . . . . . . . . . . . . . . 16
+     9.2.  Automatic Generation . . . . . . . . . . . . . . . . . . . 16
+     9.3.  Envelope Sender Selection  . . . . . . . . . . . . . . . . 16
+     9.4.  Reporting Multiple Incidents . . . . . . . . . . . . . . . 17
+   10. References . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+     10.1. Normative References . . . . . . . . . . . . . . . . . . . 18
+     10.2. Informative References . . . . . . . . . . . . . . . . . . 18
+   Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 19
+   Appendix B.  Examples  . . . . . . . . . . . . . . . . . . . . . . 20
+     B.1.  Example Use of DKIM Key Extension Tags . . . . . . . . . . 20
+     B.2.  Example Use of DKIM ADSP Extension Tags  . . . . . . . . . 20
+     B.3.  Example Use of ARF Extension Headers . . . . . . . . . . . 21
+   Appendix C.  Public Discussion . . . . . . . . . . . . . . . . . . 22
+   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 23
 
 
 
 
 
-Kucherawy               Expires January 11, 2009                [Page 2]
+
+Kucherawy                Expires April 22, 2010                 [Page 3]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 1.  Introduction
@@ -164,9 +220,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-Kucherawy               Expires January 11, 2009                [Page 3]
+Kucherawy                Expires April 22, 2010                 [Page 4]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 2.  Definitions
@@ -220,9 +276,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-Kucherawy               Expires January 11, 2009                [Page 4]
+Kucherawy                Expires April 22, 2010                 [Page 5]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 3.  Optional Key Reporting Address for DKIM
@@ -276,9 +332,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-Kucherawy               Expires January 11, 2009                [Page 5]
+Kucherawy                Expires April 22, 2010                 [Page 6]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
       generating a report SHOULD include an "Incidents:" header in the
@@ -332,9 +388,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-Kucherawy               Expires January 11, 2009                [Page 6]
+Kucherawy                Expires April 22, 2010                 [Page 7]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 4.  Optional Key Reporting Address for DKIM-ADSP
@@ -388,9 +444,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-Kucherawy               Expires January 11, 2009                [Page 7]
+Kucherawy                Expires April 22, 2010                 [Page 8]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
       adsp-rf-tag = %x72 %x66 *WSP "=" *WSP rep-format *WSP 0*( ":" *WSP
@@ -444,9 +500,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-Kucherawy               Expires January 11, 2009                [Page 8]
+Kucherawy                Expires April 22, 2010                 [Page 9]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 5.  Requested Reports
@@ -500,9 +556,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-Kucherawy               Expires January 11, 2009                [Page 9]
+Kucherawy                Expires April 22, 2010                [Page 10]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 6.  Reporting Formats
@@ -556,9 +612,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-Kucherawy               Expires January 11, 2009               [Page 10]
+Kucherawy                Expires April 22, 2010                [Page 11]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 7.  Extension ARF Fields for DKIM Reporting
@@ -612,9 +668,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-Kucherawy               Expires January 11, 2009               [Page 11]
+Kucherawy                Expires April 22, 2010                [Page 12]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
    Incidents:  A count of the number of times the cited incident
@@ -668,9 +724,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-Kucherawy               Expires January 11, 2009               [Page 12]
+Kucherawy                Expires April 22, 2010                [Page 13]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 8.  IANA Considerations
@@ -724,9 +780,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-Kucherawy               Expires January 11, 2009               [Page 13]
+Kucherawy                Expires April 22, 2010                [Page 14]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 8.4.  Updates to ARF Header Names
@@ -780,9 +836,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-Kucherawy               Expires January 11, 2009               [Page 14]
+Kucherawy                Expires April 22, 2010                [Page 15]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 9.  Security Considerations
@@ -836,9 +892,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-Kucherawy               Expires January 11, 2009               [Page 15]
+Kucherawy                Expires April 22, 2010                [Page 16]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 9.4.  Reporting Multiple Incidents
@@ -892,9 +948,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-Kucherawy               Expires January 11, 2009               [Page 16]
+Kucherawy                Expires April 22, 2010                [Page 17]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 10.  References
@@ -932,8 +988,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 10.2.  Informative References
 
-   [DSN]  Moore, K. and G. Vaudreuil, "An Extensible Message Format for
-          Delivery Status Notifications", RFC 3464, January 2003.
+   [DSN]      Moore, K. and G. Vaudreuil, "An Extensible Message Format
+              for Delivery Status Notifications", RFC 3464,
+              January 2003.
 
 
 
@@ -947,10 +1004,9 @@ Internet-Draft               DKIM Reporting                    July 2008
 
 
 
-
-Kucherawy               Expires January 11, 2009               [Page 17]
+Kucherawy                Expires April 22, 2010                [Page 18]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 Appendix A.  Acknowledgements
@@ -1004,9 +1060,9 @@ Appendix A.  Acknowledgements
 
 
 
-Kucherawy               Expires January 11, 2009               [Page 18]
+Kucherawy                Expires April 22, 2010                [Page 19]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 Appendix B.  Examples
@@ -1060,9 +1116,9 @@ B.2.  Example Use of DKIM ADSP Extension Tags
 
 
 
-Kucherawy               Expires January 11, 2009               [Page 19]
+Kucherawy                Expires April 22, 2010                [Page 20]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
    o  Only reports about unsigned messages should be generated.
@@ -1116,9 +1172,9 @@ B.3.  Example Use of ARF Extension Headers
 
 
 
-Kucherawy               Expires January 11, 2009               [Page 20]
+Kucherawy                Expires April 22, 2010                [Page 21]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 Appendix C.  Public Discussion
@@ -1172,21 +1228,21 @@ Appendix C.  Public Discussion
 
 
 
-Kucherawy               Expires January 11, 2009               [Page 21]
+Kucherawy                Expires April 22, 2010                [Page 22]
 
-Internet-Draft               DKIM Reporting                    July 2008
+Internet-Draft               DKIM Reporting                 October 2009
 
 
 Author's Address
 
    Murray S. Kucherawy
-   Sendmail, Inc.
-   6475 Christie Ave., Suite 350
-   Emeryville, CA  94608
+   Cloudmark
+   128 King St., 2nd Floor
+   San Francisco, CA  94107
    US
 
-   Phone: +1 510 594 5400
-   Email: msk+ietf@sendmail.com
+   Phone: +1 415 946 3800
+   Email: msk@cloudmark.com
 
 
 
@@ -1228,61 +1284,5 @@ Author's Address
 
 
 
-Kucherawy               Expires January 11, 2009               [Page 22]
-
-Internet-Draft               DKIM Reporting                    July 2008
-
-
-Full Copyright Statement
-
-   Copyright (C) The IETF Trust (2008).
-
-   This document is subject to the rights, licenses and restrictions
-   contained in BCP 78, and except as set forth therein, the authors
-   retain all their rights.
-
-   This document and the information contained herein are provided on an
-   "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS
-   OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY, THE IETF TRUST AND
-   THE INTERNET ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF
-   THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
-   WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-
-
-Intellectual Property
-
-   The IETF takes no position regarding the validity or scope of any
-   Intellectual Property Rights or other rights that might be claimed to
-   pertain to the implementation or use of the technology described in
-   this document or the extent to which any license under such rights
-   might or might not be available; nor does it represent that it has
-   made any independent effort to identify any such rights.  Information
-   on the procedures with respect to rights in RFC documents can be
-   found in BCP 78 and BCP 79.
-
-   Copies of IPR disclosures made to the IETF Secretariat and any
-   assurances of licenses to be made available, or the result of an
-   attempt made to obtain a general license or permission for the use of
-   such proprietary rights by implementers or users of this
-   specification can be obtained from the IETF on-line IPR repository at
-   http://www.ietf.org/ipr.
-
-   The IETF invites any interested party to bring to its attention any
-   copyrights, patents or patent applications, or other proprietary
-   rights that may cover technology that may be required to implement
-   this standard.  Please address the information to the IETF at
-   ietf-ipr@ietf.org.
-
-
-Acknowledgment
-
-   Funding for the RFC Editor function is provided by the IETF
-   Administrative Support Activity (IASA).
-
-
-
-
-
-Kucherawy               Expires January 11, 2009               [Page 23]
+Kucherawy                Expires April 22, 2010                [Page 23]
 
