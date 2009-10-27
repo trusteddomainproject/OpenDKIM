@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.51 2009/10/27 04:17:08 cm-msk Exp $
+**  $Id: opendkim.c,v 1.52 2009/10/27 04:42:28 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.51 2009/10/27 04:17:08 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.52 2009/10/27 04:42:28 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1911,7 +1911,7 @@ dkimf_config_free(struct dkimf_config *conf)
 		free(conf->conf_alwayshdrs);
 
 	if (conf->conf_senderhdrs != NULL &&
-	    conf->conf_senderhdrs != (char **) default_senderhdrs)
+	    conf->conf_senderhdrs != (char **) dkim_default_senderhdrs)
 		free(conf->conf_senderhdrs);
 
 	if (conf->conf_mtas != NULL)
@@ -3907,7 +3907,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	{
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SKIPHDRS,
-		                      (void *) should_not_signhdrs,
+		                      (void *) dkim_should_not_signhdrs,
 		                      sizeof (u_char **));
 
 		if (status != DKIM_STAT_OK)
@@ -3927,7 +3927,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	{
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SIGNHDRS,
-		                      (void *) should_signhdrs,
+		                      (void *) dkim_should_signhdrs,
 		                      sizeof (u_char **));
 
 		if (status != DKIM_STAT_OK)
@@ -3948,7 +3948,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	{
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SENDERHDRS,
-		                      (void *) default_senderhdrs,
+		                      (void *) dkim_default_senderhdrs,
 		                      sizeof (u_char **));
 
 		if (status != DKIM_STAT_OK)

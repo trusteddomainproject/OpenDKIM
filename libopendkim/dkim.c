@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.23 2009/10/27 04:17:08 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24 2009/10/27 04:42:28 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -3670,7 +3670,7 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	        sizeof libhandle->dkiml_tmpdir);
 	libhandle->dkiml_flags = DKIM_LIBFLAGS_DEFAULT;
 	libhandle->dkiml_timeout = DEFTIMEOUT;
-	libhandle->dkiml_senderhdrs = (u_char **) default_senderhdrs;
+	libhandle->dkiml_senderhdrs = (u_char **) dkim_default_senderhdrs;
 	libhandle->dkiml_alwayshdrs = NULL;
 	libhandle->dkiml_mbs = NULL;
 	libhandle->dkiml_querymethod = DKIM_QUERY_UNKNOWN;
@@ -4012,7 +4012,7 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		}
 		else if (ptr == NULL)
 		{
-			lib->dkiml_senderhdrs = (u_char **) default_senderhdrs;
+			lib->dkiml_senderhdrs = (u_char **) dkim_default_senderhdrs;
 		}
 		else
 		{
