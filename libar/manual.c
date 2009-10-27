@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char manual_c_id[] = "@(#)$Id: manual.c,v 1.2 2009/08/05 19:02:17 cm-msk Exp $";
+static char manual_c_id[] = "@(#)$Id: manual.c,v 1.3 2009/10/27 06:38:00 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -70,7 +70,7 @@ ar_res_parse(int *nscount, struct sockaddr_storage *out,
 #else /* AF_INET6 */
 ar_res_parse(int *nscount, struct sockaddr_in *out,
 #endif /* AF_INET6 */
-             time_t *retry, time_t *retrans)
+             int *retry, time_t *retrans)
 {
 	int data;
 	int ns = 0;
