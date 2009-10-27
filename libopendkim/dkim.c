@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.22 2009/10/27 02:15:44 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.23 2009/10/27 04:17:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -156,14 +156,14 @@ void dkim_error __P((DKIM *, const char *, ...));
 #define DKIM_ISLWSP(x)  ((x) == 011 || (x) == 013 || (x) == 014 || (x) == 040)
 
 /* list of headers which may contain the sender */
-const u_char *default_senderhdrs[] =
+const u_char *dkim_default_senderhdrs[] =
 {
 	"from",
 	NULL
 };
 
 /* recommended list of headers to sign, from RFC4871 section 5.5 */
-const u_char *should_signhdrs[] =
+const u_char *dkim_should_signhdrs[] =
 {
 	"from",
 	"sender",
@@ -197,7 +197,7 @@ const u_char *should_signhdrs[] =
 };
 
 /* recommended list of headers not to sign, from RFC4871 section 5.5 */
-const u_char *should_not_signhdrs[] =
+const u_char *dkim_should_not_signhdrs[] =
 {
 	"return-path",
 	"received",

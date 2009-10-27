@@ -9,7 +9,7 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.11 2009/10/25 22:56:34 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.12 2009/10/27 04:17:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1428,12 +1428,12 @@ extern unsigned long dkim_ssl_version __P((void));
 extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
 
 /* default list of sender headers */
-extern const u_char *default_senderhdrs[];
+extern const u_char *dkim_default_senderhdrs[];
 
 /* list of headers that should be signed, per RFC4871 section 5.5 */
-extern const u_char *should_signhdrs[]; 
+extern const u_char *dkim_should_signhdrs[]; 
 
 /* list of headers that should not be signed, per RFC4871 section 5.5 */
-extern const u_char *should_not_signhdrs[];
+extern const u_char *dkim_should_not_signhdrs[];
 
 #endif /* ! _DKIM_H_ */
