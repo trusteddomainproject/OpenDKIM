@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.21 2009/10/25 22:56:34 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.22 2009/10/27 02:15:44 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -4445,40 +4445,7 @@ dkim_policy(DKIM *dkim, dkim_policy_t *pcode, DKIM_PSTATE *pstate)
 	}
 
 	/*
-	**  Apply draft-ietf-dkim-ssp-04 sender signing policy algorithm:
-	*/
-
-	/*
-	**  Verify Domain Scope:   An ADSP verifier implementation MUST
-	**  determine whether a given Author Domain is within scope for
-	**  ADSP.  Given the background in Section 3.1 the verifier MUST
-	**  decide which degree of over-approximation is acceptable.  The
-	**  verifier MUST return an appropriate error result for Author
-	**  Domains that are outside the scope of ADSP.
-	**
-	**  The host MUST perform a DNS query for a record corresponding to
-	**  the Author Domain (with no prefix).  The type of the query can
-	**  be of any type, since this step is only to determine if the
-	**  domain itself exists in DNS.  This query MAY be done in parallel
-	**  with the query to fetch the Named ADSP Record.  If the result of
-	**  this query is that the Author domain does not exist in the DNS
-	**  (often called an "NXDOMAIN" error), the algorithm MUST terminate
-	**  with an error indicating that the domain is out of scope.
-	**
-	**  NON-NORMATIVE DISCUSSION: Any resource record type could be used
-	**  for this query since the existence of a resource record of any
-	**  type will prevent an "NXDOMAIN" error.  MX is a reasonable choice
-	**  for this purpose because this record type is thought to be
-	**  the most common for domains used in e-mail, and will therefore
-	**  produce a result which can be more readily cached than a negative
-	**  result.
-	**
-	**  If the domain does exist, the verifier MAY make more extensive
-	**  checks to verify the existence of the domain, such as the ones
-	**  described in Section 5 of [RFC2821].  If those checks indicate
-	**  that the Author domain does not exist for mail, e.g., the domain
-	**  has no MX, A, or AAAA record, the verifier SHOULD terminate with
-	**  an error indicating that the domain is out of scope.
+	**  Apply RFC5617: Verify domain existence.
 	*/
 
 	if (pstate == NULL || pstate->ps_state < 1)
@@ -4510,18 +4477,7 @@ dkim_policy(DKIM *dkim, dkim_policy_t *pcode, DKIM_PSTATE *pstate)
 	}
 
 	/*
-	**  Fetch Named ADSP Record:   The host MUST query DNS for a TXT
-	**  record corresponding to the Author Domain prefixed by
-	**  "_adsp._domainkey." (note the trailing dot).
-	**
-	**  If the result of this query is a "NOERROR" response with an
-	**  answer which is a valid ADSP record, use that record, and the
-	**  algorithm terminates.
-	**
-	**  If a query results in a "SERVFAIL" error response, the algorithm
-	**  terminates without returning a result; possible actions include
-	**  queuing the message or returning an SMTP error indicating a
-	**  temporary failure.
+	**  Apply RFC5617: Retrieve policy.
 	*/
 
 	if (pstate == NULL || pstate->ps_state < 2)
