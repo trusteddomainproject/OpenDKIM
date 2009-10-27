@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.52 2009/10/27 04:42:28 cm-msk Exp $
+**  $Id: opendkim.c,v 1.53 2009/10/27 05:13:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.52 2009/10/27 04:42:28 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.53 2009/10/27 05:13:37 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -275,8 +275,8 @@ struct dkimf_config
 	char *		conf_trustanchorpath;	/* unbound trust anchor file */
 #endif /* USE_UNBOUND */
 #ifdef _FFR_VBR
-	char *		conf_vbr_defcert;	/* default VBR type */
-	char *		conf_vbr_deftype;	/* default VBR certifiers */
+	char *		conf_vbr_deftype;	/* default VBR type */
+	char *		conf_vbr_defcert;	/* default VBR certifiers */
 	char **		conf_vbr_trusted;	/* trusted certifiers */
 #endif /* _FFR_VBR */
 	char **		conf_domains;		/* domains to sign */
