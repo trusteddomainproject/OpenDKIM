@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.6 2009/10/28 05:30:42 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.7 2009/10/28 15:40:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.6 2009/10/28 05:30:42 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.7 2009/10/28 15:40:07 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -45,6 +45,8 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.6 2009/10/28 05:30:
 # define DKIMF_DB_TYPE_BDB	3
 #endif /* USE_DB */
 
+#define	DKIMF_DB_IFLAG_FREEARRAY 0x01
+
 #ifdef USE_DB
 # ifndef DB_NOTFOUND
 #  define DB_NOTFOUND		1
@@ -77,6 +79,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.6 2009/10/28 05:30:
 struct dkim_db
 {
 	u_int			db_flags;
+	u_int			db_iflags;
 	u_int			db_type;
 	int			db_status;
 	int			db_nrecs;
@@ -84,6 +87,7 @@ struct dkim_db
 	void *			db_handle;
 	void *			db_data;
 	void *			db_cursor;
+	char **			db_array;
 };
 
 struct dkimf_db_table
@@ -623,6 +627,7 @@ dkimf_db_open(DKIM_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			status = regcomp(&newl->db_relist_re, patbuf, reflags);
 			if (status != 0)
 			{
+				new->db_data = (void *) &newl->db_relist_re;
 				/* XXX -- do something */
 				if (list != NULL)
 					dkimf_db_relist_free(list);
@@ -1269,6 +1274,19 @@ dkimf_db_close(DKIM_DB db)
 {
 	assert(db != NULL);
 
+	if (db->db_array != NULL)
+	{
+		int c;
+
+		if ((db->db_iflags & DKIMF_DB_IFLAG_FREEARRAY) != 0)
+		{
+			for (c = 0; db->db_array != NULL; c++)
+				free(db->db_array[c]);
+		}
+		free(db->db_array);
+		db->db_array = NULL;
+	}
+
 	switch (db->db_type)
 	{
 	  case DKIMF_DB_TYPE_FILE:
@@ -1336,52 +1354,6 @@ dkimf_db_strerror(DKIM_DB db, char *err, size_t errlen)
 	}
 
 	/* NOTREACHED */
-}
-
-/*
-**  DKIMF_DB_MKARRAY -- make a (char *) array of DB contents
-**
-**  Parameters:
-**  	db -- a DKIM_DB handle
-**  	a -- array (returned)
-**
-**  Return value:
-**  	Length of the created array, or -1 on error/empty.
-*/
-
-int
-dkimf_db_mkarray(DKIM_DB db, char ***a)
-{
-	int c;
-	char **out;
-	struct dkimf_db_list *cur;
-
-	assert(db != NULL);
-	assert(a != NULL);
-
-	if (db->db_type != DKIMF_DB_TYPE_CSL &&
-	    db->db_type != DKIMF_DB_TYPE_FILE)
-		return -1;
-
-	if (db->db_nrecs == 0)
-		return 0;
-
-	out = (char **) malloc(sizeof(char *) * (db->db_nrecs + 1));
-	if (out != NULL)
-	{
-		cur = db->db_handle;
-		for (c = 0; c < db->db_nrecs; c++)
-		{
-			out[c] = cur->db_list_key;
-			cur = cur->db_list_next;
-		}
-
-		out[c] = NULL;
-	}
-
-	*a = out;
-
-	return c;
 }
 
 /*
@@ -1483,13 +1455,13 @@ dkimf_db_walk(DKIM_DB db, _Bool first, void *key, size_t *keylen,
 # if DB_VERSION_CHECK(2,0,0)
 		k.data = (void *) key;
 		k.flags = DB_DBT_USERMEM;
-		k.ulen = *keylen;
+		k.ulen = (keylen != NULL ? *keylen : 0);
 # endif /* DB_VERSION_CHECK(2,0,0) */
 
 # if DB_VERSION_CHECK(2,0,0)
 		d.data = (void *) data;
 		d.flags = DB_DBT_USERMEM;
-		d.ulen = *datalen;
+		d.ulen = (datalen != NULL ? *datalen : 0);
 # endif /* DB_VERSION_CHECK(2,0,0) */
 
 # if DB_VERSION_CHECK(2,0,0)
@@ -1508,12 +1480,159 @@ dkimf_db_walk(DKIM_DB db, _Bool first, void *key, size_t *keylen,
 		}
 		else
 		{
-			*keylen = k.size;
-			*datalen = d.size;
+			if (keylen != NULL)
+				*keylen = k.size;
+			if (datalen != NULL)
+				*datalen = d.size;
 
 			return 0;
 		}
 	  }
 #endif /* DKIMF_DB_TYPE_BDB */
 	}
+}
+
+/*
+**  DKIMF_DB_MKARRAY -- make a (char *) array of DB contents
+**
+**  Parameters:
+**  	db -- a DKIM_DB handle
+**  	a -- array (returned)
+**
+**  Return value:
+**  	Length of the created array, or -1 on error/empty.
+*/
+
+int
+dkimf_db_mkarray(DKIM_DB db, char ***a)
+{
+	char **out;
+
+	assert(db != NULL);
+	assert(a != NULL);
+
+	if (db->db_type == DKIMF_DB_TYPE_REFILE)
+		return -1;
+
+#ifdef DKIMF_DB_TYPE_BDB
+	if (db->db_type != DKIMF_DB_TYPE_BDB && db->db_nrecs == 0)
+		return 0;
+
+	if (db->db_type != DKIMF_DB_TYPE_BDB && db->db_array != NULL)
+		return db->db_array;
+#endif /* DKIMF_DB_TYPE_BDB */
+
+	if (db->db_type == DKIMF_DB_TYPE_FILE ||
+	    db->db_type == DKIMF_DB_TYPE_CSL)
+	{
+		int c;
+		struct dkimf_db_list *cur;
+
+		out = (char **) malloc(sizeof(char *) * (db->db_nrecs + 1));
+		if (out != NULL)
+		{
+			cur = db->db_handle;
+			for (c = 0; c < db->db_nrecs; c++)
+			{
+				out[c] = cur->db_list_key;
+				cur = cur->db_list_next;
+			}
+
+			out[c] = NULL;
+		}
+
+		db->db_array = out;
+
+		*a = out;
+
+		return c;
+	}
+#ifdef DKIMF_DB_TYPE_BDB
+	else if (db->db_type == DKIMF_DB_TYPE_BDB)	/* DKIMF_DB_TYPE_BDB */
+	{
+		int c;
+		int nr = 0;
+		int na = 0;
+		int status;
+		char keybuf[BUFRSZ + 1];
+
+		if (db->db_array != NULL)
+		{
+			for (c = 0; db->db_array[c] != NULL; c++)
+				free(db->db_array[c]);
+			free(db->db_array);
+			db->db_array = NULL;
+		}
+
+		status = 0;
+		while (status == 0)
+		{
+			memset(keybuf, '\0', sizeof keybuf);
+
+			status = dkimf_db_walk(db, (nr == 0),
+			                       keybuf, sizeof keybuf - 1,
+			                       NULL, NULL);
+
+			if (nr == 0)
+			{
+				out = (char **) malloc(sizeof(char *) * DEFARRAYSZ);
+				if (out == NULL)
+					return -1;
+
+				out[0] = strdup(keybuf);
+				if (out[0] == NULL)
+				{
+					free(out);
+					return -1;
+				}
+
+				na = DEFARRAYSZ;
+				nr = 1;
+				out[nr] = NULL;
+			}
+			else if (nr + 1 == na)
+			{
+				int newsz;
+				char **newout;
+
+				newsz = na * 2;
+
+				newout = (char **) realloc(out, sizeof (char *) * newsz);
+				if (newout == NULL)
+				{
+					for (c = 0; c < nr; c++)
+						free(out[c]);
+					free(out);
+					return -1;
+				}
+
+				out[nr] = strdup(keybuf);
+				if (out[nr] == NULL)
+				{
+					for (c = 0; c < nr; c++)
+						free(out[c]);
+					free(out);
+					return -1;
+				}
+
+				nr++;
+				na = newsz;
+				out[nr] = NULL;
+			}
+		}
+
+		if (status == -1)
+		{
+			for (c = 0; c < nr; c++)
+				free(out[c]);
+			free(out);
+			return -1;
+		}
+
+		db->db_array = out;
+		db->db_iflags |= DKIMF_DB_IFLAG_FREEARRAY;
+		*a = out;
+		return nr;
+	}
+#endif /* DKIMF_DB_TYPE_BDB */
 }
