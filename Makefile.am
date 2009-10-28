@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.11 2009/10/26 18:26:09 cm-msk Exp $
+# $Id: Makefile.am,v 1.11.2.1 2009/10/28 05:32:38 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 SUBDIRS = 
@@ -98,4 +98,13 @@ EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
 	libopendkim/docs/dkim_verify.html \
 	libopendkim/docs/index.html \
 	libopendkim/docs/overview.html \
-	libopendkim/docs/rfc2822_mailbox_split.html
+	libopendkim/docs/rfc2822_mailbox_split.html \
+	libopendkim/docs/dkim_diffheaders.html \
+	libopendkim/docs/dkim_get_msgdate.html \
+	libopendkim/docs/dkim_getpartial.html \
+	libopendkim/docs/dkim_get_reputation.html \
+	libopendkim/docs/dkim_setpartial.html \
+	libopendkim/docs/dkim_set_trust_anchor.html \
+	libopendkim/docs/dkim_sig_getidentity.html \
+	libopendkim/docs/dkim_sig_getcanons.html \
+	libopendkim/docs/dkim_libfeature.html
