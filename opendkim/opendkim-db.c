@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.5 2009/10/28 03:30:26 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.6 2009/10/28 05:30:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.5 2009/10/28 03:30:26 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.6 2009/10/28 05:30:42 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1508,12 +1508,12 @@ dkimf_db_walk(DKIM_DB db, _Bool first, void *key, size_t *keylen,
 		}
 		else
 		{
+			*keylen = k.size;
+			*datalen = d.size;
+
 			return 0;
 		}
-
-		*keylen = k.size;
-		*datalen = d.size;
 	  }
-	}
 #endif /* DKIMF_DB_TYPE_BDB */
+	}
 }
