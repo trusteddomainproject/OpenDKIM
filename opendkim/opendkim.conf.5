@@ -337,8 +337,8 @@ and then ".private" before giving up.
 Allows specification of local ADSP overrides for domains.  This is expected
 to be a file containing entries, one per line, with comments and blank lines
 allowed.  An entry is of the form
-.I domain:policy
-where
+.I domain policy
+(i.e. separated by whitespace) where
 .I domain
 is either a fully-qualified domain name (e.g. "foo.example.com") or a
 subdomain name preceded by a period (e.g. ".example.com"), and
@@ -806,7 +806,7 @@ function to parse that information.  Users should be familiar with the
 way that function handles the non-trivial cases (for example, "1.2.3/24"    
 and "1.2.3.0/24" are not the same thing).
 .SH VERSION
-This man page covers version 1.1.2 of
+This man page covers version 1.2.0 of
 .I opendkim.
 
 .SH COPYRIGHT

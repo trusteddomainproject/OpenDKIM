@@ -1,12 +1,12 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.56 2009/10/27 17:44:13 cm-msk Exp $
+# $Id: configure.ac,v 1.57 2009/10/28 02:22:09 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
 
-AC_INIT(OpenDKIM, 1.1.2, bugs@opendkim.org)
-AM_INIT_AUTOMAKE(opendkim, 1.1.2)
+AC_INIT(OpenDKIM, 1.2.0, bugs@opendkim.org)
+AM_INIT_AUTOMAKE(opendkim, 1.2.0)
 AC_CONFIG_SRCDIR([libar/ar.c])
 AC_CONFIG_HEADERS([build-config.h])
 
