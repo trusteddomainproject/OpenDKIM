@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.56 2009/10/27 17:44:13 cm-msk Exp $
+# $Id: configure.ac,v 1.56.2.1 2009/10/28 05:35:40 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -147,7 +147,9 @@ esac
 
 saved_CFLAGS="$CFLAGS"
 saved_LDFLAGS="$LDFLAGS"
+saved_LIBS="$LIBS"
 
+LIBS=""
 CFLAGS="-I$sslpath/include $saved_CFLAGS"
 LDFLAGS="-L$sslpath/lib $saved_LDFLAGS"
 
@@ -159,14 +161,17 @@ AC_CHECK_DECL(SHA256_DIGEST_LENGTH, ,
 	AC_MSG_WARN(SHA256 is required for DKIM but is not supported with your version of OpenSSL),
 	[#include <openssl/sha.h>])
 
-CFLAGS="$saved_CFLAGS"
-LDFLAGS="$saved_LDFLAGS"
-
 LIBCRYPTO_INCDIRS="-I$sslpath/include"
 LIBCRYPTO_LIBDIRS="-L$sslpath/lib"
+LIBCRYPTO_LIBS="$LIBS"
+
+CFLAGS="$saved_CFLAGS"
+LDFLAGS="$saved_LDFLAGS"
+LIBS="$saved_LIBS"
 
 AC_SUBST(LIBCRYPTO_INCDIRS)
 AC_SUBST(LIBCRYPTO_LIBDIRS)
+AC_SUBST(LIBCRYPTO_LIBS)
 
 # Libmilter
 AC_MSG_CHECKING(for milter library and includes)
