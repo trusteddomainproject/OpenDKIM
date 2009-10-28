@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.3 2009/07/21 23:36:39 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.4 2009/10/28 03:30:26 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.3 2009/07/21 23:36:39 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.4 2009/10/28 03:30:26 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -27,6 +27,14 @@ static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.3 2009/07/21 
 #include "opendkim-db.h"
 #include "stats.h"
 
+/* macros */
+#ifndef FALSE
+# define FALSE	0
+#endif /* ! FALSE */
+#ifndef TRUE
+# define TRUE	1
+#endif /* ! TRUE */
+
 /* globals */
 char *progname;
 _Bool dolog = FALSE;			/* XXX -- dkim-db shouldn't use this */
@@ -44,49 +52,26 @@ _Bool dolog = FALSE;			/* XXX -- dkim-db shouldn't use this */
 static void
 dkims_dump(char *path)
 {
-#if ! DB_VERSION_CHECK(2,0,0)
 	_Bool first = TRUE;
-#endif /* ! DB_VERSION_CHECK(2,0,0) */
 	int status = 0;
-	DB *db;
-	DBT key;
-	DBT data;
-#if DB_VERSION_CHECK(2,0,0)
-	DBC *dbc;
-#endif /* DB_VERSION_CHECK(2,0,0) */
+	size_t keylen;
+	size_t datalen;
+	DKIM_DB db;
 	struct dkim_stats_key reckey;
 	struct dkim_stats_data recdata;
 
 	assert(path != NULL);
 
 	/* open the DB */
-	status = dkimf_db_open_ro(&db, path);
+	status = dkimf_db_open(&db, path, 0, NULL);
 
 	if (status != 0)
 	{
-		char *err;
-
-		err = DB_STRERROR(status);
-		fprintf(stderr, "%s: %s: db->open(): %s\n", progname, path,
-		        err);
+		fprintf(stderr, "%s: %s: dkimf_db_open() failed\n",
+		        progname, path);
 
 		return;
 	}
-
-#if DB_VERSION_CHECK(2,0,0)
-	/* establish a cursor */
-	status = db->cursor(db, NULL, &dbc, 0);
-	if (status != 0)
-	{
-		char *err;
-
-		err = DB_STRERROR(status);
-		fprintf(stderr, "%s: %s: db->cursor(): %s\n", progname, path,
-		        err);
-		DKIMF_DBCLOSE(db);
-		return;
-	}
-#endif /* DB_VERSION_CHECK(2,0,0) */
 
 	for (;;)
 	{
@@ -94,59 +79,20 @@ dkims_dump(char *path)
 		memset(&reckey, '\0', sizeof reckey);
 		memset(&recdata, '\0', sizeof recdata);
 
-		memset(&key, '\0', sizeof key);
-		memset(&data, '\0', sizeof data);
-
-#if DB_VERSION_CHECK(2,0,0)
-		key.data = (void *) &reckey;
-		key.flags = DB_DBT_USERMEM;
-		key.ulen = sizeof reckey;
-#endif /* DB_VERSION_CHECK(2,0,0) */
-
-#if DB_VERSION_CHECK(2,0,0)
-		data.data = (void *) &recdata;
-		data.flags = DB_DBT_USERMEM;
-		data.ulen = sizeof recdata;
-#endif /* DB_VERSION_CHECK(2,0,0) */
-
-#if DB_VERSION_CHECK(2,0,0)
-		status = dbc->c_get(dbc, &key, &data, DB_NEXT);
-		if (status == DB_NOTFOUND)
+		keylen = sizeof reckey;
+		datalen = sizeof recdata;
+		status = dkimf_db_walk(db, first, &reckey, &keylen,
+		                       &recdata, &datalen);
+		if (status == 1)
 		{
 			break;
 		}
-		else if (status != 0)
+		else if (status == -1)
 		{
-			char *err;
-
-			err = DB_STRERROR(status);
-			fprintf(stderr, "%s: %s: dbc->c_get(): %s\n",
-			        progname, path, err);
-			dbc->c_close(dbc);
-			DKIMF_DBCLOSE(db);
-			return;
-		}
-#else /* DB_VERSION_CHECK(2,0,0) */
-		status = db->seq(db, &key, &data, first ? R_FIRST : R_NEXT);
-		if (status == DB_NOTFOUND)
-		{
+			fprintf(stderr, "%s: %s: dkimf_db_walk() failed\n",
+			        progname, path);
 			break;
 		}
-		else if (status != 0)
-		{
-			fprintf(stderr, "%s: %s: db->seq(): %s\n",
-			        progname, path, strerror(errno));
-			DKIMF_DBCLOSE(db);
-			return;
-		}
-
-		first = FALSE;
-
-		memcpy((void *) &reckey, key.data,
-		       MIN(sizeof reckey, key.size));
-		memcpy((void *) &recdata, data.data,
-		       MIN(sizeof recdata, key.size));
-#endif /* DB_VERSION_CHECK(2,0,0) */
 
 		/* dump record contents */
 		fprintf(stdout,
@@ -156,13 +102,12 @@ dkims_dump(char *path)
 		        recdata.sd_pass, recdata.sd_fail,
 		        recdata.sd_lengths, recdata.sd_lastalg,
 		        ctime(&recdata.sd_lastseen));
+
+		first = FALSE;
 	}
 
 	/* close database */
-#if DB_VERSION_CHECK(2,0,0)
-	(void) dbc->c_close(dbc);
-#endif /* DB_VERSION_CHECK(2,0,0) */
-	DKIMF_DBCLOSE(db);
+	dkimf_db_close(db);
 }
 
 /*

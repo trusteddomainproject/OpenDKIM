@@ -38,6 +38,11 @@ See the
 man page for details about how and when the configuration file contents
 are reloaded.
 
+Some of these parameters are listed as having a type of "dataset".
+See the
+.I opendkim(8)
+man page for a description of such parameters.
+
 .SH PARAMETERS
 .TP
 .I ADSPDiscard (Boolean)
@@ -65,11 +70,10 @@ will be "none" in such cases.  Normally unsigned mail from non-strict
 domains does not cause the results header to be added.
 
 .TP
-.I AlwaysSignHeaders (string)
-Specifies a list of header fields that should be included in all signature
+.I AlwaysSignHeaders (dataset)
+Specifies a set of header fields that should be included in all signature
 header lists (the "h=" tag) even if they were not present at the time
-the signature was generated.  The string should be a comma-separated
-list of header names.  The list is empty by default.  The purpose of
+the signature was generated.  The set is empty by default.  The purpose of
 listing an absent header is to prevent its addition between the signer
 and the verifier, since the verifier would include that header if it were
 added when performing verification, which would mean the signed message
@@ -203,18 +207,9 @@ The default is 5.  Ignored if not using the asynchronous resolver package.
 See also the NOTES section below.
 
 .TP
-.I Domain (string)
-A comma-separated list of domains whose mail should be signed by this
+.I Domain (dataset)
+A set list of domains whose mail should be signed by this
 filter.  Mail from other domains will be verified rather than being signed.
-
-The value of this parameter may also be a filename from which domain names
-will be read.  The "#" character in such a file is assumed to indicate a
-comment.  An absolute path must be used (i.e. the first character must be
-a "/").
-
-In either case, the domain name(s) may contain the special character "*"
-which is treated as a wildcard character matching zero or more characters
-in a domain name.
 
 This parameter is not required if a
 .I KeyList
@@ -222,8 +217,8 @@ is in use; in that case, the list of signed domains is implied by the
 lines in that file.
 
 .TP
-.I DontSignMailTo (string)
-A comma-separated list of e-mail addresses (with "*" allowed as a wildcard
+.I DontSignMailTo (dataset)
+A set of e-mail addresses (with "*" allowed as a wildcard
 character), mail to which should never be signed by the filter.  Note that
 this is an "any" feature; if any one of the recipients of the message
 matches a member of this list, the message will not be signed.
@@ -333,16 +328,12 @@ cannot be opened, the filter will try again by appending ".pem"
 and then ".private" before giving up.
 
 .TP
-.I LocalADSP (string)
+.I LocalADSP (dataset)
 Allows specification of local ADSP overrides for domains.  This is expected
-to be a file containing entries, one per line, with comments and blank lines
-allowed.  An entry is of the form
-.I domain policy
-(i.e. separated by whitespace) where
-.I domain
-is either a fully-qualified domain name (e.g. "foo.example.com") or a
+to be a data set with keys and matching values; the keys are each
+either a fully-qualified domain name (e.g. "foo.example.com") or a
 subdomain name preceded by a period (e.g. ".example.com"), and
-.I policy
+the values are either
 is either
 .I unknown,
 .I all,
@@ -367,21 +358,19 @@ for each message, so it should be limited to debugging use and not enabled
 for general operation.
 
 .TP
-.I MacroList (string)
+.I MacroList (dataset)
 Defines a set of MTA-provided
 .I macros
 that should be checked to see if the sender has been determined to be a
 local user and therefore whether or not the message should be signed.  If
 a
 .I value
-is specified, the value of the macro must match a value specified
-(matching is case-sensitive), otherwise the macro must be defined
-but may contain any value.  The set is empty by default, meaning
-macros are not considered when making the sign-verify decision.
-The general format of the string is
-.I test1[,test2[,...]]
-where a "test" is of the form
-.I macro[=value1[|value2[|...]]];
+is specified matching a macro name in the data set, the value of the macro
+must match a value specified (matching is case-sensitive), otherwise the
+macro must be defined but may contain any value.  The set is empty by
+default, meaning macros are not considered when making the sign-verify
+decision.  The general format of the value is
+.I value1[|value2[|...]];
 if one or more value is defined then the macro must be set to one of the
 listed values, otherwise the macro must be set but can contain any
 value.
@@ -445,28 +434,26 @@ in which case the default is
 .I v.
 
 .TP
-.I MTA (string)
-A comma-separated list of MTA names (a la the
+.I MTA (dataset)
+A set of MTA names (a la the
 .I sendmail(8)
 DaemonPortOptions Name parameter) whose mail should be signed by this
 filter.  There is no default, meaning MTA name is not considered when
 making the sign-verify decision.
 
 .TP
-.I MustBeSigned (string)
-Specifies a list of headers that, if present, must be covered by the
-DKIM signature when verifying a message.  The string should be a
-comma-separated list of header names.  If a header in this list is present
+.I MustBeSigned (dataset)
+Specifies a set of headers that, if present, must be covered by the
+DKIM signature when verifying a message.  If a header in this set is present
 in the message and is not signed, the filter will treat even an otherwise
 valid signature as invalid.  The default is an empty list.
 
 .TP
-.I OmitHeaders (string)
-Specifies a list of header fields that should be omitted when generating
-signatures.  The string should be a comma-separated list of header names.
-If an entry in the list names any header that is mandated by the DKIM
-specification, the entry is ignored.  A set of headers is listed in
-the DKIM specification as "SHOULD NOT" be signed; the default list for
+.I OmitHeaders (dataset)
+Specifies a set of header fields that should be omitted when generating
+signatures.  If an entry in the list names any header that is mandated
+by the DKIM specification, the entry is ignored.  A set of headers is listed
+in the DKIM specification as "SHOULD NOT" be signed; the default list for
 this parameter contains those headers (Return-Path, Received, Comments,
 Keywords, Bcc, Resent-Bcc and DKIM-Signature).  To omit no headers,
 simply use the string "-" (or any string that will match no headers).
@@ -551,11 +538,9 @@ Specifies the path to a file that should be created at process start
 containing the process ID.
 
 .TP
-.I POPDBFile (string)
+.I POPDBFile (dataset)
 Requests that the filter consult a POP authentication database named
-in the string for IP addresses that should be allowed for signing.  The
-filter must be compiled with the POPAUTH flag to enable this feature, since
-it adds a library dependency.
+in the dataset for IP addresses that should be allowed for signing.
 
 .TP
 .I Quarantine (Boolean)
@@ -578,11 +563,10 @@ requirements of
 below.  By default, only those containing a DKIM result are removed.
 
 .TP
-.I RemoveARFrom (string)
-Lists patterns of hostnames whose Authentication-Results: header fields should
+.I RemoveARFrom (dataset)
+Defines a set of hostnames whose Authentication-Results: header fields should
 be removed before the message is passed for delivery.  By default only
 those headers matching the local host's canonical name will be removed.
-If more than one pattern is desired, the list should be comma-separated.
 Matching is only done on full hostnames (e.g. "host.example.com") or on
 domain names (e.g. ".example.com").
 
@@ -625,13 +609,12 @@ will send a structured report to that address containing details of the
 incident.
 
 .TP
-.I SenderHeaders (string)
+.I SenderHeaders (dataset)
 Specifies an ordered list of header fields that should be searched to
 determine the sender of a message.  This is mainly used when verifying a
 message to determine the origin domain, particularly for doing domain policy
-queries.  The string should be a comma-separated list of header names.  By
-default, the DKIM library's internal list is used, which consists solely of
-the "From" header field.
+queries.  By default, the DKIM library's internal list is used, which consists
+solely of the "From" header field.
 
 .TP
 .I SendReports (Boolean)
@@ -657,13 +640,12 @@ Sets the time-to-live, in seconds, of signatures generated by the filter.
 If not set, no expiration time is added to signatures.
 
 .TP
-.I SignHeaders (string)
-Specifies the list of headers that should be included when generating
-signatures.  The string should be a comma-separated list of header names.
-If the list omits any header that is mandated by the DKIM specification,
-those headers are implicitly added.  By default, those headers listed in
-the DKIM specification as "SHOULD" be signed will be signed by the filter.
-Specifying a list here replaces that list entirely.  See the
+.I SignHeaders (dataset)
+Specifies the set of headers that should be included when generating
+signatures.  If the list omits any header that is mandated by the DKIM
+specification, those headers are implicitly added.  By default, those headers
+listed in the DKIM specification as "SHOULD" be signed will be signed by the
+filter.  Specifying a list here replaces that list entirely.  See the
 .I OmitHeaders
 configuration option for more information.
 
@@ -745,16 +727,12 @@ be compiled with USE_UNBOUND set.  See the Unbound documentation at
 http://unbound.net for the expected format of this file.
 
 .TP
-.I TrustSignaturesFrom (string)
-Like
-.I Domain,
-this value consists of either a comma-separated list of domain names
-or a file containing a list of domains.  In either case, the list of domains
-is used to decide which domains are considered trustworthy in terms of
-third-party signatures.  That is, if a message arrives with a signature
-from a domain that doesn't match the domain in the From: header,
-this setting determines whether or not that signature will be trusted.
-If this value is undefined, all signatures are trusted.
+.I TrustSignaturesFrom (dataset)
+This value consists of a set of domains that are considered trustworthy in
+ms of third-party signatures.  That is, if a message arrives with a signature
+from a domain that doesn't match the domain in the From: header, this setting
+determines whether or not that signature will be trusted.  If this value is
+undefined, all signatures are trusted.
 
 .TP
 .I UMask (integer)

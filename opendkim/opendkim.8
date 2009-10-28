@@ -23,6 +23,47 @@ Most, if not all, of the command line options listed below can also be set
 using a configuration file.  See the
 .I -x
 option for details.
+.SH DATA SETS
+Many of the command line and configuration file parameters will refer to
+a "dataset" as their values.  This refers to a string that either contains
+the list of desirable values, or to a file that contains them, or (if
+enabled at compile time) a database containing the data.  Which format
+is used depends on the format of the string.  In particular:
+.TP
+.I a)
+If the string begins with "file:", then the remainder of the string is
+presumed to refer to a flat file that contains elements of the data set,
+one per line.  If a line contains whitespace-separated values, then the
+line is preusmed to define a key and its corresponding value.  Blank lines
+are ignored, and the hash ("#") character denotes the start of a comment.
+.TP
+.I b)
+If the string begins with "refine:", then the remainder of the string is
+presumed to contain a list of wildcarded strings, i.e. strings that may
+contain the asterisk ("*") character as a wildcard.  These will be used
+to test an input string to see if it matches any pattern in the data set.
+.TP
+.I c)
+If the string begins with "db:" and the program was compiled with
+Sleepycat DB support, then the remainder of the string is presumed to
+identify a Sleepycat database containing keys and corresponding values.
+These may be used only to test for membership in the data set, or for
+storing keys and corresponding values.
+.TP
+.I d)
+If the string contains none of these prefixes but ends with ".db", it
+is presumed to be a Sleepycat DB as described above (if support for same
+is compiled in).
+.TP
+.I e)
+If the string contains none of these prefixes but starts with a slash ("/")
+character, it is presumed to be a flat file as described above.
+.TP
+.I f)
+In any other case, the string is presumed to be a comma-separated list.
+Elements in the list are either simple data elements that are part of the
+set or, in the case of an entry of the form "x=y", are stored as key-value
+pairs as described above.
 .SH OPTIONS
 .TP
 .I -a peerlist
@@ -75,20 +116,9 @@ headers and the second to the body.
 .I -C config
 Configuration control.  See the CONFIGURATION section for details.
 .TP
-.I -d domain [,...]
-A comma-separated list of domains whose mail should be signed by this
-filter.  Mail from other domains will be verified rather than being signed.
-
-The value of this parameter may also be a filename from which domain names
-will be read.  The "#" character in such a file is assumed to indicate a
-comment.  An absolute path must be used (i.e. the first character must be
-a "/").
-
-In either case, the domain name(s) may contain the special character "*"
-which is treated as a wildcard character matching zero or more characters
-in a domain name.
-
-Matching is case-insensitive.
+.I -d dataset
+A set of domains whose mail should be signed by this filter.  Mail from
+other domains will be verified rather than being signed.
 
 This parameter is not required if
 .I -K
@@ -200,29 +230,26 @@ meaning there may be no more than
 bytes of unsigned data appended to the message for it to be considered
 valid.
 .TP
-.I -m mta[,...]
-A comma-separated list of MTA names (a la the
+.I -m dataset
+A set of MTA names (a la the
 .I sendmail(8)
 DaemonPortOptions Name parameter) whose mail should be signed by this
 filter.  If not set, the MTA name is not used when deciding whether or not
 a message should be signed.
 .TP
-.I -M macro[=value][,...]
+.I -M dataset
 Defines a set of MTA-provided
 .I macros
 which should be checked to see if the sender has been determined to be a
 local user and therefore whether or not the message should be signed.  If a
-.I value
-is specified, the value of the macro must match the value specified
-(matching is case-insensitive), otherwise the macro must be defined
-but may contain any value.  Multiple tests may be specified, separated
-by commas.  The set is empty by default, meaning macros are not used when
-deciding whether or not a message should be signed.
+corresponding value is specified, the value of the macro must match the
+value specified (matching is case-insensitive), otherwise the macro must
+be defined but may contain any value.  Multiple tests may be specified,
+separated by commas.  The set is empty by default, meaning macros are not
+used when deciding whether or not a message should be signed.
 
-The general format of the string is
-.I test1[,test2[,...]]
-where a "test" is of the form
-.I macro[=value1[|value2[|...]]];
+A value maybe of the form
+.I value1[|value2[|...]];
 if one or more value is defined then the macro must be set to one of the
 listed values, otherwise the macro must be set but can contain any
 value.
@@ -232,17 +259,15 @@ Parse the configuration file and command line arguments, reporting any
 errors found, and then exit.  The exit value will be 0 if the filter would
 start up without complaint, or non-zero otherwise.
 .TP
-.I -o hdrlist
-Specifies a list of headers which should be omitted when generating
+.I -o dataset
+Specifies a list of headers that should be omitted when generating
 signatures.
-.I hdrlist
-should be a comma-separated list of header names.  If an entry in the list
-names any header which is mandated by the DKIM specification, the entry
-is ignored.  A set of headers is listed in the DKIM specification as
-"SHOULD NOT" be signed; the default list for this parameter contains those
-headers (Return-Path, Received, Comments, Keywords, Bcc, Resent-Bcc and
-DKIM-Signature).  To omit no headers, simply use the string "-" (or any
-string which will match no headers).
+If an entry in the list names any header which is mandated by the DKIM
+specification, the entry is ignored.  A set of headers is listed in the DKIM
+specification as "SHOULD NOT" be signed; the default list for this parameter
+contains those headers (Return-Path, Received, Comments, Keywords, Bcc,
+Resent-Bcc and DKIM-Signature).  To omit no headers, simply use the string
+"-" (or any string that will match no headers).
 .TP
 .I -p socketspec
 Specifies the socket that should be established by the filter to receive
@@ -321,10 +346,9 @@ unless an alternate
 .I group
 is specified.
 .TP
-.I -U popdb
+.I -U dataset
 Requests that the filter consult a POP authentication database for IP
-addresses that should be allowed for signing.  The filter must be specially
-compiled to enable this feature, since it adds a library dependency.
+addresses that should be allowed for signing.
 .TP
 .I -v
 Increase verbose output during test mode (see

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.13 2009/10/20 23:13:56 cm-msk Exp $
+**  $Id: util.c,v 1.14 2009/10/28 03:30:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.13 2009/10/20 23:13:56 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.14 2009/10/28 03:30:27 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -47,9 +47,7 @@ static char util_c_id[] = "@(#)$Id: util.c,v 1.13 2009/10/20 23:13:56 cm-msk Exp
 /* opendkim includes */
 #include "opendkim.h"
 #include "util.h"
-#if POPAUTH || _FFR_BODYLENGTH_DB
-# include "opendkim-db.h"
-#endif /* POPAUTH || _FFR_BODYLENGTH_DB */
+#include "opendkim-db.h"
 
 /* missing definitions */
 #ifndef INADDR_NONE
@@ -560,7 +558,7 @@ dkimf_initpopauth(void)
 */
 
 bool
-dkimf_checkpopauth(DB *db, struct sockaddr *ip)
+dkimf_checkpopauth(DKIM_DB db, struct sockaddr *ip)
 {
 	bool exists;
 	int status;
@@ -584,7 +582,7 @@ dkimf_checkpopauth(DB *db, struct sockaddr *ip)
 
 	dkimf_inet_ntoa(addr, ipbuf, sizeof ipbuf);
 	exists = FALSE;
-	status = dkimf_db_get(db, ipbuf, NULL, NULL, &exists, &pop_lock);
+	status = dkimf_db_get(db, ipbuf, 0, NULL, NULL, &exists);
 	return (status == 0 && exists);
 }
 #endif /* POPAUTH */

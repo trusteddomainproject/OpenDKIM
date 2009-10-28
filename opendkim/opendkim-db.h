@@ -4,58 +4,41 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.h,v 1.1 2009/07/16 20:59:11 cm-msk Exp $
+**  $Id: opendkim-db.h,v 1.2 2009/10/28 03:30:26 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_DB_H_
 #define _OPENDKIM_DB_H_
 
 #ifndef lint
-static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.1 2009/07/16 20:59:11 cm-msk Exp $";
+static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.2 2009/10/28 03:30:26 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
+#include <sys/types.h>
 #include <pthread.h>
 
-/* libdb includes */
-#include <db.h>
+/* macros */
+#define	DKIMF_DB_FLAG_READONLY	0x01
+#define	DKIMF_DB_FLAG_ICASE	0x02
+#define	DKIMF_DB_FLAG_MATCHBOTH	0x04
+#define	DKIMF_DB_FLAG_VALLIST	0x08
 
-/* opendkim includes */
-#include "opendkim.h"
+/* types */
+struct dkim_db;
+typedef struct dkim_db * DKIM_DB;
 
-#ifndef DB_NOTFOUND
-# define DB_NOTFOUND    1
-#endif /* ! DB_NOTFOUND */
-#ifndef DB_VERSION_MAJOR
-# define DB_VERSION_MAJOR   1
-#endif /* ! DB_VERSION_MAJOR */
-
-#define DB_VERSION_CHECK(x,y,z) ((DB_VERSION_MAJOR == (x) && \
-				  DB_VERSION_MINOR == (y) && \
-				  DB_VERSION_PATCH >= (z)) || \
-				 (DB_VERSION_MAJOR == (x) && \
-				  DB_VERSION_MINOR > (y)) || \
-				 DB_VERSION_MAJOR > (x))
-
-#if DB_VERSION_CHECK(3,0,0)
-# define DB_STRERROR(x)		db_strerror(x)
-#else /* DB_VERSION_CHECK(3,0,0) */
-# define DB_STRERROR(x)		strerror(errno)
-#endif /* DB_VERSION_CHECK(3,0,0) */
-
-#if DB_VERSION_MAJOR < 2
-# define DKIMF_DBCLOSE(db)	(db)->close((db))
-#else /* DB_VERSION_MAJOR < 2 */
-# define DKIMF_DBCLOSE(db)	(db)->close((db), 0)
-#endif /* DB_VERSION_MAJOR < 2 */
-
-/* PROTOTYPES */
-extern int dkimf_db_delete __P((DB *, char *, pthread_mutex_t *));
-extern int dkimf_db_get __P((DB *, char *, void *, size_t *, bool *,
-                             pthread_mutex_t *));
-extern int dkimf_db_open_ro __P((DB **, const char *));
-extern int dkimf_db_open_rw __P((DB **, const char *));
-extern int dkimf_db_put __P((DB *, char *, void *, size_t,
-                             pthread_mutex_t *));
+/* prototypes */
+extern void dkimf_db_close __P((DKIM_DB));
+extern int dkimf_db_delete __P((DKIM_DB, void *, size_t));
+extern int dkimf_db_get __P((DKIM_DB, void *, size_t,
+                             void *, size_t *, bool *));
+extern int dkimf_db_mkarray __P((DKIM_DB, char ***));
+extern int dkimf_db_open __P((DKIM_DB *, char *, u_int flags,
+                              pthread_mutex_t *));
+extern int dkimf_db_put __P((DKIM_DB, void *, size_t, void *, size_t));
+extern int dkimf_db_strerror __P((DKIM_DB, char *, size_t));
+extern int dkimf_db_walk __P((DKIM_DB, _Bool, void *, size_t *, void *,
+                              size_t *));
 
 #endif /* _OPENDKIM_DB_H_ */

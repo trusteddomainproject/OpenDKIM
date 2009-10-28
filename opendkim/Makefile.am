@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.42 2009/10/20 23:13:55 cm-msk Exp $
+# $Id: Makefile.am,v 1.43 2009/10/28 03:30:25 cm-msk Exp $
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -pthread --pedantic -Wall -O2
@@ -103,7 +103,7 @@ endif
 
 if STATS
 sbin_PROGRAMS += opendkim-stats
-opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c
+opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c util.c
 opendkim_stats_CPPFLAGS = -DUSE_DB -I../libopendkim $(LIBCRYPTO_INCDIRS) $(LIBDB_INCDIRS)
 opendkim_stats_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS) $(LIBUNBOUND_LIBDIRS) $(LIBDB_LIBDIRS) $(LIBTRE_LIBDIRS)
 opendkim_stats_LDADD = ../libopendkim/libopendkim.la $(LIBUNBOUND_LIBS) $(LIBDB_LIBS) $(LIBTRE_LIBS)

@@ -1,17 +1,18 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.42 2009/10/28 02:22:10 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.43 2009/10/28 03:30:22 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 1.2.0		2009/??/??
-	Overhaul the database backend code so that features that use external
-		files ore databases can be in any of several formats.
-		This will make adding new external data sources and formats
-		simpler, and obviates the need for a bunch of individual
-		feature requests.  This has a few backward compatibility
-		issues with respect to the configuration file.
+	Feature request #SF2873902: Overhaul the database backend code so that
+		features that use external files or databases can be in any
+		of several supported formats.  This will make adding new
+		external data sources and formats simpler, and obviates the
+		need for a bunch of individual feature requests.  This may
+		have a few backward compatibility issues with respect to
+		the configuration file.
 
 1.1.2		2009/??/??
 	Under _FFR_SENDER_MACRO, need to check the value of "SenderMacro"

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.53 2009/10/27 05:13:37 cm-msk Exp $
+**  $Id: opendkim.c,v 1.54 2009/10/28 03:30:26 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.53 2009/10/27 05:13:37 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.54 2009/10/28 03:30:26 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -80,9 +80,7 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.53 2009/10/27 05:13:37 cm
 
 /* opendkim includes */
 #include "config.h"
-#if USE_DB
-# include "opendkim-db.h"
-#endif /* USE_DB */
+#include "opendkim-db.h"
 #include "opendkim-config.h"
 #include "opendkim-crypto.h"
 #include "opendkim.h"
@@ -234,7 +232,7 @@ struct dkimf_config
 	char *		conf_omitlist;		/* omit header list */
 	char *		conf_domlist;		/* signing domain list */
 	char *		conf_mtalist;		/* signing MTA list */
-	char *		conf_macrolist;		/* signing MTA list */
+	char *		conf_macrolist;		/* signing MTA macro list */
 	char *		conf_signalgstr;	/* signature algorithm string */
 	char *		conf_modestr;		/* mode string */
 	char *		conf_canonstr;		/* canonicalization(s) string */
@@ -277,23 +275,33 @@ struct dkimf_config
 #ifdef _FFR_VBR
 	char *		conf_vbr_deftype;	/* default VBR type */
 	char *		conf_vbr_defcert;	/* default VBR certifiers */
+	DKIM_DB		conf_vbr_trusteddb;	/* trusted certifiers (DB) */
 	char **		conf_vbr_trusted;	/* trusted certifiers */
 #endif /* _FFR_VBR */
-	char **		conf_domains;		/* domains to sign */
-	char **		conf_omithdrs;		/* headers to omit */
-	char **		conf_signhdrs;		/* headers to sign */
-	char **		conf_alwayshdrs;	/* always include headers */
-	char **		conf_senderhdrs;	/* sender headers */
-	char **		conf_mtas;		/* MTA ports to sign */
-	char **		conf_remar;		/* A-R header removal list */
+	DKIM_DB		conf_domainsdb;		/* domains to sign (DB) */
+	char **		conf_domains;		/* domains to sign (array) */
+	DKIM_DB		conf_omithdrdb;		/* headers to omit (DB) */
+	char **		conf_omithdrs;		/* headers to omit (array) */
+	DKIM_DB		conf_signhdrsdb;	/* headers to sign (DB) */
+	char **		conf_signhdrs;		/* headers to sign (array) */
+	DKIM_DB		conf_alwayshdrsdb;	/* always incl. hdrs (DB) */
+	char **		conf_alwayshdrs;	/* always incl. hdrs (array) */
+	DKIM_DB		conf_senderhdrsdb;	/* sender headers (DB) */
+	char **		conf_senderhdrs;	/* sender headers (array) */
+	DKIM_DB		conf_mtasdb;		/* MTA ports to sign (DB) */
+	char **		conf_mtas;		/* MTA ports to sign (array) */
+	DKIM_DB		conf_remardb;		/* A-R removal list (DB) */
+	char **		conf_remar;		/* A-R removal list (array) */
+	DKIM_DB		conf_mbsdb;		/* must-be-signed hdrs (DB) */
+	char **		conf_mbs;		/* must-be-signed (array) */
+	DKIM_DB		conf_dontsigntodb;	/* don't-sign-to addrs (DB) */
+	char **		conf_dontsignto;	/* don't-sign-to (array) */
+	DKIM_DB		conf_thirdpartydb;	/* trustsigsfrom DB */
+	char **		conf_thirdparty;	/* trustsigsfrom addrs */
+	DKIM_DB		conf_localadsp_db;	/* local ADSP DB */
+	DKIM_DB		conf_macrosdb;		/* macros/values (DB) */
 	char **		conf_macros;		/* macros/values to check */
 	char **		conf_values;		/* macros/values to check */
-	char **		conf_mbs;		/* must-be-signed headers */
-	char **		conf_dontsignto;	/* don't-sign-mail-to addrs */
-	char **		conf_thirdparty;	/* don't-sign-mail-to addrs */
-	char **		conf_localadsp_domain;	/* local ADSP domains */
-	char **		conf_localadsp_policy;	/* local ADSP policies */
-	regex_t **	conf_dompats;		/* domain patterns */
 	regex_t **	conf_nosignpats;	/* do-not-sign patterns */
 	Peer		conf_peerlist;		/* queue of "peers" */
 	Peer		conf_internal;		/* queue of "internal" hosts */
@@ -614,14 +622,14 @@ char *sock;					/* listening socket */
 char *conffile;					/* configuration file */
 struct dkimf_config *curconf;			/* current configuration */
 #if POPAUTH
-DB *popdb;					/* POP auth DB */
+DKIM_DB popdb;					/* POP auth DB */
 #endif /* POPAUTH */
 #ifdef _FFR_BODYLENGTH_DB
-DB *bldb;					/* DB of rcpts to receive l= */
+DKIM_DB bldb;					/* DB of rcpts to receive l= */
 pthread_mutex_t bldb_lock;			/* bldb lock */
 #endif /* _FFR_BODYLENGTH_DB */
 #ifdef _FFR_REPORT_INTERVALS
-DB *ridb;					/* report intervals DB */
+DKIM_DB ridb;					/* report intervals DB */
 pthread_mutex_t ridb_lock;			/* ridb lock */
 #endif /* _FFR_REPORT_INTERVALS */
 char reportaddr[MAXADDRESS + 1];		/* reporting address */
@@ -972,7 +980,7 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 		return 1;
 
 	ris = sizeof ri;
-	status = dkimf_db_get(ridb, domain, &ri, &ris, &exists, &ridb_lock);
+	status = dkimf_db_get(ridb, domain, 0, &ri, &ris, &exists);
 
 	if (status == 0)
 	{
@@ -985,8 +993,8 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 			ri.ridb_start = now;
 			ri.ridb_count = 1;
 
-			status = dkimf_db_put(ridb, domain, &ri, sizeof ris,
-			                      &ridb_lock);
+			status = dkimf_db_put(ridb, domain, 0,
+			                      &ri, sizeof ris);
 
 			if (status != 0)
 				return -1;
@@ -997,8 +1005,8 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 		{
 			ri.ridb_count++;
 
-			status = dkimf_db_put(ridb, domain, &ri, sizeof ris,
-			                      &ridb_lock);
+			status = dkimf_db_put(ridb, domain, 0,
+			                      &ri, sizeof ris);
 
 			if (status != 0)
 				return -1;
@@ -1007,7 +1015,7 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 		}
 		else						/* delete */
 		{
-			status = dkimf_db_delete(ridb, domain, &ridb_lock);
+			status = dkimf_db_delete(ridb, domain, 0);
 
 			if (status != 0)
 				return -1;
@@ -1254,20 +1262,13 @@ dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 			continue;
 
 		/* trusted third party domain */
-		if (conf->conf_thirdparty != NULL)
+		if (conf->conf_thirdpartydb != NULL)
 		{
 			_Bool found = FALSE;
-			int d;
 
-			for (d = 0; conf->conf_thirdparty[d] != NULL; d++)
-			{
-				if (strcasecmp(conf->conf_thirdparty[d],
-				               (char *) sdomain) == 0)
-				{
-					found = TRUE;
-					break;
-				}
-			}
+			(void) dkimf_db_get(conf->conf_thirdpartydb,
+			                    (char *) sdomain, 0, NULL, NULL,
+			                    &found);
 
 			if (found)
 				continue;
@@ -1467,29 +1468,36 @@ dkimf_local_adsp(struct dkimf_config *conf, char *domain, dkim_policy_t *pcode)
 	assert(domain != NULL);
 	assert(pcode != NULL);
 
-	if (conf->conf_localadsp_domain != NULL)
+	if (conf->conf_localadsp_db != NULL)
 	{
+		_Bool found;
+		int status;
 		int c;
-		char *policy = NULL;
+		size_t plen;
+		char *p;
+		char policy[BUFRSZ];
 
-		for (c = 0; conf->conf_localadsp_domain[c] != NULL; c++)
+		memset(policy, '\0', sizeof policy);
+		plen = sizeof policy;
+
+		status = dkimf_db_get(conf->conf_localadsp_db, domain, 0, 
+		                      policy, &plen, &found);
+		if (policy[0] == '\0')
+			found = FALSE;
+
+		for (p = strchr(domain, '.');
+		     p != NULL && !found;
+		     p = strchr(p + 1, '.'))
 		{
-			if (strcasecmp(domain,
-			               conf->conf_localadsp_domain[c]) == 0)
-			{
-				policy = conf->conf_localadsp_policy[c];
-				break;
-			}
+			plen = sizeof policy;
 
-			if (dkimf_subdomain(domain,
-			                    conf->conf_localadsp_domain[c]))
-			{
-				policy = conf->conf_localadsp_policy[c];
-				break;
-			}
+			status = dkimf_db_get(conf->conf_localadsp_db, p, 0,
+			                      policy, &plen, &found);
+			if (policy[0] == '\0')
+				found = FALSE;
 		}
 
-		if (policy != NULL)
+		if (found)
 		{
 			dkim_policy_t tmpp;
 
@@ -1897,43 +1905,64 @@ dkimf_config_free(struct dkimf_config *conf)
 
 	if (conf->conf_domains != NULL)
 		free(conf->conf_domains);
+	if (conf->conf_domainsdb != NULL)
+		dkimf_db_close(conf->conf_domainsdb);
 
 	if (conf->conf_domlist != NULL)
 		free(conf->conf_domlist);
 
 	if (conf->conf_omithdrs != NULL)
 		free(conf->conf_omithdrs);
+	if (conf->conf_omithdrdb != NULL)
+		dkimf_db_close(conf->conf_omithdrdb);
+
+	if (conf->conf_thirdparty != NULL)
+		free(conf->conf_thirdparty);
+	if (conf->conf_thirdpartydb != NULL)
+		dkimf_db_close(conf->conf_thirdpartydb);
 
 	if (conf->conf_signhdrs != NULL)
 		free(conf->conf_signhdrs);
+	if (conf->conf_signhdrsdb != NULL)
+		dkimf_db_close(conf->conf_signhdrsdb);
 
 	if (conf->conf_alwayshdrs != NULL)
 		free(conf->conf_alwayshdrs);
+	if (conf->conf_alwayshdrsdb != NULL)
+		dkimf_db_close(conf->conf_alwayshdrsdb);
 
 	if (conf->conf_senderhdrs != NULL &&
 	    conf->conf_senderhdrs != (char **) dkim_default_senderhdrs)
 		free(conf->conf_senderhdrs);
+	if (conf->conf_senderhdrsdb != NULL)
+		dkimf_db_close(conf->conf_senderhdrsdb);
 
 	if (conf->conf_mtas != NULL)
 		free(conf->conf_mtas);
-
+	if (conf->conf_mtasdb != NULL)
+		dkimf_db_close(conf->conf_mtasdb);
 	if (conf->conf_mtalist != NULL)
 		free(conf->conf_mtalist);
 
 	if (conf->conf_macrolist != NULL)
 		free(conf->conf_macrolist);
-
 	if (conf->conf_macros != NULL)
 		free(conf->conf_macros);
+	if (conf->conf_macrosdb != NULL)
+		dkimf_db_close(conf->conf_macrosdb);
 
 	if (conf->conf_values != NULL)
 		free(conf->conf_values);
 
 	if (conf->conf_mbs != NULL)
 		free(conf->conf_mbs);
+	if (conf->conf_mbsdb != NULL)
+		dkimf_db_close(conf->conf_mbsdb);
 
 	if (conf->conf_dontsignto != NULL)
 		free(conf->conf_dontsignto);
+	if (conf->conf_dontsigntodb != NULL)
+		dkimf_db_close(conf->conf_dontsigntodb);
 
 #ifdef _FFR_DKIM_REPUTATION
 	if (conf->conf_reproot != NULL)
@@ -1962,17 +1991,9 @@ dkimf_config_free(struct dkimf_config *conf)
 #ifdef _FFR_VBR
 	if (conf->conf_vbr_trusted != NULL)
 		free(conf->conf_vbr_trusted);
+	if (conf->conf_vbr_trusteddb != NULL)
+		dkimf_db_close(conf->conf_vbr_trusteddb);
 #endif /* _FFR_VBR */
-
-	if (conf->conf_dompats != NULL)
-	{
-		int n;
-
-		for (n = 0; conf->conf_dompats[n] != NULL; n++)
-			regfree(conf->conf_dompats[n]);
-
-		free(conf->conf_dompats);
-	}
 
 	if (conf->conf_nosignpats != NULL)
 	{
@@ -1984,16 +2005,8 @@ dkimf_config_free(struct dkimf_config *conf)
 		free(conf->conf_nosignpats);
 	}
 
-	if (conf->conf_localadsp_domain != NULL)
-	{
-		int n;
-
-		for (n = 0; conf->conf_localadsp_domain[n] != NULL; n++)
-			free(conf->conf_localadsp_domain[n]);
-
-		free(conf->conf_localadsp_domain);
-		free(conf->conf_localadsp_policy);
-	}
+	if (conf->conf_localadsp_db != NULL)
+		dkimf_db_close(conf->conf_localadsp_db);
 
 	config_free(conf->conf_data);
 
@@ -2508,28 +2521,16 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "SignHeaders", &str, sizeof str);
 	if (str != NULL)
 	{
-		int c;
-		size_t len;
-		char *p;
-		char *last;
+		int status;
 
-		c = 1;
-		for (p = str; p != NULL; p = strchr(p + 1, ','))
-			c++;
-
-		len = (c + 1) * sizeof(char *);
-		conf->conf_signhdrs = malloc(len);
-		if (conf->conf_signhdrs == NULL)
+		status = dkimf_db_open(&conf->conf_signhdrsdb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			snprintf(err, errlen, "malloc(): %s", strerror(errno));
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
 		}
-
-		memset(conf->conf_signhdrs, '\0', len);
-		for (c = 0, p = strtok_r(str, ",", &last);
-		     p != NULL;
-		     c++, p = strtok_r(NULL, ",", &last))
-			conf->conf_signhdrs[c] = p;
 	}
 
 	str = NULL;
@@ -2537,31 +2538,16 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "RemoveARFrom", &str, sizeof str);
 	if (str != NULL)
 	{
-		int n = 1;
-		char *p;
-		char *last;
+		int status;
 
-		for (p = str; *p != '\0'; p++)
+		status = dkimf_db_open(&conf->conf_remardb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			if (*p == ',')
-				n++;
-		}
-
-		conf->conf_remar = (char **) malloc((n + 1) * sizeof(char *));
-		if (conf->conf_remar == NULL)
-		{
-			snprintf(err, errlen, "malloc(): %s", strerror(errno));
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
 		}
-
-		n = 0;
-
-		for (p = strtok_r(str, ",", &last);
-		     p != NULL;
-		     p = strtok_r(NULL, ",", &last))
-			conf->conf_remar[n++] = p;
-
-		conf->conf_remar[n] = NULL;
 	}
 
 	str = NULL;
@@ -2569,84 +2555,15 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "DontSignMailTo", &str, sizeof str);
 	if (str != NULL)
 	{
-		_Bool makepats = FALSE;
-		int n = 1;
-		char *p;
-		char *last;
+		int status;
 
-		for (p = str; *p != '\0'; p++)
+		status = dkimf_db_open(&conf->conf_dontsigntodb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			if (*p == ',')
-				n++;
-			if (*p == '*')
-				makepats = TRUE;
-		}
-
-		conf->conf_dontsignto = (char **) malloc((n + 1) * sizeof(char *));
-		if (conf->conf_dontsignto == NULL)
-		{
-			snprintf(err, errlen, "malloc(): %s", strerror(errno));
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
-		}
-
-		n = 0;
-
-		for (p = strtok_r(str, ",", &last);
-		     p != NULL;
-		     p = strtok_r(NULL, ",", &last))
-			conf->conf_dontsignto[n++] = p;
-
-		conf->conf_dontsignto[n] = NULL;
-
-		if (makepats)
-		{
-			size_t len;
-
-			len = (n + 1) * sizeof(regex_t *);
-			conf->conf_nosignpats = (regex_t **) malloc(len);
-			if (conf->conf_nosignpats == NULL)
-			{
-				snprintf(err, errlen, "malloc(): %s",
-				         strerror(errno));
-				return -1;
-			}
-			else
-			{
-				int c;
-				char patbuf[BUFRSZ + 1];
-
-				memset(conf->conf_nosignpats, '\0', len);
-
-				for (c = 0; c < n; c++)
-				{
-					conf->conf_nosignpats[c] = (regex_t *) malloc(sizeof(regex_t));
-					if (conf->conf_nosignpats[c] == NULL)
-					{
-						snprintf(err, errlen,
-						         "malloc(): %s",
-						         strerror(errno));
-						return -1;
-					}
-
-					if (!dkimf_mkregexp(conf->conf_dontsignto[c],
-					                    patbuf, sizeof patbuf))
-					{
-						snprintf(err, errlen,
-						         "can't build regex `%s'",
-						         conf->conf_dontsignto[c]);
-						return -1;
-					}
-
-					if (regcomp(conf->conf_nosignpats[c],
-					            patbuf, REG_ICASE) != 0)
-					{
-						snprintf(err, errlen,
-						         "can't compile regex `%s'",
-						         conf->conf_dontsignto[c]);
-						return -1;
-					}
-				}
-			}
 		}
 	}
 
@@ -2655,31 +2572,16 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "MustBeSigned", &str, sizeof str);
 	if (str != NULL)
 	{
-		int n = 1;
-		char *p;
-		char *last;
+		int status;
 
-		for (p = str; *p != '\0'; p++)
+		status = dkimf_db_open(&conf->conf_mbsdb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			if (*p == ',')
-				n++;
-		}
-
-		conf->conf_mbs = (char **) malloc((n + 1) * sizeof(char *));
-		if (conf->conf_mbs == NULL)
-		{
-			snprintf(err, errlen, "malloc(): %s", strerror(errno));
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
 		}
-
-		n = 0;
-
-		for (p = strtok_r(str, ",", &last);
-		     p != NULL;
-		     p = strtok_r(NULL, ",", &last))
-			conf->conf_mbs[n++] = p;
-
-		conf->conf_mbs[n] = NULL;
 	}
 
 	str = NULL;
@@ -2693,33 +2595,16 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 	if (str != NULL)
 	{
-		int n = 1;
-		size_t len;
-		char *p;
-		char *last;
+		int status;
 
-		for (p = str; *p != '\0'; p++)
+		status = dkimf_db_open(&conf->conf_omithdrdb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			if (*p == ',')
-				n++;
-		}
-
-		len = (n + 1) * sizeof(char *);
-		conf->conf_omithdrs = (char **) malloc(len);
-		if (conf->conf_omithdrs == NULL)
-		{
-			snprintf(err, errlen, "malloc(): %s", strerror(errno));
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
 		}
-		
-		n = 0;
-
-		for (p = strtok_r(str, ",", &last);
-		     p != NULL;
-		     p = strtok_r(NULL, ",", &last))
-			   conf->conf_omithdrs[n++] = p;
-
-		conf->conf_omithdrs[n] = NULL;
 	}
 
 	str = NULL;
@@ -2733,31 +2618,16 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 	if (str != NULL)
 	{
-		int n = 1;
-		char *p;
-		char *last;
+		int status;
 
-		for (p = str; *p != '\0'; p++)
+		status = dkimf_db_open(&conf->conf_mtasdb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			if (*p == ',')
-				n++;
-		}
-
-		conf->conf_mtas = (char **) malloc((n + 1) * sizeof(char *));
-		if (conf->conf_mtas == NULL)
-		{
-			snprintf(err, errlen, "malloc(): %s", strerror(errno));
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
 		}
-
-		n = 0;
-
-		for (p = strtok_r(str, ",", &last);
-		     p != NULL;
-		     p = strtok_r(NULL, ",", &last))
-			conf->conf_mtas[n++] = p;
-
-		conf->conf_mtas[n] = NULL;
 	}
 
 	str = NULL;
@@ -2765,32 +2635,16 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "AlwaysSignHeaders", &str, sizeof str);
 	if (str != NULL)
 	{
-		int n = 1;
-		size_t len;
-		char *p;
+		int status;
 
-		for (p = str; *p != '\0'; p++)
+		status = dkimf_db_open(&conf->conf_alwayshdrsdb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			if (*p == ',')
-				n++;
-		}
-
-		len = (n + 1) * sizeof(char *);
-		conf->conf_alwayshdrs = (char **) malloc(len);
-		if (conf->conf_alwayshdrs == NULL)
-		{
-			snprintf(err, errlen, "malloc(): %s", strerror(errno));
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
 		}
-		
-		n = 0;
-
-		for (p = strtok(str, ",");
-		     p != NULL;
-		     p = strtok(NULL, ","))
-			   conf->conf_alwayshdrs[n++] = p;
-
-		conf->conf_alwayshdrs[n] = NULL;
 	}
 
 	str = NULL;
@@ -2798,32 +2652,16 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "SenderHeaders", &str, sizeof str);
 	if (str != NULL)
 	{
-		int n = 1;
-		size_t len;
-		char *p;
+		int status;
 
-		for (p = str; *p != '\0'; p++)
+		status = dkimf_db_open(&conf->conf_senderhdrsdb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			if (*p == ',')
-				n++;
-		}
-
-		len = (n + 1) * sizeof(char *);
-		conf->conf_senderhdrs = (char **) malloc(len);
-		if (conf->conf_senderhdrs == NULL)
-		{
-			snprintf(err, errlen, "malloc(): %s", strerror(errno));
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
 		}
-		
-		n = 0;
-
-		for (p = strtok(str, ",");
-		     p != NULL;
-		     p = strtok(NULL, ","))
-			   conf->conf_senderhdrs[n++] = p;
-
-		conf->conf_senderhdrs[n] = NULL;
 	}
 	else
 	{
@@ -2848,30 +2686,19 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 	if (str != NULL)
 	{
-		int c;
-		char *p;
-		char *last;
+		int status;
 
-		for (p = str, c = 1; *p != '\0'; p++)
+		status = dkimf_db_open(&conf->conf_vbr_trusteddb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			if (*p == ':' || *p == ',')
-				c++;
-		}
-
-		conf->conf_vbr_trusted = (char **) malloc(sizeof(char *) * (c + 1));
-		if (conf->conf_vbr_trusted == NULL)
-		{
-			snprintf(err, errlen, "malloc(): %s", strerror(errno));
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
 		}
 
-		for (p = strtok_r(str, ",:", &last), c = 0;
-		     p != NULL;
-		     p = strtok_r(NULL, ",:", &last), c++)
-		{
-			conf->conf_vbr_trusted[c] = p;
-			conf->conf_vbr_trusted[c + 1] = NULL;
-		}
+		(void) dkimf_db_mkarray(conf->conf_vbr_trusteddb,
+		                        &conf->conf_vbr_trusted);
 	}
 #endif /* _FFR_VBR */
 
@@ -2903,117 +2730,16 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 	if (str != NULL)
 	{
-		int c;
-		int n;
-		int nalloc = 0;
-		size_t len;
-		FILE *f;
-		char *p;
-		char line[BUFRSZ + 1];
+		int status;
 
-		n = 0;
-
-		f = fopen(str, "r");
-		if (f == NULL)
+		status = dkimf_db_open(&conf->conf_localadsp_db, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			snprintf(err, errlen, "%s: fopen(): %s",
-			         str, strerror(errno));
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
 		}
-
-		memset(line, '\0', sizeof line);
-		while (fgets(line, BUFRSZ, f) != NULL)
-		{
-			for (p = line; *p != '\0'; p++)
-			{
-				if (*p == '\n' || *p == '#')
-				{
-					*p = '\0';
-					break;
-				}
-			}
-
-			dkimf_trimspaces((u_char *) line);
-			if (strlen(line) == 0)
-				continue;
-
-			if (nalloc <= n)
-			{
-				if (nalloc == 0)
-				{
-					len = 2 * sizeof(char *);
-					conf->conf_localadsp_domain = (char **) malloc(len);
-					nalloc = 1;
-				}
-				else
-				{
-					len = (nalloc * 2 + 1) * sizeof(char *);
-					conf->conf_localadsp_domain = (char **) realloc(curconf->conf_localadsp_domain,
-					                                                len);
-					nalloc = nalloc * 2;
-				}
-
-				if (conf->conf_localadsp_domain == NULL)
-				{
-					snprintf(err, errlen,
-					         "malloc(): %s",
-					         strerror(errno));
-					fclose(f);
-					return -1;
-				}
-			}
-
-			conf->conf_localadsp_domain[n] = strdup(line);
-			if (conf->conf_localadsp_domain[n] == NULL)
-			{
-				snprintf(err, errlen, "strdup(): %s",
-				         strerror(errno));
-				fclose(f);
-				return -1;
-			}
-
-			n++;
-		}
-
-		if (conf->conf_localadsp_domain != NULL)
-			conf->conf_localadsp_domain[n] = NULL;
-
-		len = (n + 1) * sizeof(char *);
-		conf->conf_localadsp_policy = (char **) malloc(len);
-		if (conf->conf_localadsp_policy == NULL)
-		{
-			snprintf(err, errlen, "malloc(): %s", strerror(errno));
-			fclose(f);
-			return -1;
-		}
-
-		for (c = 0; c < n; c++)
-		{
-			p = strchr(conf->conf_localadsp_domain[c], ':');
-			if (p == NULL)
-			{
-				conf->conf_localadsp_policy[c] = NULL;
-			}
-			else
-			{
-				dkim_policy_t tmpp;
-
-				*p = '\0';
-
-				tmpp = dkimf_configlookup(p + 1, dkimf_policy);
-				if (tmpp == (dkim_policy_t) -1)
-				{
-					snprintf(err, errlen,
-					         "unknown ADSP `%s'", p + 1);
-					fclose(f);
-					return -1;
-				}
-
-				conf->conf_localadsp_policy[c] = p + 1;
-			}
-		}
-
-		fclose(f);
 	}
 
 	str = NULL;
@@ -3028,118 +2754,15 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 	if (str != NULL)
 	{
-		int n;
+		int status;
 
-		if (str[0] == '/' && access(str, F_OK) == 0)
+		status = dkimf_db_open(&conf->conf_thirdpartydb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			int nalloc = 0;
-			size_t len;
-			FILE *f;
-			char *p;
-			char line[BUFRSZ + 1];
-
-			n = 0;
-
-			f = fopen(str, "r");
-			if (f == NULL)
-			{
-				snprintf(err, errlen, "%s: fopen(): %s",
-				         str, strerror(errno));
-				return -1;
-			}
-
-			memset(line, '\0', sizeof line);
-			while (fgets(line, BUFRSZ, f) != NULL)
-			{
-				for (p = line; *p != '\0'; p++)
-				{
-					if (*p == '\n' || *p == '#')
-					{
-						*p = '\0';
-						break;
-					}
-				}
-
-				dkimf_trimspaces((u_char *) line);
-				if (strlen(line) == 0)
-					continue;
-
-				if (nalloc <= n)
-				{
-					if (nalloc == 0)
-					{
-						len = 2 * sizeof(char *);
-						conf->conf_thirdparty = (char **) malloc(len);
-						nalloc = 1;
-					}
-					else
-					{
-						len = (nalloc * 2 + 1) * sizeof(char *);
-						conf->conf_thirdparty = (char **) realloc(curconf->conf_thirdparty,
-						                                          len);
-						nalloc = nalloc * 2;
-					}
-
-					if (conf->conf_thirdparty == NULL)
-					{
-						snprintf(err, errlen,
-						         "malloc(): %s",
-						         strerror(errno));
-						fclose(f);
-						return -1;
-					}
-				}
-
-				conf->conf_thirdparty[n] = strdup(line);
-				if (conf->conf_thirdparty[n] == NULL)
-				{
-					snprintf(err, errlen, "strdup(): %s",
-					         strerror(errno));
-					fclose(f);
-					return -1;
-				}
-
-				n++;
-			}
-
-			if (conf->conf_thirdparty != NULL)
-				conf->conf_thirdparty[n] = NULL;
-
-			fclose(f);
-		}
-		else
-		{
-			size_t len;
-			char *p;
-
-			n = 1;
-
-			for (p = str; *p != '\0'; p++)
-			{
-				if (*p == ',')
-					n++;
-			}
-
-			len = (n + 1) * sizeof(char *);
-			conf->conf_thirdparty = (char **) malloc(len);
-			if (conf->conf_thirdparty == NULL)
-			{
-				snprintf(err, errlen, "malloc(): %s",
-				         strerror(errno));
-				return -1;
-			}
-
-			n = 0;
-
-			for (p = strtok(str, ",");
-			     p != NULL;
-			     p = strtok(NULL, ","))
-			{
-				conf->conf_thirdparty[n] = p;
-				n++;
-			}
-
-			conf->conf_thirdparty[n] = NULL;
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
+			return -1;
 		}
 	}
 
@@ -3154,190 +2777,15 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 	if (str != NULL)
 	{
-		int n;
+		int status;
 
-		_Bool makepats = FALSE;
-
-		if (str[0] == '/' && access(str, F_OK) == 0)
+		status = dkimf_db_open(&conf->conf_domainsdb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			int nalloc = 0;
-			size_t len;
-			FILE *f;
-			char *p;
-			char line[BUFRSZ + 1];
-
-			n = 0;
-
-			f = fopen(str, "r");
-			if (f == NULL)
-			{
-				snprintf(err, errlen, "%s: fopen(): %s",
-				         str, strerror(errno));
-				return -1;
-			}
-
-			memset(line, '\0', sizeof line);
-			while (fgets(line, BUFRSZ, f) != NULL)
-			{
-				for (p = line; *p != '\0'; p++)
-				{
-					if (*p == '\n' || *p == '#')
-					{
-						*p = '\0';
-						break;
-					}
-				}
-
-				dkimf_trimspaces((u_char *) line);
-				if (strlen(line) == 0)
-					continue;
-
-				if (nalloc <= n)
-				{
-					if (nalloc == 0)
-					{
-						len = 2 * sizeof(char *);
-						conf->conf_domains = (char **) malloc(len);
-						nalloc = 1;
-					}
-					else
-					{
-						len = (nalloc * 2 + 1) * sizeof(char *);
-						conf->conf_domains = (char **) realloc(curconf->conf_domains,
-						                                       len);
-						nalloc = nalloc * 2;
-					}
-
-					if (conf->conf_domains == NULL)
-					{
-						snprintf(err, errlen,
-						         "malloc(): %s",
-						         strerror(errno));
-						fclose(f);
-						return -1;
-					}
-				}
-
-				conf->conf_domains[n] = strdup(line);
-				if (conf->conf_domains[n] == NULL)
-				{
-					snprintf(err, errlen,
-					         "strdup(): %s",
-					         strerror(errno));
-					fclose(f);
-					return -1;
-				}
-
-				if (strchr(curconf->conf_domains[n],
-				           '*') != NULL)
-					makepats = TRUE;
-
-				n++;
-			}
-
-			if (conf->conf_domains != NULL)
-				conf->conf_domains[n] = NULL;
-
-			fclose(f);
-		}
-		else
-		{
-			size_t len;
-			char *p;
-
-			n = 1;
-
-			for (p = str; *p != '\0'; p++)
-			{
-				if (*p == ',')
-					n++;
-			}
-
-			len = (n + 1) * sizeof(char *);
-			conf->conf_domains = (char **) malloc(len);
-			if (conf->conf_domains == NULL)
-			{
-				snprintf(err, errlen, "malloc(): %s",
-				         strerror(errno));
-				return -1;
-			}
-
-			n = 0;
-
-			for (p = strtok(str, ",");
-			     p != NULL;
-			     p = strtok(NULL, ","))
-			{
-				conf->conf_domains[n] = p;
-
-				if (strchr(conf->conf_domains[n], '*') != NULL)
-					makepats = TRUE;
-
-				n++;
-			}
-
-			conf->conf_domains[n] = NULL;
-		}
-
-		if (makepats)
-		{
-			int c;
-			int status;
-			size_t len;
-			char *end;
-			char patbuf[BUFRSZ + 1];
-
-			len = (n + 1) * sizeof(regex_t *);
-			conf->conf_dompats = (regex_t **) malloc (len);
-			if (conf->conf_dompats == NULL)
-			{
-				snprintf(err, errlen, "malloc(): %s",
-				         strerror(errno));
-				return -1;
-			}
-			memset(conf->conf_dompats, '\0', len);
-
-			for (c = 0; c < n; c++)
-			{
-				memset(patbuf, '\0', sizeof patbuf);
-				end = patbuf + sizeof patbuf;
-				patbuf[0] = '^';
-
-				if (!dkimf_mkregexp(conf->conf_domains[c],
-				                    patbuf, sizeof patbuf))
-				{
-					snprintf(err, errlen,
-					         "regular expression for \"%s\" too long",
-					         conf->conf_domains[c]);
-					return -1;
-				}
-
-				conf->conf_dompats[c] = (regex_t *) malloc(sizeof(regex_t));
-				if (conf->conf_dompats[c] == NULL)
-				{
-					snprintf(err, errlen, "malloc(): %s",
-					         strerror(errno));
-					return -1;
-				}
-
-				status = regcomp(conf->conf_dompats[c],
-				                 patbuf,
-				                 (REG_EXTENDED|REG_ICASE));
-				if (status != 0)
-				{
-					char rerr[BUFRSZ + 1];
-
-					memset(rerr, '\0', sizeof rerr);
-					(void) regerror(status,
-					                conf->conf_dompats[c],
-					                rerr, sizeof rerr);
-
-					snprintf(err, errlen, "regcomp(): %s",
-					         rerr);
-
-					return -1;
-				}
-			}
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
+			return -1;
 		}
 	}
 
@@ -3352,41 +2800,21 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 	if (str != NULL)
 	{
-		int n = 1;
-		char *p;
-		char *last;
+		int status;
 
-		for (p = str; *p != '\0'; p++)
+		status = dkimf_db_open(&conf->conf_macrosdb, str,
+		                       (DKIMF_DB_FLAG_READONLY |
+		                        DKIMF_DB_FLAG_VALLIST |
+		                        DKIMF_DB_FLAG_MATCHBOTH), NULL);
+		if (status != 0)
 		{
-			if (*p == ',')
-				n++;
-		}
-
-		conf->conf_macros = (char **) malloc((n + 1) * sizeof(char *));
-		conf->conf_values = (char **) malloc((n + 1) * sizeof(char *));
-
-		if (conf->conf_macros == NULL || conf->conf_values == NULL)
-		{
-			snprintf(err, errlen, "malloc(): %s", strerror(errno));
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
 		}
 
-		n = 0;
-		for (p = strtok_r(str, ",", &last);
-		     p != NULL;
-		     p = strtok_r(NULL, ",", &last))
-		{
-			conf->conf_macros[n] = p;
-			conf->conf_values[n] = strchr(p, '=');
-			if (conf->conf_values[n] != NULL)
-			{
-				*(conf->conf_values[n]) = '\0';
-				conf->conf_values[n] += 1;
-			}
-			n++;
-		}
-		conf->conf_macros[n] = NULL;
-		conf->conf_values[n] = NULL;
+		(void) dkimf_db_mkarray(conf->conf_macrosdb,
+		                        &conf->conf_macros);
 	}
 
 	if (conf->conf_signalgstr != NULL)
@@ -3872,8 +3300,13 @@ dkimf_config_setlib(struct dkimf_config *conf)
 			return FALSE;
 	}
 
-	if (conf->conf_alwayshdrs != NULL)
+	if (conf->conf_alwayshdrsdb != NULL)
 	{
+		status = dkimf_db_mkarray(conf->conf_alwayshdrsdb,
+		                          &conf->conf_alwayshdrs);
+		if (status == -1)
+			return FALSE;
+
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_ALWAYSHDRS,
 		                      conf->conf_alwayshdrs,
@@ -3883,8 +3316,12 @@ dkimf_config_setlib(struct dkimf_config *conf)
 			return FALSE;
 	}
 
-	if (conf->conf_mbs != NULL)
+	if (conf->conf_mbsdb != NULL)
 	{
+		status = dkimf_db_mkarray(conf->conf_mbsdb, &conf->conf_mbs);
+		if (status == -1)
+			return FALSE;
+
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_MUSTBESIGNED,
 		                      conf->conf_mbs, sizeof conf->conf_mbs);
@@ -3893,8 +3330,13 @@ dkimf_config_setlib(struct dkimf_config *conf)
 			return FALSE;
 	}
 
-	if (conf->conf_omithdrs != NULL)
+	if (conf->conf_omithdrdb != NULL)
 	{
+		status = dkimf_db_mkarray(conf->conf_omithdrdb,
+		                          &conf->conf_omithdrs);
+		if (status == -1)
+			return FALSE;
+
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SKIPHDRS,
 		                      conf->conf_omithdrs,
@@ -3914,8 +3356,13 @@ dkimf_config_setlib(struct dkimf_config *conf)
 			return FALSE;
 	}
 
-	if (conf->conf_signhdrs != NULL)
+	if (conf->conf_signhdrsdb != NULL)
 	{
+		status = dkimf_db_mkarray(conf->conf_signhdrsdb,
+		                          &conf->conf_signhdrs);
+		if (status == -1)
+			return FALSE;
+
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SIGNHDRS, conf->conf_signhdrs,
 		                      sizeof conf->conf_signhdrs);
@@ -3934,8 +3381,13 @@ dkimf_config_setlib(struct dkimf_config *conf)
 			return FALSE;
 	}
 
-	if (conf->conf_senderhdrs != NULL)
+	if (conf->conf_senderhdrsdb != NULL)
 	{
+		status = dkimf_db_mkarray(conf->conf_senderhdrsdb,
+		                          &conf->conf_senderhdrs);
+		if (status == -1)
+			return FALSE;
+
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SENDERHDRS,
 		                      conf->conf_senderhdrs,
@@ -4157,22 +3609,20 @@ dkimf_checkbldb(char *to, char *jobid)
 		}
 	}
 
-	status = dkimf_db_get(bldb, dbaddr, NULL, NULL, &exists, &bldb_lock);
+	status = dkimf_db_get(bldb, dbaddr, 0, NULL, NULL, &exists);
 	if (status == 0)
 	{
 		return exists;
 	}
 	else if (dolog)
 	{
-		char *err;
+		char errbuf[BUFRSZ];
 
-		err = DB_STRERROR(status);
-		if (status != DB_NOTFOUND)
-		{
-			syslog(LOG_ERR,
-			       "error looking up \"%s\" in database: %s",
-			       dbaddr, err);
-		}
+		(void) dkimf_db_strerror(bldb, errbuf, sizeof errbuf);
+
+		syslog(LOG_ERR,
+		       "error looking up \"%s\" in database: %s",
+		       dbaddr, errbuf);
 	}
 
 	return FALSE;
@@ -6366,40 +5816,10 @@ mlfi_eoh(SMFICTX *ctx)
 	originok = FALSE;
 
 	/* is it a domain we sign for? */
-	if (conf->conf_domains != NULL)
+	if (conf->conf_domainsdb != NULL)
 	{
-		int n;
-
-		if (conf->conf_dompats != NULL)
-		{
-			for (n = 0; conf->conf_dompats[n] != NULL; n++)
-			{
-				status = regexec(conf->conf_dompats[n],
-				                 dfc->mctx_domain,
-				                 0, NULL, 0);
-				if (status == 0)
-				{
-					domainok = TRUE;
-					break;
-				}
-			}
-		}
-		else
-		{
-			for (n = 0; conf->conf_domains[n] != NULL; n++)
-			{
-				if (strcasecmp(dfc->mctx_domain,
-				               conf->conf_domains[n]) == 0)
-				{
-					strlcpy(dfc->mctx_domain,
-					           conf->conf_domains[n],
-					           sizeof dfc->mctx_domain);
-
-					domainok = TRUE;
-					break;
-				}
-			}
-		}
+		status = dkimf_db_get(conf->conf_domainsdb, dfc->mctx_domain,
+		                      0, NULL, NULL, &domainok);
 
 		if (!domainok && conf->conf_logwhy)
 		{
@@ -6418,41 +5838,18 @@ mlfi_eoh(SMFICTX *ctx)
 				if (*p == '\0')
 					break;
 
-				if (conf->conf_dompats != NULL)
+				status = dkimf_db_get(conf->conf_domainsdb, p,
+				                      0, NULL, NULL,
+				                      &domainok);
+
+				if (domainok)
 				{
-					for (n = 0;
-					     conf->conf_dompats[n] != NULL;
-					     n++)
-					{
-						status = regexec(conf->conf_dompats[n],
-						                 dfc->mctx_domain,
-						                 0, NULL, 0);
-						if (status == 0)
-						{
-							domainok = TRUE;
-							break;
-						}
-					}
-				}
-				else
-				{
-					for (n = 0;
-					     conf->conf_domains[n] != NULL;
-					     n++)
-					{
-						if (strcasecmp(p,
-						               conf->conf_domains[n]) == 0)
-						{
-							strlcpy(dfc->mctx_domain,
-							           conf->conf_domains[n],
-							           sizeof dfc->mctx_domain);
-							domainok = TRUE;
-							break;
-						}
-					}
+					strlcpy(dfc->mctx_domain, p,
+					        sizeof dfc->mctx_domain);
+					break;
 				}
 			}
-			
+
 			if (domainok)
 				setidentity = TRUE;
 		}
@@ -6574,7 +5971,7 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 
 	/* see if it came in on an authorized MSA/MTA connection */
-	if (conf->conf_mtas != NULL)
+	if (conf->conf_mtasdb != NULL)
 	{
 		int n;
 		char *mtaname;
@@ -6583,15 +5980,8 @@ mlfi_eoh(SMFICTX *ctx)
 
 		if (mtaname != NULL)
 		{
-			for (n = 0; conf->conf_mtas[n] != NULL; n++)
-			{
-				if (strcasecmp(mtaname,
-				               conf->conf_mtas[n]) == 0)
-				{
-					originok = TRUE;
-					break;
-				}
-			}
+			status = dkimf_db_get(conf->conf_mtasdb, mtaname, 0,
+			                      NULL, NULL, &originok);
 		}
 
 		if (!originok && conf->conf_logwhy)
@@ -6602,7 +5992,7 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 
 	/* see if macro tests passed */
-	if (conf->conf_macros != NULL)
+	if (conf->conf_macrosdb != NULL)
 	{
 		_Bool done = FALSE;
 		int n;
@@ -6639,28 +6029,8 @@ mlfi_eoh(SMFICTX *ctx)
 			if (val == NULL)
 				continue;
 
-			/* macro set and we don't care about the value */
-			if (val != NULL && conf->conf_values[n] == NULL)
-			{
-				originok = TRUE;
-				break;
-			}
-
-			dkimf_dstring_blank(dfc->mctx_tmpstr);
-			dkimf_dstring_copy(dfc->mctx_tmpstr,
-			                   conf->conf_values[n]);
-			vals = dkimf_dstring_get(dfc->mctx_tmpstr);
-
-			for (p = strtok_r(vals, "|", &last);
-			     !done && p != NULL;
-			     p = strtok_r(NULL, "|", &last))
-			{
-				if (strcasecmp(val, p) == 0)
-				{
-					originok = TRUE;
-					done = TRUE;
-				}
-			}
+			status = dkimf_db_get(conf->conf_macrosdb, name, 0,
+			                      val, NULL, &originok);
 		}
 
 		if (!originok && conf->conf_logwhy)
@@ -6777,8 +6147,9 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 
 	/* check for "DontSignMailTo" */
-	if (dfc->mctx_signing && conf->conf_dontsignto != NULL)
+	if (dfc->mctx_signing && conf->conf_dontsigntodb != NULL)
 	{
+		_Bool found;
 		int status;
 		struct addrlist *a;
 
@@ -6786,49 +6157,33 @@ mlfi_eoh(SMFICTX *ctx)
 
 		while (a != NULL)
 		{
-			for (c = 0; conf->conf_dontsignto[c] != NULL; c++)
+			found = FALSE;
+			status = dkimf_db_get(conf->conf_dontsigntodb,
+			                      a->a_addr, 0, NULL, NULL,
+			                      &found);
+
+			if (found)
 			{
-				if (conf->conf_nosignpats != NULL)
+				if (conf->conf_dolog)
 				{
-					status = regexec(conf->conf_nosignpats[c],
-					                 a->a_addr, 0, NULL, 0);
-					if (status == 0)
-					{
-						if (conf->conf_dolog)
-						{
-							syslog(LOG_INFO,
-							       "%s skipping signing of mail to `%s'",
-							       dfc->mctx_jobid,
-							       a->a_addr);
-						}
-
-						return SMFIS_ACCEPT;
-					}
-					else if (status != REG_NOMATCH)
-					{
-						if (conf->conf_dolog)
-						{
-							syslog(LOG_ERR,
-							       "%s regexec() failed",
-							       dfc->mctx_jobid);
-						}
-
-						return SMFIS_TEMPFAIL;
-					}
+					syslog(LOG_INFO,
+					       "%s skipping signing of mail to `%s'",
+					       dfc->mctx_jobid,
+					       a->a_addr);
 				}
-				else if (strcasecmp(a->a_addr,
-				                    conf->conf_dontsignto[c]) == 0)
+
+				return SMFIS_ACCEPT;
+			}
+			else if (status != 0)
+			{
+				if (conf->conf_dolog)
 				{
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_INFO,
-						       "%s skipping signing of mail to `%s'",
-						       dfc->mctx_jobid,
-						       a->a_addr);
-					}
-
-					return SMFIS_ACCEPT;
+					syslog(LOG_ERR,
+					       "%s dkimf_db_get() failed",
+					       dfc->mctx_jobid);
 				}
+
+				return SMFIS_TEMPFAIL;
 			}
 
 			a = a->a_next;
@@ -7658,11 +7013,12 @@ mlfi_eom(SMFICTX *ctx)
 				if (slash != NULL)
 					*slash = '\0';
 					
-				if (conf->conf_remar != NULL)
+				if (conf->conf_remardb != NULL)
 				{
-					if (dkimf_hostlist((char *) ares->ares_host,
-					                   conf->conf_remar))
-						hostmatch = TRUE;
+					status = dkimf_db_get(conf->conf_remardb,
+					                      ares->ares_host,
+					                      0, NULL, NULL,
+					                      &hostmatch);
 				}
 				else
 				{
@@ -8178,7 +7534,7 @@ mlfi_eom(SMFICTX *ctx)
 			_Bool localadsp = FALSE;
 			int localresult = DKIM_PRESULT_NONE;
 
-			if (conf->conf_localadsp_domain != NULL)
+			if (conf->conf_localadsp_file != NULL)
 			{
 				u_char *domain;
 
@@ -10526,24 +9882,6 @@ main(int argc, char **argv)
 #if _FFR_BODYLENGTH_DB
 	if (bldbfile != NULL)
 	{
-		status = dkimf_db_open_ro(&bldb, bldbfile);
-		if (status != 0)
-		{
-			fprintf(stderr, "%s: can't open database %s: %s\n",
-			        progname, bldbfile, DB_STRERROR(status));
-			if (dolog)
-			{
-				syslog(LOG_ERR, "can't open database %s",
-				       bldbfile);
-			}
-			dkimf_zapkey(curconf);
-
-			if (!autorestart && pidfile != NULL)
-				(void) unlink(pidfile);
-
-			return EX_UNAVAILABLE;
-		}
-
 		status = pthread_mutex_init(&bldb_lock, NULL);
 		if (status != 0)
 		{
@@ -10557,35 +9895,31 @@ main(int argc, char **argv)
 				       strerror(status));
 			}
 		}
-	}
-#endif /* _FFR_BODYLENGTH_DB */
 
-#if _FFR_REPORT_INTERVALS
-	if (ridbfile != NULL)
-	{
-		status = dkimf_db_open_rw(&ridb, ridbfile);
+		status = dkimf_db_open(&bldb, bldbfile,
+		                       DKIMF_DB_FLAG_READONLY, &bldb_lock);
 		if (status != 0)
 		{
 			fprintf(stderr, "%s: can't open database %s: %s\n",
-			        progname, ridbfile, DB_STRERROR(status));
+			        progname, bldbfile, strerror(status));
 			if (dolog)
 			{
 				syslog(LOG_ERR, "can't open database %s",
-				       ridbfile);
+				       bldbfile);
 			}
 			dkimf_zapkey(curconf);
-
-#ifdef _FFR_BODYLENGTH_DB
-			if (bldb != NULL)
-				DKIMF_DBCLOSE(bldb);
-#endif /* _FFR_BODYLENGTH_DB */
 
 			if (!autorestart && pidfile != NULL)
 				(void) unlink(pidfile);
 
 			return EX_UNAVAILABLE;
 		}
+	}
+#endif /* _FFR_BODYLENGTH_DB */
 
+#if _FFR_REPORT_INTERVALS
+	if (ridbfile != NULL)
+	{
 		status = pthread_mutex_init(&ridb_lock, NULL);
 		if (status != 0)
 		{
@@ -10598,6 +9932,30 @@ main(int argc, char **argv)
 				       "can't initialize body length DB mutex: %s",
 				       strerror(status));
 			}
+		}
+
+		status = dkimf_db_open(&ridb, ridbfile,
+		                       DKIMF_DB_FLAG_READONLY, &ridb_lock);
+		if (status != 0)
+		{
+			fprintf(stderr, "%s: can't open database %s: %s\n",
+			        progname, ridbfile, strerror(status));
+			if (dolog)
+			{
+				syslog(LOG_ERR, "can't open database %s",
+				       ridbfile);
+			}
+			dkimf_zapkey(curconf);
+
+#ifdef _FFR_BODYLENGTH_DB
+			if (bldb != NULL)
+				dkimf_db_close(bldb);
+#endif /* _FFR_BODYLENGTH_DB */
+
+			if (!autorestart && pidfile != NULL)
+				(void) unlink(pidfile);
+
+			return EX_UNAVAILABLE;
 		}
 	}
 #endif /* _FFR_REPORT_INTERVALS */
@@ -10649,11 +10007,14 @@ main(int argc, char **argv)
 			       popdbfile);
 		}
 
-		status = dkimf_db_open_ro(&popdb, popdbfile);
+		status = dkimf_db_open(&popdb, popdbfile,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			fprintf(stderr, "%s: can't open database %s: %s\n",
-			        progname, popdbfile, DB_STRERROR(status));
+			char errbuf[BUFRSZ];
+
+			fprintf(stderr, "%s: can't open database %s\n",
+			        progname, popdbfile);
 
 			if (dolog)
 			{
@@ -10710,17 +10071,17 @@ main(int argc, char **argv)
 
 #if _FFR_BODYLENGTH_DB
 	if (bldb != NULL)
-		DKIMF_DBCLOSE(bldb);
+		dkimf_db_close(bldb);
 #endif /* _FFR_BODYLENGTH_DB */
 
 #if _FFR_REPORT_INTERVALS
 	if (ridb != NULL)
-		DKIMF_DBCLOSE(ridb);
+		dkimf_db_close(ridb);
 #endif /* _FFR_REPORT_INTERVALS */
 
 #if POPAUTH
 	if (popdb != NULL)
-		DKIMF_DBCLOSE(popdb);
+		dkimf_db_close(popdb);
 #endif /* POPAUTH */
 
 	dkimf_zapkey(curconf);
