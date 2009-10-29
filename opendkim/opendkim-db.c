@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.9 2009/10/29 06:44:37 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.10 2009/10/29 06:52:56 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.9 2009/10/29 06:44:37 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.10 2009/10/29 06:52:56 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -41,7 +41,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.9 2009/10/29 06:44:
 #include "util.h"
 
 /* macros */
-#define	DEFARRAYSZ		8
+#define	DEFARRAYSZ		16
 #define DKIMF_DB_MODE		0644
 
 #define	DKIMF_DB_TYPE_UNKNOWN	(-1)
