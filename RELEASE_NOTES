@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.45 2009/10/29 06:22:41 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.46 2009/10/29 06:23:33 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -13,7 +13,7 @@ release, and a summary of the changes in that release.
 		need for a bunch of individual feature requests.  This may
 		have a few backward compatibility issues with respect to
 		the configuration file.  Feature requested by Daniel Black.
-	Feature request #SF2xxxxxx: Add optional support for OpenDBX for
+	Feature request #SF2873900: Add optional support for OpenDBX for
 		connecting to ODBC and SQL backend databases.  Requested
 		by Daniel Black.
 
