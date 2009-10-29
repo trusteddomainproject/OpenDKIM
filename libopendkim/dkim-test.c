@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.11 2009/10/22 19:35:00 cm-msk Exp $";
+static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.12 2009/10/29 06:53:14 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -374,7 +374,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			if (err != NULL)
 			{
 				snprintf(err, errlen,
-				         "unable to allocate %d byte(s)",
+				         "unable to allocate %ld byte(s)",
 				         sizeof(struct dkim_rsa));
 			}
 			return -1;

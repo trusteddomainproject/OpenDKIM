@@ -6,14 +6,14 @@
 #define _DKIM_STRL_H_
 
 #ifndef lint
-static char dkim_strl_h_id[] = "@(#)$Id: dkim-strl.h,v 1.1 2009/07/23 17:54:22 cm-msk Exp $";
+static char dkim_strl_h_id[] = "@(#)$Id: dkim-strl.h,v 1.2 2009/10/29 06:53:14 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
 
 /* OpenDKIM includes */
-#include <build-config.h>
+#include "build-config.h"
 
 /* prototypes */
 #if HAVE_STRLCAT == 0
