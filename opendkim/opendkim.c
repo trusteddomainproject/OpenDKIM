@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.55 2009/10/29 06:22:43 cm-msk Exp $
+**  $Id: opendkim.c,v 1.56 2009/10/29 23:33:51 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.55 2009/10/29 06:22:43 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56 2009/10/29 23:33:51 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -948,7 +948,6 @@ dkimf_restart_check(int n, time_t t)
 		return TRUE;
 	}
 }
-
 
 #ifdef _FFR_REPORT_INTERVALS
 /*
