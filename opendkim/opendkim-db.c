@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.8 2009/10/29 06:22:43 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.9 2009/10/29 06:44:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.8 2009/10/29 06:22:43 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.9 2009/10/29 06:44:37 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1963,10 +1963,15 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a)
 #ifdef DKIMF_DB_TYPE_BDB
 	if (db->db_type != DKIMF_DB_TYPE_BDB && db->db_nrecs == 0)
 		return 0;
-
-	if (db->db_type != DKIMF_DB_TYPE_BDB && db->db_array != NULL)
-		return db->db_array;
 #endif /* DKIMF_DB_TYPE_BDB */
+
+	if ((db->db_type == DKIMF_DB_TYPE_FILE ||
+	     db->db_type == DKIMF_DB_TYPE_CSL) &&
+	    db->db_array != NULL)
+	{
+		*a = db->db_array;
+		return db->db_nrecs;
+	}
 
 	switch (db->db_type)
 	{
