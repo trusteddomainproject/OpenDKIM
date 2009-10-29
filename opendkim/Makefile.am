@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.45 2009/10/29 06:22:43 cm-msk Exp $
+# $Id: Makefile.am,v 1.46 2009/10/29 23:59:49 cm-msk Exp $
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -pthread --pedantic -Wall -O2
@@ -9,7 +9,7 @@ AM_LDFLAGS = -pthread
 sbin_PROGRAMS = opendkim-testkey opendkim-testadsp
 sbin_SCRIPTS = opendkim-genkey.sh
 
-exampledir = $(datarootdir)/doc/@PACKAGE@
+exampledir = $(docdir)
 example_DATA = opendkim.conf.sample
 
 if BUILD_FILTER
@@ -17,8 +17,8 @@ sbin_PROGRAMS += opendkim
 opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h config.c config.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CFLAGS = 
 opendkim_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_INCDIRS)
-opendkim_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS) $(LIBMILTER_LIBDIRS) $(LIBUNBOUND_LIBDIRS) $(LIBTRE_LIBDIRS)
-opendkim_LDADD = ../libopendkim/libopendkim.la -lmilter $(LIBUNBOUND_LIBS) $(LIBTRE_LIBS) $(LIBCRYPTO_LIBS)
+opendkim_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS) $(LIBMILTER_LIBDIRS)
+opendkim_LDADD = ../libopendkim/libopendkim.la -lmilter $(LIBCRYPTO_LIBS)
 if BODYLENGTH_DB
 opendkim_CFLAGS += -D_FFR_BODYLENGTH_DB
 endif
@@ -30,7 +30,6 @@ opendkim_CFLAGS += -g
 endif
 if DIFFHEADERS
 opendkim_CFLAGS += -D_FFR_DIFFHEADERS
-opendkim_LDADD += $(LIBTRE_LIBS)
 endif
 if DKIM_REPUTATION
 opendkim_CFLAGS += -D_FFR_DKIM_REPUTATION
@@ -73,8 +72,6 @@ opendkim_CFLAGS += -D_FFR_STATS
 endif
 if USE_ARLIB
 opendkim_CFLAGS += -DUSE_ARLIB
-opendkim_LDFLAGS += -L../libar
-opendkim_LDADD += ../libar/libar.la
 endif
 if USE_DB_OPENDKIM
 opendkim_CFLAGS += -DUSE_DB
@@ -96,9 +93,6 @@ opendkim_CFLAGS += -D_FFR_VBR
 endif
 if VERIFY_DOMAINKEYS
 opendkim_CFLAGS += -DVERIFY_DOMAINKEYS
-opendkim_CPPFLAGS += $(LIBDK_INCDIRS)
-opendkim_LDFLAGS += $(LIBDK_LIBDIRS)
-opendkim_LDADD += $(LIBDK_LIBS)
 endif
 if ZTAGS
 opendkim_CFLAGS += -D_FFR_ZTAGS
@@ -110,13 +104,9 @@ endif
 if STATS
 sbin_PROGRAMS += opendkim-stats
 opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c util.c
-opendkim_stats_CPPFLAGS = -DUSE_DB -I../libopendkim $(LIBCRYPTO_INCDIRS) $(LIBDB_INCDIRS)
-opendkim_stats_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS) $(LIBUNBOUND_LIBDIRS) $(LIBDB_LIBDIRS) $(LIBTRE_LIBDIRS)
-opendkim_stats_LDADD = ../libopendkim/libopendkim.la $(LIBUNBOUND_LIBS) $(LIBDB_LIBS) $(LIBTRE_LIBS) $(LIBCRYPTO_LIBS)
-if USE_ARLIB
-opendkim_stats_LDFLAGS += -L../libar
-opendkim_stats_LDADD += ../libar/libar.la
-endif
+opendkim_stats_CPPFLAGS = -DUSE_DB -I../libopendkim $(LIBDB_INCDIRS)
+opendkim_stats_LDFLAGS = -L../libopendkim $(LIBDB_LIBDIRS)
+opendkim_stats_LDADD = ../libopendkim/libopendkim.la $(LIBDB_LIBS)
 if DEBUG
 opendkim_stats_CFLAGS = -g
 endif
@@ -127,47 +117,15 @@ opendkim_testkey_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_INCDIRS)
 opendkim_testkey_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS)
 opendkim_testkey_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS)
 opendkim_testkey_CFLAGS = 
-if USE_ARLIB
-opendkim_testkey_LDFLAGS += -L../libar
-opendkim_testkey_LDADD += ../libar/libar.la
-endif
-if USE_DB_OPENDKIM
-opendkim_testkey_LDFLAGS += $(LIBDB_LIBDIRS)
-opendkim_testkey_LDADD += $(LIBDB_LIBS)
-endif
-if USE_TRE
-opendkim_testkey_LDFLAGS += $(LIBTRE_LIBDIRS)
-opendkim_testkey_LDADD += $(LIBTRE_LIBS)
-endif
-if USE_UNBOUND
-opendkim_testkey_LDFLAGS += $(LIBUNBOUND_LIBDIRS)
-opendkim_testkey_LDADD += $(LIBUNBOUND_LIBS)
-endif
 if DEBUG
 opendkim_testkey_CFLAGS += -g
 endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
-opendkim_testadsp_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_INCDIRS)
-opendkim_testadsp_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS)
-opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS)
+opendkim_testadsp_CPPFLAGS = -I../libopendkim
+opendkim_testadsp_LDFLAGS = -L../libopendkim
+opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la
 opendkim_testadsp_CFLAGS = 
-if USE_ARLIB
-opendkim_testadsp_LDFLAGS += -L../libar
-opendkim_testadsp_LDADD += ../libar/libar.la
-endif
-if USE_DB_OPENDKIM
-opendkim_testadsp_LDFLAGS += $(LIBDB_LIBDIRS)
-opendkim_testadsp_LDADD += $(LIBDB_LIBS)
-endif
-if USE_TRE
-opendkim_testadsp_LDFLAGS += $(LIBTRE_LIBDIRS)
-opendkim_testadsp_LDADD += $(LIBTRE_LIBS)
-endif
-if USE_UNBOUND
-opendkim_testadsp_LDFLAGS += $(LIBUNBOUND_LIBDIRS)
-opendkim_testadsp_LDADD += $(LIBUNBOUND_LIBS)
-endif
 if DEBUG
 opendkim_testadsp_CFLAGS += -g
 endif
