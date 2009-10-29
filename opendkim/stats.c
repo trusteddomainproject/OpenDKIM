@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.5 2009/10/28 03:30:27 cm-msk Exp $
+**  $Id: stats.c,v 1.6 2009/10/29 06:22:44 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.5 2009/10/28 03:30:27 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.6 2009/10/29 06:22:44 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_STATS
@@ -76,7 +76,7 @@ dkimf_stats_record(char *path, const char *sigdomain,
                    bool testing, bool lengths)
 {
 	int status = 0;
-	DKIM_DB db;
+	DKIMF_DB db;
 	DBT key;
 	DBT data;
 	size_t outlen;

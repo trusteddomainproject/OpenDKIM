@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.54 2009/10/28 03:30:26 cm-msk Exp $
+**  $Id: opendkim.c,v 1.55 2009/10/29 06:22:43 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.54 2009/10/28 03:30:26 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.55 2009/10/29 06:22:43 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -275,31 +275,31 @@ struct dkimf_config
 #ifdef _FFR_VBR
 	char *		conf_vbr_deftype;	/* default VBR type */
 	char *		conf_vbr_defcert;	/* default VBR certifiers */
-	DKIM_DB		conf_vbr_trusteddb;	/* trusted certifiers (DB) */
+	DKIMF_DB		conf_vbr_trusteddb;	/* trusted certifiers (DB) */
 	char **		conf_vbr_trusted;	/* trusted certifiers */
 #endif /* _FFR_VBR */
-	DKIM_DB		conf_domainsdb;		/* domains to sign (DB) */
+	DKIMF_DB		conf_domainsdb;		/* domains to sign (DB) */
 	char **		conf_domains;		/* domains to sign (array) */
-	DKIM_DB		conf_omithdrdb;		/* headers to omit (DB) */
+	DKIMF_DB		conf_omithdrdb;		/* headers to omit (DB) */
 	char **		conf_omithdrs;		/* headers to omit (array) */
-	DKIM_DB		conf_signhdrsdb;	/* headers to sign (DB) */
+	DKIMF_DB		conf_signhdrsdb;	/* headers to sign (DB) */
 	char **		conf_signhdrs;		/* headers to sign (array) */
-	DKIM_DB		conf_alwayshdrsdb;	/* always incl. hdrs (DB) */
+	DKIMF_DB		conf_alwayshdrsdb;	/* always incl. hdrs (DB) */
 	char **		conf_alwayshdrs;	/* always incl. hdrs (array) */
-	DKIM_DB		conf_senderhdrsdb;	/* sender headers (DB) */
+	DKIMF_DB		conf_senderhdrsdb;	/* sender headers (DB) */
 	char **		conf_senderhdrs;	/* sender headers (array) */
-	DKIM_DB		conf_mtasdb;		/* MTA ports to sign (DB) */
+	DKIMF_DB		conf_mtasdb;		/* MTA ports to sign (DB) */
 	char **		conf_mtas;		/* MTA ports to sign (array) */
-	DKIM_DB		conf_remardb;		/* A-R removal list (DB) */
+	DKIMF_DB		conf_remardb;		/* A-R removal list (DB) */
 	char **		conf_remar;		/* A-R removal list (array) */
-	DKIM_DB		conf_mbsdb;		/* must-be-signed hdrs (DB) */
+	DKIMF_DB		conf_mbsdb;		/* must-be-signed hdrs (DB) */
 	char **		conf_mbs;		/* must-be-signed (array) */
-	DKIM_DB		conf_dontsigntodb;	/* don't-sign-to addrs (DB) */
+	DKIMF_DB		conf_dontsigntodb;	/* don't-sign-to addrs (DB) */
 	char **		conf_dontsignto;	/* don't-sign-to (array) */
-	DKIM_DB		conf_thirdpartydb;	/* trustsigsfrom DB */
+	DKIMF_DB		conf_thirdpartydb;	/* trustsigsfrom DB */
 	char **		conf_thirdparty;	/* trustsigsfrom addrs */
-	DKIM_DB		conf_localadsp_db;	/* local ADSP DB */
-	DKIM_DB		conf_macrosdb;		/* macros/values (DB) */
+	DKIMF_DB		conf_localadsp_db;	/* local ADSP DB */
+	DKIMF_DB		conf_macrosdb;		/* macros/values (DB) */
 	char **		conf_macros;		/* macros/values to check */
 	char **		conf_values;		/* macros/values to check */
 	regex_t **	conf_nosignpats;	/* do-not-sign patterns */
@@ -622,14 +622,14 @@ char *sock;					/* listening socket */
 char *conffile;					/* configuration file */
 struct dkimf_config *curconf;			/* current configuration */
 #if POPAUTH
-DKIM_DB popdb;					/* POP auth DB */
+DKIMF_DB popdb;					/* POP auth DB */
 #endif /* POPAUTH */
 #ifdef _FFR_BODYLENGTH_DB
-DKIM_DB bldb;					/* DB of rcpts to receive l= */
+DKIMF_DB bldb;					/* DB of rcpts to receive l= */
 pthread_mutex_t bldb_lock;			/* bldb lock */
 #endif /* _FFR_BODYLENGTH_DB */
 #ifdef _FFR_REPORT_INTERVALS
-DKIM_DB ridb;					/* report intervals DB */
+DKIMF_DB ridb;					/* report intervals DB */
 pthread_mutex_t ridb_lock;			/* ridb lock */
 #endif /* _FFR_REPORT_INTERVALS */
 char reportaddr[MAXADDRESS + 1];		/* reporting address */

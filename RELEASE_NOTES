@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.44 2009/10/28 05:36:49 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.45 2009/10/29 06:22:41 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -12,7 +12,10 @@ release, and a summary of the changes in that release.
 		external data sources and formats simpler, and obviates the
 		need for a bunch of individual feature requests.  This may
 		have a few backward compatibility issues with respect to
-		the configuration file.
+		the configuration file.  Feature requested by Daniel Black.
+	Feature request #SF2xxxxxx: Add optional support for OpenDBX for
+		connecting to ODBC and SQL backend databases.  Requested
+		by Daniel Black.
 
 1.1.2		2009/??/??
 	Under _FFR_SENDER_MACRO, need to check the value of "SenderMacro"

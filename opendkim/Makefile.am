@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.44 2009/10/28 05:36:49 cm-msk Exp $
+# $Id: Makefile.am,v 1.45 2009/10/29 06:22:43 cm-msk Exp $
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -pthread --pedantic -Wall -O2
@@ -81,6 +81,12 @@ opendkim_CFLAGS += -DUSE_DB
 opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
 opendkim_LDFLAGS += $(LIBDB_LIBDIRS)
 opendkim_LDADD += $(LIBDB_LIBS)
+endif
+if USE_ODBX
+opendkim_CFLAGS += -DUSE_ODBX
+opendkim_CPPFLAGS += $(LIBODBX_INCDIRS)
+opendkim_LDFLAGS += $(LIBODBX_LIBDIRS)
+opendkim_LDADD += $(LIBODBX_LIBS)
 endif
 if USE_UNBOUND
 opendkim_CFLAGS += -DUSE_UNBOUND

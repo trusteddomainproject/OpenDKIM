@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.14 2009/10/28 03:30:27 cm-msk Exp $
+**  $Id: util.c,v 1.15 2009/10/29 06:22:44 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.14 2009/10/28 03:30:27 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.15 2009/10/29 06:22:44 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -558,7 +558,7 @@ dkimf_initpopauth(void)
 */
 
 bool
-dkimf_checkpopauth(DKIM_DB db, struct sockaddr *ip)
+dkimf_checkpopauth(DKIMF_DB db, struct sockaddr *ip)
 {
 	bool exists;
 	int status;

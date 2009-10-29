@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.58 2009/10/28 05:36:49 cm-msk Exp $
+# $Id: configure.ac,v 1.59 2009/10/29 06:22:41 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -243,6 +243,10 @@ then
 			break;
 		fi
 	done
+	if test x"$LIBUNBOUND_LIBS" = x""
+	then
+		AC_MSG_ERROR(not found)
+	fi
 elif test x"$unboundpath" = x"no"
 then
 	AC_MSG_RESULT(no)
@@ -297,6 +301,10 @@ then
 			break;
 		fi
 	done
+	if test x"$LIBTRE_LIBS" = x""
+	then
+		AC_MSG_ERROR(not found)
+	fi
 elif test x"$trepath" = x"no"
 then
 	AC_MSG_RESULT(no)
@@ -324,6 +332,58 @@ AM_CONDITIONAL(USE_TRE, test x"$trepath" != x"no")
 AC_SUBST(LIBTRE_INCDIRS)
 AC_SUBST(LIBTRE_LIBDIRS)
 AC_SUBST(LIBTRE_LIBS)
+
+# libodbx
+AC_MSG_CHECKING(for OpenDBX)
+AC_ARG_WITH(odbx,
+	AS_HELP_STRING(--with-odbx, location of OpenDBX includes and library),
+	odbxpath="$withval", odbxpath="no")
+
+LIBODBX_INCDIRS=""
+LIBODBX_LIBDIRS=""
+LIBODBX_LIBS=""
+
+if test x"$odbxpath" = x"yes" -o x"$odbxpath" = x"auto"
+then
+	odbxdirs="/usr /usr/local"
+	for d in $odbxdirs
+	do
+		if test -f $d/include/odbx.h
+		then
+			odbxpath=$d
+			AC_MSG_RESULT($d)
+			LIBODBX_INCDIRS="-I$odbxpath/include"
+			LIBODBX_LIBDIRS="-L$odbxpath/lib"
+			LIBODBX_LIBS="-lopendbx"
+			break;
+		fi
+	done
+	if test x"$LIBODBX_LIBS" = x""
+	then
+		AC_MSG_ERROR(not found)
+	fi
+elif test x"$odbxpath" = x"no"
+then
+	AC_MSG_RESULT(no)
+	LIBODBX_INCDIRS=""
+	LIBODBX_LIBDIRS=""
+	LIBODBX_LIBS=""
+else
+	if test -f $odbxpath/include/odbx.h
+	then
+		AC_MSG_RESULT($odbxpath)
+		LIBODBX_INCDIRS="-I$odbxpath/include"
+		LIBODBX_LIBDIRS="-L$odbxpath/lib"
+		LIBODBX_LIBS="-lopendbx"
+	else
+		AC_MSG_ERROR(not found at $odbxpath)
+	fi
+fi
+
+AM_CONDITIONAL(USE_ODBX, test x"$odbxpath" != x"no")
+AC_SUBST(LIBODBX_INCDIRS)
+AC_SUBST(LIBODBX_LIBDIRS)
+AC_SUBST(LIBODBX_LIBS)
 
 # libdb
 AC_ARG_WITH(db,

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.7 2009/10/28 15:40:07 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.8 2009/10/29 06:22:43 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.7 2009/10/28 15:40:07 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.8 2009/10/29 06:22:43 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -28,6 +28,12 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.7 2009/10/28 15:40:
 #ifdef USE_DB
 # include <db.h>
 #endif /* USE_DB */
+#ifdef USE_ODBX
+# include <odbx.h>
+#endif /* USE_ODBX */
+
+/* libopendkim includes */
+#include <dkim-strl.h>
 
 /* opendkim includes */
 #include "opendkim-db.h"
@@ -35,6 +41,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.7 2009/10/28 15:40:
 #include "util.h"
 
 /* macros */
+#define	DEFARRAYSZ		8
 #define DKIMF_DB_MODE		0644
 
 #define	DKIMF_DB_TYPE_UNKNOWN	(-1)
@@ -44,6 +51,9 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.7 2009/10/28 15:40:
 #ifdef USE_DB
 # define DKIMF_DB_TYPE_BDB	3
 #endif /* USE_DB */
+#ifdef USE_ODBX
+# define DKIMF_DB_TYPE_DSN	4
+#endif /* USE_ODBX */
 
 #define	DKIMF_DB_IFLAG_FREEARRAY 0x01
 
@@ -76,7 +86,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.7 2009/10/28 15:40:
 #endif /* USE_DB */
 
 /* data types */
-struct dkim_db
+struct dkimf_db
 {
 	u_int			db_flags;
 	u_int			db_iflags;
@@ -109,6 +119,21 @@ struct dkimf_db_relist
 	struct dkimf_db_relist * db_relist_next;
 };
 
+#ifdef DKIMF_DB_TYPE_DSN
+struct dkimf_db_dsn
+{
+	char			dsn_backend[BUFRSZ];
+	char			dsn_datacol[BUFRSZ];
+	char			dsn_dbase[BUFRSZ];
+	char			dsn_host[BUFRSZ];
+	char			dsn_keycol[BUFRSZ];
+	char			dsn_password[BUFRSZ];
+	char			dsn_port[BUFRSZ];
+	char			dsn_table[BUFRSZ];
+	char			dsn_user[BUFRSZ];
+};
+#endif /* DKIMF_DB_TYPE_DSN */
+
 /* globals */
 struct dkimf_db_table dbtypes[] =
 {
@@ -118,8 +143,37 @@ struct dkimf_db_table dbtypes[] =
 #ifdef DKIMF_DB_TYPE_BDB
 	{ "db",			DKIMF_DB_TYPE_BDB },
 #endif /* DKIMF_DB_TYPE_BDB */
+#ifdef DKIMF_DB_TYPE_DSN
+	{ "dsn",		DKIMF_DB_TYPE_DSN },
+#endif /* DKIMF_DB_TYPE_DSN */
 };
 #define DKIMF_DB_TYPE_COUNT	4
+
+/*
+**  DKIMF_DB_NEXTPUNCT -- find next punctuation
+**
+**  Parameters:
+**  	str -- start of the search
+**
+**  Return value:
+**  	Pointer to the next punctuation found, or NULL if none.
+*/
+
+static char *
+dkimf_db_nextpunct(char *str)
+{
+	char *p;
+
+	assert(str != NULL);
+
+	for (p = str; *p != '\0'; p++)
+	{
+		if (isascii(*p) && ispunct(*p))
+			return p;
+	}
+
+	return NULL;
+}
 
 /*
 **  DKIMF_DB_LIST_FREE -- destroy a linked list
@@ -179,7 +233,7 @@ dkimf_db_relist_free(struct dkimf_db_relist *list)
 **  DKIMF_DB_OPEN -- open a database
 **
 **  Parameters:
-**  	db -- DKIM_DB handle (returned)
+**  	db -- DKIMF_DB handle (returned)
 **  	name -- name of DB to open
 **  	flags -- operational flags
 **  	lock -- lock to use during operations
@@ -207,22 +261,24 @@ dkimf_db_relist_free(struct dkimf_db_relist *list)
 **  	          wildcard "*"); only membership tests are allowed
 **  	db -- a Sleepycat hash or b-tree database file, which can be used
 **  	      for membership tests or key-value pairs
+**  	dsn -- a data store name, meaning SQL or ODBC in the backend,
+**  	       with interface provided by OpenDBX
 */
 
 int
-dkimf_db_open(DKIM_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
+dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 {
-	DKIM_DB new;
+	DKIMF_DB new;
 	char *p;
 
 	assert(db != NULL);
 	assert(name != NULL);
 
-	new = (DKIM_DB) malloc(sizeof(struct dkim_db));
+	new = (DKIMF_DB) malloc(sizeof(struct dkimf_db));
 	if (new == NULL)
 		return -1;
 
-	memset(new, '\0', sizeof(struct dkim_db));
+	memset(new, '\0', sizeof(struct dkimf_db));
 
 	new->db_lock = lock;
 	new->db_flags = flags;
@@ -313,6 +369,7 @@ dkimf_db_open(DKIM_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					{
 						if (list != NULL)
 							dkimf_db_list_free(list);
+						free(tmp);
 						return -1;
 					}
 
@@ -322,6 +379,7 @@ dkimf_db_open(DKIM_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 						free(newl);
 						if (list != NULL)
 							dkimf_db_list_free(list);
+						free(tmp);
 						return -1;
 					}
 
@@ -332,6 +390,7 @@ dkimf_db_open(DKIM_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 						free(newl);
 						if (list != NULL)
 							dkimf_db_list_free(list);
+						free(tmp);
 						return -1;
 					}
 
@@ -351,6 +410,7 @@ dkimf_db_open(DKIM_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				{
 					if (list != NULL)
 						dkimf_db_list_free(list);
+					free(tmp);
 					return -1;
 				}
 
@@ -360,6 +420,7 @@ dkimf_db_open(DKIM_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					free(newl);
 					if (list != NULL)
 						dkimf_db_list_free(list);
+					free(tmp);
 					return -1;
 				}
 
@@ -370,6 +431,7 @@ dkimf_db_open(DKIM_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					{
 						free(newl->db_list_key);
 						free(newl);
+						free(tmp);
 						if (list != NULL)
 							dkimf_db_list_free(list);
 						return -1;
@@ -385,6 +447,8 @@ dkimf_db_open(DKIM_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				n++;
 			}
 		}
+
+		free(tmp);
 
 		new->db_handle = list;
 		new->db_nrecs = n;
@@ -701,6 +765,210 @@ dkimf_db_open(DKIM_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		new->db_handle = newdb;
 	  }
 #endif /* DKIMF_DB_TYPE_BDB */
+
+#ifdef DKIMF_DB_TYPE_DSN
+	  case DKIMF_DB_TYPE_DSN:
+	  {
+		_Bool found;
+		int err;
+		struct dkimf_db_dsn *dsn;
+		char *q;
+		char *r;
+		char *eq;
+		char *tmp;
+		odbx_t *odbx;
+
+		dsn = (struct dkimf_db_dsn *) malloc(sizeof(struct dkimf_db_dsn));
+		if (dsn == NULL)
+			return -1;
+
+		memset(dsn, '\0', sizeof dsn);
+
+		/*
+		**  General format of a DSN:
+		**  <backend>://[user[:pwd]@][port+]host/dbase[/key=val[?...]]
+		**  
+		**  "table" will be set in one of the key-value pairs
+		*/
+
+		tmp = strdup(p);
+		if (tmp == NULL)
+		{
+			free(dsn);
+			return -1;
+		}
+
+		q = strchr(tmp, ':');
+		if (q == NULL)
+		{
+			free(dsn);
+			free(tmp);
+			return -1;
+		}
+
+		*q = '\0';
+		strlcpy(dsn->dsn_backend, tmp, sizeof dsn->dsn_backend);
+
+		q++;
+		if (*q != '/' || *(q + 1) != '/')
+		{
+			free(dsn);
+			free(tmp);
+			return -1;
+		}
+
+		q += 2;
+		found = FALSE;
+		for (p = dkimf_db_nextpunct(q);
+		     !found && p != NULL;
+		     p = dkimf_db_nextpunct(q))
+		{
+			switch (*p)
+			{
+			  case ':':
+				*p = '\0';
+
+				if (dsn->dsn_user[0] != '\0')
+				{
+					free(dsn);
+					free(tmp);
+					return -1;
+				}
+
+				strlcpy(dsn->dsn_user, q,
+				        sizeof dsn->dsn_user);
+				q = p + 1;
+				break;
+
+			  case '@':
+				*p = '\0';
+
+				if (dsn->dsn_user[0] == '\0')
+				{
+					strlcpy(dsn->dsn_user, q,
+					        sizeof dsn->dsn_user);
+				}
+				else
+				{
+					strlcpy(dsn->dsn_password, q,
+					        sizeof dsn->dsn_password);
+				}
+
+				q = p + 1;
+				break;
+
+			  case '+':
+				*p = '\0';
+
+				strlcpy(dsn->dsn_port, q,
+				        sizeof dsn->dsn_port);
+
+				q = p + 1;
+				break;
+
+			  case '/':
+				*p = '\0';
+				if (dsn->dsn_dbase[0] == '\0')
+				{
+					found = TRUE;
+					strlcpy(dsn->dsn_dbase, q,
+					        sizeof dsn->dsn_dbase);
+				}
+				else
+				{
+					strlcpy(dsn->dsn_host, q,
+					        sizeof dsn->dsn_host);
+				}
+				q = p + 1;
+				break;
+
+			  default:
+				free(dsn);
+				free(tmp);
+				return -1;
+			}
+		}
+
+		if (dsn->dsn_host[0] == '\0')
+		{
+			free(dsn);
+			free(tmp);
+			return -1;
+		}
+
+		for (p = strtok_r(q, "?", &r);
+		     p != NULL;
+		     p = strtok_r(NULL, "?", &r))
+		{
+			eq = strchr(p, '=');
+			if (eq == NULL)
+				continue;
+
+			*eq = '\0';
+			if (strcasecmp(p, "table") == 0)
+			{
+				strlcpy(dsn->dsn_table, eq + 1,
+				        sizeof dsn->dsn_table);
+				break;
+			}
+			else if (strcasecmp(p, "keycol") == 0)
+			{
+				strlcpy(dsn->dsn_keycol, eq + 1,
+				        sizeof dsn->dsn_keycol);
+				break;
+			}
+			else if (strcasecmp(p, "datacol") == 0)
+			{
+				strlcpy(dsn->dsn_datacol, eq + 1,
+				        sizeof dsn->dsn_datacol);
+				break;
+			}
+		}
+
+		if (dsn->dsn_table[0] == '\0' ||
+		    dsn->dsn_keycol[0] == '\0' ||
+		    dsn->dsn_datacol[0] == '\0')
+		{
+			free(dsn);
+			free(tmp);
+			return -1;
+		}
+
+# define STRORNULL(x)	((x)[0] == '\0' ? NULL : (x))
+
+		/* create odbx handle */
+		err = odbx_init(&odbx,
+		                STRORNULL(dsn->dsn_backend),
+		                STRORNULL(dsn->dsn_host),
+		                STRORNULL(dsn->dsn_port));
+		if (err < 0)
+		{
+			free(dsn);
+			free(tmp);
+			return -1;
+		}
+
+		/* create bindings */
+		err = odbx_bind(odbx, STRORNULL(dsn->dsn_dbase),
+		                      STRORNULL(dsn->dsn_user),
+		                      STRORNULL(dsn->dsn_password),
+		                      ODBX_BIND_SIMPLE);
+		if (err < 0)
+		{
+			(void) odbx_finish(odbx);
+			free(dsn);
+			free(tmp);
+			return -1;
+		}
+
+		/* store handle */
+		new->db_handle = (void *) odbx;
+		new->db_data = (void *) dsn;
+
+		/* clean up */
+		free(tmp);
+	  }
+#endif /* DKIMF_DB_TYPE_DSN */
 	}
 
 	*db = new;
@@ -721,7 +989,7 @@ dkimf_db_open(DKIM_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 */
 
 int
-dkimf_db_delete(DKIM_DB db, void *buf, size_t buflen)
+dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 {
 #ifdef DKIMF_DB_TYPE_BDB
 	DBT q;
@@ -736,6 +1004,9 @@ dkimf_db_delete(DKIM_DB db, void *buf, size_t buflen)
 
 	if (db->db_type == DKIMF_DB_TYPE_FILE ||
 	    db->db_type == DKIMF_DB_TYPE_CSL || 
+#ifdef DKIMF_DB_TYPE_DSN
+	    db->db_type == DKIMF_DB_TYPE_DSN || 
+#endif /* DKIMF_DB_TYPE_DSN */
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -852,7 +1123,7 @@ dkimf_db_delete(DKIM_DB db, void *buf, size_t buflen)
 */
 
 int
-dkimf_db_put(DKIM_DB db, void *buf, size_t buflen,
+dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
              void *outbuf, size_t outbuflen)
 {
 #ifdef DKIMF_DB_TYPE_BDB
@@ -870,6 +1141,9 @@ dkimf_db_put(DKIM_DB db, void *buf, size_t buflen,
 
 	if (db->db_type == DKIMF_DB_TYPE_FILE ||
 	    db->db_type == DKIMF_DB_TYPE_CSL || 
+#ifdef DKIMF_DB_TYPE_DSN
+	    db->db_type == DKIMF_DB_TYPE_DSN || 
+#endif /* DKIMF_DB_TYPE_DSN */
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -1005,7 +1279,7 @@ dkimf_db_put(DKIM_DB db, void *buf, size_t buflen,
 */
 
 int
-dkimf_db_get(DKIM_DB db, void *buf, size_t buflen,
+dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
              void *outbuf, size_t *outbuflen, _Bool *exists)
 {
 	int status;
@@ -1252,6 +1526,79 @@ dkimf_db_get(DKIM_DB db, void *buf, size_t buflen,
 	  }
 #endif /* DKIMF_DB_TYPE_BDB */
 
+#ifdef DKIMF_DB_TYPE_DSN
+	  case DKIMF_DB_TYPE_DSN:
+	  {
+		int err;
+		int fields;
+		odbx_result_t *result;
+		struct dkimf_db_dsn *dsn;
+		char query[BUFRSZ];
+
+		dsn = (struct dkimf_db_dsn *) db->db_data;
+
+		snprintf(query, sizeof query,
+		         "SELECT %s FROM %s WHERE %s = '%s'",
+		         dsn->dsn_datacol,
+		         dsn->dsn_table,
+		         dsn->dsn_keycol, buf);
+
+		err = odbx_query((odbx_t *) db->db_handle, query, 0);
+		if (err < 0)
+		{
+			db->db_status = err;
+			return err;
+		}
+
+		err = odbx_result((odbx_t *) db->db_handle,
+		                  &result, NULL, 0);
+		if (err < 0)
+		{
+			(void) odbx_result_finish(result);
+			db->db_status = err;
+			return err;
+		}
+		else if (err == ODBX_RES_DONE)
+		{
+			if (exists != NULL)
+				*exists = FALSE;
+			(void) odbx_result_finish(result);
+			return 0;
+		}
+
+		err = odbx_row_fetch(result);
+		if (err < 0)
+		{
+			(void) odbx_result_finish(result);
+			db->db_status = err;
+			return err;
+		}
+
+		fields = odbx_column_count(result);
+		if (fields == 0)
+		{
+			/* XXX -- huh? */
+			(void) odbx_result_finish(result);
+			return -1;
+		}
+
+		if (exists)
+			*exists = TRUE;
+
+		if (outbuf != NULL)
+		{
+			*outbuflen = strlcpy(outbuf,
+			                     (char *) odbx_field_value(result,
+			                                               1),
+		                             *outbuflen);
+		}
+
+		(void) odbx_result_finish(result);
+
+		return 0;
+	  }
+#endif /* DKIMF_DB_TYPE_DSN */
+
 	  default:
 		assert(0);
 	}
@@ -1270,7 +1617,7 @@ dkimf_db_get(DKIM_DB db, void *buf, size_t buflen,
 */
 
 void
-dkimf_db_close(DKIM_DB db)
+dkimf_db_close(DKIMF_DB db)
 {
 	assert(db != NULL);
 
@@ -1310,6 +1657,13 @@ dkimf_db_close(DKIM_DB db)
 		break;
 #endif /* DKIMF_DB_TYPE_BDB */
 
+#ifdef DKIMF_DB_TYPE_DSN
+	  case DKIMF_DB_TYPE_DSN:
+		(void) odbx_finish((odbx_t *) db->db_handle);
+		free(db->db_data);
+		break;
+#endif /* DKIMF_DB_TYPE_DSN */
+
 	  default:
 		assert(0);
 	}
@@ -1321,7 +1675,7 @@ dkimf_db_close(DKIM_DB db)
 **  DKIMF_DB_STRERROR -- obtain an error string
 **
 **  Parameters:
-**  	db -- DKIM_DB handle of interest
+**  	db -- DKIMF_DB handle of interest
 **  	err -- error buffer
 **  	errlen -- bytes available at "err"
 **
@@ -1330,7 +1684,7 @@ dkimf_db_close(DKIM_DB db)
 */
 
 int
-dkimf_db_strerror(DKIM_DB db, char *err, size_t errlen)
+dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 {
 	assert(db != NULL);
 	assert(err != NULL);
@@ -1348,6 +1702,12 @@ dkimf_db_strerror(DKIM_DB db, char *err, size_t errlen)
 	  case DKIMF_DB_TYPE_BDB:
 		return strlcpy(err, DB_STRERROR(db->db_status), errlen);
 #endif /* DKIMF_DB_TYPE_BDB */
+
+#ifdef DKIMF_DB_TYPE_DSN
+	  case DKIMF_DB_TYPE_DSN:
+		return strlcpy(err, odbx_error((odbx_t *) db->db_handle,
+		                               db->db_status), errlen);
+#endif /* DKIMF_DB_TYPE_DSN */
 
 	  default:
 		assert(0);
@@ -1374,7 +1734,7 @@ dkimf_db_strerror(DKIM_DB db, char *err, size_t errlen)
 */
 
 int
-dkimf_db_walk(DKIM_DB db, _Bool first, void *key, size_t *keylen,
+dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
               void *data, size_t *datalen)
 {
 	assert(db != NULL);
@@ -1489,6 +1849,92 @@ dkimf_db_walk(DKIM_DB db, _Bool first, void *key, size_t *keylen,
 		}
 	  }
 #endif /* DKIMF_DB_TYPE_BDB */
+
+#ifdef DKIMF_DB_TYPE_DSN
+	  case DKIMF_DB_TYPE_DSN:
+	  {
+		int err;
+		int fields;
+		odbx_result_t *result;
+		struct dkimf_db_dsn *dsn;
+		char query[BUFRSZ];
+
+		dsn = (struct dkimf_db_dsn *) db->db_data;
+		result = (odbx_result_t *) db->db_cursor;
+
+		/* purge old results cursor if known */
+		if (result != NULL && first)
+		{
+			(void) odbx_result_finish(result);
+			result = NULL;
+		}
+		
+		/* run a query and start results cursor if needed */
+		if (result == NULL)
+		{
+			char query[BUFRSZ];
+
+			snprintf(query, sizeof query, "SELECT %s,%s FROM %s",
+			         dsn->dsn_keycol, dsn->dsn_datacol);
+
+			err = odbx_query((odbx_t *) db->db_handle, query, 0);
+			if (err < 0)
+			{
+				db->db_status = err;
+				return -1;
+			}
+
+			err = odbx_result((odbx_t *) db->db_handle,
+			                  &result, NULL, 0);
+			if (err < 0)
+			{
+				(void) odbx_result_finish(result);
+				db->db_status = err;
+				return -1;
+			}
+
+			db->db_cursor = result;
+		}
+
+		err = odbx_row_fetch(result);
+		if (err < 0)
+		{
+			(void) odbx_result_finish(result);
+			db->db_cursor = NULL;
+			db->db_status = err;
+			return -1;
+		}
+
+		if (err == ODBX_RES_DONE)
+			return 1;
+
+		fields = odbx_column_count(result);
+		if (fields == 0)
+		{
+			/* XXX -- huh? */
+			(void) odbx_result_finish(result);
+			db->db_cursor = NULL;
+			return -1;
+		}
+
+		if (key != NULL)
+		{
+			*keylen = strlcpy(key,
+			                  (char *) odbx_field_value(result, 1),
+		                          *keylen);
+		}
+
+		if (data != NULL)
+		{
+			*datalen = strlcpy(data,
+			                   (char *) odbx_field_value(result, 2),
+		                           *datalen);
+		}
+
+		return 0;
+	  }
+#endif /* DKIMF_DB_TYPE_DSN */
+
 	}
 }
 
@@ -1496,7 +1942,7 @@ dkimf_db_walk(DKIM_DB db, _Bool first, void *key, size_t *keylen,
 **  DKIMF_DB_MKARRAY -- make a (char *) array of DB contents
 **
 **  Parameters:
-**  	db -- a DKIM_DB handle
+**  	db -- a DKIMF_DB handle
 **  	a -- array (returned)
 **
 **  Return value:
@@ -1504,7 +1950,7 @@ dkimf_db_walk(DKIM_DB db, _Bool first, void *key, size_t *keylen,
 */
 
 int
-dkimf_db_mkarray(DKIM_DB db, char ***a)
+dkimf_db_mkarray(DKIMF_DB db, char ***a)
 {
 	char **out;
 
@@ -1522,9 +1968,11 @@ dkimf_db_mkarray(DKIM_DB db, char ***a)
 		return db->db_array;
 #endif /* DKIMF_DB_TYPE_BDB */
 
-	if (db->db_type == DKIMF_DB_TYPE_FILE ||
-	    db->db_type == DKIMF_DB_TYPE_CSL)
+	switch (db->db_type)
 	{
+	  case DKIMF_DB_TYPE_FILE:
+	  case DKIMF_DB_TYPE_CSL:
+	  {
 		int c;
 		struct dkimf_db_list *cur;
 
@@ -1546,14 +1994,21 @@ dkimf_db_mkarray(DKIM_DB db, char ***a)
 		*a = out;
 
 		return c;
-	}
+	  }
+
 #ifdef DKIMF_DB_TYPE_BDB
-	else if (db->db_type == DKIMF_DB_TYPE_BDB)	/* DKIMF_DB_TYPE_BDB */
-	{
+	  case DKIMF_DB_TYPE_BDB:
+#endif /* DKIMF_DB_TYPE_BDB */
+#ifdef DKIMF_DB_TYPE_DSN
+	  case DKIMF_DB_TYPE_DSN:
+#endif /* DKIMF_DB_TYPE_DSN */
+#if defined(DKIMF_DB_TYPE_BDB) || defined(DKIMF_DB_TYPE_DSN)
+	  {
 		int c;
 		int nr = 0;
 		int na = 0;
 		int status;
+		size_t keylen;
 		char keybuf[BUFRSZ + 1];
 
 		if (db->db_array != NULL)
@@ -1569,9 +2024,9 @@ dkimf_db_mkarray(DKIM_DB db, char ***a)
 		{
 			memset(keybuf, '\0', sizeof keybuf);
 
+			keylen = sizeof keybuf - 1;
 			status = dkimf_db_walk(db, (nr == 0),
-			                       keybuf, sizeof keybuf - 1,
-			                       NULL, NULL);
+			                       keybuf, &keylen, NULL, NULL);
 
 			if (nr == 0)
 			{
@@ -1633,6 +2088,10 @@ dkimf_db_mkarray(DKIM_DB db, char ***a)
 		db->db_iflags |= DKIMF_DB_IFLAG_FREEARRAY;
 		*a = out;
 		return nr;
+	  }
+#endif /* defined(DKIMF_DB_TYPE_BDB) || defined(DKIMF_DB_TYPE_DSN) */
+
+	  default:
+		return -1;
 	}
-#endif /* DKIMF_DB_TYPE_BDB */
 }

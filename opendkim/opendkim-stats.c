@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.4 2009/10/28 03:30:26 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.5 2009/10/29 06:22:43 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.4 2009/10/28 03:30:26 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.5 2009/10/29 06:22:43 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -56,7 +56,7 @@ dkims_dump(char *path)
 	int status = 0;
 	size_t keylen;
 	size_t datalen;
-	DKIM_DB db;
+	DKIMF_DB db;
 	struct dkim_stats_key reckey;
 	struct dkim_stats_data recdata;
 
