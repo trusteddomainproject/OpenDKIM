@@ -9,7 +9,7 @@
 #define _VBR_H_
 
 #ifndef lint
-static char vbr_h_id[] = "@(#)$Id: vbr.h,v 1.1 2009/07/16 19:12:04 cm-msk Exp $";
+static char vbr_h_id[] = "@(#)$Id: vbr.h,v 1.1 2009/10/30 23:17:09 cm-msk Exp $";
 #endif /* !lint */
 
 /* strings */

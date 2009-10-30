@@ -1,9 +1,12 @@
-# $Id: Makefile.am,v 1.12 2009/10/28 05:32:05 cm-msk Exp $
+# $Id: Makefile.am,v 1.13 2009/10/30 23:17:08 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 SUBDIRS = 
 if USE_ARLIB
 SUBDIRS += libar
+endif
+if VBR
+SUBDIRS += libvbr
 endif
 SUBDIRS += libopendkim opendkim
 EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \

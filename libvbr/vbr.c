@@ -5,10 +5,8 @@
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifdef _FFR_VBR
-
 #ifndef lint
-static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.5 2009/10/06 17:40:15 cm-msk Exp $";
+static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.1 2009/10/30 23:17:09 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -35,11 +33,8 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.5 2009/10/06 17:40:15 cm-msk Exp $"
 # include <ar.h>
 #endif /* USE_ARLIB */
 
-/* libopendkim includes */
-#ifdef _FFR_VBR
-# include "vbr.h"
-#endif /* _FFR_VBR */
-#include "dkim-strl.h"
+/* libvbr includes */
+#include "vbr.h"
 
 /* local definitions needed for DNS queries */
 #define MAXPACKET		8192
@@ -85,6 +80,77 @@ struct vbr_handle
 static void vbr_error __P((VBR *, const char *, ...));
 
 /* ========================= PRIVATE SECTION ========================= */
+
+#if HAVE_STRLCPY == 0
+
+/*
+**  Copyright (c) 1999-2002, Sendmail Inc. and its suppliers.
+**	All rights reserved.
+** 
+**  By using this file, you agree to the terms and conditions set
+**  forth in the LICENSE file which can be found at the top level of
+**  the sendmail distribution.
+**
+**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+*/
+
+/*
+**  XXX the type of the length parameter has been changed
+**  from size_t to ssize_t to avoid theoretical problems with negative
+**  numbers passed into these functions.
+**  The real solution to this problem is to make sure that this doesn't
+**  happen, but for now we'll use this workaround.
+*/
+
+#define	strlcpy(x,y,z)	vbr_strlcpy((x), (y), (z))
+
+/*
+**  VBR_STRLCPY -- size bounded string copy
+**
+**	This is a bounds-checking variant of strcpy.
+**	If size > 0, copy up to size-1 characters from the nul terminated
+**	string src to dst, nul terminating the result.  If size == 0,
+**	the dst buffer is not modified.
+**	Additional note: this function has been "tuned" to run fast and tested
+**	as such (versus versions in some OS's libc).
+**
+**	The result is strlen(src).  You can detect truncation (not all
+**	of the characters in the source string were copied) using the
+**	following idiom:
+**
+**		char *s, buf[BUFSIZ];
+**		...
+**		if (vbr_strlcpy(buf, s, sizeof(buf)) >= sizeof(buf))
+**			goto overflow;
+**
+**	Parameters:
+**		dst -- destination buffer
+**		src -- source string
+**		size -- size of destination buffer
+**
+**	Returns:
+**		strlen(src)
+*/
+
+size_t
+vbr_strlcpy(dst, src, size)
+	register char *dst;
+	register const char *src;
+	ssize_t size;
+{
+	register ssize_t i;
+
+	if (size-- <= 0)
+		return strlen(src);
+	for (i = 0; i < size && (dst[i] = src[i]) != 0; i++)
+		continue;
+	dst[i] = '\0';
+	if (src[i] == '\0')
+		return i;
+	else
+		return i + strlen(src + i);
+}
+#endif /* HAVE_STRLCPY == 0 */
 
 /*
 **  VBR_MALLOC -- allocate memory
@@ -832,4 +898,3 @@ vbr_getheader(VBR *vbr, char *hdr, size_t len)
 
 	return VBR_STAT_OK;
 }
-#endif /* _FFR_VBR */
