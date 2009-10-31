@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test127_c_id[] = "@(#)$Id: t-test127.c,v 1.3 2009/10/22 19:51:15 cm-msk Exp $";
+static char t_test127_c_id[] = "@(#)$Id: t-test127.c,v 1.4 2009/10/31 09:00:37 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -23,8 +23,6 @@ static char t_test127_c_id[] = "@(#)$Id: t-test127.c,v 1.3 2009/10/22 19:51:15 c
 #include "t-testdata.h"
 
 #define	MAXHEADER	4096
-
-#define	TEST_KEEP_FILES	1
 
 #define SIG2 "v=1; a=rsa-sha1; c=relaxed/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=NYK+FZAKLNXv1Oj/E6kV0EOStBU=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=G9BZ+aZqLU7j3DnHe1s/qgrJagml7UDFUxOEQ/uCwWGvOgrDn3PBE/Nb1OwpGzuFJ\r\n\t AOCTpNGrK2sw4pfEAk+/uOBGjZsMTBe9uqIA7w3tQFkF3yIRv6zqa/rccbWa5d0wYn\r\n\t S534UHVEyPXjXQ5x/yspDXF+v3geyISQ+oHf9hro="
 
