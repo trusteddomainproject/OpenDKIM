@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.11 2009/10/30 22:48:24 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.12 2009/10/31 17:41:15 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.11 2009/10/30 22:48:24 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.12 2009/10/31 17:41:15 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1541,7 +1541,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		         "SELECT %s FROM %s WHERE %s = '%s'",
 		         dsn->dsn_datacol,
 		         dsn->dsn_table,
-		         dsn->dsn_keycol, buf);
+		         dsn->dsn_keycol, (char *) buf);
 
 		err = odbx_query((odbx_t *) db->db_handle, query, 0);
 		if (err < 0)
@@ -1875,7 +1875,8 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 			char query[BUFRSZ];
 
 			snprintf(query, sizeof query, "SELECT %s,%s FROM %s",
-			         dsn->dsn_keycol, dsn->dsn_datacol);
+			         dsn->dsn_keycol, dsn->dsn_datacol,
+			         dsn->dsn_table);
 
 			err = odbx_query((odbx_t *) db->db_handle, query, 0);
 			if (err < 0)
