@@ -1,39 +1,47 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v1.1.1 released
+Subject: OpenDKIM v1.1.2 released
 
-The OpenDKIM project announces availability of OpenDKIM v1.1.1, now available
+The OpenDKIM project announces availability of OpenDKIM v1.1.2, now available
 for download from SourceForge.
 
-This release tidies up a number of minor coding issues that generally only
-occurred during unusual error conditions and thus went undetected until now.
-Also, with the publication of RFC5617, ADSP is now official and thus the
-name to be used when annotating results of those checks has changed.  A
-correction was made to handling of ADSP when the retrieval of an ADSP
-record ran into trouble.  And finally, a new FFR is available that allows
-sender selection based on MTA macros instead of just headers.
+This is a patch release, fixing some minor problems, adding one new
+feature (FFR), and incorporating a number of API and build environment
+improvements in preparation for future releases.
 
 The RELEASE_NOTES for this version:
 
-1.1.1		2009/10/09
-	Plug a number of potential but minor memory and file handle leaks,
-		remove some dead code, guard against NULL dereferences, fix an
-		errant return code check, fix a double-free(), and several
-		other fixes found by a code analysis tool, used by courtesy
-		of Cloudmark.
-	Change "x-dkim-adsp" to "dkim-adsp" in Authentication-Results header
-		field code now that RFC5617 is published.
-	Apply "On-DNSError" setting when policy queries fail.
-	BUILD: Some compilation fixes and type cleanup.  Based on patches
-		provided by Daniel Black.
-	Add _FFR_SENDER_MACRO: Determine the message sender based on the
-		contents of a macro instead of on a header field.
-		Based on a patch from Ondrej Sury.
+1.1.2		2009/11/01
+	Under _FFR_SENDER_MACRO, need to check the value of "SenderMacro"
+		in the configuration file.  Noted by Daniel Black.
+	Feature request #SF2873901: Add _FFR_REDIRECT which optionally
+		redirects messages that fail verification to a specific
+		address, storing the original recipients in
+		X-Original-Recipient: header fields.  Suggested by
+		Daniel Black.
+	LIBOPENDKIM: Have dkim_dns_set_callback() return
+		DKIM_STAT_NOTIMPLEMENT if the underlying resolver doesn't
+		have a callback facility.  Suggested by Daniel Black.
+	LIBOPENDKIM: Move internal-only types and macros from dkim.h
+		to dkim-internal.h.  Based on an idea from Daniel Black.
+	LIBOPENDKIM: Add in all previously optional functions so that the
+		API is invariant regardless of selected features.  Add
+		dkim_libfeature() as a way to detect availability of features
+		at runtime.  Suggested by Daniel Black.
+	LIBOPENDKIM: Some global namespace consolidation.  Suggested by
+		Daniel Black.
+	BUILD: Fix bug #SF2882206, patch #SF2880986: Handle libtre
+		installations where "--enable-system-abi" was selected.
+		Reported by Stevan Bajic; patch from Daniel Black.
+	BUILD: Convert libar compilation to the libtool method.
+		Suggested by Daniel Black.
+	BUILD: Minor autoconf fixes, contributed by Daniel Black.
 
 Please use the mailing lists at http://lists.sourceforge.net and the
 project trackers at http://sourceforge.net/projects/opendkim to report
 problems or make feature requests.
 
-Thanks go out to all of those who contributed to this release.
+Thanks go out to all of those who contributed to this release, especially
+to Daniel Black who was responsible for most of the work.
 
 The OpenDKIM Project
