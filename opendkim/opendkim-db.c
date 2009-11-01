@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.13 2009/11/01 07:04:35 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.14 2009/11/01 10:59:08 subman Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.13 2009/11/01 07:04:35 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.14 2009/11/01 10:59:08 subman Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -752,7 +752,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		                 NULL, NULL, newdb);
 # else /* DB_VERSION_MAJOR < 2 */
 		newdb = dbopen(p,
-		               (flags & DKIMF_DB_FLAGS_READONLY ? O_RDONLY
+		               (flags & DKIMF_DB_FLAG_READONLY ? O_RDONLY
 		                                                : (O_CREAT|O_RDWR)),
 		               DKIMF_DB_MODE, bdbtype, NULL);
 		if (newdb == NULL)
@@ -1840,7 +1840,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 # if DB_VERSION_CHECK(2,0,0)
 		status = dbc->c_get(dbc, &k, &d, first ? DB_FIRST : DB_NEXT);
 # else /* DB_VERSION_CHECK(2,0,0) */
-		status = db->seq(db, &k, &d, first ? R_FIRST : R_NEXT);
+		status = bdb->seq(bdb, &k, &d, first ? R_FIRST : R_NEXT);
 # endif /* DB_VERSION_CHECK(2,0,0) */
 		if (status == DB_NOTFOUND)
 		{
