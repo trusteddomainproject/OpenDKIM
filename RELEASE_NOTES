@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.48 2009/10/30 23:17:08 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.49 2009/11/01 21:54:29 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -21,7 +21,7 @@ release, and a summary of the changes in that release.
 	BUILD: Split up library assignments between libopendkim and opendkim,
 		taking advantage of libtool.  Based on a patch by Daniel Black.
 
-1.1.2		2009/??/??
+1.1.2		2009/11/01
 	Under _FFR_SENDER_MACRO, need to check the value of "SenderMacro"
 		in the configuration file.  Noted by Daniel Black.
 	Feature request #SF2873901: Add _FFR_REDIRECT which optionally
