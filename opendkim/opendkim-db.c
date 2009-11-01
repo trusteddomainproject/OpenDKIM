@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.12 2009/10/31 17:41:15 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.13 2009/11/01 07:04:35 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.12 2009/10/31 17:41:15 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.13 2009/11/01 07:04:35 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1531,17 +1531,30 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 	  {
 		int err;
 		int fields;
+		u_long elen;
 		odbx_result_t *result;
 		struct dkimf_db_dsn *dsn;
 		char query[BUFRSZ];
+		char escaped[BUFRSZ];
 
 		dsn = (struct dkimf_db_dsn *) db->db_data;
+
+		memset(elen, '\0', sizeof elen);
+		elen = sizeof escaped - 1;
+		err = odbx_escape((odbx_t *) db->db_handle, buf,
+		                  (buflen == 0 ? strlen(buf) : buflen),
+		                  escaped, &elen);
+		if (err < 0)
+		{
+			db->db_status = err;
+			return err;
+		}
 
 		snprintf(query, sizeof query,
 		         "SELECT %s FROM %s WHERE %s = '%s'",
 		         dsn->dsn_datacol,
 		         dsn->dsn_table,
-		         dsn->dsn_keycol, (char *) buf);
+		         dsn->dsn_keycol, escaped);
 
 		err = odbx_query((odbx_t *) db->db_handle, query, 0);
 		if (err < 0)
