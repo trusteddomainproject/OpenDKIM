@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.31 2009/10/30 23:17:08 cm-msk Exp $
+# $Id: Makefile.am,v 1.31.2.1 2009/11/01 22:25:22 cm-msk Exp $
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h
@@ -76,6 +76,10 @@ if QUERY_CACHE
 libopendkim_la_CFLAGS += -DQUERY_CACHE
 endif
 
+if RESIGN
+libopendkim_la_CFLAGS += -D_FFR_RESIGN
+endif
+
 if STATS
 libopendkim_la_CFLAGS += -D_FFR_STATS
 endif
@@ -124,7 +128,7 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test109 t-test110 t-test111 t-test112 t-test113 t-test114 \
 	t-test115 t-test116 t-test117 t-test118 t-test119 t-test120 \
 	t-test121 t-test122 t-test123 t-test124 t-test125 t-test126 \
-	t-test127 t-signperf t-verifyperf t-cleanup
+	t-test127 t-test128 t-signperf t-verifyperf t-cleanup
 TESTS = $(check_PROGRAMS)
 
 t_setup_SOURCES = t-setup.c t-testdata.h
@@ -1051,3 +1055,15 @@ t_test127_LDADD = ./libopendkim.la
 if DEBUG
 t_test127_CFLAGS = -g
 endif
+
+t_test128_SOURCES = t-test128.c t-testdata.h
+t_test128_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test128_LDADD = ./libopendkim.la
+t_test128_CFLAGS = 
+if DEBUG
+t_test128_CFLAGS += -g
+endif
+if RESIGN
+t_test128_CFLAGS += -D_FFR_RESIGN
+endif
+

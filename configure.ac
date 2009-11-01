@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.61 2009/10/30 23:17:08 cm-msk Exp $
+# $Id: configure.ac,v 1.61.2.1 2009/11/01 22:25:22 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -94,6 +94,9 @@ AM_CONDITIONAL(REPLACE_RULES, test "$enable_replacerules" = yes)
 
 AC_ARG_ENABLE(reportintervals, AS_HELP_STRING(--enable-reportintervals, support for requested report intervals when reporting))
 AM_CONDITIONAL(REPORT_INTERVALS, test "$enable_reportintervals" = yes)
+
+AC_ARG_ENABLE(resign, AS_HELP_STRING(--enable-resign, library support for re-signing))
+AM_CONDITIONAL(RESIGN, test "$enable_resign" = yes)
 
 AC_ARG_ENABLE(selectcanon, AS_HELP_STRING(--enable-selectcanon, allow sender to select canonicalization))
 AM_CONDITIONAL(SELECT_CANONICALIZATION, test "$enable_selectcanon" = yes)

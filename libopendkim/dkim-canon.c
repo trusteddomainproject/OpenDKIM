@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.12 2009/10/22 19:35:50 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.12.4.1 2009/11/01 22:25:22 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -839,7 +839,7 @@ dkim_canon_cleanup(DKIM *dkim)
 **  	canon -- canonicalization mode
 **  	hashtype -- hash type
 **  	hdrlist -- for header canonicalization, the header list
-**  	hdr -- pointer to header being verified (NULL for signing)
+**  	sighdr -- pointer to header being verified (NULL for signing)
 **  	length -- for body canonicalization, the length limit (-1 == all)
 **  	cout -- DKIM_CANON handle (returned)
 **
@@ -1002,6 +1002,8 @@ dkim_canon_runheaders(DKIM *dkim, _Bool signing)
 		if (cur->canon_done || !cur->canon_hdr)
 			continue;
 
+		signing = (cur->canon_sigheader == NULL);
+
 		/* clear header selection flags if verifying */
 		if (!signing)
 		{
@@ -1131,7 +1133,7 @@ dkim_canon_runheaders(DKIM *dkim, _Bool signing)
 		}
 
 		/* if signing, we can't do the rest of this yet */
-		if (signing)
+		if (cur->canon_sigheader == NULL)
 			continue;
 
 		/*
