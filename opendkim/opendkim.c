@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.53 2009/10/27 05:13:37 cm-msk Exp $
+**  $Id: opendkim.c,v 1.53.2.1 2009/11/02 07:50:32 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.53 2009/10/27 05:13:37 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.53.2.1 2009/11/02 07:50:32 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -93,6 +93,11 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.53 2009/10/27 05:13:37 cm
 #ifdef _FFR_STATS
 # include "stats.h"
 #endif /* _FFR_STATS */
+
+/* macros */
+#ifndef MIN
+# define MIN(x,y)	((x) < (y) ? (x) : (y))
+#endif /* ! MIN */
 
 /*
 **  HEADER -- a handle referring to a header
