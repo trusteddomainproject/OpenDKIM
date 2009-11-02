@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.1 2009/11/01 22:25:22 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.2 2009/11/02 23:15:10 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -3114,6 +3114,12 @@ dkim_eom_sign(DKIM *dkim)
 
 	assert(dkim != NULL);
 
+#ifdef _FFR_RESIGN
+	if (dkim->dkim_resign != NULL &&
+	    dkim->dkim_resign->dkim_state != DKIM_STATE_EOM2)
+		return DKIM_STAT_INVALID;
+#endif /* _FFR_RESIGN */
+
 	if (dkim->dkim_state >= DKIM_STATE_EOM2)
 		return DKIM_STAT_INVALID;
 	if (dkim->dkim_state < DKIM_STATE_EOM2)
@@ -3122,12 +3128,6 @@ dkim_eom_sign(DKIM *dkim)
 	if (dkim->dkim_chunkstate != DKIM_CHUNKSTATE_INIT &&
 	    dkim->dkim_chunkstate != DKIM_CHUNKSTATE_DONE)
 		return DKIM_STAT_INVALID;
-
-#ifdef _FFR_RESIGN
-	if (dkim->dkim_resign != NULL &&
-	    dkim->dkim_resign->dkim_state != DKIM_STATE_EOM2)
-		return DKIM_STAT_INVALID;
-#endif /* _FFR_RESIGN */
 
 	/* finalize body canonicalizations */
 	(void) dkim_canon_closebody(dkim);
