@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.1 2009/11/02 01:38:31 cm-msk Exp $
+$Id: BRANCHES,v 1.2 2009/11/02 05:26:09 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -11,6 +11,9 @@ br-1-1		v1.1.x releases
 
 Experimental Branches (branch name contains owner)
 ~~~~~~~~~~~~~~~~~~~~~
+
+br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
+		generation)
 
 br-msk-resign	_FFR_RESIGN (binding of handles for message resigning)
 
