@@ -1,7 +1,7 @@
 OPENDKIM README
 ===============
 
-$Id: README,v 1.6 2009/08/11 16:35:22 cm-msk Exp $
+$Id: README,v 1.7 2009/11/02 18:45:56 cm-msk Exp $
 
 This directory has the latest open source DKIM filter software from The
 OpenDKIM Project.
@@ -126,6 +126,9 @@ libar		An optional thread-safe asynchronous resolver library.
 libopendkim	A library that implements the proposed DKIM standard.
 
 libopendkim/docs HTML documentation describing the API provided by libopendkim.
+
+libvbr		An optional library that implements Vouch By Reference
+		(VBR, RFC5518).
 
 opendkim	A milter-based filter application which uses libopenkim (and
 		optionally libar) to provide DKIM service via an MTA using
