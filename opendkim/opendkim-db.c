@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.15 2009/11/02 00:49:31 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.16 2009/11/02 08:02:49 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.15 2009/11/02 00:49:31 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.16 2009/11/02 08:02:49 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -33,6 +33,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.15 2009/11/02 00:49
 #endif /* USE_ODBX */
 
 /* libopendkim includes */
+#include <dkim.h>
 #include <dkim-strl.h>
 
 /* opendkim includes */
@@ -84,6 +85,11 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.15 2009/11/02 00:49
 #  define DKIMF_DBCLOSE(db)	(db)->close((db), 0)
 # endif /* DB_VERSION_MAJOR < 2 */
 #endif /* USE_DB */
+
+/* macros */
+#ifndef MIN
+# define MIN(x,y)       ((x) < (y) ? (x) : (y))
+#endif /* ! MIN */
 
 /* data types */
 struct dkimf_db

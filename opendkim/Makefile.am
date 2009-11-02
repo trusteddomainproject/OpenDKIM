@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.47 2009/10/30 23:17:09 cm-msk Exp $
+# $Id: Makefile.am,v 1.48 2009/11/02 08:02:49 cm-msk Exp $
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -pthread --pedantic -Wall -O2
@@ -125,7 +125,7 @@ opendkim_testkey_CFLAGS += -g
 endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
-opendkim_testadsp_CPPFLAGS = -I../libopendkim
+opendkim_testadsp_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_INCDIRS)
 opendkim_testadsp_LDFLAGS = -L../libopendkim
 opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la
 opendkim_testadsp_CFLAGS = 
