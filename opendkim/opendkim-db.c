@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.16 2009/11/02 08:02:49 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.17 2009/11/02 21:44:13 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.16 2009/11/02 08:02:49 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.17 2009/11/02 21:44:13 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -794,7 +794,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		**  General format of a DSN:
 		**  <backend>://[user[:pwd]@][port+]host/dbase[/key=val[?...]]
 		**  
-		**  "table" will be set in one of the key-value pairs
+		**  "table", "keycol" and "datacol" will be set in one of the
+		**  key-value pairs.
 		*/
 
 		tmp = strdup(p);
@@ -931,6 +932,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			}
 		}
 
+		/* error out if one of the required parameters was absent */
 		if (dsn->dsn_table[0] == '\0' ||
 		    dsn->dsn_keycol[0] == '\0' ||
 		    dsn->dsn_datacol[0] == '\0')
