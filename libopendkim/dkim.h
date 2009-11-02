@@ -9,7 +9,7 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.12 2009/10/27 04:17:08 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.12.4.1 2009/11/02 23:08:49 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -434,6 +434,27 @@ extern DKIM *dkim_sign __P((DKIM_LIB *libhandle, const char *id,
 
 extern DKIM *dkim_verify __P((DKIM_LIB *libhandle, const char *id,
                               void *memclosure, DKIM_STAT *statp));
+
+#ifdef _FFR_RESIGN
+/*
+**  DKIM_RESIGN -- bind a new signing handle to a completed handle
+**
+**  Parameters:
+**  	new -- new signing handle
+**  	old -- old signing/verifying handle
+**
+**  Return value:
+**  	DKIM_STAT_OK -- success
+**  	DKIM_STAT_INVALID -- invalid state of one or both handles
+**
+**  Side effects:
+**  	Sets up flags such that the two are bound; dkim_free() on "old"
+**  	now does nothing, and dkim_free() on "new" will free "old" once
+**  	its reference count reaches zero.
+*/
+
+extern DKIM_STAT dkim_resign __P((DKIM *new, DKIM *old));
+#endif /* _FFR_RESIGN */
 
 /*
 **  DKIM_HEADER -- process a header
