@@ -232,14 +232,14 @@ user ID has changed during the lifetime of the process.  Currently only
 supported on Linux.
 
 .TP
-.I ExternalIgnoreList (string)
-Identifies a file of "external" hosts that may send mail through the server
+.I ExternalIgnoreList (dataset)
+Identifies a set of "external" hosts that may send mail through the server
 as one of the signing domains without credentials as such.  Basically
 suppresses the "external host (hostname) tried to send mail as (domain)"
-log messages.  Entries in the file should be of the same form as those of
+log messages.  Entries in the data set should be of the same form as those of
 the
 .I PeerList
-option below.  The list is empty by default.
+option below.  The set is empty by default.
 
 .TP
 .I FixCRLF (Boolean)
@@ -277,9 +277,9 @@ record in a special way.  Possible values are
 (ignore the policy).
 
 .TP
-.I InternalHosts (string)
-Identifies a file of internal hosts whose mail should be signed rather
-than verified.  Entries in this file follow the same form as those of
+.I InternalHosts (dataset)
+Identifies a set internal hosts whose mail should be signed rather
+than verified.  Entries in this data set follow the same form as those of
 the
 .I PeerList
 option below.  If not specified, the default of "127.0.0.1" is applied.
@@ -522,15 +522,15 @@ The default is
 .I tempfail.
 
 .TP
-.I PeerList (string)
-Identifies a file of "peers" that identifies clients whose connections
-should be accepted without processing by this filter.  The file
+.I PeerList (dataset)
+Identifies a set of "peers" that identifies clients whose connections
+should be accepted without processing by this filter.  The set
 should contain on each line a hostname, domain name (e.g. ".example.com"),
 IP address, an IPv6 address (including an IPv4 mapped address), or a
 CIDR-style IP specification (e.g. "192.168.1.0/24").  An entry beginning
 with a bang ("!") character means "not", allowing exclusions of specific
 hosts that are otherwise members of larger sets.  The order of entries
-in this file is therefore significant.
+in this set is therefore significant.
 
 .TP
 .I PidFile (string)
