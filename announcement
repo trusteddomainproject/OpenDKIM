@@ -30,9 +30,9 @@ The RELEASE_NOTES for this version:
 		contents of a macro instead of on a header field.
 		Based on a patch from Ondrej Sury.
 
-Please use the mailing lists at http://lists.sourceforge.net and the
-project trackers at http://sourceforge.net/projects/opendkim to report
-problems or make feature requests.
+Please use the mailing lists at http://lists.opendkim.org/ to report problems.
+Bug reports and feature requests can be made through the project trackers
+at http://sourceforge.net/projects/opendkim
 
 Thanks go out to all of those who contributed to this release.
 
