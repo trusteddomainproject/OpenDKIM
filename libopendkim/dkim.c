@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.3 2009/11/02 23:23:15 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.4 2009/11/02 23:27:35 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -4441,7 +4441,6 @@ dkim_verify(DKIM_LIB *libhandle, const char *id, void *memclosure,
 	return new;
 }
 
-#ifdef _FFR_RESIGN
 /*
 **  DKIM_RESIGN -- bind a new signing handle to a completed handle
 **
@@ -4462,6 +4461,7 @@ dkim_verify(DKIM_LIB *libhandle, const char *id, void *memclosure,
 DKIM_STAT
 dkim_resign(DKIM *new, DKIM *old)
 {
+#ifdef _FFR_RESIGN
 	_Bool found;
 	_Bool keep;
 	_Bool tmp;
@@ -4537,11 +4537,11 @@ dkim_resign(DKIM *new, DKIM *old)
 		hashtype = DKIM_HASHTYPE_SHA1;
 		break;
 
-#ifdef DKIM_SIGN_RSASHA256
+# ifdef DKIM_SIGN_RSASHA256
 	  case DKIM_SIGN_RSASHA256:
 		hashtype = DKIM_HASHTYPE_SHA256;
 		break;
-#endif /* DKIM_SIGN_RSASHA256 */
+# endif /* DKIM_SIGN_RSASHA256 */
 
 	  default:
 		assert(0);
@@ -4600,8 +4600,10 @@ dkim_resign(DKIM *new, DKIM *old)
 	}
 
 	return DKIM_STAT_OK;
-}
+#else /* _FFR_RESIGN */
+	return DKIM_STAT_NOTIMPLEMENT;
 #endif /* _FFR_RESIGN */
+}
 
 /*
 **  DKIM_POLICY -- parse policy associated with the sender's domain
