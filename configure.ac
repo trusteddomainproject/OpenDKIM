@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.61 2009/10/30 23:17:08 cm-msk Exp $
+# $Id: configure.ac,v 1.62 2009/11/02 18:49:26 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -118,7 +118,7 @@ AC_MSG_CHECKING(for OpenSSL library and includes)
 AC_ARG_WITH(openssl,
 	AS_HELP_STRING(--with-openssl, location of OpenSSL includes and library (required)),
 	sslpath="$withval", sslpath="auto")
-ssldirs="/usr/local/ssl /usr/local /usr"
+ssldirs="/usr/local/ssl /usr/local /usr/sfw /usr"
 if test "$sslpath" = "auto" -o "$sslpath" = "yes"
 then
 	for d in $ssldirs
