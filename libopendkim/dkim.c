@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.2 2009/11/02 23:15:10 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.3 2009/11/02 23:23:15 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -3737,6 +3737,9 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	FEATURE_ADD(libhandle, DKIM_FEATURE_ASYNC_DNS);
 	FEATURE_ADD(libhandle, DKIM_FEATURE_DNSSEC);
 #endif /* USE_UNBOUND */
+#ifdef _FFR_RESIGN
+	FEATURE_ADD(libhandle, DKIM_FEATURE_RESIGN);
+#endif /* _FFR_RESIGN */
 
 #ifdef USE_UNBOUND
 	/* initialize the unbound resolver */

@@ -9,7 +9,7 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.12.4.1 2009/11/02 23:08:49 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.12.4.2 2009/11/02 23:23:15 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1443,8 +1443,9 @@ extern unsigned long dkim_ssl_version __P((void));
 #define DKIM_FEATURE_SHA256		4
 #define DKIM_FEATURE_ASYNC_DNS		5
 #define DKIM_FEATURE_DNSSEC		6
+#define DKIM_FEATURE_RESIGN		7
 
-#define	DKIM_FEATURE_MAX		6
+#define	DKIM_FEATURE_MAX		7
 
 extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
 
