@@ -54,6 +54,11 @@ doesn't find it, you will need to specify the location with
 		unless compilation fo the filter is disabled (see below).
 		Enabled by default.
 
+--with-odbx	Location of the OpenDBX installation on your system.
+		Optional; enables use of a number of SQL and ODBC databases
+		for configuration information.  Version 1.3.7 or later is
+		required.
+
 --with-openssl	Location of the OpenSSL installation on your system.
 		This is required.  If no specific location is provided,
 		the /usr/local and /usr directories will be searched for
@@ -367,4 +372,4 @@ headers of the reply you should see its signature and another
 Authentication-Results: header, which should also read "pass".
 
 
-$Id: INSTALL,v 1.9 2009/10/06 23:09:19 cm-msk Exp $
+$Id: INSTALL,v 1.10 2009/11/02 18:47:28 cm-msk Exp $
