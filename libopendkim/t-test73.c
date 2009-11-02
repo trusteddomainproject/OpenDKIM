@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test73_c_id[] = "@(#)$Id: t-test73.c,v 1.3 2009/07/23 17:40:24 cm-msk Exp $";
+static char t_test73_c_id[] = "@(#)$Id: t-test73.c,v 1.3.2.1 2009/11/02 01:12:35 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -16,11 +16,12 @@ static char t_test73_c_id[] = "@(#)$Id: t-test73.c,v 1.3 2009/07/23 17:40:24 cm-
 #include <string.h>
 #include <stdio.h>
 
-
 /* libopendkim includes */
 #include "dkim.h"
 #include "t-testdata.h"
 
+#define	BUFRSZ		1024
+#define	MAXADDRESS	256
 #define	MAXHEADER	4096
 
 #define SIG2 "v=1;  a=rsa-sha256; c=simple/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=yHBAX+3IwxTZIynBuB/5tlsBInJq9n8qz5fgAycHi80=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID; b=Y3y\r\n\tVeA3WZdCZl1sGuOZNC3BBRhtGCOExkZdw5xQoGPvSX/q6AC1SAJvOUWOri95AZAUGs0\r\n\t/bIDzzt23ei9jc+rptlavrl/5ijMrl6ShmvkACk6It62KPkJcDpoGfi5AZkrfX1Ou/z\r\n\tqGg5xJX86Kqd7FgNolMg7PbfyWliK2Yb84="
