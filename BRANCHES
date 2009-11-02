@@ -1,0 +1,20 @@
+$Id: BRANCHES,v 1.1 2009/11/02 01:38:31 cm-msk Exp $
+
+OpenDKIM Branch Listing
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Production Branches
+~~~~~~~~~~~~~~~~~~~
+
+HEAD/TRUNK	ongoing development
+br-1-1		v1.1.x releases
+
+Experimental Branches (branch name contains owner)
+~~~~~~~~~~~~~~~~~~~~~
+
+br-msk-resign	_FFR_RESIGN (binding of handles for message resigning)
+
+Closed Branches
+~~~~~~~~~~~~~~~
+
+(none)
