@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.15 2009/10/29 06:22:44 cm-msk Exp $
+**  $Id: util.c,v 1.16 2009/11/02 19:23:17 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.15 2009/10/29 06:22:44 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.16 2009/11/02 19:23:17 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -310,40 +310,11 @@ dkimf_lowercase(u_char *str)
 	}
 }
 
-#ifdef NETINET6
-/*
-**  DKIMF_LIST_LOOKUP -- look up a name in a peerlist
-**
-**  Parameters:
-**  	list -- list of records to check
-** 	data -- record to find
-**
-**  Return value:
-**   	TRUE if found, FALSE otherwise
-*/
-
-static bool
-dkimf_list_lookup(Peer list, char *data)
-{
-	Peer current;
-
-	assert(data != NULL);
-
-	for (current = list; current != NULL; current = current->peer_next)
-	{
-		if (strcasecmp(data, current->peer_info) == 0)
-			return TRUE;
-	}
-
-	return FALSE;
-}
-#endif /* NETINET6 */
-
 /*
 **  DKIMF_CHECKHOST -- check the peerlist for a host and its wildcards
 **
 **  Parameters:
-**  	list -- list of records to check
+**  	db -- DB of records to check
 **  	host -- hostname to find
 **
 **  Return value:
@@ -351,36 +322,46 @@ dkimf_list_lookup(Peer list, char *data)
 */
 
 bool
-dkimf_checkhost(Peer list, char *host)
+dkimf_checkhost(DKIMF_DB db, char *host)
 {
 	bool out = FALSE;
+	bool exists;
+	int status;
 	char *p;
-	Peer node;
+	char buf[BUFRSZ + 1];
 
 	assert(host != NULL);
 
 	/* short circuit */
-	if (list == NULL)
+	if (db == NULL)
 		return FALSE;
 
-	/* walk the list */
-	for (node = list; node != NULL; node = node->peer_next)
+	/* iterate over the possibilities */
+	for (p = host;
+	     p != NULL;
+	     p = (p == host ? strchr(host, '.') : strchr(p + 1, '.')))
 	{
-		if (strcasecmp(host, node->peer_info) == 0)
+		/* try the negative case */
+		snprintf(buf, sizeof buf, "!%s", p);
+		exists = FALSE;
+		status = dkimf_db_get(db, buf, 0, NULL, NULL, &exists);
+		if (status != 0)
+			return out;
+		if (exists)
 		{
-			out = !node->peer_neg;
+			out = FALSE;
 			continue;
 		}
 
-		for (p = strchr(host, '.');
-		     p != NULL;
-		     p = strchr(p + 1, '.'))
+		/* ...and now the positive case */
+		exists = FALSE;
+		status = dkimf_db_get(db, &buf[1], 0, NULL, NULL, &exists);
+		if (status != 0)
+			return out;
+		if (exists)
 		{
-			if (strcasecmp(p, node->peer_info) == 0)
-			{
-				out = !node->peer_neg;
-				break;
-			}
+			out = TRUE;
+			continue;
 		}
 	}
 
@@ -392,7 +373,7 @@ dkimf_checkhost(Peer list, char *host)
 **                 wildcards
 **
 **  Parameters:
-**  	list -- list to check
+**  	db -- db to check
 **  	ip -- IP address to find
 **
 **  Return value:
@@ -400,20 +381,22 @@ dkimf_checkhost(Peer list, char *host)
 */
 
 bool
-dkimf_checkip(Peer list, struct sockaddr *ip)
+dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 {
+	bool exists;
 	bool out = FALSE;
 	char ipbuf[DKIM_MAXHOSTNAMELEN + 1];
 
 	assert(ip != NULL);
 
 	/* short circuit */
-	if (list == NULL)
+	if (db == NULL)
 		return FALSE;
 
 #if NETINET6
 	if (ip->sa_family == AF_INET6)
 	{
+		int status;
 		struct sockaddr_in6 sin6;
 		struct in6_addr addr;
 
@@ -447,13 +430,20 @@ dkimf_checkip(Peer list, struct sockaddr *ip)
 			inet_ntop(AF_INET6, &addr, dst, dst_len);
 		}
 
-		return (dkimf_list_lookup(list, ipbuf));
+		exists = FALSE;
+		status = dkimf_db_get(db, ipbuf, 0, NULL, NULL, &exists);
+		return (status == 0 && exists);
 	}
 #endif /* NETINET6 */
 
 	if (ip->sa_family == AF_INET)
 	{
+		bool first;
+		bool neg;
+		int status;
 		int bits;
+		size_t buflen;
+		char *cmp;
 		char *p;
 		char *q;
 		struct Peer *node;
@@ -461,29 +451,51 @@ dkimf_checkip(Peer list, struct sockaddr *ip)
 		struct in_addr mask;
 		struct in_addr compare;
 		struct sockaddr_in sin;
+		char buf[BUFRSZ];
 
 		memcpy(&sin, ip, sizeof sin);
 
 		memcpy(&addr.s_addr, &sin.sin_addr, sizeof addr.s_addr);
 
+		(void) dkimf_inet_ntoa(addr, ipbuf, sizeof ipbuf);
+
 		/* walk the list */
-		for (node = list; node != NULL; node = node->peer_next)
+		for (first = TRUE; ; first = FALSE)
 		{
-			/* try the IP direct match */
-			(void) dkimf_inet_ntoa(addr, ipbuf, sizeof ipbuf);
-			if (strcmp(ipbuf, node->peer_info) == 0)
+			/* retrieve next node */
+			buflen = sizeof buf;
+			memset(buf, '\0', sizeof buf);
+
+			status = dkimf_db_walk(db, first, buf, &buflen,
+			                       NULL, NULL);
+			if (status != 0)
+				return out;
+
+			if (buf[0] == '!')
 			{
-				out = !node->peer_neg;
+				cmp = &buf[1];
+				neg = TRUE;
+			}
+			else
+			{
+				cmp = buf;
+				neg = FALSE;
+			}
+
+			/* try the IP direct match */
+			if (strcmp(ipbuf, cmp) == 0)
+			{
+				out = neg;
 				continue;
 			}
 
 			/* try the IP/CIDR and IP/mask possibilities */
-			p = strchr(node->peer_info, '/');
+			p = strchr(cmp, '/');
 			if (p == NULL)
 				continue;
 
 			*p = '\0';
-			compare.s_addr = inet_addr(node->peer_info);
+			compare.s_addr = inet_addr(cmp);
 			if (compare.s_addr == INADDR_NONE)
 			{
 				*p = '/';
@@ -516,7 +528,7 @@ dkimf_checkip(Peer list, struct sockaddr *ip)
 			}
 
 			if ((addr.s_addr & mask.s_addr) == (compare.s_addr & mask.s_addr))
-				out = !node->peer_neg;
+				out = neg;
 
 			*p = '/';
 		}
@@ -586,146 +598,6 @@ dkimf_checkpopauth(DKIMF_DB db, struct sockaddr *ip)
 	return (status == 0 && exists);
 }
 #endif /* POPAUTH */
-
-/*
-**  DKIMF_ENQUEUE -- enqueue an entry onto a peerlist
-**
-**  Parameters:
-**  	head -- queue head (updated)
-**  	tail -- queue tail (updated)
-**  	str -- entry
-**
-**  Return value:
-**  	TRUE if successful, FALSE otherwise (memory allocation error)
-*/
-
-static bool
-dkimf_enqueue(struct Peer **head, struct Peer **tail, char *str)
-{
-	struct Peer *newpeer;
-
-	assert(head != NULL);
-	assert(tail != NULL);
-	assert(str != NULL);
-
-	newpeer = (struct Peer *) malloc(sizeof(struct Peer));
-	if (newpeer == NULL)
-		return FALSE;
-
-	newpeer->peer_next = NULL;
-
-	if (*head == NULL)
-	{
-		*head = newpeer;
-		*tail = newpeer;
-	}
-	else
-	{
-		(*tail)->peer_next = newpeer;
-		*tail = newpeer;
-	}
-
-	if (str[0] == '!')
-	{
-		newpeer->peer_info = strdup(&str[1]);
-		newpeer->peer_neg = TRUE;
-	}
-	else
-	{
-		newpeer->peer_info = strdup(str);
-		newpeer->peer_neg = FALSE;
-	}
-
-	if (newpeer->peer_info == NULL)
-		return FALSE;
-
-	return TRUE;
-}
-
-/*
-**  DKIMF_LOAD_LIST -- load a list of hosts/CIDR blocks into memory
-**
-**  Parameters:
-**  	in -- input stream (or NULL if none)
-**  	deflist -- array of entries to include (or NULL if none)
-**  	list -- resultant list (updated)
-**
-**  Return value:
-**  	TRUE if successful, FALSE otherwise
-*/
-
-bool
-dkimf_load_list(FILE *in, char **deflist, struct Peer **list)
-{
-	struct Peer *head = NULL;
-	struct Peer *tail = NULL;
-	char peer[BUFRSZ + 1];
-
-	assert(list != NULL);
-
-	memset(peer, '\0', sizeof peer);
-
-	if (deflist != NULL)
-	{
-		int c;
-
-		for (c = 0; deflist[c] != NULL; c++)
-		{
-			if (!dkimf_enqueue(&head, &tail, deflist[c]))
-				return FALSE;
-		}
-	}
-
-	if (in != NULL)
-	{
-		char *p;
-
-		while (fgets(peer, sizeof(peer) - 1, in) != NULL)
-		{
-			for (p = peer; *p != '\0'; p++)
-			{
-				if (*p == '\n')
-				{
-					*p = '\0';
-					break;
-				}
-			}
-
-			if (!dkimf_enqueue(&head, &tail, peer))
-				return FALSE;
-		}
-	}
-
-	*list = head;
-
-	return TRUE;
-}
-
-/*
-**  DKIMF_FREE_LIST -- destroy a list of peer information
-**
-**  Parameters:
-**  	list -- list to destroy
-**
-**  Return value:
-**  	None.
-*/
-
-void
-dkimf_free_list(struct Peer *list)
-{
-	struct Peer *cur;
-	struct Peer *next;
-
-	assert(list != NULL);
-
-	for (cur = list; cur != NULL; cur = next)
-	{
-		next = cur->peer_next;
-		free(cur->peer_info);
-		free(cur);
-	}
-}
 
 #ifdef _FFR_REPLACE_RULES
 /*
