@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.57 2009/11/02 08:02:49 cm-msk Exp $
+**  $Id: opendkim.c,v 1.58 2009/11/02 19:25:03 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.57 2009/11/02 08:02:49 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.58 2009/11/02 19:25:03 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -280,37 +280,37 @@ struct dkimf_config
 #ifdef _FFR_VBR
 	char *		conf_vbr_deftype;	/* default VBR type */
 	char *		conf_vbr_defcert;	/* default VBR certifiers */
-	DKIMF_DB		conf_vbr_trusteddb;	/* trusted certifiers (DB) */
+	DKIMF_DB	conf_vbr_trusteddb;	/* trusted certifiers (DB) */
 	char **		conf_vbr_trusted;	/* trusted certifiers */
 #endif /* _FFR_VBR */
-	DKIMF_DB		conf_domainsdb;		/* domains to sign (DB) */
+	DKIMF_DB	conf_domainsdb;		/* domains to sign (DB) */
 	char **		conf_domains;		/* domains to sign (array) */
-	DKIMF_DB		conf_omithdrdb;		/* headers to omit (DB) */
+	DKIMF_DB	conf_omithdrdb;		/* headers to omit (DB) */
 	char **		conf_omithdrs;		/* headers to omit (array) */
-	DKIMF_DB		conf_signhdrsdb;	/* headers to sign (DB) */
+	DKIMF_DB	conf_signhdrsdb;	/* headers to sign (DB) */
 	char **		conf_signhdrs;		/* headers to sign (array) */
-	DKIMF_DB		conf_alwayshdrsdb;	/* always incl. hdrs (DB) */
+	DKIMF_DB	conf_alwayshdrsdb;	/* always incl. hdrs (DB) */
 	char **		conf_alwayshdrs;	/* always incl. hdrs (array) */
-	DKIMF_DB		conf_senderhdrsdb;	/* sender headers (DB) */
+	DKIMF_DB	conf_senderhdrsdb;	/* sender headers (DB) */
 	char **		conf_senderhdrs;	/* sender headers (array) */
-	DKIMF_DB		conf_mtasdb;		/* MTA ports to sign (DB) */
+	DKIMF_DB	conf_mtasdb;		/* MTA ports to sign (DB) */
 	char **		conf_mtas;		/* MTA ports to sign (array) */
-	DKIMF_DB		conf_remardb;		/* A-R removal list (DB) */
+	DKIMF_DB	conf_remardb;		/* A-R removal list (DB) */
 	char **		conf_remar;		/* A-R removal list (array) */
-	DKIMF_DB		conf_mbsdb;		/* must-be-signed hdrs (DB) */
+	DKIMF_DB	conf_mbsdb;		/* must-be-signed hdrs (DB) */
 	char **		conf_mbs;		/* must-be-signed (array) */
-	DKIMF_DB		conf_dontsigntodb;	/* don't-sign-to addrs (DB) */
+	DKIMF_DB	conf_dontsigntodb;	/* don't-sign-to addrs (DB) */
 	char **		conf_dontsignto;	/* don't-sign-to (array) */
-	DKIMF_DB		conf_thirdpartydb;	/* trustsigsfrom DB */
+	DKIMF_DB	conf_thirdpartydb;	/* trustsigsfrom DB */
 	char **		conf_thirdparty;	/* trustsigsfrom addrs */
-	DKIMF_DB		conf_localadsp_db;	/* local ADSP DB */
-	DKIMF_DB		conf_macrosdb;		/* macros/values (DB) */
+	DKIMF_DB	conf_localadsp_db;	/* local ADSP DB */
+	DKIMF_DB	conf_macrosdb;		/* macros/values (DB) */
 	char **		conf_macros;		/* macros/values to check */
 	char **		conf_values;		/* macros/values to check */
 	regex_t **	conf_nosignpats;	/* do-not-sign patterns */
-	Peer		conf_peerlist;		/* queue of "peers" */
-	Peer		conf_internal;		/* queue of "internal" hosts */
-	Peer		conf_exignore;		/* "external ignore" hosts */
+	DKIMF_DB	conf_peerdb;		/* DB of "peers" */
+	DKIMF_DB	conf_internal;		/* DB of "internal" hosts */
+	DKIMF_DB	conf_exignore;		/* "external ignore" host DB */
 	DKIM_LIB *	conf_libopendkim;	/* DKIM library handle */
 	struct handling	conf_handling;		/* message handling */
 };
@@ -559,13 +559,6 @@ struct lookup dkimf_policyactions[] =
 	{ NULL,			-1 },
 };
 #endif /* USE_UNBOUND */
-
-/* default internal list */
-char *defilist[] =
-{
-	"127.0.0.1",
-	NULL
-};
 
 /* PROTOTYPES */
 #ifdef LEAK_TRACKING
@@ -1976,14 +1969,14 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_authservid != NULL)
 		free(conf->conf_authservid);
 
-	if (conf->conf_peerlist != NULL)
-		dkimf_free_list(conf->conf_peerlist);
+	if (conf->conf_peerdb != NULL)
+		dkimf_db_close(conf->conf_peerdb);
 
 	if (conf->conf_internal != NULL)
-		dkimf_free_list(conf->conf_internal);
+		dkimf_db_close(conf->conf_internal);
 
 	if (conf->conf_exignore != NULL)
-		dkimf_free_list(conf->conf_exignore);
+		dkimf_db_close(conf->conf_exignore);
 
 	dkimf_freekeys(conf);
 
@@ -2427,25 +2420,16 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 	if (str != NULL && !testmode)
 	{
-		FILE *f;
+		int status;
 
-		f = fopen(str, "r");
-		if (f == NULL)
+		status = dkimf_db_open(&conf->conf_peerdb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			snprintf(err, errlen, "%s: fopen(): %s",
-			         str, strerror(errno));
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
 		}
-
-		if (!dkimf_load_list(f, NULL, &conf->conf_peerlist))
-		{
-			snprintf(err, errlen,
-			         "failed to load Peerlist from %s", str);
-			fclose(f);
-			return -1;
-		}
-
-		fclose(f);
 	}
 
 	/* internal list */
@@ -2460,30 +2444,29 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 	if (str != NULL && !testmode)
 	{
-		FILE *f;
+		int status;
 
-		f = fopen(str, "r");
-		if (f == NULL)
+		status = dkimf_db_open(&conf->conf_internal, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			snprintf(err, errlen, "%s: fopen(): %s",
-			         str, strerror(errno));
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
 		}
-
-		if (!dkimf_load_list(f, NULL, &conf->conf_internal))
-		{
-			snprintf(err, errlen,
-			         "failed to load InternalHosts from %s", str);
-			fclose(f);
-			return -1;
-		}
-
-		fclose(f);
 	}
 	else
 	{
-		if (!dkimf_load_list(NULL, defilist, &conf->conf_internal))
+		int status;
+
+		status = dkimf_db_open(&conf->conf_internal, DEFINTERNAL,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
+		}
 	}
 
 	/* external ignore list */
@@ -2498,26 +2481,16 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 	if (str != NULL && !testmode)
 	{
-		FILE *f;
+		int status;
 
-		f = fopen(str, "r");
-		if (f == NULL)
+		status = dkimf_db_open(&conf->conf_exignore, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
 		{
-			snprintf(err, errlen, "%s: fopen(): %s",
-			         str, strerror(errno));
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
 			return -1;
 		}
-
-		if (!dkimf_load_list(f, NULL, &conf->conf_exignore))
-		{
-			snprintf(err, errlen,
-			         "failed to load ExternalIgnoreList from %s",
-			         str);
-			fclose(f);
-			return -1;
-		}
-
-		fclose(f);
 	}
 
 	str = NULL;
@@ -5196,20 +5169,20 @@ mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
 	}
 
 	/* if the client is on an ignored host, then ignore it */
-	if (conf->conf_peerlist != NULL)
+	if (conf->conf_peerdb != NULL)
 	{
 		/* try hostname, if available */
 		if (host != NULL && host[0] != '\0' && host[0] != '[')
 		{
 			dkimf_lowercase((u_char *) host);
-			if (dkimf_checkhost(conf->conf_peerlist, host))
+			if (dkimf_checkhost(conf->conf_peerdb, host))
 				return SMFIS_ACCEPT;
 		}
 
 		/* try IP address, if available */
 		if (ip != NULL && ip->sa_family == AF_INET)
 		{
-			if (dkimf_checkip(conf->conf_peerlist, ip))
+			if (dkimf_checkip(conf->conf_peerdb, ip))
 				return SMFIS_ACCEPT;
 		}
 	}
