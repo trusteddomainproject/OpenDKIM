@@ -1,0 +1,107 @@
+$Id: ProjectGuide,v 1.1 2009/11/02 01:48:33 cm-msk Exp $
+
+OpenDKIM Source Code Management Policies
+
+1) Anything major (all new features, all new dependencies, any large
+rewrites or changes to algorithms, all package rearrangements, etc.) should
+get reviewed before going onto the trunk, and must get reviewed and run in
+the real world for a while before it gets released.  You can post the
+proposed diffs, or just describe the work you're doing, on the opendkim-dev
+list before actually starting commits.
+
+2) Simple bug fixes to existing code can go in without being reviewed, but
+review is still encouraged.  All developers are encouraged to keep an eye
+on what's going through the opendkim-cvs list for possible mistakes or other
+spontaneous review.
+
+3) If you have questions about someone's design or choice of how to fix
+something, and especially if you have an idea about a more solid approach,
+feel free to bring it up on opendkim-dev.  We're a community of experienced
+people, so peer review is important and encouraged.
+
+4) Nothing, even small things, should go in to any release branch or the
+trunk without being build-tested and run someplace first.
+
+5) When making changes or improvements to libopendkim, write a unit test and
+add it to the system to cover your work.  You can copy one of the existing
+ones and modify it accordingly.  Any changes to libopendkim have to leave it
+with all unit tests still running.
+
+6) Stick to the coding style (braces, tabs, comments, etc.).  The code
+should look like it came from a coherent team; I shouldn't be able to tell
+where you patched something I wrote without using "cvs annotate".
+
+7) Anything you change should be documented in the RELEASE_NOTES file,
+following its current format.  You don't need to document fixed typos or
+truly trivial things of that nature, but just about everything else should
+be mentioned.  Remember to give credit where credit is due, though we
+generally don't attribute credit to people who are part of the project
+itself unless it's really a major contribution.
+
+8) If you want a development sandbox, create a branch first (see below)
+and do your experimenting there.  Commits to sandbox branches don't need
+to be reviewed by anyone.  Sandboxes only get merged to release branches or
+the trunk after passing a review.
+
+9) CVS commits on non-sandbox branches should describe what changed in enough
+detail to indicate to one of us why the change was made.  We can see what
+changed using "cvs diff", so the "why" is important here.  If you had
+any review done of your work, name the person(s) that did the review in
+your commit comment.
+
+10) Nothing should cause compile-time warnings unless there's a really good
+reason not to clean them up.  If that's the case, explain why the warnings
+should be tolerated in your commit comment.
+
+11) Start your commit comment with "MFC:" (move from current) if the diff is
+a copy from the trunk, or with "MFB:" (move from branch) if it's a copy to
+the trunk, and name the other branch involved.
+
+12) Where a commit references an open bug or feature request, specify such
+(e.g. "Fix bug #SF1234567" or "Feature request #SF2345678") as well as some
+descriptive text such as the problem being solved or the feature being
+added.  The "SF" prefix is legacy from the times when there was more
+than one bug tracking system in use, but let's stick with it for now.
+
+Sandbox branching procedure:
+
+1) Update your code to the point in CVS at which you want to branch
+
+2) "cvs tag base-<yourname>-<branchname>" (e.g. "cvs tag base-dblack-async-dns")
+to lay down a reference tag, so that later you can produce a final diff of
+your work relative to the branch point
+
+3) "cvs tag -b br-<yourname>-<branchname>" to create the branch
+
+4) Update your copy so it refers to the branch
+(e.g. "cvs update -r br-<yourname>-<branchname>").
+
+5) Code away!
+
+Production branch notes:
+
+1) All branches should belong to a person (i.e. be named, like "br-msk-...")
+unless they are release branches, in which case they are named after that code
+fork (e.g. "br-1-1" is for 1.1.x releases).  No branches or tags should ever
+be deleted.
+
+2) Whoever's doing releases (currently only msk) is responsible for all
+non-sandbox branch creation, and is also responsible for placing release
+tags during releases.
+
+3) New features and dependencies only ever go on the trunk, never on release
+branches.  The exception to this is FFRs; new FFRs can go in on any branch
+since they are off-by-default anyway, but still this should be avoided.  FFRs
+only ever "go live", becoming production code, on the trunk.
+
+4) Bug fixes relative to code that has already been released go on both the
+current release branch and the trunk.
+
+5) When it's time for a new release line to begin (e.g. 1.1.x has been
+created but it's time to get some new features out so we need to start
+the 1.2.x releases), start a new release branch and do releases from there.
+(A new release line can run concurrently with the trunk until new features
+start to go in, at which point a release branch is required.)
+ 
+If anyone has questions about anything above, feel free to ask about them
+before doing something that could cause a mess.
