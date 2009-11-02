@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test128_c_id[] = "@(#)$Id: t-test128.c,v 1.2.2.2 2009/11/01 22:30:08 cm-msk Exp $";
+static char t_test128_c_id[] = "@(#)$Id: t-test128.c,v 1.2.2.3 2009/11/02 23:14:26 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -169,6 +169,9 @@ main(int argc, char **argv)
 
 	status = dkim_body(dkim, BODY03, strlen(BODY03));
 	assert(status == DKIM_STAT_OK);
+
+	status = dkim_eom(resign, NULL);
+	assert(status == DKIM_STAT_INVALID);
 
 	status = dkim_eom(dkim, NULL);
 	assert(status == DKIM_STAT_OK);
