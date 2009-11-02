@@ -2,7 +2,7 @@
 <head><title>dkim_resign()</title></head>
 <body>
 <!--
-$Id: dkim_resign.html,v 1.2.2.2 2009/11/01 22:30:08 cm-msk Exp $
+$Id: dkim_resign.html,v 1.2.2.3 2009/11/02 00:57:20 cm-msk Exp $
 -->
 <h1>dkim_resign()</h1>
 
@@ -80,12 +80,15 @@ a verification result and a new signature.
 <th valign="top" align=left>NOTES</th> 
 <td>
 <ul>
-<li>Once the binding is complete, passing <tt>vh</tt> to
+<li>Once the binding is mad, passing <tt>vh</tt> to
     <a href="dkim_free.html"><tt>dkim_free()</tt> will fail until <tt>sh</tt>
     has been freed
+<li>Multiple signing handles may be bound to a common verifying handle
 <li><tt>vh</tt> should be passed to
     <a href="dkim_eom.html"><tt>dkim_eom()</tt> before <tt>sh</tt> is, after
-    which the new signature can be extracted from <tt>sh</tt>
+    which the new signature can be extracted from <tt>sh</tt>; passing
+    <tt>sh</tt> to <tt>dkim_eom()</tt> before doing so with <tt>vh</tt>
+    will cause that function to return a status of <tt>DKIM_STAT_INVALID</tt>
 </ul>
 </td>
 </tr>
