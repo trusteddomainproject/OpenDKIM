@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test128_c_id[] = "@(#)$Id: t-test128.c,v 1.2.2.3 2009/11/02 23:14:26 cm-msk Exp $";
+static char t_test128_c_id[] = "@(#)$Id: t-test128.c,v 1.2.2.4 2009/11/03 18:06:09 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -123,14 +123,23 @@ main(int argc, char **argv)
 	                   DKIM_SIGN_RSASHA1, -1L, &status);
 	assert(resign != NULL);
 
+	status = dkim_resign(dkim, resign);
+	assert(status == DKIM_STAT_INVALID);
+
 	status = dkim_resign(resign, dkim);
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_eoh(dkim);
 	assert(status == DKIM_STAT_OK);
 
+	status = dkim_eoh(resign);
+	assert(status == DKIM_STAT_INVALID);
+
 	status = dkim_body(dkim, BODY00, strlen(BODY00));
 	assert(status == DKIM_STAT_OK);
+
+	status = dkim_body(resign, BODY00, strlen(BODY00));
+	assert(status == DKIM_STAT_INVALID);
 
 	status = dkim_body(dkim, BODY01, strlen(BODY01));
 	assert(status == DKIM_STAT_OK);
@@ -183,6 +192,9 @@ main(int argc, char **argv)
 	status = dkim_getsighdr(resign, hdr, sizeof hdr,
 	                        strlen(DKIM_SIGNHEADER) + 2);
 	assert(status == DKIM_STAT_OK);
+
+	status = dkim_free(dkim);
+	assert(status == DKIM_STAT_INVALID);
 
 	status = dkim_free(resign);
 	assert(status == DKIM_STAT_OK);
