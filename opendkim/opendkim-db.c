@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.20 2009/11/03 21:54:12 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.21 2009/11/03 22:50:55 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.20 2009/11/03 21:54:12 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.21 2009/11/03 22:50:55 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -152,8 +152,8 @@ struct dkimf_db_table dbtypes[] =
 #ifdef DKIMF_DB_TYPE_DSN
 	{ "dsn",		DKIMF_DB_TYPE_DSN },
 #endif /* DKIMF_DB_TYPE_DSN */
+	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
-#define DKIMF_DB_TYPE_COUNT	4
 
 /*
 **  DKIMF_DB_NEXTPUNCT -- find next punctuation
@@ -321,8 +321,11 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		clen = MIN(sizeof(dbtype) - 1, p - name);
 		strncpy(dbtype, name, clen);
 
-		for (c = 0; c < DKIMF_DB_TYPE_COUNT; c++)
+		for (c = 0; ; c++)
 		{
+			if (dbtypes[c].name == NULL)
+				break;
+
 			if (strcasecmp(dbtypes[c].name, dbtype) == 0)
 				new->db_type = dbtypes[c].code;
 		}
@@ -877,16 +880,16 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 			  case '/':
 				*p = '\0';
-				if (dsn->dsn_dbase[0] == '\0')
+				if (dsn->dsn_host[0] == '\0')
+				{
+					strlcpy(dsn->dsn_host, q,
+					        sizeof dsn->dsn_host);
+				}
+				else
 				{
 					found = TRUE;
 					strlcpy(dsn->dsn_dbase, q,
 					        sizeof dsn->dsn_dbase);
-				}
-				else
-				{
-					strlcpy(dsn->dsn_host, q,
-					        sizeof dsn->dsn_host);
 				}
 				q = p + 1;
 				break;
@@ -918,19 +921,16 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			{
 				strlcpy(dsn->dsn_table, eq + 1,
 				        sizeof dsn->dsn_table);
-				break;
 			}
 			else if (strcasecmp(p, "keycol") == 0)
 			{
 				strlcpy(dsn->dsn_keycol, eq + 1,
 				        sizeof dsn->dsn_keycol);
-				break;
 			}
 			else if (strcasecmp(p, "datacol") == 0)
 			{
 				strlcpy(dsn->dsn_datacol, eq + 1,
 				        sizeof dsn->dsn_datacol);
-				break;
 			}
 		}
 
@@ -1599,6 +1599,13 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			db->db_status = err;
 			return err;
 		}
+		else if (err == ODBX_RES_DONE)
+		{
+			if (exists != NULL)
+				*exists = FALSE;
+			(void) odbx_result_finish(result);
+			return 0;
+		}
 
 		fields = odbx_column_count(result);
 		if (fields == 0)
@@ -1608,7 +1615,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			return -1;
 		}
 
-		if (exists)
+		if (exists != NULL)
 			*exists = TRUE;
 
 		if (outbuf != NULL)
