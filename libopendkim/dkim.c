@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.4 2009/11/02 23:27:35 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.5 2009/11/03 18:05:47 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -2746,6 +2746,11 @@ dkim_eoh_sign(DKIM *dkim)
 
 	assert(dkim != NULL);
 
+#ifdef _FFR_RESIGN
+	if (dkim->dkim_resign != NULL)
+		return DKIM_STAT_INVALID;
+#endif /* _FFR_RESIGN */
+
 	if (dkim->dkim_state >= DKIM_STATE_EOH2)
 		return DKIM_STAT_INVALID;
 	if (dkim->dkim_state < DKIM_STATE_EOH2)
@@ -5412,6 +5417,11 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 	assert(hdr != NULL);
 	assert(len != 0);
 
+#ifdef _FFR_RESIGN
+	if (dkim->dkim_resign != NULL)
+		return DKIM_STAT_INVALID;
+#endif /* _FFR_RESIGN */
+
 	if (dkim->dkim_state > DKIM_STATE_HEADER)
 		return DKIM_STAT_INVALID;
 	dkim->dkim_state = DKIM_STATE_HEADER;
@@ -5569,6 +5579,11 @@ dkim_body(DKIM *dkim, u_char *buf, size_t buflen)
 {
 	assert(dkim != NULL);
 	assert(buf != NULL);
+
+#ifdef _FFR_RESIGN
+	if (dkim->dkim_resign != NULL)
+		return DKIM_STAT_INVALID;
+#endif /* _FFR_RESIGN */
 
 	if (dkim->dkim_state > DKIM_STATE_BODY)
 		return DKIM_STAT_INVALID;
