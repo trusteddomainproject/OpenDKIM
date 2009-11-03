@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.62 2009/11/02 18:49:26 cm-msk Exp $
+# $Id: configure.ac,v 1.63 2009/11/03 19:14:43 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -405,7 +405,7 @@ else
 	bdbrequired="no"
 fi
 
-if test x"$bdb" = x"auto" -o x"$bdb" = x"yes"
+if test x"$bdb" = x"auto"
 then
 	if test x"$bdbrequired" = x"yes"
 	then
