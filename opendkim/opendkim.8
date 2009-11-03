@@ -51,15 +51,48 @@ These may be used only to test for membership in the data set, or for
 storing keys and corresponding values.
 .TP
 .I d)
+If the string begins with "dsn:" and the OpenDKIM library was compiled to
+support that database type, then the remainder of the string is a Data
+Store Name describing the type, location parameters and access credentials
+for an ODBC or SQL database.  The DSN is of the form:
+
+backend://[user[:pwd]@][port+]host/dbase[/key=value[?...]]
+
+where
+.I backend
+is the name of a supported backend database mechanism (e.g. "mysql"),
+.I user
+and
+.I password
+are optional login credentials for the database,
+.I port
+and
+.I host
+describe the destination of a TCP connection to connect to that database,
+.I dbase
+is the name of the database to be accessed, and the
+.I key=value
+pairs must specify at least "table", "keycol" and "datacol" values specifying
+the name of the table, the name of the column to consider as the key, and the
+name of the column to be considered as the value.  For example:
+
+mysql:://dbuser:dbpass@1231+dbhost/odkim/table=macros?keycol=host?datacol=vals
+
+defines a MySQL database listening at port 1231 on host "dbhost"; the userid
+"dbuser" and password "dbpass" should be used to access the database; the
+database name is "odkim", and the data are in columns "host" (the keys)
+and "vals" (the values) inside table "macros".
+.TP
+.I e)
 If the string contains none of these prefixes but ends with ".db", it
 is presumed to be a Sleepycat DB as described above (if support for same
 is compiled in).
 .TP
-.I e)
+.I f)
 If the string contains none of these prefixes but starts with a slash ("/")
 character, it is presumed to be a flat file as described above.
 .TP
-.I f)
+.I g)
 In any other case, the string is presumed to be a comma-separated list.
 Elements in the list are either simple data elements that are part of the
 set or, in the case of an entry of the form "x=y", are stored as key-value
