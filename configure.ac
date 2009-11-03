@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.64 2009/11/03 21:01:52 cm-msk Exp $
+# $Id: configure.ac,v 1.65 2009/11/03 23:13:39 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -417,7 +417,7 @@ fi
 
 if test x"$bdb" = x"yes"
 then
-	AC_MSG_CHECKING(for db.h)
+	AC_MSG_CHECKING(for BerkeleyDB)
 
 	bdbdirs="/usr/local/BerkeleyDB /usr/local /usr"
 	libdbfound="no"
@@ -450,6 +450,7 @@ then
 		AC_MSG_RESULT(not found)
 	fi
 
+	AC_MSG_CHECKING(for libdb)
 	# If no matching library, see if we can find one.  Note that
 	# this can cause compilation problems if for example a db.h
 	# and a libdb are found that aren't the same version, but it's
@@ -464,7 +465,6 @@ then
 	fi
 	if test x"$libdbfound" = x"no"
 	then
-		AC_MSG_CHECKING(for libdb.a)
 		for d in $bdbdirs
 		do
 			if test -f $d/lib/libdb.a
@@ -494,14 +494,25 @@ then
 	LIBDB_LIBDIRS=""
 	LIBDB_LIBS=""
 else
-	if test -f $bdb/include/db.h -a -f $bdb/lib/libdb.a
+	AC_MSG_CHECKING(for db.h)
+
+	if test -f $bdb/include/db.h
 	then
-		AC_MSG_RESULT($bdb)
 		LIBDB_INCDIRS="-I$bdb/include"
-		LIBDB_LIBDIRS="-L$bdb/lib"
-		LIBDB_LIBS="-ldb"
+		AC_MSG_RESULT($bdb)
 	else
 		AC_MSG_ERROR(not found at $bdb)
+	fi
+
+	# we might not need -ldb if DB is built into libc
+	AC_MSG_CHECKING(for libdb)
+ 	if test -f $bdb/lib/libdb.a
+	then
+		LIBDB_LIBDIRS="-L$bdb/lib"
+		LIBDB_LIBS="-ldb"
+		AC_MSG_RESULT($bdb)
+	else
+		AC_MSG_RESULT(not found - assuming libc)
 	fi
 fi
 
