@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.16 2009/11/02 19:23:17 cm-msk Exp $
+**  $Id: util.c,v 1.17 2009/11/03 20:10:54 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.16 2009/11/02 19:23:17 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.17 2009/11/03 20:10:54 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -438,99 +438,85 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 
 	if (ip->sa_family == AF_INET)
 	{
-		bool first;
-		bool neg;
+		bool exists;
+		int c;
 		int status;
 		int bits;
 		size_t buflen;
 		char *cmp;
 		char *p;
 		char *q;
-		struct Peer *node;
 		struct in_addr addr;
 		struct in_addr mask;
-		struct in_addr compare;
 		struct sockaddr_in sin;
-		char buf[BUFRSZ];
 
 		memcpy(&sin, ip, sizeof sin);
-
 		memcpy(&addr.s_addr, &sin.sin_addr, sizeof addr.s_addr);
 
-		(void) dkimf_inet_ntoa(addr, ipbuf, sizeof ipbuf);
+		/* try the IP address directly */
+		exists = FALSE;
 
-		/* walk the list */
-		for (first = TRUE; ; first = FALSE)
+		ipbuf[0] = '!';
+		(void) dkimf_inet_ntoa(addr, &ipbuf[1], sizeof ipbuf - 1);
+		status = dkimf_db_get(db, ipbuf, 0, NULL, NULL, &exists);
+		if (exists)
+			out = FALSE;
+
+		status = dkimf_db_get(db, &ipbuf[1], 0, NULL, NULL, &exists);
+		if (exists)
+			out = TRUE;
+
+		/* iterate over possible bitwise expressions */
+		out = FALSE;
+		for (bits = 32; bits >= 0; bits--)
 		{
-			/* retrieve next node */
-			buflen = sizeof buf;
-			memset(buf, '\0', sizeof buf);
-
-			status = dkimf_db_walk(db, first, buf, &buflen,
-			                       NULL, NULL);
-			if (status != 0)
-				return out;
-
-			if (buf[0] == '!')
+			if (bits == 32)
 			{
-				cmp = &buf[1];
-				neg = TRUE;
+				mask.s_addr = 0xffffffff;
 			}
 			else
 			{
-				cmp = buf;
-				neg = FALSE;
-			}
-
-			/* try the IP direct match */
-			if (strcmp(ipbuf, cmp) == 0)
-			{
-				out = neg;
-				continue;
-			}
-
-			/* try the IP/CIDR and IP/mask possibilities */
-			p = strchr(cmp, '/');
-			if (p == NULL)
-				continue;
-
-			*p = '\0';
-			compare.s_addr = inet_addr(cmp);
-			if (compare.s_addr == INADDR_NONE)
-			{
-				*p = '/';
-				continue;
-			}
-
-			bits = strtoul(p + 1, &q, 10);
-
-			if (*q == '.')
-			{
-				mask.s_addr = inet_addr(p + 1);
-				if (mask.s_addr == INADDR_NONE)
-				{
-					*p = '/';
-					continue;
-				}
-			}
-			else if (*q != '\0')
-			{
-				*p = '/';
-				continue;
-			}
-			else
-			{
-				int c;
-
 				mask.s_addr = 0;
 				for (c = 0; c < bits; c++)
 					mask.s_addr |= htonl(1 << (31 - c));
 			}
 
-			if ((addr.s_addr & mask.s_addr) == (compare.s_addr & mask.s_addr))
-				out = neg;
+			addr.s_addr = addr.s_addr & mask.s_addr;
 
-			*p = '/';
+			memset(ipbuf, '\0', sizeof ipbuf);
+			ipbuf[0] = '!';
+			(void) dkimf_inet_ntoa(addr, &ipbuf[1],
+			                       sizeof ipbuf - 1);
+			c = strlen(ipbuf);
+			ipbuf[c] = '/';
+			c++;
+
+			snprintf(&ipbuf[c], sizeof ipbuf - c, "%d", bits);
+
+			exists = FALSE;
+			status = dkimf_db_get(db, ipbuf, 0, NULL, NULL,
+			                      &exists);
+			if (exists)
+				out = FALSE;
+
+			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, NULL,
+			                      &exists);
+			if (exists)
+				out = TRUE;
+
+			(void) dkimf_inet_ntoa(mask, &ipbuf[c],
+			                       sizeof ipbuf - c);
+		
+			exists = FALSE;
+			status = dkimf_db_get(db, ipbuf, 0, NULL, NULL,
+			                      &exists);
+			if (exists)
+				out = FALSE;
+
+			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, NULL,
+			                      &exists);
+			if (exists)
+				out = TRUE;
 		}
 	}
 

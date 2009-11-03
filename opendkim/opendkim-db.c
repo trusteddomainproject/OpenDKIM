@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.17 2009/11/02 21:44:13 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.18 2009/11/03 20:10:53 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.17 2009/11/02 21:44:13 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.18 2009/11/03 20:10:53 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -318,7 +318,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		char dbtype[BUFRSZ + 1];
 
 		memset(dbtype, '\0', sizeof dbtype);
-		clen = MIN(sizeof(dbtype) - 1, name - p);
+		clen = MIN(sizeof(dbtype) - 1, p - name);
 		strncpy(dbtype, name, clen);
 
 		for (c = 0; c < DKIMF_DB_TYPE_COUNT; c++)
@@ -1321,16 +1321,19 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 					matched = TRUE;
 			}
 
-			/* break out on single matches */
-			if (matched &&
-			    (db->db_flags & DKIMF_DB_FLAG_MATCHBOTH) == 0)
-				break;
+			if (matched)
+			{
+				if ((db->db_flags & DKIMF_DB_FLAG_MATCHBOTH) == 0)
+					break;
+				else if (list->db_list_value == NULL)
+					break;
+			}
 
-			/* double match with no value matches all */
-			if (list->db_list_value == NULL)
-				break;
+			if ((db->db_flags & DKIMF_DB_FLAG_MATCHBOTH) == 0)
+				continue;
 
 			matched = FALSE;
+			assert(list->db_list_value != NULL);
 
 			if ((db->db_flags & DKIMF_DB_FLAG_ICASE) == 0)
 			{
