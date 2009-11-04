@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.21 2009/11/03 22:50:55 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.22 2009/11/04 18:41:48 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.21 2009/11/03 22:50:55 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.22 2009/11/04 18:41:48 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -44,17 +44,6 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.21 2009/11/03 22:50
 /* macros */
 #define	DEFARRAYSZ		16
 #define DKIMF_DB_MODE		0644
-
-#define	DKIMF_DB_TYPE_UNKNOWN	(-1)
-#define	DKIMF_DB_TYPE_FILE	0
-#define	DKIMF_DB_TYPE_REFILE	1
-#define	DKIMF_DB_TYPE_CSL	2
-#ifdef USE_DB
-# define DKIMF_DB_TYPE_BDB	3
-#endif /* USE_DB */
-#ifdef USE_ODBX
-# define DKIMF_DB_TYPE_DSN	4
-#endif /* USE_ODBX */
 
 #define	DKIMF_DB_IFLAG_FREEARRAY 0x01
 
@@ -125,7 +114,7 @@ struct dkimf_db_relist
 	struct dkimf_db_relist * db_relist_next;
 };
 
-#ifdef DKIMF_DB_TYPE_DSN
+#ifdef USE_ODBX
 struct dkimf_db_dsn
 {
 	char			dsn_backend[BUFRSZ];
@@ -138,7 +127,7 @@ struct dkimf_db_dsn
 	char			dsn_table[BUFRSZ];
 	char			dsn_user[BUFRSZ];
 };
-#endif /* DKIMF_DB_TYPE_DSN */
+#endif /* USE_ODBX */
 
 /* globals */
 struct dkimf_db_table dbtypes[] =
@@ -146,12 +135,12 @@ struct dkimf_db_table dbtypes[] =
 	{ "csl",		DKIMF_DB_TYPE_CSL },
 	{ "file",		DKIMF_DB_TYPE_FILE },
 	{ "refile",		DKIMF_DB_TYPE_REFILE },
-#ifdef DKIMF_DB_TYPE_BDB
+#ifdef USE_DB
 	{ "db",			DKIMF_DB_TYPE_BDB },
-#endif /* DKIMF_DB_TYPE_BDB */
-#ifdef DKIMF_DB_TYPE_DSN
+#endif /* USE_DB */
+#ifdef USE_ODBX
 	{ "dsn",		DKIMF_DB_TYPE_DSN },
-#endif /* DKIMF_DB_TYPE_DSN */
+#endif /* USE_ODBX */
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
 
@@ -236,6 +225,24 @@ dkimf_db_relist_free(struct dkimf_db_relist *list)
 }
 		
 /*
+**  DKIMF_DB_TYPE -- return database type
+**
+**  Parameters:
+**  	db -- DKIMF_DB handle
+** 
+**  Return value:
+**  	A DKIMF_DB_TYPE_* constant.
+*/
+
+int
+dkimf_db_type(DKIMF_DB db)
+{
+	assert(db != NULL);
+
+	return db->db_type;
+}
+
+/*
 **  DKIMF_DB_OPEN -- open a database
 **
 **  Parameters:
@@ -293,7 +300,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 	p = strchr(name, ':');
 	if (p == NULL)
 	{
-# ifdef DKIMF_DB_TYPE_BDB
+# ifdef USE_DB
 		char *q;
 
 		q = NULL;
@@ -304,7 +311,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		if (q != NULL && *(q + 3) == '\0')
 			new->db_type = DKIMF_DB_TYPE_BDB;
 		else
-# endif /* DKIMF_DB_TYPE_BDB */
+# endif /* USE_DB */
 		if (name[0] == '/')
 			new->db_type = DKIMF_DB_TYPE_FILE;
 		else
@@ -719,7 +726,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		break;
 	  }
 
-#ifdef DKIMF_DB_TYPE_BDB
+#ifdef USE_DB
 	  case DKIMF_DB_TYPE_BDB:
 	  {
 # if DB_VERSION_CHECK(2,0,0)
@@ -775,9 +782,9 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 		break;
 	  }
-#endif /* DKIMF_DB_TYPE_BDB */
+#endif /* USE_DB */
 
-#ifdef DKIMF_DB_TYPE_DSN
+#ifdef USE_ODBX
 	  case DKIMF_DB_TYPE_DSN:
 	  {
 		_Bool found;
@@ -978,7 +985,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		/* clean up */
 		free(tmp);
 	  }
-#endif /* DKIMF_DB_TYPE_DSN */
+#endif /* USE_ODBX */
 	}
 
 	*db = new;
@@ -1001,26 +1008,24 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 int
 dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 {
-#ifdef DKIMF_DB_TYPE_BDB
+#ifdef USE_DB
 	DBT q;
 	int fd;
 	int status;
 	int ret;
 	DB *bdb;
-#endif /* DKIMF_DB_TYPE_BDB */
+#endif /* USE_DB */
 
 	assert(db != NULL);
 	assert(buf != NULL);
 
 	if (db->db_type == DKIMF_DB_TYPE_FILE ||
 	    db->db_type == DKIMF_DB_TYPE_CSL || 
-#ifdef DKIMF_DB_TYPE_DSN
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
-#endif /* DKIMF_DB_TYPE_DSN */
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
-#ifdef DKIMF_DB_TYPE_BDB
+#ifdef USE_DB
 	bdb = (DB *) db->db_handle;
 
 	memset(&q, 0, sizeof q);
@@ -1114,7 +1119,7 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 		(void) pthread_mutex_unlock(db->db_lock);
 
 	return ret;
-#endif /* DKIMF_DB_TYPE_BDB */
+#endif /* USE_DB */
 }
 
 /*
@@ -1136,14 +1141,14 @@ int
 dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
              void *outbuf, size_t outbuflen)
 {
-#ifdef DKIMF_DB_TYPE_BDB
+#ifdef USE_DB
 	DBT d;
 	DBT q;
 	int fd;
 	int status;
 	int ret;
 	DB *bdb;
-#endif /* DKIMF_DB_TYPE_BDB */
+#endif /* USE_DB */
 
 	assert(db != NULL);
 	assert(buf != NULL);
@@ -1151,13 +1156,11 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 
 	if (db->db_type == DKIMF_DB_TYPE_FILE ||
 	    db->db_type == DKIMF_DB_TYPE_CSL || 
-#ifdef DKIMF_DB_TYPE_DSN
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
-#endif /* DKIMF_DB_TYPE_DSN */
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
-#ifdef DKIMF_DB_TYPE_BDB
+#ifdef USE_DB
 	bdb = (DB *) db->db_handle;
 
 	memset(&d, 0, sizeof d);
@@ -1264,7 +1267,7 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 		(void) pthread_mutex_unlock(db->db_lock);
 
 	return ret;
-#endif /* DKIMF_DB_TYPE_BDB */
+#endif /* USE_DB */
 }
 
 /*
@@ -1397,7 +1400,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		return 0;
 	  }
 
-#ifdef DKIMF_DB_TYPE_BDB
+#ifdef USE_DB
 	  case DKIMF_DB_TYPE_BDB:
 	  {
 		int fd;
@@ -1537,9 +1540,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		return ret;
 	  }
-#endif /* DKIMF_DB_TYPE_BDB */
+#endif /* USE_DB */
 
-#ifdef DKIMF_DB_TYPE_DSN
+#ifdef USE_ODBX
 	  case DKIMF_DB_TYPE_DSN:
 	  {
 		int err;
@@ -1630,7 +1633,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		return 0;
 	  }
-#endif /* DKIMF_DB_TYPE_DSN */
+#endif /* USE_ODBX */
 
 	  default:
 		assert(0);
@@ -1680,7 +1683,7 @@ dkimf_db_close(DKIMF_DB db)
 		free(db);
 		break;
 
-#ifdef DKIMF_DB_TYPE_BDB
+#ifdef USE_DB
 	  case DKIMF_DB_TYPE_BDB:
 # if DB_VERSION_CHECK(2,0,0)
 		if (db->db_cursor != NULL)
@@ -1688,14 +1691,14 @@ dkimf_db_close(DKIMF_DB db)
 # endif /* DB_VERSION_CHECK(2,0,0) */
 		DKIMF_DBCLOSE((DB *) (db->db_handle));
 		break;
-#endif /* DKIMF_DB_TYPE_BDB */
+#endif /* USE_DB */
 
-#ifdef DKIMF_DB_TYPE_DSN
+#ifdef USE_ODBX
 	  case DKIMF_DB_TYPE_DSN:
 		(void) odbx_finish((odbx_t *) db->db_handle);
 		free(db->db_data);
 		break;
-#endif /* DKIMF_DB_TYPE_DSN */
+#endif /* USE_ODBX */
 
 	  default:
 		assert(0);
@@ -1731,16 +1734,16 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 	  case DKIMF_DB_TYPE_REFILE:
 		return regerror(db->db_status, db->db_data, err, errlen);
 
-#ifdef DKIMF_DB_TYPE_BDB
+#ifdef USE_DB
 	  case DKIMF_DB_TYPE_BDB:
 		return strlcpy(err, DB_STRERROR(db->db_status), errlen);
-#endif /* DKIMF_DB_TYPE_BDB */
+#endif /* USE_DB */
 
-#ifdef DKIMF_DB_TYPE_DSN
+#ifdef USE_ODBX
 	  case DKIMF_DB_TYPE_DSN:
 		return strlcpy(err, odbx_error((odbx_t *) db->db_handle,
 		                               db->db_status), errlen);
-#endif /* DKIMF_DB_TYPE_DSN */
+#endif /* USE_ODBX */
 
 	  default:
 		assert(0);
@@ -1815,7 +1818,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		return 0;
 	  }
 
-#ifdef DKIMF_DB_TYPE_BDB
+#ifdef USE_DB
 	  case DKIMF_DB_TYPE_BDB:
 	  {
 		int status = 0;
@@ -1883,9 +1886,9 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 			return 0;
 		}
 	  }
-#endif /* DKIMF_DB_TYPE_BDB */
+#endif /* USE_DB */
 
-#ifdef DKIMF_DB_TYPE_DSN
+#ifdef USE_ODBX
 	  case DKIMF_DB_TYPE_DSN:
 	  {
 		int err;
@@ -1969,7 +1972,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 
 		return 0;
 	  }
-#endif /* DKIMF_DB_TYPE_DSN */
+#endif /* USE_ODBX */
 
 	  default:
 		assert(0);
@@ -1998,10 +2001,10 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a)
 	if (db->db_type == DKIMF_DB_TYPE_REFILE)
 		return -1;
 
-#ifdef DKIMF_DB_TYPE_BDB
+#ifdef USE_DB
 	if (db->db_type != DKIMF_DB_TYPE_BDB && db->db_nrecs == 0)
 		return 0;
-#endif /* DKIMF_DB_TYPE_BDB */
+#endif /* USE_DB */
 
 	if ((db->db_type == DKIMF_DB_TYPE_FILE ||
 	     db->db_type == DKIMF_DB_TYPE_CSL) &&
@@ -2039,13 +2042,13 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a)
 		return c;
 	  }
 
-#ifdef DKIMF_DB_TYPE_BDB
+#ifdef USE_DB
 	  case DKIMF_DB_TYPE_BDB:
-#endif /* DKIMF_DB_TYPE_BDB */
-#ifdef DKIMF_DB_TYPE_DSN
+#endif /* USE_DB */
+#ifdef USE_ODBX
 	  case DKIMF_DB_TYPE_DSN:
-#endif /* DKIMF_DB_TYPE_DSN */
-#if defined(DKIMF_DB_TYPE_BDB) || defined(DKIMF_DB_TYPE_DSN)
+#endif /* USE_ODBX */
+#if defined(USE_DB) || defined(USE_ODBX)
 	  {
 		int c;
 		int nr = 0;
@@ -2132,7 +2135,7 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a)
 		*a = out;
 		return nr;
 	  }
-#endif /* defined(DKIMF_DB_TYPE_BDB) || defined(DKIMF_DB_TYPE_DSN) */
+#endif /* defined(USE_DB) || defined(USE_ODBX) */
 
 	  default:
 		return -1;
