@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.65 2009/11/03 23:13:39 cm-msk Exp $
+# $Id: configure.ac,v 1.66 2009/11/04 18:40:39 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -450,7 +450,6 @@ then
 		AC_MSG_RESULT(not found)
 	fi
 
-	AC_MSG_CHECKING(for libdb)
 	# If no matching library, see if we can find one.  Note that
 	# this can cause compilation problems if for example a db.h
 	# and a libdb are found that aren't the same version, but it's
@@ -465,6 +464,7 @@ then
 	fi
 	if test x"$libdbfound" = x"no"
 	then
+		AC_MSG_CHECKING(for libdb)
 		for d in $bdbdirs
 		do
 			if test -f $d/lib/libdb.a
@@ -478,6 +478,7 @@ then
 			fi
 		done
 	fi
+
 	if test x"$libdbfound" = "xno"
 	then
 		AC_MSG_ERROR(cannot find db_create or dbopen)
