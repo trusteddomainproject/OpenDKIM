@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-testadsp.c,v 1.6 2009/10/22 22:43:05 cm-msk Exp $
+**  $Id: opendkim-testadsp.c,v 1.7 2009/11/05 23:06:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_testadsp_c[] = "@(#)$Id: opendkim-testadsp.c,v 1.6 2009/10/22 22:43:05 cm-msk Exp $";
+static char opendkim_testadsp_c[] = "@(#)$Id: opendkim-testadsp.c,v 1.7 2009/11/05 23:06:52 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -48,9 +48,7 @@ char *progname;
 int
 usage(void)
 {
-	fprintf(stderr,
-	        "%s: usage: %s domain [...]\n",
-	        progname, progname);
+	fprintf(stderr, "%s: usage: %s domain [...]\n", progname, progname);
 
 	return EX_CONFIG;
 }
@@ -85,6 +83,9 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s: dkim_init() failed\n", progname);
 		return EX_OSERR;
 	}
+
+	if (argc == 1)
+		return usage();
 
 	for (i = 1; i < argc; i++)
 	{
