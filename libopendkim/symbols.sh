@@ -1,12 +1,13 @@
 #!/bin/sh
 #
-# $Id: symbols.sh,v 1.1.2.1 2009/11/05 22:32:05 cm-msk Exp $
+# $Id: symbols.sh,v 1.1.2.2 2009/11/05 22:54:46 cm-msk Exp $
 #
 # Extract from dkim.h the list of symbols we want to export
 
-SOURCEHDR=dkim.h
+SOURCEHDRS="dkim.h dkim-test.h"
 SYMLIST=symbols.map
 
-grep '^extern' $SOURCEHDR | \
+pwd
+grep '^extern' $SOURCEHDRS | \
 	awk '{ for (c = 1; c <= NF; c++) if ($c ~ /dkim_/) { print $c; break; } }' | \
 	sed -e s/\[\*\;\]//g -e s/\[\\\[\\\]\]//g > $SYMLIST
