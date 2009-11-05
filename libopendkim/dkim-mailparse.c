@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_mailparse_c_id[] = "@(#)$Id: dkim-mailparse.c,v 1.1 2009/11/05 20:36:16 cm-msk Exp $";
+static char dkim_mailparse_c_id[] = "@(#)$Id: dkim-mailparse.c,v 1.2 2009/11/05 20:40:17 cm-msk Exp $";
 #endif /* !lint */
 
 /* system inludes */
@@ -248,7 +248,7 @@ dkim_mail_first_special(char *p, char *e, char **special_out)
 
 static int
 dkim_mail_token(char *s, char *e, int *type_out, char **start_out,
-              char **end_out, int *uncommented_whitespace)
+                char **end_out, int *uncommented_whitespace)
 {
 	char *p;
 	int err = 0;
@@ -490,8 +490,8 @@ main(int argc, char **argv)
 	else
 	{
 		printf("user: '%s'\ndomain: '%s'\n", 
-			user ? unescape(user) : "null",
-			domain ? unescape(domain) : "null");
+			user ? dkim_mail_unescape(user) : "null",
+			domain ? dkim_mail_unescape(domain) : "null");
 	}
 
 	return 0;
