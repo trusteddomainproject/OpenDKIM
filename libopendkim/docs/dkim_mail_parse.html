@@ -1,17 +1,17 @@
 <html>
-<head><title>rfc2822_mailbox_split()</title></head>
+<head><title>dkim_mail_parse()</title></head>
 <body>
 <!--
-$Id: rfc2822_mailbox_split.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+$Id: dkim_mail_parse.html,v 1.1 2009/11/05 20:36:16 cm-msk Exp $
 -->
-<h1>rfc2822_mailbox_split()</h1>
+<h1>dkim_mail_parse()</h1>
 
 <table border="0" cellspacing=4 cellpadding=4>
 <!---------- Synopsis ----------->
 <tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
 <pre>
 #include &lt;dkim.h&gt;
-int rfc2822_mailbox_split(
+int dkim_mail_parse(
 	char *line,
 	char **user_out,
 	char **domain_out
@@ -57,7 +57,7 @@ for now.
 <tr><th valign="top" align=left>NOTES</th><td>
 <ul>
 <li><tt>line</tt> is modified.
-<li>This function is not part of the DKIM API specification.  It
+<li>This function is not part of the DKIM specification.  It
     is provided as a facility to implementors to reduce code duplication.
 </ul>
 </td>

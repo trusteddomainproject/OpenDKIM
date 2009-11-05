@@ -9,7 +9,7 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.13 2009/11/02 23:24:49 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.14 2009/11/05 20:36:16 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1377,8 +1377,8 @@ extern DKIM_STAT dkim_get_reputation __P((DKIM *dkim, DKIM_SIGINFO *sig,
                                           char *qroot, int *rep));
 
 /*
-**  RFC2822_MAILBOX_SPLIT -- extract the userid and host from a structured
-**                           header
+**  DKIM_MAIL_PARSE -- extract the local-part and domain-name from a structured
+**                     header field
 **
 **  Parameters:
 **  	addr -- the header to parse; see RFC2822 for format
@@ -1389,7 +1389,7 @@ extern DKIM_STAT dkim_get_reputation __P((DKIM *dkim, DKIM_SIGINFO *sig,
 **  	0 on success; other on error (see source)
 */
 
-extern int rfc2822_mailbox_split __P((char *addr, char **user, char **domain));
+extern int dkim_mail_parse __P((char *addr, char **user, char **domain));
 
 /*
 **  DKIM_SSL_VERSION -- return the version of the OpenSSL library against

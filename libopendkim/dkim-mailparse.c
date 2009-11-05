@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char rfc2822_c_id[] = "@(#)$Id: rfc2822.c,v 1.1 2009/07/16 19:12:04 cm-msk Exp $";
+static char dkim_mailparse_c_id[] = "@(#)$Id: dkim-mailparse.c,v 1.1 2009/11/05 20:36:16 cm-msk Exp $";
 #endif /* !lint */
 
 /* system inludes */
@@ -19,10 +19,10 @@ static char rfc2822_c_id[] = "@(#)$Id: rfc2822.c,v 1.1 2009/07/16 19:12:04 cm-ms
 typedef unsigned long cmap_elem_type;
 
 /* symbolic names */
-#define RFC2822_OK 			0 	/* success */
-#define RFC2822_ERR_PUNBALANCED		1	/* unbalanced parentheses */
-#define RFC2822_ERR_QUNBALANCED		2	/* unbalanced quotes */
-#define RFC2822_ERR_SUNBALANCED	 	3	/* unbalanced sq. brackets */
+#define DKIM_MAILPARSE_OK 		0 	/* success */
+#define DKIM_MAILPARSE_ERR_PUNBALANCED	1	/* unbalanced parentheses */
+#define DKIM_MAILPARSE_ERR_QUNBALANCED	2	/* unbalanced quotes */
+#define DKIM_MAILPARSE_ERR_SUNBALANCED	3	/* unbalanced sq. brackets */
 
 /* a bitmap for the "specials" character class */
 #define	CMAP_NBITS	 	(sizeof(cmap_elem_type) * CHAR_BIT)
@@ -34,9 +34,9 @@ typedef unsigned long cmap_elem_type;
 
 static unsigned char const SPECIALS[] = "<>@,;:\\\"/[]?=";
 
-#ifdef RFC2822_TEST
+#ifdef DKIM_MAILPARSE_TEST
 /*
-**  UNESCAPE -- remove escape characters from a string
+**  DKIM_MAIL_UNESCAPE -- remove escape characters from a string
 **
 **  Parameters:
 **  	s -- the string to be unescaped
@@ -46,7 +46,7 @@ static unsigned char const SPECIALS[] = "<>@,;:\\\"/[]?=";
 */
 
 static char *
-unescape(char *s)
+dkim_mail_unescape(char *s)
 {
 	char 		*w;
 	char const 	*r, *p, *e;
@@ -89,10 +89,11 @@ unescape(char *s)
 
 	return s;
 }
-#endif /* RFC2822_TEST */
+#endif /* DKIM_MAILPARSE_TEST */
 
 /*
-**  MATCHING_PAREN -- return the location past matching opposite parentheses
+**  DKIM_MAIL_MATCHING_PAREN -- return the location past matching opposite
+**                              parentheses
 **
 **  Parameters:
 **  	s -- start of string to be processed
@@ -108,7 +109,7 @@ unescape(char *s)
 */
 
 static char *
-matching_paren(char *s, char *e, int open_paren, int close_paren)
+dkim_mail_matching_paren(char *s, char *e, int open_paren, int close_paren)
 {
 	int 		paren = 1;
 
@@ -134,7 +135,7 @@ matching_paren(char *s, char *e, int open_paren, int close_paren)
 }
 
 /*
-**  RFC2822_FIRST_SPECIAL -- find the first RFC2822 "special" character
+**  DKIM_MAIL_FIRST_SPECIAL -- find the first "special" character
 **
 **  Parameters:
 **  	p -- input string
@@ -142,11 +143,11 @@ matching_paren(char *s, char *e, int open_paren, int close_paren)
 **  	special_out -- pointer to the first special character found
 **
 **  Return value:
-**  	0 on success, or an RFC2822_ERR_* on failure.
+**  	0 on success, or an DKIM_MAILPARSE_ERR_* on failure.
 */
 
 static int
-rfc2822_first_special(char *p, char *e, char **special_out)
+dkim_mail_first_special(char *p, char *e, char **special_out)
 {
 	size_t		i;
 	cmap_elem_type	is_special[CMAP_NELEMS] = { 0 };
@@ -169,9 +170,10 @@ rfc2822_first_special(char *p, char *e, char **special_out)
 			}
 			else
 			{
-				p = matching_paren(p + 1, e, '(', ')');
+				p = dkim_mail_matching_paren(p + 1, e,
+				                             '(', ')');
 				if (*p == '\0')
-					return RFC2822_ERR_PUNBALANCED;
+					return DKIM_MAILPARSE_ERR_PUNBALANCED;
 				else
 					p++;
 			}
@@ -182,15 +184,15 @@ rfc2822_first_special(char *p, char *e, char **special_out)
 
 		if (*p == '"')
 		{
-			p = matching_paren(p + 1, e, '\0', '"');
+			p = dkim_mail_matching_paren(p + 1, e, '\0', '"');
 			if (*p == '\0')
-				return RFC2822_ERR_QUNBALANCED;
+				return DKIM_MAILPARSE_ERR_QUNBALANCED;
 		}
 		else if (*p == '[')
 		{
-			p = matching_paren(p + 1, e, '\0', ']');
+			p = dkim_mail_matching_paren(p + 1, e, '\0', ']');
 			if (*p == '\0')
-				return RFC2822_ERR_SUNBALANCED;
+				return DKIM_MAILPARSE_ERR_SUNBALANCED;
 		}
 		else if (CMAP_TST(is_special, *p))
 		{
@@ -229,7 +231,7 @@ rfc2822_first_special(char *p, char *e, char **special_out)
 }
 
 /*
-**  RFC2822_TOKEN -- find the next token
+**  DKIM_MAIL_TOKEN -- find the next token
 **
 **  Parameters:
 **  	s -- start of input string
@@ -241,11 +243,11 @@ rfc2822_first_special(char *p, char *e, char **special_out)
 **  	                          discovered (returned)
 **
 **  Return value:
-**  	0 on success, or an RFC2822_ERR_* on failure.
+**  	0 on success, or an DKIM_MAILPARSE_ERR_* on failure.
 */
 
 static int
-rfc2822_token(char *s, char *e, int *type_out, char **start_out,
+dkim_mail_token(char *s, char *e, int *type_out, char **start_out,
               char **end_out, int *uncommented_whitespace)
 {
 	char *p;
@@ -279,9 +281,9 @@ rfc2822_token(char *s, char *e, int *type_out, char **start_out,
 		}
 		else
 		{
-			p = matching_paren(p + 1, e, '(', ')');
+			p = dkim_mail_matching_paren(p + 1, e, '(', ')');
 			if (*p == '\0')
-				return RFC2822_ERR_PUNBALANCED;
+				return DKIM_MAILPARSE_ERR_PUNBALANCED;
 			else
 				p++;
 		}
@@ -296,21 +298,21 @@ rfc2822_token(char *s, char *e, int *type_out, char **start_out,
 	/* fill in the token contents and type */
 	if (*p == '"')
 	{
-		token_end = matching_paren(p + 1, e, '\0', '"');
+		token_end = dkim_mail_matching_paren(p + 1, e, '\0', '"');
 		token_type = '"';
 		if (*token_end != '\0')
 			token_end++;
 		else
-			err = RFC2822_ERR_QUNBALANCED;
+			err = DKIM_MAILPARSE_ERR_QUNBALANCED;
 	}
 	else if (*p == '[')
 	{
-		token_end = p = matching_paren(p + 1, e, '\0', ']');
+		token_end = p = dkim_mail_matching_paren(p + 1, e, '\0', ']');
 		token_type = '[';
 		if (*token_end != '\0')
 			token_end++;
 		else
-			err = RFC2822_ERR_SUNBALANCED;
+			err = DKIM_MAILPARSE_ERR_SUNBALANCED;
 	}
 	else if (CMAP_TST(is_special, *p))
 	{
@@ -336,8 +338,8 @@ rfc2822_token(char *s, char *e, int *type_out, char **start_out,
 }
 
 /*
-**  RFC2822_MAILBOX_SPLIT -- extract the local-part and hostname from an
-**                           RFC2822 header, e.g. "From:"
+**  DKIM_MAIL_PARSE -- extract the local-part and hostname from a mail
+**                     header field, e.g. "From:"
 **
 **  Parameters:
 **  	line -- input line
@@ -345,14 +347,14 @@ rfc2822_token(char *s, char *e, int *type_out, char **start_out,
 **  	domain_out -- pointer to hostname (returned)
 **
 **  Return value:
-**  	0 on success, or an RFC2822_ERR_* on failure.
+**  	0 on success, or an DKIM_MAILPARSE_ERR_* on failure.
 **
 **  Notes:
 **  	Input string is modified.
 */
 
 int
-rfc2822_mailbox_split(char *line, char **user_out, char **domain_out)
+dkim_mail_parse(char *line, char **user_out, char **domain_out)
 {
 	int type;
 	int ws;
@@ -371,7 +373,7 @@ rfc2822_mailbox_split(char *line, char **user_out, char **domain_out)
 
 	for (;;)
 	{
-		err = rfc2822_first_special(line, e, &special);
+		err = dkim_mail_first_special(line, e, &special);
 		if (err != 0)
 			return err;
 		
@@ -383,8 +385,8 @@ rfc2822_mailbox_split(char *line, char **user_out, char **domain_out)
 			line = special + 1;
 			for (;;)
 			{
-				err = rfc2822_token(line, e, &type, &tok_s,
-				                    &tok_e, &ws);
+				err = dkim_mail_token(line, e, &type, &tok_s,
+				                      &tok_e, &ws);
 				if (err != 0)
 					return err;
 
@@ -427,8 +429,8 @@ rfc2822_mailbox_split(char *line, char **user_out, char **domain_out)
 			ws = 0;
 			for (;;)
 			{
-				err = rfc2822_token(line, e, &type, &tok_s,
-				                    &tok_e, &ws);
+				err = dkim_mail_token(line, e, &type, &tok_s,
+				                      &tok_e, &ws);
 				if (err != 0)
 					return err;
 
@@ -466,7 +468,7 @@ rfc2822_mailbox_split(char *line, char **user_out, char **domain_out)
 	return err;
 }
 
-#ifdef RFC2822_TEST
+#ifdef DKIM_MAILPARSE_TEST
 int
 main(int argc, char **argv)
 {
@@ -479,7 +481,7 @@ main(int argc, char **argv)
 		exit(64);
 	}
 
-	err = rfc2822_mailbox_split(argv[1], &user, &domain);
+	err = dkim_mail_parse(argv[1], &user, &domain);
 
 	if (err)
 	{
@@ -494,4 +496,4 @@ main(int argc, char **argv)
 
 	return 0;
 }
-#endif /* RFC2822_TEST */
+#endif /* DKIM_MAILPARSE_TEST */

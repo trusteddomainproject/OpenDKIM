@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.59 2009/11/04 18:42:39 cm-msk Exp $
+**  $Id: opendkim.c,v 1.60 2009/11/05 20:36:16 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.59 2009/11/04 18:42:39 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.60 2009/11/05 20:36:16 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3590,7 +3590,7 @@ dkimf_checkbldb(char *to, char *jobid)
 	char dbaddr[MAXADDRESS + 1];
 
 	strlcpy(addr, to, sizeof addr);
-	status = rfc2822_mailbox_split(addr, &address, &domain);
+	status = dkim_mail_parse(addr, &address, &domain);
 	if (status != 0 || address == NULL || domain == NULL)
 	{
 		if (dolog)
@@ -5777,7 +5777,7 @@ mlfi_eoh(SMFICTX *ctx)
 	strlcpy(addr, from->hdr_val, sizeof addr);
 #endif /* _FFR_SENDER_MACRO */
 
-	status = rfc2822_mailbox_split(addr, &user, &domain);
+	status = dkim_mail_parse(addr, &user, &domain);
 	if (status != 0 || user == NULL || domain == NULL ||
 	    user[0] == '\0' || domain[0] == '\0')
 	{
@@ -6360,8 +6360,8 @@ mlfi_eoh(SMFICTX *ctx)
 				char *user;
 				char *domain;
 
-				status = rfc2822_mailbox_split(hdr->hdr_val,
-						&user, &domain);
+				status = dkim_mail_parse(hdr->hdr_val,
+				                         &user, &domain);
 				if (status == 0 && domain != NULL)
 				{
 					snprintf(identity, sizeof identity,

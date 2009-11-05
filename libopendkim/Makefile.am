@@ -1,7 +1,7 @@
-# $Id: Makefile.am,v 1.31 2009/10/30 23:17:08 cm-msk Exp $
+# $Id: Makefile.am,v 1.32 2009/11/05 20:36:16 cm-msk Exp $
 
 lib_LTLIBRARIES = libopendkim.la
-libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c rfc2822.c util.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h rfc2822.h util.h
+libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-mailparse.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h util.h
 libopendkim_la_CFLAGS = $(LIBCRYPTO_INCDIRS)
 libopendkim_la_LDFLAGS = $(LIBCRYPTO_LIBDIRS)
 libopendkim_la_LIBADD = $(LIBCRYPTO_LIBS)
@@ -45,7 +45,7 @@ libopendkim_la_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
 	docs/dkim_sigerror.html docs/dkim_siginfo.html \
 	docs/dkim_sigkey_t.html docs/dkim_sign.html \
 	docs/dkim_ssl_version.html docs/dkim_stat.html docs/dkim_verify.html \
-	docs/index.html docs/overview.html docs/rfc2822_mailbox_split.html \
+	docs/index.html docs/overview.html docs/dkim_mail_parse.html \
 	docs/dkim_diffheaders.html docs/dkim_get_msgdate.html \
 	docs/dkim_getpartial.html docs/dkim_get_reputation.html \
 	docs/dkim_setpartial.html docs/dkim_set_trust_anchor.html \

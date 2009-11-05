@@ -4,7 +4,7 @@
 </head>
 <body>
 <!--
-$Id: index.html,v 1.3 2009/10/25 22:56:35 cm-msk Exp $
+$Id: index.html,v 1.4 2009/11/05 20:36:16 cm-msk Exp $
 -->
 
 <h1>Sendmail DomainKeys Identified Mail (DKIM) Library</h1>
@@ -498,6 +498,12 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
+  <td> <a href="dkim_mail_parse.html"> <tt>dkim_mail_parse()</tt> </a> </td>
+  <td> Parse an message header field, e.g. <tt>From:</tt>, to get user and
+       domain. </td>
+ </tr>
+
+ <tr>
   <td> <a href="dkim_options.html"> <tt>dkim_options()</tt> </a> </td>
   <td> Get or set library options. </td>
  </tr>
@@ -510,12 +516,6 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  <tr>
   <td> <a href="dkim_sig_syntax.html"> <tt>dkim_sig_syntax()</tt> </a> </td>
   <td> Check the syntax of a signature. </td>
- </tr>
-
- <tr>
-  <td> <a href="rfc2822_mailbox_split.html"> <tt>rfc2822_mailbox_split()</tt> </a> </td>
-  <td> Parse an RFC2822 header, e.g. <tt>From:</tt>, to get user and
-       domain. </td>
  </tr>
 
  <tr>

@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.49 2009/11/01 21:54:29 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.50 2009/11/05 20:36:16 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -18,6 +18,9 @@ release, and a summary of the changes in that release.
 		by Daniel Black.
 	LIBOPENDKIM: Move VBR functions from libopendkim into their own
 		new library, libvbr.
+	LIBOPENDKIM: Rename the rfc2822_*() parsing functions to have
+		"dkim_" prefixes, and rename their containing file
+		accordingly.
 	BUILD: Split up library assignments between libopendkim and opendkim,
 		taking advantage of libtool.  Based on a patch by Daniel Black.
 

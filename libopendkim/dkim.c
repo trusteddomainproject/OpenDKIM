@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24 2009/10/27 04:42:28 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.25 2009/11/05 20:36:16 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1211,8 +1211,7 @@ dkim_sig_signerok(DKIM *dkim, DKIM_SET *set, u_char **hdrs)
 
 				strlcpy(buf, colon, sizeof buf);
 
-				status = rfc2822_mailbox_split(buf, &user,
-				                               &domain);
+				status = dkim_mail_parse(buf, &user, &domain);
 				if (status != 0 || domain == NULL ||
 				    user == NULL || user[0] == '\0' ||
 				    domain[0] == '\0')
@@ -2928,9 +2927,8 @@ dkim_eoh_verify(DKIM *dkim)
 	if (dkim->dkim_sender == NULL)
 		return DKIM_STAT_NORESOURCE;
 
-	status = rfc2822_mailbox_split(dkim->dkim_sender,
-	                               (char **) &user,
-	                               (char **) &domain);
+	status = dkim_mail_parse(dkim->dkim_sender, (char **) &user,
+	                         (char **) &domain);
 	if (status != 0 || domain == NULL || user == NULL ||
 	    domain[0] == '\0' || user[0] == '\0')
 	{
@@ -3390,8 +3388,8 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 				return DKIM_STAT_CANTVRFY;
 			}
 
-			status = rfc2822_mailbox_split(hdr->hdr_colon + 1,
-			                               &user, &domain);
+			status = dkim_mail_parse(hdr->hdr_colon + 1,
+			                         &user, &domain);
 			if (status != 0 || domain == NULL || domain[0] == '\0')
 			{
 				dkim_error(dkim, "%s header malformed",
