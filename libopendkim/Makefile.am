@@ -1,9 +1,10 @@
-# $Id: Makefile.am,v 1.32 2009/11/05 20:36:16 cm-msk Exp $
+# $Id: Makefile.am,v 1.32.2.1 2009/11/05 22:32:05 cm-msk Exp $
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-mailparse.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h util.h
 libopendkim_la_CFLAGS = $(LIBCRYPTO_INCDIRS)
-libopendkim_la_LDFLAGS = $(LIBCRYPTO_LIBDIRS)
+libopendkim_la_DEPENDENCIES = symbols.map
+libopendkim_la_LDFLAGS = -export-symbols symbols.map $(LIBCRYPTO_LIBDIRS)
 libopendkim_la_LIBADD = $(LIBCRYPTO_LIBS)
 if DEBUG
 libopendkim_la_CFLAGS += -g
@@ -1051,3 +1052,6 @@ t_test127_LDADD = ./libopendkim.la
 if DEBUG
 t_test127_CFLAGS = -g
 endif
+
+symbols.map: dkim.h
+	./symbols.sh
