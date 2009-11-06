@@ -9,7 +9,7 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.14 2009/11/05 20:36:16 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.14.2.1 2009/11/06 22:23:21 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1426,6 +1426,80 @@ extern unsigned long dkim_ssl_version __P((void));
 #define	DKIM_FEATURE_MAX		6
 
 extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
+
+/*
+**  DKIM_TEST_ADSP -- verify that a valid author domain signing policy exists
+**                    in DNS
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	domain -- domain name
+**  	presult -- policy discovered (returned)
+**  	presult2 -- policy stage at which result was decided (returned)
+**  	err -- error buffer
+**  	errlen -- bytes available at "err"
+**
+**  Return value:
+**  	0 -- some kind of result was made available
+**  	-1 -- error
+*/
+
+extern int dkim_test_adsp __P((DKIM_LIB *, const char *, dkim_policy_t *,
+                               int *, char *, size_t));
+
+/*
+**  DKIM_TEST_KEY -- retrieve a public key and verify it against a provided
+**                   private key
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	selector -- selector
+**  	domain -- domain name
+**  	key -- private key to verify (PEM format)
+**  	keylen -- size of private key
+**  	err -- error buffer (may be NULL)
+**  	errlen -- size of error buffer
+**
+**  Return value:
+**  	1 -- keys don't match
+**  	0 -- keys match (or no key provided)
+**  	-1 -- error
+*/
+
+extern int dkim_test_key __P((DKIM_LIB *, char *, char *, char *, size_t,
+                              char *, size_t));
+
+/*
+**  DKIM_STRLCPY -- size-bounded strcpy()
+**
+**  Parameters:
+**  	dst -- destination string
+** 	src -- source string
+**  	len -- total length of buffer at "dst"
+**
+**  Return value:
+**  	Number of bytes needed to complete the copy, including the terminating
+**  	NULL.  If this is greater than or equal to "len", truncation occurred
+**  	as this function guarantees "dst" will always be NULL-terminated.
+*/
+
+extern size_t dkim_strlcpy __P((char *, const char *, ssize_t));
+
+/*
+**  DKIM_STRLCAT -- size-bounded strcat()
+**
+**  Parameters:
+**  	dst -- destination string
+** 	src -- source string
+**  	len -- total length of buffer at "dst"
+**
+**  Return value:
+**  	Total length of the string the caller tried to create, including
+**  	leaving a trailng NULL.  If this is greater than or equal to "len",
+**  	truncation occurred.
+*/
+
+extern size_t dkim_strlcat __P((char *, const char *, ssize_t));
 
 /* default list of sender headers */
 extern const u_char *dkim_default_senderhdrs[];

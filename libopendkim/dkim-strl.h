@@ -6,7 +6,7 @@
 #define _DKIM_STRL_H_
 
 #ifndef lint
-static char dkim_strl_h_id[] = "@(#)$Id: dkim-strl.h,v 1.2 2009/10/29 06:53:14 cm-msk Exp $";
+static char dkim_strl_h_id[] = "@(#)$Id: dkim-strl.h,v 1.2.6.1 2009/11/06 22:23:21 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -15,15 +15,13 @@ static char dkim_strl_h_id[] = "@(#)$Id: dkim-strl.h,v 1.2 2009/10/29 06:53:14 c
 /* OpenDKIM includes */
 #include "build-config.h"
 
-/* prototypes */
+/* mappings */
 #if HAVE_STRLCAT == 0
 # define strlcat(x,y,z)	dkim_strlcat((x), (y), (z))
-extern size_t dkim_strlcat __P((char *, const char *, ssize_t));
 #endif /* HAVE_STRLCAT == 0 */
 
 #if HAVE_STRLCPY == 0
 # define strlcpy(x,y,z)	dkim_strlcpy((x), (y), (z))
-extern size_t dkim_strlcpy __P((char *, const char *, ssize_t));
 #endif /* HAVE_STRLCPY == 0 */
 
 #endif /* _DKIM_STRL_H_ */
