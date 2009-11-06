@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.60 2009/11/05 20:36:16 cm-msk Exp $
+**  $Id: opendkim.c,v 1.61 2009/11/06 16:08:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.60 2009/11/05 20:36:16 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.61 2009/11/06 16:08:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3848,6 +3848,8 @@ dkimf_cleanup(SMFICTX *ctx)
 			{
 				next = sr->srq_next;
 
+				if (sr->srq_dkim != NULL)
+					dkim_free(sr->srq_dkim);
 				TRYFREE(sr);
 
 				sr = next;
