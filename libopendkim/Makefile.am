@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.32.2.2 2009/11/06 09:18:35 cm-msk Exp $
+# $Id: Makefile.am,v 1.32.2.3 2009/11/06 10:17:53 grooverdan Exp $
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-mailparse.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h util.h
@@ -10,7 +10,7 @@ if DEBUG
 libopendkim_la_CFLAGS += -g
 endif
 libopendkimincludedir = $(includedir)/opendkim
-libopendkiminclude_HEADERS = dkim.h
+libopendkiminclude_HEADERS = dkim.h dkim-test.h dkim-strl.h
 libopendkim_ladir = $(datadir)/opendkim
 libopendkim_la_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
 	docs/dkim_canon_t.html docs/dkim_cbstat.html docs/dkim_chunk.html \
@@ -1053,7 +1053,7 @@ if DEBUG
 t_test127_CFLAGS = -g
 endif
 
-symbols.map: dkim.h dkim-test.h dkim-strl.h
+symbols.map: $(libopendkiminclude_HEADERS) 
 	grep '^extern' $^ | \
 		awk '{ for (c = 1; c <= NF; c++) if ($$c ~ /dkim_/) { print $$c; break; } }' | \
 		sed -e s/\[\*\;\]//g -e s/\[\\\[\\\]\]//g > $@
