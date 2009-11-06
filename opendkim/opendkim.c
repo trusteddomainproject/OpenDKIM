@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.56.2.1 2009/11/06 09:28:11 cm-msk Exp $
+**  $Id: opendkim.c,v 1.56.2.2 2009/11/06 09:32:51 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56.2.1 2009/11/06 09:28:11 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56.2.2 2009/11/06 09:32:51 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5813,6 +5813,15 @@ mlfi_eoh(SMFICTX *ctx)
 	dfc->mctx_signing = FALSE;
 	domainok = FALSE;
 	originok = FALSE;
+
+#ifdef _FFR_RESIGN
+	/* XXX -- check to see if it's a destination for which we resign */
+	/* XXX -- if it is, set "domainok" and "originok" to TRUE */
+	/* XXX -- then later, after the signing handle is set, also set up
+	   a verifying handle, and bind them */
+	/* XXX -- then force verify mode */
+	/* XXX -- finally, in EOM, arrange to add the resultant signature */
+#endif /* _FFR_RESIGN */
 
 	/* is it a domain we sign for? */
 	if (conf->conf_domainsdb != NULL)
