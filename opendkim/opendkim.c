@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.56.2.2 2009/11/06 09:32:51 cm-msk Exp $
+**  $Id: opendkim.c,v 1.56.2.3 2009/11/06 18:06:46 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56.2.2 2009/11/06 09:32:51 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56.2.3 2009/11/06 18:06:46 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -196,6 +196,9 @@ struct dkimf_config
 	_Bool		conf_multisig;		/* multiple signatures */
 #endif /* _FFR_MULTIPLE_SIGNATURES */
 	_Bool		conf_enablecores;	/* enable coredumps */
+#ifdef _FFR_RESIGN
+	_Bool		conf_resignall;		/* resign unverified mail */
+#endif /* _FFR_RESIGN */
 	unsigned int	conf_mode;		/* operating mode */
 	unsigned int	conf_refcnt;		/* reference count */
 	unsigned int	conf_dnstimeout;	/* DNS timeout */
@@ -238,6 +241,9 @@ struct dkimf_config
 	char *		conf_canonstr;		/* canonicalization(s) string */
 	char *		conf_siglimit;		/* signing limits */
 	char *		conf_selector;		/* key selector */
+#ifdef _FFR_RESIGN
+	char *		conf_resign;		/* resign mail to */
+#endif /* _FFR_RESIGN */
 #ifdef _FFR_SENDER_MACRO
 	char *		conf_sendermacro;	/* macro containing sender */
 #endif /* _FFR_SENDER_MACRO */
@@ -306,6 +312,9 @@ struct dkimf_config
 	Peer		conf_peerlist;		/* queue of "peers" */
 	Peer		conf_internal;		/* queue of "internal" hosts */
 	Peer		conf_exignore;		/* "external ignore" hosts */
+#ifdef _FFR_RESIGN
+	DKIMF_DB	conf_resigndb;		/* resign mail to (DB) */
+#endif /* _FFR_RESIGN */
 	DKIM_LIB *	conf_libopendkim;	/* DKIM library handle */
 	struct handling	conf_handling;		/* message handling */
 };
@@ -331,6 +340,9 @@ struct msgctx
 #endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
 	_Bool		mctx_susp;		/* suspicious message? */
 	_Bool		mctx_policy;		/* policy query completed */
+#ifdef _FFR_RESIGN
+	_Bool		mctx_resign;		/* arrange to re-sign */
+#endif /* _FFR_RESIGN */
 	int		mctx_status;		/* status to report back */
 	dkim_canon_t	mctx_hdrcanon;		/* header canonicalization */
 	dkim_canon_t	mctx_bodycanon;		/* body canonicalization */
@@ -344,6 +356,9 @@ struct msgctx
 	struct dkimf_dstring * mctx_tmpstr;	/* temporary string */
 	char *		mctx_jobid;		/* job ID */
 	DKIM *		mctx_dkim;		/* DKIM handle */
+#ifdef _FFR_RESIGN
+	DKIM *		mctx_dkimr;		/* DKIM handle (resigning) */
+#endif /* _FFR_RESIGN */
 #if VERIFY_DOMAINKEYS
 	DK *		mctx_dk;		/* DK handle */
 #endif /* VERIFY_DOMAINKEYS */
@@ -2007,6 +2022,11 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_localadsp_db != NULL)
 		dkimf_db_close(conf->conf_localadsp_db);
 
+#ifdef _FFR_RESIGN
+	if (conf->conf_resigndb != NULL)
+		dkimf_db_close(conf->conf_resigndb);
+#endif /* _FFR_RESIGN */
+
 	config_free(conf->conf_data);
 
 	free(conf);
@@ -2087,6 +2107,15 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_redirect,
 		                  sizeof conf->conf_redirect);
 #endif /* _FFR_REDIRECT */
+
+#ifdef _FFR_RESIGN
+		(void) config_get(data, "ResignMailTo",
+		                  &conf->conf_resign,
+		                  sizeof conf->conf_resign);
+		(void) config_get(data, "ResignAll",
+		                  &conf->conf_resignall,
+		                  sizeof conf->conf_resignall);
+#endif /* _FFR_RESIGN */
 
 		if (conf->conf_dnstimeout == DEFTIMEOUT)
 		{
@@ -2764,6 +2793,31 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			return -1;
 		}
 	}
+
+#ifdef _FFR_RESIGN
+	str = NULL;
+	if (conf->conf_resign != NULL)
+	{
+		str = conf->conf_resign;
+	}
+	else if (data != NULL)
+	{
+		(void) config_get(data, "ResignMailTo", &str, sizeof str);
+	}
+	if (str != NULL)
+	{
+		int status;
+
+		status = dkimf_db_open(&conf->conf_resigndb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
+			return -1;
+		}
+	}
+#endif /* _FFR_RESIGN */
 
 	str = NULL;
 	if (conf->conf_domlist != NULL)
@@ -3844,6 +3898,8 @@ dkimf_cleanup(SMFICTX *ctx)
 			{
 				next = sr->srq_next;
 
+				if (sr->srq_dkim != NULL)
+					dkim_free(sr->srq_dkim);
 				TRYFREE(sr);
 
 				sr = next;
@@ -3851,6 +3907,10 @@ dkimf_cleanup(SMFICTX *ctx)
 		}
 #endif /* _FFR_MULTIPLE_SIGNATURES */
 
+#ifdef _FFR_RESIGN
+		if (dfc->mctx_dkimr != NULL)
+			dkim_free(dfc->mctx_dkimr);
+#endif /* _FFR_RESIGN */
 		if (dfc->mctx_dkim != NULL)
 			dkim_free(dfc->mctx_dkim);
 #ifdef _FFR_VBR
@@ -5324,6 +5384,9 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 #ifdef _FFR_REDIRECT
 	    || conf->conf_redirect != NULL
 #endif /* _FFR_REDIRECT */
+#ifdef _FFR_RESIGN
+	    || conf->conf_resigndb != NULL
+#endif /* _FFR_RESIGN */
 	   )
 	{
 		strlcpy(addr, envrcpt[0], sizeof addr);
@@ -5334,6 +5397,9 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 #ifdef _FFR_REDIRECT
 	    || conf->conf_redirect != NULL
 #endif /* _FFR_REDIRECT */
+#ifdef _FFR_RESIGN
+	    || conf->conf_resigndb != NULL
+#endif /* _FFR_RESIGN */
 	   )
 	{
 		struct addrlist *a;
@@ -5820,7 +5886,7 @@ mlfi_eoh(SMFICTX *ctx)
 	/* XXX -- then later, after the signing handle is set, also set up
 	   a verifying handle, and bind them */
 	/* XXX -- then force verify mode */
-	/* XXX -- finally, in EOM, arrange to add the resultant signature */
+	/* XXX -- finally, in EOM, arrange to add the resultant signature(s) */
 #endif /* _FFR_RESIGN */
 
 	/* is it a domain we sign for? */
