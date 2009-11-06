@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.26 2009/11/06 11:09:40 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.27 2009/11/06 11:19:17 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -3114,7 +3114,7 @@ dkim_eom_sign(DKIM *dkim)
 	assert(dkim != NULL);
 
 	if (dkim->dkim_state >= DKIM_STATE_EOM2 ||
-	    dkim->dkim_state < DKIM_STATE_EOH2)
+	    dkim->dkim_state < DKIM_STATE_EOH1)
 		return DKIM_STAT_INVALID;
 	if (dkim->dkim_state < DKIM_STATE_EOM2)
 		dkim->dkim_state = DKIM_STATE_EOM2;
@@ -3353,7 +3353,7 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 	assert(dkim != NULL);
 
 	if (dkim->dkim_state >= DKIM_STATE_EOM2 ||
-	    dkim->dkim_state < DKIM_STATE_EOH2)
+	    dkim->dkim_state < DKIM_STATE_EOH1)
 		return DKIM_STAT_INVALID;
 	if (dkim->dkim_state < DKIM_STATE_EOM1)
 		dkim->dkim_state = DKIM_STATE_EOM1;
@@ -5369,7 +5369,7 @@ dkim_body(DKIM *dkim, u_char *buf, size_t buflen)
 	assert(buf != NULL);
 
 	if (dkim->dkim_state > DKIM_STATE_BODY ||
-	    dkim->dkim_state < DKIM_STATE_EOH2)
+	    dkim->dkim_state < DKIM_STATE_EOH1)
 		return DKIM_STAT_INVALID;
 	dkim->dkim_state = DKIM_STATE_BODY;
 
