@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.5 2009/11/03 18:05:47 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.6 2009/11/06 17:48:50 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -3120,19 +3120,75 @@ dkim_eom_sign(DKIM *dkim)
 	assert(dkim != NULL);
 
 #ifdef _FFR_RESIGN
-	if (dkim->dkim_resign != NULL &&
-	    dkim->dkim_resign->dkim_state != DKIM_STATE_EOM2)
+	if (dkim->dkim_resign != NULL)
+	{
+		if (dkim->dkim_state != DKIM_STATE_INIT ||
+		    dkim->dkim_resign->dkim_state != DKIM_STATE_EOM2)
+			return DKIM_STAT_INVALID;
+	}
+	else if (dkim->dkim_state >= DKIM_STATE_EOM2 ||
+	         dkim->dkim_state < DKIM_STATE_EOH1)
+	{
+		return DKIM_STAT_INVALID;
+	}
+#else /* _FFR_RESIGN */
+	if (dkim->dkim_state >= DKIM_STATE_EOM2 ||
+	    dkim->dkim_state < DKIM_STATE_EOH1)
 		return DKIM_STAT_INVALID;
 #endif /* _FFR_RESIGN */
 
-	if (dkim->dkim_state >= DKIM_STATE_EOM2)
-		return DKIM_STAT_INVALID;
 	if (dkim->dkim_state < DKIM_STATE_EOM2)
 		dkim->dkim_state = DKIM_STATE_EOM2;
 
 	if (dkim->dkim_chunkstate != DKIM_CHUNKSTATE_INIT &&
 	    dkim->dkim_chunkstate != DKIM_CHUNKSTATE_DONE)
 		return DKIM_STAT_INVALID;
+
+#ifdef _FFR_RESIGN
+	/*
+	**  Verify that all the required headers are present and
+	**  marked for signing.
+	*/
+
+	if (dkim->dkim_resign != NULL)
+	{
+		bool found;
+		int c;
+		size_t len;
+		struct dkim_header *hdr;
+
+		dkim->dkim_hhead = dkim->dkim_resign->dkim_hhead;
+
+		for (c = 0; required_signhdrs[c] != NULL; c++)
+		{
+			found = FALSE;
+			len = strlen(required_signhdrs[c]);
+
+			for (hdr = dkim->dkim_hhead;
+			     hdr != NULL;
+			     hdr = hdr->hdr_next)
+			{
+				if (hdr->hdr_namelen == len &&
+				    strncasecmp(hdr->hdr_text,
+				                required_signhdrs[c],
+				                len) == 0)
+				{
+					found = TRUE;
+					break;
+				}
+			}
+
+			if (!found)
+			{
+				dkim_error(dkim,
+				           "required header \"%s\" not found",
+				           required_signhdrs[c]);
+				dkim->dkim_state = DKIM_STATE_UNUSABLE;
+				return DKIM_STAT_SYNTAX;
+			}
+		}
+	}
+#endif /* _FFR_RESIGN */
 
 	/* finalize body canonicalizations */
 	(void) dkim_canon_closebody(dkim);
@@ -3367,7 +3423,8 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 
 	assert(dkim != NULL);
 
-	if (dkim->dkim_state >= DKIM_STATE_EOM2)
+	if (dkim->dkim_state >= DKIM_STATE_EOM2 ||
+	    dkim->dkim_state < DKIM_STATE_EOH1)
 		return DKIM_STAT_INVALID;
 	if (dkim->dkim_state < DKIM_STATE_EOM1)
 		dkim->dkim_state = DKIM_STATE_EOM1;
@@ -4487,7 +4544,7 @@ dkim_resign(DKIM *new, DKIM *old)
 		return DKIM_STAT_INVALID;
 
 	if (old->dkim_mode != DKIM_MODE_VERIFY ||
-	    old->dkim_state != DKIM_STATE_HEADER ||
+	    old->dkim_state >= DKIM_STATE_EOH1 ||
 	    old->dkim_resign != NULL)
 		return DKIM_STAT_INVALID;
 
@@ -4502,38 +4559,6 @@ dkim_resign(DKIM *new, DKIM *old)
 	keep = ((lib->dkiml_flags & DKIM_LIBFLAGS_KEEPFILES) != 0);
 
 	new->dkim_version = lib->dkiml_version;
-
-	new->dkim_hhead = old->dkim_hhead;
-
-	/*
-	**  Verify that all the required headers are present and
-	**  marked for signing.
-	*/
-
-	for (c = 0; required_signhdrs[c] != NULL; c++)
-	{
-		found = FALSE;
-		len = strlen(required_signhdrs[c]);
-
-		for (hdr = old->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
-		{
-			if (hdr->hdr_namelen == len &&
-			    strncasecmp(hdr->hdr_text, required_signhdrs[c],
-			                len) == 0)
-			{
-				found = TRUE;
-				break;
-			}
-		}
-
-		if (!found)
-		{
-			dkim_error(new, "required header \"%s\" not found",
-			           required_signhdrs[c]);
-			new->dkim_state = DKIM_STATE_UNUSABLE;
-			return DKIM_STAT_SYNTAX;
-		}
-	}
 
 	/* determine hash type */
 	switch (new->dkim_signalg)
@@ -4569,6 +4594,7 @@ dkim_resign(DKIM *new, DKIM *old)
 		           sizeof(struct dkim_siginfo));
 		return DKIM_STAT_NORESOURCE;
 	}
+
 	new->dkim_sigcount = 1;
 	memset(new->dkim_siglist[0], '\0', sizeof(struct dkim_siginfo));
 	new->dkim_siglist[0]->sig_domain = new->dkim_domain;
@@ -5585,7 +5611,8 @@ dkim_body(DKIM *dkim, u_char *buf, size_t buflen)
 		return DKIM_STAT_INVALID;
 #endif /* _FFR_RESIGN */
 
-	if (dkim->dkim_state > DKIM_STATE_BODY)
+	if (dkim->dkim_state > DKIM_STATE_BODY ||
+	    dkim->dkim_state < DKIM_STATE_EOH1)
 		return DKIM_STAT_INVALID;
 	dkim->dkim_state = DKIM_STATE_BODY;
 
