@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.c,v 1.7 2009/08/30 09:00:23 cm-msk Exp $
+**  $Id: test.c,v 1.7.4.1 2009/11/06 23:42:25 cm-msk Exp $
 */
 
 #ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.7 2009/08/30 09:00:23 cm-msk Exp $";
+static char test_c_id[] = "@(#)$Id: test.c,v 1.7.4.1 2009/11/06 23:42:25 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -57,13 +57,13 @@ char *envfrom[] =
 	NULL
 };
 
-#ifdef _FFR_BODYLENGTH_DB
+#if defined(_FFR_BODYLENGTH_DB) || defined(_FFR_REDIRECT) || defined(_FFR_RESIGN)
 char *envrcpt[] =
 {
 	"<recipient@example.com>",
 	NULL
 };
-#endif /* _FFR_BODYLENGTH_DB */
+#endif /* defined(_FFR_BODYLENGTH_DB) || defined(_FFR_REDIRECT) || defined(_FFR_RESIGN) */
 
 #define	FCLOSE(x)		if ((x) != stdin) \
 					fclose((x));
@@ -364,7 +364,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, time_t fixedtime,
 		return EX_SOFTWARE;
 	}
 
-#ifdef _FFR_BODYLENGTH_DB
+#if defined(_FFR_BODYLENGTH_DB) || defined(_FFR_REDIRECT) || defined(_FFR_RESIGN)
 	ms = mlfi_envrcpt((SMFICTX *) tctx, envrcpt);
 	if (MLFI_OUTPUT(ms, tverbose))
 	{
@@ -376,7 +376,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, time_t fixedtime,
 		FCLOSE(f);
 		return EX_SOFTWARE;
 	}
-#endif /* _FFR_BODYLENGTH_DB */
+#endif /* defined(_FFR_BODYLENGTH_DB) || defined(_FFR_REDIRECT) || defined(_FFR_RESIGN) */
 
 	while (!feof(f))
 	{
