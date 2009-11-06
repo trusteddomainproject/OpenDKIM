@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.8 2009/10/20 23:13:55 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.8.4.1 2009/11/06 18:15:51 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.8 2009/10/20 23:13:55 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.8.4.1 2009/11/06 18:15:51 cm-msk Exp $";
 #endif /* !lint */
 
 struct configdef dkimf_config[] =
@@ -108,6 +108,10 @@ struct configdef dkimf_config[] =
 	{ "ReputationRoot",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_DKIM_REPUTATION */
 	{ "RequiredHeaders",		CONFIG_TYPE_BOOLEAN,	FALSE },
+#ifdef _FFR_RESIGN
+	{ "ResignAll",			CONFIG_TYPE_BOOLEAN,	FALSE },
+	{ "ResignMailTo",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_RESIGN */
 	{ "Selector",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_IDENTITY_HEADER
 	{ "IdentityHeader",		CONFIG_TYPE_STRING,     FALSE },
