@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.47 2009/10/30 23:17:09 cm-msk Exp $
+# $Id: Makefile.am,v 1.47.2.1 2009/11/06 17:50:29 cm-msk Exp $
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -pthread --pedantic -Wall -O2
@@ -60,6 +60,9 @@ opendkim_CFLAGS += -D_FFR_REPLACE_RULES
 endif
 if REPORT_INTERVALS
 opendkim_CFLAGS += -D_FFR_REPORT_INTERVALS
+endif
+if RESIGN
+opendkim_CFLAGS += -D_FFR_RESIGN
 endif
 if SELECTOR_HEADER
 opendkim_CFLAGS += -D_FFR_SELECTOR_HEADER
