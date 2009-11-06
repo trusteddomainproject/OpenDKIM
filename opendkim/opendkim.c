@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.56 2009/10/29 23:33:51 cm-msk Exp $
+**  $Id: opendkim.c,v 1.56.2.1 2009/11/06 09:28:11 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56 2009/10/29 23:33:51 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56.2.1 2009/11/06 09:28:11 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -275,31 +275,31 @@ struct dkimf_config
 #ifdef _FFR_VBR
 	char *		conf_vbr_deftype;	/* default VBR type */
 	char *		conf_vbr_defcert;	/* default VBR certifiers */
-	DKIMF_DB		conf_vbr_trusteddb;	/* trusted certifiers (DB) */
+	DKIMF_DB	conf_vbr_trusteddb;	/* trusted certifiers (DB) */
 	char **		conf_vbr_trusted;	/* trusted certifiers */
 #endif /* _FFR_VBR */
-	DKIMF_DB		conf_domainsdb;		/* domains to sign (DB) */
+	DKIMF_DB	conf_domainsdb;		/* domains to sign (DB) */
 	char **		conf_domains;		/* domains to sign (array) */
-	DKIMF_DB		conf_omithdrdb;		/* headers to omit (DB) */
+	DKIMF_DB	conf_omithdrdb;		/* headers to omit (DB) */
 	char **		conf_omithdrs;		/* headers to omit (array) */
-	DKIMF_DB		conf_signhdrsdb;	/* headers to sign (DB) */
+	DKIMF_DB	conf_signhdrsdb;	/* headers to sign (DB) */
 	char **		conf_signhdrs;		/* headers to sign (array) */
-	DKIMF_DB		conf_alwayshdrsdb;	/* always incl. hdrs (DB) */
+	DKIMF_DB	conf_alwayshdrsdb;	/* always incl. hdrs (DB) */
 	char **		conf_alwayshdrs;	/* always incl. hdrs (array) */
-	DKIMF_DB		conf_senderhdrsdb;	/* sender headers (DB) */
+	DKIMF_DB	conf_senderhdrsdb;	/* sender headers (DB) */
 	char **		conf_senderhdrs;	/* sender headers (array) */
-	DKIMF_DB		conf_mtasdb;		/* MTA ports to sign (DB) */
+	DKIMF_DB	conf_mtasdb;		/* MTA ports to sign (DB) */
 	char **		conf_mtas;		/* MTA ports to sign (array) */
-	DKIMF_DB		conf_remardb;		/* A-R removal list (DB) */
+	DKIMF_DB	conf_remardb;		/* A-R removal list (DB) */
 	char **		conf_remar;		/* A-R removal list (array) */
-	DKIMF_DB		conf_mbsdb;		/* must-be-signed hdrs (DB) */
+	DKIMF_DB	conf_mbsdb;		/* must-be-signed hdrs (DB) */
 	char **		conf_mbs;		/* must-be-signed (array) */
-	DKIMF_DB		conf_dontsigntodb;	/* don't-sign-to addrs (DB) */
+	DKIMF_DB	conf_dontsigntodb;	/* don't-sign-to addrs (DB) */
 	char **		conf_dontsignto;	/* don't-sign-to (array) */
-	DKIMF_DB		conf_thirdpartydb;	/* trustsigsfrom DB */
+	DKIMF_DB	conf_thirdpartydb;	/* trustsigsfrom DB */
 	char **		conf_thirdparty;	/* trustsigsfrom addrs */
-	DKIMF_DB		conf_localadsp_db;	/* local ADSP DB */
-	DKIMF_DB		conf_macrosdb;		/* macros/values (DB) */
+	DKIMF_DB	conf_localadsp_db;	/* local ADSP DB */
+	DKIMF_DB	conf_macrosdb;		/* macros/values (DB) */
 	char **		conf_macros;		/* macros/values to check */
 	char **		conf_values;		/* macros/values to check */
 	regex_t **	conf_nosignpats;	/* do-not-sign patterns */
