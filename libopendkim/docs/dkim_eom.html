@@ -2,7 +2,7 @@
 <head><title>dkim_eom()</title></head>
 <body>
 <!--
-$Id: dkim_eom.html,v 1.2 2009/08/30 21:17:32 cm-msk Exp $
+$Id: dkim_eom.html,v 1.3 2009/11/06 11:09:40 cm-msk Exp $
 -->
 <h1>dkim_eom()</h1>
 
@@ -54,7 +54,8 @@ valid one is found.
 <ul>
 <li><tt>DKIM_STAT_INVALID</tt> may indicate the <tt>dkim</tt> handle was
     rendered unusable by a previous call, likely to
-    <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a>.
+    <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a>, or simply that
+    <tt>dkim_eoh()</tt> has not yet been called for this handle.
 <li><tt>DKIM_STAT_INVALID</tt> may also indicate the <tt>dkim</tt> handle was
     passed to <a href="dkim_chunk.html"><tt>dkim_chunk()</tt></a> for
     message chunk processing but the end of message was never signaled via
