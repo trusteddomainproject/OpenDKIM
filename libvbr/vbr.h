@@ -9,7 +9,7 @@
 #define _VBR_H_
 
 #ifndef lint
-static char vbr_h_id[] = "@(#)$Id: vbr.h,v 1.1 2009/10/30 23:17:09 cm-msk Exp $";
+static char vbr_h_id[] = "@(#)$Id: vbr.h,v 1.2 2009/11/06 09:23:57 cm-msk Exp $";
 #endif /* !lint */
 
 /* strings */
@@ -28,6 +28,7 @@ typedef int VBR_STAT;
 #define VBR_STAT_INVALID	1
 #define VBR_STAT_DNSERROR	2
 #define VBR_STAT_NORESOURCE	3
+#define VBR_STAT_NOTIMPLEMENT	4
 
 /* types */
 struct vbr_handle;
@@ -171,7 +172,6 @@ extern void vbr_trustedcerts __P((VBR *, char **));
 
 extern VBR_STAT vbr_query __P((VBR *, char **, char **));
 
-#ifdef USE_ARLIB
 /*
 **  VBR_SETTIMEOUT -- set the DNS timeout
 **
@@ -180,10 +180,10 @@ extern VBR_STAT vbr_query __P((VBR *, char **, char **));
 **  	timeout -- requested timeout (seconds)
 **
 **  Return value:
-**  	None (yet).
+**  	A VBR_STAT_* constant.
 */
 
-extern void vbr_settimeout __P((VBR *, u_int));
+extern VBR_STAT vbr_settimeout __P((VBR *, u_int));
 
 /*
 **  VBR_SETCALLBACKINT -- set the DNS callback interval
@@ -193,10 +193,10 @@ extern void vbr_settimeout __P((VBR *, u_int));
 **  	cbint -- requested callback interval (seconds)
 **
 **  Return value:
-**  	None (yet).
+**  	A VBR_STAT_* constant.
 */
 
-extern void vbr_setcallbackint __P((VBR *, u_int));
+extern VBR_STAT vbr_setcallbackint __P((VBR *, u_int));
 
 /*
 **  VBR_SETCALLBACKCTX -- set the DNS callback context
@@ -206,10 +206,10 @@ extern void vbr_setcallbackint __P((VBR *, u_int));
 **  	ctx -- context to pass to the DNS callback
 **
 **  Return value:
-**  	None (yet).
+**  	A VBR_STAT_* constant.
 */
 
-extern void vbr_setcallbackctx __P((VBR *, void *));
+extern VBR_STAT vbr_setcallbackctx __P((VBR *, void *));
 
 /*
 **  VBR_SETDNSCALLBACK -- set the DNS wait callback
@@ -219,12 +219,10 @@ extern void vbr_setcallbackctx __P((VBR *, void *));
 **  	func -- function to call; should take an opaque context pointer
 **
 **  Return value:
-**  	None.
+**  	A VBR_STAT_* constant.
 */
 
 extern VBR_STAT vbr_setdnscallback __P((VBR *vbr,
                                         void (*func)(const void *context)));
-
-#endif /* USE_ARLIB */
 
 #endif /* _VBR_H_ */

@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.1 2009/10/30 23:17:09 cm-msk Exp $";
+static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.2 2009/11/06 09:23:57 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -524,7 +524,6 @@ vbr_geterror(VBR *vbr)
 
 /* XXX -- need a function to take in a VBR-Info: header and parse it? */
 
-#ifdef USE_ARLIB
 /*
 **  VBR_SETTIMEOUT -- set the DNS timeout
 **
@@ -533,15 +532,20 @@ vbr_geterror(VBR *vbr)
 **  	timeout -- requested timeout (seconds)
 **
 **  Return value:
-**  	None (yet).
+**  	A VBR_STAT_* constant.
 */
 
-void
+VBR_STAT
 vbr_settimeout(VBR *vbr, u_int timeout)
 {
 	assert(vbr != NULL);
 
+#ifdef USE_ARLIB
 	vbr->vbr_timeout = timeout;
+	return VBR_STAT_OK;
+#else /* USE_ARLIB */
+	return VBR_STAT_NOTIMPLEMENT;
+#endif /* USE_ARLIB */
 }
 
 /*
@@ -552,15 +556,20 @@ vbr_settimeout(VBR *vbr, u_int timeout)
 **  	cbint -- requested callback interval (seconds)
 **
 **  Return value:
-**  	None (yet).
+**  	A VBR_STAT_* constant.
 */
 
-void
+VBR_STAT
 vbr_setcallbackint(VBR *vbr, u_int cbint)
 {
 	assert(vbr != NULL);
 
+#ifdef USE_ARLIB
 	vbr->vbr_callback_int = cbint;
+	return VBR_STAT_OK;
+#else /* USE_ARLIB */
+	return VBR_STAT_NOTIMPLEMENT;
+#endif /* USE_ARLIB */
 }
 
 /*
@@ -571,15 +580,20 @@ vbr_setcallbackint(VBR *vbr, u_int cbint)
 **  	ctx -- context to pass to the DNS callback
 **
 **  Return value:
-**  	None (yet).
+**  	A VBR_STAT_* constant.
 */
 
-void
+VBR_STAT
 vbr_setcallbackctx(VBR *vbr, void *ctx)
 {
 	assert(vbr != NULL);
 
+#ifdef USE_ARLIB
 	vbr->vbr_user_context = ctx;
+	return VBR_STAT_OK;
+#else /* USE_ARLIB */
+	return VBR_STAT_NOTIMPLEMENT;
+#endif /* USE_ARLIB */
 }
 
 /*
@@ -590,8 +604,7 @@ vbr_setcallbackctx(VBR *vbr, void *ctx)
 **  	func -- function to call; should take an opaque context pointer
 **
 **  Return value:
-**  	VBR_STAT_OK -- success
-**  	VBR_STAT_INVALID -- invalid use
+**  	A VBR_STAT_* constant.
 */
 
 VBR_STAT
@@ -601,14 +614,11 @@ vbr_setdnscallback(VBR *vbr, void (*func)(const void *context))
 
 #if USE_ARLIB
 	vbr->vbr_dns_callback = func;
-
 	return VBR_STAT_OK;
 #else /* USE_ARLIB */
-	return VBR_STAT_INVALID;
+	return VBR_STAT_NOTIMPLEMENT;
 #endif /* USE_ARLIB */
 }
-
-#endif /* USE_ARLIB */
 
 /*
 **  VBR_SETDOMAIN -- declare the sender's domain
