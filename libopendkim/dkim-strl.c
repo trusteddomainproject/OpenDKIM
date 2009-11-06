@@ -9,8 +9,12 @@
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 */
 
+/* system includes */
 #include <sys/types.h>
 #include <string.h>
+
+/* OpenDKIM includes */
+#include "build-config.h"
 
 /*
 **  XXX the type of the length parameter has been changed
@@ -21,7 +25,6 @@
 */
 
 #if HAVE_STRLCPY == 0
-
 /*
 **  DKIM_STRLCPY -- size bounded string copy
 **
