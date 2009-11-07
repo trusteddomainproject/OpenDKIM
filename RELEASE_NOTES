@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.49.2.1 2009/11/02 23:21:29 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.49.2.2 2009/11/07 22:33:01 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -16,12 +16,12 @@ release, and a summary of the changes in that release.
 	Feature request #SF2873900: Add optional support for OpenDBX for
 		connecting to ODBC and SQL backend databases.  Requested
 		by Daniel Black.
+	Add _FFR_RESIGN which allows binding of a signing handle to a
+		verifying handle so that only one set of hashes needs to be
+		run when a message will be re-signed as-is.  Suggested
+		by Daniel Black.
 	LIBOPENDKIM: Move VBR functions from libopendkim into their own
 		new library, libvbr.
-	LIBOPENDKIM: Add _FFR_RESIGN which allows binding of a signing handle
-		to a verifying handle so that only one set of hashes needs
-		to be run when a message will be re-signed as-is.  Suggested
-		by Daniel Black.
 	BUILD: Split up library assignments between libopendkim and opendkim,
 		taking advantage of libtool.  Based on a patch by Daniel Black.
 
