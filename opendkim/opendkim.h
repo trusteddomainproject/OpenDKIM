@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.11 2009/10/28 03:30:27 cm-msk Exp $
+**  $Id: opendkim.h,v 1.11.2.1 2009/11/10 05:34:23 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.11 2009/10/28 03:30:27 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.11.2.1 2009/11/10 05:34:23 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -93,9 +93,7 @@ extern char *progname;
 /* prototypes, exported for test.c */
 extern sfsistat mlfi_connect __P((SMFICTX *, char *, _SOCK_ADDR *));
 extern sfsistat mlfi_envfrom __P((SMFICTX *, char **));
-#ifdef _FFR_BODYLENGTH_DB
 extern sfsistat mlfi_envrcpt __P((SMFICTX *, char **));
-#endif /* _FFR_BODYLENGTH_DB */
 extern sfsistat mlfi_header __P((SMFICTX *, char *, char *));
 extern sfsistat mlfi_eoh __P((SMFICTX *));
 extern sfsistat mlfi_body __P((SMFICTX *, u_char *, size_t));
