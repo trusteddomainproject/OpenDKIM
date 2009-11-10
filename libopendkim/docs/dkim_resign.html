@@ -2,7 +2,7 @@
 <head><title>dkim_resign()</title></head>
 <body>
 <!--
-$Id: dkim_resign.html,v 1.2.2.4 2009/11/06 17:48:50 cm-msk Exp $
+$Id: dkim_resign.html,v 1.2.2.5 2009/11/10 05:29:08 cm-msk Exp $
 -->
 <h1>dkim_resign()</h1>
 
@@ -14,7 +14,8 @@ $Id: dkim_resign.html,v 1.2.2.4 2009/11/06 17:48:50 cm-msk Exp $
 
 <a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_resign(
 	<a href="dkim.html"><tt>DKIM</tt></a> *sh,
-	<a href="dkim.html"><tt>DKIM</tt></a> *vh
+	<a href="dkim.html"><tt>DKIM</tt></a> *vh,
+	bool hdrbind
 );
 </pre>
 Binds a signing handle to a verifying handle to re-sign a message being
@@ -49,6 +50,12 @@ a verification result and a new signature.
         <a href="dkim_verify.html"><tt>dkim_verify()</tt></a>.
 	<a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a> must not already have
 	been called. </td>
+	</td></tr>
+    <tr valign="top"><td>hdrbind</td>
+	<td>If TRUE, indicates that both the header and the body of the
+	message are bound to the verifying handle.  If FALSE, only the body
+	is bound, meaning the header is free to add additional header fields
+	prior to calling <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a>.
 	</td></tr>
     </table>
 </td></tr>

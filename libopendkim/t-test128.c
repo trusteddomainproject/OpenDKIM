@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test128_c_id[] = "@(#)$Id: t-test128.c,v 1.2.2.4 2009/11/03 18:06:09 cm-msk Exp $";
+static char t_test128_c_id[] = "@(#)$Id: t-test128.c,v 1.2.2.5 2009/11/10 05:29:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -21,9 +21,11 @@ static char t_test128_c_id[] = "@(#)$Id: t-test128.c,v 1.2.2.4 2009/11/03 18:06:
 
 #define	MAXHEADER	4096
 
-#define SIG2 "v=1; a=rsa-sha1; c=relaxed/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=ll/0h2aWgG+D3ewmE4Y3pY7Ukz8=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=Q4G/ki/5soDXGxs43JfV+qEKDr5X3GgTDNeZqWL3zLLC5DXWWzmnKRcU8NH4Wsfkh\r\n\t o5tMo4NRmqnB2eZtozsyXdHo2ekUPLxuAQJomM4JHaPTfsraHwkibQIkPpW5hf/Rc2\r\n\t 0QgP48iQBjxqcOSn/Vwk5QDup4Qj1vgOxBqTqwdg="
+#ifndef TRUE
+# define TRUE		1
+#endif /* ! TRUE */
 
-#define TEST_KEEP_FILES 1
+#define SIG2 "v=1; a=rsa-sha1; c=relaxed/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=ll/0h2aWgG+D3ewmE4Y3pY7Ukz8=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=Q4G/ki/5soDXGxs43JfV+qEKDr5X3GgTDNeZqWL3zLLC5DXWWzmnKRcU8NH4Wsfkh\r\n\t o5tMo4NRmqnB2eZtozsyXdHo2ekUPLxuAQJomM4JHaPTfsraHwkibQIkPpW5hf/Rc2\r\n\t 0QgP48iQBjxqcOSn/Vwk5QDup4Qj1vgOxBqTqwdg="
 
 /*
 **  MAIN -- program mainline
@@ -39,7 +41,7 @@ int
 main(int argc, char **argv)
 {
 #ifndef _FFR_RESIGN
-	printf("*** relaxed/simple rsa-sha1 re-signing SKIPPED\n");
+	printf("*** relaxed/simple rsa-sha1 re-signing with header binding SKIPPED\n");
 #else /* ! _FFR_RESIGN */
 # ifdef TEST_KEEP_FILES
 	u_int flags;
@@ -56,7 +58,7 @@ main(int argc, char **argv)
 
 	key = KEY;
 
-	printf("*** relaxed/simple rsa-sha1 re-signing\n");
+	printf("*** relaxed/simple rsa-sha1 re-signing with header binding\n");
 
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
@@ -123,10 +125,10 @@ main(int argc, char **argv)
 	                   DKIM_SIGN_RSASHA1, -1L, &status);
 	assert(resign != NULL);
 
-	status = dkim_resign(dkim, resign);
+	status = dkim_resign(dkim, resign, TRUE);
 	assert(status == DKIM_STAT_INVALID);
 
-	status = dkim_resign(resign, dkim);
+	status = dkim_resign(resign, dkim, TRUE);
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_eoh(dkim);

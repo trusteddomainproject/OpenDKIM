@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.7.4.1 2009/11/01 22:25:22 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.7.4.2 2009/11/10 05:29:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -219,6 +219,9 @@ struct dkim
 	_Bool			dkim_bodydone;
 	_Bool			dkim_subdomain;
 	_Bool			dkim_skipbody;
+#ifdef _FFR_RESIGN
+	_Bool			dkim_hdrbind;
+#endif /* _FFR_RESIGN */
 	int			dkim_mode;
 	int			dkim_state;
 	int			dkim_chunkstate;
