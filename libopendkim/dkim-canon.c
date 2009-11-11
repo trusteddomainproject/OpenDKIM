@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.12 2009/10/22 19:35:50 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.13 2009/11/11 19:38:06 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -86,7 +86,7 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 			break;
 		  }
 
-#ifdef DKIM_HASHTYPE_SHA256
+#ifdef SHA256_DIGEST_LENGTH
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -102,7 +102,7 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 
 			break;
 		  }
-#endif /* DKIM_HASHTYPE_SHA256 */
+#endif /* SHA256_DIGEST_LENGTH */
 
 		  default:
 			assert(0);
@@ -754,7 +754,7 @@ dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 		  	break;
 		  }
 
-#ifdef DKIM_HASHTYPE_SHA256
+#ifdef SHA256_DIGEST_LENGTH
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -789,7 +789,7 @@ dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 
 		  	break;
 		  }
-#endif /* DKIM_HASHTYPE_SHA256 */
+#endif /* SHA256_DIGEST_LENGTH */
 
 		  default:
 			assert(0);
@@ -1225,7 +1225,7 @@ dkim_canon_runheaders(DKIM *dkim, _Bool signing)
 			break;
 		  }
 
-#ifdef DKIM_HASHTYPE_SHA256
+#ifdef SHA256_DIGEST_LENGTH
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -1238,7 +1238,7 @@ dkim_canon_runheaders(DKIM *dkim, _Bool signing)
 
 			break;
 		  }
-#endif /* DKIM_HASHTYPE_SHA256 */
+#endif /* SHA256_DIGEST_LENGTH */
 
 		  default:
 			assert(0);
@@ -1327,7 +1327,7 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 			break;
 		  }
 
-#ifdef DKIM_HASHTYPE_SHA256
+#ifdef SHA256_DIGEST_LENGTH
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -1340,7 +1340,7 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 
 			break;
 		  }
-#endif /* DKIM_HASHTYPE_SHA256 */
+#endif /* SHA256_DIGEST_LENGTH */
 
 		  default:
 			assert(0);
@@ -1680,7 +1680,7 @@ dkim_canon_closebody(DKIM *dkim)
 			break;
 		  }
 
-#ifdef DKIM_HASHTYPE_SHA256
+#ifdef SHA256_DIGEST_LENGTH
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -1693,7 +1693,7 @@ dkim_canon_closebody(DKIM *dkim)
 
 			break;
 		  }
-#endif /* DKIM_HASHTYPE_SHA256 */
+#endif /* SHA256_DIGEST_LENGTH */
 
 		  default:
 			assert(0);
@@ -1741,7 +1741,7 @@ dkim_canon_getfinal(DKIM_CANON *canon, u_char **digest, size_t *dlen)
 		return DKIM_STAT_OK;
 	  }
 
-#ifdef DKIM_HASHTYPE_SHA256
+#ifdef SHA256_DIGEST_LENGTH
 	  case DKIM_HASHTYPE_SHA256:
 	  {
 		struct dkim_sha256 *sha256;
@@ -1752,7 +1752,7 @@ dkim_canon_getfinal(DKIM_CANON *canon, u_char **digest, size_t *dlen)
 
 		return DKIM_STAT_OK;
 	  }
-#endif /* DKIM_HASHTYPE_SHA256 */
+#endif /* SHA256_DIGEST_LENGTH */
 
 	  default:
 		assert(0);
