@@ -1,4 +1,4 @@
-$Id: ProjectGuide,v 1.1 2009/11/02 01:48:33 cm-msk Exp $
+$Id: ProjectGuide,v 1.2 2009/11/11 22:30:00 grooverdan Exp $
 
 OpenDKIM Source Code Management Policies
 
@@ -67,16 +67,20 @@ Sandbox branching procedure:
 
 1) Update your code to the point in CVS at which you want to branch
 
-2) "cvs tag base-<yourname>-<branchname>" (e.g. "cvs tag base-dblack-async-dns")
+2) update the BRANCHES file to contain your branch
+
+3) Check in the BRANCHES file "cvs commit -m 'add branch XXX'"
+
+4) "cvs tag base-<yourname>-<branchname>" (e.g. "cvs tag base-dblack-async-dns")
 to lay down a reference tag, so that later you can produce a final diff of
 your work relative to the branch point
 
-3) "cvs tag -b br-<yourname>-<branchname>" to create the branch
+5) "cvs tag -b br-<yourname>-<branchname>" to create the branch
 
-4) Update your copy so it refers to the branch
+6) Update your copy so it refers to the branch
 (e.g. "cvs update -r br-<yourname>-<branchname>").
 
-5) Code away!
+7) Code away!
 
 Production branch notes:
 
