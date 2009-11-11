@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.66 2009/11/04 18:40:39 cm-msk Exp $
+# $Id: configure.ac,v 1.67 2009/11/11 20:23:38 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -47,6 +47,9 @@ AC_TYPE_UINT32_T
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strtol strtoul strtoull strlcpy strlcat])
 
 # Conditional stuff
+AC_ARG_ENABLE(allsymbols, AS_HELP_STRING(--enable-all-symbols, export even internal-use symbols))
+AM_CONDITIONAL(ALL_SYMBOLS, test "$enable_allsymbols" = yes)
+
 AC_ARG_ENABLE(arlib, AS_HELP_STRING(--enable-arlib, enable provided asynchronous resolver library))
 AM_CONDITIONAL(USE_ARLIB, test "$enable_arlib" = yes)
 

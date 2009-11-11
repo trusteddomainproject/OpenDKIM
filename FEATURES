@@ -24,6 +24,12 @@ FEATURES
 
 Feature Name	Description
 
+allsymbols	By default, the build will attempt to create a libopendkim
+		that only exports symbols intended to be exported;
+		internal-only functions are not visible.  This feature
+		exports those as well.  This is intended only for running
+		library unit tests.  (libopendkim)
+
 bodylengthdb	Optionally query a local database of recipient addresses
 		to determine if an "l=" tag should be applied when
 		signing.  (libopendkim, opendkim)
@@ -103,4 +109,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.8 $, Last updated $Date: 2009/10/20 23:13:55 $
+$Revision: 1.9 $, Last updated $Date: 2009/11/11 20:23:38 $

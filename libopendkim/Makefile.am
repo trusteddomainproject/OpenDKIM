@@ -1,11 +1,14 @@
-# $Id: Makefile.am,v 1.37 2009/11/11 19:43:40 cm-msk Exp $
+# $Id: Makefile.am,v 1.38 2009/11/11 20:23:38 cm-msk Exp $
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-mailparse.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h util.h
 libopendkim_la_CFLAGS = $(LIBCRYPTO_INCDIRS)
-libopendkim_la_DEPENDENCIES = symbols.map
-libopendkim_la_LDFLAGS = -export-symbols symbols.map $(LIBCRYPTO_LIBDIRS)
+libopendkim_la_LDFLAGS = $(LIBCRYPTO_LIBDIRS)
 libopendkim_la_LIBADD = $(LIBCRYPTO_LIBS)
+if !ALL_SYMBOLS
+libopendkim_la_DEPENDENCIES = symbols.map
+libopendkim_la_LDFLAGS += -export-symbols symbols.map
+endif
 if DEBUG
 libopendkim_la_CFLAGS += -g
 endif
@@ -121,7 +124,11 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test109 t-test110 t-test111 t-test112 t-test114 \
 	t-test115 t-test116 t-test117 t-test119 t-test120 \
 	t-test121 t-test122 t-test123 t-test124 t-test125 t-test126 \
-	t-test127 t-signperf t-verifyperf t-cleanup
+	t-test127 t-signperf t-verifyperf
+if ALL_SYMBOLS
+check_PROGRAMS += t-test113 t-test118
+endif
+check_PROGRAMS += t-cleanup
 TESTS = $(check_PROGRAMS)
 
 t_setup_SOURCES = t-setup.c t-testdata.h
@@ -943,12 +950,14 @@ if DEBUG
 t_test112_CFLAGS = -g
 endif
 
-#t_test113_SOURCES = t-test113.c t-testdata.h
-#t_test113_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
-#t_test113_LDADD = ./libopendkim.la
-#if DEBUG
-#t_test113_CFLAGS = -g
-#endif
+if ALL_SYMBOLS
+t_test113_SOURCES = t-test113.c t-testdata.h
+t_test113_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test113_LDADD = ./libopendkim.la
+if DEBUG
+t_test113_CFLAGS = -g
+endif
+endif
 
 t_test114_SOURCES = t-test114.c t-testdata.h
 t_test114_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
@@ -979,12 +988,14 @@ if DEBUG
 t_test117_CFLAGS = -g
 endif
 
-#t_test118_SOURCES = t-test118.c t-testdata.h
-#t_test118_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
-#t_test118_LDADD = ./libopendkim.la
-#if DEBUG
-#t_test118_CFLAGS = -g
-#endif
+if ALL_SYMBOLS
+t_test118_SOURCES = t-test118.c t-testdata.h
+t_test118_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test118_LDADD = ./libopendkim.la
+if DEBUG
+t_test118_CFLAGS = -g
+endif
+endif
 
 t_test119_SOURCES = t-test119.c t-testdata.h
 t_test119_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
