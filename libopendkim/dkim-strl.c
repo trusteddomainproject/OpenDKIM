@@ -24,7 +24,6 @@
 **  happen, but for now we'll use this workaround.
 */
 
-#if HAVE_STRLCPY == 0
 /*
 **  DKIM_STRLCPY -- size bounded string copy
 **
@@ -71,9 +70,7 @@ dkim_strlcpy(dst, src, size)
 	else
 		return i + strlen(src + i);
 }
-#endif /* HAVE_STRLCPY == 0 */
 
-#if HAVE_STRLCAT == 0
 /*
 **  DKIM_STRLCAT -- size bounded string concatenation
 **
@@ -121,4 +118,3 @@ dkim_strlcat(dst, src, size)
 	else
 		return j + strlen(src + i);
 }
-#endif /* HAVE_STRLCAT == 0 */
