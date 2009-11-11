@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test88_c_id[] = "@(#)$Id: t-test88.c,v 1.4 2009/10/22 19:51:15 cm-msk Exp $";
+static char t_test88_c_id[] = "@(#)$Id: t-test88.c,v 1.5 2009/11/11 19:37:06 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -15,14 +15,14 @@ static char t_test88_c_id[] = "@(#)$Id: t-test88.c,v 1.4 2009/10/22 19:51:15 cm-
 #include <string.h>
 #include <stdio.h>
 
-
 /* libopendkim includes */
-#include "dkim-internal.h"
-#include "dkim-types.h"
-#include "dkim-util.h"
+#include "dkim.h"
+#include "dkim-strl.h"
 #include "t-testdata.h"
 
 #define	MAXHEADER	4096
+
+#define	MAXMSGSIZE	16384
 
 #define SIG2 "v=1; a=rsa-sha1; c=relaxed/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=ll/0h2aWgG+D3ewmE4Y3pY7Ukz8=; h=Received:Received:\r\n\t Received:From:To:Date:Subject:Message-ID; b=bj9kVUbnBYfe9sVzH9lT45\r\n\tTFKO3eQnDbXLfgmgu/b5QgxcnhT9ojnV2IAM4KUO8+hOo5sDEu5Co/0GASH0vHpSV4P\r\n\t377Iwew3FxvLpHsVbVKgXzoKD4QSbHRpWNxyL6LypaaqFa96YqjXuYXr0vpb88hticn\r\n\t6I16//WThMz8fMU="
 
@@ -45,9 +45,9 @@ main(int argc, char **argv)
 	DKIM_STAT status;
 	DKIM *dkim;
 	DKIM_LIB *lib;
-	struct dkim_dstring *buf;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
+	unsigned char buf[MAXMSGSIZE];
 
 	printf("*** relaxed/simple rsa-sha1 verifying using chunking API (single chunk)\n");
 
@@ -70,60 +70,58 @@ main(int argc, char **argv)
 	dkim = dkim_verify(lib, JOBID, NULL, &status);
 	assert(dkim != NULL);
 
-	buf = (struct dkim_dstring *) dkim_dstring_new(dkim, 1024, 0);
-	assert(buf != NULL);
+	memset(buf, '\0', sizeof buf);
 
 	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG2);
-	dkim_dstring_cat(buf, hdr);
-	dkim_dstring_cat(buf, CRLF);
+	strlcpy(buf, hdr, MAXMSGSIZE);
+	strlcat(buf, CRLF, MAXMSGSIZE);
 
-	dkim_dstring_cat(buf, HEADER01);
-	dkim_dstring_cat(buf, CRLF);
+	strlcat(buf, HEADER01, MAXMSGSIZE);
+	strlcat(buf, CRLF, MAXMSGSIZE);
 
-	dkim_dstring_cat(buf, HEADER02);
-	dkim_dstring_cat(buf, CRLF);
+	strlcat(buf, HEADER02, MAXMSGSIZE);
+	strlcat(buf, CRLF, MAXMSGSIZE);
 
-	dkim_dstring_cat(buf, HEADER03);
-	dkim_dstring_cat(buf, CRLF);
+	strlcat(buf, HEADER03, MAXMSGSIZE);
+	strlcat(buf, CRLF, MAXMSGSIZE);
 
-	dkim_dstring_cat(buf, HEADER04);
-	dkim_dstring_cat(buf, CRLF);
+	strlcat(buf, HEADER04, MAXMSGSIZE);
+	strlcat(buf, CRLF, MAXMSGSIZE);
 
-	dkim_dstring_cat(buf, HEADER05);
-	dkim_dstring_cat(buf, CRLF);
+	strlcat(buf, HEADER05, MAXMSGSIZE);
+	strlcat(buf, CRLF, MAXMSGSIZE);
 
-	dkim_dstring_cat(buf, HEADER06);
-	dkim_dstring_cat(buf, CRLF);
+	strlcat(buf, HEADER06, MAXMSGSIZE);
+	strlcat(buf, CRLF, MAXMSGSIZE);
 
-	dkim_dstring_cat(buf, HEADER07);
-	dkim_dstring_cat(buf, CRLF);
+	strlcat(buf, HEADER07, MAXMSGSIZE);
+	strlcat(buf, CRLF, MAXMSGSIZE);
 
-	dkim_dstring_cat(buf, HEADER08);
-	dkim_dstring_cat(buf, CRLF);
+	strlcat(buf, HEADER08, MAXMSGSIZE);
+	strlcat(buf, CRLF, MAXMSGSIZE);
 
-	dkim_dstring_cat(buf, HEADER09);
-	dkim_dstring_cat(buf, CRLF);
+	strlcat(buf, HEADER09, MAXMSGSIZE);
+	strlcat(buf, CRLF, MAXMSGSIZE);
 
-	dkim_dstring_cat(buf, CRLF);
+	strlcat(buf, CRLF, MAXMSGSIZE);
 
-	dkim_dstring_cat(buf, BODY00);
-	dkim_dstring_cat(buf, BODY01);
-	dkim_dstring_cat(buf, BODY01A);
-	dkim_dstring_cat(buf, BODY01B);
-	dkim_dstring_cat(buf, BODY01C);
-	dkim_dstring_cat(buf, BODY01D);
-	dkim_dstring_cat(buf, BODY01E);
-	dkim_dstring_cat(buf, BODY02);
-	dkim_dstring_cat(buf, BODY03);
-	dkim_dstring_cat(buf, BODY04);
-	dkim_dstring_cat(buf, BODY03);
-	dkim_dstring_cat(buf, BODY03);
-	dkim_dstring_cat(buf, BODY05);
-	dkim_dstring_cat(buf, BODY03);
-	dkim_dstring_cat(buf, BODY03);
+	strlcat(buf, BODY00, MAXMSGSIZE);
+	strlcat(buf, BODY01, MAXMSGSIZE);
+	strlcat(buf, BODY01A, MAXMSGSIZE);
+	strlcat(buf, BODY01B, MAXMSGSIZE);
+	strlcat(buf, BODY01C, MAXMSGSIZE);
+	strlcat(buf, BODY01D, MAXMSGSIZE);
+	strlcat(buf, BODY01E, MAXMSGSIZE);
+	strlcat(buf, BODY02, MAXMSGSIZE);
+	strlcat(buf, BODY03, MAXMSGSIZE);
+	strlcat(buf, BODY04, MAXMSGSIZE);
+	strlcat(buf, BODY03, MAXMSGSIZE);
+	strlcat(buf, BODY03, MAXMSGSIZE);
+	strlcat(buf, BODY05, MAXMSGSIZE);
+	strlcat(buf, BODY03, MAXMSGSIZE);
+	strlcat(buf, BODY03, MAXMSGSIZE);
 
-	status = dkim_chunk(dkim, (char *) dkim_dstring_get(buf),
-	                    dkim_dstring_len(buf));
+	status = dkim_chunk(dkim, buf, strlen(buf));
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_eom(dkim, NULL);
