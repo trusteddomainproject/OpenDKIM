@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test128_c_id[] = "@(#)$Id: t-test128.c,v 1.2.2.5 2009/11/10 05:29:08 cm-msk Exp $";
+static char t_test128_c_id[] = "@(#)$Id: t-test128.c,v 1.2.2.6 2009/11/11 20:35:31 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -40,12 +40,9 @@ static char t_test128_c_id[] = "@(#)$Id: t-test128.c,v 1.2.2.5 2009/11/10 05:29:
 int
 main(int argc, char **argv)
 {
-#ifndef _FFR_RESIGN
-	printf("*** relaxed/simple rsa-sha1 re-signing with header binding SKIPPED\n");
-#else /* ! _FFR_RESIGN */
-# ifdef TEST_KEEP_FILES
+#ifdef TEST_KEEP_FILES
 	u_int flags;
-# endif /* TEST_KEEP_FILES */
+#endif /* TEST_KEEP_FILES */
 	DKIM_STAT status;
 	time_t fixed_time;
 	dkim_sigkey_t key;
@@ -58,18 +55,25 @@ main(int argc, char **argv)
 
 	key = KEY;
 
-	printf("*** relaxed/simple rsa-sha1 re-signing with header binding\n");
-
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
 
-# ifdef TEST_KEEP_FILES
+	if (!dkim_libfeature(lib, DKIM_FEATURE_RESIGN))
+	{
+		printf("*** relaxed/simple rsa-sha1 re-signing with header binding SKIPPED\n");
+		dkim_close(lib);
+		return 0;
+	}
+
+	printf("*** relaxed/simple rsa-sha1 re-signing with header binding\n");
+
+#ifdef TEST_KEEP_FILES
 	/* set flags */
 	flags = (DKIM_LIBFLAGS_TMPFILES|DKIM_LIBFLAGS_KEEPFILES);
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FLAGS, &flags,
 	                    sizeof flags);
-# endif /* TEST_KEEP_FILES */
+#endif /* TEST_KEEP_FILES */
 
 	/* test mode */
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYMETHOD,
@@ -294,7 +298,6 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 
 	dkim_close(lib);
-#endif /* ! _FFR_RESIGN */
 
 	return 0;
 }
