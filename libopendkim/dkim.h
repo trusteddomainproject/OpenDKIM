@@ -9,7 +9,7 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.16 2009/11/11 17:40:35 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.17 2009/11/11 19:38:33 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1490,6 +1490,21 @@ extern size_t dkim_strlcpy __P((char *, const char *, ssize_t));
 */
 
 extern size_t dkim_strlcat __P((char *, const char *, ssize_t));
+
+/*
+**  DKIM_QP_DECODE -- decode a quoted-printable string
+**
+**  Parameters:
+**  	in -- input
+**  	out -- output
+**  	outlen -- bytes available at "out"
+**
+**  Return value:
+**  	>= 0 -- number of bytes in output
+**  	-1 -- parse error
+*/
+
+extern int dkim_qp_decode __P((unsigned char *, unsigned char *, int outlen));
 
 /* default list of sender headers */
 extern const u_char *dkim_default_senderhdrs[];
