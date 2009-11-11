@@ -1,6 +1,8 @@
-# $Id: Makefile.am,v 1.13 2009/10/30 23:17:08 cm-msk Exp $
+# $Id: Makefile.am,v 1.13.8.1 2009/11/11 23:26:30 grooverdan Exp $
 
 AUTOMAKE_OPTIONS = foreign
+ACLOCAL_AMFLAGS = -I m4
+
 SUBDIRS = 
 if USE_ARLIB
 SUBDIRS += libar
