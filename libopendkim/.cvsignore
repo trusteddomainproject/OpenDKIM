@@ -33,5 +33,7 @@ ltmain.sh
 libtool
 Makefile.in
 Makefile
+symbols.map
 .libs
 .deps
+core

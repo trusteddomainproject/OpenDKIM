@@ -39,3 +39,4 @@ opendkim
 opendkim-stats
 opendkim-testkey
 .libs
+core
