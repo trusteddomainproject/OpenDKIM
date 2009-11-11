@@ -9,16 +9,13 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.15 2009/11/06 22:30:13 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.16 2009/11/11 17:40:35 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
 #include <sys/param.h>
 #include <stdbool.h>
-
-/* openssl includes */
-#include <openssl/sha.h>
 
 /*
 **  version -- 0xrrMMmmpp
@@ -159,17 +156,10 @@ typedef int dkim_canon_t;
 
 typedef int dkim_alg_t;
 
-#define DKIM_SIGN_UNKNOWN	(-1)	/* unknown method */
+#define DKIM_SIGN_UNKNOWN	(-2)	/* unknown method */
+#define DKIM_SIGN_DEFAULT	(-1)	/* use internal default */
 #define DKIM_SIGN_RSASHA1	0	/* an RSA-signed SHA1 digest */
-#ifdef SHA256_DIGEST_LENGTH
-# define DKIM_SIGN_RSASHA256	1	/* an RSA-signed SHA256 digest */
-#endif /* SHA256_DIGEST_LENGTH */
-
-#ifdef SHA256_DIGEST_LENGTH
-# define DKIM_SIGN_DEFAULT	DKIM_SIGN_RSASHA256
-#else /* SHA256_DIGEST_LENGTH */
-# define DKIM_SIGN_DEFAULT	DKIM_SIGN_RSASHA1
-#endif /* SHA256_DIGEST_LENGTH */
+#define DKIM_SIGN_RSASHA256	1	/* an RSA-signed SHA256 digest */
 
 /*
 **  DKIM_QUERY -- query method

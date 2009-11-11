@@ -6,7 +6,7 @@
 #define _DKIM_INTERNAL_H_
 
 #ifndef lint
-static char dkim_internal_h_id[] = "@(#)$Id: dkim-internal.h,v 1.2 2009/10/22 19:33:48 cm-msk Exp $";
+static char dkim_internal_h_id[] = "@(#)$Id: dkim-internal.h,v 1.3 2009/11/11 17:40:35 cm-msk Exp $";
 #endif /* !lint */
 
 /* libopendkim includes */
@@ -135,9 +135,7 @@ typedef int dkim_set_t;
 
 #define DKIM_HASHTYPE_UNKNOWN	(-1)
 #define DKIM_HASHTYPE_SHA1	0
-#ifdef SHA256_DIGEST_LENGTH
-# define DKIM_HASHTYPE_SHA256	1
-#endif /* SHA256_DIGEST_LENGTH */
+#define DKIM_HASHTYPE_SHA256	1
 
 /*
 **  DKIM_KEYTYPE -- types of keys

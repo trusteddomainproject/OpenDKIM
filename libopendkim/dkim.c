@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.27 2009/11/06 11:19:17 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.28 2009/11/11 17:40:35 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1757,11 +1757,15 @@ dkim_siglist_setup(DKIM *dkim)
 			  case DKIM_SIGN_RSASHA1:
 				hashtype = DKIM_HASHTYPE_SHA1;
 				break;
-#ifdef DKIM_SIGN_RSASHA256
+
 			  case DKIM_SIGN_RSASHA256:
+#ifdef SHA256_DIGEST_LENGTH
 				hashtype = DKIM_HASHTYPE_SHA256;
 				break;
-#endif /* DKIM_SIGN_RSASHA256 */
+#else /* SHA256_DIGEST_LENGTH */
+				dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_INVALID_A;
+				continue;
+#endif /* SHA256_DIGEST_LENGTH */
 
 			  default:
 				assert(0);
@@ -2795,11 +2799,9 @@ dkim_eoh_sign(DKIM *dkim)
 		hashtype = DKIM_HASHTYPE_SHA1;
 		break;
 
-#ifdef DKIM_SIGN_RSASHA256
 	  case DKIM_SIGN_RSASHA256:
 		hashtype = DKIM_HASHTYPE_SHA256;
 		break;
-#endif /* DKIM_SIGN_RSASHA256 */
 
 	  default:
 		assert(0);
@@ -3155,18 +3157,12 @@ dkim_eom_sign(DKIM *dkim)
 	switch (sig->sig_signalg)
 	{
 	  case DKIM_SIGN_RSASHA1:
-#ifdef SHA256_DIGEST_LENGTH
 	  case DKIM_SIGN_RSASHA256:
-#endif /* SHA256_DIGEST_LENGTH */
 	  {
 		struct dkim_rsa *rsa;
 
-#ifdef SHA256_DIGEST_LENGTH
 		assert(sig->sig_hashtype == DKIM_HASHTYPE_SHA1 ||
 		       sig->sig_hashtype == DKIM_HASHTYPE_SHA256);
-#else /* SHA256_DIGEST_LENGTH */
-		assert(sig->sig_hashtype == DKIM_HASHTYPE_SHA1);
-#endif /* SHA256_DIGEST_LENGTH */
 
 		rsa = DKIM_MALLOC(dkim, sizeof(struct dkim_rsa));
 		if (rsa == NULL)
@@ -4333,12 +4329,22 @@ dkim_sign(DKIM_LIB *libhandle, const char *id, void *memclosure,
 	       hdrcanonalg == DKIM_CANON_RELAXED);
 	assert(bodycanonalg == DKIM_CANON_SIMPLE ||
 	       bodycanonalg == DKIM_CANON_RELAXED);
-#ifdef SHA256_DIGEST_LENGTH
 	assert(signalg == DKIM_SIGN_RSASHA1 || signalg == DKIM_SIGN_RSASHA256);
-#else /* SHA256_DIGEST_LENGTH */
-	assert(signalg == DKIM_SIGN_RSASHA1);
-#endif /* SHA256_DIGEST_LENGTH */
 	assert(statp != NULL);
+
+#ifdef SHA256_DIGEST_LENGTH
+	if (signalg == DKIM_SIGN_DEFAULT)
+		signalg = DKIM_SIGN_RSASHA256;
+#else /* SHA256_DIGEST_LENGTH */
+	if (signalg == DKIM_SIGN_RSASHA256)
+	{
+		*statp = DKIM_STAT_INVALID;
+		return NULL;
+	}
+
+	if (signalg == DKIM_SIGN_DEFAULT)
+		signalg = DKIM_SIGN_RSASHA1;
+#endif /* SHA256_DIGEST_LENGTH */
 
 	new = dkim_new(libhandle, id, memclosure, hdrcanonalg, bodycanonalg,
 	               signalg, statp);
@@ -6197,6 +6203,9 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 			break;
 		  }
 #endif /* SHA256_DIGEST_LENGTH */
+
+		  default:
+			assert(0);
 		}
 	}
 
