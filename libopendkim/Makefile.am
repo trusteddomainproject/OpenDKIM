@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.33 2009/11/06 22:30:13 cm-msk Exp $
+# $Id: Makefile.am,v 1.34 2009/11/11 03:18:21 cm-msk Exp $
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-mailparse.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h util.h
@@ -52,10 +52,6 @@ libopendkim_la_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
 	docs/dkim_setpartial.html docs/dkim_set_trust_anchor.html \
 	docs/dkim_sig_getidentity.html docs/dkim_sig_getcanons.html \
 	docs/dkim_libfeature.html
-
-if BODYLENGTH_DB
-libopendkim_la_CFLAGS += -D_FFR_BODYLENGTH_DB
-endif
 
 if DIFFHEADERS
 libopendkim_la_CFLAGS += -D_FFR_DIFFHEADERS
