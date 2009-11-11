@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.8.4.1 2009/11/06 18:15:51 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.8.4.2 2009/11/11 03:39:52 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.8.4.1 2009/11/06 18:15:51 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.8.4.2 2009/11/11 03:39:52 cm-msk Exp $";
 #endif /* !lint */
 
 struct configdef dkimf_config[] =
@@ -64,9 +64,7 @@ struct configdef dkimf_config[] =
 	{ "MacroList",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MilterDebug",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "Minimum",			CONFIG_TYPE_STRING,	FALSE },
-#ifdef _FFR_MULTIPLE_SIGNATURES
 	{ "MultipleSignatures",		CONFIG_TYPE_BOOLEAN,	FALSE },
-#endif /* _FFR_MULTIPLE_SIGNATURES */
 	{ "Mode",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MTA",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MustBeSigned",		CONFIG_TYPE_STRING,	FALSE },

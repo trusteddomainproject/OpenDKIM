@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.61.2.1 2009/11/01 22:25:22 cm-msk Exp $
+# $Id: configure.ac,v 1.61.2.2 2009/11/11 03:39:52 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -73,9 +73,6 @@ AM_CONDITIONAL(BUILD_FILTER, test "$enable_filter" = yes)
 
 AC_ARG_ENABLE(identityheader, AS_HELP_STRING(--enable-identityheader, special header to set identity))
 AM_CONDITIONAL(IDENTITY_HEADER, test "$enable_identityheader" = yes)
-
-AC_ARG_ENABLE(multiplesigs, AS_HELP_STRING(--enable-multiplesigs, support for multiple signatures))
-AM_CONDITIONAL(MULTIPLE_SIGNATURES, test "$enable_multiplesigs" = yes)
 
 AC_ARG_ENABLE(parsetime, AS_HELP_STRING(--enable-parsetime, parse From: headers for sending times))
 AM_CONDITIONAL(PARSE_TIME, test "$enable_parsetime" = yes)
@@ -557,6 +554,12 @@ AM_CONDITIONAL(VERIFY_DOMAINKEYS, test x"$dk" != x"no")
 AC_SUBST(LIBDK_INCDIRS)
 AC_SUBST(LIBDK_LIBDIRS)
 AC_SUBST(LIBDK_LIBS)
+
+# debug
+if test x"$enable_debug" = x"yes"
+then
+	CFLAGS=`echo $CFLAGS | sed "s/ -O.//g"`
+fi
 
 # Finish up
 AC_OUTPUT(Makefile opendkim/Makefile libopendkim/Makefile libar/Makefile libvbr/Makefile)

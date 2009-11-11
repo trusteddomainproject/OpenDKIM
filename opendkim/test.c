@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.c,v 1.7.4.1 2009/11/06 23:42:25 cm-msk Exp $
+**  $Id: test.c,v 1.7.4.2 2009/11/11 03:39:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.7.4.1 2009/11/06 23:42:25 cm-msk Exp $";
+static char test_c_id[] = "@(#)$Id: test.c,v 1.7.4.2 2009/11/11 03:39:52 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -229,6 +229,81 @@ dkimf_test_quarantine(void *ctx, char *reason)
 	return MI_SUCCESS;
 }
 
+#ifdef _FFR_REDIRECT
+/*
+**  DKIMF_TEST_ADDHEADER -- append a header
+**
+**  Parameters:
+**  	ctx -- context pointer
+**  	hname -- header name
+**  	hvalue -- header value
+**
+**  Return value:
+**  	MI_SUCCESS
+*/
+
+int
+dkimf_test_addheader(void *ctx, char *hname, char *hvalue)
+{
+	assert(ctx != NULL);
+
+	if (tverbose > 1)
+	{
+		fprintf(stdout,
+		        "### ADDHEADER: hname=`%s' hvalue=`%s'\n",
+		        STRORNULL(hname), STRORNULL(hvalue));
+	}
+
+	return MI_SUCCESS;
+}
+
+/*
+**  DKIMF_TEST_DELRCPT -- request recipient delete
+**
+**  Parameters:
+**  	ctx -- context pointer
+**  	addr -- address
+**
+**  Return value:
+**  	MI_SUCCESS
+*/
+
+int
+dkimf_test_delrcpt(void *ctx, char *addr)
+{
+	assert(ctx != NULL);
+	assert(addr != NULL);
+
+	if (tverbose > 1)
+		fprintf(stdout, "### DELRCPT: `%s'\n", addr);
+
+	return MI_SUCCESS;
+}
+
+/*
+**  DKIMF_TEST_ADDRCPT -- request recipient add
+**
+**  Parameters:
+**  	ctx -- context pointer
+**  	addr -- address
+**
+**  Return value:
+**  	MI_SUCCESS
+*/
+
+int
+dkimf_test_addrcpt(void *ctx, char *addr)
+{
+	assert(ctx != NULL);
+	assert(addr != NULL);
+
+	if (tverbose > 1)
+		fprintf(stdout, "### ADDRCPT: `%s'\n", addr);
+
+	return MI_SUCCESS;
+}
+#endif /* _FFR_REDIRECT */
+
 /*
 **  DKIMF_TEST_GETSYMVAL -- retrieve a symbol value
 **
@@ -276,20 +351,22 @@ int
 dkimf_testfile(DKIM_LIB *libopendkim, char *file, time_t fixedtime,
                bool strict, int verbose)
 {
-	char buf[MAXBUFRSZ];
-	char line[MAXBUFRSZ];
-	DKIM *dkim;
-	char *p;
-	FILE *f;
-	struct test_context *tctx;
+	bool inheaders = TRUE;
 	int len = 0;
 	int buflen = 0;
 	int lineno = 0;
 	int hslineno = 0;
 	int c;
+	DKIM_SIGINFO *sig;
+	struct signreq *srlist = NULL;
+	DKIM *dkim;
+	char *p;
+	FILE *f;
+	struct test_context *tctx;
 	sfsistat ms;
-	bool inheaders = TRUE;
 	struct sockaddr_in sin;
+	char buf[MAXBUFRSZ];
+	char line[MAXBUFRSZ];
 
 	assert(libopendkim != NULL);
 	assert(file != NULL);
@@ -658,18 +735,14 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, time_t fixedtime,
 		        progname, file, milter_status[ms]);
 	}
 
-	/* XXX -- this does not yet support _FFR_MULTIPLE_SIGNATURES nicely */
-
 	dkim = dkimf_getdkim(tctx->tc_priv);
 	if (dkim != NULL)
 	{
 		int mode;
-		DKIM_SIGINFO *sig;
 
 		sig = dkim_getsignature(dkim);
-		mode = dkim_getmode(dkim);
 
-		if (sig != NULL && mode == DKIM_MODE_VERIFY)
+		if (sig != NULL)
 		{
 			const u_char *domain;
 			const u_char *selector;
@@ -697,7 +770,11 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, time_t fixedtime,
 				int errcode;
 
 				errcode = dkim_sig_geterror(sig);
-				err = dkim_sig_geterrorstr(errcode);
+				if (errcode == DKIM_SIGERROR_OK &&
+				    bh == DKIM_SIGBH_MISMATCH)
+					err = "body hash mismatch";
+				else
+					err = dkim_sig_geterrorstr(errcode);
 
 				if (selector != NULL || domain != NULL)
 				{
@@ -751,7 +828,16 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, time_t fixedtime,
 			fprintf(stdout, "%s: %s: message not signed\n",
 			        progname, file);
 		}
-		else if (sig == NULL && mode == DKIM_MODE_SIGN)
+	}
+
+	for (srlist = dkimf_getsrlist(tctx->tc_priv);
+	     srlist != NULL;
+	     srlist = srlist->srq_next)
+	{
+		dkim = srlist->srq_dkim;
+		sig = dkim_getsignature(dkim);
+
+		if (sig == NULL)
 		{
 			const char *err;
 
@@ -796,10 +882,6 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, time_t fixedtime,
 				}
 			}
 		}
-	}
-	else
-	{
-		fprintf(stdout, "%s: %s: no action\n", progname, file);
 	}
 
 	ms = mlfi_close((SMFICTX *) tctx);

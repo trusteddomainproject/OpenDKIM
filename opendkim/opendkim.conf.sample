@@ -1,7 +1,7 @@
 ##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
-## $Id: opendkim.conf.sample,v 1.2 2009/08/18 18:51:08 cm-msk Exp $
+## $Id: opendkim.conf.sample,v 1.2.4.1 2009/11/11 03:39:52 cm-msk Exp $
 ##
 
 ##  ADSPDiscard { yes | no }
@@ -313,6 +313,17 @@ KeyFile			/var/db/dkim/example.private
 ##  in effect.
 
 # MTA			name
+
+##  MultipleSignatures { yes | no }
+##  	default no
+##
+##  Allows multiple signatures to be added.  If set to "true" and a KeyList
+##  is in use, all KeyList entries that match the candidate message will
+##  cause a signature to be added.  Otherwise, only the first matching
+##  KeyList entry will be added, or only the key defined by Domain,
+##  Selector and KeyFile will be added.
+
+# MultipleSignatures	no
 
 ##  MustBeSigned
 ##  	default (none)

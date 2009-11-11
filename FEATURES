@@ -48,9 +48,6 @@ dnsupgrade	Maintain two libar instances, the second in TCP mode, in case
 identityheader	Enable selection of an identity for signing based on the
 		value found in a particular header. (opendkim)
 
-multiplesigs	Allow addition of multiple signatures when key lists are
-		in use.  (opendkim)
-
 parsetime	Adds a utility function reporting the value of the Date:
 		header for easy comparison to signature timestamps in order
 		to detect messages in which those values wildly differ.
@@ -106,4 +103,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.8.4.1 $, Last updated $Date: 2009/11/01 22:25:22 $
+$Revision: 1.8.4.2 $, Last updated $Date: 2009/11/11 03:39:52 $
