@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test129_c_id[] = "@(#)$Id: t-test129.c,v 1.1.2.1 2009/11/10 05:26:37 cm-msk Exp $";
+static char t_test129_c_id[] = "@(#)$Id: t-test129.c,v 1.1.2.2 2009/11/11 03:18:37 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -71,8 +71,6 @@ const u_char *signhdrs[] =
 	"authentication-results",
 	NULL
 };
-
-#define TEST_KEEP_FILES 1
 
 /*
 **  MAIN -- program mainline
