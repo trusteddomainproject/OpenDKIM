@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test115_c_id[] = "@(#)$Id: t-test115.c,v 1.3 2009/07/23 17:40:24 cm-msk Exp $";
+static char t_test115_c_id[] = "@(#)$Id: t-test115.c,v 1.4 2009/11/11 19:39:59 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -14,7 +14,6 @@ static char t_test115_c_id[] = "@(#)$Id: t-test115.c,v 1.3 2009/07/23 17:40:24 c
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
-
 
 /* libopendkim includes */
 #include "dkim.h"
@@ -152,11 +151,10 @@ main(int argc, char **argv)
 
 	assert(dkim_sig_geterror(sigs[0]) == DKIM_SIGERROR_BADSIG);
 	assert(dkim_sig_geterror(sigs[1]) == DKIM_SIGERROR_KEYVERSION);
-#ifndef DKIM_SIGN_RSASHA256
-	assert(dkim_sig_geterror(sigs[2]) == DKIM_SIGERROR_KEYUNKNOWNHASH);
-#else /* ! DKIM_SIGN_RSASHA256 */
-	assert(dkim_sig_geterror(sigs[2]) == DKIM_SIGERROR_KEYHASHMISMATCH);
-#endif /* ! DKIM_SIGN_RSASHA256 */
+	if (dkim_libfeature(lib, DKIM_FEATURE_SHA256))
+		assert(dkim_sig_geterror(sigs[2]) == DKIM_SIGERROR_KEYHASHMISMATCH);
+	else
+		assert(dkim_sig_geterror(sigs[2]) == DKIM_SIGERROR_KEYUNKNOWNHASH);
 	assert(dkim_sig_geterror(sigs[3]) == DKIM_SIGERROR_KEYUNKNOWNHASH);
 	assert(dkim_sig_geterror(sigs[4]) == DKIM_SIGERROR_KEYTYPEUNKNOWN);
 	assert(dkim_sig_geterror(sigs[5]) == DKIM_SIGERROR_DNSSYNTAX);

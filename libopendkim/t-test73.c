@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test73_c_id[] = "@(#)$Id: t-test73.c,v 1.5 2009/11/02 01:14:03 cm-msk Exp $";
+static char t_test73_c_id[] = "@(#)$Id: t-test73.c,v 1.6 2009/11/11 19:40:00 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -39,11 +39,6 @@ static char t_test73_c_id[] = "@(#)$Id: t-test73.c,v 1.5 2009/11/02 01:14:03 cm-
 int
 main(int argc, char **argv)
 {
-#ifndef DKIM_SIGN_RSASHA256
-	printf("*** simple/simple rsa-sha256 verifying with extra signature spaces and reportinfo (failure) SKIPPED\n");
-
-#else /* ! DKIM_SIGN_RSASHA256 */
-
 	int hfd;
 	int bfd;
 	dkim_policy_t pcode = DKIM_POLICY_NONE;
@@ -59,17 +54,24 @@ main(int argc, char **argv)
 	unsigned char opts[BUFRSZ];
 	unsigned char smtp[BUFRSZ];
 
-	printf("*** simple/simple rsa-sha256 verifying with extra signature spaces and reportinfo (failure)\n");
-
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
 
+	if (!dkim_libfeature(lib, DKIM_FEATURE_SHA256))
+	{
+		printf("*** simple/simple rsa-sha256 verifying with extra signature spaces and reportinfo (failure) SKIPPED\n");
+		dkim_close(lib);
+		return 0;
+	}
+
+	printf("*** simple/simple rsa-sha256 verifying with extra signature spaces and reportinfo (failure)\n");
+
 	/* set flags */
 	flags = DKIM_LIBFLAGS_TMPFILES;
-# ifdef TEST_KEEP_FILES
+#ifdef TEST_KEEP_FILES
 	flags |= DKIM_LIBFLAGS_KEEPFILES;
-# endif /* TEST_KEEP_FILES */
+#endif /* TEST_KEEP_FILES */
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FLAGS, &flags,
 	                    sizeof flags);
 
@@ -196,7 +198,6 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 
 	dkim_close(lib);
-#endif /* ! DKIM_SIGN_RSASHA256 */
 
 	return 0;
 }

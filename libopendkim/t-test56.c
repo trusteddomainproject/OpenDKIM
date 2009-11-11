@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test56_c_id[] = "@(#)$Id: t-test56.c,v 1.4 2009/07/23 17:54:40 cm-msk Exp $";
+static char t_test56_c_id[] = "@(#)$Id: t-test56.c,v 1.5 2009/11/11 19:40:00 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -39,15 +39,10 @@ static char t_test56_c_id[] = "@(#)$Id: t-test56.c,v 1.4 2009/07/23 17:54:40 cm-
 int
 main(int argc, char **argv)
 {
-#ifndef DKIM_SIGN_RSASHA256
-	printf("*** relaxed/simple rsa-sha256 verifying large bodies SKIPPED\n");
-
-#else /* ! DKIM_SIGN_RSASHA256 */
-
 	size_t wlen = LARGEBODYSIZE;
-# ifdef TEST_KEEP_FILES
+#ifdef TEST_KEEP_FILES
 	u_int flags;
-# endif /* TEST_KEEP_FILES */
+#endif /* TEST_KEEP_FILES */
 	DKIM_STAT status;
 	DKIM *dkim;
 	DKIM_LIB *lib;
@@ -55,18 +50,25 @@ main(int argc, char **argv)
 	unsigned char hdr[MAXHEADER + 1];
 	unsigned char body[LARGEBODYSIZE];
 
-	printf("*** relaxed/simple rsa-sha256 verifying large bodies\n");
-
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
 
-# ifdef TEST_KEEP_FILES
+	if (!dkim_libfeature(lib, DKIM_FEATURE_SHA256))
+	{
+		printf("*** relaxed/simple rsa-sha256 verifying large bodies SKIPPED\n");
+		dkim_close(lib);
+		return 0;
+	}
+
+	printf("*** relaxed/simple rsa-sha256 verifying large bodies\n");
+
+#ifdef TEST_KEEP_FILES
 	/* set flags */
 	flags = (DKIM_LIBFLAGS_TMPFILES|DKIM_LIBFLAGS_KEEPFILES);
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FLAGS, &flags,
 	                    sizeof flags);
-# endif /* TEST_KEEP_FILES */
+#endif /* TEST_KEEP_FILES */
 
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYMETHOD,
 	                    &qtype, sizeof qtype);
@@ -127,7 +129,6 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 
 	dkim_close(lib);
-#endif /* ! DKIM_SIGN_RSASHA256 */
 
 	return 0;
 }

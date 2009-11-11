@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test67_c_id[] = "@(#)$Id: t-test67.c,v 1.3 2009/07/23 17:40:24 cm-msk Exp $";
+static char t_test67_c_id[] = "@(#)$Id: t-test67.c,v 1.4 2009/11/11 19:40:00 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -15,7 +15,6 @@ static char t_test67_c_id[] = "@(#)$Id: t-test67.c,v 1.3 2009/07/23 17:40:24 cm-
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-
 
 /* libopendkim includes */
 #include "dkim.h"
@@ -80,32 +79,34 @@ final(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 int
 main(int argc, char **argv)
 {
-#ifndef DKIM_SIGN_RSASHA256
-	printf("*** relaxed/simple rsa-sha1/rsa-256 verifying SKIPPED\n");
-
-#else /* ! DKIM_SIGN_RSASHA256 */
-
-# ifdef TEST_KEEP_FILES
+#ifdef TEST_KEEP_FILES
 	u_int flags;
-# endif /* TEST_KEEP_FILES */
+#endif /* TEST_KEEP_FILES */
 	DKIM_STAT status;
 	DKIM *dkim;
 	DKIM_LIB *lib;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
 
-	printf("*** relaxed/simple rsa-sha1/rsa-256 verifying\n");
-
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
 
-# ifdef TEST_KEEP_FILES
+	if (!dkim_libfeature(lib, DKIM_FEATURE_SHA256))
+	{
+		printf("*** relaxed/simple rsa-sha1/rsa-256 verifying SKIPPED\n");
+		dkim_close(lib);
+		return 0;
+	}
+
+	printf("*** relaxed/simple rsa-sha1/rsa-256 verifying\n");
+
+#ifdef TEST_KEEP_FILES
 	/* set flags */
 	flags = (DKIM_LIBFLAGS_TMPFILES|DKIM_LIBFLAGS_KEEPFILES);
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FLAGS, &flags,
 	                    sizeof flags);
-# endif /* TEST_KEEP_FILES */
+#endif /* TEST_KEEP_FILES */
 
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYMETHOD,
 	                    &qtype, sizeof qtype);
@@ -203,7 +204,6 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 
 	dkim_close(lib);
-#endif /* ! DKIM_SIGN_RSASHA256 */
 
 	return 0;
 }

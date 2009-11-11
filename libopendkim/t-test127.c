@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test127_c_id[] = "@(#)$Id: t-test127.c,v 1.4 2009/10/31 09:00:37 cm-msk Exp $";
+static char t_test127_c_id[] = "@(#)$Id: t-test127.c,v 1.5 2009/11/11 19:40:00 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -16,13 +16,12 @@ static char t_test127_c_id[] = "@(#)$Id: t-test127.c,v 1.4 2009/10/31 09:00:37 c
 #include <stdio.h>
 
 /* libopendkim includes */
-#include "dkim-internal.h"
-#include "dkim-types.h"
-#include "dkim-util.h"
-#include "dkim-canon.h"
+#include "dkim.h"
 #include "t-testdata.h"
 
 #define	MAXHEADER	4096
+
+#define	MAXMSGSIZE	16384
 
 #define SIG2 "v=1; a=rsa-sha1; c=relaxed/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=NYK+FZAKLNXv1Oj/E6kV0EOStBU=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=G9BZ+aZqLU7j3DnHe1s/qgrJagml7UDFUxOEQ/uCwWGvOgrDn3PBE/Nb1OwpGzuFJ\r\n\t AOCTpNGrK2sw4pfEAk+/uOBGjZsMTBe9uqIA7w3tQFkF3yIRv6zqa/rccbWa5d0wYn\r\n\t S534UHVEyPXjXQ5x/yspDXF+v3geyISQ+oHf9hro="
 
@@ -51,8 +50,8 @@ main(int argc, char **argv)
 	DKIM *dkim;
 	DKIM_LIB *lib;
 	dkim_sigkey_t key;
-	struct dkim_dstring *buf;
 	unsigned char hdr[MAXHEADER + 1];
+	unsigned char buf[MAXMSGSIZE];
 
 	printf("*** relaxed/simple rsa-sha1 signing with split CRLFs and blank counting\n");
 
@@ -73,9 +72,6 @@ main(int argc, char **argv)
 	                 DKIM_CANON_RELAXED, DKIM_CANON_SIMPLE,
 	                 DKIM_SIGN_RSASHA1, -1L, &status);
 	assert(dkim != NULL);
-
-	buf = (struct dkim_dstring *) dkim_dstring_new(dkim, 1024, 0);
-	assert(buf != NULL);
 
 	/* fix signing time */
 	fixed_time = 1172620939;
@@ -109,20 +105,21 @@ main(int argc, char **argv)
 	status = dkim_eoh(dkim);
 	assert(status == DKIM_STAT_OK);
 
-	dkim_dstring_cat(buf, CRLFBODY00);
+	memset(buf, '\0', sizeof buf);
 
-	while (dkim_dstring_len(buf) < BOUNDARY)
-		dkim_dstring_cat(buf, CRLF);
+	strlcpy(buf, CRLFBODY00, sizeof buf);
 
-	dkim_dstring_cat(buf, CRLFBODY00);
+	while (strlen(buf) < BOUNDARY)
+		strlcat(buf, CRLF, sizeof buf);
 
-	assert(dkim_dstring_len(buf) > BOUNDARY);
+	strlcat(buf, CRLFBODY00, sizeof buf);
 
-	status = dkim_body(dkim, (char *) dkim_dstring_get(buf), BOUNDARY);
+	assert(strlen(buf) > BOUNDARY);
+
+	status = dkim_body(dkim, buf, BOUNDARY);
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_body(dkim, (char *) (dkim_dstring_get(buf) + BOUNDARY),
-	                   dkim_dstring_len(buf) - BOUNDARY);
+	status = dkim_body(dkim, buf + BOUNDARY, strlen(buf) - BOUNDARY);
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_eom(dkim, NULL);
