@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_verifyperf_c_id[] = "@(#)$Id: t-verifyperf.c,v 1.4 2009/10/06 17:36:11 cm-msk Exp $";
+static char t_verifyperf_c_id[] = "@(#)$Id: t-verifyperf.c,v 1.5 2009/11/11 19:41:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -28,7 +28,114 @@ static char t_verifyperf_c_id[] = "@(#)$Id: t-verifyperf.c,v 1.4 2009/10/06 17:3
 #define	BODYBUFRSZ	8192
 #define	MAXHEADER	4096
 
+#ifndef MIN
+# define MIN(x,y)	((x) < (y) ? (x) : (y))
+#endif /* ! MIN */
+
 char *progname;
+
+/*
+**  CANON_CODE -- convert a canonicalization name to its code
+**
+**  Parameters:
+**  	name -- name to convert
+**
+**  Return value:
+**  	dkim_canon_t
+*/
+
+dkim_canon_t
+canon_code(char *name)
+{
+	if (name == NULL)
+		return (dkim_canon_t) DKIM_CANON_UNKNOWN;
+	else if (strcasecmp(name, "simple") == 0)
+		return (dkim_canon_t) DKIM_CANON_SIMPLE;
+	else if (strcasecmp(name, "relaxed") == 0)
+		return (dkim_canon_t) DKIM_CANON_RELAXED;
+	else
+		return (dkim_canon_t) DKIM_CANON_UNKNOWN;
+}
+
+/*
+**  CANON_NAME -- convert a canonicalization code to its name
+**
+**  Parameters:
+**  	code -- code to convert
+**
+**  Return value:
+**  	Pointer to name string.
+*/
+
+char *
+canon_name(dkim_canon_t code)
+{
+	switch (code)
+	{
+	  case DKIM_CANON_SIMPLE:
+		return "simple";
+
+	  case DKIM_CANON_RELAXED:
+		return "relaxed";
+
+	  case DKIM_CANON_UNKNOWN:
+	  default:
+		return "unknown";
+	}
+}
+
+/*
+**  ALG_CODE -- convert an algorithm name to its code
+**
+**  Parameters:
+**  	name -- name to convert
+**
+**  Return value:
+**  	dkim_alg_t
+*/
+
+dkim_alg_t
+alg_code(char *name)
+{
+	if (name == NULL)
+		return (dkim_alg_t) DKIM_SIGN_UNKNOWN;
+	else if (strcasecmp(name, "rsa-sha1") == 0)
+		return (dkim_alg_t) DKIM_SIGN_RSASHA1;
+	else if (strcasecmp(name, "rsa-sha256") == 0)
+		return (dkim_alg_t) DKIM_SIGN_RSASHA256;
+	else
+		return (dkim_alg_t) DKIM_SIGN_UNKNOWN;
+}
+
+/*
+**  ALG_NAME -- convert an algorithm code to its name
+**
+**  Parameters:
+**  	code -- code to convert
+**
+**  Return value:
+**  	Pointer to name string.
+*/
+
+char *
+alg_name(dkim_alg_t code)
+{
+	switch (code)
+	{
+	  case DKIM_SIGN_DEFAULT:
+		return "default";
+
+	  case DKIM_SIGN_RSASHA1:
+		return "rsa-sha1";
+
+	  case DKIM_SIGN_RSASHA256:
+		return "rsa-sha256";
+
+	  case DKIM_SIGN_UNKNOWN:
+	  default:
+		return "unknown";
+	}
+}
 
 /*
 **  USAGE -- print usage message
@@ -79,11 +186,7 @@ main(int argc, char **argv)
 	time_t testint = DEFTESTINT;
 	dkim_canon_t hcanon = DKIM_CANON_RELAXED;
 	dkim_canon_t bcanon = DKIM_CANON_SIMPLE;
-#ifdef DKIM_SIGN_RSASHA256
-	dkim_alg_t signalg = DKIM_SIGN_RSASHA256;
-#else /* DKIM_SIGN_RSASHA256 */
-	dkim_alg_t signalg = DKIM_SIGN_RSASHA1;
-#endif /* DKIM_SIGN_RSASHA256 */
+	dkim_alg_t signalg = DKIM_SIGN_UNKNOWN;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	char *p;
 	DKIM *dkim;
@@ -99,7 +202,7 @@ main(int argc, char **argv)
 		switch (c)
 		{
 		  case 'b':
-			bcanon = dkim_name_to_code(canonicalizations, optarg);
+			bcanon = canon_code(optarg);
 			if (bcanon == (dkim_canon_t) -1)
 			{
 				fprintf(stderr,
@@ -110,7 +213,7 @@ main(int argc, char **argv)
 			break;
 
 		  case 'h':
-			hcanon = dkim_name_to_code(canonicalizations, optarg);
+			hcanon = canon_code(optarg);
 			if (hcanon == (dkim_canon_t) -1)
 			{
 				fprintf(stderr,
@@ -131,7 +234,7 @@ main(int argc, char **argv)
 			break;
 
 		  case 's':
-			signalg = dkim_name_to_code(algorithms, optarg);
+			signalg = alg_code(optarg);
 			if (signalg == (dkim_alg_t) -1)
 			{
 				fprintf(stderr,
@@ -157,15 +260,29 @@ main(int argc, char **argv)
 		}
 	}
 
-	fprintf(stdout,
-	        "*** VERIFYING SPEED TEST: %s/%s with %s, size %u for %lds\n",
-	        dkim_code_to_name(canonicalizations, hcanon),
-	        dkim_code_to_name(canonicalizations, bcanon),
-	        dkim_code_to_name(algorithms, signalg),
-	        msgsize, (long) testint);
-
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
+
+	if (signalg == DKIM_SIGN_UNKNOWN)
+	{
+		if (dkim_libfeature(lib, DKIM_FEATURE_SHA256))
+			signalg = DKIM_SIGN_RSASHA256;
+		else
+			signalg = DKIM_SIGN_RSASHA1;
+	}
+	else if (signalg == DKIM_SIGN_RSASHA256 &&
+	         !dkim_libfeature(lib, DKIM_FEATURE_SHA256))
+	{
+		fprintf(stdout,
+		        "### requested signing algorithm not available\n");
+		dkim_close(lib);
+		return 1;
+	}
+
+	fprintf(stdout,
+	        "*** VERIFYING SPEED TEST: %s/%s with %s, size %u for %lds\n",
+	        canon_name(hcanon), canon_name(bcanon), alg_name(signalg),
+	        msgsize, (long) testint);
 
 	key = KEY;
 
