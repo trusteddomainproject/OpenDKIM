@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.38.2.2 2009/11/12 06:56:25 grooverdan Exp $
+# $Id: Makefile.am,v 1.38.2.3 2009/11/12 23:13:06 grooverdan Exp $
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-mailparse.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h util.h
@@ -88,7 +88,7 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test26 t-test27 t-test28 t-test29 t-test30 t-test31 t-test32 \
 	t-test33 t-test34 t-test35 t-test36 t-test37 t-test38 t-test39 \
 	t-test40 t-test41 t-test42 t-test43 t-test44 t-test45 t-test46 \
-	t-test47 t-test48 t-test49 t-test50 t-test51 t-test52 t-test53 \
+	t-test47 t-test48 t-test50 t-test51 t-test52 t-test53 \
 	t-test54 t-test55 t-test56 t-test57 t-test58 t-test59 t-test60 \
 	t-test61 t-test62 t-test63 t-test64 t-test65 t-test66 t-test67 \
 	t-test68 t-test69 t-test70 t-test71 t-test72 t-test73 t-test74 \
@@ -102,7 +102,7 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test121 t-test122 t-test123 t-test124 t-test125 t-test126 \
 	t-test127 t-signperf t-verifyperf
 if ALL_SYMBOLS
-check_PROGRAMS += t-test113 t-test118
+check_PROGRAMS +=t-test49 t-test113 t-test118
 endif
 check_PROGRAMS += t-cleanup
 TESTS = $(check_PROGRAMS)
