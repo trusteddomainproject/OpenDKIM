@@ -6,11 +6,12 @@
 */
 
 #ifndef lint
-static char t_testdata_h[] = "@(#)$Id: t-testdata.h,v 1.1 2009/07/16 19:12:04 cm-msk Exp $";
+static char t_testdata_h[] = "@(#)$Id: t-testdata.h,v 1.1.14.1 2009/11/12 19:06:11 cm-msk Exp $";
 #endif /* !lint */
 
 
 #define	CRLF		"\r\n"
+#define	SP		" "
 
 #define	LARGEBODYSIZE	65536
 #define	LARGELINESIZE	4100
