@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.61 2009/11/06 16:08:27 cm-msk Exp $
+**  $Id: opendkim.c,v 1.61.2.1 2009/11/12 04:23:11 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.61 2009/11/06 16:08:27 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.61.2.1 2009/11/12 04:23:11 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -73,7 +73,7 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.61 2009/11/06 16:08:27 cm
 #endif /* _FFR_VBR */
 #include <dkim-strl.h>
 
-#if VERIFY_DOMAINKEYS
+#ifdef VERIFY_DOMAINKEYS
 /* libdk includes */
 # include <dk.h>
 #endif /* VERIFY_DOMAINKEYS */
@@ -223,7 +223,7 @@ struct dkimf_config
 	off_t		conf_signbytes;		/* bytes to sign */
 	dkim_canon_t 	conf_hdrcanon;		/* canon. method for headers */
 	dkim_canon_t 	conf_bodycanon;		/* canon. method for body */
-	unsigned long	conf_sigttl;		/* signautre TTLs */
+	unsigned long	conf_sigttl;		/* signature TTLs */
 	dkim_alg_t	conf_signalg;		/* signing algorithm */
 	struct config *	conf_data;		/* configuration data */
 	char *		conf_authservid;	/* authserv-id */
@@ -325,13 +325,13 @@ struct msgctx
 	_Bool		mctx_addheader;		/* Authentication-Results: */
 	_Bool		mctx_signing;		/* TRUE iff signing */
 	_Bool		mctx_headeronly;	/* in EOM, only add headers */
-#if _FFR_BODYLENGTH_DB
+#ifdef _FFR_BODYLENGTH_DB
 	_Bool		mctx_ltag;		/* sign with l= tag? */
 #endif /*_FFR_BODYLENGTH_DB */
-#if VERIFY_DOMAINKEYS
+#ifdef VERIFY_DOMAINKEYS
 	_Bool		mctx_dksigned;		/* DK signature present */
 #endif /* VERIFY_DOMAINKEYS */
-#if _FFR_CAPTURE_UNKNOWN_ERRORS
+#ifdef _FFR_CAPTURE_UNKNOWN_ERRORS
 	_Bool		mctx_capture;		/* capture message? */
 #endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
 	_Bool		mctx_susp;		/* suspicious message? */
@@ -349,7 +349,7 @@ struct msgctx
 	struct dkimf_dstring * mctx_tmpstr;	/* temporary string */
 	char *		mctx_jobid;		/* job ID */
 	DKIM *		mctx_dkim;		/* DKIM handle */
-#if VERIFY_DOMAINKEYS
+#ifdef VERIFY_DOMAINKEYS
 	DK *		mctx_dk;		/* DK handle */
 #endif /* VERIFY_DOMAINKEYS */
 #ifdef _FFR_VBR
@@ -612,14 +612,14 @@ int thread_count;				/* thread count */
 #ifdef QUERY_CACHE
 time_t cache_lastlog;				/* last cache stats logged */
 #endif /* QUERY_CACHE */
-#if VERIFY_DOMAINKEYS
+#ifdef VERIFY_DOMAINKEYS
 DK_LIB *libdk;					/* libdk handle */
 #endif /* VERIFY_DOMAINKEYS */
 char *progname;					/* program name */
 char *sock;					/* listening socket */
 char *conffile;					/* configuration file */
 struct dkimf_config *curconf;			/* current configuration */
-#if POPAUTH
+#ifdef POPAUTH
 DKIMF_DB popdb;					/* POP auth DB */
 #endif /* POPAUTH */
 #ifdef _FFR_BODYLENGTH_DB
@@ -2671,7 +2671,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		conf->conf_senderhdrs = (char **) dkim_default_senderhdrs;
 	}
 
-#if _FFR_VBR
+#ifdef _FFR_VBR
 	if (data != NULL)
 	{
 		(void) config_get(data, "VBR-Type", &conf->conf_vbr_deftype,
@@ -3864,7 +3864,7 @@ dkimf_cleanup(SMFICTX *ctx)
 			vbr_close(dfc->mctx_vbr);
 #endif /* _FFR_VBR */
 
-#if VERIFY_DOMAINKEYS
+#ifdef VERIFY_DOMAINKEYS
 		if (dfc->mctx_dk != NULL)
 			dk_free(dfc->mctx_dk);
 #endif /* VERIFY_DOMAINKEYS */
@@ -5608,7 +5608,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 
 	dfc->mctx_hqtail = newhdr;
 
-#if _FFR_SELECT_CANONICALIZATION
+#ifdef _FFR_SELECT_CANONICALIZATION
 	if (strcasecmp(headerf, XSELECTCANONHDR) == 0)
 	{
 		int c;
@@ -5639,7 +5639,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 	}
 #endif /* _FFR_SELECT_CANONICALIZATION */
 
-#if VERIFY_DOMAINKEYS
+#ifdef VERIFY_DOMAINKEYS
 	if (strcasecmp(headerf, DK_SIGNHEADER) == 0)
 		dfc->mctx_dksigned = TRUE;
 #endif /* VERIFY_DOMAINKEYS */
@@ -6049,7 +6049,7 @@ mlfi_eoh(SMFICTX *ctx)
 	if (!originok)
 	{
 		_Bool internal;
-#if POPAUTH
+#ifdef POPAUTH
 		_Bool popauth;
 #endif /* POPAUTH */
 		char *authtype;
@@ -6060,12 +6060,12 @@ mlfi_eoh(SMFICTX *ctx)
 
 		authtype = dkimf_getsymval(ctx, "{auth_type}");
 
-#if POPAUTH
+#ifdef POPAUTH
 		popauth = dkimf_checkpopauth(popdb, &cc->cctx_ip);
 #endif /* POPAUTH */
 
 		if ((authtype == NULL || authtype[0] == '\0') &&
-#if POPAUTH
+#ifdef POPAUTH
 		    !popauth &&
 #endif /* POPAUTH */
 		    !internal)
@@ -6100,7 +6100,7 @@ mlfi_eoh(SMFICTX *ctx)
 				       dfc->mctx_jobid);
 			}
 
-#if POPAUTH
+#ifdef POPAUTH
 			if (!popauth)
 			{
 				syslog(LOG_INFO, "%s not POP authenticated",
@@ -6411,12 +6411,12 @@ mlfi_eoh(SMFICTX *ctx)
 #endif /* _FFR_MULTIPLE_SIGNATURES */
 	}
 
-#if _FFR_BODYLENGTH_DB
+#ifdef _FFR_BODYLENGTH_DB
 	if (dfc->mctx_ltag && dfc->mctx_signing)
 		dkim_setpartial(dfc->mctx_dkim, TRUE);
 #endif /* _FFR_BODYLENGTH_DB */
 
-#if _FFR_VBR
+#ifdef _FFR_VBR
 	/* establish a VBR handle */
 	dfc->mctx_vbr = vbr_init(NULL, NULL, NULL);
 	if (dfc->mctx_vbr == NULL)
@@ -6463,7 +6463,7 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 #endif /* _FFR_VBR */
 
-#if VERIFY_DOMAINKEYS
+#ifdef VERIFY_DOMAINKEYS
 	if (dfc->mctx_dksigned && !dfc->mctx_signing)
 	{
 		dfc->mctx_dk = dk_verify(libdk, dfc->mctx_jobid, NULL,
@@ -6570,7 +6570,7 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 #endif /* _FFR_MULTIPLE_SIGNATURES */
 
-#if VERIFY_DOMAINKEYS
+#ifdef VERIFY_DOMAINKEYS
 		if (dfc->mctx_dk != NULL)
 		{
 			dkimf_dstring_cat(dfc->mctx_tmpstr, CRLF);
@@ -6593,7 +6593,7 @@ mlfi_eoh(SMFICTX *ctx)
 #endif /* VERIFY_DOMAINKEYS */
 	}
 
-#if VERIFY_DOMAINKEYS
+#ifdef VERIFY_DOMAINKEYS
 	/* signal end of headers to libdk */
 	if (dfc->mctx_dk != NULL)
 	{
@@ -6702,7 +6702,7 @@ mlfi_body(SMFICTX *ctx, u_char *bodyp, size_t bodylen)
 	dfc = cc->cctx_msg;
 	assert(dfc != NULL);
 
-#if VERIFY_DOMAINKEYS
+#ifdef VERIFY_DOMAINKEYS
 	if (dfc->mctx_dk != NULL)
 	{
 		status = dk_body(dfc->mctx_dk, bodyp, bodylen);
@@ -8273,7 +8273,7 @@ mlfi_eom(SMFICTX *ctx)
 	}
 #endif /* _FFR_VBR */
 
-#if VERIFY_DOMAINKEYS
+#ifdef VERIFY_DOMAINKEYS
 	if (dfc->mctx_dk != NULL)
 	{
 		DK_FLAGS flags;
@@ -8704,7 +8704,7 @@ usage(void)
 			"\t-t testfile \tevaluate RFC2822 message in \"testfile\"\n"
 			"\t-T timeout  \tDNS timeout (seconds)\n"
 	                "\t-u userid   \tchange to specified userid\n"
-#if POPAUTH
+#ifdef POPAUTH
 			"\t-U dbfile   \tuser POP AUTH database\n"
 #endif /* POPAUTH */
 	                "\t-v          \tincrease verbosity during testing\n"
@@ -8747,13 +8747,13 @@ main(int argc, char **argv)
 	char *become = NULL;
 	char *p;
 	char *pidfile = NULL;
-#if POPAUTH
+#ifdef POPAUTH
 	char *popdbfile = NULL;
 #endif /* POPAUTH */
-#if _FFR_BODYLENGTH_DB
+#ifdef _FFR_BODYLENGTH_DB
 	char *bldbfile = NULL;
 #endif /* _FFR_BODYLENGTH_DB  */
-#if _FFR_REPORT_INTERVALS
+#ifdef _FFR_REPORT_INTERVALS
 	char *ridbfile = NULL;
 #endif /* _FFR_REPORT_INTERVALS  */
 	char *testfile = NULL;
@@ -8770,7 +8770,7 @@ main(int argc, char **argv)
 	querycache = FALSE;
 #endif /* QUERY_CACHE */
 	sock = NULL;
-#if POPAUTH
+#ifdef POPAUTH
 	popdb = NULL;
 #endif /* POPAUTH */
 #ifdef _FFR_BODYLENGTH_DB
@@ -9016,7 +9016,7 @@ main(int argc, char **argv)
 			become = optarg;
 			break;
 
-#if POPAUTH
+#ifdef POPAUTH
 		  case 'U':
 			if (optarg == NULL || *optarg == '\0')
 				return usage();
@@ -9290,7 +9290,7 @@ main(int argc, char **argv)
 		}
 #endif /* _FFR_REPORT_INTERVALS */
 
-#if POPAUTH
+#ifdef POPAUTH
 		if (popdbfile == NULL)
 		{
 			(void) config_get(cfg, "POPDBFile", &popdbfile,
@@ -9870,7 +9870,7 @@ main(int argc, char **argv)
 		                    testpubkeys, strlen(testpubkeys));
 	}
 
-#if VERIFY_DOMAINKEYS
+#ifdef VERIFY_DOMAINKEYS
 	libdk = dk_init(NULL, NULL);
 	if (libdk == NULL)
 	{
@@ -9884,7 +9884,7 @@ main(int argc, char **argv)
 	}
 #endif /* VERIFY_DOMAINKEYS */
 
-#if _FFR_BODYLENGTH_DB
+#ifdef _FFR_BODYLENGTH_DB
 	if (bldbfile != NULL)
 	{
 		status = pthread_mutex_init(&bldb_lock, NULL);
@@ -9922,7 +9922,7 @@ main(int argc, char **argv)
 	}
 #endif /* _FFR_BODYLENGTH_DB */
 
-#if _FFR_REPORT_INTERVALS
+#ifdef _FFR_REPORT_INTERVALS
 	if (ridbfile != NULL)
 	{
 		status = pthread_mutex_init(&ridb_lock, NULL);
@@ -9999,7 +9999,7 @@ main(int argc, char **argv)
 		n -= status;
 	}
 
-#if POPAUTH
+#ifdef POPAUTH
 	if (popdbfile != NULL)
 	{
 		status = dkimf_initpopauth();
@@ -10074,17 +10074,17 @@ main(int argc, char **argv)
 		       DKIMF_PRODUCT, DKIMF_VERSION, status, errno);
 	}
 
-#if _FFR_BODYLENGTH_DB
+#ifdef _FFR_BODYLENGTH_DB
 	if (bldb != NULL)
 		dkimf_db_close(bldb);
 #endif /* _FFR_BODYLENGTH_DB */
 
-#if _FFR_REPORT_INTERVALS
+#ifdef _FFR_REPORT_INTERVALS
 	if (ridb != NULL)
 		dkimf_db_close(ridb);
 #endif /* _FFR_REPORT_INTERVALS */
 
-#if POPAUTH
+#ifdef POPAUTH
 	if (popdb != NULL)
 		dkimf_db_close(popdb);
 #endif /* POPAUTH */
