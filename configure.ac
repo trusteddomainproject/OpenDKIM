@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.2 2009/11/12 01:52:06 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.3 2009/11/12 02:54:37 grooverdan Exp $
 
 AC_PREREQ(2.62)
 
@@ -24,16 +24,54 @@ CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CC="$PTHREAD_CC"
 
 # Checks for libraries.
-AC_SEARCH_LIBS(res_mkquery, resolv)
-AC_SEARCH_LIBS(dn_expand, resolv)
-
-# TODO fix - need in pkg-config files
-LIBRESOLV=-lresolv
-AC_SUBST([LIBRESOLV])
-
 AC_SEARCH_LIBS(inet_addr, nsl)
 AC_SEARCH_LIBS(socket, socket)
 
+
+AC_MSG_CHECKING([whether the resolver works without -lresolv])
+AC_LINK_IFELSE([
+#include "confdefs.h" 
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h> 
+int main() {
+res_mkquery (0, 0, 0, 0, 0, 0, 0, 0, 0);
+dn_expand (0, 0, 0, 0, 0);
+dn_skipname (0, 0);
+dn_comp (0, 0, 0, 0, 0);
+return 0;
+} 
+] , [
+	AC_MSG_RESULT(yes)
+	LIBRESOLV=
+] , [
+	AC_MSG_RESULT(no)
+	AC_MSG_CHECKING([whether the resolver works with -lresolv])
+	saved_LIBS="$LIBS"
+	LIBS=-lresolv
+	AC_LINK_IFELSE([
+#include "confdefs.h" 
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h> 
+int main() {
+res_mkquery (0, 0, 0, 0, 0, 0, 0, 0, 0);
+dn_expand (0, 0, 0, 0, 0);
+dn_skipname (0, 0);
+dn_comp (0, 0, 0, 0, 0);
+return 0;
+} 
+	] , [
+		AC_MSG_RESULT(yes)
+		LIBRESOLV=-lresolv
+	] , [
+		AC_MSG_RESULT(no)
+		AC_MSG_ERROR([need workable resolver library])
+	])
+	LIBS="$saved_LIBS"
+])
+AC_SUBST([LIBRESOLV])
+ 
 # Checks for header files.
 AC_HEADER_RESOLV
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h iso/limits_iso.h netdb.h netinet/in.h paths.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h])
@@ -583,9 +621,9 @@ else
 	fi
 fi
 
-LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBDB_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS"
+LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBDB_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS $LIBRESOLV"
 # This (below) is just for the pkg-config file opendkim.pc.in
-LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS $LIBRESOLV"
+LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
 LIBOPENDKIM_INC="$LIBCRYPTO_CFLAGS $LIBDB_INCDIRS $LIBTRE_INCDIRS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
 
 if test x"$USE_AR" = x"yes"
