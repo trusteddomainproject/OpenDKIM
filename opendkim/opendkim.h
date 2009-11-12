@@ -4,19 +4,18 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.12.4.1 2009/11/12 06:56:25 grooverdan Exp $
+**  $Id: opendkim.h,v 1.12.4.2 2009/11/12 13:17:51 grooverdan Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.12.4.1 2009/11/12 06:56:25 grooverdan Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.12.4.2 2009/11/12 13:17:51 grooverdan Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
 #define	DKIMF_PRODUCTNS	"OpenDKIM-Filter"
-#define	DKIMF_VERSION	"1.2.0.dev"
 
 /* system includes */
 #include <sys/types.h>

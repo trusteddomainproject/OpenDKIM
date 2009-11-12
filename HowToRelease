@@ -3,9 +3,6 @@ Release procedures for OpenDKIM
 1) Edit libopendkim/dkim.h and change OPENDKIM_LIB_VERSION to match the new
    release number.
 
-2) Edit opendkim/opendkim.h and change DKIMF_VERSION to match the new
-   release number.  Make sure any suffixes like ".dev" are removed.
-
 3) Edit configure.ac so that the new release number is the second parameter
    in the AC_INIT() call.
 
@@ -65,4 +62,4 @@ Release procedures for OpenDKIM
 14) Apply a CVS tag to the release.  Make sure you're tagging from the
     top-level directory, and use a tag name of "rel-opendkim-x-y-z".
 
-$Id: HowToRelease,v 1.3 2009/09/17 07:06:50 cm-msk Exp $
+$Id: HowToRelease,v 1.3.12.1 2009/11/12 13:17:50 grooverdan Exp $

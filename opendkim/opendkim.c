@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.61.2.2 2009/11/12 06:56:25 grooverdan Exp $
+**  $Id: opendkim.c,v 1.61.2.3 2009/11/12 13:17:50 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.61.2.2 2009/11/12 06:56:25 grooverdan Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.61.2.3 2009/11/12 13:17:50 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4689,7 +4689,7 @@ dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "--dkimreport/%s/%s\n", hostname, dfc->mctx_jobid);
 	fprintf(out, "Content-Type: message/feedback-report\n");
 	fprintf(out, "\n");
-	fprintf(out, "User-Agent: %s/%s\n", DKIMF_PRODUCTNS, DKIMF_VERSION);
+	fprintf(out, "User-Agent: %s/%s\n", DKIMF_PRODUCTNS, VERSION);
 	fprintf(out, "Version: %s\n", ARF_VERSION);
 	fprintf(out, "Original-Envelope-Id: %s\n", dfc->mctx_jobid);
 	fprintf(out, "Reporting-MTA: %s\n", hostname);
@@ -4928,7 +4928,7 @@ dkimf_policyreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "--dkimreport/%s/%s\n", hostname, dfc->mctx_jobid);
 	fprintf(out, "Content-Type: message/feedback-report\n");
 	fprintf(out, "\n");
-	fprintf(out, "User-Agent: %s/%s\n", DKIMF_PRODUCTNS, DKIMF_VERSION);
+	fprintf(out, "User-Agent: %s/%s\n", DKIMF_PRODUCTNS, VERSION);
 	fprintf(out, "Version: %s\n", ARF_VERSION);
 	fprintf(out, "Original-Envelope-Id: %s\n", dfc->mctx_jobid);
 	fprintf(out, "Reporting-MTA: %s\n", hostname);
@@ -8465,7 +8465,7 @@ mlfi_eom(SMFICTX *ctx)
 
 		snprintf(xfhdr, DKIM_MAXHEADER, "%s%s v%s %s %s",
 		         cc->cctx_noleadspc ? " " : "",
-		         DKIMF_PRODUCT, DKIMF_VERSION, hostname,
+		         DKIMF_PRODUCT, VERSION, hostname,
 		         dfc->mctx_jobid != NULL ? dfc->mctx_jobid
 		                                : JOBIDUNKNOWN);
 
@@ -9030,7 +9030,7 @@ main(int argc, char **argv)
 
 		  case 'V':
 			printf("%s: %s v%s\n", progname, DKIMF_PRODUCT,
-			       DKIMF_VERSION);
+			       VERSION);
 			printf("\tCompiled with %s\n",
 			       SSLeay_version(SSLEAY_VERSION));
 			printf("\tSupported signing algorithms:\n");
@@ -10044,7 +10044,7 @@ main(int argc, char **argv)
 	if (curconf->conf_dolog)
 	{
 		syslog(LOG_INFO, "%s v%s starting (%s)", DKIMF_PRODUCT,
-		       DKIMF_VERSION, argstr);
+		       VERSION, argstr);
 	}
 
 	/* spawn the SIGUSR1 handler */
@@ -10071,7 +10071,7 @@ main(int argc, char **argv)
 	{
 		syslog(LOG_INFO,
 		       "%s v%s terminating with status %d, errno = %d",
-		       DKIMF_PRODUCT, DKIMF_VERSION, status, errno);
+		       DKIMF_PRODUCT, VERSION, status, errno);
 	}
 
 #ifdef _FFR_BODYLENGTH_DB
