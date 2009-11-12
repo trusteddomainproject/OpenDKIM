@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.13.4.1 2009/11/12 10:06:11 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.13.4.2 2009/11/12 19:07:02 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1524,140 +1524,63 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 				cur->canon_lastchar = *p;
 			}
 
+			if (wlen > 0 && wrote[wlen - 1] == '\r')
+				wlen--;
+
+			dkim_canon_buffer(cur, wrote, wlen);
+
 			break;
 
 		  case DKIM_CANON_RELAXED:
-			p = NULL;
-
-			while (p <= eob)
+			for (p = start; p <= eob; p++)
 			{
-				end = (fixcrlf && p == eob);
-
 				switch (cur->canon_bodystate)
 				{
 				  case 0:
-					dkim_dstring_blank(cur->canon_buf);
-					cur->canon_blankline = TRUE;
-					if (p == NULL)
-						p = start;
-					else
-						p++;
-					if (p > eob)
-						break;
-
 					if (DKIM_ISLWSP(*p))
 					{
-						if (p == NULL)
-							p = start;
-						else
-							p++;
-						cur->canon_bodystate = 2;
+						cur->canon_bodystate = 1;
 					}
 					else if (*p == '\r')
 					{
-						if (p == NULL)
-							p = start;
-						else if (!end)
-							p++;
-						cur->canon_bodystate = 3;
+						cur->canon_bodystate = 2;
 					}
 					else
 					{
+						cur->canon_blankline = FALSE;
 						dkim_dstring_cat1(cur->canon_buf,
 						                  *p);
-						if (p == NULL)
-							p = start;
-						else
-							p++;
-						cur->canon_bodystate = 1;
+						cur->canon_bodystate = 3;
 					}
 					break;
 
 				  case 1:
-					cur->canon_blankline = FALSE;
-					if (p == NULL)
-						p = start;
-
 					if (DKIM_ISLWSP(*p))
 					{
-						dkim_canon_flushblanks(cur);
-						dkim_canon_buffer(cur,
-						                  dkim_dstring_get(cur->canon_buf),
-						                  dkim_dstring_len(cur->canon_buf));
-						dkim_dstring_blank(cur->canon_buf);
-						if (p == NULL)
-							p = start;
-						else
-							p++;
-						cur->canon_bodystate = 2;
+						break;
 					}
 					else if (*p == '\r')
 					{
-						if (p == NULL)
-							p = start;
-						else if (!end)
-							p++;
-						cur->canon_bodystate = 3;
+						cur->canon_bodystate = 2;
 					}
 					else
 					{
+						dkim_canon_flushblanks(cur);
+						dkim_canon_buffer(cur, SP, 1);
+						cur->canon_blankline = FALSE;
 						dkim_dstring_cat1(cur->canon_buf,
 						                  *p);
-						if (p == NULL)
-							p = start;
-						else
-							p++;
+						cur->canon_bodystate = 3;
 					}
 					break;
 
 				  case 2:
-					if (p == NULL)
-						p = start;
-
-					if (DKIM_ISLWSP(*p))
+					if (fixcrlf || *p == '\n')
 					{
-						if (p == NULL)
-							p = start;
-						else
-							p++;
-					}
-					else if (*p == '\r')
-					{
-						if (p == NULL)
-							p = start;
-						else if (!end)
-							p++;
-						cur->canon_bodystate = 3;
-					}
-					else
-					{
-						dkim_canon_buffer(cur, SP, 1);
-						dkim_dstring_blank(cur->canon_buf);
-						dkim_dstring_cat1(cur->canon_buf,
-						                  *p);
-						if (p == NULL)
-							p = start;
-						else
-							p++;
-						cur->canon_bodystate = 1;
-					}
-					break;
-
-				  case 3:
-					if (p == NULL)
-						p = start;
-
-					if (*p == '\n' ||
-					    (end && *p == '\r'))
-					{
-						if (dkim_dstring_len(cur->canon_buf) == 0)
+						if (cur->canon_blankline)
 						{
-							if (cur->canon_blankline)
-								cur->canon_blanks++;
-							else
-								dkim_canon_buffer(cur,
-								                  CRLF,
-								                  2);
+							cur->canon_blanks++;
+							cur->canon_bodystate = 0;
 						}
 						else
 						{
@@ -1668,123 +1591,82 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 							dkim_canon_buffer(cur,
 							                  CRLF,
 							                  2);
-						}
+							dkim_dstring_blank(cur->canon_buf);
 
-						cur->canon_bodystate = 0;
+							if (*p == '\n')
+							{
+								cur->canon_blankline = TRUE;
+								cur->canon_bodystate = 0;
+							}
+							else if (*p == '\r')
+							{
+								cur->canon_blankline = TRUE;
+							}
+							else
+							{
+								if (DKIM_ISLWSP(*p))
+								{
+									cur->canon_bodystate = 1;
+								}
+								else
+								{
+									dkim_dstring_cat1(cur->canon_buf,
+									                  *p);
+									cur->canon_bodystate = 3;
+								}
+							}
+						}
+					}
+					else if (*p == '\r')
+					{
+						cur->canon_blankline = FALSE;
+						dkim_dstring_cat1(cur->canon_buf,
+						                  *p);
+					}
+					else if (DKIM_ISLWSP(*p))
+					{
+						dkim_canon_flushblanks(cur);
+						dkim_canon_buffer(cur,
+						                  dkim_dstring_get(cur->canon_buf),
+						                  dkim_dstring_len(cur->canon_buf));
+						dkim_dstring_blank(cur->canon_buf);
+						cur->canon_bodystate = 1;
+					}
+					else
+					{
+						cur->canon_blankline = FALSE;
+						dkim_dstring_cat1(cur->canon_buf,
+						                  *p);
+						cur->canon_bodystate = 3;
+					}
+					break;
+
+				  case 3:
+					if (DKIM_ISLWSP(*p))
+					{
+						dkim_canon_flushblanks(cur);
+						dkim_canon_buffer(cur,
+						                  dkim_dstring_get(cur->canon_buf),
+						                  dkim_dstring_len(cur->canon_buf));
+						dkim_dstring_blank(cur->canon_buf);
+						cur->canon_bodystate = 1;
+					}
+					else if (*p == '\r')
+					{
+						cur->canon_bodystate = 2;
 					}
 					else
 					{
 						dkim_dstring_cat1(cur->canon_buf,
 						                  *p);
-						if (p == NULL)
-							p = start;
-						else
-							p++;
 					}
 					break;
-
-				  default:
-					assert(0);
-				}
-			}
-#if 0
-				if (*p == '\n')
-				{
-					if (cur->canon_lastchar == '\r')
-					{
-						if (cur->canon_blankline)
-						{
-							cur->canon_blanks++;
-						}
-						else if (wlen == 1 ||
-						         p == start)
-						{
-							dkim_canon_buffer(cur,
-							                  CRLF,
-							                  2);
-						}
-						else
-						{
-							dkim_canon_buffer(cur,
-							                  wrote,
-							                  wlen + 1);
-						}
-
-						wrote = p + 1;
-						wlen = 0;
-						cur->canon_blankline = TRUE;
-					}
-				}
-				else
-				{
-					if (p == start &&
-					    cur->canon_lastchar == '\r')
-					{
-						if (fixcrlf)
-						{
-							dkim_canon_buffer(cur,
-							                  CRLF,
-							                  2);
-							cur->canon_lastchar = '\n';
-							cur->canon_blankline = TRUE;
-						}
-						else
-						{
-							dkim_canon_buffer(cur,
-							                  "\r",
-							                  1);
-						}
-					}
-
-					/* non-space after a space */
-					if (DKIM_ISLWSP(cur->canon_lastchar) &&
-					    !DKIM_ISLWSP(*p) && *p != '\r')
-					{
-						if (cur->canon_blanks > 0)
-							dkim_canon_flushblanks(cur);
-						dkim_canon_buffer(cur, SP, 1);
-						wrote = p;
-						wlen = 1;
-						cur->canon_blankline = FALSE;
-					}
-
-					/* space after a non-space */
-					else if (!DKIM_ISLWSP(cur->canon_lastchar) &&
-					         DKIM_ISLWSP(*p))
-					{
-						if (cur->canon_blanks > 0)
-							dkim_canon_flushblanks(cur);
-						dkim_canon_buffer(cur, wrote,
-							          wlen);
-						wlen = 0;
-						wrote = p + 1;
-					}
-
-					/* space after a space */
-					else if (DKIM_ISLWSP(cur->canon_lastchar) &&
-					         DKIM_ISLWSP(*p))
-					{
-						/* XXX -- fix logic */
-						;
-					}
-
-					/* non-space after a non-space */
-					else
-					{
-						wlen++;
-						if (cur->canon_blankline &&
-						    (wlen > 1 || *p != '\r'))
-						{
-							if (cur->canon_blanks > 0)
-								dkim_canon_flushblanks(cur);
-							cur->canon_blankline = FALSE;
-						}
-					}
 				}
 
 				cur->canon_lastchar = *p;
 			}
-#endif /* 0 */
+
+			dkim_canon_buffer(cur, NULL, 0);
 
 			break;
 
@@ -1792,11 +1674,6 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 			assert(0);
 			/* NOTREACHED */
 		}
-
-		if (wlen > 0 && wrote[wlen - 1] == '\r')
-			wlen--;
-
-		dkim_canon_buffer(cur, wrote, wlen);
 	}
 
 	return DKIM_STAT_OK;
