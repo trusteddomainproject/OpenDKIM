@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.28.4.1 2009/11/12 01:49:55 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.28.4.2 2009/11/12 01:54:16 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1563,6 +1563,7 @@ dkim_sig_versionok(DKIM *dkim, DKIM_SET *set)
 DKIM_STAT
 dkim_siglist_setup(DKIM *dkim)
 {
+	bool bsh;
 	int c;
 	int hashtype = DKIM_HASHTYPE_UNKNOWN;
 	int hstatus;
@@ -1585,6 +1586,8 @@ dkim_siglist_setup(DKIM *dkim)
 
 	lib = dkim->dkim_libhandle;
 	drift = lib->dkiml_clockdrift;
+
+	bsh = ((lib->dkiml_flags & DKIM_LIBFLAGS_BADSIGHANDLES) != 0);
 
 	len = dkim->dkim_sigcount * sizeof(DKIM_SIGINFO *);
 	dkim->dkim_siglist = DKIM_MALLOC(dkim, len);
@@ -1620,7 +1623,7 @@ dkim_siglist_setup(DKIM *dkim)
 	     set = dkim_set_next(set, DKIM_SETTYPE_SIGNATURE), c++)
 	{
 		/* cope with bad ones */
-		if (set->set_bad)
+		if (set->set_bad && !bsh)
 		{
 			c--;
 			continue;
@@ -2888,6 +2891,7 @@ dkim_eoh_verify(DKIM *dkim)
 {
 	_Bool keep;
 	_Bool tmp;
+	_Bool bsh;
 	DKIM_STAT status;
 	int c;
 	struct dkim_header *sender;
@@ -2906,6 +2910,7 @@ dkim_eoh_verify(DKIM *dkim)
 	lib = dkim->dkim_libhandle;
 	assert(lib != NULL);
 
+	bsh = ((lib->dkiml_flags & DKIM_LIBFLAGS_BADSIGHANDLES) != 0);
 	tmp = ((lib->dkiml_flags & DKIM_LIBFLAGS_TMPFILES) != 0);
 	keep = ((lib->dkiml_flags & DKIM_LIBFLAGS_KEEPFILES) != 0);
 
@@ -2958,7 +2963,7 @@ dkim_eoh_verify(DKIM *dkim)
 		     set != NULL;
 		     set = dkim_set_next(set, DKIM_SETTYPE_SIGNATURE))
 		{
-			if (!set->set_bad)
+			if (!set->set_bad || bsh)
 				dkim->dkim_sigcount++;
 		}
 

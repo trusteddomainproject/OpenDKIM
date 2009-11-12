@@ -2,7 +2,7 @@
 <head><title>dkim_options()</title></head>
 <body>
 <!--
-$Id: dkim_options.html,v 1.1.14.1 2009/11/12 01:49:55 cm-msk Exp $
+$Id: dkim_options.html,v 1.1.14.2 2009/11/12 01:54:16 cm-msk Exp $
 -->
 <h1>dkim_options()</h1>
 
@@ -209,6 +209,11 @@ are:
       and thus these older signatures still may not verify due to evolutions
       of the specification that took place during the use of that version
       string. </td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_BADSIGHANDLES</tt></td>
+  <td>Create DKIM_SIGINFO handles even for signatures that had syntax errors.
+      </td>
  </tr>
  <tr>
   <td><tt>DKIM_LIBFLAGS_CACHE</tt></td>
