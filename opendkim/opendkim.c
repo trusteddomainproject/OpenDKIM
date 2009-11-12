@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.56.2.7 2009/11/12 19:25:17 cm-msk Exp $
+**  $Id: opendkim.c,v 1.56.2.8 2009/11/12 19:32:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56.2.7 2009/11/12 19:25:17 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56.2.8 2009/11/12 19:32:59 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6399,7 +6399,7 @@ mlfi_eoh(SMFICTX *ctx)
 #endif /* _FFR_RESIGN */
 
 	/* create all required signing handles */
-	if (dfc->mctx_signing && dfc->mctx_srhead != NULL)
+	if (dfc->mctx_srhead != NULL)
 	{
 		char *sdomain;
 		char *selector;
