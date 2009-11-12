@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.56.2.4 2009/11/11 03:39:52 cm-msk Exp $
+**  $Id: opendkim.c,v 1.56.2.5 2009/11/12 00:36:15 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56.2.4 2009/11/11 03:39:52 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56.2.5 2009/11/12 00:36:15 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -436,6 +436,10 @@ struct lookup
 #endif /* _FFR_DKIM_REPUTATION */
 
 #define	DELIMITER		"\001"
+
+#ifndef MIN
+# define MIN(x,y)		((x) < (y) ? (x) : (y))
+#endif /* ! MIN */
 
 struct lookup dkimf_params[] =
 {
