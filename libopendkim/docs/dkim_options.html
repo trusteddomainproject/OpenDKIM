@@ -2,7 +2,7 @@
 <head><title>dkim_options()</title></head>
 <body>
 <!--
-$Id: dkim_options.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+$Id: dkim_options.html,v 1.1.14.1 2009/11/12 01:49:55 cm-msk Exp $
 -->
 <h1>dkim_options()</h1>
 
@@ -217,6 +217,11 @@ are:
       if, for example, the DNS server is not local.  Requires that libopendkim
       be compiled with the <tt>QUERY_CACHE</tt> option since doing so
       adds a library dependency to the build. </td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_CHUNKBADSIGS</tt></td>
+  <td>Continue processing a chunk even if it contains signatures that
+      contain syntax errors. </td>
  </tr>
  <tr>
   <td><tt>DKIM_LIBFLAGS_DELAYSIGPROC</tt></td>

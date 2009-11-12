@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.28 2009/11/11 17:40:35 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.28.4.1 2009/11/12 01:49:55 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -5423,11 +5423,14 @@ dkim_eom(DKIM *dkim, _Bool *testkey)
 DKIM_STAT
 dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 {
+	bool bso;
 	DKIM_STAT status;
 	unsigned char *p;
 	unsigned char *end;
 
 	assert(dkim != NULL);
+
+	bso = ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_CHUNKBADSIGS) != 0);
 
 	/* verify chunking state */
 	if (dkim->dkim_chunkstate >= DKIM_CHUNKSTATE_DONE)
@@ -5462,7 +5465,8 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 				status = dkim_header(dkim,
 				                     dkim_dstring_get(dkim->dkim_hdrbuf),
 				                     dkim_dstring_len(dkim->dkim_hdrbuf));
-				if (status != DKIM_STAT_OK)
+				if (status != DKIM_STAT_OK &&
+				    !(status == DKIM_STAT_SYNTAX && bso))
 					return status;
 			}
 
@@ -5518,7 +5522,8 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 				status = dkim_header(dkim,
 				                     dkim_dstring_get(dkim->dkim_hdrbuf),
 				                     dkim_dstring_len(dkim->dkim_hdrbuf) - 2);
-				if (status != DKIM_STAT_OK)
+				if (status != DKIM_STAT_OK &&
+				    !(status == DKIM_STAT_SYNTAX && bso))
 					return status;
 
 				dkim_dstring_blank(dkim->dkim_hdrbuf);
@@ -5536,6 +5541,8 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 					                     dkim_dstring_get(dkim->dkim_hdrbuf),
 					                     dkim_dstring_len(dkim->dkim_hdrbuf) - 2);
 					if (status != DKIM_STAT_OK)
+					    !(status == DKIM_STAT_SYNTAX &&
+					      bso))
 						return status;
 				}
 
@@ -5556,6 +5563,7 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 				                     dkim_dstring_get(dkim->dkim_hdrbuf),
 				                     dkim_dstring_len(dkim->dkim_hdrbuf) - 2);
 				if (status != DKIM_STAT_OK)
+				    !(status == DKIM_STAT_SYNTAX && bso))
 					return status;
 
 				dkim_dstring_blank(dkim->dkim_hdrbuf);
