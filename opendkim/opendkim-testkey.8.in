@@ -41,7 +41,7 @@ Other sanity checks may be added in later versions.
 .SH VERSION
 This man page covers the version of
 .I opendkim-testkey
-that shipped with version 1.2.0 of
+that shipped with version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT
 Copyright (c) 2007, 2008, Sendmail, Inc. and its suppliers.  All rights
