@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.56.2.5 2009/11/12 00:36:15 cm-msk Exp $
+**  $Id: opendkim.c,v 1.56.2.6 2009/11/12 01:37:46 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56.2.5 2009/11/12 00:36:15 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56.2.6 2009/11/12 01:37:46 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6807,6 +6807,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 	/* signal end of headers to libopendkim */
 	lastdkim = NULL;
+	status = DKIM_STAT_OK;
 #ifdef _FFR_RESIGN
 	if (dfc->mctx_srhead != NULL && !dfc->mctx_resign)
 #else /* _FFR_RESIGN */
