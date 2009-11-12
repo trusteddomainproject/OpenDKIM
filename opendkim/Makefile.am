@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.48 2009/11/02 08:02:49 cm-msk Exp $
+# $Id: Makefile.am,v 1.48.4.1 2009/11/12 01:52:07 grooverdan Exp $
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -pthread --pedantic -Wall -O2
@@ -16,7 +16,7 @@ if BUILD_FILTER
 sbin_PROGRAMS += opendkim
 opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h config.c config.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CFLAGS = 
-opendkim_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_INCDIRS)
+opendkim_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_CFLAGS)
 opendkim_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS) $(LIBMILTER_LIBDIRS)
 opendkim_LDADD = ../libopendkim/libopendkim.la -lmilter $(LIBCRYPTO_LIBS)
 if BODYLENGTH_DB
@@ -116,18 +116,18 @@ endif
 endif
 
 opendkim_testkey_SOURCES = opendkim-testkey.c
-opendkim_testkey_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_INCDIRS)
+opendkim_testkey_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_CFLAGS)
 opendkim_testkey_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS)
-opendkim_testkey_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS)
+opendkim_testkey_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) @LIBRESOLV@
 opendkim_testkey_CFLAGS = 
 if DEBUG
 opendkim_testkey_CFLAGS += -g
 endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
-opendkim_testadsp_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_INCDIRS)
+opendkim_testadsp_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_CFLAGS)
 opendkim_testadsp_LDFLAGS = -L../libopendkim
-opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la
+opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la @LIBRESOLV@
 opendkim_testadsp_CFLAGS = 
 if DEBUG
 opendkim_testadsp_CFLAGS += -g

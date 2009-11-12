@@ -1,10 +1,10 @@
-# $Id: Makefile.am,v 1.38 2009/11/11 20:23:38 cm-msk Exp $
+# $Id: Makefile.am,v 1.38.2.1 2009/11/12 01:52:06 grooverdan Exp $
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-mailparse.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h util.h
-libopendkim_la_CFLAGS = $(LIBCRYPTO_INCDIRS)
+libopendkim_la_CFLAGS = @LIBOPENDKIM_INC@
 libopendkim_la_LDFLAGS = $(LIBCRYPTO_LIBDIRS)
-libopendkim_la_LIBADD = $(LIBCRYPTO_LIBS)
+libopendkim_la_LIBADD = @LIBOPENDKIM_LIBS@
 if !ALL_SYMBOLS
 libopendkim_la_DEPENDENCIES = symbols.map
 libopendkim_la_LDFLAGS += -export-symbols symbols.map
@@ -56,6 +56,9 @@ libopendkim_la_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
 	docs/dkim_sig_getidentity.html docs/dkim_sig_getcanons.html \
 	docs/dkim_libfeature.html
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = opendkim.pc
+
 if DIFFHEADERS
 libopendkim_la_CFLAGS += -D_FFR_DIFFHEADERS
 endif
@@ -82,7 +85,6 @@ endif
 
 if USE_ARLIB
 libopendkim_la_CFLAGS += -DUSE_ARLIB -I../libar
-libopendkim_la_LIBADD += ../libar/libar.la
 endif
 
 if USE_DB_LIBOPENDKIM
@@ -969,7 +971,7 @@ endif
 t_test115_SOURCES = t-test115.c t-testdata.h
 t_test115_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
 t_test115_LDADD = ./libopendkim.la
-t_test115_CFLAGS = $(LIBCRYPTO_INCDIRS)
+t_test115_CFLAGS = $(LIBCRYPTO_CFLAGS)
 if DEBUG
 t_test115_CFLAGS += -g
 endif

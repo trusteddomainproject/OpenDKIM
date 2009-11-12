@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.1 2009/11/11 23:26:30 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.2 2009/11/12 01:52:06 grooverdan Exp $
 
 AC_PREREQ(2.62)
 
@@ -26,6 +26,11 @@ CC="$PTHREAD_CC"
 # Checks for libraries.
 AC_SEARCH_LIBS(res_mkquery, resolv)
 AC_SEARCH_LIBS(dn_expand, resolv)
+
+# TODO fix - need in pkg-config files
+LIBRESOLV=-lresolv
+AC_SUBST([LIBRESOLV])
+
 AC_SEARCH_LIBS(inet_addr, nsl)
 AC_SEARCH_LIBS(socket, socket)
 
@@ -122,58 +127,70 @@ AC_MSG_CHECKING(for OpenSSL library and includes)
 AC_ARG_WITH(openssl,
 	AS_HELP_STRING(--with-openssl, location of OpenSSL includes and library (required)),
 	sslpath="$withval", sslpath="auto")
-ssldirs="/usr/local/ssl /usr/local /usr/sfw /usr"
-if test "$sslpath" = "auto" -o "$sslpath" = "yes"
+
+openssl_found="no"
+if test "$sslpath" = "auto" -o x"$sslpath" = x"yes"
 then
-	for d in $ssldirs
-	do
-		if test -f $d/include/openssl/opensslconf.h
-		then
-			sslpath=$d
-			break
-		fi
-	done
+	PKG_CHECK_MODULES([LIBCRYPTO],[openssl >= 0.9.7],[openssl_found="yes"],[
+		openssl_found="no"
+		AC_MSG_WARN("pkg-config for openssl not found- trying manual search ....")
+	])
 fi
-case "$sslpath" in
-	no)
-		AC_MSG_ERROR(OpenSSL is required)
-		;;
-	auto)
-		AC_MSG_ERROR(OpenSSL not found)
-		;;
-	*/*)
-		AC_MSG_RESULT($sslpath)
-		;;
-	*)
-		AC_MSG_ERROR(OpenSSL not found)
-		;;
-esac
+
+
+if test x"$openssl_found" = x"no"
+then
+	ssldirs="/usr/local/ssl /usr/local /usr/sfw /usr"
+	if test "$sslpath" = "auto" -o "$sslpath" = "yes"
+	then
+		for d in $ssldirs
+		do
+			if test -f $d/include/openssl/opensslconf.h
+			then
+				sslpath=$d
+				break
+			fi
+		done
+	fi
+	case "$sslpath" in
+		no)
+			AC_MSG_ERROR(OpenSSL is required)
+			;;
+		auto)
+			AC_MSG_ERROR(OpenSSL not found)
+			;;
+		*/*)
+			AC_MSG_RESULT($sslpath)
+			;;
+		*)
+			AC_MSG_ERROR(OpenSSL not found)
+			;;
+	esac
+        LIBCRYPTO_CFLAGS="-I$sslpath/include"
+        LIBCRYPTO_LIBS="-L$sslpath/lib -lssl -lcrypto -ldl"
+fi
 
 saved_CFLAGS="$CFLAGS"
 saved_LDFLAGS="$LDFLAGS"
 saved_LIBS="$LIBS"
 
 LIBS=""
-CFLAGS="-I$sslpath/include $saved_CFLAGS"
-LDFLAGS="-L$sslpath/lib $saved_LDFLAGS"
+CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
+LDFLAGS="$LIBCRYPTO_LIBS $saved_LDFLAGS"
 
 AC_CHECK_HEADERS(openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h, ,
 	AC_MSG_ERROR(required OpenSSL header not found))
 AC_SEARCH_LIBS(ERR_peek_error, crypto, , AC_MSG_ERROR(libcrypto not found))
-AC_SEARCH_LIBS(SSL_library_init, ssl, , AC_MSG_ERROR(libssl not found))
+AC_SEARCH_LIBS(SSL_library_init, ssl, ,
+	AC_MSG_ERROR([libssl not found]))
 AC_CHECK_DECL(SHA256_DIGEST_LENGTH, ,
 	AC_MSG_WARN(SHA256 is required for DKIM but is not supported with your version of OpenSSL),
 	[#include <openssl/sha.h>])
-
-LIBCRYPTO_INCDIRS="-I$sslpath/include"
-LIBCRYPTO_LIBDIRS="-L$sslpath/lib"
-LIBCRYPTO_LIBS="$LIBS"
 
 CFLAGS="$saved_CFLAGS"
 LDFLAGS="$saved_LDFLAGS"
 LIBS="$saved_LIBS"
 
-AC_SUBST(LIBCRYPTO_INCDIRS)
 AC_SUBST(LIBCRYPTO_LIBDIRS)
 AC_SUBST(LIBCRYPTO_LIBS)
 
@@ -566,10 +583,30 @@ else
 	fi
 fi
 
+LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBDB_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS"
+# This (below) is just for the pkg-config file opendkim.pc.in
+LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS $LIBRESOLV"
+LIBOPENDKIM_INC="$LIBCRYPTO_CFLAGS $LIBDB_INCDIRS $LIBTRE_INCDIRS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
+
+if test x"$USE_AR" = x"yes"
+then
+        # note this is just for PKG-CONFIG.
+	LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS_PKG -lar"
+	# for Makefile
+	LIBOPENDKIM_LIBS="$LIBOPENDKIM_LIBS ../libar/libar.la"
+fi
+if test x"$USE_DB_LIBOPENDKIM" = x"yes"
+then
+	LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS_PKG $LIBDB_LIBS"
+	LIBOPENDKIM_LIBS="$LIBOPENDKIM_LIBS $LIBDB_LIBS"
+fi
+
+AC_SUBST(LIBOPENDKIM_LIBS)
+AC_SUBST(LIBOPENDKIM_LIBS_PKG)
+AC_SUBST(LIBOPENDKIM_INC)
+
 AM_CONDITIONAL(VERIFY_DOMAINKEYS, test x"$dk" != x"no")
-AC_SUBST(LIBDK_INCDIRS)
-AC_SUBST(LIBDK_LIBDIRS)
-AC_SUBST(LIBDK_LIBS)
 
 # Finish up
-AC_OUTPUT(Makefile opendkim/Makefile libopendkim/Makefile libar/Makefile libvbr/Makefile)
+AC_OUTPUT(Makefile opendkim/Makefile libopendkim/Makefile libar/Makefile libvbr/Makefile
+		libopendkim/opendkim.pc libar/ar.pc libvbr/vbr.pc)

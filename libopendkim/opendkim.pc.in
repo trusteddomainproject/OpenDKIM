@@ -1,0 +1,15 @@
+# Process this file with autoconf to produce a pkg-config metadata file.
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: OpenDKIM Library
+Description: Library for performing DKIM signing and verification
+URL: http://opendkim.org
+Version: @VERSION@
+Libs: -L${libdir} -lopendkim
+Libs.private: @LIBOPENDKIM_LIBS_PKG@
+Cflags: -I${includedir}
+
