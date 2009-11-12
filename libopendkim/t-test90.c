@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test90_c_id[] = "@(#)$Id: t-test90.c,v 1.3 2009/07/23 17:40:25 cm-msk Exp $";
+static char t_test90_c_id[] = "@(#)$Id: t-test90.c,v 1.3.14.1 2009/11/12 19:05:36 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -14,7 +14,6 @@ static char t_test90_c_id[] = "@(#)$Id: t-test90.c,v 1.3 2009/07/23 17:40:25 cm-
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
-
 
 /* libopendkim includes */
 #include "dkim.h"
@@ -51,16 +50,13 @@ main(int argc, char **argv)
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
 
-#ifdef TEST_KEEP_FILES
 	/* set flags */
-	flags = (DKIM_LIBFLAGS_TMPFILES|DKIM_LIBFLAGS_KEEPFILES);
-	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FLAGS, &flags,
-	                    sizeof flags);
-#endif /* TEST_KEEP_FILES */
-
 	(void) dkim_options(lib, DKIM_OP_GETOPT, DKIM_OPTS_FLAGS, &flags,
 	                    sizeof flags);
-	flags |= DKIM_LIBFLAGS_FIXCRLF;
+	flags = DKIM_LIBFLAGS_FIXCRLF;
+#ifdef TEST_KEEP_FILES
+	flags |= (DKIM_LIBFLAGS_TMPFILES|DKIM_LIBFLAGS_KEEPFILES);
+#endif /* TEST_KEEP_FILES */
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FLAGS, &flags,
 	                    sizeof flags);
 
