@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test131_c_id[] = "@(#)$Id: t-test131.c,v 1.1.2.1 2009/11/12 19:06:11 cm-msk Exp $";
+static char t_test131_c_id[] = "@(#)$Id: t-test131.c,v 1.1.2.2 2009/11/12 20:12:14 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -32,6 +32,8 @@ static char t_test131_c_id[] = "@(#)$Id: t-test131.c,v 1.1.2.1 2009/11/12 19:06:
 **  	Exit status.
 */
 
+#define TEST_KEEP_FILES 1
+
 int
 main(int argc, char **argv)
 {
@@ -55,12 +57,12 @@ main(int argc, char **argv)
 
 	if (!dkim_libfeature(lib, DKIM_FEATURE_SHA256))
 	{
-		printf("*** relaxed/simple rsa-sha256 body blank reduction SKIPPED\n");
+		printf("*** relaxed/relaxed rsa-sha256 body blank reduction SKIPPED\n");
 		dkim_close(lib);
 		return 0;
 	}
 
-	printf("*** relaxed/simple rsa-sha256 body blank reduction\n");
+	printf("*** relaxed/relaxed rsa-sha256 body blank reduction\n");
 
 #ifdef TEST_KEEP_FILES
 	/* set flags */
@@ -72,7 +74,7 @@ main(int argc, char **argv)
 	key = KEY;
 
 	dkim = dkim_sign(lib, JOBID, NULL, key, SELECTOR, DOMAIN,
-	                 DKIM_CANON_RELAXED, DKIM_CANON_SIMPLE,
+	                 DKIM_CANON_RELAXED, DKIM_CANON_RELAXED,
 	                 DKIM_SIGN_RSASHA256, -1L, &status);
 	assert(dkim != NULL);
 
@@ -120,7 +122,7 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 
 	dkim = dkim_sign(lib, JOBID, NULL, key, SELECTOR, DOMAIN,
-	                 DKIM_CANON_RELAXED, DKIM_CANON_SIMPLE,
+	                 DKIM_CANON_RELAXED, DKIM_CANON_RELAXED,
 	                 DKIM_SIGN_RSASHA256, -1L, &status);
 	assert(dkim != NULL);
 
@@ -167,7 +169,7 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 
 	dkim = dkim_sign(lib, JOBID, NULL, key, SELECTOR, DOMAIN,
-	                 DKIM_CANON_RELAXED, DKIM_CANON_SIMPLE,
+	                 DKIM_CANON_RELAXED, DKIM_CANON_RELAXED,
 	                 DKIM_SIGN_RSASHA256, -1L, &status);
 	assert(dkim != NULL);
 
