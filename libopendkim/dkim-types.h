@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.7 2009/10/25 22:56:34 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.7.14.1 2009/11/12 10:06:11 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -159,6 +159,7 @@ struct dkim_canon
 	_Bool			canon_hdr;
 	_Bool			canon_blankline;
 	int			canon_lastchar;
+	int			canon_bodystate;
 	u_int			canon_hashtype;
 	u_int			canon_blanks;
 	size_t			canon_hashbuflen;
@@ -170,6 +171,7 @@ struct dkim_canon
 	u_char *		canon_hashbuf;
 	u_char *		canon_hdrlist;
 	void *			canon_hash;
+	struct dkim_dstring *	canon_buf;
 	struct dkim_header *	canon_sigheader;
 	struct dkim_canon *	canon_next;
 };
