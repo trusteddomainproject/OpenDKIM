@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.28.4.2 2009/11/12 01:54:16 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.28.4.3 2009/11/12 08:02:21 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -5545,7 +5545,7 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 					status = dkim_header(dkim,
 					                     dkim_dstring_get(dkim->dkim_hdrbuf),
 					                     dkim_dstring_len(dkim->dkim_hdrbuf) - 2);
-					if (status != DKIM_STAT_OK)
+					if (status != DKIM_STAT_OK &&
 					    !(status == DKIM_STAT_SYNTAX &&
 					      bso))
 						return status;
@@ -5567,7 +5567,7 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 				status = dkim_header(dkim,
 				                     dkim_dstring_get(dkim->dkim_hdrbuf),
 				                     dkim_dstring_len(dkim->dkim_hdrbuf) - 2);
-				if (status != DKIM_STAT_OK)
+				if (status != DKIM_STAT_OK &&
 				    !(status == DKIM_STAT_SYNTAX && bso))
 					return status;
 
