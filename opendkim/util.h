@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.h,v 1.5 2009/11/02 19:23:17 cm-msk Exp $
+**  $Id: util.h,v 1.5.4.1 2009/11/12 06:56:25 grooverdan Exp $
 */
 
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
 #ifndef lint
-static char util_h_id[] = "@(#)$Id: util.h,v 1.5 2009/11/02 19:23:17 cm-msk Exp $";
+static char util_h_id[] = "@(#)$Id: util.h,v 1.5.4.1 2009/11/12 06:56:25 grooverdan Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -21,6 +21,7 @@ static char util_h_id[] = "@(#)$Id: util.h,v 1.5 2009/11/02 19:23:17 cm-msk Exp 
 #include <stdio.h>
 
 /* opendkim includes */
+#include "build-config.h"
 #include "opendkim-db.h"
 #include "opendkim.h"
 

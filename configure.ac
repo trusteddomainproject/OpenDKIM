@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.3 2009/11/12 02:54:37 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.4 2009/11/12 06:56:24 grooverdan Exp $
 
 AC_PREREQ(2.62)
 
@@ -90,81 +90,106 @@ AC_TYPE_UINT32_T
 # Checks for library functions.
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strtol strtoul strtoull strlcpy strlcat])
 
+LIBOPENDKIM_FEATURE_STRING="libopendkim $PACKAGE_VERSION:"
+
+AC_DEFUN([TR_UP],[m4_translit([AS_TR_SH([$1])],[a-z],[A-Z])])
+
+AC_DEFUN([FEATURE],[
+	notincluded="(not included in this release, configure with --enable-$1 at compile time if required)"
+        AC_ARG_ENABLE($1,AS_HELP_STRING(--enable-$1,$2),
+                AS_IF([test "x$enable_]$1[" != "xno"],[
+                   AC_DEFINE(TR_UP($1),1,[enable $1 feature])
+                   AC_DEFINE([LIBOPENDKIM_]TR_UP($1),1,[enable $1 feature])
+                   LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING $1"
+		   AC_SUBST(TR_UP($1)[_MANNOTICE])
+                   ],
+		   [
+		   AC_SUBST(TR_UP($1)[_MANNOTICE],$notincluded )
+		   ])
+		,
+		AC_SUBST(TR_UP($1)[_MANNOTICE],$notincluded)
+        )
+])
+
+AC_DEFUN([FFR_FEATURE],[
+	experimentalnotincluded="(experimental feature not included in this release, configure with --enable-$1 at compile time if required)"
+        AC_ARG_ENABLE($1,AS_HELP_STRING(--enable-$1,$2),
+                AS_IF([test "x$enable_]$1[" != "xno"],[
+
+                   AC_DEFINE([_FFR_]TR_UP($1),1,[enable $1 feature])
+                   AC_DEFINE([LIBOPENDKIM_]TR_UP($1),1,[enable $1 feature])
+                   LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING $1"
+		   AC_SUBST(TR_UP($1)[_MANNOTICE],"(feature is experimental)")
+                   ],
+		   [
+			AC_SUBST(TR_UP($1)[_MANNOTICE],$experimentalnotincluded)
+		   ])
+		,
+		AC_SUBST(TR_UP($1)[_MANNOTICE],$experimentalnotincluded)
+        )
+])
+
+# opendkim
+
+FEATURE([popauth], [ enable POP-before-SMTP support])
+
+FFR_FEATURE([bodylengthdb], [support for body length DBs])
+FFR_FEATURE([capture_unknown_errors], [quarantine unknown verification failures])
+FFR_FEATURE([diffheaders], [compare signed and verified headers when possible])
+FFR_FEATURE([dkim_reputation], [experimental DKIM reputation checks])
+FFR_FEATURE([identity_header], [special header to set identity])
+FFR_FEATURE([multiple_signatures], [support for multiple signatures])
+FFR_FEATURE([replace_rules], [support for string substitution when signing])
+FFR_FEATURE([report_intervals], [support for requested report intervals when reporting])
+FFR_FEATURE([redirect], [Support for redirecting failed verifications to a mailbox])
+FFR_FEATURE([select_canonicalization], [allow sender to select canonicalization])
+FFR_FEATURE([selector_header], [special header to choose signing key])
+FFR_FEATURE([sender_macro], [macro to determine sender])
+FFR_FEATURE([vbr], [Vouch-By-Reference support])
+AM_CONDITIONAL([VBR], [test x"$enable_vbr" != x"no"])
+FFR_FEATURE([ztags], [sign/verify with z= tags])
+FFR_FEATURE([stats], [stats recording and reporting])
+AM_CONDITIONAL([STATS], [test x"$enable_stats" != x"no"])
+
+AC_ARG_ENABLE([filter], AS_HELP_STRING([--disable-filter],[do not compile the opendkim filter]), [enable_filter=$enableval], [enable_filter=yes])
+AM_CONDITIONAL([BUILD_FILTER], [test x"$enable_filter" != x"no"])
+
+# libopendkim
+
+FEATURE([query_cache], [local key/policy caching])
+
+FFR_FEATURE([dnsupgrade], [upgrade DNS to TCP when needed])
+FFR_FEATURE([parsetime], [parse From: headers for sending times])
+
 # Conditional stuff
-AC_ARG_ENABLE(allsymbols, AS_HELP_STRING(--enable-all-symbols, export even internal-use symbols))
-AM_CONDITIONAL(ALL_SYMBOLS, test "$enable_allsymbols" = yes)
 
-AC_ARG_ENABLE(arlib, AS_HELP_STRING(--enable-arlib, enable provided asynchronous resolver library))
-AM_CONDITIONAL(USE_ARLIB, test "$enable_arlib" = yes)
+AC_ARG_ENABLE([allsymbols], AS_HELP_STRING([--enable-all-symbols],[export even internal-use symbols]))
+AM_CONDITIONAL(ALL_SYMBOLS, [test "$enable_allsymbols" = yes])
 
-AC_ARG_ENABLE(bodylengthdb, AS_HELP_STRING(--enable-bodylengthdb, support for body length DBs))
-AM_CONDITIONAL(BODYLENGTH_DB, test "$enable_bodylengthdb" = yes)
+AC_ARG_ENABLE([arlib], AS_HELP_STRING([--enable-arlib], [enable provided asynchronous resolver library]),
+        AS_IF([test "x$enable_arlib" != "xno"],
+        [
+                AC_DEFINE(USE_ARLIB,1,[enable provided asynchronous resolver library])
+                LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING libar"
+        ])
+)
 
-AC_ARG_ENABLE(captureerrors, AS_HELP_STRING(--enable-captureerrors, quarantine unknown verification failures))
-AM_CONDITIONAL(CAPTURE_UNKNOWN_ERRORS, test "$enable_captureerrors" = yes)
+AM_CONDITIONAL([USE_ARLIB], [test x"$enable_arlib" = x"yes"])
 
-AC_ARG_ENABLE(debug, AS_HELP_STRING(--enable-debug, produce debugging binaries and libraries))
-AM_CONDITIONAL(DEBUG, test "$enable_debug" = yes)
+AC_ARG_ENABLE([debug], AS_HELP_STRING([--enable-debug], [produce debugging binaries and libraries]),
+        AS_IF([test "x$enable_debug" != "xno"],
+        [
+            LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING debug"
+        ])
+)
 
-AC_ARG_ENABLE(diffheaders, AS_HELP_STRING(--enable-diffheaders, compare signed and verified headers when possible))
-AM_CONDITIONAL(DIFFHEADERS, test "$enable_diffheaders" = yes)
-
-AC_ARG_ENABLE(dkimreputation, AS_HELP_STRING(--enable-dkimreputation, experimental DKIM reputation checks))
-AM_CONDITIONAL(DKIM_REPUTATION, test "$enable_dkimreputation" = yes)
-
-AC_ARG_ENABLE(dnsupgrade, AS_HELP_STRING(--enable-dnsupgrade, upgrade DNS to TCP when needed))
-AM_CONDITIONAL(DNS_UPGRADE, test "$enable_dnsupgrade" = yes)
-
-AC_ARG_ENABLE(filter, AS_HELP_STRING(--disable-filter, do not compile the opendkim filter), enable_filter=$enableval, enable_filter=yes)
-AM_CONDITIONAL(BUILD_FILTER, test "$enable_filter" = yes)
-
-AC_ARG_ENABLE(identityheader, AS_HELP_STRING(--enable-identityheader, special header to set identity))
-AM_CONDITIONAL(IDENTITY_HEADER, test "$enable_identityheader" = yes)
-
-AC_ARG_ENABLE(multiplesigs, AS_HELP_STRING(--enable-multiplesigs, support for multiple signatures))
-AM_CONDITIONAL(MULTIPLE_SIGNATURES, test "$enable_multiplesigs" = yes)
-
-AC_ARG_ENABLE(parsetime, AS_HELP_STRING(--enable-parsetime, parse From: headers for sending times))
-AM_CONDITIONAL(PARSE_TIME, test "$enable_parsetime" = yes)
-
-AC_ARG_ENABLE(popauth, AS_HELP_STRING(--enable-popauth, enable POP-before-SMTP support))
-AM_CONDITIONAL(POPAUTH, test "$enable_popauth" = yes)
-
-AC_ARG_ENABLE(querycache, AS_HELP_STRING(--enable-querycache, local key/policy caching))
-AM_CONDITIONAL(QUERY_CACHE, test "$enable_querycache" = yes)
-
-AC_ARG_ENABLE(redirect, AS_HELP_STRING(--enable-redirect, support for redirect on failure))
-AM_CONDITIONAL(REDIRECT, test "$enable_redirect" = yes)
-
-AC_ARG_ENABLE(replacerules, AS_HELP_STRING(--enable-replacerules, support for string substitution when signing))
-AM_CONDITIONAL(REPLACE_RULES, test "$enable_replacerules" = yes)
-
-AC_ARG_ENABLE(reportintervals, AS_HELP_STRING(--enable-reportintervals, support for requested report intervals when reporting))
-AM_CONDITIONAL(REPORT_INTERVALS, test "$enable_reportintervals" = yes)
-
-AC_ARG_ENABLE(selectcanon, AS_HELP_STRING(--enable-selectcanon, allow sender to select canonicalization))
-AM_CONDITIONAL(SELECT_CANONICALIZATION, test "$enable_selectcanon" = yes)
-
-AC_ARG_ENABLE(selectorheader, AS_HELP_STRING(--enable-selectorheader, special header to choose signing key))
-AM_CONDITIONAL(SELECTOR_HEADER, test "$enable_selectorheader" = yes)
-
-AC_ARG_ENABLE(sendermacro, AS_HELP_STRING(--enable-sendermacro, macro to determine sender))
-AM_CONDITIONAL(SENDER_MACRO, test "$enable_sendermacro" = yes)
-
-AC_ARG_ENABLE(stats, AS_HELP_STRING(--enable-stats, stats recording and reporting))
-AM_CONDITIONAL(STATS, test "$enable_stats" = yes)
-
-AC_ARG_ENABLE(vbr, AS_HELP_STRING(--enable-vbr, Vouch-By-Reference support))
-AM_CONDITIONAL(VBR, test "$enable_vbr" = yes)
-
-AC_ARG_ENABLE(ztags, AS_HELP_STRING(--enable-ztags, sign/verify with z= tags))
-AM_CONDITIONAL(ZTAGS, test "$enable_ztags" = yes)
+AM_CONDITIONAL([DEBUG], [test "$enable_debug" = yes])
 
 # openssl
-AC_MSG_CHECKING(for OpenSSL library and includes)
-AC_ARG_WITH(openssl,
-	AS_HELP_STRING(--with-openssl, location of OpenSSL includes and library (required)),
-	sslpath="$withval", sslpath="auto")
+AC_MSG_CHECKING([for OpenSSL library and includes])
+AC_ARG_WITH([openssl],
+	AS_HELP_STRING([--with-openssl], [location of OpenSSL includes and library]),
+	[sslpath="$withval"], [sslpath="auto"])
 
 openssl_found="no"
 if test "$sslpath" = "auto" -o x"$sslpath" = x"yes"
@@ -319,6 +344,8 @@ else
 		LIBUNBOUND_INCDIRS="-I$unboundpath/include"
 		LIBUNBOUND_LIBDIRS="-L$unboundpath/lib"
 		LIBUNBOUND_LIBS="-lunbound"
+		AC_DEFINE([USE_UNBOUND],1,[use unbound DNSSEC libary for DNS])
+		LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING unbound"
 	else
 		AC_MSG_ERROR(not found at $unboundpath)
 	fi
@@ -385,6 +412,9 @@ fi
 if test x"$enable_diffheaders" = x"yes" -a x"$LIBTRE_LIBS" = x""
 then
 	AC_MSG_ERROR(cannot use diffheaders without TRE library)
+else
+        AC_DEFINE([LIBOPENDKIM_DIFFHEADERS],[1],[Use the libtre for diffheaders calculations])
+        LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING tre"
 fi
 
 AM_CONDITIONAL(USE_TRE, test x"$trepath" != x"no")
@@ -626,13 +656,14 @@ LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBDB_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIB
 LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
 LIBOPENDKIM_INC="$LIBCRYPTO_CFLAGS $LIBDB_INCDIRS $LIBTRE_INCDIRS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
 
-if test x"$USE_AR" = x"yes"
+if test x"$enable_arlib" = x"yes"
 then
         # note this is just for PKG-CONFIG.
 	LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS_PKG -lar"
 	# for Makefile
 	LIBOPENDKIM_LIBS="$LIBOPENDKIM_LIBS ../libar/libar.la"
 fi
+
 if test x"$USE_DB_LIBOPENDKIM" = x"yes"
 then
 	LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS_PKG $LIBDB_LIBS"
@@ -645,6 +676,15 @@ AC_SUBST(LIBOPENDKIM_INC)
 
 AM_CONDITIONAL(VERIFY_DOMAINKEYS, test x"$dk" != x"no")
 
+AC_DEFINE_UNQUOTED([LIBOPENDKIM_FEATURE_STRING],"$LIBOPENDKIM_FEATURE_STRING",[Feature string for printing])
+
 # Finish up
-AC_OUTPUT(Makefile opendkim/Makefile libopendkim/Makefile libar/Makefile libvbr/Makefile
-		libopendkim/opendkim.pc libar/ar.pc libvbr/vbr.pc)
+AC_OUTPUT([Makefile opendkim/Makefile libopendkim/Makefile libar/Makefile libvbr/Makefile
+		libopendkim/opendkim.pc libar/ar.pc libvbr/vbr.pc
+		opendkim/opendkim.conf.5
+		opendkim/opendkim.8
+		opendkim/opendkim-testkey.8
+		opendkim/opendkim-stats.8
+		opendkim/opendkim-genkey.8
+		opendkim/opendkim-testadsp.8
+		])

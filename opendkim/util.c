@@ -4,12 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.18 2009/11/03 22:48:47 cm-msk Exp $
+**  $Id: util.c,v 1.18.4.1 2009/11/12 06:56:25 grooverdan Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.18 2009/11/03 22:48:47 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.18.4.1 2009/11/12 06:56:25 grooverdan Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/param.h>
@@ -55,7 +57,7 @@ static char util_c_id[] = "@(#)$Id: util.c,v 1.18 2009/11/03 22:48:47 cm-msk Exp
 #endif /* ! INADDR_NONE */
 
 /* globals */
-#if POPAUTH
+#ifdef POPAUTH
 static pthread_mutex_t pop_lock;
 #endif /* POPAUTH */
 
@@ -228,6 +230,7 @@ dkimf_optlist(FILE *where)
 
 		fprintf(where, "\t\t%s\n", optlist[c]);
 	}
+        fprintf(where, "%s\n", LIBOPENDKIM_FEATURE_STRING);
 }
 
 /*
@@ -531,7 +534,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 	return out;
 }
 
-#if POPAUTH
+#ifdef POPAUTH
 /*
 **  DKIMF_INITPOPAUTH -- initialize POPAUTH stuff
 **

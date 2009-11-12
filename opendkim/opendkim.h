@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.12 2009/11/02 19:24:02 cm-msk Exp $
+**  $Id: opendkim.h,v 1.12.4.1 2009/11/12 06:56:25 grooverdan Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.12 2009/11/02 19:24:02 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.12.4.1 2009/11/12 06:56:25 grooverdan Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -26,7 +26,8 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.12 2009/11/02 19:24:02 cm
 #include <libmilter/mfapi.h>
 
 /* libopendkim */
-#include <dkim.h>
+#include "build-config.h"
+#include "dkim.h"
 
 /* make sure we have TRUE and FALSE */
 #ifndef FALSE

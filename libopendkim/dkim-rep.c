@@ -4,12 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: dkim-rep.c,v 1.5 2009/10/22 19:35:00 cm-msk Exp $
+**  $Id: dkim-rep.c,v 1.5.12.1 2009/11/12 06:56:25 grooverdan Exp $
 */
 
 #ifndef lint
-static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.5 2009/10/22 19:35:00 cm-msk Exp $";
+static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.5.12.1 2009/11/12 06:56:25 grooverdan Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 #ifdef _FFR_DKIM_REPUTATION
 
@@ -26,7 +28,7 @@ static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.5 2009/10/22 19:35:00 cm-
 
 #ifdef USE_ARLIB
 /* libar includes */
-# include <ar.h>
+# include "ar.h"
 #else /* USE_ARLIB */
 # include <netdb.h>
 #endif /* USE_ARLIB */

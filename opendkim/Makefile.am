@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.48.4.1 2009/11/12 01:52:07 grooverdan Exp $
+# $Id: Makefile.am,v 1.48.4.2 2009/11/12 06:56:25 grooverdan Exp $
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -pthread --pedantic -Wall -O2
@@ -19,86 +19,23 @@ opendkim_CFLAGS =
 opendkim_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_CFLAGS)
 opendkim_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS) $(LIBMILTER_LIBDIRS)
 opendkim_LDADD = ../libopendkim/libopendkim.la -lmilter $(LIBCRYPTO_LIBS)
-if BODYLENGTH_DB
-opendkim_CFLAGS += -D_FFR_BODYLENGTH_DB
-endif
-if CAPTURE_UNKNOWN_ERRORS
-opendkim_CFLAGS += -D_FFR_CAPTURE_UNKNOWN_ERRORS
-endif
 if DEBUG
 opendkim_CFLAGS += -g
 endif
-if DIFFHEADERS
-opendkim_CFLAGS += -D_FFR_DIFFHEADERS
-endif
-if DKIM_REPUTATION
-opendkim_CFLAGS += -D_FFR_DKIM_REPUTATION
-endif
-if DNS_UPGRADE
-opendkim_CFLAGS += -D_FFR_DNS_UPGRADE
-endif
-if IDENTITY_HEADER
-opendkim_CFLAGS += -D_FFR_IDENTITY_HEADER
-endif
-if MULTIPLE_SIGNATURES
-opendkim_CFLAGS += -D_FFR_MULTIPLE_SIGNATURES
-endif
-if PARSE_TIME
-opendkim_CFLAGS += -D_FFR_PARSE_TIME
-endif
-if POPAUTH
-opendkim_CFLAGS += -DPOPAUTH
-endif
-if QUERY_CACHE
-opendkim_CFLAGS += -DQUERY_CACHE
-endif
-if REDIRECT
-opendkim_CFLAGS += -D_FFR_REDIRECT
-endif
-if REPLACE_RULES
-opendkim_CFLAGS += -D_FFR_REPLACE_RULES
-endif
-if REPORT_INTERVALS
-opendkim_CFLAGS += -D_FFR_REPORT_INTERVALS
-endif
-if SELECTOR_HEADER
-opendkim_CFLAGS += -D_FFR_SELECTOR_HEADER
-endif
-if SENDER_MACRO
-opendkim_CFLAGS += -D_FFR_SENDER_MACRO
-endif
-if STATS
-opendkim_CFLAGS += -D_FFR_STATS
-endif
-if USE_ARLIB
-opendkim_CFLAGS += -DUSE_ARLIB
-endif
 if USE_DB_OPENDKIM
-opendkim_CFLAGS += -DUSE_DB
 opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
 opendkim_LDFLAGS += $(LIBDB_LIBDIRS)
 opendkim_LDADD += $(LIBDB_LIBS)
 endif
 if USE_ODBX
-opendkim_CFLAGS += -DUSE_ODBX
 opendkim_CPPFLAGS += $(LIBODBX_INCDIRS)
 opendkim_LDFLAGS += $(LIBODBX_LIBDIRS)
 opendkim_LDADD += $(LIBODBX_LIBS)
 endif
-if USE_UNBOUND
-opendkim_CFLAGS += -DUSE_UNBOUND
-endif
 if VBR
-opendkim_CFLAGS += -D_FFR_VBR
 opendkim_CPPFLAGS += -I../libvbr
 opendkim_LDFLAGS += -L../libvbr
 opendkim_LDADD += ../libvbr/libvbr.la
-endif
-if VERIFY_DOMAINKEYS
-opendkim_CFLAGS += -DVERIFY_DOMAINKEYS
-endif
-if ZTAGS
-opendkim_CFLAGS += -D_FFR_ZTAGS
 endif
 
 opendkim_CPPFLAGS += $(LIBMILTER_INCDIRS)
@@ -107,7 +44,7 @@ endif
 if STATS
 sbin_PROGRAMS += opendkim-stats
 opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c util.c
-opendkim_stats_CPPFLAGS = -DUSE_DB -I../libopendkim $(LIBDB_INCDIRS)
+opendkim_stats_CPPFLAGS = -I../libopendkim $(LIBDB_INCDIRS)
 opendkim_stats_LDFLAGS = -L../libopendkim $(LIBDB_LIBDIRS)
 opendkim_stats_LDADD = ../libopendkim/libopendkim.la $(LIBDB_LIBS)
 if DEBUG

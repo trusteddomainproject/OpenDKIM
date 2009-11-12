@@ -1,9 +1,9 @@
-# $Id: Makefile.am,v 1.38.2.1 2009/11/12 01:52:06 grooverdan Exp $
+# $Id: Makefile.am,v 1.38.2.2 2009/11/12 06:56:25 grooverdan Exp $
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-mailparse.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h util.h
 libopendkim_la_CFLAGS = @LIBOPENDKIM_INC@
-libopendkim_la_LDFLAGS = $(LIBCRYPTO_LIBDIRS)
+libopendkim_la_LDFLAGS = -no-undefined  $(LIBCRYPTO_LIBDIRS)
 libopendkim_la_LIBADD = @LIBOPENDKIM_LIBS@
 if !ALL_SYMBOLS
 libopendkim_la_DEPENDENCIES = symbols.map
@@ -59,49 +59,23 @@ libopendkim_la_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = opendkim.pc
 
-if DIFFHEADERS
-libopendkim_la_CFLAGS += -D_FFR_DIFFHEADERS
-endif
-
-if DKIM_REPUTATION
-libopendkim_la_CFLAGS += -D_FFR_DKIM_REPUTATION
-endif
-
-if DNS_UPGRADE
-libopendkim_la_CFLAGS += -D_FFR_DNS_UPGRADE
-endif
-
-if PARSE_TIME
-libopendkim_la_CFLAGS += -D_FFR_PARSE_TIME
-endif
-
-if QUERY_CACHE
-libopendkim_la_CFLAGS += -DQUERY_CACHE
-endif
-
-if STATS
-libopendkim_la_CFLAGS += -D_FFR_STATS
-endif
-
 if USE_ARLIB
-libopendkim_la_CFLAGS += -DUSE_ARLIB -I../libar
+libopendkim_la_CFLAGS += -I../libar
 endif
 
 if USE_DB_LIBOPENDKIM
-libopendkim_la_CFLAGS += -DUSE_DB -I$(LIBDB_INCDIRS)
+libopendkim_la_CFLAGS += -I$(LIBDB_INCDIRS)
 libopendkim_la_LDFLAGS += $(LIBDB_LIBDIRS)
 libopendkim_la_LIBADD += $(LIBDB_LIBS)
 endif
 
 if USE_TRE
-libopendkim_la_CFLAGS += -DUSE_TRE
 libopendkim_la_CFLAGS += $(LIBTRE_INCDIRS)
 libopendkim_la_LDFLAGS += $(LIBTRE_LIBDIRS)
 libopendkim_la_LIBADD += $(LIBTRE_LIBS)
 endif
 
 if USE_UNBOUND
-libopendkim_la_CFLAGS += -DUSE_UNBOUND
 libopendkim_la_CFLAGS += $(LIBUNBOUND_INCDIRS)
 libopendkim_la_LDFLAGS += $(LIBUNBOUND_LIBDIRS)
 libopendkim_la_LIBADD += $(LIBUNBOUND_LIBS)
