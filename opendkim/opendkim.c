@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.56.2.6 2009/11/12 01:37:46 cm-msk Exp $
+**  $Id: opendkim.c,v 1.56.2.7 2009/11/12 19:25:17 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56.2.6 2009/11/12 01:37:46 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.56.2.7 2009/11/12 19:25:17 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6017,135 +6017,6 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 #endif /* _FFR_RESIGN */
 
-	/* is it a domain we sign for? */
-	if (!domainok && conf->conf_domainsdb != NULL)
-	{
-		status = dkimf_db_get(conf->conf_domainsdb, dfc->mctx_domain,
-		                      0, NULL, NULL, &domainok);
-
-		if (!domainok && conf->conf_logwhy)
-		{
-			syslog(LOG_INFO,
-			       "%s no signing domain match for `%s'",
-			       dfc->mctx_jobid, dfc->mctx_domain);
-		}
-
-		if (conf->conf_subdomains && !domainok)
-		{
-			for (p = strchr(dfc->mctx_domain, '.');
-			     p != NULL && !domainok;
-			     p = strchr(p, '.'))
-			{
-				p++;
-				if (*p == '\0')
-					break;
-
-				status = dkimf_db_get(conf->conf_domainsdb, p,
-				                      0, NULL, NULL,
-				                      &domainok);
-
-				if (domainok)
-				{
-					strlcpy(dfc->mctx_domain, p,
-					        sizeof dfc->mctx_domain);
-					break;
-				}
-			}
-
-			if (domainok)
-				setidentity = TRUE;
-		}
-
-		if (!domainok && conf->conf_logwhy)
-		{
-			syslog(LOG_INFO,
-			       "%s no signing subdomain match for `%s'",
-			       dfc->mctx_jobid, dfc->mctx_domain);
-		}
-	}
-
-#ifdef _FFR_SELECTOR_HEADER
-	/* was there a header naming the selector to use? */
-	if (domainok && conf->conf_selectorhdr != NULL)
-	{
-		/* find the header */
-		hdr = dkimf_findheader(dfc, conf->conf_selectorhdr, 0);
-
-		/* did it match a selector in the keylist? */
-		if (hdr != NULL)
-		{
-			struct keytable *curkey;
-
-			for (curkey = conf->conf_keyhead;
-			     curkey != NULL;
-			     curkey = curkey->key_next)
-			{
-				if (strcasecmp(curkey->key_selector,
-				               hdr->hdr_val) == 0)
-				{
-					dfc->mctx_key = curkey;
-					break;
-				}
-			}
-		}
-	}
-#endif /* _FFR_SELECTOR_HEADER */
-
-	/* still no key selected; check the keylist (if any) */
-	if (dfc->mctx_key == NULL && conf->conf_keyhead != NULL)
-	{
-		struct keytable *curkey;
-		char srchaddr[MAXADDRESS + 1];
-
-		snprintf(srchaddr, sizeof srchaddr, "%s@%s",
-		         user, dfc->mctx_domain);
-
-		/* select the key */
-		for (curkey = conf->conf_keyhead;
-		     curkey != NULL;
-		     curkey = curkey->key_next)
-		{
-			status = regexec(&curkey->key_re, srchaddr,
-			                 0, NULL, 0);
-			if (status == 0)
-			{
-				dkimf_add_signrequest(dfc, curkey);
-				domainok = TRUE;
-
-				if (conf->conf_subdomains &&
-				    dkimf_subdomain(dfc->mctx_domain,
-				                    curkey->key_domain))
-					setidentity = TRUE;
-
-				if (!conf->conf_multisig)
-					break;
-			}
-			else if (status != REG_NOMATCH)
-			{
-				if (conf->conf_dolog)
-				{
-					char err[BUFRSZ];
-
-					(void) regerror(status,
-					                &curkey->key_re,
-					                err, sizeof err);
-					syslog(LOG_ERR,
-					       "%s regexec(): %s",
-					       dfc->mctx_jobid, err);
-				}
-
-				dkimf_cleanup(ctx);
-				return SMFIS_TEMPFAIL;
-			}
-		}
-	}
-
-	if (!domainok && conf->conf_logwhy)
-	{
-		syslog(LOG_INFO, "%s no signing keylist match for `%s@%s'",
-		       dfc->mctx_jobid, user, dfc->mctx_domain);
-	}
-
 	/* see if it came in on an authorized MSA/MTA connection */
 	if (conf->conf_mtasdb != NULL)
 	{
@@ -6281,6 +6152,136 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 	}
 
+	/* is it a domain we sign for? */
+	if (originok && !domainok && conf->conf_domainsdb != NULL)
+	{
+		status = dkimf_db_get(conf->conf_domainsdb, dfc->mctx_domain,
+		                      0, NULL, NULL, &domainok);
+
+		if (!domainok && conf->conf_logwhy)
+		{
+			syslog(LOG_INFO,
+			       "%s no signing domain match for `%s'",
+			       dfc->mctx_jobid, dfc->mctx_domain);
+		}
+
+		if (conf->conf_subdomains && !domainok)
+		{
+			for (p = strchr(dfc->mctx_domain, '.');
+			     p != NULL && !domainok;
+			     p = strchr(p, '.'))
+			{
+				p++;
+				if (*p == '\0')
+					break;
+
+				status = dkimf_db_get(conf->conf_domainsdb, p,
+				                      0, NULL, NULL,
+				                      &domainok);
+
+				if (domainok)
+				{
+					strlcpy(dfc->mctx_domain, p,
+					        sizeof dfc->mctx_domain);
+					break;
+				}
+			}
+
+			if (domainok)
+				setidentity = TRUE;
+		}
+
+		if (!domainok && conf->conf_logwhy)
+		{
+			syslog(LOG_INFO,
+			       "%s no signing subdomain match for `%s'",
+			       dfc->mctx_jobid, dfc->mctx_domain);
+		}
+	}
+
+#ifdef _FFR_SELECTOR_HEADER
+	/* was there a header naming the selector to use? */
+	if (domainok && conf->conf_selectorhdr != NULL)
+	{
+		/* find the header */
+		hdr = dkimf_findheader(dfc, conf->conf_selectorhdr, 0);
+
+		/* did it match a selector in the keylist? */
+		if (hdr != NULL)
+		{
+			struct keytable *curkey;
+
+			for (curkey = conf->conf_keyhead;
+			     curkey != NULL;
+			     curkey = curkey->key_next)
+			{
+				if (strcasecmp(curkey->key_selector,
+				               hdr->hdr_val) == 0)
+				{
+					dfc->mctx_key = curkey;
+					break;
+				}
+			}
+		}
+	}
+#endif /* _FFR_SELECTOR_HEADER */
+
+	/* still no key selected; check the keylist (if any) */
+	if (originok && dfc->mctx_key == NULL && conf->conf_keyhead != NULL)
+	{
+		struct keytable *curkey;
+		char srchaddr[MAXADDRESS + 1];
+
+		snprintf(srchaddr, sizeof srchaddr, "%s@%s",
+		         user, dfc->mctx_domain);
+
+		/* select the key */
+		for (curkey = conf->conf_keyhead;
+		     curkey != NULL;
+		     curkey = curkey->key_next)
+		{
+			status = regexec(&curkey->key_re, srchaddr,
+			                 0, NULL, 0);
+			if (status == 0)
+			{
+				dkimf_add_signrequest(dfc, curkey);
+				domainok = TRUE;
+
+				if (conf->conf_subdomains &&
+				    dkimf_subdomain(dfc->mctx_domain,
+				                    curkey->key_domain))
+					setidentity = TRUE;
+
+				if (!conf->conf_multisig)
+					break;
+			}
+			else if (status != REG_NOMATCH)
+			{
+				if (conf->conf_dolog)
+				{
+					char err[BUFRSZ];
+
+					(void) regerror(status,
+					                &curkey->key_re,
+					                err, sizeof err);
+					syslog(LOG_ERR,
+					       "%s regexec(): %s",
+					       dfc->mctx_jobid, err);
+				}
+
+				dkimf_cleanup(ctx);
+				return SMFIS_TEMPFAIL;
+			}
+		}
+
+		if (!domainok && conf->conf_logwhy)
+		{
+			syslog(LOG_INFO,
+			       "%s no signing keylist match for `%s@%s'",
+			       dfc->mctx_jobid, user, dfc->mctx_domain);
+		}
+	}
+
 	/* set signing mode if the tests passed */
 	if (domainok && originok)
 	{
@@ -6398,7 +6399,7 @@ mlfi_eoh(SMFICTX *ctx)
 #endif /* _FFR_RESIGN */
 
 	/* create all required signing handles */
-	if (dfc->mctx_srhead != NULL)
+	if (dfc->mctx_signing && dfc->mctx_srhead != NULL)
 	{
 		char *sdomain;
 		char *selector;
