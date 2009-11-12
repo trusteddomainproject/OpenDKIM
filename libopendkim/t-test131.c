@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test131_c_id[] = "@(#)$Id: t-test131.c,v 1.1.2.2 2009/11/12 20:12:14 cm-msk Exp $";
+static char t_test131_c_id[] = "@(#)$Id: t-test131.c,v 1.1.2.3 2009/11/12 21:24:10 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -31,8 +31,6 @@ static char t_test131_c_id[] = "@(#)$Id: t-test131.c,v 1.1.2.2 2009/11/12 20:12:
 **  Return value:
 **  	Exit status.
 */
-
-#define TEST_KEEP_FILES 1
 
 int
 main(int argc, char **argv)
