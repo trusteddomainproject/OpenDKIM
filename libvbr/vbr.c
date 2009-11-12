@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.2 2009/11/06 09:23:57 cm-msk Exp $";
+static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.2.2.1 2009/11/12 05:44:04 grooverdan Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -29,7 +29,7 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.2 2009/11/06 09:23:57 cm-msk Exp $"
 #endif /* _STDC_ */
 
 /* libar includes */
-#if USE_ARLIB
+#ifdef USE_ARLIB
 # include <ar.h>
 #endif /* USE_ARLIB */
 
@@ -38,7 +38,7 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.2 2009/11/06 09:23:57 cm-msk Exp $"
 
 /* local definitions needed for DNS queries */
 #define MAXPACKET		8192
-#if defined(__RES) && (__RES >= 19940415)
+#ifdef defined(__RES) && (__RES >= 19940415)
 # define RES_UNC_T		char *
 #else /* __RES && __RES >= 19940415 */
 # define RES_UNC_T		unsigned char *
@@ -59,7 +59,7 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.2 2009/11/06 09:23:57 cm-msk Exp $"
 struct vbr_handle
 {
 	size_t		vbr_errlen;		/* error buffer size */
-#if USE_ARLIB
+#ifdef USE_ARLIB
 	u_int		vbr_timeout;		/* query timeout */
 	u_int		vbr_callback_int;	/* callback interval */
 	AR_LIB		vbr_arlib;		/* libar handle */
@@ -443,7 +443,7 @@ vbr_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	new->vbr_malloc = caller_mallocf;
 	new->vbr_free = caller_freef;
 	new->vbr_closure = closure;
-#if USE_ARLIB
+#ifdef USE_ARLIB
 	new->vbr_timeout = DEFTIMEOUT;
 	new->vbr_callback_int = 0;
 	new->vbr_dns_callback = NULL;
@@ -453,7 +453,7 @@ vbr_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	new->vbr_error = NULL;
 
 	/* initialize the resolver */
-#if USE_ARLIB
+#ifdef USE_ARLIB
 	new->vbr_arlib = ar_init(NULL, NULL, NULL, 0);
 	if (new->vbr_arlib == NULL)
 	{
@@ -493,7 +493,7 @@ vbr_close(VBR *vbr)
 {
 	assert(vbr != NULL);
 
-#if USE_ARLIB
+#ifdef USE_ARLIB
 	if (vbr->vbr_arlib != NULL)
 		ar_shutdown(vbr->vbr_arlib);
 #endif /* USE_ARLIB */
@@ -612,7 +612,7 @@ vbr_setdnscallback(VBR *vbr, void (*func)(const void *context))
 {
 	assert(vbr != NULL);
 
-#if USE_ARLIB
+#ifdef USE_ARLIB
 	vbr->vbr_dns_callback = func;
 	return VBR_STAT_OK;
 #else /* USE_ARLIB */
@@ -813,7 +813,7 @@ vbr_query(VBR *vbr, char **res, char **cert)
 				                   sizeof ansbuf);
 #endif /* USE_ARLIB */
 
-#if USE_ARLIB
+#ifdef USE_ARLIB
 				if (status == AR_STAT_ERROR ||
 				    status == AR_STAT_EXPIRED)
 				{
