@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.52 2009/11/07 00:58:09 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.53 2009/11/13 20:16:45 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -23,6 +23,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Rename the rfc2822_*() parsing functions to have
 		"dkim_" prefixes, and rename their containing file
 		accordingly.
+	LIBOPENDKIM: Fixes in relaxed body canonicalization.  Problem
+		noted by Masumi Taketomi Parekh of Yahoo!.
 	BUILD: Split up library assignments between libopendkim and opendkim,
 		taking advantage of libtool.  Based on a patch by Daniel Black.
 	BUILD: When possible, limit the symbols exported as part of

@@ -2,7 +2,7 @@
 <head><title>dkim_options()</title></head>
 <body>
 <!--
-$Id: dkim_options.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+$Id: dkim_options.html,v 1.2 2009/11/13 20:16:45 cm-msk Exp $
 -->
 <h1>dkim_options()</h1>
 
@@ -211,12 +211,22 @@ are:
       string. </td>
  </tr>
  <tr>
+  <td><tt>DKIM_LIBFLAGS_BADSIGHANDLES</tt></td>
+  <td>Create DKIM_SIGINFO handles even for signatures that had syntax errors.
+      </td>
+ </tr>
+ <tr>
   <td><tt>DKIM_LIBFLAGS_CACHE</tt></td>
   <td>Maintain a local cache of retrieved key and policy records, rather
       than relying on the DNS servers to do so.  May improve performance
       if, for example, the DNS server is not local.  Requires that libopendkim
       be compiled with the <tt>QUERY_CACHE</tt> option since doing so
       adds a library dependency to the build. </td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_CHUNKBADSIGS</tt></td>
+  <td>Continue processing a chunk even if it contains signatures that
+      contain syntax errors. </td>
  </tr>
  <tr>
   <td><tt>DKIM_LIBFLAGS_DELAYSIGPROC</tt></td>

@@ -9,7 +9,7 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.17 2009/11/11 19:38:33 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.18 2009/11/13 20:16:45 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -262,6 +262,8 @@ typedef int dkim_opts_t;
 #define DKIM_LIBFLAGS_ACCEPTV05		0x080
 #define DKIM_LIBFLAGS_FIXCRLF		0x100
 #define DKIM_LIBFLAGS_ACCEPTDK		0x200
+#define DKIM_LIBFLAGS_CHUNKBADSIGS	0x400
+#define DKIM_LIBFLAGS_BADSIGHANDLES	0x800
 
 #define	DKIM_LIBFLAGS_DEFAULT		DKIM_LIBFLAGS_NONE
 
