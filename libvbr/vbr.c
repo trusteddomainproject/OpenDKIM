@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.2.2.1 2009/11/12 05:44:04 grooverdan Exp $";
+static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.2.2.2 2009/11/13 10:45:01 grooverdan Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -38,7 +38,7 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.2.2.1 2009/11/12 05:44:04 grooverda
 
 /* local definitions needed for DNS queries */
 #define MAXPACKET		8192
-#ifdef defined(__RES) && (__RES >= 19940415)
+#if defined(__RES) && (__RES >= 19940415)
 # define RES_UNC_T		char *
 #else /* __RES && __RES >= 19940415 */
 # define RES_UNC_T		unsigned char *
