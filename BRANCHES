@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.5 2009/11/11 22:28:41 grooverdan Exp $
+$Id: BRANCHES,v 1.6 2009/11/13 20:17:38 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -34,3 +34,6 @@ Closed Branches
 
 br-msk-reduce-symbols
 		Build automation to limit exported library symbols 
+
+br-msk-yahoo-fixes
+		Bug fixes and feature requests for Yahoo!
