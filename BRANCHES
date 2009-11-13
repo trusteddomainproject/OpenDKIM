@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.6 2009/11/13 20:17:38 cm-msk Exp $
+$Id: BRANCHES,v 1.7 2009/11/13 23:10:02 grooverdan Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -19,6 +19,9 @@ br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
 
 br-msk-resign	_FFR_RESIGN (binding of handles for message resigning)
+
+br-dblack-codecoverage	Generate code coverage testing from lcov
+		(http://ltp.sourceforge.net/coverage/lcov.php)
 
 br-dblack-autoimprovements consisting of:
 		m4 subdirectory for macros
