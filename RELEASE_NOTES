@@ -1,11 +1,25 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.52.2.2 2009/11/13 09:53:03 grooverdan Exp $
+	$Id: RELEASE_NOTES,v 1.52.2.3 2009/11/13 11:27:51 grooverdan Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 1.2.0		2009/??/??
+	OPENDKIM: Generate opendkim.conf.5 man page containing all features,
+		including FFR, annotated with if they are included and their 
+		experimental status (for FFRs).
+	LIBOPENDKIM: Improve static linking against openssl as noted by Roman
+		Gelfand. Compiles against openssl version 1.0.0-beta4 now. 
+	LIBOPENDKIM: Provide pkg-config files {opendkim,vbr,ar}.pc for use by 
+		other applications.
+	LIBOPENDKIM: Fix up libresolv detection.
+	BUILD: Add pkg-config checks for openssl, tre and opendbx packages to
+		determine their installed library locations. Automate 
+		versioning and deployment.
+	BUILD: Added m4 macro library directory with updated ax_pthread.m4.
+	BUILD: Moved feature, _FFR and library #defines from Makefiles to 
+		build-config.h. Added macros for FFR and FEATURES.
 	Feature request #SF2873902: Overhaul the database backend code so that
 		features that use external files or databases can be in any
 		of several supported formats.  This will make adding new
