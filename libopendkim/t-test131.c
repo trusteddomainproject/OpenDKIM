@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test131_c_id[] = "@(#)$Id: t-test131.c,v 1.1.2.3 2009/11/12 21:24:10 cm-msk Exp $";
+static char t_test131_c_id[] = "@(#)$Id: t-test131.c,v 1.1.2.4 2009/11/13 20:11:02 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -14,6 +14,7 @@ static char t_test131_c_id[] = "@(#)$Id: t-test131.c,v 1.1.2.3 2009/11/12 21:24:
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 
 /* libopendkim includes */
 #include "dkim.h"
@@ -21,6 +22,37 @@ static char t_test131_c_id[] = "@(#)$Id: t-test131.c,v 1.1.2.3 2009/11/12 21:24:
 #include "dkim-strl.h"
 
 #define	MAXHEADER	4096
+
+#define	NULLBH		"bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+
+/*
+**  EATWS -- eat whitespace
+**
+**  Parameters:
+**  	str -- string to crush
+**
+**  Return value:
+**  	None.
+*/
+
+void
+eatws(char *str)
+{
+	char *p;
+	char *q;
+
+	for (p = str, q = str; *p != '\0'; p++)
+	{
+		if (!isascii(*p) || !isspace(*p))
+		{
+			*q = *p;
+			q++;
+		}
+	}
+
+	*q = '\0';
+}
+
 
 /*
 **  MAIN -- program mainline
@@ -43,6 +75,7 @@ main(int argc, char **argv)
 	DKIM_STAT status;
 	time_t fixed_time;
 	u_char *p;
+	char *last;
 	DKIM *dkim;
 	DKIM_LIB *lib;
 	dkim_sigkey_t key;
@@ -115,6 +148,16 @@ main(int argc, char **argv)
 	status = dkim_getsighdr(dkim, hdr, sizeof hdr,
 	                        strlen(DKIM_SIGNHEADER) + 2);
 	assert(status == DKIM_STAT_OK);
+
+	strlcpy(hdr2, hdr, sizeof hdr2);
+	for (p = strtok_r(hdr2, ";", &last);
+	     p != NULL;
+	     p = strtok_r(NULL, ";", &last))
+	{
+		eatws(p);
+		if (strncmp(p, "bh=", 3) == 0)
+			assert(strcmp(p, NULLBH) == 0);
+	}
 
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);
