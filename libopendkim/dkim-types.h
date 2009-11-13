@@ -9,8 +9,10 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.7.12.1 2009/11/12 06:56:25 grooverdan Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.7.12.2 2009/11/13 04:54:43 grooverdan Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>

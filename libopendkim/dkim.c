@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.28.2.1 2009/11/12 06:56:25 grooverdan Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.28.2.2 2009/11/13 04:54:43 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5008,10 +5008,6 @@ dkim_ohdrs(DKIM *dkim, DKIM_SIGINFO *sig, char **ptrs, int *pcnt)
 
 	return DKIM_STAT_OK;
 }
-
-#if defined(_FFR_DIFFHEADERS) && (!defined(TRE_APPROX) || (TRE_APPROX == 0))
-# error _FFR_DIFFHEADERS requires approximate regular expression matching
-#endif /* defined(_FFR_DIFFHEADERS) && (!defined(TRE_APPROX) || (TRE_APPROX == 0)) */
 
 /*
 **  DKIM_DIFFHEADERS -- compare original headers with received headers
