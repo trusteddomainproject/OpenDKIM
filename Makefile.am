@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.13.8.1 2009/11/11 23:26:30 grooverdan Exp $
+# $Id: Makefile.am,v 1.13.8.2 2009/11/13 09:27:48 grooverdan Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -103,7 +103,7 @@ EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
 	libopendkim/docs/dkim_verify.html \
 	libopendkim/docs/index.html \
 	libopendkim/docs/overview.html \
-	libopendkim/docs/rfc2822_mailbox_split.html \
+	libopendkim/docs/dkim_mail_parse.html \
 	libopendkim/docs/dkim_diffheaders.html \
 	libopendkim/docs/dkim_get_msgdate.html \
 	libopendkim/docs/dkim_getpartial.html \
@@ -113,3 +113,15 @@ EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
 	libopendkim/docs/dkim_sig_getidentity.html \
 	libopendkim/docs/dkim_sig_getcanons.html \
 	libopendkim/docs/dkim_libfeature.html
+
+dist-hook:
+	sed -i -e '/^#define[ \t]*OPENDKIM_LIB_VERSION/s/0x[0-9]*/0x@HEX_VERSION@/' libopendkim/dkim.h
+	fgrep @VERSION@ RELEASE_NOTES
+	sed -i -e 's|\(@VERSION@[ \t]*\)[0-9?]\{4\}\(/[0-9?]\{2\}\)\{2\}|\1'`date +%Y/%m/%d`'|' RELEASE_NOTES
+
+push:
+	v=$(VERSION) ; echo cvs tag rel-opendkim-$${v//./-}
+	md5 $(distdir).tar.gz > $(distdir).tar.gz.md5 || md5sum  $(distdir).tar.gz > $(distdir).tar.gz.md5
+	scp $(distdir).tar.gz $(distdir).tar.gz.md5 RELEASE_NOTES cm-msk,opendkim@frs.sourceforge.net:/home/frs/project/o/op/opendkim/
+
+.PHONY: push

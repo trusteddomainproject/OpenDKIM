@@ -1,15 +1,23 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.7 2009/11/13 06:04:10 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.8 2009/11/13 09:27:48 grooverdan Exp $
 
 AC_PREREQ(2.62)
 
-AC_INIT(OpenDKIM, 1.2.0, bugs@opendkim.org)
-AM_INIT_AUTOMAKE(opendkim, 1.2.0)
+m4_define([VERSION_RELEASE], 1)
+m4_define([VERSION_MAJOR_REV], 2)
+m4_define([VERSION_MINOR_REV], 0)
+m4_define([VERSION_PATCH], 0)
+
+AC_INIT([OpenDKIM], [VERSION_RELEASE.VERSION_MAJOR_REV.VERSION_MINOR_REV], [bugs@opendkim.org])
+AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([libar/ar.c])
 AC_CONFIG_HEADERS([build-config.h])
 
 AC_CONFIG_MACRO_DIR([m4])
+
+HEX_VERSION=$(printf %08x $(( ((VERSION_RELEASE << 8 | VERSION_MAJOR_REV) << 8 | VERSION_MINOR_REV) << 8| VERSION_PATCH )))
+AC_SUBST([HEX_VERSION])
 
 # Checks for programs.
 AC_PROG_CC
