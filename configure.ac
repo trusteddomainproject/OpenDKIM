@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.4 2009/11/12 06:56:24 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.5 2009/11/13 00:15:26 grooverdan Exp $
 
 AC_PREREQ(2.62)
 
@@ -99,8 +99,6 @@ AC_DEFUN([FEATURE],[
         AC_ARG_ENABLE($1,AS_HELP_STRING(--enable-$1,$2),
                 AS_IF([test "x$enable_]$1[" != "xno"],[
                    AC_DEFINE(TR_UP($1),1,[enable $1 feature])
-                   AC_DEFINE([LIBOPENDKIM_]TR_UP($1),1,[enable $1 feature])
-                   LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING $1"
 		   AC_SUBST(TR_UP($1)[_MANNOTICE])
                    ],
 		   [
@@ -111,14 +109,19 @@ AC_DEFUN([FEATURE],[
         )
 ])
 
+AC_DEFUN([LIB_FEATURE],[
+	FEATURE($1, $2)
+	AS_IF([test "x$enable_]$1[" != "xno"],[
+                   AC_DEFINE([LIBOPENDKIM_]TR_UP($1),1,[enable $1 feature])
+                   LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING $1"
+	])
+])
+
 AC_DEFUN([FFR_FEATURE],[
 	experimentalnotincluded="(experimental feature not included in this release, configure with --enable-$1 at compile time if required)"
         AC_ARG_ENABLE($1,AS_HELP_STRING(--enable-$1,$2),
                 AS_IF([test "x$enable_]$1[" != "xno"],[
-
                    AC_DEFINE([_FFR_]TR_UP($1),1,[enable $1 feature])
-                   AC_DEFINE([LIBOPENDKIM_]TR_UP($1),1,[enable $1 feature])
-                   LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING $1"
 		   AC_SUBST(TR_UP($1)[_MANNOTICE],"(feature is experimental)")
                    ],
 		   [
@@ -127,6 +130,14 @@ AC_DEFUN([FFR_FEATURE],[
 		,
 		AC_SUBST(TR_UP($1)[_MANNOTICE],$experimentalnotincluded)
         )
+])
+
+AC_DEFUN([LIB_FFR_FEATURE],[
+	FFR_FEATURE($1, $2)
+	AS_IF([test "x$enable_]$1[" != "xno"],[
+                   AC_DEFINE([LIBOPENDKIM_]TR_UP($1),1,[enable $1 feature])
+                   LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING $1"
+	])
 ])
 
 # opendkim
@@ -156,14 +167,14 @@ AM_CONDITIONAL([BUILD_FILTER], [test x"$enable_filter" != x"no"])
 
 # libopendkim
 
-FEATURE([query_cache], [local key/policy caching])
+LIB_FEATURE([query_cache], [local key/policy caching])
 
-FFR_FEATURE([dnsupgrade], [upgrade DNS to TCP when needed])
-FFR_FEATURE([parsetime], [parse From: headers for sending times])
+LIB_FFR_FEATURE([dnsupgrade], [upgrade DNS to TCP when needed])
+LIB_FFR_FEATURE([parsetime], [parse From: headers for sending times])
 
 # Conditional stuff
 
-AC_ARG_ENABLE([allsymbols], AS_HELP_STRING([--enable-all-symbols],[export even internal-use symbols]))
+AC_ARG_ENABLE([allsymbols], AS_HELP_STRING([--enable-allsymbols],[export internal-use symbols for better test coverage]))
 AM_CONDITIONAL(ALL_SYMBOLS, [test "$enable_allsymbols" = yes])
 
 AC_ARG_ENABLE([arlib], AS_HELP_STRING([--enable-arlib], [enable provided asynchronous resolver library]),
@@ -196,7 +207,7 @@ if test "$sslpath" = "auto" -o x"$sslpath" = x"yes"
 then
 	PKG_CHECK_MODULES([LIBCRYPTO],[openssl >= 0.9.7],[openssl_found="yes"],[
 		openssl_found="no"
-		AC_MSG_WARN("pkg-config for openssl not found- trying manual search ....")
+		AC_MSG_WARN(["pkg-config for openssl not found- trying manual search ...."])
 	])
 fi
 
@@ -217,19 +228,22 @@ then
 	fi
 	case "$sslpath" in
 		no)
-			AC_MSG_ERROR(OpenSSL is required)
+			AC_MSG_ERROR([OpenSSL is required])
 			;;
 		auto)
-			AC_MSG_ERROR(OpenSSL not found)
+			AC_MSG_ERROR([OpenSSL not found])
 			;;
 		*/*)
-			AC_MSG_RESULT($sslpath)
+			AC_MSG_RESULT([$sslpath])
 			;;
 		*)
-			AC_MSG_ERROR(OpenSSL not found)
+			AC_MSG_ERROR([OpenSSL not found])
 			;;
 	esac
         LIBCRYPTO_CFLAGS="-I$sslpath/include"
+	# -ldl was added to assist with compilation of static openssl libaries
+	# that appear to need dl for opening engine plugins. It failes
+	# at load time if not enabled - dblack 20091113
         LIBCRYPTO_LIBS="-L$sslpath/lib -lssl -lcrypto -ldl"
 fi
 
@@ -241,13 +255,13 @@ LIBS=""
 CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
 LDFLAGS="$LIBCRYPTO_LIBS $saved_LDFLAGS"
 
-AC_CHECK_HEADERS(openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h, ,
-	AC_MSG_ERROR(required OpenSSL header not found))
-AC_SEARCH_LIBS(ERR_peek_error, crypto, , AC_MSG_ERROR(libcrypto not found))
-AC_SEARCH_LIBS(SSL_library_init, ssl, ,
+AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
+	AC_MSG_ERROR([required OpenSSL header not found]))
+AC_SEARCH_LIBS([ERR_peek_error], [crypto], , AC_MSG_ERROR([libcrypto not found]))
+AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
 	AC_MSG_ERROR([libssl not found]))
-AC_CHECK_DECL(SHA256_DIGEST_LENGTH, ,
-	AC_MSG_WARN(SHA256 is required for DKIM but is not supported with your version of OpenSSL),
+AC_CHECK_DECL([SHA256_DIGEST_LENGTH], ,
+	AC_MSG_WARN([SHA256 is required for DKIM but is not supported with your version of OpenSSL]),
 	[#include <openssl/sha.h>])
 
 CFLAGS="$saved_CFLAGS"
@@ -258,10 +272,10 @@ AC_SUBST(LIBCRYPTO_LIBDIRS)
 AC_SUBST(LIBCRYPTO_LIBS)
 
 # Libmilter
-AC_MSG_CHECKING(for milter library and includes)
-AC_ARG_WITH(milter,
-	AS_HELP_STRING(--with-milter, location of milter includes and library),
-	milterpath="$withval", milterpath="auto")
+AC_MSG_CHECKING([for milter library and includes])
+AC_ARG_WITH([milter],
+	AS_HELP_STRING([--with-milter], [location of milter includes and library]),
+	[milterpath="$withval"], [milterpath="auto"])
 milterdirs="/usr/local /usr"
 if test "$milterpath" = "auto" -o "$milterpath" = "yes"
 then
@@ -414,7 +428,6 @@ then
 	AC_MSG_ERROR(cannot use diffheaders without TRE library)
 else
         AC_DEFINE([LIBOPENDKIM_DIFFHEADERS],[1],[Use the libtre for diffheaders calculations])
-        LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING tre"
 fi
 
 AM_CONDITIONAL(USE_TRE, test x"$trepath" != x"no")
@@ -483,11 +496,15 @@ LIBDB_INCDIRS=""
 LIBDB_LIBDIRS=""
 LIBDB_LIBS=""
 
-if test x"$enable_bodylengthdb" = x"yes" -o \
-        x"$enable_popauth" = x"yes" -o \
-        x"$enable_querycache" = x"yes" -o \
-        x"$enable_stats" = x"yes" -o \
-        x"$enable_reportintervals" = x"yes"
+AM_CONDITIONAL(USE_DB_OPENDKIM,
+	test x"$enable_bodylengthdb" = x"yes" -o \
+	        x"$enable_popauth" = x"yes" -o \
+	        x"$enable_stats" = x"yes" -o \
+	        x"$enable_report_intervals" = x"yes")
+AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")
+
+if test x"$USE_DB_OPENDKIM_TRUE" = x"" -o \
+	x"$USE_DB_LIBOPENDKIM_TRUE" = x""
 then
 	bdbrequired="yes"
 else
@@ -606,8 +623,6 @@ else
 	fi
 fi
 
-AM_CONDITIONAL(USE_DB_OPENDKIM, test x"$bdb" != x"no")
-AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_querycache" = x"yes")
 AC_SUBST(LIBDB_INCDIRS)
 AC_SUBST(LIBDB_LIBDIRS)
 AC_SUBST(LIBDB_LIBS)
@@ -651,10 +666,10 @@ else
 	fi
 fi
 
-LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBDB_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS $LIBRESOLV"
+LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS $LIBRESOLV"
 # This (below) is just for the pkg-config file opendkim.pc.in
 LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
-LIBOPENDKIM_INC="$LIBCRYPTO_CFLAGS $LIBDB_INCDIRS $LIBTRE_INCDIRS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
+LIBOPENDKIM_INC="$LIBCRYPTO_CFLAGS $LIBTRE_INCDIRS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
 
 if test x"$enable_arlib" = x"yes"
 then
@@ -664,8 +679,9 @@ then
 	LIBOPENDKIM_LIBS="$LIBOPENDKIM_LIBS ../libar/libar.la"
 fi
 
-if test x"$USE_DB_LIBOPENDKIM" = x"yes"
+if test x"$USE_DB_LIBOPENDKIM_TRUE" = x""
 then
+	LIBOPENDKIM_INC="$LIBOPENDKIM_INC $LIBDB_INCDIRS"
 	LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS_PKG $LIBDB_LIBS"
 	LIBOPENDKIM_LIBS="$LIBOPENDKIM_LIBS $LIBDB_LIBS"
 fi
