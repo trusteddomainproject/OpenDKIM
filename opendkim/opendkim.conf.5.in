@@ -151,10 +151,10 @@ it processes.  However, this also enables an abuse attack.  See the
 DKIM specification for more information.
 
 .TP
-.I BodyLengthDBFile (string)
+.I BodyLengthDBFile (dataset)
 Requests that
 .I opendkim
-include a "l=" body length tag when the database specified by the string
+include a "l=" body length tag when the dataset specified by the string
 contains the recipient addresses. @BODYLENGTHDB_MANNOTICE@
 
 .TP
@@ -588,8 +588,8 @@ Specifies a file containing a list of POSIX regular expressions that
 are applied the the message headers. @REPLACE_RULES_MANNOTICE@
 
 .TP
-.I ReportIntervalDB (string)
-Specifies a database of domains that correspond to how often, in seconds,
+.I ReportIntervalDB (dataset)
+Specifies a dataset of domains that correspond to how often, in seconds,
 to report DKIM signature failues. See
 .I SendReports
 for more details. @REPORT_INTERVALS_MANNOTICE@
@@ -626,18 +626,18 @@ used to construct the address.
 .TP
 .I ReputationFail (integer)
 If the reputation returned by the DNS reputation service exceeds this
-value then the Authenticated Header results x-dkim-rep="fail". Defaults
-to 0. @DKIM_REPUTATION_MANNOTICE@
+value then the Authenticated Header result "x-dkim-rep" is set to "fail".
+Defaults to 0. @DKIM_REPUTATION_MANNOTICE@
 
 .TP
 .I ReputationPass (integer)
 If the reputation returned by the DNS reputation service is less than this
-value then the Authenticated Header results x-dkim-rep="pass". Defaults to
-0. Values in between
+value then the Authenticated Header result "x-dkim-rep" is set to "pass". 
+Defaults to 0. Values in between
 .I ReputationFail
 and
 .I ReputationPass
-return a "neutral" result. @DKIM_REPUTATION_MANNOTICE@
+result in "x-dkim-rep" being set to "neutral". @DKIM_REPUTATION_MANNOTICE@
 
 .TP
 .I ReputationReject (integer)
@@ -751,8 +751,8 @@ listening on all interfaces.  This option is mandatory either in the
 configuration file or on the command line.
 
 .TP
-.I Statistics (string)
-This specified a database to store DKIM validation totals per domain. See
+.I Statistics (dataset)
+This specified a dataset to store DKIM validation totals per domain. See
 .I opendkim-stat(8)
 @STATS_MANNOTICE@
 
