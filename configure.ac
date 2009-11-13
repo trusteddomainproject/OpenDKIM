@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.6 2009/11/13 04:54:42 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.7 2009/11/13 06:04:10 grooverdan Exp $
 
 AC_PREREQ(2.62)
 
@@ -16,6 +16,8 @@ AC_PROG_CC
 AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_LIBTOOL
+
+PKG_PROG_PKG_CONFIG
 
 # Check for how to compile threaded stuff
 ACX_PTHREAD
@@ -379,10 +381,8 @@ LIBTRE_INCDIRS=""
 LIBTRE_LIBDIRS=""
 LIBTRE_LIBS=""
 
-if test x"$enable_diffheaders" = x"yes"
+if test x"$enable_diffheaders" != x"yes"
 then
-	AC_MSG_CHECKING([for libtre])
-else
 	trepath="no"
 fi
 
@@ -396,6 +396,7 @@ fi
 
 if test x"$tre_found" = x"no" -a x"$trepath" != x"no"
 then
+	AC_MSG_CHECKING([for libtre])
         if test x"$tre_path" != x"auto" -a x"$tre_path" != x"yes"
         then
                 if test -f "$trepath/include/tre/tre.h"
@@ -407,11 +408,7 @@ then
                 else
                         AC_MSG_ERROR("not found at $trepath")
                 fi
-        fi
-
-
-	if test x"$tre_found" = x"no"
-	then
+	else
 		tredirs="/usr /usr/local"
 		for d in $tredirs
 		do
@@ -425,71 +422,81 @@ then
 				break;
 			fi
 		done
+		if test x"$tre_found" = x"yes"
+		then
+			AC_MSG_ERROR([cannot use diffheaders without TRE library])
+		fi
 	fi
 fi
 
-if test x"$enable_diffheaders" = x"yes" -a x"$tre_found" = x"no"
+if test x"$enable_diffheaders" = x"yes" -a x"$tre_found" = x"yes"
 then
-	AC_MSG_ERROR([cannot use diffheaders without TRE library])
-else
 	AC_DEFINE([USE_TRE],1,[tre regex library found])
         AC_DEFINE([LIBOPENDKIM_DIFFHEADERS],[1],[Use the libtre for diffheaders calculations])
 fi
 
-AM_CONDITIONAL(USE_TRE, test x"$trepath" != x"no")
-AC_SUBST(LIBTRE_INCDIRS)
-AC_SUBST(LIBTRE_LIBS)
+AM_CONDITIONAL([USE_TRE], [test x"$tre_found" != x"no"])
+AC_SUBST([LIBTRE_INCDIRS])
+AC_SUBST([LIBTRE_LIBS])
 
 # libodbx
-AC_MSG_CHECKING(for OpenDBX)
 AC_ARG_WITH(odbx,
-	AS_HELP_STRING(--with-odbx, location of OpenDBX includes and library),
-	odbxpath="$withval", odbxpath="no")
+	AS_HELP_STRING([--with-odbx], [location of OpenDBX includes and library]),
+	[odbxpath="$withval"], [odbxpath="auto"])
 
-LIBODBX_INCDIRS=""
-LIBODBX_LIBDIRS=""
+odbx_found="no"
+LIBODBX_CPPFLAGS=""
 LIBODBX_LIBS=""
 
-if test x"$odbxpath" = x"yes" -o x"$odbxpath" = x"auto"
+if test x"$odbxpath" = x"auto" -o x"$odbxpath" = x"yes"
 then
-	odbxdirs="/usr /usr/local"
-	for d in $odbxdirs
-	do
-		if test -f $d/include/odbx.h
-		then
-			odbxpath=$d
-			AC_MSG_RESULT($d)
-			LIBODBX_INCDIRS="-I$odbxpath/include"
-			LIBODBX_LIBDIRS="-L$odbxpath/lib"
-			LIBODBX_LIBS="-lopendbx"
-			break;
-		fi
-	done
-	if test x"$LIBODBX_LIBS" = x""
-	then
-		AC_MSG_ERROR(not found)
-	fi
-elif test x"$odbxpath" = x"no"
-then
-	AC_MSG_RESULT(no)
-	LIBODBX_INCDIRS=""
-	LIBODBX_LIBDIRS=""
-	LIBODBX_LIBS=""
-else
-	if test -f $odbxpath/include/odbx.h
-	then
-		AC_MSG_RESULT($odbxpath)
-		LIBODBX_INCDIRS="-I$odbxpath/include"
-		LIBODBX_LIBDIRS="-L$odbxpath/lib"
-		LIBODBX_LIBS="-lopendbx"
-	else
-		AC_MSG_ERROR(not found at $odbxpath)
-	fi
+        PKG_CHECK_MODULES([LIBODBX],[opendbx >= 1.3.7],[odbx_found="yes"],[
+	        odbx_found="no"
+        	AC_MSG_WARN("pkg-config for libodbx not found- trying manual search ....")
+        ])
 fi
 
-AM_CONDITIONAL(USE_ODBX, test x"$odbxpath" != x"no")
-AC_SUBST(LIBODBX_INCDIRS)
-AC_SUBST(LIBODBX_LIBDIRS)
+if test x"$odbxpath" != x"no" -a x"odbx_found" = x"no"
+then
+	AC_MSG_CHECKING([for OpenDBX])
+	if test x"$odbxpath" != x"auto" -a x"odbxpath" != x"yes"
+	then
+		if test -f $odbxpath/include/odbx.h
+		then
+			AC_MSG_RESULT($odbxpath)
+		        odbx_found="yes"
+			LIBODBX_CPPFLAGS="-I$odbxpath/include"
+			LIBODBX_LIBS="-L$odbxpath/lib -lopendbx"
+		else
+			AC_MSG_ERROR(not found at $odbxpath)
+		fi
+	else
+		odbxdirs="/usr /usr/local"
+		for d in $odbxdirs
+		do
+			if test -f $d/include/odbx.h
+			then
+				odbxpath=$d
+				AC_MSG_RESULT($d)
+		        	odbx_found="yes"
+				LIBODBX_CPPFLAGS="-I$odbxpath/include"
+				LIBODBX_LIBS="-L$odbxpath/lib -lopendbx"
+				break;
+			fi
+		done
+	fi
+	if test x"odbx_found" = x"yes"
+	then
+		AC_MSG_RESULT([no])
+	fi
+fi
+if test x"odbx_found" = x"yes"
+then
+	AC_DEFINE([USE_ODBX],1,[ODBX support for datasets enabled])
+        AC_DEFINE([LIBOPENDKIM_ODBX],[1],[ODBX support for datasets enabled])
+fi
+AM_CONDITIONAL(USE_ODBX, test x"odbx_found" = x"yes")
+AC_SUBST(LIBODBX_CPPFLAGS)
 AC_SUBST(LIBODBX_LIBS)
 
 # libdb
