@@ -34,7 +34,7 @@ libtool
 Makefile.in
 Makefile
 *.tar.gz
-*.tar.gz,md5
+*.tar.gz.md5
 
 tags
 .deps
