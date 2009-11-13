@@ -5,10 +5,12 @@
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 */
 
+#include "build-config.h"
+
 #ifdef QUERY_CACHE
 
 #ifndef lint
-static char dkim_cache_c_id[] = "@(#)$Id: dkim-cache.c,v 1.6 2009/10/22 19:35:00 cm-msk Exp $";
+static char dkim_cache_c_id[] = "@(#)$Id: dkim-cache.c,v 1.6.12.1 2009/11/13 00:16:45 grooverdan Exp $";
 #endif /* !lint */
 
 /* system includes */
