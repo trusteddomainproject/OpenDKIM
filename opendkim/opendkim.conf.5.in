@@ -154,8 +154,8 @@ DKIM specification for more information.
 .I BodyLengthDBFile (dataset)
 Requests that
 .I opendkim
-include a "l=" body length tag when the dataset specified by the string
-contains the recipient addresses. @BODYLENGTHDB_MANNOTICE@
+include a "l=" body length tag when the set contains the recipient 
+addresses. @BODYLENGTHDB_MANNOTICE@
 
 .TP
 .I BogusKey (string)
@@ -567,8 +567,8 @@ containing the process ID.
 
 .TP
 .I POPDBFile (dataset)
-Requests that the filter consult a POP authentication database named
-in the dataset for IP addresses that should be allowed for signing. @POPAUTH_MANNOTICE@
+Requests that the filter consult a set for IP addresses that should be allowed
+for signing. This feature was designed for POP-before-SMTP datastores. @POPAUTH_MANNOTICE@
 
 .TP
 .I Quarantine (Boolean)
@@ -589,8 +589,8 @@ are applied the the message headers. @REPLACE_RULES_MANNOTICE@
 
 .TP
 .I ReportIntervalDB (dataset)
-Specifies a dataset of domains that correspond to how often, in seconds,
-to report DKIM signature failues. See
+Specifies a set of domains that correspond to how often, in seconds, to report 
+DKIM signature failues. See
 .I SendReports
 for more details. @REPORT_INTERVALS_MANNOTICE@
 
@@ -752,7 +752,7 @@ configuration file or on the command line.
 
 .TP
 .I Statistics (dataset)
-This specified a dataset to store DKIM validation totals per domain. See
+This specified a set to store DKIM validation totals per domain. See
 .I opendkim-stat(8)
 @STATS_MANNOTICE@
 
