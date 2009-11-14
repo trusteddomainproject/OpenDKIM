@@ -9,7 +9,7 @@ Name: OpenDKIM Library
 Description: Library for performing DKIM signing and verification
 URL: http://opendkim.org
 Version: @VERSION@
-Libs: -L${libdir} -lopendkim
-Libs.private: @LIBOPENDKIM_LIBS_PKG@
-Cflags: -I${includedir}
+Libs: -L${libdir} @PTHREAD_CFLAGS@ -lopendkim
+Libs.private: @LIBOPENDKIM_LIBS_PKG@ @PTHREAD_LIBS@
+Cflags: -I${includedir} @PTHREAD_CFLAGS@
 

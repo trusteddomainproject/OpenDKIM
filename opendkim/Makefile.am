@@ -1,27 +1,23 @@
-# $Id: Makefile.am,v 1.48.4.4 2009/11/14 08:42:39 grooverdan Exp $
+# $Id: Makefile.am,v 1.48.4.5 2009/11/14 13:03:48 grooverdan Exp $
 
-# what flags you want to pass to the C compiler & linker
-AM_CFLAGS = -pthread --pedantic -Wall -O2
-AM_LDFLAGS = -pthread
+if DEBUG
+AM_CFLAGS = -g
+endif
 
-# this lists the binaries to produce, the (non-PHONY, binary) targets in
-# the previous manual Makefile
 sbin_PROGRAMS = opendkim-testkey opendkim-testadsp
-sbin_SCRIPTS = opendkim-genkey.sh
+dist_sbin_SCRIPTS = opendkim-genkey.sh
 
 exampledir = $(docdir)
-example_DATA = opendkim.conf.sample
+dist_example_DATA = opendkim.conf.sample
 
 if BUILD_FILTER
 sbin_PROGRAMS += opendkim
 opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h config.c config.h stats.c stats.h test.c test.h util.c util.h
-opendkim_CFLAGS = 
+opendkim_CC = $(PTHREAD_CC)
+opendkim_CFLAGS = $(PTHREAD_CFLAGS)
 opendkim_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CFLAGS)
-opendkim_LDFLAGS = $(LIBCRYPTO_LIBDIRS) $(LIBMILTER_LIBDIRS)
-opendkim_LDADD = ../libopendkim/libopendkim.la -lmilter $(LIBCRYPTO_LIBS)
-if DEBUG
-opendkim_CFLAGS += -g
-endif
+opendkim_LDFLAGS = $(LIBCRYPTO_LIBDIRS) $(LIBMILTER_LIBDIRS) $(PTHREAD_CFLAGS)
+opendkim_LDADD = ../libopendkim/libopendkim.la -lmilter $(LIBCRYPTO_LIBS) $(PTHREAD_LIBS)
 if USE_DB_OPENDKIM
 opendkim_CPPFLAGS += $(LIBDB_INCDIRS)
 opendkim_LDFLAGS += $(LIBDB_LIBDIRS)
@@ -42,29 +38,21 @@ endif
 if STATS
 sbin_PROGRAMS += opendkim-stats
 opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c util.c
+opendkim_stats_CC = $(PTHREAD_CC)
+opendkim_stats_CFLAGS = $(PTHREAD_CFLAGS)
 opendkim_stats_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBDB_INCDIRS)
-opendkim_stats_LDFLAGS = $(LIBDB_LIBDIRS)
-opendkim_stats_LDADD = ../libopendkim/libopendkim.la $(LIBDB_LIBS)
-if DEBUG
-opendkim_stats_CFLAGS = -g
-endif
+opendkim_stats_LDFLAGS = $(LIBDB_LIBDIRS) $(PTHREAD_CFLAGS)
+opendkim_stats_LDADD = ../libopendkim/libopendkim.la $(LIBDB_LIBS) $(PTHREAD_LIBS)
 endif
 
 opendkim_testkey_SOURCES = opendkim-testkey.c $(srcdir)/../libopendkim/dkim.h $(srcdir)/../libopendkim/dkim-strl.h $(srcdir)/../libopendkim/dkim-test.h
 opendkim_testkey_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CFLAGS)
 opendkim_testkey_LDFLAGS = $(LIBCRYPTO_LIBDIRS)
-opendkim_testkey_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) @LIBRESOLV@
-if DEBUG
-opendkim_testkey_CFLAGS = -g
-endif
+opendkim_testkey_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(LIBRESOLV)
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
 opendkim_testadsp_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CFLAGS)
-opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la @LIBRESOLV@
-opendkim_testadsp_CFLAGS = 
-if DEBUG
-opendkim_testadsp_CFLAGS += -g
-endif
+opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la $(LIBRESOLV)
 
 man_MANS = opendkim-genkey.8 opendkim-testadsp.8 opendkim-testkey.8
 if BUILD_FILTER
@@ -73,5 +61,3 @@ endif
 if STATS
 man_MANS += opendkim-stats.8
 endif
-
-EXTRA_DIST = $(example_DATA) $(man_MANS) opendkim-stats.8 $(sbin_SCRIPTS)

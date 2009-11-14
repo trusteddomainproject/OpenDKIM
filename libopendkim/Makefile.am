@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.38.2.8 2009/11/14 11:58:27 grooverdan Exp $
+# $Id: Makefile.am,v 1.38.2.9 2009/11/14 13:03:47 grooverdan Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -7,9 +7,10 @@ LDADD = ./libopendkim.la
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-mailparse.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h util.h
-libopendkim_la_CFLAGS = @LIBOPENDKIM_INC@
-libopendkim_la_LDFLAGS = -no-undefined  $(LIBCRYPTO_LIBDIRS)
-libopendkim_la_LIBADD = @LIBOPENDKIM_LIBS@
+libopendkim_la_CFLAGS = $(LIBOPENDKIM_INC) $(PTHREAD_CFLAGS)
+libopendkim_la_CC = $(PTHREAD_CC)
+libopendkim_la_LDFLAGS = -no-undefined  $(LIBCRYPTO_LIBDIRS) $(PTHREAD_CFLAGS)
+libopendkim_la_LIBADD = $(LIBOPENDKIM_LIBS) $(PTHREAD_LIBS)
 if !ALL_SYMBOLS
 libopendkim_la_DEPENDENCIES = symbols.map
 libopendkim_la_LDFLAGS += -export-symbols symbols.map
@@ -17,7 +18,7 @@ endif
 libopendkim_includedir = $(includedir)/opendkim
 libopendkim_include_HEADERS = dkim.h
 
-libopendkim_ladir = $(datadir)/opendkim
+libopendkim_ladir = $(docdir)
 libopendkim_la_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
 	docs/dkim_canon_t.html docs/dkim_cbstat.html docs/dkim_chunk.html \
 	docs/dkim_close.html docs/dkim_dnssec.html docs/dkim_eoh.html \

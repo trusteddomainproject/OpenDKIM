@@ -9,7 +9,7 @@ Name: Asynchronous Resolver
 Description: Library for performing Asynchronous DNS provided by OpenDKIM
 URL: http://opendkim.org
 Version: @VERSION@
-Libs: -L${libdir} -lar
-Libs.private: @LIBRESOLV@
-Cflags: -I${includedir}
+Libs: -L${libdir} @PTHREAD_CFLAGS@ -lar
+Libs.private: @LIBRESOLV@ @PTHREAD_LIBS@
+Cflags: -I${includedir} @PTHREAD_CFLAGS@
 

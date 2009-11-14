@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.10 2009/11/14 12:04:10 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.11 2009/11/14 13:03:47 grooverdan Exp $
 
 AC_PREREQ(2.62)
 
@@ -29,9 +29,6 @@ PKG_PROG_PKG_CONFIG
 
 # Check for how to compile threaded stuff
 ACX_PTHREAD
-LIBS="$PTHREAD_LIBS $LIBS"
-CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
-CC="$PTHREAD_CC"
 
 # Checks for libraries.
 AC_SEARCH_LIBS(inet_addr, nsl)
