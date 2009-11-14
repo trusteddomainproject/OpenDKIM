@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.9 2009/11/14 08:59:16 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.10 2009/11/14 12:04:10 grooverdan Exp $
 
 AC_PREREQ(2.62)
 
@@ -207,7 +207,6 @@ AC_ARG_ENABLE([debug], AS_HELP_STRING([--enable-debug], [produce debugging binar
 AM_CONDITIONAL([DEBUG], [test "$enable_debug" = yes])
 
 # openssl
-AC_MSG_CHECKING([for OpenSSL library and includes])
 AC_ARG_WITH([openssl],
 	AS_HELP_STRING([--with-openssl], [location of OpenSSL includes and library]),
 	[sslpath="$withval"], [sslpath="auto"])
@@ -223,6 +222,7 @@ fi
 
 if test x"$openssl_found" = x"no"
 then
+	AC_MSG_CHECKING([for OpenSSL library and includes])
 	ssldirs="/usr/local/ssl /usr/local /usr/sfw /usr"
 	if test "$sslpath" = "auto" -o "$sslpath" = "yes"
 	then
