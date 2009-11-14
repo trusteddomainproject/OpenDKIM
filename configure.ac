@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.8 2009/11/13 09:27:48 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.9 2009/11/14 08:59:16 grooverdan Exp $
 
 AC_PREREQ(2.62)
 
@@ -385,8 +385,7 @@ AC_ARG_WITH([tre],
 	trepath="$withval",trepath="auto")
 
 tre_found="no"
-LIBTRE_INCDIRS=""
-LIBTRE_LIBDIRS=""
+LIBTRE_CFLAGS=""
 LIBTRE_LIBS=""
 
 if test x"$enable_diffheaders" != x"yes"
@@ -411,7 +410,7 @@ then
                 then
 			tre_found="yes"
                         AC_MSG_RESULT($trepath)
-                        LIBTRE_INCDIRS="-I$trepath/include"
+                        LIBTRE_CFLAGS="-I$trepath/include"
                         LIBTRE_LIBS="-L$trepath/lib -ltre"
                 else
                         AC_MSG_ERROR("not found at $trepath")
@@ -425,7 +424,7 @@ then
 				trepath=$d
 				tre_found="yes"
 				AC_MSG_RESULT($d)
-				LIBTRE_INCDIRS="-I$trepath/include"
+				LIBTRE_CFLAGS="-I$trepath/include"
 				LIBTRE_LIBD="-L$trepath/lib -ltre"
 				break;
 			fi
@@ -444,7 +443,7 @@ then
 fi
 
 AM_CONDITIONAL([USE_TRE], [test x"$tre_found" != x"no"])
-AC_SUBST([LIBTRE_INCDIRS])
+AC_SUBST([LIBTRE_CFLAGS])
 AC_SUBST([LIBTRE_LIBS])
 
 # libodbx
@@ -689,7 +688,7 @@ fi
 LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS $LIBRESOLV"
 # This (below) is just for the pkg-config file opendkim.pc.in
 LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
-LIBOPENDKIM_INC="$LIBCRYPTO_CFLAGS $LIBTRE_INCDIRS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
+LIBOPENDKIM_INC="$LIBCRYPTO_CFLAGS $LIBTRE_CFLAGS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
 
 if test x"$enable_arlib" = x"yes"
 then
