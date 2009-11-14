@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67 2009/11/11 20:23:38 cm-msk Exp $
+# $Id: configure.ac,v 1.67.6.1 2009/11/14 07:16:52 grooverdan Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -45,6 +45,19 @@ AC_TYPE_UINT32_T
 
 # Checks for library functions.
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strtol strtoul strtoull strlcpy strlcat])
+
+AC_ARG_ENABLE([testconv],
+	AS_HELP_STRING([--enable-testconv], [generate pretty graphs of test coveragae - requires lcov (ltp)]))
+AS_IF([test x"$enable_testcov" != x"no"],
+	AC_CHECK_PROG([lcov],[lcov], [found])
+	AS_IF([test x"$lcov" = x"found"],
+		[CFLAGS="$CFLAGS -fprofile-arcs -ftest-coverage --coverage -g"],
+		[
+			AC_MSG_ERROR([requested test coverage without and lcov was not found])
+		]
+	)
+)
+AM_CONDITIONAL(TESTCONV, test "$enable_testconv" = yes)
 
 # Conditional stuff
 AC_ARG_ENABLE(allsymbols, AS_HELP_STRING(--enable-all-symbols, export even internal-use symbols))

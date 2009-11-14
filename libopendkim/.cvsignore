@@ -6,6 +6,7 @@
 *.pc
 *.gcda
 *.gcno
+*.info
 t-*[0-9]
 t-verifyperf
 t-signperf
@@ -36,4 +37,8 @@ Makefile
 symbols.map
 .libs
 .deps
+*.core
 core
+
+description.txt
+description.html

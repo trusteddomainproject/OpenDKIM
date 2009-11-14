@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.39 2009/11/13 20:16:45 cm-msk Exp $
+# $Id: Makefile.am,v 1.39.2.1 2009/11/14 07:16:52 grooverdan Exp $
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-mailparse.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h util.h
@@ -1060,13 +1060,6 @@ if DEBUG
 t_test127_CFLAGS = -g
 endif
 
-t_test131_SOURCES = t-test131.c t-testdata.h
-t_test131_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
-t_test131_LDADD = ./libopendkim.la
-if DEBUG
-t_test131_CFLAGS = -g
-endif
-
 t_test130_SOURCES = t-test130.c t-testdata.h
 t_test130_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
 t_test130_LDADD = ./libopendkim.la
@@ -1086,3 +1079,25 @@ symbols.map: $(libopendkiminclude_HEADERS)
 		awk '{ for (c = 1; c <= NF; c++) if ($$c ~ /dkim_/) { print $$c; break; } }' | \
 		sed -e s/\[\*\;\]//g -e s/\[\\\[\\\]\]//g | \
 		sort -u -o $@
+
+MOSTLYCLEANFILES=*.info *.gcno *.gcda
+MAINTAINERCLEANFILES=description.txt description.html
+
+dist_doc_DATA=lcov
+if TESTCONV
+TESTS_ENVIRONMENT=./lcov-helper.sh
+
+check-local:  description.html check-TESTS
+	genhtml --output-directory lcov *.info --show-details --highlight --frames --legend  --title @PACKAGE@ --description-file description.html
+
+description.txt: *.c
+	fgrep '***' $? | sed -e 's/^t-\([a-z0-9]*\)\.c:[^*]*\*\*\*\(.*\)\\n.*/\1\n\t\2\n/g' > $@
+ 
+description.html: description.txt
+	gendesc --output $@ $<
+
+maintainer-clean-local:
+	-rm -rf lcov/[^C]*
+
+.PHONY: maintainer-clean-local check-local
+endif
