@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.38.2.7 2009/11/14 08:59:17 grooverdan Exp $
+# $Id: Makefile.am,v 1.38.2.8 2009/11/14 11:58:27 grooverdan Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -14,8 +14,9 @@ if !ALL_SYMBOLS
 libopendkim_la_DEPENDENCIES = symbols.map
 libopendkim_la_LDFLAGS += -export-symbols symbols.map
 endif
-libopendkimincludedir = $(includedir)/opendkim
-libopendkiminclude_HEADERS = dkim.h
+libopendkim_includedir = $(includedir)/opendkim
+libopendkim_include_HEADERS = dkim.h
+
 libopendkim_ladir = $(datadir)/opendkim
 libopendkim_la_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
 	docs/dkim_canon_t.html docs/dkim_cbstat.html docs/dkim_chunk.html \
@@ -248,7 +249,7 @@ t_test127_SOURCES = t-test127.c t-testdata.h
 
 DISTCLEANFILES = symbols.map
 
-symbols.map: $(libopendkiminclude_HEADERS) 
+symbols.map: $(libopendkim_include_HEADERS)
 	grep '^extern' $? | \
 		awk '{ for (c = 1; c <= NF; c++) if ($$c ~ /dkim_/) { print $$c; break; } }' | \
 		sed -e s/\[\*\;\]//g -e s/\[\\\[\\\]\]//g | \

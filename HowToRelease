@@ -8,7 +8,7 @@ Release procedures for OpenDKIM
 	% make distclean
 	% ./autogen.sh
 	% ./configure
-	% make dist
+	% make distcheck
 
    This will produce an opendkim-(version).tar.gz tarball.
 
@@ -43,4 +43,4 @@ Release procedures for OpenDKIM
 
 9) Update our entry on FreshMeat (http://www.freshmeat.net)
 
-$Id: HowToRelease,v 1.3.12.2 2009/11/13 09:27:48 grooverdan Exp $
+$Id: HowToRelease,v 1.3.12.3 2009/11/14 11:58:27 grooverdan Exp $

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.13.8.4 2009/11/14 08:42:39 grooverdan Exp $
+# $Id: Makefile.am,v 1.13.8.5 2009/11/14 11:58:27 grooverdan Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -11,7 +11,7 @@ if VBR
 SUBDIRS += libvbr
 endif
 SUBDIRS += libopendkim opendkim
-EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
+EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail \
 	RELEASE_NOTES.Sendmail \
 	contrib/opendkim.init \
 	contrib/opendkim.spec \
@@ -115,6 +115,7 @@ EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
 	libopendkim/docs/dkim_libfeature.html
 
 dist-hook:
+	[ -f  $(distdir)/libopendkim/dkim.h ] && rm -f  $(distdir)/libopendkim/dkim.h
 	sed -e '/^#define[ \t]*OPENDKIM_LIB_VERSION/s/0x[0-9]*/0x@HEX_VERSION@/' < $(srcdir)/libopendkim/dkim.h > $(distdir)/libopendkim/dkim.h
 	echo "looking to see if @VERSION@ is in the RELEASE_NOTES"
 	fgrep @VERSION@ $(srcdir)/RELEASE_NOTES
