@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.13.8.3 2009/11/13 09:52:33 grooverdan Exp $
+# $Id: Makefile.am,v 1.13.8.4 2009/11/14 08:42:39 grooverdan Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -115,9 +115,10 @@ EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
 	libopendkim/docs/dkim_libfeature.html
 
 dist-hook:
-	sed -i -e '/^#define[ \t]*OPENDKIM_LIB_VERSION/s/0x[0-9]*/0x@HEX_VERSION@/' libopendkim/dkim.h
-	fgrep @VERSION@ RELEASE_NOTES
-	sed -i -e 's|\(@VERSION@[ \t]*\)[0-9?]\{4\}\(/[0-9?]\{2\}\)\{2\}|\1'`date +%Y/%m/%d`'|' RELEASE_NOTES
+	sed -e '/^#define[ \t]*OPENDKIM_LIB_VERSION/s/0x[0-9]*/0x@HEX_VERSION@/' < $(srcdir)/libopendkim/dkim.h > $(distdir)/libopendkim/dkim.h
+	echo "looking to see if @VERSION@ is in the RELEASE_NOTES"
+	fgrep @VERSION@ $(srcdir)/RELEASE_NOTES
+	sed -e 's|\(@VERSION@[ \t]*\)[0-9?]\{4\}\(/[0-9?]\{2\}\)\{2\}|\1'`date +%Y/%m/%d`'|' < $(srcdir)/RELEASE_NOTES > $(distdir)/RELEASE_NOTES
 
 push:
 	@echo "Are you sure you want to tag and release $(distdir).tar.gz? (y/n)"
