@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.29 2009/11/13 20:16:45 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.30 2009/11/15 23:45:34 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -2245,21 +2245,25 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 }
 
 /*
-**  DKIM_GETSENDER -- determine sender (actually just multi-search)
+**  DKIM_GETSENDER -- determine sender and store it in the handle
 **
 **  Parameters:
 **  	dkim -- DKIM handle
 **  	hdrs -- list of header names to find
 **
 **  Return value:
-**  	Pointer to the first such header found, or NULL if none.
+**  	A DKIM_STAT_* constant.
 */
 
-static struct dkim_header *
+static DKIM_STAT
 dkim_getsender(DKIM *dkim, u_char **hdrs)
 {
 	int c;
 	size_t hlen;
+	DKIM_STAT status;
+	unsigned char *domain;
+	unsigned char *user;
+	struct dkim_header *sender = NULL;
 	struct dkim_header *cur;
 
 	assert(dkim != NULL);
@@ -2273,11 +2277,51 @@ dkim_getsender(DKIM *dkim, u_char **hdrs)
 		{
 			if (hlen == cur->hdr_namelen &&
 			    strncasecmp(hdrs[c], cur->hdr_text, hlen) == 0)
-				return cur;
+			{
+				sender = cur;
+				break;
+			}
 		}
 	}
 
-	return NULL;
+	if (sender == NULL)
+	{
+		dkim_error(dkim, "no sender headers detected");
+		return DKIM_STAT_SYNTAX;
+	}
+	dkim->dkim_senderhdr = sender;
+
+	if (sender->hdr_colon == NULL)
+	{
+		dkim_error(dkim, "syntax error in headers");
+		return DKIM_STAT_SYNTAX;
+	}
+
+	dkim->dkim_sender = dkim_strdup(dkim, sender->hdr_colon + 1, 0);
+	if (dkim->dkim_sender == NULL)
+		return DKIM_STAT_NORESOURCE;
+
+	status = dkim_mail_parse(dkim->dkim_sender, (char **) &user,
+	                         (char **) &domain);
+	if (status != 0 || domain == NULL || user == NULL ||
+	    domain[0] == '\0' || user[0] == '\0')
+	{
+		dkim_error(dkim, "can't determine sender address");
+		return DKIM_STAT_SYNTAX;
+	}
+
+	if (dkim->dkim_domain == NULL)
+	{
+		dkim->dkim_domain = dkim_strdup(dkim, domain, 0);
+		if (dkim->dkim_domain == NULL)
+			return DKIM_STAT_NORESOURCE;
+	}
+
+	dkim->dkim_user = dkim_strdup(dkim, user, 0);
+	if (dkim->dkim_user == NULL)
+		return DKIM_STAT_NORESOURCE;
+
+	return DKIM_STAT_OK;
 }
 
 /*
@@ -2894,7 +2938,6 @@ dkim_eoh_verify(DKIM *dkim)
 	_Bool bsh;
 	DKIM_STAT status;
 	int c;
-	struct dkim_header *sender;
 	char *user;
 	char *domain;
 	DKIM_LIB *lib;
@@ -2915,45 +2958,12 @@ dkim_eoh_verify(DKIM *dkim)
 	keep = ((lib->dkiml_flags & DKIM_LIBFLAGS_KEEPFILES) != 0);
 
 	/* populate some stuff like dkim_sender, dkim_domain, dkim_user */
-	sender = dkim_getsender(dkim, dkim->dkim_libhandle->dkiml_senderhdrs);
-	if (sender == NULL)
+	status = dkim_getsender(dkim, dkim->dkim_libhandle->dkiml_senderhdrs);
+	if (status != DKIM_STAT_OK && !bsh)
 	{
-		dkim_error(dkim, "no sender headers detected");
 		dkim->dkim_state = DKIM_STATE_UNUSABLE;
-		return DKIM_STAT_SYNTAX;
+		return status;
 	}
-	dkim->dkim_senderhdr = sender;
-
-	if (sender->hdr_colon == NULL)
-	{
-		dkim_error(dkim, "syntax error in headers");
-		return DKIM_STAT_SYNTAX;
-	}
-
-	dkim->dkim_sender = dkim_strdup(dkim, sender->hdr_colon + 1, 0);
-	if (dkim->dkim_sender == NULL)
-		return DKIM_STAT_NORESOURCE;
-
-	status = dkim_mail_parse(dkim->dkim_sender, (char **) &user,
-	                         (char **) &domain);
-	if (status != 0 || domain == NULL || user == NULL ||
-	    domain[0] == '\0' || user[0] == '\0')
-	{
-		dkim_error(dkim, "can't determine sender address");
-		dkim->dkim_state = DKIM_STATE_UNUSABLE;
-		return DKIM_STAT_SYNTAX;
-	}
-
-	if (dkim->dkim_domain == NULL)
-	{
-		dkim->dkim_domain = dkim_strdup(dkim, domain, 0);
-		if (dkim->dkim_domain == NULL)
-			return DKIM_STAT_NORESOURCE;
-	}
-
-	dkim->dkim_user = dkim_strdup(dkim, user, 0);
-	if (dkim->dkim_user == NULL)
-		return DKIM_STAT_NORESOURCE;
 
 	/* allocate the siginfo array if not already done */
 	if (dkim->dkim_siglist == NULL)
@@ -5435,7 +5445,7 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 
 	assert(dkim != NULL);
 
-	bso = ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_CHUNKBADSIGS) != 0);
+	bso = ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_BADSIGHANDLES) != 0);
 
 	/* verify chunking state */
 	if (dkim->dkim_chunkstate >= DKIM_CHUNKSTATE_DONE)
@@ -7164,6 +7174,7 @@ dkim_getcachestats(u_int *queries, u_int *hits, u_int *expired)
 **  	DKIM_STAT_CANTVRFY -- data retrieval error of some kind
 **  	DKIM_STAT_INTERNAL -- internal error of some kind
 **  	DKIM_STAT_NOTIMPLEMENT -- not implemented
+**  	DKIM_STAT_INVALID -- domain could not be determined
 */
 
 DKIM_STAT
@@ -7177,6 +7188,9 @@ dkim_get_reputation(DKIM *dkim, DKIM_SIGINFO *sig, char *qroot, int *rep)
 	assert(sig != NULL);
 	assert(qroot != NULL);
 	assert(rep != NULL);
+
+	if (dkim->dkim_domain == NULL)
+		return DKIM_STAT_INVALID;
 
 	status = dkim_reputation(dkim, dkim->dkim_user, dkim->dkim_domain,
 	                         dkim_sig_getdomain(sig), qroot, &lrep);

@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test58_c_id[] = "@(#)$Id: t-test58.c,v 1.3 2009/07/23 17:40:24 cm-msk Exp $";
+static char t_test58_c_id[] = "@(#)$Id: t-test58.c,v 1.4 2009/11/15 23:45:34 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -15,12 +15,13 @@ static char t_test58_c_id[] = "@(#)$Id: t-test58.c,v 1.3 2009/07/23 17:40:24 cm-
 #include <string.h>
 #include <stdio.h>
 
-
 /* libopendkim includes */
 #include "dkim.h"
 #include "t-testdata.h"
 
 #define	MAXHEADER	4096
+
+#define BADHEADER05	"From: msk-at-opendkim.org"
 
 /*
 **  MAIN -- program mainline
@@ -43,7 +44,7 @@ main(int argc, char **argv)
 	DKIM_LIB *lib;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 
-	printf("*** verifying unsigned message\n");
+	printf("*** verifying malformed message\n");
 
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
@@ -76,7 +77,7 @@ main(int argc, char **argv)
 	status = dkim_header(dkim, HEADER04, strlen(HEADER04));
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_header(dkim, HEADER05, strlen(HEADER05));
+	status = dkim_header(dkim, BADHEADER05, strlen(BADHEADER05));
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER06, strlen(HEADER06));
@@ -92,7 +93,7 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_eoh(dkim);
-	assert(status == DKIM_STAT_NOSIG);
+	assert(status == DKIM_STAT_SYNTAX);
 
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);
