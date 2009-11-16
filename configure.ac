@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.12 2009/11/16 10:16:55 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.13 2009/11/16 10:31:43 grooverdan Exp $
 
 AC_PREREQ(2.62)
 
@@ -35,9 +35,7 @@ ACX_PTHREAD
 AC_SEARCH_LIBS(inet_addr, nsl)
 AC_SEARCH_LIBS(socket, socket)
 
-
-AC_MSG_CHECKING([whether the resolver works without -lresolv])
-AC_LINK_IFELSE([
+dnscheck='
 #include "confdefs.h" 
 #include <netinet/in.h>
 #include <arpa/nameser.h>
@@ -48,7 +46,10 @@ dn_expand (0, 0, 0, 0, 0);
 dn_skipname (0, 0);
 dn_comp (0, 0, 0, 0, 0);
 return 0;
-} 
+}'
+AC_MSG_CHECKING([whether the resolver works without -lresolv])
+AC_LINK_IFELSE([
+$dnscheck
 ] , [
 	AC_MSG_RESULT(yes)
 	LIBRESOLV=
@@ -58,17 +59,7 @@ return 0;
 	saved_LIBS="$LIBS"
 	LIBS=-lresolv
 	AC_LINK_IFELSE([
-#include "confdefs.h" 
-#include <netinet/in.h>
-#include <arpa/nameser.h>
-#include <resolv.h> 
-int main() {
-res_mkquery (0, 0, 0, 0, 0, 0, 0, 0, 0);
-dn_expand (0, 0, 0, 0, 0);
-dn_skipname (0, 0);
-dn_comp (0, 0, 0, 0, 0);
-return 0;
-} 
+$dnscheck
 	] , [
 		AC_MSG_RESULT(yes)
 		LIBRESOLV=-lresolv
