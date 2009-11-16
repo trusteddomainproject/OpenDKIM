@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.12.4.1 2009/11/01 22:25:22 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.12.4.2 2009/11/16 07:55:41 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -942,7 +942,6 @@ dkim_add_canon(DKIM *dkim, _Bool hdr, dkim_canon_t canon, int hashtype,
 **
 **  Parameters:
 **  	dkim -- DKIM handle
-**  	signing -- TRUE iff we're signing
 **
 **  Return value:
 **  	A DKIM_STAT_* constant.
@@ -954,8 +953,9 @@ dkim_add_canon(DKIM *dkim, _Bool hdr, dkim_canon_t canon, int hashtype,
 */
 
 DKIM_STAT
-dkim_canon_runheaders(DKIM *dkim, _Bool signing)
+dkim_canon_runheaders(DKIM *dkim)
 {
+	_Bool signing;
 	u_char savechar;
 	int c;
 	int n;

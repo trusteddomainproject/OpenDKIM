@@ -9,7 +9,7 @@
 #define _DKIM_CANON_H_
 
 #ifndef lint
-static char dkim_canon_h_id[] = "@(#)$Id: dkim-canon.h,v 1.4 2009/07/23 17:40:23 cm-msk Exp $";
+static char dkim_canon_h_id[] = "@(#)$Id: dkim-canon.h,v 1.4.4.1 2009/11/16 07:55:41 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -31,7 +31,7 @@ extern DKIM_STAT dkim_canon_closebody __P((DKIM *));
 extern DKIM_STAT dkim_canon_getfinal __P((DKIM_CANON *, u_char **, size_t *));
 extern DKIM_STAT dkim_canon_init __P((DKIM *, _Bool, _Bool));
 extern u_long dkim_canon_minbody __P((DKIM *));
-extern DKIM_STAT dkim_canon_runheaders __P((DKIM *, _Bool));
+extern DKIM_STAT dkim_canon_runheaders __P((DKIM *));
 extern DKIM_STAT dkim_canon_signature __P((DKIM *, struct dkim_header *));
 
 #endif /* ! _DKIM_CANON_H_ */
