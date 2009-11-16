@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.11 2009/11/14 13:03:47 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.12 2009/11/16 10:16:55 grooverdan Exp $
 
 AC_PREREQ(2.62)
 
@@ -10,6 +10,7 @@ m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PATCH], 0)
 
 AC_INIT([OpenDKIM], [VERSION_RELEASE.VERSION_MAJOR_REV.VERSION_MINOR_REV], [bugs@opendkim.org])
+AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([libar/ar.c])
 AC_CONFIG_HEADERS([build-config.h])
