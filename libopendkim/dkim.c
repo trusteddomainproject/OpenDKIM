@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.9 2009/11/16 18:23:15 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.10 2009/11/16 18:41:55 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -2780,7 +2780,6 @@ dkim_eoh_sign(DKIM *dkim)
 	_Bool tmp;
 	u_char *hn = NULL;
 	DKIM_STAT status;
-	int c;
 	int hashtype = DKIM_HASHTYPE_UNKNOWN;
 	DKIM_CANON *bc;
 	DKIM_CANON *hc;
@@ -4543,16 +4542,12 @@ DKIM_STAT
 dkim_resign(DKIM *new, DKIM *old, bool hdrbind)
 {
 #ifdef _FFR_RESIGN
-	_Bool found;
 	_Bool keep;
 	_Bool tmp;
 	DKIM_STAT status;
-	int c;
 	int hashtype = DKIM_HASHTYPE_UNKNOWN;
-	size_t len = 0;
 	DKIM_CANON *bc;
 	DKIM_CANON *hc;
-	struct dkim_header *hdr;
 	DKIM_LIB *lib;
 
 	assert(new != NULL);
@@ -6932,7 +6927,9 @@ dkim_set_dns_callback(DKIM_LIB *libopendkim, void (*func)(const void *context),
 DKIM_STAT
 dkim_set_trust_anchor(DKIM_LIB *libopendkim, char *tafile)
 {
+#ifdef USE_UNBOUND
 	int status;
+#endif /* USE_UNBOUND */
 
 	assert(libopendkim != NULL);
 	assert(tafile != NULL);
@@ -7349,7 +7346,9 @@ dkim_ssl_version(void)
 int
 dkim_flush_cache(DKIM_LIB *lib)
 {
+#ifdef QUERY_CACHE
 	int err;
+#endif /* QUERY_CACHE */
 
 	assert(lib != NULL);
 
