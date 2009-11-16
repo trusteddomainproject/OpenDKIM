@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.8 2009/11/16 07:56:08 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.9 2009/11/16 18:23:15 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -820,6 +820,50 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 	}
 
 	return DKIM_STAT_OK;
+}
+
+/*
+**  DKIM_CHECK_REQUIREDHDRS -- see if all requried headers are present
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**
+**  Return value:
+**  	Pointer to the name of a header that's absent, or NULL if all
+**  	are present.
+*/
+
+static const unsigned char *
+dkim_check_requiredhdrs(DKIM *dkim)
+{
+	_Bool found;
+	int c;
+	size_t len;
+	struct dkim_header *hdr;
+
+	assert(dkim != NULL);
+
+	for (c = 0; required_signhdrs[c] != NULL; c++)
+	{
+		found = FALSE;
+		len = strlen(required_signhdrs[c]);
+
+		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
+		{
+			if (hdr->hdr_namelen == len &&
+			    strncasecmp(hdr->hdr_text, required_signhdrs[c],
+			                len) == 0)
+			{
+				found = TRUE;
+				break;
+			}
+		}
+
+		if (!found)
+			return required_signhdrs[c];
+	}
+
+	return NULL;
 }
 
 /*
@@ -2732,16 +2776,14 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig)
 static DKIM_STAT
 dkim_eoh_sign(DKIM *dkim)
 {
-	_Bool found;
 	_Bool keep;
 	_Bool tmp;
+	u_char *hn = NULL;
 	DKIM_STAT status;
 	int c;
 	int hashtype = DKIM_HASHTYPE_UNKNOWN;
-	size_t len = 0;
 	DKIM_CANON *bc;
 	DKIM_CANON *hc;
-	struct dkim_header *hdr;
 	DKIM_LIB *lib;
 
 	assert(dkim != NULL);
@@ -2769,29 +2811,12 @@ dkim_eoh_sign(DKIM *dkim)
 	**  marked for signing.
 	*/
 
-	for (c = 0; required_signhdrs[c] != NULL; c++)
+	hn = (u_char *) dkim_check_requiredhdrs(dkim);
+	if (hn != NULL)
 	{
-		found = FALSE;
-		len = strlen(required_signhdrs[c]);
-
-		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
-		{
-			if (hdr->hdr_namelen == len &&
-			    strncasecmp(hdr->hdr_text, required_signhdrs[c],
-			                len) == 0)
-			{
-				found = TRUE;
-				break;
-			}
-		}
-
-		if (!found)
-		{
-			dkim_error(dkim, "required header \"%s\" not found",
-			           required_signhdrs[c]);
-			dkim->dkim_state = DKIM_STATE_UNUSABLE;
-			return DKIM_STAT_SYNTAX;
-		}
+		dkim_error(dkim, "required header \"%s\" not found", hn);
+		dkim->dkim_state = DKIM_STATE_UNUSABLE;
+		return DKIM_STAT_SYNTAX;
 	}
 
 	/* determine hash type */
@@ -3167,41 +3192,18 @@ dkim_eom_sign(DKIM *dkim)
 
 	if (dkim->dkim_resign != NULL)
 	{
-		bool found;
-		int c;
-		size_t len;
-		struct dkim_header *hdr;
+		char *hn;
 
 		if (dkim->dkim_hdrbind)
 			dkim->dkim_hhead = dkim->dkim_resign->dkim_hhead;
 
-		for (c = 0; required_signhdrs[c] != NULL; c++)
+		hn = (u_char *) dkim_check_requiredhdrs(dkim);
+		if (hn != NULL)
 		{
-			found = FALSE;
-			len = strlen(required_signhdrs[c]);
-
-			for (hdr = dkim->dkim_hhead;
-			     hdr != NULL;
-			     hdr = hdr->hdr_next)
-			{
-				if (hdr->hdr_namelen == len &&
-				    strncasecmp(hdr->hdr_text,
-				                required_signhdrs[c],
-				                len) == 0)
-				{
-					found = TRUE;
-					break;
-				}
-			}
-
-			if (!found)
-			{
-				dkim_error(dkim,
-				           "required header \"%s\" not found",
-				           required_signhdrs[c]);
-				dkim->dkim_state = DKIM_STATE_UNUSABLE;
-				return DKIM_STAT_SYNTAX;
-			}
+			dkim_error(dkim, "required header \"%s\" not found",
+			           hn);
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
 		}
 	}
 #endif /* _FFR_RESIGN */
