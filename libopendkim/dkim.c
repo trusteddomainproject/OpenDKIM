@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.7 2009/11/10 05:29:08 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.24.4.8 2009/11/16 07:56:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -2875,7 +2875,7 @@ dkim_eoh_sign(DKIM *dkim)
 		return status;
 
 	/* run the headers */
-	status = dkim_canon_runheaders(dkim, TRUE);
+	status = dkim_canon_runheaders(dkim);
 	if (status != DKIM_STAT_OK)
 		return status;
 
@@ -3031,7 +3031,7 @@ dkim_eoh_verify(DKIM *dkim)
 	}
 
 	/* run the headers */
-	status = dkim_canon_runheaders(dkim, FALSE);
+	status = dkim_canon_runheaders(dkim);
 	if (status != DKIM_STAT_OK)
 		return status;
 
@@ -4525,6 +4525,8 @@ dkim_verify(DKIM_LIB *libhandle, const char *id, void *memclosure,
 **  Parameters:
 **  	new -- new signing handle
 **  	old -- old signing/verifying handle
+**  	hdrbind -- bind "new"'s header canonicalization to "old" as well
+**  	           as the body
 **
 **  Return value:
 **  	DKIM_STAT_OK -- success
@@ -4532,13 +4534,7 @@ dkim_verify(DKIM_LIB *libhandle, const char *id, void *memclosure,
 **
 **  Side effects:
 **  	Sets up flags such that the two are bound; dkim_free() on "old"
-**  	now does nothing, and dkim_free() on "new" will free "old" once
-**  	its reference count reaches zero.
-**
-**  XXX -- need a way to flag that the signing handle may contain additional
-**  headers, such as Authentication-Results:, so that an independent header
-**  canonicalization will get set up and dkim_header() won't be prevented
-**  (though dkim_eoh() will need to be called then)
+**  	is now an invalid operation until "new" has been free'd.
 */
 
 DKIM_STAT
