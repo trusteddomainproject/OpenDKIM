@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.7 2009/11/13 23:10:02 grooverdan Exp $
+$Id: BRANCHES,v 1.8 2009/11/17 20:12:58 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -18,18 +18,17 @@ Experimental Branches (branch name contains owner)
 br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
 
-br-msk-resign	_FFR_RESIGN (binding of handles for message resigning)
-
-br-dblack-codecoverage	Generate code coverage testing from lcov
+br-dblack-codecoverage
+		Generate code coverage testing from lcov
 		(http://ltp.sourceforge.net/coverage/lcov.php)
 
-br-dblack-autoimprovements consisting of:
+br-dblack-autoimprovements
 		m4 subdirectory for macros
 		pkg-config detection
 		pkg-conf delivery of .pc files for our libraries
 		full FEATURE and FFR_FEATURE macros in configure.ac
-		man page generation for opendkim (include doco for FFR bits and tag 
-		experimental in man pages if enabled)
+		man page generation for opendkim (include doco for FFR bits
+			and tag experimental in man pages if enabled)
 
 
 Closed Branches
@@ -37,6 +36,8 @@ Closed Branches
 
 br-msk-reduce-symbols
 		Build automation to limit exported library symbols 
+
+br-msk-resign	_FFR_RESIGN (binding of handles for message resigning)
 
 br-msk-yahoo-fixes
 		Bug fixes and feature requests for Yahoo!
