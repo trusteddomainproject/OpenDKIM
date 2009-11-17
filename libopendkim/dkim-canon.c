@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.14 2009/11/13 20:16:45 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.15 2009/11/17 20:09:21 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -823,12 +823,23 @@ dkim_canon_cleanup(DKIM *dkim)
 
 	assert(dkim != NULL);
 
+#ifdef _FFR_RESIGN
+	if (dkim->dkim_resign != NULL && dkim->dkim_hdrbind)
+		return;
+#endif /* _FFR_RESIGN */
+
 	cur = dkim->dkim_canonhead;
 	while (cur != NULL)
 	{
 		next = cur->canon_next;
 
+#ifdef _FFR_RESIGN
+		/* skip if resigning and body */
+		if (dkim->dkim_resign == NULL || cur->canon_hdr)
+			dkim_canon_free(dkim, cur);
+#else /* _FFR_RESIGN */
 		dkim_canon_free(dkim, cur);
+#endif /* _FFR_RESIGN */
 
 		cur = next;
 	}
@@ -845,7 +856,7 @@ dkim_canon_cleanup(DKIM *dkim)
 **  	canon -- canonicalization mode
 **  	hashtype -- hash type
 **  	hdrlist -- for header canonicalization, the header list
-**  	hdr -- pointer to header being verified (NULL for signing)
+**  	sighdr -- pointer to header being verified (NULL for signing)
 **  	length -- for body canonicalization, the length limit (-1 == all)
 **  	cout -- DKIM_CANON handle (returned)
 **
@@ -949,7 +960,6 @@ dkim_add_canon(DKIM *dkim, _Bool hdr, dkim_canon_t canon, int hashtype,
 **
 **  Parameters:
 **  	dkim -- DKIM handle
-**  	signing -- TRUE iff we're signing
 **
 **  Return value:
 **  	A DKIM_STAT_* constant.
@@ -961,8 +971,9 @@ dkim_add_canon(DKIM *dkim, _Bool hdr, dkim_canon_t canon, int hashtype,
 */
 
 DKIM_STAT
-dkim_canon_runheaders(DKIM *dkim, _Bool signing)
+dkim_canon_runheaders(DKIM *dkim)
 {
+	_Bool signing;
 	u_char savechar;
 	int c;
 	int n;
@@ -1008,6 +1019,8 @@ dkim_canon_runheaders(DKIM *dkim, _Bool signing)
 		/* skip done hashes and those which are of the wrong type */
 		if (cur->canon_done || !cur->canon_hdr)
 			continue;
+
+		signing = (cur->canon_sigheader == NULL);
 
 		/* clear header selection flags if verifying */
 		if (!signing)
@@ -1138,7 +1151,7 @@ dkim_canon_runheaders(DKIM *dkim, _Bool signing)
 		}
 
 		/* if signing, we can't do the rest of this yet */
-		if (signing)
+		if (cur->canon_sigheader == NULL)
 			continue;
 
 		/*

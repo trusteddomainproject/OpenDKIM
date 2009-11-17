@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.30 2009/11/15 23:45:34 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.31 2009/11/17 20:09:21 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -820,6 +820,50 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 	}
 
 	return DKIM_STAT_OK;
+}
+
+/*
+**  DKIM_CHECK_REQUIREDHDRS -- see if all requried headers are present
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**
+**  Return value:
+**  	Pointer to the name of a header that's absent, or NULL if all
+**  	are present.
+*/
+
+static const unsigned char *
+dkim_check_requiredhdrs(DKIM *dkim)
+{
+	_Bool found;
+	int c;
+	size_t len;
+	struct dkim_header *hdr;
+
+	assert(dkim != NULL);
+
+	for (c = 0; required_signhdrs[c] != NULL; c++)
+	{
+		found = FALSE;
+		len = strlen(required_signhdrs[c]);
+
+		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
+		{
+			if (hdr->hdr_namelen == len &&
+			    strncasecmp(hdr->hdr_text, required_signhdrs[c],
+			                len) == 0)
+			{
+				found = TRUE;
+				break;
+			}
+		}
+
+		if (!found)
+			return required_signhdrs[c];
+	}
+
+	return NULL;
 }
 
 /*
@@ -2782,19 +2826,21 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig)
 static DKIM_STAT
 dkim_eoh_sign(DKIM *dkim)
 {
-	_Bool found;
 	_Bool keep;
 	_Bool tmp;
+	u_char *hn = NULL;
 	DKIM_STAT status;
-	int c;
 	int hashtype = DKIM_HASHTYPE_UNKNOWN;
-	size_t len = 0;
 	DKIM_CANON *bc;
 	DKIM_CANON *hc;
-	struct dkim_header *hdr;
 	DKIM_LIB *lib;
 
 	assert(dkim != NULL);
+
+#ifdef _FFR_RESIGN
+	if (dkim->dkim_hdrbind)
+		return DKIM_STAT_INVALID;
+#endif /* _FFR_RESIGN */
 
 	if (dkim->dkim_state >= DKIM_STATE_EOH2)
 		return DKIM_STAT_INVALID;
@@ -2814,29 +2860,12 @@ dkim_eoh_sign(DKIM *dkim)
 	**  marked for signing.
 	*/
 
-	for (c = 0; required_signhdrs[c] != NULL; c++)
+	hn = (u_char *) dkim_check_requiredhdrs(dkim);
+	if (hn != NULL)
 	{
-		found = FALSE;
-		len = strlen(required_signhdrs[c]);
-
-		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
-		{
-			if (hdr->hdr_namelen == len &&
-			    strncasecmp(hdr->hdr_text, required_signhdrs[c],
-			                len) == 0)
-			{
-				found = TRUE;
-				break;
-			}
-		}
-
-		if (!found)
-		{
-			dkim_error(dkim, "required header \"%s\" not found",
-			           required_signhdrs[c]);
-			dkim->dkim_state = DKIM_STATE_UNUSABLE;
-			return DKIM_STAT_SYNTAX;
-		}
+		dkim_error(dkim, "required header \"%s\" not found", hn);
+		dkim->dkim_state = DKIM_STATE_UNUSABLE;
+		return DKIM_STAT_SYNTAX;
 	}
 
 	/* determine hash type */
@@ -2855,57 +2884,62 @@ dkim_eoh_sign(DKIM *dkim)
 		/* NOTREACHED */
 	}
 
-	/* initialize signature and canonicalization for signing */
-	dkim->dkim_siglist = DKIM_MALLOC(dkim, sizeof(DKIM_SIGINFO *));
 	if (dkim->dkim_siglist == NULL)
 	{
-		dkim_error(dkim, "failed to allocate %d byte(s)",
-		           sizeof(DKIM_SIGINFO *));
-		return DKIM_STAT_NORESOURCE;
+		/* initialize signature and canonicalization for signing */
+		dkim->dkim_siglist = DKIM_MALLOC(dkim, sizeof(DKIM_SIGINFO **));
+		if (dkim->dkim_siglist == NULL)
+		{
+			dkim_error(dkim, "failed to allocate %d byte(s)",
+			           sizeof(DKIM_SIGINFO *));
+			return DKIM_STAT_NORESOURCE;
+		}
+
+		dkim->dkim_siglist[0] = DKIM_MALLOC(dkim,
+		                                    sizeof(struct dkim_siginfo));
+		if (dkim->dkim_siglist[0] == NULL)
+		{
+			dkim_error(dkim, "failed to allocate %d byte(s)",
+			           sizeof(struct dkim_siginfo));
+			return DKIM_STAT_NORESOURCE;
+		}
+		dkim->dkim_sigcount = 1;
+		memset(dkim->dkim_siglist[0], '\0',
+		       sizeof(struct dkim_siginfo));
+		dkim->dkim_siglist[0]->sig_domain = dkim->dkim_domain;
+		dkim->dkim_siglist[0]->sig_selector = dkim->dkim_selector;
+		dkim->dkim_siglist[0]->sig_hashtype = hashtype;
+		dkim->dkim_siglist[0]->sig_signalg = dkim->dkim_signalg;
+
+		status = dkim_add_canon(dkim, TRUE, dkim->dkim_hdrcanonalg,
+		                        hashtype, NULL, NULL, 0, &hc);
+		if (status != DKIM_STAT_OK)
+			return status;
+
+		status = dkim_add_canon(dkim, FALSE, dkim->dkim_bodycanonalg,
+		                        hashtype, NULL, NULL,
+		                        dkim->dkim_signlen, &bc);
+		if (status != DKIM_STAT_OK)
+			return status;
+
+		dkim->dkim_siglist[0]->sig_hdrcanon = hc;
+		dkim->dkim_siglist[0]->sig_hdrcanonalg = dkim->dkim_hdrcanonalg;
+		dkim->dkim_siglist[0]->sig_bodycanon = bc;
+		dkim->dkim_siglist[0]->sig_bodycanonalg = dkim->dkim_bodycanonalg;
+
+		if (dkim->dkim_libhandle->dkiml_fixedtime != 0)
+		{
+			dkim->dkim_siglist[0]->sig_timestamp = dkim->dkim_libhandle->dkiml_fixedtime;
+		}
+		else
+		{
+			time_t now;
+
+			(void) time(&now);
+
+			dkim->dkim_siglist[0]->sig_timestamp = (unsigned long long) now;
+		}
 	}
-
-	dkim->dkim_siglist[0] = DKIM_MALLOC(dkim, sizeof(struct dkim_siginfo));
-	if (dkim->dkim_siglist[0] == NULL)
-	{
-		dkim_error(dkim, "failed to allocate %d byte(s)",
-		           sizeof(struct dkim_siginfo));
-		return DKIM_STAT_NORESOURCE;
-	}
-	dkim->dkim_sigcount = 1;
-	memset(dkim->dkim_siglist[0], '\0', sizeof(struct dkim_siginfo));
-	dkim->dkim_siglist[0]->sig_domain = dkim->dkim_domain;
-	dkim->dkim_siglist[0]->sig_selector = dkim->dkim_selector;
-	dkim->dkim_siglist[0]->sig_hashtype = hashtype;
-	dkim->dkim_siglist[0]->sig_signalg = dkim->dkim_signalg;
-
-	status = dkim_add_canon(dkim, TRUE, dkim->dkim_hdrcanonalg,
-	                        hashtype, NULL, NULL, 0, &hc);
-	if (status != DKIM_STAT_OK)
-		return status;
-
-	status = dkim_add_canon(dkim, FALSE, dkim->dkim_bodycanonalg,
-	                        hashtype, NULL, NULL, dkim->dkim_signlen, &bc);
-	if (status != DKIM_STAT_OK)
-		return status;
-
-	dkim->dkim_siglist[0]->sig_hdrcanon = hc;
-	dkim->dkim_siglist[0]->sig_hdrcanonalg = dkim->dkim_hdrcanonalg;
-	dkim->dkim_siglist[0]->sig_bodycanon = bc;
-	dkim->dkim_siglist[0]->sig_bodycanonalg = dkim->dkim_bodycanonalg;
-
-	if (dkim->dkim_libhandle->dkiml_fixedtime != 0)
-	{
-		dkim->dkim_siglist[0]->sig_timestamp = dkim->dkim_libhandle->dkiml_fixedtime;
-	}
-	else
-	{
-		time_t now;
-
-		(void) time(&now);
-
-		dkim->dkim_siglist[0]->sig_timestamp = (unsigned long long) now;
-	}
-
 
 	/* initialize all canonicalizations */
 	status = dkim_canon_init(dkim, tmp, keep);
@@ -2913,7 +2947,7 @@ dkim_eoh_sign(DKIM *dkim)
 		return status;
 
 	/* run the headers */
-	status = dkim_canon_runheaders(dkim, TRUE);
+	status = dkim_canon_runheaders(dkim);
 	if (status != DKIM_STAT_OK)
 		return status;
 
@@ -3036,7 +3070,7 @@ dkim_eoh_verify(DKIM *dkim)
 	}
 
 	/* run the headers */
-	status = dkim_canon_runheaders(dkim, FALSE);
+	status = dkim_canon_runheaders(dkim);
 	if (status != DKIM_STAT_OK)
 		return status;
 
@@ -3130,15 +3164,63 @@ dkim_eom_sign(DKIM *dkim)
 
 	assert(dkim != NULL);
 
+#ifdef _FFR_RESIGN
+	if (dkim->dkim_resign != NULL)
+	{
+		if (dkim->dkim_hdrbind)
+		{
+			if (dkim->dkim_state != DKIM_STATE_INIT ||
+			    dkim->dkim_resign->dkim_state != DKIM_STATE_EOM2)
+				return DKIM_STAT_INVALID;
+		}
+		else
+		{
+			if (dkim->dkim_state < DKIM_STATE_EOH1 ||
+			    dkim->dkim_resign->dkim_state != DKIM_STATE_EOM2)
+				return DKIM_STAT_INVALID;
+		}
+	}
+	else if (dkim->dkim_state >= DKIM_STATE_EOM2 ||
+	         dkim->dkim_state < DKIM_STATE_EOH1)
+	{
+  		return DKIM_STAT_INVALID;
+	}
+#else /* _FFR_RESIGN */
 	if (dkim->dkim_state >= DKIM_STATE_EOM2 ||
 	    dkim->dkim_state < DKIM_STATE_EOH1)
 		return DKIM_STAT_INVALID;
-	if (dkim->dkim_state < DKIM_STATE_EOM2)
-		dkim->dkim_state = DKIM_STATE_EOM2;
+#endif /* _FFR_RESIGN */
+
+  	if (dkim->dkim_state < DKIM_STATE_EOM2)
+  		dkim->dkim_state = DKIM_STATE_EOM2;
 
 	if (dkim->dkim_chunkstate != DKIM_CHUNKSTATE_INIT &&
 	    dkim->dkim_chunkstate != DKIM_CHUNKSTATE_DONE)
 		return DKIM_STAT_INVALID;
+
+#ifdef _FFR_RESIGN
+	/*
+	**  Verify that all the required headers are present and
+	**  marked for signing.
+	*/
+
+	if (dkim->dkim_resign != NULL)
+	{
+		char *hn;
+
+		if (dkim->dkim_hdrbind)
+			dkim->dkim_hhead = dkim->dkim_resign->dkim_hhead;
+
+		hn = (u_char *) dkim_check_requiredhdrs(dkim);
+		if (hn != NULL)
+		{
+			dkim_error(dkim, "required header \"%s\" not found",
+			           hn);
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
+		}
+	}
+#endif /* _FFR_RESIGN */
 
 	/* finalize body canonicalizations */
 	(void) dkim_canon_closebody(dkim);
@@ -3254,6 +3336,10 @@ dkim_eom_sign(DKIM *dkim)
 	hdr.hdr_next = NULL;
 
 	/* canonicalize */
+#ifdef _FFR_RESIGN
+	if (dkim->dkim_resign != NULL && dkim->dkim_hdrbind)
+		dkim->dkim_canonhead = dkim->dkim_resign->dkim_canonhead;
+#endif /* _FFR_RESIGN */
 	dkim_canon_signature(dkim, &hdr);
 
 	/* finalize */
@@ -3739,6 +3825,9 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	FEATURE_ADD(libhandle, DKIM_FEATURE_ASYNC_DNS);
 	FEATURE_ADD(libhandle, DKIM_FEATURE_DNSSEC);
 #endif /* USE_UNBOUND */
+#ifdef _FFR_RESIGN
+	FEATURE_ADD(libhandle, DKIM_FEATURE_RESIGN);
+#endif /* _FFR_RESIGN */
 
 #ifdef USE_UNBOUND
 	/* initialize the unbound resolver */
@@ -4217,8 +4306,27 @@ dkim_free(DKIM *dkim)
 {
 	assert(dkim != NULL);
 
+#ifdef _FFR_RESIGN
+	/* XXX -- this should be mutex-protected */
+	if (dkim->dkim_resign != NULL)
+	{
+		if (dkim->dkim_resign->dkim_refcnt == 0)
+			dkim_free(dkim->dkim_resign);
+		else
+			dkim->dkim_resign->dkim_refcnt--;
+	}
+	else if (dkim->dkim_refcnt != 0)
+	{
+		return DKIM_STAT_INVALID;
+	}
+#endif /* _FFR_RESIGN */
+
 	/* blast the headers */
+#ifdef _FFR_RESIGN
+	if (dkim->dkim_resign == NULL && dkim->dkim_hhead != NULL)
+#else /* _FFR_RESIGN */
 	if (dkim->dkim_hhead != NULL)
+#endif /* _FFR_RESIGN */
 	{
 		struct dkim_header *next;
 		struct dkim_header *hdr;
@@ -4235,7 +4343,11 @@ dkim_free(DKIM *dkim)
 	}
 
 	/* blast the data sets */
+#ifdef _FFR_RESIGN
+	if (dkim->dkim_resign == NULL && dkim->dkim_sethead != NULL)
+#else /* _FFR_RESIGN */
 	if (dkim->dkim_sethead != NULL)
+#endif /* _FFR_RESIGN */
 	{
 		DKIM_SET *set;
 		DKIM_SET *next;
@@ -4422,6 +4534,138 @@ dkim_verify(DKIM_LIB *libhandle, const char *id, void *memclosure,
 		new->dkim_mode = DKIM_MODE_VERIFY;
 
 	return new;
+}
+
+/*
+**  DKIM_RESIGN -- bind a new signing handle to a completed handle
+**
+**  Parameters:
+**  	new -- new signing handle
+**  	old -- old signing/verifying handle
+**  	hdrbind -- bind "new"'s header canonicalization to "old" as well
+**  	           as the body
+**
+**  Return value:
+**  	DKIM_STAT_OK -- success
+**  	DKIM_STAT_INVALID -- invalid state of one or both handles
+**
+**  Side effects:
+**  	Sets up flags such that the two are bound; dkim_free() on "old"
+**  	is now an invalid operation until "new" has been free'd.
+*/
+
+DKIM_STAT
+dkim_resign(DKIM *new, DKIM *old, bool hdrbind)
+{
+#ifdef _FFR_RESIGN
+	_Bool keep;
+	_Bool tmp;
+	DKIM_STAT status;
+	int hashtype = DKIM_HASHTYPE_UNKNOWN;
+	DKIM_CANON *bc;
+	DKIM_CANON *hc;
+	DKIM_LIB *lib;
+
+	assert(new != NULL);
+	assert(old != NULL);
+
+	if (new->dkim_mode != DKIM_MODE_SIGN ||
+	    new->dkim_state != DKIM_STATE_INIT)
+		return DKIM_STAT_INVALID;
+
+	if (old->dkim_mode != DKIM_MODE_VERIFY ||
+	    old->dkim_state >= DKIM_STATE_EOH1 ||
+	    old->dkim_resign != NULL)
+		return DKIM_STAT_INVALID;
+
+	new->dkim_resign = old;
+	new->dkim_hdrbind = hdrbind;
+	/* XXX -- should be mutex-protected? */
+	old->dkim_refcnt++;
+
+	lib = old->dkim_libhandle;
+	assert(lib != NULL);
+
+	tmp = ((lib->dkiml_flags & DKIM_LIBFLAGS_TMPFILES) != 0);
+	keep = ((lib->dkiml_flags & DKIM_LIBFLAGS_KEEPFILES) != 0);
+
+	new->dkim_version = lib->dkiml_version;
+
+	/* determine hash type */
+	switch (new->dkim_signalg)
+	{
+	  case DKIM_SIGN_RSASHA1:
+		hashtype = DKIM_HASHTYPE_SHA1;
+		break;
+
+# ifdef DKIM_SIGN_RSASHA256
+	  case DKIM_SIGN_RSASHA256:
+		hashtype = DKIM_HASHTYPE_SHA256;
+		break;
+# endif /* DKIM_SIGN_RSASHA256 */
+
+	  default:
+		assert(0);
+		/* NOTREACHED */
+	}
+
+	/* initialize signature and canonicalization for signing */
+	new->dkim_siglist = DKIM_MALLOC(new, sizeof(DKIM_SIGINFO *));
+	if (new->dkim_siglist == NULL)
+	{
+		dkim_error(new, "failed to allocate %d byte(s)",
+		           sizeof(DKIM_SIGINFO *));
+		return DKIM_STAT_NORESOURCE;
+	}
+
+	new->dkim_siglist[0] = DKIM_MALLOC(new, sizeof(struct dkim_siginfo));
+	if (new->dkim_siglist[0] == NULL)
+	{
+		dkim_error(new, "failed to allocate %d byte(s)",
+		           sizeof(struct dkim_siginfo));
+		return DKIM_STAT_NORESOURCE;
+	}
+
+	new->dkim_sigcount = 1;
+	memset(new->dkim_siglist[0], '\0', sizeof(struct dkim_siginfo));
+	new->dkim_siglist[0]->sig_domain = new->dkim_domain;
+	new->dkim_siglist[0]->sig_selector = new->dkim_selector;
+	new->dkim_siglist[0]->sig_hashtype = hashtype;
+	new->dkim_siglist[0]->sig_signalg = new->dkim_signalg;
+
+	status = dkim_add_canon(hdrbind ? old : new, TRUE,
+	                        new->dkim_hdrcanonalg, hashtype,
+	                        NULL, NULL, 0, &hc);
+	if (status != DKIM_STAT_OK)
+		return status;
+
+	status = dkim_add_canon(old, FALSE, new->dkim_bodycanonalg,
+	                        hashtype, NULL, NULL, new->dkim_signlen, &bc);
+	if (status != DKIM_STAT_OK)
+		return status;
+
+	new->dkim_siglist[0]->sig_hdrcanon = hc;
+	new->dkim_siglist[0]->sig_hdrcanonalg = new->dkim_hdrcanonalg;
+	new->dkim_siglist[0]->sig_bodycanon = bc;
+	new->dkim_siglist[0]->sig_bodycanonalg = new->dkim_bodycanonalg;
+
+	if (new->dkim_libhandle->dkiml_fixedtime != 0)
+	{
+		new->dkim_siglist[0]->sig_timestamp = new->dkim_libhandle->dkiml_fixedtime;
+	}
+	else
+	{
+		time_t now;
+
+		(void) time(&now);
+
+		new->dkim_siglist[0]->sig_timestamp = (unsigned long long) now;
+	}
+
+	return DKIM_STAT_OK;
+#else /* _FFR_RESIGN */
+	return DKIM_STAT_NOTIMPLEMENT;
+#endif /* _FFR_RESIGN */
 }
 
 /*
@@ -5231,6 +5475,11 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 	assert(hdr != NULL);
 	assert(len != 0);
 
+#ifdef _FFR_RESIGN
+	if (dkim->dkim_hdrbind)
+		return DKIM_STAT_INVALID;
+#endif /* _FFR_RESIGN */
+
 	if (dkim->dkim_state > DKIM_STATE_HEADER)
 		return DKIM_STAT_INVALID;
 	dkim->dkim_state = DKIM_STATE_HEADER;
@@ -5388,6 +5637,11 @@ dkim_body(DKIM *dkim, u_char *buf, size_t buflen)
 {
 	assert(dkim != NULL);
 	assert(buf != NULL);
+
+#ifdef _FFR_RESIGN
+	if (dkim->dkim_resign != NULL)
+		return DKIM_STAT_INVALID;
+#endif /* _FFR_RESIGN */
 
 	if (dkim->dkim_state > DKIM_STATE_BODY ||
 	    dkim->dkim_state < DKIM_STATE_EOH1)
@@ -6700,7 +6954,9 @@ dkim_set_dns_callback(DKIM_LIB *libopendkim, void (*func)(const void *context),
 DKIM_STAT
 dkim_set_trust_anchor(DKIM_LIB *libopendkim, char *tafile)
 {
+#ifdef USE_UNBOUND
 	int status;
+#endif /* USE_UNBOUND */
 
 	assert(libopendkim != NULL);
 	assert(tafile != NULL);
@@ -7117,7 +7373,9 @@ dkim_ssl_version(void)
 int
 dkim_flush_cache(DKIM_LIB *lib)
 {
+#ifdef QUERY_CACHE
 	int err;
+#endif /* QUERY_CACHE */
 
 	assert(lib != NULL);
 

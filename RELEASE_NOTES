@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.54 2009/11/16 00:28:28 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.55 2009/11/17 20:09:19 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -18,6 +18,13 @@ release, and a summary of the changes in that release.
 		by Daniel Black.
 	Under _FFR_MULTIPLE_SIGNATURES, free up all signing handles in
 		dkimf_cleanup().
+	Activate _FFR_MULTIPLE_SIGNATURES, allowing optional addition of
+		more than one signature per message passing through the
+		filter.
+	Add _FFR_RESIGN which allows binding of a signing handle to a
+		verifying handle so that only body hash needs to be
+		run when a message will be re-signed as-is.  Suggested
+		by Daniel Black.
 	LIBOPENDKIM: Move VBR functions from libopendkim into their own
 		new library, libvbr.
 	LIBOPENDKIM: Rename the rfc2822_*() parsing functions to have

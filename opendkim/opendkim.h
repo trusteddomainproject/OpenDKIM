@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.12 2009/11/02 19:24:02 cm-msk Exp $
+**  $Id: opendkim.h,v 1.13 2009/11/17 20:09:23 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.12 2009/11/02 19:24:02 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.13 2009/11/17 20:09:23 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -75,6 +75,18 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.12 2009/11/02 19:24:02 cm
 # define POPAUTHDB	"/etc/mail/popip.db"
 #endif /* POPAUTH */
 
+/*
+**  SIGNREQ -- signing request (for multiple signature requests)
+*/
+
+typedef struct signreq * SIGNREQ;
+struct signreq
+{
+	struct keytable	*	srq_key;
+	DKIM *			srq_dkim;
+	struct signreq *	srq_next;
+};
+
 /* externs */
 extern _Bool dolog;
 extern char *progname;
@@ -82,9 +94,7 @@ extern char *progname;
 /* prototypes, exported for test.c */
 extern sfsistat mlfi_connect __P((SMFICTX *, char *, _SOCK_ADDR *));
 extern sfsistat mlfi_envfrom __P((SMFICTX *, char **));
-#ifdef _FFR_BODYLENGTH_DB
 extern sfsistat mlfi_envrcpt __P((SMFICTX *, char **));
-#endif /* _FFR_BODYLENGTH_DB */
 extern sfsistat mlfi_header __P((SMFICTX *, char *, char *));
 extern sfsistat mlfi_eoh __P((SMFICTX *));
 extern sfsistat mlfi_body __P((SMFICTX *, u_char *, size_t));
@@ -93,5 +103,6 @@ extern sfsistat mlfi_abort __P((SMFICTX *));
 extern sfsistat mlfi_close __P((SMFICTX *));
 
 extern DKIM *dkimf_getdkim __P((void *));
+extern struct signreq *dkimf_getsrlist __P((void *));
 
 #endif /* _OPENDKIM_H_ */

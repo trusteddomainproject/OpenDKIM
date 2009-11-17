@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.8 2009/11/13 20:16:45 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.9 2009/11/17 20:09:21 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -221,6 +221,9 @@ struct dkim
 	_Bool			dkim_bodydone;
 	_Bool			dkim_subdomain;
 	_Bool			dkim_skipbody;
+#ifdef _FFR_RESIGN
+	_Bool			dkim_hdrbind;
+#endif /* _FFR_RESIGN */
 	int			dkim_mode;
 	int			dkim_state;
 	int			dkim_chunkstate;
@@ -228,6 +231,9 @@ struct dkim
 	int			dkim_timeout;
 	int			dkim_presult;
 	int			dkim_hdrcnt;
+#ifdef _FFR_RESIGN
+	u_int			dkim_refcnt;
+#endif /* _FFR_RESIGN */
 #ifdef QUERY_CACHE
 	u_int			dkim_cache_queries;
 	u_int			dkim_cache_hits;
@@ -268,6 +274,9 @@ struct dkim
 	DKIM_SIGINFO *		dkim_signature;
 	void *			dkim_closure;
 	const void *		dkim_user_context;
+#ifdef _FFR_RESIGN
+	DKIM *			dkim_resign;
+#endif /* _FFR_RESIGN */
 	struct dkim_siginfo **	dkim_siglist;
 	struct dkim_set *	dkim_sethead;
 	struct dkim_set *	dkim_settail;

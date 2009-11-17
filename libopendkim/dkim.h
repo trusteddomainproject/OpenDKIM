@@ -9,7 +9,7 @@
 #define _DKIM_H_
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.19 2009/11/15 23:45:34 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.20 2009/11/17 20:09:21 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -425,6 +425,27 @@ extern DKIM *dkim_sign __P((DKIM_LIB *libhandle, const char *id,
 
 extern DKIM *dkim_verify __P((DKIM_LIB *libhandle, const char *id,
                               void *memclosure, DKIM_STAT *statp));
+
+/*
+**  DKIM_RESIGN -- bind a new signing handle to a completed handle
+**
+**  Parameters:
+**  	new -- new signing handle
+**  	old -- old signing/verifying handle
+**  	hdrbind -- bind headers as well as body
+**
+**  Return value:
+**  	DKIM_STAT_OK -- success
+**  	DKIM_STAT_INVALID -- invalid state of one or both handles
+**  	DKIM_STAT_NOTIMPLEMENT -- not enabled at compile-time
+**
+**  Side effects:
+**  	Sets up flags such that the two are bound; dkim_free() on "old"
+**  	now does nothing, and dkim_free() on "new" will free "old" once
+**  	its reference count reaches zero.  See documentation for details.
+*/
+
+extern DKIM_STAT dkim_resign __P((DKIM *new, DKIM *old, _Bool hdrbind));
 
 /*
 **  DKIM_HEADER -- process a header
@@ -1413,8 +1434,9 @@ extern unsigned long dkim_ssl_version __P((void));
 #define DKIM_FEATURE_SHA256		4
 #define DKIM_FEATURE_ASYNC_DNS		5
 #define DKIM_FEATURE_DNSSEC		6
+#define DKIM_FEATURE_RESIGN		7
 
-#define	DKIM_FEATURE_MAX		6
+#define	DKIM_FEATURE_MAX		7
 
 extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
 
