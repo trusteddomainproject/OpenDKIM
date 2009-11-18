@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.62 2009/11/17 20:09:22 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63 2009/11/18 18:44:15 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.62 2009/11/17 20:09:22 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63 2009/11/18 18:44:15 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -143,6 +143,7 @@ struct handling
 	int		hndl_badsig;		/* bad signature */
 	int		hndl_nokey;		/* no key in DNS */
 	int		hndl_dnserr;		/* DNS error */
+	int		hndl_policyerr;		/* policy retrieval error */
 	int		hndl_internal;		/* internal error */
 	int		hndl_security;		/* security concerns */
 };
@@ -150,9 +151,10 @@ struct handling
 struct handling defaults =
 {
 	SMFIS_ACCEPT,
-	/* SMFIS_REJECT, */ SMFIS_ACCEPT,
+	SMFIS_ACCEPT,
 	SMFIS_ACCEPT,
 	SMFIS_TEMPFAIL,
+	SMFIS_ACCEPT,
 	SMFIS_TEMPFAIL,
 	SMFIS_TEMPFAIL
 };
@@ -407,6 +409,7 @@ struct lookup
 #define	HNDL_INTERNAL		4
 #define	HNDL_SECURITY		5
 #define	HNDL_NOKEY		6
+#define	HNDL_POLICYERROR	7
 
 #define	DKIMF_MODE_SIGNER	0x01
 #define	DKIMF_MODE_VERIFIER	0x02
@@ -456,6 +459,8 @@ struct lookup dkimf_params[] =
 	{ "security",		HNDL_SECURITY },
 	{ "key",		HNDL_NOKEY },
 	{ "keynotfound",	HNDL_NOKEY },
+	{ "pol",		HNDL_POLICYERROR },
+	{ "policyerror",	HNDL_POLICYERROR },
 	{ "def",		HNDL_DEFAULT },
 	{ "default",		HNDL_DEFAULT },
 	{ NULL,			-1 },
@@ -1900,6 +1905,10 @@ dkimf_parseconfig(char *confstr, struct dkimf_config *conf)
 			conf->conf_handling.hndl_security = vs;
 			break;
 
+		  case HNDL_POLICYERROR:
+			conf->conf_handling.hndl_policyerr = vs;
+			break;
+
 		  case HNDL_DEFAULT:
 			conf->conf_handling.hndl_nosig = vs;
 			conf->conf_handling.hndl_nokey = vs;
@@ -1907,6 +1916,7 @@ dkimf_parseconfig(char *confstr, struct dkimf_config *conf)
 			conf->conf_handling.hndl_dnserr = vs;
 			conf->conf_handling.hndl_internal = vs;
 			conf->conf_handling.hndl_security = vs;
+			conf->conf_handling.hndl_policyerr = vs;
 			break;
 
 		  default:
@@ -2311,6 +2321,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		dkimf_parseconfig2(data, "On-NoSignature", "no",
 		                   confstr, sizeof confstr);
 		dkimf_parseconfig2(data, "On-Security", "sec", confstr,
+		                   sizeof confstr);
+		dkimf_parseconfig2(data, "On-PolicyError", "pol", confstr,
 		                   sizeof confstr);
 
 		(void) config_get(data, "RemoveARAll", &conf->conf_remarall,
@@ -7779,8 +7791,11 @@ mlfi_eom(SMFICTX *ctx)
 					       dfc->mctx_jobid, err);
 				}
 
-				dkimf_cleanup(ctx);
-				return conf->conf_handling.hndl_dnserr;
+				if (conf->conf_handling.hndl_policyerr != SMFIS_ACCEPT)
+				{
+					dkimf_cleanup(ctx);
+					return conf->conf_handling.hndl_policyerr;
+				}
 			}
 		}
 

@@ -530,6 +530,15 @@ The default is
 .I accept.
 
 .TP
+.I On-PolicyError (string)
+Selects the action to be taken when a an attempt to retrieve and evaluate
+the author domain's signing policy (ADSP) is unsuccessful.
+Possible values are the same as those for
+.I On-BadSignature.
+The default is
+.I accept.
+
+.TP
 .I On-Security (string)
 Selects the action to be taken when a message arrives containing properties
 that may be a security concern.  Possible values are the same as those for

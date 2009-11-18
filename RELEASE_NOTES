@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.55 2009/11/17 20:09:19 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.56 2009/11/18 18:44:14 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -16,8 +16,8 @@ release, and a summary of the changes in that release.
 	Feature request #SF2873900: Add optional support for OpenDBX for
 		connecting to ODBC and SQL backend databases.  Requested
 		by Daniel Black.
-	Under _FFR_MULTIPLE_SIGNATURES, free up all signing handles in
-		dkimf_cleanup().
+	Add "On-PolicyError" setting, allowing continuation of processing
+		when an ADSP query fails.
 	Activate _FFR_MULTIPLE_SIGNATURES, allowing optional addition of
 		more than one signature per message passing through the
 		filter.
