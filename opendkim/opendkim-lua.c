@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.1 2009/11/19 20:05:05 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.2 2009/11/19 22:43:34 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.1 2009/11/19 20:05:05 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.2 2009/11/19 22:43:34 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -57,6 +57,27 @@ dkimf_lua_sign_hook(void *ctx, const char *script,
 	assert(ctx != NULL);
 	assert(script != NULL);
 	assert(lres != NULL);
+
+	/* XXX -- functions needed from opendkim:
+	request DB handle
+	request From domain
+	request source hostname/IP address
+	domain is signable?
+	source is signable?
+	retrieve header/value
+	*/
+
+	/* XXX -- functions to provide to LUA:
+	request a signature (domain, selector)
+	request an "l=" tag
+	request a "z=" tag
+	get From domain
+	get source host/IP
+	domain is signable?
+	source is signable?
+	retrieve header/value
+	query a DB for membership
+	*/
 }
 
 /*
@@ -90,6 +111,30 @@ dkimf_lua_verify_hook(void *ctx, DKIM *dkim, const char *script,
 	assert(dkim != NULL);
 	assert(script != NULL);
 	assert(lres != NULL);
+
+	/* XXX -- functions needed from libopendkim:
+	retrieve Nth signature
+	retrieve domain name from signature
+	evaluate signature
+	did signature use "l="?
+	size of body?
+	canonicalizations?
+	*/
+
+	/* XXX -- functions needed from opendkim:
+	get policy result
+	*/
+
+	/* XXX -- functions to provide to LUA:
+	request Nth signature
+	get domain from signature
+	get signature result
+	set result code
+	set reply text
+	quarantine?
+	set quarantine reason
+	redirect
+	*/
 }
 
 #endif /* _FFR_LUA */
