@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.8 2009/11/17 20:12:58 cm-msk Exp $
+$Id: BRANCHES,v 1.9 2009/11/19 20:03:15 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -17,6 +17,8 @@ Experimental Branches (branch name contains owner)
 
 br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
+
+br-msk-lua	Experimenting with LUA for scriptable policy hooks
 
 br-dblack-codecoverage
 		Generate code coverage testing from lcov
