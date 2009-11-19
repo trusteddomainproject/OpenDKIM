@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.13 2009/11/16 10:31:43 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.14 2009/11/19 21:29:57 grooverdan Exp $
 
 AC_PREREQ(2.62)
 
@@ -94,7 +94,7 @@ LIBOPENDKIM_FEATURE_STRING="libopendkim $PACKAGE_VERSION:"
 AC_DEFUN([TR_UP],[m4_translit([AS_TR_SH([$1])],[a-z],[A-Z])])
 
 AC_DEFUN([FEATURE],[
-	notincluded="(not included in this release, configure with --enable-$1 at compile time if required)"
+	notincluded="(not enabled in this installation)"
         AC_ARG_ENABLE($1,AS_HELP_STRING(--enable-$1,$2),
                 AS_IF([test "x$enable_]$1[" != "xno"],[
                    AC_DEFINE(TR_UP($1),1,[enable $1 feature])
@@ -117,7 +117,7 @@ AC_DEFUN([LIB_FEATURE],[
 ])
 
 AC_DEFUN([FFR_FEATURE],[
-	experimentalnotincluded="(experimental feature not included in this release, configure with --enable-$1 at compile time if required)"
+	experimentalnotincluded="(experimental feature not enabled in this installation)"
         AC_ARG_ENABLE($1,AS_HELP_STRING(--enable-$1,$2),
                 AS_IF([test "x$enable_]$1[" != "xno"],[
                    AC_DEFINE([_FFR_]TR_UP($1),1,[enable $1 feature])
