@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.68 2009/11/17 20:09:20 cm-msk Exp $
+# $Id: configure.ac,v 1.68.2.1 2009/11/19 20:05:05 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -387,6 +387,58 @@ AM_CONDITIONAL(USE_ODBX, test x"$odbxpath" != x"no")
 AC_SUBST(LIBODBX_INCDIRS)
 AC_SUBST(LIBODBX_LIBDIRS)
 AC_SUBST(LIBODBX_LIBS)
+
+# liblua
+AC_MSG_CHECKING(for lua)
+AC_ARG_WITH(lua,
+	AS_HELP_STRING(--with-lua, location of lua includes and library),
+	luapath="$withval", luapath="no")
+
+LIBLUA_INCDIRS=""
+LIBLUA_LIBDIRS=""
+LIBLUA_LIBS=""
+
+if test x"$luapath" = x"yes" -o x"$luapath" = x"auto"
+then
+	luadirs="/usr /usr/local"
+	for d in $luadirs
+	do
+		if test -f $d/include/lua51/lua.h
+		then
+			luapath=$d
+			AC_MSG_RESULT($d)
+			LIBLUA_INCDIRS="-I$luapath/include/lua51"
+			LIBLUA_LIBDIRS="-L$luapath/lib/lua51"
+			LIBLUA_LIBS="-llua -lm"
+			break;
+		fi
+	done
+	if test x"$LIBLUA_LIBS" = x""
+	then
+		AC_MSG_ERROR(not found)
+	fi
+elif test x"$luapath" = x"no"
+then
+	AC_MSG_RESULT(no)
+	LIBLUA_INCDIRS=""
+	LIBLUA_LIBDIRS=""
+	LIBLUA_LIBS=""
+else
+	if test -f $luapath/include/lua51/lua.h
+	then
+		AC_MSG_RESULT($luapath)
+		LIBLUA_INCDIRS="-I$luapath/include/lua51"
+		LIBLUA_LIBDIRS="-L$luapath/lib/lua51"
+		LIBLUA_LIBS="-llua -lm"
+	else
+		AC_MSG_ERROR(not found at $luapath)
+	fi
+fi
+
+AM_CONDITIONAL(LUA, test x"$luapath" != x"no")
+AC_SUBST(LIBLUA_INCDIRS)
+AC_SUBST(LIBLUA_LIBDIRS)
+AC_SUBST(LIBLUA_LIBS)
 
 # libdb
 AC_ARG_WITH(db,

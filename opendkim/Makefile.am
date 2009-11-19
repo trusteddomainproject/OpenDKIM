@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.49 2009/11/17 20:09:22 cm-msk Exp $
+# $Id: Makefile.am,v 1.49.2.1 2009/11/19 20:05:05 cm-msk Exp $
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -pthread --pedantic -Wall -O2
@@ -14,7 +14,7 @@ example_DATA = opendkim.conf.sample
 
 if BUILD_FILTER
 sbin_PROGRAMS += opendkim
-opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h config.c config.h stats.c stats.h test.c test.h util.c util.h
+opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-lua.c opendkim-lua.h config.c config.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CFLAGS = 
 opendkim_CPPFLAGS = -I../libopendkim $(LIBCRYPTO_INCDIRS)
 opendkim_LDFLAGS = -L../libopendkim $(LIBCRYPTO_LIBDIRS) $(LIBMILTER_LIBDIRS)
@@ -39,6 +39,12 @@ opendkim_CFLAGS += -D_FFR_DNS_UPGRADE
 endif
 if IDENTITY_HEADER
 opendkim_CFLAGS += -D_FFR_IDENTITY_HEADER
+endif
+if LUA
+opendkim_CFLAGS += -D_FFR_LUA
+opendkim_CPPFLAGS += $(LIBLUA_INCDIRS)
+opendkim_LDFLAGS += $(LIBLUA_LIBDIRS)
+opendkim_LDADD += $(LIBLUA_LIBS)
 endif
 if PARSE_TIME
 opendkim_CFLAGS += -D_FFR_PARSE_TIME
