@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.14 2009/11/19 21:29:57 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.15 2009/11/20 00:36:16 grooverdan Exp $
 
 AC_PREREQ(2.62)
 
@@ -239,10 +239,7 @@ then
 			;;
 	esac
         LIBCRYPTO_CFLAGS="-I$sslpath/include"
-	# -ldl was added to assist with compilation of static openssl libaries
-	# that appear to need dl for opening engine plugins. It failes
-	# at load time if not enabled - dblack 20091113
-        LIBCRYPTO_LIBS="-L$sslpath/lib -lssl -lcrypto -ldl"
+        LIBCRYPTO_LIBS="-L$sslpath/lib -lssl -lcrypto"
 fi
 
 saved_CFLAGS="$CFLAGS"
@@ -255,9 +252,26 @@ LDFLAGS="$LIBCRYPTO_LIBS $saved_LDFLAGS"
 
 AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
 	AC_MSG_ERROR([required OpenSSL header not found]))
-AC_SEARCH_LIBS([ERR_peek_error], [crypto], , AC_MSG_ERROR([libcrypto not found]))
+
+# -ldl is needed to assist with compilation of static openssl libaries.
+# it that appears to need dl for opening engine plugins. It failes
+# at load time if not enabled - dblack 20091113. It also fails to build on
+# FreeBSD if enabled by default.
+AC_SEARCH_LIBS([ERR_peek_error], [crypto], ,  AC_MSG_ERROR([libcrypto not found]))
+#AC_SEARCH_LIBS([SSL_library_init], [ssl], ,AC_MSG_ERROR([libssl not found]), [-ldl])
 AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
-	AC_MSG_ERROR([libssl not found]))
+	[
+	if test x"$enable_shared" = x"yes"
+	then
+		AC_MSG_ERROR([Cannot build shared opendkim against static openssl libaries. Configure with --disable-shared to get working or obtain a shared libssl libary for opendkim to link against.])
+	fi
+	# avoid caching issue - last result of SSL_library_init shouldn't be cached for this next check
+	unset ac_cv_search_SSL_library_init
+	# LIBS="$LIBS -ldl"
+	LIBCRYPTO_LIBS="$LIBCRYPTO_LIBS -ldl"
+	AC_SEARCH_LIBS([SSL_library_init], [ssl], , AC_MSG_ERROR([libssl not found]), [-ldl])
+	]
+)
 AC_CHECK_DECL([SHA256_DIGEST_LENGTH], ,
 	AC_MSG_WARN([SHA256 is required for DKIM but is not supported with your version of OpenSSL]),
 	[#include <openssl/sha.h>])
