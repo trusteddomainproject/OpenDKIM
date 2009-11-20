@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.13.8.5 2009/11/14 11:58:27 grooverdan Exp $
+# $Id: Makefile.am,v 1.13.8.6 2009/11/20 00:36:43 grooverdan Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -125,7 +125,7 @@ push:
 	@echo "Are you sure you want to tag and release $(distdir).tar.gz? (y/n)"
 	@read confirm && [ $$confirm = 'y' ]
 	v=$(VERSION) ; cvs tag rel-opendkim-$${v//./-}
-	md5 $(distdir).tar.gz > $(distdir).tar.gz.md5 || md5sum  $(distdir).tar.gz > $(distdir).tar.gz.md5
-	scp $(distdir).tar.gz $(distdir).tar.gz.md5 RELEASE_NOTES cm-msk,opendkim@frs.sourceforge.net:/home/frs/project/o/op/opendkim/
+	sha1 $(distdir).tar.gz > $(distdir).tar.gz.sha1 || sha1sum  $(distdir).tar.gz > $(distdir).tar.gz.sha1
+	scp $(distdir).tar.gz $(distdir).tar.gz.sha1 RELEASE_NOTES cm-msk,opendkim@frs.sourceforge.net:/home/frs/project/o/op/opendkim/
 
 .PHONY: push

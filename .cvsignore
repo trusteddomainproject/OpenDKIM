@@ -35,6 +35,7 @@ Makefile.in
 Makefile
 *.tar.gz
 *.tar.gz.md5
+*.tar.gz.sha1
 
 tags
 .deps
