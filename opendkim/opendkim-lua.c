@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.4 2009/11/21 04:38:46 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.5 2009/11/21 04:42:50 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.4 2009/11/21 04:38:46 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.5 2009/11/21 04:42:50 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -171,7 +171,8 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 
 
 	request source hostname/IP address
-	lua_register(l, "odkim_get_source", dkimf_xs_clientinfo);
+	lua_register(l, "odkim_get_source_host", dkimf_xs_clienthost);
+	lua_register(l, "odkim_get_source_ip", dkimf_xs_clientip);
 
 	domain is signable?
 	lua_register(l, "odkim_signable_domain", dkimf_xs_signabledomain);
