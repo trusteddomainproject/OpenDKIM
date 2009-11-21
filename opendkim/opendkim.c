@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.1 2009/11/21 00:06:27 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.2 2009/11/21 04:38:46 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.1 2009/11/21 00:06:27 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.2 2009/11/21 04:38:46 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -66,6 +66,11 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.1 2009/11/21 00:06:2
 /* libmilter includes */
 #include "libmilter/mfapi.h"
 
+#ifdef _FFR_LUA
+/* LUA includes */
+# include <lua.h>
+#endif /* _FFR_LUA */
+
 /* libopendkim includes */
 #include <dkim.h>
 #ifdef _FFR_VBR
@@ -86,6 +91,9 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.1 2009/11/21 00:06:2
 #include "opendkim.h"
 #include "opendkim-ar.h"
 #include "opendkim-arf.h"
+#ifdef _FFR_LUA
+# include "opendkim-lua.h"
+#endif /* _FFR_LUA */
 #include "util.h"
 #include "test.h"
 #ifdef _FFR_STATS
@@ -931,6 +939,45 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 	else
 		return smfi_getsymval(ctx, sym);
 }
+
+#ifdef _FFR_LUA
+/*
+**  DKIMF_XS_FROMDOMAIN -- retrieve From: domain
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_fromdomain(lua_State *l)
+{
+	struct msgctx *dfc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_get_fromdomain(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_get_fromdomain(): incorrect argument type");
+		lua_error(l);
+	}
+
+	dfc = (struct msgctx *) lua_touserdata(l, 1);
+
+	lua_pushlstring(l, dfc->mctx_domain, strlen(dfc->mctx_domain));
+
+	return 1;
+}
+#endif /* _FFR_LUA */
 
 /*
 **  DKIMF_INIT_SYSLOG -- initialize syslog()
@@ -6530,6 +6577,30 @@ mlfi_eoh(SMFICTX *ctx)
 		dfc->mctx_resign = FALSE;
 	}
 #endif /* _FFR_RESIGN */
+
+#ifdef _FFR_LUA
+	if (conf->conf_signscript != NULL)
+	{
+		struct dkimf_lua_sign_result lres;
+
+		memset(&lres, '\0', sizeof lres);
+
+		status = dkimf_lua_sign_hook(dfc, conf->conf_signscript,
+		                             "signing script", &lres);
+
+		if (status != 0)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR,
+				       "%s dkimf_lua_sign_hook() failed",
+				       dfc->mctx_jobid);
+			}
+
+			return SMFIS_TEMPFAIL;
+		}
+	}
+#endif /* _FFR_LUA */
 
 	/* create all required signing handles */
 	if (dfc->mctx_srhead != NULL)

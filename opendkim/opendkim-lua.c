@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.3 2009/11/21 02:57:36 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.4 2009/11/21 04:38:46 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.3 2009/11/21 02:57:36 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.4 2009/11/21 04:38:46 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -14,10 +14,12 @@ static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.3 2009/11/21 
 #include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <assert.h>
 
 /* LUA includes */
 #include <lua.h>
+#include <lualib.h>
 
 /* libopendkim includes */
 #include <dkim.h>
@@ -52,7 +54,7 @@ dkimf_lua_reader(lua_State *l, void *data, size_t *size)
 	struct dkimf_lua_io *io;
 
 	assert(l != NULL);
-	assert(io != NULL);
+	assert(data != NULL);
 	assert(size != NULL);
 
 	io = (struct dkimf_lua_io *) data;
@@ -110,6 +112,7 @@ static void *dkimf_lua_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
 **  	lres -- LUA result structure
 **
 **  Return value:
+**  	2 -- processing error
 **  	1 -- script contains a syntax error
 **  	0 -- success
 **  	-1 -- memory allocation failure
@@ -131,8 +134,10 @@ int
 dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
                     struct dkimf_lua_sign_result *lres)
 {
-	struct dkimf_lua_io io;
+	int c;
+	int status;
 	lua_State *l = NULL;
+	struct dkimf_lua_io io;
 
 	assert(ctx != NULL);
 	assert(script != NULL);
@@ -145,7 +150,15 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 	if (l == NULL)
 		return -1;
 
-	/* register functions */
+	luaL_openlibs(l);
+
+	/*
+	**  Register functions
+	*/
+
+	/* request From domain */
+	lua_register(l, "odkim_get_fromdomain", dkimf_xs_fromdomain);
+
 	/* XXX
 	request DB handle
 	lua_register(l, "odkim_get_dbhandle", dkimf_xs_dbhandle);
@@ -156,8 +169,6 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 	get a value from a DB
 	lua_register(l, "odkim_db_getvalue", dkimf_xs_dbget);
 
-	request From domain
-	lua_register(l, "odkim_get_fromdomain", dkimf_xs_fromdomain);
 
 	request source hostname/IP address
 	lua_register(l, "odkim_get_source", dkimf_xs_clientinfo);
@@ -200,9 +211,14 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 		assert(0);
 	}
 
+	lua_pushlightuserdata(l, ctx);
+	lua_setglobal(l, "msg");
+
+	status = lua_pcall(l, 0, 1, 0);
+
 	lua_close(l);
 
-	return 0;
+	return (status == 0 ? 0 : 2);
 }
 
 /*

@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.13 2009/11/17 20:09:23 cm-msk Exp $
+**  $Id: opendkim.h,v 1.13.2.1 2009/11/21 04:38:46 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.13 2009/11/17 20:09:23 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.13.2.1 2009/11/21 04:38:46 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -27,6 +27,11 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.13 2009/11/17 20:09:23 cm
 
 /* libopendkim */
 #include <dkim.h>
+
+#ifdef _FFR_LUA
+/* LUA */
+# include <lua.h>
+#endif /* _FFR_LUA */
 
 /* make sure we have TRUE and FALSE */
 #ifndef FALSE
@@ -104,5 +109,9 @@ extern sfsistat mlfi_close __P((SMFICTX *));
 
 extern DKIM *dkimf_getdkim __P((void *));
 extern struct signreq *dkimf_getsrlist __P((void *));
+
+#ifdef _FFR_LUA
+extern int dkimf_xs_fromdomain __P((lua_State *));
+#endif /* _FFR_LUA */
 
 #endif /* _OPENDKIM_H_ */
