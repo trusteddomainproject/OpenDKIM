@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.2 2009/11/21 04:38:46 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.3 2009/11/21 04:59:56 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.2 2009/11/21 04:38:46 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.3 2009/11/21 04:59:56 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -954,6 +954,7 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 int
 dkimf_xs_fromdomain(lua_State *l)
 {
+	struct connctx *cc;
 	struct msgctx *dfc;
 
 	assert(l != NULL);
@@ -971,9 +972,47 @@ dkimf_xs_fromdomain(lua_State *l)
 		lua_error(l);
 	}
 
-	dfc = (struct msgctx *) lua_touserdata(l, 1);
+	cc = (struct connctx *) lua_touserdata(l, 1);
+	dfc = cc->cctx_msg;
 
 	lua_pushlstring(l, dfc->mctx_domain, strlen(dfc->mctx_domain));
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_CLIENTHOST -- retrieve client hostname
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_clienthost(lua_State *l)
+{
+	struct connctx *cc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_get_source_host(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_get_source_host(): incorrect argument type");
+		lua_error(l);
+	}
+
+	cc = (struct connctx *) lua_touserdata(l, 1);
+
+	lua_pushlstring(l, cc->cctx_host, strlen(cc->cctx_host));
 
 	return 1;
 }
@@ -6585,7 +6624,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 		memset(&lres, '\0', sizeof lres);
 
-		status = dkimf_lua_sign_hook(dfc, conf->conf_signscript,
+		status = dkimf_lua_sign_hook(cc, conf->conf_signscript,
 		                             "signing script", &lres);
 
 		if (status != 0)
