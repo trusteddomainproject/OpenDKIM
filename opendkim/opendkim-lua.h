@@ -1,14 +1,14 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.h,v 1.1.2.2 2009/11/21 02:57:36 cm-msk Exp $
+**  $Id: opendkim-lua.h,v 1.1.2.3 2009/11/21 20:14:34 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_LUA_H_
 #define _OPENDKIM_LUA_H_
 
 #ifndef lint
-static char opendkim_lua_h_id[] = "@(#)$Id: opendkim-lua.h,v 1.1.2.2 2009/11/21 02:57:36 cm-msk Exp $";
+static char opendkim_lua_h_id[] = "@(#)$Id: opendkim-lua.h,v 1.1.2.3 2009/11/21 20:14:34 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -21,6 +21,7 @@ static char opendkim_lua_h_id[] = "@(#)$Id: opendkim-lua.h,v 1.1.2.2 2009/11/21 
 struct dkimf_lua_sign_result
 {
 	_Bool	lrs_bodylength;
+	char *	lrs_error;
 	char **	lrs_signkeys;
 	char **	lrs_signdomains;
 };
@@ -28,6 +29,7 @@ struct dkimf_lua_sign_result
 struct dkimf_lua_verify_result
 {
 	int	lrv_action;
+	char *	lrv_error;
 	char *	lrv_message;
 };
 

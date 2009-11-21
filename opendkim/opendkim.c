@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.3 2009/11/21 04:59:56 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.4 2009/11/21 20:14:34 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.3 2009/11/21 04:59:56 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.4 2009/11/21 20:14:34 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6620,6 +6620,7 @@ mlfi_eoh(SMFICTX *ctx)
 #ifdef _FFR_LUA
 	if (conf->conf_signscript != NULL)
 	{
+		_Bool dofree = TRUE;
 		struct dkimf_lua_sign_result lres;
 
 		memset(&lres, '\0', sizeof lres);
@@ -6631,10 +6632,37 @@ mlfi_eoh(SMFICTX *ctx)
 		{
 			if (conf->conf_dolog)
 			{
+				if (lres.lrs_error == NULL)
+				{
+					dofree = FALSE;
+
+					switch (status)
+					{
+					  case 2:
+						lres.lrs_error = "processing error";
+						break;
+
+					  case 1:
+						lres.lrs_error = "syntax error";
+						break;
+
+					  case -1:
+						lres.lrs_error = "memory allocation error";
+						break;
+
+					  default:
+						lres.lrs_error = "unknown error";
+						break;
+					}
+				}
+
 				syslog(LOG_ERR,
-				       "%s dkimf_lua_sign_hook() failed",
-				       dfc->mctx_jobid);
+				       "%s dkimf_lua_sign_hook() failed: %s",
+				       dfc->mctx_jobid, lres.lrs_error);
 			}
+
+			if (dofree)
+				free(lres.lrs_error);
 
 			return SMFIS_TEMPFAIL;
 		}
