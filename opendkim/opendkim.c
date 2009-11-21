@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63 2009/11/18 18:44:15 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.1 2009/11/21 00:06:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63 2009/11/18 18:44:15 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.1 2009/11/21 00:06:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -261,6 +261,10 @@ struct dkimf_config
 #ifdef _FFR_REDIRECT
 	char *		conf_redirect;		/* redirect failures to */
 #endif /* _FFR_REDIRECT */
+#ifdef _FFR_LUA
+	char *		conf_signscript;	/* LUA script for signing */
+	char *		conf_verifyscript;	/* LUA script for verifying */
+#endif /* _FFR_LUA */
 	struct keytable * conf_keyhead;		/* key list */
 	struct keytable * conf_keytail;		/* key list */
 #ifdef _FFR_REPLACE_RULES
@@ -2138,6 +2142,13 @@ dkimf_config_free(struct dkimf_config *conf)
 		dkimf_db_close(conf->conf_resigndb);
 #endif /* _FFR_RESIGN */
 
+#ifdef _FFR_LUA
+	if (conf->conf_signscript != NULL)
+		free(conf->conf_signscript);
+	if (conf->conf_verifyscript != NULL)
+		free(conf->conf_verifyscript);
+#endif /* _FFR_LUA */
+
 	config_free(conf->conf_data);
 
 	free(conf);
@@ -2555,6 +2566,116 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			conf->conf_insecurepolicy = DKIM_POLICYACTIONS_APPLY;
 		}
 #endif /* USE_UNBOUND */
+
+#ifdef _FFR_LUA
+		str = NULL;
+		(void) config_get(data, "SigningPolicyScript",
+		                  &str, sizeof str);
+		if (str != NULL)
+		{
+			int fd;
+			ssize_t rlen;
+			struct stat s;
+
+			fd = open(str, O_RDONLY, 0);
+			if (fd < 1)
+			{
+				snprintf(err, errlen, "%s: open(): %s", str,
+				         strerror(errno));
+				return -1;
+			}
+
+			if (fstat(fd, &s) == -1)
+			{
+				snprintf(err, errlen, "%s: fstat(): %s", str,
+				         strerror(errno));
+				close(fd);
+				return -1;
+			}
+
+			conf->conf_signscript = malloc(s.st_size + 1);
+			if (conf->conf_signscript == NULL)
+			{
+				snprintf(err, errlen, "malloc(): %s",
+				         strerror(errno));
+				close(fd);
+				return -1;
+			}
+
+			memset(conf->conf_signscript, '\0', s.st_size + 1);
+			rlen = read(fd, conf->conf_signscript, s.st_size);
+			if (rlen == -1)
+			{
+				snprintf(err, errlen, "%s: read(): %s",
+				         str, strerror(errno));
+				close(fd);
+				return -1;
+			}
+			else if (rlen < s.st_size)
+			{
+				snprintf(err, errlen, "%s: early EOF",
+				         str);
+				close(fd);
+				return -1;
+			}
+
+			close(fd);
+		}
+
+		str = NULL;
+		(void) config_get(data, "VerifyingPolicyScript",
+		                  &str, sizeof str);
+		if (str != NULL)
+		{
+			int fd;
+			ssize_t rlen;
+			struct stat s;
+
+			fd = open(str, O_RDONLY, 0);
+			if (fd < 1)
+			{
+				snprintf(err, errlen, "%s: open(): %s", str,
+				         strerror(errno));
+				return -1;
+			}
+
+			if (fstat(fd, &s) == -1)
+			{
+				snprintf(err, errlen, "%s: fstat(): %s", str,
+				         strerror(errno));
+				close(fd);
+				return -1;
+			}
+
+			conf->conf_verifyscript = malloc(s.st_size + 1);
+			if (conf->conf_verifyscript == NULL)
+			{
+				snprintf(err, errlen, "malloc(): %s",
+				         strerror(errno));
+				close(fd);
+				return -1;
+			}
+
+			memset(conf->conf_verifyscript, '\0', s.st_size + 1);
+			rlen = read(fd, conf->conf_verifyscript, s.st_size);
+			if (rlen == -1)
+			{
+				snprintf(err, errlen, "%s: read(): %s",
+				         str, strerror(errno));
+				close(fd);
+				return -1;
+			}
+			else if (rlen < s.st_size)
+			{
+				snprintf(err, errlen, "%s: early EOF",
+				         str);
+				close(fd);
+				return -1;
+			}
+
+			close(fd);
+		}
+#endif /* _FFR_LUA */
 	}
 
 	if (basedir[0] != '\0')
