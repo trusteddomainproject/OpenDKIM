@@ -155,12 +155,11 @@ DKIM specification for more information.
 Requests that
 .I opendkim
 include a "l=" body length tag when the set contains the recipient 
-addresses. @BODYLENGTHDB_MANNOTICE@
+addresses.
+@BODYLENGTHDB_MANNOTICE@
 
 .TP
 .I BogusKey (string)
-(Only available if the filter was compiled with libunbound to enable
-DNSSEC support.)
 Instructs the filter to treat a passing signature associated with a bogus
 (forged) key in a special way.  Possible values are
 .I neutral
@@ -169,17 +168,17 @@ Instructs the filter to treat a passing signature associated with a bogus
 (take no special action) and
 .I fail
 (return a "fail" result; this is the default).
+@UNBOUND_MANNOTICE@
 
 .TP
 .I BogusPolicy (string)
-(Only available if the filter was compiled with libunbound to enable
-DNSSEC support.)
 Instructs the filter to treat an ADSP policy found in an bogus (forged) DNS
 record in a special way.  Possible values are
 .I apply
 (apply the policy) and
 .I ignore
 (ignore the policy; this is the default).
+@UNBOUND_MANNOTICE@
 
 .TP
 .I Canonicalization (string)
@@ -209,7 +208,8 @@ failures.  Not recommended for normal operation.
 
 .TP
 .I DiagnosticDirectory (string)
-Store diagnostic files in this directory. @ZTAGS_MANNOTICE@
+Store diagnostic files in this directory.
+@ZTAGS_MANNOTICE@
 
 .TP
 .I DNSTimeout (integer)
@@ -263,13 +263,15 @@ will do that conversion anyway.  The default is to leave them as-is.
 
 .TP
 .I IdentityHeader (string)
-This specifies the header where an identity is stored. @IDENTITY_HEADER_MANNOTICE@
+This specifies the header where an identity is stored.
+@IDENTITY_HEADER_MANNOTICE@
 
 .TP
 .I IdentityHeaderRemove (Boolean)
 Remove the
 .I IdentityHeader
-after signing. @IDENTITY_HEADER_MANNOTICE@
+after signing.
+@IDENTITY_HEADER_MANNOTICE@
 
 .TP
 .I Include (string)
@@ -278,8 +280,6 @@ Nesting is allowed to a maximum of five levels.
 
 .TP
 .I InsecureKey (string)
-(Only available if the filter was compiled with libunbound to enable
-DNSSEC support.)
 Instructs the filter to treat a passing signature associated with an
 insecure key in a special way.  Possible values are
 .I neutral
@@ -288,17 +288,17 @@ insecure key in a special way.  Possible values are
 (take no special action; this is the default) and
 .I fail
 (return a "fail" result).
+@UNBOUND_MANNOTICE@
 
 .TP
 .I InsecurePolicy (string)
-(Only available if the filter was compiled with libunbound to enable
-DNSSEC support.)
 Instructs the filter to treat an ADSP policy found in an insecure DNS
 record in a special way.  Possible values are
 .I apply
 (apply the policy; this is the default) and
 .I ignore
 (ignore the policy).
+@UNBOUND_MANNOTICE@
 
 .TP
 .I InternalHosts (dataset)
@@ -459,7 +459,7 @@ in which case the default is
 
 .TP
 .I MultipleSignatures (Boolean)
-Allow addition of multiple signatures when key lists are in use. @MULTIPLE_SIGNATURES_MANNOTICE@
+Allow addition of multiple signatures when key lists are in use.
 
 .TP
 .I MTA (dataset)
@@ -568,7 +568,8 @@ containing the process ID.
 .TP
 .I POPDBFile (dataset)
 Requests that the filter consult a set for IP addresses that should be allowed
-for signing. This feature was designed for POP-before-SMTP datastores. @POPAUTH_MANNOTICE@
+for signing. This feature was designed for POP-before-SMTP datastores.
+@POPAUTH_MANNOTICE@
 
 .TP
 .I Quarantine (Boolean)
@@ -580,19 +581,22 @@ MTA.  (Requires a sufficiently recent version of the milter library.)
 Instructs the DKIM library to maintain its own local cache of keys and
 policies retrieved from DNS, rather than relying on the nameserver for
 caching service.  Useful if the nameserver being used by the filter is
-not local. @QUERY_CACHE_MANNOTICE@
+not local.
+@QUERY_CACHE_MANNOTICE@
 
 .TP
 .I ReplaceRules (string)
 Specifies a file containing a list of POSIX regular expressions that
-are applied the the message headers. @REPLACE_RULES_MANNOTICE@
+are applied the the message headers.
+@REPLACE_RULES_MANNOTICE@
 
 .TP
 .I ReportIntervalDB (dataset)
 Specifies a set of domains that correspond to how often, in seconds, to report 
 DKIM signature failues. See
 .I SendReports
-for more details. @REPORT_INTERVALS_MANNOTICE@
+for more details.
+@REPORT_INTERVALS_MANNOTICE@
 
 .TP
 .I RemoveARAll (Boolean)
@@ -627,7 +631,8 @@ used to construct the address.
 .I ReputationFail (integer)
 If the reputation returned by the DNS reputation service exceeds this
 value then the Authenticated Header result "x-dkim-rep" is set to "fail".
-Defaults to 0. @DKIM_REPUTATION_MANNOTICE@
+Defaults to 0.
+@DKIM_REPUTATION_MANNOTICE@
 
 .TP
 .I ReputationPass (integer)
@@ -637,18 +642,21 @@ Defaults to 0. Values in between
 .I ReputationFail
 and
 .I ReputationPass
-result in "x-dkim-rep" being set to "neutral". @DKIM_REPUTATION_MANNOTICE@
+result in "x-dkim-rep" being set to "neutral".
+@DKIM_REPUTATION_MANNOTICE@
 
 .TP
 .I ReputationReject (integer)
 If the reputation returned by the DNS reputation service exceeds this value
-then the message is rejected. The default value here is 1001. @DKIM_REPUTATION_MANNOTICE@
+then the message is rejected. The default value here is 1001.
+@DKIM_REPUTATION_MANNOTICE@
 
 .TP
 .I ReputationRoot (string)
 This is the root directory of the DNS reputation service. Its interface is 
 defined at http://www.dkim-reputation.org. The default value here is 
-"al.dkim-reputation.org". @DKIM_REPUTATION_MANNOTICE@
+"al.dkim-reputation.org".
+@DKIM_REPUTATION_MANNOTICE@
 
 .TP
 .I RequiredHeaders (boolean)
@@ -667,13 +675,15 @@ parameter above for more information.
 
 .TP
 .I SelectorHeader (string)
-This message header defines which selector to use when signing. @SELECTOR_HEADER_MANNOTICE@
+This message header defines which selector to use when signing.
+@SELECTOR_HEADER_MANNOTICE@
 
 .TP
 .I SelectorHeaderRemove (Boolean)
 Remove the
 .I Selector Header
-before signing. @SELECTOR_HEADER_MANNOTICE@
+before signing.
+@SELECTOR_HEADER_MANNOTICE@
 
 .TP
 .I SendADSPReports (Boolean)
@@ -694,7 +704,8 @@ solely of the "From" header field.
 
 .TP
 .I SenderMacro (string)
-Use the milter macro string to determine the sender of the message. @SENDER_MACRO_MANNOTICE@
+Use the milter macro string to determine the sender of the message.
+@SENDER_MACRO_MANNOTICE@
 
 .TP
 .I SendReports (Boolean)
@@ -783,7 +794,8 @@ Log via calls to
 .I syslog(3)
 using the named facility.  The facility names are the same as the ones
 allowed in
-.I syslog.conf(5).  The default is "mail".
+.I syslog.conf(5).
+The default is "mail".
 
 .TP
 .I SyslogSuccess (Boolean)
@@ -808,9 +820,9 @@ during automated testing.
 .TP
 .I TrustAnchorFile (string)
 Specifies a file from which trust anchor data should be read when doing
-DNS queries and applying the DNSSEC protocol.  Requires that the filter
-be compiled with USE_UNBOUND set.  See the Unbound documentation at
-http://unbound.net for the expected format of this file.
+DNS queries and applying the DNSSEC protocol.  See the Unbound documentation
+at http://unbound.net for the expected format of this file.
+@UNBOUND_MANNOTICE@
 
 .TP
 .I TrustSignaturesFrom (dataset)
@@ -848,17 +860,20 @@ is specified.
 
 .TP
 .I VBR-Certifiers (string)
-The default certifiers if not specified in X-VBR-Certifiers header field. @VBR_MANNOTICE@
+The default certifiers if not specified in X-VBR-Certifiers header field.
+@VBR_MANNOTICE@
 
 .TP
 .I VBR-TrustedCertifiers (string)
 A colon or comma sparated list of trusted certifiers to accept when 
 verifying VBR-Info headers.
-Under revision and may not be stable. @VBR_MANNOTICE@
+Under revision and may not be stable.
+@VBR_MANNOTICE@
 
 .TP
 .I VBR-Type (string)
-This default VBR type if not specified in the X-VBR-Type header field. @VBR_MANNOTICE@
+This default VBR type if not specified in the X-VBR-Type header field.
+@VBR_MANNOTICE@
 
 .TP
 .I X-Header (Boolean)
