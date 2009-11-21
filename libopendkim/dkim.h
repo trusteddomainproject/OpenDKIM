@@ -8,8 +8,12 @@
 #ifndef _DKIM_H_
 #define _DKIM_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.17 2009/11/11 19:38:33 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.17.2.1 2009/11/21 00:51:10 grooverdan Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1514,5 +1518,9 @@ extern const u_char *dkim_should_signhdrs[];
 
 /* list of headers that should not be signed, per RFC4871 section 5.5 */
 extern const u_char *dkim_should_not_signhdrs[];
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* ! _DKIM_H_ */
