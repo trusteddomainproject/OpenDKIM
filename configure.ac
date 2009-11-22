@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.69 2009/11/22 21:02:56 cm-msk Exp $
+# $Id: configure.ac,v 1.70 2009/11/22 22:11:50 grooverdan Exp $
 
 #
 # Setup
@@ -409,14 +409,15 @@ esac
 #saved_LDFLAGS="$LDFLAGS"
 #saved_LIBS="$LIBS"
 #
-#LIBS=""
-#CFLAGS="$LIBMILTER_INCDIRS $saved_CFLAGS"
-#LDFLAGS="-L$milterpath/lib $saved_LDFLAGS"
+#CC="$PTHREAD_CC"
+#LIBS="$PTHREAD_LIBS"
+#CFLAGS="$PTHREAD_CFLAGS $LIBMILTER_INCDIRS $saved_CFLAGS"
+#LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/lib $saved_LDFLAGS"
 #
 #AC_SEARCH_LIBS([smfi_register], [milter], ,
 #	[
 #		unset ac_cv_search_smfi_register
-#		LDFLAGS="-L$milterpath/lib $saved_LDFLAGS"
+#		LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/lib $saved_LDFLAGS"
 #		AC_SEARCH_LIBS([smfi_register], [milter], ,
 #		               AC_MSG_ERROR([libmilter not found]))
 #	])
