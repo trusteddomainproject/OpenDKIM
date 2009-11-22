@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.17 2009/11/22 08:15:49 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.18 2009/11/22 10:55:14 grooverdan Exp $
 
 #
 # Setup
@@ -274,7 +274,7 @@ AC_ARG_WITH([openssl],
                            [sslpath="$withval"], [sslpath="auto"])
 
 openssl_found="no"
-if test "$sslpath" = "auto" -o x"$sslpath" = x"yes"
+if test \( "$sslpath" = "auto" -o x"$sslpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
 	PKG_CHECK_MODULES([LIBCRYPTO], [openssl >= 0.9.7],
 	                  [openssl_found="yes"],
@@ -495,7 +495,7 @@ then
 	trepath="no"
 fi
 
-if test x"$trepath" = x"auto" -o x"$trepath" = x"yes"
+if test \(  x"$trepath" = x"auto" -o x"$trepath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
         PKG_CHECK_MODULES([LIBTRE], [tre >= 0.8.0], [tre_found="yes"],
 	[
@@ -564,7 +564,7 @@ odbx_found="no"
 LIBODBX_CPPFLAGS=""
 LIBODBX_LIBS=""
 
-if test x"$odbxpath" = x"auto" -o x"$odbxpath" = x"yes"
+if test \( x"$odbxpath" = x"auto" -o x"$odbxpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
         PKG_CHECK_MODULES([LIBODBX], [opendbx >= 1.3.7], [odbx_found="yes"],
 	[
