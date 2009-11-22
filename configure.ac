@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.18 2009/11/22 10:55:14 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.19 2009/11/22 11:10:10 grooverdan Exp $
 
 #
 # Setup
@@ -484,7 +484,7 @@ AC_SUBST(LIBUNBOUND_LIBS)
 AC_ARG_WITH([tre],
             AS_HELP_STRING([--with-tre],
 	                   [location of TRE includes and library]),
-            [trepath="$withval"], [trepath="no"])
+            [trepath="$withval"], [trepath="auto"])
 
 tre_found="no"
 LIBTRE_CFLAGS=""
@@ -508,7 +508,7 @@ fi
 if test x"$tre_found" = x"no" -a x"$trepath" != x"no"
 then
 	AC_MSG_CHECKING([for libtre])
-        if test x"$tre_path" != x"auto" -a x"$tre_path" != x"yes"
+        if test x"$trepath" != x"auto" -a x"$trepath" != x"yes"
         then
                 if test -f "$trepath/include/tre/tre.h"
                 then
@@ -529,11 +529,11 @@ then
 				tre_found="yes"
 				AC_MSG_RESULT($d)
 				LIBTRE_CFLAGS="-I$trepath/include"
-				LIBTRE_LIBD="-L$trepath/lib -ltre"
+				LIBTRE_LIBS="-L$trepath/lib -ltre"
 				break;
 			fi
 		done
-		if test x"$tre_found" = x"yes"
+		if test x"$tre_found" != x"yes"
 		then
 			AC_MSG_ERROR([cannot use diffheaders without TRE
 			              library])
