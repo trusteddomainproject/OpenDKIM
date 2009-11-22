@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.25 2009/11/22 08:15:50 grooverdan Exp $
+**  $Id: opendkim-db.c,v 1.26 2009/11/22 20:55:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.25 2009/11/22 08:15:50 grooverdan Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.26 2009/11/22 20:55:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -360,6 +360,13 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		struct dkimf_db_list *next = NULL;
 		struct dkimf_db_list *newl;
 
+		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
+		{
+			free(new);
+			errno = EINVAL;
+			return 2;
+		}
+
 		tmp = strdup(p);
 		if (tmp == NULL)
 			return -1;
@@ -498,6 +505,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
 		{
 			free(new);
+			errno = EINVAL;
 			return 2;
 		}
 
@@ -670,6 +678,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
 		{
 			free(new);
+			errno = EINVAL;
 			return 2;
 		}
 
