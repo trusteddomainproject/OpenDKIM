@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.57 2009/11/20 08:02:41 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.58 2009/11/22 19:01:22 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -41,6 +41,9 @@ release, and a summary of the changes in that release.
 		taking advantage of libtool.  Based on a patch by Daniel Black.
 	BUILD: When possible, limit the symbols exported as part of
 		libopendkim to only those listed in dkim.h.
+	BUILD: Moderate rewriting of the build system.  Highlights include
+		common factoring of some functions and addition of support for
+		pkg-config.
 
 1.1.2		2009/11/01
 	Under _FFR_SENDER_MACRO, need to check the value of "SenderMacro"
