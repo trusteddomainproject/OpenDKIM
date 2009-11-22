@@ -1,7 +1,7 @@
 Release procedures for OpenDKIM
 
-1) Edit configure.ac so that the new release number is formed with the VERSION_RELEASE*
-   macros.
+1) Edit configure.ac so that the new release number is formed with the
+   VERSION_RELEASE* macros.
 
 2) In the root build directory, do these things:
 
@@ -12,11 +12,12 @@ Release procedures for OpenDKIM
 
    This will produce an opendkim-(version).tar.gz tarball.
 
-3) Commit changes made to RELEASE_NOTES and potentially libopendkim/dkim.h to CVS.
+3) Commit changes made to RELEASE_NOTES and potentially libopendkim/dkim.h
+   to CVS.
 
-4) Check everything looks ok
+4) Check that everything looks correct.
 
-5) Deploy all needed files to sourceforge doing 'make push'
+5) Deploy all needed files to SourceForge by doing 'make push'.
 
 6) Via the SourceForge UI, do the following things to the new files:
 
@@ -26,21 +27,21 @@ Release procedures for OpenDKIM
 	c) associate RELEASE_NOTES with the tarball
 
 7) Prepare a release announcement by using the file "announcement" from CVS
-    as your template.  Change the From: to the name and address of the person
-    making the announcement.  Make sure that address has permissions to post
-    to opendkim-users and opendkim-announce.  There should be a paragraph
-    or two at the top highlighting the interesting changes and indicating
-    what the main focus of this release is (new features, bug fixes, etc.),
-    and then the full RELEASE_NOTES block for the new release.  Commit this
-    to CVS.
+   as your template.  Change the From: to the name and address of the person
+   making the announcement.  Make sure that address has permissions to post
+   to opendkim-users and opendkim-announce.  There should be a paragraph
+   or two at the top highlighting the interesting changes and indicating
+   what the main focus of this release is (new features, bug fixes, etc.),
+   and then the full RELEASE_NOTES block for the new release.  Commit this
+   to CVS.
 
 8) Send the release announcement:
 
 	% sendmail -t < announcement
 
-8) Mark any bug fixes or feature requests, etc. as closed if this release
-    contained them.
+9) Mark any bug fixes or feature requests, etc. as closed if this release
+   contained them.
 
-9) Update our entry on FreshMeat (http://www.freshmeat.net)
+10) Update our entry on FreshMeat (http://www.freshmeat.net)
 
-$Id: HowToRelease,v 1.4 2009/11/22 08:15:49 grooverdan Exp $
+$Id: HowToRelease,v 1.5 2009/11/22 18:57:27 cm-msk Exp $
