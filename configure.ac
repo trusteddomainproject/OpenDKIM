@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.19 2009/11/22 11:10:10 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.20 2009/11/22 11:43:31 grooverdan Exp $
 
 #
 # Setup
@@ -405,7 +405,28 @@ case "$milterpath" in
 esac
 
 LIBMILTER_INCDIRS="-I$milterpath/include"
-LIBMILTER_LIBDIRS="-L$milterpath/lib"
+saved_CFLAGS="$CFLAGS"
+saved_LDFLAGS="$LDFLAGS"
+saved_LIBS="$LIBS"
+
+LIBS=""
+CFLAGS="$LIBMILTER_INCDIRS $saved_CFLAGS"
+LDFLAGS="-L$milterpath/lib $saved_LDFLAGS"
+
+AC_SEARCH_LIBS([smfi_register], [milter], ,
+      [
+               unset ac_cv_search_smfi_register
+               LDFLAGS="-L$milterpath/lib/libmilter $saved_LDFLAGS"
+               AC_SEARCH_LIBS([smfi_register], [milter], ,
+                              AC_MSG_ERROR([libmilter not found]))
+      ])
+
+LIBMILTER_LIBDIRS="$LDFLAGS $LIBS"
+
+CFLAGS="$saved_CFLAGS"
+LDFLAGS="$saved_LDFLAGS"
+LIBS="$saved_LIBS"
+
 AC_SUBST(LIBMILTER_INCDIRS)
 AC_SUBST(LIBMILTER_LIBDIRS)
 AC_MSG_RESULT([$milterpath])
