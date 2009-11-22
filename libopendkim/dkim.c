@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.31 2009/11/17 20:09:21 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.31.2.1 2009/11/22 01:46:55 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -4456,7 +4456,8 @@ dkim_sign(DKIM_LIB *libhandle, const char *id, void *memclosure,
 	       hdrcanonalg == DKIM_CANON_RELAXED);
 	assert(bodycanonalg == DKIM_CANON_SIMPLE ||
 	       bodycanonalg == DKIM_CANON_RELAXED);
-	assert(signalg == DKIM_SIGN_RSASHA1 || signalg == DKIM_SIGN_RSASHA256);
+	assert(signalg == DKIM_SIGN_DEFAULT ||
+	       signalg == DKIM_SIGN_RSASHA1 || signalg == DKIM_SIGN_RSASHA256);
 	assert(statp != NULL);
 
 #ifdef SHA256_DIGEST_LENGTH
