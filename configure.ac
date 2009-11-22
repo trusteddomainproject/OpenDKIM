@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.71 2009/11/22 23:06:33 grooverdan Exp $
+# $Id: configure.ac,v 1.72 2009/11/22 23:29:28 grooverdan Exp $
 
 #
 # Setup
@@ -146,7 +146,7 @@ AC_DEFUN([FEATURE],
 
 AC_DEFUN([LIB_FEATURE],
          [FEATURE($1, $2)
-         AS_IF([test "x$enable_]$1[" != "xno"],
+         AS_IF([test "x$enable_]$1[" = "xyes"],
 	        [
 			LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING $1"
 		])
@@ -174,7 +174,7 @@ AC_DEFUN([FFR_FEATURE],
 #			          [enable $1 feature])
 AC_DEFUN([LIB_FFR_FEATURE],
          [FFR_FEATURE($1, $2)
-          AS_IF([test "x$enable_]$1[" != "xno"],
+          AS_IF([test "x$enable_]$1[" = "xyes"],
                 [
 			LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING $1"
 		])
