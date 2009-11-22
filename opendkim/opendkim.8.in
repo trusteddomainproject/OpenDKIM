@@ -434,6 +434,8 @@ the nameserver;
 (key) the key referenced by the signature was not present in the nameserver;
 .I nosignature
 (no) no signature was present on the message;
+.I policy
+(pol) an attempt to retrieve the policy (ADSP) record failed;
 .I security
 (sec) the message tripped internal security concerns (e.g. unusually large
 header blocks).  There is also a special result called

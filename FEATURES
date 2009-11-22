@@ -73,6 +73,9 @@ report_intervals
 		Support for report intervals, part of the DKIM reporting
 		extensions.  (opendkim)
 
+resign		Experimental API features for simultaneous verifying and
+		re-signing of a single message.  (libopendkim)
+
 select_canonicalization
 		Optionally override the value of the "-c" command line flag
 		by specifying a preferred canonicalization on a special
@@ -108,4 +111,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.9.2.1 $, Last updated $Date: 2009/11/21 00:49:29 $
+$Revision: 1.9.2.2 $, Last updated $Date: 2009/11/22 08:15:49 $

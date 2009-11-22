@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.38.2.9 2009/11/14 13:03:47 grooverdan Exp $
+# $Id: Makefile.am,v 1.38.2.10 2009/11/22 08:15:50 grooverdan Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -104,7 +104,7 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test109 t-test110 t-test111 t-test112 t-test114 \
 	t-test115 t-test116 t-test117 t-test119 t-test120 \
 	t-test121 t-test122 t-test123 t-test124 t-test125 t-test126 \
-	t-test127 t-signperf t-verifyperf
+	t-test127 t-test128 t-test129 t-test130 t-test131 t-signperf t-verifyperf
 if ALL_SYMBOLS
 check_PROGRAMS +=t-test49 t-test113 t-test118
 endif
@@ -247,6 +247,10 @@ t_test124_SOURCES = t-test124.c t-testdata.h
 t_test125_SOURCES = t-test125.c t-testdata.h
 t_test126_SOURCES = t-test126.c t-testdata.h
 t_test127_SOURCES = t-test127.c t-testdata.h
+t_test128_SOURCES = t-test128.c t-testdata.h
+t_test129_SOURCES = t-test129.c t-testdata.h
+t_test130_SOURCES = t-test130.c t-testdata.h
+t_test131_SOURCES = t-test131.c t-testdata.h
 
 DISTCLEANFILES = symbols.map
 

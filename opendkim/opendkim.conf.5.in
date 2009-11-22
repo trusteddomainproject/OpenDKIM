@@ -470,6 +470,22 @@ filter.  There is no default, meaning MTA name is not considered when
 making the sign-verify decision.
 
 .TP
+.I MultipleSignatures (Boolean)
+If set to "true" and a
+.I KeyList
+is in use, all
+.I KeyList
+entries that match the candidate message will cause a signature to be added.
+Otherwise, only the first matching
+.I KeyList
+entry will be added, or only the key defined by
+.I Domain,
+.I Selector
+and
+.I KeyFile
+will be added.
+
+.TP
 .I MustBeSigned (dataset)
 Specifies a set of headers that, if present, must be covered by the
 DKIM signature when verifying a message.  If a header in this set is present
@@ -536,6 +552,15 @@ The default is
 .TP
 .I On-NoSignature (string)
 Selects the action to be taken when a message arrives unsigned.
+Possible values are the same as those for
+.I On-BadSignature.
+The default is
+.I accept.
+
+.TP
+.I On-PolicyError (string)
+Selects the action to be taken when a an attempt to retrieve and evaluate
+the author domain's signing policy (ADSP) is unsuccessful.
 Possible values are the same as those for
 .I On-BadSignature.
 The default is
@@ -662,6 +687,17 @@ defined at http://www.dkim-reputation.org. The default value here is
 .I RequiredHeaders (boolean)
 Checks all messages for compliance with RFC2822 header field count
 requirements.  Non-compliant messages are rejected.
+
+.TP
+.I ResignMailTo (dataset)
+Signs the email, in addition to verifying it, if the message recipient is in
+this set.
+@RESIGN_MANNOTICE@
+
+.TP
+.I ResignAll (boolean)
+Resign everything if set, verified mail only if not, defaults to false.
+@RESIGN_MANNOTICE@
 
 .TP
 .I Selector (string)

@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.2.16 2009/11/21 00:49:29 grooverdan Exp $
+# $Id: configure.ac,v 1.67.2.17 2009/11/22 08:15:49 grooverdan Exp $
 
 #
 # Setup
@@ -202,6 +202,9 @@ FFR_FEATURE([report_intervals],
 FFR_FEATURE([redirect],
             [support for redirecting failed verifications to a mailbox])
 
+FFR_FEATURE([resign],
+            [support for one-step re-signing])
+
 FFR_FEATURE([select_canonicalization],
             [allow sender to select canonicalization])
 
@@ -259,6 +262,7 @@ AC_ARG_ENABLE([debug],
               AS_IF([test "x$enable_debug" != "xno"],
 		[
 			LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING debug"
+			CFLAGS=`echo $CFLAGS | sed "s/ -O[0-9s]?//g"`
 		])
 )
 
