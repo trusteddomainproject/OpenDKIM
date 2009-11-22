@@ -1,50 +1,31 @@
 Release procedures for OpenDKIM
 
-1) Edit libopendkim/dkim.h and change OPENDKIM_LIB_VERSION to match the new
-   release number.
+1) Edit configure.ac so that the new release number is formed with the VERSION_RELEASE*
+   macros.
 
-2) Edit opendkim/opendkim.h and change DKIMF_VERSION to match the new
-   release number.  Make sure any suffixes like ".dev" are removed.
-
-3) Edit configure.ac so that the new release number is the second parameter
-   in the AC_INIT() call.
-
-4) Edit RELEASE_NOTES and set the date of the new version to today's date.
-
-5) Commit the above changes to CVS.
-
-6) In the root build directory, do these things:
+2) In the root build directory, do these things:
 
 	% make distclean
 	% ./autogen.sh
 	% ./configure
-	% make dist
+	% make distcheck
 
    This will produce an opendkim-(version).tar.gz tarball.
 
-7) Generate an MD5 checksum of the tarball and write it to its own file:
+3) Commit changes made to RELEASE_NOTES and potentially libopendkim/dkim.h to CVS.
 
-	% md5 opendkim-(version).tar.gz > opendkim-(version).tar.gz.md5
+4) Check everything looks ok
 
-8) Upload these two files and the RELEASE_NOTES to SourceForge:
+5) Deploy all needed files to sourceforge doing 'make push'
 
-	scp opendkim-(version).tar.gz \
-		opendkim-(version).tar.gz.md5 RELEASE_NOTES \
-		(userid),opendkim@frs.sourceforge.net:/home/frs/project/o/op/opendkim/
-
-   ...where (userid) is replaced by your SourceForge userid.  You'll need
-   to have permissions in the SourceForge system to do file releases for
-   the opendkim project, have added a public key to your account there,
-   and be using an SSH agent with your private key.
-
-9) Via the SourceForge UI, do the following things to the new files:
+6) Via the SourceForge UI, do the following things to the new files:
 
 	a) mark RELEASE_NOTES as a release notes file by checking the box
 	b) make the latest tarball the default download for Linux, Solaris
 	   and BSD
 	c) associate RELEASE_NOTES with the tarball
 
-10) Prepare a release announcement by using the file "announcement" from CVS
+7) Prepare a release announcement by using the file "announcement" from CVS
     as your template.  Change the From: to the name and address of the person
     making the announcement.  Make sure that address has permissions to post
     to opendkim-users and opendkim-announce.  There should be a paragraph
@@ -53,16 +34,13 @@ Release procedures for OpenDKIM
     and then the full RELEASE_NOTES block for the new release.  Commit this
     to CVS.
 
-11) Send the release announcement:
+8) Send the release announcement:
 
 	% sendmail -t < announcement
 
-12) Mark any bug fixes or feature requests, etc. as closed if this release
+8) Mark any bug fixes or feature requests, etc. as closed if this release
     contained them.
 
-13) Update our entry on FreshMeat (http://www.freshmeat.net)
+9) Update our entry on FreshMeat (http://www.freshmeat.net)
 
-14) Apply a CVS tag to the release.  Make sure you're tagging from the
-    top-level directory, and use a tag name of "rel-opendkim-x-y-z".
-
-$Id: HowToRelease,v 1.3 2009/09/17 07:06:50 cm-msk Exp $
+$Id: HowToRelease,v 1.4 2009/11/22 08:15:49 grooverdan Exp $

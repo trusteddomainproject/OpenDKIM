@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.5 2009/10/29 06:22:43 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.6 2009/11/22 08:15:50 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.5 2009/10/29 06:22:43 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.6 2009/11/22 08:15:50 grooverdan Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -24,6 +24,7 @@ static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.5 2009/10/29 
 #include <time.h>
 
 /* opendkim includes */
+#include "build-config.h"
 #include "opendkim-db.h"
 #include "stats.h"
 

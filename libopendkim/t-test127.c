@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test127_c_id[] = "@(#)$Id: t-test127.c,v 1.6 2009/11/12 00:09:41 cm-msk Exp $";
+static char t_test127_c_id[] = "@(#)$Id: t-test127.c,v 1.7 2009/11/22 08:15:50 grooverdan Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -108,12 +108,12 @@ main(int argc, char **argv)
 
 	memset(buf, '\0', sizeof buf);
 
-	strlcpy(buf, CRLFBODY00, sizeof buf);
+	dkim_strlcpy(buf, CRLFBODY00, sizeof buf);
 
 	while (strlen(buf) < BOUNDARY)
-		strlcat(buf, CRLF, sizeof buf);
+		dkim_strlcat(buf, CRLF, sizeof buf);
 
-	strlcat(buf, CRLFBODY00, sizeof buf);
+	dkim_strlcat(buf, CRLFBODY00, sizeof buf);
 
 	assert(strlen(buf) > BOUNDARY);
 

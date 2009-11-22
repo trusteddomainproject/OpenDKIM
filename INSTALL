@@ -44,7 +44,7 @@ doesn't find it, you will need to specify the location with
 		a specific path, the /usr/local/BerkeleyDB, /usr/local and
 		/usr directories will be searched for both the required
 		includes and the required libraries.  Required for the
-		following features: bodylengthdb, querycache, stats
+		following features: bodylengthdb, query_cache, stats
 
 --with-domainkeys
 		Sendmail's "libdk" include file and library for verifying
@@ -94,7 +94,7 @@ filter		Compile the opendkim filter.  Requires libmilter (see
 
 popauth		Enable POP-before-SMTP support.
 
-querycache	Cache DNS replies in a local database.  Requires the
+query_cache	Cache DNS replies in a local database.  Requires the
 		BerkeleyDB database.  (See "--with-db" above.)
 
 
@@ -372,4 +372,4 @@ headers of the reply you should see its signature and another
 Authentication-Results: header, which should also read "pass".
 
 
-$Id: INSTALL,v 1.10 2009/11/02 18:47:28 cm-msk Exp $
+$Id: INSTALL,v 1.11 2009/11/22 08:15:49 grooverdan Exp $

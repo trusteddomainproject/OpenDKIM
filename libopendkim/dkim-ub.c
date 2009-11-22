@@ -6,8 +6,10 @@
 */
 
 #ifndef lint
-static char dkim_ub_c_id[] = "@(#)$Id: dkim-ub.c,v 1.2 2009/07/23 17:40:24 cm-msk Exp $";
+static char dkim_ub_c_id[] = "@(#)$Id: dkim-ub.c,v 1.3 2009/11/22 08:15:50 grooverdan Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 #ifdef USE_UNBOUND
 /* system includes */
@@ -20,6 +22,7 @@ static char dkim_ub_c_id[] = "@(#)$Id: dkim-ub.c,v 1.2 2009/07/23 17:40:24 cm-ms
 
 /* libopendkim includes */
 #include "dkim-types.h"
+#include "dkim-internal.h"
 #include "util.h"
 
 /* libunbound includes */

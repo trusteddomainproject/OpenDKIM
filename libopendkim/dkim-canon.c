@@ -6,8 +6,10 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.15 2009/11/17 20:09:21 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.16 2009/11/22 08:15:50 grooverdan Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/param.h>

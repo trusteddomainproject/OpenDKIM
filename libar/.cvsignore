@@ -36,3 +36,4 @@ Makefile
 .deps
 .libs
 core
+*.core

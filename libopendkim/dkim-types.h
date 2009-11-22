@@ -9,8 +9,10 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.9 2009/11/17 20:09:21 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.10 2009/11/22 08:15:50 grooverdan Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -21,9 +23,10 @@ static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.9 2009/11/17 20:09:21
 # include <regex.h>
 #endif /* USE_TRE */
 
+#include "build-config.h"
 /* libar includes */
 #ifdef USE_ARLIB
-# include <ar.h>
+# include "ar.h"
 #endif /* USE_ARLIB */
 
 /* OpenSSL includes */
@@ -45,6 +48,7 @@ static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.9 2009/11/17 20:09:21
 
 /* libopendkim includes */
 #include "dkim.h"
+#include "dkim-internal.h"
 
 /* struct dkim_pstate -- policy query state */
 struct dkim_pstate

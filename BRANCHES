@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.9 2009/11/19 20:03:15 cm-msk Exp $
+$Id: BRANCHES,v 1.10 2009/11/22 08:15:49 grooverdan Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -24,17 +24,16 @@ br-dblack-codecoverage
 		Generate code coverage testing from lcov
 		(http://ltp.sourceforge.net/coverage/lcov.php)
 
+Closed Branches
+~~~~~~~~~~~~~~~
+
 br-dblack-autoimprovements
 		m4 subdirectory for macros
 		pkg-config detection
 		pkg-conf delivery of .pc files for our libraries
 		full FEATURE and FFR_FEATURE macros in configure.ac
 		man page generation for opendkim (include doco for FFR bits
-			and tag experimental in man pages if enabled)
-
-
-Closed Branches
-~~~~~~~~~~~~~~~
+		and tag experimental in man pages if enabled)
 
 br-msk-reduce-symbols
 		Build automation to limit exported library symbols 

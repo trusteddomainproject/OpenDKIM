@@ -4,12 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.6 2009/10/29 06:22:44 cm-msk Exp $
+**  $Id: stats.c,v 1.7 2009/11/22 08:15:50 grooverdan Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.6 2009/10/29 06:22:44 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.7 2009/11/22 08:15:50 grooverdan Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 #ifdef _FFR_STATS
 

@@ -37,3 +37,4 @@ symbols.map
 .libs
 .deps
 core
+*.core

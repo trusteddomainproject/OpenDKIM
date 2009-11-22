@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.9 2009/11/17 20:09:22 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.10 2009/11/22 08:15:50 grooverdan Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.9 2009/11/17 20:09:22 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.10 2009/11/22 08:15:50 grooverdan Exp $";
 #endif /* !lint */
 
 struct configdef dkimf_config[] =
@@ -29,7 +29,7 @@ struct configdef dkimf_config[] =
 	{ "Background",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "BaseDirectory",		CONFIG_TYPE_STRING,	FALSE },
 	{ "BodyLengths",		CONFIG_TYPE_BOOLEAN,	FALSE },
-#if _FFR_BODYLENGTH_DB
+#ifdef _FFR_BODYLENGTH_DB
 	{ "BodyLengthDBFile",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_BODYLENGTH_DB */
 #ifdef USE_UNBOUND

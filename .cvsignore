@@ -34,8 +34,11 @@ libtool
 Makefile.in
 Makefile
 *.tar.gz
+*.tar.gz.md5
+*.tar.gz.sha1
 
 tags
 .deps
 autom4te.cache
 core
+*.core

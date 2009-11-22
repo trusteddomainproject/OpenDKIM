@@ -1,6 +1,8 @@
-# $Id: Makefile.am,v 1.14 2009/11/14 07:22:36 grooverdan Exp $
+# $Id: Makefile.am,v 1.15 2009/11/22 08:15:49 grooverdan Exp $
 
 AUTOMAKE_OPTIONS = foreign
+ACLOCAL_AMFLAGS = -I m4
+
 SUBDIRS = 
 if USE_ARLIB
 SUBDIRS += libar
@@ -9,7 +11,7 @@ if VBR
 SUBDIRS += libvbr
 endif
 SUBDIRS += libopendkim opendkim
-EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
+EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail \
 	RELEASE_NOTES.Sendmail \
 	contrib/opendkim.init \
 	contrib/opendkim.spec \
@@ -111,3 +113,19 @@ EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
 	libopendkim/docs/dkim_sig_getidentity.html \
 	libopendkim/docs/dkim_sig_getcanons.html \
 	libopendkim/docs/dkim_libfeature.html
+
+dist-hook:
+	[ -f  $(distdir)/libopendkim/dkim.h ] && rm -f  $(distdir)/libopendkim/dkim.h
+	sed -e '/^#define[ \t]*OPENDKIM_LIB_VERSION/s/0x[0-9]*/0x@HEX_VERSION@/' < $(srcdir)/libopendkim/dkim.h > $(distdir)/libopendkim/dkim.h
+	echo "looking to see if @VERSION@ is in the RELEASE_NOTES"
+	fgrep @VERSION@ $(srcdir)/RELEASE_NOTES
+	sed -e 's|\(@VERSION@[ \t]*\)[0-9?]\{4\}\(/[0-9?]\{2\}\)\{2\}|\1'`date +%Y/%m/%d`'|' < $(srcdir)/RELEASE_NOTES > $(distdir)/RELEASE_NOTES
+
+push:
+	@echo "Are you sure you want to tag and release $(distdir).tar.gz? (y/n)"
+	@read confirm && [ $$confirm = 'y' ]
+	v=$(VERSION) ; cvs tag rel-opendkim-$${v//./-}
+	sha1 $(distdir).tar.gz > $(distdir).tar.gz.sha1 || sha1sum  $(distdir).tar.gz > $(distdir).tar.gz.sha1
+	scp $(distdir).tar.gz $(distdir).tar.gz.sha1 RELEASE_NOTES cm-msk,opendkim@frs.sourceforge.net:/home/frs/project/o/op/opendkim/
+
+.PHONY: push

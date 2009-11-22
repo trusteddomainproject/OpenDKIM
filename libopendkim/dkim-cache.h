@@ -8,10 +8,14 @@
 #ifndef _DKIM_CACHE_H_
 #define _DKIM_CACHE_H_
 
+#include "build-config.h"
+
+#include "dkim-internal.h"
+
 #ifdef QUERY_CACHE
 
 #ifndef lint
-static char dkim_cache_h_id[] = "@(#)$Id: dkim-cache.h,v 1.1 2009/07/16 19:12:03 cm-msk Exp $";
+static char dkim_cache_h_id[] = "@(#)$Id: dkim-cache.h,v 1.2 2009/11/22 08:15:50 grooverdan Exp $";
 #endif /* !lint */
 
 /* libdb includes */

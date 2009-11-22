@@ -40,3 +40,5 @@ opendkim-stats
 opendkim-testkey
 .libs
 core
+*.core
+opendkim*.[58]                                
