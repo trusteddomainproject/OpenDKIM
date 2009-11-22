@@ -1,38 +1,107 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.68 2009/11/17 20:09:20 cm-msk Exp $
+# $Id: configure.ac,v 1.69 2009/11/22 21:02:56 cm-msk Exp $
 
+#
+# Setup
+#
 AC_PREREQ(2.62)
-sinclude(acx_pthread.m4)
 
-AC_INIT(OpenDKIM, 1.2.0, bugs@opendkim.org)
-AM_INIT_AUTOMAKE(opendkim, 1.2.0)
+#
+# Package version
+#
+m4_define([VERSION_RELEASE], 1)
+m4_define([VERSION_MAJOR_REV], 2)
+m4_define([VERSION_MINOR_REV], 0)
+m4_define([VERSION_PATCH], 0)
+
+#
+# Autotools setup
+#
+AC_INIT([OpenDKIM],
+        [VERSION_RELEASE.VERSION_MAJOR_REV.VERSION_MINOR_REV],
+        [bugs@opendkim.org])
+
+AC_CONFIG_AUX_DIR([build-aux])
+AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([libar/ar.c])
 AC_CONFIG_HEADERS([build-config.h])
 
-# Checks for programs.
+AC_CONFIG_MACRO_DIR([m4])
+
+#
+# Hexadecimal version, for use in generating dkim.h
+# 
+HEX_VERSION=$(printf %08x $(( ((VERSION_RELEASE << 8 | VERSION_MAJOR_REV) << 8 | VERSION_MINOR_REV) << 8| VERSION_PATCH )))
+AC_SUBST([HEX_VERSION])
+
+#
+# Checks for programs
+#
 AC_PROG_CC
 AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_LIBTOOL
 
-# Check for how to compile threaded stuff
-ACX_PTHREAD
-LIBS="$PTHREAD_LIBS $LIBS"
-CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
-CC="$PTHREAD_CC"
+PKG_PROG_PKG_CONFIG
 
-# Checks for libraries.
-AC_SEARCH_LIBS(res_mkquery, resolv)
-AC_SEARCH_LIBS(dn_expand, resolv)
+#
+# Check for how to compile threaded stuff
+#
+ACX_PTHREAD
+
+#
+# Checks for libraries
+#
 AC_SEARCH_LIBS(inet_addr, nsl)
 AC_SEARCH_LIBS(socket, socket)
 
-# Checks for header files.
 AC_HEADER_RESOLV
+
+dnscheck='
+#include "confdefs.h" 
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h> 
+int main() {
+res_mkquery (0, 0, 0, 0, 0, 0, 0, 0, 0);
+dn_expand (0, 0, 0, 0, 0);
+dn_skipname (0, 0);
+dn_comp (0, 0, 0, 0, 0);
+return 0;
+}'
+AC_MSG_CHECKING([whether the resolver works without -lresolv])
+AC_LINK_IFELSE([
+$dnscheck
+] , [
+	AC_MSG_RESULT(yes)
+	LIBRESOLV=
+] , [
+	AC_MSG_RESULT(no)
+	AC_MSG_CHECKING([whether the resolver works with -lresolv])
+	saved_LIBS="$LIBS"
+	LIBS=-lresolv
+	AC_LINK_IFELSE([
+$dnscheck
+	] , [
+		AC_MSG_RESULT(yes)
+		LIBRESOLV=-lresolv
+	] , [
+		AC_MSG_RESULT(no)
+		AC_MSG_ERROR([need workable resolver library])
+	])
+	LIBS="$saved_LIBS"
+])
+AC_SUBST([LIBRESOLV])
+ 
+#
+# Checks for header files
+#
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h iso/limits_iso.h netdb.h netinet/in.h paths.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h])
 
+#
 # Checks for typedefs, structures, and compiler characteristics.
+#
 AC_HEADER_STDBOOL
 AC_TYPE_UID_T
 AC_TYPE_MODE_T
@@ -43,144 +112,265 @@ AC_TYPE_SSIZE_T
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 
+#
 # Checks for library functions.
+#
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strtol strtoul strtoull strlcpy strlcat])
 
+#
+# Library feature string and macros
+#
+LIBOPENDKIM_FEATURE_STRING="libopendkim $PACKAGE_VERSION:"
+
+AC_DEFUN([TR_UP], [m4_translit([AS_TR_SH([$1])], [a-z], [A-Z])])
+
+# AC_DEFINE(TR_UP($1), 1, [enable $1 feature])
+
+AC_DEFUN([FEATURE],
+         [notincluded="(Not enabled in this installation.)"
+          AC_ARG_ENABLE($1, AS_HELP_STRING(--enable-$1, $2),
+                        AS_IF([test "x$enable_]$1[" != "xno"],
+                              [
+				AC_SUBST(TR_UP($1)[_MANNOTICE], "")
+			      ],
+			      [
+				AC_SUBST(TR_UP($1)[_MANNOTICE], $notincluded)
+			      ]),
+                        AC_SUBST(TR_UP($1)[_MANNOTICE], $notincluded))
+         ])
+
+# AC_DEFINE([LIBOPENDKIM_]TR_UP($1), 1,
+#           [enable $1 feature])
+
+AC_DEFUN([LIB_FEATURE],
+         [FEATURE($1, $2)
+          AS_IF([test "x$enable_]$1[" != "xno"],
+	        [
+			LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING $1"
+		])
+         ])
+
+AC_DEFUN([FFR_FEATURE],
+         [experimentalnotincluded="(Experimental feature not enabled in this installation.)"
+          AC_ARG_ENABLE($1, AS_HELP_STRING(--enable-$1, $2),
+                        AS_IF([test "x$enable_]$1[" != "xno"],
+                              [
+				AC_DEFINE([_FFR_]TR_UP($1), 1,
+				          [enable $1 feature])
+				AC_SUBST(TR_UP($1)[_MANNOTICE],
+				         "(feature is experimental)")
+                              ],
+                              [
+				AC_SUBST(TR_UP($1)[_MANNOTICE],
+				         $experimentalnotincluded)
+                              ]),
+                        AC_SUBST(TR_UP($1)[_MANNOTICE],
+                                 $experimentalnotincluded))
+         ])
+
+AC_DEFUN([LIB_FFR_FEATURE],
+         [FFR_FEATURE($1, $2)
+          AS_IF([test "x$enable_]$1[" != "xno"],
+                [
+			AC_DEFINE([LIBOPENDKIM_]TR_UP($1), 1,
+			          [enable $1 feature])
+			LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING $1"
+		])
+         ])
+
+#
+# opendkim
+#
+FEATURE([popauth], [enable POP-before-SMTP support])
+
+FFR_FEATURE([bodylengthdb], [support for body length DBs])
+
+FFR_FEATURE([capture_unknown_errors],
+            [quarantine unknown verification failures])
+
+FFR_FEATURE([diffheaders], [compare signed and verified headers when possible])
+
+FFR_FEATURE([dkim_reputation], [experimental DKIM reputation checks])
+
+FFR_FEATURE([identity_header], [special header to set identity])
+
+FFR_FEATURE([replace_rules], [support for string substitution when signing])
+
+FFR_FEATURE([report_intervals],
+            [support for requested report intervals when reporting])
+
+FFR_FEATURE([redirect],
+            [support for redirecting failed verifications to a mailbox])
+
+FFR_FEATURE([resign],
+            [support for one-step re-signing])
+
+FFR_FEATURE([select_canonicalization],
+            [allow sender to select canonicalization])
+
+FFR_FEATURE([selector_header], [special header to choose signing key])
+
+FFR_FEATURE([sender_macro], [macro to determine sender])
+
+FFR_FEATURE([vbr], [Vouch-By-Reference support])
+AM_CONDITIONAL([VBR], [test x"$enable_vbr" != x"no"])
+
+FFR_FEATURE([ztags], [sign/verify with z= tags])
+
+FFR_FEATURE([stats], [stats recording and reporting])
+AM_CONDITIONAL([STATS], [test x"$enable_stats" != x"no"])
+
+AC_ARG_ENABLE([filter],
+              AS_HELP_STRING([--disable-filter],
+                             [do not compile the opendkim filter]),
+              [enable_filter=$enableval],
+              [enable_filter=yes])
+AM_CONDITIONAL([BUILD_FILTER], [test x"$enable_filter" != x"no"])
+
+#
+# libopendkim
+#
+LIB_FEATURE([query_cache], [local key/policy caching])
+
+LIB_FFR_FEATURE([dnsupgrade], [upgrade DNS to TCP when needed])
+LIB_FFR_FEATURE([parsetime], [parse From: headers for sending times])
+
+#
 # Conditional stuff
-AC_ARG_ENABLE(allsymbols, AS_HELP_STRING(--enable-all-symbols, export even internal-use symbols))
-AM_CONDITIONAL(ALL_SYMBOLS, test "$enable_allsymbols" = yes)
+#
+AC_ARG_ENABLE([allsymbols],
+              AS_HELP_STRING([--enable-allsymbols],
+                             [export internal-use symbols for better test coverage]))
+AM_CONDITIONAL(ALL_SYMBOLS, [test "$enable_allsymbols" = yes])
 
-AC_ARG_ENABLE(arlib, AS_HELP_STRING(--enable-arlib, enable provided asynchronous resolver library))
-AM_CONDITIONAL(USE_ARLIB, test "$enable_arlib" = yes)
+AC_ARG_ENABLE([arlib],
+              AS_HELP_STRING([--enable-arlib],
+                             [enable provided asynchronous resolver library]),
+              AS_IF([test "x$enable_arlib" != "xno"],
+              [
+		AC_DEFINE(USE_ARLIB, 1,
+		          [enable provided asynchronous resolver library])
+		LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING libar"
+              ])
+)
 
-AC_ARG_ENABLE(bodylengthdb, AS_HELP_STRING(--enable-bodylengthdb, support for body length DBs))
-AM_CONDITIONAL(BODYLENGTH_DB, test "$enable_bodylengthdb" = yes)
+AM_CONDITIONAL([USE_ARLIB], [test x"$enable_arlib" = x"yes"])
 
-AC_ARG_ENABLE(captureerrors, AS_HELP_STRING(--enable-captureerrors, quarantine unknown verification failures))
-AM_CONDITIONAL(CAPTURE_UNKNOWN_ERRORS, test "$enable_captureerrors" = yes)
+AC_ARG_ENABLE([debug],
+              AS_HELP_STRING([--enable-debug],
+	                     [produce debugging binaries and libraries]),
+              AS_IF([test "x$enable_debug" != "xno"],
+		[
+			LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING debug"
+			CFLAGS=`echo $CFLAGS | sed "s/ -O[0-9s]?//g"`
+		])
+)
 
-AC_ARG_ENABLE(debug, AS_HELP_STRING(--enable-debug, produce debugging binaries and libraries))
-AM_CONDITIONAL(DEBUG, test "$enable_debug" = yes)
+AM_CONDITIONAL([DEBUG], [test "$enable_debug" = yes])
 
-AC_ARG_ENABLE(diffheaders, AS_HELP_STRING(--enable-diffheaders, compare signed and verified headers when possible))
-AM_CONDITIONAL(DIFFHEADERS, test "$enable_diffheaders" = yes)
+AC_ARG_WITH([openssl],
+            AS_HELP_STRING([--with-openssl],
+                           [location of OpenSSL includes and library]),
+                           [sslpath="$withval"], [sslpath="auto"])
 
-AC_ARG_ENABLE(dkimreputation, AS_HELP_STRING(--enable-dkimreputation, experimental DKIM reputation checks))
-AM_CONDITIONAL(DKIM_REPUTATION, test "$enable_dkimreputation" = yes)
-
-AC_ARG_ENABLE(dnsupgrade, AS_HELP_STRING(--enable-dnsupgrade, upgrade DNS to TCP when needed))
-AM_CONDITIONAL(DNS_UPGRADE, test "$enable_dnsupgrade" = yes)
-
-AC_ARG_ENABLE(filter, AS_HELP_STRING(--disable-filter, do not compile the opendkim filter), enable_filter=$enableval, enable_filter=yes)
-AM_CONDITIONAL(BUILD_FILTER, test "$enable_filter" = yes)
-
-AC_ARG_ENABLE(identityheader, AS_HELP_STRING(--enable-identityheader, special header to set identity))
-AM_CONDITIONAL(IDENTITY_HEADER, test "$enable_identityheader" = yes)
-
-AC_ARG_ENABLE(parsetime, AS_HELP_STRING(--enable-parsetime, parse From: headers for sending times))
-AM_CONDITIONAL(PARSE_TIME, test "$enable_parsetime" = yes)
-
-AC_ARG_ENABLE(popauth, AS_HELP_STRING(--enable-popauth, enable POP-before-SMTP support))
-AM_CONDITIONAL(POPAUTH, test "$enable_popauth" = yes)
-
-AC_ARG_ENABLE(querycache, AS_HELP_STRING(--enable-querycache, local key/policy caching))
-AM_CONDITIONAL(QUERY_CACHE, test "$enable_querycache" = yes)
-
-AC_ARG_ENABLE(redirect, AS_HELP_STRING(--enable-redirect, support for redirect on failure))
-AM_CONDITIONAL(REDIRECT, test "$enable_redirect" = yes)
-
-AC_ARG_ENABLE(replacerules, AS_HELP_STRING(--enable-replacerules, support for string substitution when signing))
-AM_CONDITIONAL(REPLACE_RULES, test "$enable_replacerules" = yes)
-
-AC_ARG_ENABLE(reportintervals, AS_HELP_STRING(--enable-reportintervals, support for requested report intervals when reporting))
-AM_CONDITIONAL(REPORT_INTERVALS, test "$enable_reportintervals" = yes)
-
-AC_ARG_ENABLE(resign, AS_HELP_STRING(--enable-resign, support for one-step re-signing))
-AM_CONDITIONAL(RESIGN, test "$enable_resign" = yes)
-
-AC_ARG_ENABLE(selectcanon, AS_HELP_STRING(--enable-selectcanon, allow sender to select canonicalization))
-AM_CONDITIONAL(SELECT_CANONICALIZATION, test "$enable_selectcanon" = yes)
-
-AC_ARG_ENABLE(selectorheader, AS_HELP_STRING(--enable-selectorheader, special header to choose signing key))
-AM_CONDITIONAL(SELECTOR_HEADER, test "$enable_selectorheader" = yes)
-
-AC_ARG_ENABLE(sendermacro, AS_HELP_STRING(--enable-sendermacro, macro to determine sender))
-AM_CONDITIONAL(SENDER_MACRO, test "$enable_sendermacro" = yes)
-
-AC_ARG_ENABLE(stats, AS_HELP_STRING(--enable-stats, stats recording and reporting))
-AM_CONDITIONAL(STATS, test "$enable_stats" = yes)
-
-AC_ARG_ENABLE(vbr, AS_HELP_STRING(--enable-vbr, Vouch-By-Reference support))
-AM_CONDITIONAL(VBR, test "$enable_vbr" = yes)
-
-AC_ARG_ENABLE(ztags, AS_HELP_STRING(--enable-ztags, sign/verify with z= tags))
-AM_CONDITIONAL(ZTAGS, test "$enable_ztags" = yes)
-
-# openssl
-AC_MSG_CHECKING(for OpenSSL library and includes)
-AC_ARG_WITH(openssl,
-	AS_HELP_STRING(--with-openssl, location of OpenSSL includes and library (required)),
-	sslpath="$withval", sslpath="auto")
-ssldirs="/usr/local/ssl /usr/local /usr/sfw /usr"
-if test "$sslpath" = "auto" -o "$sslpath" = "yes"
+openssl_found="no"
+if test \( "$sslpath" = "auto" -o x"$sslpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-	for d in $ssldirs
-	do
-		if test -f $d/include/openssl/opensslconf.h
-		then
-			sslpath=$d
-			break
-		fi
-	done
+	PKG_CHECK_MODULES([LIBCRYPTO], [openssl >= 0.9.7],
+	                  [openssl_found="yes"],
+	                  [openssl_found="no"
+	                   AC_MSG_WARN(["pkg-config for openssl not found, trying manual search..."])
+	                  ])
 fi
-case "$sslpath" in
-	no)
-		AC_MSG_ERROR(OpenSSL is required)
-		;;
-	auto)
-		AC_MSG_ERROR(OpenSSL not found)
-		;;
-	*/*)
-		AC_MSG_RESULT($sslpath)
-		;;
-	*)
-		AC_MSG_ERROR(OpenSSL not found)
-		;;
-esac
+
+if test x"$openssl_found" = x"no"
+then
+	AC_MSG_CHECKING([for OpenSSL library and includes])
+	ssldirs="/usr/local/ssl /usr/local /usr/sfw /usr"
+	if test "$sslpath" = "auto" -o "$sslpath" = "yes"
+	then
+		for d in $ssldirs
+		do
+			if test -f $d/include/openssl/opensslconf.h
+			then
+				sslpath=$d
+				break
+			fi
+		done
+	fi
+	case "$sslpath" in
+		no)
+			AC_MSG_ERROR([OpenSSL is required])
+			;;
+		auto)
+			AC_MSG_ERROR([OpenSSL not found])
+			;;
+		*/*)
+			AC_MSG_RESULT([$sslpath])
+			;;
+		*)
+			AC_MSG_ERROR([OpenSSL not found])
+			;;
+	esac
+        LIBCRYPTO_CFLAGS="-I$sslpath/include"
+        LIBCRYPTO_LIBS="-L$sslpath/lib -lssl -lcrypto"
+fi
 
 saved_CFLAGS="$CFLAGS"
 saved_LDFLAGS="$LDFLAGS"
 saved_LIBS="$LIBS"
 
 LIBS=""
-CFLAGS="-I$sslpath/include $saved_CFLAGS"
-LDFLAGS="-L$sslpath/lib $saved_LDFLAGS"
+CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
+LDFLAGS="$LIBCRYPTO_LIBS $saved_LDFLAGS"
 
-AC_CHECK_HEADERS(openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h, ,
-	AC_MSG_ERROR(required OpenSSL header not found))
-AC_SEARCH_LIBS(ERR_peek_error, crypto, , AC_MSG_ERROR(libcrypto not found))
-AC_SEARCH_LIBS(SSL_library_init, ssl, , AC_MSG_ERROR(libssl not found))
-AC_CHECK_DECL(SHA256_DIGEST_LENGTH, ,
-	AC_MSG_WARN(SHA256 is required for DKIM but is not supported with your version of OpenSSL),
-	[#include <openssl/sha.h>])
+AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
+                 AC_MSG_ERROR([required OpenSSL header not found]))
 
-LIBCRYPTO_INCDIRS="-I$sslpath/include"
-LIBCRYPTO_LIBDIRS="-L$sslpath/lib"
-LIBCRYPTO_LIBS="$LIBS"
+# -ldl is needed to assist with compilation of static openssl libaries.
+# It appears to need dl for opening engine plugins. It fails at load time
+# It also fails to build on FreeBSD if enabled by default.
+AC_SEARCH_LIBS([ERR_peek_error], [crypto], ,
+               AC_MSG_ERROR([libcrypto not found]))
+AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
+	[
+		if test x"$enable_shared" = x"yes"
+		then
+			AC_MSG_ERROR([Cannot build shared opendkim against
+			              static openssl libaries. Configure with
+			              --disable-shared to get this working or
+			              obtain a shared libssl libary for
+			              opendkim to use.])
+		fi
+
+		# avoid caching issue - last result of SSL_library_init
+		# shouldn't be cached for this next check
+		unset ac_cv_search_SSL_library_init
+		LIBCRYPTO_LIBS="$LIBCRYPTO_LIBS -ldl"
+		AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
+		               AC_MSG_ERROR([libssl not found]), [-ldl])
+	]
+)
+AC_CHECK_DECL([SHA256_DIGEST_LENGTH], ,
+              AC_MSG_WARN([SHA256 is required for DKIM but is not supported
+                           with your version of OpenSSL]),
+              [#include <openssl/sha.h>])
 
 CFLAGS="$saved_CFLAGS"
 LDFLAGS="$saved_LDFLAGS"
 LIBS="$saved_LIBS"
 
-AC_SUBST(LIBCRYPTO_INCDIRS)
 AC_SUBST(LIBCRYPTO_LIBDIRS)
 AC_SUBST(LIBCRYPTO_LIBS)
 
-# Libmilter
-AC_MSG_CHECKING(for milter library and includes)
-AC_ARG_WITH(milter,
-	AS_HELP_STRING(--with-milter, location of milter includes and library),
-	milterpath="$withval", milterpath="auto")
+#
+# libmilter
+#
+AC_MSG_CHECKING([for milter library and includes])
+AC_ARG_WITH([milter],
+            AS_HELP_STRING([--with-milter],
+                           [location of milter includes and library]),
+            [milterpath="$withval"], [milterpath="auto"])
 milterdirs="/usr/local /usr"
 if test "$milterpath" = "auto" -o "$milterpath" = "yes"
 then
@@ -197,42 +387,68 @@ case "$milterpath" in
 	no)
 		if test x"$enable_filter" = x"yes"
 		then
-			AC_MSG_ERROR(milter is required)
+			AC_MSG_ERROR([milter is required])
 		fi
 		;;
 	auto)
-		AC_MSG_ERROR(milter not found)
+		AC_MSG_ERROR([milter not found])
 		;;
 	*/*)
 		if ! test -f $milterpath/include/libmilter/mfapi.h
 		then
-			AC_MSG_ERROR(milter includes not found at $milterpath)
+			AC_MSG_ERROR([milter includes not found at $milterpath])
 		fi
+		AC_MSG_RESULT([$d])
 		;;
 	*)
-		AC_MSG_ERROR(milter not found)
+		AC_MSG_ERROR([milter not found])
 		;;
 esac
+
+#saved_CFLAGS="$CFLAGS"
+#saved_LDFLAGS="$LDFLAGS"
+#saved_LIBS="$LIBS"
+#
+#LIBS=""
+#CFLAGS="$LIBMILTER_INCDIRS $saved_CFLAGS"
+#LDFLAGS="-L$milterpath/lib $saved_LDFLAGS"
+#
+#AC_SEARCH_LIBS([smfi_register], [milter], ,
+#	[
+#		unset ac_cv_search_smfi_register
+#		LDFLAGS="-L$milterpath/lib $saved_LDFLAGS"
+#		AC_SEARCH_LIBS([smfi_register], [milter], ,
+#		               AC_MSG_ERROR([libmilter not found]))
+#	])
+#
+#LIBMILTER_LIBDIRS="$LDFLAGS $LIBS"
+#
+#CFLAGS="$saved_CFLAGS"
+#LDFLAGS="$saved_LDFLAGS"
+#LIBS="$saved_LIBS"
 
 LIBMILTER_INCDIRS="-I$milterpath/include"
 LIBMILTER_LIBDIRS="-L$milterpath/lib"
 AC_SUBST(LIBMILTER_INCDIRS)
 AC_SUBST(LIBMILTER_LIBDIRS)
-AC_MSG_RESULT($milterpath)
 
-# Libunbound
-AC_MSG_CHECKING(for libunbound)
-AC_ARG_WITH(unbound,
-	AS_HELP_STRING(--with-unbound, location of Unbound includes and library),
-	unboundpath="$withval", unboundpath="no")
+#
+# libunbound
+#
+AC_ARG_WITH([unbound],
+            AS_HELP_STRING([--with-unbound],
+                           [location of Unbound includes and library]),
+            [unboundpath="$withval"], [unboundpath="no"])
 
 if test x"$unboundpath" != x"no" -a x"$enable_arlib" = x"yes"
 then
-	AC_MSG_ERROR(cannot use both arlib and unbound)
+	AC_MSG_ERROR([cannot use both arlib and unbound])
 fi
 
 if test x"$unboundpath" = x"yes"
 then
+	AC_MSG_CHECKING([for libunbound])
+
 	unbounddirs="/usr /usr/local"
 	for d in $unbounddirs
 	do
@@ -248,24 +464,35 @@ then
 	done
 	if test x"$LIBUNBOUND_LIBS" = x""
 	then
-		AC_MSG_ERROR(not found)
+		AC_MSG_ERROR([not found])
 	fi
 elif test x"$unboundpath" = x"no"
 then
-	AC_MSG_RESULT(no)
 	LIBUNBOUND_INCDIRS=""
 	LIBUNBOUND_LIBDIRS=""
 	LIBUNBOUND_LIBS=""
 else
+	AC_MSG_CHECKING([for libunbound])
+
 	if test -f $unboundpath/include/unbound.h
 	then
-		AC_MSG_RESULT($unboundpath)
+		AC_MSG_RESULT([$unboundpath])
 		LIBUNBOUND_INCDIRS="-I$unboundpath/include"
 		LIBUNBOUND_LIBDIRS="-L$unboundpath/lib"
 		LIBUNBOUND_LIBS="-lunbound"
 	else
-		AC_MSG_ERROR(not found at $unboundpath)
+		AC_MSG_ERROR([not found at $unboundpath])
 	fi
+fi
+
+if test x"$unboundpath" = x"no"
+then
+	AC_SUBST([UNBOUND_MANNOTICE], "(Not enabled in this installation.)" )
+else
+	AC_DEFINE([USE_UNBOUND], 1,
+	          [use unbound DNSSEC libary for DNS])
+	LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING unbound"
+	AC_SUBST([UNBOUND_MANNOTICE], "" )
 fi
 
 AM_CONDITIONAL(USE_UNBOUND, test x"$unboundpath" != x"no")
@@ -273,135 +500,166 @@ AC_SUBST(LIBUNBOUND_INCDIRS)
 AC_SUBST(LIBUNBOUND_LIBDIRS)
 AC_SUBST(LIBUNBOUND_LIBS)
 
+#
 # libtre
-AC_MSG_CHECKING(for libtre)
-AC_ARG_WITH(tre,
-	AS_HELP_STRING(--with-tre, location of TRE includes and library),
-	trepath="$withval",
-if test x"$enable_diffheaders" = x"yes"
-then
-	trepath="yes"
-else
-	trepath="no"
-fi)
+#
+AC_ARG_WITH([tre],
+            AS_HELP_STRING([--with-tre],
+	                   [location of TRE includes and library]),
+            [trepath="$withval"], [trepath="auto"])
 
-LIBTRE_INCDIRS=""
-LIBTRE_LIBDIRS=""
+tre_found="no"
+LIBTRE_CFLAGS=""
 LIBTRE_LIBS=""
 
-if test x"$trepath" = x"yes"
+if test x"$enable_diffheaders" != x"yes"
 then
-	tredirs="/usr /usr/local"
-	for d in $tredirs
-	do
-		if test -f $d/include/tre/tre.h
-		then
-			trepath=$d
-			AC_MSG_RESULT($d)
-			LIBTRE_INCDIRS="-I$trepath/include"
-			LIBTRE_LIBDIRS="-L$trepath/lib"
-			LIBTRE_LIBS="-ltre"
-			break;
-		fi
-	done
-	if test x"$LIBTRE_LIBS" = x""
-	then
-		AC_MSG_ERROR(not found)
-	fi
-elif test x"$trepath" = x"no"
+	trepath="no"
+fi
+
+if test \(  x"$trepath" = x"auto" -o x"$trepath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-	AC_MSG_RESULT(no)
-	LIBTRE_INCDIRS=""
-	LIBTRE_LIBDIRS=""
-	LIBTRE_LIBS=""
-else
-	if test -f $trepath/include/tre/tre.h
-	then
-		AC_MSG_RESULT($trepath)
-		LIBTRE_INCDIRS="-I$trepath/include"
-		LIBTRE_LIBDIRS="-L$trepath/lib"
-		LIBTRE_LIBS="-ltre"
+        PKG_CHECK_MODULES([LIBTRE], [tre >= 0.8.0], [tre_found="yes"],
+	[
+	        tre_found="no"
+        	AC_MSG_WARN([pkg-config for libtre not found,
+		             trying manual search...])
+        ])
+fi
+
+if test x"$tre_found" = x"no" -a x"$trepath" != x"no"
+then
+	AC_MSG_CHECKING([for libtre])
+        if test x"$trepath" != x"auto" -a x"$trepath" != x"yes"
+        then
+                if test -f "$trepath/include/tre/tre.h"
+                then
+			tre_found="yes"
+                        AC_MSG_RESULT($trepath)
+                        LIBTRE_CFLAGS="-I$trepath/include"
+                        LIBTRE_LIBS="-L$trepath/lib -ltre"
+                else
+                        AC_MSG_ERROR("not found at $trepath")
+                fi
 	else
-		AC_MSG_ERROR(not found at $trepath)
+		tredirs="/usr /usr/local"
+		for d in $tredirs
+		do
+			if test -f $d/include/tre/tre.h
+			then
+				trepath=$d
+				tre_found="yes"
+				AC_MSG_RESULT($d)
+				LIBTRE_CFLAGS="-I$trepath/include"
+				LIBTRE_LIBS="-L$trepath/lib -ltre"
+				break;
+			fi
+		done
+		if test x"$tre_found" != x"yes"
+		then
+			AC_MSG_ERROR([cannot use diffheaders without TRE
+			              library])
+		fi
 	fi
 fi
 
-if test x"$enable_diffheaders" = x"yes" -a x"$LIBTRE_LIBS" = x""
+if test x"$enable_diffheaders" = x"yes" -a x"$tre_found" = x"yes"
 then
-	AC_MSG_ERROR(cannot use diffheaders without TRE library)
+	AC_DEFINE([USE_TRE], 1, [tre regex library found])
+        AC_DEFINE([LIBOPENDKIM_DIFFHEADERS], [1],
+	          [Use the libtre for diffheaders calculations])
 fi
 
-AM_CONDITIONAL(USE_TRE, test x"$trepath" != x"no")
-AC_SUBST(LIBTRE_INCDIRS)
-AC_SUBST(LIBTRE_LIBDIRS)
-AC_SUBST(LIBTRE_LIBS)
+AM_CONDITIONAL([USE_TRE], [test x"$tre_found" != x"no"])
+AC_SUBST([LIBTRE_CFLAGS])
+AC_SUBST([LIBTRE_LIBS])
 
+#
 # libodbx
-AC_MSG_CHECKING(for OpenDBX)
-AC_ARG_WITH(odbx,
-	AS_HELP_STRING(--with-odbx, location of OpenDBX includes and library),
-	odbxpath="$withval", odbxpath="no")
+#
+AC_ARG_WITH([odbx],
+            AS_HELP_STRING([--with-odbx],
+                           [location of OpenDBX includes and library]),
+            [odbxpath="$withval"], [odbxpath="no"])
 
-LIBODBX_INCDIRS=""
-LIBODBX_LIBDIRS=""
+odbx_found="no"
+LIBODBX_CPPFLAGS=""
 LIBODBX_LIBS=""
 
-if test x"$odbxpath" = x"yes" -o x"$odbxpath" = x"auto"
+if test \( x"$odbxpath" = x"auto" -o x"$odbxpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-	odbxdirs="/usr /usr/local"
-	for d in $odbxdirs
-	do
-		if test -f $d/include/odbx.h
-		then
-			odbxpath=$d
-			AC_MSG_RESULT($d)
-			LIBODBX_INCDIRS="-I$odbxpath/include"
-			LIBODBX_LIBDIRS="-L$odbxpath/lib"
-			LIBODBX_LIBS="-lopendbx"
-			break;
-		fi
-	done
-	if test x"$LIBODBX_LIBS" = x""
-	then
-		AC_MSG_ERROR(not found)
-	fi
-elif test x"$odbxpath" = x"no"
-then
-	AC_MSG_RESULT(no)
-	LIBODBX_INCDIRS=""
-	LIBODBX_LIBDIRS=""
-	LIBODBX_LIBS=""
-else
-	if test -f $odbxpath/include/odbx.h
-	then
-		AC_MSG_RESULT($odbxpath)
-		LIBODBX_INCDIRS="-I$odbxpath/include"
-		LIBODBX_LIBDIRS="-L$odbxpath/lib"
-		LIBODBX_LIBS="-lopendbx"
-	else
-		AC_MSG_ERROR(not found at $odbxpath)
-	fi
+        PKG_CHECK_MODULES([LIBODBX], [opendbx >= 1.3.7], [odbx_found="yes"],
+	[
+	        odbx_found="no"
+        	AC_MSG_WARN([pkg-config for libodbx not found, trying manual
+		            search...])
+        ])
 fi
 
-AM_CONDITIONAL(USE_ODBX, test x"$odbxpath" != x"no")
-AC_SUBST(LIBODBX_INCDIRS)
-AC_SUBST(LIBODBX_LIBDIRS)
+if test x"$odbxpath" != x"no" -a x"odbx_found" = x"no"
+then
+	AC_MSG_CHECKING([for OpenDBX])
+	if test x"$odbxpath" != x"auto" -a x"odbxpath" != x"yes"
+	then
+		if test -f $odbxpath/include/odbx.h
+		then
+			AC_MSG_RESULT($odbxpath)
+		        odbx_found="yes"
+			LIBODBX_CPPFLAGS="-I$odbxpath/include"
+			LIBODBX_LIBS="-L$odbxpath/lib -lopendbx"
+		else
+			AC_MSG_ERROR(not found at $odbxpath)
+		fi
+	else
+		odbxdirs="/usr /usr/local"
+		for d in $odbxdirs
+		do
+			if test -f $d/include/odbx.h
+			then
+				odbxpath=$d
+				AC_MSG_RESULT($d)
+		        	odbx_found="yes"
+				LIBODBX_CPPFLAGS="-I$odbxpath/include"
+				LIBODBX_LIBS="-L$odbxpath/lib -lopendbx"
+				break;
+			fi
+		done
+	fi
+	if test x"odbx_found" = x"yes"
+	then
+		AC_MSG_RESULT([no])
+	fi
+fi
+if test x"odbx_found" = x"yes"
+then
+	AC_DEFINE([USE_ODBX], 1, [ODBX support for datasets enabled])
+        AC_DEFINE([LIBOPENDKIM_ODBX], [1], [ODBX support for datasets enabled])
+fi
+AM_CONDITIONAL(USE_ODBX, test x"odbx_found" = x"yes")
+AC_SUBST(LIBODBX_CPPFLAGS)
 AC_SUBST(LIBODBX_LIBS)
 
+#
 # libdb
-AC_ARG_WITH(db,
-	AS_HELP_STRING(--with-db, location of BerkeleyDB includes and library),
-	bdb="$withval", bdb="auto")
+#
+AC_ARG_WITH([db],
+            AS_HELP_STRING([--with-db],
+                           [location of BerkeleyDB includes and library]),
+            [bdb="$withval"], [bdb="auto"])
 
 LIBDB_INCDIRS=""
 LIBDB_LIBDIRS=""
 LIBDB_LIBS=""
 
-if test x"$enable_bodylengthdb" = x"yes" -o \
-        x"$enable_popauth" = x"yes" -o \
-        x"$enable_querycache" = x"yes" -o \
-        x"$enable_stats" = x"yes" -o \
-        x"$enable_reportintervals" = x"yes"
+AM_CONDITIONAL(USE_DB_OPENDKIM,
+               test x"$enable_bodylengthdb" = x"yes" -o \
+	            x"$enable_popauth" = x"yes" -o \
+	            x"$enable_stats" = x"yes" -o \
+	            x"$enable_report_intervals" = x"yes")
+AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")
+
+if test x"$USE_DB_OPENDKIM_TRUE" = x"" -o \
+	x"$USE_DB_LIBOPENDKIM_TRUE" = x""
 then
 	bdbrequired="yes"
 else
@@ -420,7 +678,7 @@ fi
 
 if test x"$bdb" = x"yes"
 then
-	AC_MSG_CHECKING(for BerkeleyDB)
+	AC_MSG_CHECKING([for BerkeleyDB])
 
 	bdbdirs="/usr/local/BerkeleyDB /usr/local /usr"
 	libdbfound="no"
@@ -436,9 +694,10 @@ then
 			break;
 		fi
 	done
+	# yes here means the above look didn't find it
 	if test x"$bdb" = x"yes"
 	then
-		AC_MSG_ERROR(db.h not found)
+		AC_MSG_ERROR([db.h not found])
 	fi
 
 	# found db.h, see if there's a matching library
@@ -446,11 +705,11 @@ then
 	if test -f $bdb/lib/libdb.a
 	then
 		libdbfound="yes"
-		AC_MSG_RESULT(found)
+		AC_MSG_RESULT([found])
 		LIBDB_LIBDIRS="-L$bdb/lib"
 		LIBDB_LIBS="-ldb"
 	else
-		AC_MSG_RESULT(not found)
+		AC_MSG_RESULT([not found])
 	fi
 
 	# If no matching library, see if we can find one.  Note that
@@ -459,15 +718,15 @@ then
 	# worth a shot in general.
 	if test x"$libdbfound" = x"no"
 	then
-		AC_SEARCH_LIBS(db_create, db, libdbfound="yes")
+		AC_SEARCH_LIBS([db_create], [db], [libdbfound="yes"])
 	fi
 	if test x"$libdbfound" = x"no"
 	then
-		AC_SEARCH_LIBS(dbopen, db, libdbfound="yes")
+		AC_SEARCH_LIBS([dbopen], [db], [libdbfound="yes"])
 	fi
 	if test x"$libdbfound" = x"no"
 	then
-		AC_MSG_CHECKING(for libdb)
+		AC_MSG_CHECKING([for libdb])
 		for d in $bdbdirs
 		do
 			if test -f $d/lib/libdb.a
@@ -484,63 +743,65 @@ then
 
 	if test x"$libdbfound" = "xno"
 	then
-		AC_MSG_ERROR(cannot find db_create or dbopen)
+		AC_MSG_ERROR([cannot find db_create or dbopen])
 	fi
 elif test x"$bdb" = x"no"
 then
-	AC_MSG_CHECKING(for BerkeleyDB)
+	AC_MSG_CHECKING([for BerkeleyDB])
 	if test x"$bdbrequired" = x"yes"
 	then
-		AC_MSG_ERROR(disabled but required by requested features)
+		AC_MSG_ERROR([disabled but required by requested features])
 	fi
-	AC_MSG_RESULT(not required or disabled)
+	AC_MSG_RESULT([not required or disabled])
 	LIBDB_INCDIRS=""
 	LIBDB_LIBDIRS=""
 	LIBDB_LIBS=""
 else
-	AC_MSG_CHECKING(for db.h)
+	AC_MSG_CHECKING([for db.h])
 
 	if test -f $bdb/include/db.h
 	then
 		LIBDB_INCDIRS="-I$bdb/include"
-		AC_MSG_RESULT($bdb)
+		AC_MSG_RESULT([$bdb])
 	else
-		AC_MSG_ERROR(not found at $bdb)
+		AC_MSG_ERROR([not found at $bdb])
 	fi
 
 	# we might not need -ldb if DB is built into libc
-	AC_MSG_CHECKING(for libdb)
+	AC_MSG_CHECKING([for libdb])
  	if test -f $bdb/lib/libdb.a
 	then
 		LIBDB_LIBDIRS="-L$bdb/lib"
 		LIBDB_LIBS="-ldb"
-		AC_MSG_RESULT($bdb)
+		AC_MSG_RESULT([$bdb])
 	else
-		AC_MSG_RESULT(not found - assuming libc)
+		AC_MSG_RESULT([not found - assuming libc])
 	fi
 fi
 
-AM_CONDITIONAL(USE_DB_OPENDKIM, test x"$bdb" != x"no")
-AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_querycache" = x"yes")
 AC_SUBST(LIBDB_INCDIRS)
 AC_SUBST(LIBDB_LIBDIRS)
 AC_SUBST(LIBDB_LIBS)
 
+#
 # libdk
-AC_MSG_CHECKING(for DomainKeys)
-AC_ARG_WITH(domainkeys,
-	AS_HELP_STRING(--with-domainkeys, location of libdk includes and library),
-	dk="$withval", dk="no")
+#
+AC_ARG_WITH([domainkeys],
+            AS_HELP_STRING([--with-domainkeys],
+                           [location of libdk includes and library]),
+            [dk="$withval"], [dk="no"])
 
 if test x"$dk" = x"yes"
 then
+	AC_MSG_CHECKING([for DomainKeys])
+
 	dkdirs="/usr /usr/local"
 	for d in $dkdirs
 	do
 		if test -f $d/include/dk.h -a -f $d/lib/libdk.a
 		then
 			dk=$d
-			AC_MSG_RESULT($d)
+			AC_MSG_RESULT([$d])
 			LIBDK_INCDIRS="-I$dk/include"
 			LIBDK_LIBDIRS="-L$dk/lib"
 			LIBDK_LIBS="-ldk"
@@ -549,11 +810,12 @@ then
 	done
 elif test x"$dk" = x"no"
 then
-	AC_MSG_RESULT(no)
 	LIBDK_INCDIRS=""
 	LIBDK_LIBDIRS=""
 	LIBDK_LIBS=""
 else
+	AC_MSG_CHECKING([for DomainKeys])
+
 	if test -f $d/include/dk.h -a -f $d/lib/libdk.a
 	then
 		AC_MSG_RESULT($dk)
@@ -561,20 +823,44 @@ else
 		LIBDK_LIBDIRS="-L$dk/lib"
 		LIBDK_LIBS="-ldk"
 	else
-		AC_MSG_ERROR(not found at $dk)
+		AC_MSG_ERROR([not found at $dk])
 	fi
 fi
 
-AM_CONDITIONAL(VERIFY_DOMAINKEYS, test x"$dk" != x"no")
-AC_SUBST(LIBDK_INCDIRS)
-AC_SUBST(LIBDK_LIBDIRS)
-AC_SUBST(LIBDK_LIBS)
+LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS $LIBRESOLV"
+# This (below) is just for the pkg-config file opendkim.pc.in
+LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
+LIBOPENDKIM_INC="$LIBCRYPTO_CFLAGS $LIBTRE_CFLAGS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
 
-# debug
-if test x"$enable_debug" = x"yes"
+if test x"$enable_arlib" = x"yes"
 then
-	CFLAGS=`echo $CFLAGS | sed "s/ -O.//g"`
+        # note this is just for PKG-CONFIG.
+	LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS_PKG -lar"
+	# for Makefile
+	LIBOPENDKIM_LIBS="$LIBOPENDKIM_LIBS ../libar/libar.la"
 fi
 
+if test x"$USE_DB_LIBOPENDKIM_TRUE" = x""
+then
+	LIBOPENDKIM_INC="$LIBOPENDKIM_INC $LIBDB_INCDIRS"
+	LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS_PKG $LIBDB_LIBS"
+	LIBOPENDKIM_LIBS="$LIBOPENDKIM_LIBS $LIBDB_LIBS"
+fi
+
+AC_SUBST(LIBOPENDKIM_LIBS)
+AC_SUBST(LIBOPENDKIM_LIBS_PKG)
+AC_SUBST(LIBOPENDKIM_INC)
+
+AM_CONDITIONAL(VERIFY_DOMAINKEYS, test x"$dk" != x"no")
+
+AC_DEFINE_UNQUOTED([LIBOPENDKIM_FEATURE_STRING], "$LIBOPENDKIM_FEATURE_STRING",
+                   [Feature string for printing])
+
+#
 # Finish up
-AC_OUTPUT(Makefile opendkim/Makefile libopendkim/Makefile libar/Makefile libvbr/Makefile)
+#
+AC_OUTPUT([Makefile opendkim/Makefile libopendkim/Makefile libar/Makefile
+           libvbr/Makefile libopendkim/opendkim.pc libar/ar.pc libvbr/vbr.pc
+           opendkim/opendkim.conf.5 opendkim/opendkim.8
+           opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8
+           opendkim/opendkim-genkey.8 opendkim/opendkim-testadsp.8])

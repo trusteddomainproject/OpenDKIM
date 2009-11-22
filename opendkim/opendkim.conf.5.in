@@ -151,9 +151,15 @@ it processes.  However, this also enables an abuse attack.  See the
 DKIM specification for more information.
 
 .TP
+.I BodyLengthDBFile (dataset)
+Requests that
+.I opendkim
+include a "l=" body length tag when the set contains the recipient 
+addresses.
+@BODYLENGTHDB_MANNOTICE@
+
+.TP
 .I BogusKey (string)
-(Only available if the filter was compiled with libunbound to enable
-DNSSEC support.)
 Instructs the filter to treat a passing signature associated with a bogus
 (forged) key in a special way.  Possible values are
 .I neutral
@@ -162,17 +168,17 @@ Instructs the filter to treat a passing signature associated with a bogus
 (take no special action) and
 .I fail
 (return a "fail" result; this is the default).
+@UNBOUND_MANNOTICE@
 
 .TP
 .I BogusPolicy (string)
-(Only available if the filter was compiled with libunbound to enable
-DNSSEC support.)
 Instructs the filter to treat an ADSP policy found in an bogus (forged) DNS
 record in a special way.  Possible values are
 .I apply
 (apply the policy) and
 .I ignore
 (ignore the policy; this is the default).
+@UNBOUND_MANNOTICE@
 
 .TP
 .I Canonicalization (string)
@@ -201,6 +207,11 @@ original header set for use by verifiers when diagnosing verification
 failures.  Not recommended for normal operation.
 
 .TP
+.I DiagnosticDirectory (string)
+Store diagnostic files in this directory.
+@ZTAGS_MANNOTICE@
+
+.TP
 .I DNSTimeout (integer)
 Sets the DNS timeout in seconds.  A value of 0 causes an infinite wait.
 The default is 5.  Ignored if not using the asynchronous resolver package.
@@ -210,6 +221,9 @@ See also the NOTES section below.
 .I Domain (dataset)
 A set list of domains whose mail should be signed by this
 filter.  Mail from other domains will be verified rather than being signed.
+
+The domain names may contain the special character "*" which is treated as
+ a wildcard character matching zero or more characters in a domain name.
 
 This parameter is not required if a
 .I KeyList
@@ -248,14 +262,24 @@ body canonicalization, anticipating that an MTA somewhere before delivery
 will do that conversion anyway.  The default is to leave them as-is.
 
 .TP
+.I IdentityHeader (string)
+This specifies the header where an identity is stored.
+@IDENTITY_HEADER_MANNOTICE@
+
+.TP
+.I IdentityHeaderRemove (Boolean)
+Remove the
+.I IdentityHeader
+after signing.
+@IDENTITY_HEADER_MANNOTICE@
+
+.TP
 .I Include (string)
 Names a file to be opened and read as an additional configuration file.
 Nesting is allowed to a maximum of five levels.
 
 .TP
 .I InsecureKey (string)
-(Only available if the filter was compiled with libunbound to enable
-DNSSEC support.)
 Instructs the filter to treat a passing signature associated with an
 insecure key in a special way.  Possible values are
 .I neutral
@@ -264,17 +288,17 @@ insecure key in a special way.  Possible values are
 (take no special action; this is the default) and
 .I fail
 (return a "fail" result).
+@UNBOUND_MANNOTICE@
 
 .TP
 .I InsecurePolicy (string)
-(Only available if the filter was compiled with libunbound to enable
-DNSSEC support.)
 Instructs the filter to treat an ADSP policy found in an insecure DNS
 record in a special way.  Possible values are
 .I apply
 (apply the policy; this is the default) and
 .I ignore
 (ignore the policy).
+@UNBOUND_MANNOTICE@
 
 .TP
 .I InternalHosts (dataset)
@@ -434,6 +458,10 @@ in which case the default is
 .I v.
 
 .TP
+.I MultipleSignatures (Boolean)
+Allow addition of multiple signatures when key lists are in use.
+
+.TP
 .I MTA (dataset)
 A set of MTA names (a la the
 .I sendmail(8)
@@ -564,8 +592,9 @@ containing the process ID.
 
 .TP
 .I POPDBFile (dataset)
-Requests that the filter consult a POP authentication database named
-in the dataset for IP addresses that should be allowed for signing.
+Requests that the filter consult a set for IP addresses that should be allowed
+for signing. This feature was designed for POP-before-SMTP datastores.
+@POPAUTH_MANNOTICE@
 
 .TP
 .I Quarantine (Boolean)
@@ -577,8 +606,22 @@ MTA.  (Requires a sufficiently recent version of the milter library.)
 Instructs the DKIM library to maintain its own local cache of keys and
 policies retrieved from DNS, rather than relying on the nameserver for
 caching service.  Useful if the nameserver being used by the filter is
-not local.  The filter must be compiled with the QUERY_CACHE flag to enable
-this feature, since it adds a library dependency.
+not local.
+@QUERY_CACHE_MANNOTICE@
+
+.TP
+.I ReplaceRules (string)
+Specifies a file containing a list of POSIX regular expressions that
+are applied the the message headers.
+@REPLACE_RULES_MANNOTICE@
+
+.TP
+.I ReportIntervalDB (dataset)
+Specifies a set of domains that correspond to how often, in seconds, to report 
+DKIM signature failues. See
+.I SendReports
+for more details.
+@REPORT_INTERVALS_MANNOTICE@
 
 .TP
 .I RemoveARAll (Boolean)
@@ -610,9 +653,51 @@ below).  If not specified, the executing user and local hostname will be
 used to construct the address.
 
 .TP
+.I ReputationFail (integer)
+If the reputation returned by the DNS reputation service exceeds this
+value then the Authenticated Header result "x-dkim-rep" is set to "fail".
+Defaults to 0.
+@DKIM_REPUTATION_MANNOTICE@
+
+.TP
+.I ReputationPass (integer)
+If the reputation returned by the DNS reputation service is less than this
+value then the Authenticated Header result "x-dkim-rep" is set to "pass". 
+Defaults to 0. Values in between
+.I ReputationFail
+and
+.I ReputationPass
+result in "x-dkim-rep" being set to "neutral".
+@DKIM_REPUTATION_MANNOTICE@
+
+.TP
+.I ReputationReject (integer)
+If the reputation returned by the DNS reputation service exceeds this value
+then the message is rejected. The default value here is 1001.
+@DKIM_REPUTATION_MANNOTICE@
+
+.TP
+.I ReputationRoot (string)
+This is the root directory of the DNS reputation service. Its interface is 
+defined at http://www.dkim-reputation.org. The default value here is 
+"al.dkim-reputation.org".
+@DKIM_REPUTATION_MANNOTICE@
+
+.TP
 .I RequiredHeaders (boolean)
 Checks all messages for compliance with RFC2822 header field count
 requirements.  Non-compliant messages are rejected.
+
+.TP
+.I ResignMailTo (dataset)
+Signs the email, in addition to verifying it, if the message recipient is in
+this set.
+@RESIGN_MANNOTICE@
+
+.TP
+.I ResignAll (boolean)
+Resign everything if set, verified mail only if not, defaults to false.
+@RESIGN_MANNOTICE@
 
 .TP
 .I Selector (string)
@@ -623,6 +708,18 @@ specification for details.  Used only when signing with a single key;
 see the
 .I KeyList
 parameter above for more information.
+
+.TP
+.I SelectorHeader (string)
+This message header defines which selector to use when signing.
+@SELECTOR_HEADER_MANNOTICE@
+
+.TP
+.I SelectorHeaderRemove (Boolean)
+Remove the
+.I Selector Header
+before signing.
+@SELECTOR_HEADER_MANNOTICE@
 
 .TP
 .I SendADSPReports (Boolean)
@@ -640,6 +737,11 @@ determine the sender of a message.  This is mainly used when verifying a
 message to determine the origin domain, particularly for doing domain policy
 queries.  By default, the DKIM library's internal list is used, which consists
 solely of the "From" header field.
+
+.TP
+.I SenderMacro (string)
+Use the milter macro string to determine the sender of the message.
+@SENDER_MACRO_MANNOTICE@
 
 .TP
 .I SendReports (Boolean)
@@ -696,6 +798,12 @@ listening on all interfaces.  This option is mandatory either in the
 configuration file or on the command line.
 
 .TP
+.I Statistics (dataset)
+This specified a set to store DKIM validation totals per domain. See
+.I opendkim-stat(8)
+@STATS_MANNOTICE@
+
+.TP
 .I StrictTestMode (Boolean)
 Selects strict CRLF mode during testing (see the
 .I -t
@@ -748,9 +856,9 @@ during automated testing.
 .TP
 .I TrustAnchorFile (string)
 Specifies a file from which trust anchor data should be read when doing
-DNS queries and applying the DNSSEC protocol.  Requires that the filter
-be compiled with USE_UNBOUND set.  See the Unbound documentation at
-http://unbound.net for the expected format of this file.
+DNS queries and applying the DNSSEC protocol.  See the Unbound documentation
+at http://unbound.net for the expected format of this file.
+@UNBOUND_MANNOTICE@
 
 .TP
 .I TrustSignaturesFrom (dataset)
@@ -787,6 +895,23 @@ unless an alternate
 is specified.
 
 .TP
+.I VBR-Certifiers (string)
+The default certifiers if not specified in X-VBR-Certifiers header field.
+@VBR_MANNOTICE@
+
+.TP
+.I VBR-TrustedCertifiers (string)
+A colon or comma sparated list of trusted certifiers to accept when 
+verifying VBR-Info headers.
+Under revision and may not be stable.
+@VBR_MANNOTICE@
+
+.TP
+.I VBR-Type (string)
+This default VBR type if not specified in the X-VBR-Type header field.
+@VBR_MANNOTICE@
+
+.TP
 .I X-Header (Boolean)
 Causes
 .I opendkim
@@ -810,7 +935,7 @@ function to parse that information.  Users should be familiar with the
 way that function handles the non-trivial cases (for example, "1.2.3/24"    
 and "1.2.3.0/24" are not the same thing).
 .SH VERSION
-This man page covers version 1.2.0 of
+This man page covers version @VERSION@ of
 .I opendkim.
 
 .SH COPYRIGHT
