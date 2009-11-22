@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.58 2009/11/22 19:01:22 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.59 2009/11/22 21:35:39 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -41,9 +41,20 @@ release, and a summary of the changes in that release.
 		taking advantage of libtool.  Based on a patch by Daniel Black.
 	BUILD: When possible, limit the symbols exported as part of
 		libopendkim to only those listed in dkim.h.
-	BUILD: Moderate rewriting of the build system.  Highlights include
-		common factoring of some functions and addition of support for
-		pkg-config.
+	BUILD: Generate opendkim.conf.5 man page containing all features,
+		including FFR, annotated with if they are included and their 
+		experimental status (for FFRs).
+	BUILD: Improve static linking against openssl as noted by Roman
+		Gelfand.  Compiles against openssl version 1.0.0-beta4 now. 
+	BUILD: Provide pkg-config files {opendkim,vbr,ar}.pc for use by 
+		other applications.
+	BUILD: Fix up libresolv detection.
+	BUILD: Add pkg-config checks for openssl, tre and opendbx packages to
+		determine their installed library locations. Automate 
+		versioning and deployment.
+	BUILD: Added m4 macro library directory with updated ax_pthread.m4.
+	BUILD: Moved feature, _FFR and library #defines from Makefiles to 
+		build-config.h. Added macros for FFR and FEATURES.
 
 1.1.2		2009/11/01
 	Under _FFR_SENDER_MACRO, need to check the value of "SenderMacro"
