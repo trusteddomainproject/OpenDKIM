@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.52.2.4 2009/11/22 08:15:49 grooverdan Exp $
+	$Id: RELEASE_NOTES,v 1.52.2.5 2009/11/22 08:25:16 grooverdan Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -17,10 +17,15 @@ release, and a summary of the changes in that release.
 		have a few backward compatibility issues with respect to
 		the configuration file.
 	Feature request #SF2873900: Add optional support for OpenDBX for
-		connecting to ODBC and SQL backend databases.  Requested
-		by Daniel Black.
-	Under _FFR_MULTIPLE_SIGNATURES, free up all signing handles in
-		dkimf_cleanup().
+		connecting to ODBC and SQL backend databases.
+	Add "On-PolicyError" setting, allowing continuation of processing
+		when an ADSP query fails.
+	Activate _FFR_MULTIPLE_SIGNATURES, allowing optional addition of
+		more than one signature per message passing through the
+		filter.
+	Add _FFR_RESIGN which allows binding of a signing handle to a
+		verifying handle so that only one body hash needs to be
+		run when a message will be re-signed as-is.
 	LIBOPENDKIM: Improve static linking against openssl as noted by Roman
 		Gelfand. Compiles against openssl version 1.0.0-beta4 now. 
 	LIBOPENDKIM: Provide pkg-config files {opendkim,vbr,ar}.pc for use by 
@@ -31,6 +36,13 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Rename the rfc2822_*() parsing functions to have
 		"dkim_" prefixes, and rename their containing file
 		accordingly.
+	LIBOPENDKIM: Fixes in relaxed body canonicalization.  Problem
+		noted by Masumi Taketomi Parekh of Yahoo!.
+	LIBOPENDKIM: New library flag DKIM_LIBFLAGS_BADSIGHANDLES which
+		asks the library to tolerate signature syntax errors and
+		make such signatures available for limited inspection
+		rather than completely ignoring them.  Requested by Masumi
+		Taketomi Parekh of Yahoo!.
 	BUILD: Add pkg-config checks for openssl, tre and opendbx packages to
 		determine their installed library locations. Automate 
 		versioning and deployment.
