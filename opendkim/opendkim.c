@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.65 2009/11/22 19:22:38 cm-msk Exp $
+**  $Id: opendkim.c,v 1.66 2009/11/22 20:41:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.65 2009/11/22 19:22:38 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.66 2009/11/22 20:41:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5256,6 +5256,7 @@ mlfi_negotiate(SMFICTX *ctx,
 	*pf3 = 0;
 
 	/* request macros if able */
+# ifdef SMFIF_SETSYMLIST
 	if (conf->conf_macros != NULL && (wantactions & SMFIF_SETSYMLIST) != 0)
 	{
 		int c;
@@ -5303,6 +5304,7 @@ mlfi_negotiate(SMFICTX *ctx,
 			return SMFIS_REJECT;
 		}
 	}
+# endif /* SMFIF_SETSYMLIST */
 
 	/* set "milterv2" flag if SMFIP_SKIP was available */
 	if ((f1 & SMFIP_SKIP) != 0)
