@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.70 2009/11/22 22:11:50 grooverdan Exp $
+# $Id: configure.ac,v 1.71 2009/11/22 23:06:33 grooverdan Exp $
 
 #
 # Setup
@@ -131,6 +131,8 @@ AC_DEFUN([FEATURE],
           AC_ARG_ENABLE($1, AS_HELP_STRING(--enable-$1, $2),
                         AS_IF([test "x$enable_]$1[" != "xno"],
                               [
+				AC_DEFINE(TR_UP($1), 1,
+				          [enable $1 feature])
 				AC_SUBST(TR_UP($1)[_MANNOTICE], "")
 			      ],
 			      [
@@ -144,7 +146,7 @@ AC_DEFUN([FEATURE],
 
 AC_DEFUN([LIB_FEATURE],
          [FEATURE($1, $2)
-          AS_IF([test "x$enable_]$1[" != "xno"],
+         AS_IF([test "x$enable_]$1[" != "xno"],
 	        [
 			LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING $1"
 		])
@@ -168,12 +170,12 @@ AC_DEFUN([FFR_FEATURE],
                                  $experimentalnotincluded))
          ])
 
+#			AC_DEFINE([LIBOPENDKIM_]TR_UP($1), 1,
+#			          [enable $1 feature])
 AC_DEFUN([LIB_FFR_FEATURE],
          [FFR_FEATURE($1, $2)
           AS_IF([test "x$enable_]$1[" != "xno"],
                 [
-			AC_DEFINE([LIBOPENDKIM_]TR_UP($1), 1,
-			          [enable $1 feature])
 			LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING $1"
 		])
          ])
@@ -567,8 +569,6 @@ fi
 if test x"$enable_diffheaders" = x"yes" -a x"$tre_found" = x"yes"
 then
 	AC_DEFINE([USE_TRE], 1, [tre regex library found])
-        AC_DEFINE([LIBOPENDKIM_DIFFHEADERS], [1],
-	          [Use the libtre for diffheaders calculations])
 fi
 
 AM_CONDITIONAL([USE_TRE], [test x"$tre_found" != x"no"])
@@ -634,7 +634,6 @@ fi
 if test x"odbx_found" = x"yes"
 then
 	AC_DEFINE([USE_ODBX], 1, [ODBX support for datasets enabled])
-        AC_DEFINE([LIBOPENDKIM_ODBX], [1], [ODBX support for datasets enabled])
 fi
 AM_CONDITIONAL(USE_ODBX, test x"odbx_found" = x"yes")
 AC_SUBST(LIBODBX_CPPFLAGS)
