@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.4 2009/11/21 20:14:34 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.5 2009/11/22 03:33:32 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.4 2009/11/21 20:14:34 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.5 2009/11/22 03:33:32 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -593,6 +593,7 @@ sfsistat mlfi_eoh __P((SMFICTX *));
 sfsistat mlfi_eom __P((SMFICTX *));
 sfsistat mlfi_header __P((SMFICTX *, char *, char *));
 
+static _Bool dkimf_add_signrequest __P((msgctx, struct keytable *));
 #ifdef _FFR_REDIRECT
 sfsistat dkimf_addheader __P((SMFICTX *, char *, char *));
 sfsistat dkimf_addrcpt __P((SMFICTX *, char *));
@@ -973,6 +974,7 @@ dkimf_xs_fromdomain(lua_State *l)
 	}
 
 	cc = (struct connctx *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
 	dfc = cc->cctx_msg;
 
 	lua_pushlstring(l, dfc->mctx_domain, strlen(dfc->mctx_domain));
@@ -1011,10 +1013,91 @@ dkimf_xs_clienthost(lua_State *l)
 	}
 
 	cc = (struct connctx *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
 
 	lua_pushlstring(l, cc->cctx_host, strlen(cc->cctx_host));
 
 	return 1;
+}
+
+/*
+**  DKIMF_XS_REQUESTSIG -- request a signature
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_requestsig(lua_State *l)
+{
+	const char *domain;
+	const char *selector;
+	struct connctx *cc;
+	struct msgctx *dfc;
+	struct dkimf_config *conf;
+	struct keytable *key;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 3)
+	{
+		lua_pushstring(l, "odkim_sign(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2) || !lua_isstring(l, 3))
+	{
+		lua_pushstring(l, "odkim_sign(): incorrect argument type");
+		lua_error(l);
+	}
+
+	cc = (struct connctx *) lua_touserdata(l, 1);
+	dfc = cc->cctx_msg;
+	conf = cc->cctx_config;
+
+	domain = lua_tostring(l, 2);
+	selector = lua_tostring(l, 3);
+
+	lua_pop(l, 3);
+
+	/* find the key */
+	for (key = conf->conf_keyhead; key != NULL; key = key->key_next)
+	{
+		if (strcmp(domain, key->key_domain) == 0 &&
+		    strcmp(selector, key->key_selector) == 0)
+			break;
+	}
+
+	if (key == NULL)
+	{
+		if (conf->conf_dolog)
+		{
+			syslog(LOG_ERR, "key for %s/%s not found",
+			       selector, domain);
+		}
+	}
+	else
+	{
+		if (!dkimf_add_signrequest(dfc, key))
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR,
+				       "failed to add signature using %s/%s",
+				       selector, domain);
+			}
+		}
+		else
+		{
+			dfc->mctx_signing = TRUE;
+			dfc->mctx_signalg = conf->conf_signalg;
+		}
+	}
+
+	return 0;
 }
 #endif /* _FFR_LUA */
 
@@ -6520,6 +6603,58 @@ mlfi_eoh(SMFICTX *ctx)
 	**  just accept the message and be done with it.
 	*/
 
+#ifdef _FFR_LUA
+	if (conf->conf_signscript != NULL)
+	{
+		_Bool dofree = TRUE;
+		struct dkimf_lua_sign_result lres;
+
+		memset(&lres, '\0', sizeof lres);
+
+		status = dkimf_lua_sign_hook(cc, conf->conf_signscript,
+		                             "signing script", &lres);
+
+		if (status != 0)
+		{
+			if (conf->conf_dolog)
+			{
+				if (lres.lrs_error == NULL)
+				{
+					dofree = FALSE;
+
+					switch (status)
+					{
+					  case 2:
+						lres.lrs_error = "processing error";
+						break;
+
+					  case 1:
+						lres.lrs_error = "syntax error";
+						break;
+
+					  case -1:
+						lres.lrs_error = "memory allocation error";
+						break;
+
+					  default:
+						lres.lrs_error = "unknown error";
+						break;
+					}
+				}
+
+				syslog(LOG_ERR,
+				       "%s dkimf_lua_sign_hook() failed: %s",
+				       dfc->mctx_jobid, lres.lrs_error);
+			}
+
+			if (dofree)
+				free(lres.lrs_error);
+
+			return SMFIS_TEMPFAIL;
+		}
+	}
+#endif /* _FFR_LUA */
+
 	if ((dfc->mctx_signing &&
 	     (conf->conf_mode & DKIMF_MODE_SIGNER) == 0) ||
 	    (!dfc->mctx_signing &&
@@ -6616,58 +6751,6 @@ mlfi_eoh(SMFICTX *ctx)
 		dfc->mctx_resign = FALSE;
 	}
 #endif /* _FFR_RESIGN */
-
-#ifdef _FFR_LUA
-	if (conf->conf_signscript != NULL)
-	{
-		_Bool dofree = TRUE;
-		struct dkimf_lua_sign_result lres;
-
-		memset(&lres, '\0', sizeof lres);
-
-		status = dkimf_lua_sign_hook(cc, conf->conf_signscript,
-		                             "signing script", &lres);
-
-		if (status != 0)
-		{
-			if (conf->conf_dolog)
-			{
-				if (lres.lrs_error == NULL)
-				{
-					dofree = FALSE;
-
-					switch (status)
-					{
-					  case 2:
-						lres.lrs_error = "processing error";
-						break;
-
-					  case 1:
-						lres.lrs_error = "syntax error";
-						break;
-
-					  case -1:
-						lres.lrs_error = "memory allocation error";
-						break;
-
-					  default:
-						lres.lrs_error = "unknown error";
-						break;
-					}
-				}
-
-				syslog(LOG_ERR,
-				       "%s dkimf_lua_sign_hook() failed: %s",
-				       dfc->mctx_jobid, lres.lrs_error);
-			}
-
-			if (dofree)
-				free(lres.lrs_error);
-
-			return SMFIS_TEMPFAIL;
-		}
-	}
-#endif /* _FFR_LUA */
 
 	/* create all required signing handles */
 	if (dfc->mctx_srhead != NULL)

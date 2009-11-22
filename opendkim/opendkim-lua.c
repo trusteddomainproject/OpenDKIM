@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.7 2009/11/21 20:14:34 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.8 2009/11/22 03:33:32 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.7 2009/11/21 20:14:34 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.8 2009/11/22 03:33:32 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -162,6 +162,9 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 	/* request source hostname */
 	lua_register(l, "odkim_get_clienthost", dkimf_xs_clienthost);
 
+	/* request a signature (domain, selector) */
+	lua_register(l, "odkim_sign", dkimf_xs_requestsig);
+
 	/* XXX
 	request DB handle
 	lua_register(l, "odkim_get_dbhandle", dkimf_xs_dbhandle);
@@ -175,20 +178,17 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 	request source IP address
 	lua_register(l, "odkim_get_source_ip", dkimf_xs_clientip);
 
+	retrieve header/value
+	lua_register(l, "odkim_get_header", dkimf_xs_getheader);
+
 	domain is signable?
 	lua_register(l, "odkim_signable_domain", dkimf_xs_signabledomain);
 
 	source is signable?
 	lua_register(l, "odkim_signable_ip", dkimf_xs_signableip);
-
-	retrieve header/value
-	lua_register(l, "odkim_get_header", dkimf_xs_getheader);
 	*/
 
 	/* XXX -- functions to provide to LUA:
-	request a signature (domain, selector)
-	lua_register(l, "odkim_sign", dkimf_xs_requestsig);
-
 	request an "l=" tag
 	lua_register(l, "odkim_bodylength", dkimf_xs_bodylength);
 
@@ -258,6 +258,7 @@ int
 dkimf_lua_verify_hook(void *ctx, DKIM *dkim, const char *script,
                       const char *name, struct dkimf_lua_verify_result *lres)
 {
+	int status;
 	struct dkimf_lua_io io;
 	lua_State *l = NULL;
 
@@ -273,8 +274,16 @@ dkimf_lua_verify_hook(void *ctx, DKIM *dkim, const char *script,
 	if (l == NULL)
 		return -1;
 
-	/* register functions */
+	luaL_openlibs(l);
+
+	/*
+	**  Register functions.
+	*/
+
 	/* XXX
+	retrieve number of signatures
+	lua_register(l, "odkim_get_sigcount", dkimf_xs_getsigcount);
+
 	retrieve Nth signature
 	lua_register(l, "odkim_get_signature", dkimf_xs_getsignature);
 
@@ -316,10 +325,14 @@ dkimf_lua_verify_hook(void *ctx, DKIM *dkim, const char *script,
 		break;
 
 	  case LUA_ERRSYNTAX:
+		if (lua_isstring(l, 1))
+			lres->lrv_error = strdup(lua_tostring(l, 1));
 		lua_close(l);
 		return 1;
 
 	  case LUA_ERRMEM:
+		if (lua_isstring(l, 1))
+			lres->lrv_error = strdup(lua_tostring(l, 1));
 		lua_close(l);
 		return -1;
 
@@ -327,9 +340,17 @@ dkimf_lua_verify_hook(void *ctx, DKIM *dkim, const char *script,
 		assert(0);
 	}
 
+	lua_pushlightuserdata(l, ctx);
+	lua_setglobal(l, "ctx");
+
+	status = lua_pcall(l, 0, 0, 0);
+
+	if (lua_isstring(l, 1))
+		lres->lrv_error = strdup(lua_tostring(l, 1));
+
 	lua_close(l);
 
-	return 0;
+	return (status == 0 ? 0 : 2);
 }
 
 #endif /* _FFR_LUA */
