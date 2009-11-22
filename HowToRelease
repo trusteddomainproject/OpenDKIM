@@ -6,7 +6,7 @@ Release procedures for OpenDKIM
 2) In the root build directory, do these things:
 
 	% make distclean
-	% ./autogen.sh
+	% autoreconf
 	% ./configure
 	% make distcheck
 
@@ -44,4 +44,4 @@ Release procedures for OpenDKIM
 
 10) Update our entry on FreshMeat (http://www.freshmeat.net)
 
-$Id: HowToRelease,v 1.5 2009/11/22 18:57:27 cm-msk Exp $
+$Id: HowToRelease,v 1.6 2009/11/22 19:23:21 cm-msk Exp $
