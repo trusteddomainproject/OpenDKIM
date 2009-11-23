@@ -281,11 +281,20 @@ be defined but may contain any value.  Multiple tests may be specified,
 separated by commas.  The set is empty by default, meaning macros are not
 used when deciding whether or not a message should be signed.
 
-A value maybe of the form
+A value may be of the form
 .I value1[|value2[|...]];
 if one or more value is defined then the macro must be set to one of the
 listed values, otherwise the macro must be set but can contain any
 value.
+
+In order for the macro and its value to be available to the filter for
+checking, the MTA must send it during the protocol exchange.  This is either
+accomplished via manual configuration of the MTA to send the desired macros
+or, for MTA/filter combinations that support the feature, the filter can
+request those macros that are of interest.  The latter is a feature negotiated
+at the time the filter receives a connection from the MTA and its availability
+depends upon the version of milter used to compile the filter and the version
+of the MTA making the connection.
 .TP
 .I -n
 Parse the configuration file and command line arguments, reporting any
