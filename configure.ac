@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.74 2009/11/23 03:46:10 cm-msk Exp $
+# $Id: configure.ac,v 1.75 2009/11/23 04:53:28 cm-msk Exp $
 
 #
 # Setup
@@ -541,6 +541,12 @@ then
                         AC_MSG_RESULT($trepath)
                         LIBTRE_CFLAGS="-I$trepath/include"
                         LIBTRE_LIBS="-L$trepath/lib -ltre"
+		elif test -f "$trepath/include/tre/regex.h"
+		then
+			tre_found="yes"
+                        AC_MSG_RESULT([$trepath (old version)])
+                        LIBTRE_CFLAGS="-DTRE_PRE_080 -I$trepath/include"
+                        LIBTRE_LIBS="-L$trepath/lib -ltre"
                 else
                         AC_MSG_ERROR("not found at $trepath")
                 fi
@@ -556,10 +562,19 @@ then
 				LIBTRE_CFLAGS="-I$trepath/include"
 				LIBTRE_LIBS="-L$trepath/lib -ltre"
 				break;
+			elif test -f $d/include/tre/regex.h
+			then
+				trepath=$d
+				tre_found="yes"
+				AC_MSG_RESULT([$d (old version)])
+				LIBTRE_CFLAGS="-DTRE_PRE_080 -I$trepath/include"
+				LIBTRE_LIBS="-L$trepath/lib -ltre"
+				break;
 			fi
 		done
 		if test x"$tre_found" != x"yes"
 		then
+			AC_MSG_RESULT([not found])
 			AC_MSG_ERROR([cannot use diffheaders without TRE
 			              library])
 		fi
