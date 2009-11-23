@@ -14,7 +14,7 @@ extern "C" {
 
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.21 2009/11/22 08:15:50 grooverdan Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.22 2009/11/23 00:27:52 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1532,7 +1532,8 @@ extern size_t dkim_strlcat __P((char *, const char *, ssize_t));
 **  	-1 -- parse error
 */
 
-extern int dkim_qp_decode __P((unsigned char *, unsigned char *, int outlen));
+extern int dkim_qp_decode __P((unsigned char *, unsigned char *, int));
+
 
 /* default list of sender headers */
 extern const u_char *dkim_default_senderhdrs[];
@@ -1542,6 +1543,7 @@ extern const u_char *dkim_should_signhdrs[];
 
 /* list of headers that should not be signed, per RFC4871 section 5.5 */
 extern const u_char *dkim_should_not_signhdrs[];
+
 
 #ifdef __cplusplus
 }
