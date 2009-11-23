@@ -2,7 +2,7 @@
 #
 # buildtest -- build and test with numerous option combinations
 # 
-# $Id: buildtest,v 1.2 2009/11/23 20:08:06 cm-msk Exp $
+# $Id: buildtest,v 1.3 2009/11/23 21:38:54 cm-msk Exp $
 
 # configuration
 module="opendkim"
@@ -51,7 +51,7 @@ for i in	--enable-filter \
 do
 
 	# configure
-	./configure $i > configure.out 2>&1
+	./configure $CONFIG_OPTS $i > configure.out 2>&1
 	if test $? != 0
 	then
 		echo "${buildname} ./configure error"
