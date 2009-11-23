@@ -96,7 +96,7 @@ stats		Optional generation of statistics about pass/fail sorted
 
 vbr		Enable VBR (Vouch By Reference) header addition (outbound)
 		and processing (inbound).  Under revision and may not be
-		stable.  (opendkim, libopendkim)
+		stable.  (opendkim)
 
 ztags		Save headers to a file for diagnostics when the signer used
 		a "z=" tag. (opendkim)
@@ -111,4 +111,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.11 $, Last updated $Date: 2009/11/23 04:22:26 $
+$Revision: 1.12 $, Last updated $Date: 2009/11/23 04:30:15 $
