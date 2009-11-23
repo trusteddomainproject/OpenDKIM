@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.78 2009/11/23 05:45:23 cm-msk Exp $
+# $Id: configure.ac,v 1.79 2009/11/23 06:17:25 cm-msk Exp $
 
 #
 # Setup
@@ -183,8 +183,11 @@ FFR_FEATURE([capture_unknown_errors],
             [quarantine unknown verification failures])
 
 FFR_FEATURE([diffheaders], [compare signed and verified headers when possible])
+LIB_FFR_FEATURE([diffheaders],
+                [compare signed and verified headers when possible])
 
 FFR_FEATURE([dkim_reputation], [experimental DKIM reputation checks])
+LIB_FFR_FEATURE([dkim_reputation], [experimental DKIM reputation checks])
 
 FFR_FEATURE([identity_header], [special header to set identity])
 
