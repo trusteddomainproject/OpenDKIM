@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.10 2009/11/22 08:15:49 grooverdan Exp $
+$Id: BRANCHES,v 1.11 2009/11/23 00:28:11 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -15,14 +15,15 @@ br-1-1		v1.1.x releases
 Experimental Branches (branch name contains owner)
 ~~~~~~~~~~~~~~~~~~~~~
 
+br-dblack-codecoverage
+		Generate code coverage testing from lcov
+		(http://ltp.sourceforge.net/coverage/lcov.php)
+
 br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
 
 br-msk-lua	Experimenting with LUA for scriptable policy hooks
 
-br-dblack-codecoverage
-		Generate code coverage testing from lcov
-		(http://ltp.sourceforge.net/coverage/lcov.php)
 
 Closed Branches
 ~~~~~~~~~~~~~~~
