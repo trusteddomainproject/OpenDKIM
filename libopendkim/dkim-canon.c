@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.16 2009/11/22 08:15:50 grooverdan Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.17 2009/11/23 05:14:39 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -21,12 +21,16 @@ static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.16 2009/11/22 08:15:5
 #include <unistd.h>
 #include <limits.h>
 #ifdef USE_TRE
-# include <tre/tre.h>
-# ifndef TRE_USE_SYSTEM_REGEX_H
-#  define regcomp	tre_regcomp
-#  define regexec	tre_regexec
-#  define regfree	tre_regfree
-# endif /* TRE_USE_SYSTEM_REGEX_H */
+# ifdef TRE_PRE_080
+#  include <tre/regex.h>
+# else /* TRE_PRE_080 */
+#  include <tre/tre.h>
+#  ifndef TRE_USE_SYSTEM_REGEX_H
+#   define regcomp	tre_regcomp
+#   define regexec	tre_regexec
+#   define regfree	tre_regfree
+#  endif /* TRE_USE_SYSTEM_REGEX_H */
+# endif /* TRE_PRE_080 */
 #else /* USE_TRE */
 # include <regex.h>
 #endif /* USE_TRE */

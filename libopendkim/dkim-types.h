@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.10 2009/11/22 08:15:50 grooverdan Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.11 2009/11/23 05:14:39 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -18,7 +18,11 @@ static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.10 2009/11/22 08:15:5
 #include <sys/types.h>
 #include <stdbool.h>
 #ifdef USE_TRE
-# include <tre/tre.h>
+# ifdef TRE_PRE_080
+#  include <tre/regex.h>
+# else /* TRE_PRE_080 */
+#  include <tre/tre.h>
+# endif /* TRE_PRE_080 */
 #else /* USE_TRE */
 # include <regex.h>
 #endif /* USE_TRE */
