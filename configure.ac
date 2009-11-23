@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.75 2009/11/23 04:53:28 cm-msk Exp $
+# $Id: configure.ac,v 1.76 2009/11/23 05:22:32 cm-msk Exp $
 
 #
 # Setup
@@ -215,12 +215,12 @@ FFR_FEATURE([selector_header], [special header to choose signing key])
 FFR_FEATURE([sender_macro], [macro to determine sender])
 
 FFR_FEATURE([vbr], [Vouch-By-Reference support])
-AM_CONDITIONAL([VBR], [test x"$enable_vbr" != x"no"])
+AM_CONDITIONAL([VBR], [test x"$enable_vbr" = x"yes"])
 
 FFR_FEATURE([ztags], [sign/verify with z= tags])
 
 FFR_FEATURE([stats], [stats recording and reporting])
-AM_CONDITIONAL([STATS], [test x"$enable_stats" != x"no"])
+AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
 
 AC_ARG_ENABLE([filter],
               AS_HELP_STRING([--disable-filter],
@@ -243,12 +243,12 @@ LIB_FFR_FEATURE([parsetime], [parse From: headers for sending times])
 AC_ARG_ENABLE([allsymbols],
               AS_HELP_STRING([--enable-allsymbols],
                              [export internal-use symbols for better test coverage]))
-AM_CONDITIONAL(ALL_SYMBOLS, [test "$enable_allsymbols" = yes])
+AM_CONDITIONAL(ALL_SYMBOLS, [test x"$enable_allsymbols" = x"yes"])
 
 AC_ARG_ENABLE([arlib],
               AS_HELP_STRING([--enable-arlib],
                              [enable provided asynchronous resolver library]),
-              AS_IF([test "x$enable_arlib" != "xno"],
+              AS_IF([test "x$enable_arlib" = "xyes"],
               [
 		AC_DEFINE(USE_ARLIB, 1,
 		          [enable provided asynchronous resolver library])
@@ -261,7 +261,7 @@ AM_CONDITIONAL([USE_ARLIB], [test x"$enable_arlib" = x"yes"])
 AC_ARG_ENABLE([debug],
               AS_HELP_STRING([--enable-debug],
 	                     [produce debugging binaries and libraries]),
-              AS_IF([test "x$enable_debug" != "xno"],
+              AS_IF([test "x$enable_debug" = "xyes"],
 		[
 			LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING debug"
 			CFLAGS=`echo $CFLAGS | sed "s/ -O[0-9s]?//g"`
