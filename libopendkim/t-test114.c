@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test114_c_id[] = "@(#)$Id: t-test114.c,v 1.3 2009/07/23 17:40:24 cm-msk Exp $";
+static char t_test114_c_id[] = "@(#)$Id: t-test114.c,v 1.4 2009/11/23 04:42:07 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -15,7 +15,6 @@ static char t_test114_c_id[] = "@(#)$Id: t-test114.c,v 1.3 2009/07/23 17:40:24 c
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
-
 
 /* libopendkim includes */
 #include "dkim.h"
@@ -68,10 +67,8 @@ main(int argc, char **argv)
 	int nsigs;
 	int len;
 	DKIM_STAT status;
-#ifdef _FFR_STATS
 	dkim_canon_t bcanon;
 	dkim_canon_t hcanon;
-#endif /* _FFR_STATS */ 
 	time_t now;
 	DKIM *dkim;
 	DKIM_LIB *lib;
@@ -261,12 +258,10 @@ main(int argc, char **argv)
 	assert(dkim_sig_geterror(sigs[11]) == DKIM_SIGERROR_TIMESTAMPS);
 
 	assert(dkim_sig_geterror(sigs[12]) == DKIM_SIGERROR_BADSIG);
-#ifdef _FFR_STATS
 	status = dkim_sig_getcanons(sigs[12], &hcanon, &bcanon);
 	assert(status == DKIM_STAT_OK);
 	assert(hcanon == DKIM_CANON_SIMPLE);
 	assert(bcanon == DKIM_CANON_SIMPLE);
-#endif /* _FFR_STATS */
 
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);
