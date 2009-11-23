@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.72 2009/11/22 23:29:28 grooverdan Exp $
+# $Id: configure.ac,v 1.73 2009/11/23 00:30:34 cm-msk Exp $
 
 #
 # Setup
@@ -129,14 +129,14 @@ AC_DEFUN([TR_UP], [m4_translit([AS_TR_SH([$1])], [a-z], [A-Z])])
 AC_DEFUN([FEATURE],
          [notincluded="(Not enabled in this installation.)"
           AC_ARG_ENABLE($1, AS_HELP_STRING(--enable-$1, $2),
-                        AS_IF([test "x$enable_]$1[" != "xno"],
+                        AS_IF([test "x$enable_]$1[" = "xyes"],
                               [
-				AC_DEFINE(TR_UP($1), 1,
-				          [enable $1 feature])
+				AC_DEFINE(TR_UP($1), 1, [enable $1 feature])
 				AC_SUBST(TR_UP($1)[_MANNOTICE], "")
 			      ],
 			      [
 				AC_SUBST(TR_UP($1)[_MANNOTICE], $notincluded)
+				AC_DEFINE(TR_UP($1), 0, [enable $1 feature])
 			      ]),
                         AC_SUBST(TR_UP($1)[_MANNOTICE], $notincluded))
          ])
@@ -146,7 +146,7 @@ AC_DEFUN([FEATURE],
 
 AC_DEFUN([LIB_FEATURE],
          [FEATURE($1, $2)
-         AS_IF([test "x$enable_]$1[" = "xyes"],
+          AS_IF([test "x$enable_]$1[" = "xyes"],
 	        [
 			LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING $1"
 		])
@@ -155,7 +155,7 @@ AC_DEFUN([LIB_FEATURE],
 AC_DEFUN([FFR_FEATURE],
          [experimentalnotincluded="(Experimental feature not enabled in this installation.)"
           AC_ARG_ENABLE($1, AS_HELP_STRING(--enable-$1, $2),
-                        AS_IF([test "x$enable_]$1[" != "xno"],
+                        AS_IF([test "x$enable_]$1[" = "xyes"],
                               [
 				AC_DEFINE([_FFR_]TR_UP($1), 1,
 				          [enable $1 feature])
