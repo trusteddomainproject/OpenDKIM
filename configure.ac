@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.79 2009/11/23 06:17:25 cm-msk Exp $
+# $Id: configure.ac,v 1.80 2009/11/23 21:31:33 cm-msk Exp $
 
 #
 # Setup
@@ -409,7 +409,7 @@ saved_LDFLAGS="$LDFLAGS"
 saved_LIBS="$LIBS"
 
 CC="$PTHREAD_CC"
-LIBS="$PTHREAD_LIBS"
+LIBS="$PTHREAD_LIBS $saved_LIBS"
 CFLAGS="$PTHREAD_CFLAGS $LIBMILTER_INCDIRS $saved_CFLAGS"
 LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/lib $saved_LDFLAGS"
 
