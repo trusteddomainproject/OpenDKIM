@@ -34,7 +34,8 @@ bodylengthdb	Optionally query a local database of recipient addresses
 		to determine if an "l=" tag should be applied when
 		signing.  (libopendkim, opendkim)
 
-captureerrors	When dkim_eom() returns an unexpected error of some kind,
+capture_unknown_errors
+		When dkim_eom() returns an unexpected error of some kind,
 		quarantine the message for further analysis.  (opendkim)
 
 diffheaders	When verification fails for a message for which a "z="
@@ -43,7 +44,7 @@ diffheaders	When verification fails for a message for which a "z="
 		library, available at http://laurikari.net/tre.
 		(opendkim, libopendkim)
 
-dkimreputation	Add experimental support for querying an open DKIM reputation
+dkim_reputation	Add experimental support for querying an open DKIM reputation
 		service.  The service's URL is http://www.dkim-reputation.org.
 		(opendkim, libopendkim)
 
@@ -51,7 +52,7 @@ dnsupgrade	Maintain two libar instances, the second in TCP mode, in case
 		any UDP queries come back truncated.  Not meaningful unless
 		libar is in use.  (libopendkim)
 
-identityheader	Enable selection of an identity for signing based on the
+identity_header	Enable selection of an identity for signing based on the
 		value found in a particular header. (opendkim)
 
 parsetime	Adds a utility function reporting the value of the Date:
@@ -62,29 +63,30 @@ parsetime	Adds a utility function reporting the value of the Date:
 redirect	Option to redirect messages to a specific address on
 		verification or ADSP failure.  (opendkim)
 
-replacerules	Allow specification of a "replacement rules" table
+replace_rules	Allow specification of a "replacement rules" table
 		for use when signing, replacing certain patterns in
 		address headers with specific strings to anticipate the
 		effects of the "masquerade" and "genericstable" features in
 		the MTA.  (opendkim)
 
-reportintervals
+report_intervals
 		Support for report intervals, part of the DKIM reporting
 		extensions.  (opendkim)
 
 resign		Experimental API features for simultaneous verifying and
 		re-signing of a single message.  (libopendkim)
 
-selectcanon	Optionally override the value of the "-c" command line flag
+select_canonicalization
+		Optionally override the value of the "-c" command line flag
 		by specifying a preferred canonicalization on a special
 		header line.  Intended mostly for testing, not production
 		use.  (opendkim)
 
-selectorheader	Enable selection of which selector (and thus which key)
+selector_header	Enable selection of which selector (and thus which key)
 		to use when signing based on the contents of an arbitrary
 		header.  (opendkim)
 
-sendermacro	Enable control over an MTA macro from which the address
+sender_macro	Enable control over an MTA macro from which the address
 		of the sender is taken, rather than from header fields.
 		(opendkim)
 
@@ -109,4 +111,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.10 $, Last updated $Date: 2009/11/17 20:09:17 $
+$Revision: 1.11 $, Last updated $Date: 2009/11/23 04:22:26 $
