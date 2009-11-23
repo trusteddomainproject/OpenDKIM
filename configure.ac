@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.76 2009/11/23 05:22:32 cm-msk Exp $
+# $Id: configure.ac,v 1.77 2009/11/23 05:30:35 grooverdan Exp $
 
 #
 # Setup
@@ -524,9 +524,17 @@ if test \(  x"$trepath" = x"auto" -o x"$trepath" = x"yes" \) -a x"$PKG_CONFIG" !
 then
         PKG_CHECK_MODULES([LIBTRE], [tre >= 0.8.0], [tre_found="yes"],
 	[
-	        tre_found="no"
-        	AC_MSG_WARN([pkg-config for libtre not found,
+        	PKG_CHECK_MODULES([LIBTRE], [tre >= 0.7.5], 
+		[
+			tre_found="yes"
+			#AC_DEFINE([TRE_PRE080], [1], [Found a pre 0.8.0 version of libtre])
+			LIBTRE_CFLAGS="-DTRE_PRE_080 $LIBTRE_CFLAGS"
+		],[
+		        tre_found="no"
+        		AC_MSG_WARN([pkg-config for libtre >= 0.7.5 not found,
 		             trying manual search...])
+		])
+
         ])
 fi
 
