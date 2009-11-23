@@ -32,7 +32,7 @@ allsymbols	By default, the build will attempt to create a libopendkim
 
 bodylengthdb	Optionally query a local database of recipient addresses
 		to determine if an "l=" tag should be applied when
-		signing.  (libopendkim, opendkim)
+		signing.  (opendkim)
 
 capture_unknown_errors
 		When dkim_eom() returns an unexpected error of some kind,
@@ -111,4 +111,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.12 $, Last updated $Date: 2009/11/23 04:30:15 $
+$Revision: 1.13 $, Last updated $Date: 2009/11/23 04:35:25 $
