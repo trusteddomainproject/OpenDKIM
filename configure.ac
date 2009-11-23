@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.73 2009/11/23 00:30:34 cm-msk Exp $
+# $Id: configure.ac,v 1.74 2009/11/23 03:46:10 cm-msk Exp $
 
 #
 # Setup
@@ -407,31 +407,31 @@ case "$milterpath" in
 		;;
 esac
 
-#saved_CFLAGS="$CFLAGS"
-#saved_LDFLAGS="$LDFLAGS"
-#saved_LIBS="$LIBS"
-#
-#CC="$PTHREAD_CC"
-#LIBS="$PTHREAD_LIBS"
-#CFLAGS="$PTHREAD_CFLAGS $LIBMILTER_INCDIRS $saved_CFLAGS"
-#LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/lib $saved_LDFLAGS"
-#
-#AC_SEARCH_LIBS([smfi_register], [milter], ,
-#	[
-#		unset ac_cv_search_smfi_register
-#		LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/lib $saved_LDFLAGS"
-#		AC_SEARCH_LIBS([smfi_register], [milter], ,
-#		               AC_MSG_ERROR([libmilter not found]))
-#	])
-#
-#LIBMILTER_LIBDIRS="$LDFLAGS $LIBS"
-#
-#CFLAGS="$saved_CFLAGS"
-#LDFLAGS="$saved_LDFLAGS"
-#LIBS="$saved_LIBS"
-
 LIBMILTER_INCDIRS="-I$milterpath/include"
-LIBMILTER_LIBDIRS="-L$milterpath/lib"
+
+saved_CFLAGS="$CFLAGS"
+saved_LDFLAGS="$LDFLAGS"
+saved_LIBS="$LIBS"
+
+CC="$PTHREAD_CC"
+LIBS="$PTHREAD_LIBS"
+CFLAGS="$PTHREAD_CFLAGS $LIBMILTER_INCDIRS $saved_CFLAGS"
+LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/lib $saved_LDFLAGS"
+
+AC_SEARCH_LIBS([smfi_register], [milter], ,
+	[
+		unset ac_cv_search_smfi_register
+		LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/lib $saved_LDFLAGS"
+		AC_SEARCH_LIBS([smfi_register], [milter], ,
+		               AC_MSG_ERROR([libmilter not found]))
+	])
+
+LIBMILTER_LIBDIRS="$LDFLAGS $LIBS"
+
+CFLAGS="$saved_CFLAGS"
+LDFLAGS="$saved_LDFLAGS"
+LIBS="$saved_LIBS"
+
 AC_SUBST(LIBMILTER_INCDIRS)
 AC_SUBST(LIBMILTER_LIBDIRS)
 
