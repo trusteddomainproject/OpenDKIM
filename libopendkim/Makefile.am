@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.42 2009/11/22 21:03:01 cm-msk Exp $
+# $Id: Makefile.am,v 1.43 2009/11/23 06:13:35 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -106,7 +106,7 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test121 t-test122 t-test123 t-test124 t-test125 t-test126 \
 	t-test127 t-test128 t-test129 t-test130 t-test131 t-signperf t-verifyperf
 if ALL_SYMBOLS
-check_PROGRAMS +=t-test49 t-test113 t-test118
+check_PROGRAMS += t-test49 t-test113 t-test118
 endif
 check_PROGRAMS += t-cleanup
 TESTS = $(check_PROGRAMS)
