@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.77 2009/11/23 05:30:35 grooverdan Exp $
+# $Id: configure.ac,v 1.78 2009/11/23 05:45:23 cm-msk Exp $
 
 #
 # Setup
@@ -124,25 +124,19 @@ LIBOPENDKIM_FEATURE_STRING="libopendkim $PACKAGE_VERSION:"
 
 AC_DEFUN([TR_UP], [m4_translit([AS_TR_SH([$1])], [a-z], [A-Z])])
 
-# AC_DEFINE(TR_UP($1), 1, [enable $1 feature])
-
 AC_DEFUN([FEATURE],
          [notincluded="(Not enabled in this installation.)"
           AC_ARG_ENABLE($1, AS_HELP_STRING(--enable-$1, $2),
                         AS_IF([test "x$enable_]$1[" = "xyes"],
                               [
-				AC_DEFINE(TR_UP($1), 1, [enable $1 feature])
 				AC_SUBST(TR_UP($1)[_MANNOTICE], "")
+				AC_DEFINE(TR_UP($1), 1, [enable $1 feature])
 			      ],
 			      [
 				AC_SUBST(TR_UP($1)[_MANNOTICE], $notincluded)
-				AC_DEFINE(TR_UP($1), 0, [enable $1 feature])
 			      ]),
                         AC_SUBST(TR_UP($1)[_MANNOTICE], $notincluded))
          ])
-
-# AC_DEFINE([LIBOPENDKIM_]TR_UP($1), 1,
-#           [enable $1 feature])
 
 AC_DEFUN([LIB_FEATURE],
          [FEATURE($1, $2)
@@ -170,8 +164,6 @@ AC_DEFUN([FFR_FEATURE],
                                  $experimentalnotincluded))
          ])
 
-#			AC_DEFINE([LIBOPENDKIM_]TR_UP($1), 1,
-#			          [enable $1 feature])
 AC_DEFUN([LIB_FFR_FEATURE],
          [FFR_FEATURE($1, $2)
           AS_IF([test "x$enable_]$1[" = "xyes"],
@@ -527,8 +519,8 @@ then
         	PKG_CHECK_MODULES([LIBTRE], [tre >= 0.7.5], 
 		[
 			tre_found="yes"
-			#AC_DEFINE([TRE_PRE080], [1], [Found a pre 0.8.0 version of libtre])
-			LIBTRE_CFLAGS="-DTRE_PRE_080 $LIBTRE_CFLAGS"
+			AC_DEFINE([TRE_PRE_080], ,
+			          [version of libtre is older than 0.8.0])
 		],[
 		        tre_found="no"
         		AC_MSG_WARN([pkg-config for libtre >= 0.7.5 not found,
@@ -553,7 +545,9 @@ then
 		then
 			tre_found="yes"
                         AC_MSG_RESULT([$trepath (old version)])
-                        LIBTRE_CFLAGS="-DTRE_PRE_080 -I$trepath/include"
+			AC_DEFINE([TRE_PRE_080], ,
+			          [version of libtre is older than 0.8.0])
+                        LIBTRE_CFLAGS="-I$trepath/include"
                         LIBTRE_LIBS="-L$trepath/lib -ltre"
                 else
                         AC_MSG_ERROR("not found at $trepath")
@@ -575,7 +569,10 @@ then
 				trepath=$d
 				tre_found="yes"
 				AC_MSG_RESULT([$d (old version)])
-				LIBTRE_CFLAGS="-DTRE_PRE_080 -I$trepath/include"
+				AC_DEFINE([TRE_PRE_080], ,
+				          [version of libtre is older than 0.8.0])
+				AC_DEFINE(TRE_PRE_080)
+				LIBTRE_CFLAGS="-I$trepath/include"
 				LIBTRE_LIBS="-L$trepath/lib -ltre"
 				break;
 			fi
