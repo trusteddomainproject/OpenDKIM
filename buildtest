@@ -1,0 +1,99 @@
+#!/bin/sh
+#
+# buildtest -- build and test with numerous option combinations
+# 
+# $Id: buildtest,v 1.1 2009/11/23 19:33:54 cm-msk Exp $
+
+# configuration
+module="opendkim"
+buildroot=/var/tmp
+
+# setup
+buildtime="`date +%Y%m%d%H%M%S`"
+buildname="${module}-${buildtime}"
+builddir="${buildroot}/${buildname}"
+
+# create directories
+mkdir $builddir
+cd $builddir
+
+# checkout
+CVSROOT=:pserver:anonymous@${module}.cvs.sourceforge.net:/cvsroot/${module}; \
+	export CVSROOT
+cvs -Q checkout -P .
+if test $? != 0
+then
+	exit 1
+fi
+
+# autotools
+autoreconf -v -i > autoreconf.out 2>&1
+if test $? != 0
+then
+	echo "${buildname} autoreconf error"
+	tail -20 autoreconf.out
+	exit 1
+fi
+
+rm -f autoreconf.out
+
+for i in	--enable-filter \
+		--with-db \
+		--with-odbx \
+		--with-tre \
+		--with-unbound \
+		--enable-allsymbols \
+		--enable-bodylengthdb \
+		--enable-capture_unknown_errors \
+		--enable-diffheaders \
+		--enable-dkim_reputation \
+		--enable-dnsupgrade \
+		--enable-identity_header \
+		--enable-parsetime \
+		--enable-redirect \
+		--enable-replace_rules \
+		--enable-report_intervals \
+		--enable-resign	\
+		--enable-select_canonicalization \
+		--enable-selector_header \
+		--enable-sender_macro \
+		--enable-stats \
+		--enable-vbr \
+		--enable-ztags
+do
+
+	# configure
+	./configure $i > configure.out 2>&1
+	if test $? != 0
+	then
+		echo "${buildname} ./configure error"
+		tail -20 configure.out
+		exit 1
+	fi
+
+	# make
+	make > make.out 2>&1
+	if test $? != 0
+	then
+		echo "${buildname} make error"
+		tail -20 make.out
+		exit 1
+	fi
+
+	# make check
+	make check > make.out 2>&1
+	if test $? != 0
+	then
+		echo "${buildname} make check error"
+		tail -20 make.out
+		exit 1
+	fi
+
+	# make clean
+	rm make.out configure.out
+	make clean > /dev/null 2>&1
+done
+
+cd $HOME
+rm -rf $builddir
+exit 0
