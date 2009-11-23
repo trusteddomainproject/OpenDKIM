@@ -2,10 +2,13 @@
 #
 # buildtest -- build and test with numerous option combinations
 # 
-# $Id: buildtest,v 1.1 2009/11/23 19:33:54 cm-msk Exp $
+# $Id: buildtest,v 1.2 2009/11/23 20:08:06 cm-msk Exp $
 
 # configuration
 module="opendkim"
+version="$1"
+buildtop="`echo $1 | sed 's/-[A-Za-z0-9]*//g'`"
+download="http://downloads.sourceforge.net/project/${module}/${module}-${version}.tar.gz"
 buildroot=/var/tmp
 
 # setup
@@ -17,25 +20,10 @@ builddir="${buildroot}/${buildname}"
 mkdir $builddir
 cd $builddir
 
-# checkout
-CVSROOT=:pserver:anonymous@${module}.cvs.sourceforge.net:/cvsroot/${module}; \
-	export CVSROOT
-cvs -Q checkout -P .
-if test $? != 0
-then
-	exit 1
-fi
-
-# autotools
-autoreconf -v -i > autoreconf.out 2>&1
-if test $? != 0
-then
-	echo "${buildname} autoreconf error"
-	tail -20 autoreconf.out
-	exit 1
-fi
-
-rm -f autoreconf.out
+# download and unpack
+wget -q $download
+gunzip -c `basename $download` | tar xf -
+cd ${module}-${buildtop}
 
 for i in	--enable-filter \
 		--with-db \
