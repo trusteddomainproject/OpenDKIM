@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.83 2009/11/24 22:16:40 cm-msk Exp $
+# $Id: configure.ac,v 1.84 2009/11/24 22:41:00 cm-msk Exp $
 
 #
 # Setup
@@ -430,6 +430,10 @@ AC_SEARCH_LIBS([smfi_register], [milter], ,
 		AC_SEARCH_LIBS([smfi_register], [milter], ,
 		               AC_MSG_ERROR([libmilter not found]))
 	])
+
+AC_CHECK_FUNC([smfi_setsymlist],
+              AC_DEFINE([HAVE_SMFI_SETSYMLIST], 1,
+                        [Define if libmilter has smfi_setsymlist()]))
 
 CPPFLAGS="$saved_CPPFLAGS"
 CFLAGS="$saved_CFLAGS"

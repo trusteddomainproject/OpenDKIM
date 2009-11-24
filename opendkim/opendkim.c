@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.66 2009/11/22 20:41:52 cm-msk Exp $
+**  $Id: opendkim.c,v 1.67 2009/11/24 22:41:00 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.66 2009/11/22 20:41:52 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.67 2009/11/24 22:41:00 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5174,7 +5174,11 @@ mlfi_negotiate(SMFICTX *ctx,
 {
 	unsigned long reqactions = (SMFIF_ADDHDRS |
 	                            SMFIF_CHGHDRS );
+#if defined(SMFIF_SETSYMLIST) && defined(HAVE_SMFI_SETSYMLIST)
 	unsigned long wantactions = (SMFIF_SETSYMLIST);
+#else /* defined(SMFIF_SETSYMLIST) && defined(HAVE_SMFI_SETSYMLIST) */
+	unsigned long wantactions = 0;
+#endif /* defined(SMFIF_SETSYMLIST) && defined(HAVE_SMFI_SETSYMLIST) */
 	unsigned long protosteps = (SMFIP_NOHELO |
 	                            SMFIP_NOUNKNOWN |
 	                            SMFIP_NODATA |
@@ -5256,7 +5260,7 @@ mlfi_negotiate(SMFICTX *ctx,
 	*pf3 = 0;
 
 	/* request macros if able */
-# ifdef SMFIF_SETSYMLIST
+# if defined(SMFIF_SETSYMLIST) && defined(HAVE_SMFI_SETSYMLIST)
 	if (conf->conf_macros != NULL && (wantactions & SMFIF_SETSYMLIST) != 0)
 	{
 		int c;
@@ -5304,7 +5308,7 @@ mlfi_negotiate(SMFICTX *ctx,
 			return SMFIS_REJECT;
 		}
 	}
-# endif /* SMFIF_SETSYMLIST */
+# endif /* defined(SMFIF_SETSYMLIST) && defined(HAVE_SMFI_SETSYMLIST) */
 
 	/* set "milterv2" flag if SMFIP_SKIP was available */
 	if ((f1 & SMFIP_SKIP) != 0)
