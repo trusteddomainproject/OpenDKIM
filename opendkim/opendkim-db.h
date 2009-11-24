@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.h,v 1.4 2009/11/04 18:41:48 cm-msk Exp $
+**  $Id: opendkim-db.h,v 1.5 2009/11/24 00:52:17 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_DB_H_
 #define _OPENDKIM_DB_H_
 
 #ifndef lint
-static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.4 2009/11/04 18:41:48 cm-msk Exp $";
+static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.5 2009/11/24 00:52:17 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -30,6 +30,16 @@ static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.4 2009/11/04 18:41:
 #define	DKIMF_DB_TYPE_CSL	2
 #define DKIMF_DB_TYPE_BDB	3
 #define DKIMF_DB_TYPE_DSN	4
+
+#ifdef __STDC__
+# ifndef __P
+#  define __P(x)  x
+# endif /* ! __P */
+#else /* __STDC__ */
+# ifndef __P
+#  define __P(x)  ()
+# endif /* ! __P */
+#endif /* __STDC__ */
 
 /* types */
 struct dkimf_db;
