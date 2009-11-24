@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.5 2009/11/22 03:33:32 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.6 2009/11/24 23:42:38 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.5 2009/11/22 03:33:32 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.6 2009/11/24 23:42:38 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2744,6 +2744,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			int fd;
 			ssize_t rlen;
+			char *err2;
 			struct stat s;
 
 			fd = open(str, O_RDONLY, 0);
@@ -2789,6 +2790,19 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			}
 
 			close(fd);
+
+			err2 = NULL;
+			if (dkimf_lua_test_script(conf->conf_signscript,
+			                          &err2) != 0)
+			{
+				if (err2 != NULL)
+				{
+					snprintf(err, errlen, "%s: %s",
+					         str, err2);
+					free(err2);
+				}
+				return -1;
+			}
 		}
 
 		str = NULL;
@@ -2798,6 +2812,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			int fd;
 			ssize_t rlen;
+			char *err2;
 			struct stat s;
 
 			fd = open(str, O_RDONLY, 0);
@@ -2843,6 +2858,19 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			}
 
 			close(fd);
+
+			err2 = NULL;
+			if (dkimf_lua_test_script(conf->conf_signscript,
+			                          &err2) != 0)
+			{
+				if (err2 != NULL)
+				{
+					snprintf(err, errlen, "%s: %s",
+					         str, err2);
+					free(err2);
+				}
+				return -1;
+			}
 		}
 #endif /* _FFR_LUA */
 	}
