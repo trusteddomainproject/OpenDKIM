@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.80 2009/11/23 21:31:33 cm-msk Exp $
+# $Id: configure.ac,v 1.81 2009/11/24 20:07:29 cm-msk Exp $
 
 #
 # Setup
@@ -310,16 +310,17 @@ then
 			;;
 	esac
         LIBCRYPTO_CFLAGS="-I$sslpath/include"
-        LIBCRYPTO_LIBS="-L$sslpath/lib -lssl -lcrypto"
+        LIBCRYPTO_LIBDIRS="-L$sslpath/lib"
+        LIBCRYPTO_LIBS="-lssl -lcrypto"
 fi
 
 saved_CFLAGS="$CFLAGS"
 saved_LDFLAGS="$LDFLAGS"
 saved_LIBS="$LIBS"
 
-LIBS=""
+LIBS="$LIBCRYPTO_LIBS $saved_LIBS"
 CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
-LDFLAGS="$LIBCRYPTO_LIBS $saved_LDFLAGS"
+LDFLAGS="$LIBCRYPTO_LIBDIRS $saved_LDFLAGS"
 
 AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
                  AC_MSG_ERROR([required OpenSSL header not found]))
@@ -357,6 +358,7 @@ CFLAGS="$saved_CFLAGS"
 LDFLAGS="$saved_LDFLAGS"
 LIBS="$saved_LIBS"
 
+AC_SUBST(LIBCRYPTO_CFLAGS)
 AC_SUBST(LIBCRYPTO_LIBDIRS)
 AC_SUBST(LIBCRYPTO_LIBS)
 
