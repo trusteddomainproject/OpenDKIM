@@ -1,39 +1,37 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
-To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v1.1.1 released
+To: opendkim-users@lists.opendkim.org
+Subject: OpenDKIM v1.2.0-Beta0 available
 
-The OpenDKIM project announces availability of OpenDKIM v1.1.1, now available
-for download from SourceForge.
+The OpenDKIM project announces availability of the first Beta release of
+OpenDKIM v1.2.0, now available for download from SourceForge.  Release
+is targeted for around the end of this month.  It can be found in the
+"Pre-Releases" directory.
 
-This release tidies up a number of minor coding issues that generally only
-occurred during unusual error conditions and thus went undetected until now.
-Also, with the publication of RFC5617, ADSP is now official and thus the
-name to be used when annotating results of those checks has changed.  A
-correction was made to handling of ADSP when the retrieval of an ADSP
-record ran into trouble.  And finally, a new FFR is available that allows
-sender selection based on MTA macros instead of just headers.
+Highlights of this pending release:
 
-The RELEASE_NOTES for this version:
-
-1.1.1		2009/10/09
-	Plug a number of potential but minor memory and file handle leaks,
-		remove some dead code, guard against NULL dereferences, fix an
-		errant return code check, fix a double-free(), and several
-		other fixes found by a code analysis tool, used by courtesy
-		of Cloudmark.
-	Change "x-dkim-adsp" to "dkim-adsp" in Authentication-Results header
-		field code now that RFC5617 is published.
-	Apply "On-DNSError" setting when policy queries fail.
-	BUILD: Some compilation fixes and type cleanup.  Based on patches
-		provided by Daniel Black.
-	Add _FFR_SENDER_MACRO: Determine the message sender based on the
-		contents of a macro instead of on a header field.
-		Based on a patch from Ondrej Sury.
+- support for OpenDBX, and thus many SQL back-ends
+- a common database interface for all data sets, so one can use a
+  flat file, a regex file, a comma-separated list, a BerkeleyDB or
+  an SQL/ODBC database for any set of data the filter might need
+- a new setting allowing control over what action is taken when a policy
+  query fails, distinct from other DNS or key retrieval errors
+- support for addition of multiple signatures at signing time
+- a new FFR enabling a single client to verify and re-sign a message
+  transiting through an MTA all in one shot (i.e. no need to calculate two
+  full sets of hashes)
+- a fix to relaxed body canonicalization
+- the ability for a client to request data about signatures with syntax
+  errors through the API rather than having the API reject them outright
+- VBR functions now live in their own library
+- various library cleanup
+- extensive build system enhancements including use of pkg-config both
+  when preparing to build and when installing libraries, improved resolver
+  library detection, updated pthread macros, etc.
+- automated man page generation with annotations indicating features
+  enabled/disabled at compile time
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
-Bug reports and feature requests can be made through the project trackers
-at http://sourceforge.net/projects/opendkim/.
-
-Thanks go out to all of those who contributed to this release.
+Bug reports and feature requests for beta releases should be made through
+the lists and not through the SourceForge trackers.
 
 The OpenDKIM Project

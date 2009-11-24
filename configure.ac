@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.81 2009/11/24 20:07:29 cm-msk Exp $
+# $Id: configure.ac,v 1.82 2009/11/24 20:32:29 cm-msk Exp $
 
 #
 # Setup
@@ -309,17 +309,17 @@ then
 			AC_MSG_ERROR([OpenSSL not found])
 			;;
 	esac
-        LIBCRYPTO_CFLAGS="-I$sslpath/include"
+        LIBCRYPTO_CPPFLAGS="-I$sslpath/include"
         LIBCRYPTO_LIBDIRS="-L$sslpath/lib"
         LIBCRYPTO_LIBS="-lssl -lcrypto"
 fi
 
-saved_CFLAGS="$CFLAGS"
+saved_CPPFLAGS="$CPPFLAGS"
 saved_LDFLAGS="$LDFLAGS"
 saved_LIBS="$LIBS"
 
 LIBS="$LIBCRYPTO_LIBS $saved_LIBS"
-CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
+CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
 LDFLAGS="$LIBCRYPTO_LIBDIRS $saved_LDFLAGS"
 
 AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
@@ -354,11 +354,11 @@ AC_CHECK_DECL([SHA256_DIGEST_LENGTH], ,
                            with your version of OpenSSL]),
               [#include <openssl/sha.h>])
 
-CFLAGS="$saved_CFLAGS"
+CPPFLAGS="$saved_CPPFLAGS"
 LDFLAGS="$saved_LDFLAGS"
 LIBS="$saved_LIBS"
 
-AC_SUBST(LIBCRYPTO_CFLAGS)
+AC_SUBST(LIBCRYPTO_CPPFLAGS)
 AC_SUBST(LIBCRYPTO_LIBDIRS)
 AC_SUBST(LIBCRYPTO_LIBS)
 
@@ -405,15 +405,18 @@ case "$milterpath" in
 esac
 
 LIBMILTER_INCDIRS="-I$milterpath/include"
+LIBMILTER_LIBDIRS="-L$milterpath"
 
 saved_CFLAGS="$CFLAGS"
+saved_CPPFLAGS="$CPPFLAGS"
 saved_LDFLAGS="$LDFLAGS"
 saved_LIBS="$LIBS"
 
 CC="$PTHREAD_CC"
 LIBS="$PTHREAD_LIBS $saved_LIBS"
-CFLAGS="$PTHREAD_CFLAGS $LIBMILTER_INCDIRS $saved_CFLAGS"
-LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/lib $saved_LDFLAGS"
+CPPFLAGS="$LIBMILTER_INCDIRS $saved_CPPFLAGS"
+CFLAGS="$PTHREAD_CFLAGS $saved_CFLAGS"
+LDFLAGS="$PTHREAD_CFLAGS $LIBMILTER_LIBDIRS $saved_LDFLAGS"
 
 AC_SEARCH_LIBS([smfi_register], [milter], ,
 	[
@@ -423,8 +426,7 @@ AC_SEARCH_LIBS([smfi_register], [milter], ,
 		               AC_MSG_ERROR([libmilter not found]))
 	])
 
-LIBMILTER_LIBDIRS="$LDFLAGS $LIBS"
-
+CPPFLAGS="$saved_CPPFLAGS"
 CFLAGS="$saved_CFLAGS"
 LDFLAGS="$saved_LDFLAGS"
 LIBS="$saved_LIBS"
@@ -509,7 +511,7 @@ AC_ARG_WITH([tre],
             [trepath="$withval"], [trepath="auto"])
 
 tre_found="no"
-LIBTRE_CFLAGS=""
+LIBTRE_CPPFLAGS=""
 LIBTRE_LIBS=""
 
 if test x"$enable_diffheaders" != x"yes"
@@ -544,7 +546,7 @@ then
                 then
 			tre_found="yes"
                         AC_MSG_RESULT($trepath)
-                        LIBTRE_CFLAGS="-I$trepath/include"
+                        LIBTRE_CPPFLAGS="-I$trepath/include"
                         LIBTRE_LIBS="-L$trepath/lib -ltre"
 		elif test -f "$trepath/include/tre/regex.h"
 		then
@@ -552,7 +554,7 @@ then
                         AC_MSG_RESULT([$trepath (old version)])
 			AC_DEFINE([TRE_PRE_080], ,
 			          [version of libtre is older than 0.8.0])
-                        LIBTRE_CFLAGS="-I$trepath/include"
+                        LIBTRE_CPPFLAGS="-I$trepath/include"
                         LIBTRE_LIBS="-L$trepath/lib -ltre"
                 else
                         AC_MSG_ERROR("not found at $trepath")
@@ -566,7 +568,7 @@ then
 				trepath=$d
 				tre_found="yes"
 				AC_MSG_RESULT($d)
-				LIBTRE_CFLAGS="-I$trepath/include"
+				LIBTRE_CPPFLAGS="-I$trepath/include"
 				LIBTRE_LIBS="-L$trepath/lib -ltre"
 				break;
 			elif test -f $d/include/tre/regex.h
@@ -577,7 +579,7 @@ then
 				AC_DEFINE([TRE_PRE_080], ,
 				          [version of libtre is older than 0.8.0])
 				AC_DEFINE(TRE_PRE_080)
-				LIBTRE_CFLAGS="-I$trepath/include"
+				LIBTRE_CPPFLAGS="-I$trepath/include"
 				LIBTRE_LIBS="-L$trepath/lib -ltre"
 				break;
 			fi
@@ -597,7 +599,7 @@ then
 fi
 
 AM_CONDITIONAL([USE_TRE], [test x"$tre_found" != x"no"])
-AC_SUBST([LIBTRE_CFLAGS])
+AC_SUBST([LIBTRE_CPPFLAGS])
 AC_SUBST([LIBTRE_LIBS])
 
 #
@@ -855,7 +857,7 @@ fi
 LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS $LIBRESOLV"
 # This (below) is just for the pkg-config file opendkim.pc.in
 LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
-LIBOPENDKIM_INC="$LIBCRYPTO_CFLAGS $LIBTRE_CFLAGS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
+LIBOPENDKIM_INC="$LIBCRYPTO_CPPFLAGS $LIBTRE_CPPFLAGS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
 
 if test x"$enable_arlib" = x"yes"
 then

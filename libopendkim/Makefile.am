@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.43 2009/11/23 06:13:35 cm-msk Exp $
+# $Id: Makefile.am,v 1.44 2009/11/24 20:32:29 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -75,7 +75,7 @@ libopendkim_la_LIBADD += $(LIBDB_LIBS)
 endif
 
 if USE_TRE
-libopendkim_la_CFLAGS += $(LIBTRE_CFLAGS)
+libopendkim_la_CFLAGS += $(LIBTRE_CPPFLAGS)
 libopendkim_la_LIBADD += $(LIBTRE_LIBS)
 endif
 
