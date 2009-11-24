@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.82 2009/11/24 20:32:29 cm-msk Exp $
+# $Id: configure.ac,v 1.83 2009/11/24 22:16:40 cm-msk Exp $
 
 #
 # Setup
@@ -310,16 +310,19 @@ then
 			;;
 	esac
         LIBCRYPTO_CPPFLAGS="-I$sslpath/include"
+        LIBCRYPTO_CFLAGS="-I$sslpath/include"
         LIBCRYPTO_LIBDIRS="-L$sslpath/lib"
         LIBCRYPTO_LIBS="-lssl -lcrypto"
 fi
 
+saved_CFLAGS="$CFLAGS"
 saved_CPPFLAGS="$CPPFLAGS"
 saved_LDFLAGS="$LDFLAGS"
 saved_LIBS="$LIBS"
 
 LIBS="$LIBCRYPTO_LIBS $saved_LIBS"
-CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
+CPPFLAGS="$LIBCRYPTO_CPPFLAGS $LIBCRYPTO_CFLAGS $saved_CPPFLAGS"
+CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
 LDFLAGS="$LIBCRYPTO_LIBDIRS $saved_LDFLAGS"
 
 AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
@@ -354,10 +357,12 @@ AC_CHECK_DECL([SHA256_DIGEST_LENGTH], ,
                            with your version of OpenSSL]),
               [#include <openssl/sha.h>])
 
+CFLAGS="$saved_CFLAGS"
 CPPFLAGS="$saved_CPPFLAGS"
 LDFLAGS="$saved_LDFLAGS"
 LIBS="$saved_LIBS"
 
+AC_SUBST(LIBCRYPTO_CFLAGS)
 AC_SUBST(LIBCRYPTO_CPPFLAGS)
 AC_SUBST(LIBCRYPTO_LIBDIRS)
 AC_SUBST(LIBCRYPTO_LIBS)
