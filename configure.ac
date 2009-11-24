@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.84 2009/11/24 22:41:00 cm-msk Exp $
+# $Id: configure.ac,v 1.85 2009/11/24 22:49:18 cm-msk Exp $
 
 #
 # Setup
@@ -866,7 +866,7 @@ fi
 LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS $LIBRESOLV"
 # This (below) is just for the pkg-config file opendkim.pc.in
 LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
-LIBOPENDKIM_INC="$LIBCRYPTO_CPPFLAGS $LIBTRE_CPPFLAGS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
+LIBOPENDKIM_INC="$LIBCRYPTO_CPPFLAGS $LIBCRYPTO_CFLAGS $LIBTRE_CPPFLAGS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
 
 if test x"$enable_arlib" = x"yes"
 then
