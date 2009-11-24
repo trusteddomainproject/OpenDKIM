@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.85 2009/11/24 22:49:18 cm-msk Exp $
+# $Id: configure.ac,v 1.86 2009/11/24 23:03:15 cm-msk Exp $
 
 #
 # Setup
@@ -402,7 +402,7 @@ case "$milterpath" in
 		then
 			AC_MSG_ERROR([milter includes not found at $milterpath])
 		fi
-		AC_MSG_RESULT([$d])
+		AC_MSG_RESULT([$milterpath])
 		;;
 	*)
 		AC_MSG_ERROR([milter not found])
@@ -410,7 +410,7 @@ case "$milterpath" in
 esac
 
 LIBMILTER_INCDIRS="-I$milterpath/include"
-LIBMILTER_LIBDIRS="-L$milterpath"
+LIBMILTER_LIBDIRS="-L$milterpath/lib"
 
 saved_CFLAGS="$CFLAGS"
 saved_CPPFLAGS="$CPPFLAGS"
