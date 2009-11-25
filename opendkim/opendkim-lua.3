@@ -47,6 +47,20 @@ have a name associated with it.
 Retrieves the domain name of the sender of the message represented by
 .I ctx.
 .TP
+.I odkim_get_dbhandle(ctx, db)
+Returns a handle for the requested database that can be used in later
+queries.  The value of
+.I db
+should be one of
+.I DB_DOMAINS
+(database of domains to be signed),
+.I DB_THIRDPARTY
+(database of third party signatures to be trusted) and
+.I DB_DONTSIGNTO
+(database of recipients whose mail should not be signed).  If the requested
+database is not set in the current configuration file, a LUA "nil" is
+returned.
+.TP
 .I odkim_get_header(ctx, name, n)
 Retrieves the string contained in instance
 .I n

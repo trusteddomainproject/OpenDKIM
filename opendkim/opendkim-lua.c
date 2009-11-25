@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.14 2009/11/25 06:32:06 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.15 2009/11/25 07:05:05 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.14 2009/11/25 06:32:06 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.15 2009/11/25 07:05:05 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -170,18 +170,27 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 	/* pass source IP to dkimf_checkip() */
 	lua_register(l, "odkim_internal_ip", dkimf_xs_internalip);
 
-	/* XXX -- TBD
-	request DB handle
+	/* request DB handle */
 	lua_register(l, "odkim_get_dbhandle", dkimf_xs_dbhandle);
+	lua_pushnumber(l, DB_DOMAINS);
+	lua_setglobal(l, "DB_DOMAINS");
+	lua_pushnumber(l, DB_THIRDPARTY);
+	lua_setglobal(l, "DB_THIRDPARTY");
+	lua_pushnumber(l, DB_DONTSIGNTO);
+	lua_setglobal(l, "DB_DONTSIGNTO");
+
+	/* XXX -- TBD
+	get number of envelope recipients
+	lua_register(l, "odkim_rcpt_count", dkimf_xs_rcptcount);
+
+	get a specific envelope recipient
+	lua_register(l, "odkim_get_rcpt", dkimf_xs_rcpt);
 
 	test DB for membership
 	lua_register(l, "odkim_db_check", dkimf_xs_dbquery);
 
 	get a value from a DB
 	lua_register(l, "odkim_db_getvalue", dkimf_xs_dbget);
-
-	request source IP address
-	lua_register(l, "odkim_get_source_ip", dkimf_xs_clientip);
 
 	request an "l=" tag on a signature
 	lua_register(l, "odkim_use_ltag", dkimf_xs_setpartial);

@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.13.2.5 2009/11/25 06:32:06 cm-msk Exp $
+**  $Id: opendkim.h,v 1.13.2.6 2009/11/25 07:05:05 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.13.2.5 2009/11/25 06:32:06 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.13.2.6 2009/11/25 07:05:05 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -61,6 +61,10 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.13.2.5 2009/11/25 06:32:0
 #define	MTAMARGIN	78
 #define	TEMPFILE	"/var/tmp/dkimXXXXXX"
 #define	UNKNOWN		"unknown"
+
+#define	DB_DOMAINS	1
+#define DB_THIRDPARTY	2
+#define	DB_DONTSIGNTO	3
 
 #define AUTHRESULTSHDR	"Authentication-Results"
 #ifdef _FFR_REDIRECT
@@ -112,6 +116,7 @@ extern struct signreq *dkimf_getsrlist __P((void *));
 
 #ifdef _FFR_LUA
 extern int dkimf_xs_clienthost __P((lua_State *));
+extern int dkimf_xs_dbhandle __P((lua_State *));
 extern int dkimf_xs_fromdomain __P((lua_State *));
 extern int dkimf_xs_getheader __P((lua_State *));
 extern int dkimf_xs_internalip __P((lua_State *));

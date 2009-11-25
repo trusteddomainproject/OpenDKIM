@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.11 2009/11/25 06:32:06 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.12 2009/11/25 07:05:05 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.11 2009/11/25 06:32:06 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.12 2009/11/25 07:05:05 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1264,6 +1264,10 @@ dkimf_xs_internalip(lua_State *l)
 	{
 		lua_pushnumber(l, 1);
 	}
+	else if (conf->conf_internal == NULL)
+	{
+		lua_pushnumber(l, 0);
+	}
 	else
 	{
 		_Bool internal;
@@ -1275,6 +1279,95 @@ dkimf_xs_internalip(lua_State *l)
 		                                     &cc->cctx_ip);
 
 		lua_pushnumber(l, internal ? 1 : 0);
+	}
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_DBHANDLE -- retrieve a DB handle
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_dbhandle(lua_State *l)
+{
+	struct connctx *cc;
+	struct dkimf_config *conf;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_get_dbhandle(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_isnumber(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_get_dbhandle(): incorrect argument type");
+		lua_error(l);
+	}
+
+	cc = (struct connctx *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	conf = cc->cctx_config;
+
+	if (cc == NULL)
+	{
+		lua_pushnil(l);
+	}
+	else
+	{
+		int code;
+
+		code = lua_tonumber(l, 1);
+		lua_pop(l, 1);
+
+		switch (code)
+		{
+		  case DB_DOMAINS:
+			if (conf->conf_domainsdb == NULL)
+				lua_pushnil(l);
+			else
+				lua_pushlightuserdata(l, conf->conf_domainsdb);
+			break;
+
+		  case DB_THIRDPARTY:
+			if (conf->conf_thirdpartydb == NULL)
+			{
+				lua_pushnil(l);
+			}
+			else
+			{
+				lua_pushlightuserdata(l,
+				                      conf->conf_thirdpartydb);
+			}
+			break;
+
+		  case DB_DONTSIGNTO:
+			if (conf->conf_dontsigntodb == NULL)
+			{
+				lua_pushnil(l);
+			}
+			else
+			{
+				lua_pushlightuserdata(l,
+				                      conf->conf_dontsigntodb);
+			}
+			break;
+
+		  default:
+			lua_pushnil(l);
+			break;
+		}
 	}
 
 	return 1;
