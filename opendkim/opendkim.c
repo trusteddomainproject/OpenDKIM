@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.7 2009/11/25 00:07:07 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.8 2009/11/25 00:12:31 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.7 2009/11/25 00:07:07 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.8 2009/11/25 00:12:31 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2856,8 +2856,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			int fd;
 			ssize_t rlen;
-			char *err2;
 			struct stat s;
+			struct dkimf_lua_verify_result lres;
 
 			fd = open(str, O_RDONLY, 0);
 			if (fd < 1)
@@ -2903,16 +2903,13 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			close(fd);
 
-			err2 = NULL;
-			if (dkimf_lua_test_script(conf->conf_signscript,
-			                          &err2) != 0)
+			memset(&lres, '\0', sizeof lres);
+			if (dkimf_lua_verify_hook(NULL, NULL,
+			                          conf->conf_verifyscript,
+			                          &lres) != 0)
 			{
-				if (err2 != NULL)
-				{
-					snprintf(err, errlen, "%s: %s",
-					         str, err2);
-					free(err2);
-				}
+				strlcpy(err, lres.lrv_error, errlen);
+				free(lres.lrv_error);
 				return -1;
 			}
 		}

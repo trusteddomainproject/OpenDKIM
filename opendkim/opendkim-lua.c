@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.10 2009/11/25 00:07:07 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.11 2009/11/25 00:12:31 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.10 2009/11/25 00:07:07 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.11 2009/11/25 00:12:31 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -233,7 +233,6 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 **
 **  Parameters:
 **  	ctx -- session context, for making calls back to opendkim.c
-**  	dkim -- DKIM verifying handle
 **  	script -- script to run
 **  	name -- name of the script (for logging)
 **  	lres -- LUA result structure
@@ -253,15 +252,13 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 */
 
 int
-dkimf_lua_verify_hook(void *ctx, DKIM *dkim, const char *script,
+dkimf_lua_verify_hook(void *ctx, const char *script,
                       const char *name, struct dkimf_lua_verify_result *lres)
 {
 	int status;
 	struct dkimf_lua_io io;
 	lua_State *l = NULL;
 
-	assert(ctx != NULL);
-	assert(dkim != NULL);
 	assert(script != NULL);
 	assert(lres != NULL);
 
