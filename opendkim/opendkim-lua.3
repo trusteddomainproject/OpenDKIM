@@ -108,6 +108,11 @@ from the key list match the provided parameters.  See the
 parameter in
 .I opendkim.conf(5)
 for more information.
+.TP
+.I odkim_use_ltag(ctx)
+Requests that all signatures added to the message represented by
+.I ctx
+include "l=" (body length) tags.
 .SH VERIFYING SCRIPT FUNCTIONS
 TBD
 .SH NOTES
