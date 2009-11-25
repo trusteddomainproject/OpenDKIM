@@ -62,6 +62,10 @@ fromaddr = odkim_get_header(ctx, "From", 0)
 This will return the value of the first (and hopefully only) "From" header
 field.
 .TP
+.I odkim_internalip(ctx)
+Returns 1 if the SMTP client is coming from an internal IP address, and 0
+otherwise.
+.TP
 .I odkim_sign(ctx, domain, selector)
 Requests that the filter sign the message represented by
 .I ctx
