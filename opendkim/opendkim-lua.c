@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.20 2009/11/25 18:57:42 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.21 2009/11/25 19:31:31 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.20 2009/11/25 18:57:42 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.21 2009/11/25 19:31:31 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -152,7 +152,9 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 	luaL_openlibs(l);
 
 	/*
-	**  Register functions
+	**  Register functions.
+	**
+	**  XXX -- turn this into a LUA library?
 	*/
 
 	/* request From domain */
@@ -171,6 +173,7 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 	lua_register(l, "odkim_internal_ip", dkimf_xs_internalip);
 
 	/* request DB handle */
+	/* XXX -- allow creation of arbitrary DB handles? */
 	lua_register(l, "odkim_get_dbhandle", dkimf_xs_dbhandle);
 	lua_pushnumber(l, DB_DOMAINS);
 	lua_setglobal(l, "DB_DOMAINS");
@@ -272,12 +275,14 @@ dkimf_lua_verify_hook(void *ctx, const char *script,
 
 	/*
 	**  Register functions.
+	**
+	**  XXX -- turn this into a LUA library?
 	*/
 
-	/* XXX
-	retrieve number of signatures
+	/* retrieve number of signatures */
 	lua_register(l, "odkim_get_sigcount", dkimf_xs_getsigcount);
 
+	/* XXX
 	retrieve Nth signature
 	lua_register(l, "odkim_get_signature", dkimf_xs_getsignature);
 
@@ -345,5 +350,4 @@ dkimf_lua_verify_hook(void *ctx, const char *script,
 
 	return (status == 0 ? 0 : 2);
 }
-
 #endif /* _FFR_LUA */
