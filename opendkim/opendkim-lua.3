@@ -1,0 +1,90 @@
+.TH opendkim-lua 3 "The OpenDKIM Project"
+.SH NAME
+.B OpenDKIM LUA programming
+- programming the OpenDKIM filter using LUA scripts
+.SH DESCRIPTION
+The OpenDKIM filter has hooks to run user-provided scripts for making policy
+decisions regarding signatures to add on outbound messages or verification and
+acceptance of messages inbound.  The hooks take the form of two LUA scripts
+which, if defined, are run at two important points during processing of 
+a message.
+
+For a full description of the LUA language, consult LUA programming references
+(see below for a starting point).  This man page only describes the use of
+LUA in the context of OpenDKIM, namely the functions and global variables
+OpenDKIM provides for use in user-constructed scripts.
+
+Two scripting hooks are provided.  They are referred to as the
+.I signing script
+which is run after all headers for the message have been received but before
+the body has been processed, so the user can select based on header fields
+which key(s) should be used to add signatures and what signature features
+are desired, and whether or not the message should be passed to the
+verification code; and the
+.I verifying script,
+which is run after all headers and body have been processed and is used
+to examine the results of all the DKIM verification work and thus render a
+final decision about accepting, rejecting, discarding or quarantining the
+message.
+.SH GLOBAL VARIABLES
+The following global variable(s) are provided for all user scripts:
+.TP
+.I ctx
+This is a generic context pointer referring to the context in which the
+filtering operation is being performed.  It represents a single message
+in progress, and the connection that accepted it.
+.SH SIGNING SCRIPT FUNCTIONS
+These functions are made available to LUA for processing a message through
+the signing script:
+.TP
+.I odkim_clienthost(ctx)
+Returns the name of the host on the other end of the SMTP connection
+sending the current message.  This is usually a hostname, but might be
+an IP address in square brackets if the SMTP client's IP address does not
+have a name associated with it.
+.TP
+.I odkim_fromdomain(ctx)
+Retrieves the domain name of the sender of the message represented by
+.I ctx.
+.TP
+.I odkim_get_header(ctx, name, n)
+Retrieves the string contained in instance
+.I n
+of the header called
+.I name
+from the message represented by
+.I ctx.
+Header numbering starts at 0, so use 0 for the first instance, 1 for
+the second, etc.  For example:
+
+fromaddr = odkim_get_header(ctx, "From", 0)
+
+This will return the value of the first (and hopefully only) "From" header
+field.
+.TP
+.I odkim_sign(ctx, domain, selector)
+Requests that the filter sign the message represented by
+.I ctx
+using the key whose
+.I domain
+and
+.I selector
+from the key list match the provided parameters.  See the
+.B KeyList
+parameter in
+.I opendkim.conf(5)
+for more information.
+.SH VERIFYING SCRIPT FUNCTIONS
+TBD
+.SH NOTES
+TBD
+.SH VERSION
+This man page covers version 1.2.0 of
+.I OpenDKIM.
+.SH COPYRIGHT
+Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+.I opendkim(8),
+.I opendkim.conf(5)
+.P
+LUA -- http://www.lua.org
