@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.86 2009/11/24 23:03:15 cm-msk Exp $
+# $Id: configure.ac,v 1.87 2009/11/25 00:53:03 cm-msk Exp $
 
 #
 # Setup
@@ -520,7 +520,7 @@ AC_ARG_WITH([tre],
             [trepath="$withval"], [trepath="auto"])
 
 tre_found="no"
-LIBTRE_CPPFLAGS=""
+LIBTRE_CFLAGS=""
 LIBTRE_LIBS=""
 
 if test x"$enable_diffheaders" != x"yes"
@@ -555,7 +555,7 @@ then
                 then
 			tre_found="yes"
                         AC_MSG_RESULT($trepath)
-                        LIBTRE_CPPFLAGS="-I$trepath/include"
+                        LIBTRE_CFLAGS="-I$trepath/include"
                         LIBTRE_LIBS="-L$trepath/lib -ltre"
 		elif test -f "$trepath/include/tre/regex.h"
 		then
@@ -563,7 +563,7 @@ then
                         AC_MSG_RESULT([$trepath (old version)])
 			AC_DEFINE([TRE_PRE_080], ,
 			          [version of libtre is older than 0.8.0])
-                        LIBTRE_CPPFLAGS="-I$trepath/include"
+                        LIBTRE_CFLAGS="-I$trepath/include"
                         LIBTRE_LIBS="-L$trepath/lib -ltre"
                 else
                         AC_MSG_ERROR("not found at $trepath")
@@ -577,7 +577,7 @@ then
 				trepath=$d
 				tre_found="yes"
 				AC_MSG_RESULT($d)
-				LIBTRE_CPPFLAGS="-I$trepath/include"
+				LIBTRE_CFLAGS="-I$trepath/include"
 				LIBTRE_LIBS="-L$trepath/lib -ltre"
 				break;
 			elif test -f $d/include/tre/regex.h
@@ -588,7 +588,7 @@ then
 				AC_DEFINE([TRE_PRE_080], ,
 				          [version of libtre is older than 0.8.0])
 				AC_DEFINE(TRE_PRE_080)
-				LIBTRE_CPPFLAGS="-I$trepath/include"
+				LIBTRE_CFLAGS="-I$trepath/include"
 				LIBTRE_LIBS="-L$trepath/lib -ltre"
 				break;
 			fi
@@ -608,7 +608,7 @@ then
 fi
 
 AM_CONDITIONAL([USE_TRE], [test x"$tre_found" != x"no"])
-AC_SUBST([LIBTRE_CPPFLAGS])
+AC_SUBST([LIBTRE_CFLAGS])
 AC_SUBST([LIBTRE_LIBS])
 
 #
@@ -866,7 +866,7 @@ fi
 LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS $LIBRESOLV"
 # This (below) is just for the pkg-config file opendkim.pc.in
 LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
-LIBOPENDKIM_INC="$LIBCRYPTO_CPPFLAGS $LIBCRYPTO_CFLAGS $LIBTRE_CPPFLAGS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
+LIBOPENDKIM_INC="$LIBCRYPTO_CPPFLAGS $LIBCRYPTO_CFLAGS $LIBTRE_CFLAGS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
 
 if test x"$enable_arlib" = x"yes"
 then
