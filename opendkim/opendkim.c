@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.18 2009/11/25 19:31:31 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.19 2009/11/25 19:38:11 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.18 2009/11/25 19:31:31 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.19 2009/11/25 19:38:11 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1704,7 +1704,7 @@ dkimf_xs_getsigcount(lua_State *l)
 		{
 			DKIM_STAT status;
 			int nsigs;
-			DKIM_SIGINFO *sigs;
+			DKIM_SIGINFO **sigs;
 
 			status = dkim_getsiglist(dfc->mctx_dkimv,
 			                         &sigs, &nsigs);
@@ -9540,6 +9540,58 @@ mlfi_eom(SMFICTX *ctx)
 		}
 #endif /* _FFR_REDIRECT */
 	}
+
+#ifdef _FFR_LUA
+	if (conf->conf_verifyscript != NULL)
+	{
+		_Bool dofree = TRUE;
+		struct dkimf_lua_verify_result lres;
+
+		memset(&lres, '\0', sizeof lres);
+
+		status = dkimf_lua_verify_hook(cc, conf->conf_verifyscript,
+		                               "verifying script", &lres);
+
+		if (status != 0)
+		{
+			if (conf->conf_dolog)
+			{
+				if (lres.lrv_error == NULL)
+				{
+					dofree = FALSE;
+
+					switch (status)
+					{
+					  case 2:
+						lres.lrv_error = "processing error";
+						break;
+
+					  case 1:
+						lres.lrv_error = "syntax error";
+						break;
+
+					  case -1:
+						lres.lrv_error = "memory allocation error";
+						break;
+
+					  default:
+						lres.lrv_error = "unknown error";
+						break;
+					}
+				}
+
+				syslog(LOG_ERR,
+				       "%s dkimf_lua_verify_hook() failed: %s",
+				       dfc->mctx_jobid, lres.lrv_error);
+			}
+
+			if (dofree)
+				free(lres.lrv_error);
+
+			return SMFIS_TEMPFAIL;
+		}
+	}
+#endif /* _FFR_LUA */
 
 	/* complete signing if requested */
 #ifdef _FFR_RESIGN
