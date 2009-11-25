@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.14 2009/11/25 07:33:39 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.15 2009/11/25 07:54:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.14 2009/11/25 07:33:39 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.15 2009/11/25 07:54:59 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1488,6 +1488,64 @@ dkimf_xs_rcpt(lua_State *l)
 		lua_pushnil(l);
 	else
 		lua_pushstring(l, addr->a_addr);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_DBQUERY -- check for a record in a database
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_dbquery(lua_State *l)
+{
+	int status;
+	_Bool exists;
+	struct connctx *cc;
+	struct dkimf_config *conf;
+	DKIMF_DB db;
+	const char *str;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 3)
+	{
+		lua_pushstring(l,
+		               "odkim_db_check(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_islightuserdata(l, 2) ||
+	         !lua_isstring(l, 3))
+	{
+		lua_pushstring(l,
+		               "odkim_db_check(): incorrect argument type");
+		lua_error(l);
+	}
+
+	cc = (struct connctx *) lua_touserdata(l, 1);
+	db = (DKIMF_DB) lua_touserdata(l, 2);
+	str = lua_tostring(l, 3);
+	lua_pop(l, 3);
+
+	if (cc == NULL || db == NULL || str == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	exists = FALSE;
+	status = dkimf_db_get(db, (char *) str, 0, NULL, NULL, &exists);
+	if (status == 0)
+		lua_pushnumber(l, exists ? 1 : 0);
+	else
+		lua_pushnil(l);
 
 	return 1;
 }

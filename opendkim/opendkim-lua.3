@@ -43,6 +43,15 @@ sending the current message.  This is usually a hostname, but might be
 an IP address in square brackets if the SMTP client's IP address does not
 have a name associated with it.
 .TP
+.I odkim_db_check(ctx, db, string)
+Returns 1 if
+.I db
+refers to a valid database handle (see
+.B odkim_get_dbhandle
+below) and
+.I string
+is found in that database, and 0 otherwise.
+.TP
 .I odkim_fromdomain(ctx)
 Retrieves the domain name of the sender of the message represented by
 .I ctx.
