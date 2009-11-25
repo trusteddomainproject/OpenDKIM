@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.10 2009/11/25 06:22:48 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.11 2009/11/25 06:32:06 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.10 2009/11/25 06:22:48 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.11 2009/11/25 06:32:06 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1224,6 +1224,60 @@ dkimf_xs_getheader(lua_State *l)
 		lua_pushstring(l, hdr->hdr_val);
 		return 1;
 	}
+}
+
+/*
+**  DKIMF_XS_INTERNALIP -- see if the client's IP address is "internal"
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_internalip(lua_State *l)
+{
+	struct connctx *cc;
+	struct dkimf_config *conf;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_internal_ip(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_internal_ip(): incorrect argument type");
+		lua_error(l);
+	}
+
+	cc = (struct connctx *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (cc == NULL)
+	{
+		lua_pushnumber(l, 1);
+	}
+	else
+	{
+		_Bool internal;
+
+		conf = cc->cctx_config;
+
+		internal = dkimf_checkhost(conf->conf_internal, cc->cctx_host);
+		internal = internal || dkimf_checkip(conf->conf_internal,
+		                                     &cc->cctx_ip);
+
+		lua_pushnumber(l, internal ? 1 : 0);
+	}
+
+	return 1;
 }
 #endif /* _FFR_LUA */
 
