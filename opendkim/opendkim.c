@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.9 2009/11/25 00:26:30 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.10 2009/11/25 06:22:48 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.9 2009/11/25 00:26:30 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.10 2009/11/25 06:22:48 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -959,7 +959,8 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 **  RETURN VALUES:
 **  	Should all return the number of things they want to return via
 **  	the LUA stack.  Generally accessors return one thing, and utility
-**  	functions either return a success/fail result or nothing at all.
+**  	functions either return a result or a LUA "nil", which means
+**  	at least one thing is always returned.
 **
 **  STACK:
 **  	All functions should first evaluate the stack to see that it's what
@@ -1108,9 +1109,6 @@ dkimf_xs_requestsig(lua_State *l)
 
 	lua_pop(l, 3);
 
-	if (cc == NULL)
-		return 0;
-
 	/* find the key */
 	for (key = conf->conf_keyhead; key != NULL; key = key->key_next)
 	{
@@ -1126,26 +1124,39 @@ dkimf_xs_requestsig(lua_State *l)
 			syslog(LOG_ERR, "key for %s/%s not found",
 			       selector, domain);
 		}
-	}
-	else
-	{
-		if (!dkimf_add_signrequest(dfc, key))
-		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR,
-				       "failed to add signature using %s/%s",
-				       selector, domain);
-			}
-		}
-		else
-		{
-			dfc->mctx_signing = TRUE;
-			dfc->mctx_signalg = conf->conf_signalg;
-		}
+
+		lua_pushnumber(l, 0);
+
+		return 1;
 	}
 
-	return 0;
+	if (cc == NULL)
+	{
+		lua_pushnumber(l, 0);
+
+		return 1;
+	}
+
+	if (!dkimf_add_signrequest(dfc, key))
+	{
+		if (conf->conf_dolog)
+		{
+			syslog(LOG_ERR,
+			       "failed to add signature using %s/%s",
+			       selector, domain);
+		}
+
+		lua_pushnumber(l, 0);
+
+		return 1;
+	}
+
+	dfc->mctx_signing = TRUE;
+	dfc->mctx_signalg = conf->conf_signalg;
+
+	lua_pushnumber(l, 1);
+
+	return 1;
 }
 
 /*
@@ -1205,15 +1216,14 @@ dkimf_xs_getheader(lua_State *l)
 	hdr = dkimf_findheader(dfc, (char *) hdrname, idx);
 	if (hdr == NULL)
 	{
-		return 0;
+		lua_pushnil(l);
+		return 1;
 	}
 	else
 	{
 		lua_pushstring(l, hdr->hdr_val);
 		return 1;
 	}
-
-	return 1;
 }
 #endif /* _FFR_LUA */
 
