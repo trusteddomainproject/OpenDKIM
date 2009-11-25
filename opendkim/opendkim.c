@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.6 2009/11/24 23:42:38 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.7 2009/11/25 00:07:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.6 2009/11/24 23:42:38 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.7 2009/11/25 00:07:07 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -943,6 +943,38 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 
 #ifdef _FFR_LUA
 /*
+**  LUA ACCESSOR FUNCTIONS
+**
+**  These are the C sides of the utility functions that will be made available
+**  to users via LUA to write their own policy scripts.
+**
+**  NAMES:
+**  	Should all start "dkimf_xs_" (for DKIM filter accessors)
+**
+**  PARAMETERS:
+**  	Should all accept nothing more than a single LUA state handle.
+**  	LUA accessor and utility functions are used to pull parameters off
+**  	the stack.
+**
+**  RETURN VALUES:
+**  	Should all return the number of things they want to return via
+**  	the LUA stack.  Generally accessors return one thing, and utility
+**  	functions either return a success/fail result or nothing at all.
+**
+**  STACK:
+**  	All functions should first evaluate the stack to see that it's what
+**  	they expect in terms of number and types of elements.  The first
+**  	stack item should always be expected to be a "light user data"
+**  	(handle pointer) to a (struct connctx).  If there are no errors,
+**  	collect all the values and pop them.  The context pointer may come in
+**  	NULL, in which case the script is being called during configuration
+**  	verification; if so, return an appropriate dummy value from your
+**  	function, if applicable, such as the name of the function or 0 or
+**  	something matching what the script would expect back from
+**  	the function such that the rest of the test will complete.
+*/
+
+/*
 **  DKIMF_XS_FROMDOMAIN -- retrieve From: domain
 **
 **  Parameters:
@@ -975,9 +1007,16 @@ dkimf_xs_fromdomain(lua_State *l)
 
 	cc = (struct connctx *) lua_touserdata(l, 1);
 	lua_pop(l, 1);
-	dfc = cc->cctx_msg;
 
-	lua_pushlstring(l, dfc->mctx_domain, strlen(dfc->mctx_domain));
+	if (cc == NULL)
+	{
+		lua_pushstring(l, "dkimf_xs_fromdomain");
+	}
+	else
+	{
+		dfc = cc->cctx_msg;
+		lua_pushlstring(l, dfc->mctx_domain, strlen(dfc->mctx_domain));
+	}
 
 	return 1;
 }
@@ -1015,7 +1054,10 @@ dkimf_xs_clienthost(lua_State *l)
 	cc = (struct connctx *) lua_touserdata(l, 1);
 	lua_pop(l, 1);
 
-	lua_pushlstring(l, cc->cctx_host, strlen(cc->cctx_host));
+	if (cc == NULL)
+		lua_pushstring(l, "dkimf_xs_clienthost");
+	else
+		lua_pushlstring(l, cc->cctx_host, strlen(cc->cctx_host));
 
 	return 1;
 }
@@ -1055,13 +1097,19 @@ dkimf_xs_requestsig(lua_State *l)
 	}
 
 	cc = (struct connctx *) lua_touserdata(l, 1);
-	dfc = cc->cctx_msg;
-	conf = cc->cctx_config;
+	if (cc != NULL)
+	{
+		dfc = cc->cctx_msg;
+		conf = cc->cctx_config;
 
-	domain = lua_tostring(l, 2);
-	selector = lua_tostring(l, 3);
+		domain = lua_tostring(l, 2);
+		selector = lua_tostring(l, 3);
+	}
 
 	lua_pop(l, 3);
+
+	if (cc == NULL)
+		return 0;
 
 	/* find the key */
 	for (key = conf->conf_keyhead; key != NULL; key = key->key_next)
@@ -2744,8 +2792,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			int fd;
 			ssize_t rlen;
-			char *err2;
 			struct stat s;
+			struct dkimf_lua_sign_result lres;
 
 			fd = open(str, O_RDONLY, 0);
 			if (fd < 1)
@@ -2791,16 +2839,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			close(fd);
 
-			err2 = NULL;
-			if (dkimf_lua_test_script(conf->conf_signscript,
-			                          &err2) != 0)
+			memset(&lres, '\0', sizeof lres);
+			if (dkimf_lua_sign_hook(NULL, conf->conf_signscript,
+			                        str, &lres) != 0)
 			{
-				if (err2 != NULL)
-				{
-					snprintf(err, errlen, "%s: %s",
-					         str, err2);
-					free(err2);
-				}
+				strlcpy(err, lres.lrs_error, errlen);
+				free(lres.lrs_error);
 				return -1;
 			}
 		}

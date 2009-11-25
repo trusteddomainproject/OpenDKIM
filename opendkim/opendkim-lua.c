@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.9 2009/11/24 23:42:38 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.10 2009/11/25 00:07:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.9 2009/11/24 23:42:38 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.10 2009/11/25 00:07:07 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -139,7 +139,6 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 	lua_State *l = NULL;
 	struct dkimf_lua_io io;
 
-	assert(ctx != NULL);
 	assert(script != NULL);
 	assert(lres != NULL);
 
@@ -221,7 +220,6 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 	}
 
 	status = lua_pcall(l, 0, LUA_MULTRET, 0);
-
 	if (lua_isstring(l, 1))
 		lres->lrs_error = strdup(lua_tostring(l, 1));
 
@@ -353,67 +351,4 @@ dkimf_lua_verify_hook(void *ctx, DKIM *dkim, const char *script,
 	return (status == 0 ? 0 : 2);
 }
 
-/*
-**  DKIMF_LUA_TEST_SCRIPT -- test-compile a script
-**
-**  Parameters:
-**  	script -- script to test
-**  	err -- error string (returned)
-** 
-**  Return value:
-**  	0 -- success
-**  	-1 -- failure
-*/
-
-int
-dkimf_lua_test_script(const char *script, char **err)
-{
-	int status;
-	struct dkimf_lua_io io;
-	lua_State *l = NULL;
-
-	assert(script != NULL);
-	assert(err != NULL);
-
-	io.lua_io_done = FALSE;
-	io.lua_io_script = script;
-
-	l = lua_newstate(dkimf_lua_alloc, NULL);
-	if (l == NULL)
-		return -1;
-
-	luaL_openlibs(l);
-
-	lua_pushlightuserdata(l, NULL);
-	lua_setglobal(l, "ctx");
-
-	switch (lua_load(l, dkimf_lua_reader, (void *) &io, "script test"))
-	{
-	  case 0:
-		break;
-
-	  case LUA_ERRSYNTAX:
-		if (lua_isstring(l, 1))
-			*err = strdup(lua_tostring(l, 1));
-		lua_close(l);
-		return 1;
-
-	  case LUA_ERRMEM:
-		if (lua_isstring(l, 1))
-			*err = strdup(lua_tostring(l, 1));
-		lua_close(l);
-		return -1;
-
-	  default:
-		assert(0);
-	}
-
-	status = lua_pcall(l, 0, LUA_MULTRET, 0);
-	if (lua_isstring(l, 1))
-		*err = strdup(lua_tostring(l, 1));
-
-	lua_close(l);
-
-	return (status == 0 ? 0 : -1);
-}
 #endif /* _FFR_LUA */
