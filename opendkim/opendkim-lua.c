@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.12 2009/11/25 00:26:30 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.13 2009/11/25 01:08:19 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.12 2009/11/25 00:26:30 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.13 2009/11/25 01:08:19 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -167,7 +167,7 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 	/* retrieve header/value */
 	lua_register(l, "odkim_get_header", dkimf_xs_getheader);
 
-	/* XXX
+	/* XXX -- TBD
 	request DB handle
 	lua_register(l, "odkim_get_dbhandle", dkimf_xs_dbhandle);
 
@@ -180,20 +180,11 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 	request source IP address
 	lua_register(l, "odkim_get_source_ip", dkimf_xs_clientip);
 
+	pass source IP to dkimf_checkip()
+	lua_register(l, "odkim_internal_ip", dkimf_xs_internalip);
 
-	domain is signable?
-	lua_register(l, "odkim_signable_domain", dkimf_xs_signabledomain);
-
-	source is signable?
-	lua_register(l, "odkim_signable_ip", dkimf_xs_signableip);
-	*/
-
-	/* XXX -- functions to provide to LUA:
-	request an "l=" tag
-	lua_register(l, "odkim_bodylength", dkimf_xs_bodylength);
-
-	request a "z=" tag
-	lua_register(l, "odkim_diagnostics", dkimf_xs_diagnostics);
+	request an "l=" tag on a signature
+	lua_register(l, "odkim_use_ltag", dkimf_xs_setpartial);
 	*/
 
 	lua_pushlightuserdata(l, ctx);
@@ -289,7 +280,7 @@ dkimf_lua_verify_hook(void *ctx, const char *script,
 	evaluate signature
 	lua_register(l, "odkim_get_sig_evaluate", dkimf_xs_evaluate);
 
-	did signature use "l="?
+	did signature use "l="? / value of l tag
 	lua_register(l, "odkim_check_sig_ltag", dkimf_xs_getltag);
 
 	size of body?
@@ -340,7 +331,6 @@ dkimf_lua_verify_hook(void *ctx, const char *script,
 	}
 
 	status = lua_pcall(l, 0, LUA_MULTRET, 0);
-
 	if (lua_isstring(l, 1))
 		lres->lrv_error = strdup(lua_tostring(l, 1));
 
