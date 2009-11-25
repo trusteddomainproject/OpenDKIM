@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.12 2009/11/25 07:05:05 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.13 2009/11/25 07:22:34 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.12 2009/11/25 07:05:05 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.13 2009/11/25 07:22:34 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1302,13 +1302,13 @@ dkimf_xs_dbhandle(lua_State *l)
 
 	assert(l != NULL);
 
-	if (lua_gettop(l) != 1)
+	if (lua_gettop(l) != 2)
 	{
 		lua_pushstring(l,
 		               "odkim_get_dbhandle(): incorrect argument count");
 		lua_error(l);
 	}
-	else if (!lua_isnumber(l, 1))
+	else if (!lua_islightuserdata(l, 1) || !lua_isnumber(l, 2))
 	{
 		lua_pushstring(l,
 		               "odkim_get_dbhandle(): incorrect argument type");
@@ -1322,6 +1322,7 @@ dkimf_xs_dbhandle(lua_State *l)
 
 	if (cc == NULL)
 	{
+		lua_pop(l, 1);
 		lua_pushnil(l);
 	}
 	else
@@ -1369,6 +1370,62 @@ dkimf_xs_dbhandle(lua_State *l)
 			break;
 		}
 	}
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_RCPTCOUNT -- retrieve recipient count
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_rcptcount(lua_State *l)
+{
+	int rcnt;
+	struct connctx *cc;
+	struct dkimf_config *conf;
+	struct msgctx *dfc;
+	struct addrlist *addr;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_rcpt_count(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_isuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_rcpt_count(): incorrect argument type");
+		lua_error(l);
+	}
+
+	cc = (struct connctx *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	conf = cc->cctx_config;
+	dfc = cc->cctx_msg;
+
+	if (cc == NULL)
+	{
+		lua_pushnumber(l, 1);
+		return 1;
+	}
+
+	rcnt = 0;
+	
+	for (addr = dfc->mctx_rcptlist; addr != NULL; addr = addr->a_next)
+		rcnt++;
+
+	lua_pushnumber(l, rcnt);
 
 	return 1;
 }

@@ -80,6 +80,9 @@ field.
 Returns 1 if the SMTP client is coming from an internal IP address, and 0
 otherwise.
 .TP
+.I odkim_rcpt_count(ctx)
+Returns the count of envelope recipients on the message.
+.TP
 .I odkim_sign(ctx, domain, selector)
 Requests that the filter sign the message represented by
 .I ctx

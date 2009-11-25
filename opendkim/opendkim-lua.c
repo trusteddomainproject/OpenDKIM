@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.15 2009/11/25 07:05:05 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.16 2009/11/25 07:22:34 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.15 2009/11/25 07:05:05 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.16 2009/11/25 07:22:34 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -179,10 +179,10 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 	lua_pushnumber(l, DB_DONTSIGNTO);
 	lua_setglobal(l, "DB_DONTSIGNTO");
 
-	/* XXX -- TBD
-	get number of envelope recipients
+	/* get number of envelope recipients */
 	lua_register(l, "odkim_rcpt_count", dkimf_xs_rcptcount);
 
+	/* XXX -- TBD
 	get a specific envelope recipient
 	lua_register(l, "odkim_get_rcpt", dkimf_xs_rcpt);
 
