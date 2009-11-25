@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.16 2009/11/25 08:05:16 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.17 2009/11/25 18:57:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.16 2009/11/25 08:05:16 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.17 2009/11/25 18:57:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1595,6 +1595,66 @@ dkimf_xs_setpartial(lua_State *l)
 
 	lua_pushnil(l);
 
+	return 1;
+}
+
+/*
+**  DKIMF_XS_VERIFY -- set up verification
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_verify(lua_State *l)
+{
+	struct connctx *cc;
+	struct msgctx *dfc;
+	struct dkimf_config *conf;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_verify(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_verify(): incorrect argument type");
+		lua_error(l);
+	}
+
+	cc = (struct connctx *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (cc != NULL)
+	{
+		dfc = cc->cctx_msg;
+		conf = cc->cctx_config;
+
+		if (dfc->mctx_dkimv == NULL)
+		{
+			DKIM_STAT status;
+
+			dfc->mctx_dkimv = dkim_verify(conf->conf_libopendkim,
+			                              dfc->mctx_jobid, NULL,
+			                              &status);
+
+			if (dfc->mctx_dkimv == NULL)
+			{
+				lua_pushstring(l, dkim_getresultstr(status));
+				return 1;
+			}
+		}
+	}
+
+	lua_pushnil(l);
 	return 1;
 }
 #endif /* _FFR_LUA */
