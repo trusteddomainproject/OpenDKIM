@@ -26,6 +26,10 @@ which is run after all headers and body have been processed and is used
 to examine the results of all the DKIM verification work and thus render a
 final decision about accepting, rejecting, discarding or quarantining the
 message.
+
+Unless otherwise noted, all functions return a single result; on success
+they return the requested data, and on error they return the LUA constant
+"nil".
 .SH GLOBAL VARIABLES
 The following global variable(s) are provided for all user scripts:
 .TP
@@ -37,26 +41,26 @@ in progress, and the connection that accepted it.
 These functions are made available to LUA for processing a message through
 the signing script:
 .TP
-.I odkim_clienthost(ctx)
+.B odkim_clienthost(ctx)
 Returns the name of the host on the other end of the SMTP connection
 sending the current message.  This is usually a hostname, but might be
 an IP address in square brackets if the SMTP client's IP address does not
 have a name associated with it.
 .TP
-.I odkim_db_check(ctx, db, string)
+.B odkim_db_check(ctx, db, string)
 Returns 1 if
 .I db
 refers to a valid database handle (see
-.B odkim_get_dbhandle
+.B odkim_get_dbhandle()
 below) and
 .I string
 is found in that database, and 0 otherwise.
 .TP
-.I odkim_fromdomain(ctx)
+.B odkim_fromdomain(ctx)
 Retrieves the domain name of the sender of the message represented by
 .I ctx.
 .TP
-.I odkim_get_dbhandle(ctx, db)
+.B odkim_get_dbhandle(ctx, db)
 Returns a handle for the requested database that can be used in later
 queries.  The value of
 .I db
@@ -70,7 +74,7 @@ should be one of
 database is not set in the current configuration file, a LUA "nil" is
 returned.
 .TP
-.I odkim_get_header(ctx, name, n)
+.B odkim_get_header(ctx, name, n)
 Retrieves the string contained in instance
 .I n
 of the header called
@@ -85,18 +89,18 @@ fromaddr = odkim_get_header(ctx, "From", 0)
 This will return the value of the first (and hopefully only) "From" header
 field.
 .TP
-.I odkim_get_rcpt(ctx, n)
+.B odkim_get_rcpt(ctx, n)
 Returns the nth envelope recipient for the message reprecented by
 .I ctx.
 .TP
-.I odkim_internalip(ctx)
+.B odkim_internalip(ctx)
 Returns 1 if the SMTP client is coming from an internal IP address, and 0
 otherwise.
 .TP
-.I odkim_rcpt_count(ctx)
+.B odkim_rcpt_count(ctx)
 Returns the count of envelope recipients on the message.
 .TP
-.I odkim_sign(ctx, domain, selector)
+.B odkim_sign(ctx, domain, selector)
 Requests that the filter sign the message represented by
 .I ctx
 using the key whose
@@ -109,18 +113,18 @@ parameter in
 .I opendkim.conf(5)
 for more information.
 .TP
-.I odkim_use_ltag(ctx)
+.B odkim_use_ltag(ctx)
 Requests that all signatures added to the message represented by
 .I ctx
 include "l=" (body length) tags.
 .TP
-.I odkim_verify(ctx)
+.B odkim_verify(ctx)
 Requests that the message represented by
 .I ctx
 be subjected to DKIM signature verification.
 .SH VERIFYING SCRIPT FUNCTIONS
 .TP
-.I odkim_get_sigcount(ctx)
+.B odkim_get_sigcount(ctx)
 Returns the number of signatuers found in the message represented by
 .I ctx.
 .SH NOTES
