@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.8 2009/11/25 00:12:31 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.9 2009/11/25 00:26:30 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.8 2009/11/25 00:12:31 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.9 2009/11/25 00:26:30 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1146,6 +1146,74 @@ dkimf_xs_requestsig(lua_State *l)
 	}
 
 	return 0;
+}
+
+/*
+**  DKIMF_XS_GETHEADER -- request a header value
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getheader(lua_State *l)
+{
+	int idx;
+	const char *hdrname;
+	struct connctx *cc;
+	struct msgctx *dfc;
+	struct dkimf_config *conf;
+	Header hdr;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 3)
+	{
+		lua_pushstring(l,
+		               "odkim_get_header(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2) || !lua_isnumber(l, 3))
+	{
+		lua_pushstring(l,
+		               "odkim_get_header(): incorrect argument type");
+		lua_error(l);
+	}
+
+	cc = (struct connctx *) lua_touserdata(l, 1);
+	if (cc != NULL)
+	{
+		dfc = cc->cctx_msg;
+		conf = cc->cctx_config;
+
+		hdrname = lua_tostring(l, 2);
+		idx = lua_tonumber(l, 3);
+	}
+
+	lua_pop(l, 3);
+
+	if (cc == NULL)
+	{
+		lua_pushstring(l, "dkimf_xs_getheader");
+		return 1;
+	}
+
+	hdr = dkimf_findheader(dfc, (char *) hdrname, idx);
+	if (hdr == NULL)
+	{
+		return 0;
+	}
+	else
+	{
+		lua_pushstring(l, hdr->hdr_val);
+		return 1;
+	}
+
+	return 1;
 }
 #endif /* _FFR_LUA */
 
