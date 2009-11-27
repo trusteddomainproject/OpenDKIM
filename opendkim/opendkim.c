@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.19 2009/11/25 19:38:11 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.20 2009/11/27 22:43:26 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.19 2009/11/25 19:38:11 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.20 2009/11/27 22:43:26 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7241,11 +7241,6 @@ mlfi_eoh(SMFICTX *ctx)
 		       dfc->mctx_signing ? "signing" : "verifying");
 	}
 
-	/*
-	**  If we're not operating in the role matching the required operation,
-	**  just accept the message and be done with it.
-	*/
-
 #ifdef _FFR_LUA
 	if (conf->conf_signscript != NULL)
 	{
@@ -7297,6 +7292,11 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 	}
 #endif /* _FFR_LUA */
+
+	/*
+	**  If we're not operating in the role matching the required operation,
+	**  just accept the message and be done with it.
+	*/
 
 	if ((dfc->mctx_signing &&
 	     (conf->conf_mode & DKIMF_MODE_SIGNER) == 0) ||
