@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.31.2.1 2009/11/22 01:46:55 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.31.2.2 2009/11/27 23:48:35 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -6510,12 +6510,14 @@ dkim_sig_getidentity(DKIM *dkim, DKIM_SIGINFO *sig, char *val, size_t vallen)
 	char *param;
 	struct dkim_set *set;
 
-	assert(dkim != NULL);
 	assert(val != NULL);
 	assert(vallen != 0);
 
 	if (sig == NULL)
 	{
+		if (dkim == NULL)
+			return DKIM_STAT_INVALID;
+
 		sig = dkim->dkim_signature;
 		if (sig == NULL)
 			return DKIM_STAT_INVALID;
