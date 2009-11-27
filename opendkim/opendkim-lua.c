@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.26 2009/11/27 23:50:13 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.27 2009/11/27 23:59:34 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.26 2009/11/27 23:50:13 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.27 2009/11/27 23:59:34 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -407,18 +407,21 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	/* retrieve number of signatures */
 	lua_register(l, "odkim_get_sigcount", dkimf_xs_getsigcount);
 
+	/* retrieve a signature handle */
+	lua_register(l, "odkim_get_sighandle", dkimf_xs_getsighandle);
+
+	/* retrieve a signature's domain */
+	lua_register(l, "odkim_sig_getdomain", dkimf_xs_getsigdomain);
+
+	/* retrieve a signature's identity */
+	lua_register(l, "odkim_sig_getidentity", dkimf_xs_getsigidentity);
+
 	/* XXX
-	retrieve Nth signature
-	lua_register(l, "odkim_get_signature", dkimf_xs_getsignature);
-
-	retrieve domain name from signature
-	lua_register(l, "odkim_get_sig_getdomain", dkimf_xs_getsigdomain);
-
 	evaluate signature
-	lua_register(l, "odkim_get_sig_evaluate", dkimf_xs_evaluate);
+	lua_register(l, "odkim_sig_evaluate", dkimf_xs_evaluate);
 
 	did signature use "l="? / value of l tag
-	lua_register(l, "odkim_check_sig_ltag", dkimf_xs_getltag);
+	lua_register(l, "odkim_sig_checkltag", dkimf_xs_getltag);
 
 	size of body?
 	lua_register(l, "odkim_get_bodylength", dkimf_xs_bodylength);

@@ -5,14 +5,15 @@
 .SH DESCRIPTION
 The OpenDKIM filter has hooks to run user-provided scripts for making policy
 decisions regarding signatures to add on outbound messages or verification and
-acceptance of messages inbound.  The hooks take the form of two LUA scripts
-which, if defined, are run at two important points during processing of 
+acceptance of messages inbound.  The hooks take the form of multiple LUA
+scripts which, if defined, are run at important points during processing of 
 a message.
 
 For a full description of the LUA language, consult LUA programming references
 (see below for a starting point).  This man page only describes the use of
-LUA in the context of OpenDKIM, namely the functions and global variables
-OpenDKIM provides for use in user-constructed scripts.
+LUA in the context of OpenDKIM, specifically the functions and global variables
+OpenDKIM provides for use in user-constructed scripts beyond what LUA provides
+by default.
 
 Three scripting hooks are provided.  They are as follows:
 .TP
@@ -142,7 +143,8 @@ descriptions can be found above:
 .B odkim_fromdomain,
 .B odkim_get_dbhandle,
 .B odkim_get_header,
-.B odkim_get_rcpt,
+.B odkim_get_rcpt
+and
 .B odkim_rcpt_count.
 
 The following additional functions are provided for this script:
@@ -186,7 +188,15 @@ previously returned by a call to
 Any pending verification of the message will act as if that signature was
 not present on the message.
 .SH FINAL SCRIPT FUNCTIONS
-TBD
+The screen script has the following functions available to it, whose
+descriptions can be found above:
+.B odkim_get_sigcount,
+.B odkim_get_sighandle,
+.B odkim_sig_getdomain,
+.B odkim_sig_getidentity.
+
+The following additional functions are provided for this script:
+.TP
 .SH NOTES
 TBD
 .SH VERSION
