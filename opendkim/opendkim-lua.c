@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.24 2009/11/27 23:30:27 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.25 2009/11/27 23:41:05 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.24 2009/11/27 23:30:27 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.25 2009/11/27 23:41:05 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -313,7 +313,10 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 	lua_register(l, "odkim_get_sighandle", dkimf_xs_getsighandle);
 
 	/* retrieve a signature's domain */
-	lua_register(l, "odkim_get_sigdomain", dkimf_xs_getsigdomain);
+	lua_register(l, "odkim_sig_getdomain", dkimf_xs_getsigdomain);
+
+	/* ignore a signature and its result */
+	lua_register(l, "odkim_sig_ignore", dkimf_xs_sigignore);
 
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
