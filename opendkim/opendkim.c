@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.20 2009/11/27 22:43:26 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.21 2009/11/27 23:23:02 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.20 2009/11/27 22:43:26 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.21 2009/11/27 23:23:02 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -270,8 +270,9 @@ struct dkimf_config
 	char *		conf_redirect;		/* redirect failures to */
 #endif /* _FFR_REDIRECT */
 #ifdef _FFR_LUA
-	char *		conf_signscript;	/* LUA script for signing */
-	char *		conf_verifyscript;	/* LUA script for verifying */
+	char *		conf_screenscript;	/* LUA script: screening */
+	char *		conf_setupscript;	/* LUA script: setup */
+	char *		conf_finalscript;	/* LUA script: final */
 #endif /* _FFR_LUA */
 	struct keytable * conf_keyhead;		/* key list */
 	struct keytable * conf_keytail;		/* key list */
@@ -1721,6 +1722,71 @@ dkimf_xs_getsigcount(lua_State *l)
 	
 	return 1;
 }
+
+/*
+**  DKIMF_XS_GETSIGHANDLE -- get signature handle
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getsighandle(lua_State *l)
+{
+	int idx;
+	int nsigs;
+	DKIM_STAT status;
+	DKIM_SIGINFO **sigs;
+	struct connctx *cc;
+	struct msgctx *dfc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_get_sighandle(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isnumber(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_get_sighandle(): incorrect argument type");
+		lua_error(l);
+	}
+
+	cc = (struct connctx *) lua_touserdata(l, 1);
+	dfc = cc->cctx_msg;
+	idx = lua_tonumber(l, 2);
+	lua_pop(l, 2);
+
+	if (dfc->mctx_dkimv == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	status = dkim_getsiglist(dfc->mctx_dkimv, &sigs, &nsigs);
+	if (status != DKIM_STAT_OK)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	if (idx < 0 || idx >= nsigs)
+	{
+		lua_pushstring(l, "odkim_get_sighandle(): invalid request");
+		lua_error(l);
+	}
+
+	lua_pushlightuserdata(l, sigs[idx]);
+
+	return 1;
+}
 #endif /* _FFR_LUA */
 
 /*
@@ -2934,10 +3000,10 @@ dkimf_config_free(struct dkimf_config *conf)
 #endif /* _FFR_RESIGN */
 
 #ifdef _FFR_LUA
-	if (conf->conf_signscript != NULL)
-		free(conf->conf_signscript);
-	if (conf->conf_verifyscript != NULL)
-		free(conf->conf_verifyscript);
+	if (conf->conf_setupscript != NULL)
+		free(conf->conf_setupscript);
+	if (conf->conf_finalscript != NULL)
+		free(conf->conf_finalscript);
 #endif /* _FFR_LUA */
 
 	config_free(conf->conf_data);
@@ -3360,14 +3426,13 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 #ifdef _FFR_LUA
 		str = NULL;
-		(void) config_get(data, "SigningPolicyScript",
-		                  &str, sizeof str);
+		(void) config_get(data, "SetupPolicyScript", &str, sizeof str);
 		if (str != NULL)
 		{
 			int fd;
 			ssize_t rlen;
 			struct stat s;
-			struct dkimf_lua_sign_result lres;
+			struct dkimf_lua_script_result lres;
 
 			fd = open(str, O_RDONLY, 0);
 			if (fd < 1)
@@ -3385,8 +3450,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				return -1;
 			}
 
-			conf->conf_signscript = malloc(s.st_size + 1);
-			if (conf->conf_signscript == NULL)
+			conf->conf_setupscript = malloc(s.st_size + 1);
+			if (conf->conf_setupscript == NULL)
 			{
 				snprintf(err, errlen, "malloc(): %s",
 				         strerror(errno));
@@ -3394,8 +3459,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				return -1;
 			}
 
-			memset(conf->conf_signscript, '\0', s.st_size + 1);
-			rlen = read(fd, conf->conf_signscript, s.st_size);
+			memset(conf->conf_setupscript, '\0', s.st_size + 1);
+			rlen = read(fd, conf->conf_setupscript, s.st_size);
 			if (rlen == -1)
 			{
 				snprintf(err, errlen, "%s: read(): %s",
@@ -3414,8 +3479,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			close(fd);
 
 			memset(&lres, '\0', sizeof lres);
-			if (dkimf_lua_sign_hook(NULL, conf->conf_signscript,
-			                        str, &lres) != 0)
+			if (dkimf_lua_setup_hook(NULL, conf->conf_setupscript,
+			                         str, &lres) != 0)
 			{
 				strlcpy(err, lres.lrs_error, errlen);
 				free(lres.lrs_error);
@@ -3424,14 +3489,13 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 
 		str = NULL;
-		(void) config_get(data, "VerifyingPolicyScript",
-		                  &str, sizeof str);
+		(void) config_get(data, "FinalPolicyScript", &str, sizeof str);
 		if (str != NULL)
 		{
 			int fd;
 			ssize_t rlen;
 			struct stat s;
-			struct dkimf_lua_verify_result lres;
+			struct dkimf_lua_script_result lres;
 
 			fd = open(str, O_RDONLY, 0);
 			if (fd < 1)
@@ -3449,8 +3513,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				return -1;
 			}
 
-			conf->conf_verifyscript = malloc(s.st_size + 1);
-			if (conf->conf_verifyscript == NULL)
+			conf->conf_finalscript = malloc(s.st_size + 1);
+			if (conf->conf_finalscript == NULL)
 			{
 				snprintf(err, errlen, "malloc(): %s",
 				         strerror(errno));
@@ -3458,8 +3522,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				return -1;
 			}
 
-			memset(conf->conf_verifyscript, '\0', s.st_size + 1);
-			rlen = read(fd, conf->conf_verifyscript, s.st_size);
+			memset(conf->conf_finalscript, '\0', s.st_size + 1);
+			rlen = read(fd, conf->conf_finalscript, s.st_size);
 			if (rlen == -1)
 			{
 				snprintf(err, errlen, "%s: read(): %s",
@@ -3478,12 +3542,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			close(fd);
 
 			memset(&lres, '\0', sizeof lres);
-			if (dkimf_lua_verify_hook(NULL, NULL,
-			                          conf->conf_verifyscript,
-			                          &lres) != 0)
+			if (dkimf_lua_final_hook(NULL, NULL,
+			                         conf->conf_finalscript,
+			                         &lres) != 0)
 			{
-				strlcpy(err, lres.lrv_error, errlen);
-				free(lres.lrv_error);
+				strlcpy(err, lres.lrs_error, errlen);
+				free(lres.lrs_error);
 				return -1;
 			}
 		}
@@ -7242,15 +7306,15 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 
 #ifdef _FFR_LUA
-	if (conf->conf_signscript != NULL)
+	if (conf->conf_setupscript != NULL)
 	{
 		_Bool dofree = TRUE;
-		struct dkimf_lua_sign_result lres;
+		struct dkimf_lua_script_result lres;
 
 		memset(&lres, '\0', sizeof lres);
 
-		status = dkimf_lua_sign_hook(cc, conf->conf_signscript,
-		                             "signing script", &lres);
+		status = dkimf_lua_setup_hook(cc, conf->conf_setupscript,
+		                              "setup script", &lres);
 
 		if (status != 0)
 		{
@@ -9542,51 +9606,51 @@ mlfi_eom(SMFICTX *ctx)
 	}
 
 #ifdef _FFR_LUA
-	if (conf->conf_verifyscript != NULL)
+	if (conf->conf_finalscript != NULL)
 	{
 		_Bool dofree = TRUE;
-		struct dkimf_lua_verify_result lres;
+		struct dkimf_lua_script_result lres;
 
 		memset(&lres, '\0', sizeof lres);
 
-		status = dkimf_lua_verify_hook(cc, conf->conf_verifyscript,
-		                               "verifying script", &lres);
+		status = dkimf_lua_final_hook(cc, conf->conf_finalscript,
+		                              "final script", &lres);
 
 		if (status != 0)
 		{
 			if (conf->conf_dolog)
 			{
-				if (lres.lrv_error == NULL)
+				if (lres.lrs_error == NULL)
 				{
 					dofree = FALSE;
 
 					switch (status)
 					{
 					  case 2:
-						lres.lrv_error = "processing error";
+						lres.lrs_error = "processing error";
 						break;
 
 					  case 1:
-						lres.lrv_error = "syntax error";
+						lres.lrs_error = "syntax error";
 						break;
 
 					  case -1:
-						lres.lrv_error = "memory allocation error";
+						lres.lrs_error = "memory allocation error";
 						break;
 
 					  default:
-						lres.lrv_error = "unknown error";
+						lres.lrs_error = "unknown error";
 						break;
 					}
 				}
 
 				syslog(LOG_ERR,
 				       "%s dkimf_lua_verify_hook() failed: %s",
-				       dfc->mctx_jobid, lres.lrv_error);
+				       dfc->mctx_jobid, lres.lrs_error);
 			}
 
 			if (dofree)
-				free(lres.lrv_error);
+				free(lres.lrs_error);
 
 			return SMFIS_TEMPFAIL;
 		}

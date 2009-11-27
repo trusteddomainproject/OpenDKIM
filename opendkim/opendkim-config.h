@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.9.2.1 2009/11/20 23:53:52 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.9.2.2 2009/11/27 23:23:01 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.9.2.1 2009/11/20 23:53:52 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.9.2.2 2009/11/27 23:23:01 cm-msk Exp $";
 #endif /* !lint */
 
 struct configdef dkimf_config[] =
@@ -47,6 +47,9 @@ struct configdef dkimf_config[] =
 	{ "DontSignMailTo",		CONFIG_TYPE_STRING,	FALSE },
 	{ "EnableCoredumps",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ExternalIgnoreList",		CONFIG_TYPE_STRING,	FALSE },
+#ifdef _FFR_LUA
+	{ "FinalPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_LUA */
 	{ "FixCRLF",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "Include",			CONFIG_TYPE_INCLUDE,	FALSE },
 #ifdef USE_UNBOUND
@@ -129,7 +132,8 @@ struct configdef dkimf_config[] =
 	{ "SignatureTTL",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "SignHeaders",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_LUA
-	{ "SigningPolicyScript",	CONFIG_TYPE_STRING,	FALSE },
+	{ "ScreenPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
+	{ "SetupPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_LUA */
 	{ "Socket",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_STATS
@@ -153,9 +157,6 @@ struct configdef dkimf_config[] =
 	{ "VBR-TrustedCertifiers",	CONFIG_TYPE_STRING,	FALSE },
 	{ "VBR-Type",			CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_VBR */
-#ifdef _FFR_LUA
-	{ "VerifyingPolicyScript",	CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_LUA */
 	{ "X-Header",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ NULL,				-1,			FALSE }
 };

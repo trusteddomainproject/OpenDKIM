@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.22 2009/11/25 19:38:48 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.23 2009/11/27 23:23:02 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.22 2009/11/25 19:38:48 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.23 2009/11/27 23:23:02 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -103,7 +103,7 @@ static void *dkimf_lua_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
 }
 
 /*
-**  DKIMF_LUA_SIGN_HOOK -- hook to LUA for handling a message while signing
+**  DKIMF_LUA_SETUP_HOOK -- hook to LUA for handling a message during setup
 **
 **  Parameters:
 **  	ctx -- session context, for making calls back to opendkim.c
@@ -131,8 +131,8 @@ static void *dkimf_lua_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
 */
 
 int
-dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
-                    struct dkimf_lua_sign_result *lres)
+dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
+                     struct dkimf_lua_script_result *lres)
 {
 	int c;
 	int status;
@@ -231,7 +231,9 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 }
 
 /*
-**  DKIMF_LUA_VERIFY_HOOK -- hook to LUA for handling a message while signing
+**  DKIMF_LUA_SCREEN_HOOK -- hook to LUA for handling a message after the
+**                           verifying handle is established and all headers
+**                           have been fed to it
 **
 **  Parameters:
 **  	ctx -- session context, for making calls back to opendkim.c
@@ -254,8 +256,122 @@ dkimf_lua_sign_hook(void *ctx, const char *script, const char *name,
 */
 
 int
-dkimf_lua_verify_hook(void *ctx, const char *script,
-                      const char *name, struct dkimf_lua_verify_result *lres)
+dkimf_lua_screen_hook(void *ctx, const char *script,
+                      const char *name, struct dkimf_lua_script_result *lres)
+{
+	int status;
+	struct dkimf_lua_io io;
+	lua_State *l = NULL;
+
+	assert(script != NULL);
+	assert(lres != NULL);
+
+	io.lua_io_done = FALSE;
+	io.lua_io_script = script;
+
+	l = lua_newstate(dkimf_lua_alloc, NULL);
+	if (l == NULL)
+		return -1;
+
+	luaL_openlibs(l);
+
+	/*
+	**  Register functions.
+	**
+	**  XXX -- turn this into a LUA library?
+	*/
+
+	/* test DB for membership */
+	lua_register(l, "odkim_db_check", dkimf_xs_dbquery);
+
+	/* request From domain */
+	lua_register(l, "odkim_get_fromdomain", dkimf_xs_fromdomain);
+
+	/* request DB handle */
+	/* XXX -- allow creation of arbitrary DB handles? */
+	lua_register(l, "odkim_get_dbhandle", dkimf_xs_dbhandle);
+	lua_pushnumber(l, DB_DOMAINS);
+	lua_setglobal(l, "DB_DOMAINS");
+	lua_pushnumber(l, DB_THIRDPARTY);
+	lua_setglobal(l, "DB_THIRDPARTY");
+	lua_pushnumber(l, DB_DONTSIGNTO);
+	lua_setglobal(l, "DB_DONTSIGNTO");
+
+	/* retrieve header/value */
+	lua_register(l, "odkim_get_header", dkimf_xs_getheader);
+
+	/* retrieve number of signatures */
+	lua_register(l, "odkim_get_sigcount", dkimf_xs_getsigcount);
+
+	/* get a specific envelope recipient */
+	lua_register(l, "odkim_get_rcpt", dkimf_xs_rcpt);
+
+	/* get number of envelope recipients */
+	lua_register(l, "odkim_rcpt_count", dkimf_xs_rcptcount);
+
+	/* retrieve a signature handle */
+	lua_register(l, "odkim_get_sighandle", dkimf_xs_getsighandle);
+
+	lua_pushlightuserdata(l, ctx);
+	lua_setglobal(l, "ctx");
+
+	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name))
+	{
+	  case 0:
+		break;
+
+	  case LUA_ERRSYNTAX:
+		if (lua_isstring(l, 1))
+			lres->lrs_error = strdup(lua_tostring(l, 1));
+		lua_close(l);
+		return 1;
+
+	  case LUA_ERRMEM:
+		if (lua_isstring(l, 1))
+			lres->lrs_error = strdup(lua_tostring(l, 1));
+		lua_close(l);
+		return -1;
+
+	  default:
+		assert(0);
+	}
+
+	status = lua_pcall(l, 0, LUA_MULTRET, 0);
+	if (lua_isstring(l, 1))
+		lres->lrs_error = strdup(lua_tostring(l, 1));
+
+	lua_close(l);
+
+	return (status == 0 ? 0 : 2);
+}
+
+/*
+**  DKIMF_LUA_FINAL_HOOK -- hook to LUA for handling a message after all
+**                          signing and verifying has been done
+**
+**  Parameters:
+**  	ctx -- session context, for making calls back to opendkim.c
+**  	script -- script to run
+**  	name -- name of the script (for logging)
+**  	lres -- LUA result structure
+**
+**  Return value:
+**  	0 -- success
+**  	-1 -- failure
+**
+**  Notes:
+**  	Called by mlfi_eom() so it can decide whether or not the message
+**  	is acceptable.
+**
+**  	Will require the ability to access databases, i.e. the
+**  	dkimf_db_*() functions and the "conf" handle that contains
+**  	references to available databases.  opendkim.c will need to export
+**  	some functions for getting DB handles for this purpose.
+*/
+
+int
+dkimf_lua_final_hook(void *ctx, const char *script,
+                     const char *name, struct dkimf_lua_script_result *lres)
 {
 	int status;
 	struct dkimf_lua_io io;
@@ -328,13 +444,13 @@ dkimf_lua_verify_hook(void *ctx, const char *script,
 
 	  case LUA_ERRSYNTAX:
 		if (lua_isstring(l, 1))
-			lres->lrv_error = strdup(lua_tostring(l, 1));
+			lres->lrs_error = strdup(lua_tostring(l, 1));
 		lua_close(l);
 		return 1;
 
 	  case LUA_ERRMEM:
 		if (lua_isstring(l, 1))
-			lres->lrv_error = strdup(lua_tostring(l, 1));
+			lres->lrs_error = strdup(lua_tostring(l, 1));
 		lua_close(l);
 		return -1;
 
@@ -344,7 +460,7 @@ dkimf_lua_verify_hook(void *ctx, const char *script,
 
 	status = lua_pcall(l, 0, LUA_MULTRET, 0);
 	if (lua_isstring(l, 1))
-		lres->lrv_error = strdup(lua_tostring(l, 1));
+		lres->lrs_error = strdup(lua_tostring(l, 1));
 
 	lua_close(l);
 

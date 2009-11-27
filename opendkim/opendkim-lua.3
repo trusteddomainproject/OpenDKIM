@@ -14,18 +14,31 @@ For a full description of the LUA language, consult LUA programming references
 LUA in the context of OpenDKIM, namely the functions and global variables
 OpenDKIM provides for use in user-constructed scripts.
 
-Two scripting hooks are provided.  They are referred to as the
-.I signing script
-which is run after all headers for the message have been received but before
-the body has been processed, so the user can select based on header fields
-which key(s) should be used to add signatures and what signature features
-are desired, and whether or not the message should be passed to the
-verification code; and the
-.I verifying script,
-which is run after all headers and body have been processed and is used
-to examine the results of all the DKIM verification work and thus render a
-final decision about accepting, rejecting, discarding or quarantining the
-message.
+Three scripting hooks are provided.  They are as follows:
+.TP
+.I setup
+The setup script is run after all headers for the message have been received
+but before any DKIM operations have started.  At this point the user can
+examine the available header fields to decide whether the message should be
+signed or verified (or both) and, if signing, which key(s) should be used to
+add signatures and which signature features are desired.
+.TP
+.I screen
+The screen script is run after the DKIM verification context has been
+established.  The main purpose of this script is to give the user an
+opportunity to examine the message header fields compared to the available
+DKIM signatures and determine which, if any, should be ignored during
+verification.  For example, the user might decide only signatures added by
+domains exactly matching that in the From: domain are acceptable, and the
+rest should be ignored.
+.TP
+.I final
+The final script is run after all of the DKIM verification and signing work
+has been completed.  The user has an opportunity to examine the results
+of all of the signature evaluations and make a decision about whether or not
+the message should be accepted, rejected, discarded, quarantined, etc.
+If the message is accepted, any signatures requested earlier will be
+added to the messages before it is released.
 
 Unless otherwise noted, all functions return a single result; on success
 they return the requested data, and on error they return the LUA constant
@@ -37,9 +50,9 @@ The following global variable(s) are provided for all user scripts:
 This is a generic context pointer referring to the context in which the
 filtering operation is being performed.  It represents a single message
 in progress, and the connection that accepted it.
-.SH SIGNING SCRIPT FUNCTIONS
+.SH SETUP SCRIPT FUNCTIONS
 These functions are made available to LUA for processing a message through
-the signing script:
+the setup script:
 .TP
 .B odkim_clienthost(ctx)
 Returns the name of the host on the other end of the SMTP connection
@@ -90,7 +103,7 @@ This will return the value of the first (and hopefully only) "From" header
 field.
 .TP
 .B odkim_get_rcpt(ctx, n)
-Returns the nth envelope recipient for the message reprecented by
+Returns the nth envelope recipient for the message represented by
 .I ctx.
 .TP
 .B odkim_internalip(ctx)
@@ -122,11 +135,34 @@ include "l=" (body length) tags.
 Requests that the message represented by
 .I ctx
 be subjected to DKIM signature verification.
-.SH VERIFYING SCRIPT FUNCTIONS
+.SH SCREEN SCRIPT FUNCTIONS
+The screen script has the following functions available to it, whose
+descriptions can be found above:
+.B odkim_db_check,
+.B odkim_fromdomain,
+.B odkim_get_dbhandle,
+.B odkim_get_header,
+.B odkim_get_rcpt,
+.B odkim_rcpt_count.
+
+The following additional functions are provided for this script:
 .TP
 .B odkim_get_sigcount(ctx)
-Returns the number of signatuers found in the message represented by
+Returns the number of signatures found in the message represented by
 .I ctx.
+.TP
+.B odkim_get_sighandle(ctx, n)
+Returns a handle representing an internal copy of the nth signature found
+on the message represented by
+.I ctx.
+.I n
+must be a number greater than or equal to zero (representing the first
+signature) and less than the number of signatures on the message, which
+can be determined using
+.B odkim_get_sigcount
+above.
+.SH FINAL SCRIPT FUNCTIONS
+TBD
 .SH NOTES
 TBD
 .SH VERSION
