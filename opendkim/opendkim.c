@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.24 2009/11/27 23:41:05 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.25 2009/11/27 23:50:13 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.24 2009/11/27 23:41:05 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.25 2009/11/27 23:50:13 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1802,8 +1802,6 @@ int
 dkimf_xs_getsigdomain(lua_State *l)
 {
 	DKIM_SIGINFO *sig;
-	struct connctx *cc;
-	struct msgctx *dfc;
 
 	assert(l != NULL);
 
@@ -1842,8 +1840,6 @@ int
 dkimf_xs_sigignore(lua_State *l)
 {
 	DKIM_SIGINFO *sig;
-	struct connctx *cc;
-	struct msgctx *dfc;
 
 	assert(l != NULL);
 
@@ -1866,6 +1862,51 @@ dkimf_xs_sigignore(lua_State *l)
 	dkim_sig_ignore(sig);
 
 	lua_pushnil(l);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETSIGIDENTITY -- get signature's signing identity ("i=")
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getsigidentity(lua_State *l)
+{
+	DKIM_STAT status;
+	DKIM_SIGINFO *sig;
+	char addr[MAXADDRESS + 1];
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_sig_getidentity(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_sig_getidentity(): incorrect argument type");
+		lua_error(l);
+	}
+
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	memset(addr, '\0', sizeof addr);
+	status = dkim_sig_getidentity(NULL, sig, addr, sizeof addr);
+	if (status != DKIM_STAT_OK)
+		lua_pushnil(l);
+	else
+		lua_pushstring(l, addr);
 
 	return 1;
 }

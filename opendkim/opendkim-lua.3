@@ -167,7 +167,15 @@ Returns the name of the domain in the signature handle specified by
 .I sig,
 previously returned by a call to
 .B odkim_get_sighandle().
-This is taken from the signatures "d=" tag.
+This is taken from the signature's "d=" tag.
+.TP
+.B odkim_sig_getidentity(sig)
+Returns the identity of the agent adding the signature handle specified by
+.I sig,
+previously returned by a call to
+.B odkim_get_sighandle().
+This is taken from the signature's "i=" tag.  This may be a default value
+and not one that was explicitly part of the signature.
 .TP
 .B odkim_sig_ignore(sig)
 Instructs the verification code to ignore completely the signature specified
