@@ -151,6 +151,13 @@ The following additional functions are provided for this script:
 Returns the number of signatures found in the message represented by
 .I ctx.
 .TP
+.B odkim_get_sigdomain(sig)
+Returns the name of the domain in the signature handle specified by
+.I sig,
+previously returned by a call to
+.B odkim_get_sighandle().
+This is taken from the signatures "d=" tag.
+.TP
 .B odkim_get_sighandle(ctx, n)
 Returns a handle representing an internal copy of the nth signature found
 on the message represented by

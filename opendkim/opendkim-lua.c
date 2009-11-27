@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.23 2009/11/27 23:23:02 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.24 2009/11/27 23:30:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.23 2009/11/27 23:23:02 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.24 2009/11/27 23:30:27 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -300,17 +300,20 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 	/* retrieve header/value */
 	lua_register(l, "odkim_get_header", dkimf_xs_getheader);
 
-	/* retrieve number of signatures */
-	lua_register(l, "odkim_get_sigcount", dkimf_xs_getsigcount);
-
 	/* get a specific envelope recipient */
 	lua_register(l, "odkim_get_rcpt", dkimf_xs_rcpt);
 
 	/* get number of envelope recipients */
 	lua_register(l, "odkim_rcpt_count", dkimf_xs_rcptcount);
 
+	/* retrieve number of signatures */
+	lua_register(l, "odkim_get_sigcount", dkimf_xs_getsigcount);
+
 	/* retrieve a signature handle */
 	lua_register(l, "odkim_get_sighandle", dkimf_xs_getsighandle);
+
+	/* retrieve a signature's domain */
+	lua_register(l, "odkim_get_sigdomain", dkimf_xs_getsigdomain);
 
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");

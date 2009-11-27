@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.21 2009/11/27 23:23:02 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.22 2009/11/27 23:30:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.21 2009/11/27 23:23:02 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.22 2009/11/27 23:30:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1784,6 +1784,46 @@ dkimf_xs_getsighandle(lua_State *l)
 	}
 
 	lua_pushlightuserdata(l, sigs[idx]);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETSIGDOMAIN -- get signature's signing domain ("d=")
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getsigdomain(lua_State *l)
+{
+	DKIM_SIGINFO *sig;
+	struct connctx *cc;
+	struct msgctx *dfc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_get_sigdomain(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_get_sigdomain(): incorrect argument type");
+		lua_error(l);
+	}
+
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	lua_pushstring(l, dkim_sig_getdomain(sig));
 
 	return 1;
 }
