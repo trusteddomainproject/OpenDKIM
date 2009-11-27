@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.22 2009/11/27 23:30:27 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.23 2009/11/27 23:36:00 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.22 2009/11/27 23:30:27 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.23 2009/11/27 23:36:00 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3521,6 +3521,71 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			memset(&lres, '\0', sizeof lres);
 			if (dkimf_lua_setup_hook(NULL, conf->conf_setupscript,
 			                         str, &lres) != 0)
+			{
+				strlcpy(err, lres.lrs_error, errlen);
+				free(lres.lrs_error);
+				return -1;
+			}
+		}
+
+		str = NULL;
+		(void) config_get(data, "ScreenPolicyScript",
+		                  &str, sizeof str);
+		if (str != NULL)
+		{
+			int fd;
+			ssize_t rlen;
+			struct stat s;
+			struct dkimf_lua_script_result lres;
+
+			fd = open(str, O_RDONLY, 0);
+			if (fd < 1)
+			{
+				snprintf(err, errlen, "%s: open(): %s", str,
+				         strerror(errno));
+				return -1;
+			}
+
+			if (fstat(fd, &s) == -1)
+			{
+				snprintf(err, errlen, "%s: fstat(): %s", str,
+				         strerror(errno));
+				close(fd);
+				return -1;
+			}
+
+			conf->conf_screenscript = malloc(s.st_size + 1);
+			if (conf->conf_screenscript == NULL)
+			{
+				snprintf(err, errlen, "malloc(): %s",
+				         strerror(errno));
+				close(fd);
+				return -1;
+			}
+
+			memset(conf->conf_screenscript, '\0', s.st_size + 1);
+			rlen = read(fd, conf->conf_screenscript, s.st_size);
+			if (rlen == -1)
+			{
+				snprintf(err, errlen, "%s: read(): %s",
+				         str, strerror(errno));
+				close(fd);
+				return -1;
+			}
+			else if (rlen < s.st_size)
+			{
+				snprintf(err, errlen, "%s: early EOF",
+				         str);
+				close(fd);
+				return -1;
+			}
+
+			close(fd);
+
+			memset(&lres, '\0', sizeof lres);
+			if (dkimf_lua_screen_hook(NULL,
+			                          conf->conf_screenscript,
+			                          str, &lres) != 0)
 			{
 				strlcpy(err, lres.lrs_error, errlen);
 				free(lres.lrs_error);
@@ -7385,7 +7450,7 @@ mlfi_eoh(SMFICTX *ctx)
 				}
 
 				syslog(LOG_ERR,
-				       "%s dkimf_lua_sign_hook() failed: %s",
+				       "%s dkimf_lua_setup_hook() failed: %s",
 				       dfc->mctx_jobid, lres.lrs_error);
 			}
 
@@ -7921,6 +7986,58 @@ mlfi_eoh(SMFICTX *ctx)
 		lastdkim = dfc->mctx_dkimv;
 		status = dkim_eoh(dfc->mctx_dkimv);
 	}
+
+#ifdef _FFR_LUA
+	if (conf->conf_screenscript != NULL)
+	{
+		_Bool dofree = TRUE;
+		struct dkimf_lua_script_result lres;
+
+		memset(&lres, '\0', sizeof lres);
+
+		status = dkimf_lua_screen_hook(cc, conf->conf_screenscript,
+		                               "screen script", &lres);
+
+		if (status != 0)
+		{
+			if (conf->conf_dolog)
+			{
+				if (lres.lrs_error == NULL)
+				{
+					dofree = FALSE;
+
+					switch (status)
+					{
+					  case 2:
+						lres.lrs_error = "processing error";
+						break;
+
+					  case 1:
+						lres.lrs_error = "syntax error";
+						break;
+
+					  case -1:
+						lres.lrs_error = "memory allocation error";
+						break;
+
+					  default:
+						lres.lrs_error = "unknown error";
+						break;
+					}
+				}
+
+				syslog(LOG_ERR,
+				       "%s dkimf_lua_screen_hook() failed: %s",
+				       dfc->mctx_jobid, lres.lrs_error);
+			}
+
+			if (dofree)
+				free(lres.lrs_error);
+
+			return SMFIS_TEMPFAIL;
+		}
+	}
+#endif /* _FFR_LUA */
 
 	switch (status)
 	{
@@ -9685,7 +9802,7 @@ mlfi_eom(SMFICTX *ctx)
 				}
 
 				syslog(LOG_ERR,
-				       "%s dkimf_lua_verify_hook() failed: %s",
+				       "%s dkimf_lua_final_hook() failed: %s",
 				       dfc->mctx_jobid, lres.lrs_error);
 			}
 
