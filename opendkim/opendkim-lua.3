@@ -85,6 +85,10 @@ Returns a handle for the requested database that can be used in later
 queries.  The value of
 .I db
 should be one of
+.I DB_MTAS
+(database of MTA names whose mail should be signed),
+.I DB_MACROS
+(database of MTA macro checks to be done when determining signing),
 .I DB_DOMAINS
 (database of domains to be signed),
 .I DB_THIRDPARTY
