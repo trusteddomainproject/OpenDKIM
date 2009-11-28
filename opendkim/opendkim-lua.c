@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.33 2009/11/28 05:23:55 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.34 2009/11/28 05:47:23 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.33 2009/11/28 05:23:55 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.34 2009/11/28 05:47:23 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -206,6 +206,9 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 
 	/* retrieve an MTA symbol */
 	lua_register(l, "odkim_get_mtasymbol", dkimf_xs_getsymval);
+
+	/* set up for re-signing */
+	lua_register(l, "odkim_resign", dkimf_xs_resign);
 
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");

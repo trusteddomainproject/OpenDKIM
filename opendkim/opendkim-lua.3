@@ -130,6 +130,10 @@ otherwise.
 .B odkim_rcpt_count(ctx)
 Returns the count of envelope recipients on the message.
 .TP
+.B odkim_resign(ctx)
+Arranges that the arriving message will be verified and then re-signed in
+a single operation.  Returns 1 on success and "nil" on failure.
+.TP
 .B odkim_sign(ctx, domain, selector)
 Requests that the filter sign the message represented by
 .I ctx

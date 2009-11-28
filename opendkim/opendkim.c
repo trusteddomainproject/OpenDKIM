@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.32 2009/11/28 05:23:55 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.33 2009/11/28 05:47:23 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.32 2009/11/28 05:23:55 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.33 2009/11/28 05:47:23 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2323,7 +2323,8 @@ dkimf_xs_delrcpt(lua_State *l)
 	else if (!lua_islightuserdata(l, 1) ||
 	         !lua_isstring(l, 2))
 	{
-		lua_pushstring(l, "odkim_delete_rcpt(): incorrect argument type");
+		lua_pushstring(l,
+		               "odkim_delete_rcpt(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2379,6 +2380,60 @@ dkimf_xs_delrcpt(lua_State *l)
 	}
 
 	lua_pushnumber(l, 1);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_RESIGN -- set up for re-signing
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_resign(lua_State *l)
+{
+	char *addr;
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l, "odkim_resign(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l, "odkim_resign(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	cc = (struct connctx *) smfi_getpriv(ctx);
+	if (cc == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	dfc = cc->cctx_msg;
+
+# ifdef _FFR_RESIGN
+	dfc->mctx_resign = TRUE;
+
+	lua_pushnumber(l, 1);
+# else /* _FFR_RESIGN */
+	lua_pushnil(l);
+# endif /* _FFR_RESIGN */
 
 	return 1;
 }
