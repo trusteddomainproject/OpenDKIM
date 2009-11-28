@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.87 2009/11/25 00:53:03 cm-msk Exp $
+# $Id: configure.ac,v 1.88 2009/11/28 19:02:36 cm-msk Exp $
 
 #
 # Setup
@@ -896,7 +896,8 @@ AC_DEFINE_UNQUOTED([LIBOPENDKIM_FEATURE_STRING], "$LIBOPENDKIM_FEATURE_STRING",
 # Finish up
 #
 AC_OUTPUT([Makefile opendkim/Makefile libopendkim/Makefile libar/Makefile
-           libvbr/Makefile libopendkim/opendkim.pc libar/ar.pc libvbr/vbr.pc
+           libopendkim/tests/Makefile libvbr/Makefile libopendkim/opendkim.pc
+           libar/ar.pc libvbr/vbr.pc
            opendkim/opendkim.conf.5 opendkim/opendkim.8
            opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8
            opendkim/opendkim-genkey.8 opendkim/opendkim-testadsp.8])
