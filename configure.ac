@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.68.2.2 2009/11/28 17:42:48 cm-msk Exp $
+# $Id: configure.ac,v 1.68.2.3 2009/11/28 17:50:26 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -410,6 +410,14 @@ then
 			LIBLUA_INCDIRS="-I$luapath/include/lua51"
 			LIBLUA_LIBDIRS="-L$luapath/lib/lua51"
 			LIBLUA_LIBS="-llua -lm"
+			break;
+		elif test -f $d/include/lua5.1/lua.h
+		then
+			luapath=$d
+			AC_MSG_RESULT($d)
+			LIBLUA_INCDIRS="-I$luapath/include/lua5.1"
+			LIBLUA_LIBDIRS="-L$luapath/lib"
+			LIBLUA_LIBS="-llua5.1 -lm"
 			break;
 		elif test -f $d/include/lua.h
 		then
