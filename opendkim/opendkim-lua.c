@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.31 2009/11/28 01:12:25 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.32 2009/11/28 01:26:24 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.31 2009/11/28 01:12:25 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.32 2009/11/28 01:26:24 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -436,17 +436,13 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	/* retrieve signature result (body hash check) */
 	lua_register(l, "odkim_sig_bhresult", dkimf_xs_sigbhresult);
 
+	/* size of body? */
+	lua_register(l, "odkim_sig_bodylength", dkimf_xs_bodylength);
+
+	/* canonicalized size? */
+	lua_register(l, "odkim_sig_canonlength", dkimf_xs_canonlength);
+
 	/* XXX
-	did signature use "l="? / value of l tag
-	lua_register(l, "odkim_sig_checkltag", dkimf_xs_getltag);
-
-	size of body?
-	lua_register(l, "odkim_get_bodylength", dkimf_xs_bodylength);
-
-	canonicalizations?
-	lua_register(l, "odkim_get_bodycanon", dkimf_xs_bodycanon);
-	lua_register(l, "odkim_get_hdrcanon", dkimf_xs_hdrcanon);
-
 	get policy result
 	lua_register(l, "odkim_get_policy", dkimf_xs_getpolicy);
 

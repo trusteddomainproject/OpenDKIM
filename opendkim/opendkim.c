@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.30 2009/11/28 01:12:25 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.31 2009/11/28 01:26:24 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.30 2009/11/28 01:12:25 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.31 2009/11/28 01:26:24 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2102,6 +2102,7 @@ dkimf_xs_sigresult(lua_State *l)
 
 	return 1;
 }
+
 /*
 **  DKIMF_XS_SIGBHRESULT -- get signature's body hash result code
 **
@@ -2142,6 +2143,117 @@ dkimf_xs_sigbhresult(lua_State *l)
 	return 1;
 }
 
+/*
+**  DKIMF_XS_BODYLENGTH -- return total body length
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_bodylength(lua_State *l)
+{
+	off_t body;
+	DKIM_STAT status;
+	SMFICTX *ctx;
+	DKIM_SIGINFO *sig;
+	struct connctx *cc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_sig_bodylength(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_islightuserdata(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_sig_bodylength(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 2);
+	lua_pop(l, 2);
+
+	cc = (struct connctx *) smfi_getpriv(ctx);
+	if (cc->cctx_msg == NULL || cc->cctx_msg->mctx_dkimv == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	status = dkim_sig_getcanonlen(cc->cctx_msg->mctx_dkimv, sig, &body,
+	                              NULL, NULL);
+	if (status != DKIM_STAT_OK)
+		lua_pushnil(l);
+	else
+		lua_pushnumber(l, body);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_CANONLENGTH -- return length canonicalized by a signature
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_canonlength(lua_State *l)
+{
+	off_t cl;
+	DKIM_STAT status;
+	SMFICTX *ctx;
+	DKIM_SIGINFO *sig;
+	struct connctx *cc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_sig_canonlength(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_islightuserdata(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_sig_canonlength(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 2);
+	lua_pop(l, 2);
+
+	cc = (struct connctx *) smfi_getpriv(ctx);
+	if (cc->cctx_msg == NULL || cc->cctx_msg->mctx_dkimv == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	status = dkim_sig_getcanonlen(cc->cctx_msg->mctx_dkimv, sig, NULL,
+	                              &cl, NULL);
+	if (status != DKIM_STAT_OK)
+		lua_pushnil(l);
+	else
+		lua_pushnumber(l, cl);
+
+	return 1;
+}
 #endif /* _FFR_LUA */
 
 /*

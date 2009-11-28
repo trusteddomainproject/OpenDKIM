@@ -227,6 +227,21 @@ header file
 with DKIM_SIGBH_ prefixes, and will be made available by name in a
 future version.
 .TP
+.B odkim_sig_bodylength(sig)
+Returns the total length of the message signed by
+.I sig,
+previously returned by a call to
+.B odkim_get_sighandle().
+.TP
+.B odkim_sig_canonlength(sig)
+Returns the canonicalized length of the message signed by
+.I sig,
+previously returned by a call to
+.B odkim_get_sighandle().
+Note that this may be less than the value returned by
+.B odkim_get_bodylength()
+if the signature only covered part of the message.
+.TP
 .B odkim_sig_result(sig)
 Returns the result code corresponding to the signature handled specified by
 .I sig,
