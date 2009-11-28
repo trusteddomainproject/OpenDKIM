@@ -235,6 +235,25 @@ from the list of envelope recipients on the message represented by
 and adds a new X-Original-Recipient: header field containing the deleted
 address.  Returns 1 on success, or nil on failure.
 .TP
+.B odkim_get_policy(ctx)
+Returns the discovered Author Domain Signing Practices (ADSP) policy, if one
+was published and could be retrieved.  The value will be one of
+.I DKIM_POLICY_UNKNOWN,
+.I DKIM_POLICY_ALL
+and
+.I DKIM_POLICY_DISCARDABLE.
+.TP
+.B odkim_get_presult(ctx)
+Returns the result code from an attempt to retrieve the ADSP for the author
+domain.  The value will be one of
+.I DKIM_PRESULT_NONE
+(no policy could be retrieved),
+.I DKIM_PRESULT_NXDOMAIN
+(the sender's domain does not exist),
+and
+.I DKIM_PRESULT_AUTHOR
+(an ADSP record was retrieved).
+.TP
 .B odkim_sig_bhresult(sig)
 Returns the result code corresponding to the body hash evaluation of
 the signature handled specified by

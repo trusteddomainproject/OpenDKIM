@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.33 2009/11/28 05:47:23 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.34 2009/11/28 06:13:38 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.33 2009/11/28 05:47:23 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.34 2009/11/28 06:13:38 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -343,10 +343,11 @@ struct msgctx
 	_Bool		mctx_capture;		/* capture message? */
 #endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
 	_Bool		mctx_susp;		/* suspicious message? */
-	_Bool		mctx_policy;		/* policy query completed */
 #ifdef _FFR_RESIGN
 	_Bool		mctx_resign;		/* arrange to re-sign */
 #endif /* _FFR_RESIGN */
+	dkim_policy_t	mctx_pcode;		/* policy result code */
+	int		mctx_presult;		/* policy result */
 	int		mctx_status;		/* status to report back */
 	dkim_canon_t	mctx_hdrcanon;		/* header canonicalization */
 	dkim_canon_t	mctx_bodycanon;		/* body canonicalization */
@@ -2434,6 +2435,108 @@ dkimf_xs_resign(lua_State *l)
 # else /* _FFR_RESIGN */
 	lua_pushnil(l);
 # endif /* _FFR_RESIGN */
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETPOLICY -- retrieve sender policy
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getpolicy(lua_State *l)
+{
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l, "odkim_get_policy(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l, "odkim_get_policy(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	cc = (struct connctx *) smfi_getpriv(ctx);
+	if (cc == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	dfc = cc->cctx_msg;
+
+	if (dfc->mctx_pcode == DKIM_POLICY_NONE)
+		lua_pushnil(l);
+	else
+		lua_pushnumber(l, dfc->mctx_pcode);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETPRESULT -- retrieve sender policy query result
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getpresult(lua_State *l)
+{
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_get_presult(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_get_presult(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	cc = (struct connctx *) smfi_getpriv(ctx);
+	if (cc == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	dfc = cc->cctx_msg;
+
+	if (dfc->mctx_presult == DKIM_POLICY_NONE)
+		lua_pushnil(l);
+	else
+		lua_pushnumber(l, dfc->mctx_presult);
 
 	return 1;
 }
@@ -5594,6 +5697,8 @@ dkimf_initcontext(struct dkimf_config *conf)
 	ctx->mctx_dnssec_key = DKIM_DNSSEC_UNKNOWN;
 	ctx->mctx_dnssec_policy = DKIM_DNSSEC_UNKNOWN;
 #endif /* USE_UNBOUND */
+	ctx->mctx_pcode = DKIM_POLICY_NONE;
+	ctx->mctx_presult = DKIM_PRESULT_NONE;
 
 	return ctx;
 }
@@ -8789,8 +8894,6 @@ mlfi_eom(SMFICTX *ctx)
 {
 	_Bool testkey = FALSE;
 	int status = DKIM_STAT_OK;
-	dkim_policy_t pcode = DKIM_POLICY_NONE;
-	int presult = DKIM_PRESULT_NONE;
 	int c;
 	sfsistat ret;
 	connctx cc;
@@ -9169,6 +9272,8 @@ mlfi_eom(SMFICTX *ctx)
 	/* complete verification if started */
 	if (!dfc->mctx_headeronly && dfc->mctx_dkimv != NULL)
 	{
+		_Bool policydone = FALSE;
+
 		/*
 		**  Signal end-of-message to DKIM
 		*/
@@ -9444,18 +9549,19 @@ mlfi_eom(SMFICTX *ctx)
 				domain = dkim_getdomain(dfc->mctx_dkimv);
 
 				if (dkimf_local_adsp(conf, (char *) domain,
-				                     &pcode))
+				                     &dfc->mctx_pcode))
 				{
 					status = DKIM_STAT_OK;
-					dfc->mctx_policy = TRUE;
+					policydone = TRUE;
 					localadsp = TRUE;
 					localresult = DKIM_PRESULT_AUTHOR;
 				}
 			}
 
-			if (!dfc->mctx_policy)
+			if (!policydone)
 			{
-				status = dkim_policy(dfc->mctx_dkimv, &pcode,
+				status = dkim_policy(dfc->mctx_dkimv,
+				                     &dfc->mctx_pcode,
 				                     NULL);
 #ifdef USE_UNBOUND
 				dfc->mctx_dnssec_policy = dkim_policy_getdnssec(dfc->mctx_dkimv);
@@ -9464,12 +9570,12 @@ mlfi_eom(SMFICTX *ctx)
 
 			if (status == DKIM_STAT_OK)
 			{
-				dfc->mctx_policy = TRUE;
+				policydone = TRUE;
 
 				if (localadsp)
-					presult = localresult;
+					dfc->mctx_presult = localresult;
 				else
-					presult = dkim_getpresult(dfc->mctx_dkimv);
+					dfc->mctx_presult = dkim_getpresult(dfc->mctx_dkimv);
 
 #ifdef USE_UNBOUND
 				/* special handling for sketchy answers */
@@ -9488,7 +9594,7 @@ mlfi_eom(SMFICTX *ctx)
 				**  was enabled.
 				*/
 
-				if (presult == DKIM_PRESULT_NXDOMAIN &&
+				if (dfc->mctx_presult == DKIM_PRESULT_NXDOMAIN &&
 				    conf->conf_adspnxdomain)
 				{
 					if (conf->conf_dolog)
@@ -9520,9 +9626,9 @@ mlfi_eom(SMFICTX *ctx)
 				**  signature, and "ADSPDiscard" was enabled.
 				*/
 
-				if ((pcode == DKIM_POLICY_DISCARDABLE ||
-				     pcode == DKIM_POLICY_ALL) &&
-				    presult == DKIM_PRESULT_AUTHOR &&
+				if ((dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE ||
+				     dfc->mctx_pcode == DKIM_POLICY_ALL) &&
+				    dfc->mctx_presult == DKIM_PRESULT_AUTHOR &&
 				    !dkimf_authorsigok(dfc))
 				{
 					dfc->mctx_susp = TRUE;
@@ -9530,7 +9636,7 @@ mlfi_eom(SMFICTX *ctx)
 				}
 
 				if (dfc->mctx_susp && conf->conf_adspdiscard &&
-				    pcode == DKIM_POLICY_DISCARDABLE)
+				    dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE)
 				{
 					char replybuf[BUFRSZ];
 					char smtpprefix[BUFRSZ];
@@ -9879,7 +9985,7 @@ mlfi_eom(SMFICTX *ctx)
 
 			strlcat((char *) header, "dkim-adsp=", sizeof header);
 
-			if (!dfc->mctx_policy)
+			if (!policydone)
 			{
 				strlcat((char *) header, "temperror",
 				        sizeof header);
@@ -9891,24 +9997,24 @@ mlfi_eom(SMFICTX *ctx)
 				        sizeof header);
 			}
 #endif /* USE_UNBOUND */
-			else if (presult == DKIM_PRESULT_NXDOMAIN)
+			else if (dfc->mctx_presult == DKIM_PRESULT_NXDOMAIN)
 			{					/* nxdomain */
 				strlcat((char *) header, "nxdomain",
 				        sizeof header);
 			}
-			else if (pcode == DKIM_POLICY_NONE)
+			else if (dfc->mctx_pcode == DKIM_POLICY_NONE)
 			{					/* none */
 				strlcat((char *) header, "none",
 				        sizeof header);
 			}
-			else if ((pcode == DKIM_POLICY_ALL ||
-			          pcode == DKIM_POLICY_DISCARDABLE) &&
+			else if ((dfc->mctx_pcode == DKIM_POLICY_ALL ||
+			          dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE) &&
 			         authorsig)
 			{					/* pass */
 				strlcat((char *) header, "pass",
 					        sizeof header);
 			}
-			else if (pcode == DKIM_POLICY_UNKNOWN)
+			else if (dfc->mctx_pcode == DKIM_POLICY_UNKNOWN)
 			{
 				if (!authorsig)
 				{				/* unknown */
@@ -9921,12 +10027,13 @@ mlfi_eom(SMFICTX *ctx)
 					        "signed", sizeof header);
 				}
 			}
-			else if (pcode == DKIM_POLICY_ALL && !authorsig)
+			else if (dfc->mctx_pcode == DKIM_POLICY_ALL &&
+			         !authorsig)
 			{					/* fail */
 				strlcat((char *) header, "fail",
 				        sizeof header);
 			}
-			else if (pcode == DKIM_POLICY_DISCARDABLE &&
+			else if (dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE &&
 			         !authorsig)
 			{					/* discard */
 				strlcat((char *) header, "discard",

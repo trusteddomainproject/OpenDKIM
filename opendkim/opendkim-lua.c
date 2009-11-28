@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.34 2009/11/28 05:47:23 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.35 2009/11/28 06:13:38 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.34 2009/11/28 05:47:23 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.35 2009/11/28 06:13:38 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -457,10 +457,25 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	/* delete recipient */
 	lua_register(l, "odkim_delete_rcpt", dkimf_xs_delrcpt);
 
-	/* XXX
-	get policy result
+	/* get policy code */
+	lua_pushnumber(l, DKIM_POLICY_UNKNOWN);
+	lua_setglobal(l, "DKIM_POLICY_UNKNOWN");
+	lua_pushnumber(l, DKIM_POLICY_ALL);
+	lua_setglobal(l, "DKIM_POLICY_ALL");
+	lua_pushnumber(l, DKIM_POLICY_DISCARDABLE);
+	lua_setglobal(l, "DKIM_POLICY_DISCARDABLE");
 	lua_register(l, "odkim_get_policy", dkimf_xs_getpolicy);
 
+	/* get policy result */
+	lua_pushnumber(l, DKIM_PRESULT_NONE);
+	lua_setglobal(l, "DKIM_PRESULT_NONE");
+	lua_pushnumber(l, DKIM_PRESULT_NXDOMAIN);
+	lua_setglobal(l, "DKIM_PRESULT_NXDOMAIN");
+	lua_pushnumber(l, DKIM_PRESULT_AUTHOR);
+	lua_setglobal(l, "DKIM_PRESULT_AUTHOR");
+	lua_register(l, "odkim_get_presult", dkimf_xs_getpresult);
+
+	/* XXX
 	set result code
 	lua_register(l, "odkim_set_result", dkimf_xs_setresult);
 
