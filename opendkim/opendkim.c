@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.36 2009/11/28 06:29:33 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.37 2009/11/28 06:40:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.36 2009/11/28 06:29:33 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.37 2009/11/28 06:40:07 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -347,6 +347,9 @@ struct msgctx
 	_Bool		mctx_resign;		/* arrange to re-sign */
 #endif /* _FFR_RESIGN */
 	dkim_policy_t	mctx_pcode;		/* policy result code */
+#ifdef _FFR_LUA
+	int		mctx_mresult;		/* SMFI status code */
+#endif /* _FFR_LUA */
 	int		mctx_presult;		/* policy result */
 	int		mctx_status;		/* status to report back */
 	dkim_canon_t	mctx_hdrcanon;		/* header canonicalization */
@@ -2637,6 +2640,63 @@ dkimf_xs_quarantine(lua_State *l)
 
 	return 1;
 }
+
+/*
+**  DKIMF_XS_SETRESULT -- set milter result
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_setresult(lua_State *l)
+{
+	SMFICTX *ctx;
+	int mresult;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_set_result(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isnumber(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_set_result(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	mresult = lua_tonumber(l, 2);
+	lua_pop(l, 2);
+
+	if (mresult == SMFIS_TEMPFAIL ||
+	    mresult == SMFIS_DISCARD ||
+	    mresult == SMFIS_REJECT)
+	{
+		struct msgctx *dfc;
+		struct connctx *cc;
+
+		cc = (struct connctx *) smfi_getpriv(ctx);
+		dfc = cc->cctx_msg;
+
+		dfc->mctx_mresult = mresult;
+		lua_pushnumber(l, 1);
+	}
+	else
+	{
+		lua_pushnil(l);
+	}
+
+	return 1;
+}
 #endif /* _FFR_LUA */
 
 /*
@@ -3852,6 +3912,8 @@ dkimf_config_free(struct dkimf_config *conf)
 #ifdef _FFR_LUA
 	if (conf->conf_setupscript != NULL)
 		free(conf->conf_setupscript);
+	if (conf->conf_screenscript != NULL)
+		free(conf->conf_screenscript);
 	if (conf->conf_finalscript != NULL)
 		free(conf->conf_finalscript);
 #endif /* _FFR_LUA */
@@ -10574,6 +10636,8 @@ mlfi_eom(SMFICTX *ctx)
 
 		memset(&lres, '\0', sizeof lres);
 
+		dfc->mctx_mresult = SMFIS_CONTINUE;
+
 		status = dkimf_lua_final_hook(ctx, conf->conf_finalscript,
 		                              "final script", &lres);
 
@@ -10615,6 +10679,9 @@ mlfi_eom(SMFICTX *ctx)
 
 			return SMFIS_TEMPFAIL;
 		}
+
+		if (dfc->mctx_mresult != SMFIS_CONTINUE)
+			return dfc->mctx_mresult;
 	}
 #endif /* _FFR_LUA */
 

@@ -199,6 +199,21 @@ and
 must be the text portion of the SMTP reply to be sent.  Returns 1 on success
 or "nil" on failure.
 .TP
+.B odkim_set_result(ctx, result)
+Arranges to have the MTA return a specific result code in response
+to the message represented by
+.I ctx.
+The value of
+.I result
+must be one of
+.I SMFIS_TEMPFAIL
+(temporary failure/rejection),
+.I SMFIS_DISCARD
+(accept but discard the message)
+and
+.I SMFIS_REJECT
+(permanent failure/rejection).
+.TP
 .B odkim_sig_getdomain(sig)
 Returns the name of the domain in the signature handle specified by
 .I sig,

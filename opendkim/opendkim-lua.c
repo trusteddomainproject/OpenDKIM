@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.37 2009/11/28 06:29:33 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.38 2009/11/28 06:40:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.37 2009/11/28 06:29:33 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.38 2009/11/28 06:40:07 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -481,9 +481,14 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	/* quarantine */
 	lua_register(l, "odkim_quarantine", dkimf_xs_quarantine);
 
-	/* XXX -- set result code
+	/* set result code */
+	lua_pushnumber(l, SMFIS_TEMPFAIL);
+	lua_setglobal(l, "SMFIS_TEMPFAIL");
+	lua_pushnumber(l, SMFIS_DISCARD);
+	lua_setglobal(l, "SMFIS_DISCARD");
+	lua_pushnumber(l, SMFIS_REJECT);
+	lua_setglobal(l, "SMFIS_REJECT");
 	lua_register(l, "odkim_set_result", dkimf_xs_setresult);
-	*/
 
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
