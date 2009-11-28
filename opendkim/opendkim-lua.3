@@ -254,6 +254,19 @@ and
 .I DKIM_PRESULT_AUTHOR
 (an ADSP record was retrieved).
 .TP
+.B odkim_get_reputation(ctx, sig, qroot)
+Performs a reputation query about the message represented by
+.I ctx
+and the signature indicated by
+.I sig,
+the latter returned by a previous call to
+.B odkim_get_sighandle().
+The
+.I qroot
+parameter is a string naming the DNS root of the published reputation
+query data, or can be the empty string to use the built-in default.
+The integer result is returned on success, or "nil" on error.
+.TP
 .B odkim_quarantine(ctx, reason)
 Asks the MTA to quarantine the message represented by
 .I ctx

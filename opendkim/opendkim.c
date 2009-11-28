@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.37 2009/11/28 06:40:07 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.38 2009/11/28 06:59:30 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.37 2009/11/28 06:40:07 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.38 2009/11/28 06:59:30 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2693,6 +2693,68 @@ dkimf_xs_setresult(lua_State *l)
 	else
 	{
 		lua_pushnil(l);
+	}
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETREPUTATION -- perform reputation query
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getreputation(lua_State *l)
+{
+	DKIM_STAT status;
+	int rep;
+	SMFICTX *ctx;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 3)
+	{
+		lua_pushstring(l,
+		               "odkim_get_reputation(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_islightuserdata(l, 2) ||
+	         !lua_isstring(l, 3))
+	{
+		lua_pushstring(l,
+		               "odkim_get_reputation(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 2);
+	qroot = (char *) lua_tostring(l, 3);
+	lua_pop(l, 3);
+
+	cc = (struct connctx *) smfi_getpriv(ctx);
+	dfc = cc->cctx_msg;
+
+	if (dfc->mctx_dkimv == NULL)
+	{
+		lua_pushnil(l);
+	}
+	else
+	{
+		if (strlen(qroot) == 0)
+			qroot = NULL;
+
+		status = dkim_get_reputation(dfc->mctx_dkimv, sig,
+		                             qroot, &rep);
+		if (status != DKIM_STAT_OK)
+			lua_pushnil(l);
+		else
+			lua_pushnumber(l, rep);
 	}
 
 	return 1;

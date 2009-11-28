@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.38 2009/11/28 06:40:07 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.39 2009/11/28 06:59:30 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.38 2009/11/28 06:40:07 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.39 2009/11/28 06:59:30 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -465,6 +465,9 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	lua_pushnumber(l, DKIM_POLICY_DISCARDABLE);
 	lua_setglobal(l, "DKIM_POLICY_DISCARDABLE");
 	lua_register(l, "odkim_get_policy", dkimf_xs_getpolicy);
+
+	/* get reputation */
+	lua_register(l, "odkim_get_reputation", dkimf_xs_getreputation);
 
 	/* get policy result */
 	lua_pushnumber(l, DKIM_PRESULT_NONE);
