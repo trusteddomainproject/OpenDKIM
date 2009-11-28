@@ -109,6 +109,12 @@ fromaddr = odkim_get_header(ctx, "From", 0)
 This will return the value of the first (and hopefully only) "From" header
 field.
 .TP
+.B odkim_get_mtasymbol(ctx, name)
+Retrieves the value of the symbol called
+.I name
+from the MTA connection represented by
+.I ctx.
+.TP
 .B odkim_get_rcpt(ctx, n)
 Returns the nth envelope recipient for the message represented by
 .I ctx.

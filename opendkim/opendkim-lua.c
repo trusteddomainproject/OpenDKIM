@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.28 2009/11/28 00:13:31 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.29 2009/11/28 00:37:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.28 2009/11/28 00:13:31 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.29 2009/11/28 00:37:52 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -199,6 +199,9 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 
 	/* request that the message be sent through verification */
 	lua_register(l, "odkim_verify", dkimf_xs_verify);
+
+	/* retrieve an MTA symbol */
+	lua_register(l, "odkim_get_mtasymbol", dkimf_xs_getsymval);
 
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");

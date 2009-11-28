@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.26 2009/11/28 00:13:31 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.27 2009/11/28 00:37:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.26 2009/11/28 00:13:31 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.27 2009/11/28 00:37:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -967,7 +967,7 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 **  	All functions should first evaluate the stack to see that it's what
 **  	they expect in terms of number and types of elements.  The first
 **  	stack item should always be expected to be a "light user data"
-**  	(handle pointer) to a (struct connctx).  If there are no errors,
+**  	(handle pointer) to a (SMFICTX).  If there are no errors,
 **  	collect all the values and pop them.  The context pointer may come in
 **  	NULL, in which case the script is being called during configuration
 **  	verification; if so, return an appropriate dummy value from your
@@ -989,6 +989,7 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 int
 dkimf_xs_fromdomain(lua_State *l)
 {
+	SMFICTX *ctx;
 	struct connctx *cc;
 	struct msgctx *dfc;
 
@@ -1007,9 +1008,10 @@ dkimf_xs_fromdomain(lua_State *l)
 		lua_error(l);
 	}
 
-	cc = (struct connctx *) lua_touserdata(l, 1);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
 	lua_pop(l, 1);
 
+	cc = (struct connctx *) smfi_getpriv(ctx);
 	if (cc == NULL)
 	{
 		lua_pushstring(l, "dkimf_xs_fromdomain");
@@ -1036,6 +1038,7 @@ dkimf_xs_fromdomain(lua_State *l)
 int
 dkimf_xs_clienthost(lua_State *l)
 {
+	SMFICTX *ctx;
 	struct connctx *cc;
 
 	assert(l != NULL);
@@ -1043,19 +1046,20 @@ dkimf_xs_clienthost(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_get_source_host(): incorrect argument count");
+		               "odkim_get_clienthost(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_get_source_host(): incorrect argument type");
+		               "odkim_get_clienthost(): incorrect argument type");
 		lua_error(l);
 	}
 
-	cc = (struct connctx *) lua_touserdata(l, 1);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
 	lua_pop(l, 1);
 
+	cc = (struct connctx *) smfi_getpriv(ctx);
 	if (cc == NULL)
 		lua_pushstring(l, "dkimf_xs_clienthost");
 	else
@@ -1077,6 +1081,7 @@ dkimf_xs_clienthost(lua_State *l)
 int
 dkimf_xs_requestsig(lua_State *l)
 {
+	SMFICTX *ctx;
 	const char *domain;
 	const char *selector;
 	struct connctx *cc;
@@ -1098,7 +1103,8 @@ dkimf_xs_requestsig(lua_State *l)
 		lua_error(l);
 	}
 
-	cc = (struct connctx *) lua_touserdata(l, 1);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	cc = (struct connctx *) smfi_getpriv(ctx);
 	if (cc != NULL)
 	{
 		dfc = cc->cctx_msg;
@@ -1175,6 +1181,7 @@ dkimf_xs_getheader(lua_State *l)
 {
 	int idx;
 	const char *hdrname;
+	SMFICTX *ctx;
 	struct connctx *cc;
 	struct msgctx *dfc;
 	struct dkimf_config *conf;
@@ -1196,7 +1203,8 @@ dkimf_xs_getheader(lua_State *l)
 		lua_error(l);
 	}
 
-	cc = (struct connctx *) lua_touserdata(l, 1);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	cc = (struct connctx *) smfi_getpriv(ctx);
 	if (cc != NULL)
 	{
 		dfc = cc->cctx_msg;
@@ -1241,6 +1249,7 @@ dkimf_xs_getheader(lua_State *l)
 int
 dkimf_xs_popauth(lua_State *l)
 {
+	SMFICTX *ctx;
 	struct connctx *cc;
 	struct dkimf_config *conf;
 
@@ -1259,7 +1268,8 @@ dkimf_xs_popauth(lua_State *l)
 		lua_error(l);
 	}
 
-	cc = (struct connctx *) lua_touserdata(l, 1);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	cc = (struct connctx *) smfi_getpriv(ctx);
 	lua_pop(l, 1);
 
 #ifdef POPAUTH
@@ -1296,6 +1306,7 @@ dkimf_xs_popauth(lua_State *l)
 int
 dkimf_xs_internalip(lua_State *l)
 {
+	SMFICTX *ctx;
 	struct connctx *cc;
 	struct dkimf_config *conf;
 
@@ -1314,7 +1325,8 @@ dkimf_xs_internalip(lua_State *l)
 		lua_error(l);
 	}
 
-	cc = (struct connctx *) lua_touserdata(l, 1);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	cc = (struct connctx *) smfi_getpriv(ctx);
 	lua_pop(l, 1);
 
 	if (cc == NULL)
@@ -1354,6 +1366,7 @@ dkimf_xs_internalip(lua_State *l)
 int
 dkimf_xs_dbhandle(lua_State *l)
 {
+	SMFICTX *ctx;
 	struct connctx *cc;
 	struct dkimf_config *conf;
 
@@ -1372,7 +1385,8 @@ dkimf_xs_dbhandle(lua_State *l)
 		lua_error(l);
 	}
 
-	cc = (struct connctx *) lua_touserdata(l, 1);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	cc = (struct connctx *) smfi_getpriv(ctx);
 	lua_pop(l, 1);
 
 	conf = cc->cctx_config;
@@ -1445,6 +1459,7 @@ int
 dkimf_xs_rcptcount(lua_State *l)
 {
 	int rcnt;
+	SMFICTX *ctx;
 	struct connctx *cc;
 	struct dkimf_config *conf;
 	struct msgctx *dfc;
@@ -1465,7 +1480,8 @@ dkimf_xs_rcptcount(lua_State *l)
 		lua_error(l);
 	}
 
-	cc = (struct connctx *) lua_touserdata(l, 1);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	cc = (struct connctx *) smfi_getpriv(ctx);
 	lua_pop(l, 1);
 
 	conf = cc->cctx_config;
@@ -1501,6 +1517,7 @@ int
 dkimf_xs_rcpt(lua_State *l)
 {
 	int rcnt;
+	SMFICTX *ctx;
 	struct connctx *cc;
 	struct dkimf_config *conf;
 	struct msgctx *dfc;
@@ -1521,7 +1538,8 @@ dkimf_xs_rcpt(lua_State *l)
 		lua_error(l);
 	}
 
-	cc = (struct connctx *) lua_touserdata(l, 1);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	cc = (struct connctx *) smfi_getpriv(ctx);
 	lua_pop(l, 1);
 
 	conf = cc->cctx_config;
@@ -1564,6 +1582,7 @@ dkimf_xs_dbquery(lua_State *l)
 {
 	int status;
 	_Bool exists;
+	SMFICTX *ctx;
 	struct connctx *cc;
 	struct dkimf_config *conf;
 	DKIMF_DB db;
@@ -1586,7 +1605,8 @@ dkimf_xs_dbquery(lua_State *l)
 		lua_error(l);
 	}
 
-	cc = (struct connctx *) lua_touserdata(l, 1);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	cc = (struct connctx *) smfi_getpriv(ctx);
 	db = (DKIMF_DB) lua_touserdata(l, 2);
 	str = lua_tostring(l, 3);
 	lua_pop(l, 3);
@@ -1620,6 +1640,7 @@ dkimf_xs_dbquery(lua_State *l)
 int
 dkimf_xs_setpartial(lua_State *l)
 {
+	SMFICTX *ctx;
 	struct connctx *cc;
 	struct msgctx *dfc;
 	DKIMF_DB db;
@@ -1639,7 +1660,8 @@ dkimf_xs_setpartial(lua_State *l)
 		lua_error(l);
 	}
 
-	cc = (struct connctx *) lua_touserdata(l, 1);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	cc = (struct connctx *) smfi_getpriv(ctx);
 	lua_pop(l, 1);
 
 # ifdef _FFR_BODYLENGTHDB
@@ -1668,6 +1690,7 @@ dkimf_xs_setpartial(lua_State *l)
 int
 dkimf_xs_verify(lua_State *l)
 {
+	SMFICTX *ctx;
 	struct connctx *cc;
 	struct msgctx *dfc;
 	struct dkimf_config *conf;
@@ -1687,7 +1710,8 @@ dkimf_xs_verify(lua_State *l)
 		lua_error(l);
 	}
 
-	cc = (struct connctx *) lua_touserdata(l, 1);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	cc = (struct connctx *) smfi_getpriv(ctx);
 	lua_pop(l, 1);
 
 	if (cc != NULL)
@@ -1728,6 +1752,7 @@ dkimf_xs_verify(lua_State *l)
 int
 dkimf_xs_getsigcount(lua_State *l)
 {
+	SMFICTX *ctx;
 	struct connctx *cc;
 	struct msgctx *dfc;
 
@@ -1746,7 +1771,8 @@ dkimf_xs_getsigcount(lua_State *l)
 		lua_error(l);
 	}
 
-	cc = (struct connctx *) lua_touserdata(l, 1);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	cc = (struct connctx *) smfi_getpriv(ctx);
 	lua_pop(l, 1);
 
 	if (cc != NULL)
@@ -1795,6 +1821,7 @@ dkimf_xs_getsighandle(lua_State *l)
 	int idx;
 	int nsigs;
 	DKIM_STAT status;
+	SMFICTX *ctx;
 	DKIM_SIGINFO **sigs;
 	struct connctx *cc;
 	struct msgctx *dfc;
@@ -1815,7 +1842,8 @@ dkimf_xs_getsighandle(lua_State *l)
 		lua_error(l);
 	}
 
-	cc = (struct connctx *) lua_touserdata(l, 1);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	cc = (struct connctx *) smfi_getpriv(ctx);
 	dfc = cc->cctx_msg;
 	idx = lua_tonumber(l, 2);
 	lua_pop(l, 2);
@@ -1966,6 +1994,53 @@ dkimf_xs_getsigidentity(lua_State *l)
 
 	return 1;
 }
+
+/*
+**  DKIMF_XS_GETSYMVAL -- get MTA symbol
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getsymval(lua_State *l)
+{
+	char *name;
+	char *sym;
+	SMFICTX *ctx;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_get_mtasymbol(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_get_mtasymbol(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	name = (char *) lua_tostring(l, 2);
+	lua_pop(l, 2);
+
+	sym = smfi_getsymval(ctx, name);
+	if (sym == NULL)
+		lua_pushnil(l);
+	else
+		lua_pushstring(l, sym);
+
+	return 1;
+}
+
 #endif /* _FFR_LUA */
 
 /*
@@ -7557,7 +7632,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 		memset(&lres, '\0', sizeof lres);
 
-		status = dkimf_lua_setup_hook(cc, conf->conf_setupscript,
+		status = dkimf_lua_setup_hook(ctx, conf->conf_setupscript,
 		                              "setup script", &lres);
 
 		if (status != 0)
@@ -8134,7 +8209,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 		memset(&lres, '\0', sizeof lres);
 
-		status = dkimf_lua_screen_hook(cc, conf->conf_screenscript,
+		status = dkimf_lua_screen_hook(ctx, conf->conf_screenscript,
 		                               "screen script", &lres);
 
 		if (status != 0)
@@ -9909,7 +9984,7 @@ mlfi_eom(SMFICTX *ctx)
 
 		memset(&lres, '\0', sizeof lres);
 
-		status = dkimf_lua_final_hook(cc, conf->conf_finalscript,
+		status = dkimf_lua_final_hook(ctx, conf->conf_finalscript,
 		                              "final script", &lres);
 
 		if (status != 0)
