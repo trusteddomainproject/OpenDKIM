@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.38 2009/11/28 06:59:30 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.39 2009/11/28 07:02:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.38 2009/11/28 06:59:30 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.39 2009/11/28 07:02:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2714,6 +2714,10 @@ dkimf_xs_getreputation(lua_State *l)
 	DKIM_STAT status;
 	int rep;
 	SMFICTX *ctx;
+	char *qroot;
+	DKIM_SIGINFO *sig;
+	struct connctx *cc;
+	struct msgctx *dfc;
 
 	assert(l != NULL);
 
