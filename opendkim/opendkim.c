@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.31 2009/11/28 01:26:24 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.32 2009/11/28 05:23:55 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.31 2009/11/28 01:26:24 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.32 2009/11/28 05:23:55 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -594,16 +594,12 @@ sfsistat mlfi_eom __P((SMFICTX *));
 sfsistat mlfi_header __P((SMFICTX *, char *, char *));
 
 static _Bool dkimf_add_signrequest __P((msgctx, struct keytable *));
-#ifdef _FFR_REDIRECT
 sfsistat dkimf_addheader __P((SMFICTX *, char *, char *));
 sfsistat dkimf_addrcpt __P((SMFICTX *, char *));
-#endif /* _FFR_REDIRECT */
 sfsistat dkimf_chgheader __P((SMFICTX *, char *, int, char *));
 static void dkimf_cleanup __P((SMFICTX *));
 static void dkimf_config_reload __P((void));
-#ifdef _FFR_REDIRECT
 sfsistat dkimf_delrcpt __P((SMFICTX *, char *));
-#endif /* _FFR_REDIRECT */
 static Header dkimf_findheader __P((msgctx, char *, int));
 static void dkimf_freekeys __P((struct dkimf_config *));
 void *dkimf_getpriv __P((SMFICTX *));
@@ -821,7 +817,6 @@ dkimf_quarantine(SMFICTX *ctx, char *reason)
 		return smfi_quarantine(ctx, reason);
 }
 
-#ifdef _FFR_REDIRECT
 /*
 **  DKIMF_ADDHEADER -- wrapper for smfi_addheader()
 **
@@ -892,7 +887,6 @@ dkimf_delrcpt(SMFICTX *ctx, char *addr)
 	else
 		return smfi_delrcpt(ctx, addr);
 }
-#endif /* _FFR_REDIRECT */
 
 /*
 **  DKIMF_SETREPLY -- wrapper for smfi_setreply()
@@ -2251,6 +2245,140 @@ dkimf_xs_canonlength(lua_State *l)
 		lua_pushnil(l);
 	else
 		lua_pushnumber(l, cl);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_ADDRCPT -- add a recipient
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_addrcpt(lua_State *l)
+{
+	char *addr;
+	SMFICTX *ctx;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_add_rcpt(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2))
+	{
+		lua_pushstring(l, "odkim_add_rcpt(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	addr = (char *) lua_tostring(l, 2);
+	lua_pop(l, 2);
+
+	if (dkimf_addrcpt(ctx, addr) == MI_SUCCESS)
+		lua_pushnumber(l, 1);
+	else
+		lua_pushnil(l);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_DELRCPT -- delete a recipient
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_delrcpt(lua_State *l)
+{
+	char *addr;
+	struct addrlist *a;
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+	struct dkimf_config *conf;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_delete_rcpt(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2))
+	{
+		lua_pushstring(l, "odkim_delete_rcpt(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	addr = (char *) lua_tostring(l, 2);
+	lua_pop(l, 2);
+
+	cc = (struct connctx *) smfi_getpriv(ctx);
+	if (cc == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	conf = cc->cctx_config;
+	dfc = cc->cctx_msg;
+
+	/* convert all recipients to headers */
+	for (a = dfc->mctx_rcptlist; a != NULL; a = a->a_next)
+	{
+		if (strcasecmp(a->a_addr, addr) == 0)
+			break;
+	}
+
+	/* if found, delete and replace with a header field */
+	if (a == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	if (dkimf_delrcpt(ctx, a->a_addr) != MI_SUCCESS)
+	{
+		if (conf->conf_dolog)
+		{
+			syslog(LOG_ERR, "%s smfi_delrcpt() failed",
+			       dfc->mctx_jobid);
+		}
+	}
+	else
+	{
+		char header[MAXADDRESS + 8];
+
+		snprintf(header, sizeof header, "rfc822;%s", a->a_addr);
+		if (dkimf_addheader(ctx, ORCPTHEADER, header) != MI_SUCCESS)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s smfi_addheader() failed",
+				       dfc->mctx_jobid);
+			}
+		}
+	}
+
+	lua_pushnumber(l, 1);
 
 	return 1;
 }
@@ -7037,6 +7165,11 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 #ifdef _FFR_RESIGN
 	    || conf->conf_resigndb != NULL
 #endif /* _FFR_RESIGN */
+#ifdef _FFR_LUA
+	    || conf->conf_setupscript != NULL
+	    || conf->conf_screenscript != NULL
+	    || conf->conf_finalscript != NULL
+#endif /* _FFR_LUA */
 	   )
 	{
 		strlcpy(addr, envrcpt[0], sizeof addr);
@@ -7050,6 +7183,11 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 #ifdef _FFR_RESIGN
 	    || conf->conf_resigndb != NULL
 #endif /* _FFR_RESIGN */
+#ifdef _FFR_LUA
+	    || conf->conf_setupscript != NULL
+	    || conf->conf_screenscript != NULL
+	    || conf->conf_finalscript != NULL
+#endif /* _FFR_LUA */
 	   )
 	{
 		struct addrlist *a;

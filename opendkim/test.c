@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.c,v 1.8 2009/11/17 20:09:23 cm-msk Exp $
+**  $Id: test.c,v 1.8.2.1 2009/11/28 05:23:55 cm-msk Exp $
 */
 
 #ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.8 2009/11/17 20:09:23 cm-msk Exp $";
+static char test_c_id[] = "@(#)$Id: test.c,v 1.8.2.1 2009/11/28 05:23:55 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -229,7 +229,6 @@ dkimf_test_quarantine(void *ctx, char *reason)
 	return MI_SUCCESS;
 }
 
-#ifdef _FFR_REDIRECT
 /*
 **  DKIMF_TEST_ADDHEADER -- append a header
 **
@@ -302,7 +301,6 @@ dkimf_test_addrcpt(void *ctx, char *addr)
 
 	return MI_SUCCESS;
 }
-#endif /* _FFR_REDIRECT */
 
 /*
 **  DKIMF_TEST_GETSYMVAL -- retrieve a symbol value

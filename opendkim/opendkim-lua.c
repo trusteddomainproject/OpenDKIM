@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.32 2009/11/28 01:26:24 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.33 2009/11/28 05:23:55 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.32 2009/11/28 01:26:24 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.33 2009/11/28 05:23:55 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -442,6 +442,18 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	/* canonicalized size? */
 	lua_register(l, "odkim_sig_canonlength", dkimf_xs_canonlength);
 
+	/* get a specific envelope recipient */
+	lua_register(l, "odkim_get_rcpt", dkimf_xs_rcpt);
+
+	/* get number of envelope recipients */
+	lua_register(l, "odkim_rcpt_count", dkimf_xs_rcptcount);
+
+	/* add recipient */
+	lua_register(l, "odkim_add_rcpt", dkimf_xs_addrcpt);
+
+	/* delete recipient */
+	lua_register(l, "odkim_delete_rcpt", dkimf_xs_delrcpt);
+
 	/* XXX
 	get policy result
 	lua_register(l, "odkim_get_policy", dkimf_xs_getpolicy);
@@ -454,9 +466,6 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 
 	quarantine?
 	lua_register(l, "odkim_quarantine", dkimf_xs_quarantine);
-
-	redirect
-	lua_register(l, "odkim_redirect", dkimf_xs_redirect);
 	*/
 
 	lua_pushlightuserdata(l, ctx);

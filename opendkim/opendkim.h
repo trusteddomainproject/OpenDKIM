@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.13.2.21 2009/11/28 01:26:24 cm-msk Exp $
+**  $Id: opendkim.h,v 1.13.2.22 2009/11/28 05:23:55 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.13.2.21 2009/11/28 01:26:24 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.13.2.22 2009/11/28 05:23:55 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -69,9 +69,7 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.13.2.21 2009/11/28 01:26:
 #define	DB_MACROS	5
 
 #define AUTHRESULTSHDR	"Authentication-Results"
-#ifdef _FFR_REDIRECT
-# define ORCPTHEADER	"X-Original-Recipient"
-#endif /* _FFR_REDIRECT */
+#define ORCPTHEADER	"X-Original-Recipient"
 
 #define	XHEADERNAME	"X-DKIM"
 #define	XSELECTCANONHDR	"X-Canonicalization"
@@ -117,11 +115,13 @@ extern DKIM *dkimf_getdkim __P((void *));
 extern struct signreq *dkimf_getsrlist __P((void *));
 
 #ifdef _FFR_LUA
+extern int dkimf_xs_addrcpt __P((lua_State *));
 extern int dkimf_xs_bodylength __P((lua_State *));
 extern int dkimf_xs_canonlength __P((lua_State *));
 extern int dkimf_xs_clienthost __P((lua_State *));
 extern int dkimf_xs_dbhandle __P((lua_State *));
 extern int dkimf_xs_dbquery __P((lua_State *));
+extern int dkimf_xs_delrcpt __P((lua_State *));
 extern int dkimf_xs_fromdomain __P((lua_State *));
 extern int dkimf_xs_getheader __P((lua_State *));
 extern int dkimf_xs_getsigcount __P((lua_State *));

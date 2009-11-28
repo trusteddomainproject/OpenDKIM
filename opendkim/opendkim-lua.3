@@ -206,13 +206,30 @@ not present on the message.
 .SH FINAL SCRIPT FUNCTIONS
 The screen script has the following functions available to it, whose
 descriptions can be found above:
+.B odkim_get_rcpt,
 .B odkim_get_sigcount,
 .B odkim_get_sighandle,
 .B odkim_sig_getdomain,
+.B odkim_sig_getidentity,
 and
-.B odkim_sig_getidentity.
+.B odkim_rcpt_count.
 
 The following additional functions are provided for this script:
+.TP
+.B odkim_add_rcpt(ctx, addr)
+Adds
+.I addr
+as an envelope recipient to the message represented by
+.I ctx.
+Returns 1 on success, or nil on failure.
+.TP
+.B odkim_del_rcpt(ctx, addr)
+Deletes
+.I addr
+from the list of envelope recipients on the message represented by
+.I ctx,
+and adds a new X-Original-Recipient: header field containing the deleted
+address.  Returns 1 on success, or nil on failure.
 .TP
 .B odkim_sig_bhresult(sig)
 Returns the result code corresponding to the body hash evaluation of
