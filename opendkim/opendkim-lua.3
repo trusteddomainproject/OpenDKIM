@@ -1,18 +1,18 @@
 .TH opendkim-lua 3 "The OpenDKIM Project"
 .SH NAME
-.B OpenDKIM LUA programming
-- programming the OpenDKIM filter using LUA scripts
+.B OpenDKIM Lua programming
+- programming the OpenDKIM filter using Lua scripts
 .SH DESCRIPTION
 The OpenDKIM filter has hooks to run user-provided scripts for making policy
 decisions regarding signatures to add on outbound messages or verification and
-acceptance of messages inbound.  The hooks take the form of multiple LUA
+acceptance of messages inbound.  The hooks take the form of multiple Lua
 scripts which, if defined, are run at important points during processing of 
 a message.
 
-For a full description of the LUA language, consult LUA programming references
+For a full description of the Lua language, consult Lua programming references
 (see below for a starting point).  This man page only describes the use of
-LUA in the context of OpenDKIM, specifically the functions and global variables
-OpenDKIM provides for use in user-constructed scripts beyond what LUA provides
+Lua in the context of OpenDKIM, specifically the functions and global variables
+OpenDKIM provides for use in user-constructed scripts beyond what Lua provides
 by default.
 
 Three scripting hooks are provided.  They are as follows:
@@ -42,7 +42,7 @@ If the message is accepted, any signatures requested earlier will be
 added to the messages before it is released.
 
 Unless otherwise noted, all functions return a single result; on success
-they return the requested data, and on error they return the LUA constant
+they return the requested data, and on error they return the Lua constant
 "nil".
 .SH GLOBAL VARIABLES
 The following global variable(s) are provided for all user scripts:
@@ -52,7 +52,7 @@ This is a generic context pointer referring to the context in which the
 filtering operation is being performed.  It represents a single message
 in progress, and the connection that accepted it.
 .SH SETUP SCRIPT FUNCTIONS
-These functions are made available to LUA for processing a message through
+These functions are made available to Lua for processing a message through
 the setup script:
 .TP
 .B odkim_check_popauth(ctx)
@@ -95,7 +95,7 @@ should be one of
 (database of third party signatures to be trusted) and
 .I DB_DONTSIGNTO
 (database of recipients whose mail should not be signed).  If the requested
-database is not set in the current configuration file, a LUA "nil" is
+database is not set in the current configuration file, a Lua "nil" is
 returned.
 .TP
 .B odkim_get_header(ctx, name, n)
@@ -354,4 +354,4 @@ Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 .I opendkim(8),
 .I opendkim.conf(5)
 .P
-LUA -- http://www.lua.org
+Lua -- http://www.lua.org
