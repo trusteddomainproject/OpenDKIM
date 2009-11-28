@@ -209,9 +209,35 @@ descriptions can be found above:
 .B odkim_get_sigcount,
 .B odkim_get_sighandle,
 .B odkim_sig_getdomain,
+and
 .B odkim_sig_getidentity.
 
 The following additional functions are provided for this script:
+.TP
+.B odkim_sig_bhresult(sig)
+Returns the result code corresponding to the body hash evaluation of
+the signature handled specified by
+.I sig,
+previously returned by a call to
+.B odkim_get_sighandle().
+Valid values are defined in the
+.B libopendkim
+header file
+.I dkim.h
+with DKIM_SIGBH_ prefixes, and will be made available by name in a
+future version.
+.TP
+.B odkim_sig_result(sig)
+Returns the result code corresponding to the signature handled specified by
+.I sig,
+previously returned by a call to
+.B odkim_get_sighandle().
+Valid values are defined in the
+.B libopendkim
+header file
+.I dkim.h
+with DKIM_SIGERROR_ prefixes, and will be made available by name in a
+future version.
 .TP
 .SH NOTES
 TBD

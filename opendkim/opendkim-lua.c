@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.30 2009/11/28 00:56:01 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.31 2009/11/28 01:12:25 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.30 2009/11/28 00:56:01 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.31 2009/11/28 01:12:25 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -306,6 +306,10 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 	lua_setglobal(l, "DB_THIRDPARTY");
 	lua_pushnumber(l, DB_DONTSIGNTO);
 	lua_setglobal(l, "DB_DONTSIGNTO");
+	lua_pushnumber(l, DB_MTAS);
+	lua_setglobal(l, "DB_MTAS");
+	lua_pushnumber(l, DB_MACROS);
+	lua_setglobal(l, "DB_MACROS");
 
 	/* retrieve header/value */
 	lua_register(l, "odkim_get_header", dkimf_xs_getheader);
@@ -426,10 +430,13 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	/* retrieve a signature's identity */
 	lua_register(l, "odkim_sig_getidentity", dkimf_xs_getsigidentity);
 
-	/* XXX
-	evaluate signature
-	lua_register(l, "odkim_sig_evaluate", dkimf_xs_evaluate);
+	/* retrieve signature result */
+	lua_register(l, "odkim_sig_result", dkimf_xs_sigresult);
 
+	/* retrieve signature result (body hash check) */
+	lua_register(l, "odkim_sig_bhresult", dkimf_xs_sigbhresult);
+
+	/* XXX
 	did signature use "l="? / value of l tag
 	lua_register(l, "odkim_sig_checkltag", dkimf_xs_getltag);
 

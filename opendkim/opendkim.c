@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.29 2009/11/28 00:56:01 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.30 2009/11/28 01:12:25 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.29 2009/11/28 00:56:01 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.30 2009/11/28 01:12:25 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2059,6 +2059,85 @@ dkimf_xs_getsymval(lua_State *l)
 		lua_pushnil(l);
 	else
 		lua_pushstring(l, sym);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_SIGRESULT -- get signature's result code
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_sigresult(lua_State *l)
+{
+	DKIM_STAT status;
+	DKIM_SIGINFO *sig;
+	char addr[MAXADDRESS + 1];
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_sig_getresult(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_sig_getresult(): incorrect argument type");
+		lua_error(l);
+	}
+
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	lua_pushnumber(l, dkim_sig_geterror(sig));
+
+	return 1;
+}
+/*
+**  DKIMF_XS_SIGBHRESULT -- get signature's body hash result code
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_sigbhresult(lua_State *l)
+{
+	DKIM_STAT status;
+	DKIM_SIGINFO *sig;
+	char addr[MAXADDRESS + 1];
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_sig_getbhresult(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_sig_getbhresult(): incorrect argument type");
+		lua_error(l);
+	}
+
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	lua_pushnumber(l, dkim_sig_getbh(sig));
 
 	return 1;
 }
