@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.35 2009/11/28 06:13:38 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.36 2009/11/28 06:22:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.35 2009/11/28 06:13:38 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.36 2009/11/28 06:22:52 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -475,12 +475,12 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	lua_setglobal(l, "DKIM_PRESULT_AUTHOR");
 	lua_register(l, "odkim_get_presult", dkimf_xs_getpresult);
 
+	/* set SMTP reply */
+	lua_register(l, "odkim_set_smtp_reply", dkimf_xs_setreply);
+
 	/* XXX
 	set result code
 	lua_register(l, "odkim_set_result", dkimf_xs_setresult);
-
-	set SMTP reply
-	lua_register(l, "odkim_set_smtp_reply", dkimf_xs_setreply);
 
 	quarantine?
 	lua_register(l, "odkim_quarantine", dkimf_xs_quarantine);

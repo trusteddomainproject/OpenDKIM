@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.34 2009/11/28 06:13:38 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.35 2009/11/28 06:22:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.34 2009/11/28 06:13:38 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.35 2009/11/28 06:22:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2537,6 +2537,59 @@ dkimf_xs_getpresult(lua_State *l)
 		lua_pushnil(l);
 	else
 		lua_pushnumber(l, dfc->mctx_presult);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_SETREPLY -- set SMTP reply text
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_setreply(lua_State *l)
+{
+	SMFICTX *ctx;
+	char *rcode = NULL;
+	char *xcode = NULL;
+	char *message = NULL;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 4)
+	{
+		lua_pushstring(l,
+		               "odkim_set_reply(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2) ||
+	         !lua_isstring(l, 3) ||
+	         !lua_isstring(l, 4))
+	{
+		lua_pushstring(l,
+		               "odkim_set_reply(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	rcode = (char *) lua_tostring(l, 2);
+	xcode = (char *) lua_tostring(l, 3);
+	message = (char *) lua_tostring(l, 4);
+	lua_pop(l, 4);
+
+	if (strlen(xcode) == 0)
+		xcode = NULL;
+
+	if (dkimf_setreply(ctx, rcode, xcode, message) == MI_FAILURE)
+		lua_pushnil(l);
+	else
+		lua_pushnumber(l, 1);
 
 	return 1;
 }

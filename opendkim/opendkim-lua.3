@@ -184,6 +184,21 @@ can be determined using
 .B odkim_get_sigcount
 above.
 .TP
+.B odkim_set_reply(ctx, rcode, xcode, message)
+Instructs the MTA to return the specified SMTP reply to the client sending
+the message represented by
+.I ctx.
+.I rcode
+must be a three-digit SMTP reply code starting with 4 or 5 (for temporary
+or permanent failures, respectively);
+.I xcode
+must be the empty string or a valid extended reply code (see RFC2034) matching
+.I rcode;
+and
+.I message
+must be the text portion of the SMTP reply to be sent.  Returns 1 on success
+or "nil" on failure.
+.TP
 .B odkim_sig_getdomain(sig)
 Returns the name of the domain in the signature handle specified by
 .I sig,
