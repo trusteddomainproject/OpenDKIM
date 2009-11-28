@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.35 2009/11/28 06:22:52 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.36 2009/11/28 06:29:33 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.35 2009/11/28 06:22:52 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.36 2009/11/28 06:29:33 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2587,6 +2587,50 @@ dkimf_xs_setreply(lua_State *l)
 		xcode = NULL;
 
 	if (dkimf_setreply(ctx, rcode, xcode, message) == MI_FAILURE)
+		lua_pushnil(l);
+	else
+		lua_pushnumber(l, 1);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_QUARANTINE -- request quarantine
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_quarantine(lua_State *l)
+{
+	SMFICTX *ctx;
+	char *message = NULL;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_quarantine(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_quarantine(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	message = (char *) lua_tostring(l, 2);
+	lua_pop(l, 2);
+
+	if (dkimf_quarantine(ctx, message) == MI_FAILURE)
 		lua_pushnil(l);
 	else
 		lua_pushnumber(l, 1);

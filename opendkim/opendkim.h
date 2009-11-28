@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.13.2.25 2009/11/28 06:22:52 cm-msk Exp $
+**  $Id: opendkim.h,v 1.13.2.26 2009/11/28 06:29:33 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.13.2.25 2009/11/28 06:22:52 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.13.2.26 2009/11/28 06:29:33 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -133,12 +133,14 @@ extern int dkimf_xs_getsigidentity __P((lua_State *));
 extern int dkimf_xs_getsymval __P((lua_State *));
 extern int dkimf_xs_internalip __P((lua_State *));
 extern int dkimf_xs_popauth __P((lua_State *));
+extern int dkimf_xs_quarantine __P((lua_State *));
 extern int dkimf_xs_rcpt __P((lua_State *));
 extern int dkimf_xs_rcptcount __P((lua_State *));
 extern int dkimf_xs_resign __P((lua_State *));
 extern int dkimf_xs_requestsig __P((lua_State *));
 extern int dkimf_xs_setpartial __P((lua_State *));
 extern int dkimf_xs_setreply __P((lua_State *));
+extern int dkimf_xs_setresult __P((lua_State *));
 extern int dkimf_xs_sigbhresult __P((lua_State *));
 extern int dkimf_xs_sigignore __P((lua_State *));
 extern int dkimf_xs_sigresult __P((lua_State *));

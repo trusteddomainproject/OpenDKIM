@@ -269,6 +269,13 @@ and
 .I DKIM_PRESULT_AUTHOR
 (an ADSP record was retrieved).
 .TP
+.B odkim_quarantine(ctx, reason)
+Asks the MTA to quarantine the message represented by
+.I ctx
+using
+.I reason
+as a text string indicating the reason for the request.
+.TP
 .B odkim_sig_bhresult(sig)
 Returns the result code corresponding to the body hash evaluation of
 the signature handled specified by
