@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.27 2009/11/28 00:37:52 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.28 2009/11/28 00:51:56 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.27 2009/11/28 00:37:52 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.28 2009/11/28 00:51:56 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -332,7 +332,6 @@ typedef struct msgctx * msgctx;
 struct msgctx
 {
 	_Bool		mctx_addheader;		/* Authentication-Results: */
-	_Bool		mctx_signing;		/* TRUE iff signing */
 	_Bool		mctx_headeronly;	/* in EOM, only add headers */
 #if _FFR_BODYLENGTH_DB
 	_Bool		mctx_ltag;		/* sign with l= tag? */
@@ -1158,7 +1157,6 @@ dkimf_xs_requestsig(lua_State *l)
 		return 1;
 	}
 
-	dfc->mctx_signing = TRUE;
 	dfc->mctx_signalg = conf->conf_signalg;
 
 	lua_pushnumber(l, 1);
@@ -7614,14 +7612,7 @@ mlfi_eoh(SMFICTX *ctx)
 	if (domainok && originok)
 	{
 		dfc->mctx_signalg = conf->conf_signalg;
-		dfc->mctx_signing = TRUE;
 		dfc->mctx_addheader = TRUE;
-	}
-
-	if (conf->conf_logwhy)
-	{
-		syslog(LOG_INFO, "%s mode select: %s", dfc->mctx_jobid,
-		       dfc->mctx_signing ? "signing" : "verifying");
 	}
 
 #ifdef _FFR_LUA
@@ -7676,32 +7667,23 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 #endif /* _FFR_LUA */
 
+	/* create a default signing request if there was a domain match */
+	if (domainok && originok && dfc->mctx_srhead == NULL)
+		dkimf_add_signrequest(dfc, NULL);
+
 	/*
 	**  If we're not operating in the role matching the required operation,
 	**  just accept the message and be done with it.
 	*/
 
-	if ((dfc->mctx_signing &&
-	     (conf->conf_mode & DKIMF_MODE_SIGNER) == 0) ||
-	    (!dfc->mctx_signing &&
-	     (conf->conf_mode & DKIMF_MODE_VERIFIER) == 0))
+	if (!(dfc->mctx_srhead != NULL && 
+	      (conf->conf_mode & DKIMF_MODE_SIGNER) != 0) ||
+	     ((!domainok || !originok) &&
+	      (conf->conf_mode & DKIMF_MODE_VERIFIER) != 0))
 		return SMFIS_ACCEPT;
 
-	/* confirm that we've got a key for signing when a keylist is in use */
-	if (dfc->mctx_signing && dfc->mctx_key == NULL &&
-	    dfc->mctx_srhead == NULL && conf->conf_keyhead != NULL)
-	{
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_NOTICE, "%s no key selected for signing",
-			       dfc->mctx_jobid);
-		}
-
-		return SMFIS_TEMPFAIL;
-	}
-
 	/* check for "DontSignMailTo" */
-	if (dfc->mctx_signing && conf->conf_dontsigntodb != NULL)
+	if (dfc->mctx_srhead != NULL && conf->conf_dontsigntodb != NULL)
 	{
 		_Bool found;
 		int status;
@@ -7744,15 +7726,11 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 	}
 
-	/* create a default signing request if there was a domain match */
-	if (dfc->mctx_signing && dfc->mctx_srhead == NULL)
-		dkimf_add_signrequest(dfc, NULL);
-
 	/* grab a verify handle if requested */
 #ifdef _FFR_RESIGN
-	if (msgsigned && (!dfc->mctx_signing || dfc->mctx_resign))
+	if (msgsigned && (dfc->mctx_srhead == NULL || dfc->mctx_resign))
 #else /* _FFR_RESIGN */
-	if (msgsigned && !dfc->mctx_signing)
+	if (msgsigned && dfc->mctx_srhead == NULL)
 #endif /* _FFR_RESIGN */
 	{
 		dfc->mctx_dkimv = dkim_verify(conf->conf_libopendkim,
@@ -7910,7 +7888,7 @@ mlfi_eoh(SMFICTX *ctx)
 		setidentity = TRUE;
 #endif /* _FFR_IDENTITY_HEADER */
 
-	if (dfc->mctx_signing && setidentity)
+	if (dfc->mctx_srhead != NULL && setidentity)
 	{
 		char identity[MAXADDRESS + 1];
 		_Bool idset = FALSE;
@@ -7967,7 +7945,7 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 
 #if _FFR_BODYLENGTH_DB
-	if (dfc->mctx_ltag && dfc->mctx_signing)
+	if (dfc->mctx_ltag && dfc->srhead != NULL)
 	{
 		if (dfc->mctx_srhead != NULL)
 		{
@@ -7999,7 +7977,7 @@ mlfi_eoh(SMFICTX *ctx)
 		vbr_trustedcerts(dfc->mctx_vbr, conf->conf_vbr_trusted);
 
 	/* if signing, store the values needed to make a header */
-	if (dfc->mctx_signing)
+	if (dfc->mctx_srhead != NULL)
 	{
 		/* set the sending domain */
 		vbr_setdomain(dfc->mctx_vbr, dfc->mctx_domain);
@@ -8031,7 +8009,7 @@ mlfi_eoh(SMFICTX *ctx)
 #endif /* _FFR_VBR */
 
 #if VERIFY_DOMAINKEYS
-	if (dfc->mctx_dksigned && !dfc->mctx_signing)
+	if (dfc->mctx_dksigned && dfc->mctx_srhead == NULL)
 	{
 		dfc->mctx_dk = dk_verify(libdk, dfc->mctx_jobid, NULL,
 		                         &status);
@@ -8080,7 +8058,7 @@ mlfi_eoh(SMFICTX *ctx)
 #ifdef _FFR_IDENTITY_HEADER
 		if (conf->conf_identityhdr != NULL &&
 		    conf->conf_rmidentityhdr && 
-		    dfc->mctx_signing &&
+		    dfc->mctx_srhead != NULL &&
 		    strcasecmp(conf->conf_identityhdr, hdr->hdr_hdr) == 0)
 			continue;
 #endif /* _FFR_IDENTITY_HEADER */
@@ -8088,7 +8066,7 @@ mlfi_eoh(SMFICTX *ctx)
 #ifdef _FFR_SELECTOR_HEADER
 		if (conf->conf_selectorhdr != NULL &&
 		    conf->conf_rmselectorhdr && 
-		    dfc->mctx_signing &&
+		    dfc->mctx_srhead != NULL &&
 		    strcasecmp(conf->conf_selectorhdr, hdr->hdr_hdr) == 0)
 			continue;
 #endif /* _FFR_SELECTOR_HEADER */
@@ -8456,7 +8434,7 @@ mlfi_eom(SMFICTX *ctx)
 		authservid = hostname;
 
 	/* remove old signatures when signing */
-	if (conf->conf_remsigs && dfc->mctx_signing)
+	if (conf->conf_remsigs && dfc->mctx_srhead != NULL)
 	{
 		for (hdr = dfc->mctx_hqhead; hdr != NULL; hdr = hdr->hdr_next)
 		{
@@ -8479,7 +8457,7 @@ mlfi_eom(SMFICTX *ctx)
 #ifdef _FFR_IDENTITY_HEADER
 	/* remove identity header if such was requested when signing */
 	if (conf->conf_rmidentityhdr && conf->conf_identityhdr != NULL &&
-	    dfc->mctx_signing)
+	    dfc->mctx_srhead != NULL)
 	{
 		struct Header *hdr;
 		
@@ -8503,7 +8481,7 @@ mlfi_eom(SMFICTX *ctx)
 #ifdef _FFR_SELECTOR_HEADER
 	/* remove selector header if such was requested when signing */
 	if (conf->conf_rmselectorhdr && conf->conf_selectorhdr != NULL &&
-	    dfc->mctx_signing)
+	    dfc->mctx_srhead != NULL)
 	{
 		struct Header *hdr;
 		
