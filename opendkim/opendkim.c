@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.25 2009/11/27 23:50:13 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.26 2009/11/28 00:13:31 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.25 2009/11/27 23:50:13 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.26 2009/11/28 00:13:31 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1225,6 +1225,62 @@ dkimf_xs_getheader(lua_State *l)
 		lua_pushstring(l, hdr->hdr_val);
 		return 1;
 	}
+}
+
+/*
+**  DKIMF_XS_POPAUTH -- see if the client's IP address is in the POPAUTH
+**                      database
+**
+**  Parameters:
+**  	l -- LUA state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_popauth(lua_State *l)
+{
+	struct connctx *cc;
+	struct dkimf_config *conf;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_check_popauth(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_check_popauth(): incorrect argument type");
+		lua_error(l);
+	}
+
+	cc = (struct connctx *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+#ifdef POPAUTH
+	if (popdb == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+	else
+	{
+		_Bool popauth;
+
+		popauth = dkimf_checkpopauth(popdb, &cc->cctx_ip);
+
+		lua_pushnumber(l, popauth ? 1 : 0);
+		return 1;
+	}
+#else /* POPAUTH */
+	lua_pushnil(l);
+	return 1;
+#endif /* POPAUTH */
 }
 
 /*

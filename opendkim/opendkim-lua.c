@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.27 2009/11/27 23:59:34 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.28 2009/11/28 00:13:31 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.27 2009/11/27 23:59:34 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.28 2009/11/28 00:13:31 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -171,6 +171,9 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 
 	/* pass source IP to dkimf_checkip() */
 	lua_register(l, "odkim_internal_ip", dkimf_xs_internalip);
+
+	/* do POPAUTH check */
+	lua_register(l, "odkim_check_popauth", dkimf_xs_popauth);
 
 	/* request DB handle */
 	/* XXX -- allow creation of arbitrary DB handles? */

@@ -55,6 +55,12 @@ in progress, and the connection that accepted it.
 These functions are made available to LUA for processing a message through
 the setup script:
 .TP
+.B odkim_check_popauth(ctx)
+Returns 1 if the SMTP client represented by
+.I ctx
+is coming from an IP address found in the POPAUTH database (if enabled
+and configured), and 0 otherwise.
+.TP
 .B odkim_clienthost(ctx)
 Returns the name of the host on the other end of the SMTP connection
 sending the current message.  This is usually a hostname, but might be
@@ -107,7 +113,7 @@ field.
 Returns the nth envelope recipient for the message represented by
 .I ctx.
 .TP
-.B odkim_internalip(ctx)
+.B odkim_internal_ip(ctx)
 Returns 1 if the SMTP client is coming from an internal IP address, and 0
 otherwise.
 .TP
