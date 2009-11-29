@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.39 2009/11/28 07:02:42 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.40 2009/11/29 00:50:09 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.39 2009/11/28 07:02:42 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.40 2009/11/29 00:50:09 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -270,9 +270,9 @@ struct dkimf_config
 	char *		conf_redirect;		/* redirect failures to */
 #endif /* _FFR_REDIRECT */
 #ifdef _FFR_LUA
-	char *		conf_screenscript;	/* LUA script: screening */
-	char *		conf_setupscript;	/* LUA script: setup */
-	char *		conf_finalscript;	/* LUA script: final */
+	char *		conf_screenscript;	/* Lua script: screening */
+	char *		conf_setupscript;	/* Lua script: setup */
+	char *		conf_finalscript;	/* Lua script: final */
 #endif /* _FFR_LUA */
 	struct keytable * conf_keyhead;		/* key list */
 	struct keytable * conf_keytail;		/* key list */
@@ -944,20 +944,20 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 **  LUA ACCESSOR FUNCTIONS
 **
 **  These are the C sides of the utility functions that will be made available
-**  to users via LUA to write their own policy scripts.
+**  to users via Lua to write their own policy scripts.
 **
 **  NAMES:
 **  	Should all start "dkimf_xs_" (for DKIM filter accessors)
 **
 **  PARAMETERS:
-**  	Should all accept nothing more than a single LUA state handle.
-**  	LUA accessor and utility functions are used to pull parameters off
+**  	Should all accept nothing more than a single Lua state handle.
+**  	Lua accessor and utility functions are used to pull parameters off
 **  	the stack.
 **
 **  RETURN VALUES:
 **  	Should all return the number of things they want to return via
-**  	the LUA stack.  Generally accessors return one thing, and utility
-**  	functions either return a result or a LUA "nil", which means
+**  	the Lua stack.  Generally accessors return one thing, and utility
+**  	functions either return a result or a Lua "nil", which means
 **  	at least one thing is always returned.
 **
 **  STACK:
@@ -977,7 +977,7 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 **  DKIMF_XS_FROMDOMAIN -- retrieve From: domain
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1026,7 +1026,7 @@ dkimf_xs_fromdomain(lua_State *l)
 **  DKIMF_XS_CLIENTHOST -- retrieve client hostname
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1069,7 +1069,7 @@ dkimf_xs_clienthost(lua_State *l)
 **  DKIMF_XS_REQUESTSIG -- request a signature
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1166,7 +1166,7 @@ dkimf_xs_requestsig(lua_State *l)
 **  DKIMF_XS_GETHEADER -- request a header value
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1236,7 +1236,7 @@ dkimf_xs_getheader(lua_State *l)
 **                      database
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1293,7 +1293,7 @@ dkimf_xs_popauth(lua_State *l)
 **  DKIMF_XS_INTERNALIP -- see if the client's IP address is "internal"
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1353,7 +1353,7 @@ dkimf_xs_internalip(lua_State *l)
 **  DKIMF_XS_DBHANDLE -- retrieve a DB handle
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1469,7 +1469,7 @@ dkimf_xs_dbhandle(lua_State *l)
 **  DKIMF_XS_RCPTCOUNT -- retrieve recipient count
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1527,7 +1527,7 @@ dkimf_xs_rcptcount(lua_State *l)
 **  DKIMF_XS_RCPT -- retrieve an envelope recipient
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1591,7 +1591,7 @@ dkimf_xs_rcpt(lua_State *l)
 **  DKIMF_XS_DBQUERY -- check for a record in a database
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1651,7 +1651,7 @@ dkimf_xs_dbquery(lua_State *l)
 **  DKIMF_XS_SETPARTIAL -- request l= tags
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1701,7 +1701,7 @@ dkimf_xs_setpartial(lua_State *l)
 **  DKIMF_XS_VERIFY -- set up verification
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1763,7 +1763,7 @@ dkimf_xs_verify(lua_State *l)
 **  DKIMF_XS_GETSIGCOUNT -- get signature count
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1829,7 +1829,7 @@ dkimf_xs_getsigcount(lua_State *l)
 **  DKIMF_XS_GETSIGHANDLE -- get signature handle
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1896,7 +1896,7 @@ dkimf_xs_getsighandle(lua_State *l)
 **  DKIMF_XS_GETSIGDOMAIN -- get signature's signing domain ("d=")
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1934,7 +1934,7 @@ dkimf_xs_getsigdomain(lua_State *l)
 **  DKIMF_XS_SIGIGNORE -- ignore a signature and its result
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -1974,7 +1974,7 @@ dkimf_xs_sigignore(lua_State *l)
 **  DKIMF_XS_GETSIGIDENTITY -- get signature's signing identity ("i=")
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -2019,7 +2019,7 @@ dkimf_xs_getsigidentity(lua_State *l)
 **  DKIMF_XS_GETSYMVAL -- get MTA symbol
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -2065,7 +2065,7 @@ dkimf_xs_getsymval(lua_State *l)
 **  DKIMF_XS_SIGRESULT -- get signature's result code
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -2105,7 +2105,7 @@ dkimf_xs_sigresult(lua_State *l)
 **  DKIMF_XS_SIGBHRESULT -- get signature's body hash result code
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -2145,7 +2145,7 @@ dkimf_xs_sigbhresult(lua_State *l)
 **  DKIMF_XS_BODYLENGTH -- return total body length
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -2201,7 +2201,7 @@ dkimf_xs_bodylength(lua_State *l)
 **  DKIMF_XS_CANONLENGTH -- return length canonicalized by a signature
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -2257,7 +2257,7 @@ dkimf_xs_canonlength(lua_State *l)
 **  DKIMF_XS_ADDRCPT -- add a recipient
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -2300,7 +2300,7 @@ dkimf_xs_addrcpt(lua_State *l)
 **  DKIMF_XS_DELRCPT -- delete a recipient
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -2392,7 +2392,7 @@ dkimf_xs_delrcpt(lua_State *l)
 **  DKIMF_XS_RESIGN -- set up for re-signing
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -2446,7 +2446,7 @@ dkimf_xs_resign(lua_State *l)
 **  DKIMF_XS_GETPOLICY -- retrieve sender policy
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -2496,7 +2496,7 @@ dkimf_xs_getpolicy(lua_State *l)
 **  DKIMF_XS_GETPRESULT -- retrieve sender policy query result
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -2548,7 +2548,7 @@ dkimf_xs_getpresult(lua_State *l)
 **  DKIMF_XS_SETREPLY -- set SMTP reply text
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -2601,7 +2601,7 @@ dkimf_xs_setreply(lua_State *l)
 **  DKIMF_XS_QUARANTINE -- request quarantine
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -2645,7 +2645,7 @@ dkimf_xs_quarantine(lua_State *l)
 **  DKIMF_XS_SETRESULT -- set milter result
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
@@ -2702,7 +2702,7 @@ dkimf_xs_setresult(lua_State *l)
 **  DKIMF_XS_GETREPUTATION -- perform reputation query
 **
 **  Parameters:
-**  	l -- LUA state
+**  	l -- Lua state
 **
 **  Return value:
 **  	Number of stack items pushed.
