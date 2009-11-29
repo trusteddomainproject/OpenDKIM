@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.41 2009/11/29 01:10:34 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.42 2009/11/29 01:13:08 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.41 2009/11/29 01:10:34 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.42 2009/11/29 01:13:08 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1016,7 +1016,7 @@ dkimf_xs_fromdomain(lua_State *l)
 	{
 		cc = (struct connctx *) smfi_getpriv(ctx);
 		dfc = cc->cctx_msg;
-		lua_pushlstring(l, dfc->mctx_domain, strlen(dfc->mctx_domain));
+		lua_pushstring(l, dfc->mctx_domain);
 	}
 
 	return 1;
@@ -1064,7 +1064,7 @@ dkimf_xs_clienthost(lua_State *l)
 	{
 		cc = (struct connctx *) smfi_getpriv(ctx);
 
-		lua_pushlstring(l, cc->cctx_host, strlen(cc->cctx_host));
+		lua_pushstring(l, cc->cctx_host);
 	}
 
 	return 1;
