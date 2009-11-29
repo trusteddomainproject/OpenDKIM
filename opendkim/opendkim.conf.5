@@ -242,6 +242,16 @@ the
 option below.  The set is empty by default.
 
 .TP
+.I FinalPolicyScript (string)
+Gives the name of a Lua script that should be run after the entire message
+has been received.  This can be used to enact local policy decisions such
+as message rejection, quarantine, rerouting, etc. based on signatures
+found on the message, the results of attempts to verify them, and other
+properties of the message or signatures.  See
+.I opendkim-lua(3)
+for details.
+
+.TP
 .I FixCRLF (Boolean)
 Requests that the DKIM library convert bare CRs and LFs to CRLFs during
 body canonicalization, anticipating that an MTA somewhere before delivery
@@ -615,6 +625,17 @@ Checks all messages for compliance with RFC2822 header field count
 requirements.  Non-compliant messages are rejected.
 
 .TP
+.I ScreenPolicyScript (string)
+Gives the name of a Lua script that should be run after all of the header
+fields have been processed for a message; in particular, this is useful
+after all DKIM signatures have been detected and initial evaluation has
+been done.  The script has access to all of the headers and connection
+information and can that certain signatures be ignored based on that
+information.  See
+.I opendkim-lua(3)
+for details.
+
+.TP
 .I Selector (string)
 Defines the name of the selector to be used when signing messages.
 See the
@@ -649,6 +670,15 @@ reporting address (i.e.
 in its policy record) and a request for reports of such failures, the filter
 will send a structured report to that address containing details needed to
 reproduce the problem.
+
+.TP
+.I SetupPolicyScript (string)
+Gives the name of a Lua script that should be run once all header fields
+for a message have arrived.  The script has access to all of the headers
+and connection information and can request DKIM verification or signing
+based on that information.  See
+.I opendkim-lua(3)
+for details.
 
 .TP
 .I SignatureAlgorithm (string)
