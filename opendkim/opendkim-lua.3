@@ -67,7 +67,7 @@ sending the current message.  This is usually a hostname, but might be
 an IP address in square brackets if the SMTP client's IP address does not
 have a name associated with it.
 .TP
-.B odkim_db_check(ctx, db, string)
+.B odkim_db_check(db, string)
 Returns 1 if
 .I db
 refers to a valid database handle (see
@@ -150,7 +150,7 @@ for more information.
 .B odkim_use_ltag(ctx)
 Requests that all signatures added to the message represented by
 .I ctx
-include "l=" (body length) tags.
+include "l=" (body length) tags.  Always returns "nil".
 .TP
 .B odkim_verify(ctx)
 Requests that the message represented by
