@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.42 2009/11/29 01:13:08 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.43 2009/11/29 01:32:49 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.42 2009/11/29 01:13:08 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.43 2009/11/29 01:32:49 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2092,13 +2092,13 @@ dkimf_xs_sigresult(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_sig_getresult(): incorrect argument count");
+		               "odkim_sig_result(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_sig_getresult(): incorrect argument type");
+		               "odkim_sig_result(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2135,13 +2135,13 @@ dkimf_xs_sigbhresult(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_sig_getbhresult(): incorrect argument count");
+		               "odkim_sig_bhresult(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_sig_getbhresult(): incorrect argument type");
+		               "odkim_sig_bhresult(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2566,7 +2566,7 @@ dkimf_xs_getpresult(lua_State *l)
 	cc = (struct connctx *) smfi_getpriv(ctx);
 	dfc = cc->cctx_msg;
 
-	if (dfc->mctx_presult == DKIM_POLICY_NONE)
+	if (dfc->mctx_presult == DKIM_PRESULT_NONE)
 		lua_pushnil(l);
 	else
 		lua_pushnumber(l, dfc->mctx_presult);
