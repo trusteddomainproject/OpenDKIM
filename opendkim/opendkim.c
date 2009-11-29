@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.63.2.43 2009/11/29 01:32:49 cm-msk Exp $
+**  $Id: opendkim.c,v 1.63.2.44 2009/11/29 01:45:44 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.43 2009/11/29 01:32:49 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.63.2.44 2009/11/29 01:45:44 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1014,7 +1014,7 @@ dkimf_xs_fromdomain(lua_State *l)
 	}
 	else
 	{
-		cc = (struct connctx *) smfi_getpriv(ctx);
+		cc = (struct connctx *) dkimf_getpriv(ctx);
 		dfc = cc->cctx_msg;
 		lua_pushstring(l, dfc->mctx_domain);
 	}
@@ -1062,7 +1062,7 @@ dkimf_xs_clienthost(lua_State *l)
 	}
 	else
 	{
-		cc = (struct connctx *) smfi_getpriv(ctx);
+		cc = (struct connctx *) dkimf_getpriv(ctx);
 
 		lua_pushstring(l, cc->cctx_host);
 	}
@@ -1108,7 +1108,7 @@ dkimf_xs_requestsig(lua_State *l)
 	ctx = (SMFICTX *) lua_touserdata(l, 1);
 	if (ctx != NULL)
 	{
-		cc = (struct connctx *) smfi_getpriv(ctx);
+		cc = (struct connctx *) dkimf_getpriv(ctx);
 		dfc = cc->cctx_msg;
 		conf = cc->cctx_config;
 
@@ -1207,7 +1207,7 @@ dkimf_xs_getheader(lua_State *l)
 	ctx = (SMFICTX *) lua_touserdata(l, 1);
 	if (ctx != NULL)
 	{
-		cc = (struct connctx *) smfi_getpriv(ctx);
+		cc = (struct connctx *) dkimf_getpriv(ctx);
 		dfc = cc->cctx_msg;
 		conf = cc->cctx_config;
 
@@ -1279,7 +1279,7 @@ dkimf_xs_popauth(lua_State *l)
 		return 1;
 	}
 
-	cc = (struct connctx *) smfi_getpriv(ctx);
+	cc = (struct connctx *) dkimf_getpriv(ctx);
 
 #ifdef POPAUTH
 	if (popdb == NULL)
@@ -1344,7 +1344,7 @@ dkimf_xs_internalip(lua_State *l)
 		return 1;
 	}
 
-	cc = (struct connctx *) smfi_getpriv(ctx);
+	cc = (struct connctx *) dkimf_getpriv(ctx);
 	conf = cc->cctx_config;
 
 	if (conf->conf_internal == NULL)
@@ -1407,7 +1407,7 @@ dkimf_xs_dbhandle(lua_State *l)
 		return 1;
 	}
 
-	cc = (struct connctx *) smfi_getpriv(ctx);
+	cc = (struct connctx *) dkimf_getpriv(ctx);
 	conf = cc->cctx_config;
 
 	code = lua_tonumber(l, 1);
@@ -1502,7 +1502,7 @@ dkimf_xs_rcptcount(lua_State *l)
 		return 1;
 	}
 
-	cc = (struct connctx *) smfi_getpriv(ctx);
+	cc = (struct connctx *) dkimf_getpriv(ctx);
 	conf = cc->cctx_config;
 	dfc = cc->cctx_msg;
 
@@ -1561,7 +1561,7 @@ dkimf_xs_rcpt(lua_State *l)
 		return 1;
 	}
 	
-	cc = (struct connctx *) smfi_getpriv(ctx);
+	cc = (struct connctx *) dkimf_getpriv(ctx);
 	conf = cc->cctx_config;
 	dfc = cc->cctx_msg;
 
@@ -1671,7 +1671,7 @@ dkimf_xs_setpartial(lua_State *l)
 # ifdef _FFR_BODYLENGTHDB
 	if (ctx != NULL)
 	{
-		cc = (struct connctx *) smfi_getpriv(ctx);
+		cc = (struct connctx *) dkimf_getpriv(ctx);
 		dfc = cc->cctx_msg;
 		dfc->mctx_ltag = TRUE;
 	}
@@ -1720,7 +1720,7 @@ dkimf_xs_verify(lua_State *l)
 
 	if (ctx != NULL)
 	{
-		cc = (struct connctx *) smfi_getpriv(ctx);
+		cc = (struct connctx *) dkimf_getpriv(ctx);
 		dfc = cc->cctx_msg;
 		conf = cc->cctx_config;
 
@@ -1781,7 +1781,7 @@ dkimf_xs_getsigcount(lua_State *l)
 
 	if (cc != NULL)
 	{
-		cc = (struct connctx *) smfi_getpriv(ctx);
+		cc = (struct connctx *) dkimf_getpriv(ctx);
 		dfc = cc->cctx_msg;
 
 		if (dfc->mctx_dkimv == NULL)
@@ -1857,7 +1857,7 @@ dkimf_xs_getsighandle(lua_State *l)
 		return 1;
 	}
 
-	cc = (struct connctx *) smfi_getpriv(ctx);
+	cc = (struct connctx *) dkimf_getpriv(ctx);
 	dfc = cc->cctx_msg;
 
 	if (dfc->mctx_dkimv == NULL)
@@ -2201,7 +2201,7 @@ dkimf_xs_bodylength(lua_State *l)
 		return 1;
 	}
 
-	cc = (struct connctx *) smfi_getpriv(ctx);
+	cc = (struct connctx *) dkimf_getpriv(ctx);
 	if (cc->cctx_msg == NULL || cc->cctx_msg->mctx_dkimv == NULL)
 	{
 		lua_pushnil(l);
@@ -2263,7 +2263,7 @@ dkimf_xs_canonlength(lua_State *l)
 		return 1;
 	}
 
-	cc = (struct connctx *) smfi_getpriv(ctx);
+	cc = (struct connctx *) dkimf_getpriv(ctx);
 	if (cc->cctx_msg == NULL || cc->cctx_msg->mctx_dkimv == NULL)
 	{
 		lua_pushnil(l);
@@ -2371,7 +2371,7 @@ dkimf_xs_delrcpt(lua_State *l)
 		return 1;
 	}
 
-	cc = (struct connctx *) smfi_getpriv(ctx);
+	cc = (struct connctx *) dkimf_getpriv(ctx);
 	conf = cc->cctx_config;
 	dfc = cc->cctx_msg;
 
@@ -2458,7 +2458,7 @@ dkimf_xs_resign(lua_State *l)
 		return 1;
 	}
 
-	cc = (struct connctx *) smfi_getpriv(ctx);
+	cc = (struct connctx *) dkimf_getpriv(ctx);
 	dfc = cc->cctx_msg;
 
 # ifdef _FFR_RESIGN
@@ -2511,7 +2511,7 @@ dkimf_xs_getpolicy(lua_State *l)
 		return 1;
 	}
 
-	cc = (struct connctx *) smfi_getpriv(ctx);
+	cc = (struct connctx *) dkimf_getpriv(ctx);
 	dfc = cc->cctx_msg;
 
 	if (dfc->mctx_pcode == DKIM_POLICY_NONE)
@@ -2563,7 +2563,7 @@ dkimf_xs_getpresult(lua_State *l)
 		return 1;
 	}
 
-	cc = (struct connctx *) smfi_getpriv(ctx);
+	cc = (struct connctx *) dkimf_getpriv(ctx);
 	dfc = cc->cctx_msg;
 
 	if (dfc->mctx_presult == DKIM_PRESULT_NONE)
@@ -2726,7 +2726,7 @@ dkimf_xs_setresult(lua_State *l)
 		struct msgctx *dfc;
 		struct connctx *cc;
 
-		cc = (struct connctx *) smfi_getpriv(ctx);
+		cc = (struct connctx *) dkimf_getpriv(ctx);
 		dfc = cc->cctx_msg;
 
 		dfc->mctx_mresult = mresult;
@@ -2789,7 +2789,7 @@ dkimf_xs_getreputation(lua_State *l)
 		return 1;
 	}
 
-	cc = (struct connctx *) smfi_getpriv(ctx);
+	cc = (struct connctx *) dkimf_getpriv(ctx);
 	dfc = cc->cctx_msg;
 
 	if (dfc->mctx_dkimv == NULL)
