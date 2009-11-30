@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.40 2009/11/30 20:13:02 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.41 2009/11/30 20:27:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.40 2009/11/30 20:13:02 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.41 2009/11/30 20:27:07 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -17,7 +17,7 @@ static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.40 2009/11/30
 #include <stdio.h>
 #include <assert.h>
 
-/* LUA includes */
+/* Lua includes */
 #include <lua.h>
 #include <lualib.h>
 
@@ -37,11 +37,11 @@ struct dkimf_lua_io
 };
 
 /*
-**  DKIMF_LUA_READER -- "read" a script and make it available to LUA
+**  DKIMF_LUA_READER -- "read" a script and make it available to Lua
 **
 **  Parameters:
-**  	l -- LUA state
-**  	data -- pointer to a LUA I/O structure
+**  	l -- Lua state
+**  	data -- pointer to a Lua I/O structure
 **  	size -- size (returned)
 **
 **  Return value:
@@ -104,13 +104,13 @@ dkimf_lua_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
 }
 
 /*
-**  DKIMF_LUA_SETUP_HOOK -- hook to LUA for handling a message during setup
+**  DKIMF_LUA_SETUP_HOOK -- hook to Lua for handling a message during setup
 **
 **  Parameters:
 **  	ctx -- session context, for making calls back to opendkim.c
 **  	script -- script to run
 **  	name -- name of the script (for logging)
-**  	lres -- LUA result structure
+**  	lres -- Lua result structure
 **
 **  Return value:
 **  	2 -- processing error
@@ -155,7 +155,7 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 	/*
 	**  Register functions.
 	**
-	**  XXX -- turn this into a LUA library?
+	**  XXX -- turn this into a Lua library?
 	*/
 
 	/* request From domain */
@@ -225,7 +225,7 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 		lua_close(l);
 		return 1;
 
-	  case LUA_ERRMEM:
+	  case lUA_ERRMEM:
 		if (lua_isstring(l, 1))
 			lres->lrs_error = strdup(lua_tostring(l, 1));
 		lua_close(l);
@@ -245,7 +245,7 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 }
 
 /*
-**  DKIMF_LUA_SCREEN_HOOK -- hook to LUA for handling a message after the
+**  DKIMF_LUA_SCREEN_HOOK -- hook to Lua for handling a message after the
 **                           verifying handle is established and all headers
 **                           have been fed to it
 **
@@ -253,7 +253,7 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 **  	ctx -- session context, for making calls back to opendkim.c
 **  	script -- script to run
 **  	name -- name of the script (for logging)
-**  	lres -- LUA result structure
+**  	lres -- Lua result structure
 **
 **  Return value:
 **  	0 -- success
@@ -292,7 +292,7 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 	/*
 	**  Register functions.
 	**
-	**  XXX -- turn this into a LUA library?
+	**  XXX -- turn this into a Lua library?
 	*/
 
 	/* test DB for membership */
@@ -373,14 +373,14 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 }
 
 /*
-**  DKIMF_LUA_FINAL_HOOK -- hook to LUA for handling a message after all
+**  DKIMF_LUA_FINAL_HOOK -- hook to Lua for handling a message after all
 **                          signing and verifying has been done
 **
 **  Parameters:
 **  	ctx -- session context, for making calls back to opendkim.c
 **  	script -- script to run
 **  	name -- name of the script (for logging)
-**  	lres -- LUA result structure
+**  	lres -- Lua result structure
 **
 **  Return value:
 **  	0 -- success
@@ -419,7 +419,7 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	/*
 	**  Register functions.
 	**
-	**  XXX -- turn this into a LUA library?
+	**  XXX -- turn this into a Lua library?
 	*/
 
 	/* retrieve number of signatures */
