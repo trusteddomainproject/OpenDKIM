@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.39 2009/11/28 06:59:30 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.40 2009/11/30 20:13:02 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.39 2009/11/28 06:59:30 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.40 2009/11/30 20:13:02 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -78,14 +78,15 @@ dkimf_lua_reader(lua_State *l, void *data, size_t *size)
 **  Parameters:
 **  	ud -- context (not used)
 **  	ptr -- pointer (for realloc())
-**  	osize --
-**  	nsize -- 
+**  	osize -- old size
+**  	nsize --  new size
 **
 **  Return value:
 **  	Allocated memory, or NULL on failure.
 */
 
-static void *dkimf_lua_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
+static void *
+dkimf_lua_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
 {
 	if (nsize == 0 && osize != 0)
 	{
