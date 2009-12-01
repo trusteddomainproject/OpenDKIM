@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, Murray S. Kucherawy.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.1.2.1 2009/12/01 18:31:24 cm-msk Exp $
+**  $Id: miltertest.c,v 1.1.2.2 2009/12/01 21:33:30 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.1 2009/12/01 18:31:24 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.2 2009/12/01 21:33:30 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -2192,7 +2192,144 @@ mt_eom_check(lua_State *l)
 
 	switch (op)
 	{
+	  case MT_HDRADD:
+	  {
+		char *name = NULL;
+		char *value = NULL;
+
+		if (lua_gettop(l) >= 3)
+		{
+			if (!lua_isstring(l, 3))
+			{
+				lua_pushstring(l,
+				               "mt_eom_check(): Invalid argument");
+				lua_error(l);
+			}
+
+			name = (char *) lua_tostring(l, 3);
+		}
+
+		if (lua_gettop(l) == 4)
+		{
+			if (!lua_isstring(l, 4))
+			{
+				lua_pushstring(l,
+				               "mt_eom_check(): Invalid argument");
+				lua_error(l);
+			}
+
+			value = (char *) lua_tostring(l, 4);
+		}
+
+		if (lua_gettop(l) == 5)
+		{
+			lua_pushstring(l, "mt_eom_check(): Invalid argument");
+			lua_error(l);
+		}
+
+		lua_pop(l, lua_gettop(l));
+
+		for (r = ctx->ctx_eomreqs; r != NULL; r = r->eom_next)
+		{
+			if (r->eom_request == SMFIR_ADDHEADER)
+			{
+				char *rname;
+				char *rvalue;
+
+				rname = r->eom_rdata + MILTER_LEN_BYTES;
+				rvalue = r->eom_rdata + MILTER_LEN_BYTES +
+				         strlen(rname) + 1;
+
+				if ((name == NULL ||
+				     strcmp(name, rname) == 0) &&
+				    (value == NULL ||
+				     strcmp(value, rvalue) == 0))
+				{
+					lua_pushboolean(l, 1);
+					return 1;
+				}
+			}
+		}
+
+		lua_pushboolean(l, 0);
+		return 1;
+	  }
+
 	  case MT_HDRINSERT:
+	  {
+		int idx = -1;
+		char *name = NULL;
+		char *value = NULL;
+
+		if (lua_gettop(l) >= 3)
+		{
+			if (!lua_isstring(l, 3))
+			{
+				lua_pushstring(l,
+				               "mt_eom_check(): Invalid argument");
+				lua_error(l);
+			}
+
+			name = (char *) lua_tostring(l, 3);
+		}
+
+		if (lua_gettop(l) >= 4)
+		{
+			if (!lua_isstring(l, 4))
+			{
+				lua_pushstring(l,
+				               "mt_eom_check(): Invalid argument");
+				lua_error(l);
+			}
+
+			value = (char *) lua_tostring(l, 4);
+		}
+
+		if (lua_gettop(l) == 5)
+		{
+			if (!lua_isnumber(l, 5))
+			{
+				lua_pushstring(l,
+				               "mt_eom_check(): Invalid argument");
+				lua_error(l);
+			}
+
+			idx = lua_tonumber(l, 5);
+		}
+
+		lua_pop(l, lua_gettop(l));
+
+		for (r = ctx->ctx_eomreqs; r != NULL; r = r->eom_next)
+		{
+			if (r->eom_request == SMFIR_INSHEADER)
+			{
+				int ridx;
+				char *rname;
+				char *rvalue;
+
+				memcpy(&ridx, r->eom_rdata, MILTER_LEN_BYTES);
+				ridx = ntohl(ridx);
+				rname = r->eom_rdata + MILTER_LEN_BYTES;
+				rvalue = r->eom_rdata + MILTER_LEN_BYTES +
+				         strlen(rname) + 1;
+
+				if ((name == NULL ||
+				     strcmp(name, rname) == 0) &&
+				    (value == NULL ||
+				     strcmp(value, rvalue) == 0) &&
+				    (idx == -1 || ridx == idx))
+				{
+					lua_pushboolean(l, 1);
+					return 1;
+				}
+			}
+		}
+
+		lua_pushboolean(l, 0);
+		return 1;
+	  }
+
+	  case MT_HDRCHANGE:
 	  {
 		int idx = -1;
 		char *name = NULL;
@@ -2238,7 +2375,7 @@ mt_eom_check(lua_State *l)
 
 		for (r = ctx->ctx_eomreqs; r != NULL; r = r->eom_next)
 		{
-			if (r->eom_request == SMFIR_INSHEADER)
+			if (r->eom_request == SMFIR_CHGHEADER)
 			{
 				int ridx;
 				char *rname;
@@ -2254,6 +2391,72 @@ mt_eom_check(lua_State *l)
 				     strcmp(name, rname) == 0) &&
 				    (value == NULL ||
 				     strcmp(value, rvalue) == 0) &&
+				    (idx == -1 || ridx == idx))
+				{
+					lua_pushboolean(l, 1);
+					return 1;
+				}
+			}
+		}
+
+		lua_pushboolean(l, 0);
+		return 1;
+	  }
+
+	  case MT_HDRDELETE:
+	  {
+		int idx = -1;
+		char *name = NULL;
+
+		if (lua_gettop(l) >= 3)
+		{
+			if (!lua_isstring(l, 3))
+			{
+				lua_pushstring(l,
+				               "mt_eom_check(): Invalid argument");
+				lua_error(l);
+			}
+
+			name = (char *) lua_tostring(l, 3);
+		}
+
+		if (lua_gettop(l) == 4)
+		{
+			if (!lua_isnumber(l, 4))
+			{
+				lua_pushstring(l,
+				               "mt_eom_check(): Invalid argument");
+				lua_error(l);
+			}
+
+			idx = lua_tonumber(l, 4);
+		}
+
+		if (lua_gettop(l) == 5)
+		{
+			lua_pushstring(l, "mt_eom_check(): Invalid argument");
+			lua_error(l);
+		}
+
+		lua_pop(l, lua_gettop(l));
+
+		for (r = ctx->ctx_eomreqs; r != NULL; r = r->eom_next)
+		{
+			if (r->eom_request == SMFIR_CHGHEADER)
+			{
+				int ridx;
+				char *rname;
+				char *rvalue;
+
+				memcpy(&ridx, r->eom_rdata, MILTER_LEN_BYTES);
+				ridx = ntohl(ridx);
+				rname = r->eom_rdata + MILTER_LEN_BYTES;
+				rvalue = r->eom_rdata + MILTER_LEN_BYTES +
+				         strlen(rname) + 1;
+
+				if ((name == NULL ||
+				     strcmp(name, rname) == 0) &&
+				    rvalue[0] == '\0' &&
 				    (idx == -1 || ridx == idx))
 				{
 					lua_pushboolean(l, 1);
