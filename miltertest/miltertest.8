@@ -1,10 +1,10 @@
 .TH miltertest 8
 .SH NAME
 .B miltertest
-- milter test utility
+-- milter unit test utility
 .SH SYNOPSIS
 .B miltertest
-scriptfile
+[-D name[=value]] [-s script] [-v]
 .SH DESCRIPTION
 .B miltertest
 simulates the MTA side of an MTA-milter interaction for testing a milter-aware
@@ -127,7 +127,9 @@ to the specified connection.
 .TP
 .B mt_getreply(conn)
 Returns the last milter reply received from the specified connection,
-as a string.
+as an integer.  This can be compared to any of the SMFIR_* constants defined
+by milter to see if the filter responded as expected.  This value is initially
+set to the NULL character.
 .TP
 .B mt_helo(conn, name)
 Sends HELO/EHLO information using the specified

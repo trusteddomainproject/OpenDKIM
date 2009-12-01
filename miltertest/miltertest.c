@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, Murray S. Kucherawy.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.1.2.4 2009/12/01 21:51:21 cm-msk Exp $
+**  $Id: miltertest.c,v 1.1.2.5 2009/12/01 21:57:36 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.4 2009/12/01 21:51:21 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.5 2009/12/01 21:57:36 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -2774,7 +2774,7 @@ mt_getreply(lua_State *l)
 	ctx = (struct mt_context *) lua_touserdata(l, 1);
 	lua_pop(l, 1);
 
-	lua_pushfstring(l, "%c", ctx->ctx_response);
+	lua_pushnumber(l, ctx->ctx_response);
 
 	return 1;
 }
@@ -2980,6 +2980,17 @@ main(int argc, char **argv)
 	lua_setglobal(l, "MT_QUARANTINE");
 	lua_pushnumber(l, MT_SMTPREPLY);
 	lua_setglobal(l, "MT_SMTPREPLY");
+
+	lua_pushnumber(l, SMFIR_CONTINUE);
+	lua_setglobal(l, "SMFIR_CONTINUE");
+	lua_pushnumber(l, SMFIR_ACCEPT);
+	lua_setglobal(l, "SMFIR_ACCEPT");
+	lua_pushnumber(l, SMFIR_REJECT);
+	lua_setglobal(l, "SMFIR_REJECT");
+	lua_pushnumber(l, SMFIR_TEMPFAIL);
+	lua_setglobal(l, "SMFIR_TEMPFAIL");
+	lua_pushnumber(l, SMFIR_DISCARD);
+	lua_setglobal(l, "SMFIR_DISCARD");
 
 	switch (lua_load(l, mt_lua_reader, (void *) &io,
 	                 script == NULL ? "(stdin)" : script))
