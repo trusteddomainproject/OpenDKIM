@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.1.2.41 2009/11/30 20:27:07 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.1.2.42 2009/12/01 18:29:38 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.41 2009/11/30 20:27:07 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.1.2.42 2009/12/01 18:29:38 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef _FFR_LUA
@@ -225,7 +225,7 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 		lua_close(l);
 		return 1;
 
-	  case lUA_ERRMEM:
+	  case LUA_ERRMEM:
 		if (lua_isstring(l, 1))
 			lres->lrs_error = strdup(lua_tostring(l, 1));
 		lua_close(l);
