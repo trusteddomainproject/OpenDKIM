@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.35 2009/11/23 05:14:39 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36 2009/12/01 23:17:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5780,7 +5780,7 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 			dkim_dstring_cat1(dkim->dkim_hdrbuf, *p);
 			if (*p == '\n')
 				dkim->dkim_chunksm = 2;
-			else
+			else if (*p != '\r')
 				dkim->dkim_chunksm = 0;
 			break;
 			
