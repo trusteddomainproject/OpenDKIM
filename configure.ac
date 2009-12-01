@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.68.2.4 2009/11/28 18:03:33 cm-msk Exp $
+# $Id: configure.ac,v 1.68.2.5 2009/12/01 23:42:59 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -658,4 +658,4 @@ then
 fi
 
 # Finish up
-AC_OUTPUT(Makefile opendkim/Makefile libopendkim/Makefile libar/Makefile libvbr/Makefile)
+AC_OUTPUT(Makefile opendkim/Makefile libopendkim/Makefile libar/Makefile libvbr/Makefile miltertest/Makefile)
