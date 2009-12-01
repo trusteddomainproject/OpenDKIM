@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, Murray S. Kucherawy.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.1.2.2 2009/12/01 21:33:30 cm-msk Exp $
+**  $Id: miltertest.c,v 1.1.2.3 2009/12/01 21:39:20 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.2 2009/12/01 21:33:30 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.3 2009/12/01 21:39:20 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -2469,6 +2469,76 @@ mt_eom_check(lua_State *l)
 		return 1;
 	  }
 
+	  case MT_RCPTADD:
+	  {
+		char *rcpt;
+
+		if (lua_gettop(l) != 3 ||
+		    !lua_isstring(l, 3))
+		{
+			lua_pushstring(l, "mt_eom_check(): Invalid argument");
+			lua_error(l);
+		}
+
+		rcpt = (char *) lua_tostring(l, 3);
+
+		lua_pop(l, lua_gettop(l));
+
+		for (r = ctx->ctx_eomreqs; r != NULL; r = r->eom_next)
+		{
+			if (r->eom_request == SMFIR_ADDRCPT)
+			{
+				char *rname;
+
+				rname = r->eom_rdata;
+
+				if (strcmp(rcpt, rname) == 0)
+				{
+					lua_pushboolean(l, 1);
+					return 1;
+				}
+			}
+		}
+
+		lua_pushboolean(l, 0);
+		return 1;
+	  }
+
+	  case MT_RCPTDELETE:
+	  {
+		char *rcpt;
+
+		if (lua_gettop(l) != 3 ||
+		    !lua_isstring(l, 3))
+		{
+			lua_pushstring(l, "mt_eom_check(): Invalid argument");
+			lua_error(l);
+		}
+
+		rcpt = (char *) lua_tostring(l, 3);
+
+		lua_pop(l, lua_gettop(l));
+
+		for (r = ctx->ctx_eomreqs; r != NULL; r = r->eom_next)
+		{
+			if (r->eom_request == SMFIR_DELRCPT)
+			{
+				char *rname;
+
+				rname = r->eom_rdata;
+
+				if (strcmp(rcpt, rname) == 0)
+				{
+					lua_pushboolean(l, 1);
+					return 1;
+				}
+			}
+		}
+
+		lua_pushboolean(l, 0);
+		return 1;
+	  }
+
 	  default:
 		lua_pushstring(l, "mt_eom_check(): Invalid argument");
 		lua_error(l);
@@ -2756,6 +2826,16 @@ main(int argc, char **argv)
 
 	lua_pushnumber(l, MT_HDRINSERT);
 	lua_setglobal(l, "MT_HDRINSERT");
+	lua_pushnumber(l, MT_HDRADD);
+	lua_setglobal(l, "MT_HDRADD");
+	lua_pushnumber(l, MT_HDRCHANGE);
+	lua_setglobal(l, "MT_HDRCHANGE");
+	lua_pushnumber(l, MT_HDRDELETE);
+	lua_setglobal(l, "MT_HDRDELETE");
+	lua_pushnumber(l, MT_RCPTADD);
+	lua_setglobal(l, "MT_RCPTADD");
+	lua_pushnumber(l, MT_RCPTDELETE);
+	lua_setglobal(l, "MT_RCPTDELETE");
 
 	switch (lua_load(l, mt_lua_reader, (void *) &io,
 	                 script == NULL ? "(stdin)" : script))
