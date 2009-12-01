@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, Murray S. Kucherawy.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.1.2.3 2009/12/01 21:39:20 cm-msk Exp $
+**  $Id: miltertest.c,v 1.1.2.4 2009/12/01 21:51:21 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.3 2009/12/01 21:39:20 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.4 2009/12/01 21:51:21 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -2539,6 +2539,144 @@ mt_eom_check(lua_State *l)
 		return 1;
 	  }
 
+	  case MT_BODYCHANGE:
+	  {
+		char *newbody = NULL;
+
+		if (lua_gettop(l) < 2 || lua_gettop(l) > 3 ||
+		    (lua_gettop(l) == 3 && !lua_isstring(l, 3)))
+		{
+			lua_pushstring(l, "mt_eom_check(): Invalid argument");
+			lua_error(l);
+		}
+
+		if (lua_gettop(l) == 3)
+			newbody = (char *) lua_tostring(l, 3);
+
+		lua_pop(l, lua_gettop(l));
+
+		for (r = ctx->ctx_eomreqs; r != NULL; r = r->eom_next)
+		{
+			if (r->eom_request == SMFIR_REPLBODY)
+			{
+				char *rbody;
+
+				rbody = r->eom_rdata;
+
+				if (newbody == NULL ||
+				    (strlen(newbody) == r->eom_rlen &&
+				     memcmp(rbody, newbody, r->eom_rlen) == 0))
+				{
+					lua_pushboolean(l, 1);
+					return 1;
+				}
+			}
+		}
+
+		lua_pushboolean(l, 0);
+		return 1;
+	  }
+
+	  case MT_QUARANTINE:
+	  {
+		char *reason = NULL;
+
+		if (lua_gettop(l) < 2 || lua_gettop(l) > 3 ||
+		    (lua_gettop(l) == 3 && !lua_isstring(l, 3)))
+		{
+			lua_pushstring(l, "mt_eom_check(): Invalid argument");
+			lua_error(l);
+		}
+
+		if (lua_gettop(l) == 3)
+			reason = (char *) lua_tostring(l, 3);
+
+		lua_pop(l, lua_gettop(l));
+
+		for (r = ctx->ctx_eomreqs; r != NULL; r = r->eom_next)
+		{
+			if (r->eom_request == SMFIR_QUARANTINE)
+			{
+				char *rreason;
+
+				rreason = r->eom_rdata;
+
+				if (reason == NULL ||
+				    strcmp(reason, rreason) == 0)
+				{
+					lua_pushboolean(l, 1);
+					return 1;
+				}
+			}
+		}
+
+		lua_pushboolean(l, 0);
+		return 1;
+	  }
+
+	  case MT_SMTPREPLY:
+	  {
+		char *smtp = NULL;
+		char *esc = NULL;
+		char *text = NULL;
+
+		if (lua_gettop(l) < 3 || !lua_isstring(l, 3))
+		{
+			lua_pushstring(l, "mt_eom_check(): Invalid argument");
+			lua_error(l);
+		}
+
+		smtp = (char *) lua_tostring(l, 3);
+
+		if (lua_gettop(l) >= 4)
+		{
+			if (!lua_isstring(l, 4))
+			{
+				lua_pushstring(l,
+				               "mt_eom_check(): Invalid argument");
+				lua_error(l);
+			}
+
+			esc = (char *) lua_tostring(l, 4);
+		}
+
+		if (lua_gettop(l) == 5)
+		{
+			if (!lua_isstring(l, 5))
+			{
+				lua_pushstring(l,
+				               "mt_eom_check(): Invalid argument");
+				lua_error(l);
+			}
+
+			text = (char *) lua_tostring(l, 5);
+		}
+
+		lua_pop(l, lua_gettop(l));
+
+		for (r = ctx->ctx_eomreqs; r != NULL; r = r->eom_next)
+		{
+			if (r->eom_request == SMFIR_REPLYCODE)
+			{
+				char rbuf[BUFRSZ];
+
+				snprintf(rbuf, sizeof rbuf, "%s%s%s%s%s",
+				         smtp,
+				         esc == NULL ? "" : " ", esc,
+				         text == NULL ? "" : " ", text);
+
+				if (strcmp(rbuf, (char *) r->eom_rdata) == 0)
+				{
+					lua_pushboolean(l, 1);
+					return 1;
+				}
+			}
+		}
+
+		lua_pushboolean(l, 0);
+		return 1;
+	  }
+
 	  default:
 		lua_pushstring(l, "mt_eom_check(): Invalid argument");
 		lua_error(l);
@@ -2836,6 +2974,12 @@ main(int argc, char **argv)
 	lua_setglobal(l, "MT_RCPTADD");
 	lua_pushnumber(l, MT_RCPTDELETE);
 	lua_setglobal(l, "MT_RCPTDELETE");
+	lua_pushnumber(l, MT_BODYCHANGE);
+	lua_setglobal(l, "MT_BODYCHANGE");
+	lua_pushnumber(l, MT_QUARANTINE);
+	lua_setglobal(l, "MT_QUARANTINE");
+	lua_pushnumber(l, MT_SMTPREPLY);
+	lua_setglobal(l, "MT_SMTPREPLY");
 
 	switch (lua_load(l, mt_lua_reader, (void *) &io,
 	                 script == NULL ? "(stdin)" : script))
