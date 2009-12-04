@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.13.12.1 2009/11/14 07:16:52 grooverdan Exp $
+# $Id: Makefile.am,v 1.13.12.2 2009/12/04 22:16:34 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 SUBDIRS = 
@@ -112,7 +112,8 @@ EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
 	libopendkim/docs/dkim_sig_getcanons.html \
 	libopendkim/docs/dkim_libfeature.html
 
-# TODO: get configure.ac to generate --enable-{feature} for all non-experimental 
-# features and substitute it here e.g  @SUPPORTED_FEATURES@. Perhaps all features would
-# enable a more comprehensive test coverage map though.
-DISTCHECK_CONFIGURE_FLAGS=--enable-testconv --enable-arlib --enable-vbr
+# TODO: get configure.ac to generate --enable-{feature} for all
+# non-experimental features and substitute it here e.g  @SUPPORTED_FEATURES@.
+# Perhaps all features would enable a more comprehensive test coverage map
+# though.
+DISTCHECK_CONFIGURE_FLAGS=--enable-testcoverage --enable-arlib --enable-vbr

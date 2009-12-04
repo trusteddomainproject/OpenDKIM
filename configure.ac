@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.6.1 2009/11/14 07:16:52 grooverdan Exp $
+# $Id: configure.ac,v 1.67.6.2 2009/12/04 22:16:34 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -46,20 +46,47 @@ AC_TYPE_UINT32_T
 # Checks for library functions.
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strtol strtoul strtoull strlcpy strlcat])
 
-AC_ARG_ENABLE([testconv],
-	AS_HELP_STRING([--enable-testconv], [generate pretty graphs of test coveragae - requires lcov (ltp)]))
-AS_IF([test x"$enable_testcov" != x"no"],
-	AC_CHECK_PROG([lcov],[lcov], [found])
-	AS_IF([test x"$lcov" = x"found"],
-		[CFLAGS="$CFLAGS -fprofile-arcs -ftest-coverage --coverage -g"],
-		[
-			AC_MSG_ERROR([requested test coverage without and lcov was not found])
-		]
-	)
-)
-AM_CONDITIONAL(TESTCONV, test "$enable_testconv" = yes)
+AC_ARG_ENABLE([testcoverage],
+	AS_HELP_STRING([--enable-testcoverage], [analyze test coverage]))
+if test x"$enable_testcoverage" != x"no"
+then
+	# only works if we have gcc...
+	AC_CHECK_PROG([hasgcc], [gcc], [yes])
+	if test x"$hasgcc" != x"yes"
+	then
+		AC_MSG_ERROR([gcc required for test coverage])
+	fi
 
-# Conditional stuff
+	# figure out which profiling system to use
+	AC_CHECK_PROG([hasgprof], [gprof], [yes])
+	AC_ARG_WITH(gprof,
+		AS_HELP_STRING(--with-gprof, profiling with gprof),
+		hasgprof="$withval")
+	AC_CHECK_PROG([hasgcov], [gcov], [yes])
+	AC_ARG_WITH(gcov,
+		AS_HELP_STRING(--with-gcov, profiling with gcov),
+		hasgcov="$withval")
+	AC_CHECK_PROG([haslcov], [lcov], [yes])
+	AC_ARG_WITH(lcov,
+		AS_HELP_STRING(--with-lcov, profiling with lcov),
+		haslcov="$withval")
+
+	# bail if none
+	if test x"$hasgprof" != x"yes" -a \
+		x"$hasgcov" != x"yes" -a \
+		x"$haslcov" != x"yes"
+	then
+		AC_MSG_ERROR([no supported test coverage packages found])
+	fi
+
+	AM_CONDITIONAL(LCOV, test x"$haslcov" = x"yes" -a x"$hasgcov" = x"yes")
+	AM_CONDITIONAL(GCOV, test x"$hasgcov" = x"yes")
+	AM_CONDITIONAL(GCOV_ONLY,
+	               test x"$hasgcov" = x"yes" -a x"$haslcov" != x"yes")
+	AM_CONDITIONAL(GPROF, test x"$hasgprof" = x"yes" -a x"$hasgcov" != x"yes")
+fi
+
+# Other conditional stuff
 AC_ARG_ENABLE(allsymbols, AS_HELP_STRING(--enable-all-symbols, export even internal-use symbols))
 AM_CONDITIONAL(ALL_SYMBOLS, test "$enable_allsymbols" = yes)
 
