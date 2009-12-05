@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.88 2009/11/28 19:02:36 cm-msk Exp $
+# $Id: configure.ac,v 1.89 2009/12/05 00:46:20 cm-msk Exp $
 
 #
 # Setup
@@ -60,6 +60,7 @@ AC_HEADER_RESOLV
 
 dnscheck='
 #include "confdefs.h" 
+#include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/nameser.h>
 #include <resolv.h> 
