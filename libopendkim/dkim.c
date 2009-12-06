@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36.2.1 2009/12/06 05:55:14 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36.2.2 2009/12/06 06:07:00 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6174,7 +6174,9 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 					_Bool more;
 					int offset;
 					int whichlen;
+					int n;
 					char *x;
+					char *y;
 
 					whichlen = strlen(which);
 
@@ -6187,22 +6189,30 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 
 					len += offset;
 
-					for (x = pv + offset; *x != '\0'; x++)
+					dkim_dstring_cat1(dkim->dkim_hdrbuf,
+					                  *(pv + offset));
+					len++;
+
+					x = pv + offset + 1;
+					y = pv + pvlen;
+
+					while (x < y)
 					{
-						more = (*(x + 1) != '\0');
-
-						dkim_dstring_cat1(dkim->dkim_hdrbuf,
-						                  *x);
-						len++;
-
-						if (len >= dkim->dkim_margin &&
-						    more)
+						if (dkim->dkim_margin - len == 0)
 						{
 							dkim_dstring_catn(dkim->dkim_hdrbuf,
 							                  "\r\n\t ",
 							                  4);
 							len = 9;
 						}
+
+						n = MIN(dkim->dkim_margin - len,
+						        y - x);
+						dkim_dstring_catn(dkim->dkim_hdrbuf,
+						                  x, n);
+						x += n;
+						len += n;
+						
 					}
 				}
 				else
