@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36 2009/12/01 23:17:27 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36.2.1 2009/12/06 05:55:14 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2085,6 +2085,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	_Bool firsthdr;
 	int n;
 	int status;
+	int delimlen;
 	size_t hashlen;
 	size_t tmplen;
 	u_char *hash;
@@ -2097,6 +2098,8 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	assert(sig != NULL);
 	assert(dstr != NULL);
 	assert(delim != NULL);
+
+	delimlen = strlen(delim);
 
 	n = dkim->dkim_hdrcnt * sizeof(_Bool);
 	always = DKIM_MALLOC(dkim, n);
@@ -2177,13 +2180,13 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 
 		if (!firsthdr)
 		{
-			dkim_dstring_cat(dstr, ":");
+			dkim_dstring_cat1(dstr, ':');
 		}
 		else
 		{
-			dkim_dstring_cat(dstr, ";");
-			dkim_dstring_cat(dstr, delim);
-			dkim_dstring_cat(dstr, "h=");
+			dkim_dstring_cat1(dstr, ';');
+			dkim_dstring_catn(dstr, delim, delimlen);
+			dkim_dstring_catn(dstr, "h=", 2);
 		}
 
 		firsthdr = FALSE;
@@ -2216,13 +2219,14 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 			{
 				if (!firsthdr)
 				{
-					dkim_dstring_cat(dstr, ":");
+					dkim_dstring_cat1(dstr, ':');
 				}
 				else
 				{
-					dkim_dstring_cat(dstr, ";");
-					dkim_dstring_cat(dstr, delim);
-					dkim_dstring_cat(dstr, "h=");
+					dkim_dstring_cat1(dstr, ';');
+					dkim_dstring_catn(dstr, delim,
+					                  delimlen);
+					dkim_dstring_catn(dstr, "h=", 2);
 				}
 
 				firsthdr = FALSE;
@@ -2245,9 +2249,9 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 
 		end = tmp + sizeof tmp - 1;
 
-		dkim_dstring_cat(dstr, ";");
-		dkim_dstring_cat(dstr, delim);
-		dkim_dstring_cat(dstr, "z=");
+		dkim_dstring_cat1(dstr, ';');
+		dkim_dstring_catn(dstr, delim, delimlen);
+		dkim_dstring_catn(dstr, "z=", 2);
 
 		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
 		{
@@ -2290,9 +2294,9 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	}
 
 	/* and finally, an empty b= */
-	dkim_dstring_cat(dstr, ";");
-	dkim_dstring_cat(dstr, delim);
-	dkim_dstring_cat(dstr, "b=");
+	dkim_dstring_cat1(dstr, ';');
+	dkim_dstring_catn(dstr, delim, delimlen);
+	dkim_dstring_catn(dstr, "b=", 2);
 
 	DKIM_FREE(dkim, always);
 
@@ -6057,7 +6061,7 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 		     pv = strtok_r(NULL, DELIMITER, &ctx))
 		{
 			if (!first)
-				dkim_dstring_cat(dkim->dkim_hdrbuf, " ");
+				dkim_dstring_cat1(dkim->dkim_hdrbuf, ' ');
 
 			dkim_dstring_cat(dkim->dkim_hdrbuf, pv);
 
@@ -6068,6 +6072,7 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 	{
 		_Bool first = TRUE;
 		_Bool forcewrap;
+		int pvlen;
 		char *p;
 		char *q;
 		char *end;
@@ -6098,22 +6103,26 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 					forcewrap = TRUE;
 			}
 
+			pvlen = strlen(pv);
+
 			if (len == 0 || first)
 			{
-				dkim_dstring_cat(dkim->dkim_hdrbuf, pv);
-				len += strlen(pv);
+				dkim_dstring_catn(dkim->dkim_hdrbuf, pv,
+				                  pvlen);
+				len += pvlen;
 				first = FALSE;
 			}
-			else if (forcewrap ||
-			         len + strlen(pv) > dkim->dkim_margin)
+			else if (forcewrap || len + pvlen > dkim->dkim_margin)
 			{
 				forcewrap = FALSE;
-				dkim_dstring_cat(dkim->dkim_hdrbuf, "\r\n\t");
+				dkim_dstring_catn(dkim->dkim_hdrbuf,
+				                  "\r\n\t", 3);
 				len = 8;
 
 				if (strcmp(which, "h") == 0)
 				{			/* break at colons */
 					_Bool ifirst = TRUE;
+					int tmplen;
 					char *tmp;
 					char *ctx2;
 
@@ -6121,33 +6130,39 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 					     tmp != NULL;
 					     tmp = strtok_r(NULL, ":", &ctx2))
 					{
+						tmplen = strlen(tmp);
+
 						if (ifirst)
 						{
-							dkim_dstring_cat(dkim->dkim_hdrbuf,
-							                 pv);
-							len += strlen(pv);
+							dkim_dstring_catn(dkim->dkim_hdrbuf,
+							                  tmp,
+							                  tmplen);
+							len += tmplen;
 							ifirst = FALSE;
 						}
-						else if (len + strlen(tmp) + 1 > dkim->dkim_margin)
+						else if (len + tmplen + 1 > dkim->dkim_margin)
 						{
-							dkim_dstring_cat(dkim->dkim_hdrbuf,
-							                 ":");
+							dkim_dstring_cat1(dkim->dkim_hdrbuf,
+							                  ':');
 							len += 1;
-							dkim_dstring_cat(dkim->dkim_hdrbuf,
-							                 "\r\n\t ");
+							dkim_dstring_catn(dkim->dkim_hdrbuf,
+							                  "\r\n\t ",
+							                  4);
 							len = 9;
-							dkim_dstring_cat(dkim->dkim_hdrbuf,
-							                 tmp);
-							len += strlen(tmp);
+							dkim_dstring_catn(dkim->dkim_hdrbuf,
+							                  tmp,
+							                  tmplen);
+							len += tmplen;
 						}
 						else
 						{
-							dkim_dstring_cat(dkim->dkim_hdrbuf,
-							                 ":");
+							dkim_dstring_cat1(dkim->dkim_hdrbuf,
+							                  ':');
 							len += 1;
-							dkim_dstring_cat(dkim->dkim_hdrbuf,
-							                 tmp);
-							len += strlen(tmp);
+							dkim_dstring_catn(dkim->dkim_hdrbuf,
+							                  tmp,
+							                  tmplen);
+							len += tmplen;
 						}
 					}
 
@@ -6158,14 +6173,17 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 				{			/* break at margins */
 					_Bool more;
 					int offset;
+					int whichlen;
 					char *x;
 
-					offset = strlen(which) + 1;
+					whichlen = strlen(which);
 
-					dkim_dstring_cat(dkim->dkim_hdrbuf,
-					                 which);
-					dkim_dstring_cat(dkim->dkim_hdrbuf,
-					                 "=");
+					offset = whichlen + 1;
+
+					dkim_dstring_catn(dkim->dkim_hdrbuf,
+					                  which, whichlen);
+					dkim_dstring_cat1(dkim->dkim_hdrbuf,
+					                  '=');
 
 					len += offset;
 
@@ -6180,31 +6198,33 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 						if (len >= dkim->dkim_margin &&
 						    more)
 						{
-							dkim_dstring_cat(dkim->dkim_hdrbuf,
-							                 "\r\n\t ");
+							dkim_dstring_catn(dkim->dkim_hdrbuf,
+							                  "\r\n\t ",
+							                  4);
 							len = 9;
 						}
 					}
 				}
 				else
 				{			/* break at delimiter */
-					dkim_dstring_cat(dkim->dkim_hdrbuf,
-					                 pv);
-					len += strlen(pv);
+					dkim_dstring_catn(dkim->dkim_hdrbuf,
+					                  pv, pvlen);
+					len += pvlen;
 				}
 			}
 			else
 			{
 				if (!first)
 				{
-					dkim_dstring_cat(dkim->dkim_hdrbuf,
-					                 " ");
+					dkim_dstring_cat1(dkim->dkim_hdrbuf,
+					                  ' ');
 					len += 1;
 				}
 
 				first = FALSE;
-				dkim_dstring_cat(dkim->dkim_hdrbuf, pv);
-				len += strlen(pv);
+				dkim_dstring_catn(dkim->dkim_hdrbuf, pv,
+				                  pvlen);
+				len += pvlen;
 			}
 		}
 	}
