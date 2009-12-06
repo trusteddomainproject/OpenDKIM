@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36.2.2 2009/12/06 06:07:00 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36.2.3 2009/12/06 06:27:26 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2174,10 +2174,6 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		if ((hdr->hdr_flags & DKIM_HDR_SIGNED) == 0)
 			continue;
 
-		memset(tmp, '\0', sizeof tmp);
-		strncpy(tmp, hdr->hdr_text,
-		        MIN(DKIM_MAXHEADER, hdr->hdr_namelen));
-
 		if (!firsthdr)
 		{
 			dkim_dstring_cat1(dstr, ':');
@@ -2191,7 +2187,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 
 		firsthdr = FALSE;
 
-		dkim_dstring_cat(dstr, tmp);
+		dkim_dstring_catn(dstr, hdr->hdr_text, hdr->hdr_namelen);
 
 		if (dkim->dkim_libhandle->dkiml_alwayshdrs != NULL)
 		{
@@ -2245,25 +2241,23 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		char *end;
 		size_t len;
 
-		first = TRUE;
-
-		end = tmp + sizeof tmp - 1;
-
 		dkim_dstring_cat1(dstr, ';');
 		dkim_dstring_catn(dstr, delim, delimlen);
 		dkim_dstring_catn(dstr, "z=", 2);
 
+		first = TRUE;
+		end = tmp + sizeof tmp - 1;
+
 		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
 		{
-			memset(tmp, '\0', sizeof tmp);
 			q = tmp;
-			len = sizeof tmp - 1;
+			len = 0;
 
 			if (!first)
 			{
-				tmp[0] = '|';
+				*q = '|';
 				q++;
-				len--;
+				len++;
 			}
 
 			first = FALSE;
@@ -2279,17 +2273,17 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 				{
 					*q = *p;
 					q++;
-					len--;
+					len++;
 				}
-				else
+				else if (q < end - 3)
 				{
 					snprintf(q, len, "=%02X", *p);
 					q += 3;
-					len -= 3;
+					len += 3;
 				}
 			}
 
-			dkim_dstring_cat(dstr, tmp);
+			dkim_dstring_catn(dstr, tmp, len);
 		}
 	}
 
