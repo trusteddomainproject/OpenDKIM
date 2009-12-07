@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36.2.3 2009/12/06 06:27:26 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36.2.4 2009/12/07 07:46:21 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6067,6 +6067,7 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 		_Bool first = TRUE;
 		_Bool forcewrap;
 		int pvlen;
+		int whichlen;
 		char *p;
 		char *q;
 		char *end;
@@ -6085,7 +6086,10 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 				*(q + 1) = '\0';
 			}
 
+			whichlen = strlen(which);
+
 			/* force wrapping of "b=" ? */
+
 			forcewrap = FALSE;
 			if (sig->sig_keytype == DKIM_KEYTYPE_RSA)
 			{
@@ -6093,7 +6097,7 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 
 				siglen = BASE64SIZE(sig->sig_keybits / 8);
 				if (strcmp(which, "b") == 0 &&
-				    len + strlen(which) + siglen + 1 >= dkim->dkim_margin)
+				    len + whichlen + siglen + 1 >= dkim->dkim_margin)
 					forcewrap = TRUE;
 			}
 
@@ -6167,12 +6171,9 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 				{			/* break at margins */
 					_Bool more;
 					int offset;
-					int whichlen;
 					int n;
 					char *x;
 					char *y;
-
-					whichlen = strlen(which);
 
 					offset = whichlen + 1;
 
