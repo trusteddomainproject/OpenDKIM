@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.13 2009/12/06 05:05:37 cm-msk Exp $
+$Id: BRANCHES,v 1.14 2009/12/08 18:15:35 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -9,8 +9,6 @@ Production Branches
 
 HEAD/TRUNK	ongoing development
 		[*** IN CODE FREEZE PENDING 1.2.0 RELEASE ***]
-
-br-1-1		v1.1.x releases
 
 
 Experimental Branches (branch name contains owner)
@@ -31,6 +29,8 @@ br-msk-lua	Experimenting with LUA for scriptable policy hooks
 
 Closed Branches
 ~~~~~~~~~~~~~~~
+
+br-1-1		v1.1.x releases
 
 br-dblack-autoimprovements
 		m4 subdirectory for macros
