@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test88_c_id[] = "@(#)$Id: t-test88.c,v 1.1 2009/11/28 19:02:37 cm-msk Exp $";
+static char t_test88_c_id[] = "@(#)$Id: t-test88.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -16,8 +16,8 @@ static char t_test88_c_id[] = "@(#)$Id: t-test88.c,v 1.1 2009/11/28 19:02:37 cm-
 #include <stdio.h>
 
 /* libopendkim includes */
-#include "dkim.h"
-#include "dkim-strl.h"
+#include "../dkim.h"
+#include "../dkim-strl.h"
 #include "t-testdata.h"
 
 #define	MAXHEADER	4096
