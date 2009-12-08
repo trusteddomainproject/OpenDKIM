@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.16 2009/11/28 19:33:31 cm-msk Exp $
+# $Id: Makefile.am,v 1.17 2009/12/08 19:12:15 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -115,7 +115,7 @@ EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail \
 	libopendkim/docs/dkim_libfeature.html
 
 dist-hook:
-	[ -f  $(distdir)/libopendkim/dkim.h ] && rm -f  $(distdir)/libopendkim/dkim.h
+	[ -f $(distdir)/libopendkim/dkim.h ] && rm -f  $(distdir)/libopendkim/dkim.h
 	sed -e '/^#define[ \t]*OPENDKIM_LIB_VERSION/s/0x[0-9]*/0x@HEX_VERSION@/' < $(srcdir)/libopendkim/dkim.h > $(distdir)/libopendkim/dkim.h
 	echo "looking to see if @VERSION@ is in the RELEASE_NOTES"
 	fgrep @VERSION@ $(srcdir)/RELEASE_NOTES
