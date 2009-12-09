@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.89 2009/12/05 00:46:20 cm-msk Exp $
+# $Id: configure.ac,v 1.90 2009/12/09 22:23:45 cm-msk Exp $
 
 #
 # Setup
@@ -178,7 +178,7 @@ AC_DEFUN([LIB_FFR_FEATURE],
 #
 FEATURE([popauth], [enable POP-before-SMTP support])
 
-FFR_FEATURE([bodylengthdb], [support for body length DBs])
+FFR_FEATURE([bodylength_db], [support for body length DBs])
 
 FFR_FEATURE([capture_unknown_errors],
             [quarantine unknown verification failures])
