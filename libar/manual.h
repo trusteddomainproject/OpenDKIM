@@ -6,7 +6,7 @@
 #define _MANUAL_H_
 
 #ifndef lint
-static char manual_h_id[] = "@(#)$Id: manual.h,v 1.3 2009/10/27 06:38:00 cm-msk Exp $";
+static char manual_h_id[] = "@(#)$Id: manual.h,v 1.4 2009/12/10 22:17:30 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -17,9 +17,9 @@ static char manual_h_id[] = "@(#)$Id: manual.h,v 1.3 2009/10/27 06:38:00 cm-msk 
 
 /* PROTOTYPES */
 #ifdef AF_INET6
-extern int ar_res_parse(int *, struct sockaddr_storage *, int *, time_t *);
+extern int ar_res_parse(int *, struct sockaddr_storage *, int *, long *);
 #else /* AF_INET6 */
-extern int ar_res_parse(int *, struct sockaddr_in *, int *, time_t *);
+extern int ar_res_parse(int *, struct sockaddr_in *, int *, long *);
 #endif /* AF_INET6 */
 
 #endif /* ! _MANUAL_H_ */
