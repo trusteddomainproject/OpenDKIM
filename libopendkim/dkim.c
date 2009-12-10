@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36.2.4 2009/12/07 07:46:21 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36.2.5 2009/12/10 00:12:45 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -243,16 +243,20 @@ const u_char *required_signhdrs[] =
 static void
 dkim_set_free(DKIM *dkim, DKIM_SET *set)
 {
+	int c;
 	DKIM_PLIST *plist;
 	DKIM_PLIST *pnext;
 
 	assert(set != NULL);
 
-	for (plist = set->set_plist; plist != NULL; plist = pnext)
+	for (c = 0; c < UCHAR_MAX; c++)
 	{
-		pnext = plist->plist_next;
+		for (plist = set->set_plist[c]; plist != NULL; plist = pnext)
+		{
+			pnext = plist->plist_next;
 
-		CLOBBER(plist);
+			CLOBBER(plist);
+		}
 	}
 
 	CLOBBER(set->set_data);
@@ -338,7 +342,9 @@ dkim_param_get(DKIM_SET *set, u_char *param)
 	assert(set != NULL);
 	assert(param != NULL);
 
-	for (plist = set->set_plist; plist != NULL; plist = plist->plist_next)
+	for (plist = set->set_plist[param[0]];
+	     plist != NULL;
+	     plist = plist->plist_next)
 	{
 		if (strcmp(plist->plist_param, param) == 0)
 			return plist->plist_value;
@@ -376,7 +382,9 @@ dkim_add_plist(DKIM *dkim, DKIM_SET *set, u_char *param, u_char *value,
 	assert(value != NULL);
 
 	/* see if we have one already */
-	for (plist = set->set_plist; plist != NULL; plist = plist->plist_next)
+	for (plist = set->set_plist[param[0]];
+	     plist != NULL;
+	     plist = plist->plist_next)
 	{
 		if (strcasecmp(plist->plist_param, param) == 0)
 			break;
@@ -393,8 +401,8 @@ dkim_add_plist(DKIM *dkim, DKIM_SET *set, u_char *param, u_char *value,
 			return -1;
 		}
 		force = TRUE;
-		plist->plist_next = set->set_plist;
-		set->set_plist = plist;
+		plist->plist_next = set->set_plist[param[0]];
+		set->set_plist[param[0]] = plist;
 		plist->plist_param = param;
 	}
 
@@ -478,7 +486,7 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 	}
 
 	set->set_next = NULL;
-	set->set_plist = NULL;
+	memset(&set->set_plist, '\0', sizeof set->set_plist);
 	set->set_data = hcopy;
 	set->set_udata = udata;
 	set->set_bad = FALSE;
@@ -2041,23 +2049,27 @@ dkim_siglist_setup(DKIM *dkim)
 		/* populate the user handle */
 		if (lib->dkiml_sig_tagvalues != NULL)
 		{
+			u_int n;
 			dkim_param_t pcode;
 			struct dkim_plist *plist;
 			void *user;
 
 			user = dkim->dkim_siglist[c]->sig_context;
 
-			for (plist = set->set_plist;
-			     plist != NULL;
-			     plist = plist->plist_next)
+			for (n = 0; n < UCHAR_MAX; n++)
 			{
-				pcode = dkim_name_to_code(sigparams,
-				                          plist->plist_param);
+				for (plist = set->set_plist[n];
+				     plist != NULL;
+				     plist = plist->plist_next)
+				{
+					pcode = dkim_name_to_code(sigparams,
+					                          plist->plist_param);
 
-				(void) lib->dkiml_sig_tagvalues(user,
-				                                pcode,
-				                                plist->plist_param,
-				                                plist->plist_value);
+					(void) lib->dkiml_sig_tagvalues(user,
+					                                pcode,
+					                                plist->plist_param,
+					                                plist->plist_value);
+				}
 			}
 		}
 	}
