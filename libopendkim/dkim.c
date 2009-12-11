@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36.2.5 2009/12/10 00:12:45 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36.2.6 2009/12/11 00:03:06 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -105,6 +105,8 @@ void dkim_error __P((DKIM *, const char *, ...));
 #define	DKIM_CHUNKSTATE_HEADER	1
 #define	DKIM_CHUNKSTATE_BODY	2
 #define	DKIM_CHUNKSTATE_DONE	3
+
+#define	DKIM_PHASH(x)		((x) - 32)
 
 #ifdef _FFR_DIFFHEADERS
 # define COST_INSERT		1
@@ -249,7 +251,7 @@ dkim_set_free(DKIM *dkim, DKIM_SET *set)
 
 	assert(set != NULL);
 
-	for (c = 0; c < UCHAR_MAX; c++)
+	for (c = 0; c < NPRINTABLE; c++)
 	{
 		for (plist = set->set_plist[c]; plist != NULL; plist = pnext)
 		{
@@ -342,7 +344,7 @@ dkim_param_get(DKIM_SET *set, u_char *param)
 	assert(set != NULL);
 	assert(param != NULL);
 
-	for (plist = set->set_plist[param[0]];
+	for (plist = set->set_plist[DKIM_PHASH(param[0])];
 	     plist != NULL;
 	     plist = plist->plist_next)
 	{
@@ -381,8 +383,14 @@ dkim_add_plist(DKIM *dkim, DKIM_SET *set, u_char *param, u_char *value,
 	assert(param != NULL);
 	assert(value != NULL);
 
+	if (!isprint(param[0]))
+	{
+		dkim_error(dkim, "invalid parameter `%s'", param);
+		return -1;
+	}
+
 	/* see if we have one already */
-	for (plist = set->set_plist[param[0]];
+	for (plist = set->set_plist[DKIM_PHASH(param[0])];
 	     plist != NULL;
 	     plist = plist->plist_next)
 	{
@@ -393,6 +401,8 @@ dkim_add_plist(DKIM *dkim, DKIM_SET *set, u_char *param, u_char *value,
 	/* nope; make one and connect it */
 	if (plist == NULL)
 	{
+		int n;
+
 		plist = (DKIM_PLIST *) DKIM_MALLOC(dkim, sizeof(DKIM_PLIST));
 		if (plist == NULL)
 		{
@@ -401,8 +411,9 @@ dkim_add_plist(DKIM *dkim, DKIM_SET *set, u_char *param, u_char *value,
 			return -1;
 		}
 		force = TRUE;
-		plist->plist_next = set->set_plist[param[0]];
-		set->set_plist[param[0]] = plist;
+		n = DKIM_PHASH(param[0]);
+		plist->plist_next = set->set_plist[n];
+		set->set_plist[n] = plist;
 		plist->plist_param = param;
 	}
 
@@ -2056,7 +2067,7 @@ dkim_siglist_setup(DKIM *dkim)
 
 			user = dkim->dkim_siglist[c]->sig_context;
 
-			for (n = 0; n < UCHAR_MAX; n++)
+			for (n = 0; n < NPRINTABLE; n++)
 			{
 				for (plist = set->set_plist[n];
 				     plist != NULL;

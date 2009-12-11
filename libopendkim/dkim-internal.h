@@ -6,7 +6,7 @@
 #define _DKIM_INTERNAL_H_
 
 #ifndef lint
-static char dkim_internal_h_id[] = "@(#)$Id: dkim-internal.h,v 1.3 2009/11/11 17:40:35 cm-msk Exp $";
+static char dkim_internal_h_id[] = "@(#)$Id: dkim-internal.h,v 1.3.10.1 2009/12/11 00:03:06 cm-msk Exp $";
 #endif /* !lint */
 
 /* libopendkim includes */
@@ -61,6 +61,8 @@ static char dkim_internal_h_id[] = "@(#)$Id: dkim-internal.h,v 1.3 2009/11/11 17
 #define MAXLABELS		16	/* max. labels we allow */
 #define MAXPOLICYDEPTH		1	/* policy recursion we allow */
 #define MAXTAGNAME		8	/* biggest tag name */
+
+#define	NPRINTABLE		95	/* number of printable characters */
 
 #define DKIM_MAXHEADER		4096	/* buffer for caching one header */
 #define	DKIM_MAXHOSTNAMELEN	256	/* max. FQDN we support */
