@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.67 2009/11/24 22:41:00 cm-msk Exp $
+**  $Id: opendkim.c,v 1.68 2009/12/17 20:27:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.67 2009/11/24 22:41:00 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.68 2009/12/17 20:27:12 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2315,7 +2315,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                   confstr, sizeof confstr);
 		dkimf_parseconfig2(data, "On-DNSError", "dns", confstr,
 		                   sizeof confstr);
-		dkimf_parseconfig2(data, "On-NoKey", "key", confstr,
+		dkimf_parseconfig2(data, "On-KeyNotFound", "key", confstr,
 		                   sizeof confstr);
 		dkimf_parseconfig2(data, "On-InternalError", "int",
 		                   confstr, sizeof confstr);
