@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.6.2 2009/12/04 22:16:34 cm-msk Exp $
+# $Id: configure.ac,v 1.67.6.3 2009/12/19 22:04:15 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -77,6 +77,17 @@ then
 		x"$haslcov" != x"yes"
 	then
 		AC_MSG_ERROR([no supported test coverage packages found])
+	fi
+
+	# see if there's a libgcov (OpenBSD doesn't have one)
+	if test x"$hasgcov" = x"yes" -a x"$haslcov" != x"yes"
+	then
+		saved_LIBS="$LIBS"
+		LIBS=""
+		AC_SEARCH_LIBS([gcov_exit], [gcov])
+		GCOV_LIBS="$LIBS"
+		LIBS="$saved_LIBS"
+		AC_SUBST(GCOV_LIBS)
 	fi
 
 	AM_CONDITIONAL(LCOV, test x"$haslcov" = x"yes" -a x"$hasgcov" = x"yes")

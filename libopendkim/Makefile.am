@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.39.2.8 2009/12/19 21:32:11 cm-msk Exp $
+# $Id: Makefile.am,v 1.39.2.9 2009/12/19 22:04:15 cm-msk Exp $
 
 COV_CFLAGS =
 COV_LDFLAGS =
@@ -9,7 +9,7 @@ COV_LDFLAGS += -g -pg
 endif
 if GCOV
 COV_CFLAGS += -g -fprofile-arcs -ftest-coverage
-COV_LIBADD += -lgcov
+COV_LIBADD += $(GCOV_LIBS)
 endif
 
 lib_LTLIBRARIES = libopendkim.la
