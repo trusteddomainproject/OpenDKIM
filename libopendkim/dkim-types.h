@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.11 2009/11/23 05:14:39 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.11.4.1 2009/12/19 18:06:19 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -27,7 +27,6 @@ static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.11 2009/11/23 05:14:3
 # include <regex.h>
 #endif /* USE_TRE */
 
-#include "build-config.h"
 /* libar includes */
 #ifdef USE_ARLIB
 # include "ar.h"
