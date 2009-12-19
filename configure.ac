@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.91 2009/12/17 20:35:05 cm-msk Exp $
+# $Id: configure.ac,v 1.92 2009/12/19 16:42:59 cm-msk Exp $
 
 #
 # Setup
@@ -842,9 +842,16 @@ then
 			LIBDK_INCDIRS="-I$dk/include"
 			LIBDK_LIBDIRS="-L$dk/lib"
 			LIBDK_LIBS="-ldk"
+			AC_DEFINE([VERIFY_DOMAINKEYS], ,
+			          [compile with libdk for DomainKeys support])
 			break;
 		fi
 	done
+
+	if test x"$dk" = x"yes"
+	then
+		AC_MSG_ERROR([not found])
+	fi
 elif test x"$dk" = x"no"
 then
 	LIBDK_INCDIRS=""
@@ -859,6 +866,8 @@ else
 		LIBDK_INCDIRS="-I$dk/include"
 		LIBDK_LIBDIRS="-L$dk/lib"
 		LIBDK_LIBS="-ldk"
+		AC_DEFINE([VERIFY_DOMAINKEYS], ,
+		          [compile with libdk for DomainKeys support])
 	else
 		AC_MSG_ERROR([not found at $dk])
 	fi
