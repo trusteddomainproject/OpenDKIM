@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.89 2009/12/05 00:46:20 cm-msk Exp $
+# $Id: configure.ac,v 1.89.4.1 2009/12/19 17:43:57 cm-msk Exp $
 
 #
 # Setup
@@ -12,7 +12,7 @@ AC_PREREQ(2.62)
 #
 m4_define([VERSION_RELEASE], 1)
 m4_define([VERSION_MAJOR_REV], 2)
-m4_define([VERSION_MINOR_REV], 0)
+m4_define([VERSION_MINOR_REV], 1)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -178,7 +178,7 @@ AC_DEFUN([LIB_FFR_FEATURE],
 #
 FEATURE([popauth], [enable POP-before-SMTP support])
 
-FFR_FEATURE([bodylengthdb], [support for body length DBs])
+FFR_FEATURE([bodylength_db], [support for body length DBs])
 
 FFR_FEATURE([capture_unknown_errors],
             [quarantine unknown verification failures])
@@ -731,6 +731,7 @@ then
 			break;
 		fi
 	done
+
 	# yes here means the above look didn't find it
 	if test x"$bdb" = x"yes"
 	then
@@ -782,6 +783,9 @@ then
 	then
 		AC_MSG_ERROR([cannot find db_create or dbopen])
 	fi
+
+	AC_DEFINE(USE_DB, 1,
+	          [enable support for SleepyCat/Berkeley DB libraries])
 elif test x"$bdb" = x"no"
 then
 	AC_MSG_CHECKING([for BerkeleyDB])
@@ -811,6 +815,8 @@ else
 		LIBDB_LIBDIRS="-L$bdb/lib"
 		LIBDB_LIBS="-ldb"
 		AC_MSG_RESULT([$bdb])
+		AC_DEFINE(USE_DB, 1,
+		          [enable support for SleepyCat/Berkeley DB libraries])
 	else
 		AC_MSG_RESULT([not found - assuming libc])
 	fi
@@ -842,9 +848,16 @@ then
 			LIBDK_INCDIRS="-I$dk/include"
 			LIBDK_LIBDIRS="-L$dk/lib"
 			LIBDK_LIBS="-ldk"
+			AC_DEFINE([VERIFY_DOMAINKEYS], ,
+			          [compile with libdk for DomainKeys support])
 			break;
 		fi
 	done
+
+	if test x"$dk" = x"yes"
+	then
+		AC_MSG_ERROR([not found])
+	fi
 elif test x"$dk" = x"no"
 then
 	LIBDK_INCDIRS=""
@@ -859,6 +872,8 @@ else
 		LIBDK_INCDIRS="-I$dk/include"
 		LIBDK_LIBDIRS="-L$dk/lib"
 		LIBDK_LIBS="-ldk"
+		AC_DEFINE([VERIFY_DOMAINKEYS], ,
+		          [compile with libdk for DomainKeys support])
 	else
 		AC_MSG_ERROR([not found at $dk])
 	fi

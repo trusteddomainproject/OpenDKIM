@@ -1,9 +1,18 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.65 2009/12/08 18:16:53 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.65.2.1 2009/12/19 17:43:57 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
+
+1.2.1		2009/??/??
+	Fix a disconnect in configuration regarding "On-KeyNotFound".
+	Report _FFR_REPORT_INTERVALS in "-V" output.
+	LIBAR: Tidy up some compile-time warnings.
+	BUILD: Correct name of "bodylength_db" feature.
+	BUILD: Define VERIFY_DOMAINKEYS in build-config.h when
+		"--with-domainkeys" is enabled.
+	BUILD: Define USE_DB in build-config.h when "--with-db" is enabled.
 
 1.2.0		2009/12/08
 	Feature request #SF2873902: Overhaul the database backend code so that

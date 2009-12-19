@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.14 2009/12/08 18:15:35 cm-msk Exp $
+$Id: BRANCHES,v 1.14.2.1 2009/12/19 17:43:57 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -8,7 +8,8 @@ Production Branches
 ~~~~~~~~~~~~~~~~~~~
 
 HEAD/TRUNK	ongoing development
-		[*** IN CODE FREEZE PENDING 1.2.0 RELEASE ***]
+
+br-1-2		v1.2.x releases
 
 
 Experimental Branches (branch name contains owner)
