@@ -1,0 +1,5 @@
+This directory will contain the output of an "lcov" (code coverage) report
+run during packaging of this release.  To read it, point your favourite
+browser at "index.html" in this directory.
+
+$Id: README,v 1.1.2.1 2009/12/19 18:57:23 cm-msk Exp $
