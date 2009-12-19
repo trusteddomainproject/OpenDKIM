@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.39.2.6 2009/12/19 20:18:10 cm-msk Exp $
+# $Id: Makefile.am,v 1.39.2.7 2009/12/19 21:27:54 cm-msk Exp $
 
 COV_CFLAGS =
 COV_LDFLAGS =
@@ -1269,7 +1269,7 @@ maintainer-clean-local:
 endif
 
 if GPROF
-MOSTLYCLEANFILES+=*.prof gmon.out
+MOSTLYCLEANFILES+=*.prof gmon.out *.gmon
 
 check-local: check-TESTS
 	for i in $(check_PROGRAMS); do \
