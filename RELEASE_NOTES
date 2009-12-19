@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.67 2009/12/19 16:42:59 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.68 2009/12/19 17:06:31 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -12,6 +12,7 @@ release, and a summary of the changes in that release.
 	BUILD: Correct name of "bodylength_db" feature.
 	BUILD: Define VERIFY_DOMAINKEYS in build-config.h when
 		"--with-domainkeys" is enabled.
+	BUILD: Fix "bdbrequired" tests.
 
 1.2.0		2009/12/08
 	Feature request #SF2873902: Overhaul the database backend code so that

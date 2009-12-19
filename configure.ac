@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.92 2009/12/19 16:42:59 cm-msk Exp $
+# $Id: configure.ac,v 1.93 2009/12/19 17:06:31 cm-msk Exp $
 
 #
 # Setup
@@ -695,8 +695,8 @@ AM_CONDITIONAL(USE_DB_OPENDKIM,
 	            x"$enable_report_intervals" = x"yes")
 AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")
 
-if test x"$USE_DB_OPENDKIM_TRUE" = x"" -o \
-	x"$USE_DB_LIBOPENDKIM_TRUE" = x""
+if test x"$USE_DB_OPENDKIM_TRUE" = x"#" -o \
+	x"$USE_DB_LIBOPENDKIM_TRUE" = x"#"
 then
 	bdbrequired="yes"
 else
