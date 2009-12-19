@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.93 2009/12/19 17:06:31 cm-msk Exp $
+# $Id: configure.ac,v 1.94 2009/12/19 17:14:54 cm-msk Exp $
 
 #
 # Setup
@@ -731,6 +731,7 @@ then
 			break;
 		fi
 	done
+
 	# yes here means the above look didn't find it
 	if test x"$bdb" = x"yes"
 	then
@@ -782,6 +783,9 @@ then
 	then
 		AC_MSG_ERROR([cannot find db_create or dbopen])
 	fi
+
+	AC_DEFINE(USE_DB, 1,
+	          [enable support for SleepyCat/Berkeley DB libraries])
 elif test x"$bdb" = x"no"
 then
 	AC_MSG_CHECKING([for BerkeleyDB])
@@ -811,6 +815,8 @@ else
 		LIBDB_LIBDIRS="-L$bdb/lib"
 		LIBDB_LIBS="-ldb"
 		AC_MSG_RESULT([$bdb])
+		AC_DEFINE(USE_DB, 1,
+		          [enable support for SleepyCat/Berkeley DB libraries])
 	else
 		AC_MSG_RESULT([not found - assuming libc])
 	fi
