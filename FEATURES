@@ -30,7 +30,7 @@ allsymbols	By default, the build will attempt to create a libopendkim
 		exports those as well.  This is intended only for running
 		library unit tests.  (libopendkim)
 
-bodylengthdb	Optionally query a local database of recipient addresses
+bodylength_db	Optionally query a local database of recipient addresses
 		to determine if an "l=" tag should be applied when
 		signing.  (opendkim)
 
@@ -111,4 +111,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.14 $, Last updated $Date: 2009/11/23 04:40:14 $
+$Revision: 1.15 $, Last updated $Date: 2009/12/19 23:51:58 $
