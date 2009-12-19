@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.89.4.1 2009/12/19 17:43:57 cm-msk Exp $
+# $Id: configure.ac,v 1.89.4.2 2009/12/19 17:49:06 cm-msk Exp $
 
 #
 # Setup
@@ -536,7 +536,7 @@ then
         	PKG_CHECK_MODULES([LIBTRE], [tre >= 0.7.5], 
 		[
 			tre_found="yes"
-			AC_DEFINE([TRE_PRE_080], ,
+			AC_DEFINE([TRE_PRE_080], 1,
 			          [version of libtre is older than 0.8.0])
 		],[
 		        tre_found="no"
@@ -562,7 +562,7 @@ then
 		then
 			tre_found="yes"
                         AC_MSG_RESULT([$trepath (old version)])
-			AC_DEFINE([TRE_PRE_080], ,
+			AC_DEFINE([TRE_PRE_080], 1,
 			          [version of libtre is older than 0.8.0])
                         LIBTRE_CFLAGS="-I$trepath/include"
                         LIBTRE_LIBS="-L$trepath/lib -ltre"
@@ -586,9 +586,8 @@ then
 				trepath=$d
 				tre_found="yes"
 				AC_MSG_RESULT([$d (old version)])
-				AC_DEFINE([TRE_PRE_080], ,
+				AC_DEFINE([TRE_PRE_080], 1,
 				          [version of libtre is older than 0.8.0])
-				AC_DEFINE(TRE_PRE_080)
 				LIBTRE_CFLAGS="-I$trepath/include"
 				LIBTRE_LIBS="-L$trepath/lib -ltre"
 				break;
@@ -848,7 +847,7 @@ then
 			LIBDK_INCDIRS="-I$dk/include"
 			LIBDK_LIBDIRS="-L$dk/lib"
 			LIBDK_LIBS="-ldk"
-			AC_DEFINE([VERIFY_DOMAINKEYS], ,
+			AC_DEFINE([VERIFY_DOMAINKEYS], 1,
 			          [compile with libdk for DomainKeys support])
 			break;
 		fi
@@ -872,7 +871,7 @@ else
 		LIBDK_INCDIRS="-I$dk/include"
 		LIBDK_LIBDIRS="-L$dk/lib"
 		LIBDK_LIBS="-ldk"
-		AC_DEFINE([VERIFY_DOMAINKEYS], ,
+		AC_DEFINE([VERIFY_DOMAINKEYS], 1,
 		          [compile with libdk for DomainKeys support])
 	else
 		AC_MSG_ERROR([not found at $dk])
