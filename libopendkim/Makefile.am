@@ -1,9 +1,11 @@
-# $Id: Makefile.am,v 1.39.2.5 2009/12/19 18:29:44 cm-msk Exp $
+# $Id: Makefile.am,v 1.39.2.6 2009/12/19 20:18:10 cm-msk Exp $
 
 COV_CFLAGS =
+COV_LDFLAGS =
 COV_LIBADD =
 if GPROF
 COV_CFLAGS += -g -pg
+COV_LDFLAGS += -g -pg
 endif
 if GCOV
 COV_CFLAGS += -g -fprofile-arcs -ftest-coverage
@@ -15,7 +17,7 @@ libopendkim_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailpa
 libopendkim_INCLUDES = base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-mailparse.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h util.h
 libopendkim_la_SOURCES = $(libopendkim_SOURCES) $(libopendkim_INCLUDES)
 libopendkim_la_CFLAGS = $(LIBCRYPTO_INCDIRS) $(COV_CFLAGS)
-libopendkim_la_LDFLAGS = $(LIBCRYPTO_LIBDIRS)
+libopendkim_la_LDFLAGS = $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 libopendkim_la_LIBADD = $(LIBCRYPTO_LIBS) $(COV_LIBADD)
 if !ALL_SYMBOLS
 libopendkim_la_DEPENDENCIES = symbols.map
@@ -144,7 +146,7 @@ check_PROGRAMS += t-cleanup
 TESTS = $(check_PROGRAMS)
 
 t_setup_SOURCES = t-setup.c t-testdata.h
-t_setup_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_setup_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_setup_CFLAGS = $(COV_CFLAGS)
 t_setup_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -152,7 +154,7 @@ t_setup_CFLAGS += -g
 endif
 
 t_cleanup_SOURCES = t-cleanup.c t-testdata.h
-t_cleanup_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_cleanup_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_cleanup_CFLAGS = $(COV_CFLAGS)
 t_cleanup_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -160,7 +162,7 @@ t_cleanup_CFLAGS += -g
 endif
 
 t_signperf_SOURCES = t-signperf.c t-testdata.h
-t_signperf_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_signperf_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_signperf_CFLAGS = $(COV_CFLAGS)
 t_signperf_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -168,7 +170,7 @@ t_signperf_CFLAGS += -g
 endif
 
 t_verifyperf_SOURCES = t-verifyperf.c t-testdata.h
-t_verifyperf_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_verifyperf_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_verifyperf_CFLAGS = $(COV_CFLAGS)
 t_verifyperf_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -176,7 +178,7 @@ t_verifyperf_CFLAGS += -g
 endif
 
 t_test00_SOURCES = t-test00.c t-testdata.h
-t_test00_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test00_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test00_CFLAGS = $(COV_CFLAGS)
 t_test00_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -184,7 +186,7 @@ t_test00_CFLAGS += -g
 endif
 
 t_test01_SOURCES = t-test01.c t-testdata.h
-t_test01_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test01_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test01_CFLAGS = $(COV_CFLAGS)
 t_test01_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -192,7 +194,7 @@ t_test01_CFLAGS += -g
 endif
 
 t_test02_SOURCES = t-test02.c t-testdata.h
-t_test02_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test02_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test02_CFLAGS = $(COV_CFLAGS)
 t_test02_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -200,7 +202,7 @@ t_test02_CFLAGS += -g
 endif
 
 t_test03_SOURCES = t-test03.c t-testdata.h
-t_test03_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test03_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test03_CFLAGS = $(COV_CFLAGS)
 t_test03_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -208,7 +210,7 @@ t_test03_CFLAGS += -g
 endif
 
 t_test04_SOURCES = t-test04.c t-testdata.h
-t_test04_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test04_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test04_CFLAGS = $(COV_CFLAGS)
 t_test04_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -216,7 +218,7 @@ t_test04_CFLAGS += -g
 endif
 
 t_test05_SOURCES = t-test05.c t-testdata.h
-t_test05_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test05_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test05_CFLAGS = $(COV_CFLAGS)
 t_test05_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -224,7 +226,7 @@ t_test05_CFLAGS += -g
 endif
 
 t_test06_SOURCES = t-test06.c t-testdata.h
-t_test06_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test06_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test06_CFLAGS = $(COV_CFLAGS)
 t_test06_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -232,7 +234,7 @@ t_test06_CFLAGS += -g
 endif
 
 t_test07_SOURCES = t-test07.c t-testdata.h
-t_test07_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test07_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test07_CFLAGS = $(COV_CFLAGS)
 t_test07_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -240,7 +242,7 @@ t_test07_CFLAGS += -g
 endif
 
 t_test08_SOURCES = t-test08.c t-testdata.h
-t_test08_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test08_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test08_CFLAGS = $(COV_CFLAGS)
 t_test08_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -248,7 +250,7 @@ t_test08_CFLAGS += -g
 endif
 
 t_test09_SOURCES = t-test09.c t-testdata.h
-t_test09_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test09_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test09_CFLAGS = $(COV_CFLAGS)
 t_test09_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -256,7 +258,7 @@ t_test09_CFLAGS += -g
 endif
 
 t_test10_SOURCES = t-test10.c t-testdata.h
-t_test10_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test10_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test10_CFLAGS = $(COV_CFLAGS)
 t_test10_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -264,7 +266,7 @@ t_test10_CFLAGS += -g
 endif
 
 t_test11_SOURCES = t-test11.c t-testdata.h
-t_test11_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test11_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test11_CFLAGS = $(COV_CFLAGS)
 t_test11_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -272,7 +274,7 @@ t_test11_CFLAGS += -g
 endif
 
 t_test12_SOURCES = t-test12.c t-testdata.h
-t_test12_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test12_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test12_CFLAGS = $(COV_CFLAGS)
 t_test12_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -280,7 +282,7 @@ t_test12_CFLAGS += -g
 endif
 
 t_test13_SOURCES = t-test13.c t-testdata.h
-t_test13_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test13_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test13_CFLAGS = $(COV_CFLAGS)
 t_test13_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -288,7 +290,7 @@ t_test13_CFLAGS += -g
 endif
 
 t_test14_SOURCES = t-test14.c t-testdata.h
-t_test14_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test14_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test14_CFLAGS = $(COV_CFLAGS)
 t_test14_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -296,7 +298,7 @@ t_test14_CFLAGS += -g
 endif
 
 t_test15_SOURCES = t-test15.c t-testdata.h
-t_test15_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test15_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test15_CFLAGS = $(COV_CFLAGS)
 t_test15_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -304,7 +306,7 @@ t_test15_CFLAGS += -g
 endif
 
 t_test16_SOURCES = t-test16.c t-testdata.h
-t_test16_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test16_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test16_CFLAGS = $(COV_CFLAGS)
 t_test16_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -312,7 +314,7 @@ t_test16_CFLAGS += -g
 endif
 
 t_test17_SOURCES = t-test17.c t-testdata.h
-t_test17_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test17_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test17_CFLAGS = $(COV_CFLAGS)
 t_test17_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -320,7 +322,7 @@ t_test17_CFLAGS += -g
 endif
 
 t_test18_SOURCES = t-test18.c t-testdata.h
-t_test18_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test18_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test18_CFLAGS = $(COV_CFLAGS)
 t_test18_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -328,7 +330,7 @@ t_test18_CFLAGS += -g
 endif
 
 t_test19_SOURCES = t-test19.c t-testdata.h
-t_test19_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test19_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test19_CFLAGS = $(COV_CFLAGS)
 t_test19_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -336,7 +338,7 @@ t_test19_CFLAGS += -g
 endif
 
 t_test20_SOURCES = t-test20.c t-testdata.h
-t_test20_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test20_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test20_CFLAGS = $(COV_CFLAGS)
 t_test20_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -344,7 +346,7 @@ t_test20_CFLAGS += -g
 endif
 
 t_test21_SOURCES = t-test21.c t-testdata.h
-t_test21_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test21_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test21_CFLAGS = $(COV_CFLAGS)
 t_test21_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -352,7 +354,7 @@ t_test21_CFLAGS += -g
 endif
 
 t_test22_SOURCES = t-test22.c t-testdata.h
-t_test22_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test22_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test22_CFLAGS = $(COV_CFLAGS)
 t_test22_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -360,7 +362,7 @@ t_test22_CFLAGS += -g
 endif
 
 t_test23_SOURCES = t-test23.c t-testdata.h
-t_test23_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test23_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test23_CFLAGS = $(COV_CFLAGS)
 t_test23_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -368,7 +370,7 @@ t_test23_CFLAGS += -g
 endif
 
 t_test24_SOURCES = t-test24.c t-testdata.h
-t_test24_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test24_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test24_CFLAGS = $(COV_CFLAGS)
 t_test24_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -376,7 +378,7 @@ t_test24_CFLAGS += -g
 endif
 
 t_test25_SOURCES = t-test25.c t-testdata.h
-t_test25_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test25_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test25_CFLAGS = $(COV_CFLAGS)
 t_test25_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -384,7 +386,7 @@ t_test25_CFLAGS += -g
 endif
 
 t_test26_SOURCES = t-test26.c t-testdata.h
-t_test26_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test26_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test26_CFLAGS = $(COV_CFLAGS)
 t_test26_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -392,7 +394,7 @@ t_test26_CFLAGS += -g
 endif
 
 t_test27_SOURCES = t-test27.c t-testdata.h
-t_test27_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test27_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test27_CFLAGS = $(COV_CFLAGS)
 t_test27_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -400,7 +402,7 @@ t_test27_CFLAGS += -g
 endif
 
 t_test28_SOURCES = t-test28.c t-testdata.h
-t_test28_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test28_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test28_CFLAGS = $(COV_CFLAGS)
 t_test28_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -408,7 +410,7 @@ t_test28_CFLAGS += -g
 endif
 
 t_test29_SOURCES = t-test29.c t-testdata.h
-t_test29_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test29_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test29_CFLAGS = $(COV_CFLAGS)
 t_test29_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -416,7 +418,7 @@ t_test29_CFLAGS += -g
 endif
 
 t_test30_SOURCES = t-test30.c t-testdata.h
-t_test30_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test30_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test30_CFLAGS = $(COV_CFLAGS)
 t_test30_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -424,7 +426,7 @@ t_test30_CFLAGS += -g
 endif
 
 t_test31_SOURCES = t-test31.c t-testdata.h
-t_test31_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test31_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test31_CFLAGS = $(COV_CFLAGS)
 t_test31_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -432,7 +434,7 @@ t_test31_CFLAGS += -g
 endif
 
 t_test32_SOURCES = t-test32.c t-testdata.h
-t_test32_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test32_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test32_CFLAGS = $(COV_CFLAGS)
 t_test32_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -440,7 +442,7 @@ t_test32_CFLAGS += -g
 endif
 
 t_test33_SOURCES = t-test33.c t-testdata.h
-t_test33_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test33_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test33_CFLAGS = $(COV_CFLAGS)
 t_test33_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -448,7 +450,7 @@ t_test33_CFLAGS += -g
 endif
 
 t_test34_SOURCES = t-test34.c t-testdata.h
-t_test34_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test34_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test34_CFLAGS = $(COV_CFLAGS)
 t_test34_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -456,7 +458,7 @@ t_test34_CFLAGS += -g
 endif
 
 t_test35_SOURCES = t-test35.c t-testdata.h
-t_test35_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test35_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test35_CFLAGS = $(COV_CFLAGS)
 t_test35_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -464,7 +466,7 @@ t_test35_CFLAGS += -g
 endif
 
 t_test36_SOURCES = t-test36.c t-testdata.h
-t_test36_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test36_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test36_CFLAGS = $(COV_CFLAGS)
 t_test36_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -472,7 +474,7 @@ t_test36_CFLAGS += -g
 endif
 
 t_test37_SOURCES = t-test37.c t-testdata.h
-t_test37_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test37_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test37_CFLAGS = $(COV_CFLAGS)
 t_test37_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -480,7 +482,7 @@ t_test37_CFLAGS += -g
 endif
 
 t_test38_SOURCES = t-test38.c t-testdata.h
-t_test38_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test38_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test38_CFLAGS = $(COV_CFLAGS)
 t_test38_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -488,7 +490,7 @@ t_test38_CFLAGS += -g
 endif
 
 t_test39_SOURCES = t-test39.c t-testdata.h
-t_test39_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test39_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test39_CFLAGS = $(COV_CFLAGS)
 t_test39_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -496,7 +498,7 @@ t_test39_CFLAGS += -g
 endif
 
 t_test40_SOURCES = t-test40.c t-testdata.h
-t_test40_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test40_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test40_CFLAGS = $(COV_CFLAGS)
 t_test40_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -504,7 +506,7 @@ t_test40_CFLAGS += -g
 endif
 
 t_test41_SOURCES = t-test41.c t-testdata.h
-t_test41_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test41_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test41_CFLAGS = $(COV_CFLAGS)
 t_test41_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -512,7 +514,7 @@ t_test41_CFLAGS += -g
 endif
 
 t_test42_SOURCES = t-test42.c t-testdata.h
-t_test42_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test42_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test42_CFLAGS = $(COV_CFLAGS)
 t_test42_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -520,7 +522,7 @@ t_test42_CFLAGS += -g
 endif
 
 t_test43_SOURCES = t-test43.c t-testdata.h
-t_test43_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test43_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test43_CFLAGS = $(COV_CFLAGS)
 t_test43_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -528,7 +530,7 @@ t_test43_CFLAGS += -g
 endif
 
 t_test44_SOURCES = t-test44.c t-testdata.h
-t_test44_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test44_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test44_CFLAGS = $(COV_CFLAGS)
 t_test44_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -536,7 +538,7 @@ t_test44_CFLAGS += -g
 endif
 
 t_test45_SOURCES = t-test45.c t-testdata.h
-t_test45_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test45_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test45_CFLAGS = $(COV_CFLAGS)
 t_test45_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -544,7 +546,7 @@ t_test45_CFLAGS += -g
 endif
 
 t_test46_SOURCES = t-test46.c t-testdata.h
-t_test46_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test46_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test46_CFLAGS = $(COV_CFLAGS)
 t_test46_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -552,7 +554,7 @@ t_test46_CFLAGS += -g
 endif
 
 t_test47_SOURCES = t-test47.c t-testdata.h
-t_test47_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test47_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test47_CFLAGS = $(COV_CFLAGS)
 t_test47_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -560,7 +562,7 @@ t_test47_CFLAGS += -g
 endif
 
 t_test48_SOURCES = t-test48.c t-testdata.h
-t_test48_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test48_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test48_CFLAGS = $(COV_CFLAGS)
 t_test48_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -568,7 +570,7 @@ t_test48_CFLAGS += -g
 endif
 
 t_test49_SOURCES = t-test49.c t-testdata.h
-t_test49_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test49_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test49_CFLAGS = $(COV_CFLAGS)
 t_test49_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -576,7 +578,7 @@ t_test49_CFLAGS += -g
 endif
 
 t_test50_SOURCES = t-test50.c t-testdata.h
-t_test50_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test50_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test50_CFLAGS = $(COV_CFLAGS)
 t_test50_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -584,7 +586,7 @@ t_test50_CFLAGS += -g
 endif
 
 t_test51_SOURCES = t-test51.c t-testdata.h
-t_test51_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test51_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test51_CFLAGS = $(COV_CFLAGS)
 t_test51_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -592,7 +594,7 @@ t_test51_CFLAGS += -g
 endif
 
 t_test52_SOURCES = t-test52.c t-testdata.h
-t_test52_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test52_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test52_CFLAGS = $(COV_CFLAGS)
 t_test52_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -600,7 +602,7 @@ t_test52_CFLAGS += -g
 endif
 
 t_test53_SOURCES = t-test53.c t-testdata.h
-t_test53_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test53_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test53_CFLAGS = $(COV_CFLAGS)
 t_test53_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -608,7 +610,7 @@ t_test53_CFLAGS += -g
 endif
 
 t_test54_SOURCES = t-test54.c t-testdata.h
-t_test54_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test54_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test54_CFLAGS = $(COV_CFLAGS)
 t_test54_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -616,7 +618,7 @@ t_test54_CFLAGS += -g
 endif
 
 t_test55_SOURCES = t-test55.c t-testdata.h
-t_test55_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test55_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test55_CFLAGS = $(COV_CFLAGS)
 t_test55_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -624,7 +626,7 @@ t_test55_CFLAGS += -g
 endif
 
 t_test56_SOURCES = t-test56.c t-testdata.h
-t_test56_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test56_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test56_CFLAGS = $(COV_CFLAGS)
 t_test56_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -632,7 +634,7 @@ t_test56_CFLAGS += -g
 endif
 
 t_test57_SOURCES = t-test57.c t-testdata.h
-t_test57_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test57_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test57_CFLAGS = $(COV_CFLAGS)
 t_test57_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -640,7 +642,7 @@ t_test57_CFLAGS += -g
 endif
 
 t_test58_SOURCES = t-test58.c t-testdata.h
-t_test58_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test58_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test58_CFLAGS = $(COV_CFLAGS)
 t_test58_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -648,7 +650,7 @@ t_test58_CFLAGS += -g
 endif
 
 t_test59_SOURCES = t-test59.c t-testdata.h
-t_test59_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test59_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test59_CFLAGS = $(COV_CFLAGS)
 t_test59_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -656,7 +658,7 @@ t_test59_CFLAGS += -g
 endif
 
 t_test60_SOURCES = t-test60.c t-testdata.h
-t_test60_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test60_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test60_CFLAGS = $(COV_CFLAGS)
 t_test60_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -664,7 +666,7 @@ t_test60_CFLAGS += -g
 endif
 
 t_test61_SOURCES = t-test61.c t-testdata.h
-t_test61_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test61_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test61_CFLAGS = $(COV_CFLAGS)
 t_test61_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -672,7 +674,7 @@ t_test61_CFLAGS += -g
 endif
 
 t_test62_SOURCES = t-test62.c t-testdata.h
-t_test62_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test62_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test62_CFLAGS = $(COV_CFLAGS)
 t_test62_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -680,7 +682,7 @@ t_test62_CFLAGS += -g
 endif
 
 t_test63_SOURCES = t-test63.c t-testdata.h
-t_test63_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test63_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test63_CFLAGS = $(COV_CFLAGS)
 t_test63_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -688,7 +690,7 @@ t_test63_CFLAGS += -g
 endif
 
 t_test64_SOURCES = t-test64.c t-testdata.h
-t_test64_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test64_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test64_CFLAGS = $(COV_CFLAGS)
 t_test64_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -696,7 +698,7 @@ t_test64_CFLAGS += -g
 endif
 
 t_test65_SOURCES = t-test65.c t-testdata.h
-t_test65_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test65_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test65_CFLAGS = $(COV_CFLAGS)
 t_test65_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -704,7 +706,7 @@ t_test65_CFLAGS += -g
 endif
 
 t_test66_SOURCES = t-test66.c t-testdata.h
-t_test66_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test66_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test66_CFLAGS = $(COV_CFLAGS)
 t_test66_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -712,7 +714,7 @@ t_test66_CFLAGS += -g
 endif
 
 t_test67_SOURCES = t-test67.c t-testdata.h
-t_test67_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test67_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test67_CFLAGS = $(COV_CFLAGS)
 t_test67_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -720,7 +722,7 @@ t_test67_CFLAGS += -g
 endif
 
 t_test68_SOURCES = t-test68.c t-testdata.h
-t_test68_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test68_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test68_CFLAGS = $(COV_CFLAGS)
 t_test68_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -728,7 +730,7 @@ t_test68_CFLAGS += -g
 endif
 
 t_test69_SOURCES = t-test69.c t-testdata.h
-t_test69_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test69_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test69_CFLAGS = $(COV_CFLAGS)
 t_test69_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -736,7 +738,7 @@ t_test69_CFLAGS += -g
 endif
 
 t_test70_SOURCES = t-test70.c t-testdata.h
-t_test70_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test70_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test70_CFLAGS = $(COV_CFLAGS)
 t_test70_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -744,7 +746,7 @@ t_test70_CFLAGS += -g
 endif
 
 t_test71_SOURCES = t-test71.c t-testdata.h
-t_test71_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test71_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test71_CFLAGS = $(COV_CFLAGS)
 t_test71_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -752,7 +754,7 @@ t_test71_CFLAGS += -g
 endif
 
 t_test72_SOURCES = t-test72.c t-testdata.h
-t_test72_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test72_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test72_CFLAGS = $(COV_CFLAGS)
 t_test72_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -760,7 +762,7 @@ t_test72_CFLAGS += -g
 endif
 
 t_test73_SOURCES = t-test73.c t-testdata.h
-t_test73_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test73_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test73_CFLAGS = $(COV_CFLAGS)
 t_test73_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -768,7 +770,7 @@ t_test73_CFLAGS += -g
 endif
 
 t_test74_SOURCES = t-test74.c t-testdata.h
-t_test74_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test74_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test74_CFLAGS = $(COV_CFLAGS)
 t_test74_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -776,7 +778,7 @@ t_test74_CFLAGS += -g
 endif
 
 t_test75_SOURCES = t-test75.c t-testdata.h
-t_test75_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test75_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test75_CFLAGS = $(COV_CFLAGS)
 t_test75_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -784,7 +786,7 @@ t_test75_CFLAGS += -g
 endif
 
 t_test76_SOURCES = t-test76.c t-testdata.h
-t_test76_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test76_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test76_CFLAGS = $(COV_CFLAGS)
 t_test76_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -792,7 +794,7 @@ t_test76_CFLAGS += -g
 endif
 
 t_test77_SOURCES = t-test77.c t-testdata.h
-t_test77_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test77_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test77_CFLAGS = $(COV_CFLAGS)
 t_test77_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -800,7 +802,7 @@ t_test77_CFLAGS += -g
 endif
 
 t_test78_SOURCES = t-test78.c t-testdata.h
-t_test78_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test78_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test78_CFLAGS = $(COV_CFLAGS)
 t_test78_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -808,7 +810,7 @@ t_test78_CFLAGS += -g
 endif
 
 t_test79_SOURCES = t-test79.c t-testdata.h
-t_test79_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test79_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test79_CFLAGS = $(COV_CFLAGS)
 t_test79_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -816,7 +818,7 @@ t_test79_CFLAGS += -g
 endif
 
 t_test80_SOURCES = t-test80.c t-testdata.h
-t_test80_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test80_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test80_CFLAGS = $(COV_CFLAGS)
 t_test80_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -824,7 +826,7 @@ t_test80_CFLAGS += -g
 endif
 
 t_test81_SOURCES = t-test81.c t-testdata.h
-t_test81_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test81_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test81_CFLAGS = $(COV_CFLAGS)
 t_test81_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -832,7 +834,7 @@ t_test81_CFLAGS += -g
 endif
 
 t_test82_SOURCES = t-test82.c t-testdata.h
-t_test82_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test82_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test82_CFLAGS = $(COV_CFLAGS)
 t_test82_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -840,7 +842,7 @@ t_test82_CFLAGS += -g
 endif
 
 t_test83_SOURCES = t-test83.c t-testdata.h
-t_test83_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test83_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test83_CFLAGS = $(COV_CFLAGS)
 t_test83_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -848,7 +850,7 @@ t_test83_CFLAGS += -g
 endif
 
 t_test84_SOURCES = t-test84.c t-testdata.h
-t_test84_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test84_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test84_CFLAGS = $(COV_CFLAGS)
 t_test84_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -856,7 +858,7 @@ t_test84_CFLAGS += -g
 endif
 
 t_test85_SOURCES = t-test85.c t-testdata.h
-t_test85_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test85_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test85_CFLAGS = $(COV_CFLAGS)
 t_test85_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -864,7 +866,7 @@ t_test85_CFLAGS += -g
 endif
 
 t_test86_SOURCES = t-test86.c t-testdata.h
-t_test86_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test86_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test86_CFLAGS = $(COV_CFLAGS)
 t_test86_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -872,7 +874,7 @@ t_test86_CFLAGS += -g
 endif
 
 t_test87_SOURCES = t-test87.c t-testdata.h
-t_test87_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test87_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test87_CFLAGS = $(COV_CFLAGS)
 t_test87_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -880,7 +882,7 @@ t_test87_CFLAGS += -g
 endif
 
 t_test88_SOURCES = t-test88.c t-testdata.h
-t_test88_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test88_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test88_CFLAGS = $(COV_CFLAGS)
 t_test88_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -888,7 +890,7 @@ t_test88_CFLAGS += -g
 endif
 
 t_test89_SOURCES = t-test89.c t-testdata.h
-t_test89_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test89_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test89_CFLAGS = $(COV_CFLAGS)
 t_test89_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -896,7 +898,7 @@ t_test89_CFLAGS += -g
 endif
 
 t_test90_SOURCES = t-test90.c t-testdata.h
-t_test90_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test90_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test90_CFLAGS = $(COV_CFLAGS)
 t_test90_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -904,7 +906,7 @@ t_test90_CFLAGS += -g
 endif
 
 t_test91_SOURCES = t-test91.c t-testdata.h
-t_test91_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test91_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test91_CFLAGS = $(COV_CFLAGS)
 t_test91_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -912,7 +914,7 @@ t_test91_CFLAGS += -g
 endif
 
 t_test92_SOURCES = t-test92.c t-testdata.h
-t_test92_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test92_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test92_CFLAGS = $(COV_CFLAGS)
 t_test92_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -920,7 +922,7 @@ t_test92_CFLAGS += -g
 endif
 
 t_test93_SOURCES = t-test93.c t-testdata.h
-t_test93_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test93_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test93_CFLAGS = $(COV_CFLAGS)
 t_test93_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -928,7 +930,7 @@ t_test93_CFLAGS += -g
 endif
 
 t_test94_SOURCES = t-test94.c t-testdata.h
-t_test94_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test94_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test94_CFLAGS = $(COV_CFLAGS)
 t_test94_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -936,7 +938,7 @@ t_test94_CFLAGS += -g
 endif
 
 t_test95_SOURCES = t-test95.c t-testdata.h
-t_test95_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test95_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test95_CFLAGS = $(COV_CFLAGS)
 t_test95_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -944,7 +946,7 @@ t_test95_CFLAGS += -g
 endif
 
 t_test96_SOURCES = t-test96.c t-testdata.h
-t_test96_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test96_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test96_CFLAGS = $(COV_CFLAGS)
 t_test96_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -952,7 +954,7 @@ t_test96_CFLAGS += -g
 endif
 
 t_test97_SOURCES = t-test97.c t-testdata.h
-t_test97_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test97_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test97_CFLAGS = $(COV_CFLAGS)
 t_test97_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -960,7 +962,7 @@ t_test97_CFLAGS += -g
 endif
 
 t_test98_SOURCES = t-test98.c t-testdata.h
-t_test98_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test98_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test98_CFLAGS = $(COV_CFLAGS)
 t_test98_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -968,7 +970,7 @@ t_test98_CFLAGS += -g
 endif
 
 t_test99_SOURCES = t-test99.c t-testdata.h
-t_test99_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test99_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test99_CFLAGS = $(COV_CFLAGS)
 t_test99_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -976,7 +978,7 @@ t_test99_CFLAGS += -g
 endif
 
 t_test100_SOURCES = t-test100.c t-testdata.h
-t_test100_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test100_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test100_CFLAGS = $(COV_CFLAGS)
 t_test100_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -984,7 +986,7 @@ t_test100_CFLAGS += -g
 endif
 
 t_test101_SOURCES = t-test101.c t-testdata.h
-t_test101_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test101_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test101_CFLAGS = $(COV_CFLAGS)
 t_test101_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -992,7 +994,7 @@ t_test101_CFLAGS += -g
 endif
 
 t_test102_SOURCES = t-test102.c t-testdata.h
-t_test102_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test102_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test102_CFLAGS = $(COV_CFLAGS)
 t_test102_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1000,7 +1002,7 @@ t_test102_CFLAGS += -g
 endif
 
 t_test103_SOURCES = t-test103.c t-testdata.h
-t_test103_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test103_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test103_CFLAGS = $(COV_CFLAGS)
 t_test103_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1008,7 +1010,7 @@ t_test103_CFLAGS += -g
 endif
 
 t_test104_SOURCES = t-test104.c t-testdata.h
-t_test104_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test104_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test104_CFLAGS = $(COV_CFLAGS)
 t_test104_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1016,7 +1018,7 @@ t_test104_CFLAGS += -g
 endif
 
 t_test105_SOURCES = t-test105.c t-testdata.h
-t_test105_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test105_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test105_CFLAGS = $(COV_CFLAGS)
 t_test105_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1024,7 +1026,7 @@ t_test105_CFLAGS += -g
 endif
 
 t_test106_SOURCES = t-test106.c t-testdata.h
-t_test106_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test106_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test106_CFLAGS = $(COV_CFLAGS)
 t_test106_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1032,7 +1034,7 @@ t_test106_CFLAGS += -g
 endif
 
 t_test107_SOURCES = t-test107.c t-testdata.h
-t_test107_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test107_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test107_CFLAGS = $(COV_CFLAGS)
 t_test107_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1040,7 +1042,7 @@ t_test107_CFLAGS += -g
 endif
 
 t_test108_SOURCES = t-test108.c t-testdata.h
-t_test108_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test108_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test108_CFLAGS = $(COV_CFLAGS)
 t_test108_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1048,7 +1050,7 @@ t_test108_CFLAGS += -g
 endif
 
 t_test109_SOURCES = t-test109.c t-testdata.h
-t_test109_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test109_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test109_CFLAGS = $(COV_CFLAGS)
 t_test109_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1056,7 +1058,7 @@ t_test109_CFLAGS += -g
 endif
 
 t_test110_SOURCES = t-test110.c t-testdata.h
-t_test110_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test110_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test110_CFLAGS = $(COV_CFLAGS)
 t_test110_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1064,7 +1066,7 @@ t_test110_CFLAGS += -g
 endif
 
 t_test111_SOURCES = t-test111.c t-testdata.h
-t_test111_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test111_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test111_CFLAGS = $(COV_CFLAGS)
 t_test111_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1072,7 +1074,7 @@ t_test111_CFLAGS += -g
 endif
 
 t_test112_SOURCES = t-test112.c t-testdata.h
-t_test112_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test112_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test112_CFLAGS = $(COV_CFLAGS)
 t_test112_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1081,7 +1083,7 @@ endif
 
 if ALL_SYMBOLS
 t_test113_SOURCES = t-test113.c t-testdata.h
-t_test113_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test113_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test113_CFLAGS = $(COV_CFLAGS)
 t_test113_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1090,7 +1092,7 @@ endif
 endif
 
 t_test114_SOURCES = t-test114.c t-testdata.h
-t_test114_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test114_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test114_CFLAGS = $(COV_CFLAGS)
 t_test114_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1098,7 +1100,7 @@ t_test114_CFLAGS += -g
 endif
 
 t_test115_SOURCES = t-test115.c t-testdata.h
-t_test115_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test115_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test115_LDADD = ./libopendkim.la $(COV_LIBADD)
 t_test115_CFLAGS = $(LIBCRYPTO_INCDIRS) $(COV_CFLAGS)
 if DEBUG
@@ -1106,7 +1108,7 @@ t_test115_CFLAGS += -g
 endif
 
 t_test116_SOURCES = t-test116.c t-testdata.h
-t_test116_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test116_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test116_CFLAGS = $(COV_CFLAGS)
 t_test116_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1114,7 +1116,7 @@ t_test116_CFLAGS += -g
 endif
 
 t_test117_SOURCES = t-test117.c t-testdata.h
-t_test117_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test117_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test117_CFLAGS = $(COV_CFLAGS)
 t_test117_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1123,7 +1125,7 @@ endif
 
 if ALL_SYMBOLS
 t_test118_SOURCES = t-test118.c t-testdata.h
-t_test118_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test118_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test118_CFLAGS = $(COV_CFLAGS)
 t_test118_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1132,7 +1134,7 @@ endif
 endif
 
 t_test119_SOURCES = t-test119.c t-testdata.h
-t_test119_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test119_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test119_CFLAGS = $(COV_CFLAGS)
 t_test119_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1140,7 +1142,7 @@ t_test119_CFLAGS += -g
 endif
 
 t_test120_SOURCES = t-test120.c t-testdata.h
-t_test120_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test120_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test120_CFLAGS = $(COV_CFLAGS)
 t_test120_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1148,7 +1150,7 @@ t_test120_CFLAGS += -g
 endif
 
 t_test121_SOURCES = t-test121.c t-testdata.h
-t_test121_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test121_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test121_CFLAGS = $(COV_CFLAGS)
 t_test121_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1156,7 +1158,7 @@ t_test121_CFLAGS += -g
 endif
 
 t_test122_SOURCES = t-test122.c t-testdata.h
-t_test122_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test122_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test122_CFLAGS = $(COV_CFLAGS)
 t_test122_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1164,7 +1166,7 @@ t_test122_CFLAGS += -g
 endif
 
 t_test123_SOURCES = t-test123.c t-testdata.h
-t_test123_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test123_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test123_CFLAGS = $(COV_CFLAGS)
 t_test123_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1172,7 +1174,7 @@ t_test123_CFLAGS += -g
 endif
 
 t_test124_SOURCES = t-test124.c t-testdata.h
-t_test124_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test124_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test124_CFLAGS = $(COV_CFLAGS)
 t_test124_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1180,7 +1182,7 @@ t_test124_CFLAGS += -g
 endif
 
 t_test125_SOURCES = t-test125.c t-testdata.h
-t_test125_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test125_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test125_CFLAGS = $(COV_CFLAGS)
 t_test125_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1188,7 +1190,7 @@ t_test125_CFLAGS += -g
 endif
 
 t_test126_SOURCES = t-test126.c t-testdata.h
-t_test126_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test126_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test126_CFLAGS = $(COV_CFLAGS)
 t_test126_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
@@ -1196,7 +1198,7 @@ t_test126_CFLAGS += -g
 endif
 
 t_test127_SOURCES = t-test127.c t-testdata.h
-t_test127_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS)
+t_test127_LDFLAGS = -L. $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 t_test127_CFLAGS = $(COV_CFLAGS)
 t_test127_LDADD = ./libopendkim.la $(COV_LIBADD)
 if DEBUG
