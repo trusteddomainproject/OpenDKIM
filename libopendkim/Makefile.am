@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.39.2.4 2009/12/09 00:09:27 cm-msk Exp $
+# $Id: Makefile.am,v 1.39.2.5 2009/12/19 18:29:44 cm-msk Exp $
 
 COV_CFLAGS =
 COV_LIBADD =
@@ -1212,7 +1212,7 @@ symbols.map: $(libopendkiminclude_HEADERS)
 MOSTLYCLEANFILES=
 
 if GCOV_ONLY
-MOSTLYCLEANFILES+=*.gcno *.gcda .gcov-files
+MOSTLYCLEANFILES+=*.gcov *.gcno *.gcda .gcov-files
 TESTS_ENVIRONMENT=./gcov-helper.sh
 
 .gcov-files: check-TESTS
