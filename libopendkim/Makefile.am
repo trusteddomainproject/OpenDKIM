@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.39.2.7 2009/12/19 21:27:54 cm-msk Exp $
+# $Id: Makefile.am,v 1.39.2.8 2009/12/19 21:32:11 cm-msk Exp $
 
 COV_CFLAGS =
 COV_LDFLAGS =
@@ -1211,7 +1211,7 @@ symbols.map: $(libopendkiminclude_HEADERS)
 		sed -e s/\[\*\;\]//g -e s/\[\\\[\\\]\]//g | \
 		sort -u -o $@
 
-MOSTLYCLEANFILES=
+MOSTLYCLEANFILES=symbols.map
 
 if GCOV_ONLY
 MOSTLYCLEANFILES+=*.gcov *.gcno *.gcda .gcov-files
