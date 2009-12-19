@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.6.3 2009/12/19 22:04:15 cm-msk Exp $
+# $Id: configure.ac,v 1.67.6.4 2009/12/19 22:10:35 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -84,7 +84,7 @@ then
 	then
 		saved_LIBS="$LIBS"
 		LIBS=""
-		AC_SEARCH_LIBS([gcov_exit], [gcov])
+		AC_SEARCH_LIBS([__gcov_init], [gcov])
 		GCOV_LIBS="$LIBS"
 		LIBS="$saved_LIBS"
 		AC_SUBST(GCOV_LIBS)
