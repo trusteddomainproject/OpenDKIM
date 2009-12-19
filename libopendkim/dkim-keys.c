@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.9 2009/11/22 08:15:50 grooverdan Exp $";
+static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.10 2009/12/19 18:09:33 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -24,6 +24,7 @@ static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.9 2009/11/22 08:15:50 g
 #include <errno.h>
 
 #include "build-config.h"
+
 /* libar includes */
 #if USE_ARLIB
 # include "ar.h"
