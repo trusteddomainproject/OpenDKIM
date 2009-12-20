@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.6.5 2009/12/20 06:18:51 cm-msk Exp $
+# $Id: configure.ac,v 1.67.6.6 2009/12/20 06:51:55 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -118,7 +118,7 @@ then
 	elif test x"$hasgcov" = x"yes";
 	then
 		COV_CFLAGS="-g -fprofile-arcs -ftest-coverage"
-		COV_LIBADD="$(GCOV_LIBS)"
+		COV_LIBADD="$GCOV_LIBS"
 	fi
 
 	AC_SUBST(COV_CFLAGS)
