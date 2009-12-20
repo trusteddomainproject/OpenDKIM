@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.52 2009/11/24 22:50:25 cm-msk Exp $
+# $Id: Makefile.am,v 1.52.4.1 2009/12/20 08:30:40 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -38,11 +38,15 @@ endif
 if STATS
 sbin_PROGRAMS += opendkim-stats
 opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c util.c
-opendkim_stats_CC = $(PTHREAD_CC)
-opendkim_stats_CFLAGS = $(PTHREAD_CFLAGS)
 opendkim_stats_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBDB_INCDIRS)
 opendkim_stats_LDFLAGS = $(LIBDB_LIBDIRS) $(PTHREAD_CFLAGS)
-opendkim_stats_LDADD = ../libopendkim/libopendkim.la $(LIBDB_LIBS) $(PTHREAD_LIBS)
+opendkim_stats_LDADD = ../libopendkim/libopendkim.la $(LIBDB_LIBS)
+opendkim_stats_CFLAGS =
+if USE_ARLIB
+opendkim_stats_CC = $(PTHREAD_CC)
+opendkim_stats_CFLAGS += $(PTHREAD_CFLAGS)
+opendkim_stats_LDADD += $(PTHREAD_LIBS)
+endif
 endif
 
 opendkim_testkey_SOURCES = opendkim-testkey.c $(srcdir)/../libopendkim/dkim.h $(srcdir)/../libopendkim/dkim-strl.h $(srcdir)/../libopendkim/dkim-test.h
@@ -50,11 +54,19 @@ opendkim_testkey_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_testkey_CFLAGS = $(LIBCRYPTO_CFLAGS)
 opendkim_testkey_LDFLAGS = $(LIBCRYPTO_LIBDIRS)
 opendkim_testkey_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(LIBRESOLV)
+if USE_ARLIB
+opendkim_testkey_CC = $(PTHREAD_CC)
+opendkim_testkey_CFLAGS += $(PTHREAD_CFLAGS)
+endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
 opendkim_testadsp_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_testadsp_CFLAGS = $(LIBCRYPTO_CFLAGS)
 opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la $(LIBRESOLV)
+if USE_ARLIB
+opendkim_testadsp_CC = $(PTHREAD_CC)
+opendkim_testadsp_CFLAGS += $(PTHREAD_CFLAGS)
+endif
 
 man_MANS = opendkim-genkey.8 opendkim-testadsp.8 opendkim-testkey.8
 if BUILD_FILTER
