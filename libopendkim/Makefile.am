@@ -1,16 +1,4 @@
-# $Id: Makefile.am,v 1.39.2.10 2009/12/20 04:59:21 cm-msk Exp $
-
-COV_CFLAGS =
-COV_LDFLAGS =
-COV_LIBADD =
-if GPROF
-COV_CFLAGS += -g -pg
-COV_LDFLAGS += -g -pg
-endif
-if GCOV
-COV_CFLAGS += -g -fprofile-arcs -ftest-coverage
-COV_LIBADD += $(GCOV_LIBS)
-endif
+# $Id: Makefile.am,v 1.39.2.11 2009/12/20 06:18:54 cm-msk Exp $
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c

@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.67.6.4 2009/12/19 22:10:35 cm-msk Exp $
+# $Id: configure.ac,v 1.67.6.5 2009/12/20 06:18:51 cm-msk Exp $
 
 AC_PREREQ(2.62)
 sinclude(acx_pthread.m4)
@@ -48,13 +48,17 @@ AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr mem
 
 AC_ARG_ENABLE([testcoverage],
 	AS_HELP_STRING([--enable-testcoverage], [analyze test coverage]))
-if test x"$enable_testcoverage" != x"no"
+if test x"$enable_testcoverage" = x"yes"
 then
-	# only works if we have gcc...
+	# gcc can do all of them; Solaris cc can only do gprof
 	AC_CHECK_PROG([hasgcc], [gcc], [yes])
-	if test x"$hasgcc" != x"yes"
+	AC_CHECK_PROG([hascc], [cc], [yes])
+	if test x"$hasgcc" != x"yes" -a x"$hascc" = x"yes";
 	then
-		AC_MSG_ERROR([gcc required for test coverage])
+		if test x`cc -V 2>&1 | grep -c "Sun C"` = x"1"
+		then
+			hassuncc="yes"
+		fi
 	fi
 
 	# figure out which profiling system to use
@@ -62,14 +66,17 @@ then
 	AC_ARG_WITH(gprof,
 		AS_HELP_STRING(--with-gprof, profiling with gprof),
 		hasgprof="$withval")
-	AC_CHECK_PROG([hasgcov], [gcov], [yes])
-	AC_ARG_WITH(gcov,
-		AS_HELP_STRING(--with-gcov, profiling with gcov),
-		hasgcov="$withval")
-	AC_CHECK_PROG([haslcov], [lcov], [yes])
-	AC_ARG_WITH(lcov,
-		AS_HELP_STRING(--with-lcov, profiling with lcov),
-		haslcov="$withval")
+	if test x"$hasgcc" = x"yes"
+	then
+		AC_CHECK_PROG([hasgcov], [gcov], [yes])
+		AC_ARG_WITH(gcov,
+			AS_HELP_STRING(--with-gcov, profiling with gcov),
+			hasgcov="$withval")
+		AC_CHECK_PROG([haslcov], [lcov], [yes])
+		AC_ARG_WITH(lcov,
+			AS_HELP_STRING(--with-lcov, profiling with lcov),
+			haslcov="$withval")
+	fi
 
 	# bail if none
 	if test x"$hasgprof" != x"yes" -a \
@@ -87,15 +94,42 @@ then
 		AC_SEARCH_LIBS([__gcov_init], [gcov])
 		GCOV_LIBS="$LIBS"
 		LIBS="$saved_LIBS"
-		AC_SUBST(GCOV_LIBS)
 	fi
 
-	AM_CONDITIONAL(LCOV, test x"$haslcov" = x"yes" -a x"$hasgcov" = x"yes")
-	AM_CONDITIONAL(GCOV, test x"$hasgcov" = x"yes")
-	AM_CONDITIONAL(GCOV_ONLY,
-	               test x"$hasgcov" = x"yes" -a x"$haslcov" != x"yes")
-	AM_CONDITIONAL(GPROF, test x"$hasgprof" = x"yes" -a x"$hasgcov" != x"yes")
+	COV_CFLAGS=""
+	COV_LDFLAGS=""
+	COV_LIBADD=""
+
+	# sun profiling
+	if test x"$hasgprof" = x"yes" -a \
+	        x"$hasgcov" != x"yes" -a \
+	        x"$hassuncc" = x"yes";
+	then
+		COV_CFLAGS="-g -xpg"
+		COV_LDFLAGS="-g -xpg"
+	# non-sun profiling
+	elif test x"$hasgprof" = x"yes" -a \
+		x"$hasgcov" != x"yes" -a \
+		x"$hassuncc" != x"yes";
+	then
+		COV_CFLAGS="-g -pg"
+		COV_LDFLAGS="-g -pg"
+	# gcov profiling
+	elif test x"$hasgcov" = x"yes";
+	then
+		COV_CFLAGS="-g -fprofile-arcs -ftest-coverage"
+		COV_LIBADD="$(GCOV_LIBS)"
+	fi
+
+	AC_SUBST(COV_CFLAGS)
+	AC_SUBST(COV_LDFLAGS)
+	AC_SUBST(COV_LIBADD)
 fi
+
+AM_CONDITIONAL(LCOV, test x"$haslcov" = x"yes" -a x"$hasgcov" = x"yes")
+AM_CONDITIONAL(GCOV, test x"$hasgcov" = x"yes")
+AM_CONDITIONAL(GCOV_ONLY, test x"$hasgcov" = x"yes" -a x"$haslcov" != x"yes")
+AM_CONDITIONAL(GPROF, test x"$hasgprof" = x"yes" -a x"$hasgcov" != x"yes")
 
 # Other conditional stuff
 AC_ARG_ENABLE(allsymbols, AS_HELP_STRING(--enable-all-symbols, export even internal-use symbols))
