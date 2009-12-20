@@ -1,5 +1,12 @@
 #!/bin/sh
 $1
 myname=`basename $1`
-mv *$myname.gcda $myname.gcda
-mv *$myname.gcno $myname.gcno
+if test x"$OSTYPE" = x"OpenBSD"
+then
+	mv *$myname.bb $myname.bb
+	mv *$myname.bbg $myname.bbg
+	mv *$myname.da $myname.da
+else
+	mv *$myname.gcda $myname.gcda
+	mv *$myname.gcno $myname.gcno
+fi

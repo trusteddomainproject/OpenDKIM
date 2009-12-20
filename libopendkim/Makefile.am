@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.39.2.9 2009/12/19 22:04:15 cm-msk Exp $
+# $Id: Makefile.am,v 1.39.2.10 2009/12/20 04:59:21 cm-msk Exp $
 
 COV_CFLAGS =
 COV_LDFLAGS =
@@ -1214,7 +1214,7 @@ symbols.map: $(libopendkiminclude_HEADERS)
 MOSTLYCLEANFILES=symbols.map
 
 if GCOV_ONLY
-MOSTLYCLEANFILES+=*.gcov *.gcno *.gcda .gcov-files
+MOSTLYCLEANFILES+=*.gcov *.gcno *.gcda *.bb *.bbg *.da .gcov-files
 TESTS_ENVIRONMENT=./gcov-helper.sh
 
 .gcov-files: check-TESTS
@@ -1224,6 +1224,14 @@ TESTS_ENVIRONMENT=./gcov-helper.sh
 		        -f libopendkim_la-$$x.gcda; then \
 			mv libopendkim_la-$$x.gcno $$x.gcno; \
 			mv libopendkim_la-$$x.gcda $$x.gcda; \
+			gcov $$i; \
+		fi; \
+		if test -f libopendkim_la-$$x.bb -a \
+		        -f libopendkim_la-$$x.bbg -a \
+		        -f libopendkim_la-$$x.da; then \
+			mv libopendkim_la-$$x.bb $$x.bb; \
+			mv libopendkim_la-$$x.bbg $$x.bbg; \
+			mv libopendkim_la-$$x.da $$x.da; \
 			gcov $$i; \
 		fi; \
 	done
