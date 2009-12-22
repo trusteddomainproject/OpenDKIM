@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, Murray S. Kucherawy.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.1.2.8 2009/12/22 22:20:52 cm-msk Exp $
+**  $Id: miltertest.c,v 1.1.2.9 2009/12/22 23:05:29 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.8 2009/12/22 22:20:52 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.9 2009/12/22 23:05:29 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -2817,6 +2817,7 @@ main(int argc, char **argv)
 	int c;
 	int status;
 	int fd;
+	int retval = 0;
 	ssize_t rlen;
 	char *p;
 	char *script = NULL;
@@ -3034,6 +3035,9 @@ main(int argc, char **argv)
 		        lua_tostring(l, 1));
 	}
 
+	if (status != 0)
+		retval = 1;
+
 	lua_close(l);
 	if (io.lua_io_script != NULL)
 		free((void *) io.lua_io_script);
@@ -3061,6 +3065,8 @@ main(int argc, char **argv)
 				fprintf(stderr,
 				        "%s: filter process exited with status %d\n",
 				        progname, WEXITSTATUS(status));
+
+				retval = 1;
 			}
 			else if (WIFSIGNALED(status) &&
 			         WTERMSIG(status) != SIGTERM)
@@ -3068,9 +3074,11 @@ main(int argc, char **argv)
 				fprintf(stderr,
 				        "%s: filter process died with signal %d\n",
 				        progname, WTERMSIG(status));
+
+				retval = 1;
 			}
 		}
 	}
 
-	return status;
+	return retval;
 }
