@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, Murray S. Kucherawy.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.1.2.7 2009/12/22 22:06:55 cm-msk Exp $
+**  $Id: miltertest.c,v 1.1.2.8 2009/12/22 22:20:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.7 2009/12/22 22:06:55 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.8 2009/12/22 22:20:52 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -1289,7 +1289,7 @@ mt_macro(lua_State *l)
 	}
 
 	ctx = (struct mt_context *) lua_touserdata(l, 1);
-	type = (char *) lua_tonumber(l, 2);
+	type = lua_tonumber(l, 2);
 	name = (char *) lua_tostring(l, 3);
 	value = (char *) lua_tostring(l, 4);
 
@@ -1314,7 +1314,7 @@ mt_macro(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout, "%s: `%c' macro `%s' sent on fd %d\n",
-		        progname, type[0], name, ctx->ctx_fd);
+		        progname, type, name, ctx->ctx_fd);
 	}
 
 	lua_pushnil(l);
