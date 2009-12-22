@@ -118,18 +118,18 @@ Checks the captured set of EOM operations (see above) to determine whether
 or not specific milter actions were requested by the filter.  Returns
 a Boolean value (true or false).  See the EOM CHECKS section for details.
 .TP
+.B mt_getreply(conn)
+Returns the last milter reply received from the specified connection,
+as an integer.  This can be compared to any of the SMFIR_* constants defined
+by milter to see if the filter responded as expected.  This value is initially
+set to the NULL character.
+.TP
 .B mt_header(conn, name, value)
 Sends the header with the given
 .I name
 and
 .I value
 to the specified connection.
-.TP
-.B mt_getreply(conn)
-Returns the last milter reply received from the specified connection,
-as an integer.  This can be compared to any of the SMFIR_* constants defined
-by milter to see if the filter responded as expected.  This value is initially
-set to the NULL character.
 .TP
 .B mt_helo(conn, name)
 Sends HELO/EHLO information using the specified
