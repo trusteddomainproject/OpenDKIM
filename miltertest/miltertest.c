@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, Murray S. Kucherawy.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.1.2.6 2009/12/22 22:03:01 cm-msk Exp $
+**  $Id: miltertest.c,v 1.1.2.7 2009/12/22 22:06:55 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.6 2009/12/22 22:03:01 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.7 2009/12/22 22:06:55 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -1266,6 +1266,7 @@ mt_negotiate(lua_State *l)
 int
 mt_macro(lua_State *l)
 {
+	int type;
 	size_t buflen;
 	size_t len;
 	size_t s;
@@ -1273,14 +1274,13 @@ mt_macro(lua_State *l)
 	char *bp;
 	char *name;
 	char *value;
-	char *type;
 	char buf[BUFRSZ];
 
 	assert(l != NULL);
 
 	if (lua_gettop(l) != 4 ||
 	    !lua_islightuserdata(l, 1) ||
-	    !lua_isstring(l, 2) ||
+	    !lua_isnumber(l, 2) ||
 	    !lua_isstring(l, 3) ||
 	    !lua_isstring(l, 4))
 	{
@@ -1289,7 +1289,7 @@ mt_macro(lua_State *l)
 	}
 
 	ctx = (struct mt_context *) lua_touserdata(l, 1);
-	type = (char *) lua_tostring(l, 2);
+	type = (char *) lua_tonumber(l, 2);
 	name = (char *) lua_tostring(l, 3);
 	value = (char *) lua_tostring(l, 4);
 
@@ -1299,7 +1299,7 @@ mt_macro(lua_State *l)
 		lua_error(l);
 
 	s = 1 + strlen(name) + 1 + strlen(value) + 1;
-	buf[0] = type[0];
+	buf[0] = type;
 	bp = buf + 1;
 	memcpy(bp, name, strlen(name) + 1);
 	bp += strlen(name) + 1;
@@ -2991,6 +2991,15 @@ main(int argc, char **argv)
 	lua_setglobal(l, "SMFIR_TEMPFAIL");
 	lua_pushnumber(l, SMFIR_DISCARD);
 	lua_setglobal(l, "SMFIR_DISCARD");
+
+	lua_pushnumber(l, SMFIC_CONNECT);
+	lua_setglobal(l, "SMFIC_CONNECT");
+	lua_pushnumber(l, SMFIC_HELO);
+	lua_setglobal(l, "SMFIC_HELO");
+	lua_pushnumber(l, SMFIC_MAIL);
+	lua_setglobal(l, "SMFIC_MAIL");
+	lua_pushnumber(l, SMFIC_RCPT);
+	lua_setglobal(l, "SMFIC_RCPT");
 
 	switch (lua_load(l, mt_lua_reader, (void *) &io,
 	                 script == NULL ? "(stdin)" : script))
