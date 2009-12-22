@@ -38,6 +38,11 @@ capture_unknown_errors
 		When dkim_eom() returns an unexpected error of some kind,
 		quarantine the message for further analysis.  (opendkim)
 
+codecoverage	Enables generation of profiling code for all libraries,
+		programs and tests.  When running the library tests,
+		produces a report about code coverage based on the available
+		code coverage tools (gprof, gcov or lcov). (all)
+
 diffheaders	When verification fails for a message for which a "z="
 		tag was provided, compare the received headers to the original
 		headers to look for possible munging.  Requires the tre
@@ -111,4 +116,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.15 $, Last updated $Date: 2009/12/19 23:51:58 $
+$Revision: 1.16 $, Last updated $Date: 2009/12/22 00:12:55 $

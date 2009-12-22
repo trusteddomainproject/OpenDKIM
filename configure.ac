@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.96 2009/12/19 17:48:46 cm-msk Exp $
+# $Id: configure.ac,v 1.97 2009/12/22 00:12:55 cm-msk Exp $
 
 #
 # Setup
@@ -11,8 +11,8 @@ AC_PREREQ(2.62)
 # Package version
 #
 m4_define([VERSION_RELEASE], 1)
-m4_define([VERSION_MAJOR_REV], 2)
-m4_define([VERSION_MINOR_REV], 1)
+m4_define([VERSION_MAJOR_REV], 3)
+m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -218,6 +218,98 @@ FFR_FEATURE([ztags], [sign/verify with z= tags])
 FFR_FEATURE([stats], [stats recording and reporting])
 AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
 
+#
+# test coverage/profiling stuff
+# 
+AC_ARG_ENABLE([codecoverage],
+	AS_HELP_STRING([--enable-codecoverage],
+	               [include code coverage/profiling code]))
+if test x"$enable_codecoverage" = x"yes"
+then
+	# gcc can do all of them; Solaris cc can only do gprof
+	AC_CHECK_PROG([hasgcc], [gcc], [yes])
+	AC_CHECK_PROG([hascc], [cc], [yes])
+	if test x"$hasgcc" != x"yes" -a x"$hascc" = x"yes";
+	then
+		if test x`cc -V 2>&1 | grep -c "Sun C"` = x"1"
+		then
+			hassuncc="yes"
+		fi
+	fi
+
+	# figure out which profiling system to use
+	AC_CHECK_PROG([hasgprof], [gprof], [yes])
+	AC_ARG_WITH(gprof,
+		AS_HELP_STRING(--with-gprof, profiling with gprof),
+		hasgprof="$withval")
+	if test x"$hasgcc" = x"yes"
+	then
+		AC_CHECK_PROG([hasgcov], [gcov], [yes])
+		AC_ARG_WITH(gcov,
+			AS_HELP_STRING(--with-gcov, profiling with gcov),
+			hasgcov="$withval")
+		AC_CHECK_PROG([haslcov], [lcov], [yes])
+		AC_ARG_WITH(lcov,
+			AS_HELP_STRING(--with-lcov, profiling with lcov),
+			haslcov="$withval")
+	fi
+
+	# bail if none
+	if test x"$hasgprof" != x"yes" -a \
+		x"$hasgcov" != x"yes" -a \
+		x"$haslcov" != x"yes"
+	then
+		AC_MSG_ERROR([no supported test coverage packages found])
+	fi
+
+	# see if there's a libgcov (OpenBSD doesn't have one)
+	if test x"$hasgcov" = x"yes" -a x"$haslcov" != x"yes"
+	then
+		saved_LIBS="$LIBS"
+		LIBS=""
+		AC_SEARCH_LIBS([__gcov_init], [gcov])
+		GCOV_LIBS="$LIBS"
+		LIBS="$saved_LIBS"
+	fi
+
+	COV_CFLAGS=""
+	COV_LDFLAGS=""
+	COV_LIBADD=""
+
+	# sun profiling
+	if test x"$hasgprof" = x"yes" -a \
+	        x"$hasgcov" != x"yes" -a \
+	        x"$hassuncc" = x"yes";
+	then
+		COV_CFLAGS="-g -xpg"
+		COV_LDFLAGS="-g -xpg"
+	# non-sun profiling
+	elif test x"$hasgprof" = x"yes" -a \
+		x"$hasgcov" != x"yes" -a \
+		x"$hassuncc" != x"yes";
+	then
+		COV_CFLAGS="-g -pg"
+		COV_LDFLAGS="-g -pg"
+	# gcov profiling
+	elif test x"$hasgcov" = x"yes";
+	then
+		COV_CFLAGS="-g -fprofile-arcs -ftest-coverage"
+		COV_LIBADD="$GCOV_LIBS"
+	fi
+
+	AC_SUBST(COV_CFLAGS)
+	AC_SUBST(COV_LDFLAGS)
+	AC_SUBST(COV_LIBADD)
+fi
+
+AM_CONDITIONAL(LCOV, test x"$haslcov" = x"yes" -a x"$hasgcov" = x"yes")
+AM_CONDITIONAL(GCOV, test x"$hasgcov" = x"yes")
+AM_CONDITIONAL(GCOV_ONLY, test x"$hasgcov" = x"yes" -a x"$haslcov" != x"yes")
+AM_CONDITIONAL(GPROF, test x"$hasgprof" = x"yes" -a x"$hasgcov" != x"yes")
+
+#
+# opendkim
+# 
 AC_ARG_ENABLE([filter],
               AS_HELP_STRING([--disable-filter],
                              [do not compile the opendkim filter]),
@@ -878,7 +970,7 @@ else
 	fi
 fi
 
-LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS $LIBRESOLV"
+liBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS $LIBRESOLV"
 # This (below) is just for the pkg-config file opendkim.pc.in
 LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
 LIBOPENDKIM_INC="$LIBCRYPTO_CPPFLAGS $LIBCRYPTO_CFLAGS $LIBTRE_CFLAGS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"

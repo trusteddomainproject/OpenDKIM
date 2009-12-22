@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.15 2009/12/08 19:44:14 cm-msk Exp $
+$Id: BRANCHES,v 1.16 2009/12/22 00:12:53 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -15,15 +15,11 @@ br-1-2		v1.2.x releases
 Experimental Branches (branch name contains owner)
 ~~~~~~~~~~~~~~~~~~~~~
 
-br-dblack-codecoverage
-		Generate code coverage testing from lcov
-		(http://ltp.sourceforge.net/coverage/lcov.php)
-
 br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
 
 br-msk-libprofiling
-		Optimizations based on some recent gprof output.
+		Optimizations based on some recent gprof output
 
 br-msk-lua	Experimenting with LUA for scriptable policy hooks
 
@@ -40,6 +36,10 @@ br-dblack-autoimprovements
 		full FEATURE and FFR_FEATURE macros in configure.ac
 		man page generation for opendkim (include doco for FFR bits
 		and tag experimental in man pages if enabled)
+
+br-dblack-codecoverage
+		Generate code coverage testing from lcov/gcov/gprof
+		(http://ltp.sourceforge.net/coverage/lcov.php)
 
 br-msk-reduce-symbols
 		Build automation to limit exported library symbols 
