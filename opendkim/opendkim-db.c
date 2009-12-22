@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.26 2009/11/22 20:55:52 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.27 2009/12/22 00:31:25 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.26 2009/11/22 20:55:52 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.27 2009/12/22 00:31:25 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -113,6 +113,7 @@ struct dkimf_db_list
 struct dkimf_db_relist
 {
 	regex_t			db_relist_re;
+	char *			db_relist_data;
 	struct dkimf_db_relist * db_relist_next;
 };
 
@@ -220,6 +221,8 @@ dkimf_db_relist_free(struct dkimf_db_relist *list)
 	while (list != NULL)
 	{
 		regfree(&list->db_relist_re);
+		if (list->db_relist_data != NULL)
+			free(list->db_relist_data);
 		next = list->db_relist_next;
 		free(list);
 		list = next;
@@ -670,6 +673,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		size_t len;
 		FILE *f;
 		char *end;
+		char *colon;
 		struct dkimf_db_relist *list = NULL;
 		struct dkimf_db_relist *newl;
 		char line[BUFRSZ + 1];
@@ -704,6 +708,10 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					break;
 				}
 			}
+
+			colon = strchr(line, ':');
+			if (colon != NULL)
+				*colon = '\0';
 
 			dkimf_trimspaces((u_char *) line);
 			if (strlen(line) == 0)
@@ -740,6 +748,11 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				fclose(f);
 				return -1;
 			}
+
+			if (colon != NULL)
+				newl->db_relist_data = strdup(colon + 1);
+			else
+				newl->db_relist_data = NULL;
 
 			newl->db_relist_next = list;
 			list = newl;
@@ -1413,6 +1426,14 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			{
 				if (exists != NULL)
 					*exists = TRUE;
+
+				if (outbuf != NULL &&
+				    list->db_relist_data != NULL)
+				{
+					*outbuflen = strlcpy(outbuf,
+					                     list->db_relist_data,
+					                     *outbuflen);
+				}
 
 				return 0;
 			}
