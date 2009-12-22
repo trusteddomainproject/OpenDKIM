@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, Murray S. Kucherawy.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.1.2.5 2009/12/01 21:57:36 cm-msk Exp $
+**  $Id: miltertest.c,v 1.1.2.6 2009/12/22 22:03:01 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.5 2009/12/01 21:57:36 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.6 2009/12/22 22:03:01 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -2940,7 +2940,7 @@ main(int argc, char **argv)
 		io.lua_io_script = NULL;
 	}
 
-	/* XXX -- register functions here */
+	/* register functions here */
 	lua_register(l, "mt_sleep", mt_sleep);
 	lua_register(l, "mt_startfilter", mt_startfilter);
 	lua_register(l, "mt_getreply", mt_getreply);
