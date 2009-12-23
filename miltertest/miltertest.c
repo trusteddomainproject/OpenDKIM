@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, Murray S. Kucherawy.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.1.2.12 2009/12/23 08:08:46 cm-msk Exp $
+**  $Id: miltertest.c,v 1.1.2.13 2009/12/23 08:23:54 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.12 2009/12/23 08:08:46 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.13 2009/12/23 08:23:54 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -728,6 +728,37 @@ mt_assert_state(struct mt_context *ctx, int state)
 }
 
 /*
+**  MT_ECHO -- echo a string
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**   	nil (on the Lua stack)
+*/
+
+int
+mt_echo(lua_State *l)
+{
+	char *str;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1 || !lua_isstring(l, 1))
+	{
+		lua_pushstring(l, "mt_echo(): Invalid argument");
+		lua_error(l);
+	}
+
+	str = (char *) lua_tostring(l, 1);
+	lua_pop(l, 1);
+
+	fprintf(stdout, "%s\n", str);
+
+	return 0;
+}
+
+/*
 **  MT_SET_TIMEOUT -- set read timeout
 **
 **  Parameters:
@@ -803,7 +834,7 @@ mt_startfilter(lua_State *l)
 
 	for (c = 1; c <= args; c++)
 		argv[c - 1] = lua_tostring(l, c);
-	argv[c] = NULL;
+	argv[c - 1] = NULL;
 	lua_pop(l, c);
 
 	if (pipe(fds) != 0)
@@ -3035,6 +3066,7 @@ main(int argc, char **argv)
 	lua_register(l, "mt_set_timeout", mt_set_timeout);
 	lua_register(l, "mt_abort", mt_abort);
 	lua_register(l, "mt_disconnect", mt_disconnect);
+	lua_register(l, "mt_echo", mt_echo);
 
 	lua_pushnumber(l, MT_HDRINSERT);
 	lua_setglobal(l, "MT_HDRINSERT");

@@ -106,6 +106,11 @@ connectin.  The
 .I conn
 handle should no longer be used
 .TP
+.B mt_echo(string)
+Prints the specified
+.I string
+on standard output.  Returns nothing.
+.TP
 .B mt_eoh(conn)
 Announces end-of-header on the specified connection.
 .TP
@@ -186,7 +191,7 @@ arguments are permitted.
 .B mt_set_timeout(n)
 Sets the read timeout to
 .I n
-seconds.  The default is ten seconds.
+seconds.  The default is ten seconds.  Returns nothing.
 .TP
 .B mt_sleep(n)
 Sleeps for
