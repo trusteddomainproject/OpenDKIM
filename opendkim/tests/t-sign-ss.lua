@@ -1,4 +1,4 @@
--- $Id: t-sign-ss.lua,v 1.1.2.1 2009/12/23 00:18:16 cm-msk Exp $
+-- $Id: t-sign-ss.lua,v 1.1.2.2 2009/12/23 08:05:10 cm-msk Exp $
 
 -- simple/simple signing test
 -- 
@@ -84,4 +84,28 @@ end
 -- verify that a signature got added
 if not mt_eom_check(conn, MT_HDRINSERT, "DKIM-Signature") then
 	error "no signature added"
+end
+
+-- confirm properties
+sig = mt_getheader(conn, "DKIM-Signature", 0)
+if string.find(sig, "c=simple/simple", 1, true) == nil then
+	error "signature has wrong c= value"
+end
+if string.find(sig, "v=1", 1, true) == nil then
+	error "signature has wrong v= value"
+end
+if string.find(sig, "d=example.com", 1, true) == nil then
+	error "signature has wrong v= value"
+end
+if string.find(sig, "s=test", 1, true) == nil then
+	error "signature has wrong v= value"
+end
+if string.find(sig, "s=test", 1, true) == nil then
+	error "signature has wrong v= value"
+end
+if string.find(sig, "bh=3VWGQGY+cSNYd1MGM+X6hRXU0stl8JCaQtl4mbX/j2I=", 1, true) == nil then
+	error "signature has wrong bh= value"
+end
+if string.find(sig, "h=From:Date:Subject", 1, true) == nil then
+	error "signature has wrong h= value"
 end
