@@ -118,6 +118,16 @@ Checks the captured set of EOM operations (see above) to determine whether
 or not specific milter actions were requested by the filter.  Returns
 a Boolean value (true or false).  See the EOM CHECKS section for details.
 .TP
+.B mt_getheader(conn, hdr, n)
+Retrieves the value of the
+.I nth
+instance of header field named
+.I hdr
+added during end-of-message processing on the specified connection.
+This can be used by the script to verify that the header thus added contains
+the right thing.  Returns the value as a string, or the Lua constant
+"nil" on error.
+.TP
 .B mt_getreply(conn)
 Returns the last milter reply received from the specified connection,
 as an integer.  This can be compared to any of the SMFIR_* constants defined

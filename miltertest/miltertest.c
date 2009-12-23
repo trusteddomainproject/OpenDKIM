@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, Murray S. Kucherawy.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.1.2.9 2009/12/22 23:05:29 cm-msk Exp $
+**  $Id: miltertest.c,v 1.1.2.10 2009/12/23 00:43:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.9 2009/12/22 23:05:29 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.10 2009/12/23 00:43:59 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -2746,7 +2746,7 @@ mt_abort(lua_State *l)
 **  	l -- Lua state
 **
 **  Return value:
-**   	Last reply received, as a string (on the Lua stack).
+**   	Last reply received, as an integer (on the Lua stack).
 */
 
 int
@@ -2767,7 +2767,7 @@ mt_getreply(lua_State *l)
 	if (lua_gettop(l) != 1 ||
 	    !lua_islightuserdata(l, 1))
 	{
-		lua_pushstring(l, "mt_abort(): Invalid argument");
+		lua_pushstring(l, "mt_getreply(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -2775,6 +2775,72 @@ mt_getreply(lua_State *l)
 	lua_pop(l, 1);
 
 	lua_pushnumber(l, ctx->ctx_response);
+
+	return 1;
+}
+
+/*
+**  MT_GETHEADER -- retrieve a header field added during EOM
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**   	Last reply received, as a string (on the Lua stack).
+*/
+
+int
+mt_getheader(lua_State *l)
+{
+	int idx;
+	char *name;
+	struct mt_context *ctx;
+	struct mt_eom_request *r;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 3 ||
+	    !lua_islightuserdata(l, 1) ||
+	    !lua_isstring(l, 2) ||
+	    !lua_isnumber(l, 3))
+	{
+		lua_pushstring(l, "mt_getheader(): Invalid argument");
+		lua_error(l);
+	}
+
+	ctx = (struct mt_context *) lua_touserdata(l, 1);
+	name = (char *) lua_tostring(l, 2);
+	idx = lua_tonumber(l, 3);
+	lua_pop(l, 3);
+
+	for (r = ctx->ctx_eomreqs; r != NULL; r = r->eom_next)
+	{
+		if (r->eom_request == SMFIR_ADDHEADER ||
+		    r->eom_request == SMFIR_INSHEADER)
+		{
+			char *rname;
+			char *rvalue;
+
+			rname = r->eom_rdata + MILTER_LEN_BYTES;
+			rvalue = r->eom_rdata + MILTER_LEN_BYTES +
+			         strlen(rname) + 1;
+
+			if (strcmp(name, rname) == 0) && rvalue != NULL)
+			{
+				if (idx == 0)
+				{
+					lua_pushstring(l, rvalue);
+					return 1;
+				}
+				else
+				{
+					idx--;
+				}
+			}
+		}
+	}
+
+	lua_pushnil(l);
 
 	return 1;
 }
@@ -2959,6 +3025,7 @@ main(int argc, char **argv)
 	lua_register(l, "mt_bodystring", mt_bodystring);
 	lua_register(l, "mt_eom", mt_eom);
 	lua_register(l, "mt_eom_check", mt_eom_check);
+	lua_register(l, "mt_getheader", mt_getheader);
 	lua_register(l, "mt_set_timeout", mt_set_timeout);
 	lua_register(l, "mt_abort", mt_abort);
 	lua_register(l, "mt_disconnect", mt_disconnect);
