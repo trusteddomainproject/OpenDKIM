@@ -1,11 +1,10 @@
--- $Id: t-sign-ss.lua,v 1.1.2.2 2009/12/23 08:05:10 cm-msk Exp $
+-- $Id: t-sign-ss.lua,v 1.1.2.3 2009/12/23 08:30:44 cm-msk Exp $
 
 -- simple/simple signing test
 -- 
--- Confirms that a signature is added.  Does NOT currently verify that it
--- is correct; for now we rely on the unit tests of libopendkim for that.
--- Also, the current incarnation of "miltertest" doesn't allow for pattern
--- matches on added header fields; that will have to change.
+-- Confirms that a signature is added with the correct contents.
+
+mt_echo("*** simple/simple signing test")
 
 -- try to start the filter
 mt_startfilter("../opendkim", "-x", "t-sign-ss.conf")
