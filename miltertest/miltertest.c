@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, Murray S. Kucherawy.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.1.2.10 2009/12/23 00:43:59 cm-msk Exp $
+**  $Id: miltertest.c,v 1.1.2.11 2009/12/23 00:44:17 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.10 2009/12/23 00:43:59 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.11 2009/12/23 00:44:17 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -2825,7 +2825,7 @@ mt_getheader(lua_State *l)
 			rvalue = r->eom_rdata + MILTER_LEN_BYTES +
 			         strlen(rname) + 1;
 
-			if (strcmp(name, rname) == 0) && rvalue != NULL)
+			if (strcmp(name, rname) == 0 && rvalue != NULL)
 			{
 				if (idx == 0)
 				{
