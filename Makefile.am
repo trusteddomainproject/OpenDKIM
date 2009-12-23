@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.14.2.2 2009/12/02 00:30:32 cm-msk Exp $
+# $Id: Makefile.am,v 1.14.2.3 2009/12/23 00:18:16 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 SUBDIRS = 
@@ -9,7 +9,7 @@ if VBR
 SUBDIRS += libvbr
 endif
 if LUA
-SUBDIRS += miltertest
+SUBDIRS += miltertest opendkim/tests
 endif
 SUBDIRS += libopendkim opendkim
 EXTRA_DIST = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail RELEASE_NOTES \
