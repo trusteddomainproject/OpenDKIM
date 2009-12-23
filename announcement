@@ -1,85 +1,30 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v1.2.0 released
+Subject: OpenDKIM v1.2.1 released
 
-The OpenDKIM project announces availability of OpenDKIM v1.2.0, now available
+The OpenDKIM project announces availability of OpenDKIM v1.2.1, now available
 for download from SourceForge.
 
-This release offers a number of new features.  The internal database code
-has been completely re-done so that one can use a comma-separated list,
-a file, a Sleepycat database, or an ODBC/SQL database for key-value lookups
-on any configurable set of data.  The filter now offers the ability to
-attach multiple signatures in one single operation, and to verify and
-re-sign messages passing through the filter without having to compute
-separate hashes for each operation.  The library now lets callers request that
-even syntactically invalid signatures be processed so that the caller can
-get a more accurate picture of what actually arrived.
+This release fixes a number of small but annoying problems found since the
+v1.2.0 release, and one DB compatibilty issue that affects people using
+Sleepycat DB v1.85 (common on most systems) that are also using the "stats"
+feature.
 
-There were also a few library bugs fixed.  The most interesting bug fixes
-involved relaxed header canonicalization and chunk processing.  There's
-also been some package rearrangement in the area of the libopendkim tests
-and the VBR code.
-
-The build system will now attempt to use pkg-config, if available, to
-determine the location of required include and library files, and also
-exports pkg-config files during installation for the libraries contained in
-the package.  Substantial other build system reworking has also been done.
+If you have v1.2.0 working, you don't need to upgrade.
 
 The RELEASE_NOTES for this version:
 
-1.2.0		2009/12/08
-	Feature request #SF2873902: Overhaul the database backend code so that
-		features that use external files or databases can be in any
-		of several supported formats.  This will make adding new
-		external data sources and formats simpler, and obviates the
-		need for a bunch of individual feature requests.  This may
-		have a few backward compatibility issues with respect to
-		the configuration file.  Feature requested by Daniel Black.
-	Feature request #SF2873900: Add optional support for OpenDBX for
-		connecting to ODBC and SQL backend databases.  Requested
-		by Daniel Black.
-	Add "On-PolicyError" setting, allowing continuation of processing
-		when an ADSP query fails.
-	Activate _FFR_MULTIPLE_SIGNATURES, allowing optional addition of
-		more than one signature per message passing through the
-		filter.
-	Add _FFR_RESIGN which allows binding of a signing handle to a
-		verifying handle so that only one body hash needs to be
-		run when a message will be re-signed as-is.  Suggested
-		by Daniel Black.
-	LIBOPENDKIM: Move VBR functions from libopendkim into their own
-		new library, libvbr.
-	LIBOPENDKIM: Rename the rfc2822_*() parsing functions to have
-		"dkim_" prefixes, and rename their containing file
-		accordingly.
-	LIBOPENDKIM: Fixes in relaxed body canonicalization and chunk
-		processing.  Problems noted by Masumi Taketomi Parekh
-		of Yahoo!.
-	LIBOPENDKIM: New library flag DKIM_LIBFLAGS_BADSIGHANDLES which
-		asks the library to tolerate signature syntax errors and
-		make such signatures available for limited inspection
-		rather than completely ignoring them.  Requested by Masumi
-		Taketomi Parekh of Yahoo!.
-	BUILD: Split up library assignments between libopendkim and opendkim,
-		taking advantage of libtool.  Based on a patch by Daniel Black.
-	BUILD: When possible, limit the symbols exported as part of
-		libopendkim to only those listed in dkim.h.
-	BUILD: Generate opendkim.conf.5 man page containing all features,
-		including FFR, annotated with if they are included and their 
-		experimental status (for FFRs).
-	BUILD: Improve static linking against openssl as noted by Roman
-		Gelfand.  Compiles against openssl version 1.0.0-beta4 now. 
-	BUILD: Provide pkg-config files {opendkim,vbr,ar}.pc for use by 
-		other applications.
-	BUILD: Fix up libresolv detection.
-	BUILD: Add pkg-config checks for openssl, tre and opendbx packages to
-		determine their installed library locations. Automate 
-		versioning and deployment.
-	BUILD: Added m4 macro library directory with updated ax_pthread.m4.
-	BUILD: Moved feature, _FFR and library #defines from Makefiles to 
-		build-config.h. Added macros for FFR and FEATURES.
-	BUILD: Add support for versions of libtre older than 0.8.0.
-	BUILD: Move all libopendkim tests into their own subdirectory.
+1.2.1		2009/12/23
+	Fix a disconnect in configuration regarding "On-KeyNotFound".
+	Fix a type mismatch in dkimf_db_open() with respect to Sleepycat
+		version 2 libraries, and a bug in dkimf_db_walk() with
+		respect to Sleepycat version 1 libraries.
+	Report _FFR_REPORT_INTERVALS in "-V" output.
+	LIBAR: Tidy up some compile-time warnings.
+	BUILD: Correct name of "bodylength_db" feature.
+	BUILD: Define VERIFY_DOMAINKEYS in build-config.h when
+		"--with-domainkeys" is enabled.
+	BUILD: Define USE_DB in build-config.h when "--with-db" is enabled.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers
