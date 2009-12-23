@@ -1,11 +1,11 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.65.2.3 2009/12/22 23:52:46 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.65.2.4 2009/12/23 08:39:54 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-1.2.1		2009/??/??
+1.2.1		2009/12/23
 	Fix a disconnect in configuration regarding "On-KeyNotFound".
 	Fix a type mismatch in dkimf_db_open() with respect to Sleepycat
 		version 2 libraries, and a bug in dkimf_db_walk() with
