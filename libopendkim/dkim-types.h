@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.12 2009/12/19 18:05:58 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.13 2009/12/24 07:54:47 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -101,7 +101,7 @@ struct dkim_set
 	dkim_set_t		set_type;
 	u_char *		set_data;
 	void *			set_udata;
-	struct dkim_plist *	set_plist;
+	struct dkim_plist *	set_plist[NPRINTABLE];
 	struct dkim_set *	set_next;
 };
 
