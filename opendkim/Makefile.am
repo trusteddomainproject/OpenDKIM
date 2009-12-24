@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.52.4.1 2009/12/20 08:30:40 cm-msk Exp $
+# $Id: Makefile.am,v 1.52.4.2 2009/12/24 18:17:27 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -66,6 +66,7 @@ opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la $(LIBRESOLV)
 if USE_ARLIB
 opendkim_testadsp_CC = $(PTHREAD_CC)
 opendkim_testadsp_CFLAGS += $(PTHREAD_CFLAGS)
+opendkim_testadsp_LDADD += $(PTHREAD_LIBS)
 endif
 
 man_MANS = opendkim-genkey.8 opendkim-testadsp.8 opendkim-testkey.8
