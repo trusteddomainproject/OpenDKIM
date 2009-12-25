@@ -1,0 +1,15 @@
+--  $Id: final.lua.sample,v 1.1.2.1 2009/12/25 22:12:48 cm-msk Exp $
+--
+--  final.lua.sample -- sample version of the "final" script that demonstrates
+--                      all of the features of the configuration file
+--
+--  The final script is executed after the entire message body has been
+--  received and processed but before the filter renders its final verdict.
+--  The main use of this script is to determine whether or not the message
+--  is acceptable to the verifier, and what final filtering action should be
+--  taken.  For exmaple, if the message failed Author Domain Signing
+--  Practises tests, or had additional data appended to it beyond what the
+--  signature covered, or even if the signature simply failed to verify,
+--  this script can detect such things and take whatever action is desired.
+
+--  [To be completed]

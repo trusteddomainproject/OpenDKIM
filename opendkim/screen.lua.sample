@@ -1,0 +1,11 @@
+--  $Id: screen.lua.sample,v 1.1.2.1 2009/12/25 22:12:48 cm-msk Exp $
+--
+--  screen.lua.sample -- sample version of the "screen" script that demonstrates
+--                       all of the features of the configuration file
+--
+--  The screen script is executed after all header fields have been received
+--  and after signatures have been selected, but before the message body
+--  is handled.  Here we have an opportunity to identify and ignore signatures
+--  we know we don't trust.
+
+--  [To be completed]
