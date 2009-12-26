@@ -1,4 +1,4 @@
---  $Id: setup.lua.sample,v 1.1.2.2 2009/12/26 20:21:29 cm-msk Exp $
+--  $Id: setup.lua.sample,v 1.1.2.3 2009/12/26 21:10:47 cm-msk Exp $
 --
 --  setup.lua.sample -- sample version of the "setup" script that demonstrates
 --                      all of the features of the configuration file
@@ -56,6 +56,16 @@ end
 --  Since we got this far, we're signing; make a signing request using the
 --  domain "example.com" and the selector "default"
 odkim_sign(ctx, "example.com", "default")
+
+--  If it looks like it might be going to a list (in that the recipient ends
+--  in "-l"), add an "l=" tag.  (We need to add a hook for the body length
+--  DB, perhaps.)
+for n = 1, nrcpts do
+	rcpt = odkim_get_rcpt(ctx, n)
+	if string.find(rcpt, "-l@", 1, true) ~= nil then
+		odkim_use_ltag(ctx)
+	end
+end
 
 --  That's it!
 return nil
