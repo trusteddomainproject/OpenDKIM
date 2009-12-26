@@ -871,10 +871,10 @@ at http://unbound.net for the expected format of this file.
 .TP
 .I TrustSignaturesFrom (dataset)
 This value consists of a set of domains that are considered trustworthy in
-ms of third-party signatures.  That is, if a message arrives with a signature
-from a domain that doesn't match the domain in the From: header, this setting
-determines whether or not that signature will be trusted.  If this value is
-undefined, all signatures are trusted.
+terms of third-party signatures.  That is, if a message arrives with a
+signature from a domain that doesn't match the domain in the From: header,
+this setting determines whether or not that signature will be trusted.  If
+this value is undefined, all signatures are trusted.
 
 .TP
 .I UMask (integer)
