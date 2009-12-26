@@ -1,4 +1,4 @@
---  $Id: screen.lua.sample,v 1.1.2.1 2009/12/25 22:12:48 cm-msk Exp $
+--  $Id: screen.lua.sample,v 1.1.2.2 2009/12/26 19:46:58 cm-msk Exp $
 --
 --  screen.lua.sample -- sample version of the "screen" script that demonstrates
 --                       all of the features of the configuration file
@@ -8,4 +8,23 @@
 --  is handled.  Here we have an opportunity to identify and ignore signatures
 --  we know we don't trust.
 
---  [To be completed]
+--  retrieve the count of signatures on the message
+nsigs = odkim_get_sigcount(ctx)
+if nsigs == nil then
+	return nil
+end
+
+--  get the From: domain
+fdomain = odkim_get_fromdomain(ctx)
+if fdomain == nil then
+	return nil
+end
+
+--  for each signature, ignore it if it's not from the sender's domain
+for n = 1, nsigs do
+	sig = odkim_get_signhandle(ctx, n)
+	sdomain = odkim_sig_getdomain(sig)
+	if fdomain ~= sdomain then
+		odkim_sig_ignore(sig)
+	end
+end

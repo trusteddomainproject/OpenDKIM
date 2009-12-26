@@ -1,4 +1,4 @@
---  $Id: final.lua.sample,v 1.1.2.1 2009/12/25 22:12:48 cm-msk Exp $
+--  $Id: final.lua.sample,v 1.1.2.2 2009/12/26 19:46:58 cm-msk Exp $
 --
 --  final.lua.sample -- sample version of the "final" script that demonstrates
 --                      all of the features of the configuration file
@@ -12,4 +12,20 @@
 --  signature covered, or even if the signature simply failed to verify,
 --  this script can detect such things and take whatever action is desired.
 
---  [To be completed]
+--  If the message had too much stuff added to it (more than 120 bytes)
+--  then bounce it
+nsigs = odkim_get_sigcount(ctx)
+if nsigs == nil then
+	return nil
+end
+
+for n = 1, nsigs do
+	sig = odkim_get_sighandle(ctx, n)
+	bodylen = odkim_sig_bodylength(sig)
+	canonlen = odkim_sig_canonlength(sig)
+	if bodylen > canonlen + 120 then
+		odkim_set_reply(ctx, "554", "",
+		                "Too much data after DKIM-protected body")
+		odkim_set_result(ctx, SMFIS_REJECT)
+	end
+end
