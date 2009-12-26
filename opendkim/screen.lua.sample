@@ -1,4 +1,4 @@
---  $Id: screen.lua.sample,v 1.1.2.2 2009/12/26 19:46:58 cm-msk Exp $
+--  $Id: screen.lua.sample,v 1.1.2.3 2009/12/26 21:10:34 cm-msk Exp $
 --
 --  screen.lua.sample -- sample version of the "screen" script that demonstrates
 --                       all of the features of the configuration file
@@ -28,3 +28,6 @@ for n = 1, nsigs do
 		odkim_sig_ignore(sig)
 	end
 end
+
+--  That's it!
+return nil

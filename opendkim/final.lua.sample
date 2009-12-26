@@ -1,4 +1,4 @@
---  $Id: final.lua.sample,v 1.1.2.3 2009/12/26 21:04:33 cm-msk Exp $
+--  $Id: final.lua.sample,v 1.1.2.4 2009/12/26 21:10:22 cm-msk Exp $
 --
 --  final.lua.sample -- sample version of the "final" script that demonstrates
 --                      all of the features of the configuration file
@@ -56,3 +56,6 @@ for n = 1, nsigs do
 		odkim_set_result(ctx, SMFIS_REJECT)
 	end
 end
+
+--  That's it!
+return nil
