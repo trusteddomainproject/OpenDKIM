@@ -1,11 +1,15 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.76 2009/12/25 03:07:35 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.77 2009/12/26 19:05:21 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 1.3.0		2010/??/??
+	Fix bug #SF2919365: A _SOCK_ADDR is just a (struct sockaddr)
+		which isn't big enough for IPv6 addresses.  Use a
+		(struct sockaddr_storage) instead.  Problem noted by
+		Werner Wiethege.
 	LIBOPENDKIM: Several performance optimizations yielded from
 		gprof data.
 	BUILD: Add "--enable-codecoverage" to add build steps that generate

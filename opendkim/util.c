@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.22 2009/12/09 22:36:19 cm-msk Exp $
+**  $Id: util.c,v 1.23 2009/12/26 19:05:21 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.22 2009/12/09 22:36:19 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.23 2009/12/26 19:05:21 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -408,7 +408,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 	if (db == NULL)
 		return FALSE;
 
-#if NETINET6
+#if AF_INET6
 	if (ip->sa_family == AF_INET6)
 	{
 		int status;
@@ -449,7 +449,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 		status = dkimf_db_get(db, ipbuf, 0, NULL, NULL, &exists);
 		return (status == 0 && exists);
 	}
-#endif /* NETINET6 */
+#endif /* AF_INET6 */
 
 	if (ip->sa_family == AF_INET)
 	{

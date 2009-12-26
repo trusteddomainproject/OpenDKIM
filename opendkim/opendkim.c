@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.68 2009/12/17 20:27:12 cm-msk Exp $
+**  $Id: opendkim.c,v 1.69 2009/12/26 19:05:21 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.68 2009/12/17 20:27:12 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.69 2009/12/26 19:05:21 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -376,7 +376,7 @@ struct connctx
 	_Bool		cctx_noleadspc;		/* no leading spaces */
 	char		cctx_host[DKIM_MAXHOSTNAMELEN + 1];
 						/* hostname */
-	_SOCK_ADDR	cctx_ip;		/* IP info */
+	struct sockaddr_storage	cctx_ip;	/* IP info */
 	struct dkimf_config * cctx_config;	/* configuration in use */
 	struct msgctx *	cctx_msg;		/* message context */
 };
@@ -5410,10 +5410,16 @@ mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
 
 		memcpy(&cc->cctx_ip, &sin, sizeof(cc->cctx_ip));
 	}
-	else
+	else if (ip->sa_family == AF_INET)
 	{
-		memcpy(&cc->cctx_ip, ip, sizeof(cc->cctx_ip));
+		memcpy(&cc->cctx_ip, ip, sizeof(struct sockaddr_in));
 	}
+#ifdef AF_INET6
+	else if (ip->sa_family == AF_INET6)
+	{
+		memcpy(&cc->cctx_ip, ip, sizeof(struct sockaddr_in6));
+	}
+#endif /* AF_INET6 */
 
 	cc->cctx_msg = NULL;
 
@@ -6117,7 +6123,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 		internal = dkimf_checkhost(conf->conf_internal, cc->cctx_host);
 		internal = internal || dkimf_checkip(conf->conf_internal,
-		                                     &cc->cctx_ip);
+		                                     (struct sockaddr *) &cc->cctx_ip);
 
 		authtype = dkimf_getsymval(ctx, "{auth_type}");
 
@@ -6134,7 +6140,8 @@ mlfi_eoh(SMFICTX *ctx)
 			if (domainok && conf->conf_dolog &&
 			    !dkimf_checkhost(conf->conf_exignore,
 			                     cc->cctx_host) &&
-			    !dkimf_checkip(conf->conf_exignore, &cc->cctx_ip))
+			    !dkimf_checkip(conf->conf_exignore,
+			                   (struct sockaddr *) &cc->cctx_ip))
 			{
 				syslog(LOG_NOTICE,
 				       "%s external host %s attempted to send as %s",
