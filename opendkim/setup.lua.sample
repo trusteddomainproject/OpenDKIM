@@ -1,4 +1,4 @@
---  $Id: setup.lua.sample,v 1.1.2.1 2009/12/25 22:07:09 cm-msk Exp $
+--  $Id: setup.lua.sample,v 1.1.2.2 2009/12/26 20:21:29 cm-msk Exp $
 --
 --  setup.lua.sample -- sample version of the "setup" script that demonstrates
 --                      all of the features of the configuration file
@@ -6,6 +6,16 @@
 --  The setup script is executed after all header fields have been received
 --  but before any DKIM operations have begun.  Thus, this script can decide
 --  what signatures, if any, should be added.
+
+--  We never sign mail to example.net
+nrcpts = odkim_rcpt_count(ctx)
+for n = 1, nrcpts do
+	rcpt = odkim_get_rcpt(ctx, n)
+	if string.find(rcpt, "@example.net", 1, true) ~= nil then
+		odkim_verify(ctx)
+		return nil
+	end
+end
 
 --  If POP-before-SMTP failed, just verify it
 popauth = odkim_check_popauth(ctx)
