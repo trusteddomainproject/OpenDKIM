@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.14 2009/11/22 08:15:50 grooverdan Exp $
+**  $Id: opendkim.h,v 1.15 2009/12/27 08:15:08 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.14 2009/11/22 08:15:50 grooverdan Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.15 2009/12/27 08:15:08 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -54,6 +54,7 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.14 2009/11/22 08:15:50 gr
 #define	MAXHDRLEN	78
 #define	MAXSIGNATURE	1024
 #define	MTAMARGIN	78
+#define	NULLDOMAIN	"(invalid)"
 #define	TEMPFILE	"/var/tmp/dkimXXXXXX"
 #define	UNKNOWN		"unknown"
 

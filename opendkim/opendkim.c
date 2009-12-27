@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.69 2009/12/26 19:05:21 cm-msk Exp $
+**  $Id: opendkim.c,v 1.70 2009/12/27 08:15:08 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.69 2009/12/26 19:05:21 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70 2009/12/27 08:15:08 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7128,6 +7128,8 @@ mlfi_eom(SMFICTX *ctx)
 		status = dkim_getsiglist(dfc->mctx_dkimv, &sigs, &nsigs);
 		if (status == DKIM_STAT_OK && nsigs > 1)
 		{
+			char *d;
+
 			if (dfc->mctx_tmpstr == NULL)
 			{
 				dfc->mctx_tmpstr = dkimf_dstring_new(BUFRSZ, 0);
@@ -7157,8 +7159,11 @@ mlfi_eom(SMFICTX *ctx)
 					                  ", ");
 				}
 
-				dkimf_dstring_cat(dfc->mctx_tmpstr,
-				                  (char *) dkim_sig_getdomain(sigs[c]));
+				d = dkim_sig_getdomain(sigs[c]);
+				if (d == NULL)
+					d = NULLDOMAIN;
+
+				dkimf_dstring_cat(dfc->mctx_tmpstr, d);
 			}
 
 			syslog(LOG_INFO, "%s",
