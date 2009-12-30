@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.3 2009/12/22 00:12:55 cm-msk Exp $
+# $Id: Makefile.am,v 1.4 2009/12/30 23:41:26 cm-msk Exp $
 
 AM_CFLAGS = $(COV_CFLAGS)
 AM_LDFLAGS = $(COV_LDFLAGS)
@@ -9,6 +9,11 @@ endif
 
 LDADD = ../libopendkim.la $(COV_LIBADD) $(LIBCRYPTO_LIBS)
 AM_CPPFLAGS = -I..
+
+if USE_ARLIB
+AM_CFLAGS += $(PTHREAD_CFLAGS)
+AM_LDFLAGS += $(PTHREAD_CFLAGS)
+endif
 
 PROF_SRCS = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c
 
