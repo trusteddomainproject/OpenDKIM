@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, Murray S. Kucherawy.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.1.2.14 2009/12/30 23:43:42 cm-msk Exp $
+**  $Id: miltertest.c,v 1.1.2.15 2009/12/30 23:56:23 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.14 2009/12/30 23:43:42 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.15 2009/12/30 23:56:23 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -1473,11 +1473,14 @@ mt_conninfo(lua_State *l)
 
 		if (inet_ntop(res->ai_family, a, tmp, sizeof tmp - 1) == NULL)
 		{
+			freeaddrinfo(res);
 			lua_pushfstring(l,
 			                "mt_conninfo(): can't convert address for host `%s' to text",
 			                host);
 			lua_error(l);
 		}
+
+		freeaddrinfo(res);
 		ipstr = tmp;
 #else /* HAVE_GETADDRINFO && HAVE_INET_NTOP */
 		struct hostent *h;
