@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29 2009/12/22 23:51:28 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.1 2009/12/30 09:41:02 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29 2009/12/22 23:51:28 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.1 2009/12/30 09:41:02 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -27,12 +27,17 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29 2009/12/22 23:51
 #include <pthread.h>
 #include <stdio.h>
 #include <regex.h>
+
+/* various DB library includes */
 #ifdef USE_DB
 # include <db.h>
 #endif /* USE_DB */
 #ifdef USE_ODBX
 # include <odbx.h>
 #endif /* USE_ODBX */
+#ifdef USE_LDAP
+# include <ldap.h>
+#endif /* USE_LDAP */
 
 /* libopendkim includes */
 #include <dkim.h>
@@ -132,6 +137,18 @@ struct dkimf_db_dsn
 };
 #endif /* USE_ODBX */
 
+#ifdef USE_LDAP
+struct dkimf_db_ldap
+{
+	int			ldap_port;
+	char			ldap_server[DKIM_MAXHOSTNAMELEN + 1];
+	char			ldap_uri[BUFRSZ];
+	char			ldap_binduser[BUFRSZ];
+	char			ldap_bindpw[BUFRSZ];
+	char			ldap_attribute[BUFRSZ];
+};
+#endif /* USE_LDAP */
+
 /* globals */
 struct dkimf_db_table dbtypes[] =
 {
@@ -144,6 +161,9 @@ struct dkimf_db_table dbtypes[] =
 #ifdef USE_ODBX
 	{ "dsn",		DKIMF_DB_TYPE_DSN },
 #endif /* USE_ODBX */
+#ifdef USE_LDAP
+	{ "ldap",		DKIMF_DB_TYPE_LDAP },
+#endif /* USE_LDAP */
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
 
@@ -281,6 +301,7 @@ dkimf_db_type(DKIMF_DB db)
 **  	      for membership tests or key-value pairs
 **  	dsn -- a data store name, meaning SQL or ODBC in the backend,
 **  	       with interface provided by OpenDBX
+**  	ldap -- an LDAP server, interace provide by OpenLDAP
 */
 
 int
@@ -1025,6 +1046,192 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		free(tmp);
 	  }
 #endif /* USE_ODBX */
+
+#ifdef USE_LDAP
+	  case DKIMF_DB_TYPE_LDAP:
+	  {
+		_Bool found;
+		int err;
+		int v = 3;
+		struct dkimf_db_ldap *ldap;
+		LDAP *ld;
+		char *q;
+		char *r;
+		char *eq;
+		char *tmp;
+		struct berval cred;
+
+		ldap = (struct dkimf_db_ldap *) malloc(sizeof(struct dkimf_db_ldap));
+		if (ldap == NULL)
+			return -1;
+
+		memset(ldap, '\0', sizeof ldap);
+
+		/*
+		**  General format of an LDAP specification:
+		**  ldap://host[:port][/key=val[/...]]
+		**  
+		**  "binduser", "bindpass" and "attribute" will be set in
+		**  one of the key-value pairs.
+		*/
+
+		tmp = strdup(p);
+		if (tmp == NULL)
+		{
+			free(ldap);
+			return -1;
+		}
+
+		q = strchr(tmp, ':');
+		if (q == NULL)
+		{
+			free(ldap);
+			free(tmp);
+			return -1;
+		}
+
+		q++;
+		if (*q != '/' || *(q + 1) != '/')
+		{
+			free(ldap);
+			free(tmp);
+			return -1;
+		}
+
+		q += 2;
+		found = FALSE;
+		for (p = dkimf_db_nextpunct(q);
+		     !found && p != NULL;
+		     p = dkimf_db_nextpunct(q))
+		{
+			switch (*p)
+			{
+			  case ':':
+				*p = '\0';
+
+				if (ldap->ldap_port != 0)
+				{
+					free(ldap);
+					free(tmp);
+					return -1;
+				}
+
+				strlcpy(ldap->ldap_server, q,
+				        sizeof ldap->ldap_server);
+
+				ldap->ldap_port = strtol(p + 1, &r, 10);
+				if (*r != '/' || ldap->ldap_port < 0)
+				{
+					free(ldap);
+					free(tmp);
+					return -1;
+				}
+
+				ldap->ldap_port = htons(ldap->ldap_port);
+
+				q = p + 1;
+				break;
+
+			  case '/':
+				*p = '\0';
+				if (ldap->ldap_server[0] == '\0')
+				{
+					strlcpy(ldap->ldap_server, q,
+					        sizeof ldap->ldap_server);
+				}
+				found = TRUE;
+
+				q = p + 1;
+				break;
+
+			  default:
+				free(ldap);
+				free(tmp);
+				return -1;
+			}
+		}
+
+		if (ldap->ldap_server[0] == '\0')
+		{
+			free(ldap);
+			free(tmp);
+			return -1;
+		}
+
+		for (p = strtok_r(q, "/", &r);
+		     p != NULL;
+		     p = strtok_r(NULL, "/", &r))
+		{
+			eq = strchr(p, '=');
+			if (eq == NULL)
+				continue;
+
+			*eq = '\0';
+			if (strcasecmp(p, "binduser") == 0)
+			{
+				strlcpy(ldap->ldap_binduser, eq + 1,
+				        sizeof ldap->ldap_binduser);
+			}
+			else if (strcasecmp(p, "bindpw") == 0)
+			{
+				strlcpy(ldap->ldap_bindpw, eq + 1,
+				        sizeof ldap->ldap_bindpw);
+			}
+			else if (strcasecmp(p, "attribute") == 0)
+			{
+				strlcpy(ldap->ldap_attribute, eq + 1,
+				        sizeof ldap->ldap_attribute);
+			}
+		}
+
+		/* error out if one of the required parameters was absent */
+		if (ldap->ldap_attribute[0] == '\0')
+		{
+			free(ldap);
+			free(tmp);
+			return -1;
+		}
+
+		snprintf(ldap->ldap_uri, sizeof ldap->ldap_uri,
+		         "%s://%s:%d",
+		         "ldap",		 /* for now */
+		         ldap->ldap_server,
+		         ldap->ldap_port == 0 ? LDAP_PORT
+		                            : ldap->ldap_port);
+
+		/* create LDAP handle */
+		if (ldap_initialize(&ld, ldap->ldap_uri) != LDAP_SUCCESS)
+		{
+			free(ldap);
+			free(tmp);
+			return -1;
+		}
+
+		(void) ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &v);
+
+		/* attempt binding */
+		cred.bv_val = ldap->ldap_bindpw;
+		cred.bv_len = strlen(ldap->ldap_bindpw);
+		if (ldap_sasl_bind_s(ld,
+		                     NULL, 		/* dn */
+		                     NULL, 		/* SASL mechanism */
+		                     &cred,		/* credential(s) */
+		                     NULL, NULL, NULL) != LDAP_SUCCESS)
+		{
+			ldap_unbind_ext(ld, NULL, NULL);
+			free(ldap);
+			free(tmp);
+			return -1;
+		}
+
+		/* store handle */
+		new->db_handle = (void *) ld;
+		new->db_data = (void *) ldap;
+
+		/* clean up */
+		free(tmp);
+	  }
+#endif /* USE_LDAP */
 	}
 
 	*db = new;
@@ -1061,6 +1268,7 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 	if (db->db_type == DKIMF_DB_TYPE_FILE ||
 	    db->db_type == DKIMF_DB_TYPE_CSL || 
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
+	    db->db_type == DKIMF_DB_TYPE_LDAP || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -1196,6 +1404,7 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	if (db->db_type == DKIMF_DB_TYPE_FILE ||
 	    db->db_type == DKIMF_DB_TYPE_CSL || 
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
+	    db->db_type == DKIMF_DB_TYPE_LDAP || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
