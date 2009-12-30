@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.99 2009/12/30 09:01:34 cm-msk Exp $
+# $Id: configure.ac,v 1.99.2.1 2009/12/30 09:39:54 cm-msk Exp $
 
 #
 # Setup
@@ -755,7 +755,7 @@ then
 			fi
 		done
 	fi
-	if test x"$odbx_found" != x"yes"
+	if test x"$odbx_found" = x"yes"
 	then
 		AC_MSG_RESULT([no])
 	fi
@@ -767,6 +767,71 @@ fi
 AM_CONDITIONAL(USE_ODBX, test x"$odbx_found" = x"yes")
 AC_SUBST(LIBODBX_CPPFLAGS)
 AC_SUBST(LIBODBX_LIBS)
+
+#
+# OpenLDAP
+#
+AC_ARG_WITH([openldap],
+            AS_HELP_STRING([--with-openldap],
+                           [location of OpenLDAP includes and library]),
+            [ldappath="$withval"], [ldappath="no"])
+
+ldap_found="no"
+OPENLDAP_CPPFLAGS=""
+OPENLDAP_LIBS=""
+
+if test \( x"$ldappath" = x"auto" -o x"$ldappath" = x"yes" \) -a \
+	x"$PKG_CONFIG" != x""
+then
+        PKG_CHECK_MODULES([OPENLDAP], [openldap >= 2.0.0], [ldap_found="yes"],
+	[
+	        odbx_found="no"
+        	AC_MSG_WARN([pkg-config for openldap not found, trying manual
+		            search...])
+        ])
+fi
+
+if test x"$ldappath" != x"no" -a x"$ldap_found" = x"no"
+then
+	AC_MSG_CHECKING([for OpenLDAP])
+	if test x"$ldappath" != x"auto" -a x"$ldappath" != x"yes"
+	then
+		if test -f $ldappath/include/ldap.h
+		then
+			AC_MSG_RESULT($ldappath)
+		        ldap_found="yes"
+			OPENLDAP_CPPFLAGS="-I$ldappath/include"
+			OPENLDAP_LIBS="-L$ldappath/lib -lldap"
+		else
+			AC_MSG_ERROR(not found at $ldappath)
+		fi
+	else
+		ldapdirs="/usr /usr/local"
+		for d in $ldapdirs
+		do
+			if test -f $d/include/ldap.h
+			then
+				ldappath=$d
+				AC_MSG_RESULT($d)
+		        	ldap_found="yes"
+				OPENLDAP_CPPFLAGS="-I$ldappath/include"
+				OPENLDAP_LIBS="-L$ldappath/lib -lldap"
+				break;
+			fi
+		done
+	fi
+	if test x"$ldap_found" != x"yes"
+	then
+		AC_MSG_RESULT([no])
+	fi
+fi
+if test x"$ldap_found" = x"yes"
+then
+	AC_DEFINE([USE_LDAP], 1, [OpenLDAP support for datasets enabled])
+fi
+AM_CONDITIONAL(USE_LDAP, test x"$ldap_found" = x"yes")
+AC_SUBST(OPENLDAP_CPPFLAGS)
+AC_SUBST(OPENLDAP_LIBS)
 
 #
 # libdb
