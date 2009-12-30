@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.98 2009/12/30 08:56:55 cm-msk Exp $
+# $Id: configure.ac,v 1.99 2009/12/30 09:01:34 cm-msk Exp $
 
 #
 # Setup
@@ -755,7 +755,7 @@ then
 			fi
 		done
 	fi
-	if test x"$odbx_found" = x"yes"
+	if test x"$odbx_found" != x"yes"
 	then
 		AC_MSG_RESULT([no])
 	fi
