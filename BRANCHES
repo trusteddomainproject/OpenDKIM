@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.17 2009/12/24 07:54:46 cm-msk Exp $
+$Id: BRANCHES,v 1.18 2009/12/30 09:38:20 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -19,6 +19,8 @@ br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
 
 br-msk-lua	Experimenting with LUA for scriptable policy hooks
+
+br-msk-openldap	OpenLDAP integration work
 
 
 Closed Branches
