@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.23 2009/12/26 19:05:21 cm-msk Exp $
+**  $Id: util.c,v 1.24 2009/12/30 08:22:09 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.23 2009/12/26 19:05:21 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.24 2009/12/30 08:22:09 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -412,6 +412,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 	if (ip->sa_family == AF_INET6)
 	{
 		int status;
+		int bits;
 		struct sockaddr_in6 sin6;
 		struct in6_addr addr;
 
@@ -431,23 +432,86 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 			size_t sz;
 			size_t dst_len;
 
-			dst = ipbuf;
-			dst_len = sizeof ipbuf;
-
 			memset(ipbuf, '\0', sizeof ipbuf);
+			ipbuf[0] = '!';
 
-			sz = strlcpy(ipbuf, "IPv6:", sizeof ipbuf);
+			dst = &ipbuf[1];
+			dst_len = sizeof ipbuf - 1;
+
+			inet_ntop(AF_INET6, &addr, dst, dst_len);
+
+			exists = FALSE;
+
+			status = dkimf_db_get(db, ipbuf, 0, NULL, NULL,
+			                      &exists);
+			if (status != 0)
+				return FALSE;
+			if (exists)
+				out = FALSE;
+
+			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, NULL,
+			                      &exists);
+			if (status != 0)
+				return FALSE;
+			if (exists)
+				out = TRUE;
+		}
+
+		/* iterate over possible bitwise expressions */
+		for (bits = 128; bits >= 0; bits--)
+		{
+			int bit;
+			char *dst;
+			size_t sz;
+			size_t dst_len;
+
+			/* try this one */
+			memset(ipbuf, '\0', sizeof ipbuf);
+			ipbuf[0] = '!';
+
+			dst = &ipbuf[1];
+			dst_len = sizeof ipbuf - 1;
+
+			inet_ntop(AF_INET6, &addr, dst, dst_len);
+
+			sz = strlcat(ipbuf, "/", sizeof ipbuf);
 			if (sz >= sizeof ipbuf)
 				return FALSE;
 
-			dst += sz;
-			dst_len -= sz;
-			inet_ntop(AF_INET6, &addr, dst, dst_len);
-		}
+			dst = &ipbuf[sz];
+			dst_len = sizeof ipbuf - sz;
 
-		exists = FALSE;
-		status = dkimf_db_get(db, ipbuf, 0, NULL, NULL, &exists);
-		return (status == 0 && exists);
+			sz = snprintf(dst, dst_len, "%d", bits);
+			if (sz >= sizeof ipbuf)
+				return FALSE;
+
+			exists = FALSE;
+
+			status = dkimf_db_get(db, ipbuf, 0, NULL, NULL,
+			                      &exists);
+			if (status != 0)
+				return FALSE;
+			if (exists)
+				out = FALSE;
+
+			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, NULL,
+			                      &exists);
+			if (status != 0)
+				return FALSE;
+			if (exists)
+				out = TRUE;
+
+			/* flip off a bit */
+			if (bits != 0)
+			{
+				int idx;
+				int bit;
+
+				idx = 15 - (bits / 8);
+				bit = 7 - (bits % 8);
+				addr.s6_addr[idx] &= ~(1 << bit);
+			}
+		}
 	}
 #endif /* AF_INET6 */
 
@@ -474,10 +538,14 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 		ipbuf[0] = '!';
 		(void) dkimf_inet_ntoa(addr, &ipbuf[1], sizeof ipbuf - 1);
 		status = dkimf_db_get(db, ipbuf, 0, NULL, NULL, &exists);
+		if (status != 0)
+			return FALSE;
 		if (exists)
 			out = FALSE;
 
 		status = dkimf_db_get(db, &ipbuf[1], 0, NULL, NULL, &exists);
+		if (status != 0)
+			return FALSE;
 		if (exists)
 			out = TRUE;
 
@@ -510,11 +578,15 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 			exists = FALSE;
 			status = dkimf_db_get(db, ipbuf, 0, NULL, NULL,
 			                      &exists);
+			if (status != 0)
+				return FALSE;
 			if (exists)
 				out = FALSE;
 
 			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, NULL,
 			                      &exists);
+			if (status != 0)
+				return FALSE;
 			if (exists)
 				out = TRUE;
 
@@ -524,11 +596,15 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 			exists = FALSE;
 			status = dkimf_db_get(db, ipbuf, 0, NULL, NULL,
 			                      &exists);
+			if (status != 0)
+				return FALSE;
 			if (exists)
 				out = FALSE;
 
 			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, NULL,
 			                      &exists);
+			if (status != 0)
+				return FALSE;
 			if (exists)
 				out = TRUE;
 		}
