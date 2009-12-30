@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.1 2009/12/30 09:41:02 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.2 2009/12/30 10:00:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.1 2009/12/30 09:41:02 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.2 2009/12/30 10:00:07 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1963,6 +1963,13 @@ dkimf_db_close(DKIMF_DB db)
 		break;
 #endif /* USE_ODBX */
 
+#ifdef USE_LDAP
+	  case DKIMF_DB_TYPE_LDAP:
+		ldap_unbind_ext((LDAP *) db->db_handle, NULL, NULL);
+		free(db->db_data);
+		break;
+#endif /* USE_LDAP */
+
 	  default:
 		assert(0);
 	}
@@ -2007,6 +2014,11 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 		return strlcpy(err, odbx_error((odbx_t *) db->db_handle,
 		                               db->db_status), errlen);
 #endif /* USE_ODBX */
+
+#ifdef USE_LDAP
+	  case DKIMF_DB_TYPE_LDAP:
+		return strlcpy(err, ldap_err2string(db->db_status), errlen);
+#endif /* USE_LDAP */
 
 	  default:
 		assert(0);
