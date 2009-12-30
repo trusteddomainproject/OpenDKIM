@@ -1,12 +1,14 @@
 /*
 **  Copyright (c) 2009, Murray S. Kucherawy.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.1.2.13 2009/12/23 08:23:54 cm-msk Exp $
+**  $Id: miltertest.c,v 1.1.2.14 2009/12/30 23:43:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.13 2009/12/23 08:23:54 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.1.2.14 2009/12/30 23:43:42 cm-msk Exp $";
 #endif /* ! lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -110,6 +112,33 @@ unsigned int tmo;
 pid_t filterpid;
 char scriptbuf[BUFRSZ];
 char *progname;
+
+/*
+**  MT_INET_NTOA -- thread-safe inet_ntoa()
+**
+**  Parameters:
+**  	a -- (struct in_addr) to be converted
+**  	buf -- destination buffer
+**  	buflen -- number of bytes at buf
+**
+**  Return value:
+**  	Size of the resultant string.  If the result is greater than buflen,
+**  	then buf does not contain the complete result.
+*/
+
+size_t
+mt_inet_ntoa(struct in_addr a, char *buf, size_t buflen)
+{
+	in_addr_t addr;
+
+	assert(buf != NULL);
+
+	addr = ntohl(a.s_addr);
+
+	return snprintf(buf, buflen, "%d.%d.%d.%d",
+	                (addr >> 24), (addr >> 16) & 0xff,
+	                (addr >> 8) & 0xff, addr & 0xff);
+}
 
 /*
 **  MT_LUA_READER -- "read" a script and make it available to Lua
@@ -1373,7 +1402,7 @@ int
 mt_conninfo(lua_State *l)
 {
 	char rcmd;
-	char family = '4';			/* IPv4 only for now */
+	char family;
 	size_t buflen;
 	size_t len;
 	size_t s;
@@ -1384,6 +1413,7 @@ mt_conninfo(lua_State *l)
 	char *ipstr;
 	struct in_addr sa;
 	char buf[BUFRSZ];
+	char tmp[BUFRSZ];
 
 	assert(l != NULL);
 
@@ -1413,6 +1443,43 @@ mt_conninfo(lua_State *l)
 
 	if (ipstr == NULL)
 	{
+#if (HAVE_GETADDRINFO && HAVE_INET_NTOP)
+		char *a;
+		struct addrinfo *res;
+		struct sockaddr_in *s4;
+		struct sockaddr_in6 *s6;
+
+		if (getaddrinfo(host, NULL, NULL, &res) != 0)
+		{
+			lua_pushfstring(l, "mt_conninfo(): host `%s' unknown",
+			                host);
+			lua_error(l);
+		}
+
+		if (res->ai_family == AF_INET)
+		{
+			s4 = (struct sockaddr_in *) res->ai_addr;
+			a = (char *) &s4->sin_addr;
+			family = '4';
+		}
+		else if (res->ai_family == AF_INET6)
+		{
+			s6 = (struct sockaddr_in6 *) res->ai_addr;
+			a = (char *) &s6->sin6_addr;
+			family = '6';
+		}
+
+		memset(tmp, '\0', sizeof tmp);
+
+		if (inet_ntop(res->ai_family, a, tmp, sizeof tmp - 1) == NULL)
+		{
+			lua_pushfstring(l,
+			                "mt_conninfo(): can't convert address for host `%s' to text",
+			                host);
+			lua_error(l);
+		}
+		ipstr = tmp;
+#else /* HAVE_GETADDRINFO && HAVE_INET_NTOP */
 		struct hostent *h;
 
 		h = gethostbyname(host);
@@ -1424,10 +1491,33 @@ mt_conninfo(lua_State *l)
 		}
 
 		memcpy(&sa.s_addr, h->h_addr, sizeof sa.s_addr);
-		ipstr = inet_ntoa(sa);
+		mt_inet_ntoa(sa, tmp, sizeof tmp);
+		ipstr = tmp;
+		family = '4';
+#endif /* HAVE_GETADDRINFO && HAVE_INET_NTOP */
 	}
 	else
 	{
+#ifdef HAVE_INET_PTON
+		struct in_addr a;
+		struct in6_addr a6;
+
+		if (inet_pton(AF_INET6, ipstr, &a6.s6_addr) == 1)
+		{
+			family = '6';
+		}
+		else if (inet_pton(AF_INET, ipstr, &a.s_addr) == 1)
+		{
+			family = '4';
+		}
+		else
+		{
+			lua_pushfstring(l,
+			                "mt_conninfo(): invalid IP address `%s'",
+			                ipstr);
+			lua_error(l);
+		}
+#else /* HAVE_INET_PTON */
 		sa.s_addr = inet_addr(ipstr);
 		if (sa.s_addr == INADDR_NONE)
 		{
@@ -1436,6 +1526,8 @@ mt_conninfo(lua_State *l)
 			                ipstr);
 			lua_error(l);
 		}
+		family = '4';
+#endif /* HAVE_INET_PTON */
 	}
 
 	s = strlen(host) + 1 + sizeof(char) + sizeof port + strlen(ipstr) + 1;
