@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.4 2009/12/30 20:40:34 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.5 2009/12/30 20:42:15 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.4 2009/12/30 20:40:34 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.5 2009/12/30 20:42:15 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1217,7 +1217,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		cred.bv_val = ldap->ldap_bindpw;
 		cred.bv_len = strlen(ldap->ldap_bindpw);
 		if (ldap_sasl_bind_s(ld,
-		                     NULL, 		/* dn */
+		                     ldap->ldap_binduser,
 		                     NULL, 		/* SASL mechanism */
 		                     &cred,		/* credential(s) */
 		                     NULL, NULL, NULL) != LDAP_SUCCESS)
