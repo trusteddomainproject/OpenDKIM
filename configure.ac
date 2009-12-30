@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.97 2009/12/22 00:12:55 cm-msk Exp $
+# $Id: configure.ac,v 1.98 2009/12/30 08:56:55 cm-msk Exp $
 
 #
 # Setup
@@ -715,7 +715,8 @@ odbx_found="no"
 LIBODBX_CPPFLAGS=""
 LIBODBX_LIBS=""
 
-if test \( x"$odbxpath" = x"auto" -o x"$odbxpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
+if test \( x"$odbxpath" = x"auto" -o x"$odbxpath" = x"yes" \) -a \
+	x"$PKG_CONFIG" != x""
 then
         PKG_CHECK_MODULES([LIBODBX], [opendbx >= 1.3.7], [odbx_found="yes"],
 	[
@@ -725,10 +726,10 @@ then
         ])
 fi
 
-if test x"$odbxpath" != x"no" -a x"odbx_found" = x"no"
+if test x"$odbxpath" != x"no" -a x"$odbx_found" = x"no"
 then
 	AC_MSG_CHECKING([for OpenDBX])
-	if test x"$odbxpath" != x"auto" -a x"odbxpath" != x"yes"
+	if test x"$odbxpath" != x"auto" -a x"$odbxpath" != x"yes"
 	then
 		if test -f $odbxpath/include/odbx.h
 		then
@@ -754,16 +755,16 @@ then
 			fi
 		done
 	fi
-	if test x"odbx_found" = x"yes"
+	if test x"$odbx_found" = x"yes"
 	then
 		AC_MSG_RESULT([no])
 	fi
 fi
-if test x"odbx_found" = x"yes"
+if test x"$odbx_found" = x"yes"
 then
 	AC_DEFINE([USE_ODBX], 1, [ODBX support for datasets enabled])
 fi
-AM_CONDITIONAL(USE_ODBX, test x"odbx_found" = x"yes")
+AM_CONDITIONAL(USE_ODBX, test x"$odbx_found" = x"yes")
 AC_SUBST(LIBODBX_CPPFLAGS)
 AC_SUBST(LIBODBX_LIBS)
 
