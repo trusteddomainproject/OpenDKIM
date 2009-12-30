@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.5 2009/12/30 20:42:15 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.6 2009/12/30 20:45:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.5 2009/12/30 20:42:15 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.6 2009/12/30 20:45:39 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1054,6 +1054,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 	  case DKIMF_DB_TYPE_LDAP:
 	  {
 		_Bool found;
+		_Bool usetls = FALSE;
 		int err;
 		int v = LDAP_VERSION3;
 		struct dkimf_db_ldap *ldap;
@@ -1075,8 +1076,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		**  General format of an LDAP specification:
 		**  ldap://host[:port][/key=val[/...]]
 		**  
-		**  "binduser", "bindpass" and "attribute" will be set in
-		**  one of the key-value pairs.
+		**  "binduser", "bindpass", "attribute" and "usetls" will
+		**  be set in one of the key-value pairs.
 		*/
 
 		tmp = strdup(p);
@@ -1186,6 +1187,12 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				strlcpy(ldap->ldap_attribute, eq + 1,
 				        sizeof ldap->ldap_attribute);
 			}
+			else if (strcasecmp(p, "usetls") == 0)
+			{
+				if (*(eq + 1) == 'y' ||
+				    *(eq + 1) == 'Y')
+					usetls = TRUE;
+			}
 		}
 
 		/* error out if one of the required parameters was absent */
@@ -1211,7 +1218,27 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			return -1;
 		}
 
-		(void) ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &v);
+		/* set LDAP version */
+		if (ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION,
+		                    &v) != LDAP_OPT_SUCCESS)
+		{
+			ldap_unbind_ext(ld, NULL, NULL);
+			free(ldap);
+			free(tmp);
+			return -1;
+		}
+
+		/* attempt TLS if requested */
+		if (usetls)
+		{
+			if (ldap_start_tls_s(ld, NULL, NULL) != LDAP_SUCCESS)
+			{
+				ldap_unbind_ext(ld, NULL, NULL);
+				free(ldap);
+				free(tmp);
+				return -1;
+			}
+		}
 
 		/* attempt binding */
 		cred.bv_val = ldap->ldap_bindpw;
