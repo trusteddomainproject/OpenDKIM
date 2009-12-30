@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.3 2009/12/30 10:01:11 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.4 2009/12/30 20:40:34 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.3 2009/12/30 10:01:11 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.4 2009/12/30 20:40:34 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -51,6 +51,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.3 2009/12/30 1
 /* macros */
 #define	DEFARRAYSZ		16
 #define DKIMF_DB_MODE		0644
+#define DKIMF_LDAP_TIMEOUT	5
 
 #define	DKIMF_DB_IFLAG_FREEARRAY 0x01
 
@@ -140,12 +141,14 @@ struct dkimf_db_dsn
 #ifdef USE_LDAP
 struct dkimf_db_ldap
 {
+	int			ldap_timeout;
 	int			ldap_port;
 	char			ldap_server[DKIM_MAXHOSTNAMELEN + 1];
 	char			ldap_uri[BUFRSZ];
 	char			ldap_binduser[BUFRSZ];
 	char			ldap_bindpw[BUFRSZ];
 	char			ldap_attribute[BUFRSZ];
+	pthread_mutex_t		ldap_lock;
 };
 #endif /* USE_LDAP */
 
@@ -1052,7 +1055,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 	  {
 		_Bool found;
 		int err;
-		int v = 3;
+		int v = LDAP_VERSION3;
 		struct dkimf_db_ldap *ldap;
 		LDAP *ld;
 		char *q;
@@ -1066,6 +1069,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			return -1;
 
 		memset(ldap, '\0', sizeof ldap);
+		ldap->ldap_timeout = DKIMF_LDAP_TIMEOUT;
 
 		/*
 		**  General format of an LDAP specification:
@@ -1223,6 +1227,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			free(tmp);
 			return -1;
 		}
+
+		pthread_mutex_init(&ldap->ldap_lock, NULL);
 
 		/* store handle */
 		new->db_handle = (void *) ld;
@@ -1549,6 +1555,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 	assert(db != NULL);
 	assert(buf != NULL);
+	assert(outbuf == NULL || outbuflen != NULL);
 
 	switch (db->db_type)
 	{
@@ -1901,7 +1908,81 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 #ifdef USE_LDAP
 	  case DKIMF_DB_TYPE_LDAP:
 	  {
-		FINISH ME
+		LDAP *ld;
+		LDAPMessage *result;
+		LDAPMessage *e;
+		struct dkimf_db_ldap *ldap;
+		struct berval **vals;
+		char *attrs[2];
+		char query[BUFRSZ];
+		char filter[BUFRSZ];
+		struct timeval timeout;
+
+		ld = (LDAP *) db->db_handle;
+		ldap = (struct dkimf_db_ldap *) db->db_data;
+
+		pthread_mutex_lock(&ldap->ldap_lock);
+
+		snprintf(query, sizeof query, "cn=%s", buf);
+		snprintf(filter, sizeof filter, "(%s=*)",
+		         ldap->ldap_attribute);
+
+		attrs[0] = ldap->ldap_attribute;
+		attrs[1] = NULL;
+
+		timeout.tv_sec = ldap->ldap_timeout;
+		timeout.tv_usec = 0;
+
+		status = ldap_search_ext_s(ld, query, LDAP_SCOPE_SUBTREE,
+		                           filter, attrs, 0, NULL, NULL,
+		                           &timeout, 0, &result);
+		if (status != LDAP_SUCCESS)
+		{
+			db->db_status = status;
+			pthread_mutex_unlock(&ldap->ldap_lock);
+			return status;
+		}
+
+		e = ldap_first_entry(ld, result);
+		if (e == NULL)
+		{
+			if (exists != NULL)
+				*exists = FALSE;
+			pthread_mutex_unlock(&ldap->ldap_lock);
+			return 0;
+		}
+
+		vals = ldap_get_values_len(ld, e, ldap->ldap_attribute);
+		if (vals == NULL || vals[0] == NULL)
+		{
+			if (exists != NULL)
+				*exists = FALSE;
+			if (vals != NULL)
+				ldap_msgfree(result);
+			pthread_mutex_unlock(&ldap->ldap_lock);
+			return 0;
+		}
+
+		if (exists != NULL)
+		{
+			*exists = TRUE;
+
+			if (outbuf != NULL)
+			{
+				size_t clen;
+
+				clen = MIN(*outbuflen, vals[0]->bv_len);
+
+				strncpy(outbuf, vals[0]->bv_val, clen);
+
+				*outbuflen = vals[0]->bv_len;
+			}
+
+			ldap_msgfree(result);
+
+			pthread_mutex_unlock(&ldap->ldap_lock);
+			return 0;
+		}
 	  }
 #endif /* USE_LDAP */
 
@@ -1972,9 +2053,16 @@ dkimf_db_close(DKIMF_DB db)
 
 #ifdef USE_LDAP
 	  case DKIMF_DB_TYPE_LDAP:
+	  {
+		struct dkimf_db_ldap *ldap;
+
+		ldap = (struct dkimf_db_ldap *) db->db_data;
+
 		ldap_unbind_ext((LDAP *) db->db_handle, NULL, NULL);
+		pthread_mutex_destroy(&ldap->ldap_lock);
 		free(db->db_data);
 		break;
+	  }
 #endif /* USE_LDAP */
 
 	  default:
