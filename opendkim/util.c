@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.24 2009/12/30 08:22:09 cm-msk Exp $
+**  $Id: util.c,v 1.25 2009/12/31 00:05:05 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.24 2009/12/30 08:22:09 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.25 2009/12/31 00:05:05 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -458,7 +458,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 		}
 
 		/* iterate over possible bitwise expressions */
-		for (bits = 128; bits >= 0; bits--)
+		for (bits = 0; bits <= 128; bits++)
 		{
 			int bit;
 			char *dst;
@@ -481,7 +481,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 			dst = &ipbuf[sz];
 			dst_len = sizeof ipbuf - sz;
 
-			sz = snprintf(dst, dst_len, "%d", bits);
+			sz = snprintf(dst, dst_len, "%d", 128 - bits);
 			if (sz >= sizeof ipbuf)
 				return FALSE;
 
@@ -502,13 +502,13 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 				out = TRUE;
 
 			/* flip off a bit */
-			if (bits != 0)
+			if (bits != 128)
 			{
 				int idx;
 				int bit;
 
 				idx = 15 - (bits / 8);
-				bit = 7 - (bits % 8);
+				bit = bits % 8;
 				addr.s6_addr[idx] &= ~(1 << bit);
 			}
 		}
