@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.7 2010/01/01 00:36:37 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.8 2010/01/04 22:18:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.7 2010/01/01 00:36:37 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.8 2010/01/04 22:18:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -148,6 +148,7 @@ struct dkimf_db_ldap
 	char			ldap_binduser[BUFRSZ];
 	char			ldap_bindpw[BUFRSZ];
 	char			ldap_attribute[BUFRSZ];
+	char			ldap_query[BUFRSZ];
 	pthread_mutex_t		ldap_lock;
 };
 #endif /* USE_LDAP */
@@ -169,6 +170,71 @@ struct dkimf_db_table dbtypes[] =
 #endif /* USE_LDAP */
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
+
+#ifdef USE_LDAP
+/*
+**  DKIMF_DB_MKLDAPQUERY -- generate an LDAP query
+**
+**  Parameters:
+**  	ldap -- LDAP data handle
+**  	buf -- parameter (the actual query)
+**  	buflen -- length of data in "buf"
+**  	query -- destination string
+**  	qlen -- size of "query"
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	Should report overflows.
+*/
+
+static void
+dkimf_db_mkldapquery(struct dkimf_db_ldap *ldap, char *buf, size_t buflen,
+                     char *query, size_t qlen)
+{
+	char last = '\0';
+	char *p;
+	char *b;
+	char *q;
+	char *pend;
+	char *bend;
+	char *qend;
+
+	assert(ldap != NULL);
+	assert(buf != NULL);
+	assert(query != NULL);
+
+	p = ldap->ldap_query;
+	pend = ldap->ldap_query + strlen(ldap->ldap_query) - 1;
+	q = query;
+	qend = query + qlen - 1;
+	bend = buf + buflen - 1;
+
+	while (p <= pend && q <= qend)
+	{
+		if (last == '%')
+		{
+			if (*p == 'd')
+			{
+				for (b = buf; b <= bend && q <= qend; b++)
+					*q++ = *b;
+			}
+			else
+			{
+				*q++ = *p;
+			}
+		}
+		else if (*p != '%')
+		{
+			*q++ = *p;
+		}
+
+		last = *p;
+		p++;
+	}
+}
+#endif /* USE_LDAP */
 
 /*
 **  DKIMF_DB_NEXTPUNCT -- find next punctuation
@@ -1076,8 +1142,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		**  General format of an LDAP specification:
 		**  ldap://host[:port][/key=val[/...]]
 		**  
-		**  "binduser", "bindpass", "attribute" and "usetls" will
-		**  be set in one of the key-value pairs.
+		**  "binduser", "bindpass", "attribute", "query" and "usetls"
+		**  will be set in one of the key-value pairs.
 		*/
 
 		tmp = strdup(p);
@@ -1187,6 +1253,11 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				strlcpy(ldap->ldap_attribute, eq + 1,
 				        sizeof ldap->ldap_attribute);
 			}
+			else if (strcasecmp(p, "query") == 0)
+			{
+				strlcpy(ldap->ldap_query, eq + 1,
+				        sizeof ldap->ldap_query);
+			}
 			else if (strcasecmp(p, "usetls") == 0)
 			{
 				if (*(eq + 1) == 'y' ||
@@ -1196,7 +1267,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		}
 
 		/* error out if one of the required parameters was absent */
-		if (ldap->ldap_attribute[0] == '\0')
+		if (ldap->ldap_attribute[0] == '\0' ||
+		    ldap->ldap_query[0] == '\0')
 		{
 			free(ldap);
 			free(tmp);
@@ -1208,7 +1280,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		         "ldap",		 /* for now */
 		         ldap->ldap_server,
 		         ldap->ldap_port == 0 ? LDAP_PORT
-		                            : ldap->ldap_port);
+		                              : ldap->ldap_port);
 
 		/* create LDAP handle */
 		if (ldap_initialize(&ld, ldap->ldap_uri) != LDAP_SUCCESS)
@@ -1950,7 +2022,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		pthread_mutex_lock(&ldap->ldap_lock);
 
-		snprintf(query, sizeof query, "cn=%s", buf);
+		dkimf_db_mkldapquery(ldap, buf, buflen, query, sizeof query);
 		snprintf(filter, sizeof filter, "(%s=*)",
 		         ldap->ldap_attribute);
 
