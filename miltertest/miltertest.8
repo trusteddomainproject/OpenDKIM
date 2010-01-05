@@ -198,21 +198,22 @@ Sleeps for
 .I n
 seconds.
 .TP
-.B mt_startfilter(path, arg0, arg1, ...)
+.B mt_startfilter(path, arg1, arg2, ...)
 Starts the filter whose binary is located at
 .I path
 with argument vector comprised of strings
-.I arg0,
+.I path,
 .I arg1,
-etc.  Basically this is the same syntax as
+.I arg2,
+etc.  Basically this is almost the same syntax as
 .I execl(3)
 except that
 .B miltertest
 also does the fork for you, and will remember the process ID in order to
 request a clean shutdown using SIGTERM and
-.I wait(2).
-If the filter could not be started, an exception is generated with an
-error message returned.
+.I wait(2)
+at the end of the test script.  If the filter could not be started, an
+exception is generated with an error message returned.
 .SH EOM CHECKS
 The
 .B mt_eom_check()
