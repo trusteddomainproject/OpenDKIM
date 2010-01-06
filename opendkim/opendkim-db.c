@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.8 2010/01/04 22:18:27 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.9 2010/01/06 19:34:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.8 2010/01/04 22:18:27 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.9 2010/01/06 19:34:12 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -52,6 +52,8 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.8 2010/01/04 2
 #define	DEFARRAYSZ		16
 #define DKIMF_DB_MODE		0644
 #define DKIMF_LDAP_TIMEOUT	5
+#define DKIMF_LDAP_DEFPROTOCOL	"ldap"
+#define DKIMF_LDAP_PROTO	8
 
 #define	DKIMF_DB_IFLAG_FREEARRAY 0x01
 
@@ -143,6 +145,7 @@ struct dkimf_db_ldap
 {
 	int			ldap_timeout;
 	int			ldap_port;
+	char			ldap_protocol[DKIMF_LDAP_PROTO + 1];
 	char			ldap_server[DKIM_MAXHOSTNAMELEN + 1];
 	char			ldap_uri[BUFRSZ];
 	char			ldap_binduser[BUFRSZ];
@@ -1142,8 +1145,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		**  General format of an LDAP specification:
 		**  ldap://host[:port][/key=val[/...]]
 		**  
-		**  "binduser", "bindpass", "attribute", "query" and "usetls"
-		**  will be set in one of the key-value pairs.
+		**  "binduser", "bindpass", "attribute", "query", "protocol"
+		**  and "usetls" will be set in one of the key-value pairs.
 		*/
 
 		tmp = strdup(p);
@@ -1264,6 +1267,23 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				    *(eq + 1) == 'Y')
 					usetls = TRUE;
 			}
+			else if (strcasecmp(p, "protocol") == 0)
+			{
+				strlcpy(ldap->ldap_protocol, eq + 1,
+				        sizeof ldap->ldap_protocol);
+			}
+			else
+			{
+				free(ldap);
+				free(tmp);
+				return -1;
+			}
+		}
+
+		if (ldap->ldap_protocol[0] == '\0')
+		{
+			strlcpy(ldap->ldap_protocol, DKIMF_LDAP_DEFPROTOCOL,
+			        sizeof ldap->ldap_protocol);
 		}
 
 		/* error out if one of the required parameters was absent */
@@ -1277,7 +1297,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 		snprintf(ldap->ldap_uri, sizeof ldap->ldap_uri,
 		         "%s://%s:%d",
-		         "ldap",		 /* for now */
+		         ldap->ldap_protocol,
 		         ldap->ldap_server,
 		         ldap->ldap_port == 0 ? LDAP_PORT
 		                              : ldap->ldap_port);
@@ -1301,7 +1321,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		}
 
 		/* attempt TLS if requested */
-		if (usetls)
+		if (usetls && strcasecmp(ldap->ldap_protocol, "ldaps") != 0)
 		{
 			if (ldap_start_tls_s(ld, NULL, NULL) != LDAP_SUCCESS)
 			{
