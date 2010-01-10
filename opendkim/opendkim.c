@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.70 2009/12/27 08:15:08 cm-msk Exp $
+**  $Id: opendkim.c,v 1.70.2.1 2010/01/10 07:29:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70 2009/12/27 08:15:08 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.1 2010/01/10 07:29:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -192,6 +192,9 @@ struct dkimf_config
 #ifdef _FFR_RESIGN
 	_Bool		conf_resignall;		/* resign unverified mail */
 #endif /* _FFR_RESIGN */
+#ifdef USE_LDAP
+	_Bool		conf_ldap_usetls;	/* LDAP TLS */
+#endif /* USE_LDAP */
 	unsigned int	conf_mode;		/* operating mode */
 	unsigned int	conf_refcnt;		/* reference count */
 	unsigned int	conf_dnstimeout;	/* DNS timeout */
@@ -262,6 +265,10 @@ struct dkimf_config
 #ifdef _FFR_REDIRECT
 	char *		conf_redirect;		/* redirect failures to */
 #endif /* _FFR_REDIRECT */
+#ifdef USE_LDAP
+	char *		conf_ldap_bindpw;	/* LDAP bind password */
+	char *		conf_ldap_authmech;	/* LDAP auth mechanism */
+#endif /* USE_LDAP */
 	struct keytable * conf_keyhead;		/* key list */
 	struct keytable * conf_keytail;		/* key list */
 #ifdef _FFR_REPLACE_RULES
@@ -929,6 +936,40 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 		return smfi_getsymval(ctx, sym);
 }
 
+#ifdef USE_LDAP
+/*
+**  DKIMF_GET_LDAP_PARAM -- retrieve an LDAP parameter
+**
+**  Parameters:
+**  	which -- which parameter to get (a DKIMF_LDAP_PARAM_* constant)
+**
+**  Return value:
+**  	Pointer to the configured string or value.
+*/
+
+char *
+dkimf_get_ldap_param(int which)
+{
+	switch (which)
+	{
+	  case DKIMF_LDAP_PARAM_BINDPW:
+		return curconf->conf_ldap_bindpw;
+
+	  case DKIMF_LDAP_PARAM_AUTHMECH:
+		return curconf->conf_ldap_authmech;
+
+	  case DKIMF_LDAP_PARAM_USETLS:
+		if (curconf->conf_ldap_usetls)
+			return (char *) 1;
+		else
+			return NULL;
+
+	  default:
+		assert(0);
+	}
+}
+#endif /* USE_LDAP */
+
 /*
 **  DKIMF_INIT_SYSLOG -- initialize syslog()
 **
@@ -1364,7 +1405,7 @@ dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 			_Bool found = FALSE;
 
 			(void) dkimf_db_get(conf->conf_thirdpartydb,
-			                    (char *) sdomain, 0, NULL, NULL,
+			                    (char *) sdomain, 0, NULL, 0,
 			                    &found);
 
 			if (found)
@@ -1573,12 +1614,18 @@ dkimf_local_adsp(struct dkimf_config *conf, char *domain, dkim_policy_t *pcode)
 		size_t plen;
 		char *p;
 		char policy[BUFRSZ];
+		struct dkimf_db_data dbd;
+		DKIMF_DBDATA dbdp;
 
 		memset(policy, '\0', sizeof policy);
 		plen = sizeof policy;
 
+		dbd.dbdata_buffer = policy;
+		dbd.dbdata_buflen = plen;
+		dbdp = &dbd;
+
 		status = dkimf_db_get(conf->conf_localadsp_db, domain, 0, 
-		                      policy, &plen, &found);
+		                      &dbdp, 1, &found);
 		if (policy[0] == '\0')
 			found = FALSE;
 
@@ -1586,10 +1633,10 @@ dkimf_local_adsp(struct dkimf_config *conf, char *domain, dkim_policy_t *pcode)
 		     p != NULL && !found;
 		     p = strchr(p + 1, '.'))
 		{
-			plen = sizeof policy;
+			dbd.dbdata_buflen = plen;
 
 			status = dkimf_db_get(conf->conf_localadsp_db, p, 0,
-			                      policy, &plen, &found);
+			                      &dbdp, 1, &found);
 			if (policy[0] == '\0')
 				found = FALSE;
 		}
@@ -2467,6 +2514,21 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "AllowSHA1Only",
 		                  &conf->conf_allowsha1only,
 		                  sizeof conf->conf_allowsha1only);
+
+#ifdef USE_LDAP
+		(void) config_get(data, "LDAPUseTLS",
+		                  &conf->conf_ldap_usetls,
+		                  sizeof conf->conf_ldap_usetls);
+
+		(void) config_get(data, "LDAPAuthMechanism",
+		                  &conf->conf_ldap_authmech,
+		                  sizeof conf->conf_ldap_authmech);
+
+		(void) config_get(data, "LDAPBindPassword",
+		                  &conf->conf_ldap_bindpw,
+		                  sizeof conf->conf_ldap_bindpw);
+#endif /* USE_LDAP */
+
 #ifdef USE_UNBOUND
 		(void) config_get(data, "TrustAnchorFile",
 		                  &conf->conf_trustanchorpath,
@@ -6053,7 +6115,7 @@ mlfi_eoh(SMFICTX *ctx)
 		if (mtaname != NULL)
 		{
 			status = dkimf_db_get(conf->conf_mtasdb, mtaname, 0,
-			                      NULL, NULL, &originok);
+			                      NULL, 0, &originok);
 		}
 
 		if (!originok && conf->conf_logwhy)
@@ -6072,6 +6134,8 @@ mlfi_eoh(SMFICTX *ctx)
 		char *vals;
 		char *last;
 		char name[BUFRSZ + 1];
+		struct dkimf_db_data dbd;
+		DKIMF_DBDATA dbdp;
 
 		if (dfc->mctx_tmpstr == NULL)
 		{
@@ -6101,8 +6165,13 @@ mlfi_eoh(SMFICTX *ctx)
 			if (val == NULL)
 				continue;
 
+			memset(&dbd, '\0', sizeof dbd);
+			dbd.dbdata_buffer = val;
+			dbd.dbdata_buflen = strlen(val);
+			dbdp = &dbd;
+
 			status = dkimf_db_get(conf->conf_macrosdb, name, 0,
-			                      val, NULL, &originok);
+			                      &dbdp, 1, &originok);
 		}
 
 		if (!originok && conf->conf_logwhy)
@@ -6182,7 +6251,7 @@ mlfi_eoh(SMFICTX *ctx)
 	if (originok && !domainok && conf->conf_domainsdb != NULL)
 	{
 		status = dkimf_db_get(conf->conf_domainsdb, dfc->mctx_domain,
-		                      0, NULL, NULL, &domainok);
+		                      0, NULL, 0, &domainok);
 
 		if (!domainok && conf->conf_logwhy)
 		{
@@ -6202,7 +6271,7 @@ mlfi_eoh(SMFICTX *ctx)
 					break;
 
 				status = dkimf_db_get(conf->conf_domainsdb, p,
-				                      0, NULL, NULL,
+				                      0, NULL, 0,
 				                      &domainok);
 
 				if (domainok)
@@ -6359,7 +6428,7 @@ mlfi_eoh(SMFICTX *ctx)
 		{
 			found = FALSE;
 			status = dkimf_db_get(conf->conf_dontsigntodb,
-			                      a->a_addr, 0, NULL, NULL,
+			                      a->a_addr, 0, NULL, 0,
 			                      &found);
 
 			if (found)
@@ -7246,7 +7315,7 @@ mlfi_eom(SMFICTX *ctx)
 				{
 					status = dkimf_db_get(conf->conf_remardb,
 					                      ares->ares_host,
-					                      0, NULL, NULL,
+					                      0, NULL, 0,
 					                      &hostmatch);
 				}
 				else

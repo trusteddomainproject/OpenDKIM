@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.h,v 1.5.6.1 2009/12/30 09:41:02 cm-msk Exp $
+**  $Id: opendkim-db.h,v 1.5.6.2 2010/01/10 07:29:52 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_DB_H_
 #define _OPENDKIM_DB_H_
 
 #ifndef lint
-static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.5.6.1 2009/12/30 09:41:02 cm-msk Exp $";
+static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.5.6.2 2010/01/10 07:29:52 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -23,6 +23,7 @@ static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.5.6.1 2009/12/30 09
 #define	DKIMF_DB_FLAG_ICASE	0x02
 #define	DKIMF_DB_FLAG_MATCHBOTH	0x04
 #define	DKIMF_DB_FLAG_VALLIST	0x08
+#define	DKIMF_DB_FLAG_USETLS	0x10
 
 #define	DKIMF_DB_TYPE_UNKNOWN	(-1)
 #define	DKIMF_DB_TYPE_FILE	0
@@ -31,6 +32,10 @@ static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.5.6.1 2009/12/30 09
 #define DKIMF_DB_TYPE_BDB	3
 #define DKIMF_DB_TYPE_DSN	4
 #define DKIMF_DB_TYPE_LDAP	5
+
+#define	DKIMF_LDAP_PARAM_BINDPW		1
+#define	DKIMF_LDAP_PARAM_AUTHMECH	2
+#define	DKIMF_LDAP_PARAM_USETLS		3
 
 #ifdef __STDC__
 # ifndef __P
@@ -46,11 +51,21 @@ static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.5.6.1 2009/12/30 09
 struct dkimf_db;
 typedef struct dkimf_db * DKIMF_DB;
 
+struct dkimf_db_data
+{
+	unsigned int	dbdata_flags;
+	char *		dbdata_buffer;
+	size_t		dbdata_buflen;
+};
+typedef struct dkimf_db_data * DKIMF_DBDATA;
+
+#define	DKIMF_DB_DATA_BINARY	0x01		/* data is binary */
+
 /* prototypes */
 extern void dkimf_db_close __P((DKIMF_DB));
 extern int dkimf_db_delete __P((DKIMF_DB, void *, size_t));
 extern int dkimf_db_get __P((DKIMF_DB, void *, size_t,
-                             void *, size_t *, bool *));
+                             DKIMF_DBDATA *, unsigned int, bool *));
 extern int dkimf_db_mkarray __P((DKIMF_DB, char ***));
 extern int dkimf_db_open __P((DKIMF_DB *, char *, u_int flags,
                               pthread_mutex_t *));

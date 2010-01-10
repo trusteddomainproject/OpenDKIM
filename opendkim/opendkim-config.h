@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.10 2009/11/22 08:15:50 grooverdan Exp $
+**  $Id: opendkim-config.h,v 1.10.6.1 2010/01/10 07:29:52 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.10 2009/11/22 08:15:50 grooverdan Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.10.6.1 2010/01/10 07:29:52 cm-msk Exp $";
 #endif /* !lint */
 
 struct configdef dkimf_config[] =
@@ -57,6 +57,11 @@ struct configdef dkimf_config[] =
 	{ "KeepTemporaryFiles",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "KeyFile",			CONFIG_TYPE_STRING,	FALSE },
 	{ "KeyList",			CONFIG_TYPE_STRING,	FALSE },
+#ifdef USE_LDAP
+	{ "LDAPAuthMechanism",		CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPBindPassword",		CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPUseTLS",			CONFIG_TYPE_BOOLEAN,	FALSE },
+#endif /* USE_LDAP */
 	{ "LocalADSP",			CONFIG_TYPE_STRING,	FALSE },
 	{ "LogWhy",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "MaximumHeaders",		CONFIG_TYPE_INTEGER,	FALSE },
