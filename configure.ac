@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.99.2.1 2009/12/30 09:39:54 cm-msk Exp $
+# $Id: configure.ac,v 1.99.2.2 2010/01/10 07:20:16 cm-msk Exp $
 
 #
 # Setup
@@ -785,7 +785,7 @@ if test \( x"$ldappath" = x"auto" -o x"$ldappath" = x"yes" \) -a \
 then
         PKG_CHECK_MODULES([OPENLDAP], [openldap >= 2.0.0], [ldap_found="yes"],
 	[
-	        odbx_found="no"
+	        ldap_found="no"
         	AC_MSG_WARN([pkg-config for openldap not found, trying manual
 		            search...])
         ])
@@ -832,6 +832,69 @@ fi
 AM_CONDITIONAL(USE_LDAP, test x"$ldap_found" = x"yes")
 AC_SUBST(OPENLDAP_CPPFLAGS)
 AC_SUBST(OPENLDAP_LIBS)
+
+#
+# SASL
+#
+AC_ARG_WITH([sasl],
+            AS_HELP_STRING([--with-sasl],
+                           [location of SASL includes]),
+            [saslpath="$withval"], [saslpath="no"])
+if test x"$ldap_found" = x"yes" -a x"$saslpath" = x"no"
+then
+	saslpath="auto"
+fi
+
+sasl_found="no"
+if test \( x"$saslpath" = x"auto" -o x"$saslpath" = x"yes" \) -a \
+	x"$PKG_CONFIG" != x""
+then
+        PKG_CHECK_MODULES([CYRUSSASL], [cyrussasl >= 2.1.0], [sasl_found="yes"],
+	[
+	        sasl_found="no"
+        	AC_MSG_WARN([pkg-config for cyrussasl not found, trying manual
+		            search...])
+        ])
+fi
+
+if test x"$saslpath" != x"no" -a x"$sasl_found" = x"no"
+then
+	AC_MSG_CHECKING([for SASL])
+	if test x"$saslpath" != x"auto" -a x"$saslpath" != x"yes"
+	then
+		if test -f $saslpath/include/sasl/sasl.h
+		then
+			AC_MSG_RESULT($saslpath)
+		        sasl_found="yes"
+			SASL_CPPFLAGS="-I$saslpath/include"
+		else
+			AC_MSG_ERROR(not found at $saslpath)
+		fi
+	else
+		sasldirs="/usr /usr/local"
+		for d in $sasldirs
+		do
+			if test -f $d/include/sasl/sasl.h
+			then
+				saslpath=$d
+				AC_MSG_RESULT($d)
+		        	sasl_found="yes"
+				SASL_CPPFLAGS="-I$ldappath/include"
+				break;
+			fi
+		done
+	fi
+	if test x"$sasl_found" != x"yes"
+	then
+		AC_MSG_RESULT([no])
+	fi
+fi
+if test x"$sasl_found" = x"yes"
+then
+	AC_DEFINE([USE_SASL], 1, [SASL support available])
+fi
+AM_CONDITIONAL(USE_SASL, test x"$sasl_found" = x"yes")
+AC_SUBST(SASL_CPPFLAGS)
 
 #
 # libdb
