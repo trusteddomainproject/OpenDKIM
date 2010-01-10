@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.12 2010/01/10 07:33:36 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.13 2010/01/10 08:29:08 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.12 2010/01/10 07:33:36 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.13 2010/01/10 08:29:08 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2356,8 +2356,8 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 **  	first -- get first record?
 **  	key -- buffer to receive the key
 **  	keylen -- bytes available at "key" (updated)
-**  	data -- buffer to receive the data
-**  	datalen -- bytes available at "data" (updated)
+**  	req -- buffers to receive the data ("requests")
+**  	reqnum -- number of requests
 **
 **  Return value:
 **  	0 -- record returned
@@ -2367,7 +2367,7 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 
 int
 dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
-              void *data, size_t *datalen)
+              DKIMF_DBDATA *req, unsigned int reqnum)
 {
 	assert(db != NULL);
 
@@ -2397,14 +2397,13 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 			*keylen = strlcpy(key, list->db_list_key, *keylen);
 		}
 
-		if (data != NULL)
+		if (reqnum != 0)
 		{
-			assert(datalen != NULL);
-
 			if (list->db_list_value != NULL)
 			{
-				*datalen = strlcpy(data, list->db_list_value,
-				                   *datalen);
+				dkimf_db_datasplit(list->db_list_value,
+				                   strlen(list->db_list_value),
+				                   req, reqnum);
 			}
 		}
 
@@ -2424,6 +2423,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 # if DB_VERSION_CHECK(2,0,0)
 		DBC *dbc;
 # endif /* DB_VERSION_CHECK(2,0,0) */
+		char databuf[BUFRSZ + 1];
 
 		bdb = (DB *) db->db_handle;
 
@@ -2453,9 +2453,9 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 # endif /* DB_VERSION_CHECK(2,0,0) */
 
 # if DB_VERSION_CHECK(2,0,0)
-		d.data = (void *) data;
+		d.data = databuf;
 		d.flags = DB_DBT_USERMEM;
-		d.ulen = (datalen != NULL ? *datalen : 0);
+		d.ulen = sizeof databuf;
 # endif /* DB_VERSION_CHECK(2,0,0) */
 
 # if DB_VERSION_CHECK(2,0,0)
@@ -2477,14 +2477,16 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 # if !DB_VERSION_CHECK(2,0,0)
 			if (key != NULL)
 				memcpy(key, k.data, MIN(k.size, *keylen));
-			if (data != NULL)
-				memcpy(data, d.data, MIN(d.size, *datalen));
+
+			if (reqnum != 0)
+			{
+				dkimf_db_datasplit(databuf, sizeof databuf,
+				                   req, reqnum);
+			}
 # endif /* ! DB_VERSION_CHECK(2,0,0) */
 
 			if (keylen != NULL)
 				*keylen = k.size;
-			if (datalen != NULL)
-				*datalen = d.size;
 
 			return 0;
 		}
@@ -2562,15 +2564,32 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		if (key != NULL)
 		{
 			*keylen = strlcpy(key,
-			                  (char *) odbx_field_value(result, 1),
+			                  (char *) odbx_field_value(result, 0),
 		                          *keylen);
 		}
 
-		if (data != NULL)
+		if (reqnum != 0)
 		{
-			*datalen = strlcpy(data,
-			                   (char *) odbx_field_value(result, 2),
-		                           *datalen);
+			int c;
+
+			for (c = 0; c < reqnum; c++)
+			{
+				if (c >= fields)
+				{
+					req[c].dbdata_buflen = 0;
+				}
+				else
+				{
+					char *val;
+
+					val = (char *) odbx_field_value(result,
+					                                c + 1);
+
+					req[c].dbdata_buflen = strlcpy(req[c].dbdata_buffer,
+					                               val,
+					                               req[c].dbdata_buflen);
+				}
+			}
 		}
 
 		return 0;
@@ -2675,7 +2694,7 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a)
 
 			keylen = sizeof keybuf - 1;
 			status = dkimf_db_walk(db, (nr == 0),
-			                       keybuf, &keylen, NULL, NULL);
+			                       keybuf, &keylen, NULL, 0);
 
 			if (nr == 0)
 			{
