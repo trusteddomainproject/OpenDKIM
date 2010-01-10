@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.56.2.1 2009/12/30 09:39:54 cm-msk Exp $
+# $Id: Makefile.am,v 1.56.2.2 2010/01/10 07:21:21 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -26,6 +26,9 @@ endif
 if USE_ODBX
 opendkim_CPPFLAGS += $(LIBODBX_CPPFLAGS)
 opendkim_LDADD += $(LIBODBX_LIBS)
+endif
+if USE_SASL
+opendkim_CPPFLAGS += $(SASL_CPPFLAGS)
 endif
 if USE_LDAP
 opendkim_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
