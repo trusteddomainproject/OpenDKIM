@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.10 2010/01/10 07:29:52 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.11 2010/01/10 07:33:00 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.10 2010/01/10 07:29:52 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.11 2010/01/10 07:33:00 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2172,7 +2172,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		timeout.tv_sec = ldap->ldap_timeout;
 		timeout.tv_usec = 0;
 
-		status = ldap_search_ext_s(ld, query, LDAP_SCOPE_SUBTREE,
+		status = ldap_search_ext_s(ld, query,
+		                           ldap->ldap_descr->lud_scope,
 		                           filter, ldap->ldap_descr->lud_attrs,
 		                           0, NULL, NULL,
 		                           &timeout, 0, &result);
