@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.11 2010/01/10 07:33:00 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.12 2010/01/10 07:33:36 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.11 2010/01/10 07:33:00 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.12 2010/01/10 07:33:36 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2149,7 +2149,6 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		struct dkimf_db_ldap *ldap;
 		struct berval **vals;
 		char query[BUFRSZ];
-		char filter[BUFRSZ];
 		struct timeval timeout;
 
 		ld = (LDAP *) db->db_handle;
@@ -2158,23 +2157,14 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		pthread_mutex_lock(&ldap->ldap_lock);
 
 		dkimf_db_mkldapquery(ldap, buf, buflen, query, sizeof query);
-		if (reqnum == 0 || ldap->ldap_descr->lud_attrs == NULL ||
-		    ldap->ldap_descr->lud_attrs[0] == NULL)
-		{
-			strlcpy(filter, "(objectclass=*)", sizeof filter);
-		}
-		else
-		{
-			snprintf(filter, sizeof filter, "(%s=*)",
-			         ldap->ldap_descr->lud_attrs[0]);
-		}
 
 		timeout.tv_sec = ldap->ldap_timeout;
 		timeout.tv_usec = 0;
 
 		status = ldap_search_ext_s(ld, query,
 		                           ldap->ldap_descr->lud_scope,
-		                           filter, ldap->ldap_descr->lud_attrs,
+		                           ldap->ldap_descr->lud_filter,
+		                           ldap->ldap_descr->lud_attrs,
 		                           0, NULL, NULL,
 		                           &timeout, 0, &result);
 		if (status != LDAP_SUCCESS)
