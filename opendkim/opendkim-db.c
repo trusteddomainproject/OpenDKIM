@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.13 2010/01/10 08:29:08 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.14 2010/01/11 18:40:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.13 2010/01/10 08:29:08 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.14 2010/01/11 18:40:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1395,6 +1395,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				return -1;
 			}
 		}
+#ifdef USE_SASL
 		else
 		{
 			if (ldap_sasl_interactive_bind_s(ld,
@@ -1412,6 +1413,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				return -1;
 			}
 		}
+#endif /* USE_SASL */
 
 		pthread_mutex_init(&ldap->ldap_lock, NULL);
 
