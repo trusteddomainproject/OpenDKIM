@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.70.2.1 2010/01/10 07:29:52 cm-msk Exp $
+**  $Id: opendkim.c,v 1.70.2.2 2010/01/11 20:18:02 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.1 2010/01/10 07:29:52 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.2 2010/01/11 20:18:02 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -268,6 +268,9 @@ struct dkimf_config
 #ifdef USE_LDAP
 	char *		conf_ldap_bindpw;	/* LDAP bind password */
 	char *		conf_ldap_authmech;	/* LDAP auth mechanism */
+	char *		conf_ldap_authname;	/* LDAP auth name */
+	char *		conf_ldap_authuser;	/* LDAP auth user */
+	char *		conf_ldap_authrealm;	/* LDAP auth realm */
 #endif /* USE_LDAP */
 	struct keytable * conf_keyhead;		/* key list */
 	struct keytable * conf_keytail;		/* key list */
@@ -957,6 +960,15 @@ dkimf_get_ldap_param(int which)
 
 	  case DKIMF_LDAP_PARAM_AUTHMECH:
 		return curconf->conf_ldap_authmech;
+
+	  case DKIMF_LDAP_PARAM_AUTHNAME:
+		return curconf->conf_ldap_authname;
+
+	  case DKIMF_LDAP_PARAM_AUTHREALM:
+		return curconf->conf_ldap_authrealm;
+
+	  case DKIMF_LDAP_PARAM_AUTHUSER:
+		return curconf->conf_ldap_authuser;
 
 	  case DKIMF_LDAP_PARAM_USETLS:
 		if (curconf->conf_ldap_usetls)
@@ -2523,6 +2535,18 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "LDAPAuthMechanism",
 		                  &conf->conf_ldap_authmech,
 		                  sizeof conf->conf_ldap_authmech);
+
+		(void) config_get(data, "LDAPAuthName",
+		                  &conf->conf_ldap_authname,
+		                  sizeof conf->conf_ldap_authname);
+
+		(void) config_get(data, "LDAPAuthRealm",
+		                  &conf->conf_ldap_authrealm,
+		                  sizeof conf->conf_ldap_authrealm);
+
+		(void) config_get(data, "LDAPAuthUser",
+		                  &conf->conf_ldap_authuser,
+		                  sizeof conf->conf_ldap_authuser);
 
 		(void) config_get(data, "LDAPBindPassword",
 		                  &conf->conf_ldap_bindpw,

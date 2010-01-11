@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.14 2010/01/11 18:40:42 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.15 2010/01/11 20:17:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.14 2010/01/11 18:40:42 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.15 2010/01/11 20:17:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -209,6 +209,21 @@ dkimf_db_saslinteract(LDAP *ld, unsigned int flags, void *defaults,
 	{
 	  case SASL_CB_PASS:
 		interact->result = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_BINDPW);
+		interact->len = strlen(interact->result);
+		break;
+
+	  case SASL_CB_GETREALM:
+		interact->result = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_AUTHREALM);
+		interact->len = strlen(interact->result);
+		break;
+
+	  case SASL_CB_AUTHNAME:
+		interact->result = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_AUTHNAME);
+		interact->len = strlen(interact->result);
+		break;
+
+	  case SASL_CB_USER:
+		interact->result = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_AUTHUSER);
 		interact->len = strlen(interact->result);
 		break;
 
