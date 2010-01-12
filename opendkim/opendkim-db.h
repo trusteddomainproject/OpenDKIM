@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.h,v 1.5.6.4 2010/01/11 20:18:02 cm-msk Exp $
+**  $Id: opendkim-db.h,v 1.5.6.5 2010/01/12 07:04:15 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_DB_H_
 #define _OPENDKIM_DB_H_
 
 #ifndef lint
-static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.5.6.4 2010/01/11 20:18:02 cm-msk Exp $";
+static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.5.6.5 2010/01/12 07:04:15 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -68,7 +68,7 @@ typedef struct dkimf_db_data * DKIMF_DBDATA;
 extern void dkimf_db_close __P((DKIMF_DB));
 extern int dkimf_db_delete __P((DKIMF_DB, void *, size_t));
 extern int dkimf_db_get __P((DKIMF_DB, void *, size_t,
-                             DKIMF_DBDATA *, unsigned int, bool *));
+                             DKIMF_DBDATA, unsigned int, bool *));
 extern int dkimf_db_mkarray __P((DKIMF_DB, char ***));
 extern int dkimf_db_open __P((DKIMF_DB *, char *, u_int flags,
                               pthread_mutex_t *));
@@ -76,6 +76,6 @@ extern int dkimf_db_put __P((DKIMF_DB, void *, size_t, void *, size_t));
 extern int dkimf_db_strerror __P((DKIMF_DB, char *, size_t));
 extern int dkimf_db_type __P((DKIMF_DB));
 extern int dkimf_db_walk __P((DKIMF_DB, _Bool, void *, size_t *,
-                              DKIMF_DBDATA *, unsigned int));
+                              DKIMF_DBDATA, unsigned int));
 
 #endif /* _OPENDKIM_DB_H_ */

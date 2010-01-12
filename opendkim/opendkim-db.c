@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.15 2010/01/11 20:17:52 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.16 2010/01/12 07:04:13 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.15 2010/01/11 20:17:52 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.16 2010/01/12 07:04:13 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -253,7 +253,7 @@ dkimf_db_saslinteract(LDAP *ld, unsigned int flags, void *defaults,
 
 static void
 dkimf_db_datasplit(char *buf, size_t buflen,
-                   DKIMF_DBDATA *req, unsigned int reqnum)
+                   DKIMF_DBDATA req, unsigned int reqnum)
 {
 	int ridx;
 	size_t clen;
@@ -269,7 +269,7 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 	ridx = 0;
 	clen = 0;
 	remain = buflen;
-	q = req[ridx]->dbdata_buffer;
+	q = req[ridx].dbdata_buffer;
 
 	for (p = buf; *p != '\0' && ridx < reqnum; p++)
 	{
@@ -279,19 +279,19 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 		*/
 
 		if ((*p == ':' && ridx < reqnum - 1) ||
-		    (req[ridx]->dbdata_flags & DKIMF_DB_DATA_BINARY &&
-		     clen == req[ridx]->dbdata_buflen))
+		    (req[ridx].dbdata_flags & DKIMF_DB_DATA_BINARY &&
+		     clen == req[ridx].dbdata_buflen))
 		{
-			req[ridx]->dbdata_buflen = clen;
+			req[ridx].dbdata_buflen = clen;
 			ridx++;
 			clen = 0;
-			q = req[ridx]->dbdata_buffer;
+			q = req[ridx].dbdata_buffer;
 
 			continue;
 		}
 
 		/* copy byte */
-		if (clen < req[ridx]->dbdata_buflen)
+		if (clen < req[ridx].dbdata_buflen)
 		{
 			*q = *p;
 			q++;
@@ -306,7 +306,7 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 		int c;
 
 		for (c = ridx + 1; c < reqnum; c++)
-			req[c]->dbdata_buflen = 0;
+			req[c].dbdata_buflen = 0;
 	}
 }
 
@@ -1769,7 +1769,7 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 
 int
 dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
-             DKIMF_DBDATA *req, unsigned int reqnum, _Bool *exists)
+             DKIMF_DBDATA req, unsigned int reqnum, _Bool *exists)
 {
 	int status;
 	int ret;
@@ -1819,16 +1819,16 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 			if ((db->db_flags & DKIMF_DB_FLAG_ICASE) == 0)
 			{
-				if (strncmp(req[0]->dbdata_buffer,
+				if (strncmp(req[0].dbdata_buffer,
 				            list->db_list_value,
-				            req[0]->dbdata_buflen) == 0)
+				            req[0].dbdata_buflen) == 0)
 					matched = TRUE;
 			}
 			else
 			{
-				if (strncasecmp(req[0]->dbdata_buffer,
+				if (strncasecmp(req[0].dbdata_buffer,
 				                list->db_list_value,
-				                req[0]->dbdata_buflen) == 0)
+				                req[0].dbdata_buflen) == 0)
 					matched = TRUE;
 			}
 
@@ -2211,13 +2211,13 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			{
 				size_t clen;
 
-				clen = MIN(req[c]->dbdata_buflen,
+				clen = MIN(req[c].dbdata_buflen,
 				           vals[0]->bv_len);
-				memcpy(req[c]->dbdata_buffer, vals[0]->bv_val,
+				memcpy(req[c].dbdata_buffer, vals[0]->bv_val,
 				       clen);
-				clen = MAX(req[c]->dbdata_buflen,
+				clen = MAX(req[c].dbdata_buflen,
 				           vals[0]->bv_len);
-				req[c]->dbdata_buflen = clen;
+				req[c].dbdata_buflen = clen;
 				ldap_value_free_len(vals);
 			}
 		}
@@ -2384,7 +2384,7 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 
 int
 dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
-              DKIMF_DBDATA *req, unsigned int reqnum)
+              DKIMF_DBDATA req, unsigned int reqnum)
 {
 	assert(db != NULL);
 

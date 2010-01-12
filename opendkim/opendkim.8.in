@@ -4,7 +4,7 @@
 - DKIM signing and verifying filter for MTAs
 .SH SYNOPSIS
 .B opendkim
--p socketspec [-a peerlist] [-A] [-b modes] [-c canon] [-C config] [-d domains] [-D] [-f] [-F time] [-i ilist] [-I eilist] [-h] [-k keyfile] [-K] [-l] [-L min] [-m mtas] [-M macro[=value][,...]] [-n] [-o hdrlist] [-P pidfile] [-q] [-r] [-R] [-s selector] [-S signalg] [-t testfile] [-T secs] [-u userid[:group]] [-U popdb] [-v] [-V] [-W] [-x configfile]
+-p socketspec [-a peerlist] [-A] [-b modes] [-c canon] [-C config] [-d domains] [-D] [-f] [-F time] [-i ilist] [-I eilist] [-h] [-k keyfile] [-K] [-l] [-L min] [-m mtas] [-M macro[=value][,...]] [-n] [-o hdrlist] [-P pidfile] [-q] [-Q] [-r] [-R] [-s selector] [-S signalg] [-t testfile] [-T secs] [-u userid[:group]] [-U popdb] [-v] [-V] [-W] [-x configfile]
 .SH DESCRIPTION
 .B opendkim
 implements the proposed
@@ -339,6 +339,12 @@ Writes the process ID of the filter, once started, to the filename given.
 .I -q
 Requests that messages which fail verification be quarantined by the
 MTA.  (Requires a sufficiently recent version of the milter library.)
+.TP
+.I -Q
+Query test mode.  The filter will read two lines from standard input, one
+containing a database description to be opened and one containing a string
+of the form "q/n" where "q" is the query to be performed and "n" is the
+number of fields to be retrieved.
 .TP
 .I -r
 Checks all messages for compliance with RFC2822 header count requirements.

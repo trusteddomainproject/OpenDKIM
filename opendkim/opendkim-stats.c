@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.6.6.1 2010/01/12 05:29:39 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.6.6.2 2010/01/12 07:04:15 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.6.6.1 2010/01/12 05:29:39 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.6.6.2 2010/01/12 07:04:15 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -60,7 +60,6 @@ dkims_dump(char *path)
 	DKIMF_DB db;
 	struct dkim_stats_key reckey;
 	struct dkim_stats_data recdata;
-	DKIMF_DBDATA dbdp;
 	struct dkimf_db_data dbd;
 
 	assert(path != NULL);
@@ -85,12 +84,11 @@ dkims_dump(char *path)
 		dbd.dbdata_buffer = (char *) &recdata;
 		dbd.dbdata_buflen = sizeof recdata;
 		dbd.dbdata_flags = DKIMF_DB_DATA_BINARY;
-		dbdp = &dbd;
 
 		keylen = sizeof reckey;
 		datalen = sizeof recdata;
 		status = dkimf_db_walk(db, first, &reckey, &keylen,
-		                       &dbdp, 1);
+		                       &dbd, 1);
 		if (status == 1)
 		{
 			break;

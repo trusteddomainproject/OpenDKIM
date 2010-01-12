@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.70.2.3 2010/01/11 20:38:38 cm-msk Exp $
+**  $Id: opendkim.c,v 1.70.2.4 2010/01/12 07:04:16 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.3 2010/01/11 20:38:38 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.4 2010/01/12 07:04:16 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1631,17 +1631,15 @@ dkimf_local_adsp(struct dkimf_config *conf, char *domain, dkim_policy_t *pcode)
 		char *p;
 		char policy[BUFRSZ];
 		struct dkimf_db_data dbd;
-		DKIMF_DBDATA dbdp;
 
 		memset(policy, '\0', sizeof policy);
 		plen = sizeof policy;
 
 		dbd.dbdata_buffer = policy;
 		dbd.dbdata_buflen = plen;
-		dbdp = &dbd;
 
 		status = dkimf_db_get(conf->conf_localadsp_db, domain, 0, 
-		                      &dbdp, 1, &found);
+		                      &dbd, 1, &found);
 		if (policy[0] == '\0')
 			found = FALSE;
 
@@ -1652,7 +1650,7 @@ dkimf_local_adsp(struct dkimf_config *conf, char *domain, dkim_policy_t *pcode)
 			dbd.dbdata_buflen = plen;
 
 			status = dkimf_db_get(conf->conf_localadsp_db, p, 0,
-			                      &dbdp, 1, &found);
+			                      &dbd, 1, &found);
 			if (policy[0] == '\0')
 				found = FALSE;
 		}
@@ -6165,7 +6163,6 @@ mlfi_eoh(SMFICTX *ctx)
 		char *last;
 		char name[BUFRSZ + 1];
 		struct dkimf_db_data dbd;
-		DKIMF_DBDATA dbdp;
 
 		if (dfc->mctx_tmpstr == NULL)
 		{
@@ -6198,10 +6195,9 @@ mlfi_eoh(SMFICTX *ctx)
 			memset(&dbd, '\0', sizeof dbd);
 			dbd.dbdata_buffer = val;
 			dbd.dbdata_buflen = strlen(val);
-			dbdp = &dbd;
 
 			status = dkimf_db_get(conf->conf_macrosdb, name, 0,
-			                      &dbdp, 1, &originok);
+			                      &dbd, 1, &originok);
 		}
 
 		if (!originok && conf->conf_logwhy)
@@ -9029,6 +9025,8 @@ usage(void)
 	                "\t-M macrolist\tMTA macros which enable signing\n"
 			"\t-o hdrlist  \tlist of headers to omit from signing\n"
 	                "\t-P pidfile  \tfile to which to write pid\n"
+	                "\t-q          \tquarantine messages that fail verification\n"
+	                "\t-Q          \tquery test mode\n"
 	                "\t-r          \trequire basic RFC2822 header compliance\n"
 	                "\t-R          \tgenerate verification failure reports\n"
 	                "\t-s selector \tselector to use when signing\n"
@@ -9061,6 +9059,7 @@ main(int argc, char **argv)
 	_Bool dofork = TRUE;
 	_Bool stricttest = FALSE;
 	_Bool configonly = FALSE;
+	_Bool querytest = FALSE;
 	int c;
 	int status;
 	int n;
@@ -9290,6 +9289,10 @@ main(int argc, char **argv)
 			quarantine = TRUE;
 			break;
 
+		  case 'Q':
+			querytest = TRUE;
+			break;
+
 		  case 'r':
 			curconf->conf_reqhdrs = TRUE;
 			break;
@@ -9392,6 +9395,135 @@ main(int argc, char **argv)
 
 	if (optind != argc)
 		return usage();
+
+	if (querytest)
+	{
+		_Bool exists = FALSE;
+		DKIMF_DB dbtest;
+		DKIMF_DBDATA dbdp;
+		char *p;
+		char dbname[BUFRSZ + 1];
+		char query[BUFRSZ + 1];
+		char **result;
+
+		memset(dbname, '\0', sizeof dbname);
+		if (fgets(dbname, BUFRSZ, stdin) != dbname)
+		{
+			fprintf(stderr, "%s: fgets(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+		}
+
+		p = strchr(dbname, '\n');
+		if (p != NULL)
+			*p = '\0';
+
+		status = dkimf_db_open(&dbtest, dbname, DKIMF_DB_FLAG_READONLY,
+		                       NULL);
+		if (status != 0)
+		{
+			fprintf(stderr, "%s: %s: dkimf_db_open() failed\n",
+			        progname, dbname);
+			return EX_SOFTWARE;
+		}
+
+		memset(query, '\0', sizeof query);
+		if (fgets(query, BUFRSZ, stdin) != query)
+		{
+			fprintf(stderr, "%s: fgets(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+		}
+
+		p = strchr(query, '\n');
+		if (p != NULL)
+			*p = '\0';
+
+		p = strchr(query, '/');
+		if (p == NULL)
+		{
+			(void) dkimf_db_close(dbtest);
+			fprintf(stderr, "%s: invalid query `%s'\n", progname,
+			        query);
+			return EX_USAGE;
+		}
+
+		n = atoi(p + 1);
+		if (n < 0)
+		{
+			(void) dkimf_db_close(dbtest);
+			fprintf(stderr, "%s: invalid query `%s'\n", progname,
+			        query);
+			return EX_USAGE;
+		}
+
+		result = (char **) malloc(sizeof(char *) * n);
+		if (result == NULL)
+		{
+			fprintf(stderr, "%s: malloc(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+		}
+
+		for (c = 0; c < n; c++)
+		{
+			result[c] = (char *) malloc(BUFRSZ + 1);
+			if (result[c] == NULL)
+			{
+				fprintf(stderr, "%s: malloc(): %s\n", progname,
+				        strerror(errno));
+				free(result);
+				return EX_OSERR;
+			}
+			memset(result[c], '\0', BUFRSZ + 1);
+		}
+
+		dbdp = (DKIMF_DBDATA) malloc(sizeof(struct dkimf_db_data) * n);
+		if (dbdp == NULL)
+		{
+			fprintf(stderr, "%s: malloc(): %s\n", progname,
+			        strerror(errno));
+			free(result);
+			return EX_OSERR;
+		}
+
+		for (c = 0; c < n; c++)
+		{
+			dbdp[c].dbdata_buffer = result[c];
+			dbdp[c].dbdata_buflen = BUFRSZ;
+		}
+
+		*p = '\0';
+
+		status = dkimf_db_get(dbtest, query, strlen(query),
+		                      dbdp, n, &exists);
+
+		if (status != 0)
+		{
+			fprintf(stderr, "%s: dkimf_db_get() returned %d\n",
+			        progname, status);
+		}
+		else if (!exists)
+		{
+			fprintf(stdout,
+			        "%s: dkimf_db_get(): record not found\n",
+			        progname);
+		}
+		else
+		{
+			for (c = 0; c < n; c++)
+				fprintf(stdout, "`%s'\n", result[c]);
+		}
+
+		for (c = 0; c < n; c++)
+			free(result[c]);
+		free(result);
+		free(dbdp);
+
+		dkimf_db_close(dbtest);
+
+		return 0;
+	}
 
 	if (dkim_ssl_version() != OPENSSL_VERSION_NUMBER)
 	{
