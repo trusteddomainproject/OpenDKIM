@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.17 2010/01/12 08:52:12 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.18 2010/01/12 23:52:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.17 2010/01/12 08:52:12 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.18 2010/01/12 23:52:37 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1068,7 +1068,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		if (dsn == NULL)
 			return -1;
 
-		memset(dsn, '\0', sizeof dsn);
+		memset(dsn, '\0', sizeof *dsn);
 
 		/*
 		**  General format of a DSN:
