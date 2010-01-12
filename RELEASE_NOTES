@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.79 2009/12/30 08:22:09 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.79.2.1 2010/01/12 07:59:11 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -14,6 +14,9 @@ release, and a summary of the changes in that release.
 		which isn't big enough for IPv6 addresses.  Use a
 		(struct sockaddr_storage) instead.  Problem noted by
 		Werner Wiethege.
+	Add optional OpenLDAP support.
+	Add "-Q" command line switch, putting the filter in query test mode
+		to exercise the database code.
 	LIBOPENDKIM: Several performance optimizations yielded from
 		gprof data.
 	BUILD: Add "--enable-codecoverage" to add build steps that generate
