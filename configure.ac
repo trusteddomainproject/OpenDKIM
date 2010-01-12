@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.99.2.3 2010/01/12 08:34:10 cm-msk Exp $
+# $Id: configure.ac,v 1.99.2.4 2010/01/12 08:52:33 cm-msk Exp $
 
 #
 # Setup
@@ -1041,6 +1041,8 @@ else
 		          [enable support for SleepyCat/Berkeley DB libraries])
 	else
 		AC_MSG_RESULT([not found - assuming libc])
+		AC_DEFINE(USE_DB, 1,
+		          [enable support for SleepyCat/Berkeley DB libraries])
 	fi
 fi
 
