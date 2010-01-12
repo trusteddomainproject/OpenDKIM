@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.99.2.4 2010/01/12 08:52:33 cm-msk Exp $
+# $Id: configure.ac,v 1.99.2.5 2010/01/12 23:46:42 cm-msk Exp $
 
 #
 # Setup
@@ -899,7 +899,6 @@ AC_SUBST(SASL_CPPFLAGS)
 #
 # libdb
 #
-bdb="no"
 AC_ARG_WITH([db],
             AS_HELP_STRING([--with-db],
                            [location of BerkeleyDB includes and library]),
@@ -909,14 +908,24 @@ LIBDB_INCDIRS=""
 LIBDB_LIBDIRS=""
 LIBDB_LIBS=""
 
+# was --with-db given with "yes" or a path?
+bdbrequested="no"
+if test x"$bdb" != x"no" -a x"$bdb" != x"auto"
+then
+	bdbrequested="yes"
+else
+	bdbrequested="no"
+fi
+
 AM_CONDITIONAL(USE_DB_OPENDKIM,
                test x"$enable_bodylengthdb" = x"yes" -o \
 	            x"$enable_popauth" = x"yes" -o \
 	            x"$enable_stats" = x"yes" -o \
 	            x"$enable_report_intervals" = x"yes" -o \
-                    x"$bdb" != x"no")
+                    x"$bdbrequested" = x"yes")
 AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")
 
+# Is DB required based on --enables?
 if test x"$USE_DB_OPENDKIM_TRUE" = x"" -o \
 	x"$USE_DB_LIBOPENDKIM_TRUE" = x""
 then
@@ -925,6 +934,7 @@ else
 	bdbrequired="no"
 fi
 
+# If --with-db wasn't specified and the --enables demand it, force "yes"
 if test x"$bdb" = x"auto"
 then
 	if test x"$bdbrequired" = x"yes"
@@ -1001,7 +1011,7 @@ then
 		done
 	fi
 
-	if test x"$libdbfound" = "xno"
+	if test x"$libdbfound" = x"no"
 	then
 		AC_MSG_ERROR([cannot find db_create or dbopen])
 	fi
