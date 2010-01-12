@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.7 2009/11/22 08:15:50 grooverdan Exp $
+**  $Id: stats.c,v 1.7.6.1 2010/01/12 05:29:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.7 2009/11/22 08:15:50 grooverdan Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.7.6.1 2010/01/12 05:29:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -79,11 +79,13 @@ dkimf_stats_record(char *path, const char *sigdomain,
 {
 	int status = 0;
 	DKIMF_DB db;
+	DKIMF_DBDATA dbdp;
 	DBT key;
 	DBT data;
 	size_t outlen;
 	struct dkim_stats_key reckey;
 	struct dkim_stats_data recdata;
+	struct dkimf_db_data dbd;
 
 	assert(path != NULL);
 	assert(sigdomain != NULL);
@@ -108,9 +110,12 @@ dkimf_stats_record(char *path, const char *sigdomain,
 	strlcpy(reckey.sk_sigdomain, sigdomain, sizeof reckey.sk_sigdomain);
 
 	/* see if this key already exists */
-	outlen = sizeof recdata;
-	status = dkimf_db_get(db, &reckey, sizeof reckey, &recdata,
-	                      &outlen, NULL);
+	dbd.dbdata_buffer = (char *) &recdata;
+	dbd.dbdata_buflen = sizeof recdata;
+	dbd.dbdata_flags = DKIMF_DB_DATA_BINARY;
+	dbdp = &dbd;
+
+	status = dkimf_db_get(db, &reckey, sizeof reckey, &dbdp, 1, NULL);
 
 	/* update totals */
 	recdata.sd_lengths = lengths;
