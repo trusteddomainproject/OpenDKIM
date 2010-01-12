@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.16 2010/01/12 07:04:13 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.17 2010/01/12 08:52:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.16 2010/01/12 07:04:13 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.17 2010/01/12 08:52:12 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1031,10 +1031,10 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			                     dbflags, 0);
 #  endif /* DB_VERSION_CHECK(4,1,25) */
 		}
-# elif DB_VERSION_CHECK(2,0,0)
+# elif DB_VERSION_CHECK(3,0,0)
 		status = db_open(p, bdbtype, dbflags, DKIMF_DB_MODE,
 		                 NULL, NULL, &newdb);
-# else /* DB_VERSION_MAJOR < 2 */
+# else /* DB_VERSION_MAJOR < 3 */
 		newdb = dbopen(p,
 		               (flags & DKIMF_DB_FLAG_READONLY ? O_RDONLY
 		                                                : (O_CREAT|O_RDWR)),
@@ -1989,14 +1989,17 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		}
 		else if (status == 0)
 		{
+			size_t clen;
+
 			if (exists != NULL)
 				*exists = TRUE;
 
+			clen = MIN(sizeof databuf - 1, d.size);
+			memset(databuf, '\0', sizeof databuf);
+			memcpy(databuf, d.data, clen);
+
 			if (reqnum != 0)
-			{
-				dkimf_db_datasplit(databuf, sizeof databuf,
-				                   req, reqnum);
-			}
+				dkimf_db_datasplit(databuf, clen, req, reqnum);
 
 			ret = 0;
 		}
