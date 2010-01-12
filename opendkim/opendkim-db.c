@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.18 2010/01/12 23:52:37 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.19 2010/01/12 23:55:49 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.18 2010/01/12 23:52:37 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.19 2010/01/12 23:55:49 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2083,7 +2083,6 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		{
 			if (exists != NULL)
 				*exists = FALSE;
-			(void) odbx_result_finish(result);
 			return 0;
 		}
 
