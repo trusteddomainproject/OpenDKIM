@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.99.2.2 2010/01/10 07:20:16 cm-msk Exp $
+# $Id: configure.ac,v 1.99.2.3 2010/01/12 08:34:10 cm-msk Exp $
 
 #
 # Setup
@@ -899,6 +899,7 @@ AC_SUBST(SASL_CPPFLAGS)
 #
 # libdb
 #
+bdb="no"
 AC_ARG_WITH([db],
             AS_HELP_STRING([--with-db],
                            [location of BerkeleyDB includes and library]),
@@ -912,7 +913,8 @@ AM_CONDITIONAL(USE_DB_OPENDKIM,
                test x"$enable_bodylengthdb" = x"yes" -o \
 	            x"$enable_popauth" = x"yes" -o \
 	            x"$enable_stats" = x"yes" -o \
-	            x"$enable_report_intervals" = x"yes")
+	            x"$enable_report_intervals" = x"yes" -o \
+                    x"$bdb" != x"no")
 AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")
 
 if test x"$USE_DB_OPENDKIM_TRUE" = x"" -o \
