@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.70.2.4 2010/01/12 07:04:16 cm-msk Exp $
+**  $Id: opendkim.c,v 1.70.2.5 2010/01/12 07:21:05 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.4 2010/01/12 07:04:16 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.5 2010/01/12 07:21:05 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -9396,6 +9396,70 @@ main(int argc, char **argv)
 	if (optind != argc)
 		return usage();
 
+	if (dkim_ssl_version() != OPENSSL_VERSION_NUMBER)
+	{
+		fprintf(stderr,
+		        "%s: incompatible OpenSSL versions (library = 0x%09lx, filter = %09lx)\n",
+		        progname, dkim_ssl_version(), OPENSSL_VERSION_NUMBER);
+
+		return EX_SOFTWARE;
+	}
+
+	if (conffile != NULL)
+	{
+		u_int line = 0;
+		char *missing;
+		char path[MAXPATHLEN + 1];
+
+		cfg = config_load(conffile, dkimf_config,
+		                  &line, path, sizeof path);
+
+		if (cfg == NULL)
+		{
+			fprintf(stderr,
+			        "%s: %s: configuration error at line %u: %s\n",
+			        progname, path, line,
+			        config_error());
+			dkimf_config_free(curconf);
+			return EX_CONFIG;
+		}
+
+#ifdef DEBUG
+		config_dump(cfg, stdout);
+#endif /* DEBUG */
+
+		missing = config_check(cfg, dkimf_config);
+		if (missing != NULL)
+		{
+			fprintf(stderr,
+			        "%s: %s: required parameter \"%s\" missing\n",
+			        progname, conffile, missing);
+			config_free(cfg);
+			dkimf_config_free(curconf);
+			return EX_CONFIG;
+		}
+	}
+
+	if (dkimf_config_load(cfg, curconf, err, sizeof err) != 0)
+	{
+		if (conffile == NULL)
+			conffile = "(stdin)";
+		fprintf(stderr, "%s: %s: %s\n", progname, conffile, err);
+		config_free(cfg);
+		dkimf_config_free(curconf);
+		return EX_CONFIG;
+	}
+
+	if (configonly)
+	{
+		config_free(cfg);
+		dkimf_config_free(curconf);
+		return EX_OK;
+	}
+
+	dolog = curconf->conf_dolog;
+	curconf->conf_data = cfg;
+
 	if (querytest)
 	{
 		_Bool exists = FALSE;
@@ -9524,70 +9588,6 @@ main(int argc, char **argv)
 
 		return 0;
 	}
-
-	if (dkim_ssl_version() != OPENSSL_VERSION_NUMBER)
-	{
-		fprintf(stderr,
-		        "%s: incompatible OpenSSL versions (library = 0x%09lx, filter = %09lx)\n",
-		        progname, dkim_ssl_version(), OPENSSL_VERSION_NUMBER);
-
-		return EX_SOFTWARE;
-	}
-
-	if (conffile != NULL)
-	{
-		u_int line = 0;
-		char *missing;
-		char path[MAXPATHLEN + 1];
-
-		cfg = config_load(conffile, dkimf_config,
-		                  &line, path, sizeof path);
-
-		if (cfg == NULL)
-		{
-			fprintf(stderr,
-			        "%s: %s: configuration error at line %u: %s\n",
-			        progname, path, line,
-			        config_error());
-			dkimf_config_free(curconf);
-			return EX_CONFIG;
-		}
-
-#ifdef DEBUG
-		config_dump(cfg, stdout);
-#endif /* DEBUG */
-
-		missing = config_check(cfg, dkimf_config);
-		if (missing != NULL)
-		{
-			fprintf(stderr,
-			        "%s: %s: required parameter \"%s\" missing\n",
-			        progname, conffile, missing);
-			config_free(cfg);
-			dkimf_config_free(curconf);
-			return EX_CONFIG;
-		}
-	}
-
-	if (dkimf_config_load(cfg, curconf, err, sizeof err) != 0)
-	{
-		if (conffile == NULL)
-			conffile = "(stdin)";
-		fprintf(stderr, "%s: %s: %s\n", progname, conffile, err);
-		config_free(cfg);
-		dkimf_config_free(curconf);
-		return EX_CONFIG;
-	}
-
-	if (configonly)
-	{
-		config_free(cfg);
-		dkimf_config_free(curconf);
-		return EX_OK;
-	}
-
-	dolog = curconf->conf_dolog;
-	curconf->conf_data = cfg;
 
 	if (testmode && curconf->conf_modestr == NULL)
 		curconf->conf_mode = DKIMF_MODE_VERIFIER;
