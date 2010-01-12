@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.70.2.5 2010/01/12 07:21:05 cm-msk Exp $
+**  $Id: opendkim.c,v 1.70.2.6 2010/01/12 08:34:38 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.5 2010/01/12 07:21:05 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.6 2010/01/12 08:34:38 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -9291,6 +9291,7 @@ main(int argc, char **argv)
 
 		  case 'Q':
 			querytest = TRUE;
+			testmode = TRUE;
 			break;
 
 		  case 'r':
