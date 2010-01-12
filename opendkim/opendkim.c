@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.70 2009/12/27 08:15:08 cm-msk Exp $
+**  $Id: opendkim.c,v 1.71 2010/01/12 06:10:44 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70 2009/12/27 08:15:08 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.71 2010/01/12 06:10:44 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8930,6 +8930,7 @@ usage(void)
 	                "\t-M macrolist\tMTA macros which enable signing\n"
 			"\t-o hdrlist  \tlist of headers to omit from signing\n"
 	                "\t-P pidfile  \tfile to which to write pid\n"
+	                "\t-q          \tquarantine messages that fail to verify\n"
 	                "\t-r          \trequire basic RFC2822 header compliance\n"
 	                "\t-R          \tgenerate verification failure reports\n"
 	                "\t-s selector \tselector to use when signing\n"
