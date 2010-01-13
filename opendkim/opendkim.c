@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.70.2.7 2010/01/13 17:48:59 cm-msk Exp $
+**  $Id: opendkim.c,v 1.70.2.8 2010/01/13 18:31:17 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.7 2010/01/13 17:48:59 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.8 2010/01/13 18:31:17 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -268,8 +268,8 @@ struct dkimf_config
 #ifdef USE_LDAP
 	char *		conf_ldap_binduser;	/* LDAP bind user */
 	char *		conf_ldap_bindpw;	/* LDAP bind password */
-# ifdef USE_SASL
 	char *		conf_ldap_authmech;	/* LDAP auth mechanism */
+# ifdef USE_SASL
 	char *		conf_ldap_authname;	/* LDAP auth name */
 	char *		conf_ldap_authuser;	/* LDAP auth user */
 	char *		conf_ldap_authrealm;	/* LDAP auth realm */
@@ -964,10 +964,10 @@ dkimf_get_ldap_param(int which)
 	  case DKIMF_LDAP_PARAM_BINDPW:
 		return curconf->conf_ldap_bindpw;
 
-# ifdef USE_SASL
 	  case DKIMF_LDAP_PARAM_AUTHMECH:
 		return curconf->conf_ldap_authmech;
 
+# ifdef USE_SASL
 	  case DKIMF_LDAP_PARAM_AUTHNAME:
 		return curconf->conf_ldap_authname;
 
@@ -2538,11 +2538,11 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_ldap_usetls,
 		                  sizeof conf->conf_ldap_usetls);
 
-# ifdef USE_SASL
 		(void) config_get(data, "LDAPAuthMechanism",
 		                  &conf->conf_ldap_authmech,
 		                  sizeof conf->conf_ldap_authmech);
 
+# ifdef USE_SASL
 		(void) config_get(data, "LDAPAuthName",
 		                  &conf->conf_ldap_authname,
 		                  sizeof conf->conf_ldap_authname);
