@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.10.6.3 2010/01/11 20:38:38 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.10.6.4 2010/01/13 17:48:57 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.10.6.3 2010/01/11 20:38:38 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.10.6.4 2010/01/13 17:48:57 cm-msk Exp $";
 #endif /* !lint */
 
 struct configdef dkimf_config[] =
@@ -65,6 +65,7 @@ struct configdef dkimf_config[] =
 	{ "LDAPAuthUser",		CONFIG_TYPE_STRING,	FALSE },
 # endif /* USE_SASL */
 	{ "LDAPBindPassword",		CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPBindUser",		CONFIG_TYPE_STRING,	FALSE },
 	{ "LDAPUseTLS",			CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* USE_LDAP */
 	{ "LocalADSP",			CONFIG_TYPE_STRING,	FALSE },

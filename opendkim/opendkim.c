@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.70.2.6 2010/01/12 08:34:38 cm-msk Exp $
+**  $Id: opendkim.c,v 1.70.2.7 2010/01/13 17:48:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.6 2010/01/12 08:34:38 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.7 2010/01/13 17:48:59 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -266,6 +266,7 @@ struct dkimf_config
 	char *		conf_redirect;		/* redirect failures to */
 #endif /* _FFR_REDIRECT */
 #ifdef USE_LDAP
+	char *		conf_ldap_binduser;	/* LDAP bind user */
 	char *		conf_ldap_bindpw;	/* LDAP bind password */
 # ifdef USE_SASL
 	char *		conf_ldap_authmech;	/* LDAP auth mechanism */
@@ -957,6 +958,9 @@ dkimf_get_ldap_param(int which)
 {
 	switch (which)
 	{
+	  case DKIMF_LDAP_PARAM_BINDUSER:
+		return curconf->conf_ldap_binduser;
+
 	  case DKIMF_LDAP_PARAM_BINDPW:
 		return curconf->conf_ldap_bindpw;
 
@@ -2555,6 +2559,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "LDAPBindPassword",
 		                  &conf->conf_ldap_bindpw,
 		                  sizeof conf->conf_ldap_bindpw);
+
+		(void) config_get(data, "LDAPBindUser",
+		                  &conf->conf_ldap_binduser,
+		                  sizeof conf->conf_ldap_binduser);
 #endif /* USE_LDAP */
 
 #ifdef USE_UNBOUND

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.21 2010/01/13 05:47:10 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.22 2010/01/13 17:48:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.21 2010/01/13 05:47:10 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.22 2010/01/13 17:48:59 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1268,6 +1268,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		LDAP *ld;
 		char *q;
 		char *r;
+		char *u;
 		LDAPURLDesc *descr;
 		char *uris[DKIMF_LDAP_MAXURIS];
 
@@ -1388,6 +1389,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 		/* attempt binding */
 		q = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_AUTHMECH);
+		u = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_BINDUSER);
 		if (q == NULL || strcasecmp(q, "none") == 0 ||
 		    strcasecmp(q, "simple") == 0)
 		{
@@ -1400,8 +1402,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				passwd.bv_len = strlen(r);
 			}
 
-			if (ldap_sasl_bind_s(ld, ldap->ldap_descr->lud_dn,
-			                     q, r == NULL ? NULL : &passwd,
+			if (ldap_sasl_bind_s(ld, u, q,
+			                     r == NULL ? NULL : &passwd,
 			                     NULL, NULL, NULL) != LDAP_SUCCESS)
 			{
 				ldap_unbind_ext(ld, NULL, NULL);
@@ -1414,7 +1416,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		else
 		{
 			if (ldap_sasl_interactive_bind_s(ld,
-			                                 ldap->ldap_descr->lud_dn,
+			                                 u,	/* bind user */
 			                                 q,	/* SASL mech */
 			                                 NULL,	/* controls */
 			                                 NULL,	/* controls */
