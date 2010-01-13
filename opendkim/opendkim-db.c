@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.22 2010/01/13 17:48:59 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.23 2010/01/13 18:13:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.22 2010/01/13 17:48:59 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.23 2010/01/13 18:13:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -352,7 +352,7 @@ dkimf_db_mkldapquery(struct dkimf_db_ldap *ldap, char *buf, size_t buflen,
 
 	while (p <= pend && q <= qend)
 	{
-		if (last == '%')
+		if (last == '$')
 		{
 			if (*p == 'd')
 			{
@@ -364,7 +364,7 @@ dkimf_db_mkldapquery(struct dkimf_db_ldap *ldap, char *buf, size_t buflen,
 				*q++ = *p;
 			}
 		}
-		else if (*p != '%')
+		else if (*p != '$')
 		{
 			*q++ = *p;
 		}
@@ -1316,7 +1316,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		**  first one.
 		*/
 
-		if (ldap_url_parse(uris[0], &ldap->ldap_descr) != 0)
+		err = ldap_url_parse(uris[0], &ldap->ldap_descr);
+		if (err != 0)
 		{
 			free(ldap);
 			free(p);
@@ -1356,7 +1357,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		}
 
 		/* create LDAP handle */
-		if (ldap_initialize(&ld, ldap->ldap_urilist) != LDAP_SUCCESS)
+		err = ldap_initialize(&ld, ldap->ldap_urilist);
+		if (err != LDAP_SUCCESS)
 		{
 			free(ldap);
 			free(p);
@@ -1364,8 +1366,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		}
 
 		/* set LDAP version */
-		if (ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION,
-		                    &v) != LDAP_OPT_SUCCESS)
+		err = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &v);
+		if (err != LDAP_OPT_SUCCESS)
 		{
 			ldap_unbind_ext(ld, NULL, NULL);
 			free(ldap);
@@ -1378,7 +1380,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		if (q != NULL && (*q == 'y' || *q == 'Y') &&
 		    strcasecmp(ldap->ldap_descr->lud_scheme, "ldaps") != 0)
 		{
-			if (ldap_start_tls_s(ld, NULL, NULL) != LDAP_SUCCESS)
+			err = ldap_start_tls_s(ld, NULL, NULL);
+			if (err != LDAP_SUCCESS)
 			{
 				ldap_unbind_ext(ld, NULL, NULL);
 				free(ldap);
@@ -1402,9 +1405,10 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				passwd.bv_len = strlen(r);
 			}
 
-			if (ldap_sasl_bind_s(ld, u, q,
-			                     r == NULL ? NULL : &passwd,
-			                     NULL, NULL, NULL) != LDAP_SUCCESS)
+			err = ldap_sasl_bind_s(ld, u, q,
+			                       r == NULL ? NULL : &passwd,
+			                       NULL, NULL, NULL);
+			if (err != LDAP_SUCCESS)
 			{
 				ldap_unbind_ext(ld, NULL, NULL);
 				free(ldap);
@@ -1415,14 +1419,15 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 #ifdef USE_SASL
 		else
 		{
-			if (ldap_sasl_interactive_bind_s(ld,
-			                                 u,	/* bind user */
-			                                 q,	/* SASL mech */
-			                                 NULL,	/* controls */
-			                                 NULL,	/* controls */
-			                                 LDAP_SASL_QUIET, /* flags */
-			                                 dkimf_db_saslinteract, /* callback */
-			                                 NULL) != LDAP_SUCCESS)
+			err = ldap_sasl_interactive_bind_s(ld,
+			                                   u,	/* bind user */
+			                                   q,	/* SASL mech */
+			                                   NULL, /* controls */
+			                                   NULL, /* controls */
+			                                   LDAP_SASL_QUIET, /* flags */
+			                                   dkimf_db_saslinteract, /* callback */
+			                                   NULL);
+			if (err != LDAP_SUCCESS)
 			{
 				ldap_unbind_ext(ld, NULL, NULL);
 				free(ldap);
