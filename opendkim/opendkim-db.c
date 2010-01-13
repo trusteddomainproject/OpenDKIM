@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.24 2010/01/13 20:08:03 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.25 2010/01/13 23:26:56 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.24 2010/01/13 20:08:03 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.25 2010/01/13 23:26:56 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -358,6 +358,26 @@ dkimf_db_mkldapquery(struct dkimf_db_ldap *ldap, char *buf, size_t buflen,
 			{
 				for (b = buf; b <= bend && q <= qend; b++)
 					*q++ = *b;
+			}
+			else if (*p == 'D')
+			{
+				for (b = buf; b <= bend && q <= qend; b++)
+				{
+					if (b == buf)
+					{
+						q += strlcpy(q, "dc=",
+						             qend - q);
+					}
+					else if (*b == '.')
+					{
+						q += strlcpy(q, ",dc=",
+						             qend - q);
+					}
+					else
+					{
+						*q++ = *b;
+					}
+				}
 			}
 			else
 			{
@@ -2179,6 +2199,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		struct dkimf_db_ldap *ldap;
 		struct berval **vals;
 		char query[BUFRSZ];
+		char filter[BUFRSZ];
 		struct timeval timeout;
 
 		ld = (LDAP *) db->db_handle;
@@ -2187,13 +2208,16 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		pthread_mutex_lock(&ldap->ldap_lock);
 
 		dkimf_db_mkldapquery(ldap, buf, buflen, query, sizeof query);
+		dkimf_db_mkldapquery(ldap, ldap->ldap_descr->lud_filter,
+		                     strlen(ldap->ldap_descr->lud_filter),
+		                     filter, sizeof filter);
 
 		timeout.tv_sec = ldap->ldap_timeout;
 		timeout.tv_usec = 0;
 
 		status = ldap_search_ext_s(ld, query,
 		                           ldap->ldap_descr->lud_scope,
-		                           ldap->ldap_descr->lud_filter,
+		                           filter,
 		                           ldap->ldap_descr->lud_attrs,
 		                           0, NULL, NULL,
 		                           &timeout, 0, &result);
