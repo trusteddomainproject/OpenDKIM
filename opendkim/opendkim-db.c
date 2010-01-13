@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29.2.20 2010/01/12 23:59:53 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.29.2.21 2010/01/13 05:47:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.20 2010/01/12 23:59:53 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29.2.21 2010/01/13 05:47:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1305,7 +1305,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 		/*
 		**  General format of an LDAP specification:
-		**  schema://host[:port][/dn[?attrs[?scope[?filter[?exts]]]]]
+		**  scheme://host[:port][/dn[?attrs[?scope[?filter[?exts]]]]]
 		**  (see RFC4516)
 		**  
 		**  "bindpass", "authmech" and "usetls" will be set in
