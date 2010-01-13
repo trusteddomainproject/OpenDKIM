@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.29 2009/12/22 23:51:28 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.30 2010/01/13 00:22:55 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.29 2009/12/22 23:51:28 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.30 2010/01/13 00:22:55 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -839,7 +839,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		if (dsn == NULL)
 			return -1;
 
-		memset(dsn, '\0', sizeof dsn);
+		memset(dsn, '\0', sizeof *dsn);
 
 		/*
 		**  General format of a DSN:
@@ -1625,13 +1625,6 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			db->db_status = err;
 			return err;
 		}
-		else if (err == ODBX_RES_DONE)
-		{
-			if (exists != NULL)
-				*exists = FALSE;
-			(void) odbx_result_finish(result);
-			return 0;
-		}
 
 		err = odbx_result((odbx_t *) db->db_handle,
 		                  &result, NULL, 0);
@@ -2201,4 +2194,62 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a)
 	  default:
 		return -1;
 	}
+}
+
+/*
+**  DKIMF_DB_REWALK -- walk a regex table reporting matches
+**
+**  Parameters:
+**  	db -- DKIMF_DB handle
+**  	str -- match string
+**  	ctx -- context pointer (updated)
+**  	data -- data buffer
+**  	datalen -- data length (updated)
+**
+**  Return value:
+**  	-1 -- error
+**  	0 -- match found
+**  	1 -- no match found
+**
+**  Notes:
+**  	On first call, "ctx" should point to something containing NULL.
+**  	It will be updated to point to the last table node that matched.
+*/
+
+int
+dkimf_db_rewalk(DKIMF_DB db, char *str, void **ctx,
+                char *data, size_t *datalen)
+{
+	struct dkimf_db_relist *cur;
+
+	assert(db != NULL);
+	assert(str != NULL);
+	assert(ctx != NULL);
+	assert(data != NULL);
+	assert(datalen != NULL);
+
+	cur = (struct dkimf_db_relist *) *ctx;
+	if (cur == NULL)
+		cur = (struct dkimf_db_relist *) db->db_handle;
+	else
+		cur = cur->db_relist_next;
+
+	while (cur != NULL)
+	{
+		if (regexec(&cur->db_relist_re, str, 0, NULL, 0) == 0)
+		{
+			*ctx = cur;
+			if (cur->db_relist_data != NULL)
+			{
+				*datalen = strlcpy(data, cur->db_relist_data,
+				                   *datalen);
+			}
+
+			return 0;
+		}
+
+		cur = cur->db_relist_next;
+	}
+
+	return 0;
 }
