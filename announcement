@@ -1,30 +1,27 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v1.2.1 released
+Subject: OpenDKIM v1.2.2 released
 
-The OpenDKIM project announces availability of OpenDKIM v1.2.1, now available
+The OpenDKIM project announces availability of OpenDKIM v1.2.2, now available
 for download from SourceForge.
 
-This release fixes a number of small but annoying problems found since the
-v1.2.0 release, and one DB compatibilty issue that affects people using
-Sleepycat DB v1.85 (common on most systems) that are also using the "stats"
-feature.
-
-If you have v1.2.0 working, you don't need to upgrade.
+This release contains fixes to a few bugs reported since the v1.2.1 release.
+Upgrade is recommended if you are using the opendkim filter as one of the
+bugs can result in a filter crash.  None of the bugs are in the associated
+libraries, so no upgrade is needed if you aren't using the filter.
 
 The RELEASE_NOTES for this version:
 
-1.2.1		2009/12/23
-	Fix a disconnect in configuration regarding "On-KeyNotFound".
-	Fix a type mismatch in dkimf_db_open() with respect to Sleepycat
-		version 2 libraries, and a bug in dkimf_db_walk() with
-		respect to Sleepycat version 1 libraries.
-	Report _FFR_REPORT_INTERVALS in "-V" output.
-	LIBAR: Tidy up some compile-time warnings.
-	BUILD: Correct name of "bodylength_db" feature.
-	BUILD: Define VERIFY_DOMAINKEYS in build-config.h when
-		"--with-domainkeys" is enabled.
-	BUILD: Define USE_DB in build-config.h when "--with-db" is enabled.
+1.2.2		2010/01/20
+	Fix bug #SF2916729: Fix crash when reporting on multiple signatures,
+		one of which was invalid in some way leaving its DKIM_SIGINFO
+		only partially populated.  Problem noted by Ryan Burchfield.
+	Fix bug #SF2919365: A _SOCK_ADDR is just a (struct sockaddr)
+		which isn't big enough for IPv6 addresses.  Use a
+		(struct sockaddr_storage) instead.  Problem noted by
+		Werner Wiethege.
+	Fix initalization and processing of ODBX requests.
+	Fix DB get operations for Sleepycat versions prior to 2.0.0.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers

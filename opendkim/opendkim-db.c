@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.26.4.2 2009/12/22 23:52:47 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.26.4.3 2010/01/14 18:24:03 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.26.4.2 2009/12/22 23:52:47 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.26.4.3 2010/01/14 18:24:03 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -826,7 +826,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		if (dsn == NULL)
 			return -1;
 
-		memset(dsn, '\0', sizeof dsn);
+		memset(dsn, '\0', sizeof *dsn);
 
 		/*
 		**  General format of a DSN:
@@ -1445,9 +1445,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 # if DB_VERSION_CHECK(2,0,0)
 		d.flags = DB_DBT_USERMEM|DB_DBT_PARTIAL;
-# endif /* DB_VERSION_CHECK(2,0,0) */
 		d.data = outbuf;
 		d.size = (outbuflen == NULL ? 0 : *outbuflen);
+# endif /* DB_VERSION_CHECK(2,0,0) */
 
 		/* establish read-lock */
 		fd = -1;
@@ -1523,8 +1523,14 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			if (exists != NULL)
 				*exists = TRUE;
 
-			if (outbuflen != NULL)
-				*outbuflen = d.size;
+			if (outbuf != NULL && outbuflen != NULL)
+			{
+				memcpy(outbuf, d.data, MIN(d.size,
+				       *outbuflen));
+
+				if (outbuflen != NULL)
+					*outbuflen = d.size;
+			}
 
 			ret = 0;
 		}
@@ -1603,13 +1609,6 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		{
 			db->db_status = err;
 			return err;
-		}
-		else if (err == ODBX_RES_DONE)
-		{
-			if (exists != NULL)
-				*exists = FALSE;
-			(void) odbx_result_finish(result);
-			return 0;
 		}
 
 		err = odbx_result((odbx_t *) db->db_handle,
