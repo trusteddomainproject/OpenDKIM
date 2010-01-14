@@ -1,0 +1,7 @@
+#!/bin/sh
+#
+# $Id: t-sign-rs,v 1.2 2010/01/14 05:59:16 cm-msk Exp $
+# 
+# relaxed/simple signing test
+
+../../miltertest/miltertest -s t-sign-rs.lua

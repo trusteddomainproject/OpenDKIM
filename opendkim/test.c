@@ -2,13 +2,13 @@
 **  Copyright (c) 2007-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.c,v 1.9 2009/11/22 08:15:50 grooverdan Exp $
+**  $Id: test.c,v 1.10 2010/01/14 05:59:06 cm-msk Exp $
 */
 
 #ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.9 2009/11/22 08:15:50 grooverdan Exp $";
+static char test_c_id[] = "@(#)$Id: test.c,v 1.10 2010/01/14 05:59:06 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -230,7 +230,6 @@ dkimf_test_quarantine(void *ctx, char *reason)
 	return MI_SUCCESS;
 }
 
-#ifdef _FFR_REDIRECT
 /*
 **  DKIMF_TEST_ADDHEADER -- append a header
 **
@@ -303,7 +302,6 @@ dkimf_test_addrcpt(void *ctx, char *addr)
 
 	return MI_SUCCESS;
 }
-#endif /* _FFR_REDIRECT */
 
 /*
 **  DKIMF_TEST_GETSYMVAL -- retrieve a symbol value

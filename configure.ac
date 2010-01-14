@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.99 2009/12/30 09:01:34 cm-msk Exp $
+# $Id: configure.ac,v 1.100 2010/01/14 05:58:41 cm-msk Exp $
 
 #
 # Setup
@@ -577,7 +577,6 @@ then
 	LIBUNBOUND_LIBS=""
 else
 	AC_MSG_CHECKING([for libunbound])
-
 	if test -f $unboundpath/include/unbound.h
 	then
 		AC_MSG_RESULT([$unboundpath])
@@ -702,6 +701,100 @@ fi
 AM_CONDITIONAL([USE_TRE], [test x"$tre_found" != x"no"])
 AC_SUBST([LIBTRE_CFLAGS])
 AC_SUBST([LIBTRE_LIBS])
+
+#
+# liblua
+#
+AC_MSG_CHECKING(for Lua)
+AC_ARG_WITH(lua,
+	AS_HELP_STRING(--with-lua, location of Lua includes and library),
+	luapath="$withval", luapath="no")
+
+LIBLUA_INCDIRS=""
+LIBLUA_LIBDIRS=""
+LIBLUA_LIBS=""
+
+if test x"$luapath" = x"yes" -o x"$luapath" = x"auto"
+then
+	luadirs="/usr /usr/local"
+	for d in $luadirs
+	do
+		if test -f $d/include/lua51/lua.h
+		then
+			luapath=$d
+			AC_MSG_RESULT($d)
+			LIBLUA_INCDIRS="-I$luapath/include/lua51"
+			LIBLUA_LIBDIRS="-L$luapath/lib/lua51"
+			LIBLUA_LIBS="-llua -lm"
+			AC_DEFINE([USE_LUA], 1,
+			          [support for Lua scripting])
+			break;
+		elif test -f $d/include/lua5.1/lua.h
+		then
+			luapath=$d
+			AC_MSG_RESULT($d)
+			LIBLUA_INCDIRS="-I$luapath/include/lua5.1"
+			LIBLUA_LIBDIRS="-L$luapath/lib"
+			LIBLUA_LIBS="-llua5.1 -lm"
+			AC_DEFINE([USE_LUA], 1,
+			          [support for Lua scripting])
+			break;
+		elif test -f $d/include/lua.h
+		then
+			luapath=$d
+			AC_MSG_RESULT($d)
+			LIBLUA_INCDIRS="-I$luapath/include"
+			LIBLUA_LIBDIRS="-L$luapath/lib"
+			LIBLUA_LIBS="-llua -lm"
+			AC_DEFINE([USE_LUA], 1,
+			          [support for Lua scripting])
+			break;
+		fi
+	done
+	if test x"$LIBLUA_LIBS" = x""
+	then
+		AC_MSG_ERROR(not found)
+	fi
+elif test x"$luapath" = x"no"
+then
+	AC_MSG_RESULT(no)
+	LIBLUA_INCDIRS=""
+	LIBLUA_LIBDIRS=""
+	LIBLUA_LIBS=""
+else
+	if test -f $luapath/include/lua51/lua.h
+	then
+		AC_MSG_RESULT($luapath)
+		LIBLUA_INCDIRS="-I$luapath/include/lua51"
+		LIBLUA_LIBDIRS="-L$luapath/lib/lua51"
+		LIBLUA_LIBS="-llua -lm"
+		AC_DEFINE([USE_LUA], 1,
+		          [support for Lua scripting])
+	elif test -f $luapath/include/lua5.1/lua.h
+	then
+		AC_MSG_RESULT($luapath)
+		LIBLUA_INCDIRS="-I$luapath/include/lua5.1"
+		LIBLUA_LIBDIRS="-L$luapath/lib"
+		LIBLUA_LIBS="-llua5.1 -lm"
+		AC_DEFINE([USE_LUA], 1,
+		          [support for Lua scripting])
+	elif test -f $luapath/include/lua.h
+	then
+		AC_MSG_RESULT($luapath)
+		LIBLUA_INCDIRS="-I$luapath/include"
+		LIBLUA_LIBDIRS="-L$luapath/lib"
+		LIBLUA_LIBS="-llua -lm"
+		AC_DEFINE([USE_LUA], 1,
+		          [support for Lua scripting])
+	else
+		AC_MSG_ERROR(not found at $luapath)
+	fi
+fi
+
+AM_CONDITIONAL(LUA, test x"$luapath" != x"no")
+AC_SUBST(LIBLUA_INCDIRS)
+AC_SUBST(LIBLUA_LIBDIRS)
+AC_SUBST(LIBLUA_LIBS)
 
 #
 # libodbx
@@ -1003,9 +1096,10 @@ AC_DEFINE_UNQUOTED([LIBOPENDKIM_FEATURE_STRING], "$LIBOPENDKIM_FEATURE_STRING",
 #
 # Finish up
 #
-AC_OUTPUT([Makefile opendkim/Makefile libopendkim/Makefile libar/Makefile
-           libopendkim/tests/Makefile libvbr/Makefile libopendkim/opendkim.pc
-           libar/ar.pc libvbr/vbr.pc
-           opendkim/opendkim.conf.5 opendkim/opendkim.8
+AC_OUTPUT([Makefile opendkim/Makefile opendkim/tests/Makefile
+           libopendkim/Makefile libar/Makefile miltertest/Makefile
+           libopendkim/tests/Makefile libvbr/Makefile
+           libopendkim/opendkim.pc libar/ar.pc libvbr/vbr.pc
+           opendkim/opendkim.conf.5 opendkim/opendkim.8 opendkim/opendkim-lua.3
            opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8
            opendkim/opendkim-genkey.8 opendkim/opendkim-testadsp.8])

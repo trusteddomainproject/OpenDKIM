@@ -1,0 +1,5 @@
+$Id: README,v 1.2 2010/01/14 05:59:16 cm-msk Exp $
+
+This directory contains unit tests run against the filter, written using the
+Lua language and executed via the "miltertest" tool found below the main
+source directory.

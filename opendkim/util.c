@@ -2,13 +2,13 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.25 2009/12/31 00:05:05 cm-msk Exp $
+**  $Id: util.c,v 1.26 2010/01/14 05:59:06 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.25 2009/12/31 00:05:05 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.26 2010/01/14 05:59:06 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -82,6 +82,10 @@ static char *optlist[] =
 #if USE_DB
 	"USE_DB",
 #endif /* USE_DB */
+
+#if USE_LUA
+	"USE_LUA",
+#endif /* USE_LUA */
 
 #if USE_ODBX
 	"USE_ODBX",

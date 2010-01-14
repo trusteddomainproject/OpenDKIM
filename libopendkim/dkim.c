@@ -2,11 +2,11 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.37 2009/12/24 07:54:47 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.38 2010/01/14 05:58:45 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6565,12 +6565,14 @@ dkim_sig_getidentity(DKIM *dkim, DKIM_SIGINFO *sig, char *val, size_t vallen)
 	char *param;
 	struct dkim_set *set;
 
-	assert(dkim != NULL);
 	assert(val != NULL);
 	assert(vallen != 0);
 
 	if (sig == NULL)
 	{
+		if (dkim == NULL)
+			return DKIM_STAT_INVALID;
+
 		sig = dkim->dkim_signature;
 		if (sig == NULL)
 			return DKIM_STAT_INVALID;

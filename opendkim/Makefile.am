@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.56 2009/12/24 08:41:17 subman Exp $
+# $Id: Makefile.am,v 1.57 2010/01/14 05:58:50 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -12,7 +12,7 @@ dist_example_DATA = opendkim.conf.sample
 
 if BUILD_FILTER
 sbin_PROGRAMS += opendkim
-opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h config.c config.h stats.c stats.h test.c test.h util.c util.h
+opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-lua.c opendkim-lua.h config.c config.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CC = $(PTHREAD_CC)
 opendkim_CFLAGS = $(PTHREAD_CFLAGS) $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
@@ -26,6 +26,11 @@ endif
 if USE_ODBX
 opendkim_CPPFLAGS += $(LIBODBX_CPPFLAGS)
 opendkim_LDADD += $(LIBODBX_LIBS)
+endif
+if LUA
+opendkim_CPPFLAGS += $(LIBLUA_INCDIRS)
+opendkim_LDFLAGS += $(LIBLUA_LIBDIRS)
+opendkim_LDADD += $(LIBLUA_LIBS)
 endif
 if VBR
 opendkim_CPPFLAGS += -I$(srcdir)/../libvbr
@@ -72,7 +77,7 @@ endif
 
 man_MANS = opendkim-genkey.8 opendkim-testadsp.8 opendkim-testkey.8
 if BUILD_FILTER
-man_MANS += opendkim.conf.5 opendkim.8
+man_MANS += opendkim-lua.3 opendkim.conf.5 opendkim.8
 endif
 if STATS
 man_MANS += opendkim-stats.8

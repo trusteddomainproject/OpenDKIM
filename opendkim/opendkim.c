@@ -2,13 +2,13 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.71 2010/01/12 06:10:44 cm-msk Exp $
+**  $Id: opendkim.c,v 1.72 2010/01/14 05:58:57 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.71 2010/01/12 06:10:44 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.72 2010/01/14 05:58:57 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -67,6 +67,11 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.71 2010/01/12 06:10:44 cm
 /* libmilter includes */
 #include "libmilter/mfapi.h"
 
+#ifdef USE_LUA
+/* LUA includes */
+# include <lua.h>
+#endif /* USE_LUA */
+
 /* libopendkim includes */
 #include "dkim.h"
 #ifdef _FFR_VBR
@@ -87,6 +92,9 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.71 2010/01/12 06:10:44 cm
 #include "opendkim.h"
 #include "opendkim-ar.h"
 #include "opendkim-arf.h"
+#ifdef USE_LUA
+# include "opendkim-lua.h"
+#endif /* USE_LUA */
 #include "util.h"
 #include "test.h"
 #ifdef _FFR_STATS
@@ -262,6 +270,11 @@ struct dkimf_config
 #ifdef _FFR_REDIRECT
 	char *		conf_redirect;		/* redirect failures to */
 #endif /* _FFR_REDIRECT */
+#ifdef USE_LUA
+	char *		conf_screenscript;	/* Lua script: screening */
+	char *		conf_setupscript;	/* Lua script: setup */
+	char *		conf_finalscript;	/* Lua script: final */
+#endif /* USE_LUA */
 	struct keytable * conf_keyhead;		/* key list */
 	struct keytable * conf_keytail;		/* key list */
 #ifdef _FFR_REPLACE_RULES
@@ -320,7 +333,6 @@ typedef struct msgctx * msgctx;
 struct msgctx
 {
 	_Bool		mctx_addheader;		/* Authentication-Results: */
-	_Bool		mctx_signing;		/* TRUE iff signing */
 	_Bool		mctx_headeronly;	/* in EOM, only add headers */
 #ifdef _FFR_BODYLENGTH_DB
 	_Bool		mctx_ltag;		/* sign with l= tag? */
@@ -332,10 +344,14 @@ struct msgctx
 	_Bool		mctx_capture;		/* capture message? */
 #endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
 	_Bool		mctx_susp;		/* suspicious message? */
-	_Bool		mctx_policy;		/* policy query completed */
 #ifdef _FFR_RESIGN
 	_Bool		mctx_resign;		/* arrange to re-sign */
 #endif /* _FFR_RESIGN */
+	dkim_policy_t	mctx_pcode;		/* policy result code */
+#ifdef USE_LUA
+	int		mctx_mresult;		/* SMFI status code */
+#endif /* USE_LUA */
+	int		mctx_presult;		/* policy result */
 	int		mctx_status;		/* status to report back */
 	dkim_canon_t	mctx_hdrcanon;		/* header canonicalization */
 	dkim_canon_t	mctx_bodycanon;		/* body canonicalization */
@@ -582,16 +598,13 @@ sfsistat mlfi_eoh __P((SMFICTX *));
 sfsistat mlfi_eom __P((SMFICTX *));
 sfsistat mlfi_header __P((SMFICTX *, char *, char *));
 
-#ifdef _FFR_REDIRECT
+static _Bool dkimf_add_signrequest __P((msgctx, struct keytable *));
 sfsistat dkimf_addheader __P((SMFICTX *, char *, char *));
 sfsistat dkimf_addrcpt __P((SMFICTX *, char *));
-#endif /* _FFR_REDIRECT */
 sfsistat dkimf_chgheader __P((SMFICTX *, char *, int, char *));
 static void dkimf_cleanup __P((SMFICTX *));
 static void dkimf_config_reload __P((void));
-#ifdef _FFR_REDIRECT
 sfsistat dkimf_delrcpt __P((SMFICTX *, char *));
-#endif /* _FFR_REDIRECT */
 static Header dkimf_findheader __P((msgctx, char *, int));
 static void dkimf_freekeys __P((struct dkimf_config *));
 void *dkimf_getpriv __P((SMFICTX *));
@@ -809,7 +822,6 @@ dkimf_quarantine(SMFICTX *ctx, char *reason)
 		return smfi_quarantine(ctx, reason);
 }
 
-#ifdef _FFR_REDIRECT
 /*
 **  DKIMF_ADDHEADER -- wrapper for smfi_addheader()
 **
@@ -880,7 +892,6 @@ dkimf_delrcpt(SMFICTX *ctx, char *addr)
 	else
 		return smfi_delrcpt(ctx, addr);
 }
-#endif /* _FFR_REDIRECT */
 
 /*
 **  DKIMF_SETREPLY -- wrapper for smfi_setreply()
@@ -928,6 +939,1880 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 	else
 		return smfi_getsymval(ctx, sym);
 }
+
+#ifdef USE_LUA
+/*
+**  LUA ACCESSOR FUNCTIONS
+**
+**  These are the C sides of the utility functions that will be made available
+**  to users via Lua to write their own policy scripts.
+**
+**  NAMES:
+**  	Should all start "dkimf_xs_" (for DKIM filter accessors)
+**
+**  PARAMETERS:
+**  	Should all accept nothing more than a single Lua state handle.
+**  	Lua accessor and utility functions are used to pull parameters off
+**  	the stack.
+**
+**  RETURN VALUES:
+**  	Should all return the number of things they want to return via
+**  	the Lua stack.  Generally accessors return one thing, and utility
+**  	functions either return a result or a Lua "nil", which means
+**  	at least one thing is always returned.
+**
+**  STACK:
+**  	All functions should first evaluate the stack to see that it's what
+**  	they expect in terms of number and types of elements.  The first
+**  	stack item should always be expected to be a "light user data"
+**  	(handle pointer) to a (SMFICTX).  If there are no errors,
+**  	collect all the values and pop them.  The context pointer may come in
+**  	NULL, in which case the script is being called during configuration
+**  	verification; if so, return an appropriate dummy value from your
+**  	function, if applicable, such as the name of the function or 0 or
+**  	something matching what the script would expect back from
+**  	the function such that the rest of the test will complete.
+*/
+
+/*
+**  DKIMF_XS_FROMDOMAIN -- retrieve From: domain
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_fromdomain(lua_State *l)
+{
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_get_fromdomain(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_get_fromdomain(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (ctx == NULL)
+	{
+		lua_pushstring(l, "dkimf_xs_fromdomain");
+	}
+	else
+	{
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+		lua_pushstring(l, dfc->mctx_domain);
+	}
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_CLIENTHOST -- retrieve client hostname
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_clienthost(lua_State *l)
+{
+	SMFICTX *ctx;
+	struct connctx *cc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_get_clienthost(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_get_clienthost(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (ctx == NULL)
+	{
+		lua_pushstring(l, "dkimf_xs_clienthost");
+	}
+	else
+	{
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+
+		lua_pushstring(l, cc->cctx_host);
+	}
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_REQUESTSIG -- request a signature
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_requestsig(lua_State *l)
+{
+	SMFICTX *ctx;
+	const char *domain;
+	const char *selector;
+	struct connctx *cc;
+	struct msgctx *dfc;
+	struct dkimf_config *conf;
+	struct keytable *key;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 3)
+	{
+		lua_pushstring(l, "odkim_sign(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2) || !lua_isstring(l, 3))
+	{
+		lua_pushstring(l, "odkim_sign(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	if (ctx != NULL)
+	{
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+		conf = cc->cctx_config;
+
+		domain = lua_tostring(l, 2);
+		selector = lua_tostring(l, 3);
+	}
+
+	lua_pop(l, 3);
+
+	if (ctx == NULL)
+	{
+		lua_pushnumber(l, 0);
+
+		return 1;
+	}
+
+	/* find the key */
+	for (key = conf->conf_keyhead; key != NULL; key = key->key_next)
+	{
+		if (strcmp(domain, key->key_domain) == 0 &&
+		    strcmp(selector, key->key_selector) == 0)
+			break;
+	}
+
+	if (key == NULL)
+	{
+		if (conf->conf_dolog)
+		{
+			syslog(LOG_ERR, "key for %s/%s not found",
+			       selector, domain);
+		}
+
+		lua_pushnumber(l, 0);
+
+		return 1;
+	}
+
+	if (!dkimf_add_signrequest(dfc, key))
+	{
+		if (conf->conf_dolog)
+		{
+			syslog(LOG_ERR,
+			       "failed to add signature using %s/%s",
+			       selector, domain);
+		}
+
+		lua_pushnumber(l, 0);
+
+		return 1;
+	}
+
+	dfc->mctx_signalg = conf->conf_signalg;
+
+	lua_pushnumber(l, 1);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETHEADER -- request a header value
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getheader(lua_State *l)
+{
+	int idx;
+	const char *hdrname;
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+	struct dkimf_config *conf;
+	Header hdr;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 3)
+	{
+		lua_pushstring(l,
+		               "odkim_get_header(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2) || !lua_isnumber(l, 3))
+	{
+		lua_pushstring(l,
+		               "odkim_get_header(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	if (ctx != NULL)
+	{
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+		conf = cc->cctx_config;
+
+		hdrname = lua_tostring(l, 2);
+		idx = lua_tonumber(l, 3);
+	}
+
+	lua_pop(l, 3);
+
+	if (ctx == NULL)
+	{
+		lua_pushstring(l, "dkimf_xs_getheader");
+		return 1;
+	}
+
+	hdr = dkimf_findheader(dfc, (char *) hdrname, idx);
+	if (hdr == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+	else
+	{
+		lua_pushstring(l, hdr->hdr_val);
+		return 1;
+	}
+}
+
+/*
+**  DKIMF_XS_POPAUTH -- see if the client's IP address is in the POPAUTH
+**                      database
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_popauth(lua_State *l)
+{
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct dkimf_config *conf;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_check_popauth(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_check_popauth(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (ctx == NULL)
+	{
+		lua_pushnumber(l, 0);
+
+		return 1;
+	}
+
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+
+#ifdef POPAUTH
+	if (popdb == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+	else
+	{
+		_Bool popauth;
+
+		popauth = dkimf_checkpopauth(popdb, &cc->cctx_ip);
+
+		lua_pushnumber(l, popauth ? 1 : 0);
+		return 1;
+	}
+#else /* POPAUTH */
+	lua_pushnil(l);
+	return 1;
+#endif /* POPAUTH */
+}
+
+/*
+**  DKIMF_XS_INTERNALIP -- see if the client's IP address is "internal"
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_internalip(lua_State *l)
+{
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct dkimf_config *conf;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_internal_ip(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_internal_ip(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (ctx == NULL)
+	{
+		lua_pushnumber(l, 1);
+
+		return 1;
+	}
+
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	conf = cc->cctx_config;
+
+	if (conf->conf_internal == NULL)
+	{
+		lua_pushnumber(l, 0);
+	}
+	else
+	{
+		_Bool internal;
+
+		internal = dkimf_checkhost(conf->conf_internal, cc->cctx_host);
+		internal = internal || dkimf_checkip(conf->conf_internal,
+		                                     (struct sockaddr *) &cc->cctx_ip);
+
+		lua_pushnumber(l, internal ? 1 : 0);
+	}
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_DBHANDLE -- retrieve a DB handle
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_dbhandle(lua_State *l)
+{
+	int code;
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct dkimf_config *conf;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_get_dbhandle(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) || !lua_isnumber(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_get_dbhandle(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+
+	if (ctx == NULL)
+	{
+		lua_pop(l, 2);
+		lua_pushnil(l);
+		return 1;
+	}
+
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	conf = cc->cctx_config;
+
+	code = lua_tonumber(l, 1);
+	lua_pop(l, 2);
+
+	switch (code)
+	{
+	  case DB_DOMAINS:
+		if (conf->conf_domainsdb == NULL)
+			lua_pushnil(l);
+		else
+			lua_pushlightuserdata(l, conf->conf_domainsdb);
+		break;
+
+	  case DB_THIRDPARTY:
+		if (conf->conf_thirdpartydb == NULL)
+			lua_pushnil(l);
+		else
+			lua_pushlightuserdata(l, conf->conf_thirdpartydb);
+		break;
+
+	  case DB_DONTSIGNTO:
+		if (conf->conf_dontsigntodb == NULL)
+			lua_pushnil(l);
+		else
+			lua_pushlightuserdata(l, conf->conf_dontsigntodb);
+		break;
+
+	  case DB_MTAS:
+		if (conf->conf_mtasdb == NULL)
+			lua_pushnil(l);
+		else
+			lua_pushlightuserdata(l, conf->conf_mtasdb);
+		break;
+
+	  case DB_MACROS:
+		if (conf->conf_macrosdb == NULL)
+			lua_pushnil(l);
+		else
+			lua_pushlightuserdata(l, conf->conf_macrosdb);
+		break;
+
+	  default:
+		lua_pushnil(l);
+		break;
+	}
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_RCPTCOUNT -- retrieve recipient count
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_rcptcount(lua_State *l)
+{
+	int rcnt;
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct dkimf_config *conf;
+	struct msgctx *dfc;
+	struct addrlist *addr;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_rcpt_count(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_rcpt_count(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (ctx == NULL)
+	{
+		lua_pushnumber(l, 1);
+		return 1;
+	}
+
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	conf = cc->cctx_config;
+	dfc = cc->cctx_msg;
+
+	rcnt = 0;
+	
+	for (addr = dfc->mctx_rcptlist; addr != NULL; addr = addr->a_next)
+		rcnt++;
+
+	lua_pushnumber(l, rcnt);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_RCPT -- retrieve an envelope recipient
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_rcpt(lua_State *l)
+{
+	int rcnt;
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct dkimf_config *conf;
+	struct msgctx *dfc;
+	struct addrlist *addr;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_get_rcpt(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) || !lua_isnumber(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_get_rcpt(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	rcnt = lua_tonumber(l, 1);
+	lua_pop(l, 2);
+
+	if (ctx == NULL)
+	{
+		lua_pushstring(l, "dkimf_xs_rcpt");
+		return 1;
+	}
+	
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	conf = cc->cctx_config;
+	dfc = cc->cctx_msg;
+
+	for (addr = dfc->mctx_rcptlist;
+	     addr != NULL && rcnt >= 0;
+	     addr = addr->a_next)
+		rcnt--;
+
+	if (addr == NULL)
+		lua_pushnil(l);
+	else
+		lua_pushstring(l, addr->a_addr);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_DBQUERY -- check for a record in a database
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_dbquery(lua_State *l)
+{
+	int status;
+	_Bool exists;
+	DKIMF_DB db;
+	const char *str;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_db_check(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_db_check(): incorrect argument type");
+		lua_error(l);
+	}
+
+	db = (DKIMF_DB) lua_touserdata(l, 1);
+	str = lua_tostring(l, 2);
+	lua_pop(l, 2);
+
+	if (db == NULL || str == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	exists = FALSE;
+	status = dkimf_db_get(db, (char *) str, 0, NULL, NULL, &exists);
+	if (status == 0)
+		lua_pushnumber(l, exists ? 1 : 0);
+	else
+		lua_pushnil(l);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_SETPARTIAL -- request l= tags
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_setpartial(lua_State *l)
+{
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+	DKIMF_DB db;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_use_ltag(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_use_ltag(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+# ifdef _FFR_BODYLENGTHDB
+	if (ctx != NULL)
+	{
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+		dfc->mctx_ltag = TRUE;
+	}
+# endif /* _FFR_BODYLENGTHDB */
+
+	lua_pushnil(l);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_VERIFY -- set up verification
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_verify(lua_State *l)
+{
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+	struct dkimf_config *conf;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_verify(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_verify(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (ctx != NULL)
+	{
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+		conf = cc->cctx_config;
+
+		if (dfc->mctx_dkimv == NULL)
+		{
+			DKIM_STAT status;
+
+			dfc->mctx_dkimv = dkim_verify(conf->conf_libopendkim,
+			                              dfc->mctx_jobid, NULL,
+			                              &status);
+
+			if (dfc->mctx_dkimv == NULL)
+			{
+				lua_pushstring(l, dkim_getresultstr(status));
+				return 1;
+			}
+		}
+	}
+
+	lua_pushnil(l);
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETSIGCOUNT -- get signature count
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getsigcount(lua_State *l)
+{
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_get_sigcount(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_get_sigcount(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (cc != NULL)
+	{
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+
+		if (dfc->mctx_dkimv == NULL)
+		{
+			lua_pushnumber(l, 0);
+		}
+		else
+		{
+			DKIM_STAT status;
+			int nsigs;
+			DKIM_SIGINFO **sigs;
+
+			status = dkim_getsiglist(dfc->mctx_dkimv,
+			                         &sigs, &nsigs);
+			if (status != DKIM_STAT_OK)
+				lua_pushnil(l);
+			else
+				lua_pushnumber(l, nsigs);
+		}
+	}
+	else
+	{
+		lua_pushnumber(l, 1);
+	}
+	
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETSIGHANDLE -- get signature handle
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getsighandle(lua_State *l)
+{
+	int idx;
+	int nsigs;
+	DKIM_STAT status;
+	SMFICTX *ctx;
+	DKIM_SIGINFO **sigs;
+	struct connctx *cc;
+	struct msgctx *dfc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_get_sighandle(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isnumber(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_get_sighandle(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	idx = lua_tonumber(l, 2);
+	lua_pop(l, 2);
+
+	if (ctx == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	dfc = cc->cctx_msg;
+
+	if (dfc->mctx_dkimv == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	status = dkim_getsiglist(dfc->mctx_dkimv, &sigs, &nsigs);
+	if (status != DKIM_STAT_OK)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	if (idx < 0 || idx >= nsigs)
+	{
+		lua_pushstring(l, "odkim_get_sighandle(): invalid request");
+		lua_error(l);
+	}
+
+	lua_pushlightuserdata(l, sigs[idx]);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETSIGDOMAIN -- get signature's signing domain ("d=")
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getsigdomain(lua_State *l)
+{
+	DKIM_SIGINFO *sig;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_sig_getdomain(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_sig_getdomain(): incorrect argument type");
+		lua_error(l);
+	}
+
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (sig == NULL)
+		lua_pushstring(l, "dkim_xs_getsigdomain");
+	else
+		lua_pushstring(l, dkim_sig_getdomain(sig));
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_SIGIGNORE -- ignore a signature and its result
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_sigignore(lua_State *l)
+{
+	DKIM_SIGINFO *sig;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_sig_getdomain(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_sig_getdomain(): incorrect argument type");
+		lua_error(l);
+	}
+
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (sig != NULL)
+		dkim_sig_ignore(sig);
+
+	lua_pushnil(l);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETSIGIDENTITY -- get signature's signing identity ("i=")
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getsigidentity(lua_State *l)
+{
+	DKIM_STAT status;
+	DKIM_SIGINFO *sig;
+	char addr[MAXADDRESS + 1];
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_sig_getidentity(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_sig_getidentity(): incorrect argument type");
+		lua_error(l);
+	}
+
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (sig == NULL)
+	{
+		lua_pushstring(l, "dkimf_xs_getsigidentity");
+		return 1;
+	}
+
+	memset(addr, '\0', sizeof addr);
+	status = dkim_sig_getidentity(NULL, sig, addr, sizeof addr);
+	if (status != DKIM_STAT_OK)
+		lua_pushnil(l);
+	else
+		lua_pushstring(l, addr);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETSYMVAL -- get MTA symbol
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getsymval(lua_State *l)
+{
+	char *name;
+	char *sym;
+	SMFICTX *ctx;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_get_mtasymbol(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_get_mtasymbol(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	name = (char *) lua_tostring(l, 2);
+	lua_pop(l, 2);
+
+	if (ctx == NULL)
+	{
+		lua_pushstring(l, "dkimf_xs_getmtasymbol");
+	}
+	else
+	{
+		sym = smfi_getsymval(ctx, name);
+		if (sym == NULL)
+			lua_pushnil(l);
+		else
+			lua_pushstring(l, sym);
+	}
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_SIGRESULT -- get signature's result code
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_sigresult(lua_State *l)
+{
+	DKIM_STAT status;
+	DKIM_SIGINFO *sig;
+	char addr[MAXADDRESS + 1];
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_sig_result(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_sig_result(): incorrect argument type");
+		lua_error(l);
+	}
+
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (sig == NULL)
+		lua_pushnumber(l, 0);
+	else
+		lua_pushnumber(l, dkim_sig_geterror(sig));
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_SIGBHRESULT -- get signature's body hash result code
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_sigbhresult(lua_State *l)
+{
+	DKIM_STAT status;
+	DKIM_SIGINFO *sig;
+	char addr[MAXADDRESS + 1];
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_sig_bhresult(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_sig_bhresult(): incorrect argument type");
+		lua_error(l);
+	}
+
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (sig == NULL)
+		lua_pushnumber(l, 0);
+	else
+		lua_pushnumber(l, dkim_sig_getbh(sig));
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_BODYLENGTH -- return total body length
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_bodylength(lua_State *l)
+{
+	off_t body;
+	DKIM_STAT status;
+	SMFICTX *ctx;
+	DKIM_SIGINFO *sig;
+	struct connctx *cc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_sig_bodylength(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_islightuserdata(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_sig_bodylength(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 2);
+	lua_pop(l, 2);
+
+	if (ctx == NULL)
+	{
+		lua_pushnumber(l, 100);
+		return 1;
+	}
+
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	if (cc->cctx_msg == NULL || cc->cctx_msg->mctx_dkimv == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	status = dkim_sig_getcanonlen(cc->cctx_msg->mctx_dkimv, sig, &body,
+	                              NULL, NULL);
+	if (status != DKIM_STAT_OK)
+		lua_pushnil(l);
+	else
+		lua_pushnumber(l, body);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_CANONLENGTH -- return length canonicalized by a signature
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_canonlength(lua_State *l)
+{
+	off_t cl;
+	DKIM_STAT status;
+	SMFICTX *ctx;
+	DKIM_SIGINFO *sig;
+	struct connctx *cc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_sig_canonlength(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_islightuserdata(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_sig_canonlength(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 2);
+	lua_pop(l, 2);
+
+	if (ctx == NULL)
+	{
+		lua_pushnumber(l, 100);
+		return 1;
+	}
+
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	if (cc->cctx_msg == NULL || cc->cctx_msg->mctx_dkimv == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	status = dkim_sig_getcanonlen(cc->cctx_msg->mctx_dkimv, sig, NULL,
+	                              &cl, NULL);
+	if (status != DKIM_STAT_OK)
+		lua_pushnil(l);
+	else
+		lua_pushnumber(l, cl);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_ADDRCPT -- add a recipient
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_addrcpt(lua_State *l)
+{
+	char *addr;
+	SMFICTX *ctx;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_add_rcpt(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2))
+	{
+		lua_pushstring(l, "odkim_add_rcpt(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	addr = (char *) lua_tostring(l, 2);
+	lua_pop(l, 2);
+
+	if (ctx == NULL)
+		lua_pushnumber(l, 1);
+	else if (dkimf_addrcpt(ctx, addr) == MI_SUCCESS)
+		lua_pushnumber(l, 1);
+	else
+		lua_pushnil(l);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_DELRCPT -- delete a recipient
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_delrcpt(lua_State *l)
+{
+	char *addr;
+	struct addrlist *a;
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+	struct dkimf_config *conf;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_delete_rcpt(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_delete_rcpt(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	addr = (char *) lua_tostring(l, 2);
+	lua_pop(l, 2);
+
+	if (ctx == NULL)
+	{
+		lua_pushnumber(l, 1);
+		return 1;
+	}
+
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	conf = cc->cctx_config;
+	dfc = cc->cctx_msg;
+
+	/* see if this is a known recipient */
+	for (a = dfc->mctx_rcptlist; a != NULL; a = a->a_next)
+	{
+		if (strcasecmp(a->a_addr, addr) == 0)
+			break;
+	}
+
+	/* if not found, report error */
+	if (a == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	/* delete and replace with a header field */
+	if (dkimf_delrcpt(ctx, a->a_addr) != MI_SUCCESS)
+	{
+		if (conf->conf_dolog)
+		{
+			syslog(LOG_ERR, "%s smfi_delrcpt() failed",
+			       dfc->mctx_jobid);
+		}
+	}
+	else
+	{
+		char header[MAXADDRESS + 8];
+
+		snprintf(header, sizeof header, "rfc822;%s", a->a_addr);
+		if (dkimf_addheader(ctx, ORCPTHEADER, header) != MI_SUCCESS)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s smfi_addheader() failed",
+				       dfc->mctx_jobid);
+			}
+		}
+	}
+
+	lua_pushnumber(l, 1);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_RESIGN -- set up for re-signing
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_resign(lua_State *l)
+{
+	char *addr;
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l, "odkim_resign(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l, "odkim_resign(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (ctx == NULL)
+	{
+		lua_pushnumber(l, 1);
+		return 1;
+	}
+
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	dfc = cc->cctx_msg;
+
+# ifdef _FFR_RESIGN
+	dfc->mctx_resign = TRUE;
+
+	lua_pushnumber(l, 1);
+# else /* _FFR_RESIGN */
+	lua_pushnil(l);
+# endif /* _FFR_RESIGN */
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETPOLICY -- retrieve sender policy
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getpolicy(lua_State *l)
+{
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l, "odkim_get_policy(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l, "odkim_get_policy(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (ctx == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	dfc = cc->cctx_msg;
+
+	if (dfc->mctx_pcode == DKIM_POLICY_NONE)
+		lua_pushnil(l);
+	else
+		lua_pushnumber(l, dfc->mctx_pcode);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETPRESULT -- retrieve sender policy query result
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getpresult(lua_State *l)
+{
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_get_presult(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_get_presult(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (ctx == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	dfc = cc->cctx_msg;
+
+	if (dfc->mctx_presult == DKIM_PRESULT_NONE)
+		lua_pushnil(l);
+	else
+		lua_pushnumber(l, dfc->mctx_presult);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_SETREPLY -- set SMTP reply text
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_setreply(lua_State *l)
+{
+	SMFICTX *ctx;
+	char *rcode = NULL;
+	char *xcode = NULL;
+	char *message = NULL;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 4)
+	{
+		lua_pushstring(l,
+		               "odkim_set_reply(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2) ||
+	         !lua_isstring(l, 3) ||
+	         !lua_isstring(l, 4))
+	{
+		lua_pushstring(l,
+		               "odkim_set_reply(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	rcode = (char *) lua_tostring(l, 2);
+	xcode = (char *) lua_tostring(l, 3);
+	message = (char *) lua_tostring(l, 4);
+	lua_pop(l, 4);
+
+	if (ctx == NULL)
+	{
+		lua_pushnumber(l, 1);
+		return 1;
+	}
+
+	if (strlen(xcode) == 0)
+		xcode = NULL;
+
+	if (dkimf_setreply(ctx, rcode, xcode, message) == MI_FAILURE)
+		lua_pushnil(l);
+	else
+		lua_pushnumber(l, 1);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_QUARANTINE -- request quarantine
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_quarantine(lua_State *l)
+{
+	SMFICTX *ctx;
+	char *message = NULL;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_quarantine(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_quarantine(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	message = (char *) lua_tostring(l, 2);
+	lua_pop(l, 2);
+
+	if (ctx == NULL)
+		lua_pushnumber(l, 1);
+	else if (dkimf_quarantine(ctx, message) == MI_FAILURE)
+		lua_pushnil(l);
+	else
+		lua_pushnumber(l, 1);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_SETRESULT -- set milter result
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_setresult(lua_State *l)
+{
+	SMFICTX *ctx;
+	int mresult;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2)
+	{
+		lua_pushstring(l,
+		               "odkim_set_result(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isnumber(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim_set_result(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	mresult = lua_tonumber(l, 2);
+	lua_pop(l, 2);
+
+	if (ctx == NULL)
+	{
+		lua_pushnumber(l, 1);
+	}
+	else if (mresult == SMFIS_TEMPFAIL ||
+	         mresult == SMFIS_DISCARD ||
+	         mresult == SMFIS_REJECT)
+	{
+		struct msgctx *dfc;
+		struct connctx *cc;
+
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+
+		dfc->mctx_mresult = mresult;
+		lua_pushnumber(l, 1);
+	}
+	else
+	{
+		lua_pushnil(l);
+	}
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETREPUTATION -- perform reputation query
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getreputation(lua_State *l)
+{
+	DKIM_STAT status;
+	int rep;
+	SMFICTX *ctx;
+	char *qroot;
+	DKIM_SIGINFO *sig;
+	struct connctx *cc;
+	struct msgctx *dfc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 3)
+	{
+		lua_pushstring(l,
+		               "odkim_get_reputation(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_islightuserdata(l, 2) ||
+	         !lua_isstring(l, 3))
+	{
+		lua_pushstring(l,
+		               "odkim_get_reputation(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	sig = (DKIM_SIGINFO *) lua_touserdata(l, 2);
+	qroot = (char *) lua_tostring(l, 3);
+	lua_pop(l, 3);
+
+	if (ctx == NULL)
+	{
+		lua_pushnumber(l, 50);
+		return 1;
+	}
+
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	dfc = cc->cctx_msg;
+
+	if (dfc->mctx_dkimv == NULL)
+	{
+		lua_pushnil(l);
+	}
+	else
+	{
+		if (strlen(qroot) == 0)
+			qroot = NULL;
+
+		status = dkim_get_reputation(dfc->mctx_dkimv, sig,
+		                             qroot, &rep);
+		if (status != DKIM_STAT_OK)
+			lua_pushnil(l);
+		else
+			lua_pushnumber(l, rep);
+	}
+
+	return 1;
+}
+#endif /* USE_LUA */
 
 /*
 **  DKIMF_INIT_SYSLOG -- initialize syslog()
@@ -2139,6 +4024,15 @@ dkimf_config_free(struct dkimf_config *conf)
 		dkimf_db_close(conf->conf_resigndb);
 #endif /* _FFR_RESIGN */
 
+#ifdef USE_LUA
+	if (conf->conf_setupscript != NULL)
+		free(conf->conf_setupscript);
+	if (conf->conf_screenscript != NULL)
+		free(conf->conf_screenscript);
+	if (conf->conf_finalscript != NULL)
+		free(conf->conf_finalscript);
+#endif /* USE_LUA */
+
 	config_free(conf->conf_data);
 
 	free(conf);
@@ -2556,6 +4450,200 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			conf->conf_insecurepolicy = DKIM_POLICYACTIONS_APPLY;
 		}
 #endif /* USE_UNBOUND */
+
+#ifdef USE_LUA
+		str = NULL;
+		(void) config_get(data, "SetupPolicyScript", &str, sizeof str);
+		if (str != NULL)
+		{
+			int fd;
+			ssize_t rlen;
+			struct stat s;
+			struct dkimf_lua_script_result lres;
+
+			fd = open(str, O_RDONLY, 0);
+			if (fd < 1)
+			{
+				snprintf(err, errlen, "%s: open(): %s", str,
+				         strerror(errno));
+				return -1;
+			}
+
+			if (fstat(fd, &s) == -1)
+			{
+				snprintf(err, errlen, "%s: fstat(): %s", str,
+				         strerror(errno));
+				close(fd);
+				return -1;
+			}
+
+			conf->conf_setupscript = malloc(s.st_size + 1);
+			if (conf->conf_setupscript == NULL)
+			{
+				snprintf(err, errlen, "malloc(): %s",
+				         strerror(errno));
+				close(fd);
+				return -1;
+			}
+
+			memset(conf->conf_setupscript, '\0', s.st_size + 1);
+			rlen = read(fd, conf->conf_setupscript, s.st_size);
+			if (rlen == -1)
+			{
+				snprintf(err, errlen, "%s: read(): %s",
+				         str, strerror(errno));
+				close(fd);
+				return -1;
+			}
+			else if (rlen < s.st_size)
+			{
+				snprintf(err, errlen, "%s: early EOF",
+				         str);
+				close(fd);
+				return -1;
+			}
+
+			close(fd);
+
+			memset(&lres, '\0', sizeof lres);
+			if (dkimf_lua_setup_hook(NULL, conf->conf_setupscript,
+			                         str, &lres) != 0)
+			{
+				strlcpy(err, lres.lrs_error, errlen);
+				free(lres.lrs_error);
+				return -1;
+			}
+		}
+
+		str = NULL;
+		(void) config_get(data, "ScreenPolicyScript",
+		                  &str, sizeof str);
+		if (str != NULL)
+		{
+			int fd;
+			ssize_t rlen;
+			struct stat s;
+			struct dkimf_lua_script_result lres;
+
+			fd = open(str, O_RDONLY, 0);
+			if (fd < 1)
+			{
+				snprintf(err, errlen, "%s: open(): %s", str,
+				         strerror(errno));
+				return -1;
+			}
+
+			if (fstat(fd, &s) == -1)
+			{
+				snprintf(err, errlen, "%s: fstat(): %s", str,
+				         strerror(errno));
+				close(fd);
+				return -1;
+			}
+
+			conf->conf_screenscript = malloc(s.st_size + 1);
+			if (conf->conf_screenscript == NULL)
+			{
+				snprintf(err, errlen, "malloc(): %s",
+				         strerror(errno));
+				close(fd);
+				return -1;
+			}
+
+			memset(conf->conf_screenscript, '\0', s.st_size + 1);
+			rlen = read(fd, conf->conf_screenscript, s.st_size);
+			if (rlen == -1)
+			{
+				snprintf(err, errlen, "%s: read(): %s",
+				         str, strerror(errno));
+				close(fd);
+				return -1;
+			}
+			else if (rlen < s.st_size)
+			{
+				snprintf(err, errlen, "%s: early EOF",
+				         str);
+				close(fd);
+				return -1;
+			}
+
+			close(fd);
+
+			memset(&lres, '\0', sizeof lres);
+			if (dkimf_lua_screen_hook(NULL,
+			                          conf->conf_screenscript,
+			                          str, &lres) != 0)
+			{
+				strlcpy(err, lres.lrs_error, errlen);
+				free(lres.lrs_error);
+				return -1;
+			}
+		}
+
+		str = NULL;
+		(void) config_get(data, "FinalPolicyScript", &str, sizeof str);
+		if (str != NULL)
+		{
+			int fd;
+			ssize_t rlen;
+			struct stat s;
+			struct dkimf_lua_script_result lres;
+
+			fd = open(str, O_RDONLY, 0);
+			if (fd < 1)
+			{
+				snprintf(err, errlen, "%s: open(): %s", str,
+				         strerror(errno));
+				return -1;
+			}
+
+			if (fstat(fd, &s) == -1)
+			{
+				snprintf(err, errlen, "%s: fstat(): %s", str,
+				         strerror(errno));
+				close(fd);
+				return -1;
+			}
+
+			conf->conf_finalscript = malloc(s.st_size + 1);
+			if (conf->conf_finalscript == NULL)
+			{
+				snprintf(err, errlen, "malloc(): %s",
+				         strerror(errno));
+				close(fd);
+				return -1;
+			}
+
+			memset(conf->conf_finalscript, '\0', s.st_size + 1);
+			rlen = read(fd, conf->conf_finalscript, s.st_size);
+			if (rlen == -1)
+			{
+				snprintf(err, errlen, "%s: read(): %s",
+				         str, strerror(errno));
+				close(fd);
+				return -1;
+			}
+			else if (rlen < s.st_size)
+			{
+				snprintf(err, errlen, "%s: early EOF",
+				         str);
+				close(fd);
+				return -1;
+			}
+
+			close(fd);
+
+			memset(&lres, '\0', sizeof lres);
+			if (dkimf_lua_final_hook(NULL, NULL,
+			                         conf->conf_finalscript,
+			                         &lres) != 0)
+			{
+				strlcpy(err, lres.lrs_error, errlen);
+				free(lres.lrs_error);
+				return -1;
+			}
+		}
+#endif /* USE_LUA */
 	}
 
 	if (basedir[0] != '\0')
@@ -3883,6 +5971,8 @@ dkimf_initcontext(struct dkimf_config *conf)
 	ctx->mctx_dnssec_key = DKIM_DNSSEC_UNKNOWN;
 	ctx->mctx_dnssec_policy = DKIM_DNSSEC_UNKNOWN;
 #endif /* USE_UNBOUND */
+	ctx->mctx_pcode = DKIM_POLICY_NONE;
+	ctx->mctx_presult = DKIM_PRESULT_NONE;
 
 	return ctx;
 }
@@ -5521,6 +7611,11 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 #ifdef _FFR_RESIGN
 	    || conf->conf_resigndb != NULL
 #endif /* _FFR_RESIGN */
+#ifdef USE_LUA
+	    || conf->conf_setupscript != NULL
+	    || conf->conf_screenscript != NULL
+	    || conf->conf_finalscript != NULL
+#endif /* USE_LUA */
 	   )
 	{
 		strlcpy(addr, envrcpt[0], sizeof addr);
@@ -5534,6 +7629,11 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 #ifdef _FFR_RESIGN
 	    || conf->conf_resigndb != NULL
 #endif /* _FFR_RESIGN */
+#ifdef USE_LUA
+	    || conf->conf_setupscript != NULL
+	    || conf->conf_screenscript != NULL
+	    || conf->conf_finalscript != NULL
+#endif /* USE_LUA */
 	   )
 	{
 		struct addrlist *a;
@@ -6312,42 +8412,78 @@ mlfi_eoh(SMFICTX *ctx)
 	if (domainok && originok)
 	{
 		dfc->mctx_signalg = conf->conf_signalg;
-		dfc->mctx_signing = TRUE;
 		dfc->mctx_addheader = TRUE;
 	}
 
-	if (conf->conf_logwhy)
+#ifdef USE_LUA
+	if (conf->conf_setupscript != NULL)
 	{
-		syslog(LOG_INFO, "%s mode select: %s", dfc->mctx_jobid,
-		       dfc->mctx_signing ? "signing" : "verifying");
+		_Bool dofree = TRUE;
+		struct dkimf_lua_script_result lres;
+
+		memset(&lres, '\0', sizeof lres);
+
+		status = dkimf_lua_setup_hook(ctx, conf->conf_setupscript,
+		                              "setup script", &lres);
+
+		if (status != 0)
+		{
+			if (conf->conf_dolog)
+			{
+				if (lres.lrs_error == NULL)
+				{
+					dofree = FALSE;
+
+					switch (status)
+					{
+					  case 2:
+						lres.lrs_error = "processing error";
+						break;
+
+					  case 1:
+						lres.lrs_error = "syntax error";
+						break;
+
+					  case -1:
+						lres.lrs_error = "memory allocation error";
+						break;
+
+					  default:
+						lres.lrs_error = "unknown error";
+						break;
+					}
+				}
+
+				syslog(LOG_ERR,
+				       "%s dkimf_lua_setup_hook() failed: %s",
+				       dfc->mctx_jobid, lres.lrs_error);
+			}
+
+			if (dofree)
+				free(lres.lrs_error);
+
+			return SMFIS_TEMPFAIL;
+		}
 	}
+#endif /* USE_LUA */
+
+	/* create a default signing request if there was a domain match */
+	if (domainok && originok && dfc->mctx_srhead == NULL)
+		dkimf_add_signrequest(dfc, NULL);
 
 	/*
 	**  If we're not operating in the role matching the required operation,
 	**  just accept the message and be done with it.
 	*/
 
-	if ((dfc->mctx_signing &&
-	     (conf->conf_mode & DKIMF_MODE_SIGNER) == 0) ||
-	    (!dfc->mctx_signing &&
-	     (conf->conf_mode & DKIMF_MODE_VERIFIER) == 0))
+	if (!(dfc->mctx_srhead != NULL && 
+	      (conf->conf_mode & DKIMF_MODE_SIGNER) != 0) ||
+	     ((!domainok || !originok) &&
+	      (conf->conf_mode & DKIMF_MODE_VERIFIER) != 0))
 		return SMFIS_ACCEPT;
 
-	/* confirm that we've got a key for signing when a keylist is in use */
-	if (dfc->mctx_signing && dfc->mctx_key == NULL &&
-	    dfc->mctx_srhead == NULL && conf->conf_keyhead != NULL)
-	{
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_NOTICE, "%s no key selected for signing",
-			       dfc->mctx_jobid);
-		}
-
-		return SMFIS_TEMPFAIL;
-	}
-
 	/* check for "DontSignMailTo" */
-	if (dfc->mctx_signing && conf->conf_dontsigntodb != NULL)
+	if (dfc->mctx_srhead != NULL && conf->conf_dontsigntodb != NULL)
 	{
 		_Bool found;
 		int status;
@@ -6390,15 +8526,11 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 	}
 
-	/* create a default signing request if there was a domain match */
-	if (dfc->mctx_signing && dfc->mctx_srhead == NULL)
-		dkimf_add_signrequest(dfc, NULL);
-
 	/* grab a verify handle if requested */
 #ifdef _FFR_RESIGN
-	if (msgsigned && (!dfc->mctx_signing || dfc->mctx_resign))
+	if (msgsigned && (dfc->mctx_srhead == NULL || dfc->mctx_resign))
 #else /* _FFR_RESIGN */
-	if (msgsigned && !dfc->mctx_signing)
+	if (msgsigned && dfc->mctx_srhead == NULL)
 #endif /* _FFR_RESIGN */
 	{
 		dfc->mctx_dkimv = dkim_verify(conf->conf_libopendkim,
@@ -6556,7 +8688,7 @@ mlfi_eoh(SMFICTX *ctx)
 		setidentity = TRUE;
 #endif /* _FFR_IDENTITY_HEADER */
 
-	if (dfc->mctx_signing && setidentity)
+	if (dfc->mctx_srhead != NULL && setidentity)
 	{
 		char identity[MAXADDRESS + 1];
 		_Bool idset = FALSE;
@@ -6613,19 +8745,14 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 
 #ifdef _FFR_BODYLENGTH_DB
-	if (dfc->mctx_ltag && dfc->mctx_signing)
+	if (dfc->mctx_ltag && dfc->mctx_srhead != NULL)
 	{
-		if (dfc->mctx_srhead != NULL)
-		{
-			struct signreq *sr;
+		struct signreq *sr;
 
-			for (sr = dfc->mctx_srhead;
-			     sr != NULL;
-			     sr = sr->srq_next)
-			{
-				dkim_setpartial(sr->srq_dkim, TRUE);
-			}
-		}
+		for (sr = dfc->mctx_srhead;
+		     sr != NULL;
+		     sr = sr->srq_next)
+			dkim_setpartial(sr->srq_dkim, TRUE);
 	}
 #endif /* _FFR_BODYLENGTH_DB */
 
@@ -6645,7 +8772,7 @@ mlfi_eoh(SMFICTX *ctx)
 		vbr_trustedcerts(dfc->mctx_vbr, conf->conf_vbr_trusted);
 
 	/* if signing, store the values needed to make a header */
-	if (dfc->mctx_signing)
+	if (dfc->mctx_srhead != NULL)
 	{
 		/* set the sending domain */
 		vbr_setdomain(dfc->mctx_vbr, dfc->mctx_domain);
@@ -6677,7 +8804,7 @@ mlfi_eoh(SMFICTX *ctx)
 #endif /* _FFR_VBR */
 
 #ifdef VERIFY_DOMAINKEYS
-	if (dfc->mctx_dksigned && !dfc->mctx_signing)
+	if (dfc->mctx_dksigned && dfc->mctx_srhead == NULL)
 	{
 		dfc->mctx_dk = dk_verify(libdk, dfc->mctx_jobid, NULL,
 		                         &status);
@@ -6726,7 +8853,7 @@ mlfi_eoh(SMFICTX *ctx)
 #ifdef _FFR_IDENTITY_HEADER
 		if (conf->conf_identityhdr != NULL &&
 		    conf->conf_rmidentityhdr && 
-		    dfc->mctx_signing &&
+		    dfc->mctx_srhead != NULL &&
 		    strcasecmp(conf->conf_identityhdr, hdr->hdr_hdr) == 0)
 			continue;
 #endif /* _FFR_IDENTITY_HEADER */
@@ -6734,7 +8861,7 @@ mlfi_eoh(SMFICTX *ctx)
 #ifdef _FFR_SELECTOR_HEADER
 		if (conf->conf_selectorhdr != NULL &&
 		    conf->conf_rmselectorhdr && 
-		    dfc->mctx_signing &&
+		    dfc->mctx_srhead != NULL &&
 		    strcasecmp(conf->conf_selectorhdr, hdr->hdr_hdr) == 0)
 			continue;
 #endif /* _FFR_SELECTOR_HEADER */
@@ -6846,6 +8973,58 @@ mlfi_eoh(SMFICTX *ctx)
 		lastdkim = dfc->mctx_dkimv;
 		status = dkim_eoh(dfc->mctx_dkimv);
 	}
+
+#ifdef USE_LUA
+	if (conf->conf_screenscript != NULL)
+	{
+		_Bool dofree = TRUE;
+		struct dkimf_lua_script_result lres;
+
+		memset(&lres, '\0', sizeof lres);
+
+		status = dkimf_lua_screen_hook(ctx, conf->conf_screenscript,
+		                               "screen script", &lres);
+
+		if (status != 0)
+		{
+			if (conf->conf_dolog)
+			{
+				if (lres.lrs_error == NULL)
+				{
+					dofree = FALSE;
+
+					switch (status)
+					{
+					  case 2:
+						lres.lrs_error = "processing error";
+						break;
+
+					  case 1:
+						lres.lrs_error = "syntax error";
+						break;
+
+					  case -1:
+						lres.lrs_error = "memory allocation error";
+						break;
+
+					  default:
+						lres.lrs_error = "unknown error";
+						break;
+					}
+				}
+
+				syslog(LOG_ERR,
+				       "%s dkimf_lua_screen_hook() failed: %s",
+				       dfc->mctx_jobid, lres.lrs_error);
+			}
+
+			if (dofree)
+				free(lres.lrs_error);
+
+			return SMFIS_TEMPFAIL;
+		}
+	}
+#endif /* USE_LUA */
 
 	switch (status)
 	{
@@ -6997,8 +9176,6 @@ mlfi_eom(SMFICTX *ctx)
 {
 	_Bool testkey = FALSE;
 	int status = DKIM_STAT_OK;
-	dkim_policy_t pcode = DKIM_POLICY_NONE;
-	int presult = DKIM_PRESULT_NONE;
 	int c;
 	sfsistat ret;
 	connctx cc;
@@ -7050,7 +9227,7 @@ mlfi_eom(SMFICTX *ctx)
 		authservid = hostname;
 
 	/* remove old signatures when signing */
-	if (conf->conf_remsigs && dfc->mctx_signing)
+	if (conf->conf_remsigs && dfc->mctx_srhead != NULL)
 	{
 		for (hdr = dfc->mctx_hqhead; hdr != NULL; hdr = hdr->hdr_next)
 		{
@@ -7073,7 +9250,7 @@ mlfi_eom(SMFICTX *ctx)
 #ifdef _FFR_IDENTITY_HEADER
 	/* remove identity header if such was requested when signing */
 	if (conf->conf_rmidentityhdr && conf->conf_identityhdr != NULL &&
-	    dfc->mctx_signing)
+	    dfc->mctx_srhead != NULL)
 	{
 		struct Header *hdr;
 		
@@ -7097,7 +9274,7 @@ mlfi_eom(SMFICTX *ctx)
 #ifdef _FFR_SELECTOR_HEADER
 	/* remove selector header if such was requested when signing */
 	if (conf->conf_rmselectorhdr && conf->conf_selectorhdr != NULL &&
-	    dfc->mctx_signing)
+	    dfc->mctx_srhead != NULL)
 	{
 		struct Header *hdr;
 		
@@ -7382,6 +9559,8 @@ mlfi_eom(SMFICTX *ctx)
 	/* complete verification if started */
 	if (!dfc->mctx_headeronly && dfc->mctx_dkimv != NULL)
 	{
+		_Bool policydone = FALSE;
+
 		/*
 		**  Signal end-of-message to DKIM
 		*/
@@ -7657,18 +9836,19 @@ mlfi_eom(SMFICTX *ctx)
 				domain = dkim_getdomain(dfc->mctx_dkimv);
 
 				if (dkimf_local_adsp(conf, (char *) domain,
-				                     &pcode))
+				                     &dfc->mctx_pcode))
 				{
 					status = DKIM_STAT_OK;
-					dfc->mctx_policy = TRUE;
+					policydone = TRUE;
 					localadsp = TRUE;
 					localresult = DKIM_PRESULT_AUTHOR;
 				}
 			}
 
-			if (!dfc->mctx_policy)
+			if (!policydone)
 			{
-				status = dkim_policy(dfc->mctx_dkimv, &pcode,
+				status = dkim_policy(dfc->mctx_dkimv,
+				                     &dfc->mctx_pcode,
 				                     NULL);
 #ifdef USE_UNBOUND
 				dfc->mctx_dnssec_policy = dkim_policy_getdnssec(dfc->mctx_dkimv);
@@ -7677,12 +9857,12 @@ mlfi_eom(SMFICTX *ctx)
 
 			if (status == DKIM_STAT_OK)
 			{
-				dfc->mctx_policy = TRUE;
+				policydone = TRUE;
 
 				if (localadsp)
-					presult = localresult;
+					dfc->mctx_presult = localresult;
 				else
-					presult = dkim_getpresult(dfc->mctx_dkimv);
+					dfc->mctx_presult = dkim_getpresult(dfc->mctx_dkimv);
 
 #ifdef USE_UNBOUND
 				/* special handling for sketchy answers */
@@ -7701,7 +9881,7 @@ mlfi_eom(SMFICTX *ctx)
 				**  was enabled.
 				*/
 
-				if (presult == DKIM_PRESULT_NXDOMAIN &&
+				if (dfc->mctx_presult == DKIM_PRESULT_NXDOMAIN &&
 				    conf->conf_adspnxdomain)
 				{
 					if (conf->conf_dolog)
@@ -7733,9 +9913,9 @@ mlfi_eom(SMFICTX *ctx)
 				**  signature, and "ADSPDiscard" was enabled.
 				*/
 
-				if ((pcode == DKIM_POLICY_DISCARDABLE ||
-				     pcode == DKIM_POLICY_ALL) &&
-				    presult == DKIM_PRESULT_AUTHOR &&
+				if ((dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE ||
+				     dfc->mctx_pcode == DKIM_POLICY_ALL) &&
+				    dfc->mctx_presult == DKIM_PRESULT_AUTHOR &&
 				    !dkimf_authorsigok(dfc))
 				{
 					dfc->mctx_susp = TRUE;
@@ -7743,7 +9923,7 @@ mlfi_eom(SMFICTX *ctx)
 				}
 
 				if (dfc->mctx_susp && conf->conf_adspdiscard &&
-				    pcode == DKIM_POLICY_DISCARDABLE)
+				    dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE)
 				{
 					char replybuf[BUFRSZ];
 					char smtpprefix[BUFRSZ];
@@ -8092,7 +10272,7 @@ mlfi_eom(SMFICTX *ctx)
 
 			strlcat((char *) header, "dkim-adsp=", sizeof header);
 
-			if (!dfc->mctx_policy)
+			if (!policydone)
 			{
 				strlcat((char *) header, "temperror",
 				        sizeof header);
@@ -8104,24 +10284,24 @@ mlfi_eom(SMFICTX *ctx)
 				        sizeof header);
 			}
 #endif /* USE_UNBOUND */
-			else if (presult == DKIM_PRESULT_NXDOMAIN)
+			else if (dfc->mctx_presult == DKIM_PRESULT_NXDOMAIN)
 			{					/* nxdomain */
 				strlcat((char *) header, "nxdomain",
 				        sizeof header);
 			}
-			else if (pcode == DKIM_POLICY_NONE)
+			else if (dfc->mctx_pcode == DKIM_POLICY_NONE)
 			{					/* none */
 				strlcat((char *) header, "none",
 				        sizeof header);
 			}
-			else if ((pcode == DKIM_POLICY_ALL ||
-			          pcode == DKIM_POLICY_DISCARDABLE) &&
+			else if ((dfc->mctx_pcode == DKIM_POLICY_ALL ||
+			          dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE) &&
 			         authorsig)
 			{					/* pass */
 				strlcat((char *) header, "pass",
 					        sizeof header);
 			}
-			else if (pcode == DKIM_POLICY_UNKNOWN)
+			else if (dfc->mctx_pcode == DKIM_POLICY_UNKNOWN)
 			{
 				if (!authorsig)
 				{				/* unknown */
@@ -8134,12 +10314,13 @@ mlfi_eom(SMFICTX *ctx)
 					        "signed", sizeof header);
 				}
 			}
-			else if (pcode == DKIM_POLICY_ALL && !authorsig)
+			else if (dfc->mctx_pcode == DKIM_POLICY_ALL &&
+			         !authorsig)
 			{					/* fail */
 				strlcat((char *) header, "fail",
 				        sizeof header);
 			}
-			else if (pcode == DKIM_POLICY_DISCARDABLE &&
+			else if (dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE &&
 			         !authorsig)
 			{					/* discard */
 				strlcat((char *) header, "discard",
@@ -8574,6 +10755,63 @@ mlfi_eom(SMFICTX *ctx)
 		}
 #endif /* _FFR_REDIRECT */
 	}
+
+#ifdef USE_LUA
+	if (conf->conf_finalscript != NULL)
+	{
+		_Bool dofree = TRUE;
+		struct dkimf_lua_script_result lres;
+
+		memset(&lres, '\0', sizeof lres);
+
+		dfc->mctx_mresult = SMFIS_CONTINUE;
+
+		status = dkimf_lua_final_hook(ctx, conf->conf_finalscript,
+		                              "final script", &lres);
+
+		if (status != 0)
+		{
+			if (conf->conf_dolog)
+			{
+				if (lres.lrs_error == NULL)
+				{
+					dofree = FALSE;
+
+					switch (status)
+					{
+					  case 2:
+						lres.lrs_error = "processing error";
+						break;
+
+					  case 1:
+						lres.lrs_error = "syntax error";
+						break;
+
+					  case -1:
+						lres.lrs_error = "memory allocation error";
+						break;
+
+					  default:
+						lres.lrs_error = "unknown error";
+						break;
+					}
+				}
+
+				syslog(LOG_ERR,
+				       "%s dkimf_lua_final_hook() failed: %s",
+				       dfc->mctx_jobid, lres.lrs_error);
+			}
+
+			if (dofree)
+				free(lres.lrs_error);
+
+			return SMFIS_TEMPFAIL;
+		}
+
+		if (dfc->mctx_mresult != SMFIS_CONTINUE)
+			return dfc->mctx_mresult;
+	}
+#endif /* USE_LUA */
 
 	/* complete signing if requested */
 #ifdef _FFR_RESIGN

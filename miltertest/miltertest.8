@@ -1,0 +1,298 @@
+.TH miltertest 8 "The OpenDKIM Project"
+.SH NAME
+.B miltertest
+-- milter unit test utility
+.SH SYNOPSIS
+.B miltertest
+[-D name[=value]] [-s script] [-v]
+.SH DESCRIPTION
+.B miltertest
+simulates the MTA side of an MTA-milter interaction for testing a milter-aware
+filter application.  It takes as input a script using the Lua language,
+and by exporting some utility functions, makes it possible for users to
+write scripts that exercise a filter.
+
+See documentation on Lua (e.g. http://www.lua.org) for the syntax
+of the language in general.  The documentation below describes functions
+that are added to Lua by this application to make testing possible.
+
+Documentation on milter can be found at http://www.milter.org.  A particular
+transaction must follow a series of steps to be completed, namely
+negotiate, connection information, envelope sender, envelope recipient(s),
+header field(s), end-of-header, body chunk(s), end-of-message.  To make the
+work of writing tests with
+.B miltertest
+simpler, any of these steps prior to end-of-message that is skipped will be
+filled in using arbitrary, but legal, data.
+
+Interspersed with these protocol phases are optional macro (key/value)
+deliveries from the MTA.
+.B miltertest
+will never send these automatically.  If they are needed for your tests,
+you must send them as part of your test script.
+.SH OPTIONS
+.TP
+.I -D name[=value]
+Defines a global variable called
+.I name
+to the Lua interpreter.  If a
+.I value
+is provided, the global variable is set to that value (as a string,
+although Lua can convert strings to numbers internally).  If no
+.I value
+is provided, the global variable is set to 1.
+.TP
+.I -s script
+Use the contents of file
+.I script
+as the Lua script to be executed.  The default is to read from standard
+input.
+.TP
+.I -v
+Increase verbose output.  May be specified multiple times to request
+more and more information.
+.SH FUNCTIONS
+The following functions are made available to Lua scripts for exercising
+a filter.  All functions return Lua constant "nil" on success or an error
+string on failure, unless otherwise indicated.
+.TP
+.B mt_abort(conn)
+Aborts the transaction in progress on the specified connection.
+.TP
+.B mt_bodyfile(conn, file)
+Sends the contents of the named
+.I file
+to the connection as body data.  If there is any error opening
+.I file
+for reading, the test aborts.
+.TP
+.B mt_bodyrandom(conn, n)
+Sends at least
+.I n
+bytes of random-length lines of random printable ASCII data as body
+chunks to the specified connection.
+.TP
+.B mt_bodystring(conn, str)
+Sends
+.I str
+as a chunk of body text on the specified connection.
+.TP
+.B mt_connect(sockinfo)
+Makes a connection to a filter listening at the socket described by
+.I sockinfo.
+Returns a handle referring to that connection, or the Lua constant
+"nil" on error.
+.TP
+.B mt_conninfo(conn, host, ip)
+Sends information about a new SMTP connection to the MTA, represented by
+connection
+.I conn,
+from the host named
+.I host
+at IP address
+.I ip.
+If
+.I host
+is the Lua constant "nil", the string "localhost" is assumed.  If
+.I ip
+is the Lua constant "nil", a DNS query will be made for the IP address
+matching
+.I host;
+if none is found, the test will abort.
+.TP
+.B mt_disconnect(conn)
+Sends a "quit" message to the specified connection and then closes that
+connection.  The specified
+.I conn
+handle should no longer be used.
+.TP
+.B mt_echo(string)
+Prints the specified
+.I string
+on standard output.  Returns nothing.
+.TP
+.B mt_eoh(conn)
+Announces end-of-header on the specified connection.
+.TP
+.B mt_eom(conn)
+Announces end-of-message on the specified connection, and begins capturing
+any other operations the filter might perform in that phase.
+.TP
+.B mt_eom_check(conn, op, param[, ...])
+Checks the captured set of EOM operations (see above) to determine whether
+or not specific milter actions were requested by the filter.  Returns
+a Boolean value (true or false).  See the EOM CHECKS section for details.
+.TP
+.B mt_getheader(conn, hdr, n)
+Retrieves the value of the
+.I nth
+instance of header field named
+.I hdr
+added during end-of-message processing on the specified connection.
+This can be used by the script to verify that the header thus added contains
+the right thing.  Returns the value as a string, or the Lua constant
+"nil" on error.
+.TP
+.B mt_getreply(conn)
+Returns the last milter reply received from the specified connection,
+as an integer.  This can be compared to any of the SMFIR_* constants defined
+by milter to see if the filter responded as expected.  This value is initially
+set to the NULL character.
+.TP
+.B mt_header(conn, name, value)
+Sends the header with the given
+.I name
+and
+.I value
+to the specified connection.
+.TP
+.B mt_helo(conn, name)
+Sends HELO/EHLO information using the specified
+.I name
+as the parameter given.
+.TP
+.B mt_macro(conn, type, name, value)
+Declares a macro called
+.I name
+whose value is
+.I value
+and whose type (matching protocol element) is
+.I type.
+Valid types are
+SMFIC_CONNECT, SMFIC_HELO, SMFIC_MAIL and SMFIC_RCPT.
+.TP
+.B mt_mailfrom(conn, envfrom[, ...])
+Announces
+.I envfrom
+as the envelope sender of a new message.  ESMTP parameters as additional
+arguments are permitted.
+.TP
+.B mt_negotiate(conn, version, actions, steps)
+Performs milter option negotiation with the connection
+.I conn,
+advertising that the specified protocol
+.I version,
+protocol
+.I actions
+and protocol
+.I steps
+are offered by the MTA.  Returns the Lua constant "nil" on success
+or an error string on failure.  If any of the protocol parameters are
+"nil", the current defaults (defined in
+.I libmilter/mfdef.h,
+provided with the milter source code) will be used.
+.TP
+.B mt_rcptto(conn, envrcpt[, ...])
+Announces
+.I envrcpt
+as an envelope recipient of a message.  ESMTP parameters as additional
+arguments are permitted.
+.TP
+.B mt_set_timeout(n)
+Sets the read timeout to
+.I n
+seconds.  The default is ten seconds.  Returns nothing.
+.TP
+.B mt_sleep(n)
+Sleeps for
+.I n
+seconds.
+.TP
+.B mt_startfilter(path, arg1, arg2, ...)
+Starts the filter whose binary is located at
+.I path
+with argument vector comprised of strings
+.I path,
+.I arg1,
+.I arg2,
+etc.  Basically this is almost the same syntax as
+.I execl(3)
+except that
+.B miltertest
+also does the fork for you, and will remember the process ID in order to
+request a clean shutdown using SIGTERM and
+.I wait(2)
+at the end of the test script.  If the filter could not be started, an
+exception is generated with an error message returned.
+.SH EOM CHECKS
+The
+.B mt_eom_check()
+function is used to determine what changes to the message the filter
+requested during its EOM callback.  The changes can be requested
+in any order.  The first parameter,
+.I op,
+indicates what operation is of interest, and it also dictates what the
+possible parameter list is.  Valid values and corresponding parameters for
+.I op
+are as follows:
+.TP
+.I MT_HDRADD
+Checks to see if a header field was added to the message.  If no parameters
+are given, the function returns true if any header field was added.  If
+one parameter was given, the function returns true only if the named
+header field was added (regardless of its value).  If two parameters are
+given, the function returns true only if the named header field was added
+with the specified value.
+.TP
+.I MT_HDRCHANGE
+Checks to see if an existing header field was changed.  If no parameters
+are given, the function returns true if any header field was modified.  If
+one parameter was given, the function returns true only if the named
+header field was modified (regardless of its new value).  If two parameters
+are given, the function returns true only if the named header field was
+modified to have the specified new value.
+.TP
+.I MT_HDRDELETE
+Checks to see if an existing header field was deleted.  If no parameters
+are given, the function returns true if any header field was deleted.  If
+one parameter was given, the function returns true only if the named
+header field was deleted.
+.TP
+.I MT_HDRINSERT
+Checks to see if a header field was inserted into the message.  If no
+parameters are given, the function returns true if any header field was
+added.  If one parameter was given, the function returns true only if the
+named header field was added (regardless of its value).  If two parameters are
+given, the function returns true only if the named header field was added
+with the specified value.  If three parameters are given, the function
+returns true only if the named header field was added with the specified
+value at the specified index.
+.TP
+.I MT_RCPTADD
+Checks to see if an envelope recipient was added.  Currently only one
+parameter may be provided.
+.TP
+.I MT_RCPTDELETE
+Checks to see if an envelope recipient was deleted.  Currently only one
+parameter may be provided.
+.TP
+.I MT_BODYCHANGE
+Checks to see if the message's body was replaced by other content.  With
+no parameters, the function returns true only if the body was changed
+(regardless of the new content).  With one parameter, the function returns
+true only if the body was changed to the specified new content.
+.TP
+.I MT_QUARANTINE
+Checks to see if the filter requested quarantining of the message.
+With no parameters, the function returns true only if quarantine was
+requested.  With one parameter, the function returns true only if quarantine
+was requested with the specified reason string.
+.TP
+.I MT_SMTPREPLY
+Checks to see if the filter requested a specific SMTP reply message.
+With no parameters, the function returns true only if a specific reply
+was requested.  With one parameter, the function returns true only if
+a specific reply was requested with the specified SMTP code.  With two
+parameters, the function returns true only if a specific reply was
+requested with the specified SMTP code and enhanced status code.  With three
+parameters, the function returns true only if a specific reply was
+requested with the specified SMTP code, enhanced status code, and text.
+.SH VERSION
+This man page covers version 0.1.0 of
+.I miltertest.
+.SH COPYRIGHT
+Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+Milter -- http://www.milter.org
+.P
+Lua -- http://www.lua.org

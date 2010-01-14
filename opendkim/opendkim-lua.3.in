@@ -1,0 +1,378 @@
+.TH opendkim-lua 3 "The OpenDKIM Project"
+.SH NAME
+.B OpenDKIM Lua programming
+- programming the OpenDKIM filter using Lua scripts
+.SH DESCRIPTION
+The OpenDKIM filter has hooks to run user-provided scripts for making policy
+decisions regarding signatures to add on outbound messages or verification and
+acceptance of messages inbound.  The hooks take the form of multiple Lua
+scripts which, if defined, are run at important points during processing of 
+a message.
+
+For a full description of the Lua language, consult Lua programming references
+(see below for a starting point).  This man page only describes the use of
+Lua in the context of OpenDKIM, specifically the functions and global variables
+OpenDKIM provides for use in user-constructed scripts beyond what Lua provides
+by default.
+
+Three scripting hooks are provided.  They are as follows:
+.TP
+.I setup
+The setup script is run after all headers for the message have been received
+but before any DKIM operations have started.  At this point the user can
+examine the available header fields to decide whether the message should be
+signed or verified (or both) and, if signing, which key(s) should be used to
+add signatures and which signature features are desired.
+.TP
+.I screen
+The screen script is run after the DKIM verification context has been
+established.  The main purpose of this script is to give the user an
+opportunity to examine the message header fields compared to the available
+DKIM signatures and determine which, if any, should be ignored during
+verification.  For example, the user might decide only signatures added by
+domains exactly matching that in the From: domain are acceptable, and the
+rest should be ignored.
+.TP
+.I final
+The final script is run after all of the DKIM verification and signing work
+has been completed.  The user has an opportunity to examine the results
+of all of the signature evaluations and make a decision about whether or not
+the message should be accepted, rejected, discarded, quarantined, etc.
+If the message is accepted, any signatures requested earlier will be
+added to the messages before it is released.
+
+Unless otherwise noted, all functions return a single result; on success
+they return the requested data, and on error they return the Lua constant
+"nil".
+.SH GLOBAL VARIABLES
+The following global variable(s) are provided for all user scripts:
+.TP
+.I ctx
+This is a generic context pointer referring to the context in which the
+filtering operation is being performed.  It represents a single message
+in progress, and the connection that accepted it.
+.SH SETUP SCRIPT FUNCTIONS
+These functions are made available to Lua for processing a message through
+the setup script:
+.TP
+.B odkim_check_popauth(ctx)
+Returns 1 if the SMTP client represented by
+.I ctx
+is coming from an IP address found in the POPAUTH database (if enabled
+and configured), and 0 otherwise.  Returns the Lua constant "nil" if
+the POPAUTH database is not enabled or not configured.
+.TP
+.B odkim_get_clienthost(ctx)
+Returns the name of the host on the other end of the SMTP connection
+sending the current message.  This is usually a hostname, but might be
+an IP address in square brackets if the SMTP client's IP address does not
+have a name associated with it.
+.TP
+.B odkim_db_check(db, string)
+Returns 1 if
+.I db
+refers to a valid database handle (see
+.B odkim_get_dbhandle()
+below) and
+.I string
+is found in that database, and 0 otherwise.  If an error occurs, the Lua
+constant "nil" is returned.
+.TP
+.B odkim_get_dbhandle(ctx, db)
+Returns a handle for the requested database that can be used in later
+queries.  The value of
+.I db
+should be one of
+.I DB_MTAS
+(database of MTA names whose mail should be signed),
+.I DB_MACROS
+(database of MTA macro checks to be done when determining signing),
+.I DB_DOMAINS
+(database of domains to be signed),
+.I DB_THIRDPARTY
+(database of third party signatures to be trusted) and
+.I DB_DONTSIGNTO
+(database of recipients whose mail should not be signed).  If the requested
+database is not set in the current configuration file, a Lua "nil" is
+returned.
+.TP
+.B odkim_get_fromdomain(ctx)
+Retrieves the domain name of the sender of the message represented by
+.I ctx.
+.TP
+.B odkim_get_header(ctx, name, n)
+Retrieves the string contained in instance
+.I n
+of the header field called
+.I name
+from the message represented by
+.I ctx,
+or the Lua constant "nil" if there was no such header field.
+Header field numbering starts at 0, so use 0 for the first instance,
+1 for the second, etc.  For example:
+
+fromaddr = odkim_get_header(ctx, "From", 0)
+
+This will return the value of the first (and hopefully only) "From" header
+field.
+.TP
+.B odkim_get_mtasymbol(ctx, name)
+Retrieves the value of the symbol called
+.I name
+from the MTA connection represented by
+.I ctx,
+or the Lua constant "nil" if the requested symbol was not available at the
+time of the request.
+.TP
+.B odkim_get_rcpt(ctx, n)
+Returns the
+.I nth
+envelope recipient for the message represented by
+.I ctx.
+Recipient numbering starts at 0, so for the first recipient, use 0 for
+.I n.
+If
+.I n
+references an out-of-range value, the Lua constant "nil" is returned.
+.TP
+.B odkim_internal_ip(ctx)
+Returns 1 if the SMTP client is coming from an internal IP address, and 0
+otherwise.
+.TP
+.B odkim_rcpt_count(ctx)
+Returns the count of envelope recipients on the message.
+.TP
+.B odkim_resign(ctx)
+Arranges that the arriving message will be verified and then re-signed in
+a single operation.  Returns 1 on success or the Lua constant "nil" on failure.
+.TP
+.B odkim_sign(ctx, domain, selector)
+Requests that the filter sign the message represented by
+.I ctx
+using the key whose
+.I domain
+and
+.I selector
+from the key list match the provided parameters.  See the
+.B KeyList
+parameter in
+.I opendkim.conf(5)
+for more information.  Returns 1 on success and 0 on failure.
+.TP
+.B odkim_use_ltag(ctx)
+Requests that all signatures added to the message represented by
+.I ctx
+include "l=" (body length) tags.  Always returns the Lua constant "nil".
+.TP
+.B odkim_verify(ctx)
+Requests that the message represented by
+.I ctx
+be subjected to DKIM signature verification.  Returns the Lua constant
+"nil" on success, or an error string on failure.
+.SH SCREEN SCRIPT FUNCTIONS
+The screen script has the following functions available to it, whose
+descriptions can be found above:
+.B odkim_db_check,
+.B odkim_fromdomain,
+.B odkim_get_dbhandle,
+.B odkim_get_header,
+.B odkim_get_rcpt
+and
+.B odkim_rcpt_count.
+
+The following additional functions are provided for this script:
+.TP
+.B odkim_get_sigcount(ctx)
+Returns the number of signatures found in the message represented by
+.I ctx,
+or the Lua constant "nil" in case of an error.
+.TP
+.B odkim_get_sighandle(ctx, n)
+Returns a handle representing an internal copy of the
+.I nth
+signature found on the message represented by
+.I ctx.
+.I n
+must be a number greater than or equal to zero (representing the first
+signature) and less than the number of signatures on the message, which
+can be determined using
+.B odkim_get_sigcount
+above.  The requested handle is returned on success, or the Lua constant
+"nil" is returned on failure.
+.TP
+.B odkim_sig_getdomain(sig)
+Returns the name of the domain in the signature handle specified by
+.I sig,
+previously returned by a call to
+.B odkim_get_sighandle().
+This is taken from the signature's "d=" tag.
+.TP
+.B odkim_sig_getidentity(sig)
+Returns the identity of the agent adding the signature handle specified by
+.I sig,
+previously returned by a call to
+.B odkim_get_sighandle().
+This is taken from the signature's "i=" tag.  This may be a default value
+and not one that was explicitly part of the signature.  If the identity could
+not be determined, the Lua constant "nil" is returned.
+.TP
+.B odkim_sig_ignore(sig)
+Instructs the verification code to ignore completely the signature specified
+by
+.I sig,
+previously returned by a call to
+.B odkim_get_sighandle().
+Any pending verification of the message will act as if that signature was
+not present on the message.  Always returns the Lua constant "nil".
+.SH FINAL SCRIPT FUNCTIONS
+The screen script has the following functions available to it, whose
+descriptions can be found above:
+.B odkim_get_rcpt,
+.B odkim_get_sigcount,
+.B odkim_get_sighandle,
+.B odkim_sig_getdomain,
+.B odkim_sig_getidentity,
+and
+.B odkim_rcpt_count.
+
+The following additional functions are provided for this script:
+.TP
+.B odkim_add_rcpt(ctx, addr)
+Adds
+.I addr
+as an envelope recipient to the message represented by
+.I ctx.
+Returns 1 on success, or the Lua constant "nil" on failure.
+.TP
+.B odkim_del_rcpt(ctx, addr)
+Deletes
+.I addr
+from the list of envelope recipients on the message represented by
+.I ctx,
+and adds a new X-Original-Recipient: header field containing the deleted
+address.  Returns 1 on success, or the Lua constant "nil" on failure.
+.TP
+.B odkim_get_policy(ctx)
+Returns the discovered Author Domain Signing Practices (ADSP) policy, if one
+was published and could be retrieved.  The value will be one of
+.I DKIM_POLICY_UNKNOWN,
+.I DKIM_POLICY_ALL
+and
+.I DKIM_POLICY_DISCARDABLE,
+or the Lua constant "nil" if no policy could be retrieved.
+.TP
+.B odkim_get_presult(ctx)
+Returns the result code from an attempt to retrieve the ADSP for the author
+domain.  The value will be one of
+.I DKIM_PRESULT_NXDOMAIN
+(the sender's domain does not exist),
+or
+.I DKIM_PRESULT_AUTHOR
+(an ADSP record was retrieved), or the Lua constnat "nil" if no policy
+could be retrieved.
+.TP
+.B odkim_get_reputation(ctx, sig, qroot)
+Performs a reputation query about the message represented by
+.I ctx
+and the signature indicated by
+.I sig,
+the latter returned by a previous call to
+.B odkim_get_sighandle().
+The
+.I qroot
+parameter is a string naming the DNS root of the published reputation
+query data, or can be the empty string to use the built-in default.
+The integer result is returned on success, or "nil" on error.
+.TP
+.B odkim_quarantine(ctx, reason)
+Asks the MTA to quarantine the message represented by
+.I ctx
+using
+.I reason
+as a text string indicating the reason for the request.  Returns 1 on
+success or the Lua constant "nil" on failure.
+.TP
+.B odkim_set_reply(ctx, rcode, xcode, message)
+Instructs the MTA to return the specified SMTP reply to the client sending
+the message represented by
+.I ctx.
+.I rcode
+must be a three-digit SMTP reply code starting with 4 or 5 (for temporary
+or permanent failures, respectively);
+.I xcode
+must be the empty string or a valid extended reply code (see RFC2034) matching
+.I rcode;
+and
+.I message
+must be the text portion of the SMTP reply to be sent.  Returns 1 on success
+or the Lua constant "nil" on failure.
+.TP
+.B odkim_set_result(ctx, result)
+Arranges to have the MTA return a specific result code in response
+to the message represented by
+.I ctx.
+The value of
+.I result
+must be one of
+.I SMFIS_TEMPFAIL
+(temporary failure/rejection),
+.I SMFIS_DISCARD
+(accept but discard the message)
+and
+.I SMFIS_REJECT
+(permanent failure/rejection).  Returns 1 on success or the Lua constant
+"nil" on failure.
+.TP
+.B odkim_sig_bhresult(sig)
+Returns the result code corresponding to the body hash evaluation of
+the signature handled specified by
+.I sig,
+previously returned by a call to
+.B odkim_get_sighandle().
+Valid values are defined in the
+.B libopendkim
+header file
+.I dkim.h
+with DKIM_SIGBH_ prefixes, and will be made available by name in a
+future version.
+.TP
+.B odkim_sig_bodylength(sig)
+Returns the total length of the message signed by
+.I sig,
+previously returned by a call to
+.B odkim_get_sighandle(),
+or the Lua constant "nil" if this value could not be determined.
+.TP
+.B odkim_sig_canonlength(sig)
+Returns the canonicalized length of the message signed by
+.I sig,
+previously returned by a call to
+.B odkim_get_sighandle(),
+or the Lua constant "nil" if this value could not be determined.
+Note that this may be less than the value returned by
+.B odkim_get_bodylength()
+if the signature only covered part of the message.
+.TP
+.B odkim_sig_result(sig)
+Returns the result code corresponding to the signature handled specified by
+.I sig,
+previously returned by a call to
+.B odkim_get_sighandle().
+Valid values are defined in the
+.B libopendkim
+header file
+.I dkim.h
+with DKIM_SIGERROR_ prefixes, and will be made available by name in a
+future version.
+.SH NOTES
+TBD
+.SH VERSION
+This man page covers version @VERSION@ of
+.I OpenDKIM.
+.SH COPYRIGHT
+Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+.I opendkim(8),
+.I opendkim.conf(5)
+.P
+Lua -- http://www.lua.org

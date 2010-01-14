@@ -2,16 +2,16 @@
 **  Copyright (c) 2006-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.10 2009/11/22 08:15:50 grooverdan Exp $
+**  $Id: opendkim-config.h,v 1.11 2010/01/14 05:58:54 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.10 2009/11/22 08:15:50 grooverdan Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.11 2010/01/14 05:58:54 cm-msk Exp $";
 #endif /* !lint */
 
 struct configdef dkimf_config[] =
@@ -47,6 +47,9 @@ struct configdef dkimf_config[] =
 	{ "DontSignMailTo",		CONFIG_TYPE_STRING,	FALSE },
 	{ "EnableCoredumps",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ExternalIgnoreList",		CONFIG_TYPE_STRING,	FALSE },
+#ifdef _FFR_LUA
+	{ "FinalPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_LUA */
 	{ "FixCRLF",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "Include",			CONFIG_TYPE_INCLUDE,	FALSE },
 #ifdef USE_UNBOUND
@@ -128,6 +131,10 @@ struct configdef dkimf_config[] =
 	{ "SignatureAlgorithm",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SignatureTTL",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "SignHeaders",		CONFIG_TYPE_STRING,	FALSE },
+#ifdef _FFR_LUA
+	{ "ScreenPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
+	{ "SetupPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_LUA */
 	{ "Socket",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_STATS
 	{ "Statistics",			CONFIG_TYPE_STRING,	FALSE },

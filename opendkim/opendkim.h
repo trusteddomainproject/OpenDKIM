@@ -2,16 +2,16 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.15 2009/12/27 08:15:08 cm-msk Exp $
+**  $Id: opendkim.h,v 1.16 2010/01/14 05:59:06 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.15 2009/12/27 08:15:08 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.16 2010/01/14 05:59:06 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -27,6 +27,11 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.15 2009/12/27 08:15:08 cm
 /* libopendkim */
 #include "build-config.h"
 #include "dkim.h"
+
+#ifdef USE_LUA
+/* LUA */
+# include <lua.h>
+#endif /* USE_LUA */
 
 /* make sure we have TRUE and FALSE */
 #ifndef FALSE
@@ -58,10 +63,14 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.15 2009/12/27 08:15:08 cm
 #define	TEMPFILE	"/var/tmp/dkimXXXXXX"
 #define	UNKNOWN		"unknown"
 
+#define	DB_DOMAINS	1
+#define DB_THIRDPARTY	2
+#define	DB_DONTSIGNTO	3
+#define	DB_MTAS		4
+#define	DB_MACROS	5
+
 #define AUTHRESULTSHDR	"Authentication-Results"
-#ifdef _FFR_REDIRECT
-# define ORCPTHEADER	"X-Original-Recipient"
-#endif /* _FFR_REDIRECT */
+#define ORCPTHEADER	"X-Original-Recipient"
 
 #define	XHEADERNAME	"X-DKIM"
 #define	XSELECTCANONHDR	"X-Canonicalization"
@@ -105,5 +114,39 @@ extern sfsistat mlfi_close __P((SMFICTX *));
 
 extern DKIM *dkimf_getdkim __P((void *));
 extern struct signreq *dkimf_getsrlist __P((void *));
+
+#ifdef USE_LUA
+extern int dkimf_xs_addrcpt __P((lua_State *));
+extern int dkimf_xs_bodylength __P((lua_State *));
+extern int dkimf_xs_canonlength __P((lua_State *));
+extern int dkimf_xs_clienthost __P((lua_State *));
+extern int dkimf_xs_dbhandle __P((lua_State *));
+extern int dkimf_xs_dbquery __P((lua_State *));
+extern int dkimf_xs_delrcpt __P((lua_State *));
+extern int dkimf_xs_fromdomain __P((lua_State *));
+extern int dkimf_xs_getheader __P((lua_State *));
+extern int dkimf_xs_getpolicy __P((lua_State *));
+extern int dkimf_xs_getpresult __P((lua_State *));
+extern int dkimf_xs_getreputation __P((lua_State *));
+extern int dkimf_xs_getsigcount __P((lua_State *));
+extern int dkimf_xs_getsigdomain __P((lua_State *));
+extern int dkimf_xs_getsighandle __P((lua_State *));
+extern int dkimf_xs_getsigidentity __P((lua_State *));
+extern int dkimf_xs_getsymval __P((lua_State *));
+extern int dkimf_xs_internalip __P((lua_State *));
+extern int dkimf_xs_popauth __P((lua_State *));
+extern int dkimf_xs_quarantine __P((lua_State *));
+extern int dkimf_xs_rcpt __P((lua_State *));
+extern int dkimf_xs_rcptcount __P((lua_State *));
+extern int dkimf_xs_resign __P((lua_State *));
+extern int dkimf_xs_requestsig __P((lua_State *));
+extern int dkimf_xs_setpartial __P((lua_State *));
+extern int dkimf_xs_setreply __P((lua_State *));
+extern int dkimf_xs_setresult __P((lua_State *));
+extern int dkimf_xs_sigbhresult __P((lua_State *));
+extern int dkimf_xs_sigignore __P((lua_State *));
+extern int dkimf_xs_sigresult __P((lua_State *));
+extern int dkimf_xs_verify __P((lua_State *));
+#endif /* USE_LUA */
 
 #endif /* _OPENDKIM_H_ */
