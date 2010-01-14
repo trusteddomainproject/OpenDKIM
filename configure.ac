@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.89.4.2 2009/12/19 17:49:06 cm-msk Exp $
+# $Id: configure.ac,v 1.89.4.3 2010/01/14 18:15:25 cm-msk Exp $
 
 #
 # Setup
@@ -12,7 +12,7 @@ AC_PREREQ(2.62)
 #
 m4_define([VERSION_RELEASE], 1)
 m4_define([VERSION_MAJOR_REV], 2)
-m4_define([VERSION_MINOR_REV], 1)
+m4_define([VERSION_MINOR_REV], 2)
 m4_define([VERSION_PATCH], 0)
 
 #
