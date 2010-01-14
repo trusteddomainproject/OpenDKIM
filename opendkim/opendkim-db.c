@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.31 2010/01/13 00:44:25 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.32 2010/01/14 00:18:30 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.31 2010/01/13 00:44:25 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.32 2010/01/14 00:18:30 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1466,9 +1466,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 # if DB_VERSION_CHECK(2,0,0)
 		d.flags = DB_DBT_USERMEM|DB_DBT_PARTIAL;
-# endif /* DB_VERSION_CHECK(2,0,0) */
 		d.data = outbuf;
 		d.size = (outbuflen == NULL ? 0 : *outbuflen);
+# endif /* DB_VERSION_CHECK(2,0,0) */
 
 		/* establish read-lock */
 		fd = -1;
@@ -1544,8 +1544,14 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			if (exists != NULL)
 				*exists = TRUE;
 
-			if (outbuflen != NULL)
-				*outbuflen = d.size;
+			if (outbuf != NULL && outbuflen != NULL)
+			{
+				memcpy(outbuf, d.data, MIN(d.size,
+				       *outbuflen));
+
+				if (outbuflen != NULL)
+					*outbuflen = d.size;
+			}
 
 			ret = 0;
 		}
