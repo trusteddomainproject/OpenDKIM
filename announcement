@@ -22,6 +22,8 @@ The RELEASE_NOTES for this version:
 		Werner Wiethege.
 	Fix initalization and processing of ODBX requests.
 	Fix DB get operations for Sleepycat versions prior to 2.0.0.
+	BUILD: Fix bug #SF2932392: Restore proper function of
+		"--without-milter".  Reported by Mark Sidell.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers
