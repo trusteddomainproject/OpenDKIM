@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.100 2010/01/14 05:58:41 cm-msk Exp $
+# $Id: configure.ac,v 1.101 2010/01/15 07:44:14 cm-msk Exp $
 
 #
 # Setup
@@ -463,14 +463,20 @@ AC_SUBST(LIBCRYPTO_LIBS)
 #
 # libmilter
 #
-AC_MSG_CHECKING([for milter library and includes])
 AC_ARG_WITH([milter],
             AS_HELP_STRING([--with-milter],
                            [location of milter includes and library]),
             [milterpath="$withval"], [milterpath="auto"])
-milterdirs="/usr/local /usr"
+
+if test x"$enable_filter" = x"no"
+then
+	milterpath="no"
+fi
+
 if test "$milterpath" = "auto" -o "$milterpath" = "yes"
 then
+	AC_MSG_CHECKING([for milter library and includes])
+	milterdirs="/usr/local /usr"
 	for d in $milterdirs
 	do
 		if test -f $d/include/libmilter/mfapi.h
@@ -502,36 +508,42 @@ case "$milterpath" in
 		;;
 esac
 
-LIBMILTER_INCDIRS="-I$milterpath/include"
-LIBMILTER_LIBDIRS="-L$milterpath/lib"
+LIBMILTER_INCDIRS=""
+LIBMILTER_LIBDIRS=""
 
-saved_CFLAGS="$CFLAGS"
-saved_CPPFLAGS="$CPPFLAGS"
-saved_LDFLAGS="$LDFLAGS"
-saved_LIBS="$LIBS"
+if test x"$milterpath" != x"no"
+then
+	LIBMILTER_INCDIRS="-I$milterpath/include"
+	LIBMILTER_LIBDIRS="-L$milterpath/lib"
 
-CC="$PTHREAD_CC"
-LIBS="$PTHREAD_LIBS $saved_LIBS"
-CPPFLAGS="$LIBMILTER_INCDIRS $saved_CPPFLAGS"
-CFLAGS="$PTHREAD_CFLAGS $saved_CFLAGS"
-LDFLAGS="$PTHREAD_CFLAGS $LIBMILTER_LIBDIRS $saved_LDFLAGS"
+	saved_CFLAGS="$CFLAGS"
+	saved_CPPFLAGS="$CPPFLAGS"
+	saved_LDFLAGS="$LDFLAGS"
+	saved_LIBS="$LIBS"
 
-AC_SEARCH_LIBS([smfi_register], [milter], ,
-	[
-		unset ac_cv_search_smfi_register
-		LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/lib $saved_LDFLAGS"
-		AC_SEARCH_LIBS([smfi_register], [milter], ,
-		               AC_MSG_ERROR([libmilter not found]))
-	])
+	CC="$PTHREAD_CC"
+	LIBS="$PTHREAD_LIBS $saved_LIBS"
+	CPPFLAGS="$LIBMILTER_INCDIRS $saved_CPPFLAGS"
+	CFLAGS="$PTHREAD_CFLAGS $saved_CFLAGS"
+	LDFLAGS="$PTHREAD_CFLAGS $LIBMILTER_LIBDIRS $saved_LDFLAGS"
 
-AC_CHECK_FUNC([smfi_setsymlist],
-              AC_DEFINE([HAVE_SMFI_SETSYMLIST], 1,
-                        [Define if libmilter has smfi_setsymlist()]))
+	AC_SEARCH_LIBS([smfi_register], [milter], ,
+		[
+			unset ac_cv_search_smfi_register
+			LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/lib $saved_LDFLAGS"
+			AC_SEARCH_LIBS([smfi_register], [milter], ,
+			               AC_MSG_ERROR([libmilter not found]))
+		])
 
-CPPFLAGS="$saved_CPPFLAGS"
-CFLAGS="$saved_CFLAGS"
-LDFLAGS="$saved_LDFLAGS"
-LIBS="$saved_LIBS"
+	AC_CHECK_FUNC([smfi_setsymlist],
+	              AC_DEFINE([HAVE_SMFI_SETSYMLIST], 1,
+	                        [Define if libmilter has smfi_setsymlist()]))
+
+	CPPFLAGS="$saved_CPPFLAGS"
+	CFLAGS="$saved_CFLAGS"
+	LDFLAGS="$saved_LDFLAGS"
+	LIBS="$saved_LIBS"
+fi
 
 AC_SUBST(LIBMILTER_INCDIRS)
 AC_SUBST(LIBMILTER_LIBDIRS)
