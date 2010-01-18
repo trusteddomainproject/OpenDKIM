@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-crypto.c,v 1.5 2009/11/22 08:15:50 grooverdan Exp $
+**  $Id: opendkim-crypto.c,v 1.6 2010/01/18 22:44:24 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.5 2009/11/22 08:15:50 grooverdan Exp $";
+static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.6 2010/01/18 22:44:24 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -269,6 +269,8 @@ dkimf_crypto_init(void)
 	if (!SSL_set_engine(NULL))
 		return EINVAL;
 #endif /* USE_OPENSSL_ENGINE */
+
+	crypto_init_done = TRUE;
 
 	return 0;
 }
