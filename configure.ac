@@ -1,6 +1,9 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.89.4.4 2010/01/15 00:06:30 cm-msk Exp $
+#
+# Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
+# 
+# $Id: configure.ac,v 1.89.4.5 2010/01/19 14:40:36 cm-msk Exp $
 
 #
 # Setup
