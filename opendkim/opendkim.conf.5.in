@@ -352,6 +352,45 @@ cannot be opened, the filter will try again by appending ".pem"
 and then ".private" before giving up.
 
 .TP
+.I LDAPAuthMechanism (string)
+Names the authentication mechanism to use when connecting to an LDAP
+server.  The default is the empty string, meaning "simple" authentication
+should be done.
+
+.TP 
+.I LDAPAuthName (string)
+Specifies the authenticating name to use when using SASL to authenticate to
+an LDAP server.  Requires SASL support be installed on the local system.
+There is no default.
+
+.TP 
+.I LDAPAuthRealm (string)
+Specifies the authentication realm to use when using SASL to authenticate to
+an LDAP server.  Requires SASL support be installed on the local system.
+There is no default.
+
+.TP 
+.I LDAPAuthUser (string)
+Specifies the authenticating user to use when using SASL to authenticate to an
+LDAP server.  Requires SASL support be installed on the local system.
+There is no default.
+
+.TP 
+.I LDAPBindPassword (string)
+Specifies the password to use when conducting an LDAP "bind" operation.
+There is no default.
+
+.TP 
+.I LDAPBindUser (string)
+Specifies the user ID to use when conducting an LDAP "bind" operation.
+There is no default.
+
+.TP 
+.I LDAPUseTLS (Boolean)
+Indicates whether or not a TLS connection should be established when
+contacting an LDAP server.  The default is "False".
+
+.TP
 .I LocalADSP (dataset)
 Allows specification of local ADSP overrides for domains.  This is expected
 to be a data set with keys and matching values; the keys are each

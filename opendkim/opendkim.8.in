@@ -74,7 +74,8 @@ is the name of the database to be accessed, and the
 .I key=value
 pairs must specify at least "table", "keycol" and "datacol" values specifying
 the name of the table, the name of the column to consider as the key, and the
-name of the column to be considered as the value.  For example:
+name(s) of the column(s) to be considered as the value (separated by
+commas).  For example:
 
 mysql:://dbuser:dbpass@1231+dbhost/odkim/table=macros?keycol=host?datacol=vals
 
@@ -84,15 +85,28 @@ database name is "odkim", and the data are in columns "host" (the keys)
 and "vals" (the values) inside table "macros".
 .TP
 .I e)
+If the string begins with "ldap:", "ldaps:" or "ldapi:", it is presumed
+to be a space-separated set of one or more LDAP URLs that identify a set
+of servers to be queried.  The first one should be a full RFC4516 LDAP URL
+indicating a base DN template and optional scope, filter and attribute
+names to use in queries.  When constructing a DN template or filter, the
+special tokens "$d" and "$D" are replaced with the key being queried and
+they key broken into components, separated at "." characters, each
+component preceded by "dc=" and followed by "," (so "example.com" would
+become "dc=example,dc=com").  Certain databases require a specific list of
+values be returned; the appropriate attribute names should be given in order
+to satisfy such requests where specified.
+.TP
+.I f)
 If the string contains none of these prefixes but ends with ".db", it
 is presumed to be a Sleepycat DB as described above (if support for same
 is compiled in).
 .TP
-.I f)
+.I g)
 If the string contains none of these prefixes but starts with a slash ("/")
 character, it is presumed to be a flat file as described above.
 .TP
-.I g)
+.I h)
 In any other case, the string is presumed to be a comma-separated list.
 Elements in the list are either simple data elements that are part of the
 set or, in the case of an entry of the form "x=y", are stored as key-value
