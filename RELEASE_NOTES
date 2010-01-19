@@ -1,11 +1,11 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.65.2.8 2010/01/18 22:42:00 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.65.2.9 2010/01/19 18:18:50 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-1.2.2		2010/01/20
+1.2.2		2010/01/19
 	Fix bug #SF2916729: Fix crash when reporting on multiple signatures,
 		one of which was invalid in some way leaving its DKIM_SIGINFO
 		only partially populated.  Problem noted by Ryan Burchfield.
