@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.72 2010/01/14 05:58:57 cm-msk Exp $
+**  $Id: opendkim.c,v 1.73 2010/01/20 19:15:21 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.72 2010/01/14 05:58:57 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.73 2010/01/20 19:15:21 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8228,7 +8228,8 @@ mlfi_eoh(SMFICTX *ctx)
 		authtype = dkimf_getsymval(ctx, "{auth_type}");
 
 #ifdef POPAUTH
-		popauth = dkimf_checkpopauth(popdb, &cc->cctx_ip);
+		popauth = dkimf_checkpopauth(popdb,
+		                             (struct sockaddr *) &cc->cctx_ip);
 #endif /* POPAUTH */
 
 		if ((authtype == NULL || authtype[0] == '\0') &&
@@ -8476,10 +8477,18 @@ mlfi_eoh(SMFICTX *ctx)
 	**  just accept the message and be done with it.
 	*/
 
-	if (!(dfc->mctx_srhead != NULL && 
-	      (conf->conf_mode & DKIMF_MODE_SIGNER) != 0) ||
-	     ((!domainok || !originok) &&
-	      (conf->conf_mode & DKIMF_MODE_VERIFIER) != 0))
+	/* signing requests with signing mode disabled */
+	if (dfc->mctx_srhead != NULL && 
+	    (conf->conf_mode & DKIMF_MODE_SIGNER) == 0)
+		return SMFIS_ACCEPT;
+
+	/* verify request with verify mode disabled */
+#ifdef _FFR_RESIGN
+	if (msgsigned && (dfc->mctx_srhead == NULL || dfc->mctx_resign) &&
+#else /* _FFR_RESIGN */
+	if (msgsigned && dfc->mctx_srhead == NULL &&
+#endif /* _FFR_RESIGN */
+	    (conf->conf_mode & DKIMF_MODE_VERIFIER) == 0)
 		return SMFIS_ACCEPT;
 
 	/* check for "DontSignMailTo" */
