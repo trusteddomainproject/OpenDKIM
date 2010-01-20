@@ -76,7 +76,7 @@ pairs must specify at least "table", "keycol" and "datacol" values specifying
 the name of the table, the name of the column to consider as the key, and the
 name of the column to be considered as the value.  For example:
 
-mysql:://dbuser:dbpass@1231+dbhost/odkim/table=macros?keycol=host?datacol=vals
+mysql://dbuser:dbpass@1231+dbhost/odkim/table=macros?keycol=host?datacol=vals
 
 defines a MySQL database listening at port 1231 on host "dbhost"; the userid
 "dbuser" and password "dbpass" should be used to access the database; the
