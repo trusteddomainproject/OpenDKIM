@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.67.4.3 2010/01/19 14:41:29 cm-msk Exp $
+**  $Id: opendkim.c,v 1.67.4.4 2010/01/20 19:33:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.67.4.3 2010/01/19 14:41:29 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.67.4.4 2010/01/20 19:33:39 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6128,7 +6128,8 @@ mlfi_eoh(SMFICTX *ctx)
 		authtype = dkimf_getsymval(ctx, "{auth_type}");
 
 #ifdef POPAUTH
-		popauth = dkimf_checkpopauth(popdb, &cc->cctx_ip);
+		popauth = dkimf_checkpopauth(popdb,
+		                             (struct sockaddr *) &cc->cctx_ip);
 #endif /* POPAUTH */
 
 		if ((authtype == NULL || authtype[0] == '\0') &&
