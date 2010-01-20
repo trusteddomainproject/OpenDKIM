@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.89.4.5 2010/01/19 14:40:36 cm-msk Exp $
+# $Id: configure.ac,v 1.89.4.6 2010/01/20 19:16:04 cm-msk Exp $
 
 #
 # Setup
@@ -829,11 +829,12 @@ else
 		LIBDB_LIBDIRS="-L$bdb/lib"
 		LIBDB_LIBS="-ldb"
 		AC_MSG_RESULT([$bdb])
-		AC_DEFINE(USE_DB, 1,
-		          [enable support for SleepyCat/Berkeley DB libraries])
 	else
 		AC_MSG_RESULT([not found - assuming libc])
 	fi
+
+	AC_DEFINE(USE_DB, 1,
+	          [enable support for SleepyCat/Berkeley DB libraries])
 fi
 
 AC_SUBST(LIBDB_INCDIRS)
