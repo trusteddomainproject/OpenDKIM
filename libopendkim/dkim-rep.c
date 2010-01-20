@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: dkim-rep.c,v 1.6 2009/11/22 08:15:50 grooverdan Exp $
+**  $Id: dkim-rep.c,v 1.6.4.1 2010/01/20 21:59:36 cm-msk Exp $
 */
 
 #ifndef lint
-static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.6 2009/11/22 08:15:50 grooverdan Exp $";
+static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.6.4.1 2010/01/20 21:59:36 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -87,7 +87,7 @@ dkim_md5_to_string(MD5_CTX *md5, unsigned char *str, size_t len)
 		snprintf((char *) cvt, len, "%02x", digest[c]);
 		cvt += 2;
 		out += 2;
-		len -= out;
+		len -= 2;
 	}
 
 	return out;
