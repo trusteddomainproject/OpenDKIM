@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.73 2010/01/20 19:15:21 cm-msk Exp $
+**  $Id: opendkim.c,v 1.74 2010/01/21 21:55:14 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.73 2010/01/20 19:15:21 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.74 2010/01/21 21:55:14 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3454,7 +3454,6 @@ dkimf_local_adsp(struct dkimf_config *conf, char *domain, dkim_policy_t *pcode)
 	{
 		_Bool found;
 		int status;
-		int c;
 		size_t plen;
 		char *p;
 		char policy[BUFRSZ];
@@ -8145,7 +8144,6 @@ mlfi_eoh(SMFICTX *ctx)
 	/* see if it came in on an authorized MSA/MTA connection */
 	if (conf->conf_mtasdb != NULL)
 	{
-		int n;
 		char *mtaname;
 
 		mtaname = dkimf_getsymval(ctx, "{daemon_name}");
@@ -8169,8 +8167,6 @@ mlfi_eoh(SMFICTX *ctx)
 		_Bool done = FALSE;
 		int n;
 		char *val;
-		char *vals;
-		char *last;
 		char name[BUFRSZ + 1];
 
 		if (dfc->mctx_tmpstr == NULL)

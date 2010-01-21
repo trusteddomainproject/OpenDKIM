@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.c,v 1.10 2010/01/14 05:59:06 cm-msk Exp $
+**  $Id: test.c,v 1.11 2010/01/21 21:55:14 cm-msk Exp $
 */
 
 #ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.10 2010/01/14 05:59:06 cm-msk Exp $";
+static char test_c_id[] = "@(#)$Id: test.c,v 1.11 2010/01/21 21:55:14 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -738,6 +738,8 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, time_t fixedtime,
 	if (dkim != NULL)
 	{
 		int mode;
+
+		mode = dkim_getmode(dkim);
 
 		sig = dkim_getsignature(dkim);
 

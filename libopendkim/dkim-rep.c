@@ -2,13 +2,13 @@
 **  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: dkim-rep.c,v 1.7 2010/01/20 22:01:09 cm-msk Exp $
+**  $Id: dkim-rep.c,v 1.8 2010/01/21 21:55:14 cm-msk Exp $
 */
 
 #ifndef lint
-static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.7 2010/01/20 22:01:09 cm-msk Exp $";
+static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.8 2010/01/21 21:55:14 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -39,6 +39,7 @@ static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.7 2010/01/20 22:01:09 cm-
 /* libopendkim includes */
 #include "dkim-internal.h"
 #include "dkim-types.h"
+#include "dkim-rep.h"
 #include "util.h"
 
 /* prototypes */
