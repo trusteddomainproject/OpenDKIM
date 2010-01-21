@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.26.4.4 2010/01/19 14:41:29 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.26.4.5 2010/01/21 21:52:34 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.26.4.4 2010/01/19 14:41:29 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.26.4.5 2010/01/21 21:52:34 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -493,7 +493,6 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 	  {
 		_Bool gapfound;
 		int n = 0;
-		size_t len;
 		FILE *f;
 		char *key;
 		char *value;
@@ -663,11 +662,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 	  case DKIMF_DB_TYPE_REFILE:
 	  {
-		int n;
-		int c;
 		int status;
 		int reflags;
-		size_t len;
 		FILE *f;
 		char *end;
 		struct dkimf_db_relist *list = NULL;
@@ -1034,11 +1030,11 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 int
 dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 {
+	int ret = EINVAL;
 #ifdef USE_DB
 	DBT q;
 	int fd;
 	int status;
-	int ret;
 	DB *bdb;
 #endif /* USE_DB */
 
@@ -1143,9 +1139,9 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 
 	if (db->db_lock != NULL)
 		(void) pthread_mutex_unlock(db->db_lock);
+#endif /* USE_DB */
 
 	return ret;
-#endif /* USE_DB */
 }
 
 /*
@@ -1167,12 +1163,12 @@ int
 dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
              void *outbuf, size_t outbuflen)
 {
+	int ret = EINVAL;
 #ifdef USE_DB
 	DBT d;
 	DBT q;
 	int fd;
 	int status;
-	int ret;
 	DB *bdb;
 #endif /* USE_DB */
 
@@ -1194,17 +1190,17 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 
 	d.data = outbuf;
 	d.size = outbuflen;
-#if DB_VERSION_CHECK(2,0,0)
+# if DB_VERSION_CHECK(2,0,0)
 	d.ulen = d.size;
 	d.flags = DB_DBT_USERMEM;
-#endif /* DB_VERSION_CHECK(2,0,0) */
+# endif /* DB_VERSION_CHECK(2,0,0) */
 
 	q.data = (char *) buf;
 	q.size = (buflen == 0 ? strlen(q.data) : buflen);
-#if DB_VERSION_CHECK(2,0,0)
+# if DB_VERSION_CHECK(2,0,0)
 	q.ulen = q.size;
 	q.flags = DB_DBT_USERMEM;
-#endif /* DB_VERSION_CHECK(2,0,0) */
+# endif /* DB_VERSION_CHECK(2,0,0) */
 
 	ret = 0;
 
@@ -1291,9 +1287,9 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 
 	if (db->db_lock != NULL)
 		(void) pthread_mutex_unlock(db->db_lock);
+#endif /* USE_DB */
 
 	return ret;
-#endif /* USE_DB */
 }
 
 /*
@@ -1321,8 +1317,6 @@ int
 dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
              void *outbuf, size_t *outbuflen, _Bool *exists)
 {
-	int status;
-	int ret;
 	_Bool matched;
 
 	assert(db != NULL);
@@ -1429,6 +1423,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 #ifdef USE_DB
 	  case DKIMF_DB_TYPE_BDB:
 	  {
+		int ret;
+		int status;
 		int fd;
 		DB *bdb;
 		DBT d;
@@ -1669,6 +1665,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 	  default:
 		assert(0);
+		return 0;		/* to silence the compiler */
 	}
 
 	/* NOTREACHED */
@@ -1779,6 +1776,7 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 
 	  default:
 		assert(0);
+		return -1;		/* to silence the compiler */
 	}
 
 	/* NOTREACHED */
@@ -1815,7 +1813,6 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 	  case DKIMF_DB_TYPE_CSL:
 	  case DKIMF_DB_TYPE_FILE:
 	  {
-		size_t out;
 		struct dkimf_db_list *list;
 
 		if (first)
@@ -2015,6 +2012,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 
 	  default:
 		assert(0);
+		return -1;		/* to silence compiler warnings */
 	}
 }
 
@@ -2058,7 +2056,7 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a)
 	  case DKIMF_DB_TYPE_FILE:
 	  case DKIMF_DB_TYPE_CSL:
 	  {
-		int c;
+		int c = 0;
 		struct dkimf_db_list *cur;
 
 		out = (char **) malloc(sizeof(char *) * (db->db_nrecs + 1));

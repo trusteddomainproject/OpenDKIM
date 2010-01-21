@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36 2009/12/01 23:17:27 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.36.4.1 2010/01/21 21:52:34 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2983,8 +2983,6 @@ dkim_eoh_verify(DKIM *dkim)
 	_Bool bsh;
 	DKIM_STAT status;
 	int c;
-	char *user;
-	char *domain;
 	DKIM_LIB *lib;
 	DKIM_SET *set;
 

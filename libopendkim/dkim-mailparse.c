@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_mailparse_c_id[] = "@(#)$Id: dkim-mailparse.c,v 1.2 2009/11/05 20:40:17 cm-msk Exp $";
+static char dkim_mailparse_c_id[] = "@(#)$Id: dkim-mailparse.c,v 1.2.14.1 2010/01/21 21:52:34 cm-msk Exp $";
 #endif /* !lint */
 
 /* system inludes */
@@ -14,6 +14,9 @@ static char dkim_mailparse_c_id[] = "@(#)$Id: dkim-mailparse.c,v 1.2 2009/11/05 
 #include <string.h>
 #include <limits.h>
 #include <stdio.h>
+
+/* libopendkim includes */
+#include "dkim-mailparse.h"
 
 /* types */
 typedef unsigned long cmap_elem_type;

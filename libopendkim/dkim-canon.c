@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.17 2009/11/23 05:14:39 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.17.4.1 2010/01/21 21:52:33 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1434,7 +1434,6 @@ DKIM_STAT
 dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 {
 	_Bool fixcrlf;
-	_Bool end;
 	DKIM_STAT status;
 	u_int wlen;
 	DKIM_CANON *cur;
