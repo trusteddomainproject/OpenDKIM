@@ -2,11 +2,11 @@
 **  Copyright (c) 2007-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.17.4.1 2010/01/21 21:52:33 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.17.4.2 2010/01/21 21:53:46 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
