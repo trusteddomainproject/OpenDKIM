@@ -146,6 +146,22 @@ Returns the count of envelope recipients on the message.
 Arranges that the arriving message will be verified and then re-signed in
 a single operation.  Returns 1 on success or the Lua constant "nil" on failure.
 .TP
+.B odkim_set_result(ctx, result)
+Arranges to have the MTA return a specific result code in response
+to the message represented by
+.I ctx.
+The value of
+.I result
+must be one of
+.I SMFIS_TEMPFAIL
+(temporary failure/rejection),
+.I SMFIS_DISCARD
+(accept but discard the message)
+and
+.I SMFIS_REJECT
+(permanent failure/rejection).  Returns 1 on success or the Lua constant
+"nil" on failure.
+.TP
 .B odkim_sign(ctx, domain, selector)
 Requests that the filter sign the message represented by
 .I ctx
@@ -176,9 +192,10 @@ descriptions can be found above:
 .B odkim_fromdomain,
 .B odkim_get_dbhandle,
 .B odkim_get_header,
-.B odkim_get_rcpt
+.B odkim_get_rcpt,
+.B odkim_rcpt_count,
 and
-.B odkim_rcpt_count.
+.B odkim_set_result.
 
 The following additional functions are provided for this script:
 .TP
@@ -306,22 +323,6 @@ and
 .I message
 must be the text portion of the SMTP reply to be sent.  Returns 1 on success
 or the Lua constant "nil" on failure.
-.TP
-.B odkim_set_result(ctx, result)
-Arranges to have the MTA return a specific result code in response
-to the message represented by
-.I ctx.
-The value of
-.I result
-must be one of
-.I SMFIS_TEMPFAIL
-(temporary failure/rejection),
-.I SMFIS_DISCARD
-(accept but discard the message)
-and
-.I SMFIS_REJECT
-(permanent failure/rejection).  Returns 1 on success or the Lua constant
-"nil" on failure.
 .TP
 .B odkim_sig_bhresult(sig)
 Returns the result code corresponding to the body hash evaluation of
