@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.76 2010/01/22 19:22:13 cm-msk Exp $
+**  $Id: opendkim.c,v 1.77 2010/01/22 19:52:50 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.76 2010/01/22 19:22:13 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.77 2010/01/22 19:52:50 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -230,7 +230,8 @@ struct dkimf_config
 	char *		conf_keyfile;		/* key file */
 	char *		conf_peerfile;		/* peer file */
 	char *		conf_internalfile;	/* internal hosts file */
-	char *		conf_externalfile;	/* internal hosts file */
+	char *		conf_externalfile;	/* external hosts file */
+	char *		conf_exemptfile;	/* exempt domains file */
 	char *		conf_tmpdir;		/* temp directory */
 	char *		conf_thirdpartyfile;	/* third party sigs file */
 	char *		conf_omitlist;		/* omit header list */
@@ -318,6 +319,7 @@ struct dkimf_config
 	DKIMF_DB	conf_peerdb;		/* DB of "peers" */
 	DKIMF_DB	conf_internal;		/* DB of "internal" hosts */
 	DKIMF_DB	conf_exignore;		/* "external ignore" host DB */
+	DKIMF_DB	conf_exemptdb;		/* exempt domains DB */
 #ifdef _FFR_RESIGN
 	DKIMF_DB	conf_resigndb;		/* resigning addresses */
 #endif /* _FFR_RESIGN */
@@ -3992,6 +3994,9 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_exignore != NULL)
 		dkimf_db_close(conf->conf_exignore);
 
+	if (conf->conf_exemptdb != NULL)
+		dkimf_db_close(conf->conf_exemptdb);
+
 	dkimf_freekeys(conf);
 
 #ifdef _FFR_REPLACE_RULES
@@ -4741,6 +4746,30 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		int status;
 
 		status = dkimf_db_open(&conf->conf_exignore, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "dkimf_db_open(): %s",
+			         strerror(errno));
+			return -1;
+		}
+	}
+
+	/* exempt domains list */
+	str = NULL;
+	if (conf->conf_exemptfile != NULL)
+	{
+		str = conf->conf_exemptfile;
+	}
+	else if (data != NULL)
+	{
+		(void) config_get(data, "ExemptDomains", &str, sizeof str);
+	}
+	if (str != NULL && !testmode)
+	{
+		int status;
+
+		status = dkimf_db_open(&conf->conf_exemptdb, str,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
@@ -8110,6 +8139,29 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 	strlcpy(dfc->mctx_domain, domain, sizeof dfc->mctx_domain);
 
+	/* if it's exempt, bail out */
+	if (conf->conf_exemptdb != NULL)
+	{
+		bool match = FALSE;
+
+		status = dkimf_db_get(conf->conf_exemptdb,
+		                      dfc->mctx_domain, 0, NULL, NULL,
+		                      &match);
+
+		if (match)
+		{
+			if (conf->conf_logwhy)
+			{
+				syslog(LOG_INFO,
+				       "%s domain `%s' exempted, accepting",
+				       dfc->mctx_jobid, dfc->mctx_domain);
+			}
+
+			dkimf_cleanup(ctx);
+			return SMFIS_ACCEPT;
+		}
+	}
+
 	/* assume we're not signing */
 	dfc->mctx_signalg = DKIM_SIGN_UNKNOWN;
 	domainok = FALSE;
@@ -10820,7 +10872,7 @@ mlfi_eom(SMFICTX *ctx)
 		}
 
 		if (dfc->mctx_mresult != SMFIS_CONTINUE &&
-		    dfc->mctx_result != SMFIS_ACCEPT)
+		    dfc->mctx_mresult != SMFIS_ACCEPT)
 			return dfc->mctx_mresult;
 	}
 #endif /* USE_LUA */

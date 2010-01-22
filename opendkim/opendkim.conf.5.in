@@ -246,6 +246,15 @@ user ID has changed during the lifetime of the process.  Currently only
 supported on Linux.
 
 .TP
+.I ExemptDomains (dataset)
+Specifies a set of domains, mail from which should be ignored entirely
+by the filter.  This is similar to the
+.I PeerList
+setting except that it bases its decision on the sender of the message
+as identified from the header fields or other message data, not the 
+identity of the SMTP client sending the message.
+
+.TP
 .I ExternalIgnoreList (dataset)
 Identifies a set of "external" hosts that may send mail through the server
 as one of the signing domains without credentials as such.  Basically
