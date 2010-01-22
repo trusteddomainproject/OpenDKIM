@@ -192,10 +192,9 @@ descriptions can be found above:
 .B odkim_fromdomain,
 .B odkim_get_dbhandle,
 .B odkim_get_header,
-.B odkim_get_rcpt,
-.B odkim_rcpt_count,
+.B odkim_get_rcpt
 and
-.B odkim_set_result.
+.B odkim_rcpt_count.
 
 The following additional functions are provided for this script:
 .TP
@@ -247,6 +246,7 @@ descriptions can be found above:
 .B odkim_get_rcpt,
 .B odkim_get_sigcount,
 .B odkim_get_sighandle,
+.B odkim_set_result,
 .B odkim_sig_getdomain,
 .B odkim_sig_getidentity,
 and
