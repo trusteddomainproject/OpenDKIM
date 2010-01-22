@@ -155,6 +155,8 @@ The value of
 must be one of
 .I SMFIS_TEMPFAIL
 (temporary failure/rejection),
+.I SMFIS_ACCEPT
+(accept without further processing),
 .I SMFIS_DISCARD
 (accept but discard the message)
 and

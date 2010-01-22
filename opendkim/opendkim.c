@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.75 2010/01/22 19:17:44 cm-msk Exp $
+**  $Id: opendkim.c,v 1.76 2010/01/22 19:22:13 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.75 2010/01/22 19:17:44 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.76 2010/01/22 19:22:13 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2721,6 +2721,7 @@ dkimf_xs_setresult(lua_State *l)
 		lua_pushnumber(l, 1);
 	}
 	else if (mresult == SMFIS_TEMPFAIL ||
+	         mresult == SMFIS_ACCEPT ||
 	         mresult == SMFIS_DISCARD ||
 	         mresult == SMFIS_REJECT)
 	{
@@ -10818,7 +10819,8 @@ mlfi_eom(SMFICTX *ctx)
 			return SMFIS_TEMPFAIL;
 		}
 
-		if (dfc->mctx_mresult != SMFIS_CONTINUE)
+		if (dfc->mctx_mresult != SMFIS_CONTINUE &&
+		    dfc->mctx_result != SMFIS_ACCEPT)
 			return dfc->mctx_mresult;
 	}
 #endif /* USE_LUA */

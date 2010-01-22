@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.3 2010/01/22 19:18:39 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.4 2010/01/22 19:22:13 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.3 2010/01/22 19:18:39 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.4 2010/01/22 19:22:13 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -216,6 +216,8 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 	/* set result code */
 	lua_pushnumber(l, SMFIS_TEMPFAIL);
 	lua_setglobal(l, "SMFIS_TEMPFAIL");
+	lua_pushnumber(l, SMFIS_ACCEPT);
+	lua_setglobal(l, "SMFIS_ACCEPT");
 	lua_pushnumber(l, SMFIS_DISCARD);
 	lua_setglobal(l, "SMFIS_DISCARD");
 	lua_pushnumber(l, SMFIS_REJECT);
@@ -499,6 +501,8 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	/* set result code */
 	lua_pushnumber(l, SMFIS_TEMPFAIL);
 	lua_setglobal(l, "SMFIS_TEMPFAIL");
+	lua_pushnumber(l, SMFIS_ACCEPT);
+	lua_setglobal(l, "SMFIS_ACCEPT");
 	lua_pushnumber(l, SMFIS_DISCARD);
 	lua_setglobal(l, "SMFIS_DISCARD");
 	lua_pushnumber(l, SMFIS_REJECT);
