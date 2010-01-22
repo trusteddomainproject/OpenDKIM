@@ -42,3 +42,4 @@ opendkim-testkey
 core
 *.core
 opendkim*.[58]                                
+opendkim-lua.3

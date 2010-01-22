@@ -42,3 +42,5 @@ tags
 autom4te.cache
 core
 *.core
+
+build-aux
