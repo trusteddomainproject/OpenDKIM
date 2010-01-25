@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.2 2010/01/14 05:58:50 cm-msk Exp $
+**  $Id: miltertest.c,v 1.3 2010/01/25 22:30:50 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.2 2010/01/14 05:58:50 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.3 2010/01/25 22:30:50 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -103,6 +103,7 @@ struct mt_context
 struct mt_lua_io
 {
 	_Bool		lua_io_done;
+	size_t		lua_io_scriptlen;
 	const char *	lua_io_script;
 };
 
@@ -171,7 +172,7 @@ mt_lua_reader(lua_State *l, void *data, size_t *size)
 	else if (io->lua_io_script != NULL)
 	{
 		io->lua_io_done = TRUE;
-		*size = strlen(io->lua_io_script);
+		*size = io->lua_io_scriptlen;
 		return io->lua_io_script;
 	}
 	else
@@ -3131,6 +3132,8 @@ main(int argc, char **argv)
 			lua_close(l);
 			return 1;
 		}
+
+		io.lua_io_scriptlen = (size_t) s.st_size;
 
 		close(fd);
 	}
