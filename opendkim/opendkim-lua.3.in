@@ -142,7 +142,8 @@ otherwise.
 .B odkim_log(ctx, log)
 Logs the string
 .I log
-if the current configuration requested logging.  (This is why the
+if the current configuration requested logging.  (Checking current
+configuration is why the
 .I ctx
 parameter is required.)
 .TP
