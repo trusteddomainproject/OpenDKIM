@@ -2,16 +2,16 @@
 **  Copyright (c) 2006-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.10.6.5 2010/01/19 01:38:12 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.10.6.6 2010/01/25 23:20:00 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.10.6.5 2010/01/19 01:38:12 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.10.6.6 2010/01/25 23:20:00 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
