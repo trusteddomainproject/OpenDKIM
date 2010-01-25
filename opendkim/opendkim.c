@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.77 2010/01/22 19:52:50 cm-msk Exp $
+**  $Id: opendkim.c,v 1.78 2010/01/25 23:01:26 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.77 2010/01/22 19:52:50 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.78 2010/01/25 23:01:26 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -975,6 +975,51 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 **  	something matching what the script would expect back from
 **  	the function such that the rest of the test will complete.
 */
+
+/*
+**  DKIMF_XS_LOG -- log a string
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_log(lua_State *l)
+{
+	SMFICTX *ctx;
+	const char *logstring;
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l, "odkim_log(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_isstring(l, 1))
+	{
+		lua_pushstring(l, "odkim_log(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	logstring = lua_tostring(l, 2);
+	lua_pop(l, 2);
+
+	if (ctx != NULL)
+	{
+		struct connctx *cc;
+
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		if (cc->cctx_config->conf_dolog)
+			syslog(LOG_INFO, "%s", logstring);
+	}
+
+	lua_pushnil(l);
+
+	return 1;
+}
 
 /*
 **  DKIMF_XS_FROMDOMAIN -- retrieve From: domain

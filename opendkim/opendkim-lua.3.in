@@ -139,6 +139,13 @@ references an out-of-range value, the Lua constant "nil" is returned.
 Returns 1 if the SMTP client is coming from an internal IP address, and 0
 otherwise.
 .TP
+.B odkim_log(ctx, log)
+Logs the string
+.I log
+if the current configuration requested logging.  (This is why the
+.I ctx
+parameter is required.)
+.TP
 .B odkim_rcpt_count(ctx)
 Returns the count of envelope recipients on the message.
 .TP
@@ -194,7 +201,8 @@ descriptions can be found above:
 .B odkim_fromdomain,
 .B odkim_get_dbhandle,
 .B odkim_get_header,
-.B odkim_get_rcpt
+.B odkim_get_rcpt,
+.B odkim_log
 and
 .B odkim_rcpt_count.
 
@@ -248,6 +256,7 @@ descriptions can be found above:
 .B odkim_get_rcpt,
 .B odkim_get_sigcount,
 .B odkim_get_sighandle,
+.B odkim_log,
 .B odkim_set_result,
 .B odkim_sig_getdomain,
 .B odkim_sig_getidentity,

@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.16 2010/01/14 05:59:06 cm-msk Exp $
+**  $Id: opendkim.h,v 1.17 2010/01/25 23:01:37 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.16 2010/01/14 05:59:06 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.17 2010/01/25 23:01:37 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -134,6 +134,7 @@ extern int dkimf_xs_getsighandle __P((lua_State *));
 extern int dkimf_xs_getsigidentity __P((lua_State *));
 extern int dkimf_xs_getsymval __P((lua_State *));
 extern int dkimf_xs_internalip __P((lua_State *));
+extern int dkimf_xs_log __P((lua_State *));
 extern int dkimf_xs_popauth __P((lua_State *));
 extern int dkimf_xs_quarantine __P((lua_State *));
 extern int dkimf_xs_rcpt __P((lua_State *));
