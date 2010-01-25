@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.103 2010/01/20 19:00:41 cm-msk Exp $
+# $Id: configure.ac,v 1.104 2010/01/25 21:45:29 cm-msk Exp $
 
 #
 # Setup
@@ -352,14 +352,14 @@ AM_CONDITIONAL([USE_ARLIB], [test x"$enable_arlib" = x"yes"])
 AC_ARG_ENABLE([debug],
               AS_HELP_STRING([--enable-debug],
 	                     [produce debugging binaries and libraries]),
-              AS_IF([test "x$enable_debug" = "xyes"],
+              AS_IF([test "x$enable_debug" = x"yes"],
 		[
 			LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING debug"
-			CFLAGS=`echo $CFLAGS | sed "s/ -O[0-9s]?//g"`
+			[[CFLAGS=`echo $CFLAGS | sed 's/ -O[0-9s]*//g'`]]
 		])
 )
 
-AM_CONDITIONAL([DEBUG], [test "$enable_debug" = yes])
+AM_CONDITIONAL([DEBUG], [test x"$enable_debug" = x"yes"])
 
 AC_ARG_WITH([openssl],
             AS_HELP_STRING([--with-openssl],
