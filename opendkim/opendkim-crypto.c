@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-crypto.c,v 1.7 2010/01/19 14:39:40 cm-msk Exp $
+**  $Id: opendkim-crypto.c,v 1.8 2010/01/26 19:52:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.7 2010/01/19 14:39:40 cm-msk Exp $";
+static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.8 2010/01/26 19:52:12 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -290,6 +290,12 @@ dkimf_crypto_free(void)
 {
 	if (crypto_init_done)
 	{
+		CRYPTO_cleanup_all_ex_data();
+		CONF_modules_free();
+		EVP_cleanup();
+		ERR_free_strings();
+		ERR_remove_state(0);
+
 		if (nmutexes > 0)
 		{
 			unsigned int c;
@@ -301,12 +307,6 @@ dkimf_crypto_free(void)
 			mutexes = NULL;
 			nmutexes = 0;
 		}
-
-		CONF_modules_free();
-		EVP_cleanup();
-		CRYPTO_cleanup_all_ex_data();
-		ERR_free_strings();
-		ERR_remove_state(0);
 
 		crypto_init_done = FALSE;
 	}
