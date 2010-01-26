@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.104 2010/01/25 21:45:29 cm-msk Exp $
+# $Id: configure.ac,v 1.105 2010/01/26 07:16:32 cm-msk Exp $
 
 #
 # Setup
@@ -129,7 +129,7 @@ LIBOPENDKIM_FEATURE_STRING="libopendkim $PACKAGE_VERSION:"
 AC_DEFUN([TR_UP], [m4_translit([AS_TR_SH([$1])], [a-z], [A-Z])])
 
 AC_DEFUN([FEATURE],
-         [notincluded="(Not enabled in this installation.)"
+         [notincluded="(Not enabled for this installation.)"
           AC_ARG_ENABLE($1, AS_HELP_STRING(--enable-$1, $2),
                         AS_IF([test "x$enable_]$1[" = "xyes"],
                               [
@@ -151,7 +151,7 @@ AC_DEFUN([LIB_FEATURE],
          ])
 
 AC_DEFUN([FFR_FEATURE],
-         [experimentalnotincluded="(Experimental feature not enabled in this installation.)"
+         [experimentalnotincluded="(Experimental feature not enabled for this installation.)"
           AC_ARG_ENABLE($1, AS_HELP_STRING(--enable-$1, $2),
                         AS_IF([test "x$enable_]$1[" = "xyes"],
                               [
@@ -605,7 +605,7 @@ fi
 
 if test x"$unboundpath" = x"no"
 then
-	AC_SUBST([UNBOUND_MANNOTICE], "(Not enabled in this installation.)" )
+	AC_SUBST([UNBOUND_MANNOTICE], "(Not enabled for this installation.)" )
 else
 	AC_DEFINE([USE_UNBOUND], 1,
 	          [use unbound DNSSEC libary for DNS])
@@ -743,6 +743,7 @@ then
 			LIBLUA_LIBS="-llua -lm"
 			AC_DEFINE([USE_LUA], 1,
 			          [support for Lua scripting])
+			AC_SUBST([LUA_MANNOTICE], "")
 			break;
 		elif test -f $d/include/lua5.1/lua.h
 		then
@@ -753,6 +754,7 @@ then
 			LIBLUA_LIBS="-llua5.1 -lm"
 			AC_DEFINE([USE_LUA], 1,
 			          [support for Lua scripting])
+			AC_SUBST([LUA_MANNOTICE], "")
 			break;
 		elif test -f $d/include/lua.h
 		then
@@ -763,6 +765,7 @@ then
 			LIBLUA_LIBS="-llua -lm"
 			AC_DEFINE([USE_LUA], 1,
 			          [support for Lua scripting])
+			AC_SUBST([LUA_MANNOTICE], "")
 			break;
 		fi
 	done
@@ -776,6 +779,7 @@ then
 	LIBLUA_INCDIRS=""
 	LIBLUA_LIBDIRS=""
 	LIBLUA_LIBS=""
+	AC_SUBST([LUA_MANNOTICE], "(Not enabled for this installation.)")
 else
 	if test -f $luapath/include/lua51/lua.h
 	then

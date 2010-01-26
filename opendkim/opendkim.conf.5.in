@@ -272,7 +272,7 @@ as message rejection, quarantine, rerouting, etc. based on signatures
 found on the message, the results of attempts to verify them, and other
 properties of the message or signatures.  See
 .I opendkim-lua(3)
-for details.
+for details. @LUA_MANNOTICE@
 
 .TP
 .I FixCRLF (Boolean)
@@ -735,7 +735,7 @@ been done.  The script has access to all of the headers and connection
 information and can that certain signatures be ignored based on that
 information.  See
 .I opendkim-lua(3)
-for details.
+for details. @LUA_MANNOTICE@
 
 .TP
 .I Selector (string)
@@ -797,7 +797,7 @@ for a message have arrived.  The script has access to all of the headers
 and connection information and can request DKIM verification or signing
 based on that information.  See
 .I opendkim-lua(3)
-for details.
+for details. @LUA_MANNOTICE@
 
 .TP
 .I SignatureAlgorithm (string)
