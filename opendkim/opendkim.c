@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.78 2010/01/25 23:01:26 cm-msk Exp $
+**  $Id: opendkim.c,v 1.79 2010/01/26 19:52:41 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.78 2010/01/25 23:01:26 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.79 2010/01/26 19:52:41 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8353,8 +8353,13 @@ mlfi_eoh(SMFICTX *ctx)
 		{
 			if (!internal)
 			{
-				syslog(LOG_INFO, "%s not internal",
-				       dfc->mctx_jobid);
+				char ipbuf[BUFRSZ];
+
+				dkimf_ipstring(ipbuf, sizeof ipbuf,
+				               &cc->cctx_ip);
+				syslog(LOG_INFO, "%s %s [%s] not internal",
+				       dfc->mctx_jobid, cc->cctx_host,
+				       ipbuf);
 			}
 
 			if (authtype == NULL || authtype[0] == '\0')

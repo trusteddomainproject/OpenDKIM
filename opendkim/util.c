@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.28 2010/01/26 18:37:59 cm-msk Exp $
+**  $Id: util.c,v 1.29 2010/01/26 19:52:43 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.28 2010/01/26 18:37:59 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.29 2010/01/26 19:52:43 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1570,4 +1570,53 @@ dkimf_subdomain(char *d1, char *d2)
 	}
 
 	return FALSE;
+}
+
+/*
+**  DKIMF_IPSTRING -- convert an IP address to a string
+**
+**  Parameters:
+**  	buf -- target buffer
+**  	buflen -- bytes available at "buf"
+**  	ss -- socket description
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkimf_ipstring(char *buf, size_t buflen, struct sockaddr_storage *ss)
+{
+	assert(buf != NULL);
+	assert(ss != NULL);
+
+	switch (ss->ss_family)
+	{
+	  case AF_INET:
+	  {
+		struct sockaddr_in *sa;
+
+		sa = (struct sockaddr_in *) ss;
+
+		(void) inet_ntop(ss->ss_family, &sa->sin_addr, buf, buflen);
+
+		break;
+	  }
+
+#ifdef AF_INET6
+	  case AF_INET6:
+	  {
+		struct sockaddr_in6 *sa;
+
+		sa = (struct sockaddr_in6 *) ss;
+
+		(void) inet_ntop(ss->ss_family, &sa->sin6_addr, buf, buflen);
+
+		break;
+	  }
+#endif /* AF_INET6 */
+
+	  default:
+		break;
+	}
 }

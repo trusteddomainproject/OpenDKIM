@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.h,v 1.6 2009/11/22 08:15:50 grooverdan Exp $
+**  $Id: util.h,v 1.7 2010/01/26 19:52:43 cm-msk Exp $
 */
 
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
 #ifndef lint
-static char util_h_id[] = "@(#)$Id: util.h,v 1.6 2009/11/22 08:15:50 grooverdan Exp $";
+static char util_h_id[] = "@(#)$Id: util.h,v 1.7 2010/01/26 19:52:43 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -57,6 +57,7 @@ extern int dkimf_initpopauth __P((void));
 extern void dkimf_free_replist __P((struct replace *));
 extern bool dkimf_load_replist __P((FILE *, struct replace **));
 #endif /* _FFR_REPLACE_RULES */
+extern void dkimf_ipstring __P((char *, size_t, struct sockaddr_storage *));
 extern void dkimf_lowercase __P((u_char *));
 extern void dkimf_mkpath __P((char *, size_t, char *, char *));
 extern bool dkimf_mkregexp __P((char *, char *, size_t));
