@@ -107,8 +107,9 @@ should contain in each entry a hostname, domain name (e.g. ".example.com"),
 IP address, an IPv6 address (including an IPv4 mapped address), or a
 CIDR-style IP specification (e.g. "192.168.1.0/24").  An entry beginning
 with a bang ("!") character means "not", allowing exclusions of specific
-hosts that are otherwise members of larger sets.  The order of entries
-in this data set is therefore significant.
+hosts that are otherwise members of larger sets.  More precise entries
+are preferred over less precise ones, i.e. "192.168.1.1" will match before
+"!192.168.1.0/24".
 .TP
 .I -A
 Automatically re-start on failures.  Use with caution; if the filter
