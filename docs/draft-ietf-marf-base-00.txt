@@ -1,32 +1,30 @@
 
 
 
-Individual submission                                    Y. Shafranovich
+MARF Working Group                                       Y. Shafranovich
 Internet-Draft                                       ShafTek Enterprises
 Intended status: Standards Track                               J. Levine
-Expires: April 22, 2010                         Domain Assurance Council
+Expires: July 30, 2010                          Domain Assurance Council
                                                             M. Kucherawy
                                                                Cloudmark
-                                                        October 19, 2009
+                                                        January 26, 2010
 
 
             An Extensible Format for Email Feedback Reports
-                 draft-shafranovich-feedback-report-08
+                        draft-ietf-marf-base-00
+
+Abstract
+
+   This document defines an extensible format and MIME type that may be
+   used by network operators to report feedback about received email to
+   other parties.  This format is intended as a machine-readable
+   replacement for various existing report formats currently used in
+   Internet email.
 
 Status of this Memo
 
    This Internet-Draft is submitted to IETF in full conformance with the
-   provisions of BCP 78 and BCP 79.  This document may contain material
-   from IETF Documents or IETF Contributions published or made publicly
-   available before November 10, 2008.  The person(s) controlling the
-   copyright in some of this material may not have granted the IETF
-   Trust the right to allow modifications of such material outside the
-   IETF Standards Process.  Without obtaining an adequate license from
-   the person(s) controlling the copyright in such materials, this
-   document may not be modified outside the IETF Standards Process, and
-   derivative works of it may not be created outside the IETF Standards
-   Process, except to format it for publication as an RFC or to
-   translate it into languages other than English.
+   provisions of BCP 78 and BCP 79.
 
    Internet-Drafts are working documents of the Internet Engineering
    Task Force (IETF), its areas, and its working groups.  Note that
@@ -44,129 +42,75 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on April 22, 2010.
+   This Internet-Draft will expire on July 30, 2010.
 
 Copyright Notice
 
-   Copyright (c) 2009 IETF Trust and the persons identified as the
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                 [Page 1]
-
-Internet-Draft         Format for Feedback Reports          October 2009
-
-
+   Copyright (c) 2010 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
-   This document is subject to BCP 78 and the IETF Trust's Legal
-   Provisions Relating to IETF Documents in effect on the date of
-   publication of this document (http://trustee.ietf.org/license-info).
-   Please review these documents carefully, as they describe your rights
-   and restrictions with respect to this document.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                 [Page 2]
+Shafranovich, et al.      Expires July 30, 2010                 [Page 1]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
-Abstract
-
-   This document defines an extensible format and MIME type that may be
-   used by network operators to report feedback about received email to
-   other parties.  This format is intended as a machine-readable
-   replacement for various existing report formats currently used in
-   Internet email.
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the BSD License.
 
 
 Table of Contents
 
-   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  4
-     1.1.  Purpose  . . . . . . . . . . . . . . . . . . . . . . . . .  4
-     1.2.  Requirements . . . . . . . . . . . . . . . . . . . . . . .  5
-     1.3.  Definitions  . . . . . . . . . . . . . . . . . . . . . . .  5
-       1.3.1.  General  . . . . . . . . . . . . . . . . . . . . . . .  5
-       1.3.2.  E-mail Specific  . . . . . . . . . . . . . . . . . . .  5
-   2.  Format of Email Feedback Reports . . . . . . . . . . . . . . .  6
-   3.  The 'message/feedback-report' Content Type . . . . . . . . . .  7
-     3.1.  Required Fields  . . . . . . . . . . . . . . . . . . . . .  7
-     3.2.  Optional Fields Appearing Once . . . . . . . . . . . . . .  8
-     3.3.  Optional Fields Appearing Multiple Times . . . . . . . . .  9
-     3.4.  Formal Definition  . . . . . . . . . . . . . . . . . . . .  9
-   4.  Extensibility  . . . . . . . . . . . . . . . . . . . . . . . . 13
-   5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 14
-     5.1.  MIME Type Registration of 'message/feedback-report'  . . . 14
-     5.2.  Feedback Report Header Fields  . . . . . . . . . . . . . . 15
-     5.3.  Feedback Report Type Values  . . . . . . . . . . . . . . . 18
-     5.4.  Feedback Report DKIM Failure Values  . . . . . . . . . . . 20
-   6.  Security Considerations  . . . . . . . . . . . . . . . . . . . 22
-     6.1.  Inherited from RFC3462 . . . . . . . . . . . . . . . . . . 22
-     6.2.  Interpretation . . . . . . . . . . . . . . . . . . . . . . 22
-     6.3.  Envelope Sender Selection  . . . . . . . . . . . . . . . . 22
-     6.4.  Attacks Against Authentication Methods . . . . . . . . . . 22
-     6.5.  Intentionally Malformed Reports  . . . . . . . . . . . . . 23
-   7.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 24
-     7.1.  Normative References . . . . . . . . . . . . . . . . . . . 24
-     7.2.  Informative References . . . . . . . . . . . . . . . . . . 24
-   Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 26
-   Appendix B.  Sample Feedback Reports . . . . . . . . . . . . . . . 27
-     B.1.  Simple Report for Email Abuse without Optional Headers . . 27
-     B.2.  Opt-Out Report without Message Body  . . . . . . . . . . . 29
-     B.3.  Full Report for Email Abuse with All Headers . . . . . . . 30
-     B.4.  Sample DKIM Failure Report . . . . . . . . . . . . . . . . 31
-   Appendix C.  Public Discussion, History and Support  . . . . . . . 32
-   Appendix D.  Document History  . . . . . . . . . . . . . . . . . . 33
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 37
+   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
+     1.1.  Purpose  . . . . . . . . . . . . . . . . . . . . . . . . .  3
+     1.2.  Requirements . . . . . . . . . . . . . . . . . . . . . . .  4
+     1.3.  Definitions  . . . . . . . . . . . . . . . . . . . . . . .  4
+       1.3.1.  General  . . . . . . . . . . . . . . . . . . . . . . .  4
+       1.3.2.  E-mail Specific  . . . . . . . . . . . . . . . . . . .  4
+   2.  Format of Email Feedback Reports . . . . . . . . . . . . . . .  5
+   3.  The 'message/feedback-report' Content Type . . . . . . . . . .  6
+     3.1.  Required Fields  . . . . . . . . . . . . . . . . . . . . .  6
+     3.2.  Optional Fields Appearing Once . . . . . . . . . . . . . .  6
+     3.3.  Optional Fields Appearing Multiple Times . . . . . . . . .  7
+     3.4.  Formal Definition  . . . . . . . . . . . . . . . . . . . .  8
+   4.  Extensibility  . . . . . . . . . . . . . . . . . . . . . . . . 10
+   5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 11
+     5.1.  MIME Type Registration of 'message/feedback-report'  . . . 11
+     5.2.  Feedback Report Header Fields  . . . . . . . . . . . . . . 12
+     5.3.  Feedback Report Type Values  . . . . . . . . . . . . . . . 14
+   6.  Security Considerations  . . . . . . . . . . . . . . . . . . . 16
+     6.1.  Inherited from RFC3462 . . . . . . . . . . . . . . . . . . 16
+     6.2.  Interpretation . . . . . . . . . . . . . . . . . . . . . . 16
+     6.3.  Envelope Sender Selection  . . . . . . . . . . . . . . . . 16
+     6.4.  Attacks Against Authentication Methods . . . . . . . . . . 16
+     6.5.  Intentionally Malformed Reports  . . . . . . . . . . . . . 17
+     6.6.  Omitting Data from ARF Reports . . . . . . . . . . . . . . 17
+   7.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+     7.1.  Normative References . . . . . . . . . . . . . . . . . . . 18
+     7.2.  Informative References . . . . . . . . . . . . . . . . . . 18
+   Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 20
+   Appendix B.  Sample Feedback Reports . . . . . . . . . . . . . . . 21
+     B.1.  Simple Report for Email Abuse without Optional Headers . . 21
+     B.2.  Opt-Out Report without Message Body  . . . . . . . . . . . 23
+     B.3.  Full Report for Email Abuse with All Headers . . . . . . . 24
+   Appendix C.  Public Discussion, History and Support  . . . . . . . 26
+   Appendix D.  Document History  . . . . . . . . . . . . . . . . . . 27
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 31
 
 
 
-
-Shafranovich, et al.     Expires April 22, 2010                 [Page 3]
+Shafranovich, et al.      Expires July 30, 2010                 [Page 2]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
 1.  Introduction
@@ -190,9 +134,9 @@ Internet-Draft         Format for Feedback Reports          October 2009
    This format is intended primarily as an Abuse Reporting Format (ARF)
    for reporting email abuse but also includes support for direct
    feedback via end user mail clients, reports of some types of virus
-   activity, and some similar issues.  It also has the capacity to
-   support message authentication failure reporting, in particular
-   [DKIM].
+   activity, and some similar issues.  This memo also contains provision
+   for extensions should other specific types of reports be desirable in
+   the future.
 
    This document only defines the format and [MIME] content type to be
    used for these reports.  Determination of where these reports should
@@ -210,27 +154,21 @@ Internet-Draft         Format for Feedback Reports          October 2009
       their networks;
 
    o  To inform email service providers or other primarily outbound
-      senders that there may be issues regarding their mail; these
+      senders that there may be abuse issues regarding their mail; these
       issues include (but are not limited to) reports that the mail may
-      be considered to be "spam" by a recipient of the message;
-
-   o  To inform email service provides about opt-out requests;
-
-
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                 [Page 4]
-
-Internet-Draft         Format for Feedback Reports          October 2009
-
-
-   o  To advise providers that certify or otherwise make assertions
-      about mail of recipient disagreement with the assertions.
+      be considered to be "spam" by a recipient of the message.
 
    Please note that while the parent "multipart/report" content type
    defined in [REPORT] is used for all kinds of administrative messages,
    this format is intended specifically for communications among
+
+
+
+Shafranovich, et al.      Expires July 30, 2010                 [Page 3]
+
+Internet-Draft         Format for Feedback Reports          January 2010
+
+
    providers regarding email abuse and related issues, and SHOULD NOT be
    used for other reports.
 
@@ -262,8 +200,8 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 1.3.2.  E-mail Specific
 
-   See [I-D.DRAFT-CROCKER-EMAIL-ARCH] for further discussion on e-mail
-   system architecture.
+   See [EMAIL-ARCH] for further discussion on e-mail system
+   architecture.
 
 
 
@@ -276,9 +214,15 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                 [Page 5]
+
+
+
+
+
+
+Shafranovich, et al.      Expires July 30, 2010                 [Page 4]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
 2.  Format of Email Feedback Reports
@@ -308,7 +252,8 @@ Internet-Draft         Format for Feedback Reports          October 2009
        modify or redact this portion for privacy or legal reasons, it is
        RECOMMENDED that the entire original email message be included
        without any modification as such modifications can impede
-       forensic work by the recipient of this report.
+       forensic work by the recipient of this report.  See Section 6 for
+       further discussion.
 
    e.  Except as discussed below, each feedback report MUST be related
        to only a single email message.  Summary and aggregate formats
@@ -316,10 +261,9 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
    f.  The Subject header field of the feedback report SHOULD be the
        same as the included email message about which the report is
-       being generated and MAY include only the standard forwarding
-       prefix used by MUAs such as "FW:".  (Many smaller operators using
-       MUAs for abuse handling rely on the subject lines for
-       processing.)
+       being generated and MAY include only a typical forwarding prefix
+       used by MUAs such as "FW:".  (Many smaller operators using MUAs
+       for abuse handling rely on the subject lines for processing.)
 
 
 
@@ -332,9 +276,9 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                 [Page 6]
+Shafranovich, et al.      Expires July 30, 2010                 [Page 5]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
 3.  The 'message/feedback-report' Content Type
@@ -344,7 +288,7 @@ Internet-Draft         Format for Feedback Reports          October 2009
    intended to let the report generator convey meta-data to the report
    receiver.  The intent of this section is to convey information which
    may not be obvious or may not be easily extracted from the original
-   email message or headers.
+   email message body or header.
 
    The body of this content type consists of multiple "fields" formatted
    according to the ABNF of [MAIL] header fields.  This section defines
@@ -360,8 +304,7 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 3.1.  Required Fields
 
-   The following report header fields are REQUIRED and MUST only appear
-   once:
+   The following report header fields MUST appear exactly once:
 
    o  "Feedback-Type" contains the type of feedback report (as defined
       in the corresponding IANA registry and later in this memo).  This
@@ -380,26 +323,19 @@ Internet-Draft         Format for Feedback Reports          October 2009
       this specification is set to "0.1".  [NOTE TO RFC EDITOR: This
       should be changed to "1" at time of publication.]
 
-   The following report header fields MUST appear exactly once in a
-   [DKIM] failure report (defined below) and MUST NOT appear in other
-   reports:
-
-
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                 [Page 7]
-
-Internet-Draft         Format for Feedback Reports          October 2009
-
-
-   o  "DKIM-Failure" names the type of DKIM verification failure that
-      occurred.
-
 3.2.  Optional Fields Appearing Once
 
-   The following header fields are OPTIONAL and MUST NOT appear more
+   The following header fields are optional and MUST NOT appear more
    than once:
+
+
+
+
+
+Shafranovich, et al.      Expires July 30, 2010                 [Page 6]
+
+Internet-Draft         Format for Feedback Reports          January 2010
+
 
    o  "Original-Envelope-Id" contains the envelope ID string used in the
       original [SMTP] transaction (see section 2.2.1 of [DSN]).
@@ -409,8 +345,8 @@ Internet-Draft         Format for Feedback Reports          October 2009
       format of this field is defined in section 4.1.1.2 of [SMTP].
 
    o  "Arrival-Date" indicates the date and time at which the original
-      message was received by recipient system's MTA.  This field MUST
-      be formatted as per section 3.3 of [MAIL].
+      message was received by the generating ADMD's MTA.  This field
+      MUST be formatted as per section 3.3 of [MAIL].
 
    o  "Reporting-MTA" indicates the name of the MTA generating this
       feedback report.  This field is defined in section 2.2.2 of [DSN],
@@ -422,46 +358,15 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
    o  "Incidents" contains an integer indicating the number of incidents
       this report represents.  The absence of this field implies the
-      report covers a single incident.  This field MUST NOT be used for
-      report types other than "dkim".
+      report covers a single incident.
 
    The historic field "Received-Date" SHOULD also be accepted and
    interpreted identically to "Arrival-Date".
 
-   The following header fields are OPTIONAL and may each appear once in
-   a [DKIM] failure report:
-
-   o  "DKIM-Canonicalized-Body" contains the canonicalized message body
-      of a message which failed DKIM verification, base64-encoded and
-      line-wrapped to remain inside [MAIL] limits. base64 encoding is
-      defined in [MIME].
-
-   o  DKIM-Canonicalized-Header" contains the canonicalized message
-      header block of a message which failed DKIM verification, base64-
-      encoded and line-wrapped to remain inside [MAIL] limits.  This
-      filed SHOULD be included for DKIM reports.
-
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                 [Page 8]
-
-Internet-Draft         Format for Feedback Reports          October 2009
-
-
-   o  "DKIM-Domain" contains the domain whose private key was used to
-      sign a message, taken from the signature's "d=" tag.
-
-   o  "DKIM-Identity" contains the signing agent's identity, taken from
-      the signature's "i=" tag.
-
-   o  "DKIM-Selector" contains the selector referenced by a DKIM
-      signature, taken from the signature's "s=" tag.
-
 3.3.  Optional Fields Appearing Multiple Times
 
-   The following set of header fields are OPTIONAL and MAY appear more
-   than once:
+   The following set of header fields are optional and may appear any
+   number of times as appropriate:
 
    o  "Authentication-Results" indicates the result of one or more
       authentication checks run by the report generator.  The format of
@@ -475,15 +380,18 @@ Internet-Draft         Format for Feedback Reports          October 2009
       This field SHOULD be repeated for every SMTP recipient seen by the
       report generator.
 
-   o  "Removal-Recipient" indicates the email address to be removed from
-      the mailing list (MUST NOT be used with report types other than
-      "opt-out").  The format of this field is defined in section 3.4.1
-      of [MAIL].
-
    o  "Reported-Domain" includes a domain name that the report generator
       believes to be relevant to the report, e.g. the domain whose
       apparent actions provoked the generation of the report.  Domain
       format is defined in section 2.3.1 of [DNS].
+
+
+
+
+Shafranovich, et al.      Expires July 30, 2010                 [Page 7]
+
+Internet-Draft         Format for Feedback Reports          January 2010
+
 
    o  "Reported-URI" indicates a URI that the report generator believes
       to be relevant to the report, e.g. a URI to which the report
@@ -496,17 +404,7 @@ Internet-Draft         Format for Feedback Reports          October 2009
    media type using [ABNF] is as follows:
 
    feedback-report = *( feedback-type / user-agent / version )
-                     [ dkim-failure ]
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                 [Page 9]
-
-Internet-Draft         Format for Feedback Reports          October 2009
-
-
                      opt-fields-once
-                     dkim-fields-once
                      *( opt-fields-many )
 
    feedback-type = "Feedback-Type:" [CFWS] token [CFWS] CRLF
@@ -518,12 +416,7 @@ Internet-Draft         Format for Feedback Reports          October 2009
    version = "Version:" [CFWS] token [CFWS] CRLF
        ; as described above
 
-   dkim-failure = "DKIM-Failure:" [CFWS] token [CFWS] CRLF
-       ; the "token" must be a registered DKIM failure type
-       ; as described elsewhere in this document
-
    opt-fields-once = [ arrival-date ]
-                     [ dkim-failure ]
                      [ incidents ]
                      [ original-envelope-id ]
                      [ original-mail-from ]
@@ -546,35 +439,16 @@ Internet-Draft         Format for Feedback Reports          October 2009
                ( IPv4-address-literal /
                  IPv6-address-literal ) [CFWS] CRLF
 
-   dkim-fields-once = [ dkim-canon-body ]
-                      [ dkim-canon-header ]
-                      [ dkim-domain ]
-                      [ dkim-identity ]
-                      [ dkim-selector ]
-
-   dkim-canon-body = "DKIM-Canonicalized-Body:" [CFWS]
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                [Page 10]
-
-Internet-Draft         Format for Feedback Reports          October 2009
-
-
-                     base64string [CFWS] CRLF
-
-   dkim-canon-header = "DKIM-Canonicalized-Header:" [CFWS]
-                       base64string [CFWS] CRLF
-
-   dkim-domain = "DKIM-Domain:" [CFWS] domain-name [CFWS] CRLF
-
-   dkim-identity = "DKIM-Domain:" [CFWS] [ local-part ] "@"
-                   domain-name [CFWS] CRLF
-
-   dkim-selector = "DKIM-Selector:" [CFWS] selector [CFWS] CRLF
-
    opt-fields-many = [ authres-header ]
                      [ original-rcpt-to ]
+
+
+
+Shafranovich, et al.      Expires July 30, 2010                 [Page 8]
+
+Internet-Draft         Format for Feedback Reports          January 2010
+
+
                      [ removal-recipient ]
                      [ reported-domain ]
                      [ reported-uri ]
@@ -606,17 +480,6 @@ Internet-Draft         Format for Feedback Reports          October 2009
    "reverse-path", "forward-path", "local-part", "IPv4-address-literal"
    and "IPv6-address-literal" are imported from [SMTP].
 
-   "base64string", "domain-name" and "selector" are imported from
-   [DKIM].  Furthermore, a "base64string" SHOULD be line-wrapped as
-   described in section 6.8 of [MIME].
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                [Page 11]
-
-Internet-Draft         Format for Feedback Reports          October 2009
-
-
    "URI" is imported from [URI].
 
    "authres-header" is imported from [AUTH-RESULTS].
@@ -637,40 +500,9 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                [Page 12]
+Shafranovich, et al.      Expires July 30, 2010                 [Page 9]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
 4.  Extensibility
@@ -685,12 +517,30 @@ Internet-Draft         Format for Feedback Reports          October 2009
    machine readable portion (part 2) of this format.  Please note that
    version numbers do not change with new field registrations unless a
    new specification of this format is published.  Also note that all
-   new field registrations may only be registered as OPTIONAL fields.
+   new field registrations may only be registered as optional fields.
    Any new required fields REQUIRE a new version of this specification
    to be published.
 
    In order to encourage extensibility and interoperability of this
-   format, implementors MUST ignore any fields they do not support.
+   format, implementors MUST ignore any fields or report types they do
+   not explicitly support.
+
+   Additional report types (extension report types) might be defined in
+   the future by later revisions to this specification, or by type
+   registrations as described above.  Extension report types beginning
+   with "x-" will never be defined as standard types; such names are
+   reserved for experimental use.  Result codes not beginning with "x-"
+   MUST be registered as described above and appropriately published.
+
+   Implementations using new report types MUST use the "x-" prefix until
+   such time as the new type is registered by IANA.
+
+   Extension types MUST only be used between ADMDs that have explicitly
+   consented to use them.  These types and the parameters associated
+   with them are not documented in RFCs.  Therefore, they are subject to
+   change at any time and not suitable for general use.  Any MTA, MUA or
+   filter intended for production use MUST ignore or reject any ARF
+   report that uses an extension result.
 
 
 
@@ -706,27 +556,9 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                [Page 13]
+Shafranovich, et al.      Expires July 30, 2010                [Page 10]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
 5.  IANA Considerations
@@ -754,8 +586,7 @@ Internet-Draft         Format for Feedback Reports          October 2009
    Encoding considerations:  "7bit" encoding is sufficient and MUST be
       used to maintain readability when viewed by non-MIME mail readers.
 
-   Security considerations:  See the Security Considerations section of
-      [this document].
+   Security considerations:  See Section 6 of [this document].
 
    Interoperability considerations:  Implementors MUST ignore any fields
       they do not support.
@@ -772,7 +603,7 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
          Yakov Shafranovich <ietf@shaftek.org>
 
-         Murray S. Kucherawy <msk@sendmail.com>
+         Murray S. Kucherawy <msk@cloudmark.com>
 
 
 
@@ -780,9 +611,10 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 14]
+
+Shafranovich, et al.      Expires July 30, 2010                [Page 11]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
    Intended usage:  COMMON
@@ -801,13 +633,13 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
    IANA is requested to create the "Feedback Report Header Fields"
    registry.  This registry will contain header fields for use in
-   feedback reports, defined by this memo.
+   feedback reports, as defined by this memo.
 
    New registrations to this registry MUST have approval by a Designated
    Expert in accordance with the Expert Review guidelines as described
    in [IANA-CONSIDERATIONS].  The expert should be appointed by the Area
    Director for the Applications Area.  Any new field registered is
-   considered OPTIONAL by this specification unless a new version of
+   considered optional by this specification unless a new version of
    this memo is published.
 
    New registrations MUST contain the following information:
@@ -836,67 +668,15 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 15]
+Shafranovich, et al.      Expires July 30, 2010                [Page 12]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
        Field Name: Authentication-Results
        Description: results of authentication check(s)
        Multiple Appearances: Yes
        Related "Feedback-Type": any
-       Published in: [this document]
-
-
-       Field Name: DKIM-Canonicalized-Body
-       Description: Canonicalized body, per DKIM, base64-encoded
-       Multiple Appearances: No
-       Related "Feedback-Type": dkim
-       Published in: [this document]
-
-
-       Field Name: DKIM-Canonicalized-Header
-       Description: Canonicalized header blcok, per DKIM, base64-encoded
-       Multiple Appearances: No
-       Related "Feedback-Type": dkim
-       Published in: [this document]
-
-
-       Field Name: DKIM-Domain
-       Description: selector from DKIM signature ("d=" signature tag
-                    value)
-       Multiple Appearances: No
-       Related "Feedback-Type": dkim
-       Published in: [this document]
-
-
-       Field Name: DKIM-Failure
-       Description: registered DKIM failure type
-       Multiple Appearances: No
-       Related "Feedback-Type": dkim
-       Published in: [this document]
-
-
-       Field Name: DKIM-Identity
-       Description: DKIM signing identity ("i=" signature tag value)
-       Multiple Appearances: No
-       Related "Feedback-Type": dkim
-       Published in: [this document]
-
-
-       Field Name: DKIM-Selector
-       Description: selector from DKIM signature ("s=" signature tag
-                    value)
-       Multiple Appearances: No
-       Related "Feedback-Type": dkim
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                [Page 16]
-
-Internet-Draft         Format for Feedback Reports          October 2009
-
-
        Published in: [this document]
 
 
@@ -938,19 +718,22 @@ Internet-Draft         Format for Feedback Reports          October 2009
        Published in: [this document]
 
 
+
+
+
+
+
+
+Shafranovich, et al.      Expires July 30, 2010                [Page 13]
+
+Internet-Draft         Format for Feedback Reports          January 2010
+
+
        Field Name: Reported-Domain
        Description: relevant domain name
        Multiple Appearances: Yes
        Related "Feedback-Type": any
        Published in: [this document]
-
-
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                [Page 17]
-
-Internet-Draft         Format for Feedback Reports          October 2009
 
 
        Field Name: Reported-URI
@@ -995,19 +778,19 @@ Internet-Draft         Format for Feedback Reports          October 2009
    registry.  This registry will contain feedback types for use in
    feedback reports, defined by this memo.
 
+
+
+Shafranovich, et al.      Expires July 30, 2010                [Page 14]
+
+Internet-Draft         Format for Feedback Reports          January 2010
+
+
    New registrations to this registry MUST have approval by a Designated
    Expert in accordance with the Expert Review guidelines as described
    in [IANA-CONSIDERATIONS].  The expert should be appointed by the Area
    Director for the Applications Area.  Any new field registered is
    considered OPTIONAL by this specification unless a new version of
    this memo is published.
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                [Page 18]
-
-Internet-Draft         Format for Feedback Reports          October 2009
-
 
    New registrations MUST contain the following information:
 
@@ -1024,47 +807,14 @@ Internet-Draft         Format for Feedback Reports          October 2009
        Published in: [this document]
 
 
-       Feedback Type Name: dkim
-       Description: a DKIM signature verification or policy violation
-                    error
-       Published in: [this document]
-
-
        Feedback Type Name: fraud
        Description: indicates some kind of fraud or phishing activity
-       Published in: [this document]
-
-
-       Feedback Type Name: miscategorized
-       Description: indicates that the content categorization applied
-                    in connection with a certification or reputation
-                    system was incorrect
-       Published in: [this document]
-
-
-       Feedback Type Name: not-spam
-       Description: indicates that a message that was tagged or
-                    categorized as spam (such as by an ISP) is not spam
-       Published in: [this document]
-
-
-       Feedback Type Name: opt-out
-       Description: a request to opt out from mailings from this
-                    provider
        Published in: [this document]
 
 
        Feedback Type Name: other
        Description: any other feedback that does not fit into other
                     registered types
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                [Page 19]
-
-Internet-Draft         Format for Feedback Reports          October 2009
-
-
        Published in: [this document]
 
 
@@ -1072,109 +822,23 @@ Internet-Draft         Format for Feedback Reports          October 2009
        Description: report of a virus found in the originating message
        Published in: [this document]
 
-5.4.  Feedback Report DKIM Failure Values
-
-   IANA is requested to create the "Feedback Report Header Fields"
-   registry.  This registry will contain header fields for use in
-   feedback reports, defined by this memo.
-
-   New registrations to this registry MUST have approval by a Designated
-   Expert in accordance with the Expert Review guidelines as described
-   in [IANA-CONSIDERATIONS].  The expert should be appointed by the Area
-   Director for the Applications Area.  Any new field registered is
-   considered OPTIONAL by this specification unless a new version of
-   this memo is published.
-
-   New registrations MUST contain the following information:
-
-   1.  Name of the DKIM failure type being registered
-
-   2.  Short description of the failure type
-
-   3.  The document in which the specification of the field is published
-
-   The initial registry should contain these values:
-
-       DKIM Failure Type: bodyhash
-       Description: The body hash in the signature and the body hash
-                    computed by the verifier did not match.
-       Published in: [this document]
-
-
-       DKIM Failure Type: granularity
-       Description: The key referenced by the signature on the message
-                    was not authorized for use by the sending user.
-       Published in: [this document]
-
-
-       DKIM Failure Type: other
-       Description: The signature verification process failed for a
-                    reason not enumerated by some other registered DKIM
-                    failure type.
-       Published in: [this document]
 
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 20]
+
+
+
+
+
+
+
+
+
+
+Shafranovich, et al.      Expires July 30, 2010                [Page 15]
 
-Internet-Draft         Format for Feedback Reports          October 2009
-
-
-       DKIM Failure Type: policy
-       Description: The DKIM Author Domain Signing Practises (ADSP)
-                    evaluation failed.
-       Published in: [this document]
-
-
-       DKIM Failure Type: revoked
-       Description: The key referenced by the signature on the message
-                    has been revoked.
-       Published in: [this document]
-
-
-       DKIM Failure Type: signature
-       Description: The signature on the message did not successfully
-                    verify against the header hash and public key.
-       Published in: [this document]
-
-
-       DKIM Failure Type: syntax
-       Description: The key referenced by the signature on the message,
-                    or the signature itself, contained a syntax error.
-       Published in: [this document]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                [Page 21]
-
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
 6.  Security Considerations
@@ -1228,9 +892,9 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 22]
+Shafranovich, et al.      Expires July 30, 2010                [Page 16]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
    amendments to it) is also a security consideration here.
@@ -1243,6 +907,21 @@ Internet-Draft         Format for Feedback Reports          October 2009
    Implementors must thoroughly verify all such messages and be robust
    against intentionally as well as unintentionally malformed messages.
 
+6.6.  Omitting Data from ARF Reports
+
+   ADMDs generating ARF reports may decide they wish to omit portions of
+   the data included in an ARF report to protect the privacy of its
+   users and/or the security of its messaging infrastructure.  There is
+   normative text earlier in this document discouraging this practice
+   since, like DSNs, the purpose is to get as much data about the abuse
+   back to the originating ADMD so corrective action can be taken.
+   Nevertheless, this is a practice that experience has shown will
+   occur.
+
+   Report generators undertaking such practices may find their reports
+   are less likely to generate corrective action as the data required to
+   do so has been withheld, essentially making the report nearly
+   meaningless.
 
 
 
@@ -1269,24 +948,9 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Shafranovich, et al.     Expires April 22, 2010                [Page 23]
+Shafranovich, et al.      Expires July 30, 2010                [Page 17]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
 7.  References
@@ -1340,22 +1004,22 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 24]
+Shafranovich, et al.      Expires July 30, 2010                [Page 18]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
    [DSN]      Moore, K. and G. Vaudreuil, "An Extensible Message Format
               for Delivery Status Notifications", RFC 3464,
               January 2003.
 
+   [EMAIL-ARCH]
+              Crocker, D., "Internet Mail Architecture", RFC 5598,
+              July 2009.
+
    [HTTP]     Fielding, R., Gettys, J., Mogul, J., Frystyk, H.,
               Masinter, L., Leach, P., and T. Berners-Lee, "Hypertext
               Transfer Protocol -- HTTP/1.1", RFC 2616, June 1999.
-
-   [I-D.DRAFT-CROCKER-EMAIL-ARCH]
-              Crocker, D., "Internet Mail Architecture",
-              draft-crocker-email-arch (work in progress), May 2007.
 
    [IANA-CONSIDERATIONS]
               Narten, T. and H. Alvestrand, "Guidelines for Writing an
@@ -1396,9 +1060,9 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 25]
+Shafranovich, et al.      Expires July 30, 2010                [Page 19]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
 Appendix A.  Acknowledgements
@@ -1452,9 +1116,9 @@ Appendix A.  Acknowledgements
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 26]
+Shafranovich, et al.      Expires July 30, 2010                [Page 20]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
 Appendix B.  Sample Feedback Reports
@@ -1508,9 +1172,9 @@ B.1.  Simple Report for Email Abuse without Optional Headers
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 27]
+Shafranovich, et al.      Expires July 30, 2010                [Page 21]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
    From: <abusedesk@example.com>
@@ -1564,9 +1228,9 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 28]
+Shafranovich, et al.      Expires July 30, 2010                [Page 22]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
    specification.  Only the required fields are used.
@@ -1620,9 +1284,9 @@ B.2.  Opt-Out Report without Message Body
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 29]
+Shafranovich, et al.      Expires July 30, 2010                [Page 23]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
    The report is generated as a result of a user indicating to its ISP
@@ -1676,9 +1340,9 @@ B.3.  Full Report for Email Abuse with All Headers
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 30]
+Shafranovich, et al.      Expires July 30, 2010                [Page 24]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
    From: <somespammer@example.net>
@@ -1703,9 +1367,6 @@ Internet-Draft         Format for Feedback Reports          October 2009
    A contrived example in which the report generator has returned all
    possible information about an abuse incident.
 
-B.4.  Sample DKIM Failure Report
-
-   [TBD]
 
 
 
@@ -1732,9 +1393,12 @@ B.4.  Sample DKIM Failure Report
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 31]
+
+
+
+Shafranovich, et al.      Expires July 30, 2010                [Page 25]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
 Appendix C.  Public Discussion, History and Support
@@ -1788,9 +1452,9 @@ Appendix C.  Public Discussion, History and Support
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 32]
+Shafranovich, et al.      Expires July 30, 2010                [Page 26]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
 Appendix D.  Document History
@@ -1844,9 +1508,9 @@ Appendix D.  Document History
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 33]
+Shafranovich, et al.      Expires July 30, 2010                [Page 27]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
    o  Added a new section on extensibility and changed the IANA section
@@ -1900,9 +1564,9 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 34]
+Shafranovich, et al.      Expires July 30, 2010                [Page 28]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
    o  Resolved all items in the outstanding issues list and therefore
@@ -1956,9 +1620,9 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 35]
+Shafranovich, et al.      Expires July 30, 2010                [Page 29]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
    o  I-D.DRAFT-KUCHERAWY-SENDER-AUTH-HEADER published as RFC5451
@@ -1968,21 +1632,19 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
    o  None.
 
-   Still to be done:
+   Changes from draft-shafranovich-feedback-report-08 to
+   draft-ietf-marf-base-00:
 
-   o  Add a DKIM example
+   o  Renamed given the formation of the working group.
 
-   o  Add explicit extension field and type support
+   o  Remove all report types apart from the basic ones known to be in
+      use today.  The rest can be added back via extension memos.
 
+   o  I-D.DRAFT-CROCKER-EMAIL-ARCH published as RFC5598.
 
+   o  Copy extensibility language from RFC5451.
 
-
-
-
-
-
-
-
+   o  Other minor copy editing.
 
 
 
@@ -2012,9 +1674,11 @@ Internet-Draft         Format for Feedback Reports          October 2009
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 36]
+
+
+Shafranovich, et al.      Expires July 30, 2010                [Page 30]
 
-Internet-Draft         Format for Feedback Reports          October 2009
+Internet-Draft         Format for Feedback Reports          January 2010
 
 
 Authors' Addresses
@@ -2068,5 +1732,5 @@ Authors' Addresses
 
 
 
-Shafranovich, et al.     Expires April 22, 2010                [Page 37]
+Shafranovich, et al.      Expires July 30, 2010                [Page 31]
 

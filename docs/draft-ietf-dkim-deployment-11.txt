@@ -3,16 +3,16 @@
 DomainKeys Identified Mail                                     T. Hansen
 Internet-Draft                                         AT&T Laboratories
 Intended status: Informational                                 E. Siegel
-Expires: June 21, 2010
+Expires: July 31, 2010
                                                          P. Hallam-Baker
                                              Default Deny Security, Inc.
                                                               D. Crocker
                                              Brandenburg InternetWorking
-                                                       December 18, 2009
+                                                        January 27, 2010
 
 
 DomainKeys Identified Mail (DKIM) Development, Deployment and Operations
-                     draft-ietf-dkim-deployment-10
+                     draft-ietf-dkim-deployment-11
 
 Abstract
 
@@ -24,11 +24,11 @@ Abstract
    organizations involved with the message.  DKIM defines a domain-level
    digital signature authentication framework for email, using public
    key cryptography, using the domain name service as its key server
-   technology [RFC4871].  This permits verification of a responsible
-   organization, as well as the integrity of the message contents.  DKIM
-   will also provide a mechanism that permits potential email signers to
-   publish information about their email signing practices; this will
-   permit email receivers to make additional assessments about messages.
+   technology.  This permits verification of a responsible organization,
+   as well as the integrity of the message contents.  DKIM will also
+   provide a mechanism that permits potential email signers to publish
+   information about their email signing practices; this will permit
+   email receivers to make additional assessments about messages.
    DKIM's authentication of email identity can assist in the global
    control of "spam" and "phishing".  This document provides
    implementation, deployment, operational and migration considerations
@@ -51,9 +51,9 @@ Status of this Memo
 
 
 
-Hansen, et al.            Expires June 21, 2010                 [Page 1]
+Hansen, et al.            Expires July 31, 2010                 [Page 1]
 
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
 
 
    The list of current Internet-Drafts can be accessed at
@@ -62,11 +62,11 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on June 21, 2010.
+   This Internet-Draft will expire on July 31, 2010.
 
 Copyright Notice
 
-   Copyright (c) 2009 IETF Trust and the persons identified as the
+   Copyright (c) 2010 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -107,9 +107,9 @@ Copyright Notice
 
 
 
-Hansen, et al.            Expires June 21, 2010                 [Page 2]
+Hansen, et al.            Expires July 31, 2010                 [Page 2]
 
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
 
 
 Table of Contents
@@ -121,68 +121,68 @@ Table of Contents
      2.3.  Choosing the Signing Domain Name . . . . . . . . . . . . .  9
      2.4.  Recipient-based Assessments  . . . . . . . . . . . . . . . 11
      2.5.  Filtering  . . . . . . . . . . . . . . . . . . . . . . . . 13
-   3.  DKIM Key Generation, Storage, and Management . . . . . . . . . 14
+   3.  DKIM Key Generation, Storage, and Management . . . . . . . . . 16
      3.1.  Private Key Management: Deployment and Ongoing
-           Operations . . . . . . . . . . . . . . . . . . . . . . . . 15
-     3.2.  Storing Public Keys: DNS Server Software Considerations  . 16
-     3.3.  Per User Signing Key Management Issues . . . . . . . . . . 17
+           Operations . . . . . . . . . . . . . . . . . . . . . . . . 17
+     3.2.  Storing Public Keys: DNS Server Software Considerations  . 18
+     3.3.  Per User Signing Key Management Issues . . . . . . . . . . 19
      3.4.  Third Party Signer Key Management and Selector
-           Administration . . . . . . . . . . . . . . . . . . . . . . 17
-     3.5.  Key Pair / Selector Lifecycle Management . . . . . . . . . 18
-   4.  Signing  . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
-     4.1.  DNS Records  . . . . . . . . . . . . . . . . . . . . . . . 20
-     4.2.  Signing Module . . . . . . . . . . . . . . . . . . . . . . 20
-     4.3.  Signing Policies and Practices . . . . . . . . . . . . . . 21
-   5.  Verifying  . . . . . . . . . . . . . . . . . . . . . . . . . . 21
-     5.1.  Intended Scope of Use  . . . . . . . . . . . . . . . . . . 21
-     5.2.  Signature Scope  . . . . . . . . . . . . . . . . . . . . . 22
-     5.3.  Design Scope of Use  . . . . . . . . . . . . . . . . . . . 22
-     5.4.  Inbound Mail Filtering . . . . . . . . . . . . . . . . . . 23
+           Administration . . . . . . . . . . . . . . . . . . . . . . 19
+     3.5.  Key Pair / Selector Lifecycle Management . . . . . . . . . 20
+   4.  Signing  . . . . . . . . . . . . . . . . . . . . . . . . . . . 22
+     4.1.  DNS Records  . . . . . . . . . . . . . . . . . . . . . . . 22
+     4.2.  Signing Module . . . . . . . . . . . . . . . . . . . . . . 22
+     4.3.  Signing Policies and Practices . . . . . . . . . . . . . . 23
+   5.  Verifying  . . . . . . . . . . . . . . . . . . . . . . . . . . 23
+     5.1.  Intended Scope of Use  . . . . . . . . . . . . . . . . . . 24
+     5.2.  Signature Scope  . . . . . . . . . . . . . . . . . . . . . 24
+     5.3.  Design Scope of Use  . . . . . . . . . . . . . . . . . . . 24
+     5.4.  Inbound Mail Filtering . . . . . . . . . . . . . . . . . . 25
      5.5.  Messages sent through Mailing Lists and other
-           Intermediaries . . . . . . . . . . . . . . . . . . . . . . 23
-     5.6.  Generation, Transmission and Use of Results Headers  . . . 23
-   6.  Taxonomy of Signatures . . . . . . . . . . . . . . . . . . . . 24
-     6.1.  Single Domain Signature  . . . . . . . . . . . . . . . . . 24
-     6.2.  Parent Domain Signature  . . . . . . . . . . . . . . . . . 25
-     6.3.  Third Party Signature  . . . . . . . . . . . . . . . . . . 26
-     6.4.  Using Trusted Third Party Senders  . . . . . . . . . . . . 27
-     6.5.  Multiple Signatures  . . . . . . . . . . . . . . . . . . . 28
-   7.  Example Usage Scenarios  . . . . . . . . . . . . . . . . . . . 30
-     7.1.  Author's Organization - Simple . . . . . . . . . . . . . . 30
-     7.2.  Author's Organization - Differentiated Types of Mail . . . 30
-     7.3.  Author Domain Signing Practices  . . . . . . . . . . . . . 30
-     7.4.  Delegated Signing  . . . . . . . . . . . . . . . . . . . . 32
-     7.5.  Independent Third Party Service Providers  . . . . . . . . 33
-     7.6.  Mail Streams Based on Behavioral Assessment  . . . . . . . 33
-     7.7.  Agent or Mediator Signatures . . . . . . . . . . . . . . . 34
-   8.  Usage Considerations . . . . . . . . . . . . . . . . . . . . . 34
-     8.1.  Non-standard Submission and Delivery Scenarios . . . . . . 34
-     8.2.  Protection of Internal Mail  . . . . . . . . . . . . . . . 35
-     8.3.  Signature Granularity  . . . . . . . . . . . . . . . . . . 36
-     8.4.  Email Infrastructure Agents  . . . . . . . . . . . . . . . 37
+           Intermediaries . . . . . . . . . . . . . . . . . . . . . . 25
+     5.6.  Generation, Transmission and Use of Results Headers  . . . 26
+   6.  Taxonomy of Signatures . . . . . . . . . . . . . . . . . . . . 26
+     6.1.  Single Domain Signature  . . . . . . . . . . . . . . . . . 27
+     6.2.  Parent Domain Signature  . . . . . . . . . . . . . . . . . 27
+     6.3.  Third Party Signature  . . . . . . . . . . . . . . . . . . 28
+     6.4.  Using Trusted Third Party Senders  . . . . . . . . . . . . 30
+     6.5.  Multiple Signatures  . . . . . . . . . . . . . . . . . . . 30
+   7.  Example Usage Scenarios  . . . . . . . . . . . . . . . . . . . 32
+     7.1.  Author's Organization - Simple . . . . . . . . . . . . . . 32
+     7.2.  Author's Organization - Differentiated Types of Mail . . . 33
+     7.3.  Author Domain Signing Practices  . . . . . . . . . . . . . 33
+     7.4.  Delegated Signing  . . . . . . . . . . . . . . . . . . . . 35
+     7.5.  Independent Third Party Service Providers  . . . . . . . . 35
+     7.6.  Mail Streams Based on Behavioral Assessment  . . . . . . . 36
+     7.7.  Agent or Mediator Signatures . . . . . . . . . . . . . . . 37
+   8.  Usage Considerations . . . . . . . . . . . . . . . . . . . . . 37
+     8.1.  Non-standard Submission and Delivery Scenarios . . . . . . 37
+     8.2.  Protection of Internal Mail  . . . . . . . . . . . . . . . 38
+     8.3.  Signature Granularity  . . . . . . . . . . . . . . . . . . 38
+     8.4.  Email Infrastructure Agents  . . . . . . . . . . . . . . . 40
 
 
 
-Hansen, et al.            Expires June 21, 2010                 [Page 3]
+Hansen, et al.            Expires July 31, 2010                 [Page 3]
 
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
 
 
-     8.5.  Mail User Agent  . . . . . . . . . . . . . . . . . . . . . 39
-   9.  Other Considerations . . . . . . . . . . . . . . . . . . . . . 40
-     9.1.  Security Considerations  . . . . . . . . . . . . . . . . . 40
-     9.2.  IANA Considerations  . . . . . . . . . . . . . . . . . . . 40
-   10. Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 40
-   11. References . . . . . . . . . . . . . . . . . . . . . . . . . . 40
-     11.1. Normative References . . . . . . . . . . . . . . . . . . . 40
-     11.2. Informative References . . . . . . . . . . . . . . . . . . 41
-   Appendix A.  Migration Strategies  . . . . . . . . . . . . . . . . 41
-     A.1.  Migrating from DomainKeys  . . . . . . . . . . . . . . . . 41
-     A.2.  Migrating Hash Algorithms  . . . . . . . . . . . . . . . . 46
-     A.3.  Migrating Signing Algorithms . . . . . . . . . . . . . . . 47
+     8.5.  Mail User Agent  . . . . . . . . . . . . . . . . . . . . . 41
+   9.  Other Considerations . . . . . . . . . . . . . . . . . . . . . 42
+     9.1.  Security Considerations  . . . . . . . . . . . . . . . . . 42
+     9.2.  IANA Considerations  . . . . . . . . . . . . . . . . . . . 42
+   10. Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 42
+   11. References . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+     11.1. Normative References . . . . . . . . . . . . . . . . . . . 43
+     11.2. Informative References . . . . . . . . . . . . . . . . . . 43
+   Appendix A.  Migration Strategies  . . . . . . . . . . . . . . . . 43
+     A.1.  Migrating from DomainKeys  . . . . . . . . . . . . . . . . 44
+     A.2.  Migrating Hash Algorithms  . . . . . . . . . . . . . . . . 48
+     A.3.  Migrating Signing Algorithms . . . . . . . . . . . . . . . 49
    Appendix B.  General Coding Criteria for Cryptographic
-                Applications  . . . . . . . . . . . . . . . . . . . . 48
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 49
+                Applications  . . . . . . . . . . . . . . . . . . . . 50
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 51
 
 
 
@@ -219,9 +219,9 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
 
 
-Hansen, et al.            Expires June 21, 2010                 [Page 4]
+Hansen, et al.            Expires July 31, 2010                 [Page 4]
 
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
 
 
 1.  Introduction
@@ -275,9 +275,9 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
 
 
-Hansen, et al.            Expires June 21, 2010                 [Page 5]
+Hansen, et al.            Expires July 31, 2010                 [Page 5]
 
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
 
 
    of the associated identity.  An identity can use different
@@ -331,9 +331,9 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
 
 
-Hansen, et al.            Expires June 21, 2010                 [Page 6]
+Hansen, et al.            Expires July 31, 2010                 [Page 6]
 
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
 
 
    indicate a degree of trust (reputation) that is to be afforded the
@@ -387,9 +387,9 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
 
 
-Hansen, et al.            Expires June 21, 2010                 [Page 7]
+Hansen, et al.            Expires July 31, 2010                 [Page 7]
 
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
 
 
    required to provide to the assessor.  The Update to RFC4871 [RFC5672]
@@ -443,9 +443,9 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
 
 
-Hansen, et al.            Expires June 21, 2010                 [Page 8]
+Hansen, et al.            Expires July 31, 2010                 [Page 8]
 
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
 
 
          NOTE: Although the i= identity has the syntax of an email
@@ -499,9 +499,9 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
 
 
-Hansen, et al.            Expires June 21, 2010                 [Page 9]
+Hansen, et al.            Expires July 31, 2010                 [Page 9]
 
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
 
 
       *  For an operator of an email service, there often are distinct
@@ -555,9 +555,9 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
 
 
-Hansen, et al.            Expires June 21, 2010                [Page 10]
+Hansen, et al.            Expires July 31, 2010                [Page 10]
 
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
 
 
                           transaction.example.com
@@ -611,9 +611,9 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
 
 
-Hansen, et al.            Expires June 21, 2010                [Page 11]
+Hansen, et al.            Expires July 31, 2010                [Page 11]
 
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
 
 
    Without verification, it is not possible to know whether the
@@ -667,65 +667,188 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
 
 
-Hansen, et al.            Expires June 21, 2010                [Page 12]
+Hansen, et al.            Expires July 31, 2010                [Page 12]
 
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
 
 
 2.5.  Filtering
 
-   After assessing the signer of a message, each receiving site creates
-   and tunes its own Handling Filter according to criteria specific for
-   that site.  Still, there are commonalities across sites, and this
-   section offers a discussion, rather than a specification, of some
-   types of input to that process and how they can be used.
+   The assessment of the signing identifier is given to a Handling
+   Filter that is defined by local policies, according to a potentially
+   wide range of different factors and weightings.  This section
+   discusses some of the kinds of choices and weightings that are
+   plausible, and the differential actions that might be performed.
+   Because authenticated domain names represent a collaborative sequence
+   between signer and assessor, actions can sometimes reasonably include
+   contacting the signer.
 
    The discussion focuses on variations in Organizational Trust versus
-   Message Risk, that is, the degree of positive assessment of a DKIM-
-   signing organization, and the potential danger present in the message
-   stream signed by that organization.  While it might seem that higher
-   trust automatically means lower risk, the experience with real-world
-   operations provides examples of every combination of the two factors,
-   as shown in Table 1.  Only three levels of granularity are listed, in
-   order to keep discussion manageable.  This also ensures extensive
-   flexibility for each site's detailed choices.
+   Message Stream Risk, that is, the degree of positive assessment of a
+   DKIM-signing organization, and the potential danger present in the
+   message stream signed by that organization.  While it might seem that
+   higher trust automatically means lower risk, the experience with
+   real-world operations provides examples of every combination of the
+   two factors, as shown in Figure 2.  For each axis, only three levels
+   of granularity are listed, in order to keep discussion manageable.
+   In real-world filtering engines, finer-grained distinctions are
+   typically needed, and there typically are more axes.  For example,
+   there are different types of risk, so that an engine might
+   distinguish between spam risk versus virus risk and take different
+   actions based on which type of problematic content is present.  For
+   spam, the potential damage from a false negative is small, whereas
+   the damage from a false positive is high.  For a virus, the potential
+   danger from a false negative is extremely high, while the likelihood
+   of a false positive when using modern detection tools is extremely
+   low.  However for the discussion here, "risk" is taken as a single
+   construct.
 
-   +-------------+-----------------+-----------------+-----------------+
-   | ORG TRUST \ | Low             | Medium          | High            |
-   | MSG RISK    |                 |                 |                 |
-   +-------------+-----------------+-----------------+-----------------+
-   | *Low*       | Unknown org,    | Registered org, | Good Org, Good  |
-   |             | Few msgs: _Mild | New Identifier: | msgs: _Avoid    |
-   |             | filter_         | _Medium filter_ | ;FP(!)_         |
-   | *Medium*    | Unknown org,    | Registered org, | Good org, Bad   |
-   |             | New Identifier: | Mixed msgs:     | msg burst:      |
-   |             | _Default        | _Medium filter_ | _Accept &       |
-   |             | filter_         |                 | Contact_        |
-   | *High*      | Black-Listed    | Registered org, | Good org,       |
-   |             | org, Bad msgs:  | Bad msgs:       | Compromised:    |
-   |             | _Avoid FN(!)_   | _Strong filter_ | _Fully blocked_ |
-   +-------------+-----------------+-----------------+-----------------+
+   The DKIM d= identifier is independent of any other identifier in a
+   message and can be a sub-domain of the name owned by the signer.
+   This permits use of fine-grained and stable distinctions between
+   different types of message streams, such as between transactional
+   messages and marketing messages from the same organization.  Hence,
+   use of DKIM might permit a richer filtering model than has typically
+   been possible for mail receiving engines.
 
-                      Table 1: Org Trust vs. Msg Risk
-
-   The table indicates preferences for different handling of different
-   combinations, such as tuning filtering to avoid False Positives (FP)
-   or avoiding False Negatives (FN).  IT distinguishes various
-   characteristics, including: 1) organizations that are unknown, known
-   to be good actors and known to be bad actors; and 2) assessment of
-   messages.  It includes advice about the degree of filtering that
-   might be done, and other message disposition.  Perhaps unexpectedly,
-   it also lists a case in which the receiving site might wish to
-   deliver problematic mail, rather than redirecting it, but also of
-   course contacting the signing organization, seeking resolution of the
-   problem.
+   Note that the realities of today's public Internet Mail environment
+   necessitate having a baseline handling model that is quite
+   suspicious.  Hence, "strong" filtering rules really are the starting
+   point, as indicated for the UNKNOWN cell.
 
 
 
 
-Hansen, et al.            Expires June 21, 2010                [Page 13]
+
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 13]
 
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
+   The table indicates differential handling for each combination, such
+   as how aggressive or broad-based the filtering could be.
+   Aggressiveness affects the types of incorrect assessments that are
+   likely.  So the table distinguishes various characteristics,
+   including: 1) whether an organization is unknown, known to be good
+   actors and known to be bad actors; and 2) the assessment of messages.
+   It includes advice about the degree of filtering that might be done,
+   and other message disposition.  Perhaps unexpectedly, it also lists a
+   case in which the receiving site might wish to deliver problematic
+   mail, rather than redirecting or deleting it, but also contacting the
+   signing organization and seeking
+      +-------------+-----------------------------------------------+
+      | S T R E A M *   O R G A N I Z A T I O N A L   T R U S T     |
+      | R I S K     *     Low            Medium           High      |
+      |             +***************+***************+***************+
+      | Low         * BENIGN:       | DILIGENT:     | PRISTINE      |
+      |             *    Moderate   |    Mild       |    Accept     |
+      |             *    filter     |    filter     |               |
+      |             +---------------+---------------+---------------+
+      | Medium      * UNKNOWN:      | TYPICAL:      | PROTECTED:    |
+      |             *    Strong     |    Targeted   |    Accept &   |
+      |             *    filter     |    filter     |    Contact    |
+      |             +---------------+---------------+---------------+
+      | High        * MALICIOUS:    | NEGLIGENT:    | COMPROMISED:  |
+      |             *    Block &    |    Block      |    Block &    |
+      |             *    Counter    |               |    Contact    |
+      +-------------+---------------+---------------+---------------+
+
+            Figure 2: Trust vs. Risk Handling Tradeoffs Example
+
+   [LEGEND]
+
+      AXES
+
+
+
+      Stream Risk:   This is a measure of the recent history of a
+         message stream and the severity of problems it has presented.
+
+      Organizational Trust:   This combines longer-term history about
+         possible stream problems from that organization, and its
+         responsiveness to problem handling.
+
+      CELLS (indicating reasonable responses)
+
+         Labels for the cells are meant as a general assessment of an
+         organization producing that type of mail stream under that
+         circumstance.
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 14]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
+
+
+      Benign:   There is some history of sending good messages, with
+         very few harmful messages having been received.  This stream
+         warrants filtering that does not search for problems very
+         aggressively, in order to reduce the likelihood of False
+         Positives.
+
+      Diligent:   The stream has had a limited degree of problems and
+         the Organization is consistently successful at controlling
+         their abuse issues and in a timely manner.
+
+      Pristine:   There is a history of a clean message stream with no
+         problems, from an Organization with an excellent reputation.
+         So, the filter primarily needs to ensure that messages are
+         delivered; catching stray problem messages is a lesser concern.
+         In other words, the paramount concern, here, is False
+         Positives.
+
+      -----
+
+      Unknown:   There is no history with the Organization.  Apply an
+         aggressive level of "naive" filtering, given the nature of the
+         public email environment.
+
+      Typical:   The stream suffers significant abuse issues and the
+         Organization has demonstrated a record of having difficulties
+         resolving them in a timely manner, in spite of legitimate
+         efforts.  Unfortunately, this is the typical case for service
+         providers with an easy and open subscription policy.
+
+      Protected:   An Organization with a good history and/or providing
+         an important message stream for the receiving site is subject
+         to a local policy that messages are not allowed to be blocked,
+         but the stream is producing a problematic stream.  The receiver
+         delivers messages, but works quickly with the Organization to
+         resolve the matter.
+
+      -----
+
+      Malicious:   A persistently problematic message stream is coming
+         from an Organization that appears to contribute to the problem.
+         The stream will be blocked, but the Organization's role is
+         sufficiently troubling to warrant following up with others in
+         the anti-abuse or legal communities, to constrain or end their
+         impact.
+
+
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 15]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
+      Negligent:   A persistently problematic message stream is coming
+         from an Organization that does not appear to be contributing to
+         the problem, but also does not appear to be working to
+         eliminate it.  At the least, the stream needs to be blocked.
+
+      Compromised:   An Organization with a good history has a stream
+         that changes and becomes too problematic to be delivered.  The
+         receiver blocks the stream and works quickly with the
+         Organization to resolve the matter.
 
 
 3.  DKIM Key Generation, Storage, and Management
@@ -765,6 +888,14 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    The ability to draw any useful conclusion from verification of a
    digital signature relies on the assumption that the corresponding
    private key is only accessible to a party with a particular set of
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 16]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    attributes.  In the case of DKIM, this means that the party that
    created the corresponding DKIM key record in the specific zone
    intended to claim responsibility for the signed message.
@@ -775,14 +906,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    for the signed message.  In order for this conclusion to be drawn it
    is necessary for the verifier to assume that the operational security
    of the DNS zone and corresponding private key are adequate.
-
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 14]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
 3.1.  Private Key Management: Deployment and Ongoing Operations
 
@@ -820,6 +943,15 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
    To enable accountability and auditing:
 
+
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 17]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    o  Responsibility for the security of a signing key needs to
       ultimately vest in a single named individual.
 
@@ -832,14 +964,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    particularly where key management is achieved through software.
    While this practice is highly desirable it is of considerably less
    importance than the requirement to maintain the secrecy of the
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 15]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    corresponding private key.  An operational practice in which the
    private key is stored in tamper proof hardware and changed once a
    year is considerably more desirable than one in which the signature
@@ -876,6 +1000,14 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    Selectors are assigned according to the administrative needs of the
    signing domain, such as for rolling over to a new key or for
    delegating of the right to authenticate a portion of the namespace to
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 18]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    a trusted third party.  Examples include:
 
    jun2005.eng._domainkey.example.com
@@ -888,13 +1020,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    particular messages from the structure DKIM key selector, unannounced
    administrative changes such as a change of signing software can cause
    such heuristics to fail at any time.
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 16]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
 3.3.  Per User Signing Key Management Issues
 
@@ -931,6 +1056,14 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    trust relationship is still established between the domain holder and
    the verifier but the private signature key is held by a third party.
 
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 19]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    Signature keys used by a third party signer needs to be kept entirely
    separate from those used by the domain holder and other third party
    signers.  To limit potential exposure of the private key, the
@@ -944,14 +1077,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    desired function.  Limiting the access granted to Third Party Signers
    serves to protect the interests of both parties.  The domain holder
    minimizes its security risk and the Trusted Third Party Signer avoids
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 17]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    unnecessary liability.
 
    In the most restrictive case a domain holder maintains full control
@@ -986,6 +1111,15 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
        3.  Wait for DNS updates to propagate (if necessary).
 
+
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 20]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
        4.  Report assigned key selector to signing device.
 
    4.  Signer verifies correct registration of the key record.
@@ -999,14 +1133,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
    When it is determined that a private signature key is no longer
    required:
-
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 18]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
    1.  Signer stops using the private key for signature operations.
 
@@ -1042,6 +1168,14 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
        different public key.
 
 
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 21]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
 4.  Signing
 
    Creating messages that have one or more DKIM signatures, requires
@@ -1056,14 +1190,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
       and adds the DKIM-Signature: header field(s) to the message.
 
    If the module creates more than one signature, there needs to be the
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 19]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    appropriate means of telling it which one(s) to use.  If a large
    number of names are used for signing, it will help to have the
    administrative tool support a batch processing mode.
@@ -1098,6 +1224,14 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    handling tradeoffs.  One perspective that helps to resolve this
    choice is the difference between the increased flexibility, from
    placement at (or close to) the MUA, versus the streamlined
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 22]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    administration and operation, that is more easily obtained by
    implementing the mechanism "deeper" into the organization's email
    infrastructure, such as at its boundary MTA.
@@ -1112,13 +1246,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    is expected that keys will be changed regularly.  For administrative
    convenience, it is best not to hard-code key information into
    software.
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 20]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
 4.3.  Signing Policies and Practices
 
@@ -1153,6 +1280,14 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    Access control requires two components: authentication and
    authorization.  By design, verification of a DKIM signature only
    provides the authentication component of an access control decision
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 23]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    and needs to be combined with additional sources of information such
    as reputation data to arrive at an access control decision.
 
@@ -1168,14 +1303,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    was inadvertently modified in transit.  It is thus undesirable for
    mail infrastructure to treat messages with invalid signatures less
    favorably than those with no signatures whatsoever.  Contrariwise,
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 21]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    creation of an invalid signature requires a trivial amount of effort
    on the part of an attacker.  If messages with invalid signatures were
    to be treated preferentially to messages with no signatures
@@ -1210,6 +1337,13 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    the message is authentic, or that the message is not abusive.  In
    particular:
 
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 24]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    o  The legitimate private key holder might have lost control of its
       private key.
 
@@ -1224,14 +1358,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    In practice these limitations have little or no impact on the field
    of use for which DKIM is designed but can have a bearing if use is
    made of the DKIM message signature format or key retrieval mechanism
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 22]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    in other specifications.
 
    In particular the DKIM key retrieval mechanism is designed for ease
@@ -1266,6 +1392,14 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
    Intermediaries such as mailing lists pose a particular challenge for
    DKIM implementations, as the message processing steps performed by
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 25]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    the intermediary can cause the message content to change in ways that
    prevent the signature passing verification.
 
@@ -1280,14 +1414,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    system can choose to relay information indicating the results of its
    message authentication efforts using various means; adding a "results
    header" to the message is one such mechanism.  [RFC5451] For example,
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 23]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    consider the cases where:
 
    o  The application relying on DKIM signature verification is not
@@ -1322,6 +1448,14 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    signature verifier that the owner of a particular domain name accepts
    some responsibility for the message.  It does not, in and of itself,
    provide any information about the trustworthiness or behavior of that
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 26]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    identity.  What it does provide is a verified identity to which such
    behavioral information can be associated, so that those who collect
    and use such information can be assured that it truly pertains to the
@@ -1336,14 +1470,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    Perhaps the simplest case is when an organization signs its own
    outbound email using its own domain in the SDID [RFC5672] of the
    signature.  For example, Company A would sign the outbound mail from
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 24]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    its employees with d=companyA.example.
 
    In the most straightforward configuration, the addresses in the
@@ -1378,6 +1504,14 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
    Another approach that might be taken by an organization with multiple
    active subdomains is to apply the same (single) signature domain to
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 27]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    mail from all subdomains.  In this case, the signature chosen would
    usually be the signature of a parent domain common to all subdomains.
    For example, mail from marketing.domain.example,
@@ -1392,14 +1526,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    to acknowledge this and provide distinct signatures for each of the
    subdomains (d=marketing.domain.example, sales.domain.example, etc.).
    However, if the mail and reputations are likely to be similar, then
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 25]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    the simpler approach of using a single common parent domain in the
    signature can work well.
 
@@ -1435,6 +1561,13 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    distinction between, for example, an author signature and a third
    party signature.
 
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 28]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    For some, a signature unrelated to the author domain (the domain in
    the RFC5322.From address) is less valuable because there is an
    assumption that the presence of an author signature guarantees that
@@ -1448,14 +1581,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    abusive; in fact, doing so will rapidly degrade its reputation so
    that future messages will no longer benefit from it.  It is therefore
    low risk to facilitate the delivery of messages that contain a valid
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 26]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    signature of a domain with a strong positive reputation, independent
    of whether or not that domain is associated with the address in the
    RFC5322.From header field of the message.
@@ -1487,6 +1612,18 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
       provider.  Such a signature would indicate to receivers that the
       message was being vouched for by that third party.
 
+
+
+
+
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 29]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
 6.4.  Using Trusted Third Party Senders
 
    For most of the cases described so far, there has been an assumption
@@ -1504,14 +1641,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    This can be done by having the third party generate a key pair that
    is designated uniquely for use by that trusted third party and
    publishing the public key in the controlling organization's DNS
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 27]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    domain, thus enabling the third party to sign mail using the
    signature of the controlling organization.  For example, if Company A
    outsources its employee benefits to a third party, it can use a
@@ -1543,6 +1672,14 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    signature on a given message.  This works well for domains that
    manage and send all of their own email from single sources, or for
    cases where multiple email streams exist but each has its own unique
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 30]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    key pair.  It also represents the case in which only one of the
    participants in an email sequence is able to sign, no matter whether
    it represents the author or one of the operators.
@@ -1560,14 +1697,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
       multiple subdomains sending distinct categories of mail might
       choose to sign with distinct subdomain identities to enable each
       subdomain to manage its own identity.  However, it might also want
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 28]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
       to provide a common identity that cuts across all of the distinct
       subdomains.  For example, Company A can sign mail for its sales
       department with a signature where d=sales.companya.example, and a
@@ -1600,6 +1729,13 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
       added even in the presence of a preexisting signature, and both
       signatures would be relevant to the verifier.
 
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 31]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
       Any forwarder that modifies messages in ways that will break
       preexisting DKIM signatures needs to sign its forwarded messages.
 
@@ -1616,14 +1752,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    handle them.  The opinions range from ignoring all but one signature
    (and the specification of which of them is verified differs from
    receiver to receiver), to verifying all signatures present and
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 29]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    applying a weighted blend of the trust assessments for those
    identifiers, to verifying all signatures present and simply using the
    identifier that represents the most positive trust assessment.  It is
@@ -1655,6 +1783,15 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    signing module would then tailor the AUID value as needed at signing
    time.
 
+
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 32]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
 7.2.  Author's Organization - Differentiated Types of Mail
 
    A slight variation of the one signature case is where Company A signs
@@ -1672,14 +1809,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    Some domains might decide to sign all of their outgoing mail.  If all
    of the legitimate mail for a domain is signed, recipients can be more
    aggressive in their filtering of mail that uses the domain but does
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 30]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    not have a valid signature from the domain; in such a configuration,
    the absence of a signature would be more significant than for the
    general case.  It might be desirable for such domains to be able to
@@ -1711,6 +1840,14 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    makes no correlation between the signature domain and any message
    headers, the ADSP specification applies only to the author domain.
    In essence, under ADSP, any non-author signatures are ignored
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 33]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    (treated as if they are not present).
 
    Signers wishing to publish an Author Domain Signing Practices (ADSP)
@@ -1727,14 +1864,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    analysis to determine all sources of outbound mail from its domain
    (companyA.example) and ensure that they all have valid author
    signatures from that domain.
-
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 31]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
    For example, email with an RFC5322.From address of bob@
    companyA.example needs to have an author signature where the SDID
@@ -1767,6 +1896,14 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    author signature (e.g. mailing lists, courtesy forwarders, and other
    paths that could add or modify headers, or modify the message body).
 
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 34]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
 7.4.  Delegated Signing
 
    An organization might choose to outsource certain key services to an
@@ -1784,14 +1921,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    generate the keys and manage the DNS for the designated subdomain.
 
    In both of these cases, mail would be physically going out of the
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 32]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    benefit provider's mail servers with a signature of e.g.
    d=benefits.companya.example.  Note that the RFC5322.From address is
    not constrained: it could either be affiliated with the benefits
@@ -1822,6 +1951,15 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
       d=espa.example and i=@clienta.espa.example (or
       i=clienta@espa.example)
 
+
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 35]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    o  Extend the SDID domain, so there is a unique value (and subdomain)
       for each client: e.g. a signature on behalf of client A would have
       d=clienta.espa.example.
@@ -1840,14 +1978,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    the semantics of behavioral assessments are not valid AUID values,
    ISP A (ispa.example) can configure subdomains corresponding to the
    assessment categories (e.g. good.ispa.example, neutral.ispa.example,
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 33]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    bad.ispa.example), and use these subdomains in the d= value of the
    signature.
 
@@ -1875,6 +2005,17 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    However, some organizations might also find the information useful
    for their own purposes in processing bounces or abuse reports.
 
+
+
+
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 36]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
 7.7.  Agent or Mediator Signatures
 
    Another scenario is that of an agent, usually a re-mailer of some
@@ -1896,14 +2037,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    that only authorized signing modules have access to the designated
    private key.  This has the side effect that email submission and
    delivery scenarios that originate or relay messages from outside the
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 34]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    domain of the authorized signing module will not have access to that
    protected private key, and thus will be unable to attach the expected
    domain signature to those messages.  Such scenarios include mailing
@@ -1932,6 +2065,13 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    mail client case, the forwarder can either sign as its own domain, or
    can put no signature on the message.
 
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 37]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    A third example is the use of privately configured forwarding.
    Assume that Joe has another account at ISP-2, joe@isp-2.example.com,
    but he'd prefer to read his ISP-2 mail from his ISP-1 account.  He
@@ -1952,14 +2092,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    straightforward means of determining whether such mail is, in fact,
    from within the organization.  DKIM can be used to remedy this
    exposure.  If the organization signs all of its mail, then its
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 35]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    boundary MTAs can look for mail purporting to be from the
    organization that does not contain a verifiable signature.
 
@@ -1988,6 +2120,14 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    subdomain or be a specific user address.
 
    The primary way to sign with per-user keys requires each user to have
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 38]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    a distinct DNS (sub)domain, where each distinct d= value has a key
    published.  (It is possible, although not advised, to publish the
    same key in more than one distinct domain.)
@@ -2008,14 +2148,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
       information at a per-user granularity is not interesting to them,
       in large part because the per-user volume is too small to be
       useful or interesting.  So even if senders take on the complexity
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 36]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
       necessary to support per-user signatures, receivers are unlikely
       to retain anything more than the base domain reputation.
 
@@ -2044,6 +2176,14 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
    For those who choose to represent user level granularity in
    signatures, the performance and management considerations above
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 39]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    suggest that it would be more effective to do it by specifying a
    local part or subdomain extension in the i= tag rather than by
    extending the d= domain and publishing individual keys.
@@ -2062,15 +2202,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
          advertised email sending policy.  It needs to also be able to
          generate an operator alert if it determines that the email
          messages do not comply with the published DKIM sending policy.
-
-
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 37]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
          An MSA needs to be aware that some MUAs might add their own
          signatures.  If the MSA needs to perform operations on a
@@ -2100,6 +2231,15 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
          sections relating to MTAs apply.  If the intermediary modifies
          a message in a way that breaks the signature, the intermediary
 
+
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 40]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
          +  needs to deploy abuse filtering measures on the inbound
             mail, and
 
@@ -2116,17 +2256,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
          +  Sign the modified message including the verification results
             (e.g., the Authentication-Results header field).
-
-
-
-
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 38]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
 8.5.  Mail User Agent
 
@@ -2158,6 +2287,15 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
          message is to be treated the same as a message which does not
          have a signature.
 
+
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 41]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
          An MUA that looks for an Authentication-Results header field
          needs to be configurable to choose which Authentication-Results
          are considered trustable.  The MUA developer is encouraged to
@@ -2176,13 +2314,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
          signature was verified can be used as input into a reputation
          system (i.e., a whitelist of domains and users) for
          presentation of such indicators.
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 39]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
    It is common for components of an ADMD's email infrastructure to do
    violence to a message, such that a DKIM signature might be rendered
@@ -2210,6 +2341,17 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
 11.  References
 
+
+
+
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 42]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
 11.1.  Normative References
 
    [RFC4871]  Allman, E., Callas, J., Delany, M., Libbey, M., Fenton,
@@ -2232,13 +2374,6 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
 
    [RFC5672]  Crocker, D., "RFC 4871 DomainKeys Identified Mail (DKIM)
               Signatures -- Update", RFC 5672, August 2009.
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 40]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
 11.2.  Informative References
 
@@ -2265,6 +2400,14 @@ Appendix A.  Migration Strategies
    2.  Migrating from a current hash algorithm to a new standardized
        hash algorithm.
 
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 43]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    3.  Migrating from a current signing algorithm to a new standardized
        signing algorithm.
 
@@ -2284,17 +2427,6 @@ A.1.  Migrating from DomainKeys
 
    DKIM replaces the earlier DomainKeys (DK) specification.  Selector
    files are mostly compatible between the two specifications.
-
-
-
-
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 41]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
 A.1.1.  Signers
 
@@ -2324,6 +2456,14 @@ A.1.1.  Signers
 
    One migration strategy is to:
 
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 44]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    o  ensure that the current selector DNS key record is compatible with
       both DK and DKIM
 
@@ -2343,14 +2483,6 @@ A.1.1.  Signers
       signing with DK
 
    o  eventually remove the old DK selector DNS record
-
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 42]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
    A combined migration strategy is to:
 
@@ -2381,6 +2513,13 @@ Internet-Draft   DKIM Development/Deployment/Operations    December 2009
    o  ensure that the current selector DNS key record is compatible with
       both DK and DKIM
 
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 45]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    o  do a flash cut and replace the DK signatures with DKIM signatures
 
    Note that when you have separate key records for DK and DKIM, you can
@@ -2396,17 +2535,6 @@ A.1.1.1.  DNS Selector Key Records
    several optional parameters, which DK needs to ignore.  However,
    there is one critical difference between DK and DKIM DNS key records:
    the definitions of the "g" fields:
-
-
-
-
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 43]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
    g= granularity of the key  In both DK and DKIM, this is an optional
       field that is used to constrain which sending address(es) can
@@ -2440,6 +2568,14 @@ A.1.1.2.  Removing DomainKeys Signatures
    The principal use of DomainKeys is at Boundary MTAs.  Because no
    operational transition is ever instantaneous, it is advisable to
    continue performing DomainKeys signing until it is determined that
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 46]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    DomainKeys receive-side support is no longer used, or is sufficiently
    reduced.  That is, a signer needs to add a DKIM signature to a
    message that also has a DomainKeys signature and keep it there until
@@ -2456,13 +2592,6 @@ A.1.1.2.  Removing DomainKeys Signatures
    adopters of DK verification have added DKIM verification, but not all
    yet.  If a verifier finds a message with both DK and DKIM, it can
    choose to verify both signatures, or just one or the other.
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 44]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
    Many DNS services offer tracking statistics so it can be determined
    how often a DNS record has been accessed.  By using separate DNS
@@ -2495,6 +2624,14 @@ A.1.2.2.  Ought both DK and DKIM signatures be evaluated on a single
 
    For a period of time, there will be sites that sign with both DK and
    DKIM.  A verifier receiving a message that has both types of
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 47]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    signatures can verify both signatures, or just one.  One disadvantage
    of verifying both signatures is that signers will have a more
    difficult time deciding how many verifiers are still using their DK
@@ -2509,16 +2646,6 @@ A.1.2.3.  DNS Selector Key Records
    by adding several optional parameters, which DK needs to ignore.
    However, there is one key difference between DK and DKIM DNS key
    records: the definitions of the g fields:
-
-
-
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 45]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
    g= granularity of the key  In both DK and DKIM, this is an optional
       field that is used to constrain which sending address(es) can
@@ -2553,6 +2680,14 @@ A.2.  Migrating Hash Algorithms
    already required to support SHA-256.  But when it becomes necessary
    to replace SHA-256 with a more secure algorithm, there will be a
    migratory period.  In the following, "NEWHASH" is used to represent a
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 48]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    new hash algorithm.  Section 4.1 of [RFC4871] briefly discusses this
    scenario.
 
@@ -2568,13 +2703,6 @@ A.2.1.  Signers
    One strategy is to wait until it's determined that there is a large
    enough base of verifiers available that support NEWHASH, and then
    flash cut to the new algorithm.
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 46]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
    Another strategy is to sign with both the old and new hash algorithms
    for a period of time.  This is particularly useful for testing the
@@ -2609,6 +2737,13 @@ A.3.  Migrating Signing Algorithms
    there will be a migratory period.  In the following, "NEWALG" is used
    to represent a new signing algorithm.
 
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 49]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
 A.3.1.  Signers
 
    As with the other migration issues discussed above, migrating signing
@@ -2624,13 +2759,6 @@ A.3.1.  Signers
    do a flash cut to NEWALG, and 2) using a phased approach by signing
    with both the old and new algorithms before removing support for the
    old algorithm.
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 47]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
 
    It is unlikely that a new algorithm would be able to use the same
    public key as "rsa", so using the same selector DNS record for both
@@ -2664,6 +2792,14 @@ Appendix B.  General Coding Criteria for Cryptographic Applications
    disposed of.
 
    Operating system mechanisms that permit the confidentiality of
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 50]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    private keys to be protected against other processes ought to be used
    when available.  In particular, great care needs to be taken when
    releasing memory pages to the operating system to ensure that private
@@ -2680,14 +2816,6 @@ Appendix B.  General Coding Criteria for Cryptographic Applications
    Fortunately appropriately designed and coded cryptographic libraries
    are available for most operating system platforms under license terms
    compatible with commercial, open source and free software license
-
-
-
-Hansen, et al.            Expires June 21, 2010                [Page 48]
-
-Internet-Draft   DKIM Development/Deployment/Operations    December 2009
-
-
    terms.  Use of standard cryptographic libraries is strongly
    encouraged.  These have been extensively tested, reduce development
    time and support a wide range of cryptographic hardware.
@@ -2715,6 +2843,19 @@ Authors' Addresses
    Email: phillip@hallambaker.com
 
 
+
+
+
+
+
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 51]
+
+Internet-Draft   DKIM Development/Deployment/Operations     January 2010
+
+
    Dave Crocker
    Brandenburg InternetWorking
    675 Spruce Dr.
@@ -2739,4 +2880,31 @@ Authors' Addresses
 
 
 
-Hansen, et al.            Expires June 21, 2010                [Page 49]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Hansen, et al.            Expires July 31, 2010                [Page 52]
