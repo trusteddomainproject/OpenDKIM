@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.79 2010/01/26 19:52:41 cm-msk Exp $
+**  $Id: opendkim.c,v 1.80 2010/01/28 20:25:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.79 2010/01/26 19:52:41 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.80 2010/01/28 20:25:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1132,22 +1132,23 @@ int
 dkimf_xs_requestsig(lua_State *l)
 {
 	SMFICTX *ctx;
-	const char *domain;
-	const char *selector;
+	const char *domain = NULL;
+	const char *selector = NULL;
 	struct connctx *cc;
 	struct msgctx *dfc;
 	struct dkimf_config *conf;
-	struct keytable *key;
+	struct keytable *key = NULL;
 
 	assert(l != NULL);
 
-	if (lua_gettop(l) != 3)
+	if (lua_gettop(l) != 1 && lua_gettop(l) != 3)
 	{
 		lua_pushstring(l, "odkim_sign(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
-	         !lua_isstring(l, 2) || !lua_isstring(l, 3))
+	         (lua_gettop(l) == 3 && (!lua_isstring(l, 2) ||
+	                                 !lua_isstring(l, 3))))
 	{
 		lua_pushstring(l, "odkim_sign(): incorrect argument type");
 		lua_error(l);
@@ -1160,11 +1161,14 @@ dkimf_xs_requestsig(lua_State *l)
 		dfc = cc->cctx_msg;
 		conf = cc->cctx_config;
 
-		domain = lua_tostring(l, 2);
-		selector = lua_tostring(l, 3);
+		if (lua_gettop(l) == 3)
+		{
+			domain = lua_tostring(l, 2);
+			selector = lua_tostring(l, 3);
+		}
 	}
 
-	lua_pop(l, 3);
+	lua_pop(l, lua_gettop(l));
 
 	if (ctx == NULL)
 	{
@@ -1174,33 +1178,46 @@ dkimf_xs_requestsig(lua_State *l)
 	}
 
 	/* find the key */
-	for (key = conf->conf_keyhead; key != NULL; key = key->key_next)
+	if (domain != NULL)
 	{
-		if (strcmp(domain, key->key_domain) == 0 &&
-		    strcmp(selector, key->key_selector) == 0)
-			break;
-	}
-
-	if (key == NULL)
-	{
-		if (conf->conf_dolog)
+		for (key = conf->conf_keyhead;
+		     key != NULL;
+		     key = key->key_next)
 		{
-			syslog(LOG_ERR, "key for %s/%s not found",
-			       selector, domain);
+			if (strcmp(domain, key->key_domain) == 0 &&
+			    strcmp(selector, key->key_selector) == 0)
+				break;
 		}
 
-		lua_pushnumber(l, 0);
+		if (key == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "key for %s/%s not found",
+				       selector, domain);
+			}
 
-		return 1;
+			lua_pushnumber(l, 0);
+
+			return 1;
+		}
 	}
 
 	if (!dkimf_add_signrequest(dfc, key))
 	{
 		if (conf->conf_dolog)
 		{
-			syslog(LOG_ERR,
-			       "failed to add signature using %s/%s",
-			       selector, domain);
+			if (domain == NULL)
+			{
+				syslog(LOG_ERR,
+				       "failed to request default signature");
+			}
+			else
+			{
+				syslog(LOG_ERR,
+				       "failed to request signature using %s/%s",
+				       selector, domain);
+			}
 		}
 
 		lua_pushnumber(l, 0);

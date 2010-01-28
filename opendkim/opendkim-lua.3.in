@@ -179,7 +179,12 @@ using the key whose
 .I domain
 and
 .I selector
-from the key list match the provided parameters.  See the
+from the key list match the provided parameters.  The
+.I domain
+and
+.I selcetor
+may be omitted if the key list is not defined, meaning the single signing
+domain, selector and key should be used to sign.  See the
 .B KeyList
 parameter in
 .I opendkim.conf(5)
