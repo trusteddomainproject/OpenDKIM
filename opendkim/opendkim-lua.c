@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.5 2010/01/25 23:01:26 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.6 2010/01/29 17:47:30 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.5 2010/01/25 23:01:26 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.6 2010/01/29 17:47:30 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -137,7 +137,6 @@ int
 dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
                      struct dkimf_lua_script_result *lres)
 {
-	int c;
 	int status;
 	lua_State *l = NULL;
 	struct dkimf_lua_io io;

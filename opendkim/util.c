@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.29 2010/01/26 19:52:43 cm-msk Exp $
+**  $Id: util.c,v 1.30 2010/01/29 17:47:34 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.29 2010/01/26 19:52:43 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.30 2010/01/29 17:47:34 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -425,7 +425,6 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 		else
 		{
 			char *dst;
-			size_t sz;
 			size_t dst_len;
 
 			memset(ipbuf, '\0', sizeof ipbuf);
@@ -456,7 +455,6 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 		/* iterate over possible bitwise expressions */
 		for (bits = 0; bits <= 128; bits++)
 		{
-			int bit;
 			char *dst;
 			size_t sz;
 			size_t dst_len;
