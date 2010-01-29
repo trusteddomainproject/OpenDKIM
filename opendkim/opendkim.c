@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.80 2010/01/28 20:25:52 cm-msk Exp $
+**  $Id: opendkim.c,v 1.81 2010/01/29 17:49:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.80 2010/01/28 20:25:52 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.81 2010/01/29 17:49:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1317,7 +1317,6 @@ dkimf_xs_popauth(lua_State *l)
 {
 	SMFICTX *ctx;
 	struct connctx *cc;
-	struct dkimf_config *conf;
 
 	assert(l != NULL);
 
@@ -1711,9 +1710,6 @@ int
 dkimf_xs_setpartial(lua_State *l)
 {
 	SMFICTX *ctx;
-	struct connctx *cc;
-	struct msgctx *dfc;
-	DKIMF_DB db;
 
 	assert(l != NULL);
 
@@ -1736,6 +1732,9 @@ dkimf_xs_setpartial(lua_State *l)
 # ifdef _FFR_BODYLENGTHDB
 	if (ctx != NULL)
 	{
+		struct connctx *cc;
+		struct msgctx *dfc;
+
 		cc = (struct connctx *) dkimf_getpriv(ctx);
 		dfc = cc->cctx_msg;
 		dfc->mctx_ltag = TRUE;
@@ -2148,9 +2147,7 @@ dkimf_xs_getsymval(lua_State *l)
 int
 dkimf_xs_sigresult(lua_State *l)
 {
-	DKIM_STAT status;
 	DKIM_SIGINFO *sig;
-	char addr[MAXADDRESS + 1];
 
 	assert(l != NULL);
 
@@ -2191,9 +2188,7 @@ dkimf_xs_sigresult(lua_State *l)
 int
 dkimf_xs_sigbhresult(lua_State *l)
 {
-	DKIM_STAT status;
 	DKIM_SIGINFO *sig;
-	char addr[MAXADDRESS + 1];
 
 	assert(l != NULL);
 
@@ -2496,7 +2491,6 @@ dkimf_xs_delrcpt(lua_State *l)
 int
 dkimf_xs_resign(lua_State *l)
 {
-	char *addr;
 	SMFICTX *ctx;
 	struct connctx *cc;
 	struct msgctx *dfc;
@@ -9956,6 +9950,7 @@ mlfi_eom(SMFICTX *ctx)
 
 		if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN)
 		{
+			DKIM_STAT pstatus;
 			_Bool localadsp = FALSE;
 			int localresult = DKIM_PRESULT_NONE;
 
@@ -9968,7 +9963,7 @@ mlfi_eom(SMFICTX *ctx)
 				if (dkimf_local_adsp(conf, (char *) domain,
 				                     &dfc->mctx_pcode))
 				{
-					status = DKIM_STAT_OK;
+					pstatus = DKIM_STAT_OK;
 					policydone = TRUE;
 					localadsp = TRUE;
 					localresult = DKIM_PRESULT_AUTHOR;
@@ -9977,15 +9972,15 @@ mlfi_eom(SMFICTX *ctx)
 
 			if (!policydone)
 			{
-				status = dkim_policy(dfc->mctx_dkimv,
-				                     &dfc->mctx_pcode,
-				                     NULL);
+				pstatus = dkim_policy(dfc->mctx_dkimv,
+				                      &dfc->mctx_pcode,
+				                      NULL);
 #ifdef USE_UNBOUND
 				dfc->mctx_dnssec_policy = dkim_policy_getdnssec(dfc->mctx_dkimv);
 #endif /* USE_UNBOUND */
 			}
 
-			if (status == DKIM_STAT_OK)
+			if (pstatus == DKIM_STAT_OK)
 			{
 				policydone = TRUE;
 
