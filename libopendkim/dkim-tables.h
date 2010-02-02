@@ -9,7 +9,7 @@
 #define _DKIM_TABLES_H_
 
 #ifndef lint
-static char dkim_tables_h_id[] = "@(#)$Id: dkim-tables.h,v 1.2 2009/08/03 18:44:40 cm-msk Exp $";
+static char dkim_tables_h_id[] = "@(#)$Id: dkim-tables.h,v 1.3 2010/02/02 18:07:23 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef __STDC__
@@ -30,21 +30,21 @@ struct nametable
 };
 
 /* tables */
-struct nametable *algorithms;
-struct nametable *canonicalizations;
-struct nametable *hashes;
-struct nametable *keyflags;
-struct nametable *keyparams;
-struct nametable *keytypes;
-struct nametable *policies;
-struct nametable *policyflags;
-struct nametable *policyparams;
-struct nametable *policyresults;
-struct nametable *querytypes;
-struct nametable *results;
-struct nametable *settypes;
-struct nametable *sigerrors;
-struct nametable *sigparams;
+extern struct nametable *algorithms;
+extern struct nametable *canonicalizations;
+extern struct nametable *hashes;
+extern struct nametable *keyflags;
+extern struct nametable *keyparams;
+extern struct nametable *keytypes;
+extern struct nametable *policies;
+extern struct nametable *policyflags;
+extern struct nametable *policyparams;
+extern struct nametable *policyresults;
+extern struct nametable *querytypes;
+extern struct nametable *results;
+extern struct nametable *settypes;
+extern struct nametable *sigerrors;
+extern struct nametable *sigparams;
 
 /* prototypes */
 extern const char *dkim_code_to_name __P((struct nametable *tbl,
