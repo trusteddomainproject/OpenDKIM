@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.39 2010/01/21 21:55:14 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.40 2010/02/02 17:59:46 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6190,7 +6190,6 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 				         strcmp(which, "bh") == 0 ||
 				         strcmp(which, "z") == 0)
 				{			/* break at margins */
-					_Bool more;
 					int offset;
 					int n;
 					char *x;
