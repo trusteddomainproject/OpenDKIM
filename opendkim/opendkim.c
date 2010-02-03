@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.70.2.9 2010/01/25 23:20:00 cm-msk Exp $
+**  $Id: opendkim.c,v 1.70.2.10 2010/02/03 18:10:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.9 2010/01/25 23:20:00 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.10 2010/02/03 18:10:59 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -9479,6 +9479,23 @@ main(int argc, char **argv)
 		char query[BUFRSZ + 1];
 		char **result;
 
+		if (isatty(0))
+		{
+			fprintf(stdout, "%s: enter data set description\n",
+			        progname);
+			fprintf(stdout, "\tcsl:entry1[,entry2[,...]]\n"
+			                "\tfile:path\n"
+			                "\trefile:path\n"
+			                "\tdb:path\n"
+#ifdef USE_ODBX
+			                "\tdsn:<backend>://[user[:pwd]@][port+]host/dbase[/key=val[?...]]\n"
+#endif /* USE_ODBX */
+#ifdef USE_LDAP
+			                "\tldapscheme://host[:port][/dn[?attrs[?scope[?filter[?exts]]]]]\n"
+#endif /* USE_LDAP */
+			                "> ");
+		}
+
 		memset(dbname, '\0', sizeof dbname);
 		if (fgets(dbname, BUFRSZ, stdin) != dbname)
 		{
@@ -9498,6 +9515,13 @@ main(int argc, char **argv)
 			fprintf(stderr, "%s: %s: dkimf_db_open() failed\n",
 			        progname, dbname);
 			return EX_SOFTWARE;
+		}
+
+		if (isatty(0))
+		{
+			fprintf(stdout,
+			        "%s: enter `query/n' where `n' is number of fields to request\n> ",
+			        progname);
 		}
 
 		memset(query, '\0', sizeof query);
