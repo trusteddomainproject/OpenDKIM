@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.70.2.10 2010/02/03 18:10:59 cm-msk Exp $
+**  $Id: opendkim.c,v 1.70.2.11 2010/02/04 17:58:40 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.10 2010/02/03 18:10:59 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.70.2.11 2010/02/04 17:58:40 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1109,8 +1109,8 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 {
 	_Bool exists;
 	int status;
-	size_t ris;
 	struct dkimf_ridb_entry ri;
+	struct dkimf_db_data dbd;
 
 	assert(domain != NULL);
 
@@ -1118,8 +1118,9 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 	if (interval == 0)
 		return 1;
 
-	ris = sizeof ri;
-	status = dkimf_db_get(ridb, domain, 0, &ri, &ris, &exists);
+	dbd.dbdata_buffer = &ri;
+	dbd.dbdata_buflen = sizeof ri;
+	status = dkimf_db_get(ridb, domain, 0, &dbd, 1, &exists);
 
 	if (status == 0)
 	{
@@ -1133,7 +1134,7 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 			ri.ridb_count = 1;
 
 			status = dkimf_db_put(ridb, domain, 0,
-			                      &ri, sizeof ris);
+			                      &ri, sizeof ri);
 
 			if (status != 0)
 				return -1;
@@ -1145,7 +1146,7 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 			ri.ridb_count++;
 
 			status = dkimf_db_put(ridb, domain, 0,
-			                      &ri, sizeof ris);
+			                      &ri, sizeof ri);
 
 			if (status != 0)
 				return -1;
@@ -3878,7 +3879,7 @@ dkimf_checkbldb(char *to, char *jobid)
 		}
 	}
 
-	status = dkimf_db_get(bldb, dbaddr, 0, NULL, NULL, &exists);
+	status = dkimf_db_get(bldb, dbaddr, 0, NULL, 0, &exists);
 	if (status == 0)
 	{
 		return exists;
@@ -6126,7 +6127,7 @@ mlfi_eoh(SMFICTX *ctx)
 		     a = a->a_next)
 		{
 			status = dkimf_db_get(conf->conf_resigndb,
-			                      a->a_addr, 0, NULL, NULL,
+			                      a->a_addr, 0, NULL, 0,
 			                      &match);
 
 			if (match)
