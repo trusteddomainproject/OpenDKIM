@@ -4,15 +4,17 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.13 2010/01/22 21:17:53 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.14 2010/02/05 15:35:53 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.13 2010/01/22 21:17:53 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.14 2010/02/05 15:35:53 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 struct configdef dkimf_config[] =
 {
@@ -61,6 +63,17 @@ struct configdef dkimf_config[] =
 	{ "KeepTemporaryFiles",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "KeyFile",			CONFIG_TYPE_STRING,	FALSE },
 	{ "KeyList",			CONFIG_TYPE_STRING,	FALSE },
+#ifdef USE_LDAP
+	{ "LDAPAuthMechanism",		CONFIG_TYPE_STRING,	FALSE },
+# ifdef USE_SASL
+	{ "LDAPAuthName",		CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPAuthRealm",		CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPAuthUser",		CONFIG_TYPE_STRING,	FALSE },
+# endif /* USE_SASL */
+	{ "LDAPBindPassword",		CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPBindUser",		CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPUseTLS",			CONFIG_TYPE_BOOLEAN,	FALSE },
+#endif /* USE_LDAP */
 	{ "LocalADSP",			CONFIG_TYPE_STRING,	FALSE },
 	{ "LogWhy",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "MaximumHeaders",		CONFIG_TYPE_INTEGER,	FALSE },

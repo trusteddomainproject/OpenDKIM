@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.57 2010/01/14 05:58:50 cm-msk Exp $
+# $Id: Makefile.am,v 1.58 2010/02/05 15:35:50 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -31,6 +31,13 @@ if LUA
 opendkim_CPPFLAGS += $(LIBLUA_INCDIRS)
 opendkim_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_LDADD += $(LIBLUA_LIBS)
+endif
+if USE_SASL
+opendkim_CPPFLAGS += $(SASL_CPPFLAGS)
+endif
+if USE_LDAP
+opendkim_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
+opendkim_LDADD += $(OPENLDAP_LIBS)
 endif
 if VBR
 opendkim_CPPFLAGS += -I$(srcdir)/../libvbr

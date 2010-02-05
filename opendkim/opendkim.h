@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.17 2010/01/25 23:01:37 cm-msk Exp $
+**  $Id: opendkim.h,v 1.18 2010/02/05 15:36:02 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.17 2010/01/25 23:01:37 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.18 2010/02/05 15:36:02 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -45,7 +45,7 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.17 2010/01/25 23:01:37 cm
 #define	BUFRSZ		1024
 #define	CACHESTATSINT	300
 #define	CBINTERVAL	3
-#define CMDLINEOPTS	"a:Ab:c:C:d:DfF:hi:I:k:KlL:m:M:no:p:P:qrRs:S:t:T:u:U:vVWx:?"
+#define CMDLINEOPTS	"a:Ab:c:C:d:DfF:hi:I:k:KlL:m:M:no:p:P:qQrRs:S:t:T:u:U:vVWx:?"
 #define	DEFINTERNAL	"csl:127.0.0.1"
 #define	DEFMAXHDRSZ	65536
 #define	DEFTIMEOUT	5
@@ -114,6 +114,10 @@ extern sfsistat mlfi_close __P((SMFICTX *));
 
 extern DKIM *dkimf_getdkim __P((void *));
 extern struct signreq *dkimf_getsrlist __P((void *));
+
+#ifdef USE_LDAP
+extern char *dkimf_get_ldap_param __P((int));
+#endif /* USE_LDAP */
 
 #ifdef USE_LUA
 extern int dkimf_xs_addrcpt __P((lua_State *));

@@ -4,7 +4,7 @@
 - DKIM signing and verifying filter for MTAs
 .SH SYNOPSIS
 .B opendkim
--p socketspec [-a peerlist] [-A] [-b modes] [-c canon] [-C config] [-d domains] [-D] [-f] [-F time] [-i ilist] [-I eilist] [-h] [-k keyfile] [-K] [-l] [-L min] [-m mtas] [-M macro[=value][,...]] [-n] [-o hdrlist] [-P pidfile] [-q] [-r] [-R] [-s selector] [-S signalg] [-t testfile] [-T secs] [-u userid[:group]] [-U popdb] [-v] [-V] [-W] [-x configfile]
+-p socketspec [-a peerlist] [-A] [-b modes] [-c canon] [-C config] [-d domains] [-D] [-f] [-F time] [-i ilist] [-I eilist] [-h] [-k keyfile] [-K] [-l] [-L min] [-m mtas] [-M macro[=value][,...]] [-n] [-o hdrlist] [-P pidfile] [-q] [-Q] [-r] [-R] [-s selector] [-S signalg] [-t testfile] [-T secs] [-u userid[:group]] [-U popdb] [-v] [-V] [-W] [-x configfile]
 .SH DESCRIPTION
 .B opendkim
 implements the proposed
@@ -27,8 +27,13 @@ option for details.
 Many of the command line and configuration file parameters will refer to
 a "dataset" as their values.  This refers to a string that either contains
 the list of desirable values, or to a file that contains them, or (if
-enabled at compile time) a database containing the data.  Which format
-is used depends on the format of the string.  In particular:
+enabled at compile time) a database containing the data.
+
+Some data sets require that the value contain more than one entry.  How this
+is done depends on which data set type is used.
+
+Which type is used depends on the format of the specification string.
+In particular:
 .TP
 .I a)
 If the string begins with "file:", then the remainder of the string is
@@ -36,19 +41,26 @@ presumed to refer to a flat file that contains elements of the data set,
 one per line.  If a line contains whitespace-separated values, then the
 line is preusmed to define a key and its corresponding value.  Blank lines
 are ignored, and the hash ("#") character denotes the start of a comment.
+If a value contains multiple entries, the entries should be separated by
+colons.
 .TP
 .I b)
 If the string begins with "refile:", then the remainder of the string is
-presumed to contain a list of wildcarded strings, i.e. strings that may
-contain the asterisk ("*") character as a wildcard.  These will be used
-to test an input string to see if it matches any pattern in the data set.
+presumed to specify a file that contains a set of patterns, one per line,
+and their associated values.  The pattern is taken as the start of the line
+to the first colon, and the portion after the colon is taken as the value
+to be used when that pattern is matched.  Patterns are simple wildcard
+patterns, matching all text except that the asterisk ("*") character is
+considered a wildcard.  If a value contains multiple entries, the entries
+should be separated by colons.
 .TP
 .I c)
 If the string begins with "db:" and the program was compiled with
 Sleepycat DB support, then the remainder of the string is presumed to
 identify a Sleepycat database containing keys and corresponding values.
 These may be used only to test for membership in the data set, or for
-storing keys and corresponding values.
+storing keys and corresponding values.  If a value contains multiple entries,
+the entries should be separated by colons.
 .TP
 .I d)
 If the string begins with "dsn:" and the OpenDKIM library was compiled to
@@ -74,25 +86,40 @@ is the name of the database to be accessed, and the
 .I key=value
 pairs must specify at least "table", "keycol" and "datacol" values specifying
 the name of the table, the name of the column to consider as the key, and the
-name of the column to be considered as the value.  For example:
+name(s) of the column(s) to be considered as the values (separated by
+commas).  For example:
 
-mysql://dbuser:dbpass@1231+dbhost/odkim/table=macros?keycol=host?datacol=vals
+mysql:://dbuser:dbpass@1231+dbhost/odkim/table=macros?keycol=host?datacol=v1,v2
 
 defines a MySQL database listening at port 1231 on host "dbhost"; the userid
 "dbuser" and password "dbpass" should be used to access the database; the
 database name is "odkim", and the data are in columns "host" (the keys)
-and "vals" (the values) inside table "macros".
+and "v1" and "v2" (the values) inside table "macros".  This example would
+thus return two values when a match is found.
 .TP
 .I e)
+If the string begins with "ldap:", "ldaps:" or "ldapi:", it is presumed
+to be a space-separated set of one or more LDAP URLs that identify a set
+of servers to be queried.  The first one should be a full RFC4516 LDAP URL
+indicating a base DN template and optional scope, filter and attribute
+names to use in queries.  When constructing a DN template or filter, the
+special tokens "$d" and "$D" are replaced with the key being queried and
+they key broken into components, separated at "." characters, each
+component preceded by "dc=" and followed by "," (so "example.com" would
+become "dc=example,dc=com").  If a data set requires multiple values to
+be returned, the appropriate attribute names should be given in the correct
+order to satisfy such requests.
+.TP
+.I f)
 If the string contains none of these prefixes but ends with ".db", it
 is presumed to be a Sleepycat DB as described above (if support for same
 is compiled in).
 .TP
-.I f)
+.I g)
 If the string contains none of these prefixes but starts with a slash ("/")
 character, it is presumed to be a flat file as described above.
 .TP
-.I g)
+.I h)
 In any other case, the string is presumed to be a comma-separated list.
 Elements in the list are either simple data elements that are part of the
 set or, in the case of an entry of the form "x=y", are stored as key-value
@@ -107,9 +134,8 @@ should contain in each entry a hostname, domain name (e.g. ".example.com"),
 IP address, an IPv6 address (including an IPv4 mapped address), or a
 CIDR-style IP specification (e.g. "192.168.1.0/24").  An entry beginning
 with a bang ("!") character means "not", allowing exclusions of specific
-hosts that are otherwise members of larger sets.  More precise entries
-are preferred over less precise ones, i.e. "192.168.1.1" will match before
-"!192.168.1.0/24".
+hosts that are otherwise members of larger sets.  The order of entries
+in this data set is therefore significant.
 .TP
 .I -A
 Automatically re-start on failures.  Use with caution; if the filter
@@ -340,6 +366,12 @@ Writes the process ID of the filter, once started, to the filename given.
 .I -q
 Requests that messages which fail verification be quarantined by the
 MTA.  (Requires a sufficiently recent version of the milter library.)
+.TP
+.I -Q
+Query test mode.  The filter will read two lines from standard input, one
+containing a database description to be opened and one containing a string
+of the form "q/n" where "q" is the query to be performed and "n" is the
+number of fields to be retrieved.
 .TP
 .I -r
 Checks all messages for compliance with RFC2822 header count requirements.

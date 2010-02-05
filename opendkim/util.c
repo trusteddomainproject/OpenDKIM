@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.30 2010/01/29 17:47:34 cm-msk Exp $
+**  $Id: util.c,v 1.31 2010/02/05 15:36:02 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.30 2010/01/29 17:47:34 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.31 2010/02/05 15:36:02 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -362,7 +362,7 @@ dkimf_checkhost(DKIMF_DB db, char *host)
 		/* try the negative case */
 		snprintf(buf, sizeof buf, "!%s", p);
 		exists = FALSE;
-		status = dkimf_db_get(db, buf, 0, NULL, NULL, &exists);
+		status = dkimf_db_get(db, buf, 0, NULL, 0, &exists);
 		if (status != 0)
 			return FALSE;
 		else if (exists)
@@ -370,7 +370,7 @@ dkimf_checkhost(DKIMF_DB db, char *host)
 
 		/* ...and now the positive case */
 		exists = FALSE;
-		status = dkimf_db_get(db, &buf[1], 0, NULL, NULL, &exists);
+		status = dkimf_db_get(db, &buf[1], 0, NULL, 0, &exists);
 		if (status != 0)
 			return FALSE;
 		if (exists)
@@ -437,14 +437,13 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 
 			exists = FALSE;
 
-			status = dkimf_db_get(db, ipbuf, 0, NULL, NULL,
-			                      &exists);
+			status = dkimf_db_get(db, ipbuf, 0, NULL, 0, &exists);
 			if (status != 0)
 				return FALSE;
 			if (exists)
 				return FALSE;
 
-			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, NULL,
+			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, 0,
 			                      &exists);
 			if (status != 0)
 				return FALSE;
@@ -481,14 +480,13 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 
 			exists = FALSE;
 
-			status = dkimf_db_get(db, ipbuf, 0, NULL, NULL,
-			                      &exists);
+			status = dkimf_db_get(db, ipbuf, 0, NULL, 0, &exists);
 			if (status != 0)
 				return FALSE;
 			else if (exists)
 				return FALSE;
 
-			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, NULL,
+			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, 0,
 			                      &exists);
 			if (status != 0)
 				return FALSE;
@@ -527,13 +525,13 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 
 		ipbuf[0] = '!';
 		(void) dkimf_inet_ntoa(addr, &ipbuf[1], sizeof ipbuf - 1);
-		status = dkimf_db_get(db, ipbuf, 0, NULL, NULL, &exists);
+		status = dkimf_db_get(db, ipbuf, 0, NULL, 0, &exists);
 		if (status != 0)
 			return FALSE;
 		if (exists)
 			return FALSE;
 
-		status = dkimf_db_get(db, &ipbuf[1], 0, NULL, NULL, &exists);
+		status = dkimf_db_get(db, &ipbuf[1], 0, NULL, 0, &exists);
 		if (status != 0)
 			return FALSE;
 		if (exists)
@@ -566,14 +564,13 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 			snprintf(&ipbuf[c], sizeof ipbuf - c, "%d", bits);
 
 			exists = FALSE;
-			status = dkimf_db_get(db, ipbuf, 0, NULL, NULL,
-			                      &exists);
+			status = dkimf_db_get(db, ipbuf, 0, NULL, 0, &exists);
 			if (status != 0)
 				return FALSE;
 			if (exists)
 				return FALSE;
 
-			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, NULL,
+			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, 0,
 			                      &exists);
 			if (status != 0)
 				return FALSE;
@@ -584,14 +581,14 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 			                       sizeof ipbuf - c);
 		
 			exists = FALSE;
-			status = dkimf_db_get(db, ipbuf, 0, NULL, NULL,
+			status = dkimf_db_get(db, ipbuf, 0, NULL, 0,
 			                      &exists);
 			if (status != 0)
 				return FALSE;
 			if (exists)
 				return FALSE;
 
-			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, NULL,
+			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, 0,
 			                      &exists);
 			if (status != 0)
 				return FALSE;
@@ -660,7 +657,7 @@ dkimf_checkpopauth(DKIMF_DB db, struct sockaddr *ip)
 
 	dkimf_inet_ntoa(addr, ipbuf, sizeof ipbuf);
 	exists = FALSE;
-	status = dkimf_db_get(db, ipbuf, 0, NULL, NULL, &exists);
+	status = dkimf_db_get(db, ipbuf, 0, NULL, 0, &exists);
 	return (status == 0 && exists);
 }
 #endif /* POPAUTH */

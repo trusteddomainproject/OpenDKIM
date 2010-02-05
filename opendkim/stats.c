@@ -2,13 +2,13 @@
 **  Copyright (c) 2007, 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.7 2009/11/22 08:15:50 grooverdan Exp $
+**  $Id: stats.c,v 1.8 2010/02/05 15:36:02 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.7 2009/11/22 08:15:50 grooverdan Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8 2010/02/05 15:36:02 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -84,6 +84,7 @@ dkimf_stats_record(char *path, const char *sigdomain,
 	size_t outlen;
 	struct dkim_stats_key reckey;
 	struct dkim_stats_data recdata;
+	struct dkimf_db_data dbd;
 
 	assert(path != NULL);
 	assert(sigdomain != NULL);
@@ -108,9 +109,11 @@ dkimf_stats_record(char *path, const char *sigdomain,
 	strlcpy(reckey.sk_sigdomain, sigdomain, sizeof reckey.sk_sigdomain);
 
 	/* see if this key already exists */
-	outlen = sizeof recdata;
-	status = dkimf_db_get(db, &reckey, sizeof reckey, &recdata,
-	                      &outlen, NULL);
+	dbd.dbdata_buffer = (char *) &recdata;
+	dbd.dbdata_buflen = sizeof recdata;
+	dbd.dbdata_flags = DKIMF_DB_DATA_BINARY;
+
+	status = dkimf_db_get(db, &reckey, sizeof reckey, &dbd, 1, NULL);
 
 	/* update totals */
 	recdata.sd_lengths = lengths;

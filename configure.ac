@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.105 2010/01/26 07:16:32 cm-msk Exp $
+# $Id: configure.ac,v 1.106 2010/02/05 15:35:43 cm-msk Exp $
 
 #
 # Setup
@@ -881,6 +881,134 @@ AC_SUBST(LIBODBX_CPPFLAGS)
 AC_SUBST(LIBODBX_LIBS)
 
 #
+# OpenLDAP
+#
+AC_ARG_WITH([openldap],
+            AS_HELP_STRING([--with-openldap],
+                           [location of OpenLDAP includes and library]),
+            [ldappath="$withval"], [ldappath="no"])
+
+ldap_found="no"
+OPENLDAP_CPPFLAGS=""
+OPENLDAP_LIBS=""
+
+if test \( x"$ldappath" = x"auto" -o x"$ldappath" = x"yes" \) -a \
+	x"$PKG_CONFIG" != x""
+then
+        PKG_CHECK_MODULES([OPENLDAP], [openldap >= 2.0.0], [ldap_found="yes"],
+	[
+	        ldap_found="no"
+        	AC_MSG_WARN([pkg-config for openldap not found, trying manual
+		            search...])
+        ])
+fi
+
+if test x"$ldappath" != x"no" -a x"$ldap_found" = x"no"
+then
+	AC_MSG_CHECKING([for OpenLDAP])
+	if test x"$ldappath" != x"auto" -a x"$ldappath" != x"yes"
+	then
+		if test -f $ldappath/include/ldap.h
+		then
+			AC_MSG_RESULT($ldappath)
+		        ldap_found="yes"
+			OPENLDAP_CPPFLAGS="-I$ldappath/include"
+			OPENLDAP_LIBS="-L$ldappath/lib -lldap"
+		else
+			AC_MSG_ERROR(not found at $ldappath)
+		fi
+	else
+		ldapdirs="/usr /usr/local"
+		for d in $ldapdirs
+		do
+			if test -f $d/include/ldap.h
+			then
+				ldappath=$d
+				AC_MSG_RESULT($d)
+		        	ldap_found="yes"
+				OPENLDAP_CPPFLAGS="-I$ldappath/include"
+				OPENLDAP_LIBS="-L$ldappath/lib -lldap"
+				break;
+			fi
+		done
+	fi
+	if test x"$ldap_found" != x"yes"
+	then
+		AC_MSG_RESULT([no])
+	fi
+fi
+if test x"$ldap_found" = x"yes"
+then
+	AC_DEFINE([USE_LDAP], 1, [OpenLDAP support for datasets enabled])
+fi
+AM_CONDITIONAL(USE_LDAP, test x"$ldap_found" = x"yes")
+AC_SUBST(OPENLDAP_CPPFLAGS)
+AC_SUBST(OPENLDAP_LIBS)
+
+#
+# SASL
+#
+AC_ARG_WITH([sasl],
+            AS_HELP_STRING([--with-sasl],
+                           [location of SASL includes]),
+            [saslpath="$withval"], [saslpath="no"])
+if test x"$ldap_found" = x"yes" -a x"$saslpath" = x"no"
+then
+	saslpath="auto"
+fi
+
+sasl_found="no"
+if test \( x"$saslpath" = x"auto" -o x"$saslpath" = x"yes" \) -a \
+	x"$PKG_CONFIG" != x""
+then
+        PKG_CHECK_MODULES([CYRUSSASL], [cyrussasl >= 2.1.0], [sasl_found="yes"],
+	[
+	        sasl_found="no"
+        	AC_MSG_WARN([pkg-config for cyrussasl not found, trying manual
+		            search...])
+        ])
+fi
+
+if test x"$saslpath" != x"no" -a x"$sasl_found" = x"no"
+then
+	AC_MSG_CHECKING([for SASL])
+	if test x"$saslpath" != x"auto" -a x"$saslpath" != x"yes"
+	then
+		if test -f $saslpath/include/sasl/sasl.h
+		then
+			AC_MSG_RESULT($saslpath)
+		        sasl_found="yes"
+			SASL_CPPFLAGS="-I$saslpath/include"
+		else
+			AC_MSG_ERROR(not found at $saslpath)
+		fi
+	else
+		sasldirs="/usr /usr/local"
+		for d in $sasldirs
+		do
+			if test -f $d/include/sasl/sasl.h
+			then
+				saslpath=$d
+				AC_MSG_RESULT($d)
+		        	sasl_found="yes"
+				SASL_CPPFLAGS="-I$ldappath/include"
+				break;
+			fi
+		done
+	fi
+	if test x"$sasl_found" != x"yes"
+	then
+		AC_MSG_RESULT([no])
+	fi
+fi
+if test x"$sasl_found" = x"yes"
+then
+	AC_DEFINE([USE_SASL], 1, [SASL support available])
+fi
+AM_CONDITIONAL(USE_SASL, test x"$sasl_found" = x"yes")
+AC_SUBST(SASL_CPPFLAGS)
+
+#
 # libdb
 #
 AC_ARG_WITH([db],
@@ -892,13 +1020,24 @@ LIBDB_INCDIRS=""
 LIBDB_LIBDIRS=""
 LIBDB_LIBS=""
 
+# was --with-db given with "yes" or a path?
+bdbrequested="no"
+if test x"$bdb" != x"no" -a x"$bdb" != x"auto"
+then
+	bdbrequested="yes"
+else
+	bdbrequested="no"
+fi
+
 AM_CONDITIONAL(USE_DB_OPENDKIM,
                test x"$enable_bodylengthdb" = x"yes" -o \
 	            x"$enable_popauth" = x"yes" -o \
 	            x"$enable_stats" = x"yes" -o \
-	            x"$enable_report_intervals" = x"yes")
+	            x"$enable_report_intervals" = x"yes" -o \
+                    x"$bdbrequested" = x"yes")
 AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")
 
+# Is DB required based on --enables?
 if test x"$USE_DB_OPENDKIM_TRUE" = x"" -o \
 	x"$USE_DB_LIBOPENDKIM_TRUE" = x""
 then
@@ -907,6 +1046,7 @@ else
 	bdbrequired="no"
 fi
 
+# If --with-db wasn't specified and the --enables demand it, force "yes"
 if test x"$bdb" = x"auto"
 then
 	if test x"$bdbrequired" = x"yes"
@@ -983,7 +1123,7 @@ then
 		done
 	fi
 
-	if test x"$libdbfound" = "xno"
+	if test x"$libdbfound" = x"no"
 	then
 		AC_MSG_ERROR([cannot find db_create or dbopen])
 	fi
@@ -1021,6 +1161,8 @@ else
 		AC_MSG_RESULT([$bdb])
 	else
 		AC_MSG_RESULT([not found - assuming libc])
+		AC_DEFINE(USE_DB, 1,
+		          [enable support for SleepyCat/Berkeley DB libraries])
 	fi
 
 	AC_DEFINE(USE_DB, 1,

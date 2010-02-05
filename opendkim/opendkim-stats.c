@@ -2,13 +2,13 @@
 **  Copyright (c) 2007, 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.6 2009/11/22 08:15:50 grooverdan Exp $
+**  $Id: opendkim-stats.c,v 1.7 2010/02/05 15:35:53 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.6 2009/11/22 08:15:50 grooverdan Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7 2010/02/05 15:35:53 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -60,6 +60,7 @@ dkims_dump(char *path)
 	DKIMF_DB db;
 	struct dkim_stats_key reckey;
 	struct dkim_stats_data recdata;
+	struct dkimf_db_data dbd;
 
 	assert(path != NULL);
 
@@ -80,10 +81,14 @@ dkims_dump(char *path)
 		memset(&reckey, '\0', sizeof reckey);
 		memset(&recdata, '\0', sizeof recdata);
 
+		dbd.dbdata_buffer = (char *) &recdata;
+		dbd.dbdata_buflen = sizeof recdata;
+		dbd.dbdata_flags = DKIMF_DB_DATA_BINARY;
+
 		keylen = sizeof reckey;
 		datalen = sizeof recdata;
 		status = dkimf_db_walk(db, first, &reckey, &keylen,
-		                       &recdata, &datalen);
+		                       &dbd, 1);
 		if (status == 1)
 		{
 			break;

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.81 2010/01/29 17:49:52 cm-msk Exp $
+**  $Id: opendkim.c,v 1.82 2010/02/05 15:35:53 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.81 2010/01/29 17:49:52 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.82 2010/02/05 15:35:53 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -200,6 +200,9 @@ struct dkimf_config
 #ifdef _FFR_RESIGN
 	_Bool		conf_resignall;		/* resign unverified mail */
 #endif /* _FFR_RESIGN */
+#ifdef USE_LDAP
+	_Bool		conf_ldap_usetls;	/* LDAP TLS */
+#endif /* USE_LDAP */
 	unsigned int	conf_mode;		/* operating mode */
 	unsigned int	conf_refcnt;		/* reference count */
 	unsigned int	conf_dnstimeout;	/* DNS timeout */
@@ -271,6 +274,16 @@ struct dkimf_config
 #ifdef _FFR_REDIRECT
 	char *		conf_redirect;		/* redirect failures to */
 #endif /* _FFR_REDIRECT */
+#ifdef USE_LDAP
+	char *		conf_ldap_binduser;	/* LDAP bind user */
+	char *          conf_ldap_bindpw;	/* LDAP bind password */
+	char *          conf_ldap_authmech;	/* LDAP auth mechanism */
+# ifdef USE_SASL
+	char *		conf_ldap_authname;	/* LDAP auth name */
+	char *		conf_ldap_authuser;	/* LDAP auth user */
+	char *		conf_ldap_authrealm;	/* LDAP auth realm */
+# endif /* USE_SASL */
+#endif /* USE_LDAP */
 #ifdef USE_LUA
 	char *		conf_screenscript;	/* Lua script: screening */
 	char *		conf_setupscript;	/* Lua script: setup */
@@ -918,6 +931,54 @@ dkimf_setreply(SMFICTX *ctx, char *rcode, char *xcode, char *replytxt)
 	else
 		return smfi_setreply(ctx, rcode, xcode, replytxt);
 }
+
+#ifdef USE_LDAP
+/*
+**  DKIMF_GET_LDAP_PARAM -- retrieve an LDAP parameter
+**
+**  Parameters:
+**  	which -- which parameter to get (a DKIMF_LDAP_PARAM_* constant)
+**
+**  Return value:
+**  	Pointer to the configured string or value.
+*/
+
+char *
+dkimf_get_ldap_param(int which)
+{
+	switch (which)
+	{
+	  case DKIMF_LDAP_PARAM_BINDUSER:
+		return curconf->conf_ldap_binduser;
+
+	  case DKIMF_LDAP_PARAM_BINDPW:
+		return curconf->conf_ldap_bindpw;
+
+	  case DKIMF_LDAP_PARAM_AUTHMECH:
+		return curconf->conf_ldap_authmech;
+
+# ifdef USE_SASL
+	  case DKIMF_LDAP_PARAM_AUTHNAME:
+		return curconf->conf_ldap_authname;
+
+	  case DKIMF_LDAP_PARAM_AUTHREALM:
+		return curconf->conf_ldap_authrealm;
+
+	  case DKIMF_LDAP_PARAM_AUTHUSER:
+		return curconf->conf_ldap_authuser;
+# endif /* USE_SASL */
+
+	  case DKIMF_LDAP_PARAM_USETLS:
+		if (curconf->conf_ldap_usetls)
+			return (char *) 1;
+		else
+			return NULL;
+
+	  default:
+		assert(0);
+	}
+}
+#endif /* USE_LDAP */
 
 /*
 **  DKIMF_GETSYMVAL -- wrapper for smfi_getsymval()
@@ -2992,8 +3053,8 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 {
 	_Bool exists;
 	int status;
-	size_t ris;
 	struct dkimf_ridb_entry ri;
+	struct dkimf_db_data dbd;
 
 	assert(domain != NULL);
 
@@ -3001,8 +3062,9 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 	if (interval == 0)
 		return 1;
 
-	ris = sizeof ri;
-	status = dkimf_db_get(ridb, domain, 0, &ri, &ris, &exists);
+	dbd.dbdata_buffer = &ri;
+	dbd.dbdata_buflen = sizeof ri;
+	status = dkimf_db_get(ridb, domain, 0, &dbd, 1, &exists);
 
 	if (status == 0)
 	{
@@ -3016,7 +3078,7 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 			ri.ridb_count = 1;
 
 			status = dkimf_db_put(ridb, domain, 0,
-			                      &ri, sizeof ris);
+			                      &ri, sizeof ri);
 
 			if (status != 0)
 				return -1;
@@ -3028,7 +3090,7 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 			ri.ridb_count++;
 
 			status = dkimf_db_put(ridb, domain, 0,
-			                      &ri, sizeof ris);
+			                      &ri, sizeof ri);
 
 			if (status != 0)
 				return -1;
@@ -3308,7 +3370,7 @@ dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 			_Bool found = FALSE;
 
 			(void) dkimf_db_get(conf->conf_thirdpartydb,
-			                    (char *) sdomain, 0, NULL, NULL,
+			                    (char *) sdomain, 0, NULL, 0,
 			                    &found);
 
 			if (found)
@@ -3516,12 +3578,16 @@ dkimf_local_adsp(struct dkimf_config *conf, char *domain, dkim_policy_t *pcode)
 		size_t plen;
 		char *p;
 		char policy[BUFRSZ];
+		struct dkimf_db_data dbd;
 
 		memset(policy, '\0', sizeof policy);
 		plen = sizeof policy;
 
+		dbd.dbdata_buffer = policy;
+		dbd.dbdata_buflen = plen;
+
 		status = dkimf_db_get(conf->conf_localadsp_db, domain, 0, 
-		                      policy, &plen, &found);
+		                      &dbd, 1, &found);
 		if (policy[0] == '\0')
 			found = FALSE;
 
@@ -3529,10 +3595,10 @@ dkimf_local_adsp(struct dkimf_config *conf, char *domain, dkim_policy_t *pcode)
 		     p != NULL && !found;
 		     p = strchr(p + 1, '.'))
 		{
-			plen = sizeof policy;
+			dbd.dbdata_buflen = plen;
 
 			status = dkimf_db_get(conf->conf_localadsp_db, p, 0,
-			                      policy, &plen, &found);
+			                      &dbd, 1, &found);
 			if (policy[0] == '\0')
 				found = FALSE;
 		}
@@ -4422,6 +4488,39 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "AllowSHA1Only",
 		                  &conf->conf_allowsha1only,
 		                  sizeof conf->conf_allowsha1only);
+
+#ifdef USE_LDAP
+		(void) config_get(data, "LDAPUseTLS",
+		                  &conf->conf_ldap_usetls,
+		                  sizeof conf->conf_ldap_usetls);
+
+		(void) config_get(data, "LDAPAuthMechanism",
+		                  &conf->conf_ldap_authmech,
+		                  sizeof conf->conf_ldap_authmech);
+
+# ifdef USE_SASL
+		(void) config_get(data, "LDAPAuthName",
+		                  &conf->conf_ldap_authname,
+		                  sizeof conf->conf_ldap_authname);
+
+		(void) config_get(data, "LDAPAuthRealm",
+		                  &conf->conf_ldap_authrealm,
+		                  sizeof conf->conf_ldap_authrealm);
+
+		(void) config_get(data, "LDAPAuthUser",
+		                  &conf->conf_ldap_authuser,
+		                  sizeof conf->conf_ldap_authuser);
+# endif /* USE_SASL */
+
+		(void) config_get(data, "LDAPBindPassword",
+		                  &conf->conf_ldap_bindpw,
+		                  sizeof conf->conf_ldap_bindpw);
+
+		(void) config_get(data, "LDAPBindUser",
+		                  &conf->conf_ldap_binduser,
+		                  sizeof conf->conf_ldap_binduser);
+#endif /* USE_LDAP */
+
 #ifdef USE_UNBOUND
 		(void) config_get(data, "TrustAnchorFile",
 		                  &conf->conf_trustanchorpath,
@@ -5953,7 +6052,7 @@ dkimf_checkbldb(char *to, char *jobid)
 		}
 	}
 
-	status = dkimf_db_get(bldb, dbaddr, 0, NULL, NULL, &exists);
+	status = dkimf_db_get(bldb, dbaddr, 0, NULL, 0, &exists);
 	if (status == 0)
 	{
 		return exists;
@@ -8236,7 +8335,7 @@ mlfi_eoh(SMFICTX *ctx)
 		     a = a->a_next)
 		{
 			status = dkimf_db_get(conf->conf_resigndb,
-			                      a->a_addr, 0, NULL, NULL,
+			                      a->a_addr, 0, NULL, 0,
 			                      &match);
 
 			if (match)
@@ -8260,7 +8359,7 @@ mlfi_eoh(SMFICTX *ctx)
 		if (mtaname != NULL)
 		{
 			status = dkimf_db_get(conf->conf_mtasdb, mtaname, 0,
-			                      NULL, NULL, &originok);
+			                      NULL, 0, &originok);
 		}
 
 		if (!originok && conf->conf_logwhy)
@@ -8277,6 +8376,7 @@ mlfi_eoh(SMFICTX *ctx)
 		int n;
 		char *val;
 		char name[BUFRSZ + 1];
+		struct dkimf_db_data dbd;
 
 		if (dfc->mctx_tmpstr == NULL)
 		{
@@ -8306,8 +8406,12 @@ mlfi_eoh(SMFICTX *ctx)
 			if (val == NULL)
 				continue;
 
+			memset(&dbd, '\0', sizeof dbd);
+			dbd.dbdata_buffer = val;
+			dbd.dbdata_buflen = strlen(val);
+
 			status = dkimf_db_get(conf->conf_macrosdb, name, 0,
-			                      val, NULL, &originok);
+			                      &dbd, 1, &originok);
 		}
 
 		if (!originok && conf->conf_logwhy)
@@ -8393,7 +8497,7 @@ mlfi_eoh(SMFICTX *ctx)
 	if (originok && !domainok && conf->conf_domainsdb != NULL)
 	{
 		status = dkimf_db_get(conf->conf_domainsdb, dfc->mctx_domain,
-		                      0, NULL, NULL, &domainok);
+		                      0, NULL, 0, &domainok);
 
 		if (!domainok && conf->conf_logwhy)
 		{
@@ -8413,7 +8517,7 @@ mlfi_eoh(SMFICTX *ctx)
 					break;
 
 				status = dkimf_db_get(conf->conf_domainsdb, p,
-				                      0, NULL, NULL,
+				                      0, NULL, 0,
 				                      &domainok);
 
 				if (domainok)
@@ -8619,7 +8723,7 @@ mlfi_eoh(SMFICTX *ctx)
 		{
 			found = FALSE;
 			status = dkimf_db_get(conf->conf_dontsigntodb,
-			                      a->a_addr, 0, NULL, NULL,
+			                      a->a_addr, 0, NULL, 0,
 			                      &found);
 
 			if (found)
@@ -9547,7 +9651,7 @@ mlfi_eom(SMFICTX *ctx)
 				{
 					status = dkimf_db_get(conf->conf_remardb,
 					                      ares->ares_host,
-					                      0, NULL, NULL,
+					                      0, NULL, 0,
 					                      &hostmatch);
 				}
 				else
@@ -11295,6 +11399,7 @@ usage(void)
 			"\t-o hdrlist  \tlist of headers to omit from signing\n"
 	                "\t-P pidfile  \tfile to which to write pid\n"
 	                "\t-q          \tquarantine messages that fail to verify\n"
+		        "\t-Q          \tquery test mode\n"
 	                "\t-r          \trequire basic RFC2822 header compliance\n"
 	                "\t-R          \tgenerate verification failure reports\n"
 	                "\t-s selector \tselector to use when signing\n"
@@ -11327,6 +11432,7 @@ main(int argc, char **argv)
 	_Bool dofork = TRUE;
 	_Bool stricttest = FALSE;
 	_Bool configonly = FALSE;
+	_Bool querytest = FALSE;
 	int c;
 	int status;
 	int n;
@@ -11556,6 +11662,11 @@ main(int argc, char **argv)
 			quarantine = TRUE;
 			break;
 
+		  case 'Q':
+			querytest = TRUE;
+			testmode = TRUE;
+			break;
+
 		  case 'r':
 			curconf->conf_reqhdrs = TRUE;
 			break;
@@ -11722,6 +11833,159 @@ main(int argc, char **argv)
 
 	dolog = curconf->conf_dolog;
 	curconf->conf_data = cfg;
+
+	if (querytest)
+	{
+		_Bool exists = FALSE;
+		DKIMF_DB dbtest;
+		DKIMF_DBDATA dbdp;
+		char *p;
+		char dbname[BUFRSZ + 1];
+		char query[BUFRSZ + 1];
+		char **result;
+
+		if (isatty(0))
+		{
+			fprintf(stdout, "%s: enter data set description\n",
+			        progname);
+			fprintf(stdout, "\tcsl:entry1[,entry2[,...]]\n"
+			                "\tfile:path\n"
+			                "\trefile:path\n"
+			                "\tdb:path\n"
+#ifdef USE_ODBX
+			                "\tdsn:<backend>://[user[:pwd]@][port+]host/dbase[/key=val[?...]]\n"
+#endif /* USE_ODBX */
+#ifdef USE_LDAP
+			                "\tldapscheme://host[:port][/dn[?attrs[?scope[?filter[?exts]]]]]\n"
+#endif /* USE_LDAP */
+			                "> ");
+		}
+
+		memset(dbname, '\0', sizeof dbname);
+		if (fgets(dbname, BUFRSZ, stdin) != dbname)
+		{
+			fprintf(stderr, "%s: fgets(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+		}
+
+		p = strchr(dbname, '\n');
+		if (p != NULL)
+			*p = '\0';
+
+		status = dkimf_db_open(&dbtest, dbname, DKIMF_DB_FLAG_READONLY,
+		                       NULL);
+		if (status != 0)
+		{
+			fprintf(stderr, "%s: %s: dkimf_db_open() failed\n",
+			        progname, dbname);
+			return EX_SOFTWARE;
+		}
+
+		if (isatty(0))
+		{
+			fprintf(stdout,
+			        "%s: enter `query/n' where `n' is number of fields to request\n> ",
+			        progname);
+		}
+
+		memset(query, '\0', sizeof query);
+		if (fgets(query, BUFRSZ, stdin) != query)
+		{
+			fprintf(stderr, "%s: fgets(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+		}
+
+		p = strchr(query, '\n');
+		if (p != NULL)
+			*p = '\0';
+
+		p = strchr(query, '/');
+		if (p == NULL)
+		{
+			(void) dkimf_db_close(dbtest);
+			fprintf(stderr, "%s: invalid query `%s'\n", progname,
+			        query);
+			return EX_USAGE;
+		}
+
+		n = atoi(p + 1);
+		if (n < 0)
+		{
+			(void) dkimf_db_close(dbtest);
+			fprintf(stderr, "%s: invalid query `%s'\n", progname,
+			        query);
+			return EX_USAGE;
+		}
+
+		result = (char **) malloc(sizeof(char *) * n);
+		if (result == NULL)
+		{
+			fprintf(stderr, "%s: malloc(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+		}
+
+		for (c = 0; c < n; c++)
+		{
+			result[c] = (char *) malloc(BUFRSZ + 1);
+			if (result[c] == NULL)
+			{
+				fprintf(stderr, "%s: malloc(): %s\n", progname,
+				        strerror(errno));
+				free(result);
+				return EX_OSERR;
+			}
+			memset(result[c], '\0', BUFRSZ + 1);
+		}
+
+		dbdp = (DKIMF_DBDATA) malloc(sizeof(struct dkimf_db_data) * n);
+		if (dbdp == NULL)
+		{
+			fprintf(stderr, "%s: malloc(): %s\n", progname,
+			        strerror(errno));
+			free(result);
+			return EX_OSERR;
+		}
+
+		for (c = 0; c < n; c++)
+		{
+			dbdp[c].dbdata_buffer = result[c];
+			dbdp[c].dbdata_buflen = BUFRSZ;
+		}
+
+		*p = '\0';
+
+		status = dkimf_db_get(dbtest, query, strlen(query),
+		                      dbdp, n, &exists);
+
+		if (status != 0)
+		{
+			fprintf(stderr, "%s: dkimf_db_get() returned %d\n",
+			        progname, status);
+		}
+		else if (!exists)
+		{
+			fprintf(stdout,
+			        "%s: dkimf_db_get(): record not found\n",
+			        progname);
+		}
+		else
+		{
+			for (c = 0; c < n; c++)
+				fprintf(stdout, "`%s'\n", result[c]);
+		}
+
+		for (c = 0; c < n; c++)
+			free(result[c]);
+		free(result);
+		free(dbdp);
+
+		dkimf_db_close(dbtest);
+
+		return 0;
+	}
 
 	if (testmode && curconf->conf_modestr == NULL)
 		curconf->conf_mode = DKIMF_MODE_VERIFIER;

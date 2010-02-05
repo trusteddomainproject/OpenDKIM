@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.95 2010/02/02 18:06:59 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.96 2010/02/05 15:35:42 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -12,6 +12,9 @@ release, and a summary of the changes in that release.
 		fine-grained policy controls when signing and verifying,
 		and "miltertest", a new Lua-based scripting tool for
 		exercising milter applications.
+	Add optional OpenLDAP support.
+	Add "-Q" command line switch, putting the filter in query test mode
+		to exercise the database code.
 	Don't overwrite the signature verification status with that of the
 		policy query status, leading to spurious "bad signature data"
 		entries in the log.  Problem noted by Roman Gelfand.

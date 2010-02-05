@@ -2,13 +2,13 @@
 **  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.34 2010/01/21 21:55:14 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.35 2010/02/05 15:35:53 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.34 2010/01/21 21:55:14 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.35 2010/02/05 15:35:53 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -27,12 +27,20 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.34 2010/01/21 21:55
 #include <pthread.h>
 #include <stdio.h>
 #include <regex.h>
+
+/* various DB library includes */
 #ifdef USE_DB
 # include <db.h>
 #endif /* USE_DB */
 #ifdef USE_ODBX
 # include <odbx.h>
 #endif /* USE_ODBX */
+#ifdef USE_LDAP
+# include <ldap.h>
+#endif /* USE_LDAP */
+#ifdef USE_SASL
+# include <sasl/sasl.h>
+#endif /* USE_SASL */
 
 /* libopendkim includes */
 #include <dkim.h>
@@ -46,6 +54,8 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.34 2010/01/21 21:55
 /* macros */
 #define	DEFARRAYSZ		16
 #define DKIMF_DB_MODE		0644
+#define DKIMF_LDAP_MAXURIS	8
+#define DKIMF_LDAP_TIMEOUT	5
 
 #define	DKIMF_DB_IFLAG_FREEARRAY 0x01
 
@@ -132,6 +142,16 @@ struct dkimf_db_dsn
 };
 #endif /* USE_ODBX */
 
+#ifdef USE_LDAP
+struct dkimf_db_ldap
+{
+	int			ldap_timeout;
+	char			ldap_urilist[BUFRSZ];
+	LDAPURLDesc *		ldap_descr;
+	pthread_mutex_t		ldap_lock;
+};
+#endif /* USE_LDAP */
+
 /* globals */
 struct dkimf_db_table dbtypes[] =
 {
@@ -144,8 +164,236 @@ struct dkimf_db_table dbtypes[] =
 #ifdef USE_ODBX
 	{ "dsn",		DKIMF_DB_TYPE_DSN },
 #endif /* USE_ODBX */
+#ifdef USE_LDAP
+	{ "ldap",		DKIMF_DB_TYPE_LDAP },
+	{ "ldapi",		DKIMF_DB_TYPE_LDAP },
+	{ "ldaps",		DKIMF_DB_TYPE_LDAP },
+#endif /* USE_LDAP */
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
+
+
+#if (USE_SASL && USE_LDAP)
+/*
+**  DKIMF_DB_SASLINTERACT -- SASL binding interaction callback
+**
+**  Parameters:
+**  	ld -- LDAP handle (see below)
+**  	flags -- LDAP handling flags
+**  	defaults -- defaults pointer (see below)
+**  	interact -- SASL interaction object
+**
+**  Return value:
+**  	LDAP_SUCCESS (for now)
+**
+**  Notes:
+**  	If SASL requires additional parameters that OpenLDAP didn't provide
+**  	in its call, it uses a callback we have to provide to try to get them.
+**  	The layering here can get quite confusing.  "defaults" is an
+**  	application-specific handle that can point to a bunch of defaults
+**  	set elsewhere, but we don't need it here so it's ignored.  Similarly,
+**  	"ld" is not actually needed.
+*/
+
+static int
+dkimf_db_saslinteract(LDAP *ld, unsigned int flags, void *defaults,
+                      void *sasl_interact)
+{
+	sasl_interact_t *interact;
+
+	assert(sasl_interact != NULL);
+
+	interact = sasl_interact;
+
+	switch (interact->id)
+	{
+	  case SASL_CB_PASS:
+		interact->result = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_BINDPW);
+		interact->len = strlen(interact->result);
+		break;
+
+	  case SASL_CB_GETREALM:
+		interact->result = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_AUTHREALM);
+		interact->len = strlen(interact->result);
+		break;
+
+	  case SASL_CB_AUTHNAME:
+		interact->result = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_AUTHNAME);
+		interact->len = strlen(interact->result);
+		break;
+
+	  case SASL_CB_USER:
+		interact->result = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_AUTHUSER);
+		interact->len = strlen(interact->result);
+		break;
+
+	  default:
+		interact->result = "";
+		interact->len = 0;
+		break;
+	}
+
+	return SASL_OK;
+}
+#endif /* (USE_SASL && USE_LDAP) */
+
+/*
+**  DKIMF_DB_DATASPLIT -- split a database value or set of values into a
+**                        request array
+**
+**  Parameters:
+**  	buf -- data buffer
+**  	buflen -- buffer length
+**  	req -- request array
+**  	reqnum -- length of request array
+**
+**  Return value:
+**  	None.
+*/
+
+static void
+dkimf_db_datasplit(char *buf, size_t buflen,
+                   DKIMF_DBDATA req, unsigned int reqnum)
+{
+	int ridx;
+	size_t clen;
+	size_t remain;
+	char *p;
+	char *q;
+
+	assert(buf != NULL);
+
+	if (req == NULL || reqnum == 0)
+		return;
+
+	ridx = 0;
+	clen = 0;
+	remain = buflen;
+	q = req[ridx].dbdata_buffer;
+
+	for (p = buf; *p != '\0' && ridx < reqnum; p++)
+	{
+		/*
+		**  Break at ":" except in last one or at the end of complete
+		**  binary ones.
+		*/
+
+		if ((*p == ':' && ridx < reqnum - 1) ||
+		    (req[ridx].dbdata_flags & DKIMF_DB_DATA_BINARY &&
+		     clen == req[ridx].dbdata_buflen))
+		{
+			req[ridx].dbdata_buflen = clen;
+			ridx++;
+			clen = 0;
+			q = req[ridx].dbdata_buffer;
+
+			continue;
+		}
+
+		/* copy byte */
+		if (clen < req[ridx].dbdata_buflen)
+		{
+			*q = *p;
+			q++;
+		}
+
+		clen++;
+	}
+
+	/* mark the ones that got no data */
+	if (ridx < reqnum - 1)
+	{
+		int c;
+
+		for (c = ridx + 1; c < reqnum; c++)
+			req[c].dbdata_buflen = 0;
+	}
+}
+
+#ifdef USE_LDAP
+/*
+**  DKIMF_DB_MKLDAPQUERY -- generate an LDAP query
+**
+**  Parameters:
+**  	ldap -- LDAP data handle
+**  	buf -- parameter (the actual query)
+**  	buflen -- length of data in "buf"
+**  	query -- destination string
+**  	qlen -- size of "query"
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	Should report overflows.
+*/
+
+static void
+dkimf_db_mkldapquery(struct dkimf_db_ldap *ldap, char *buf, size_t buflen,
+                     char *query, size_t qlen)
+{
+	char last = '\0';
+	char *p;
+	char *b;
+	char *q;
+	char *pend;
+	char *bend;
+	char *qend;
+
+	assert(ldap != NULL);
+	assert(buf != NULL);
+	assert(query != NULL);
+
+	p = ldap->ldap_descr->lud_dn;
+	pend = p + strlen(p) - 1;
+	q = query;
+	qend = query + qlen - 1;
+	bend = buf + buflen - 1;
+
+	while (p <= pend && q <= qend)
+	{
+		if (last == '$')
+		{
+			if (*p == 'd')
+			{
+				for (b = buf; b <= bend && q <= qend; b++)
+					*q++ = *b;
+			}
+			else if (*p == 'D')
+			{
+				for (b = buf; b <= bend && q <= qend; b++)
+				{
+					if (b == buf)
+					{
+						q += strlcpy(q, "dc=",
+						             qend - q);
+					}
+					else if (*b == '.')
+					{
+						q += strlcpy(q, ",dc=",
+						             qend - q);
+					}
+					else
+					{
+						*q++ = *b;
+					}
+				}
+			}
+			else
+			{
+				*q++ = *p;
+			}
+		}
+		else if (*p != '$')
+		{
+			*q++ = *p;
+		}
+
+		last = *p;
+		p++;
+	}
+}
+#endif /* USE_LDAP */
 
 /*
 **  DKIMF_DB_NEXTPUNCT -- find next punctuation
@@ -281,6 +529,7 @@ dkimf_db_type(DKIMF_DB db)
 **  	      for membership tests or key-value pairs
 **  	dsn -- a data store name, meaning SQL or ODBC in the backend,
 **  	       with interface provided by OpenDBX
+**  	ldap -- an LDAP server, interace provide by OpenLDAP
 */
 
 int
@@ -798,10 +1047,10 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			                     dbflags, 0);
 #  endif /* DB_VERSION_CHECK(4,1,25) */
 		}
-# elif DB_VERSION_CHECK(2,0,0)
+# elif DB_VERSION_CHECK(3,0,0)
 		status = db_open(p, bdbtype, dbflags, DKIMF_DB_MODE,
 		                 NULL, NULL, &newdb);
-# else /* DB_VERSION_MAJOR < 2 */
+# else /* DB_VERSION_MAJOR < 3 */
 		newdb = dbopen(p,
 		               (flags & DKIMF_DB_FLAG_READONLY ? O_RDONLY
 		                                                : (O_CREAT|O_RDWR)),
@@ -1021,6 +1270,209 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		free(tmp);
 	  }
 #endif /* USE_ODBX */
+
+#ifdef USE_LDAP
+	  case DKIMF_DB_TYPE_LDAP:
+	  {
+		_Bool found;
+		_Bool usetls = FALSE;
+		int c;
+		int err;
+		int v = LDAP_VERSION3;
+		size_t rem;
+		struct dkimf_db_ldap *ldap;
+		LDAP *ld;
+		char *q;
+		char *r;
+		char *u;
+		LDAPURLDesc *descr;
+		char *uris[DKIMF_LDAP_MAXURIS];
+
+		memset(uris, '\0', sizeof uris);
+
+		p = strdup(name);
+		if (p == NULL)
+			return -1;
+
+		/* make sure they're all valid LDAP URIs */
+		for (q = strtok_r(p, " \t", &r), c = 0;
+		     q != NULL;
+		     q = strtok_r(NULL, " \t", &r), c++)
+		{
+			if (ldap_is_ldap_url(q) == 0)
+			{
+				free(p);
+				return -1;
+			}
+
+			/* store the first N of them */
+			if (c < DKIMF_LDAP_MAXURIS)
+				uris[c] = q;
+		}
+
+		ldap = (struct dkimf_db_ldap *) malloc(sizeof(struct dkimf_db_ldap));
+		if (ldap == NULL)
+		{
+			free(p);
+			return -1;
+		}
+
+		memset(ldap, '\0', sizeof ldap);
+		ldap->ldap_timeout = DKIMF_LDAP_TIMEOUT;
+
+		/*
+		**  General format of an LDAP specification:
+		**  scheme://host[:port][/dn[?attrs[?scope[?filter[?exts]]]]]
+		**  (see RFC4516)
+		**  
+		**  "bindpass", "authmech" and "usetls" will be set in
+		**  other config values.
+		**  
+		**  Take the descriptive values (e.g. attributes) from the
+		**  first one.
+		*/
+
+		err = ldap_url_parse(uris[0], &ldap->ldap_descr);
+		if (err != 0)
+		{
+			free(ldap);
+			free(p);
+			return -1;
+		}
+
+		/* construct the URI list for this handle */
+		rem = sizeof ldap->ldap_urilist;
+		q = ldap->ldap_urilist;
+		for (c = 0; c < DKIMF_LDAP_MAXURIS; c++)
+		{
+			if (uris[c] == NULL)
+				break;
+
+			(void) ldap_url_parse(uris[c], &descr);
+
+			if (c != 0)
+			{
+				*q = ' ';
+				q++;
+				rem--;
+			}
+
+			rem -= snprintf(q, rem, "%s://%s:%d",
+			                descr->lud_scheme,
+			                descr->lud_host,
+			                descr->lud_port);
+
+			if (rem < 0)
+			{
+				free(ldap);
+				free(p);
+				return -1;
+			}
+
+			ldap_free_urldesc(descr);
+		}
+
+		/* create LDAP handle */
+		err = ldap_initialize(&ld, ldap->ldap_urilist);
+		if (err != LDAP_SUCCESS)
+		{
+			free(ldap);
+			free(p);
+			return -1;
+		}
+
+		/* set LDAP version */
+		err = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &v);
+		if (err != LDAP_OPT_SUCCESS)
+		{
+			ldap_unbind_ext(ld, NULL, NULL);
+			free(ldap);
+			free(p);
+			return -1;
+		}
+
+		/* attempt TLS if requested */
+		q = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_USETLS);
+		if (q != NULL && (*q == 'y' || *q == 'Y') &&
+		    strcasecmp(ldap->ldap_descr->lud_scheme, "ldaps") != 0)
+		{
+			err = ldap_start_tls_s(ld, NULL, NULL);
+			if (err != LDAP_SUCCESS)
+			{
+				ldap_unbind_ext(ld, NULL, NULL);
+				free(ldap);
+				free(p);
+				return -1;
+			}
+		}
+
+		/* attempt binding */
+		q = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_AUTHMECH);
+		u = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_BINDUSER);
+		if (q == NULL || strcasecmp(q, "none") == 0 ||
+		    strcasecmp(q, "simple") == 0)
+		{
+			struct berval passwd;
+
+			r = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_BINDPW);
+			if (r != NULL)
+			{
+				passwd.bv_val = r;
+				passwd.bv_len = strlen(r);
+			}
+			else
+			{
+				passwd.bv_val = NULL;
+				passwd.bv_len = 0;
+			}
+
+			err = ldap_sasl_bind_s(ld, u, q, &passwd,
+			                       NULL, NULL, NULL);
+			if (err != LDAP_SUCCESS)
+			{
+				ldap_unbind_ext(ld, NULL, NULL);
+				free(ldap);
+				free(p);
+				return -1;
+			}
+		}
+		else
+		{
+# ifdef USE_SASL
+			err = ldap_sasl_interactive_bind_s(ld,
+			                                   u,	/* bind user */
+			                                   q,	/* SASL mech */
+			                                   NULL, /* controls */
+			                                   NULL, /* controls */
+			                                   LDAP_SASL_QUIET, /* flags */
+			                                   dkimf_db_saslinteract, /* callback */
+			                                   NULL);
+			if (err != LDAP_SUCCESS)
+			{
+				ldap_unbind_ext(ld, NULL, NULL);
+				free(ldap);
+				free(p);
+				return -1;
+			}
+# else /* USE_SASL */
+			/* unknown auth mechanism */
+			ldap_unbind_ext(ld, NULL, NULL);
+			free(ldap);
+			free(p);
+			return -1;
+# endif /* USE_SASL */
+		}
+
+		pthread_mutex_init(&ldap->ldap_lock, NULL);
+
+		/* store handle */
+		new->db_handle = (void *) ld;
+		new->db_data = (void *) ldap;
+
+		/* clean up */
+		free(p);
+	  }
+#endif /* USE_LDAP */
 	}
 
 	*db = new;
@@ -1057,6 +1509,7 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 	if (db->db_type == DKIMF_DB_TYPE_FILE ||
 	    db->db_type == DKIMF_DB_TYPE_CSL || 
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
+	    db->db_type == DKIMF_DB_TYPE_LDAP || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -1192,6 +1645,7 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	if (db->db_type == DKIMF_DB_TYPE_FILE ||
 	    db->db_type == DKIMF_DB_TYPE_CSL || 
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
+	    db->db_type == DKIMF_DB_TYPE_LDAP || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -1312,9 +1766,8 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 **  	db -- DB handle to use for searching
 **  	buf -- pointer to the key
 **  	buflen -- length of key (use strlen() if 0)
-**  	outbuf -- output buffer
-**  	outbuflen -- IN: number of bytes available at outbuf
-**  	             OUT: number of bytes written to outbuf
+**  	req -- list of data requests
+**  	reqnum -- number of data requests
 **  	exists -- pointer to a "_Bool" updated to be TRUE if the record
 **  	          was found, FALSE otherwise (may be NULL)
 **
@@ -1323,17 +1776,39 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 **	!0 -- error occurred; error code returned
 **
 **  Notes:
-**  	"buflen" is not used for csl, file or refile types.
+**  	"req" references a caller-provided array of DKIMF_DBDATA
+**  	structures that describe the name of the attribute wanted,
+**  	the location to which to write the data, and how big that buffer is.
+**  	On completion, any found attributes will have their lengths
+**  	set to the number of bytes retrieved and the data will be copied
+**  	up to the limit (if more data was retrieved than the space available,
+**  	the available space will be filled but the returned length will be
+**  	longer); any not-found attributes will leave the buffers unchanged
+**  	and the lengths will be set to (unsigned int) -1.
+**
+**  	For LDAP queries, the attribute name is used as the LDAP attribute
+**  	name in the request.
+**
+**  	For SQL queries, the attribute name is not used; columns are specified
+**  	in the DSN (see dkimf_db_open() above), and are copied into the
+**  	request in order.
+**
+**  	For backward compatibility, text values in the other databases
+**  	that are colon-delimited will be parsed as such, and the requested
+**  	values will be filled in in order (so for "aaa:bbb", "aaa" will be
+**  	copied into the first attribute, "bbb" will be copied to the second,
+**  	and all others will receive no data.
 */
 
 int
 dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
-             void *outbuf, size_t *outbuflen, _Bool *exists)
+             DKIMF_DBDATA req, unsigned int reqnum, _Bool *exists)
 {
 	_Bool matched;
 
 	assert(db != NULL);
 	assert(buf != NULL);
+	assert(req != NULL || reqnum == 0);
 
 	switch (db->db_type)
 	{
@@ -1361,13 +1836,13 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 			if (matched)
 			{
-				if ((db->db_flags & DKIMF_DB_FLAG_MATCHBOTH) == 0)
-					break;
-				else if (list->db_list_value == NULL)
+				if ((db->db_flags & DKIMF_DB_FLAG_MATCHBOTH) == 0 ||
+				    list->db_list_value == NULL)
 					break;
 			}
 
-			if ((db->db_flags & DKIMF_DB_FLAG_MATCHBOTH) == 0)
+			if ((db->db_flags & DKIMF_DB_FLAG_MATCHBOTH) == 0 ||
+			    reqnum == 0)
 				continue;
 
 			matched = FALSE;
@@ -1375,12 +1850,16 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 			if ((db->db_flags & DKIMF_DB_FLAG_ICASE) == 0)
 			{
-				if (strcmp(buf, list->db_list_value) == 0)
+				if (strncmp(req[0].dbdata_buffer,
+				            list->db_list_value,
+				            req[0].dbdata_buflen) == 0)
 					matched = TRUE;
 			}
 			else
 			{
-				if (strcasecmp(buf, list->db_list_value) == 0)
+				if (strncasecmp(req[0].dbdata_buffer,
+				                list->db_list_value,
+				                req[0].dbdata_buflen) == 0)
 					matched = TRUE;
 			}
 
@@ -1397,11 +1876,11 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		{
 			if (exists != NULL)
 				*exists = TRUE;
-			if (list->db_list_value != NULL && outbuf != NULL)
+			if (list->db_list_value != NULL && reqnum != 0)
 			{
-				*outbuflen = strlcpy(outbuf,
-				                     list->db_list_value,
-				                     *outbuflen);
+				dkimf_db_datasplit(list->db_list_value,
+				                   strlen(list->db_list_value),
+				                   req, reqnum);
 			}
 		}
 
@@ -1421,12 +1900,12 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				if (exists != NULL)
 					*exists = TRUE;
 
-				if (outbuf != NULL &&
+				if (reqnum != 0 &&
 				    list->db_relist_data != NULL)
 				{
-					*outbuflen = strlcpy(outbuf,
-					                     list->db_relist_data,
-					                     *outbuflen);
+					dkimf_db_datasplit(list->db_relist_data,
+					                   strlen(list->db_relist_data),
+					                   req, reqnum);
 				}
 
 				return 0;
@@ -1450,6 +1929,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		DB *bdb;
 		DBT d;
 		DBT q;
+		char databuf[BUFRSZ + 1];
 
 		bdb = (DB *) db->db_handle;
 
@@ -1462,9 +1942,11 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 # if DB_VERSION_CHECK(2,0,0)
 		d.flags = DB_DBT_USERMEM|DB_DBT_PARTIAL;
-		d.data = outbuf;
-		d.size = (outbuflen == NULL ? 0 : *outbuflen);
 # endif /* DB_VERSION_CHECK(2,0,0) */
+		d.data = databuf;
+		d.size = BUFRSZ;
+
+		memset(databuf, '\0', sizeof databuf);
 
 		/* establish read-lock */
 		fd = -1;
@@ -1512,8 +1994,11 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			if (exists != NULL)
 				*exists = TRUE;
 		
-			if (outbuflen != NULL)
-				*outbuflen = d.size;
+			if (reqnum != 0)
+			{
+				dkimf_db_datasplit(databuf, sizeof databuf,
+				                   req, reqnum);
+			}
 
 			ret = 0;
 		}
@@ -1537,17 +2022,17 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		}
 		else if (status == 0)
 		{
+			size_t clen;
+
 			if (exists != NULL)
 				*exists = TRUE;
 
-			if (outbuf != NULL && outbuflen != NULL)
-			{
-				memcpy(outbuf, d.data, MIN(d.size,
-				       *outbuflen));
+			clen = MIN(sizeof databuf - 1, d.size);
+			memset(databuf, '\0', sizeof databuf);
+			memcpy(databuf, d.data, clen);
 
-				if (outbuflen != NULL)
-					*outbuflen = d.size;
-			}
+			if (reqnum != 0)
+				dkimf_db_datasplit(databuf, clen, req, reqnum);
 
 			ret = 0;
 		}
@@ -1636,13 +2121,6 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			db->db_status = err;
 			return err;
 		}
-		else if (err == ODBX_RES_DONE)
-		{
-			if (exists != NULL)
-				*exists = FALSE;
-			(void) odbx_result_finish(result);
-			return 0;
-		}
 
 		err = odbx_row_fetch(result);
 		if (err < 0)
@@ -1670,12 +2148,28 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		if (exists != NULL)
 			*exists = TRUE;
 
-		if (outbuf != NULL)
+		if (reqnum != 0)
 		{
-			*outbuflen = strlcpy(outbuf,
-			                     (char *) odbx_field_value(result,
-			                                               1),
-		                             *outbuflen);
+			int c;
+
+			for (c = 0; c < reqnum; c++)
+			{
+				if (c >= fields)
+				{
+					req[c].dbdata_buflen = 0;
+				}
+				else
+				{
+					char *val;
+
+					val = (char *) odbx_field_value(result,
+					                                c);
+
+					req[c].dbdata_buflen = strlcpy(req[c].dbdata_buffer,
+					                               val,
+					                               req[c].dbdata_buflen);
+				}
+			}
 		}
 
 		(void) odbx_result_finish(result);
@@ -1683,6 +2177,85 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		return 0;
 	  }
 #endif /* USE_ODBX */
+
+#ifdef USE_LDAP
+	  case DKIMF_DB_TYPE_LDAP:
+	  {
+		int c;
+		LDAP *ld;
+		LDAPMessage *result;
+		LDAPMessage *e;
+		struct dkimf_db_ldap *ldap;
+		struct berval **vals;
+		char query[BUFRSZ];
+		char filter[BUFRSZ];
+		struct timeval timeout;
+
+		ld = (LDAP *) db->db_handle;
+		ldap = (struct dkimf_db_ldap *) db->db_data;
+
+		pthread_mutex_lock(&ldap->ldap_lock);
+
+		memset(query, '\0', sizeof query);
+		memset(filter, '\0', sizeof filter);
+
+		dkimf_db_mkldapquery(ldap, buf, buflen, query, sizeof query);
+		dkimf_db_mkldapquery(ldap, ldap->ldap_descr->lud_filter,
+		                     strlen(ldap->ldap_descr->lud_filter),
+		                     filter, sizeof filter);
+
+		timeout.tv_sec = ldap->ldap_timeout;
+		timeout.tv_usec = 0;
+
+		status = ldap_search_ext_s(ld, query,
+		                           ldap->ldap_descr->lud_scope,
+		                           filter,
+		                           ldap->ldap_descr->lud_attrs,
+		                           0, NULL, NULL,
+		                           &timeout, 0, &result);
+		if (status != LDAP_SUCCESS)
+		{
+			db->db_status = status;
+			pthread_mutex_unlock(&ldap->ldap_lock);
+			return status;
+		}
+
+		e = ldap_first_entry(ld, result);
+		if (e == NULL)
+		{
+			if (exists != NULL)
+				*exists = FALSE;
+			pthread_mutex_unlock(&ldap->ldap_lock);
+			return 0;
+		}
+
+		if (exists != NULL)
+			*exists = TRUE;
+
+		for (c = 0; c < reqnum; c++)
+		{
+			vals = ldap_get_values_len(ld, e,
+			                           ldap->ldap_descr->lud_attrs[c]);
+			if (vals != NULL && vals[0] != NULL)
+			{
+				size_t clen;
+
+				clen = MIN(req[c].dbdata_buflen,
+				           vals[0]->bv_len);
+				memcpy(req[c].dbdata_buffer, vals[0]->bv_val,
+				       clen);
+				clen = MAX(req[c].dbdata_buflen,
+				           vals[0]->bv_len);
+				req[c].dbdata_buflen = clen;
+				ldap_value_free_len(vals);
+			}
+		}
+
+		ldap_msgfree(result);
+		pthread_mutex_unlock(&ldap->ldap_lock);
+		return 0;
+	  }
+#endif /* USE_LDAP */
 
 	  default:
 		assert(0);
@@ -1750,6 +2323,21 @@ dkimf_db_close(DKIMF_DB db)
 		break;
 #endif /* USE_ODBX */
 
+#ifdef USE_LDAP
+	  case DKIMF_DB_TYPE_LDAP:
+	  {
+		struct dkimf_db_ldap *ldap;
+
+		ldap = (struct dkimf_db_ldap *) db->db_data;
+
+		ldap_unbind_ext((LDAP *) db->db_handle, NULL, NULL);
+		pthread_mutex_destroy(&ldap->ldap_lock);
+		(void) ldap_free_urldesc(ldap->ldap_descr);
+		free(db->db_data);
+		break;
+	  }
+#endif /* USE_LDAP */
+
 	  default:
 		assert(0);
 	}
@@ -1795,6 +2383,11 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 		                               db->db_status), errlen);
 #endif /* USE_ODBX */
 
+#ifdef USE_LDAP
+	  case DKIMF_DB_TYPE_LDAP:
+		return strlcpy(err, ldap_err2string(db->db_status), errlen);
+#endif /* USE_LDAP */
+
 	  default:
 		assert(0);
 		return -1;		/* to silence the compiler */
@@ -1811,8 +2404,8 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 **  	first -- get first record?
 **  	key -- buffer to receive the key
 **  	keylen -- bytes available at "key" (updated)
-**  	data -- buffer to receive the data
-**  	datalen -- bytes available at "data" (updated)
+**  	req -- buffers to receive the data ("requests")
+**  	reqnum -- number of requests
 **
 **  Return value:
 **  	0 -- record returned
@@ -1822,7 +2415,7 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 
 int
 dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
-              void *data, size_t *datalen)
+              DKIMF_DBDATA req, unsigned int reqnum)
 {
 	assert(db != NULL);
 
@@ -1851,14 +2444,13 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 			*keylen = strlcpy(key, list->db_list_key, *keylen);
 		}
 
-		if (data != NULL)
+		if (reqnum != 0)
 		{
-			assert(datalen != NULL);
-
 			if (list->db_list_value != NULL)
 			{
-				*datalen = strlcpy(data, list->db_list_value,
-				                   *datalen);
+				dkimf_db_datasplit(list->db_list_value,
+				                   strlen(list->db_list_value),
+				                   req, reqnum);
 			}
 		}
 
@@ -1878,6 +2470,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 # if DB_VERSION_CHECK(2,0,0)
 		DBC *dbc;
 # endif /* DB_VERSION_CHECK(2,0,0) */
+		char databuf[BUFRSZ + 1];
 
 		bdb = (DB *) db->db_handle;
 
@@ -1907,9 +2500,9 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 # endif /* DB_VERSION_CHECK(2,0,0) */
 
 # if DB_VERSION_CHECK(2,0,0)
-		d.data = (void *) data;
+		d.data = databuf;
 		d.flags = DB_DBT_USERMEM;
-		d.ulen = (datalen != NULL ? *datalen : 0);
+		d.ulen = sizeof databuf;
 # endif /* DB_VERSION_CHECK(2,0,0) */
 
 # if DB_VERSION_CHECK(2,0,0)
@@ -1931,14 +2524,16 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 # if !DB_VERSION_CHECK(2,0,0)
 			if (key != NULL)
 				memcpy(key, k.data, MIN(k.size, *keylen));
-			if (data != NULL)
-				memcpy(data, d.data, MIN(d.size, *datalen));
+
+			if (reqnum != 0)
+			{
+				dkimf_db_datasplit(databuf, sizeof databuf,
+				                   req, reqnum);
+			}
 # endif /* ! DB_VERSION_CHECK(2,0,0) */
 
 			if (keylen != NULL)
 				*keylen = k.size;
-			if (datalen != NULL)
-				*datalen = d.size;
 
 			return 0;
 		}
@@ -2016,15 +2611,32 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		if (key != NULL)
 		{
 			*keylen = strlcpy(key,
-			                  (char *) odbx_field_value(result, 1),
+			                  (char *) odbx_field_value(result, 0),
 		                          *keylen);
 		}
 
-		if (data != NULL)
+		if (reqnum != 0)
 		{
-			*datalen = strlcpy(data,
-			                   (char *) odbx_field_value(result, 2),
-		                           *datalen);
+			int c;
+
+			for (c = 0; c < reqnum; c++)
+			{
+				if (c >= fields)
+				{
+					req[c].dbdata_buflen = 0;
+				}
+				else
+				{
+					char *val;
+
+					val = (char *) odbx_field_value(result,
+					                                c + 1);
+
+					req[c].dbdata_buflen = strlcpy(req[c].dbdata_buffer,
+					                               val,
+					                               req[c].dbdata_buflen);
+				}
+			}
 		}
 
 		return 0;
@@ -2130,7 +2742,7 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a)
 
 			keylen = sizeof keybuf - 1;
 			status = dkimf_db_walk(db, (nr == 0),
-			                       keybuf, &keylen, NULL, NULL);
+			                       keybuf, &keylen, NULL, 0);
 
 			if (nr == 0)
 			{
