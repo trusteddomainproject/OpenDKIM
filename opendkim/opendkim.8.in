@@ -4,7 +4,7 @@
 - DKIM signing and verifying filter for MTAs
 .SH SYNOPSIS
 .B opendkim
--p socketspec [-a peerlist] [-A] [-b modes] [-c canon] [-C config] [-d domains] [-D] [-f] [-F time] [-i ilist] [-I eilist] [-h] [-k keyfile] [-K] [-l] [-L min] [-m mtas] [-M macro[=value][,...]] [-n] [-o hdrlist] [-P pidfile] [-q] [-Q] [-r] [-R] [-s selector] [-S signalg] [-t testfile] [-T secs] [-u userid[:group]] [-U popdb] [-v] [-V] [-W] [-x configfile]
+-p socketspec [-a peerlist] [-A] [-b modes] [-c canon] [-C config] [-d domains] [-D] [-f] [-F time] [-i ilist] [-I eilist] [-h] [-k keyfile] [-l] [-L min] [-m mtas] [-M macro[=value][,...]] [-n] [-o hdrlist] [-P pidfile] [-q] [-Q] [-r] [-R] [-s selector] [-S signalg] [-t testfile] [-T secs] [-u userid[:group]] [-U popdb] [-v] [-V] [-W] [-x configfile]
 .SH DESCRIPTION
 .B opendkim
 implements the proposed
@@ -179,11 +179,6 @@ Configuration control.  See the CONFIGURATION section for details.
 .I -d dataset
 A set of domains whose mail should be signed by this filter.  Mail from
 other domains will be verified rather than being signed.
-
-This parameter is not required if
-.I -K
-is in use; in that case, the list of signed domains is implied by the
-lines in the key file.
 .TP
 .I -D
 Sign subdomains of those listed by the
@@ -231,40 +226,9 @@ set should be of the same form as those of the
 .I -a
 option above.  The list is empty by default.
 .TP
-.I -K
-Requests multiple-key processing.  See also
-.I -k
-below.
-.TP
 .I -k keyfile
-Without
-.I -K,
-gives the location of a PEM-formatted private key to be used for signing
-all messages.  With
-.I -K,
-gives the location of a file listing rules for signing with multiple keys.
-
-In the latter mode, the
-.I keyfile
-should contain a set of lines of the form
-.I sender-pattern:signing-domain:keypath
-where
-.I sender-pattern
-is a pattern to match against message senders (with the special character
-"*" interpreted as "zero or more characters"),
-.I signing-domain
-is the domain to announce as the signing domain when generating signatures, and
-.I keypath
-is the path to the PEM-formatted private key to be used for signing messages
-which match the
-.I sender-pattern.
-The selector used in the signature will be the filename portion of
-.I keypath.
-
-If the file referenced by
-.I keypath
-cannot be opened, the filter will try again by appending ".pem"
-and then ".private" before giving up.
+Gives the location of a PEM-formatted private key to be used for signing
+all messages.
 .TP
 .I -l
 Log via calls to

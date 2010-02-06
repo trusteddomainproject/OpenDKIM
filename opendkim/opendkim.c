@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.82 2010/02/05 15:35:53 cm-msk Exp $
+**  $Id: opendkim.c,v 1.83 2010/02/06 07:29:17 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.82 2010/02/05 15:35:53 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.83 2010/02/06 07:29:17 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -129,20 +129,6 @@ struct addrlist
 };
 
 /*
-**  KEYTABLE -- table of keys
-*/
-
-struct keytable
-{
-	char *		key_selector;		/* selector */
-	char *		key_domain;		/* domain */
-	regex_t		key_re;			/* regex for matching */
-	size_t		key_len;		/* key length */
-	unsigned char *	key_data;		/* private key data */
-	struct keytable * key_next;		/* next record */
-};
-
-/*
 **  HANDLING -- message handling requests
 */
 
@@ -190,7 +176,6 @@ struct dkimf_config
 	_Bool		conf_dolog;		/* syslog interesting stuff? */
 	_Bool		conf_dolog_success;	/* syslog successes too? */
 	_Bool		conf_milterv2;		/* using milter v2? */
-	_Bool		conf_multikey;		/* multi-key operation? */
 	_Bool		conf_fixcrlf;		/* fix bare CRs and LFs? */
 	_Bool		conf_logwhy;		/* log mode decision logic */
 	_Bool		conf_allowsha1only;	/* allow rsa-sha1 verifying */
@@ -230,7 +215,9 @@ struct dkimf_config
 	struct config *	conf_data;		/* configuration data */
 	char *		conf_authservid;	/* authserv-id */
 	char *		conf_actions;		/* action configuration */
-	char *		conf_keyfile;		/* key file */
+	char *		conf_keyfile;		/* key file for single key */
+	char *		conf_keytable;		/* key table */
+	char *		conf_signtable;		/* signing table */
 	char *		conf_peerfile;		/* peer file */
 	char *		conf_internalfile;	/* internal hosts file */
 	char *		conf_externalfile;	/* external hosts file */
@@ -289,8 +276,6 @@ struct dkimf_config
 	char *		conf_setupscript;	/* Lua script: setup */
 	char *		conf_finalscript;	/* Lua script: final */
 #endif /* USE_LUA */
-	struct keytable * conf_keyhead;		/* key list */
-	struct keytable * conf_keytail;		/* key list */
 #ifdef _FFR_REPLACE_RULES
 	struct replace * conf_replist;		/* replacement list */
 #endif /* _FFR_REPLACE_RULES */
@@ -333,6 +318,8 @@ struct dkimf_config
 	DKIMF_DB	conf_internal;		/* DB of "internal" hosts */
 	DKIMF_DB	conf_exignore;		/* "external ignore" host DB */
 	DKIMF_DB	conf_exemptdb;		/* exempt domains DB */
+	DKIMF_DB	conf_keytabledb;	/* key table DB */
+	DKIMF_DB	conf_signtabledb;	/* signing table DB */
 #ifdef _FFR_RESIGN
 	DKIMF_DB	conf_resigndb;		/* resigning addresses */
 #endif /* _FFR_RESIGN */
@@ -390,7 +377,6 @@ struct msgctx
 	struct Header *	mctx_hqtail;		/* header queue tail */
 	struct signreq * mctx_srhead;		/* signature request head */
 	struct signreq * mctx_srtail;		/* signature request tail */
-	struct keytable * mctx_key;		/* key information */
 	struct addrlist * mctx_rcptlist;	/* recipient list */
 	char		mctx_domain[DKIM_MAXHOSTNAMELEN + 1];
 						/* primary domain */
@@ -613,7 +599,8 @@ sfsistat mlfi_eoh __P((SMFICTX *));
 sfsistat mlfi_eom __P((SMFICTX *));
 sfsistat mlfi_header __P((SMFICTX *, char *, char *));
 
-static _Bool dkimf_add_signrequest __P((msgctx, struct keytable *));
+static _Bool dkimf_add_signrequest __P((struct msgctx *, DKIMF_DB,
+                                        char *, char *, char *));
 sfsistat dkimf_addheader __P((SMFICTX *, char *, char *));
 sfsistat dkimf_addrcpt __P((SMFICTX *, char *));
 sfsistat dkimf_chgheader __P((SMFICTX *, char *, int, char *));
@@ -621,11 +608,10 @@ static void dkimf_cleanup __P((SMFICTX *));
 static void dkimf_config_reload __P((void));
 sfsistat dkimf_delrcpt __P((SMFICTX *, char *));
 static Header dkimf_findheader __P((msgctx, char *, int));
-static void dkimf_freekeys __P((struct dkimf_config *));
 void *dkimf_getpriv __P((SMFICTX *));
 char * dkimf_getsymval __P((SMFICTX *, char *));
 sfsistat dkimf_insheader __P((SMFICTX *, int, char *, char *));
-static int dkimf_loadkeys __P((char *, struct dkimf_config *));
+static int dkimf_loadkeys __P((DKIMF_DB, struct dkimf_config *));
 static void dkimf_policyreport __P((msgctx, struct dkimf_config *, char *));
 sfsistat dkimf_quarantine __P((SMFICTX *, char *));
 void dkimf_sendprogress __P((const void *));
@@ -1195,6 +1181,7 @@ dkimf_xs_requestsig(lua_State *l)
 	SMFICTX *ctx;
 	const char *domain = NULL;
 	const char *selector = NULL;
+	const char *keyname = NULL;
 	struct connctx *cc;
 	struct msgctx *dfc;
 	struct dkimf_config *conf;
@@ -1202,14 +1189,15 @@ dkimf_xs_requestsig(lua_State *l)
 
 	assert(l != NULL);
 
-	if (lua_gettop(l) != 1 && lua_gettop(l) != 3)
+	if (lua_gettop(l) != 1 && lua_gettop(l) != 4)
 	{
 		lua_pushstring(l, "odkim_sign(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
-	         (lua_gettop(l) == 3 && (!lua_isstring(l, 2) ||
-	                                 !lua_isstring(l, 3))))
+	         (lua_gettop(l) == 4 && (!lua_isstring(l, 2) ||
+	                                 !lua_isstring(l, 3) ||
+	                                 !lua_isstring(l, 4))))
 	{
 		lua_pushstring(l, "odkim_sign(): incorrect argument type");
 		lua_error(l);
@@ -1222,14 +1210,21 @@ dkimf_xs_requestsig(lua_State *l)
 		dfc = cc->cctx_msg;
 		conf = cc->cctx_config;
 
-		if (lua_gettop(l) == 3)
+		if (lua_gettop(l) == 4)
 		{
 			domain = lua_tostring(l, 2);
 			selector = lua_tostring(l, 3);
+			keyname = lua_tostring(l, 4);
 		}
 	}
 
 	lua_pop(l, lua_gettop(l));
+
+	if (conf->conf_keytabledb == NULL && keyname != NULL)
+	{
+		lua_pushstring(l, "odkim_sign(): request requires KeyTable");
+		lua_error(l);
+	}
 
 	if (ctx == NULL)
 	{
@@ -1238,48 +1233,26 @@ dkimf_xs_requestsig(lua_State *l)
 		return 1;
 	}
 
-	/* find the key */
-	if (domain != NULL)
+	/* try to get the key */
+	if (keyname != NULL)
 	{
-		for (key = conf->conf_keyhead;
-		     key != NULL;
-		     key = key->key_next)
-		{
-			if (strcmp(domain, key->key_domain) == 0 &&
-			    strcmp(selector, key->key_selector) == 0)
-				break;
-		}
-
-		if (key == NULL)
+		if (!dkimf_add_signrequest(dfc, conf->conf_keytabledb,
+		                           (char *) keyname,
+		                           (char *) domain,
+		                           (char *) selector))
 		{
 			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "key for %s/%s not found",
-				       selector, domain);
-			}
+				syslog(LOG_ERR, "key `%s' not found", keyname);
 
 			lua_pushnumber(l, 0);
 
 			return 1;
 		}
 	}
-
-	if (!dkimf_add_signrequest(dfc, key))
+	else if (!dkimf_add_signrequest(dfc, NULL, NULL, NULL, NULL))
 	{
 		if (conf->conf_dolog)
-		{
-			if (domain == NULL)
-			{
-				syslog(LOG_ERR,
-				       "failed to request default signature");
-			}
-			else
-			{
-				syslog(LOG_ERR,
-				       "failed to request signature using %s/%s",
-				       selector, domain);
-			}
-		}
+			syslog(LOG_ERR, "failed to request default key");
 
 		lua_pushnumber(l, 0);
 
@@ -1748,7 +1721,7 @@ dkimf_xs_dbquery(lua_State *l)
 	}
 
 	exists = FALSE;
-	status = dkimf_db_get(db, (char *) str, 0, NULL, NULL, &exists);
+	status = dkimf_db_get(db, (char *) str, 0, NULL, 0, &exists);
 	if (status == 0)
 		lua_pushnumber(l, exists ? 1 : 0);
 	else
@@ -3115,30 +3088,121 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 #endif /* _FFR_REPORT_INTERVALS */
 
 /*
+**  DKIMF_LOADKEY -- resolve a key
+**
+**  Parameters:
+**  	buf -- key buffer
+**  	buflen -- pointer to key buffer's length (updated)
+**
+**  Return value:
+**  	TRUE on successful load, false otherwise
+*/
+
+static _Bool
+dkimf_loadkey(char *buf, size_t *buflen)
+{
+	assert(buf != NULL);
+	assert(buflen != NULL);
+
+	if (buf[0] == '/')
+	{
+		int fd;
+		int status;
+		ssize_t rlen;
+		struct stat s;
+
+		fd = open(buf, O_RDONLY);
+		if (fd < 0)
+			return FALSE;
+
+		status = fstat(fd, &s);
+		if (status != 0)
+		{
+			close(fd);
+			return FALSE;
+		}
+
+		*buflen = MIN(s.st_size, *buflen);
+		rlen = read(fd, buf, *buflen);
+		close(fd);
+
+		if (rlen < *buflen)
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
+/*
 **  DKIMF_ADD_SIGNREQUEST -- add a signing request
 **
 **  Parameters:
-**  	dfc -- DKIM filter context
-**  	key -- keytable entry
+**  	cc -- connection context
+**  	keytable -- table from which to get key
+**  	keyname -- name of private key to use
+**  	domain -- domain to use
+** 	selector -- selector to use
 **
 **  Return value:
 **  	TRUE iff the list was updated.
 */
 
 static _Bool
-dkimf_add_signrequest(msgctx dfc, struct keytable *key)
+dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable,
+                      char *keyname, char *domain, char *selector)
 {
+	_Bool found = FALSE;
+	int status;
+	size_t keydatasz;
+	struct dkimf_config *conf;
 	struct signreq *new;
+	struct dkimf_db_data dbd;
+	char keydata[MAXBUFRSZ + 1];
 
 	assert(dfc != NULL);
+
+	if (keytable != NULL)
+	{
+		assert(domain != NULL);
+		assert(selector != NULL);
+		assert(keyname != NULL);
+
+		memset(keydata, '\0', sizeof keydata);
+
+		dbd.dbdata_buffer = keydata;
+		dbd.dbdata_buflen = sizeof keydata - 1;
+
+		status = dkimf_db_get(keytable, keyname, strlen(keyname),
+		                      &dbd, 1, &found);
+
+		if (!found)
+			return FALSE;
+
+		keydatasz = sizeof keydata - 1;
+		if (!dkimf_loadkey(dbd.dbdata_buffer, &keydatasz))
+			return FALSE;
+	}
 
 	new = malloc(sizeof *new);
 	if (new == NULL)
 		return FALSE;
 
-	new->srq_key = key;
 	new->srq_next = NULL;
 	new->srq_dkim = NULL;
+	new->srq_domain = domain;
+	new->srq_selector = selector;
+	new->srq_keydata = NULL;
+
+	if (keytable != NULL)
+	{
+		new->srq_keydata = (void *) malloc(keydatasz);
+		if (new->srq_keydata == NULL)
+		{
+			free(new);
+			return FALSE;
+		}
+		memcpy(new->srq_keydata, dbd.dbdata_buffer, keydatasz);
+	}
 
 	if (dfc->mctx_srtail != NULL)
 		dfc->mctx_srtail->srq_next = new;
@@ -3767,28 +3831,6 @@ dkimf_zapkey(struct dkimf_config *conf)
 		free(conf->conf_seckey);
 		conf->conf_seckey = NULL;
 	}
-
-	if (conf->conf_keyhead != NULL)
-	{
-		struct keytable *key;
-		struct keytable *next;
-
-		key = conf->conf_keyhead;
-		while (key != NULL)
-		{
-			next = key->key_next;
-
-			memset(key->key_data, '\0', key->key_len);
-			free(key->key_data);
-			free(key->key_domain);
-			free(key);
-
-			key = next;
-		}
-
-		conf->conf_keyhead = NULL;
-		conf->conf_keytail = NULL;
-	}
 }
 
 /*
@@ -4118,8 +4160,6 @@ dkimf_config_free(struct dkimf_config *conf)
 
 	if (conf->conf_exemptdb != NULL)
 		dkimf_db_close(conf->conf_exemptdb);
-
-	dkimf_freekeys(conf);
 
 #ifdef _FFR_REPLACE_RULES
 	if (conf->conf_replist != NULL)
@@ -5122,18 +5162,48 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 	if (data != NULL)
 	{
-		if (conf->conf_keyfile == NULL)
-		{
-			(void) config_get(data, "KeyList", &conf->conf_keyfile,
-			                  sizeof conf->conf_keyfile);
-			if (conf->conf_keyfile != NULL)
-				conf->conf_multikey = TRUE;
-		}
+		(void) config_get(data, "SigningTable", &conf->conf_signtable,
+		                  sizeof conf->conf_signtable);
 
-		if (conf->conf_keyfile == NULL)
+		if (conf->conf_signtable != NULL)
+		{
+			int status;
+
+			status = dkimf_db_open(&conf->conf_signtabledb,
+			                       conf->conf_signtable,
+			                       DKIMF_DB_FLAG_READONLY, NULL);
+			if (status != 0)
+			{
+				snprintf(err, errlen, "dkimf_db_open(): %s",
+				         strerror(errno));
+				return -1;
+			}
+		}
+	}
+
+	if (data != NULL)
+	{
+		(void) config_get(data, "KeyTable", &conf->conf_keytable,
+		                  sizeof conf->conf_keytable);
+
+		if (conf->conf_keytable == NULL)
 		{
 			(void) config_get(data, "KeyFile", &conf->conf_keyfile,
 			                  sizeof conf->conf_keyfile);
+		}
+		else
+		{
+			int status;
+
+			status = dkimf_db_open(&conf->conf_keytabledb,
+			                       conf->conf_keytable,
+			                       DKIMF_DB_FLAG_READONLY, NULL);
+			if (status != 0)
+			{
+				snprintf(err, errlen, "dkimf_db_open(): %s",
+				         strerror(errno));
+				return -1;
+			}
 		}
 	}
 
@@ -5472,27 +5542,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	dkimf_reportaddr(conf);
 
 	/* load the secret key, if one was specified */
-	if (conf->conf_keyfile != NULL && conf->conf_multikey)
-	{
-		int status;
-
-		status = dkimf_loadkeys(conf->conf_keyfile, conf);
-
-		if (status != 0)
-		{
-			snprintf(err, errlen, "key load from %s failed",
-			         conf->conf_keyfile);
-			return -1;
-		}
-
-		if (conf->conf_keyhead == NULL)
-		{
-			snprintf(err, errlen, "no keys loaded from %s",
-			         conf->conf_keyfile);
-			return -1;
-		}
-	}
-	else if (conf->conf_keyfile != NULL)
+	if (conf->conf_keyfile != NULL)
 	{
 		int status;
 		int fd;
@@ -5606,9 +5656,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 
 	if ((conf->conf_mode & DKIMF_MODE_SIGNER) != 0 &&
-	    ((conf->conf_multikey && conf->conf_keyfile == NULL) ||
-	     (!conf->conf_multikey && (conf->conf_keyfile == NULL ||
-	                               conf->conf_selector == NULL))))
+	    !(conf->conf_signtable != NULL && conf->conf_keytable != NULL) &&
+	    !(conf->conf_keyfile != NULL && conf->conf_selector != NULL))
 	{
 		snprintf(err, errlen,
 		         "at least one selector and key required for signing mode");
@@ -6593,346 +6642,190 @@ dkimf_findheader(msgctx dfc, char *hname, int instance)
 }
 
 /*
-**  DKIMF_LOADKEYS -- load multiple keys
+**  DKIMF_APPLY_SIGNTABLE -- apply the signing table to a message
 **
 **  Parameters:
-**  	file -- input file
-**  	conf -- configuration to update
+**  	dfc -- message context
+**  	keydb -- database handle for key table
+**  	signdb -- database handle for signing table
+**  	user -- userid (local-part)
+**  	domain -- domain
+**  	multisig -- apply multiple signature logic
 **
 **  Return value:
-**  	0 on success, !0 on failure
-**
-**  Side effects:
-**  	keyhead, keytail are updated.
+**  	Number of signatures added, or -1 on error.
 */
 
 static int
-dkimf_loadkeys(char *file, struct dkimf_config *conf)
+dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
+                      char *user, char *domain, _Bool multisig)
 {
-	_Bool blank = TRUE;
-	int line = 0;
-	FILE *f;
-	u_char *p;
-	u_char *re;
-	char *domain;
-	char *path;
-	u_char buf[BUFRSZ + 1];
-	char root[MAXPATHLEN + 1];
+	_Bool found;
+	int nfound = 0;
 
-	assert(file != NULL);
-	assert(conf != NULL);
+	assert(dfc != NULL);
+	assert(keydb != NULL);
+	assert(signdb != NULL);
+	assert(user != NULL);
+	assert(domain != NULL);
 
-	f = fopen(file, "r");
-	if (f == NULL)
+	if (dkimf_db_type(signdb) == DKIMF_DB_TYPE_REFILE)
 	{
-		fprintf(stderr, "%s: %s: fopen(): %s\n", progname,
-		        file, strerror(errno));
-		return -1;
+		assert(0);
+		/* XXX -- INCOMPLETE */
+		/* (need dkimf_db_rewalk() in opendkim-db.c) */
+		/* walk RE, find match(es), make request(s) */
 	}
-
-	memset(root, '\0', sizeof root);
-	memset(buf, '\0', sizeof buf);
-
-	while (fgets((char *) buf, sizeof buf, f) != NULL)
+	else
 	{
-		/* skip comments */
-		if (buf[0] == '#')
-			continue;
+		int status;
+		char *p;
+		char tmpaddr[MAXADDRESS + 1];
+		char keyname[BUFRSZ + 1];
+		char signdomain[MAXHOSTNAMELEN + 1];
+		char selector[BUFRSZ + 1];
+		struct dkimf_db_data req[3];
 
-		blank = TRUE;
+		req[0].dbdata_buffer = signdomain;
+		req[0].dbdata_buflen = sizeof signdomain;
+		req[1].dbdata_buffer = selector;
+		req[1].dbdata_buflen = sizeof selector;
+		req[2].dbdata_buffer = keyname;
+		req[2].dbdata_buflen = sizeof keyname;
 
-		/* chomp trailing newline */
-		for (p = buf; *p != '\0'; p++)
+		/* first try full "user@host" */
+		snprintf(tmpaddr, sizeof tmpaddr, "%s@%s", user, domain);
+
+		found = FALSE;
+		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
+		                      req, 3, &found);
+		if (status == -1 ||
+		    status == 0 && req[2].dbdata_buflen == 0)
 		{
-			if (*p == '\n')
-			{
-				*p = '\0';
-				break;
-			}
-
-			if (isascii(*p) && !isspace(*p))
-				blank = FALSE;
-		}
-
-		/* skip blank lines */
-		if (blank)
-			continue;
-
-		line++;
-
-		if (buf[0] == '/')
-		{
-			strlcpy(root, (char *) buf, sizeof root);
-			if (root[strlen(root) - 1] != '/')
-				strlcat(root, "/", sizeof root);
-		}
-
-		re = NULL;
-		domain = NULL;
-		path = NULL;
-
-		/*
-		**  File format: <sender-glob>:<signing-domain>:<path-to-key>
-		**
-		**  This means if the sender matches <sender-glob>,
-		**  sign with d=<signing-domain> and use the private
-		**  key found in <path-to-key>, using the filename portion
-		**  of the latter as the name of the selector.
-		**
-		**  <sender-glob> is string matching using "*" as a wildcard
-		**  character.
-		**
-		**  #-delimited comments are allowed.  Blank lines are ignored.
-		**
-		**  A line starting with "/" is interpreted as a root directory
-		**  for keys, meaning the <path-to-key> values after that
-		**  in the file are taken relative to that path.
-		*/
-
-		re = (u_char *) strtok((char *) buf, ":");
-		domain = strtok(NULL, ":");
-		if (domain != NULL)
-			path = strtok(NULL, ":");
-
-		if (re == NULL || domain == NULL || path == NULL)
-		{
-			fprintf(stderr, "%s: %s: line %d: malformed\n",
-			        progname, file, line);
-			fclose(f);
 			return -1;
 		}
-		else
+		else if (found)
 		{
-			int status;
-			char *r;
-			char *end;
-			ssize_t n;
-			struct keytable *new;
-			int keyfd;
-			struct stat s;
-			char retmp[BUFRSZ];
-			char fn[MAXPATHLEN + 1];
+			(void) dkimf_add_signrequest(dfc, keydb, keyname,
+			                             signdomain, selector);
 
-			dkimf_mkpath(fn, sizeof fn, root, path);
-			keyfd = open(fn, O_RDONLY, 0);
+			nfound++;
 
-			if (keyfd == -1 && errno == ENOENT)
+			if (!multisig)
+				return nfound;
+		}
+
+		/* now just "host" */
+		found = FALSE;
+		status = dkimf_db_get(signdb, domain, strlen(domain), req, 3,
+		                      &found);
+		if (status == -1 ||
+		    status == 0 && req[2].dbdata_buflen == 0)
+		{
+			return -1;
+		}
+		else if (found)
+		{
+			(void) dkimf_add_signrequest(dfc, keydb, keyname,
+			                             signdomain, selector);
+
+			nfound++;
+
+			if (!multisig)
+				return nfound;
+		}
+
+		/* next "user@.domain" and ".domain", degrading */
+		for (p = strchr(domain, '.');
+		     p != NULL;
+		     p = strchr(p + 1, '.'))
+		{
+			snprintf(tmpaddr, sizeof tmpaddr, "%s@%s",
+			         user, p);
+
+			found = FALSE;
+			status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
+			                      req, 3, &found);
+			if (status == -1 ||
+			    status == 0 && req[2].dbdata_buflen == 0)
 			{
-				/* try appending ".pem" */
-				strlcat(fn, ".pem", sizeof fn);
-				keyfd = open(fn, O_RDONLY, 0);
-			}
-
-			if (keyfd == -1 && errno == ENOENT)
-			{
-				/* try appending ".private" */
-				dkimf_mkpath(fn, sizeof fn, root, path);
-				strlcat(fn, ".private", sizeof fn);
-				keyfd = open(fn, O_RDONLY, 0);
-			}
-
-			if (keyfd == -1)
-			{
-				dkimf_mkpath(fn, sizeof fn, root, path);
-				fprintf(stderr, "%s: %s: open(): %s\n",
-				        progname, fn, strerror(errno));
-				fclose(f);
 				return -1;
 			}
-
-			status = fstat(keyfd, &s);
-			if (status == -1)
+			else if (found)
 			{
-				fprintf(stderr, "%s: %s: fstat(): %s\n",
-				        progname, path, strerror(errno));
-				close(keyfd);
-				fclose(f);
+				(void) dkimf_add_signrequest(dfc, keydb,
+				                             keyname,
+				                             signdomain,
+				                             selector);
+
+				nfound++;
+
+				if (!multisig)
+					return nfound;
+			}
+
+			found = FALSE;
+			status = dkimf_db_get(signdb, p, strlen(p),
+			                      req, 3, &found);
+			if (status == -1 ||
+			    status == 0 && req[2].dbdata_buflen == 0)
+			{
 				return -1;
 			}
-
-			*p = '\0';
-			end = retmp + sizeof retmp - 1;
-			memset(retmp, '\0', sizeof retmp);
-			retmp[0] = '^';
-			r = &retmp[1];
-
-			for (p = re; *p != '\0'; p++)
+			else if (found)
 			{
-				switch (*p)
-				{
-				  case '*':
-					if (r + 3 >= end)
-					{
-						fprintf(stderr,
-						        "%s: %s: line %d: \"%s\": expression too large\n",
-						        progname, file, line,
-						        re);
-						close(keyfd);
-						fclose(f);
-						return -1;
-					}
+				(void) dkimf_add_signrequest(dfc, keydb,
+				                             keyname,
+				                             signdomain,
+				                             selector);
 
-					(void) strlcat(retmp, ".*",
-					                  sizeof retmp);
-					r += 2;
-					break;
+				nfound++;
 
-				  case '.':
-				  case '$':
-				  case '[':
-				  case ']':
-				  case '(':
-				  case ')':
-					if (r + 3 >= end)
-					{
-						fprintf(stderr,
-						        "%s: %s: line %d: \"%s\": expression too large\n",
-						        progname, file, line,
-						        re);
-						close(keyfd);
-						fclose(f);
-						return -1;
-					}
-
-					*r = '\\';
-					r++;
-					/* FALLTHROUGH */
-
-				  default:
-					*r = *p;
-					r++;
-					break;
-				}
-			}
-
-			(void) strlcat(retmp, "$", sizeof retmp);
-
-			new = (struct keytable *) malloc(sizeof(struct keytable));
-			if (new == NULL)
-			{
-				fprintf(stderr, "%s: malloc(): %s\n",
-				        progname, strerror(errno));
-				close(keyfd);
-				fclose(f);
-				return -1;
-			}
-
-			new->key_next = NULL;
-			r = strrchr(path, '/');
-			new->key_selector = strdup(r == NULL ? path : r + 1);
-			if (new->key_selector == NULL)
-			{
-				fprintf(stderr, "%s: strdup(): %s\n",
-				        progname, strerror(errno));
-				close(keyfd);
-				fclose(f);
-				return -1;
-			}
-
-			if (domain[0] != '*')
-				new->key_domain = strdup(domain);
-			else
-				new->key_domain = NULL;
-
-			status = regcomp(&new->key_re, retmp,
-			                 (REG_ICASE|REG_EXTENDED));
-			if (status != 0)
-			{
-				char err[BUFRSZ];
-
-				memset(err, '\0', sizeof err);
-				(void) regerror(status, &new->key_re,
-				                err, sizeof err);
-				fprintf(stderr,
-				        "%s: %s: line %d: regcomp(): %s\n",
-				        progname, file, line, err);
-				close(keyfd);
-				fclose(f);
-				return -1;
-			}
-
-			new->key_data = malloc(s.st_size);
-			if (new->key_data == NULL)
-			{
-				fprintf(stderr, "%s: malloc(): %s\n",
-				        progname, strerror(errno));
-				close(keyfd);
-				fclose(f);
-				return -1;
-			}
-			new->key_len = s.st_size;
-
-			n = read(keyfd, new->key_data, s.st_size);
-			if (n < s.st_size)
-			{
-				if (n == -1)
-				{
-					fprintf(stderr, "%s: %s: read(): %s\n",
-					        progname, path,
-					        strerror(errno));
-				}
-				else
-				{
-					fprintf(stderr,
-					        "%s: %s: read() truncated\n",
-					        progname, path);
-				}
-				close(keyfd);
-				fclose(f);
-				return -1;
-			}
-
-			close(keyfd);
-
-			if (conf->conf_keyhead == NULL)
-			{
-				conf->conf_keyhead = new;
-				conf->conf_keytail = new;
-			}
-			else
-			{
-				conf->conf_keytail->key_next = new;
-				conf->conf_keytail = new;
+				if (!multisig)
+					return nfound;
 			}
 		}
-	}
 
-	fclose(f);
+		/* now "user@*" */
+		snprintf(tmpaddr, sizeof tmpaddr, "%s@*", user);
 
-	return 0;
-}
+		found = FALSE;
+		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
+		                      req, 3, &found);
+		if (status == -1 ||
+		    status == 0 && req[2].dbdata_buflen == 0)
+		{
+			return -1;
+		}
+		else if (found)
+		{
+			(void) dkimf_add_signrequest(dfc, keydb, keyname,
+			                             signdomain, selector);
 
-/*
-**  DKIMF_FREEKEYS -- destroy a list of keys
-**
-**  Parameters:
-**  	conf -- configuration handle referencing keys to be discarded
-**
-**  Return value:
-**  	None.
-*/
+			nfound++;
 
-static void
-dkimf_freekeys(struct dkimf_config *conf)
-{
-	struct keytable *cur;
-	struct keytable *next;
+			if (!multisig)
+				return nfound;
+		}
 
-	assert(conf != NULL);
+		/* finally just "*" */
+		found = FALSE;
+		status = dkimf_db_get(signdb, "*", 1, req, 3, &found);
+		if (status == -1 ||
+		    status == 0 && req[2].dbdata_buflen == 0)
+		{
+			return -1;
+		}
+		else if (found)
+		{
+			(void) dkimf_add_signrequest(dfc, keydb, keyname,
+			                             signdomain, selector);
 
-	for (cur = conf->conf_keyhead; cur != NULL; cur = next)
-	{
-		next = cur->key_next;
+			nfound++;
 
-		if (cur->key_selector != NULL)
-			free(cur->key_selector);
-		if (cur->key_domain != NULL)
-			free(cur->key_domain);
-		if (cur->key_data != NULL)
-			free(cur->key_data);
-		regfree(&cur->key_re);
-
-		free(cur);
+			if (!multisig)
+				return nfound;
+		}
 	}
 }
 
@@ -8300,7 +8193,7 @@ mlfi_eoh(SMFICTX *ctx)
 		bool match = FALSE;
 
 		status = dkimf_db_get(conf->conf_exemptdb,
-		                      dfc->mctx_domain, 0, NULL, NULL,
+		                      dfc->mctx_domain, 0, NULL, 0,
 		                      &match);
 
 		if (match)
@@ -8556,7 +8449,7 @@ mlfi_eoh(SMFICTX *ctx)
 			     curkey != NULL;
 			     curkey = curkey->key_next)
 			{
-				if (strcasecmp(curkey->key_selector,
+				if (strcasecmp(curkey->key_name,
 				               hdr->hdr_val) == 0)
 				{
 					dfc->mctx_key = curkey;
@@ -8567,58 +8460,36 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 #endif /* _FFR_SELECTOR_HEADER */
 
-	/* still no key selected; check the keylist (if any) */
-	if (originok && dfc->mctx_key == NULL && conf->conf_keyhead != NULL)
+	/* still no key selected; check the signing table (if any) */
+	if (originok && dfc->mctx_srhead == NULL &&
+	    conf->conf_keytabledb != NULL && conf->conf_signtabledb != NULL)
 	{
-		struct keytable *curkey;
-		char srchaddr[MAXADDRESS + 1];
+		int found;
 
-		snprintf(srchaddr, sizeof srchaddr, "%s@%s",
-		         user, dfc->mctx_domain);
+		found = dkimf_apply_signtable(dfc, conf->conf_keytabledb,
+		                              conf->conf_signtabledb,
+		                              user, domain,
+		                              conf->conf_multisig);
 
-		/* select the key */
-		for (curkey = conf->conf_keyhead;
-		     curkey != NULL;
-		     curkey = curkey->key_next)
+		if (found == -1)
 		{
-			status = regexec(&curkey->key_re, srchaddr,
-			                 0, NULL, 0);
-			if (status == 0)
+			if (conf->conf_dolog)
 			{
-				dkimf_add_signrequest(dfc, curkey);
-				domainok = TRUE;
-
-				if (conf->conf_subdomains &&
-				    dkimf_subdomain(dfc->mctx_domain,
-				                    curkey->key_domain))
-					setidentity = TRUE;
-
-				if (!conf->conf_multisig)
-					break;
+				syslog(LOG_ERR,
+				       "%s error applying signing table",
+				       dfc->mctx_jobid);
 			}
-			else if (status != REG_NOMATCH)
-			{
-				if (conf->conf_dolog)
-				{
-					char err[BUFRSZ];
 
-					(void) regerror(status,
-					                &curkey->key_re,
-					                err, sizeof err);
-					syslog(LOG_ERR,
-					       "%s regexec(): %s",
-					       dfc->mctx_jobid, err);
-				}
-
-				dkimf_cleanup(ctx);
-				return SMFIS_TEMPFAIL;
-			}
+			return SMFIS_TEMPFAIL;
 		}
+
+		if (found > 0)
+			domainok = TRUE;
 
 		if (!domainok && conf->conf_logwhy)
 		{
 			syslog(LOG_INFO,
-			       "%s no signing keylist match for `%s@%s'",
+			       "%s no signing table match for `%s@%s'",
 			       dfc->mctx_jobid, user, dfc->mctx_domain);
 		}
 	}
@@ -8689,7 +8560,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 	/* create a default signing request if there was a domain match */
 	if (domainok && originok && dfc->mctx_srhead == NULL)
-		dkimf_add_signrequest(dfc, NULL);
+		dkimf_add_signrequest(dfc, NULL, NULL, NULL, NULL);
 
 	/*
 	**  If we're not operating in the role matching the required operation,
@@ -8798,12 +8669,12 @@ mlfi_eoh(SMFICTX *ctx)
 
 		for (sr = dfc->mctx_srhead; sr != NULL; sr = sr->srq_next)
 		{
-			if (sr->srq_key != NULL)
+			if (sr->srq_keydata != NULL)
 			{
-				keydata = sr->srq_key->key_data;
-				selector = sr->srq_key->key_selector;
-				if (sr->srq_key->key_domain != NULL)
-					sdomain = sr->srq_key->key_domain;
+				keydata = sr->srq_keydata;
+				selector = sr->srq_selector;
+				if (sr->srq_domain != NULL)
+					sdomain = sr->srq_domain;
 			}
 
 			sr->srq_dkim = dkim_sign(conf->conf_libopendkim,
@@ -11391,7 +11262,6 @@ usage(void)
 	                "\t-i ilist    \tfile containing list of internal (signing) hosts\n"
 	                "\t-I elist    \tfile containing list of external domain clients\n"
 	                "\t-k keyfile  \tlocation of secret key file\n"
-	                "\t-K          \tload a key set instead of a single key\n"
 	                "\t-l          \tlog activity to system log\n"
 	                "\t-L limit    \tsignature limit requirements\n"
 	                "\t-m mtalist  \tMTA daemon names for which to sign\n"
@@ -11594,10 +11464,6 @@ main(int argc, char **argv)
 			if (optarg == NULL || *optarg == '\0')
 				return usage();
 			curconf->conf_keyfile = optarg;
-			break;
-
-		  case 'K':
-			curconf->conf_multikey = TRUE;
 			break;
 
 		  case 'l':

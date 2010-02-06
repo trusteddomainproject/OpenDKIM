@@ -223,10 +223,10 @@ A set list of domains whose mail should be signed by this
 filter.  Mail from other domains will be verified rather than being signed.
 
 The domain names may contain the special character "*" which is treated as
- a wildcard character matching zero or more characters in a domain name.
+a wildcard character matching zero or more characters in a domain name.
 
 This parameter is not required if a
-.I KeyList
+.I SigningTable
 is in use; in that case, the list of signed domains is implied by the
 lines in that file.
 
@@ -341,34 +341,23 @@ parameter.  Intended only for debugging verification problems.
 .TP
 .I KeyFile (string)
 Gives the location of a PEM-formatted private key to be used for signing
-all messages.  Ignored if
-.I KeyList
+all messages.  Ignored if a
+.I KeyTable
 is defined.
 
 .TP
-.I KeyList (string)
-Gives the location of a file listing rules for signing with multiple keys.
+.I KeyTable (dataset)
+Gives the location of a file mapping key names to signing keys.
 If present, overrides any
 .I KeyFile
-setting in the conifguration file.  The file named here should contain a
-set of lines of the form
-.I sender-pattern:signing-domain:keypath
-where
-.I sender-pattern
-is a pattern to match against message senders (with the special character
-"*" interpreted as "zero or more characters"),
-.I signing-domain
-is the domain to announce as the signing domain when generating signatures, and
-.I keypath
-is the path to the PEM-formatted private key to be used for signing messages
-that match the
-.I sender-pattern.
-The selector used in the signature will be the filename portion of
-.I keypath.
-If the file referenced by
-.I keypath
-cannot be opened, the filter will try again by appending ".pem"
-and then ".private" before giving up.
+setting in the conifguration file.  The data set named here maps each key
+name to either a private key or a path to a file containing a private key.
+If the returned value starts with a slash ("/") character then it is
+presumed to refer to a file from which the private key should be read,
+otherwise it is itself a PEM-encoded private key.  The
+.I SigningTable
+(see below) is used to select records from this table to be used to add
+signatures based on the message sender.
 
 .TP
 .I LDAPAuthMechanism (string)
@@ -525,7 +514,9 @@ in which case the default is
 
 .TP
 .I MultipleSignatures (Boolean)
-Allow addition of multiple signatures when key lists are in use.
+Allow addition of multiple signatures when key lists are in use.  See
+.I SignatureTable
+for more information.
 
 .TP
 .I MTA (dataset)
@@ -862,6 +853,42 @@ listed in the DKIM specification as "SHOULD" be signed will be signed by the
 filter.  Specifying a list here replaces that list entirely.  See the
 .I OmitHeaders
 configuration option for more information.
+
+.TP
+.I SigningTable (dataset)
+Defines a table used to select one or more signatures to apply to a message.
+Keys in this table vary depending on the type of table used; values in
+this data set should report three values: the domain to be used in generating
+a signature, the selector to be used in generating the signature, and a
+reference to an entry in the
+.I KeyTable
+(see above) that identifies which private key should be used in generating
+the signature.
+
+If this table specifies a regular expression file ("refile"),
+then the keys are wildcard patterns that are matched against the address
+found in the From: header field.  Entries are checked in the order
+in which they appear in the file.  The patterns are matched exactly except
+that a "*" is treated as the conventional wildcard character.
+
+For all other database types, the full
+.I user@host
+is checked first, then simply
+.I host,
+then
+.I user@.domain
+(with all superdomains checked in sequence, so "foo.example.com" would
+first check "user@foo.example.com", then "user@.example.com",
+then "user@.com"), then
+.I .domain,
+then
+.I user@*,
+and finally
+.I *.
+
+In any case, only the first match is applied, unless
+.I MultipleSignatures
+is enabled in which case all matches are applied.
 
 .TP
 .I Socket (string)

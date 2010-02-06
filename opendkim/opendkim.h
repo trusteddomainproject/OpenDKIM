@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.18 2010/02/05 15:36:02 cm-msk Exp $
+**  $Id: opendkim.h,v 1.19 2010/02/06 07:29:17 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.18 2010/02/05 15:36:02 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.19 2010/02/06 07:29:17 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -45,7 +45,7 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.18 2010/02/05 15:36:02 cm
 #define	BUFRSZ		1024
 #define	CACHESTATSINT	300
 #define	CBINTERVAL	3
-#define CMDLINEOPTS	"a:Ab:c:C:d:DfF:hi:I:k:KlL:m:M:no:p:P:qQrRs:S:t:T:u:U:vVWx:?"
+#define CMDLINEOPTS	"a:Ab:c:C:d:DfF:hi:I:k:lL:m:M:no:p:P:qQrRs:S:t:T:u:U:vVWx:?"
 #define	DEFINTERNAL	"csl:127.0.0.1"
 #define	DEFMAXHDRSZ	65536
 #define	DEFTIMEOUT	5
@@ -92,7 +92,9 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.18 2010/02/05 15:36:02 cm
 typedef struct signreq * SIGNREQ;
 struct signreq
 {
-	struct keytable	*	srq_key;
+	void *			srq_keydata;
+	char *			srq_domain;
+	char *			srq_selector;
 	DKIM *			srq_dkim;
 	struct signreq *	srq_next;
 };

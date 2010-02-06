@@ -172,23 +172,26 @@ and
 (permanent failure/rejection).  Returns 1 on success or the Lua constant
 "nil" on failure.
 .TP
-.B odkim_sign(ctx, domain, selector)
+.B odkim_sign(ctx, domain, selector, keyname)
 Requests that the filter sign the message represented by
 .I ctx
-using the key whose
+using the specified
 .I domain
 and
 .I selector
-from the key list match the provided parameters.  The
-.I domain
-and
-.I selcetor
-may be omitted if the key list is not defined, meaning the single signing
-domain, selector and key should be used to sign.  See the
-.B KeyList
-parameter in
+and the private key named by
+.I keyname.
+The key name will be translated into an actual private key via a query to
+the KeyTable (see the
 .I opendkim.conf(5)
-for more information.  Returns 1 on success and 0 on failure.
+page for details).  The
+.I domain,
+.I selector
+and
+.I keyname
+may be omitted if the KeyTable is not defined, meaning the single signing
+domain, selector and key should be used to sign.  Returns 1 on success
+and 0 on failure.
 .TP
 .B odkim_use_ltag(ctx)
 Requests that all signatures added to the message represented by
