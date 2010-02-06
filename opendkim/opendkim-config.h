@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.14 2010/02/05 15:35:53 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.15 2010/02/06 07:27:25 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.14 2010/02/05 15:35:53 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.15 2010/02/06 07:27:25 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -54,6 +54,10 @@ struct configdef dkimf_config[] =
 	{ "FinalPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_LUA */
 	{ "FixCRLF",			CONFIG_TYPE_BOOLEAN,	FALSE },
+#ifdef _FFR_IDENTITY_HEADER
+	{ "IdentityHeader",		CONFIG_TYPE_STRING,     FALSE },
+	{ "IdentityHeaderRemove",	CONFIG_TYPE_BOOLEAN,    FALSE },
+#endif /* _FFR_IDENTITY_HEADER */
 	{ "Include",			CONFIG_TYPE_INCLUDE,	FALSE },
 #ifdef USE_UNBOUND
 	{ "InsecureKey",		CONFIG_TYPE_STRING,	FALSE },
@@ -62,7 +66,7 @@ struct configdef dkimf_config[] =
 	{ "InternalHosts",		CONFIG_TYPE_STRING,	FALSE },
 	{ "KeepTemporaryFiles",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "KeyFile",			CONFIG_TYPE_STRING,	FALSE },
-	{ "KeyList",			CONFIG_TYPE_STRING,	FALSE },
+	{ "KeyTable",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef USE_LDAP
 	{ "LDAPAuthMechanism",		CONFIG_TYPE_STRING,	FALSE },
 # ifdef USE_SASL
@@ -125,12 +129,14 @@ struct configdef dkimf_config[] =
 #ifdef _FFR_RESIGN
 	{ "ResignAll",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ResignMailTo",		CONFIG_TYPE_STRING,	FALSE },
+#ifdef _FFR_LUA
+	{ "ScreenPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_LUA */
 #endif /* _FFR_RESIGN */
 	{ "Selector",			CONFIG_TYPE_STRING,	FALSE },
-#ifdef _FFR_IDENTITY_HEADER
-	{ "IdentityHeader",		CONFIG_TYPE_STRING,     FALSE },
-	{ "IdentityHeaderRemove",	CONFIG_TYPE_BOOLEAN,    FALSE },
-#endif /* _FFR_IDENTITY_HEADER */
+#ifdef _FFR_LUA
+	{ "SetupPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_LUA */
 #ifdef _FFR_SELECTOR_HEADER
 	{ "SelectorHeader",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SelectorHeaderRemove",	CONFIG_TYPE_BOOLEAN,	FALSE },
@@ -144,10 +150,7 @@ struct configdef dkimf_config[] =
 	{ "SignatureAlgorithm",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SignatureTTL",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "SignHeaders",		CONFIG_TYPE_STRING,	FALSE },
-#ifdef _FFR_LUA
-	{ "ScreenPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
-	{ "SetupPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_LUA */
+	{ "SigningTable",		CONFIG_TYPE_STRING,	FALSE },
 	{ "Socket",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_STATS
 	{ "Statistics",			CONFIG_TYPE_STRING,	FALSE },
