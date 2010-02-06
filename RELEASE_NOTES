@@ -1,11 +1,11 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.96 2010/02/05 15:35:42 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.97 2010/02/06 07:25:58 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-1.3.0		2010/02/08
+2.0.0		2010/02/15
 	Feature request #SF2920389: Add CIDR support for IPv6 addresses.
 	Feature request #SF2937428: Add "ExemptDomains" configuration item.
 	Add optional Lua support, which enables a few script hooks for
@@ -21,6 +21,11 @@ release, and a summary of the changes in that release.
 	Fix database query order for PeerList, InternalHosts, etc.
 		so that negation works properly again.
 	Fix crash-on-shutdown bug related to the crypto utilities functions.
+	Drop "KeyList" in favour of "KeyTable" and "SigningTable" in the
+		configuration file.  See the opendkim.conf(5) man page
+		for details.  Also, "-K" has been dropped from the command
+		line, meaning multiple key support now requires use of the
+		configuration file.
 	Fix bug #SF2936499: Clean up numerous compiler warnings.
 	LIBOPENDKIM: Several performance optimizations yielded from
 		gprof data.
