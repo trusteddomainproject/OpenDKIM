@@ -351,8 +351,10 @@ Gives the location of a file mapping key names to signing keys.
 If present, overrides any
 .I KeyFile
 setting in the conifguration file.  The data set named here maps each key
-name to either a private key or a path to a file containing a private key.
-If the returned value starts with a slash ("/") character then it is
+name to three values: (a) the name of the domain to use in the signature's
+"d=" value; (b) the name of the selector to use in the signature's "s=" value;
+and (c) either a private key or a path to a file containing a private key.
+If the third value starts with a slash ("/") character then it is
 presumed to refer to a file from which the private key should be read,
 otherwise it is itself a PEM-encoded private key.  The
 .I SigningTable
@@ -858,11 +860,9 @@ configuration option for more information.
 .I SigningTable (dataset)
 Defines a table used to select one or more signatures to apply to a message.
 Keys in this table vary depending on the type of table used; values in
-this data set should report three values: the domain to be used in generating
-a signature, the selector to be used in generating the signature, and a
-reference to an entry in the
+this data set should refer to a name found in the
 .I KeyTable
-(see above) that identifies which private key should be used in generating
+(see above) that identifies which key should be used in generating
 the signature.
 
 If this table specifies a regular expression file ("refile"),
