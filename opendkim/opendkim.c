@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.84 2010/02/06 17:40:38 cm-msk Exp $
+**  $Id: opendkim.c,v 1.85 2010/02/07 06:21:40 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.84 2010/02/06 17:40:38 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.85 2010/02/07 06:21:40 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1178,8 +1178,6 @@ int
 dkimf_xs_requestsig(lua_State *l)
 {
 	SMFICTX *ctx;
-	const char *domain = NULL;
-	const char *selector = NULL;
 	const char *keyname = NULL;
 	struct connctx *cc;
 	struct msgctx *dfc;
@@ -1188,15 +1186,13 @@ dkimf_xs_requestsig(lua_State *l)
 
 	assert(l != NULL);
 
-	if (lua_gettop(l) != 1 && lua_gettop(l) != 4)
+	if (lua_gettop(l) != 1 && lua_gettop(l) != 2)
 	{
 		lua_pushstring(l, "odkim_sign(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
-	         (lua_gettop(l) == 4 && (!lua_isstring(l, 2) ||
-	                                 !lua_isstring(l, 3) ||
-	                                 !lua_isstring(l, 4))))
+	         (lua_gettop(l) == 2 && !lua_isstring(l, 2)))
 	{
 		lua_pushstring(l, "odkim_sign(): incorrect argument type");
 		lua_error(l);
@@ -1209,12 +1205,8 @@ dkimf_xs_requestsig(lua_State *l)
 		dfc = cc->cctx_msg;
 		conf = cc->cctx_config;
 
-		if (lua_gettop(l) == 4)
-		{
-			domain = lua_tostring(l, 2);
-			selector = lua_tostring(l, 3);
+		if (lua_gettop(l) == 2)
 			keyname = lua_tostring(l, 4);
-		}
 	}
 
 	lua_pop(l, lua_gettop(l));
