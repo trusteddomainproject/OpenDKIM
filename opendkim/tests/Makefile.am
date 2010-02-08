@@ -1,5 +1,5 @@
-# $Id: Makefile.am,v 1.2 2010/01/14 05:59:16 cm-msk Exp $
+# $Id: Makefile.am,v 1.3 2010/02/08 04:26:54 cm-msk Exp $
 
-check_SCRIPTS = t-sign-ss t-sign-rs
+check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables
 
 TESTS = $(check_SCRIPTS)

@@ -1,0 +1,7 @@
+#!/bin/sh
+#
+# $Id: t-sign-rs-tables,v 1.1 2010/02/08 04:26:54 cm-msk Exp $
+# 
+# relaxed/simple signing test using tables
+
+../../miltertest/miltertest -s t-sign-rs-tables.lua
