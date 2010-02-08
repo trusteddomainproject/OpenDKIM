@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.37 2010/02/08 18:24:16 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.38 2010/02/08 18:28:21 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.37 2010/02/08 18:24:16 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.38 2010/02/08 18:28:21 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -919,7 +919,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		FILE *f;
 		char *end;
 		char *colon;
-		struct dkimf_db_relist *list = NULL;
+		struct dkimf_db_relist *head = NULL;
+		struct dkimf_db_relist *tail;
 		struct dkimf_db_relist *newl;
 		char line[BUFRSZ + 1];
 		char patbuf[BUFRSZ + 1];
@@ -965,8 +966,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			newl = (struct dkimf_db_relist *) malloc(sizeof(struct dkimf_db_relist));
 			if (newl == NULL)
 			{
-				if (list != NULL)
-					dkimf_db_relist_free(list);
+				if (head != NULL)
+					dkimf_db_relist_free(head);
 				fclose(f);
 				return -1;
 			}
@@ -977,8 +978,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 			if (!dkimf_mkregexp(line, patbuf, sizeof patbuf))
 			{
-				if (list != NULL)
-					dkimf_db_relist_free(list);
+				if (head != NULL)
+					dkimf_db_relist_free(head);
 				fclose(f);
 				return -1;
 			}
@@ -988,8 +989,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			{
 				new->db_data = (void *) &newl->db_relist_re;
 				/* XXX -- do something */
-				if (list != NULL)
-					dkimf_db_relist_free(list);
+				if (head != NULL)
+					dkimf_db_relist_free(head);
 				fclose(f);
 				return -1;
 			}
@@ -999,13 +1000,23 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			else
 				newl->db_relist_data = NULL;
 
-			newl->db_relist_next = list;
-			list = newl;
+			newl->db_relist_next = NULL;
+
+			if (head == NULL)
+			{
+				head = newl;
+				tail = newl;
+			}
+			else
+			{
+				tail->db_relist_next = newl;
+				tail = newl;
+			}
 		}
 
 		fclose(f);
 
-		new->db_handle = list;
+		new->db_handle = head;
 
 		break;
 	  }
