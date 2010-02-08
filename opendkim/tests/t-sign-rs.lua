@@ -1,4 +1,4 @@
--- $Id: t-sign-rs.lua,v 1.2 2010/01/14 05:59:16 cm-msk Exp $
+-- $Id: t-sign-rs.lua,v 1.3 2010/02/08 05:31:57 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -10,7 +10,7 @@ mt_echo("*** relaxed/simple signing test")
 
 -- try to start the filter
 mt_startfilter("../opendkim", "-x", "t-sign-rs.conf")
-mt_sleep(5)
+mt_sleep(2)
 
 -- try to connect to it
 conn = mt_connect("inet:12345@localhost")
