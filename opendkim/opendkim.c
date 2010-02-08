@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.88 2010/02/08 03:25:42 cm-msk Exp $
+**  $Id: opendkim.c,v 1.89 2010/02/08 04:23:48 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.88 2010/02/08 03:25:42 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.89 2010/02/08 04:23:48 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -599,7 +599,7 @@ sfsistat mlfi_eoh __P((SMFICTX *));
 sfsistat mlfi_eom __P((SMFICTX *));
 sfsistat mlfi_header __P((SMFICTX *, char *, char *));
 
-static _Bool dkimf_add_signrequest __P((struct msgctx *, DKIMF_DB, char *));
+static int dkimf_add_signrequest __P((struct msgctx *, DKIMF_DB, char *));
 sfsistat dkimf_addheader __P((SMFICTX *, char *, char *));
 sfsistat dkimf_addrcpt __P((SMFICTX *, char *));
 sfsistat dkimf_chgheader __P((SMFICTX *, char *, int, char *));
@@ -1226,21 +1226,38 @@ dkimf_xs_requestsig(lua_State *l)
 	/* try to get the key */
 	if (keyname != NULL)
 	{
-		if (!dkimf_add_signrequest(dfc, conf->conf_keytabledb,
-		                           (char *) keyname))
+		switch (dkimf_add_signrequest(dfc, conf->conf_keytabledb,
+		                              (char *) keyname))
 		{
+		  case 2:
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "key `%s' could not be loaded",
+				       keyname);
+			}
+			lua_pushnumber(l, 0);
+			return 1;
+
+		  case 1:
 			if (conf->conf_dolog)
 				syslog(LOG_ERR, "key `%s' not found", keyname);
-
 			lua_pushnumber(l, 0);
+			return 1;
 
+		  case -1:
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "error requesting key `%s'",
+				       keyname);
+			}
+			lua_pushnumber(l, 0);
 			return 1;
 		}
 	}
-	else if (!dkimf_add_signrequest(dfc, NULL, NULL))
+	else if (dkimf_add_signrequest(dfc, NULL, NULL) != 0)
 	{
 		if (conf->conf_dolog)
-			syslog(LOG_ERR, "failed to request default key");
+			syslog(LOG_ERR, "failed to load default key");
 
 		lua_pushnumber(l, 0);
 
@@ -3131,10 +3148,13 @@ dkimf_loadkey(char *buf, size_t *buflen)
 **  	keyname -- name of private key to use
 **
 **  Return value:
-**  	TRUE iff the list was updated.
+**  	2 -- requested key could not be loaded
+**  	1 -- requested key not found
+**  	0 -- requested key added
+**  	-1 -- requested key found but add failed (memory?)
 */
 
-static _Bool
+static int
 dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 {
 	_Bool found = FALSE;
@@ -3168,16 +3188,16 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 		                      dbd, 3, &found);
 
 		if (!found)
-			return FALSE;
+			return 1;
 
 		keydatasz = sizeof keydata - 1;
 		if (!dkimf_loadkey(dbd[2].dbdata_buffer, &keydatasz))
-			return FALSE;
+			return 2;
 	}
 
 	new = malloc(sizeof *new);
 	if (new == NULL)
-		return FALSE;
+		return -1;
 
 	new->srq_next = NULL;
 	new->srq_dkim = NULL;
@@ -3193,7 +3213,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 		if (new->srq_keydata == NULL)
 		{
 			free(new);
-			return FALSE;
+			return -1;
 		}
 		memcpy(new->srq_keydata, dbd[2].dbdata_buffer, keydatasz);
 	}
@@ -6647,15 +6667,21 @@ dkimf_findheader(msgctx dfc, char *hname, int instance)
 **  	signdb -- database handle for signing table
 **  	user -- userid (local-part)
 **  	domain -- domain
+**  	errkey -- where to write the name of a key that failed
+**  	errlen -- bytes available at "errkey"
 **  	multisig -- apply multiple signature logic
 **
 **  Return value:
-**  	Number of signatures added, or -1 on error.
+**  	>= 0 -- number of signatures added
+** 	-1 -- signing table read error
+**  	-2 -- unknown key
+**  	-3 -- key load error
 */
 
 static int
 dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
-                      char *user, char *domain, _Bool multisig)
+                      char *user, char *domain, char *errkey, size_t errlen,
+                      _Bool multisig)
 {
 	_Bool found;
 	int nfound = 0;
@@ -6697,8 +6723,13 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
-			if (!dkimf_add_signrequest(dfc, keydb, keyname))
-				return -1;
+			status = dkimf_add_signrequest(dfc, keydb, keyname);
+			if (status != 0 && errkey != NULL)
+				strlcpy(errkey, keyname, errlen);
+			if (status == 1)
+				return -2;
+			else if (status == 2 || status == -1)
+				return -3;
 
 			nfound++;
 
@@ -6717,8 +6748,13 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
-			if (!dkimf_add_signrequest(dfc, keydb, keyname))
-				return -1;
+			status = dkimf_add_signrequest(dfc, keydb, keyname);
+			if (status != 0 && errkey != NULL)
+				strlcpy(errkey, keyname, errlen);
+			if (status == 1)
+				return -2;
+			else if (status == 2 || status == -1)
+				return -3;
 
 			nfound++;
 
@@ -6744,9 +6780,14 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			}
 			else if (found)
 			{
-				if (!dkimf_add_signrequest(dfc, keydb,
-				                           keyname))
-					return -1;
+				status = dkimf_add_signrequest(dfc, keydb,
+				                               keyname);
+				if (status != 0 && errkey != NULL)
+					strlcpy(errkey, keyname, errlen);
+				if (status == 1)
+					return -2;
+				else if (status == 2 || status == -1)
+					return -3;
 
 				nfound++;
 
@@ -6764,9 +6805,14 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			}
 			else if (found)
 			{
-				if (!dkimf_add_signrequest(dfc, keydb,
-				                           keyname))
-					return -1;
+				status = dkimf_add_signrequest(dfc, keydb,
+				                               keyname);
+				if (status != 0 && errkey != NULL)
+					strlcpy(errkey, keyname, errlen);
+				if (status == 1)
+					return -2;
+				else if (status == 2 || status == -1)
+					return -3;
 
 				nfound++;
 
@@ -6788,8 +6834,13 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
-			if (!dkimf_add_signrequest(dfc, keydb, keyname))
-				return -1;
+			status = dkimf_add_signrequest(dfc, keydb, keyname);
+			if (status != 0 && errkey != NULL)
+				strlcpy(errkey, keyname, errlen);
+			if (status == 1)
+				return -2;
+			else if (status == 2 || status == -1)
+				return -3;
 
 			nfound++;
 
@@ -6807,8 +6858,13 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
-			if (!dkimf_add_signrequest(dfc, keydb, keyname))
-				return -1;
+			status = dkimf_add_signrequest(dfc, keydb, keyname);
+			if (status != 0 && errkey != NULL)
+				strlcpy(errkey, keyname, errlen);
+			if (status == 1)
+				return -2;
+			else if (status == 2 || status == -1)
+				return -3;
 
 			nfound++;
 
@@ -8456,26 +8512,49 @@ mlfi_eoh(SMFICTX *ctx)
 	    conf->conf_keytabledb != NULL && conf->conf_signtabledb != NULL)
 	{
 		int found;
+		char errkey[BUFRSZ + 1];
 
 		found = dkimf_apply_signtable(dfc, conf->conf_keytabledb,
 		                              conf->conf_signtabledb,
 		                              user, domain,
+		                              errkey, sizeof errkey,
 		                              conf->conf_multisig);
 
-		if (found == -1)
+		if (found < 0)
 		{
 			if (conf->conf_dolog)
 			{
-				syslog(LOG_ERR,
-				       "%s error applying signing table",
-				       dfc->mctx_jobid);
+				switch (found)
+				{
+				  case -1:
+					syslog(LOG_ERR,
+					       "%s error reading signing table",
+					       dfc->mctx_jobid);
+					break;
+
+				  case -2:
+					syslog(LOG_ERR,
+					       "%s signing table references unknown key `%s'",
+					       dfc->mctx_jobid, errkey);
+					break;
+
+				  case -3:
+					syslog(LOG_ERR,
+					       "%s error loading key `%s'",
+					       dfc->mctx_jobid, errkey);
+					break;
+
+				  default:
+					assert(0);
+				}
 			}
 
 			return SMFIS_TEMPFAIL;
 		}
-
-		if (found > 0)
+		else if (found > 0)
+		{
 			domainok = TRUE;
+		}
 
 		if (!domainok && conf->conf_logwhy)
 		{
