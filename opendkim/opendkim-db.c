@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.36 2010/02/06 07:25:09 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.37 2010/02/08 18:24:16 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.36 2010/02/06 07:25:09 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.37 2010/02/08 18:24:16 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2811,4 +2811,69 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a)
 	  default:
 		return -1;
 	}
+}
+
+/*
+**  DKIMF_DB_REWALK -- walk a regular expression DB looking for matches
+**
+**  Parameters:
+**  	db -- database of interest
+**  	str -- string to match
+**  	req -- list of data requests
+**  	reqnum -- number of data requests
+**  	ctx -- context pointer (updated) (may be NULL)
+**
+**  Return value:
+**  	-1 -- error
+**  	0 -- match found
+**  	1 -- no match found
+*/
+
+int
+dkimf_db_rewalk(DKIMF_DB db, char *str, DKIMF_DBDATA req, unsigned int reqnum,
+                void **ctx)
+{
+	int status;
+	struct dkimf_db_relist *re;
+
+	assert(db != NULL);
+	assert(str != NULL);
+
+	if (ctx != NULL && *ctx != NULL)
+	{
+		re = (struct dkimf_db_relist *) *ctx;
+		if (re->db_relist_next == NULL)
+			return 1;
+		else
+			re = re->db_relist_next;
+	}
+	else
+	{
+		re = (struct dkimf_db_relist *) db->db_handle;
+	}
+
+	while (re != NULL)
+	{
+		status = regexec(&re->db_relist_re, str, 0, NULL, 0);
+
+		if (status == 0)
+		{
+			if (ctx != NULL)
+				*ctx = re;
+
+			dkimf_db_datasplit(re->db_relist_data,
+			                   strlen(re->db_relist_data),
+			                   req, reqnum);
+
+			return 0;
+		}
+		else if (status != REG_NOMATCH)
+		{
+			return -1;
+		}
+
+		re = re->db_relist_next;
+	}
+
+	return 1;
 }

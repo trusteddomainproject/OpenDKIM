@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.91 2010/02/08 05:17:03 cm-msk Exp $
+**  $Id: opendkim.c,v 1.92 2010/02/08 18:24:26 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.91 2010/02/08 05:17:03 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.92 2010/02/08 18:24:26 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6687,6 +6687,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 {
 	_Bool found;
 	int nfound = 0;
+	char keyname[BUFRSZ + 1];
 
 	assert(dfc != NULL);
 	assert(keydb != NULL);
@@ -6696,19 +6697,49 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 
 	if (dkimf_db_type(signdb) == DKIMF_DB_TYPE_REFILE)
 	{
-		assert(0);
-		/* XXX -- INCOMPLETE */
-		/* (need dkimf_db_rewalk() in opendkim-db.c) */
-		/* walk RE, find match(es), make request(s) */
+		int status;
+		void *ctx = NULL;
+		struct dkimf_db_data dbd;
+		char addr[MAXADDRESS + 1];
+
+		snprintf(addr, sizeof addr, "%s@%s", user, domain);
+		memset(keyname, '\0', sizeof keyname);
+
+		dbd.dbdata_buffer = keyname;
+		dbd.dbdata_buflen = sizeof keyname - 1;
+
+		/* walk RE set, find match(es), make request(s) */
+		for (;;)
+		{
+			status = dkimf_db_rewalk(signdb, addr, &dbd,
+			                         1, &ctx);
+			if (status == -1)
+				return -1;
+			else if (status == 1)
+				break;
+
+			status = dkimf_add_signrequest(dfc, keydb, keyname);
+			if (status != 0 && errkey != NULL)
+				strlcpy(errkey, keyname, errlen);
+			if (status == 1)
+				return -2;
+			else if (status == 2 || status == -1)
+				return -3;
+
+			nfound++;
+
+			if (!multisig)
+				return nfound;
+		}
 	}
 	else
 	{
 		int status;
 		char *p;
 		char tmpaddr[MAXADDRESS + 1];
-		char keyname[BUFRSZ + 1];
 		struct dkimf_db_data req;
 
+		memset(keyname, '\0', sizeof keyname);
 		req.dbdata_buffer = keyname;
 		req.dbdata_buflen = sizeof keyname;
 
@@ -8516,6 +8547,7 @@ mlfi_eoh(SMFICTX *ctx)
 		int found;
 		char errkey[BUFRSZ + 1];
 
+		memset(errkey, '\0', sizeof errkey);
 		found = dkimf_apply_signtable(dfc, conf->conf_keytabledb,
 		                              conf->conf_signtabledb,
 		                              user, domain,
