@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.86 2010/02/08 00:34:13 cm-msk Exp $
+**  $Id: opendkim.c,v 1.87 2010/02/08 02:28:43 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.86 2010/02/08 00:34:13 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.87 2010/02/08 02:28:43 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -610,7 +610,6 @@ static Header dkimf_findheader __P((msgctx, char *, int));
 void *dkimf_getpriv __P((SMFICTX *));
 char * dkimf_getsymval __P((SMFICTX *, char *));
 sfsistat dkimf_insheader __P((SMFICTX *, int, char *, char *));
-static int dkimf_loadkeys __P((DKIMF_DB, struct dkimf_config *));
 static void dkimf_policyreport __P((msgctx, struct dkimf_config *, char *));
 sfsistat dkimf_quarantine __P((SMFICTX *, char *));
 void dkimf_sendprogress __P((const void *));
@@ -3093,7 +3092,8 @@ dkimf_loadkey(char *buf, size_t *buflen)
 	assert(buf != NULL);
 	assert(buflen != NULL);
 
-	if (buf[0] == '/')
+	if (buf[0] == '/' || (buf[0] == '.' && buf[1] == '/') ||
+	    (buf[0] == '.' && buf[1] == '.' && buf[2] == '/'))
 	{
 		int fd;
 		int status;
