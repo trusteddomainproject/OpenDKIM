@@ -1,0 +1,7 @@
+#!/bin/sh
+#
+# $Id: t-sign-rs-multiple,v 1.1 2010/02/08 05:47:23 cm-msk Exp $
+# 
+# relaxed/simple multiple signing test
+
+../../miltertest/miltertest -s t-sign-rs-multiple.lua
