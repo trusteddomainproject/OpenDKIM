@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.3 2010/01/25 22:30:50 cm-msk Exp $
+**  $Id: miltertest.c,v 1.4 2010/02/08 02:15:04 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.3 2010/01/25 22:30:50 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.4 2010/02/08 02:15:04 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -2277,6 +2277,9 @@ mt_eom(lua_State *l)
 			lua_pushstring(l, "mt_eom_request() failed");
 			return 1;
 		}
+
+		if (rcmd == SMFIR_REPLYCODE)
+			break;
 	}
 
 	ctx->ctx_response = rcmd;
@@ -3195,6 +3198,8 @@ main(int argc, char **argv)
 	lua_setglobal(l, "SMFIR_TEMPFAIL");
 	lua_pushnumber(l, SMFIR_DISCARD);
 	lua_setglobal(l, "SMFIR_DISCARD");
+	lua_pushnumber(l, SMFIR_REPLYCODE);
+	lua_setglobal(l, "SMFIR_REPLYCODE");
 
 	lua_pushnumber(l, SMFIC_CONNECT);
 	lua_setglobal(l, "SMFIC_CONNECT");
@@ -3231,7 +3236,7 @@ main(int argc, char **argv)
 	(void) srandom(time(NULL));
 
 	status = lua_pcall(l, 0, LUA_MULTRET, 0);
-	if (lua_isstring(l, 1))
+	if (lua_gettop(l) == 1 && lua_isstring(l, 1))
 	{
 		fprintf(stderr, "%s: %s: %s\n", progname,
 		        script == NULL ? "(stdin)" : script,
