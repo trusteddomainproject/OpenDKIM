@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.15 2010/02/06 07:27:25 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.16 2010/02/08 21:37:06 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.15 2010/02/06 07:27:25 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.16 2010/02/08 21:37:06 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -50,9 +50,9 @@ struct configdef dkimf_config[] =
 	{ "EnableCoredumps",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ExemptDomains",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ExternalIgnoreList",		CONFIG_TYPE_STRING,	FALSE },
-#ifdef _FFR_LUA
+#ifdef USE_LUA
 	{ "FinalPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_LUA */
+#endif /* USE_LUA */
 	{ "FixCRLF",			CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_IDENTITY_HEADER
 	{ "IdentityHeader",		CONFIG_TYPE_STRING,     FALSE },
@@ -129,14 +129,14 @@ struct configdef dkimf_config[] =
 #ifdef _FFR_RESIGN
 	{ "ResignAll",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ResignMailTo",		CONFIG_TYPE_STRING,	FALSE },
-#ifdef _FFR_LUA
+#ifdef USE_LUA
 	{ "ScreenPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_LUA */
+#endif /* USE_LUA */
 #endif /* _FFR_RESIGN */
 	{ "Selector",			CONFIG_TYPE_STRING,	FALSE },
-#ifdef _FFR_LUA
+#ifdef USE_LUA
 	{ "SetupPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_LUA */
+#endif /* USE_LUA */
 #ifdef _FFR_SELECTOR_HEADER
 	{ "SelectorHeader",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SelectorHeaderRemove",	CONFIG_TYPE_BOOLEAN,	FALSE },
