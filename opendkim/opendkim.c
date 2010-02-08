@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.87 2010/02/08 02:28:43 cm-msk Exp $
+**  $Id: opendkim.c,v 1.88 2010/02/08 03:25:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.87 2010/02/08 02:28:43 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.88 2010/02/08 03:25:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6697,7 +6697,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
-			(void) dkimf_add_signrequest(dfc, keydb, keyname);
+			if (!dkimf_add_signrequest(dfc, keydb, keyname))
+				return -1;
 
 			nfound++;
 
@@ -6716,7 +6717,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
-			(void) dkimf_add_signrequest(dfc, keydb, keyname);
+			if (!dkimf_add_signrequest(dfc, keydb, keyname))
+				return -1;
 
 			nfound++;
 
@@ -6742,8 +6744,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			}
 			else if (found)
 			{
-				(void) dkimf_add_signrequest(dfc, keydb,
-				                             keyname);
+				if (!dkimf_add_signrequest(dfc, keydb,
+				                           keyname))
+					return -1;
 
 				nfound++;
 
@@ -6761,8 +6764,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			}
 			else if (found)
 			{
-				(void) dkimf_add_signrequest(dfc, keydb,
-				                             keyname);
+				if (!dkimf_add_signrequest(dfc, keydb,
+				                           keyname))
+					return -1;
 
 				nfound++;
 
@@ -6784,7 +6788,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
-			(void) dkimf_add_signrequest(dfc, keydb, keyname);
+			if (!dkimf_add_signrequest(dfc, keydb, keyname))
+				return -1;
 
 			nfound++;
 
@@ -6802,7 +6807,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
-			(void) dkimf_add_signrequest(dfc, keydb, keyname);
+			if (!dkimf_add_signrequest(dfc, keydb, keyname))
+				return -1;
 
 			nfound++;
 
