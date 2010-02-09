@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.99 2010/02/09 21:07:29 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.100 2010/02/09 23:40:43 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -18,8 +18,8 @@ release, and a summary of the changes in that release.
 	Don't overwrite the signature verification status with that of the
 		policy query status, leading to spurious "bad signature data"
 		entries in the log.  Problem noted by Roman Gelfand.
-	Fix database query order for PeerList, InternalHosts, etc.
-		so that negation works properly again.
+	Fix database query order for PeerList, InternalHosts, etc.  so that
+		negation works properly again.
 	Fix crash-on-shutdown bug related to the crypto utilities functions.
 	Drop "KeyList" in favour of "KeyTable" and "SigningTable" in the
 		configuration file.  See the opendkim.conf(5) man page
