@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.98 2010/02/09 00:17:03 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.99 2010/02/09 21:07:29 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -39,6 +39,7 @@ release, and a summary of the changes in that release.
 		"--enable-arlib" was specified.
 	BUILD: Fix an m4 quoting error that had rendered "--enable-debug"
 		useless.
+	BUILD: Support for OS X from Bob Halley.
 
 1.2.2		2010/01/19
 	Fix bug #SF2916729: Fix crash when reporting on multiple signatures,
