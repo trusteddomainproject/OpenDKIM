@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.110 2010/02/09 04:16:20 cm-msk Exp $
+# $Id: configure.ac,v 1.111 2010/02/09 21:06:44 cm-msk Exp $
 
 #
 # Setup
@@ -379,7 +379,7 @@ fi
 if test x"$openssl_found" = x"no"
 then
 	AC_MSG_CHECKING([for OpenSSL library and includes])
-	ssldirs="/usr/local/ssl /usr/local /usr/sfw /usr"
+	ssldirs="/usr/local/ssl /usr/local /usr/sfw /opt/local /usr"
 	if test "$sslpath" = "auto" -o "$sslpath" = "yes"
 	then
 		for d in $ssldirs
@@ -479,7 +479,7 @@ fi
 if test "$milterpath" = "auto" -o "$milterpath" = "yes"
 then
 	AC_MSG_CHECKING([for milter library and includes])
-	milterdirs="/usr/local /usr"
+	milterdirs="/usr/local /opt/local /usr"
 	for d in $milterdirs
 	do
 		if test -f $d/include/libmilter/mfapi.h
@@ -1254,6 +1254,16 @@ AM_CONDITIONAL(VERIFY_DOMAINKEYS, test x"$dk" != x"no")
 
 AC_DEFINE_UNQUOTED([LIBOPENDKIM_FEATURE_STRING], "$LIBOPENDKIM_FEATURE_STRING",
                    [Feature string for printing])
+
+#
+# Platform Specific Configuration
+#
+AC_CANONICAL_HOST
+case "$host" in
+	*-darwin*)
+		CPPFLAGS="$CPPFLAGS -DBIND_8_COMPAT"
+		;;
+esac
 
 #
 # Finish up
