@@ -3,12 +3,12 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.107 2010/02/06 07:26:19 cm-msk Exp $
+# $Id: configure.ac,v 1.108 2010/02/09 00:00:28 grooverdan Exp $
 
 #
 # Setup
 #
-AC_PREREQ(2.62)
+AC_PREREQ(2.61)
 
 #
 # Package version
