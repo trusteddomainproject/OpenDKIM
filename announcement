@@ -1,9 +1,9 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.0.0 released
+Subject: OpenDKIM v2.0.0 (Eve) released
 
-The OpenDKIM project announces availability of OpenDKIM v2.0.0, now available
-for download from SourceForge.
+The OpenDKIM project announces availability of OpenDKIM v2.0.0 (code named
+"Eve"), now available for download from SourceForge.
 
 This is a major new feature release.  The main new features include:
 
