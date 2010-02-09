@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.108 2010/02/09 00:00:28 grooverdan Exp $
+# $Id: configure.ac,v 1.109 2010/02/09 03:46:22 grooverdan Exp $
 
 #
 # Setup
@@ -1226,7 +1226,7 @@ else
 	fi
 fi
 
-liBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS $LIBRESOLV"
+LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS $LIBRESOLV"
 # This (below) is just for the pkg-config file opendkim.pc.in
 LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
 LIBOPENDKIM_INC="$LIBCRYPTO_CPPFLAGS $LIBCRYPTO_CFLAGS $LIBTRE_CFLAGS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
