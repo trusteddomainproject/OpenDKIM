@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.92 2010/02/08 18:24:26 cm-msk Exp $
+**  $Id: opendkim.c,v 1.93 2010/02/09 21:10:46 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.92 2010/02/08 18:24:26 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.93 2010/02/09 21:10:46 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -10072,11 +10072,11 @@ mlfi_eom(SMFICTX *ctx)
 				/* special handling for sketchy answers */
 				if (dfc->mctx_dnssec_policy == DKIM_DNSSEC_BOGUS &&
 				    conf->conf_boguspolicy == DKIM_POLICYACTIONS_IGNORE)
-					presult = DKIM_PRESULT_NONE;
+					dfc->mctx_presult = DKIM_PRESULT_NONE;
 
 				if (dfc->mctx_dnssec_policy == DKIM_DNSSEC_INSECURE &&
 				    conf->conf_insecurepolicy == DKIM_POLICYACTIONS_IGNORE)
-					presult = DKIM_PRESULT_NONE;
+					dfc->mctx_presult = DKIM_PRESULT_NONE;
 #endif /* USE_UNBOUND */
 
 				/*
