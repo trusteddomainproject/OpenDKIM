@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.109 2010/02/09 03:46:22 grooverdan Exp $
+# $Id: configure.ac,v 1.110 2010/02/09 04:16:20 cm-msk Exp $
 
 #
 # Setup
@@ -1030,7 +1030,7 @@ else
 fi
 
 AM_CONDITIONAL(USE_DB_OPENDKIM,
-               test x"$enable_bodylengthdb" = x"yes" -o \
+               test x"$enable_bodylength_db" = x"yes" -o \
 	            x"$enable_popauth" = x"yes" -o \
 	            x"$enable_stats" = x"yes" -o \
 	            x"$enable_report_intervals" = x"yes" -o \
