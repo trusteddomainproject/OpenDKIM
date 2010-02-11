@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.39 2010/02/11 18:29:21 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.40 2010/02/11 19:01:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.39 2010/02/11 18:29:21 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.40 2010/02/11 19:01:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -259,45 +259,46 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 	size_t clen;
 	size_t remain;
 	char *p;
-	char *q;
 
 	assert(buf != NULL);
 
 	if (req == NULL || reqnum == 0)
 		return;
 
-	ridx = 0;
-	clen = 0;
+	p = buf;
 	remain = buflen;
-	q = req[ridx].dbdata_buffer;
 
-	for (p = buf; *p != '\0' && ridx < reqnum; p++)
+	for (ridx = 0; ridx < reqnum; ridx++)
 	{
-		/*
-		**  Break at ":" except in last one or at the end of complete
-		**  binary ones.
-		*/
+		if (remain <= 0)
+			break;
 
-		if ((*p == ':' && ridx < reqnum - 1) ||
-		    (req[ridx].dbdata_flags & DKIMF_DB_DATA_BINARY &&
-		     clen == req[ridx].dbdata_buflen))
+		if ((req[ridx].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
 		{
+			clen = MIN(remain, req[ridx].dbdata_buflen);
+
+			memcpy(req[ridx].dbdata_buffer, p, clen);
 			req[ridx].dbdata_buflen = clen;
-			ridx++;
-			clen = 0;
-			q = req[ridx].dbdata_buffer;
-
-			continue;
+			p += clen;
+			remain -= clen;
 		}
-
-		/* copy byte */
-		if (clen < req[ridx].dbdata_buflen)
+		else if (ridx == reqnum - 1)
 		{
-			*q = *p;
-			q++;
+			clen = MIN(remain, req[ridx].dbdata_buflen);
+			memcpy(req[ridx].dbdata_buffer, p, clen);
+			req[ridx].dbdata_buflen = clen;
 		}
+		else
+		{
+			char *q;
 
-		clen++;
+			q = strchr(p, ':');
+			clen = q - p;
+			memcpy(req[ridx].dbdata_buffer, p, clen);
+			req[ridx].dbdata_buflen = clen;
+			p += clen + 1;
+			remain -= (clen + 1);
+		}
 	}
 
 	/* mark the ones that got no data */
@@ -2536,13 +2537,13 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 # if !DB_VERSION_CHECK(2,0,0)
 			if (key != NULL)
 				memcpy(key, k.data, MIN(k.size, *keylen));
+# endif /* DB_VERSION_CHECK(2,0,0) */
 
 			if (reqnum != 0)
 			{
 				dkimf_db_datasplit(databuf, sizeof databuf,
 				                   req, reqnum);
 			}
-# endif /* ! DB_VERSION_CHECK(2,0,0) */
 
 			if (keylen != NULL)
 				*keylen = k.size;
