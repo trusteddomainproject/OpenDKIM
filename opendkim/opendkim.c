@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.94 2010/02/11 19:12:13 cm-msk Exp $
+**  $Id: opendkim.c,v 1.95 2010/02/11 19:27:14 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.94 2010/02/11 19:12:13 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.95 2010/02/11 19:27:14 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6708,14 +6708,16 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		char addr[MAXADDRESS + 1];
 
 		snprintf(addr, sizeof addr, "%s@%s", user, domain);
-		memset(keyname, '\0', sizeof keyname);
 
 		dbd.dbdata_buffer = keyname;
-		dbd.dbdata_buflen = sizeof keyname - 1;
+		dbd.dbdata_flags = 0;
 
 		/* walk RE set, find match(es), make request(s) */
 		for (;;)
 		{
+			memset(keyname, '\0', sizeof keyname);
+			dbd.dbdata_buflen = sizeof keyname - 1;
+
 			status = dkimf_db_rewalk(signdb, addr, &dbd,
 			                         1, &ctx);
 			if (status == -1)
@@ -6778,6 +6780,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 
 		/* now just "host" */
 		found = FALSE;
+		req.dbdata_buflen = sizeof keyname - 1;
+		memset(keyname, '\0', sizeof keyname);
 		status = dkimf_db_get(signdb, domain, strlen(domain), &req, 1,
 		                      &found);
 		if (status == -1 ||
@@ -6810,6 +6814,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			         user, p);
 
 			found = FALSE;
+			req.dbdata_buflen = sizeof keyname - 1;
+			memset(keyname, '\0', sizeof keyname);
 			status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 			                      &req, 1, &found);
 			if (status == -1 ||
@@ -6835,6 +6841,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			}
 
 			found = FALSE;
+			req.dbdata_buflen = sizeof keyname - 1;
+			memset(keyname, '\0', sizeof keyname);
 			status = dkimf_db_get(signdb, p, strlen(p),
 			                      &req, 1, &found);
 			if (status == -1 ||
@@ -6864,6 +6872,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		snprintf(tmpaddr, sizeof tmpaddr, "%s@*", user);
 
 		found = FALSE;
+		req.dbdata_buflen = sizeof keyname - 1;
+		memset(keyname, '\0', sizeof keyname);
 		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 		                      &req, 1, &found);
 		if (status == -1 ||
@@ -6889,6 +6899,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 
 		/* finally just "*" */
 		found = FALSE;
+		req.dbdata_buflen = sizeof keyname - 1;
+		memset(keyname, '\0', sizeof keyname);
 		status = dkimf_db_get(signdb, "*", 1, &req, 1, &found);
 		if (status == -1 ||
 		    status == 0 && req.dbdata_buflen == 0)
