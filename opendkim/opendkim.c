@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.93 2010/02/09 21:10:46 cm-msk Exp $
+**  $Id: opendkim.c,v 1.94 2010/02/11 19:12:13 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.93 2010/02/09 21:10:46 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.94 2010/02/11 19:12:13 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3042,6 +3042,7 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 
 	dbd.dbdata_buffer = &ri;
 	dbd.dbdata_buflen = sizeof ri;
+	dbd.dbdata_flags = 0;
 	status = dkimf_db_get(ridb, domain, 0, &dbd, 1, &exists);
 
 	if (status == 0)
@@ -3179,10 +3180,13 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 
 		dbd[0].dbdata_buffer = domain;
 		dbd[0].dbdata_buflen = sizeof domain - 1;
+		dbd[0].dbdata_flags = 0;
 		dbd[1].dbdata_buffer = selector;
 		dbd[1].dbdata_buflen = sizeof selector - 1;
+		dbd[1].dbdata_flags = 0;
 		dbd[2].dbdata_buffer = keydata;
 		dbd[2].dbdata_buflen = sizeof keydata - 1;
+		dbd[2].dbdata_flags = 0;
 
 		status = dkimf_db_get(keytable, keyname, strlen(keyname),
 		                      dbd, 3, &found);
@@ -3665,6 +3669,7 @@ dkimf_local_adsp(struct dkimf_config *conf, char *domain, dkim_policy_t *pcode)
 
 		dbd.dbdata_buffer = policy;
 		dbd.dbdata_buflen = plen;
+		dbd.dbdata_flags = 0;
 
 		status = dkimf_db_get(conf->conf_localadsp_db, domain, 0, 
 		                      &dbd, 1, &found);
@@ -6742,6 +6747,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(keyname, '\0', sizeof keyname);
 		req.dbdata_buffer = keyname;
 		req.dbdata_buflen = sizeof keyname;
+		req.dbdata_flags = 0;
 
 		/* first try full "user@host" */
 		snprintf(tmpaddr, sizeof tmpaddr, "%s@%s", user, domain);
@@ -8382,6 +8388,7 @@ mlfi_eoh(SMFICTX *ctx)
 			memset(&dbd, '\0', sizeof dbd);
 			dbd.dbdata_buffer = val;
 			dbd.dbdata_buflen = strlen(val);
+			dbd.dbdata_flags = 0;
 
 			status = dkimf_db_get(conf->conf_macrosdb, name, 0,
 			                      &dbd, 1, &originok);
@@ -11923,6 +11930,7 @@ main(int argc, char **argv)
 		{
 			dbdp[c].dbdata_buffer = result[c];
 			dbdp[c].dbdata_buflen = BUFRSZ;
+			dbdp[c].dbdata_flags = 0;
 		}
 
 		*p = '\0';
