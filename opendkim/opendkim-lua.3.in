@@ -119,7 +119,9 @@ Header field numbering starts at 0, so use 0 for the first instance,
 fromaddr = odkim_get_header(ctx, "From", 0)
 
 This will return the value of the first (and hopefully only) "From" header
-field.  Negative values of "n" count backwards from the end of the set
+field.  Negative values of
+.I n
+count backwards from the end of the set
 of header fields, so:
 
 rcvd = odkim_get_header(ctx, "Received", -2)
