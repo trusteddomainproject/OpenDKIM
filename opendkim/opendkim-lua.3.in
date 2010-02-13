@@ -15,6 +15,10 @@ Lua in the context of OpenDKIM, specifically the functions and global variables
 OpenDKIM provides for use in user-constructed scripts beyond what Lua provides
 by default.
 
+Unless otherwise noted, all functions described below return a single result;
+on success they return the requested data, and on error they return the Lua
+constant "nil".
+
 Three scripting hooks are provided.  They are as follows:
 .TP
 .I setup
@@ -40,10 +44,6 @@ of all of the signature evaluations and make a decision about whether or not
 the message should be accepted, rejected, discarded, quarantined, etc.
 If the message is accepted, any signatures requested earlier will be
 added to the messages before it is released.
-
-Unless otherwise noted, all functions return a single result; on success
-they return the requested data, and on error they return the Lua constant
-"nil".
 .SH GLOBAL VARIABLES
 The following global variable(s) are provided for all user scripts:
 .TP
