@@ -124,7 +124,7 @@ of header fields, so:
 
 rcvd = odkim_get_header(ctx, "Received", -2)
 
-...will retrieve the second-last Received: header field on the message.
+will retrieve the second-last Received: header field on the message.
 .TP
 .B odkim_get_mtasymbol(ctx, name)
 Retrieves the value of the symbol called
