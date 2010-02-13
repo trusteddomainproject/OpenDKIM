@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.97 2010/02/13 08:46:12 cm-msk Exp $
+**  $Id: opendkim.c,v 1.98 2010/02/13 09:12:44 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.97 2010/02/13 08:46:12 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.98 2010/02/13 09:12:44 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -120,6 +120,7 @@ struct Header
 	char *		hdr_hdr;
 	char *		hdr_val;
 	struct Header *	hdr_next;
+	struct Header *	hdr_prev;
 };
 
 /*
@@ -6796,6 +6797,9 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 **
 **  Return value:
 **  	Header handle, or NULL if not found.
+**
+**  Notes:
+**  	Negative values of "instance" search backwards from the end.
 */
 
 static Header
@@ -6806,19 +6810,27 @@ dkimf_findheader(msgctx dfc, char *hname, int instance)
 	assert(dfc != NULL);
 	assert(hname != NULL);
 
-	hdr = dfc->mctx_hqhead;
+	if (instance < 0)
+		hdr = dfc->mctx_hqtail;
+	else
+		hdr = dfc->mctx_hqhead;
 
 	while (hdr != NULL)
 	{
 		if (strcasecmp(hdr->hdr_hdr, hname) == 0)
 		{
-			if (instance == 0)
+			if (instance == 0 || instance == -1)
 				return hdr;
-			else
+			else if (instance > 0)
 				instance--;
+			else
+				instance++;
 		}
 
-		hdr = hdr->hdr_next;
+		if (instance < 0)
+			hdr = hdr->hdr_prev;
+		else
+			hdr = hdr->hdr_next;
 	}
 
 	return NULL;
@@ -8212,6 +8224,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 	newhdr->hdr_val = strdup(dkimf_dstring_get(dfc->mctx_tmpstr));
 
 	newhdr->hdr_next = NULL;
+	newhdr->hdr_prev = dfc->mctx_hqtail;
 
 	if (newhdr->hdr_hdr == NULL || newhdr->hdr_val == NULL)
 	{
