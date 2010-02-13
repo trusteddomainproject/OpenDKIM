@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.111 2010/02/09 21:06:44 cm-msk Exp $
+# $Id: configure.ac,v 1.112 2010/02/13 00:50:50 cm-msk Exp $
 
 #
 # Setup
@@ -58,9 +58,14 @@ ACX_PTHREAD
 #
 AC_SEARCH_LIBS(inet_addr, nsl)
 AC_SEARCH_LIBS(socket, socket)
+AC_SEARCH_LIBS(inet_aton, resolv)
+AC_SEARCH_LIBS(inet_pton, resolv)
 
 AC_HEADER_RESOLV
 
+#
+# See if libopendkim will need -lresolv
+#
 dnscheck='
 #include "confdefs.h" 
 #include <sys/types.h>
