@@ -1,4 +1,4 @@
--- $Id: t-sign-rs-tables.lua,v 1.2 2010/02/08 05:39:26 cm-msk Exp $
+-- $Id: t-sign-rs-tables.lua,v 1.3 2010/02/13 09:11:44 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -55,7 +55,7 @@ if mt_header(conn, "Subject", "Signing test") ~= nil then
 	error "mt_header(Subject) failed"
 end
 if mt_getreply(conn) ~= SMFIR_CONTINUE then
-	error "mt_header() unexpected reply"
+	error "mt_header(Subject) unexpected reply"
 end
 
 -- send EOH
