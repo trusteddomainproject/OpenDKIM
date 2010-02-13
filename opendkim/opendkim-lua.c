@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.6 2010/01/29 17:47:30 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.7 2010/02/13 07:28:03 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.6 2010/01/29 17:47:30 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.7 2010/02/13 07:28:03 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -200,6 +200,9 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 	/* get a specific envelope recipient */
 	lua_register(l, "odkim_get_rcpt", dkimf_xs_rcpt);
 
+	/* get all envelope recipients as an array */
+	lua_register(l, "odkim_get_rcptarray", dkimf_xs_rcptarray);
+
 	/* test DB for membership */
 	lua_register(l, "odkim_db_check", dkimf_xs_dbquery);
 
@@ -342,6 +345,9 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 	/* get number of envelope recipients */
 	lua_register(l, "odkim_rcpt_count", dkimf_xs_rcptcount);
 
+	/* get all envelope recipients as an array */
+	lua_register(l, "odkim_get_rcptarray", dkimf_xs_rcptarray);
+
 	/* retrieve number of signatures */
 	lua_register(l, "odkim_get_sigcount", dkimf_xs_getsigcount);
 
@@ -472,6 +478,9 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 
 	/* get number of envelope recipients */
 	lua_register(l, "odkim_rcpt_count", dkimf_xs_rcptcount);
+
+	/* get all envelope recipients as an array */
+	lua_register(l, "odkim_get_rcptarray", dkimf_xs_rcptarray);
 
 	/* add recipient */
 	lua_register(l, "odkim_add_rcpt", dkimf_xs_addrcpt);

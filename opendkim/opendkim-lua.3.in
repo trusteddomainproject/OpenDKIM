@@ -135,6 +135,11 @@ If
 .I n
 references an out-of-range value, the Lua constant "nil" is returned.
 .TP
+.B odkim_get_rcptarray(ctx)
+Returns the envelope recipients for the message represented by
+.I ctx
+in a single Lua array.
+.TP
 .B odkim_internal_ip(ctx)
 Returns 1 if the SMTP client is coming from an internal IP address, and 0
 otherwise.
@@ -204,6 +209,7 @@ descriptions can be found above:
 .B odkim_get_dbhandle,
 .B odkim_get_header,
 .B odkim_get_rcpt,
+.B odkim_get_rcptarray,
 .B odkim_log
 and
 .B odkim_rcpt_count.
@@ -256,6 +262,7 @@ not present on the message.  Always returns the Lua constant "nil".
 The screen script has the following functions available to it, whose
 descriptions can be found above:
 .B odkim_get_rcpt,
+.B odkim_get_rcptarray,
 .B odkim_get_sigcount,
 .B odkim_get_sighandle,
 .B odkim_log,

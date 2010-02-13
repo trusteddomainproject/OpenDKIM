@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.95 2010/02/11 19:27:14 cm-msk Exp $
+**  $Id: opendkim.c,v 1.96 2010/02/13 07:28:03 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.95 2010/02/11 19:27:14 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.96 2010/02/13 07:28:03 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1635,7 +1635,6 @@ dkimf_xs_rcpt(lua_State *l)
 	int rcnt;
 	SMFICTX *ctx;
 	struct connctx *cc;
-	struct dkimf_config *conf;
 	struct msgctx *dfc;
 	struct addrlist *addr;
 
@@ -1665,7 +1664,6 @@ dkimf_xs_rcpt(lua_State *l)
 	}
 	
 	cc = (struct connctx *) dkimf_getpriv(ctx);
-	conf = cc->cctx_config;
 	dfc = cc->cctx_msg;
 
 	for (addr = dfc->mctx_rcptlist;
@@ -1677,6 +1675,71 @@ dkimf_xs_rcpt(lua_State *l)
 		lua_pushnil(l);
 	else
 		lua_pushstring(l, addr->a_addr);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_RCPTARRAY -- retrieve all recipients into a Lua array
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_rcptarray(lua_State *l)
+{
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+	struct addrlist *addr;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_get_rcptarray(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_get_rcptarray(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	lua_newtable(l);
+
+	if (ctx == NULL)
+	{
+		lua_pushnumber(l, 1);
+		lua_pushstring(l, "dkimf_xs_rcptarray");
+		lua_settable(l, -3);
+	}
+	else
+	{
+		int idx;
+		struct addrlist *addr;
+
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+
+		for (addr = dfc->mctx_rcptlist, idx = 1;
+		     addr != NULL;
+		     addr = addr->a_next, idx++)
+		{
+			lua_pushnumber(l, idx);
+			lua_pushstring(l, addr->a_addr);
+			lua_settable(l, -3);
+		}
+	}
 
 	return 1;
 }
