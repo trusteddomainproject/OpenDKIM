@@ -68,6 +68,11 @@ sending the current message.  This is usually a hostname, but might be
 an IP address in square brackets if the SMTP client's IP address does not
 have a name associated with it.
 .TP
+.B odkim_get_clientip(ctx)
+Returns the IP address of the client on the other end of the SMTP connection
+sending the current message as a string.  Both IPv4 and IPv6 addresses are 
+supported.
+.TP
 .B odkim_db_check(db, string)
 Returns 1 if
 .I db

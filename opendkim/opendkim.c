@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.96 2010/02/13 07:28:03 cm-msk Exp $
+**  $Id: opendkim.c,v 1.97 2010/02/13 08:46:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.96 2010/02/13 07:28:03 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.97 2010/02/13 08:46:12 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -32,6 +32,10 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.96 2010/02/13 07:28:03 cm
 #ifdef __linux__
 # include <sys/prctl.h>
 #endif /* __linux__ */
+#ifdef USE_LUA
+# include <netinet/in.h>
+# include <arpa/inet.h>
+#endif /* USE_LUA */
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -1158,6 +1162,98 @@ dkimf_xs_clienthost(lua_State *l)
 		cc = (struct connctx *) dkimf_getpriv(ctx);
 
 		lua_pushstring(l, cc->cctx_host);
+	}
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_CLIENTIP -- retrieve client IP address
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_clientip(lua_State *l)
+{
+	SMFICTX *ctx;
+	struct connctx *cc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_get_clientip(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_get_clientip(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (ctx == NULL)
+	{
+		lua_pushstring(l, "dkimf_xs_clientip");
+	}
+	else
+	{
+		char ipbuf[BUFRSZ + 1];
+
+		memset(ipbuf, '\0', sizeof ipbuf);
+
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+
+#ifdef AF_INET6
+		if (cc->cctx_ip.ss_family == AF_INET6)
+		{
+			struct sockaddr_in6 *sa;
+
+			sa = (struct sockaddr_in6 *) &cc->cctx_ip;
+
+			if (inet_ntop(AF_INET6, &sa->sin6_addr,
+			              ipbuf, sizeof ipbuf) == NULL)
+			{
+				lua_pushnil(l);
+			}
+			else
+			{
+				lua_pushstring(l, ipbuf);
+			}
+		}
+		else
+#endif /* AF_INET6 */
+#ifdef AF_INET
+		if (cc->cctx_ip.ss_family == AF_INET)
+		{
+			struct sockaddr_in *sa;
+
+			sa = (struct sockaddr_in *) &cc->cctx_ip;
+
+			if (inet_ntop(AF_INET, &sa->sin_addr,
+			              ipbuf, sizeof ipbuf) == NULL)
+			{
+				lua_pushnil(l);
+			}
+			else
+			{
+				lua_pushstring(l, ipbuf);
+			}
+		}
+		else
+#endif /* AF_INET */
+		{
+			lua_pushnil(l);
+		}
 	}
 
 	return 1;
