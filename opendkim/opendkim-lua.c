@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.9 2010/02/14 06:23:35 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.10 2010/02/14 22:55:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.9 2010/02/14 06:23:35 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.10 2010/02/14 22:55:39 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -351,6 +351,9 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 	/* get all envelope recipients as an array */
 	lua_register(l, "odkim_get_rcptarray", dkimf_xs_rcptarray);
 
+	/* retrieve array of signatures */
+	lua_register(l, "odkim_get_sigarray", dkimf_xs_getsigarray);
+
 	/* retrieve number of signatures */
 	lua_register(l, "odkim_get_sigcount", dkimf_xs_getsigcount);
 
@@ -451,6 +454,9 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 
 	/* log something */
 	lua_register(l, "odkim_log", dkimf_xs_log);
+
+	/* retrieve array of signatures */
+	lua_register(l, "odkim_get_sigarray", dkimf_xs_getsigarray);
 
 	/* retrieve number of signatures */
 	lua_register(l, "odkim_get_sigcount", dkimf_xs_getsigcount);

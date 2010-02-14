@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.100 2010/02/14 06:27:05 cm-msk Exp $
+**  $Id: opendkim.c,v 1.101 2010/02/14 22:55:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.100 2010/02/14 06:27:05 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.101 2010/02/14 22:55:39 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1651,10 +1651,10 @@ dkimf_xs_dbhandle(lua_State *l)
 		break;
 
 	  case DB_LOCALADSP:
-		if (conf->conf_localadspdb == NULL)
+		if (conf->conf_localadsp_db == NULL)
 			lua_pushnil(l);
 		else
-			lua_pushlightuserdata(l, conf->conf_localadspdb);
+			lua_pushlightuserdata(l, conf->conf_localadsp_db);
 		break;
 
 	  default:
@@ -2011,6 +2011,86 @@ dkimf_xs_verify(lua_State *l)
 	}
 
 	lua_pushnil(l);
+	return 1;
+}
+
+/*
+**  DKIMF_XS_GETSIGARRAY -- get signature handle array
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getsigarray(lua_State *l)
+{
+	SMFICTX *ctx;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim_get_sigarray(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim_get_sigarray(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (ctx != NULL)
+	{
+		struct connctx *cc;
+		struct msgctx *dfc;
+
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+
+		if (dfc->mctx_dkimv == NULL)
+		{
+			lua_pushnumber(l, 0);
+		}
+		else
+		{
+			int nsigs;
+			DKIM_STAT status;
+			DKIM_SIGINFO **sigs;
+
+			status = dkim_getsiglist(dfc->mctx_dkimv,
+			                         &sigs, &nsigs);
+			if (status != DKIM_STAT_OK)
+			{
+				lua_pushnil(l);
+			}
+			else
+			{
+				int c;
+
+				lua_newtable(l);
+
+				for (c = 0; c < nsigs; c++)
+				{
+					lua_pushnumber(l, c + 1);
+					lua_pushlightuserdata(l, sigs[c]);
+					lua_settable(l, -3);
+				}
+			}
+		}
+	}
+	else
+	{
+		lua_pushnil(l);
+	}
+	
 	return 1;
 }
 

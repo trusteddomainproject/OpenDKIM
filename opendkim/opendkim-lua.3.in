@@ -230,6 +230,12 @@ and
 
 The following additional functions are provided for this script:
 .TP
+.B odkim_get_sigarray(ctx)
+Returns the complete set of signature handles found in the message represented
+by
+.I ctx,
+as a Lua array, or the Lua constant "nil" in case of an error.
+.TP
 .B odkim_get_sigcount(ctx)
 Returns the number of signatures found in the message represented by
 .I ctx,
@@ -277,6 +283,7 @@ The screen script has the following functions available to it, whose
 descriptions can be found above:
 .B odkim_get_rcpt,
 .B odkim_get_rcptarray,
+.B odkim_get_sigarray,
 .B odkim_get_sigcount,
 .B odkim_get_sighandle,
 .B odkim_log,
