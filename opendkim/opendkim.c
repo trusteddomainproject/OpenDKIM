@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.98 2010/02/13 09:12:44 cm-msk Exp $
+**  $Id: opendkim.c,v 1.99 2010/02/14 06:23:35 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.98 2010/02/13 09:12:44 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.99 2010/02/14 06:23:35 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2772,62 +2772,19 @@ dkimf_xs_getpolicy(lua_State *l)
 	cc = (struct connctx *) dkimf_getpriv(ctx);
 	dfc = cc->cctx_msg;
 
-	if (dfc->mctx_pcode == DKIM_POLICY_NONE)
-		lua_pushnil(l);
+	if (dfc->mctx_presult == DKIM_PRESULT_NONE ||
+	    dfc->mctx_pcode == DKIM_POLICY_NONE)
+		lua_pushnumber(l, DKIMF_POLICY_NONE);
+	else if (dfc->mctx_presult == DKIM_PRESULT_NXDOMAIN)
+		lua_pushnumber(l, DKIMF_POLICY_NXDOMAIN);
+	else if (dfc->mctx_pcode == DKIM_POLICY_UNKNOWN)
+		lua_pushnumber(l, DKIMF_POLICY_UNKNOWN);
+	else if (dfc->mctx_pcode == DKIM_POLICY_ALL)
+		lua_pushnumber(l, DKIMF_POLICY_ALL);
+	else if (dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE)
+		lua_pushnumber(l, DKIMF_POLICY_DISCARDABLE);
 	else
-		lua_pushnumber(l, dfc->mctx_pcode);
-
-	return 1;
-}
-
-/*
-**  DKIMF_XS_GETPRESULT -- retrieve sender policy query result
-**
-**  Parameters:
-**  	l -- Lua state
-**
-**  Return value:
-**  	Number of stack items pushed.
-*/
-
-int
-dkimf_xs_getpresult(lua_State *l)
-{
-	SMFICTX *ctx;
-	struct connctx *cc;
-	struct msgctx *dfc;
-
-	assert(l != NULL);
-
-	if (lua_gettop(l) != 1)
-	{
-		lua_pushstring(l,
-		               "odkim_get_presult(): incorrect argument count");
-		lua_error(l);
-	}
-	else if (!lua_islightuserdata(l, 1))
-	{
-		lua_pushstring(l,
-		               "odkim_get_presult(): incorrect argument type");
-		lua_error(l);
-	}
-
-	ctx = (SMFICTX *) lua_touserdata(l, 1);
-	lua_pop(l, 1);
-
-	if (ctx == NULL)
-	{
 		lua_pushnil(l);
-		return 1;
-	}
-
-	cc = (struct connctx *) dkimf_getpriv(ctx);
-	dfc = cc->cctx_msg;
-
-	if (dfc->mctx_presult == DKIM_PRESULT_NONE)
-		lua_pushnil(l);
-	else
-		lua_pushnumber(l, dfc->mctx_presult);
 
 	return 1;
 }

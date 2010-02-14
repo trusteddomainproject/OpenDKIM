@@ -303,22 +303,20 @@ address.  Returns 1 on success, or the Lua constant "nil" on failure.
 .TP
 .B odkim_get_policy(ctx)
 Returns the discovered Author Domain Signing Practices (ADSP) policy, if one
-was published and could be retrieved.  The value will be one of
-.I DKIM_POLICY_UNKNOWN,
-.I DKIM_POLICY_ALL
+was published and could be retrieved, or a code indicating what other
+result was observed.  The value will be one of
+.I DKIMF_POLICY_UNKNOWN,
+.I DKIMF_POLICY_ALL
 and
-.I DKIM_POLICY_DISCARDABLE,
-or the Lua constant "nil" if no policy could be retrieved.
-.TP
-.B odkim_get_presult(ctx)
-Returns the result code from an attempt to retrieve the ADSP for the author
-domain.  The value will be one of
-.I DKIM_PRESULT_NXDOMAIN
-(the sender's domain does not exist),
-or
-.I DKIM_PRESULT_AUTHOR
-(an ADSP record was retrieved), or the Lua constnat "nil" if no policy
-could be retrieved.
+.I DKIMF_POLICY_DISCARDABLE,
+representing the corresponding ADSP result when a query was made and a result
+returned, or
+.I DKIMF_POLICY_NXDOMAIN
+if the author domain (based on the "From:" header field) does not appear
+to exist, or
+.I DKIMF_POLICY_NONE
+if no query was done because a valid author domain signature was found on
+the message, or the Lua constant "nil" in case of some other error.
 .TP
 .B odkim_get_reputation(ctx, sig, qroot)
 Performs a reputation query about the message represented by

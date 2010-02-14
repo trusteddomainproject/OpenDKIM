@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.21 2010/02/13 08:46:16 cm-msk Exp $
+**  $Id: opendkim.h,v 1.22 2010/02/14 06:23:35 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.21 2010/02/13 08:46:16 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.22 2010/02/14 06:23:35 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -68,6 +68,12 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.21 2010/02/13 08:46:16 cm
 #define	DB_DONTSIGNTO	3
 #define	DB_MTAS		4
 #define	DB_MACROS	5
+
+#define DKIMF_POLICY_NONE	(-1)		/* none/undefined */
+#define DKIMF_POLICY_UNKNOWN	0		/* unknown */
+#define DKIMF_POLICY_ALL	1		/* all */
+#define DKIMF_POLICY_DISCARDABLE 2		/* discardable */
+#define DKIMF_POLICY_NXDOMAIN	3		/* domain does not exist */
 
 #define AUTHRESULTSHDR	"Authentication-Results"
 #define ORCPTHEADER	"X-Original-Recipient"
@@ -133,7 +139,6 @@ extern int dkimf_xs_delrcpt __P((lua_State *));
 extern int dkimf_xs_fromdomain __P((lua_State *));
 extern int dkimf_xs_getheader __P((lua_State *));
 extern int dkimf_xs_getpolicy __P((lua_State *));
-extern int dkimf_xs_getpresult __P((lua_State *));
 extern int dkimf_xs_getreputation __P((lua_State *));
 extern int dkimf_xs_getsigcount __P((lua_State *));
 extern int dkimf_xs_getsigdomain __P((lua_State *));
