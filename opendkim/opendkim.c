@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.101 2010/02/14 22:55:39 cm-msk Exp $
+**  $Id: opendkim.c,v 1.102 2010/02/14 22:58:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.101 2010/02/14 22:55:39 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.102 2010/02/14 22:58:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2129,7 +2129,7 @@ dkimf_xs_getsigcount(lua_State *l)
 	ctx = (SMFICTX *) lua_touserdata(l, 1);
 	lua_pop(l, 1);
 
-	if (cc != NULL)
+	if (ctx != NULL)
 	{
 		cc = (struct connctx *) dkimf_getpriv(ctx);
 		dfc = cc->cctx_msg;
