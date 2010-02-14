@@ -94,6 +94,8 @@ should be one of
 (database of MTA macro checks to be done when determining signing),
 .I DB_DOMAINS
 (database of domains to be signed),
+.I DB_LOCALADSP
+(database of local ADSP overrides),
 .I DB_THIRDPARTY
 (database of third party signatures to be trusted) and
 .I DB_DONTSIGNTO

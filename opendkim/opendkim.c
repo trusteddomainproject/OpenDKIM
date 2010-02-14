@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.99 2010/02/14 06:23:35 cm-msk Exp $
+**  $Id: opendkim.c,v 1.100 2010/02/14 06:27:05 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.99 2010/02/14 06:23:35 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.100 2010/02/14 06:27:05 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1648,6 +1648,13 @@ dkimf_xs_dbhandle(lua_State *l)
 			lua_pushnil(l);
 		else
 			lua_pushlightuserdata(l, conf->conf_macrosdb);
+		break;
+
+	  case DB_LOCALADSP:
+		if (conf->conf_localadspdb == NULL)
+			lua_pushnil(l);
+		else
+			lua_pushlightuserdata(l, conf->conf_localadspdb);
 		break;
 
 	  default:
