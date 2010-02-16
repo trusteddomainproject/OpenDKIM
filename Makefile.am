@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.24 2010/02/16 18:06:00 cm-msk Exp $
+# $Id: Makefile.am,v 1.25 2010/02/16 18:08:02 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -127,7 +127,6 @@ dist_doc_DATA = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail \
 DISTCHECK_CONFIGURE_FLAGS=--enable-testcoverage --enable-arlib --enable-vbr
 
 dist-hook:
-s: Command not found.
 	sed -e '/^#define[ \t]*OPENDKIM_LIB_VERSION/s/0x[0-9]*/0x@HEX_VERSION@/' < $(srcdir)/libopendkim/dkim.h > $(distdir)/libopendkim/dkim.h
 	echo "looking to see if @VERSION@ is in the RELEASE_NOTES"
 	fgrep @VERSION@ $(srcdir)/RELEASE_NOTES
