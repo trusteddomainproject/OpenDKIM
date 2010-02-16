@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.23 2010/02/09 03:55:18 grooverdan Exp $
+# $Id: Makefile.am,v 1.24 2010/02/16 18:06:00 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -115,7 +115,10 @@ dist_doc_DATA = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail \
 	libopendkim/docs/dkim_set_trust_anchor.html \
 	libopendkim/docs/dkim_sig_getidentity.html \
 	libopendkim/docs/dkim_sig_getcanons.html \
-	libopendkim/docs/dkim_libfeature.html
+	libopendkim/docs/dkim_libfeature.html \
+	opendkim/setup.lua.sample \
+	opendkim/screen.lua.sample \
+	opendkim/final.lua.sample
 
 # TODO: get configure.ac to generate --enable-{feature} for all
 # non-experimental features and substitute it here e.g  @SUPPORTED_FEATURES@.
@@ -124,7 +127,7 @@ dist_doc_DATA = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail \
 DISTCHECK_CONFIGURE_FLAGS=--enable-testcoverage --enable-arlib --enable-vbr
 
 dist-hook:
-	[ -f $(distdir)/libopendkim/dkim.h ] && rm -f  $(distdir)/libopendkim/dkim.h
+s: Command not found.
 	sed -e '/^#define[ \t]*OPENDKIM_LIB_VERSION/s/0x[0-9]*/0x@HEX_VERSION@/' < $(srcdir)/libopendkim/dkim.h > $(distdir)/libopendkim/dkim.h
 	echo "looking to see if @VERSION@ is in the RELEASE_NOTES"
 	fgrep @VERSION@ $(srcdir)/RELEASE_NOTES
