@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.40 2010/02/11 19:01:52 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.41 2010/02/16 22:55:04 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.40 2010/02/11 19:01:52 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.41 2010/02/16 22:55:04 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -104,6 +104,7 @@ struct dkimf_db
 	void *			db_handle;
 	void *			db_data;
 	void *			db_cursor;
+	void *			db_entry;
 	char **			db_array;
 };
 
@@ -2655,6 +2656,104 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		return 0;
 	  }
 #endif /* USE_ODBX */
+
+#ifdef USE_LDAP
+	  case DKIMF_DB_TYPE_LDAP:
+	  {
+		int c;
+		int status;
+		LDAP *ld;
+		LDAPMessage *result;
+		LDAPMessage *e;
+		struct dkimf_db_ldap *ldap;
+		struct berval **vals;
+		char filter[BUFRSZ];
+		struct timeval timeout;
+
+		ld = (LDAP *) db->db_handle;
+		ldap = (struct dkimf_db_ldap *) db->db_data;
+		result = (LDAPMessage *) db->db_cursor;
+
+		pthread_mutex_lock(&ldap->ldap_lock);
+
+		if (first)
+		{
+			if (result != NULL)
+			{
+				ldap_msgfree(result);
+				db->db_cursor = NULL;
+				db->db_entry = NULL;
+			}
+
+			memset(filter, '\0', sizeof filter);
+
+			dkimf_db_mkldapquery(ldap,
+			                     ldap->ldap_descr->lud_filter,
+			                     strlen(ldap->ldap_descr->lud_filter),
+			                     filter, sizeof filter);
+
+			timeout.tv_sec = ldap->ldap_timeout;
+			timeout.tv_usec = 0;
+
+			status = ldap_search_ext_s(ld, "",
+			                           ldap->ldap_descr->lud_scope,
+			                           filter,
+			                           ldap->ldap_descr->lud_attrs,
+			                           0, NULL, NULL,
+			                           &timeout, 0, &result);
+
+			if (status != LDAP_SUCCESS)
+			{
+				db->db_status = status;
+				pthread_mutex_unlock(&ldap->ldap_lock);
+				return -1;
+			}
+
+			db->db_data = (void *) result;
+
+			e = ldap_first_entry(ld, result);
+			if (e == NULL)
+			{
+				pthread_mutex_unlock(&ldap->ldap_lock);
+				return 1;
+			}
+		}
+		else
+		{
+			e = ldap_next_entry(ld, (LDAPMessage *) db->db_entry);
+			if (e == NULL)
+			{
+				pthread_mutex_unlock(&ldap->ldap_lock);
+				return 1;
+			}
+
+			db->db_entry = (void *) e;
+		}
+
+		for (c = 0; c < reqnum; c++)
+		{
+			vals = ldap_get_values_len(ld, e,
+			                           ldap->ldap_descr->lud_attrs[c]);
+			if (vals != NULL && vals[0] != NULL)
+			{
+				size_t clen;
+
+				clen = MIN(req[c].dbdata_buflen,
+				           vals[0]->bv_len);
+				memcpy(req[c].dbdata_buffer, vals[0]->bv_val,
+				       clen);
+				clen = MAX(req[c].dbdata_buflen,
+				           vals[0]->bv_len);
+				req[c].dbdata_buflen = clen;
+				ldap_value_free_len(vals);
+			}
+		}
+
+		pthread_mutex_unlock(&ldap->ldap_lock);
+
+		return 0;
+	  }
+#endif /* USE_LDAP */
 
 	  default:
 		assert(0);
