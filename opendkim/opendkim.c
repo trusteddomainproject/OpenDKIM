@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.102 2010/02/14 22:58:52 cm-msk Exp $
+**  $Id: opendkim.c,v 1.103 2010/02/16 22:07:09 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.102 2010/02/14 22:58:52 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.103 2010/02/16 22:07:09 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8964,11 +8964,12 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 	}
 
-	/* grab a verify handle if requested */
 #ifdef _FFR_RESIGN
-	if (msgsigned && (dfc->mctx_srhead == NULL || dfc->mctx_resign))
+	/* if we're not signing, or we are resigning, grab a verify handle */
+	if (dfc->mctx_srhead == NULL || dfc->mctx_resign)
 #else /* _FFR_RESIGN */
-	if (msgsigned && dfc->mctx_srhead == NULL)
+	/* if we're not signing, grab a verify handle */
+	if (dfc->mctx_srhead == NULL)
 #endif /* _FFR_RESIGN */
 	{
 		dfc->mctx_dkimv = dkim_verify(conf->conf_libopendkim,
@@ -9613,6 +9614,7 @@ sfsistat
 mlfi_eom(SMFICTX *ctx)
 {
 	_Bool testkey = FALSE;
+	_Bool authorsig;
 	int status = DKIM_STAT_OK;
 	int c;
 	sfsistat ret;
@@ -10089,6 +10091,8 @@ mlfi_eom(SMFICTX *ctx)
 			break;
 		}
 
+		authorsig = dkimf_authorsigok(dfc);
+
 #ifdef _FFR_STATS
 		if ((status == DKIM_STAT_OK || status == DKIM_STAT_BADSIG) &&
 		    conf->conf_statspath != NULL)
@@ -10262,7 +10266,7 @@ mlfi_eom(SMFICTX *ctx)
 		**  messages.
 		*/
 
-		if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN)
+		if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN && !authorsig)
 		{
 			DKIM_STAT pstatus;
 			_Bool localadsp = FALSE;
@@ -10354,8 +10358,7 @@ mlfi_eom(SMFICTX *ctx)
 
 				if ((dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE ||
 				     dfc->mctx_pcode == DKIM_POLICY_ALL) &&
-				    dfc->mctx_presult == DKIM_PRESULT_AUTHOR &&
-				    !dkimf_authorsigok(dfc))
+				    dfc->mctx_presult == DKIM_PRESULT_AUTHOR)
 				{
 					dfc->mctx_susp = TRUE;
 					dfc->mctx_addheader = TRUE;
@@ -10687,19 +10690,22 @@ mlfi_eom(SMFICTX *ctx)
 				strlcat((char *) header, ")", sizeof header);
 			}
 
-			strlcat((char *) header, DELIMITER, sizeof header);
-			strlcat((char *) header, "header.i=", sizeof header);
-			strlcat((char *) header, val, sizeof header);
+			if (dfc->mctx_status != DKIMF_STATUS_NOSIGNATURE)
+			{
+				strlcat((char *) header, DELIMITER,
+				        sizeof header);
+				strlcat((char *) header,
+				        "header.i=", sizeof header);
+				strlcat((char *) header, val, sizeof header);
+			}
 		}
 
 		/* now the ADSP bit, unless we couldn't get the domain */
 		if (dfc->mctx_status != DKIMF_STATUS_BADFORMAT)
 		{
 			_Bool first;
-			_Bool authorsig;
-			char tmphdr[DKIM_MAXHEADER + 1];
 
-			authorsig = dkimf_authorsigok(dfc);
+			char tmphdr[DKIM_MAXHEADER + 1];
 
 			if (header[0] != '\0')
 			{
@@ -10711,61 +10717,64 @@ mlfi_eom(SMFICTX *ctx)
 
 			strlcat((char *) header, "dkim-adsp=", sizeof header);
 
-			if (!policydone)
-			{
+			if (authorsig)
+			{				/* pass */
+				strlcat((char *) header, "pass",
+					        sizeof header);
+			}
+			else if (!policydone)
+			{				/* temperror */
 				strlcat((char *) header, "temperror",
 				        sizeof header);
 			}
 #ifdef USE_UNBOUND
 			else if (dfc->mctx_dnssec_policy == DKIM_DNSSEC_BOGUS)
-			{
+			{				/* bogus */
 				strlcat((char *) header, "unknown",
 				        sizeof header);
 			}
 #endif /* USE_UNBOUND */
 			else if (dfc->mctx_presult == DKIM_PRESULT_NXDOMAIN)
-			{					/* nxdomain */
+			{				/* nxdomain */
 				strlcat((char *) header, "nxdomain",
 				        sizeof header);
 			}
 			else if (dfc->mctx_pcode == DKIM_POLICY_NONE)
-			{					/* none */
+			{				/* none */
 				strlcat((char *) header, "none",
 				        sizeof header);
-			}
-			else if ((dfc->mctx_pcode == DKIM_POLICY_ALL ||
-			          dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE) &&
-			         authorsig)
-			{					/* pass */
-				strlcat((char *) header, "pass",
-					        sizeof header);
 			}
 			else if (dfc->mctx_pcode == DKIM_POLICY_UNKNOWN)
 			{
 				if (!authorsig)
-				{				/* unknown */
+				{			/* unknown */
 					strlcat((char *) header,
 					        "unknown", sizeof header);
 				}
 				else
-				{				/* signed */
+				{			/* signed */
 					strlcat((char *) header,
 					        "signed", sizeof header);
 				}
 			}
 			else if (dfc->mctx_pcode == DKIM_POLICY_ALL &&
 			         !authorsig)
-			{					/* fail */
+			{				/* fail */
 				strlcat((char *) header, "fail",
 				        sizeof header);
 			}
 			else if (dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE &&
 			         !authorsig)
-			{					/* discard */
+			{				/* discard */
 				strlcat((char *) header, "discard",
 				        sizeof header);
 			}
-	
+			else
+			{				/* inconceivable! */
+				strlcat((char *) header, "permerror",
+				        sizeof header);
+			}
+
 #ifdef USE_UNBOUND
 			switch (dfc->mctx_dnssec_policy)
 			{
