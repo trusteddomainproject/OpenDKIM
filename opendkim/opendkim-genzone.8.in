@@ -30,10 +30,18 @@ Restricts output to those records for which the domain field is the
 specified
 .I domain.
 .TP
+.I -D
+Adds a "._domainkey" suffix to selector names in the zone file.
+.TP
 .I -o file
 Sends output to the named
 .I file
 rather than standard output.
+.TP
+.I -t ttl
+Puts a TTL (time-to-live) value of
+.I ttl
+on all records output.  The units are in seconds.
 .TP
 .I -v
 Increases the verbosity of debugging output written to standard error.

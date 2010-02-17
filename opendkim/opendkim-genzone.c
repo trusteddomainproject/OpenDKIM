@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-genzone.c,v 1.1 2010/02/17 02:36:00 cm-msk Exp $
+**  $Id: opendkim-genzone.c,v 1.2 2010/02/17 18:52:47 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.1 2010/02/17 02:36:00 cm-msk Exp $";
+static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.2 2010/02/17 18:52:47 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -31,8 +31,10 @@ static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.1 2010/02/17 
 
 /* definitions */
 #define	BUFRSZ		1024
+#define	CMDLINEOPTS	"d:Do:t:v"
+#define	DKIMZONE	"._domainkey"
 #define	LARGEBUFRSZ	8192
-#define	CMDLINEOPTS	"d:o:v"
+#define	MARGIN		75
 
 #ifndef FALSE
 # define FALSE		0
@@ -44,6 +46,35 @@ static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.1 2010/02/17 
 /* globals */
 char *progname;
 
+/*
+**  STRFLEN -- determine length of a formatted string
+**
+**  Parameters:
+**  	str -- string of interest
+**
+**  Return value:
+**  	Rendered width (i.e. expand tabs, etc.).
+*/
+
+int
+strflen(char *str)
+{
+	int olen = 0;
+	char *p;
+
+	assert(str != NULL);
+
+	for (p = str; *p != '\0'; p++)
+	{
+		if (*p == '\t')
+			olen += 8 - (olen % 8);
+		else
+			olen++;
+	}
+
+	return olen;
+}
+	
 /*
 **  LOADKEY -- resolve a key
 **
@@ -106,7 +137,9 @@ usage(void)
 {
 	fprintf(stderr, "%s: usage: %s [opts] dataset\n"
 	                "\t-d domain\twrite keys for named domain only\n"
+	                "\t-D       \tinclude `._domainkey' suffix\n"
 	                "\t-o file  \toutput file\n"
+	                "\t-t ttl   \tuse specified TTL\n"
 	                "\t-v       \tverbose output\n",
 		progname, progname);
 
@@ -127,9 +160,12 @@ int
 main(int argc, char **argv)
 {
 	_Bool seenlf;
+	_Bool suffix = FALSE;
 	int c;
 	int status;
 	int verbose = 0;
+	int olen;
+	int ttl = -1;
 	long len;
 	size_t keylen;
 	char *p;
@@ -145,6 +181,7 @@ main(int argc, char **argv)
 	char keyname[BUFRSZ + 1];
 	char domain[BUFRSZ + 1];
 	char selector[BUFRSZ + 1];
+	char tmpbuf[BUFRSZ + 1];
 	char keydata[LARGEBUFRSZ];
 	struct dkimf_db_data dbd[3];
 
@@ -158,8 +195,22 @@ main(int argc, char **argv)
 			onlydomain = optarg;
 			break;
 
+		  case 'D':
+			suffix = TRUE;
+			break;
+
 		  case 'o':
 			outfile = optarg;
+			break;
+
+		  case 't':
+			ttl = strtol(optarg, &p, 10);
+			if (*p != '\0' || ttl < 0)
+			{
+				fprintf(stderr, "%s: invalid TTL value\n",
+				        progname);
+				return EX_USAGE;
+			}
 			break;
 
 		  case 'v':
@@ -333,20 +384,52 @@ main(int argc, char **argv)
 		}
 
 		/* write the record */
+		if (ttl == -1)
+		{
+			snprintf(tmpbuf, sizeof tmpbuf,
+			         "%s%s\tIN\tTXT\t( \"k=rsa; p=", selector,
+			         suffix ? DKIMZONE : "");
+		}
+		else
+		{
+			snprintf(tmpbuf, sizeof tmpbuf,
+			         "%s%s\t%d\tIN\tTXT\t( \"k=rsa; p=", selector,
+			         suffix ? DKIMZONE : "", ttl);
+		}
+
+		fprintf(out, "%s", tmpbuf);
+
+		olen = strflen(tmpbuf);
+
 		seenlf = FALSE;
-		fprintf(out, "%s\tIN\tTXT\t\"k=rsa; p=", keyname);
 		for (len = BIO_get_mem_data(outbio, &p); len > 0; len--, p++)
 		{
 			if (*p == '\n')
+			{
 				seenlf = TRUE;
+			}
 			else if (seenlf && *p == '-')
+			{
 				break;
+			}
 			else if (!seenlf)
+			{
 				continue;
+			}
 			else if (isascii(*p) && !isspace(*p))
+			{
 				(void) fputc(*p, out);
+				olen++;
+			}
+
+			if (olen >= MARGIN)
+			{
+				fprintf(out, "\"\n\t\"");
+				olen = 9;
+			}
 		}
-		fprintf(out, "\"\n");
+
+		fprintf(out, "\" )\n");
 
 		/* prepare for the next one */
 		(void) BIO_reset(outbio);
