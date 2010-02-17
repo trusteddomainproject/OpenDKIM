@@ -1,0 +1,49 @@
+.TH opendkim-genzone 8 "The OpenDKIM Project"
+.SH NAME
+.B opendkim-genzone
+- DKIM public key zone file generation tool
+.SH SYNOPSIS
+.B opendkim-genzone
+[options] dataset
+.SH DESCRIPTION
+.B opendkim-genzone
+generates a file suitable for use with
+.I named(8)
+to publish a set of public keys.
+
+The
+.I dataset
+parameter should specify a set of data as described in the
+.I opendkim(8)
+man page.  It can refer to flat files, Sleepycat databases, comma-separated
+lists, LDAP directories or SQL databases.
+
+The database contents should be formatted as described for the
+.I KeyTable
+parameter, described in the
+.I opendkim.conf(5)
+man page.
+.SH OPTIONS
+.TP
+.I -d domain
+Restricts output to those records for which the domain field is the
+specified
+.I domain.
+.TP
+.I -o file
+Sends output to the named
+.I file
+rather than standard output.
+.TP
+.I -v
+Increases the verbosity of debugging output written to standard error.
+.SH VERSION
+This man page covers the version of
+.I opendkim-genzone
+that shipped with version @VERSION@ of
+.I OpenDKIM.
+.SH COPYRIGHT
+Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+.I opendkim(8),
+.I opendkim.conf(5)

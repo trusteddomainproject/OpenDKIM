@@ -38,6 +38,7 @@ opendkim-testadsp
 opendkim
 opendkim-stats
 opendkim-testkey
+opendkim-genzone
 .libs
 core
 *.core

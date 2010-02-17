@@ -1,10 +1,10 @@
-# $Id: Makefile.am,v 1.58 2010/02/05 15:35:50 cm-msk Exp $
+# $Id: Makefile.am,v 1.59 2010/02/17 02:35:58 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
 endif
 
-sbin_PROGRAMS = opendkim-testkey opendkim-testadsp
+sbin_PROGRAMS = opendkim-genzone opendkim-testkey opendkim-testadsp
 dist_sbin_SCRIPTS = opendkim-genkey.sh
 
 exampledir = $(docdir)
@@ -82,7 +82,13 @@ opendkim_testadsp_CFLAGS += $(PTHREAD_CFLAGS)
 opendkim_testadsp_LDADD += $(PTHREAD_LIBS)
 endif
 
-man_MANS = opendkim-genkey.8 opendkim-testadsp.8 opendkim-testkey.8
+opendkim_genzone_SOURCES = opendkim-db.c opendkim-genzone.c util.c
+opendkim_genzone_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
+opendkim_genzone_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
+opendkim_genzone_LDFLAGS = $(COV_LDFLAGS)
+opendkim_genzone_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(COV_LIBADD)
+
+man_MANS = opendkim-genkey.8 opendkim-genzone.8 opendkim-testadsp.8 opendkim-testkey.8
 if BUILD_FILTER
 man_MANS += opendkim-lua.3 opendkim.conf.5 opendkim.8
 endif

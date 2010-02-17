@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.101 2010/02/16 22:07:09 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.102 2010/02/17 02:35:56 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -35,6 +35,9 @@ release, and a summary of the changes in that release.
 		snprintf() call.  From a Gentoo bug reported by Tilman Giese.
 	LIBOPENDKIM: Fix compiler complaint about multiple definitions
 		of global variables.  Reported by Maarten Oelering.
+	TOOLS: Add "opendkim-genzone" which generates a BIND zone file
+		fragment based on a KeyTable that contains all of the
+		public keys required to match the configured private keys.
 	BUILD: Add "--enable-codecoverage" to add build steps that generate
 		profiling or code coverage reports when running unit tests.
 	BUILD: Compile opendkim-testadsp with pthread libraries in case
