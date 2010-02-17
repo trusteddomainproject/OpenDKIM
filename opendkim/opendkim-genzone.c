@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-genzone.c,v 1.2 2010/02/17 18:52:47 cm-msk Exp $
+**  $Id: opendkim-genzone.c,v 1.3 2010/02/17 22:08:43 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.2 2010/02/17 18:52:47 cm-msk Exp $";
+static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.3 2010/02/17 22:08:43 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -20,6 +20,7 @@ static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.2 2010/02/17 
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
+#include <pwd.h>
 
 /* openssl includes */
 #include <openssl/rsa.h>
@@ -31,14 +32,23 @@ static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.2 2010/02/17 
 
 /* definitions */
 #define	BUFRSZ		1024
-#define	CMDLINEOPTS	"d:Do:t:v"
+#define	CMDLINEOPTS	"C:d:DE:o:N:r:R:St:T:v"
+#define	DEFEXPIRE	604800
+#define	DEFREFRESH	10800
+#define	DEFRETRY	1800
+#define	DEFTTL		86400
 #define	DKIMZONE	"._domainkey"
+#define	HOSTMASTER	"hostmaster"
 #define	LARGEBUFRSZ	8192
 #define	MARGIN		75
+#define	MAXNS		16
 
 #ifndef FALSE
 # define FALSE		0
 #endif /* ! FALSE */
+#ifndef MAXHOSTNAMELEN
+# define MAXHOSTNAMELEN	256
+#endif /* ! MAXHOSTNAMELEN */
 #ifndef TRUE
 # define TRUE		1
 #endif /* ! TRUE */
@@ -136,11 +146,18 @@ int
 usage(void)
 {
 	fprintf(stderr, "%s: usage: %s [opts] dataset\n"
-	                "\t-d domain\twrite keys for named domain only\n"
-	                "\t-D       \tinclude `._domainkey' suffix\n"
-	                "\t-o file  \toutput file\n"
-	                "\t-t ttl   \tuse specified TTL\n"
-	                "\t-v       \tverbose output\n",
+	                "\t-C user@host\tcontact address to include in SOA\n"
+	                "\t-d domain   \twrite keys for named domain only\n"
+	                "\t-D          \tinclude `._domainkey' suffix\n"
+	                "\t-E secs     \tuse specified expiration time in SOA\n"
+	                "\t-o file     \toutput file\n"
+	                "\t-N ns[,...] \tlist NS records\n"
+	                "\t-r secs     \tuse specified refresh time in SOA\n"
+	                "\t-R secs     \tuse specified retry time in SOA\n"
+	                "\t-S          \twrite an SOA record\n"
+	                "\t-t secs     \tuse specified per-record TTL\n"
+	                "\t-T secs     \tuse specified default TTL in SOA\n"
+	                "\t-v          \tverbose output\n",
 		progname, progname);
 
 	return EX_USAGE;
@@ -161,17 +178,27 @@ main(int argc, char **argv)
 {
 	_Bool seenlf;
 	_Bool suffix = FALSE;
+	_Bool writesoa = FALSE;
 	int c;
 	int status;
 	int verbose = 0;
 	int olen;
 	int ttl = -1;
+	int defttl = DEFTTL;
+	int expire = DEFEXPIRE;
+	int refresh = DEFREFRESH;
+	int retry = DEFRETRY;
+	int nscount = 0;
 	long len;
+	time_t now;
 	size_t keylen;
 	char *p;
 	char *dataset;
 	char *outfile = NULL;
 	char *onlydomain = NULL;
+	char *contact = NULL;
+	char *nameservers = NULL;
+	char *nslist[MAXNS];
 	FILE *out;
 	BIO *private;
 	BIO *outbio = NULL;
@@ -182,6 +209,7 @@ main(int argc, char **argv)
 	char domain[BUFRSZ + 1];
 	char selector[BUFRSZ + 1];
 	char tmpbuf[BUFRSZ + 1];
+	char hostname[MAXHOSTNAMELEN + 1];
 	char keydata[LARGEBUFRSZ];
 	struct dkimf_db_data dbd[3];
 
@@ -191,6 +219,10 @@ main(int argc, char **argv)
 	{
 		switch (c)
 		{
+		  case 'C':
+			contact = strdup(optarg);
+			break;
+
 		  case 'd':
 			onlydomain = optarg;
 			break;
@@ -199,8 +231,42 @@ main(int argc, char **argv)
 			suffix = TRUE;
 			break;
 
+		  case 'E':
+			expire = strtol(optarg, &p, 10);
+			if (*p != '\0' || expire < 0)
+			{
+				fprintf(stderr, "%s: invalid expire value\n",
+				        progname);
+				return EX_USAGE;
+			}
+			break;
+
+		  case 'N':
+			nameservers = strdup(optarg);
+			break;
+
 		  case 'o':
 			outfile = optarg;
+			break;
+
+		  case 'r':
+			refresh = strtol(optarg, &p, 10);
+			if (*p != '\0' || refresh < 0)
+			{
+				fprintf(stderr, "%s: invalid refresh value\n",
+				        progname);
+				return EX_USAGE;
+			}
+			break;
+
+		  case 'R':
+			retry = strtol(optarg, &p, 10);
+			if (*p != '\0' || retry < 0)
+			{
+				fprintf(stderr, "%s: invalid retry value\n",
+				        progname);
+				return EX_USAGE;
+			}
 			break;
 
 		  case 't':
@@ -211,6 +277,21 @@ main(int argc, char **argv)
 				        progname);
 				return EX_USAGE;
 			}
+			break;
+
+		  case 'T':
+			defttl = strtol(optarg, &p, 10);
+			if (*p != '\0' || defttl < 0)
+			{
+				fprintf(stderr,
+				        "%s: invalid default TTL value\n",
+				        progname);
+				return EX_USAGE;
+			}
+			break;
+
+		  case 'S':
+			writesoa = TRUE;
 			break;
 
 		  case 'v':
@@ -268,6 +349,79 @@ main(int argc, char **argv)
 	else
 	{
 		out = stdout;
+	}
+
+	if (nameservers != NULL)
+	{
+		for (p = strtok(nameservers, ",");
+		     p != NULL && nscount < MAXNS;
+		     p = strtok(NULL, ","))
+			nslist[nscount++] = p;
+	}
+
+	memset(hostname, '\0', sizeof hostname);
+	gethostname(hostname, sizeof hostname);
+
+	if (nscount == 0)
+		nslist[nscount++] = hostname;
+
+	(void) time(&now);
+
+	fprintf(out, "; DKIM public key zone data\n");
+	if (onlydomain != NULL)
+		fprintf(out, "; for %s\n", onlydomain);
+	fprintf(out, "; auto-generated by %s at %s\n", progname, ctime(&now));
+
+	if (writesoa)
+	{
+		struct tm *tm;
+
+		fprintf(out, "@\tIN\tSOA\t%s\t", nslist[0]);
+
+		if (contact != NULL)
+		{
+			for (p = contact; *p != '\0'; p++)
+			{
+				if (*p == '@')
+					*p = '.';
+			}
+
+			fprintf(out, "%s", contact);
+		}
+		else
+		{
+			struct passwd *pwd;
+			char addr[BUFRSZ + 1];
+
+			pwd = getpwuid(getuid());
+
+			fprintf(out, "%s.%s",
+			        pwd == NULL ? HOSTMASTER : pwd->pw_name,
+			        hostname);
+		}
+
+		tm = localtime(&now);
+
+		fprintf(out,
+		        "\t (\n"
+		        "\t%04d%02d%02d%02d   ; Serial (yyyymmddhh)\n"
+		        "\t%-10d   ; Refresh\n"
+		        "\t%-10d   ; Retry\n"
+		        "\t%-10d   ; Expire\n"
+		        "\t%-10d ) ; Default\n\n",
+		        tm->tm_year + 1900,
+		        tm->tm_mon + 1,
+		        tm->tm_mday,
+		        tm->tm_hour,
+		        refresh, retry, expire, defttl);
+	}
+
+	if (nameservers != NULL)
+	{
+		for (c = 0; c < nscount; c++)
+			fprintf(out, "\tIN\tNS\t%s\n", nslist[c]);
+
+		fprintf(out, "\n");
 	}
 
 	dbd[0].dbdata_buffer = domain;
