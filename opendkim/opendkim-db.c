@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.44 2010/02/18 23:48:22 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.45 2010/02/18 23:59:28 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.44 2010/02/18 23:48:22 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.45 2010/02/18 23:59:28 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -41,6 +41,9 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.44 2010/02/18 23:48
 #ifdef USE_SASL
 # include <sasl/sasl.h>
 #endif /* USE_SASL */
+
+/* libopendkim includes */
+#include <dkim-strl.h>
 
 /* opendkim includes */
 #include "opendkim-db.h"
