@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.43 2010/02/17 20:19:04 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.44 2010/02/18 23:48:22 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.43 2010/02/17 20:19:04 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.44 2010/02/18 23:48:22 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -320,11 +320,11 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 **  DKIMF_DB_MKLDAPQUERY -- generate an LDAP query
 **
 **  Parameters:
-**  	ldap -- LDAP data handle
 **  	buf -- parameter (the actual query)
 **  	buflen -- length of data in "buf"
-**  	query -- destination string
-**  	qlen -- size of "query"
+**  	query -- query string (a domain name?)
+**  	out -- outbut buffer
+**  	outlen -- size of "out"
 **
 **  Return value:
 **  	None.
@@ -334,53 +334,56 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 */
 
 static void
-dkimf_db_mkldapquery(struct dkimf_db_ldap *ldap, char *buf, size_t buflen,
-                     char *query, size_t qlen)
+dkimf_db_mkldapquery(char *buf, char *query, char *out, size_t outlen)
 {
 	char last = '\0';
 	char *p;
-	char *b;
+	char *o;
 	char *q;
 	char *pend;
-	char *bend;
+	char *oend;
 	char *qend;
 
-	assert(ldap != NULL);
 	assert(buf != NULL);
 	assert(query != NULL);
+	assert(out != NULL);
 
-	p = ldap->ldap_descr->lud_dn;
+	p = buf;
 	pend = p + strlen(p) - 1;
-	q = query;
-	qend = query + qlen - 1;
-	bend = buf + buflen - 1;
 
-	while (p <= pend && q <= qend)
+	q = query;
+	qend = query + strlen(query) - 1;
+
+	o = out;
+	oend = out + outlen - 1;
+
+	while (p <= pend && o <= oend)
 	{
 		if (last == '$')
 		{
 			if (*p == 'd')
 			{
-				for (b = buf; b <= bend && q <= qend; b++)
-					*q++ = *b;
+				for (q = query; o <= oend && q <= qend; q++)
+					*o++ = *q;
 			}
 			else if (*p == 'D')
 			{
-				for (b = buf; b <= bend && q <= qend; b++)
+				for (q = query; o <= oend && q <= qend; q++)
 				{
-					if (b == buf)
+					if (q == query)
 					{
-						q += strlcpy(q, "dc=",
-						             qend - q);
+						o += strlcpy(o, "dc=",
+						             oend - o);
+						*o++ = *q;
 					}
-					else if (*b == '.')
+					else if (*q == '.')
 					{
-						q += strlcpy(q, ",dc=",
-						             qend - q);
+						o += strlcpy(o, ",dc=",
+						             oend - o);
 					}
 					else
 					{
-						*q++ = *b;
+						*o++ = *q;
 					}
 				}
 			}
@@ -391,7 +394,7 @@ dkimf_db_mkldapquery(struct dkimf_db_ldap *ldap, char *buf, size_t buflen,
 		}
 		else if (*p != '$')
 		{
-			*q++ = *p;
+			*o++ = *p;
 		}
 
 		last = *p;
@@ -2217,9 +2220,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		memset(query, '\0', sizeof query);
 		memset(filter, '\0', sizeof filter);
 
-		dkimf_db_mkldapquery(ldap, buf, buflen, query, sizeof query);
-		dkimf_db_mkldapquery(ldap, ldap->ldap_descr->lud_filter,
-		                     strlen(ldap->ldap_descr->lud_filter),
+		dkimf_db_mkldapquery(ldap->ldap_descr->lud_dn, buf, query,
+		                     sizeof query);
+		dkimf_db_mkldapquery(ldap->ldap_descr->lud_filter, buf,
 		                     filter, sizeof filter);
 
 		timeout.tv_sec = ldap->ldap_timeout;
@@ -2691,9 +2694,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 
 			memset(filter, '\0', sizeof filter);
 
-			dkimf_db_mkldapquery(ldap,
-			                     ldap->ldap_descr->lud_filter,
-			                     strlen(ldap->ldap_descr->lud_filter),
+			dkimf_db_mkldapquery(ldap->ldap_descr->lud_filter, "*",
 			                     filter, sizeof filter);
 
 			timeout.tv_sec = ldap->ldap_timeout;
