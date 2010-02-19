@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.59 2010/02/17 02:35:58 cm-msk Exp $
+# $Id: Makefile.am,v 1.60 2010/02/19 18:26:16 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -87,6 +87,22 @@ opendkim_genzone_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_genzone_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_genzone_LDFLAGS = $(COV_LDFLAGS)
 opendkim_genzone_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(COV_LIBADD)
+if USE_DB_OPENDKIM
+opendkim_genzone_CPPFLAGS += $(LIBDB_INCDIRS)
+opendkim_genzone_LDFLAGS += $(LIBDB_LIBDIRS)
+opendkim_genzone_LDADD += $(LIBDB_LIBS)
+endif
+if USE_ODBX
+opendkim_genzone_CPPFLAGS += $(LIBODBX_CPPFLAGS)
+opendkim_genzone_LDADD += $(LIBODBX_LIBS)
+endif
+if USE_SASL
+opendkim_genzone_CPPFLAGS += $(SASL_CPPFLAGS)
+endif
+if USE_LDAP
+opendkim_genzone_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
+opendkim_genzone_LDADD += $(OPENLDAP_LIBS)
+endif
 
 man_MANS = opendkim-genkey.8 opendkim-genzone.8 opendkim-testadsp.8 opendkim-testkey.8
 if BUILD_FILTER
