@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.45 2010/02/18 23:59:28 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.46 2010/02/19 19:33:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.45 2010/02/18 23:59:28 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.46 2010/02/19 19:33:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2258,6 +2258,10 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		for (c = 0; c < reqnum; c++)
 		{
+			/* bail if we're out of attributes */
+			if (ldap->ldap_descr->lud_attrs[c] == NULL)
+				break;
+
 			vals = ldap_get_values_len(ld, e,
 			                           ldap->ldap_descr->lud_attrs[c]);
 			if (vals != NULL && vals[0] != NULL)
@@ -2274,6 +2278,10 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				ldap_value_free_len(vals);
 			}
 		}
+
+		/* tag requests that weren't fulfilled */
+		while (c < reqnum)
+			req[c++].dbdata_buflen = 0;
 
 		ldap_msgfree(result);
 		pthread_mutex_unlock(&ldap->ldap_lock);
