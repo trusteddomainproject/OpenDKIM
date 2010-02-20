@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.46 2010/02/19 19:33:42 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.47 2010/02/20 06:44:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.46 2010/02/19 19:33:42 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.47 2010/02/20 06:44:39 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -64,6 +64,10 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.46 2010/02/19 19:33
 #ifndef TRUE
 # define TRUE			1
 #endif /* ! TRUE */
+
+#ifndef MAX
+# define MAX(x,y)	((x) > (y) ? (x) : (y))
+#endif /* ! MAX */
 
 #ifdef USE_DB
 # ifndef DB_NOTFOUND
