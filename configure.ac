@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.113 2010/02/17 02:35:56 cm-msk Exp $
+# $Id: configure.ac,v 1.114 2010/02/20 06:32:41 cm-msk Exp $
 
 #
 # Setup
@@ -125,6 +125,16 @@ AC_TYPE_UINT32_T
 # Checks for library functions.
 #
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strtol strtoul strtoull strlcpy strlcat])
+
+#
+# Checks for structure members
+#
+AC_CHECK_MEMBER([struct sockaddr_un.sun_len],
+                AC_DEFINE([HAVE_SUN_LEN],
+                          [1],
+                          [Define if sockaddr_un has a sun_len member]),
+                [],
+                [[#include <sys/un.h>]])
 
 #
 # Library feature string and macros

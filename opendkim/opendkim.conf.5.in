@@ -782,13 +782,15 @@ parameter above for more information.
 
 .TP
 .I SelectorHeader (string)
-This message header defines which selector to use when signing.
+Names a header field whose contents name the key to use when signing.
+The referenced key must appear in the
+.I KeyTable.
 @SELECTOR_HEADER_MANNOTICE@
 
 .TP
 .I SelectorHeaderRemove (Boolean)
 Remove the
-.I Selector Header
+.I SelectorHeader
 before signing.
 @SELECTOR_HEADER_MANNOTICE@
 

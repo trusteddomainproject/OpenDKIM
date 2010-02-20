@@ -4,26 +4,26 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.h,v 1.8 2010/02/06 07:30:28 cm-msk Exp $
+**  $Id: util.h,v 1.9 2010/02/20 06:32:42 cm-msk Exp $
 */
 
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
 #ifndef lint
-static char util_h_id[] = "@(#)$Id: util.h,v 1.8 2010/02/06 07:30:28 cm-msk Exp $";
+static char util_h_id[] = "@(#)$Id: util.h,v 1.9 2010/02/20 06:32:42 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <regex.h>
 #include <stdio.h>
 
 /* opendkim includes */
 #include "build-config.h"
 #include "opendkim-db.h"
-#include "opendkim.h"
 
 /* TYPES */
 struct dkimf_dstring;

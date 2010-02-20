@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.24 2010/02/14 22:55:58 cm-msk Exp $
+**  $Id: opendkim.h,v 1.25 2010/02/20 06:32:42 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.24 2010/02/14 22:55:58 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.25 2010/02/20 06:32:42 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -29,8 +29,10 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.24 2010/02/14 22:55:58 cm
 #include "dkim.h"
 
 #ifdef USE_LUA
+# ifdef DKIMF_LUA_PROTOTYPES
 /* LUA */
 # include <lua.h>
+# endif /* DKIMF_LUA_PROTOTYPES */
 #endif /* USE_LUA */
 
 /* make sure we have TRUE and FALSE */
@@ -129,6 +131,7 @@ extern char *dkimf_get_ldap_param __P((int));
 #endif /* USE_LDAP */
 
 #ifdef USE_LUA
+# ifdef DKIMF_LUA_PROTOTYPES
 extern int dkimf_xs_addrcpt __P((lua_State *));
 extern int dkimf_xs_bodylength __P((lua_State *));
 extern int dkimf_xs_canonlength __P((lua_State *));
@@ -163,6 +166,7 @@ extern int dkimf_xs_sigbhresult __P((lua_State *));
 extern int dkimf_xs_sigignore __P((lua_State *));
 extern int dkimf_xs_sigresult __P((lua_State *));
 extern int dkimf_xs_verify __P((lua_State *));
+# endif /* DKIMF_LUA_PROTOTYPES */
 #endif /* USE_LUA */
 
 #endif /* _OPENDKIM_H_ */

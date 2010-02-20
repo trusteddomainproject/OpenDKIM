@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.4 2010/02/08 02:15:04 cm-msk Exp $
+**  $Id: miltertest.c,v 1.5 2010/02/20 06:32:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.4 2010/02/08 02:15:04 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.5 2010/02/20 06:32:42 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -1004,7 +1004,9 @@ mt_connect(lua_State *l)
 
 		memset(&sa, '\0', sizeof sa);
 		sa.sun_family = AF_UNIX;
+#ifdef HAVE_SUN_LEN
 		sa.sun_len = sizeof sa;
+#endif /* HAVE_SUN_LEN */
 		strlcpy(sa.sun_path, p + 1, sizeof sa.sun_path);
 
 		fd = socket(PF_UNIX, SOCK_STREAM, 0);

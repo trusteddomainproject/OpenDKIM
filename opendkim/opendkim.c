@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.103 2010/02/16 22:07:09 cm-msk Exp $
+**  $Id: opendkim.c,v 1.104 2010/02/20 06:32:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.103 2010/02/16 22:07:09 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.104 2010/02/20 06:32:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8750,26 +8750,28 @@ mlfi_eoh(SMFICTX *ctx)
 
 #ifdef _FFR_SELECTOR_HEADER
 	/* was there a header naming the selector to use? */
-	if (domainok && conf->conf_selectorhdr != NULL)
+	if (domainok && conf->conf_selectorhdr != NULL &&
+	    conf->conf_keytabledb != NULL)
 	{
 		/* find the header */
 		hdr = dkimf_findheader(dfc, conf->conf_selectorhdr, 0);
 
-		/* did it match a selector in the keylist? */
+		/* did it match a key in the KeyTable? */
 		if (hdr != NULL)
 		{
-			struct keytable *curkey;
-
-			for (curkey = conf->conf_keyhead;
-			     curkey != NULL;
-			     curkey = curkey->key_next)
+			status = dkimf_add_signrequest(dfc,
+			                               conf->conf_keytabledb,
+			                               hdr->hdr_val);
+			if (status != 0)
 			{
-				if (strcasecmp(curkey->key_name,
-				               hdr->hdr_val) == 0)
+				if (dolog)
 				{
-					dfc->mctx_key = curkey;
-					break;
+					syslog(LOG_ERR,
+					       "%s failed to add signature for key `%s'",
+					       dfc->mctx_jobid, hdr->hdr_val);
 				}
+
+				return SMFIS_TEMPFAIL;
 			}
 		}
 	}
