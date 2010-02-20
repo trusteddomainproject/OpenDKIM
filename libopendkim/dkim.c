@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.40 2010/02/02 17:59:46 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.41 2010/02/20 16:38:28 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3303,13 +3303,30 @@ dkim_eom_sign(DKIM *dkim)
 		sig->sig_signature = (void *) rsa;
 		sig->sig_keytype = DKIM_KEYTYPE_RSA;
 
-		rsa->rsa_pkey = PEM_read_bio_PrivateKey(key, NULL, NULL, NULL);
+		if (strncmp(dkim->dkim_key, "-----", 5) == 0)
+		{					/* PEM */
+			rsa->rsa_pkey = PEM_read_bio_PrivateKey(key, NULL,
+			                                        NULL, NULL);
 
-		if (rsa->rsa_pkey == NULL)
-		{
-			dkim_error(dkim, "PEM_read_bio_PrivateKey() failed");
-			BIO_free(key);
-			return DKIM_STAT_NORESOURCE;
+			if (rsa->rsa_pkey == NULL)
+			{
+				dkim_error(dkim,
+				           "PEM_read_bio_PrivateKey() failed");
+				BIO_free(key);
+				return DKIM_STAT_NORESOURCE;
+			}
+		}
+		else
+		{					/* DER */
+			rsa->rsa_pkey = d2i_PrivateKey_bio(key, NULL);
+
+			if (rsa->rsa_pkey == NULL)
+			{
+				dkim_error(dkim,
+				           "d2i_PrivateKey_bio() failed");
+				BIO_free(key);
+				return DKIM_STAT_NORESOURCE;
+			}
 		}
 
 		rsa->rsa_rsa = EVP_PKEY_get1_RSA(rsa->rsa_pkey);
@@ -4511,19 +4528,44 @@ dkim_sign(DKIM_LIB *libhandle, const char *id, void *memclosure,
 	{
 		new->dkim_mode = DKIM_MODE_SIGN;
 
-		new->dkim_keylen = strlen((const char *) secretkey);
-		new->dkim_key = (unsigned char *) DKIM_MALLOC(new,
-		                                              new->dkim_keylen + 1);
-
-		if (new->dkim_key == NULL)
+		/* do DER decoding here if needed */
+		if (strncmp(secretkey, "MII", 3) == 0)
 		{
-			*statp = DKIM_STAT_NORESOURCE;
-			dkim_free(new);
-			return NULL;
-		}
+			size_t b64len;
 
-		memcpy(new->dkim_key, (char *) secretkey,
-		       new->dkim_keylen + 1);
+			b64len = strlen(secretkey);
+
+			new->dkim_key = (unsigned char *) DKIM_MALLOC(new,
+			                                              b64len);
+			if (new->dkim_key == NULL)
+			{
+				*statp = DKIM_STAT_NORESOURCE;
+				dkim_free(new);
+				return NULL;
+			}
+
+			new->dkim_keylen = dkim_base64_decode(secretkey,
+			                                      new->dkim_key,
+			                                      b64len);
+			if (new->dkim_keylen <= 0)
+			{
+				*statp = DKIM_STAT_NORESOURCE;
+				dkim_free(new);
+				return NULL;
+			}
+		}
+		else
+		{
+			new->dkim_keylen = strlen((const char *) secretkey);
+			new->dkim_key = dkim_strdup(new, secretkey, 0);
+
+			if (new->dkim_key == NULL)
+			{
+				*statp = DKIM_STAT_NORESOURCE;
+				dkim_free(new);
+				return NULL;
+			}
+		}
 
 		new->dkim_selector = dkim_strdup(new, selector, 0);
 		new->dkim_domain = dkim_strdup(new, domain, 0);

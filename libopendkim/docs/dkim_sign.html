@@ -2,7 +2,7 @@
 <head><title>dkim_sign()</title></head>
 <body>
 <!--
-$Id: dkim_sign.html,v 1.3 2010/02/20 07:35:21 cm-msk Exp $
+$Id: dkim_sign.html,v 1.4 2010/02/20 16:38:28 cm-msk Exp $
 -->
 <h1>dkim_sign()</h1>
 
@@ -55,7 +55,10 @@ Create a new handle for signing a message.
             <tt>malloc()</tt> and/or <tt>free()</tt> replacement functions.
 	</td></tr>
     <tr valign="top"><td>secretkey</td>
-	<td>The PEM-formatted private key to be used when signing this message.
+	<td>The private key to be used when signing this message.  This
+	must be a NULL-terminated string containing either a PEM-formatted
+	private key, or a DER-formatted private key after being encoded
+	with base64.
 	</td></tr>
     <tr valign="top"><td>selector</td>
 	<td>The name of the selector to be reported in the signature on this
