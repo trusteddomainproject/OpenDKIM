@@ -4,7 +4,41 @@
 - DKIM signing and verifying filter for MTAs
 .SH SYNOPSIS
 .B opendkim
--p socketspec [-a peerlist] [-A] [-b modes] [-c canon] [-C config] [-d domains] [-D] [-f] [-F time] [-i ilist] [-I eilist] [-h] [-k keyfile] [-l] [-L min] [-m mtas] [-M macro[=value][,...]] [-n] [-o hdrlist] [-P pidfile] [-q] [-Q] [-r] [-R] [-s selector] [-S signalg] [-t testfile] [-T secs] [-u userid[:group]] [-U popdb] [-v] [-V] [-W] [-x configfile]
+-p socketspec
+[-a peerlist]
+[-A]
+[-b modes]
+[-c canon]
+[-C config]
+[-d domain[,...]]
+[-D]
+[-f]
+[-F time]
+[-h]
+[-i ilist]
+[-I eilist]
+[-k keyfile]
+[-l]
+[-L min]
+[-m mtas]
+[-M macro[=value][,...]]
+[-n]
+[-o hdrlist]
+[-P pidfile]
+[-q]
+[-Q]
+[-r]
+[-R]
+[-s selector]
+[-S signalg]
+[-t testfile]
+[-T secs]
+[-u userid[:group]]
+[-U popdb]
+[-v]
+[-V]
+[-W]
+[-x configfile]
 .SH DESCRIPTION
 .B opendkim
 implements the proposed
