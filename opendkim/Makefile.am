@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.62 2010/02/20 06:32:42 cm-msk Exp $
+# $Id: Makefile.am,v 1.63 2010/02/20 07:29:59 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -82,7 +82,7 @@ opendkim_testadsp_CFLAGS += $(PTHREAD_CFLAGS)
 opendkim_testadsp_LDADD += $(PTHREAD_LIBS)
 endif
 
-opendkim_genzone_SOURCES = opendkim-db.c opendkim-genzone.c util.c
+opendkim_genzone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-genzone.c util.c
 opendkim_genzone_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_genzone_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_genzone_LDFLAGS = $(COV_LDFLAGS)

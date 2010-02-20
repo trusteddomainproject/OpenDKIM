@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.h,v 1.8 2010/02/17 02:35:59 cm-msk Exp $
+**  $Id: opendkim-db.h,v 1.9 2010/02/20 07:29:59 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_DB_H_
 #define _OPENDKIM_DB_H_
 
 #ifndef lint
-static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.8 2010/02/17 02:35:59 cm-msk Exp $";
+static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.9 2010/02/20 07:29:59 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -40,6 +40,8 @@ static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.8 2010/02/17 02:35:
 #define	DKIMF_LDAP_PARAM_AUTHREALM	4
 #define	DKIMF_LDAP_PARAM_AUTHUSER	5
 #define	DKIMF_LDAP_PARAM_AUTHNAME	6
+
+#define DKIMF_LDAP_PARAM_MAX		6
 
 #ifdef __STDC__
 # ifndef __P
@@ -76,6 +78,7 @@ extern int dkimf_db_open __P((DKIMF_DB *, char *, u_int flags,
 extern int dkimf_db_put __P((DKIMF_DB, void *, size_t, void *, size_t));
 extern int dkimf_db_rewalk __P((DKIMF_DB, char *, DKIMF_DBDATA, unsigned int,
                                 void **));
+extern void dkimf_db_set_ldap_param __P((int, char *));
 extern int dkimf_db_strerror __P((DKIMF_DB, char *, size_t));
 extern int dkimf_db_type __P((DKIMF_DB));
 extern int dkimf_db_walk __P((DKIMF_DB, _Bool, void *, size_t *,

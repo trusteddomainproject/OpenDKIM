@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.47 2010/02/20 06:44:39 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.48 2010/02/20 07:29:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.47 2010/02/20 06:44:39 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.48 2010/02/20 07:29:59 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -183,6 +183,7 @@ struct dkimf_db_table dbtypes[] =
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
 
+static char *dkimf_db_ldap_param[DKIMF_LDAP_PARAM_MAX];
 
 #if (USE_SASL && USE_LDAP)
 /*
@@ -219,22 +220,22 @@ dkimf_db_saslinteract(LDAP *ld, unsigned int flags, void *defaults,
 	switch (interact->id)
 	{
 	  case SASL_CB_PASS:
-		interact->result = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_BINDPW);
+		interact->result = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_BINDPW];
 		interact->len = strlen(interact->result);
 		break;
 
 	  case SASL_CB_GETREALM:
-		interact->result = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_AUTHREALM);
+		interact->result = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_AUTHREALM];
 		interact->len = strlen(interact->result);
 		break;
 
 	  case SASL_CB_AUTHNAME:
-		interact->result = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_AUTHNAME);
+		interact->result = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_AUTHNAME];
 		interact->len = strlen(interact->result);
 		break;
 
 	  case SASL_CB_USER:
-		interact->result = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_AUTHUSER);
+		interact->result = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_AUTHUSER];
 		interact->len = strlen(interact->result);
 		break;
 
@@ -1418,7 +1419,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		}
 
 		/* attempt TLS if requested */
-		q = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_USETLS);
+		q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_USETLS];
 		if (q != NULL && (*q == 'y' || *q == 'Y') &&
 		    strcasecmp(ldap->ldap_descr->lud_scheme, "ldaps") != 0)
 		{
@@ -1433,14 +1434,14 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		}
 
 		/* attempt binding */
-		q = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_AUTHMECH);
-		u = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_BINDUSER);
+		q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_AUTHMECH];
+		u = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_BINDUSER];
 		if (q == NULL || strcasecmp(q, "none") == 0 ||
 		    strcasecmp(q, "simple") == 0)
 		{
 			struct berval passwd;
 
-			r = dkimf_get_ldap_param(DKIMF_LDAP_PARAM_BINDPW);
+			r = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_BINDPW];
 			if (r != NULL)
 			{
 				passwd.bv_val = r;
@@ -3007,4 +3008,23 @@ dkimf_db_rewalk(DKIMF_DB db, char *str, DKIMF_DBDATA req, unsigned int reqnum,
 	}
 
 	return 1;
+}
+
+/*
+**  DKIMF_DB_SET_LDAP_PARAM -- set an LDAP parameter
+**
+**  Parameters:
+**  	param -- parameter code to set
+**  	str -- new string pointer value
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkimf_db_set_ldap_param(int param, char *str)
+{
+	assert(param >= 0 && param <= DKIMF_LDAP_PARAM_MAX);
+
+	dkimf_db_ldap_param[param] = str;
 }

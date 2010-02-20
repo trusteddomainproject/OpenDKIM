@@ -2,13 +2,13 @@
 **  Copyright (c) 2006-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: config.c,v 1.4 2009/09/18 02:43:10 cm-msk Exp $
+**  $Id: config.c,v 1.5 2010/02/20 07:29:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char config_c_id[] = "@(#)$Id: config.c,v 1.4 2009/09/18 02:43:10 cm-msk Exp $";
+static char config_c_id[] = "@(#)$Id: config.c,v 1.5 2010/02/20 07:29:59 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -25,7 +25,15 @@ static char config_c_id[] = "@(#)$Id: config.c,v 1.4 2009/09/18 02:43:10 cm-msk 
 #include "config.h"
 
 /* limits */
+#define	BUFRSZ		1024		/* generic buffer size */
 #define	MAXLEVEL	5		/* max. include recursion */
+
+#ifndef FALSE
+# define FALSE		0
+#endif /* ! FALSE */
+#ifndef TRUE
+# define TRUE		1
+#endif /* ! TRUE */
 
 /* prototypes */
 static void config_attach __P((struct config *, struct config *));

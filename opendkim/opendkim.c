@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.104 2010/02/20 06:32:42 cm-msk Exp $
+**  $Id: opendkim.c,v 1.105 2010/02/20 07:29:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.104 2010/02/20 06:32:42 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.105 2010/02/20 07:29:59 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -920,54 +920,6 @@ dkimf_setreply(SMFICTX *ctx, char *rcode, char *xcode, char *replytxt)
 	else
 		return smfi_setreply(ctx, rcode, xcode, replytxt);
 }
-
-#ifdef USE_LDAP
-/*
-**  DKIMF_GET_LDAP_PARAM -- retrieve an LDAP parameter
-**
-**  Parameters:
-**  	which -- which parameter to get (a DKIMF_LDAP_PARAM_* constant)
-**
-**  Return value:
-**  	Pointer to the configured string or value.
-*/
-
-char *
-dkimf_get_ldap_param(int which)
-{
-	switch (which)
-	{
-	  case DKIMF_LDAP_PARAM_BINDUSER:
-		return curconf->conf_ldap_binduser;
-
-	  case DKIMF_LDAP_PARAM_BINDPW:
-		return curconf->conf_ldap_bindpw;
-
-	  case DKIMF_LDAP_PARAM_AUTHMECH:
-		return curconf->conf_ldap_authmech;
-
-# ifdef USE_SASL
-	  case DKIMF_LDAP_PARAM_AUTHNAME:
-		return curconf->conf_ldap_authname;
-
-	  case DKIMF_LDAP_PARAM_AUTHREALM:
-		return curconf->conf_ldap_authrealm;
-
-	  case DKIMF_LDAP_PARAM_AUTHUSER:
-		return curconf->conf_ldap_authuser;
-# endif /* USE_SASL */
-
-	  case DKIMF_LDAP_PARAM_USETLS:
-		if (curconf->conf_ldap_usetls)
-			return (char *) 1;
-		else
-			return NULL;
-
-	  default:
-		assert(0);
-	}
-}
-#endif /* USE_LDAP */
 
 /*
 **  DKIMF_GETSYMVAL -- wrapper for smfi_getsymval()
@@ -4759,31 +4711,54 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_ldap_usetls,
 		                  sizeof conf->conf_ldap_usetls);
 
+		if (conf->conf_ldap_usetls)
+			dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_USETLS, "y");
+		else
+			dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_USETLS, "n");
+
 		(void) config_get(data, "LDAPAuthMechanism",
 		                  &conf->conf_ldap_authmech,
 		                  sizeof conf->conf_ldap_authmech);
+
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_AUTHMECH,
+		                        conf->conf_ldap_authmech);
 
 # ifdef USE_SASL
 		(void) config_get(data, "LDAPAuthName",
 		                  &conf->conf_ldap_authname,
 		                  sizeof conf->conf_ldap_authname);
 
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_AUTHNAME,
+		                        conf->conf_ldap_authname);
+
 		(void) config_get(data, "LDAPAuthRealm",
 		                  &conf->conf_ldap_authrealm,
 		                  sizeof conf->conf_ldap_authrealm);
 
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_AUTHREALM,
+		                        conf->conf_ldap_authrealm);
+
 		(void) config_get(data, "LDAPAuthUser",
 		                  &conf->conf_ldap_authuser,
 		                  sizeof conf->conf_ldap_authuser);
+
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_AUTHUSER,
+		                        conf->conf_ldap_authuser);
 # endif /* USE_SASL */
 
 		(void) config_get(data, "LDAPBindPassword",
 		                  &conf->conf_ldap_bindpw,
 		                  sizeof conf->conf_ldap_bindpw);
 
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_BINDPW,
+		                        conf->conf_ldap_bindpw);
+
 		(void) config_get(data, "LDAPBindUser",
 		                  &conf->conf_ldap_binduser,
 		                  sizeof conf->conf_ldap_binduser);
+
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_BINDUSER,
+		                        conf->conf_ldap_binduser);
 #endif /* USE_LDAP */
 
 #ifdef USE_UNBOUND

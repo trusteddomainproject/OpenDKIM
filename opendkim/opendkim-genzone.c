@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-genzone.c,v 1.3 2010/02/17 22:08:43 cm-msk Exp $
+**  $Id: opendkim-genzone.c,v 1.4 2010/02/20 07:29:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.3 2010/02/17 22:08:43 cm-msk Exp $";
+static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.4 2010/02/20 07:29:59 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -27,12 +27,21 @@ static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.3 2010/02/17 
 #include <openssl/pem.h>
 #include <openssl/evp.h>
 
+#ifndef FALSE
+# define FALSE		0
+#endif /* ! FALSE */
+#ifndef TRUE
+# define TRUE		1
+#endif /* ! TRUE */
+
 /* opendkim includes */
 #include "opendkim-db.h"
+#include "config.h"
+#include "opendkim-config.h"
 
 /* definitions */
 #define	BUFRSZ		1024
-#define	CMDLINEOPTS	"C:d:DE:o:N:r:R:St:T:v"
+#define	CMDLINEOPTS	"C:d:DE:o:N:r:R:St:T:vx:"
 #define	DEFEXPIRE	604800
 #define	DEFREFRESH	10800
 #define	DEFRETRY	1800
@@ -43,15 +52,9 @@ static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.3 2010/02/17 
 #define	MARGIN		75
 #define	MAXNS		16
 
-#ifndef FALSE
-# define FALSE		0
-#endif /* ! FALSE */
 #ifndef MAXHOSTNAMELEN
 # define MAXHOSTNAMELEN	256
 #endif /* ! MAXHOSTNAMELEN */
-#ifndef TRUE
-# define TRUE		1
-#endif /* ! TRUE */
 
 /* globals */
 char *progname;
@@ -157,7 +160,8 @@ usage(void)
 	                "\t-S          \twrite an SOA record\n"
 	                "\t-t secs     \tuse specified per-record TTL\n"
 	                "\t-T secs     \tuse specified default TTL in SOA\n"
-	                "\t-v          \tverbose output\n",
+	                "\t-v          \tverbose output\n"
+	                "\t-x file     \tconfiguration file\n",
 		progname, progname);
 
 	return EX_USAGE;
@@ -198,6 +202,7 @@ main(int argc, char **argv)
 	char *onlydomain = NULL;
 	char *contact = NULL;
 	char *nameservers = NULL;
+	char *configfile = NULL;
 	char *nslist[MAXNS];
 	FILE *out;
 	BIO *private;
@@ -298,6 +303,10 @@ main(int argc, char **argv)
 			verbose++;
 			break;
 
+		  case 'x':
+			configfile = optarg;
+			break;
+
 		  default:
 			return usage();
 		}
@@ -307,6 +316,85 @@ main(int argc, char **argv)
 		return usage();
 
 	dataset = argv[optind];
+
+	if (configfile != NULL)
+	{
+#ifdef USE_LDAP
+		_Bool ldap_usetls = FALSE;
+#endif /* USE_LDAP */
+		u_int line = 0;
+		char *missing;
+#ifdef USE_LDAP
+		char *ldap_authmech = NULL;
+# ifdef USE_SASL
+		char *ldap_authname = NULL;
+		char *ldap_authrealm = NULL;
+		char *ldap_authuser = NULL;
+# endif /* USE_SASL */
+		char *ldap_bindpw = NULL;
+		char *ldap_binduser = NULL;
+#endif /* USE_LDAP */
+		struct config *cfg;
+		char path[MAXPATHLEN + 1];
+
+		cfg = config_load(configfile, dkimf_config,
+		                  &line, path, sizeof path);
+
+		if (cfg == NULL)
+		{
+			fprintf(stderr,
+			        "%s: %s: configuration error at line %u\n",
+			        progname, path, line);
+			return EX_CONFIG;
+		}
+
+#ifdef USE_LDAP
+		(void) config_get(cfg, "LDAPUseTLS",
+		                  &ldap_usetls, sizeof ldap_usetls);
+
+		if (ldap_usetls)
+			dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_USETLS, "y");
+		else
+			dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_USETLS, "n");
+
+		(void) config_get(cfg, "LDAPAuthMechanism",
+		                  &ldap_authmech, sizeof ldap_authmech);
+
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_AUTHMECH,
+		                        ldap_authmech);
+
+# ifdef USE_SASL
+		(void) config_get(cfg, "LDAPAuthName",
+		                  &ldap_authname, sizeof ldap_authname);
+
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_AUTHNAME,
+		                        ldap_authname);
+
+		(void) config_get(cfg, "LDAPAuthRealm",
+		                  &ldap_authrealm, sizeof ldap_authrealm);
+
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_AUTHREALM,
+		                        ldap_authrealm);
+
+		(void) config_get(cfg, "LDAPAuthUser",
+		                  &ldap_authuser, sizeof ldap_authuser);
+
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_AUTHUSER,
+		                        ldap_authuser);
+# endif /* USE_SASL */
+
+		(void) config_get(cfg, "LDAPBindPassword",
+		                  &ldap_bindpw, sizeof ldap_bindpw);
+
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_BINDPW, ldap_bindpw);
+
+		(void) config_get(cfg, "LDAPBindUser",
+		                  &ldap_binduser, sizeof ldap_binduser);
+
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_BINDUSER,
+		                        ldap_binduser);
+#endif /* USE_LDAP */
+	}
 
 	outbio = BIO_new(BIO_s_mem());
 	if (outbio == NULL)

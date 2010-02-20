@@ -2,24 +2,22 @@
 **  Copyright (c) 2006-2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: config.h,v 1.2 2009/07/20 21:28:19 cm-msk Exp $
+**  $Id: config.h,v 1.3 2010/02/20 07:29:59 cm-msk Exp $
 */
 
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
 #ifndef lint
-static char config_h_id[] = "@(#)$Id: config.h,v 1.2 2009/07/20 21:28:19 cm-msk Exp $";
+static char config_h_id[] = "@(#)$Id: config.h,v 1.3 2010/02/20 07:29:59 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
+#include <stdbool.h>
 #include <stdio.h>
-
-/* opendkim includes */
-#include "opendkim.h"
 
 /* types and things */
 #define	CONFIG_TYPE_STRING	0
@@ -29,7 +27,7 @@ static char config_h_id[] = "@(#)$Id: config.h,v 1.2 2009/07/20 21:28:19 cm-msk 
 
 struct config
 {
-	bool		cfg_bool;
+	_Bool		cfg_bool;
 	u_int		cfg_type;
 	int		cfg_int;
 	char *		cfg_name;

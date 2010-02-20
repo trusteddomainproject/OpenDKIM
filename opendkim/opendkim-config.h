@@ -4,17 +4,24 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.16 2010/02/08 21:37:06 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.17 2010/02/20 07:29:59 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.16 2010/02/08 21:37:06 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.17 2010/02/20 07:29:59 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
+
+#ifndef FALSE
+# define FALSE	0
+#endif /* ! FALSE */
+#ifndef TRUE
+# define TRUE	1
+#endif /* ! TRUE */
 
 struct configdef dkimf_config[] =
 {

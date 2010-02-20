@@ -99,6 +99,12 @@ as the default record TTL time.  The default is 86400.
 .TP
 .I -v
 Increases the verbosity of debugging output written to standard error.
+.TP
+.I -x conffile
+Names an
+.I opendkim.conf(5)
+file to be read for LDAP-specific parameters when an LDAP dataset is
+given on the command line.  Not required for other dataset types.
 .SH VERSION
 This man page covers the version of
 .I opendkim-genzone
