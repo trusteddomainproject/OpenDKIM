@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.60 2010/02/19 18:26:16 cm-msk Exp $
+# $Id: Makefile.am,v 1.61 2010/02/20 05:34:03 mmarkley Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -54,6 +54,11 @@ opendkim_stats_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBDB_INCDIRS)
 opendkim_stats_LDFLAGS = $(LIBDB_LIBDIRS) $(PTHREAD_CFLAGS) $(COV_LDFLAGS)
 opendkim_stats_LDADD = ../libopendkim/libopendkim.la $(LIBDB_LIBS) $(COV_LIBADD) $(LIBCRYPTO_LIBS)
 opendkim_stats_CFLAGS = $(COV_CFLAGS)
+if LUA
+opendkim_stats_CPPFLAGS += $(LIBLUA_INCDIRS)
+opendkim_stats_LDFLAGS += $(LIBLUA_LIBDIRS)
+opendkim_stats_LDADD += $(LIBLUA_LIBS)
+endif
 if USE_ARLIB
 opendkim_stats_CC = $(PTHREAD_CC)
 opendkim_stats_CFLAGS += $(PTHREAD_CFLAGS)
@@ -87,6 +92,11 @@ opendkim_genzone_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_genzone_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_genzone_LDFLAGS = $(COV_LDFLAGS)
 opendkim_genzone_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(COV_LIBADD)
+if LUA
+opendkim_genzone_CPPFLAGS += $(LIBLUA_INCDIRS)
+opendkim_genzone_LDFLAGS += $(LIBLUA_LIBDIRS)
+opendkim_genzone_LDADD += $(LIBLUA_LIBS)
+endif
 if USE_DB_OPENDKIM
 opendkim_genzone_CPPFLAGS += $(LIBDB_INCDIRS)
 opendkim_genzone_LDFLAGS += $(LIBDB_LIBDIRS)
