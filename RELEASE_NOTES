@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.104 2010/02/18 07:03:24 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.105 2010/02/21 06:26:40 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -29,6 +29,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF2936499: Clean up numerous compiler warnings.
 	Fix bug #SF2951494: Improve logic for doing ADSP queries and reporting
 		their results.
+	LIBOPENDKIM: Adjust dkim_sign() to accept base64-encoded DER private
+		keys as well as PEM-formatted keys.
 	LIBOPENDKIM: Several performance optimizations yielded from
 		gprof data.
 	LIBOPENDKIM: Fix a length computation that caused an invalid
