@@ -24,7 +24,7 @@ package which must be enabled by a compile-time option.
 groups statistics output by domain and canonicalization.  Each line begins
 with a domain and a header/body canonicalization.  The canonicalization is
 currently the raw enumerated value taken from the libdkim headers; for
-reference, 0 = simple, 1 = relaxed, and 2 = noswp.  This format looks like:
+reference, 0 = simple, 1 = relaxed, and 2 = nofws.  This format looks like:
 
 .SP 1
 .RI "domain:" x / x "\t" x " pass/"  x " fail, last v=" x ", l=" x ", a=" x ", date"
@@ -50,10 +50,10 @@ Most recent algorithm seen (0 = rsa-sha1; 1 = rsa-sha256)
 .I date
 Last date a signed message was seen
 .SH EXAMPLES
-.RI "gmail.com:" 1 / 1 "\t" 212 " pass/" 0 " fail, last v=" 2 ", l=" 0 ", a=" 0 ", Sat May  5 17:42:58 2007"
+.RI "opendkim.org:" 1 / 0 "\t" 212 " pass/" 0 " fail, last v=" 2 ", l=" 0 ", a=" 0 ", Sat May  5 17:42:58 2007"
 .PP
-gmail.com, using canonicalization
-.I relaxed/relaxed
+opendkim.org, using canonicalization
+.I relaxed/simple
 , has sent
 .I 212
 messages that passed signature verification and
