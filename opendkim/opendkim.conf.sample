@@ -1,7 +1,11 @@
 ##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
-## $Id: opendkim.conf.sample,v 1.3 2009/11/17 20:09:22 cm-msk Exp $
+## $Id: opendkim.conf.sample,v 1.4 2010/02/21 21:48:58 cm-msk Exp $
+##
+
+##
+##  For settings that refer to a "dataset", see the opendkim(8) man page.
 ##
 
 ##  ADSPDiscard { yes | no }
@@ -41,7 +45,7 @@
 
 # AlwaysAddARHeader	no
 
-##  AlwaysSignHeaders header-list
+##  AlwaysSignHeaders dataset
 ##  	default (none)
 ##
 ##  Specifies a list of headers whose names should appear in signatures
@@ -148,7 +152,7 @@
 
 # DNSTimeout		10
 
-##  Domain name[,...]
+##  Domain dataset
 ##  	default (none)
 ##
 ##  Specify for which domain(s) signing should be done.  No default; must
@@ -156,7 +160,7 @@
 
 Domain			example.com
 
-##  DontSignMailTo	addrlist
+##  DontSignMailTo	dataset
 ##  	default (none)
 ##
 ##  Gives a list of recipient addresses or address patterns whose mail should
@@ -187,13 +191,14 @@ Domain			example.com
 
 # FixCRLF 		no
 
-##  InternalHosts filename
+##  InternalHosts dataset
+##  	default "127.0.0.1"
 ##
 ##  Names a file from which a list of internal hosts is read.  These are
 ##  hosts from which mail should be signed rather than verified.
-##  Automatically contains 127.0.0.1.  See man page for file format.
+##  Automatically contains 127.0.0.1.
 
-# InternalHosts		filename
+# InternalHosts		dataset
 
 ##  KeepTemporaryFiles { yes | no }
 ##  	default "no"
@@ -205,30 +210,26 @@ Domain			example.com
 # KeepTemporaryFiles	no
 
 ##  KeyFile filename
+##  	default (none)
 ##
 ##  Specifies the path to the private key to use when signing.  Ignored if
 ##  Keylist is set.  No default; must be specified for signing.
 
 KeyFile			/var/db/dkim/example.private
 
-##  KeyList filename
+##  KeyTable dataset
+##  	default (none)
 ##
-##  Specifies the path to the list of keys and signing domains to be applied
-##  by the signing filter.  The entries in this file should be of the form:
-##
-##  	pattern:domain:keypath
-##
-##  ...where "pattern" is a pattern of user@host to match, with "*" being
-##  allowed as a wildcard; "domain" is the signing domain; and "keypath"
-##  is the path to the private key to use to generate signatures for such
-##  users.  The selector used will be the filename portion of "keypath".
-##  Blank lines are ignored, and the hash ("#") character is interpreted
-##  as the beginning of a comment.  See opendkim.conf(5) for more
-##  information.
+##  Defines a table that will be queried to convert key names to
+##  sets of data of the form (signing domain, signing selector, private key).
+##  The private key can either contain a PEM-formatted private key,
+##  a base64-encoded DER format private key, or a path to a file containing
+##  one of those.
 
-# KeyList		/var/db/dkim/keylist
+# KeyTable		dataset
 
-##  LocalADSP filename
+##  LocalADSP dataset
+##  	default (none)
 ##
 ##  Allows specification of local ADSP overrides for domains.  This should be
 ##  a path to a file containing entries, one per line, with comments and
@@ -306,7 +307,8 @@ KeyFile			/var/db/dkim/example.private
 
 # Mode			sv
 
-##  MTA mtaname[,...]
+##  MTA dataset
+##  	default (none)
 ##  
 ##  Specifies a list of MTAs whos mail should always be signed rather than
 ##  verified.  The "mtaname" is extracted from the DaemonPortOptions line
@@ -325,7 +327,7 @@ KeyFile			/var/db/dkim/example.private
 
 # MultipleSignatures	no
 
-##  MustBeSigned
+##  MustBeSigned dataset
 ##  	default (none)
 ##
 ##  Defines a list of headers which, if present on a message, must be
@@ -333,7 +335,7 @@ KeyFile			/var/db/dkim/example.private
 
 # MustBeSigned		header1,header2,...
 
-##  OmitHeaders headerlist
+##  OmitHeaders dataset
 ##  	default (none)
 ##
 ##  Specifies a list of headers that should always be omitted when signing.
@@ -354,7 +356,8 @@ KeyFile			/var/db/dkim/example.private
 # On-NoSignature
 # On-Security
 
-##  PeerList filename
+##  PeerList dataset
+##  	default (none)
 ##
 ##  Contains a list of IP addresses, CIDR blocks, hostnames or domain names
 ##  whose mail should be neither signed nor verified by this filter.  See man
@@ -363,13 +366,15 @@ KeyFile			/var/db/dkim/example.private
 # PeerList		filename
 
 ##  PidFile filename
+##  	default (none)
 ## 
 ##  Name of the file where the filter should write its pid before beginning
 ##  normal operations.
 
 # PidFile		filename
 
-##  POPDBFile filename
+##  POPDBFile dataset
+##  	default (none)
 ##
 ##  Names a database which should be checked for "POP before SMTP" records
 ##  as a form of authentication of users who may be sending mail through
@@ -404,7 +409,7 @@ KeyFile			/var/db/dkim/example.private
 
 # RemoveARAll		No
 
-##  RemoveARFrom list
+##  RemoveARFrom dataset
 ##  	default (none)
 ##
 ##  Remove all Authentication-Results: headers on all arriving mail that
@@ -453,7 +458,7 @@ Selector		my-selector-name
 
 # SendADSPReports	No
 
-##  SenderHeaders 	header1,header2,...
+##  SenderHeaders 	dataset
 ##  	default (none)
 ##
 ##  Overrides the default list of headers that will be used to determine
@@ -488,7 +493,7 @@ Selector		my-selector-name
 
 # SignatureTTL		0
 
-##  SignHeaders header-list
+##  SignHeaders dataset
 ##  	default (none)
 ##
 ##  Specifies the list of headers which should be included when generating
@@ -496,6 +501,22 @@ Selector		my-selector-name
 ##  See the opendkim.conf(5) man page for more information.
 
 # SignHeaders		header1,header2,...
+
+##  SigningTable dataset
+##  	default (none)
+##
+##  Defines a dataset that will be queried for the message sender's address
+##  to determine which private key(s) (if any) should be used to sign the
+##  message.  The sender is determined from the value of the sender
+##  header fields as described with SenderHeaders above.  The key for this
+##  lookup should be an address or address pattern that matches senders;
+##  see the opendkim.conf(5) man page for more information.  The value
+##  of the lookup should return the name of a key found in the KeyTable
+##  that should be used to sign the message.  If MultipleSignatures
+##  is set, all possible lookup keys will be attempted which may result
+##  in multiple signatures being applied.
+
+# SigningTable		filename
 
 ##  Socket socketspec
 ##
