@@ -745,7 +745,7 @@ defined at http://www.dkim-reputation.org. The default value here is
 
 .TP
 .I RequiredHeaders (boolean)
-Checks all messages for compliance with RFC2822 header field count
+Checks all messages for compliance with RFC5322 header field count
 requirements.  Non-compliant messages are rejected.
 
 .TP
@@ -1049,8 +1049,8 @@ Features that involve specification of IPv4 addresses or CIDR blocks
 will use the
 .I inet_addr(3) 
 function to parse that information.  Users should be familiar with the
-way that function handles the non-trivial cases (for example, "1.2.3/24"    
-and "1.2.3.0/24" are not the same thing).
+way that function handles the non-trivial cases (for example, "192.0.2/24"    
+and "192.0.2.0/24" are not the same thing).
 .SH VERSION
 This man page covers version @VERSION@ of
 .I opendkim.
