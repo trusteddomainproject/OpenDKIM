@@ -123,9 +123,9 @@ the name of the table, the name of the column to consider as the key, and the
 name(s) of the column(s) to be considered as the values (separated by
 commas).  For example:
 
-mysql:://dbuser:dbpass@1231+dbhost/odkim/table=macros?keycol=host?datacol=v1,v2
+mysql:://dbuser:dbpass@3306+dbhost/odkim/table=macros?keycol=host?datacol=v1,v2
 
-defines a MySQL database listening at port 1231 on host "dbhost"; the userid
+defines a MySQL database listening at port 3306 on host "dbhost"; the userid
 "dbuser" and password "dbpass" should be used to access the database; the
 database name is "odkim", and the data are in columns "host" (the keys)
 and "v1" and "v2" (the values) inside table "macros".  This example would
@@ -372,7 +372,7 @@ of the form "q/n" where "q" is the query to be performed and "n" is the
 number of fields to be retrieved.
 .TP
 .I -r
-Checks all messages for compliance with RFC2822 header count requirements.
+Checks all messages for compliance with RFC5322 header count requirements.
 Non-compliant messages are rejected.
 .TP
 .I -R
@@ -398,7 +398,7 @@ if it is available, otherwise it will be
 
 .TP
 .I -t testfile
-Evaluates (verifies) an RFC2822-formatted message found in
+Evaluates (verifies) an RFC5322-formatted message found in
 .I testfile
 and exits.  The value of
 .I testfile
@@ -594,8 +594,8 @@ Features that involve specification of IPv4 addresses or CIDR blocks
 will use the
 .I inet_addr(3)
 function to parse that information.  Users should be familiar with the
-way that function handles the non-trivial cases (for example, "1.2.3/24"
-and "1.2.3.0/24" are not the same thing).
+way that function handles the non-trivial cases (for example, "192.0.2/24"
+and "192.0.2.0/24" are not the same thing).
 .SH HISTORY
 DKIM is an amalgam of Yahoo!'s
 .B DomainKeys
