@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.50 2010/02/22 18:48:19 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.51 2010/02/22 23:51:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.50 2010/02/22 18:48:19 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.51 2010/02/22 23:51:59 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1334,6 +1334,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		int err;
 		int v = LDAP_VERSION3;
 		size_t rem;
+		size_t plen;
 		struct dkimf_db_ldap *ldap;
 		LDAP *ld;
 		char *q;
@@ -1371,7 +1372,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			return -1;
 		}
 
-		memset(ldap, '\0', sizeof ldap);
+		memset(ldap, '\0', sizeof *ldap);
 		ldap->ldap_timeout = DKIMF_LDAP_TIMEOUT;
 
 		/*
@@ -1411,17 +1412,20 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				rem--;
 			}
 
-			rem -= snprintf(q, rem, "%s://%s:%d",
+			plen = snprintf(q, rem, "%s://%s:%d",
 			                descr->lud_scheme,
 			                descr->lud_host,
 			                descr->lud_port);
 
-			if (rem < 0)
+
+			if (plen >= rem)
 			{
 				free(ldap);
 				free(p);
 				return -1;
 			}
+
+			rem -= plen;
 
 			ldap_free_urldesc(descr);
 		}
