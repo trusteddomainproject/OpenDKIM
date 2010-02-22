@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.106 2010/02/22 19:02:53 cm-msk Exp $
+**  $Id: opendkim.c,v 1.107 2010/02/22 21:59:44 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.106 2010/02/22 19:02:53 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.107 2010/02/22 21:59:44 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -685,7 +685,7 @@ pthread_mutex_t popen_lock;			/* popen() lock */
 **  BEGIN private section
 */
 
-#ifdef NO_SMFI_INSHEADER
+#ifndef HAVE_SMFI_INSHEADER
 /*
 **  SMFI_INSHEADER -- stub for smfi_insheader() which didn't exist before
 **                    sendmail 8.13.0
@@ -709,7 +709,7 @@ smfi_insheader(SMFICTX *ctx, int idx, char *hname, char *hvalue)
 
 	return smfi_addheader(ctx, hname, hvalue);
 }
-#endif /* NO_SMFI_INSHEADER */
+#endif /* ! HAVE_SMFI_INSHEADER */
 
 /*
 **  DKIMF_GETPRIV -- wrapper for smfi_getpriv()

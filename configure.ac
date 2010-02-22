@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.115 2010/02/22 21:53:48 mmarkley Exp $
+# $Id: configure.ac,v 1.116 2010/02/22 21:59:44 cm-msk Exp $
 
 #
 # Setup
@@ -553,6 +553,10 @@ then
 		AC_CHECK_FUNC([smfi_setsymlist],
 			      AC_DEFINE([HAVE_SMFI_SETSYMLIST], 1,
 					[Define if libmilter has smfi_setsymlist()]))
+
+		AC_CHECK_FUNC([smfi_insheader],
+			      AC_DEFINE([HAVE_SMFI_INSHEADER], 1,
+					[Define if libmilter has smfi_insheader()]))
 	done
 	if test x"$LIBMILTER_LIBDIRS" == x""; then
 		AC_MSG_ERROR([libmilter not found])
