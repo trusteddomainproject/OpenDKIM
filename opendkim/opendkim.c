@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.105 2010/02/20 07:29:59 cm-msk Exp $
+**  $Id: opendkim.c,v 1.106 2010/02/22 19:02:53 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.105 2010/02/20 07:29:59 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.106 2010/02/22 19:02:53 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4409,6 +4409,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	char basedir[MAXPATHLEN + 1];
 
 	assert(conf != NULL);
+	assert(err != NULL);
 
 	memset(basedir, '\0', sizeof basedir);
 
@@ -5405,6 +5406,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				return -1;
 			}
 		}
+	}
+
+	if (conf->conf_signtabledb != NULL && conf->conf_keytabledb == NULL)
+	{
+		snprintf(err, errlen, "use of SigningTable requires KeyTable");
+		return -1;
 	}
 
 	str = NULL;
