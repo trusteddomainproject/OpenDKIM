@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.49 2010/02/22 07:05:29 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.50 2010/02/22 18:48:19 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.49 2010/02/22 07:05:29 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.50 2010/02/22 18:48:19 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -940,7 +940,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		int reflags;
 		FILE *f;
 		char *end;
-		char *colon;
+		char *data;
 		struct dkimf_db_relist *head = NULL;
 		struct dkimf_db_relist *tail;
 		struct dkimf_db_relist *newl;
@@ -966,6 +966,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			reflags |= REG_ICASE;
 
 		memset(line, '\0', sizeof line);
+		end = NULL;
+		data = NULL;
 		while (fgets(line, BUFRSZ, f) != NULL)
 		{
 			for (p = line; *p != '\0'; p++)
@@ -975,11 +977,21 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					*p = '\0';
 					break;
 				}
+				else if (isascii(*p) && isspace(*p))
+				{
+					end = p;
+				}
 			}
 
-			colon = strchr(line, ':');
-			if (colon != NULL)
-				*colon = '\0';
+			if (end != NULL)
+			{
+				*end = '\0';
+				for (data = end + 1; *data != '\0'; data++)
+				{
+					if (!isascii(*data) || !isspace(*data))
+						break;
+				}
+			}
 
 			dkimf_trimspaces((u_char *) line);
 			if (strlen(line) == 0)
@@ -1017,10 +1029,19 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				return -1;
 			}
 
-			if (colon != NULL)
-				newl->db_relist_data = strdup(colon + 1);
+			if (data != NULL)
+			{
+				newl->db_relist_data = strdup(data);
+				if (newl->db_relist_data == NULL)
+				{
+					fclose(f);
+					return -1;
+				}
+			}
 			else
+			{
 				newl->db_relist_data = NULL;
+			}
 
 			newl->db_relist_next = NULL;
 

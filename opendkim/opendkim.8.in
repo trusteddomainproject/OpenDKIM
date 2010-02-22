@@ -82,10 +82,10 @@ colons.
 If the string begins with "refile:", then the remainder of the string is
 presumed to specify a file that contains a set of patterns, one per line,
 and their associated values.  The pattern is taken as the start of the line
-to the first colon, and the portion after the colon is taken as the value
-to be used when that pattern is matched.  Patterns are simple wildcard
-patterns, matching all text except that the asterisk ("*") character is
-considered a wildcard.  If a value contains multiple entries, the entries
+to the first whitespace, and the portion after that whitespace is taken as
+the value to be used when that pattern is matched.  Patterns are simple
+wildcard patterns, matching all text except that the asterisk ("*") character
+is considered a wildcard.  If a value contains multiple entries, the entries
 should be separated by colons.
 .TP
 .I c)
