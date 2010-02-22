@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.63 2010/02/20 07:29:59 cm-msk Exp $
+# $Id: Makefile.am,v 1.64 2010/02/22 07:05:25 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -50,7 +50,7 @@ endif
 if STATS
 sbin_PROGRAMS += opendkim-stats
 opendkim_stats_SOURCES = opendkim-db.c opendkim-stats.c util.c
-opendkim_stats_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBDB_INCDIRS)
+opendkim_stats_CPPFLAGS = -DOPENDKIM_DB_ONLY -I$(srcdir)/../libopendkim $(LIBDB_INCDIRS)
 opendkim_stats_LDFLAGS = $(LIBDB_LIBDIRS) $(PTHREAD_CFLAGS) $(COV_LDFLAGS)
 opendkim_stats_LDADD = ../libopendkim/libopendkim.la $(LIBDB_LIBS) $(COV_LIBADD) $(LIBCRYPTO_LIBS)
 opendkim_stats_CFLAGS = $(COV_CFLAGS)

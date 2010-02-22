@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.48 2010/02/20 07:29:59 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.49 2010/02/22 07:05:29 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.48 2010/02/20 07:29:59 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.49 2010/02/22 07:05:29 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -28,6 +28,19 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.48 2010/02/20 07:29
 #include <stdio.h>
 #include <regex.h>
 
+/* libopendkim includes */
+#include <dkim-strl.h>
+
+/* opendkim includes */
+#include "opendkim-db.h"
+#include "util.h"
+
+#ifdef OPENDKIM_DB_ONLY
+# undef USE_LDAP
+# undef USE_SASL
+# undef USE_ODBX
+#endif /* OPENDKIM_DB_ONLY */
+
 /* various DB library includes */
 #ifdef USE_DB
 # include <db.h>
@@ -41,13 +54,6 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.48 2010/02/20 07:29
 #ifdef USE_SASL
 # include <sasl/sasl.h>
 #endif /* USE_SASL */
-
-/* libopendkim includes */
-#include <dkim-strl.h>
-
-/* opendkim includes */
-#include "opendkim-db.h"
-#include "util.h"
 
 /* macros */
 #define	BUFRSZ			1024
