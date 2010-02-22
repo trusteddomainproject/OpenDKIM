@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.114 2010/02/20 06:32:41 cm-msk Exp $
+# $Id: configure.ac,v 1.115 2010/02/22 21:53:48 mmarkley Exp $
 
 #
 # Setup
@@ -532,7 +532,6 @@ LIBMILTER_LIBDIRS=""
 if test x"$milterpath" != x"no"
 then
 	LIBMILTER_INCDIRS="-I$milterpath/include"
-	LIBMILTER_LIBDIRS="-L$milterpath/lib"
 
 	saved_CFLAGS="$CFLAGS"
 	saved_CPPFLAGS="$CPPFLAGS"
@@ -545,17 +544,19 @@ then
 	CFLAGS="$PTHREAD_CFLAGS $saved_CFLAGS"
 	LDFLAGS="$PTHREAD_CFLAGS $LIBMILTER_LIBDIRS $saved_LDFLAGS"
 
-	AC_SEARCH_LIBS([smfi_register], [milter], ,
-		[
-			unset ac_cv_search_smfi_register
-			LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/lib $saved_LDFLAGS"
-			AC_SEARCH_LIBS([smfi_register], [milter], ,
-			               AC_MSG_ERROR([libmilter not found]))
-		])
+	for d in lib lib/libmilter; do
+		unset ac_cv_search_smfi_register
+		LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/$d $saved_LDFLAGS"
+		AC_SEARCH_LIBS([smfi_register], [milter],
+			LIBMILTER_LIBDIRS="-L$milterpath/$d")
 
-	AC_CHECK_FUNC([smfi_setsymlist],
-	              AC_DEFINE([HAVE_SMFI_SETSYMLIST], 1,
-	                        [Define if libmilter has smfi_setsymlist()]))
+		AC_CHECK_FUNC([smfi_setsymlist],
+			      AC_DEFINE([HAVE_SMFI_SETSYMLIST], 1,
+					[Define if libmilter has smfi_setsymlist()]))
+	done
+	if test x"$LIBMILTER_LIBDIRS" == x""; then
+		AC_MSG_ERROR([libmilter not found])
+	fi
 
 	CPPFLAGS="$saved_CPPFLAGS"
 	CFLAGS="$saved_CFLAGS"
