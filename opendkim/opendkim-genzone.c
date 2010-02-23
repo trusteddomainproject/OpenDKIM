@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-genzone.c,v 1.4 2010/02/20 07:29:59 cm-msk Exp $
+**  $Id: opendkim-genzone.c,v 1.5 2010/02/23 07:37:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.4 2010/02/20 07:29:59 cm-msk Exp $";
+static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.5 2010/02/23 07:37:59 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -26,6 +26,7 @@ static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.4 2010/02/20 
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
 #include <openssl/evp.h>
+#include <openssl/bio.h>
 
 #ifndef FALSE
 # define FALSE		0
@@ -131,6 +132,10 @@ loadkey(char *buf, size_t *buflen)
 		if (rlen < *buflen)
 			return FALSE;
 	}
+	else
+	{
+		*buflen = strlen(buf);
+	}
 
 	return TRUE;
 }
@@ -216,6 +221,7 @@ main(int argc, char **argv)
 	char tmpbuf[BUFRSZ + 1];
 	char hostname[MAXHOSTNAMELEN + 1];
 	char keydata[LARGEBUFRSZ];
+	char derdata[LARGEBUFRSZ];
 	struct dkimf_db_data dbd[3];
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
@@ -576,26 +582,83 @@ main(int argc, char **argv)
 		}
 
 		/* create a BIO for the private key */
-		private = BIO_new_mem_buf(keydata, keylen);
-		if (private == NULL)
+		if (strncmp(keydata, "-----", 5) == 0)
 		{
-			fprintf(stderr, "%s: BIO_new_mem_buf() failed\n",
-			        progname);
-			(void) dkimf_db_close(db);
-			(void) BIO_free(outbio);
-			return 1;
-		}
+			private = BIO_new_mem_buf(keydata, keylen);
+			if (private == NULL)
+			{
+				fprintf(stderr,
+				        "%s: BIO_new_mem_buf() failed\n",
+				        progname);
+				(void) dkimf_db_close(db);
+				(void) BIO_free(outbio);
+				return 1;
+			}
 
-		pkey = PEM_read_bio_PrivateKey(private, NULL, NULL, NULL);
-		if (pkey == NULL)
+			pkey = PEM_read_bio_PrivateKey(private, NULL,
+			                               NULL, NULL);
+			if (pkey == NULL)
+			{
+				fprintf(stderr,
+				        "%s: PEM_read_bio_PrivateKey() failed\n",
+				        progname);
+				(void) dkimf_db_close(db);
+				(void) BIO_free(private);
+				(void) BIO_free(outbio);
+				return 1;
+			}
+		}
+		else
 		{
-			fprintf(stderr,
-			        "%s: PEM_read_bio_PrivateKey() failed\n",
-			        progname);
-			(void) dkimf_db_close(db);
-			(void) BIO_free(private);
-			(void) BIO_free(outbio);
-			return 1;
+			int inlen;
+			int outlen;
+			BIO *b64;
+			BIO *bio;
+			BIO *decode;
+			char buf[BUFRSZ];
+
+			b64 = BIO_new(BIO_f_base64());
+			bio = BIO_new_mem_buf(keydata, keylen);
+			bio = BIO_push(b64, bio);
+
+			decode = BIO_new(BIO_s_mem());
+
+			for (;;)
+			{
+				inlen = BIO_read(bio, buf, sizeof buf);
+				if (inlen == 0)
+					break;
+				BIO_write(decode, buf, inlen);
+			}
+
+			outlen = BIO_get_mem_data(decode, &p);
+			memcpy(derdata, p, MIN(sizeof derdata, outlen));
+
+			BIO_free_all(b64);
+			BIO_free(decode);
+
+			private = BIO_new_mem_buf(derdata, outlen);
+			if (private == NULL)
+			{
+				fprintf(stderr,
+				        "%s: BIO_new_mem_buf() failed\n",
+				        progname);
+				(void) dkimf_db_close(db);
+				(void) BIO_free(outbio);
+				return 1;
+			}
+
+			pkey = d2i_PrivateKey_bio(private, NULL);
+			if (pkey == NULL)
+			{
+				fprintf(stderr,
+				        "%s: d2i_PrivateKey_bio() failed\n",
+				        progname);
+				(void) dkimf_db_close(db);
+				(void) BIO_free(private);
+				(void) BIO_free(outbio);
+				return 1;
+			}
 		}
 
 		rsa = EVP_PKEY_get1_RSA(pkey);
@@ -680,6 +743,7 @@ main(int argc, char **argv)
 	if (out != stdout)
 		fclose(out);
 
+	(void) BIO_flush(outbio);
 	(void) BIO_free(outbio);
 	(void) dkimf_db_close(db);
 
