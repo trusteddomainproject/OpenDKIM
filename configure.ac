@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.117 2010/02/23 23:18:59 cm-msk Exp $
+# $Id: configure.ac,v 1.118 2010/02/23 23:47:47 cm-msk Exp $
 
 #
 # Setup
@@ -481,6 +481,7 @@ AC_SUBST(LIBCRYPTO_LIBS)
 #
 # libmilter
 #
+AC_MSG_CHECKING([for milter library and includes])
 AC_ARG_WITH([milter],
             AS_HELP_STRING([--with-milter],
                            [location of milter includes and library]),
@@ -493,7 +494,6 @@ fi
 
 if test "$milterpath" = "auto" -o "$milterpath" = "yes"
 then
-	AC_MSG_CHECKING([for milter library and includes])
 	milterdirs="/usr/local /opt/local /usr"
 	for d in $milterdirs
 	do
@@ -510,6 +510,7 @@ case "$milterpath" in
 		then
 			AC_MSG_ERROR([milter is required])
 		fi
+		AC_MSG_RESULT(disabled)
 		;;
 	auto)
 		AC_MSG_ERROR([milter not found])
