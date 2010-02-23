@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.52 2010/02/23 00:24:37 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.53 2010/02/23 07:00:30 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.52 2010/02/23 00:24:37 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.53 2010/02/23 07:00:30 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2716,6 +2716,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 	  {
 		int c;
 		int status;
+		char *p;
 		LDAP *ld;
 		LDAPMessage *result;
 		LDAPMessage *e;
@@ -2760,7 +2761,6 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 
 			if (status != LDAP_SUCCESS)
 			{
-printf("%s\n", ldap_err2string(status));
 				db->db_status = status;
 				pthread_mutex_unlock(&ldap->ldap_lock);
 				return -1;
@@ -2785,6 +2785,24 @@ printf("%s\n", ldap_err2string(status));
 			}
 
 			db->db_entry = (void *) e;
+		}
+
+		p = ldap_get_dn(ld, e);
+		if (p != NULL)
+		{
+			char *q;
+
+			q = strstr(p, ldap->ldap_descr->lud_dn);
+			if (q != NULL)
+				*q = '\0';
+			q = strrchr(p, ',');
+			if (q != NULL)
+				*q = '\0';
+			q = strchr(p, '=');
+			if (q != NULL)
+				*keylen = strlcpy(key, q + 1, *keylen);
+
+			ldap_memfree(p);
 		}
 
 		for (c = 0; c < reqnum; c++)
