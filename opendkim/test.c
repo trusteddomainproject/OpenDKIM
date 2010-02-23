@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.c,v 1.11 2010/01/21 21:55:14 cm-msk Exp $
+**  $Id: test.c,v 1.12 2010/02/23 23:57:16 cm-msk Exp $
 */
 
 #ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.11 2010/01/21 21:55:14 cm-msk Exp $";
+static char test_c_id[] = "@(#)$Id: test.c,v 1.12 2010/02/23 23:57:16 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -32,6 +32,7 @@ static char test_c_id[] = "@(#)$Id: test.c,v 1.11 2010/01/21 21:55:14 cm-msk Exp
 #include <libmilter/mfapi.h>
 
 /* opendkim includes */
+#define DKIMF_MILTER_PROTOTYPES
 #include "test.h"
 #include "opendkim.h"
 

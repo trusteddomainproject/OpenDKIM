@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.25 2010/02/20 06:32:42 cm-msk Exp $
+**  $Id: opendkim.h,v 1.26 2010/02/23 23:57:16 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.25 2010/02/20 06:32:42 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.26 2010/02/23 23:57:16 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -22,7 +22,9 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.25 2010/02/20 06:32:42 cm
 #include <stdbool.h>
 
 /* libmilter */
-#include <libmilter/mfapi.h>
+#ifdef DKIMF_MILTER_PROTOTYPES
+# include <libmilter/mfapi.h>
+#endif /* DKIMF_MILTER_PROTOTYPES */
 
 /* libopendkim */
 #include "build-config.h"
@@ -113,6 +115,7 @@ extern _Bool dolog;
 extern char *progname;
 
 /* prototypes, exported for test.c */
+#ifdef DKIMF_MILTER_PROTOTYPES
 extern sfsistat mlfi_connect __P((SMFICTX *, char *, _SOCK_ADDR *));
 extern sfsistat mlfi_envfrom __P((SMFICTX *, char **));
 extern sfsistat mlfi_envrcpt __P((SMFICTX *, char **));
@@ -122,6 +125,7 @@ extern sfsistat mlfi_body __P((SMFICTX *, u_char *, size_t));
 extern sfsistat mlfi_eom __P((SMFICTX *));
 extern sfsistat mlfi_abort __P((SMFICTX *));
 extern sfsistat mlfi_close __P((SMFICTX *));
+#endif /* DKIMF_MILTER_PROTOTYPES */
 
 extern DKIM *dkimf_getdkim __P((void *));
 extern struct signreq *dkimf_getsrlist __P((void *));
