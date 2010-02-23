@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.51 2010/02/22 23:51:59 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.52 2010/02/23 00:24:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.51 2010/02/22 23:51:59 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.52 2010/02/23 00:24:37 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2722,6 +2722,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		struct dkimf_db_ldap *ldap;
 		struct berval **vals;
 		char filter[BUFRSZ];
+		char query[BUFRSZ];
 		struct timeval timeout;
 
 		ld = (LDAP *) db->db_handle;
@@ -2739,15 +2740,18 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 				db->db_entry = NULL;
 			}
 
+			memset(query, '\0', sizeof query);
 			memset(filter, '\0', sizeof filter);
 
+			dkimf_db_mkldapquery(ldap->ldap_descr->lud_dn, "",
+			                     query, sizeof query);
 			dkimf_db_mkldapquery(ldap->ldap_descr->lud_filter, "*",
 			                     filter, sizeof filter);
 
 			timeout.tv_sec = ldap->ldap_timeout;
 			timeout.tv_usec = 0;
 
-			status = ldap_search_ext_s(ld, "",
+			status = ldap_search_ext_s(ld, query,
 			                           ldap->ldap_descr->lud_scope,
 			                           filter,
 			                           ldap->ldap_descr->lud_attrs,
@@ -2756,6 +2760,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 
 			if (status != LDAP_SUCCESS)
 			{
+printf("%s\n", ldap_err2string(status));
 				db->db_status = status;
 				pthread_mutex_unlock(&ldap->ldap_lock);
 				return -1;
@@ -2786,7 +2791,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		{
 			vals = ldap_get_values_len(ld, e,
 			                           ldap->ldap_descr->lud_attrs[c]);
-			if (vals != NULL && vals[0] != NULL)
+			if (vals != NULL && vals[0]->bv_len != 0)
 			{
 				size_t clen;
 
@@ -2798,6 +2803,10 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 				           vals[0]->bv_len);
 				req[c].dbdata_buflen = clen;
 				ldap_value_free_len(vals);
+			}
+			else
+			{
+				req[c].dbdata_buflen = 0;
 			}
 		}
 
