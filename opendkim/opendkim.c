@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.108 2010/02/23 22:37:36 cm-msk Exp $
+**  $Id: opendkim.c,v 1.109 2010/02/23 23:52:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.108 2010/02/23 22:37:36 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.109 2010/02/23 23:52:39 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3196,7 +3196,7 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 	if (interval == 0)
 		return 1;
 
-	dbd.dbdata_buffer = &ri;
+	dbd.dbdata_buffer = (char *) &ri;
 	dbd.dbdata_buflen = sizeof ri;
 	dbd.dbdata_flags = 0;
 	status = dkimf_db_get(ridb, domain, 0, &dbd, 1, &exists);
