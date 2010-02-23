@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.4 2010/02/23 23:26:25 cm-msk Exp $
+# $Id: Makefile.am,v 1.5 2010/02/23 23:36:45 cm-msk Exp $
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -pthread --pedantic -Wall -O2
@@ -14,8 +14,8 @@ miltertest_CFLAGS =
 miltertest_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBMILTER_INCDIRS) $(LIBLUA_INCDIRS)
 miltertest_LDFLAGS = ../libopendkim/libopendkim.la $(LIBLUA_LIBDIRS)
 miltertest_LDADD = $(LIBLUA_LIBS)
+endif
 
 man_MANS = miltertest.8
-endif
 
 EXTRA_DIST = $(man_MANS)
