@@ -62,6 +62,16 @@ is coming from an IP address found in the POPAUTH database (if enabled
 and configured), and 0 otherwise.  Returns the Lua constant "nil" if
 the POPAUTH database is not enabled or not configured.
 .TP
+.B odkim.db_check(db, string)
+Returns 1 if
+.I db
+refers to a valid database handle (see
+.B odkim.get_dbhandle()
+below) and
+.I string
+is found in that database, and 0 otherwise.  If an error occurs, the Lua
+constant "nil" is returned.
+.TP
 .B odkim.get_clienthost(ctx)
 Returns the name of the host on the other end of the SMTP connection
 sending the current message.  This is usually a hostname, but might be
@@ -72,16 +82,6 @@ have a name associated with it.
 Returns the IP address of the client on the other end of the SMTP connection
 sending the current message as a string.  Both IPv4 and IPv6 addresses are 
 supported.
-.TP
-.B odkim.db_check(db, string)
-Returns 1 if
-.I db
-refers to a valid database handle (see
-.B odkim.get_dbhandle()
-below) and
-.I string
-is found in that database, and 0 otherwise.  If an error occurs, the Lua
-constant "nil" is returned.
 .TP
 .B odkim.get_dbhandle(ctx, db)
 Returns a handle for the requested database that can be used in later
