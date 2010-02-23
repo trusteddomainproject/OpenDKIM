@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.28 2010/02/23 18:36:46 cm-msk Exp $
+# $Id: Makefile.am,v 1.29 2010/02/23 23:42:36 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -118,7 +118,8 @@ dist_doc_DATA = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail \
 	libopendkim/docs/dkim_libfeature.html \
 	opendkim/setup.lua.sample \
 	opendkim/screen.lua.sample \
-	opendkim/final.lua.sample
+	opendkim/final.lua.sample \
+	miltertest/miltertest.8
 
 # TODO: get configure.ac to generate --enable-{feature} for all
 # non-experimental features and substitute it here e.g  @SUPPORTED_FEATURES@.
