@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.118 2010/02/23 23:47:47 cm-msk Exp $
+# $Id: configure.ac,v 1.119 2010/02/23 23:51:20 cm-msk Exp $
 
 #
 # Setup
@@ -802,12 +802,12 @@ then
 	fi
 elif test x"$luapath" = x"no"
 then
-	AC_MSG_RESULT(no)
 	LIBLUA_INCDIRS=""
 	LIBLUA_LIBDIRS=""
 	LIBLUA_LIBS=""
 	AC_SUBST([LUA_MANNOTICE], "(Not enabled for this installation.)")
-else test x"$luapath" != x"pkg-config"
+elif test x"$luapath" != x"pkg-config"
+then
 	if test -f $luapath/include/lua51/lua.h
 	then
 		AC_MSG_RESULT($luapath)
