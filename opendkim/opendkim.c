@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.107 2010/02/22 21:59:44 cm-msk Exp $
+**  $Id: opendkim.c,v 1.108 2010/02/23 22:37:36 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.107 2010/02/22 21:59:44 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.108 2010/02/23 22:37:36 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -996,12 +996,12 @@ dkimf_xs_log(lua_State *l)
 
 	if (lua_gettop(l) != 1)
 	{
-		lua_pushstring(l, "odkim_log(): incorrect argument count");
+		lua_pushstring(l, "odkim.log(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_isstring(l, 1))
 	{
-		lua_pushstring(l, "odkim_log(): incorrect argument type");
+		lua_pushstring(l, "odkim.log(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1045,13 +1045,13 @@ dkimf_xs_fromdomain(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_get_fromdomain(): incorrect argument count");
+		               "odkim.get_fromdomain(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_get_fromdomain(): incorrect argument type");
+		               "odkim.get_fromdomain(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1093,13 +1093,13 @@ dkimf_xs_clienthost(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_get_clienthost(): incorrect argument count");
+		               "odkim.get_clienthost(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_get_clienthost(): incorrect argument type");
+		               "odkim.get_clienthost(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1141,13 +1141,13 @@ dkimf_xs_clientip(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_get_clientip(): incorrect argument count");
+		               "odkim.get_clientip(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_get_clientip(): incorrect argument type");
+		               "odkim.get_clientip(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1236,13 +1236,13 @@ dkimf_xs_requestsig(lua_State *l)
 
 	if (lua_gettop(l) != 1 && lua_gettop(l) != 2)
 	{
-		lua_pushstring(l, "odkim_sign(): incorrect argument count");
+		lua_pushstring(l, "odkim.sign(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
 	         (lua_gettop(l) == 2 && !lua_isstring(l, 2)))
 	{
-		lua_pushstring(l, "odkim_sign(): incorrect argument type");
+		lua_pushstring(l, "odkim.sign(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1261,7 +1261,7 @@ dkimf_xs_requestsig(lua_State *l)
 
 	if (conf->conf_keytabledb == NULL && keyname != NULL)
 	{
-		lua_pushstring(l, "odkim_sign(): request requires KeyTable");
+		lua_pushstring(l, "odkim.sign(): request requires KeyTable");
 		lua_error(l);
 	}
 
@@ -1346,14 +1346,14 @@ dkimf_xs_getheader(lua_State *l)
 	if (lua_gettop(l) != 3)
 	{
 		lua_pushstring(l,
-		               "odkim_get_header(): incorrect argument count");
+		               "odkim.get_header(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
 	         !lua_isstring(l, 2) || !lua_isnumber(l, 3))
 	{
 		lua_pushstring(l,
-		               "odkim_get_header(): incorrect argument type");
+		               "odkim.get_header(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1411,13 +1411,13 @@ dkimf_xs_popauth(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_check_popauth(): incorrect argument count");
+		               "odkim.check_popauth(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_check_popauth(): incorrect argument type");
+		               "odkim.check_popauth(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1476,13 +1476,13 @@ dkimf_xs_internalip(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_internal_ip(): incorrect argument count");
+		               "odkim.internal_ip(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_internal_ip(): incorrect argument type");
+		               "odkim.internal_ip(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1540,13 +1540,13 @@ dkimf_xs_dbhandle(lua_State *l)
 	if (lua_gettop(l) != 2)
 	{
 		lua_pushstring(l,
-		               "odkim_get_dbhandle(): incorrect argument count");
+		               "odkim.get_dbhandle(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) || !lua_isnumber(l, 2))
 	{
 		lua_pushstring(l,
-		               "odkim_get_dbhandle(): incorrect argument type");
+		               "odkim.get_dbhandle(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1642,13 +1642,13 @@ dkimf_xs_rcptcount(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_rcpt_count(): incorrect argument count");
+		               "odkim.rcpt_count(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_rcpt_count(): incorrect argument type");
+		               "odkim.rcpt_count(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1699,13 +1699,13 @@ dkimf_xs_rcpt(lua_State *l)
 	if (lua_gettop(l) != 2)
 	{
 		lua_pushstring(l,
-		               "odkim_get_rcpt(): incorrect argument count");
+		               "odkim.get_rcpt(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) || !lua_isnumber(l, 2))
 	{
 		lua_pushstring(l,
-		               "odkim_get_rcpt(): incorrect argument type");
+		               "odkim.get_rcpt(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1758,13 +1758,13 @@ dkimf_xs_rcptarray(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_get_rcptarray(): incorrect argument count");
+		               "odkim.get_rcptarray(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_get_rcptarray(): incorrect argument type");
+		               "odkim.get_rcptarray(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1823,14 +1823,14 @@ dkimf_xs_dbquery(lua_State *l)
 	if (lua_gettop(l) != 2)
 	{
 		lua_pushstring(l,
-		               "odkim_db_check(): incorrect argument count");
+		               "odkim.db_check(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
 	         !lua_isstring(l, 2))
 	{
 		lua_pushstring(l,
-		               "odkim_db_check(): incorrect argument type");
+		               "odkim.db_check(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1874,13 +1874,13 @@ dkimf_xs_setpartial(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_use_ltag(): incorrect argument count");
+		               "odkim.use_ltag(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_use_ltag(): incorrect argument type");
+		               "odkim.use_ltag(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1927,13 +1927,13 @@ dkimf_xs_verify(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_verify(): incorrect argument count");
+		               "odkim.verify(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_verify(): incorrect argument type");
+		               "odkim.verify(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -1986,13 +1986,13 @@ dkimf_xs_getsigarray(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_get_sigarray(): incorrect argument count");
+		               "odkim.get_sigarray(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_get_sigarray(): incorrect argument type");
+		               "odkim.get_sigarray(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2068,13 +2068,13 @@ dkimf_xs_getsigcount(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_get_sigcount(): incorrect argument count");
+		               "odkim.get_sigcount(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_get_sigcount(): incorrect argument type");
+		               "odkim.get_sigcount(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2138,14 +2138,14 @@ dkimf_xs_getsighandle(lua_State *l)
 	if (lua_gettop(l) != 2)
 	{
 		lua_pushstring(l,
-		               "odkim_get_sighandle(): incorrect argument count");
+		               "odkim.get_sighandle(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
 	         !lua_isnumber(l, 2))
 	{
 		lua_pushstring(l,
-		               "odkim_get_sighandle(): incorrect argument type");
+		               "odkim.get_sighandle(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2177,7 +2177,7 @@ dkimf_xs_getsighandle(lua_State *l)
 
 	if (idx < 0 || idx >= nsigs)
 	{
-		lua_pushstring(l, "odkim_get_sighandle(): invalid request");
+		lua_pushstring(l, "odkim.get_sighandle(): invalid request");
 		lua_error(l);
 	}
 
@@ -2206,13 +2206,13 @@ dkimf_xs_getsigdomain(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_sig_getdomain(): incorrect argument count");
+		               "odkim.sig_getdomain(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_sig_getdomain(): incorrect argument type");
+		               "odkim.sig_getdomain(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2247,13 +2247,13 @@ dkimf_xs_sigignore(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_sig_getdomain(): incorrect argument count");
+		               "odkim.sig_getdomain(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_sig_getdomain(): incorrect argument type");
+		               "odkim.sig_getdomain(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2290,13 +2290,13 @@ dkimf_xs_getsigidentity(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_sig_getidentity(): incorrect argument count");
+		               "odkim.sig_getidentity(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_sig_getidentity(): incorrect argument type");
+		               "odkim.sig_getidentity(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2341,14 +2341,14 @@ dkimf_xs_getsymval(lua_State *l)
 	if (lua_gettop(l) != 2)
 	{
 		lua_pushstring(l,
-		               "odkim_get_mtasymbol(): incorrect argument count");
+		               "odkim.get_mtasymbol(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
 	         !lua_isstring(l, 2))
 	{
 		lua_pushstring(l,
-		               "odkim_get_mtasymbol(): incorrect argument type");
+		               "odkim.get_mtasymbol(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2392,13 +2392,13 @@ dkimf_xs_sigresult(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_sig_result(): incorrect argument count");
+		               "odkim.sig_result(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_sig_result(): incorrect argument type");
+		               "odkim.sig_result(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2433,13 +2433,13 @@ dkimf_xs_sigbhresult(lua_State *l)
 	if (lua_gettop(l) != 1)
 	{
 		lua_pushstring(l,
-		               "odkim_sig_bhresult(): incorrect argument count");
+		               "odkim.sig_bhresult(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
 		lua_pushstring(l,
-		               "odkim_sig_bhresult(): incorrect argument type");
+		               "odkim.sig_bhresult(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2478,14 +2478,14 @@ dkimf_xs_bodylength(lua_State *l)
 	if (lua_gettop(l) != 2)
 	{
 		lua_pushstring(l,
-		               "odkim_sig_bodylength(): incorrect argument count");
+		               "odkim.sig_bodylength(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
 	         !lua_islightuserdata(l, 2))
 	{
 		lua_pushstring(l,
-		               "odkim_sig_bodylength(): incorrect argument type");
+		               "odkim.sig_bodylength(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2540,14 +2540,14 @@ dkimf_xs_canonlength(lua_State *l)
 	if (lua_gettop(l) != 2)
 	{
 		lua_pushstring(l,
-		               "odkim_sig_canonlength(): incorrect argument count");
+		               "odkim.sig_canonlength(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
 	         !lua_islightuserdata(l, 2))
 	{
 		lua_pushstring(l,
-		               "odkim_sig_canonlength(): incorrect argument type");
+		               "odkim.sig_canonlength(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2599,13 +2599,13 @@ dkimf_xs_addrcpt(lua_State *l)
 	if (lua_gettop(l) != 2)
 	{
 		lua_pushstring(l,
-		               "odkim_add_rcpt(): incorrect argument count");
+		               "odkim.add_rcpt(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
 	         !lua_isstring(l, 2))
 	{
-		lua_pushstring(l, "odkim_add_rcpt(): incorrect argument type");
+		lua_pushstring(l, "odkim.add_rcpt(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2648,14 +2648,14 @@ dkimf_xs_delrcpt(lua_State *l)
 	if (lua_gettop(l) != 2)
 	{
 		lua_pushstring(l,
-		               "odkim_delete_rcpt(): incorrect argument count");
+		               "odkim.delete_rcpt(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
 	         !lua_isstring(l, 2))
 	{
 		lua_pushstring(l,
-		               "odkim_delete_rcpt(): incorrect argument type");
+		               "odkim.delete_rcpt(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2737,12 +2737,12 @@ dkimf_xs_resign(lua_State *l)
 
 	if (lua_gettop(l) != 1)
 	{
-		lua_pushstring(l, "odkim_resign(): incorrect argument count");
+		lua_pushstring(l, "odkim.resign(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
-		lua_pushstring(l, "odkim_resign(): incorrect argument type");
+		lua_pushstring(l, "odkim.resign(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2790,12 +2790,12 @@ dkimf_xs_getpolicy(lua_State *l)
 
 	if (lua_gettop(l) != 1)
 	{
-		lua_pushstring(l, "odkim_get_policy(): incorrect argument count");
+		lua_pushstring(l, "odkim.get_policy(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1))
 	{
-		lua_pushstring(l, "odkim_get_policy(): incorrect argument type");
+		lua_pushstring(l, "odkim.get_policy(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2851,7 +2851,7 @@ dkimf_xs_setreply(lua_State *l)
 	if (lua_gettop(l) != 4)
 	{
 		lua_pushstring(l,
-		               "odkim_set_reply(): incorrect argument count");
+		               "odkim.set_reply(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
@@ -2860,7 +2860,7 @@ dkimf_xs_setreply(lua_State *l)
 	         !lua_isstring(l, 4))
 	{
 		lua_pushstring(l,
-		               "odkim_set_reply(): incorrect argument type");
+		               "odkim.set_reply(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2908,14 +2908,14 @@ dkimf_xs_quarantine(lua_State *l)
 	if (lua_gettop(l) != 2)
 	{
 		lua_pushstring(l,
-		               "odkim_quarantine(): incorrect argument count");
+		               "odkim.quarantine(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
 	         !lua_isstring(l, 2))
 	{
 		lua_pushstring(l,
-		               "odkim_quarantine(): incorrect argument type");
+		               "odkim.quarantine(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -2954,14 +2954,14 @@ dkimf_xs_setresult(lua_State *l)
 	if (lua_gettop(l) != 2)
 	{
 		lua_pushstring(l,
-		               "odkim_set_result(): incorrect argument count");
+		               "odkim.set_result(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
 	         !lua_isnumber(l, 2))
 	{
 		lua_pushstring(l,
-		               "odkim_set_result(): incorrect argument type");
+		               "odkim.set_result(): incorrect argument type");
 		lua_error(l);
 	}
 
@@ -3021,7 +3021,7 @@ dkimf_xs_getreputation(lua_State *l)
 	if (lua_gettop(l) != 3)
 	{
 		lua_pushstring(l,
-		               "odkim_get_reputation(): incorrect argument count");
+		               "odkim.get_reputation(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
@@ -3029,7 +3029,7 @@ dkimf_xs_getreputation(lua_State *l)
 	         !lua_isstring(l, 3))
 	{
 		lua_pushstring(l,
-		               "odkim_get_reputation(): incorrect argument type");
+		               "odkim.get_reputation(): incorrect argument type");
 		lua_error(l);
 	}
 

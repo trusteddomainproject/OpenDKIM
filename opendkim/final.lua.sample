@@ -1,4 +1,4 @@
---  $Id: final.lua.sample,v 1.2 2010/01/14 18:06:07 cm-msk Exp $
+--  $Id: final.lua.sample,v 1.3 2010/02/23 22:37:35 cm-msk Exp $
 --
 --  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 --
@@ -15,33 +15,33 @@
 --  this script can detect such things and take whatever action is desired.
 
 --  Retrieve signature count
-nsigs = odkim_get_sigcount(ctx)
+nsigs = odkim.get_sigcount(ctx)
 if nsigs == nil then
 	return nil
 end
 
 --  Enact ADSP.
 --  1) If it reported NXDOMAIN, reject.
-if odkim_get_presult(ctx) == DKIM_PRESULT_NXDOMAIN then
-	odkim_set_reply(ctx, "554", "5.7.1", "sender domain does not exist")
-	odkim_set_result(ctx, SMFIS_REJECT)
+if odkim.get_presult(ctx) == DKIM_PRESULT_NXDOMAIN then
+	odkim.set_reply(ctx, "554", "5.7.1", "sender domain does not exist")
+	odkim.set_result(ctx, SMFIS_REJECT)
 	return nil
 end
 
 --  2) Test for discardable.  We'll handle "unknown" and "all" through RFC5451.
-if odkim_get_presult(ctx) == DKIM_PRESULT_AUTHOR and
-   odkim_get_policy(ctx) == DKIM_POLICY_DISCARDABLE then
+if odkim.get_presult(ctx) == DKIM_PRESULT_AUTHOR and
+   odkim.get_policy(ctx) == DKIM_POLICY_DISCARDABLE then
 	discard = true
 	for n = 1, nsigs
-		sig = odkim_get_sighandle(ctx, n)
-		sigres = odkim_sig_result(sig)
-		sdomain = odkim_sig_getdomain(sig)
+		sig = odkim.get_sighandle(ctx, n)
+		sigres = odkim.sig_result(sig)
+		sdomain = odkim.sig_getdomain(sig)
 		if sigres == 0 and sdomain == fromdomain then
 			discard = false
 		end
 	end
 	if discard then
-		odkim_set_result(ctx, SMFIS_REJECT)
+		odkim.set_result(ctx, SMFIS_REJECT)
 		return nil
 	end
 end
@@ -49,13 +49,13 @@ end
 --  If the message had too much stuff added to it (more than 120 bytes)
 --  then bounce it
 for n = 1, nsigs do
-	sig = odkim_get_sighandle(ctx, n)
-	bodylen = odkim_sig_bodylength(sig)
-	canonlen = odkim_sig_canonlength(sig)
+	sig = odkim.get_sighandle(ctx, n)
+	bodylen = odkim.sig_bodylength(sig)
+	canonlen = odkim.sig_canonlength(sig)
 	if bodylen > canonlen + 120 then
-		odkim_set_reply(ctx, "554", "",
+		odkim.set_reply(ctx, "554", "",
 		                "Too much data after DKIM-protected body")
-		odkim_set_result(ctx, SMFIS_REJECT)
+		odkim.set_result(ctx, SMFIS_REJECT)
 	end
 end
 

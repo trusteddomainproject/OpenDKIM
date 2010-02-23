@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.11 2010/02/20 06:32:42 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.12 2010/02/23 22:37:36 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.11 2010/02/20 06:32:42 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.12 2010/02/23 22:37:36 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -22,6 +22,7 @@ static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.11 2010/02/20 06:
 /* Lua includes */
 #include <lua.h>
 #include <lualib.h>
+#include <lauxlib.h>
 
 /* libopendkim includes */
 #include <dkim.h>
@@ -37,6 +38,74 @@ struct dkimf_lua_io
 {
 	_Bool		lua_io_done;
 	const char *	lua_io_script;
+};
+
+/* libraries */
+static const luaL_Reg dkimf_lua_lib_setup[] =
+{
+	{ "check_popauth",	dkimf_xs_popauth	},
+	{ "db_check",		dkimf_xs_dbquery	},
+	{ "get_clienthost",	dkimf_xs_clienthost	},
+	{ "get_clientip",	dkimf_xs_clientip	},
+	{ "get_dbhandle",	dkimf_xs_dbhandle	},
+	{ "get_fromdomain",	dkimf_xs_fromdomain	},
+	{ "get_header",		dkimf_xs_getheader	},
+	{ "get_mtasymbol",	dkimf_xs_getsymval	},
+	{ "get_rcpt",		dkimf_xs_rcpt		},
+	{ "get_rcptarray",	dkimf_xs_rcptarray	},
+	{ "internal_ip",	dkimf_xs_internalip	},
+	{ "log",		dkimf_xs_log		},
+	{ "rcpt_count",		dkimf_xs_rcptcount	},
+	{ "resign",		dkimf_xs_resign		},
+	{ "set_result",		dkimf_xs_setresult	},
+	{ "sign",		dkimf_xs_requestsig	},
+	{ "use_ltag",		dkimf_xs_setpartial	},
+	{ "verify",		dkimf_xs_verify		},
+	{ NULL,			NULL			}
+};
+
+static const luaL_Reg dkimf_lua_lib_screen[] =
+{
+	{ "db_check",		dkimf_xs_dbquery	},
+	{ "get_dbhandle",	dkimf_xs_dbhandle	},
+	{ "get_fromdomain",	dkimf_xs_fromdomain	},
+	{ "get_header",		dkimf_xs_getheader	},
+	{ "get_rcpt",		dkimf_xs_rcpt		},
+	{ "get_rcptarray",	dkimf_xs_rcptarray	},
+	{ "get_sigarray",	dkimf_xs_getsigarray	},
+	{ "get_sigcount",	dkimf_xs_getsigcount	},
+	{ "get_sighandle",	dkimf_xs_getsighandle	},
+	{ "log",		dkimf_xs_log		},
+	{ "rcpt_count",		dkimf_xs_rcptcount	},
+	{ "sig_getdomain",	dkimf_xs_getsigdomain	},
+	{ "sig_getidentity",	dkimf_xs_getsigidentity	},
+	{ "sig_ignore",		dkimf_xs_sigignore	},
+	{ NULL,			NULL			}
+};
+
+static const luaL_Reg dkimf_lua_lib_final[] =
+{
+	{ "add_rcpt",		dkimf_xs_addrcpt	},
+	{ "del_rcpt",		dkimf_xs_delrcpt	},
+	{ "get_policy",		dkimf_xs_getpolicy	},
+	{ "get_rcpt",		dkimf_xs_rcpt		},
+	{ "get_rcptarray",	dkimf_xs_rcptarray	},
+	{ "get_reputation",	dkimf_xs_getreputation	},
+	{ "get_sigarray",	dkimf_xs_getsigarray	},
+	{ "get_sigcount",	dkimf_xs_getsigcount	},
+	{ "get_sighandle",	dkimf_xs_getsighandle	},
+	{ "log",		dkimf_xs_log		},
+	{ "quarantine",		dkimf_xs_quarantine	},
+	{ "rcpt_count",		dkimf_xs_rcptcount	},
+	{ "set_result",		dkimf_xs_setresult	},
+	{ "set_smtp_reply",	dkimf_xs_setreply	},
+	{ "sig_bhresult",	dkimf_xs_sigbhresult	},
+	{ "sig_bodylength",	dkimf_xs_bodylength	},
+	{ "sig_canonlength",	dkimf_xs_canonlength	},
+	{ "sig_getdomain",	dkimf_xs_getsigdomain	},
+	{ "sig_getidentity",	dkimf_xs_getsigidentity	},
+	{ "sig_result",		dkimf_xs_sigresult	},
+	{ NULL,			NULL			}
 };
 
 /*
@@ -156,37 +225,16 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 
 	/*
 	**  Register functions.
-	**
-	**  XXX -- turn this into a Lua library?
 	*/
 
-	/* log something */
-	lua_register(l, "odkim_log", dkimf_xs_log);
+	luaL_register(l, "odkim", dkimf_lua_lib_setup);
+	lua_pop(l, 1);
 
-	/* request From domain */
-	lua_register(l, "odkim_get_fromdomain", dkimf_xs_fromdomain);
+	/*
+	**  Register constants.
+	*/
 
-	/* request source hostname */
-	lua_register(l, "odkim_get_clienthost", dkimf_xs_clienthost);
-
-	/* request source IP */
-	lua_register(l, "odkim_get_clientip", dkimf_xs_clientip);
-
-	/* request a signature (domain, selector) */
-	lua_register(l, "odkim_sign", dkimf_xs_requestsig);
-
-	/* retrieve header/value */
-	lua_register(l, "odkim_get_header", dkimf_xs_getheader);
-
-	/* pass source IP to dkimf_checkip() */
-	lua_register(l, "odkim_internal_ip", dkimf_xs_internalip);
-
-	/* do POPAUTH check */
-	lua_register(l, "odkim_check_popauth", dkimf_xs_popauth);
-
-	/* request DB handle */
-	/* XXX -- allow creation of arbitrary DB handles? */
-	lua_register(l, "odkim_get_dbhandle", dkimf_xs_dbhandle);
+	/* DB handle constants */
 	lua_pushnumber(l, DB_DOMAINS);
 	lua_setglobal(l, "DB_DOMAINS");
 	lua_pushnumber(l, DB_THIRDPARTY);
@@ -198,30 +246,6 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 	lua_pushnumber(l, DB_MACROS);
 	lua_setglobal(l, "DB_MACROS");
 
-	/* get number of envelope recipients */
-	lua_register(l, "odkim_rcpt_count", dkimf_xs_rcptcount);
-
-	/* get a specific envelope recipient */
-	lua_register(l, "odkim_get_rcpt", dkimf_xs_rcpt);
-
-	/* get all envelope recipients as an array */
-	lua_register(l, "odkim_get_rcptarray", dkimf_xs_rcptarray);
-
-	/* test DB for membership */
-	lua_register(l, "odkim_db_check", dkimf_xs_dbquery);
-
-	/* request an "l=" tag on new signatures */
-	lua_register(l, "odkim_use_ltag", dkimf_xs_setpartial);
-
-	/* request that the message be sent through verification */
-	lua_register(l, "odkim_verify", dkimf_xs_verify);
-
-	/* retrieve an MTA symbol */
-	lua_register(l, "odkim_get_mtasymbol", dkimf_xs_getsymval);
-
-	/* set up for re-signing */
-	lua_register(l, "odkim_resign", dkimf_xs_resign);
-
 	/* set result code */
 	lua_pushnumber(l, SMFIS_TEMPFAIL);
 	lua_setglobal(l, "SMFIS_TEMPFAIL");
@@ -231,8 +255,8 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 	lua_setglobal(l, "SMFIS_DISCARD");
 	lua_pushnumber(l, SMFIS_REJECT);
 	lua_setglobal(l, "SMFIS_REJECT");
-	lua_register(l, "odkim_set_result", dkimf_xs_setresult);
 
+	/* filter context */
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
 
@@ -313,22 +337,16 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 
 	/*
 	**  Register functions.
-	**
-	**  XXX -- turn this into a Lua library?
 	*/
 
-	/* log something */
-	lua_register(l, "odkim_log", dkimf_xs_log);
+	luaL_register(l, "odkim", dkimf_lua_lib_screen);
+	lua_pop(l, 1);
 
-	/* test DB for membership */
-	lua_register(l, "odkim_db_check", dkimf_xs_dbquery);
+	/*
+	**  Register constants.
+	*/
 
-	/* request From domain */
-	lua_register(l, "odkim_get_fromdomain", dkimf_xs_fromdomain);
-
-	/* request DB handle */
-	/* XXX -- allow creation of arbitrary DB handles? */
-	lua_register(l, "odkim_get_dbhandle", dkimf_xs_dbhandle);
+	/* DB handles */
 	lua_pushnumber(l, DB_DOMAINS);
 	lua_setglobal(l, "DB_DOMAINS");
 	lua_pushnumber(l, DB_THIRDPARTY);
@@ -340,36 +358,7 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 	lua_pushnumber(l, DB_MACROS);
 	lua_setglobal(l, "DB_MACROS");
 
-	/* retrieve header/value */
-	lua_register(l, "odkim_get_header", dkimf_xs_getheader);
-
-	/* get a specific envelope recipient */
-	lua_register(l, "odkim_get_rcpt", dkimf_xs_rcpt);
-
-	/* get number of envelope recipients */
-	lua_register(l, "odkim_rcpt_count", dkimf_xs_rcptcount);
-
-	/* get all envelope recipients as an array */
-	lua_register(l, "odkim_get_rcptarray", dkimf_xs_rcptarray);
-
-	/* retrieve array of signatures */
-	lua_register(l, "odkim_get_sigarray", dkimf_xs_getsigarray);
-
-	/* retrieve number of signatures */
-	lua_register(l, "odkim_get_sigcount", dkimf_xs_getsigcount);
-
-	/* retrieve a signature handle */
-	lua_register(l, "odkim_get_sighandle", dkimf_xs_getsighandle);
-
-	/* retrieve a signature's domain */
-	lua_register(l, "odkim_sig_getdomain", dkimf_xs_getsigdomain);
-
-	/* retrieve a signature's identity */
-	lua_register(l, "odkim_sig_getidentity", dkimf_xs_getsigidentity);
-
-	/* ignore a signature and its result */
-	lua_register(l, "odkim_sig_ignore", dkimf_xs_sigignore);
-
+	/* milter context */
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
 
@@ -449,56 +438,16 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 
 	/*
 	**  Register functions.
-	**
-	**  XXX -- turn this into a Lua library?
 	*/
 
-	/* log something */
-	lua_register(l, "odkim_log", dkimf_xs_log);
+	luaL_register(l, "odkim", dkimf_lua_lib_final);
+	lua_pop(l, 1);
 
-	/* retrieve array of signatures */
-	lua_register(l, "odkim_get_sigarray", dkimf_xs_getsigarray);
+	/*
+	**  Register constants.
+	*/
 
-	/* retrieve number of signatures */
-	lua_register(l, "odkim_get_sigcount", dkimf_xs_getsigcount);
-
-	/* retrieve a signature handle */
-	lua_register(l, "odkim_get_sighandle", dkimf_xs_getsighandle);
-
-	/* retrieve a signature's domain */
-	lua_register(l, "odkim_sig_getdomain", dkimf_xs_getsigdomain);
-
-	/* retrieve a signature's identity */
-	lua_register(l, "odkim_sig_getidentity", dkimf_xs_getsigidentity);
-
-	/* retrieve signature result */
-	lua_register(l, "odkim_sig_result", dkimf_xs_sigresult);
-
-	/* retrieve signature result (body hash check) */
-	lua_register(l, "odkim_sig_bhresult", dkimf_xs_sigbhresult);
-
-	/* size of body? */
-	lua_register(l, "odkim_sig_bodylength", dkimf_xs_bodylength);
-
-	/* canonicalized size? */
-	lua_register(l, "odkim_sig_canonlength", dkimf_xs_canonlength);
-
-	/* get a specific envelope recipient */
-	lua_register(l, "odkim_get_rcpt", dkimf_xs_rcpt);
-
-	/* get number of envelope recipients */
-	lua_register(l, "odkim_rcpt_count", dkimf_xs_rcptcount);
-
-	/* get all envelope recipients as an array */
-	lua_register(l, "odkim_get_rcptarray", dkimf_xs_rcptarray);
-
-	/* add recipient */
-	lua_register(l, "odkim_add_rcpt", dkimf_xs_addrcpt);
-
-	/* delete recipient */
-	lua_register(l, "odkim_delete_rcpt", dkimf_xs_delrcpt);
-
-	/* get policy code */
+	/* policy codes */
 	lua_pushnumber(l, DKIMF_POLICY_UNKNOWN);
 	lua_setglobal(l, "DKIMF_POLICY_UNKNOWN");
 	lua_pushnumber(l, DKIMF_POLICY_ALL);
@@ -509,18 +458,8 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	lua_setglobal(l, "DKIMF_POLICY_NONE");
 	lua_pushnumber(l, DKIMF_POLICY_NXDOMAIN);
 	lua_setglobal(l, "DKIMF_POLICY_NXDOMAIN");
-	lua_register(l, "odkim_get_policy", dkimf_xs_getpolicy);
 
-	/* get reputation */
-	lua_register(l, "odkim_get_reputation", dkimf_xs_getreputation);
-
-	/* set SMTP reply */
-	lua_register(l, "odkim_set_smtp_reply", dkimf_xs_setreply);
-
-	/* quarantine */
-	lua_register(l, "odkim_quarantine", dkimf_xs_quarantine);
-
-	/* set result code */
+	/* result codes */
 	lua_pushnumber(l, SMFIS_TEMPFAIL);
 	lua_setglobal(l, "SMFIS_TEMPFAIL");
 	lua_pushnumber(l, SMFIS_ACCEPT);
@@ -529,8 +468,8 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	lua_setglobal(l, "SMFIS_DISCARD");
 	lua_pushnumber(l, SMFIS_REJECT);
 	lua_setglobal(l, "SMFIS_REJECT");
-	lua_register(l, "odkim_set_result", dkimf_xs_setresult);
 
+	/* milter context */
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
 

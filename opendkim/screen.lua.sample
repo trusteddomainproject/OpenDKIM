@@ -1,4 +1,4 @@
---  $Id: screen.lua.sample,v 1.2 2010/01/14 18:06:09 cm-msk Exp $
+--  $Id: screen.lua.sample,v 1.3 2010/02/23 22:37:37 cm-msk Exp $
 --
 --  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 --
@@ -11,23 +11,23 @@
 --  we know we don't trust.
 
 --  retrieve the count of signatures on the message
-nsigs = odkim_get_sigcount(ctx)
+nsigs = odkim.get_sigcount(ctx)
 if nsigs == nil then
 	return nil
 end
 
 --  get the From: domain
-fdomain = odkim_get_fromdomain(ctx)
+fdomain = odkim.get_fromdomain(ctx)
 if fdomain == nil then
 	return nil
 end
 
 --  for each signature, ignore it if it's not from the sender's domain
 for n = 1, nsigs do
-	sig = odkim_get_signhandle(ctx, n)
-	sdomain = odkim_sig_getdomain(sig)
+	sig = odkim.get_signhandle(ctx, n)
+	sdomain = odkim.sig_getdomain(sig)
 	if fdomain ~= sdomain then
-		odkim_sig_ignore(sig)
+		odkim.sig_ignore(sig)
 	end
 end
 
