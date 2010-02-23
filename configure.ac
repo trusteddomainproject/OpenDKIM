@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.116 2010/02/22 21:59:44 cm-msk Exp $
+# $Id: configure.ac,v 1.117 2010/02/23 23:18:59 cm-msk Exp $
 
 #
 # Setup
@@ -740,7 +740,6 @@ AC_SUBST([LIBTRE_LIBS])
 #
 # liblua
 #
-AC_MSG_CHECKING(for Lua)
 AC_ARG_WITH(lua,
 	AS_HELP_STRING(--with-lua, location of Lua includes and library),
 	luapath="$withval", luapath="no")
@@ -749,8 +748,15 @@ LIBLUA_INCDIRS=""
 LIBLUA_LIBDIRS=""
 LIBLUA_LIBS=""
 
+if test \(  x"$luapath" = x"auto" -o x"$luapath" = x"yes" \) -a x"$PKG_CONFIG" != x""
+then
+        PKG_CHECK_MODULES([LUA], [lua >= 5.1.0], [luapath="pkg-config"],
+	                  [AC_MSG_WARN(["pkg-config for Lua not found, trying manual search..."])])
+fi
+
 if test x"$luapath" = x"yes" -o x"$luapath" = x"auto"
 then
+	AC_MSG_CHECKING([for Lua])
 	luadirs="/usr /usr/local"
 	for d in $luadirs
 	do
@@ -800,7 +806,7 @@ then
 	LIBLUA_LIBDIRS=""
 	LIBLUA_LIBS=""
 	AC_SUBST([LUA_MANNOTICE], "(Not enabled for this installation.)")
-else
+else test x"$luapath" != x"pkg-config"
 	if test -f $luapath/include/lua51/lua.h
 	then
 		AC_MSG_RESULT($luapath)
