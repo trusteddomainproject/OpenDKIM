@@ -219,8 +219,8 @@ be subjected to DKIM signature verification.  Returns the Lua constant
 The screen script has the following functions available to it, whose
 descriptions can be found above:
 .B odkim.db_check,
-.B odkim.fromdomain,
 .B odkim.get_dbhandle,
+.B odkim.get_fromdomain,
 .B odkim.get_header,
 .B odkim.get_rcpt,
 .B odkim.get_rcptarray,

@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.12 2010/02/23 22:37:36 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.13 2010/02/23 22:49:36 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.12 2010/02/23 22:37:36 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.13 2010/02/23 22:49:36 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -97,8 +97,8 @@ static const luaL_Reg dkimf_lua_lib_final[] =
 	{ "log",		dkimf_xs_log		},
 	{ "quarantine",		dkimf_xs_quarantine	},
 	{ "rcpt_count",		dkimf_xs_rcptcount	},
+	{ "set_reply",		dkimf_xs_setreply	},
 	{ "set_result",		dkimf_xs_setresult	},
-	{ "set_smtp_reply",	dkimf_xs_setreply	},
 	{ "sig_bhresult",	dkimf_xs_sigbhresult	},
 	{ "sig_bodylength",	dkimf_xs_bodylength	},
 	{ "sig_canonlength",	dkimf_xs_canonlength	},
