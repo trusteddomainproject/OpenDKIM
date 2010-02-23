@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-genzone.c,v 1.5 2010/02/23 07:37:59 cm-msk Exp $
+**  $Id: opendkim-genzone.c,v 1.6 2010/02/23 08:53:54 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.5 2010/02/23 07:37:59 cm-msk Exp $";
+static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.6 2010/02/23 08:53:54 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -140,6 +140,35 @@ loadkey(char *buf, size_t *buflen)
 	return TRUE;
 }
 
+/*
+**  DESPACE -- remove spaces from a string
+**
+**  Parameters:
+**  	str -- string to update
+**
+**  Return value:
+**  	None.
+*/
+
+void
+despace(char *str)
+{
+	char *p;
+	char *q;
+
+	assert(str != NULL);
+
+	for (p = str, q = str; ; p++)
+	{
+		if (isascii(*p) && isspace(*p))
+			continue;
+		else
+			*q++ = *p;
+		if (*p == '\0')
+			break;
+	}
+}
+	
 /*
 **  USAGE -- print usage message and exit
 **
@@ -617,8 +646,11 @@ main(int argc, char **argv)
 			BIO *decode;
 			char buf[BUFRSZ];
 
+			despace(keydata);
+
 			b64 = BIO_new(BIO_f_base64());
-			bio = BIO_new_mem_buf(keydata, keylen);
+			BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+			bio = BIO_new_mem_buf(keydata, -1);
 			bio = BIO_push(b64, bio);
 
 			decode = BIO_new(BIO_s_mem());
@@ -630,6 +662,8 @@ main(int argc, char **argv)
 					break;
 				BIO_write(decode, buf, inlen);
 			}
+
+			BIO_flush(decode);
 
 			outlen = BIO_get_mem_data(decode, &p);
 			memcpy(derdata, p, MIN(sizeof derdata, outlen));
