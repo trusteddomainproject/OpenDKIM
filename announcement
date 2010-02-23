@@ -22,6 +22,9 @@ This is a major new feature release.  The main new features include:
 	  previous way, using KeyList (or "-K" from the command line), has
 	  been removed.
 
+	o A tool to generate a public key zone file based on the contents
+	  of the KeyTable.
+
 	o Build configuration features for generating code coverage and
 	  profiling data.
 
@@ -44,6 +47,7 @@ Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers
 at http://sourceforge.net/projects/opendkim/.
 
-Thanks go out to all of those who contributed to this release.
+Thanks go out to all of those who contributed code, testing effort or other
+support to this release.
 
 The OpenDKIM Project
