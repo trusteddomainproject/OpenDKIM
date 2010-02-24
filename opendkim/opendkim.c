@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.109 2010/02/23 23:52:39 cm-msk Exp $
+**  $Id: opendkim.c,v 1.110 2010/02/24 00:14:58 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.109 2010/02/23 23:52:39 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.110 2010/02/24 00:14:58 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3317,7 +3317,6 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 	_Bool found = FALSE;
 	int status;
 	size_t keydatasz;
-	struct dkimf_config *conf;
 	struct signreq *new;
 	struct dkimf_db_data dbd[3];
 	char keydata[MAXBUFRSZ + 1];
@@ -6955,7 +6954,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 		                      &req, 1, &found);
 		if (status == -1 ||
-		    status == 0 && req.dbdata_buflen == 0)
+		    (status == 0 && req.dbdata_buflen == 0))
 		{
 			return -1;
 		}
@@ -6982,7 +6981,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		status = dkimf_db_get(signdb, domain, strlen(domain), &req, 1,
 		                      &found);
 		if (status == -1 ||
-		    status == 0 && req.dbdata_buflen == 0)
+		    (status == 0 && req.dbdata_buflen == 0))
 		{
 			return -1;
 		}
@@ -7016,7 +7015,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 			                      &req, 1, &found);
 			if (status == -1 ||
-			    status == 0 && req.dbdata_buflen == 0)
+			    (status == 0 && req.dbdata_buflen == 0))
 			{
 				return -1;
 			}
@@ -7043,7 +7042,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			status = dkimf_db_get(signdb, p, strlen(p),
 			                      &req, 1, &found);
 			if (status == -1 ||
-			    status == 0 && req.dbdata_buflen == 0)
+			    (status == 0 && req.dbdata_buflen == 0))
 			{
 				return -1;
 			}
@@ -7074,7 +7073,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 		                      &req, 1, &found);
 		if (status == -1 ||
-		    status == 0 && req.dbdata_buflen == 0)
+		    (status == 0 && req.dbdata_buflen == 0))
 		{
 			return -1;
 		}
@@ -7100,7 +7099,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(keyname, '\0', sizeof keyname);
 		status = dkimf_db_get(signdb, "*", 1, &req, 1, &found);
 		if (status == -1 ||
-		    status == 0 && req.dbdata_buflen == 0)
+		    (status == 0 && req.dbdata_buflen == 0))
 		{
 			return -1;
 		}
