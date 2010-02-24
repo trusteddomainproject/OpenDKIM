@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.122 2010/02/24 01:50:40 grooverdan Exp $
+# $Id: configure.ac,v 1.123 2010/02/24 02:17:20 grooverdan Exp $
 
 #
 # Setup
@@ -742,24 +742,26 @@ AC_SUBST([LIBTRE_LIBS])
 # liblua
 #
 AC_ARG_WITH(lua,
-	AS_HELP_STRING(--with-lua, location of Lua includes and library),
-	luapath="$withval", luapath="no")
+	AS_HELP_STRING([--with-lua], [location of Lua includes and library]),
+		[luapath="$withval"],[luapath="auto"]
+	)
 
 LIBLUA_INCDIRS=""
 LIBLUA_LIBDIRS=""
 LIBLUA_LIBS=""
+lua_found="no"
 
 if test \(  x"$luapath" = x"auto" -o x"$luapath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
         PKG_CHECK_MODULES([LIBLUA], [lua >= 5.1.0],
 	                  [
-				luapath="pkg-config"
+				lua_found="yes"
 				LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
 	                  ],
 	                  [AC_MSG_WARN(["pkg-config for Lua not found, trying manual search..."])])
 fi
 
-if test x"$luapath" = x"yes" -o x"$luapath" = x"auto"
+if test \( x"$luapath" = x"yes" -o x"$luapath" = x"auto" \) -a x"$lua_found" = x"no"
 then
 	AC_MSG_CHECKING([for Lua])
 	luadirs="/usr /usr/local"
@@ -794,23 +796,21 @@ then
 			LIBLUA_INCDIRS="-I$luapath/include"
 			LIBLUA_LIBDIRS="-L$luapath/lib"
 			LIBLUA_LIBS="-llua -lm"
-			AC_DEFINE([USE_LUA], 1,
-			          [support for Lua scripting])
-			AC_SUBST([LUA_MANNOTICE], "")
 			break;
 		fi
 	done
 	if test x"$LIBLUA_LIBS" = x""
 	then
+		LIBLUA_INCDIRS=""
+		LIBLUA_LIBDIRS=""
+		LIBLUA_LIBS=""
 		AC_MSG_ERROR(not found)
+	else
+		lua_found="yes"
 	fi
-elif test x"$luapath" = x"no"
-then
-	LIBLUA_INCDIRS=""
-	LIBLUA_LIBDIRS=""
-	LIBLUA_LIBS=""
-	AC_SUBST([LUA_MANNOTICE], "(Not enabled for this installation.)")
-elif test x"$luapath" != x"pkg-config"
+fi
+
+if test x"$luapath" != x"yes" -a x"$luapath" != x"auto" -a x"$luapath" != x"no"
 then
 	if test -f $luapath/include/lua51/lua.h
 	then
@@ -818,30 +818,37 @@ then
 		LIBLUA_INCDIRS="-I$luapath/include/lua51"
 		LIBLUA_LIBDIRS="-L$luapath/lib/lua51"
 		LIBLUA_LIBS="-llua -lm"
-		AC_DEFINE([USE_LUA], 1,
-		          [support for Lua scripting])
+		lua_found="yes"
 	elif test -f $luapath/include/lua5.1/lua.h
 	then
 		AC_MSG_RESULT($luapath)
 		LIBLUA_INCDIRS="-I$luapath/include/lua5.1"
 		LIBLUA_LIBDIRS="-L$luapath/lib"
 		LIBLUA_LIBS="-llua5.1 -lm"
-		AC_DEFINE([USE_LUA], 1,
-		          [support for Lua scripting])
+		lua_found="yes"
 	elif test -f $luapath/include/lua.h
 	then
 		AC_MSG_RESULT($luapath)
 		LIBLUA_INCDIRS="-I$luapath/include"
 		LIBLUA_LIBDIRS="-L$luapath/lib"
 		LIBLUA_LIBS="-llua -lm"
-		AC_DEFINE([USE_LUA], 1,
-		          [support for Lua scripting])
+		lua_found="yes"
 	else
 		AC_MSG_ERROR(not found at $luapath)
 	fi
 fi
 
-AM_CONDITIONAL(LUA, test x"$luapath" != x"no")
+if test x"$lua_found" = x"yes"
+then
+	AC_DEFINE([USE_LUA], 1,
+	          [support for Lua scripting])
+	AC_SUBST([LUA_MANNOTICE], "")
+else
+	AC_SUBST([LUA_MANNOTICE], "(Not enabled for this installation.)")
+fi
+
+
+AM_CONDITIONAL(LUA, test x"$lua_found" = x"yes")
 AC_SUBST(LIBLUA_INCDIRS)
 AC_SUBST(LIBLUA_LIBDIRS)
 AC_SUBST(LIBLUA_LIBS)
