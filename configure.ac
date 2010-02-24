@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.126 2010/02/24 03:01:42 cm-msk Exp $
+# $Id: configure.ac,v 1.127 2010/02/24 03:06:21 cm-msk Exp $
 
 #
 # Setup
@@ -742,9 +742,9 @@ AC_SUBST([LIBTRE_LIBS])
 # liblua
 #
 AC_ARG_WITH(lua,
-	AS_HELP_STRING([--with-lua], [location of Lua includes and library]),
-		[luapath="$withval"],[luapath="auto"]
-	)
+            AS_HELP_STRING([--with-lua],
+                           [location of Lua includes and library]),
+                           [luapath="$withval"], [luapath="no"])
 
 LIBLUA_INCDIRS=""
 LIBLUA_LIBDIRS=""
