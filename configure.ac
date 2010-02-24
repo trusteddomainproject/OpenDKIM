@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.121 2010/02/24 01:25:11 grooverdan Exp $
+# $Id: configure.ac,v 1.122 2010/02/24 01:50:40 grooverdan Exp $
 
 #
 # Setup
@@ -751,7 +751,11 @@ LIBLUA_LIBS=""
 
 if test \(  x"$luapath" = x"auto" -o x"$luapath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([LIBLUA], [lua >= 5.1.0], [luapath="pkg-config"],
+        PKG_CHECK_MODULES([LIBLUA], [lua >= 5.1.0],
+	                  [
+				luapath="pkg-config"
+				LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
+	                  ],
 	                  [AC_MSG_WARN(["pkg-config for Lua not found, trying manual search..."])])
 fi
 
@@ -922,7 +926,11 @@ OPENLDAP_LIBS=""
 if test \( x"$ldappath" = x"auto" -o x"$ldappath" = x"yes" \) -a \
 	x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([OPENLDAP], [openldap >= 2.0.0], [ldap_found="yes"],
+        PKG_CHECK_MODULES([OPENLDAP], [openldap >= 2.0.0],
+	[
+		ldap_found="yes"
+		OPENLDAP_CPPFLAGS="$OPENLDAP_CFLAGS"
+	],
 	[
 	        ldap_found="no"
         	AC_MSG_WARN([pkg-config for openldap not found, trying manual
@@ -988,7 +996,11 @@ sasl_found="no"
 if test \( x"$saslpath" = x"auto" -o x"$saslpath" = x"yes" \) -a \
 	x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([SASL], [cyrussasl >= 2.1.0], [sasl_found="yes"],
+        PKG_CHECK_MODULES([SASL], [cyrussasl >= 2.1.0],
+	[
+		sasl_found="yes"
+		SASL_CPPFLAGS="$SASL_CFLAGS"
+	],
 	[
 	        sasl_found="no"
         	AC_MSG_WARN([pkg-config for cyrussasl not found, trying manual
