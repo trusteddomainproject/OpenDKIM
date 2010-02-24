@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.41 2010/02/20 16:38:28 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.42 2010/02/24 23:09:43 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3362,6 +3362,7 @@ dkim_eom_sign(DKIM *dkim)
 	/* construct the DKIM signature header to be canonicalized */
 	n = strlcpy(tmp, DKIM_SIGNHEADER ": ", sizeof tmp);
 
+	/* XXX -- should use dkim_getsighdr_d()? */
 	ret = dkim_getsighdr(dkim, tmp + n, sizeof tmp - n,
 	                     strlen(DKIM_SIGNHEADER) + 2);
 	if (ret != DKIM_STAT_OK)
@@ -6087,7 +6088,10 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 
 	tmpbuf = dkim_dstring_new(dkim, BUFRSZ, MAXBUFRSZ);
 	if (tmpbuf == NULL)
+	{
+		dkim_error(dkim, "failed to allocate dynamic string");
 		return DKIM_STAT_NORESOURCE;
+	}
 
 	if (dkim->dkim_hdrbuf == NULL)
 	{
@@ -6095,6 +6099,7 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 		if (dkim->dkim_hdrbuf == NULL)
 		{
 			dkim_dstring_free(tmpbuf);
+			dkim_error(dkim, "failed to allocate dynamic string");
 			return DKIM_STAT_NORESOURCE;
 		}
 	}
@@ -6333,7 +6338,10 @@ dkim_getsighdr(DKIM *dkim, u_char *buf, size_t buflen, size_t initial)
 		return status;
 
 	if (len > buflen)
+	{
+		dkim_error(dkim, "generated signature header too large");
 		return DKIM_STAT_NORESOURCE;
+	}
 
 	strlcpy(buf, p, buflen);
 
