@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.56 2010/02/24 00:13:50 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.57 2010/02/24 21:54:01 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.56 2010/02/24 00:13:50 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.57 2010/02/24 21:54:01 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2677,7 +2677,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 			return -1;
 		}
 
-		if (key != NULL)
+		if (key != NULL && keylen != NULL)
 		{
 			*keylen = strlcpy(key,
 			                  (char *) odbx_field_value(result, 0),
@@ -2793,18 +2793,28 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		p = ldap_get_dn(ld, e);
 		if (p != NULL)
 		{
-			char *q;
+			LDAPDN dn = NULL;
 
-			q = strstr(p, ldap->ldap_descr->lud_dn);
-			if (q != NULL)
-				*q = '\0';
-			q = strrchr(p, ',');
-			if (q != NULL)
-				*q = '\0';
-			q = strchr(p, '=');
-			if (q != NULL)
-				*keylen = strlcpy(key, q + 1, *keylen);
+			if (ldap_str2dn(p, &dn, 0) != 0)
+			{
+				ldap_memfree(p);
+				pthread_mutex_unlock(&ldap->ldap_lock);
+				return 1;
+			}
 
+			if (key != NULL && keylen != NULL && dn != NULL &&
+			    dn[0][0][0].la_attr.bv_len != 0)
+			{
+				*keylen = strlcpy(key,
+				                  dn[0][0][0].la_value.bv_val,
+				                  *keylen);
+			}
+			else if (keylen != NULL)
+			{
+				*keylen = 0;
+			}
+
+			ldap_dnfree(dn);
 			ldap_memfree(p);
 		}
 
