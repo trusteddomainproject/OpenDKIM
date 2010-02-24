@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.127 2010/02/24 03:06:21 cm-msk Exp $
+# $Id: configure.ac,v 1.128 2010/02/24 03:11:02 cm-msk Exp $
 
 #
 # Setup
@@ -744,7 +744,7 @@ AC_SUBST([LIBTRE_LIBS])
 AC_ARG_WITH(lua,
             AS_HELP_STRING([--with-lua],
                            [location of Lua includes and library]),
-                           [luapath="$withval"], [luapath="no"])
+            [luapath="$withval"], [luapath="no"])
 
 LIBLUA_INCDIRS=""
 LIBLUA_LIBDIRS=""
@@ -993,7 +993,7 @@ AC_SUBST(OPENLDAP_LIBS)
 AC_ARG_WITH([sasl],
             AS_HELP_STRING([--with-sasl],
                            [location of SASL includes]),
-            [saslpath="$withval"], [saslpath="no"])
+            [saslpath="$withval"], [saslpath="auto"])
 if test x"$ldap_found" != x"yes"
 then
 	# disable sasl if we don't have ldap
