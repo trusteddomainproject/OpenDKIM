@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.120 2010/02/24 01:22:40 grooverdan Exp $
+# $Id: configure.ac,v 1.121 2010/02/24 01:25:11 grooverdan Exp $
 
 #
 # Setup
@@ -751,7 +751,7 @@ LIBLUA_LIBS=""
 
 if test \(  x"$luapath" = x"auto" -o x"$luapath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([LUA], [lua >= 5.1.0], [luapath="pkg-config"],
+        PKG_CHECK_MODULES([LIBLUA], [lua >= 5.1.0], [luapath="pkg-config"],
 	                  [AC_MSG_WARN(["pkg-config for Lua not found, trying manual search..."])])
 fi
 
