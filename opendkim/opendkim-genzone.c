@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-genzone.c,v 1.6 2010/02/23 08:53:54 cm-msk Exp $
+**  $Id: opendkim-genzone.c,v 1.7 2010/02/24 00:13:23 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.6 2010/02/23 08:53:54 cm-msk Exp $";
+static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.7 2010/02/24 00:13:23 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -358,7 +358,6 @@ main(int argc, char **argv)
 		_Bool ldap_usetls = FALSE;
 #endif /* USE_LDAP */
 		u_int line = 0;
-		char *missing;
 #ifdef USE_LDAP
 		char *ldap_authmech = NULL;
 # ifdef USE_SASL
@@ -514,7 +513,6 @@ main(int argc, char **argv)
 		else
 		{
 			struct passwd *pwd;
-			char addr[BUFRSZ + 1];
 
 			pwd = getpwuid(getuid());
 
