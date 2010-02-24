@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.57 2010/02/24 21:54:01 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.58 2010/02/24 22:03:57 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.57 2010/02/24 21:54:01 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.58 2010/02/24 22:03:57 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1450,9 +1450,10 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			return -1;
 		}
 
-		/* attempt TLS if requested */
+		/* attempt TLS if requested, except for ldaps and ldapi */
 		q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_USETLS];
 		if (q != NULL && (*q == 'y' || *q == 'Y') &&
+		    strcasecmp(ldap->ldap_descr->lud_scheme, "ldapi") != 0 &&
 		    strcasecmp(ldap->ldap_descr->lud_scheme, "ldaps") != 0)
 		{
 			err = ldap_start_tls_s(ld, NULL, NULL);
