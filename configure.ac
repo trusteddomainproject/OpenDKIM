@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.124 2010/02/24 02:19:20 grooverdan Exp $
+# $Id: configure.ac,v 1.125 2010/02/24 02:28:23 grooverdan Exp $
 
 #
 # Setup
@@ -993,10 +993,11 @@ AC_SUBST(OPENLDAP_LIBS)
 AC_ARG_WITH([sasl],
             AS_HELP_STRING([--with-sasl],
                            [location of SASL includes]),
-            [saslpath="$withval"], [saslpath="no"])
-if test x"$ldap_found" = x"yes" -a x"$saslpath" = x"no"
+            [saslpath="$withval"], [saslpath="auto"])
+if test x"$ldap_found" != x"yes"
 then
-	saslpath="auto"
+	# disable sasl if we don't have ldap
+	saslpath="no"
 fi
 
 sasl_found="no"
