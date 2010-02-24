@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.123 2010/02/24 02:17:20 grooverdan Exp $
+# $Id: configure.ac,v 1.124 2010/02/24 02:19:20 grooverdan Exp $
 
 #
 # Setup
@@ -924,7 +924,7 @@ AC_SUBST(LIBODBX_LIBS)
 AC_ARG_WITH([openldap],
             AS_HELP_STRING([--with-openldap],
                            [location of OpenLDAP includes and library]),
-            [ldappath="$withval"], [ldappath="no"])
+            [ldappath="$withval"], [ldappath="auto"])
 
 ldap_found="no"
 OPENLDAP_CPPFLAGS=""
