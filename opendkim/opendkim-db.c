@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.58 2010/02/24 22:03:57 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.59 2010/02/24 22:39:36 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.58 2010/02/24 22:03:57 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.59 2010/02/24 22:39:36 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2794,7 +2794,13 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		p = ldap_get_dn(ld, e);
 		if (p != NULL)
 		{
+#if LDAP_API_VERSION < 3000
+			LDAPDN *dn = NULL;
+#else /* LDAP_API_VERSION < 3000 */
 			LDAPDN dn = NULL;
+#endif /* LDAP_API_VERSION < 3000 */
+			LDAPRDN *rdn = NULL;
+			LDAPAVA *ava = NULL;
 
 			if (ldap_str2dn(p, &dn, 0) != 0)
 			{
@@ -2803,11 +2809,17 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 				return 1;
 			}
 
+			if (dn != NULL)
+			{
+				rdn = (LDAPRDN *) dn[0];
+				ava = (LDAPAVA *) rdn[0];
+			}
+
 			if (key != NULL && keylen != NULL && dn != NULL &&
-			    dn[0][0][0].la_attr.bv_len != 0)
+			    ava->la_value.bv_len != 0)
 			{
 				*keylen = strlcpy(key,
-				                  dn[0][0][0].la_value.bv_val,
+				                  ava->la_value.bv_val,
 				                  *keylen);
 			}
 			else if (keylen != NULL)
