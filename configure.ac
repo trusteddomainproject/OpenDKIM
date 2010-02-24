@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.119 2010/02/23 23:51:20 cm-msk Exp $
+# $Id: configure.ac,v 1.120 2010/02/24 01:22:40 grooverdan Exp $
 
 #
 # Setup
@@ -988,7 +988,7 @@ sasl_found="no"
 if test \( x"$saslpath" = x"auto" -o x"$saslpath" = x"yes" \) -a \
 	x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([CYRUSSASL], [cyrussasl >= 2.1.0], [sasl_found="yes"],
+        PKG_CHECK_MODULES([SASL], [cyrussasl >= 2.1.0], [sasl_found="yes"],
 	[
 	        sasl_found="no"
         	AC_MSG_WARN([pkg-config for cyrussasl not found, trying manual
