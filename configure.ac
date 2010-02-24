@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.128 2010/02/24 03:11:02 cm-msk Exp $
+# $Id: configure.ac,v 1.129 2010/02/24 05:15:24 cm-msk Exp $
 
 #
 # Setup
@@ -545,11 +545,15 @@ then
 	CFLAGS="$PTHREAD_CFLAGS $saved_CFLAGS"
 	LDFLAGS="$PTHREAD_CFLAGS $LIBMILTER_LIBDIRS $saved_LDFLAGS"
 
+	breakloop="no"
 	for d in lib lib/libmilter; do
 		unset ac_cv_search_smfi_register
 		LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/$d $saved_LDFLAGS"
 		AC_SEARCH_LIBS([smfi_register], [milter],
-			LIBMILTER_LIBDIRS="-L$milterpath/$d")
+		               [
+		               	LIBMILTER_LIBDIRS="-L$milterpath/$d"
+		               	breakloop="yes"
+		               ])
 
 		AC_CHECK_FUNC([smfi_setsymlist],
 			      AC_DEFINE([HAVE_SMFI_SETSYMLIST], 1,
@@ -558,6 +562,11 @@ then
 		AC_CHECK_FUNC([smfi_insheader],
 			      AC_DEFINE([HAVE_SMFI_INSHEADER], 1,
 					[Define if libmilter has smfi_insheader()]))
+
+		if test x"$breakloop" = x"yes"
+		then
+			break;
+		fi
 	done
 	if test x"$LIBMILTER_LIBDIRS" == x""; then
 		AC_MSG_ERROR([libmilter not found])
@@ -769,33 +778,33 @@ then
 	do
 		if test -f $d/include/lua51/lua.h
 		then
-			luapath=$d
 			AC_MSG_RESULT($d)
-			LIBLUA_INCDIRS="-I$luapath/include/lua51"
-			LIBLUA_LIBDIRS="-L$luapath/lib/lua51"
+			LIBLUA_INCDIRS="-I$d/include/lua51"
+			LIBLUA_LIBDIRS="-L$d/lib/lua51"
 			LIBLUA_LIBS="-llua -lm"
 			AC_DEFINE([USE_LUA], 1,
 			          [support for Lua scripting])
 			AC_SUBST([LUA_MANNOTICE], "")
+			lua_found="yes"
 			break;
 		elif test -f $d/include/lua5.1/lua.h
 		then
-			luapath=$d
 			AC_MSG_RESULT($d)
-			LIBLUA_INCDIRS="-I$luapath/include/lua5.1"
-			LIBLUA_LIBDIRS="-L$luapath/lib"
+			LIBLUA_INCDIRS="-I$d/include/lua5.1"
+			LIBLUA_LIBDIRS="-L$d/lib"
 			LIBLUA_LIBS="-llua5.1 -lm"
 			AC_DEFINE([USE_LUA], 1,
 			          [support for Lua scripting])
 			AC_SUBST([LUA_MANNOTICE], "")
+			lua_found="yes"
 			break;
 		elif test -f $d/include/lua.h
 		then
-			luapath=$d
 			AC_MSG_RESULT($d)
-			LIBLUA_INCDIRS="-I$luapath/include"
-			LIBLUA_LIBDIRS="-L$luapath/lib"
+			LIBLUA_INCDIRS="-I$d/include"
+			LIBLUA_LIBDIRS="-L$d/lib"
 			LIBLUA_LIBS="-llua -lm"
+			lua_found="yes"
 			break;
 		fi
 	done
