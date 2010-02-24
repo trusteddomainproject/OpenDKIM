@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.6 2010/02/23 23:27:42 cm-msk Exp $
+**  $Id: miltertest.c,v 1.7 2010/02/24 05:00:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.6 2010/02/23 23:27:42 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.7 2010/02/24 05:00:39 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -30,6 +30,7 @@ static char miltertest_c_id[] = "$Id: miltertest.c,v 1.6 2010/02/23 23:27:42 cm-
 #include <assert.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <time.h>
 
 /* libmilter includes */
 #include <libmilter/mfapi.h>
@@ -365,7 +366,7 @@ mt_milter_read(int fd, char *cmd, const char *buf, size_t *len)
 		{
 			fprintf(stderr,
 			        "%s: read(%d): returned %ld, expected %ld\n",
-			        progname, fd, (long) rlen, expl);
+			        progname, fd, (long) rlen, (long) expl);
 
 			return FALSE;
 		}
@@ -2025,7 +2026,7 @@ mt_bodystring(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: %d byte(s) of body sent on fd %d, reply `%c'\n",
+		        "%s: %lu byte(s) of body sent on fd %d, reply `%c'\n",
 		        progname, strlen(str), ctx->ctx_fd, rcmd);
 	}
 
@@ -2108,7 +2109,7 @@ mt_bodyrandom(lua_State *l)
 		if (verbose > 0)
 		{
 			fprintf(stdout,
-			        "%s: %d byte(s) of body sent on fd %d, reply `%c'\n",
+			        "%s: %lu byte(s) of body sent on fd %d, reply `%c'\n",
 			        progname, strlen(buf), ctx->ctx_fd, rcmd);
 		}
 
@@ -2194,7 +2195,7 @@ mt_bodyfile(lua_State *l)
 			if (verbose > 0)
 			{
 				fprintf(stdout,
-				        "%s: %d byte(s) of body sent on fd %d, reply `%c'\n",
+				        "%s: %lu byte(s) of body sent on fd %d, reply `%c'\n",
 				        progname, rlen, ctx->ctx_fd, rcmd);
 			}
 		}
