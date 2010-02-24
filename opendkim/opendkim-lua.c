@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.13 2010/02/23 22:49:36 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.14 2010/02/24 05:22:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.13 2010/02/23 22:49:36 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.14 2010/02/24 05:22:07 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -29,6 +29,7 @@ static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.13 2010/02/23 22:
 
 /* opendkim includes */
 #define DKIMF_LUA_PROTOTYPES
+#define DKIMF_MILTER_PROTOTYPES
 #include "opendkim-lua.h"
 #include "opendkim-db.h"
 #include "opendkim.h"
