@@ -3,12 +3,10 @@
 **	All rights reserved.
 **
 **  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
-**
-**  $Id: dkim-rep.c,v 1.8 2010/01/21 21:55:14 cm-msk Exp $
 */
 
 #ifndef lint
-static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.8 2010/01/21 21:55:14 cm-msk Exp $";
+static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.9 2010/02/25 20:11:46 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
