@@ -2,14 +2,14 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef _DKIM_TABLES_H_
 #define _DKIM_TABLES_H_
 
 #ifndef lint
-static char dkim_tables_h_id[] = "@(#)$Id: dkim-tables.h,v 1.3 2010/02/02 18:07:23 cm-msk Exp $";
+static char dkim_tables_h_id[] = "@(#)$Id: dkim-tables.h,v 1.4 2010/02/25 20:11:21 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef __STDC__
