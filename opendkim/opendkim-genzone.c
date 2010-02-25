@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-genzone.c,v 1.7 2010/02/24 00:13:23 cm-msk Exp $
+**  $Id: opendkim-genzone.c,v 1.8 2010/02/25 22:57:05 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.7 2010/02/24 00:13:23 cm-msk Exp $";
+static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.8 2010/02/25 22:57:05 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -34,6 +34,9 @@ static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.7 2010/02/24 
 #ifndef TRUE
 # define TRUE		1
 #endif /* ! TRUE */
+#ifndef MIN
+# define MIN(x,y)	((x) < (y) ? (x) : (y))
+#endif /* ! MIN */
 
 /* opendkim includes */
 #include "opendkim-db.h"
