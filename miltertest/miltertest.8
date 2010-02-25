@@ -56,34 +56,34 @@ The following functions are made available to Lua scripts for exercising
 a filter.  All functions return Lua constant "nil" on success or an error
 string on failure, unless otherwise indicated.
 .TP
-.B mt_abort(conn)
+.B mt.abort(conn)
 Aborts the transaction in progress on the specified connection.
 .TP
-.B mt_bodyfile(conn, file)
+.B mt.bodyfile(conn, file)
 Sends the contents of the named
 .I file
 to the connection as body data.  If there is any error opening
 .I file
 for reading, the test aborts.
 .TP
-.B mt_bodyrandom(conn, n)
+.B mt.bodyrandom(conn, n)
 Sends at least
 .I n
 bytes of random-length lines of random printable ASCII data as body
 chunks to the specified connection.
 .TP
-.B mt_bodystring(conn, str)
+.B mt.bodystring(conn, str)
 Sends
 .I str
 as a chunk of body text on the specified connection.
 .TP
-.B mt_connect(sockinfo)
+.B mt.connect(sockinfo)
 Makes a connection to a filter listening at the socket described by
 .I sockinfo.
 Returns a handle referring to that connection, or the Lua constant
 "nil" on error.
 .TP
-.B mt_conninfo(conn, host, ip)
+.B mt.conninfo(conn, host, ip)
 Sends information about a new SMTP connection to the MTA, represented by
 connection
 .I conn,
@@ -100,30 +100,30 @@ matching
 .I host;
 if none is found, the test will abort.
 .TP
-.B mt_disconnect(conn)
+.B mt.disconnect(conn)
 Sends a "quit" message to the specified connection and then closes that
 connection.  The specified
 .I conn
 handle should no longer be used.
 .TP
-.B mt_echo(string)
+.B mt.echo(string)
 Prints the specified
 .I string
 on standard output.  Returns nothing.
 .TP
-.B mt_eoh(conn)
+.B mt.eoh(conn)
 Announces end-of-header on the specified connection.
 .TP
-.B mt_eom(conn)
+.B mt.eom(conn)
 Announces end-of-message on the specified connection, and begins capturing
 any other operations the filter might perform in that phase.
 .TP
-.B mt_eom_check(conn, op, param[, ...])
+.B mt.eom_check(conn, op, param[, ...])
 Checks the captured set of EOM operations (see above) to determine whether
 or not specific milter actions were requested by the filter.  Returns
 a Boolean value (true or false).  See the EOM CHECKS section for details.
 .TP
-.B mt_getheader(conn, hdr, n)
+.B mt.getheader(conn, hdr, n)
 Retrieves the value of the
 .I nth
 instance of header field named
@@ -133,25 +133,25 @@ This can be used by the script to verify that the header thus added contains
 the right thing.  Returns the value as a string, or the Lua constant
 "nil" on error.
 .TP
-.B mt_getreply(conn)
+.B mt.getreply(conn)
 Returns the last milter reply received from the specified connection,
 as an integer.  This can be compared to any of the SMFIR_* constants defined
 by milter to see if the filter responded as expected.  This value is initially
 set to the NULL character.
 .TP
-.B mt_header(conn, name, value)
+.B mt.header(conn, name, value)
 Sends the header with the given
 .I name
 and
 .I value
 to the specified connection.
 .TP
-.B mt_helo(conn, name)
+.B mt.helo(conn, name)
 Sends HELO/EHLO information using the specified
 .I name
 as the parameter given.
 .TP
-.B mt_macro(conn, type, name, value)
+.B mt.macro(conn, type, name, value)
 Declares a macro called
 .I name
 whose value is
@@ -161,13 +161,13 @@ and whose type (matching protocol element) is
 Valid types are
 SMFIC_CONNECT, SMFIC_HELO, SMFIC_MAIL and SMFIC_RCPT.
 .TP
-.B mt_mailfrom(conn, envfrom[, ...])
+.B mt.mailfrom(conn, envfrom[, ...])
 Announces
 .I envfrom
 as the envelope sender of a new message.  ESMTP parameters as additional
 arguments are permitted.
 .TP
-.B mt_negotiate(conn, version, actions, steps)
+.B mt.negotiate(conn, version, actions, steps)
 Performs milter option negotiation with the connection
 .I conn,
 advertising that the specified protocol
@@ -182,23 +182,23 @@ or an error string on failure.  If any of the protocol parameters are
 .I libmilter/mfdef.h,
 provided with the milter source code) will be used.
 .TP
-.B mt_rcptto(conn, envrcpt[, ...])
+.B mt.rcptto(conn, envrcpt[, ...])
 Announces
 .I envrcpt
 as an envelope recipient of a message.  ESMTP parameters as additional
 arguments are permitted.
 .TP
-.B mt_set_timeout(n)
+.B mt.set_timeout(n)
 Sets the read timeout to
 .I n
 seconds.  The default is ten seconds.  Returns nothing.
 .TP
-.B mt_sleep(n)
+.B mt.sleep(n)
 Sleeps for
 .I n
 seconds.
 .TP
-.B mt_startfilter(path, arg1, arg2, ...)
+.B mt.startfilter(path, arg1, arg2, ...)
 Starts the filter whose binary is located at
 .I path
 with argument vector comprised of strings
@@ -216,7 +216,7 @@ at the end of the test script.  If the filter could not be started, an
 exception is generated with an error message returned.
 .SH EOM CHECKS
 The
-.B mt_eom_check()
+.B mt.eom_check()
 function is used to determine what changes to the message the filter
 requested during its EOM callback.  The changes can be requested
 in any order.  The first parameter,

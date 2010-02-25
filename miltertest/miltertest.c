@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.8 2010/02/25 07:06:56 cm-msk Exp $
+**  $Id: miltertest.c,v 1.9 2010/02/25 20:07:15 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.8 2010/02/25 07:06:56 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.9 2010/02/25 20:07:15 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -42,6 +42,7 @@ static char miltertest_c_id[] = "$Id: miltertest.c,v 1.8 2010/02/25 07:06:56 cm-
 /* Lua includes */
 #include <lua.h>
 #include <lualib.h>
+#include <lauxlib.h>
 
 /* macros */
 #ifndef FALSE
@@ -88,6 +89,30 @@ static char miltertest_c_id[] = "$Id: miltertest.c,v 1.8 2010/02/25 07:06:56 cm-
 #define MT_QUARANTINE		8
 #define MT_SMTPREPLY		9
 
+/* prototypes */
+int mt_abort(lua_State *);
+int mt_bodyfile(lua_State *);
+int mt_bodyrandom(lua_State *);
+int mt_bodystring(lua_State *);
+int mt_connect(lua_State *);
+int mt_conninfo(lua_State *);
+int mt_disconnect(lua_State *);
+int mt_echo(lua_State *);
+int mt_eoh(lua_State *);
+int mt_eom(lua_State *);
+int mt_eom_check(lua_State *);
+int mt_getheader(lua_State *);
+int mt_getreply(lua_State *);
+int mt_header(lua_State *);
+int mt_helo(lua_State *);
+int mt_macro(lua_State *);
+int mt_mailfrom(lua_State *);
+int mt_negotiate(lua_State *);
+int mt_rcptto(lua_State *);
+int mt_set_timeout(lua_State *);
+int mt_sleep(lua_State *);
+int mt_startfilter(lua_State *);
+
 /* data types */
 struct mt_eom_request
 {
@@ -111,6 +136,34 @@ struct mt_lua_io
 	size_t		lua_io_scriptlen;
 	const char *	lua_io_script;
 };
+
+static const luaL_Reg mt_library[] =
+{
+	{ "abort",		mt_abort	},
+	{ "bodyfile",		mt_bodyfile	},
+	{ "bodyrandom",		mt_bodyrandom	},
+	{ "bodystring",		mt_bodystring	},
+	{ "connect",		mt_connect	},
+	{ "conninfo",		mt_conninfo	},
+	{ "disconnect",		mt_disconnect	},
+	{ "echo",		mt_echo		},
+	{ "eoh",		mt_eoh		},
+	{ "eom",		mt_eom		},
+	{ "eom_check",		mt_eom_check	},
+	{ "getheader",		mt_getheader	},
+	{ "getreply",		mt_getreply	},
+	{ "header",		mt_header	},
+	{ "helo",		mt_helo		},
+	{ "macro",		mt_macro	},
+	{ "mailfrom",		mt_mailfrom	},
+	{ "negotiate",		mt_negotiate	},
+	{ "rcptto",		mt_rcptto	},
+	{ "set_timeout",	mt_set_timeout	},
+	{ "sleep",		mt_sleep	},
+	{ "startfilter",	mt_startfilter	},
+	{ NULL,			NULL 		}
+};
+
 
 /* globals */
 int verbose;
@@ -781,7 +834,7 @@ mt_echo(lua_State *l)
 
 	if (lua_gettop(l) != 1 || !lua_isstring(l, 1))
 	{
-		lua_pushstring(l, "mt_echo(): Invalid argument");
+		lua_pushstring(l, "mt.echo(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -810,7 +863,7 @@ mt_set_timeout(lua_State *l)
 
 	if (lua_gettop(l) != 1 || !lua_isnumber(l, 1))
 	{
-		lua_pushstring(l, "mt_set_timeout(): Invalid argument");
+		lua_pushstring(l, "mt.set_timeout(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -845,7 +898,7 @@ mt_startfilter(lua_State *l)
 	args = lua_gettop(l);
 	if (args < 1)
 	{
-		lua_pushstring(l, "mt_startfilter(): Invalid argument");
+		lua_pushstring(l, "mt.startfilter(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -854,7 +907,7 @@ mt_startfilter(lua_State *l)
 		if (!lua_isstring(l, c))
 		{
 			lua_pushstring(l,
-			               "mt_startfilter(): Invalid argument");
+			               "mt.startfilter(): Invalid argument");
 			lua_error(l);
 		}
 	}
@@ -862,7 +915,7 @@ mt_startfilter(lua_State *l)
 	argv = (const char **) malloc(sizeof(char *) * (args + 1));
 	if (argv == NULL)
 	{
-		lua_pushfstring(l, "mt_startfilter(): malloc(): %s",
+		lua_pushfstring(l, "mt.startfilter(): malloc(): %s",
 		                strerror(errno));
 		lua_error(l);
 	}
@@ -874,14 +927,14 @@ mt_startfilter(lua_State *l)
 
 	if (pipe(fds) != 0)
 	{
-		lua_pushfstring(l, "mt_startfilter(): pipe(): %s",
+		lua_pushfstring(l, "mt.startfilter(): pipe(): %s",
 		                strerror(errno));
 		lua_error(l);
 	}
 
 	if (fcntl(fds[1], F_SETFD, FD_CLOEXEC) != 0)
 	{
-		lua_pushfstring(l, "mt_startfilter(): fcntl(): %s",
+		lua_pushfstring(l, "mt.startfilter(): fcntl(): %s",
 		                strerror(errno));
 		lua_error(l);
 	}
@@ -890,7 +943,7 @@ mt_startfilter(lua_State *l)
 	switch (child)
 	{
 	  case -1:
-		lua_pushfstring(l, "mt_startfilter(): fork(): %s",
+		lua_pushfstring(l, "mt.startfilter(): fork(): %s",
 		                strerror(errno));
 		lua_error(l);
 
@@ -905,14 +958,14 @@ mt_startfilter(lua_State *l)
 		c = read(fds[0], &args, sizeof(args));
 		if (c == -1)
 		{
-			lua_pushfstring(l, "mt_startfilter(): read(): %s",
+			lua_pushfstring(l, "mt.startfilter(): read(): %s",
 			                strerror(errno));
 			lua_error(l);
 		}
 		else if (c != 0)
 		{
 			lua_pushfstring(l,
-			                "mt_startfilter(): read(): got %d, expecting 0",
+			                "mt.startfilter(): read(): got %d, expecting 0",
 			                c);
 			lua_error(l);
 		}
@@ -925,7 +978,7 @@ mt_startfilter(lua_State *l)
 		if (child != 0)
 		{
 			lua_pushfstring(l,
-			                "mt_startfilter(): wait4(): child %d exited prematurely, status %d",
+			                "mt.startfilter(): wait4(): child %d exited prematurely, status %d",
 			                child, status);
 			lua_error(l);
 		}
@@ -971,7 +1024,7 @@ mt_connect(lua_State *l)
 	if (lua_gettop(l) != 1 ||
 	    !lua_isstring(l, 1))
 	{
-		lua_pushstring(l, "mt_connect(): Invalid argument");
+		lua_pushstring(l, "mt.connect(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -997,7 +1050,7 @@ mt_connect(lua_State *l)
 
 	if (af == AF_UNSPEC)
 	{
-		lua_pushstring(l, "mt_connect(): Invalid argument");
+		lua_pushstring(l, "mt.connect(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -1017,14 +1070,14 @@ mt_connect(lua_State *l)
 		fd = socket(PF_UNIX, SOCK_STREAM, 0);
 		if (fd < 0)
 		{
-			lua_pushfstring(l, "mt_connect(): socket(): %s",
+			lua_pushfstring(l, "mt.connect(): socket(): %s",
 			                strerror(errno));
 			lua_error(l);
 		}
 
 		if (connect(fd, (struct sockaddr *) &sa, sizeof sa) < 0)
 		{
-			lua_pushfstring(l, "mt_connect(): connect(): %s",
+			lua_pushfstring(l, "mt.connect(): connect(): %s",
 			                strerror(errno));
 			lua_error(l);
 		}
@@ -1079,7 +1132,7 @@ mt_connect(lua_State *l)
 			if (*q != '\0')
 			{
 				lua_pushstring(l,
-				               "mt_connect(): Invalid argument");
+				               "mt.connect(): Invalid argument");
 				lua_error(l);
 			}
 
@@ -1092,14 +1145,14 @@ mt_connect(lua_State *l)
 		fd = socket(PF_INET, SOCK_STREAM, 0);
 		if (fd < 0)
 		{
-			lua_pushfstring(l, "mt_connect(): socket(): %s",
+			lua_pushfstring(l, "mt.connect(): socket(): %s",
 			                strerror(errno));
 			lua_error(l);
 		}
 
 		if (connect(fd, (struct sockaddr *) &sa, sizeof sa) < 0)
 		{
-			lua_pushfstring(l, "mt_connect(): connect(): %s",
+			lua_pushfstring(l, "mt.connect(): connect(): %s",
 			                strerror(errno));
 			lua_error(l);
 		}
@@ -1114,7 +1167,7 @@ mt_connect(lua_State *l)
 	new = (struct mt_context *) malloc(sizeof *new);
 	if (new == NULL)
 	{
-		lua_pushfstring(l, "mt_connect(): malloc(): %s",
+		lua_pushfstring(l, "mt.connect(): malloc(): %s",
 		                strerror(errno));
 		lua_error(l);
 	}
@@ -1155,7 +1208,7 @@ mt_sleep(lua_State *l)
 	if (lua_gettop(l) != 1 ||
 	    !lua_isnumber(l, 1))
 	{
-		lua_pushstring(l, "mt_sleep(): Invalid argument");
+		lua_pushstring(l, "mt.sleep(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -1195,7 +1248,7 @@ mt_disconnect(lua_State *l)
 	if (lua_gettop(l) != 1 ||
 	    !lua_islightuserdata(l, 1))
 	{
-		lua_pushstring(l, "mt_disconnect(): Invalid argument");
+		lua_pushstring(l, "mt.disconnect(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -1249,7 +1302,7 @@ mt_negotiate(lua_State *l)
 	    (!lua_isnil(l, 3) && !lua_isnumber(l, 3)) ||
 	    (!lua_isnil(l, 4) && !lua_isnumber(l, 4)))
 	{
-		lua_pushstring(l, "mt_negotiate(): Invalid argument");
+		lua_pushstring(l, "mt.negotiate(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -1286,7 +1339,7 @@ mt_negotiate(lua_State *l)
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_OPTNEG, buf, MILTER_OPTLEN))
 	{
-		lua_pushstring(l, "mt_milter_write() failed");
+		lua_pushstring(l, "mt.milter_write() failed");
 		return 1;
 	}
 
@@ -1294,7 +1347,7 @@ mt_negotiate(lua_State *l)
 
 	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 	{
-		lua_pushstring(l, "mt_milter_read() failed");
+		lua_pushstring(l, "mt.milter_read() failed");
 		return 1;
 	}
 
@@ -1358,7 +1411,7 @@ mt_macro(lua_State *l)
 	    !lua_isstring(l, 3) ||
 	    !lua_isstring(l, 4))
 	{
-		lua_pushstring(l, "mt_macro(): Invalid argument");
+		lua_pushstring(l, "mt.macro(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -1381,7 +1434,7 @@ mt_macro(lua_State *l)
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_MACRO, buf, s))
 	{
-		lua_pushstring(l, "mt_milter_write() failed");
+		lua_pushstring(l, "mt.milter_write() failed");
 		return 1;
 	}
 
@@ -1430,7 +1483,7 @@ mt_conninfo(lua_State *l)
 	    (!lua_isnil(l, 2) && !lua_isstring(l, 2)) ||
 	    (!lua_isnil(l, 3) && !lua_isstring(l, 3)))
 	{
-		lua_pushstring(l, "mt_conninfo(): Invalid argument");
+		lua_pushstring(l, "mt.conninfo(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -1459,7 +1512,7 @@ mt_conninfo(lua_State *l)
 
 		if (getaddrinfo(host, NULL, NULL, &res) != 0)
 		{
-			lua_pushfstring(l, "mt_conninfo(): host `%s' unknown",
+			lua_pushfstring(l, "mt.conninfo(): host `%s' unknown",
 			                host);
 			lua_error(l);
 		}
@@ -1483,7 +1536,7 @@ mt_conninfo(lua_State *l)
 		{
 			freeaddrinfo(res);
 			lua_pushfstring(l,
-			                "mt_conninfo(): can't convert address for host `%s' to text",
+			                "mt.conninfo(): can't convert address for host `%s' to text",
 			                host);
 			lua_error(l);
 		}
@@ -1496,7 +1549,7 @@ mt_conninfo(lua_State *l)
 		h = gethostbyname(host);
 		if (h == NULL)
 		{
-			lua_pushfstring(l, "mt_conninfo(): host `%s' unknown",
+			lua_pushfstring(l, "mt.conninfo(): host `%s' unknown",
 			                host);
 			lua_error(l);
 		}
@@ -1524,7 +1577,7 @@ mt_conninfo(lua_State *l)
 		else
 		{
 			lua_pushfstring(l,
-			                "mt_conninfo(): invalid IP address `%s'",
+			                "mt.conninfo(): invalid IP address `%s'",
 			                ipstr);
 			lua_error(l);
 		}
@@ -1533,7 +1586,7 @@ mt_conninfo(lua_State *l)
 		if (sa.s_addr == INADDR_NONE)
 		{
 			lua_pushfstring(l,
-			                "mt_conninfo(): invalid IPv4 address `%s'",
+			                "mt.conninfo(): invalid IPv4 address `%s'",
 			                ipstr);
 			lua_error(l);
 		}
@@ -1557,13 +1610,13 @@ mt_conninfo(lua_State *l)
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_CONNECT, buf, s))
 	{
-		lua_pushstring(l, "mt_milter_write() failed");
+		lua_pushstring(l, "mt.milter_write() failed");
 		return 1;
 	}
 
 	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 	{
-		lua_pushstring(l, "mt_milter_read() failed");
+		lua_pushstring(l, "mt.milter_read() failed");
 		return 1;
 	}
 
@@ -1609,7 +1662,7 @@ mt_helo(lua_State *l)
 	    !lua_islightuserdata(l, 1) ||
 	    !lua_isstring(l, 2))
 	{
-		lua_pushstring(l, "mt_helo(): Invalid argument");
+		lua_pushstring(l, "mt.helo(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -1629,7 +1682,7 @@ mt_helo(lua_State *l)
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_HELO, buf, s))
 	{
-		lua_pushstring(l, "mt_milter_write() failed");
+		lua_pushstring(l, "mt.milter_write() failed");
 		return 1;
 	}
 
@@ -1637,7 +1690,7 @@ mt_helo(lua_State *l)
 
 	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 	{
-		lua_pushstring(l, "mt_milter_read() failed");
+		lua_pushstring(l, "mt.milter_read() failed");
 		return 1;
 	}
 
@@ -1683,7 +1736,7 @@ mt_mailfrom(lua_State *l)
 	if (lua_gettop(l) < 2 ||
 	    !lua_islightuserdata(l, 1))
 	{
-		lua_pushstring(l, "mt_mailfrom(): Invalid argument");
+		lua_pushstring(l, "mt.mailfrom(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -1712,7 +1765,7 @@ mt_mailfrom(lua_State *l)
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_MAIL, buf, s))
 	{
-		lua_pushstring(l, "mt_milter_write() failed");
+		lua_pushstring(l, "mt.milter_write() failed");
 		return 1;
 	}
 
@@ -1720,7 +1773,7 @@ mt_mailfrom(lua_State *l)
 
 	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 	{
-		lua_pushstring(l, "mt_milter_read() failed");
+		lua_pushstring(l, "mt.milter_read() failed");
 		return 1;
 	}
 
@@ -1767,7 +1820,7 @@ mt_rcptto(lua_State *l)
 	if (lua_gettop(l) < 2 ||
 	    !lua_islightuserdata(l, 1))
 	{
-		lua_pushstring(l, "mt_rcptto(): Invalid argument");
+		lua_pushstring(l, "mt.rcptto(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -1796,7 +1849,7 @@ mt_rcptto(lua_State *l)
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_RCPT, buf, s))
 	{
-		lua_pushstring(l, "mt_milter_write() failed");
+		lua_pushstring(l, "mt.milter_write() failed");
 		return 1;
 	}
 
@@ -1804,7 +1857,7 @@ mt_rcptto(lua_State *l)
 
 	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 	{
-		lua_pushstring(l, "mt_milter_read() failed");
+		lua_pushstring(l, "mt.milter_read() failed");
 		return 1;
 	}
 
@@ -1853,7 +1906,7 @@ mt_header(lua_State *l)
 	    !lua_isstring(l, 2) ||
 	    !lua_isstring(l, 3))
 	{
-		lua_pushstring(l, "mt_header(): Invalid argument");
+		lua_pushstring(l, "mt.header(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -1874,7 +1927,7 @@ mt_header(lua_State *l)
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_HEADER, buf, s))
 	{
-		lua_pushstring(l, "mt_milter_write() failed");
+		lua_pushstring(l, "mt.milter_write() failed");
 		return 1;
 	}
 
@@ -1882,7 +1935,7 @@ mt_header(lua_State *l)
 
 	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 	{
-		lua_pushstring(l, "mt_milter_read() failed");
+		lua_pushstring(l, "mt.milter_read() failed");
 		return 1;
 	}
 
@@ -1929,7 +1982,7 @@ mt_eoh(lua_State *l)
 	if (lua_gettop(l) != 1 ||
 	    !lua_islightuserdata(l, 1))
 	{
-		lua_pushstring(l, "mt_eoh(): Invalid argument");
+		lua_pushstring(l, "mt.eoh(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -1941,7 +1994,7 @@ mt_eoh(lua_State *l)
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_EOH, NULL, 0))
 	{
-		lua_pushstring(l, "mt_milter_write() failed");
+		lua_pushstring(l, "mt.milter_write() failed");
 		return 1;
 	}
 
@@ -1949,7 +2002,7 @@ mt_eoh(lua_State *l)
 
 	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 	{
-		lua_pushstring(l, "mt_milter_read() failed");
+		lua_pushstring(l, "mt.milter_read() failed");
 		return 1;
 	}
 
@@ -1996,7 +2049,7 @@ mt_bodystring(lua_State *l)
 	    !lua_islightuserdata(l, 1) ||
 	    !lua_isstring(l, 2))
 	{
-		lua_pushstring(l, "mt_bodystring(): Invalid argument");
+		lua_pushstring(l, "mt.bodystring(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -2009,7 +2062,7 @@ mt_bodystring(lua_State *l)
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_BODY, str, strlen(str)))
 	{
-		lua_pushstring(l, "mt_milter_write() failed");
+		lua_pushstring(l, "mt.milter_write() failed");
 		return 1;
 	}
 
@@ -2017,7 +2070,7 @@ mt_bodystring(lua_State *l)
 
 	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 	{
-		lua_pushstring(l, "mt_milter_read() failed");
+		lua_pushstring(l, "mt.milter_read() failed");
 		return 1;
 	}
 
@@ -2066,7 +2119,7 @@ mt_bodyrandom(lua_State *l)
 	    !lua_islightuserdata(l, 1) ||
 	    !lua_isnumber(l, 2))
 	{
-		lua_pushstring(l, "mt_bodyrandom(): Invalid argument");
+		lua_pushstring(l, "mt.bodyrandom(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -2092,7 +2145,7 @@ mt_bodyrandom(lua_State *l)
 		if (!mt_milter_write(ctx->ctx_fd, SMFIC_BODY, buf,
 		                     strlen(buf)))
 		{
-			lua_pushstring(l, "mt_milter_write() failed");
+			lua_pushstring(l, "mt.milter_write() failed");
 			return 1;
 		}
 
@@ -2100,7 +2153,7 @@ mt_bodyrandom(lua_State *l)
 
 		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 		{
-			lua_pushstring(l, "mt_milter_read() failed");
+			lua_pushstring(l, "mt.milter_read() failed");
 			return 1;
 		}
 
@@ -2148,7 +2201,7 @@ mt_bodyfile(lua_State *l)
 	    !lua_islightuserdata(l, 1) ||
 	    !lua_isstring(l, 2))
 	{
-		lua_pushstring(l, "mt_bodyfile(): Invalid argument");
+		lua_pushstring(l, "mt.bodyfile(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -2162,7 +2215,7 @@ mt_bodyfile(lua_State *l)
 	f = fopen(file, "r");
 	if (f == NULL)
 	{
-		lua_pushfstring(l, "mt_bodyfile(): %s: fopen(): %s",
+		lua_pushfstring(l, "mt.bodyfile(): %s: fopen(): %s",
 		                file, strerror(errno));
 		lua_error(l);
 	}
@@ -2179,7 +2232,7 @@ mt_bodyfile(lua_State *l)
 			                     rlen))
 			{
 				fclose(f);
-				lua_pushstring(l, "mt_milter_write() failed");
+				lua_pushstring(l, "mt.milter_write() failed");
 				return 1;
 			}
 
@@ -2189,7 +2242,7 @@ mt_bodyfile(lua_State *l)
 			                    &buflen))
 			{
 				fclose(f);
-				lua_pushstring(l, "mt_milter_read() failed");
+				lua_pushstring(l, "mt.milter_read() failed");
 				return 1;
 			}
 
@@ -2243,7 +2296,7 @@ mt_eom(lua_State *l)
 	if (lua_gettop(l) != 1 ||
 	    !lua_islightuserdata(l, 1))
 	{
-		lua_pushstring(l, "mt_eom(): Invalid argument");
+		lua_pushstring(l, "mt.eom(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -2255,7 +2308,7 @@ mt_eom(lua_State *l)
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_BODYEOB, NULL, 0))
 	{
-		lua_pushstring(l, "mt_milter_write() failed");
+		lua_pushstring(l, "mt.milter_write() failed");
 		return 1;
 	}
 
@@ -2267,7 +2320,7 @@ mt_eom(lua_State *l)
 
 		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 		{
-			lua_pushstring(l, "mt_milter_read() failed");
+			lua_pushstring(l, "mt.milter_read() failed");
 			return 1;
 		}
 
@@ -2281,7 +2334,7 @@ mt_eom(lua_State *l)
 		if (!mt_eom_request(ctx, rcmd, buflen,
 		                    buflen == 0 ? NULL : buf))
 		{
-			lua_pushstring(l, "mt_eom_request() failed");
+			lua_pushstring(l, "mt.eom_request() failed");
 			return 1;
 		}
 
@@ -2326,7 +2379,7 @@ mt_eom_check(lua_State *l)
 	    !lua_islightuserdata(l, 1) ||
 	    !lua_isnumber(l, 2))
 	{
-		lua_pushstring(l, "mt_eom_check(): Invalid argument");
+		lua_pushstring(l, "mt.eom_check(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -2345,7 +2398,7 @@ mt_eom_check(lua_State *l)
 			if (!lua_isstring(l, 3))
 			{
 				lua_pushstring(l,
-				               "mt_eom_check(): Invalid argument");
+				               "mt.eom_check(): Invalid argument");
 				lua_error(l);
 			}
 
@@ -2357,7 +2410,7 @@ mt_eom_check(lua_State *l)
 			if (!lua_isstring(l, 4))
 			{
 				lua_pushstring(l,
-				               "mt_eom_check(): Invalid argument");
+				               "mt.eom_check(): Invalid argument");
 				lua_error(l);
 			}
 
@@ -2366,7 +2419,7 @@ mt_eom_check(lua_State *l)
 
 		if (lua_gettop(l) == 5)
 		{
-			lua_pushstring(l, "mt_eom_check(): Invalid argument");
+			lua_pushstring(l, "mt.eom_check(): Invalid argument");
 			lua_error(l);
 		}
 
@@ -2409,7 +2462,7 @@ mt_eom_check(lua_State *l)
 			if (!lua_isstring(l, 3))
 			{
 				lua_pushstring(l,
-				               "mt_eom_check(): Invalid argument");
+				               "mt.eom_check(): Invalid argument");
 				lua_error(l);
 			}
 
@@ -2421,7 +2474,7 @@ mt_eom_check(lua_State *l)
 			if (!lua_isstring(l, 4))
 			{
 				lua_pushstring(l,
-				               "mt_eom_check(): Invalid argument");
+				               "mt.eom_check(): Invalid argument");
 				lua_error(l);
 			}
 
@@ -2433,7 +2486,7 @@ mt_eom_check(lua_State *l)
 			if (!lua_isnumber(l, 5))
 			{
 				lua_pushstring(l,
-				               "mt_eom_check(): Invalid argument");
+				               "mt.eom_check(): Invalid argument");
 				lua_error(l);
 			}
 
@@ -2483,7 +2536,7 @@ mt_eom_check(lua_State *l)
 			if (!lua_isstring(l, 3))
 			{
 				lua_pushstring(l,
-				               "mt_eom_check(): Invalid argument");
+				               "mt.eom_check(): Invalid argument");
 				lua_error(l);
 			}
 
@@ -2495,7 +2548,7 @@ mt_eom_check(lua_State *l)
 			if (!lua_isstring(l, 4))
 			{
 				lua_pushstring(l,
-				               "mt_eom_check(): Invalid argument");
+				               "mt.eom_check(): Invalid argument");
 				lua_error(l);
 			}
 
@@ -2507,7 +2560,7 @@ mt_eom_check(lua_State *l)
 			if (!lua_isnumber(l, 5))
 			{
 				lua_pushstring(l,
-				               "mt_eom_check(): Invalid argument");
+				               "mt.eom_check(): Invalid argument");
 				lua_error(l);
 			}
 
@@ -2556,7 +2609,7 @@ mt_eom_check(lua_State *l)
 			if (!lua_isstring(l, 3))
 			{
 				lua_pushstring(l,
-				               "mt_eom_check(): Invalid argument");
+				               "mt.eom_check(): Invalid argument");
 				lua_error(l);
 			}
 
@@ -2568,7 +2621,7 @@ mt_eom_check(lua_State *l)
 			if (!lua_isnumber(l, 4))
 			{
 				lua_pushstring(l,
-				               "mt_eom_check(): Invalid argument");
+				               "mt.eom_check(): Invalid argument");
 				lua_error(l);
 			}
 
@@ -2577,7 +2630,7 @@ mt_eom_check(lua_State *l)
 
 		if (lua_gettop(l) == 5)
 		{
-			lua_pushstring(l, "mt_eom_check(): Invalid argument");
+			lua_pushstring(l, "mt.eom_check(): Invalid argument");
 			lua_error(l);
 		}
 
@@ -2619,7 +2672,7 @@ mt_eom_check(lua_State *l)
 		if (lua_gettop(l) != 3 ||
 		    !lua_isstring(l, 3))
 		{
-			lua_pushstring(l, "mt_eom_check(): Invalid argument");
+			lua_pushstring(l, "mt.eom_check(): Invalid argument");
 			lua_error(l);
 		}
 
@@ -2654,7 +2707,7 @@ mt_eom_check(lua_State *l)
 		if (lua_gettop(l) != 3 ||
 		    !lua_isstring(l, 3))
 		{
-			lua_pushstring(l, "mt_eom_check(): Invalid argument");
+			lua_pushstring(l, "mt.eom_check(): Invalid argument");
 			lua_error(l);
 		}
 
@@ -2689,7 +2742,7 @@ mt_eom_check(lua_State *l)
 		if (lua_gettop(l) < 2 || lua_gettop(l) > 3 ||
 		    (lua_gettop(l) == 3 && !lua_isstring(l, 3)))
 		{
-			lua_pushstring(l, "mt_eom_check(): Invalid argument");
+			lua_pushstring(l, "mt.eom_check(): Invalid argument");
 			lua_error(l);
 		}
 
@@ -2727,7 +2780,7 @@ mt_eom_check(lua_State *l)
 		if (lua_gettop(l) < 2 || lua_gettop(l) > 3 ||
 		    (lua_gettop(l) == 3 && !lua_isstring(l, 3)))
 		{
-			lua_pushstring(l, "mt_eom_check(): Invalid argument");
+			lua_pushstring(l, "mt.eom_check(): Invalid argument");
 			lua_error(l);
 		}
 
@@ -2765,7 +2818,7 @@ mt_eom_check(lua_State *l)
 
 		if (lua_gettop(l) < 3 || !lua_isstring(l, 3))
 		{
-			lua_pushstring(l, "mt_eom_check(): Invalid argument");
+			lua_pushstring(l, "mt.eom_check(): Invalid argument");
 			lua_error(l);
 		}
 
@@ -2776,7 +2829,7 @@ mt_eom_check(lua_State *l)
 			if (!lua_isstring(l, 4))
 			{
 				lua_pushstring(l,
-				               "mt_eom_check(): Invalid argument");
+				               "mt.eom_check(): Invalid argument");
 				lua_error(l);
 			}
 
@@ -2788,7 +2841,7 @@ mt_eom_check(lua_State *l)
 			if (!lua_isstring(l, 5))
 			{
 				lua_pushstring(l,
-				               "mt_eom_check(): Invalid argument");
+				               "mt.eom_check(): Invalid argument");
 				lua_error(l);
 			}
 
@@ -2821,7 +2874,7 @@ mt_eom_check(lua_State *l)
 	  }
 
 	  default:
-		lua_pushstring(l, "mt_eom_check(): Invalid argument");
+		lua_pushstring(l, "mt.eom_check(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -2856,7 +2909,7 @@ mt_abort(lua_State *l)
 	if (lua_gettop(l) != 1 ||
 	    !lua_islightuserdata(l, 1))
 	{
-		lua_pushstring(l, "mt_abort(): Invalid argument");
+		lua_pushstring(l, "mt.abort(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -2865,7 +2918,7 @@ mt_abort(lua_State *l)
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_ABORT, NULL, 0))
 	{
-		lua_pushstring(l, "mt_milter_write() failed");
+		lua_pushstring(l, "mt.milter_write() failed");
 		return 1;
 	}
 
@@ -2910,7 +2963,7 @@ mt_getreply(lua_State *l)
 	if (lua_gettop(l) != 1 ||
 	    !lua_islightuserdata(l, 1))
 	{
-		lua_pushstring(l, "mt_getreply(): Invalid argument");
+		lua_pushstring(l, "mt.getreply(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -2947,7 +3000,7 @@ mt_getheader(lua_State *l)
 	    !lua_isstring(l, 2) ||
 	    !lua_isnumber(l, 3))
 	{
-		lua_pushstring(l, "mt_getheader(): Invalid argument");
+		lua_pushstring(l, "mt.getheader(): Invalid argument");
 		lua_error(l);
 	}
 
@@ -3152,30 +3205,11 @@ main(int argc, char **argv)
 		io.lua_io_script = NULL;
 	}
 
-	/* register functions here */
-	lua_register(l, "mt_sleep", mt_sleep);
-	lua_register(l, "mt_startfilter", mt_startfilter);
-	lua_register(l, "mt_getreply", mt_getreply);
-	lua_register(l, "mt_connect", mt_connect);
-	lua_register(l, "mt_negotiate", mt_negotiate);
-	lua_register(l, "mt_macro", mt_macro);
-	lua_register(l, "mt_conninfo", mt_conninfo);
-	lua_register(l, "mt_helo", mt_helo);
-	lua_register(l, "mt_mailfrom", mt_mailfrom);
-	lua_register(l, "mt_rcptto", mt_rcptto);
-	lua_register(l, "mt_header", mt_header);
-	lua_register(l, "mt_eoh", mt_eoh);
-	lua_register(l, "mt_bodyfile", mt_bodyfile);
-	lua_register(l, "mt_bodyrandom", mt_bodyrandom);
-	lua_register(l, "mt_bodystring", mt_bodystring);
-	lua_register(l, "mt_eom", mt_eom);
-	lua_register(l, "mt_eom_check", mt_eom_check);
-	lua_register(l, "mt_getheader", mt_getheader);
-	lua_register(l, "mt_set_timeout", mt_set_timeout);
-	lua_register(l, "mt_abort", mt_abort);
-	lua_register(l, "mt_disconnect", mt_disconnect);
-	lua_register(l, "mt_echo", mt_echo);
+	/* register functions */
+	luaL_register(l, "mt", mt_library);
+	lua_pop(l, 1);
 
+	/* register constants */
 	lua_pushnumber(l, MT_HDRINSERT);
 	lua_setglobal(l, "MT_HDRINSERT");
 	lua_pushnumber(l, MT_HDRADD);
