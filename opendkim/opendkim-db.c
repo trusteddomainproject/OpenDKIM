@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.60 2010/02/24 23:01:05 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.61 2010/02/25 06:14:09 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.60 2010/02/24 23:01:05 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.61 2010/02/25 06:14:09 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2398,7 +2398,7 @@ dkimf_db_close(DKIMF_DB db)
 	  {
 		struct dkimf_db_ldap *ldap;
 
-		ldap = (struct dkimf_db_ldap *) db->db_data;
+		ldap = (struct dkimf_db_ldap *) db->db_handle;
 
 		ldap_unbind_ext((LDAP *) db->db_handle, NULL, NULL);
 		pthread_mutex_destroy(&ldap->ldap_lock);
