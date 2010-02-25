@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.65 2010/02/25 08:24:27 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.66 2010/02/25 08:51:41 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.65 2010/02/25 08:24:27 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.66 2010/02/25 08:51:41 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -190,7 +190,7 @@ struct dkimf_db_table dbtypes[] =
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
 
-static char *dkimf_db_ldap_param[DKIMF_LDAP_PARAM_MAX];
+static char *dkimf_db_ldap_param[DKIMF_LDAP_PARAM_MAX + 1];
 
 #if (USE_SASL && USE_LDAP)
 /*
