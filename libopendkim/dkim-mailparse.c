@@ -3,10 +3,12 @@
 **    All rights reserved.
 **
 **  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
+**
+**  $Id: dkim-mailparse.c,v 1.4 2010/02/25 20:09:02 cm-msk Exp $
 */
 
 #ifndef lint
-static char dkim_mailparse_c_id[] = "@(#)$Id: dkim-mailparse.c,v 1.3 2010/01/21 21:55:14 cm-msk Exp $";
+static char dkim_mailparse_c_id[] = "@(#)$Id: dkim-mailparse.c,v 1.4 2010/02/25 20:09:02 cm-msk Exp $";
 #endif /* !lint */
 
 /* system inludes */
