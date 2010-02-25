@@ -2,14 +2,14 @@
 **  Copyright (c) 2004 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef _DKIM_MAILPARSE_H_
 #define _DKIM_MAILPARSE_H_
 
 #ifndef lint
-static char dkim_mailparse_h_id[] = "@(#)$Id: dkim-mailparse.h,v 1.2 2010/02/25 21:52:06 cm-msk Exp $";
+static char dkim_mailparse_h_id[] = "@(#)$Id: dkim-mailparse.h,v 1.3 2010/02/25 21:52:22 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef __STDC__
