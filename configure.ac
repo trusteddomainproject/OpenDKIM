@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.130 2010/02/26 19:34:52 cm-msk Exp $
+# $Id: configure.ac,v 1.131 2010/02/26 19:45:45 cm-msk Exp $
 
 #
 # Setup
@@ -1008,6 +1008,26 @@ then
 fi
 if test x"$ldap_found" = x"yes"
 then
+	saved_CPPFLAGS="$CPPFLAGS"
+	CPPFLAGS="$OPENLDAP_CPPFLAGS"
+	AC_MSG_CHECKING([OpenLDAP version])
+	AC_COMPILE_IFELSE(	[
+#include <ldap.h>
+
+#if !defined(LDAP_API_VERSION) || LDAP_API_VERSION < 2004
+# error OpenLDAP version 2.1.3 or later is required
+#endif
+
+int
+main()
+{
+	return 0;
+}
+				],
+				AC_MSG_RESULT([ok]), 
+				AC_MSG_ERROR([OpenLDAP version 2.1.3 or later required]))
+	CPPFLAGS="$saved_CPPFLAGS"
+	AC_DEFINE([USE_LUA], 1, [support for Lua scripting])
 	AC_DEFINE([USE_LDAP], 1, [OpenLDAP support for datasets enabled])
 fi
 AM_CONDITIONAL(USE_LDAP, test x"$ldap_found" = x"yes")
