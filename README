@@ -1,7 +1,7 @@
 OPENDKIM README
 ===============
 
-$Id: README,v 1.8 2010/02/26 20:27:07 cm-msk Exp $
+$Id: README,v 1.9 2010/02/26 22:34:41 grooverdan Exp $
 
 This directory has the latest open source DKIM filter software from The
 OpenDKIM Project.
@@ -77,9 +77,9 @@ o For local hash or btree database support in either the filter or the
 
 o If you are interested in tinkering with the build and packaging structure,
   you may need to upgrade to these versions of GNU's "autotools" components:
-	autoconf (GNU Autoconf) 2.62
-	automake (GNU automake) 1.10.1
-	ltmain.sh (GNU libtool) 2.2.6
+	autoconf (GNU Autoconf) 2.61
+	automake (GNU automake) 1.7 (or 1.9 to avoid warnings)
+	ltmain.sh (GNU libtool) 2.2.6 (or 1.5.26 after make maintainer-clean)
 
 
 +-----------------------+
