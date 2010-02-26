@@ -1,7 +1,7 @@
 OPENDKIM README
 ===============
 
-$Id: README,v 1.7 2009/11/02 18:45:56 cm-msk Exp $
+$Id: README,v 1.8 2010/02/26 20:27:07 cm-msk Exp $
 
 This directory has the latest open source DKIM filter software from The
 OpenDKIM Project.
@@ -53,14 +53,33 @@ systems.
 
 To compile and operate, this package requires the following:
 
-o OpenSSL (http://www.openssl.org, or ask your software vendor for a package)
-  (any version will get you started, however v0.9.8 is required if you want
-  to be able to sign or verify messages using the SHA256 message digest
-  algorithm)
+o OpenSSL (http://www.openssl.org, or ask your software vendor for a package).
+  Any version will get you started, however v0.9.8 or later is required if
+  you want to be able to sign or verify messages using the SHA256 message
+  digest algorithm which is generally required for current DKIM applications.
 
 o sendmail v8.13.0 (or later), or Postfix 2.3, (or later) and libmilter.
+  (These are only required if you are building the filter.)
 
-o Access to a working nameserver (required only for verification).
+o Access to a working nameserver (required only for signature verification).
+
+o If you wish to interface the filter with SQL databases, OpenDBX v1.3.7
+  or later is required.
+
+o If you wish to use the Lua interpreter hooks for filter policy control,
+  Lua v5.1 or later is required.
+
+o If you wish to interface the filter with LDAP servers, OpenLDAP v2.1.3
+  or later is required.
+
+o For local hash or btree database support in either the filter or the
+  library, Oracle's BerkeleyDB is required.  All versions are supported.
+
+o If you are interested in tinkering with the build and packaging structure,
+  you may need to upgrade to these versions of GNU's "autotools" components:
+	autoconf (GNU Autoconf) 2.62
+	automake (GNU automake) 1.10.1
+	ltmain.sh (GNU libtool) 2.2.6
 
 
 +-----------------------+
