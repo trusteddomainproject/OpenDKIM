@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.129 2010/02/24 05:15:24 cm-msk Exp $
+# $Id: configure.ac,v 1.130 2010/02/26 19:34:52 cm-msk Exp $
 
 #
 # Setup
@@ -849,8 +849,26 @@ fi
 
 if test x"$lua_found" = x"yes"
 then
-	AC_DEFINE([USE_LUA], 1,
-	          [support for Lua scripting])
+	saved_CPPFLAGS="$CPPFLAGS"
+	CPPFLAGS="$LIBLUA_INCDIRS"
+	AC_MSG_CHECKING([Lua version])
+	AC_COMPILE_IFELSE(	[
+#include <lua.h>
+
+#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501
+# error Lua version 5.1 or later is required
+#endif
+
+int
+main()
+{
+	return 0;
+}
+				],
+				AC_MSG_RESULT([ok]), 
+				AC_MSG_ERROR([Lua version 5.1 or later required]))
+	CPPFLAGS="$saved_CPPFLAGS"
+	AC_DEFINE([USE_LUA], 1, [support for Lua scripting])
 	AC_SUBST([LUA_MANNOTICE], "")
 else
 	AC_SUBST([LUA_MANNOTICE], "(Not enabled for this installation.)")
