@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.132 2010/02/26 23:36:00 grooverdan Exp $
+# $Id: configure.ac,v 1.133 2010/02/27 01:06:12 grooverdan Exp $
 
 #
 # Setup
@@ -905,24 +905,24 @@ fi
 
 if test x"$odbxpath" != x"no" -a x"$odbx_found" = x"no"
 then
-	AC_MSG_CHECKING([for OpenDBX])
+	saved_ldflags="$LDFLAGS"
 	if test x"$odbxpath" != x"auto" -a x"$odbxpath" != x"yes"
 	then
 		if test -f $odbxpath/include/odbx.h
 		then
-			AC_CHECK_DECL(ODBX_RES_DONE,
+			LDFLAGS="-L$odbxpath/lib"
+			AC_CHECK_LIB(opendbx,odbx_result_finish,
 			[
-				AC_MSG_RESULT($odbxpath)
 			        odbx_found="yes"
 				LIBODBX_CPPFLAGS="-I$odbxpath/include"
 				LIBODBX_LIBS="-L$odbxpath/lib -lopendbx"
 			],
 			[
-				AC_MSG_ERROR([version not at least 1.3.7 at $odbxpath])
-			],$odbxpath/include/odbx.h
+				AC_MSG_ERROR([opendbx not at least 1.3.7 at $odbxpath])
+			]
 			)
 		else
-			AC_MSG_ERROR(not found at $odbxpath)
+			AC_MSG_ERROR([opendbx not found at $odbxpath])
 		fi
 	else
 		odbxdirs="/usr /usr/local"
@@ -930,25 +930,26 @@ then
 		do
 			if test -f $d/include/odbx.h
 			then
-				AC_CHECK_DECL(ODBX_RES_DONE,
+				LDFLAGS="-L$d/lib"
+				AC_CHECK_LIB(opendbx,odbx_result_finish,
 				[
 					odbxpath=$d
-					AC_MSG_RESULT($d)
 			        	odbx_found="yes"
 					LIBODBX_CPPFLAGS="-I$odbxpath/include"
 					LIBODBX_LIBS="-L$odbxpath/lib -lopendbx"
 					break;
 				],[
-        				AC_MSG_WARN([(found header at $d - not usable - need 1.3.7+)])
-				],$d/include/odbx.h
+        				AC_MSG_WARN([opendbx not usable - need 1.3.7+])
+				]
 				)
 			fi
 		done
+		if test x"$odbx_found" != x"yes"
+		then
+			AC_MSG_ERROR([opendbx not found])
+		fi
 	fi
-	if test x"$odbx_found" != x"yes"
-	then
-		AC_MSG_RESULT([no])
-	fi
+	LDFLAGS="$saved_ldflags"
 fi
 if test x"$odbx_found" = x"yes"
 then
