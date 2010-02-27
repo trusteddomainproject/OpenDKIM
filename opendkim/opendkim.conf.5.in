@@ -518,7 +518,7 @@ in which case the default is
 .TP
 .I MultipleSignatures (Boolean)
 Allow addition of multiple signatures when key lists are in use.  See
-.I SignatureTable
+.I SigningTable
 for more information.
 
 .TP
