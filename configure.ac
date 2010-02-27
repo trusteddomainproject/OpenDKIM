@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.133 2010/02/27 01:06:12 grooverdan Exp $
+# $Id: configure.ac,v 1.134 2010/02/27 04:09:50 cm-msk Exp $
 
 #
 # Setup
@@ -911,14 +911,14 @@ then
 		if test -f $odbxpath/include/odbx.h
 		then
 			LDFLAGS="-L$odbxpath/lib"
-			AC_CHECK_LIB(opendbx,odbx_result_finish,
+			AC_CHECK_LIB(opendbx, odbx_result_finish,
 			[
 			        odbx_found="yes"
 				LIBODBX_CPPFLAGS="-I$odbxpath/include"
 				LIBODBX_LIBS="-L$odbxpath/lib -lopendbx"
 			],
 			[
-				AC_MSG_ERROR([opendbx not at least 1.3.7 at $odbxpath])
+				AC_MSG_ERROR([opendbx not at least v1.3.7 at $odbxpath])
 			]
 			)
 		else
@@ -931,7 +931,7 @@ then
 			if test -f $d/include/odbx.h
 			then
 				LDFLAGS="-L$d/lib"
-				AC_CHECK_LIB(opendbx,odbx_result_finish,
+				AC_CHECK_LIB(opendbx, odbx_result_finish,
 				[
 					odbxpath=$d
 			        	odbx_found="yes"
@@ -939,7 +939,7 @@ then
 					LIBODBX_LIBS="-L$odbxpath/lib -lopendbx"
 					break;
 				],[
-        				AC_MSG_WARN([opendbx not usable - need 1.3.7+])
+					AC_MSG_ERROR([opendbx not at least v1.3.7 at $odbxpath])
 				]
 				)
 			fi
