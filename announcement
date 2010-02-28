@@ -35,7 +35,7 @@ This is a major new feature release.  The main new features include:
 There are as usual several bug fixes as well as some build system and
 compile-time cleanliness improvements.  The code coverage and profiling
 data mentioned above yielded several optimizations for the library that
-appear in this release.  However, there have been no bugs fixed or API
+appear in this release.  However, there have been no major bugs fixed or API
 changes made to the library in this release, so anyone using the library
 need not upgrade.
 
@@ -44,7 +44,7 @@ The full RELEASE_NOTES for this version:
 	INSERT HERE
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
-Bug reports and feature requests can be made through the project trackers
+Bug reports and feature requests can be made through the project trackers,
 which can be found via http://www.opendkim.org.
 
 Thanks go out to all of those who contributed code, testing effort or other
