@@ -2,7 +2,7 @@
 <head><title>dkim_options()</title></head>
 <body>
 <!--
-$Id: dkim_options.html,v 1.3 2009/11/15 23:45:34 cm-msk Exp $
+$Id: dkim_options.html,v 1.4 2010/03/01 19:53:33 cm-msk Exp $
 -->
 <h1>dkim_options()</h1>
 
@@ -267,6 +267,11 @@ are:
   <td>Make temporary files for debugging purposes.  See
       <a href="dkim_reportinfo.html"><tt>dkim_reportinfo()</tt></a> for an
       example of how this might be useful.</td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_VERIFYONE</tt></td>
+  <td>When verifying, only process signatures until the first good one
+      is found (by default, all of them will be attempted). </td>
  </tr>
  <tr>
   <td><tt>DKIM_LIBFLAGS_ZTAGS</tt></td>
