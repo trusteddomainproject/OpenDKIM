@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef _DKIM_H_
@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.24 2010/03/01 19:15:38 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.25 2010/03/01 19:50:32 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -267,6 +267,7 @@ typedef int dkim_opts_t;
 #define DKIM_LIBFLAGS_FIXCRLF		0x100
 #define DKIM_LIBFLAGS_ACCEPTDK		0x200
 #define DKIM_LIBFLAGS_BADSIGHANDLES	0x400
+#define DKIM_LIBFLAGS_VERIFYONE		0x800
 
 #define	DKIM_LIBFLAGS_DEFAULT		DKIM_LIBFLAGS_NONE
 
@@ -777,7 +778,7 @@ extern DKIM_STAT dkim_sig_getcanonlen __P((DKIM *dkim, DKIM_SIGINFO *sig,
 **
 **  Parameters:
 **  	dkimlib -- DKIM library handle
-**  	op -- operation (DKIM_OPT_GET or DKIM_OPT_SET)
+**  	op -- operation (DKIM_OP_GET or DKIM_OP_SET)
 **  	opt -- which option (a DKIM_OPTS_* constant)
 **  	ptr -- value (in or out)
 **  	len -- bytes available at "ptr"

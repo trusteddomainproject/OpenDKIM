@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.110 2010/03/01 19:15:37 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.111 2010/03/01 19:50:26 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -40,6 +40,11 @@ release, and a summary of the changes in that release.
 		snprintf() call.  From a Gentoo bug reported by Tilman Giese.
 	LIBOPENDKIM: Fix compiler complaint about multiple definitions
 		of global variables.  Reported by Maarten Oelering.
+	LIBOPENDKIM: Have dkim_eom() process all signatures instead of
+		stopping after finding one good one.  Also add library flag
+		DKIM_LIBFLAGS_VERIFYONE, causing dkim_eom() to short-circuit
+		after finding one good signature while verifying (i.e.
+		reproducing the pre-2.0.0 behaviour).
 	LIBOPENDKIM: Feature request #SF2961427: Add dkim_libversion().
 		Requested by Ale Vesely.
 	TOOLS: Add "opendkim-genzone" which generates a BIND zone file

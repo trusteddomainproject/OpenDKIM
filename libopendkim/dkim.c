@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.44 2010/03/01 19:15:38 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.45 2010/03/01 19:50:30 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3609,6 +3609,8 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 	/* run 'em until we get one */
 	if (sig == NULL)
 	{
+		DKIM_SIGINFO *firstgood = NULL;
+
 		for (c = 0; c < dkim->dkim_sigcount; c++)
 		{
 			sig = dkim->dkim_siglist[c];
@@ -3627,11 +3629,21 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 				/* pass and bh match? */
 				if ((sig->sig_flags & DKIM_SIGFLAG_PASSED) != 0 &&
 				    sig->sig_bh == DKIM_SIGBH_MATCH)
-					break;
+				{
+					if (firstgood == NULL)
+						firstgood = sig;
+
+					/* continue? */
+					if ((lib->dkiml_flags & DKIM_LIBFLAGS_VERIFYONE) != 0)
+						break;
+				}
 			}
 
 			sig = NULL;
 		}
+
+		if (sig == NULL)
+			sig = firstgood;
 	}
 
 	/*

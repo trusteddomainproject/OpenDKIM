@@ -2,7 +2,7 @@
 <head><title>dkim_eom()</title></head>
 <body>
 <!--
-$Id: dkim_eom.html,v 1.3 2009/11/06 11:09:40 cm-msk Exp $
+$Id: dkim_eom.html,v 1.4 2010/03/01 19:50:32 cm-msk Exp $
 -->
 <h1>dkim_eom()</h1>
 
@@ -16,8 +16,8 @@ $Id: dkim_eom.html,v 1.3 2009/11/06 11:09:40 cm-msk Exp $
 	bool *testkey
 );
 </pre>
-Denote end-of-message for a message.  Process signatures in order until a
-valid one is found.
+Denote end-of-message for a message.  When verifying, process signatures in
+order; when signing, compute all signatures.
 </td></tr>
 
 <!----------- Description ---------->
@@ -71,15 +71,18 @@ valid one is found.
 <th valign="top" align=left>NOTES</th> 
 <td>
 <ul>
-<li>This function only processes signatures, in order, until one is found
-that is valid.  There may be other signatures before or after that one in
-the message whose evaluation might be meaningful to the calling application.
-In that case, the calling application should use the final handling callback
-(see <a href="dkim_set_final.html"><tt>dkim_set_final()</tt></a> to get
-an opportunity to process all of the signatures and possibly reorder them
-as per the application's preference.  This function will use the signatures
-as reordered by that function (or in arrival order if no reordering is done)
-and act on the first valid one, or the first one if none are valid.
+<li>By default, when verifying, this function processes all signatures, in
+order.  If the <tt>DKIM_LIBFLAGS_VERIFYONE</tt> flag is set on the library,
+then processing will stop after one good signature is found.  There may be
+other signatures before or after that one in the message whose evaluation
+might be meaningful to the calling application.  In that case, the calling
+application should use the final handling callback (see
+<a href="dkim_set_final.html"><tt>dkim_set_final()</tt></a> to get an
+opportunity to process all of the signatures and possibly reorder them as
+per the application's preference.  With the above flag set, this function will
+use the signatures as reordered by that function (or in arrival order if
+no reordering is done) and act on the first valid one, or the first one if
+none are valid.
 </ul>
 </td>
 </tr>
@@ -90,7 +93,7 @@ and act on the first valid one, or the first one if none are valid.
 Copyright (c) 2005, 2007, 2008 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set
