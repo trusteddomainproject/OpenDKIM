@@ -33,11 +33,27 @@ This is a major new feature release.  The main new features include:
 	  Lua as a scripting engine.
 
 There are as usual several bug fixes as well as some build system and
-compile-time cleanliness improvements.  The code coverage and profiling
-data mentioned above yielded several optimizations for the library that
-appear in this release.  However, there have been no major bugs fixed or API
-changes made to the library in this release, so anyone using the library
-need not upgrade.
+compile-time cleanliness improvements.
+
+There were some minor changes to the library.  If you are using the library
+now and are not having trouble with it, no upgrade is required.  However,
+the new library has a few noteworthy changes:
+
+	o Prior to v2.0.0, dkim_eom() when verifying would only run
+	  signatures until the first good one was encountered.  Now,
+	  by default, all of them will be run.  This is required to
+	  provide correct support for ADSP in the filter.  There is a new
+	  library flag that can be used to request the previous behaviour.
+
+	o Prior to v2.0.0, dkim_sign() would only accept keys in PEM
+	  format.  Now, base64-encoded DER format is also accepted.  This
+	  was added to support key management via LDAP or SQL.
+
+	o There is new function applications can use at runtime to determine
+	  what version of libopendkim has been linked.
+
+The code coverage and profiling data mentioned above yielded several
+optimizations for the library that also appear in this release.
 
 The full RELEASE_NOTES for this version:
 
