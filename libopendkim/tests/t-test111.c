@@ -2,11 +2,11 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
-static char t_test111_c_id[] = "@(#)$Id: t-test111.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
+static char t_test111_c_id[] = "@(#)$Id: t-test111.c,v 1.3 2010/03/01 18:21:46 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -43,10 +43,9 @@ main(int argc, char **argv)
 
 	printf("*** quoted-printable decode\n");
 
-	memset(buf, '\0', sizeof buf);
-
 	olen = dkim_qp_decode(QP_IN, buf, sizeof buf);
 	assert(olen == strlen(QP_OUT));
+	buf[olen] = '\0';
 	assert(strcmp(QP_OUT, buf) == 0);
 
 	return 0;
