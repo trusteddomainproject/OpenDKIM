@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.23 2009/12/08 19:16:04 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.24 2010/03/01 19:15:38 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1443,6 +1443,19 @@ extern unsigned long dkim_ssl_version __P((void));
 #define	DKIM_FEATURE_MAX		7
 
 extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
+
+
+/*
+**  DKIM_LIBVERSION -- return version of libopendkim at runtime
+**
+**  Parameters:
+**  	None.
+**
+**  Return value:
+**  	Library version, i.e. value of the OPENDKIM_LIB_VERSION macro.
+*/
+
+extern unsigned long dkim_libversion __P((void));
 
 /*
 **  DKIM_TEST_ADSP -- verify that a valid author domain signing policy exists

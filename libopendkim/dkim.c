@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.43 2010/03/01 18:24:34 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.44 2010/03/01 19:15:38 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7609,4 +7609,20 @@ dkim_libfeature(DKIM_LIB *lib, u_int fc)
 	if (idx > lib->dkiml_flsize)
 		return FALSE;
 	return ((lib->dkiml_flist[idx] & (1 << offset)) != 0);
+}
+
+/*
+**  DKIM_LIBVERSION -- return version of libopendkim at runtime
+**
+**  Parameters:
+**  	None.
+**
+**  Return value:
+**  	Library version, i.e. value of the OPENDKIM_LIB_VERSION macro.
+*/
+
+unsigned long
+dkim_libversion(void)
+{
+	return OPENDKIM_LIB_VERSION;
 }
