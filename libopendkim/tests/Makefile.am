@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.4 2009/12/30 23:41:26 cm-msk Exp $
+# $Id: Makefile.am,v 1.5 2010/03/01 18:22:31 cm-msk Exp $
 
 AM_CFLAGS = $(COV_CFLAGS)
 AM_LDFLAGS = $(COV_LDFLAGS)
@@ -36,7 +36,7 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test109 t-test110 t-test111 t-test112 t-test114 \
 	t-test115 t-test116 t-test117 t-test119 t-test120 \
 	t-test121 t-test122 t-test123 t-test124 t-test125 t-test126 \
-	t-test127 t-test128 t-test129 t-test130 t-test131 \
+	t-test127 t-test128 t-test129 t-test130 t-test131 t-test132 \
 	t-signperf t-verifyperf
 if ALL_SYMBOLS
 check_PROGRAMS += t-test49 t-test113 t-test118
@@ -184,6 +184,7 @@ t_test128_SOURCES = t-test128.c t-testdata.h
 t_test129_SOURCES = t-test129.c t-testdata.h
 t_test130_SOURCES = t-test130.c t-testdata.h
 t_test131_SOURCES = t-test131.c t-testdata.h
+t_test132_SOURCES = t-test132.c t-testdata.h
 
 MOSTLYCLEANFILES=
 
