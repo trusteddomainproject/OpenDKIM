@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.134 2010/02/27 04:09:50 cm-msk Exp $
+# $Id: configure.ac,v 1.135 2010/03/01 21:10:00 cm-msk Exp $
 
 #
 # Setup
@@ -17,6 +17,15 @@ m4_define([VERSION_RELEASE], 2)
 m4_define([VERSION_MAJOR_REV], 0)
 m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PATCH], 0)
+
+#
+# Library version
+# 	- bump "current" and reset "revision" with API changes
+# 	- bump "revision" with internal source code changes
+#
+m4_define([LIBVERSION_CURRENT], 1)
+m4_define([LIBVERSION_REVISION], 0)
+m4_define([LIBVERSION_AGE], 0)
 
 #
 # Autotools setup
@@ -37,6 +46,12 @@ AC_CONFIG_MACRO_DIR([m4])
 # 
 HEX_VERSION=$(printf %08x $(( ((VERSION_RELEASE << 8 | VERSION_MAJOR_REV) << 8 | VERSION_MINOR_REV) << 8| VERSION_PATCH )))
 AC_SUBST([HEX_VERSION])
+
+#
+# library version, passed to libtool
+# 
+LIBOPENDKIM_VERSION_INFO=$(printf %d:%d:%d LIBVERSION_CURRENT LIBVERSION_REVISION LIBVERSION_AGE)
+AC_SUBST([LIBOPENDKIM_VERSION_INFO])
 
 #
 # Checks for programs
