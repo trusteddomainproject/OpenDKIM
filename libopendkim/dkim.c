@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.42 2010/02/24 23:09:43 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.43 2010/03/01 18:24:34 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1057,7 +1057,7 @@ dkim_key_granok(DKIM *dkim, DKIM_SIGINFO *sig, u_char *v, u_char *gran,
 
 	/* validate the "i" parameter */
 	if (p != NULL)
-		dkim_qp_decode(p, cmp, sizeof cmp);
+		(void) dkim_qp_decode(p, cmp, sizeof cmp - 1);
 	at = strchr(cmp, '@');
 	if (at == NULL || at == cmp)
 		strlcpy(cmp, user, sizeof cmp);
@@ -1256,7 +1256,8 @@ dkim_sig_signerok(DKIM *dkim, DKIM_SET *set, u_char **hdrs)
 
 	assert(i != NULL);
 
-	dkim_qp_decode(i, signer, sizeof signer);
+	memset(signer, '\0', sizeof signer);
+	(void) dkim_qp_decode(i, signer, sizeof signer - 1);
 
 	/* for each header in the "sender header" list */
 	for (c = 0; hdrs[c] != NULL; c++)
@@ -1445,7 +1446,7 @@ dkim_sig_domainok(DKIM *dkim, DKIM_SET *set)
 	if (i == NULL)
 		snprintf(addr, sizeof addr, "@%s", d);
 	else
-		dkim_qp_decode(i, addr, sizeof addr);
+		dkim_qp_decode(i, addr, sizeof addr - 1);
 
 	at = strchr(addr, '@');
 	if (at == NULL)
@@ -4924,7 +4925,7 @@ dkim_policy_getreportinfo(DKIM *dkim,
 		if (p != NULL)
 		{
 			memset(addr, '\0', addrlen);
-			(void) dkim_qp_decode(p, addr, addrlen);
+			(void) dkim_qp_decode(p, addr, addrlen - 1);
 			p = strchr(addr, '@');
 			if (p != NULL)
 				*p = '\0';
@@ -4951,7 +4952,7 @@ dkim_policy_getreportinfo(DKIM *dkim,
 		if (p != NULL)
 		{
 			memset(smtp, '\0', smtplen);
-			(void) dkim_qp_decode(p, smtp, smtplen);
+			(void) dkim_qp_decode(p, smtp, smtplen - 1);
 		}
 	}
 
@@ -6499,7 +6500,7 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 		if (p != NULL)
 		{
 			memset(addr, '\0', addrlen);
-			(void) dkim_qp_decode(p, addr, addrlen);
+			(void) dkim_qp_decode(p, addr, addrlen - 1);
 			p = strchr(addr, '@');
 			if (p != NULL)
 				*p = '\0';
@@ -6526,7 +6527,7 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 		if (p != NULL)
 		{
 			memset(smtp, '\0', smtplen);
-			(void) dkim_qp_decode(p, smtp, smtplen);
+			(void) dkim_qp_decode(p, smtp, smtplen - 1);
 		}
 	}
 
@@ -6642,7 +6643,12 @@ dkim_sig_getidentity(DKIM *dkim, DKIM_SIGINFO *sig, char *val, size_t vallen)
 	{
 		len = dkim_qp_decode(param, val, vallen);
 
-		return (len < vallen ? DKIM_STAT_OK : DKIM_STAT_NORESOURCE);
+		if (len == -1)
+			return DKIM_STAT_SYNTAX;
+		else if (len > vallen)
+			return DKIM_STAT_NORESOURCE;
+		else
+			return DKIM_STAT_OK;
 	}
 }
 

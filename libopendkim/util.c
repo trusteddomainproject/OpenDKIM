@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.8 2009/10/22 19:35:00 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.9 2010/03/01 18:24:34 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -292,6 +292,11 @@ dkim_hexchar(int c)
 **  Return value:
 **  	>= 0 -- number of bytes in output
 **  	-1 -- parse error
+**
+**  Notes:
+**  	The returned number of bytes can be larger than "outlen" if
+**  	"out" wasn't big enough to contain the decoded output.  The function
+**  	does not guarantee string termination.
 */
 
 int
@@ -300,6 +305,7 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 	unsigned char next1;
 	unsigned char next2 = 0;
 	int xl;
+	int decode = 0;
 	unsigned char const *p;
 	unsigned char *q;
 	unsigned char *pos;
@@ -316,7 +322,7 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 
 	end = out + outlen;
 
-	for (p = in, q = out; *p != '\0' && q <= end; p++)
+	for (p = in, q = out; *p != '\0'; p++)
 	{
 		switch (*p)
 		{
@@ -336,6 +342,8 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 
 					for (x = start; x <= stop; x++)
 					{
+						decode++;
+
 						if (q <= end)
 						{
 							*q = *x;
@@ -370,6 +378,8 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 
 				for (x = start; x < stop; x++)
 				{
+					decode++;
+
 					if (q <= end)
 					{
 						*q = *x;
@@ -379,8 +389,14 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 			}
 			start = NULL;
 			stop = NULL;
-			*q = xl;
-			q++;
+
+			if (q <= end)
+			{
+				*q = xl;
+				q++;
+			}
+
+			decode++;
 
 			p += 2;
 
@@ -404,6 +420,8 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 
 				for (x = start; x <= stop; x++)
 				{
+					decode++;
+
 					if (q <= end)
 					{
 						*q = *x;
@@ -414,6 +432,8 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 
 			if (p > in && *(p - 1) != '\r')
 			{
+				decode++;
+
 				if (q <= end)
 				{
 					*q = '\n';
@@ -422,6 +442,7 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 			}
 			else
 			{
+				decode += 2;
 				if (q <= end)
 				{
 					*q = '\r';
@@ -452,6 +473,8 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 
 		for (x = start; x < p; x++)
 		{
+			decode++;
+
 			if (q <= end)
 			{
 				*q = *x;
@@ -460,7 +483,7 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 		}
 	}
 
-	return q - out;
+	return decode;
 }
 
 #ifdef NEED_FAST_STRTOUL

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.110 2010/02/24 00:14:58 cm-msk Exp $
+**  $Id: opendkim.c,v 1.111 2010/03/01 18:24:34 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.110 2010/02/24 00:14:58 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111 2010/03/01 18:24:34 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2310,7 +2310,7 @@ dkimf_xs_getsigidentity(lua_State *l)
 	}
 
 	memset(addr, '\0', sizeof addr);
-	status = dkim_sig_getidentity(NULL, sig, addr, sizeof addr);
+	status = dkim_sig_getidentity(NULL, sig, addr, sizeof addr - 1);
 	if (status != DKIM_STAT_OK)
 		lua_pushnil(l);
 	else
@@ -7337,7 +7337,8 @@ dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	if (arftype == ARF_TYPE_DKIM)
 	{
 		memset(addr, '\0', sizeof addr);
-		dkim_sig_getidentity(dfc->mctx_dkimv, sig, addr, sizeof addr);
+		dkim_sig_getidentity(dfc->mctx_dkimv, sig, addr,
+		                     sizeof addr - 1);
 
 		/* fprintf(out, "Authentication-Results: %s\n", ...); */
 		fprintf(out, "DKIM-Failure: %s\n",
@@ -10644,7 +10645,7 @@ mlfi_eom(SMFICTX *ctx)
 			/* first, the DKIM bit */
 			strlcpy(val, "unknown", sizeof val);
 			(void) dkim_sig_getidentity(dfc->mctx_dkimv,
-			                            NULL, val, sizeof val);
+			                            NULL, val, sizeof val - 1);
 
 			snprintf((char *) header, sizeof header, "%s%s",
 		        	 cc->cctx_noleadspc ? " " : "",

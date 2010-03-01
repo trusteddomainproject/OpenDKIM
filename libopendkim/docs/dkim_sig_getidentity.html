@@ -2,7 +2,7 @@
 <head><title>dkim_sig_getidentity()</title></head>
 <body>
 <!--
-$Id: dkim_sig_getidentity.html,v 1.1 2009/10/25 22:56:35 cm-msk Exp $
+$Id: dkim_sig_getidentity.html,v 1.2 2010/03/01 18:24:34 cm-msk Exp $
 -->
 <h1>dkim_sig_getidentity()</h1>
 
@@ -61,6 +61,7 @@ Retrieve the signing identity from a signature handle.
 <td>
 <ul>
 <li>DKIM_STAT_OK -- successful completion
+<li>DKIM_STAT_SYNTAX -- some part of the input string was invalid
 <li>DKIM_STAT_NORESOURCE -- <tt>val</tt> did not contain enough space
     for the complete identity string
 </ul>
@@ -73,7 +74,7 @@ Retrieve the signing identity from a signature handle.
 Copyright (c) 2005-2007 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set
