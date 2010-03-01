@@ -1,11 +1,11 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.111 2010/03/01 19:50:26 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.112 2010/03/01 20:01:52 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.0.0 (Eve)	2010/03/01
+2.0.0 (Eve)	2010/03/05
 	Feature request #SF2917224: Add optional OpenLDAP support.
 	Feature request #SF2920389: Add CIDR support for IPv6 addresses.
 	Feature request #SF2937428: Add "ExemptDomains" configuration item.
