@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.137 2010/03/02 18:59:49 cm-msk Exp $
+# $Id: configure.ac,v 1.138 2010/03/02 19:24:43 cm-msk Exp $
 
 #
 # Setup
@@ -544,6 +544,7 @@ esac
 
 LIBMILTER_INCDIRS=""
 LIBMILTER_LIBDIRS=""
+LIBMILTER_LIBS=""
 
 if test x"$milterpath" != x"no"
 then
@@ -568,6 +569,7 @@ then
 		AC_SEARCH_LIBS([smfi_register], [milter],
 		               [
 		               	LIBMILTER_LIBDIRS="-L$milterpath/$d"
+		               	LIBMILTER_LIBS="-lmilter"
 		               	breakloop="yes"
 		               ])
 
@@ -584,7 +586,8 @@ then
 			break;
 		fi
 	done
-	if test x"$LIBMILTER_LIBDIRS" = x""; then
+	if test x"$LIBMILTER_LIBDIRS" = x""
+	then
 		AC_MSG_ERROR([libmilter not found])
 	fi
 
@@ -597,6 +600,7 @@ fi
 
 AC_SUBST(LIBMILTER_INCDIRS)
 AC_SUBST(LIBMILTER_LIBDIRS)
+AC_SUBST(LIBMILTER_LIBS)
 
 #
 # libunbound
