@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.66 2010/02/25 08:51:41 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.67 2010/03/02 05:49:51 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.66 2010/02/25 08:51:41 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.67 2010/03/02 05:49:51 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2489,6 +2489,10 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 {
 	assert(db != NULL);
 
+	if ((key != NULL && keylen == NULL) ||
+	    (key == NULL && keylen != NULL))
+		return -1;
+
 	if (db->db_type == DKIMF_DB_TYPE_REFILE)
 		return -1;
 
@@ -2508,11 +2512,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 			return 1;
 
 		if (key != NULL)
-		{
-			assert(keylen != NULL);
-
 			*keylen = strlcpy(key, list->db_list_key, *keylen);
-		}
 
 		if (reqnum != 0)
 		{
@@ -2593,9 +2593,17 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		{
 # if !DB_VERSION_CHECK(2,0,0)
 			if (key != NULL)
+			{
 				memcpy(key, k.data, MIN(k.size, *keylen));
-# endif /* DB_VERSION_CHECK(2,0,0) */
+				*keylen = MIN(k.size, *keylen));
+			}
 
+			if (reqnum != 0)
+			{
+				dkimf_db_datasplit(d.data, d.size,
+				                   req, reqnum);
+			}
+# else /* DB_VERSION_CHECK(2,0,0) */
 			if (reqnum != 0)
 			{
 				dkimf_db_datasplit(databuf, sizeof databuf,
@@ -2604,6 +2612,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 
 			if (keylen != NULL)
 				*keylen = k.size;
+# endif /* DB_VERSION_CHECK(2,0,0) */
 
 			return 0;
 		}
