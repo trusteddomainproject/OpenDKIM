@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.112 2010/03/01 20:01:52 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.113 2010/03/02 05:52:20 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -26,6 +26,7 @@ release, and a summary of the changes in that release.
 		for details.  Also, "-K" has been dropped from the command
 		line, meaning multiple key support now requires use of the
 		configuration file.
+	Fixes in DB walk code for DB 1.85.
 	Fix bug #SF2936499: Clean up numerous compiler warnings.
 	Fix bug #SF2951494: Improve logic for doing ADSP queries and reporting
 		their results.
