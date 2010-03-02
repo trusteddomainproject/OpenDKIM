@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.135 2010/03/01 21:10:00 cm-msk Exp $
+# $Id: configure.ac,v 1.136 2010/03/02 18:31:43 cm-msk Exp $
 
 #
 # Setup
@@ -583,7 +583,7 @@ then
 			break;
 		fi
 	done
-	if test x"$LIBMILTER_LIBDIRS" == x""; then
+	if test x"$LIBMILTER_LIBDIRS" = x""; then
 		AC_MSG_ERROR([libmilter not found])
 	fi
 
