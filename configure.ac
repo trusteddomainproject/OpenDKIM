@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.136 2010/03/02 18:31:43 cm-msk Exp $
+# $Id: configure.ac,v 1.137 2010/03/02 18:59:49 cm-msk Exp $
 
 #
 # Setup
@@ -549,6 +549,7 @@ if test x"$milterpath" != x"no"
 then
 	LIBMILTER_INCDIRS="-I$milterpath/include"
 
+	saved_CC="$CC"
 	saved_CFLAGS="$CFLAGS"
 	saved_CPPFLAGS="$CPPFLAGS"
 	saved_LDFLAGS="$LDFLAGS"
@@ -558,7 +559,7 @@ then
 	LIBS="$PTHREAD_LIBS $saved_LIBS"
 	CPPFLAGS="$LIBMILTER_INCDIRS $saved_CPPFLAGS"
 	CFLAGS="$PTHREAD_CFLAGS $saved_CFLAGS"
-	LDFLAGS="$PTHREAD_CFLAGS $LIBMILTER_LIBDIRS $saved_LDFLAGS"
+	LDFLAGS="$PTHREAD_CFLAGS $saved_LDFLAGS"
 
 	breakloop="no"
 	for d in lib lib/libmilter; do
@@ -587,6 +588,7 @@ then
 		AC_MSG_ERROR([libmilter not found])
 	fi
 
+	CC="$saved_CC"
 	CPPFLAGS="$saved_CPPFLAGS"
 	CFLAGS="$saved_CFLAGS"
 	LDFLAGS="$saved_LDFLAGS"
