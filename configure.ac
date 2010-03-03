@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.138 2010/03/02 19:24:43 cm-msk Exp $
+# $Id: configure.ac,v 1.139 2010/03/03 16:32:55 cm-msk Exp $
 
 #
 # Setup
@@ -262,7 +262,7 @@ then
 	# gcc can do all of them; Solaris cc can only do gprof
 	AC_CHECK_PROG([hasgcc], [gcc], [yes])
 	AC_CHECK_PROG([hascc], [cc], [yes])
-	if test x"$hasgcc" != x"yes" -a x"$hascc" = x"yes";
+	if test x"$hasgcc" != x"yes" -a x"$hascc" = x"yes"
 	then
 		if test x`cc -V 2>&1 | grep -c "Sun C"` = x"1"
 		then
@@ -312,19 +312,19 @@ then
 	# sun profiling
 	if test x"$hasgprof" = x"yes" -a \
 	        x"$hasgcov" != x"yes" -a \
-	        x"$hassuncc" = x"yes";
+	        x"$hassuncc" = x"yes"
 	then
 		COV_CFLAGS="-g -xpg"
 		COV_LDFLAGS="-g -xpg"
 	# non-sun profiling
 	elif test x"$hasgprof" = x"yes" -a \
 		x"$hasgcov" != x"yes" -a \
-		x"$hassuncc" != x"yes";
+		x"$hassuncc" != x"yes"
 	then
 		COV_CFLAGS="-g -pg"
 		COV_LDFLAGS="-g -pg"
 	# gcov profiling
-	elif test x"$hasgcov" = x"yes";
+	elif test x"$hasgcov" = x"yes"
 	then
 		COV_CFLAGS="-g -fprofile-arcs -ftest-coverage"
 		COV_LIBADD="$GCOV_LIBS"
@@ -563,7 +563,8 @@ then
 	LDFLAGS="$PTHREAD_CFLAGS $saved_LDFLAGS"
 
 	breakloop="no"
-	for d in lib lib/libmilter; do
+	for d in lib lib/libmilter
+	do
 		unset ac_cv_search_smfi_register
 		LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/$d $saved_LDFLAGS"
 		AC_SEARCH_LIBS([smfi_register], [milter],
@@ -583,7 +584,7 @@ then
 
 		if test x"$breakloop" = x"yes"
 		then
-			break;
+			break
 		fi
 	done
 	if test x"$LIBMILTER_LIBDIRS" = x""
@@ -629,7 +630,7 @@ then
 			LIBUNBOUND_INCDIRS="-I$unboundpath/include"
 			LIBUNBOUND_LIBDIRS="-L$unboundpath/lib"
 			LIBUNBOUND_LIBS="-lunbound"
-			break;
+			break
 		fi
 	done
 	if test x"$LIBUNBOUND_LIBS" = x""
@@ -737,7 +738,7 @@ then
 				AC_MSG_RESULT($d)
 				LIBTRE_CFLAGS="-I$trepath/include"
 				LIBTRE_LIBS="-L$trepath/lib -ltre"
-				break;
+				break
 			elif test -f $d/include/tre/regex.h
 			then
 				trepath=$d
@@ -747,7 +748,7 @@ then
 				          [version of libtre is older than 0.8.0])
 				LIBTRE_CFLAGS="-I$trepath/include"
 				LIBTRE_LIBS="-L$trepath/lib -ltre"
-				break;
+				break
 			fi
 		done
 		if test x"$tre_found" != x"yes"
@@ -807,7 +808,7 @@ then
 			          [support for Lua scripting])
 			AC_SUBST([LUA_MANNOTICE], "")
 			lua_found="yes"
-			break;
+			break
 		elif test -f $d/include/lua5.1/lua.h
 		then
 			AC_MSG_RESULT($d)
@@ -818,7 +819,7 @@ then
 			          [support for Lua scripting])
 			AC_SUBST([LUA_MANNOTICE], "")
 			lua_found="yes"
-			break;
+			break
 		elif test -f $d/include/lua.h
 		then
 			AC_MSG_RESULT($d)
@@ -826,7 +827,7 @@ then
 			LIBLUA_LIBDIRS="-L$d/lib"
 			LIBLUA_LIBS="-llua -lm"
 			lua_found="yes"
-			break;
+			break
 		fi
 	done
 	if test x"$LIBLUA_LIBS" = x""
@@ -958,7 +959,7 @@ then
 			        	odbx_found="yes"
 					LIBODBX_CPPFLAGS="-I$odbxpath/include"
 					LIBODBX_LIBS="-L$odbxpath/lib -lopendbx"
-					break;
+					break
 				],[
 					AC_MSG_ERROR([opendbx not at least v1.3.7 at $odbxpath])
 				]
@@ -1032,7 +1033,7 @@ then
 		        	ldap_found="yes"
 				OPENLDAP_CPPFLAGS="-I$ldappath/include"
 				OPENLDAP_LIBS="-L$ldappath/lib -lldap"
-				break;
+				break
 			fi
 		done
 	fi
@@ -1121,7 +1122,7 @@ then
 				AC_MSG_RESULT($d)
 		        	sasl_found="yes"
 				SASL_CPPFLAGS="-I$ldappath/include"
-				break;
+				break
 			fi
 		done
 	fi
@@ -1201,7 +1202,7 @@ then
 			bdb=$d
 			AC_MSG_RESULT($d)
 			LIBDB_INCDIRS="-I$bdb/include"
-			break;
+			break
 		fi
 	done
 
@@ -1247,7 +1248,7 @@ then
 				LIBDB_LIBDIRS="-L$bdb/lib"
 				LIBDB_LIBS="-ldb"
 				libdbfound="yes"
-				break;
+				break
 			fi
 		done
 	fi
@@ -1326,7 +1327,7 @@ then
 			LIBDK_LIBS="-ldk"
 			AC_DEFINE([VERIFY_DOMAINKEYS], 1,
 			          [compile with libdk for DomainKeys support])
-			break;
+			break
 		fi
 	done
 
