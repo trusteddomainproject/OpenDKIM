@@ -2,7 +2,7 @@
 <head><title>dkim_chunk()</title></head>
 <chunk>
 <!--
-$Id: dkim_chunk.html,v 1.1 2009/07/16 19:13:20 cm-msk Exp $
+$Id: dkim_chunk.html,v 1.2 2010/03/04 23:56:25 cm-msk Exp $
 -->
 <h1>dkim_chunk()</h1>
 
@@ -75,7 +75,7 @@ are to be passed to the API, prior to calling <tt>dkim_eom()</tt>.
 <ul>
 <li><tt>DKIM_STAT_INVALID</tt> indicates the <tt>dkim</tt> handle was
     already used in by one of the non-streaming data input calls
-    (e.g. <tt>dkim_header()</tt>, <tt>dkim_eoh()</tt> or <tt>dkim_body()</tt>.
+    (e.g. <tt>dkim_header()</tt>, <tt>dkim_eoh()</tt> or <tt>dkim_body()</tt>).
 <li><tt>DKIM_STAT_INVALID</tt> may also indicate that this function was
     previously called with terminating arguments (see above), implying
     data input had finished.
@@ -103,7 +103,7 @@ to be a C string (a sequence of characters that is terminated by '\0').
 Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set
