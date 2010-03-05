@@ -1,7 +1,7 @@
 ##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
-## $Id: opendkim.conf.sample,v 1.4 2010/02/21 21:48:58 cm-msk Exp $
+## $Id: opendkim.conf.sample,v 1.5 2010/03/05 03:32:12 mmarkley Exp $
 ##
 
 ##
@@ -213,7 +213,8 @@ Domain			example.com
 ##  	default (none)
 ##
 ##  Specifies the path to the private key to use when signing.  Ignored if
-##  Keylist is set.  No default; must be specified for signing.
+##  SigningTable and KeyTable are used.  No default; must be specified for 
+##  signing if SigningTable/KeyTable are not in use.
 
 KeyFile			/var/db/dkim/example.private
 
@@ -319,10 +320,10 @@ KeyFile			/var/db/dkim/example.private
 ##  MultipleSignatures { yes | no }
 ##  	default no
 ##
-##  Allows multiple signatures to be added.  If set to "true" and a KeyList
-##  is in use, all KeyList entries that match the candidate message will
+##  Allows multiple signatures to be added.  If set to "true" and a SigningTable
+##  is in use, all SigningTable entries that match the candidate message will
 ##  cause a signature to be added.  Otherwise, only the first matching
-##  KeyList entry will be added, or only the key defined by Domain,
+##  SigningTable entry will be added, or only the key defined by Domain,
 ##  Selector and KeyFile will be added.
 
 # MultipleSignatures	no
