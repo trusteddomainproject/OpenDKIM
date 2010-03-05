@@ -1,4 +1,4 @@
-# $Id: opendkim.spec,v 1.3 2010/03/05 06:17:09 mmarkley Exp $
+# $Id: opendkim.spec,v 1.4 2010/03/05 19:06:23 mmarkley Exp $
 
 Summary: An open source milter for providing DKIM service
 Name: opendkim
@@ -63,14 +63,14 @@ cp -r docs FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail README RELEASE_NOTES RELE
 rm -r "$RPM_BUILD_ROOT"/%{_prefix}/share/doc/opendkim
 
 %post
-if ! id -u opendkim >/dev/null 2>&1; then
-	useradd -M -d /var/lib -r -s /bin/false opendkim
-	if [ "$(id -gn opendkim)" != "opendkim" ]; then
-		groupadd opendkim
-		usermod -g opendkim opendkim
+if ! getent passwd opendkim >/dev/null 2>&1; then
+	%{_sbindir}/useradd -M -d /var/lib -r -s /bin/false opendkim
+	if [ ! getent group opendkim >/dev/null ]; then
+		%{_sbindir}/groupadd opendkim
+		%{_sbindir}/usermod -g opendkim opendkim
 	fi
 fi
-mkdir /var/run/opendkim
+test -d /var/run/opendkim || mkdir /var/run/opendkim
 chown opendkim:opendkim /var/run/opendkim
 if [ -x /sbin/chkconfig ]; then
 	/sbin/chkconfig --add opendkim
@@ -86,7 +86,7 @@ elif [ -x /usr/lib/lsb/remove_initd ]; then
 	/usr/lib/lsb/remove_initd opendkim
 fi
 userdel opendkim
-if [ "$(id -gn opendkim)" = "opendkim" ]; then
+if [ getent group opendkim >/dev/null ]; then
 	groupdel opendkim
 fi
 
@@ -98,13 +98,8 @@ fi
 %files
 %defattr(-,root,root)
 %doc %{_docdir}/opendkim-%{version}
-#%doc docs FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail README RELEASE_NOTES RELEASE_NOTES.Sendmail contrib/
-#%doc %{_docdir}/opendkim-%{version}/examples
-#%doc %{_docdir}/opendkim-%{version}/README.opendkim
-#%doc %{_prefix}/share/doc/opendkim
 %config /etc/opendkim.conf
 %config /etc/init.d/opendkim
-#%{_defaultdocdir}/opendkim-%{version}-%{release}/examples
 %{_prefix}/sbin
 %{_mandir}
 
