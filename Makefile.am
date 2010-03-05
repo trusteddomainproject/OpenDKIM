@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.32 2010/03/05 00:32:00 cm-msk Exp $
+# $Id: Makefile.am,v 1.33 2010/03/05 01:03:45 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -129,7 +129,7 @@ dist_doc_DATA = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail \
 # non-experimental features and substitute it here e.g  @SUPPORTED_FEATURES@.
 # Perhaps all features would enable a more comprehensive test coverage map
 # though.
-DISTCHECK_CONFIGURE_FLAGS=--enable-codecoverage --enable-arlib --enable-vbr
+DISTCHECK_CONFIGURE_FLAGS=--enable-arlib --enable-vbr
 
 dist-hook:
 	[ -f $(distdir)/libopendkim/dkim.h ] && rm -f $(distdir)/libopendkim/dkim.h
