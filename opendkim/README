@@ -1,4 +1,4 @@
-$Id: README,v 1.3 2010/02/09 22:20:29 cm-msk Exp $
+$Id: README,v 1.4 2010/03/05 06:16:36 mmarkley Exp $
 
 INTRODUCTION
 ============
@@ -207,9 +207,57 @@ will contain:
 	example.com	K1
 	example.net	K2
 
-Consult the opendkim.conf(5) man page for a description of the expected
-keys and values in the SigningTable data set.
+Consult SigningTable in opendkim.conf(5) man page for a description of the
+expected keys and values in the SigningTable data set.
 
+DATA SETS
+=========
+
+`file' and `refile' data sets are nearly identical. Each is a flat file
+containing two columns separated by whitespace. The left column is the key and
+the right the value (as described above). If more than one value appears in the
+right column, then those values should be separated by colons, e.g.:
+key	value1:value2:value3
+
+The difference is that the key column of a `file' SigningTable is matched
+exactly in the order described in opendkim.conf(5), while the key column of a
+`refile' SigningTable is a glob-style expression using where "*" is treated as
+zero or more characters. The `refile' matching syntax is the same as that of an
+OpenDKIM 1.x KeyList.
+
+The `csl' data set works exactly he same way as a `file' data set, but instead
+of specifying a file to read, it specifies a list of data separated by commas,
+e.g.
+csl:key1 value1,key2 value2
+
+The `bdb' data set simply reads those key/value pairs from a Berkeley-style DB
+file rather than a flat file or list.
+
+For LDAP data sets, the search filter and the attributes to be returned
+should be provided in the LDAP URI. Any instances of `$d' in the LDAP
+filter will be replaced with the domain or email address being queried for
+(with the search terms as described above).
+
+For instance, a simple SigningTable data set that searches for the "mail"
+attribute and returns a "keyName" attribute might be:
+ldap://localhost/dc=example,dc=com?keyName?sub?(mail=$d)
+
+The general format for using an LDAP directory in a data set is:
+ldap://host[:port]/basedn[?attrs[?scope[?filter[?exts]]]]
+
+The scheme ldaps:// may be used to connect via SSL, and ldapi:// may be
+used to connect via UNIX socket.
+
+LDAP credentials are stored in the opendkim.conf file.
+
+For ODBX (database) data sets, a similar mechanism is used, but the URI
+must also be tagged with the prefix "dsn:". For the example above,
+returning columns in a PostgreSQL database instead of LDAP attributes, you
+might use:
+dsn:pgsql://username:password@localhost/dkim/table=dkimkeys?keycol=keyName?datacol=mail
+
+The general format for using a database in a data set is:
+dsn:<backend>://[user[:pwd]@][port+]host/dbase[/key=val[?...]]
 
 SUPPORT
 =======
