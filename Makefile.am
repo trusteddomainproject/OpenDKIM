@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.33 2010/03/05 01:03:45 cm-msk Exp $
+# $Id: Makefile.am,v 1.34 2010/03/05 03:06:33 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -16,6 +16,7 @@ SUBDIRS += miltertest opendkim/tests
 endif
 dist_doc_DATA = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail \
 	RELEASE_NOTES.Sendmail \
+	contrib/convert_keylist.sh \
 	contrib/opendkim.init \
 	contrib/opendkim.spec \
 	docs/draft-ietf-dkim-deployment-11.txt \
