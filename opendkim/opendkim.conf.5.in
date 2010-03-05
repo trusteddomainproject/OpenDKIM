@@ -516,18 +516,18 @@ in which case the default is
 .I v.
 
 .TP
-.I MultipleSignatures (Boolean)
-Allow addition of multiple signatures when key lists are in use.  See
-.I SigningTable
-for more information.
-
-.TP
 .I MTA (dataset)
 A set of MTA names (a la the
 .I sendmail(8)
 DaemonPortOptions Name parameter) whose mail should be signed by this
 filter.  There is no default, meaning MTA name is not considered when
 making the sign-verify decision.
+
+.TP
+.I MultipleSignatures (Boolean)
+Allow addition of multiple signatures when key lists are in use.  See
+.I SigningTable
+for more information.
 
 .TP
 .I MustBeSigned (dataset)
