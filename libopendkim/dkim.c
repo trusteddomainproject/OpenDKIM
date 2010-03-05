@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.45 2010/03/01 19:50:30 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.45.2.1 2010/03/05 19:21:23 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3186,12 +3186,13 @@ dkim_eom_sign(DKIM *dkim)
 	size_t len;
 	DKIM_STAT ret;
 	u_char *digest;
+	u_char *sighdr;
 	u_char *signature = NULL;
 	BIO *key;
 	DKIM_SIGINFO *sig;
 	DKIM_CANON *hc;
+	struct dkim_dstring *tmphdr;
 	struct dkim_header hdr;
-	u_char tmp[DKIM_MAXHEADER + 1];
 
 	assert(dkim != NULL);
 
@@ -3361,25 +3362,26 @@ dkim_eom_sign(DKIM *dkim)
 	}
 
 	/* construct the DKIM signature header to be canonicalized */
-	n = strlcpy(tmp, DKIM_SIGNHEADER ": ", sizeof tmp);
-
-	/* XXX -- should use dkim_getsighdr_d()? */
-	ret = dkim_getsighdr(dkim, tmp + n, sizeof tmp - n,
-	                     strlen(DKIM_SIGNHEADER) + 2);
-	if (ret != DKIM_STAT_OK)
-		return ret;
-
-	len = strlen(tmp);
-
-	if (len == DKIM_MAXHEADER)
-	{
-		dkim_error(dkim, "generated signature header too large");
+	tmphdr = dkim_dstring_new(dkim, BUFRSZ, MAXBUFRSZ);
+	if (tmphdr == NULL)
 		return DKIM_STAT_NORESOURCE;
+
+	dkim_dstring_catn(tmphdr, DKIM_SIGNHEADER ": ",
+	                  sizeof DKIM_SIGNHEADER + 1);
+
+	ret = dkim_getsighdr_d(dkim, dkim_dstring_len(tmphdr), &sighdr, &len);
+	if (ret != DKIM_STAT_OK)
+	{
+		dkim_dstring_free(tmphdr);
+		return ret;
 	}
 
-	hdr.hdr_text = tmp;
-	hdr.hdr_colon = tmp + DKIM_SIGNHEADER_LEN;
-	hdr.hdr_namelen = n - 2;
+	dkim_dstring_catn(tmphdr, sighdr, len);
+	len = dkim_dstring_len(tmphdr);
+
+	hdr.hdr_text = dkim_dstring_get(tmphdr);
+	hdr.hdr_colon = hdr.hdr_text + DKIM_SIGNHEADER_LEN;
+	hdr.hdr_namelen = DKIM_SIGNHEADER_LEN;
 	hdr.hdr_textlen = len;
 	hdr.hdr_flags = 0;
 	hdr.hdr_next = NULL;
@@ -3390,6 +3392,8 @@ dkim_eom_sign(DKIM *dkim)
 		dkim->dkim_canonhead = dkim->dkim_resign->dkim_canonhead;
 #endif /* _FFR_RESIGN */
 	dkim_canon_signature(dkim, &hdr);
+
+	dkim_dstring_free(tmphdr);
 
 	/* finalize */
 	ret = dkim_canon_getfinal(hc, &digest, &diglen);
