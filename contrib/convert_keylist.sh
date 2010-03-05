@@ -1,4 +1,9 @@
 #!/bin/sh
+#
+# $Id: convert_keylist.sh,v 1.2 2010/03/05 03:19:11 mmarkley Exp $
+#
+# (c)2010 Mike Markley <mike@markley.org>. Licensed under the same terms as the
+# OpenDKIM distribution (see ../LICENSE).
 
 force=0
 while [ -n "$1" ]; do
@@ -78,5 +83,5 @@ while read line; do
 done < "$KEYLIST"
 
 echo "Done; please add these options to your configuration file (and remove the KeyList entry):"
-echo "KeyTable	refile:$KEYTABLE"
+echo "KeyTable	file:$KEYTABLE"
 echo "SigningTable	refile:$SIGNINGTABLE"
