@@ -1,8 +1,8 @@
-# $Id: opendkim.spec,v 1.2 2009/08/14 05:58:11 mmarkley Exp $
+# $Id: opendkim.spec,v 1.3 2010/03/05 06:17:09 mmarkley Exp $
 
 Summary: An open source milter for providing DKIM service
 Name: opendkim
-Version: 1.0.0
+Version: 2.0.0
 Release: 1
 License: BSD
 Group: System Environment/Daemons
@@ -56,6 +56,11 @@ echo '# Basic OpenDKIM config file
 Mode	v
 Syslog	yes
 Socket	local:/var/run/opendkim/opendkim.socket' > "$RPM_BUILD_ROOT"/etc/opendkim.conf
+mkdir -p "$RPM_BUILD_ROOT"/%{_docdir}/opendkim-%{version}/examples
+cp opendkim/*.sample "$RPM_BUILD_ROOT"/%{_docdir}/opendkim-%{version}/examples/
+cp opendkim/README "$RPM_BUILD_ROOT"/%{_docdir}/opendkim-%{version}/README.opendkim
+cp -r docs FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail README RELEASE_NOTES RELEASE_NOTES.Sendmail contrib/ "$RPM_BUILD_ROOT"/%{_docdir}/opendkim-%{version}/
+rm -r "$RPM_BUILD_ROOT"/%{_prefix}/share/doc/opendkim
 
 %post
 if ! id -u opendkim >/dev/null 2>&1; then
@@ -92,26 +97,28 @@ fi
 
 %files
 %defattr(-,root,root)
-%doc docs FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail README RELEASE_NOTES RELEASE_NOTES.Sendmail
+%doc %{_docdir}/opendkim-%{version}
+#%doc docs FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail README RELEASE_NOTES RELEASE_NOTES.Sendmail contrib/
+#%doc %{_docdir}/opendkim-%{version}/examples
+#%doc %{_docdir}/opendkim-%{version}/README.opendkim
+#%doc %{_prefix}/share/doc/opendkim
 %config /etc/opendkim.conf
-/etc/init.d/opendkim
+%config /etc/init.d/opendkim
+#%{_defaultdocdir}/opendkim-%{version}-%{release}/examples
 %{_prefix}/sbin
-%{_prefix}/share/doc
-%{_mandir}/man5
-%{_mandir}/man8
+%{_mandir}
 
 %files -n libopendkim
 %defattr(-,root,root)
-%doc docs FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail README RELEASE_NOTES RELEASE_NOTES.Sendmail
+%doc docs KNOWNBUGS LICENSE LICENSE.Sendmail README RELEASE_NOTES RELEASE_NOTES.Sendmail
 %{_libdir}/libopendkim.so.*
 
 %files -n libopendkim-devel
 %defattr(-,root,root)
-%doc docs FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail README RELEASE_NOTES RELEASE_NOTES.Sendmail
+%doc docs LICENSE LICENSE.Sendmail libopendkim/docs/*.html
 %{_prefix}/include
 %{_libdir}/*.a
 %{_libdir}/*.la
 %{_libdir}/*.so
-%{_mandir}/man3
-%{_prefix}/share/opendkim
+%{_libdir}/pkgconfig
 
