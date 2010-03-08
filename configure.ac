@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.139 2010/03/03 16:32:55 cm-msk Exp $
+# $Id: configure.ac,v 1.139.2.1 2010/03/08 06:28:53 cm-msk Exp $
 
 #
 # Setup
@@ -1063,7 +1063,6 @@ main()
 				AC_MSG_RESULT([ok]), 
 				AC_MSG_ERROR([OpenLDAP version 2.1.3 or later required]))
 	CPPFLAGS="$saved_CPPFLAGS"
-	AC_DEFINE([USE_LUA], 1, [support for Lua scripting])
 	AC_DEFINE([USE_LDAP], 1, [OpenLDAP support for datasets enabled])
 fi
 AM_CONDITIONAL(USE_LDAP, test x"$ldap_found" = x"yes")
