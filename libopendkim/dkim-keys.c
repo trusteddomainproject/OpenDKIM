@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.10.4.1 2010/03/09 01:04:50 cm-msk Exp $";
+static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.10.4.2 2010/03/09 02:40:06 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -523,11 +523,12 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 DKIM_STAT
 dkim_get_key_file(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 {
+	int n;
 	FILE *f;
 	u_char *p;
 	u_char *p2;
 	char *path;
-	char name[BUFRSZ + 1];
+	char name[DKIM_MAXHOSTNAMELEN + 1];
 
 	assert(dkim != NULL);
 	assert(sig != NULL);
@@ -549,8 +550,13 @@ dkim_get_key_file(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		return DKIM_STAT_KEYFAIL;
 	}
 
-	snprintf(name, sizeof name, "%s.%s.%s", sig->sig_selector,
-	         DKIM_DNSKEYNAME, sig->sig_domain);
+	n = snprintf(name, sizeof name, "%s.%s.%s", sig->sig_selector,
+	             DKIM_DNSKEYNAME, sig->sig_domain);
+	if (n == -1 || n > sizeof name)
+	{
+		dkim_error(dkim, "key query name too large");
+		return DKIM_STAT_NORESOURCE;
+	}
 
 	memset(buf, '\0', buflen);
 	while (fgets(buf, buflen, f) != NULL)
