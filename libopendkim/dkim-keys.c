@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.10 2009/12/19 18:09:33 cm-msk Exp $";
+static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.10.4.1 2010/03/09 01:04:50 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -111,8 +111,13 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 
 	lib = dkim->dkim_libhandle;
 
-	snprintf(qname, sizeof qname - 1, "%s.%s.%s", sig->sig_selector,
-	         DKIM_DNSKEYNAME, sig->sig_domain);
+	n = snprintf(qname, sizeof qname - 1, "%s.%s.%s", sig->sig_selector,
+	             DKIM_DNSKEYNAME, sig->sig_domain);
+	if (n == -1 || n > sizeof qname - 1)
+	{
+		dkim_error(dkim, "key query name too large");
+		return DKIM_STAT_NORESOURCE;
+	}
 
 #ifdef QUERY_CACHE
 	/* see if we have this data already cached */
