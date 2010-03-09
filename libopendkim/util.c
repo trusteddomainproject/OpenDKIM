@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.9 2010/03/01 18:24:34 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.9.2.1 2010/03/09 00:56:14 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -678,7 +678,7 @@ dkim_check_dns_reply(unsigned char *ansbuf, size_t anslen,
 	unsigned char *cp;
 	unsigned char *eom;
 	HEADER hdr;
-	unsigned char name[MAXHOSTNAMELEN + 1];
+	unsigned char name[DKIM_MAXHOSTNAMELEN + 1];
 
 	assert(ansbuf != NULL);
 
