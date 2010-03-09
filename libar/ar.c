@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char ar_c_id[] = "@(#)$Id: ar.c,v 1.5 2009/08/03 18:56:41 cm-msk Exp $";
+static char ar_c_id[] = "@(#)$Id: ar.c,v 1.5.26.1 2010/03/09 01:10:36 cm-msk Exp $";
 #endif /* !lint */
 
 /* OS stuff */
@@ -40,9 +40,7 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.5 2009/08/03 18:56:41 cm-msk Exp $";
 #include <string.h>
 
 /* important macros */
-#ifndef MAXHOSTNAMELEN
-# define MAXHOSTNAMELEN	256
-#endif /* ! MAXHOSTNAMELEN */
+#define AR_MAXHOSTNAMELEN	256
 
 #ifndef MAXPACKET
 # define MAXPACKET	8192
@@ -93,7 +91,7 @@ struct ar_query
 	struct ar_query *	q_next;
 	struct timeval		q_timeout;
 	struct timeval		q_sent;
-	char			q_name[MAXHOSTNAMELEN + 1];
+	char			q_name[AR_MAXHOSTNAMELEN + 1];
 };
 
 #ifdef AF_INET6
@@ -1052,7 +1050,7 @@ ar_dispatcher(void *tp)
 					/* CNAME found; recurse */
 					if (type == T_CNAME)
 					{
-						char cname[MAXHOSTNAMELEN + 1];
+						char cname[AR_MAXHOSTNAMELEN + 1];
 
 						GETSHORT(n, cp);
 
@@ -1060,7 +1058,7 @@ ar_dispatcher(void *tp)
 						       sizeof cname);
 						(void) dn_expand(buf, eom, cp,
 						                 cname,
-						                 MAXHOSTNAMELEN);
+						                 AR_MAXHOSTNAMELEN);
 						q->q_depth--;
 						ar_undot(cname);
 						strlcpy(q->q_name, cname,
