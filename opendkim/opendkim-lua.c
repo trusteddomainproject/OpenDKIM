@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.15 2010/03/12 02:15:58 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.16 2010/03/12 02:19:41 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.15 2010/03/12 02:15:58 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.16 2010/03/12 02:19:41 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -477,6 +477,98 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	lua_setglobal(l, "DKIM_SIGBH_MATCH");
 	lua_pushnumber(l, DKIM_SIGBH_MISMATCH);
 	lua_setglobal(l, "DKIM_SIGBH_MISMATCH");
+
+	/* signature error codes */
+	lua_pushnumber(l, DKIM_SIGERROR_UNKNOWN);
+	lua_setglobal(l, "DKIM_SIGERROR_UNKNOWN");
+	lua_pushnumber(l, DKIM_SIGERROR_OK);
+	lua_setglobal(l, "DKIM_SIGERROR_OK");
+	lua_pushnumber(l, DKIM_SIGERROR_VERSION);
+	lua_setglobal(l, "DKIM_SIGERROR_VERSION");
+	lua_pushnumber(l, DKIM_SIGERROR_DOMAIN);
+	lua_setglobal(l, "DKIM_SIGERROR_DOMAIN");
+	lua_pushnumber(l, DKIM_SIGERROR_EXPIRED);
+	lua_setglobal(l, "DKIM_SIGERROR_EXPIRED");
+	lua_pushnumber(l, DKIM_SIGERROR_FUTURE);
+	lua_setglobal(l, "DKIM_SIGERROR_FUTURE");
+	lua_pushnumber(l, DKIM_SIGERROR_TIMESTAMPS);
+	lua_setglobal(l, "DKIM_SIGERROR_TIMESTAMPS");
+	lua_pushnumber(l, DKIM_SIGERROR_MISSING_C);
+	lua_setglobal(l, "DKIM_SIGERROR_MISSING_C");
+	lua_pushnumber(l, DKIM_SIGERROR_INVALID_HC);
+	lua_setglobal(l, "DKIM_SIGERROR_INVALID_HC");
+	lua_pushnumber(l, DKIM_SIGERROR_INVALID_BC);
+	lua_setglobal(l, "DKIM_SIGERROR_INVALID_BC");
+	lua_pushnumber(l, DKIM_SIGERROR_MISSING_A);
+	lua_setglobal(l, "DKIM_SIGERROR_MISSING_A");
+	lua_pushnumber(l, DKIM_SIGERROR_INVALID_A);
+	lua_setglobal(l, "DKIM_SIGERROR_INVALID_A");
+	lua_pushnumber(l, DKIM_SIGERROR_MISSING_H);
+	lua_setglobal(l, "DKIM_SIGERROR_MISSING_H");
+	lua_pushnumber(l, DKIM_SIGERROR_INVALID_L);
+	lua_setglobal(l, "DKIM_SIGERROR_INVALID_L");
+	lua_pushnumber(l, DKIM_SIGERROR_INVALID_Q);
+	lua_setglobal(l, "DKIM_SIGERROR_INVALID_Q");
+	lua_pushnumber(l, DKIM_SIGERROR_INVALID_QO);
+	lua_setglobal(l, "DKIM_SIGERROR_INVALID_QO");
+	lua_pushnumber(l, DKIM_SIGERROR_MISSING_D);
+	lua_setglobal(l, "DKIM_SIGERROR_MISSING_D");
+	lua_pushnumber(l, DKIM_SIGERROR_EMPTY_D);
+	lua_setglobal(l, "DKIM_SIGERROR_EMPTY_D");
+	lua_pushnumber(l, DKIM_SIGERROR_MISSING_S);
+	lua_setglobal(l, "DKIM_SIGERROR_MISSING_S");
+	lua_pushnumber(l, DKIM_SIGERROR_EMPTY_S);
+	lua_setglobal(l, "DKIM_SIGERROR_EMPTY_S");
+	lua_pushnumber(l, DKIM_SIGERROR_MISSING_B);
+	lua_setglobal(l, "DKIM_SIGERROR_MISSING_B");
+	lua_pushnumber(l, DKIM_SIGERROR_EMPTY_B);
+	lua_setglobal(l, "DKIM_SIGERROR_EMPTY_B");
+	lua_pushnumber(l, DKIM_SIGERROR_CORRUPT_B);
+	lua_setglobal(l, "DKIM_SIGERROR_CORRUPT_B");
+	lua_pushnumber(l, DKIM_SIGERROR_NOKEY);
+	lua_setglobal(l, "DKIM_SIGERROR_NOKEY");
+	lua_pushnumber(l, DKIM_SIGERROR_DNSSYNTAX);
+	lua_setglobal(l, "DKIM_SIGERROR_DNSSYNTAX");
+	lua_pushnumber(l, DKIM_SIGERROR_KEYFAIL);
+	lua_setglobal(l, "DKIM_SIGERROR_KEYFAIL");
+	lua_pushnumber(l, DKIM_SIGERROR_MISSING_BH);
+	lua_setglobal(l, "DKIM_SIGERROR_MISSING_BH");
+	lua_pushnumber(l, DKIM_SIGERROR_EMPTY_BH);
+	lua_setglobal(l, "DKIM_SIGERROR_EMPTY_BH");
+	lua_pushnumber(l, DKIM_SIGERROR_CORRUPT_BH);
+	lua_setglobal(l, "DKIM_SIGERROR_CORRUPT_BH");
+	lua_pushnumber(l, DKIM_SIGERROR_BADSIG);
+	lua_setglobal(l, "DKIM_SIGERROR_BADSIG");
+	lua_pushnumber(l, DKIM_SIGERROR_SUBDOMAIN);
+	lua_setglobal(l, "DKIM_SIGERROR_SUBDOMAIN");
+	lua_pushnumber(l, DKIM_SIGERROR_MULTIREPLY);
+	lua_setglobal(l, "DKIM_SIGERROR_MULTIREPLY");
+	lua_pushnumber(l, DKIM_SIGERROR_EMPTY_H);
+	lua_setglobal(l, "DKIM_SIGERROR_EMPTY_H");
+	lua_pushnumber(l, DKIM_SIGERROR_INVALID_H);
+	lua_setglobal(l, "DKIM_SIGERROR_INVALID_H");
+	lua_pushnumber(l, DKIM_SIGERROR_TOOLARGE_L);
+	lua_setglobal(l, "DKIM_SIGERROR_TOOLARGE_L");
+	lua_pushnumber(l, DKIM_SIGERROR_MBSFAILED);
+	lua_setglobal(l, "DKIM_SIGERROR_MBSFAILED");
+	lua_pushnumber(l, DKIM_SIGERROR_KEYVERSION);
+	lua_setglobal(l, "DKIM_SIGERROR_KEYVERSION");
+	lua_pushnumber(l, DKIM_SIGERROR_KEYUNKNOWNHASH);
+	lua_setglobal(l, "DKIM_SIGERROR_KEYUNKNOWNHASH");
+	lua_pushnumber(l, DKIM_SIGERROR_KEYHASHMISMATCH);
+	lua_setglobal(l, "DKIM_SIGERROR_KEYHASHMISMATCH");
+	lua_pushnumber(l, DKIM_SIGERROR_NOTEMAILKEY);
+	lua_setglobal(l, "DKIM_SIGERROR_NOTEMAILKEY");
+	lua_pushnumber(l, DKIM_SIGERROR_GRANULARITY);
+	lua_setglobal(l, "DKIM_SIGERROR_GRANULARITY");
+	lua_pushnumber(l, DKIM_SIGERROR_KEYTYPEMISSING);
+	lua_setglobal(l, "DKIM_SIGERROR_KEYTYPEMISSING");
+	lua_pushnumber(l, DKIM_SIGERROR_KEYTYPEUNKNOWN);
+	lua_setglobal(l, "DKIM_SIGERROR_KEYTYPEUNKNOWN");
+	lua_pushnumber(l, DKIM_SIGERROR_KEYREVOKED);
+	lua_setglobal(l, "DKIM_SIGERROR_KEYREVOKED");
+	lua_pushnumber(l, DKIM_SIGERROR_KEYDECODE);
+	lua_setglobal(l, "DKIM_SIGERROR_KEYDECODE");
 
 	/* milter context */
 	lua_pushlightuserdata(l, ctx);

@@ -396,12 +396,10 @@ Returns the result code corresponding to the signature handled specified by
 .I sig,
 previously returned by a call to
 .B odkim.get_sighandle().
-Valid values are defined in the
+Valid values are the constants with DKIM_SIGERROR_ prefixes as defined in the
 .B libopendkim
 header file
-.I dkim.h
-with DKIM_SIGERROR_ prefixes, and will be made available by name in a
-future version.
+.I dkim.h.
 .SH VERSION
 This man page covers version @VERSION@ of
 .I OpenDKIM.
