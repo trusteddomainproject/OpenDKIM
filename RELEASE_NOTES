@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.113.2.5 2010/03/09 01:11:55 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.113.2.6 2010/03/12 23:34:09 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -11,6 +11,7 @@ release, and a summary of the changes in that release.
 		character array and sometimes (e.g. with extensive data in
 		a "z=" tag) they don't, leading to signing failures on valid
 		messages.  Reported by James R. Marcus.
+	Remember to NULL-terminate key data loaded from disk before using it.
 	Don't use MAXHOSTNAMELEN as its value is unreliable.
 	LIBOPENDKIM: Return an error from dkim_get_key_dns() if the
 		query string is too big for a hostname buffer, rather than
