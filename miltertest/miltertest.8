@@ -287,6 +287,163 @@ parameters, the function returns true only if a specific reply was
 requested with the specified SMTP code and enhanced status code.  With three
 parameters, the function returns true only if a specific reply was
 requested with the specified SMTP code, enhanced status code, and text.
+.SH EXAMPLE
+.PD 0
+-- Echo that the test is starting
+.PP
+mt.echo("*** begin test")
+.PP
+-- start the filter
+.PP
+mt.startfilter("../myfilter", "-p", "inet:12345@localhost")
+.PP
+mt.sleep(2)
+
+.PP
+-- try to connect to it
+.PP
+conn = mt.connect("inet:12345@localhost")
+.PP
+if conn == nil then
+.PP
+	error "mt.connect() failed"
+.PP
+end
+
+.PP
+-- send connection information
+.PP
+-- mt.negotiate() is called implicitly
+.PP
+if mt.conninfo(conn, "localhost", "127.0.0.1") ~= nil then
+.PP
+	error "mt.conninfo() failed"
+.PP
+end
+.PP
+if mt.getreply(conn) ~= SMFIR_CONTINUE then
+.PP
+	error "mt.conninfo() unexpected reply"
+.PP
+end
+
+.PP
+-- send envelope macros and sender data
+.PP
+-- mt.helo() is called implicitly
+.PP
+mt.macro(conn, SMFIC_MAIL, "j", "test-id")
+.PP
+if mt.mailfrom(conn, "user@example.com") ~= nil then
+.PP
+	error "mt.mailfrom() failed"
+.PP
+end
+.PP
+if mt.getreply(conn) ~= SMFIR_CONTINUE then
+.PP
+	error "mt.mailfrom() unexpected reply"
+.PP
+end
+
+-- send headers
+.PP
+-- mt.rcptto() is called implicitly
+.PP
+if mt.header(conn, "From", "user@example.com") ~= nil then
+.PP
+	error "mt.header(From) failed"
+.PP
+end
+.PP
+if mt.getreply(conn) ~= SMFIR_CONTINUE then
+.PP
+	error "mt.header(From) unexpected reply"
+.PP
+end
+.PP
+if mt.header(conn, "Date", "Tue, 22 Dec 2009 13:04:12 -0800") ~= nil then
+.PP
+	error "mt.header(Date) failed"
+.PP
+end
+.PP
+if mt.getreply(conn) ~= SMFIR_CONTINUE then
+.PP
+	error "mt.header(Date) unexpected reply"
+.PP
+end
+.PP
+if mt.header(conn, "Subject", "Signing test") ~= nil then
+.PP
+	error "mt.header(Subject) failed"
+.PP
+end
+.PP
+if mt.getreply(conn) ~= SMFIR_CONTINUE then
+.PP
+	error "mt.header(Subject) unexpected reply"
+.PP
+end
+.PP
+
+-- send EOH
+.PP
+if mt.eoh(conn) ~= nil then
+.PP
+	error "mt.eoh() failed"
+.PP
+end
+.PP
+if mt.getreply(conn) ~= SMFIR_CONTINUE then
+.PP
+	error "mt.eoh() unexpected reply"
+.PP
+end
+
+.PP
+-- send body
+.PP
+if mt.bodystring(conn, "This is a test!\\r\\n") ~= nil then
+.PP
+	error "mt.bodystring() failed"
+.PP
+end
+.PP
+if mt.getreply(conn) ~= SMFIR_CONTINUE then
+.PP
+	error "mt.bodystring() unexpected reply"
+.PP
+end
+.PP
+
+.PP
+-- end of message; let the filter react
+.PP
+if mt.eom(conn) ~= nil then
+.PP
+	error "mt.eom() failed"
+.PP
+end
+.PP
+if mt.getreply(conn) ~= SMFIR_ACCEPT then
+.PP
+	error "mt.bodystring() unexpected reply"
+.PP
+end
+
+-- verify that a signature got added
+.PP
+if not mt.eom_check(conn, MT_HDRINSERT, "Test-Header") then
+.PP
+	error "no header added"
+.PP
+end
+
+-- wrap it up!
+.PP
+mt.disconnect(conn)
+.PD
 .SH VERSION
 This man page covers version 0.1.0 of
 .I miltertest.
