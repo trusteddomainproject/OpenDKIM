@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.14 2010/02/24 05:22:07 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.15 2010/03/12 02:15:58 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.14 2010/02/24 05:22:07 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.15 2010/03/12 02:15:58 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -460,7 +460,7 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	lua_pushnumber(l, DKIMF_POLICY_NXDOMAIN);
 	lua_setglobal(l, "DKIMF_POLICY_NXDOMAIN");
 
-	/* result codes */
+	/* milter result codes */
 	lua_pushnumber(l, SMFIS_TEMPFAIL);
 	lua_setglobal(l, "SMFIS_TEMPFAIL");
 	lua_pushnumber(l, SMFIS_ACCEPT);
@@ -469,6 +469,14 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	lua_setglobal(l, "SMFIS_DISCARD");
 	lua_pushnumber(l, SMFIS_REJECT);
 	lua_setglobal(l, "SMFIS_REJECT");
+
+	/* signature "bh" result codes */
+	lua_pushnumber(l, DKIM_SIGBH_UNTESTED);
+	lua_setglobal(l, "DKIM_SIGBH_UNTESTED");
+	lua_pushnumber(l, DKIM_SIGBH_MATCH);
+	lua_setglobal(l, "DKIM_SIGBH_MATCH");
+	lua_pushnumber(l, DKIM_SIGBH_MISMATCH);
+	lua_setglobal(l, "DKIM_SIGBH_MISMATCH");
 
 	/* milter context */
 	lua_pushlightuserdata(l, ctx);
