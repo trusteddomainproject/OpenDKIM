@@ -2,7 +2,7 @@
 <head><title>dkim_chunk()</title></head>
 <chunk>
 <!--
-$Id: dkim_chunk.html,v 1.2 2010/03/04 23:56:25 cm-msk Exp $
+$Id: dkim_chunk.html,v 1.3 2010/03/12 16:40:51 cm-msk Exp $
 -->
 <h1>dkim_chunk()</h1>
 
@@ -80,6 +80,10 @@ are to be passed to the API, prior to calling <tt>dkim_eom()</tt>.
     previously called with terminating arguments (see above), implying
     data input had finished.
 <li><tt>DKIM_STAT_OK</tt> indicates normal completion.
+<li>May also return other values as passed through from
+    <a href="dkim_header.html"><tt>dkim_header()</tt></a>,
+    <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a> or
+    <a href="dkim_body.html"><tt>dkim_body()</tt></a>.
 </ul>
 </td>
 </tr>
