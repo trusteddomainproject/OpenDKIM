@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.113.2.7 2010/03/13 00:09:37 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.113.2.8 2010/03/13 21:58:01 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -17,8 +17,11 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Return an error from dkim_get_key_dns() if the
 		query string is too big for a hostname buffer, rather than
 		sending the truncated string to DNS anyway.
-	BUILD: Don't define USE_LUA when LDAP is enabled.  Problem noted
-		by Guillaume Castagnino.
+	BUILD: Fix bug #SF2969812: Don't install Lua sample files or man
+		pages when --with-lua isn't specified.  Patch from
+		Kaspar Brand.
+	BUILD: Fix bug #SF2965318: Don't define USE_LUA when LDAP is enabled.
+		Problem noted by Guillaume Castagnino.
 
 2.0.0 (Eve)	2010/03/05
 	Feature request #SF2917224: Add optional OpenLDAP support.
