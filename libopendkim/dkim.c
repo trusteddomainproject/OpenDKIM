@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.45.2.1 2010/03/05 19:21:23 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.45.2.2 2010/03/15 14:49:35 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6657,7 +6657,7 @@ dkim_sig_getidentity(DKIM *dkim, DKIM_SIGINFO *sig, char *val, size_t vallen)
 	}
 	else
 	{
-		len = dkim_qp_decode(param, val, vallen);
+		len = dkim_qp_decode(param, val, vallen - 1);
 
 		if (len == -1)
 			return DKIM_STAT_SYNTAX;
