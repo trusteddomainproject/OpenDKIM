@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.45.2.2 2010/03/15 14:49:35 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.45.2.3 2010/03/17 23:31:59 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3223,12 +3223,12 @@ dkim_eom_sign(DKIM *dkim)
 		return DKIM_STAT_INVALID;
 #endif /* _FFR_RESIGN */
 
-  	if (dkim->dkim_state < DKIM_STATE_EOM2)
-  		dkim->dkim_state = DKIM_STATE_EOM2;
-
 	if (dkim->dkim_chunkstate != DKIM_CHUNKSTATE_INIT &&
 	    dkim->dkim_chunkstate != DKIM_CHUNKSTATE_DONE)
 		return DKIM_STAT_INVALID;
+
+  	if (dkim->dkim_state < DKIM_STATE_EOM2)
+  		dkim->dkim_state = DKIM_STATE_EOM2;
 
 #ifdef _FFR_RESIGN
 	/*
