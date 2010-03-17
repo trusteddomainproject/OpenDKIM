@@ -408,7 +408,6 @@ to be a data set with keys and matching values; the keys are each
 either a fully-qualified domain name (e.g. "foo.example.com") or a
 subdomain name preceded by a period (e.g. ".example.com"), and
 the values are either
-is either
 .I unknown,
 .I all,
 or
