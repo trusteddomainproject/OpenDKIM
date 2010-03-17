@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.113.2.10 2010/03/17 17:08:12 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.113.2.11 2010/03/17 23:32:51 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -20,6 +20,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Ensure string termination in dkim_sig_getidentity()
 		when calling dkim_qp_decode().  Patch from Stefan
 		Schulze Frielinghaus.
+	LIBOPENDKIM: In dkim_eom_sign(), don't change the handle's overall
+		state before erroring out if the chunking state is invalid.
 	BUILD: Fix bug #SF2969812: Don't install Lua sample files or man
 		pages when --with-lua isn't specified.  Patch from
 		Kaspar Brand.
