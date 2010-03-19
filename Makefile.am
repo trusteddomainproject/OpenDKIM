@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.34.2.1 2010/03/13 21:58:01 cm-msk Exp $
+# $Id: Makefile.am,v 1.34.2.2 2010/03/19 07:02:19 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -16,6 +16,7 @@ SUBDIRS += miltertest opendkim/tests
 endif
 dist_doc_DATA = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail \
 	RELEASE_NOTES.Sendmail \
+	contrib/README \
 	contrib/convert_keylist.sh \
 	contrib/opendkim.init \
 	contrib/opendkim.spec \
