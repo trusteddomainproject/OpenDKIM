@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.113.2.11 2010/03/17 23:32:51 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.113.2.12 2010/03/21 05:51:29 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -27,6 +27,7 @@ release, and a summary of the changes in that release.
 		Kaspar Brand.
 	BUILD: Fix bug #SF2965318: Don't define USE_LUA when LDAP is enabled.
 		Problem noted by Guillaume Castagnino.
+	LICENSE: Change from 4-clause BSD license to 3-clause BSD license.
 
 2.0.0 (Eve)	2010/03/05
 	Feature request #SF2917224: Add optional OpenLDAP support.
