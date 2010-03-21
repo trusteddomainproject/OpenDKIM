@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.6 2010/03/21 06:23:29 cm-msk Exp $
+# $Id: Makefile.am,v 1.7 2010/03/21 21:03:54 cm-msk Exp $
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -pthread --pedantic -Wall -O2
@@ -18,4 +18,4 @@ miltertest_LDADD = $(LIBLUA_LIBS)
 man_MANS = miltertest.8
 endif
 
-EXTRA_DIST = $(man_MANS)
+EXTRA_DIST = miltertest.8
