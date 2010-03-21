@@ -6,12 +6,39 @@ The OpenDKIM project announces availability of OpenDKIM v2.0.1, now available
 for download from SourceForge.
 
 This release contains minor fixes to a few bugs reported since the v2.0.0
-release.  The main fix among them is a build issue that occurs when specifying
-"--with-openldap" while configuring the build.
+release.  The main fixes among them are a build issue that occurs when
+specifying "--with-openldap" while configuring the build, and a potential
+crash bug encountered when reading keys from files on disk prior to signing.
+
+Also of note is a change in the license terms being used by the project.
+We have changed from the older four-clause BSD license to the more
+practical three-clause BSD license.
 
 The RELEASE_NOTES for this version:
 
-	TO BE ADDED
+2.0.1		2010/03/20
+	Fix bug #SF2964376: Don't use dkim_getsighdr() internally during
+		signing as it presumes signatures will fit within a bounded
+		character array and sometimes (e.g. with extensive data in
+		a "z=" tag) they don't, leading to signing failures on valid
+		messages.  Reported by James R. Marcus.
+	Fix bug #SF2969700: Remember to NULL-terminate key data loaded from
+		disk before using it.
+	Don't use MAXHOSTNAMELEN as its value is unreliable.
+	LIBOPENDKIM: Return an error from dkim_get_key_dns() if the
+		query string is too big for a hostname buffer, rather than
+		sending the truncated string to DNS anyway.
+	LIBOPENDKIM: Ensure string termination in dkim_sig_getidentity()
+		when calling dkim_qp_decode().  Patch from Stefan
+		Schulze Frielinghaus.
+	LIBOPENDKIM: In dkim_eom_sign(), don't change the handle's overall
+		state before erroring out if the chunking state is invalid.
+	BUILD: Fix bug #SF2969812: Don't install Lua sample files or man
+		pages when --with-lua isn't specified.  Patch from
+		Kaspar Brand.
+	BUILD: Fix bug #SF2965318: Don't define USE_LUA when LDAP is enabled.
+		Problem noted by Guillaume Castagnino.
+	LICENSE: Change from 4-clause BSD license to 3-clause BSD license.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers
