@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.65 2010/03/02 19:24:43 cm-msk Exp $
+# $Id: Makefile.am,v 1.66 2010/03/21 06:23:29 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -106,7 +106,10 @@ endif
 
 man_MANS = opendkim-genkey.8 opendkim-genzone.8 opendkim-testadsp.8 opendkim-testkey.8
 if BUILD_FILTER
-man_MANS += opendkim-lua.3 opendkim.conf.5 opendkim.8
+man_MANS += opendkim.conf.5 opendkim.8
+if LUA
+man_MANS += opendkim-lua.3
+endif
 endif
 if STATS
 man_MANS += opendkim-stats.8

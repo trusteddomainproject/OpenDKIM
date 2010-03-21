@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.111 2010/03/01 18:24:34 cm-msk Exp $
+**  $Id: opendkim.c,v 1.112 2010/03/21 06:23:29 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111 2010/03/01 18:24:34 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.112 2010/03/21 06:23:29 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3320,7 +3320,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 	struct signreq *new;
 	struct dkimf_db_data dbd[3];
 	char keydata[MAXBUFRSZ + 1];
-	char domain[MAXHOSTNAMELEN + 1];
+	char domain[DKIM_MAXHOSTNAMELEN + 1];
 	char selector[BUFRSZ + 1];
 
 	assert(dfc != NULL);
@@ -3370,12 +3370,13 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 	{
 		new->srq_domain = strdup(domain);
 		new->srq_selector = strdup(selector);
-		new->srq_keydata = (void *) malloc(keydatasz);
+		new->srq_keydata = (void *) malloc(keydatasz + 1);
 		if (new->srq_keydata == NULL)
 		{
 			free(new);
 			return -1;
 		}
+		memset(new->srq_keydata, '\0', keydatasz + 1);
 		memcpy(new->srq_keydata, dbd[2].dbdata_buffer, keydatasz);
 	}
 

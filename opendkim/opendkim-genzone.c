@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-genzone.c,v 1.8 2010/02/25 22:57:05 cm-msk Exp $
+**  $Id: opendkim-genzone.c,v 1.9 2010/03/21 06:23:29 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.8 2010/02/25 22:57:05 cm-msk Exp $";
+static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.9 2010/03/21 06:23:29 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -38,6 +38,9 @@ static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.8 2010/02/25 
 # define MIN(x,y)	((x) < (y) ? (x) : (y))
 #endif /* ! MIN */
 
+/* libopendkim includes */
+#include <dkim.h>
+
 /* opendkim includes */
 #include "opendkim-db.h"
 #include "config.h"
@@ -55,10 +58,6 @@ static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.8 2010/02/25 
 #define	LARGEBUFRSZ	8192
 #define	MARGIN		75
 #define	MAXNS		16
-
-#ifndef MAXHOSTNAMELEN
-# define MAXHOSTNAMELEN	256
-#endif /* ! MAXHOSTNAMELEN */
 
 /* globals */
 char *progname;
@@ -251,7 +250,7 @@ main(int argc, char **argv)
 	char domain[BUFRSZ + 1];
 	char selector[BUFRSZ + 1];
 	char tmpbuf[BUFRSZ + 1];
-	char hostname[MAXHOSTNAMELEN + 1];
+	char hostname[DKIM_MAXHOSTNAMELEN + 1];
 	char keydata[LARGEBUFRSZ];
 	char derdata[LARGEBUFRSZ];
 	struct dkimf_db_data dbd[3];
