@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.140 2010/03/07 17:17:57 grooverdan Exp $
+# $Id: configure.ac,v 1.141 2010/03/21 06:22:06 cm-msk Exp $
 
 #
 # Setup
@@ -14,7 +14,7 @@ AC_PREREQ(2.61)
 # Package version
 #
 m4_define([VERSION_RELEASE], 2)
-m4_define([VERSION_MAJOR_REV], 0)
+m4_define([VERSION_MAJOR_REV], 1)
 m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PATCH], 0)
 
