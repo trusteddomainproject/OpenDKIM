@@ -287,7 +287,7 @@ CONFIGURING POSTFIX
   (b) Add a line like this example to your postfix main.cf using your desired
       socket specification:
 
-	smtpd_milters = inet:8891@localhost
+	smtpd_milters = inet:localhost:8891
 
 (2) Restart Postfix.
 
@@ -378,4 +378,4 @@ headers of the reply you should see its signature and another
 Authentication-Results: header, which should also read "pass".
 
 
-$Id: INSTALL,v 1.13 2010/02/05 15:35:42 cm-msk Exp $
+$Id: INSTALL,v 1.13.2.1 2010/03/22 18:12:25 subman Exp $
