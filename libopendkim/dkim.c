@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.45.2.3 2010/03/17 23:31:59 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.45.2.4 2010/03/23 17:15:07 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5858,9 +5858,37 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 		  case 1:
 			dkim_dstring_cat1(dkim->dkim_hdrbuf, *p);
 			if (*p == '\n')
+			{
+				/*
+				**  If this is a CRLF up front, change state
+				**  and write the rest as part of the body.
+				*/
+
+				if (dkim->dkim_hhead == NULL &&
+				    dkim_dstring_len(dkim->dkim_hdrbuf) == 2)
+				{
+					status = dkim_eoh(dkim);
+					if (status != DKIM_STAT_OK)
+						return status;
+
+					dkim->dkim_chunkstate = DKIM_CHUNKSTATE_BODY;
+					if (p < end)
+					{
+						return dkim_body(dkim, p + 1,
+						                 end - p);
+					}
+					else
+					{
+						return DKIM_STAT_OK;
+					}
+				}
+
 				dkim->dkim_chunksm = 2;
+			}
 			else if (*p != '\r')
+			{
 				dkim->dkim_chunksm = 0;
+			}
 			break;
 			
 		  case 2:
