@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.113.2.15 2010/03/23 18:02:51 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.113.2.16 2010/03/24 15:38:37 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -8,6 +8,7 @@ release, and a summary of the changes in that release.
 2.0.2		2010/0?/??
 	LIBOPENDKIM: Fix dkim_chunk() to handle a message that starts with
 		a CRLF.  Problem noted by Masumi Taketomi Parekh of Yahoo!.
+	BUILD: Path fix in opendkim.pc from Stefan Schulze Frielinghaus.
 
 2.0.1		2010/03/20
 	Fix bug #SF2964376: Don't use dkim_getsighdr() internally during

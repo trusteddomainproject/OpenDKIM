@@ -3,7 +3,7 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
-includedir=@includedir@
+includedir=@includedir@/opendkim
 
 Name: OpenDKIM Library
 Description: Library for performing DKIM signing and verification
