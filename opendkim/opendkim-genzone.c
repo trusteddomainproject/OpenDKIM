@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-genzone.c,v 1.9 2010/03/21 06:23:29 cm-msk Exp $
+**  $Id: opendkim-genzone.c,v 1.10 2010/03/28 05:25:19 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.9 2010/03/21 06:23:29 cm-msk Exp $";
+static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.10 2010/03/28 05:25:19 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -184,7 +184,7 @@ despace(char *str)
 int
 usage(void)
 {
-	fprintf(stderr, "%s: usage: %s [opts] dataset\n"
+	fprintf(stderr, "%s: usage: %s [opts] [dataset]\n"
 	                "\t-C user@host\tcontact address to include in SOA\n"
 	                "\t-d domain   \twrite keys for named domain only\n"
 	                "\t-D          \tinclude `._domainkey' suffix\n"
@@ -233,7 +233,7 @@ main(int argc, char **argv)
 	time_t now;
 	size_t keylen;
 	char *p;
-	char *dataset;
+	char *dataset = NULL;
 	char *outfile = NULL;
 	char *onlydomain = NULL;
 	char *contact = NULL;
@@ -349,10 +349,8 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (optind == argc)
-		return usage();
-
-	dataset = argv[optind];
+	if (optind != argc)
+		dataset = argv[optind];
 
 	if (configfile != NULL)
 	{
@@ -382,6 +380,12 @@ main(int argc, char **argv)
 			        "%s: %s: configuration error at line %u\n",
 			        progname, path, line);
 			return EX_CONFIG;
+		}
+
+		if (dataset == NULL)
+		{
+			(void) config_get(cfg, "KeyTable",
+			                  &dataset, sizeof dataset);
 		}
 
 #ifdef USE_LDAP
@@ -431,6 +435,9 @@ main(int argc, char **argv)
 		                        ldap_binduser);
 #endif /* USE_LDAP */
 	}
+
+	if (dataset == NULL)
+		return usage();
 
 	outbio = BIO_new(BIO_s_mem());
 	if (outbio == NULL)

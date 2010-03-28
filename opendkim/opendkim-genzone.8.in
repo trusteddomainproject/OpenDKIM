@@ -17,7 +17,7 @@
 [-T secs]
 [-v]
 [-x conffile]
-dataset
+[dataset]
 .SH DESCRIPTION
 .B opendkim-genzone
 generates a file suitable for use with
@@ -28,8 +28,15 @@ The
 .I dataset
 parameter should specify a set of data as described in the
 .I opendkim(8)
-man page.  It can refer to flat files, Sleepycat databases, comma-separated
-lists, LDAP directories or SQL databases.
+man page.  It can currently refer to flat files, Sleepycat databases,
+comma-separated lists, LDAP directories or SQL databases.  The
+.I dataset
+may be omitted if a configuration file (via the
+.I -x
+command line flag) is specified referring to a configuration file that
+sets a
+.I KeyTable
+parameter, in which case that value will be used.
 
 The database contents should be formatted as described for the
 .I KeyTable
