@@ -1,9 +1,13 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.115 2010/03/21 13:08:38 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.116 2010/03/28 05:24:19 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
+
+2.1.0		2010/??/??
+	TOOLS: Feature request #SF2964364: Have opendkim-genzone use
+		the KeyTable if defined in a provided configuration file.
 
 2.0.1		2010/03/20
 	Fix bug #SF2964376: Don't use dkim_getsighdr() internally during
