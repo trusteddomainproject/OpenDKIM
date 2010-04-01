@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.66 2010/03/21 06:23:29 cm-msk Exp $
+# $Id: Makefile.am,v 1.66.2.1 2010/04/01 19:41:22 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -28,7 +28,7 @@ opendkim_CPPFLAGS += $(LIBODBX_CPPFLAGS)
 opendkim_LDADD += $(LIBODBX_LIBS)
 endif
 if LUA
-opendkim_CPPFLAGS += $(LIBLUA_INCDIRS)
+opendkim_CPPFLAGS += $(LIBLUA_INCDIRS) -DDKIMF_LUA_CONTEXT_HOOKS
 opendkim_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_LDADD += $(LIBLUA_LIBS)
 endif
@@ -82,7 +82,7 @@ opendkim_testadsp_CFLAGS += $(PTHREAD_CFLAGS)
 opendkim_testadsp_LDADD += $(PTHREAD_LIBS)
 endif
 
-opendkim_genzone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-genzone.c util.c
+opendkim_genzone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-genzone.c opendkim-lua.c util.c
 opendkim_genzone_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_genzone_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_genzone_LDFLAGS = $(COV_LDFLAGS)
@@ -102,6 +102,11 @@ endif
 if USE_LDAP
 opendkim_genzone_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
 opendkim_genzone_LDADD += $(OPENLDAP_LIBS)
+endif
+if LUA
+opendkim_genzone_CPPFLAGS += $(LIBLUA_INCDIRS)
+opendkim_genzone_LDFLAGS += $(LIBLUA_LIBDIRS)
+opendkim_genzone_LDADD += $(LIBLUA_LIBS)
 endif
 
 man_MANS = opendkim-genkey.8 opendkim-genzone.8 opendkim-testadsp.8 opendkim-testkey.8

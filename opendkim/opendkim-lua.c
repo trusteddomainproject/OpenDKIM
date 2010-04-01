@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.16 2010/03/12 02:19:41 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.16.2.1 2010/04/01 19:41:22 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.16 2010/03/12 02:19:41 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.16.2.1 2010/04/01 19:41:22 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -41,6 +41,7 @@ struct dkimf_lua_io
 	const char *	lua_io_script;
 };
 
+#ifdef DKIMF_LUA_CONTEXT_HOOKS
 /* libraries */
 static const luaL_Reg dkimf_lua_lib_setup[] =
 {
@@ -108,6 +109,7 @@ static const luaL_Reg dkimf_lua_lib_final[] =
 	{ "sig_result",		dkimf_xs_sigresult	},
 	{ NULL,			NULL			}
 };
+#endif /* DKIMF_LUA_CONTEXT_HOOKS */
 
 /*
 **  DKIMF_LUA_READER -- "read" a script and make it available to Lua
@@ -176,6 +178,7 @@ dkimf_lua_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
 	}
 }
 
+#ifdef DKIMF_LUA_CONTEXT_HOOKS
 /*
 **  DKIMF_LUA_SETUP_HOOK -- hook to Lua for handling a message during setup
 **
@@ -303,8 +306,10 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 **  	lres -- Lua result structure
 **
 **  Return value:
+**  	2 -- processing error
+**  	1 -- script contains a syntax error
 **  	0 -- success
-**  	-1 -- failure
+**  	-1 -- memory allocation failure
 **
 **  Notes:
 **  	Called by mlfi_eom() so it can decide whether or not the message
@@ -404,8 +409,10 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 **  	lres -- Lua result structure
 **
 **  Return value:
+**  	2 -- processing error
+**  	1 -- script contains a syntax error
 **  	0 -- success
-**  	-1 -- failure
+**  	-1 -- memory allocation failure
 **
 **  Notes:
 **  	Called by mlfi_eom() so it can decide whether or not the message
@@ -598,6 +605,98 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	status = lua_pcall(l, 0, LUA_MULTRET, 0);
 	if (lua_isstring(l, 1))
 		lres->lrs_error = strdup(lua_tostring(l, 1));
+
+	lua_close(l);
+
+	return (status == 0 ? 0 : 2);
+}
+#endif /* DKIMF_LUA_CONTEXT_HOOKS */
+
+/*
+**  DKIMF_LUA_DB_HOOK -- hook to Lua for handling a DB query
+**
+**  Parameters:
+**  	script -- script to run
+**  	query -- query string
+**  	lres -- Lua result structure
+**
+**  Return value:
+**  	2 -- processing error
+**  	1 -- script contains a syntax error
+**  	0 -- success
+**  	-1 -- memory allocation failure
+*/
+
+int
+dkimf_lua_db_hook(const char *script, const char *query,
+                  struct dkimf_lua_script_result *lres)
+{
+	int status;
+	struct dkimf_lua_io io;
+	lua_State *l = NULL;
+
+	assert(script != NULL);
+	assert(lres != NULL);
+
+	io.lua_io_done = FALSE;
+	io.lua_io_script = script;
+
+	l = lua_newstate(dkimf_lua_alloc, NULL);
+	if (l == NULL)
+		return -1;
+
+	luaL_openlibs(l);
+
+	/* query string */
+	lua_pushstring(l, query);
+	lua_setglobal(l, "query");
+
+	switch (lua_load(l, dkimf_lua_reader, (void *) &io, script))
+	{
+	  case 0:
+		break;
+
+	  case LUA_ERRSYNTAX:
+		if (lua_isstring(l, 1))
+			lres->lrs_error = strdup(lua_tostring(l, 1));
+		lua_close(l);
+		return 1;
+
+	  case LUA_ERRMEM:
+		if (lua_isstring(l, 1))
+			lres->lrs_error = strdup(lua_tostring(l, 1));
+		lua_close(l);
+		return -1;
+
+	  default:
+		assert(0);
+	}
+
+	status = lua_pcall(l, 0, LUA_MULTRET, 0);
+	if (status != 0 && lua_isstring(l, 1))
+	{
+		lres->lrs_error = strdup(lua_tostring(l, 1));
+		lres->lrs_rcount = 0;
+	}
+	else if (status == 0)
+	{
+		size_t asz;
+
+		lres->lrs_rcount = lua_gettop(l);
+
+		asz = sizeof(char *) * lres->lrs_rcount;
+		lres->lrs_results = (char **) malloc(asz);
+		if (lres->lrs_results != NULL)
+		{
+			int c;
+
+			for (c = 0; c < lres->lrs_rcount; c++)
+			{
+				lres->lrs_results[c] = strdup(lua_tostring(l,
+				                                           c + 1));
+			}
+		}
+	}
 
 	lua_close(l);
 

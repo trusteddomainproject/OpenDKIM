@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.112 2010/03/21 06:23:29 cm-msk Exp $
+**  $Id: opendkim.c,v 1.112.2.1 2010/04/01 19:41:22 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.112 2010/03/21 06:23:29 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.112.2.1 2010/04/01 19:41:22 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8519,13 +8519,21 @@ mlfi_eoh(SMFICTX *ctx)
 	{
 		bool match = FALSE;
 		struct addrlist *a;
+		char resignkey[BUFRSZ + 1];
+		struct dkimf_db_data dbd;
+
+		memset(resignkey, '\0', sizeof resignkey);
+
+		dbd.dbdata_buffer = resignkey;
+		dbd.dbdata_buflen = sizeof resignkey;
+		dbd.dbdata_flags = 0;
 
 		for (a = dfc->mctx_rcptlist;
 		     a != NULL;
 		     a = a->a_next)
 		{
 			status = dkimf_db_get(conf->conf_resigndb,
-			                      a->a_addr, 0, NULL, 0,
+			                      a->a_addr, 0, &dbd, 1,
 			                      &match);
 
 			if (match)
@@ -8534,6 +8542,46 @@ mlfi_eoh(SMFICTX *ctx)
 				originok = TRUE;
 				dfc->mctx_resign = TRUE;
 				break;
+			}
+		}
+
+		if (match)
+		{
+			if (conf->conf_keytabledb == NULL ||
+			    resignkey[0] == '\0')
+			{
+				status = dkimf_add_signrequest(dfc, NULL, NULL);
+
+				if (status != 0)
+				{
+					if (dolog)
+					{
+						syslog(LOG_ERR,
+						       "%s failed to add signature for default key",
+						       dfc->mctx_jobid);
+					}
+
+					return SMFIS_TEMPFAIL;
+				}
+			}
+			else
+			{
+				status = dkimf_add_signrequest(dfc,
+				                               conf->conf_keytabledb,
+				                               resignkey);
+
+				if (status != 0)
+				{
+					if (dolog)
+					{
+						syslog(LOG_ERR,
+						       "%s failed to add signature for key `%s'",
+						       dfc->mctx_jobid,
+						       resignkey);
+					}
+
+					return SMFIS_TEMPFAIL;
+				}
 			}
 		}
 	}

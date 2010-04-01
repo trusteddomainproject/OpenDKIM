@@ -4,17 +4,18 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.68 2010/03/02 06:30:45 subman Exp $
+**  $Id: opendkim-db.c,v 1.68.4.1 2010/04/01 19:41:22 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68 2010/03/02 06:30:45 subman Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.4.1 2010/04/01 19:41:22 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/file.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -32,15 +33,19 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68 2010/03/02 06:30
 #include <dkim.h>
 #include <dkim-strl.h>
 
-/* opendkim includes */
-#include "opendkim-db.h"
-#include "util.h"
-
 #ifdef OPENDKIM_DB_ONLY
 # undef USE_LDAP
 # undef USE_SASL
 # undef USE_ODBX
+# undef USE_LUA
 #endif /* OPENDKIM_DB_ONLY */
+
+/* opendkim includes */
+#include "opendkim-db.h"
+#ifdef USE_LUA
+# include "opendkim-lua.h"
+#endif /* USE_LUA */
+#include "util.h"
 
 /* various DB library includes */
 #ifdef USE_DB
@@ -55,6 +60,9 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68 2010/03/02 06:30
 #ifdef USE_SASL
 # include <sasl/sasl.h>
 #endif /* USE_SASL */
+#ifdef USE_LUA
+# include <lua.h>
+#endif /* USE_LUA */
 
 /* macros */
 #define	BUFRSZ			1024
@@ -118,10 +126,10 @@ struct dkimf_db
 	int			db_status;
 	int			db_nrecs;
 	pthread_mutex_t *	db_lock;
-	void *			db_handle;
-	void *			db_data;
-	void *			db_cursor;
-	void *			db_entry;
+	void *			db_handle;	/* handler handle */
+	void *			db_data;	/* dkimf_db handle */
+	void *			db_cursor;	/* cursor */
+	void *			db_entry;	/* entry (context) */
 	char **			db_array;
 };
 
@@ -170,6 +178,15 @@ struct dkimf_db_ldap
 };
 #endif /* USE_LDAP */
 
+#ifdef USE_LUA
+struct dkimf_db_lua
+{
+	char *			lua_script;
+	char *			lua_error;
+};
+#endif /* USE_LUA */
+
+
 /* globals */
 struct dkimf_db_table dbtypes[] =
 {
@@ -187,6 +204,9 @@ struct dkimf_db_table dbtypes[] =
 	{ "ldapi",		DKIMF_DB_TYPE_LDAP },
 	{ "ldaps",		DKIMF_DB_TYPE_LDAP },
 #endif /* USE_LDAP */
+#ifdef USE_LUA
+	{ "lua",		DKIMF_DB_TYPE_LUA },
+#endif /* USE_LUA */
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
 
@@ -1533,6 +1553,50 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		free(p);
 	  }
 #endif /* USE_LDAP */
+
+#ifdef USE_LUA
+	  case DKIMF_DB_TYPE_LUA:
+	  {
+		int fd;
+		ssize_t rlen;
+		struct stat s;
+		struct dkimf_db_lua *lua;
+
+		fd = open(p, O_RDONLY);
+		if (fd < 0)
+			return -1;
+
+		if (fstat(fd, &s) == -1)
+		{
+			close(fd);
+			return -1;
+		}
+
+		lua = (struct dkimf_db_lua *) malloc(sizeof *lua);
+		if (lua == NULL)
+			return -1;
+		memset(lua, '\0', sizeof *lua);
+		new->db_data = (void *) lua;
+
+		lua->lua_script = (void *) malloc(s.st_size + 1);
+		if (lua->lua_script == NULL)
+		{
+			free(new->db_data);
+			close(fd);
+			return -1;
+		}
+		memset(lua->lua_script, '\0', s.st_size + 1);
+
+		rlen = read(fd, lua->lua_script, s.st_size);
+		if (rlen < s.st_size)
+		{
+			free(lua->lua_script);
+			free(new->db_data);
+			close(fd);
+			return -1;
+		}
+	  }
+#endif /* USE_LUA */
 	}
 
 	*db = new;
@@ -2327,6 +2391,48 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 	  }
 #endif /* USE_LDAP */
 
+#ifdef USE_LUA
+	  case DKIMF_DB_TYPE_LUA:
+	  {
+		int c;
+		int status;
+		struct dkimf_db_lua *lua;
+		struct dkimf_lua_script_result lres;
+
+		memset(&lres, '\0', sizeof lres);
+
+		lua = (struct dkimf_db_lua *) db->db_data;
+
+		status = dkimf_lua_db_hook(lua->lua_script, (const char *) buf,
+		                           &lres);
+		if (status != 0)
+			return -1;
+
+		if (exists != NULL)
+			*exists = (lres.lrs_rcount != 0);
+
+		/* copy results */
+		for (c = 0; c < reqnum && c < lres.lrs_rcount; c++)
+		{
+			req[c].dbdata_buflen = strlcpy(req[c].dbdata_buffer,
+			                               lres.lrs_results[c],
+			                               req[c].dbdata_buflen);
+		}
+
+		/* tag requests that weren't fulfilled */
+		while (c < reqnum)
+			req[c++].dbdata_buflen = 0;
+
+		/* clean up */
+		for (c = 0; c < lres.lrs_rcount; c++)
+			free(lres.lrs_results[c]);
+		if (lres.lrs_results != NULL)
+			free(lres.lrs_results);
+
+		return 0;
+	  }
+#endif /* USE_LUA */
+
 	  default:
 		assert(0);
 		return 0;		/* to silence the compiler */
@@ -2408,6 +2514,19 @@ dkimf_db_close(DKIMF_DB db)
 	  }
 #endif /* USE_LDAP */
 
+#ifdef USE_LUA
+	  case DKIMF_DB_TYPE_LUA:
+	  {
+		struct dkimf_db_lua *lua;
+
+		lua = (struct dkimf_db_lua *) db->db_data;
+
+		free(lua->lua_script);
+		free(db->db_data);
+		break;
+	  }
+#endif /* USE_LUA */
+
 	  default:
 		assert(0);
 	}
@@ -2458,6 +2577,19 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 		return strlcpy(err, ldap_err2string(db->db_status), errlen);
 #endif /* USE_LDAP */
 
+#ifdef USE_LUA
+	  case DKIMF_DB_TYPE_LUA:
+	  {
+		struct dkimf_db_lua *lua;
+
+		lua = (struct dkimf_db_lua *) db->db_data;
+		if (lua->lua_error != NULL)
+			return strlcpy(err, lua->lua_error, errlen);
+		else
+			return 0;
+	  }
+#endif /* USE_LUA */
+
 	  default:
 		assert(0);
 		return -1;		/* to silence the compiler */
@@ -2493,7 +2625,8 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 	    (key == NULL && keylen != NULL))
 		return -1;
 
-	if (db->db_type == DKIMF_DB_TYPE_REFILE)
+	if (db->db_type == DKIMF_DB_TYPE_REFILE ||
+	    db->db_type == DKIMF_DB_TYPE_LUA)
 		return -1;
 
 	switch (db->db_type)
@@ -2898,7 +3031,8 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a)
 	assert(db != NULL);
 	assert(a != NULL);
 
-	if (db->db_type == DKIMF_DB_TYPE_REFILE)
+	if (db->db_type == DKIMF_DB_TYPE_REFILE ||
+	    db->db_type == DKIMF_DB_TYPE_LUA)
 		return -1;
 
 #ifdef USE_DB
@@ -3067,6 +3201,9 @@ dkimf_db_rewalk(DKIMF_DB db, char *str, DKIMF_DBDATA req, unsigned int reqnum,
 
 	assert(db != NULL);
 	assert(str != NULL);
+
+	if (db->db_type != DKIMF_DB_TYPE_REFILE)
+		return -1;
 
 	if (ctx != NULL && *ctx != NULL)
 	{
