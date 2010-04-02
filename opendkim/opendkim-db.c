@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.68.6.1 2010/04/02 13:51:35 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.68.6.2 2010/04/02 19:34:09 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.1 2010/04/02 13:51:35 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.2 2010/04/02 19:34:09 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -647,7 +647,10 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 		tmp = strdup(p);
 		if (tmp == NULL)
+		{
+			free(new);
 			return -1;
+		}
 
 		for (p = strtok_r(tmp, ",", &ctx);
 		     p != NULL;
@@ -673,6 +676,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 						if (list != NULL)
 							dkimf_db_list_free(list);
 						free(tmp);
+						free(new);
 						return -1;
 					}
 
@@ -682,6 +686,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 						free(newl);
 						if (list != NULL)
 							dkimf_db_list_free(list);
+						free(new);
 						free(tmp);
 						return -1;
 					}
@@ -716,6 +721,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					if (list != NULL)
 						dkimf_db_list_free(list);
 					free(tmp);
+					free(new);
 					return -1;
 				}
 
@@ -726,6 +732,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					if (list != NULL)
 						dkimf_db_list_free(list);
 					free(tmp);
+					free(new);
 					return -1;
 				}
 
@@ -739,6 +746,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 						free(tmp);
 						if (list != NULL)
 							dkimf_db_list_free(list);
+						free(new);
 						return -1;
 					}
 				}
@@ -815,6 +823,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				if (list != NULL)
 					dkimf_db_list_free(list);
 				fclose(f);
+				free(new);
 				return -1;
 			}
 
@@ -855,6 +864,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					{
 						if (list != NULL)
 							dkimf_db_list_free(list);
+						free(new);
+
 						return -1;
 					}
 
@@ -864,6 +875,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 						free(newl);
 						if (list != NULL)
 							dkimf_db_list_free(list);
+						free(new);
+
 						return -1;
 					}
 
@@ -874,6 +887,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 						free(newl);
 						if (list != NULL)
 							dkimf_db_list_free(list);
+						free(new);
+
 						return -1;
 					}
 
@@ -897,6 +912,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					if (list != NULL)
 						dkimf_db_list_free(list);
 					fclose(f);
+					free(new);
 					return -1;
 				}
 
@@ -910,6 +926,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 						if (list != NULL)
 							dkimf_db_list_free(list);
 						fclose(f);
+						free(new);
 						return -1;
 					}
 				}
@@ -1007,6 +1024,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				if (head != NULL)
 					dkimf_db_relist_free(head);
 				fclose(f);
+				free(new);
 				return -1;
 			}
 
@@ -1019,17 +1037,17 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				if (head != NULL)
 					dkimf_db_relist_free(head);
 				fclose(f);
+				free(new);
 				return -1;
 			}
 
 			status = regcomp(&newl->db_relist_re, patbuf, reflags);
 			if (status != 0)
 			{
-				new->db_data = (void *) &newl->db_relist_re;
-				/* XXX -- do something */
 				if (head != NULL)
 					dkimf_db_relist_free(head);
 				fclose(f);
+				free(new);
 				return -1;
 			}
 
@@ -1039,6 +1057,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				if (newl->db_relist_data == NULL)
 				{
 					fclose(f);
+					free(new);
 					return -1;
 				}
 			}
@@ -1118,7 +1137,10 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 # endif /* DB_VERSION_CHECK */
 
 		if (status != 0)
+		{
+			free(new);
 			return 3;
+		}
 
 		new->db_handle = newdb;
 
@@ -1140,7 +1162,10 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 		dsn = (struct dkimf_db_dsn *) malloc(sizeof(struct dkimf_db_dsn));
 		if (dsn == NULL)
+		{
+			free(new);
 			return -1;
+		}
 
 		memset(dsn, '\0', sizeof *dsn);
 
@@ -1156,6 +1181,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		if (tmp == NULL)
 		{
 			free(dsn);
+			free(new);
 			return -1;
 		}
 
@@ -1164,6 +1190,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		{
 			free(dsn);
 			free(tmp);
+			free(new);
 			return -1;
 		}
 
@@ -1175,6 +1202,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		{
 			free(dsn);
 			free(tmp);
+			free(new);
 			return -1;
 		}
 
@@ -1193,6 +1221,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				{
 					free(dsn);
 					free(tmp);
+					free(new);
 					return -1;
 				}
 
@@ -1246,6 +1275,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			  default:
 				free(dsn);
 				free(tmp);
+				free(new);
 				return -1;
 			}
 		}
@@ -1254,6 +1284,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		{
 			free(dsn);
 			free(tmp);
+			free(new);
 			return -1;
 		}
 
@@ -1290,6 +1321,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		{
 			free(dsn);
 			free(tmp);
+			free(new);
 			return -1;
 		}
 
@@ -1304,6 +1336,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		{
 			free(dsn);
 			free(tmp);
+			free(new);
 			return -1;
 		}
 
@@ -1317,6 +1350,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			(void) odbx_finish(odbx);
 			free(dsn);
 			free(tmp);
+			free(new);
 			return -1;
 		}
 
@@ -1345,13 +1379,19 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		char *r;
 		char *u;
 		LDAPURLDesc *descr;
+# ifdef USE_DB
+		DB *newdb;
+# endif /* USE_DB */
 		char *uris[DKIMF_LDAP_MAXURIS];
 
 		memset(uris, '\0', sizeof uris);
 
 		p = strdup(name);
 		if (p == NULL)
+		{
+			free(new);
 			return -1;
+		}
 
 		/* make sure they're all valid LDAP URIs */
 		for (q = strtok_r(p, " \t", &r), c = 0;
@@ -1361,6 +1401,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			if (ldap_is_ldap_url(q) == 0)
 			{
 				free(p);
+				free(new);
 				return -1;
 			}
 
@@ -1373,6 +1414,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		if (ldap == NULL)
 		{
 			free(p);
+			free(new);
 			return -1;
 		}
 
@@ -1396,6 +1438,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		{
 			free(ldap);
 			free(p);
+			free(new);
 			return -1;
 		}
 
@@ -1426,6 +1469,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			{
 				free(ldap);
 				free(p);
+				free(new);
 				return -1;
 			}
 
@@ -1440,6 +1484,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		{
 			free(ldap);
 			free(p);
+			free(new);
 			return -1;
 		}
 
@@ -1450,6 +1495,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			ldap_unbind_ext(ld, NULL, NULL);
 			free(ldap);
 			free(p);
+			free(new);
 			return -1;
 		}
 
@@ -1465,6 +1511,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				ldap_unbind_ext(ld, NULL, NULL);
 				free(ldap);
 				free(p);
+				free(new);
 				return -1;
 			}
 		}
@@ -1496,6 +1543,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				ldap_unbind_ext(ld, NULL, NULL);
 				free(ldap);
 				free(p);
+				free(new);
 				return -1;
 			}
 		}
@@ -1515,6 +1563,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				ldap_unbind_ext(ld, NULL, NULL);
 				free(ldap);
 				free(p);
+				free(new);
 				return -1;
 			}
 # else /* USE_SASL */
@@ -1522,6 +1571,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			ldap_unbind_ext(ld, NULL, NULL);
 			free(ldap);
 			free(p);
+			free(new);
 			return -1;
 # endif /* USE_SASL */
 		}
@@ -1529,7 +1579,32 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		pthread_mutex_init(&ldap->ldap_lock, NULL);
 
 # ifdef USE_DB
-		/* XXX -- set ldap->ldap_cache to a NULL db handle */
+		/* establish LDAP cache DB */
+		err = 0;
+
+#  if DB_VERSION_CHECK(3,0,0)
+		err = db_create(&newdb, NULL, 0);
+		if (err == 0)
+		{
+#   if DB_VERSION_CHECK(4,1,25)
+ 			err = newdb->open(newdb, NULL, NULL, NULL,
+			                     DB_HASH, 0, 0);
+#   else /* DB_VERSION_CHECK(4,1,25) */
+			err = newdb->open(newdb, NULL, NULL, DB_HASH, 0, 0);
+#   endif /* DB_VERSION_CHECK(4,1,25) */
+		}
+#  elif DB_VERSION_CHECK(2,0,0)
+		err = db_open(NULL, DB_HASH, 0, DKIMF_DB_MODE,
+		                 NULL, NULL, &newdb);
+#  else /* DB_VERSION_CHECK(2,0,0) */
+		newdb = dbopen(NULL, (O_CREAT|O_RDWR),
+		               DKIMF_DB_MODE, DB_HASH, NULL);
+		if (newdb == NULL)
+			err = errno;
+#  endif /* DB_VERSION_CHECK */
+
+		if (err == 0)
+			ldap->ldap_cache = newdb;
 # endif /* USE_DB */
 
 		/* store handle */
@@ -2426,7 +2501,8 @@ dkimf_db_close(DKIMF_DB db)
 		ldap_unbind_ext((LDAP *) db->db_handle, NULL, NULL);
 		pthread_mutex_destroy(&ldap->ldap_lock);
 # ifdef USE_DB
-		/* XXX -- close cache */
+		if (ldap->ldap_cache != NULL)
+			DKIMF_DBCLOSE(ldap->ldap_cache);
 # endif /* USE_DB */
 		(void) ldap_free_urldesc(ldap->ldap_descr);
 		free(db->db_data);
