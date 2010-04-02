@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.23 2010/04/01 19:40:06 cm-msk Exp $
+$Id: BRANCHES,v 1.24 2010/04/02 13:35:03 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -17,6 +17,9 @@ Experimental Branches (branch name contains owner)
 
 br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
+
+br-msk-ldap-caching
+		Experimental LDAP query piggybacking and caching.
 
 br-msk-lua-dataset
 		Experimental addition of a new "lua:" dataset type.
