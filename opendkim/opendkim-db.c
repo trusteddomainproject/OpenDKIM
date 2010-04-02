@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.68 2010/03/02 06:30:45 subman Exp $
+**  $Id: opendkim-db.c,v 1.68.6.1 2010/04/02 13:51:35 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68 2010/03/02 06:30:45 subman Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.1 2010/04/02 13:51:35 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -166,6 +166,9 @@ struct dkimf_db_ldap
 	int			ldap_timeout;
 	char			ldap_urilist[BUFRSZ];
 	LDAPURLDesc *		ldap_descr;
+# ifdef USE_DB
+	DB *			ldap_cache;
+# endif /* USE_DB */
 	pthread_mutex_t		ldap_lock;
 };
 #endif /* USE_LDAP */
@@ -1525,6 +1528,10 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 		pthread_mutex_init(&ldap->ldap_lock, NULL);
 
+# ifdef USE_DB
+		/* XXX -- set ldap->ldap_cache to a NULL db handle */
+# endif /* USE_DB */
+
 		/* store handle */
 		new->db_handle = (void *) ld;
 		new->db_data = (void *) ldap;
@@ -2258,6 +2265,22 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		pthread_mutex_lock(&ldap->ldap_lock);
 
+# ifdef USE_DB
+		/* XXX -- if ldap->ldap_cache has a record for this query
+			if it's a "pending" value, sleep on the condition
+				when signaled, last one out destroys condition
+			else if it's a "cache" value
+				if the TTL has not expired, use cached value
+			else
+				make a new condition variable
+				add it as a "pending" value to the DB
+				start the query, wait for the reply
+				convert the "pending" value to a "cache" value
+				broadcast condition
+				use cached value
+		*/
+# endif /* USE_DB */
+
 		memset(query, '\0', sizeof query);
 		memset(filter, '\0', sizeof filter);
 
@@ -2402,6 +2425,9 @@ dkimf_db_close(DKIMF_DB db)
 
 		ldap_unbind_ext((LDAP *) db->db_handle, NULL, NULL);
 		pthread_mutex_destroy(&ldap->ldap_lock);
+# ifdef USE_DB
+		/* XXX -- close cache */
+# endif /* USE_DB */
 		(void) ldap_free_urldesc(ldap->ldap_descr);
 		free(db->db_data);
 		break;
