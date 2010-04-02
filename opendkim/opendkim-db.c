@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.68.6.2 2010/04/02 19:34:09 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.68.6.3 2010/04/02 21:59:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.2 2010/04/02 19:34:09 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.3 2010/04/02 21:59:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2100,7 +2100,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		fd = bdb->fd(bdb);
 # endif /* DB_VERSION_CHECK(2,0,0) */
 
-		/* XXX -- allow multiple readers? */
+		/* single-thread readers since we can only lock the DB once */
 		if (db->db_lock != NULL)
 			(void) pthread_mutex_lock(db->db_lock);
 
@@ -2283,7 +2283,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		fields = odbx_column_count(result);
 		if (fields == 0)
 		{
-			/* XXX -- huh? */
+			/* query somehow returned no columns */
 			(void) odbx_result_finish(result);
 			return -1;
 		}
@@ -2783,7 +2783,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		fields = odbx_column_count(result);
 		if (fields == 0)
 		{
-			/* XXX -- huh? */
+			/* query returned no columns somehow */
 			(void) odbx_result_finish(result);
 			db->db_cursor = NULL;
 			return -1;
