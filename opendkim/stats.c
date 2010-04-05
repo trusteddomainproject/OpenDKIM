@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.8.8.2 2010/04/05 23:34:13 cm-msk Exp $
+**  $Id: stats.c,v 1.8.8.3 2010/04/05 23:41:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.2 2010/04/05 23:34:13 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.3 2010/04/05 23:41:59 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -78,6 +78,9 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, _Bool fromlist)
 	int version;
 	int nsigs;
 	int c;
+	off_t canonlen;
+	off_t signlen;
+	off_t msglen;
 	DBT key;
 	DBT data;
 	DKIMF_DB db;
@@ -211,11 +214,21 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, _Bool fromlist)
 					recdata.sd_thirdpartysigsfail++;
 			}
 		}
+
+		(void) dkim_sig_getcanonlen(dkimv, sigs[c], &msglen,
+		                            &canonlen, &signlen);
+
+		if (signlen != (off_t) -1)
+		{
+			recdata.sd_sig_l++;
+
+			if (msglen > signlen)
+				recdata.sd_extended++;
+		}
 	}
 
 #if 0
 	/* XXX -- FINISH THESE */
-	u_int		sd_extended;
 	u_int		sd_chghdr_from;
 	u_int		sd_chghdr_to;
 	u_int		sd_chghdr_subject;
@@ -226,7 +239,6 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, _Bool fromlist)
 	u_int		sd_sig_t;
 	u_int		sd_sig_t_future;
 	u_int		sd_sig_x;
-	u_int		sd_sig_l;
 	u_int		sd_sig_z;
 	u_int		sd_adsp_found;
 	u_int		sd_adsp_fail;
