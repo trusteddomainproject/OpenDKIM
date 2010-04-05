@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.7.8.1 2010/04/05 18:43:50 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.7.8.2 2010/04/05 18:48:28 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.1 2010/04/05 18:43:50 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.2 2010/04/05 18:48:28 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -282,7 +282,7 @@ dkims_dump(char *path, char *mailto)
 			fprintf(out, "lasthc=%d,", recdata_v2.sd_lasthdrcanon);
 			fprintf(out, "lastbc=%d,", recdata_v2.sd_lastbodycanon);
 			fprintf(out, "pass=%lu,", recdata_v2.sd_pass);
-			fprintf(out, "failhdr=%lu,", recdata_v2.sd_failhdr);
+			fprintf(out, "fail=%lu,", recdata_v2.sd_fail);
 			fprintf(out, "failbody=%lu,", recdata_v2.sd_failbody);
 			fprintf(out, "ext=%lu,", recdata_v2.sd_extended);
 			fprintf(out, "chgfrom=%lu,", recdata_v2.sd_chghdr_from);

@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.h,v 1.4.28.2 2010/04/05 18:02:07 cm-msk Exp $
+**  $Id: stats.h,v 1.4.28.3 2010/04/05 18:48:28 cm-msk Exp $
 */
 
 #ifndef _STATS_H_
 #define _STATS_H_
 
 #ifndef lint
-static char stats_h_id[] = "@(#)$Id: stats.h,v 1.4.28.2 2010/04/05 18:02:07 cm-msk Exp $";
+static char stats_h_id[] = "@(#)$Id: stats.h,v 1.4.28.3 2010/04/05 18:48:28 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -55,7 +55,7 @@ struct dkim_stats_data_v2
 	dkim_canon_t	sd_lastbodycanon;
 	u_long		sd_total;
 	u_long		sd_pass;
-	u_long		sd_failhdr;
+	u_long		sd_fail;
 	u_long		sd_failbody;
 	u_long		sd_extended;
 	u_long		sd_chghdr_from;
