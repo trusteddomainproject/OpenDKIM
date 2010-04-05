@@ -900,8 +900,12 @@ configuration file or on the command line.
 
 .TP
 .I Statistics (dataset)
-This specified a set to store DKIM validation totals per domain. See
-.I opendkim-stat(8)
+This specifies a data set in which to store DKIM operation totals per domain.
+The data set contains only summary counts, not per-message details.
+See
+.I opendkim-stats(8)
+for details about what data are recorded and how to read the current
+totals.
 @STATS_MANNOTICE@
 
 .TP
