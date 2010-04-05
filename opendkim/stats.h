@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.h,v 1.4.28.1 2010/04/04 14:49:14 cm-msk Exp $
+**  $Id: stats.h,v 1.4.28.2 2010/04/05 18:02:07 cm-msk Exp $
 */
 
 #ifndef _STATS_H_
 #define _STATS_H_
 
 #ifndef lint
-static char stats_h_id[] = "@(#)$Id: stats.h,v 1.4.28.1 2010/04/04 14:49:14 cm-msk Exp $";
+static char stats_h_id[] = "@(#)$Id: stats.h,v 1.4.28.2 2010/04/05 18:02:07 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -23,6 +23,12 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.4.28.1 2010/04/04 14:49:14 cm-m
 
 /* libopendkim includes */
 #include <dkim.h>
+
+/* current version */
+#define DKIMF_STATS_VERSION	2
+
+/* sentinel record */
+#define	DKIMF_STATS_SENTINEL	"@"
 
 /* data types */
 struct dkim_stats_key_v1
@@ -43,7 +49,6 @@ struct dkim_stats_data_v1
 
 struct dkim_stats_data_v2
 {
-	bool		sd_lengths;
 	time_t		sd_lastseen;
 	dkim_alg_t	sd_lastalg;
 	dkim_canon_t	sd_lasthdrcanon;
@@ -78,7 +83,7 @@ struct dkim_stats_data_v2
 
 /* PROTOTYPES */
 extern void dkimf_stats_init __P((void));
-extern void dkimf_stats_record __P((char *, const char *, dkim_canon_t,
+extern void dkimf_stats_record __P((char *, char *, dkim_canon_t,
                                     dkim_canon_t, dkim_alg_t, bool, bool,
                                     bool));
 
