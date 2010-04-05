@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.139.2.3 2010/03/23 17:11:53 cm-msk Exp $
+# $Id: configure.ac,v 1.139.2.4 2010/04/05 04:20:09 cm-msk Exp $
 
 #
 # Setup
@@ -1342,7 +1342,7 @@ then
 else
 	AC_MSG_CHECKING([for DomainKeys])
 
-	if test -f $d/include/dk.h -a -f $d/lib/libdk.a
+	if test -f $dk/include/dk.h -a -f $dk/lib/libdk.a
 	then
 		AC_MSG_RESULT($dk)
 		LIBDK_INCDIRS="-I$dk/include"
