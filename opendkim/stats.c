@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.8.8.1 2010/04/05 23:27:00 cm-msk Exp $
+**  $Id: stats.c,v 1.8.8.2 2010/04/05 23:34:13 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.1 2010/04/05 23:27:00 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.2 2010/04/05 23:34:13 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -185,6 +185,9 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, _Bool fromlist)
 		if (sigfailedbody)
 			recdata.sd_failbody++;
 
+		if (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_TESTKEY != 0)
+			recdata.sd_key_t++;
+
 		p = dkim_sig_getdomain(sigs[c]);
 		if (p != NULL)
 		{
@@ -217,7 +220,6 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, _Bool fromlist)
 	u_int		sd_chghdr_to;
 	u_int		sd_chghdr_subject;
 	u_int		sd_chghdr_other;
-	u_int		sd_key_t;
 	u_int		sd_key_g;
 	u_int		sd_key_syntax;
 	u_int		sd_key_missing;
