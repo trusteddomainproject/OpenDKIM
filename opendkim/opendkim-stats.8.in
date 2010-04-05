@@ -2,7 +2,7 @@
 .SH NAME
 opendkim-stats - output opendkim statistics
 .SH SYNOPSIS
-.B opendkim-stats
+.B opendkim-stats [-Ai]
 .I file
 .SH DESCRIPTION
 The
@@ -16,65 +16,178 @@ statistics gathering is disabled by default, but can be enabled through a
 .I Statistics
 entry in
 .I /etc/opendkim.conf.
-This is currently an undocumented feature of the
-.I OpenDKIM
-package which must be enabled by a compile-time option.
+.SH OPTIONS
+.TP
+.I -A
+Anonymize output, making it more suitable for submission to a statistics
+aggregator.  Domain names are hashed using MD5 before output so that it
+is not obvious from which domains the submitter has received mail.
+.TP
+.I -i
+Initialize the named database.  The database is created if it doesn't
+already exist, and a version record is added to it.
+.TP
+.I -m address
+Send the report to the specified address by creating a pipe to
+.I sendmail(8)
+and feeding it the output with appropriate arguments.
+.TP
+.I -r
+When used with
+.I -m,
+on successful transmission of the report, this option causes the database
+to be reset (i.e. all data other than the version record will be deleted).
 .SH OUTPUT
 .B opendkim-stats
-groups statistics output by domain and canonicalization.  Each line begins
-with a domain and a header/body canonicalization.  The canonicalization is
-currently the raw enumerated value taken from the libdkim headers; for
-reference, 0 = simple, 1 = relaxed, and 2 = nofws.  This format looks like:
-
-.SP 1
-.RI "domain:" x / x "\t" x " pass/"  x " fail, last v=" x ", l=" x ", a=" x ", date"
-.SP 1
-
-For each line, the following statistics are shown:
+produces a report with a number of values associated with each sending domain
+for which signed mail has been received.  The first column contains the
+sending domain name (typically pulled from the From: header field of a message)
+and the second column is a comma-separated list of "key=value" strings.
+The keys and their values are as follows:
 .TP
-.IB number " pass/" number " fail"
-Count of passes and failures
+.I total
+Total count of messages for this domain that were signed.
 .TP
-.BI "last v=" version
-Most recent DKIM signature version seen; this is another integer code starts
-at 0 and goes through 5, with higher numbers representing more recent versions
-of the draft DKIM specification.
+.I last
+Timestamp of the last signed message seen from this domain (UNIX time format).
 .TP
-.BI "l=" number
-A boolean indicating whether or not the most recent signed message had an "l="
-tag in its signature.
+.I lastalg
+Integer representation of the last signing algorithm seen on mail from this
+source.  Only author signatures are recorded in this field.
 .TP
-.BI "a=" algorithm
-Most recent algorithm seen (0 = rsa-sha1; 1 = rsa-sha256)
+.I lasthc
+Integer representation of the last header canonicalization used on mail from
+this source.  Only author signatures are recorded in this field.
 .TP
-.I date
-Last date a signed message was seen
-.SH EXAMPLES
-.RI "opendkim.org:" 1 / 0 "\t" 212 " pass/" 0 " fail, last v=" 2 ", l=" 0 ", a=" 0 ", Sat May  5 17:42:58 2007"
-.PP
-opendkim.org, using canonicalization
-.I relaxed/simple
-, has sent
-.I 212
-messages that passed signature verification and
-.I 0
-that failed.  The most recently seen signature version was
-.I 2
-, the most recently seen signature algorithm
-was
-.I rsa-sha1
-, and the last message did
-.I not
-include a length tag.  The most recent message was seen on
-.I 2007/05/05
-at
-.I 17:42:58
-in the server's local time zone.
+.I lastbc
+Integer representation of the last body canonicalization used on mail from
+this source.  Only author signatures are recorded in this field.
+.TP
+.I pass
+Count of passing signatures on mail from this source.
+.TP
+.I fail
+Count of failing signatures on mail from this source where the failure could
+not specifically be attributed to a change in the message body.
+.TP
+.I failbody
+Count of failing signatures on mail from this source where the failure could
+specifically be attributed to a change in the message body (i.e. the signature
+matched, but the "bh" tag value did not match).
+.TP
+.I ext
+Count of signatures covering messages from this source where the messages
+were extended after signing.  This means the message contained a signature
+with an "l=" tag, but the received message had a body length larger than that
+value.
+.TP
+.I chgfrom
+Count of signatures covering messages from this source for which verification
+failed and the failure could be attributed to a change in the From: header
+field.
+.TP
+.I chgto
+Count of signatures covering messages from this source for which verification
+failed and the failure could be attributed to a change in the To: header field.
+.TP
+.I chgsubj
+Count of signatures covering messages from this source for which verification
+failed and the failure could be attributed to a change in the Subject: header
+field.
+.TP
+.I chgother
+Count of signatures covering messages from this source for which verification
+failed and the failure could be attributed to a change in a header field other
+than From:, To: and Subject:.
+.TP
+.I keyt
+Count of signatures covering messages from this source that referred to a key
+record that had a "t=" tag.
+.TP
+.I keyg
+Count of signatures covering messages from this source that referred to a key
+record that had a "g=" tag.
+.TP
+.I keysyntax
+Count of signatures covering messages from this source that referred to a key
+record that had a syntax
+error.
+.TP
+.I keynx
+Count of signatures covering messages from this source that referred to a key
+record that could not be retrieved from the DNS.
+.TP
+.I sigt
+Count of signatures covering messages from this source that contained a "t="
+tag.
+.TP
+.I sigtfut
+Count of signatures covering messages from this source that contained a "t="
+tag with a timestamp in the future.
+.TP
+.I sigx
+Count of signatures covering messages from this source that contained an "x="
+tag.
+.TP
+.I sigl
+Count of signatures covering messages from this source that contained an "l="
+tag.
+.TP
+.I sigz
+Count of signatures covering messages from this source that contained a "z="
+tag.
+.TP
+.I adsp
+Count of messages received from this source that resulted in a successful
+ADSP query.
+.TP
+.I adsppass
+Count of messages received from this source that resulted in a successful
+ADSP query and for which the ADSP test passed (i.e. a valid author signature
+was present).
+.TP
+.I adspfail
+Count of messages received from this source that resulted in a successful
+ADSP query and for which the ADSP test failed (i.e. no valid author signature
+was present, and a policy of "all" was found).
+.TP
+.I adspdisc
+Count of messages received from this source that resulted in a successful
+ADSP query and for which the ADSP test failed and the message could have been,
+or was, discarded before delivery (i.e. no valid author signature was present,
+and a policy of "discardable" was found).
+.TP
+.I asigs
+Count of signatures on messages from this source for which the "d=" (signing
+domain) tag matched the domain in the From: header field; that is, a count
+of author signatures.
+.TP
+.I tpsigs
+Count of signatures on messages from this source for which the "d=" (signing
+domain) tag did not match the domain in the From: header field; that is, a
+count of third-party signatures.
+.TP
+.I msigs
+Count of messages from this source for which more than one signature was
+present.
+.TP
+.I mlist
+Count of messages from this source for which at least one typical mailing list
+header field was present (e.g., a Precedence: header field containing "list",
+or the presence of a List-Id:, List-Post:, List-Unsubscribe: or
+Mailing-List: header field).
 .SH NOTES
 The output of
 .B opendkim-stats
 is subject to change.  Please be aware of this when upgrading to future
 releases, especially if you develop any scripts that consume the output.
+
+The current version of the OpenDKIM statistics system is 2.  Generally,
+.I opendkim-stats
+can read all database versions, but
+.I opendkim(8)
+will only generate the most recent version (and will refuse to update older
+databases).
 .SH SEE ALSO
 .I opendkim(8)
 .SH VERSION
