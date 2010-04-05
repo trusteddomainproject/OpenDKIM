@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.112 2010/03/21 06:23:29 cm-msk Exp $
+**  $Id: opendkim.c,v 1.112.6.1 2010/04/05 22:53:15 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.112 2010/03/21 06:23:29 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.112.6.1 2010/04/05 22:53:15 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -10079,33 +10079,10 @@ mlfi_eom(SMFICTX *ctx)
 		authorsig = dkimf_authorsigok(dfc);
 
 #ifdef _FFR_STATS
-		if ((status == DKIM_STAT_OK || status == DKIM_STAT_BADSIG) &&
-		    conf->conf_statspath != NULL)
+		if (conf->conf_statspath != NULL)
 		{
-			_Bool tmp_lengths = FALSE;
-			dkim_alg_t tmp_signalg = DKIM_SIGN_UNKNOWN;
-			dkim_canon_t tmp_hdrcanon = DKIM_CANON_UNKNOWN;
-			dkim_canon_t tmp_bodycanon = DKIM_CANON_UNKNOWN;
-			off_t signlen;
-			const char *tmp_signdomain = NULL;
-
-			sig = dkim_getsignature(dfc->mctx_dkimv);
-			(void) dkim_sig_getsignalg(sig, &tmp_signalg);
-			(void) dkim_sig_getcanons(sig, &tmp_hdrcanon,
-			                          &tmp_bodycanon);
-			(void) dkim_sig_getcanonlen(dfc->mctx_dkimv, sig,
-			                            NULL, NULL, &signlen);
-			tmp_lengths = (signlen != (off_t) -1);
-			tmp_signdomain = dkim_sig_getdomain(sig);
-
 			dkimf_stats_record(conf->conf_statspath,
-			                   tmp_signdomain,
-			                   tmp_hdrcanon,
-			                   tmp_bodycanon,
-			                   tmp_signalg,
-			                   (status == DKIM_STAT_OK),
-			                   testkey,
-			                   tmp_lengths);
+			                   dfc->mctx_jobid, dfc->mctx_dkimv);
 		}
 #endif /* _FFR_STATS */
 
