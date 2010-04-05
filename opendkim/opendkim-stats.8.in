@@ -16,6 +16,10 @@ statistics gathering is disabled by default, but can be enabled through a
 .I Statistics
 entry in
 .I /etc/opendkim.conf.
+
+See the
+.I opendkim.conf(5)
+man page for details.
 .SH OPTIONS
 .TP
 .I -A
