@@ -26,6 +26,15 @@ man page for details.
 Output comma-separated format.  Not generally human-readable, but ideal
 for machine processing.
 .TP
+.I -h name
+Uses
+.I name
+as the name of the reporting host instead of the value returned by
+.I gethostname(3).
+This is only used with
+.I -c
+(above) when creating input suitable for database import.
+.TP
 .I -i
 Initialize the named database.  The database is created if it doesn't
 already exist, and a version record is added to it.

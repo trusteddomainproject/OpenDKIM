@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.7.8.3 2010/04/05 22:38:20 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.7.8.4 2010/04/05 22:42:35 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.3 2010/04/05 22:38:20 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.4 2010/04/05 22:42:35 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -43,7 +43,7 @@ static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.3 2010/04
 # define TRUE		1
 #endif /* ! TRUE */
 
-#define	CMDLINEOPTS	"cim:r"
+#define	CMDLINEOPTS	"ch:im:r"
 #ifndef _PATH_DEVNULL
 # define _PATH_DEVNULL	"/dev/null"
 #endif /* ! _PATH_DEVNULL */
@@ -53,6 +53,7 @@ static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.3 2010/04
 
 /* globals */
 _Bool csv;
+char hostname[DKIM_MAXHOSTNAMELEN + 1];
 char *progname;
 
 /*
@@ -281,7 +282,7 @@ dkims_dump(char *path, char *mailto)
 
 			/* dump record contents */
 			if (csv)
-				fprintf(out, "%s\t", jobid);
+				fprintf(out, "%s@%s\t", jobid, hostname);
 			else
 				fprintf(out, "%s,", jobid);
 
@@ -479,12 +480,19 @@ main(int argc, char **argv)
 
 	csv = FALSE;
 
+	memset(hostname, '\0', sizeof hostname);
+	(void) gethostname(hostname, sizeof hostname);
+
 	while ((c = getopt(argc, argv, CMDLINEOPTS)) != -1)
 	{
 		switch (c)
 		{
 		  case 'c':
 			csv = TRUE;
+			break;
+
+		  case 'h':
+			strncpy(hostname, optarg, sizeof hostname - 1);
 			break;
 
 		  case 'i':
