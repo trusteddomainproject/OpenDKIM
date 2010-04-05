@@ -158,14 +158,14 @@ or was, discarded before delivery (i.e. no valid author signature was present,
 and a policy of "discardable" was found).
 .TP
 .I asigs
-Count of signatures on messages from this source for which the "d=" (signing
-domain) tag matched the domain in the From: header field; that is, a count
-of author signatures.
+Count of valid signatures on messages from this source for which the "d="
+(signing domain) tag matched the domain in the From: header field; that is, a
+count of valid author signatures.
 .TP
 .I tpsigs
-Count of signatures on messages from this source for which the "d=" (signing
-domain) tag did not match the domain in the From: header field; that is, a
-count of third-party signatures.
+Count of valid signatures on messages from this source for which the "d="
+(signing domain) tag did not match the domain in the From: header field;
+that is, a count of valid third-party signatures.
 .TP
 .I msigs
 Count of messages from this source for which more than one signature was
