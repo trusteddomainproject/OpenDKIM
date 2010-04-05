@@ -61,12 +61,15 @@ Timestamp of the last signed message seen from this domain (UNIX time format).
 .TP
 .I alg
 Integer representation of the signing algorithm seen on this message.
+Only author signatures are recorded in this way.
 .TP
 .I hc
 Integer representation of the header canonicalization seen on this message.
+Only author signatures are recorded in this way.
 .TP
 .I bc
 Integer representation of the body canonicalization seen on this message.
+Only author signatures are recorded in this way.
 .TP
 .I total
 Count of signatures on this message.
