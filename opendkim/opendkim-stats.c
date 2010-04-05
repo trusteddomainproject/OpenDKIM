@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.7.8.2 2010/04/05 18:48:28 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.7.8.3 2010/04/05 22:38:20 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.2 2010/04/05 18:48:28 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.3 2010/04/05 22:38:20 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -35,14 +35,15 @@ static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.2 2010/04
 #include "stats.h"
 
 /* macros */
+#define	BUFRSZ		1024
 #ifndef FALSE
-# define FALSE	0
+# define FALSE		0
 #endif /* ! FALSE */
 #ifndef TRUE
-# define TRUE	1
+# define TRUE		1
 #endif /* ! TRUE */
 
-#define	CMDLINEOPTS	"Aim:r"
+#define	CMDLINEOPTS	"cim:r"
 #ifndef _PATH_DEVNULL
 # define _PATH_DEVNULL	"/dev/null"
 #endif /* ! _PATH_DEVNULL */
@@ -51,8 +52,32 @@ static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.2 2010/04
 #endif /* ! _PATH_SENDMAIL */
 
 /* globals */
-_Bool anonymize;
+_Bool csv;
 char *progname;
+
+/*
+**  DKIMS_OUTPUT -- output a statistic
+**
+**  Parameters:
+**  	out -- output
+**  	label -- label
+**  	v -- value
+**  	m -- more?
+**
+**  Return value:
+**  	None.
+*/
+
+static void
+dkims_output(FILE *out, char *label, unsigned long value, _Bool more)
+{
+	assert(label != NULL);
+
+	if (csv)
+		fprintf(out, "%lu%s", value, more ? "\t" : "");
+	else
+		fprintf(out, "%s=%lu%s", label, value, more ? "," : "");
+}
 
 /*
 **  DKIMS_DUMP -- dump a database's contents
@@ -79,7 +104,7 @@ dkims_dump(char *path, char *mailto)
 	struct dkim_stats_data_v1 recdata_v1;
 	struct dkim_stats_data_v2 recdata_v2;
 	struct dkimf_db_data dbd;
-	char fromdomain[DKIM_MAXHOSTNAMELEN + 1];
+	char jobid[DKIM_MAXHOSTNAMELEN + 1];
 
 	assert(path != NULL);
 
@@ -229,16 +254,16 @@ dkims_dump(char *path, char *mailto)
 
 		  case 2:
 			/* read next record */
-			memset(fromdomain, '\0', sizeof fromdomain);
+			memset(jobid, '\0', sizeof jobid);
 			memset(&recdata_v2, '\0', sizeof recdata_v2);
 
 			dbd.dbdata_buffer = (char *) &recdata_v2;
 			dbd.dbdata_buflen = sizeof recdata_v2;
 			dbd.dbdata_flags = DKIMF_DB_DATA_BINARY;
 
-			keylen = sizeof fromdomain - 1;
+			keylen = sizeof jobid - 1;
 			datalen = sizeof recdata_v1;
-			status = dkimf_db_walk(db, first, fromdomain, &keylen,
+			status = dkimf_db_walk(db, first, jobid, &keylen,
 			                       &dbd, 1);
 			if (status == 1)
 			{
@@ -255,57 +280,58 @@ dkims_dump(char *path, char *mailto)
 			}
 
 			/* dump record contents */
-			if (anonymize)
-			{
-				int c;
-				SHA_CTX sha1;
-				char shaout[SHA_DIGEST_LENGTH];
-
-				SHA1_Init(&sha1);
-				SHA1_Update(&sha1, fromdomain,
-				            strlen(fromdomain));
-				SHA1_Final(shaout, &sha1);
-
-				for (c = 0; c < SHA_DIGEST_LENGTH; c++)
-					fprintf(out, "%02x", shaout[c]);
-
-				fprintf(out, "\t");
-			}
+			if (csv)
+				fprintf(out, "%s\t", jobid);
 			else
-			{
-				fprintf(out, "%s\t", fromdomain);
-			}
+				fprintf(out, "%s,", jobid);
 
-			fprintf(out, "total=%lu,", recdata_v2.sd_total);
-			fprintf(out, "last=%ld,", recdata_v2.sd_lastseen);
-			fprintf(out, "lastalg=%d,", recdata_v2.sd_lastalg);
-			fprintf(out, "lasthc=%d,", recdata_v2.sd_lasthdrcanon);
-			fprintf(out, "lastbc=%d,", recdata_v2.sd_lastbodycanon);
-			fprintf(out, "pass=%lu,", recdata_v2.sd_pass);
-			fprintf(out, "fail=%lu,", recdata_v2.sd_fail);
-			fprintf(out, "failbody=%lu,", recdata_v2.sd_failbody);
-			fprintf(out, "ext=%lu,", recdata_v2.sd_extended);
-			fprintf(out, "chgfrom=%lu,", recdata_v2.sd_chghdr_from);
-			fprintf(out, "chgto=%lu,", recdata_v2.sd_chghdr_to);
-			fprintf(out, "chgsubj=%lu,", recdata_v2.sd_chghdr_subject);
-			fprintf(out, "chgother=%lu,", recdata_v2.sd_chghdr_other);
-			fprintf(out, "keyt=%lu,", recdata_v2.sd_key_t);
-			fprintf(out, "keyg=%lu,", recdata_v2.sd_key_g);
-			fprintf(out, "keysyntax=%lu,", recdata_v2.sd_key_syntax);
-			fprintf(out, "keynx=%lu,", recdata_v2.sd_key_missing);
-			fprintf(out, "sigt=%lu,", recdata_v2.sd_sig_t);
-			fprintf(out, "sigtfut=%lu,", recdata_v2.sd_sig_t_future);
-			fprintf(out, "sigx=%lu,", recdata_v2.sd_sig_x);
-			fprintf(out, "sigl=%lu,", recdata_v2.sd_sig_l);
-			fprintf(out, "sigz=%lu,", recdata_v2.sd_sig_z);
-			fprintf(out, "adsp=%lu,", recdata_v2.sd_adsp_found);
-			fprintf(out, "adsppass=%lu,", recdata_v2.sd_adsp_pass);
-			fprintf(out, "adspfail=%lu,", recdata_v2.sd_adsp_fail);
-			fprintf(out, "adspdisc=%lu,", recdata_v2.sd_adsp_discardable);
-			fprintf(out, "asigs=%lu,", recdata_v2.sd_authorsigs);
-			fprintf(out, "tpsigs=%lu,", recdata_v2.sd_thirdpartysigs);
-			fprintf(out, "msigs=%lu,", recdata_v2.sd_multiplesigs);
-			fprintf(out, "mlist=%lu", recdata_v2.sd_mailinglist);
+			dkims_output(out, "when", recdata_v2.sd_when, TRUE);
+			dkims_output(out, "alg", recdata_v2.sd_alg, TRUE);
+			dkims_output(out, "hc", recdata_v2.sd_hdrcanon, TRUE);
+			dkims_output(out, "bc", recdata_v2.sd_bodycanon, TRUE);
+			dkims_output(out, "total", recdata_v2.sd_totalsigs,
+			             TRUE);
+			dkims_output(out, "pass", recdata_v2.sd_pass, TRUE);
+			dkims_output(out, "fail", recdata_v2.sd_fail, TRUE);
+			dkims_output(out, "failbody", recdata_v2.sd_failbody,
+			             TRUE);
+			dkims_output(out, "ext", recdata_v2.sd_extended, TRUE);
+			dkims_output(out, "chgfrom", recdata_v2.sd_chghdr_from,
+			             TRUE);
+			dkims_output(out, "chgto", recdata_v2.sd_chghdr_to,
+			             TRUE);
+			dkims_output(out, "chgsubj",
+			             recdata_v2.sd_chghdr_subject, TRUE);
+			dkims_output(out, "chgother",
+			             recdata_v2.sd_chghdr_other, TRUE);
+			dkims_output(out, "keyt", recdata_v2.sd_key_t, TRUE);
+			dkims_output(out, "keyg", recdata_v2.sd_key_g, TRUE);
+			dkims_output(out, "keysyntax",
+			             recdata_v2.sd_key_syntax, TRUE);
+			dkims_output(out, "keynx", recdata_v2.sd_key_missing,
+			             TRUE);
+			dkims_output(out, "sigt", recdata_v2.sd_sig_t, TRUE);
+			dkims_output(out, "sigtfut",
+			             recdata_v2.sd_sig_t_future, TRUE);
+			dkims_output(out, "sigx", recdata_v2.sd_sig_x, TRUE);
+			dkims_output(out, "sigl", recdata_v2.sd_sig_l, TRUE);
+			dkims_output(out, "sigz", recdata_v2.sd_sig_z, TRUE);
+			dkims_output(out, "adsp", recdata_v2.sd_adsp_found,
+			             TRUE);
+			dkims_output(out, "adspfail", recdata_v2.sd_adsp_fail,
+			             TRUE);
+			dkims_output(out, "adspdisc",
+			             recdata_v2.sd_adsp_discardable, TRUE);
+			dkims_output(out, "asigs", recdata_v2.sd_authorsigs,
+			             TRUE);
+			dkims_output(out, "asigsfail",
+			             recdata_v2.sd_authorsigsfail, TRUE);
+			dkims_output(out, "tpsigs",
+			             recdata_v2.sd_thirdpartysigs, TRUE);
+			dkims_output(out, "tpsigsfail",
+			             recdata_v2.sd_thirdpartysigsfail, TRUE);
+			dkims_output(out, "mlist", recdata_v2.sd_mailinglist,
+			             FALSE);
 
 			fprintf(out, "\n");
 				
@@ -451,14 +477,14 @@ main(int argc, char **argv)
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 
-	anonymize = FALSE;
+	csv = FALSE;
 
 	while ((c = getopt(argc, argv, CMDLINEOPTS)) != -1)
 	{
 		switch (c)
 		{
-		  case 'A':
-			anonymize = TRUE;
+		  case 'c':
+			csv = TRUE;
 			break;
 
 		  case 'i':
