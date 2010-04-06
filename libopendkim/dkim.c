@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.46.6.1 2010/04/06 17:56:17 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.46.6.2 2010/04/06 18:03:48 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7676,5 +7676,8 @@ dkim_sig_gettagvalue(DKIM_SIGINFO *sig, _Bool keytag, char *tag)
 	else
 		set = sig->sig_taglist;
 
-	return dkim_param_get(set, tag);
+	if (set == NULL)
+		return NULL;
+	else
+		return dkim_param_get(set, tag);
 }
