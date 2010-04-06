@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.8.8.4 2010/04/06 18:16:27 cm-msk Exp $
+**  $Id: stats.c,v 1.8.8.5 2010/04/06 20:33:55 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.4 2010/04/06 18:16:27 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.5 2010/04/06 20:33:55 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -62,6 +62,7 @@ dkimf_stats_init(void)
 **  	path -- path to the DB to update
 **  	jobid -- job ID for the current message
 **  	dkimv -- verifying handle from which data can be taken
+**  	pcode -- policy code
 **  	fromlist -- message appeared to be from a list
 **
 **  Return value:
@@ -69,7 +70,8 @@ dkimf_stats_init(void)
 */
 
 void
-dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, _Bool fromlist)
+dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
+                   _Bool fromlist)
 {
 	_Bool exists;
 	_Bool sigfailed;
