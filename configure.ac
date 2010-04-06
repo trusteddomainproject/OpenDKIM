@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.139.2.6 2010/04/06 21:25:26 cm-msk Exp $
+# $Id: configure.ac,v 1.139.2.7 2010/04/06 21:25:58 cm-msk Exp $
 
 #
 # Setup
@@ -1354,6 +1354,10 @@ else
 		AC_MSG_ERROR([not found at $dk])
 	fi
 fi
+
+AC_SUBST(LIBDK_INCDIRS)
+AC_SUBST(LIBDK_LIBDIRS)
+AC_SUBST(LIBDK_LIBS)
 
 LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBRESOLV"
 # This (below) is just for the pkg-config file opendkim.pc.in
