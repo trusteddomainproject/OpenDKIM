@@ -1,0 +1,448 @@
+
+
+
+Individual submission                                       M. Kucherawy
+Internet-Draft                                           Cloudmark, Inc.
+Intended status: Standards Track                          March 23, 2010
+Expires: September 24, 2010
+
+
+     Authentication-Results Registration For Differentiating Among
+                         Cryptographic Results
+                  draft-kucherawy-authres-header-b-00
+
+Abstract
+
+   This memo updates the registry of allowed properties in
+   Authentication-Results: message header fields to allow a multiple-
+   result report to distinguish among one or more cryptographic
+   signatures on a message, thus associating specific results with the
+   signatures they represent.
+
+Status of This Memo
+
+   This Internet-Draft is submitted to IETF in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on September 24, 2010.
+
+Copyright Notice
+
+   Copyright (c) 2010 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+
+
+
+Kucherawy              Expires September 24, 2010               [Page 1]
+
+Internet-Draft     Auth-Results header.b Registration         March 2010
+
+
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the BSD License.
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . . . 3
+   2.  Keywords  . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+   3.  Discussion  . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+   4.  Definition  . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+   5.  IANA Considerations . . . . . . . . . . . . . . . . . . . . . . 4
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . . . 4
+     6.1.  Improvement . . . . . . . . . . . . . . . . . . . . . . . . 4
+     6.2.  Forged Header Fields  . . . . . . . . . . . . . . . . . . . 4
+   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+     7.1.  Normative References  . . . . . . . . . . . . . . . . . . . 5
+     7.2.  Informative References  . . . . . . . . . . . . . . . . . . 5
+   Appendix A.  Authentication-Results Examples  . . . . . . . . . . . 5
+     A.1.  Service Provided, Multi-Tiered Authentication Done  . . . . 6
+   Appendix B.  Acknowledgements . . . . . . . . . . . . . . . . . . . 7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kucherawy              Expires September 24, 2010               [Page 2]
+
+Internet-Draft     Auth-Results header.b Registration         March 2010
+
+
+1.  Introduction
+
+   [AUTHRES] defined a new header field for electronic mail messages
+   that presents the results of a message authentication effort in a
+   machine-readable format.  Absent from that specification was the
+   means by which the results of two cryptographic signatures, such as
+   those provided by [DKIM] or [DOMAINKEYS], can both have results
+   reported in an unambiguous manner.
+
+   Fortunately, [AUTHRES] created IANA registries of reporting
+   properties, enabling an easy remedy for this problem.  This memo thus
+   registers an additional reporting property allowing a result to be
+   associated with a specific digital signature.
+
+2.  Keywords
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [KEYWORDS].
+
+3.  Discussion
+
+   A message can contain multiple signatures of a common sender
+   authentication mechanism, such as [DKIM] or [DOMAINKEYS].  By
+   registering supported "property.ptype" combinations, a result can be
+   associated with a given signature provided the signatures are unique
+   within one of the registered values (e.g. all of them had unique
+   "header.d" or "header.i" values).  This is not guaranteed, however; a
+   single signing agent might have practical reasons for affixing
+   multiple signatures with the same "d=" values while varying other
+   signature parameters.  This means one could get a "dkim=pass" and
+   "dkim=fail" result simultaneously on verification which is clearly
+   ambiguous.
+
+   It is thus necessary to either create or identify a signature
+   attribute guaranteed to be unique such that unambiguous association
+   of a result with the signature to which it refers is possible.
+
+   It is known that SHA1 and SHA256 hash spaces are resilient to
+   collisions, and further that RSA KEY signing mechanisms are similarly
+   resilient to common substrings.  Thus, the actual digital signature
+   for a cryptographic signing of the message is an ideal property for
+   such a unique identification.  It is not however necessary to include
+   the entire digital signature in an [AUTHRES] header field just to
+   identify which result goes with signature; since the signatures will
+   almost always be substantially different, it is anticipated that only
+   the first several bytes of a signature will be needed for
+   disambiguating results.
+
+
+
+Kucherawy              Expires September 24, 2010               [Page 3]
+
+Internet-Draft     Auth-Results header.b Registration         March 2010
+
+
+4.  Definition
+
+   This memo adds to the "Email Authentication Method Name Registry",
+   created by IANA upon publication of [AUTHRES], the "header.b"
+   reporting item.  The value associated with this item in the header
+   field MUST be at least the first eight characters of the digital
+   signature for which a result is being relayed, and MUST be long
+   enough to be unique among the results being reported.  Where the
+   signature of a future method is fewer than eight characters, the
+   entire signature MUST be included.  Matching of the value of this
+   item against the signature itself MUST be case-sensitive.
+
+5.  IANA Considerations
+
+   Per [IANA-CONSIDERATIONS], the following item is added to the "Email
+   Authentication Method Name Registry":
+
++------------+----------+--------+----------------+--------------------+
+|   Method   | Defined  | ptype  | property       | value              |
++------------+----------+--------+----------------+--------------------+
+| domainkeys | RFC4870  | header | b              | full or partial    |
+|            |          |        |                | value of signature |
+|            |          |        |                | "b" tag            |
++------------+----------+--------+----------------+--------------------+
+|    dkim    | RFC4871  | header | b              | full or partial    |
+|            |          |        |                | value of signature |
+|            |          |        |                | "b" tag            |
++------------+----------+--------+----------------+--------------------+
+
+6.  Security Considerations
+
+   [AUTHRES] discussed general security considerations regarding the use
+   of this header field.  The following new security considerations
+   apply when adding or processing this new ptype/property combination:
+
+6.1.  Improvement
+
+   Rather than introducing a new security issue, this can be seen to fix
+   a security weakness of the original specification in that useful
+   information can now be obtained from results that could previously
+   have been ambiguous and thus obscured or, worse, misinterpreted.
+
+6.2.  Forged Header Fields
+
+   Even considering the forgery issues discussed in the original
+   document, an attempt could be made to counfound a consumer of this
+   header field by indicating more than one result for the same
+   signature from the same evaluating agent (i.e. bearing the same
+
+
+
+Kucherawy              Expires September 24, 2010               [Page 4]
+
+Internet-Draft     Auth-Results header.b Registration         March 2010
+
+
+   "authserv-id").  In this case the consumer of this header field is
+   best advised to ignore the header field entirely.
+
+7.  References
+
+7.1.  Normative References
+
+   [KEYWORDS]             Bradner, S., "Key words for use in RFCs to
+                          Indicate Requirement Levels", BCP 14,
+                          RFC 2119, March 1997.
+
+7.2.  Informative References
+
+   [AUTHRES]              Kucherawy, M., "Message Header Field for
+                          Indicating Message Authentication Status",
+                          RFC 5451, April 2009.
+
+   [DKIM]                 Allman, E., Callas, J., Delany, M., Libbey,
+                          M., Fenton, J., and M. Thomas, "DomainKeys
+                          Identified Mail (DKIM) Signatures", RFC 4871,
+                          May 2007.
+
+   [DOMAINKEYS]           Delany, M., "Domain-Based Email Authentication
+                          Using Public Keys Advertised in the DNS
+                          (DomainKeys)", RFC 4870, May 2007.
+
+   [IANA-CONSIDERATIONS]  Narten, T. and H. Alvestrand, "Guidelines for
+                          Writing an IANA Considerations Section in
+                          RFCs", BCP 26, RFC 5226, May 2008.
+
+Appendix A.  Authentication-Results Examples
+
+   This section presents an example of the use of this new item header
+   field to indicate unambiguous authentication results.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kucherawy              Expires September 24, 2010               [Page 5]
+
+Internet-Draft     Auth-Results header.b Registration         March 2010
+
+
+A.1.  Service Provided, Multi-Tiered Authentication Done
+
+   A message that had authentication done at various stages, one of
+   which was outside the receiving ADMD:
+
+     Authentication-Results: example.com;
+           dkim=pass (good signature) header.i=@mail-router.example.net;
+                 header.b=oINEO8hg;
+           dkim=fail (bad signature) header.i=@newyork.example.com
+                 header.b=EToRSuvU
+     Received: from mail-router.example.net
+               (mail-router.example.net [192.0.2.250])
+           by chicago.example.com (8.11.6/8.11.6)
+               for <recipient@chicago.example.com>
+               with ESMTP id i7PK0sH7021929;
+           Fri, Feb 15 2002 17:19:22 -0800
+     DKIM-Signature: v=1; a=rsa-sha256; s=furble;
+           d=mail-router.example.net; t=1188964198; c=relaxed/simple;
+           h=From:Date:To:Message-Id:Subject:Authentication-Results;
+           bh=ftA9J6GtX8OpwUECzHnCkRzKw1uk6FNiLfJl5Nmv49E=;
+           b=oINEO8hgn/gnunsg ... 9n9ODSNFSDij3=
+     Authentication-Results: example.net;
+           dkim=pass (good signature) header.i=@newyork.example.com
+           header.b=EToRSuvU
+     Received: from smtp.newyork.example.com
+               (smtp.newyork.example.com [192.0.2.220])
+           by mail-router.example.net (8.11.6/8.11.6)
+               with ESMTP id g1G0r1kA003489;
+           Fri, Feb 15 2002 17:19:07 -0800
+     DKIM-Signature: v=1; a=rsa-sha256; s=gatsby; d=newyork.example.com;
+           t=1188964191; c=simple/simple;
+           h=From:Date:To:Message-Id:Subject;
+           bh=sEu28nfs9fuZGD/pSr7ANysbY3jtdaQ3Xv9xPQtS0m7=;
+           b=EToRSuvUfQVP3Bkz ... rTB0t0gYnBVCM=
+     From: sender@newyork.example.com
+     Date: Fri, Feb 15 2002 16:54:30 -0800
+     To: meetings@example.net
+     Message-Id: <12345.abc@newyork.example.com>
+     Subject: here's a sample
+
+   Example 6: Headers reporting results from multiple MTAs in different
+   ADMDs
+
+   In this example we see multi-tiered authentication with an extended
+   trust boundary.
+
+   The message was sent from someone at example.com's New York office
+   (newyork.example.com) to a mailing list managed at an intermediary.
+
+
+
+Kucherawy              Expires September 24, 2010               [Page 6]
+
+Internet-Draft     Auth-Results header.b Registration         March 2010
+
+
+   The message was signed at the origin using [DKIM].
+
+   The message was sent to a mailing list service provider called
+   example.net, which is used by example.com.  There,
+   meetings@example.net is expanded to a long list of recipients, one of
+   that is at the Chicago office.  In this example, we will assume that
+   the trust boundary for chicago.example.com includes the mailing list
+   server at example.net.
+
+   The mailing list server there first authenticated the message and
+   affixed an Authentication-Results header field indicating such using
+   its DNS domain name for the authserv-id.  It then altered the message
+   by affixing some footer text to the body, including some
+   administrivia such as unsubscription instructions.  Finally, the
+   mailing list server affixes a second [DKIM] signature and begins
+   distribution of the message.
+
+   The border MTA for chicago.example.com explicitly trusts results from
+   mail-router.example.net so that header field is not removed.  It
+   performs evaluation of both signatures and determines that the first
+   (most recent) is a "pass" but, because of the aforementioned
+   modifications, the second is a "fail".  However, the first signature
+   included the Authentication-Results header added at mail-
+   router.example.net that validated the second signature.  Thus,
+   indirectly, it can be determined that the authentications claimed by
+   both signatures are indeed valid.
+
+   The presence of "header.b" tags on the Authentication-Results header
+   fields shown positively associate the results with the signatures
+   that generated them.  Without these, such determination would not be
+   possible without some out-of-band communication between the signature
+   evaluating code and downstream agents.
+
+Appendix B.  Acknowledgements
+
+   The author wishes to acknowledge the following for their review and
+   constructive criticism of this proposal: (names)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kucherawy              Expires September 24, 2010               [Page 7]
+
+Internet-Draft     Auth-Results header.b Registration         March 2010
+
+
+Author's Address
+
+   Murray S. Kucherawy
+   Cloudmark, Inc.
+   128 King St., 2nd Floor
+   San Francisco, CA  94107
+   US
+
+   Phone: +1 415 946 3800
+   EMail: msk@cloudmark.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kucherawy              Expires September 24, 2010               [Page 8]
+

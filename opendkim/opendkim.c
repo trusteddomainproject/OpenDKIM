@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.111.2.3 2010/03/12 23:37:26 cm-msk Exp $
+**  $Id: opendkim.c,v 1.111.2.4 2010/04/06 21:09:19 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111.2.3 2010/03/12 23:37:26 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111.2.4 2010/04/06 21:09:19 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -10677,11 +10677,37 @@ mlfi_eom(SMFICTX *ctx)
 
 			if (dfc->mctx_status != DKIMF_STATUS_NOSIGNATURE)
 			{
+				char ss[BUFRSZ + 1];
+				DKIM_STAT ts;
+
+				memset(ss, '\0', sizeof ss);
+
 				strlcat((char *) header, DELIMITER,
 				        sizeof header);
 				strlcat((char *) header,
 				        "header.i=", sizeof header);
 				strlcat((char *) header, val, sizeof header);
+
+				sig = dkim_getsignature(dfc->mctx_dkimv);
+				if (sig != NULL)
+				{
+					size_t ssl;
+
+					ssl = sizeof ss - 1;
+					ts = dkim_get_sigsubstring(dfc->mctx_dkimv,
+				                                   sig,
+					                           ss, &ssl);
+				}
+
+				if (sig != NULL && ts == DKIM_STAT_OK)
+				{
+					strlcat((char *) header, DELIMITER,
+					        sizeof header);
+					strlcat((char *) header,
+					        "header.b=", sizeof header);
+					strlcat((char *) header, ss,
+					        sizeof header);
+				}
 			}
 		}
 
