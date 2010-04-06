@@ -4,7 +4,7 @@
 </head>
 <body>
 <!--
-$Id: index.html,v 1.6 2010/03/01 19:15:38 cm-msk Exp $
+$Id: index.html,v 1.6.2.1 2010/04/06 21:21:19 cm-msk Exp $
 -->
 
 <h1>OpenDKIM Library (libopendkim)</h1>
@@ -496,6 +496,12 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
   <td> <a href="dkim_get_msgdate.html"> <tt>dkim_get_msgdate()</tt> </a> </td>
   <td> Attempt to parse the Date: header field of a message and return its
        UNIX <tt>time_t</tt> conversion. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_get_sigsubstring.html"> <tt>dkim_get_sigsubstring()</tt> </a> </td>
+  <td> Retrieve a minimal signature substring for matching results to
+       signatures. </td>
  </tr>
 
  <tr>
