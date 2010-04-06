@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.112.6.2 2010/04/05 23:26:45 cm-msk Exp $
+**  $Id: opendkim.c,v 1.112.6.3 2010/04/06 20:33:28 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.112.6.2 2010/04/05 23:26:45 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.112.6.3 2010/04/06 20:33:28 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -10078,43 +10078,6 @@ mlfi_eom(SMFICTX *ctx)
 
 		authorsig = dkimf_authorsigok(dfc);
 
-#ifdef _FFR_STATS
-		if (conf->conf_statspath != NULL)
-		{
-			struct Header *hdr;
-			_Bool fromlist = FALSE;
-
-			hdr = dkimf_findheader(dfc, "Precedence", 0);
-			if (hdr != NULL &&
-			    strcasecmp(hdr->hdr_val, "list") == 0)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "List-Id", 0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "List-Post", 0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "List-Unsubscribe",
-			                          0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "Mailing-List",
-			                          0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-
-			dkimf_stats_record(conf->conf_statspath,
-			                   dfc->mctx_jobid, dfc->mctx_dkimv,
-			                   fromlist);
-		}
-#endif /* _FFR_STATS */
-
 #ifdef _FFR_ZTAGS
 		if (conf->conf_diagdir != NULL &&
 		    dfc->mctx_status == DKIMF_STATUS_BAD)
@@ -10430,6 +10393,43 @@ mlfi_eom(SMFICTX *ctx)
 				}
 			}
 		}
+
+#ifdef _FFR_STATS
+		if (conf->conf_statspath != NULL && dfc->mctx_dkimv != NULL)
+		{
+			struct Header *hdr;
+			_Bool fromlist = FALSE;
+
+			hdr = dkimf_findheader(dfc, "Precedence", 0);
+			if (hdr != NULL &&
+			    strcasecmp(hdr->hdr_val, "list") == 0)
+			{
+				fromlist = TRUE;
+			}
+			else if (dkimf_findheader(dfc, "List-Id", 0) != NULL)
+			{
+				fromlist = TRUE;
+			}
+			else if (dkimf_findheader(dfc, "List-Post", 0) != NULL)
+			{
+				fromlist = TRUE;
+			}
+			else if (dkimf_findheader(dfc, "List-Unsubscribe",
+			                          0) != NULL)
+			{
+				fromlist = TRUE;
+			}
+			else if (dkimf_findheader(dfc, "Mailing-List",
+			                          0) != NULL)
+			{
+				fromlist = TRUE;
+			}
+
+			dkimf_stats_record(conf->conf_statspath,
+			                   dfc->mctx_jobid, dfc->mctx_dkimv,
+			                   dfc->mctx_pcode, fromlist);
+		}
+#endif /* _FFR_STATS */
 
 		if (dfc->mctx_addheader &&
 		    dfc->mctx_status != DKIMF_STATUS_UNKNOWN)
