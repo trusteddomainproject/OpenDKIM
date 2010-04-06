@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.8.8.6 2010/04/06 21:29:36 cm-msk Exp $
+**  $Id: stats.c,v 1.8.8.7 2010/04/06 22:21:56 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.6 2010/04/06 21:29:36 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.7 2010/04/06 22:21:56 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -305,14 +305,6 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 				recdata.sd_adsp_discardable++;
 		}
 	}
-
-#if 0
-	/* XXX -- FINISH THESE */
-	u_int		sd_chghdr_from;
-	u_int		sd_chghdr_to;
-	u_int		sd_chghdr_subject;
-	u_int		sd_chghdr_other;
-#endif /* 0 */
 
 	/* write it out */
 	status = dkimf_db_put(db, jobid, strlen(jobid), &recdata,

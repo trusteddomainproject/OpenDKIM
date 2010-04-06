@@ -91,24 +91,6 @@ signing.  This means the message contained one or more signature(s) with an
 "l=" tag, but the received message had a body length larger than that
 value.
 .TP
-.I chgfrom
-Count of signatures on this message for which verification failed and the
-failure could be attributed to a change in the From: header field.
-.TP
-.I chgto
-Count of signatures on this message for which verification failed and the
-failure could be attributed to a change in the To: header field.
-.TP
-.I chgsubj
-Count of signatures on this message for which verification failed and the
-failure could be attributed to a change in the Subject: header
-field.
-.TP
-.I chgother
-Count of signatures on this message for which verification failed and the
-failure could be attributed to a change in a header field other than From:,
-To: and Subject:.
-.TP
 .I keyt
 Count of signatures on this message that referred to a key record that had
 a "t=" tag.
