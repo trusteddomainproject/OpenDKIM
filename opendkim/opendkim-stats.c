@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.7.8.4 2010/04/05 22:42:35 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.7.8.5 2010/04/06 23:28:23 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.4 2010/04/05 22:42:35 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.5 2010/04/06 23:28:23 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -297,14 +297,6 @@ dkims_dump(char *path, char *mailto)
 			dkims_output(out, "failbody", recdata_v2.sd_failbody,
 			             TRUE);
 			dkims_output(out, "ext", recdata_v2.sd_extended, TRUE);
-			dkims_output(out, "chgfrom", recdata_v2.sd_chghdr_from,
-			             TRUE);
-			dkims_output(out, "chgto", recdata_v2.sd_chghdr_to,
-			             TRUE);
-			dkims_output(out, "chgsubj",
-			             recdata_v2.sd_chghdr_subject, TRUE);
-			dkims_output(out, "chgother",
-			             recdata_v2.sd_chghdr_other, TRUE);
 			dkims_output(out, "keyt", recdata_v2.sd_key_t, TRUE);
 			dkims_output(out, "keyg", recdata_v2.sd_key_g, TRUE);
 			dkims_output(out, "keysyntax",
