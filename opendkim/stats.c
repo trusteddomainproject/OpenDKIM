@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.8.8.5 2010/04/06 20:33:55 cm-msk Exp $
+**  $Id: stats.c,v 1.8.8.6 2010/04/06 21:29:36 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.5 2010/04/06 20:33:55 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.6 2010/04/06 21:29:36 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -77,6 +77,7 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 	_Bool sigfailed;
 	_Bool sigfailedbody;
 	_Bool sigpassed;
+	_Bool validauthorsig = FALSE;
 	int status = 0;
 	int version;
 	int nsigs;
@@ -203,6 +204,8 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 				recdata.sd_authorsigs++;
 				if (sigfailed)
 					recdata.sd_authorsigsfail++;
+				else
+					validauthorsig = TRUE;
 
 				(void) dkim_sig_getcanons(sigs[c],
 				                          &recdata.sd_hdrcanon,
@@ -290,15 +293,25 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 		}
 	}
 
+	if (dkim_getpresult(dkimv) == DKIM_PRESULT_AUTHOR)
+	{
+		recdata.sd_adsp_found++;
+
+		if (!validauthorsig)
+		{
+			if (pcode == DKIM_POLICY_ALL)
+				recdata.sd_adsp_fail++;
+			if (pcode == DKIM_POLICY_DISCARDABLE)
+				recdata.sd_adsp_discardable++;
+		}
+	}
+
 #if 0
 	/* XXX -- FINISH THESE */
 	u_int		sd_chghdr_from;
 	u_int		sd_chghdr_to;
 	u_int		sd_chghdr_subject;
 	u_int		sd_chghdr_other;
-	u_int		sd_adsp_found;
-	u_int		sd_adsp_fail;
-	u_int		sd_adsp_discardable;
 #endif /* 0 */
 
 	/* write it out */
