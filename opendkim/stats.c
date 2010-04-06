@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.8.8.3 2010/04/05 23:41:59 cm-msk Exp $
+**  $Id: stats.c,v 1.8.8.4 2010/04/06 18:16:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.3 2010/04/05 23:41:59 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.4 2010/04/06 18:16:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -25,6 +25,7 @@ static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.3 2010/04/05 23:41:59 cm-ms
 #include <fcntl.h>
 #include <assert.h>
 #include <syslog.h>
+#include <stdlib.h>
 
 /* libopendkim includes */
 #include <dkim.h>
@@ -77,6 +78,7 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, _Bool fromlist)
 	int status = 0;
 	int version;
 	int nsigs;
+	int err;
 	int c;
 	off_t canonlen;
 	off_t signlen;
@@ -225,6 +227,65 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, _Bool fromlist)
 			if (msglen > signlen)
 				recdata.sd_extended++;
 		}
+
+		if (dkim_sig_gettagvalue(sigs[c], TRUE, "g") != NULL)
+			recdata.sd_key_g++;
+
+		p = dkim_sig_gettagvalue(sigs[c], FALSE, "t");
+		if (p != NULL)
+		{
+			recdata.sd_sig_t++;
+
+			if (strtoul(p, NULL, 10) > recdata.sd_when)
+				recdata.sd_sig_t_future++;
+		}
+
+		if (dkim_sig_gettagvalue(sigs[c], FALSE, "x") != NULL)
+			recdata.sd_sig_x++;
+
+		if (dkim_sig_gettagvalue(sigs[c], FALSE, "z") != NULL)
+			recdata.sd_sig_z++;
+
+		err = dkim_sig_geterror(sigs[c]);
+
+		switch (err)
+		{
+		  case DKIM_SIGERROR_NOKEY:
+		  case DKIM_SIGERROR_KEYFAIL:
+			recdata.sd_key_missing++;
+			break;
+
+		  case DKIM_SIGERROR_VERSION:
+		  case DKIM_SIGERROR_DOMAIN:
+		  case DKIM_SIGERROR_TIMESTAMPS:
+		  case DKIM_SIGERROR_MISSING_C:
+		  case DKIM_SIGERROR_INVALID_HC:
+		  case DKIM_SIGERROR_INVALID_BC:
+		  case DKIM_SIGERROR_MISSING_A:
+		  case DKIM_SIGERROR_INVALID_A:
+		  case DKIM_SIGERROR_MISSING_H:
+		  case DKIM_SIGERROR_INVALID_L:
+		  case DKIM_SIGERROR_INVALID_Q:
+		  case DKIM_SIGERROR_INVALID_QO:
+		  case DKIM_SIGERROR_MISSING_D:
+		  case DKIM_SIGERROR_EMPTY_D:
+		  case DKIM_SIGERROR_MISSING_S:
+		  case DKIM_SIGERROR_EMPTY_S:
+		  case DKIM_SIGERROR_MISSING_B:
+		  case DKIM_SIGERROR_EMPTY_B:
+		  case DKIM_SIGERROR_CORRUPT_B:
+		  case DKIM_SIGERROR_DNSSYNTAX:
+		  case DKIM_SIGERROR_MISSING_BH:
+		  case DKIM_SIGERROR_EMPTY_BH:
+		  case DKIM_SIGERROR_CORRUPT_BH:
+		  case DKIM_SIGERROR_MULTIREPLY:
+		  case DKIM_SIGERROR_EMPTY_H:
+		  case DKIM_SIGERROR_TOOLARGE_L:
+		  case DKIM_SIGERROR_KEYHASHMISMATCH:
+		  case DKIM_SIGERROR_KEYDECODE:
+			recdata.sd_key_syntax++;
+			break;
+		}
 	}
 
 #if 0
@@ -233,13 +294,6 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, _Bool fromlist)
 	u_int		sd_chghdr_to;
 	u_int		sd_chghdr_subject;
 	u_int		sd_chghdr_other;
-	u_int		sd_key_g;
-	u_int		sd_key_syntax;
-	u_int		sd_key_missing;
-	u_int		sd_sig_t;
-	u_int		sd_sig_t_future;
-	u_int		sd_sig_x;
-	u_int		sd_sig_z;
 	u_int		sd_adsp_found;
 	u_int		sd_adsp_fail;
 	u_int		sd_adsp_discardable;
