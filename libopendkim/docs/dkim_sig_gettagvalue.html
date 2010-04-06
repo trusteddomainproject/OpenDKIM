@@ -1,0 +1,82 @@
+<html>
+<head><title>dkim_sig_gettagvalue()</title></head>
+<body>
+<!--
+$Id: dkim_sig_gettagvalue.html,v 1.1.2.1 2010/04/06 17:56:17 cm-msk Exp $
+-->
+<h1>dkim_sig_gettagvalue()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+unsigned char *dkim_sig_gettagvalue(
+	<a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *sig,
+        _Bool keytag,
+        char *tag
+);
+</pre>
+Retrieve the raw value of a signature or key tag.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_sig_gettagvalue()</tt> is called after
+    <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a> when <tt>dkim</tt> is a
+    verifying handle, i.e. one returned by an earlier call to
+    <a href="dkim_verify.html"><tt>dkim_verify()</tt></a>. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>sig</td>
+	<td>Signature-specific handle, returned by
+        <a href="dkim_getsiglist.html"><tt>dkim_getsiglist</tt></a>.
+	May not be NULL.
+	</td></tr>
+    <tr valign="top"><td>keytag</td>
+	<td>If TRUE, indicates that the tag of interest can be found in
+	the key record associated with the signature.  If FALSE, the tag
+	of interest is expected to be within the signature itself.
+	</td></tr>
+    <tr valign="top"><td>tag</td>
+	<td>A pointer to a string containing the name of the tag of interest.
+	May not be NULL.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>The data thus returned has not necessarily been processed for validity
+or safety.  Exercise caution.
+<li>This interface was added to support the collection of statistics
+about DKIM use, and is not intended for general use by applications.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2005, 2007, 2008 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

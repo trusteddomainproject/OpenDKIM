@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.25 2010/03/01 19:50:32 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.25.8.1 2010/04/06 17:56:17 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1499,6 +1499,28 @@ extern int dkim_test_adsp __P((DKIM_LIB *, const char *, dkim_policy_t *,
 
 extern int dkim_test_key __P((DKIM_LIB *, char *, char *, char *, size_t,
                               char *, size_t));
+
+/*
+**  DKIM_SIG_GETTAGVALUE -- retrieve a tag's value from a signature or its key
+**
+**  Parameters:
+**  	sig -- DKIM_SIGINFO handle
+**  	keytag -- TRUE iff we want a key's tag
+**  	tag -- name of the tag of interest
+**
+**  Return value:
+**  	Pointer to the string containing the value of the requested key,
+**  	or NULL if not present.
+**
+**  Notes:
+**  	This was added for use in determining whether or not a key or
+**  	signature contained particular data, for gathering general statistics
+**  	about DKIM use.  It is not intended to give applications direct access
+**  	to unprocessed signature or key data.  The data returned has not
+**  	necessarily been vetted in any way.  Caveat emptor.
+*/
+
+extern u_char *dkim_sig_gettagvalue __P((DKIM_SIGINFO *, _Bool, char *));
 
 /*
 **  DKIM_STRLCPY -- size-bounded strcpy()

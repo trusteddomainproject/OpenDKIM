@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.46 2010/03/21 06:23:28 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.46.6.1 2010/04/06 17:56:17 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7641,4 +7641,40 @@ unsigned long
 dkim_libversion(void)
 {
 	return OPENDKIM_LIB_VERSION;
+}
+
+/*
+**  DKIM_SIG_GETTAGVALUE -- retrieve a tag's value from a signature or its key
+**
+**  Parameters:
+**  	sig -- DKIM_SIGINFO handle
+**  	keytag -- TRUE iff we want a key's tag
+**  	tag -- name of the tag of interest
+**
+**  Return value:
+**  	Pointer to the string containing the value of the requested key,
+**  	or NULL if not present.
+**
+**  Notes:
+**  	This was added for use in determining whether or not a key or
+**  	signature contained particular data, for gathering general statistics
+**  	about DKIM use.  It is not intended to give applications direct access
+**  	to unprocessed signature or key data.  The data returned has not
+**  	necessarily been vetted in any way.  Caveat emptor.
+*/
+
+u_char *
+dkim_sig_gettagvalue(DKIM_SIGINFO *sig, _Bool keytag, char *tag)
+{
+	DKIM_SET *set;
+
+	assert(sig != NULL);
+	assert(tag != NULL);
+
+	if (keytag)
+		set = sig->sig_keytaglist;
+	else
+		set = sig->sig_taglist;
+
+	return dkim_param_get(set, tag);
 }
