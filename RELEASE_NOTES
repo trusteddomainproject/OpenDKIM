@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.113.2.19 2010/04/06 21:28:42 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.113.2.20 2010/04/07 19:10:47 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -13,6 +13,7 @@ release, and a summary of the changes in that release.
 		"--with-domainkeys" when a path is given, and repair
 		DomainKeys build in opendkim/Makefile.am.  Reported by
 		Gary Mills.
+	BUILD: Fix bug #SF2983206: Pass "-rpath" to libtool for libopendkim.
 	BUILD: Path fix in opendkim.pc from Stefan Schulze Frielinghaus.
 
 2.0.1		2010/03/20

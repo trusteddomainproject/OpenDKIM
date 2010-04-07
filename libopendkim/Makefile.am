@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.47 2010/03/01 21:10:01 cm-msk Exp $
+# $Id: Makefile.am,v 1.47.2.1 2010/04/07 19:10:47 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -9,7 +9,7 @@ lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c base64.h dkim-cache.h dkim-canon.h dkim-internal.h dkim-keys.h dkim-mailparse.h dkim-policy.h dkim-rep.h dkim-strl.h dkim-tables.h dkim-test.h dkim-types.h dkim-ub.h dkim-util.h dkim.h util.h
 libopendkim_la_CFLAGS = $(LIBOPENDKIM_INC) $(PTHREAD_CFLAGS) $(COV_CFLAGS)
 libopendkim_la_CC = $(PTHREAD_CC)
-libopendkim_la_LDFLAGS = -no-undefined  $(LIBCRYPTO_LIBDIRS) $(PTHREAD_CFLAGS) $(COV_LDFLAGS) -version-info $(LIBOPENDKIM_VERSION_INFO)
+libopendkim_la_LDFLAGS = -no-undefined  $(LIBCRYPTO_LIBDIRS) $(PTHREAD_CFLAGS) $(COV_LDFLAGS) -version-info $(LIBOPENDKIM_VERSION_INFO) -rpath $(libdir)
 libopendkim_la_LIBADD = $(LIBOPENDKIM_LIBS) $(PTHREAD_LIBS) $(COV_LIBADD)
 if !ALL_SYMBOLS
 libopendkim_la_DEPENDENCIES = symbols.map
