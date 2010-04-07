@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.25 2010/03/01 19:50:32 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.26 2010/04/07 19:30:46 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1457,6 +1457,23 @@ extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
 */
 
 extern unsigned long dkim_libversion __P((void));
+
+/*
+**  DKIM_GET_SIGSUBSTRING -- retrieve a minimal signature substring for
+**                           disambiguation
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**  	sig -- DKIM_SIGINFO handle
+**  	buf -- buffer into which to put the substring
+**  	buflen -- bytes available at "buf"
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_get_sigsubstring __P((DKIM *, DKIM_SIGINFO *,
+                                            char *, size_t *));
 
 /*
 **  DKIM_TEST_ADSP -- verify that a valid author domain signing policy exists

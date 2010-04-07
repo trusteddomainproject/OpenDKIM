@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.141 2010/03/21 06:22:06 cm-msk Exp $
+# $Id: configure.ac,v 1.142 2010/04/07 19:30:46 cm-msk Exp $
 
 #
 # Setup
@@ -23,7 +23,7 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "current" and reset "revision" with API changes
 # 	- bump "revision" with internal source code changes
 #
-m4_define([LIBVERSION_CURRENT], 1)
+m4_define([LIBVERSION_CURRENT], 2)
 m4_define([LIBVERSION_REVISION], 0)
 m4_define([LIBVERSION_AGE], 0)
 
