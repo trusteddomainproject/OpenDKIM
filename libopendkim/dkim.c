@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.45.2.5 2010/04/06 21:09:19 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.45.2.6 2010/04/07 19:23:17 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -120,7 +120,6 @@ void dkim_error __P((DKIM *, const char *, ...));
 
 #define	DEFCLOCKDRIFT		300
 #define	DEFTIMEOUT		10
-#define	MINSIGLEN		8
 
 /* local definitions needed for DNS queries */
 #define MAXPACKET		8192
@@ -7628,83 +7627,6 @@ dkim_get_reputation(DKIM *dkim, DKIM_SIGINFO *sig, char *qroot, int *rep)
 #else /* _FFR_DKIM_REPUTATION */
 	return DKIM_STAT_NOTIMPLEMENT;
 #endif /* _FFR_DKIM_REPUTATION */
-}
-
-/*
-**  DKIM_GET_SIGSUBSTRING -- retrieve a minimal signature substring for
-**                           disambiguation
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	sig -- DKIM_SIGINFO handle
-**  	buf -- buffer into which to put the substring
-**  	buflen -- bytes available at "buf"
-**
-**  Return value:
-**  	A DKIM_STAT_* constant.
-*/
-
-DKIM_STAT
-dkim_get_sigsubstring(DKIM *dkim, DKIM_SIGINFO *sig, char *buf, size_t *buflen)
-{
-	int c;
-	int d;
-	int x;
-	int b1len;
-	int b2len;
-	int minlen;
-	char *b1;
-	char *b2;
-
-	assert(dkim != NULL);
-	assert(sig != NULL);
-	assert(buf != NULL);
-	assert(buflen != NULL);
-
-	if (dkim->dkim_minsiglen == 0)
-	{
-		dkim->dkim_minsiglen = MINSIGLEN;
-
-		for (c = 0; c < dkim->dkim_sigcount - 1; c++)
-		{
-			b1 = dkim_param_get(dkim->dkim_siglist[c]->sig_taglist,
-			                    "b");
-			if (b1 == NULL)
-				continue;
-
-			b1len = strlen(b1);
-
-			for (d = c + 1; d < dkim->dkim_sigcount; d++)
-			{
-				b2 = dkim_param_get(dkim->dkim_siglist[d]->sig_taglist,
-				                    "b");
-				if (b2 == NULL)
-					continue;
-
-				b2len = strlen(b2);
-
-				minlen = MIN(strlen(b1), strlen(b2));
-
-				for (x = dkim->dkim_minsiglen; x < minlen; x++)
-				{
-					if (b1[x] != b2[x])
-						break;
-				}
-
-				dkim->dkim_minsiglen = x;
-			}
-		}
-	}
-
-	b1 = dkim_param_get(sig->sig_taglist, "b");
-	if (b1 == NULL)
-		return DKIM_STAT_SYNTAX;
-
-	minlen = MIN(*buflen, dkim->dkim_minsiglen);
-	strncpy(buf, b1, minlen);
-	*buflen = minlen;
-
-	return DKIM_STAT_OK;
 }
 
 /*
