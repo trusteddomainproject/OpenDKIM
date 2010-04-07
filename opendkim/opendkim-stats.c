@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.7.8.10 2010/04/07 03:57:10 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.7.8.11 2010/04/07 03:59:11 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.10 2010/04/07 03:57:10 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.11 2010/04/07 03:59:11 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -195,11 +195,12 @@ dkims_dump(char *path, char *mailto)
 
 			/* MTA should add From: and Date: */
 			fprintf(out, "To: %s\n", mailto);
-			fprintf(out, "Subject: %s report at %ld\n",
-			        progname, now);
+			fprintf(out, "Subject: %s report from %s at %ld\n",
+			        progname, hostname, now);
 			fprintf(out, "\n");
 
 			fprintf(out, "Report-Time: %ld\n", now);
+			fprintf(out, "Report-Host: %s\n", hostname);
 			fprintf(out, "Report-Version: %d\n", version);
 
 			fprintf(out, "\n");
