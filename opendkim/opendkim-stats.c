@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.7.8.6 2010/04/07 03:29:18 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.7.8.7 2010/04/07 03:34:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.6 2010/04/07 03:29:18 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.7 2010/04/07 03:34:37 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -266,6 +266,7 @@ dkims_dump(char *path, char *mailto)
 			datalen = sizeof recdata_v1;
 			status = dkimf_db_walk(db, first, jobid, &keylen,
 			                       &dbd, 1);
+			first = FALSE;
 			if (status == 1)
 			{
 				done = TRUE;
@@ -278,6 +279,11 @@ dkims_dump(char *path, char *mailto)
 				        progname, path);
 				done = TRUE;
 				break;
+			}
+			else if (strncmp(jobid, DKIMF_STATS_SENTINEL,
+			                 strlen(DKIMF_STATS_SENTINEL)) == 0)
+			{
+				continue;
 			}
 
 			/* dump record contents */
@@ -328,7 +334,6 @@ dkims_dump(char *path, char *mailto)
 
 			fprintf(out, "\n");
 				
-			first = FALSE;
 			break;
 
 		  default:
