@@ -1,16 +1,13 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.113.2.21 2010/04/07 19:23:17 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.113.2.22 2010/04/07 19:24:51 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.0.2		2010/0?/??
-	Add support for draft-kucherawy-authres-header-b-00.
 	LIBOPENDKIM: Fix dkim_chunk() to handle a message that starts with
 		a CRLF.  Problem noted by Masumi Taketomi Parekh of Yahoo!.
-	LIBOPENDKIM: Add dkim_get_sigsubstring(), required for "header.b"
-		support.
 	BUILD: Fix bug #SF2981597: Incorrect variable check for
 		"--with-domainkeys" when a path is given, and repair
 		DomainKeys build in opendkim/Makefile.am.  Reported by
