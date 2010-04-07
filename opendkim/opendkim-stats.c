@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.7.8.5 2010/04/06 23:28:23 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.7.8.6 2010/04/07 03:29:18 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.5 2010/04/06 23:28:23 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.6 2010/04/07 03:29:18 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -394,7 +394,7 @@ dkims_initdb(char *path)
 	assert(path != NULL);
 
 	/* fail if it already exists */
-	if (access(path, W_OK) != 0)
+	if (access(path, F_OK|W_OK) == 0)
 	{
 		fprintf(stderr, "%s: %s already exists\n", progname, path);
 		return EX_SOFTWARE;
