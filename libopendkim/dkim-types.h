@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.13.4.1 2010/04/06 21:09:19 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.13.4.2 2010/04/07 19:27:30 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -238,7 +238,6 @@ struct dkim
 	int			dkim_timeout;
 	int			dkim_presult;
 	int			dkim_hdrcnt;
-	int			dkim_minsiglen;
 #ifdef _FFR_RESIGN
 	u_int			dkim_refcnt;
 #endif /* _FFR_RESIGN */
