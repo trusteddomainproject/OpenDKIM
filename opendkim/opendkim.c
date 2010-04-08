@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.111.2.5 2010/04/07 19:23:17 cm-msk Exp $
+**  $Id: opendkim.c,v 1.111.2.6 2010/04/08 17:32:24 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111.2.5 2010/04/07 19:23:17 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111.2.6 2010/04/08 17:32:24 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4412,6 +4412,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	assert(err != NULL);
 
 	memset(basedir, '\0', sizeof basedir);
+	memset(confstr, '\0', sizeof confstr);
 
 	if (data != NULL)
 	{
@@ -4547,7 +4548,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                  sizeof conf->conf_modestr);
 		}
 
-		memset(confstr, '\0', sizeof confstr);
 		dkimf_parseconfig2(data, "On-Default", "def", confstr,
 		                   sizeof confstr);
 		dkimf_parseconfig2(data, "On-BadSignature", "bad",

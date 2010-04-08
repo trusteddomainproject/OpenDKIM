@@ -1,11 +1,14 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.113.2.24 2010/04/08 00:05:13 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.113.2.25 2010/04/08 17:32:24 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.0.2		2010/04/12
+	Fix bug #SF2983979: Fix a configuration buffer initialization
+		error tripped when running in test mode.  Patch from
+		Kaspar Brand.
 	LIBOPENDKIM: Fix dkim_chunk() to handle a message that starts with
 		a CRLF.  Problem noted by Masumi Taketomi Parekh of Yahoo!.
 	BUILD: Fix bug #SF2981597: Incorrect variable check for
