@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.139.2.9 2010/04/07 19:41:31 cm-msk Exp $
+# $Id: configure.ac,v 1.139.2.10 2010/04/08 00:05:13 cm-msk Exp $
 
 #
 # Setup
@@ -250,6 +250,15 @@ FFR_FEATURE([ztags], [sign/verify with z= tags])
 
 FFR_FEATURE([stats], [stats recording and reporting])
 AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
+
+#
+# use rpath at load time?
+#
+
+AC_ARG_ENABLE([rpath],
+	AS_HELP_STRING([--enable-rpath],
+	               [include library load paths in binaries]))
+AM_CONDITIONAL([RPATH], [test x"$enable_rpath" = x"yes"])
 
 #
 # test coverage/profiling stuff
