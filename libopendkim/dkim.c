@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.48 2010/04/11 05:22:55 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.49 2010/04/11 05:38:54 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7666,7 +7666,7 @@ dkim_get_sigsubstring(DKIM *dkim, DKIM_SIGINFO *sig, char *buf, size_t *buflen)
 						break;
 				}
 
-				dkim->dkim_minsiglen = x;
+				dkim->dkim_minsiglen = x + 1;
 			}
 		}
 	}
