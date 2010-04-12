@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.142 2010/04/07 19:30:46 cm-msk Exp $
+# $Id: configure.ac,v 1.143 2010/04/12 15:08:46 cm-msk Exp $
 
 #
 # Setup
@@ -250,6 +250,15 @@ FFR_FEATURE([ztags], [sign/verify with z= tags])
 
 FFR_FEATURE([stats], [stats recording and reporting])
 AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
+
+#
+# use rpath at load time?
+#
+
+AC_ARG_ENABLE([rpath],
+	AS_HELP_STRING([--enable-rpath],
+	               [include library load paths in binaries]))
+AM_CONDITIONAL([RPATH], [test x"$enable_rpath" = x"yes"])
 
 #
 # test coverage/profiling stuff
@@ -1342,7 +1351,7 @@ then
 else
 	AC_MSG_CHECKING([for DomainKeys])
 
-	if test -f $d/include/dk.h -a -f $d/lib/libdk.a
+	if test -f $dk/include/dk.h -a -f $dk/lib/libdk.a
 	then
 		AC_MSG_RESULT($dk)
 		LIBDK_INCDIRS="-I$dk/include"
@@ -1355,10 +1364,14 @@ else
 	fi
 fi
 
-LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBDK_LIBS $LIBRESOLV"
+AC_SUBST(LIBDK_INCDIRS)
+AC_SUBST(LIBDK_LIBDIRS)
+AC_SUBST(LIBDK_LIBS)
+
+LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBUNBOUND_LIBS $LIBRESOLV"
 # This (below) is just for the pkg-config file opendkim.pc.in
 LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
-LIBOPENDKIM_INC="$LIBCRYPTO_CPPFLAGS $LIBCRYPTO_CFLAGS $LIBTRE_CFLAGS $LIBUNBOUND_INCDIRS $LIBDK_INCDIRS"
+LIBOPENDKIM_INC="$LIBCRYPTO_CPPFLAGS $LIBCRYPTO_CFLAGS $LIBTRE_CFLAGS $LIBUNBOUND_INCDIRS"
 
 if test x"$enable_arlib" = x"yes"
 then

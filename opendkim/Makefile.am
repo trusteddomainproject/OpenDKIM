@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.66 2010/03/21 06:23:29 cm-msk Exp $
+# $Id: Makefile.am,v 1.67 2010/04/12 15:08:46 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -42,6 +42,11 @@ endif
 if VBR
 opendkim_CPPFLAGS += -I$(srcdir)/../libvbr
 opendkim_LDADD += ../libvbr/libvbr.la
+endif
+if VERIFY_DOMAINKEYS
+opendkim_CPPFLAGS += $(LIBDK_INCDIRS)
+opendkim_LDFLAGS += $(LIBDK_LIBDIRS)
+opendkim_LDADD += $(LIBDK_LIBS)
 endif
 
 opendkim_CPPFLAGS += $(LIBMILTER_INCDIRS)

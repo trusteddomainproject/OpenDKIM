@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.47 2010/03/01 21:10:01 cm-msk Exp $
+# $Id: Makefile.am,v 1.48 2010/04/12 15:08:46 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -14,6 +14,9 @@ libopendkim_la_LIBADD = $(LIBOPENDKIM_LIBS) $(PTHREAD_LIBS) $(COV_LIBADD)
 if !ALL_SYMBOLS
 libopendkim_la_DEPENDENCIES = symbols.map
 libopendkim_la_LDFLAGS += -export-symbols symbols.map
+endif
+if RPATH
+libopendkim_la_LDFLAGS += -rpath $(libdir)
 endif
 libopendkim_includedir = $(includedir)/opendkim
 libopendkim_include_HEADERS = dkim.h
