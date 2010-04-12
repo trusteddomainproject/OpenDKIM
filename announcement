@@ -1,44 +1,29 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.0.1 released
+Subject: OpenDKIM v2.0.2 released
 
 The OpenDKIM project announces availability of OpenDKIM v2.0.1, now available
 for download from SourceForge.
 
-This release contains minor fixes to a few bugs reported since the v2.0.0
-release.  The main fixes among them are a build issue that occurs when
-specifying "--with-openldap" while configuring the build, and a potential
-crash bug encountered when reading keys from files on disk prior to signing.
-
-Also of note is a change in the license terms being used by the project.
-We have changed from the older four-clause BSD license to the more
-practical three-clause BSD license.
+This release contains minor fixes to a few bugs (mostly build-related)
+reported since the v2.0.1 release.  There was one minor fix in the library
+having to do with the chunking interface as well.
 
 The RELEASE_NOTES for this version:
 
-2.0.1		2010/03/20
-	Fix bug #SF2964376: Don't use dkim_getsighdr() internally during
-		signing as it presumes signatures will fit within a bounded
-		character array and sometimes (e.g. with extensive data in
-		a "z=" tag) they don't, leading to signing failures on valid
-		messages.  Reported by James R. Marcus.
-	Fix bug #SF2969700: Remember to NULL-terminate key data loaded from
-		disk before using it.
-	Don't use MAXHOSTNAMELEN as its value is unreliable.
-	LIBOPENDKIM: Return an error from dkim_get_key_dns() if the
-		query string is too big for a hostname buffer, rather than
-		sending the truncated string to DNS anyway.
-	LIBOPENDKIM: Ensure string termination in dkim_sig_getidentity()
-		when calling dkim_qp_decode().  Patch from Stefan
-		Schulze Frielinghaus.
-	LIBOPENDKIM: In dkim_eom_sign(), don't change the handle's overall
-		state before erroring out if the chunking state is invalid.
-	BUILD: Fix bug #SF2969812: Don't install Lua sample files or man
-		pages when --with-lua isn't specified.  Patch from
+2.0.2		2010/04/12
+	Fix bug #SF2983979: Fix a configuration buffer initialization
+		error tripped when running in test mode.  Patch from
 		Kaspar Brand.
-	BUILD: Fix bug #SF2965318: Don't define USE_LUA when LDAP is enabled.
-		Problem noted by Guillaume Castagnino.
-	LICENSE: Change from 4-clause BSD license to 3-clause BSD license.
+	LIBOPENDKIM: Fix dkim_chunk() to handle a message that starts with
+		a CRLF.  Problem noted by Masumi Taketomi Parekh of Yahoo!.
+	BUILD: Fix bug #SF2981597: Incorrect variable check for
+		"--with-domainkeys" when a path is given, and repair
+		DomainKeys build in opendkim/Makefile.am.  Reported by
+		Gary Mills.
+	BUILD: Fix bug #SF2983206: Optionally pass "-rpath" to libtool for
+		libopendkim.
+	BUILD: Path fix in opendkim.pc from Stefan Schulze Frielinghaus.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers
