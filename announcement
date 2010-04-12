@@ -2,7 +2,7 @@ From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
 Subject: OpenDKIM v2.0.2 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.0.1, now available
+The OpenDKIM project announces availability of OpenDKIM v2.0.2, now available
 for download from SourceForge.
 
 This release contains minor fixes to a few bugs (mostly build-related)
