@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.68.6.3 2010/04/02 21:59:52 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.68.6.4 2010/04/13 21:57:00 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.3 2010/04/02 21:59:52 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.4 2010/04/13 21:57:00 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -170,6 +170,25 @@ struct dkimf_db_ldap
 	DB *			ldap_cache;
 # endif /* USE_DB */
 	pthread_mutex_t		ldap_lock;
+};
+
+struct dkimf_db_ldap_cache
+{
+	int			ldc_type;
+	void *			ldc_handle;
+};
+
+struct dkimf_db_ldap_cache_result
+{
+	time_t			ldcr_expire;
+	int			ldcr_nresults;
+	char **			ldcr_results;
+};
+
+struct dkimf_db_ldap_cache_pending
+{
+	int			ldcp_waiters;
+	pthread_cond_t		ldcp_cond;
 };
 #endif /* USE_LDAP */
 
@@ -2341,19 +2360,38 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		pthread_mutex_lock(&ldap->ldap_lock);
 
 # ifdef USE_DB
-		/* XXX -- if ldap->ldap_cache has a record for this query
-			if it's a "pending" value, sleep on the condition
-				when signaled, last one out destroys condition
-			else if it's a "cache" value
-				if the TTL has not expired, use cached value
+		if (ldap->ldap_cache != NULL)
+		{
+			_Bool cex = FALSE;
+			size_t datalen;
+			struct dkimf_db_data dbd;
+			struct dkimf_db_ldap_cache ldc;
+
+			datalen = sizeof ldc;
+			dbd.dbdata_buffer = &ldc;
+			dbd.dbdata_buflen = &datalen;
+			dbd.dbdata_flags = DKIMF_DB_DATA_BINARY;
+
+			status = dkimf_db_get(ldap->ldap_cache, buf, buflen,
+			                      &dbd, 1, &cex);
+
+			if (cex)
+			{
+				if (ldc.ldc_type == DKIMF_DB_CACHE_DATA)
+				{
+					/* XXX -- data cached, return it */
+				}
+				else if (ldc.ldc_type == DKIMF_DB_CACHE_PENDING)
+				{
+					/* XXX -- query pending, sleep on it */
+					/* XXX -- handle result */
+				}
+			}
 			else
-				make a new condition variable
-				add it as a "pending" value to the DB
-				start the query, wait for the reply
-				convert the "pending" value to a "cache" value
-				broadcast condition
-				use cached value
-		*/
+			{
+				/* XXX -- add pending info to cache, continue */
+			}
+		}
 # endif /* USE_DB */
 
 		memset(query, '\0', sizeof query);
@@ -2376,6 +2414,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		if (status != LDAP_SUCCESS)
 		{
 			db->db_status = status;
+# ifdef USE_DB
+			/* XXX -- notify waiters that the query failed */
+# endif /* USE_DB */
 			pthread_mutex_unlock(&ldap->ldap_lock);
 			return status;
 		}
@@ -2385,6 +2426,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		{
 			if (exists != NULL)
 				*exists = FALSE;
+# ifdef USE_DB
+			/* XXX -- notify waiters that the query failed */
+# endif /* USE_DB */
 			pthread_mutex_unlock(&ldap->ldap_lock);
 			return 0;
 		}
@@ -2420,6 +2464,11 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			req[c++].dbdata_buflen = 0;
 
 		ldap_msgfree(result);
+
+# ifdef USE_DB
+		/* XXX -- update cache, notify waiters, wait till they're out */
+# endif /* USE_DB */
+
 		pthread_mutex_unlock(&ldap->ldap_lock);
 		return 0;
 	  }
