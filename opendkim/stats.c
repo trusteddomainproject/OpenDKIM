@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.8.8.8 2010/04/07 03:32:02 cm-msk Exp $
+**  $Id: stats.c,v 1.8.8.9 2010/04/13 23:29:35 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.8 2010/04/07 03:32:02 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.9 2010/04/13 23:29:35 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -173,17 +173,17 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 		sigfailedbody = FALSE;
 		sigpassed = FALSE;
 
-		if (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PROCESSED != 0)
+		if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PROCESSED) != 0)
 		{
-			if (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED != 0 &&
+			if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0 &&
 			    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH)
 				sigpassed = TRUE;
 
-			if (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED == 0 ||
+			if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 ||
 			    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MISMATCH)
 				sigfailed = TRUE;
 
-			if (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED != 0 ||
+			if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 &&
 			    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MISMATCH)
 				sigfailedbody = TRUE;
 		}
