@@ -1,0 +1,37 @@
+-- $Id: mkdb.mysql,v 1.1.2.1 2010/04/13 23:50:28 cm-msk Exp $
+
+-- MySQL command sequence to create a database to accumulate OpenDKIM
+-- statistics reports
+
+create table opendkim_statistics (
+	id int unsigned not null auto_increment,
+		primary key(id),
+	jobid varchar(255) not null,
+		key(jobid),
+	msgtime timestamp not null,
+	algorithm int unsigned not null,
+	hdr_canon int unsigned not null,
+	body_canon int unsigned not null,
+	sigs_total int unsigned not null,
+	sigs_pass int unsigned not null,
+	sigs_fail int unsigned not null,
+	sigs_fail_body int unsigned not null,
+	extended int unsigned not null,
+	key_t int unsigned not null,
+	key_g int unsigned not null,
+	key_syntax int unsigned not null,
+	key_nx int unsigned not null,
+	sig_t int unsigned not null,
+	sig_t_future int unsigned not null,
+	sig_x int unsigned not null,
+	sig_l int unsigned not null,
+	sig_z int unsigned not null,
+	adsp int unsigned not null,
+	adsp_fail int unsigned not null,
+	adsp_discardable int unsigned not null,
+	author_sigs int unsigned not null,
+	author_sigs_fail int unsigned not null,
+	tp_sigs int unsigned not null,
+	tp_sigs_fail int unsigned not null,
+	mailing_list int unsigned not null
+) default charset=latin1;
