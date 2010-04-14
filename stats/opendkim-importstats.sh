@@ -1,6 +1,6 @@
 #!/bin/sh
 ##
-## $Id: opendkim-importstats.sh,v 1.1.2.1 2010/04/13 23:50:28 cm-msk Exp $
+## $Id: opendkim-importstats.sh,v 1.1.2.2 2010/04/14 04:17:09 cm-msk Exp $
 ##
 ## Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 ##
@@ -11,7 +11,49 @@
 database="opendkim"
 user="opendkim"
 password="opendkim"
-statsdb="/var/db/opendkim/stats.db"
+statsdb="/var/db/opendkim/opendkim-stats.db"
+
+## Argument processing
+while [ $# -gt 0 ]
+do
+	case $1 in
+	-d)	if [ $# -eq 1 ]
+		then
+			echo $progname: -d requires a value
+			exit 1
+		fi
+
+		shift
+		database=$1
+		;;
+
+	-p)	if [ $# -eq 1 ]
+		then
+			echo $progname: -p requires a value
+			exit 1
+		fi
+
+		shift
+		password=$1
+		;;
+
+	-s)	if [ $# -eq 1 ]
+		then
+			echo $progname: -s requires a value
+			exit 1
+		fi
+
+		shift
+		statsdb=$1
+		;;
+
+	*)	echo $progname: unknown flag $1
+		exit 1
+		;;
+	esac
+
+	shift
+done
 
 ## capture data
 if [ x"$statsdb" != x"" ]
