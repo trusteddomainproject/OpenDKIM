@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.111.2.6 2010/04/08 17:32:24 cm-msk Exp $
+**  $Id: opendkim.c,v 1.111.2.7 2010/04/14 06:43:30 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111.2.6 2010/04/08 17:32:24 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111.2.7 2010/04/14 06:43:30 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -12208,7 +12208,7 @@ main(int argc, char **argv)
 
 		if (autorestart)
 		{
-			char *rate;
+			char *rate = NULL;
 
 			(void) config_get(cfg, "AutoRestartCount",
 			                  &maxrestarts, sizeof maxrestarts);
