@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.35.6.1 2010/04/06 17:56:47 cm-msk Exp $
+# $Id: Makefile.am,v 1.35.6.2 2010/04/14 04:44:44 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -13,6 +13,9 @@ endif
 SUBDIRS += libopendkim libopendkim/tests opendkim
 if LUA
 SUBDIRS += miltertest opendkim/tests
+endif
+if STATS
+SUBDIRS += stats
 endif
 dist_doc_DATA = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail \
 	RELEASE_NOTES.Sendmail \
