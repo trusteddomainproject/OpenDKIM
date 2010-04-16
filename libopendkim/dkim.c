@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.46.6.2 2010/04/06 18:03:48 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.46.6.3 2010/04/16 00:36:06 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6693,10 +6693,18 @@ dkim_sig_getcanonlen(DKIM *dkim, DKIM_SIGINFO *sig, off_t *msglen,
 		*msglen = dkim->dkim_bodylen;
 
 	if (canonlen != NULL)
+	{
+		if (sig->sig_bodycanon == NULL)
+			return DKIM_STAT_INTERNAL;
 		*canonlen = sig->sig_bodycanon->canon_wrote;
+	}
 
 	if (signlen != NULL)
+	{
+		if (sig->sig_bodycanon == NULL)
+			return DKIM_STAT_INTERNAL;
 		*signlen = sig->sig_bodycanon->canon_length;
+	}
 
 	return DKIM_STAT_OK;
 }
