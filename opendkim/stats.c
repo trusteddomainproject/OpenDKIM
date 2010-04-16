@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.8.8.10 2010/04/16 00:37:15 cm-msk Exp $
+**  $Id: stats.c,v 1.8.8.11 2010/04/16 00:46:50 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.10 2010/04/16 00:37:15 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.11 2010/04/16 00:46:50 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -160,6 +160,8 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 		dkimf_db_close(db);
 		return;
 	}
+
+	strlcpy(recdata.sd_fromdomain, from, sizeof recdata.sd_fromdomain);
 
 	recdata.sd_mailinglist = fromlist;
 

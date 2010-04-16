@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.7.8.13 2010/04/13 22:19:04 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.7.8.14 2010/04/16 00:46:50 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.13 2010/04/13 22:19:04 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.14 2010/04/16 00:46:50 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -43,7 +43,8 @@ static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.13 2010/0
 # define TRUE		1
 #endif /* ! TRUE */
 
-#define	CMDLINEOPTS	"ch:im:r"
+#define	ANON_STRING	"anonymous"
+#define	CMDLINEOPTS	"ach:im:r"
 #ifndef _PATH_DEVNULL
 # define _PATH_DEVNULL	"/dev/null"
 #endif /* ! _PATH_DEVNULL */
@@ -52,6 +53,7 @@ static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.13 2010/0
 #endif /* ! _PATH_SENDMAIL */
 
 /* globals */
+_Bool anon;
 _Bool csv;
 char hostname[DKIM_MAXHOSTNAMELEN + 1];
 char *progname;
@@ -292,6 +294,9 @@ dkims_dump(char *path, char *mailto)
 			else
 				fprintf(out, "%s\t", jobid);
 
+			fprintf(out, "%s\t",
+			        anon ? ANON_STRING : recdata_v2.sd_fromdomain);
+
 			dkims_output(out, "when", recdata_v2.sd_when, TRUE);
 			dkims_output(out, "alg", recdata_v2.sd_alg, TRUE);
 			dkims_output(out, "hc", recdata_v2.sd_hdrcanon, TRUE);
@@ -475,6 +480,7 @@ main(int argc, char **argv)
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 
+	anon = FALSE;
 	csv = FALSE;
 
 	memset(hostname, '\0', sizeof hostname);
@@ -484,6 +490,10 @@ main(int argc, char **argv)
 	{
 		switch (c)
 		{
+		  case 'a':
+			anon = TRUE;
+			break;
+
 		  case 'c':
 			csv = TRUE;
 			break;

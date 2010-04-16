@@ -1,6 +1,6 @@
 #!/bin/sh
 ##
-## $Id: opendkim-importstats.sh,v 1.1.2.2 2010/04/14 04:17:09 cm-msk Exp $
+## $Id: opendkim-importstats.sh,v 1.1.2.3 2010/04/16 00:46:50 cm-msk Exp $
 ##
 ## Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 ##
@@ -12,11 +12,15 @@ database="opendkim"
 user="opendkim"
 password="opendkim"
 statsdb="/var/db/opendkim/opendkim-stats.db"
+anon="yes"
 
 ## Argument processing
 while [ $# -gt 0 ]
 do
 	case $1 in
+	-D)	anon="no"
+		;;
+
 	-d)	if [ $# -eq 1 ]
 		then
 			echo $progname: -d requires a value
@@ -56,9 +60,16 @@ do
 done
 
 ## capture data
+if [ x"$anon" = x"no" ]
+then
+	anonstr=""
+else
+	anonstr="-a"
+fi
+
 if [ x"$statsdb" != x"" ]
 then
-	opendkim-stats -c -r $statsdb > /tmp/opendkim-import.$$
+	opendkim-stats $anonstr -c -r $statsdb > /tmp/opendkim-import.$$
 else
 	cat > /tmp/opendkim-import.$$
 fi
@@ -69,6 +80,7 @@ import="load data infile '/tmp/opendkim-import.$$'
 	lines starting by '='
 	(
 		jobid,
+		from_domain,
 		@msgtime,
 		algorithm,
 		hdr_canon,

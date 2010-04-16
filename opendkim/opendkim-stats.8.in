@@ -22,6 +22,10 @@ See the
 man page for details.
 .SH OPTIONS
 .TP
+.I -a
+Anonymize output by replacing the sending domain in each record with the
+string "anonymous".
+.TP
 .I -c
 Output comma-separated format.  Not generally human-readable, but ideal
 for machine processing.

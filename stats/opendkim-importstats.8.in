@@ -33,6 +33,9 @@ The current implementation presumes the use of
 as the SQL backend.
 .SH OPTIONS
 .TP
+.I -D
+Include domain names in output (by default, the output is anonymized).
+.TP
 .I -d name
 Specifies the name of the SQL database into which records should be
 imported.  The default is
