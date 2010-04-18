@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.68.6.4 2010/04/13 21:57:00 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.68.6.5 2010/04/18 08:26:18 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.4 2010/04/13 21:57:00 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.5 2010/04/18 08:26:18 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2384,12 +2384,14 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				else if (ldc.ldc_type == DKIMF_DB_CACHE_PENDING)
 				{
 					/* XXX -- query pending, sleep on it */
-					/* XXX -- handle result */
+					/* XXX -- handle result when awakened */
 				}
 			}
 			else
 			{
-				/* XXX -- add pending info to cache, continue */
+				/* XXX -- add pending info to cache */
+				/* XXX -- unlock so others can try */
+				/* XXX -- continue with query */
 			}
 		}
 # endif /* USE_DB */
@@ -2466,6 +2468,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		ldap_msgfree(result);
 
 # ifdef USE_DB
+		/* XXX -- reacquire the lock */
 		/* XXX -- update cache, notify waiters, wait till they're out */
 # endif /* USE_DB */
 
