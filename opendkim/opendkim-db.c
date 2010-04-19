@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.68.6.6 2010/04/19 04:03:33 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.68.6.7 2010/04/19 04:33:33 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.6 2010/04/19 04:03:33 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.7 2010/04/19 04:33:33 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -167,7 +167,7 @@ struct dkimf_db_ldap
 	char			ldap_urilist[BUFRSZ];
 	LDAPURLDesc *		ldap_descr;
 # ifdef USE_DB
-	DB *			ldap_cache;
+	DKIMF_DB		ldap_cache;
 # endif /* USE_DB */
 	pthread_mutex_t		ldap_lock;
 };
@@ -1129,6 +1129,9 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		bdbtype = DB_HASH;
 # endif /* DB_VERSION_CHECK(2,0,0) */
 
+		if (*p == '\0' && (flags & DKIMF_DB_FLAG_READONLY) == 0)
+			p = NULL;
+
 # if DB_VERSION_CHECK(3,0,0)
 		status = db_create(&newdb, NULL, 0);
 		if (status == 0)
@@ -1621,7 +1624,24 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 #  endif /* DB_VERSION_CHECK */
 
 		if (err == 0)
-			ldap->ldap_cache = newdb;
+		{
+			DKIMF_DB cachedb;
+
+			cachedb = malloc(sizeof *cachedb);
+			if (cachedb != NULL)
+			{
+				memset(cachedb, '\0', sizeof *cachedb);
+
+				cachedb->db_type = DKIMF_DB_TYPE_BDB;
+				cachedb->db_handle = newdb;
+
+				ldap->ldap_cache = cachedb;
+			}
+			else
+			{
+				DKIMF_DBCLOSE(newdb);
+			}
+		}
 # endif /* USE_DB */
 
 		/* store handle */
@@ -2711,7 +2731,7 @@ dkimf_db_close(DKIMF_DB db)
 					done = TRUE;
 			}
 			
-			DKIMF_DBCLOSE(ldap->ldap_cache);
+			dkimf_db_close(ldap->ldap_cache);
 		}
 # endif /* USE_DB */
 		(void) ldap_free_urldesc(ldap->ldap_descr);
