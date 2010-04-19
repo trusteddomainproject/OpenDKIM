@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.68.6.5 2010/04/18 08:26:18 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.68.6.6 2010/04/19 04:03:33 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.5 2010/04/18 08:26:18 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.6 2010/04/19 04:03:33 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -172,24 +172,22 @@ struct dkimf_db_ldap
 	pthread_mutex_t		ldap_lock;
 };
 
+# ifdef USE_DB
+#  define DKIMF_DB_CACHE_DATA		0
+#  define DKIMF_DB_CACHE_PENDING	1
 struct dkimf_db_ldap_cache
 {
-	int			ldc_type;
+	_Bool			ldc_absent;
+	int			ldc_state;
+	int			ldc_nresults;
+	int			ldc_waiters;
+	int			ldc_error;
+	time_t			ldc_expire;
 	void *			ldc_handle;
+	char **			ldc_results;
+	pthread_cond_t		ldc_cond;
 };
-
-struct dkimf_db_ldap_cache_result
-{
-	time_t			ldcr_expire;
-	int			ldcr_nresults;
-	char **			ldcr_results;
-};
-
-struct dkimf_db_ldap_cache_pending
-{
-	int			ldcp_waiters;
-	pthread_cond_t		ldcp_cond;
-};
+# endif /* USE_DB */
 #endif /* USE_LDAP */
 
 /* globals */
@@ -2349,6 +2347,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		LDAPMessage *result;
 		LDAPMessage *e;
 		struct dkimf_db_ldap *ldap;
+# ifdef USE_DB
+		struct dkimf_db_ldap_cache *ldc = NULL;
+# endif /* USE_DB */
 		struct berval **vals;
 		char query[BUFRSZ];
 		char filter[BUFRSZ];
@@ -2363,13 +2364,10 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		if (ldap->ldap_cache != NULL)
 		{
 			_Bool cex = FALSE;
-			size_t datalen;
 			struct dkimf_db_data dbd;
-			struct dkimf_db_ldap_cache ldc;
 
-			datalen = sizeof ldc;
-			dbd.dbdata_buffer = &ldc;
-			dbd.dbdata_buflen = &datalen;
+			dbd.dbdata_buffer = (char *) &ldc;
+			dbd.dbdata_buflen = sizeof ldc;
 			dbd.dbdata_flags = DKIMF_DB_DATA_BINARY;
 
 			status = dkimf_db_get(ldap->ldap_cache, buf, buflen,
@@ -2377,22 +2375,128 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 			if (cex)
 			{
-				if (ldc.ldc_type == DKIMF_DB_CACHE_DATA)
+				struct timeval now;
+				struct dkimf_db_ldap_cache_result *r;
+
+				(void) gettimeofday(&now, NULL);
+
+				if (ldc->ldc_state == DKIMF_DB_CACHE_DATA &&
+				    ldc->ldc_absent)
 				{
-					/* XXX -- data cached, return it */
+					if (exists != NULL)
+						*exists = FALSE;
+
+					pthread_mutex_unlock(&ldap->ldap_lock);
+					return 0;
 				}
-				else if (ldc.ldc_type == DKIMF_DB_CACHE_PENDING)
+				else if (ldc->ldc_state == DKIMF_DB_CACHE_DATA &&
+				         ldc->ldc_error != 0)
 				{
-					/* XXX -- query pending, sleep on it */
-					/* XXX -- handle result when awakened */
+					pthread_mutex_unlock(&ldap->ldap_lock);
+					return ldc->ldc_error;
+				}
+				else if (ldc->ldc_state == DKIMF_DB_CACHE_DATA &&
+				         ldc->ldc_expire > now.tv_sec)
+				{
+					if (exists != NULL)
+						*exists = TRUE;
+
+					for (c = 0;
+					     c < reqnum && c < ldc->ldc_nresults;
+					     c++)
+					{
+						req[c].dbdata_buflen = strlcpy(req[c].dbdata_buffer,
+						                               ldc->ldc_results[c],
+						                               req[c].dbdata_buflen);
+					}
+
+					while (c < reqnum)
+						req[c++].dbdata_buflen = 0;
+
+					pthread_mutex_unlock(&ldap->ldap_lock);
+
+					return 0;
+				}
+				else if (ldc->ldc_state == DKIMF_DB_CACHE_PENDING)
+				{
+					struct timespec timeout;
+
+					timeout.tv_sec = now.tv_sec + ldap->ldap_timeout;
+					timeout.tv_nsec = now.tv_usec * 1000;
+
+					ldc->ldc_waiters++;
+
+					while (ldc->ldc_state == DKIMF_DB_CACHE_PENDING)
+					{
+						status = pthread_cond_timedwait(&ldc->ldc_cond,
+						                                &ldap->ldap_lock,
+						                                &timeout);
+						if (status != 0)
+						{
+							pthread_mutex_unlock(&ldap->ldap_lock);
+							return status;
+						}
+					}
+
+					if (ldc->ldc_error != 0)
+					{
+						pthread_mutex_unlock(&ldap->ldap_lock);
+						return ldc->ldc_error;
+					}
+
+					if (ldc->ldc_absent)
+					{
+						if (exists != NULL)
+							*exists = FALSE;
+
+						pthread_mutex_unlock(&ldap->ldap_lock);
+						return 0;
+					}
+
+					for (c = 0;
+					     c < reqnum && c < ldc->ldc_nresults;
+					     c++)
+					{
+						req[c].dbdata_buflen = strlcpy(req[c].dbdata_buffer,
+						                               ldc->ldc_results[c],
+						                               req[c].dbdata_buflen);
+					}
+
+					while (c < reqnum)
+						req[c++].dbdata_buflen = 0;
+
+					ldc->ldc_waiters--;
+
+					pthread_cond_signal(&ldc->ldc_cond);
+
+					pthread_mutex_unlock(&ldap->ldap_lock);
+
+					return 0;
 				}
 			}
-			else
+
+			/* add pending info to cache */
+			ldc = malloc(sizeof *ldc);
+			if (ldc == NULL)
 			{
-				/* XXX -- add pending info to cache */
-				/* XXX -- unlock so others can try */
-				/* XXX -- continue with query */
+				pthread_mutex_unlock(&ldap->ldap_lock);
+				return errno;
 			}
+
+			memset(ldc, '\0', sizeof *ldc);
+
+			pthread_cond_init(&ldc->ldc_cond, NULL);
+
+			status = dkimf_db_put(ldap->ldap_cache, buf, buflen,
+			                      ldc, sizeof *ldc);
+			if (status != 0)
+			{
+				pthread_mutex_unlock(&ldap->ldap_lock);
+				return status;
+			}
+
+			/* unlock so others can try */
+			pthread_mutex_unlock(&ldap->ldap_lock);
 		}
 # endif /* USE_DB */
 
@@ -2417,7 +2521,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		{
 			db->db_status = status;
 # ifdef USE_DB
-			/* XXX -- notify waiters that the query failed */
+			ldc->ldc_error = status;
+			pthread_cond_broadcast(&ldc->ldc_cond);
 # endif /* USE_DB */
 			pthread_mutex_unlock(&ldap->ldap_lock);
 			return status;
@@ -2429,7 +2534,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			if (exists != NULL)
 				*exists = FALSE;
 # ifdef USE_DB
-			/* XXX -- notify waiters that the query failed */
+			ldc->ldc_absent = TRUE;
+			pthread_cond_broadcast(&ldc->ldc_cond);
 # endif /* USE_DB */
 			pthread_mutex_unlock(&ldap->ldap_lock);
 			return 0;
@@ -2468,8 +2574,31 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		ldap_msgfree(result);
 
 # ifdef USE_DB
-		/* XXX -- reacquire the lock */
-		/* XXX -- update cache, notify waiters, wait till they're out */
+		pthread_mutex_lock(&ldap->ldap_lock);
+
+		/* update cache */
+		ldc->ldc_nresults = reqnum;
+		ldc->ldc_results = malloc(sizeof(char *) * reqnum);
+		if (ldc->ldc_results == NULL)
+		{
+			ldc->ldc_error = errno;
+			pthread_mutex_unlock(&ldap->ldap_lock);
+			return errno;
+		}
+
+		for (c = 0; c < reqnum; c++)
+		{
+			ldc->ldc_results[c] = strdup(req[c].dbdata_buffer);
+			if (ldc->ldc_results[c] == NULL)
+			{
+				ldc->ldc_error = errno;
+				pthread_mutex_unlock(&ldap->ldap_lock);
+				return errno;
+			}
+		}
+
+		/* notify waiters */
+		pthread_cond_broadcast(&ldc->ldc_cond);
 # endif /* USE_DB */
 
 		pthread_mutex_unlock(&ldap->ldap_lock);
@@ -2554,7 +2683,36 @@ dkimf_db_close(DKIMF_DB db)
 		pthread_mutex_destroy(&ldap->ldap_lock);
 # ifdef USE_DB
 		if (ldap->ldap_cache != NULL)
+		{
+			_Bool first = TRUE;
+			_Bool done = FALSE;
+			int c;
+			int status;
+			struct dkimf_db_ldap_cache *ldc;
+			struct dkimf_db_data dbd;
+
+			dbd.dbdata_buffer = (char *) &ldc;
+			dbd.dbdata_buflen = sizeof ldc;
+			dbd.dbdata_flags = DKIMF_DB_DATA_BINARY;
+
+			while (!done)
+			{
+				status = dkimf_db_walk(ldap->ldap_cache, first,
+				                       NULL, NULL, &dbd, 1);
+
+				for (c = 0; c < ldc->ldc_nresults; c++)
+					free(ldc->ldc_results[c]);
+				free(ldc->ldc_results);
+				free(ldc);
+
+				first = FALSE;
+
+				if (status != 0)
+					done = TRUE;
+			}
+			
 			DKIMF_DBCLOSE(ldap->ldap_cache);
+		}
 # endif /* USE_DB */
 		(void) ldap_free_urldesc(ldap->ldap_descr);
 		free(db->db_data);
