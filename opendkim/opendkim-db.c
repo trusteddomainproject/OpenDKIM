@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.68.6.7 2010/04/19 04:33:33 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.68.6.8 2010/04/19 04:41:00 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.7 2010/04/19 04:33:33 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.8 2010/04/19 04:41:00 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2386,6 +2386,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			_Bool cex = FALSE;
 			struct dkimf_db_data dbd;
 
+printf("checking cache...\n");
 			dbd.dbdata_buffer = (char *) &ldc;
 			dbd.dbdata_buflen = sizeof ldc;
 			dbd.dbdata_flags = DKIMF_DB_DATA_BINARY;
@@ -2403,6 +2404,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				if (ldc->ldc_state == DKIMF_DB_CACHE_DATA &&
 				    ldc->ldc_absent)
 				{
+printf("\tnegative\n");
 					if (exists != NULL)
 						*exists = FALSE;
 
@@ -2412,6 +2414,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				else if (ldc->ldc_state == DKIMF_DB_CACHE_DATA &&
 				         ldc->ldc_error != 0)
 				{
+printf("\terror %d\n", ldc->ldc_error);
 					pthread_mutex_unlock(&ldap->ldap_lock);
 					return ldc->ldc_error;
 				}
@@ -2421,6 +2424,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 					if (exists != NULL)
 						*exists = TRUE;
 
+printf("\tcache hit\n");
 					for (c = 0;
 					     c < reqnum && c < ldc->ldc_nresults;
 					     c++)
@@ -2445,6 +2449,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 					timeout.tv_nsec = now.tv_usec * 1000;
 
 					ldc->ldc_waiters++;
+
+printf("\tcache miss but pending\n");
 
 					while (ldc->ldc_state == DKIMF_DB_CACHE_PENDING)
 					{
@@ -2496,23 +2502,29 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			}
 
 			/* add pending info to cache */
-			ldc = malloc(sizeof *ldc);
+printf("\tcache miss, initiating query\n");
 			if (ldc == NULL)
 			{
-				pthread_mutex_unlock(&ldap->ldap_lock);
-				return errno;
-			}
+				ldc = malloc(sizeof *ldc);
+				if (ldc == NULL)
+				{
+					pthread_mutex_unlock(&ldap->ldap_lock);
+					return errno;
+				}
 
-			memset(ldc, '\0', sizeof *ldc);
+				memset(ldc, '\0', sizeof *ldc);
 
-			pthread_cond_init(&ldc->ldc_cond, NULL);
+				pthread_cond_init(&ldc->ldc_cond, NULL);
+				ldc->ldc_state = DKIMF_DB_CACHE_PENDING;
 
-			status = dkimf_db_put(ldap->ldap_cache, buf, buflen,
-			                      ldc, sizeof *ldc);
-			if (status != 0)
-			{
-				pthread_mutex_unlock(&ldap->ldap_lock);
-				return status;
+				status = dkimf_db_put(ldap->ldap_cache,
+				                      buf, buflen,
+				                      ldc, sizeof *ldc);
+				if (status != 0)
+				{
+					pthread_mutex_unlock(&ldap->ldap_lock);
+					return status;
+				}
 			}
 
 			/* unlock so others can try */
@@ -2596,6 +2608,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 # ifdef USE_DB
 		pthread_mutex_lock(&ldap->ldap_lock);
 
+printf("\tloading cache\n");
+
 		/* update cache */
 		ldc->ldc_nresults = reqnum;
 		ldc->ldc_results = malloc(sizeof(char *) * reqnum);
@@ -2616,6 +2630,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				return errno;
 			}
 		}
+
+		ldc->ldc_state = DKIMF_DB_CACHE_DATA;
+		ldc->ldc_expire = time(NULL) + DKIMF_LDAP_TTL;
 
 		/* notify waiters */
 		pthread_cond_broadcast(&ldc->ldc_cond);
