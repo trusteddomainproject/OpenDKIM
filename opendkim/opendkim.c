@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.112 2010/03/21 06:23:29 cm-msk Exp $
+**  $Id: opendkim.c,v 1.112.4.1 2010/04/19 04:41:16 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.112 2010/03/21 06:23:29 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.112.4.1 2010/04/19 04:41:16 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -12081,106 +12081,106 @@ main(int argc, char **argv)
 			return EX_SOFTWARE;
 		}
 
-		if (isatty(0))
+		for (;;)
 		{
-			fprintf(stdout,
-			        "%s: enter `query/n' where `n' is number of fields to request\n> ",
-			        progname);
-		}
+			if (isatty(0))
+			{
+				fprintf(stdout,
+				        "%s: enter `query/n' where `n' is number of fields to request\n> ",
+				        progname);
+			}
 
-		memset(query, '\0', sizeof query);
-		if (fgets(query, BUFRSZ, stdin) != query)
-		{
-			fprintf(stderr, "%s: fgets(): %s\n", progname,
-			        strerror(errno));
-			return EX_OSERR;
-		}
+			memset(query, '\0', sizeof query);
+			if (fgets(query, BUFRSZ, stdin) != query)
+				break;
 
-		p = strchr(query, '\n');
-		if (p != NULL)
-			*p = '\0';
+			p = strchr(query, '\n');
+			if (p != NULL)
+				*p = '\0';
 
-		p = strchr(query, '/');
-		if (p == NULL)
-		{
-			(void) dkimf_db_close(dbtest);
-			fprintf(stderr, "%s: invalid query `%s'\n", progname,
-			        query);
-			return EX_USAGE;
-		}
+			p = strchr(query, '/');
+			if (p == NULL)
+			{
+				(void) dkimf_db_close(dbtest);
+				fprintf(stderr, "%s: invalid query `%s'\n",
+				        progname, query);
+				return EX_USAGE;
+			}
 
-		n = atoi(p + 1);
-		if (n < 0)
-		{
-			(void) dkimf_db_close(dbtest);
-			fprintf(stderr, "%s: invalid query `%s'\n", progname,
-			        query);
-			return EX_USAGE;
-		}
+			n = atoi(p + 1);
+			if (n < 0)
+			{
+				(void) dkimf_db_close(dbtest);
+				fprintf(stderr, "%s: invalid query `%s'\n",
+				        progname, query);
+				return EX_USAGE;
+			}
+	
+			result = (char **) malloc(sizeof(char *) * n);
+			if (result == NULL)
+			{
+				fprintf(stderr, "%s: malloc(): %s\n", progname,
+				        strerror(errno));
+				return EX_OSERR;
+			}
 
-		result = (char **) malloc(sizeof(char *) * n);
-		if (result == NULL)
-		{
-			fprintf(stderr, "%s: malloc(): %s\n", progname,
-			        strerror(errno));
-			return EX_OSERR;
-		}
+			for (c = 0; c < n; c++)
+			{
+				result[c] = (char *) malloc(BUFRSZ + 1);
+				if (result[c] == NULL)
+				{
+					fprintf(stderr, "%s: malloc(): %s\n",
+					        progname, strerror(errno));
+					free(result);
+					return EX_OSERR;
+				}
+				memset(result[c], '\0', BUFRSZ + 1);
+			}
 
-		for (c = 0; c < n; c++)
-		{
-			result[c] = (char *) malloc(BUFRSZ + 1);
-			if (result[c] == NULL)
+			dbdp = (DKIMF_DBDATA) malloc(sizeof(struct dkimf_db_data) * n);
+			if (dbdp == NULL)
 			{
 				fprintf(stderr, "%s: malloc(): %s\n", progname,
 				        strerror(errno));
 				free(result);
 				return EX_OSERR;
 			}
-			memset(result[c], '\0', BUFRSZ + 1);
-		}
 
-		dbdp = (DKIMF_DBDATA) malloc(sizeof(struct dkimf_db_data) * n);
-		if (dbdp == NULL)
-		{
-			fprintf(stderr, "%s: malloc(): %s\n", progname,
-			        strerror(errno));
-			free(result);
-			return EX_OSERR;
-		}
-
-		for (c = 0; c < n; c++)
-		{
-			dbdp[c].dbdata_buffer = result[c];
-			dbdp[c].dbdata_buflen = BUFRSZ;
-			dbdp[c].dbdata_flags = 0;
-		}
-
-		*p = '\0';
-
-		status = dkimf_db_get(dbtest, query, strlen(query),
-		                      dbdp, n, &exists);
-
-		if (status != 0)
-		{
-			fprintf(stderr, "%s: dkimf_db_get() returned %d\n",
-			        progname, status);
-		}
-		else if (!exists)
-		{
-			fprintf(stdout,
-			        "%s: dkimf_db_get(): record not found\n",
-			        progname);
-		}
-		else
-		{
 			for (c = 0; c < n; c++)
-				fprintf(stdout, "`%s'\n", result[c]);
-		}
+			{
+				dbdp[c].dbdata_buffer = result[c];
+				dbdp[c].dbdata_buflen = BUFRSZ;
+				dbdp[c].dbdata_flags = 0;
+			}
 
-		for (c = 0; c < n; c++)
-			free(result[c]);
-		free(result);
-		free(dbdp);
+			*p = '\0';
+
+			status = dkimf_db_get(dbtest, query, strlen(query),
+			                      dbdp, n, &exists);
+
+			if (status != 0)
+			{
+				fprintf(stderr,
+				        "%s: dkimf_db_get() returned %d\n",
+				        progname, status);
+			}
+			else if (!exists)
+			{
+				fprintf(stdout,
+				        "%s: dkimf_db_get(): record not found\n",
+				        progname);
+			}
+			else
+			{
+				for (c = 0; c < n; c++)
+					fprintf(stdout, "`%s'\n", result[c]);
+			}
+
+			for (c = 0; c < n; c++)
+				free(result[c]);
+			free(result);
+			free(dbdp);
+		}
 
 		dkimf_db_close(dbtest);
 
