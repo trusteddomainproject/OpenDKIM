@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.31 2010/02/05 15:36:02 cm-msk Exp $
+**  $Id: util.c,v 1.31.6.1 2010/04/20 21:30:58 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.31 2010/02/05 15:36:02 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.31.6.1 2010/04/20 21:30:58 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -182,7 +182,6 @@ struct dkimf_dstring
 /* base64 alphabet */
 static unsigned char alphabet[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-#ifdef _FFR_REPLACE_RULES
 /*
 **  DKIMF_ISBLANK -- return TRUE iff a string contains only whitespace
 **  
@@ -208,7 +207,6 @@ dkimf_isblank(char *str)
 
 	return TRUE;
 }
-#endif /* _FFR_REPLACE_RULES */
 
 /*
 **  DKIMF_OPTLIST -- print active FFRs
