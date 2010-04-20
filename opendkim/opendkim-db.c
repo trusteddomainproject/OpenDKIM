@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.68.6.8 2010/04/19 04:41:00 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.68.6.9 2010/04/20 21:14:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.8 2010/04/19 04:41:00 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.9 2010/04/20 21:14:12 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -62,6 +62,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.8 2010/04/19 0
 #define DKIMF_DB_MODE		0644
 #define DKIMF_LDAP_MAXURIS	8
 #define DKIMF_LDAP_TIMEOUT	5
+#define DKIMF_LDAP_TTL		600
 
 #define	DKIMF_DB_IFLAG_FREEARRAY 0x01
 
@@ -2519,7 +2520,7 @@ printf("\tcache miss, initiating query\n");
 
 				status = dkimf_db_put(ldap->ldap_cache,
 				                      buf, buflen,
-				                      ldc, sizeof *ldc);
+				                      &ldc, sizeof ldc);
 				if (status != 0)
 				{
 					pthread_mutex_unlock(&ldap->ldap_lock);
@@ -2537,8 +2538,11 @@ printf("\tcache miss, initiating query\n");
 
 		dkimf_db_mkldapquery(ldap->ldap_descr->lud_dn, buf, query,
 		                     sizeof query);
-		dkimf_db_mkldapquery(ldap->ldap_descr->lud_filter, buf,
-		                     filter, sizeof filter);
+		if (ldap->ldap_descr->lud_filter != NULL)
+		{
+			dkimf_db_mkldapquery(ldap->ldap_descr->lud_filter, buf,
+			                     filter, sizeof filter);
+		}
 
 		timeout.tv_sec = ldap->ldap_timeout;
 		timeout.tv_usec = 0;
@@ -2554,19 +2558,23 @@ printf("\tcache miss, initiating query\n");
 			db->db_status = status;
 # ifdef USE_DB
 			ldc->ldc_error = status;
+			ldc->ldc_state = DKIMF_DB_CACHE_DATA;
 			pthread_cond_broadcast(&ldc->ldc_cond);
 # endif /* USE_DB */
 			pthread_mutex_unlock(&ldap->ldap_lock);
 			return status;
 		}
 
-		e = ldap_first_entry(ld, result);
+		e = NULL;
+		if (result != NULL)
+			e = ldap_first_entry(ld, result);
 		if (e == NULL)
 		{
 			if (exists != NULL)
 				*exists = FALSE;
 # ifdef USE_DB
 			ldc->ldc_absent = TRUE;
+			ldc->ldc_state = DKIMF_DB_CACHE_DATA;
 			pthread_cond_broadcast(&ldc->ldc_cond);
 # endif /* USE_DB */
 			pthread_mutex_unlock(&ldap->ldap_lock);
@@ -2722,7 +2730,6 @@ dkimf_db_close(DKIMF_DB db)
 		if (ldap->ldap_cache != NULL)
 		{
 			_Bool first = TRUE;
-			_Bool done = FALSE;
 			int c;
 			int status;
 			struct dkimf_db_ldap_cache *ldc;
@@ -2732,10 +2739,13 @@ dkimf_db_close(DKIMF_DB db)
 			dbd.dbdata_buflen = sizeof ldc;
 			dbd.dbdata_flags = DKIMF_DB_DATA_BINARY;
 
-			while (!done)
+			for (;;)
 			{
 				status = dkimf_db_walk(ldap->ldap_cache, first,
 				                       NULL, NULL, &dbd, 1);
+
+				if (status != 0)
+					break;
 
 				for (c = 0; c < ldc->ldc_nresults; c++)
 					free(ldc->ldc_results[c]);
@@ -2743,9 +2753,6 @@ dkimf_db_close(DKIMF_DB db)
 				free(ldc);
 
 				first = FALSE;
-
-				if (status != 0)
-					done = TRUE;
 			}
 			
 			dkimf_db_close(ldap->ldap_cache);
