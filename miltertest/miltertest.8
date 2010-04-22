@@ -100,6 +100,10 @@ matching
 .I host;
 if none is found, the test will abort.
 .TP
+.B mt.data(conn)
+Announces the DATA command on the specified connection, which occurs between
+the last RCPT TO command and the beginning of the header block.
+.TP
 .B mt.disconnect(conn)
 Sends a "quit" message to the specified connection and then closes that
 connection.  The specified
@@ -289,10 +293,9 @@ parameters, the function returns true only if a specific reply was
 requested with the specified SMTP code, enhanced status code, and text.
 .SH NOTES
 .I miltertest
-does not currently support the DATA (report SMTP "DATA" command) or
-UNKNOWN (report unknown SMTP command) functions of milter, nor does it
-currently honour the SMFIP_NR_* or SMFIP_NO* negotiation options.  This
-will be fixed in a future version.
+does not currently support the UNKNOWN (report unknown SMTP command) function
+of milter, nor does it currently honour the SMFIP_NR_* or SMFIP_NO*
+negotiation options.  This will be fixed in a future version.
 .SH VERSION
 This man page covers version 0.1.0 of
 .I miltertest.

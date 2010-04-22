@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.10.2.1 2010/04/22 17:22:16 cm-msk Exp $
+**  $Id: miltertest.c,v 1.10.2.2 2010/04/22 18:03:17 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.1 2010/04/22 17:22:16 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.2 2010/04/22 18:03:17 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -76,10 +76,11 @@ static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.1 2010/04/22 17:22:1
 #define	STATE_HELO		3
 #define	STATE_ENVFROM		4
 #define	STATE_ENVRCPT		5
-#define	STATE_HEADER		6
-#define	STATE_EOH		7
-#define	STATE_BODY		8
-#define	STATE_EOM		9
+#define	STATE_DATA		6
+#define	STATE_HEADER		7
+#define	STATE_EOH		8
+#define	STATE_BODY		9
+#define	STATE_EOM		10
 #define	STATE_DEAD		99
 
 #define MT_HDRADD		1
@@ -99,6 +100,7 @@ int mt_bodyrandom(lua_State *);
 int mt_bodystring(lua_State *);
 int mt_connect(lua_State *);
 int mt_conninfo(lua_State *);
+int mt_data(lua_State *);
 int mt_disconnect(lua_State *);
 int mt_echo(lua_State *);
 int mt_eoh(lua_State *);
@@ -115,6 +117,7 @@ int mt_rcptto(lua_State *);
 int mt_set_timeout(lua_State *);
 int mt_sleep(lua_State *);
 int mt_startfilter(lua_State *);
+/* int mt_unknown(lua_State *); */
 
 /* data types */
 struct mt_eom_request
@@ -130,6 +133,8 @@ struct mt_context
 	char		ctx_response;		/* milter response code */
 	int		ctx_fd;			/* descriptor */
 	int		ctx_state;		/* current state */
+	unsigned long	ctx_mactions;		/* requested actions */
+	unsigned long	ctx_mpopts;		/* requested protocol opts */
 	struct mt_eom_request * ctx_eomreqs;	/* EOM requests */
 };
 
@@ -148,6 +153,7 @@ static const luaL_Reg mt_library[] =
 	{ "bodystring",		mt_bodystring	},
 	{ "connect",		mt_connect	},
 	{ "conninfo",		mt_conninfo	},
+	{ "data",		mt_data		},
 	{ "disconnect",		mt_disconnect	},
 	{ "echo",		mt_echo		},
 	{ "eoh",		mt_eoh		},
@@ -164,6 +170,7 @@ static const luaL_Reg mt_library[] =
 	{ "set_timeout",	mt_set_timeout	},
 	{ "sleep",		mt_sleep	},
 	{ "startfilter",	mt_startfilter	},
+	/* { "unknown",		mt_unknown	}, */
 	{ NULL,			NULL 		}
 };
 
@@ -717,6 +724,36 @@ mt_assert_state(struct mt_context *ctx, int state)
 		}
 
 		ctx->ctx_state = STATE_ENVRCPT;
+	}
+
+	if (state >= STATE_DATA && ctx->ctx_state < STATE_DATA)
+	{
+		char rcmd;
+		size_t buflen;
+
+		buflen = sizeof buf;
+
+		if (!mt_milter_write(ctx->ctx_fd, SMFIC_DATA, NULL, 0))
+			return FALSE;
+
+		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+			return FALSE;
+
+		ctx->ctx_response = rcmd;
+
+		if (rcmd != SMFIR_CONTINUE)
+		{
+			if (verbose > 0)
+			{
+				fprintf(stdout,
+				        "%s: filter returned status %d to DATA on fd %d\n", 
+				        progname, rcmd, ctx->ctx_fd);
+			}
+
+			ctx->ctx_state = STATE_DEAD;
+		}
+
+		ctx->ctx_state = STATE_DATA;
 	}
 
 	if (state >= STATE_HEADER && ctx->ctx_state < STATE_HEADER)
@@ -1372,6 +1409,16 @@ mt_negotiate(lua_State *l)
 	ctx->ctx_response = rcmd;
 	ctx->ctx_state = STATE_NEGOTIATED;
 
+	/* decode and store requested protocol steps and actions */
+	(void) memcpy((char *) &nvers, buf, MILTER_LEN_BYTES);
+	(void) memcpy((char *) &nacts, buf + MILTER_LEN_BYTES,
+	              MILTER_LEN_BYTES);
+	(void) memcpy((char *) &npopts, buf + (MILTER_LEN_BYTES * 2),
+	              MILTER_LEN_BYTES);
+
+	ctx->ctx_mactions = ntohl(nacts);
+	ctx->ctx_mpopts = ntohl(npopts);
+
 	if (verbose > 0)
 	{
 		fprintf(stdout,
@@ -1871,6 +1918,73 @@ mt_rcptto(lua_State *l)
 	{
 		fprintf(stdout,
 		        "%s: RCPT sent on fd %d, reply `%c'\n",
+		        progname, ctx->ctx_fd, rcmd);
+	}
+
+	lua_pushnil(l);
+
+	return 1;
+}
+
+/*
+**  MT_DATA -- send DATA notice
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**   	nil (on the Lua stack)
+*/
+
+int
+mt_data(lua_State *l)
+{
+	char rcmd;
+	int c;
+	size_t buflen;
+	size_t s;
+	char *bp;
+	char *name;
+	char *value;
+	struct mt_context *ctx;
+	char buf[BUFRSZ];
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1 ||
+	    !lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l, "mt.eoh(): Invalid argument");
+		lua_error(l);
+	}
+
+	ctx = (struct mt_context *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+
+	if (!mt_assert_state(ctx, STATE_DATA))
+		lua_error(l);
+
+	if (!mt_milter_write(ctx->ctx_fd, SMFIC_DATA, NULL, 0))
+	{
+		lua_pushstring(l, "mt.milter_write() failed");
+		return 1;
+	}
+
+	buflen = sizeof buf;
+
+	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+	{
+		lua_pushstring(l, "mt.milter_read() failed");
+		return 1;
+	}
+
+	ctx->ctx_response = rcmd;
+	ctx->ctx_state = STATE_DATA;
+
+	if (verbose > 0)
+	{
+		fprintf(stdout,
+		        "%s: DATA sent on fd %d, reply `%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
