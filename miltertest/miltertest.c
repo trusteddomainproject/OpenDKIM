@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.10.2.3 2010/04/22 18:11:27 cm-msk Exp $
+**  $Id: miltertest.c,v 1.10.2.4 2010/04/22 18:22:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.3 2010/04/22 18:11:27 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.4 2010/04/22 18:22:37 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -1216,6 +1216,8 @@ mt_connect(lua_State *l)
 	new->ctx_fd = fd;
 	new->ctx_response = '\0';
 	new->ctx_eomreqs = NULL;
+	new->ctx_mactions = 0;
+	new->ctx_mpopts = 0;
 
 	lua_pushlightuserdata(l, new);
 
