@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.10.2.2 2010/04/22 18:03:17 cm-msk Exp $
+**  $Id: miltertest.c,v 1.10.2.3 2010/04/22 18:11:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.2 2010/04/22 18:03:17 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.3 2010/04/22 18:11:27 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -117,7 +117,7 @@ int mt_rcptto(lua_State *);
 int mt_set_timeout(lua_State *);
 int mt_sleep(lua_State *);
 int mt_startfilter(lua_State *);
-/* int mt_unknown(lua_State *); */
+int mt_unknown(lua_State *);
 
 /* data types */
 struct mt_eom_request
@@ -170,7 +170,7 @@ static const luaL_Reg mt_library[] =
 	{ "set_timeout",	mt_set_timeout	},
 	{ "sleep",		mt_sleep	},
 	{ "startfilter",	mt_startfilter	},
-	/* { "unknown",		mt_unknown	}, */
+	{ "unknown",		mt_unknown	},
 	{ NULL,			NULL 		}
 };
 
@@ -1677,6 +1677,79 @@ mt_conninfo(lua_State *l)
 	{
 		fprintf(stdout,
 		        "%s: connection details sent on fd %d, reply `%c'\n",
+		        progname, ctx->ctx_fd, rcmd);
+	}
+
+	lua_pushnil(l);
+
+	return 1;
+}
+
+/*
+**  MT_UNKNOWN -- send unknown command information
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**   	nil (on the Lua stack)
+*/
+
+int
+mt_unknown(lua_State *l)
+{
+	char rcmd;
+	size_t buflen;
+	size_t s;
+	struct mt_context *ctx;
+	char *cmd;
+	char *bp;
+	char buf[BUFRSZ];
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2 ||
+	    !lua_islightuserdata(l, 1) ||
+	    !lua_isstring(l, 2))
+	{
+		lua_pushstring(l, "mt.unknown(): Invalid argument");
+		lua_error(l);
+	}
+
+	ctx = (struct mt_context *) lua_touserdata(l, 1);
+	cmd = (char *) lua_tostring(l, 2);
+	lua_pop(l, 2);
+
+	if (!mt_assert_state(ctx, STATE_CONNINFO))
+		lua_error(l);
+
+	s = strlen(cmd) + 1;
+
+	bp = buf;
+	memcpy(bp, cmd, strlen(cmd));
+	bp += strlen(cmd);
+	*bp++ = '\0';
+
+	if (!mt_milter_write(ctx->ctx_fd, SMFIC_UNKNOWN, buf, s))
+	{
+		lua_pushstring(l, "mt.milter_write() failed");
+		return 1;
+	}
+
+	buflen = sizeof buf;
+
+	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+	{
+		lua_pushstring(l, "mt.milter_read() failed");
+		return 1;
+	}
+
+	ctx->ctx_response = rcmd;
+
+	if (verbose > 0)
+	{
+		fprintf(stdout,
+		        "%s: UNKNOWN sent on fd %d, reply `%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 

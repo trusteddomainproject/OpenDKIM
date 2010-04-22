@@ -218,6 +218,12 @@ request a clean shutdown using SIGTERM and
 .I wait(2)
 at the end of the test script.  If the filter could not be started, an
 exception is generated with an error message returned.
+.TP
+.B mt.unknown(conn, str)
+Announces that the unknown SMTP command
+.I str
+arrived over the connection represented by
+.I conn.
 .SH EOM CHECKS
 The
 .B mt.eom_check()
@@ -293,9 +299,8 @@ parameters, the function returns true only if a specific reply was
 requested with the specified SMTP code, enhanced status code, and text.
 .SH NOTES
 .I miltertest
-does not currently support the UNKNOWN (report unknown SMTP command) function
-of milter, nor does it currently honour the SMFIP_NR_* or SMFIP_NO*
-negotiation options.  This will be fixed in a future version.
+does not currently support the SMFIP_NR_* or SMFIP_NO* negotiation options.
+This will be fixed in a future version.
 .SH VERSION
 This man page covers version 0.1.0 of
 .I miltertest.
