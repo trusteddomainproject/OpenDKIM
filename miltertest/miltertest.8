@@ -287,6 +287,12 @@ parameters, the function returns true only if a specific reply was
 requested with the specified SMTP code and enhanced status code.  With three
 parameters, the function returns true only if a specific reply was
 requested with the specified SMTP code, enhanced status code, and text.
+.SH NOTES
+.I miltertest
+does not currently support the DATA (report SMTP "DATA" command) or
+UNKNOWN (report unknown SMTP command) functions of milter, nor does it
+currently honour the SMFIP_NR_* negotiation options.  This will be fixed
+in a future version.
 .SH VERSION
 This man page covers version 0.1.0 of
 .I miltertest.
