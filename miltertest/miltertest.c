@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.10 2010/02/26 19:48:00 cm-msk Exp $
+**  $Id: miltertest.c,v 1.10.2.1 2010/04/22 17:22:16 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10 2010/02/26 19:48:00 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.1 2010/04/22 17:22:16 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -2169,6 +2169,9 @@ mt_bodyrandom(lua_State *l)
 			        "%s: %lu byte(s) of body sent on fd %d, reply `%c'\n",
 			        progname, strlen(buf), ctx->ctx_fd, rcmd);
 		}
+
+		if (rcmd != SMFIR_CONTINUE)
+			break;
 
 		rw -= rl;
 	}
