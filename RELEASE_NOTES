@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.113.2.27 2010/04/15 01:38:55 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.113.2.28 2010/04/22 17:23:12 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -10,6 +10,8 @@ release, and a summary of the changes in that release.
 		using it, avoiding a segmentation fault.
 	Don't let Authentication-Results: logic from DomainKeys verification
 		interfere with that of DKIM verification.
+	MILTERTEST: Break out of the sending loop in mt_bodyrandom() if
+		something other than SMFIR_CONTINUE comes back from the MTA.
 
 2.0.2		2010/04/12
 	Fix bug #SF2983979: Fix a configuration buffer initialization
