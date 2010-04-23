@@ -219,6 +219,22 @@ request a clean shutdown using SIGTERM and
 at the end of the test script.  If the filter could not be started, an
 exception is generated with an error message returned.
 .TP
+.B mt.test_action(conn, action)
+Tests whether or not the connection represented by
+.I conn
+requested the specified milter protocol
+.I action,
+specified by an SMFIF_* constant, during option negotiation.  (See the
+libmilter documentation and/or include files for details.)
+.TP
+.B mt.test_option(conn, option)
+Tests whether or not the connection represented by
+.I conn
+requested the specified milter protocol
+.I option,
+specified by an SMFIP_* constant, during option negotiation.  (See the
+libmilter documentation and/or include files for details.)
+.TP
 .B mt.unknown(conn, str)
 Announces that the unknown SMTP command
 .I str

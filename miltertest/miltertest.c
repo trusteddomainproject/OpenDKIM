@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.10.2.4 2010/04/22 18:22:37 cm-msk Exp $
+**  $Id: miltertest.c,v 1.10.2.5 2010/04/23 06:37:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.4 2010/04/22 18:22:37 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.5 2010/04/23 06:37:27 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -117,6 +117,8 @@ int mt_rcptto(lua_State *);
 int mt_set_timeout(lua_State *);
 int mt_sleep(lua_State *);
 int mt_startfilter(lua_State *);
+int mt_test_action(lua_State *);
+int mt_test_option(lua_State *);
 int mt_unknown(lua_State *);
 
 /* data types */
@@ -170,6 +172,8 @@ static const luaL_Reg mt_library[] =
 	{ "set_timeout",	mt_set_timeout	},
 	{ "sleep",		mt_sleep	},
 	{ "startfilter",	mt_startfilter	},
+	{ "test_action",	mt_test_action	},
+	{ "test_option",	mt_test_option	},
 	{ "unknown",		mt_unknown	},
 	{ NULL,			NULL 		}
 };
@@ -221,7 +225,7 @@ mt_inet_ntoa(struct in_addr a, char *buf, size_t buflen)
 **  	Pointer to the data.
 */
 
-static const char *
+const char *
 mt_lua_reader(lua_State *l, void *data, size_t *size)
 {
 	struct mt_lua_io *io;
@@ -275,7 +279,7 @@ mt_lua_reader(lua_State *l, void *data, size_t *size)
 **  	Allocated memory, or NULL on failure.
 */
 
-static void *
+void *
 mt_lua_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
 {
 	if (nsize == 0 && osize != 0)
@@ -1310,6 +1314,82 @@ mt_disconnect(lua_State *l)
 	free(ctx);
 
 	lua_pushnil(l);
+
+	return 1;
+}
+
+/*
+**  MT_TEST_ACTION -- send an action bit
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**   	Boolean (true/false)
+*/
+
+int
+mt_test_action(lua_State *l)
+{
+	struct mt_context *ctx;
+	unsigned long action;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2 ||
+	    !lua_islightuserdata(l, 1) ||
+	    !lua_isnumber(l, 2))
+	{
+		lua_pushstring(l, "mt.test_action(): Invalid argument");
+		lua_error(l);
+	}
+
+	ctx = (struct mt_context *) lua_touserdata(l, 1);
+	action = lua_tonumber(l, 2);
+	lua_pop(l, 2);
+
+	if (!mt_assert_state(ctx, STATE_NEGOTIATED))
+		lua_error(l);
+
+	lua_pushboolean(l, (ctx->ctx_mactions & action) != 0);
+
+	return 1;
+}
+
+/*
+**  MT_TEST_OPTION -- send a protocol option bit
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**   	Boolean (true/false)
+*/
+
+int
+mt_test_option(lua_State *l)
+{
+	unsigned long option;
+	struct mt_context *ctx;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 2 ||
+	    !lua_islightuserdata(l, 1) ||
+	    !lua_isnumber(l, 2))
+	{
+		lua_pushstring(l, "mt.test_option(): Invalid argument");
+		lua_error(l);
+	}
+
+	ctx = (struct mt_context *) lua_touserdata(l, 1);
+	option = lua_tonumber(l, 2);
+	lua_pop(l, 2);
+
+	if (!mt_assert_state(ctx, STATE_NEGOTIATED))
+		lua_error(l);
+
+	lua_pushboolean(l, (ctx->ctx_mpopts & option) != 0);
 
 	return 1;
 }
@@ -3445,6 +3525,84 @@ main(int argc, char **argv)
 	lua_setglobal(l, "SMFIC_MAIL");
 	lua_pushnumber(l, SMFIC_RCPT);
 	lua_setglobal(l, "SMFIC_RCPT");
+
+	lua_pushnumber(l, SMFIP_NOCONNECT);
+	lua_setglobal(l, "SMFIP_NOCONNECT");
+	lua_pushnumber(l, SMFIP_NOHELO);
+	lua_setglobal(l, "SMFIP_NOHELO");
+	lua_pushnumber(l, SMFIP_NOMAIL);
+	lua_setglobal(l, "SMFIP_NOMAIL");
+	lua_pushnumber(l, SMFIP_NORCPT);
+	lua_setglobal(l, "SMFIP_NORCPT");
+	lua_pushnumber(l, SMFIP_NOBODY);
+	lua_setglobal(l, "SMFIP_NOBODY");
+	lua_pushnumber(l, SMFIP_NOHDRS);
+	lua_setglobal(l, "SMFIP_NOHDRS");
+	lua_pushnumber(l, SMFIP_NOEOH);
+	lua_setglobal(l, "SMFIP_NOEOH");
+	lua_pushnumber(l, SMFIP_NR_HDR);
+	lua_setglobal(l, "SMFIP_NR_HDR");
+	lua_pushnumber(l, SMFIP_NOHREPL);
+	lua_setglobal(l, "SMFIP_NOHREPL");
+	lua_pushnumber(l, SMFIP_NOUNKNOWN);
+	lua_setglobal(l, "SMFIP_NOUNKNOWN");
+	lua_pushnumber(l, SMFIP_NODATA);
+	lua_setglobal(l, "SMFIP_NODATA");
+	lua_pushnumber(l, SMFIP_SKIP);
+	lua_setglobal(l, "SMFIP_SKIP");
+	lua_pushnumber(l, SMFIP_RCPT_REJ);
+	lua_setglobal(l, "SMFIP_RCPT_REJ");
+	lua_pushnumber(l, SMFIP_NR_CONN);
+	lua_setglobal(l, "SMFIP_NR_CONN");
+	lua_pushnumber(l, SMFIP_NR_HELO);
+	lua_setglobal(l, "SMFIP_NR_HELO");
+	lua_pushnumber(l, SMFIP_NR_MAIL);
+	lua_setglobal(l, "SMFIP_NR_MAIL");
+	lua_pushnumber(l, SMFIP_NR_RCPT);
+	lua_setglobal(l, "SMFIP_NR_RCPT");
+	lua_pushnumber(l, SMFIP_NR_DATA);
+	lua_setglobal(l, "SMFIP_NR_DATA");
+	lua_pushnumber(l, SMFIP_NR_UNKN);
+	lua_setglobal(l, "SMFIP_NR_UNKN");
+	lua_pushnumber(l, SMFIP_NR_EOH);
+	lua_setglobal(l, "SMFIP_NR_EOH");
+	lua_pushnumber(l, SMFIP_NR_BODY);
+	lua_setglobal(l, "SMFIP_NR_BODY");
+	lua_pushnumber(l, SMFIP_HDR_LEADSPC);
+	lua_setglobal(l, "SMFIP_HDR_LEADSPC");
+#ifdef SMFIP_MDS_256K
+	lua_pushnumber(l, SMFIP_MDS_256K);
+	lua_setglobal(l, "SMFIP_MDS_256K");
+#endif /* SMFIP_MDS_256K */
+#ifdef SMFIP_MDS_1M
+	lua_pushnumber(l, SMFIP_MDS_1M);
+	lua_setglobal(l, "SMFIP_MDS_1M");
+#endif /* SMFIP_MDS_1M */
+#ifdef SMFIP_TEST
+	lua_pushnumber(l, SMFIP_TEST);
+	lua_setglobal(l, "SMFIP_TEST");
+#endif /* SMFIP_TEST */
+
+	lua_pushnumber(l, SMFIF_ADDHDRS);
+	lua_setglobal(l, "SMFIF_ADDHDRS");
+	lua_pushnumber(l, SMFIF_CHGBODY);
+	lua_setglobal(l, "SMFIF_CHGBODY");
+	lua_pushnumber(l, SMFIF_MODBODY);
+	lua_setglobal(l, "SMFIF_MODBODY");
+	lua_pushnumber(l, SMFIF_ADDRCPT);
+	lua_setglobal(l, "SMFIF_ADDRCPT");
+	lua_pushnumber(l, SMFIF_DELRCPT);
+	lua_setglobal(l, "SMFIF_DELRCPT");
+	lua_pushnumber(l, SMFIF_CHGHDRS);
+	lua_setglobal(l, "SMFIF_CHGHDRS");
+	lua_pushnumber(l, SMFIF_QUARANTINE);
+	lua_setglobal(l, "SMFIF_QUARANTINE");
+	lua_pushnumber(l, SMFIF_CHGFROM);
+	lua_setglobal(l, "SMFIF_CHGFROM");
+	lua_pushnumber(l, SMFIF_ADDRCPT_PAR);
+	lua_setglobal(l, "SMFIF_ADDRCPT_PAR");
+	lua_pushnumber(l, SMFIF_SETSYMLIST);
+	lua_setglobal(l, "SMFIF_SETSYMLIST");
 
 	switch (lua_load(l, mt_lua_reader, (void *) &io,
 	                 script == NULL ? "(stdin)" : script))
