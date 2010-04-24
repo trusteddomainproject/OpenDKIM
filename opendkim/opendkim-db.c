@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.68.6.9 2010/04/20 21:14:12 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.68.6.10 2010/04/24 01:49:32 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.9 2010/04/20 21:14:12 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.10 2010/04/24 01:49:32 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2413,6 +2413,11 @@ printf("\tnegative\n");
 					return 0;
 				}
 				else if (ldc->ldc_state == DKIMF_DB_CACHE_DATA &&
+				         ldc->ldc_expire <= now.tv_sec)
+				{
+					ldc->ldc_state = DKIMF_DB_CACHE_PENDING;
+				}
+				else if (ldc->ldc_state == DKIMF_DB_CACHE_DATA &&
 				         ldc->ldc_error != 0)
 				{
 printf("\terror %d\n", ldc->ldc_error);
@@ -2530,6 +2535,8 @@ printf("\tcache miss, initiating query\n");
 
 			/* unlock so others can try */
 			pthread_mutex_unlock(&ldap->ldap_lock);
+
+			ldc->ldc_error = 0;
 		}
 # endif /* USE_DB */
 
@@ -2618,8 +2625,15 @@ printf("\tcache miss, initiating query\n");
 
 printf("\tloading cache\n");
 
-		/* update cache */
-		ldc->ldc_nresults = reqnum;
+		/* flush anything already cached */
+		if (ldc->ldc_nresults != 0)
+		{
+			for (c = 0; c < ldc->ldc_nresults; c++)
+				free(ldc->ldc_results[c]);
+			free(ldc->ldc_results);
+		}
+
+		/* cache results */
 		ldc->ldc_results = malloc(sizeof(char *) * reqnum);
 		if (ldc->ldc_results == NULL)
 		{
@@ -2627,6 +2641,7 @@ printf("\tloading cache\n");
 			pthread_mutex_unlock(&ldap->ldap_lock);
 			return errno;
 		}
+		ldc->ldc_nresults = reqnum;
 
 		for (c = 0; c < reqnum; c++)
 		{
