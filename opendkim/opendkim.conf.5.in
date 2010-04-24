@@ -733,14 +733,14 @@ Checks all messages for compliance with RFC5322 header field count
 requirements.  Non-compliant messages are rejected.
 
 .TP
-.I ResignMailTo (dataset)
-Signs the email, in addition to verifying it, if the message recipient is in
-this set.
+.I ResignAll (boolean)
+Resign everything if set, verified mail only if not, defaults to false.
 @RESIGN_MANNOTICE@
 
 .TP
-.I ResignAll (boolean)
-Resign everything if set, verified mail only if not, defaults to false.
+.I ResignMailTo (dataset)
+Signs the email, in addition to verifying it, if the message recipient is in
+this set.
 @RESIGN_MANNOTICE@
 
 .TP
