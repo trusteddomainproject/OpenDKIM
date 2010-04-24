@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.10.2.5 2010/04/23 06:37:27 cm-msk Exp $
+**  $Id: miltertest.c,v 1.10.2.6 2010/04/24 01:30:56 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.5 2010/04/23 06:37:27 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.6 2010/04/24 01:30:56 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -55,10 +55,13 @@ static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.5 2010/04/23 06:37:2
 # define TRUE			1
 #endif /* ! TRUE */
 
+#define	MT_PRODUCT		"OpenDKIM milter test facility"
+#define	MT_VERSION		"1.0.0"
+
 #define	BUFRSZ			1024
 #define	CHUNKSZ			65536
 
-#define	CMDLINEOPTS		"D:s:v"
+#define	CMDLINEOPTS		"D:s:vV"
 
 #define	DEFBODY			"Dummy message body.\r\n"
 #define	DEFCLIENTPORT		12345
@@ -611,10 +614,15 @@ mt_assert_state(struct mt_context *ctx, int state)
 		if (!mt_milter_write(ctx->ctx_fd, SMFIC_CONNECT, buf, s))
 			return FALSE;
 
-		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
-			return FALSE;
+		rcmd = SMFIR_CONTINUE;
 
-		ctx->ctx_response = rcmd;
+		if ((ctx->ctx_mpopts & SMFIP_NR_CONN) == 0)
+		{
+			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+				return FALSE;
+
+			ctx->ctx_response = rcmd;
+		}
 
 		if (rcmd != SMFIR_CONTINUE)
 		{
@@ -644,10 +652,15 @@ mt_assert_state(struct mt_context *ctx, int state)
 		if (!mt_milter_write(ctx->ctx_fd, SMFIC_HELO, buf, len))
 			return FALSE;
 
-		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
-			return FALSE;
+		rcmd = SMFIR_CONTINUE;
 
-		ctx->ctx_response = rcmd;
+		if ((ctx->ctx_mpopts & SMFIP_NR_HELO) == 0)
+		{
+			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+				return FALSE;
+
+			ctx->ctx_response = rcmd;
+		}
 
 		if (rcmd != SMFIR_CONTINUE)
 		{
@@ -677,10 +690,15 @@ mt_assert_state(struct mt_context *ctx, int state)
 		if (!mt_milter_write(ctx->ctx_fd, SMFIC_MAIL, buf, len))
 			return FALSE;
 
-		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
-			return FALSE;
+		rcmd = SMFIR_CONTINUE;
 
-		ctx->ctx_response = rcmd;
+		if ((ctx->ctx_mpopts & SMFIP_NR_MAIL) == 0)
+		{
+			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+				return FALSE;
+
+			ctx->ctx_response = rcmd;
+		}
 
 		if (rcmd != SMFIR_CONTINUE)
 		{
@@ -710,10 +728,15 @@ mt_assert_state(struct mt_context *ctx, int state)
 		if (!mt_milter_write(ctx->ctx_fd, SMFIC_RCPT, buf, len))
 			return FALSE;
 
-		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
-			return FALSE;
+		rcmd = SMFIR_CONTINUE;
 
-		ctx->ctx_response = rcmd;
+		if ((ctx->ctx_mpopts & SMFIP_NR_RCPT) == 0)
+		{
+			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+				return FALSE;
+
+			ctx->ctx_response = rcmd;
+		}
 
 		if (rcmd != SMFIR_CONTINUE)
 		{
@@ -740,10 +763,15 @@ mt_assert_state(struct mt_context *ctx, int state)
 		if (!mt_milter_write(ctx->ctx_fd, SMFIC_DATA, NULL, 0))
 			return FALSE;
 
-		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
-			return FALSE;
+		rcmd = SMFIR_CONTINUE;
 
-		ctx->ctx_response = rcmd;
+		if ((ctx->ctx_mpopts & SMFIP_NR_DATA) == 0)
+		{
+			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+				return FALSE;
+
+			ctx->ctx_response = rcmd;
+		}
 
 		if (rcmd != SMFIR_CONTINUE)
 		{
@@ -775,10 +803,15 @@ mt_assert_state(struct mt_context *ctx, int state)
 		if (!mt_milter_write(ctx->ctx_fd, SMFIC_HEADER, buf, len))
 			return FALSE;
 
-		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
-			return FALSE;
+		rcmd = SMFIR_CONTINUE;
 
-		ctx->ctx_response = rcmd;
+		if ((ctx->ctx_mpopts & SMFIP_NR_HDR) == 0)
+		{
+			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+				return FALSE;
+
+			ctx->ctx_response = rcmd;
+		}
 
 		if (rcmd != SMFIR_CONTINUE)
 		{
@@ -805,10 +838,15 @@ mt_assert_state(struct mt_context *ctx, int state)
 		if (!mt_milter_write(ctx->ctx_fd, SMFIC_EOH, NULL, 0))
 			return FALSE;
 
-		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
-			return FALSE;
+		rcmd = SMFIR_CONTINUE;
 
-		ctx->ctx_response = rcmd;
+		if ((ctx->ctx_mpopts & SMFIP_NR_EOH) == 0)
+		{
+			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+				return FALSE;
+
+			ctx->ctx_response = rcmd;
+		}
 
 		if (rcmd != SMFIR_CONTINUE)
 		{
@@ -836,10 +874,15 @@ mt_assert_state(struct mt_context *ctx, int state)
 		                     strlen(DEFBODY)))
 			return FALSE;
 
-		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
-			return FALSE;
+		rcmd = SMFIR_CONTINUE;
 
-		ctx->ctx_response = rcmd;
+		if ((ctx->ctx_mpopts & SMFIP_NR_BODY) == 0)
+		{
+			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+				return FALSE;
+
+			ctx->ctx_response = rcmd;
+		}
 
 		if (rcmd != SMFIR_CONTINUE)
 		{
@@ -1746,10 +1789,15 @@ mt_conninfo(lua_State *l)
 		return 1;
 	}
 
-	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+	rcmd = SMFIR_CONTINUE;
+
+	if ((ctx->ctx_mpopts & SMFIP_NR_CONN) == 0)
 	{
-		lua_pushstring(l, "mt.milter_read() failed");
-		return 1;
+		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+		{
+			lua_pushstring(l, "mt.milter_read() failed");
+			return 1;
+		}
 	}
 
 	ctx->ctx_response = rcmd;
@@ -1820,10 +1868,15 @@ mt_unknown(lua_State *l)
 
 	buflen = sizeof buf;
 
-	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+	rcmd = SMFIR_CONTINUE;
+
+	if ((ctx->ctx_mpopts & SMFIP_NR_UNKN) == 0)
 	{
-		lua_pushstring(l, "mt.milter_read() failed");
-		return 1;
+		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+		{
+			lua_pushstring(l, "mt.milter_read() failed");
+			return 1;
+		}
 	}
 
 	ctx->ctx_response = rcmd;
@@ -1893,10 +1946,15 @@ mt_helo(lua_State *l)
 
 	buflen = sizeof buf;
 
-	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+	rcmd = SMFIR_CONTINUE;
+
+	if ((ctx->ctx_mpopts & SMFIP_NR_HELO) == 0)
 	{
-		lua_pushstring(l, "mt.milter_read() failed");
-		return 1;
+		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+		{
+			lua_pushstring(l, "mt.milter_read() failed");
+			return 1;
+		}
 	}
 
 	ctx->ctx_response = rcmd;
@@ -1976,10 +2034,15 @@ mt_mailfrom(lua_State *l)
 
 	buflen = sizeof buf;
 
-	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+	rcmd = SMFIR_CONTINUE;
+
+	if ((ctx->ctx_mpopts & SMFIP_NR_MAIL) == 0)
 	{
-		lua_pushstring(l, "mt.milter_read() failed");
-		return 1;
+		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+		{
+			lua_pushstring(l, "mt.milter_read() failed");
+			return 1;
+		}
 	}
 
 	ctx->ctx_response = rcmd;
@@ -2060,10 +2123,15 @@ mt_rcptto(lua_State *l)
 
 	buflen = sizeof buf;
 
-	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+	rcmd = SMFIR_CONTINUE;
+
+	if ((ctx->ctx_mpopts & SMFIP_NR_RCPT) == 0)
 	{
-		lua_pushstring(l, "mt.milter_read() failed");
-		return 1;
+		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+		{
+			lua_pushstring(l, "mt.milter_read() failed");
+			return 1;
+		}
 	}
 
 	ctx->ctx_response = rcmd;
@@ -2127,10 +2195,15 @@ mt_data(lua_State *l)
 
 	buflen = sizeof buf;
 
-	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+	rcmd = SMFIR_CONTINUE;
+
+	if ((ctx->ctx_mpopts & SMFIP_NR_DATA) == 0)
 	{
-		lua_pushstring(l, "mt.milter_read() failed");
-		return 1;
+		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+		{
+			lua_pushstring(l, "mt.milter_read() failed");
+			return 1;
+		}
 	}
 
 	ctx->ctx_response = rcmd;
@@ -2205,10 +2278,15 @@ mt_header(lua_State *l)
 
 	buflen = sizeof buf;
 
-	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+	rcmd = SMFIR_CONTINUE;
+
+	if ((ctx->ctx_mpopts & SMFIP_NR_HDR) == 0)
 	{
-		lua_pushstring(l, "mt.milter_read() failed");
-		return 1;
+		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+		{
+			lua_pushstring(l, "mt.milter_read() failed");
+			return 1;
+		}
 	}
 
 	ctx->ctx_response = rcmd;
@@ -2272,10 +2350,15 @@ mt_eoh(lua_State *l)
 
 	buflen = sizeof buf;
 
-	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+	rcmd = SMFIR_CONTINUE;
+
+	if ((ctx->ctx_mpopts & SMFIP_NR_EOH) == 0)
 	{
-		lua_pushstring(l, "mt.milter_read() failed");
-		return 1;
+		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+		{
+			lua_pushstring(l, "mt.milter_read() failed");
+			return 1;
+		}
 	}
 
 	ctx->ctx_response = rcmd;
@@ -2340,10 +2423,15 @@ mt_bodystring(lua_State *l)
 
 	buflen = sizeof buf;
 
-	if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+	rcmd = SMFIR_CONTINUE;
+
+	if ((ctx->ctx_mpopts & SMFIP_NR_BODY) == 0)
 	{
-		lua_pushstring(l, "mt.milter_read() failed");
-		return 1;
+		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+		{
+			lua_pushstring(l, "mt.milter_read() failed");
+			return 1;
+		}
 	}
 
 	ctx->ctx_response = rcmd;
@@ -2423,10 +2511,15 @@ mt_bodyrandom(lua_State *l)
 
 		buflen = sizeof buf;
 
-		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+		rcmd = SMFIR_CONTINUE;
+
+		if ((ctx->ctx_mpopts & SMFIP_NR_BODY) == 0)
 		{
-			lua_pushstring(l, "mt.milter_read() failed");
-			return 1;
+			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+			{
+				lua_pushstring(l, "mt.milter_read() failed");
+				return 1;
+			}
 		}
 
 		ctx->ctx_response = rcmd;
@@ -2513,12 +2606,18 @@ mt_bodyfile(lua_State *l)
 
 			buflen = sizeof chunk;
 
-			if (!mt_milter_read(ctx->ctx_fd, &rcmd, chunk,
-			                    &buflen))
+			rcmd = SMFIR_CONTINUE;
+
+			if ((ctx->ctx_mpopts & SMFIP_NR_BODY) == 0)
 			{
-				fclose(f);
-				lua_pushstring(l, "mt.milter_read() failed");
-				return 1;
+				if (!mt_milter_read(ctx->ctx_fd, &rcmd, chunk,
+				                    &buflen))
+				{
+					fclose(f);
+					lua_pushstring(l,
+					               "mt.milter_read() failed");
+					return 1;
+				}
 			}
 
 			if (verbose > 0)
@@ -3414,6 +3513,11 @@ main(int argc, char **argv)
 		  case 'v':
 			verbose++;
 			break;
+
+		  case 'V':
+			fprintf(stdout, "%s: %s v%s\n", progname, MT_PRODUCT,
+			        MT_VERSION);
+			return 0;
 
 		  default:
 			lua_close(l);

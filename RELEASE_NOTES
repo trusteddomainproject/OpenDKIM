@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.113.2.29 2010/04/22 18:11:59 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.113.2.30 2010/04/24 01:30:56 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -13,6 +13,8 @@ release, and a summary of the changes in that release.
 	MILTERTEST: Break out of the sending loop in mt_bodyrandom() if
 		something other than SMFIR_CONTINUE comes back from the MTA.
 	MILTERTEST: Add support for milter's UNKNOWN and DATA steps.
+	MILTERTEST: Honour SMFIP_NR_* no-reply requests that may have been
+		requested by the filter.
 
 2.0.2		2010/04/12
 	Fix bug #SF2983979: Fix a configuration buffer initialization

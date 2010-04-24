@@ -4,7 +4,7 @@
 -- milter unit test utility
 .SH SYNOPSIS
 .B miltertest
-[-D name[=value]] [-s script] [-v]
+[-D name[=value]] [-s script] [-v] [-V]
 .SH DESCRIPTION
 .B miltertest
 simulates the MTA side of an MTA-milter interaction for testing a milter-aware
@@ -51,6 +51,9 @@ input.
 .I -v
 Increase verbose output.  May be specified multiple times to request
 more and more information.
+.TP
+.I -V
+Print version number and exit.
 .SH FUNCTIONS
 The following functions are made available to Lua scripts for exercising
 a filter.  All functions return Lua constant "nil" on success or an error
@@ -315,10 +318,14 @@ parameters, the function returns true only if a specific reply was
 requested with the specified SMTP code, enhanced status code, and text.
 .SH NOTES
 .I miltertest
-does not currently support the SMFIP_NR_* or SMFIP_NO* negotiation options.
-This will be fixed in a future version.
+does not currently enforce the SMFIP_NO* macros that a filter might request
+in order to have the (simulated) MTA skip certain protocol steps.  It is up
+to the test author to use
+.I mt.test_option
+function to see if performing a protocol step has been explicitly disabled
+by the filter.
 .SH VERSION
-This man page covers version 0.1.0 of
+This man page covers version 1.0.0 of
 .I miltertest.
 .SH COPYRIGHT
 Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
