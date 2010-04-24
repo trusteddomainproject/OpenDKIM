@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.68.6.10 2010/04/24 01:49:32 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.68.6.11 2010/04/24 01:51:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.10 2010/04/24 01:49:32 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.68.6.11 2010/04/24 01:51:37 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2565,6 +2565,7 @@ printf("\tcache miss, initiating query\n");
 			db->db_status = status;
 # ifdef USE_DB
 			ldc->ldc_error = status;
+			ldc->ldc_expire = time(NULL) + DKIMF_LDAP_TTL;
 			ldc->ldc_state = DKIMF_DB_CACHE_DATA;
 			pthread_cond_broadcast(&ldc->ldc_cond);
 # endif /* USE_DB */
@@ -2638,6 +2639,8 @@ printf("\tloading cache\n");
 		if (ldc->ldc_results == NULL)
 		{
 			ldc->ldc_error = errno;
+			ldc->ldc_expire = time(NULL) + DKIMF_LDAP_TTL;
+			ldc->ldc_state = DKIMF_DB_CACHE_DATA;
 			pthread_mutex_unlock(&ldap->ldap_lock);
 			return errno;
 		}
