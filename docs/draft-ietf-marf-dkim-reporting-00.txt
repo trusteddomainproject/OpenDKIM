@@ -1,14 +1,14 @@
 
 
 
-Individual submission                                       M. Kucherawy
+MARF Working Group                                          M. Kucherawy
 Internet-Draft                                                 Cloudmark
-Intended status: Standards Track                          April 15, 2010
-Expires: October 17, 2010
+Intended status: Standards Track                          April 21, 2010
+Expires: October 23, 2010
 
 
                 Reporting of DKIM Verification Failures
-                   draft-kucherawy-dkim-reporting-07
+                   draft-ietf-marf-dkim-reporting-00
 
 Abstract
 
@@ -20,26 +20,20 @@ Abstract
 
 Status of this Memo
 
-   This Internet-Draft is submitted to IETF in full conformance with the
+   This Internet-Draft is submitted in full conformance with the
    provisions of BCP 78 and BCP 79.
 
    Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF), its areas, and its working groups.  Note that
-   other groups may also distribute working documents as Internet-
-   Drafts.
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   The list of current Internet-Drafts can be accessed at
-   http://www.ietf.org/ietf/1id-abstracts.txt.
-
-   The list of Internet-Draft Shadow Directories can be accessed at
-   http://www.ietf.org/shadow.html.
-
-   This Internet-Draft will expire on October 17, 2010.
+   This Internet-Draft will expire on October 23, 2010.
 
 Copyright Notice
 
@@ -49,20 +43,18 @@ Copyright Notice
    This document is subject to BCP 78 and the IETF Trust's Legal
    Provisions Relating to IETF Documents
    (http://trustee.ietf.org/license-info) in effect on the date of
-
-
-
-Kucherawy               Expires October 17, 2010                [Page 1]
-
-Internet-Draft               DKIM Reporting                   April 2010
-
-
    publication of this document.  Please review these documents
    carefully, as they describe your rights and restrictions with respect
    to this document.  Code Components extracted from this document must
    include Simplified BSD License text as described in Section 4.e of
    the Trust Legal Provisions and are provided without warranty as
-   described in the BSD License.
+   described in the Simplified BSD License.
+
+
+
+Kucherawy               Expires October 23, 2010                [Page 1]
+
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 Table of Contents
@@ -108,7 +100,15 @@ Table of Contents
 
 
 
-Kucherawy               Expires October 17, 2010                [Page 2]
+
+
+
+
+
+
+
+
+Kucherawy               Expires October 23, 2010                [Page 2]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -164,7 +164,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010                [Page 3]
+Kucherawy               Expires October 23, 2010                [Page 3]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -220,7 +220,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010                [Page 4]
+Kucherawy               Expires October 23, 2010                [Page 4]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -276,7 +276,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010                [Page 5]
+Kucherawy               Expires October 23, 2010                [Page 5]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -303,7 +303,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
    rs=  Requested SMTP Error String (plain-text; OPTIONAL; no default).
       The value is a string the signing domain requests be included in
-      SMTP error strings when messages are rejected.
+      [SMTP] error strings when messages are rejected.
 
       ABNF:
 
@@ -332,7 +332,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010                [Page 6]
+Kucherawy               Expires October 23, 2010                [Page 6]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -388,7 +388,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010                [Page 7]
+Kucherawy               Expires October 23, 2010                [Page 7]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -420,7 +420,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
    rs=  Requested SMTP Error String (plain-text; OPTIONAL; no default).
       The value is a string the signing domain requests be included in
-      SMTP error strings when messages are rejected.
+      [SMTP] error strings when messages are rejected.
 
       ABNF:
 
@@ -444,7 +444,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010                [Page 8]
+Kucherawy               Expires October 23, 2010                [Page 8]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -500,7 +500,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010                [Page 9]
+Kucherawy               Expires October 23, 2010                [Page 9]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -513,7 +513,7 @@ Internet-Draft               DKIM Reporting                   April 2010
    arf:  Abuse Reporting Format, as defined in
       [I-D.DRAFT-IETF-MARF-BASE], and as extended in Section 7.
 
-   smtp:  An SMTP error with a string descriptive of the problem that
+   smtp:  An [SMTP] error with a string descriptive of the problem that
       caused the DKIM verification to fail.  This explicitly requests
       evaluation of DKIM concurrent with the SMTP session, and rejection
       (if appropriate) whenever possible rather than acceptance of the
@@ -556,7 +556,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010               [Page 10]
+Kucherawy               Expires October 23, 2010               [Page 10]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -612,7 +612,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010               [Page 11]
+Kucherawy               Expires October 23, 2010               [Page 11]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -668,7 +668,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010               [Page 12]
+Kucherawy               Expires October 23, 2010               [Page 12]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -724,7 +724,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010               [Page 13]
+Kucherawy               Expires October 23, 2010               [Page 13]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -780,7 +780,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010               [Page 14]
+Kucherawy               Expires October 23, 2010               [Page 14]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -836,7 +836,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010               [Page 15]
+Kucherawy               Expires October 23, 2010               [Page 15]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -892,15 +892,15 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010               [Page 16]
+Kucherawy               Expires October 23, 2010               [Page 16]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
 
    that no delivery status reports will be issued in response to the
    DKIM report itself, and MUST be chosen so that these reports will not
-   generate mail loops.  Whenever an SMTP transaction is used to send a
-   DKIM report, the MAIL FROM command MUST use a NULL return address,
+   generate mail loops.  Whenever an [SMTP] transaction is used to send
+   a DKIM report, the MAIL FROM command MUST use a NULL return address,
    i.e.  "MAIL FROM:<>".
 
 9.5.  Reporting Multiple Incidents
@@ -948,7 +948,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010               [Page 17]
+Kucherawy               Expires October 23, 2010               [Page 17]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -984,6 +984,9 @@ Internet-Draft               DKIM Reporting                   April 2010
               Extensions (MIME) Part One: Format of Internet Message
               Bodies", RFC 2045, November 1996.
 
+   [SMTP]     Klensin, J., "Simple Mail Transfer Protocol", RFC 5321,
+              October 2008.
+
 10.2.  Informative References
 
    [DSN]      Moore, K. and G. Vaudreuil, "An Extensible Message Format
@@ -1001,10 +1004,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-
-
-
-Kucherawy               Expires October 17, 2010               [Page 18]
+Kucherawy               Expires October 23, 2010               [Page 18]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -1060,7 +1060,7 @@ Appendix A.  Acknowledgements
 
 
 
-Kucherawy               Expires October 17, 2010               [Page 19]
+Kucherawy               Expires October 23, 2010               [Page 19]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -1116,7 +1116,7 @@ B.2.  Example Use of DKIM ADSP Extension Tags
 
 
 
-Kucherawy               Expires October 17, 2010               [Page 20]
+Kucherawy               Expires October 23, 2010               [Page 20]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -1172,7 +1172,7 @@ B.3.  Example Use of ARF Extension Headers
 
 
 
-Kucherawy               Expires October 17, 2010               [Page 21]
+Kucherawy               Expires October 23, 2010               [Page 21]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -1228,7 +1228,7 @@ Internet-Draft               DKIM Reporting                   April 2010
 
 
 
-Kucherawy               Expires October 17, 2010               [Page 22]
+Kucherawy               Expires October 23, 2010               [Page 22]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -1284,7 +1284,7 @@ Appendix C.  Public Discussion
 
 
 
-Kucherawy               Expires October 17, 2010               [Page 23]
+Kucherawy               Expires October 23, 2010               [Page 23]
 
 Internet-Draft               DKIM Reporting                   April 2010
 
@@ -1340,5 +1340,5 @@ Author's Address
 
 
 
-Kucherawy               Expires October 17, 2010               [Page 24]
+Kucherawy               Expires October 23, 2010               [Page 24]
 
