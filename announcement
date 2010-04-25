@@ -1,29 +1,28 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.0.2 released
+Subject: OpenDKIM v2.0.3 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.0.2, now available
+The OpenDKIM project announces availability of OpenDKIM v2.0.3, now available
 for download from SourceForge.
 
-This release contains minor fixes to a few bugs (mostly build-related)
-reported since the v2.0.1 release.  There was one minor fix in the library
-having to do with the chunking interface as well.
+This release is non-critical if the filter is working for you already.  It
+contains a couple of minor fixes in the filter (one fixes a crash bug on
+startup for some Linux systems, one fixes peculiar behaviour when
+VERIFY_DOMAINKEYS is enabled), and also includes a number of modern milter
+compatilbility fixes for our "miltertest" tool.
 
 The RELEASE_NOTES for this version:
 
-2.0.2		2010/04/12
-	Fix bug #SF2983979: Fix a configuration buffer initialization
-		error tripped when running in test mode.  Patch from
-		Kaspar Brand.
-	LIBOPENDKIM: Fix dkim_chunk() to handle a message that starts with
-		a CRLF.  Problem noted by Masumi Taketomi Parekh of Yahoo!.
-	BUILD: Fix bug #SF2981597: Incorrect variable check for
-		"--with-domainkeys" when a path is given, and repair
-		DomainKeys build in opendkim/Makefile.am.  Reported by
-		Gary Mills.
-	BUILD: Fix bug #SF2983206: Optionally pass "-rpath" to libtool for
-		libopendkim.
-	BUILD: Path fix in opendkim.pc from Stefan Schulze Frielinghaus.
+2.0.3		2010/04/30
+	Fix bug #SF2986301: Initialize a pointer for AutoRestart before
+		using it, avoiding a segmentation fault.
+	Don't let Authentication-Results: logic from DomainKeys verification
+		interfere with that of DKIM verification.
+	MILTERTEST: Break out of the sending loop in mt_bodyrandom() if
+		something other than SMFIR_CONTINUE comes back from the MTA.
+	MILTERTEST: Add support for milter's UNKNOWN and DATA steps.
+	MILTERTEST: Honour SMFIP_NR_* no-reply requests that may have been
+		made by the filter.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers
