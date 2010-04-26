@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.9 2009/11/22 08:15:50 grooverdan Exp $";
+static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.9.8.1 2010/04/26 22:19:21 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -280,7 +280,7 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 #endif /* USE_UNBOUND */
 
 #if USE_ARLIB
-# ifdef _FFR_DNS_UPGRADE
+# ifdef _FFR_DNSUPGRADE
 	for (c = 0; c < 2; c++)
 	{
 		switch (c)
@@ -407,7 +407,7 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 
 		break;
 	}
-# else /* _FFR_DNS_UPGRADE */
+# else /* _FFR_DNSUPGRADE */
 	ar = dkim->dkim_libhandle->dkiml_arlib;
 
 	timeout.tv_sec = dkim->dkim_timeout;
@@ -499,7 +499,7 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 	(void) ar_cancelquery(ar, q_a);
 	(void) ar_cancelquery(ar, q_aaaa);
 	(void) ar_cancelquery(ar, q_mx);
-# endif /* _FFR_DNS_UPGRADE */
+# endif /* _FFR_DNSUPGRADE */
 #else /* USE_ARLIB */
 	status = res_query(query, C_IN, T_A, ansbuf_a, sizeof ansbuf_a);
 	status = res_query(query, C_IN, T_AAAA, ansbuf_aaaa,
@@ -660,7 +660,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 
 #else /* USE_UNBOUND */
 #if USE_ARLIB
-# ifdef _FFR_DNS_UPGRADE
+# ifdef _FFR_DNSUPGRADE
 		for (c = 0; c < 2; c++)
 		{
 			switch (c)
@@ -723,7 +723,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 
 			break;
 		}
-# else /* _FFR_DNS_UPGRADE */
+# else /* _FFR_DNSUPGRADE */
 		ar = dkim->dkim_libhandle->dkiml_arlib;
 
 		timeout.tv_sec = dkim->dkim_timeout;
@@ -761,7 +761,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		}
 
 		(void) ar_cancelquery(ar, q);
-# endif /* _FFR_DNS_UPGRADE */
+# endif /* _FFR_DNSUPGRADE */
 #else /* USE_ARLIB */
 
 		status = res_query(query, C_IN, T_TXT, ansbuf, sizeof ansbuf);

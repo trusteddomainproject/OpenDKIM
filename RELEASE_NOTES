@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.113.2.31 2010/04/24 01:42:02 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.113.2.32 2010/04/26 22:19:21 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -8,6 +8,9 @@ release, and a summary of the changes in that release.
 2.0.3		2010/04/30
 	Fix bug #SF2986301: Initialize a pointer for AutoRestart before
 		using it, avoiding a segmentation fault.
+	Fix bug #SF2992571: Rename _FFR_DNS_UPGRADE to _FFR_DNSUPGRADE to
+		match what the build system does.  Problem noted by
+		Gary Mills.
 	Don't let Authentication-Results: logic from DomainKeys verification
 		interfere with that of DKIM verification.
 	MILTERTEST: Break out of the sending loop in mt_bodyrandom() if
