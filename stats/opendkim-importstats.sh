@@ -1,6 +1,6 @@
 #!/bin/sh
 ##
-## $Id: opendkim-importstats.sh,v 1.1.2.4 2010/04/28 20:15:33 cm-msk Exp $
+## $Id: opendkim-importstats.sh,v 1.1.2.5 2010/04/28 20:16:46 cm-msk Exp $
 ##
 ## Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 ##
@@ -83,6 +83,7 @@ import="load data infile '/tmp/opendkim-import.$$'
 	(
 		jobid,
 		from_domain,
+		ipaddr,
 		@msgtime,
 		algorithm,
 		hdr_canon,
