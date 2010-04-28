@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.7.8.15 2010/04/28 00:11:39 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.7.8.16 2010/04/28 19:54:24 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.15 2010/04/28 00:11:39 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.16 2010/04/28 19:54:24 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -613,7 +613,7 @@ main(int argc, char **argv)
 		int status;
 
 		status = dkims_dump(path, mailto);
-		if (status != 0 && resetdb)
+		if (status == 0 && resetdb)
 		{
 			if (unlink(path) != 0)
 			{
