@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.7.8.17 2010/04/28 20:07:14 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.7.8.18 2010/04/28 20:12:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.17 2010/04/28 20:07:14 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.18 2010/04/28 20:12:10 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -338,7 +338,7 @@ dkims_dump(char *path, char *mailto)
 			}
 #endif /* AF_INET6 */
 #ifdef AF_INET
-			if (recdata_v2.sd_sockinfo.ss_family == AF_INET6)
+			if (recdata_v2.sd_sockinfo.ss_family == AF_INET)
 			{
 				struct sockaddr_in *sa;
 
