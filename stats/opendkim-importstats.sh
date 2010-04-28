@@ -1,6 +1,6 @@
 #!/bin/sh
 ##
-## $Id: opendkim-importstats.sh,v 1.1.2.3 2010/04/16 00:46:50 cm-msk Exp $
+## $Id: opendkim-importstats.sh,v 1.1.2.4 2010/04/28 20:15:33 cm-msk Exp $
 ##
 ## Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 ##
@@ -13,6 +13,8 @@ user="opendkim"
 password="opendkim"
 statsdb="/var/db/opendkim/opendkim-stats.db"
 anon="yes"
+
+progname=`basename $0`
 
 ## Argument processing
 while [ $# -gt 0 ]
