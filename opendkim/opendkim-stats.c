@@ -4,17 +4,20 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.7.8.14 2010/04/16 00:46:50 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.7.8.15 2010/04/28 00:11:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.14 2010/04/16 00:46:50 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.15 2010/04/28 00:11:39 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/wait.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <stdbool.h>
 #include <string.h>
 #include <sysexits.h>
@@ -27,7 +30,7 @@ static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.14 2010/0
 #include <stdlib.h>
 
 /* openssl includes */
-#include <openssl/sha.h>
+#include <openssl/md5.h>
 
 /* opendkim includes */
 #include "build-config.h"
@@ -43,7 +46,6 @@ static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.14 2010/0
 # define TRUE		1
 #endif /* ! TRUE */
 
-#define	ANON_STRING	"anonymous"
 #define	CMDLINEOPTS	"ach:im:r"
 #ifndef _PATH_DEVNULL
 # define _PATH_DEVNULL	"/dev/null"
@@ -108,6 +110,7 @@ dkims_dump(char *path, char *mailto)
 	struct dkim_stats_data_v2 recdata_v2;
 	struct dkimf_db_data dbd;
 	char jobid[DKIM_MAXHOSTNAMELEN + 1];
+	char ipbuf[BUFRSZ];
 
 	assert(path != NULL);
 
@@ -294,8 +297,83 @@ dkims_dump(char *path, char *mailto)
 			else
 				fprintf(out, "%s\t", jobid);
 
-			fprintf(out, "%s\t",
-			        anon ? ANON_STRING : recdata_v2.sd_fromdomain);
+			if (anon)
+			{
+				int c;
+				MD5_CTX md5;
+				char md5out[MD5_DIGEST_LENGTH];
+				char hashout[BUFRSZ];
+
+				(void) MD5_Init(&md5);
+				(void) MD5_Update(&md5,
+				                  recdata_v2.sd_fromdomain,
+				                  strlen(recdata_v2.sd_fromdomain));
+				(void) MD5_Final(md5out, &md5);
+
+				memset(hashout, '\0', sizeof hashout);
+
+				for (c = 0; c < sizeof md5out; c++)
+				{
+					snprintf(&hashout[c * 2], 3,
+					         "%02x", md5out[c]);
+				}
+
+				fprintf(out, "%s\t", hashout);
+			}
+			else
+			{
+				fprintf(out, "%s\t", recdata_v2.sd_fromdomain);
+			}
+
+			memset(ipbuf, '\0', sizeof ipbuf);
+#ifdef AF_INET6
+			if (recdata_v2.sd_sockinfo.ss_family == AF_INET6)
+			{
+				struct sockaddr_in6 *sa;
+
+				sa = (struct sockaddr_in6 *) &recdata_v2.sd_sockinfo;
+
+				(void) inet_ntop(AF_INET6, &sa->sin6_addr,
+				                 ipbuf, sizeof ipbuf);
+			}
+#endif /* AF_INET6 */
+#ifdef AF_INET
+			if (recdata_v2.sd_sockinfo.ss_family == AF_INET6)
+			{
+				struct sockaddr_in *sa;
+
+				sa = (struct sockaddr_in *) &recdata_v2.sd_sockinfo;
+
+				(void) inet_ntop(AF_INET, &sa->sin_addr,
+				                 ipbuf, sizeof ipbuf);
+			}
+#endif /* AF_INET */
+
+			if (anon)
+			{
+				int c;
+				MD5_CTX md5;
+				char md5out[MD5_DIGEST_LENGTH];
+				char hashout[BUFRSZ];
+
+				(void) MD5_Init(&md5);
+				(void) MD5_Update(&md5, ipbuf, strlen(ipbuf));
+				(void) MD5_Final(md5out, &md5);
+
+				memset(hashout, '\0', sizeof hashout);
+
+				for (c = 0; c < sizeof md5out; c++)
+				{
+					snprintf(&hashout[c * 2], 3,
+					         "%02x", md5out[c]);
+				}
+
+				fprintf(out, "%s\t", hashout);
+			}
+			else
+			{
+				fprintf(out, "%s\t", ipbuf);
+			}
 
 			dkims_output(out, "when", recdata_v2.sd_when, TRUE);
 			dkims_output(out, "alg", recdata_v2.sd_alg, TRUE);
@@ -335,6 +413,8 @@ dkims_dump(char *path, char *mailto)
 			dkims_output(out, "tpsigsfail",
 			             recdata_v2.sd_thirdpartysigsfail, TRUE);
 			dkims_output(out, "mlist", recdata_v2.sd_mailinglist,
+			             FALSE);
+			dkims_output(out, "rhcnt", recdata_v2.sd_received,
 			             FALSE);
 
 			fprintf(out, "\n");

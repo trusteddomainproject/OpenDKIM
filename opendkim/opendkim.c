@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.112.6.3 2010/04/06 20:33:28 cm-msk Exp $
+**  $Id: opendkim.c,v 1.112.6.4 2010/04/28 00:11:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.112.6.3 2010/04/06 20:33:28 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.112.6.4 2010/04/28 00:11:39 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -10398,6 +10398,7 @@ mlfi_eom(SMFICTX *ctx)
 		if (conf->conf_statspath != NULL && dfc->mctx_dkimv != NULL)
 		{
 			struct Header *hdr;
+			u_int rhcnt;
 			_Bool fromlist = FALSE;
 
 			hdr = dkimf_findheader(dfc, "Precedence", 0);
@@ -10425,9 +10426,20 @@ mlfi_eom(SMFICTX *ctx)
 				fromlist = TRUE;
 			}
 
+			for (c = 0; ; c++)
+			{
+				if (dkimf_findheader(dfc, "Received",
+				                     c) == NULL)
+				{
+					rhcnt = c;
+					break;
+				}
+			}
+
 			dkimf_stats_record(conf->conf_statspath,
 			                   dfc->mctx_jobid, dfc->mctx_dkimv,
-			                   dfc->mctx_pcode, fromlist);
+			                   dfc->mctx_pcode, fromlist, rhcnt,
+			                   (struct sockaddr *) &cc->cctx_ip);
 		}
 #endif /* _FFR_STATS */
 

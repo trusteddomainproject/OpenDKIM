@@ -23,8 +23,8 @@ man page for details.
 .SH OPTIONS
 .TP
 .I -a
-Anonymize output by replacing the sending domain in each record with the
-string "anonymous".
+Anonymize output by replacing the sending domain and IP address in each
+record with an MD5 hash of their actual values.
 .TP
 .I -c
 Output comma-separated format.  Not generally human-readable, but ideal
@@ -57,7 +57,8 @@ to be reset (i.e. all data other than the version record will be deleted).
 .B opendkim-stats
 produces a report with a number of values associated with each MTA job ID
 for which signed mail has been received.  The first column contains the
-job ID and the second column is a comma-separated list of "key=value" strings.
+job ID, the second contains the sending domain, the third contains the sending
+IP address, and the fourth is a comma-separated list of "key=value" strings.
 The keys and their values are as follows:
 .TP
 .I when
@@ -166,6 +167,9 @@ If at least one typical mailing list header field was present (e.g.,
 a Precedence: header field containing "list", or the presence of a List-Id:,
 List-Post:, List-Unsubscribe: or Mailing-List: header field), this value will
 be 1; otherwise, it will be 0.
+.TP
+.I rhcnt
+Count of Received: header fields on the message.
 .SH NOTES
 The output of
 .B opendkim-stats

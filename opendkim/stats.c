@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.8.8.11 2010/04/16 00:46:50 cm-msk Exp $
+**  $Id: stats.c,v 1.8.8.12 2010/04/28 00:11:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.11 2010/04/16 00:46:50 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8.8.12 2010/04/28 00:11:39 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -64,6 +64,8 @@ dkimf_stats_init(void)
 **  	dkimv -- verifying handle from which data can be taken
 **  	pcode -- policy code
 **  	fromlist -- message appeared to be from a list
+**  	rhcnt -- count of Received: header fields
+**  	sa -- client socket information
 **
 **  Return value:
 **  	None (for now).
@@ -71,7 +73,7 @@ dkimf_stats_init(void)
 
 void
 dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
-                   _Bool fromlist)
+                   _Bool fromlist, u_int rhcnt, struct sockaddr *sa)
 {
 	_Bool exists;
 	_Bool sigfailed;
@@ -162,8 +164,9 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 	}
 
 	strlcpy(recdata.sd_fromdomain, from, sizeof recdata.sd_fromdomain);
-
 	recdata.sd_mailinglist = fromlist;
+	recdata.sd_received = rhcnt;
+	memcpy(&recdata.sd_sockinfo, sa, sizeof recdata.sd_sockinfo);
 
 	(void) time(&recdata.sd_when);
 
