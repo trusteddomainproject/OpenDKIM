@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.7.8.16 2010/04/28 19:54:24 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.7.8.17 2010/04/28 20:07:14 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.16 2010/04/28 19:54:24 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.7.8.17 2010/04/28 20:07:14 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -413,7 +413,7 @@ dkims_dump(char *path, char *mailto)
 			dkims_output(out, "tpsigsfail",
 			             recdata_v2.sd_thirdpartysigsfail, TRUE);
 			dkims_output(out, "mlist", recdata_v2.sd_mailinglist,
-			             FALSE);
+			             TRUE);
 			dkims_output(out, "rhcnt", recdata_v2.sd_received,
 			             FALSE);
 
