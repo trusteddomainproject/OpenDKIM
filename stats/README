@@ -1,4 +1,4 @@
-$Id: README,v 1.1.2.1 2010/04/13 23:50:28 cm-msk Exp $
+$Id: README,v 1.1.2.2 2010/04/28 22:38:18 cm-msk Exp $
 
 INTRODUCTION
 
@@ -31,7 +31,9 @@ scripts and documentation presume MySQL.
 
 1.	Install MySQL.  Create credentials for an "opendkim" user, optionally
 	with some password.  Create a database called "opendkim".  Note that
-	this does NOT refer to a "real" UNIX user and password.
+	this does NOT refer to a "real" UNIX user and password.  The user you
+	create must be granted INSERT access to that table and must also
+	have the global FILE privilege.
 
 2. 	From inside the MySQL client, source the "mkdb.mysql" script.
 	This will create the table required to store the statistics reports.
