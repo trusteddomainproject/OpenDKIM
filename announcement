@@ -8,14 +8,17 @@ for download from SourceForge.
 This release is non-critical if the filter is working for you already.  It
 contains a couple of minor fixes in the filter (one fixes a crash bug on
 startup for some Linux systems, one fixes peculiar behaviour when
-VERIFY_DOMAINKEYS is enabled), and also includes a number of modern milter
-compatilbility fixes for our "miltertest" tool.
+VERIFY_DOMAINKEYS is enabled), fixes a build issue, and also includes a
+number of modern milter compatilbility fixes for our "miltertest" tool.
 
 The RELEASE_NOTES for this version:
 
 2.0.3		2010/04/30
 	Fix bug #SF2986301: Initialize a pointer for AutoRestart before
 		using it, avoiding a segmentation fault.
+	Fix bug #SF2992571: Rename _FFR_DNS_UPGRADE to _FFR_DNSUPGRADE to
+		match what the build system does.  Problem noted by
+		Gary Mills.
 	Don't let Authentication-Results: logic from DomainKeys verification
 		interfere with that of DKIM verification.
 	MILTERTEST: Break out of the sending loop in mt_bodyrandom() if
