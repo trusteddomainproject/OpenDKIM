@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.111.2.8 2010/04/15 01:38:56 cm-msk Exp $
+**  $Id: opendkim.c,v 1.111.2.9 2010/04/30 22:23:28 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111.2.8 2010/04/15 01:38:56 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111.2.9 2010/04/30 22:23:28 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -9982,7 +9982,7 @@ mlfi_eom(SMFICTX *ctx)
 #endif /* VERIFY_DOMAINKEYS */
 
 	/* complete verification if started */
-	if (!dfc->mctx_headeronly && dfc->mctx_dkimv != NULL)
+	if (dfc->mctx_dkimv != NULL)
 	{
 		_Bool policydone = FALSE;
 
