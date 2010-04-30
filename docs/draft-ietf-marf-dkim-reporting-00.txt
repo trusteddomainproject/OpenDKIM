@@ -1,117 +1,14 @@
 
 
 
-Individual submission                                       M. Kucherawy
+MARF Working Group                                          M. Kucherawy
 Internet-Draft                                                 Cloudmark
-Intended status: Standards Track                        October 19, 2009
-Expires: April 22, 2010
+Intended status: Standards Track                          April 21, 2010
+Expires: October 23, 2010
 
 
                 Reporting of DKIM Verification Failures
-                   draft-kucherawy-dkim-reporting-06
-
-Status of this Memo
-
-   This Internet-Draft is submitted to IETF in full conformance with the
-   provisions of BCP 78 and BCP 79.  This document may contain material
-   from IETF Documents or IETF Contributions published or made publicly
-   available before November 10, 2008.  The person(s) controlling the
-   copyright in some of this material may not have granted the IETF
-   Trust the right to allow modifications of such material outside the
-   IETF Standards Process.  Without obtaining an adequate license from
-   the person(s) controlling the copyright in such materials, this
-   document may not be modified outside the IETF Standards Process, and
-   derivative works of it may not be created outside the IETF Standards
-   Process, except to format it for publication as an RFC or to
-   translate it into languages other than English.
-
-   Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF), its areas, and its working groups.  Note that
-   other groups may also distribute working documents as Internet-
-   Drafts.
-
-   Internet-Drafts are draft documents valid for a maximum of six months
-   and may be updated, replaced, or obsoleted by other documents at any
-   time.  It is inappropriate to use Internet-Drafts as reference
-   material or to cite them other than as "work in progress."
-
-   The list of current Internet-Drafts can be accessed at
-   http://www.ietf.org/ietf/1id-abstracts.txt.
-
-   The list of Internet-Draft Shadow Directories can be accessed at
-   http://www.ietf.org/shadow.html.
-
-   This Internet-Draft will expire on April 22, 2010.
-
-Copyright Notice
-
-   Copyright (c) 2009 IETF Trust and the persons identified as the
-   document authors.  All rights reserved.
-
-   This document is subject to BCP 78 and the IETF Trust's Legal
-
-
-
-Kucherawy                Expires April 22, 2010                 [Page 1]
-
-Internet-Draft               DKIM Reporting                 October 2009
-
-
-   Provisions Relating to IETF Documents in effect on the date of
-   publication of this document (http://trustee.ietf.org/license-info).
-   Please review these documents carefully, as they describe your rights
-   and restrictions with respect to this document.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy                Expires April 22, 2010                 [Page 2]
-
-Internet-Draft               DKIM Reporting                 October 2009
-
+                   draft-ietf-marf-dkim-reporting-00
 
 Abstract
 
@@ -121,33 +18,72 @@ Abstract
    issues, and extends an Internet Message reporting format to be
    followed when generating such reports.
 
+Status of this Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on October 23, 2010.
+
+Copyright Notice
+
+   Copyright (c) 2010 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+
+
+Kucherawy               Expires October 23, 2010                [Page 1]
+
+Internet-Draft               DKIM Reporting                   April 2010
+
 
 Table of Contents
 
-   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  4
-   2.  Definitions  . . . . . . . . . . . . . . . . . . . . . . . . .  5
-     2.1.  Keywords . . . . . . . . . . . . . . . . . . . . . . . . .  5
-     2.2.  Imported Definitions . . . . . . . . . . . . . . . . . . .  5
-   3.  Optional Key Reporting Address for DKIM  . . . . . . . . . . .  6
-   4.  Optional Key Reporting Address for DKIM-ADSP . . . . . . . . .  8
-   5.  Requested Reports  . . . . . . . . . . . . . . . . . . . . . . 10
-     5.1.  Requested Reports for DKIM Failures  . . . . . . . . . . . 10
-     5.2.  Requested Reports for DKIM ADSP Failures . . . . . . . . . 10
-   6.  Reporting Formats  . . . . . . . . . . . . . . . . . . . . . . 11
-   7.  Extension ARF Fields for DKIM Reporting  . . . . . . . . . . . 12
-     7.1.  New ARF Feedback Type  . . . . . . . . . . . . . . . . . . 12
-     7.2.  New ARF Header Names . . . . . . . . . . . . . . . . . . . 12
-     7.3.  DKIM Failure Types . . . . . . . . . . . . . . . . . . . . 13
-   8.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 14
-     8.1.  DKIM Key Tag Registration  . . . . . . . . . . . . . . . . 14
-     8.2.  DKIM ADSP Tag Registration . . . . . . . . . . . . . . . . 14
-     8.3.  Updates to ARF Feedback Types  . . . . . . . . . . . . . . 14
-     8.4.  Updates to ARF Header Names  . . . . . . . . . . . . . . . 15
+   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
+   2.  Definitions  . . . . . . . . . . . . . . . . . . . . . . . . .  4
+     2.1.  Keywords . . . . . . . . . . . . . . . . . . . . . . . . .  4
+     2.2.  Imported Definitions . . . . . . . . . . . . . . . . . . .  4
+   3.  Optional Key Reporting Address for DKIM  . . . . . . . . . . .  5
+   4.  Optional Key Reporting Address for DKIM-ADSP . . . . . . . . .  7
+   5.  Requested Reports  . . . . . . . . . . . . . . . . . . . . . .  9
+     5.1.  Requested Reports for DKIM Failures  . . . . . . . . . . .  9
+     5.2.  Requested Reports for DKIM ADSP Failures . . . . . . . . .  9
+   6.  Reporting Formats  . . . . . . . . . . . . . . . . . . . . . . 10
+   7.  Extension ARF Fields for DKIM Reporting  . . . . . . . . . . . 11
+     7.1.  New ARF Feedback Type  . . . . . . . . . . . . . . . . . . 11
+     7.2.  New ARF Header Names . . . . . . . . . . . . . . . . . . . 11
+     7.3.  DKIM Failure Types . . . . . . . . . . . . . . . . . . . . 12
+   8.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 13
+     8.1.  DKIM Key Tag Registration  . . . . . . . . . . . . . . . . 13
+     8.2.  DKIM ADSP Tag Registration . . . . . . . . . . . . . . . . 13
+     8.3.  Updates to ARF Feedback Types  . . . . . . . . . . . . . . 13
+     8.4.  Updates to ARF Header Names  . . . . . . . . . . . . . . . 14
    9.  Security Considerations  . . . . . . . . . . . . . . . . . . . 16
-     9.1.  Forgeries  . . . . . . . . . . . . . . . . . . . . . . . . 16
-     9.2.  Automatic Generation . . . . . . . . . . . . . . . . . . . 16
-     9.3.  Envelope Sender Selection  . . . . . . . . . . . . . . . . 16
-     9.4.  Reporting Multiple Incidents . . . . . . . . . . . . . . . 17
+     9.1.  Inherited Considerations . . . . . . . . . . . . . . . . . 16
+     9.2.  Forgeries  . . . . . . . . . . . . . . . . . . . . . . . . 16
+     9.3.  Automatic Generation . . . . . . . . . . . . . . . . . . . 16
+     9.4.  Envelope Sender Selection  . . . . . . . . . . . . . . . . 16
+     9.5.  Reporting Multiple Incidents . . . . . . . . . . . . . . . 17
    10. References . . . . . . . . . . . . . . . . . . . . . . . . . . 18
      10.1. Normative References . . . . . . . . . . . . . . . . . . . 18
      10.2. Informative References . . . . . . . . . . . . . . . . . . 18
@@ -156,17 +92,25 @@ Table of Contents
      B.1.  Example Use of DKIM Key Extension Tags . . . . . . . . . . 20
      B.2.  Example Use of DKIM ADSP Extension Tags  . . . . . . . . . 20
      B.3.  Example Use of ARF Extension Headers . . . . . . . . . . . 21
-   Appendix C.  Public Discussion . . . . . . . . . . . . . . . . . . 22
-   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 23
+   Appendix C.  Public Discussion . . . . . . . . . . . . . . . . . . 23
+   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 24
 
 
 
 
 
 
-Kucherawy                Expires April 22, 2010                 [Page 3]
+
+
+
+
+
+
+
+
+Kucherawy               Expires October 23, 2010                [Page 2]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 1.  Introduction
@@ -175,14 +119,14 @@ Internet-Draft               DKIM Reporting                 October 2009
    purposes of sender authentication.  There exist cases in which a
    domain name owner might want to receive reports from verifiers that
    determine DKIM-signed mail apparently from its domain is failing to
-   verify according to [DKIM] or is "Suspicious" according to
-   [I-D.DRAFT-IETF-DKIM-SSP].
+   verify according to [DKIM] or fails to conform to the domain's
+   published signing practices according to [ADSP].
 
-   This document extends [DKIM] and [I-D.DRAFT-IETF-DKIM-SSP] to add an
-   optional reporting address to selector records, an optional means of
-   specifying a desired report format, and furthermore extends
-   [I-D.DRAFT-SHAFRANOVICH-FEEDBACK-REPORT] to add features required for
-   DKIM reporting.
+   This document extends [DKIM] and [ADSP] to add an optional reporting
+   address to selector records, an optional means of specifying a
+   desired report format, and furthermore extends
+   [I-D.DRAFT-IETF-MARF-BASE] to add features required for DKIM
+   reporting.
 
    This memo presumes those specifications thus modified will issue as
    RFCs without these modifications.  If the modifications are adopted
@@ -220,9 +164,9 @@ Internet-Draft               DKIM Reporting                 October 2009
 
 
 
-Kucherawy                Expires April 22, 2010                 [Page 4]
+Kucherawy               Expires October 23, 2010                [Page 3]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 2.  Definitions
@@ -276,9 +220,9 @@ Internet-Draft               DKIM Reporting                 October 2009
 
 
 
-Kucherawy                Expires April 22, 2010                 [Page 5]
+Kucherawy               Expires October 23, 2010                [Page 4]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 3.  Optional Key Reporting Address for DKIM
@@ -310,11 +254,11 @@ Internet-Draft               DKIM Reporting                 October 2009
    rf=  Reporting Format (plain-text; OPTIONAL; default is "arf").  The
       value MUST be a colon-separated list of tokens representing
       desired reporting formats in order of preference.  Each element of
-      the list MUST be a token which is taken from the registered list
-      of DKIM report formats.  See Section 8 for a description of the
+      the list MUST be a token that is taken from the registered list of
+      DKIM report formats.  See Section 8 for a description of the
       registry and Section 6 for a description of recognized formats.
       The verifier generating reports MUST generate a report using the
-      first token in the list which represents a report format it is
+      first token in the list that represents a report format it is
       capable of generating.
 
       ABNF:
@@ -325,19 +269,19 @@ Internet-Draft               DKIM Reporting                 October 2009
       rep-format )
 
    ri=  Requested Report Interval (plain-text; OPTIONAL; default is
-      "0").  The value is an integer which specifies an interval during
+      "0").  The value is an integer that specifies an interval during
       which no more than one report about a given type of incident
       should be generated.  A value of "0" requests a report for every
       incident.  Where the requested interval is not zero, the agent
 
 
 
-Kucherawy                Expires April 22, 2010                 [Page 6]
+Kucherawy               Expires October 23, 2010                [Page 5]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
-      generating a report SHOULD include an "Incidents:" header in the
+      generating a report SHOULD include an "Incidents:" field in the
       generated report so the receiving agent has some indication of how
       many reports were suppressed.
 
@@ -359,7 +303,7 @@ Internet-Draft               DKIM Reporting                 October 2009
 
    rs=  Requested SMTP Error String (plain-text; OPTIONAL; no default).
       The value is a string the signing domain requests be included in
-      SMTP error strings when messages are rejected.
+      [SMTP] error strings when messages are rejected.
 
       ABNF:
 
@@ -388,35 +332,33 @@ Internet-Draft               DKIM Reporting                 October 2009
 
 
 
-Kucherawy                Expires April 22, 2010                 [Page 7]
+Kucherawy               Expires October 23, 2010                [Page 6]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 4.  Optional Key Reporting Address for DKIM-ADSP
 
-   There also exist cases in which a domain name owner employing
-   [I-D.DRAFT-IETF-DKIM-SSP] for announcing signing practises with DKIM
-   may want to know when messages are received unsigned or signed with
-   third-party signatures contrary to the sender's published policy.
+   There also exist cases in which a domain name owner employing [ADSP]
+   for announcing signing practises with DKIM may want to know when
+   messages are received without valid author domain signatures.
    Currently there is no such mechanism defined.
 
    This document adds the following two optional "tags" (as defined in
-   [I-D.DRAFT-IETF-DKIM-SSP]) to the DKIM ADSP records, using the form
-   defined in that specification:
+   [ADSP]) to the DKIM ADSP records, using the form defined in that
+   specification:
 
    r= Reporting Address (plain-text; OPTIONAL; no default).  The value
       MUST be a dkim-quoted-printable string containing the local-part
       of an e-mail address to which a report SHOULD be sent when mail
       claiming to be from this domain failed the verification algorithm
-      described in [I-D.DRAFT-IETF-DKIM-SSP], in particular because a
-      message arrived unsigned or signed by a third-party signature in
-      violation of the sender's published policy.  The format of this
-      reply MUST be in the format specified by the "rf=" tag defined
-      below.  To generate a complete address to which the report is
-      sent, the verifier simply appends to this value an "@" followed by
-      the domain whose policy was queried in order to evaluate the
-      sender's ADSP.
+      described in [ADSP], in particular because a message arrived
+      without a signature that validates, which contradicts what the
+      ADSP record claims, The format of this reply MUST be in the format
+      specified by the "rf=" tag defined below.  To generate a complete
+      address to which the report is sent, the verifier simply appends
+      to this value an "@" followed by the domain whose policy was
+      queried in order to evaluate the sender's ADSP.
 
       ABNF:
 
@@ -429,35 +371,34 @@ Internet-Draft               DKIM Reporting                 October 2009
    rf=  Reporting Format (plain-text; OPTIONAL; default is "arf").  The
       value MUST be a colon-separated list of tokens representing
       desired reporting formats in decreasing order of preference.  Each
-      element of the list MUST be a token which is taken from the
+      element of the list MUST be a token that is taken from the
       registered list of DKIM report formats.  See Section 8 for a
       description of the registry and Section 6 for a description of
       recognized formats.  The verifier generating reports MUST generate
-      a report using the first token in the list which represents a
+      a report using the first token in the list that represents a
       report format it is capable of generating.
 
       ABNF:
 
-
-
-
-
-
-
-Kucherawy                Expires April 22, 2010                 [Page 8]
-
-Internet-Draft               DKIM Reporting                 October 2009
-
-
       adsp-rf-tag = %x72 %x66 *WSP "=" *WSP rep-format *WSP 0*( ":" *WSP
       rep-format )
 
+
+
+
+
+
+Kucherawy               Expires October 23, 2010                [Page 7]
+
+Internet-Draft               DKIM Reporting                   April 2010
+
+
    ri=  Requested Report Interval (plain-text; OPTIONAL; default is
-      "0").  The value is an integer which specifies an interval during
+      "0").  The value is an integer that specifies an interval during
       which no more than one report about a given type of incident
       should be generated.  A value of "0" requests a report for every
       incident.  Where the requested interval is not zero, the agent
-      generating a report SHOULD include an "Incidents:" header in the
+      generating a report SHOULD include an "Incidents:" field in the
       generated report so the receiving agent has some indication of how
       many reports were suppressed.
 
@@ -479,7 +420,7 @@ Internet-Draft               DKIM Reporting                 October 2009
 
    rs=  Requested SMTP Error String (plain-text; OPTIONAL; no default).
       The value is a string the signing domain requests be included in
-      SMTP error strings when messages are rejected.
+      [SMTP] error strings when messages are rejected.
 
       ABNF:
 
@@ -500,17 +441,21 @@ Internet-Draft               DKIM Reporting                 October 2009
 
 
 
-Kucherawy                Expires April 22, 2010                 [Page 9]
+
+
+
+Kucherawy               Expires October 23, 2010                [Page 8]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 5.  Requested Reports
 
    This memo also includes, as the "ro" tags defined above, the means by
    which the sender can request reports for specific circumstances of
-   interest.  Verifiers MUST NOT generate reports for incidents which do
-   not match a requested report.
+   interest.  Verifiers MUST NOT generate reports for incidents that do
+   not match a requested report, and MUST ignore requests for reports
+   not included in this these lists.
 
 5.1.  Requested Reports for DKIM Failures
 
@@ -532,13 +477,11 @@ Internet-Draft               DKIM Reporting                 October 2009
 
    all  All reports are requested.
 
-   s  Reports are requested for messages for which the ADSP algorithm
-      determines the message is both signed and Suspicious.
+   s  Reports are requested for messages that have a valid [DKIM]
+      signature but do not match the published [ADSP] policy.
 
-   u  Reports are requested for messages for which the ADSP algorithm
-      determines the message is both unsigned and Suspicious.
-
-
+   u  Reports are requested for messages that have no valid [DKIM]
+      signature but do not match the published [ADSP] policy.
 
 
 
@@ -556,9 +499,10 @@ Internet-Draft               DKIM Reporting                 October 2009
 
 
 
-Kucherawy                Expires April 22, 2010                [Page 10]
+
+Kucherawy               Expires October 23, 2010                [Page 9]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 6.  Reporting Formats
@@ -567,10 +511,9 @@ Internet-Draft               DKIM Reporting                 October 2009
    mechanism.  Currently only two formats are supported:
 
    arf:  Abuse Reporting Format, as defined in
-      [I-D.DRAFT-SHAFRANOVICH-FEEDBACK-REPORT], and as extended in
-      Section 7.
+      [I-D.DRAFT-IETF-MARF-BASE], and as extended in Section 7.
 
-   smtp:  An SMTP error with a string descriptive of the problem which
+   smtp:  An [SMTP] error with a string descriptive of the problem that
       caused the DKIM verification to fail.  This explicitly requests
       evaluation of DKIM concurrent with the SMTP session, and rejection
       (if appropriate) whenever possible rather than acceptance of the
@@ -612,33 +555,36 @@ Internet-Draft               DKIM Reporting                 October 2009
 
 
 
-Kucherawy                Expires April 22, 2010                [Page 11]
+
+Kucherawy               Expires October 23, 2010               [Page 10]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 7.  Extension ARF Fields for DKIM Reporting
 
-   The current ARF format defined in
-   [I-D.DRAFT-SHAFRANOVICH-FEEDBACK-REPORT] lacks some specific features
-   required to do effective DKIM reporting.  This section describes the
-   extensions required to do so and thus required to conform to this
-   specification.
+   The current ARF format defined in [I-D.DRAFT-IETF-MARF-BASE] lacks
+   some specific features required to do effective DKIM reporting.  This
+   section describes the extensions required to do so and thus required
+   to conform to this specification.
 
 7.1.  New ARF Feedback Type
 
    A new feedback type of "dkim" is defined as an extension to Section
-   8.2 of [I-D.DRAFT-SHAFRANOVICH-FEEDBACK-REPORT].  See Section 8.3 for
-   details.
+   8.2 of [I-D.DRAFT-IETF-MARF-BASE].  See Section 8.3 for details.
 
-   The header names listed in that draft which may appear for this new
-   feedback type include all shown in the draft except "Relevant-URI"
+   The field names listed in that draft which may appear for this new
+   feedback type include all shown in the draft except "Reported-URI"
    and "Removal-Recipient" as they have no semantics relating to DKIM.
 
 7.2.  New ARF Header Names
 
    The following new ARF header names are defined as extensions to
-   Section 8.1 of [I-D.DRAFT-SHAFRANOVICH-FEEDBACK-REPORT]:
+   Section 6.2 of [I-D.DRAFT-IETF-MARF-BASE]:
+
+   DKIM-ADSP-DNS:  The contents of the DNS TXT record retrieved when
+      trying to determine the author domain's signing practices via the
+      protocol defined in [ADSP].
 
    DKIM-Canonicalized-Body:  A base64 encoding of the canonicalized body
       of the message as generated by the verifier.  This header and
@@ -649,36 +595,38 @@ Internet-Draft               DKIM Reporting                 October 2009
       header of the message as generated by the verifier.  This header
       and value MUST be present for reports using feedback type "dkim".
 
+   DKIM-Domain:  The domain that signed the message, taken from the "d="
+      tag of the signature.  This field value SHOULD be included to ease
+      processing in those cases where reports for multiple domains may
+      be funneled into a single tool.
+
    DKIM-Failure:  Indicates the type of DKIM failure that is being
       reported.  The list of valid values is enumerated below.  This
       header and value MUST be present for reports using feedback type
       "dkim".
 
-   DKIM-Identity:  The identity of the signature which failed
+   DKIM-Identity:  The identity of the signature that failed
       verification, taken from the "i=" tag of the signature.  This
       header and value MUST be present for reports using feedback type
       "dkim" when reporting anything other than an "asp" failure.
 
-   DKIM-Selector:  The selector of the signature which failed
+
+
+Kucherawy               Expires October 23, 2010               [Page 11]
+
+Internet-Draft               DKIM Reporting                   April 2010
+
+
+   DKIM-Selector:  The selector of the signature that failed
       verification, taken from the "s=" tag of the signature.  This
       header and value MUST be present for reports using feedback type
       "dkim" when reporting anything other than an "asp" failure.
 
+   DKIM-Selector-DNS:  The contents of the DNS TXT record retrieved when
+      trying to evaluate the DKIM signature (i.e. a TXT record whose
+      name is assembled from the signature's "s=" and "d=" tags).
 
-
-
-
-Kucherawy                Expires April 22, 2010                [Page 12]
-
-Internet-Draft               DKIM Reporting                 October 2009
-
-
-   Incidents:  A count of the number of times the cited incident
-      occurred.  This permits a limited form of aggregate reporting
-      rather than sending one report message per incident.  The absence
-      of this field implies the report refers to a single incident.
-
-   The values which are base64 encodings may contain FWS for formatting
+   The values that are base64 encodings may contain FWS for formatting
    purposes as per the usual header field wrapping defined in [MAIL].
    During decoding, any characters not in the base64 alphabet are
    ignored so that such line wrapping does not harm the value.  The ABNF
@@ -689,8 +637,8 @@ Internet-Draft               DKIM Reporting                 October 2009
    The list of defined DKIM failure types, used in the "DKIM-Failure:"
    header (defined above), is as follows:
 
-   asp:  The sender's published signing practises determined the message
-      is suspicious.
+   adsp:  The message did not conform to the sender's published [ADSP]
+      signing practises.
 
    bodyhash:  The body hash in the signature and the body hash computed
       by the verifier did not match.
@@ -720,21 +668,16 @@ Internet-Draft               DKIM Reporting                 October 2009
 
 
 
-
-
-
-
-Kucherawy                Expires April 22, 2010                [Page 13]
+Kucherawy               Expires October 23, 2010               [Page 12]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 8.  IANA Considerations
 
    As required by [IANA-CONSIDERATIONS], this section contains registry
-   information for the new [DKIM] key tag, the new
-   [I-D.DRAFT-IETF-DKIM-SSP] tag, and the extensions to
-   [I-D.DRAFT-SHAFRANOVICH-FEEDBACK-REPORT].
+   information for the new [DKIM] key tags, the new [ADSP] tags, and the
+   extensions to [I-D.DRAFT-IETF-MARF-BASE].
 
 8.1.  DKIM Key Tag Registration
 
@@ -780,15 +723,22 @@ Internet-Draft               DKIM Reporting                 October 2009
 
 
 
-Kucherawy                Expires April 22, 2010                [Page 14]
+
+Kucherawy               Expires October 23, 2010               [Page 13]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 8.4.  Updates to ARF Header Names
 
    The following headers are added to the Feedback Report Header Names
    Registry:
+
+       Field Name: DKIM-ADSP-DNS
+       Description: Retrieved DKIM ADSP record
+       Multiple Appearances: No
+       Related "Feedback-Type": dkim
+
 
        Field Name: DKIM-Canonicalized-Body
        Description: Canonicalized body, per DKIM
@@ -798,6 +748,12 @@ Internet-Draft               DKIM Reporting                 October 2009
 
        Field Name: DKIM-Canonicalized-Headers
        Description: Canonicalized headers, per DKIM
+       Multiple Appearances: No
+       Related "Feedback-Type": dkim
+
+
+       Field Name: DKIM-Domain
+       Description: DKIM signing domain from "d=" tag
        Multiple Appearances: No
        Related "Feedback-Type": dkim
 
@@ -820,25 +776,69 @@ Internet-Draft               DKIM Reporting                 October 2009
        Related "Feedback-Type": dkim
 
 
-       Field Name: Incidents
-       Description: Incident count, for aggregate reporting
-       Multiple Appearances: No
-       Related "Feedback-Type": any
 
 
 
 
-
-
-
-
-
-
-
-
-Kucherawy                Expires April 22, 2010                [Page 15]
+Kucherawy               Expires October 23, 2010               [Page 14]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
+
+
+       Field Name: DKIM-Selector-DNS
+       Description: Retrieved DKIM key record
+       Multiple Appearances: No
+       Related "Feedback-Type": dkim
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kucherawy               Expires October 23, 2010               [Page 15]
+
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 9.  Security Considerations
@@ -846,7 +846,12 @@ Internet-Draft               DKIM Reporting                 October 2009
    Security issues with respect to these DKIM reports are similar to
    those found in [DSN].
 
-9.1.  Forgeries
+9.1.  Inherited Considerations
+
+   Implementors are advised to consider the Security Considerations
+   sections of [DKIM], [ADSP] and [I-D.DRAFT-IETF-MARF-BASE].
+
+9.2.  Forgeries
 
    These reports may be forged as easily as ordinary Internet electronic
    mail.  User agents and automatic mail handling facilities (such as
@@ -867,7 +872,7 @@ Internet-Draft               DKIM Reporting                 October 2009
    signing DKIM failure reports may produce reports that aren't trusted
    or even accepted by their intended recipients.
 
-9.2.  Automatic Generation
+9.3.  Automatic Generation
 
    Automatic generation of these reports by verifying agents can cause a
    denial-of-service attack when a large volume of e-mail is sent that
@@ -878,42 +883,43 @@ Internet-Draft               DKIM Reporting                 October 2009
    inhibit the distribution of important and possibly time-sensitive
    information.
 
-9.3.  Envelope Sender Selection
+9.4.  Envelope Sender Selection
 
    In the case of transmitted DKIM reports in the form of a new message,
    it is necessary to construct the message so as to avoid amplification
    attacks, deliberate or otherwise.  Thus, per Section 2 of [DSN], the
    envelope sender address of the DKIM report SHOULD be chosen to ensure
+
+
+
+Kucherawy               Expires October 23, 2010               [Page 16]
+
+Internet-Draft               DKIM Reporting                   April 2010
+
+
    that no delivery status reports will be issued in response to the
    DKIM report itself, and MUST be chosen so that these reports will not
-   generate mail loops.  Whenever an SMTP transaction is used to send a
-   DKIM report, the MAIL FROM command MUST use a NULL return address,
+   generate mail loops.  Whenever an [SMTP] transaction is used to send
+   a DKIM report, the MAIL FROM command MUST use a NULL return address,
    i.e.  "MAIL FROM:<>".
 
-
-
-Kucherawy                Expires April 22, 2010                [Page 16]
-
-Internet-Draft               DKIM Reporting                 October 2009
-
-
-9.4.  Reporting Multiple Incidents
+9.5.  Reporting Multiple Incidents
 
    If it is known that a particular host generates abuse reports upon
    certain incidents, an attacker could forge a high volume of messages
-   which will trigger such a report.  The recipient of the report could
+   that will trigger such a report.  The recipient of the report could
    then be innundated with reports.  This could easily be extended to a
    distributed denial-of-service attack by finding a number of report-
    generating servers.
 
-   The incident count referenced in Section 7.2 provides a limited form
-   of mitigation.  The host generating reports may elect to send reports
-   only periodically, with each report representing a number of
-   identical or near-identical incidents.  One might even do something
-   inverse-exponentially, sending reports for each of the first ten
-   incidents, then every tenth incident up to 100, then every 100th
-   incident up to 1000, etc. until some period of relative quiet after
-   which the limitation resets.
+   The incident count referenced in [I-D.DRAFT-IETF-MARF-BASE] provides
+   a limited form of mitigation.  The host generating reports may elect
+   to send reports only periodically, with each report representing a
+   number of identical or near-identical incidents.  One might even do
+   something inverse-exponentially, sending reports for each of the
+   first ten incidents, then every tenth incident up to 100, then every
+   100th incident up to 1000, etc. until some period of relative quiet
+   after which the limitation resets.
 
    The use of this for "near-identical" incidents in particular causes a
    degradation in reporting quality, however.  If for example a large
@@ -942,34 +948,26 @@ Internet-Draft               DKIM Reporting                 October 2009
 
 
 
-
-
-
-
-
-
-Kucherawy                Expires April 22, 2010                [Page 17]
+Kucherawy               Expires October 23, 2010               [Page 17]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 10.  References
 
 10.1.  Normative References
 
+   [ADSP]     Allman, E., Delany, M., Fenton, J., and J. Levine, "DKIM
+              Sender Signing Practises", RFC 5617, August 2009.
+
    [DKIM]     Allman, E., Callas, J., Delany, M., Libbey, M., Fenton,
               J., and M. Thomas, "DomainKeys Identified Mail (DKIM)
               Signatures", RFC 4871, May 2007.
 
-   [I-D.DRAFT-IETF-DKIM-SSP]
-              Allman, E., Delany, M., and J. Fenton, "DKIM Sender
-              Signing Practises", I-D DRAFT-IETF-DKIM-SSP-03.
-
-   [I-D.DRAFT-SHAFRANOVICH-FEEDBACK-REPORT]
+   [I-D.DRAFT-IETF-MARF-BASE]
               Shafranovich, Y., Levine, J., Hoffman, P., and M.
               Kucherawy, "An Extensible Format for Email Feedback
-              Reports", I-D DRAFT-SHAFRANOVICH-FEEDBACK-REPORT-04,
-              March 2008.
+              Reports", I-D DRAFT-IETF-MARF-BASE, April 2010.
 
    [IANA-CONSIDERATIONS]
               Alvestrand, H. and T. Narten, "Guidelines for Writing an
@@ -985,6 +983,9 @@ Internet-Draft               DKIM Reporting                 October 2009
    [MIME]     Freed, N. and N. Borenstein, "Multipurpose Internet Mail
               Extensions (MIME) Part One: Format of Internet Message
               Bodies", RFC 2045, November 1996.
+
+   [SMTP]     Klensin, J., "Simple Mail Transfer Protocol", RFC 5321,
+              October 2008.
 
 10.2.  Informative References
 
@@ -1003,16 +1004,15 @@ Internet-Draft               DKIM Reporting                 October 2009
 
 
 
-
-Kucherawy                Expires April 22, 2010                [Page 18]
+Kucherawy               Expires October 23, 2010               [Page 18]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 Appendix A.  Acknowledgements
 
    The author wishes to acknowledge the following for their review and
-   constructive criticism of this proposal: (add names here)
+   constructive criticism of this proposal: JD Falk
 
 
 
@@ -1060,9 +1060,9 @@ Appendix A.  Acknowledgements
 
 
 
-Kucherawy                Expires April 22, 2010                [Page 19]
+Kucherawy               Expires October 23, 2010               [Page 19]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 Appendix B.  Examples
@@ -1116,65 +1116,121 @@ B.2.  Example Use of DKIM ADSP Extension Tags
 
 
 
-Kucherawy                Expires April 22, 2010                [Page 20]
+Kucherawy               Expires October 23, 2010               [Page 20]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
    o  Only reports about unsigned messages should be generated.
 
 B.3.  Example Use of ARF Extension Headers
 
+   An ARF-formatted report using some of the proposed ARF extension
+   fields:
+
+       From: arf-daemon@example.com
+       To: recipient@example.net
+       Subject: This is a test
+       Date: Wed, 14 Apr 2010 12:17:45 -0700 (PDT)
+       MIME-Version: 1.0
+       Content-Type: multipart/report; report-type=feedback-report;
+           boundary="part1_13d.2e68ed54_boundary"
+
+       --part1_13d.2e68ed54_boundary
+       Content-Type: text/plain; charset="US-ASCII"
+       Content-Transfer-Encoding: 7bit
+
+       This is an email abuse report for an email message received
+       from IP 192.0.2.1 on Wed, 14 Apr 2010 12:15:31 PDT. For more
+       information about this format please see
+       http://www.mipassoc.org/arf/.
+
+       --part1_13d.2e68ed54_boundary
+       Content-Type: message/feedback-report
+
+       Feedback-Type: dkim
+       User-Agent: SomeDKIMFilter/1.0
+       Version: 1.0
+       Original-Mail-From: <randomuser@example.net>
+       Original-Rcpt-To: <user@example.com>
+       Received-Date: Wed, 14 Apr 2010 12:15:31 -0700 (PDT)
+       Source-IP: 192.0.2.1
+       Authentication-Results: mail.example.com; dkim=fail
+           header.d=example.net
+       Reported-Domain: example.net
+       DKIM-Domain: example.net
+       DKIM-Failure: bodyhash
+
+       --part1_13d.2e68ed54_boundary
+       Content-Type: message/rfc822
+
+       DKIM-Signature: v=1; c=relaxed/simple; a=rsa-sha256;
+           s=testkey; d=example.net; h=From:To:Subject:Date;
+           bh=2jUSOH9NhtVGCQWNr9BrIAPreKQjO6Sn7XIkfJVOzv8=;
+           b=AuUoFEfDxTDkHlLXSZEpZj79LICEps6eda7W3deTVFOk4yAUoqOB
+            4nujc7YopdG5dWLSdNg6xNAZpOPr+kHxt1IrE+NahM6L/LbvaHut
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy                Expires April 22, 2010                [Page 21]
+Kucherawy               Expires October 23, 2010               [Page 21]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
+
+
+            KVdkLLkpVaVVQPzeRDI009SO2Il5Lu7rDNH6mZckBdrIx0orEtZV
+            4bmp/YzhwvcubU4=
+       Received: from smtp-out.example.net by mail.example.com
+           with SMTP id o3F52gxO029144;
+           Wed, 14 Apr 2010 12:15:31 -0700 (PDT)
+       Received: from internal-client-001.example.com
+           by mail.example.com
+           with SMTP id o3F3BwdY028431;
+           Wed, 14 Apr 2010 12:12:09 -0700 (PDT)
+       From: randomuser@example.net
+       To: user@example.com
+       Date: Wed, 14 Apr 2010 12:12:09 -0700 (PDT)
+       Subject: This is a test
+
+       Hi, just making sure DKIM is working!
+
+       --part1_13d.2e68ed54_boundary--
+
+   Example 3: Example ARF report using these extensions
+
+   This example ARF message is making the following assertion:
+
+   o  DKIM verification of the signature added within "example.net"
+      failed when it was processed on arrival at "mail.example.com".
+
+   o  The cause for the verification failure was a mismatch between the
+      body contents observed at the verifier and the body hash contained
+      in the signature.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kucherawy               Expires October 23, 2010               [Page 22]
+
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 Appendix C.  Public Discussion
@@ -1228,9 +1284,9 @@ Appendix C.  Public Discussion
 
 
 
-Kucherawy                Expires April 22, 2010                [Page 22]
+Kucherawy               Expires October 23, 2010               [Page 23]
 
-Internet-Draft               DKIM Reporting                 October 2009
+Internet-Draft               DKIM Reporting                   April 2010
 
 
 Author's Address
@@ -1284,5 +1340,5 @@ Author's Address
 
 
 
-Kucherawy                Expires April 22, 2010                [Page 23]
+Kucherawy               Expires October 23, 2010               [Page 24]
 

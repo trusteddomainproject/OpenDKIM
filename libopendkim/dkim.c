@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.50 2010/04/12 15:08:46 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.51 2010/04/30 17:01:28 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3912,7 +3912,7 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 		free(libhandle);
 		return NULL;
 	}
-# ifdef _FFR_DNS_UPGRADE
+# ifdef _FFR_DNSUPGRADE
 	libhandle->dkiml_arlibtcp = ar_init(NULL, NULL, NULL, AR_FLAG_USETCP);
 	if (libhandle->dkiml_arlibtcp == NULL)
 	{
@@ -3920,7 +3920,7 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 		free(libhandle);
 		return NULL;
 	}
-# endif /* _FFR_DNS_UPGRADE */
+# endif /* _FFR_DNSUPGRADE */
 #else /* USE_ARLIB */
 	(void) res_init();
 #endif /* USE_ARLIB */
@@ -3952,10 +3952,10 @@ dkim_close(DKIM_LIB *lib)
 	if (lib->dkiml_arlib != NULL)
 		(void) ar_shutdown(lib->dkiml_arlib);
 
-# ifdef _FFR_DNS_UPGRADE
+# ifdef _FFR_DNSUPGRADE
 	if (lib->dkiml_arlibtcp != NULL)
 		(void) ar_shutdown(lib->dkiml_arlibtcp);
-# endif /* _FFR_DNS_UPGRADE */
+# endif /* _FFR_DNSUPGRADE */
 #endif /* USE_ARLIB */
 
 #ifdef USE_UNBOUND

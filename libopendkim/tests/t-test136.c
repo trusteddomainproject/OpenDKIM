@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test74_c_id[] = "@(#)$Id: t-test136.c,v 1.1 2010/04/11 05:39:12 cm-msk Exp $";
+static char t_test136_c_id[] = "@(#)$Id: t-test136.c,v 1.2 2010/04/30 17:01:28 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -14,17 +14,40 @@ static char t_test74_c_id[] = "@(#)$Id: t-test136.c,v 1.1 2010/04/11 05:39:12 cm
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
-#include <arpa/nameser.h>
+#include <ctype.h>
 
 /* libopendkim includes */
 #include "../dkim.h"
+#include "../dkim-strl.h"
 #include "t-testdata.h"
 
 #define	MAXHEADER	4096
 
-#define SIG1 "v=1; a=rsa-sha1; c=simple/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=ll/0h2aWgG+D3ewmE4Y3pY7Ukz8=; h=Received:Received:\r\n\t Received:From:To:Date:Subject:Message-ID; b=V+wiYd1cE70A40eDNUtYwU\r\n\tvqi727NN/vVo/OdC7jG4zvztIXCRjPKDXEfiZdW+6PZ08M4zA3GmLZI2p+IJTza+VDQ\r\n\tbohnvIUSRR6q9+Nddqz1qTCL0gNM5d64xKwrLUesk/3wb/Cvua6Atr+VBMFVCwQmSDf\r\n\trs4brLkqMyFOkCE="
-#define SIG2 "v=1; a=rsa-sha256; c=simple/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=yHBAX+3IwxTZIynBuB/5tlsBInJq9n8qz5fgAycHi80=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID; b=12345678Y3y\r\n\tVeA3WZdCZl1sGuOZNC3BBRhtGCOExkZdw5xQoGPvSX/q6AC1SAJvOUWOri95AZAUGs0\r\n\t/bIDzzt23ei9jc+rptlavrl/5ijMrl6ShmvkACk6It62KPkJcDpoGfi5AZkrfX1Ou/z\r\n\tqGg5xJX86Kqd7FgNolMg7PbfyWliK2Yb84="
-#define SIG3 "v=1; a=rsa-sha256; c=simple/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=yHBAX+3IwxTZIynBuB/5tlsBInJq9n8qz5fgAycHi80=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID; b=12345678Y4y\r\n\tVeA3WZdCZl1sGuOZNC3BBRhtGCOExkZdw5xQoGPvSX/q6AC1SAJvOUWOri95AZAUGs0\r\n\t/bIDzzt23ei9jc+rptlavrl/5ijMrl6ShmvkACk6It62KPkJcDpoGfi5AZkrfX1Ou/z\r\n\tqGg5xJX86Kqd7FgNolMg7PbfyWliK2Yb84="
+#define SIG2 "v=1; a=rsa-sha1; c=relaxed/relaxed; d=example.com; s=test;\r\n\tt=1172620939; bh=Z9ONHHsBrKN0pbfrOu025VfbdR4=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=Jf+j2RDZRkpIF1KaL5ByhHFPWj5RMeX5764IVlwIc11equjQND51K9FfL5pyjXvwj\r\n\t FoFPW0PGJb3liej6iDDEHgYpXR4p5qqlGx/C1Q9gf/MQN/Xlkv6ZXgR38QnWAfZxh5\r\n\t N1f5xUg+SJb5yBDoXklG62IRdia1Hq9MuiGumrGM="
+
+/*
+**  LOWERHDR -- lowercase-ize a header field name
+**
+**  Parameters:
+**  	str -- string to update
+**
+**  Return value:
+**  	None.
+*/
+
+void
+lowerhdr(char *str)
+{
+	char *p;
+
+	assert(str != NULL);
+
+	for (p = str; *p != ':' && *p != '\0'; p++)
+	{
+		if (isupper(*p))
+			*p = tolower(*p);
+	}
+}
 
 /*
 **  MAIN -- program mainline
@@ -42,26 +65,17 @@ main(int argc, char **argv)
 #ifdef TEST_KEEP_FILES
 	u_int flags;
 #endif /* TEST_KEEP_FILES */
-	int nsigs;
-	size_t hdrlen;
 	DKIM_STAT status;
 	DKIM *dkim;
-	DKIM_SIGINFO **sigs;
 	DKIM_LIB *lib;
+	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
+
+	printf("*** relaxed/relaxed rsa-sha1 verifying with header field name case change\n");
 
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
-
-	if (!dkim_libfeature(lib, DKIM_FEATURE_SHA256))
-	{
-		printf("*** simple/simple rsa-sha256 signature substrings SKIPPED\n");
-		dkim_close(lib);
-		return 0;
-	}
-
-	printf("*** simple/simple rsa-sha256 verifying signature substrings\n");
 
 #ifdef TEST_KEEP_FILES
 	/* set flags */
@@ -70,17 +84,20 @@ main(int argc, char **argv)
 	                    sizeof flags);
 #endif /* TEST_KEEP_FILES */
 
+	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYMETHOD,
+	                    &qtype, sizeof qtype);
+	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYINFO,
+	                    KEYFILE, strlen(KEYFILE));
+
 	dkim = dkim_verify(lib, JOBID, NULL, &status);
 	assert(dkim != NULL);
-
-	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG1);
-	status = dkim_header(dkim, hdr, strlen(hdr));
-	assert(status == DKIM_STAT_OK);
 
 	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG2);
 	status = dkim_header(dkim, hdr, strlen(hdr));
 	assert(status == DKIM_STAT_OK);
 
+	strlcpy(hdr, HEADER01, sizeof hdr);
+	lowerhdr(hdr);
 	status = dkim_header(dkim, HEADER01, strlen(HEADER01));
 	assert(status == DKIM_STAT_OK);
 
@@ -111,87 +128,49 @@ main(int argc, char **argv)
 	status = dkim_eoh(dkim);
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_getsiglist(dkim, &sigs, &nsigs);
-	assert(status == DKIM_STAT_OK);
-	assert(nsigs == 2);
-
-	memset(hdr, '\0', sizeof hdr);
-	hdrlen = sizeof hdr - 1;
-	status = dkim_get_sigsubstring(dkim, sigs[0], hdr, &hdrlen);
-	assert(status == DKIM_STAT_OK);
-	assert(hdrlen == 8);
-	assert(strcmp(hdr, "V+wiYd1c") == 0);
-	status = dkim_get_sigsubstring(dkim, sigs[1], hdr, &hdrlen);
-	assert(status == DKIM_STAT_OK);
-	assert(hdrlen == 8);
-	assert(strcmp(hdr, "12345678") == 0);
-
-	status = dkim_free(dkim);
+	status = dkim_body(dkim, BODY00, strlen(BODY00));
 	assert(status == DKIM_STAT_OK);
 
-	dkim = dkim_verify(lib, JOBID, NULL, &status);
-	assert(dkim != NULL);
-
-	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG1);
-	status = dkim_header(dkim, hdr, strlen(hdr));
+	status = dkim_body(dkim, BODY01, strlen(BODY01));
 	assert(status == DKIM_STAT_OK);
 
-	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG2);
-	status = dkim_header(dkim, hdr, strlen(hdr));
+	status = dkim_body(dkim, BODY01A, strlen(BODY01A));
+	assert(status == DKIM_STAT_OK);
+	status = dkim_body(dkim, BODY01B, strlen(BODY01B));
+	assert(status == DKIM_STAT_OK);
+	status = dkim_body(dkim, BODY01C, strlen(BODY01C));
+	assert(status == DKIM_STAT_OK);
+	status = dkim_body(dkim, BODY01D, strlen(BODY01D));
+	assert(status == DKIM_STAT_OK);
+	status = dkim_body(dkim, BODY01E, strlen(BODY01E));
 	assert(status == DKIM_STAT_OK);
 
-	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG3);
-	status = dkim_header(dkim, hdr, strlen(hdr));
+	status = dkim_body(dkim, BODY02, strlen(BODY02));
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_header(dkim, HEADER01, strlen(HEADER01));
+	status = dkim_body(dkim, BODY03, strlen(BODY03));
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_header(dkim, HEADER02, strlen(HEADER02));
+	status = dkim_body(dkim, BODY04, strlen(BODY04));
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_header(dkim, HEADER03, strlen(HEADER03));
+	status = dkim_body(dkim, BODY03, strlen(BODY03));
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_header(dkim, HEADER04, strlen(HEADER04));
+	status = dkim_body(dkim, BODY03, strlen(BODY03));
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_header(dkim, HEADER05, strlen(HEADER05));
+	status = dkim_body(dkim, BODY05, strlen(BODY05));
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_header(dkim, HEADER06, strlen(HEADER06));
+	status = dkim_body(dkim, BODY03, strlen(BODY03));
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_header(dkim, HEADER07, strlen(HEADER07));
+	status = dkim_body(dkim, BODY03, strlen(BODY03));
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_header(dkim, HEADER08, strlen(HEADER08));
+	status = dkim_eom(dkim, NULL);
 	assert(status == DKIM_STAT_OK);
-
-	status = dkim_header(dkim, HEADER09, strlen(HEADER09));
-	assert(status == DKIM_STAT_OK);
-
-	status = dkim_eoh(dkim);
-	assert(status == DKIM_STAT_OK);
-
-	status = dkim_getsiglist(dkim, &sigs, &nsigs);
-	assert(status == DKIM_STAT_OK);
-	assert(nsigs == 3);
-
-	memset(hdr, '\0', sizeof hdr);
-	hdrlen = sizeof hdr - 1;
-	status = dkim_get_sigsubstring(dkim, sigs[0], hdr, &hdrlen);
-	assert(status == DKIM_STAT_OK);
-	assert(hdrlen == 10);
-	assert(strcmp(hdr, "V+wiYd1cE7") == 0);
-	status = dkim_get_sigsubstring(dkim, sigs[1], hdr, &hdrlen);
-	assert(status == DKIM_STAT_OK);
-	assert(hdrlen == 10);
-	assert(strcmp(hdr, "12345678Y3") == 0);
-	status = dkim_get_sigsubstring(dkim, sigs[2], hdr, &hdrlen);
-	assert(status == DKIM_STAT_OK);
-	assert(hdrlen == 10);
-	assert(strcmp(hdr, "12345678Y4") == 0);
 
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);

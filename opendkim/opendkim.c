@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.114 2010/04/12 15:08:46 cm-msk Exp $
+**  $Id: opendkim.c,v 1.115 2010/04/30 17:01:28 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.114 2010/04/12 15:08:46 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.115 2010/04/30 17:01:28 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -9883,6 +9883,7 @@ mlfi_eom(SMFICTX *ctx)
 	/* complete DomainKeys verification */
 	if (dfc->mctx_dk != NULL)
 	{
+		_Bool addheader = FALSE;
 		DK_FLAGS flags;
 		char *authresult = NULL;
 		char *comment = NULL;
@@ -9890,31 +9891,30 @@ mlfi_eom(SMFICTX *ctx)
 		char val[MAXADDRESS + 1];
 
 		flags = 0;
-		dfc->mctx_addheader = FALSE;
 
 		status = dk_eom(dfc->mctx_dk, &flags);
 		switch (status)
 		{
 		  case DK_STAT_OK:
-			dfc->mctx_addheader = dfc->mctx_dksigned;
+			addheader = dfc->mctx_dksigned;
 			authresult = "pass";
 			break;
 
 		  case DK_STAT_BADSIG:
-			dfc->mctx_addheader = TRUE;
+			addheader = TRUE;
 			authresult = "fail";
 			break;
 
 		  case DK_STAT_NOSIG:
 			/* XXX -- extract policy */
-			dfc->mctx_addheader = TRUE;
+			addheader = TRUE;
 			authresult = "neutral";
 			comment = "no signature";
 			break;
 
 		  case DK_STAT_NOKEY:
 			/* XXX -- extract policy */
-			dfc->mctx_addheader = TRUE;
+			addheader = TRUE;
 			authresult = "neutral";
 			comment = "no key";
 			break;
@@ -9942,7 +9942,7 @@ mlfi_eom(SMFICTX *ctx)
 			break;
 		}
 
-		if (dfc->mctx_addheader)
+		if (addheader)
 		{
 			strlcpy(hdr, "unknown", sizeof hdr);
 			strlcpy(val, "unknown", sizeof val);
@@ -12234,7 +12234,7 @@ main(int argc, char **argv)
 
 		if (autorestart)
 		{
-			char *rate;
+			char *rate = NULL;
 
 			(void) config_get(cfg, "AutoRestartCount",
 			                  &maxrestarts, sizeof maxrestarts);

@@ -4,7 +4,7 @@
 -- milter unit test utility
 .SH SYNOPSIS
 .B miltertest
-[-D name[=value]] [-s script] [-v]
+[-D name[=value]] [-s script] [-v] [-V]
 .SH DESCRIPTION
 .B miltertest
 simulates the MTA side of an MTA-milter interaction for testing a milter-aware
@@ -51,6 +51,9 @@ input.
 .I -v
 Increase verbose output.  May be specified multiple times to request
 more and more information.
+.TP
+.I -V
+Print version number and exit.
 .SH FUNCTIONS
 The following functions are made available to Lua scripts for exercising
 a filter.  All functions return Lua constant "nil" on success or an error
@@ -99,6 +102,10 @@ is the Lua constant "nil", a DNS query will be made for the IP address
 matching
 .I host;
 if none is found, the test will abort.
+.TP
+.B mt.data(conn)
+Announces the DATA command on the specified connection, which occurs between
+the last RCPT TO command and the beginning of the header block.
 .TP
 .B mt.disconnect(conn)
 Sends a "quit" message to the specified connection and then closes that
@@ -214,6 +221,28 @@ request a clean shutdown using SIGTERM and
 .I wait(2)
 at the end of the test script.  If the filter could not be started, an
 exception is generated with an error message returned.
+.TP
+.B mt.test_action(conn, action)
+Tests whether or not the connection represented by
+.I conn
+requested the specified milter protocol
+.I action,
+specified by an SMFIF_* constant, during option negotiation.  (See the
+libmilter documentation and/or include files for details.)
+.TP
+.B mt.test_option(conn, option)
+Tests whether or not the connection represented by
+.I conn
+requested the specified milter protocol
+.I option,
+specified by an SMFIP_* constant, during option negotiation.  (See the
+libmilter documentation and/or include files for details.)
+.TP
+.B mt.unknown(conn, str)
+Announces that the unknown SMTP command
+.I str
+arrived over the connection represented by
+.I conn.
 .SH EOM CHECKS
 The
 .B mt.eom_check()
@@ -444,8 +473,16 @@ end
 .PP
 mt.disconnect(conn)
 .PD
+.SH NOTES
+.I miltertest
+does not currently enforce the SMFIP_NO* macros that a filter might request
+in order to have the (simulated) MTA skip certain protocol steps.  It is up
+to the test author to use
+.I mt.test_option
+function to see if performing a protocol step has been explicitly disabled
+by the filter.
 .SH VERSION
-This man page covers version 0.1.0 of
+This man page covers version 1.0.0 of
 .I miltertest.
 .SH COPYRIGHT
 Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.

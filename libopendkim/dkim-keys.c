@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.11 2010/03/21 06:23:28 cm-msk Exp $";
+static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.12 2010/04/30 17:01:28 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -177,7 +177,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	}
 #else /* USE_UNBOUND */
 # if USE_ARLIB
-#  ifdef _FFR_DNS_UPGRADE
+#  ifdef _FFR_DNSUPGRADE
 		for (c = 0; c < 2; c++)
 		{
 			switch (c)
@@ -240,7 +240,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 
 			break;
 		}
-#  else /* _FFR_DNS_UPGRADE */
+#  else /* _FFR_DNSUPGRADE */
 		ar = dkim->dkim_libhandle->dkiml_arlib;
 
 		timeout.tv_sec = dkim->dkim_timeout;
@@ -278,7 +278,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		}
 
 		(void) ar_cancelquery(ar, q);
-#  endif /* _FFR_DNS_UPGRADE */
+#  endif /* _FFR_DNSUPGRADE */
 # else /* USE_ARLIB */
 		status = res_query(qname, C_IN, T_TXT, ansbuf, sizeof ansbuf);
 # endif /* USE_ARLIB */
