@@ -1,31 +1,17 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.0.3 released
+Subject: OpenDKIM v2.0.4 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.0.3, now available
+The OpenDKIM project announces availability of OpenDKIM v2.0.4, now available
 for download from SourceForge.
 
-This release is non-critical if the filter is working for you already.  It
-contains a couple of minor fixes in the filter (one fixes a crash bug on
-startup for some Linux systems, one fixes peculiar behaviour when
-VERIFY_DOMAINKEYS is enabled), fixes a build issue, and also includes a
-number of modern milter compatilbility fixes for our "miltertest" tool.
+This is a minor bugfix release.  The main change is a fix to logic in the
+filter that prevented the AlwaysAddARHeader feature from working.
 
 The RELEASE_NOTES for this version:
 
-2.0.3		2010/04/30
-	Fix bug #SF2986301: Initialize a pointer for AutoRestart before
-		using it, avoiding a segmentation fault.
-	Fix bug #SF2992571: Rename _FFR_DNS_UPGRADE to _FFR_DNSUPGRADE to
-		match what the build system does.  Problem noted by
-		Gary Mills.
-	Don't let Authentication-Results: logic from DomainKeys verification
-		interfere with that of DKIM verification.
-	MILTERTEST: Break out of the sending loop in mt_bodyrandom() if
-		something other than SMFIR_CONTINUE comes back from the MTA.
-	MILTERTEST: Add support for milter's UNKNOWN and DATA steps.
-	MILTERTEST: Honour SMFIP_NR_* no-reply requests that may have been
-		made by the filter.
+2.0.4		2010/05/14
+	[INSERT HERE]
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers
