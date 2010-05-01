@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.26 2010/04/16 17:44:33 cm-msk Exp $
+$Id: BRANCHES,v 1.27 2010/05/01 18:03:16 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -20,9 +20,6 @@ br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 
 br-msk-ldap-caching
 		Experimental LDAP query piggybacking and caching.
-
-br-msk-lua-dataset
-		Experimental addition of a new "lua:" dataset type.
 
 br-msk-stats-redux
 		Overhaul of statistics collection and reporting code.
@@ -54,6 +51,9 @@ br-msk-libprofiling
 		Optimizations based on some recent gprof output
 
 br-msk-lua	Experimenting with LUA for scriptable policy hooks
+
+br-msk-lua-dataset
+		Experimental addition of a new "lua:" dataset type.
 
 br-msk-openldap	OpenLDAP integration work
 
