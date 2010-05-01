@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.h,v 1.9 2010/02/20 07:29:59 cm-msk Exp $
+**  $Id: opendkim-db.h,v 1.10 2010/05/01 18:02:52 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_DB_H_
 #define _OPENDKIM_DB_H_
 
 #ifndef lint
-static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.9 2010/02/20 07:29:59 cm-msk Exp $";
+static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.10 2010/05/01 18:02:52 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -32,6 +32,7 @@ static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.9 2010/02/20 07:29:
 #define DKIMF_DB_TYPE_BDB	3
 #define DKIMF_DB_TYPE_DSN	4
 #define DKIMF_DB_TYPE_LDAP	5
+#define DKIMF_DB_TYPE_LUA	6
 
 #define	DKIMF_LDAP_PARAM_BINDUSER	0
 #define	DKIMF_LDAP_PARAM_BINDPW		1

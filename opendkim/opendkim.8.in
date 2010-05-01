@@ -145,15 +145,22 @@ be returned, the appropriate attribute names should be given in the correct
 order to satisfy such requests.
 .TP
 .I f)
+If the string begins with "lua:", it is presumed to refer to a file that
+contains a Lua script to be executed whenever a query is performed.  The
+key for the query is placed in a global variable called "query", which the
+called script can then access.  The script may return any number of values
+as required for the type of query being performed.
+.TP
+.I g)
 If the string contains none of these prefixes but ends with ".db", it
 is presumed to be a Sleepycat DB as described above (if support for same
 is compiled in).
 .TP
-.I g)
+.I h)
 If the string contains none of these prefixes but starts with a slash ("/")
 character, it is presumed to be a flat file as described above.
 .TP
-.I h)
+.I i)
 In any other case, the string is presumed to be a comma-separated list.
 Elements in the list are either simple data elements that are part of the
 set or, in the case of an entry of the form "x=y", are stored as key-value
