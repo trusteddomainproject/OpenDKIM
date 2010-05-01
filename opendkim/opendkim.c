@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.115 2010/04/30 17:01:28 cm-msk Exp $
+**  $Id: opendkim.c,v 1.116 2010/05/01 18:13:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.115 2010/04/30 17:01:28 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.116 2010/05/01 18:13:07 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -12083,6 +12083,9 @@ main(int argc, char **argv)
 #ifdef USE_LDAP
 			                "\tldapscheme://host[:port][/dn[?attrs[?scope[?filter[?exts]]]]]\n"
 #endif /* USE_LDAP */
+#ifdef USE_LUA
+			                "\tlua:path\n"
+#endif /* USE_LUA */
 			                "> ");
 		}
 
