@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.111.2.9 2010/04/30 22:23:28 cm-msk Exp $
+**  $Id: opendkim.c,v 1.111.2.10 2010/05/04 00:54:50 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111.2.9 2010/04/30 22:23:28 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111.2.10 2010/05/04 00:54:50 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -10031,6 +10031,11 @@ mlfi_eom(SMFICTX *ctx)
 		  case DKIM_STAT_NOKEY:
 			dfc->mctx_addheader = TRUE;
 			dfc->mctx_status = DKIMF_STATUS_NOKEY;
+			break;
+
+		  case DKIM_STAT_REVOKED:
+			dfc->mctx_addheader = TRUE;
+			dfc->mctx_status = DKIMF_STATUS_REVOKED;
 			break;
 
 		  default:
