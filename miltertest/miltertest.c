@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.10.2.6 2010/04/24 01:30:56 cm-msk Exp $
+**  $Id: miltertest.c,v 1.10.2.7 2010/05/04 03:28:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.6 2010/04/24 01:30:56 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.7 2010/05/04 03:28:10 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -3620,6 +3620,8 @@ main(int argc, char **argv)
 	lua_setglobal(l, "SMFIR_DISCARD");
 	lua_pushnumber(l, SMFIR_REPLYCODE);
 	lua_setglobal(l, "SMFIR_REPLYCODE");
+	lua_pushnumber(l, SMFIR_SKIP);
+	lua_setglobal(l, "SMFIR_SKIP");
 
 	lua_pushnumber(l, SMFIC_CONNECT);
 	lua_setglobal(l, "SMFIC_CONNECT");
