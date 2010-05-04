@@ -1,0 +1,7 @@
+#!/bin/sh
+#
+# $Id: t-verify-revoked,v 1.1.2.1 2010/05/04 00:55:06 cm-msk Exp $
+# 
+# verify revoked key test
+
+../../miltertest/miltertest -s t-verify-revoked.lua
