@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.12 2010/04/30 17:01:28 cm-msk Exp $";
+static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.13 2010/05/04 04:39:04 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -561,6 +561,9 @@ dkim_get_key_file(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	memset(buf, '\0', buflen);
 	while (fgets(buf, buflen, f) != NULL)
 	{
+		if (buf[0] == '#')
+			continue;
+
 		p2 = NULL;
 
 		for (p = buf; *p != '\0'; p++)
