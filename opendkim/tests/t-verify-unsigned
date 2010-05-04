@@ -1,7 +1,12 @@
 #!/bin/sh
 #
-# $Id: t-verify-unsigned,v 1.1.2.1 2010/05/04 03:41:08 cm-msk Exp $
+# $Id: t-verify-unsigned,v 1.1.2.2 2010/05/04 18:16:58 cm-msk Exp $
 # 
 # unsigned message test
 
-../../miltertest/miltertest -v -s t-verify-unsigned.lua
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest -s $srcdir/t-verify-unsigned.lua

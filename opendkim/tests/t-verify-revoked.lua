@@ -1,4 +1,4 @@
--- $Id: t-verify-revoked.lua,v 1.1.2.2 2010/05/04 03:24:20 cm-msk Exp $
+-- $Id: t-verify-revoked.lua,v 1.1.2.3 2010/05/04 18:16:58 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -9,7 +9,15 @@
 mt.echo("*** simple/simple verify revoked key")
 
 -- try to start the filter
-mt.startfilter("../opendkim", "-x", "t-verify-revoked.conf")
+if os.getenv("abs_top_builddir") ~= nil then
+	binpath = os.getenv("abs_top_builddir") .. "/opendkim"
+else
+	binpath = ".."
+end
+if os.getenv("srcdir") ~= nil then
+	mt.chdir(os.getenv("srcdir"))
+end
+mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-revoked.conf")
 mt.sleep(2)
 
 -- try to connect to it

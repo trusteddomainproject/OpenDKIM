@@ -1,7 +1,12 @@
 #!/bin/sh
 #
-# $Id: t-sign-rs-lua,v 1.1 2010/02/08 21:45:00 cm-msk Exp $
+# $Id: t-sign-rs-lua,v 1.1.2.1 2010/05/04 18:16:58 cm-msk Exp $
 # 
 # relaxed/simple signing test using tables and a Lua hook
 
-../../miltertest/miltertest -s t-sign-rs-lua.lua
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest -s $srcdir/t-sign-rs-lua.lua
