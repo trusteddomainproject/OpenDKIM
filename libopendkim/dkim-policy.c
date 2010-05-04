@@ -2,11 +2,11 @@
 **  Copyright (c) 2007-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
-static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.9.8.1 2010/04/26 22:19:21 cm-msk Exp $";
+static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.9.8.2 2010/05/04 04:44:31 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */

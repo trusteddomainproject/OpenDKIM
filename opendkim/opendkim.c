@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.111.2.10 2010/05/04 00:54:50 cm-msk Exp $
+**  $Id: opendkim.c,v 1.111.2.11 2010/05/04 04:44:31 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111.2.10 2010/05/04 00:54:50 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111.2.11 2010/05/04 04:44:31 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -9546,8 +9546,24 @@ mlfi_body(SMFICTX *ctx, u_char *bodyp, size_t bodylen)
 	**  No need to do anything if the body was empty.
 	*/
 
-	if (bodylen == 0 || dfc->mctx_headeronly)
+	if (bodylen == 0)
 		return SMFIS_CONTINUE;
+
+	/*
+	**  Tell the filter to skip it if we don't care about the body.
+	*/
+
+	if (dfc->mctx_headeronly)
+	{
+#ifdef SMFIS_SKIP
+		if (cc->cctx_milterv2)
+			return SMFIS_SKIP;
+		else
+			return SMFIS_CONTINUE;
+#else /* SMFIS_SKIP */
+			return SMFIS_CONTINUE;
+#endif /* SMFIS_SKIP */
+	}
 
 	last = NULL;
 	status = DKIM_STAT_OK;
