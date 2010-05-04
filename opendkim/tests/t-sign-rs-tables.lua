@@ -1,4 +1,4 @@
--- $Id: t-sign-rs-tables.lua,v 1.4 2010/02/25 20:07:15 cm-msk Exp $
+-- $Id: t-sign-rs-tables.lua,v 1.4.2.1 2010/05/04 00:50:59 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -79,7 +79,7 @@ if mt.eom(conn) ~= nil then
 	error "mt.eom() failed"
 end
 if mt.getreply(conn) ~= SMFIR_ACCEPT then
-	error "mt.bodystring() unexpected reply"
+	error "mt.eom() unexpected reply"
 end
 
 -- verify that a signature got added
