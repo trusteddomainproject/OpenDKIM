@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.10.2.7 2010/05/04 03:28:10 cm-msk Exp $
+**  $Id: miltertest.c,v 1.10.2.8 2010/05/04 18:16:25 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.7 2010/05/04 03:28:10 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.10.2.8 2010/05/04 18:16:25 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -101,6 +101,7 @@ int mt_abort(lua_State *);
 int mt_bodyfile(lua_State *);
 int mt_bodyrandom(lua_State *);
 int mt_bodystring(lua_State *);
+int mt_chdir(lua_State *);
 int mt_connect(lua_State *);
 int mt_conninfo(lua_State *);
 int mt_data(lua_State *);
@@ -156,6 +157,7 @@ static const luaL_Reg mt_library[] =
 	{ "bodyfile",		mt_bodyfile	},
 	{ "bodyrandom",		mt_bodyrandom	},
 	{ "bodystring",		mt_bodystring	},
+	{ "chdir",		mt_chdir	},
 	{ "connect",		mt_connect	},
 	{ "conninfo",		mt_conninfo	},
 	{ "data",		mt_data		},
@@ -929,6 +931,44 @@ mt_echo(lua_State *l)
 	lua_pop(l, 1);
 
 	fprintf(stdout, "%s\n", str);
+
+	return 0;
+}
+
+/*
+**  MT_CHDIR -- change working directory
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**   	nil (on the Lua stack)
+*/
+
+int
+mt_chdir(lua_State *l)
+{
+	char *str;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1 || !lua_isstring(l, 1))
+	{
+		lua_pushstring(l, "mt.chdir(): Invalid argument");
+		lua_error(l);
+	}
+
+	str = (char *) lua_tostring(l, 1);
+	lua_pop(l, 1);
+
+	if (chdir(str) != 0)
+	{
+		lua_pushfstring(l, "mt.chdir(): %s: %s", str, strerror(errno));
+		lua_error(l);
+	}
+
+	if (verbose > 1)
+		fprintf(stderr, "%s: now in directory %s\n", progname, str);
 
 	return 0;
 }
