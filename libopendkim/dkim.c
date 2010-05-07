@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.45.2.7 2010/04/26 22:19:21 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.45.2.8 2010/05/07 04:44:11 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3159,7 +3159,18 @@ dkim_eoh_verify(DKIM *dkim)
 
 		/* no good ones */
 		if (!good)
+		{
+			/* report error on the last one */
+			if (sig->sig_error != DKIM_SIGERROR_UNKNOWN &&
+			    sig->sig_error != DKIM_SIGERROR_OK)
+			{
+				dkim_error(dkim,
+				           dkim_code_to_name(sigerrors,
+				                             sig->sig_error));
+			}
+
 			return DKIM_STAT_CANTVRFY;
+		}
 	}
 
 	return DKIM_STAT_OK;
