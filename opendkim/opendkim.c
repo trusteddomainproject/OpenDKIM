@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.111.2.11 2010/05/04 04:44:31 cm-msk Exp $
+**  $Id: opendkim.c,v 1.111.2.12 2010/05/07 14:53:01 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111.2.11 2010/05/04 04:44:31 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.111.2.12 2010/05/07 14:53:01 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -10607,6 +10607,12 @@ mlfi_eom(SMFICTX *ctx)
 			  case DKIMF_STATUS_BADFORMAT:
 				authresult = "permerror";
 				strlcpy(comment, "bad format", sizeof comment);
+				break;
+
+			  case DKIMF_STATUS_NOKEY:
+				authresult = "permerror";
+				strlcpy(comment, "key not found",
+				        sizeof comment);
 				break;
 
 			  default:
