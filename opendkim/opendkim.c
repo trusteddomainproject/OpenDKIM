@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.117 2010/05/11 18:15:23 cm-msk Exp $
+**  $Id: opendkim.c,v 1.118 2010/05/11 21:31:45 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.117 2010/05/11 18:15:23 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.118 2010/05/11 21:31:45 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -219,7 +219,6 @@ struct dkimf_config
 	dkim_alg_t	conf_signalg;		/* signing algorithm */
 	struct config *	conf_data;		/* configuration data */
 	char *		conf_authservid;	/* authserv-id */
-	char *		conf_actions;		/* action configuration */
 	char *		conf_keyfile;		/* key file for single key */
 	char *		conf_keytable;		/* key table */
 	char *		conf_signtable;		/* signing table */
@@ -470,21 +469,13 @@ struct lookup
 
 struct lookup dkimf_params[] =
 {
-	{ "no",			HNDL_NOSIGNATURE },
 	{ "nosignature",	HNDL_NOSIGNATURE },
-	{ "bad",		HNDL_BADSIGNATURE },
 	{ "badsignature",	HNDL_BADSIGNATURE },
-	{ "dns",		HNDL_DNSERROR },
 	{ "dnserror",		HNDL_DNSERROR },
-	{ "int",		HNDL_INTERNAL },
 	{ "internal",		HNDL_INTERNAL },
-	{ "sec",		HNDL_SECURITY },
 	{ "security",		HNDL_SECURITY },
-	{ "key",		HNDL_NOKEY },
 	{ "keynotfound",	HNDL_NOKEY },
-	{ "pol",		HNDL_POLICYERROR },
 	{ "policyerror",	HNDL_POLICYERROR },
-	{ "def",		HNDL_DEFAULT },
 	{ "default",		HNDL_DEFAULT },
 	{ NULL,			-1 },
 };
@@ -4054,154 +4045,6 @@ dkimf_authorsigok(msgctx msg)
 }
 
 /*
-**  DKIMF_PARSECONFIG -- parse message handling configuration and/or
-**                       apply defaults
-**
-**  Parameters:
-** 	confstr -- configuration string, or NULL to apply defaults only
-**  	conf -- configuration handle to update
-**
-**  Return value:
-**  	TRUE on success, FALSE on failure.
-*/
-
-static _Bool
-dkimf_parseconfig(char *confstr, struct dkimf_config *conf)
-{
-	int vs;
-	char *p;
-	char *v;
-	char *tmp;
-
-	if (confstr == NULL)
-		return TRUE;
-
-	tmp = strdup(confstr);
-	if (tmp == NULL)
-	{
-		fprintf(stderr, "%s: strdup(): %s\n", progname,
-		        strerror(errno));
-		return FALSE;
-	}
-
-	/* process configuration */
-	for (p = strtok(tmp, ","); p != NULL; p = strtok(NULL, ","))
-	{
-		v = strchr(p, '=');
-		if (v == NULL)
-		{
-			fprintf(stderr,
-			        "%s: syntax error in configuration string\n",
-			        progname);
-			return FALSE;
-		}
-		*v = '\0';
-		v++;
-
-		vs = dkimf_configlookup(v, dkimf_values);
-		if (vs == -1)
-		{
-			fprintf(stderr,
-			        "%s: invalid configuration value `%s'\n",
-			        progname, v);
-			return FALSE;
-		}
-
-		/* apply what's been found */
-		switch (dkimf_configlookup(p, dkimf_params))
-		{
-		  case HNDL_NOSIGNATURE:
-			conf->conf_handling.hndl_nosig = vs;
-			break;
-
-		  case HNDL_BADSIGNATURE:
-			conf->conf_handling.hndl_badsig = vs;
-			break;
-
-		  case HNDL_DNSERROR:
-			conf->conf_handling.hndl_dnserr = vs;
-			break;
-
-		  case HNDL_NOKEY:
-			conf->conf_handling.hndl_nokey = vs;
-			break;
-
-		  case HNDL_INTERNAL:
-			conf->conf_handling.hndl_internal = vs;
-			break;
-
-		  case HNDL_SECURITY:
-			conf->conf_handling.hndl_security = vs;
-			break;
-
-		  case HNDL_POLICYERROR:
-			conf->conf_handling.hndl_policyerr = vs;
-			break;
-
-		  case HNDL_DEFAULT:
-			conf->conf_handling.hndl_nosig = vs;
-			conf->conf_handling.hndl_nokey = vs;
-			conf->conf_handling.hndl_badsig = vs;
-			conf->conf_handling.hndl_dnserr = vs;
-			conf->conf_handling.hndl_internal = vs;
-			conf->conf_handling.hndl_security = vs;
-			conf->conf_handling.hndl_policyerr = vs;
-			break;
-
-		  default:
-			*v = '=';
-			fprintf(stderr,
-			        "%s: invalid configuration parameter `%s'\n",
-			        progname, p);
-			return FALSE;
-		}
-	}
-
-	return TRUE;
-}
-
-/*
-**  DKIMF_PARSECONFIG2 -- parse a single configuration value
-**
-**  Parameters:
-**  	cfg -- pointer to data loaded from a configuration file
-**  	name -- name of the parameter to query
-**  	code -- equivalent code for the -C option
-**  	str -- string to update
-**  	len -- size of "str"
-**
-**  Return value:
-**  	None.
-**
-**  Notes:
-**  	This is transitional, for use during the time that the -C option
-**  	and the configuration file coexist.  The -C option overrides
-**  	the values found in the file.
-*/
-
-static void
-dkimf_parseconfig2(struct config *cfg, const char *name, const char *code,
-                   char *str, size_t len)
-{
-	char *v;
-	size_t offset;
-
-	assert(cfg != NULL);
-	assert(name != NULL);
-	assert(code != NULL);
-	assert(str != NULL);
-	assert(len > 0);
-
-	if (config_get(cfg, name, &v, sizeof(char *)) == 1)
-	{
-		offset = strlen(str);
-
-		snprintf(str + offset, len - offset, "%s%s=%s",
-		         offset == 0 ? "" : ",", code, v);
-	}
-}
-
-/*
 **  DKIMF_CONFIG_NEW -- get a new configuration handle
 **
 **  Parameters:
@@ -4383,6 +4226,85 @@ dkimf_config_free(struct dkimf_config *conf)
 }
 
 /*
+**  DKIMF_PARSEHANDLER -- parse a handler
+**
+**  Parameters:
+**  	cfg -- configuration data structure to check
+**  	name -- handler name
+**  	hndl -- handler structure to update
+**
+**  Return value:
+**  	None.
+*/
+
+static void
+dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl)
+{
+	int action;
+	char *val = NULL;
+
+	assert(name != NULL);
+	assert(strncasecmp(name, "on-", 3) == 0);
+	assert(hndl != NULL);
+
+	if (cfg == NULL)
+		return;
+
+	(void) config_get(cfg, name, &val, sizeof val);
+
+	if (val != NULL)
+	{
+		action = dkimf_configlookup(val, dkimf_values);
+		if (action != -1)
+		{
+			switch (dkimf_configlookup(name + 3, dkimf_params))
+			{
+			  case HNDL_DEFAULT:
+				hndl->hndl_nosig = action;
+				hndl->hndl_badsig = action;
+				hndl->hndl_dnserr = action;
+				hndl->hndl_internal = action;
+				hndl->hndl_security = action;
+				hndl->hndl_nokey = action;
+				hndl->hndl_policyerr = action;
+				break;
+
+			  case HNDL_NOSIGNATURE:
+				hndl->hndl_nosig = action;
+				break;
+
+			  case HNDL_BADSIGNATURE:
+				hndl->hndl_badsig = action;
+				break;
+
+			  case HNDL_DNSERROR:
+				hndl->hndl_dnserr = action;
+				break;
+
+			  case HNDL_INTERNAL:
+				hndl->hndl_internal = action;
+				break;
+
+			  case HNDL_SECURITY:
+				hndl->hndl_security = action;
+				break;
+
+			  case HNDL_NOKEY:
+				hndl->hndl_nokey = action;
+				break;
+
+			  case HNDL_POLICYERROR:
+				hndl->hndl_policyerr = action;
+				break;
+
+			  default:
+				break;
+			}
+		}
+	}
+}
+
+/*
 **  DKIMF_CONFIG_LOAD -- load a configuration handle based on file content
 **
 **  Paramters:
@@ -4548,22 +4470,19 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                  sizeof conf->conf_modestr);
 		}
 
-		dkimf_parseconfig2(data, "On-Default", "def", confstr,
-		                   sizeof confstr);
-		dkimf_parseconfig2(data, "On-BadSignature", "bad",
-		                   confstr, sizeof confstr);
-		dkimf_parseconfig2(data, "On-DNSError", "dns", confstr,
-		                   sizeof confstr);
-		dkimf_parseconfig2(data, "On-KeyNotFound", "key", confstr,
-		                   sizeof confstr);
-		dkimf_parseconfig2(data, "On-InternalError", "int",
-		                   confstr, sizeof confstr);
-		dkimf_parseconfig2(data, "On-NoSignature", "no",
-		                   confstr, sizeof confstr);
-		dkimf_parseconfig2(data, "On-Security", "sec", confstr,
-		                   sizeof confstr);
-		dkimf_parseconfig2(data, "On-PolicyError", "pol", confstr,
-		                   sizeof confstr);
+		dkimf_parsehandler(data, "On-Default", &conf->conf_handling);
+		dkimf_parsehandler(data, "On-BadSignature",
+		                   &conf->conf_handling);
+		dkimf_parsehandler(data, "On-DNSError", &conf->conf_handling);
+		dkimf_parsehandler(data, "On-KeyNotFound",
+		                   &conf->conf_handling);
+		dkimf_parsehandler(data, "On-InternalError",
+		                   &conf->conf_handling);
+		dkimf_parsehandler(data, "On-NoSignature",
+		                   &conf->conf_handling);
+		dkimf_parsehandler(data, "On-Security", &conf->conf_handling);
+		dkimf_parsehandler(data, "On-PolicyError",
+		                   &conf->conf_handling);
 
 		(void) config_get(data, "RemoveARAll", &conf->conf_remarall,
 		                  sizeof conf->conf_remarall);
@@ -5055,16 +4974,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			         basedir, strerror(errno));
 			return -1;
 		}
-	}
-
-	if (conf->conf_actions == NULL && confstr[0] != '\0')
-		conf->conf_actions = confstr;
-
-	if (conf->conf_actions != NULL &&
-	    !dkimf_parseconfig(conf->conf_actions, conf))
-	{
-		snprintf(err, errlen, "invalid action configuration");
-		return -1;
 	}
 
 	str = NULL;
@@ -11737,12 +11646,6 @@ main(int argc, char **argv)
 	{
 		switch (c)
 		{
-		  case 'a':
-			if (optarg == NULL || *optarg == '\0')
-				return usage();
-			curconf->conf_peerfile = optarg;
-			break;
-
 		  case 'A':
 			autorestart = TRUE;
 			break;
@@ -11757,12 +11660,6 @@ main(int argc, char **argv)
 			if (optarg == NULL || *optarg == '\0')
 				return usage();
 			curconf->conf_canonstr = optarg;
-			break;
-
-		  case 'C':
-			if (optarg == NULL || *optarg == '\0')
-				return usage();
-			curconf->conf_actions = optarg;
 			break;
 
 		  case 'd':
@@ -11808,22 +11705,6 @@ main(int argc, char **argv)
 			}
 			break;
 
-		  case 'h':
-			curconf->conf_addxhdr = TRUE;
-			break;
-
-		  case 'i':
-			if (optarg == NULL || *optarg == '\0')
-				return usage();
-			curconf->conf_internalfile = optarg;
-			break;
-
-		  case 'I':
-			if (optarg == NULL || *optarg == '\0')
-				return usage();
-			curconf->conf_externalfile = optarg;
-			break;
-
 		  case 'k':
 			if (optarg == NULL || *optarg == '\0')
 				return usage();
@@ -11838,30 +11719,6 @@ main(int argc, char **argv)
 			if (optarg == NULL || *optarg == '\0')
 				return usage();
 			curconf->conf_siglimit = optarg;
-			break;
-
-		  case 'm':
-			if (optarg == NULL || *optarg == '\0')
-				return usage();
-			curconf->conf_mtalist = strdup(optarg);
-			if (curconf->conf_mtalist == NULL)
-			{
-				fprintf(stderr, "%s: strdup(): %s\n", progname,
-				        strerror(errno));
-				return EX_SOFTWARE;
-			}
-			break;
-
-		  case 'M':
-			if (optarg == NULL || *optarg == '\0')
-				return usage();
-			curconf->conf_macrolist = strdup(optarg);
-			if (curconf->conf_macrolist == NULL)
-			{
-				fprintf(stderr, "%s: strdup(): %s\n", progname,
-				        strerror(errno));
-				return EX_SOFTWARE;
-			}
 			break;
 
 		  case 'n':
@@ -11882,12 +11739,6 @@ main(int argc, char **argv)
 			gotp = TRUE;
 			break;
 
-		  case 'P':
-			if (optarg == NULL || *optarg == '\0')
-				return usage();
-			pidfile = optarg;
-			break;
-
 		  case 'q':
 			quarantine = TRUE;
 			break;
@@ -11899,10 +11750,6 @@ main(int argc, char **argv)
 
 		  case 'r':
 			curconf->conf_reqhdrs = TRUE;
-			break;
-
-		  case 'R':
-			curconf->conf_sendreports = TRUE;
 			break;
 
 		  case 's':
@@ -11954,14 +11801,6 @@ main(int argc, char **argv)
 				return usage();
 			become = optarg;
 			break;
-
-#ifdef POPAUTH
-		  case 'U':
-			if (optarg == NULL || *optarg == '\0')
-				return usage();
-			popdbfile = optarg;
-			break;
-#endif /* POPAUTH */
 
 		  case 'v':
 			verbose++;

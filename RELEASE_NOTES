@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.121 2010/05/03 20:08:24 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.122 2010/05/11 21:31:45 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -7,6 +7,9 @@ release, and a summary of the changes in that release.
 
 2.1.0		2010/??/??
 	Feature request #SF2964388: Add a "lua" dataset type.
+	Remove several command line options that are redundant to the
+		configuration file and not useful in test mode.  These
+		include: -a, -C, -h, -i, -I, -m, -M, -P, -R and -U.
 	Add support for draft-kucherawy-authres-header-b.
 	LIBOPENDKIM: Add dkim_get_sigsubstring(), required for "header.b"
 		production on Authentication-Results: header fields.

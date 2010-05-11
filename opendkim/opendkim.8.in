@@ -5,36 +5,26 @@
 .SH SYNOPSIS
 .B opendkim
 -p socketspec
-[-a peerlist]
 [-A]
 [-b modes]
 [-c canon]
-[-C config]
 [-d domain[,...]]
 [-D]
 [-f]
 [-F time]
-[-h]
-[-i ilist]
-[-I eilist]
 [-k keyfile]
 [-l]
 [-L min]
-[-m mtas]
-[-M macro[=value][,...]]
 [-n]
 [-o hdrlist]
-[-P pidfile]
 [-q]
 [-Q]
 [-r]
-[-R]
 [-s selector]
 [-S signalg]
 [-t testfile]
 [-T secs]
 [-u userid[:group]]
-[-U popdb]
 [-v]
 [-V]
 [-W]
@@ -167,17 +157,6 @@ set or, in the case of an entry of the form "x=y", are stored as key-value
 pairs as described above.
 .SH OPTIONS
 .TP
-.I -a peerlist
-Identifies a data set of "peers" which specifies clients whose connections
-should be accepted without processing by this filter.  The
-.I peerlist
-should contain in each entry a hostname, domain name (e.g. ".example.com"),
-IP address, an IPv6 address (including an IPv4 mapped address), or a
-CIDR-style IP specification (e.g. "192.168.1.0/24").  An entry beginning
-with a bang ("!") character means "not", allowing exclusions of specific
-hosts that are otherwise members of larger sets.  The order of entries
-in this data set is therefore significant.
-.TP
 .I -A
 Automatically re-start on failures.  Use with caution; if the filter
 fails instantly after it starts, this can cause a tight
@@ -214,9 +193,6 @@ The value may include two different canonicalizations separated by a
 slash ("/") character, in which case the first will be applied to the
 headers and the second to the body.
 .TP
-.I -C config
-Configuration control.  See the CONFIGURATION section for details.
-.TP
 .I -d dataset
 A set of domains whose mail should be signed by this filter.  Mail from
 other domains will be verified rather than being signed.
@@ -239,33 +215,6 @@ also used in conjunction with
 (see below).  The time must be expressed in the usual UNIX
 .I time_t
 (seconds since epoch) format.
-.TP
-.I -h
-Causes
-.I opendkim
-to add a header indicating the presence of this filter in the path of
-the message from injection to delivery.  The product's name, version, and
-the job ID are included in the header's contents.
-.TP
-.I -i ilist
-Identifies a data set of internal hosts whose mail should be signed rather
-than verified.  Entries in this set follow the same form as those of
-the
-.I -a
-option above.  If not specified, the default of "127.0.0.1" is applied.
-Naturally, providing a value here overrides the default, so if mail from
-127.0.0.1 should be signed, the list provided here should include that
-address explicitly.
-.TP
-.I -I eilist
-Identifies a data set of "external" hosts that may send mail through the server
-as one of the signing domains without credentials as such.  Basically
-suppresses the "external host (hostname) tried to send mail as (domain)"
-log messages.  Entries in the
-.I eilist
-set should be of the same form as those of the
-.I -a
-option above.  The list is empty by default.
 .TP
 .I -k keyfile
 Gives the location of a PEM-formatted private key to be used for signing
@@ -294,39 +243,6 @@ meaning there may be no more than
 .I min
 bytes of unsigned data appended to the message for it to be considered
 valid.
-.TP
-.I -m dataset
-A set of MTA names (a la the
-.I sendmail(8)
-DaemonPortOptions Name parameter) whose mail should be signed by this
-filter.  If not set, the MTA name is not used when deciding whether or not
-a message should be signed.
-.TP
-.I -M dataset
-Defines a set of MTA-provided
-.I macros
-which should be checked to see if the sender has been determined to be a
-local user and therefore whether or not the message should be signed.  If a
-corresponding value is specified, the value of the macro must match the
-value specified (matching is case-insensitive), otherwise the macro must
-be defined but may contain any value.  Multiple tests may be specified,
-separated by commas.  The set is empty by default, meaning macros are not
-used when deciding whether or not a message should be signed.
-
-A value may be of the form
-.I value1[|value2[|...]];
-if one or more value is defined then the macro must be set to one of the
-listed values, otherwise the macro must be set but can contain any
-value.
-
-In order for the macro and its value to be available to the filter for
-checking, the MTA must send it during the protocol exchange.  This is either
-accomplished via manual configuration of the MTA to send the desired macros
-or, for MTA/filter combinations that support the feature, the filter can
-request those macros that are of interest.  The latter is a feature negotiated
-at the time the filter receives a connection from the MTA and its availability
-depends upon the version of milter used to compile the filter and the version
-of the MTA making the connection.
 .TP
 .I -n
 Parse the configuration file and command line arguments, reporting any
@@ -365,9 +281,6 @@ listening on all interfaces.  If neither socket type is specified,
 is assumed, meaning the parameter is interpreted as a path at which
 the socket should be created.  This parameter is mandatory.
 .TP
-.I -P pidfile
-Writes the process ID of the filter, once started, to the filename given.
-.TP
 .I -q
 Requests that messages which fail verification be quarantined by the
 MTA.  (Requires a sufficiently recent version of the milter library.)
@@ -381,13 +294,6 @@ number of fields to be retrieved.
 .I -r
 Checks all messages for compliance with RFC5322 header count requirements.
 Non-compliant messages are rejected.
-.TP
-.I -R
-When a signature verification fails and the signing site advertises a
-reporting address (i.e.
-.I r=user@host
-in its policy record), send a structured report to that address containing
-details needed to reproduce the problem.
 .TP
 .I -s selector
 Defines the name of the selector to be used when signing messages.
@@ -426,10 +332,6 @@ unless an alternate
 .I group
 is specified.
 .TP
-.I -U dataset
-Requests that the filter consult a POP authentication database for IP
-addresses that should be allowed for signing.
-.TP
 .I -v
 Increase verbose output during test mode (see
 .I -t
@@ -458,61 +360,6 @@ Read the named configuration file.  See the
 man page for details.  Values in the configuration file are overridden
 when their equivalents are provided on the command line until a configuration
 reload occurs.  The OPERATION section describes how reloads are triggered.
-.SH ACTION CONFIGURATION
-The value of the
-.I -C
-switch is a comma-separated list of settings of the form
-.I result=action
-which defines what the filter should do with messages that produce
-certain results.  Each result and each action has a full name and an
-abbreviated name.  Either is accepted.  Below, the abbreviated name appears
-in parentheses.
-.TP
-.I results
-.I badsignature
-(bad) the signature found in the message did not verify successfully
-against the message;
-.I dnserror
-(dns) an error was encountered attempting to retrieve a public key from
-the nameserver;
-.I internal
-(int) an internal error occurred;
-.I keynotfound
-(key) the key referenced by the signature was not present in the nameserver;
-.I nosignature
-(no) no signature was present on the message;
-.I policy
-(pol) an attempt to retrieve the policy (ADSP) record failed;
-.I security
-(sec) the message tripped internal security concerns (e.g. unusually large
-header blocks).  There is also a special result called
-.I default
-(def) whose action is copied onto all of the other results.
-.TP
-.I action
-.I accept
-(a) accept the message;
-.I discard
-(d) discard the message;
-.I tempfail
-(t) temp-fail the message;
-.I reject
-(r) reject the message.
-.PP
-In the interests of minimal initial impact, the defaults for
-.I badsignature
-and
-.I nosignature
-are
-.I accept,
-and the default for the others is
-.I tempfail.
-.PP
-Results and actions are processed in order, so use of the
-.I default
-action can be overridden by later specifications.  For example, using
-"def=a,int=t" sets all result actions to "accept" except for internal
-errors which will generate a temporary failure.
 .SH OPERATION
 A message will be verified unless it conforms to the signing criteria,
 which are: (1) the domain on the From: address or Sender: address (if present)
