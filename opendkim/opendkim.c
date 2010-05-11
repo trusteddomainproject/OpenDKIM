@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.116 2010/05/01 18:13:07 cm-msk Exp $
+**  $Id: opendkim.c,v 1.117 2010/05/11 18:15:23 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.116 2010/05/01 18:13:07 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.117 2010/05/11 18:15:23 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -9272,6 +9272,11 @@ mlfi_eoh(SMFICTX *ctx)
 		/*
 		**  Skip headers we know we're going to delete before
 		**  signing here (e.g. identity header when set to remove).
+		*/
+
+		/*
+		**  XXX -- may need to skip some/all Authentication-Results
+		**  header fields here, especially in the re-signing case
 		*/
 
 #ifdef _FFR_IDENTITY_HEADER
