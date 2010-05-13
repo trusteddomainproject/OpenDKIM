@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.118 2010/05/11 21:31:45 cm-msk Exp $
+**  $Id: opendkim.c,v 1.119 2010/05/13 04:26:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.118 2010/05/11 21:31:45 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.119 2010/05/13 04:26:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -11522,37 +11522,25 @@ static int
 usage(void)
 {
 	fprintf(stderr, "%s: usage: %s -p socketfile [options]\n"
-	                "\t-a peerlist \tfile containing list of hosts to ignore\n"
 	                "\t-A          \tauto-restart\n"
 	                "\t-b modes    \tselect operating modes\n"
 	                "\t-c canon    \tcanonicalization to use when signing\n"
-	                "\t-C config   \taction configuration info (see man page)\n"
 	                "\t-d domlist  \tdomains to sign\n"
 	                "\t-D          \talso sign subdomains\n"
 	                "\t-f          \tdon't fork-and-exit\n"
 	                "\t-F time     \tfixed timestamp to use when signing (test mode only)\n"
-	                "\t-h          \tappend identifying header\n"
-	                "\t-i ilist    \tfile containing list of internal (signing) hosts\n"
-	                "\t-I elist    \tfile containing list of external domain clients\n"
 	                "\t-k keyfile  \tlocation of secret key file\n"
 	                "\t-l          \tlog activity to system log\n"
 	                "\t-L limit    \tsignature limit requirements\n"
-	                "\t-m mtalist  \tMTA daemon names for which to sign\n"
-	                "\t-M macrolist\tMTA macros which enable signing\n"
 			"\t-o hdrlist  \tlist of headers to omit from signing\n"
-	                "\t-P pidfile  \tfile to which to write pid\n"
 	                "\t-q          \tquarantine messages that fail to verify\n"
 		        "\t-Q          \tquery test mode\n"
 	                "\t-r          \trequire basic RFC2822 header compliance\n"
-	                "\t-R          \tgenerate verification failure reports\n"
 	                "\t-s selector \tselector to use when signing\n"
 	                "\t-S signalg  \tsignature algorithm to use when signing\n"
 			"\t-t testfile \tevaluate RFC2822 message in \"testfile\"\n"
 			"\t-T timeout  \tDNS timeout (seconds)\n"
 	                "\t-u userid   \tchange to specified userid\n"
-#ifdef POPAUTH
-			"\t-U dbfile   \tuser POP AUTH database\n"
-#endif /* POPAUTH */
 	                "\t-v          \tincrease verbosity during testing\n"
 	                "\t-V          \tprint version number and terminate\n"
 	                "\t-W          \t\"why?!\" mode (log sign/verify decision logic)\n"
