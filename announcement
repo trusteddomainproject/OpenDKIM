@@ -11,7 +11,16 @@ filter that prevented the AlwaysAddARHeader feature from working.
 The RELEASE_NOTES for this version:
 
 2.0.4		2010/05/14
-	[INSERT HERE]
+	Fix logic enabling AlwaysAddARHeader.  Reported by Thomas Arnett.
+	Return SMFIR_SKIP if available when reaching mlfi_body() if the
+		filter is not interested in the body, such as on an unsigned
+		message.
+	Add more unit tests (but many more are needed).
+	LIBOPENDKIM: In dkim_eoh() when verifying, set the DKIM error string
+		to something if there was at least one signature on the
+		message but none passed.
+	MILTERTEST: Add SMFIR_SKIP as a testable milter reply code.
+	MILTERTEST: Add mt.chdir().
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers
