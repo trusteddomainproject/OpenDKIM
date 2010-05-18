@@ -1,7 +1,12 @@
 #!/bin/sh
 #
-# $Id: t-sign-rs-multiple,v 1.1 2010/02/08 05:47:23 cm-msk Exp $
+# $Id: t-sign-rs-multiple,v 1.2 2010/05/18 02:00:53 cm-msk Exp $
 # 
 # relaxed/simple multiple signing test
 
-../../miltertest/miltertest -s t-sign-rs-multiple.lua
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest -s $srcdir/t-sign-rs-multiple.lua

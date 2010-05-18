@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.40 2010/05/03 20:06:54 cm-msk Exp $
+# $Id: Makefile.am,v 1.41 2010/05/18 02:00:53 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -135,7 +135,7 @@ endif
 # non-experimental features and substitute it here e.g  @SUPPORTED_FEATURES@.
 # Perhaps all features would enable a more comprehensive test coverage map
 # though.
-DISTCHECK_CONFIGURE_FLAGS=--enable-arlib --enable-vbr
+DISTCHECK_CONFIGURE_FLAGS=--enable-arlib --enable-vbr --with-lua
 
 dist-hook:
 	[ -f $(distdir)/libopendkim/dkim.h ] && rm -f $(distdir)/libopendkim/dkim.h

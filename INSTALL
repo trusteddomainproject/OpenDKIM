@@ -225,7 +225,13 @@ INSTALLING AND CONFIGURING OPENDKIM
     the user that will be executing the filter (preferably not the
     superuser) and be mode 0700 and 0600 respectively.
 
-(4) Start opendkim.  You will need at least the "-p" option.  (A manual
+(4) By default, mail will only be signed if it comes from localhost.
+    If you wish to sign mail that comes from sources other than the localhost
+    address (127.0.0.1), create a file that contains IP addresses, CIDR
+    addresses (e.g. 192.168.0.0/24), hostnames, or domain names preceded by
+    a "." character, one per line.
+
+(5) Start opendkim.  You will need at least the "-p" option.  (A manual
     page for this tool is available and will be installed by the above
     process if you want to see the available options.)  The current
     recommended basic set of command line options is:
@@ -244,6 +250,9 @@ INSTALLING AND CONFIGURING OPENDKIM
     connections from MTAs in order to process messages.  See the
     documentation in libmilter (available with the open source sendmail
     source code) for details on selecting and specifying a socket.
+
+    If you created a list of sources in step (4) above, add "-i FILENAME"
+    to the command line, replacing FILENAME with the file you created there.
 
     Instead of command line options, you can also use a configuration file.
     In that case, you only need to tell the filter where the configuration
@@ -378,4 +387,4 @@ headers of the reply you should see its signature and another
 Authentication-Results: header, which should also read "pass".
 
 
-$Id: INSTALL,v 1.14 2010/03/22 17:55:27 subman Exp $
+$Id: INSTALL,v 1.15 2010/05/18 02:00:53 cm-msk Exp $

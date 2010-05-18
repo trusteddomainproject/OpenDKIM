@@ -1,4 +1,4 @@
--- $Id: t-sign-ss.lua,v 1.5 2010/02/25 20:07:16 cm-msk Exp $
+-- $Id: t-sign-ss.lua,v 1.6 2010/05/18 02:00:54 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -9,7 +9,15 @@
 mt.echo("*** simple/simple signing test")
 
 -- try to start the filter
-mt.startfilter("../opendkim", "-x", "t-sign-ss.conf")
+if os.getenv("abs_top_builddir") ~= nil then
+	binpath = os.getenv("abs_top_builddir") .. "/opendkim"
+else
+	binpath = ".."
+end
+if os.getenv("srcdir") ~= nil then
+	mt.chdir(os.getenv("srcdir"))
+end
+mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-ss.conf")
 mt.sleep(2)
 
 -- try to connect to it
@@ -79,7 +87,7 @@ if mt.eom(conn) ~= nil then
 	error "mt.eom() failed"
 end
 if mt.getreply(conn) ~= SMFIR_ACCEPT then
-	error "mt.bodystring() unexpected reply"
+	error "mt.eom() unexpected reply"
 end
 
 -- verify that a signature got added

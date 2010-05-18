@@ -1,7 +1,12 @@
 #!/bin/sh
 #
-# $Id: t-sign-rs,v 1.2 2010/01/14 05:59:16 cm-msk Exp $
+# $Id: t-sign-rs,v 1.3 2010/05/18 02:00:53 cm-msk Exp $
 # 
 # relaxed/simple signing test
 
-../../miltertest/miltertest -s t-sign-rs.lua
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest -s $srcdir/t-sign-rs.lua

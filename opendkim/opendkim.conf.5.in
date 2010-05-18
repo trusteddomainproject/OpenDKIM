@@ -156,7 +156,7 @@ Requests that
 .I opendkim
 include a "l=" body length tag when the set contains the recipient 
 addresses.
-@BODYLENGTHDB_MANNOTICE@
+@BODYLENGTH_DB_MANNOTICE@
 
 .TP
 .I BogusKey (string)

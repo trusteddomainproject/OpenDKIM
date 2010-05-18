@@ -1,12 +1,12 @@
--- $Id: t-sign-rs-lua.lua,v 1.4 2010/05/18 02:00:53 cm-msk Exp $
+-- $Id: t-verify-unsigned.lua,v 1.2 2010/05/18 02:00:54 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
--- relaxed/simple signing test using KeyTable/SigningTable and Lua
+-- unsigned message test
 -- 
--- Confirms that a signature is added with the correct contents.
+-- Confirms that an unsigned message produces the correct result
 
-mt.echo("*** relaxed/simple signing test using tables and Lua")
+mt.echo("*** unsigned message")
 
 -- try to start the filter
 if os.getenv("abs_top_builddir") ~= nil then
@@ -17,7 +17,7 @@ end
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
 end
-mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-rs-lua.conf")
+mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-unsigned.conf")
 mt.sleep(2)
 
 -- try to connect to it
@@ -37,7 +37,7 @@ end
 
 -- send envelope macros and sender data
 -- mt.helo() is called implicitly
-mt.macro(conn, SMFIC_MAIL, "j", "t-sign-ss")
+mt.macro(conn, SMFIC_MAIL, "j", "t-verify-revoked")
 if mt.mailfrom(conn, "user@example.com") ~= nil then
 	error "mt.mailfrom() failed"
 end
@@ -78,7 +78,7 @@ end
 if mt.bodystring(conn, "This is a test!\r\n") ~= nil then
 	error "mt.bodystring() failed"
 end
-if mt.getreply(conn) ~= SMFIR_CONTINUE then
+if mt.getreply(conn) ~= SMFIR_SKIP then
 	error "mt.bodystring() unexpected reply"
 end
 
@@ -90,28 +90,11 @@ if mt.getreply(conn) ~= SMFIR_ACCEPT then
 	error "mt.eom() unexpected reply"
 end
 
--- verify that a signature got added
-if not mt.eom_check(conn, MT_HDRINSERT, "DKIM-Signature") then
-	error "no signature added"
+-- verify that an Authentication-Results header field got added
+if not mt.eom_check(conn, MT_HDRINSERT, "Authentication-Results") then
+	error "no Authentication-Results added"
 end
-
--- confirm properties
-sig = mt.getheader(conn, "DKIM-Signature", 0)
-if string.find(sig, "c=relaxed/simple", 1, true) == nil then
-	error "signature has wrong c= value"
-end
-if string.find(sig, "v=1", 1, true) == nil then
-	error "signature has wrong v= value"
-end
-if string.find(sig, "d=example.com", 1, true) == nil then
-	error "signature has wrong d= value"
-end
-if string.find(sig, "s=test", 1, true) == nil then
-	error "signature has wrong s= value"
-end
-if string.find(sig, "bh=3VWGQGY+cSNYd1MGM+X6hRXU0stl8JCaQtl4mbX/j2I=", 1, true) == nil then
-	error "signature has wrong bh= value"
-end
-if string.find(sig, "h=From:Date:Subject", 1, true) == nil then
-	error "signature has wrong h= value"
+ar = mt.getheader(conn, "Authentication-Results", 0)
+if string.find(ar, "dkim=none", 1, true) == nil then
+	error "incorrect DKIM result"
 end

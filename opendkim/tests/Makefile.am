@@ -1,7 +1,7 @@
-# $Id: Makefile.am,v 1.6 2010/03/21 21:03:54 cm-msk Exp $
+# $Id: Makefile.am,v 1.7 2010/05/18 02:00:53 cm-msk Exp $
 
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-multiple \
-	t-sign-rs-lua
+	t-sign-rs-lua t-verify-revoked t-verify-unsigned
 
 TESTS = $(check_SCRIPTS)
 
@@ -14,4 +14,6 @@ EXTRA_DIST = \
 	t-sign-rs-tables t-sign-rs-tables.conf t-sign-rs-tables.keys \
 		t-sign-rs-tables.lua t-sign-rs-tables.sign \
 	t-sign-ss t-sign-ss.conf t-sign-ss.lua \
-	testkey.private
+	t-verify-revoked t-verify-revoked.conf t-verify-revoked.lua \
+	t-verify-unsigned t-verify-unsigned.conf t-verify-unsigned.lua \
+	testkey.private pubkeys

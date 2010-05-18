@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.122 2010/05/11 21:31:45 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.123 2010/05/18 02:00:53 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -15,6 +15,18 @@ release, and a summary of the changes in that release.
 		production on Authentication-Results: header fields.
 	TOOLS: Feature request #SF2964364: Have opendkim-genzone use
 		the KeyTable if defined in a provided configuration file.
+
+2.0.4		2010/05/17
+	Fix logic enabling AlwaysAddARHeader.  Reported by Thomas Arnett.
+	Return SMFIR_SKIP if available when reaching mlfi_body() if the
+		filter is not interested in the body, such as on an unsigned
+		message.
+	Add more unit tests (but many more are needed).
+	LIBOPENDKIM: In dkim_eoh() when verifying, set the DKIM error string
+		to something if there was at least one signature on the
+		message but none passed.
+	MILTERTEST: Add SMFIR_SKIP as a testable milter reply code.
+	MILTERTEST: Add mt.chdir().
 
 2.0.3		2010/04/30
 	Fix bug #SF2986301: Initialize a pointer for AutoRestart before
