@@ -10,7 +10,7 @@ filter that prevented the AlwaysAddARHeader feature from working.
 
 The RELEASE_NOTES for this version:
 
-2.0.4		2010/05/14
+2.0.4		2010/05/17
 	Fix logic enabling AlwaysAddARHeader.  Reported by Thomas Arnett.
 	Return SMFIR_SKIP if available when reaching mlfi_body() if the
 		filter is not interested in the body, such as on an unsigned
