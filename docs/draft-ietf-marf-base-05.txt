@@ -4,14 +4,14 @@
 MARF Working Group                                       Y. Shafranovich
 Internet-Draft                                       ShafTek Enterprises
 Intended status: Standards Track                               J. Levine
-Expires: November 1, 2010                       Domain Assurance Council
+Expires: November 19, 2010                          Taughannock Networks
                                                             M. Kucherawy
                                                                Cloudmark
-                                                          April 30, 2010
+                                                            May 18, 2010
 
 
             An Extensible Format for Email Feedback Reports
-                        draft-ietf-marf-base-04
+                        draft-ietf-marf-base-05
 
 Abstract
 
@@ -36,7 +36,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on November 1, 2010.
+   This Internet-Draft will expire on November 19, 2010.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Shafranovich, et al.    Expires November 1, 2010                [Page 1]
+Shafranovich, et al.    Expires November 19, 2010               [Page 1]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
    include Simplified BSD License text as described in Section 4.e of
@@ -71,46 +71,46 @@ Table of Contents
        1.3.1.  General  . . . . . . . . . . . . . . . . . . . . . . .  4
        1.3.2.  E-mail Specific  . . . . . . . . . . . . . . . . . . .  4
    2.  Format of Email Feedback Reports . . . . . . . . . . . . . . .  5
-   3.  The 'message/feedback-report' Content Type . . . . . . . . . .  6
-     3.1.  Required Fields  . . . . . . . . . . . . . . . . . . . . .  6
-     3.2.  Optional Fields Appearing Once . . . . . . . . . . . . . .  7
-     3.3.  Optional Fields Appearing Multiple Times . . . . . . . . .  7
-     3.4.  Notes About URIs . . . . . . . . . . . . . . . . . . . . .  8
-     3.5.  Formal Definition  . . . . . . . . . . . . . . . . . . . .  8
-   4.  Transport Considerations . . . . . . . . . . . . . . . . . . . 11
-   5.  Extensibility  . . . . . . . . . . . . . . . . . . . . . . . . 12
-   6.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 13
-     6.1.  MIME Type Registration of 'message/feedback-report'  . . . 13
-     6.2.  Feedback Report Header Fields  . . . . . . . . . . . . . . 14
-     6.3.  Feedback Report Type Values  . . . . . . . . . . . . . . . 17
-   7.  Security Considerations  . . . . . . . . . . . . . . . . . . . 19
-     7.1.  Inherited from RFC3462 . . . . . . . . . . . . . . . . . . 19
-     7.2.  Interpretation . . . . . . . . . . . . . . . . . . . . . . 19
-     7.3.  Attacks Against Authentication Methods . . . . . . . . . . 19
-     7.4.  Intentionally Malformed Reports  . . . . . . . . . . . . . 19
-     7.5.  Omitting Data from ARF Reports . . . . . . . . . . . . . . 20
-     7.6.  Automatically Generated ARF Reports  . . . . . . . . . . . 20
-     7.7.  Attached Malware . . . . . . . . . . . . . . . . . . . . . 20
-   8.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 21
-     8.1.  Normative References . . . . . . . . . . . . . . . . . . . 21
-     8.2.  Informative References . . . . . . . . . . . . . . . . . . 22
-   Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 23
-   Appendix B.  Sample Feedback Reports . . . . . . . . . . . . . . . 24
-     B.1.  Simple Report for Email Abuse without Optional Headers . . 24
-     B.2.  Full Report for Email Abuse with All Headers . . . . . . . 26
-   Appendix C.  Public Discussion, History and Support  . . . . . . . 28
-   Appendix D.  Document History  . . . . . . . . . . . . . . . . . . 29
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 34
+   3.  The 'message/feedback-report' Content Type . . . . . . . . . .  7
+     3.1.  Required Fields  . . . . . . . . . . . . . . . . . . . . .  7
+     3.2.  Optional Fields Appearing Once . . . . . . . . . . . . . .  8
+     3.3.  Optional Fields Appearing Multiple Times . . . . . . . . .  8
+     3.4.  Notes About URIs . . . . . . . . . . . . . . . . . . . . .  9
+     3.5.  Formal Definition  . . . . . . . . . . . . . . . . . . . .  9
+   4.  Transport Considerations . . . . . . . . . . . . . . . . . . . 12
+   5.  Extensibility  . . . . . . . . . . . . . . . . . . . . . . . . 13
+   6.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 14
+     6.1.  MIME Type Registration of 'message/feedback-report'  . . . 14
+     6.2.  Feedback Report Header Fields  . . . . . . . . . . . . . . 15
+     6.3.  Feedback Report Type Values  . . . . . . . . . . . . . . . 18
+   7.  Security Considerations  . . . . . . . . . . . . . . . . . . . 20
+     7.1.  Inherited from RFC3462 . . . . . . . . . . . . . . . . . . 20
+     7.2.  Interpretation . . . . . . . . . . . . . . . . . . . . . . 20
+     7.3.  Attacks Against Authentication Methods . . . . . . . . . . 20
+     7.4.  Intentionally Malformed Reports  . . . . . . . . . . . . . 21
+     7.5.  Omitting Data from ARF Reports . . . . . . . . . . . . . . 21
+     7.6.  Automatically Generated ARF Reports  . . . . . . . . . . . 21
+     7.7.  Attached Malware . . . . . . . . . . . . . . . . . . . . . 21
+     7.8.  The User-Agent Field . . . . . . . . . . . . . . . . . . . 21
+   8.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 22
+     8.1.  Normative References . . . . . . . . . . . . . . . . . . . 22
+     8.2.  Informative References . . . . . . . . . . . . . . . . . . 23
+   Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 24
+   Appendix B.  Sample Feedback Reports . . . . . . . . . . . . . . . 25
+     B.1.  Simple Report for Email Abuse without Optional Headers . . 25
+     B.2.  Full Report for Email Abuse with All Headers . . . . . . . 27
+   Appendix C.  Public Discussion, History and Support  . . . . . . . 29
+   Appendix D.  Document History  . . . . . . . . . . . . . . . . . . 30
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 36
 
 
 
 
 
 
-
-Shafranovich, et al.    Expires November 1, 2010                [Page 2]
+Shafranovich, et al.    Expires November 19, 2010               [Page 2]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 1.  Introduction
@@ -140,10 +140,10 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
    This document only defines the format and [MIME] content type to be
    used for these reports.  Determination of where these reports should
-   be sent, how trust among report generators and report recipients is
-   established, and reports related to more than one message are outside
-   the scope of this document.  It is assumed that best practices will
-   evolve over time, and will be codified in future documents.
+   be sent, validation of their contents and how trust among report
+   generators and report recipients is established are outside the scope
+   of this document.  It is assumed that best practices will evolve over
+   time, and will be codified in future documents.
 
 1.1.  Purpose
 
@@ -164,9 +164,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010                [Page 3]
+Shafranovich, et al.    Expires November 19, 2010               [Page 3]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 1.2.  Requirements
@@ -220,9 +220,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010                [Page 4]
+Shafranovich, et al.    Expires November 19, 2010               [Page 4]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 2.  Format of Email Feedback Reports
@@ -266,19 +266,75 @@ Internet-Draft         Format for Feedback Reports            April 2010
        (Many smaller operators using MUAs for abuse handling rely on the
        subject lines for processing.)
 
+   g.  The primary evidence of the abuse being reported is found in the
+       third part of the report, which contains the original message.
+       The second part contains additional derived data that may help
+       the receiver, but in terms of selecting actionable report data,
+       report recipients SHOULD use the content of the third part first,
+       then data from the second part.  The first part is meant to
+       contain explanantory text for human use but is not itself a part
 
 
 
-
-
-
-
-
-
-
-Shafranovich, et al.    Expires November 1, 2010                [Page 5]
+Shafranovich, et al.    Expires November 19, 2010               [Page 5]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
+
+
+       of the report, and SHOULD NOT be used if it is in conflict with
+       the other parts.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Shafranovich, et al.    Expires November 19, 2010               [Page 6]
+
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 3.  The 'message/feedback-report' Content Type
@@ -332,9 +388,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010                [Page 6]
+Shafranovich, et al.    Expires November 19, 2010               [Page 7]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 3.2.  Optional Fields Appearing Once
@@ -388,9 +444,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010                [Page 7]
+Shafranovich, et al.    Expires November 19, 2010               [Page 8]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
       recipient seen by the report generator.
@@ -432,6 +488,7 @@ Internet-Draft         Format for Feedback Reports            April 2010
  feedback-report = *( feedback-type / user-agent / version )
                    opt-fields-once
                    *( opt-fields-many )
+                   *( ext-field )
 
  feedback-type = "Feedback-Type:" [CFWS] token [CFWS] CRLF
      ; the "token" must be a registered feedback type as
@@ -439,15 +496,16 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
  user-agent = "User-Agent:" [CFWS] product *( CFWS product ) [CFWS] CRLF
 
- version = "Version:" [CFWS] 1*DIGIT [CFWS] CRLF
-     ; as described above
+ version = "Version:" [CFWS] %x31-%x39 *DIGIT [CFWS] CRLF
 
 
 
-Shafranovich, et al.    Expires November 1, 2010                [Page 8]
+Shafranovich, et al.    Expires November 19, 2010               [Page 9]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
+
+     ; as described above
 
  opt-fields-once = [ arrival-date ]
                    [ incidents ]
@@ -487,6 +545,8 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
  reported-uri = "Reported-URI:" [CFWS] URI [CFWS] CRLF
 
+ ext-field = field-name ":" unstructured
+
    A set of fields satisfying this ABNF may appear in the transmitted
    message in any order.
 
@@ -494,16 +554,17 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
    "token" is imported from [MIME].
 
+
+
+Shafranovich, et al.    Expires November 19, 2010              [Page 10]
+
+Internet-Draft         Format for Feedback Reports              May 2010
+
+
    "product" is imported from [HTTP].
 
-   "CFWS", "date-time" and "domain" are imported from [MAIL].
-
-
-
-Shafranovich, et al.    Expires November 1, 2010                [Page 9]
-
-Internet-Draft         Format for Feedback Reports            April 2010
-
+   "field-name", "unstructured", "CFWS", "date-time" and "domain" are
+   imported from [MAIL].
 
    "envelope-id", "mta-name-type" and "mta-name" are imported from
    [DSN].
@@ -515,6 +576,8 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
    "authres-header" is imported from [AUTH-RESULTS].
 
+   "ext-field" refers to extension fields, which are discussed in
+   Section 5.
 
 
 
@@ -549,16 +612,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-
-
-
-
-
-
-
-Shafranovich, et al.    Expires November 1, 2010               [Page 10]
+Shafranovich, et al.    Expires November 19, 2010              [Page 11]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 4.  Transport Considerations
@@ -612,9 +668,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 11]
+Shafranovich, et al.    Expires November 19, 2010              [Page 12]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 5.  Extensibility
@@ -639,24 +695,15 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
    Additional report types (extension report types) or report header
    fields might be defined in the future by later revisions to this
-   specification, or by registrations as described above.  Extension
-   report types and report header field names beginning with "x-" will
-   never be defined as standard; such names are reserved for
-   experimental use.  Report types and report header field names not
-   beginning with "x-" MUST be registered as described above and
-   published in an Open Specification such as an RFC.
+   specification, or by registrations as described above.  Such types
+   and fields MUST be registered as described above and published in an
+   Open Specification such as an RFC.
 
-   Implementations using new report types or new report header fields
-   MUST use the "x-" prefix until such time as the new name is
-   registered by IANA.
-
-   Extension report types and report header fields MUST only be used
+   Experimental report types and report header fields MUST only be used
    between ADMDs that have explicitly consented to use them.  These
    names and the parameters associated with them are not documented in
    RFCs.  Therefore, they are subject to change at any time and not
-   suitable for general use.  Any MTA, MUA or filter intended for
-   production use MUST ignore or reject any ARF report that uses an
-   extension name.
+   suitable for general use.
 
 
 
@@ -668,9 +715,18 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 12]
+
+
+
+
+
+
+
+
+
+Shafranovich, et al.    Expires November 19, 2010              [Page 13]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 6.  IANA Considerations
@@ -724,9 +780,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 13]
+Shafranovich, et al.    Expires November 19, 2010              [Page 14]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
    Intended usage:  COMMON
@@ -780,9 +836,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 14]
+Shafranovich, et al.    Expires November 19, 2010              [Page 15]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
    The initial registry should contain these values:
@@ -836,9 +892,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 15]
+Shafranovich, et al.    Expires November 19, 2010              [Page 16]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
        Field Name: Original-Rcpt-To
@@ -892,9 +948,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 16]
+Shafranovich, et al.    Expires November 19, 2010              [Page 17]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
        Field Name: Source-IP
@@ -948,9 +1004,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 17]
+Shafranovich, et al.    Expires November 19, 2010              [Page 18]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
        current:  The field is in current use
@@ -1004,9 +1060,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 18]
+Shafranovich, et al.    Expires November 19, 2010              [Page 19]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 7.  Security Considerations
@@ -1020,10 +1076,12 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 7.2.  Interpretation
 
-   This specification describes a report format.  This memo makes no
-   normative assertions of any kind about actions to be taken by
-   recipients of these reports.  Actions taken by recipients are done
-   entirely at their own discretion.
+   This specification describes a report format.  The authentication and
+   validity of the content of the report SHOULD be established through
+   other means.  The content of an unvetted report could be wrong,
+   incomplete or deliberately false, including the alleged abuse
+   incident in the third part, derived data in the second part or the
+   human readable first part.
 
    There will be some desire to perform some actions in an automated
    fashion in order to enact timely responses to common feedback
@@ -1032,12 +1090,19 @@ Internet-Draft         Format for Feedback Reports            April 2010
    craft a report meant to generate undesirable actions on the part of a
    report recipient.
 
-   It is recommended that the origin of an ARF report be vetted, such as
-   by using common message authentication schemes like [DKIM], [SPF] or
-   [SENDERID], prior to the undertaking of any kind of automated action
-   in response to receipt of the report.  The details of the required
-   validation to achieve this are a matter of local policy and are thus
-   outside the scope of this specification.
+   It is suggested that the origin of an ARF report be vetted, such as
+   by using common message authentication schemes like [SMIME], [DKIM],
+   [SPF] or [SENDERID], prior to the undertaking of any kind of
+   automated action in response to receipt of the report.  In
+   particular, S/MIME offers the strongest authentication and the cost
+   of key exchange is assumed in the process of establishing a bi-
+   lateral reporting relationship that uses this specification; however,
+   it is not as transparent as the others and thus will interfere with
+   the parsing capabilities of code that is designed specifically to
+   handle multipart/report messages.
+
+   The details of the required validation to achieve this are a matter
+   of local policy and are thus outside the scope of this specification.
 
 7.3.  Attacks Against Authentication Methods
 
@@ -1048,22 +1113,21 @@ Internet-Draft         Format for Feedback Reports            April 2010
    authentication method that might be used to protect the authenticity
    of an abuse report is also a security consideration here.
 
+
+
+
+Shafranovich, et al.    Expires November 19, 2010              [Page 20]
+
+Internet-Draft         Format for Feedback Reports              May 2010
+
+
 7.4.  Intentionally Malformed Reports
 
    It is possible for an attacker to generate an ARF message field that
    is extraordinarily large or otherwise malformed in an attempt to
    discover or exploit weaknesses in recipient parsing code.
-   Implementors must thoroughly verify all such messages and be robust
+   Implementors SHOULD thoroughly verify all such messages and be robust
    against intentionally as well as unintentionally malformed messages.
-
-
-
-
-
-Shafranovich, et al.    Expires November 1, 2010               [Page 19]
-
-Internet-Draft         Format for Feedback Reports            April 2010
-
 
 7.5.  Omitting Data from ARF Reports
 
@@ -1073,11 +1137,11 @@ Internet-Draft         Format for Feedback Reports            April 2010
    recipient a valid email address on the list that might otherwise have
    remained hidden.
 
-   For this reason, report generators may wish to redact portions of the
-   report to conceal private information.  Doing so may be necessary
-   where privacy trumps operational necessity, but as mentioned in
-   Section 2 it may impede a timely or meaningful response from the
-   report recipient.
+   For this reason, report generators might wish to redact portions of
+   the report to conceal private information.  Doing so could be
+   necessary where privacy trumps operational necessity, but as
+   mentioned in Section 2 it might impede a timely or meaningful
+   response from the report recipient.
 
 7.6.  Automatically Generated ARF Reports
 
@@ -1091,34 +1155,26 @@ Internet-Draft         Format for Feedback Reports            April 2010
 7.7.  Attached Malware
 
    As this format is sometimes used to automatically report malware, ARF
-   processors (human or otherwise) should be cautious about unpacking
-   and executing any attachments that are part of the message being
-   reported.
+   processors (human or otherwise) SHOULD ensure that attachments are
+   processed in a manner appropriate for unverified and potentially
+   hostile data.
+
+7.8.  The User-Agent Field
+
+   Further to Section 7.2, the User-Agent field is an assertion of the
+   generating software and is neither specified in this memo nor derived
+   from the message represented in the third part of the report.  It is
+   intended for documentation and debugging, and since it is trivially
+   forged by a malicious agent, it SHOULD NOT be interpreted by
+   recipients.
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Shafranovich, et al.    Expires November 1, 2010               [Page 20]
+Shafranovich, et al.    Expires November 19, 2010              [Page 21]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 8.  References
@@ -1172,9 +1228,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 21]
+Shafranovich, et al.    Expires November 19, 2010              [Page 22]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
    [URI]      Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
@@ -1204,6 +1260,10 @@ Internet-Draft         Format for Feedback Reports            April 2010
               Lyon, J. and M. Wong, "Sender ID: Authenticating E-Mail",
               RFC 4406, April 2006.
 
+   [SMIME]    Ramsdell, B. and S. Turner, "Secure/Multipurpose Internet
+              Mail Extensions (S/MIME) Version 3.2 Message
+              Specification", RFC 5751, January 2010.
+
    [SPF]      Wong, M. and W. Schlitt, "Sender Policy Framework (SPF)
               for Authorizing Use of Domains in E-Mail, Version 1",
               RFC 4408, April 2006.
@@ -1224,13 +1284,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-
-
-
-
-Shafranovich, et al.    Expires November 1, 2010               [Page 22]
+Shafranovich, et al.    Expires November 19, 2010              [Page 23]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 Appendix A.  Acknowledgements
@@ -1284,9 +1340,9 @@ Appendix A.  Acknowledgements
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 23]
+Shafranovich, et al.    Expires November 19, 2010              [Page 24]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 Appendix B.  Sample Feedback Reports
@@ -1340,9 +1396,9 @@ B.1.  Simple Report for Email Abuse without Optional Headers
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 24]
+Shafranovich, et al.    Expires November 19, 2010              [Page 25]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
    From: <abusedesk@example.com>
@@ -1396,9 +1452,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 25]
+Shafranovich, et al.    Expires November 19, 2010              [Page 26]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
    specification.  Only the required fields are used.
@@ -1432,6 +1488,7 @@ B.2.  Full Report for Email Abuse with All Headers
    Original-Mail-From: <somespammer@example.net>
    Original-Rcpt-To: <user@example.com>
    Received-Date: Thu, 8 Mar 2005 14:00:00 EDT
+   Reporting-MTA: dns; mail.example.com
    Source-IP: 192.0.2.1
    Authentication-Results: mail.example.com;
                   spf=fail smtp.mail=somespammer@example.com
@@ -1448,15 +1505,15 @@ B.2.  Full Report for Email Abuse with All Headers
    Received: from mailserver.example.net (mailserver.example.net
         [192.0.2.1]) by example.com with ESMTP id M63d4137594e46;
         Thu, 08 Mar 2005 14:00:00 -0400
-   To: <Undisclosed Recipients>
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 26]
+Shafranovich, et al.    Expires November 19, 2010              [Page 27]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
+   To: <Undisclosed Recipients>
    Subject: Earn money
    MIME-Version: 1.0
    Content-type: text/plain
@@ -1507,10 +1564,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-
-Shafranovich, et al.    Expires November 1, 2010               [Page 27]
+Shafranovich, et al.    Expires November 19, 2010              [Page 28]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 Appendix C.  Public Discussion, History and Support
@@ -1564,9 +1620,9 @@ Appendix C.  Public Discussion, History and Support
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 28]
+Shafranovich, et al.    Expires November 19, 2010              [Page 29]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 Appendix D.  Document History
@@ -1620,9 +1676,9 @@ Appendix D.  Document History
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 29]
+Shafranovich, et al.    Expires November 19, 2010              [Page 30]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
    o  Added a new section on extensibility and changed the IANA section
@@ -1676,9 +1732,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 30]
+Shafranovich, et al.    Expires November 19, 2010              [Page 31]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
    o  Resolved all items in the outstanding issues list and therefore
@@ -1732,9 +1788,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 31]
+Shafranovich, et al.    Expires November 19, 2010              [Page 32]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
    o  I-D.DRAFT-KUCHERAWY-SENDER-AUTH-HEADER published as RFC5451
@@ -1788,9 +1844,9 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 32]
+Shafranovich, et al.    Expires November 19, 2010              [Page 33]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
    o  Fix "Authentication-Results" and "From" fields in example.
@@ -1826,27 +1882,83 @@ Internet-Draft         Format for Feedback Reports            April 2010
 
    o  Make some references normative
 
+   Changes from draft-ietf-marf-base-04 to draft-ietf-marf-base-05:
+
+   o  Another change to version ABNF
+
+   o  Remove "x-" prefix stuff in Extensibility
+
+   o  Update John Levine's contact info
+
+   o  Add an example use of "Reporting-MTA"
+
+   o  Add "ext-field" ABNF
+
+   o  Add guidance about intepreting the various MIME parts
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-Shafranovich, et al.    Expires November 1, 2010               [Page 33]
+Shafranovich, et al.    Expires November 19, 2010              [Page 34]
 
-Internet-Draft         Format for Feedback Reports            April 2010
+Internet-Draft         Format for Feedback Reports              May 2010
+
+
+   o  Add reference to S/MIME
+
+   o  Add commentary on User-Agent forgery in Security Considerations
+
+   o  Slight fix to Introduction regarding scope
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Shafranovich, et al.    Expires November 19, 2010              [Page 35]
+
+Internet-Draft         Format for Feedback Reports              May 2010
 
 
 Authors' Addresses
@@ -1861,13 +1973,12 @@ Authors' Addresses
 
 
    John Levine
-   Domain Assurance Council
+   Taughannock Networks
    PO Box 727
    Trumansburg, NY  14886
 
    Phone: +1 831 480 2300
-   Email: john.levine@domain-assurance.org
-   URI:   http://www.domain-assurance.org
+   Email: standards@taugh.com
 
 
    Murray S. Kucherawy
@@ -1900,5 +2011,6 @@ Authors' Addresses
 
 
 
-Shafranovich, et al.    Expires November 1, 2010               [Page 34]
+
+Shafranovich, et al.    Expires November 19, 2010              [Page 36]
 
