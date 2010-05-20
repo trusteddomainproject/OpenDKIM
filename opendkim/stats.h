@@ -4,19 +4,20 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.h,v 1.4 2009/10/28 03:30:27 cm-msk Exp $
+**  $Id: stats.h,v 1.5 2010/05/20 18:39:10 cm-msk Exp $
 */
 
 #ifndef _STATS_H_
 #define _STATS_H_
 
 #ifndef lint
-static char stats_h_id[] = "@(#)$Id: stats.h,v 1.4 2009/10/28 03:30:27 cm-msk Exp $";
+static char stats_h_id[] = "@(#)$Id: stats.h,v 1.5 2010/05/20 18:39:10 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 
 /* libdb includes */
 #include <db.h>
@@ -24,15 +25,21 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.4 2009/10/28 03:30:27 cm-msk Ex
 /* libopendkim includes */
 #include <dkim.h>
 
+/* current version */
+#define DKIMF_STATS_VERSION	2
+
+/* sentinel record */
+#define	DKIMF_STATS_SENTINEL	"@"
+
 /* data types */
-struct dkim_stats_key
+struct dkim_stats_key_v1
 {
 	dkim_canon_t	sk_hdrcanon;
 	dkim_canon_t	sk_bodycanon;
 	char		sk_sigdomain[DKIM_MAXHOSTNAMELEN + 1];
 };
 
-struct dkim_stats_data
+struct dkim_stats_data_v1
 {
 	bool		sd_lengths;
 	time_t		sd_lastseen;
@@ -41,10 +48,42 @@ struct dkim_stats_data
 	u_long		sd_fail;
 };
 
+struct dkim_stats_data_v2
+{
+	time_t		sd_when;
+	dkim_alg_t	sd_alg;
+	dkim_canon_t	sd_hdrcanon;
+	dkim_canon_t	sd_bodycanon;
+	u_int		sd_totalsigs;
+	u_int		sd_pass;
+	u_int		sd_fail;
+	u_int		sd_failbody;
+	u_int		sd_extended;
+	u_int		sd_key_t;
+	u_int		sd_key_g;
+	u_int		sd_key_syntax;
+	u_int		sd_key_missing;
+	u_int		sd_sig_t;
+	u_int		sd_sig_t_future;
+	u_int		sd_sig_x;
+	u_int		sd_sig_l;
+	u_int		sd_sig_z;
+	u_int		sd_adsp_found;
+	u_int		sd_adsp_fail;
+	u_int		sd_adsp_discardable;
+	u_int		sd_authorsigs;
+	u_int		sd_authorsigsfail;
+	u_int		sd_thirdpartysigs;
+	u_int		sd_thirdpartysigsfail;
+	u_int		sd_mailinglist;
+	u_int		sd_received;
+	struct sockaddr_storage sd_sockinfo;
+	char		sd_fromdomain[DKIM_MAXHOSTNAMELEN + 1];
+};
+
 /* PROTOTYPES */
 extern void dkimf_stats_init __P((void));
-extern void dkimf_stats_record __P((char *, const char *, dkim_canon_t,
-                                    dkim_canon_t, dkim_alg_t, bool, bool,
-                                    bool));
+extern void dkimf_stats_record __P((char *, char *, DKIM *, dkim_policy_t,
+                                    _Bool, u_int, struct sockaddr *));
 
 #endif /* _STATS_H_ */

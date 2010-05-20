@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.120 2010/05/18 02:00:53 cm-msk Exp $
+**  $Id: opendkim.c,v 1.121 2010/05/20 18:39:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.120 2010/05/18 02:00:53 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.121 2010/05/20 18:39:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -10013,37 +10013,6 @@ mlfi_eom(SMFICTX *ctx)
 
 		authorsig = dkimf_authorsigok(dfc);
 
-#ifdef _FFR_STATS
-		if ((status == DKIM_STAT_OK || status == DKIM_STAT_BADSIG) &&
-		    conf->conf_statspath != NULL)
-		{
-			_Bool tmp_lengths = FALSE;
-			dkim_alg_t tmp_signalg = DKIM_SIGN_UNKNOWN;
-			dkim_canon_t tmp_hdrcanon = DKIM_CANON_UNKNOWN;
-			dkim_canon_t tmp_bodycanon = DKIM_CANON_UNKNOWN;
-			off_t signlen;
-			const char *tmp_signdomain = NULL;
-
-			sig = dkim_getsignature(dfc->mctx_dkimv);
-			(void) dkim_sig_getsignalg(sig, &tmp_signalg);
-			(void) dkim_sig_getcanons(sig, &tmp_hdrcanon,
-			                          &tmp_bodycanon);
-			(void) dkim_sig_getcanonlen(dfc->mctx_dkimv, sig,
-			                            NULL, NULL, &signlen);
-			tmp_lengths = (signlen != (off_t) -1);
-			tmp_signdomain = dkim_sig_getdomain(sig);
-
-			dkimf_stats_record(conf->conf_statspath,
-			                   tmp_signdomain,
-			                   tmp_hdrcanon,
-			                   tmp_bodycanon,
-			                   tmp_signalg,
-			                   (status == DKIM_STAT_OK),
-			                   testkey,
-			                   tmp_lengths);
-		}
-#endif /* _FFR_STATS */
-
 #ifdef _FFR_ZTAGS
 		if (conf->conf_diagdir != NULL &&
 		    dfc->mctx_status == DKIMF_STATUS_BAD)
@@ -10359,6 +10328,55 @@ mlfi_eom(SMFICTX *ctx)
 				}
 			}
 		}
+
+#ifdef _FFR_STATS
+		if (conf->conf_statspath != NULL && dfc->mctx_dkimv != NULL)
+		{
+			struct Header *hdr;
+			u_int rhcnt;
+			_Bool fromlist = FALSE;
+
+			hdr = dkimf_findheader(dfc, "Precedence", 0);
+			if (hdr != NULL &&
+			    strcasecmp(hdr->hdr_val, "list") == 0)
+			{
+				fromlist = TRUE;
+			}
+			else if (dkimf_findheader(dfc, "List-Id", 0) != NULL)
+			{
+				fromlist = TRUE;
+			}
+			else if (dkimf_findheader(dfc, "List-Post", 0) != NULL)
+			{
+				fromlist = TRUE;
+			}
+			else if (dkimf_findheader(dfc, "List-Unsubscribe",
+			                          0) != NULL)
+			{
+				fromlist = TRUE;
+			}
+			else if (dkimf_findheader(dfc, "Mailing-List",
+			                          0) != NULL)
+			{
+				fromlist = TRUE;
+			}
+
+			for (c = 0; ; c++)
+			{
+				if (dkimf_findheader(dfc, "Received",
+				                     c) == NULL)
+				{
+					rhcnt = c;
+					break;
+				}
+			}
+
+			dkimf_stats_record(conf->conf_statspath,
+			                   dfc->mctx_jobid, dfc->mctx_dkimv,
+			                   dfc->mctx_pcode, fromlist, rhcnt,
+			                   (struct sockaddr *) &cc->cctx_ip);
+		}
+#endif /* _FFR_STATS */
 
 		if (dfc->mctx_addheader &&
 		    dfc->mctx_status != DKIMF_STATUS_UNKNOWN)

@@ -2,7 +2,7 @@
 .SH NAME
 opendkim-stats - output opendkim statistics
 .SH SYNOPSIS
-.B opendkim-stats
+.B opendkim-stats [options]
 .I file
 .SH DESCRIPTION
 The
@@ -16,65 +16,172 @@ statistics gathering is disabled by default, but can be enabled through a
 .I Statistics
 entry in
 .I /etc/opendkim.conf.
-This is currently an undocumented feature of the
-.I OpenDKIM
-package which must be enabled by a compile-time option.
+
+See the
+.I opendkim.conf(5)
+man page for details.
+.SH OPTIONS
+.TP
+.I -a
+Anonymize output by replacing the sending domain and IP address in each
+record with an MD5 hash of their actual values.
+.TP
+.I -c
+Output comma-separated format.  Not generally human-readable, but ideal
+for machine processing.
+.TP
+.I -h name
+Uses
+.I name
+as the name of the reporting host instead of the value returned by
+.I gethostname(3).
+This is only used with
+.I -c
+(above) when creating input suitable for database import.
+.TP
+.I -i
+Initialize the named database.  The database is created if it doesn't
+already exist, and a version record is added to it.
+.TP
+.I -m address
+Send the report to the specified address by creating a pipe to
+.I sendmail(8)
+and feeding it the output with appropriate arguments.
+.TP
+.I -r
+When used with
+.I -m,
+on successful transmission of the report, this option causes the database
+to be reset (i.e. all data other than the version record will be deleted).
 .SH OUTPUT
 .B opendkim-stats
-groups statistics output by domain and canonicalization.  Each line begins
-with a domain and a header/body canonicalization.  The canonicalization is
-currently the raw enumerated value taken from the libdkim headers; for
-reference, 0 = simple, 1 = relaxed, and 2 = nofws.  This format looks like:
-
-.SP 1
-.RI "domain:" x / x "\t" x " pass/"  x " fail, last v=" x ", l=" x ", a=" x ", date"
-.SP 1
-
-For each line, the following statistics are shown:
+produces a report with a number of values associated with each MTA job ID
+for which signed mail has been received.  The first column contains the
+job ID, the second contains the sending domain, the third contains the sending
+IP address, and the fourth is a comma-separated list of "key=value" strings.
+The keys and their values are as follows:
 .TP
-.IB number " pass/" number " fail"
-Count of passes and failures
+.I when
+Timestamp of the last signed message seen from this domain (UNIX time format).
 .TP
-.BI "last v=" version
-Most recent DKIM signature version seen; this is another integer code starts
-at 0 and goes through 5, with higher numbers representing more recent versions
-of the draft DKIM specification.
+.I alg
+Integer representation of the signing algorithm seen on this message.
+Only author signatures are recorded in this way.
 .TP
-.BI "l=" number
-A boolean indicating whether or not the most recent signed message had an "l="
-tag in its signature.
+.I hc
+Integer representation of the header canonicalization seen on this message.
+Only author signatures are recorded in this way.
 .TP
-.BI "a=" algorithm
-Most recent algorithm seen (0 = rsa-sha1; 1 = rsa-sha256)
+.I bc
+Integer representation of the body canonicalization seen on this message.
+Only author signatures are recorded in this way.
 .TP
-.I date
-Last date a signed message was seen
-.SH EXAMPLES
-.RI "opendkim.org:" 1 / 0 "\t" 212 " pass/" 0 " fail, last v=" 2 ", l=" 0 ", a=" 0 ", Sat May  5 17:42:58 2007"
-.PP
-opendkim.org, using canonicalization
-.I relaxed/simple
-, has sent
-.I 212
-messages that passed signature verification and
-.I 0
-that failed.  The most recently seen signature version was
-.I 2
-, the most recently seen signature algorithm
-was
-.I rsa-sha1
-, and the last message did
-.I not
-include a length tag.  The most recent message was seen on
-.I 2007/05/05
-at
-.I 17:42:58
-in the server's local time zone.
+.I total
+Count of signatures on this message.
+.TP
+.I pass
+Count of passing signatures on this message.
+.TP
+.I fail
+Count of failing signatures on this message.
+.TP
+.I failbody
+Count of failing signatures on this message where the failure could
+specifically be attributed to a change in the message body (i.e. the signature
+matched, but the "bh" tag value did not match).
+.TP
+.I ext
+Count of signatures on this message where the message was extended after
+signing.  This means the message contained one or more signature(s) with an
+"l=" tag, but the received message had a body length larger than that
+value.
+.TP
+.I keyt
+Count of signatures on this message that referred to a key record that had
+a "t=" tag.
+.TP
+.I keyg
+Count of signatures on this message that referred to a key record that had
+a "g=" tag.
+.TP
+.I keysyntax
+Count of signatures on this message that referred to a key record that had
+a syntax error.
+.TP
+.I keynx
+Count of signatures on this message that referred to a key record that could
+not be retrieved from the DNS.
+.TP
+.I sigt
+Count of signatures on this message that contained a "t=" tag.
+.TP
+.I sigtfut
+Count of signatures on this message that contained a "t=" tag with a
+timestamp in the future.
+.TP
+.I sigx
+Count of signatures on this message that contained an "x=" tag.
+.TP
+.I sigl
+Count of signatures on this message that contained an "l=" tag.
+.TP
+.I sigz
+Count of signatures on this message that contained a "z=" tag.
+.TP
+.I adsp
+If this message provoked an ADSP query that succeeded, this value will be 1.
+If this message did not mandate an ADSP query (because a valid author signature
+was present), this value will be 0.  If an ADSP query was attempted but failed,
+this value will be 2.
+.TP
+.I adspfail
+If an ADSP query was done and returned "all" but this message had no valid
+author domain signature, this value will be 1.  Otherwise, it will be 0.
+.TP
+.I adspdisc
+If an ADSP query was done and returned "discardable" but this message had no
+valid author domain signature, this value will be 1.  Otherwise, it will be 0.
+.TP
+.I asigs
+Count of valid signatures on this message for which the "d=" (signing domain)
+tag matched the domain in the From: header field; that is, a count of valid
+author signatures.
+.TP
+.I asigsfail
+Count of invalid signatures on this message for which the "d=" (signing domain)
+tag matched the domain in the From: header field; that is, a count of invalid
+author signatures.
+.TP
+.I tpsigs
+Count of valid signatures on this message for which the "d=" (signing domain)
+tag did not match the domain in the From: header field; that is, a count of
+valid third-party signatures.
+.TP
+.I tpsigsfail
+Count of invalid signatures on this message for which the "d=" (signing domain)
+tag did not match the domain in the From: header field; that is, a count of
+invalid third-party signatures.
+.TP
+.I mlist
+If at least one typical mailing list header field was present (e.g.,
+a Precedence: header field containing "list", or the presence of a List-Id:,
+List-Post:, List-Unsubscribe: or Mailing-List: header field), this value will
+be 1; otherwise, it will be 0.
+.TP
+.I rhcnt
+Count of Received: header fields on the message.
 .SH NOTES
 The output of
 .B opendkim-stats
 is subject to change.  Please be aware of this when upgrading to future
 releases, especially if you develop any scripts that consume the output.
+
+The current version of the OpenDKIM statistics system is 2.  Generally,
+.I opendkim-stats
+can read all database versions, but
+.I opendkim(8)
+will only generate the most recent version (and will refuse to update older
+databases).
 .SH SEE ALSO
 .I opendkim(8)
 .SH VERSION

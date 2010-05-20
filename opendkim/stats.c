@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.8 2010/02/05 15:36:02 cm-msk Exp $
+**  $Id: stats.c,v 1.9 2010/05/20 18:39:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8 2010/02/05 15:36:02 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.9 2010/05/20 18:39:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -25,6 +25,7 @@ static char stats_c_id[] = "@(#)$Id: stats.c,v 1.8 2010/02/05 15:36:02 cm-msk Ex
 #include <fcntl.h>
 #include <assert.h>
 #include <syslog.h>
+#include <stdlib.h>
 
 /* libopendkim includes */
 #include <dkim.h>
@@ -58,74 +59,260 @@ dkimf_stats_init(void)
 **  DKIMF_STATS_RECORD -- record a DKIM result
 **
 **  Parameters:
-**  	path -- patth to the DB to update
-**  	sigdomain -- signing domain
-**  	hdrcanon -- header canonicalization used
-**  	bodycanon -- body canonicalization used
-**  	signalg -- signing algorithm used
-**  	passfail -- result (TRUE == pass, FALSE == not pass)
-**  	testing -- testing?
-**  	lengths -- l= tag present?
+**  	path -- path to the DB to update
+**  	jobid -- job ID for the current message
+**  	dkimv -- verifying handle from which data can be taken
+**  	pcode -- policy code
+**  	fromlist -- message appeared to be from a list
+**  	rhcnt -- count of Received: header fields
+**  	sa -- client socket information
 **
 **  Return value:
 **  	None (for now).
 */
 
 void
-dkimf_stats_record(char *path, const char *sigdomain,
-                   dkim_canon_t hdrcanon, dkim_canon_t bodycanon,
-                   dkim_alg_t signalg, bool passfail,
-                   bool testing, bool lengths)
+dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
+                   _Bool fromlist, u_int rhcnt, struct sockaddr *sa)
 {
+	_Bool exists;
+	_Bool sigfailed;
+	_Bool sigfailedbody;
+	_Bool sigpassed;
+	_Bool validauthorsig = FALSE;
 	int status = 0;
-	DKIMF_DB db;
+	int version;
+	int nsigs;
+	int err;
+	int c;
+	off_t canonlen;
+	off_t signlen;
+	off_t msglen;
 	DBT key;
 	DBT data;
+	DKIMF_DB db;
+	char *from;
+	char *p;
+	DKIM_SIGINFO **sigs;
 	size_t outlen;
-	struct dkim_stats_key reckey;
-	struct dkim_stats_data recdata;
+	struct dkim_stats_data_v2 recdata;
 	struct dkimf_db_data dbd;
 
 	assert(path != NULL);
-	assert(sigdomain != NULL);
+	assert(jobid != NULL);
 
 	/* open the DB */
 	status = dkimf_db_open(&db, path, 0, &stats_lock);
-
 	if (status != 0)
 	{
 		if (dolog)
-			syslog(LOG_ERR, "%s dkimf_db_open()", path);
+			syslog(LOG_ERR, "%s: dkimf_db_open() failed", path);
 
 		return;
 	}
 
-	/* populate the records */
-	memset(&reckey, '\0', sizeof reckey);
+	/* see if there's a sentinel record; if not, bail */
+	dbd.dbdata_buffer = (void *) &version;
+	dbd.dbdata_buflen = sizeof version;
+	dbd.dbdata_flags = DKIMF_DB_DATA_BINARY;
+	exists = FALSE;
+	status = dkimf_db_get(db, DKIMF_STATS_SENTINEL,
+	                      sizeof(DKIMF_STATS_SENTINEL), &dbd, 1, &exists);
+	if (status != 0)
+	{
+		if (dolog)
+			syslog(LOG_ERR, "%s: dkimf_db_get() failed", path);
+
+		dkimf_db_close(db);
+		return;
+	}
+
+	/* check DB version */
+	if (!exists || dbd.dbdata_buflen != sizeof version ||
+	    version != DKIMF_STATS_VERSION)
+	{
+		if (dolog)
+			syslog(LOG_ERR, "%s: version check failed", path);
+
+		dkimf_db_close(db);
+		return;
+	}
+
 	memset(&recdata, '\0', sizeof recdata);
 
-	reckey.sk_hdrcanon = hdrcanon;
-	reckey.sk_bodycanon = bodycanon;
-	strlcpy(reckey.sk_sigdomain, sigdomain, sizeof reckey.sk_sigdomain);
+	/* write info */
+	status = dkim_getsiglist(dkimv, &sigs, &nsigs);
+	if (status != DKIM_STAT_OK)
+	{
+		if (dolog)
+			syslog(LOG_ERR, "%s: dkim_getsiglist() failed", jobid);
 
-	/* see if this key already exists */
-	dbd.dbdata_buffer = (char *) &recdata;
-	dbd.dbdata_buflen = sizeof recdata;
-	dbd.dbdata_flags = DKIMF_DB_DATA_BINARY;
+		dkimf_db_close(db);
+		return;
+	}
 
-	status = dkimf_db_get(db, &reckey, sizeof reckey, &dbd, 1, NULL);
+	from = dkim_getdomain(dkimv);
+	if (from == NULL)
+	{
+		dkimf_db_close(db);
+		return;
+	}
 
-	/* update totals */
-	recdata.sd_lengths = lengths;
-	(void) time(&recdata.sd_lastseen);
-	recdata.sd_lastalg = signalg;
-	if (passfail)
-		recdata.sd_pass++;
-	else
-		recdata.sd_fail++;
+	strlcpy(recdata.sd_fromdomain, from, sizeof recdata.sd_fromdomain);
+	recdata.sd_mailinglist = fromlist;
+	recdata.sd_received = rhcnt;
+	memcpy(&recdata.sd_sockinfo, sa, sizeof recdata.sd_sockinfo);
+
+	(void) time(&recdata.sd_when);
+
+	recdata.sd_totalsigs = nsigs;
+
+	for (c = 0; c < nsigs; c++)
+	{
+		sigfailed = FALSE;
+		sigfailedbody = FALSE;
+		sigpassed = FALSE;
+
+		if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PROCESSED) != 0)
+		{
+			if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0 &&
+			    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH)
+				sigpassed = TRUE;
+
+			if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 ||
+			    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MISMATCH)
+				sigfailed = TRUE;
+
+			if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 &&
+			    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MISMATCH)
+				sigfailedbody = TRUE;
+		}
+
+		if (sigpassed)
+			recdata.sd_pass++;
+		if (sigfailed)
+			recdata.sd_fail++;
+		if (sigfailedbody)
+			recdata.sd_failbody++;
+
+		if (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_TESTKEY != 0)
+			recdata.sd_key_t++;
+
+		p = dkim_sig_getdomain(sigs[c]);
+		if (p != NULL)
+		{
+			if (strcasecmp(from, p) == 0)
+			{
+				recdata.sd_authorsigs++;
+				if (sigfailed)
+					recdata.sd_authorsigsfail++;
+				else
+					validauthorsig = TRUE;
+
+				(void) dkim_sig_getcanons(sigs[c],
+				                          &recdata.sd_hdrcanon,
+				                          &recdata.sd_bodycanon);
+
+				(void) dkim_sig_getsignalg(sigs[c],
+				                           &recdata.sd_alg);
+			}
+			else
+			{
+				recdata.sd_thirdpartysigs++;
+				if (sigfailed)
+					recdata.sd_thirdpartysigsfail++;
+			}
+		}
+
+		msglen = 0;
+		canonlen = 0;
+		signlen = 0;
+		(void) dkim_sig_getcanonlen(dkimv, sigs[c], &msglen,
+		                            &canonlen, &signlen);
+
+		if (signlen != (off_t) -1)
+		{
+			recdata.sd_sig_l++;
+
+			if (msglen > signlen)
+				recdata.sd_extended++;
+		}
+
+		if (dkim_sig_gettagvalue(sigs[c], TRUE, "g") != NULL)
+			recdata.sd_key_g++;
+
+		p = dkim_sig_gettagvalue(sigs[c], FALSE, "t");
+		if (p != NULL)
+		{
+			recdata.sd_sig_t++;
+
+			if (strtoul(p, NULL, 10) > recdata.sd_when)
+				recdata.sd_sig_t_future++;
+		}
+
+		if (dkim_sig_gettagvalue(sigs[c], FALSE, "x") != NULL)
+			recdata.sd_sig_x++;
+
+		if (dkim_sig_gettagvalue(sigs[c], FALSE, "z") != NULL)
+			recdata.sd_sig_z++;
+
+		err = dkim_sig_geterror(sigs[c]);
+
+		switch (err)
+		{
+		  case DKIM_SIGERROR_NOKEY:
+		  case DKIM_SIGERROR_KEYFAIL:
+			recdata.sd_key_missing++;
+			break;
+
+		  case DKIM_SIGERROR_VERSION:
+		  case DKIM_SIGERROR_DOMAIN:
+		  case DKIM_SIGERROR_TIMESTAMPS:
+		  case DKIM_SIGERROR_MISSING_C:
+		  case DKIM_SIGERROR_INVALID_HC:
+		  case DKIM_SIGERROR_INVALID_BC:
+		  case DKIM_SIGERROR_MISSING_A:
+		  case DKIM_SIGERROR_INVALID_A:
+		  case DKIM_SIGERROR_MISSING_H:
+		  case DKIM_SIGERROR_INVALID_L:
+		  case DKIM_SIGERROR_INVALID_Q:
+		  case DKIM_SIGERROR_INVALID_QO:
+		  case DKIM_SIGERROR_MISSING_D:
+		  case DKIM_SIGERROR_EMPTY_D:
+		  case DKIM_SIGERROR_MISSING_S:
+		  case DKIM_SIGERROR_EMPTY_S:
+		  case DKIM_SIGERROR_MISSING_B:
+		  case DKIM_SIGERROR_EMPTY_B:
+		  case DKIM_SIGERROR_CORRUPT_B:
+		  case DKIM_SIGERROR_DNSSYNTAX:
+		  case DKIM_SIGERROR_MISSING_BH:
+		  case DKIM_SIGERROR_EMPTY_BH:
+		  case DKIM_SIGERROR_CORRUPT_BH:
+		  case DKIM_SIGERROR_MULTIREPLY:
+		  case DKIM_SIGERROR_EMPTY_H:
+		  case DKIM_SIGERROR_TOOLARGE_L:
+		  case DKIM_SIGERROR_KEYHASHMISMATCH:
+		  case DKIM_SIGERROR_KEYDECODE:
+			recdata.sd_key_syntax++;
+			break;
+		}
+	}
+
+	if (dkim_getpresult(dkimv) == DKIM_PRESULT_AUTHOR)
+	{
+		recdata.sd_adsp_found++;
+
+		if (!validauthorsig)
+		{
+			if (pcode == DKIM_POLICY_ALL)
+				recdata.sd_adsp_fail++;
+			if (pcode == DKIM_POLICY_DISCARDABLE)
+				recdata.sd_adsp_discardable++;
+		}
+	}
 
 	/* write it out */
-	status = dkimf_db_put(db, &reckey, sizeof reckey, &recdata,
+	status = dkimf_db_put(db, jobid, strlen(jobid), &recdata,
 	                      sizeof recdata);
 
 	/* close the DB */
