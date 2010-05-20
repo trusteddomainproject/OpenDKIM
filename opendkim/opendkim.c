@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.122 2010/05/20 22:31:43 cm-msk Exp $
+**  $Id: opendkim.c,v 1.123 2010/05/20 22:38:23 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.122 2010/05/20 22:31:43 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.123 2010/05/20 22:38:23 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4799,7 +4799,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			struct dkimf_lua_script_result lres;
 
 			fd = open(str, O_RDONLY, 0);
-			if (fd < 1)
+			if (fd < 0)
 			{
 				snprintf(err, errlen, "%s: open(): %s", str,
 				         strerror(errno));
@@ -4863,7 +4863,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			struct dkimf_lua_script_result lres;
 
 			fd = open(str, O_RDONLY, 0);
-			if (fd < 1)
+			if (fd < 0)
 			{
 				snprintf(err, errlen, "%s: open(): %s", str,
 				         strerror(errno));
@@ -4927,7 +4927,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			struct dkimf_lua_script_result lres;
 
 			fd = open(str, O_RDONLY, 0);
-			if (fd < 1)
+			if (fd < 0)
 			{
 				snprintf(err, errlen, "%s: open(): %s", str,
 				         strerror(errno));
