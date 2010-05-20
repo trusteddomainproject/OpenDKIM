@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.114.2.1 2010/04/16 17:49:57 cm-msk Exp $
+**  $Id: opendkim.c,v 1.114.2.2 2010/05/20 23:07:18 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.114.2.1 2010/04/16 17:49:57 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.114.2.2 2010/05/20 23:07:18 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8518,6 +8518,8 @@ mlfi_eoh(SMFICTX *ctx)
 	if (conf->conf_resigndb != NULL)
 	{
 		bool match = FALSE;
+		char *at;
+		char *dot;
 		struct addrlist *a;
 		char resignkey[BUFRSZ + 1];
 		struct dkimf_db_data dbd;
@@ -8528,13 +8530,50 @@ mlfi_eoh(SMFICTX *ctx)
 		dbd.dbdata_buflen = sizeof resignkey;
 		dbd.dbdata_flags = 0;
 
-		for (a = dfc->mctx_rcptlist;
-		     a != NULL;
-		     a = a->a_next)
+		for (a = dfc->mctx_rcptlist; a != NULL; a = a->a_next)
 		{
+			/* full recipient address */
 			status = dkimf_db_get(conf->conf_resigndb,
 			                      a->a_addr, 0, &dbd, 1,
 			                      &match);
+
+			if (match)
+			{
+				domainok = TRUE;
+				originok = TRUE;
+				dfc->mctx_resign = TRUE;
+				break;
+			}
+
+			/* hostname only */
+			at = strchr(a->a_addr, '@');
+			if (at == NULL)
+				continue;
+
+			status = dkimf_db_get(conf->conf_resigndb,
+			                      at + 1, 0, &dbd, 1,
+			                      &match);
+
+			if (match)
+			{
+				domainok = TRUE;
+				originok = TRUE;
+				dfc->mctx_resign = TRUE;
+				break;
+			}
+
+			/* iterate through ".domain" possibilities */
+			for (dot = strchr(at, '.');
+			     dot != NULL;
+			     dot = strchr(dot + 1, '.'))
+			{
+				status = dkimf_db_get(conf->conf_resigndb,
+				                      dot, 0, &dbd, 1,
+				                      &match);
+
+				if (match)
+					break;
+			}
 
 			if (match)
 			{

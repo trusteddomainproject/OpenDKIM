@@ -733,20 +733,21 @@ Checks all messages for compliance with RFC5322 header field count
 requirements.  Non-compliant messages are rejected.
 
 .TP
+.I ResignAll (boolean)
+Resign everything if set, verified mail only if not.  The default is "False".
+@RESIGN_MANNOTICE@
+
+.TP
 .I ResignMailTo (dataset)
 Checks each message recipient against the specified dataset for a matching
-record.  If there is a match, the key returned is presumed to be the name
-of a key in the 
+record.  The full address is checked in each case, then the hostname, then
+each domain preceded by ".".  If there is a match, the value returned is
+presumed to be the name of a key in the 
 .I KeyTable
 (if defined) to be used to re-sign the message in addition to verifying it.
 If there is a match without a
 .I KeyTable,
 the default key is applied.
-@RESIGN_MANNOTICE@
-
-.TP
-.I ResignAll (boolean)
-Resign everything if set, verified mail only if not, defaults to false.
 @RESIGN_MANNOTICE@
 
 .TP
