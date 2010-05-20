@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.121 2010/05/20 18:39:10 cm-msk Exp $
+**  $Id: opendkim.c,v 1.122 2010/05/20 22:31:43 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.121 2010/05/20 18:39:10 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.122 2010/05/20 22:31:43 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3340,11 +3340,28 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 		if (!found)
 			return 1;
 		if (dbd[2].dbdata_buflen == 0)
+		{
+			if (dolog)
+			{
+				syslog(LOG_ERR,
+				       "KeyTable entry for `%s' corrupt",
+				       keyname);
+			}
+
 			return 2;
+		}
 
 		keydatasz = sizeof keydata - 1;
 		if (!dkimf_loadkey(dbd[2].dbdata_buffer, &keydatasz))
+		{
+			if (dolog)
+			{
+				syslog(LOG_ERR, "can't load key from %s: %s",
+				       strerror(errno));
+			}
+
 			return 2;
+		}
 	}
 
 	new = malloc(sizeof *new);

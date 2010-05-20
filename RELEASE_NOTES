@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.124 2010/05/20 18:39:09 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.125 2010/05/20 22:31:43 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -8,6 +8,7 @@ release, and a summary of the changes in that release.
 2.1.0		2010/??/??
 	Feature request #SF2964388: Add a "lua" dataset type.
 	Overhaul statistics collection code enabled by "--enable-stats".
+	Log more information when loading data from the KeyTable fails.
 	Remove several command line options that are redundant to the
 		configuration file and not useful in test mode.  These
 		include: -a, -C, -h, -i, -I, -m, -M, -P, -R and -U.
