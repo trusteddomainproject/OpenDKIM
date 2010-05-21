@@ -1,11 +1,16 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.125 2010/05/20 22:31:43 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.126 2010/05/21 07:11:38 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.1.0		2010/??/??
+	Feature request #SF2964380: Do some limited pattern matching for
+		ResignMailTo.
+	Feature request #SF2964381: The value in the ResignMailTo data set
+		can now name a key in the KeyTable to use when re-signing
+		a message.
 	Feature request #SF2964388: Add a "lua" dataset type.
 	Overhaul statistics collection code enabled by "--enable-stats".
 	Log more information when loading data from the KeyTable fails.
