@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.28 2010/05/20 18:40:42 cm-msk Exp $
+$Id: BRANCHES,v 1.29 2010/05/21 07:12:04 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -20,9 +20,6 @@ br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 
 br-msk-ldap-caching
 		Experimental LDAP query piggybacking and caching.
-
-br-sm-resign-features
-		Resign-related features (see SourceForge)
 
 
 Closed Branches
@@ -64,3 +61,6 @@ br-msk-stats-redux
 
 br-msk-yahoo-fixes
 		Bug fixes and feature requests for Yahoo!
+
+br-sm-resign-features
+		Resign-related features (see SourceForge)
