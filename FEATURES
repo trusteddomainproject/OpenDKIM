@@ -60,6 +60,9 @@ dnsupgrade	Maintain two libar instances, the second in TCP mode, in case
 identity_header	Enable selection of an identity for signing based on the
 		value found in a particular header. (opendkim)
 
+ldap_caching	Adds code that ensures duplicate LDAP queries aren't sent
+		and local caching of LDAP replies is done.  (opendkim)
+
 parsetime	Adds a utility function reporting the value of the Date:
 		header for easy comparison to signature timestamps in order
 		to detect messages in which those values wildly differ.
@@ -116,4 +119,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.16 $, Last updated $Date: 2009/12/22 00:12:55 $
+$Revision: 1.17 $, Last updated $Date: 2010/05/22 06:05:45 $

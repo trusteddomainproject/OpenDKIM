@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.144 2010/05/20 18:39:09 cm-msk Exp $
+# $Id: configure.ac,v 1.145 2010/05/22 06:05:45 cm-msk Exp $
 
 #
 # Setup
@@ -224,6 +224,8 @@ FFR_FEATURE([dkim_reputation], [experimental DKIM reputation checks])
 LIB_FFR_FEATURE([dkim_reputation], [experimental DKIM reputation checks])
 
 FFR_FEATURE([identity_header], [special header to set identity])
+
+FFR_FEATURE([ldap_caching], [LDAP query piggybacking and caching])
 
 FFR_FEATURE([replace_rules], [support for string substitution when signing])
 

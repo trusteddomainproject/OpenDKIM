@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.124 2010/05/21 07:11:38 cm-msk Exp $
+**  $Id: opendkim.c,v 1.125 2010/05/22 06:05:45 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.124 2010/05/21 07:11:38 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.125 2010/05/22 06:05:45 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -219,6 +219,7 @@ struct dkimf_config
 	dkim_alg_t	conf_signalg;		/* signing algorithm */
 	struct config *	conf_data;		/* configuration data */
 	char *		conf_authservid;	/* authserv-id */
+	char *		conf_actions;		/* action configuration */
 	char *		conf_keyfile;		/* key file for single key */
 	char *		conf_keytable;		/* key table */
 	char *		conf_signtable;		/* signing table */
@@ -469,13 +470,21 @@ struct lookup
 
 struct lookup dkimf_params[] =
 {
+	{ "no",			HNDL_NOSIGNATURE },
 	{ "nosignature",	HNDL_NOSIGNATURE },
+	{ "bad",		HNDL_BADSIGNATURE },
 	{ "badsignature",	HNDL_BADSIGNATURE },
+	{ "dns",		HNDL_DNSERROR },
 	{ "dnserror",		HNDL_DNSERROR },
+	{ "int",		HNDL_INTERNAL },
 	{ "internal",		HNDL_INTERNAL },
+	{ "sec",		HNDL_SECURITY },
 	{ "security",		HNDL_SECURITY },
+	{ "key",		HNDL_NOKEY },
 	{ "keynotfound",	HNDL_NOKEY },
+	{ "pol",		HNDL_POLICYERROR },
 	{ "policyerror",	HNDL_POLICYERROR },
+	{ "def",		HNDL_DEFAULT },
 	{ "default",		HNDL_DEFAULT },
 	{ NULL,			-1 },
 };
@@ -3340,28 +3349,11 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 		if (!found)
 			return 1;
 		if (dbd[2].dbdata_buflen == 0)
-		{
-			if (dolog)
-			{
-				syslog(LOG_ERR,
-				       "KeyTable entry for `%s' corrupt",
-				       keyname);
-			}
-
 			return 2;
-		}
 
 		keydatasz = sizeof keydata - 1;
 		if (!dkimf_loadkey(dbd[2].dbdata_buffer, &keydatasz))
-		{
-			if (dolog)
-			{
-				syslog(LOG_ERR, "can't load key from %s: %s",
-				       strerror(errno));
-			}
-
 			return 2;
-		}
 	}
 
 	new = malloc(sizeof *new);
@@ -4062,6 +4054,154 @@ dkimf_authorsigok(msgctx msg)
 }
 
 /*
+**  DKIMF_PARSECONFIG -- parse message handling configuration and/or
+**                       apply defaults
+**
+**  Parameters:
+** 	confstr -- configuration string, or NULL to apply defaults only
+**  	conf -- configuration handle to update
+**
+**  Return value:
+**  	TRUE on success, FALSE on failure.
+*/
+
+static _Bool
+dkimf_parseconfig(char *confstr, struct dkimf_config *conf)
+{
+	int vs;
+	char *p;
+	char *v;
+	char *tmp;
+
+	if (confstr == NULL)
+		return TRUE;
+
+	tmp = strdup(confstr);
+	if (tmp == NULL)
+	{
+		fprintf(stderr, "%s: strdup(): %s\n", progname,
+		        strerror(errno));
+		return FALSE;
+	}
+
+	/* process configuration */
+	for (p = strtok(tmp, ","); p != NULL; p = strtok(NULL, ","))
+	{
+		v = strchr(p, '=');
+		if (v == NULL)
+		{
+			fprintf(stderr,
+			        "%s: syntax error in configuration string\n",
+			        progname);
+			return FALSE;
+		}
+		*v = '\0';
+		v++;
+
+		vs = dkimf_configlookup(v, dkimf_values);
+		if (vs == -1)
+		{
+			fprintf(stderr,
+			        "%s: invalid configuration value `%s'\n",
+			        progname, v);
+			return FALSE;
+		}
+
+		/* apply what's been found */
+		switch (dkimf_configlookup(p, dkimf_params))
+		{
+		  case HNDL_NOSIGNATURE:
+			conf->conf_handling.hndl_nosig = vs;
+			break;
+
+		  case HNDL_BADSIGNATURE:
+			conf->conf_handling.hndl_badsig = vs;
+			break;
+
+		  case HNDL_DNSERROR:
+			conf->conf_handling.hndl_dnserr = vs;
+			break;
+
+		  case HNDL_NOKEY:
+			conf->conf_handling.hndl_nokey = vs;
+			break;
+
+		  case HNDL_INTERNAL:
+			conf->conf_handling.hndl_internal = vs;
+			break;
+
+		  case HNDL_SECURITY:
+			conf->conf_handling.hndl_security = vs;
+			break;
+
+		  case HNDL_POLICYERROR:
+			conf->conf_handling.hndl_policyerr = vs;
+			break;
+
+		  case HNDL_DEFAULT:
+			conf->conf_handling.hndl_nosig = vs;
+			conf->conf_handling.hndl_nokey = vs;
+			conf->conf_handling.hndl_badsig = vs;
+			conf->conf_handling.hndl_dnserr = vs;
+			conf->conf_handling.hndl_internal = vs;
+			conf->conf_handling.hndl_security = vs;
+			conf->conf_handling.hndl_policyerr = vs;
+			break;
+
+		  default:
+			*v = '=';
+			fprintf(stderr,
+			        "%s: invalid configuration parameter `%s'\n",
+			        progname, p);
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+/*
+**  DKIMF_PARSECONFIG2 -- parse a single configuration value
+**
+**  Parameters:
+**  	cfg -- pointer to data loaded from a configuration file
+**  	name -- name of the parameter to query
+**  	code -- equivalent code for the -C option
+**  	str -- string to update
+**  	len -- size of "str"
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	This is transitional, for use during the time that the -C option
+**  	and the configuration file coexist.  The -C option overrides
+**  	the values found in the file.
+*/
+
+static void
+dkimf_parseconfig2(struct config *cfg, const char *name, const char *code,
+                   char *str, size_t len)
+{
+	char *v;
+	size_t offset;
+
+	assert(cfg != NULL);
+	assert(name != NULL);
+	assert(code != NULL);
+	assert(str != NULL);
+	assert(len > 0);
+
+	if (config_get(cfg, name, &v, sizeof(char *)) == 1)
+	{
+		offset = strlen(str);
+
+		snprintf(str + offset, len - offset, "%s%s=%s",
+		         offset == 0 ? "" : ",", code, v);
+	}
+}
+
+/*
 **  DKIMF_CONFIG_NEW -- get a new configuration handle
 **
 **  Parameters:
@@ -4243,85 +4383,6 @@ dkimf_config_free(struct dkimf_config *conf)
 }
 
 /*
-**  DKIMF_PARSEHANDLER -- parse a handler
-**
-**  Parameters:
-**  	cfg -- configuration data structure to check
-**  	name -- handler name
-**  	hndl -- handler structure to update
-**
-**  Return value:
-**  	None.
-*/
-
-static void
-dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl)
-{
-	int action;
-	char *val = NULL;
-
-	assert(name != NULL);
-	assert(strncasecmp(name, "on-", 3) == 0);
-	assert(hndl != NULL);
-
-	if (cfg == NULL)
-		return;
-
-	(void) config_get(cfg, name, &val, sizeof val);
-
-	if (val != NULL)
-	{
-		action = dkimf_configlookup(val, dkimf_values);
-		if (action != -1)
-		{
-			switch (dkimf_configlookup(name + 3, dkimf_params))
-			{
-			  case HNDL_DEFAULT:
-				hndl->hndl_nosig = action;
-				hndl->hndl_badsig = action;
-				hndl->hndl_dnserr = action;
-				hndl->hndl_internal = action;
-				hndl->hndl_security = action;
-				hndl->hndl_nokey = action;
-				hndl->hndl_policyerr = action;
-				break;
-
-			  case HNDL_NOSIGNATURE:
-				hndl->hndl_nosig = action;
-				break;
-
-			  case HNDL_BADSIGNATURE:
-				hndl->hndl_badsig = action;
-				break;
-
-			  case HNDL_DNSERROR:
-				hndl->hndl_dnserr = action;
-				break;
-
-			  case HNDL_INTERNAL:
-				hndl->hndl_internal = action;
-				break;
-
-			  case HNDL_SECURITY:
-				hndl->hndl_security = action;
-				break;
-
-			  case HNDL_NOKEY:
-				hndl->hndl_nokey = action;
-				break;
-
-			  case HNDL_POLICYERROR:
-				hndl->hndl_policyerr = action;
-				break;
-
-			  default:
-				break;
-			}
-		}
-	}
-}
-
-/*
 **  DKIMF_CONFIG_LOAD -- load a configuration handle based on file content
 **
 **  Paramters:
@@ -4351,7 +4412,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	assert(err != NULL);
 
 	memset(basedir, '\0', sizeof basedir);
-	memset(confstr, '\0', sizeof confstr);
 
 	if (data != NULL)
 	{
@@ -4487,19 +4547,23 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                  sizeof conf->conf_modestr);
 		}
 
-		dkimf_parsehandler(data, "On-Default", &conf->conf_handling);
-		dkimf_parsehandler(data, "On-BadSignature",
-		                   &conf->conf_handling);
-		dkimf_parsehandler(data, "On-DNSError", &conf->conf_handling);
-		dkimf_parsehandler(data, "On-KeyNotFound",
-		                   &conf->conf_handling);
-		dkimf_parsehandler(data, "On-InternalError",
-		                   &conf->conf_handling);
-		dkimf_parsehandler(data, "On-NoSignature",
-		                   &conf->conf_handling);
-		dkimf_parsehandler(data, "On-Security", &conf->conf_handling);
-		dkimf_parsehandler(data, "On-PolicyError",
-		                   &conf->conf_handling);
+		memset(confstr, '\0', sizeof confstr);
+		dkimf_parseconfig2(data, "On-Default", "def", confstr,
+		                   sizeof confstr);
+		dkimf_parseconfig2(data, "On-BadSignature", "bad",
+		                   confstr, sizeof confstr);
+		dkimf_parseconfig2(data, "On-DNSError", "dns", confstr,
+		                   sizeof confstr);
+		dkimf_parseconfig2(data, "On-KeyNotFound", "key", confstr,
+		                   sizeof confstr);
+		dkimf_parseconfig2(data, "On-InternalError", "int",
+		                   confstr, sizeof confstr);
+		dkimf_parseconfig2(data, "On-NoSignature", "no",
+		                   confstr, sizeof confstr);
+		dkimf_parseconfig2(data, "On-Security", "sec", confstr,
+		                   sizeof confstr);
+		dkimf_parseconfig2(data, "On-PolicyError", "pol", confstr,
+		                   sizeof confstr);
 
 		(void) config_get(data, "RemoveARAll", &conf->conf_remarall,
 		                  sizeof conf->conf_remarall);
@@ -4799,7 +4863,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			struct dkimf_lua_script_result lres;
 
 			fd = open(str, O_RDONLY, 0);
-			if (fd < 0)
+			if (fd < 1)
 			{
 				snprintf(err, errlen, "%s: open(): %s", str,
 				         strerror(errno));
@@ -4863,7 +4927,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			struct dkimf_lua_script_result lres;
 
 			fd = open(str, O_RDONLY, 0);
-			if (fd < 0)
+			if (fd < 1)
 			{
 				snprintf(err, errlen, "%s: open(): %s", str,
 				         strerror(errno));
@@ -4927,7 +4991,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			struct dkimf_lua_script_result lres;
 
 			fd = open(str, O_RDONLY, 0);
-			if (fd < 0)
+			if (fd < 1)
 			{
 				snprintf(err, errlen, "%s: open(): %s", str,
 				         strerror(errno));
@@ -4991,6 +5055,16 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			         basedir, strerror(errno));
 			return -1;
 		}
+	}
+
+	if (conf->conf_actions == NULL && confstr[0] != '\0')
+		conf->conf_actions = confstr;
+
+	if (conf->conf_actions != NULL &&
+	    !dkimf_parseconfig(conf->conf_actions, conf))
+	{
+		snprintf(err, errlen, "invalid action configuration");
+		return -1;
 	}
 
 	str = NULL;
@@ -8444,23 +8518,14 @@ mlfi_eoh(SMFICTX *ctx)
 	if (conf->conf_resigndb != NULL)
 	{
 		bool match = FALSE;
-		char *at;
-		char *dot;
 		struct addrlist *a;
-		char resignkey[BUFRSZ + 1];
-		struct dkimf_db_data dbd;
 
-		memset(resignkey, '\0', sizeof resignkey);
-
-		dbd.dbdata_buffer = resignkey;
-		dbd.dbdata_buflen = sizeof resignkey;
-		dbd.dbdata_flags = 0;
-
-		for (a = dfc->mctx_rcptlist; a != NULL; a = a->a_next)
+		for (a = dfc->mctx_rcptlist;
+		     a != NULL;
+		     a = a->a_next)
 		{
-			/* full recipient address */
 			status = dkimf_db_get(conf->conf_resigndb,
-			                      a->a_addr, 0, &dbd, 1,
+			                      a->a_addr, 0, NULL, 0,
 			                      &match);
 
 			if (match)
@@ -8469,84 +8534,6 @@ mlfi_eoh(SMFICTX *ctx)
 				originok = TRUE;
 				dfc->mctx_resign = TRUE;
 				break;
-			}
-
-			/* hostname only */
-			at = strchr(a->a_addr, '@');
-			if (at == NULL)
-				continue;
-
-			status = dkimf_db_get(conf->conf_resigndb,
-			                      at + 1, 0, &dbd, 1,
-			                      &match);
-
-			if (match)
-			{
-				domainok = TRUE;
-				originok = TRUE;
-				dfc->mctx_resign = TRUE;
-				break;
-			}
-
-			/* iterate through ".domain" possibilities */
-			for (dot = strchr(at, '.');
-			     dot != NULL;
-			     dot = strchr(dot + 1, '.'))
-			{
-				status = dkimf_db_get(conf->conf_resigndb,
-				                      dot, 0, &dbd, 1,
-				                      &match);
-
-				if (match)
-					break;
-			}
-
-			if (match)
-			{
-				domainok = TRUE;
-				originok = TRUE;
-				dfc->mctx_resign = TRUE;
-				break;
-			}
-		}
-
-		if (match)
-		{
-			if (conf->conf_keytabledb == NULL ||
-			    resignkey[0] == '\0')
-			{
-				status = dkimf_add_signrequest(dfc, NULL, NULL);
-
-				if (status != 0)
-				{
-					if (dolog)
-					{
-						syslog(LOG_ERR,
-						       "%s failed to add signature for default key",
-						       dfc->mctx_jobid);
-					}
-
-					return SMFIS_TEMPFAIL;
-				}
-			}
-			else
-			{
-				status = dkimf_add_signrequest(dfc,
-				                               conf->conf_keytabledb,
-				                               resignkey);
-
-				if (status != 0)
-				{
-					if (dolog)
-					{
-						syslog(LOG_ERR,
-						       "%s failed to add signature for key `%s'",
-						       dfc->mctx_jobid,
-						       resignkey);
-					}
-
-					return SMFIS_TEMPFAIL;
-				}
 			}
 		}
 	}
@@ -9287,11 +9274,6 @@ mlfi_eoh(SMFICTX *ctx)
 		**  signing here (e.g. identity header when set to remove).
 		*/
 
-		/*
-		**  XXX -- may need to skip some/all Authentication-Results
-		**  header fields here, especially in the re-signing case
-		*/
-
 #ifdef _FFR_IDENTITY_HEADER
 		if (conf->conf_identityhdr != NULL &&
 		    conf->conf_rmidentityhdr && 
@@ -9564,24 +9546,8 @@ mlfi_body(SMFICTX *ctx, u_char *bodyp, size_t bodylen)
 	**  No need to do anything if the body was empty.
 	*/
 
-	if (bodylen == 0)
+	if (bodylen == 0 || dfc->mctx_headeronly)
 		return SMFIS_CONTINUE;
-
-	/*
-	**  Tell the filter to skip it if we don't care about the body.
-	*/
-
-	if (dfc->mctx_headeronly)
-	{
-#ifdef SMFIS_SKIP
-		if (cc->cctx_milterv2)
-			return SMFIS_SKIP;
-		else
-			return SMFIS_CONTINUE;
-#else /* SMFIS_SKIP */
-			return SMFIS_CONTINUE;
-#endif /* SMFIS_SKIP */
-	}
 
 	last = NULL;
 	status = DKIM_STAT_OK;
@@ -9917,7 +9883,6 @@ mlfi_eom(SMFICTX *ctx)
 	/* complete DomainKeys verification */
 	if (dfc->mctx_dk != NULL)
 	{
-		_Bool addheader = FALSE;
 		DK_FLAGS flags;
 		char *authresult = NULL;
 		char *comment = NULL;
@@ -9925,30 +9890,31 @@ mlfi_eom(SMFICTX *ctx)
 		char val[MAXADDRESS + 1];
 
 		flags = 0;
+		dfc->mctx_addheader = FALSE;
 
 		status = dk_eom(dfc->mctx_dk, &flags);
 		switch (status)
 		{
 		  case DK_STAT_OK:
-			addheader = dfc->mctx_dksigned;
+			dfc->mctx_addheader = dfc->mctx_dksigned;
 			authresult = "pass";
 			break;
 
 		  case DK_STAT_BADSIG:
-			addheader = TRUE;
+			dfc->mctx_addheader = TRUE;
 			authresult = "fail";
 			break;
 
 		  case DK_STAT_NOSIG:
 			/* XXX -- extract policy */
-			addheader = TRUE;
+			dfc->mctx_addheader = TRUE;
 			authresult = "neutral";
 			comment = "no signature";
 			break;
 
 		  case DK_STAT_NOKEY:
 			/* XXX -- extract policy */
-			addheader = TRUE;
+			dfc->mctx_addheader = TRUE;
 			authresult = "neutral";
 			comment = "no key";
 			break;
@@ -9976,7 +9942,7 @@ mlfi_eom(SMFICTX *ctx)
 			break;
 		}
 
-		if (addheader)
+		if (dfc->mctx_addheader)
 		{
 			strlcpy(hdr, "unknown", sizeof hdr);
 			strlcpy(val, "unknown", sizeof val);
@@ -10016,7 +9982,7 @@ mlfi_eom(SMFICTX *ctx)
 #endif /* VERIFY_DOMAINKEYS */
 
 	/* complete verification if started */
-	if (dfc->mctx_dkimv != NULL)
+	if (!dfc->mctx_headeronly && dfc->mctx_dkimv != NULL)
 	{
 		_Bool policydone = FALSE;
 
@@ -10067,11 +10033,6 @@ mlfi_eom(SMFICTX *ctx)
 			dfc->mctx_status = DKIMF_STATUS_NOKEY;
 			break;
 
-		  case DKIM_STAT_REVOKED:
-			dfc->mctx_addheader = TRUE;
-			dfc->mctx_status = DKIMF_STATUS_REVOKED;
-			break;
-
 		  default:
 			if (conf->conf_dolog)
 			{
@@ -10116,6 +10077,37 @@ mlfi_eom(SMFICTX *ctx)
 		}
 
 		authorsig = dkimf_authorsigok(dfc);
+
+#ifdef _FFR_STATS
+		if ((status == DKIM_STAT_OK || status == DKIM_STAT_BADSIG) &&
+		    conf->conf_statspath != NULL)
+		{
+			_Bool tmp_lengths = FALSE;
+			dkim_alg_t tmp_signalg = DKIM_SIGN_UNKNOWN;
+			dkim_canon_t tmp_hdrcanon = DKIM_CANON_UNKNOWN;
+			dkim_canon_t tmp_bodycanon = DKIM_CANON_UNKNOWN;
+			off_t signlen;
+			const char *tmp_signdomain = NULL;
+
+			sig = dkim_getsignature(dfc->mctx_dkimv);
+			(void) dkim_sig_getsignalg(sig, &tmp_signalg);
+			(void) dkim_sig_getcanons(sig, &tmp_hdrcanon,
+			                          &tmp_bodycanon);
+			(void) dkim_sig_getcanonlen(dfc->mctx_dkimv, sig,
+			                            NULL, NULL, &signlen);
+			tmp_lengths = (signlen != (off_t) -1);
+			tmp_signdomain = dkim_sig_getdomain(sig);
+
+			dkimf_stats_record(conf->conf_statspath,
+			                   tmp_signdomain,
+			                   tmp_hdrcanon,
+			                   tmp_bodycanon,
+			                   tmp_signalg,
+			                   (status == DKIM_STAT_OK),
+			                   testkey,
+			                   tmp_lengths);
+		}
+#endif /* _FFR_STATS */
 
 #ifdef _FFR_ZTAGS
 		if (conf->conf_diagdir != NULL &&
@@ -10433,55 +10425,6 @@ mlfi_eom(SMFICTX *ctx)
 			}
 		}
 
-#ifdef _FFR_STATS
-		if (conf->conf_statspath != NULL && dfc->mctx_dkimv != NULL)
-		{
-			struct Header *hdr;
-			u_int rhcnt;
-			_Bool fromlist = FALSE;
-
-			hdr = dkimf_findheader(dfc, "Precedence", 0);
-			if (hdr != NULL &&
-			    strcasecmp(hdr->hdr_val, "list") == 0)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "List-Id", 0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "List-Post", 0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "List-Unsubscribe",
-			                          0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "Mailing-List",
-			                          0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-
-			for (c = 0; ; c++)
-			{
-				if (dkimf_findheader(dfc, "Received",
-				                     c) == NULL)
-				{
-					rhcnt = c;
-					break;
-				}
-			}
-
-			dkimf_stats_record(conf->conf_statspath,
-			                   dfc->mctx_jobid, dfc->mctx_dkimv,
-			                   dfc->mctx_pcode, fromlist, rhcnt,
-			                   (struct sockaddr *) &cc->cctx_ip);
-		}
-#endif /* _FFR_STATS */
-
 		if (dfc->mctx_addheader &&
 		    dfc->mctx_status != DKIMF_STATUS_UNKNOWN)
 		{
@@ -10645,12 +10588,6 @@ mlfi_eom(SMFICTX *ctx)
 				strlcpy(comment, "bad format", sizeof comment);
 				break;
 
-			  case DKIMF_STATUS_NOKEY:
-				authresult = "permerror";
-				strlcpy(comment, "key not found",
-				        sizeof comment);
-				break;
-
 			  default:
 				authresult = "neutral";
 				break;
@@ -10740,37 +10677,11 @@ mlfi_eom(SMFICTX *ctx)
 
 			if (dfc->mctx_status != DKIMF_STATUS_NOSIGNATURE)
 			{
-				char ss[BUFRSZ + 1];
-				DKIM_STAT ts;
-
-				memset(ss, '\0', sizeof ss);
-
 				strlcat((char *) header, DELIMITER,
 				        sizeof header);
 				strlcat((char *) header,
 				        "header.i=", sizeof header);
 				strlcat((char *) header, val, sizeof header);
-
-				sig = dkim_getsignature(dfc->mctx_dkimv);
-				if (sig != NULL)
-				{
-					size_t ssl;
-
-					ssl = sizeof ss - 1;
-					ts = dkim_get_sigsubstring(dfc->mctx_dkimv,
-				                                   sig,
-					                           ss, &ssl);
-				}
-
-				if (sig != NULL && ts == DKIM_STAT_OK)
-				{
-					strlcat((char *) header, DELIMITER,
-					        sizeof header);
-					strlcat((char *) header,
-					        "header.b=", sizeof header);
-					strlcat((char *) header, ss,
-					        sizeof header);
-				}
 			}
 		}
 
@@ -11671,25 +11582,37 @@ static int
 usage(void)
 {
 	fprintf(stderr, "%s: usage: %s -p socketfile [options]\n"
+	                "\t-a peerlist \tfile containing list of hosts to ignore\n"
 	                "\t-A          \tauto-restart\n"
 	                "\t-b modes    \tselect operating modes\n"
 	                "\t-c canon    \tcanonicalization to use when signing\n"
+	                "\t-C config   \taction configuration info (see man page)\n"
 	                "\t-d domlist  \tdomains to sign\n"
 	                "\t-D          \talso sign subdomains\n"
 	                "\t-f          \tdon't fork-and-exit\n"
 	                "\t-F time     \tfixed timestamp to use when signing (test mode only)\n"
+	                "\t-h          \tappend identifying header\n"
+	                "\t-i ilist    \tfile containing list of internal (signing) hosts\n"
+	                "\t-I elist    \tfile containing list of external domain clients\n"
 	                "\t-k keyfile  \tlocation of secret key file\n"
 	                "\t-l          \tlog activity to system log\n"
 	                "\t-L limit    \tsignature limit requirements\n"
+	                "\t-m mtalist  \tMTA daemon names for which to sign\n"
+	                "\t-M macrolist\tMTA macros which enable signing\n"
 			"\t-o hdrlist  \tlist of headers to omit from signing\n"
+	                "\t-P pidfile  \tfile to which to write pid\n"
 	                "\t-q          \tquarantine messages that fail to verify\n"
 		        "\t-Q          \tquery test mode\n"
 	                "\t-r          \trequire basic RFC2822 header compliance\n"
+	                "\t-R          \tgenerate verification failure reports\n"
 	                "\t-s selector \tselector to use when signing\n"
 	                "\t-S signalg  \tsignature algorithm to use when signing\n"
 			"\t-t testfile \tevaluate RFC2822 message in \"testfile\"\n"
 			"\t-T timeout  \tDNS timeout (seconds)\n"
 	                "\t-u userid   \tchange to specified userid\n"
+#ifdef POPAUTH
+			"\t-U dbfile   \tuser POP AUTH database\n"
+#endif /* POPAUTH */
 	                "\t-v          \tincrease verbosity during testing\n"
 	                "\t-V          \tprint version number and terminate\n"
 	                "\t-W          \t\"why?!\" mode (log sign/verify decision logic)\n"
@@ -11783,6 +11706,12 @@ main(int argc, char **argv)
 	{
 		switch (c)
 		{
+		  case 'a':
+			if (optarg == NULL || *optarg == '\0')
+				return usage();
+			curconf->conf_peerfile = optarg;
+			break;
+
 		  case 'A':
 			autorestart = TRUE;
 			break;
@@ -11797,6 +11726,12 @@ main(int argc, char **argv)
 			if (optarg == NULL || *optarg == '\0')
 				return usage();
 			curconf->conf_canonstr = optarg;
+			break;
+
+		  case 'C':
+			if (optarg == NULL || *optarg == '\0')
+				return usage();
+			curconf->conf_actions = optarg;
 			break;
 
 		  case 'd':
@@ -11842,6 +11777,22 @@ main(int argc, char **argv)
 			}
 			break;
 
+		  case 'h':
+			curconf->conf_addxhdr = TRUE;
+			break;
+
+		  case 'i':
+			if (optarg == NULL || *optarg == '\0')
+				return usage();
+			curconf->conf_internalfile = optarg;
+			break;
+
+		  case 'I':
+			if (optarg == NULL || *optarg == '\0')
+				return usage();
+			curconf->conf_externalfile = optarg;
+			break;
+
 		  case 'k':
 			if (optarg == NULL || *optarg == '\0')
 				return usage();
@@ -11856,6 +11807,30 @@ main(int argc, char **argv)
 			if (optarg == NULL || *optarg == '\0')
 				return usage();
 			curconf->conf_siglimit = optarg;
+			break;
+
+		  case 'm':
+			if (optarg == NULL || *optarg == '\0')
+				return usage();
+			curconf->conf_mtalist = strdup(optarg);
+			if (curconf->conf_mtalist == NULL)
+			{
+				fprintf(stderr, "%s: strdup(): %s\n", progname,
+				        strerror(errno));
+				return EX_SOFTWARE;
+			}
+			break;
+
+		  case 'M':
+			if (optarg == NULL || *optarg == '\0')
+				return usage();
+			curconf->conf_macrolist = strdup(optarg);
+			if (curconf->conf_macrolist == NULL)
+			{
+				fprintf(stderr, "%s: strdup(): %s\n", progname,
+				        strerror(errno));
+				return EX_SOFTWARE;
+			}
 			break;
 
 		  case 'n':
@@ -11876,6 +11851,12 @@ main(int argc, char **argv)
 			gotp = TRUE;
 			break;
 
+		  case 'P':
+			if (optarg == NULL || *optarg == '\0')
+				return usage();
+			pidfile = optarg;
+			break;
+
 		  case 'q':
 			quarantine = TRUE;
 			break;
@@ -11887,6 +11868,10 @@ main(int argc, char **argv)
 
 		  case 'r':
 			curconf->conf_reqhdrs = TRUE;
+			break;
+
+		  case 'R':
+			curconf->conf_sendreports = TRUE;
 			break;
 
 		  case 's':
@@ -11938,6 +11923,14 @@ main(int argc, char **argv)
 				return usage();
 			become = optarg;
 			break;
+
+#ifdef POPAUTH
+		  case 'U':
+			if (optarg == NULL || *optarg == '\0')
+				return usage();
+			popdbfile = optarg;
+			break;
+#endif /* POPAUTH */
 
 		  case 'v':
 			verbose++;
@@ -12064,9 +12057,6 @@ main(int argc, char **argv)
 #ifdef USE_LDAP
 			                "\tldapscheme://host[:port][/dn[?attrs[?scope[?filter[?exts]]]]]\n"
 #endif /* USE_LDAP */
-#ifdef USE_LUA
-			                "\tlua:path\n"
-#endif /* USE_LUA */
 			                "> ");
 		}
 
@@ -12091,106 +12081,111 @@ main(int argc, char **argv)
 			return EX_SOFTWARE;
 		}
 
-		if (isatty(0))
+		for (;;)
 		{
-			fprintf(stdout,
-			        "%s: enter `query/n' where `n' is number of fields to request\n> ",
-			        progname);
-		}
+			if (isatty(0))
+			{
+				fprintf(stdout,
+				        "%s: enter `query/n' where `n' is number of fields to request\n> ",
+				        progname);
+			}
 
-		memset(query, '\0', sizeof query);
-		if (fgets(query, BUFRSZ, stdin) != query)
-		{
-			fprintf(stderr, "%s: fgets(): %s\n", progname,
-			        strerror(errno));
-			return EX_OSERR;
-		}
+			memset(query, '\0', sizeof query);
+			if (fgets(query, BUFRSZ, stdin) != query)
+				break;
 
-		p = strchr(query, '\n');
-		if (p != NULL)
-			*p = '\0';
+			p = strchr(query, '\n');
+			if (p != NULL)
+				*p = '\0';
 
-		p = strchr(query, '/');
-		if (p == NULL)
-		{
-			(void) dkimf_db_close(dbtest);
-			fprintf(stderr, "%s: invalid query `%s'\n", progname,
-			        query);
-			return EX_USAGE;
-		}
+			if (dkimf_isblank(query))
+				continue;
 
-		n = atoi(p + 1);
-		if (n < 0)
-		{
-			(void) dkimf_db_close(dbtest);
-			fprintf(stderr, "%s: invalid query `%s'\n", progname,
-			        query);
-			return EX_USAGE;
-		}
+			p = strchr(query, '/');
+			if (p == NULL)
+			{
+				(void) dkimf_db_close(dbtest);
+				fprintf(stderr, "%s: invalid query `%s'\n",
+				        progname, query);
+				return EX_USAGE;
+			}
 
-		result = (char **) malloc(sizeof(char *) * n);
-		if (result == NULL)
-		{
-			fprintf(stderr, "%s: malloc(): %s\n", progname,
-			        strerror(errno));
-			return EX_OSERR;
-		}
+			n = atoi(p + 1);
+			if (n < 0)
+			{
+				(void) dkimf_db_close(dbtest);
+				fprintf(stderr, "%s: invalid query `%s'\n",
+				        progname, query);
+				return EX_USAGE;
+			}
+	
+			result = (char **) malloc(sizeof(char *) * n);
+			if (result == NULL)
+			{
+				fprintf(stderr, "%s: malloc(): %s\n", progname,
+				        strerror(errno));
+				return EX_OSERR;
+			}
 
-		for (c = 0; c < n; c++)
-		{
-			result[c] = (char *) malloc(BUFRSZ + 1);
-			if (result[c] == NULL)
+			for (c = 0; c < n; c++)
+			{
+				result[c] = (char *) malloc(BUFRSZ + 1);
+				if (result[c] == NULL)
+				{
+					fprintf(stderr, "%s: malloc(): %s\n",
+					        progname, strerror(errno));
+					free(result);
+					return EX_OSERR;
+				}
+				memset(result[c], '\0', BUFRSZ + 1);
+			}
+
+			dbdp = (DKIMF_DBDATA) malloc(sizeof(struct dkimf_db_data) * n);
+			if (dbdp == NULL)
 			{
 				fprintf(stderr, "%s: malloc(): %s\n", progname,
 				        strerror(errno));
 				free(result);
 				return EX_OSERR;
 			}
-			memset(result[c], '\0', BUFRSZ + 1);
-		}
 
-		dbdp = (DKIMF_DBDATA) malloc(sizeof(struct dkimf_db_data) * n);
-		if (dbdp == NULL)
-		{
-			fprintf(stderr, "%s: malloc(): %s\n", progname,
-			        strerror(errno));
-			free(result);
-			return EX_OSERR;
-		}
-
-		for (c = 0; c < n; c++)
-		{
-			dbdp[c].dbdata_buffer = result[c];
-			dbdp[c].dbdata_buflen = BUFRSZ;
-			dbdp[c].dbdata_flags = 0;
-		}
-
-		*p = '\0';
-
-		status = dkimf_db_get(dbtest, query, strlen(query),
-		                      dbdp, n, &exists);
-
-		if (status != 0)
-		{
-			fprintf(stderr, "%s: dkimf_db_get() returned %d\n",
-			        progname, status);
-		}
-		else if (!exists)
-		{
-			fprintf(stdout,
-			        "%s: dkimf_db_get(): record not found\n",
-			        progname);
-		}
-		else
-		{
 			for (c = 0; c < n; c++)
-				fprintf(stdout, "`%s'\n", result[c]);
+			{
+				dbdp[c].dbdata_buffer = result[c];
+				dbdp[c].dbdata_buflen = BUFRSZ;
+				dbdp[c].dbdata_flags = 0;
+			}
+
+			*p = '\0';
+
+			status = dkimf_db_get(dbtest, query, strlen(query),
+			                      dbdp, n, &exists);
+
+			if (status != 0)
+			{
+				fprintf(stderr,
+				        "%s: dkimf_db_get() returned %d\n",
+				        progname, status);
+			}
+			else if (!exists)
+			{
+				fprintf(stdout,
+				        "%s: dkimf_db_get(): record not found\n",
+				        progname);
+			}
+			else
+			{
+				for (c = 0; c < n; c++)
+					fprintf(stdout, "`%s'\n", result[c]);
+			}
+
+			for (c = 0; c < n; c++)
+				free(result[c]);
+			free(result);
+			free(dbdp);
 		}
 
-		for (c = 0; c < n; c++)
-			free(result[c]);
-		free(result);
-		free(dbdp);
+		fprintf(stdout, "\n");
 
 		dkimf_db_close(dbtest);
 
@@ -12218,7 +12213,7 @@ main(int argc, char **argv)
 
 		if (autorestart)
 		{
-			char *rate = NULL;
+			char *rate;
 
 			(void) config_get(cfg, "AutoRestartCount",
 			                  &maxrestarts, sizeof maxrestarts);

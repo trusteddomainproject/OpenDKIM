@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.32 2010/04/30 17:01:28 cm-msk Exp $
+**  $Id: util.c,v 1.33 2010/05/22 06:05:45 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.32 2010/04/30 17:01:28 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.33 2010/05/22 06:05:45 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -123,6 +123,10 @@ static char *optlist[] =
 	"_FFR_IDENTITY_HEADER",
 #endif /* _FFR_IDENTITY_HEADER */
 
+#if _FFR_LDAP_CACHING
+	"_FFR_LDAP_CACHING",
+#endif /* _FFR_IDENTITY_HEADER */
+
 #if _FFR_PARSE_TIME
 	"_FFR_PARSE_TIME",
 #endif /* _FFR_PARSE_TIME */
@@ -182,7 +186,6 @@ struct dkimf_dstring
 /* base64 alphabet */
 static unsigned char alphabet[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-#ifdef _FFR_REPLACE_RULES
 /*
 **  DKIMF_ISBLANK -- return TRUE iff a string contains only whitespace
 **  
@@ -208,7 +211,6 @@ dkimf_isblank(char *str)
 
 	return TRUE;
 }
-#endif /* _FFR_REPLACE_RULES */
 
 /*
 **  DKIMF_OPTLIST -- print active FFRs
