@@ -144,6 +144,9 @@ This can be used by the script to verify that the header thus added contains
 the right thing.  Returns the value as a string, or the Lua constant
 "nil" on error.
 .TP
+.B mt.getcwd()
+Returns the current working directory as a string.
+.TP
 .B mt.getreply(conn)
 Returns the last milter reply received from the specified connection,
 as an integer.  This can be compared to any of the SMFIR_* constants defined

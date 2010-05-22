@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.12 2010/05/18 02:00:53 cm-msk Exp $
+**  $Id: miltertest.c,v 1.13 2010/05/22 16:53:47 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.12 2010/05/18 02:00:53 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.13 2010/05/22 16:53:47 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -110,6 +110,7 @@ int mt_echo(lua_State *);
 int mt_eoh(lua_State *);
 int mt_eom(lua_State *);
 int mt_eom_check(lua_State *);
+int mt_getcwd(lua_State *);
 int mt_getheader(lua_State *);
 int mt_getreply(lua_State *);
 int mt_header(lua_State *);
@@ -166,6 +167,7 @@ static const luaL_Reg mt_library[] =
 	{ "eoh",		mt_eoh		},
 	{ "eom",		mt_eom		},
 	{ "eom_check",		mt_eom_check	},
+	{ "getcwd",		mt_getcwd	},
 	{ "getheader",		mt_getheader	},
 	{ "getreply",		mt_getreply	},
 	{ "header",		mt_header	},
@@ -971,6 +973,38 @@ mt_chdir(lua_State *l)
 		fprintf(stderr, "%s: now in directory %s\n", progname, str);
 
 	return 0;
+}
+
+/*
+**  MT_GETCWD -- get current working directory
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**   	String containing current working directory.
+*/
+
+int
+mt_getcwd(lua_State *l)
+{
+	char dir[MAXPATHLEN + 1];
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 0)
+	{
+		lua_pushstring(l, "mt.getcwd(): Invalid argument");
+		lua_error(l);
+	}
+
+	memset(dir, '\0', sizeof dir);
+
+	(void) getcwd(dir, MAXPATHLEN);
+
+	lua_pushstring(l, dir);
+
+	return 1;
 }
 
 /*
