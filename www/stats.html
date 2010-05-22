@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>OpenDKIM</title>
+<link rel="stylesheet" type="text/css" href="opendkim.css" media="screen" />
+</head>
+<body>
+<div id="header">
+	<a class="logo" href="http://www.opendkim.org/">OpenDKIM</a>
+	<div id="frontnav">
+      <ul>
+		<li><a href="http://sourceforge.net/projects/opendkim/files/">Download</a></li>
+		<li><a href="docs.html">Documentation</a></li>
+		<li><a href="http://sourceforge.net/tracker/?group_id=269812/">Bug/Feature Tracking</a></li>
+		<li><a href="http://lists.opendkim.org/">Mailing lists</a></li>
+		<li><a href="community.html">Community</a></li>
+		<li><a href="donate.html">Donate</a></li>
+		<li><a href="links.html">Links</a></li>
+		<li><a href="license.html">License</a></li>
+      </ul>
+	</div>
+</div>
+<div id="bodytext">
+<h1>DKIM Statistics</h1>
+As of v2.1.0, OpenDKIM has a comprehensive statistics gathering package
+included as an option.  If enabled, it will log to a database information
+about the DKIM properties of every message that the filter sees, including
+those that weren't even signed.
+<p>
+The purpose of this statistics gathering is twofold:
+<ol>
+ <li> To gather statistics you can use to analyze what you're seeing at your
+      site in terms of signed messages, unsigned messages, messages that
+      fail verification, messages that fail ADSP policy checks,
+      multiply-signed messages, third-party signatures, etc. 
+ <li> To submit the above statistics, with most of the identifiable properties
+      hidden if you wish, back to The OpenDKIM Project so we can measure
+      DKIM's deployment, level of activity and general effectiveness, and
+      possibly identify specific problem areas.
+</ol>
+<p>
+You are encouraged to participate in the latter.  This is being done in
+conjunction with the Internet Engineering Task Force's DKIM Working Group,
+the body that created the DKIM standard.  We will submit the names of any
+company or person that contributes data as part of our report to that body
+for appropriate credit.
+<p>
+You are <b>not</b> required to participate.  In fact, it is necessary to
+specify a specific build-time option just to get the statistics stuff
+compiled in (and the filter works <i>just fine</i> without doing so), and then
+you'd need to take specific additional actions to submit the data back to The
+OpenDKIM Project.  The data submitted will identify the submitter, but you
+can choose to submit only hashes of the author domain of those messages;
+this way we can't tell what the author domain was, but we can tell if two
+different messages about which you submit data are from the same author
+domain.  This is important for accurate data collection.
+<p>
+The submission mechanism on our side has not yet been installed and
+configured.  This page will be updated, and an announcement sent out, once
+that mechanism is up and working.
+<p>
+Please submit any questions about this effort to the opendkim-users
+mailing list. 
+</div>
+<div id="footer">
+	&copy; 2010 The OpenDKIM Project -- $Id: stats.html,v 1.1 2010/05/22 04:58:19 cm-msk Exp $
+ </div>
+</body>
+</html>
