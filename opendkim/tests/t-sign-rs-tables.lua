@@ -1,4 +1,4 @@
--- $Id: t-sign-rs-tables.lua,v 1.5 2010/05/18 02:00:53 cm-msk Exp $
+-- $Id: t-sign-rs-tables.lua,v 1.6 2010/05/22 18:21:00 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -9,11 +9,7 @@
 mt.echo("*** relaxed/simple signing test using tables")
 
 -- try to start the filter
-if os.getenv("abs_top_builddir") ~= nil then
-	binpath = os.getenv("abs_top_builddir") .. "/opendkim"
-else
-	binpath = ".."
-end
+binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
 end
