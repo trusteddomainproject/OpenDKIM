@@ -734,7 +734,11 @@ requirements.  Non-compliant messages are rejected.
 
 .TP
 .I ResignAll (boolean)
-Resign everything if set, verified mail only if not, defaults to false.
+Where
+.I ResignMailTo
+triggers a re-signing action, this flag indicates whether or not all mail
+should be signed (if set) versus only verified mail being signed (if not set).
+The default is "false".
 @RESIGN_MANNOTICE@
 
 .TP
