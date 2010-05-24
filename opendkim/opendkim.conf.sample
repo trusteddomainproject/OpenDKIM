@@ -1,7 +1,7 @@
 ##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
-## $Id: opendkim.conf.sample,v 1.5 2010/03/05 03:32:12 mmarkley Exp $
+## $Id: opendkim.conf.sample,v 1.6 2010/05/24 05:19:35 cm-msk Exp $
 ##
 
 ##
@@ -442,6 +442,28 @@ KeyFile			/var/db/dkim/example.private
 ##  Rejects messages which don't conform to RFC2822 header count requirements.
 
 # RequiredHeaders	No
+
+##  ResignAll { yes | no }
+##  	default no
+##
+##  Where ResignMailTo triggers a re-signing action, this flag indicates
+##  whether or not all mail should be signed (if set) versus only verified
+##  mail being signed (if not set).
+
+# ResignAll		No
+
+##  ResignMailTo dataset
+##  	default (none)
+##
+##  Checks each message recipient against the specified dataset for a
+##  matching record.  The full address is checked in each case, then the
+##  hostname, then each domain preceded by ".".  If there is a match, the
+##  value returned is presumed to be the name of a key in the KeyTable
+##  (if defined) to be used to re-sign the message in addition to
+##  verifying it.  If there is a match without a KeyTable, the default key
+##  is applied.
+
+# ResignMailTo		dataset
 
 ##  Selector name
 ##
