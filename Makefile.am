@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.43 2010/05/20 18:39:09 cm-msk Exp $
+# $Id: Makefile.am,v 1.44 2010/05/24 20:44:32 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -133,6 +133,9 @@ dist_doc_DATA += \
 	opendkim/setup.lua.sample \
 	opendkim/screen.lua.sample \
 	opendkim/final.lua.sample
+endif
+if STATS
+dist_doc_DATA += stats/mkdb.mysql
 endif
 
 # TODO: get configure.ac to generate --enable-{feature} for all
