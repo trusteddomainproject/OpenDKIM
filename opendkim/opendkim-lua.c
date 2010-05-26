@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.17 2010/05/01 18:02:52 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.18 2010/05/26 22:24:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.17 2010/05/01 18:02:52 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.18 2010/05/26 22:24:12 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -87,6 +87,7 @@ static const luaL_Reg dkimf_lua_lib_screen[] =
 
 static const luaL_Reg dkimf_lua_lib_final[] =
 {
+	{ "add_header",		dkimf_xs_addheader	},
 	{ "add_rcpt",		dkimf_xs_addrcpt	},
 	{ "del_rcpt",		dkimf_xs_delrcpt	},
 	{ "get_policy",		dkimf_xs_getpolicy	},

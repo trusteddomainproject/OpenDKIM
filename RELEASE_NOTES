@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.129 2010/05/22 06:06:55 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.130 2010/05/26 22:24:11 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -17,6 +17,8 @@ release, and a summary of the changes in that release.
 		can now name a key in the KeyTable to use when re-signing
 		a message.
 	Feature request #SF2964388: Add a "lua" dataset type.
+	Feature request #SF3007640: Add odkim.add_header() function, available
+		to the final script.
 	Log more information when loading data from the KeyTable fails.
 	Remove several command line options that are redundant to the
 		configuration file and not useful in test mode.  These

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.127 2010/05/23 15:25:38 cm-msk Exp $
+**  $Id: opendkim.c,v 1.128 2010/05/26 22:24:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.127 2010/05/23 15:25:38 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.128 2010/05/26 22:24:12 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2565,6 +2565,54 @@ dkimf_xs_canonlength(lua_State *l)
 		lua_pushnil(l);
 	else
 		lua_pushnumber(l, cl);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_ADDHEADER -- add a header field
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_addheader(lua_State *l)
+{
+	char *name;
+	char *value;
+	SMFICTX *ctx;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 3)
+	{
+		lua_pushstring(l,
+		               "odkim.add_header(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_isstring(l, 1) ||
+	         !lua_isstring(l, 2))
+	{
+		lua_pushstring(l,
+		               "odkim.add_header(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	name = (char *) lua_tostring(l, 2);
+	value = (char *) lua_tostring(l, 3);
+	lua_pop(l, 3);
+
+	if (ctx == NULL)
+		lua_pushnil(l);
+	else if (dkimf_insheader(ctx, 1, name, value) == MI_SUCCESS)
+		lua_pushnumber(l, 1);
+	else
+		lua_pushnil(l);
 
 	return 1;
 }

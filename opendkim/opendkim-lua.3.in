@@ -295,6 +295,15 @@ and
 
 The following additional functions are provided for this script:
 .TP
+.B odkim.add_header(ctx, name, value)
+Adds a new header field called
+.I name
+with the specified
+.I value
+to the message represented by
+.I ctx.
+Returns 1 on success, or the Lua constant "nil" on failure.
+.TP
 .B odkim.add_rcpt(ctx, addr)
 Adds
 .I addr
