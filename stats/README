@@ -1,4 +1,4 @@
-$Id: README,v 1.3 2010/05/22 05:16:05 cm-msk Exp $
+$Id: README,v 1.4 2010/05/29 03:57:07 cm-msk Exp $
 
 INTRODUCTION
 
@@ -64,7 +64,13 @@ scripts and documentation presume MySQL.
 	them to a file someplace.  See the opendkim(8) and opendkim.conf(5)
 	man pages for details.
 
-6a.	If you are interested in accumulating only your own statistics,
+6.	Initialize the statistics database:
+
+	opendkim-stats -i /path/to/stats.db
+		
+7.	Restart opendkim.
+
+8a.	If you are interested in accumulating only your own statistics,
 	add a crontab entry that executes the following at some reasonable
 	frequency:
 
@@ -79,14 +85,14 @@ scripts and documentation presume MySQL.
 	The path to the database is as set in your opendkim.conf(5)
 	configuration file.
 
-6b.	If you are interested in accepting reports from someplace else,
+8b.	If you are interested in accepting reports from someplace else,
 	create a mailing alias that is a pipe to the "opendkim-importstats.sh"
 	script.  Edit that script so that the "statsdb" variable is set to the
 	empty string in the SETUP section near the top, e.g.:
 
 		statsdb=""
 
-6c.	If you are interested in exporting your reports, add a crontab
+8c.	If you are interested in exporting your reports, add a crontab
 	entry that executes the following at some reasonable frequency:
 
 	opendkim-stats -c -m <address> -r <path-to-stats-db>
