@@ -1,4 +1,4 @@
--- $Id: t-sign-rs-lua.lua,v 1.5 2010/05/22 18:21:00 cm-msk Exp $
+-- $Id: t-sign-rs-lua.lua,v 1.6 2010/06/01 05:01:55 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -87,7 +87,8 @@ if mt.getreply(conn) ~= SMFIR_ACCEPT then
 end
 
 -- verify that a signature got added
-if not mt.eom_check(conn, MT_HDRINSERT, "DKIM-Signature") then
+if not mt.eom_check(conn, MT_HDRINSERT, "DKIM-Signature") and
+   not mt.eom_check(conn, MT_HDRADD, "DKIM-Signature") then
 	error "no signature added"
 end
 

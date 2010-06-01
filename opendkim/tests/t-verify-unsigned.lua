@@ -1,4 +1,4 @@
--- $Id: t-verify-unsigned.lua,v 1.3 2010/05/22 18:21:00 cm-msk Exp $
+-- $Id: t-verify-unsigned.lua,v 1.4 2010/06/01 05:01:55 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -87,7 +87,8 @@ if mt.getreply(conn) ~= SMFIR_ACCEPT then
 end
 
 -- verify that an Authentication-Results header field got added
-if not mt.eom_check(conn, MT_HDRINSERT, "Authentication-Results") then
+if not mt.eom_check(conn, MT_HDRINSERT, "Authentication-Results") and
+   not mt.eom_check(conn, MT_HDRADD, "Authentication-Results") then
 	error "no Authentication-Results added"
 end
 ar = mt.getheader(conn, "Authentication-Results", 0)
