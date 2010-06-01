@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.13 2010/05/22 16:53:47 cm-msk Exp $
+**  $Id: miltertest.c,v 1.14 2010/06/01 05:02:23 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.13 2010/05/22 16:53:47 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.14 2010/06/01 05:02:23 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -2880,9 +2880,8 @@ mt_eom_check(lua_State *l)
 				char *rname;
 				char *rvalue;
 
-				rname = r->eom_rdata + MILTER_LEN_BYTES;
-				rvalue = r->eom_rdata + MILTER_LEN_BYTES +
-				         strlen(rname) + 1;
+				rname = r->eom_rdata;
+				rvalue = r->eom_rdata + strlen(rname) + 1;
 
 				if ((name == NULL ||
 				     strcmp(name, rname) == 0) &&
@@ -3465,9 +3464,17 @@ mt_getheader(lua_State *l)
 			char *rname;
 			char *rvalue;
 
-			rname = r->eom_rdata + MILTER_LEN_BYTES;
-			rvalue = r->eom_rdata + MILTER_LEN_BYTES +
-			         strlen(rname) + 1;
+			if (r->eom_request == SMFIR_INSHEADER)
+			{
+				rname = r->eom_rdata + MILTER_LEN_BYTES;
+				rvalue = r->eom_rdata + MILTER_LEN_BYTES +
+				         strlen(rname) + 1;
+			}
+			else
+			{
+				rname = r->eom_rdata;
+				rvalue = r->eom_rdata + strlen(rname) + 1;
+			}
 
 			if (strcmp(name, rname) == 0 && rvalue != NULL)
 			{
