@@ -1,8 +1,8 @@
-# $Id: opendkim.spec,v 1.4 2010/03/05 19:06:23 mmarkley Exp $
+# $Id: opendkim.spec.in,v 1.1 2010/06/02 17:53:53 cm-msk Exp $
 
-Summary: An open source milter for providing DKIM service
+Summary: An open source library and milter for providing DKIM service
 Name: opendkim
-Version: 2.0.0
+Version: @VERSION@
 Release: 1
 License: BSD
 Group: System Environment/Daemons
@@ -15,7 +15,7 @@ Prefix: %{_prefix}
 %description
 The OpenDKIM Project is a community effort to develop and maintain a C library
 for producing DKIM-aware applications and an open source milter for providing
-DKIM service.
+DKIM service through milter-enabled MTAs.
 
 %package -n libopendkim
 Summary: An open source DKIM library
@@ -48,46 +48,44 @@ make
 
 %install
 make install DESTDIR="$RPM_BUILD_ROOT"
-mkdir -p "$RPM_BUILD_ROOT"/etc
-mkdir -p "$RPM_BUILD_ROOT"/etc/init.d
-install -m 0755 contrib/opendkim.init "$RPM_BUILD_ROOT"/etc/init.d/opendkim
+mkdir -p "$RPM_BUILD_ROOT"%{_sysconfdir}
+mkdir -p "$RPM_BUILD_ROOT"%{_initrddir}
+install -m 0755 contrib/opendkim.init "$RPM_BUILD_ROOT"%{_initrddir}/%{name}
 echo '# Basic OpenDKIM config file
-# See opendkim.conf(5) or /usr/share/doc/opendkim/opendkim.conf.sample for more
+# See opendkim.conf(5) or %{_docdir}/%{name}-%{version}/opendkim.conf.sample for more
 Mode	v
 Syslog	yes
-Socket	local:/var/run/opendkim/opendkim.socket' > "$RPM_BUILD_ROOT"/etc/opendkim.conf
-mkdir -p "$RPM_BUILD_ROOT"/%{_docdir}/opendkim-%{version}/examples
-cp opendkim/*.sample "$RPM_BUILD_ROOT"/%{_docdir}/opendkim-%{version}/examples/
-cp opendkim/README "$RPM_BUILD_ROOT"/%{_docdir}/opendkim-%{version}/README.opendkim
-cp -r docs FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail README RELEASE_NOTES RELEASE_NOTES.Sendmail contrib/ "$RPM_BUILD_ROOT"/%{_docdir}/opendkim-%{version}/
+Socket	local:%{_localstatedir}/run/opendkim/opendkim.socket' > "$RPM_BUILD_ROOT"%{_sysconfdir}/opendkim.conf
 rm -r "$RPM_BUILD_ROOT"/%{_prefix}/share/doc/opendkim
 
 %post
 if ! getent passwd opendkim >/dev/null 2>&1; then
-	%{_sbindir}/useradd -M -d /var/lib -r -s /bin/false opendkim
-	if [ ! getent group opendkim >/dev/null ]; then
+	%{_sbindir}/useradd -M -d %{_localstatedir}/lib -r -s /bin/false opendkim
+	if ! getent group opendkim >/dev/null; then
 		%{_sbindir}/groupadd opendkim
 		%{_sbindir}/usermod -g opendkim opendkim
 	fi
 fi
-test -d /var/run/opendkim || mkdir /var/run/opendkim
-chown opendkim:opendkim /var/run/opendkim
+test -d %{_localstatedir}/run/opendkim || mkdir %{_localstatedir}/run/opendkim
+chown opendkim:opendkim %{_localstatedir}/run/opendkim
 if [ -x /sbin/chkconfig ]; then
 	/sbin/chkconfig --add opendkim
 elif [ -x /usr/lib/lsb/install_initd ]; then
 	/usr/lib/lsb/install_initd opendkim
 fi
 
-%postun
-service opendkim stop && rm -f /var/run/opendkim/opendkim.sock && rmdir /var/run/opendkim 2>/dev/null
-if [ -x /sbin/chkconfig ]; then
-	/sbin/chkconfig --del opendkim
-elif [ -x /usr/lib/lsb/remove_initd ]; then
-	/usr/lib/lsb/remove_initd opendkim
-fi
-userdel opendkim
-if [ getent group opendkim >/dev/null ]; then
-	groupdel opendkim
+%preun
+if [ $1 = 0 ]; then
+	service opendkim stop && rm -f %{_localstatedir}/run/opendkim/opendkim.sock && rmdir %{_localstatedir}/run/opendkim 2>/dev/null
+	if [ -x /sbin/chkconfig ]; then
+		/sbin/chkconfig --del opendkim
+	elif [ -x /usr/lib/lsb/remove_initd ]; then
+		/usr/lib/lsb/remove_initd opendkim
+	fi
+	userdel opendkim
+	if getent group opendkim >/dev/null; then
+		groupdel opendkim
+	fi
 fi
 
 %clean
@@ -97,23 +95,22 @@ fi
 
 %files
 %defattr(-,root,root)
-%doc %{_docdir}/opendkim-%{version}
-%config /etc/opendkim.conf
-%config /etc/init.d/opendkim
-%{_prefix}/sbin
-%{_mandir}
+%doc FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail README RELEASE_NOTES RELEASE_NOTES.Sendmail
+%doc contrib/convert_keylist.sh opendkim/*.sample
+%config(noreplace) %{_sysconfdir}/opendkim.conf
+%config %{_initrddir}/%{name}
+%{_sbindir}/*
+%{_mandir}/*/*
 
 %files -n libopendkim
 %defattr(-,root,root)
-%doc docs KNOWNBUGS LICENSE LICENSE.Sendmail README RELEASE_NOTES RELEASE_NOTES.Sendmail
 %{_libdir}/libopendkim.so.*
 
 %files -n libopendkim-devel
 %defattr(-,root,root)
-%doc docs LICENSE LICENSE.Sendmail libopendkim/docs/*.html
-%{_prefix}/include
+%doc libopendkim/docs/*.html
+%{_includedir}/opendkim
 %{_libdir}/*.a
 %{_libdir}/*.la
 %{_libdir}/*.so
-%{_libdir}/pkgconfig
-
+%{_libdir}/pkgconfig/*.pc
