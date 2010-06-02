@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: opendkim.init,v 1.1 2009/08/13 08:54:09 mmarkley Exp $
+# $Id: opendkim.init,v 1.2 2010/06/02 17:33:08 cm-msk Exp $
 #
 #### BEGIN INIT INFO
 # Provides:          opendkim
@@ -141,12 +141,13 @@ od_start() {
 	od_daemon $DAEMON -x $CONFIG $ARGS
 	if [ $? -eq 0 ]; then
 		log_success_msg $NAME
+		if [ -d /var/lock/subsys ]; then
+			touch /var/lock/subsys/$NAME
+		fi
 	else
 		log_failure_msg $NAME
 	fi
-	if [ -d /var/lock/subsys ]; then
-		touch /var/lock/subsys/$NAME
-	fi
+	echo
 }
 
 od_stop() {
@@ -154,12 +155,13 @@ od_stop() {
 	od_killproc $DAEMON
 	if [ $? -eq 0 ]; then
 		log_success_msg $NAME
+		if [ -d /var/lock/subsys ]; then
+			rm -f /var/lock/subsys/$NAME
+		fi
 	else
 		log_failure_msg $NAME
 	fi
-	if [ -d /var/lock/subsys ]; then
-		rm /var/lock/subsys/$NAME
-	fi
+	echo
 }
 
 od_reload() {
@@ -170,6 +172,7 @@ od_reload() {
 	else
 		log_failure_msg $NAME
 	fi
+	echo
 }
 
 case "$1" in
