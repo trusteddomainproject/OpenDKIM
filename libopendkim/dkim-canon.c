@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.18 2010/01/21 21:55:14 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.19 2010/06/03 15:07:55 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -932,6 +932,7 @@ dkim_add_canon(DKIM *dkim, _Bool hdr, dkim_canon_t canon, int hashtype,
 	}
 	new->canon_sigheader = sighdr;
 	new->canon_hdrlist = hdrlist;
+	new->canon_buf = NULL;
 	new->canon_next = NULL;
 	new->canon_done = FALSE;
 	new->canon_blankline = TRUE;
