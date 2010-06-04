@@ -1,4 +1,4 @@
--- $Id: t-dontsign.lua,v 1.1 2010/06/04 16:03:23 cm-msk Exp $
+-- $Id: t-dontsign.lua,v 1.2 2010/06/04 16:38:17 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -33,7 +33,7 @@ end
 
 -- send envelope macros and sender data
 -- mt.helo() is called implicitly
-mt.macro(conn, SMFIC_MAIL, "j", "t-sign-ss")
+mt.macro(conn, SMFIC_MAIL, "j", "t-dontsign")
 if mt.mailfrom(conn, "user@example.com") ~= nil then
 	error "mt.mailfrom() failed"
 end
