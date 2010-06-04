@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.c,v 1.12 2010/02/23 23:57:16 cm-msk Exp $
+**  $Id: test.c,v 1.13 2010/06/04 16:58:53 cm-msk Exp $
 */
 
 #ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.12 2010/02/23 23:57:16 cm-msk Exp $";
+static char test_c_id[] = "@(#)$Id: test.c,v 1.13 2010/06/04 16:58:53 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -441,7 +441,6 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, time_t fixedtime,
 		return EX_SOFTWARE;
 	}
 
-#if defined(_FFR_BODYLENGTH_DB) || defined(_FFR_REDIRECT) || defined(_FFR_RESIGN)
 	ms = mlfi_envrcpt((SMFICTX *) tctx, envrcpt);
 	if (MLFI_OUTPUT(ms, tverbose))
 	{
@@ -453,7 +452,6 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, time_t fixedtime,
 		FCLOSE(f);
 		return EX_SOFTWARE;
 	}
-#endif /* defined(_FFR_BODYLENGTH_DB) || defined(_FFR_REDIRECT) || defined(_FFR_RESIGN) */
 
 	while (!feof(f))
 	{
