@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.130 2010/06/04 02:47:51 cm-msk Exp $
+**  $Id: opendkim.c,v 1.131 2010/06/04 16:12:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.130 2010/06/04 02:47:51 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.131 2010/06/04 16:12:12 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5843,10 +5843,11 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 	if ((conf->conf_mode & DKIMF_MODE_SIGNER) != 0 &&
 	    !(conf->conf_signtable != NULL && conf->conf_keytable != NULL) &&
-	    !(conf->conf_keyfile != NULL && conf->conf_selector != NULL))
+	    !(conf->conf_domainsdb != NULL && conf->conf_keyfile != NULL &&
+	      conf->conf_selector != NULL))
 	{
 		snprintf(err, errlen,
-		         "at least one selector and key required for signing mode");
+		         "signing mode requires SigningTable/KeyTable or Domain/Selector/KeyFile");
 		return -1;
 	}
 
