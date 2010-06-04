@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.136 2010/06/04 06:09:11 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.137 2010/06/04 16:13:09 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -27,6 +27,9 @@ release, and a summary of the changes in that release.
 	Properly deal with critical errors from libdb that otherwise lead to a
 		descriptor leak (because the close operation fails).
 		Data provided by Graham Murray.
+	Don't allow Domain without KeyFile and Selector, which causes an
+		assertion failure when calling dkim_sign().  Problem noted
+		by Todd Lyons.
 	CONTRIB: Patch #SF3010443: Improvements to opendkim.init and
 		opendkim.spec from Kaspar Brand.
 	LIBOPENDKIM: Add dkim_get_sigsubstring(), required for "header.b"
