@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.146 2010/06/02 17:53:53 cm-msk Exp $
+# $Id: configure.ac,v 1.147 2010/06/04 13:47:41 grooverdan Exp $
 
 #
 # Setup
@@ -1309,6 +1309,20 @@ else
 	          [enable support for SleepyCat/Berkeley DB libraries])
 fi
 
+if test x"$unboundpath" != x"no" -a x"$bdbrequired" = x"yes"
+then
+	saved_LDFLAGS="$LDFLAGS"
+	saved_CFLAGS="$CFLAGS"
+	LDFLAGS="$LDFLAGS $LIBDB_LIBDIRS $LIBUNBOUND_LIBDIRS"
+	CFLAGS="$CFLAGS $LIBDB_INCDIRS $LIBUNBOUND_INCDIRS"
+	AC_CHECK_LIB([db],[log_file],
+		AC_CHECK_LIB([unbound],[log_file],
+			AC_MSG_ERROR([Cannot enable feature requiring berkdb with libunbound - both have log_file defined. Please use newer berkdb version])
+		)
+	)
+	LDFLAGS="$saved_LDFLAGS"
+	CFLAGS="$saved_CFLAGS"
+fi
 AC_SUBST(LIBDB_INCDIRS)
 AC_SUBST(LIBDB_LIBDIRS)
 AC_SUBST(LIBDB_LIBS)
