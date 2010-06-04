@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.147 2010/06/04 13:47:41 grooverdan Exp $
+# $Id: configure.ac,v 1.148 2010/06/04 19:50:18 cm-msk Exp $
 
 #
 # Setup
@@ -1317,7 +1317,7 @@ then
 	CFLAGS="$CFLAGS $LIBDB_INCDIRS $LIBUNBOUND_INCDIRS"
 	AC_CHECK_LIB([db],[log_file],
 		AC_CHECK_LIB([unbound],[log_file],
-			AC_MSG_ERROR([Cannot enable feature requiring berkdb with libunbound - both have log_file defined. Please use newer berkdb version])
+			AC_MSG_ERROR([Cannot enable feature requiring BerkeleyDB with libunbound - both have log_file defined.  Please use newer BerkeleyDB version])
 		)
 	)
 	LDFLAGS="$saved_LDFLAGS"
