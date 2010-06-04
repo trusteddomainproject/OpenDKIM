@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.c,v 1.13 2010/06/04 16:58:53 cm-msk Exp $
+**  $Id: test.c,v 1.14 2010/06/04 16:59:14 cm-msk Exp $
 */
 
 #ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.13 2010/06/04 16:58:53 cm-msk Exp $";
+static char test_c_id[] = "@(#)$Id: test.c,v 1.14 2010/06/04 16:59:14 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -59,13 +59,11 @@ char *envfrom[] =
 	NULL
 };
 
-#if defined(_FFR_BODYLENGTH_DB) || defined(_FFR_REDIRECT) || defined(_FFR_RESIGN)
 char *envrcpt[] =
 {
 	"<recipient@example.com>",
 	NULL
 };
-#endif /* defined(_FFR_BODYLENGTH_DB) || defined(_FFR_REDIRECT) || defined(_FFR_RESIGN) */
 
 #define	FCLOSE(x)		if ((x) != stdin) \
 					fclose((x));
