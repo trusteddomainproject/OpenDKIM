@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.72 2010/06/04 02:47:51 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.73 2010/06/04 06:03:53 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.72 2010/06/04 02:47:51 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.73 2010/06/04 06:03:53 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1932,6 +1932,11 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	fd = -1;
 # if DB_VERSION_CHECK(2,0,0)
 	status = bdb->fd(bdb, &fd);
+	if (status != 0)
+	{
+		db->db_status = status;
+		return status;
+	}
 # else /* DB_VERSION_CHECK(2,0,0) */
 	status = 0;
 	fd = bdb->fd(bdb);
@@ -1973,17 +1978,29 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 # if DB_VERSION_CHECK(2,0,0)
 	status = bdb->put(bdb, NULL, &q, &d, 0);
 	if (status == 0)
+	{
 		ret = 0;
+	}
 	else
+	{
+		db->db_status = status;
 		ret = status;
+	}
 # else /* DB_VERSION_CHECK(2,0,0) */
 	status = bdb->put(bdb, &q, &d, 0);
 	if (status == 1)
+	{
 		ret = -1;
+	}
 	else if (status == 0)
+	{
 		ret = 0;
+	}
 	else
+	{
+		db->db_status = status;
 		ret = errno;
+	}
 # endif /* DB_VERSION_CHECK(2,0,0) */
 
 	/* surrender write-lock */
