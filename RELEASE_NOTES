@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.138 2010/06/04 17:05:30 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.139 2010/06/04 17:45:55 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -26,12 +26,12 @@ release, and a summary of the changes in that release.
 	Add support for draft-kucherawy-authres-header-b.
 	Properly deal with critical errors from libdb that otherwise lead to a
 		descriptor leak (because the close operation fails).
-		Data provided by Graham Murray.
+		Reported by Warren Horvath; data provided by Graham Murray.
 	Don't allow Domain without KeyFile and Selector, which causes an
 		assertion failure when calling dkim_sign().  Problem noted
 		by Todd Lyons.
 	Fix configuration logic around DontSignMailTo that prevented it from
-		working.
+		working.  Reported by Warren Horvath.
 	CONTRIB: Patch #SF3010443: Improvements to opendkim.init and
 		opendkim.spec from Kaspar Brand.
 	LIBOPENDKIM: Add dkim_get_sigsubstring(), required for "header.b"
