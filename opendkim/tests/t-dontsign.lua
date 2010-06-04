@@ -1,4 +1,4 @@
--- $Id: t-dontsign.lua,v 1.2 2010/06/04 16:38:17 cm-msk Exp $
+-- $Id: t-dontsign.lua,v 1.3 2010/06/04 17:05:03 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -42,7 +42,7 @@ if mt.getreply(conn) ~= SMFIR_CONTINUE then
 end
 
 -- send envelope macros and recipient data
-if mt.rcptto(conn, "user@example.net") ~= nil then
+if mt.rcptto(conn, "recipient@example.org") ~= nil then
 	error "mt.rcptto() failed"
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
@@ -73,28 +73,6 @@ end
 if mt.eoh(conn) ~= nil then
 	error "mt.eoh() failed"
 end
-if mt.getreply(conn) ~= SMFIR_CONTINUE then
-	error "mt.eoh() unexpected reply"
-end
-
--- send body
-if mt.bodystring(conn, "This is a test!\r\n") ~= nil then
-	error "mt.bodystring() failed"
-end
-if mt.getreply(conn) ~= SMFIR_CONTINUE then
-	error "mt.bodystring() unexpected reply"
-end
-
--- end of message; let the filter react
-if mt.eom(conn) ~= nil then
-	error "mt.eom() failed"
-end
 if mt.getreply(conn) ~= SMFIR_ACCEPT then
-	error "mt.eom() unexpected reply"
-end
-
--- verify that no signature got added
-if mt.eom_check(conn, MT_HDRINSERT, "DKIM-Signature") or
-   mt.eom_check(conn, MT_HDRADD, "DKIM-Signature") then
-	error "signature added"
+	error "mt.eoh() unexpected reply"
 end
