@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# $Id: t-dontsign,v 1.1 2010/06/04 16:03:23 cm-msk Exp $
+# 
+# "DontSignMailTo" test
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest -s $srcdir/t-dontsign.lua
