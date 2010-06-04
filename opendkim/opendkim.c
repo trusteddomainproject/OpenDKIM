@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.129 2010/06/01 03:14:22 cm-msk Exp $
+**  $Id: opendkim.c,v 1.130 2010/06/04 02:47:51 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.129 2010/06/01 03:14:22 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.130 2010/06/04 02:47:51 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4640,8 +4640,13 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				         conf->conf_statspath);
 				return -1;
 			}
-
-			(void) dkimf_db_close(db);
+			else if (dkimf_db_close(db) != 0)
+			{
+				snprintf(err, errlen,
+				         "%s: dkimf_db_close() failed",
+				         conf->conf_statspath);
+				return -1;
+			}
 		}
 #endif /* _FFR_STATS */
 
@@ -10523,10 +10528,21 @@ mlfi_eom(SMFICTX *ctx)
 				}
 			}
 
-			dkimf_stats_record(conf->conf_statspath,
-			                   dfc->mctx_jobid, dfc->mctx_dkimv,
-			                   dfc->mctx_pcode, fromlist, rhcnt,
-			                   (struct sockaddr *) &cc->cctx_ip);
+			if (dkimf_stats_record(conf->conf_statspath,
+			                       dfc->mctx_jobid,
+			                       dfc->mctx_dkimv,
+			                       dfc->mctx_pcode,
+			                       fromlist, rhcnt,
+			                       (struct sockaddr *) &cc->cctx_ip) != 0)
+			{
+				if (dolog)
+				{
+					syslog(LOG_WARNING,
+					       "statistics recording disabled");
+				}
+
+				conf->conf_statspath = NULL;
+			}
 		}
 #endif /* _FFR_STATS */
 

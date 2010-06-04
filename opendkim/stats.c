@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.9 2010/05/20 18:39:10 cm-msk Exp $
+**  $Id: stats.c,v 1.10 2010/06/04 02:47:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.9 2010/05/20 18:39:10 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.10 2010/06/04 02:47:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -68,10 +68,10 @@ dkimf_stats_init(void)
 **  	sa -- client socket information
 **
 **  Return value:
-**  	None (for now).
+**  	0 on success, !0 on failure
 */
 
-void
+int
 dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
                    _Bool fromlist, u_int rhcnt, struct sockaddr *sa)
 {
@@ -85,6 +85,7 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 	int nsigs;
 	int err;
 	int c;
+	int ret = 0;
 	off_t canonlen;
 	off_t signlen;
 	off_t msglen;
@@ -108,7 +109,7 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 		if (dolog)
 			syslog(LOG_ERR, "%s: dkimf_db_open() failed", path);
 
-		return;
+		return -1;
 	}
 
 	/* see if there's a sentinel record; if not, bail */
@@ -123,8 +124,17 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 		if (dolog)
 			syslog(LOG_ERR, "%s: dkimf_db_get() failed", path);
 
-		dkimf_db_close(db);
-		return;
+		if (dkimf_db_close(db) != 0 && dolog)
+		{
+			char err[BUFRSZ];
+
+			memset(err, '\0', sizeof err);
+			(void) dkimf_db_strerror(db, err, sizeof err);
+			syslog(LOG_ERR, "%s: dkimf_db_close() failed: %s",
+			       path, err);
+		}
+
+		return -1;
 	}
 
 	/* check DB version */
@@ -134,8 +144,17 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 		if (dolog)
 			syslog(LOG_ERR, "%s: version check failed", path);
 
-		dkimf_db_close(db);
-		return;
+		if (dkimf_db_close(db) != 0 && dolog)
+		{
+			char err[BUFRSZ];
+
+			memset(err, '\0', sizeof err);
+			(void) dkimf_db_strerror(db, err, sizeof err);
+			syslog(LOG_ERR, "%s: dkimf_db_close() failed: %s",
+			       path, err);
+		}
+
+		return -1;
 	}
 
 	memset(&recdata, '\0', sizeof recdata);
@@ -147,15 +166,45 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 		if (dolog)
 			syslog(LOG_ERR, "%s: dkim_getsiglist() failed", jobid);
 
-		dkimf_db_close(db);
-		return;
+		if (dkimf_db_close(db) != 0)
+		{
+			if (dolog)
+			{
+				char err[BUFRSZ];
+
+				memset(err, '\0', sizeof err);
+				(void) dkimf_db_strerror(db, err, sizeof err);
+				syslog(LOG_ERR,
+				       "%s: dkimf_db_close() failed: %s",
+				       path, err);
+			}
+
+			ret = -1;
+		}
+
+		return ret;
 	}
 
 	from = dkim_getdomain(dkimv);
 	if (from == NULL)
 	{
-		dkimf_db_close(db);
-		return;
+		if (dkimf_db_close(db) != 0)
+		{
+			if (dolog)
+			{
+				char err[BUFRSZ];
+
+				memset(err, '\0', sizeof err);
+				(void) dkimf_db_strerror(db, err, sizeof err);
+				syslog(LOG_ERR,
+				       "%s: dkimf_db_close() failed: %s",
+				       path, err);
+			}
+
+			ret = -1;
+		}
+
+		return ret;
 	}
 
 	strlcpy(recdata.sd_fromdomain, from, sizeof recdata.sd_fromdomain);
@@ -314,8 +363,31 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 	/* write it out */
 	status = dkimf_db_put(db, jobid, strlen(jobid), &recdata,
 	                      sizeof recdata);
+	if (status != 0)
+	{
+		char err[BUFRSZ];
+
+		memset(err, '\0', sizeof err);
+		(void) dkimf_db_strerror(db, err, sizeof err);
+		syslog(LOG_ERR, "%s: dkimf_db_put() failed: %s", path, err);
+	}
 
 	/* close the DB */
-	dkimf_db_close(db);
+	if (dkimf_db_close(db) != 0)
+	{
+		if (dolog)
+		{
+			char err[BUFRSZ];
+
+			memset(err, '\0', sizeof err);
+			(void) dkimf_db_strerror(db, err, sizeof err);
+			syslog(LOG_ERR, "%s: dkimf_db_close() failed: %s",
+			       path, err);
+		}
+
+		return -1;
+	}
+
+	return 0;
 }
 #endif /* _FFR_STATS */

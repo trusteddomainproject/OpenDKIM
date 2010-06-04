@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.71 2010/05/24 20:51:04 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.72 2010/06/04 02:47:51 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.71 2010/05/24 20:51:04 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.72 2010/06/04 02:47:51 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1790,6 +1790,8 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 		if (status != 0)
 		{
 			db->db_status = status;
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
 			return -1;
 		}
 # else /* LOCK_EX */
@@ -1804,6 +1806,8 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 		if (status != 0)
 		{
 			db->db_status = status;
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
 			return -1;
 		}
 # endif /* LOCK_EX */
@@ -1833,6 +1837,8 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 		if (status != 0)
 		{
 			db->db_status = status;
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
 			return -1;
 		}
 # else /* LOCK_UN */
@@ -1847,6 +1853,8 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 		if (status != 0)
 		{
 			db->db_status = status;
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
 			return -1;
 		}
 # endif /* LOCK_UN */
@@ -1939,6 +1947,8 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 		if (status != 0)
 		{
 			db->db_status = status;
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
 			return -1;
 		}
 # else /* LOCK_EX */
@@ -1953,6 +1963,8 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 		if (status != 0)
 		{
 			db->db_status = status;
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
 			return -1;
 		}
 # endif /* LOCK_EX */
@@ -1982,6 +1994,8 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 		if (status != 0)
 		{
 			db->db_status = status;
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
 			return -1;
 		}
 # else /* LOCK_UN */
@@ -1996,6 +2010,8 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 		if (status != 0)
 		{
 			db->db_status = status;
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
 			return -1;
 		}
 # endif /* LOCK_UN */
@@ -2218,6 +2234,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			if (status != 0)
 			{
 				db->db_status = status;
+				if (db->db_lock != NULL)
+					(void) pthread_mutex_unlock(db->db_lock);
 				return -1;
 			}
 # else /* LOCK_SH */
@@ -2232,6 +2250,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			if (status != 0)
 			{
 				db->db_status = status;
+				if (db->db_lock != NULL)
+					(void) pthread_mutex_unlock(db->db_lock);
 				return -1;
 			}
 # endif /* LOCK_SH */
@@ -2260,6 +2280,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		}
 		else
 		{
+			db->db_status = status;
 			ret = status;
 		}
 # else /* DB_VERSION_CHECK(2,0,0) */
@@ -2288,6 +2309,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		}
 		else
 		{
+			db->db_status = errno;
 			ret = errno;
 		}
 # endif /* DB_VERSION_CHECK(2,0,0) */
@@ -2300,6 +2322,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			if (status != 0)
 			{
 				db->db_status = status;
+				if (db->db_lock != NULL)
+					(void) pthread_mutex_unlock(db->db_lock);
 				return -1;
 			}
 # else /* LOCK_SH */
@@ -2314,6 +2338,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			if (status != 0)
 			{
 				db->db_status = status;
+				if (db->db_lock != NULL)
+					(void) pthread_mutex_unlock(db->db_lock);
 				return -1;
 			}
 # endif /* LOCK_SH */
@@ -2794,10 +2820,16 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 **  	db -- DB handle to shut down
 **
 **  Return value:
-**  	None.
+**  	0 on success, something else on failure
+**
+**  Notes:
+**  	On failure, db has not been freed.  It's not clear what to do in
+**  	that case other than get very upset because we probably have a
+**  	descriptor that can't be closed.  The subsystem involved should
+**  	probably disable itself or otherwise attract attention.
 */
 
-void
+int
 dkimf_db_close(DKIMF_DB db)
 {
 	assert(db != NULL);
@@ -2821,28 +2853,37 @@ dkimf_db_close(DKIMF_DB db)
 	  case DKIMF_DB_TYPE_CSL:
 		dkimf_db_list_free(db->db_handle);
 		free(db);
-		break;
+		return 0;
 
 	  case DKIMF_DB_TYPE_REFILE:
 		dkimf_db_relist_free(db->db_handle);
 		free(db);
-		break;
+		return 0;
 
 #ifdef USE_DB
 	  case DKIMF_DB_TYPE_BDB:
+	  {
+		int status;
+
 # if DB_VERSION_CHECK(2,0,0)
 		if (db->db_cursor != NULL)
 			((DBC *) (db->db_cursor))->c_close((DBC *) db->db_cursor);
 # endif /* DB_VERSION_CHECK(2,0,0) */
-		DKIMF_DBCLOSE((DB *) (db->db_handle));
-		break;
+		status = DKIMF_DBCLOSE((DB *) (db->db_handle));
+		if (status != 0)
+			db->db_status = status;
+		else
+			free(db);
+
+		return status;
+	  }
 #endif /* USE_DB */
 
 #ifdef USE_ODBX
 	  case DKIMF_DB_TYPE_DSN:
 		(void) odbx_finish((odbx_t *) db->db_handle);
 		free(db->db_data);
-		break;
+		return 0;
 #endif /* USE_ODBX */
 
 #ifdef USE_LDAP
@@ -2884,13 +2925,14 @@ dkimf_db_close(DKIMF_DB db)
 				first = FALSE;
 			}
 			
-			dkimf_db_close(ldap->ldap_cache);
+			(void) dkimf_db_close(ldap->ldap_cache);
 		}
 #  endif /* USE_DB */
 # endif /* _FFR_LDAP_CACHING */
 		(void) ldap_free_urldesc(ldap->ldap_descr);
 		free(db->db_data);
-		break;
+		free(db);
+		return 0;
 	  }
 #endif /* USE_LDAP */
 
@@ -2903,15 +2945,15 @@ dkimf_db_close(DKIMF_DB db)
 
 		free(lua->lua_script);
 		free(db->db_data);
-		break;
+		free(db);
+		return 0;
 	  }
 #endif /* USE_LUA */
 
 	  default:
 		assert(0);
+		return -1;
 	}
-
-	/* NOTREACHED */
 }
 
 /*
