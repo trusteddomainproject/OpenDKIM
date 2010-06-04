@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.131 2010/06/04 16:12:12 cm-msk Exp $
+**  $Id: opendkim.c,v 1.132 2010/06/04 17:02:00 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.131 2010/06/04 16:12:12 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.132 2010/06/04 17:02:00 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -310,7 +310,6 @@ struct dkimf_config
 	DKIMF_DB	conf_mbsdb;		/* must-be-signed hdrs (DB) */
 	char **		conf_mbs;		/* must-be-signed (array) */
 	DKIMF_DB	conf_dontsigntodb;	/* don't-sign-to addrs (DB) */
-	char **		conf_dontsignto;	/* don't-sign-to (array) */
 	DKIMF_DB	conf_thirdpartydb;	/* trustsigsfrom DB */
 	char **		conf_thirdparty;	/* trustsigsfrom addrs */
 	DKIMF_DB	conf_localadsp_db;	/* local ADSP DB */
@@ -4221,8 +4220,6 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_mbsdb != NULL)
 		dkimf_db_close(conf->conf_mbsdb);
 
-	if (conf->conf_dontsignto != NULL)
-		free(conf->conf_dontsignto);
 	if (conf->conf_dontsigntodb != NULL)
 		dkimf_db_close(conf->conf_dontsigntodb);
 
@@ -7954,7 +7951,7 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 	assert(dfc != NULL);
 	conf = cc->cctx_config;
 
-	if (conf->conf_dontsignto != NULL
+	if (conf->conf_dontsigntodb != NULL
 #ifdef _FFR_BODYLENGTH_DB
 	    || bldb != NULL
 #endif /* _FFR_BODYLENGTH_DB */
@@ -7975,7 +7972,7 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 		dkimf_stripbrackets(addr);
 	}
 
-	if (conf->conf_dontsignto != NULL
+	if (conf->conf_dontsigntodb != NULL
 #ifdef _FFR_REDIRECT
 	    || conf->conf_redirect != NULL
 #endif /* _FFR_REDIRECT */
