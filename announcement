@@ -1,117 +1,76 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.0.0 (Eve) released
+Subject: OpenDKIM v2.1.0 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.0.0 (code named
-"Eve"), now available for download from SourceForge.
+The OpenDKIM project announces availability of OpenDKIM v2.1.0, now available
+for download from SourceForge.
 
 This is a major new feature release.  The main new features include:
 
-	o Support for OpenLDAP for storing keys and signing configuration.
-	  This should enhance scalability for sites with lots of separate
-	  domains and keys to manage.
+	o Caching and piggybacking of LDAP queries to reduce duplicate
+	  work and congestion.
 
-	o Support for fine-grained policy control via three Lua script
-	  hooks.  See the opendkim-lua(3) and opendkim.conf(5) man pages
-	  for details.  It should be possible to perform any configurable
-	  policy-related function already available via these scripts,
-	  except with far more control.  Example scripts are included.
+	o A complete reworking of the statistics gathering and reporting
+	  code to (a) be more useful to installations and (b) assist the
+	  data gathering effort of the DKIM working group.
 
-	o Separation of signing policy and key management into two different
-	  new configuration items, "KeyTable" and "SigningTable".  The
-	  previous way, using KeyList (or "-K" from the command line), has
-	  been removed.
+	o Improvements with the ResignMailTo feature.
 
-	o A tool to generate a public key zone file based on the contents
-	  of the KeyTable.
+	o Added a new data set type, "lua", which allows a Lua script to
+	  take the place of a database query.
 
-	o Build configuration features for generating code coverage and
-	  profiling data.
+	o The final Lua processing script can now add header fields to 
+	  messages.
 
-	o A new milter protocol simulation tool for conducting unit tests
-	  on this filter (or any milter-aware filter).  It also uses
-	  Lua as a scripting engine.
+	o Ten command line flags were removed since they are redundant to
+	  the configuration file for general usage.
 
-There are as usual several bug fixes as well as some build system and
-compile-time cleanliness improvements.
+	o "opendkim-genzone" can now take a KeyTable as input.
 
-There were some minor changes to the library.  If you are using the library
-now and are not having trouble with it, no upgrade is required.  However,
-the new library has a few noteworthy changes:
-
-	o Prior to v2.0.0, dkim_eom() when verifying would only run
-	  signatures until the first good one was encountered.  Now,
-	  by default, all of them will be run.  This is required to
-	  provide correct support for ADSP in the filter.  There is a new
-	  library flag that can be used to request the previous behaviour.
-
-	o Prior to v2.0.0, dkim_sign() would only accept keys in PEM
-	  format.  Now, base64-encoded DER format is also accepted.  This
-	  was added to support key management via LDAP or SQL.
-
-	o There is new function applications can use at runtime to determine
-	  what version of libopendkim has been linked.
-
-The code coverage and profiling data mentioned above yielded several
-optimizations for the library that also appear in this release.
+In addition, there were several log message improvements and configuration
+file halding fixes made to the filter, and there was one extension and a fix
+applied to libopendkim.
 
 The full RELEASE_NOTES for this version:
 
-2.0.0 (Eve)	2010/03/05
-	Feature request #SF2917224: Add optional OpenLDAP support.
-	Feature request #SF2920389: Add CIDR support for IPv6 addresses.
-	Feature request #SF2937428: Add "ExemptDomains" configuration item.
-	Add optional Lua support, which enables a few script hooks for
-		fine-grained policy controls when signing and verifying,
-		and "miltertest", a new Lua-based scripting tool for
-		exercising milter applications.
-	Add "-Q" command line switch, putting the filter in query test mode
-		to exercise the database code.
-	Don't overwrite the signature verification status with that of the
-		policy query status, leading to spurious "bad signature data"
-		entries in the log.  Problem noted by Roman Gelfand.
-	Fix database query order for PeerList, InternalHosts, etc. so that
-		negation works properly again.
-	Fix crash-on-shutdown bug related to the crypto utilities functions.
-	Drop "KeyList" in favour of "KeyTable" and "SigningTable" in the
-		configuration file.  See the opendkim.conf(5) man page
-		for details.  Also, "-K" has been dropped from the command
-		line, meaning multiple key support now requires use of the
-		configuration file.
-	Fixes in DB walk code for DB 1.85.
-	Fix bug #SF2936499: Clean up numerous compiler warnings.
-	Fix bug #SF2951494: Improve logic for doing ADSP queries and reporting
-		their results.
-	Fix bug #SF2961161: dkim_sig_getidentity() could return successfully
-		even if the provided buffer was too small to accept the
-		decoded value.  Reported by Ale Vesely.
-	LIBOPENDKIM: Adjust dkim_sign() to accept base64-encoded DER private
-		keys as well as PEM-formatted keys.
-	LIBOPENDKIM: Several performance optimizations yielded from
-		gprof data.
-	LIBOPENDKIM: Fix a length computation that caused an invalid
-		snprintf() call.  From a Gentoo bug reported by Tilman Giese.
-	LIBOPENDKIM: Fix compiler complaint about multiple definitions
-		of global variables.  Reported by Maarten Oelering.
-	LIBOPENDKIM: Have dkim_eom() process all signatures instead of
-		stopping after finding one good one.  Also add library flag
-		DKIM_LIBFLAGS_VERIFYONE, causing dkim_eom() to short-circuit
-		after finding one good signature while verifying (i.e.
-		reproducing the pre-2.0.0 behaviour).
-	LIBOPENDKIM: Feature request #SF2961427: Add dkim_libversion().
-		Requested by Ale Vesely.
-	TOOLS: Add "opendkim-genzone" which generates a BIND zone file
-		fragment based on a KeyTable that contains all of the
-		public keys required to match the configured private keys.
-	BUILD: Add "--enable-codecoverage" to add build steps that generate
-		profiling or code coverage reports when running unit tests.
-	BUILD: Compile opendkim-testadsp with pthread libraries in case
-		"--enable-arlib" was specified.
-	BUILD: Fix an m4 quoting error that had rendered "--enable-debug"
-		useless.
-	BUILD: Check for functions upon which libmilter depends.  Reported
-		by Cyro Lord.
-	PORTABILITY: Support for OS X from Bob Halley.
+2.1.0		2010/06/06
+	Feature request #SF2964369: Add _FFR_LDAP_CACHING to cache and share
+		common LDAP queries using an internal query cache for
+		better optimization of LDAP resources.
+	Feature request #SF2964378: Overhaul statistics collection code
+		enabled by "--enable-stats".  See stats/README for details.
+	Feature request #SF2964380: Do some limited pattern matching for
+		ResignMailTo.
+	Feature request #SF2964381: The value in the ResignMailTo data set
+		can now name a key in the KeyTable to use when re-signing
+		a message.
+	Feature request #SF2964388: Add a "lua" dataset type.
+	Feature request #SF3007640: Add odkim.add_header() function, available
+		to the final script.
+	Log more information when loading data from the KeyTable fails.
+	Remove several command line options that are redundant to the
+		configuration file and not useful in test mode.  These
+		include: -a, -C, -h, -i, -I, -m, -M, -P, -R and -U.
+	Add support for draft-kucherawy-authres-header-b.
+	Properly deal with critical errors from libdb that otherwise lead to a
+		descriptor leak (because the close operation fails).
+		Reported by Warren Horvath; data provided by Graham Murray.
+	Don't allow Domain without KeyFile and Selector, which causes an
+		assertion failure when calling dkim_sign().  Problem noted
+		by Todd Lyons.
+	Fix configuration logic around DontSignMailTo that prevented it from
+		working.  Reported by Warren Horvath.
+	CONTRIB: Patch #SF3010443: Improvements to opendkim.init and
+		opendkim.spec from Kaspar Brand.
+	LIBOPENDKIM: Add dkim_get_sigsubstring(), required for "header.b"
+		production on Authentication-Results: header fields.
+	LIBOPENDKIM: Initialize canon_buf in dkim_add_canon() to avoid
+		a garbage dereference later during an abort.
+	MILTERTEST: Fix SMFIR_ADDHEADER tests.
+	STATS: Add "stats" subdirectory including tools for collecting
+		and reporting aggregated statistics.
+	TOOLS: Feature request #SF2964364: Have opendkim-genzone use
+		the KeyTable if defined in a provided configuration file.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
@@ -120,7 +79,5 @@ which can be found via http://www.opendkim.org.
 Thanks go out to the members of the OpenDKIM team and to all of those who
 contributed code, testing effort or other support to this release.
 
-Finally, a very special acknowledgement goes out to Eve, to whom this release
-is dedicated.
 
 The OpenDKIM Project
