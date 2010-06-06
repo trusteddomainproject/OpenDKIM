@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.139 2010/06/04 17:45:55 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.140 2010/06/06 14:17:02 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -32,6 +32,9 @@ release, and a summary of the changes in that release.
 		by Todd Lyons.
 	Fix configuration logic around DontSignMailTo that prevented it from
 		working.  Reported by Warren Horvath.
+	When data set open operations fail during configuration file
+		processing, report the name of the data set instead of just
+		the error.
 	CONTRIB: Patch #SF3010443: Improvements to opendkim.init and
 		opendkim.spec from Kaspar Brand.
 	LIBOPENDKIM: Add dkim_get_sigsubstring(), required for "header.b"
