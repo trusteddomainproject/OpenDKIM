@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.132 2010/06/04 17:02:00 cm-msk Exp $
+**  $Id: opendkim.c,v 1.133 2010/06/06 00:56:40 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.132 2010/06/04 17:02:00 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.133 2010/06/06 00:56:40 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5060,8 +5060,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5084,8 +5084,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5097,8 +5097,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         DEFINTERNAL, strerror(errno));
 			return -1;
 		}
 	}
@@ -5121,8 +5121,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5145,8 +5145,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5162,8 +5162,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5179,8 +5179,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5196,8 +5196,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5213,8 +5213,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5236,8 +5236,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5259,8 +5259,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5276,8 +5276,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5293,8 +5293,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5327,8 +5327,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 
@@ -5351,7 +5351,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                       DKIMF_DB_FLAG_READONLY, NULL);
 			if (status != 0)
 			{
-				snprintf(err, errlen, "dkimf_db_open(): %s",
+				snprintf(err, errlen,
+				         "%s: dkimf_db_open(): %s",
+				         conf->conf_signtable,
 				         strerror(errno));
 				return -1;
 			}
@@ -5377,8 +5379,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                       DKIMF_DB_FLAG_READONLY, NULL);
 			if (status != 0)
 			{
-				snprintf(err, errlen, "dkimf_db_open(): %s",
-				         strerror(errno));
+				snprintf(err, errlen,
+				         "%s: dkimf_db_open(): %s",
+				         conf->conf_keytable, strerror(errno));
 				return -1;
 			}
 		}
@@ -5407,8 +5410,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5431,8 +5434,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5455,8 +5458,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5479,8 +5482,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                       DKIMF_DB_FLAG_READONLY, NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 	}
@@ -5504,8 +5507,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                        DKIMF_DB_FLAG_MATCHBOTH), NULL);
 		if (status != 0)
 		{
-			snprintf(err, errlen, "dkimf_db_open(): %s",
-			         strerror(errno));
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, strerror(errno));
 			return -1;
 		}
 
@@ -5839,9 +5842,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 
 	if ((conf->conf_mode & DKIMF_MODE_SIGNER) != 0 &&
-	    !(conf->conf_signtable != NULL && conf->conf_keytable != NULL) &&
-	    !(conf->conf_domainsdb != NULL && conf->conf_keyfile != NULL &&
-	      conf->conf_selector != NULL))
+	    !((conf->conf_signtable != NULL && conf->conf_keytable != NULL &&
+	       conf->conf_domainsdb == NULL && conf->conf_keyfile == NULL &&
+	       conf->conf_selector == NULL) ||
+	      (conf->conf_signtable == NULL && conf->conf_keytable == NULL &&
+	       conf->conf_domainsdb != NULL && conf->conf_keyfile != NULL &&
+	       conf->conf_selector != NULL)))
 	{
 		snprintf(err, errlen,
 		         "signing mode requires SigningTable/KeyTable or Domain/Selector/KeyFile");
