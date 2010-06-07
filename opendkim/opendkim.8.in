@@ -218,7 +218,8 @@ also used in conjunction with
 .TP
 .I -k keyfile
 Gives the location of a PEM-formatted private key to be used for signing
-all messages.
+all messages.  Ignored if a configuration file is referenced that defines
+a KeyTable.
 .TP
 .I -l
 Log via calls to
