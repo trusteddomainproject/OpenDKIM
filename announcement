@@ -33,7 +33,7 @@ applied to libopendkim.
 
 The full RELEASE_NOTES for this version:
 
-2.1.0		2010/06/06
+2.1.0		2010/06/07
 	Feature request #SF2964369: Add _FFR_LDAP_CACHING to cache and share
 		common LDAP queries using an internal query cache for
 		better optimization of LDAP resources.
