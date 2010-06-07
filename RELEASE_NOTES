@@ -1,11 +1,11 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.140 2010/06/06 14:17:02 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.141 2010/06/07 14:13:33 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.1.0		2010/06/06
+2.1.0		2010/06/07
 	Feature request #SF2964369: Add _FFR_LDAP_CACHING to cache and share
 		common LDAP queries using an internal query cache for
 		better optimization of LDAP resources.
