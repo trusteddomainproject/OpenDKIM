@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: opendkim.init,v 1.2 2010/06/02 17:33:08 cm-msk Exp $
+# $Id: opendkim.init,v 1.3 2010/06/07 15:22:51 cm-msk Exp $
 #
 #### BEGIN INIT INFO
 # Provides:          opendkim
@@ -130,7 +130,7 @@ fi
 
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 
-ARGS="-u $USER $ARGS -P $PIDFILE"
+ARGS="-u $USER $ARGS"
 
 if [ -n "$SOCKET" ]; then
 	ARGS="$ARGS -p $SOCKET"
