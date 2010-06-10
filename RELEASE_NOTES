@@ -1,9 +1,14 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.141 2010/06/07 14:13:33 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.142 2010/06/10 05:01:05 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
+
+2.1.1		2010/06/23
+	Fixes bugs in data set name parsing (e.g. allow dots in fields so that
+		fully qualified hostnames can be given).  Patch from
+		Josephus.
 
 2.1.0		2010/06/07
 	Feature request #SF2964369: Add _FFR_LDAP_CACHING to cache and share
