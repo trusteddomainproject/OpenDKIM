@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.143 2010/06/10 23:24:19 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.144 2010/06/11 22:39:32 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -9,6 +9,9 @@ release, and a summary of the changes in that release.
 	Fix bugs in data set name parsing (e.g. allow dots in fields so that
 		fully qualified hostnames can be given).  Patch from
 		Josephus.
+	Force IPv6 addresses to lowercase, which is about to become standard
+		(see draft-ietf-6man-text-addr-representation-07).  Problem
+		noted by Reuben Farrelly.
 
 2.1.0		2010/06/07
 	Feature request #SF2964369: Add _FFR_LDAP_CACHING to cache and share
