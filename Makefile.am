@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.47 2010/06/05 15:15:14 cm-msk Exp $
+# $Id: Makefile.am,v 1.48 2010/06/11 22:33:48 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -25,7 +25,7 @@ dist_doc_DATA = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail \
 	contrib/opendkim.spec \
 	docs/draft-ietf-marf-base-06.txt \
 	docs/draft-ietf-marf-dkim-reporting-00.txt \
-	docs/draft-kucherawy-authres-header-b-01.txt \
+	docs/draft-kucherawy-authres-header-b-03.txt \
 	docs/rfc4686.txt \
 	docs/rfc4871.txt \
 	docs/rfc5016.txt \
