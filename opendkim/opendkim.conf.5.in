@@ -513,6 +513,11 @@ except in test mode (see the
 man page)
 in which case the default is
 .I v.
+When signing mode is enabled, one of the following combinations must also
+be set:
+(a) Domain, KeyFile, Selector, no KeyTable, no SigningTable;
+(b) KeyTable, SigningTable, no Domain, no Keyfile, no Selector;
+(c) KeyTable, SetupPolicyScript, no Domain, no Keyfile, no Selector.
 
 .TP
 .I MTA (dataset)

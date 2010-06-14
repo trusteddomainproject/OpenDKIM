@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.134 2010/06/14 18:46:07 cm-msk Exp $
+**  $Id: opendkim.c,v 1.135 2010/06/14 21:25:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.134 2010/06/14 18:46:07 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.135 2010/06/14 21:25:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5843,15 +5843,24 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 
 	if ((conf->conf_mode & DKIMF_MODE_SIGNER) != 0 &&
-	    !((conf->conf_signtable != NULL && conf->conf_keytable != NULL &&
+	    !((conf->conf_keytable != NULL &&
+#ifdef USE_LUA
+	       (conf->conf_signtable != NULL ||
+	        conf->conf_setupscript != NULL)
+#else /* USE_LUA */
+	       conf->conf_signtable != NULL &&
+#endif /* USE_LUA */
 	       conf->conf_domainsdb == NULL && conf->conf_keyfile == NULL &&
 	       conf->conf_selector == NULL) ||
 	      (conf->conf_signtable == NULL && conf->conf_keytable == NULL &&
+#ifdef USE_LUA
+	       conf->conf_setupscript != NULL &&
+#endif /* USE_LUA */
 	       conf->conf_domainsdb != NULL && conf->conf_keyfile != NULL &&
 	       conf->conf_selector != NULL)))
 	{
 		snprintf(err, errlen,
-		         "signing mode requires SigningTable/KeyTable or Domain/Selector/KeyFile");
+		         "invalid or insufficient parameters for signing mode");
 		return -1;
 	}
 
