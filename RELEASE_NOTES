@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.148 2010/06/14 20:24:57 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.149 2010/06/14 20:57:17 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -12,7 +12,7 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3015441: Argument processing for odkim.log() was incorrect.
 		Problem reported by Josephus.
 	Fix bug #SF3016124: odbx_field_value() returns NULL if the requested
-		column contains an SQL NULL.
+		column contains an SQL NULL.  Problem reported by Josephus.
 	Patch #SF3015439: Fix bugs in data set name parsing (e.g. allow dots
 		in fields so that fully qualified hostnames can be given).
 		Patch from Josephus.
