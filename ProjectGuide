@@ -1,4 +1,45 @@
-$Id: ProjectGuide,v 1.2 2009/11/11 22:30:00 grooverdan Exp $
+$Id: ProjectGuide,v 1.3 2010/06/14 20:08:58 cm-msk Exp $
+
+OpenDKIM Release Planning
+
+MAJOR RELEASES: Major releases (i.e. for version x.y.z, those for which
+"x" increases) contain major new features or major code rewriting efforts.
+With very few exceptions, they are typically planned several months apart
+to allow for development complexity and extensive unit testing.  They may
+be planned in conjunction with releases with other projects where the two
+are co-operating in some way.  They should also include a beta period of
+at least a month.  Heavy code review activity is expected.  Users should
+anticipate the possibility of breakage if a binary replacement is done;
+though this will be avoided whenever practical, these releases are the
+ones where backward compatibility is most likely to be broken.  Any change
+that establishes a new external dependency must occur in a major release.
+
+MINOR RELEASES: Minor releases (those for which "y" increases) contain new
+features or code changes not warranting a full major release.  They are also
+typically planned a few months apart, though with more frequency than
+major releases.  They generally coincide with conferences or other public
+events where the code or related topics may be featured, but this is not
+a scheduling requirement.  They should always include a beta period of at
+least two weeks but preferably a month.  Code review is required; anything
+not reviewed by release should be demoted to an FFR.  An existing FFR can be
+activated, or a new one added, in a minor release.  Backward compatibility
+with existing versions should be maintained whenever possible.  No new
+external dependencies may be created.
+
+PATCH RELEASES: Patch releases (those for which only "z" increases) contain
+fixes to existing code only, and never contain new features or remove existing
+ones.  A patch release is typically scheduled for two weeks after an important
+bug is reported, and any other bugs that occur during that window are generally
+included in that release.  However, a patch release is never scheduled when
+doing so would collide with some other pending release.  Beta periods are
+generally not required, though developers should plan to add unit tests to
+fixes where possible.  Backward compatibility must be preserved in patch
+releases except where doing so is simply impossible.
+
+NOTES:
+- changes to anything in the "contrib" directory may appear in any release as
+  they are unsupported
+
 
 OpenDKIM Source Code Management Policies
 
