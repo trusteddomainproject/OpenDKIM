@@ -383,11 +383,11 @@ Within example.com, you want to sign for user "president" differently than
 everyone else.  Let's say further that you want to use a flat text file.
 
 You've generated private key files for each of these and stored them
-in /usr/local/etc/dkim/keys/president, /usr/local/etc/dkim/keys/excom and
-/usr/local/etc/dkim/keys/exnet, with the obvious intents.  You want to use
-selectors "foo", "bar" and "baz" for those, respectively.  The signing domains
-match the senders (i.e. the signatures for example.com's stuff will be
-held by example.com, and example.net likewise).
+in the directory /usr/local/etc/dkim/keys as files "president", "excom" and
+"exnet", with the obvious intents.  You want to use selectors "foo", "bar"
+and "baz" for those, respectively.  The signing domains match the senders
+(i.e. the signatures for example.com's stuff will be held by example.com,
+and example.net likewise).
 
 First, write the KeyTable.  This is a list of the keys you intend to use,
 and you just assign arbitrary names to them.  So as a flat file, the KeyTable
@@ -449,4 +449,4 @@ headers of the reply you should see its signature and another
 Authentication-Results: header, which should also read "pass".
 
 
-$Id: INSTALL,v 1.17 2010/06/14 02:36:10 cm-msk Exp $
+$Id: INSTALL,v 1.18 2010/06/14 03:04:37 cm-msk Exp $
