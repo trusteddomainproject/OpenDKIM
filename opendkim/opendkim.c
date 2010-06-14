@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.135 2010/06/14 21:25:27 cm-msk Exp $
+**  $Id: opendkim.c,v 1.136 2010/06/14 21:26:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.135 2010/06/14 21:25:27 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.136 2010/06/14 21:26:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5846,7 +5846,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	    !((conf->conf_keytable != NULL &&
 #ifdef USE_LUA
 	       (conf->conf_signtable != NULL ||
-	        conf->conf_setupscript != NULL)
+	        conf->conf_setupscript != NULL) &&
 #else /* USE_LUA */
 	       conf->conf_signtable != NULL &&
 #endif /* USE_LUA */
