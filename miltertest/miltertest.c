@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.14 2010/06/01 05:02:23 cm-msk Exp $
+**  $Id: miltertest.c,v 1.15 2010/06/14 19:39:14 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.14 2010/06/01 05:02:23 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.15 2010/06/14 19:39:14 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -54,6 +54,12 @@ static char miltertest_c_id[] = "$Id: miltertest.c,v 1.14 2010/06/01 05:02:23 cm
 #ifndef TRUE
 # define TRUE			1
 #endif /* ! TRUE */
+
+#ifdef SMFIP_NODATA
+# define CHECK_MPOPTS(c,o)	(((c)->ctx_mpopts & (o)) != 0)
+#else /* SMFIP_NODATA */
+# define CHECK_MPOPTS()		0
+#endif /* SMFIP_NODATA */
 
 #define	MT_PRODUCT		"OpenDKIM milter test facility"
 #define	MT_VERSION		"1.0.0"
@@ -600,44 +606,50 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 	if (state >= STATE_CONNINFO && ctx->ctx_state < STATE_CONNINFO)
 	{
-		char rcmd;
-		size_t buflen;
-
-		buflen = sizeof buf;
-
-		port = htons(DEFCLIENTPORT);
-		len = strlcpy(buf, DEFCLIENTHOST, sizeof buf);
-		buf[len++] = '\0';
-		buf[len++] = '4';		/* IPv4 only for now */
-		memcpy(&buf[len], &port, sizeof port);
-		len += sizeof port;
-		memcpy(&buf[len], DEFCLIENTIP, strlen(DEFCLIENTIP) + 1);
-
-		s = len + strlen(DEFCLIENTIP) + 1;
-
-		if (!mt_milter_write(ctx->ctx_fd, SMFIC_CONNECT, buf, s))
-			return FALSE;
-
-		rcmd = SMFIR_CONTINUE;
-
-		if ((ctx->ctx_mpopts & SMFIP_NR_CONN) == 0)
+		if (!CHECK_MPOPTS(ctx, SMFIP_NOCONNECT))
 		{
-			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+			char rcmd;
+			size_t buflen;
+
+			buflen = sizeof buf;
+
+			port = htons(DEFCLIENTPORT);
+			len = strlcpy(buf, DEFCLIENTHOST, sizeof buf);
+			buf[len++] = '\0';
+			buf[len++] = '4';		/* IPv4 only for now */
+			memcpy(&buf[len], &port, sizeof port);
+			len += sizeof port;
+			memcpy(&buf[len], DEFCLIENTIP,
+			       strlen(DEFCLIENTIP) + 1);
+
+			s = len + strlen(DEFCLIENTIP) + 1;
+
+			if (!mt_milter_write(ctx->ctx_fd, SMFIC_CONNECT,
+			                     buf, s))
 				return FALSE;
 
-			ctx->ctx_response = rcmd;
-		}
+			rcmd = SMFIR_CONTINUE;
 
-		if (rcmd != SMFIR_CONTINUE)
-		{
-			if (verbose > 0)
+			if ((ctx->ctx_mpopts & SMFIP_NR_CONN) == 0)
 			{
-				fprintf(stdout,
-				        "%s: filter returned status %d to connection information on fd %d\n", 
-				        progname, rcmd, ctx->ctx_fd);
+				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
+				                    buf, &buflen))
+					return FALSE;
+
+				ctx->ctx_response = rcmd;
 			}
 
-			ctx->ctx_state = STATE_DEAD;
+			if (rcmd != SMFIR_CONTINUE)
+			{
+				if (verbose > 0)
+				{
+					fprintf(stdout,
+					        "%s: filter returned status %d to connection information on fd %d\n", 
+					        progname, rcmd, ctx->ctx_fd);
+				}
+
+				ctx->ctx_state = STATE_DEAD;
+			}
 		}
 
 		ctx->ctx_state = STATE_CONNINFO;
@@ -645,37 +657,42 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 	if (state >= STATE_HELO && ctx->ctx_state < STATE_HELO)
 	{
-		char rcmd;
-		size_t buflen;
-
-		buflen = sizeof buf;
-
-		len = strlcpy(buf, DEFCLIENTHOST, sizeof buf);
-		buf[len++] = '\0';
-
-		if (!mt_milter_write(ctx->ctx_fd, SMFIC_HELO, buf, len))
-			return FALSE;
-
-		rcmd = SMFIR_CONTINUE;
-
-		if ((ctx->ctx_mpopts & SMFIP_NR_HELO) == 0)
+		if (!CHECK_MPOPTS(ctx, SMFIP_NOHELO))
 		{
-			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+			char rcmd;
+			size_t buflen;
+
+			buflen = sizeof buf;
+
+			len = strlcpy(buf, DEFCLIENTHOST, sizeof buf);
+			buf[len++] = '\0';
+
+			if (!mt_milter_write(ctx->ctx_fd, SMFIC_HELO,
+			                     buf, len))
 				return FALSE;
 
-			ctx->ctx_response = rcmd;
-		}
+			rcmd = SMFIR_CONTINUE;
 
-		if (rcmd != SMFIR_CONTINUE)
-		{
-			if (verbose > 0)
+			if ((ctx->ctx_mpopts & SMFIP_NR_HELO) == 0)
 			{
-				fprintf(stdout,
-				        "%s: filter returned status %d to HELO on fd %d\n", 
-				        progname, rcmd, ctx->ctx_fd);
+				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
+				                    buf, &buflen))
+					return FALSE;
+
+				ctx->ctx_response = rcmd;
 			}
 
-			ctx->ctx_state = STATE_DEAD;
+			if (rcmd != SMFIR_CONTINUE)
+			{
+				if (verbose > 0)
+				{
+					fprintf(stdout,
+					        "%s: filter returned status %d to HELO on fd %d\n", 
+					        progname, rcmd, ctx->ctx_fd);
+				}
+
+				ctx->ctx_state = STATE_DEAD;
+			}
 		}
 
 		ctx->ctx_state = STATE_HELO;
@@ -683,37 +700,42 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 	if (state >= STATE_ENVFROM && ctx->ctx_state < STATE_ENVFROM)
 	{
-		char rcmd;
-		size_t buflen;
-
-		buflen = sizeof buf;
-
-		len = strlcpy(buf, DEFSENDER, sizeof buf);
-		buf[len++] = '\0';
-
-		if (!mt_milter_write(ctx->ctx_fd, SMFIC_MAIL, buf, len))
-			return FALSE;
-
-		rcmd = SMFIR_CONTINUE;
-
-		if ((ctx->ctx_mpopts & SMFIP_NR_MAIL) == 0)
+		if (!CHECK_MPOPTS(ctx, SMFIP_NOMAIL))
 		{
-			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+			char rcmd;
+			size_t buflen;
+
+			buflen = sizeof buf;
+
+			len = strlcpy(buf, DEFSENDER, sizeof buf);
+			buf[len++] = '\0';
+
+			if (!mt_milter_write(ctx->ctx_fd, SMFIC_MAIL,
+			                     buf, len))
 				return FALSE;
 
-			ctx->ctx_response = rcmd;
-		}
+			rcmd = SMFIR_CONTINUE;
 
-		if (rcmd != SMFIR_CONTINUE)
-		{
-			if (verbose > 0)
+			if ((ctx->ctx_mpopts & SMFIP_NR_MAIL) == 0)
 			{
-				fprintf(stdout,
-				        "%s: filter returned status %d to MAIL on fd %d\n", 
-				        progname, rcmd, ctx->ctx_fd);
+				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
+				                    buf, &buflen))
+					return FALSE;
+
+				ctx->ctx_response = rcmd;
 			}
 
-			ctx->ctx_state = STATE_DEAD;
+			if (rcmd != SMFIR_CONTINUE)
+			{
+				if (verbose > 0)
+				{
+					fprintf(stdout,
+					        "%s: filter returned status %d to MAIL on fd %d\n", 
+					        progname, rcmd, ctx->ctx_fd);
+				}
+
+				ctx->ctx_state = STATE_DEAD;
+			}
 		}
 
 		ctx->ctx_state = STATE_ENVFROM;
@@ -721,37 +743,42 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 	if (state >= STATE_ENVRCPT && ctx->ctx_state < STATE_ENVRCPT)
 	{
-		char rcmd;
-		size_t buflen;
-
-		buflen = sizeof buf;
-
-		len = strlcpy(buf, DEFRECIPIENT, sizeof buf);
-		buf[len++] = '\0';
-
-		if (!mt_milter_write(ctx->ctx_fd, SMFIC_RCPT, buf, len))
-			return FALSE;
-
-		rcmd = SMFIR_CONTINUE;
-
-		if ((ctx->ctx_mpopts & SMFIP_NR_RCPT) == 0)
+		if (!CHECK_MPOPTS(ctx, SMFIP_NORCPT))
 		{
-			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+			char rcmd;
+			size_t buflen;
+
+			buflen = sizeof buf;
+
+			len = strlcpy(buf, DEFRECIPIENT, sizeof buf);
+			buf[len++] = '\0';
+
+			if (!mt_milter_write(ctx->ctx_fd, SMFIC_RCPT,
+			                     buf, len))
 				return FALSE;
 
-			ctx->ctx_response = rcmd;
-		}
+			rcmd = SMFIR_CONTINUE;
 
-		if (rcmd != SMFIR_CONTINUE)
-		{
-			if (verbose > 0)
+			if ((ctx->ctx_mpopts & SMFIP_NR_RCPT) == 0)
 			{
-				fprintf(stdout,
-				        "%s: filter returned status %d to RCPT on fd %d\n", 
-				        progname, rcmd, ctx->ctx_fd);
+				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
+				                    buf, &buflen))
+					return FALSE;
+
+				ctx->ctx_response = rcmd;
 			}
 
-			ctx->ctx_state = STATE_DEAD;
+			if (rcmd != SMFIR_CONTINUE)
+			{
+				if (verbose > 0)
+				{
+					fprintf(stdout,
+					        "%s: filter returned status %d to RCPT on fd %d\n", 
+					        progname, rcmd, ctx->ctx_fd);
+				}
+
+				ctx->ctx_state = STATE_DEAD;
+			}
 		}
 
 		ctx->ctx_state = STATE_ENVRCPT;
@@ -759,34 +786,38 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 	if (state >= STATE_DATA && ctx->ctx_state < STATE_DATA)
 	{
-		char rcmd;
-		size_t buflen;
-
-		buflen = sizeof buf;
-
-		if (!mt_milter_write(ctx->ctx_fd, SMFIC_DATA, NULL, 0))
-			return FALSE;
-
-		rcmd = SMFIR_CONTINUE;
-
-		if ((ctx->ctx_mpopts & SMFIP_NR_DATA) == 0)
+		if (!CHECK_MPOPTS(ctx, SMFIP_NODATA))
 		{
-			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+			char rcmd;
+			size_t buflen;
+
+			buflen = sizeof buf;
+
+			if (!mt_milter_write(ctx->ctx_fd, SMFIC_DATA, NULL, 0))
 				return FALSE;
 
-			ctx->ctx_response = rcmd;
-		}
+			rcmd = SMFIR_CONTINUE;
 
-		if (rcmd != SMFIR_CONTINUE)
-		{
-			if (verbose > 0)
+			if ((ctx->ctx_mpopts & SMFIP_NR_DATA) == 0)
 			{
-				fprintf(stdout,
-				        "%s: filter returned status %d to DATA on fd %d\n", 
-				        progname, rcmd, ctx->ctx_fd);
+				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
+				                    buf, &buflen))
+					return FALSE;
+
+				ctx->ctx_response = rcmd;
 			}
 
-			ctx->ctx_state = STATE_DEAD;
+			if (rcmd != SMFIR_CONTINUE)
+			{
+				if (verbose > 0)
+				{
+					fprintf(stdout,
+					        "%s: filter returned status %d to DATA on fd %d\n", 
+					        progname, rcmd, ctx->ctx_fd);
+				}
+
+				ctx->ctx_state = STATE_DEAD;
+			}
 		}
 
 		ctx->ctx_state = STATE_DATA;
@@ -794,39 +825,44 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 	if (state >= STATE_HEADER && ctx->ctx_state < STATE_HEADER)
 	{
-		char rcmd;
-		size_t buflen;
-
-		buflen = sizeof buf;
-
-		len = strlcpy(buf, DEFHEADERNAME, sizeof buf);
-		buf[len++] = '\0';
-		len += strlcpy(buf + len, DEFSENDER, sizeof buf - len);
-		buf[len++] = '\0';
-
-		if (!mt_milter_write(ctx->ctx_fd, SMFIC_HEADER, buf, len))
-			return FALSE;
-
-		rcmd = SMFIR_CONTINUE;
-
-		if ((ctx->ctx_mpopts & SMFIP_NR_HDR) == 0)
+		if (!CHECK_MPOPTS(ctx, SMFIP_NOHDRS))
 		{
-			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+			char rcmd;
+			size_t buflen;
+
+			buflen = sizeof buf;
+
+			len = strlcpy(buf, DEFHEADERNAME, sizeof buf);
+			buf[len++] = '\0';
+			len += strlcpy(buf + len, DEFSENDER, sizeof buf - len);
+			buf[len++] = '\0';
+
+			if (!mt_milter_write(ctx->ctx_fd, SMFIC_HEADER,
+			                     buf, len))
 				return FALSE;
 
-			ctx->ctx_response = rcmd;
-		}
+			rcmd = SMFIR_CONTINUE;
 
-		if (rcmd != SMFIR_CONTINUE)
-		{
-			if (verbose > 0)
+			if ((ctx->ctx_mpopts & SMFIP_NR_HDR) == 0)
 			{
-				fprintf(stdout,
-				        "%s: filter returned status %d to header on fd %d\n", 
-				        progname, rcmd, ctx->ctx_fd);
+				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
+				                    buf, &buflen))
+					return FALSE;
+
+				ctx->ctx_response = rcmd;
 			}
 
-			ctx->ctx_state = STATE_DEAD;
+			if (rcmd != SMFIR_CONTINUE)
+			{
+				if (verbose > 0)
+				{
+					fprintf(stdout,
+					        "%s: filter returned status %d to header on fd %d\n", 
+					        progname, rcmd, ctx->ctx_fd);
+				}
+
+				ctx->ctx_state = STATE_DEAD;
+			}
 		}
 
 		ctx->ctx_state = STATE_HEADER;
@@ -834,34 +870,38 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 	if (state >= STATE_EOH && ctx->ctx_state < STATE_EOH)
 	{
-		char rcmd;
-		size_t buflen;
-
-		buflen = sizeof buf;
-
-		if (!mt_milter_write(ctx->ctx_fd, SMFIC_EOH, NULL, 0))
-			return FALSE;
-
-		rcmd = SMFIR_CONTINUE;
-
-		if ((ctx->ctx_mpopts & SMFIP_NR_EOH) == 0)
+		if (!CHECK_MPOPTS(ctx, SMFIP_NOEOH))
 		{
-			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+			char rcmd;
+			size_t buflen;
+
+			buflen = sizeof buf;
+
+			if (!mt_milter_write(ctx->ctx_fd, SMFIC_EOH, NULL, 0))
 				return FALSE;
 
-			ctx->ctx_response = rcmd;
-		}
+			rcmd = SMFIR_CONTINUE;
 
-		if (rcmd != SMFIR_CONTINUE)
-		{
-			if (verbose > 0)
+			if ((ctx->ctx_mpopts & SMFIP_NR_EOH) == 0)
 			{
-				fprintf(stdout,
-				        "%s: filter returned status %d to EOH on fd %d\n", 
-				        progname, rcmd, ctx->ctx_fd);
+				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
+				                    buf, &buflen))
+					return FALSE;
+
+				ctx->ctx_response = rcmd;
 			}
 
-			ctx->ctx_state = STATE_DEAD;
+			if (rcmd != SMFIR_CONTINUE)
+			{
+				if (verbose > 0)
+				{
+					fprintf(stdout,
+					        "%s: filter returned status %d to EOH on fd %d\n", 
+					        progname, rcmd, ctx->ctx_fd);
+				}
+	
+				ctx->ctx_state = STATE_DEAD;
+			}
 		}
 
 		ctx->ctx_state = STATE_EOH;
@@ -869,35 +909,39 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 	if (state >= STATE_BODY && ctx->ctx_state < STATE_BODY)
 	{
-		char rcmd;
-		size_t buflen;
-
-		buflen = sizeof buf;
-
-		if (!mt_milter_write(ctx->ctx_fd, SMFIC_BODY, DEFBODY,
-		                     strlen(DEFBODY)))
-			return FALSE;
-
-		rcmd = SMFIR_CONTINUE;
-
-		if ((ctx->ctx_mpopts & SMFIP_NR_BODY) == 0)
+		if (!CHECK_MPOPTS(ctx, SMFIP_NOBODY))
 		{
-			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
+			char rcmd;
+			size_t buflen;
+
+			buflen = sizeof buf;
+
+			if (!mt_milter_write(ctx->ctx_fd, SMFIC_BODY, DEFBODY,
+			                     strlen(DEFBODY)))
 				return FALSE;
 
-			ctx->ctx_response = rcmd;
-		}
+			rcmd = SMFIR_CONTINUE;
 
-		if (rcmd != SMFIR_CONTINUE)
-		{
-			if (verbose > 0)
+			if ((ctx->ctx_mpopts & SMFIP_NR_BODY) == 0)
 			{
-				fprintf(stdout,
-				        "%s: filter returned status %d to body on fd %d\n", 
-				        progname, rcmd, ctx->ctx_fd);
+				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
+				                    buf, &buflen))
+					return FALSE;
+
+				ctx->ctx_response = rcmd;
 			}
 
-			ctx->ctx_state = STATE_DEAD;
+			if (rcmd != SMFIR_CONTINUE)
+			{
+				if (verbose > 0)
+				{
+					fprintf(stdout,
+					        "%s: filter returned status %d to body on fd %d\n", 
+					        progname, rcmd, ctx->ctx_fd);
+				}
+	
+				ctx->ctx_state = STATE_DEAD;
+			}
 		}
 
 		ctx->ctx_state = STATE_BODY;
@@ -1751,6 +1795,12 @@ mt_conninfo(lua_State *l)
 	if (!mt_assert_state(ctx, STATE_NEGOTIATED))
 		lua_error(l);
 
+	if (CHECK_MPOPTS(ctx, SMFIP_NOCONNECT))
+	{
+		lua_pushstring(l, "mt.conninfo(): negotiated SMFIP_NOCONNECT");
+		lua_error(l);
+	}
+
 	if (ipstr == NULL)
 	{
 #if (HAVE_GETADDRINFO && HAVE_INET_NTOP)
@@ -1927,6 +1977,12 @@ mt_unknown(lua_State *l)
 	if (!mt_assert_state(ctx, STATE_CONNINFO))
 		lua_error(l);
 
+	if (CHECK_MPOPTS(ctx, SMFIP_NOUNKNOWN))
+	{
+		lua_pushstring(l, "mt.unknown(): negotiated SMFIP_NOUNKNOWN");
+		lua_error(l);
+	}
+
 	s = strlen(cmd) + 1;
 
 	bp = buf;
@@ -2004,6 +2060,12 @@ mt_helo(lua_State *l)
 
 	if (!mt_assert_state(ctx, STATE_CONNINFO))
 		lua_error(l);
+
+	if (CHECK_MPOPTS(ctx, SMFIP_NOHELO))
+	{
+		lua_pushstring(l, "mt.helo(): negotiated SMFIP_NOHELO");
+		lua_error(l);
+	}
 
 	s = strlen(host) + 1;
 
@@ -2100,6 +2162,12 @@ mt_mailfrom(lua_State *l)
 	if (!mt_assert_state(ctx, STATE_HELO))
 		lua_error(l);
 
+	if (CHECK_MPOPTS(ctx, SMFIP_NOMAIL))
+	{
+		lua_pushstring(l, "mt.mailfrom(): negotiated SMFIP_NOMAIL");
+		lua_error(l);
+	}
+
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_MAIL, buf, s))
 	{
 		lua_pushstring(l, "mt.milter_write() failed");
@@ -2189,6 +2257,12 @@ mt_rcptto(lua_State *l)
 	if (!mt_assert_state(ctx, STATE_ENVFROM))
 		lua_error(l);
 
+	if (CHECK_MPOPTS(ctx, SMFIP_NORCPT))
+	{
+		lua_pushstring(l, "mt.rcptto(): negotiated SMFIP_NORCPT");
+		lua_error(l);
+	}
+
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_RCPT, buf, s))
 	{
 		lua_pushstring(l, "mt.milter_write() failed");
@@ -2260,6 +2334,12 @@ mt_data(lua_State *l)
 
 	if (!mt_assert_state(ctx, STATE_DATA))
 		lua_error(l);
+
+	if (CHECK_MPOPTS(ctx, SMFIP_NODATA))
+	{
+		lua_pushstring(l, "mt.data(): negotiated SMFIP_NODATA");
+		lua_error(l);
+	}
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_DATA, NULL, 0))
 	{
@@ -2344,6 +2424,12 @@ mt_header(lua_State *l)
 	if (!mt_assert_state(ctx, STATE_ENVRCPT))
 		lua_error(l);
 
+	if (CHECK_MPOPTS(ctx, SMFIP_NOHDRS))
+	{
+		lua_pushstring(l, "mt.header(): negotiated SMFIP_NOHDRS");
+		lua_error(l);
+	}
+
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_HEADER, buf, s))
 	{
 		lua_pushstring(l, "mt.milter_write() failed");
@@ -2415,6 +2501,12 @@ mt_eoh(lua_State *l)
 
 	if (!mt_assert_state(ctx, STATE_HEADER))
 		lua_error(l);
+
+	if (CHECK_MPOPTS(ctx, SMFIP_NOEOH))
+	{
+		lua_pushstring(l, "mt.eoh(): negotiated SMFIP_NOEOH");
+		lua_error(l);
+	}
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_EOH, NULL, 0))
 	{
@@ -2488,6 +2580,12 @@ mt_bodystring(lua_State *l)
 
 	if (!mt_assert_state(ctx, STATE_EOH))
 		lua_error(l);
+
+	if (CHECK_MPOPTS(ctx, SMFIP_NOBODY))
+	{
+		lua_pushstring(l, "mt.bodystring(): negotiated SMFIP_NOBODY");
+		lua_error(l);
+	}
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_BODY, str, strlen(str)))
 	{
@@ -2563,6 +2661,12 @@ mt_bodyrandom(lua_State *l)
 
 	if (!mt_assert_state(ctx, STATE_EOH))
 		lua_error(l);
+
+	if (CHECK_MPOPTS(ctx, SMFIP_NOBODY))
+	{
+		lua_pushstring(l, "mt.bodyrandom(): negotiated SMFIP_NOBODY");
+		lua_error(l);
+	}
 
 	while (rw > 0)
 	{
@@ -2653,6 +2757,12 @@ mt_bodyfile(lua_State *l)
 
 	if (!mt_assert_state(ctx, STATE_EOH))
 		lua_error(l);
+
+	if (CHECK_MPOPTS(ctx, SMFIP_NOBODY))
+	{
+		lua_pushstring(l, "mt.bodyfile(): negotiated SMFIP_NOBODY");
+		lua_error(l);
+	}
 
 	f = fopen(file, "r");
 	if (f == NULL)

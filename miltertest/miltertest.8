@@ -481,15 +481,14 @@ end
 mt.disconnect(conn)
 .PD
 .SH NOTES
-.I miltertest
-does not currently enforce the SMFIP_NO* macros that a filter might request
-in order to have the (simulated) MTA skip certain protocol steps.  It is up
-to the test author to use
+If a filter negotiates one of the SMFIP_NO* protocol option bits and a
+script attempts to perform one of those protocol steps, an error is returned.
+It is up to the test author to use
 .I mt.test_option
 function to see if performing a protocol step has been explicitly disabled
 by the filter.
 .SH VERSION
-This man page covers version 1.0.0 of
+This man page covers version 1.2.2 of
 .I miltertest.
 .SH COPYRIGHT
 Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
