@@ -393,9 +393,9 @@ First, write the KeyTable.  This is a list of the keys you intend to use,
 and you just assign arbitrary names to them.  So as a flat file, the KeyTable
 for the above might look like this:
 
-	preskey	foo:example.com:/usr/local/etc/dkim/keys/president
-	comkey	bar:example.com:/usr/local/etc/dkim/keys/excom
-	netkey	baz:example.com:/usr/local/etc/dkim/keys/exnet
+	preskey	example.com:foo:/usr/local/etc/dkim/keys/president
+	comkey	example.com:bar:/usr/local/etc/dkim/keys/excom
+	netkey	example.com:baz:/usr/local/etc/dkim/keys/exnet
 
 Per the documentation, multi-field data sets that are made of flat files have
 the fields separated by colons, but the key and value(s) are separated by
@@ -449,4 +449,4 @@ headers of the reply you should see its signature and another
 Authentication-Results: header, which should also read "pass".
 
 
-$Id: INSTALL,v 1.16 2010/05/20 22:59:07 cm-msk Exp $
+$Id: INSTALL,v 1.17 2010/06/14 02:36:10 cm-msk Exp $
