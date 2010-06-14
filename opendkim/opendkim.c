@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.133 2010/06/06 00:56:40 cm-msk Exp $
+**  $Id: opendkim.c,v 1.134 2010/06/14 18:46:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.133 2010/06/06 00:56:40 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.134 2010/06/14 18:46:07 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -984,12 +984,13 @@ dkimf_xs_log(lua_State *l)
 	SMFICTX *ctx;
 	const char *logstring;
 
-	if (lua_gettop(l) != 1)
+	if (lua_gettop(l) != 2)
 	{
 		lua_pushstring(l, "odkim.log(): incorrect argument count");
 		lua_error(l);
 	}
-	else if (!lua_isstring(l, 1))
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2))
 	{
 		lua_pushstring(l, "odkim.log(): incorrect argument type");
 		lua_error(l);

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.34 2010/06/11 22:38:11 cm-msk Exp $
+**  $Id: util.c,v 1.35 2010/06/14 18:46:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.34 2010/06/11 22:38:11 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.35 2010/06/14 18:46:07 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -411,6 +411,8 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 	{
 		int status;
 		int bits;
+		size_t dst_len;
+		char *dst;
 		struct sockaddr_in6 sin6;
 		struct in6_addr addr;
 
@@ -422,13 +424,32 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 		{
 			inet_ntop(AF_INET,
 			          &addr.s6_addr[INET6_ADDRSTRLEN - INET_ADDRSTRLEN],
-			          ipbuf, sizeof ipbuf);
+			          dst, dst_len);
+			dkimf_lowercase(dst);
+
+			memset(ipbuf, '\0', sizeof ipbuf);
+			ipbuf[0] = '!';
+
+			dst = &ipbuf[1];
+			dst_len = sizeof ipbuf - 1;
+
+			exists = FALSE;
+
+			status = dkimf_db_get(db, ipbuf, 0, NULL, 0, &exists);
+			if (status != 0)
+				return FALSE;
+			if (exists)
+				return FALSE;
+
+			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, 0,
+			                      &exists);
+			if (status != 0)
+				return FALSE;
+			if (exists)
+				return TRUE;
 		}
 		else
 		{
-			char *dst;
-			size_t dst_len;
-
 			memset(ipbuf, '\0', sizeof ipbuf);
 			ipbuf[0] = '!';
 

@@ -1,11 +1,13 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.145 2010/06/14 18:43:13 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.146 2010/06/14 18:46:07 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.1.1		2010/06/23
+	Fix bug #SF3015441: Argument processing for odkim.log() was incorrect.
+		Problem reported by Josephus.
 	Patch #SF3015439: Fix bugs in data set name parsing (e.g. allow dots
 		in fields so that fully qualified hostnames can be given).
 		Patch from Josephus.
