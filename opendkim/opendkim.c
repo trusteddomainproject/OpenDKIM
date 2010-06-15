@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.136 2010/06/14 21:26:10 cm-msk Exp $
+**  $Id: opendkim.c,v 1.137 2010/06/15 06:49:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.136 2010/06/14 21:26:10 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.137 2010/06/15 06:49:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1245,7 +1245,7 @@ dkimf_xs_requestsig(lua_State *l)
 		conf = cc->cctx_config;
 
 		if (lua_gettop(l) == 2)
-			keyname = lua_tostring(l, 4);
+			keyname = lua_tostring(l, 2);
 	}
 
 	lua_pop(l, lua_gettop(l));
@@ -5854,7 +5854,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	       conf->conf_selector == NULL) ||
 	      (conf->conf_signtable == NULL && conf->conf_keytable == NULL &&
 #ifdef USE_LUA
-	       conf->conf_setupscript != NULL &&
+	       conf->conf_setupscript == NULL &&
 #endif /* USE_LUA */
 	       conf->conf_domainsdb != NULL && conf->conf_keyfile != NULL &&
 	       conf->conf_selector != NULL)))
@@ -9068,10 +9068,6 @@ mlfi_eoh(SMFICTX *ctx)
 		struct signreq *sr;
 		dkim_sigkey_t keydata;
 
-		sdomain = dfc->mctx_domain;
-		keydata = (dkim_sigkey_t) conf->conf_seckey;
-		selector = conf->conf_selector;
-
 		for (sr = dfc->mctx_srhead; sr != NULL; sr = sr->srq_next)
 		{
 			if (sr->srq_keydata != NULL)
@@ -9080,6 +9076,12 @@ mlfi_eoh(SMFICTX *ctx)
 				selector = sr->srq_selector;
 				if (sr->srq_domain != NULL)
 					sdomain = sr->srq_domain;
+			}
+			else
+			{
+				sdomain = dfc->mctx_domain;
+				keydata = (dkim_sigkey_t) conf->conf_seckey;
+				selector = conf->conf_selector;
 			}
 
 			sr->srq_dkim = dkim_sign(conf->conf_libopendkim,
