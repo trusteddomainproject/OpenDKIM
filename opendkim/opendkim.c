@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.137 2010/06/15 06:49:42 cm-msk Exp $
+**  $Id: opendkim.c,v 1.138 2010/06/15 07:01:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.137 2010/06/15 06:49:42 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.138 2010/06/15 07:01:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3363,6 +3363,18 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 	char selector[BUFRSZ + 1];
 
 	assert(dfc != NULL);
+
+	/*
+	**  Error out if we want the default key but the key or selector were
+	**  not provided.
+	*/
+
+	if (keyname == NULL)
+	{
+		if (curconf->conf_seckey == NULL ||
+		    curconf->conf_selector == NULL)
+			return 1;
+	}
 
 	if (keytable != NULL)
 	{
