@@ -1,0 +1,8 @@
+-- $Id: t-sign-rs-mixconf.lua-setup,v 1.1 2010/06/15 06:48:24 cm-msk Exp $
+
+-- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+
+-- sample "setup" hook script that issues a single signing request
+
+-- make the signing request
+odkim.sign(ctx, "testkey")
