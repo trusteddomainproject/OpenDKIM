@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.138 2010/06/15 07:01:52 cm-msk Exp $
+**  $Id: opendkim.c,v 1.139 2010/06/17 14:46:44 subman Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.138 2010/06/15 07:01:52 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.139 2010/06/17 14:46:44 subman Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -9138,7 +9138,7 @@ mlfi_eoh(SMFICTX *ctx)
 	if (dfc->mctx_dkimv != NULL)
 		(void) dkim_set_user_context(dfc->mctx_dkimv, ctx);
 
-	/* if requested, verify RFC2822-required headers (RFC2822 3.6) */
+	/* if requested, verify RFC5322-required headers (RFC5322 3.6) */
 	if (conf->conf_reqhdrs)
 	{
 		_Bool ok = TRUE;
@@ -9190,7 +9190,7 @@ mlfi_eoh(SMFICTX *ctx)
 			if (conf->conf_dolog)
 			{
 				syslog(LOG_INFO,
-				       "%s RFC2822 header requirement error",
+				       "%s RFC5322 header requirement error",
 				       dfc->mctx_jobid);
 			}
 
@@ -11776,10 +11776,10 @@ usage(void)
 			"\t-o hdrlist  \tlist of headers to omit from signing\n"
 	                "\t-q          \tquarantine messages that fail to verify\n"
 		        "\t-Q          \tquery test mode\n"
-	                "\t-r          \trequire basic RFC2822 header compliance\n"
+	                "\t-r          \trequire basic RFC5322 header compliance\n"
 	                "\t-s selector \tselector to use when signing\n"
 	                "\t-S signalg  \tsignature algorithm to use when signing\n"
-			"\t-t testfile \tevaluate RFC2822 message in \"testfile\"\n"
+			"\t-t testfile \tevaluate RFC5322 message in \"testfile\"\n"
 			"\t-T timeout  \tDNS timeout (seconds)\n"
 	                "\t-u userid   \tchange to specified userid\n"
 	                "\t-v          \tincrease verbosity during testing\n"
