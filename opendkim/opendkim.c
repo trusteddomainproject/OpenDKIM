@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.139 2010/06/17 14:46:44 subman Exp $
+**  $Id: opendkim.c,v 1.140 2010/06/17 18:09:55 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.139 2010/06/17 14:46:44 subman Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.140 2010/06/17 18:09:55 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5854,26 +5854,54 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		conf->conf_seckey = s33krit;
 	}
 
-	if ((conf->conf_mode & DKIMF_MODE_SIGNER) != 0 &&
-	    !((conf->conf_keytable != NULL &&
-#ifdef USE_LUA
-	       (conf->conf_signtable != NULL ||
-	        conf->conf_setupscript != NULL) &&
-#else /* USE_LUA */
-	       conf->conf_signtable != NULL &&
-#endif /* USE_LUA */
-	       conf->conf_domainsdb == NULL && conf->conf_keyfile == NULL &&
-	       conf->conf_selector == NULL) ||
-	      (conf->conf_signtable == NULL && conf->conf_keytable == NULL &&
-#ifdef USE_LUA
-	       conf->conf_setupscript == NULL &&
-#endif /* USE_LUA */
-	       conf->conf_domainsdb != NULL && conf->conf_keyfile != NULL &&
-	       conf->conf_selector != NULL)))
+	/* confirm signing mode parameters */
+	if ((conf->conf_mode & DKIMF_MODE_SIGNER) != 0)
 	{
-		snprintf(err, errlen,
-		         "invalid or insufficient parameters for signing mode");
-		return -1;
+		if ((conf->conf_selector != NULL &&
+		     conf->conf_keyfile == NULL) ||
+		    (conf->conf_selector == NULL &&
+		     conf->conf_keyfile != NULL))
+		{
+			snprintf(err, errlen,
+			         "KeyFile and Selector must both be defined or both be undefined");
+			return -1;
+		}
+
+		if (conf->conf_domainsdb != NULL &&
+		    (conf->conf_selector == NULL ||
+		     conf->conf_keyfile == NULL))
+		{
+			snprintf(err, errlen,
+			         "Domain requires KeyFile and Selector");
+			return -1;
+		}
+
+		if (conf->conf_signtable != NULL &&
+		    conf->conf_keytable == NULL)
+		{
+			snprintf(err, errlen,
+			         "SigningTable requires KeyTable");
+			return -1;
+		}
+
+#ifdef USE_LUA
+		if (conf->conf_keytable != NULL &&
+		    conf->conf_signtable == NULL &&
+		    conf->conf_setupscript == NULL)
+		{
+			snprintf(err, errlen,
+			         "KeyTable requires either SigningTable or SetupPolicyScript");
+			return -1;
+		}
+#else /* USE_LUA */
+		if (conf->conf_keytable != NULL &&
+		    conf->conf_signtable == NULL)
+		{
+			snprintf(err, errlen,
+			         "KeyTable requires SigningTable");
+			return -1;
+		}
+#endif /* USE_LUA */
 	}
 
 	/* activate logging if requested */
