@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.49 2010/06/17 00:21:02 grooverdan Exp $
+# $Id: Makefile.am,v 1.50 2010/06/18 08:17:42 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -26,7 +26,7 @@ dist_doc_DATA = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail \
 	contrib/authheaders-check-setup-hook.lua \
 	docs/draft-ietf-marf-base-06.txt \
 	docs/draft-ietf-marf-dkim-reporting-00.txt \
-	docs/draft-kucherawy-authres-header-b-03.txt \
+	docs/draft-kucherawy-authres-header-b-04.txt \
 	docs/rfc4686.txt \
 	docs/rfc4871.txt \
 	docs/rfc5016.txt \

@@ -3,13 +3,13 @@
 
 Individual submission                                       M. Kucherawy
 Internet-Draft                                           Cloudmark, Inc.
-Intended status: Standards Track                            June 9, 2010
-Expires: December 11, 2010
+Intended status: Standards Track                           June 17, 2010
+Expires: December 19, 2010
 
 
      Authentication-Results Registration For Differentiating Among
                          Cryptographic Results
-                  draft-kucherawy-authres-header-b-03
+                  draft-kucherawy-authres-header-b-04
 
 Abstract
 
@@ -33,7 +33,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on December 11, 2010.
+   This Internet-Draft will expire on December 19, 2010.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Kucherawy               Expires December 11, 2010               [Page 1]
+Kucherawy               Expires December 19, 2010               [Page 1]
 
 Internet-Draft     Auth-Results header.b Registration          June 2010
 
@@ -72,8 +72,8 @@ Table of Contents
      7.1.  Normative References  . . . . . . . . . . . . . . . . . . . 5
      7.2.  Informative References  . . . . . . . . . . . . . . . . . . 6
    Appendix A.  Authentication-Results Examples  . . . . . . . . . . . 6
-     A.1.  Multiple DKIM Signatures with One Failure . . . . . . . . . 6
-   Appendix B.  Acknowledgements . . . . . . . . . . . . . . . . . . . 7
+     A.1.  Multiple DKIM Signatures with One Failure . . . . . . . . . 7
+   Appendix B.  Acknowledgements . . . . . . . . . . . . . . . . . . . 8
 
 
 
@@ -108,7 +108,7 @@ Table of Contents
 
 
 
-Kucherawy               Expires December 11, 2010               [Page 2]
+Kucherawy               Expires December 19, 2010               [Page 2]
 
 Internet-Draft     Auth-Results header.b Registration          June 2010
 
@@ -136,39 +136,43 @@ Internet-Draft     Auth-Results header.b Registration          June 2010
 3.  Discussion
 
    A message can contain multiple signatures of a common sender
-   authentication mechanism, such as [DKIM].  By applying supported
-   "ptype.property" combinations (cf. the ABNF in [AUTHRES]), a result
-   can be associated with a given signature provided the signatures are
-   all unique within one of the registered values (e.g. all of them had
-   unique "header.d" or "header.i" values).  This is not guaranteed,
-   however; a single signing agent might have practical reasons for
-   affixing multiple signatures with the same "d=" values while varying
-   other signature parameters.  This means one could get a "dkim=pass"
-   and "dkim=fail" result simultaneously on verification which is
-   clearly ambiguous.
+   authentication mechanism, such as [DKIM].  For example, a DKIM signer
+   could apply signatures using two or more different message
+   canonicalization algorithms to determine the resistance of each to
+   being broken in transit.
+
+   By applying supported "ptype.property" combinations (cf. the ABNF in
+   [AUTHRES]), a result can be associated with a given signature
+   provided the signatures are all unique within one of the registered
+   values (e.g. all of them had unique "header.d" or "header.i" values).
+   This is not guaranteed, however; a single signing agent might have
+   practical reasons for affixing multiple signatures with the same "d="
+   values while varying other signature parameters.  This means one
+   could get a "dkim=pass" and "dkim=fail" result simultaneously on
+   verification which is clearly ambiguous.
 
    It is thus necessary either to create or to identify a signature
    attribute guaranteed to be unique, such that it is possible to
    unambiguously associate a result with the signature to which it
    refers.
 
-   It is known that SHA1 and SHA256 hash spaces are resilient to
-   collisions, and further that RSA key signing mechanisms are similarly
-   resilient to common substrings.  Thus, the actual digital signature
-   for a cryptographic signing of the message is an ideal property for
-   such a unique identification.  It is not however necessary to include
-   the entire digital signature in an [AUTHRES] header field just to
-   identify which result goes with signature; since the signatures will
-   almost always be substantially different, it is anticipated that only
-   the first several bytes of a signature will be needed for
+   Collisions during general use of SHA1 and SHA256 are uncommon (see
+   [HASH-ATTACKS]) and RSA key signing mechanisms are resilient to
+   producing common substrings.  Thus, the actual digital signature for
+   a cryptographic signing of the message is an ideal property for such
+   a unique identification.  It is not however necessary to include the
 
 
 
-Kucherawy               Expires December 11, 2010               [Page 3]
+Kucherawy               Expires December 19, 2010               [Page 3]
 
 Internet-Draft     Auth-Results header.b Registration          June 2010
 
 
+   entire digital signature in an [AUTHRES] header field just to
+   identify which result goes with signature; since the signatures will
+   almost always be substantially different, it is anticipated that only
+   the first several bytes of a signature will be needed for
    disambiguating results.
 
 4.  Definition
@@ -213,17 +217,16 @@ Internet-Draft     Auth-Results header.b Registration          June 2010
 
    Rather than introducing a new security issue, this can be seen to fix
    a security weakness of the original specification: Useful information
-   can now be obtained from results that could previously have been
-   ambiguous and thus obscured or, worse, misinterpreted.
 
 
 
-
-
-Kucherawy               Expires December 11, 2010               [Page 4]
+Kucherawy               Expires December 19, 2010               [Page 4]
 
 Internet-Draft     Auth-Results header.b Registration          June 2010
 
+
+   can now be obtained from results that could previously have been
+   ambiguous and thus obscured or, worse, misinterpreted.
 
 6.2.  Result Forgeries
 
@@ -273,15 +276,16 @@ Internet-Draft     Auth-Results header.b Registration          June 2010
 
 
 
-
-
-
-Kucherawy               Expires December 11, 2010               [Page 5]
+Kucherawy               Expires December 19, 2010               [Page 5]
 
 Internet-Draft     Auth-Results header.b Registration          June 2010
 
 
 7.2.  Informative References
+
+   [HASH-ATTACKS]         Hoffman, P. and B. Schneier, "Attacks on
+                          Cryptographic Hashes in Internet Protocols",
+                          RFC 4270, November 2005.
 
    [IANA-CONSIDERATIONS]  Narten, T. and H. Alvestrand, "Guidelines for
                           Writing an IANA Considerations Section in
@@ -291,6 +295,47 @@ Appendix A.  Authentication-Results Examples
 
    This section presents an example of the use of this new item header
    field to indicate unambiguous authentication results.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kucherawy               Expires December 19, 2010               [Page 6]
+
+Internet-Draft     Auth-Results header.b Registration          June 2010
+
 
 A.1.  Multiple DKIM Signatures with One Failure
 
@@ -329,14 +374,6 @@ A.1.  Multiple DKIM Signatures with One Failure
    Example 1: Header field reporting results from multiple signatures
    added at initial signing
 
-
-
-
-Kucherawy               Expires December 11, 2010               [Page 6]
-
-Internet-Draft     Auth-Results header.b Registration          June 2010
-
-
    Here we see an example of a message that was signed twice at by the
    author's ADMD.  One signature used "relaxed" header canonicalization
    and the other used "simple" header canonicalization; both used
@@ -349,8 +386,17 @@ Internet-Draft     Auth-Results header.b Registration          June 2010
    the header while "simple" is not, and the latter is the one that
    failed in this example.
 
+
+
+Kucherawy               Expires December 19, 2010               [Page 7]
+
+Internet-Draft     Auth-Results header.b Registration          June 2010
+
+
    The item registered by this memo allows an evaluation module to
-   determine which DKIM result goes with which signature.
+   determine which DKIM result goes with which signature.  Without the
+   "header.b" portion of the result, it is unclear which one passed and
+   which one failed.
 
 Appendix B.  Acknowledgements
 
@@ -388,5 +434,15 @@ Author's Address
 
 
 
-Kucherawy               Expires December 11, 2010               [Page 7]
+
+
+
+
+
+
+
+
+
+
+Kucherawy               Expires December 19, 2010               [Page 8]
 
