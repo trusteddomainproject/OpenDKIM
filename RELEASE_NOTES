@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.152 2010/06/16 03:17:33 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.153 2010/06/18 18:44:06 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -7,7 +7,7 @@ release, and a summary of the changes in that release.
 
 2.1.1		2010/06/23
 	Force IPv6 addresses to lowercase, which is about to become standard
-		(see draft-ietf-6man-text-addr-representation-07).  Problem
+		(see draft-ietf-6man-text-addr-representation).  Problem
 		noted by Reuben Farrelly.
 	Permit configurations in which KeyTable and SetupPolicyScript are
 		defined but SigningTable isn't.
