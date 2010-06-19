@@ -2,13 +2,13 @@
 **  Copyright (c) 2007, 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-testadsp.c,v 1.7 2009/11/05 23:06:52 cm-msk Exp $
+**  $Id: opendkim-testadsp.c,v 1.8 2010/06/19 15:29:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_testadsp_c[] = "@(#)$Id: opendkim-testadsp.c,v 1.7 2009/11/05 23:06:52 cm-msk Exp $";
+static char opendkim_testadsp_c_id[] = "@(#)$Id: opendkim-testadsp.c,v 1.8 2010/06/19 15:29:12 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
