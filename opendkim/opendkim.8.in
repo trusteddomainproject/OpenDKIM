@@ -31,7 +31,7 @@
 [-x configfile]
 .SH DESCRIPTION
 .B opendkim
-implements the proposed
+implements the 
 .B DKIM
 standard for signing and verifying e-mail messages on a per-domain basis.
 
