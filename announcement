@@ -1,76 +1,38 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.1.0 released
+Subject: OpenDKIM v2.1.1 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.1.0, now available
+The OpenDKIM project announces availability of OpenDKIM v2.1.1, now available
 for download from SourceForge.
 
-This is a major new feature release.  The main new features include:
-
-	o Caching and piggybacking of LDAP queries to reduce duplicate
-	  work and congestion.
-
-	o A complete reworking of the statistics gathering and reporting
-	  code to (a) be more useful to installations and (b) assist the
-	  data gathering effort of the DKIM working group.
-
-	o Improvements with the ResignMailTo feature.
-
-	o Added a new data set type, "lua", which allows a Lua script to
-	  take the place of a database query.
-
-	o The final Lua processing script can now add header fields to 
-	  messages.
-
-	o Ten command line flags were removed since they are redundant to
-	  the configuration file for general usage.
-
-	o "opendkim-genzone" can now take a KeyTable as input.
-
-In addition, there were several log message improvements and configuration
-file halding fixes made to the filter, and there was one extension and a fix
-applied to libopendkim.
+This is a bug fix release.  The fixes are concentrated around the Lua
+scripting functionality and support of a specific set of milter features
+in "miltertest".  If these functions are working for you already or you're
+not using them, there is no need to upgrade at this time.
 
 The full RELEASE_NOTES for this version:
 
-2.1.0		2010/06/07
-	Feature request #SF2964369: Add _FFR_LDAP_CACHING to cache and share
-		common LDAP queries using an internal query cache for
-		better optimization of LDAP resources.
-	Feature request #SF2964378: Overhaul statistics collection code
-		enabled by "--enable-stats".  See stats/README for details.
-	Feature request #SF2964380: Do some limited pattern matching for
-		ResignMailTo.
-	Feature request #SF2964381: The value in the ResignMailTo data set
-		can now name a key in the KeyTable to use when re-signing
-		a message.
-	Feature request #SF2964388: Add a "lua" dataset type.
-	Feature request #SF3007640: Add odkim.add_header() function, available
-		to the final script.
-	Log more information when loading data from the KeyTable fails.
-	Remove several command line options that are redundant to the
-		configuration file and not useful in test mode.  These
-		include: -a, -C, -h, -i, -I, -m, -M, -P, -R and -U.
-	Add support for draft-kucherawy-authres-header-b.
-	Properly deal with critical errors from libdb that otherwise lead to a
-		descriptor leak (because the close operation fails).
-		Reported by Warren Horvath; data provided by Graham Murray.
-	Don't allow Domain without KeyFile and Selector, which causes an
-		assertion failure when calling dkim_sign().  Problem noted
-		by Todd Lyons.
-	Fix configuration logic around DontSignMailTo that prevented it from
-		working.  Reported by Warren Horvath.
-	CONTRIB: Patch #SF3010443: Improvements to opendkim.init and
-		opendkim.spec from Kaspar Brand.
-	LIBOPENDKIM: Add dkim_get_sigsubstring(), required for "header.b"
-		production on Authentication-Results: header fields.
-	LIBOPENDKIM: Initialize canon_buf in dkim_add_canon() to avoid
-		a garbage dereference later during an abort.
-	MILTERTEST: Fix SMFIR_ADDHEADER tests.
-	STATS: Add "stats" subdirectory including tools for collecting
-		and reporting aggregated statistics.
-	TOOLS: Feature request #SF2964364: Have opendkim-genzone use
-		the KeyTable if defined in a provided configuration file.
+2.1.1		2010/06/22
+	Force IPv6 addresses to lowercase, which is about to become standard
+		(see draft-ietf-6man-text-addr-representation).  Problem
+		noted by Reuben Farrelly.
+	Permit configurations in which KeyTable and SetupPolicyScript are
+		defined but SigningTable isn't.
+	Return an error when making a default signing request if KeyFile and
+		Selector were not both specified.
+	Fix odkim.sign() so that it pulls from the correct Lua stack index,
+		avoiding a NULL dereference and a crash.  Problem noted
+		by Jozsef Kovacs.
+	Fix bug #SF3015441: Argument processing for odkim.log() was incorrect.
+		Problem reported by Jozsef Kovacs.
+	Fix bug #SF3016124: odbx_field_value() returns NULL if the requested
+		column contains an SQL NULL.  Problem reported by Jozsef
+		Kovacs.
+	Patch #SF3015439: Fix bugs in data set name parsing (e.g. allow dots
+		in fields so that fully qualified hostnames can be given).
+		Patch from Jozsef Kovacs.
+	MILTERTEST: Fix bug #SF3005615: Observe negotiated SMFIP_NO* protocol
+		option bits.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
