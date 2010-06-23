@@ -222,9 +222,6 @@ See also the NOTES section below.
 A set list of domains whose mail should be signed by this
 filter.  Mail from other domains will be verified rather than being signed.
 
-The domain names may contain the special character "*" which is treated as
-a wildcard character matching zero or more characters in a domain name.
-
 This parameter is not required if a
 .I SigningTable
 is in use; in that case, the list of signed domains is implied by the
