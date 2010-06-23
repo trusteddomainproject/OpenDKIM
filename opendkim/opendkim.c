@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.140 2010/06/17 18:09:55 cm-msk Exp $
+**  $Id: opendkim.c,v 1.141 2010/06/23 23:11:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.140 2010/06/17 18:09:55 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.141 2010/06/23 23:11:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8809,6 +8809,13 @@ mlfi_eoh(SMFICTX *ctx)
 	{
 		status = dkimf_db_get(conf->conf_domainsdb, dfc->mctx_domain,
 		                      0, NULL, 0, &domainok);
+
+		if (!domainok)
+		{
+			/* check for "*" for back-compatibility */
+			status = dkimf_db_get(conf->conf_domainsdb, "*",
+			                      0, NULL, 0, &domainok);
+		}
 
 		if (!domainok && conf->conf_logwhy)
 		{
