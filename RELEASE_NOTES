@@ -1,9 +1,14 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.154 2010/06/22 07:21:25 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.155 2010/06/23 23:13:33 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
+
+2.1.2		2010/07/07
+	When testing the domains data set for a domain match for signing,
+		check for an explicit "*" record for back-compatibility
+		with versions prior to v1.2.0.
 
 2.1.1		2010/06/22
 	Force IPv6 addresses to lowercase, which is about to become standard
