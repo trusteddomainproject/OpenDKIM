@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.142 2010/06/24 08:29:37 grooverdan Exp $
+**  $Id: opendkim.c,v 1.143 2010/06/24 08:48:40 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.142 2010/06/24 08:29:37 grooverdan Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.143 2010/06/24 08:48:40 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2731,7 +2731,7 @@ dkimf_xs_delrcpt(lua_State *l)
 	{
 		if (conf->conf_dolog)
 		{
-			syslog(LOG_ERR, "%s smfi_delrcpt() failed",
+			syslog(LOG_ERR, "%s: smfi_delrcpt() failed",
 			       dfc->mctx_jobid);
 		}
 	}
@@ -2744,7 +2744,7 @@ dkimf_xs_delrcpt(lua_State *l)
 		{
 			if (conf->conf_dolog)
 			{
-				syslog(LOG_ERR, "%s smfi_addheader() failed",
+				syslog(LOG_ERR, "%s: smfi_addheader() failed",
 				       dfc->mctx_jobid);
 			}
 		}
@@ -3690,7 +3690,7 @@ dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 
 		if (conf->conf_dolog)
 		{
-			syslog(LOG_INFO, "%s ignoring signature from %s",
+			syslog(LOG_INFO, "%s: ignoring signature from %s",
 			       dfc->mctx_jobid, sdomain);
 		}
 	}
@@ -6336,7 +6336,7 @@ dkimf_checkbldb(char *to, char *jobid)
 	{
 		if (dolog)
 		{
-			syslog(LOG_ERR, "%s overflow parsing \"%s\"",
+			syslog(LOG_ERR, "%s: overflow parsing \"%s\"",
 			       jobid, to);
 		}
 	}
@@ -6495,12 +6495,12 @@ dkimf_log_ssl_errors(char *jobid, char *selector, char *domain)
 
 		if (selector != NULL && domain != NULL)
 		{
-			syslog(LOG_INFO, "%s s=%s d=%s SSL %s", jobid,
+			syslog(LOG_INFO, "%s: s=%s d=%s SSL %s", jobid,
 			       selector, domain, errbuf);
 		}
 		else
 		{
-			syslog(LOG_INFO, "%s SSL %s", jobid, errbuf);
+			syslog(LOG_INFO, "%s: SSL %s", jobid, errbuf);
 		}
 
 		errno = saveerr;
@@ -8085,7 +8085,7 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 		if (conf->conf_dolog)
 		{
 			syslog(LOG_INFO,
-				"%s matched %s, signing with l= requested",
+				"%s: matched %s, signing with l= requested",
 				dfc->mctx_jobid, addr);
 		}
 	}
@@ -8531,7 +8531,7 @@ mlfi_eoh(SMFICTX *ctx)
 			if (conf->conf_logwhy)
 			{
 				syslog(LOG_INFO,
-				       "%s domain `%s' exempted, accepting",
+				       "%s: domain `%s' exempted, accepting",
 				       dfc->mctx_jobid, dfc->mctx_domain);
 			}
 
@@ -8629,7 +8629,7 @@ mlfi_eoh(SMFICTX *ctx)
 					if (dolog)
 					{
 						syslog(LOG_ERR,
-						       "%s failed to add signature for default key",
+						       "%s: failed to add signature for default key",
 						       dfc->mctx_jobid);
 					}
 
@@ -8647,7 +8647,7 @@ mlfi_eoh(SMFICTX *ctx)
 					if (dolog)
 					{
 						syslog(LOG_ERR,
-						       "%s failed to add signature for key `%s'",
+						       "%s: failed to add signature for key `%s'",
 						       dfc->mctx_jobid,
 						       resignkey);
 					}
@@ -8674,7 +8674,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 		if (!originok && conf->conf_logwhy)
 		{
-			syslog(LOG_INFO, "%s no MTA name match",
+			syslog(LOG_INFO, "%s: no MTA name match",
 			       dfc->mctx_jobid);
 		}
 	}
@@ -8696,7 +8696,7 @@ mlfi_eoh(SMFICTX *ctx)
 				if (conf->conf_dolog)
 				{
 					syslog(LOG_ERR,
-					       "%s dkimf_dstring_new() failed",
+					       "%s: dkimf_dstring_new() failed",
 					       dfc->mctx_jobid);
 				}
 
@@ -8727,7 +8727,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 		if (!originok && conf->conf_logwhy)
 		{
-			syslog(LOG_INFO, "%s no macros match",
+			syslog(LOG_INFO, "%s: no macros match",
 			       dfc->mctx_jobid);
 		}
 	}
@@ -8765,7 +8765,7 @@ mlfi_eoh(SMFICTX *ctx)
 			                   (struct sockaddr *) &cc->cctx_ip))
 			{
 				syslog(LOG_NOTICE,
-				       "%s external host %s attempted to send as %s",
+				       "%s: external host %s attempted to send as %s",
 				       dfc->mctx_jobid, cc->cctx_host,
 				       dfc->mctx_domain);
 			}
@@ -8783,21 +8783,21 @@ mlfi_eoh(SMFICTX *ctx)
 
 				dkimf_ipstring(ipbuf, sizeof ipbuf,
 				               &cc->cctx_ip);
-				syslog(LOG_INFO, "%s %s [%s] not internal",
+				syslog(LOG_INFO, "%s: %s [%s] not internal",
 				       dfc->mctx_jobid, cc->cctx_host,
 				       ipbuf);
 			}
 
 			if (authtype == NULL || authtype[0] == '\0')
 			{
-				syslog(LOG_INFO, "%s not authenticated",
+				syslog(LOG_INFO, "%s: not authenticated",
 				       dfc->mctx_jobid);
 			}
 
 #ifdef POPAUTH
 			if (!popauth)
 			{
-				syslog(LOG_INFO, "%s not POP authenticated",
+				syslog(LOG_INFO, "%s: not POP authenticated",
 				       dfc->mctx_jobid);
 			}
 #endif /* POPAUTH */
@@ -8820,7 +8820,7 @@ mlfi_eoh(SMFICTX *ctx)
 		if (!domainok && conf->conf_logwhy)
 		{
 			syslog(LOG_INFO,
-			       "%s no signing domain match for `%s'",
+			       "%s: no signing domain match for `%s'",
 			       dfc->mctx_jobid, dfc->mctx_domain);
 		}
 
@@ -8853,7 +8853,7 @@ mlfi_eoh(SMFICTX *ctx)
 		if (!domainok && conf->conf_logwhy)
 		{
 			syslog(LOG_INFO,
-			       "%s no signing subdomain match for `%s'",
+			       "%s: no signing subdomain match for `%s'",
 			       dfc->mctx_jobid, dfc->mctx_domain);
 		}
 	}
@@ -8877,7 +8877,7 @@ mlfi_eoh(SMFICTX *ctx)
 				if (dolog)
 				{
 					syslog(LOG_ERR,
-					       "%s failed to add signature for key `%s'",
+					       "%s: failed to add signature for key `%s'",
 					       dfc->mctx_jobid, hdr->hdr_val);
 				}
 
@@ -8909,19 +8909,19 @@ mlfi_eoh(SMFICTX *ctx)
 				{
 				  case -1:
 					syslog(LOG_ERR,
-					       "%s error reading signing table",
+					       "%s: error reading signing table",
 					       dfc->mctx_jobid);
 					break;
 
 				  case -2:
 					syslog(LOG_ERR,
-					       "%s signing table references unknown key `%s'",
+					       "%s: signing table references unknown key `%s'",
 					       dfc->mctx_jobid, errkey);
 					break;
 
 				  case -3:
 					syslog(LOG_ERR,
-					       "%s error loading key `%s'",
+					       "%s: error loading key `%s'",
 					       dfc->mctx_jobid, errkey);
 					break;
 
@@ -8940,7 +8940,7 @@ mlfi_eoh(SMFICTX *ctx)
 		if (!domainok && conf->conf_logwhy)
 		{
 			syslog(LOG_INFO,
-			       "%s no signing table match for `%s@%s'",
+			       "%s: no signing table match for `%s@%s'",
 			       dfc->mctx_jobid, user, dfc->mctx_domain);
 		}
 	}
@@ -8994,7 +8994,7 @@ mlfi_eoh(SMFICTX *ctx)
 				}
 
 				syslog(LOG_ERR,
-				       "%s dkimf_lua_setup_hook() failed: %s",
+				       "%s: dkimf_lua_setup_hook() failed: %s",
 				       dfc->mctx_jobid, lres.lrs_error);
 			}
 
@@ -9053,7 +9053,7 @@ mlfi_eoh(SMFICTX *ctx)
 				if (conf->conf_dolog)
 				{
 					syslog(LOG_INFO,
-					       "%s skipping signing of mail to `%s'",
+					       "%s: skipping signing of mail to `%s'",
 					       dfc->mctx_jobid,
 					       a->a_addr);
 				}
@@ -9065,7 +9065,7 @@ mlfi_eoh(SMFICTX *ctx)
 				if (conf->conf_dolog)
 				{
 					syslog(LOG_ERR,
-					       "%s dkimf_db_get() failed",
+					       "%s: dkimf_db_get() failed",
 					       dfc->mctx_jobid);
 				}
 
@@ -9225,7 +9225,7 @@ mlfi_eoh(SMFICTX *ctx)
 			if (conf->conf_dolog)
 			{
 				syslog(LOG_INFO,
-				       "%s RFC5322 header requirement error",
+				       "%s: RFC5322 header requirement error",
 				       dfc->mctx_jobid);
 			}
 
@@ -9314,7 +9314,7 @@ mlfi_eoh(SMFICTX *ctx)
 	dfc->mctx_vbr = vbr_init(NULL, NULL, NULL);
 	if (dfc->mctx_vbr == NULL)
 	{
-		syslog(LOG_ERR, "%s can't create VBR context",
+		syslog(LOG_ERR, "%s: can't create VBR context",
 		       dfc->mctx_jobid);
 		dkimf_cleanup(ctx);
 		return SMFIS_TEMPFAIL;
@@ -9572,7 +9572,7 @@ mlfi_eoh(SMFICTX *ctx)
 				}
 
 				syslog(LOG_ERR,
-				       "%s dkimf_lua_screen_hook() failed: %s",
+				       "%s: dkimf_lua_screen_hook() failed: %s",
 				       dfc->mctx_jobid, lres.lrs_error);
 			}
 
@@ -9889,7 +9889,7 @@ mlfi_eom(SMFICTX *ctx)
 				if (dfc->mctx_tmpstr == NULL)
 				{
 					syslog(LOG_WARNING,
-					       "%s dkimf_dstring_new() failed",
+					       "%s: dkimf_dstring_new() failed",
 					       dfc->mctx_jobid);
 
 					return SMFIS_TEMPFAIL;
@@ -9937,7 +9937,7 @@ mlfi_eom(SMFICTX *ctx)
 		if (ares == NULL)
 		{
 			syslog(LOG_WARNING,
-			       "%s malloc(): %s", dfc->mctx_jobid,
+			       "%s: malloc(): %s", dfc->mctx_jobid,
 			       strerror(errno));
 
 			return SMFIS_TEMPFAIL;
@@ -9966,7 +9966,7 @@ mlfi_eom(SMFICTX *ctx)
 					if (conf->conf_dolog)
 					{
 						syslog(LOG_WARNING,
-						       "%s failed to parse %s: header",
+						       "%s: failed to parse %s: header",
 						       dfc->mctx_jobid,
 						       hdr->hdr_hdr);
 					}
@@ -10082,11 +10082,11 @@ mlfi_eom(SMFICTX *ctx)
 					err = strerror(errno);
 
 				syslog(LOG_INFO,
-				       "%s dk_eom() returned status %d: %s",
+				       "%s: dk_eom() returned status %d: %s",
 				       dfc->mctx_jobid, status, err);
 #else /* (DK_LIB_VERSION >= 0x00050000) */
 				syslog(LOG_INFO,
-				       "%s dk_eom() returned status %d",
+				       "%s: dk_eom() returned status %d",
 				       dfc->mctx_jobid, status);
 #endif /* (DK_LIB_VERSION >= 0x00050000) */
 			}
@@ -10123,7 +10123,7 @@ mlfi_eom(SMFICTX *ctx)
 				if (conf->conf_dolog)
 				{
 					syslog(LOG_ERR,
-					       "%s \"%s\" header add failed",
+					       "%s: %s header add failed",
 					       dfc->mctx_jobid,
 					       AUTHRESULTSHDR);
 				}
@@ -10152,7 +10152,7 @@ mlfi_eom(SMFICTX *ctx)
 				if (conf->conf_dolog_success)
 				{
 					syslog(LOG_INFO,
-					       "%s DKIM verification successful",
+					       "%s: DKIM verification successful",
 					       dfc->mctx_jobid);
 				}
 
@@ -10220,7 +10220,7 @@ mlfi_eom(SMFICTX *ctx)
 					if (conf->conf_dolog)
 					{
 						syslog(LOG_ERR,
-						       "%s smfi_quarantine() failed",
+						       "%s: smfi_quarantine() failed",
 						       dfc->mctx_jobid);
 					}
 				}
@@ -10262,7 +10262,7 @@ mlfi_eom(SMFICTX *ctx)
 					if (conf->conf_dolog)
 					{
 						syslog(LOG_ERR,
-						       "%s %s: fopen(): %s",
+						       "%s: %s: fopen(): %s",
 						       dfc->mctx_jobid,
 						       dpath, strerror(errno));
 					}
@@ -10440,7 +10440,7 @@ mlfi_eom(SMFICTX *ctx)
 					if (conf->conf_dolog)
 					{
 						syslog(LOG_NOTICE,
-						       "%s sender domain does not exist",
+						       "%s: sender domain does not exist",
 						       dfc->mctx_jobid);
 					}
 
@@ -10451,7 +10451,7 @@ mlfi_eom(SMFICTX *ctx)
 					    conf->conf_dolog)
 					{
 						syslog(LOG_NOTICE,
-						       "%s smfi_setreply() failed",
+						       "%s: smfi_setreply() failed",
 						       dfc->mctx_jobid);
 					}
 
@@ -10483,7 +10483,7 @@ mlfi_eom(SMFICTX *ctx)
 					if (conf->conf_dolog)
 					{
 						syslog(LOG_NOTICE,
-						       "%s rejected per sender domain policy",
+						       "%s: rejected per sender domain policy",
 						       dfc->mctx_jobid);
 					}
 					
@@ -10523,7 +10523,7 @@ mlfi_eom(SMFICTX *ctx)
 					    conf->conf_dolog)
 					{
 						syslog(LOG_NOTICE,
-						       "%s smfi_setreply() failed",
+						       "%s: smfi_setreply() failed",
 						       dfc->mctx_jobid);
 					}
 
@@ -10538,7 +10538,7 @@ mlfi_eom(SMFICTX *ctx)
 				err = dkim_geterror(dfc->mctx_dkimv);
 				if (err != NULL)
 				{
-					syslog(LOG_ERR, "%s ADSP query: %s",
+					syslog(LOG_ERR, "%s: ADSP query: %s",
 					       dfc->mctx_jobid, err);
 				}
 
@@ -10805,7 +10805,7 @@ mlfi_eom(SMFICTX *ctx)
 					if (conf->conf_dolog)
 					{
 						syslog(LOG_ERR,
-						       "%s smfi_quarantine() failed",
+						       "%s: smfi_quarantine() failed",
 						       dfc->mctx_jobid);
 					}
 				}
@@ -11045,7 +11045,7 @@ mlfi_eom(SMFICTX *ctx)
 					if (conf->conf_dolog)
 					{
 						syslog(LOG_ERR,
-						       "%s \"%s\" header add failed",
+						       "%s: %s header add failed",
 						       dfc->mctx_jobid,
 						       AUTHRESULTSHDR);
 					}
@@ -11256,7 +11256,7 @@ mlfi_eom(SMFICTX *ctx)
 						if (conf->conf_dolog)
 						{
 							syslog(LOG_ERR,
-							       "%s \"%s\" header add failed",
+							       "%s: %s header add failed",
 							       dfc->mctx_jobid,
 							       AUTHRESULTSHDR);
 						}
@@ -11291,7 +11291,7 @@ mlfi_eom(SMFICTX *ctx)
 				    status == DKIM_STAT_INTERNAL)
 				{
 					syslog(LOG_INFO,
-					       "%s error during reputation query",
+					       "%s: error during reputation query",
 					       dfc->mctx_jobid);
 				}
 				else if (rep > conf->conf_repreject)
@@ -11303,7 +11303,7 @@ mlfi_eom(SMFICTX *ctx)
 					    conf->conf_dolog)
 					{
 						syslog(LOG_NOTICE,
-						       "%s smfi_setreply() failed",
+						       "%s: smfi_setreply() failed",
 						       dfc->mctx_jobid);
 					}
 
@@ -11339,7 +11339,7 @@ mlfi_eom(SMFICTX *ctx)
 						if (conf->conf_dolog)
 						{
 							syslog(LOG_ERR,
-							       "%s \"%s\" header add failed",
+							       "%s: %s header add failed",
 							       dfc->mctx_jobid,
 							       AUTHRESULTSHDR);
 						}
@@ -11366,7 +11366,7 @@ mlfi_eom(SMFICTX *ctx)
 					if (conf->conf_dolog)
 					{
 						syslog(LOG_ERR,
-						       "%s smfi_delrcpt() failed",
+						       "%s: smfi_delrcpt() failed",
 						       dfc->mctx_jobid);
 					}
 
@@ -11381,7 +11381,7 @@ mlfi_eom(SMFICTX *ctx)
 					if (conf->conf_dolog)
 					{
 						syslog(LOG_ERR,
-						       "%s smfi_addheader() failed",
+						       "%s: smfi_addheader() failed",
 						       dfc->mctx_jobid);
 					}
 
@@ -11396,7 +11396,7 @@ mlfi_eom(SMFICTX *ctx)
 				if (conf->conf_dolog)
 				{
 					syslog(LOG_ERR,
-					       "%s smfi_addrcpt() failed",
+					       "%s: smfi_addrcpt() failed",
 					       dfc->mctx_jobid);
 				}
 
@@ -11448,7 +11448,7 @@ mlfi_eom(SMFICTX *ctx)
 				}
 
 				syslog(LOG_ERR,
-				       "%s dkimf_lua_final_hook() failed: %s",
+				       "%s: dkimf_lua_final_hook() failed: %s",
 				       dfc->mctx_jobid, lres.lrs_error);
 			}
 
@@ -11491,7 +11491,7 @@ mlfi_eom(SMFICTX *ctx)
 			if (dfc->mctx_tmpstr == NULL)
 			{
 				syslog(LOG_WARNING,
-				       "%s dkimf_dstring_new() failed",
+				       "%s: dkimf_dstring_new() failed",
 				       dfc->mctx_jobid);
 
 				return SMFIS_TEMPFAIL;
@@ -11519,7 +11519,7 @@ mlfi_eom(SMFICTX *ctx)
 				if (conf->conf_dolog)
 				{
 					syslog(LOG_ERR,
-					       "%s dkim_getsighdr() failed",
+					       "%s: dkim_getsighdr() failed",
 					       dfc->mctx_jobid);
 				}
 
@@ -11537,7 +11537,7 @@ mlfi_eom(SMFICTX *ctx)
 				if (conf->conf_dolog)
 				{
 					syslog(LOG_ERR,
-					       "%s \"%s\" header add failed",
+					       "%s: %s header add failed",
 					       dfc->mctx_jobid,
 					       DKIM_SIGNHEADER);
 				}
@@ -11545,7 +11545,7 @@ mlfi_eom(SMFICTX *ctx)
 			else if (conf->conf_dolog_success)
 			{
 				syslog(LOG_INFO,
-				       "%s \"%s\" header added",
+				       "%s: %s header added",
 				       dfc->mctx_jobid, DKIM_SIGNHEADER);
 			}
 		}
@@ -11564,7 +11564,7 @@ mlfi_eom(SMFICTX *ctx)
 				if (conf->conf_dolog)
 				{
 					syslog(LOG_ERR,
-					       "%s \"%s\" header add failed",
+					       "%s: %s header add failed",
 					       dfc->mctx_jobid,
 					       VBR_INFOHEADER);
 				}
@@ -11593,7 +11593,7 @@ mlfi_eom(SMFICTX *ctx)
 		{
 			if (conf->conf_dolog)
 			{
-				syslog(LOG_ERR, "%s \"%s\" header add failed",
+				syslog(LOG_ERR, "%s: %s header add failed",
 				       dfc->mctx_jobid, XHEADERNAME);
 			}
 
