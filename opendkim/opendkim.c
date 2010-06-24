@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.141 2010/06/23 23:11:42 cm-msk Exp $
+**  $Id: opendkim.c,v 1.142 2010/06/24 08:29:37 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.141 2010/06/23 23:11:42 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.142 2010/06/24 08:29:37 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -9900,8 +9900,9 @@ mlfi_eom(SMFICTX *ctx)
 				dkimf_dstring_blank(dfc->mctx_tmpstr);
 			}
 
+			dkimf_dstring_cat(dfc->mctx_tmpstr,dfc->mctx_jobid);
 			dkimf_dstring_cat(dfc->mctx_tmpstr,
-			                  "message has signatures from ");
+			                  ": message has signatures from ");
 
 			for (c = 0; c < nsigs; c++)
 			{
