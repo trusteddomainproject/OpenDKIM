@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.75 2010/06/14 20:24:57 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.76 2010/06/24 14:49:42 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.75 2010/06/14 20:24:57 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.76 2010/06/24 14:49:42 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -313,10 +313,10 @@ dkimf_db_saslinteract(LDAP *ld, unsigned int flags, void *defaults,
 **  	reqnum -- length of request array
 **
 **  Return value:
-**  	None.
+**  	DKIM_STAT_INVALID if not reqnum elements present.
 */
 
-static void
+static DKIM_STAT
 dkimf_db_datasplit(char *buf, size_t buflen,
                    DKIMF_DBDATA req, unsigned int reqnum)
 {
@@ -328,7 +328,7 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 	assert(buf != NULL);
 
 	if (req == NULL || reqnum == 0)
-		return;
+		return DKIM_STAT_OK;
 
 	p = buf;
 	remain = buflen;
@@ -358,11 +358,15 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 			char *q;
 
 			q = strchr(p, ':');
-			clen = q - p;
-			memcpy(req[ridx].dbdata_buffer, p, clen);
-			req[ridx].dbdata_buflen = clen;
-			p += clen + 1;
-			remain -= (clen + 1);
+                        if (q) {
+        			clen = q - p;
+        			memcpy(req[ridx].dbdata_buffer, p, clen);
+        			req[ridx].dbdata_buflen = clen;
+			        p += clen + 1;
+		        	remain -= (clen + 1);
+                        } else {
+                                return DKIM_STAT_INVALID;
+                        }
 		}
 	}
 
@@ -374,6 +378,7 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 		for (c = ridx + 1; c < reqnum; c++)
 			req[c].dbdata_buflen = 0;
 	}
+        return DKIM_STAT_OK;
 }
 
 #ifdef USE_LDAP
@@ -2162,9 +2167,10 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				*exists = TRUE;
 			if (list->db_list_value != NULL && reqnum != 0)
 			{
-				dkimf_db_datasplit(list->db_list_value,
+				int stat = dkimf_db_datasplit(list->db_list_value,
 				                   strlen(list->db_list_value),
 				                   req, reqnum);
+                                if (stat) return stat;
 			}
 		}
 
@@ -2187,9 +2193,10 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				if (reqnum != 0 &&
 				    list->db_relist_data != NULL)
 				{
-					dkimf_db_datasplit(list->db_relist_data,
+					int stat = dkimf_db_datasplit(list->db_relist_data,
 					                   strlen(list->db_relist_data),
 					                   req, reqnum);
+                                        if (stat) return stat;
 				}
 
 				return 0;
@@ -2282,14 +2289,14 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		{
 			if (exists != NULL)
 				*exists = TRUE;
-		
+
+			ret = 0;
 			if (reqnum != 0)
 			{
-				dkimf_db_datasplit(databuf, sizeof databuf,
+				ret = dkimf_db_datasplit(databuf, sizeof databuf,
 				                   req, reqnum);
 			}
 
-			ret = 0;
 		}
 		else if (status == DB_NOTFOUND)
 		{
@@ -2321,10 +2328,10 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			memset(databuf, '\0', sizeof databuf);
 			memcpy(databuf, d.data, clen);
 
-			if (reqnum != 0)
-				dkimf_db_datasplit(databuf, clen, req, reqnum);
-
 			ret = 0;
+			if (reqnum != 0)
+				ret = dkimf_db_datasplit(databuf, clen, req, reqnum);
+
 		}
 		else
 		{
@@ -3099,9 +3106,12 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		{
 			if (list->db_list_value != NULL)
 			{
-				dkimf_db_datasplit(list->db_list_value,
+				if (dkimf_db_datasplit(list->db_list_value,
 				                   strlen(list->db_list_value),
-				                   req, reqnum);
+				                   req, reqnum))
+                                {
+                                        return -1;
+                                }
 			}
 		}
 
@@ -3181,14 +3191,20 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 
 			if (reqnum != 0)
 			{
-				dkimf_db_datasplit(d.data, d.size,
-				                   req, reqnum);
+				if (dkimf_db_datasplit(d.data, d.size,
+				                   req, reqnum))
+                                {
+                                        return -1;
+                                }
 			}
 # else /* DB_VERSION_CHECK(2,0,0) */
 			if (reqnum != 0)
 			{
-				dkimf_db_datasplit(databuf, sizeof databuf,
-				                   req, reqnum);
+				if (dkimf_db_datasplit(databuf, sizeof databuf,
+				                   req, reqnum))
+                                {
+                                        return -1;
+                                }
 			}
 
 			if (keylen != NULL)
@@ -3675,11 +3691,14 @@ dkimf_db_rewalk(DKIMF_DB db, char *str, DKIMF_DBDATA req, unsigned int reqnum,
 			if (ctx != NULL)
 				*ctx = re;
 
-			dkimf_db_datasplit(re->db_relist_data,
+			if (dkimf_db_datasplit(re->db_relist_data,
 			                   strlen(re->db_relist_data),
-			                   req, reqnum);
+			                   req, reqnum))
+                        {
+                                return -1;
+                        }
+                        return 0;
 
-			return 0;
 		}
 		else if (status != REG_NOMATCH)
 		{
