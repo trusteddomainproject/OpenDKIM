@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.76 2010/06/24 14:49:42 grooverdan Exp $
+**  $Id: opendkim-db.c,v 1.77 2010/06/24 19:04:08 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.76 2010/06/24 14:49:42 grooverdan Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77 2010/06/24 19:04:08 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -313,14 +313,16 @@ dkimf_db_saslinteract(LDAP *ld, unsigned int flags, void *defaults,
 **  	reqnum -- length of request array
 **
 **  Return value:
-**  	DKIM_STAT_INVALID if not reqnum elements present.
+**  	0 -- successful data split
+**  	-1 -- not enough elements present to fulfill the request
 */
 
-static DKIM_STAT
+static int
 dkimf_db_datasplit(char *buf, size_t buflen,
                    DKIMF_DBDATA req, unsigned int reqnum)
 {
 	int ridx;
+	int ret = 0;
 	size_t clen;
 	size_t remain;
 	char *p;
@@ -328,7 +330,7 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 	assert(buf != NULL);
 
 	if (req == NULL || reqnum == 0)
-		return DKIM_STAT_OK;
+		return 0;
 
 	p = buf;
 	remain = buflen;
@@ -341,31 +343,37 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 		if ((req[ridx].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
 		{
 			clen = MIN(remain, req[ridx].dbdata_buflen);
-
 			memcpy(req[ridx].dbdata_buffer, p, clen);
-			req[ridx].dbdata_buflen = clen;
-			p += clen;
-			remain -= clen;
+			req[ridx].dbdata_buflen = remain;
+			remain = 0;
 		}
 		else if (ridx == reqnum - 1)
 		{
 			clen = MIN(remain, req[ridx].dbdata_buflen);
 			memcpy(req[ridx].dbdata_buffer, p, clen);
-			req[ridx].dbdata_buflen = clen;
+			req[ridx].dbdata_buflen = remain;
 		}
 		else
 		{
 			char *q;
 
 			q = strchr(p, ':');
-                        if (q) {
+                        if (q != NULL)
+			{
         			clen = q - p;
-        			memcpy(req[ridx].dbdata_buffer, p, clen);
+        			memcpy(req[ridx].dbdata_buffer, p,
+				       MIN(clen, req[ridx].dbdata_buflen));
         			req[ridx].dbdata_buflen = clen;
 			        p += clen + 1;
 		        	remain -= (clen + 1);
-                        } else {
-                                return DKIM_STAT_INVALID;
+                        }
+			else
+			{
+        			clen = remain;
+        			memcpy(req[ridx].dbdata_buffer, p,
+				       MIN(clen, req[ridx].dbdata_buflen));
+        			req[ridx].dbdata_buflen = clen;
+			        remain = 0;
                         }
 		}
 	}
@@ -376,9 +384,13 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 		int c;
 
 		for (c = ridx + 1; c < reqnum; c++)
+		{
+			ret = -1;
 			req[c].dbdata_buflen = 0;
+		}
 	}
-        return DKIM_STAT_OK;
+
+        return ret;
 }
 
 #ifdef USE_LDAP
@@ -2167,10 +2179,10 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				*exists = TRUE;
 			if (list->db_list_value != NULL && reqnum != 0)
 			{
-				int stat = dkimf_db_datasplit(list->db_list_value,
-				                   strlen(list->db_list_value),
-				                   req, reqnum);
-                                if (stat) return stat;
+				if (dkimf_db_datasplit(list->db_list_value,
+				                       strlen(list->db_list_value),
+				                       req, reqnum) != 0)
+					return -1;
 			}
 		}
 
@@ -2193,10 +2205,11 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				if (reqnum != 0 &&
 				    list->db_relist_data != NULL)
 				{
-					int stat = dkimf_db_datasplit(list->db_relist_data,
-					                   strlen(list->db_relist_data),
-					                   req, reqnum);
-                                        if (stat) return stat;
+					if (dkimf_db_datasplit(list->db_relist_data,
+					                       strlen(list->db_relist_data),
+					                       req,
+					                       reqnum) != 0)
+						return -1;
 				}
 
 				return 0;
@@ -2293,8 +2306,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			ret = 0;
 			if (reqnum != 0)
 			{
-				ret = dkimf_db_datasplit(databuf, sizeof databuf,
-				                   req, reqnum);
+				ret = dkimf_db_datasplit(databuf,
+				                         sizeof databuf,
+				                         req, reqnum);
 			}
 
 		}
@@ -2330,8 +2344,10 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 			ret = 0;
 			if (reqnum != 0)
-				ret = dkimf_db_datasplit(databuf, clen, req, reqnum);
-
+			{
+				ret = dkimf_db_datasplit(databuf, clen,
+				                         req, reqnum);
+			}
 		}
 		else
 		{
@@ -3107,11 +3123,9 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 			if (list->db_list_value != NULL)
 			{
 				if (dkimf_db_datasplit(list->db_list_value,
-				                   strlen(list->db_list_value),
-				                   req, reqnum))
-                                {
+				                       strlen(list->db_list_value),
+				                       req, reqnum) != 0)
                                         return -1;
-                                }
 			}
 		}
 
@@ -3192,19 +3206,15 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 			if (reqnum != 0)
 			{
 				if (dkimf_db_datasplit(d.data, d.size,
-				                   req, reqnum))
-                                {
+				                       req, reqnum) != 0)
                                         return -1;
-                                }
 			}
 # else /* DB_VERSION_CHECK(2,0,0) */
 			if (reqnum != 0)
 			{
 				if (dkimf_db_datasplit(databuf, sizeof databuf,
-				                   req, reqnum))
-                                {
+				                       req, reqnum) != 0)
                                         return -1;
-                                }
 			}
 
 			if (keylen != NULL)
@@ -3692,13 +3702,15 @@ dkimf_db_rewalk(DKIMF_DB db, char *str, DKIMF_DBDATA req, unsigned int reqnum,
 				*ctx = re;
 
 			if (dkimf_db_datasplit(re->db_relist_data,
-			                   strlen(re->db_relist_data),
-			                   req, reqnum))
-                        {
+			                      strlen(re->db_relist_data),
+			                      req, reqnum) != 0)
+			{
                                 return -1;
-                        }
-                        return 0;
-
+			}
+			else
+			{
+                        	return 0;
+			}
 		}
 		else if (status != REG_NOMATCH)
 		{
