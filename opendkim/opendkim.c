@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.144 2010/06/24 14:49:42 grooverdan Exp $
+**  $Id: opendkim.c,v 1.145 2010/06/24 19:26:08 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.144 2010/06/24 14:49:42 grooverdan Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.145 2010/06/24 19:26:08 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3117,14 +3117,18 @@ dkimf_xs_getreputation(lua_State *l)
 **  Return value:
 **  	None.
 */
-static void dkimf_db_error(DKIMF_DB db,const char *key)
+
+static void
+dkimf_db_error(DKIMF_DB db, const char *key)
 {
 	char errbuf[BUFRSZ];
 
+	assert(db != NULL);
+	assert(key != NULL);
+
 	(void) dkimf_db_strerror(db, errbuf, sizeof errbuf);
 
-	syslog(LOG_ERR,
-	       "error looking up \"%s\" in database: %s",
+	syslog(LOG_ERR, "error looking up \"%s\" in database: %s",
 	       key, errbuf);
 }
 
@@ -6377,7 +6381,7 @@ dkimf_checkbldb(char *to, char *jobid)
 	}
 	else if (dolog)
 	{
-                dkimf_db_error(blbd,dbaddr);
+                dkimf_db_error(blbd, dbaddr);
 	}
 
 	return FALSE;
@@ -7010,10 +7014,10 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		found = FALSE;
 		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 		                      &req, 1, &found);
-		if (status != 0 ||
-		    req.dbdata_buflen == 0)
+		if (status != 0 || req.dbdata_buflen == 0)
 		{
-                        dkimf_db_error(signdb, tmpaddr);
+                        if (status != 0 && dolog)
+				dkimf_db_error(signdb, tmpaddr);
 			return -1;
 		}
 		else if (found)
@@ -7038,10 +7042,10 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(keyname, '\0', sizeof keyname);
 		status = dkimf_db_get(signdb, domain, strlen(domain), &req, 1,
 		                      &found);
-		if (status != 0 ||
-		    req.dbdata_buflen == 0)
+		if (status != 0 || req.dbdata_buflen == 0)
 		{
-                        dkimf_db_error(signdb, domain);
+                        if (status != 0 && dolog)
+				dkimf_db_error(signdb, domain);
 			return -1;
 		}
 		else if (found)
@@ -7073,10 +7077,10 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			memset(keyname, '\0', sizeof keyname);
 			status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 			                      &req, 1, &found);
-			if (status != 0 ||
-			    req.dbdata_buflen == 0)
+			if (status != 0 || req.dbdata_buflen == 0)
 			{
-                                dkimf_db_error(signdb, tmpaddr);
+                                if (status != 0 && dolog)
+					dkimf_db_error(signdb, tmpaddr);
 				return -1;
 			}
 			else if (found)
@@ -7101,10 +7105,10 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			memset(keyname, '\0', sizeof keyname);
 			status = dkimf_db_get(signdb, p, strlen(p),
 			                      &req, 1, &found);
-			if (status != 0 ||
-			    req.dbdata_buflen == 0)
+			if (status != 0 || req.dbdata_buflen == 0)
 			{
-                                dkimf_db_error(signdb, p);
+                                if (status != 0 && dolog)
+					dkimf_db_error(signdb, p);
 				return -1;
 			}
 			else if (found)
@@ -7133,10 +7137,10 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(keyname, '\0', sizeof keyname);
 		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 		                      &req, 1, &found);
-		if (status != 0 ||
-		    req.dbdata_buflen == 0)
+		if (status != 0 || req.dbdata_buflen == 0)
 		{
-                        dkimf_db_error(signdb, tmpaddr);
+                        if (status != 0 && dolog)
+				dkimf_db_error(signdb, tmpaddr);
 			return -1;
 		}
 		else if (found)
@@ -7160,10 +7164,10 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		req.dbdata_buflen = sizeof keyname - 1;
 		memset(keyname, '\0', sizeof keyname);
 		status = dkimf_db_get(signdb, "*", 1, &req, 1, &found);
-		if (status != 0 ||
-		    req.dbdata_buflen == 0)
+		if (status != 0 || req.dbdata_buflen == 0)
 		{
-                        dkimf_db_error(signdb, "*");
+                        if (status != 0 && dolog)
+				dkimf_db_error(signdb, "*");
 			return -1;
 		}
 		else if (found)
@@ -8555,9 +8559,14 @@ mlfi_eoh(SMFICTX *ctx)
                 status = dkimf_db_get(conf->conf_exemptdb,
 		                      dfc->mctx_domain, 0, NULL, 0,
 		                      &match);
-                if (status)
+                if (status != 0)
                 {
-                        dkimf_db_error(conf->conf_exemptdb, dfc->mctx_domain);
+                        if (dolog)
+			{
+				dkimf_db_error(conf->conf_exemptdb,
+				               dfc->mctx_domain);
+			}
+
 			return SMFIS_TEMPFAIL;
                 }
 
@@ -8601,13 +8610,17 @@ mlfi_eoh(SMFICTX *ctx)
 		for (a = dfc->mctx_rcptlist; a != NULL; a = a->a_next)
 		{
 			/* full recipient address */
-			if (dkimf_db_get(conf->conf_resigndb,
-			                      a->a_addr, 0, &dbd, 1,
-			                      &match))
+			if (dkimf_db_get(conf->conf_resigndb, a->a_addr, 0,
+			                 &dbd, 1, &match) != 0)
                         {
-                                dkimf_db_error(conf->conf_resigndb,a->a_addr);
+                                if (dolog)
+				{
+					dkimf_db_error(conf->conf_resigndb,
+					               a->a_addr);
+				}
                                 continue;
                         }
+
 			if (match)
 			{
 				domainok = TRUE;
@@ -8625,11 +8638,16 @@ mlfi_eoh(SMFICTX *ctx)
 			                      at + 1, 0, &dbd, 1,
 			                      &match);
 
-                        if (status)
+                        if (status != 0)
                         {
-                                dkimf_db_error(conf->conf_resigndb, at + 1);
+                                if (dolog)
+				{
+					dkimf_db_error(conf->conf_resigndb,
+					               at + 1);
+				}
                                 continue;
                         }
+
 			if (match)
 			{
 				domainok = TRUE;
@@ -8646,9 +8664,14 @@ mlfi_eoh(SMFICTX *ctx)
 				status = dkimf_db_get(conf->conf_resigndb,
 				                      dot, 0, &dbd, 1,
 				                      &match);
-                                if (status)
+                                if (status != 0)
                                 {
-                                        dkimf_db_error(conf->conf_resigndb, dot);
+                                        if (dolog)
+					{
+						dkimf_db_error(conf->conf_resigndb,
+					                       dot);
+					}
+
                                         continue;
                                 }
 
@@ -8718,10 +8741,8 @@ mlfi_eoh(SMFICTX *ctx)
 		{
 			status = dkimf_db_get(conf->conf_mtasdb, mtaname, 0,
 			                      NULL, 0, &originok);
-                        if (status)
-                        {
+                        if (status != 0 && dolog)
                                 dkimf_db_error(conf->conf_mtasdb, mtaname);
-                        }
 		}
 
 		if (!originok && !status && conf->conf_logwhy)
@@ -8775,10 +8796,8 @@ mlfi_eoh(SMFICTX *ctx)
 
 			status = dkimf_db_get(conf->conf_macrosdb, name, 0,
 			                      &dbd, 1, &originok);
-                        if (status)
-                        {
+                        if (status != 0 && dolog)
                                 dkimf_db_error(conf->conf_macrosdb, name);
-                        }
 		}
 
 		if (!originok && conf->conf_logwhy)
@@ -8871,10 +8890,8 @@ mlfi_eoh(SMFICTX *ctx)
 			/* check for "*" for back-compatibility */
 			status = dkimf_db_get(conf->conf_domainsdb, "*",
 			                      0, NULL, 0, &domainok);
-                        if (status)
-                        {
+                        if (status != 0 && dolog)
                                 dkimf_db_error(conf->conf_domainsdb, "*");
-                        }
 		}
 
 		if (!domainok && conf->conf_logwhy)
@@ -8897,9 +8914,14 @@ mlfi_eoh(SMFICTX *ctx)
 				status = dkimf_db_get(conf->conf_domainsdb, p,
 				                      0, NULL, 0,
 				                      &domainok);
-                                if (status)
+                                if (status != 0)
                                 {
-                                        dkimf_db_error(conf->conf_domainsdb, p);
+                                        if (dolog)
+					{
+						dkimf_db_error(conf->conf_domainsdb,
+						               p);
+					}
+
                                         continue;
                                 }
 
@@ -10065,11 +10087,11 @@ mlfi_eom(SMFICTX *ctx)
 					                      ares->ares_host,
 					                      0, NULL, 0,
 					                      &hostmatch);
-                                        if (status)
-                                        {
-                                                dkimf_db_error(conf->conf_remardb, ares->ares_host);
-                                        }
-
+                                        if (status != 0 && dolog)
+					{
+                                                dkimf_db_error(conf->conf_remardb,
+						               ares->ares_host);
+					}
 				}
 				else
 				{
