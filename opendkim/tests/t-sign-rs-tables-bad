@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# $Id: t-sign-rs-tables-bad,v 1.1 2010/06/24 14:51:03 grooverdan Exp $
+# 
+# relaxed/simple signing test using tables. The key table contains a format error however
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest -s $srcdir/t-sign-rs-tables-bad.lua
