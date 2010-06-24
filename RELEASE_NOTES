@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.156 2010/06/24 14:55:33 grooverdan Exp $
+	$Id: RELEASE_NOTES,v 1.157 2010/06/24 19:08:28 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -9,8 +9,9 @@ release, and a summary of the changes in that release.
 	When testing the domains data set for a domain match for signing,
 		check for an explicit "*" record for back-compatibility
 		with versions prior to v1.2.0.
-	Fix bug where colon separated data isn't formatted properly resulting
-		in SEGV.
+	Fix bug where colon-separated data isn't formatted properly or has
+		too few fields, resulting in a segmentation fault.
+	Add additional database error logging.
 
 2.1.1		2010/06/22
 	Force IPv6 addresses to lowercase, which is about to become standard
