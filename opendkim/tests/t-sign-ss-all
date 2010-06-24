@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# $Id: t-sign-ss-all,v 1.1 2010/06/24 05:16:22 cm-msk Exp $
+# 
+# simple/simple signing test for all domains
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest -s $srcdir/t-sign-ss-all.lua
