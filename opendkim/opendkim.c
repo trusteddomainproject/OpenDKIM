@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.147 2010/06/25 05:36:36 cm-msk Exp $
+**  $Id: opendkim.c,v 1.148 2010/06/25 06:12:16 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.147 2010/06/25 05:36:36 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.148 2010/06/25 06:12:16 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1221,7 +1221,6 @@ dkimf_xs_requestsig(lua_State *l)
 	struct connctx *cc;
 	struct msgctx *dfc;
 	struct dkimf_config *conf;
-	struct keytable *key = NULL;
 
 	assert(l != NULL);
 
@@ -1742,7 +1741,6 @@ dkimf_xs_rcptarray(lua_State *l)
 	SMFICTX *ctx;
 	struct connctx *cc;
 	struct msgctx *dfc;
-	struct addrlist *addr;
 
 	assert(l != NULL);
 
@@ -3380,7 +3378,6 @@ static int
 dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 {
 	_Bool found = FALSE;
-	int status;
 	size_t keydatasz;
 	struct signreq *new;
 	struct dkimf_db_data dbd[3];

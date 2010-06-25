@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.17 2010/06/25 05:56:37 cm-msk Exp $
+**  $Id: miltertest.c,v 1.18 2010/06/25 06:12:16 grooverdan Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.17 2010/06/25 05:56:37 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.18 2010/06/25 06:12:16 grooverdan Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -1701,8 +1701,6 @@ int
 mt_macro(lua_State *l)
 {
 	int type;
-	size_t buflen;
-	size_t len;
 	size_t s;
 	struct mt_context *ctx;
 	char *bp;
@@ -1772,7 +1770,6 @@ mt_conninfo(lua_State *l)
 	char rcmd;
 	char family;
 	size_t buflen;
-	size_t len;
 	size_t s;
 	uint16_t port;
 	struct mt_context *ctx;
@@ -2337,12 +2334,7 @@ int
 mt_data(lua_State *l)
 {
 	char rcmd;
-	int c;
 	size_t buflen;
-	size_t s;
-	char *bp;
-	char *name;
-	char *value;
 	struct mt_context *ctx;
 	char buf[BUFRSZ];
 
@@ -2420,7 +2412,6 @@ int
 mt_header(lua_State *l)
 {
 	char rcmd;
-	int c;
 	size_t buflen;
 	size_t s;
 	char *bp;
@@ -2509,12 +2500,7 @@ int
 mt_eoh(lua_State *l)
 {
 	char rcmd;
-	int c;
 	size_t buflen;
-	size_t s;
-	char *bp;
-	char *name;
-	char *value;
 	struct mt_context *ctx;
 	char buf[BUFRSZ];
 
@@ -2587,12 +2573,9 @@ int
 mt_bodystring(lua_State *l)
 {
 	char rcmd;
-	int c;
 	size_t buflen;
-	size_t s;
-	char *bp;
-	char *str;
 	struct mt_context *ctx;
+	char *str;
 	char buf[BUFRSZ];
 
 	assert(l != NULL);
@@ -2643,7 +2626,7 @@ mt_bodystring(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: %lu byte(s) of body sent on fd %d, reply `%c'\n",
+		        "%s: %zu byte(s) of body sent on fd %d, reply `%c'\n",
 		        progname, strlen(str), ctx->ctx_fd, rcmd);
 	}
 
@@ -2670,9 +2653,6 @@ mt_bodyrandom(lua_State *l)
 	unsigned long rl;
 	int c;
 	size_t buflen;
-	size_t s;
-	char *bp;
-	char *str;
 	struct mt_context *ctx;
 	char buf[BUFRSZ];
 
@@ -2737,7 +2717,7 @@ mt_bodyrandom(lua_State *l)
 		if (verbose > 0)
 		{
 			fprintf(stdout,
-			        "%s: %lu byte(s) of body sent on fd %d, reply `%c'\n",
+			        "%s: %zu byte(s) of body sent on fd %d, reply `%c'\n",
 			        progname, strlen(buf), ctx->ctx_fd, rcmd);
 		}
 
@@ -2838,7 +2818,7 @@ mt_bodyfile(lua_State *l)
 			if (verbose > 0)
 			{
 				fprintf(stdout,
-				        "%s: %lu byte(s) of body sent on fd %d, reply `%c'\n",
+				        "%s: %zu byte(s) of body sent on fd %d, reply `%c'\n",
 				        progname, rlen, ctx->ctx_fd, rcmd);
 			}
 		}
@@ -2871,12 +2851,7 @@ int
 mt_eom(lua_State *l)
 {
 	char rcmd;
-	int c;
 	size_t buflen;
-	size_t s;
-	char *bp;
-	char *name;
-	char *value;
 	struct mt_context *ctx;
 	char buf[BUFRSZ];
 
@@ -3482,15 +3457,7 @@ mt_eom_check(lua_State *l)
 int
 mt_abort(lua_State *l)
 {
-	char rcmd;
-	int c;
-	size_t buflen;
-	size_t s;
-	char *bp;
-	char *name;
-	char *value;
 	struct mt_context *ctx;
-	char buf[BUFRSZ];
 
 	assert(l != NULL);
 
@@ -3536,15 +3503,7 @@ mt_abort(lua_State *l)
 int
 mt_getreply(lua_State *l)
 {
-	char rcmd;
-	int c;
-	size_t buflen;
-	size_t s;
-	char *bp;
-	char *name;
-	char *value;
 	struct mt_context *ctx;
-	char buf[BUFRSZ];
 
 	assert(l != NULL);
 
@@ -3789,7 +3748,7 @@ main(int argc, char **argv)
 		if (rlen != s.st_size)
 		{
 			fprintf(stderr,
-			        "%s: %s: read() returned %ld (expecting %ld)\n",
+			        "%s: %s: read() returned %zu (expecting %ld)\n",
 			        progname, script, rlen, s.st_size);
 			free((void *) io.lua_io_script);
 			close(fd);
