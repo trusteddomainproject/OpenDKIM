@@ -1,4 +1,4 @@
--- $Id: t-verify-unsigned.lua,v 1.5 2010/06/15 06:31:16 cm-msk Exp $
+-- $Id: t-verify-unsigned.lua,v 1.6 2010/06/25 05:55:07 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -74,7 +74,8 @@ end
 if mt.bodystring(conn, "This is a test!\r\n") ~= nil then
 	error "mt.bodystring() failed"
 end
-if mt.getreply(conn) ~= SMFIR_SKIP then
+if mt.getreply(conn) ~= SMFIR_SKIP and
+   mt.getreply(conn) ~= SMFIR_CONTINUE then
 	error "mt.bodystring() unexpected reply"
 end
 
