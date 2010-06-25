@@ -1,4 +1,4 @@
--- $Id: t-sign-rs-tables-bad.lua,v 1.1 2010/06/24 14:49:42 grooverdan Exp $
+-- $Id: t-sign-rs-tables-bad.lua,v 1.2 2010/06/25 05:50:20 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -6,7 +6,7 @@
 -- 
 -- Confirms that a signature is added with the correct contents.
 
-mt.echo("*** relaxed/simple signing test using tables. The key table contains a format error however")
+mt.echo("*** relaxed/simple signing test using invalid KeyTable")
 
 -- try to start the filter
 binpath = mt.getcwd() .. "/.."
@@ -33,7 +33,7 @@ end
 
 -- send envelope macros and sender data
 -- mt.helo() is called implicitly
-mt.macro(conn, SMFIC_MAIL, "j", "t-sign-rs-tables")
+mt.macro(conn, SMFIC_MAIL, "j", "t-sign-rs-tables-bad")
 if mt.mailfrom(conn, "user@example.com") ~= nil then
 	error "mt.mailfrom() failed"
 end

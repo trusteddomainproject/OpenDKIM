@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# $Id: t-sign-rs-tables-bad,v 1.1 2010/06/24 14:51:03 grooverdan Exp $
+# $Id: t-sign-rs-tables-bad,v 1.2 2010/06/25 05:50:20 cm-msk Exp $
 # 
-# relaxed/simple signing test using tables. The key table contains a format error however
+# relaxed/simple signing test using invalid KeyTable
 
 if [ x"$srcdir" = x"" ]
 then
