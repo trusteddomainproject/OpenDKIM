@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.148 2010/06/25 06:12:16 grooverdan Exp $
+**  $Id: opendkim.c,v 1.149 2010/06/25 07:40:41 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.148 2010/06/25 06:12:16 grooverdan Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.149 2010/06/25 07:40:41 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6754,17 +6754,15 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 
 	  case DKIM_STAT_CANTVRFY:
 		retcode = conf->conf_handling.hndl_badsig;
-		if (conf->conf_dolog)
+		if (conf->conf_dolog && dkim != NULL)
 		{
 			const char *err = NULL;
-
-			if (dkim != NULL)
-				err = dkim_geterror(dkim);
+			err = dkim_geterror(dkim);
 			if (err == NULL)
 				err = "unknown cause";
 
 			syslog(LOG_ERR, "%s: signature verification failed: %s",
-			       JOBID(dfc->mctx_jobid), err);
+				JOBID(dfc->mctx_jobid), err);
 		}
 		replytxt = "DKIM signature verification failed";
 		break;
