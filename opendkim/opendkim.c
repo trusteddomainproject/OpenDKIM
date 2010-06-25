@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.146 2010/06/24 19:38:49 cm-msk Exp $
+**  $Id: opendkim.c,v 1.147 2010/06/25 05:36:36 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.146 2010/06/24 19:38:49 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.147 2010/06/25 05:36:36 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1250,17 +1250,17 @@ dkimf_xs_requestsig(lua_State *l)
 
 	lua_pop(l, lua_gettop(l));
 
-	if (conf->conf_keytabledb == NULL && keyname != NULL)
-	{
-		lua_pushstring(l, "odkim.sign(): request requires KeyTable");
-		lua_error(l);
-	}
-
 	if (ctx == NULL)
 	{
 		lua_pushnumber(l, 0);
 
 		return 1;
+	}
+
+	if (conf->conf_keytabledb == NULL && keyname != NULL)
+	{
+		lua_pushstring(l, "odkim.sign(): request requires KeyTable");
+		lua_error(l);
 	}
 
 	/* try to get the key */
