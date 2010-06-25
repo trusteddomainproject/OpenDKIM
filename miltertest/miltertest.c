@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.15 2010/06/14 19:39:14 cm-msk Exp $
+**  $Id: miltertest.c,v 1.16 2010/06/25 05:31:08 grooverdan Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.15 2010/06/14 19:39:14 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.16 2010/06/25 05:31:08 grooverdan Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -3623,7 +3623,7 @@ usage(void)
 	                "\t-D name[=value]\tdefine global variable\n"
 	                "\t-s script      \tscript to run (default = stdin)\n"
 	                "\t-v             \tverbose mode\n",
-	                progname, progname);
+	                progname);
 
 	return EX_USAGE;
 }
