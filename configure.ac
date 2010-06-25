@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.150 2010/06/23 23:13:33 cm-msk Exp $
+# $Id: configure.ac,v 1.151 2010/06/25 05:07:29 grooverdan Exp $
 
 #
 # Setup
@@ -66,7 +66,7 @@ PKG_PROG_PKG_CONFIG
 #
 # Check for how to compile threaded stuff
 #
-ACX_PTHREAD
+AX_PTHREAD
 
 #
 # Checks for libraries
