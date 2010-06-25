@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.16 2010/06/25 05:31:08 grooverdan Exp $
+**  $Id: miltertest.c,v 1.17 2010/06/25 05:56:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.16 2010/06/25 05:31:08 grooverdan Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.17 2010/06/25 05:56:37 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -60,6 +60,18 @@ static char miltertest_c_id[] = "$Id: miltertest.c,v 1.16 2010/06/25 05:31:08 gr
 #else /* SMFIP_NODATA */
 # define CHECK_MPOPTS()		0
 #endif /* SMFIP_NODATA */
+
+#ifndef SMFIP_NR_CONN
+# define SMFIP_NR_CONN		0
+# define SMFIP_NR_HELO		0
+# define SMFIP_NR_MAIL		0
+# define SMFIP_NR_RCPT		0
+# define SMFIP_NR_DATA		0
+# define SMFIP_NR_HDR		0
+# define SMFIP_NR_EOH		0
+# define SMFIP_NR_BODY		0
+# define SMFIP_NR_UNKN		0
+#endif /* SMFIP_NR_CONN */
 
 #define	MT_PRODUCT		"OpenDKIM milter test facility"
 #define	MT_VERSION		"1.0.0"
@@ -630,7 +642,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 			rcmd = SMFIR_CONTINUE;
 
-			if ((ctx->ctx_mpopts & SMFIP_NR_CONN) == 0)
+			if (!CHECK_MPOPTS(ctx, SMFIP_NR_CONN))
 			{
 				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
 				                    buf, &buflen))
@@ -673,7 +685,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 			rcmd = SMFIR_CONTINUE;
 
-			if ((ctx->ctx_mpopts & SMFIP_NR_HELO) == 0)
+			if (!CHECK_MPOPTS(ctx, SMFIP_NR_HELO))
 			{
 				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
 				                    buf, &buflen))
@@ -716,7 +728,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 			rcmd = SMFIR_CONTINUE;
 
-			if ((ctx->ctx_mpopts & SMFIP_NR_MAIL) == 0)
+			if (!CHECK_MPOPTS(ctx, SMFIP_NR_MAIL))
 			{
 				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
 				                    buf, &buflen))
@@ -786,6 +798,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 	if (state >= STATE_DATA && ctx->ctx_state < STATE_DATA)
 	{
+#ifdef SMFIC_DATA
 		if (!CHECK_MPOPTS(ctx, SMFIP_NODATA))
 		{
 			char rcmd;
@@ -798,7 +811,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 			rcmd = SMFIR_CONTINUE;
 
-			if ((ctx->ctx_mpopts & SMFIP_NR_DATA) == 0)
+			if (!CHECK_MPOPTS(ctx, SMFIP_NR_DATA))
 			{
 				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
 				                    buf, &buflen))
@@ -819,6 +832,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 				ctx->ctx_state = STATE_DEAD;
 			}
 		}
+#endif /* SMFIC_DATA */
 
 		ctx->ctx_state = STATE_DATA;
 	}
@@ -843,7 +857,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 			rcmd = SMFIR_CONTINUE;
 
-			if ((ctx->ctx_mpopts & SMFIP_NR_HDR) == 0)
+			if (!CHECK_MPOPTS(ctx, SMFIP_NR_HDR))
 			{
 				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
 				                    buf, &buflen))
@@ -882,7 +896,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 			rcmd = SMFIR_CONTINUE;
 
-			if ((ctx->ctx_mpopts & SMFIP_NR_EOH) == 0)
+			if (!CHECK_MPOPTS(ctx, SMFIP_NR_EOH))
 			{
 				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
 				                    buf, &buflen))
@@ -922,7 +936,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 
 			rcmd = SMFIR_CONTINUE;
 
-			if ((ctx->ctx_mpopts & SMFIP_NR_BODY) == 0)
+			if (!CHECK_MPOPTS(ctx, SMFIP_NR_BODY))
 			{
 				if (!mt_milter_read(ctx->ctx_fd, &rcmd,
 				                    buf, &buflen))
@@ -1915,7 +1929,7 @@ mt_conninfo(lua_State *l)
 
 	rcmd = SMFIR_CONTINUE;
 
-	if ((ctx->ctx_mpopts & SMFIP_NR_CONN) == 0)
+	if (!CHECK_MPOPTS(ctx, SMFIP_NR_CONN))
 	{
 		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 		{
@@ -1970,6 +1984,10 @@ mt_unknown(lua_State *l)
 		lua_error(l);
 	}
 
+#ifndef SMFIC_UNKNOWN
+	lua_pushstring(l, "mt.unknown(): Operation not supported");
+	lua_error(l);
+#else /* ! SMFIC_UNKNOWN */
 	ctx = (struct mt_context *) lua_touserdata(l, 1);
 	cmd = (char *) lua_tostring(l, 2);
 	lua_pop(l, 2);
@@ -2000,7 +2018,7 @@ mt_unknown(lua_State *l)
 
 	rcmd = SMFIR_CONTINUE;
 
-	if ((ctx->ctx_mpopts & SMFIP_NR_UNKN) == 0)
+	if (!CHECK_MPOPTS(ctx, SMFIP_NR_UNKN))
 	{
 		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 		{
@@ -2021,6 +2039,7 @@ mt_unknown(lua_State *l)
 	lua_pushnil(l);
 
 	return 1;
+#endif /* ! SMFIC_UNKNOWN */
 }
 
 /*
@@ -2084,7 +2103,7 @@ mt_helo(lua_State *l)
 
 	rcmd = SMFIR_CONTINUE;
 
-	if ((ctx->ctx_mpopts & SMFIP_NR_HELO) == 0)
+	if (!CHECK_MPOPTS(ctx, SMFIP_NR_HELO))
 	{
 		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 		{
@@ -2178,7 +2197,7 @@ mt_mailfrom(lua_State *l)
 
 	rcmd = SMFIR_CONTINUE;
 
-	if ((ctx->ctx_mpopts & SMFIP_NR_MAIL) == 0)
+	if (!CHECK_MPOPTS(ctx, SMFIP_NR_MAIL))
 	{
 		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 		{
@@ -2222,6 +2241,7 @@ mt_rcptto(lua_State *l)
 	size_t s;
 	char *p;
 	char *bp;
+	char *end;
 	struct mt_context *ctx;
 	char buf[BUFRSZ];
 
@@ -2238,6 +2258,8 @@ mt_rcptto(lua_State *l)
 
 	s = 0;
 	bp = buf;
+	end = bp + sizeof buf;
+	memset(buf, '\0', sizeof buf);
 
 	for (c = 2; c <= lua_gettop(l); c++)
 	{
@@ -2245,11 +2267,15 @@ mt_rcptto(lua_State *l)
 
 		s += strlen(p) + 1;
 
+		if (bp + strlen(p) >= end)
+		{
+			lua_pushstring(l, "mt.rcptto(): Input overflow");
+			lua_error(l);
+		}
+
 		memcpy(bp, p, strlen(p) + 1);
 
 		bp += strlen(p) + 1;
-
-		/* XXX -- watch for overruns */
 	}
 
 	lua_pop(l, lua_gettop(l));
@@ -2273,7 +2299,7 @@ mt_rcptto(lua_State *l)
 
 	rcmd = SMFIR_CONTINUE;
 
-	if ((ctx->ctx_mpopts & SMFIP_NR_RCPT) == 0)
+	if (!CHECK_MPOPTS(ctx, SMFIP_NR_RCPT))
 	{
 		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 		{
@@ -2325,10 +2351,14 @@ mt_data(lua_State *l)
 	if (lua_gettop(l) != 1 ||
 	    !lua_islightuserdata(l, 1))
 	{
-		lua_pushstring(l, "mt.eoh(): Invalid argument");
+		lua_pushstring(l, "mt.data(): Invalid argument");
 		lua_error(l);
 	}
 
+#ifndef SMFIC_DATA
+	lua_pushstring(l, "mt.ata(): Operation not supported");
+	lua_error(l);
+#else /* ! SMFIC_DATA */
 	ctx = (struct mt_context *) lua_touserdata(l, 1);
 	lua_pop(l, 1);
 
@@ -2351,7 +2381,7 @@ mt_data(lua_State *l)
 
 	rcmd = SMFIR_CONTINUE;
 
-	if ((ctx->ctx_mpopts & SMFIP_NR_DATA) == 0)
+	if (!CHECK_MPOPTS(ctx, SMFIP_NR_DATA))
 	{
 		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 		{
@@ -2373,6 +2403,7 @@ mt_data(lua_State *l)
 	lua_pushnil(l);
 
 	return 1;
+#endif /* ! SMFIC_DATA */
 }
 
 /*
@@ -2440,7 +2471,7 @@ mt_header(lua_State *l)
 
 	rcmd = SMFIR_CONTINUE;
 
-	if ((ctx->ctx_mpopts & SMFIP_NR_HDR) == 0)
+	if (!CHECK_MPOPTS(ctx, SMFIP_NR_HDR))
 	{
 		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 		{
@@ -2518,7 +2549,7 @@ mt_eoh(lua_State *l)
 
 	rcmd = SMFIR_CONTINUE;
 
-	if ((ctx->ctx_mpopts & SMFIP_NR_EOH) == 0)
+	if (!CHECK_MPOPTS(ctx, SMFIP_NR_EOH))
 	{
 		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 		{
@@ -2597,7 +2628,7 @@ mt_bodystring(lua_State *l)
 
 	rcmd = SMFIR_CONTINUE;
 
-	if ((ctx->ctx_mpopts & SMFIP_NR_BODY) == 0)
+	if (!CHECK_MPOPTS(ctx, SMFIP_NR_BODY))
 	{
 		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 		{
@@ -2691,7 +2722,7 @@ mt_bodyrandom(lua_State *l)
 
 		rcmd = SMFIR_CONTINUE;
 
-		if ((ctx->ctx_mpopts & SMFIP_NR_BODY) == 0)
+		if (!CHECK_MPOPTS(ctx, SMFIP_NR_BODY))
 		{
 			if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 			{
@@ -2792,7 +2823,7 @@ mt_bodyfile(lua_State *l)
 
 			rcmd = SMFIR_CONTINUE;
 
-			if ((ctx->ctx_mpopts & SMFIP_NR_BODY) == 0)
+			if (!CHECK_MPOPTS(ctx, SMFIP_NR_BODY))
 			{
 				if (!mt_milter_read(ctx->ctx_fd, &rcmd, chunk,
 				                    &buflen))
@@ -3619,11 +3650,11 @@ mt_getheader(lua_State *l)
 int
 usage(void)
 {
-	fprintf(stderr, "%s: usage: [options]\n"
+	fprintf(stderr, "%s: usage: %s [options]\n"
 	                "\t-D name[=value]\tdefine global variable\n"
 	                "\t-s script      \tscript to run (default = stdin)\n"
 	                "\t-v             \tverbose mode\n",
-	                progname);
+	                progname, progname);
 
 	return EX_USAGE;
 }
@@ -3811,8 +3842,10 @@ main(int argc, char **argv)
 	lua_setglobal(l, "SMFIR_DISCARD");
 	lua_pushnumber(l, SMFIR_REPLYCODE);
 	lua_setglobal(l, "SMFIR_REPLYCODE");
+#ifdef SMFIR_SKIP
 	lua_pushnumber(l, SMFIR_SKIP);
 	lua_setglobal(l, "SMFIR_SKIP");
+#endif /* SMFIR_SKIP */
 
 	lua_pushnumber(l, SMFIC_CONNECT);
 	lua_setglobal(l, "SMFIC_CONNECT");
@@ -3837,18 +3870,26 @@ main(int argc, char **argv)
 	lua_setglobal(l, "SMFIP_NOHDRS");
 	lua_pushnumber(l, SMFIP_NOEOH);
 	lua_setglobal(l, "SMFIP_NOEOH");
+#ifdef SMFIP_NR_HDR
 	lua_pushnumber(l, SMFIP_NR_HDR);
 	lua_setglobal(l, "SMFIP_NR_HDR");
+#endif /* SMFIP_NR_HDR */
+#ifdef SMFIP_NOHREPL
 	lua_pushnumber(l, SMFIP_NOHREPL);
 	lua_setglobal(l, "SMFIP_NOHREPL");
+#endif /* SMFIP_NOHREPL */
 	lua_pushnumber(l, SMFIP_NOUNKNOWN);
 	lua_setglobal(l, "SMFIP_NOUNKNOWN");
 	lua_pushnumber(l, SMFIP_NODATA);
 	lua_setglobal(l, "SMFIP_NODATA");
+#ifdef SMFIP_SKIP
 	lua_pushnumber(l, SMFIP_SKIP);
 	lua_setglobal(l, "SMFIP_SKIP");
+#endif /* SMFIP_SKIP */
+#ifdef SMFIP_RCPT_REJ
 	lua_pushnumber(l, SMFIP_RCPT_REJ);
 	lua_setglobal(l, "SMFIP_RCPT_REJ");
+#endif /* SMFIP_RCPT_REJ */
 	lua_pushnumber(l, SMFIP_NR_CONN);
 	lua_setglobal(l, "SMFIP_NR_CONN");
 	lua_pushnumber(l, SMFIP_NR_HELO);
@@ -3865,8 +3906,10 @@ main(int argc, char **argv)
 	lua_setglobal(l, "SMFIP_NR_EOH");
 	lua_pushnumber(l, SMFIP_NR_BODY);
 	lua_setglobal(l, "SMFIP_NR_BODY");
+#ifdef SMFIP_HDR_LEADSPC
 	lua_pushnumber(l, SMFIP_HDR_LEADSPC);
 	lua_setglobal(l, "SMFIP_HDR_LEADSPC");
+#endif /* SMFIP_HDR_LEADSPC */
 #ifdef SMFIP_MDS_256K
 	lua_pushnumber(l, SMFIP_MDS_256K);
 	lua_setglobal(l, "SMFIP_MDS_256K");
@@ -3894,12 +3937,18 @@ main(int argc, char **argv)
 	lua_setglobal(l, "SMFIF_CHGHDRS");
 	lua_pushnumber(l, SMFIF_QUARANTINE);
 	lua_setglobal(l, "SMFIF_QUARANTINE");
+#ifdef SMFIF_CHGFROM
 	lua_pushnumber(l, SMFIF_CHGFROM);
 	lua_setglobal(l, "SMFIF_CHGFROM");
+#endif /* SMFIF_CHGFROM */
+#ifdef SMFIF_ADDRCPT_PAR
 	lua_pushnumber(l, SMFIF_ADDRCPT_PAR);
 	lua_setglobal(l, "SMFIF_ADDRCPT_PAR");
+#endif /* SMFIF_ADDRCPT_PAR */
+#ifdef SMFIF_SETSYMLIST
 	lua_pushnumber(l, SMFIF_SETSYMLIST);
 	lua_setglobal(l, "SMFIF_SETSYMLIST");
+#endif /* SMFIF_SETSYMLIST */
 
 	switch (lua_load(l, mt_lua_reader, (void *) &io,
 	                 script == NULL ? "(stdin)" : script))
