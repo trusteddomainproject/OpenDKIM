@@ -1,4 +1,4 @@
-$Id: README,v 1.5 2010/03/05 08:04:18 cm-msk Exp $
+$Id: README,v 1.6 2010/06/26 03:32:15 grooverdan Exp $
 
 INTRODUCTION
 ============
@@ -39,11 +39,22 @@ INSTALLING
 
     For Postfix:
     (a) Choose a socket at which the MTA and the filter will rendezvous
-        (see the documentation in libmilter for details)
+        (see the documentation in libmilter for details). Be careful with unix
+	sockets as on some distrubutions and setups the smtpd process is 
+	running in a chroot. A unix socket will need to be visible to the 
+	chrooted smtpd process.
     (b) Add a line like this example to your postfix main.cf using your
         desired socket specification:
 
 	    smtpd_milters = inet:8891@localhost
+	    non_smtpd_milters = inet:8891@localhost
+	
+    (c) If you have a content filter in master.cf that feeds it back into a
+        different smtpd process, you should alter the second smtpd process in
+	master.cf to contain '-o smtpd_milter= -o non_smtpd_milter=' to 
+	prevent messages being signed or verified twice. For tips on avoiding
+	DKIM signature breakage see:
+	http://www.postfix.org/MILTER_README.html#workarounds
 
 (2) Choose a selector name.  Current convention is to use the hostname
     (hostname only, not the fully-qualified domain name) of the host that
@@ -51,10 +62,11 @@ INSTALLING
     wish, especially if you have a selector assignment scheme in mind.
 
 (3) Either:
-  (a) Run the script gentxt.csh.  This will generate a public and private
-      key in PEM format and output a TXT record appropriate for insertion
-      into your DNS zone file.  Insert it in your zone file and reload your
-      DNS system so the data is published.
+  (a) Run the script opendkim-genkey.sh -s SELECTOR. The opendkim-genkey man
+      page has full details of options. This will generate a public and 
+      private key in PEM format and output a TXT record appropriate for
+      insertion into your DNS zone file.  Insert it in your zone file and 
+      reload your DNS system so the data is published.
 	-OR-
   (b) Manually generate a public and private key:
     (i)   % openssl genrsa -out rsa.private 1024
@@ -64,18 +76,46 @@ INSTALLING
           rsa.public file generated above, with spaces and newlines removed.
           It should be in this form:
 
-	  "v=DKIM1; k=rsa; t=y; p=MFwwDQYJ...AwEAAQ=="
+	  "v=DKIM1; t=y; p=MFwwDQYJ...AwEAAQ=="
 
-          ...using, of course, your own public key's base64 data.  The name of
-          the TXT record should be SELECTOR._domainkey.example.com (where
-          "SELECTOR" is the name you chose and "example.com" is your domain
-          name).  You might want to set a short TTL on this record.  Reload
-          your nameserver so that the record gets published.  For a translation
-          of the parameter and value pairs shown here, see the draft spec;
-          basically this just announces an RSA public key and also declares
-          that your site is using this key in test mode so nobody should take
-          any real action based on success or failure of the use of this key to
-          verify a message.
+          ...using, of course, your own public key with is the base64 data 
+	  from the generated rsa.public file.
+
+	  NOTE: Keysizes above 2700 bits are unlikely to fit into a 512 byte
+	  DNS record.
+
+  (c) Publish your public DNS key.
+      The public key DNS record should appear as a TXT resource record at:
+          SELECTOR._domainkey.DOMAIN
+
+     "SELECTOR" is the name you chose with the Selector config option or the
+     result of the KeyTable lookup.
+
+     DOMAIN is the domain name specified in the -d command line, the Domain 
+     config option or the config file, or the domain returned from the
+     KeyTable lookup.
+	  
+     For a translation of the parameters and value pairs see RFC4871. Using 
+     t=y is useful indicating in test mode so nobody should take any real 
+     action based on success or failure of the use of this key to after 
+     verifing a message. Remove the t=y once you have tested the DKIM 
+     signing of your messages.
+
+     You might want to set a short TTL on this record.  Reload your nameserver 
+     so that the record gets published.
+     
+
+    Check the DNS server is returning your published DNS record.  Be aware 
+    that synchronization to secondary DNS servers and negative caching of DNS 
+    resolver servers may effect the results observed. For reliable results 
+    query your DNS server directly.
+
+	  dig -t txt SELECTOR._domainkey.DOMAIN NAMESERVER
+ 
+    NAMESERVER is the nameserver returned by dig -t ns DOMAIN
+
+    Bind servers have a 256 byte limit on serving TXT records so a 1024 bit 
+    RSA key is recommended if using Bind as your primary DNS server.
 
 (4) Store the private key in a safe place.  We generally use a path like
     /var/db/dkim/SELECTOR.key.pem (where "SELECTOR" is the name you
@@ -93,7 +133,7 @@ INSTALLING
     if you want it to run in the foreground instead of in the background
     as a daemon.
 
-(6) Restart your MTA.
+(6) Restart/reload your MTA.
 
 
 DEBUG FEATURES
@@ -123,9 +163,6 @@ message as generated at the verifier.  Comparing these forms to the local
 copies of the same (generated as described above) using a utility such as
 "diff" will show how a message was modified between the signing and verifying
 operations.  This will usually reveal the cause of the failed verification.
-
-To become a verifier that sends such responses, start opendkim with the
-"-R" command line option.
 
 
 REUSING DOMAINKEYS RECORDS
@@ -217,8 +254,8 @@ DATA SETS
 Several OpenDKIM configuration values describe lists or sets of data, sometimes
 with associated values.  OpenDKIM refers to these as "data sets".  They
 can be stored in a variety of ways such as comma-separated lists, flat files,
-files involving pattern matching (called "refiles"), Sleeypcat databases (hash
-or btree), SQL databases or LDAP directories.
+files involving pattern matching (called "refiles"), Oracle/Sleepycat Berkeley
+databases (hash or btree), SQL databases, LUA scripts or LDAP directories.
 
 For some data sets, merely a test for membership in the set is done.  Such
 entries only have "keys" (items in the set), with no associated "values".
@@ -279,6 +316,12 @@ The special DSN keys "table", "keycol" and "datacol" are required to name the
 database from which to select records, the column in which keys will be found,
 and the column(s) from which their corresponding values should be extracted.
 
+A LUA script can be specified as below:
+
+        lua:/usr/local/keyretrive.lua
+
+The LUA script with access the global "query" variable to see the query and 
+return a set of values.
 
 SUPPORT
 =======
@@ -294,5 +337,5 @@ Send an email to opendkim-announce-request@lists.opendkim.org with subscribe
 as the subject to receive release announcements.  You can find more
 information about our mailing lists at http://www.opendkim.org.
 
-To report bugs, you can access the Sourceforge "tracker"
+To report bugs and feature request, you can access the Sourceforge "tracker"
 facilities at http://sourceforge.net/projects/opendkim.
