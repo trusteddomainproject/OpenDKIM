@@ -1,4 +1,4 @@
-$Id: README,v 1.6 2010/06/26 03:32:15 grooverdan Exp $
+$Id: README,v 1.7 2010/06/26 03:32:35 grooverdan Exp $
 
 INTRODUCTION
 ============
@@ -337,5 +337,5 @@ Send an email to opendkim-announce-request@lists.opendkim.org with subscribe
 as the subject to receive release announcements.  You can find more
 information about our mailing lists at http://www.opendkim.org.
 
-To report bugs and feature request, you can access the Sourceforge "tracker"
+To report bugs and feature requests, you can access the Sourceforge "tracker"
 facilities at http://sourceforge.net/projects/opendkim.
