@@ -229,8 +229,7 @@ lines in that file.
 
 .TP
 .I DontSignMailTo (dataset)
-A set of e-mail addresses (with "*" allowed as a wildcard
-character), mail to which should never be signed by the filter.  Note that
+A set of e-mail address which should never be signed by the filter.  Note that
 this is an "any" feature; if any one of the recipients of the message
 matches a member of this list, the message will not be signed.
 
@@ -870,8 +869,7 @@ the signature.
 If this table specifies a regular expression file ("refile"),
 then the keys are wildcard patterns that are matched against the address
 found in the From: header field.  Entries are checked in the order
-in which they appear in the file.  The patterns are matched exactly except
-that a "*" is treated as the conventional wildcard character.
+in which they appear in the file.
 
 For all other database types, the full
 .I user@host
