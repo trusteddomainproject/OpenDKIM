@@ -408,7 +408,7 @@ the values are either
 .I all,
 or
 .I discardable,
-as per the current ADSP draft specification.  This allows local overrides
+as per the ADSP specification (RFC5617).  This allows local overrides
 of policies to enforce for domains that either don't publish ADSP or publish
 weaker policies than the verifier would like to enforce.
 
