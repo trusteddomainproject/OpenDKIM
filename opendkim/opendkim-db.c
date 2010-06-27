@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.78 2010/06/27 03:00:44 grooverdan Exp $
+**  $Id: opendkim-db.c,v 1.79 2010/06/27 03:05:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.78 2010/06/27 03:00:44 grooverdan Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.79 2010/06/27 03:05:12 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -263,7 +263,6 @@ static char *dkimf_db_ldap_param[DKIMF_LDAP_PARAM_MAX + 1];
 static int
 dkimf_db_saslinteract(LDAP *ld, unsigned int flags, void *defaults,
                       void *sasl_interact)
-
 {
 	sasl_interact_t *interact;
 
@@ -2857,6 +2856,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		return 0;
 	  }
 #endif /* USE_LUA */
+
 	  default:
 		assert(0);
 		return 0;		/* to silence the compiler */
