@@ -151,6 +151,9 @@ If the string contains none of these prefixes but starts with a slash ("/")
 character, it is presumed to be a flat file as described above.
 .TP
 .I i)
+If the string begins with "csl:", the string is treated as a comma-separated
+list as described in j) below.
+.I j)
 In any other case, the string is presumed to be a comma-separated list.
 Elements in the list are either simple data elements that are part of the
 set or, in the case of an entry of the form "x=y", are stored as key-value

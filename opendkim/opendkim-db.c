@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.77 2010/06/24 19:04:08 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.78 2010/06/27 03:00:44 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77 2010/06/24 19:04:08 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.78 2010/06/27 03:00:44 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -263,6 +263,7 @@ static char *dkimf_db_ldap_param[DKIMF_LDAP_PARAM_MAX + 1];
 static int
 dkimf_db_saslinteract(LDAP *ld, unsigned int flags, void *defaults,
                       void *sasl_interact)
+
 {
 	sasl_interact_t *interact;
 
@@ -616,6 +617,7 @@ dkimf_db_type(DKIMF_DB db)
 **  	dsn -- a data store name, meaning SQL or ODBC in the backend,
 **  	       with interface provided by OpenDBX
 **  	ldap -- an LDAP server, interace provide by OpenLDAP
+**  	lua -- an lua script, the returned value is the result
 */
 
 int
@@ -1778,6 +1780,7 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 	    db->db_type == DKIMF_DB_TYPE_CSL || 
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
 	    db->db_type == DKIMF_DB_TYPE_LDAP || 
+	    db->db_type == DKIMF_DB_TYPE_LUA || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -1922,6 +1925,7 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	    db->db_type == DKIMF_DB_TYPE_CSL || 
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
 	    db->db_type == DKIMF_DB_TYPE_LDAP || 
+	    db->db_type == DKIMF_DB_TYPE_LUA || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -2853,7 +2857,6 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		return 0;
 	  }
 #endif /* USE_LUA */
-
 	  default:
 		assert(0);
 		return 0;		/* to silence the compiler */
