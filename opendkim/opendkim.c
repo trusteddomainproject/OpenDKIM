@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.149 2010/06/25 07:40:41 grooverdan Exp $
+**  $Id: opendkim.c,v 1.150 2010/06/28 16:42:13 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.149 2010/06/25 07:40:41 grooverdan Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.150 2010/06/28 16:42:13 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4668,7 +4668,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				snprintf(err, errlen,
 				         "%s: dkimf_db_open(): %s",
 				         conf->conf_statspath,
-				         strerror(errno));
+				         dkimf_db_open_error(status));
 				return -1;
 			}
 			else if (dkimf_db_type(db) != DKIMF_DB_TYPE_BDB)
@@ -5103,7 +5103,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5127,7 +5127,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5140,7 +5140,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         DEFINTERNAL, strerror(errno));
+			         DEFINTERNAL, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5164,7 +5164,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5188,7 +5188,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5205,7 +5205,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5222,7 +5222,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5239,7 +5239,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5256,7 +5256,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5279,7 +5279,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5302,7 +5302,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5319,7 +5319,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5336,7 +5336,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5370,7 +5370,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 
@@ -5396,7 +5396,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				snprintf(err, errlen,
 				         "%s: dkimf_db_open(): %s",
 				         conf->conf_signtable,
-				         strerror(errno));
+				         dkimf_db_open_error(status));
 				return -1;
 			}
 		}
@@ -5423,7 +5423,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			{
 				snprintf(err, errlen,
 				         "%s: dkimf_db_open(): %s",
-				         conf->conf_keytable, strerror(errno));
+				         conf->conf_keytable,
+				         dkimf_db_open_error(status));
 				return -1;
 			}
 		}
@@ -5453,7 +5454,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5477,7 +5478,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5501,7 +5502,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5525,7 +5526,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 	}
@@ -5550,7 +5551,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, strerror(errno));
+			         str, dkimf_db_open_error(status));
 			return -1;
 		}
 
@@ -12299,8 +12300,8 @@ main(int argc, char **argv)
 		                       NULL);
 		if (status != 0)
 		{
-			fprintf(stderr, "%s: %s: dkimf_db_open() failed\n",
-			        progname, dbname);
+			fprintf(stderr, "%s: %s: dkimf_db_open(): %s\n",
+			        progname, dbname, dkimf_db_open_error(status));
 			return EX_SOFTWARE;
 		}
 
@@ -13196,7 +13197,8 @@ main(int argc, char **argv)
 		if (status != 0)
 		{
 			fprintf(stderr, "%s: can't open database %s: %s\n",
-			        progname, bldbfile, strerror(status));
+			        progname, bldbfile,
+			        dkimf_db_open_error(status));
 			if (dolog)
 			{
 				syslog(LOG_ERR, "can't open database %s",
@@ -13234,7 +13236,8 @@ main(int argc, char **argv)
 		if (status != 0)
 		{
 			fprintf(stderr, "%s: can't open database %s: %s\n",
-			        progname, ridbfile, strerror(status));
+			        progname, ridbfile,
+			        dkimf_db_open_error(status));
 			if (dolog)
 			{
 				syslog(LOG_ERR, "can't open database %s",
@@ -13308,13 +13311,14 @@ main(int argc, char **argv)
 		{
 			char errbuf[BUFRSZ];
 
-			fprintf(stderr, "%s: can't open database %s\n",
-			        progname, popdbfile);
+			fprintf(stderr, "%s: can't open database %s: %s\n",
+			        progname, popdbfile,
+			        dkimf_db_open_error(status));
 
 			if (dolog)
 			{
-				syslog(LOG_ERR, "can't open database %s",
-				       popdbfile);
+				syslog(LOG_ERR, "can't open database %s: %s",
+				       popdbfile, dkimf_db_open_error(status));
 			}
 
 			dkimf_zapkey(curconf);
