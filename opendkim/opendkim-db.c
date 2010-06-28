@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.81 2010/06/28 18:47:43 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.82 2010/06/28 20:42:32 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.81 2010/06/28 18:47:43 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.82 2010/06/28 20:42:32 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1269,7 +1269,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 	  case DKIMF_DB_TYPE_DSN:
 	  {
 		_Bool found;
-		int err;
+		int dberr;
 		struct dkimf_db_dsn *dsn;
 		char *q;
 		char *r;
@@ -1459,28 +1459,28 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 # define STRORNULL(x)	((x)[0] == '\0' ? NULL : (x))
 
 		/* create odbx handle */
-		err = odbx_init(&odbx,
-		                STRORNULL(dsn->dsn_backend),
-		                STRORNULL(dsn->dsn_host),
-		                STRORNULL(dsn->dsn_port));
-		if (err < 0)
+		dberr = odbx_init(&odbx,
+		                  STRORNULL(dsn->dsn_backend),
+		                  STRORNULL(dsn->dsn_host),
+		                  STRORNULL(dsn->dsn_port));
+		if (dberr < 0)
 		{
 			if (err != NULL)
-				*err = odbx_error(NULL, err);
+				*err = (char *) odbx_error(NULL, dberr);
 			free(dsn);
 			free(tmp);
 			return -1;
 		}
 
 		/* create bindings */
-		err = odbx_bind(odbx, STRORNULL(dsn->dsn_dbase),
-		                      STRORNULL(dsn->dsn_user),
-		                      STRORNULL(dsn->dsn_password),
-		                      ODBX_BIND_SIMPLE);
-		if (err < 0)
+		dberr = odbx_bind(odbx, STRORNULL(dsn->dsn_dbase),
+		                        STRORNULL(dsn->dsn_user),
+		                        STRORNULL(dsn->dsn_password),
+		                        ODBX_BIND_SIMPLE);
+		if (dberr < 0)
 		{
 			if (err != NULL)
-				*err = odbx_error(NULL, err);
+				*err = (char *) odbx_error(NULL, dberr);
 			(void) odbx_finish(odbx);
 			free(dsn);
 			free(tmp);
