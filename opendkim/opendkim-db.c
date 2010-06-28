@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.77 2010/06/24 19:04:08 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.77.2.1 2010/06/28 16:44:01 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77 2010/06/24 19:04:08 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77.2.1 2010/06/28 16:44:01 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -579,6 +579,39 @@ dkimf_db_type(DKIMF_DB db)
 	assert(db != NULL);
 
 	return db->db_type;
+}
+
+/*
+**  DKIMF_DB_OPEN_ERROR -- return an error string matching an error code from
+**                         dkimf_db_open()
+**
+**  Parameters:
+**  	code -- error code returned by dkimf_db_open()
+**
+**  Return value:
+**  	Pointer to a character string explaining that error code.
+*/
+
+char *
+dkimf_db_open_error(int code)
+{
+	switch (code)
+	{
+	  case 3:
+		return "Database open error";
+
+	  case 2:
+		return "Illegal request";
+
+	  case 1:
+		return "Unknown database type";
+
+	  case -1:
+		return strerror(errno);
+
+	  default:
+		assert(0);
+	}
 }
 
 /*

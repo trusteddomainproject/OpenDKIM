@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.160 2010/06/25 06:01:22 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.160.2.1 2010/06/28 16:44:01 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -14,6 +14,7 @@ release, and a summary of the changes in that release.
 	Add additional database error logging.
 	Fix bug #SF3021228: Avoid a NULL dereference in dkimf_xs_requestsig()
 		when the function is called in test mode.
+	Fix bug #SF3022409: Improve error logging from dkimf_db_open().
 	MILTERTEST: Fix bug #SF3020662: Add compatibility with older versions
 		of libmilter.
 
