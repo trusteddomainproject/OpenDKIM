@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.h,v 1.11.2.1 2010/06/28 16:44:01 cm-msk Exp $
+**  $Id: opendkim-db.h,v 1.11.2.2 2010/06/28 18:46:42 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_DB_H_
 #define _OPENDKIM_DB_H_
 
 #ifndef lint
-static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.11.2.1 2010/06/28 16:44:01 cm-msk Exp $";
+static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.11.2.2 2010/06/28 18:46:42 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -75,8 +75,7 @@ extern int dkimf_db_get __P((DKIMF_DB, void *, size_t,
                              DKIMF_DBDATA, unsigned int, _Bool *));
 extern int dkimf_db_mkarray __P((DKIMF_DB, char ***));
 extern int dkimf_db_open __P((DKIMF_DB *, char *, u_int flags,
-                              pthread_mutex_t *));
-extern char *dkimf_db_open_error __P((int));
+                              pthread_mutex_t *, char **));
 extern int dkimf_db_put __P((DKIMF_DB, void *, size_t, void *, size_t));
 extern int dkimf_db_rewalk __P((DKIMF_DB, char *, DKIMF_DBDATA, unsigned int,
                                 void **));

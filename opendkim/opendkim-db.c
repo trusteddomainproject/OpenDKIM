@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.77.2.1 2010/06/28 16:44:01 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.77.2.2 2010/06/28 18:46:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77.2.1 2010/06/28 16:44:01 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77.2.2 2010/06/28 18:46:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -582,39 +582,6 @@ dkimf_db_type(DKIMF_DB db)
 }
 
 /*
-**  DKIMF_DB_OPEN_ERROR -- return an error string matching an error code from
-**                         dkimf_db_open()
-**
-**  Parameters:
-**  	code -- error code returned by dkimf_db_open()
-**
-**  Return value:
-**  	Pointer to a character string explaining that error code.
-*/
-
-char *
-dkimf_db_open_error(int code)
-{
-	switch (code)
-	{
-	  case 3:
-		return "Database open error";
-
-	  case 2:
-		return "Illegal request";
-
-	  case 1:
-		return "Unknown database type";
-
-	  case -1:
-		return strerror(errno);
-
-	  default:
-		assert(0);
-	}
-}
-
-/*
 **  DKIMF_DB_OPEN -- open a database
 **
 **  Parameters:
@@ -622,6 +589,7 @@ dkimf_db_open_error(int code)
 **  	name -- name of DB to open
 **  	flags -- operational flags
 **  	lock -- lock to use during operations
+**  	err -- error string from underlying library (returned; may be NULL)
 **
 **  Return value:
 **  	3 -- other open error
@@ -652,7 +620,8 @@ dkimf_db_open_error(int code)
 */
 
 int
-dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
+dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
+              char **err)
 {
 	DKIMF_DB new;
 	char *p;
@@ -662,7 +631,11 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 	new = (DKIMF_DB) malloc(sizeof(struct dkimf_db));
 	if (new == NULL)
+	{
+		if (err != NULL)
+			*err = strerror(errno);
 		return -1;
+	}
 
 	memset(new, '\0', sizeof(struct dkimf_db));
 
@@ -713,6 +686,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		if (new->db_type == DKIMF_DB_TYPE_UNKNOWN)
 		{
 			free(new);
+			if (err != NULL)
+				*err = "Unknown database type";
 			return 1;
 		}
 
@@ -735,12 +710,16 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		{
 			free(new);
 			errno = EINVAL;
+			if (err != NULL)
+				*err = strerror(errno);
 			return 2;
 		}
 
 		tmp = strdup(p);
 		if (tmp == NULL)
 		{
+			if (err != NULL)
+				*err = strerror(errno);
 			free(new);
 			return -1;
 		}
@@ -766,6 +745,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					newl = (struct dkimf_db_list *) malloc(sizeof(struct dkimf_db_list));
 					if (newl == NULL)
 					{
+						if (err != NULL)
+							*err = strerror(errno);
 						if (list != NULL)
 							dkimf_db_list_free(list);
 						free(tmp);
@@ -776,6 +757,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					newl->db_list_key = strdup(p);
 					if (newl->db_list_key == NULL)
 					{
+						if (err != NULL)
+							*err = strerror(errno);
 						free(newl);
 						if (list != NULL)
 							dkimf_db_list_free(list);
@@ -787,6 +770,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					newl->db_list_value = strdup(q);
 					if (newl->db_list_value == NULL)
 					{
+						if (err != NULL)
+							*err = strerror(errno);
 						free(newl->db_list_key);
 						free(newl);
 						if (list != NULL)
@@ -811,6 +796,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				newl = (struct dkimf_db_list *) malloc(sizeof(struct dkimf_db_list));
 				if (newl == NULL)
 				{
+					if (err != NULL)
+						*err = strerror(errno);
 					if (list != NULL)
 						dkimf_db_list_free(list);
 					free(tmp);
@@ -821,6 +808,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				newl->db_list_key = strdup(p);
 				if (newl->db_list_key == NULL)
 				{
+					if (err != NULL)
+						*err = strerror(errno);
 					free(newl);
 					if (list != NULL)
 						dkimf_db_list_free(list);
@@ -833,6 +822,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					newl->db_list_value = strdup(eq + 1);
 					if (newl->db_list_value == NULL)
 					{
+						if (err != NULL)
+							*err = strerror(errno);
 						free(newl->db_list_key);
 						free(newl);
 						free(tmp);
@@ -881,6 +872,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
 		{
+			if (err != NULL)
+				*err = strerror(EINVAL);
 			free(new);
 			errno = EINVAL;
 			return 2;
@@ -889,6 +882,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		f = fopen(p, "r");
 		if (f == NULL)
 		{
+			if (err != NULL)
+				*err = strerror(errno);
 			free(new);
 			return -1;
 		}
@@ -912,6 +907,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			newl = (struct dkimf_db_list *) malloc(sizeof(struct dkimf_db_list));
 			if (newl == NULL)
 			{
+				if (err != NULL)
+					*err = strerror(errno);
 				if (list != NULL)
 					dkimf_db_list_free(list);
 				fclose(f);
@@ -954,6 +951,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					newl = (struct dkimf_db_list *) malloc(sizeof(struct dkimf_db_list));
 					if (newl == NULL)
 					{
+						if (err != NULL)
+							*err = strerror(errno);
 						if (list != NULL)
 							dkimf_db_list_free(list);
 						free(new);
@@ -964,6 +963,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					newl->db_list_key = strdup(p);
 					if (newl->db_list_key == NULL)
 					{
+						if (err != NULL)
+							*err = strerror(errno);
 						free(newl);
 						if (list != NULL)
 							dkimf_db_list_free(list);
@@ -975,6 +976,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					newl->db_list_value = strdup(q);
 					if (newl->db_list_value == NULL)
 					{
+						if (err != NULL)
+							*err = strerror(errno);
 						free(newl->db_list_key);
 						free(newl);
 						if (list != NULL)
@@ -998,6 +1001,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				newl->db_list_key = strdup(key);
 				if (newl->db_list_key == NULL)
 				{
+					if (err != NULL)
+						*err = strerror(errno);
 					free(newl);
 					if (list != NULL)
 						dkimf_db_list_free(list);
@@ -1011,6 +1016,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 					newl->db_list_value = strdup(value);
 					if (newl->db_list_value == NULL)
 					{
+						if (err != NULL)
+							*err = strerror(errno);
 						free(newl->db_list_key);
 						free(newl);
 						if (list != NULL)
@@ -1060,6 +1067,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
 		{
+			if (err != NULL)
+				*err = strerror(EINVAL);
 			free(new);
 			errno = EINVAL;
 			return 2;
@@ -1068,6 +1077,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		f = fopen(p, "r");
 		if (f == NULL)
 		{
+			if (err != NULL)
+				*err = strerror(errno);
 			free(new);
 			return -1;
 		}
@@ -1111,6 +1122,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			newl = (struct dkimf_db_relist *) malloc(sizeof(struct dkimf_db_relist));
 			if (newl == NULL)
 			{
+				if (err != NULL)
+					*err = strerror(errno);
 				if (head != NULL)
 					dkimf_db_relist_free(head);
 				fclose(f);
@@ -1124,6 +1137,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 			if (!dkimf_mkregexp(line, patbuf, sizeof patbuf))
 			{
+				if (err != NULL)
+					*err = "Error constructing regular expression";
 				if (head != NULL)
 					dkimf_db_relist_free(head);
 				fclose(f);
@@ -1134,6 +1149,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			status = regcomp(&newl->db_relist_re, patbuf, reflags);
 			if (status != 0)
 			{
+				if (err != NULL)
+					*err = "Error compiling regular expression";
 				if (head != NULL)
 					dkimf_db_relist_free(head);
 				fclose(f);
@@ -1146,6 +1163,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				newl->db_relist_data = strdup(data);
 				if (newl->db_relist_data == NULL)
 				{
+					if (err != NULL)
+						*err = strerror(errno);
 					fclose(f);
 					free(new);
 					return -1;
@@ -1233,6 +1252,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 		if (status != 0)
 		{
+			if (err != NULL)
+				*err = db_strerror(status);
 			free(new);
 			return 3;
 		}
@@ -1258,6 +1279,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		dsn = (struct dkimf_db_dsn *) malloc(sizeof(struct dkimf_db_dsn));
 		if (dsn == NULL)
 		{
+			if (err != NULL)
+				*err = strerror(errno);
 			free(new);
 			return -1;
 		}
@@ -1275,6 +1298,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		tmp = strdup(p);
 		if (tmp == NULL)
 		{
+			if (err != NULL)
+				*err = strerror(errno);
 			free(dsn);
 			free(new);
 			return -1;
@@ -1283,6 +1308,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		q = strchr(tmp, ':');
 		if (q == NULL)
 		{
+			if (err != NULL)
+				*err = strerror(EINVAL);
 			free(dsn);
 			free(tmp);
 			free(new);
@@ -1295,6 +1322,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		q++;
 		if (*q != '/' || *(q + 1) != '/')
 		{
+			if (err != NULL)
+				*err = strerror(EINVAL);
 			free(dsn);
 			free(tmp);
 			return -1;
@@ -1313,6 +1342,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 				if (dsn->dsn_user[0] != '\0')
 				{
+					if (err != NULL)
+						*err = strerror(EINVAL);
 					free(dsn);
 					free(tmp);
 					free(new);
@@ -1367,6 +1398,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 				break;
 
 			  default:
+				if (err != NULL)
+					*err = strerror(EINVAL);
 				free(dsn);
 				free(tmp);
 				free(new);
@@ -1376,6 +1409,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 		if (dsn->dsn_host[0] == '\0')
 		{
+			if (err != NULL)
+				*err = "SQL host not defined";
 			free(dsn);
 			free(tmp);
 			free(new);
@@ -1413,6 +1448,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		    dsn->dsn_keycol[0] == '\0' ||
 		    dsn->dsn_datacol[0] == '\0')
 		{
+			if (err != NULL)
+				*err = strerror(EINVAL);
 			free(dsn);
 			free(tmp);
 			return -1;
@@ -1427,6 +1464,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		                STRORNULL(dsn->dsn_port));
 		if (err < 0)
 		{
+			if (err != NULL)
+				*err = odbx_error(NULL, err);
 			free(dsn);
 			free(tmp);
 			return -1;
@@ -1439,6 +1478,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		                      ODBX_BIND_SIMPLE);
 		if (err < 0)
 		{
+			if (err != NULL)
+				*err = odbx_error(NULL, err);
 			(void) odbx_finish(odbx);
 			free(dsn);
 			free(tmp);
@@ -1484,6 +1525,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		p = strdup(name);
 		if (p == NULL)
 		{
+			if (err != NULL)
+				*err = strerror(errno);
 			free(new);
 			return -1;
 		}
@@ -1495,6 +1538,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		{
 			if (ldap_is_ldap_url(q) == 0)
 			{
+				if (err != NULL)
+					*err = strerror(EINVAL);
 				free(p);
 				free(new);
 				return -1;
@@ -1508,6 +1553,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		ldap = (struct dkimf_db_ldap *) malloc(sizeof(struct dkimf_db_ldap));
 		if (ldap == NULL)
 		{
+			if (err != NULL)
+				*err = strerror(errno);
 			free(p);
 			free(new);
 			return -1;
@@ -1531,6 +1578,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		err = ldap_url_parse(uris[0], &ldap->ldap_descr);
 		if (err != 0)
 		{
+			if (err != NULL)
+				*err = ldap_err2string(err);
 			free(ldap);
 			free(p);
 			free(new);
@@ -1562,6 +1611,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 			if (plen >= rem)
 			{
+				if (err != NULL)
+					*err = "LDAP URI too large";
 				free(ldap);
 				free(p);
 				free(new);
@@ -1577,6 +1628,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		err = ldap_initialize(&ld, ldap->ldap_urilist);
 		if (err != LDAP_SUCCESS)
 		{
+			if (err != NULL)
+				*err = ldap_err2string(err);
 			free(ldap);
 			free(p);
 			free(new);
@@ -1587,6 +1640,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		err = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &v);
 		if (err != LDAP_OPT_SUCCESS)
 		{
+			if (err != NULL)
+				*err = ldap_err2string(err);
 			ldap_unbind_ext(ld, NULL, NULL);
 			free(ldap);
 			free(p);
@@ -1603,6 +1658,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			err = ldap_start_tls_s(ld, NULL, NULL);
 			if (err != LDAP_SUCCESS)
 			{
+				if (err != NULL)
+					*err = ldap_err2string(err);
 				ldap_unbind_ext(ld, NULL, NULL);
 				free(ldap);
 				free(p);
@@ -1635,6 +1692,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			                       NULL, NULL, NULL);
 			if (err != LDAP_SUCCESS)
 			{
+				if (err != NULL)
+					*err = ldap_err2string(err);
 				ldap_unbind_ext(ld, NULL, NULL);
 				free(ldap);
 				free(p);
@@ -1655,6 +1714,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			                                   NULL);
 			if (err != LDAP_SUCCESS)
 			{
+				if (err != NULL)
+					*err = ldap_err2string(err);
 				ldap_unbind_ext(ld, NULL, NULL);
 				free(ldap);
 				free(p);
@@ -1663,6 +1724,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 			}
 # else /* USE_SASL */
 			/* unknown auth mechanism */
+			if (err != NULL)
+				*err = "Unknown auth mechanism";
 			ldap_unbind_ext(ld, NULL, NULL);
 			free(ldap);
 			free(p);
@@ -1741,23 +1804,35 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 
 		fd = open(p, O_RDONLY);
 		if (fd < 0)
+		{
+			if (err != NULL)
+				*err = strerror(errno);
 			return -1;
+		}
 
 		if (fstat(fd, &s) == -1)
 		{
+			if (err != NULL)
+				*err = strerror(errno);
 			close(fd);
 			return -1;
 		}
 
 		lua = (struct dkimf_db_lua *) malloc(sizeof *lua);
 		if (lua == NULL)
+		{
+			if (err != NULL)
+				*err = strerror(errno);
 			return -1;
+		}
 		memset(lua, '\0', sizeof *lua);
 		new->db_data = (void *) lua;
 
 		lua->lua_script = (void *) malloc(s.st_size + 1);
 		if (lua->lua_script == NULL)
 		{
+			if (err != NULL)
+				*err = strerror(errno);
 			free(new->db_data);
 			close(fd);
 			return -1;
@@ -1767,6 +1842,13 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock)
 		rlen = read(fd, lua->lua_script, s.st_size);
 		if (rlen < s.st_size)
 		{
+			if (err != NULL)
+			{
+				if (rlen == -1)
+					*err = strerror(errno);
+				else
+					*err = "Read truncated";
+			}
 			free(lua->lua_script);
 			free(new->db_data);
 			close(fd);

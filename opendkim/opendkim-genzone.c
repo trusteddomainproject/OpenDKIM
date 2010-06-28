@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-genzone.c,v 1.10 2010/03/28 05:25:19 cm-msk Exp $
+**  $Id: opendkim-genzone.c,v 1.10.10.1 2010/06/28 18:46:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.10 2010/03/28 05:25:19 cm-msk Exp $";
+static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.10.10.1 2010/06/28 18:46:42 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -446,7 +446,8 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	status = dkimf_db_open(&db, dataset, DKIMF_DB_FLAG_READONLY, NULL);
+	status = dkimf_db_open(&db, dataset, DKIMF_DB_FLAG_READONLY,
+	                       NULL, NULL);
 	if (status != 0)
 	{
 		fprintf(stderr, "%s: dkimf_db_open() failed\n", progname);
