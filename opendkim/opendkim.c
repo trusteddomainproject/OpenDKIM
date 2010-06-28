@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.149.2.2 2010/06/28 18:46:43 cm-msk Exp $
+**  $Id: opendkim.c,v 1.149.2.3 2010/06/28 20:24:34 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.149.2.2 2010/06/28 18:46:43 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.149.2.3 2010/06/28 20:24:34 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -12421,7 +12421,12 @@ main(int argc, char **argv)
 			else
 			{
 				for (c = 0; c < n; c++)
-					fprintf(stdout, "`%s'\n", result[c]);
+				{
+					if (dbdp[c].dbdata_buflen == 0)
+						fprintf(stdout, "<empty>\n", result[c]);
+					else
+						fprintf(stdout, "`%s'\n", result[c]);
+				}
 			}
 
 			for (c = 0; c < n; c++)
