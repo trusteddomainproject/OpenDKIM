@@ -111,9 +111,11 @@ is the name of the database to be accessed, and the
 pairs must specify at least "table", "keycol" and "datacol" values specifying
 the name of the table, the name of the column to consider as the key, and the
 name(s) of the column(s) to be considered as the values (separated by
-commas).  For example:
+commas).  For example (all in one line):
 
-mysql:://dbuser:dbpass@3306+dbhost/odkim/table=macros?keycol=host?datacol=v1,v2
+mysql:://dbuser:dbpass@3306+dbhost/odkim/table=macros
+.br
+         ?keycol=host?datacol=v1,v2
 
 defines a MySQL database listening at port 3306 on host "dbhost"; the userid
 "dbuser" and password "dbpass" should be used to access the database; the
