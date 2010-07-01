@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.8 2010/05/20 18:39:10 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.9 2010/07/01 14:55:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.8 2010/05/20 18:39:10 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.9 2010/07/01 14:55:37 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -529,7 +529,9 @@ static int
 usage(void)
 {
 	fprintf(stderr, "%s: usage(): %s [options] path\n"
-	                "\t-A     \tanonymize output\n"
+	                "\t-a     \tanonymize output\n"
+	                "\t-c     \toutput comma-separated format\n"
+	                "\t-h name\tname of the reporting host\n"
 	                "\t-i     \tinitialize database\n"
 	                "\t-m addr\tmail report to specified address\n"
 	                "\t-r     \treset database after sending report\n",
