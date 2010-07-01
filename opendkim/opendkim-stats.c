@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.8.2.1 2010/06/30 17:08:07 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.8.2.2 2010/07/01 14:59:58 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.8.2.1 2010/06/30 17:08:07 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.8.2.2 2010/07/01 14:59:58 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -104,6 +104,7 @@ dkims_dump(char *path, char *mailto)
 	size_t keylen;
 	size_t datalen;
 	DKIMF_DB db;
+	char *dberr = NULL;
 	FILE *out = stdout;
 	struct dkim_stats_key_v1 reckey_v1;
 	struct dkim_stats_data_v1 recdata_v1;
@@ -115,11 +116,12 @@ dkims_dump(char *path, char *mailto)
 	assert(path != NULL);
 
 	/* open the DB */
-	status = dkimf_db_open(&db, path, DKIMF_DB_FLAG_READONLY, NULL);
+	status = dkimf_db_open(&db, path, DKIMF_DB_FLAG_READONLY,
+	                       NULL, &dberr);
 	if (status != 0)
 	{
-		fprintf(stderr, "%s: %s: dkimf_db_open() failed\n",
-		        progname, path);
+		fprintf(stderr, "%s: %s: dkimf_db_open() failed: %s\n",
+		        progname, path, dberr);
 
 		return EX_SOFTWARE;
 	}
@@ -478,6 +480,7 @@ dkims_initdb(char *path)
 {
 	int status;
 	int version;
+	char *dberr = NULL;
 	DKIMF_DB db;
 	struct dkimf_db_data dbd;
 
@@ -491,11 +494,11 @@ dkims_initdb(char *path)
 	}
 
 	/* try to create */
-	status = dkimf_db_open(&db, path, 0, NULL);
+	status = dkimf_db_open(&db, path, 0, NULL, &dberr);
 	if (status != 0)
 	{
-		fprintf(stderr, "%s: %s: dkimf_db_open() failed\n",
-		        progname, path);
+		fprintf(stderr, "%s: %s: dkimf_db_open() failed: %s\n",
+		        progname, path, dberr);
 
 		return EX_SOFTWARE;
 	}

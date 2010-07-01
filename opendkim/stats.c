@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.10 2010/06/04 02:47:52 cm-msk Exp $
+**  $Id: stats.c,v 1.10.2.1 2010/07/01 14:59:58 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.10 2010/06/04 02:47:52 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.10.2.1 2010/07/01 14:59:58 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -94,6 +94,7 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 	DKIMF_DB db;
 	char *from;
 	char *p;
+	char *dberr = NULL;
 	DKIM_SIGINFO **sigs;
 	size_t outlen;
 	struct dkim_stats_data_v2 recdata;
@@ -103,11 +104,14 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 	assert(jobid != NULL);
 
 	/* open the DB */
-	status = dkimf_db_open(&db, path, 0, &stats_lock);
+	status = dkimf_db_open(&db, path, 0, &stats_lock, &dberr);
 	if (status != 0)
 	{
 		if (dolog)
-			syslog(LOG_ERR, "%s: dkimf_db_open() failed", path);
+		{
+			syslog(LOG_ERR, "%s: dkimf_db_open() failed: %s", path,
+			       dberr);
+		}
 
 		return -1;
 	}
