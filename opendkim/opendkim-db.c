@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.77.2.4 2010/06/30 13:51:07 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.77.2.5 2010/07/01 06:41:57 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77.2.4 2010/06/30 13:51:07 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77.2.5 2010/07/01 06:41:57 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2514,6 +2514,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 	  {
 		int err;
 		int fields;
+		int rescnt = 0;
+		int rowcnt = 0;
 		u_long elen;
 		odbx_result_t *result;
 		struct dkimf_db_dsn *dsn;
@@ -2546,89 +2548,85 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			return err;
 		}
 
-		err = odbx_result((odbx_t *) db->db_handle,
-		                  &result, NULL, 0);
-		if (err < 0)
+		for (rescnt = 0; ; rescnt++)
 		{
-			(void) odbx_result_finish(result);
-			db->db_status = err;
-			return err;
-		}
-
-		err = odbx_row_fetch(result);
-		if (err < 0)
-		{
-			(void) odbx_result_finish(result);
-			db->db_status = err;
-			return err;
-		}
-		else if (err == ODBX_RES_DONE)
-		{
-			if (exists != NULL)
-				*exists = FALSE;
-			(void) odbx_result_finish(result);
-			return 0;
-		}
-
-		fields = odbx_column_count(result);
-		if (fields == 0)
-		{
-			/* query somehow returned no columns */
-			(void) odbx_result_finish(result);
-			return -1;
-		}
-
-		if (exists != NULL)
-			*exists = TRUE;
-
-		if (reqnum != 0)
-		{
-			int c;
-
-			for (c = 0; c < reqnum; c++)
+			err = odbx_result((odbx_t *) db->db_handle,
+			                  &result, NULL, 0);
+			if (err < 0)
 			{
-				if (c >= fields)
-				{
-					req[c].dbdata_buflen = 0;
-				}
-				else
-				{
-					char *val;
-
-					val = (char *) odbx_field_value(result,
-					                                c);
-
-					if (val == NULL)
-					{
-						req[c].dbdata_buflen = 0;
-					}
-					else
-					{
-						req[c].dbdata_buflen = strlcpy(req[c].dbdata_buffer,
-						                               val,
-						                               req[c].dbdata_buflen);
-					}
-				}
-			}
-		}
-
-		/* cycle asking for results until done */
-		for (;;)
-		{
-			err = odbx_row_fetch(result);
-			if (err == ODBX_ROW_DONE)
-			{
-				break;
-			}
-			else if (err < 0)
-			{
-				(void) odbx_result_finish(result);
 				db->db_status = err;
 				return err;
 			}
-		}
+			else if (err == ODBX_RES_DONE)
+			{
+				if (exists != NULL && rescnt == 0)
+					*exists = FALSE;
+				err = odbx_result_finish(result);
+				return 0;
+			}
 
-		(void) odbx_result_finish(result);
+			for (rowcnt = 0; ; rowcnt++)
+			{
+				err = odbx_row_fetch(result);
+				if (err < 0)
+				{
+					db->db_status = err;
+					err = odbx_result_finish(result);
+					return db->db_status;
+				}
+				else if (err == ODBX_RES_DONE)
+				{
+					if (exists != NULL && rescnt == 0 &&
+					    rowcnt == 0)
+						*exists = FALSE;
+					break;
+				}
+
+				/* only copy out the first hit */
+				if (rescnt == 0 && rowcnt == 0)
+				{
+					fields = odbx_column_count(result);
+					if (fields == 0)
+						continue;
+
+					if (exists != NULL)
+						*exists = TRUE;
+
+					if (reqnum != 0)
+					{
+						int c;
+
+						for (c = 0; c < reqnum; c++)
+						{
+							if (c >= fields)
+							{
+								req[c].dbdata_buflen = 0;
+							}
+							else
+							{
+								char *val;
+
+								val = (char *) odbx_field_value(result,
+								                                c);
+
+								if (val == NULL)
+								{
+									req[c].dbdata_buflen = 0;
+								}
+								else
+								{
+									req[c].dbdata_buflen = strlcpy(req[c].dbdata_buffer,
+									                               val,
+									                               req[c].dbdata_buflen);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			err = odbx_result_finish(result);
+		}
 
 		return 0;
 	  }
