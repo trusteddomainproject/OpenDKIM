@@ -1,11 +1,11 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.160.2.5 2010/07/01 07:05:26 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.160.2.6 2010/07/01 07:09:06 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.1.2		2010/07/07
+2.1.2		2010/07/05
 	When testing the domains data set for a domain match for signing,
 		check for an explicit "*" record for back-compatibility
 		with versions prior to v1.2.0.
