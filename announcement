@@ -1,38 +1,35 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.1.1 released
+Subject: OpenDKIM v2.1.2 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.1.1, now available
+The OpenDKIM project announces availability of OpenDKIM v2.1.2, now available
 for download from SourceForge.
 
-This is a bug fix release.  The fixes are concentrated around the Lua
-scripting functionality and support of a specific set of milter features
-in "miltertest".  If these functions are working for you already or you're
-not using them, there is no need to upgrade at this time.
+This is a bug fix release.  The bulk of the fixes involve changes with the
+way the filter makes use of OpenDBX (for SQL backend environments) and
+also repairs a couple of crash bugs.  It also makes miltertest compatible
+with older versions of libmilter and restores some limited
+backward-compatibility that is still desirable.  Finally, it cleans up
+some aesthetic issues.
 
 The full RELEASE_NOTES for this version:
 
-2.1.1		2010/06/22
-	Force IPv6 addresses to lowercase, which is about to become standard
-		(see draft-ietf-6man-text-addr-representation).  Problem
-		noted by Reuben Farrelly.
-	Permit configurations in which KeyTable and SetupPolicyScript are
-		defined but SigningTable isn't.
-	Return an error when making a default signing request if KeyFile and
-		Selector were not both specified.
-	Fix odkim.sign() so that it pulls from the correct Lua stack index,
-		avoiding a NULL dereference and a crash.  Problem noted
-		by Jozsef Kovacs.
-	Fix bug #SF3015441: Argument processing for odkim.log() was incorrect.
-		Problem reported by Jozsef Kovacs.
-	Fix bug #SF3016124: odbx_field_value() returns NULL if the requested
-		column contains an SQL NULL.  Problem reported by Jozsef
-		Kovacs.
-	Patch #SF3015439: Fix bugs in data set name parsing (e.g. allow dots
-		in fields so that fully qualified hostnames can be given).
-		Patch from Jozsef Kovacs.
-	MILTERTEST: Fix bug #SF3005615: Observe negotiated SMFIP_NO* protocol
-		option bits.
+2.1.2		2010/07/05
+	When testing the domains data set for a domain match for signing,
+		check for an explicit "*" record for back-compatibility
+		with versions prior to v1.2.0.
+	Avoid segmentation faults when colon-separated data in a data set
+		isn't formatted properly or has too few fields.
+	Add additional database error logging.
+	Rework OpenDBX query function use for correctness.  Problem reported
+		by Naresh V.
+	Fix bug #SF3021228: Avoid a NULL dereference in dkimf_xs_requestsig()
+		when the function is called in test mode.
+	Fix bug #SF3022409: Improve error logging from dkimf_db_open().
+	Patch #SF3023224: Fix up a man page generation warning for opendkim(8).
+	TOOLS: Patch #SF3023404: Fix up opendkim-stats usage message.
+	MILTERTEST: Fix bug #SF3020662: Add compatibility with older versions
+		of libmilter.  Problem reported by Naresh V.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
