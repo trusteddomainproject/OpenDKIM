@@ -7,10 +7,9 @@ for download from SourceForge.
 
 This is a bug fix release.  The bulk of the fixes involve changes with the
 way the filter makes use of OpenDBX (for SQL backend environments) and
-also repairs a couple of crash bugs.  It also makes miltertest compatible
-with older versions of libmilter and restores some limited
-backward-compatibility that is still desirable.  Finally, it cleans up
-some aesthetic issues.
+repairs a couple of crash bugs.  It also makes miltertest compatible with
+older versions of libmilter and restores some limited backward-compatibility
+that is still desirable.  Finally, it cleans up some aesthetic issues.
 
 The full RELEASE_NOTES for this version:
 
