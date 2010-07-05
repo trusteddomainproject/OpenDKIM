@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.51 2010/06/23 20:38:55 cm-msk Exp $
+# $Id: Makefile.am,v 1.51.2.1 2010/07/05 03:06:51 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -139,6 +139,8 @@ endif
 if STATS
 dist_doc_DATA += stats/mkdb.mysql
 endif
+
+DISTCLEANFILES = opendkim-@VERSION@.tar.gz
 
 # TODO: get configure.ac to generate --enable-{feature} for all
 # non-experimental features and substitute it here e.g  @SUPPORTED_FEATURES@.
