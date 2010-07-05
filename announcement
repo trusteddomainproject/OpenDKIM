@@ -9,7 +9,9 @@ This is a bug fix release.  The bulk of the fixes involve changes with the
 way the filter makes use of OpenDBX (for SQL backend environments) and
 repairs a couple of crash bugs.  It also makes miltertest compatible with
 older versions of libmilter and restores some limited backward-compatibility
-that is still desirable.  Finally, it cleans up some aesthetic issues.
+that is still desirable.  Finally, it cleans up some aesthetic issues and
+an incorrect internal DB call that could cause false errors with some versions
+of Berkeley DB.
 
 The full RELEASE_NOTES for this version:
 
@@ -22,6 +24,8 @@ The full RELEASE_NOTES for this version:
 	Add additional database error logging.
 	Rework OpenDBX query function use for correctness.  Problem reported
 		by Naresh V.
+	Fix an internal database call that caused false errors to be reported
+		with recent DB versions.
 	Fix bug #SF3021228: Avoid a NULL dereference in dkimf_xs_requestsig()
 		when the function is called in test mode.
 	Fix bug #SF3022409: Improve error logging from dkimf_db_open().
