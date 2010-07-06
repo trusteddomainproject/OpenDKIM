@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.77.2.8 2010/07/06 19:45:41 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.77.2.9 2010/07/06 19:50:33 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77.2.8 2010/07/06 19:45:41 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77.2.9 2010/07/06 19:50:33 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -358,23 +358,23 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 			char *q;
 
 			q = strchr(p, ':');
-                        if (q != NULL)
+			if (q != NULL)
 			{
-        			clen = q - p;
-        			memcpy(req[ridx].dbdata_buffer, p,
+				clen = q - p;
+				memcpy(req[ridx].dbdata_buffer, p,
 				       MIN(clen, req[ridx].dbdata_buflen));
-        			req[ridx].dbdata_buflen = clen;
-			        p += clen + 1;
-		        	remain -= (clen + 1);
-                        }
+				req[ridx].dbdata_buflen = clen;
+				p += clen + 1;
+				remain -= (clen + 1);
+			}
 			else
 			{
-        			clen = remain;
-        			memcpy(req[ridx].dbdata_buffer, p,
+				clen = remain;
+				memcpy(req[ridx].dbdata_buffer, p,
 				       MIN(clen, req[ridx].dbdata_buflen));
-        			req[ridx].dbdata_buflen = clen;
-			        remain = 0;
-                        }
+				req[ridx].dbdata_buflen = clen;
+				remain = 0;
+			}
 		}
 	}
 
