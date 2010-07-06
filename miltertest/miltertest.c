@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.18 2010/06/25 06:12:16 grooverdan Exp $
+**  $Id: miltertest.c,v 1.19 2010/07/06 23:43:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.18 2010/06/25 06:12:16 grooverdan Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.19 2010/07/06 23:43:39 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -18,6 +18,8 @@ static char miltertest_c_id[] = "$Id: miltertest.c,v 1.18 2010/06/25 06:12:16 gr
 #include <sys/wait.h>
 #include <sys/un.h>
 #include <sys/uio.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sysexits.h>
@@ -74,12 +76,12 @@ static char miltertest_c_id[] = "$Id: miltertest.c,v 1.18 2010/06/25 06:12:16 gr
 #endif /* SMFIP_NR_CONN */
 
 #define	MT_PRODUCT		"OpenDKIM milter test facility"
-#define	MT_VERSION		"1.0.0"
+#define	MT_VERSION		"1.3.0"
 
 #define	BUFRSZ			1024
 #define	CHUNKSZ			65536
 
-#define	CMDLINEOPTS		"D:s:vV"
+#define	CMDLINEOPTS		"D:s:uvV"
 
 #define	DEFBODY			"Dummy message body.\r\n"
 #define	DEFCLIENTPORT		12345
@@ -205,6 +207,7 @@ static const luaL_Reg mt_library[] =
 
 
 /* globals */
+_Bool rusage;
 int verbose;
 unsigned int tmo;
 pid_t filterpid;
@@ -3612,6 +3615,7 @@ usage(void)
 	fprintf(stderr, "%s: usage: %s [options]\n"
 	                "\t-D name[=value]\tdefine global variable\n"
 	                "\t-s script      \tscript to run (default = stdin)\n"
+	                "\t-u             \treport usage statistics\n"
 	                "\t-v             \tverbose mode\n",
 	                progname, progname);
 
@@ -3647,6 +3651,7 @@ main(int argc, char **argv)
 	verbose = 0;
 	filterpid = 0;
 	tmo = DEFTIMEOUT;
+	rusage = FALSE;
 
 	l = lua_newstate(mt_lua_alloc, NULL);
 	if (l == NULL)
@@ -3689,6 +3694,10 @@ main(int argc, char **argv)
 			}
 
 			script = optarg;
+			break;
+
+		  case 'u':
+			rusage = TRUE;
 			break;
 
 		  case 'v':
@@ -3942,6 +3951,25 @@ main(int argc, char **argv)
 		        lua_tostring(l, 1));
 	}
 
+	if (rusage)
+	{
+		struct rusage u;
+
+		if (getrusage(RUSAGE_SELF, &u) != 0)
+		{
+			fprintf(stderr,
+			        "%s: getrusage(RUSAGE_SELF): %s\n",
+			        progname, strerror(errno));
+
+			retval = 2;
+		}
+
+		fprintf(stdout, "%s: self:  user %u.%06u, system %u.%06u\n",
+		        progname,
+		        u.ru_utime.tv_sec, u.ru_utime.tv_usec,
+		        u.ru_stime.tv_sec, u.ru_stime.tv_usec);
+	}
+
 	if (status != 0)
 		retval = 1;
 
@@ -3985,6 +4013,25 @@ main(int argc, char **argv)
 				retval = 1;
 			}
 		}
+	}
+
+	if (rusage)
+	{
+		struct rusage u;
+
+		if (getrusage(RUSAGE_CHILDREN, &u) != 0)
+		{
+			fprintf(stderr,
+			        "%s: getrusage(RUSAGE_CHILDREN): %s\n",
+			        progname, strerror(errno));
+
+			retval = 2;
+		}
+
+		fprintf(stdout, "%s: child: user %u.%06u, system %u.%06u\n",
+		        progname,
+		        u.ru_utime.tv_sec, u.ru_utime.tv_usec,
+		        u.ru_stime.tv_sec, u.ru_stime.tv_usec);
 	}
 
 	return retval;

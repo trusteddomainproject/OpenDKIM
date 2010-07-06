@@ -4,7 +4,7 @@
 -- milter unit test utility
 .SH SYNOPSIS
 .B miltertest
-[-D name[=value]] [-s script] [-v] [-V]
+[-D name[=value]] [-s script] [-u] [-v] [-V]
 .SH DESCRIPTION
 .B miltertest
 simulates the MTA side of an MTA-milter interaction for testing a milter-aware
@@ -47,6 +47,11 @@ Use the contents of file
 .I script
 as the Lua script to be executed.  The default is to read from standard
 input.
+.TP
+.I -u
+After the filter being tested is terminated, report user and system time
+consumed.  See
+.I getrusage(2).
 .TP
 .I -v
 Increase verbose output.  May be specified multiple times to request
@@ -488,7 +493,7 @@ It is up to the test author to use
 function to see if performing a protocol step has been explicitly disabled
 by the filter.
 .SH VERSION
-This man page covers version 1.2.2 of
+This man page covers version 1.3.0 of
 .I miltertest.
 .SH COPYRIGHT
 Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
