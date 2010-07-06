@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.10 2010/07/01 14:59:26 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.11 2010/07/06 01:23:30 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.10 2010/07/01 14:59:26 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.11 2010/07/06 01:23:30 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -303,7 +303,7 @@ dkims_dump(char *path, char *mailto)
 			{
 				int c;
 				MD5_CTX md5;
-				char md5out[MD5_DIGEST_LENGTH];
+				unsigned char md5out[MD5_DIGEST_LENGTH];
 				char hashout[BUFRSZ];
 
 				(void) MD5_Init(&md5);
@@ -355,7 +355,7 @@ dkims_dump(char *path, char *mailto)
 			{
 				int c;
 				MD5_CTX md5;
-				char md5out[MD5_DIGEST_LENGTH];
+				unsigned char md5out[MD5_DIGEST_LENGTH];
 				char hashout[BUFRSZ];
 
 				(void) MD5_Init(&md5);
@@ -482,7 +482,6 @@ dkims_initdb(char *path)
 	int version;
 	char *dberr = NULL;
 	DKIMF_DB db;
-	struct dkimf_db_data dbd;
 
 	assert(path != NULL);
 
