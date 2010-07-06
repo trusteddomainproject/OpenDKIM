@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.84 2010/07/05 02:57:25 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.85 2010/07/06 20:14:05 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.84 2010/07/05 02:57:25 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.85 2010/07/06 20:14:05 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -358,23 +358,23 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 			char *q;
 
 			q = strchr(p, ':');
-                        if (q != NULL)
+			if (q != NULL)
 			{
-        			clen = q - p;
-        			memcpy(req[ridx].dbdata_buffer, p,
+				clen = q - p;
+				memcpy(req[ridx].dbdata_buffer, p,
 				       MIN(clen, req[ridx].dbdata_buflen));
-        			req[ridx].dbdata_buflen = clen;
-			        p += clen + 1;
-		        	remain -= (clen + 1);
-                        }
+				req[ridx].dbdata_buflen = clen;
+				p += clen + 1;
+				remain -= (clen + 1);
+			}
 			else
 			{
-        			clen = remain;
-        			memcpy(req[ridx].dbdata_buffer, p,
+				clen = remain;
+				memcpy(req[ridx].dbdata_buffer, p,
 				       MIN(clen, req[ridx].dbdata_buflen));
-        			req[ridx].dbdata_buflen = clen;
-			        remain = 0;
-                        }
+				req[ridx].dbdata_buflen = clen;
+				remain = 0;
+			}
 		}
 	}
 
@@ -617,7 +617,7 @@ dkimf_db_type(DKIMF_DB db)
 **  	dsn -- a data store name, meaning SQL or ODBC in the backend,
 **  	       with interface provided by OpenDBX
 **  	ldap -- an LDAP server, interace provide by OpenLDAP
-**  	lua -- an lua script, the returned value is the result
+**  	lua -- a Lua script; the returned value is the result
 */
 
 int
