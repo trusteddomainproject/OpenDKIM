@@ -1,0 +1,8 @@
+-- $Id: t-lua-speed-lua.lua-setup,v 1.1 2010/07/06 23:43:20 cm-msk Exp $
+
+-- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+
+-- sample "setup" hook script that issues a single signing request
+
+-- make the signing request
+odkim.sign(ctx)
