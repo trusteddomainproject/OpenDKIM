@@ -15,7 +15,7 @@ of Berkeley DB.
 
 The full RELEASE_NOTES for this version:
 
-2.1.2		2010/07/05
+2.1.2		2010/07/06
 	When testing the domains data set for a domain match for signing,
 		check for an explicit "*" record for back-compatibility
 		with versions prior to v1.2.0.
@@ -30,7 +30,13 @@ The full RELEASE_NOTES for this version:
 		when the function is called in test mode.
 	Fix bug #SF3022409: Improve error logging from dkimf_db_open().
 	Patch #SF3023224: Fix up a man page generation warning for opendkim(8).
-	TOOLS: Patch #SF3023404: Fix up opendkim-stats usage message.
+		From Andreas Schulze.
+	Patch #SF3023521: Tidy up some compiler warnings.  From Andreas
+		Schulze.
+	BUILD: opendkim-stats needs to know where to find the OpenSSL includes.
+		Reported by Andreas Schulze.
+	TOOLS: Patch #SF3023404: Fix up opendkim-stats usage message.  From
+		Andreas Schulze.
 	MILTERTEST: Fix bug #SF3020662: Add compatibility with older versions
 		of libmilter.  Problem reported by Naresh V.
 
