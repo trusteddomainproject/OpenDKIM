@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.77.2.7 2010/07/05 02:55:37 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.77.2.8 2010/07/06 19:45:41 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77.2.7 2010/07/05 02:55:37 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77.2.8 2010/07/06 19:45:41 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -617,6 +617,7 @@ dkimf_db_type(DKIMF_DB db)
 **  	dsn -- a data store name, meaning SQL or ODBC in the backend,
 **  	       with interface provided by OpenDBX
 **  	ldap -- an LDAP server, interace provide by OpenLDAP
+**  	lua -- a Lua script; the returned value is the result
 */
 
 int
@@ -1893,6 +1894,7 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 	    db->db_type == DKIMF_DB_TYPE_CSL || 
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
 	    db->db_type == DKIMF_DB_TYPE_LDAP || 
+	    db->db_type == DKIMF_DB_TYPE_LUA || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -2037,6 +2039,7 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	    db->db_type == DKIMF_DB_TYPE_CSL || 
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
 	    db->db_type == DKIMF_DB_TYPE_LDAP || 
+	    db->db_type == DKIMF_DB_TYPE_LUA || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -2540,9 +2543,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		         dsn->dsn_table,
 		         dsn->dsn_keycol, escaped);
 
-syslog(LOG_DEBUG, "*** SQL QUERY: %s", query);
 		err = odbx_query((odbx_t *) db->db_handle, query, 0);
-syslog(LOG_DEBUG, "*** odbx_query() returned %d", err);
 		if (err < 0)
 		{
 			db->db_status = err;
@@ -2553,7 +2554,6 @@ syslog(LOG_DEBUG, "*** odbx_query() returned %d", err);
 		{
 			err = odbx_result((odbx_t *) db->db_handle,
 			                  &result, NULL, 0);
-syslog(LOG_DEBUG, "*** odbx_result() returned %d", err);
 			if (err < 0)
 			{
 				db->db_status = err;
@@ -2564,19 +2564,16 @@ syslog(LOG_DEBUG, "*** odbx_result() returned %d", err);
 				if (exists != NULL && rescnt == 0)
 					*exists = FALSE;
 				err = odbx_result_finish(result);
-syslog(LOG_DEBUG, "*** odbx_result_finish() returned %d", err);
 				return 0;
 			}
 
 			for (rowcnt = 0; ; rowcnt++)
 			{
 				err = odbx_row_fetch(result);
-syslog(LOG_DEBUG, "*** odbx_row_fetch() returned %d", err);
 				if (err < 0)
 				{
 					db->db_status = err;
 					err = odbx_result_finish(result);
-syslog(LOG_DEBUG, "*** odbx_result_finish() returned %d", err);
 					return db->db_status;
 				}
 				else if (err == ODBX_RES_DONE)
@@ -2591,7 +2588,6 @@ syslog(LOG_DEBUG, "*** odbx_result_finish() returned %d", err);
 				if (rescnt == 0 && rowcnt == 0)
 				{
 					fields = odbx_column_count(result);
-syslog(LOG_DEBUG, "*** odbx_column_count() returned %d", fields);
 					if (fields == 0)
 						continue;
 
@@ -2614,7 +2610,6 @@ syslog(LOG_DEBUG, "*** odbx_column_count() returned %d", fields);
 
 								val = (char *) odbx_field_value(result,
 								                                c);
-syslog(LOG_DEBUG, "*** odbx_field_value(%d) returned %s", c, val == NULL ? "(null)" : val);
 
 								if (val == NULL)
 								{
@@ -2633,7 +2628,6 @@ syslog(LOG_DEBUG, "*** odbx_field_value(%d) returned %s", c, val == NULL ? "(nul
 			}
 
 			err = odbx_result_finish(result);
-syslog(LOG_DEBUG, "*** odbx_result_finish() returned %d", err);
 		}
 
 		return 0;
