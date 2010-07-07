@@ -914,8 +914,10 @@ configuration file or on the command line.
 .TP
 .I Statistics (dataset)
 This specifies a data set in which to store DKIM operation totals per domain.
-The data set contains only summary counts, not per-message details.
-See
+The data set must be initialized using
+.I opendkim-stats(8)
+before the filter is configured to use it.  The data set contains only summary
+counts, not per-message details.  See
 .I opendkim-stats(8)
 for details about what data are recorded and how to read the current
 totals.
