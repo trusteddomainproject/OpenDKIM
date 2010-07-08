@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.157 2010/07/08 05:49:30 mmarkley Exp $
+**  $Id: opendkim.c,v 1.158 2010/07/08 23:48:29 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.157 2010/07/08 05:49:30 mmarkley Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.158 2010/07/08 23:48:29 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7954,7 +7954,7 @@ mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
 		sin.sin_family = AF_INET;
 		sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-		memcpy(&cc->cctx_ip, &sin, sizeof(cc->cctx_ip));
+		memcpy(&cc->cctx_ip, &sin, sizeof sin);
 	}
 	else if (ip->sa_family == AF_INET)
 	{
@@ -9115,7 +9115,21 @@ mlfi_eoh(SMFICTX *ctx)
 
 	/* create a default signing request if there was a domain match */
 	if (domainok && originok && dfc->mctx_srhead == NULL)
-		dkimf_add_signrequest(dfc, NULL, NULL);
+	{
+		status = dkimf_add_signrequest(dfc, NULL, NULL);
+
+		if (status != 0)
+		{
+			if (dolog)
+			{
+				syslog(LOG_ERR,
+				       "%s: failed to add default signing request",
+				       dfc->mctx_jobid);
+			}
+
+			return SMFIS_TEMPFAIL;
+		}
+	}
 
 	/*
 	**  If we're not operating in the role matching the required operation,
@@ -9226,6 +9240,8 @@ mlfi_eoh(SMFICTX *ctx)
 				selector = sr->srq_selector;
 				if (sr->srq_domain != NULL)
 					sdomain = sr->srq_domain;
+				else
+					sdomain = dfc->mctx_domain;
 			}
 			else
 			{
@@ -12158,7 +12174,7 @@ main(int argc, char **argv)
 				tmpl = strtoul(optarg, &p, 10);
 			}
 
-			if (tmpl > UINT_MAX || errno != 0 || *p != '\0')
+			if (tmpl == ULONG_MAX || errno != 0 || *p != '\0')
 			{
 				fprintf(stderr, "%s: invalid value for -%c\n",
 				        progname, c);
@@ -12425,7 +12441,7 @@ main(int argc, char **argv)
 				for (c = 0; c < n; c++)
 				{
 					if (dbdp[c].dbdata_buflen == 0)
-						fprintf(stdout, "<empty>\n", result[c]);
+						fprintf(stdout, "<empty>\n");
 					else
 						fprintf(stdout, "`%s'\n", result[c]);
 				}

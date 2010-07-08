@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.14 2010/05/04 04:43:04 cm-msk Exp $";
+static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.15 2010/07/08 23:49:20 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -555,6 +555,7 @@ dkim_get_key_file(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	if (n == -1 || n > sizeof name)
 	{
 		dkim_error(dkim, "key query name too large");
+		fclose(f);
 		return DKIM_STAT_NORESOURCE;
 	}
 
