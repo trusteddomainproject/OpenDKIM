@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.77.2.10 2010/07/08 03:57:03 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.77.2.11 2010/07/08 23:50:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77.2.10 2010/07/08 03:57:03 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77.2.11 2010/07/08 23:50:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -778,6 +778,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 						if (list != NULL)
 							dkimf_db_list_free(list);
 						free(tmp);
+						free(new);
 						return -1;
 					}
 
@@ -815,6 +816,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 					if (list != NULL)
 						dkimf_db_list_free(list);
 					free(tmp);
+					free(new);
 					return -1;
 				}
 
@@ -3730,20 +3732,25 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a)
 				nr = 1;
 				out[nr] = NULL;
 			}
-			else if (nr + 1 == na)
+			else
 			{
-				int newsz;
-				char **newout;
-
-				newsz = na * 2;
-
-				newout = (char **) realloc(out, sizeof (char *) * newsz);
-				if (newout == NULL)
+				if (nr + 1 == na)
 				{
-					for (c = 0; c < nr; c++)
-						free(out[c]);
-					free(out);
-					return -1;
+					int newsz;
+					char **newout;
+
+					newsz = na * 2;
+
+					newout = (char **) realloc(out, sizeof (char *) * newsz);
+					if (newout == NULL)
+					{
+						for (c = 0; c < nr; c++)
+							free(out[c]);
+						free(out);
+						return -1;
+					}
+
+					na = newsz;
 				}
 
 				out[nr] = strdup(keybuf);
@@ -3756,7 +3763,6 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a)
 				}
 
 				nr++;
-				na = newsz;
 				out[nr] = NULL;
 			}
 		}

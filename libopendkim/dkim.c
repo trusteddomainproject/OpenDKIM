@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.53.2.1 2010/07/06 01:21:46 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.53.2.2 2010/07/08 23:50:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -716,19 +716,20 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 			if (value[0] == '-')
 			{
 				errno = ERANGE;
-				tmp = 0;
+				tmp = (unsigned long long) -1;
 			}
 			else if (value[0] == '\0')
 			{
 				errno = EINVAL;
-				tmp = 0;
+				tmp = (unsigned long long) -1;
 			}
 			else
 			{
 				tmp = strtoull(value, &end, 10);
 			}
 
-			if (tmp == ULLONG_MAX || errno != 0 || *end != '\0')
+			if (tmp == (unsigned long long) -1 || errno != 0 ||
+			    *end != '\0')
 			{
 				dkim_error(dkim,
 				           "invalid \"t\" value in %s data",
@@ -752,19 +753,20 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 			if (value[0] == '-')
 			{
 				errno = ERANGE;
-				tmp = 0;
+				tmp = (unsigned long long) -1;
 			}
 			else if (value[0] == '\0')
 			{
 				errno = EINVAL;
-				tmp = 0;
+				tmp = (unsigned long long) -1;
 			}
 			else
 			{
 				tmp = strtoull(value, &end, 10);
 			}
 
-			if (tmp == ULLONG_MAX || errno != 0 || *end != '\0')
+			if (tmp == (unsigned long long) -1 || errno != 0 ||
+			    *end != '\0')
 			{
 				dkim_error(dkim,
 				           "invalid \"x\" value in %s data",

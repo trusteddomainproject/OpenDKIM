@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-crypto.c,v 1.8 2010/01/26 19:52:12 cm-msk Exp $
+**  $Id: opendkim-crypto.c,v 1.8.12.1 2010/07/08 23:50:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.8 2010/01/26 19:52:12 cm-msk Exp $";
+static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.8.12.1 2010/07/08 23:50:10 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -116,17 +116,17 @@ dkimf_crypto_free_id(void *ptr)
 	**  pointer to something not NULL.  See pthread_key_create(3).
 	*/
 
-	assert(pthread_setspecific(id_key, ptr) == 0);
-
-	ERR_remove_state(0);
 	if (ptr != NULL)
+	{
+		assert(pthread_setspecific(id_key, ptr) == 0);
+
+		ERR_remove_state(0);
+
 		free(ptr);
 
-	/*
-	**  Now we can actually clear it for real.
-	*/
-
-	assert(pthread_setspecific(id_key, NULL) == 0);
+		/* now we can actually clear it for real */
+		assert(pthread_setspecific(id_key, NULL) == 0);
+	}
 }
 
 /*

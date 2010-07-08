@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.35 2010/06/14 18:46:07 cm-msk Exp $
+**  $Id: util.c,v 1.35.2.1 2010/07/08 23:50:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.35 2010/06/14 18:46:07 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.35.2.1 2010/07/08 23:50:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -422,16 +422,13 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 
 		if (IN6_IS_ADDR_V4MAPPED(&addr))
 		{
-			inet_ntop(AF_INET,
-			          &addr.s6_addr[INET6_ADDRSTRLEN - INET_ADDRSTRLEN],
-			          dst, dst_len);
-			dkimf_lowercase(dst);
-
 			memset(ipbuf, '\0', sizeof ipbuf);
 			ipbuf[0] = '!';
 
-			dst = &ipbuf[1];
-			dst_len = sizeof ipbuf - 1;
+			inet_ntop(AF_INET,
+			          &addr.s6_addr[INET6_ADDRSTRLEN - INET_ADDRSTRLEN],
+			          &ipbuf[1], sizeof ipbuf - 1);
+			dkimf_lowercase(ipbuf);
 
 			exists = FALSE;
 
@@ -478,9 +475,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 		/* iterate over possible bitwise expressions */
 		for (bits = 0; bits <= 128; bits++)
 		{
-			char *dst;
 			size_t sz;
-			size_t dst_len;
 
 			/* try this one */
 			memset(ipbuf, '\0', sizeof ipbuf);
