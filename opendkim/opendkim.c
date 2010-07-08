@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.156 2010/07/06 22:07:47 cm-msk Exp $
+**  $Id: opendkim.c,v 1.157 2010/07/08 05:49:30 mmarkley Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.156 2010/07/06 22:07:47 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.157 2010/07/08 05:49:30 mmarkley Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6400,7 +6400,7 @@ dkimf_checkbldb(char *to, char *jobid)
 	}
 	else if (dolog)
 	{
-		dkimf_db_error(blbd, dbaddr);
+		dkimf_db_error(bldb, dbaddr);
 	}
 
 	return FALSE;
