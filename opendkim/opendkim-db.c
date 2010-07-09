@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.77.2.11 2010/07/08 23:50:10 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.77.2.12 2010/07/09 23:29:11 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77.2.11 2010/07/08 23:50:10 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.77.2.12 2010/07/09 23:29:11 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1146,6 +1146,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 					dkimf_db_relist_free(head);
 				fclose(f);
 				free(new);
+				free(newl);
 				return -1;
 			}
 
@@ -1158,6 +1159,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 					dkimf_db_relist_free(head);
 				fclose(f);
 				free(new);
+				free(newl);
 				return -1;
 			}
 
@@ -1168,8 +1170,11 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 				{
 					if (err != NULL)
 						*err = strerror(errno);
+					if (head != NULL)
+						dkimf_db_relist_free(head);
 					fclose(f);
 					free(new);
+					free(newl);
 					return -1;
 				}
 			}
@@ -1181,15 +1186,11 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			newl->db_relist_next = NULL;
 
 			if (head == NULL)
-			{
 				head = newl;
-				tail = newl;
-			}
 			else
-			{
 				tail->db_relist_next = newl;
-				tail = newl;
-			}
+
+			tail = newl;
 		}
 
 		fclose(f);
