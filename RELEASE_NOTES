@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.160.2.13 2010/07/11 05:32:43 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.160.2.14 2010/07/11 09:35:22 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -13,6 +13,7 @@ release, and a summary of the changes in that release.
 		dereferences, rewrite some clearly incorrect code, and several
 		other fixes found by a code analysis tool, used by courtesy
 		of Cloudmark.
+	MILTERTEST: Support multiple macro values in mt_macros().
 
 2.1.2		2010/07/06
 	When testing the domains data set for a domain match for signing,
