@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.19 2010/07/06 23:43:39 cm-msk Exp $
+**  $Id: miltertest.c,v 1.20 2010/07/11 08:29:47 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.19 2010/07/06 23:43:39 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.20 2010/07/11 08:29:47 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -1704,6 +1704,9 @@ int
 mt_macro(lua_State *l)
 {
 	int type;
+	int top;
+	int n = 0;
+	int c;
 	size_t s;
 	struct mt_context *ctx;
 	char *bp;
@@ -1713,7 +1716,9 @@ mt_macro(lua_State *l)
 
 	assert(l != NULL);
 
-	if (lua_gettop(l) != 4 ||
+	top = lua_gettop(l);
+
+	if (top < 4 ||
 	    !lua_islightuserdata(l, 1) ||
 	    !lua_isnumber(l, 2) ||
 	    !lua_isstring(l, 3) ||
@@ -1725,20 +1730,44 @@ mt_macro(lua_State *l)
 
 	ctx = (struct mt_context *) lua_touserdata(l, 1);
 	type = lua_tonumber(l, 2);
-	name = (char *) lua_tostring(l, 3);
-	value = (char *) lua_tostring(l, 4);
-
-	lua_pop(l, 4);
 
 	if (!mt_assert_state(ctx, STATE_NEGOTIATED))
 		lua_error(l);
 
-	s = 1 + strlen(name) + 1 + strlen(value) + 1;
+	s = 1;
 	buf[0] = type;
 	bp = buf + 1;
-	memcpy(bp, name, strlen(name) + 1);
-	bp += strlen(name) + 1;
-	memcpy(bp, value, strlen(value) + 1);
+
+	for (c = 3; c < top; c += 2)
+	{
+		if (c + 1 > top ||
+		    !lua_isstring(l, c) ||
+		    !lua_isstring(l, c + 1))
+		{
+			lua_pop(l, top);
+			lua_pushstring(l, "mt.macro(): Invalid argument");
+			lua_error(l);
+		}
+
+		name = (char *) lua_tostring(l, c);
+		value = (char *) lua_tostring(l, c + 1);
+
+		if (strlen(name) + strlen(value) + 2 + bp > buf + sizeof buf)
+		{
+			lua_pop(l, top);
+			lua_pushstring(l, "mt.macro(): Buffer overflow");
+			lua_error(l);
+		}
+
+		memcpy(bp, name, strlen(name) + 1);
+		bp += strlen(name) + 1;
+		memcpy(bp, value, strlen(value) + 1);
+		bp += strlen(value) + 1;
+ 		s += strlen(name) + 1 + strlen(value) + 1;
+		n++;
+	}
+
+	lua_pop(l, top);
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_MACRO, buf, s))
 	{
@@ -1748,8 +1777,8 @@ mt_macro(lua_State *l)
 
 	if (verbose > 0)
 	{
-		fprintf(stdout, "%s: `%c' macro `%s' sent on fd %d\n",
-		        progname, type, name, ctx->ctx_fd);
+		fprintf(stdout, "%s: %d `%c' macro(s) sent on fd %d\n",
+		        progname, n, type, ctx->ctx_fd);
 	}
 
 	lua_pushnil(l);

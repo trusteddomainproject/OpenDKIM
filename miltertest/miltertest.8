@@ -170,15 +170,15 @@ Sends HELO/EHLO information using the specified
 .I name
 as the parameter given.
 .TP
-.B mt.macro(conn, type, name, value)
+.B mt.macro(conn, type, name, value[, name2, value2[, ...]])
 Declares a macro called
 .I name
 whose value is
 .I value
 and whose type (matching protocol element) is
 .I type.
-Valid types are
-SMFIC_CONNECT, SMFIC_HELO, SMFIC_MAIL and SMFIC_RCPT.
+Valid types are SMFIC_CONNECT, SMFIC_HELO, SMFIC_MAIL and SMFIC_RCPT.  Multiple
+macro names and values can be provided, but they must appear in pairs.
 .TP
 .B mt.mailfrom(conn, envfrom[, ...])
 Announces
