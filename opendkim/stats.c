@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.13 2010/07/06 01:27:06 cm-msk Exp $
+**  $Id: stats.c,v 1.14 2010/07/11 06:47:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.13 2010/07/06 01:27:06 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14 2010/07/11 06:47:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -108,6 +108,20 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 		{
 			syslog(LOG_ERR, "%s: dkimf_db_open() failed: %s", path,
 			       dberr);
+		}
+
+		return -1;
+	}
+
+	if (dkimf_db_type(db) != DKIMF_DB_TYPE_BDB)
+	{
+		(void) dkimf_db_close(db);
+
+		if (dolog)
+		{
+			syslog(LOG_ERR,
+			       "%s: invalid database type for this function",
+			       path);
 		}
 
 		return -1;

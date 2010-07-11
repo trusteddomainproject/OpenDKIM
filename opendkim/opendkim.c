@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.158 2010/07/08 23:48:29 cm-msk Exp $
+**  $Id: opendkim.c,v 1.159 2010/07/11 06:47:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.158 2010/07/08 23:48:29 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.159 2010/07/11 06:47:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4656,37 +4656,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 #ifdef _FFR_STATS
 		(void) config_get(data, "Statistics", &conf->conf_statspath,
 		                  sizeof conf->conf_statspath);
-		if (conf->conf_statspath != NULL)
-		{
-			int status;
-			DKIMF_DB db;
-			char *dberr = NULL;
-
-			status = dkimf_db_open(&db, conf->conf_statspath,
-			                       0, NULL, &dberr);
-			if (status != 0)
-			{
-				snprintf(err, errlen,
-				         "%s: dkimf_db_open(): %s",
-				         conf->conf_statspath, dberr);
-				return -1;
-			}
-			else if (dkimf_db_type(db) != DKIMF_DB_TYPE_BDB)
-			{
-				(void) dkimf_db_close(db);
-				snprintf(err, errlen,
-				         "%s: invalid database type for this function",
-				         conf->conf_statspath);
-				return -1;
-			}
-			else if (dkimf_db_close(db) != 0)
-			{
-				snprintf(err, errlen,
-				         "%s: dkimf_db_close() failed",
-				         conf->conf_statspath);
-				return -1;
-			}
-		}
 #endif /* _FFR_STATS */
 
 		if (!conf->conf_subdomains)
