@@ -1,4 +1,4 @@
--- $Id: t-sign-rs-tables-bad.lua,v 1.2 2010/06/25 05:50:20 cm-msk Exp $
+-- $Id: t-sign-rs-tables-bad.lua,v 1.3 2010/07/11 09:20:33 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -33,7 +33,7 @@ end
 
 -- send envelope macros and sender data
 -- mt.helo() is called implicitly
-mt.macro(conn, SMFIC_MAIL, "j", "t-sign-rs-tables-bad")
+mt.macro(conn, SMFIC_MAIL, "i" "t-sign-rs-tables-bad")
 if mt.mailfrom(conn, "user@example.com") ~= nil then
 	error "mt.mailfrom() failed"
 end
