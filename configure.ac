@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.151.2.2 2010/07/12 07:37:47 cm-msk Exp $
+# $Id: configure.ac,v 1.151.2.3 2010/07/12 07:41:59 cm-msk Exp $
 
 #
 # Setup
@@ -1238,7 +1238,7 @@ then
 		then
 			AC_MSG_ERROR([not found])
 		fi
-	elif ! test -f $bdb_incdir/include/db.h
+	elif ! test -f $bdb_incdir/db.h
 	then
 		AC_MSG_ERROR([not found in $bdb_incdir])
 	fi
