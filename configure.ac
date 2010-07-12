@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.151.2.3 2010/07/12 07:41:59 cm-msk Exp $
+# $Id: configure.ac,v 1.151.2.4 2010/07/12 07:48:21 cm-msk Exp $
 
 #
 # Setup
@@ -1241,6 +1241,8 @@ then
 	elif ! test -f $bdb_incdir/db.h
 	then
 		AC_MSG_ERROR([not found in $bdb_incdir])
+	else
+		AC_MSG_RESULT([$bdb_incdir])
 	fi
 
 	# look for libdb.a
@@ -1265,6 +1267,9 @@ then
 	elif ! test -f $bdb_libdir/lib$bdb_lib.a
 	then
 		AC_MSG_ERROR([not found in $bdb_libdir])
+	else
+		AC_MSG_RESULT([$bdb_libdir/lib$bdb_lib.a])
+		libdbfound="yes"
 	fi
 
 	# If no matching library, see if we can find one.  Note that
