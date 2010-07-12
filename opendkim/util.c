@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.35.2.1 2010/07/08 23:50:10 cm-msk Exp $
+**  $Id: util.c,v 1.35.2.2 2010/07/12 23:13:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.35.2.1 2010/07/08 23:50:10 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.35.2.2 2010/07/12 23:13:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -425,8 +425,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 			memset(ipbuf, '\0', sizeof ipbuf);
 			ipbuf[0] = '!';
 
-			inet_ntop(AF_INET,
-			          &addr.s6_addr[INET6_ADDRSTRLEN - INET_ADDRSTRLEN],
+			inet_ntop(AF_INET, &addr.s6_addr,
 			          &ipbuf[1], sizeof ipbuf - 1);
 			dkimf_lowercase(ipbuf);
 
