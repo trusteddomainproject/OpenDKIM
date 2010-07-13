@@ -229,9 +229,9 @@ lines in that file.
 
 .TP
 .I DontSignMailTo (dataset)
-A set of e-mail address which should never be signed by the filter.  Note that
-this is an "any" feature; if any one of the recipients of the message
-matches a member of this list, the message will not be signed.
+A set of e-mail address, mail to which should never be signed by the filter.
+Note that this is an "any" feature; if any one of the recipients of the
+message matches a member of this list, the message will not be signed.
 
 .TP
 .I EnableCoredumps (boolean)
@@ -916,8 +916,7 @@ configuration file or on the command line.
 This specifies a data set in which to store DKIM operation totals per domain.
 The data set must be initialized using
 .I opendkim-stats(8)
-before the filter is configured to use it.  The data set contains only summary
-counts, not per-message details.  See
+before the filter is configured to use it.  See
 .I opendkim-stats(8)
 for details about what data are recorded and how to read the current
 totals.

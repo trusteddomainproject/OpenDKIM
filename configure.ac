@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.152 2010/07/02 01:27:52 cm-msk Exp $
+# $Id: configure.ac,v 1.153 2010/07/13 22:11:06 cm-msk Exp $
 
 #
 # Setup
@@ -1151,6 +1151,22 @@ AC_SUBST(SASL_CPPFLAGS)
 #
 # libdb
 #
+
+AC_ARG_WITH([db-incdir],
+            AS_HELP_STRING([--with-db-incdir],
+                           [location of BerkeleyDB includes]),
+            [bdb_incdir="$withval"], [bdb_incdir=""])
+
+AC_ARG_WITH([db-libdir],
+            AS_HELP_STRING([--with-db-libdir],
+                           [location of BerkeleyDB library]),
+            [bdb_libdir="$withval"], [bdb_libdir=""])
+
+AC_ARG_WITH([db-lib],
+            AS_HELP_STRING([--with-db-lib],
+                           [name of BerkeleyDB library]),
+            [bdb_lib="$withval"], [bdb_lib="db"])
+
 AC_ARG_WITH([db],
             AS_HELP_STRING([--with-db],
                            [location of BerkeleyDB includes and library]),
@@ -1165,8 +1181,10 @@ bdbrequested="no"
 if test x"$bdb" != x"no" -a x"$bdb" != x"auto"
 then
 	bdbrequested="yes"
-else
-	bdbrequested="no"
+fi
+if test x"$bdb_incdir" != x"" -o x"$bdb_libdir" != x"" -o x"$bdb_lib" != x"db"
+then
+	bdbrequested="yes"
 fi
 
 AM_CONDITIONAL(USE_DB_OPENDKIM,
@@ -1199,39 +1217,59 @@ fi
 
 if test x"$bdb" = x"yes"
 then
-	AC_MSG_CHECKING([for BerkeleyDB])
-
 	bdbdirs="/usr/local/BerkeleyDB /usr/local /usr"
 	libdbfound="no"
 
-	# first look for db.h
-	for d in $bdbdirs
-	do
-		if test -f $d/include/db.h
-		then
-			bdb=$d
-			AC_MSG_RESULT($d)
-			LIBDB_INCDIRS="-I$bdb/include"
-			break
-		fi
-	done
-
-	# yes here means the above look didn't find it
-	if test x"$bdb" = x"yes"
+	# look for db.h
+	AC_MSG_CHECKING([for BerkeleyDB db.h])
+	if test x"$bdb_incdir" = x""
 	then
-		AC_MSG_ERROR([db.h not found])
+		for d in $bdbdirs
+		do
+			if test -f $d/include/db.h
+			then
+				bdb_incdir=$d/include
+				AC_MSG_RESULT($bdb_incdir)
+				break
+			fi
+		done
+
+		if test x"$bdb_incdir" = x""
+		then
+			AC_MSG_ERROR([not found])
+		fi
+	elif ! test -f $bdb_incdir/db.h
+	then
+		AC_MSG_ERROR([not found in $bdb_incdir])
+	else
+		AC_MSG_RESULT([$bdb_incdir])
 	fi
 
-	# found db.h, see if there's a matching library
-	AC_MSG_CHECKING(for libdb in $bdb)
-	if test -f $bdb/lib/libdb.a
+	# look for libdb.a
+	AC_MSG_CHECKING([for BerkeleyDB library lib$bdb_lib.a])
+	if test x"$bdb_libdir" = x""
 	then
-		libdbfound="yes"
-		AC_MSG_RESULT([found])
-		LIBDB_LIBDIRS="-L$bdb/lib"
-		LIBDB_LIBS="-ldb"
+		for d in $bdbdirs
+		do
+			if test -f $d/lib/lib$bdb_lib.a
+			then
+				bdb_libdir=$d/lib
+				AC_MSG_RESULT($bdb_libdir)
+				libdbfound="yes"
+				break
+			fi
+		done
+
+		if test x"$bdb_libdir" = x""
+		then
+			AC_MSG_RESULT([not found])
+		fi
+	elif ! test -f $bdb_libdir/lib$bdb_lib.a
+	then
+		AC_MSG_ERROR([not found in $bdb_libdir])
 	else
-		AC_MSG_RESULT([not found])
+		AC_MSG_RESULT([$bdb_libdir/lib$bdb_lib.a])
+		libdbfound="yes"
 	fi
 
 	# If no matching library, see if we can find one.  Note that
@@ -1251,12 +1289,10 @@ then
 		AC_MSG_CHECKING([for libdb])
 		for d in $bdbdirs
 		do
-			if test -f $d/lib/libdb.a
+			if test -f $d/lib/lib$bdb_lib.a
 			then
-				bdb=$d
-				AC_MSG_RESULT($d)
-				LIBDB_LIBDIRS="-L$bdb/lib"
-				LIBDB_LIBS="-ldb"
+				bdb_libdir=$d/lib
+				AC_MSG_RESULT($bdb_libdir)
 				libdbfound="yes"
 				break
 			fi
@@ -1266,6 +1302,16 @@ then
 	if test x"$libdbfound" = x"no"
 	then
 		AC_MSG_ERROR([cannot find db_create or dbopen])
+	fi
+
+	if test x"$bdb_incdir" != x""
+	then
+		LIBDB_INCDIRS="-I$bdb_incdir"
+	fi
+	if test x"$bdb_libdir" != x""
+	then
+		LIBDB_LIBDIRS="-L$bdb_libdir"
+		LIBDB_LIBS="-l$bdb_lib"
 	fi
 
 	AC_DEFINE(USE_DB, 1,
@@ -1281,32 +1327,6 @@ then
 	LIBDB_INCDIRS=""
 	LIBDB_LIBDIRS=""
 	LIBDB_LIBS=""
-else
-	AC_MSG_CHECKING([for db.h])
-
-	if test -f $bdb/include/db.h
-	then
-		LIBDB_INCDIRS="-I$bdb/include"
-		AC_MSG_RESULT([$bdb])
-	else
-		AC_MSG_ERROR([not found at $bdb])
-	fi
-
-	# we might not need -ldb if DB is built into libc
-	AC_MSG_CHECKING([for libdb])
- 	if test -f $bdb/lib/libdb.a
-	then
-		LIBDB_LIBDIRS="-L$bdb/lib"
-		LIBDB_LIBS="-ldb"
-		AC_MSG_RESULT([$bdb])
-	else
-		AC_MSG_RESULT([not found - assuming libc])
-		AC_DEFINE(USE_DB, 1,
-		          [enable support for SleepyCat/Berkeley DB libraries])
-	fi
-
-	AC_DEFINE(USE_DB, 1,
-	          [enable support for SleepyCat/Berkeley DB libraries])
 fi
 
 if test x"$unboundpath" != x"no" -a x"$bdbrequired" = x"yes"

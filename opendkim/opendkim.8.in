@@ -155,6 +155,7 @@ character, it is presumed to be a flat file as described above.
 .I i)
 If the string begins with "csl:", the string is treated as a comma-separated
 list as described in j) below.
+.TP
 .I j)
 In any other case, the string is presumed to be a comma-separated list.
 Elements in the list are either simple data elements that are part of the
@@ -415,7 +416,6 @@ AutoRestartCount,
 AutoRestartRate,
 Background,
 MilterDebug,
-PidFile (-P),
 POPDBFile,
 Quarantine (-q),
 QueryCache,

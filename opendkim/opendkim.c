@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.159 2010/07/11 06:47:27 cm-msk Exp $
+**  $Id: opendkim.c,v 1.160 2010/07/13 22:11:06 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.159 2010/07/11 06:47:27 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.160 2010/07/13 22:11:06 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8813,28 +8813,13 @@ mlfi_eoh(SMFICTX *ctx)
 		                             (struct sockaddr *) &cc->cctx_ip);
 #endif /* POPAUTH */
 
-		if ((authtype == NULL || authtype[0] == '\0') &&
-#ifdef POPAUTH
-		    !popauth &&
-#endif /* POPAUTH */
-		    !internal)
-		{
-			if (domainok && conf->conf_dolog &&
-			    !dkimf_checkhost(conf->conf_exignore,
-			                     cc->cctx_host) &&
-			    !dkimf_checkip(conf->conf_exignore,
-			                   (struct sockaddr *) &cc->cctx_ip))
-			{
-				syslog(LOG_NOTICE,
-				       "%s: external host %s attempted to send as %s",
-				       dfc->mctx_jobid, cc->cctx_host,
-				       dfc->mctx_domain);
-			}
-		}
-		else
-		{
+		if (authtype != NULL && authtype[0] != '\0' || internal)
 			originok = TRUE;
-		}
+
+#ifdef POPAUTH
+		if (popauth)
+			originok = TRUE;
+#endif /* POPAUTH */
 
 		if (!originok && conf->conf_logwhy)
 		{
@@ -8866,7 +8851,7 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 
 	/* is it a domain we sign for? */
-	if (originok && !domainok && conf->conf_domainsdb != NULL)
+	if (!domainok && conf->conf_domainsdb != NULL)
 	{
 		status = dkimf_db_get(conf->conf_domainsdb, dfc->mctx_domain,
 		                      0, NULL, 0, &domainok);
@@ -8928,6 +8913,21 @@ mlfi_eoh(SMFICTX *ctx)
 			syslog(LOG_INFO,
 			       "%s: no signing subdomain match for `%s'",
 			       dfc->mctx_jobid, dfc->mctx_domain);
+		}
+	}
+
+	/* warn if the domain was OK but didn't come from a safe source */
+	if (domainok && !originok)
+	{
+		if (domainok && conf->conf_dolog &&
+		    !dkimf_checkhost(conf->conf_exignore, cc->cctx_host) &&
+		    !dkimf_checkip(conf->conf_exignore,
+		                   (struct sockaddr *) &cc->cctx_ip))
+		{
+			syslog(LOG_NOTICE,
+			       "%s: external host %s attempted to send as %s",
+			       dfc->mctx_jobid, cc->cctx_host,
+			       dfc->mctx_domain);
 		}
 	}
 
@@ -9026,6 +9026,7 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 
 #ifdef USE_LUA
+	/* invoke the setup script if defined */
 	if (conf->conf_setupscript != NULL)
 	{
 		_Bool dofree = TRUE;
