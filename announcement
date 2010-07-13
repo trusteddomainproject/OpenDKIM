@@ -1,44 +1,28 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.1.2 released
+Subject: OpenDKIM v2.1.3 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.1.2, now available
+The OpenDKIM project announces availability of OpenDKIM v2.1.3, now available
 for download from SourceForge.
 
-This is a bug fix release.  The bulk of the fixes involve changes with the
-way the filter makes use of OpenDBX (for SQL backend environments) and
-repairs a couple of crash bugs.  It also makes miltertest compatible with
-older versions of libmilter and restores some limited backward-compatibility
-that is still desirable.  Finally, it cleans up some aesthetic issues and
-an incorrect internal DB call that could cause false errors with some versions
-of Berkeley DB.
+This is a bug fix release, repairing some regressions introduced in the
+preivous release when compiling against OpenLDAP or DB v1.x.  It also
+includes improved support for builds on machines with multiple DB installs,
+macro support in miltertest, and several other minor fixes.
 
 The full RELEASE_NOTES for this version:
 
-2.1.2		2010/07/06
-	When testing the domains data set for a domain match for signing,
-		check for an explicit "*" record for back-compatibility
-		with versions prior to v1.2.0.
-	Avoid segmentation faults when colon-separated data in a data set
-		isn't formatted properly or has too few fields.
-	Add additional database error logging.
-	Rework OpenDBX query function use for correctness.  Problem reported
-		by Naresh V.
-	Fix an internal database call that caused false errors to be reported
-		with recent DB versions.
-	Fix bug #SF3021228: Avoid a NULL dereference in dkimf_xs_requestsig()
-		when the function is called in test mode.
-	Fix bug #SF3022409: Improve error logging from dkimf_db_open().
-	Patch #SF3023224: Fix up a man page generation warning for opendkim(8).
-		From Andreas Schulze.
-	Patch #SF3023521: Tidy up some compiler warnings.  From Andreas
-		Schulze.
-	BUILD: opendkim-stats needs to know where to find the OpenSSL includes.
-		Reported by Andreas Schulze.
-	TOOLS: Patch #SF3023404: Fix up opendkim-stats usage message.  From
-		Andreas Schulze.
-	MILTERTEST: Fix bug #SF3020662: Add compatibility with older versions
-		of libmilter.  Problem reported by Naresh V.
+2.1.3		2010/07/15
+	Fix build when enabling LDAP.
+	Fix portability issue with DB 1.x.  Patch from Kaspar Brand.
+	Fix bug #SF3026261: Don't try to open the statistics database before
+		possibly changing userid.  Reported by Andreas Schulze.
+	Plug a couple of potential but minor memory leaks, avoid some NULL
+		dereferences, rewrite some clearly incorrect code, and several
+		other fixes found by a code analysis tool, used by courtesy
+		of Cloudmark.
+	MILTERTEST: Support multiple macro values in mt_macros().
+	BUILD: Improved support for BerkeleyDB file locations.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
