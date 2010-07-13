@@ -1,4 +1,4 @@
-$Id: README,v 1.9 2010/07/13 23:30:53 grooverdan Exp $
+$Id: README,v 1.10 2010/07/13 23:50:42 grooverdan Exp $
 
 INTRODUCTION
 ============
@@ -118,6 +118,11 @@ INSTALLING
     using:
 
         dig -t ns DOMAIN
+
+    If the key can be retreived correctly then opendkim-testkey can be used to
+    verify that the key matches the private key.
+
+        opendkim-testkey -d DOMAIN -s SELECTOR -k rsa.private
 
     BIND servers have a 256 byte limit on serving TXT records, so a 1024 bit 
     RSA key is recommended if using BIND as your primary DNS server.
