@@ -1,4 +1,4 @@
-$Id: README,v 1.7.2.1 2010/07/06 19:44:35 cm-msk Exp $
+$Id: README,v 1.7.2.2 2010/07/13 23:36:31 grooverdan Exp $
 
 INTRODUCTION
 ============
@@ -51,7 +51,7 @@ INSTALLING
 	
     (c) If you have a content filter in master.cf that feeds it back into a
         different smtpd process, you should alter the second smtpd process in
-	master.cf to contain '-o smtpd_milter= -o non_smtpd_milter=' to 
+	master.cf to contain '-o receive_override_options=no_milters' to
 	prevent messages being signed or verified twice.  For tips on avoiding
 	DKIM signature breakage, see:
 	http://www.postfix.org/MILTER_README.html#workarounds
