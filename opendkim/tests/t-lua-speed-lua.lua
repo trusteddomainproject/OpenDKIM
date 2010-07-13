@@ -1,4 +1,4 @@
--- $Id: t-lua-speed-lua.lua,v 1.2 2010/07/11 09:20:33 cm-msk Exp $
+-- $Id: t-lua-speed-lua.lua,v 1.3 2010/07/13 22:08:30 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -34,7 +34,7 @@ for x = 1, 1000 do
 
 	-- send envelope macros and sender data
 	-- mt.helo() is called implicitly
-	mt.macro(conn, SMFIC_MAIL, "i" "t-lua-speed-lua")
+	mt.macro(conn, SMFIC_MAIL, "i", "t-lua-speed-lua")
 	if mt.mailfrom(conn, "user@example.com") ~= nil then
 		error "mt.mailfrom() failed"
 	end
