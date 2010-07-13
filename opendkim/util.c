@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.35.2.2 2010/07/12 23:13:27 cm-msk Exp $
+**  $Id: util.c,v 1.35.2.3 2010/07/13 18:28:54 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.35.2.2 2010/07/12 23:13:27 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.35.2.3 2010/07/13 18:28:54 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -420,56 +420,29 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 
 		memcpy(&addr, &sin6.sin6_addr, sizeof addr);
 
-		if (IN6_IS_ADDR_V4MAPPED(&addr))
-		{
-			memset(ipbuf, '\0', sizeof ipbuf);
-			ipbuf[0] = '!';
+		memset(ipbuf, '\0', sizeof ipbuf);
+		ipbuf[0] = '!';
 
-			inet_ntop(AF_INET, &addr.s6_addr,
-			          &ipbuf[1], sizeof ipbuf - 1);
-			dkimf_lowercase(ipbuf);
+		dst = &ipbuf[1];
+		dst_len = sizeof ipbuf - 1;
 
-			exists = FALSE;
+		inet_ntop(AF_INET6, &addr, dst, dst_len);
+		dkimf_lowercase(dst);
 
-			status = dkimf_db_get(db, ipbuf, 0, NULL, 0, &exists);
-			if (status != 0)
-				return FALSE;
-			if (exists)
-				return FALSE;
+		exists = FALSE;
 
-			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, 0,
-			                      &exists);
-			if (status != 0)
-				return FALSE;
-			if (exists)
-				return TRUE;
-		}
-		else
-		{
-			memset(ipbuf, '\0', sizeof ipbuf);
-			ipbuf[0] = '!';
+		status = dkimf_db_get(db, ipbuf, 0, NULL, 0, &exists);
+		if (status != 0)
+			return FALSE;
+		if (exists)
+			return FALSE;
 
-			dst = &ipbuf[1];
-			dst_len = sizeof ipbuf - 1;
-
-			inet_ntop(AF_INET6, &addr, dst, dst_len);
-			dkimf_lowercase(dst);
-
-			exists = FALSE;
-
-			status = dkimf_db_get(db, ipbuf, 0, NULL, 0, &exists);
-			if (status != 0)
-				return FALSE;
-			if (exists)
-				return FALSE;
-
-			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, 0,
-			                      &exists);
-			if (status != 0)
-				return FALSE;
-			if (exists)
-				return TRUE;
-		}
+		status = dkimf_db_get(db, &ipbuf[1], 0, NULL, 0,
+		                      &exists);
+		if (status != 0)
+			return FALSE;
+		if (exists)
+			return TRUE;
 
 		/* iterate over possible bitwise expressions */
 		for (bits = 0; bits <= 128; bits++)
