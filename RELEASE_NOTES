@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.160.2.17 2010/07/13 05:24:41 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.160.2.18 2010/07/14 05:12:05 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -14,6 +14,8 @@ release, and a summary of the changes in that release.
 		dereferences, rewrite some clearly incorrect code, and several
 		other fixes found by a code analysis tool, used by courtesy
 		of Cloudmark.
+	Restore "-P" to the command line as it's convenient for start/stop
+		scripts.
 	MILTERTEST: Support multiple macro values in mt_macros().
 	BUILD: Improved support for BerkeleyDB file locations.
 

@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.28 2010/05/26 22:24:12 cm-msk Exp $
+**  $Id: opendkim.h,v 1.28.2.1 2010/07/14 05:12:05 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.28 2010/05/26 22:24:12 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.28.2.1 2010/07/14 05:12:05 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -49,7 +49,7 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.28 2010/05/26 22:24:12 cm
 #define	BUFRSZ		1024
 #define	CACHESTATSINT	300
 #define	CBINTERVAL	3
-#define CMDLINEOPTS	"Ab:c:d:DfF:k:lL:no:p:qQrs:S:t:T:u:vVWx:?"
+#define CMDLINEOPTS	"Ab:c:d:DfF:k:lL:no:p:P:qQrs:S:t:T:u:vVWx:?"
 #define	DEFINTERNAL	"csl:127.0.0.1"
 #define	DEFMAXHDRSZ	65536
 #define	DEFTIMEOUT	5
