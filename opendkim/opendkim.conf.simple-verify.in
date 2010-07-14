@@ -1,0 +1,21 @@
+
+# This is a simple config file verifying messages only
+
+#LogWhy                 yes
+Syslog                  yes
+SyslogSuccess           yes
+
+Socket                  inet:8891@localhost
+
+ReportAddress           postmaster@@DOMAIN@
+SendReports             yes
+
+Mode			v
+
+## For secondary mailservers - indicates not to verify message from these hosts
+# PeerList		X.X.X.X
+
+# ADSPDiscard	no
+
+# PidFile		/var/run/opendkim/opendkim.pid
+

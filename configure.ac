@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.153 2010/07/13 22:11:06 cm-msk Exp $
+# $Id: configure.ac,v 1.154 2010/07/14 05:52:34 grooverdan Exp $
 
 #
 # Setup
@@ -1444,6 +1444,27 @@ case "$host" in
 esac
 
 #
+# Determine domainname for sample configs
+#
+AC_ARG_WITH([domain],
+            AS_HELP_STRING([--with-domain],
+                           [name of the domain for signing - sets this in sample configuration files]),
+            [
+                 DOMAIN="$withval"
+	    ],[
+                 AC_PATH_PROG(domainname, domainname)
+	         AS_IF([test x"$domainname" != x""],
+	         	[DOMAIN=`$domainname`],
+		 )
+		 AS_IF([test x"$DOMAIN" = x"" -o x"$DOMAIN" = x"(none)" ],
+	         		[DOMAIN=example.com]
+		 )
+	    ]
+	    )
+
+AC_SUBST([DOMAIN])
+
+#
 # Finish up
 #
 AC_OUTPUT([Makefile opendkim/Makefile opendkim/tests/Makefile
@@ -1454,5 +1475,6 @@ AC_OUTPUT([Makefile opendkim/Makefile opendkim/tests/Makefile
            opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8
            opendkim/opendkim-genkey.8 opendkim/opendkim-testadsp.8
            opendkim/opendkim-genzone.8
+	   opendkim/opendkim.conf.simple opendkim/opendkim.conf.simple-verify
            stats/Makefile stats/opendkim-importstats.8
            contrib/opendkim.spec])

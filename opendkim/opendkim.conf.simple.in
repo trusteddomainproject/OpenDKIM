@@ -1,0 +1,28 @@
+
+# This is a simple config file for signing and verifying
+
+#LogWhy                 yes
+Syslog                  yes
+SyslogSuccess           yes
+
+
+Canonicalization	relaxed/relaxed
+
+Domain			@DOMAIN@
+Selector		default
+KeyFile			/var/db/dkim/@DOMAIN@.private
+
+Socket                  inet:8891@localhost
+
+ReportAddress           postmaster@@DOMAIN@
+SendReports             yes
+
+## Hosts to sign email for - 127.0.0.1 is default -see man opendkim(8) Operations for more info.
+# InternalHosts		192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12
+
+## For secondary mailservers - indicates not to sign or verify message from these hosts
+# PeerList		X.X.X.X
+
+
+# PidFile		/var/run/opendkim/opendkim.pid
+
