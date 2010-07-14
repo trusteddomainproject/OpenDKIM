@@ -41,7 +41,8 @@ This is only used with
 .TP
 .I -i
 Initialize the named database.  The database is created if it doesn't
-already exist, and a version record is added to it.
+already exist, and a version record is added to it.  This must be done
+before the filter can make use of the database to record data.
 .TP
 .I -m address
 Send the report to the specified address by creating a pipe to
