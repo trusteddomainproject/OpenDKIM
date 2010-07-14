@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.154 2010/07/14 05:52:34 grooverdan Exp $
+# $Id: configure.ac,v 1.155 2010/07/14 07:27:12 grooverdan Exp $
 
 #
 # Setup
@@ -1474,7 +1474,7 @@ AC_OUTPUT([Makefile opendkim/Makefile opendkim/tests/Makefile
            opendkim/opendkim.conf.5 opendkim/opendkim.8 opendkim/opendkim-lua.3
            opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8
            opendkim/opendkim-genkey.8 opendkim/opendkim-testadsp.8
-           opendkim/opendkim-genzone.8
+           opendkim/opendkim-genzone.8 opendkim/opendkim-genkey
 	   opendkim/opendkim.conf.simple opendkim/opendkim.conf.simple-verify
            stats/Makefile stats/opendkim-importstats.8
            contrib/opendkim.spec])
