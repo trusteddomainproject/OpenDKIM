@@ -44,3 +44,5 @@ core
 *.core
 opendkim*.[58]                                
 opendkim-lua.3
+opendkim.conf.simple-verify
+opendkim.conf.simple
