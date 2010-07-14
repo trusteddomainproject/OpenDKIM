@@ -1,6 +1,6 @@
 #!/bin/sh
 ##
-## $Id: opendkim-genkey.sh,v 1.1 2009/07/16 20:51:51 cm-msk Exp $
+## $Id: opendkim-genkey.sh,v 1.2 2010/07/14 07:15:56 grooverdan Exp $
 ##
 ## Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 ## All rights reserved.
@@ -13,6 +13,10 @@
 ## 	-b bits		key size (default = 1024)
 ##  	-d domain	signing domain (default = "example.com")
 ## 	-D dir		output directory (default = ".")
+##      -f user         request ARF feedback be given to the user@domain in
+##                      in the case of DKIM signature failure
+##      -ff format      Format of feedback. "arf" or "smtp"
+##      -fi interval    Interval of report formats.
 ## 	-g gran		key granularity (default = "*")
 ## 	-h algs		list of allowed hash algorithms (default = unspecified)
 ## 	-n text		include "text" as a note in the output key record
@@ -42,6 +46,9 @@ hashalgs=""
 keygran="*"
 note=""
 flags=""
+feedback="postmaster"
+feedbackinterval=""
+feedbackformat=""
 selector="default"
 restrict=0
 testmode=0
@@ -81,6 +88,51 @@ do
 
 		shift
 		outdir=$1
+		;;
+
+	-f)	if [ $# -eq 1 ]
+		then
+			echo $progname: -f requires a value
+			exit 1
+		fi
+
+		shift
+		feedback=$1
+		;;
+
+	-ff)	if [ $# -eq 1 ]
+		then
+			echo $progname: -ff requires a value
+			exit 1
+		fi
+		shift
+		case $1 in
+		arf|smtp) 
+			feedbackformat=" rf=$1;"
+			;;
+		*)
+			echo $progname: -ff takes a format of arf or smtp only
+			exit 1
+			;;
+		esac
+		;;
+
+	-fi)	if [ $# -eq 1 ]
+		then
+			echo $progname: -fi requires a value
+			exit 1
+		fi
+
+		shift
+		case $1 in
+		[0-9]*)
+			feedbackinterval=" ri=$1;"
+			;;
+		*)
+			echo $progname: -fi takes only a numeric value
+			exit 1
+			;;
+		esac
 		;;
 
 	-g)	if [ $# -eq 1 ]
@@ -186,6 +238,11 @@ then
 	fi
 fi
 
+if [ $feedback  != "" ]
+then
+	feedbackout=" r=$feedback;";
+fi
+
 flagsout=""
 if [ "$flags" != "" ]
 then
@@ -211,7 +268,7 @@ else
 	comment=""
 fi
 
-echo ${selector}._domainkey   IN   TXT  '"'v=DKIM1\;$noteout$hashout g=$keygran\; k=rsa\;$flagsout p=$pubkey'"' $comment > ${selector}.txt
+echo ${selector}._domainkey   IN   TXT  '"'v=DKIM1\;$noteout$hashout$feedbackout$feedbackinterval$feedbackformat g=$keygran\; k=rsa\;$flagsout p=$pubkey'"' $comment > ${selector}.txt
 
 if [ $verbose -eq 1 ]
 then

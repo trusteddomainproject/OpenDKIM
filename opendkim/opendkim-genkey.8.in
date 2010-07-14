@@ -37,6 +37,28 @@ Instructs the tool to change to the named
 prior to creating files.  By default the current directory is used.
 
 .TP
+.I -f user
+Defines the 
+.I user
+part of the email address user@domain which will received ARF 
+(draft-ietf-marf-base) feedback reports if a DKIM signature fails as part of 
+draft-ietf-marf-dkim-reporting. By default this is set to 
+.I postmaster.
+
+.TP
+.I -ff format
+Defines the feedback format of draft-ietf-marf-dkim-reporting. Options are
+.I arf
+and
+.I smtp.
+By default the arf format is used.
+
+.TP
+.I -fi interval
+Defines the number that specifies the interval in which no more that one 
+report should be sent. By default interval equates to 0 requesting all reports.
+
+.TP
 .I -g granularity
 Defines the key
 .I granularity,
