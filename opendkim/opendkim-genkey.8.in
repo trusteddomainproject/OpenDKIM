@@ -28,7 +28,7 @@ the DKIM specification.
 Names the
 .I domain
 which will use this key for signing.  Currently only used in a comment in
-the TXT record file.  The default is "example.com".
+the TXT record file.  The default is "@DOMAIN@".
 
 .TP
 .I -D directory
