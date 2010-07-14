@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.160 2010/07/13 22:11:06 cm-msk Exp $
+**  $Id: opendkim.c,v 1.161 2010/07/14 05:12:57 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.160 2010/07/13 22:11:06 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.161 2010/07/14 05:12:57 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -11904,6 +11904,7 @@ usage(void)
 	                "\t-l          \tlog activity to system log\n"
 	                "\t-L limit    \tsignature limit requirements\n"
 			"\t-o hdrlist  \tlist of headers to omit from signing\n"
+			"\t-P pidfile  \tfile into which to write process ID\n"
 	                "\t-q          \tquarantine messages that fail to verify\n"
 		        "\t-Q          \tquery test mode\n"
 	                "\t-r          \trequire basic RFC5322 header compliance\n"
@@ -12096,6 +12097,12 @@ main(int argc, char **argv)
 			sock = optarg;
 			(void) smfi_setconn(optarg);
 			gotp = TRUE;
+			break;
+
+		  case 'P':
+			if (optarg == NULL || *optarg == '\0')
+				return usage();
+			pidfile = optarg;
 			break;
 
 		  case 'q':

@@ -17,6 +17,7 @@
 [-L min]
 [-n]
 [-o hdrlist]
+[-P pidfile]
 [-q]
 [-Q]
 [-r]
@@ -288,6 +289,9 @@ listening on all interfaces.  If neither socket type is specified,
 is assumed, meaning the parameter is interpreted as a path at which
 the socket should be created.  This parameter is mandatory.
 .TP
+.I -P pidfile
+Specifies a file into which the filter should write its process ID at startup.
+.TP
 .I -q
 Requests that messages which fail verification be quarantined by the
 MTA.  (Requires a sufficiently recent version of the milter library.)
@@ -416,6 +420,7 @@ AutoRestartCount,
 AutoRestartRate,
 Background,
 MilterDebug,
+PidFile (-P),
 POPDBFile,
 Quarantine (-q),
 QueryCache,
