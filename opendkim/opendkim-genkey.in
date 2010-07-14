@@ -1,6 +1,6 @@
 #!/bin/sh
 ##
-## $Id: opendkim-genkey.in,v 1.1 2010/07/14 07:27:12 grooverdan Exp $
+## $Id: opendkim-genkey.in,v 1.2 2010/07/14 19:54:02 cm-msk Exp $
 ##
 ## Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 ## All rights reserved.
@@ -13,10 +13,10 @@
 ## 	-b bits		key size (default = 1024)
 ##  	-d domain	signing domain (default = "@DOMAIN@")
 ## 	-D dir		output directory (default = ".")
-##      -f user         request ARF feedback be given to the user@domain in
-##                      in the case of DKIM signature failure
-##      -ff format      Format of feedback. "arf" or "smtp"
-##      -fi interval    Interval of report formats.
+##      -f user		request ARF feedback be given to the user@domain in
+##      		in the case of DKIM signature failure
+##      -ff format	Format of feedback. "arf" or "smtp"
+##      -fi interval	Interval of report formats.
 ## 	-g gran		key granularity (default = "*")
 ## 	-h algs		list of allowed hash algorithms (default = unspecified)
 ## 	-n text		include "text" as a note in the output key record
