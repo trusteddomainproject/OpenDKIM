@@ -919,7 +919,8 @@ This specifies a data set in which to store DKIM operation totals per domain.
 The database must be initialized before the filter can use it.  See
 .I opendkim-stats(8)
 for details about initialization, what data are recorded and how to read the
-current totals.
+current totals.  Currently the only allowed data set type for this feature
+is "db".
 @STATS_MANNOTICE@
 
 .TP
