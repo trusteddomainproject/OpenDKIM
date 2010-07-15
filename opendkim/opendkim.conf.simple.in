@@ -6,7 +6,7 @@ Syslog                  yes
 SyslogSuccess           yes
 
 
-Canonicalization	relaxed/relaxed
+Canonicalization	relaxed/simple
 
 Domain			@DOMAIN@
 Selector		default
