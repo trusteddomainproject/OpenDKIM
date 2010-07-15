@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.149.2.11 2010/07/14 05:12:05 cm-msk Exp $
+**  $Id: opendkim.c,v 1.149.2.12 2010/07/15 07:38:40 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.149.2.11 2010/07/14 05:12:05 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.149.2.12 2010/07/15 07:38:40 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1355,7 +1355,7 @@ dkimf_xs_getheader(lua_State *l)
 		conf = cc->cctx_config;
 
 		hdrname = lua_tostring(l, 2);
-		idx = lua_tonumber(l, 3);
+		idx = (int) lua_tonumber(l, 3);
 	}
 
 	lua_pop(l, 3);
@@ -1552,7 +1552,7 @@ dkimf_xs_dbhandle(lua_State *l)
 	cc = (struct connctx *) dkimf_getpriv(ctx);
 	conf = cc->cctx_config;
 
-	code = lua_tonumber(l, 1);
+	code = (int) lua_tonumber(l, 1);
 	lua_pop(l, 2);
 
 	switch (code)
@@ -1700,7 +1700,7 @@ dkimf_xs_rcpt(lua_State *l)
 	}
 
 	ctx = (SMFICTX *) lua_touserdata(l, 1);
-	rcnt = lua_tonumber(l, 1);
+	rcnt = (int) lua_tonumber(l, 1);
 	lua_pop(l, 2);
 
 	if (ctx == NULL)
@@ -2139,7 +2139,7 @@ dkimf_xs_getsighandle(lua_State *l)
 	}
 
 	ctx = (SMFICTX *) lua_touserdata(l, 1);
-	idx = lua_tonumber(l, 2);
+	idx = (int) lua_tonumber(l, 2);
 	lua_pop(l, 2);
 
 	if (ctx == NULL)
@@ -3003,7 +3003,7 @@ dkimf_xs_setresult(lua_State *l)
 	}
 
 	ctx = (SMFICTX *) lua_touserdata(l, 1);
-	mresult = lua_tonumber(l, 2);
+	mresult = (int) lua_tonumber(l, 2);
 	lua_pop(l, 2);
 
 	if (ctx == NULL)

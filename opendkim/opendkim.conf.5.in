@@ -229,10 +229,9 @@ lines in that file.
 
 .TP
 .I DontSignMailTo (dataset)
-A set of e-mail addresses (with "*" allowed as a wildcard
-character), mail to which should never be signed by the filter.  Note that
-this is an "any" feature; if any one of the recipients of the message
-matches a member of this list, the message will not be signed.
+A set of e-mail address, mail to which should never be signed by the filter.
+Note that this is an "any" feature; if any one of the recipients of the
+message matches a member of this list, the message will not be signed.
 
 .TP
 .I EnableCoredumps (boolean)
@@ -409,7 +408,7 @@ the values are either
 .I all,
 or
 .I discardable,
-as per the current ADSP draft specification.  This allows local overrides
+as per the ADSP specification (RFC5617).  This allows local overrides
 of policies to enforce for domains that either don't publish ADSP or publish
 weaker policies than the verifier would like to enforce.
 
@@ -870,8 +869,7 @@ the signature.
 If this table specifies a regular expression file ("refile"),
 then the keys are wildcard patterns that are matched against the address
 found in the From: header field.  Entries are checked in the order
-in which they appear in the file.  The patterns are matched exactly except
-that a "*" is treated as the conventional wildcard character.
+in which they appear in the file.
 
 For all other database types, the full
 .I user@host
@@ -916,7 +914,7 @@ configuration file or on the command line.
 .TP
 .I Statistics (dataset)
 This specifies a data set in which to store DKIM operation totals per domain.
-The database must be initialized before the filter can use it.  See
+The data set must be initialized before the filter can use it.  See
 .I opendkim-stats(8)
 for details about initialization, what data are recorded and how to read the
 current totals.  Currently the only allowed data set type for this feature
