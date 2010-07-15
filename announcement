@@ -21,6 +21,8 @@ The full RELEASE_NOTES for this version:
 		dereferences, rewrite some clearly incorrect code, and several
 		other fixes found by a code analysis tool, used by courtesy
 		of Cloudmark.
+	Restore "-P" to the command line as it's convenient for start/stop
+		scripts.
 	MILTERTEST: Support multiple macro values in mt_macros().
 	BUILD: Improved support for BerkeleyDB file locations.
 
