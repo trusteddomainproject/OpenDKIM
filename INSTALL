@@ -34,7 +34,7 @@ OPTIONAL PACKAGES
 
 OpenDKIM supports a few optional packages that can be included in the build
 to provide additional services.  A few of these become mandatory when
-enabling certain features above.  Specifying only the "--with-xxx" parameter
+enabling certain features below.  Specifying only the "--with-xxx" parameter
 to the "configure" command (described below) enables the package and makes a
 guess at where it might be installed on your system.  If the configure script
 doesn't find it, you will need to specify the location with
@@ -45,6 +45,13 @@ doesn't find it, you will need to specify the location with
 		/usr directories will be searched for both the required
 		includes and the required libraries.  Required for the
 		following features: bodylengthdb, query_cache, stats
+
+--with-db-incdir
+--with-db-libdir
+--with-db-lib
+		These provide a finer control over the location of BerkeleyDB
+		include, library path and libary name where the default 
+		locations of --with-db are not enough.
 
 --with-domainkeys
 		Sendmail's "libdk" include file and library for verifying
@@ -69,6 +76,9 @@ doesn't find it, you will need to specify the location with
 		This is required.  If no specific location is provided,
 		the /usr/local and /usr directories will be searched for
 		the required includes and libraries.
+
+--with-sasl	Location of the Cyrus SASL include file definations. This is
+		used for authenticating against LDAP servers.
 
 --with-tre	Location of the TRE installation on your system.  This
 		is required if you are using the "diffheaders" feature.
@@ -449,4 +459,4 @@ headers of the reply you should see its signature and another
 Authentication-Results: header, which should also read "pass".
 
 
-$Id: INSTALL,v 1.18 2010/06/14 03:04:37 cm-msk Exp $
+$Id: INSTALL,v 1.19 2010/07/15 01:21:44 grooverdan Exp $
