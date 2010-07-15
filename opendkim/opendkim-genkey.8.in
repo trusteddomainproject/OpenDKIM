@@ -1,12 +1,12 @@
 .TH opendkim-genkey 8 "The OpenDKIM Project"
 .SH NAME
-.B opendkim-genkey
+.B opendkim-genkey.sh
 - DKIM filter key generation tool
 .SH SYNOPSIS
-.B opendkim-genkey
+.B opendkim-genkey.sh
 [options]
 .SH DESCRIPTION
-.B opendkim-genkey
+.B opendkim-genkey.sh
 generates (1) a private key for signing messages using
 .I opendkim(8)
 and (2) a DNS TXT record suitable for inclusion in a zone file which
@@ -81,7 +81,7 @@ Requires that the
 binary be installed and in the executing shell's search path.
 .SH VERSION
 This man page covers the version of
-.I opendkim-genkey
+.I opendkim-genkey.sh
 that shipped with version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT

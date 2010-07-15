@@ -173,7 +173,7 @@ INSTALLING AND CONFIGURING OPENDKIM
 
 (2) Create a public/private keypair for signing:
 
-  (a) Run the script "opendkim-genkey".  (A manual page for this tool is
+  (a) Run the script "opendkim-genkey.sh".  (A manual page for this tool is
       available and will be installed by the above process if you want to
       see the available options.)
 
@@ -183,9 +183,9 @@ INSTALLING AND CONFIGURING OPENDKIM
       serial number, and reload your DNS server so that the new record
       is published.  This is by far the easiest approach.
 
-  (b) If for some reason you cannot use the "opendkim-genkey" script, manually
-      generate a public and private key.  The steps below are exactly what
-      is performed by the opendkim-genkey script.
+  (b) If for some reason you cannot use the "opendkim-genkey.sh" script, 
+      manually generate a public and private key.  The steps below are exactly
+      what is performed by the opendkim-genkey.sh script.
 
     (i) Run this command:
 
@@ -308,8 +308,11 @@ CONFIGURING POSTFIX
       socket specification:
 
 	smtpd_milters = inet:localhost:8891
+	non_smtpd_milters = inet:localhost:8891
 
 (2) Restart Postfix.
+
+        % postfix reload
 
 
 LARGE KEYS
@@ -459,4 +462,4 @@ headers of the reply you should see its signature and another
 Authentication-Results: header, which should also read "pass".
 
 
-$Id: INSTALL,v 1.18.2.1 2010/07/15 07:38:39 grooverdan Exp $
+$Id: INSTALL,v 1.18.2.2 2010/07/15 08:07:14 grooverdan Exp $
