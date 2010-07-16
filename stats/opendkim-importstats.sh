@@ -1,6 +1,6 @@
 #!/bin/sh
 ##
-## $Id: opendkim-importstats.sh,v 1.2 2010/05/20 18:39:10 cm-msk Exp $
+## $Id: opendkim-importstats.sh,v 1.2.2.1 2010/07/16 13:21:35 grooverdan Exp $
 ##
 ## Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 ##
@@ -31,6 +31,16 @@ do
 
 		shift
 		database=$1
+		;;
+
+	-u)	if [ $# -eq 1 ]
+		then
+			echo $progname: -u requires a value
+			exit 1
+		fi
+
+		shift
+		user=$1
 		;;
 
 	-p)	if [ $# -eq 1 ]
