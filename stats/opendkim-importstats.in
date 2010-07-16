@@ -1,6 +1,6 @@
 #!/bin/sh
 ##
-## $Id: opendkim-importstats.sh,v 1.2 2010/05/20 18:39:10 cm-msk Exp $
+## $Id: opendkim-importstats.in,v 1.1 2010/07/16 13:20:05 grooverdan Exp $
 ##
 ## Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 ##
@@ -15,6 +15,9 @@ statsdb="/var/db/opendkim/opendkim-stats.db"
 anon="yes"
 
 progname=`basename $0`
+
+prefix=@prefix@
+PACKAGE_TARNAME=@PACKAGE_TARNAME@
 
 ## Argument processing
 while [ $# -gt 0 ]
@@ -31,6 +34,16 @@ do
 
 		shift
 		database=$1
+		;;
+
+	-u)	if [ $# -eq 1 ]
+		then
+			echo $progname: -u requires a value
+			exit 1
+		fi
+
+		shift
+		user=$1
 		;;
 
 	-p)	if [ $# -eq 1 ]
@@ -69,15 +82,19 @@ else
 	anonstr="-a"
 fi
 
+tmpfile=$(mktemp  --tmpdir olddbstore-XXXX.sql)
+chmod a+r "${tmpfile}"
 if [ x"$statsdb" != x"" ]
 then
-	opendkim-stats $anonstr -c -r $statsdb > /tmp/opendkim-import.$$
-else
-	cat > /tmp/opendkim-import.$$
+	opendkim-stats ${anonstr} -c -r "${statsdb}" > "${tmpfile}" || exit 1
 fi
 
+mysql --user="${user}" --password="${password}" -e "CREATE DATABASE IF NOT EXISTS \`${database}\`;" || exit 1
+
+mysql --user="${user}" --password="${password}"  "${database}" < @docdir@/mkdb.mysql || exit 1
+
 ## construct import command
-import="load data infile '/tmp/opendkim-import.$$'
+import="load data infile \"${tmpfile}\"
 	into table opendkim_statistics
 	lines starting by '='
 	(
@@ -113,8 +130,9 @@ import="load data infile '/tmp/opendkim-import.$$'
 	) set msgtime = from_unixtime(@msgtime);"
 
 ## import
-mysql --user=$user --password=$password -e "$import" $database
+mysql --user="${user}" --password="${password}" -e "${import}" "${database}"
 
 ## clean up
-rm /tmp/opendkim-import.$$
+rm "${tmpfile}"
+
 exit 0

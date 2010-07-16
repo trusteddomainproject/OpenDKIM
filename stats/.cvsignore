@@ -44,3 +44,4 @@ core
 *.core
 opendkim*.[58]                                
 opendkim-lua.3
+opendkim-importstats
