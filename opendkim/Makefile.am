@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.71 2010/07/14 07:27:12 grooverdan Exp $
+# $Id: Makefile.am,v 1.72 2010/07/18 03:29:28 grooverdan Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -6,9 +6,7 @@ endif
 
 sbin_PROGRAMS = opendkim-genzone opendkim-testkey opendkim-testadsp
 dist_sbin_SCRIPTS = opendkim-genkey
-
-exampledir = $(docdir)
-dist_example_DATA = opendkim.conf.sample opendkim.conf.simple opendkim.conf.simple-verify
+dist_doc_DATA = opendkim.conf.sample opendkim.conf.simple opendkim.conf.simple-verify
 
 if BUILD_FILTER
 sbin_PROGRAMS += opendkim
@@ -112,6 +110,11 @@ if LUA
 opendkim_genzone_CPPFLAGS += $(LIBLUA_INCDIRS)
 opendkim_genzone_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_genzone_LDADD += $(LIBLUA_LIBS)
+
+dist_doc_DATA += \
+        setup.lua.sample \
+	screen.lua.sample \
+	final.lua.sample
 endif
 
 man_MANS = opendkim-genkey.8 opendkim-genzone.8 opendkim-testadsp.8 opendkim-testkey.8
