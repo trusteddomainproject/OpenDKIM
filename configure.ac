@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.156 2010/07/16 13:20:05 grooverdan Exp $
+# $Id: configure.ac,v 1.157 2010/07/19 04:01:45 grooverdan Exp $
 
 #
 # Setup
@@ -1467,9 +1467,9 @@ AC_SUBST([DOMAIN])
 #
 # Finish up
 #
-AC_OUTPUT([Makefile opendkim/Makefile opendkim/tests/Makefile
+AC_OUTPUT([Makefile opendkim/Makefile opendkim/tests/Makefile docs/Makefile contrib/Makefile
            libopendkim/Makefile libar/Makefile miltertest/Makefile
-           libopendkim/tests/Makefile libvbr/Makefile
+           libopendkim/tests/Makefile libopendkim/docs/Makefile libvbr/Makefile
            libopendkim/opendkim.pc libar/ar.pc libvbr/vbr.pc
            opendkim/opendkim.conf.5 opendkim/opendkim.8 opendkim/opendkim-lua.3
            opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8

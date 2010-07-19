@@ -1,4 +1,7 @@
-# $Id: Makefile.am,v 1.48 2010/04/12 15:08:46 cm-msk Exp $
+# $Id: Makefile.am,v 1.49 2010/07/19 04:01:45 grooverdan Exp $
+
+
+SUBDIRS=tests docs
 
 if DEBUG
 AM_CFLAGS = -g

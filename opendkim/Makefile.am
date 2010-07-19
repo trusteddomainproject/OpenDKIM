@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.72 2010/07/18 03:29:28 grooverdan Exp $
+# $Id: Makefile.am,v 1.73 2010/07/19 04:01:45 grooverdan Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -26,6 +26,7 @@ opendkim_CPPFLAGS += $(LIBODBX_CPPFLAGS)
 opendkim_LDADD += $(LIBODBX_LIBS)
 endif
 if LUA
+SUBDIRS=tests
 opendkim_CPPFLAGS += $(LIBLUA_INCDIRS) -DDKIMF_LUA_CONTEXT_HOOKS
 opendkim_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_LDADD += $(LIBLUA_LIBS)
