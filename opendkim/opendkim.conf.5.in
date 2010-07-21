@@ -657,20 +657,6 @@ not local.
 @QUERY_CACHE_MANNOTICE@
 
 .TP
-.I ReplaceRules (string)
-Specifies a file containing a list of POSIX regular expressions that
-are applied the the message headers.
-@REPLACE_RULES_MANNOTICE@
-
-.TP
-.I ReportIntervalDB (dataset)
-Specifies a set of domains that correspond to how often, in seconds, to report 
-DKIM signature failues. See
-.I SendReports
-for more details.
-@REPORT_INTERVALS_MANNOTICE@
-
-.TP
 .I RemoveARAll (Boolean)
 Removes all Authentication-Results: header fields that also satisfy the
 requirements of
@@ -690,6 +676,12 @@ domain names (e.g. ".example.com").
 Removes all existing signatures when operating in signing mode.
 
 .TP
+.I ReplaceRules (string)
+Specifies a file containing a list of POSIX regular expressions that
+are applied the the message headers.
+@REPLACE_RULES_MANNOTICE@
+
+.TP
 .I ReportAddress (string)
 Specifies the string to use in the From: header field for outgoing reports
 (see
@@ -698,6 +690,14 @@ and
 .I SendADSPReports
 below).  If not specified, the executing user and local hostname will be
 used to construct the address.
+
+.TP
+.I ReportIntervalDB (dataset)
+Specifies a set of domains that correspond to how often, in seconds, to report 
+DKIM signature failues. See
+.I SendReports
+for more details.
+@REPORT_INTERVALS_MANNOTICE@
 
 .TP
 .I ReputationFail (integer)
