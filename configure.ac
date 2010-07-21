@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.157 2010/07/19 04:01:45 grooverdan Exp $
+# $Id: configure.ac,v 1.158 2010/07/21 21:29:00 cm-msk Exp $
 
 #
 # Setup
@@ -1467,14 +1467,22 @@ AC_SUBST([DOMAIN])
 #
 # Finish up
 #
-AC_OUTPUT([Makefile opendkim/Makefile opendkim/tests/Makefile docs/Makefile contrib/Makefile
-           libopendkim/Makefile libar/Makefile miltertest/Makefile
-           libopendkim/tests/Makefile libopendkim/docs/Makefile libvbr/Makefile
-           libopendkim/opendkim.pc libar/ar.pc libvbr/vbr.pc
-           opendkim/opendkim.conf.5 opendkim/opendkim.8 opendkim/opendkim-lua.3
-           opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8
-           opendkim/opendkim-genkey.8 opendkim/opendkim-testadsp.8
-           opendkim/opendkim-genzone.8 opendkim/opendkim-genkey
-	   opendkim/opendkim.conf.simple opendkim/opendkim.conf.simple-verify
-           stats/Makefile stats/opendkim-importstats.8 stats/opendkim-importstats
-           contrib/opendkim.spec])
+AC_OUTPUT([	Makefile
+		docs/Makefile
+		contrib/Makefile contrib/opendkim.spec
+		libar/ar.pc libar/Makefile
+		libopendkim/opendkim.pc libopendkim/Makefile
+		libopendkim/docs/Makefile
+		libopendkim/tests/Makefile
+		libvbr/vbr.pc libvbr/Makefile
+		miltertest/Makefile
+		opendkim/Makefile opendkim/opendkim.8 opendkim/opendkim-genkey
+			opendkim/opendkim-genkey.8 opendkim/opendkim-genzone.8
+			opendkim/opendkim-lua.3 opendkim/opendkim-testadsp.8
+			opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8
+			opendkim/opendkim.conf.5 opendkim/opendkim.conf.simple
+			opendkim/opendkim.conf.simple-verify
+		opendkim/tests/Makefile
+		stats/Makefile stats/opendkim-importstats.8
+			stats/opendkim-importstats
+])
