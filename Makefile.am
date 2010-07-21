@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.54.2.1 2010/07/21 21:24:26 cm-msk Exp $
+# $Id: Makefile.am,v 1.54.2.2 2010/07/21 21:29:40 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
