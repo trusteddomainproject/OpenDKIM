@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.161 2010/07/14 05:12:57 cm-msk Exp $
+**  $Id: opendkim.c,v 1.161.2.1 2010/07/21 21:53:30 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.161 2010/07/14 05:12:57 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.161.2.1 2010/07/21 21:53:30 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -187,6 +187,8 @@ struct dkimf_config
 	_Bool		conf_keeptmpfiles;	/* keep temporary files */
 	_Bool		conf_multisig;		/* multiple signatures */
 	_Bool		conf_enablecores;	/* enable coredumps */
+	_Bool		conf_noheaderb;		/* suppress "header.b" */
+	_Bool		conf_singleauthres;	/* single Auth-Results */
 #ifdef _FFR_RESIGN
 	_Bool		conf_resignall;		/* resign unverified mail */
 #endif /* _FFR_RESIGN */
@@ -344,6 +346,7 @@ struct msgctx
 #endif /*_FFR_BODYLENGTH_DB */
 #ifdef VERIFY_DOMAINKEYS
 	_Bool		mctx_dksigned;		/* DK signature present */
+	_Bool		mctx_dkpass;		/* DK signature passed */
 #endif /* VERIFY_DOMAINKEYS */
 #ifdef _FFR_CAPTURE_UNKNOWN_ERRORS
 	_Bool		mctx_capture;		/* capture message? */
@@ -383,6 +386,10 @@ struct msgctx
 	struct addrlist * mctx_rcptlist;	/* recipient list */
 	char		mctx_domain[DKIM_MAXHOSTNAMELEN + 1];
 						/* primary domain */
+#ifdef VERIFY_DOMAINKEYS
+	unsigned char	mctx_dkar[DKIM_MAXHEADER + 1];
+						/* DK Auth-Results content */
+#endif /* VERIFY_DOMAINKEYS */
 };
 
 /*
@@ -4506,6 +4513,14 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_enablecores,
 		                  sizeof conf->conf_enablecores);
 
+		(void) config_get(data, "SingleAuthResult",
+		                  &conf->conf_singleauthres,
+		                  sizeof conf->conf_singleauthres);
+
+		(void) config_get(data, "NoHeaderB",
+		                  &conf->conf_noheaderb,
+		                  sizeof conf->conf_noheaderb);
+
 		(void) config_get(data, "FixCRLF",
 		                  &conf->conf_fixcrlf,
 		                  sizeof conf->conf_fixcrlf);
@@ -6547,9 +6562,14 @@ dkimf_cleanup(SMFICTX *ctx)
 
 	dfc = cc->cctx_msg;
 
-	/* release memory */
+	/* release memory, reset state */
 	if (dfc != NULL)
 	{
+#ifdef VERIFY_DOMAINKEYS
+		dfc->mctx_dksigned = FALSE;
+		dfc->mctx_dkpass = FALSE;
+#endif /* VERIFY_DOMAINKEYS */
+
 		if (dfc->mctx_hqhead != NULL)
 		{
 			Header hdr;
@@ -10142,6 +10162,7 @@ mlfi_eom(SMFICTX *ctx)
 		{
 		  case DK_STAT_OK:
 			addheader = dfc->mctx_dksigned;
+			dfc->mctx_dkpass = TRUE;
 			authresult = "pass";
 			break;
 
@@ -10195,9 +10216,9 @@ mlfi_eom(SMFICTX *ctx)
 			(void) dk_getidentity(dfc->mctx_dk, hdr, sizeof hdr,
 			                      val, sizeof val);
 
-			memset(header, '\0', sizeof header);
+			memset(dfc->mctx_dkar, '\0', sizeof dfc->mctx_dkar);
 
-			snprintf(header, sizeof header,
+			snprintf(dfc->mctx_dkar, sizeof dfc->mctx_dkar,
 			         "%s%s%s%s; domainkeys=%s%s%s%s%s header.%s=%s",
 			         cc->cctx_noleadspc ? " " : "",
 			         authservid,
@@ -10210,18 +10231,6 @@ mlfi_eom(SMFICTX *ctx)
 			         comment == NULL ? "" : ")",
 			         !(flags & DK_FLAG_TESTING) ? "" : " (testing)",
 			         hdr, val);
-
-			if (dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
-			                    header) == MI_FAILURE)
-			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: %s header add failed",
-					       dfc->mctx_jobid,
-					       AUTHRESULTSHDR);
-				}
-			}
 		}
 	}
 #endif /* VERIFY_DOMAINKEYS */
@@ -10704,8 +10713,11 @@ mlfi_eom(SMFICTX *ctx)
 		}
 #endif /* _FFR_STATS */
 
+#ifdef VERIFY_DOMAINKEYS
+#else /* VERIFY_DOMAINKEYS */
 		if (dfc->mctx_addheader &&
 		    dfc->mctx_status != DKIMF_STATUS_UNKNOWN)
+#endif /* VERIFY_DOMAINKEYS */
 		{
 			_Bool test;
 			u_int keybits;
@@ -10984,7 +10996,8 @@ mlfi_eom(SMFICTX *ctx)
 					                           ss, &ssl);
 				}
 
-				if (sig != NULL && ts == DKIM_STAT_OK)
+				if (sig != NULL && ts == DKIM_STAT_OK &&
+				    !conf->conf_noheaderb)
 				{
 					strlcat((char *) header, DELIMITER,
 					        sizeof header);
@@ -11131,6 +11144,27 @@ mlfi_eom(SMFICTX *ctx)
 					first = FALSE;
 					c += len;
 				}
+
+#ifdef VERIFY_DOMAINKEYS
+				/*
+				**  XXX -- I'm not happy with this solution,
+				**  but it'll go away when we discontinue
+				**  DomainKeys support so I can live with it.
+				*/
+
+				if (conf->conf_singleauthres &&
+				    dfc->mctx_dkpass &&
+				    (dfc->mctx_status == DKIMF_STATUS_BAD ||
+			             dfc->mctx_status == DKIMF_STATUS_REVOKED ||
+			             dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
+			             dfc->mctx_status == DKIMF_STATUS_VERIFYERR ||
+			             (dfc->mctx_status == DKIMF_STATUS_NOSIGNATURE &&
+			              dfc->mctx_addheader)))
+				{
+					strlcpy(tmphdr, dfc->mctx_dkar,
+					        sizeof tmphdr);
+				}
+#endif /* VERIFY_DOMAINKEYS */
 
 				if (dfc->mctx_addheader &&
 				    dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
@@ -11499,6 +11533,26 @@ mlfi_eom(SMFICTX *ctx)
 		}
 #endif /* _FFR_REDIRECT */
 	}
+
+#ifdef VERIFY_DOMAINKEYS
+	if (!conf->conf_singleauthres &&
+	    !(dfc->mctx_status == DKIMF_STATUS_BAD ||
+              dfc->mctx_status == DKIMF_STATUS_REVOKED ||
+              dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
+              dfc->mctx_status == DKIMF_STATUS_VERIFYERR ||
+              (dfc->mctx_status == DKIMF_STATUS_NOSIGNATURE &&
+               dfc->mctx_addheader)))
+	{
+		if (dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
+		                    dfc->mctx_dkar) == MI_FAILURE &&
+		    conf->conf_dolog)
+		{
+			syslog(LOG_ERR, "%s: %s header add failed",
+			       dfc->mctx_jobid, AUTHRESULTSHDR);
+		}
+	}
+#endif /* VERIFY_DOMAINKEYS */
+
 
 #ifdef USE_LUA
 	if (conf->conf_finalscript != NULL)

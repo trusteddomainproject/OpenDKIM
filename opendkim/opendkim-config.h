@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.17 2010/02/20 07:29:59 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.17.14.1 2010/07/21 21:53:30 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.17 2010/02/20 07:29:59 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.17.14.1 2010/07/21 21:53:30 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -96,6 +96,7 @@ struct configdef dkimf_config[] =
 	{ "Mode",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MTA",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MustBeSigned",		CONFIG_TYPE_STRING,	FALSE },
+	{ "NoHeaderB",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "OmitHeaders",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-BadSignature",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-Default",			CONFIG_TYPE_STRING,	FALSE },
@@ -158,6 +159,9 @@ struct configdef dkimf_config[] =
 	{ "SignatureTTL",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "SignHeaders",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SigningTable",		CONFIG_TYPE_STRING,	FALSE },
+#ifdef VERIFY_DOMAINKEYS
+	{ "SingleAuthResult",		CONFIG_TYPE_BOOLEAN,	FALSE },
+#endif /* VERIFY_DOMAINKEYS */
 	{ "Socket",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_STATS
 	{ "Statistics",			CONFIG_TYPE_STRING,	FALSE },
