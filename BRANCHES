@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.31 2010/06/27 02:52:03 cm-msk Exp $
+$Id: BRANCHES,v 1.32 2010/07/21 17:49:38 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -17,6 +17,10 @@ Experimental Branches (branch name contains owner)
 
 br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
+
+br-msk-single-auth-result
+		Feature request #SF2981598: Add "SingleAuthResult" and
+		"NoHeaderB" settings.
 
 
 Closed Branches
