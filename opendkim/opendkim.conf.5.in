@@ -736,6 +736,13 @@ Checks all messages for compliance with RFC5322 header field count
 requirements.  Non-compliant messages are rejected.
 
 .TP
+.I RequireSafeKeys (boolean)
+When reading a key file, a message will be logged if the key file has the
+read or write bit set other than for the owner.  With this feature set
+to "true", the filter will further consider this an error and refuse to
+make use of the file's contents.  The default is "true".
+
+.TP
 .I ResignAll (boolean)
 Where
 .I ResignMailTo

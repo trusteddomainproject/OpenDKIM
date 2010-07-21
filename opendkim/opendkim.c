@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.161 2010/07/14 05:12:57 cm-msk Exp $
+**  $Id: opendkim.c,v 1.162 2010/07/21 23:57:53 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.161 2010/07/14 05:12:57 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.162 2010/07/21 23:57:53 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -187,6 +187,7 @@ struct dkimf_config
 	_Bool		conf_keeptmpfiles;	/* keep temporary files */
 	_Bool		conf_multisig;		/* multiple signatures */
 	_Bool		conf_enablecores;	/* enable coredumps */
+	_Bool		conf_safekeys;		/* check key permissions */
 #ifdef _FFR_RESIGN
 	_Bool		conf_resignall;		/* resign unverified mail */
 #endif /* _FFR_RESIGN */
@@ -3318,13 +3319,14 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 **  Parameters:
 **  	buf -- key buffer
 **  	buflen -- pointer to key buffer's length (updated)
+**  	insecure -- key is insecure (returned)
 **
 **  Return value:
 **  	TRUE on successful load, false otherwise
 */
 
 static _Bool
-dkimf_loadkey(char *buf, size_t *buflen)
+dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure)
 {
 	assert(buf != NULL);
 	assert(buflen != NULL);
@@ -3347,6 +3349,14 @@ dkimf_loadkey(char *buf, size_t *buflen)
 			close(fd);
 			return FALSE;
 		}
+
+		/*
+		**  XXX -- really should check ancestor directories too,
+		**  like sendmail's safefile()
+		*/
+
+		if (insecure != NULL)
+			*insecure = ((s.st_mode & (S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)) != 0);
 
 		*buflen = MIN(s.st_size, *buflen);
 		rlen = read(fd, buf, *buflen);
@@ -3401,6 +3411,8 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 
 	if (keytable != NULL)
 	{
+		_Bool insecure;
+
 		assert(keyname != NULL);
 
 		memset(domain, '\0', sizeof domain);
@@ -3437,7 +3449,9 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 		}
 
 		keydatasz = sizeof keydata - 1;
-		if (!dkimf_loadkey(dbd[2].dbdata_buffer, &keydatasz))
+		insecure = FALSE;
+		if (!dkimf_loadkey(dbd[2].dbdata_buffer, &keydatasz,
+		                   &insecure))
 		{
 			if (dolog)
 			{
@@ -3446,6 +3460,23 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 			}
 
 			return 2;
+		}
+
+		if (insecure)
+		{
+			if (dolog)
+			{
+				int sev;
+
+				sev = (conf->conf_safekeys ? LOG_ERR
+				                           : LOG_WARNING);
+
+				syslog(sev, "%s: key data is not secure",
+				       keyname);
+			}
+
+ 			if (conf->conf_safekeys)
+				return 2;
 		}
 	}
 
@@ -4179,6 +4210,7 @@ dkimf_config_new(void)
 #ifdef _FFR_DKIM_REPUTATION
 	new->conf_repreject = DKIM_REP_DEFREJECT;
 #endif /* _FFR_DKIM_REPUTATION */
+	new->conf_safekeys = TRUE;
 
 	memcpy(&new->conf_handling, &defaults, sizeof new->conf_handling);
 
@@ -4505,6 +4537,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "EnableCoredumps",
 		                  &conf->conf_enablecores,
 		                  sizeof conf->conf_enablecores);
+
+		(void) config_get(data, "RequireSafeKeys",
+		                  &conf->conf_safekeys,
+		                  sizeof conf->conf_safekeys);
 
 		(void) config_get(data, "FixCRLF",
 		                  &conf->conf_fixcrlf,
@@ -5789,6 +5825,28 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			snprintf(err, errlen, "%s: stat(): %s",
 			         conf->conf_keyfile, strerror(errno));
 			return -1;
+		}
+
+		if ((s.st_mode & (S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)) != 0)
+		{
+			if (conf->conf_dolog)
+			{
+				int sev;
+
+				sev = (conf->conf_safekeys ? LOG_ERR
+				                           : LOG_WARNING);
+
+				syslog(sev, "%s: key data is not secure",
+				       conf->conf_keyfile);
+			}
+
+			if (conf->conf_safekeys)
+			{
+				snprintf(err, errlen,
+				         "%s: key data is not secure",
+				         conf->conf_keyfile);
+				return -1;
+			}
 		}
 
 		s33krit = malloc(s.st_size + 1);

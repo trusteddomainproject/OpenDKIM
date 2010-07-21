@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.17 2010/02/20 07:29:59 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.18 2010/07/21 23:57:53 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.17 2010/02/20 07:29:59 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.18 2010/07/21 23:57:53 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -134,6 +134,7 @@ struct configdef dkimf_config[] =
 #endif /* _FFR_DKIM_REPUTATION */
 	{ "RequiredHeaders",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_RESIGN
+	{ "RequireSafeKeys",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ResignAll",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ResignMailTo",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef USE_LUA
