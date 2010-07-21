@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.157 2010/07/19 04:01:45 grooverdan Exp $
+# $Id: configure.ac,v 1.157.2.1 2010/07/21 21:51:37 cm-msk Exp $
 
 #
 # Setup
@@ -1371,6 +1371,7 @@ then
 			LIBDK_LIBS="-ldk"
 			AC_DEFINE([VERIFY_DOMAINKEYS], 1,
 			          [compile with libdk for DomainKeys support])
+			AC_SUBST([DOMAINKEYS_MANNOTICE], "")
 			break
 		fi
 	done
@@ -1384,6 +1385,8 @@ then
 	LIBDK_INCDIRS=""
 	LIBDK_LIBDIRS=""
 	LIBDK_LIBS=""
+	AC_SUBST([DOMAINKEYS_MANNOTICE],
+	         "(Not enabled for this installation.)")
 else
 	AC_MSG_CHECKING([for DomainKeys])
 
