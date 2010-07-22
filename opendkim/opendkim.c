@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.167 2010/07/22 20:10:56 cm-msk Exp $
+**  $Id: opendkim.c,v 1.168 2010/07/22 23:38:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.167 2010/07/22 20:10:56 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.168 2010/07/22 23:38:37 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1278,6 +1278,16 @@ dkimf_xs_requestsig(lua_State *l)
 		switch (dkimf_add_signrequest(dfc, conf->conf_keytabledb,
 		                              (char *) keyname))
 		{
+		  case 3:
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR,
+				       "key `%s' could not be applied",
+				       keyname);
+			}
+			lua_pushnumber(l, 0);
+			return 1;
+
 		  case 2:
 			if (conf->conf_dolog)
 			{
@@ -3434,8 +3444,9 @@ dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure)
 **  	keyname -- name of private key to use
 **
 **  Return value:
+**  	3 -- substitution token provided but domain not provided
 **  	2 -- requested key could not be loaded
-**  	1 -- requested key not found
+3*  	1 -- requested key not found
 **  	0 -- requested key added
 **  	-1 -- requested key found but add failed (memory? or format)
 */
@@ -3492,7 +3503,9 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 		if (!found)
 			return 1;
 
-		if (dbd[2].dbdata_buflen == 0)
+		if (dbd[0].dbdata_buflen == 0 ||
+		    dbd[1].dbdata_buflen == 0 ||
+		    dbd[2].dbdata_buflen == 0)
 		{
 			if (dolog)
 			{
@@ -3502,6 +3515,19 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 			}
 
 			return 2;
+		}
+
+		if (domain[0] == '%' && domain[1] == '\0' &&
+		    dfc->mctx_domain == NULL)
+		{
+			if (dolog)
+			{
+				syslog(LOG_ERR,
+				       "KeyTable entry for `%s' cannot be resolved", 
+				       keyname);
+			}
+
+			return 3;
 		}
 
 		keydatasz = sizeof keydata - 1;
@@ -3548,7 +3574,11 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 
 	if (keytable != NULL)
 	{
-		new->srq_domain = strdup(domain);
+		if (domain[0] == '%' && domain[1] == '\0')
+			new->srq_domain = strdup(dfc->mctx_domain);
+		else
+			new->srq_domain = strdup(domain);
+
 		new->srq_selector = strdup(selector);
 		new->srq_keydata = (void *) malloc(keydatasz + 1);
 		if (new->srq_keydata == NULL)
@@ -7090,7 +7120,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
 				return -2;
-			else if (status == 2 || status == -1)
+			else if (status == 2 || status == 3 || status == -1)
 				return -3;
 
 			nfound++;
@@ -7130,7 +7160,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
 				return -2;
-			else if (status == 2 || status == -1)
+			else if (status == 2 || status == 3 || status == -1)
 				return -3;
 
 			nfound++;
@@ -7158,7 +7188,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
 				return -2;
-			else if (status == 2 || status == -1)
+			else if (status == 2 || status == 3 || status == -1)
 				return -3;
 
 			nfound++;
@@ -7194,7 +7224,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 					strlcpy(errkey, keyname, errlen);
 				if (status == 1)
 					return -2;
-				else if (status == 2 || status == -1)
+				else if (status == 2 || status == 3 ||
+				         status == -1)
 					return -3;
 
 				nfound++;
@@ -7222,7 +7253,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 					strlcpy(errkey, keyname, errlen);
 				if (status == 1)
 					return -2;
-				else if (status == 2 || status == -1)
+				else if (status == 2 || status == 3 ||
+				         status == -1)
 					return -3;
 
 				nfound++;
@@ -7253,7 +7285,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
 				return -2;
-			else if (status == 2 || status == -1)
+			else if (status == 2 || status == 3 || status == -1)
 				return -3;
 
 			nfound++;
@@ -7280,7 +7312,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
 				return -2;
-			else if (status == 2 || status == -1)
+			else if (status == 2 || status == 3 || status == -1)
 				return -3;
 
 			nfound++;
