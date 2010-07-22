@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# $Id: t-verify-unspec,v 1.1 2010/07/22 22:46:07 cm-msk Exp $
+# 
+# unspecified protocol family test
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest -s $srcdir/t-verify-unspec.lua
