@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.176 2010/07/22 20:10:56 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.177 2010/07/22 22:56:33 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -20,6 +20,8 @@ release, and a summary of the changes in that release.
 		Requested by Ale Vesely.
 	MILTERTEST: Add "-u" option to report resource usage statistics on
 		completion.
+	MILTERTEST: Feature request #SF3005002: Enable specification of
+		"unspecified" protocol family connections.
 	Update opendkim-genkeys to support draft-ietf-marf-dkim-reporting.
 
 2.1.2		2010/07/06
