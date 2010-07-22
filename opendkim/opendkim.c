@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.163 2010/07/22 00:09:58 cm-msk Exp $
+**  $Id: opendkim.c,v 1.164 2010/07/22 08:20:44 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.163 2010/07/22 00:09:58 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.164 2010/07/22 08:20:44 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3314,6 +3314,53 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 #endif /* _FFR_REPORT_INTERVALS */
 
 /*
+**  DKIMF_INSECURE -- see if an open file is safe to use
+**
+**  Parameters:
+**  	mode -- mode of an open file
+**  	grp -- group ID of an open file
+**
+**  Return value:
+**  	TRUE iff the file is safe to use.
+*/
+
+_Bool
+dkimf_insecure(mode_t mode, gid_t grp)
+{
+	/* read/write by others is always bad */
+	if ((mode & (S_IROTH|S_IWOTH)) != 0)
+		return FALSE;
+
+	/* read/write by group is bad if it's not a group we're in */
+	if ((mode & (S_IRGRP|S_IWGRP)) != 0)
+	{
+		int c;
+		int ngroups;
+		gid_t gid;
+		gid_t egid;
+		gid_t gids[NGROUPS_MAX];
+
+		gid = getgid();
+		egid = getegid();
+		ngroups = getgroups(NGROUPS_MAX, gids);
+
+		if (grp == gid || grp == egid)
+			return TRUE;
+
+		for (c = 0; c < ngroups; c++)
+		{
+			if (grp == gids[c])
+				return TRUE;
+		}
+
+		return FALSE;
+	}
+
+	/* anything that gets here is safe */
+	return TRUE;
+}
+
+/*
 **  DKIMF_LOADKEY -- resolve a key
 **
 **  Parameters:
@@ -3356,7 +3403,7 @@ dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure)
 		*/
 
 		if (insecure != NULL)
-			*insecure = ((s.st_mode & (S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)) != 0);
+			*insecure = dkimf_insecure(s.st_mode, s.st_gid);
 
 		*buflen = MIN(s.st_size, *buflen);
 		rlen = read(fd, buf, *buflen);
@@ -5827,7 +5874,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			return -1;
 		}
 
-		if ((s.st_mode & (S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)) != 0)
+		if (dkimf_insecure(s.st_mode, s.st_gid))
 		{
 			if (conf->conf_dolog)
 			{
