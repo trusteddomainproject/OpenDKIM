@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.27 2010/05/20 18:39:10 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.28 2010/07/22 00:11:11 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -955,6 +955,18 @@ extern int dkim_getmode __P((DKIM *dkim));
 */
 
 extern u_char *dkim_getdomain __P((DKIM *dkim));
+
+/*
+**  DKIM_GETUSER -- retrieve sending user (local-part) from a DKIM context
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**
+**  Return value:
+**  	Pointer to the apparent sending user (local-part) or NULL if not known.
+*/
+
+extern u_char *dkim_getuser __P((DKIM *dkim));
 
 /*
 **  DKIM_SET_SIGNER -- set DKIM signature's signer

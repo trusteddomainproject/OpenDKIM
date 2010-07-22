@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.55 2010/07/08 23:49:20 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.56 2010/07/22 00:11:11 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7246,6 +7246,24 @@ dkim_getdomain(DKIM *dkim)
 	assert(dkim != NULL);
 
 	return dkim->dkim_domain;
+}
+
+/*
+**  DKIM_GETUSER -- retrieve sending user (local-part) from a DKIM context
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**
+**  Return value:
+**  	Pointer to the apparent sending user (local-part) or NULL if not known.
+*/
+
+u_char *
+dkim_getuser(DKIM *dkim)
+{
+	assert(dkim != NULL);
+
+	return dkim->dkim_user;
 }
 
 /*
