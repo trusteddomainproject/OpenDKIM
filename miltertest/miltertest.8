@@ -110,7 +110,10 @@ is the Lua constant "nil", the string "localhost" is assumed.  If
 is the Lua constant "nil", a DNS query will be made for the IP address
 matching
 .I host;
-if none is found, the test will abort.
+if none is found, the test will abort.  The
+.I ip
+may also be the special string "unspec", which will tell the filter that
+a connection came in from an unknown protocol family.
 .TP
 .B mt.data(conn)
 Announces the DATA command on the specified connection, which occurs between
