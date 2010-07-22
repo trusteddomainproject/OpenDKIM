@@ -1,4 +1,4 @@
--- $Id: t-verify-unspec.lua,v 1.1 2010/07/22 22:46:07 cm-msk Exp $
+-- $Id: t-verify-unspec.lua,v 1.2 2010/07/22 23:12:27 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -14,8 +14,7 @@ if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
 end
 mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-unspec.conf")
-mt.sleep(15)
-mt.set_timeout(120)
+mt.sleep(3)
 
 -- try to connect to it
 conn = mt.connect("inet:12345@localhost")
