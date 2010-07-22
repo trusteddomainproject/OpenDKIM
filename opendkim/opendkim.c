@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.165 2010/07/22 18:43:20 cm-msk Exp $
+**  $Id: opendkim.c,v 1.166 2010/07/22 19:07:33 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.165 2010/07/22 18:43:20 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.166 2010/07/22 19:07:33 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6265,23 +6265,6 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	{
 		status = dkimf_db_mkarray(conf->conf_senderhdrsdb,
 		                          &conf->conf_senderhdrs);
-		if (status == -1)
-			return FALSE;
-
-		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
-		                      DKIM_OPTS_SENDERHDRS,
-		                      conf->conf_senderhdrs,
-		                      sizeof conf->conf_senderhdrs);
-
-		if (status != DKIM_STAT_OK)
-			return FALSE;
-	}
-	else
-	{
-		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
-		                      DKIM_OPTS_SENDERHDRS,
-		                      (void *) dkim_default_senderhdrs,
-		                      sizeof (u_char **));
 
 		if (status != DKIM_STAT_OK)
 			return FALSE;

@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.174 2010/07/22 18:47:26 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.175 2010/07/22 19:07:33 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -13,6 +13,8 @@ release, and a summary of the changes in that release.
 		has unsafe group/other read/write bits set.  Further, if the
 		new "RequireSafeKeys" setting is true, refuse to use the data.
 	Fix "LocalADSP", which was not working at all.
+	Fix bug #SF3004995: Don't apply "SenderHeaders" to the library
+		as that impacts how ADSP works.
 	LIBOPENDKIM: Feature request #SF3026287: Add dkim_getuser() function.
 		Requested by Ale Vesely.
 	MILTERTEST: Add "-u" option to report resource usage statistics on
