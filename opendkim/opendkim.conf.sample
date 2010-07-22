@@ -1,7 +1,7 @@
 ##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
-## $Id: opendkim.conf.sample,v 1.6 2010/05/24 05:19:35 cm-msk Exp $
+## $Id: opendkim.conf.sample,v 1.7 2010/07/22 08:21:50 cm-msk Exp $
 ##
 
 ##
@@ -439,9 +439,16 @@ KeyFile			/var/db/dkim/example.private
 ##  RequiredHeaders { yes | no }
 ##  	default no
 ##
-##  Rejects messages which don't conform to RFC2822 header count requirements.
+##  Rejects messages which don't conform to RFC5322 header count requirements.
 
 # RequiredHeaders	No
+
+##  RequireSafeKeys { yes | no }
+##  	default yes
+##
+##  Refuses to use key files that appear to have unsafe permissions.
+
+# RequireSafeKeys	Yes
 
 ##  ResignAll { yes | no }
 ##  	default no
