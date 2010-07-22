@@ -45,10 +45,12 @@ man page for a description of such parameters.
 
 .SH PARAMETERS
 .TP
-.I ADSPDiscard (Boolean)
-If "true", requests rejection of messages that are determined to be
-suspicious according to the author domain's published signing practises
-(ADSP) record if that record also recommends discard of such messages.
+.I ADSPAction (string)
+Selects the action to be taken when an ADSP check against a message with
+no valid author signature results in the message being deemed suspicious and
+discardable.  Possible values are "discard" (accept the mesasge but throw
+it away) and "reject" (bounce the message).  If not set, discardable messages
+will still be delivered.
 
 .TP
 .I ADSPNoSuchDomain (Boolean)

@@ -1,21 +1,22 @@
 ##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
-## $Id: opendkim.conf.sample,v 1.7 2010/07/22 08:21:50 cm-msk Exp $
+## $Id: opendkim.conf.sample,v 1.8 2010/07/22 18:43:20 cm-msk Exp $
 ##
 
 ##
 ##  For settings that refer to a "dataset", see the opendkim(8) man page.
 ##
 
-##  ADSPDiscard { yes | no }
-##  	default "no"
+##  ADSPAction { continue | discard | reject }
+##  	default "continue"
 ##
-##  Reject messages which are determined to be "suspicious" according to the
-##  sending domain's published signing procedure (ADSP) record if that record
-##  also recommends rejection of such messages.
+##  Defines the action to be taken when a message is passed through the
+##  ADSP algorithm and found to be discardable.  By default, no action is
+##  taken, though the failure will be noted by the addition of an
+##  Authentication-Results report.
 
-# ADSPDiscard		No
+# ADSPAction		continue
 
 ##  ADSPNoSuchDomain { yes | no }
 ##  	default "no"

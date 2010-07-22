@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.164 2010/07/22 08:20:44 cm-msk Exp $
+**  $Id: opendkim.c,v 1.165 2010/07/22 18:43:20 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.164 2010/07/22 08:20:44 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.165 2010/07/22 18:43:20 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -171,7 +171,6 @@ struct dkimf_config
 	_Bool		conf_alwaysaddar;	/* always add Auth-Results:? */
 	_Bool		conf_sendreports;	/* verify failure reports */
 	_Bool		conf_sendadspreports;	/* ADSP failure reports */
-	_Bool		conf_adspdiscard;	/* apply ADSP "discardable"? */
 	_Bool		conf_adspnxdomain;	/* reject on ADSP NXDOMAIN? */
 	_Bool		conf_reqhdrs;		/* required header checks */
 	_Bool		conf_authservidwithjobid; /* use jobids in A-R headers */
@@ -206,6 +205,7 @@ struct dkimf_config
 #endif /* USE_UNBOUND */
 	int		conf_clockdrift;	/* tolerable clock drift */
 	int		conf_sigmintype;	/* signature minimum type */
+	int		conf_adspaction;	/* apply ADSP "discardable"? */
 	size_t		conf_sigmin;		/* signature minimum */
 	size_t		conf_keylen;		/* size of secret key */
 #ifdef _FFR_DKIM_REPUTATION
@@ -466,6 +466,14 @@ struct lookup
 #endif /* _FFR_DKIM_REPUTATION */
 
 #define	DELIMITER		"\001"
+
+struct lookup dkimf_adspactions[] =
+{
+	{ "continue",		SMFIS_CONTINUE },
+	{ "discard",		SMFIS_DISCARD },
+	{ "reject",		SMFIS_REJECT },
+	{ NULL,			-1 },
+};
 
 struct lookup dkimf_params[] =
 {
@@ -4258,6 +4266,7 @@ dkimf_config_new(void)
 	new->conf_repreject = DKIM_REP_DEFREJECT;
 #endif /* _FFR_DKIM_REPUTATION */
 	new->conf_safekeys = TRUE;
+	new->conf_adspaction = SMFIS_CONTINUE;
 
 	memcpy(&new->conf_handling, &defaults, sizeof new->conf_handling);
 
@@ -4768,13 +4777,26 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_dolog_success,
 		                  sizeof conf->conf_dolog_success);
 
-		(void) config_get(data, "ADSPDiscard",
-		                  &conf->conf_adspdiscard,
-		                  sizeof conf->conf_adspdiscard);
-
 		(void) config_get(data, "ADSPNoSuchDomain",
 		                  &conf->conf_adspnxdomain,
 		                  sizeof conf->conf_adspnxdomain);
+
+		str = NULL;
+		(void) config_get(data, "ADSPAction", &str, sizeof str);
+		if (str != NULL)
+		{
+			int c;
+
+			c = dkimf_configlookup(str, dkimf_adspactions);
+			if (c == -1)
+			{
+				snprintf(err, errlen,
+				         "unknown ADSP action `%s'", str);
+				return -1;
+			}
+
+			conf->conf_adspaction = c;
+		}
 
 		if (!conf->conf_addxhdr)
 		{
@@ -10581,7 +10603,7 @@ mlfi_eom(SMFICTX *ctx)
 			_Bool localadsp = FALSE;
 			int localresult = DKIM_PRESULT_NONE;
 
-			if (conf->conf_localadsp_file != NULL)
+			if (conf->conf_localadsp_db != NULL)
 			{
 				u_char *domain;
 
@@ -10673,19 +10695,42 @@ mlfi_eom(SMFICTX *ctx)
 					dfc->mctx_addheader = TRUE;
 				}
 
-				if (dfc->mctx_susp && conf->conf_adspdiscard &&
+				if (dfc->mctx_susp &&
+				    conf->conf_adspaction != SMFIS_CONTINUE &&
 				    dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE)
 				{
+					char *act;
 					char replybuf[BUFRSZ];
 					char smtpprefix[BUFRSZ];
+
+					act = "reject";
+					if (conf->conf_adspaction == SMFIS_DISCARD)
+						act = "discard";
+					else
+						act = "reject";
 
 					if (conf->conf_dolog)
 					{
 						syslog(LOG_NOTICE,
-						       "%s: rejected per sender domain policy",
-						       dfc->mctx_jobid);
+						       "%s: %sed per sender domain policy",
+						       dfc->mctx_jobid, act);
 					}
 					
+					if (smtpprefix[0] == '\0')
+					{
+						strlcpy(replybuf,
+						        ADSPDENYTEXT,
+						        sizeof replybuf);
+					}
+					else
+					{
+						snprintf(replybuf,
+						         sizeof replybuf,
+						         "%s: %s",
+						         smtpprefix,
+						         ADSPDENYTEXT);
+					}
+
 					memset(smtpprefix, '\0',
 					       sizeof smtpprefix);
 					lastdkim = dfc->mctx_dkimv;
@@ -10700,19 +10745,10 @@ mlfi_eom(SMFICTX *ctx)
 					                                 sizeof smtpprefix,
 					                                 NULL);
 
-					if (smtpprefix[0] == '\0')
+					if (conf->conf_adspaction == SMFIS_DISCARD)
 					{
-						strlcpy(replybuf,
-						        ADSPDENYTEXT,
-						        sizeof replybuf);
-					}
-					else
-					{
-						snprintf(replybuf,
-						         sizeof replybuf,
-						         "%s: %s",
-						         smtpprefix,
-						         ADSPDENYTEXT);
+						dkimf_cleanup(ctx);
+						return SMFIS_DISCARD;
 					}
 
 					if (dkimf_setreply(ctx,
