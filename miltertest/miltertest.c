@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.21 2010/07/22 22:19:59 cm-msk Exp $
+**  $Id: miltertest.c,v 1.22 2010/07/22 22:23:04 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.21 2010/07/22 22:19:59 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.22 2010/07/22 22:23:04 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -3056,6 +3056,7 @@ mt_eom_check(lua_State *l)
 		return 1;
 	  }
 
+#ifdef SMFIR_INSHEADER
 	  case MT_HDRINSERT:
 	  {
 		int idx = -1;
@@ -3129,6 +3130,7 @@ mt_eom_check(lua_State *l)
 		lua_pushboolean(l, 0);
 		return 1;
 	  }
+#endif /* SMFIR_INSHEADER */
 
 	  case MT_HDRCHANGE:
 	  {
@@ -3378,6 +3380,7 @@ mt_eom_check(lua_State *l)
 		return 1;
 	  }
 
+#ifdef SMFIR_QUARANTINE
 	  case MT_QUARANTINE:
 	  {
 		char *reason = NULL;
@@ -3414,6 +3417,7 @@ mt_eom_check(lua_State *l)
 		lua_pushboolean(l, 0);
 		return 1;
 	  }
+#endif /* SMFIR_QUARANTINE */
 
 	  case MT_SMTPREPLY:
 	  {
@@ -3600,12 +3604,17 @@ mt_getheader(lua_State *l)
 
 	for (r = ctx->ctx_eomreqs; r != NULL; r = r->eom_next)
 	{
+#ifdef SMFIR_INSHEADER
 		if (r->eom_request == SMFIR_ADDHEADER ||
 		    r->eom_request == SMFIR_INSHEADER)
+#else /* SMFIR_INSHEADER */
+		if (r->eom_request == SMFIR_ADDHEADER)
+#endif /* SMFIR_INSHEADER */
 		{
 			char *rname;
 			char *rvalue;
 
+#ifdef SMFIR_INSHEADER
 			if (r->eom_request == SMFIR_INSHEADER)
 			{
 				rname = r->eom_rdata + MILTER_LEN_BYTES;
@@ -3613,6 +3622,7 @@ mt_getheader(lua_State *l)
 				         strlen(rname) + 1;
 			}
 			else
+#endif /* SMFIR_INSHEADER */
 			{
 				rname = r->eom_rdata;
 				rvalue = r->eom_rdata + strlen(rname) + 1;
@@ -3885,10 +3895,14 @@ main(int argc, char **argv)
 	lua_pushnumber(l, SMFIP_NOHREPL);
 	lua_setglobal(l, "SMFIP_NOHREPL");
 #endif /* SMFIP_NOHREPL */
+#ifdef SMFIP_NOUNKNOWN
 	lua_pushnumber(l, SMFIP_NOUNKNOWN);
 	lua_setglobal(l, "SMFIP_NOUNKNOWN");
+#endif /* SMFIP_NOUNKNOWN */
+#ifdef SMFIP_NODATA
 	lua_pushnumber(l, SMFIP_NODATA);
 	lua_setglobal(l, "SMFIP_NODATA");
+#endif /* SMFIP_NODATA */
 #ifdef SMFIP_SKIP
 	lua_pushnumber(l, SMFIP_SKIP);
 	lua_setglobal(l, "SMFIP_SKIP");
@@ -3942,8 +3956,10 @@ main(int argc, char **argv)
 	lua_setglobal(l, "SMFIF_DELRCPT");
 	lua_pushnumber(l, SMFIF_CHGHDRS);
 	lua_setglobal(l, "SMFIF_CHGHDRS");
+#ifdef SMFIF_QUARANTINE
 	lua_pushnumber(l, SMFIF_QUARANTINE);
 	lua_setglobal(l, "SMFIF_QUARANTINE");
+#endif /* SMFIF_QUARANTINE */
 #ifdef SMFIF_CHGFROM
 	lua_pushnumber(l, SMFIF_CHGFROM);
 	lua_setglobal(l, "SMFIF_CHGFROM");
