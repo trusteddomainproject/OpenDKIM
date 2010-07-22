@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.162 2010/07/21 23:57:53 cm-msk Exp $
+**  $Id: opendkim.c,v 1.163 2010/07/22 00:09:58 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.162 2010/07/21 23:57:53 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.163 2010/07/22 00:09:58 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3468,14 +3468,14 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 			{
 				int sev;
 
-				sev = (conf->conf_safekeys ? LOG_ERR
-				                           : LOG_WARNING);
+				sev = (curconf->conf_safekeys ? LOG_ERR
+				                              : LOG_WARNING);
 
 				syslog(sev, "%s: key data is not secure",
 				       keyname);
 			}
 
- 			if (conf->conf_safekeys)
+ 			if (curconf->conf_safekeys)
 				return 2;
 		}
 	}
