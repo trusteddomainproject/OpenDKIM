@@ -1,6 +1,6 @@
 #!/bin/sh
 ##
-## $Id: opendkim-importstats.in,v 1.1 2010/07/16 13:20:05 grooverdan Exp $
+## $Id: opendkim-importstats.in,v 1.2 2010/07/22 03:14:37 cm-msk Exp $
 ##
 ## Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 ##
@@ -17,6 +17,7 @@ anon="yes"
 progname=`basename $0`
 
 prefix=@prefix@
+datarootdir=@datarootdir@
 PACKAGE_TARNAME=@PACKAGE_TARNAME@
 
 ## Argument processing
