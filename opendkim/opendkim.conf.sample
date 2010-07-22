@@ -1,7 +1,7 @@
 ##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
-## $Id: opendkim.conf.sample,v 1.8 2010/07/22 18:43:20 cm-msk Exp $
+## $Id: opendkim.conf.sample,v 1.9 2010/07/22 20:10:56 cm-msk Exp $
 ##
 
 ##
@@ -160,6 +160,15 @@
 ##  be specified for signing.
 
 Domain			example.com
+
+##  DomainKeysCompat { yes | no }
+##  	default "no"
+##
+##  When enabled, backward compatibility with DomainKeys (RFC4870) key
+##  records is enabled.  Otherwise, such key records are considered to be
+##  syntactically invalid.
+
+# DomainKeysCompat	no
 
 ##  DontSignMailTo	dataset
 ##  	default (none)

@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.19 2010/07/22 18:43:20 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.20 2010/07/22 20:10:56 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.19 2010/07/22 18:43:20 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.20 2010/07/22 20:10:56 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -53,6 +53,7 @@ struct configdef dkimf_config[] =
 #endif /* _FFR_ZTAGS */
 	{ "DNSTimeout",			CONFIG_TYPE_INTEGER,	FALSE },
 	{ "Domain",			CONFIG_TYPE_STRING,	FALSE },
+	{ "DomainKeysCompat",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DontSignMailTo",		CONFIG_TYPE_STRING,	FALSE },
 	{ "EnableCoredumps",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ExemptDomains",		CONFIG_TYPE_STRING,	FALSE },

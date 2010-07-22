@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.166 2010/07/22 19:07:33 cm-msk Exp $
+**  $Id: opendkim.c,v 1.167 2010/07/22 20:10:56 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.166 2010/07/22 19:07:33 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.167 2010/07/22 20:10:56 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -165,6 +165,7 @@ struct handling defaults =
 
 struct dkimf_config
 {
+	_Bool		conf_acceptdk;		/* accept DK keys? */
 	_Bool		conf_addxhdr;		/* add identifying header? */
 	_Bool		conf_blen;		/* use "l=" when signing */
 	_Bool		conf_ztags;		/* use "z=" when signing */
@@ -4805,6 +4806,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                  sizeof conf->conf_addxhdr);
 		}
 
+		(void) config_get(data, "DomainKeysCompat",
+		                  &conf->conf_acceptdk,
+		                  sizeof conf->conf_acceptdk);
+
 		(void) config_get(data, "AllowSHA1Only",
 		                  &conf->conf_allowsha1only,
 		                  sizeof conf->conf_allowsha1only);
@@ -6172,6 +6177,8 @@ dkimf_config_setlib(struct dkimf_config *conf)
 			opts |= DKIM_LIBFLAGS_ZTAGS;
 		if (conf->conf_fixcrlf)
 			opts |= DKIM_LIBFLAGS_FIXCRLF;
+		if (conf->conf_acceptdk)
+			opts |= DKIM_LIBFLAGS_ACCEPTDK;
 
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_FLAGS, &opts, sizeof opts);
