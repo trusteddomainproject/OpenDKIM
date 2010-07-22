@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.20 2010/07/11 08:29:47 cm-msk Exp $
+**  $Id: miltertest.c,v 1.21 2010/07/22 22:19:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.20 2010/07/11 08:29:47 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.21 2010/07/22 22:19:59 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -60,7 +60,7 @@ static char miltertest_c_id[] = "$Id: miltertest.c,v 1.20 2010/07/11 08:29:47 cm
 #ifdef SMFIP_NODATA
 # define CHECK_MPOPTS(c,o)	(((c)->ctx_mpopts & (o)) != 0)
 #else /* SMFIP_NODATA */
-# define CHECK_MPOPTS()		0
+# define CHECK_MPOPTS(c,o)	0
 #endif /* SMFIP_NODATA */
 
 #ifndef SMFIP_NR_CONN
@@ -1902,6 +1902,10 @@ mt_conninfo(lua_State *l)
 		family = '4';
 #endif /* HAVE_GETADDRINFO && HAVE_INET_NTOP */
 	}
+	else if (strcasecmp(ipstr, "unspec") == 0)
+	{
+		family = 'U';
+	}
 	else
 	{
 #ifdef HAVE_INET_PTON
@@ -1936,19 +1940,25 @@ mt_conninfo(lua_State *l)
 #endif /* HAVE_INET_PTON */
 	}
 
-	s = strlen(host) + 1 + sizeof(char) + sizeof port + strlen(ipstr) + 1;
-
-	port = htons(DEFCLIENTPORT);		/* don't really need this */
-
 	bp = buf;
 	memcpy(bp, host, strlen(host));
 	bp += strlen(host);
 	*bp++ = '\0';
 	memcpy(bp, &family, sizeof family);
 	bp += sizeof family;
-	memcpy(bp, &port, sizeof port);
-	bp += sizeof port;
-	memcpy(bp, ipstr, strlen(ipstr) + 1);
+
+	s = 0;
+
+	if (family != 'U')			/* known family data */
+	{
+		port = htons(DEFCLIENTPORT);	/* don't really need this */
+
+		memcpy(bp, &port, sizeof port);
+		bp += sizeof port;
+		memcpy(bp, ipstr, strlen(ipstr) + 1);
+
+		s = strlen(host) + 1 + sizeof(char) + sizeof port + strlen(ipstr) + 1;
+	}
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_CONNECT, buf, s))
 	{
