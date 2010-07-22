@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.22 2010/07/22 22:23:04 cm-msk Exp $
+**  $Id: miltertest.c,v 1.23 2010/07/22 22:46:57 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.22 2010/07/22 22:23:04 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.23 2010/07/22 22:46:57 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -1947,7 +1947,7 @@ mt_conninfo(lua_State *l)
 	memcpy(bp, &family, sizeof family);
 	bp += sizeof family;
 
-	s = 0;
+	s = strlen(host) + 1 + sizeof(char);
 
 	if (family != 'U')			/* known family data */
 	{
@@ -1957,7 +1957,7 @@ mt_conninfo(lua_State *l)
 		bp += sizeof port;
 		memcpy(bp, ipstr, strlen(ipstr) + 1);
 
-		s = strlen(host) + 1 + sizeof(char) + sizeof port + strlen(ipstr) + 1;
+		s += sizeof port + strlen(ipstr) + 1;
 	}
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_CONNECT, buf, s))
