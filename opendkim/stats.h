@@ -2,16 +2,16 @@
 **  Copyright (c) 2007 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.h,v 1.6 2010/06/04 02:47:52 cm-msk Exp $
+**  $Id: stats.h,v 1.7 2010/07/23 19:12:20 cm-msk Exp $
 */
 
 #ifndef _STATS_H_
 #define _STATS_H_
 
 #ifndef lint
-static char stats_h_id[] = "@(#)$Id: stats.h,v 1.6 2010/06/04 02:47:52 cm-msk Exp $";
+static char stats_h_id[] = "@(#)$Id: stats.h,v 1.7 2010/07/23 19:12:20 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
