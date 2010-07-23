@@ -2,11 +2,11 @@
 **  Copyright (c) 2007, 2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
-static char t_testdata_h[] = "@(#)$Id: t-testdata.h,v 1.1 2009/11/28 19:02:37 cm-msk Exp $";
+static char t_testdata_h[] = "@(#)$Id: t-testdata.h,v 1.2 2010/07/23 01:54:20 cm-msk Exp $";
 #endif /* !lint */
 
 
@@ -34,6 +34,7 @@ static char t_testdata_h[] = "@(#)$Id: t-testdata.h,v 1.1 2009/11/28 19:02:37 cm
 #define	REPLYADDRESS	"postmaster"
 #define	SMTPTOKENENC	"=5BDKIM=20error=5D"
 #define	SMTPTOKEN	"[DKIM error]"
+#define	USER		"msk"
 
 #define	HEADER01	"Received: received data 0"
 #define	HEADER02	"Received: received data 1"
