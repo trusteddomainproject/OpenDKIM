@@ -1,0 +1,79 @@
+<html>
+<head><title>dkim_get_signer()</title></head>
+<body>
+<!--
+$Id: dkim_get_signer.html,v 1.1 2010/07/23 18:49:55 cm-msk Exp $
+-->
+<h1>dkim_get_signer()</h1>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+char *dkim_get_signer(
+	<a href="dkim.html"><tt>DKIM</tt></a>);
+);
+</pre>
+Returns the current signer (i.e. value to be used in the "i=" tag)
+for a signing handle.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_get_signer()</tt> can be called at any time prior to signature
+generation.</td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific signing handle, returned by
+        <a href="dkim_sign.html"><tt>dkim_sign()</tt></a>.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Value ---------->
+<tr>
+<th valign="top" align=left>RETURN VALUES</th> 
+<td>
+<ul>
+<li>NULL -- no signer has been requested, meaning no "i=" tag will be
+    included in the generated signature
+<li>otherwise -- a pointer to a terminated string containing the signer
+    address previously requested
+</ul>
+</td>
+</tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

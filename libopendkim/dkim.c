@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.56 2010/07/22 00:11:11 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.57 2010/07/23 18:49:55 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6885,6 +6885,25 @@ dkim_sig_getcanons(DKIM_SIGINFO *sig, dkim_canon_t *hdr, dkim_canon_t *body)
 		*body = sig->sig_bodycanonalg;
 
 	return DKIM_STAT_OK;
+}
+
+/*
+**  DKIM_GET_SIGNER -- get DKIM signature's signer
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle
+**
+**  Parameters:
+**  	Pointer to a buffer containing the signer previously requested,
+**  	or NULL if none.
+*/
+
+char *
+dkim_get_signer(DKIM *dkim)
+{
+	assert(dkim != NULL);
+
+	return dkim->dkim_signer;
 }
 
 /*

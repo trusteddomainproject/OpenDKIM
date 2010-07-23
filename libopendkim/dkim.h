@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.28 2010/07/22 00:11:11 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.29 2010/07/23 18:49:55 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -967,6 +967,19 @@ extern u_char *dkim_getdomain __P((DKIM *dkim));
 */
 
 extern u_char *dkim_getuser __P((DKIM *dkim));
+
+/*
+**  DKIM_GET_SIGNER -- get DKIM signature's signer
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle
+**
+**  Parameters:
+**  	Pointer to a buffer containing the signer previously requested,
+**  	or NULL if none.
+*/
+
+extern char *dkim_get_signer __P((DKIM *dkim));
 
 /*
 **  DKIM_SET_SIGNER -- set DKIM signature's signer
