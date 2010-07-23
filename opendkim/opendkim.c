@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.168 2010/07/22 23:38:37 cm-msk Exp $
+**  $Id: opendkim.c,v 1.169 2010/07/23 17:52:55 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.168 2010/07/22 23:38:37 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.169 2010/07/23 17:52:55 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -520,9 +520,7 @@ struct lookup dkimf_policy[] =
 struct lookup dkimf_sign[] =
 {
 	{ "rsa-sha1",		DKIM_SIGN_RSASHA1 },
-#ifdef SHA256_DIGEST_LENGTH
 	{ "rsa-sha256",		DKIM_SIGN_RSASHA256 },
-#endif /* SHA256_DIGEST_LENGTH */
 	{ NULL,			-1 },
 };
 
@@ -5849,26 +5847,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			}
 		}
 	}
-
-#ifndef DKIM_SIGN_RSASHA256
-	if ((conf->conf_mode & DKIMF_MODE_VERIFIER) != 0)
-	{
-		if (conf->conf_allowsha1only)
-		{
-			if (dolog)
-			{
-				syslog(LOG_WARNING,
-				       "verifier mode operating without rsa-sha256 support");
-			}
-		}
-		else
-		{
-			snprintf(err, errlen,
-			         "verify mode requires rsa-sha256 support");
-			return -1;
-		}
-	}
-#endif /* ! DKIM_SIGN_RSASHA256 */
 
 #ifdef _FFR_REPLACE_RULES
 	/* replacement list */
@@ -12336,13 +12314,27 @@ main(int argc, char **argv)
 			break;
 
 		  case 'V':
+			if (!dkimf_config_setlib(curconf))
+			{
+				fprintf(stderr,
+				        "%s: can't configure DKIM library\n",
+				        progname);
+
+				return EX_SOFTWARE;
+			}
+
 			printf("%s: %s v%s\n", progname, DKIMF_PRODUCT,
 			       VERSION);
 			printf("\tCompiled with %s\n",
 			       SSLeay_version(SSLEAY_VERSION));
 			printf("\tSupported signing algorithms:\n");
 			for (c = 0; dkimf_sign[c].str != NULL; c++)
-				printf("\t\t%s\n", dkimf_sign[c].str);
+			{
+				if (dkimf_sign[c].code != DKIM_SIGN_RSASHA256 ||
+	    			    dkim_libfeature(curconf->conf_libopendkim,
+				                    DKIM_FEATURE_SHA256))
+					printf("\t\t%s\n", dkimf_sign[c].str);
+			}
 			printf("\tSupported canonicalization algorithms:\n");
 			for (c = 0; dkimf_canon[c].str != NULL; c++)
 				printf("\t\t%s\n", dkimf_canon[c].str);
@@ -13129,9 +13121,19 @@ main(int argc, char **argv)
 						}
 						else if (WIFEXITED(status))
 						{
-							syslog(LOG_NOTICE,
-							       "exited with status %d, restarting",
-							       WEXITSTATUS(status));
+							if (WEXITSTATUS(status) == EX_CONFIG)
+							{
+								syslog(LOG_NOTICE,
+								       "exited with status %d",
+								       WEXITSTATUS(status));
+								quitloop = TRUE;
+							}
+							else
+							{
+								syslog(LOG_NOTICE,
+								       "exited with status %d, restarting",
+								       WEXITSTATUS(status));
+							}
 						}
 					}
 
@@ -13329,6 +13331,36 @@ main(int argc, char **argv)
 		{
 			syslog(LOG_WARNING,
 			       "can't configure DKIM library; continuing");
+		}
+	}
+
+	if ((curconf->conf_mode & DKIMF_MODE_VERIFIER) != 0 &&
+	    !dkim_libfeature(curconf->conf_libopendkim, DKIM_FEATURE_SHA256))
+	{
+		if (curconf->conf_allowsha1only)
+		{
+			if (dolog)
+			{
+				syslog(LOG_WARNING,
+				       "WARNING: verifier mode operating without rsa-sha256 support");
+			}
+		}
+		else
+		{
+			if (dolog)
+			{
+				syslog(LOG_ERR,
+				       "verifier mode operating without rsa-sha256 support; terminating");
+			}
+
+			fprintf(stderr,
+			        "%s: verify mode requires rsa-sha256 support\n",
+			        progname);
+
+			if (!autorestart && pidfile != NULL)
+				(void) unlink(pidfile);
+
+			return EX_CONFIG;
 		}
 	}
 

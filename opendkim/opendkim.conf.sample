@@ -1,7 +1,7 @@
 ##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
-## $Id: opendkim.conf.sample,v 1.9 2010/07/22 20:10:56 cm-msk Exp $
+## $Id: opendkim.conf.sample,v 1.10 2010/07/23 17:52:55 cm-msk Exp $
 ##
 
 ##
@@ -29,10 +29,14 @@
 ##  AllowSHA1Only { yes | no }
 ##  	default "no"
 ##
-##  By default, the filter will refuse to start if signing mode is enabled
-##  but rsa-sha1 will be used (either because it is the only algorithm
-##  available or because it was explicitly requested) since this violates
-##  the strong recommendations of RFC4871 section 3.3.
+##  By default, the filter will refuse to start if support for SHA256 is
+##  not available since this violates the strong recommendations of
+##  RFC4871 section 3.3, which says:
+##
+##  "Verifiers MUST implement both rsa-sha1 and rsa-sha256.  Signers MUST
+##   implement and SHOULD sign using rsa-sha256."
+##
+##  This forces that violation to be explicitly selected by the administrator.
 
 # AllowSHA1Only		no
 
