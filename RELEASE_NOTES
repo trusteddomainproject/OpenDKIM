@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.182 2010/07/23 17:54:19 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.183 2010/07/23 18:50:52 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -12,6 +12,8 @@ release, and a summary of the changes in that release.
 	Feature request #SF3021566: Change "ADSPDiscard" to "ADSPAction",
 		allowing selection of what action to take when a message is
 		determined by ADSP to be "discardable".
+	Feature request #SF3023232: Allow selection of a signer (for the
+		signature's "i=" tag) when calling odkim.sign().
 	Feature request #SF3024854: Always log a warning if a key file
 		has unsafe group/other read/write bits set.  Further, if the
 		new "RequireSafeKeys" setting is true, refuse to use the data.
@@ -21,6 +23,7 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3025856: Fix "AllowSHA1Only", which was not working at all.
 	LIBOPENDKIM: Feature request #SF3026287: Add dkim_getuser() function.
 		Requested by Ale Vesely.
+	LIBOPENDKIM: Add dkim_get_signer().
 	MILTERTEST: Add "-u" option to report resource usage statistics on
 		completion.
 	MILTERTEST: Feature request #SF3005002: Enable testing of

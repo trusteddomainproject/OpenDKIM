@@ -1,4 +1,4 @@
--- $Id: t-sign-rs-lua.lua,v 1.9 2010/07/13 22:08:30 cm-msk Exp $
+-- $Id: t-sign-rs-lua.lua,v 1.10 2010/07/23 18:50:52 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -111,4 +111,7 @@ if string.find(sig, "bh=3VWGQGY+cSNYd1MGM+X6hRXU0stl8JCaQtl4mbX/j2I=", 1, true) 
 end
 if string.find(sig, "h=From:Date:Subject", 1, true) == nil then
 	error "signature has wrong h= value"
+end
+if string.find(sig, "i=signer@example.com", 1, true) == nil then
+	error "signature has wrong i= value"
 end

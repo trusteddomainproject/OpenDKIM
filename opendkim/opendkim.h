@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.29 2010/07/14 05:12:57 cm-msk Exp $
+**  $Id: opendkim.h,v 1.30 2010/07/23 18:50:52 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.29 2010/07/14 05:12:57 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.30 2010/07/23 18:50:52 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -106,6 +106,7 @@ struct signreq
 	void *			srq_keydata;
 	char *			srq_domain;
 	char *			srq_selector;
+	char *			srq_signer;
 	DKIM *			srq_dkim;
 	struct signreq *	srq_next;
 };

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.169 2010/07/23 17:52:55 cm-msk Exp $
+**  $Id: opendkim.c,v 1.170 2010/07/23 18:50:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.169 2010/07/23 17:52:55 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.170 2010/07/23 18:50:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -602,7 +602,8 @@ sfsistat mlfi_eoh __P((SMFICTX *));
 sfsistat mlfi_eom __P((SMFICTX *));
 sfsistat mlfi_header __P((SMFICTX *, char *, char *));
 
-static int dkimf_add_signrequest __P((struct msgctx *, DKIMF_DB, char *));
+static int dkimf_add_signrequest __P((struct msgctx *, DKIMF_DB,
+                                      char *, char *));
 sfsistat dkimf_addheader __P((SMFICTX *, char *, char *));
 sfsistat dkimf_addrcpt __P((SMFICTX *, char *));
 sfsistat dkimf_chgheader __P((SMFICTX *, char *, int, char *));
@@ -1226,19 +1227,21 @@ dkimf_xs_requestsig(lua_State *l)
 {
 	SMFICTX *ctx;
 	const char *keyname = NULL;
+	const char *ident = NULL;
 	struct connctx *cc;
 	struct msgctx *dfc;
 	struct dkimf_config *conf;
 
 	assert(l != NULL);
 
-	if (lua_gettop(l) != 1 && lua_gettop(l) != 2)
+	if (lua_gettop(l) == 0 && lua_gettop(l) > 3)
 	{
 		lua_pushstring(l, "odkim.sign(): incorrect argument count");
 		lua_error(l);
 	}
 	else if (!lua_islightuserdata(l, 1) ||
-	         (lua_gettop(l) == 2 && !lua_isstring(l, 2)))
+	         (lua_gettop(l) > 1 && !lua_isstring(l, 2)) ||
+	         (lua_gettop(l) > 2 && !lua_isstring(l, 3)))
 	{
 		lua_pushstring(l, "odkim.sign(): incorrect argument type");
 		lua_error(l);
@@ -1251,11 +1254,16 @@ dkimf_xs_requestsig(lua_State *l)
 		dfc = cc->cctx_msg;
 		conf = cc->cctx_config;
 
-		if (lua_gettop(l) == 2)
+		if (lua_gettop(l) >= 2)
 			keyname = lua_tostring(l, 2);
+		if (lua_gettop(l) == 3)
+			ident = lua_tostring(l, 3);
 	}
 
 	lua_pop(l, lua_gettop(l));
+
+	if (ident != NULL && ident[0] == '\0')
+		ident = NULL;
 
 	if (ctx == NULL)
 	{
@@ -1274,7 +1282,8 @@ dkimf_xs_requestsig(lua_State *l)
 	if (keyname != NULL)
 	{
 		switch (dkimf_add_signrequest(dfc, conf->conf_keytabledb,
-		                              (char *) keyname))
+		                              (char *) keyname,
+		                              (char *) ident))
 		{
 		  case 3:
 			if (conf->conf_dolog)
@@ -1311,10 +1320,10 @@ dkimf_xs_requestsig(lua_State *l)
 			return 1;
 		}
 	}
-	else if (dkimf_add_signrequest(dfc, NULL, NULL) != 0)
+	else if (dkimf_add_signrequest(dfc, NULL, NULL, (char *) ident) != 0)
 	{
 		if (conf->conf_dolog)
-			syslog(LOG_ERR, "failed to load default key");
+			syslog(LOG_ERR, "failed to load/apply default key");
 
 		lua_pushnumber(l, 0);
 
@@ -3440,6 +3449,7 @@ dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure)
 **  	dfc -- message context
 **  	keytable -- table from which to get key
 **  	keyname -- name of private key to use
+**  	signer -- signer identity to use
 **
 **  Return value:
 **  	3 -- substitution token provided but domain not provided
@@ -3450,7 +3460,8 @@ dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure)
 */
 
 static int
-dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
+dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
+                      char *signer)
 {
 	_Bool found = FALSE;
 	size_t keydatasz;
@@ -3569,6 +3580,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname)
 	new->srq_domain = NULL;
 	new->srq_selector = NULL;
 	new->srq_keydata = NULL;
+	new->srq_signer = signer;
 
 	if (keytable != NULL)
 	{
@@ -7093,7 +7105,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			else if (status == 1)
 				break;
 
-			status = dkimf_add_signrequest(dfc, keydb, keyname);
+			status = dkimf_add_signrequest(dfc, keydb, keyname,
+			                               NULL);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
@@ -7133,7 +7146,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
-			status = dkimf_add_signrequest(dfc, keydb, keyname);
+			status = dkimf_add_signrequest(dfc, keydb, keyname,
+			                               NULL);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
@@ -7161,7 +7175,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
-			status = dkimf_add_signrequest(dfc, keydb, keyname);
+			status = dkimf_add_signrequest(dfc, keydb, keyname,
+			                               NULL);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
@@ -7197,7 +7212,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			else if (found)
 			{
 				status = dkimf_add_signrequest(dfc, keydb,
-				                               keyname);
+				                               keyname, NULL);
 				if (status != 0 && errkey != NULL)
 					strlcpy(errkey, keyname, errlen);
 				if (status == 1)
@@ -7226,7 +7241,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			else if (found)
 			{
 				status = dkimf_add_signrequest(dfc, keydb,
-				                               keyname);
+				                               keyname, NULL);
 				if (status != 0 && errkey != NULL)
 					strlcpy(errkey, keyname, errlen);
 				if (status == 1)
@@ -7258,7 +7273,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
-			status = dkimf_add_signrequest(dfc, keydb, keyname);
+			status = dkimf_add_signrequest(dfc, keydb, keyname,
+			                               NULL);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
@@ -7285,7 +7301,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
-			status = dkimf_add_signrequest(dfc, keydb, keyname);
+			status = dkimf_add_signrequest(dfc, keydb, keyname,
+			                               NULL);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
@@ -9213,7 +9230,7 @@ mlfi_eoh(SMFICTX *ctx)
 	/* create a default signing request if there was a domain match */
 	if (domainok && originok && dfc->mctx_srhead == NULL)
 	{
-		status = dkimf_add_signrequest(dfc, NULL, NULL);
+		status = dkimf_add_signrequest(dfc, NULL, NULL, NULL);
 
 		if (status != 0)
 		{
@@ -9366,6 +9383,12 @@ mlfi_eoh(SMFICTX *ctx)
 				(void) dkim_set_user_context(sr->srq_dkim,
 				                             ctx);
 
+				if (sr->srq_signer != NULL)
+				{
+					(void) dkim_set_signer(sr->srq_dkim,
+					                       sr->srq_signer);
+				}
+
 #ifdef _FFR_RESIGN
 				if (dfc->mctx_resign &&
 				    dfc->mctx_dkimv != NULL)
@@ -9508,7 +9531,11 @@ mlfi_eoh(SMFICTX *ctx)
 			     sr != NULL;
 			     sr = sr->srq_next)
 			{
-				dkim_set_signer(sr->srq_dkim, identity);
+				if (dkim_get_signer(sr->srq_dkim) == NULL)
+				{
+					dkim_set_signer(sr->srq_dkim,
+					                identity);
+				}
 			}
 		}
 	}
