@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.73 2010/07/19 04:01:45 grooverdan Exp $
+# $Id: Makefile.am,v 1.74 2010/07/23 06:13:19 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -65,7 +65,7 @@ opendkim_stats_LDADD += $(PTHREAD_LIBS)
 endif
 endif
 
-opendkim_testkey_SOURCES = opendkim-testkey.c $(srcdir)/../libopendkim/dkim.h $(srcdir)/../libopendkim/dkim-strl.h $(srcdir)/../libopendkim/dkim-test.h
+opendkim_testkey_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-testkey.c util.c util.h $(srcdir)/../libopendkim/dkim.h $(srcdir)/../libopendkim/dkim-strl.h $(srcdir)/../libopendkim/dkim-test.h
 opendkim_testkey_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_testkey_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_testkey_LDFLAGS = $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
@@ -86,7 +86,7 @@ opendkim_testadsp_CFLAGS += $(PTHREAD_CFLAGS)
 opendkim_testadsp_LDADD += $(PTHREAD_LIBS)
 endif
 
-opendkim_genzone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-genzone.c opendkim-lua.c util.c
+opendkim_genzone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-genzone.c opendkim-lua.c util.c util.h
 opendkim_genzone_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_genzone_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_genzone_LDFLAGS = $(COV_LDFLAGS)

@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.179 2010/07/22 23:46:38 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.180 2010/07/23 06:13:19 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -24,6 +24,9 @@ release, and a summary of the changes in that release.
 		completion.
 	MILTERTEST: Feature request #SF3005002: Enable testing of
 		"unspecified" protocol family connections.
+	TOOLS: Feature request #SF3004335: Add support to opendkim-testkey
+		to get configuration file values and validate an entire
+		KeyTable.
 	Update opendkim-genkeys to support draft-ietf-marf-dkim-reporting.
 
 2.1.2		2010/07/06

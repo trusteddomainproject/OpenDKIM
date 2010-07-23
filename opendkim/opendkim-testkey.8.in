@@ -4,7 +4,7 @@
 - DKIM filter installation test
 .SH SYNOPSIS
 .B opendkim-testkey
--d domain -s selector [-k keypath]
+[-d domain] [-s selector] [-k keypath] [-v] [-x configfile]
 .SH DESCRIPTION
 .B opendkim-testkey
 verifies the setup of signing and verifying (private and public) keys for use
@@ -12,32 +12,48 @@ with
 .I opendkim(8).
 
 The test program will read a domain name and selector from the command
-line, then query and parse the resulting DKIM key, reporting any errors found.
+line, configuration file or a key table, then query and parse the resulting
+DKIM key(s), reporting any errors found.
 
 If a key path is also provided, the test program will read the private key
 named and attempt to confirm that the private key specified by
 .I keypath
+(or in the key table)
 and the public DKIM key retrieved match.
 .SH OPTIONS
 .TP
 .I -d domain
 Names the domain in which signing is to be done.  More specifically,
 names the domain in which the public key matching the provided private key
-will be found.  This parameter must be provided.
+will be found.  This parameter must be provided either explicitly, or in
+the configuration file, or via a KeyTable (see
+.I opendkim.conf(5)
+for details).
 .TP
 .I -k keypath
 Specifies the path to the private key file which should be used for this test.
-This parameter is optional.
+This parameter is optional
 .TP
 .I -s selector
 Names the selector within the specified domain whose public key should be
-retrieved and compared to the private key provided.  This parameter must
-be provided.
+retrieved and tested, comparing it to the private key if provided.  This
+parameter must be provided either explicitly, or in the configuration file,
+or via a KeyTable (see
+.I opendkim.conf(5)
+for details).
+.TP
+.I -v
+Increases the amount of output (verbosity) of the program.  May be specified
+multiple times for increased output.
+.TP
+.I -x conffile
+Names a configuration file to be parsed.  See the
+.I opendkim.conf(5)
+man page for details.  The only values used are Domain, Selector, KeyFile
+and KeyTable.
 .SH NOTES
-The test program will also complain if the private key file is readable
+The test program will also complain if a private key file is readable
 by anyone other than the user executing the program.
-
-Other sanity checks may be added in later versions.
 .SH VERSION
 This man page covers the version of
 .I opendkim-testkey
@@ -47,7 +63,7 @@ that shipped with version @VERSION@ of
 Copyright (c) 2007, 2008, Sendmail, Inc. and its suppliers.  All rights
 reserved.
 
-Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8)
 .P
