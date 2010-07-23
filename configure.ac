@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.159 2010/07/22 00:06:31 cm-msk Exp $
+# $Id: configure.ac,v 1.160 2010/07/23 17:15:06 cm-msk Exp $
 
 #
 # Setup
@@ -447,7 +447,7 @@ then
 			;;
 	esac
         LIBCRYPTO_CPPFLAGS="-I$sslpath/include"
-        LIBCRYPTO_CFLAGS="-I$sslpath/include"
+        LIBCRYPTO_CFLAGS=""
         LIBCRYPTO_LIBDIRS="-L$sslpath/lib"
         LIBCRYPTO_LIBS="-lssl -lcrypto"
 fi
@@ -458,7 +458,7 @@ saved_LDFLAGS="$LDFLAGS"
 saved_LIBS="$LIBS"
 
 LIBS="$LIBCRYPTO_LIBS $saved_LIBS"
-CPPFLAGS="$LIBCRYPTO_CPPFLAGS $LIBCRYPTO_CFLAGS $saved_CPPFLAGS"
+CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
 CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
 LDFLAGS="$LIBCRYPTO_LIBDIRS $saved_LDFLAGS"
 
