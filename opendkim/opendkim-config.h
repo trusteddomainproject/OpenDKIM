@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.20 2010/07/22 20:10:56 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.21 2010/07/23 19:09:16 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.20 2010/07/22 20:10:56 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.21 2010/07/23 19:09:16 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -48,9 +48,7 @@ struct configdef dkimf_config[] =
 	{ "Canonicalization",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ClockDrift",			CONFIG_TYPE_INTEGER,	FALSE },
 	{ "Diagnostics",		CONFIG_TYPE_BOOLEAN,	FALSE },
-#ifdef _FFR_ZTAGS
 	{ "DiagnosticDirectory",	CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_ZTAGS */
 	{ "DNSTimeout",			CONFIG_TYPE_INTEGER,	FALSE },
 	{ "Domain",			CONFIG_TYPE_STRING,	FALSE },
 	{ "DomainKeysCompat",		CONFIG_TYPE_BOOLEAN,	FALSE },

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.170 2010/07/23 18:50:52 cm-msk Exp $
+**  $Id: opendkim.c,v 1.171 2010/07/23 19:09:16 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.170 2010/07/23 18:50:52 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.171 2010/07/23 19:09:16 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -253,9 +253,7 @@ struct dkimf_config
 	char *		conf_selectorhdr;	/* selector header */
 	_Bool           conf_rmselectorhdr;     /* remove selector header */
 #endif /* _FFR_SELECTOR_HEADER */
-#ifdef _FFR_ZTAGS
 	char *		conf_diagdir;		/* diagnostics directory */
-#endif /* _FFR_ZTAGS */
 #ifdef _FFR_STATS
 	char *		conf_statspath;		/* path for stats DB */
 #endif /* _FFR_STATS */
@@ -4603,11 +4601,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "Diagnostics", &conf->conf_ztags,
 		                  sizeof conf->conf_ztags);
 
-#ifdef _FFR_ZTAGS
 		(void) config_get(data, "DiagnosticDirectory",
 		                  &conf->conf_diagdir,
 		                  sizeof conf->conf_diagdir);
-#endif /* _FFR_ZTAGS */
 
 #ifdef _FFR_REDIRECT
 		(void) config_get(data, "RedirectFailuresTo",
@@ -10482,7 +10478,6 @@ mlfi_eom(SMFICTX *ctx)
 
 		authorsig = dkimf_authorsigok(dfc);
 
-#ifdef _FFR_ZTAGS
 		if (conf->conf_diagdir != NULL &&
 		    dfc->mctx_status == DKIMF_STATUS_BAD)
 		{
@@ -10543,7 +10538,7 @@ mlfi_eom(SMFICTX *ctx)
 						        hdr->hdr_val);
 					}
 
-# ifdef _FFR_DIFFHEADERS
+#ifdef _FFR_DIFFHEADERS
 					/* XXX -- make the "5" configurable */
 					status = dkim_diffheaders(dfc->mctx_dkimv,
 					                          5,
@@ -10566,13 +10561,12 @@ mlfi_eom(SMFICTX *ctx)
 							        diffs[c].hd_new);
 						}
 					}
-# endif /* _FFR_DIFFHEADERS */
+#endif /* _FFR_DIFFHEADERS */
 
 					fclose(f);
 				}
 			}
 		}	
-#endif /* _FFR_ZTAGS */
 
 		if (dfc->mctx_status == DKIMF_STATUS_GOOD)
 		{

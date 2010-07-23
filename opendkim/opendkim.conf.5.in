@@ -210,8 +210,9 @@ failures.  Not recommended for normal operation.
 
 .TP
 .I DiagnosticDirectory (string)
-Store diagnostic files in this directory.
-@ZTAGS_MANNOTICE@
+Directory into which to write diagnostic reports when message verification
+fails on a message bearing a "z=" tag.  If not set (the default), these files
+are not generated.
 
 .TP
 .I DNSTimeout (integer)

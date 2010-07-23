@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.160 2010/07/23 17:15:06 cm-msk Exp $
+# $Id: configure.ac,v 1.161 2010/07/23 19:09:16 cm-msk Exp $
 
 #
 # Setup
@@ -247,8 +247,6 @@ FFR_FEATURE([sender_macro], [macro to determine sender])
 
 FFR_FEATURE([vbr], [Vouch-By-Reference support])
 AM_CONDITIONAL([VBR], [test x"$enable_vbr" = x"yes"])
-
-FFR_FEATURE([ztags], [sign/verify with z= tags])
 
 FFR_FEATURE([stats], [stats recording and reporting])
 AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
