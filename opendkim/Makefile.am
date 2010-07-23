@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.74 2010/07/23 06:13:19 cm-msk Exp $
+# $Id: Makefile.am,v 1.75 2010/07/23 18:40:07 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -65,7 +65,7 @@ opendkim_stats_LDADD += $(PTHREAD_LIBS)
 endif
 endif
 
-opendkim_testkey_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-testkey.c util.c util.h $(srcdir)/../libopendkim/dkim.h $(srcdir)/../libopendkim/dkim-strl.h $(srcdir)/../libopendkim/dkim-test.h
+opendkim_testkey_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-lua.c opendkim-testkey.c util.c util.h $(srcdir)/../libopendkim/dkim.h $(srcdir)/../libopendkim/dkim-strl.h $(srcdir)/../libopendkim/dkim-test.h
 opendkim_testkey_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_testkey_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_testkey_LDFLAGS = $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
@@ -73,6 +73,11 @@ opendkim_testkey_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(LIBRE
 if USE_ARLIB
 opendkim_testkey_CC = $(PTHREAD_CC)
 opendkim_testkey_CFLAGS += $(PTHREAD_CFLAGS)
+endif
+if LUA
+opendkim_testkey_CPPFLAGS += $(LIBLUA_INCDIRS)
+opendkim_testkey_LDFLAGS += $(LIBLUA_LIBDIRS)
+opendkim_testkey_LDADD += $(LIBLUA_LIBS)
 endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
@@ -111,7 +116,9 @@ if LUA
 opendkim_genzone_CPPFLAGS += $(LIBLUA_INCDIRS)
 opendkim_genzone_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_genzone_LDADD += $(LIBLUA_LIBS)
+endif
 
+if LUA
 dist_doc_DATA += \
         setup.lua.sample \
 	screen.lua.sample \
