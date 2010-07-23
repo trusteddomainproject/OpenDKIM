@@ -2,11 +2,11 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
-static char t_test117_c_id[] = "@(#)$Id: t-test117.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
+static char t_test117_c_id[] = "@(#)$Id: t-test117.c,v 1.3 2010/07/23 01:54:29 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -215,6 +215,7 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 
 	assert(dkim_getmode(dkim) == DKIM_MODE_VERIFY);
+	assert(strcmp(dkim_getuser(dkim), USER) == 0);
 	assert(strcmp(dkim_getdomain(dkim), DOMAIN2) == 0);
 	assert(dkim_geterror(dkim) == NULL);
 
