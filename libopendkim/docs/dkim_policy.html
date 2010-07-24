@@ -2,7 +2,7 @@
 <head><title>dkim_policy()</title></head>
 <body>
 <!--
-$Id: dkim_policy.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
+$Id: dkim_policy.html,v 1.3 2010/07/24 04:58:44 cm-msk Exp $
 -->
 <h1>dkim_policy()</h1>
 <p align="right"><a href="index.html">[back to index]</a></p>
@@ -14,14 +14,11 @@ $Id: dkim_policy.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
 #include &lt;dkim.h&gt;
 <a href="dkim_stat.html">DKIM_STAT</a> dkim_policy(
 	<a href="dkim.html">DKIM</a> *dkim,
-        bool *test,
-	bool *susp,
 	<a href="dkim_policy_t.html">dkim_policy_t</a> *pcode,
-	<a href="dkim_handling_t.html">dkim_handling_t</a> *hcode,
 	<a href="dkim_pstate.html">DKIM_PSTATE *</a> pstate
 );
 </pre>
-Retrieve and evaluate the sender signing policy (SSP) for a message.
+Retrieve and evaluate the author domain signing practices (ADSP) for a message.
 </td></tr>
 
 <!----------- Description ---------->
@@ -44,24 +41,10 @@ Retrieve and evaluate the sender signing policy (SSP) for a message.
 	<td>Message-specific handle, returned by <a href="dkim_verify.html">
         <tt>dkim_verify()</tt></a>.
 	</td></tr>
-    <tr valign="top"><td>test</td>
-	<td>A pointer to boolean that is set to be either TRUE (if the policy
-	indicates the domain is using DKIM in a test mode), or FALSE otherwise.
-	</td></tr>
-    <tr valign="top"><td>susp</td>
-	<td>A pointer to boolean that is set to be either TRUE (if the policy
-	indicates the message is suspicious), or FALSE otherwise.
-	</td></tr>
     <tr valign="top"><td>pcode</td>
 	<td>A pointer to a <tt>dkim_policy_t</tt> which is updated to contain
 	the policy type retrieved from the sender.  This can be NULL if that
 	information is not of interest to the caller.
-	</td></tr>
-    <tr valign="top"><td>hcode</td>
-	<td>A pointer to a <tt>dkim_handling_t</tt> which is updated to contain
-	the recommendation for handling suspicious messages as retrieved from
-	the sender.  This can be NULL if that information is not of interest
-	to the caller.
 	</td></tr>
     <tr valign="top"><td>pstate</td>
 	<td>A caller may wish to use this function in a re-entrant manner,
@@ -85,10 +68,11 @@ Retrieve and evaluate the sender signing policy (SSP) for a message.
 <th valign="top" align=left>NOTES</th> 
 <td>
 <ul>
+<li>ADSP is defined in RFC5617.
 <li>It is an error to call this function with a handle that was created
     using <a href="dkim_sign.html"><tt>dkim_sign()</tt></a>.
 <li>This function will return <tt>DKIM_STAT_SYNTAX</tt> if the sender's
-    domain could not be determined or if the SSP record retrieved is not
+    domain could not be determined or if the ADSP record retrieved is not
     syntactically valid.
 </ul>
 </td>
