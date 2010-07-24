@@ -4,7 +4,7 @@
 </head>
 <body>
 <!--
-$Id: overview.html,v 1.2 2009/08/19 00:36:18 cm-msk Exp $
+$Id: overview.html,v 1.3 2010/07/24 04:38:22 cm-msk Exp $
 -->
 
 <h1>Overview</h1>
@@ -31,14 +31,14 @@ following calls:
       </ul>
  <li> <tt>stat = <a href="dkim_header.html">dkim_header(dkim, ...)</a>;</tt>
       <ul>
-       <li> pass a header to <tt>libopendkim</tt>
-       <li> this should be done once for each header that should be
+       <li> pass a header field to <tt>libopendkim</tt>
+       <li> this should be done once for each header field that should be
             included in computation of the signature 
       </ul>
  <li> <tt>stat = <a href="dkim_eoh.html">dkim_eoh(dkim)</a>;</tt>
       <ul>
-       <li> notify <tt>libopendkim</tt> that the end of this message's headers has
-            been reached
+       <li> notify <tt>libopendkim</tt> that the end of this message's header
+            has been reached
       </ul>
  <li> <tt>stat = <a href="dkim_body.html">dkim_body(dkim, ...)</a>;</tt>
       <ul>
@@ -56,7 +56,7 @@ following calls:
        <li> compute the base64-encoded signature for the message
        <li> the signing algorithm was selected in the call to
             <tt>dkim_sign()</tt> above
-       <li> the entire signature header is generated and returned into a
+       <li> the entire signature header field is generated and returned into a
             buffer provided by the caller, so it can be added to the message
       </ul>
  <li> <tt>stat = <a href="dkim_free.html">dkim_free(dkim)</a>;</tt>
@@ -91,15 +91,15 @@ To verify a message under <b>DKIM</b>, make the following calls:
       </ul>
  <li> <tt>stat = <a href="dkim_header.html">dkim_header(dkim, ...)</a>;</tt>
       <ul>
-       <li> pass a header to <tt>libopendkim</tt>
-       <li> this should be done once for each header that should be
+       <li> pass a header field to <tt>libopendkim</tt>
+       <li> this should be done once for each header field that should be
             included in computation of the digest to be verified (currently
             all of them)
       </ul>
  <li> <tt>stat = <a href="dkim_eoh.html">dkim_eoh(dkim)</a>;</tt>
       <ul>
-       <li> notify <tt>libopendkim</tt> that the end of this message's headers has
-            been reached
+       <li> notify <tt>libopendkim</tt> that the end of this message's header
+            has been reached
       </ul>
  <li> <tt>stat = <a href="dkim_body.html">dkim_body(dkim, ...)</a>;</tt>
       <ul>
@@ -129,9 +129,9 @@ One application, having called <tt>dkim_init()</tt> once, can call
 furthermore can have more than one signing/verifying handle in existence at
 any given time. <p>
 
-Note that the new <tt>dkim_chunk()</tt> interface can replace the
+Note that new <tt>dkim_chunk()</tt> interface can replace the
 <tt>dkim_header()</tt>-<tt>dkim_eoh()</tt>-<tt>dkim_body()</tt> sequence
-for applications that don't have the headers individually separated. <p>
+for applications that don't have the header fields individually separated. <p>
 
 One can also use new <tt>dkim_getsighdr_d()</tt> in place of
 <tt>dkim_getsighdr()</tt> to allow larger-than-normal signatures to be
@@ -142,7 +142,7 @@ generated. <p>
 Copyright (c) 2005, 2007, 2008 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set
