@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.19 2010/06/03 15:07:55 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.20 2010/07/24 20:21:55 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -688,7 +688,6 @@ dkim_canon_fixcrlf(DKIM *dkim, DKIM_CANON *canon, u_char *buf, size_t buflen)
 
 	return DKIM_STAT_OK;
 }
-
 
 /* ========================= PUBLIC SECTION ========================= */
 
