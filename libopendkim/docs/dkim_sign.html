@@ -2,7 +2,7 @@
 <head><title>dkim_sign()</title></head>
 <body>
 <!--
-$Id: dkim_sign.html,v 1.4 2010/02/20 16:38:28 cm-msk Exp $
+$Id: dkim_sign.html,v 1.5 2010/07/24 04:27:07 cm-msk Exp $
 -->
 <h1>dkim_sign()</h1>
 
@@ -99,6 +99,19 @@ Create a new handle for signing a message.
 <li><tt>DKIM_STAT_INVALID</tt> can be returned if, for example, a signing
     handle using SHA256 is requested when the library was not compiled against
     a version of OpenSSL that had support for that hash algorithm.
+</ul>
+</td>
+</tr>
+
+<!----------- Return Values ---------->
+<tr>
+<th valign="top" align=left>RETURN VALUES</th> 
+<td>
+<ul>
+<li>On success, a pointer to the created <a href="dkim.html"><tt>DKIM</tt></a>
+    handle is returned.
+<li>On failure, NULL is returned and the value of <tt>statp</tt> is updated
+    to indicate the cause of the problem.
 </ul>
 </td>
 </tr>
