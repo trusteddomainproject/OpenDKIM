@@ -1,1 +1,2 @@
 user@example.com	testkey
+user2@example.com	testkey:signer@example.com

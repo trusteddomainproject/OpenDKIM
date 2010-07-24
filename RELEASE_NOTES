@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.184 2010/07/23 19:09:16 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.185 2010/07/24 01:27:03 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -13,7 +13,8 @@ release, and a summary of the changes in that release.
 		allowing selection of what action to take when a message is
 		determined by ADSP to be "discardable".
 	Feature request #SF3023232: Allow selection of a signer (for the
-		signature's "i=" tag) when calling odkim.sign().
+		signature's "i=" tag) when calling odkim.sign() or via an
+		optional second parameter in the SigningTable.
 	Feature request #SF3024854: Always log a warning if a key file
 		has unsafe group/other read/write bits set.  Further, if the
 		new "RequireSafeKeys" setting is true, refuse to use the data.

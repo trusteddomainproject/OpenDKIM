@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.171 2010/07/23 19:09:16 cm-msk Exp $
+**  $Id: opendkim.c,v 1.172 2010/07/24 01:27:03 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.171 2010/07/23 19:09:16 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.172 2010/07/24 01:27:03 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7080,29 +7080,32 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 	{
 		int status;
 		void *ctx = NULL;
-		struct dkimf_db_data dbd;
+		struct dkimf_db_data dbd[2];
 		char addr[MAXADDRESS + 1];
+		char signer[MAXADDRESS + 1];
 
 		snprintf(addr, sizeof addr, "%s@%s", user, domain);
 
-		dbd.dbdata_buffer = keyname;
-		dbd.dbdata_flags = 0;
+		memset(&dbd, '\0', sizeof dbd);
+		dbd[0].dbdata_buffer = keyname;
+		dbd[1].dbdata_buffer = signer;
 
 		/* walk RE set, find match(es), make request(s) */
 		for (;;)
 		{
 			memset(keyname, '\0', sizeof keyname);
-			dbd.dbdata_buflen = sizeof keyname - 1;
+			dbd[0].dbdata_buflen = sizeof keyname - 1;
+			memset(signer, '\0', sizeof signer);
+			dbd[1].dbdata_buflen = sizeof signer - 1;
 
-			status = dkimf_db_rewalk(signdb, addr, &dbd,
-			                         1, &ctx);
+			status = dkimf_db_rewalk(signdb, addr, dbd, 2, &ctx);
 			if (status == -1)
 				return -1;
 			else if (status == 1)
 				break;
 
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
-			                               NULL);
+			                               signer);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
@@ -7121,20 +7124,25 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		int status;
 		char *p;
 		char tmpaddr[MAXADDRESS + 1];
-		struct dkimf_db_data req;
+		char signer[MAXADDRESS + 1];
+		struct dkimf_db_data req[2];
+
+		memset(&req, '\0', sizeof req);
 
 		memset(keyname, '\0', sizeof keyname);
-		req.dbdata_buffer = keyname;
-		req.dbdata_buflen = sizeof keyname;
-		req.dbdata_flags = 0;
+		memset(signer, '\0', sizeof signer);
+		req[0].dbdata_buffer = keyname;
+		req[0].dbdata_buflen = sizeof keyname - 1;
+		req[1].dbdata_buffer = signer;
+		req[1].dbdata_buflen = sizeof signer - 1;
 
 		/* first try full "user@host" */
 		snprintf(tmpaddr, sizeof tmpaddr, "%s@%s", user, domain);
 
 		found = FALSE;
 		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
-		                      &req, 1, &found);
-		if (status != 0 || req.dbdata_buflen == 0)
+		                      req, 2, &found);
+		if (status != 0 || req[0].dbdata_buflen == 0)
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, tmpaddr);
@@ -7143,7 +7151,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		else if (found)
 		{
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
-			                               NULL);
+			                               signer);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
@@ -7159,11 +7167,13 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 
 		/* now just "host" */
 		found = FALSE;
-		req.dbdata_buflen = sizeof keyname - 1;
+		req[0].dbdata_buflen = sizeof keyname - 1;
+		req[1].dbdata_buflen = sizeof signer - 1;
 		memset(keyname, '\0', sizeof keyname);
-		status = dkimf_db_get(signdb, domain, strlen(domain), &req, 1,
+		memset(signer, '\0', sizeof signer);
+		status = dkimf_db_get(signdb, domain, strlen(domain), req, 2,
 		                      &found);
-		if (status != 0 || req.dbdata_buflen == 0)
+		if (status != 0 || req[0].dbdata_buflen == 0)
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, domain);
@@ -7172,7 +7182,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		else if (found)
 		{
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
-			                               NULL);
+			                               signer);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
@@ -7195,11 +7205,13 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			         user, p);
 
 			found = FALSE;
-			req.dbdata_buflen = sizeof keyname - 1;
+			req[0].dbdata_buflen = sizeof keyname - 1;
+			req[1].dbdata_buflen = sizeof signer - 1;
 			memset(keyname, '\0', sizeof keyname);
+			memset(signer, '\0', sizeof signer);
 			status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
-			                      &req, 1, &found);
-			if (status != 0 || req.dbdata_buflen == 0)
+			                      req, 2, &found);
+			if (status != 0 || req[0].dbdata_buflen == 0)
 			{
 				if (status != 0 && dolog)
 					dkimf_db_error(signdb, tmpaddr);
@@ -7208,7 +7220,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			else if (found)
 			{
 				status = dkimf_add_signrequest(dfc, keydb,
-				                               keyname, NULL);
+				                               keyname,
+				                               signer);
 				if (status != 0 && errkey != NULL)
 					strlcpy(errkey, keyname, errlen);
 				if (status == 1)
@@ -7224,11 +7237,13 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			}
 
 			found = FALSE;
-			req.dbdata_buflen = sizeof keyname - 1;
+			req[0].dbdata_buflen = sizeof keyname - 1;
+			req[1].dbdata_buflen = sizeof signer - 1;
 			memset(keyname, '\0', sizeof keyname);
+			memset(signer, '\0', sizeof signer);
 			status = dkimf_db_get(signdb, p, strlen(p),
-			                      &req, 1, &found);
-			if (status != 0 || req.dbdata_buflen == 0)
+			                      req, 2, &found);
+			if (status != 0 || req[0].dbdata_buflen == 0)
 			{
 				if (status != 0 && dolog)
 					dkimf_db_error(signdb, p);
@@ -7237,7 +7252,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			else if (found)
 			{
 				status = dkimf_add_signrequest(dfc, keydb,
-				                               keyname, NULL);
+				                               keyname,
+				                               signer);
 				if (status != 0 && errkey != NULL)
 					strlcpy(errkey, keyname, errlen);
 				if (status == 1)
@@ -7257,11 +7273,13 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		snprintf(tmpaddr, sizeof tmpaddr, "%s@*", user);
 
 		found = FALSE;
-		req.dbdata_buflen = sizeof keyname - 1;
+		req[0].dbdata_buflen = sizeof keyname - 1;
+		req[1].dbdata_buflen = sizeof signer - 1;
 		memset(keyname, '\0', sizeof keyname);
+		memset(signer, '\0', sizeof signer);
 		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
-		                      &req, 1, &found);
-		if (status != 0 || req.dbdata_buflen == 0)
+		                      req, 2, &found);
+		if (status != 0 || req[0].dbdata_buflen == 0)
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, tmpaddr);
@@ -7270,7 +7288,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		else if (found)
 		{
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
-			                               NULL);
+			                               signer);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
@@ -7286,10 +7304,12 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 
 		/* finally just "*" */
 		found = FALSE;
-		req.dbdata_buflen = sizeof keyname - 1;
+		req[0].dbdata_buflen = sizeof keyname - 1;
+		req[1].dbdata_buflen = sizeof signer - 1;
 		memset(keyname, '\0', sizeof keyname);
-		status = dkimf_db_get(signdb, "*", 1, &req, 1, &found);
-		if (status != 0 || req.dbdata_buflen == 0)
+		memset(signer, '\0', sizeof signer);
+		status = dkimf_db_get(signdb, "*", 1, req, 2, &found);
+		if (status != 0 || req[0].dbdata_buflen == 0)
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, "*");
@@ -7298,7 +7318,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		else if (found)
 		{
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
-			                               NULL);
+			                               signer);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
