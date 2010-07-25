@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.32 2010/07/21 17:49:38 cm-msk Exp $
+$Id: BRANCHES,v 1.33 2010/07/25 09:48:32 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -17,6 +17,9 @@ Experimental Branches (branch name contains owner)
 
 br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
+
+br-msk-adsp-lists
+		Add ADSP-specific features for MLMs.
 
 br-msk-single-auth-result
 		Feature request #SF2981598: Add "SingleAuthResult" and
