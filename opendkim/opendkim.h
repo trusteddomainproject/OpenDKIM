@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.30 2010/07/23 18:50:52 cm-msk Exp $
+**  $Id: opendkim.h,v 1.30.2.1 2010/07/25 19:10:47 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.30 2010/07/23 18:50:52 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.30.2.1 2010/07/25 19:10:47 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -90,6 +90,12 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.30 2010/07/23 18:50:52 cm
 # define XVBRTYPEHEADER	"X-VBR-Type"
 # define XVBRCERTHEADER	"X-VBR-Certifiers"
 #endif /* _FFR_VBR */
+
+#ifdef _FFR_ADSP_LISTS
+# define ADSP_DISCARDABLE_SMTP	"550"
+# define ADSP_DISCARDABLE_ESC	"5.7.1"
+# define ADSP_DISCARDABLE_TEXT	"ADSP discardable mail may not be sent to this address"
+#endif /* _FFR_ADSP_LISTS */
 
 /* POPAUTH db */
 #if POPAUTH

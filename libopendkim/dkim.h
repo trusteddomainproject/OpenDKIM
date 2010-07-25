@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.29 2010/07/23 18:49:55 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.29.2.1 2010/07/25 19:10:47 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1177,6 +1177,30 @@ extern const char *dkim_sig_geterrorstr __P((DKIM_SIGERROR sigerr));
 */
 
 extern void dkim_sig_ignore __P((DKIM_SIGINFO *siginfo));
+
+/*
+**  DKIM_POLICY_STATE_NEW -- initialize and return a DKIM policy state handle
+**
+**  Parameters:
+**  	dkim -- DKIM handle from which to do an allocation
+**
+**  Return value:
+**  	A DKIM_PSTATE handle, or NULL on failure.
+*/
+
+extern DKIM_PSTATE *dkim_policy_state_new __P((DKIM *dkim));
+
+/*
+**  DKIM_POLICY_STATE_FREE -- destroy a DKIM policy state handle
+**
+**  Parameters:
+**  	pstate -- previously allocated policy state handle
+**
+**  Return value:
+**  	None.
+*/
+
+extern void dkim_policy_state_free __P((DKIM_PSTATE *pstate));
 
 /*
 **  DKIM_POLICY -- parse policy associated with the sender's domain

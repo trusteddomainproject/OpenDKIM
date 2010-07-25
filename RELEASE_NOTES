@@ -1,11 +1,13 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.186 2010/07/24 01:57:35 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.186.2.1 2010/07/25 19:10:47 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.2.0		2010/10/03
+	Feature request #SF2874043: Add "NoDiscardbleMailTo" in response
+		to draft-ietf-dkim-mailinglists.
 	Feature request #SF3013084: Add "DomainKeysCompat" setting.
 	Feature request #SF3017358: Allow a token in the KeyTable that gets
 		replaced with the sender's domain name.
@@ -24,7 +26,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3025856: Fix "AllowSHA1Only", which was not working at all.
 	LIBOPENDKIM: Feature request #SF3026287: Add dkim_getuser() function.
 		Requested by Ale Vesely.
-	LIBOPENDKIM: Add dkim_get_signer().
+	LIBOPENDKIM: Add dkim_get_signer(), dkim_policy_state_new() and
+		dkim_policy_state_free().
 	MILTERTEST: Add "-u" option to report resource usage statistics on
 		completion.
 	MILTERTEST: Feature request #SF3005002: Enable testing of

@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.161 2010/07/23 19:09:16 cm-msk Exp $
+# $Id: configure.ac,v 1.161.2.1 2010/07/25 19:10:47 cm-msk Exp $
 
 #
 # Setup
@@ -210,6 +210,8 @@ AC_DEFUN([LIB_FFR_FEATURE],
 # opendkim
 #
 FEATURE([popauth], [enable POP-before-SMTP support])
+
+FFR_FEATURE([adsp_lists], [support for ADSP filtering for lists])
 
 FFR_FEATURE([bodylength_db], [support for body length DBs])
 

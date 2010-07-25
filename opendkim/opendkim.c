@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.172.2.1 2010/07/25 18:56:07 cm-msk Exp $
+**  $Id: opendkim.c,v 1.172.2.2 2010/07/25 19:10:47 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.172.2.1 2010/07/25 18:56:07 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.172.2.2 2010/07/25 19:10:47 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -310,6 +310,9 @@ struct dkimf_config
 	DKIMF_DB	conf_mbsdb;		/* must-be-signed hdrs (DB) */
 	char **		conf_mbs;		/* must-be-signed (array) */
 	DKIMF_DB	conf_dontsigntodb;	/* don't-sign-to addrs (DB) */
+#ifdef _FFR_ADSP_LISTS
+	DKIMF_DB	conf_nodiscardto;	/* no discardable to (DB) */
+#endif /* _FFR_ADSP_LISTS */
 	DKIMF_DB	conf_thirdpartydb;	/* trustsigsfrom DB */
 	char **		conf_thirdparty;	/* trustsigsfrom addrs */
 	DKIMF_DB	conf_localadsp_db;	/* local ADSP DB */
@@ -381,6 +384,7 @@ struct msgctx
 	struct signreq * mctx_srhead;		/* signature request head */
 	struct signreq * mctx_srtail;		/* signature request tail */
 	struct addrlist * mctx_rcptlist;	/* recipient list */
+	DKIM_PSTATE	* mctx_pstate;		/* policy state handle */
 	char		mctx_domain[DKIM_MAXHOSTNAMELEN + 1];
 						/* primary domain */
 };
@@ -3345,7 +3349,7 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 **  	grp -- group ID of an open file
 **
 **  Return value:
-**  	TRUE iff the file is safe to use.
+**  	FALSE iff the file is safe to use.
 */
 
 _Bool
@@ -5349,6 +5353,29 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 	}
 
+#ifdef _FFR_ADSP_LISTS
+	str = NULL;
+	if (data != NULL)
+	{
+		(void) config_get(data, "NoDiscardableMailTo", &str,
+		                  sizeof str);
+	}
+	if (str != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_nodiscardto, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, dberr);
+			return -1;
+		}
+	}
+#endif /* _FFR_ADSP_LISTS */
+
 	str = NULL;
 	if (data != NULL)
 		(void) config_get(data, "DontSignMailTo", &str, sizeof str);
@@ -6736,6 +6763,11 @@ dkimf_cleanup(SMFICTX *ctx)
 				sr = next;
 			}
 		}
+
+#ifdef _FFR_ADSP_LISTS
+		if (dfc->mctx_pstate != NULL)
+			dkim_policy_state_free(dfc->mctx_pstate);
+#endif /* _FFR_ADSP_LISTS */
 
 		if (dfc->mctx_dkimv != NULL)
 			dkim_free(dfc->mctx_dkimv);
@@ -8187,6 +8219,9 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 	conf = cc->cctx_config;
 
 	if (conf->conf_dontsigntodb != NULL
+#ifdef _FFR_ADSP_LISTS
+	    || conf->conf_nodiscardto != NULL
+#endif /* _FFR_ADSP_LISTS */
 #ifdef _FFR_BODYLENGTH_DB
 	    || bldb != NULL
 #endif /* _FFR_BODYLENGTH_DB */
@@ -8208,6 +8243,9 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 	}
 
 	if (conf->conf_dontsigntodb != NULL
+#ifdef _FFR_ADSP_LISTS
+	    || conf->conf_nodiscardto != NULL
+#endif /* _FFR_ADSP_LISTS */
 #ifdef _FFR_REDIRECT
 	    || conf->conf_redirect != NULL
 #endif /* _FFR_REDIRECT */
@@ -9791,6 +9829,83 @@ mlfi_eoh(SMFICTX *ctx)
 		status = dkim_eoh(dfc->mctx_dkimv);
 	}
 
+#ifdef _FFR_ADSP_LISTS
+	if (conf->conf_nodiscardto != NULL)
+	{
+		bool match = FALSE;
+		int status;
+		dkim_policy_t policy;
+		struct addrlist *a;
+
+		dfc->mctx_pstate = dkim_policy_state_new(dfc->mctx_dkimv);
+		if (dfc->mctx_pstate == NULL)
+		{
+			syslog(LOG_WARNING,
+			       "%s: malloc(): %s", dfc->mctx_jobid,
+			       strerror(errno));
+
+			return SMFIS_TEMPFAIL;
+		}
+
+		status = dkim_policy(dfc->mctx_dkimv, &policy,
+		                     dfc->mctx_pstate);
+		if (status != DKIM_STAT_OK)
+		{
+			const char *err;
+
+			err = dkim_geterror(dfc->mctx_dkimv);
+			if (err != NULL)
+			{
+				syslog(LOG_ERR, "%s: ADSP query: %s",
+				       dfc->mctx_jobid, err);
+			}
+
+			if (conf->conf_handling.hndl_policyerr != SMFIS_ACCEPT)
+			{
+				dkimf_cleanup(ctx);
+				return conf->conf_handling.hndl_policyerr;
+			}
+		}
+
+		for (a = dfc->mctx_rcptlist;
+		     a != NULL;
+		     a = a->a_next)
+		{
+			status = dkimf_db_get(conf->conf_nodiscardto,
+			                      a->a_addr, 0, NULL, 0,
+			                      &match);
+			if (status != 0)
+			{
+				if (dolog)
+				{
+					dkimf_db_error(conf->conf_nodiscardto,
+					               a->a_addr);
+				}
+
+				return SMFIS_TEMPFAIL;
+			}
+
+			if (match)
+			{
+				if (conf->conf_dolog)
+				{
+					syslog(LOG_INFO,
+					       "%s: %s may not receive discardable mail",
+					       dfc->mctx_jobid, a->a_addr);
+				}
+			}
+
+			dkimf_cleanup(ctx);
+
+			(void) dkimf_setreply(ctx, ADSP_DISCARDABLE_SMTP,
+			                      ADSP_DISCARDABLE_ESC,
+			                      ADSP_DISCARDABLE_TEXT);
+
+			return SMFIS_REJECT;
+		}
+	}
+#endif /* _FFR_ADSP_LISTS */
+
 #ifdef USE_LUA
 	if (conf->conf_screenscript != NULL)
 	{
@@ -10664,7 +10779,7 @@ mlfi_eom(SMFICTX *ctx)
 			{
 				pstatus = dkim_policy(dfc->mctx_dkimv,
 				                      &dfc->mctx_pcode,
-				                      NULL);
+				                      dfc->mctx_pstate);
 #ifdef USE_UNBOUND
 				dfc->mctx_dnssec_policy = dkim_policy_getdnssec(dfc->mctx_dkimv);
 #endif /* USE_UNBOUND */
