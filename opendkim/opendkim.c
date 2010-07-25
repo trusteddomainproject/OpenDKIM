@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.172 2010/07/24 01:27:03 cm-msk Exp $
+**  $Id: opendkim.c,v 1.173 2010/07/25 18:54:41 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.172 2010/07/24 01:27:03 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.173 2010/07/25 18:54:41 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3353,7 +3353,7 @@ dkimf_insecure(mode_t mode, gid_t grp)
 {
 	/* read/write by others is always bad */
 	if ((mode & (S_IROTH|S_IWOTH)) != 0)
-		return FALSE;
+		return TRUE;
 
 	/* read/write by group is bad if it's not a group we're in */
 	if ((mode & (S_IRGRP|S_IWGRP)) != 0)
@@ -3369,19 +3369,19 @@ dkimf_insecure(mode_t mode, gid_t grp)
 		ngroups = getgroups(NGROUPS_MAX, gids);
 
 		if (grp == gid || grp == egid)
-			return TRUE;
+			return FALSE;
 
 		for (c = 0; c < ngroups; c++)
 		{
 			if (grp == gids[c])
-				return TRUE;
+				return FALSE;
 		}
 
-		return FALSE;
+		return TRUE;
 	}
 
 	/* anything that gets here is safe */
-	return TRUE;
+	return FALSE;
 }
 
 /*
