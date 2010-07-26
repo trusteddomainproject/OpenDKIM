@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.33 2010/07/25 09:48:32 cm-msk Exp $
+$Id: BRANCHES,v 1.34 2010/07/26 14:43:21 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -20,6 +20,9 @@ br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 
 br-msk-adsp-lists
 		Add ADSP-specific features for MLMs.
+
+br-msk-default-sender
+		New "DefaultSender" setting.
 
 br-msk-single-auth-result
 		Feature request #SF2981598: Add "SingleAuthResult" and
