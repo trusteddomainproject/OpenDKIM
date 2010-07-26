@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.161 2010/07/23 19:09:16 cm-msk Exp $
+# $Id: configure.ac,v 1.161.4.1 2010/07/26 14:29:02 cm-msk Exp $
 
 #
 # Setup
@@ -250,6 +250,8 @@ AM_CONDITIONAL([VBR], [test x"$enable_vbr" = x"yes"])
 
 FFR_FEATURE([stats], [stats recording and reporting])
 AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
+
+FFR_FEATURE([default_sender], [default sender address])
 
 #
 # use rpath at load time?

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.38 2010/07/23 19:09:16 cm-msk Exp $
+**  $Id: util.c,v 1.38.4.1 2010/07/26 14:29:02 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.38 2010/07/23 19:09:16 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.38.4.1 2010/07/26 14:29:02 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -106,6 +106,10 @@ static char *optlist[] =
 #if _FFR_CAPTURE_UNKNOWN_ERRORS
 	"_FFR_CAPTURE_UNKNOWN_ERRORS",
 #endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
+
+#ifdef _FFR_DEFAULT_SENDER
+	"_FFR_DEFAULT_SENDER",
+#endif /* _FFR_DEFAULT_SENDER */
 
 #if _FFR_DIFFHEADERS
 	"_FFR_DIFFHEADERS",

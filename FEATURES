@@ -43,6 +43,9 @@ codecoverage	Enables generation of profiling code for all libraries,
 		produces a report about code coverage based on the available
 		code coverage tools (gprof, gcov or lcov). (all)
 
+default_sender	Allow declaration of sender address to use when a message
+		contains no obvious sender.  (opendkim)
+
 diffheaders	When verification fails for a message for which a "z="
 		tag was provided, compare the received headers to the original
 		headers to look for possible munging.  Requires the tre
@@ -116,4 +119,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.18 $, Last updated $Date: 2010/07/23 19:09:16 $
+$Revision: 1.18.4.1 $, Last updated $Date: 2010/07/26 14:29:02 $
