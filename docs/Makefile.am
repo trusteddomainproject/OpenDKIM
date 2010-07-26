@@ -1,8 +1,8 @@
-# $Id: Makefile.am,v 1.1 2010/07/19 04:01:45 grooverdan Exp $
+# $Id: Makefile.am,v 1.2 2010/07/26 12:04:54 cm-msk Exp $
 
 #AUTOMAKE_OPTIONS = foreign
 
-dist_doc_DATA = draft-ietf-dkim-mailinglists-00.txt \
+dist_doc_DATA = draft-ietf-dkim-mailinglists-01.txt \
 	draft-ietf-marf-base-06.txt \
 	draft-ietf-marf-dkim-reporting-00.txt \
 	draft-kucherawy-authres-header-b-04.txt \
