@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.34 2010/07/26 14:43:21 cm-msk Exp $
+$Id: BRANCHES,v 1.35 2010/07/27 09:06:46 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -23,6 +23,8 @@ br-msk-adsp-lists
 
 br-msk-default-sender
 		New "DefaultSender" setting.
+
+br-msk-lua-dbs	Support for abitrary data set operations from Lua scripts.
 
 br-msk-single-auth-result
 		Feature request #SF2981598: Add "SingleAuthResult" and
