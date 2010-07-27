@@ -1,14 +1,14 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.h,v 1.3 2010/05/01 18:02:52 cm-msk Exp $
+**  $Id: opendkim-lua.h,v 1.3.10.1 2010/07/27 08:43:16 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_LUA_H_
 #define _OPENDKIM_LUA_H_
 
 #ifndef lint
-static char opendkim_lua_h_id[] = "@(#)$Id: opendkim-lua.h,v 1.3 2010/05/01 18:02:52 cm-msk Exp $";
+static char opendkim_lua_h_id[] = "@(#)$Id: opendkim-lua.h,v 1.3.10.1 2010/07/27 08:43:16 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -22,11 +22,31 @@ struct dkimf_lua_script_result
 	char **	lrs_results;
 };
 
+struct dkimf_lua_gc_item
+{
+	int				gci_type;
+	void *				gci_item;
+	struct dkimf_lua_gc_item *	gci_next;
+};
+
+struct dkimf_lua_gc
+{
+	struct dkimf_lua_gc_item *	gc_head;
+	struct dkimf_lua_gc_item *	gc_tail;
+};
+
+/* macros */
+#define	DKIMF_GC		"_DKIMF_GC"
+#define	DKIMF_LUA_GC_DB		1
+
 /* prototypes */
 extern int dkimf_lua_db_hook __P((const char *, const char *,
                                   struct dkimf_lua_script_result *));
 extern int dkimf_lua_final_hook __P((void *, const char *, const char *,
                                      struct dkimf_lua_script_result *));
+extern void dkimf_lua_gc_add __P((struct dkimf_lua_gc *g, void *, int));
+extern void dkimf_lua_gc_cleanup __P((struct dkimf_lua_gc *));
+extern void dkimf_lua_gc_remove __P((struct dkimf_lua_gc *, void *));
 extern int dkimf_lua_screen_hook __P((void *, const char *, const char *,
                                       struct dkimf_lua_script_result *));
 extern int dkimf_lua_setup_hook __P((void *, const char *, const char *,

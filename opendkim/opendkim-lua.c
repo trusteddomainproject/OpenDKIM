@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.18 2010/05/26 22:24:12 cm-msk Exp $
+**  $Id: opendkim-lua.c,v 1.18.10.1 2010/07/27 08:43:16 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.18 2010/05/26 22:24:12 cm-msk Exp $";
+static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.18.10.1 2010/07/27 08:43:16 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -47,6 +47,8 @@ static const luaL_Reg dkimf_lua_lib_setup[] =
 {
 	{ "check_popauth",	dkimf_xs_popauth	},
 	{ "db_check",		dkimf_xs_dbquery	},
+	{ "db_close",		dkimf_xs_dbclose	},
+	{ "db_open",		dkimf_xs_dbopen		},
 	{ "get_clienthost",	dkimf_xs_clienthost	},
 	{ "get_clientip",	dkimf_xs_clientip	},
 	{ "get_dbhandle",	dkimf_xs_dbhandle	},
@@ -69,6 +71,8 @@ static const luaL_Reg dkimf_lua_lib_setup[] =
 static const luaL_Reg dkimf_lua_lib_screen[] =
 {
 	{ "db_check",		dkimf_xs_dbquery	},
+	{ "db_close",		dkimf_xs_dbclose	},
+	{ "db_open",		dkimf_xs_dbopen		},
 	{ "get_dbhandle",	dkimf_xs_dbhandle	},
 	{ "get_fromdomain",	dkimf_xs_fromdomain	},
 	{ "get_header",		dkimf_xs_getheader	},
@@ -179,6 +183,132 @@ dkimf_lua_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
 	}
 }
 
+/*
+**  DKIMF_LUA_GC_ADD -- add an item for garbage collection
+**
+**  Parameters:
+**  	gc -- garbage collection handle
+** 	item -- item to add
+**  	type -- item type
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkimf_lua_gc_add(struct dkimf_lua_gc *gc, void *item, int type)
+{
+	struct dkimf_lua_gc_item *new;
+
+	assert(gc != NULL);
+	assert(item != NULL);
+
+	new = (struct dkimf_lua_gc_item *) malloc(sizeof *new);
+	assert(new != NULL);
+
+	new->gci_item = item;
+	new->gci_type = type;
+	new->gci_next = NULL;
+
+	if (gc->gc_head == NULL)
+		gc->gc_head = new;
+	if (gc->gc_tail != NULL)
+		gc->gc_tail->gci_next = new;
+	gc->gc_tail = new;
+}
+
+/*
+**  DKIMF_LUA_GC_REMOVE -- remove an item from garbage collection
+**
+**  Parameters:
+**  	gc -- garbage collection handle
+** 	item -- item to remove
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkimf_lua_gc_remove(struct dkimf_lua_gc *gc, void *item)
+{
+	struct dkimf_lua_gc_item *cur;
+	struct dkimf_lua_gc_item *prev = NULL;
+
+	assert(gc != NULL);
+	assert(item != NULL);
+
+	cur = gc->gc_head;
+
+	while (cur != NULL)
+	{
+		if (cur->gci_item == item)
+		{
+			if (cur == gc->gc_head)			/* head */
+			{
+				gc->gc_head = cur->gci_next;
+				free(cur);
+				cur = gc->gc_head;
+			}
+			else if (cur == gc->gc_tail)		/* tail */
+			{
+				prev->gci_next = NULL;
+				gc->gc_tail = prev;
+				free(cur);
+				cur = NULL;
+			}
+			else					/* middle */
+			{
+				prev->gci_next = cur->gci_next;
+				free(cur);
+				cur = prev->gci_next;
+			}
+		}
+		else
+		{
+			prev = cur;
+			cur = cur->gci_next;
+		}
+	}
+}
+
+/*
+**  DKIMF_LUA_GC_CLEANUP -- perform garbage collection
+**
+**  Parameters:
+**  	gc -- garbage collection handle
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkimf_lua_gc_cleanup(struct dkimf_lua_gc *gc)
+{
+	struct dkimf_lua_gc_item *cur;
+	struct dkimf_lua_gc_item *next;
+
+	assert(gc != NULL);
+
+	cur = gc->gc_head;
+
+	while (cur != NULL)
+	{
+		switch (cur->gci_type)
+		{
+		  case DKIMF_LUA_GC_DB:
+			(void) dkimf_db_close((DKIMF_DB) cur->gci_item);
+			break;
+
+		  default:
+			assert(0);
+		}
+
+		next = cur->gci_next;
+		free(cur);
+		cur = next;
+	}
+}
+
 #ifdef DKIMF_LUA_CONTEXT_HOOKS
 /*
 **  DKIMF_LUA_SETUP_HOOK -- hook to Lua for handling a message during setup
@@ -215,12 +345,16 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 	int status;
 	lua_State *l = NULL;
 	struct dkimf_lua_io io;
+	struct dkimf_lua_gc gc;
 
 	assert(script != NULL);
 	assert(lres != NULL);
 
 	io.lua_io_done = FALSE;
 	io.lua_io_script = script;
+
+	gc.gc_head = NULL;
+	gc.gc_tail = NULL;
 
 	l = lua_newstate(dkimf_lua_alloc, NULL);
 	if (l == NULL)
@@ -238,6 +372,10 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 	/*
 	**  Register constants.
 	*/
+
+	/* garbage collection handle */
+	lua_pushlightuserdata(l, &gc);
+	lua_setglobal(l, DKIMF_GC);
 
 	/* DB handle constants */
 	lua_pushnumber(l, DB_DOMAINS);
@@ -290,6 +428,8 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 	if (lua_isstring(l, 1))
 		lres->lrs_error = strdup(lua_tostring(l, 1));
 
+	dkimf_lua_gc_cleanup(&gc);
+
 	lua_close(l);
 
 	return (status == 0 ? 0 : 2);
@@ -327,14 +467,18 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
                       const char *name, struct dkimf_lua_script_result *lres)
 {
 	int status;
-	struct dkimf_lua_io io;
 	lua_State *l = NULL;
+	struct dkimf_lua_io io;
+	struct dkimf_lua_gc gc;
 
 	assert(script != NULL);
 	assert(lres != NULL);
 
 	io.lua_io_done = FALSE;
 	io.lua_io_script = script;
+
+	gc.gc_head = NULL;
+	gc.gc_tail = NULL;
 
 	l = lua_newstate(dkimf_lua_alloc, NULL);
 	if (l == NULL)
@@ -352,6 +496,10 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 	/*
 	**  Register constants.
 	*/
+
+	/* garbage collection handle */
+	lua_pushlightuserdata(l, &gc);
+	lua_setglobal(l, DKIMF_GC);
 
 	/* DB handles */
 	lua_pushnumber(l, DB_DOMAINS);
@@ -394,6 +542,8 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 	if (lua_isstring(l, 1))
 		lres->lrs_error = strdup(lua_tostring(l, 1));
 
+	dkimf_lua_gc_cleanup(&gc);
+
 	lua_close(l);
 
 	return (status == 0 ? 0 : 2);
@@ -430,14 +580,18 @@ dkimf_lua_final_hook(void *ctx, const char *script,
                      const char *name, struct dkimf_lua_script_result *lres)
 {
 	int status;
-	struct dkimf_lua_io io;
 	lua_State *l = NULL;
+	struct dkimf_lua_io io;
+	struct dkimf_lua_gc gc;
 
 	assert(script != NULL);
 	assert(lres != NULL);
 
 	io.lua_io_done = FALSE;
 	io.lua_io_script = script;
+
+	gc.gc_head = NULL;
+	gc.gc_tail = NULL;
 
 	l = lua_newstate(dkimf_lua_alloc, NULL);
 	if (l == NULL)
@@ -455,6 +609,10 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	/*
 	**  Register constants.
 	*/
+
+	/* garbage collection handle */
+	lua_pushlightuserdata(l, &gc);
+	lua_setglobal(l, DKIMF_GC);
 
 	/* policy codes */
 	lua_pushnumber(l, DKIMF_POLICY_UNKNOWN);
@@ -606,6 +764,8 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	status = lua_pcall(l, 0, LUA_MULTRET, 0);
 	if (lua_isstring(l, 1))
 		lres->lrs_error = strdup(lua_tostring(l, 1));
+
+	dkimf_lua_gc_cleanup(&gc);
 
 	lua_close(l);
 
