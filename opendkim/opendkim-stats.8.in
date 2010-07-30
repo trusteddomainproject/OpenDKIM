@@ -23,8 +23,9 @@ man page for details.
 .SH OPTIONS
 .TP
 .I -a
-Anonymize output by replacing the sending domain and IP address in each
-record with an MD5 hash of their actual values.
+Don't anonymize output by replacing the sending domain and IP address in each
+record with an MD5 hash of their actual values.  By default the data are
+anonymized.
 .TP
 .I -c
 Output comma-separated format.  Not generally human-readable, but ideal

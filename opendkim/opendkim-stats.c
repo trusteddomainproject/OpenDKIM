@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.11 2010/07/06 01:23:30 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.12 2010/07/30 08:06:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.11 2010/07/06 01:23:30 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.12 2010/07/30 08:06:52 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -564,7 +564,7 @@ main(int argc, char **argv)
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 
-	anon = FALSE;
+	anon = TRUE;
 	csv = FALSE;
 
 	memset(hostname, '\0', sizeof hostname);
@@ -575,7 +575,7 @@ main(int argc, char **argv)
 		switch (c)
 		{
 		  case 'a':
-			anon = TRUE;
+			anon = FALSE;
 			break;
 
 		  case 'c':
