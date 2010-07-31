@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.90 2010/07/14 19:39:00 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.91 2010/07/31 09:55:19 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.90 2010/07/14 19:39:00 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.91 2010/07/31 09:55:19 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3861,6 +3861,37 @@ dkimf_db_rewalk(DKIMF_DB db, char *str, DKIMF_DBDATA req, unsigned int reqnum,
 	}
 
 	return 1;
+}
+
+/*
+**  DKIMF_DB_FD -- retrieve a file descriptor associated with a database
+**
+**  Parameters:
+**  	db -- DKIMF_DB handle
+**
+**  Return value:
+**  	File descriptor associated with the DB, or -1 if none.
+*/
+
+int
+dkimf_db_fd(DKIMF_DB db)
+{
+	int fd = -1;
+
+	if (db->db_type == DKIMF_DB_TYPE_BDB)
+	{
+		DB *bdb;
+
+		bdb = (DB *) db->db_handle;
+
+#if DB_VERSION_CHECK(2,0,0)
+		(void) bdb->fd(bdb, &fd);
+#else /* DB_VERSION_CHECK(2,0,0) */
+		fd = bdb->fd(bdb);
+#endif /* DB_VERSION_CHECK(2,0,0) */
+	}
+
+	return fd;
 }
 
 /*

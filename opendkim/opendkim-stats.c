@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.12 2010/07/30 08:06:52 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.13 2010/07/31 09:55:19 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.12 2010/07/30 08:06:52 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.13 2010/07/31 09:55:19 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -16,6 +16,7 @@ static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.12 2010/07/30
 #include <sys/param.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdbool.h>
@@ -45,6 +46,10 @@ static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.12 2010/07/30
 #ifndef TRUE
 # define TRUE		1
 #endif /* ! TRUE */
+
+#ifndef ACCESSPERMS
+# define ACCESSPERMS	(S_IRWXU|S_IRWXG|S_IRWXO)
+#endif /* ! ACCESSPERMS */
 
 #define	CMDLINEOPTS	"ach:im:r"
 #ifndef _PATH_DEVNULL
@@ -470,13 +475,14 @@ dkims_dump(char *path, char *mailto)
 **
 **  Parameters:
 **  	path -- path to DB to create
+**  	s -- stat structure from which to get owner/group/mode
 **
 **  Return value:
 **  	An EX_* constant.
 */
 
 static int
-dkims_initdb(char *path)
+dkims_initdb(char *path, struct stat *s)
 {
 	int status;
 	int version;
@@ -511,6 +517,29 @@ dkims_initdb(char *path)
 	{
 		fprintf(stderr, "%s: %s: dkimf_db_put() failed\n",
 		        progname, path);
+	}
+
+	if (s != NULL && geteuid() == 0)
+	{
+		int fd = -1;
+
+		fd = dkimf_db_fd(db);
+		if (fd != -1)
+		{
+			status = fchmod(fd, (s->st_mode & ACCESSPERMS));
+			if (status != 0)
+			{
+				fprintf(stderr, "%s: %s: fchmod(): %s\n",
+				        progname, path, strerror(errno));
+			}
+
+			status = fchown(fd, s->st_uid, s->st_gid);
+			if (status != 0)
+			{
+				fprintf(stderr, "%s: %s: fchown(): %s\n",
+				        progname, path, strerror(errno));
+			}
+		}
 	}
 
 	dkimf_db_close(db);
@@ -610,7 +639,7 @@ main(int argc, char **argv)
 
 	if (initdb)
 	{
-		return dkims_initdb(path);
+		return dkims_initdb(path, NULL);
 	}
 	else
 	{
@@ -619,7 +648,17 @@ main(int argc, char **argv)
 		status = dkims_dump(path, mailto);
 		if (status == 0 && resetdb)
 		{
-			if (unlink(path) != 0)
+			struct stat s;
+
+			status = stat(path, &s);
+			if (status != 0)
+			{
+				fprintf(stderr, "%s: %s: stat(): %s\n",
+				        progname, path, strerror(errno));
+
+				return EX_OSERR;
+			}
+			else if (unlink(path) != 0)
 			{
 				fprintf(stderr, "%s: %s: unlink(): %s\n",
 				        progname, path, strerror(errno));
@@ -628,7 +667,7 @@ main(int argc, char **argv)
 			}
 			else
 			{
-				return dkims_initdb(path);
+				return dkims_initdb(path, &s);
 			}
 		}
 	}
