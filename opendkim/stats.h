@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.h,v 1.7 2010/07/23 19:12:20 cm-msk Exp $
+**  $Id: stats.h,v 1.7.8.1 2010/08/02 22:54:10 cm-msk Exp $
 */
 
 #ifndef _STATS_H_
 #define _STATS_H_
 
 #ifndef lint
-static char stats_h_id[] = "@(#)$Id: stats.h,v 1.7 2010/07/23 19:12:20 cm-msk Exp $";
+static char stats_h_id[] = "@(#)$Id: stats.h,v 1.7.8.1 2010/08/02 22:54:10 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -26,7 +26,7 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.7 2010/07/23 19:12:20 cm-msk Ex
 #include <dkim.h>
 
 /* current version */
-#define DKIMF_STATS_VERSION	2
+#define DKIMF_STATS_VERSION	3
 
 /* sentinel record */
 #define	DKIMF_STATS_SENTINEL	"@"
@@ -69,6 +69,43 @@ struct dkim_stats_data_v2
 	u_int		sd_sig_l;
 	u_int		sd_sig_z;
 	u_int		sd_adsp_found;
+	u_int		sd_adsp_fail;
+	u_int		sd_adsp_discardable;
+	u_int		sd_authorsigs;
+	u_int		sd_authorsigsfail;
+	u_int		sd_thirdpartysigs;
+	u_int		sd_thirdpartysigsfail;
+	u_int		sd_mailinglist;
+	u_int		sd_received;
+	struct sockaddr_storage sd_sockinfo;
+	char		sd_fromdomain[DKIM_MAXHOSTNAMELEN + 1];
+};
+
+struct dkim_stats_data_v3
+{
+	time_t		sd_when;
+	dkim_alg_t	sd_alg;
+	dkim_canon_t	sd_hdrcanon;
+	dkim_canon_t	sd_bodycanon;
+	u_int		sd_totalsigs;
+	u_int		sd_pass;
+	u_int		sd_fail;
+	u_int		sd_failbody;
+	u_int		sd_extended;
+	u_int		sd_key_t;
+	u_int		sd_key_g;
+	u_int		sd_key_syntax;
+	u_int		sd_key_missing;
+	u_int		sd_key_dk_compat;
+	u_int		sd_sig_t;
+	u_int		sd_sig_t_future;
+	u_int		sd_sig_x;
+	u_int		sd_sig_l;
+	u_int		sd_sig_z;
+	u_int		sd_dnssec;
+	u_int		sd_adsp_found;
+	u_int		sd_adsp_unknown;
+	u_int		sd_adsp_all;
 	u_int		sd_adsp_fail;
 	u_int		sd_adsp_discardable;
 	u_int		sd_authorsigs;
