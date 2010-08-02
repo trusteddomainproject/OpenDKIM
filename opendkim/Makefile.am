@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.75 2010/07/23 18:40:07 cm-msk Exp $
+# $Id: Makefile.am,v 1.76 2010/08/02 05:35:41 grooverdan Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -78,6 +78,11 @@ if LUA
 opendkim_testkey_CPPFLAGS += $(LIBLUA_INCDIRS)
 opendkim_testkey_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_testkey_LDADD += $(LIBLUA_LIBS)
+endif
+if USE_DB_OPENDKIM
+opendkim_testkey_CPPFLAGS += $(LIBDB_INCDIRS)
+opendkim_testkey_LDFLAGS += $(LIBDB_LIBDIRS)
+opendkim_testkey_LDADD += $(LIBDB_LIBS)
 endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
