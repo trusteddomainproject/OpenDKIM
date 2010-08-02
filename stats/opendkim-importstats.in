@@ -1,6 +1,6 @@
 #!/bin/sh
 ##
-## $Id: opendkim-importstats.in,v 1.2 2010/07/22 03:14:37 cm-msk Exp $
+## $Id: opendkim-importstats.in,v 1.2.8.1 2010/08/02 22:42:47 cm-msk Exp $
 ##
 ## Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 ##
@@ -101,7 +101,9 @@ import="load data infile \"${tmpfile}\"
 	(
 		jobid,
 		from_domain,
+		reporter,
 		ipaddr,
+		anonymized,
 		@msgtime,
 		algorithm,
 		hdr_canon,
@@ -115,14 +117,18 @@ import="load data infile \"${tmpfile}\"
 		key_g,
 		key_syntax,
 		key_nx,
+		key_dk_compat,
 		sig_t,
 		sig_t_future,
 		sig_x,
 		sig_l,
 		sig_z,
-		adsp,
-		adsp_fail,
+		dnssec,
+		adsp_found,
+		adsp_unknown,
+		adsp_all,
 		adsp_discardable,
+		adsp_fail,
 		author_sigs,
 		author_sigs_fail,
 		tp_sigs,

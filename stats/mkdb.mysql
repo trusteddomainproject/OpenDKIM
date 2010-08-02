@@ -1,4 +1,4 @@
--- $Id: mkdb.mysql,v 1.4 2010/07/30 12:11:07 cm-msk Exp $
+-- $Id: mkdb.mysql,v 1.4.2.1 2010/08/02 22:42:47 cm-msk Exp $
 
 -- MySQL command sequence to create a database to accumulate OpenDKIM
 -- statistics reports
@@ -6,12 +6,15 @@
 create table if not exists opendkim_statistics (
 	id int unsigned not null auto_increment,
 		primary key(id),
-	jobid varchar(255) not null unique,
+	jobid varchar(255) not null,
 		key(jobid),
+	reporter varchar(255) not null,
+		key(reporter),
 	from_domain varchar(255) not null,
 		key(from_domain),
 	ipaddr varchar(255) not null,
 		key(ipaddr),
+	anonymized timestamp not null,
 	msgtime timestamp not null,
 	algorithm int unsigned not null,
 	hdr_canon int unsigned not null,
@@ -25,14 +28,18 @@ create table if not exists opendkim_statistics (
 	key_g int unsigned not null,
 	key_syntax int unsigned not null,
 	key_nx int unsigned not null,
+	key_dk_compat int unsigned not null,
 	sig_t int unsigned not null,
 	sig_t_future int unsigned not null,
 	sig_x int unsigned not null,
 	sig_l int unsigned not null,
 	sig_z int unsigned not null,
-	adsp int unsigned not null,
-	adsp_fail int unsigned not null,
+	dnssec int not null,
+	adsp_found int unsigned not null,
+	adsp_unknown int unsigned not null,
+	adsp_all int unsigned not null,
 	adsp_discardable int unsigned not null,
+	adsp_fail int unsigned not null,
 	author_sigs int unsigned not null,
 	author_sigs_fail int unsigned not null,
 	tp_sigs int unsigned not null,
