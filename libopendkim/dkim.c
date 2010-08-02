@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.57 2010/07/23 18:49:55 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.58 2010/08/02 17:47:32 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -823,13 +823,6 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 		{
 			dkim_set_free(dkim, set);
 			return DKIM_STAT_OK;
-		}
-
-		status = dkim_add_plist(dkim, set, "g", "*", FALSE);
-		if (status == -1)
-		{
-			set->set_bad = TRUE;
-			return DKIM_STAT_INTERNAL;
 		}
 
 		status = dkim_add_plist(dkim, set, "k", "rsa", FALSE);
