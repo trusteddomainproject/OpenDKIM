@@ -28,8 +28,7 @@ record with an MD5 hash of their actual values.  By default the data are
 anonymized.
 .TP
 .I -c
-Output comma-separated format.  Not generally human-readable, but ideal
-for machine processing.
+Output columnar format rather than comma-separated key-value format.
 .TP
 .I -h name
 Uses
@@ -114,6 +113,22 @@ a syntax error.
 Count of signatures on this message that referred to a key record that could
 not be retrieved from the DNS.
 .TP
+.I keydk
+Count of signatures on this mesasge that referred to a key record that appeared
+to be formatted for DomainKeys instead of DKIM.
+.TP
+.I dnssecunk
+Count of signatures whose keys were not evaluated by DNSSEC.
+.TP
+.I dnssecbogus
+Count of signatures whose keys were determined by DNSSEC to be falsified.
+.TP
+.I dnssecinsec
+Count of signatures whose keys were determined by DNSSEC to be unsecured.
+.TP
+.I dnssecec
+Count of signatures whose keys were determined by DNSSEC to be secured.
+.TP
 .I sigt
 Count of signatures on this message that contained a "t=" tag.
 .TP
@@ -130,19 +145,25 @@ Count of signatures on this message that contained an "l=" tag.
 .I sigz
 Count of signatures on this message that contained a "z=" tag.
 .TP
-.I adsp
+.I adspfound
 If this message provoked an ADSP query that succeeded, this value will be 1.
-If this message did not mandate an ADSP query (because a valid author signature
-was present), this value will be 0.  If an ADSP query was attempted but failed,
-this value will be 2.
+Otherwise, this value will be 0.
 .TP
-.I adspfail
-If an ADSP query was done and returned "all" but this message had no valid
-author domain signature, this value will be 1.  Otherwise, it will be 0.
+.I adspunknown
+If an ADSP query was done and returned "all", this value will be 1.
+Otherwise, it will be 0.
+.TP
+.I adspall
+If an ADSP query was done and returned "all", this value will be 1.
+Otherwise, it will be 0.
 .TP
 .I adspdisc
-If an ADSP query was done and returned "discardable" but this message had no
-valid author domain signature, this value will be 1.  Otherwise, it will be 0.
+If an ADSP query was done and returned "discardable", this value will be 1.
+Otherwise, it will be 0.
+.TP
+.I adspfail
+If this message did not have a valid author domain signature, this value will
+be 1.  Otherwise, it will be 0.
 .TP
 .I asigs
 Count of valid signatures on this message for which the "d=" (signing domain)

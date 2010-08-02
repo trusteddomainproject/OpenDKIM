@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.13 2010/07/31 09:55:19 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.13.2.1 2010/08/02 23:31:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.13 2010/07/31 09:55:19 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.13.2.1 2010/08/02 23:31:42 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -61,7 +61,7 @@ static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.13 2010/07/31
 
 /* globals */
 _Bool anon;
-_Bool csv;
+_Bool columns;
 char hostname[DKIM_MAXHOSTNAMELEN + 1];
 char *progname;
 
@@ -83,7 +83,7 @@ dkims_output(FILE *out, char *label, unsigned long value, _Bool more)
 {
 	assert(label != NULL);
 
-	if (csv)
+	if (columns)
 		fprintf(out, "%lu%s", value, more ? "\t" : "");
 	else
 		fprintf(out, "%s=%lu%s", label, value, more ? "," : "");
@@ -114,6 +114,7 @@ dkims_dump(char *path, char *mailto)
 	struct dkim_stats_key_v1 reckey_v1;
 	struct dkim_stats_data_v1 recdata_v1;
 	struct dkim_stats_data_v2 recdata_v2;
+	struct dkim_stats_data_v3 recdata_v3;
 	struct dkimf_db_data dbd;
 	char jobid[DKIM_MAXHOSTNAMELEN + 1];
 	char ipbuf[BUFRSZ];
@@ -299,7 +300,7 @@ dkims_dump(char *path, char *mailto)
 			}
 
 			/* dump record contents */
-			if (csv)
+			if (columns)
 				fprintf(out, "=%s@%s\t", jobid, hostname);
 			else
 				fprintf(out, "%s\t", jobid);
@@ -422,6 +423,187 @@ dkims_dump(char *path, char *mailto)
 			dkims_output(out, "mlist", recdata_v2.sd_mailinglist,
 			             TRUE);
 			dkims_output(out, "rhcnt", recdata_v2.sd_received,
+			             FALSE);
+
+			fprintf(out, "\n");
+				
+			break;
+
+		  case 3:
+			/* read next record */
+			memset(jobid, '\0', sizeof jobid);
+			memset(&recdata_v3, '\0', sizeof recdata_v3);
+
+			dbd.dbdata_buffer = (char *) &recdata_v3;
+			dbd.dbdata_buflen = sizeof recdata_v3;
+			dbd.dbdata_flags = DKIMF_DB_DATA_BINARY;
+
+			keylen = sizeof jobid - 1;
+			datalen = sizeof recdata_v1;
+			status = dkimf_db_walk(db, first, jobid, &keylen,
+			                       &dbd, 1);
+			first = FALSE;
+			if (status == 1)
+			{
+				done = TRUE;
+				break;
+			}
+			else if (status == -1)
+			{
+				fprintf(stderr,
+				        "%s: %s: dkimf_db_walk() failed\n",
+				        progname, path);
+				done = TRUE;
+				break;
+			}
+			else if (strncmp(jobid, DKIMF_STATS_SENTINEL,
+			                 strlen(DKIMF_STATS_SENTINEL)) == 0)
+			{
+				continue;
+			}
+
+			/* dump record contents */
+			if (columns)
+				fprintf(out, "=%s\t%s\t", jobid, hostname);
+			else
+				fprintf(out, "%s\t", jobid);
+
+			if (anon)
+			{
+				int c;
+				MD5_CTX md5;
+				unsigned char md5out[MD5_DIGEST_LENGTH];
+				char hashout[BUFRSZ];
+
+				(void) MD5_Init(&md5);
+				(void) MD5_Update(&md5,
+				                  recdata_v3.sd_fromdomain,
+				                  strlen(recdata_v3.sd_fromdomain));
+				(void) MD5_Final(md5out, &md5);
+
+				memset(hashout, '\0', sizeof hashout);
+
+				for (c = 0; c < sizeof md5out; c++)
+				{
+					snprintf(&hashout[c * 2], 3,
+					         "%02x", md5out[c]);
+				}
+
+				fprintf(out, "%s\t", hashout);
+			}
+			else
+			{
+				fprintf(out, "%s\t", recdata_v3.sd_fromdomain);
+			}
+
+			memset(ipbuf, '\0', sizeof ipbuf);
+#ifdef AF_INET6
+			if (recdata_v3.sd_sockinfo.ss_family == AF_INET6)
+			{
+				struct sockaddr_in6 *sa;
+
+				sa = (struct sockaddr_in6 *) &recdata_v3.sd_sockinfo;
+
+				(void) inet_ntop(AF_INET6, &sa->sin6_addr,
+				                 ipbuf, sizeof ipbuf);
+			}
+#endif /* AF_INET6 */
+#ifdef AF_INET
+			if (recdata_v3.sd_sockinfo.ss_family == AF_INET)
+			{
+				struct sockaddr_in *sa;
+
+				sa = (struct sockaddr_in *) &recdata_v3.sd_sockinfo;
+
+				(void) inet_ntop(AF_INET, &sa->sin_addr,
+				                 ipbuf, sizeof ipbuf);
+			}
+#endif /* AF_INET */
+
+			if (anon)
+			{
+				int c;
+				MD5_CTX md5;
+				unsigned char md5out[MD5_DIGEST_LENGTH];
+				char hashout[BUFRSZ];
+
+				(void) MD5_Init(&md5);
+				(void) MD5_Update(&md5, ipbuf, strlen(ipbuf));
+				(void) MD5_Final(md5out, &md5);
+
+				memset(hashout, '\0', sizeof hashout);
+
+				for (c = 0; c < sizeof md5out; c++)
+				{
+					snprintf(&hashout[c * 2], 3,
+					         "%02x", md5out[c]);
+				}
+
+				fprintf(out, "%s\t", hashout);
+			}
+			else
+			{
+				fprintf(out, "%s\t", ipbuf);
+			}
+
+			dkims_output(out, "anon", anon, TRUE);
+			dkims_output(out, "when", recdata_v3.sd_when, TRUE);
+			dkims_output(out, "alg", recdata_v3.sd_alg, TRUE);
+			dkims_output(out, "hc", recdata_v3.sd_hdrcanon, TRUE);
+			dkims_output(out, "bc", recdata_v3.sd_bodycanon, TRUE);
+			dkims_output(out, "total", recdata_v3.sd_totalsigs,
+			             TRUE);
+			dkims_output(out, "pass", recdata_v3.sd_pass, TRUE);
+			dkims_output(out, "fail", recdata_v3.sd_fail, TRUE);
+			dkims_output(out, "failbody", recdata_v3.sd_failbody,
+			             TRUE);
+			dkims_output(out, "ext", recdata_v3.sd_extended, TRUE);
+			dkims_output(out, "keyt", recdata_v3.sd_key_t, TRUE);
+			dkims_output(out, "keyg", recdata_v3.sd_key_g, TRUE);
+			dkims_output(out, "keysyntax",
+			             recdata_v3.sd_key_syntax, TRUE);
+			dkims_output(out, "keynx", recdata_v3.sd_key_missing,
+			             TRUE);
+			dkims_output(out, "keydk", recdata_v3.sd_key_dk_compat,
+			             TRUE);
+			dkims_output(out, "keyrev", recdata_v3.sd_key_revoked,
+			             TRUE);
+			dkims_output(out, "dnssecunk",
+			             recdata_v3.sd_dnssec_unknown, TRUE);
+			dkims_output(out, "dnssecbogus",
+			             recdata_v3.sd_dnssec_bogus, TRUE);
+			dkims_output(out, "dnssecinsec",
+			             recdata_v3.sd_dnssec_insecure, TRUE);
+			dkims_output(out, "dnssecsec",
+			             recdata_v3.sd_dnssec_secure, TRUE);
+			dkims_output(out, "sigt", recdata_v3.sd_sig_t, TRUE);
+			dkims_output(out, "sigtfut",
+			             recdata_v3.sd_sig_t_future, TRUE);
+			dkims_output(out, "sigx", recdata_v3.sd_sig_x, TRUE);
+			dkims_output(out, "sigl", recdata_v3.sd_sig_l, TRUE);
+			dkims_output(out, "sigz", recdata_v3.sd_sig_z, TRUE);
+			dkims_output(out, "adsp", recdata_v3.sd_adsp_found,
+			             TRUE);
+			dkims_output(out, "adspunknown",
+			             recdata_v3.sd_adsp_unknown,
+			             TRUE);
+			dkims_output(out, "adspall", recdata_v3.sd_adsp_all,
+			             TRUE);
+			dkims_output(out, "adspdisc",
+			             recdata_v3.sd_adsp_discardable, TRUE);
+			dkims_output(out, "adspfail",
+			             recdata_v3.sd_adsp_fail, TRUE);
+			dkims_output(out, "asigs", recdata_v3.sd_authorsigs,
+			             TRUE);
+			dkims_output(out, "asigsfail",
+			             recdata_v3.sd_authorsigsfail, TRUE);
+			dkims_output(out, "tpsigs",
+			             recdata_v3.sd_thirdpartysigs, TRUE);
+			dkims_output(out, "tpsigsfail",
+			             recdata_v3.sd_thirdpartysigsfail, TRUE);
+			dkims_output(out, "mlist", recdata_v3.sd_mailinglist,
+			             TRUE);
+			dkims_output(out, "rhcnt", recdata_v3.sd_received,
 			             FALSE);
 
 			fprintf(out, "\n");
@@ -594,7 +776,7 @@ main(int argc, char **argv)
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 
 	anon = TRUE;
-	csv = FALSE;
+	columns = FALSE;
 
 	memset(hostname, '\0', sizeof hostname);
 	(void) gethostname(hostname, sizeof hostname);
@@ -608,7 +790,7 @@ main(int argc, char **argv)
 			break;
 
 		  case 'c':
-			csv = TRUE;
+			columns = TRUE;
 			break;
 
 		  case 'h':

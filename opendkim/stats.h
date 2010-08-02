@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.h,v 1.7.8.2 2010/08/02 23:00:10 cm-msk Exp $
+**  $Id: stats.h,v 1.7.8.3 2010/08/02 23:31:42 cm-msk Exp $
 */
 
 #ifndef _STATS_H_
 #define _STATS_H_
 
 #ifndef lint
-static char stats_h_id[] = "@(#)$Id: stats.h,v 1.7.8.2 2010/08/02 23:00:10 cm-msk Exp $";
+static char stats_h_id[] = "@(#)$Id: stats.h,v 1.7.8.3 2010/08/02 23:31:42 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -97,6 +97,7 @@ struct dkim_stats_data_v3
 	u_int		sd_key_syntax;
 	u_int		sd_key_missing;
 	u_int		sd_key_dk_compat;
+	u_int		sd_key_revoked;
 	u_int		sd_sig_t;
 	u_int		sd_sig_t_future;
 	u_int		sd_sig_x;

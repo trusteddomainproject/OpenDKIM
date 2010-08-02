@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.14 2010/07/11 06:47:27 cm-msk Exp $
+**  $Id: stats.c,v 1.14.10.1 2010/08/02 23:31:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14 2010/07/11 06:47:27 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.1 2010/08/02 23:31:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -94,7 +94,7 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 	char *p;
 	char *dberr = NULL;
 	DKIM_SIGINFO **sigs;
-	struct dkim_stats_data_v2 recdata;
+	struct dkim_stats_data_v3 recdata;
 	struct dkimf_db_data dbd;
 
 	assert(path != NULL);
@@ -259,6 +259,25 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 		if (sigfailedbody)
 			recdata.sd_failbody++;
 
+		switch (dkim_sig_getdnssec(sigs[c]))
+		{
+		  case DKIM_DNSSEC_UNKNOWN:
+			recdata.sd_dnssec_unknown++;
+			break;
+
+		  case DKIM_DNSSEC_BOGUS:
+			recdata.sd_dnssec_bogus++;
+			break;
+
+		  case DKIM_DNSSEC_INSECURE:
+			recdata.sd_dnssec_insecure++;
+			break;
+
+		  case DKIM_DNSSEC_SECURE:
+			recdata.sd_dnssec_secure++;
+			break;
+		}
+
 		if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_TESTKEY) != 0)
 			recdata.sd_key_t++;
 
@@ -302,8 +321,15 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 				recdata.sd_extended++;
 		}
 
-		if (dkim_sig_gettagvalue(sigs[c], TRUE, "g") != NULL)
+		p = dkim_sig_gettagvalue(sigs[c], TRUE, "g");
+		if (p != NULL)
+		{
 			recdata.sd_key_g++;
+
+			if (p[0] == '\0' &&
+			    dkim_sig_gettagvalue(sigs[c], TRUE, "v") == NULL)
+				recdata.sd_key_dk_compat++;
+		}
 
 		p = dkim_sig_gettagvalue(sigs[c], FALSE, "t");
 		if (p != NULL)
@@ -359,6 +385,10 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 		  case DKIM_SIGERROR_KEYDECODE:
 			recdata.sd_key_syntax++;
 			break;
+
+		  case DKIM_SIGERROR_KEYREVOKED:
+			recdata.sd_key_revoked++;
+			break;
 		}
 	}
 
@@ -366,14 +396,24 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 	{
 		recdata.sd_adsp_found++;
 
-		if (!validauthorsig)
+		switch (pcode)
 		{
-			if (pcode == DKIM_POLICY_ALL)
-				recdata.sd_adsp_fail++;
-			if (pcode == DKIM_POLICY_DISCARDABLE)
-				recdata.sd_adsp_discardable++;
+		  case DKIM_POLICY_UNKNOWN:
+			recdata.sd_adsp_unknown++;
+			break;
+
+		  case DKIM_POLICY_ALL:
+			recdata.sd_adsp_all++;
+			break;
+
+		  case DKIM_POLICY_DISCARDABLE:
+			recdata.sd_adsp_discardable++;
+			break;
 		}
 	}
+
+	if (!validauthorsig)
+		recdata.sd_adsp_fail++;
 
 	/* write it out */
 	status = dkimf_db_put(db, jobid, strlen(jobid), &recdata,
