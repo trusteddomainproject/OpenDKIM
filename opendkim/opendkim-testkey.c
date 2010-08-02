@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-testkey.c,v 1.8 2010/07/23 06:13:20 cm-msk Exp $
+**  $Id: opendkim-testkey.c,v 1.9 2010/08/02 03:18:22 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.8 2010/07/23 06:13:20 cm-msk Exp $";
+static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.9 2010/08/02 03:18:22 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -484,7 +484,7 @@ main(int argc, char **argv)
 		{
 			fprintf(stdout,
 			        "%s: %d key%s checked; %d pass, %d fail\n",
-			        progname, c, pass, fail);
+			        progname, c, c == 1 ? "" : "s", pass, fail);
 		}
 
 		(void) dkim_close(lib);
