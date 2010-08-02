@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.50 2010/08/02 05:48:39 grooverdan Exp $
+# $Id: Makefile.am,v 1.51 2010/08/02 17:43:23 cm-msk Exp $
 
 
 SUBDIRS=tests docs
@@ -86,8 +86,6 @@ if USE_TRE
 libopendkim_la_CFLAGS += $(LIBTRE_CFLAGS)
 libopendkim_la_LIBADD += $(LIBTRE_LIBS)
 endif
-
-
 
 if USE_UNBOUND
 libopendkim_la_CC = $(PTHREAD_CC)
