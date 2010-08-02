@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.91 2010/07/31 09:55:19 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.92 2010/08/02 03:17:22 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.91 2010/07/31 09:55:19 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.92 2010/08/02 03:17:22 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3878,18 +3878,20 @@ dkimf_db_fd(DKIMF_DB db)
 {
 	int fd = -1;
 
+#ifdef USE_DB
 	if (db->db_type == DKIMF_DB_TYPE_BDB)
 	{
 		DB *bdb;
 
 		bdb = (DB *) db->db_handle;
 
-#if DB_VERSION_CHECK(2,0,0)
+# if DB_VERSION_CHECK(2,0,0)
 		(void) bdb->fd(bdb, &fd);
-#else /* DB_VERSION_CHECK(2,0,0) */
+# else /* DB_VERSION_CHECK(2,0,0) */
 		fd = bdb->fd(bdb);
-#endif /* DB_VERSION_CHECK(2,0,0) */
+# endif /* DB_VERSION_CHECK(2,0,0) */
 	}
+#endif /* USE_DB */
 
 	return fd;
 }
