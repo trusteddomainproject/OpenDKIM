@@ -1,6 +1,6 @@
 #!/bin/sh
 ##
-## $Id: opendkim-importstats.in,v 1.2 2010/07/22 03:14:37 cm-msk Exp $
+## $Id: opendkim-importstats.in,v 1.3 2010/08/03 06:28:21 cm-msk Exp $
 ##
 ## Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 ##
@@ -11,7 +11,7 @@
 database="opendkim"
 user="opendkim"
 password="opendkim"
-statsdb="/var/db/opendkim/opendkim-stats.db"
+statsdb=""
 anon="yes"
 
 progname=`basename $0`
@@ -37,16 +37,6 @@ do
 		database=$1
 		;;
 
-	-u)	if [ $# -eq 1 ]
-		then
-			echo $progname: -u requires a value
-			exit 1
-		fi
-
-		shift
-		user=$1
-		;;
-
 	-p)	if [ $# -eq 1 ]
 		then
 			echo $progname: -p requires a value
@@ -67,6 +57,16 @@ do
 		statsdb=$1
 		;;
 
+	-u)	if [ $# -eq 1 ]
+		then
+			echo $progname: -u requires a value
+			exit 1
+		fi
+
+		shift
+		user=$1
+		;;
+
 	*)	echo $progname: unknown flag $1
 		exit 1
 		;;
@@ -83,16 +83,18 @@ else
 	anonstr="-a"
 fi
 
-tmpfile=$(mktemp  --tmpdir olddbstore-XXXX.sql)
+tmpfile=$(mktemp --tmpdir olddbstore-XXXX.sql)
 chmod a+r "${tmpfile}"
 if [ x"$statsdb" != x"" ]
 then
 	opendkim-stats ${anonstr} -c -r "${statsdb}" > "${tmpfile}" || exit 1
+else
+	grep '^=' > "${tmpfile}"
 fi
 
 mysql --user="${user}" --password="${password}" -e "CREATE DATABASE IF NOT EXISTS \`${database}\`;" || exit 1
 
-mysql --user="${user}" --password="${password}"  "${database}" < @docdir@/mkdb.mysql || exit 1
+mysql --user="${user}" --password="${password}" "${database}" < @docdir@/mkdb.mysql || exit 1
 
 ## construct import command
 import="load data infile \"${tmpfile}\"
