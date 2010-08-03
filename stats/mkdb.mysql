@@ -1,4 +1,4 @@
--- $Id: mkdb.mysql,v 1.4.2.4 2010/08/03 17:10:42 cm-msk Exp $
+-- $Id: mkdb.mysql,v 1.4.2.5 2010/08/03 20:50:25 cm-msk Exp $
 
 -- MySQL command sequence to create a database to accumulate OpenDKIM
 -- statistics reports
@@ -48,5 +48,6 @@ create table if not exists opendkim_statistics (
 	author_sigs_fail int unsigned not null,
 	tp_sigs int unsigned not null,
 	tp_sigs_fail int unsigned not null,
-	mailing_list int unsigned not null
+	mailing_list int unsigned not null,
+	received_count int unsigned not null
 ) default charset=latin1;
