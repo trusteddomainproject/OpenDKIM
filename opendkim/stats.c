@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.14.10.1 2010/08/02 23:31:42 cm-msk Exp $
+**  $Id: stats.c,v 1.14.10.2 2010/08/03 17:10:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.1 2010/08/02 23:31:42 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.2 2010/08/03 17:10:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -252,6 +252,8 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 				sigfailedbody = TRUE;
 		}
 
+		if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_IGNORE) != 0)
+			recdata.sd_ignore++;
 		if (sigpassed)
 			recdata.sd_pass++;
 		if (sigfailed)

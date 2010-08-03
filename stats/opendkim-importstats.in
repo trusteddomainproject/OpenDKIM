@@ -1,6 +1,6 @@
 #!/bin/sh
 ##
-## $Id: opendkim-importstats.in,v 1.2.8.2 2010/08/02 22:58:48 cm-msk Exp $
+## $Id: opendkim-importstats.in,v 1.2.8.3 2010/08/03 17:10:42 cm-msk Exp $
 ##
 ## Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 ##
@@ -109,6 +109,7 @@ import="load data infile \"${tmpfile}\"
 		hdr_canon,
 		body_canon,
 		sigs_total,
+		sigs_ignore,
 		sigs_pass,
 		sigs_fail,
 		sigs_fail_body,

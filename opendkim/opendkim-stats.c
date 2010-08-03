@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.13.2.1 2010/08/02 23:31:42 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.13.2.2 2010/08/03 17:10:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.13.2.1 2010/08/02 23:31:42 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.13.2.2 2010/08/03 17:10:42 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -552,6 +552,8 @@ dkims_dump(char *path, char *mailto)
 			dkims_output(out, "hc", recdata_v3.sd_hdrcanon, TRUE);
 			dkims_output(out, "bc", recdata_v3.sd_bodycanon, TRUE);
 			dkims_output(out, "total", recdata_v3.sd_totalsigs,
+			             TRUE);
+			dkims_output(out, "ignore", recdata_v3.sd_ignore,
 			             TRUE);
 			dkims_output(out, "pass", recdata_v3.sd_pass, TRUE);
 			dkims_output(out, "fail", recdata_v3.sd_fail, TRUE);
