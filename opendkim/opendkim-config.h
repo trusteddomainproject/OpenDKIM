@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.21 2010/07/23 19:09:16 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.22 2010/08/03 17:36:44 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.21 2010/07/23 19:09:16 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.22 2010/08/03 17:36:44 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -136,10 +136,10 @@ struct configdef dkimf_config[] =
 	{ "RequireSafeKeys",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ResignAll",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ResignMailTo",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_RESIGN */
 #ifdef USE_LUA
 	{ "ScreenPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* USE_LUA */
-#endif /* _FFR_RESIGN */
 	{ "Selector",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef USE_LUA
 	{ "SetupPolicyScript",		CONFIG_TYPE_STRING,	FALSE },

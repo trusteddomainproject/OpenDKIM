@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.173 2010/07/25 18:54:41 cm-msk Exp $
+**  $Id: opendkim.c,v 1.174 2010/08/03 17:36:44 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.173 2010/07/25 18:54:41 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.174 2010/08/03 17:36:44 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2169,7 +2169,7 @@ dkimf_xs_getsighandle(lua_State *l)
 
 	if (ctx == NULL)
 	{
-		lua_pushnil(l);
+		lua_pushlightuserdata(l, NULL);
 		return 1;
 	}
 
@@ -2234,7 +2234,7 @@ dkimf_xs_getsigdomain(lua_State *l)
 	lua_pop(l, 1);
 
 	if (sig == NULL)
-		lua_pushstring(l, "dkim_xs_getsigdomain");
+		lua_pushlightuserdata(l, NULL);
 	else
 		lua_pushstring(l, dkim_sig_getdomain(sig));
 
