@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.13.2.2 2010/08/03 17:10:42 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.13.2.3 2010/08/04 18:48:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.13.2.2 2010/08/03 17:10:42 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.13.2.3 2010/08/04 18:48:27 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -578,11 +578,15 @@ dkims_dump(char *path, char *mailto)
 			             recdata_v3.sd_dnssec_insecure, TRUE);
 			dkims_output(out, "dnssecsec",
 			             recdata_v3.sd_dnssec_secure, TRUE);
+			dkims_output(out, "sigsyntax",
+			             recdata_v3.sd_sig_syntax, TRUE);
 			dkims_output(out, "sigt", recdata_v3.sd_sig_t, TRUE);
 			dkims_output(out, "sigtfut",
 			             recdata_v3.sd_sig_t_future, TRUE);
 			dkims_output(out, "sigx", recdata_v3.sd_sig_x, TRUE);
 			dkims_output(out, "sigl", recdata_v3.sd_sig_l, TRUE);
+			dkims_output(out, "siglzero", recdata_v3.sd_sig_l_zero,
+			             TRUE);
 			dkims_output(out, "sigz", recdata_v3.sd_sig_z, TRUE);
 			dkims_output(out, "adsp", recdata_v3.sd_adsp_found,
 			             TRUE);

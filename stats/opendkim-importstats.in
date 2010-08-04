@@ -1,6 +1,6 @@
 #!/bin/sh
 ##
-## $Id: opendkim-importstats.in,v 1.2.8.4 2010/08/03 20:50:26 cm-msk Exp $
+## $Id: opendkim-importstats.in,v 1.2.8.5 2010/08/04 18:48:27 cm-msk Exp $
 ##
 ## Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 ##
@@ -123,6 +123,7 @@ import="load data infile \"${tmpfile}\"
 		sig_t_future,
 		sig_x,
 		sig_l,
+		sig_l_zero,
 		sig_z,
 		dnssec_unknown,
 		dnssec_bogus,

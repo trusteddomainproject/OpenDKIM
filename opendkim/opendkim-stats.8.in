@@ -129,6 +129,9 @@ Count of signatures whose keys were determined by DNSSEC to be unsecured.
 .I dnssecec
 Count of signatures whose keys were determined by DNSSEC to be secured.
 .TP
+.I sigsyntax
+Count of signatures on this message that contained one or more syntax errors.
+.TP
 .I sigt
 Count of signatures on this message that contained a "t=" tag.
 .TP
@@ -141,6 +144,10 @@ Count of signatures on this message that contained an "x=" tag.
 .TP
 .I sigl
 Count of signatures on this message that contained an "l=" tag.
+.TP
+.I siglzero
+Count of signatures on this message that contained an "l=" tag with a value
+of zero.
 .TP
 .I sigz
 Count of signatures on this message that contained a "z=" tag.

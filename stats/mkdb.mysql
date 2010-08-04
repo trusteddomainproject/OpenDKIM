@@ -1,4 +1,4 @@
--- $Id: mkdb.mysql,v 1.4.2.5 2010/08/03 20:50:25 cm-msk Exp $
+-- $Id: mkdb.mysql,v 1.4.2.6 2010/08/04 18:48:27 cm-msk Exp $
 
 -- MySQL command sequence to create a database to accumulate OpenDKIM
 -- statistics reports
@@ -34,6 +34,7 @@ create table if not exists opendkim_statistics (
 	sig_t_future int unsigned not null,
 	sig_x int unsigned not null,
 	sig_l int unsigned not null,
+	sig_l_zero int unsigned not null,
 	sig_z int unsigned not null,
 	dnssec_unknown int unsigned not null,
 	dnssec_bogus int unsigned not null,

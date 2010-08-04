@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.14.10.2 2010/08/03 17:10:42 cm-msk Exp $
+**  $Id: stats.c,v 1.14.10.3 2010/08/04 18:48:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.2 2010/08/03 17:10:42 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.3 2010/08/04 18:48:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -321,6 +321,8 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 
 			if (msglen > signlen)
 				recdata.sd_extended++;
+			if (signlen == 0)
+				recdata.sd_sig_l_zero++;
 		}
 
 		p = dkim_sig_gettagvalue(sigs[c], TRUE, "g");
@@ -376,20 +378,23 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 		  case DKIM_SIGERROR_MISSING_B:
 		  case DKIM_SIGERROR_EMPTY_B:
 		  case DKIM_SIGERROR_CORRUPT_B:
-		  case DKIM_SIGERROR_DNSSYNTAX:
 		  case DKIM_SIGERROR_MISSING_BH:
 		  case DKIM_SIGERROR_EMPTY_BH:
 		  case DKIM_SIGERROR_CORRUPT_BH:
-		  case DKIM_SIGERROR_MULTIREPLY:
 		  case DKIM_SIGERROR_EMPTY_H:
 		  case DKIM_SIGERROR_TOOLARGE_L:
-		  case DKIM_SIGERROR_KEYHASHMISMATCH:
-		  case DKIM_SIGERROR_KEYDECODE:
-			recdata.sd_key_syntax++;
+			recdata.sd_sig_syntax++;
 			break;
 
 		  case DKIM_SIGERROR_KEYREVOKED:
 			recdata.sd_key_revoked++;
+			break;
+
+		  case DKIM_SIGERROR_KEYHASHMISMATCH:
+		  case DKIM_SIGERROR_KEYDECODE:
+		  case DKIM_SIGERROR_DNSSYNTAX:
+		  case DKIM_SIGERROR_MULTIREPLY:
+			recdata.sd_key_syntax++;
 			break;
 		}
 	}
