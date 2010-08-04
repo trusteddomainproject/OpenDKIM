@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.174 2010/08/03 17:36:44 cm-msk Exp $
+**  $Id: opendkim.c,v 1.175 2010/08/04 22:19:24 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.174 2010/08/03 17:36:44 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.175 2010/08/04 22:19:24 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -10533,10 +10533,10 @@ mlfi_eom(SMFICTX *ctx)
 				else
 				{
 					int c;
-# ifdef _FFR_DIFFHEADERS
+#ifdef _FFR_DIFFHEADERS
 					int ndiffs;
 					struct dkim_hdrdiff *diffs;
-# endif /* _FFR_DIFFHEADERS */
+#endif /* _FFR_DIFFHEADERS */
 					struct Header *hdr;
 
 					fprintf(f, "z tag headers:\n\n");
@@ -10580,6 +10580,8 @@ mlfi_eom(SMFICTX *ctx)
 							        diffs[c].hd_old,
 							        diffs[c].hd_new);
 						}
+
+						free(diffs);
 					}
 #endif /* _FFR_DIFFHEADERS */
 
