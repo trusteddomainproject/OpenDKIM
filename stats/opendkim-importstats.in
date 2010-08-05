@@ -1,6 +1,6 @@
 #!/bin/sh
 ##
-## $Id: opendkim-importstats.in,v 1.2.8.7 2010/08/05 00:13:14 cm-msk Exp $
+## $Id: opendkim-importstats.in,v 1.2.8.8 2010/08/05 00:14:16 cm-msk Exp $
 ##
 ## Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 ##
@@ -102,8 +102,8 @@ import="load data infile \"${tmpfile}\"
 	lines starting by '='
 	(
 		jobid,
-		from_domain,
 		reporter,
+		from_domain,
 		ipaddr,
 		anonymized,
 		@msgtime,
