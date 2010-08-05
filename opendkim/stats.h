@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.h,v 1.7.8.6 2010/08/04 18:48:27 cm-msk Exp $
+**  $Id: stats.h,v 1.7.8.7 2010/08/05 00:13:14 cm-msk Exp $
 */
 
 #ifndef _STATS_H_
 #define _STATS_H_
 
 #ifndef lint
-static char stats_h_id[] = "@(#)$Id: stats.h,v 1.7.8.6 2010/08/04 18:48:27 cm-msk Exp $";
+static char stats_h_id[] = "@(#)$Id: stats.h,v 1.7.8.7 2010/08/05 00:13:14 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -30,6 +30,9 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.7.8.6 2010/08/04 18:48:27 cm-ms
 
 /* sentinel record */
 #define	DKIMF_STATS_SENTINEL	"@"
+
+/* sizes of things */
+#define	DKIMF_STATS_HDRLIST	256
 
 /* data types */
 struct dkim_stats_key_v1
@@ -123,6 +126,7 @@ struct dkim_stats_data_v3
 	u_int		sd_received;
 	struct sockaddr_storage sd_sockinfo;
 	char		sd_fromdomain[DKIM_MAXHOSTNAMELEN + 1];
+	char		sd_changed[DKIMF_STATS_HDRLIST + 1];
 };
 
 /* PROTOTYPES */

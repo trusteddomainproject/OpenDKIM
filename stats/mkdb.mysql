@@ -1,9 +1,9 @@
--- $Id: mkdb.mysql,v 1.4.2.7 2010/08/04 18:49:43 cm-msk Exp $
+-- $Id: mkdb.mysql,v 1.4.2.8 2010/08/05 00:13:14 cm-msk Exp $
 
 -- MySQL command sequence to create a database to accumulate OpenDKIM
 -- statistics reports
 
-create table if not exists opendkim_statistics (
+create table if not exists statistics (
 	id int unsigned not null auto_increment,
 		primary key(id),
 	jobid varchar(255) not null,
@@ -52,4 +52,14 @@ create table if not exists opendkim_statistics (
 	tp_sigs_fail int unsigned not null,
 	mailing_list int unsigned not null,
 	received_count int unsigned not null
+) default charset=latin1;
+
+create table if not exists headers (
+	id int unsigned not null auto_increment,
+		primary key(id),
+	jobid varchar(255) not null,
+		key(jobid),
+	reporter varchar(255) not null,
+		key(reporter),
+	header varchar(255) not null
 ) default charset=latin1;

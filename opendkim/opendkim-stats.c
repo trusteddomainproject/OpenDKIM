@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.13.2.3 2010/08/04 18:48:27 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.13.2.4 2010/08/05 00:13:14 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.13.2.3 2010/08/04 18:48:27 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "@(#)$Id: opendkim-stats.c,v 1.13.2.4 2010/08/05 00:13:14 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -611,8 +611,20 @@ dkims_dump(char *path, char *mailto)
 			             TRUE);
 			dkims_output(out, "rhcnt", recdata_v3.sd_received,
 			             FALSE);
-
 			fprintf(out, "\n");
+
+			if (columns && recdata_v3.sd_changed[0] != '\0')
+			{
+				char *p;
+
+				for (p = strtok(recdata_v3.sd_changed, ",");
+				     p != NULL;
+				     p = strtok(NULL, ","))
+				{
+					fprintf(out, ":%s\t%s\t%s\n", jobid,
+					        hostname, p);
+				}
+			}
 				
 			break;
 

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.14.10.3 2010/08/04 18:48:27 cm-msk Exp $
+**  $Id: stats.c,v 1.14.10.4 2010/08/05 00:13:14 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.3 2010/08/04 18:48:27 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.4 2010/08/05 00:13:14 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -33,6 +33,7 @@ static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.3 2010/08/04 18:48:27 cm-
 
 /* opendkim ncludes */
 #include "stats.h"
+#include "util.h"
 #include "opendkim.h"
 #include "opendkim-db.h"
 
@@ -83,6 +84,9 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 	int status = 0;
 	int version;
 	int nsigs;
+#ifdef _FFR_DIFFHEADERS
+	int nhdrs;
+#endif /* _FFR_DIFFHEADERS */
 	int err;
 	int c;
 	int ret = 0;
@@ -93,6 +97,9 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 	char *from;
 	char *p;
 	char *dberr = NULL;
+#ifdef _FFR_DIFFHEADERS
+	char *ohdrs[MAXHDRCNT];
+#endif /* _FFR_DIFFHEADERS */
 	DKIM_SIGINFO **sigs;
 	struct dkim_stats_data_v3 recdata;
 	struct dkimf_db_data dbd;
@@ -421,6 +428,48 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 
 	if (!validauthorsig)
 		recdata.sd_adsp_fail++;
+
+#ifdef _FFR_DIFFHEADERS
+	for (c = 0; c < nsigs; c++)
+	{
+		int ndiffs;
+		struct dkim_hdrdiff *diffs;
+
+		nhdrs = MAXHDRCNT;
+
+		if (dkim_ohdrs(dkimv, sigs[c], ohdrs, &nhdrs) == DKIM_STAT_OK)
+		{
+			if (dkim_diffheaders(dkimv, 0, ohdrs, nhdrs,
+			                     &diffs, &ndiffs) == DKIM_STAT_OK)
+			{
+				int n;
+				char *p;
+
+				for (n = 0; n < ndiffs; n++)
+				{
+					p = strchr(diffs[n].hd_old, ':');
+					if (p != NULL)
+						*p = '\0';
+					dkimf_lowercase(diffs[n].hd_old);
+
+					if (recdata.sd_changed[0] != '\0')
+					{
+						strlcat(recdata.sd_changed,
+						        ",",
+						        sizeof recdata.sd_changed);
+					}
+
+					strlcat(recdata.sd_changed,
+					        diffs[n].hd_old,
+					        sizeof recdata.sd_changed);
+				}
+
+				if (ndiffs > 0)
+					free(diffs);
+			}
+		}
+	}
+#endif /* _FFR_DIFFHEADERS */
 
 	/* write it out */
 	status = dkimf_db_put(db, jobid, strlen(jobid), &recdata,
