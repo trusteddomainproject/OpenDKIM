@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.161 2010/07/23 19:09:16 cm-msk Exp $
+# $Id: configure.ac,v 1.162 2010/08/06 13:48:23 cm-msk Exp $
 
 #
 # Setup
@@ -1211,6 +1211,13 @@ then
 	else
 		bdb="no"
 	fi
+fi
+
+if test x"$bdb" != x"yes" -a x"$bdb" != x"no"
+then
+	bdb_incdir=$bdb/include
+	bdb_libdir=$bdb/lib
+	bdb="yes"
 fi
 
 if test x"$bdb" = x"yes"
