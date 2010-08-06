@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.14.10.4 2010/08/05 00:13:14 cm-msk Exp $
+**  $Id: stats.c,v 1.14.10.5 2010/08/06 18:16:27 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.4 2010/08/05 00:13:14 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.5 2010/08/06 18:16:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -340,6 +340,9 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 			if (p[0] == '\0' &&
 			    dkim_sig_gettagvalue(sigs[c], TRUE, "v") == NULL)
 				recdata.sd_key_dk_compat++;
+
+			if (p[0] != '\0' && p[0] != '*')
+				recdata.sd_key_g_name++;
 		}
 
 		p = dkim_sig_gettagvalue(sigs[c], FALSE, "t");
