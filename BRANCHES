@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.36 2010/08/06 04:24:59 cm-msk Exp $
+$Id: BRANCHES,v 1.37 2010/08/06 04:26:27 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -23,6 +23,9 @@ br-msk-adsp-lists
 
 br-msk-default-sender
 		New "DefaultSender" setting.
+
+br-msk-generic-dns
+		Generic DNS facilities.
 
 br-msk-lua-dbs	Support for abitrary data set operations from Lua scripts.
 
