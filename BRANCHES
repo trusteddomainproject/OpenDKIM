@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.35 2010/07/27 09:06:46 cm-msk Exp $
+$Id: BRANCHES,v 1.36 2010/08/06 04:24:59 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -29,6 +29,10 @@ br-msk-lua-dbs	Support for abitrary data set operations from Lua scripts.
 br-msk-single-auth-result
 		Feature request #SF2981598: Add "SingleAuthResult" and
 		"NoHeaderB" settings.
+
+br-msk-stats-update
+		Update to statistics code to support required reporting
+		features missed in the 2.1.x line.
 
 
 Closed Branches
