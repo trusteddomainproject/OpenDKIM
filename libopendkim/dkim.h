@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.29 2010/07/23 18:49:55 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.29.10.1 2010/08/08 07:19:10 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -141,6 +141,17 @@ typedef int DKIM_SIGERROR;
 #define	DKIM_SIGERROR_KEYTYPEUNKNOWN	41	/* key type unknown */
 #define	DKIM_SIGERROR_KEYREVOKED	42	/* key revoked */
 #define	DKIM_SIGERROR_KEYDECODE		43	/* key couldn't be decoded */
+
+/* generic DNS error codes */
+#define	DKIM_DNS_ERROR		(-1)		/* error in transit */
+#define	DKIM_DNS_SUCCESS	0		/* reply available */
+#define	DKIM_DNS_NOREPLY	1		/* reply not available (yet) */
+#define	DKIM_DNS_EXPIRED	2		/* no reply, query expired */
+
+#define	DKIM_DNSSEC_UNKNOWN	(-1)		/* not checked */
+#define	DKIM_DNSSEC_BOGUS	0		/* forged */
+#define	DKIM_DNSSEC_INSECURE	1		/* unprotected */
+#define	DKIM_DNSSEC_SECURE	2		/* verified */
 
 /*
 **  DKIM_CANON -- canonicalization method
@@ -1611,6 +1622,94 @@ extern size_t dkim_strlcat __P((char *, const char *, ssize_t));
 
 extern int dkim_qp_decode __P((unsigned char *, unsigned char *, int));
 
+/*
+**  DKIM_DNS_SET_QUERY_SERVICE -- stores a handle representing the DNS
+**                                query service to be used, returning any
+**                                previous handle
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	h -- handle to be used
+**
+**  Return value:
+**  	Previously stored handle, or NULL if none.
+*/
+
+extern void *dkim_dns_set_query_service __P((DKIM_LIB *, void *));
+
+/*
+**  DKIM_DNS_SET_QUERY_START -- stores a pointer to a query start function
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to start queries
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- receives handle stored by
+**  		             dkim_dns_set_query_service()
+**  		int type -- DNS RR query type (C_IN assumed)
+**  		char *query -- question to ask
+**  		char *buf -- buffer into which to write reply
+**  		size_t buflen -- size of buf
+**  		void **qh -- returned query handle
+*/
+
+extern void dkim_dns_set_query_start __P((DKIM_LIB *,
+                                          int (*)(void *, int, char *,
+                                                  unsigned char *,
+                                                  size_t, void **)));
+
+/*
+**  DKIM_DNS_SET_QUERY_CANCEL -- stores a pointer to a query cancel function
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to cancel running queries
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- DNS service handle
+**  		void *qh -- query handle to be canceled
+*/
+
+extern void dkim_dns_set_query_cancel __P((DKIM_LIB *,
+                                           int (*)(void *, void *)));
+
+/*
+**  DKIM_DNS_SET_QUERY_WAITREPLY -- stores a pointer to wait for a DNS reply
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to wait for a reply
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- DNS service handle
+**  		void *qh -- handle of query that has completed
+**  		struct timeval *timeout -- how long to wait
+**  		size_t *bytes -- bytes returned
+**  		int *error -- error code returned
+**  		int *dnssec -- DNSSEC status returned
+*/
+
+extern void dkim_dns_set_query_waitreply __P((DKIM_LIB *,
+                                              int (*)(void *, void *,
+                                                      struct timeval *,
+                                                      size_t *, int *,
+                                                      int *)));
 
 /* default list of sender headers */
 extern const u_char *dkim_default_senderhdrs[];

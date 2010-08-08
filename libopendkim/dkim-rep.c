@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.9 2010/02/25 20:11:46 cm-msk Exp $";
+static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.9.24.1 2010/08/08 07:19:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -155,12 +155,9 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 #ifdef QUERY_CACHE
 	uint32_t ttl;
 #endif /* QUERY_CACHE */
-#ifdef USE_ARLIB
 	int error;
-	AR_LIB ar;
-	AR_QUERY q;
+	void *q;
 	DKIM_LIB *lib;
-#endif /* USE_ARLIB */
 	char *ctx;
 	char *eq;
 	char *p;
@@ -172,9 +169,7 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 	MD5_CTX md5_domain;
 	MD5_CTX md5_signdomain;
 	HEADER hdr;
-#ifdef USE_ARLIB
 	struct timeval timeout;
-#endif /* USE_ARLIB */
 	unsigned char md5_user_str[MD5_DIGEST_LENGTH * 2 + 1];
 	unsigned char md5_domain_str[MD5_DIGEST_LENGTH * 2 + 1];
 	unsigned char md5_signdomain_str[MD5_DIGEST_LENGTH * 2 + 1];
@@ -213,25 +208,27 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 	snprintf(query, sizeof query, "%s.%s.%s.%s", md5_user_str,
 	         md5_domain_str, md5_signdomain_str, qroot);
 
-#ifdef USE_ARLIB
-	lib = dkim->dkim_libhandle;
-	ar = lib->dkiml_arlib;
-
+	/* start the query */
 	timeout.tv_sec = dkim->dkim_timeout;
 	timeout.tv_usec = 0;
 
-	q = ar_addquery(ar, query, C_IN, T_TXT, MAXCNAMEDEPTH, ansbuf,
-	                sizeof ansbuf, &error,
-	                dkim->dkim_timeout == 0 ? NULL : &timeout);
-	if (q == NULL)
+	anslen = sizeof ansbuf;
+
+	status = lib->dkiml_dns_start(lib->dkiml_dns_service, T_TXT, query,
+	                              dkim->dkim_timeout == 0 ? NULL
+	                                                      : &timeout,
+	                              ansbuf, &anslen, &q);
+
+	if (status != 0)
 	{
-		dkim_error(dkim, "ar_addquery() for `%s' failed", query);
+		dkim_error(dkim, "DNS query for `%s' failed", query);
 		return -2;
 	}
 
 	if (lib->dkiml_dns_callback == NULL)
 	{
-		status = ar_waitreply(ar, q, &anslen, NULL);
+		status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service, q,
+		                                  NULL, &anslen, NULL);
 	}
 	else
 	{
@@ -240,54 +237,23 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 			timeout.tv_sec = lib->dkiml_callback_int;
 			timeout.tv_usec = 0;
 
-			status = ar_waitreply(ar, q, &anslen, &timeout);
+			status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
+			                                  q, &timeout,
+			                                  &anslen, NULL);
 
-			if (status != AR_STAT_NOREPLY)
+			if (status != 1)
 				break;
 
 			lib->dkiml_dns_callback(dkim->dkim_user_context);
 		}
 	}
 
-	(void) ar_cancelquery(ar, q);
-#else /* USE_ARLIB */
-	status = res_query(query, C_IN, T_TXT, ansbuf, sizeof ansbuf);
-#endif /* USE_ARLIB */
-
-#if USE_ARLIB
-	if (status == AR_STAT_ERROR || status == AR_STAT_EXPIRED)
+	if (status != 0)
 	{
-		dkim_error(dkim, "ar_waitreply(): `%s' %s", query,
-		           status == AR_STAT_ERROR ? "error"
-		                                   : "expired");
+		dkim_error(dkim, "DNS query for `%s' failed: %s", query,
+		           status == -1 ? "error" : "expired");
 		return -1;
 	}
-#else /* USE_ARLIB */
-	/*
-	**  A -1 return from res_query could mean a bunch of things,
-	**  not just NXDOMAIN.  You can use h_errno to determine what
-	**  -1 means.  This is poorly documented.
-	*/
-
-	if (status == -1)
-	{
-		switch (h_errno)
-		{
-		  case HOST_NOT_FOUND:
-		  case NO_DATA:
-			return 0;
-
-		  case TRY_AGAIN:
-		  case NO_RECOVERY:
-		  default:
-			dkim_error(dkim, "res_query(): `%s' %s",
-			           query, hstrerror(h_errno));
-			return -1;
-		}
-	}
-
-	anslen = status;
-#endif /* USE_ARLIB */
 
 	/* set up pointers */
 	memcpy(&hdr, ansbuf, sizeof hdr);

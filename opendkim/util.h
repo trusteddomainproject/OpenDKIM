@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.h,v 1.10 2010/05/22 06:05:45 cm-msk Exp $
+**  $Id: util.h,v 1.10.14.1 2010/08/08 07:19:10 cm-msk Exp $
 */
 
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
 #ifndef lint
-static char util_h_id[] = "@(#)$Id: util.h,v 1.10 2010/05/22 06:05:45 cm-msk Exp $";
+static char util_h_id[] = "@(#)$Id: util.h,v 1.10.14.1 2010/08/08 07:19:10 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -79,5 +79,10 @@ extern void dkimf_dstring_chop __P((struct dkimf_dstring *, int));
 extern char *dkimf_dstring_get __P((struct dkimf_dstring *));
 extern int dkimf_dstring_len __P((struct dkimf_dstring *));
 extern void dkimf_dstring_blank __P((struct dkimf_dstring *));
+
+#ifdef USE_UNBOUND
+extern _Bool dkimf_timespec_past __P((struct timespec *tv));
+extern int dkimf_wait_fd __P((int fd, struct timespec *until));
+#endif /* USE_UNBOUND */
 
 #endif /* _UTIL_H_ */

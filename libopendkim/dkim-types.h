@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.16 2010/05/04 04:43:04 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.16.14.1 2010/08/08 07:19:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -44,10 +44,8 @@ static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.16 2010/05/04 04:43:0
 # include <db.h>
 #endif /* QUERY_CACHE */
 
-#ifdef USE_UNBOUND
 /* libunbound includes */
 # include <unbound.h>
-#endif /* USE_UNBOUND */
 
 /* libopendkim includes */
 #include "dkim.h"
@@ -115,9 +113,7 @@ struct dkim_siginfo
 	u_int			sig_hashtype;
 	u_int			sig_keytype;
 	u_int			sig_keybits;
-#ifdef USE_UNBOUND
 	u_int			sig_dnssec_key;
-#endif /* USE_UNBOUND */
 	size_t			sig_siglen;
 	size_t			sig_keylen;
 	size_t			sig_b64keylen;
@@ -248,9 +244,7 @@ struct dkim
 #endif /* QUERY_CACHE */
 	u_int			dkim_version;
 	u_int			dkim_sigcount;
-#ifdef USE_UNBOUND
 	u_int			dkim_dnssec_policy;
-#endif /* USE_UNBOUND */
 	size_t			dkim_margin;
 	size_t			dkim_b64siglen;
 	size_t			dkim_keylen;
@@ -306,9 +300,6 @@ struct dkim_lib
 {
 	_Bool			dkiml_signre;
 	_Bool			dkiml_skipre;
-#ifdef USE_UNBOUND
-	_Bool			dkiml_ub_poller;
-#endif /* USE_UNBOUND */
 	u_int			dkiml_flags;
 	u_int			dkiml_timeout;
 	u_int			dkiml_version;
@@ -335,11 +326,6 @@ struct dkim_lib
 #endif /* QUERY_CACHE */
 	regex_t			dkiml_hdrre;
 	regex_t			dkiml_skiphdrre;
-#ifdef USE_UNBOUND
-	struct ub_ctx *		dkiml_unbound_ctx;
-	pthread_mutex_t		dkiml_ub_lock;
-	pthread_cond_t		dkiml_ub_ready;
-#endif /* USE_UNBOUND */
 	DKIM_CBSTAT		(*dkiml_key_lookup) (DKIM *dkim,
 				                     DKIM_SIGINFO *sig,
 				                     u_char *buf,
@@ -364,6 +350,19 @@ struct dkim_lib
 				                DKIM_SIGINFO **sigs,
 				                int nsigs);
 	void			(*dkiml_dns_callback) (const void *context);
+	void			*dkiml_dns_service;
+	int			(*dkiml_dns_start) (void *srv, int type,
+				                    char *query,
+				                    unsigned char *buf,
+				                    size_t buflen,
+				                    void **qh);
+	int			(*dkiml_dns_cancel) (void *srv, void *qh);
+	int			(*dkiml_dns_waitreply) (void *srv,
+				                        void *qh,
+				                        struct timeval *to,
+				                        size_t *bytes,
+				                        int *error,
+				                        int *dnssec);
 	u_char			dkiml_tmpdir[MAXPATHLEN + 1];
 	u_char			dkiml_queryinfo[MAXPATHLEN + 1];
 };

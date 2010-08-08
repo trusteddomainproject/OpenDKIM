@@ -9,7 +9,7 @@
 #define _UTIL_H_
 
 #ifndef lint
-static char util_h_id[] = "@(#)$Id: util.h,v 1.3 2009/07/21 23:36:39 cm-msk Exp $";
+static char util_h_id[] = "@(#)$Id: util.h,v 1.3.48.1 2010/08/08 07:19:10 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -29,10 +29,6 @@ extern _Bool dkim_hdrlist __P((u_char *, size_t, u_char **, _Bool));
 extern int dkim_hexchar __P((int c));
 extern void dkim_lowerhdr __P((u_char *));
 extern int dkim_qp_decode __P((u_char *, u_char *, int));
-#ifdef USE_UNBOUND
-extern _Bool dkim_timespec_past __P((struct timespec *tv));
-extern int dkim_wait_fd __P((int fd, struct timespec *until));
-#endif /* USE_UNBOUND */
 
 #ifdef NEED_FAST_STRTOUL
 extern unsigned long dkim_strtoul __P((const char *str, char **endptr,

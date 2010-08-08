@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.76 2010/08/02 05:35:41 grooverdan Exp $
+# $Id: Makefile.am,v 1.76.4.1 2010/08/08 07:19:10 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -10,7 +10,7 @@ dist_doc_DATA = opendkim.conf.sample opendkim.conf.simple opendkim.conf.simple-v
 
 if BUILD_FILTER
 sbin_PROGRAMS += opendkim
-opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-lua.c opendkim-lua.h config.c config.h stats.c stats.h test.c test.h util.c util.h
+opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-dns.c opendkim-dns.h opendkim-lua.c opendkim-lua.h config.c config.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CC = $(PTHREAD_CC)
 opendkim_CFLAGS = $(PTHREAD_CFLAGS) $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
@@ -37,6 +37,11 @@ endif
 if USE_LDAP
 opendkim_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
 opendkim_LDADD += $(OPENLDAP_LIBS)
+endif
+if USE_UNBOUND
+opendkim_CPPFLAGS += $(LIBUNBOUND_INCDIRS)
+opendkim_LDFLAGS += $(LIBUNBOUND_LIBDIRS)
+opendkim_LDADD += $(LIBUNBOUND_LIBS)
 endif
 if VBR
 opendkim_CPPFLAGS += -I$(srcdir)/../libvbr

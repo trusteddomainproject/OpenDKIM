@@ -1,0 +1,85 @@
+<html>
+<head><title>dkim_dns_set_query_cancel()</title></head>
+<body>
+<!--
+$Id: dkim_dns_set_query_cancel.html,v 1.1.2.1 2010/08/08 07:19:10 cm-msk Exp $
+-->
+<h1>dkim_dns_set_query_cancel()</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+void *dkim_dns_set_query_cancel(
+        int (*func)(void *srv,
+                    void *qh);
+);
+</pre>
+Specifies a function that the library should call when it wishes to cancel
+a pending DNS query.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_dns_set_query_cancel()</tt> can be called at any time prior to
+DNS operations while verifying.</td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>func</td>
+	<td>A pointer to a function that should be called whenever
+	    libopendkim wishes to cancel a pending DNS query.
+	    The function should receive two void pointer arguments:
+	    one will be the one provided via a prior call to
+	    <a href="dkim_dns_set_query_service.html"><tt>dkim_dns_set_query_service()</tt></a>
+	    identifying the DNS service being used, and the other will be
+	    returned as part of a prior call to the function named by
+	    <a href="dkim_dns_set_query_start.html"><tt>dkim_dns_set_query_start()</tt></a>
+	    identifying a specific query.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Value ---------->
+<tr>
+<th valign="top" align=left>RETURN VALUES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>
