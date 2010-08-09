@@ -9,11 +9,7 @@
 *.gmon
 *.info
 *.prof
-t-*[0-9]
-t-verifyperf
-t-signperf
-t-cleanup
-t-setup
+ar_test*[0-9]
 .deps/
 .libs/
 autom4te.cache/
@@ -41,7 +37,3 @@ symbols.map
 .deps
 *.core
 core
-
-description.txt
-description.html
-*.core
