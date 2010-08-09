@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.16.14.1 2010/08/08 07:19:10 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.16.14.2 2010/08/09 05:10:50 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -312,12 +312,6 @@ struct dkim_lib
 	u_int *			dkiml_flist;
 	void *			(*dkiml_malloc) (void *closure, size_t nbytes);
 	void			(*dkiml_free) (void *closure, void *p);
-#if USE_ARLIB
-	AR_LIB			dkiml_arlib;
-# ifdef _FFR_DNSUPGRADE
-	AR_LIB			dkiml_arlibtcp;
-# endif /* _FFR_DNSUPGRADE */
-#endif /* USE_ARLIB */
 	u_char **		dkiml_senderhdrs;
 	u_char **		dkiml_alwayshdrs;
 	u_char **		dkiml_mbs;
