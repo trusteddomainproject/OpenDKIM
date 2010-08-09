@@ -1,4 +1,6 @@
-# $Id: Makefile.am,v 1.9 2010/04/12 15:08:46 cm-msk Exp $
+# $Id: Makefile.am,v 1.9.16.1 2010/08/09 04:10:03 cm-msk Exp $
+
+SUBDIRS = tests
 
 lib_LTLIBRARIES = libar.la
 libar_la_SOURCES = ar.c ar-strl.c manual.c ar-strl.h
