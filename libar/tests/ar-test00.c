@@ -3,7 +3,7 @@
 */
 
 #ifndef lint
-static char ar_test00_c_id[] = "@(#)$Id: ar-test00.c,v 1.1.2.1 2010/08/09 03:58:15 cm-msk Exp $";
+static char ar_test00_c_id[] = "@(#)$Id: ar-test00.c,v 1.1.2.2 2010/08/09 04:03:19 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -109,7 +109,7 @@ main(int argc, char **argv)
 		GETSHORT(type, cp);
 		assert(type == T_A);
 		GETSHORT(class, cp);
-		assert(type == C_IN);
+		assert(class == C_IN);
 	}
 
 	assert(hdr->rcode == NOERROR);
