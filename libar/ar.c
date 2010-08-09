@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char ar_c_id[] = "@(#)$Id: ar.c,v 1.7 2010/05/04 04:43:04 cm-msk Exp $";
+static char ar_c_id[] = "@(#)$Id: ar.c,v 1.7.14.1 2010/08/09 04:11:06 cm-msk Exp $";
 #endif /* !lint */
 
 /* OS stuff */
@@ -64,6 +64,12 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.7 2010/05/04 04:43:04 cm-msk Exp $";
 #ifndef MSG_WAITALL
 # define MSG_WAITALL	0
 #endif /* ! MSG_WAITALL */
+
+#if defined(__RES) && (__RES >= 19940415)
+# define RES_UNC_T		char *
+#else /* __RES && __RES >= 19940415 */
+# define RES_UNC_T		unsigned char *
+#endif /* __RES && __RES >= 19940415 */
 
 /* ar includes */
 #include "ar.h"
@@ -757,6 +763,101 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 }
 
 /*
+**  AR_ANSCOUNT -- count received answers
+**
+**  Parameters:
+**  	buf -- pointer to a packet
+**  	len -- bytes available at "buf"
+**
+**  Return value:
+**  	Count of actual answers (may be smaller than ancount).
+*/
+
+static int
+ar_anscount(unsigned char *buf, size_t len)
+{
+	int ret = 0;
+	u_int16_t qdcount;
+	u_int16_t ancount;
+	u_int16_t class;
+	u_int16_t type;
+	u_int16_t rrsize;
+	u_int32_t ttl;
+	int n;
+	unsigned char *cp;
+	unsigned char *eom;
+	HEADER *hdr;
+	unsigned char name[AR_MAXHOSTNAMELEN + 1];
+
+	assert(buf != NULL);
+
+	hdr = (HEADER *) buf;
+	cp = buf + HFIXEDSZ;
+	eom = buf + len;
+
+	qdcount = ntohs((unsigned short) hdr->qdcount);
+	ancount = ntohs((unsigned short) hdr->ancount);
+
+	for (; qdcount > 0; qdcount--)
+	{
+		if ((n = dn_skipname(cp, eom)) < 0)
+			break;
+		cp += n;
+
+		if (cp + INT16SZ + INT16SZ > eom)
+			break;
+
+		GETSHORT(type, cp);
+		GETSHORT(class, cp);
+	}
+
+	if (qdcount > 0)
+		return 0;
+
+	if (ancount == 0)
+		return 0;
+
+	/*
+	**  Extract the data from the first TXT answer.
+	*/
+
+	while (--ancount > 0 && cp < eom)
+	{
+		/* grab the label, even though we know what we asked... */
+		if ((n = dn_expand((unsigned char *) buf, eom, cp,
+		                   (RES_UNC_T) name, sizeof name)) < 0)
+			return ret;
+
+		/* ...and move past it */
+		cp += n;
+
+		/* extract the type and class */
+		if (cp + INT16SZ + INT16SZ + INT32SZ > eom)
+			return ret;
+
+		GETSHORT(type, cp);
+		GETSHORT(class, cp);
+		GETLONG(ttl, cp);
+
+		/* get payload length */
+		if (cp + INT16SZ > eom)
+			return ret;
+
+		GETSHORT(rrsize, cp);
+
+		/* is it not all there? */
+		if (cp + rrsize > eom)
+			return ret;
+
+		/* it is; count the reply */
+		ret++;
+		cp += rrsize;
+	}
+
+	return ret;
+}
+
+/*
 **  AR_DISPATCHER -- dispatcher thread
 **
 **  Parameters:
@@ -981,6 +1082,26 @@ ar_dispatcher(void *tp)
 				r = MAXPACKET;
 
 			memcpy(&hdr, buf, sizeof hdr);
+
+			/* check for truncation in UDP mode */
+			if (hdr.rcode == NOERROR && hdr.tc &&
+			    (lib->ar_flags & AR_FLAG_USETCP) == 0 &&
+			    ((lib->ar_flags & AR_FLAG_TRUNCCHECK) == 0 ||
+			     ar_anscount(buf, r) == 0))
+			{
+				lib->ar_flags |= AR_FLAG_USETCP;
+
+				/* reconnect */
+				pthread_mutex_unlock(&lib->ar_lock);
+				if (!ar_reconnect(lib))
+					return NULL;
+				pthread_mutex_lock(&lib->ar_lock);
+
+				/* arrange to re-send everything */
+				ar_requeue(lib);
+
+				continue;
+			}
 
 			/* find the matching query */
 			for (q = lib->ar_queries;
