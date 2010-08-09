@@ -148,9 +148,15 @@ is not provided, the default system memory release function
 is used.  The
 .I flags
 parameter is a bitwise OR of a set of available flags to tailor the operation
-of the package.  Currently the only flag is AR_FLAG_USETCP, which instructs
-the package to submit its queries via a TCP connection rather than the
-default, UDP.  The handle returned by
+of the package.  Currently the only flags are
+.I AR_FLAG_USETCP,
+which instructs the package to submit its queries via a TCP connection rather
+than the default (UDP), and
+.I AR_FLAG_TRUNCCHECK
+which upon receiving a reply with the "truncation" bit set will suppress
+the automatic upgrade to TCP mode if at least one answer was received in a
+reply (by default, truncation of any kind causes an upgrade to the connection
+channel and retransmission of all pending queries).  The handle returned by
 .B ar_init()
 is passed to later functions in order to share resources among transactions.
 
