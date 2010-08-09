@@ -9,19 +9,16 @@
 #define _OPENDKIM_DNS_H_
 
 #ifndef lint
-static char opendkim_dns_h_id[] = "@(#)$Id: opendkim-dns.h,v 1.1.2.1 2010/08/08 07:19:10 cm-msk Exp $";
+static char opendkim_dns_h_id[] = "@(#)$Id: opendkim-dns.h,v 1.1.2.2 2010/08/09 05:11:12 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
 
-#ifdef USE_UNBOUND
-/* system includes */
-# include <pthread.h>
-
 /* libopendkim includes */
 # include <dkim.h>
 
+#ifdef USE_UNBOUND
 /* libunbound includes */
 # include <unbound.h>
 
@@ -33,7 +30,14 @@ extern int dkimf_unbound_add_trustanchor __P((struct dkimf_unbound *, char *));
 extern int dkimf_unbound_close __P((struct dkimf_unbound *));
 extern int dkimf_unbound_init __P((struct dkimf_unbound **));
 extern int dkimf_unbound_setup __P((DKIM_LIB *, struct dkimf_unbound *));
-
 #endif /* USE_UNBOUND */
+
+#ifdef USE_ARLIB
+/* libar includes */
+#include <ar.h>
+
+/* prototypes */
+extern int dkimf_arlib_setup __P((DKIM_LIB *, AR_LIB));
+#endif /* USE_ARLIB */
 
 #endif /* _OPENDKIM_DNS_H_ */

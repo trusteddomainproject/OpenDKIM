@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.76.4.1 2010/08/08 07:19:10 cm-msk Exp $
+# $Id: Makefile.am,v 1.76.4.2 2010/08/09 05:11:12 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -37,6 +37,10 @@ endif
 if USE_LDAP
 opendkim_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
 opendkim_LDADD += $(OPENLDAP_LIBS)
+endif
+if USE_ARLIB
+opendkim_CFLAGS += -I$(srcdir)/../libar
+opendkim_LDADD += ../libar/libar.la
 endif
 if USE_UNBOUND
 opendkim_CPPFLAGS += $(LIBUNBOUND_INCDIRS)

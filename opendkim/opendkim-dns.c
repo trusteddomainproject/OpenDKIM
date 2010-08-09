@@ -6,12 +6,11 @@
 */
 
 #ifndef lint
-static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.1.2.1 2010/08/08 07:19:10 cm-msk Exp $";
+static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.1.2.2 2010/08/09 05:11:12 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
 
-#ifdef USE_UNBOUND
 /* system includes */
 #include <sys/types.h>
 #include <sys/time.h>
@@ -22,10 +21,19 @@ static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.1.2.1 2010/08/08 
 #include <pthread.h>
 
 /* libopendkim includes */
-#include "dkim.h"
+#include <dkim.h>
 
+#ifdef USE_UNBOUND
 /* libunbound includes */
-#include <unbound.h>
+# include <unbound.h>
+#endif /* USE_UNBOUND */
+
+#ifdef USE_ARLIB
+/* libar includes */
+# include <ar.h>
+
+# define MAXCNAMEDEPTH	3
+#endif /* USE_ARLIB */
 
 /* opendkim includes */
 #include "opendkim-dns.h"
@@ -39,6 +47,7 @@ static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.1.2.1 2010/08/08 
 # define TRUE	1
 #endif /* ! TRUE */
 
+#ifdef USE_UNBOUND
 /* struct dkimf_unbound -- unbound context */
 struct dkimf_unbound
 {
@@ -535,3 +544,141 @@ dkimf_unbound_add_trustanchor(struct dkimf_unbound *ub, char *file)
 	return (status == 0 ? 0 : -1);
 }
 #endif /* USE_UNBOUND */
+
+#ifdef USE_ARLIB
+/*
+**  DKIMF_AR_CANCEL -- function passed to libopendkim to handle cancel
+**                     requests
+**
+**  Parameters:
+**  	srv -- service handle
+**  	q -- query handle
+**
+**  Return value:
+**  	0 on success, -1 on failure
+*/
+
+static int
+dkimf_ar_cancel(void *srv, void *q)
+{
+	AR_LIB ar;
+	AR_QUERY arq;
+
+	assert(srv != NULL);
+	assert(q != NULL);
+
+	ar = (AR_LIB) srv;
+	arq = (AR_QUERY) q;
+
+	(void) ar_cancelquery(ar, arq);
+
+	return 0;
+}
+
+/*
+**  DKIMF_AR_QUERY -- function passed to libopendkim to handle new requests
+**
+**  Parameters:
+**  	srv -- service handle
+**
+**  Return value:
+**  	0 on success, -1 on failure
+*/
+
+static int
+dkimf_ar_query(void *srv, int type, char *query,
+               unsigned char *buf, size_t buflen, void **qh)
+{
+	AR_LIB ar;
+	AR_QUERY q;
+
+	assert(srv != NULL);
+	assert(query != NULL);
+	assert(buf != NULL);
+	assert(qh != NULL);
+
+	ar = (AR_LIB) srv;
+
+	q = ar_addquery(ar, query, C_IN, type, MAXCNAMEDEPTH, buf, buflen,
+	                (int *) NULL, (struct timeval *) NULL);
+	if (q == NULL)
+		return -1;
+
+	*qh = (void *) q;
+
+	return 0;
+}
+
+/*
+**  DKIMF_AR_WAITREPLY -- function passed to libopendkim to handle
+**                        wait requests
+**
+**  Parameters:
+**  	srv -- service handle
+**  	q -- query handle
+**  	to -- wait timeout
+**  	bytes -- bytes (returned)
+**  	error -- error code (returned)
+**  	dnssec -- DNSSEC status (returned)
+**
+**  Return value:
+**  	0 on success, -1 on failure
+*/
+
+static int
+dkimf_ar_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
+                   int *error, int *dnssec)
+{
+	int status;
+	size_t r;
+	AR_LIB ar;
+	AR_QUERY q;
+
+	assert(srv != NULL);
+	assert(qh != NULL);
+
+	ar = (AR_LIB) srv;
+	q = (AR_QUERY) qh;
+
+	status = ar_waitreply(ar, q, &r, to);
+	if (status == 0)
+	{
+		if (dnssec != NULL)
+			*dnssec = DKIM_DNSSEC_UNKNOWN;
+		if (bytes != NULL)
+			*bytes = r;
+	}
+
+	if (error != NULL)
+		*error = status;
+
+	return status;
+}
+
+/* =========================== PUBLIC FUNCTIONS =========================== */
+
+/*
+**  DKIMF_ARLIB_SETUP -- connect libar to libopendkim
+**
+**  Parameters:
+**  	lib -- libopendkim handle
+**  	libar -- AR_LIB handle
+**
+**  Return value:
+**  	0 on success, -1 on failure
+*/
+
+int
+dkimf_arlib_setup(DKIM_LIB *lib, AR_LIB ar)
+{
+	assert(lib != NULL);
+	assert(ar != NULL);
+
+	(void) dkim_dns_set_query_service(lib, ar);
+	(void) dkim_dns_set_query_start(lib, dkimf_ar_query);
+	(void) dkim_dns_set_query_cancel(lib, dkimf_ar_cancel);
+	(void) dkim_dns_set_query_waitreply(lib, dkimf_ar_waitreply);
+
+	return 0;
+}
+#endif /* USE_ARLIB */

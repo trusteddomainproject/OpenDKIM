@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.176.2.1 2010/08/08 07:19:10 cm-msk Exp $
+**  $Id: opendkim.c,v 1.176.2.2 2010/08/09 05:11:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.176.2.1 2010/08/08 07:19:10 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.176.2.2 2010/08/09 05:11:12 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -96,9 +96,9 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.176.2.1 2010/08/08 07:19:
 #include "opendkim.h"
 #include "opendkim-ar.h"
 #include "opendkim-arf.h"
-#ifdef USE_UNBOUND
+#if (USE_UNBOUND || USE_ARLIB)
 # include "opendkim-dns.h"
-#endif /* USE_UNBOUND */
+#endif /* (USE_UNBOUND || USE_ARLIB) */
 #ifdef USE_LUA
 # include "opendkim-lua.h"
 #endif /* USE_LUA */
@@ -647,6 +647,9 @@ struct dkimf_config *curconf;			/* current configuration */
 #ifdef USE_UNBOUND
 struct dkimf_unbound *unbound;			/* libunbound handle */
 #endif /* USE_UNBOUND */
+#ifdef USE_ARLIB
+AR_LIB arlib;					/* libar handle */
+#endif /* USE_ARLIB */
 #ifdef POPAUTH
 DKIMF_DB popdb;					/* POP auth DB */
 #endif /* POPAUTH */
@@ -6151,6 +6154,10 @@ dkimf_config_setlib(struct dkimf_config *conf)
 
 	(void) dkimf_unbound_setup(lib, unbound);
 #endif /* USE_UNBOUND */
+
+#ifdef USE_ARLIB
+	(void) dkimf_arlib_setup(lib, arlib);
+#endif /* USE_ARLIB */
 
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_TIMEOUT,
 	                    &conf->conf_dnstimeout,
@@ -12430,6 +12437,17 @@ main(int argc, char **argv)
 		return EX_SOFTWARE;
 	}
 #endif /* USE_UNBOUND */
+
+#ifdef USE_ARLIB
+	arlib = ar_init(NULL, NULL, NULL, 0);
+	if (arlib == NULL)
+	{
+		fprintf(stderr, "%s: failed to initialize libar\n",
+		        progname);
+
+		return EX_SOFTWARE;
+	}
+#endif /* USE_ARLIB */
 
 	if (conffile != NULL)
 	{
