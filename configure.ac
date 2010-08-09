@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.161 2010/07/23 19:09:16 cm-msk Exp $
+# $Id: configure.ac,v 1.161.10.1 2010/08/09 05:10:21 cm-msk Exp $
 
 #
 # Setup
@@ -1468,7 +1468,7 @@ AC_SUBST([DOMAIN])
 AC_OUTPUT([	Makefile
 		docs/Makefile
 		contrib/Makefile contrib/opendkim.spec
-		libar/ar.pc libar/Makefile
+		libar/ar.pc libar/Makefile libar/tests/Makefile
 		libopendkim/opendkim.pc libopendkim/Makefile
 		libopendkim/docs/Makefile
 		libopendkim/tests/Makefile
