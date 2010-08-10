@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.51.4.1 2010/08/08 07:19:10 cm-msk Exp $
+# $Id: Makefile.am,v 1.51.4.2 2010/08/10 00:11:17 cm-msk Exp $
 
 
 SUBDIRS=tests docs
@@ -63,7 +63,7 @@ libopendkim_la_DATA = docs/dkim.html docs/dkim_alg_t.html docs/dkim_body.html \
 	docs/dkim_getpartial.html docs/dkim_get_reputation.html \
 	docs/dkim_setpartial.html \
 	docs/dkim_sig_getidentity.html docs/dkim_sig_getcanons.html \
-	docs/dkim_libfeature.html
+	docs/dkim_libfeature.html docs/dns.html
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = opendkim.pc
