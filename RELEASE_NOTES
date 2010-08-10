@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.193 2010/08/06 13:48:48 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.194 2010/08/10 18:57:10 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -24,6 +24,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3025856: Fix "AllowSHA1Only", which was not working at all.
 	Fix some Lua test mode logic and a build issue that prevented
 		"ScreenPolicyScript" from working.
+	Ignore "Domain" and "Selector" settings if "KeyTable" is set.
+		Problem noted by Rolf Sonneveld.
 	LIBOPENDKIM: Feature request #SF3026287: Add dkim_getuser() function.
 		Requested by Ale Vesely.
 	LIBOPENDKIM: Don't build against pthread libraries if not needed.

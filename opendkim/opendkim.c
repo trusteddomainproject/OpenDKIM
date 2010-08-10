@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.176 2010/08/04 23:42:11 cm-msk Exp $
+**  $Id: opendkim.c,v 1.177 2010/08/10 18:57:11 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.176 2010/08/04 23:42:11 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.177 2010/08/10 18:57:11 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5558,6 +5558,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				         conf->conf_keytable, dberr);
 				return -1;
 			}
+
+			conf->conf_selector = NULL;
 		}
 	}
 
@@ -5651,7 +5653,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	{
 		(void) config_get(data, "Domain", &str, sizeof str);
 	}
-	if (str != NULL)
+	if (str != NULL && conf->conf_keytabledb == NULL)
 	{
 		int status;
 		char *dberr = NULL;
