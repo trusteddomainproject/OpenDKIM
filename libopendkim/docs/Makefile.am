@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.3 2010/07/23 18:49:55 cm-msk Exp $
+# $Id: Makefile.am,v 1.4 2010/08/10 00:13:20 cm-msk Exp $
 
 #AUTOMAKE_OPTIONS = foreign
 
@@ -97,4 +97,3 @@ dist_doc_DATA = dkim.html \
 	dkim_sig_getidentity.html \
 	dkim_sig_getcanons.html \
 	dkim_libfeature.html
-
