@@ -230,6 +230,10 @@ This parameter is not required if a
 is in use; in that case, the list of signed domains is implied by the
 lines in that file.
 
+This parameter is ignored if a
+.I KeyTable
+is defined.
+
 .TP
 .I DomainKeysCompat (boolean)
 If set, backward compatibility with DomainKeys (RFC4870) key records is
@@ -797,6 +801,10 @@ specification for details.  Used only when signing with a single key;
 see the
 .I SigningTable
 parameter below for more information.
+
+This parameter is ignored if a
+.I KeyTable
+is defined.
 
 .TP
 .I SelectorHeader (string)
