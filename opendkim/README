@@ -1,4 +1,4 @@
-$Id: README,v 1.12 2010/07/19 05:43:18 grooverdan Exp $
+$Id: README,v 1.13 2010/08/11 04:52:02 grooverdan Exp $
 
 COMPILING
 =========
@@ -163,8 +163,8 @@ INSTALLING AND CONFIGURING OPENDKIM
     (b) Add the following lines like this example to your postfix main.cf using
         your desired socket specification:
 
-	    smtpd_milters = inet:8891@localhost
-	    non_smtpd_milters = inet:8891@localhost
+	    smtpd_milters = inet:localhost:8891
+	    non_smtpd_milters = inet:localhost:8891
 	
     (c) If you have a content filter in master.cf that feeds it back into a
         different smtpd process, you should alter the second smtpd process in
