@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.76 2010/08/02 05:35:41 grooverdan Exp $
+# $Id: Makefile.am,v 1.77 2010/08/14 07:09:14 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -23,6 +23,7 @@ opendkim_LDADD += $(LIBDB_LIBS)
 endif
 if USE_ODBX
 opendkim_CPPFLAGS += $(LIBODBX_CPPFLAGS)
+opendkim_CFLAGS += $(LIBODBX_CFLAGS)
 opendkim_LDADD += $(LIBODBX_LIBS)
 endif
 if LUA
