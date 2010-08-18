@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.1.2.1 2010/08/18 17:45:26 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.1.2.2 2010/08/18 19:22:29 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.1 2010/08/18 17:45:26 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.2 2010/08/18 19:22:29 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -43,6 +43,46 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.1
 /* globals */
 char *progname;
 char reporter[MAXREPORTER + 1];
+
+/*
+**  FINDINLIST -- see if a particular string appears in another list
+**
+**  Parameters:
+**  	str -- string to find
+**  	list -- colon-separated list of strings to search
+**
+**  Return value:
+**  	1 -- "str" found in "list"
+**  	0 -- "str" not found in "list"
+*/
+
+int
+findinlist(char *str, char *list)
+{
+	int len;
+	char *p;
+	char *q;
+
+	assert(str != NULL);
+	assert(list != NULL);
+
+	len = strlen(str);
+
+	q = list;
+
+	for (p = list; ; p++)
+	{
+		if (*p == ':' || *p == '\0')
+		{
+			if (p - q == len && strncasecmp(str, q, len) == 0)
+				return 1;
+		}
+
+		q = p + 1;
+	}
+
+	return 0;
+}
 
 /*
 **  SQL_GET_INT -- retrieve a single integer from an SQL query
@@ -522,7 +562,9 @@ main(int argc, char **argv)
 		/* processing section for signatures */
 		else if (c == 'S')
 		{
-			if (nfields != 21)
+			int changed;
+
+			if (nfields != 22)
 			{
 				fprintf(stderr,
 				        "%s: unexpected field count at input line %d\n",
@@ -693,9 +735,11 @@ main(int argc, char **argv)
 					}
 				}
 
+				changed = findinlist(p, fields[21]);
+
 				snprintf(sql, sizeof sql,
-				         "INSERT INTO signed_headers (signature, header) VALUES (%d, %d)",
-				         sigid, hdrid);
+				         "INSERT INTO signed_headers (signature, header, changed) VALUES (%d, %d, %d)",
+				         sigid, hdrid, changed);
 
 				hdrid = sql_do(db, sql);
 				if (hdrid == -1)

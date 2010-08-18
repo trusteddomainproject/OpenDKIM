@@ -1,4 +1,4 @@
-$Id: README,v 1.4.12.2 2010/08/18 18:57:06 cm-msk Exp $
+$Id: README,v 1.4.12.3 2010/08/18 19:22:29 cm-msk Exp $
 
 INTRODUCTION
 
@@ -160,3 +160,4 @@ fields, as follows:
 	"z=" present in signature (0 = no, 1 = yes)
 	DNSSEC value (see DKIM_DNSSEC_* constants from dkim.h)
 	colon-separated list of header fields signed
+	colon-separated list of header fields known to have changed
