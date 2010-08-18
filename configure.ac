@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.161 2010/07/23 19:09:16 cm-msk Exp $
+# $Id: configure.ac,v 1.161.8.1 2010/08/18 17:46:03 cm-msk Exp $
 
 #
 # Setup
@@ -1482,5 +1482,4 @@ AC_OUTPUT([	Makefile
 			opendkim/opendkim.conf.simple-verify
 		opendkim/tests/Makefile
 		stats/Makefile stats/opendkim-importstats.8
-			stats/opendkim-importstats
 ])
