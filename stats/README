@@ -1,4 +1,4 @@
-$Id: README,v 1.4.12.1 2010/08/18 17:45:26 cm-msk Exp $
+$Id: README,v 1.4.12.2 2010/08/18 18:57:06 cm-msk Exp $
 
 INTRODUCTION
 
@@ -80,17 +80,11 @@ scripts and documentation presume MySQL.
 	Append "-r" to this to remove the statistics file on completion.
 
 7c.	To participate in The OpenDKIM Project's data collection work,
-	ask for the submission address you should use and then add this
-	to your crontab:
+	ask for the submission address you should use and then create this
+	script and add it to your crontab:
 
-		opendkim-stats -M address /path/to/stats/file
-
-	Append "-r" to this to remove the statistics file on completion.
-	
-	You can also add "-h hostname" to submit data as though it were
-	generated at "hostname".  Your host's name will be used by default,
-	but this can be used to combine the results of several hosts as
-	though they all came from the same place.
+		sendmail stats@opendkim.org < /path/to/stats/file
+		cp /dev/null /path/to/stats/file
 
 	When your data are received, The OpenDKIM project will use the
 	aforementioned "opendkim-importstats" tool to import your data into
