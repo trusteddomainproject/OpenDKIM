@@ -1,15 +1,16 @@
-$Id: README,v 1.4 2010/05/29 03:57:07 cm-msk Exp $
+$Id: README,v 1.4.12.1 2010/08/18 17:45:26 cm-msk Exp $
 
 INTRODUCTION
 
 This is the development area for OpenDKIM's statistics collection system.
 
-The OpenDKIM filter has an option to collect and record anonymous statistics
+The OpenDKIM filter has an option to collect and record statistics
 about DKIM's operation including information like number of signatures,
 percent of signature failures, first-party vs. third-party signatures,
-ADSP statistics, etc. and store them into a database.  An additional tool
-called opendkim-stats (in the "opendkim" directory) can be used to retrieve
-this information and display it or mail it someplace for data aggregation.
+ADSP statistics, etc. and store them into a file.  An additional tool
+called opendkim-stats (in this directory) can be used to retrieve
+this information and display it, mail it someplace for data aggregation,
+or insert it into an SQL database.
 
 This is especially useful for the industry to collect usage statistics
 about how DKIM is being used, the proliferation of third-party signing,
@@ -34,69 +35,134 @@ scripts and documentation presume MySQL.
 	% ./configure --enable-stats
 	% make
 
-	Note that this requires that libdb, part of the SleepyCat
-	open source database package, be installed on your system.
-	Most of the time your software vendor will have this available
-	for you as an optional package (RPM for most Linux systems,
-	a port for most BSD systems) or you can get it over the web as
-	open source and build it yourself from this URL:
-
-	http://www.oracle.com/database/berkeley-db/index.html
-
-	When the compilation is complete, follow the instructions in the
-	INSTALL file to complete installation and configuration.  In your
-	configuration file, add a "Statistics" line indicating where you
-	want your filter to accumulate data about your mail.
-
 2.	Install MySQL.  Create credentials for an "opendkim" user, optionally
 	with some password.  Create a database called "opendkim".  Note that
 	this does NOT refer to a "real" UNIX user and password.  The user you
-	create must be granted INSERT access to that table and must also
-	have the global FILE privilege.
+	create must be granted SELECT and INSERT access to that table.
 
 3. 	From inside the MySQL client, source the "mkdb.mysql" script.
-	This will create the table required to store the statistics reports.
+	This will create the tables required to store the statistics reports.
 
-4.	Install the "opendkim-importstats.sh" scripts someplace.  Edit it as
-	needed to reflect the credentials of your "opendkim" MySQL user.
+4.	Install the "opendkim-stats" program someplace.
 
 5.	Configure OpenDKIM to have statistics enabled, and begin reporting
 	them to a file someplace.  See the opendkim(8) and opendkim.conf(5)
 	man pages for details.
 
-6.	Initialize the statistics database:
+	By default, statistics will be recorded anonymized.  If you wish to
+	provide unencoded statistics to improve the utility of the data
+	at some privacy expense, adjust your configuration accordingly.
 
-	opendkim-stats -i /path/to/stats.db
-		
-7.	Restart opendkim.
+6.	Restart opendkim.
 
-8a.	If you are interested in accumulating only your own statistics,
-	add a crontab entry that executes the following at some reasonable
-	frequency:
+7a.	To get a human-readable form of the recorded statistics, use:
 
-	/path/to/opendkim-importstats.sh 
+		opendkim-stats /path/to/stats/file
 
-	Also, edit that script so that the "statsdb" variable is set to the
-	location of your statistics database in the SETUP section near
-	the top, e.g.:
+	...using, of course, the path to the statistics file you configure
+	in opendkim.conf.  You can reset the contents of that file at any
+	time by simply removing it or copying /dev/null on top of it.  The
+	filter will create/append to the file on the next received message.
 
-		statsdb="/var/db/opendkim/stats.db"
+7b.	To translate records in the recorded statistics file into SQL
+	insert operations, use:
 
-	The path to the database is as set in your opendkim.conf(5)
-	configuration file.
+		opendkim-importstats /path/to/stats/file
 
-8b.	If you are interested in accepting reports from someplace else,
-	create a mailing alias that is a pipe to the "opendkim-importstats.sh"
-	script.  Edit that script so that the "statsdb" variable is set to the
-	empty string in the SETUP section near the top, e.g.:
+	...again using the path you specified in opendkim.conf.  You will
+	probably also need one or more of the following:
 
-		statsdb=""
+		-d dbname	database name (default "opendkim")
+		-p dbpasswd	database user's password (no default)
+		-s scheme	database scheme (default "mysql")
+		-u dbuser	database user (default "opendkim")
 
-8c.	If you are interested in exporting your reports, add a crontab
-	entry that executes the following at some reasonable frequency:
+	Append "-r" to this to remove the statistics file on completion.
 
-	opendkim-stats -c -m <address> -r <path-to-stats-db>
+7c.	To participate in The OpenDKIM Project's data collection work,
+	ask for the submission address you should use and then add this
+	to your crontab:
 
-	...where <address> is the address to which you would like to send
-	your reports.  The path to the database is as set in your
-	opendkim.conf(5) configuration file.
+		opendkim-stats -M address /path/to/stats/file
+
+	Append "-r" to this to remove the statistics file on completion.
+	
+	You can also add "-h hostname" to submit data as though it were
+	generated at "hostname".  Your host's name will be used by default,
+	but this can be used to combine the results of several hosts as
+	though they all came from the same place.
+
+	When your data are received, The OpenDKIM project will use the
+	aforementioned "opendkim-importstats" tool to import your data into
+	the accumulated database.  You can view regularly generated reports,
+	including your data, at:
+
+		http://www.opendkim.org/stats/report.html
+
+FILE FORMAT
+
+The format of the file written by the opendkim filter is described here.
+If demand appears, a stable API for accessing it will be provided.  Until
+then, application developers are advised not to rely on this information being
+stable between versions.
+
+A statistics file consists of lines of ASCII data which are delimited from
+each other by a single LF (ASCII 10).
+
+Empty lines or lines beginning with other than alphabetic characters are
+ignored completely.
+
+A line in the file that begins with a capital letter identifies the type
+of record it represents.  The first such line also implicitly ends the global
+values section.
+
+There are currently these record types:
+
+	M	identifies a message
+	S	identifies a signature
+
+A message record is a comma-separated, ordered sequence of fields, as follows:
+
+	MTA-provided job/envelope ID (string)
+	reporter (string; defaults to hostname)
+	first domain found in the From: header field (string)
+	SMTP client IP address (string)
+	anonymized (0 = no, 1 = yes)
+	UNIX timestamp of message receive time
+	message size, in bytes
+	ADSP record found in DNS (0 = no, 1 = yes)
+	ADSP "unknown" policy found in DNS (0 = no, 1 = yes)
+	ADSP "all" policy found in DNS (0 = no, 1 = yes)
+	ADSP "discardable" policy found in DNS (0 = no, 1 = yes)
+	ADSP failed for this message (0 = no, 1 = yes)
+	appeared to come from a mailing list (0 = no, 1 = yes)
+	count of Received: header fields
+	overall MIME Content-Type, if any
+	overall MIME Content-Transfer-Encoding, if any
+
+A signature record implicitly references the preceding message record.
+There may be more than one signature record per message; there could also be
+none.  As above, a signature record is a comma-separated, ordered sequence of
+fields, as follows:
+
+	domain of the signature
+	algorithm (0 = rsa-sha1, 1 = rsa-sha256)
+	header canonicalization (0 = simple, 1 = relaxed)
+	body canonicalization (0 = simple, 1 = relaxed)
+	tagged for ignore (0 = no, 1 = yes)
+	pass (0 = no, 1 = yes)
+	failed due to "bh" mismatch (0 = no, 1 = yes)
+	"l=" tag value (-1 = not present)
+	"t=" present in key (0 = no, 1 = yes)
+	"g=" present in key (0 = no, 1 = yes)
+	"g=" present in key with a value other than "*" (0 = no, 1 = yes)
+	syntax error in key (0 = no, 1 = yes)
+	NXDOMAIN for key (0 = no, 1 = yes)
+	key was DK-compatible (0 = no, 1 = yes)
+	syntax error in signature (0 = no, 1 = yes)
+	"t=" present in signature (0 = no, 1 = yes)
+	"t=" present in signature with future timestamp (0 = no, 1 = yes)
+	"x=" present in signature (0 = no, 1 = yes)
+	"z=" present in signature (0 = no, 1 = yes)
+	DNSSEC value (see DKIM_DNSSEC_* constants from dkim.h)
+	colon-separated list of header fields signed
