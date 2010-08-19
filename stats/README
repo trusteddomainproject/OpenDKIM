@@ -1,4 +1,4 @@
-$Id: README,v 1.4.12.3 2010/08/18 19:22:29 cm-msk Exp $
+$Id: README,v 1.4.12.4 2010/08/19 19:00:38 cm-msk Exp $
 
 INTRODUCTION
 
@@ -153,6 +153,7 @@ fields, as follows:
 	syntax error in key (0 = no, 1 = yes)
 	NXDOMAIN for key (0 = no, 1 = yes)
 	key was DK-compatible (0 = no, 1 = yes)
+	key was revoked (0 = no, 1 = yes)
 	syntax error in signature (0 = no, 1 = yes)
 	"t=" present in signature (0 = no, 1 = yes)
 	"t=" present in signature with future timestamp (0 = no, 1 = yes)
