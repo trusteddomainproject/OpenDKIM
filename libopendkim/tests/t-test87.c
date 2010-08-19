@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test87_c_id[] = "@(#)$Id: t-test87.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
+static char t_test87_c_id[] = "@(#)$Id: t-test87.c,v 1.2.26.1 2010/08/19 19:16:46 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -157,7 +157,7 @@ main(int argc, char **argv)
 
 	presult = dkim_getpresult(dkim);
 	assert(pcode == DKIM_POLICY_ALL);
-	assert(presult == DKIM_PRESULT_AUTHOR);
+	assert(presult == DKIM_PRESULT_FOUND);
 
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);

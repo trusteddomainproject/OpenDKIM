@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.29 2010/07/23 18:49:55 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.29.8.1 2010/08/19 19:16:09 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -219,7 +219,7 @@ typedef int dkim_policy_t;
 
 #define DKIM_PRESULT_NONE		(-1)	/* none/undefined */
 #define DKIM_PRESULT_NXDOMAIN		0	/* domain does not exist */
-#define DKIM_PRESULT_AUTHOR		1	/* ADSP found for author */
+#define DKIM_PRESULT_FOUND		1	/* ADSP query succeeded */
 
 /*
 **  DKIM_MODE -- mode of a handle

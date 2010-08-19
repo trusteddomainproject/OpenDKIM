@@ -2,7 +2,7 @@
 <head><title>DKIM_PRESULT</title></head>
 <body>
 <!--
-$Id: dkim_presult.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
+$Id: dkim_presult.html,v 1.2.8.1 2010/08/19 19:16:09 cm-msk Exp $
 -->
 <h1>DKIM_PRESULT</h1>
 <p align="right"><a href="index.html">[back to index]</a></p>
@@ -23,12 +23,7 @@ $Id: dkim_presult.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
 <ul>
 <li> <tt>DKIM_PRESULT_NONE</tt> -- no result
 <li> <tt>DKIM_PRESULT_NXDOMAIN</tt> -- no such domain
-<li> <tt>DKIM_PRESULT_AUTHOR</tt> -- policy of author's domain returned
-<li> <tt>DKIM_PRESULT_PARENT</tt> -- policy of author's parent domain returned
-<li> <tt>DKIM_PRESULT_NOPARENT</tt> -- no policy found for author's domain
-     or author's parent domain
-<li> <tt>DKIM_PRESULT_NOSUBDOMAIN</tt> -- policy of author's parent domain
-     found but does not cover subdomains
+<li> <tt>DKIM_PRESULT_FOUND</tt> -- policy of author's domain returned
 </ul>
 </tr>
 </table>
@@ -45,17 +40,8 @@ the algorithm steps indicated in square brackets, are included here.
     yet for the message.
 <li><tt>DKIM_PRESULT_NXDOMAIN</tt> is returned if the policy check was done
     and it was discovered that the author's domain does not exist.
-<li><tt>DKIM_PRESULT_AUTHOR</tt> is returned if the policy check has been
+<li><tt>DKIM_PRESULT_FOUND</tt> is returned if the policy check has been
     done and a policy at the author's domain was found and returned.
-<li><tt>DKIM_PRESULT_PARENT</tt> is returned if the policy check has been
-    done and a policy at the parent domain of the author's domain was found
-    and returned.
-<li><tt>DKIM_PRESULT_NOPARENT</tt> is returned if the policy check has been
-    done and no policy was found at either the author's domain or the
-    author's parent domain.
-<li><tt>DKIM_PRESULT_NOSUBDOMAIN</tt> is returned if the policy check has been
-    done and a policy was found at the author's parent domain which explicitly
-    does not apply to subdomains.
 </ul>
 </td>
 </tr>

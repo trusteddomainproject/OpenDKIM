@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_tables_c_id[] = "@(#)$Id: dkim-tables.c,v 1.5 2009/11/11 19:55:37 cm-msk Exp $";
+static char dkim_tables_c_id[] = "@(#)$Id: dkim-tables.c,v 1.5.36.1 2010/08/19 19:16:09 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -72,7 +72,7 @@ struct nametable *policies = prv_policies;
 static struct nametable prv_policyresults[] =	/* policy results */
 {
 	{ "none",				DKIM_PRESULT_NONE },
-	{ "author domain policy found",		DKIM_PRESULT_AUTHOR },
+	{ "author domain policy found",		DKIM_PRESULT_FOUND },
 	{ "domain does not exist",		DKIM_PRESULT_NXDOMAIN },
 	{ NULL,					-1 }
 };
