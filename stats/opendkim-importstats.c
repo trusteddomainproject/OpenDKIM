@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.1.2.3 2010/08/19 19:00:38 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.1.2.4 2010/08/19 20:07:46 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.3 2010/08/19 19:00:38 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.4 2010/08/19 20:07:46 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -623,13 +623,13 @@ main(int argc, char **argv)
 			}
 
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignore, pass, fail_body, siglength, key_t, key_g, key_g_name, key_syntax, key_nx, key_dk_compat, key_revoked, syntax, sig_t, sig_t_future, sig_x, sig_x, sig_z, dnssec) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+			         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_syntax, key_nx, key_dk_compat, key_revoked, syntax, sig_t, sig_t_future, sig_x, sig_x, sig_z, dnssec) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
 			         msgid,			/* message */
 			         domid,			/* domain */
 			         fields[1],		/* algorithm */
 			         fields[2],		/* hdr_canon */
 			         fields[3],		/* body_canon */
-			         fields[4],		/* ignore */
+			         fields[4],		/* ignored */
 			         fields[5],		/* pass */
 			         fields[6],		/* fail_body */
 			         fields[7],		/* siglength */

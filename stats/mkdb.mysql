@@ -1,4 +1,4 @@
--- $Id: mkdb.mysql,v 1.4.2.13 2010/08/19 19:00:38 cm-msk Exp $
+-- $Id: mkdb.mysql,v 1.4.2.14 2010/08/19 20:07:46 cm-msk Exp $
 
 -- MySQL command sequence to create a database to accumulate OpenDKIM
 -- statistics reports
@@ -45,8 +45,8 @@ create table if not exists messages (
 	key(reporter),
 	key(from_domain),
 	key(ipaddr),
-	unique key(reporter, jobid, msgtime)
-	foreign key(from_domain) references domains(id)
+	unique key(reporter, jobid, msgtime),
+	foreign key(from_domain) references domains(id),
 	foreign key(reporter) references reporters(id)
 ) default charset=latin1;
 
@@ -58,7 +58,7 @@ create table if not exists signatures (
 	algorithm tinyint unsigned not null,
 	hdr_canon tinyint unsigned not null,
 	body_canon tinyint unsigned not null,
-	ignore tinyint unsigned not null,
+	ignored tinyint unsigned not null,
 	pass tinyint unsigned not null,
 	fail_body tinyint unsigned not null,
 	siglength int not null,
@@ -88,7 +88,7 @@ create table if not exists headernames (
 	name varchar(255) not null,
 
 	primary key(id),
-	key(name),
+	key(name)
 ) default charset=latin1;
 
 -- table correlating signatures to signed headers
@@ -99,6 +99,6 @@ create table if not exists signed_headers (
 	changed tinyint unsigned not null,
 
 	primary key(id),
-	foreign key(signature) references signatures(id)
+	foreign key(signature) references signatures(id),
 	foreign key(header) references headernames(id)
 ) default charset=latin1;
