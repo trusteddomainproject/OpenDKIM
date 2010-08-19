@@ -82,6 +82,14 @@ added when performing verification, which would mean the signed message
 and the verified message were different and the verification would fail.
 
 .TP
+.I AnonymousStatistics (Boolean)
+When
+.I Statistics
+is enabled, setting this flag will pass the From: domain and the client
+IP address portions of the reported data through a one-way hash algorithm
+to conceal those data while allowing some correlation to take place.
+
+.TP
 .I AuthservID (string)
 Sets the "authserv-id" to use when generating the Authentication-Results:
 header after verifying a message.  The default is to use the local machine's
@@ -933,13 +941,12 @@ listening on all interfaces.  This option is mandatory either in the
 configuration file or on the command line.
 
 .TP
-.I Statistics (dataset)
-This specifies a data set in which to store DKIM operation totals per domain.
-The data set must be initialized before the filter can use it.  See
+.I Statistics (filename)
+This specifies a file in which to store DKIM transaction statistics.  See
 .I opendkim-stats(8)
-for details about initialization, what data are recorded and how to read the
-current totals.  Currently the only allowed data set type for this feature
-is "db".
+for a mechanism to parse the file's contents, and
+.I opendkim-importstats()
+for a mechanism to translate the file's contents into SQL database insertions.
 @STATS_MANNOTICE@
 
 .TP

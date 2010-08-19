@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.14.10.5 2010/08/06 18:16:27 cm-msk Exp $
+**  $Id: stats.c,v 1.14.10.6 2010/08/19 19:56:22 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.5 2010/08/06 18:16:27 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.6 2010/08/19 19:56:22 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -18,7 +18,9 @@ static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.5 2010/08/06 18:16:27 cm-
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
-#include <sys/stat.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <string.h>
 #include <errno.h>
 #include <pthread.h>
@@ -26,6 +28,10 @@ static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.5 2010/08/06 18:16:27 cm-
 #include <assert.h>
 #include <syslog.h>
 #include <stdlib.h>
+#include <stdio.h>
+
+/* libcrypto includes */
+#include <openssl/md5.h>
 
 /* libopendkim includes */
 #include <dkim.h>
@@ -36,6 +42,10 @@ static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.5 2010/08/06 18:16:27 cm-
 #include "util.h"
 #include "opendkim.h"
 #include "opendkim-db.h"
+
+/* macros, defaults */
+#define	DEFCT		"text/plain"
+#define	DEFCTE		"7bit"
 
 /* globals */
 static pthread_mutex_t stats_lock;
@@ -62,9 +72,12 @@ dkimf_stats_init(void)
 **  Parameters:
 **  	path -- path to the DB to update
 **  	jobid -- job ID for the current message
+**  	name -- reporter name to record
+**  	hdrlist -- list of headers on the message
 **  	dkimv -- verifying handle from which data can be taken
 **  	pcode -- policy code
 **  	fromlist -- message appeared to be from a list
+**  	anon -- data are anonymized
 **  	rhcnt -- count of Received: header fields
 **  	sa -- client socket information
 **
@@ -73,8 +86,10 @@ dkimf_stats_init(void)
 */
 
 int
-dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
-                   _Bool fromlist, u_int rhcnt, struct sockaddr *sa)
+dkimf_stats_record(char *path, char *jobid, char *name,
+                   Header hdrlist, DKIM *dkimv, dkim_policy_t pcode,
+                   _Bool fromlist, _Bool anon, u_int rhcnt,
+                   struct sockaddr *sa)
 {
 	_Bool exists;
 	_Bool sigfailed;
@@ -83,103 +98,57 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 	_Bool validauthorsig = FALSE;
 	int status = 0;
 	int version;
-	int nsigs;
+	int nsigs = 0;
 #ifdef _FFR_DIFFHEADERS
 	int nhdrs;
+	int ndiffs;
 #endif /* _FFR_DIFFHEADERS */
 	int err;
 	int c;
-	int ret = 0;
+	dkim_alg_t alg;
+	dkim_canon_t bc;
+	dkim_canon_t hc;
 	off_t canonlen;
 	off_t signlen;
 	off_t msglen;
 	DKIMF_DB db;
+	struct Header *hdr;
+	FILE *out;
 	char *from;
 	char *p;
-	char *dberr = NULL;
 #ifdef _FFR_DIFFHEADERS
+	struct dkim_hdrdiff *diffs;
 	char *ohdrs[MAXHDRCNT];
 #endif /* _FFR_DIFFHEADERS */
 	DKIM_SIGINFO **sigs;
-	struct dkim_stats_data_v3 recdata;
 	struct dkimf_db_data dbd;
+	char tmp[BUFRSZ + 1];
+	char ct[BUFRSZ + 1];
+	char cte[BUFRSZ + 1];
 
 	assert(path != NULL);
 	assert(jobid != NULL);
+	assert(name != NULL);
 
-	/* open the DB */
-	status = dkimf_db_open(&db, path, 0, &stats_lock, &dberr);
-	if (status != 0)
+	strlcpy(ct, DEFCT, sizeof ct);
+	strlcpy(cte, DEFCTE, sizeof cte);
+
+	pthread_mutex_lock(&stats_lock);
+
+	/* open the log file */
+	out = fopen(path, "a");
+	if (out == NULL)
 	{
 		if (dolog)
 		{
-			syslog(LOG_ERR, "%s: dkimf_db_open() failed: %s", path,
-			       dberr);
+			syslog(LOG_ERR, "%s: fopen(): %s", path,
+			       strerror(errno));
 		}
+
+		pthread_mutex_unlock(&stats_lock);
 
 		return -1;
 	}
-
-	if (dkimf_db_type(db) != DKIMF_DB_TYPE_BDB)
-	{
-		(void) dkimf_db_close(db);
-
-		if (dolog)
-		{
-			syslog(LOG_ERR,
-			       "%s: invalid database type for this function",
-			       path);
-		}
-
-		return -1;
-	}
-
-	/* see if there's a sentinel record; if not, bail */
-	dbd.dbdata_buffer = (void *) &version;
-	dbd.dbdata_buflen = sizeof version;
-	dbd.dbdata_flags = DKIMF_DB_DATA_BINARY;
-	exists = FALSE;
-	status = dkimf_db_get(db, DKIMF_STATS_SENTINEL,
-	                      sizeof(DKIMF_STATS_SENTINEL), &dbd, 1, &exists);
-	if (status != 0)
-	{
-		if (dolog)
-			syslog(LOG_ERR, "%s: dkimf_db_get() failed", path);
-
-		if (dkimf_db_close(db) != 0 && dolog)
-		{
-			char err[BUFRSZ];
-
-			memset(err, '\0', sizeof err);
-			(void) dkimf_db_strerror(db, err, sizeof err);
-			syslog(LOG_ERR, "%s: dkimf_db_close() failed: %s",
-			       path, err);
-		}
-
-		return -1;
-	}
-
-	/* check DB version */
-	if (!exists || dbd.dbdata_buflen != sizeof version ||
-	    version != DKIMF_STATS_VERSION)
-	{
-		if (dolog)
-			syslog(LOG_ERR, "%s: version check failed", path);
-
-		if (dkimf_db_close(db) != 0 && dolog)
-		{
-			char err[BUFRSZ];
-
-			memset(err, '\0', sizeof err);
-			(void) dkimf_db_strerror(db, err, sizeof err);
-			syslog(LOG_ERR, "%s: dkimf_db_close() failed: %s",
-			       path, err);
-		}
-
-		return -1;
-	}
-
-	memset(&recdata, '\0', sizeof recdata);
 
 	/* write info */
 	status = dkim_getsiglist(dkimv, &sigs, &nsigs);
@@ -188,257 +157,279 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 		if (dolog)
 			syslog(LOG_ERR, "%s: dkim_getsiglist() failed", jobid);
 
-		if (dkimf_db_close(db) != 0)
-		{
-			if (dolog)
-			{
-				char err[BUFRSZ];
+		fclose(out);
 
-				memset(err, '\0', sizeof err);
-				(void) dkimf_db_strerror(db, err, sizeof err);
-				syslog(LOG_ERR,
-				       "%s: dkimf_db_close() failed: %s",
-				       path, err);
-			}
+		pthread_mutex_unlock(&stats_lock);
 
-			ret = -1;
-		}
-
-		return ret;
+		return 0;
 	}
 
 	from = dkim_getdomain(dkimv);
 	if (from == NULL)
 	{
-		if (dkimf_db_close(db) != 0)
-		{
-			if (dolog)
-			{
-				char err[BUFRSZ];
+		if (dolog)
+			syslog(LOG_ERR, "%s: dkim_getdomain() failed", jobid);
 
-				memset(err, '\0', sizeof err);
-				(void) dkimf_db_strerror(db, err, sizeof err);
-				syslog(LOG_ERR,
-				       "%s: dkimf_db_close() failed: %s",
-				       path, err);
-			}
+		fclose(out);
 
-			ret = -1;
-		}
+		pthread_mutex_unlock(&stats_lock);
 
-		return ret;
+		return 0;
 	}
 
-	strlcpy(recdata.sd_fromdomain, from, sizeof recdata.sd_fromdomain);
-	recdata.sd_mailinglist = fromlist;
-	recdata.sd_received = rhcnt;
-	memcpy(&recdata.sd_sockinfo, sa, sizeof recdata.sd_sockinfo);
+	if (anon)
+	{
+		MD5_CTX md5;
+		unsigned char *x;
+		unsigned char dig[MD5_DIGEST_LENGTH];
 
-	(void) time(&recdata.sd_when);
+		MD5_Init(&md5);
+		MD5_Update(&md5, from, strlen(from));
+		MD5_Final(dig, &md5);
 
-	recdata.sd_totalsigs = nsigs;
+		memset(tmp, '\0', sizeof tmp);
+
+		x = tmp;
+		for (c = 0; c < MD5_DIGEST_LENGTH; c++)
+		{
+			snprintf(x, sizeof tmp - 2 * c, "%02x", dig[c]);
+			x += 2;
+		}
+	}
+
+	fprintf(out, "M%s\t%s\t%s", jobid, name, anon ? tmp : from);
+
+	memset(tmp, '\0', sizeof tmp);
+
+	switch (sa->sa_family)
+	{
+	  case AF_INET:
+	  {
+		struct sockaddr_in sin4;
+
+		memcpy(&sin4, sa, sizeof sin4);
+
+		(void) inet_ntop(AF_INET, &sin4.sin_addr, tmp, sizeof tmp);
+
+		break;
+	  }
+#ifdef AF_INET6
+
+	  case AF_INET6:
+	  {
+		struct sockaddr_in6 sin6;
+
+		memcpy(&sin6, sa, sizeof sin6);
+
+		(void) inet_ntop(AF_INET6, &sin6.sin6_addr, tmp, sizeof tmp);
+
+		break;
+	  }
+#endif /* AF_INET6 */
+	}
+
+	if (tmp[0] == '\0')
+	{
+		fprintf(out, "\tunknown");
+	}
+	else if (!anon)
+	{
+		fprintf(out, "\t%s", tmp);
+	}
+	else
+	{
+		MD5_CTX md5;
+		unsigned char *x;
+		unsigned char dig[MD5_DIGEST_LENGTH];
+
+		MD5_Init(&md5);
+		MD5_Update(&md5, tmp, strlen(tmp));
+		MD5_Final(dig, &md5);
+
+		memset(tmp, '\0', sizeof tmp);
+
+		x = tmp;
+		for (c = 0; c < MD5_DIGEST_LENGTH; c++)
+		{
+			snprintf(x, sizeof tmp - 2 * c, "%02x", dig[c]);
+			x += 2;
+		}
+
+		fprintf(out, "\t%s", tmp);
+	}
+
+	fprintf(out, "\t%u", anon);
+
+	fprintf(out, "\t%lu", time(NULL));
+
+	msglen = 0;
+	canonlen = 0;
+	signlen = 0;
+	if (nsigs > 0)
+	{
+		(void) dkim_sig_getcanonlen(dkimv, sigs[0], &msglen,
+		                            &canonlen, &signlen);
+	}
+
+	fprintf(out, "\t%lu", msglen);
+
+	fprintf(out, "\t%d", dkim_getpresult(dkimv) == DKIM_PRESULT_FOUND);
+
+	switch (pcode)
+	{
+	  case DKIM_POLICY_UNKNOWN:
+		fprintf(out, "\t1\t0\t0");
+		break;
+
+	  case DKIM_POLICY_ALL:
+		fprintf(out, "\t0\t1\t0");
+		break;
+
+	  case DKIM_POLICY_DISCARDABLE:
+		fprintf(out, "\t0\t0\t1");
+		break;
+
+	  default:
+		fprintf(out, "\t0\t0\t0");
+		break;
+	}
 
 	for (c = 0; c < nsigs; c++)
 	{
-		sigfailed = FALSE;
-		sigfailedbody = FALSE;
-		sigpassed = FALSE;
-
-		if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PROCESSED) != 0)
+		if (strcasecmp(dkim_sig_getdomain(sigs[c]), from) == 0 &&
+		    dkim_sig_geterror(sigs[c]) == DKIM_SIGERROR_OK)
 		{
-			if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0 &&
-			    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH)
-				sigpassed = TRUE;
-
-			if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 ||
-			    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MISMATCH)
-				sigfailed = TRUE;
-
-			if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 &&
-			    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MISMATCH)
-				sigfailedbody = TRUE;
-		}
-
-		if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_IGNORE) != 0)
-			recdata.sd_ignore++;
-		if (sigpassed)
-			recdata.sd_pass++;
-		if (sigfailed)
-			recdata.sd_fail++;
-		if (sigfailedbody)
-			recdata.sd_failbody++;
-
-		switch (dkim_sig_getdnssec(sigs[c]))
-		{
-		  case DKIM_DNSSEC_UNKNOWN:
-			recdata.sd_dnssec_unknown++;
-			break;
-
-		  case DKIM_DNSSEC_BOGUS:
-			recdata.sd_dnssec_bogus++;
-			break;
-
-		  case DKIM_DNSSEC_INSECURE:
-			recdata.sd_dnssec_insecure++;
-			break;
-
-		  case DKIM_DNSSEC_SECURE:
-			recdata.sd_dnssec_secure++;
+			validauthorsig = TRUE;
 			break;
 		}
+	}
 
-		if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_TESTKEY) != 0)
-			recdata.sd_key_t++;
+	fprintf(out, "\t%d", (pcode == DKIM_POLICY_ALL ||
+	                      pcode == DKIM_POLICY_DISCARDABLE) &&
+	                     !validauthorsig);
 
-		p = dkim_sig_getdomain(sigs[c]);
-		if (p != NULL)
+	fprintf(out, "\t%d", fromlist);
+
+	fprintf(out, "\t%u", rhcnt);
+
+	for (hdr = hdrlist; hdr != NULL; hdr = hdr->hdr_next)
+	{
+		if (strcasecmp(hdr->hdr_hdr, "Content-Type") == 0)
 		{
-			if (strcasecmp(from, p) == 0)
-			{
-				recdata.sd_authorsigs++;
-				if (sigfailed)
-					recdata.sd_authorsigsfail++;
-				else
-					validauthorsig = TRUE;
-
-				(void) dkim_sig_getcanons(sigs[c],
-				                          &recdata.sd_hdrcanon,
-				                          &recdata.sd_bodycanon);
-
-				(void) dkim_sig_getsignalg(sigs[c],
-				                           &recdata.sd_alg);
-			}
-			else
-			{
-				recdata.sd_thirdpartysigs++;
-				if (sigfailed)
-					recdata.sd_thirdpartysigsfail++;
-			}
+			strlcpy(ct, hdr->hdr_val, sizeof ct);
+			p = strchr(ct, ';');
+			if (p != NULL)
+				*p = '\0';
 		}
+		else if (strcasecmp(hdr->hdr_hdr,
+		                    "Content-Transfer-Encoding") == 0)
+		{
+			strlcpy(cte, hdr->hdr_val, sizeof cte);
+		}
+	}
 
-		msglen = 0;
-		canonlen = 0;
-		signlen = 0;
+	fprintf(out, "\t%s", ct);
+	fprintf(out, "\t%s", cte);
+
+	fprintf(out, "\n");
+
+	for (c = 0; c < nsigs; c++)
+	{
+		fprintf(out, "S");
+
+		fprintf(out, "%s", dkim_sig_getdomain(sigs[c]));
+
+		(void) dkim_sig_getsignalg(sigs[c], &alg);
+		fprintf(out, "\t%d", alg);
+
+		(void) dkim_sig_getcanons(sigs[c], &hc, &bc);
+		fprintf(out, "\t%d\t%d", hc, bc);
+
+		fprintf(out, "\t%d",
+		        (dkim_sig_getflags(sigs[c]) &
+		         DKIM_SIGFLAG_IGNORE) != 0);
+
+		fprintf(out, "\t%d",
+		        (dkim_sig_getflags(sigs[c]) &
+		         DKIM_SIGFLAG_PASSED) != 0);
+
+		fprintf(out, "\t%d",
+		        dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MISMATCH);
+
 		(void) dkim_sig_getcanonlen(dkimv, sigs[c], &msglen,
 		                            &canonlen, &signlen);
+		fprintf(out, "\t%ld", (long) signlen);
 
-		if (signlen != (off_t) -1)
-		{
-			recdata.sd_sig_l++;
-
-			if (msglen > signlen)
-				recdata.sd_extended++;
-			if (signlen == 0)
-				recdata.sd_sig_l_zero++;
-		}
-
+		p = dkim_sig_gettagvalue(sigs[c], TRUE, "t");
+		fprintf(out, "\t%d", p != NULL);
+		
 		p = dkim_sig_gettagvalue(sigs[c], TRUE, "g");
-		if (p != NULL)
-		{
-			recdata.sd_key_g++;
-
-			if (p[0] == '\0' &&
-			    dkim_sig_gettagvalue(sigs[c], TRUE, "v") == NULL)
-				recdata.sd_key_dk_compat++;
-
-			if (p[0] != '\0' && p[0] != '*')
-				recdata.sd_key_g_name++;
-		}
-
-		p = dkim_sig_gettagvalue(sigs[c], FALSE, "t");
-		if (p != NULL)
-		{
-			recdata.sd_sig_t++;
-
-			if (strtoul(p, NULL, 10) > recdata.sd_when)
-				recdata.sd_sig_t_future++;
-		}
-
-		if (dkim_sig_gettagvalue(sigs[c], FALSE, "x") != NULL)
-			recdata.sd_sig_x++;
-
-		if (dkim_sig_gettagvalue(sigs[c], FALSE, "z") != NULL)
-			recdata.sd_sig_z++;
+		fprintf(out, "\t%d", p != NULL);
+		fprintf(out, "\t%d", p != NULL && *p != '\0' && *p != '*');
 
 		err = dkim_sig_geterror(sigs[c]);
 
-		switch (err)
-		{
-		  case DKIM_SIGERROR_NOKEY:
-		  case DKIM_SIGERROR_KEYFAIL:
-			recdata.sd_key_missing++;
-			break;
+		fprintf(out, "\t%d", err == DKIM_SIGERROR_DNSSYNTAX ||
+		                     err == DKIM_SIGERROR_KEYHASHMISMATCH ||
+		                     err == DKIM_SIGERROR_KEYDECODE ||
+		                     err == DKIM_SIGERROR_MULTIREPLY);
 
-		  case DKIM_SIGERROR_VERSION:
-		  case DKIM_SIGERROR_DOMAIN:
-		  case DKIM_SIGERROR_TIMESTAMPS:
-		  case DKIM_SIGERROR_MISSING_C:
-		  case DKIM_SIGERROR_INVALID_HC:
-		  case DKIM_SIGERROR_INVALID_BC:
-		  case DKIM_SIGERROR_MISSING_A:
-		  case DKIM_SIGERROR_INVALID_A:
-		  case DKIM_SIGERROR_MISSING_H:
-		  case DKIM_SIGERROR_INVALID_L:
-		  case DKIM_SIGERROR_INVALID_Q:
-		  case DKIM_SIGERROR_INVALID_QO:
-		  case DKIM_SIGERROR_MISSING_D:
-		  case DKIM_SIGERROR_EMPTY_D:
-		  case DKIM_SIGERROR_MISSING_S:
-		  case DKIM_SIGERROR_EMPTY_S:
-		  case DKIM_SIGERROR_MISSING_B:
-		  case DKIM_SIGERROR_EMPTY_B:
-		  case DKIM_SIGERROR_CORRUPT_B:
-		  case DKIM_SIGERROR_MISSING_BH:
-		  case DKIM_SIGERROR_EMPTY_BH:
-		  case DKIM_SIGERROR_CORRUPT_BH:
-		  case DKIM_SIGERROR_EMPTY_H:
-		  case DKIM_SIGERROR_TOOLARGE_L:
-			recdata.sd_sig_syntax++;
-			break;
+		fprintf(out, "\t%d", err == DKIM_SIGERROR_NOKEY);
 
-		  case DKIM_SIGERROR_KEYREVOKED:
-			recdata.sd_key_revoked++;
-			break;
+		if (dkim_sig_gettagvalue(sigs[c], TRUE, "v") == NULL &&
+		    ((p = dkim_sig_gettagvalue(sigs[c], TRUE, "g")) != NULL &&
+		     *p == '\0'))
+			fprintf(out, "\t1");
+		else
+			fprintf(out, "\t0");
+		
+		fprintf(out, "\t%d", err == DKIM_SIGERROR_KEYREVOKED);
 
-		  case DKIM_SIGERROR_KEYHASHMISMATCH:
-		  case DKIM_SIGERROR_KEYDECODE:
-		  case DKIM_SIGERROR_DNSSYNTAX:
-		  case DKIM_SIGERROR_MULTIREPLY:
-			recdata.sd_key_syntax++;
-			break;
-		}
-	}
+		fprintf(out, "\t%d", err == DKIM_SIGERROR_VERSION ||
+		                     err == DKIM_SIGERROR_DOMAIN ||
+		                     err == DKIM_SIGERROR_TIMESTAMPS ||
+		                     err == DKIM_SIGERROR_MISSING_C ||
+		                     err == DKIM_SIGERROR_INVALID_HC ||
+		                     err == DKIM_SIGERROR_INVALID_BC ||
+		                     err == DKIM_SIGERROR_MISSING_A ||
+		                     err == DKIM_SIGERROR_INVALID_A ||
+		                     err == DKIM_SIGERROR_MISSING_H ||
+		                     err == DKIM_SIGERROR_INVALID_L ||
+		                     err == DKIM_SIGERROR_INVALID_Q ||
+		                     err == DKIM_SIGERROR_INVALID_QO ||
+		                     err == DKIM_SIGERROR_MISSING_D ||
+		                     err == DKIM_SIGERROR_EMPTY_D ||
+		                     err == DKIM_SIGERROR_MISSING_S ||
+		                     err == DKIM_SIGERROR_EMPTY_S ||
+		                     err == DKIM_SIGERROR_MISSING_B ||
+		                     err == DKIM_SIGERROR_EMPTY_B ||
+		                     err == DKIM_SIGERROR_CORRUPT_B ||
+		                     err == DKIM_SIGERROR_MISSING_BH ||
+		                     err == DKIM_SIGERROR_EMPTY_BH ||
+		                     err == DKIM_SIGERROR_CORRUPT_BH ||
+		                     err == DKIM_SIGERROR_EMPTY_H ||
+		                     err == DKIM_SIGERROR_TOOLARGE_L);
 
-	if (dkim_getpresult(dkimv) == DKIM_PRESULT_AUTHOR)
-	{
-		recdata.sd_adsp_found++;
+		p = dkim_sig_gettagvalue(sigs[c], FALSE, "t");
+		fprintf(out, "\t%d", p != NULL);
 
-		switch (pcode)
-		{
-		  case DKIM_POLICY_UNKNOWN:
-			recdata.sd_adsp_unknown++;
-			break;
+		fprintf(out, "\t%d", err == DKIM_SIGERROR_FUTURE);
 
-		  case DKIM_POLICY_ALL:
-			recdata.sd_adsp_all++;
-			break;
+		p = dkim_sig_gettagvalue(sigs[c], FALSE, "x");
+		fprintf(out, "\t%d", p != NULL);
 
-		  case DKIM_POLICY_DISCARDABLE:
-			recdata.sd_adsp_discardable++;
-			break;
-		}
-	}
+		p = dkim_sig_gettagvalue(sigs[c], FALSE, "z");
+		fprintf(out, "\t%d", p != NULL);
 
-	if (!validauthorsig)
-		recdata.sd_adsp_fail++;
+		fprintf(out, "\t%d", dkim_sig_getdnssec(sigs[c]));
+
+		p = dkim_sig_gettagvalue(sigs[c], FALSE, "h");
+		fprintf(out, "\t%s", p == NULL ? "-" : p);
 
 #ifdef _FFR_DIFFHEADERS
-	for (c = 0; c < nsigs; c++)
-	{
-		int ndiffs;
-		struct dkim_hdrdiff *diffs;
-
 		nhdrs = MAXHDRCNT;
+
+		memset(tmp, '\0', sizeof tmp);
 
 		if (dkim_ohdrs(dkimv, sigs[c], ohdrs, &nhdrs) == DKIM_STAT_OK)
 		{
@@ -455,52 +446,30 @@ dkimf_stats_record(char *path, char *jobid, DKIM *dkimv, dkim_policy_t pcode,
 						*p = '\0';
 					dkimf_lowercase(diffs[n].hd_old);
 
-					if (recdata.sd_changed[0] != '\0')
-					{
-						strlcat(recdata.sd_changed,
-						        ",",
-						        sizeof recdata.sd_changed);
-					}
+					if (tmp[0] != '\0')
+						strlcat(tmp, ",", sizeof tmp);
 
-					strlcat(recdata.sd_changed,
-					        diffs[n].hd_old,
-					        sizeof recdata.sd_changed);
+					strlcat(tmp, diffs[n].hd_old,
+					        sizeof tmp);
 				}
+
+				fprintf(out, "\t%s", tmp);
 
 				if (ndiffs > 0)
 					free(diffs);
 			}
 		}
-	}
+#else /* _FFR_DIFFHEADERS */
+		fprintf(out, "\t-");
 #endif /* _FFR_DIFFHEADERS */
 
-	/* write it out */
-	status = dkimf_db_put(db, jobid, strlen(jobid), &recdata,
-	                      sizeof recdata);
-	if (status != 0)
-	{
-		char err[BUFRSZ];
-
-		memset(err, '\0', sizeof err);
-		(void) dkimf_db_strerror(db, err, sizeof err);
-		syslog(LOG_ERR, "%s: dkimf_db_put() failed: %s", path, err);
+		fprintf(out, "\n");
 	}
 
-	/* close the DB */
-	if (dkimf_db_close(db) != 0)
-	{
-		if (dolog)
-		{
-			char err[BUFRSZ];
+	/* close output */
+	fclose(out);
 
-			memset(err, '\0', sizeof err);
-			(void) dkimf_db_strerror(db, err, sizeof err);
-			syslog(LOG_ERR, "%s: dkimf_db_close() failed: %s",
-			       path, err);
-		}
-
-		return -1;
-	}
+	pthread_mutex_unlock(&stats_lock);
 
 	return 0;
 }

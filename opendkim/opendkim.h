@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.30 2010/07/23 18:50:52 cm-msk Exp $
+**  $Id: opendkim.h,v 1.30.8.1 2010/08/19 19:56:22 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.30 2010/07/23 18:50:52 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.30.8.1 2010/08/19 19:56:22 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -95,6 +95,19 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.30 2010/07/23 18:50:52 cm
 #if POPAUTH
 # define POPAUTHDB	"/etc/mail/popip.db"
 #endif /* POPAUTH */
+
+/*
+**  HEADER -- a handle referring to a header
+*/
+
+typedef struct Header * Header;
+struct Header
+{
+	char *		hdr_hdr;
+	char *		hdr_val;
+	struct Header *	hdr_next;
+	struct Header *	hdr_prev;
+};
 
 /*
 **  SIGNREQ -- signing request (for multiple signature requests)
