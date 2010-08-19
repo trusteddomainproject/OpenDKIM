@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.1.2.4 2010/08/19 20:07:46 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.1.2.5 2010/08/19 20:45:47 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.4 2010/08/19 20:07:46 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.5 2010/08/19 20:45:47 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -45,6 +45,38 @@ char *progname;
 char reporter[MAXREPORTER + 1];
 
 /*
+**  SANITIZE -- sanitize a string
+**
+**  Parameters:
+**  	db -- DB handle
+**  	in -- input string
+**  	out -- output buffer
+**  	len -- bytes available at "out"
+**
+**  Return value:
+**  	0 == string was safe
+**  	1 == string was not safe
+*/
+
+int
+sanitize(odbx_t *db, char *in, char *out, size_t len)
+{
+	size_t outlen;
+
+	assert(db != NULL);
+	assert(in != NULL);
+	assert(out != NULL);
+
+	memset(out, '\0', len);
+
+	outlen = len;
+
+	(void) odbx_escape(db, in, strlen(in), out, &outlen);
+
+	return (strncmp(in, out, outlen) != 0);
+}
+
+/*
 **  FINDINLIST -- see if a particular string appears in another list
 **
 **  Parameters:
@@ -78,6 +110,9 @@ findinlist(char *str, char *list)
 				return 1;
 		}
 
+		if (*p == '\0')
+			break;
+
 		q = p + 1;
 	}
 
@@ -104,23 +139,11 @@ sql_get_int(odbx_t *db, char *sql)
 	int err;
 	size_t safelen;
 	odbx_result_t *result = NULL;
-	char safesql[MAXLINE * 2 + 1];
 
 	assert(db != NULL);
 	assert(sql != NULL);
 
-	memset(safesql, '\0', sizeof safesql);
-	safelen = sizeof safesql;
-
-	err = odbx_escape(db, sql, strlen(sql), safesql, &safelen);
-	if (err < 0)
-	{
-		fprintf(stderr, "%s: odbx_escape(): %s\n",
-		        progname, odbx_error(db, err));
-		return -1;
-	}
-
-	err = odbx_query(db, safesql, safelen);
+	err = odbx_query(db, sql, strlen(sql));
 	if (err < 0)
 	{
 		fprintf(stderr, "%s: odbx_query(): %s\n",
@@ -189,23 +212,11 @@ sql_do(odbx_t *db, char *sql)
 	int err;
 	size_t safelen;
 	odbx_result_t *result = NULL;
-	char safesql[MAXLINE * 2 + 1];
 
 	assert(db != NULL);
 	assert(sql != NULL);
 
-	memset(safesql, '\0', sizeof safesql);
-	safelen = sizeof safesql;
-
-	err = odbx_escape(db, sql, strlen(sql), safesql, &safelen);
-	if (err < 0)
-	{
-		fprintf(stderr, "%s: odbx_escape(): %s\n",
-		        progname, odbx_error(db, err));
-		return -1;
-	}
-
-	err = odbx_query(db, safesql, safelen);
+	err = odbx_query(db, sql, strlen(sql));
 	if (err < 0)
 	{
 		fprintf(stderr, "%s: odbx_query(): %s\n",
@@ -415,7 +426,7 @@ main(int argc, char **argv)
 		/* processing section for messages */
 		if (c == 'M')
 		{
-			if (nfields != 16)
+			if (n != 16)
 			{
 				fprintf(stderr,
 				        "%s: unexpected field count at input line %d\n",
@@ -426,9 +437,12 @@ main(int argc, char **argv)
 			/* get, or create, the reporter ID if needed */
 			if (strcasecmp(reporter, fields[1]) != 0)
 			{
+				(void) sanitize(db, fields[1], safesql,
+				                sizeof safesql);
+
 				snprintf(sql, sizeof sql,
 				         "SELECT id FROM reporters WHERE name = '%s'",
-				         fields[1]);
+				         safesql);
 
 				repid = sql_get_int(db, sql);
 				if (repid == -1)
@@ -440,7 +454,7 @@ main(int argc, char **argv)
 				{
 					snprintf(sql, sizeof sql,
 					         "INSERT INTO reporters (name) VALUES ('%s')",
-					         fields[1]);
+					         safesql);
 
 					repid = sql_do(db, sql);
 					if (repid == -1)
@@ -468,12 +482,17 @@ main(int argc, char **argv)
 						return EX_SOFTWARE;
 					}
 				}
+
+				strlcpy(reporter, fields[1], sizeof reporter);
 			}
 
 			/* get, or create, the domain ID if needed */
+			(void) sanitize(db, fields[2], safesql,
+			                sizeof safesql);
+
 			snprintf(sql, sizeof sql,
 			         "SELECT id FROM domains WHERE name = '%s'",
-			         fields[2]);
+			         safesql);
 
 			domid = sql_get_int(db, sql);
 			if (domid == -1)
@@ -485,7 +504,7 @@ main(int argc, char **argv)
 			{
 				snprintf(sql, sizeof sql,
 				         "INSERT INTO domains (name) VALUES ('%s')",
-				         fields[2]);
+				         safesql);
 
 				domid = sql_do(db, sql);
 				if (domid == -1)
@@ -514,8 +533,29 @@ main(int argc, char **argv)
 			}
 
 			/* insert the data */
+			if (sanitize(db, fields[0], safesql, sizeof safesql) ||
+			    sanitize(db, fields[3], safesql, sizeof safesql) ||
+			    sanitize(db, fields[4], safesql, sizeof safesql) ||
+			    sanitize(db, fields[5], safesql, sizeof safesql) ||
+			    sanitize(db, fields[6], safesql, sizeof safesql) ||
+			    sanitize(db, fields[7], safesql, sizeof safesql) ||
+			    sanitize(db, fields[8], safesql, sizeof safesql) ||
+			    sanitize(db, fields[9], safesql, sizeof safesql) ||
+			    sanitize(db, fields[10], safesql, sizeof safesql) ||
+			    sanitize(db, fields[11], safesql, sizeof safesql) ||
+			    sanitize(db, fields[12], safesql, sizeof safesql) ||
+			    sanitize(db, fields[13], safesql, sizeof safesql) ||
+			    sanitize(db, fields[14], safesql, sizeof safesql) ||
+			    sanitize(db, fields[15], safesql, sizeof safesql))
+			{
+				fprintf(stderr,
+				        "%s: unsafe data at input line %d\n",
+				        progname, line);
+				continue;
+			}
+
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO messages (jobid, reporter, from_domain, ipaddr, anonymized, msgtime, size, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received, content_type, content_encoding) VALUES ('%s', %d, %d, '%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')",
+			         "INSERT INTO messages (jobid, reporter, from_domain, ipaddr, anonymized, msgtime, size, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received_count, content_type, content_encoding) VALUES ('%s', %d, %d, '%s', %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')",
 			         fields[0],		/* jobid */
 			         repid,			/* reporter */
 			         domid,			/* from_domain */
@@ -529,7 +569,7 @@ main(int argc, char **argv)
 			         fields[10],		/* adsp_discardable */
 			         fields[11],		/* adsp_fail */
 			         fields[12],		/* mailing_list */
-			         fields[13],		/* received */
+			         fields[13],		/* received_count */
 			         fields[14],		/* content_type */
 			         fields[15]);		/* content_encoding */
 
@@ -564,7 +604,7 @@ main(int argc, char **argv)
 		{
 			int changed;
 
-			if (nfields != 23)
+			if (n != 23)
 			{
 				fprintf(stderr,
 				        "%s: unexpected field count at input line %d\n",
@@ -580,9 +620,12 @@ main(int argc, char **argv)
 			}
 
 			/* get, or create, the domain ID if needed */
+			(void) sanitize(db, fields[0], safesql,
+			                sizeof safesql);
+
 			snprintf(sql, sizeof sql,
 			         "SELECT id FROM domains WHERE name = '%s'",
-			         fields[0]);
+			         safesql);
 
 			domid = sql_get_int(db, sql);
 			if (domid == -1)
@@ -594,7 +637,7 @@ main(int argc, char **argv)
 			{
 				snprintf(sql, sizeof sql,
 				         "INSERT INTO domains (name) VALUES ('%s')",
-				         fields[0]);
+				         safesql);
 
 				domid = sql_do(db, sql);
 				if (domid == -1)
@@ -622,8 +665,35 @@ main(int argc, char **argv)
 				}
 			}
 
+			if (sanitize(db, fields[1], safesql, sizeof safesql) ||
+			    sanitize(db, fields[2], safesql, sizeof safesql) ||
+			    sanitize(db, fields[3], safesql, sizeof safesql) ||
+			    sanitize(db, fields[4], safesql, sizeof safesql) ||
+			    sanitize(db, fields[5], safesql, sizeof safesql) ||
+			    sanitize(db, fields[6], safesql, sizeof safesql) ||
+			    sanitize(db, fields[7], safesql, sizeof safesql) ||
+			    sanitize(db, fields[8], safesql, sizeof safesql) ||
+			    sanitize(db, fields[9], safesql, sizeof safesql) ||
+			    sanitize(db, fields[10], safesql, sizeof safesql) ||
+			    sanitize(db, fields[11], safesql, sizeof safesql) ||
+			    sanitize(db, fields[12], safesql, sizeof safesql) ||
+			    sanitize(db, fields[13], safesql, sizeof safesql) ||
+			    sanitize(db, fields[14], safesql, sizeof safesql) ||
+			    sanitize(db, fields[15], safesql, sizeof safesql) ||
+			    sanitize(db, fields[16], safesql, sizeof safesql) ||
+			    sanitize(db, fields[17], safesql, sizeof safesql) ||
+			    sanitize(db, fields[18], safesql, sizeof safesql) ||
+			    sanitize(db, fields[19], safesql, sizeof safesql) ||
+			    sanitize(db, fields[20], safesql, sizeof safesql))
+			{
+				fprintf(stderr,
+				        "%s: unsafe data at input line %d\n",
+				        progname, line);
+				continue;
+			}
+
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_syntax, key_nx, key_dk_compat, key_revoked, syntax, sig_t, sig_t_future, sig_x, sig_x, sig_z, dnssec) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+			         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_syntax, key_nx, key_dk_compat, key_revoked, syntax, sig_t, sig_t_future, sig_x, sig_z, dnssec) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
 			         msgid,			/* message */
 			         domid,			/* domain */
 			         fields[1],		/* algorithm */
@@ -693,10 +763,13 @@ main(int argc, char **argv)
 			     p != NULL;
 			     p = strtok(NULL, ":"))
 			{
+				(void) sanitize(db, p, safesql,
+				                sizeof safesql);
+
 				/* get, or create, the header ID if needed */
 				snprintf(sql, sizeof sql,
-				         "SELECT id FROM headers WHERE name = '%s'",
-				         p);
+				         "SELECT id FROM headernames WHERE name = '%s'",
+				         safesql);
 
 				hdrid = sql_get_int(db, sql);
 				if (hdrid == -1)
@@ -707,8 +780,8 @@ main(int argc, char **argv)
 				else if (hdrid == 0)
 				{
 					snprintf(sql, sizeof sql,
-					         "INSERT INTO headers (name) VALUES ('%s')",
-					         p);
+					         "INSERT INTO headernames (name) VALUES ('%s')",
+					         safesql);
 
 					hdrid = sql_do(db, sql);
 					if (hdrid == -1)
@@ -726,7 +799,7 @@ main(int argc, char **argv)
 						(void) odbx_finish(db);
 						return EX_SOFTWARE;
 					}
-					else if (domid == 0)
+					else if (hdrid == 0)
 					{
 						fprintf(stderr,
 						        "%s: failed to create header record for `%s'\n",
