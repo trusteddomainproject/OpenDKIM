@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.14.10.6 2010/08/19 19:56:22 cm-msk Exp $
+**  $Id: stats.c,v 1.14.10.7 2010/08/20 06:41:21 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.6 2010/08/19 19:56:22 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.7 2010/08/20 06:41:21 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -28,6 +28,7 @@ static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.6 2010/08/19 19:56:22 cm-
 #include <assert.h>
 #include <syslog.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <stdio.h>
 
 /* libcrypto includes */
@@ -424,7 +425,20 @@ dkimf_stats_record(char *path, char *jobid, char *name,
 		fprintf(out, "\t%d", dkim_sig_getdnssec(sigs[c]));
 
 		p = dkim_sig_gettagvalue(sigs[c], FALSE, "h");
-		fprintf(out, "\t%s", p == NULL ? "-" : p);
+		if (p == NULL)
+		{
+			fprintf(out, "\t-");
+		}
+		else
+		{
+			strlcpy(tmp, p, sizeof tmp);
+			for (p = tmp; *p != '\0'; p++)
+			{
+				if (isascii(*p) && isupper(*p))
+					*p = tolower(*p);
+			}
+			fprintf(out, "\t%s", tmp);
+		}
 
 #ifdef _FFR_DIFFHEADERS
 		nhdrs = MAXHDRCNT;
