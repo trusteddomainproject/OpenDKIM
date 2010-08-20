@@ -1,4 +1,4 @@
--- $Id: mkdb.mysql,v 1.4.2.14 2010/08/19 20:07:46 cm-msk Exp $
+-- $Id: mkdb.mysql,v 1.4.2.15 2010/08/20 17:09:41 cm-msk Exp $
 
 -- MySQL command sequence to create a database to accumulate OpenDKIM
 -- statistics reports
@@ -46,8 +46,8 @@ create table if not exists messages (
 	key(from_domain),
 	key(ipaddr),
 	unique key(reporter, jobid, msgtime),
-	foreign key(from_domain) references domains(id),
-	foreign key(reporter) references reporters(id)
+	foreign key(from_domain) references domains(id) on delete cascade,
+	foreign key(reporter) references reporters(id) on delete cascade
 ) default charset=latin1;
 
 -- table of signatures we've seen
@@ -78,8 +78,8 @@ create table if not exists signatures (
 
 	primary key(id),
 	key(domain),
-	foreign key(message) references messages(id),
-	foreign key(domain) references domains(id)
+	foreign key(message) references messages(id) on delete cascade,
+	foreign key(domain) references domains(id) on delete cascade
 ) default charset=latin1;
 
 -- table of header names we've seen
@@ -99,6 +99,6 @@ create table if not exists signed_headers (
 	changed tinyint unsigned not null,
 
 	primary key(id),
-	foreign key(signature) references signatures(id),
-	foreign key(header) references headernames(id)
+	foreign key(signature) references signatures(id) on delete cascade,
+	foreign key(header) references headernames(id) on delete cascade
 ) default charset=latin1;
