@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.1.2.5 2010/08/19 20:45:47 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.1.2.6 2010/08/20 13:44:26 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.5 2010/08/19 20:45:47 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.6 2010/08/20 13:44:26 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -30,7 +30,7 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.5
 #endif /* USE_ODBX */
 
 /* macros, definitions */
-#define	CMDLINEOPTS	"d:h:P:p:s:u:"
+#define	CMDLINEOPTS	"d:h:mP:p:s:u:"
 
 #define	DEFDBHOST	"localhost"
 #define	DEFDBNAME	"opendkim"
@@ -254,6 +254,7 @@ usage(void)
 	fprintf(stderr, "%s: usage: %s [options]\n"
 	                "\t-d dbname  \tdatabase name (default: \"%s\")\n"
 	                "\t-h dbhost  \tdatabase host/address (default: \"%s\")\n"
+	                "\t-m         \tinput is in email format\n"
 	                "\t-P dbport  \tdatabase port\n"
 	                "\t-p dbpasswd\tdatabase password\n"
 	                "\t-s dbscheme\tdatabase scheme (default: \"%s\")\n"
@@ -282,6 +283,7 @@ main(int argc, char **argv)
 	int nfields = 0;
 	int line;
 	int err;
+	int mail = 0;
 	int repid;
 	int domid;
 	int msgid;
@@ -312,6 +314,10 @@ main(int argc, char **argv)
 
 		  case 'h':
 			dbhost = optarg;
+			break;
+
+		  case 'm':
+			mail = 1;
 			break;
 
 		  case 'P':
@@ -373,6 +379,14 @@ main(int argc, char **argv)
 				*p = '\0';
 				break;
 			}
+		}
+
+		if (mail == 1)
+		{
+			if (strlen(buf) > 0)
+				continue;
+
+			mail = 0;
 		}
 
 		/* first byte identifies the record type */
