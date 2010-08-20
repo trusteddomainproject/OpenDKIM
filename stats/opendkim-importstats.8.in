@@ -23,6 +23,18 @@ Specifies the name of the SQL database into which records should be
 imported.  The default is
 .I opendkim.
 .TP
+.I -h host
+Names the host to which an SQL connection should be made.  The default is
+"localhost".
+.TP
+.I -m
+Input is in the form of an email message, so do not start processing input
+until a blank line is encountered.
+.TP
+.I -P port
+Names the port to which an SQL connection should be made.  The default is
+determined by the scheme in use (see below).
+.TP
 .I -p password
 Specifies the password that should be used to authenticate to the SQL
 database.  The default is no password.
