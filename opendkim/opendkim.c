@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.173.6.1 2010/08/19 19:56:21 cm-msk Exp $
+**  $Id: opendkim.c,v 1.173.6.2 2010/08/20 18:54:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.173.6.1 2010/08/19 19:56:21 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.173.6.2 2010/08/20 18:54:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -245,7 +245,8 @@ struct dkimf_config
 #endif /* _FFR_SELECTOR_HEADER */
 	char *		conf_diagdir;		/* diagnostics directory */
 #ifdef _FFR_STATS
-	char *		conf_statspath;		/* path for stats DB */
+	char *		conf_statspath;		/* path for stats file */
+	char *		conf_reporthost;	/* reporter name */
 #endif /* _FFR_STATS */
 #ifdef _FFR_DKIM_REPUTATION
 	char *		conf_reproot;		/* root of reputation queries */
@@ -643,7 +644,7 @@ DKIMF_DB ridb;					/* report intervals DB */
 pthread_mutex_t ridb_lock;			/* ridb lock */
 #endif /* _FFR_REPORT_INTERVALS */
 char reportaddr[MAXADDRESS + 1];		/* reporting address */
-char hostname[DKIM_MAXHOSTNAMELEN + 1];		/* hostname */
+char myhostname[DKIM_MAXHOSTNAMELEN + 1];	/* hostname */
 pthread_mutex_t conf_lock;			/* config lock */
 pthread_mutex_t count_lock;			/* counter lock */
 pthread_mutex_t popen_lock;			/* popen() lock */
@@ -3964,12 +3965,12 @@ dkimf_reportaddr(struct dkimf_config *conf)
 		if (pw == NULL)
 		{
 			snprintf(reportaddr, sizeof reportaddr,
-			         "%u@%s", uid, hostname);
+			         "%u@%s", uid, myhostname);
 		}
 		else
 		{
 			snprintf(reportaddr, sizeof reportaddr,
-			         "%s@%s", pw->pw_name, hostname);
+			         "%s@%s", pw->pw_name, myhostname);
 		}
 	}
 }
@@ -4294,6 +4295,9 @@ dkimf_config_new(void)
 #endif /* _FFR_DKIM_REPUTATION */
 	new->conf_safekeys = TRUE;
 	new->conf_adspaction = SMFIS_CONTINUE;
+#ifdef STATS
+	new->conf_reporthost = myhostname;
+#endif /* STATS */
 
 	memcpy(&new->conf_handling, &defaults, sizeof new->conf_handling);
 
@@ -4773,6 +4777,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 #ifdef _FFR_STATS
 		(void) config_get(data, "Statistics", &conf->conf_statspath,
 		                  sizeof conf->conf_statspath);
+
+		(void) config_get(data, "StatisticsName",
+		                  &conf->conf_reporthost,
+		                  sizeof conf->conf_reporthost);
 #endif /* _FFR_STATS */
 
 		if (!conf->conf_subdomains)
@@ -10864,7 +10872,7 @@ mlfi_eom(SMFICTX *ctx)
 
 			if (dkimf_stats_record(conf->conf_statspath,
 			                       dfc->mctx_jobid,
-			                       hostname,
+			                       conf->conf_reporthost,
 			                       dfc->mctx_hqhead,
 			                       dfc->mctx_dkimv,
 			                       dfc->mctx_pcode,
@@ -12170,8 +12178,8 @@ main(int argc, char **argv)
 	quarantine = FALSE;
 	conffile = NULL;
 
-	memset(hostname, '\0', sizeof hostname);
-	(void) gethostname(hostname, sizeof hostname);
+	memset(myhostname, '\0', sizeof myhostname);
+	(void) gethostname(myhostname, sizeof myhostname);
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 

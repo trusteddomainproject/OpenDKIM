@@ -950,6 +950,14 @@ for a mechanism to translate the file's contents into SQL database insertions.
 @STATS_MANNOTICE@
 
 .TP
+.I StatisticsName (string)
+Defines the name to be used as the reporting host in statistics logs.
+By default, the local host's name returned by
+.I gethostname(3)
+is used.
+@STATS_MANNOTICE@
+
+.TP
 .I StrictTestMode (Boolean)
 Selects strict CRLF mode during testing (see the
 .I -t
