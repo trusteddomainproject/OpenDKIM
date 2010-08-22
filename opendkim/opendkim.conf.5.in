@@ -87,7 +87,8 @@ When
 .I Statistics
 is enabled, setting this flag will pass the From: domain and the client
 IP address portions of the reported data through a one-way hash algorithm
-to conceal those data while allowing some correlation to take place.
+to conceal those data while allowing some correlation to take place.  The
+default is "true".
 
 .TP
 .I AuthservID (string)
