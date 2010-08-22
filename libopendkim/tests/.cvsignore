@@ -8,6 +8,8 @@
 *.gcno
 *.gmon
 *.prof
+*.info
+*.gcov
 t-*[0-9]
 t-verifyperf
 t-signperf
@@ -15,6 +17,7 @@ t-cleanup
 t-setup
 .deps/
 .libs/
+.info-files
 autom4te.cache/
 autoscan-*.log
 build-config.h.in
@@ -24,6 +27,8 @@ config.sub
 configure
 configure.scan
 aclocal.m4
+description.html
+description.txt
 depcomp
 install-sh
 missing
