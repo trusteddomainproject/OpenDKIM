@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.173.6.4 2010/08/22 18:08:28 cm-msk Exp $
+**  $Id: opendkim.c,v 1.173.6.5 2010/08/22 23:50:59 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.173.6.4 2010/08/22 18:08:28 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.173.6.5 2010/08/22 23:50:59 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4295,10 +4295,10 @@ dkimf_config_new(void)
 #endif /* _FFR_DKIM_REPUTATION */
 	new->conf_safekeys = TRUE;
 	new->conf_adspaction = SMFIS_CONTINUE;
-#ifdef STATS
+#ifdef _FFR_STATS
 	new->conf_reporthost = myhostname;
 	new->conf_anonstats = TRUE;
-#endif /* STATS */
+#endif /* _FFR_STATS */
 
 	memcpy(&new->conf_handling, &defaults, sizeof new->conf_handling);
 
