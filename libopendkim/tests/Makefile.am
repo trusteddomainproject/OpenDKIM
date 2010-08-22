@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.10 2010/04/30 17:01:28 cm-msk Exp $
+# $Id: Makefile.am,v 1.11 2010/08/22 13:35:52 grooverdan Exp $
 
 AM_CFLAGS = $(COV_CFLAGS)
 AM_LDFLAGS = $(COV_LDFLAGS)
@@ -245,8 +245,8 @@ check-local: .info-files description.html
 		--description-file description.html
 
 description.txt:
-	for i in $(PROF_SRCS); do \
-		fgrep '***' ../$$i | \
+	for i in $(CHECK_PROGRAMS); do \
+		fgrep '***' $$i.c | \
 			sed -e 's/^t-\([a-z0-9]*\)\.c:[^*]*\*\*\*\(.*\)\\n.*/\1\n\t\2\n/g' >> $@; \
 	done
  
