@@ -77,7 +77,7 @@ doesn't find it, you will need to specify the location with
 		the /usr/local and /usr directories will be searched for
 		the required includes and libraries.
 
---with-sasl	Location of the Cyrus SASL include file definations. This is
+--with-sasl	Location of the Cyrus SASL include file definitions. This is
 		used for authenticating against LDAP servers.
 
 --with-tre	Location of the TRE installation on your system.  This
