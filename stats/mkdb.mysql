@@ -1,4 +1,4 @@
--- $Id: mkdb.mysql,v 1.4.2.15 2010/08/20 17:09:41 cm-msk Exp $
+-- $Id: mkdb.mysql,v 1.4.2.16 2010/08/22 23:50:18 cm-msk Exp $
 
 -- MySQL command sequence to create a database to accumulate OpenDKIM
 -- statistics reports
@@ -10,7 +10,7 @@ create table if not exists reporters (
 
 	primary key(id),
 	key(name)
-) default charset=latin1;
+) engine=innodb default charset=latin1;
 
 -- table of domain names we've seen
 create table if not exists domains (
@@ -19,7 +19,7 @@ create table if not exists domains (
 
 	primary key(id),
 	key(name)
-) default charset=latin1;
+) engine=innodb default charset=latin1;
 
 -- table of messages names we've seen
 create table if not exists messages (
@@ -48,7 +48,7 @@ create table if not exists messages (
 	unique key(reporter, jobid, msgtime),
 	foreign key(from_domain) references domains(id) on delete cascade,
 	foreign key(reporter) references reporters(id) on delete cascade
-) default charset=latin1;
+) engine=innodb default charset=latin1;
 
 -- table of signatures we've seen
 create table if not exists signatures (
@@ -80,7 +80,7 @@ create table if not exists signatures (
 	key(domain),
 	foreign key(message) references messages(id) on delete cascade,
 	foreign key(domain) references domains(id) on delete cascade
-) default charset=latin1;
+) engine=innodb default charset=latin1;
 
 -- table of header names we've seen
 create table if not exists headernames (
@@ -89,7 +89,7 @@ create table if not exists headernames (
 
 	primary key(id),
 	key(name)
-) default charset=latin1;
+) engine=innodb default charset=latin1;
 
 -- table correlating signatures to signed headers
 create table if not exists signed_headers (
@@ -101,4 +101,4 @@ create table if not exists signed_headers (
 	primary key(id),
 	foreign key(signature) references signatures(id) on delete cascade,
 	foreign key(header) references headernames(id) on delete cascade
-) default charset=latin1;
+) engine=innodb default charset=latin1;
