@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.1.2.6 2010/08/20 13:44:26 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.1.2.7 2010/08/25 18:59:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.6 2010/08/20 13:44:26 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.7 2010/08/25 18:59:07 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -387,6 +387,7 @@ main(int argc, char **argv)
 				continue;
 
 			mail = 0;
+			continue;
 		}
 
 		/* first byte identifies the record type */
