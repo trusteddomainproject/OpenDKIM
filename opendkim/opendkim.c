@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.178 2010/08/27 06:03:21 cm-msk Exp $
+**  $Id: opendkim.c,v 1.179 2010/08/27 07:30:52 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.178 2010/08/27 06:03:21 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.179 2010/08/27 07:30:52 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -11554,7 +11554,9 @@ mlfi_eom(SMFICTX *ctx)
 #endif /* _FFR_VBR */
 
 #ifdef _FFR_DKIM_REPUTATION
-		if (dfc->mctx_status == DKIMF_STATUS_GOOD)
+		if (dfc->mctx_status == DKIMF_STATUS_GOOD &&
+		    (conf->conf_reproot == NULL ||
+		     strcasecmp(conf->conf_reproot, "none") != 0))
 		{
 			int rep = 0;
 
