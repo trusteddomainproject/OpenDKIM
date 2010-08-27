@@ -1,4 +1,4 @@
-$Id: README,v 1.4.12.4 2010/08/19 19:00:38 cm-msk Exp $
+$Id: README,v 1.4.12.5 2010/08/27 06:33:37 cm-msk Exp $
 
 INTRODUCTION
 
@@ -115,7 +115,7 @@ There are currently these record types:
 	M	identifies a message
 	S	identifies a signature
 
-A message record is a comma-separated, ordered sequence of fields, as follows:
+A message record is a tab-separated, ordered sequence of fields, as follows:
 
 	MTA-provided job/envelope ID (string)
 	reporter (string; defaults to hostname)
@@ -136,7 +136,7 @@ A message record is a comma-separated, ordered sequence of fields, as follows:
 
 A signature record implicitly references the preceding message record.
 There may be more than one signature record per message; there could also be
-none.  As above, a signature record is a comma-separated, ordered sequence of
+none.  As above, a signature record is a tab-separated, ordered sequence of
 fields, as follows:
 
 	domain of the signature
