@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.58 2010/08/02 17:47:32 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.59 2010/08/27 07:04:53 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2549,13 +2549,14 @@ dkim_get_policy(DKIM *dkim, char *query, _Bool excheck, int *qstatus,
 **  Parameters:
 **  	dkim -- DKIM handle
 **  	sig -- DKIM_SIGINFO handle
+**  	test -- skip signature-specific validity checks
 **
 **  Return value:
 **  	A DKIM_STAT_* constant.
 */
 
 DKIM_STAT
-dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig)
+dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig, _Bool test)
 {
 	_Bool gotkey = FALSE;			/* key stored */
 	_Bool gotset = FALSE;			/* set parsed */
@@ -2730,7 +2731,7 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig)
 		return DKIM_STAT_SYNTAX;
 	}
 	/* ...and that this key is approved for this signature's hash */
-	else if (!dkim_key_hashok(sig, p))
+	else if (!test && !dkim_key_hashok(sig, p))
 	{
 		dkim_error(dkim, "signature-key hash mismatch");
 		sig->sig_error = DKIM_SIGERROR_KEYHASHMISMATCH;
@@ -2747,7 +2748,7 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig)
 
 	/* check key granularity */
 	p = dkim_param_get(set, "g");
-	if (p != NULL)
+	if (!test && p != NULL)
 	{
 		char *at;
 		char *v;
@@ -5042,7 +5043,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		assert(digest != NULL && diglen != 0);
 
 		/* retrieve the key */
-		status = dkim_get_key(dkim, sig);
+		status = dkim_get_key(dkim, sig, FALSE);
 		if (status == DKIM_STAT_NOKEY)
 		{
 			sig->sig_flags |= DKIM_SIGFLAG_PROCESSED;

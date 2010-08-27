@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.14 2010/07/23 19:12:20 cm-msk Exp $";
+static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.15 2010/08/27 07:04:53 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -39,7 +39,7 @@ static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.14 2010/07/23 19:12:20 
 #define MAXPACKET		8192
 
 /* prototypes from elsewhere */
-extern DKIM_STAT dkim_get_key __P((DKIM *, DKIM_SIGINFO *));
+extern DKIM_STAT dkim_get_key __P((DKIM *, DKIM_SIGINFO *, _Bool));
 
 /*
 **  DKIM_TEST_DNS_PUT -- enqueue a DNS reply for automated testing
@@ -298,7 +298,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 		return -1;
 	}
 
-	snprintf(buf, sizeof buf, "d=%s; s=%s; h=x; b=x; v=x; a=x",
+	snprintf(buf, sizeof buf, "v=1; d=%s; s=%s; h=x; b=x; a=x",
 	         domain, selector);
 
 	stat = dkim_process_set(dkim, DKIM_SETTYPE_SIGNATURE, buf, strlen(buf),
@@ -328,7 +328,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 		return -1;
 	}
 
-	stat = dkim_get_key(dkim, sig);
+	stat = dkim_get_key(dkim, sig, TRUE);
 	if (stat != DKIM_STAT_OK)
 	{
 		if (err != NULL)
