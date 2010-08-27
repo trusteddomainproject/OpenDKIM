@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.1.2.7 2010/08/25 18:59:07 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.1.2.8 2010/08/27 05:50:31 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.7 2010/08/25 18:59:07 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.8 2010/08/27 05:50:31 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -284,6 +284,7 @@ main(int argc, char **argv)
 	int line;
 	int err;
 	int mail = 0;
+	int skipsigs = 0;
 	int repid;
 	int domid;
 	int msgid;
@@ -439,7 +440,11 @@ main(int argc, char **argv)
 		hdrid = 0;
 
 		/* processing section for messages */
-		if (c == 'M')
+		if (c == '\0')
+		{
+			continue;
+		}
+		else if (c == 'M')
 		{
 			if (n != 16)
 			{
@@ -448,6 +453,8 @@ main(int argc, char **argv)
 				        progname, line);
 				continue;
 			}
+
+			skipsigs = 0;
 
 			/* get, or create, the reporter ID if needed */
 			if (strcasecmp(reporter, fields[1]) != 0)
@@ -547,7 +554,7 @@ main(int argc, char **argv)
 				}
 			}
 
-			/* insert the data */
+			/* verify data safety */
 			if (sanitize(db, fields[0], safesql, sizeof safesql) ||
 			    sanitize(db, fields[3], safesql, sizeof safesql) ||
 			    sanitize(db, fields[4], safesql, sizeof safesql) ||
@@ -566,6 +573,26 @@ main(int argc, char **argv)
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
 				        progname, line);
+				continue;
+			}
+
+			/* see if this is a duplicate */
+			snprintf(sql, sizeof sql,
+			         "SELECT id FROM messages WHERE jobid = '%s' and reporter = %d and msgtime = from_unixtime(%s)",
+			         fields[0], repid, fields[5]);
+
+			msgid = sql_get_int(db, sql);
+			if (msgid == -1)
+			{
+				(void) odbx_finish(db);
+				return EX_SOFTWARE;
+			}
+			else if (msgid != 0)
+			{
+				fprintf(stderr,
+				        "%s: skipping duplicate message at line %d\n",
+				        progname, line);
+				skipsigs = 1;
 				continue;
 			}
 
@@ -631,6 +658,10 @@ main(int argc, char **argv)
 				fprintf(stderr,
 				        "%s: signature record before message record at input line %d\n",
 				        progname, line);
+				continue;
+			}
+			else if (skipsigs == 1)
+			{
 				continue;
 			}
 
