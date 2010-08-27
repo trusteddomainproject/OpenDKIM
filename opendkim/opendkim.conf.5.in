@@ -959,6 +959,16 @@ is used.
 @STATS_MANNOTICE@
 
 .TP
+.I StatisticsPrefix (string)
+When
+.I AnonymousStatistics
+is enabled, this string may be specified and will be prepended to all
+data before hashing for more complete anonymization.  This means two records
+from different sources referencing the same source will still produce
+different hashes, meaning such correlation is now only possible within the
+data from a single repoter.
+
+.TP
 .I StrictTestMode (Boolean)
 Selects strict CRLF mode during testing (see the
 .I -t

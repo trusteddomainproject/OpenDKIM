@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.14.10.8 2010/08/22 23:50:34 cm-msk Exp $
+**  $Id: stats.c,v 1.14.10.9 2010/08/27 07:42:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.8 2010/08/22 23:50:34 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.9 2010/08/27 07:42:07 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -74,6 +74,7 @@ dkimf_stats_init(void)
 **  	path -- path to the DB to update
 **  	jobid -- job ID for the current message
 **  	name -- reporter name to record
+**  	prefix -- hashing prefix
 **  	hdrlist -- list of headers on the message
 **  	dkimv -- verifying handle from which data can be taken
 **  	pcode -- policy code
@@ -87,7 +88,7 @@ dkimf_stats_init(void)
 */
 
 int
-dkimf_stats_record(char *path, char *jobid, char *name,
+dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
                    Header hdrlist, DKIM *dkimv, dkim_policy_t pcode,
                    _Bool fromlist, _Bool anon, u_int rhcnt,
                    struct sockaddr *sa)
@@ -185,6 +186,8 @@ dkimf_stats_record(char *path, char *jobid, char *name,
 		unsigned char dig[MD5_DIGEST_LENGTH];
 
 		MD5_Init(&md5);
+		if (prefix != NULL)
+			MD5_Update(&md5, prefix, strlen(prefix));
 		MD5_Update(&md5, from, strlen(from));
 		MD5_Final(dig, &md5);
 
@@ -244,6 +247,8 @@ dkimf_stats_record(char *path, char *jobid, char *name,
 		unsigned char dig[MD5_DIGEST_LENGTH];
 
 		MD5_Init(&md5);
+		if (prefix != NULL)
+			MD5_Update(&md5, prefix, strlen(prefix));
 		MD5_Update(&md5, tmp, strlen(tmp));
 		MD5_Final(dig, &md5);
 

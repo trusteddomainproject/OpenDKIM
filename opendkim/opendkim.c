@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.173.6.5 2010/08/22 23:50:59 cm-msk Exp $
+**  $Id: opendkim.c,v 1.173.6.6 2010/08/27 07:42:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.173.6.5 2010/08/22 23:50:59 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.173.6.6 2010/08/27 07:42:07 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -247,6 +247,7 @@ struct dkimf_config
 #ifdef _FFR_STATS
 	char *		conf_statspath;		/* path for stats file */
 	char *		conf_reporthost;	/* reporter name */
+	char *		conf_reportprefix;	/* stats data prefix */
 #endif /* _FFR_STATS */
 #ifdef _FFR_DKIM_REPUTATION
 	char *		conf_reproot;		/* root of reputation queries */
@@ -4778,6 +4779,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 #ifdef _FFR_STATS
 		(void) config_get(data, "Statistics", &conf->conf_statspath,
 		                  sizeof conf->conf_statspath);
+
+		(void) config_get(data, "StatisticsPrefix",
+		                  &conf->conf_reportprefix,
+		                  sizeof conf->conf_reportprefix);
 
 		(void) config_get(data, "StatisticsName", &str, sizeof str);
 		if (str != NULL)
@@ -10874,6 +10879,7 @@ mlfi_eom(SMFICTX *ctx)
 			if (dkimf_stats_record(conf->conf_statspath,
 			                       dfc->mctx_jobid,
 			                       conf->conf_reporthost,
+			                       conf->conf_reportprefix,
 			                       dfc->mctx_hqhead,
 			                       dfc->mctx_dkimv,
 			                       dfc->mctx_pcode,
