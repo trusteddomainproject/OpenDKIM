@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.13.2.6 2010/08/19 19:56:21 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.13.2.7 2010/08/29 20:27:29 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.13.2.6 2010/08/19 19:56:21 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.13.2.7 2010/08/29 20:27:29 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -70,6 +70,7 @@ main(int argc, char **argv)
 	int ms = 0;
 	int nfields = 0;
 	int line;
+	int syntax = 0;
 	char *p;
 	char *infile = NULL;
 	char **fields = NULL;
@@ -234,7 +235,7 @@ main(int argc, char **argv)
 			char *siglen;
 			char *dnssec;
 
-			if (n != 23)
+			if (n != 19)
 			{
 				fprintf(stderr,
 				        "%s: unexpected field count at input line %d\n",
@@ -254,14 +255,14 @@ main(int argc, char **argv)
 			/* format output */
 			if (fields[5][0] == '1')
 				sigstat = "PASSED";
-			else if (fields[11][0] == '1')
-				sigstat = "ERROR (syntax error in signature)";
 			else if (fields[6][0] == '1')
 				sigstat = "FAILED (body changed)";
 			else if (fields[4][0] == '1')
 				sigstat = "IGNORED";
-			else if (fields[14][0] == '1')
+			else if (atoi(fields[12]) == DKIM_SIGERROR_KEYREVOKED)
 				sigstat = "REVOKED";
+			else if (fields[12][0] != '0')
+				sigstat = "ERROR (syntax error in signature)";
 			else
 				sigstat = "UNKNOWN";
 
@@ -282,7 +283,7 @@ main(int argc, char **argv)
 			else
 				siglen = fields[7];
 
-			switch (fields[20][0])
+			switch (fields[16][0])
 			{
 			  case '-':
 				dnssec = "UNKNOWN";
@@ -301,20 +302,49 @@ main(int argc, char **argv)
 				break;
 			}
 
+			syntax = atoi(fields[12]);
+			syntax = (syntax == DKIM_SIGERROR_VERSION ||
+			          syntax == DKIM_SIGERROR_DOMAIN ||
+			          syntax == DKIM_SIGERROR_TIMESTAMPS ||
+			          syntax == DKIM_SIGERROR_MISSING_C ||
+			          syntax == DKIM_SIGERROR_INVALID_HC ||
+			          syntax == DKIM_SIGERROR_INVALID_BC ||
+			          syntax == DKIM_SIGERROR_MISSING_A ||
+			          syntax == DKIM_SIGERROR_INVALID_A ||
+			          syntax == DKIM_SIGERROR_MISSING_H ||
+			          syntax == DKIM_SIGERROR_INVALID_L ||
+			          syntax == DKIM_SIGERROR_INVALID_Q ||
+			          syntax == DKIM_SIGERROR_INVALID_QO ||
+			          syntax == DKIM_SIGERROR_MISSING_D ||
+			          syntax == DKIM_SIGERROR_EMPTY_D ||
+			          syntax == DKIM_SIGERROR_MISSING_S ||
+			          syntax == DKIM_SIGERROR_EMPTY_S ||
+			          syntax == DKIM_SIGERROR_MISSING_B ||
+			          syntax == DKIM_SIGERROR_EMPTY_B ||
+			          syntax == DKIM_SIGERROR_CORRUPT_B ||
+			          syntax == DKIM_SIGERROR_MISSING_BH ||
+			          syntax == DKIM_SIGERROR_EMPTY_BH ||
+			          syntax == DKIM_SIGERROR_CORRUPT_BH ||
+			          syntax == DKIM_SIGERROR_EMPTY_H ||
+			          syntax == DKIM_SIGERROR_INVALID_H ||
+			          syntax == DKIM_SIGERROR_TOOLARGE_L ||
+			          syntax == DKIM_SIGERROR_MBSFAILED);
+
 			fprintf(stdout, "\tSignature %d from %s\n\t\talgorithm %s\n\t\theader canonicalization %s, body canonicalization %s\n\t\t%s\n\t\tsigned bytes: %s\n\t\tSignature properties: %s %s %s %s\n\t\tKey properties: %s %s %s %s %s %s\n\t\tDNSSEC status: %s\n\t\tSigned fields: %s\n\t\tChanged fields: %s\n",
 			        ms, fields[0], alg, hc, bc, sigstat, siglen,
-			        fields[16][0] == '1' ? "t=" : "",
-			        fields[17][0] == '1' ? "t=future" : "",
-			        fields[18][0] == '1' ? "x=" : "",
-			        fields[19][0] == '1' ? "z=" : "",
+			        fields[13][0] == '1' ? "t=" : "",
+			        atoi(fields[12]) == DKIM_SIGERROR_FUTURE ? "t=future"
+				                                         : "",
+			        fields[14][0] == '1' ? "x=" : "",
+			        fields[15][0] == '1' ? "z=" : "",
 			        fields[8][0] == '1' ? "t=" : "",
 			        fields[9][0] == '1' ? "g=" : "",
 			        fields[10][0] == '1' ? "g=name" : "",
-			        fields[11][0] == '1' ? "syntax" : "",
-			        fields[12][0] == '1' ? "NXDOMAIN" : "",
-			        fields[13][0] == '1' ? "DK" : "",
+			        syntax != 0 ? "syntax" : "",
+			        atoi(fields[12]) == DKIM_SIGERROR_NOKEY ? "NXDOMAIN" : "",
+			        fields[11][0] == '1' ? "DK" : "",
 			        dnssec,
-			        fields[21], fields[22]);
+			        fields[17], fields[18]);
 
 			s++;
 		}

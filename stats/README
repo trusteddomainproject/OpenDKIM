@@ -1,4 +1,4 @@
-$Id: README,v 1.4.12.5 2010/08/27 06:33:37 cm-msk Exp $
+$Id: README,v 1.4.12.6 2010/08/29 20:27:29 cm-msk Exp $
 
 INTRODUCTION
 
@@ -150,14 +150,11 @@ fields, as follows:
 	"t=" present in key (0 = no, 1 = yes)
 	"g=" present in key (0 = no, 1 = yes)
 	"g=" present in key with a value other than "*" (0 = no, 1 = yes)
-	syntax error in key (0 = no, 1 = yes)
-	NXDOMAIN for key (0 = no, 1 = yes)
 	key was DK-compatible (0 = no, 1 = yes)
-	key was revoked (0 = no, 1 = yes)
-	syntax error in signature (0 = no, 1 = yes)
+	error code from signature
 	"t=" present in signature (0 = no, 1 = yes)
-	"t=" present in signature with future timestamp (0 = no, 1 = yes)
 	"x=" present in signature (0 = no, 1 = yes)
+	"t=" present in signature with future timestamp (0 = no, 1 = yes)
 	"z=" present in signature (0 = no, 1 = yes)
 	DNSSEC value (see DKIM_DNSSEC_* constants from dkim.h)
 	colon-separated list of header fields signed

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.14.10.9 2010/08/27 07:42:07 cm-msk Exp $
+**  $Id: stats.c,v 1.14.10.10 2010/08/29 20:27:29 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.9 2010/08/27 07:42:07 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.14.10.10 2010/08/29 20:27:29 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -322,15 +322,38 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 	{
 		if (strcasecmp(hdr->hdr_hdr, "Content-Type") == 0)
 		{
-			strlcpy(ct, hdr->hdr_val, sizeof ct);
-			p = strchr(ct, ';');
-			if (p != NULL)
-				*p = '\0';
+			if (!dkimf_isblank(hdr->hdr_val))
+			{
+				for (p = hdr->hdr_val; *p != '\0'; p++)
+				{
+					if (!isascii(*p) || !isspace(*p))
+						break;
+				}
+
+				strlcpy(ct, p, sizeof ct);
+				p = strchr(ct, ';');
+				if (p != NULL)
+					*p = '\0';
+				dkimf_trimspaces(ct);
+			}
 		}
 		else if (strcasecmp(hdr->hdr_hdr,
 		                    "Content-Transfer-Encoding") == 0)
 		{
-			strlcpy(cte, hdr->hdr_val, sizeof cte);
+			if (!dkimf_isblank(hdr->hdr_val))
+			{
+				for (p = hdr->hdr_val; *p != '\0'; p++)
+				{
+					if (!isascii(*p) || !isspace(*p))
+						break;
+				}
+
+				strlcpy(cte, hdr->hdr_val, sizeof cte);
+				p = strchr(cte, ';');
+				if (p != NULL)
+					*p = '\0';
+				dkimf_trimspaces(cte);
+			}
 		}
 	}
 
@@ -375,13 +398,7 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 
 		err = dkim_sig_geterror(sigs[c]);
 
-		fprintf(out, "\t%d", err == DKIM_SIGERROR_DNSSYNTAX ||
-		                     err == DKIM_SIGERROR_KEYHASHMISMATCH ||
-		                     err == DKIM_SIGERROR_KEYDECODE ||
-		                     err == DKIM_SIGERROR_MULTIREPLY);
-
-		fprintf(out, "\t%d", err == DKIM_SIGERROR_NOKEY);
-
+		/* DK-compatible keys */
 		if (dkim_sig_gettagvalue(sigs[c], TRUE, "v") == NULL &&
 		    ((p = dkim_sig_gettagvalue(sigs[c], TRUE, "g")) != NULL &&
 		     *p == '\0'))
@@ -389,37 +406,11 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 		else
 			fprintf(out, "\t0");
 		
-		fprintf(out, "\t%d", err == DKIM_SIGERROR_KEYREVOKED);
-
-		fprintf(out, "\t%d", err == DKIM_SIGERROR_VERSION ||
-		                     err == DKIM_SIGERROR_DOMAIN ||
-		                     err == DKIM_SIGERROR_TIMESTAMPS ||
-		                     err == DKIM_SIGERROR_MISSING_C ||
-		                     err == DKIM_SIGERROR_INVALID_HC ||
-		                     err == DKIM_SIGERROR_INVALID_BC ||
-		                     err == DKIM_SIGERROR_MISSING_A ||
-		                     err == DKIM_SIGERROR_INVALID_A ||
-		                     err == DKIM_SIGERROR_MISSING_H ||
-		                     err == DKIM_SIGERROR_INVALID_L ||
-		                     err == DKIM_SIGERROR_INVALID_Q ||
-		                     err == DKIM_SIGERROR_INVALID_QO ||
-		                     err == DKIM_SIGERROR_MISSING_D ||
-		                     err == DKIM_SIGERROR_EMPTY_D ||
-		                     err == DKIM_SIGERROR_MISSING_S ||
-		                     err == DKIM_SIGERROR_EMPTY_S ||
-		                     err == DKIM_SIGERROR_MISSING_B ||
-		                     err == DKIM_SIGERROR_EMPTY_B ||
-		                     err == DKIM_SIGERROR_CORRUPT_B ||
-		                     err == DKIM_SIGERROR_MISSING_BH ||
-		                     err == DKIM_SIGERROR_EMPTY_BH ||
-		                     err == DKIM_SIGERROR_CORRUPT_BH ||
-		                     err == DKIM_SIGERROR_EMPTY_H ||
-		                     err == DKIM_SIGERROR_TOOLARGE_L);
+		/* syntax error codes */
+		fprintf(out, "\t%d", err);
 
 		p = dkim_sig_gettagvalue(sigs[c], FALSE, "t");
 		fprintf(out, "\t%d", p != NULL);
-
-		fprintf(out, "\t%d", err == DKIM_SIGERROR_FUTURE);
 
 		p = dkim_sig_gettagvalue(sigs[c], FALSE, "x");
 		fprintf(out, "\t%d", p != NULL);

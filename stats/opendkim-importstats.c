@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.1.2.8 2010/08/27 05:50:31 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.1.2.9 2010/08/29 20:27:29 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.8 2010/08/27 05:50:31 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.9 2010/08/29 20:27:29 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -646,7 +646,7 @@ main(int argc, char **argv)
 		{
 			int changed;
 
-			if (n != 23)
+			if (n != 19)
 			{
 				fprintf(stderr,
 				        "%s: unexpected field count at input line %d\n",
@@ -728,9 +728,7 @@ main(int argc, char **argv)
 			    sanitize(db, fields[15], safesql, sizeof safesql) ||
 			    sanitize(db, fields[16], safesql, sizeof safesql) ||
 			    sanitize(db, fields[17], safesql, sizeof safesql) ||
-			    sanitize(db, fields[18], safesql, sizeof safesql) ||
-			    sanitize(db, fields[19], safesql, sizeof safesql) ||
-			    sanitize(db, fields[20], safesql, sizeof safesql))
+			    sanitize(db, fields[18], safesql, sizeof safesql))
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
@@ -739,7 +737,7 @@ main(int argc, char **argv)
 			}
 
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_syntax, key_nx, key_dk_compat, key_revoked, syntax, sig_t, sig_t_future, sig_x, sig_z, dnssec) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+			         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, syntax, sig_t, sig_x, sig_z, dnssec) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
 			         msgid,			/* message */
 			         domid,			/* domain */
 			         fields[1],		/* algorithm */
@@ -752,16 +750,12 @@ main(int argc, char **argv)
 			         fields[8],		/* key_t */
 			         fields[9],		/* key_g */
 			         fields[10],		/* key_g_name */
-			         fields[11],		/* key_syntax */
-			         fields[12],		/* key_nx */
-			         fields[13],		/* key_dk_compat */
-			         fields[14],		/* key_revoked */
-			         fields[15],		/* syntax */
-			         fields[16],		/* sig_t */
-			         fields[17],		/* sig_t_future */
-			         fields[18],		/* sig_x */
-			         fields[19],		/* sig_z */
-			         fields[20]);		/* dnssec */
+			         fields[11],		/* key_dk_compat */
+			         fields[12],		/* syntax */
+			         fields[13],		/* sig_t */
+			         fields[14],		/* sig_x */
+			         fields[15],		/* sig_z */
+			         fields[16]);		/* dnssec */
 
 			sigid = sql_do(db, sql);
 			if (sigid == -1)
@@ -805,7 +799,7 @@ main(int argc, char **argv)
 				return EX_SOFTWARE;
 			}
 
-			for (p = strtok(fields[21], ":");
+			for (p = strtok(fields[17], ":");
 			     p != NULL;
 			     p = strtok(NULL, ":"))
 			{
@@ -855,7 +849,7 @@ main(int argc, char **argv)
 					}
 				}
 
-				changed = findinlist(p, fields[22]);
+				changed = findinlist(p, fields[18]);
 
 				snprintf(sql, sizeof sql,
 				         "INSERT INTO signed_headers (signature, header, changed) VALUES (%d, %d, %d)",
