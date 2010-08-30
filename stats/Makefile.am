@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.3.10.1 2010/08/18 17:45:26 cm-msk Exp $
+# $Id: Makefile.am,v 1.3.10.2 2010/08/30 07:33:40 cm-msk Exp $
 #
 
 if USE_ODBX
@@ -15,6 +15,7 @@ exampledir = @docdir@
 dist_example_DATA = mkdb.mysql
 
 dist_doc_DATA = README
+dist_sbin_SCRIPTS = opendkim-genstats
 
 man_MANS = opendkim-importstats.8
 

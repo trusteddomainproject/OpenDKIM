@@ -1,4 +1,4 @@
-$Id: README,v 1.4.12.7 2010/08/30 07:31:30 cm-msk Exp $
+$Id: README,v 1.4.12.8 2010/08/30 07:33:40 cm-msk Exp $
 
 INTRODUCTION
 
@@ -78,6 +78,10 @@ scripts and documentation presume MySQL.
 		-u dbuser	database user (default "opendkim")
 
 	Append "-r" to this to remove the statistics file on completion.
+
+	You can also use the provided opendkim-genstats script to generate
+	useful reports from the accumulated data.  Contribution of other
+	reports you find useful would be welcome.
 
 7c.	To participate in The OpenDKIM Project's data collection work,
 	ask for the submission address you should use and then create this
