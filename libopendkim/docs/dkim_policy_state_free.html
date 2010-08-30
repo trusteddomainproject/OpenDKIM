@@ -1,0 +1,69 @@
+<html>
+<head><title>dkim_policy_state_free()</title></head>
+<body>
+<!--
+$Id: dkim_policy_state_free.html,v 1.2 2010/08/30 19:25:18 cm-msk Exp $
+-->
+<h1>dkim_policy_state_free()</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+void dkim_policy_state_free(
+	<a href="dkim_pstate.html">DKIM_PSTATE</a> *pstate
+);
+</pre>
+Release memory associated with a policy state handle previously created with
+<a href="dkim_policy_state_new.html"><tt>dkim_policy_state_new()</tt></a>.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_policy_state_free()</tt> is called any time after initializing
+    a policy state handle handle with
+    <a href="dkim_policy_state_new.html"><tt>dkim_policy_state_new()</tt></a>.
+    </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>pstate</td>
+	<td>Policy state handle previously allocated using
+        <a href="dkim_policy_state_new.html"><tt>dkim_policy_state_new()</tt></a>.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2005, 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>
