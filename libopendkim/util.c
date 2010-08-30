@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.11 2010/05/04 04:43:04 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.12 2010/08/30 22:01:56 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -786,82 +786,3 @@ dkim_check_dns_reply(unsigned char *ansbuf, size_t anslen,
 
 	return (trunc ? 1 : 0);
 }
-
-#ifdef USE_UNBOUND
-/*
-**  DKIM_TIMESPEC_PAST -- return TRUE iff the time described by a timespec
-**                        structure has passed
-**
-**  Parameters:
-**  	ts -- timespec structure to evaluate
-**
-**  Return value:
-**  	TRUE if "tv" refers to a time in the past, false otherwise.
-*/
-
-_Bool
-dkim_timespec_past(struct timespec *ts)
-{
-	struct timeval now;
-
-	assert(ts != NULL);
-
-	(void) gettimeofday(&now, NULL);
-
-	if (now.tv_sec > ts->tv_sec ||
-	    (now.tv_sec == ts->tv_sec && now.tv_usec * 1000 > ts->tv_nsec))
-		return TRUE;
-	else
-		return FALSE;
-}
-
-/*
-**  DKIM_WAIT_FD -- wait for a descriptor to become read-ready
-**
-**  Parameters:
-**  	fd -- descriptor of interest
-**  	until -- maximum wait time
-**
-**  Return value:
-**  	1 -- descriptor is ready
-**  	0 -- timeout
-**  	-1 -- error
-*/
-
-int
-dkim_wait_fd(int fd, struct timespec *until)
-{
-	fd_set fds;
-	struct timeval now;
-	struct timeval left;
-
-	assert(fd >= 0);
-	assert(until != NULL);
-
-	(void) gettimeofday(&now, NULL);
-
-	if (until->tv_sec < now.tv_sec ||
-	    (until->tv_sec == now.tv_sec &&
-	     until->tv_nsec < now.tv_usec * 1000))
-	{
-		left.tv_sec = 0;
-		left.tv_usec = 0;
-	}
-	else
-	{
-		left.tv_sec = until->tv_sec - now.tv_sec;
-		left.tv_usec = until->tv_nsec / 1000 - now.tv_usec;
-
-		if (until->tv_nsec / 1000 < now.tv_usec)
-		{
-			left.tv_usec += 1000000;
-			left.tv_sec--;
-		}
-	}
-
-	FD_ZERO(&fds);
-	FD_SET(fd, &fds);
-
-	return select(fd + 1, &fds, NULL, NULL, &left);
-}
-#endif /* USE_UNBOUND */

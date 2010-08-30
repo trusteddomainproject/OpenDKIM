@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.60 2010/08/30 19:21:53 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.61 2010/08/30 22:01:56 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -75,15 +75,13 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.60 2010/08/30 19:21:53 cm-msk Exp
 #include "dkim-policy.h"
 #include "dkim-util.h"
 #include "dkim-canon.h"
+#include "dkim-dns.h"
 #ifdef QUERY_CACHE
 # include "dkim-cache.h"
 #endif /* QUERY_CACHE */
 #ifdef _FFR_DKIM_REPUTATION
 # include "dkim-rep.h"
 #endif /* _FFR_DKIM_REPUTATION */
-#ifdef USE_UNBOUND
-# include "dkim-ub.h"
-#endif /* USE_UNBOUND */
 #include "util.h"
 #include "base64.h"
 #include "dkim-strl.h"
@@ -1701,9 +1699,7 @@ dkim_siglist_setup(DKIM *dkim)
 		}
 
 		dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_UNKNOWN;
-#ifdef USE_UNBOUND
 		dkim->dkim_siglist[c]->sig_dnssec_key = DKIM_DNSSEC_UNKNOWN;
-#endif /* USE_UNBOUND */
 
 		/* store the set */
 		dkim->dkim_siglist[c]->sig_taglist = set;
@@ -3770,9 +3766,7 @@ dkim_new(DKIM_LIB *libhandle, const char *id, void *memclosure,
 	new->dkim_mode = DKIM_MODE_UNKNOWN;
 	new->dkim_state = DKIM_STATE_INIT;
 	new->dkim_presult = DKIM_PRESULT_NONE;
-#ifdef USE_UNBOUND
 	new->dkim_dnssec_policy = DKIM_DNSSEC_UNKNOWN;
-#endif /* USE_UNBOUND */
 	new->dkim_margin = (size_t) DKIM_HDRMARGIN;
 	new->dkim_closure = memclosure;
 	new->dkim_libhandle = libhandle;
@@ -3860,6 +3854,9 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	libhandle->dkiml_prescreen = NULL;
 	libhandle->dkiml_final = NULL;
 	libhandle->dkiml_dns_callback = NULL;
+	libhandle->dkiml_dns_start = dkim_res_query;
+	libhandle->dkiml_dns_cancel = dkim_res_cancel;
+	libhandle->dkiml_dns_waitreply = dkim_res_waitreply;
 	
 #define FEATURE_INDEX(x)	((x) / (8 * sizeof(u_int)))
 #define FEATURE_OFFSET(x)	((x) % (8 * sizeof(u_int)))
@@ -3890,46 +3887,12 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef SHA256_DIGEST_LENGTH
 	FEATURE_ADD(libhandle, DKIM_FEATURE_SHA256);
 #endif /* SHA256_DIGEST_LENGTH */
-#ifdef USE_ARLIB
-	FEATURE_ADD(libhandle, DKIM_FEATURE_ASYNC_DNS);
-#endif /* USE_ARLIB */
-#ifdef USE_UNBOUND
-	FEATURE_ADD(libhandle, DKIM_FEATURE_ASYNC_DNS);
-	FEATURE_ADD(libhandle, DKIM_FEATURE_DNSSEC);
-#endif /* USE_UNBOUND */
 #ifdef _FFR_RESIGN
 	FEATURE_ADD(libhandle, DKIM_FEATURE_RESIGN);
 #endif /* _FFR_RESIGN */
 
-#ifdef USE_UNBOUND
-	/* initialize the unbound resolver */
-	if (dkim_unbound_init(libhandle) != 0)
-	{
-		free(libhandle);
-		return NULL;
-	}
-#endif /* USE_UNBOUND */
-
 	/* initialize the resolver */
-#if USE_ARLIB
-	libhandle->dkiml_arlib = ar_init(NULL, NULL, NULL, 0);
-	if (libhandle->dkiml_arlib == NULL)
-	{
-		free(libhandle);
-		return NULL;
-	}
-# ifdef _FFR_DNSUPGRADE
-	libhandle->dkiml_arlibtcp = ar_init(NULL, NULL, NULL, AR_FLAG_USETCP);
-	if (libhandle->dkiml_arlibtcp == NULL)
-	{
-		(void) ar_shutdown(libhandle->dkiml_arlib);
-		free(libhandle);
-		return NULL;
-	}
-# endif /* _FFR_DNSUPGRADE */
-#else /* USE_ARLIB */
 	(void) res_init();
-#endif /* USE_ARLIB */
 
 	return libhandle;
 }
@@ -3953,20 +3916,6 @@ dkim_close(DKIM_LIB *lib)
 	if (lib->dkiml_cache != NULL)
 		(void) dkim_cache_close(lib->dkiml_cache);
 #endif /* QUERY_CACHE */
-
-#ifdef USE_ARLIB
-	if (lib->dkiml_arlib != NULL)
-		(void) ar_shutdown(lib->dkiml_arlib);
-
-# ifdef _FFR_DNSUPGRADE
-	if (lib->dkiml_arlibtcp != NULL)
-		(void) ar_shutdown(lib->dkiml_arlibtcp);
-# endif /* _FFR_DNSUPGRADE */
-#endif /* USE_ARLIB */
-
-#ifdef USE_UNBOUND
-	(void) dkim_unbound_close(lib);
-#endif /* USE_UNBOUND */
 
 	if (lib->dkiml_skipre)
 		(void) regfree(&lib->dkiml_skiphdrre);
@@ -4941,11 +4890,7 @@ dkim_policy_getdnssec(DKIM *dkim)
 {
 	assert(dkim != NULL);
 
-#ifdef USE_UNBOUND
 	return dkim->dkim_dnssec_policy;
-#else /* USE_UNBOUND */
-	return DKIM_DNSSEC_UNKNOWN;
-#endif /* USE_UNBOUND */
 }
 
 /*
@@ -6539,11 +6484,7 @@ dkim_sig_getdnssec(DKIM_SIGINFO *sig)
 {
 	assert(sig != NULL);
 
-#ifdef USE_UNBOUND
 	return sig->sig_dnssec_key;
-#else /* USE_UNBOUND */
-	return DKIM_DNSSEC_UNKNOWN;
-#endif /* USE_UNBOUND */
 }
 
 /*
@@ -7160,7 +7101,6 @@ dkim_set_dns_callback(DKIM_LIB *libopendkim, void (*func)(const void *context),
 {
 	assert(libopendkim != NULL);
 
-#if USE_ARLIB || USE_UNBOUND
 	if (func != NULL && interval == 0)
 		return DKIM_STAT_INVALID;
 
@@ -7168,44 +7108,6 @@ dkim_set_dns_callback(DKIM_LIB *libopendkim, void (*func)(const void *context),
 	libopendkim->dkiml_callback_int = interval;
 
 	return DKIM_STAT_OK;
-#else /* USE_ARLIB || USE_UNBOUND */
-	return DKIM_STAT_NOTIMPLEMENT;
-#endif /* USE_ARLIB || USE_UNBOUND */
-}
-
-/*
-**  DKIM_SET_TRUST_ANCHOR -- set path to trust anchor file
-**
-**  Parameters:
-**  	libopendkim -- DKIM library handle
-**	tafile -- trust anchor file name
-**
-**  Return value:
-**  	DKIM_STAT_OK -- success
-**  	DKIM_STAT_INVALID -- invalid use
-**  	DKIM_STAT_NOTIMPLENT -- function not implemented
-*/
-
-DKIM_STAT
-dkim_set_trust_anchor(DKIM_LIB *libopendkim, char *tafile)
-{
-#ifdef USE_UNBOUND
-	int status;
-#endif /* USE_UNBOUND */
-
-	assert(libopendkim != NULL);
-	assert(tafile != NULL);
-
-#ifdef USE_UNBOUND
-	status = dkim_unbound_add_trustanchor(libopendkim, tafile);
-
-	if (status != 0)
-		return DKIM_STAT_INVALID;
-
-	return DKIM_STAT_OK;
-#else /* USE_UNBOUND */
-	return DKIM_STAT_NOTIMPLEMENT;
-#endif /* USE_UNBOUND */
 }
 
 /*
@@ -7886,4 +7788,127 @@ dkim_sig_gettagvalue(DKIM_SIGINFO *sig, _Bool keytag, char *tag)
 		return NULL;
 	else
 		return dkim_param_get(set, tag);
+}
+
+/*
+**  DKIM_DNS_SET_QUERY_SERVICE -- stores a handle representing the DNS
+**                                query service to be used, returning any
+**                                previous handle
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	h -- handle to be used
+**
+**  Return value:
+**  	Previously stored handle, or NULL if none.
+*/
+
+void *
+dkim_dns_set_query_service(DKIM_LIB *lib, void *h)
+{
+	void *old;
+
+	old = lib->dkiml_dns_service;
+
+	lib->dkiml_dns_service = h;
+
+	return old;
+}
+
+/*
+**  DKIM_DNS_SET_QUERY_START -- stores a pointer to a query start function
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to start queries
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- receives handle stored by
+**  		             dkim_dns_set_query_service()
+**  		int type -- DNS RR query type (C_IN assumed)
+**  		char *query -- question to ask
+**  		char *buf -- buffer into which to write reply
+**  		size_t buflen -- size of buf
+**  		void **qh -- returned query handle
+*/
+
+void
+dkim_dns_set_query_start(DKIM_LIB *lib, int (*func)(void *, int, char *,
+                                                    unsigned char *,
+                                                    size_t, void **))
+{
+	assert(lib != NULL);
+
+	if (func != NULL)
+		lib->dkiml_dns_start = func;
+	else
+		lib->dkiml_dns_start = dkim_res_query;
+}
+
+/*
+**  DKIM_DNS_SET_QUERY_CANCEL -- stores a pointer to a query cancel function
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to cancel running queries
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- DNS service handle
+**  		void *qh -- query handle to be canceled
+*/
+
+void
+dkim_dns_set_query_cancel(DKIM_LIB *lib, int (*func)(void *, void *))
+{
+	assert(lib != NULL);
+
+	if (func != NULL)
+		lib->dkiml_dns_cancel = func;
+	else
+		lib->dkiml_dns_cancel = dkim_res_cancel;
+}
+
+/*
+**  DKIM_DNS_SET_QUERY_WAITREPLY -- stores a pointer to wait for a DNS reply
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to wait for a reply
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- DNS service handle
+**  		void *qh -- handle of query that has completed
+**  		struct timeval *timeout -- how long to wait
+**  		size_t *bytes -- bytes returned
+**  		int *error -- error code returned
+**  		int *dnssec -- DNSSEC status returned
+*/
+
+void
+dkim_dns_set_query_waitreply(DKIM_LIB *lib, int (*func)(void *, void *,
+                                                        struct timeval *,
+                                                        size_t *, int *,
+                                                        int *))
+{
+	assert(lib != NULL);
+
+	if (func != NULL)
+		lib->dkiml_dns_waitreply = func;
+	else
+		lib->dkiml_dns_waitreply = dkim_res_waitreply;
 }

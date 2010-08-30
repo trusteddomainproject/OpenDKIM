@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test137_c_id[] = "@(#)$Id: t-test137.c,v 1.1 2010/04/30 17:01:28 cm-msk Exp $";
+static char t_test137_c_id[] = "@(#)$Id: t-test137.c,v 1.2 2010/08/30 22:01:56 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -48,6 +48,7 @@ main(int argc, char **argv)
 	DKIM *dkim;
 	DKIM_SIGINFO **sigs;
 	DKIM_LIB *lib;
+	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
 
 	/* instantiate the library */
@@ -69,6 +70,11 @@ main(int argc, char **argv)
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FLAGS, &flags,
 	                    sizeof flags);
 #endif /* TEST_KEEP_FILES */
+
+	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYMETHOD,
+	                    &qtype, sizeof qtype);
+	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYINFO,
+	                    KEYFILE, strlen(KEYFILE));
 
 	dkim = dkim_verify(lib, JOBID, NULL, &status);
 	assert(dkim != NULL);

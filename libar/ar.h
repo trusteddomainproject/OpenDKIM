@@ -9,7 +9,7 @@
 #define _AR_H_
 
 #ifndef lint
-static char ar_h_id[] = "@(#)$Id: ar.h,v 1.2 2009/09/01 19:04:19 cm-msk Exp $";
+static char ar_h_id[] = "@(#)$Id: ar.h,v 1.3 2010/08/30 22:01:56 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -41,6 +41,7 @@ typedef void ar_free_t(void *, void *);
 /* DEFINITIONS */
 #define	AR_FLAG_USETCP		0x01		/* use TCP instead of UDP */
 #define	AR_FLAG_DEAD		0x02		/* service now unavailable */
+#define	AR_FLAG_TRUNCCHECK	0x04		/* limited truncation checks */
 
 #define	AR_STAT_ERROR		(-1)		/* error in transit */
 #define	AR_STAT_SUCCESS		0		/* reply available */

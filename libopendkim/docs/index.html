@@ -4,7 +4,7 @@
 </head>
 <body>
 <!--
-$Id: index.html,v 1.11 2010/08/30 19:21:53 cm-msk Exp $
+$Id: index.html,v 1.12 2010/08/30 22:01:56 cm-msk Exp $
 -->
 
 <h1>OpenDKIM Library (libopendkim)</h1>
@@ -208,12 +208,6 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
   <td> <a href="dkim_set_signature_tagvalues.html"> <tt>dkim_set_signature_tagvalues()</tt> </a> </td>
   <td> Provide a function to receive signature-specific tags and values
        for user-side analysis. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_set_trust_anchor.html"> <tt>dkim_set_trust_anchor()</tt> </a> </td>
-  <td> Provide the location of a trust anchor file in support of
-       DNSSEC operations. </td>
  </tr>
 
  <tr>
@@ -559,6 +553,32 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
+  <td colspan="2"> <b>DNS Operations</b>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_dns_set_query_cancel.html"> <tt>dkim_dns_set_query_cancel()</tt> </a> </td>
+  <td> Set the function to be used by the library to cancel a pending DNS
+       query whose result is no longer needed. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_dns_set_query_service.html"> <tt>dkim_dns_set_query_service()</tt> </a> </td>
+  <td> Set the DNS query service handle to be used by the library. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_dns_set_query_start.html"> <tt>dkim_dns_set_query_start()</tt> </a> </td>
+  <td> Set the DNS query start function to be used by the library. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_dns_set_query_waitreply.html"> <tt>dkim_dns_set_query_waitreply()</tt> </a> </td>
+  <td> Set the function to be used by the library to wait for a
+       reply to a pending DNS query. </td>
+ </tr>
+
+ <tr>
   <td colspan="2"> <b>Cleanup</b>
  </tr>
 
@@ -569,7 +589,8 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
 </table> <br>
 
 An overview of the general use of this API is available
-<a href="overview.html">here</a>.
+<a href="overview.html">here</a>.  An overview of the DNS resolver portion
+of the API is available <a href="dns.html">here</a>.
 
 <hr size="1">
 <font size="-1">

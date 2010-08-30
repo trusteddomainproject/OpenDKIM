@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.40 2010/08/30 19:21:52 cm-msk Exp $
+$Id: BRANCHES,v 1.41 2010/08/30 22:01:56 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -17,9 +17,6 @@ Experimental Branches (branch name contains owner)
 
 br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
-
-br-msk-generic-dns
-		Generic DNS facilities.
 
 br-msk-single-auth-result
 		Feature request #SF2981598: Add "SingleAuthResult" and
@@ -56,6 +53,9 @@ br-msk-adsp-lists
 
 br-msk-default-sender
 		Default sender setting
+
+br-msk-generic-dns
+		Generic DNS facilities.
 
 br-msk-ldap-caching
 		Experimental LDAP query piggybacking and caching

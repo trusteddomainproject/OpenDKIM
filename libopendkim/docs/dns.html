@@ -1,0 +1,144 @@
+<html>
+<head>
+<title>DNS Callback Overview</title>
+</head>
+<body>
+<!--
+$Id: dns.html,v 1.2 2010/08/30 22:01:56 cm-msk Exp $
+-->
+
+<h1>DNS Callback Overview</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<p>By default, libopendkim will use the standard UNIX resolver for
+retrieving keys and policies that are stored in the DNS.  Where an application
+has some need for use of a resolver other than the standard one, a mechanism
+is provided for instructing the library to make use of that other
+package.  This is done by using registration functions to pass pointers
+to the application-provided package to act as primitives for asking questions
+and getting answers. </p>
+
+<p>The four functions provided are as follows:
+
+<ol>
+ <li> <a href="dkim_dns_set_query_service.html"><tt>dkim_dns_set_query_service()</tt></a> --
+      Provides libopendkim with a handle representing the DNS resolver package
+      to be used, such as a handle to an instantiation of a library
+ <li> <a href="dkim_dns_set_query_start.html"><tt>dkim_dns_set_query_start()</tt></a> --
+      Provides libopendkim with a function that it should call when it
+      wishes to make a request of the DNS.  This function should expect to
+      receive from libopendkim the handle provided above, the name and type
+      to be requested from the DNS, a buffer into which to write the
+      answer once it arrives and the length of that buffer.  The function
+      should return zero on success or non-zero on failure, and will also
+      return (via reference) a pointer to a handle that represents the
+      initiated query so that it can be passed to other functions.  This
+      function is responsible for establishing whatever state it will need
+      to satisfy the other functions' requirements and provide a pointer to
+      that state, including whatever synchronization mechanism is desired.
+      See the page link for this function to view the actual function
+      prototype.
+ <li> <a href="dkim_dns_set_query_start.html"><tt>dkim_dns_set_query_cancel()</tt></a> --
+      Provides libopendkim with a function that it should call when it
+      wishes to cancel a request of the DNS previously initiated by the
+      previous function.  This function should expect to receive from
+      libopendkim the service handle provided above and the handle that
+      represents the query to be canceled.  This function will be called
+      for all queries exactly once, including completed queries, to give
+      the libraries a chance to deallocate memory.  See the page link for
+      this function to view the actual function prototype.
+ <li> <a href="dkim_dns_set_query_waitreply.html"><tt>dkim_dns_set_query_waitreply()</tt></a> --
+      Provides libopendkim with a function that it should call when it
+      wishes to check for or wait on a reply to a previously initiated
+      DNS query.  This function should expect to receive from libopendkim
+      the service handle provided above, the handle that represents the query
+      of interest, an optional timeout via a pointer to a
+      <tt>struct timeval</tt>, an optional pointer to a <tt>size_t</tt> that
+      will receive the number of bytes returned, an optional pointer to an
+      <tt>int</tt> to receive any error code, and an optional pointer to an
+      <tt>int</tt> to receive a
+      <a href="dkim_dnssec.html"><tt>DKIM_DNSSEC</tt></a> constant if the
+      resolver package supports such queries.  The function should return
+      a value as follows:
+      <ul>
+        <li> If an answer is available, the provided function should populate
+             the optional values and the buffer provided when the query was
+             initiated, and return the constant <tt>DKIM_DNS_SUCCESS</tt>.
+        <li> If not, and no timeout is provided, it should wait indefinitely
+             for an answer, returning <tt>DKIM_DNS_SUCCESS</tt> and populating
+             values and the buffer once an answer arrives.  The implementation
+             of this waiting/wakeup mechanism is unspecified.
+        <li> If a timeout is provided and no reply arrives in that time, the
+             function should return <tt>DKIM_DNS_NOREPLY</tt>.  If a reply does
+             arrive in that time, it should populate the values and buffer
+             and return <tt>DKIM_DNS_SUCCESS</tt>,
+        <li> In case of any transport or other permanent error in resolving
+             the request, the function should return <tt>DKIM_DNS_ERROR</tt>.
+        <li> If the resolver decides it will no longer wait for the reply even
+             if the application asks, it should return
+             <tt>DKIM_DNS_EXPIRED</tt>.
+      </ul>
+      See the page link for this function to view the actual function
+      prototype.
+</ol> </p>
+
+<p> For the purposes of illustration, libopendkim includes a set of the above
+as defaults that point to the standard UNIX resolver.  They are:
+
+<ol>
+ <li> The service handle pointer is NULL.
+ <li> The query start function passes the query to <tt>res_query()</tt> and
+      then creates a small state handle that stores the return value
+      from that function, which is the length of the reply.
+      <tt>res_query()</tt> populates the buffer provided, and doesn't return
+      until it completes (i.e. it is synchronous) so in fact a final result
+      is already available.  It returns 0, unless <tt>res_query()</tt>
+      returns an error in which case it returns -1.
+ <li> The query cancel function deallocates the state handle.  It always
+      returns 0.
+ <li> The query waitreply function copies the reply length and error code
+      from the state handle to the provided integer pointers and returns
+      <tt>DKIM_DNS_SUCCESS</tt> immediately.
+</ol> </p>
+
+<p> So from libopendkim's perspective, it starts a query and then asks for a
+reply, but the reply has actually already completed so the wait stage is
+almost a no-op except to get the length of the reply. </p>
+
+<p> Looking at a slightly more complicated case, we consider how it would work
+with libar:
+
+<ol>
+ <li> The service handle pointer is the return value from <tt>ar_init()</tt>,
+      which creates an instance of the libar service.
+ <li> The query start function passes the query to <tt>ar_addquery()</tt> and
+      returns the query handle generated by that function.
+ <li> The query cancel function merely passes the service handle and the query
+      handle to <tt>ar_cancelquery()</tt>.
+ <li> The query wait function passes the service and query handles to
+      <tt>ar_waitreply()</tt> with whatever the requested timeout was.
+      On return it copies the returned number of bytes to the caller, or any
+      appropriate error code.  If waiting is required, this is implemented
+      inside <tt>ar_waitreply()</tt> using POSIX condition variables.
+</ol> </p>
+
+<p> In this case, operation is fairly straightforward until the wait operation.
+If libar has a reply available, the wait function above would get
+<tt>AR_STAT_SUCCESS</tt> back immediately, and can thus return
+<tt>DKIM_DNS_SUCCESS</tt> to libopendkim immediately.  If the reply is
+still pending, libopendkim will get <tt>DKIM_DNS_NOREPLY</tt> back and can
+do other work while libar is still waiting.  If libopendkim wishes to wait,
+the timeout it provides is turned into a POSIX condition wait and the libar
+dispatcher thread will signal it when a reply arrives. </p>
+
+<hr size="1">
+<font size="-1">
+<br>
+Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

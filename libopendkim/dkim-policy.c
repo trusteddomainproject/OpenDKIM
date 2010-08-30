@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.11 2010/05/04 04:43:04 cm-msk Exp $";
+static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.12 2010/08/30 22:01:56 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -25,10 +25,6 @@ static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.11 2010/05/04 04:43
 #include <ctype.h>
 
 #include "build-config.h"
-/* libar includes */
-#if USE_ARLIB
-# include "ar.h"
-#endif /* USE_ARLIB */
 
 /* libopendkim includes */
 #include "dkim-internal.h"
@@ -37,9 +33,6 @@ static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.11 2010/05/04 04:43
 #ifdef QUERY_CACHE
 # include "dkim-cache.h"
 #endif /* QUERY_CACHE */
-#ifdef USE_UNBOUND
-# include "dkim-ub.h"
-#endif /* USE_UNBOUND */
 #include "dkim-test.h"
 #include "util.h"
 #include "dkim-strl.h"
@@ -170,32 +163,20 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 int
 dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 {
-#if USE_ARLIB
 	int c;
 	size_t anslen_a;
 	size_t anslen_aaaa;
 	size_t anslen_mx;
-#endif /* USE_ARLIB */
 	int status;
-#if USE_UNBOUND
-	int c;
-	int qtype;
-	unsigned char *outbuf;
-	size_t outsize;
-	struct dkim_unbound_cb_data cb_data;
-#endif /* USE_UNBOUND */
 	DKIM_LIB *lib;
 	HEADER hdr;
-#if USE_ARLIB
-	AR_LIB ar;
-	AR_QUERY q_a;
-	AR_QUERY q_aaaa;
-	AR_QUERY q_mx;
-	int arerror_a;
-	int arerror_aaaa;
-	int arerror_mx;
+	void *q_a;
+	void *q_aaaa;
+	void *q_mx;
+	int error_a;
+	int error_aaaa;
+	int error_mx;
 	struct timeval timeout;
-#endif /* USE_ARLIB */
 	unsigned char ansbuf_a[MAXPACKET];
 	unsigned char ansbuf_aaaa[MAXPACKET];
 	unsigned char ansbuf_mx[MAXPACKET];
@@ -206,248 +187,68 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 
 	lib = dkim->dkim_libhandle;
 
-#if USE_UNBOUND
-	for (c = 0; c < 3; c++)
-	{
-		if (c == 0)
-		{
-			qtype = T_A;
-			outbuf = ansbuf_a;
-			outsize = sizeof ansbuf_a;
-		}
-# ifdef T_AAAA
-		else if (c == 1)
-		{
-			qtype = T_AAAA;			/* AAAA */
-			outbuf = ansbuf_aaaa;
-			outsize = sizeof ansbuf_aaaa;
-		}
-		else if (c == 2)
-		{
-			qtype = T_MX;			/* MX */
-			outbuf = ansbuf_mx;
-			outsize = sizeof ansbuf_mx;
-		}
-# else /* T_AAAA */
-		else if (c == 1)
-		{
-			qtype = T_MX;			/* MX */
-			outbuf = ansbuf_mx;
-			outsize = sizeof ansbuf_mx;
-		}
-		else if (c == 2)
-		{
-			break;
-		}
-# endif /* T_AAAA */
-
-		/* query */
-		status = dkim_unbound_queue(dkim, query, qtype, 
-		                            outbuf, outsize, &cb_data);
-
-		if (status != 0)
-		{
-			dkim_error(dkim, "error queueing DNS request for `%s'",
-			           query);
-			return -1;
-		}
-
-		status = dkim_unbound_wait(dkim, &cb_data);
-
-		switch (status)
-		{
-		  case 1:
-			break;
-
-		  case 0:
-			dkim_error(dkim, "timeout DNS query for `%s'", query);
-			return -1;
-
-		  case -1:
-			dkim_error(dkim,
-			           "error processing DNS query for `%s'",
-			           query);
-			return -1;
-		}
-
-		*qstatus = cb_data.ubd_rcode;
-
-		if (cb_data.ubd_rcode == NOERROR)
-			return 1;
-	}
-
-	return 0;
-#endif /* USE_UNBOUND */
-
-#if USE_ARLIB
-# ifdef _FFR_DNSUPGRADE
-	for (c = 0; c < 2; c++)
-	{
-		switch (c)
-		{
-		  case 0:
-			ar = dkim->dkim_libhandle->dkiml_arlib;
-			break;
-
-		  case 1:
-			ar = dkim->dkim_libhandle->dkiml_arlibtcp;
-			break;
-		}
-
-		timeout.tv_sec = dkim->dkim_timeout;
-		timeout.tv_usec = 0;
-
-		q_a = ar_addquery(ar, query, C_IN, T_A, MAXCNAMEDEPTH,
-		                  ansbuf_a, sizeof ansbuf_a, &arerror_a,
-		                  dkim->dkim_timeout == 0 ? NULL
-		                                          : &timeout);
-		if (q_a == NULL)
-		{
-			dkim_error(dkim, "ar_addquery() for `%s' failed",
-			           query);
-			return -1;
-		}
-
-		q_aaaa = ar_addquery(ar, query, C_IN, T_AAAA, MAXCNAMEDEPTH,
-		                     ansbuf_aaaa, sizeof ansbuf_aaaa,
-		                     &arerror_aaaa,
-		                     dkim->dkim_timeout == 0 ? NULL
-		                                             : &timeout);
-		if (q_aaaa == NULL)
-		{
-			dkim_error(dkim, "ar_addquery() for `%s' failed",
-			           query);
-			return -1;
-		}
-
-		q_mx = ar_addquery(ar, query, C_IN, T_MX, MAXCNAMEDEPTH,
-		                   ansbuf_mx, sizeof ansbuf_mx,
-		                   &arerror_mx,
-		                   dkim->dkim_timeout == 0 ? NULL
-		                                           : &timeout);
-		if (q_mx == NULL)
-		{
-			dkim_error(dkim, "ar_addquery() for `%s' failed",
-			           query);
-			return -1;
-		}
-
-		if (lib->dkiml_dns_callback == NULL)
-		{
-			status = ar_waitreply(ar, q_a, &anslen_a, NULL);
-			status = ar_waitreply(ar, q_aaaa, &anslen_aaaa, NULL);
-			status = ar_waitreply(ar, q_mx, &anslen_mx, NULL);
-		}
-		else
-		{
-			int which = 0;
- 
-			while (which <= 2)
-			{
-				timeout.tv_sec = lib->dkiml_callback_int;
-				timeout.tv_usec = 0;
-
-				switch (which)
-				{
-				  case 0:
-					status = ar_waitreply(ar, q_a,
-					                      &anslen_a,
-					                      &timeout);
-					break;
-
-				  case 1:
-					status = ar_waitreply(ar, q_aaaa,
-					                      &anslen_aaaa,
-					                      &timeout);
-					break;
-
-				  case 2:
-					status = ar_waitreply(ar, q_mx,
-					                      &anslen_mx,
-					                      &timeout);
-					break;
-				}
-
-				if (status != AR_STAT_NOREPLY)
-				{
-					if (which == 2)
-					{
-						break;
-					}
-					else
-					{
-						which++;
-						continue;
-					}
-				}
-
-				lib->dkiml_dns_callback(dkim->dkim_user_context);
-			}
-		}
-
-		(void) ar_cancelquery(ar, q_a);
-		(void) ar_cancelquery(ar, q_aaaa);
-		(void) ar_cancelquery(ar, q_mx);
-
-		/* see if any of the UDP replies was truncated */
-		if (c == 0 && status == AR_STAT_SUCCESS)
-		{
-			if (dkim_check_dns_reply(ansbuf_a, anslen_a,
-			                         C_IN, T_TXT) == 1)
-				continue;
-
-			if (dkim_check_dns_reply(ansbuf_aaaa, anslen_aaaa,
-			                         C_IN, T_TXT) == 1)
-				continue;
-
-			if (dkim_check_dns_reply(ansbuf_mx, anslen_mx,
-			                         C_IN, T_TXT) == 1)
-				continue;
-		}
-
-		break;
-	}
-# else /* _FFR_DNSUPGRADE */
-	ar = dkim->dkim_libhandle->dkiml_arlib;
-
 	timeout.tv_sec = dkim->dkim_timeout;
 	timeout.tv_usec = 0;
 
-	q_a = ar_addquery(ar, query, C_IN, T_A, MAXCNAMEDEPTH, ansbuf_a,
-	                  sizeof ansbuf_a, &arerror_a,
-	                  dkim->dkim_timeout == 0 ? NULL : &timeout);
-	if (q_a == NULL)
+	anslen_a = sizeof ansbuf_a;
+	status = lib->dkiml_dns_start(lib->dkiml_dns_service, T_A, query,
+	                              ansbuf_a, anslen_a, &q_a);
+
+	if (status != 0 || q_a == NULL)
 	{
-		dkim_error(dkim, "ar_addquery() failed for `%s'",
-		           query);
+		dkim_error(dkim, "A query failed for `%s'", query);
 		return -1;
 	}
 
-	q_aaaa = ar_addquery(ar, query, C_IN, T_AAAA, MAXCNAMEDEPTH,
-	                     ansbuf_aaaa, sizeof ansbuf_aaaa, &arerror_aaaa,
-	                     dkim->dkim_timeout == 0 ? NULL : &timeout);
-	if (q_aaaa == NULL)
+	anslen_aaaa = sizeof ansbuf_aaaa;
+	status = lib->dkiml_dns_start(lib->dkiml_dns_service, T_AAAA, query,
+	                              ansbuf_aaaa, anslen_aaaa, &q_aaaa);
+	if (status != 0 || q_aaaa == NULL)
 	{
-		dkim_error(dkim, "ar_addquery() failed for `%s'",
-		           query);
+		(void) lib->dkiml_dns_cancel(lib->dkiml_dns_service, q_a);
+		dkim_error(dkim, "AAAA query failed for `%s'", query);
 		return -1;
 	}
 
-	q_mx = ar_addquery(ar, query, C_IN, T_MX, MAXCNAMEDEPTH,
-	                   ansbuf_mx, sizeof ansbuf_mx, &arerror_mx,
-	                   dkim->dkim_timeout == 0 ? NULL : &timeout);
-	if (q_mx == NULL)
+	anslen_mx = sizeof ansbuf_mx;
+	status = lib->dkiml_dns_start(lib->dkiml_dns_service, T_MX, query,
+	                              ansbuf_mx, anslen_mx, &q_mx);
+	if (status != 0 || q_mx == NULL)
 	{
-		dkim_error(dkim, "ar_addquery() failed for `%s'",
-		           query);
+		(void) lib->dkiml_dns_cancel(lib->dkiml_dns_service, q_a);
+		(void) lib->dkiml_dns_cancel(lib->dkiml_dns_service, q_aaaa);
+		dkim_error(dkim, "MX query failed for `%s'", query);
 		return -1;
 	}
 
 	if (lib->dkiml_dns_callback == NULL)
 	{
-		status = ar_waitreply(ar, q_a, &anslen_a, NULL);
-		status = ar_waitreply(ar, q_aaaa, &anslen_aaaa, NULL);
-		status = ar_waitreply(ar, q_mx, &anslen_mx, NULL);
+		timeout.tv_sec = dkim->dkim_timeout;
+		timeout.tv_usec = 0;
+
+		status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
+		                                  q_a,
+	                                          dkim->dkim_timeout == 0 ? NULL
+	                                                                  : &timeout,
+		                                  &anslen_a, NULL, NULL);
+
+		timeout.tv_sec = dkim->dkim_timeout;
+		timeout.tv_usec = 0;
+
+		status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
+		                                  q_aaaa,
+	                                          dkim->dkim_timeout == 0 ? NULL
+	                                                                  : &timeout,
+		                                  &anslen_aaaa, NULL, NULL);
+
+		timeout.tv_sec = dkim->dkim_timeout;
+		timeout.tv_usec = 0;
+
+		status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
+		                                  q_mx,
+	                                          dkim->dkim_timeout == 0 ? NULL
+	                                                                  : &timeout,
+		                                  &anslen_mx, NULL, NULL);
 	}
 	else
 	{
@@ -461,25 +262,37 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 			switch (which)
 			{
 			  case 0:
-				status = ar_waitreply(ar, q_a,
-				                      &anslen_a,
-				                      &timeout);
+				status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
+				                                  q_a,
+			                                          dkim->dkim_timeout == 0 ? NULL
+			                                                                  : &timeout,
+				                                  &anslen_a,
+				                                  NULL, NULL);
+
 				break;
 
 			  case 1:
-				status = ar_waitreply(ar, q_aaaa,
-				                      &anslen_aaaa,
-				                      &timeout);
+				status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
+				                                  q_aaaa,
+			                                          dkim->dkim_timeout == 0 ? NULL
+			                                                                  : &timeout,
+				                                  &anslen_aaaa,
+				                                  NULL, NULL);
+
 				break;
 
 			  case 2:
-				status = ar_waitreply(ar, q_mx,
-				                      &anslen_mx,
-				                      &timeout);
+				status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
+				                                  q_mx,
+			                                          dkim->dkim_timeout == 0 ? NULL
+			                                                                  : &timeout,
+				                                  &anslen_mx,
+				                                  NULL, NULL);
+
 				break;
 			}
 
-			if (status != AR_STAT_NOREPLY)
+			if (status != DKIM_DNS_NOREPLY)
 			{
 				if (which == 2)
 				{
@@ -496,16 +309,9 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 		}
 	}
 
-	(void) ar_cancelquery(ar, q_a);
-	(void) ar_cancelquery(ar, q_aaaa);
-	(void) ar_cancelquery(ar, q_mx);
-# endif /* _FFR_DNSUPGRADE */
-#else /* USE_ARLIB */
-	status = res_query(query, C_IN, T_A, ansbuf_a, sizeof ansbuf_a);
-	status = res_query(query, C_IN, T_AAAA, ansbuf_aaaa,
-	                   sizeof ansbuf_aaaa);
-	status = res_query(query, C_IN, T_MX, ansbuf_mx, sizeof ansbuf_mx);
-#endif /* USE_ARLIB */
+	(void) lib->dkiml_dns_cancel(lib->dkiml_dns_service, q_a);
+	(void) lib->dkiml_dns_cancel(lib->dkiml_dns_service, q_aaaa);
+	(void) lib->dkiml_dns_cancel(lib->dkiml_dns_service, q_mx);
 
 	/* check each for NXDOMAIN or some other issue */
 	memcpy(&hdr, ansbuf_a, sizeof hdr);
@@ -526,7 +332,6 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 	/* looks good */
 	return 0;
 }
-
 
 /*
 **  DKIM_GET_POLICY_DNS -- acquire a domain's policy record using DNS queries
@@ -559,16 +364,9 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 #ifdef QUERY_CACHE
 	uint32_t ttl;
 #endif /* QUERY_CACHE */
-#if USE_UNBOUND
-	struct dkim_unbound_cb_data cb_data;
-	struct dkim_unbound_cb_data *cb_data_ptr = &cb_data;
-#endif /* USE_UNBOUND */
 	size_t anslen;
-#if USE_ARLIB
-	AR_LIB ar;
-	AR_QUERY q;
+	void *q;
 	int arerror;
-#endif /* USE_ARLIB */
 	DKIM_LIB *lib;
 	unsigned char *p;
 	unsigned char *cp;
@@ -576,9 +374,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	unsigned char ansbuf[MAXPACKET];
 	unsigned char namebuf[DKIM_MAXHOSTNAMELEN + 1];
 	unsigned char outbuf[BUFRSZ + 1];
-#if USE_ARLIB
 	struct timeval timeout;
-#endif /* USE_ARLIB */
 	HEADER hdr;
 
 	assert(dkim != NULL);
@@ -617,131 +413,27 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 			return dkim_get_policy_dns_excheck(dkim, query,
 			                                   qstatus);
 		}
-#ifdef USE_UNBOUND
-	status = dkim_unbound_queue(dkim, query, T_TXT, buf, buflen, &cb_data);
-
-	if (status != 0)
-	{
-		dkim_error(dkim, "error queueing DNS request for `%s'",
-		           query);
-		return -1;
-	}
-
-	status = dkim_unbound_wait(dkim, &cb_data);
-
-	switch (status)
-	{
-	  case 1:
-		dkim->dkim_dnssec_policy = cb_data_ptr->ubd_result;
-		break;
-
-	  case 0:
-		dkim_error(dkim, "timeout DNS query for `%s'", query);
-		return -1;
-
-	  case -1:
-		dkim_error(dkim, "error processing DNS query for `%s'", query);
-		return -1;
-	}
-
-	if (cb_data_ptr->ubd_stat != DKIM_STAT_OK)
-	{
-		if (cb_data_ptr->ubd_stat == DKIM_STAT_NOKEY)
-		{
-			return 0;
-		}
-		else
-		{
-			dkim_error(dkim, "error processing DNS policy query");
-			return -1;
-		}
-	}
-}
-
-#else /* USE_UNBOUND */
-#if USE_ARLIB
-# ifdef _FFR_DNSUPGRADE
-		for (c = 0; c < 2; c++)
-		{
-			switch (c)
-			{
-			  case 0:
-				ar = dkim->dkim_libhandle->dkiml_arlib;
-				break;
-
-			  case 1:
-				ar = dkim->dkim_libhandle->dkiml_arlibtcp;
-				break;
-			}
-
-			timeout.tv_sec = dkim->dkim_timeout;
-			timeout.tv_usec = 0;
-
-			q = ar_addquery(ar, query, C_IN, T_TXT, MAXCNAMEDEPTH,
-			                ansbuf, sizeof ansbuf, &arerror,
-			                dkim->dkim_timeout == 0 ? NULL
-			                                        : &timeout);
-			if (q == NULL)
-			{
-				dkim_error(dkim,
-				           "ar_addquery() for `%s' failed",
-				           query);
-				return -1;
-			}
-
-			if (lib->dkiml_dns_callback == NULL)
-			{
-				status = ar_waitreply(ar, q, &anslen, NULL);
-			}
-			else
-			{
-				for (;;)
-				{
-					timeout.tv_sec = lib->dkiml_callback_int;
-					timeout.tv_usec = 0;
-
-					status = ar_waitreply(ar, q, &anslen,
-					                      &timeout);
-
-					if (status != AR_STAT_NOREPLY)
-						break;
-
-					lib->dkiml_dns_callback(dkim->dkim_user_context);
-				}
-			}
-
-			(void) ar_cancelquery(ar, q);
-
-			/* see if the UDP reply was truncated */
-			if (c == 0 && status == AR_STAT_SUCCESS)
-			{
-				memcpy(&hdr, ansbuf, sizeof hdr);
-				if (dkim_check_dns_reply(ansbuf, anslen,
-				                         C_IN, T_TXT) == 1)
-					continue;
-			}
-
-			break;
-		}
-# else /* _FFR_DNSUPGRADE */
-		ar = dkim->dkim_libhandle->dkiml_arlib;
 
 		timeout.tv_sec = dkim->dkim_timeout;
 		timeout.tv_usec = 0;
 
-		q = ar_addquery(ar, query, C_IN, T_TXT, MAXCNAMEDEPTH, ansbuf,
-		                sizeof ansbuf, &arerror,
-		                dkim->dkim_timeout == 0 ? NULL : &timeout);
-		if (q == NULL)
+		anslen = sizeof ansbuf;
+
+		status = lib->dkiml_dns_start(lib->dkiml_dns_service,
+		                              T_TXT, query,
+		                              ansbuf, anslen, &q);
+		if (status != 0 || q == NULL)
 		{
-			dkim_error(dkim, "ar_addquery() failed for `%s'",
-			           query);
+			dkim_error(dkim, "query failed for `%s'", query);
 			return -1;
 		}
 
 		if (lib->dkiml_dns_callback == NULL)
 		{
-			status = ar_waitreply(ar, q, &anslen, NULL);
+			status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
+			                                  q, NULL, &anslen,
+			                                  NULL,
+			                                  &dkim->dkim_dnssec_policy);
 		}
 		else
 		{
@@ -750,33 +442,29 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 				timeout.tv_sec = lib->dkiml_callback_int;
 				timeout.tv_usec = 0;
 
-				status = ar_waitreply(ar, q, &anslen,
-				                      &timeout);
+				status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
+				                                  q,
+				                                  &timeout,
+				                                  &anslen,
+				                                  NULL,
+				                                  &dkim->dkim_dnssec_policy);
 
-				if (status != AR_STAT_NOREPLY)
+				if (status != DKIM_DNS_NOREPLY)
 					break;
 
 				lib->dkiml_dns_callback(dkim->dkim_user_context);
 			}
 		}
 
-		(void) ar_cancelquery(ar, q);
-# endif /* _FFR_DNSUPGRADE */
-#else /* USE_ARLIB */
+		(void) lib->dkiml_dns_cancel(lib->dkiml_dns_service, q);
 
-		status = res_query(query, C_IN, T_TXT, ansbuf, sizeof ansbuf);
-
-#endif /* USE_ARLIB */
-
-#if USE_ARLIB
-		if (status == AR_STAT_ERROR || status == AR_STAT_EXPIRED)
+		if (status == DKIM_DNS_ERROR || status == DKIM_DNS_EXPIRED)
 		{
-			dkim_error(dkim, "ar_waitreply(): `%s' query %s",
-			           query,
-			           status == AR_STAT_ERROR ? "error"
-			                                   : "expired");
+			dkim_error(dkim, "`%s' query %s", query,
+			           status == DKIM_DNS_ERROR ? "error"
+			                                    : "expired");
 
-			if (status == AR_STAT_EXPIRED)
+			if (status == DKIM_DNS_EXPIRED)
 			{
 				*qstatus = SERVFAIL;
 				return 0;
@@ -786,38 +474,6 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 				return -1;
 			}
 		}
-
-#else /* USE_ARLIB */
-		/*
-		**  A -1 return from res_query could mean a bunch of things,
-		**  not just NXDOMAIN.  You can use h_errno to determine what
-		**  -1 means.  This is poorly documented.
-		*/
-
-		if (status == -1)
-		{
-			switch (h_errno)
-			{
-			  case HOST_NOT_FOUND:
-				*qstatus = NXDOMAIN;
-				return 0;
-
-			  case NO_DATA:
-				*qstatus = NOERROR;
-				return 0;
-
-			  case TRY_AGAIN:
-			  case NO_RECOVERY:
-			  default:
-				dkim_error(dkim, "res_query(): `%s' %s",
-				           query, hstrerror(h_errno));
-				*qstatus = SERVFAIL;
-				return 0;
-			}
-		}
-
-		anslen = status;
-#endif /* USE_ARLIB */
 	}
 
 	/* set up pointers */
@@ -983,7 +639,6 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 #endif /* QUERY_CACHE */
 
 	strlcpy(buf, outbuf, buflen);
-#endif /* USE_UNBOUND */
 
 	return 1;
 }

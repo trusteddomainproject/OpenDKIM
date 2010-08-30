@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.184 2010/08/30 20:04:23 cm-msk Exp $
+**  $Id: opendkim.c,v 1.185 2010/08/30 22:01:56 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.184 2010/08/30 20:04:23 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.185 2010/08/30 22:01:56 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -96,6 +96,9 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.184 2010/08/30 20:04:23 c
 #include "opendkim.h"
 #include "opendkim-ar.h"
 #include "opendkim-arf.h"
+#if (USE_UNBOUND || USE_ARLIB)
+# include "opendkim-dns.h"
+#endif /* (USE_UNBOUND || USE_ARLIB) */
 #ifdef USE_LUA
 # include "opendkim-lua.h"
 #endif /* USE_LUA */
@@ -648,6 +651,12 @@ char *progname;					/* program name */
 char *sock;					/* listening socket */
 char *conffile;					/* configuration file */
 struct dkimf_config *curconf;			/* current configuration */
+#ifdef USE_UNBOUND
+struct dkimf_unbound *unbound;			/* libunbound handle */
+#endif /* USE_UNBOUND */
+#ifdef USE_ARLIB
+AR_LIB arlib;					/* libar handle */
+#endif /* USE_ARLIB */
 #ifdef POPAUTH
 DKIMF_DB popdb;					/* POP auth DB */
 #endif /* POPAUTH */
@@ -6293,12 +6302,18 @@ dkimf_config_setlib(struct dkimf_config *conf)
 #ifdef USE_UNBOUND
 	if (conf->conf_trustanchorpath != NULL)
 	{
-		status = dkim_set_trust_anchor(lib,
-		                               conf->conf_trustanchorpath);
+		status = dkimf_unbound_add_trustanchor(unbound,
+		                                       conf->conf_trustanchorpath);
 		if (status != DKIM_STAT_OK)
 			return FALSE;
 	}
+
+	(void) dkimf_unbound_setup(lib, unbound);
 #endif /* USE_UNBOUND */
+
+#ifdef USE_ARLIB
+	(void) dkimf_arlib_setup(lib, arlib);
+#endif /* USE_ARLIB */
 
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_TIMEOUT,
 	                    &conf->conf_dnstimeout,
@@ -12645,6 +12660,27 @@ main(int argc, char **argv)
 		return EX_SOFTWARE;
 	}
 
+#ifdef USE_UNBOUND
+	if (dkimf_unbound_init(&unbound) != 0)
+	{
+		fprintf(stderr, "%s: failed to initialize libunbound\n",
+		        progname);
+
+		return EX_SOFTWARE;
+	}
+#endif /* USE_UNBOUND */
+
+#ifdef USE_ARLIB
+	arlib = ar_init(NULL, NULL, NULL, 0);
+	if (arlib == NULL)
+	{
+		fprintf(stderr, "%s: failed to initialize libar\n",
+		        progname);
+
+		return EX_SOFTWARE;
+	}
+#endif /* USE_ARLIB */
+
 	if (conffile != NULL)
 	{
 		u_int line = 0;
@@ -13886,6 +13922,10 @@ main(int argc, char **argv)
 		(void) unlink(pidfile);
 
 	dkimf_crypto_free();
+
+#ifdef USE_UNBOUND
+	dkimf_unbound_close(unbound);
+#endif /* USE_UNBOUND */
 
 	return status;
 }
