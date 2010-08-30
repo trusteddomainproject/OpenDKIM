@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.37 2010/08/06 04:26:27 cm-msk Exp $
+$Id: BRANCHES,v 1.38 2010/08/30 19:02:44 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -20,9 +20,6 @@ br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 
 br-msk-adsp-lists
 		Add ADSP-specific features for MLMs.
-
-br-msk-default-sender
-		New "DefaultSender" setting.
 
 br-msk-generic-dns
 		Generic DNS facilities.
@@ -59,8 +56,11 @@ br-dblack-codecoverage
 		Generate code coverage testing from lcov/gcov/gprof
 		(http://ltp.sourceforge.net/coverage/lcov.php)
 
+br-msk-default-sender
+		Default sender setting
+
 br-msk-ldap-caching
-		Experimental LDAP query piggybacking and caching.
+		Experimental LDAP query piggybacking and caching
 
 br-msk-libprofiling
 		Optimizations based on some recent gprof output
