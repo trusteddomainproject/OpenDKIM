@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.181 2010/08/30 19:02:44 cm-msk Exp $
+**  $Id: opendkim.c,v 1.182 2010/08/30 19:15:00 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.181 2010/08/30 19:02:44 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.182 2010/08/30 19:15:00 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1531,6 +1531,122 @@ dkimf_xs_internalip(lua_State *l)
 
 		lua_pushnumber(l, internal ? 1 : 0);
 	}
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_DBOPEN -- open a DB handle
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_dbopen(lua_State *l)
+{
+	int status;
+	DKIMF_DB db;
+	char *name;
+	char *err = NULL;
+	struct dkimf_lua_gc *gc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim.db_open(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_isstring(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim.db_open(): incorrect argument type");
+		lua_error(l);
+	}
+
+	name = (char *)lua_tostring(l, 1);
+	lua_pop(l, 1);
+
+	status = dkimf_db_open(&db, name, DKIMF_DB_FLAG_READONLY, NULL, &err);
+
+	if (status != 0)
+	{
+		if (err != NULL)
+		{
+			lua_pushfstring(l, "%s: odkim.db_open(): %s", name,
+			                err);
+		}
+		else
+		{
+			lua_pushfstring(l, "%s: odkim.db_open() failed", name);
+		}
+		lua_error(l);
+	}
+
+	lua_getglobal(l, DKIMF_GC);
+	gc = (struct dkimf_lua_gc *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+	dkimf_lua_gc_add(gc, db, DKIMF_LUA_GC_DB);
+
+	lua_pushlightuserdata(l, db);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_DBCLOSE -- close a DB handle
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_dbclose(lua_State *l)
+{
+	DKIMF_DB db;
+	struct dkimf_lua_gc *gc;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim.db_close(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim.db_close(): incorrect argument type");
+		lua_error(l);
+	}
+
+	db = (DKIMF_DB) lua_touserdata(l, 1);
+
+	lua_pop(l, 1);
+
+	if (db == NULL)
+	{
+		lua_pushnumber(l, 0);
+		return 1;
+	}
+
+	(void) dkimf_db_close(db);
+
+	lua_getglobal(l, DKIMF_GC);
+	gc = (struct dkimf_lua_gc *) lua_touserdata(l, 1);
+	lua_pop(l, 1);
+	dkimf_lua_gc_remove(gc, (void *) db);
+
+	lua_pushnumber(l, 1);
 
 	return 1;
 }

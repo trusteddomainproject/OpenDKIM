@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.38 2010/08/30 19:02:44 cm-msk Exp $
+$Id: BRANCHES,v 1.39 2010/08/30 19:15:00 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -23,8 +23,6 @@ br-msk-adsp-lists
 
 br-msk-generic-dns
 		Generic DNS facilities.
-
-br-msk-lua-dbs	Support for abitrary data set operations from Lua scripts.
 
 br-msk-single-auth-result
 		Feature request #SF2981598: Add "SingleAuthResult" and
@@ -69,6 +67,8 @@ br-msk-lua	Experimenting with LUA for scriptable policy hooks
 
 br-msk-lua-dataset
 		Experimental addition of a new "lua:" dataset type.
+
+br-msk-lua-dbs	Support for abitrary data set operations from Lua scripts.
 
 br-msk-openldap	OpenLDAP integration work
 
