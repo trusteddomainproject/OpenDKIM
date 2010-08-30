@@ -1,0 +1,47 @@
+#!/bin/sh
+#
+# $Id: opendkim-sendstats,v 1.1.2.1 2010/08/30 07:48:18 cm-msk Exp $
+#
+# Script to upload OpenDKIM statistics data.  Contributed by John Wood.
+#
+# License: BSD 3-clause
+
+UNIXDATE=`date +%s`
+HOSTNAME=`hostname`
+
+REPORTERNAME="OpenDKIM Filter User"
+REPORTEREMAIL="<`whoami`@$HOSTNAME>"
+TARGETEMAIL="OpenDKIM Stats Import <stats@opendkim.org>"
+OPENDKIMSTATDIR="/var/db/opendkim"
+OPENDKIMSTATSDAT="/var/db/opendkim/stats.dat"
+REPORTSTUB="/var/db/opendkim/report_stub.txt"
+SENDMAIL="/usr/sbin/sendmail"
+SENDMAILFLAGS="-t -f $REPORTEREMAIL"
+
+echo "From: $REPORTERNAME $REPORTEREMAIL
+To: $TARGETEMAIL
+Subject: opendkim-stats report from ${HOSTNAME} at $UNIXDATE
+" > "$REPORTSTUB"
+
+if [ ! -s "$REPORTSTUB" ]; then
+   echo "Report stub zero bytes or missing. Exiting"
+   exit 1
+fi
+
+if [ ! -s "$OPENDKIMSTATSDAT" ]; then
+   echo "OpenDKIM stats zero bytes or missing. Exiting."
+   rm "$REPORTSTUB"
+   exit 1
+fi
+
+if [ -s "$OPENDKIMSTATSDAT" ]; then
+   cat "$REPORTSTUB" "$OPENDKIMSTATSDAT" | ${SENDMAIL} ${SENDMAILFLAGS}
+   mv "$OPENDKIMSTATSDAT" "$OPENDKIMSTATSDAT".old
+   touch "$OPENDKIMSTATSDAT"
+   touch "$OPENDKIMSTATDIR"/last_report
+   /usr/sbin/chown mailnull:mailnull "$OPENDKIMSTATSDAT"
+   /bin/chmod ug+rwx "$OPENDKIMSTATSDAT"
+   if [ -f "$REPORTSTUB" ]; then
+      rm "$REPORTSTUB"
+   fi 
+fi
