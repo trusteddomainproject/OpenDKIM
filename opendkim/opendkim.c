@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.173.6.6 2010/08/27 07:42:07 cm-msk Exp $
+**  $Id: opendkim.c,v 1.173.6.7 2010/08/30 07:38:04 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.173.6.6 2010/08/27 07:42:07 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.173.6.7 2010/08/30 07:38:04 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3571,7 +3571,10 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 	new->srq_domain = NULL;
 	new->srq_selector = NULL;
 	new->srq_keydata = NULL;
-	new->srq_signer = signer;
+	if (signer != NULL && signer[0] != '\0')
+		new->srq_signer = strdup(signer);
+	else
+		new->srq_signer = NULL;
 
 	if (keytable != NULL)
 	{
@@ -6739,6 +6742,7 @@ dkimf_cleanup(SMFICTX *ctx)
 				TRYFREE(sr->srq_keydata);
 				TRYFREE(sr->srq_domain);
 				TRYFREE(sr->srq_selector);
+				TRYFREE(sr->srq_signer);
 				TRYFREE(sr);
 
 				sr = next;
