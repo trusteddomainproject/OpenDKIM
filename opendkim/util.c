@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.39 2010/08/30 19:02:44 cm-msk Exp $
+**  $Id: util.c,v 1.40 2010/08/30 19:21:53 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.39 2010/08/30 19:02:44 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.40 2010/08/30 19:21:53 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -98,6 +98,10 @@ static char *optlist[] =
 #if VERIFY_DOMAINKEYS
 	"VERIFY_DOMAINKEYS",
 #endif /* VERIFY_DOMAINKEYS */
+
+#ifdef _FFR_ADSP_LISTS
+	"_FFR_ADSP_LISTS",
+#endif /* _FFR_ADSP_LISTS */
 
 #ifdef _FFR_BODYLENGTH_DB
 	"_FFR_BODYLENGTH_DB",

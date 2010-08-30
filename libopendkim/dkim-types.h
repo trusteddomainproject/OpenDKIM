@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.16 2010/05/04 04:43:04 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.17 2010/08/30 19:21:53 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -60,6 +60,7 @@ struct dkim_pstate
 	int			ps_qstatus;
 	int			ps_state;
 	dkim_policy_t		ps_policy;
+	DKIM *			ps_dkim;
 };
 
 /* struct dkim_dstring -- a dynamically-sized string */

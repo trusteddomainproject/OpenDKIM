@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.59 2010/08/27 07:04:53 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.60 2010/08/30 19:21:53 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4764,6 +4764,52 @@ dkim_resign(DKIM *new, DKIM *old, bool hdrbind)
 #else /* _FFR_RESIGN */
 	return DKIM_STAT_NOTIMPLEMENT;
 #endif /* _FFR_RESIGN */
+}
+
+/*
+**  DKIM_POLICY_STATE_NEW -- initialize and return a DKIM policy state handle
+**
+**  Parameters:
+**  	dkim -- DKIM handle from which to do an allocation
+**
+**  Return value:
+**  	A DKIM_PSTATE handle, or NULL on failure.
+*/
+
+DKIM_PSTATE *
+dkim_policy_state_new(DKIM *dkim)
+{
+	DKIM_PSTATE *ret;
+
+	assert(dkim != NULL);
+
+	ret = DKIM_MALLOC(dkim, sizeof(DKIM_PSTATE));
+
+	if (ret != NULL)
+	{
+		memset(ret, '\0', sizeof(DKIM_PSTATE));
+		ret->ps_dkim = dkim;
+	}
+
+	return ret;
+}
+
+/*
+**  DKIM_POLICY_STATE_FREE -- destroy a DKIM policy state handle
+**
+**  Parameters:
+**  	pstate -- previously allocated policy state handle
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkim_policy_state_free(DKIM_PSTATE *pstate)
+{
+	assert(pstate != NULL);
+
+	DKIM_FREE(pstate->ps_dkim, pstate);
 }
 
 /*

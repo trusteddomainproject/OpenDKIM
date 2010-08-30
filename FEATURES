@@ -24,6 +24,9 @@ FEATURES
 
 Feature Name	Description
 
+adsp_lists	Enables rejection of mail advertising an ADSP policy of
+		"discardable" addressed to mailing lists.  (opendkim)
+
 allsymbols	By default, the build will attempt to create a libopendkim
 		that only exports symbols intended to be exported;
 		internal-only functions are not visible.  This feature
@@ -119,4 +122,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.19 $, Last updated $Date: 2010/08/30 19:02:44 $
+$Revision: 1.20 $, Last updated $Date: 2010/08/30 19:21:52 $

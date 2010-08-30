@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.198 2010/08/30 19:15:00 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.199 2010/08/30 19:21:52 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -38,7 +38,8 @@ release, and a summary of the changes in that release.
 		against dummy data.  Problem noted by Andreas Schulze.
 	LIBOPENDKIM: Don't build against pthread libraries if not needed.
 		Requested by Ale Vesely.
-	LIBOPENDKIM: Add dkim_get_signer().
+	LIBOPENDKIM: Add dkim_get_signer(), dkim_policy_state_new() and
+		dkim_policy_state_free().
 	LIBOPENDKIM: Don't assert a "g=" default when processing keys so that
 		statistics reporting can tell whether or not it was originally
 		there.

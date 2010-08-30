@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.39 2010/08/30 19:15:00 cm-msk Exp $
+$Id: BRANCHES,v 1.40 2010/08/30 19:21:52 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -17,9 +17,6 @@ Experimental Branches (branch name contains owner)
 
 br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
-
-br-msk-adsp-lists
-		Add ADSP-specific features for MLMs.
 
 br-msk-generic-dns
 		Generic DNS facilities.
@@ -53,6 +50,9 @@ br-dblack-autoimprovements
 br-dblack-codecoverage
 		Generate code coverage testing from lcov/gcov/gprof
 		(http://ltp.sourceforge.net/coverage/lcov.php)
+
+br-msk-adsp-lists
+		Add ADSP-specific features for MLMs.
 
 br-msk-default-sender
 		Default sender setting
