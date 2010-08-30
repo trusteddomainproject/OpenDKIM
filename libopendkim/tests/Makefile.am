@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.13 2010/08/30 10:20:13 grooverdan Exp $
+# $Id: Makefile.am,v 1.14 2010/08/30 20:54:54 cm-msk Exp $
 
 AM_CFLAGS = $(COV_CFLAGS)
 AM_LDFLAGS = $(COV_LDFLAGS)
@@ -39,12 +39,15 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test127 t-test128 t-test129 t-test130 t-test131 t-test132 \
 	t-test133 t-test134 t-test135 t-test136 t-test137 \
 	t-signperf t-verifyperf
-check_SCRIPTS = t-signperf-sha1 t-signperf-relaxed-relaxed t-signperf-simple-simple
+check_SCRIPTS = t-signperf-sha1 t-signperf-relaxed-relaxed \
+	t-signperf-simple-simple
 if ALL_SYMBOLS
 check_PROGRAMS += t-test49 t-test113 t-test118
 endif
 check_PROGRAMS += t-cleanup
 TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
+
+EXTRA_DIST = $(check_SCRIPTS)
 
 t_setup_SOURCES = t-setup.c t-testdata.h
 t_cleanup_SOURCES = t-cleanup.c t-testdata.h
