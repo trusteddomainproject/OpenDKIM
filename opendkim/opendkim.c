@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.183 2010/08/30 19:21:53 cm-msk Exp $
+**  $Id: opendkim.c,v 1.184 2010/08/30 20:04:23 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.183 2010/08/30 19:21:53 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.184 2010/08/30 20:04:23 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4724,8 +4724,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "ClockDrift", &conf->conf_clockdrift,
 		                  sizeof conf->conf_clockdrift);
 
+#ifdef _FFR_DEFAULT_SENDER
 		(void) config_get(data, "DefaultSender", &conf->conf_defsender,
 		                  sizeof conf->conf_defsender);
+#endif /* _FFR_DEFAULT_SENDER */
 
 		(void) config_get(data, "Diagnostics", &conf->conf_ztags,
 		                  sizeof conf->conf_ztags);
