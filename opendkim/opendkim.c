@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.161.2.1 2010/07/21 21:53:30 cm-msk Exp $
+**  $Id: opendkim.c,v 1.161.2.2 2010/08/30 19:12:11 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.161.2.1 2010/07/21 21:53:30 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.161.2.2 2010/08/30 19:12:11 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -10714,6 +10714,7 @@ mlfi_eom(SMFICTX *ctx)
 #endif /* _FFR_STATS */
 
 #ifdef VERIFY_DOMAINKEYS
+THIS IS NOT DONE YET
 #else /* VERIFY_DOMAINKEYS */
 		if (dfc->mctx_addheader &&
 		    dfc->mctx_status != DKIMF_STATUS_UNKNOWN)
