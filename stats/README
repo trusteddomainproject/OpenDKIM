@@ -1,4 +1,4 @@
-$Id: README,v 1.4.12.6 2010/08/29 20:27:29 cm-msk Exp $
+$Id: README,v 1.4.12.7 2010/08/30 07:31:30 cm-msk Exp $
 
 INTRODUCTION
 
@@ -124,6 +124,7 @@ A message record is a tab-separated, ordered sequence of fields, as follows:
 	anonymized (0 = no, 1 = yes)
 	UNIX timestamp of message receive time
 	message size, in bytes
+	signature count
 	ADSP record found in DNS (0 = no, 1 = yes)
 	ADSP "unknown" policy found in DNS (0 = no, 1 = yes)
 	ADSP "all" policy found in DNS (0 = no, 1 = yes)
