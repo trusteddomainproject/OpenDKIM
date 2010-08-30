@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.1.2.11 2010/08/30 02:03:33 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.1.2.12 2010/08/30 06:58:20 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.11 2010/08/30 02:03:33 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.1.2.12 2010/08/30 06:58:20 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -446,7 +446,7 @@ main(int argc, char **argv)
 		}
 		else if (c == 'M')
 		{
-			if (n != 16)
+			if (n != 17)
 			{
 				fprintf(stderr,
 				        "%s: unexpected field count at input line %d\n",
@@ -568,7 +568,8 @@ main(int argc, char **argv)
 			    sanitize(db, fields[12], safesql, sizeof safesql) ||
 			    sanitize(db, fields[13], safesql, sizeof safesql) ||
 			    sanitize(db, fields[14], safesql, sizeof safesql) ||
-			    sanitize(db, fields[15], safesql, sizeof safesql))
+			    sanitize(db, fields[15], safesql, sizeof safesql) ||
+			    sanitize(db, fields[16], safesql, sizeof safesql))
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
@@ -597,7 +598,7 @@ main(int argc, char **argv)
 			}
 
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO messages (jobid, reporter, from_domain, ipaddr, anonymized, msgtime, size, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received_count, content_type, content_encoding) VALUES ('%s', %d, %d, '%s', %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')",
+			         "INSERT INTO messages (jobid, reporter, from_domain, ipaddr, anonymized, msgtime, size, sigcount, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received_count, content_type, content_encoding) VALUES ('%s', %d, %d, '%s', %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')",
 			         fields[0],		/* jobid */
 			         repid,			/* reporter */
 			         domid,			/* from_domain */
@@ -605,15 +606,16 @@ main(int argc, char **argv)
 			         fields[4],		/* anonymized */
 			         fields[5],		/* msgtime */
 			         fields[6],		/* size */
-			         fields[7],		/* adsp_found */
-			         fields[8],		/* adsp_unknown */
-			         fields[9],		/* adsp_all */
-			         fields[10],		/* adsp_discardable */
-			         fields[11],		/* adsp_fail */
-			         fields[12],		/* mailing_list */
-			         fields[13],		/* received_count */
-			         fields[14],		/* content_type */
-			         fields[15]);		/* content_encoding */
+			         fields[7],		/* sigcount */
+			         fields[8],		/* adsp_found */
+			         fields[9],		/* adsp_unknown */
+			         fields[10],		/* adsp_all */
+			         fields[11],		/* adsp_discardable */
+			         fields[12],		/* adsp_fail */
+			         fields[13],		/* mailing_list */
+			         fields[14],		/* received_count */
+			         fields[15],		/* content_type */
+			         fields[16]);		/* content_encoding */
 
 			msgid = sql_do(db, sql);
 			if (msgid == -1)

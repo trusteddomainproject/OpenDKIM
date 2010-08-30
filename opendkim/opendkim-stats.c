@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.13.2.7 2010/08/29 20:27:29 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.13.2.8 2010/08/30 06:58:20 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.13.2.7 2010/08/29 20:27:29 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.13.2.8 2010/08/30 06:58:20 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -171,7 +171,7 @@ main(int argc, char **argv)
 			char *ct;
 			char *cte;
 
-			if (n != 16)
+			if (n != 17)
 			{
 				fprintf(stderr,
 				        "%s: unexpected field count at input line %d\n",
@@ -183,30 +183,30 @@ main(int argc, char **argv)
 			rtime = (time_t) atoi(fields[5]);
 			adsp = "not found";
 			adsppf = "passed";
-			if (fields[7][0] == '1')
+			if (fields[8][0] == '1')
 			{
 				adsp = "invalid";
 
-				if (fields[8][0] == '1')
+				if (fields[9][0] == '1')
 					adsp = "unknown";
-				else if (fields[9][0] == '1')
-					adsp = "all";
 				else if (fields[10][0] == '1')
+					adsp = "all";
+				else if (fields[11][0] == '1')
 					adsp = "discardable";
 
-				if (fields[11][0] == '1')
+				if (fields[12][0] == '1')
 					adsppf = "failed";
 			}
 
-			if (fields[14][0] == '\0')
+			if (fields[15][0] == '\0')
 				ct = "(default)";
 			else
-				ct = fields[14];
+				ct = fields[15];
 
-			if (fields[15][0] == '\0')
+			if (fields[16][0] == '\0')
 				cte = "(default)";
 			else
-				cte = fields[15];
+				cte = fields[16];
 
 			if (ms > 0)
 			{
