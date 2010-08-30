@@ -1,1 +1,5 @@
+#!/bin/sh
+#
+# $Id: t-signperf-sha1,v 1.2 2010/08/30 21:10:34 cm-msk Exp $
+
 ./t-signperf -s rsa-sha1
