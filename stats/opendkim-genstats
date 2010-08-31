@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.1.2.5 2010/08/31 21:41:49 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.1.2.6 2010/08/31 21:55:56 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -104,6 +104,10 @@ echo "</p>" >> $OUTPUT
 echo "<p>Author vs. third-party signatures: <br>" >> $OUTPUT
 $MYSQL --execute="select count(*) as 'author sigs', sum(pass) as 'passed' from signatures join messages on messages.id = signatures.message where messages.from_domain = signatures.domain" >> $OUTPUT
 $MYSQL --execute="select count(*) as 'third-party sigs', sum(pass) as 'passed' from signatures join messages on messages.id = signatures.message where not messages.from_domain = signatures.domain" >> $OUTPUT
+echo "</p>" >> $OUTPUT
+
+echo "<p>Signed header field frequency: <br>" >> $OUTPUT
+$MYSQL --execute="select headernames.name, count(signed_headers.id) as count from signed_headers join headernames on headernames.id = signed_headers.header group by signed_headers.header order by count(signed_headers.id) desc" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 echo "<p>Count of unique signing domains in sample: <br>" >> $OUTPUT
