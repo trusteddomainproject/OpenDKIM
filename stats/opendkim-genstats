@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.1.2.3 2010/08/31 21:32:49 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.1.2.4 2010/08/31 21:37:06 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -111,15 +111,15 @@ $MYSQL --execute="select count(distinct from_domain) as domains from messages wh
 echo "</p>" >> $OUTPUT
 
 echo "<p>Top 10 signing domains by signature count: <br>" >> $OUTPUT
-$MYSQL --execute="select from_domain, sum(sigcount) as signatures from messages where anonymized = 0 group by from_domain order by sum(sigcount) desc limit 10" >> $OUTPUT
+$MYSQL --execute="select domains.name, sum(sigcount) as signatures from messages join domains on domains.id = messages.from_domain where anonymized = 0 group by from_domain order by sum(sigcount) desc limit 10" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 echo "<p>Top 10 signing domains by passing signature percentage: <br>" >> $OUTPUT
-$MYSQL --execute="select domains.name, count(*) as signatures, 100*sum(pass)/count(*) as pct_passed from signatures join domains on domains.id = signatures.domain join messages on signatures.message = messages.id where messages.anonymized = 0 and signatures.pass = 1 group by signatures.domain order by pct_passed desc, signatures desc limit 10" >> $OUTPUT
+$MYSQL --execute="select domains.name, count(*) as signatures, 100*sum(pass)/count(*) as pct_passed from signatures join domains on domains.id = signatures.domain join messages on signatures.message = messages.id where messages.anonymized = 0 group by signatures.domain order by pct_passed desc, signatures desc limit 10" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 echo "<p>Top 10 signing domains by failed signature percentage: <br>" >> $OUTPUT
-$MYSQL --execute="select domains.name, count(*) as signatures, 100-100*sum(pass)/count(*) as pct_failed from signatures join domains on domains.id = signatures.domain join messages on signatures.message = messages.id where messages.anonymized = 0 and signatures.pass = 0 and signatures.ignored = 0 group by signatures.domain order by pct_failed desc, signatures desc limit 10" >> $OUTPUT
+$MYSQL --execute="select domains.name, count(*) as signatures, 100-100*sum(pass)/count(*) as pct_failed from signatures join domains on domains.id = signatures.domain join messages on signatures.message = messages.id where messages.anonymized = 0 and signatures.ignored = 0 group by signatures.domain order by pct_failed desc, signatures desc limit 10" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 echo "<p>Correlation of IP addresses to signed From: domains: <br>" >> $OUTPUT
