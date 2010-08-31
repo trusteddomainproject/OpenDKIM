@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.25 2010/08/30 19:21:53 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.26 2010/08/31 06:51:56 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.25 2010/08/30 19:21:53 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.26 2010/08/31 06:51:56 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -107,6 +107,7 @@ struct configdef dkimf_config[] =
 	{ "On-DNSError",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-InternalError",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-KeyNotFound",		CONFIG_TYPE_STRING,	FALSE },
+	{ "On-PolicyError",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-NoSignature",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-Security",		CONFIG_TYPE_STRING,	FALSE },
 	{ "PeerList",			CONFIG_TYPE_STRING,	FALSE },

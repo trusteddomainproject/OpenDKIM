@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.200 2010/08/30 22:01:56 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.201 2010/08/31 06:51:56 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -33,6 +33,8 @@ release, and a summary of the changes in that release.
 		"ScreenPolicyScript" from working.
 	Ignore "Domain" and "Selector" settings if "KeyTable" is set.
 		Problem noted by Rolf Sonneveld.
+	Add "On-PolicyError" to configuration tables.  Reported by Richard
+		Rognlie.
 	LIBOPENDKIM: Feature request #SF3026287: Add dkim_getuser() function.
 		Requested by Ale Vesely.
 	LIBOPENDKIM: Fix bug #SF3051762: Don't error out of dkim_get_key()
