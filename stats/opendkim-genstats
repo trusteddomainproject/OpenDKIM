@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.1.2.4 2010/08/31 21:37:06 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.1.2.5 2010/08/31 21:41:49 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -77,8 +77,8 @@ echo "<p>Key properties: <br>" >> $OUTPUT
 $MYSQL --execute="select sum(key_t) as 't=', sum(key_g) as 'g=', sum(key_g_name) as 'g=name', sum(key_dk_compat) as 'DK compat' from signatures" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
-echo "<p>DNSSEC results: <br>" >> $OUTPUT
-$MYSQL --execute="select dnssec, count(distinct dnssec) from signatures group by dnssec order by dnssec" >> $OUTPUT
+echo "<p>DNSSEC results (see libopendkim/dkim.h): <br>" >> $OUTPUT
+$MYSQL --execute="select dnssec as 'DNSSEC code', count(*) as count from signatures group by dnssec order by dnssec" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 echo "<p>Overall pass/fail rate for signed mail: <br>" >> $OUTPUT
