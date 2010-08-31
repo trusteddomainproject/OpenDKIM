@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.161.2.2 2010/08/30 19:12:11 cm-msk Exp $
+**  $Id: opendkim.c,v 1.161.2.3 2010/08/31 07:08:00 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.161.2.2 2010/08/30 19:12:11 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.161.2.3 2010/08/31 07:08:00 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -386,6 +386,8 @@ struct msgctx
 	struct addrlist * mctx_rcptlist;	/* recipient list */
 	char		mctx_domain[DKIM_MAXHOSTNAMELEN + 1];
 						/* primary domain */
+	unsigned char	mctx_dkimar[DKIM_MAXHEADER + 1];
+						/* DKIM Auth-Results content */
 #ifdef VERIFY_DOMAINKEYS
 	unsigned char	mctx_dkar[DKIM_MAXHEADER + 1];
 						/* DK Auth-Results content */
@@ -3111,6 +3113,112 @@ dkimf_xs_getreputation(lua_State *l)
 	return 1;
 }
 #endif /* USE_LUA */
+
+/*
+**  DKIMF_ADD_AR_FIELDS -- add Authentication-Results header fields
+**
+**  Parameters:
+**  	dfc -- filter context
+**  	conf -- configuration handle
+**  	ctx -- milter context
+**
+**  Return value:
+**  	None.
+*/
+
+static void
+dkimf_add_ar_fields(struct msgctx *dfc, struct dkimf_config *conf,
+                    SMFICTX *ctx)
+{
+	assert(dfc != NULL);
+	assert(conf != NULL);
+	assert(ctx != NULL);
+
+#ifdef VERIFY_DOMAINKEYS
+	/*
+	**  XXX -- I'm not happy with this solution, but it'll go away when
+	**         we discontinue DomainKeys support so I can live with it.
+	*/
+
+	if (!conf->conf_singleauthres)
+	{
+		if ((dfc->mctx_status == DKIMF_STATUS_BAD ||
+		     dfc->mctx_status == DKIMF_STATUS_GOOD ||
+		     dfc->mctx_status == DKIMF_STATUS_REVOKED ||
+		     dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
+		     dfc->mctx_status == DKIMF_STATUS_VERIFYERR ||
+		     (dfc->mctx_status == DKIMF_STATUS_NOSIGNATURE &&
+		      dfc->mctx_addheader)) &&
+		    dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
+		                    dfc->mctx_dkimar) == MI_FAILURE)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: %s header add failed",
+				       dfc->mctx_jobid, AUTHRESULTSHDR);
+			}
+		}
+
+		if (dfc->mctx_dksigned &&
+		    dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
+		                    dfc->mctx_dkar) == MI_FAILURE)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: %s header add failed",
+				       dfc->mctx_jobid, AUTHRESULTSHDR);
+			}
+		}
+	}
+	else
+	{
+		if ((dfc->mctx_status == DKIMF_STATUS_BAD ||
+		     dfc->mctx_status == DKIMF_STATUS_REVOKED ||
+		     dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
+		     dfc->mctx_status == DKIMF_STATUS_VERIFYERR ||
+		     (dfc->mctx_status == DKIMF_STATUS_NOSIGNATURE &&
+		      dfc->mctx_addheader)) &&
+		    dfc->mctx_dkpass)
+		{
+			if (dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
+			                    dfc->mctx_dkar) == MI_FAILURE)
+			{
+				if (conf->conf_dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s: %s header add failed",
+					       dfc->mctx_jobid,
+					       AUTHRESULTSHDR);
+				}
+			}
+		}
+		else
+		{
+			if (dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
+			                    dfc->mctx_dkimar) == MI_FAILURE)
+			{
+				if (conf->conf_dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s: %s header add failed",
+					       dfc->mctx_jobid,
+					       AUTHRESULTSHDR);
+				}
+			}
+		}
+	}
+#else /* VERIFY_DOMAINKEYS */
+	if (dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
+	                    dfc->mctx_dkimar) == MI_FAILURE)
+	{
+		if (conf->conf_dolog)
+		{
+			syslog(LOG_ERR, "%s: %s header add failed",
+			       dfc->mctx_jobid, AUTHRESULTSHDR);
+		}
+	}
+#endif /* VERIFY_DOMAINKEYS */
+}
 
 /*
 **  DKIMF_DB_ERROR -- syslog errors related to db retrieval
@@ -10713,12 +10821,8 @@ mlfi_eom(SMFICTX *ctx)
 		}
 #endif /* _FFR_STATS */
 
-#ifdef VERIFY_DOMAINKEYS
-THIS IS NOT DONE YET
-#else /* VERIFY_DOMAINKEYS */
 		if (dfc->mctx_addheader &&
 		    dfc->mctx_status != DKIMF_STATUS_UNKNOWN)
-#endif /* VERIFY_DOMAINKEYS */
 		{
 			_Bool test;
 			u_int keybits;
@@ -11146,39 +11250,10 @@ THIS IS NOT DONE YET
 					c += len;
 				}
 
-#ifdef VERIFY_DOMAINKEYS
-				/*
-				**  XXX -- I'm not happy with this solution,
-				**  but it'll go away when we discontinue
-				**  DomainKeys support so I can live with it.
-				*/
+				strlcpy(dfc->mctx_dkimar, tmphdr,
+				        sizeof dfc->mctx_dkimar);
 
-				if (conf->conf_singleauthres &&
-				    dfc->mctx_dkpass &&
-				    (dfc->mctx_status == DKIMF_STATUS_BAD ||
-			             dfc->mctx_status == DKIMF_STATUS_REVOKED ||
-			             dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
-			             dfc->mctx_status == DKIMF_STATUS_VERIFYERR ||
-			             (dfc->mctx_status == DKIMF_STATUS_NOSIGNATURE &&
-			              dfc->mctx_addheader)))
-				{
-					strlcpy(tmphdr, dfc->mctx_dkar,
-					        sizeof tmphdr);
-				}
-#endif /* VERIFY_DOMAINKEYS */
-
-				if (dfc->mctx_addheader &&
-				    dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
-				                    tmphdr) == MI_FAILURE)
-				{
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_ERR,
-						       "%s: %s header add failed",
-						       dfc->mctx_jobid,
-						       AUTHRESULTSHDR);
-					}
-				}
+				dkimf_add_ar_fields(dfc, conf, ctx);
 
 #ifdef _FFR_RESIGN
 				if (dfc->mctx_resign)
@@ -11534,26 +11609,6 @@ THIS IS NOT DONE YET
 		}
 #endif /* _FFR_REDIRECT */
 	}
-
-#ifdef VERIFY_DOMAINKEYS
-	if (!conf->conf_singleauthres &&
-	    !(dfc->mctx_status == DKIMF_STATUS_BAD ||
-              dfc->mctx_status == DKIMF_STATUS_REVOKED ||
-              dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
-              dfc->mctx_status == DKIMF_STATUS_VERIFYERR ||
-              (dfc->mctx_status == DKIMF_STATUS_NOSIGNATURE &&
-               dfc->mctx_addheader)))
-	{
-		if (dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
-		                    dfc->mctx_dkar) == MI_FAILURE &&
-		    conf->conf_dolog)
-		{
-			syslog(LOG_ERR, "%s: %s header add failed",
-			       dfc->mctx_jobid, AUTHRESULTSHDR);
-		}
-	}
-#endif /* VERIFY_DOMAINKEYS */
-
 
 #ifdef USE_LUA
 	if (conf->conf_finalscript != NULL)
