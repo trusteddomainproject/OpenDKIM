@@ -6,13 +6,13 @@
 */
 
 #ifndef lint
-static char t_cleanup_c_id[] = "@(#)$Id: t-cleanup.c,v 1.1 2009/11/28 19:02:37 cm-msk Exp $";
+static char t_cleanup_c_id[] = "@(#)$Id: t-cleanup.c,v 1.2 2010/08/31 13:50:12 grooverdan Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <assert.h>
 #include <unistd.h>
-
+#include <stdio.h>
 
 /* libopendkim includes */
 #include "t-testdata.h"
@@ -30,6 +30,9 @@ static char t_cleanup_c_id[] = "@(#)$Id: t-cleanup.c,v 1.1 2009/11/28 19:02:37 c
 int
 main(int argc, char **argv)
 {
+	/* needed for code coverage test descriptions */
+	printf("*** test cleanup\n");
+
 	assert(unlink(KEYFILE) == 0);
 
 	return 0;

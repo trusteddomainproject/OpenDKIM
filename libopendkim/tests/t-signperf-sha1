@@ -1,5 +1,7 @@
 #!/bin/sh
 #
-# $Id: t-signperf-sha1,v 1.2 2010/08/30 21:10:34 cm-msk Exp $
+# $Id: t-signperf-sha1,v 1.3 2010/08/31 13:50:12 grooverdan Exp $
+#
+# Speed signing test using sha1 hash algorithm
 
 ./t-signperf -s rsa-sha1

@@ -1,5 +1,7 @@
 #!/bin/sh
 #
-# $Id: t-signperf-simple-simple,v 1.2 2010/08/30 21:10:34 cm-msk Exp $
+# $Id: t-signperf-simple-simple,v 1.3 2010/08/31 13:50:12 grooverdan Exp $
+#
+# Speed signing test using simple/simple canonicalization
 
 ./t-signperf -b simple -h simple
