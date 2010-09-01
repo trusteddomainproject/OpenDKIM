@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.1.2.6 2010/08/31 21:55:56 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.1.2.7 2010/09/01 07:05:47 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -128,6 +128,10 @@ echo "</p>" >> $OUTPUT
 
 echo "<p>Correlation of IP addresses to signed From: domains: <br>" >> $OUTPUT
 $MYSQL --execute="select ipaddr, count(distinct from_domain) as domains from messages where sigcount > 0 and anonymized = 0 group by ipaddr order by domains desc limit 10" >> $OUTPUT
+echo "</p>" >> $OUTPUT
+
+echo "<p>Correlation of Received: count to signature successes: <br>" >> $OUTPUT
+$MYSQL --execute="select received_count, sum(sigcount) as 'total sigs', sum(signatures.pass) as 'passed', 100*sum(signatures.pass)/sum(sigcount) as '% pass' from messages join signatures on signatures.message = messages.id where received_count > 0 and sigcount > 0 group by received_count" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 # output a footer
