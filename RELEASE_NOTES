@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.201 2010/08/31 06:51:56 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.202 2010/09/01 04:09:45 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -23,6 +23,9 @@ release, and a summary of the changes in that release.
 		has unsafe group/other read/write bits set.  Further, if the
 		new "RequireSafeKeys" setting is true, refuse to use the data.
 	Feature request #SF3030548: Add "DefaultSender".
+	Feature request #SF3056571: Extend signer selection in the SigningTable
+		to include a token that will be replaced by the From:
+		domain.  Requested by Richard Rognlie.
 	Fix "LocalADSP", which was not working at all.
 	Fix bug #SF3004995: Don't apply "SenderHeaders" to the library
 		as that impacts how ADSP works.

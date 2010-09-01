@@ -889,11 +889,13 @@ configuration option for more information.
 Defines a table used to select one or more signatures to apply to a message
 based on the address found in the From: header field.  Keys in this table
 vary depending on the type of table used; values in this data set should
-include one field that refers to a name found in the
+include one field that contains a name found in the
 .I KeyTable
 (see above) that identifies which key should be used in generating
 the signature, and an optional second field naming the signer of the message
-that will be included in the "i=" tag in the generated signature.
+that will be included in the "i=" tag in the generated signature.  Within this
+optional second field, any "%" character will be replaced by the domain found
+in the From: header field.
 
 If this table specifies a regular expression file ("refile"),
 then the keys are wildcard patterns that are matched against the address

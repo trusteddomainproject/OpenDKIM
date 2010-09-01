@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.185 2010/08/30 22:01:56 cm-msk Exp $
+**  $Id: opendkim.c,v 1.186 2010/09/01 04:09:45 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.185 2010/08/30 22:01:56 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.186 2010/09/01 04:09:45 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7219,6 +7219,60 @@ dkimf_findheader(msgctx dfc, char *hname, int instance)
 }
 
 /*
+**  DKIMF_REPTOKEN -- replace a token in an input string with another string
+**
+**  Parameters:
+**  	out -- output buffer
+**  	outlen -- output buffer length
+**  	in -- input string
+**  	sub -- substitution string
+**
+**  Return value:
+**  	Bytes of output; may be larger than "outlen" if "out" was too small.
+*/
+
+size_t
+dkimf_reptoken(char *out, size_t outlen, char *in, char *sub)
+{
+	size_t ret = 0;
+	char *p;
+	char *q;
+	char *end;
+
+	assert(out != NULL);
+	assert(in != NULL);
+	assert(sub != NULL);
+
+	memset(out, '\0', outlen);
+
+	q = out;
+	end = q + outlen - 1;
+
+	for (p = in; *p != '\0'; p++)
+	{
+		if (*p == '%')
+		{
+			size_t c;
+
+			c = strlcpy(q, sub, outlen - ret);
+			q += c;
+			ret += c;
+		}
+		else
+		{
+			if (q < end)
+			{
+				*q = *p;
+				q++;
+				ret++;
+			}
+		}
+	}
+
+	return ret;
+}
+
+/*
 **  DKIMF_APPLY_SIGNTABLE -- apply the signing table to a message
 **
 **  Parameters:
@@ -7246,6 +7300,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 	_Bool found;
 	int nfound = 0;
 	char keyname[BUFRSZ + 1];
+	char tmp[BUFRSZ + 1];
 
 	assert(dfc != NULL);
 	assert(keydb != NULL);
@@ -7281,8 +7336,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			else if (status == 1)
 				break;
 
+			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
-			                               signer);
+			                               tmp);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
@@ -7327,8 +7383,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
+			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
-			                               signer);
+			                               tmp);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
@@ -7358,8 +7415,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
+			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
-			                               signer);
+			                               tmp);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
@@ -7396,9 +7454,10 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			}
 			else if (found)
 			{
+				dkimf_reptoken(tmp, sizeof tmp, signer,
+				               domain);
 				status = dkimf_add_signrequest(dfc, keydb,
-				                               keyname,
-				                               signer);
+				                               keyname, tmp);
 				if (status != 0 && errkey != NULL)
 					strlcpy(errkey, keyname, errlen);
 				if (status == 1)
@@ -7428,9 +7487,10 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			}
 			else if (found)
 			{
+				dkimf_reptoken(tmp, sizeof tmp, signer,
+				               domain);
 				status = dkimf_add_signrequest(dfc, keydb,
-				                               keyname,
-				                               signer);
+				                               keyname, tmp);
 				if (status != 0 && errkey != NULL)
 					strlcpy(errkey, keyname, errlen);
 				if (status == 1)
@@ -7464,8 +7524,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
+			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
-			                               signer);
+			                               tmp);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
@@ -7494,8 +7555,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
+			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
-			                               signer);
+			                               tmp);
 			if (status != 0 && errkey != NULL)
 				strlcpy(errkey, keyname, errlen);
 			if (status == 1)
@@ -9007,7 +9069,8 @@ mlfi_eoh(SMFICTX *ctx)
 			if (conf->conf_keytabledb == NULL ||
 			    resignkey[0] == '\0')
 			{
-				status = dkimf_add_signrequest(dfc, NULL, NULL);
+				status = dkimf_add_signrequest(dfc, NULL, NULL,
+				                               NULL);
 
 				if (status != 0)
 				{
@@ -9025,7 +9088,8 @@ mlfi_eoh(SMFICTX *ctx)
 			{
 				status = dkimf_add_signrequest(dfc,
 				                               conf->conf_keytabledb,
-				                               resignkey);
+				                               resignkey,
+				                               NULL);
 
 				if (status != 0)
 				{
@@ -9272,7 +9336,7 @@ mlfi_eoh(SMFICTX *ctx)
 		{
 			status = dkimf_add_signrequest(dfc,
 			                               conf->conf_keytabledb,
-			                               hdr->hdr_val);
+			                               hdr->hdr_val, NULL);
 			if (status != 0)
 			{
 				if (dolog)
