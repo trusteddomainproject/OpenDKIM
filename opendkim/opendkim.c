@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.161.2.3 2010/08/31 07:08:00 cm-msk Exp $
+**  $Id: opendkim.c,v 1.161.2.4 2010/09/01 05:28:22 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.161.2.3 2010/08/31 07:08:00 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.161.2.4 2010/09/01 05:28:22 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4621,9 +4621,11 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_enablecores,
 		                  sizeof conf->conf_enablecores);
 
+#ifdef VERIFY_DOMAINKEYS
 		(void) config_get(data, "SingleAuthResult",
 		                  &conf->conf_singleauthres,
 		                  sizeof conf->conf_singleauthres);
+#endif /* VERIFY_DOMAINKEYS */
 
 		(void) config_get(data, "NoHeaderB",
 		                  &conf->conf_noheaderb,
