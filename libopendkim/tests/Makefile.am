@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.15 2010/09/01 00:44:56 grooverdan Exp $
+# $Id: Makefile.am,v 1.16 2010/09/01 01:19:07 grooverdan Exp $
 
 AM_CFLAGS = $(COV_CFLAGS)
 AM_LDFLAGS = $(COV_LDFLAGS)
@@ -255,7 +255,7 @@ check-local: check-TESTS description.html
 # keep consistant with gcov-helper.sh
 
 description.txt: $(check_PROGRAMS) $(check_SCRIPTS)
-	rm $@
+	rm -f $@
 	for i in $(check_PROGRAMS); do \
 		testname=$${i/t-}; \
 		testname=$${testname//-/_}; \
