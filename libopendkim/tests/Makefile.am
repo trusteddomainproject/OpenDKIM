@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.14 2010/08/30 20:54:54 cm-msk Exp $
+# $Id: Makefile.am,v 1.15 2010/09/01 00:44:56 grooverdan Exp $
 
 AM_CFLAGS = $(COV_CFLAGS)
 AM_LDFLAGS = $(COV_LDFLAGS)
@@ -200,29 +200,29 @@ MOSTLYCLEANFILES=
 
 if GCOV_ONLY
 MOSTLYCLEANFILES+=*.gcov *.gcno *.gcda *.bb *.bbg *.da .gcov-files
-TESTS_ENVIRONMENT=./gcov-helper.sh
+#TESTS_ENVIRONMENT=./gcov-helper.sh
 
-.gcov-files: check-TESTS
-	for i in $(PROF_SRCS); do \
-		x=`echo $$i | sed 's/\..*//g'`; \
-		if test -f ../libopendkim_la-$$x.gcno -a \
-		        -f ../libopendkim_la-$$x.gcda; then \
-			mv ../libopendkim_la-$$x.gcno ../$$x.gcno; \
-			mv ../libopendkim_la-$$x.gcda ../$$x.gcda; \
-			gcov -o .. $$i; \
-		fi; \
-		if test -f ../libopendkim_la-$$x.bb -a \
-		        -f ../libopendkim_la-$$x.bbg -a \
-		        -f ../libopendkim_la-$$x.da; then \
-			mv ../libopendkim_la-$$x.bb ../$$x.bb; \
-			mv ../libopendkim_la-$$x.bbg ../$$x.bbg; \
-			mv ../libopendkim_la-$$x.da ../$$x.da; \
-			gcov -o .. $$i; \
-		fi; \
-	done
-	touch $@
-
-check-local: .gcov-files
+#.gcov-files: check-TESTS
+#	for i in $(PROF_SRCS); do \
+#		x=`echo $$i | sed 's/\..*//g'`; \
+#		if test -f ../libopendkim_la-$$x.gcno -a \
+#		        -f ../libopendkim_la-$$x.gcda; then \
+#			mv ../libopendkim_la-$$x.gcno ../$$x.gcno; \
+#			mv ../libopendkim_la-$$x.gcda ../$$x.gcda; \
+#			gcov -o .. $$i; \
+#		fi; \
+#		if test -f ../libopendkim_la-$$x.bb -a \
+#		        -f ../libopendkim_la-$$x.bbg -a \
+#		        -f ../libopendkim_la-$$x.da; then \
+#			mv ../libopendkim_la-$$x.bb ../$$x.bb; \
+#			mv ../libopendkim_la-$$x.bbg ../$$x.bbg; \
+#			mv ../libopendkim_la-$$x.da ../$$x.da; \
+#			gcov -o .. $$i; \
+#		fi; \
+#	done
+#	touch $@
+#
+#check-local: .gcov-files
 endif
 
 if LCOV
@@ -230,28 +230,43 @@ dist_doc_DATA=lcov
 MAINTAINERCLEANFILES=description.txt description.html
 MOSTLYCLEANFILES+=*.info .prepare-lcov .info-files *.gcno *.gcda
 
-.info-files: check-TESTS 
-	for i in $(PROF_SRCS); do \
-		x=`echo $$i | sed 's/\..*//g'`; \
-		if test -f ../libopendkim_la-$$x.gcno -a \
-		        -f ../libopendkim_la-$$x.gcda; then \
-			mv ../libopendkim_la-$$x.gcno ../$$x.gcno; \
-			mv ../libopendkim_la-$$x.gcda ../$$x.gcda; \
-		fi; \
-		lcov --capture --directory .. --output-file $$x.info \
-			--test-name $$x -q; \
-	done
-	touch .info-files
+#.info-files: check-TESTS 
+#	for i in $(PROF_SRCS); do \
+#		x=`echo $$i | sed 's/\..*//g'`; \
+#		if test -f ../libopendkim_la-$$x.gcno -a \
+#		        -f ../libopendkim_la-$$x.gcda; then \
+#			mv ../libopendkim_la-$$x.gcno ../$$x.gcno; \
+#			mv ../libopendkim_la-$$x.gcda ../$$x.gcda; \
+#		fi; \
+#		lcov --capture --directory .. --output-file $$x.info \
+#			--test-name $$x -q; \
+#	done
+#	touch .info-files
 
-check-local: .info-files description.html
+TESTS_ENVIRONMENT=./lcov-helper.sh
+
+#check-local: .info-files description.html
+check-local: check-TESTS description.html
 	genhtml --output-directory lcov *.info --show-details --highlight \
-		--frames --legend  --title @PACKAGE@ \
+		--frames --legend  --title libopendkim \
 		--description-file description.html
 
-description.txt:
+# remove t- prefix and replace - with _ from testnames because lcov doesn't handle it
+# keep consistant with gcov-helper.sh
+
+description.txt: $(check_PROGRAMS) $(check_SCRIPTS)
+	rm $@
 	for i in $(check_PROGRAMS); do \
-		fgrep '***' $$i.c | tail -n 1 |\
-		(echo $$i ; sed -e 's/[^*]*\*\*\*\(.*\)\\n.*/\t\1\n/g' ) >> $@; \
+		testname=$${i/t-}; \
+		testname=$${testname//-/_}; \
+		fgrep '***' $$i.c | tail -n 1 | \
+		(echo $${testname} ; sed -e 's/[^*]*\*\*\*\(.*\)\\n.*/\t\1\n/g' ) >> $@; \
+	done
+	for i in $(check_SCRIPTS); do \
+		testname=$${i/t-}; \
+		testname=$${testname//-/_}; \
+		grep '^#' $$i | tail -n 1 | \
+		(echo $${testname} ; sed -e 's/^# \(.*\)/\t\1\n/g' ) >> $@; \
 	done
  
 description.html: description.txt
