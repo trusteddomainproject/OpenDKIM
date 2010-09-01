@@ -1,41 +1,101 @@
--- $Id: mkdb.mysql,v 1.4 2010/07/30 12:11:07 cm-msk Exp $
+-- $Id: mkdb.mysql,v 1.5 2010/09/01 22:51:48 cm-msk Exp $
 
 -- MySQL command sequence to create a database to accumulate OpenDKIM
 -- statistics reports
 
-create table if not exists opendkim_statistics (
+-- table of reporters
+create table if not exists reporters (
 	id int unsigned not null auto_increment,
-		primary key(id),
-	jobid varchar(255) not null unique,
-		key(jobid),
-	from_domain varchar(255) not null,
-		key(from_domain),
+	name varchar(255) not null,
+
+	primary key(id),
+	key(name)
+) engine=innodb default charset=latin1;
+
+-- table of domain names we've seen
+create table if not exists domains (
+	id int unsigned not null auto_increment,
+	name varchar(255) not null,
+
+	primary key(id),
+	key(name)
+) engine=innodb default charset=latin1;
+
+-- table of messages names we've seen
+create table if not exists messages (
+	id int unsigned not null auto_increment,
+	jobid varchar(255) not null,
+	reporter int unsigned not null,
+	from_domain int unsigned not null,
 	ipaddr varchar(255) not null,
-		key(ipaddr),
+	anonymized tinyint unsigned not null,
 	msgtime timestamp not null,
-	algorithm int unsigned not null,
-	hdr_canon int unsigned not null,
-	body_canon int unsigned not null,
-	sigs_total int unsigned not null,
-	sigs_pass int unsigned not null,
-	sigs_fail int unsigned not null,
-	sigs_fail_body int unsigned not null,
-	extended int unsigned not null,
-	key_t int unsigned not null,
-	key_g int unsigned not null,
-	key_syntax int unsigned not null,
-	key_nx int unsigned not null,
-	sig_t int unsigned not null,
-	sig_t_future int unsigned not null,
-	sig_x int unsigned not null,
-	sig_l int unsigned not null,
-	sig_z int unsigned not null,
-	adsp int unsigned not null,
-	adsp_fail int unsigned not null,
+	size int unsigned not null,
+	sigcount int unsigned not null,
+	adsp_found int unsigned not null,
+	adsp_unknown int unsigned not null,
+	adsp_all int unsigned not null,
 	adsp_discardable int unsigned not null,
-	author_sigs int unsigned not null,
-	author_sigs_fail int unsigned not null,
-	tp_sigs int unsigned not null,
-	tp_sigs_fail int unsigned not null,
-	mailing_list int unsigned not null
-) default charset=latin1;
+	adsp_fail int unsigned not null,
+	mailing_list int unsigned not null,
+	received_count int unsigned not null,
+	content_type varchar(255),
+	content_encoding varchar(255),
+
+	primary key(id),
+	key(reporter),
+	key(from_domain),
+	key(ipaddr),
+	unique key(reporter, jobid, msgtime),
+	foreign key(from_domain) references domains(id) on delete cascade,
+	foreign key(reporter) references reporters(id) on delete cascade
+) engine=innodb default charset=latin1;
+
+-- table of signatures we've seen
+create table if not exists signatures (
+	id int unsigned not null auto_increment,
+	message int unsigned not null,
+	domain int unsigned not null,
+	algorithm tinyint unsigned not null,
+	hdr_canon tinyint unsigned not null,
+	body_canon tinyint unsigned not null,
+	ignored tinyint unsigned not null,
+	pass tinyint unsigned not null,
+	fail_body tinyint unsigned not null,
+	siglength int not null,
+	key_t tinyint unsigned not null,
+	key_g tinyint unsigned not null,
+	key_g_name tinyint unsigned not null,
+	key_dk_compat tinyint unsigned not null,
+	sigerror tinyint unsigned not null,
+	sig_t tinyint unsigned not null,
+	sig_x tinyint unsigned not null,
+	sig_z tinyint unsigned not null,
+	dnssec int unsigned not null,
+
+	primary key(id),
+	key(domain),
+	foreign key(message) references messages(id) on delete cascade,
+	foreign key(domain) references domains(id) on delete cascade
+) engine=innodb default charset=latin1;
+
+-- table of header names we've seen
+create table if not exists headernames (
+	id int unsigned not null auto_increment,
+	name varchar(255) not null,
+
+	primary key(id),
+	key(name)
+) engine=innodb default charset=latin1;
+
+-- table correlating signatures to signed headers
+create table if not exists signed_headers (
+	id int unsigned not null auto_increment,
+	signature int unsigned not null,
+	header int unsigned not null,
+	changed tinyint unsigned not null,
+
+	primary key(id),
+	foreign key(signature) references signatures(id) on delete cascade,
+	foreign key(header) references headernames(id) on delete cascade
+) engine=innodb default charset=latin1;

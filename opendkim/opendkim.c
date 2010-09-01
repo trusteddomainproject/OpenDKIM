@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.187 2010/09/01 05:34:42 cm-msk Exp $
+**  $Id: opendkim.c,v 1.188 2010/09/01 22:51:48 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.187 2010/09/01 05:34:42 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.188 2010/09/01 22:51:48 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -114,19 +114,6 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.187 2010/09/01 05:34:42 c
 #endif /* ! MIN */
 
 /*
-**  HEADER -- a handle referring to a header
-*/
-
-typedef struct Header * Header;
-struct Header
-{
-	char *		hdr_hdr;
-	char *		hdr_val;
-	struct Header *	hdr_next;
-	struct Header *	hdr_prev;
-};
-
-/*
 **  ADDRLIST -- address list
 */
 
@@ -199,6 +186,9 @@ struct dkimf_config
 #ifdef USE_LDAP
 	_Bool		conf_ldap_usetls;	/* LDAP TLS */
 #endif /* USE_LDAP */
+#ifdef _FFR_STATS
+	_Bool		conf_anonstats;		/* anonymize stats? */
+#endif /* _FFR_STATS */
 	unsigned int	conf_mode;		/* operating mode */
 	unsigned int	conf_refcnt;		/* reference count */
 	unsigned int	conf_dnstimeout;	/* DNS timeout */
@@ -263,7 +253,9 @@ struct dkimf_config
 #endif /* _FFR_SELECTOR_HEADER */
 	char *		conf_diagdir;		/* diagnostics directory */
 #ifdef _FFR_STATS
-	char *		conf_statspath;		/* path for stats DB */
+	char *		conf_statspath;		/* path for stats file */
+	char *		conf_reporthost;	/* reporter name */
+	char *		conf_reportprefix;	/* stats data prefix */
 #endif /* _FFR_STATS */
 #ifdef _FFR_DKIM_REPUTATION
 	char *		conf_reproot;		/* root of reputation queries */
@@ -678,6 +670,7 @@ DKIMF_DB ridb;					/* report intervals DB */
 pthread_mutex_t ridb_lock;			/* ridb lock */
 #endif /* _FFR_REPORT_INTERVALS */
 char reportaddr[MAXADDRESS + 1];		/* reporting address */
+char myhostname[DKIM_MAXHOSTNAMELEN + 1];	/* hostname */
 pthread_mutex_t conf_lock;			/* config lock */
 pthread_mutex_t count_lock;			/* counter lock */
 pthread_mutex_t popen_lock;			/* popen() lock */
@@ -4215,9 +4208,6 @@ dkimf_reportaddr(struct dkimf_config *conf)
 	{
 		uid_t uid;
 		struct passwd *pw;
-		char hostname[DKIM_MAXHOSTNAMELEN + 1];
-
-		(void) gethostname(hostname, sizeof hostname);
 
 		uid = geteuid();
 
@@ -4226,12 +4216,12 @@ dkimf_reportaddr(struct dkimf_config *conf)
 		if (pw == NULL)
 		{
 			snprintf(reportaddr, sizeof reportaddr,
-			         "%u@%s", uid, hostname);
+			         "%u@%s", uid, myhostname);
 		}
 		else
 		{
 			snprintf(reportaddr, sizeof reportaddr,
-			         "%s@%s", pw->pw_name, hostname);
+			         "%s@%s", pw->pw_name, myhostname);
 		}
 	}
 }
@@ -4556,6 +4546,10 @@ dkimf_config_new(void)
 #endif /* _FFR_DKIM_REPUTATION */
 	new->conf_safekeys = TRUE;
 	new->conf_adspaction = SMFIS_CONTINUE;
+#ifdef _FFR_STATS
+	new->conf_reporthost = myhostname;
+	new->conf_anonstats = TRUE;
+#endif /* _FFR_STATS */
 
 	memcpy(&new->conf_handling, &defaults, sizeof new->conf_handling);
 
@@ -5050,6 +5044,14 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 #ifdef _FFR_STATS
 		(void) config_get(data, "Statistics", &conf->conf_statspath,
 		                  sizeof conf->conf_statspath);
+
+		(void) config_get(data, "StatisticsPrefix",
+		                  &conf->conf_reportprefix,
+		                  sizeof conf->conf_reportprefix);
+
+		(void) config_get(data, "StatisticsName", &str, sizeof str);
+		if (str != NULL)
+			conf->conf_reporthost = str;
 #endif /* _FFR_STATS */
 
 		if (!conf->conf_subdomains)
@@ -5114,6 +5116,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "AllowSHA1Only",
 		                  &conf->conf_allowsha1only,
 		                  sizeof conf->conf_allowsha1only);
+
+#ifdef _FFR_STATS
+		(void) config_get(data, "AnonymousStatistics",
+		                  &conf->conf_anonstats,
+		                  sizeof conf->conf_anonstats);
+#endif /* _FFR_STATS */
 
 #ifdef USE_LDAP
 		(void) config_get(data, "LDAPUseTLS",
@@ -11087,7 +11095,7 @@ mlfi_eom(SMFICTX *ctx)
 					pstatus = DKIM_STAT_OK;
 					policydone = TRUE;
 					localadsp = TRUE;
-					localresult = DKIM_PRESULT_AUTHOR;
+					localresult = DKIM_PRESULT_FOUND;
 				}
 			}
 
@@ -11161,7 +11169,7 @@ mlfi_eom(SMFICTX *ctx)
 
 				if ((dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE ||
 				     dfc->mctx_pcode == DKIM_POLICY_ALL) &&
-				    dfc->mctx_presult == DKIM_PRESULT_AUTHOR)
+				    dfc->mctx_presult == DKIM_PRESULT_FOUND)
 				{
 					dfc->mctx_susp = TRUE;
 					dfc->mctx_addheader = TRUE;
@@ -11301,9 +11309,14 @@ mlfi_eom(SMFICTX *ctx)
 
 			if (dkimf_stats_record(conf->conf_statspath,
 			                       dfc->mctx_jobid,
+			                       conf->conf_reporthost,
+			                       conf->conf_reportprefix,
+			                       dfc->mctx_hqhead,
 			                       dfc->mctx_dkimv,
 			                       dfc->mctx_pcode,
-			                       fromlist, rhcnt,
+			                       fromlist,
+			                       conf->conf_anonstats,
+			                       rhcnt,
 			                       (struct sockaddr *) &cc->cctx_ip) != 0)
 			{
 				if (dolog)
@@ -12597,6 +12610,9 @@ main(int argc, char **argv)
 	no_i_whine = TRUE;
 	quarantine = FALSE;
 	conffile = NULL;
+
+	memset(myhostname, '\0', sizeof myhostname);
+	(void) gethostname(myhostname, sizeof myhostname);
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 

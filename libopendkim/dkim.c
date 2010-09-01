@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.61 2010/08/30 22:01:56 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.62 2010/09/01 22:51:48 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4868,7 +4868,7 @@ dkim_policy(DKIM *dkim, dkim_policy_t *pcode, DKIM_PSTATE *pstate)
 	}
 
 	if (qstatus == NOERROR)
-		dkim->dkim_presult = DKIM_PRESULT_AUTHOR;
+		dkim->dkim_presult = DKIM_PRESULT_FOUND;
 	if (pcode != NULL)
 		*pcode = policy;
 

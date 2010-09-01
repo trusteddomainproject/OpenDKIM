@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.166 2010/09/01 05:34:42 cm-msk Exp $
+# $Id: configure.ac,v 1.167 2010/09/01 22:51:47 cm-msk Exp $
 
 #
 # Setup
@@ -1192,7 +1192,6 @@ fi
 AM_CONDITIONAL(USE_DB_OPENDKIM,
                test x"$enable_bodylength_db" = x"yes" -o \
 	            x"$enable_popauth" = x"yes" -o \
-	            x"$enable_stats" = x"yes" -o \
 	            x"$enable_report_intervals" = x"yes" -o \
                     x"$bdbrequested" = x"yes")
 AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")
@@ -1496,5 +1495,4 @@ AC_OUTPUT([	Makefile
 			opendkim/opendkim.conf.simple-verify
 		opendkim/tests/Makefile
 		stats/Makefile stats/opendkim-importstats.8
-			stats/opendkim-importstats
 ])
