@@ -1,5 +1,5 @@
 #!/bin/sh
-./$1
+$1
 x=$?
 myname=`basename $1`
 if test x"$OSTYPE" = x"OpenBSD"
