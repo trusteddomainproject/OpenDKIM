@@ -553,6 +553,12 @@ in the message and is not signed, the filter will treat even an otherwise
 valid signature as invalid.  The default is an empty list.
 
 .TP
+.I NoHeaderB (Boolean)
+If set, this feature suppresses the use of "header.b" tags in added
+Authentication-Results header fields.  The default is "false", which means
+those tags will be applied.
+
+.TP
 .I OmitHeaders (dataset)
 Specifies a set of header fields that should be omitted when generating
 signatures.  If an entry in the list names any header that is mandated
@@ -920,6 +926,15 @@ and finally
 In any case, only the first match is applied, unless
 .I MultipleSignatures
 is enabled in which case all matches are applied.
+
+.TP
+.I SingleAuthResult (Boolean)
+If set, this feature ensures only a single Authentication-Results header field
+will be added to a message.  In this case, the result of DKIM validation
+will be the only one present, unless it failed and DomainKeys succeeded, in
+which case only the DomainKeys result will be applied.  The default is
+to show both results in different header fields.
+@DOMAINKEYS_MANNOTICE@
 
 .TP
 .I Socket (string)

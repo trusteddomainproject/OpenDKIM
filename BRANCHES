@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.41 2010/08/30 22:01:56 cm-msk Exp $
+$Id: BRANCHES,v 1.42 2010/09/01 05:34:42 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -17,10 +17,6 @@ Experimental Branches (branch name contains owner)
 
 br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
-
-br-msk-single-auth-result
-		Feature request #SF2981598: Add "SingleAuthResult" and
-		"NoHeaderB" settings.
 
 br-msk-stats-update
 		Update to statistics code to support required reporting
@@ -76,6 +72,10 @@ br-msk-reduce-symbols
 		Build automation to limit exported library symbols 
 
 br-msk-resign	_FFR_RESIGN (binding of handles for message resigning)
+
+br-msk-single-auth-result
+		Feature request #SF2981598: Add "SingleAuthResult" and
+		"NoHeaderB" settings.
 
 br-msk-stats-redux
 		Overhaul of statistics collection and reporting code.

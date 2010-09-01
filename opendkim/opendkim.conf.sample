@@ -1,7 +1,7 @@
 ##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
-## $Id: opendkim.conf.sample,v 1.10 2010/07/23 17:52:55 cm-msk Exp $
+## $Id: opendkim.conf.sample,v 1.11 2010/09/01 05:34:42 cm-msk Exp $
 ##
 
 ##
@@ -350,6 +350,14 @@ KeyFile			/var/db/dkim/example.private
 
 # MustBeSigned		header1,header2,...
 
+##  NoHeaderB { yes | no }
+##  	default "no"
+##
+##  Suppresses addition of "header.b" tags on Authentication-Results
+##  header fields.
+
+# NoHeaderB		no
+
 ##  OmitHeaders dataset
 ##  	default (none)
 ##
@@ -561,6 +569,16 @@ Selector		my-selector-name
 ##  in multiple signatures being applied.
 
 # SigningTable		filename
+
+##  SingleAuthResult { yes | no}
+##  	default "no"
+##
+##  When DomainKeys verification is enabled, multiple Authentication-Results
+##  will be added, one for DK and one for DKIM.  With this enabled, only
+##  a DKIM result will be reported unless DKIM failed but DK passed, in which
+##  case only a DK result will be reported.
+
+# SingleAuthResult	no
 
 ##  Socket socketspec
 ##

@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.202 2010/09/01 04:09:45 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.203 2010/09/01 05:34:42 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -8,6 +8,9 @@ release, and a summary of the changes in that release.
 2.2.0		2010/10/03
 	Feature request #SF2964366: Allow arbitrary data set operations
 		from inside Lua script hooks.
+	Feature request #SF2981598: Add "NoHeaderB" and "SingleAuthResult"
+		settings so that only one Authentication-Results header field
+		is added, and reduce its variability.  Requested by Gary Mills.
 	Feature request #SF3013084: Add "DomainKeysCompat" setting.
 	Feature request #SF3017358: Allow a token in the KeyTable that gets
 		replaced with the sender's domain name.
