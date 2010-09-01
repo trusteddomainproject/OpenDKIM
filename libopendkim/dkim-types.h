@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.18 2010/08/30 22:01:56 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.19 2010/09/01 17:39:53 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -44,8 +44,10 @@ static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.18 2010/08/30 22:01:5
 # include <db.h>
 #endif /* QUERY_CACHE */
 
+#ifdef USE_UNBOUND
 /* libunbound includes */
 # include <unbound.h>
+#endif /* USE_UNBOUND */
 
 /* libopendkim includes */
 #include "dkim.h"
