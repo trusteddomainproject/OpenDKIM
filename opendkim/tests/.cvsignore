@@ -6,6 +6,10 @@
 *.pc
 *.gcda
 *.gcno
+*.gmon
+*.prof
+*.info
+*.gcov
 t-*[0-9]
 t-verifyperf
 t-signperf
@@ -13,6 +17,7 @@ t-cleanup
 t-setup
 .deps/
 .libs/
+.info-files
 autom4te.cache/
 autoscan-*.log
 build-config.h.in
@@ -22,6 +27,8 @@ config.sub
 configure
 configure.scan
 aclocal.m4
+description.html
+description.txt
 depcomp
 install-sh
 missing
@@ -33,12 +40,13 @@ ltmain.sh
 libtool
 Makefile.in
 Makefile
+symbols.map
+.libs
 .deps
+core
+*.core
 opendkim-testadsp
 opendkim
 opendkim-stats
 opendkim-testkey
-.libs
-core
-*.core
-opendkim*.[58]                                
+opendkim*.[58]   

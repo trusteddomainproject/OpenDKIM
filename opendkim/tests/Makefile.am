@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.14 2010/07/22 23:38:37 cm-msk Exp $
+# $Id: Makefile.am,v 1.15 2010/09/02 06:56:22 grooverdan Exp $
 
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \
@@ -28,3 +28,80 @@ EXTRA_DIST = \
 	t-verify-unspec t-verify-unspec.conf t-verify-unspec.lua \
 	t-dontsign t-dontsign.conf t-dontsign.lua \
 	testkey.private pubkeys
+
+
+MOSTLYCLEANFILES=
+
+if GCOV_ONLY
+MOSTLYCLEANFILES+=*.gcov *.gcno *.gcda *.bb *.bbg *.da .gcov-files
+#PROF_SRCS= opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-lua.c opendkim-lua.h config.c
+#TESTS_ENVIRONMENT=./gcov-helper.sh
+
+#.gcov-files: check-TESTS
+#	for i in $(PROF_SRCS); do \
+#		x=`echo $$i | sed 's/\..*//g'`; \
+#		if test -f ../libopendkim_la-$$x.gcno -a \
+#		        -f ../libopendkim_la-$$x.gcda; then \
+#			mv ../libopendkim_la-$$x.gcno ../$$x.gcno; \
+#			mv ../libopendkim_la-$$x.gcda ../$$x.gcda; \
+#			gcov -o .. $$i; \
+#		fi; \
+#		if test -f ../libopendkim_la-$$x.bb -a \
+#		        -f ../libopendkim_la-$$x.bbg -a \
+#		        -f ../libopendkim_la-$$x.da; then \
+#			mv ../libopendkim_la-$$x.bb ../$$x.bb; \
+#			mv ../libopendkim_la-$$x.bbg ../$$x.bbg; \
+#			mv ../libopendkim_la-$$x.da ../$$x.da; \
+#			gcov -o .. $$i; \
+#		fi; \
+#	done
+#	touch $@
+#
+#check-local: .gcov-files
+endif
+
+if LCOV
+dist_doc_DATA=lcov
+MAINTAINERCLEANFILES=description.txt description.html
+MOSTLYCLEANFILES+=*.info .prepare-lcov .info-files *.gcno *.gcda
+TESTS_ENVIRONMENT=./lcov-helper.sh
+
+#.info-files: check-TESTS 
+#	for i in $(TESTS); do \
+#		lcov --capture --directory $(top_builddir) --output-file $$i.info \
+#			--test-name $$i -q; \
+#	done
+#	touch .info-files
+
+check-local: check-TESTS description.html
+	genhtml --output-directory lcov *.info --show-details --highlight \
+		--frames --legend  --title @PACKAGE@ \
+		--description-file description.html
+
+description.txt: $(check_SCRIPTS)
+	rm -f $@
+	for test in $? ; do \
+		testname=$${test/t-}; \
+		testname=$${testname//-/_}; \
+		grep ^# $$test | tail -n 1 | \
+			sed -e "s/^#\(.*\)/$${testname}\n\t\1\n/g" >> $@; \
+	done
+ 
+description.html: description.txt
+	gendesc --output $@ $<
+
+maintainer-clean-local:
+	-rm -rf lcov/[^C]*
+
+.PHONY: maintainer-clean-local check-local
+endif
+
+if GPROF
+MOSTLYCLEANFILES+=*.prof gmon.out *.gmon
+
+check-local: check-TESTS
+	for i in $(check_PROGRAMS); do \
+		./$$i; \
+		gprof $$i > $$i.prof; \
+	done
+endif
