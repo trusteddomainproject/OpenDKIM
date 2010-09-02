@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.c,v 1.14 2010/06/04 16:59:14 cm-msk Exp $
+**  $Id: test.c,v 1.15 2010/09/02 04:04:20 cm-msk Exp $
 */
 
 #ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.14 2010/06/04 16:59:14 cm-msk Exp $";
+static char test_c_id[] = "@(#)$Id: test.c,v 1.15 2010/09/02 04:04:20 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -117,6 +117,27 @@ dkimf_test_getpriv(void *ctx)
 	tc = ctx;
 
 	return tc->tc_priv;
+}
+
+/*
+**  DKIMF_TEST_PROGRESS -- send progress message
+**
+**  Parameters:
+**  	ctx -- context pointer
+**
+**  Return value:
+**  	MI_SUCCESS
+*/
+
+int
+dkimf_test_progress(void *ctx)
+{
+	assert(ctx != NULL);
+
+	if (tverbose > 1)
+		fprintf(stdout, "### PROGRESS\n");
+
+	return MI_SUCCESS;
 }
 
 /*

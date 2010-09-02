@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: test.h,v 1.7 2010/01/14 05:59:06 cm-msk Exp $
+**  $Id: test.h,v 1.8 2010/09/02 04:04:20 cm-msk Exp $
 */
 
 #ifndef _TEST_H_
 #define _TEST_H_
 
 #ifndef lint
-static char test_h_id[] = "@(#)$Id: test.h,v 1.7 2010/01/14 05:59:06 cm-msk Exp $";
+static char test_h_id[] = "@(#)$Id: test.h,v 1.8 2010/09/02 04:04:20 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -34,6 +34,7 @@ extern int dkimf_test_delrcpt __P((void *, char *));
 extern void *dkimf_test_getpriv __P((void *));
 extern char *dkimf_test_getsymval __P((void *, char *));
 extern int dkimf_test_insheader __P((void *, int, char *, char *));
+extern int dkimf_test_progress __P((void *));
 extern int dkimf_test_quarantine __P((void *, char *));
 extern int dkimf_test_setpriv __P((void *, void *));
 extern int dkimf_test_setreply __P((void *, char *, char *, char *));

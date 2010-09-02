@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.188 2010/09/01 22:51:48 cm-msk Exp $
+**  $Id: opendkim.c,v 1.189 2010/09/02 04:04:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.188 2010/09/01 22:51:48 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.189 2010/09/02 04:04:39 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6857,7 +6857,10 @@ dkimf_sendprogress(const void *ctx)
 {
 	assert(ctx != NULL);
 
-	(void) smfi_progress((SMFICTX *) ctx);
+	if (testmode)
+		(void) dkimf_test_progress((SMFICTX *) ctx);
+	else
+		(void) smfi_progress((SMFICTX *) ctx);
 }
 
 /*
