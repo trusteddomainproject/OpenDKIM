@@ -1,11 +1,11 @@
-# $Id: Makefile.am,v 1.4 2010/09/01 22:51:48 cm-msk Exp $
+# $Id: Makefile.am,v 1.5 2010/09/02 20:58:23 cm-msk Exp $
 #
 
 if USE_ODBX
 
 sbin_PROGRAMS = opendkim-importstats
 
-opendkim_importstats_SOURCES = opendkim-importstats.c opendkim-importstats.h
+opendkim_importstats_SOURCES = opendkim-importstats.c
 opendkim_importstats_CPPFLAGS = $(LIBODBX_CPPFLAGS)
 opendkim_importstats_CFLAGS = $(LIBODBX_CFLAGS) $(COV_CFLAGS)
 opendkim_importstats_LDFLAGS = $(COV_LDFLAGS)
