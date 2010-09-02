@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.2 2010/08/30 22:01:56 cm-msk Exp $";
+static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.3 2010/09/02 03:09:59 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -410,7 +410,7 @@ dkimf_ub_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 	ubdata = (struct dkimf_unbound_cb_data *) qh;
 
 	status = dkimf_unbound_wait(ub, ubdata, to);
-	if (status == 0)
+	if (status == 1 || status == -1)
 	{
 		if (dnssec != NULL)
 			*dnssec = ubdata->ubd_result;
@@ -420,7 +420,12 @@ dkimf_ub_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 			*error = ubdata->ubd_rcode;
 	}
 
-	return status;
+	if (status == 0)
+		return DKIM_DNS_NOREPLY;
+	else if (status == 1)
+		return DKIM_DNS_SUCCESS;
+	else
+		return DKIM_DNS_ERROR;
 }
 
 /* =========================== PUBLIC FUNCTIONS =========================== */
@@ -652,7 +657,12 @@ dkimf_ar_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 	if (error != NULL)
 		*error = status;
 
-	return status;
+	if (status == AR_STAT_SUCCESS)
+		return DKIM_DNS_SUCCESS;
+	else if (status == AR_STAT_NOREPLY)
+		return DKIM_DNS_NOREPLY;
+	else
+		return DKIM_DNS_ERROR;
 }
 
 /* =========================== PUBLIC FUNCTIONS =========================== */
