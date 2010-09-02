@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.16 2010/09/02 21:37:54 cm-msk Exp $
+# $Id: Makefile.am,v 1.17 2010/09/02 22:30:19 grooverdan Exp $
 
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \
@@ -61,7 +61,7 @@ MOSTLYCLEANFILES+=*.gcov *.gcno *.gcda *.bb *.bbg *.da .gcov-files
 endif
 
 if LCOV
-#dist_doc_DATA=lcov
+dist_doc_DATA=lcov
 MAINTAINERCLEANFILES=description.txt description.html
 MOSTLYCLEANFILES+=*.info .prepare-lcov .info-files *.gcno *.gcda
 TESTS_ENVIRONMENT=./lcov-helper.sh
