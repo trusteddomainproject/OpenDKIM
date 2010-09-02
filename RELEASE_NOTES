@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.205 2010/09/01 23:10:54 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.206 2010/09/02 04:06:45 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -29,7 +29,6 @@ release, and a summary of the changes in that release.
 	Feature request #SF3056571: Extend signer selection in the SigningTable
 		to include a token that will be replaced by the From:
 		domain.  Requested by Richard Rognlie.
-	Fix "LocalADSP", which was not working at all.
 	Fix bug #SF3004995: Don't apply "SenderHeaders" to the library
 		as that impacts how ADSP works.
 	Fix bug #SF3025856: Fix "AllowSHA1Only", which was not working at all.
@@ -37,6 +36,9 @@ release, and a summary of the changes in that release.
 		reporting requirements.
 	Fix bug #SF3051536: Allow disabling of reputation queries.  Requested
 		by Andreas Schulze.
+	Fix loop boundary check in dkimf_db_close().  Noted by Richard
+		Rognlie.
+	Fix "LocalADSP", which was not working at all.
 	Fix some Lua test mode logic and a build issue that prevented
 		"ScreenPolicyScript" from working.
 	Ignore "Domain" and "Selector" settings if "KeyTable" is set.

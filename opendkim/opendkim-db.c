@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.93 2010/09/01 23:10:54 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.94 2010/09/02 04:06:20 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.93 2010/09/01 23:10:54 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.94 2010/09/02 04:06:20 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3025,7 +3025,7 @@ dkimf_db_close(DKIMF_DB db)
 
 		if ((db->db_iflags & DKIMF_DB_IFLAG_FREEARRAY) != 0)
 		{
-			for (c = 0; db->db_array != NULL; c++)
+			for (c = 0; db->db_array[c] != NULL; c++)
 				free(db->db_array[c]);
 		}
 		free(db->db_array);
