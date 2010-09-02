@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.167 2010/09/01 22:51:47 cm-msk Exp $
+# $Id: configure.ac,v 1.168 2010/09/02 05:01:31 cm-msk Exp $
 
 #
 # Setup
@@ -368,7 +368,6 @@ AM_CONDITIONAL([BUILD_FILTER], [test x"$enable_filter" != x"no"])
 #
 LIB_FEATURE([query_cache], [local key/policy caching])
 
-LIB_FFR_FEATURE([dnsupgrade], [upgrade DNS to TCP when needed])
 LIB_FFR_FEATURE([parsetime], [parse From: headers for sending times])
 
 #

@@ -59,10 +59,6 @@ dkim_reputation	Add experimental support for querying an open DKIM reputation
 		service.  The service's URL is http://www.dkim-reputation.org.
 		(opendkim, libopendkim)
 
-dnsupgrade	Maintain two libar instances, the second in TCP mode, in case
-		any UDP queries come back truncated.  Not meaningful unless
-		libar is in use.  (libopendkim)
-
 identity_header	Enable selection of an identity for signing based on the
 		value found in a particular header. (opendkim)
 
@@ -122,4 +118,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.20 $, Last updated $Date: 2010/08/30 19:21:52 $
+$Revision: 1.21 $, Last updated $Date: 2010/09/02 05:01:31 $

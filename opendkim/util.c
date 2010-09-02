@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.41 2010/08/30 22:01:56 cm-msk Exp $
+**  $Id: util.c,v 1.42 2010/09/02 05:01:31 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.41 2010/08/30 22:01:56 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.42 2010/09/02 05:01:31 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -122,10 +122,6 @@ static char *optlist[] =
 #if _FFR_DKIM_REPUTATION
 	"_FFR_DKIM_REPUTATION",
 #endif /* _FFR_DKIM_REPUTATION */
-
-#if _FFR_DNSUPGRADE
-	"_FFR_DNSUPGRADE",
-#endif /* _FFR_DNSUPGRADE */
 
 #if _FFR_IDENTITY_HEADER
 	"_FFR_IDENTITY_HEADER",
