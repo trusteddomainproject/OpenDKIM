@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.189 2010/09/02 04:04:39 cm-msk Exp $
+**  $Id: opendkim.c,v 1.190 2010/09/02 04:22:15 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.189 2010/09/02 04:04:39 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.190 2010/09/02 04:22:15 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4585,8 +4585,6 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_domlist != NULL)
 		free(conf->conf_domlist);
 
-	if (conf->conf_omithdrs != NULL)
-		free(conf->conf_omithdrs);
 	if (conf->conf_omithdrdb != NULL)
 		dkimf_db_close(conf->conf_omithdrdb);
 
@@ -4595,19 +4593,12 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_thirdpartydb != NULL)
 		dkimf_db_close(conf->conf_thirdpartydb);
 
-	if (conf->conf_signhdrs != NULL)
-		free(conf->conf_signhdrs);
 	if (conf->conf_signhdrsdb != NULL)
 		dkimf_db_close(conf->conf_signhdrsdb);
 
-	if (conf->conf_alwayshdrs != NULL)
-		free(conf->conf_alwayshdrs);
 	if (conf->conf_alwayshdrsdb != NULL)
 		dkimf_db_close(conf->conf_alwayshdrsdb);
 
-	if (conf->conf_senderhdrs != NULL &&
-	    conf->conf_senderhdrs != (char **) dkim_default_senderhdrs)
-		free(conf->conf_senderhdrs);
 	if (conf->conf_senderhdrsdb != NULL)
 		dkimf_db_close(conf->conf_senderhdrsdb);
 
@@ -4620,16 +4611,12 @@ dkimf_config_free(struct dkimf_config *conf)
 
 	if (conf->conf_macrolist != NULL)
 		free(conf->conf_macrolist);
-	if (conf->conf_macros != NULL)
-		free(conf->conf_macros);
 	if (conf->conf_macrosdb != NULL)
 		dkimf_db_close(conf->conf_macrosdb);
 
 	if (conf->conf_values != NULL)
 		free(conf->conf_values);
 
-	if (conf->conf_mbs != NULL)
-		free(conf->conf_mbs);
 	if (conf->conf_mbsdb != NULL)
 		dkimf_db_close(conf->conf_mbsdb);
 
@@ -4662,8 +4649,6 @@ dkimf_config_free(struct dkimf_config *conf)
 #endif /* _FFR_REPLACE_RULES */
 
 #ifdef _FFR_VBR
-	if (conf->conf_vbr_trusted != NULL)
-		free(conf->conf_vbr_trusted);
 	if (conf->conf_vbr_trusteddb != NULL)
 		dkimf_db_close(conf->conf_vbr_trusteddb);
 #endif /* _FFR_VBR */

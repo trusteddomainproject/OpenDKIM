@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.206 2010/09/02 04:06:45 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.207 2010/09/02 04:22:15 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -41,6 +41,8 @@ release, and a summary of the changes in that release.
 	Fix "LocalADSP", which was not working at all.
 	Fix some Lua test mode logic and a build issue that prevented
 		"ScreenPolicyScript" from working.
+	Fix numerous possible double-free() incidents in dkimf_config_free().
+		Reported by Richard Rognlie.
 	Ignore "Domain" and "Selector" settings if "KeyTable" is set.
 		Problem noted by Rolf Sonneveld.
 	Add "On-PolicyError" to configuration tables.  Reported by Richard
