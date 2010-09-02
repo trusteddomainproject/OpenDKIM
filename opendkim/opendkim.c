@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.190 2010/09/02 04:22:15 cm-msk Exp $
+**  $Id: opendkim.c,v 1.191 2010/09/02 04:27:15 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.190 2010/09/02 04:22:15 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.191 2010/09/02 04:27:15 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6418,15 +6418,18 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	(void) dkim_set_dns_callback(lib, dkimf_sendprogress, CBINTERVAL);
 
 #ifdef USE_UNBOUND
-	if (conf->conf_trustanchorpath != NULL)
+	if (unbound != NULL)
 	{
-		status = dkimf_unbound_add_trustanchor(unbound,
-		                                       conf->conf_trustanchorpath);
-		if (status != DKIM_STAT_OK)
-			return FALSE;
-	}
+		if (conf->conf_trustanchorpath != NULL)
+		{
+			status = dkimf_unbound_add_trustanchor(unbound,
+			                                       conf->conf_trustanchorpath);
+			if (status != DKIM_STAT_OK)
+				return FALSE;
+		}
 
-	(void) dkimf_unbound_setup(lib, unbound);
+		(void) dkimf_unbound_setup(lib, unbound);
+	}
 #endif /* USE_UNBOUND */
 
 #ifdef USE_ARLIB
