@@ -1,4 +1,6 @@
--- $Id: mkdb.mysql,v 1.5 2010/09/01 22:51:48 cm-msk Exp $
+-- $Id: mkdb.mysql,v 1.6 2010/09/02 05:10:57 cm-msk Exp $
+
+-- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 
 -- MySQL command sequence to create a database to accumulate OpenDKIM
 -- statistics reports
