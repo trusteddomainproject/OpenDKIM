@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.17 2010/09/02 22:30:19 grooverdan Exp $
+# $Id: Makefile.am,v 1.18 2010/09/03 07:38:49 cm-msk Exp $
 
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \
@@ -23,6 +23,7 @@ EXTRA_DIST = \
 		t-sign-rs-tables-token.keys t-sign-rs-tables-token.lua \
 	t-sign-ss t-sign-ss.conf t-sign-ss.lua \
 	t-sign-ss-all t-sign-ss-all.conf t-sign-ss-all.lua \
+	t-sign-ss-macro t-sign-ss-macro.conf t-sign-ss-macro.lua \
 	t-verify-revoked t-verify-revoked.conf t-verify-revoked.lua \
 	t-verify-unsigned t-verify-unsigned.conf t-verify-unsigned.lua \
 	t-verify-unspec t-verify-unspec.conf t-verify-unspec.lua \
