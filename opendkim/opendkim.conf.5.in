@@ -477,6 +477,8 @@ request those macros that are of interest.  The latter is a feature negotiated
 at the time the filter receives a connection from the MTA and its availability
 depends upon the version of milter used to compile the filter and the version
 of the MTA making the connection.
+
+This data set must be of type "file" or "csl".
 .TP
 .I MaximumHeaders (integer)
 Defines the maximum number of bytes the header block of a message may

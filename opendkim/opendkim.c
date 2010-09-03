@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.191 2010/09/02 04:27:15 cm-msk Exp $
+**  $Id: opendkim.c,v 1.192 2010/09/03 07:14:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.191 2010/09/02 04:27:15 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.192 2010/09/03 07:14:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3000,7 +3000,7 @@ dkimf_xs_getpolicy(lua_State *l)
 
 	if (ctx == NULL)
 	{
-		lua_pushnil(l);
+		lua_pushlightuserdata(l, NULL);
 		return 1;
 	}
 
@@ -5961,6 +5961,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	if (str != NULL)
 	{
 		int status;
+		int dbtype;
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_macrosdb, str,
@@ -5972,6 +5973,16 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
 			         str, dberr);
+			return -1;
+		}
+
+		dbtype = dkimf_db_type(conf->conf_macrosdb);
+		if (dbtype != DKIMF_DB_TYPE_FILE &&
+		    dbtype != DKIMF_DB_TYPE_CSL)
+		{
+			snprintf(err, errlen,
+			         "%s: invalid data set type for MacroList",
+			         str);
 			return -1;
 		}
 
@@ -9301,7 +9312,8 @@ mlfi_eoh(SMFICTX *ctx)
 			dbd.dbdata_buflen = strlen(val);
 			dbd.dbdata_flags = 0;
 
-			status = dkimf_db_get(conf->conf_macrosdb, name, 0,
+			status = dkimf_db_get(conf->conf_macrosdb,
+			                      conf->conf_macros[n], 0,
 			                      &dbd, 1, &originok);
 			if (status != 0 && dolog)
 				dkimf_db_error(conf->conf_macrosdb, name);

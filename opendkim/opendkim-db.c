@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.94 2010/09/02 04:06:20 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.95 2010/09/03 07:14:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.94 2010/09/02 04:06:20 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.95 2010/09/03 07:14:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2258,16 +2258,12 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 					matched = TRUE;
 			}
 
-			if (matched)
-			{
-				if ((db->db_flags & DKIMF_DB_FLAG_MATCHBOTH) == 0 ||
-				    list->db_list_value == NULL)
-					break;
-			}
+			if (!matched)
+				continue;
 
 			if ((db->db_flags & DKIMF_DB_FLAG_MATCHBOTH) == 0 ||
-			    reqnum == 0)
-				continue;
+			    reqnum == 0 || list->db_list_value == NULL)
+				break;
 
 			matched = FALSE;
 			assert(list->db_list_value != NULL);

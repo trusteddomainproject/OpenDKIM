@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.208 2010/09/02 21:40:12 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.209 2010/09/03 07:14:42 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -38,8 +38,10 @@ release, and a summary of the changes in that release.
 		by Andreas Schulze.
 	Fix bug #SF3058204: Fix numerous possible double-free() incidents in
 		dkimf_config_free().  Reported by Richard Rognlie.
-	Fix loop boundary check in dkimf_db_close().  Noted by Richard
+	Fix loop boundary check in dkimf_db_close().  Reported by Richard
 		Rognlie.
+	Fix assertion failure in dkimf_db_get() when used with a "match both"
+		operation.  Reported by Richard Rognlie.
 	Fix "LocalADSP", which was not working at all.
 	Fix some Lua test mode logic and a build issue that prevented
 		"ScreenPolicyScript" from working.
