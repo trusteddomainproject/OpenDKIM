@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.2 2010/09/01 22:51:48 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.3 2010/09/03 22:49:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.2 2010/09/01 22:51:48 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.3 2010/09/03 22:49:37 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -30,7 +30,7 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.2 201
 #endif /* USE_ODBX */
 
 /* macros, definitions */
-#define	CMDLINEOPTS	"d:h:mP:p:s:u:"
+#define	CMDLINEOPTS	"d:h:mP:p:Ss:u:"
 
 #define	DEFDBHOST	"localhost"
 #define	DEFDBNAME	"opendkim"
@@ -257,6 +257,7 @@ usage(void)
 	                "\t-m         \tinput is in email format\n"
 	                "\t-P dbport  \tdatabase port\n"
 	                "\t-p dbpasswd\tdatabase password\n"
+	                "\t-S         \tdon't skip duplicate messages\n",
 	                "\t-s dbscheme\tdatabase scheme (default: \"%s\")\n"
 	                "\t-u dbuser  \tdatabase user (default: \"%s\")\n",
 	        progname, progname, DEFDBNAME, DEFDBHOST, DEFDBSCHEME,
@@ -284,6 +285,7 @@ main(int argc, char **argv)
 	int line;
 	int err;
 	int mail = 0;
+	int dontskip = 0;
 	int skipsigs = 0;
 	int repid;
 	int domid;
@@ -327,6 +329,10 @@ main(int argc, char **argv)
 
 		  case 'p':
 			dbpassword = optarg;
+			break;
+
+		  case 'S':
+			dontskip = 1;
 			break;
 
 		  case 's':
@@ -590,10 +596,14 @@ main(int argc, char **argv)
 			}
 			else if (msgid != 0)
 			{
-				fprintf(stderr,
-				        "%s: skipping duplicate message at line %d\n",
-				        progname, line);
-				skipsigs = 1;
+				if (dontskip == 0)
+				{
+					fprintf(stderr,
+					        "%s: skipping duplicate message at line %d\n",
+					        progname, line);
+					skipsigs = 1;
+				}
+
 				continue;
 			}
 
