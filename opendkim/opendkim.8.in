@@ -381,14 +381,14 @@ command line switch or the
 configuration file setting, and (2) (a) the client connecting to the MTA must
 have authenticated, or (b) the client connecting to the MTA must be listed in
 the file referenced by the
-.I -i
-command line switch (or be in the default list for that option), or (c)
+.I InternalHosts
+configuration file setting (or be in the default list for that option), or (c)
 the client must be connected to a daemon port named by the
-.I -m
-command line switch, or (d) the MTA must have set one or more macros
+.I MTAs
+configuration file setting, or (d) the MTA must have set one or more macros
 matching the criteria set by the
-.I -M
-command line switch.
+.I MacroList
+configuration file setting.
 
 For (a) above, the test is whether or not the MTA macro "{auth_type}" is set
 and contains any non-empty value.  This means the MTA must pass the value of
