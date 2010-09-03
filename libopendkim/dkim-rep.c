@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.10 2010/08/30 22:01:56 cm-msk Exp $";
+static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.11 2010/09/03 08:00:26 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -215,9 +215,7 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 	anslen = sizeof ansbuf;
 
 	status = lib->dkiml_dns_start(lib->dkiml_dns_service, T_TXT, query,
-	                              dkim->dkim_timeout == 0 ? NULL
-	                                                      : &timeout,
-	                              ansbuf, &anslen, &q);
+	                              ansbuf, anslen, &q);
 
 	if (status != 0)
 	{
@@ -228,7 +226,7 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 	if (lib->dkiml_dns_callback == NULL)
 	{
 		status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service, q,
-		                                  NULL, &anslen, NULL);
+		                                  NULL, &anslen, NULL, NULL);
 	}
 	else
 	{
@@ -239,7 +237,7 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 
 			status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
 			                                  q, &timeout,
-			                                  &anslen, NULL);
+			                                  &anslen, NULL, NULL);
 
 			if (status != 1)
 				break;
