@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.23 2010/07/22 22:46:57 cm-msk Exp $
+**  $Id: miltertest.c,v 1.24 2010/09/03 22:38:30 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.23 2010/07/22 22:46:57 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.24 2010/09/03 22:38:30 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -140,6 +140,7 @@ int mt_mailfrom(lua_State *);
 int mt_negotiate(lua_State *);
 int mt_rcptto(lua_State *);
 int mt_set_timeout(lua_State *);
+int mt_signal(lua_State *);
 int mt_sleep(lua_State *);
 int mt_startfilter(lua_State *);
 int mt_test_action(lua_State *);
@@ -197,6 +198,7 @@ static const luaL_Reg mt_library[] =
 	{ "negotiate",		mt_negotiate	},
 	{ "rcptto",		mt_rcptto	},
 	{ "set_timeout",	mt_set_timeout	},
+	{ "signal",		mt_signal	},
 	{ "sleep",		mt_sleep	},
 	{ "startfilter",	mt_startfilter	},
 	{ "test_action",	mt_test_action	},
@@ -204,7 +206,6 @@ static const luaL_Reg mt_library[] =
 	{ "unknown",		mt_unknown	},
 	{ NULL,			NULL 		}
 };
-
 
 /* globals */
 _Bool rusage;
@@ -1215,6 +1216,52 @@ mt_startfilter(lua_State *l)
 
 		break;
 	}
+
+	lua_pushnil(l);
+
+	return 1;
+}
+
+/*
+**  MT_SIGNAL -- signal a filter
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**   	nil (on the Lua stack)
+*/
+
+int
+mt_signal(lua_State *l)
+{
+	int signum;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1 || !lua_isnumber(l, 1))
+	{
+		lua_pushstring(l, "mt.signal(): Invalid argument");
+		lua_error(l);
+	}
+
+	signum = lua_tonumber(l, 1);
+	lua_pop(l, 1);
+
+	if (filterpid <= 1)
+	{
+		lua_pushstring(l, "mt.signal(): Filter not running");
+		lua_error(l);
+	}
+
+	if (kill(filterpid, signum) != 0)
+	{
+		lua_pushfstring(l, "mt.signal(): kill(): %s", strerror(errno));
+		lua_error(l);
+	}
+
+	if (verbose > 0)
+		fprintf(stderr, "%s: sent signal %d\n", progname, signum);
 
 	lua_pushnil(l);
 

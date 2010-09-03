@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.209 2010/09/03 07:14:42 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.210 2010/09/03 22:38:30 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -61,10 +61,12 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Don't assert a "g=" default when processing keys so that
 		statistics reporting can tell whether or not it was originally
 		there.
-	MILTERTEST: Add "-u" option to report resource usage statistics on
-		completion.
 	MILTERTEST: Feature request #SF3005002: Enable testing of
 		"unspecified" protocol family connections.
+	MILTERTEST: Add "-u" option to report resource usage statistics on
+		completion.
+	MILTERTEST: Add "mt.signal" function to allow signaling of filters
+		for things like configuration file reloads.
 	TOOLS: Feature request #SF3004335: Add support to opendkim-testkey
 		to get configuration file values and validate an entire
 		KeyTable.
