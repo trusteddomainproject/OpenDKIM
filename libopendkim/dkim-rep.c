@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.11 2010/09/03 08:00:26 cm-msk Exp $";
+static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.12 2010/09/04 22:56:18 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -23,13 +23,7 @@ static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.11 2010/09/03 08:00:26 cm
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-
-#ifdef USE_ARLIB
-/* libar includes */
-# include "ar.h"
-#else /* USE_ARLIB */
-# include <netdb.h>
-#endif /* USE_ARLIB */
+#include <netdb.h>
 
 /* openssl includes */
 #include <openssl/md5.h>
@@ -213,6 +207,8 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 	timeout.tv_usec = 0;
 
 	anslen = sizeof ansbuf;
+
+	lib = dkim->dkim_libhandle;
 
 	status = lib->dkiml_dns_start(lib->dkiml_dns_service, T_TXT, query,
 	                              ansbuf, anslen, &q);
