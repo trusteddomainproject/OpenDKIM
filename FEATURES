@@ -100,11 +100,12 @@ sender_macro	Enable control over an MTA macro from which the address
 		of the sender is taken, rather than from header fields.
 		(opendkim)
 
-stats		Optional generation of statistics about pass/fail sorted
-		by domain and canonicalization.  (opendkim)
+stats		Optional generation of per-message and per-signature
+		statistics of interest to the evolution of DKIM.
+		See stats/README for information.  (opendkim)
 
-vbr		Enable VBR (Vouch By Reference) header addition (outbound)
-		and processing (inbound).  (opendkim)
+vbr		Enable VBR (Vouch By Reference) header field addition
+		(outbound) and processing (inbound).  (opendkim)
 
 
 COPYRIGHT
@@ -116,4 +117,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.22 $, Last updated $Date: 2010/09/02 05:04:00 $
+$Revision: 1.23 $, Last updated $Date: 2010/09/04 01:59:21 $
