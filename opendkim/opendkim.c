@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.192 2010/09/03 07:14:42 cm-msk Exp $
+**  $Id: opendkim.c,v 1.193 2010/09/04 06:20:29 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.192 2010/09/03 07:14:42 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.193 2010/09/04 06:20:29 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -11325,10 +11325,8 @@ mlfi_eom(SMFICTX *ctx)
 				if (dolog)
 				{
 					syslog(LOG_WARNING,
-					       "statistics recording disabled");
+					       "statistics recording failed");
 				}
-
-				conf->conf_statspath = NULL;
 			}
 		}
 #endif /* _FFR_STATS */
