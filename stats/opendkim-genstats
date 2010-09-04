@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# $Id: opendkim-genstats,v 1.3 2010/09/02 05:10:57 cm-msk Exp $
-#
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+#
+# $Id: opendkim-genstats,v 1.4 2010/09/04 05:29:40 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -62,11 +62,11 @@ $MYSQL --execute="select if(algorithm = 0, 'rsa-sha1', 'rsa-sha256') as 'signing
 echo "</p>" >> $OUTPUT
 
 echo "<p>Header canonicalization use: <br>" >> $OUTPUT
-$MYSQL --execute="select if(hdr_canon = 0, 'simple', 'relaxed') as canonicalization, count(hdr_canon) as count from signatures group by hdr_canon" >> $OUTPUT
+$MYSQL --execute="select if(hdr_canon = 0, 'simple', 'relaxed') as canonicalization, count(hdr_canon) as count, count(distinct domain) as domains, sum(pass) as passed from signatures group by hdr_canon" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 echo "<p>Body canonicalization use: <br>" >> $OUTPUT
-$MYSQL --execute="select if(body_canon = 0, 'simple', 'relaxed') as canonicalization, count(body_canon) as count from signatures group by body_canon" >> $OUTPUT
+$MYSQL --execute="select if(body_canon = 0, 'simple', 'relaxed') as canonicalization, count(body_canon) as count, count(distinct domain) as domains, sum(pass) as passed from signatures group by body_canon" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 echo "<p>Signature properties: <br>" >> $OUTPUT
