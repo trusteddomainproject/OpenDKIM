@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.4 2010/09/04 05:29:40 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.5 2010/09/04 05:33:14 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -101,9 +101,14 @@ echo "<p>ADSP policies found and failures: <br>" >> $OUTPUT
 $MYSQL --execute="select sum(adsp_found) as found, sum(adsp_unknown) as 'unknown', sum(adsp_all) as 'all', sum(adsp_discardable) as 'discardable', sum(adsp_fail) as 'failed' from messages" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
-echo "<p>Author vs. third-party signatures: <br>" >> $OUTPUT
-$MYSQL --execute="select count(*) as 'author sigs', sum(pass) as 'passed' from signatures join messages on messages.id = signatures.message where messages.from_domain = signatures.domain" >> $OUTPUT
-$MYSQL --execute="select count(*) as 'third-party sigs', sum(pass) as 'passed' from signatures join messages on messages.id = signatures.message where not messages.from_domain = signatures.domain" >> $OUTPUT
+echo "<p>Author vs. third-party signatures, non-MLM traffic: <br>" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'author sigs', sum(pass) as 'passed' from signatures join messages on messages.id = signatures.message where messages.from_domain = signatures.domain and messages.mailing_list = 0" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'third-party sigs', sum(pass) as 'passed' from signatures join messages on messages.id = signatures.message where not messages.from_domain = signatures.domain and messages.mailing_list = 0" >> $OUTPUT
+echo "</p>" >> $OUTPUT
+
+echo "<p>Author vs. third-party signatures, MLM traffic: <br>" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'author sigs', sum(pass) as 'passed' from signatures join messages on messages.id = signatures.message where messages.from_domain = signatures.domain and messages.mailing_list = 1" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'third-party sigs', sum(pass) as 'passed' from signatures join messages on messages.id = signatures.message where not messages.from_domain = signatures.domain and messages.mailing_list = 1" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 echo "<p>Signed header field frequency: <br>" >> $OUTPUT
