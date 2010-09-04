@@ -1,4 +1,4 @@
-$Id: README,v 1.5 2010/09/01 22:51:48 cm-msk Exp $
+$Id: README,v 1.6 2010/09/04 06:31:03 cm-msk Exp $
 
 INTRODUCTION
 
@@ -159,7 +159,6 @@ fields, as follows:
 	error code from signature
 	"t=" present in signature (0 = no, 1 = yes)
 	"x=" present in signature (0 = no, 1 = yes)
-	"t=" present in signature with future timestamp (0 = no, 1 = yes)
 	"z=" present in signature (0 = no, 1 = yes)
 	DNSSEC value (see DKIM_DNSSEC_* constants from dkim.h)
 	colon-separated list of header fields signed
