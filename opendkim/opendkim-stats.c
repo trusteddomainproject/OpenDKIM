@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.14 2010/09/01 22:51:48 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.15 2010/09/04 06:36:38 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.14 2010/09/01 22:51:48 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.15 2010/09/04 06:36:38 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -216,9 +216,9 @@ main(int argc, char **argv)
 
 			fprintf(stdout, "Job %s at %s (size %s)\n\treceived via %s at %s\tfrom domain = `%s', %s Received header fields\n\tContent type %s, content transfer encoding %s\n\t%s to come from a mailing list\n\tADSP %s (%s)\n",
 			        fields[0], fields[1], fields[6], fields[3],
-			        ctime(&rtime), fields[2], fields[13],
+			        ctime(&rtime), fields[2], fields[14],
 			        ct, cte,
-			        fields[12][0] == '0' ? "Does not appear"
+			        fields[13][0] == '0' ? "Does not appear"
 			                             : "Appears",
 			        adsp, adsppf);
 
