@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.24 2010/09/03 22:38:30 cm-msk Exp $
+**  $Id: miltertest.c,v 1.25 2010/09/05 11:36:01 grooverdan Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.24 2010/09/03 22:38:30 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.25 2010/09/05 11:36:01 grooverdan Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -1472,7 +1472,7 @@ mt_connect(lua_State *l)
 int
 mt_sleep(lua_State *l)
 {
-	int secs;
+	useconds_t usecs;
 
 	assert(l != NULL);
 
@@ -1483,16 +1483,16 @@ mt_sleep(lua_State *l)
 		lua_error(l);
 	}
 
-	secs = lua_tonumber(l, 1);
+	usecs = lua_tonumber(l, 1) * 1000000;
 	lua_pop(l, 1);
 
 	if (verbose > 1)
 	{
-		fprintf(stdout, "%s: pausing for %d second%s\n",
-		        progname, secs, secs == 1 ? "" : "s");
+		fprintf(stdout, "%s: pausing for %f seconds\n",
+		        progname, (double) usecs / 1000000);
 	}
 
-	sleep(secs);
+	usleep(usecs);
 
 	lua_pushnil(l);
 
