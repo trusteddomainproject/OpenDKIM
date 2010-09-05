@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.26 2010/09/05 11:54:05 grooverdan Exp $
+**  $Id: miltertest.c,v 1.27 2010/09/05 11:57:17 grooverdan Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.26 2010/09/05 11:54:05 grooverdan Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.27 2010/09/05 11:57:17 grooverdan Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -4072,8 +4072,8 @@ main(int argc, char **argv)
 
 		fprintf(stdout, "%s: self:  user %u.%06u, system %u.%06u\n",
 		        progname,
-		        u.ru_utime.tv_sec, u.ru_utime.tv_usec,
-		        u.ru_stime.tv_sec, u.ru_stime.tv_usec);
+		        (unsigned) u.ru_utime.tv_sec, (unsigned) u.ru_utime.tv_usec,
+		        (unsigned) u.ru_stime.tv_sec, (unsigned) u.ru_stime.tv_usec);
 	}
 
 	if (status != 0)
@@ -4136,8 +4136,8 @@ main(int argc, char **argv)
 
 		fprintf(stdout, "%s: child: user %u.%06u, system %u.%06u\n",
 		        progname,
-		        u.ru_utime.tv_sec, u.ru_utime.tv_usec,
-		        u.ru_stime.tv_sec, u.ru_stime.tv_usec);
+		        (unsigned) u.ru_utime.tv_sec, (unsigned) u.ru_utime.tv_usec,
+		        (unsigned) u.ru_stime.tv_sec, (unsigned) u.ru_stime.tv_usec);
 	}
 
 	return retval;
