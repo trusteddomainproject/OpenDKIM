@@ -1,4 +1,4 @@
--- $Id: t-sign-rs-mixconf.lua,v 1.3 2010/07/13 22:08:30 cm-msk Exp $
+-- $Id: t-sign-rs-mixconf.lua,v 1.4 2010/09/05 09:11:52 grooverdan Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -9,15 +9,16 @@
 mt.echo("*** relaxed/simple signing test using KeyTable/SetupPolicyScript")
 
 -- try to start the filter
+sock = "unix:" .. mt.getcwd() .. "/test.sock"
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
 end
-mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-rs-mixconf.conf")
+mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-rs-mixconf.conf", "-p", sock)
 mt.sleep(2)
 
 -- try to connect to it
-conn = mt.connect("inet:12345@localhost")
+conn = mt.connect(sock)
 if conn == nil then
 	error "mt.connect() failed"
 end
@@ -33,7 +34,7 @@ end
 
 -- send envelope macros and sender data
 -- mt.helo() is called implicitly
-mt.macro(conn, SMFIC_MAIL, "i", "t-sign-rs-mixconf")
+mt.macro(conn, SMFIC_MAIL, "i", "t-sign-rs-mixconf", "-p", sock)
 if mt.mailfrom(conn, "user@example.com") ~= nil then
 	error "mt.mailfrom() failed"
 end

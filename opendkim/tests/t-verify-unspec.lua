@@ -1,4 +1,4 @@
--- $Id: t-verify-unspec.lua,v 1.2 2010/07/22 23:12:27 cm-msk Exp $
+-- $Id: t-verify-unspec.lua,v 1.3 2010/09/05 09:11:52 grooverdan Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -9,15 +9,16 @@
 mt.echo("*** unspecified protocol family test")
 
 -- try to start the filter
+sock = "unix:" .. mt.getcwd() .. "/test.sock"
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
 end
-mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-unspec.conf")
+mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-unspec.conf", "-p", sock)
 mt.sleep(3)
 
 -- try to connect to it
-conn = mt.connect("inet:12345@localhost")
+conn = mt.connect(sock)
 if conn == nil then
 	error "mt.connect() failed"
 end

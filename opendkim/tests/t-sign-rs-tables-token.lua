@@ -1,4 +1,4 @@
--- $Id: t-sign-rs-tables-token.lua,v 1.2 2010/09/01 04:09:45 cm-msk Exp $
+-- $Id: t-sign-rs-tables-token.lua,v 1.3 2010/09/05 09:11:52 grooverdan Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -9,15 +9,16 @@
 mt.echo("*** relaxed/simple signing test using KeyTable and domain token")
 
 -- try to start the filter
+sock = "unix:" .. mt.getcwd() .. "/test.sock"
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
 end
-mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-rs-tables-token.conf")
+mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-rs-tables-token.conf", "-p", sock)
 mt.sleep(2)
 
 -- try to connect to it
-conn = mt.connect("inet:12345@localhost")
+conn = mt.connect(sock)
 if conn == nil then
 	error "mt.connect() failed"
 end

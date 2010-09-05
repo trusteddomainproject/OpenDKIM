@@ -50,3 +50,4 @@ opendkim
 opendkim-stats
 opendkim-testkey
 opendkim*.[58]   
+test.sock

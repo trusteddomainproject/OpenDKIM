@@ -1,4 +1,4 @@
--- $Id: t-verify-revoked.lua,v 1.6 2010/07/13 22:08:30 cm-msk Exp $
+-- $Id: t-verify-revoked.lua,v 1.7 2010/09/05 09:11:52 grooverdan Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -9,15 +9,16 @@
 mt.echo("*** simple/simple verify revoked key")
 
 -- try to start the filter
+sock = "unix:" .. mt.getcwd() .. "/test.sock"
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
 end
-mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-revoked.conf")
+mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-revoked.conf", "-p", sock)
 mt.sleep(2)
 
 -- try to connect to it
-conn = mt.connect("inet:12345@localhost")
+conn = mt.connect(sock)
 if conn == nil then
 	error "mt.connect() failed"
 end
@@ -47,7 +48,7 @@ if mt.header(conn, "DKIM-Signature", "v=1; a=rsa-sha256; c=relaxed/relaxed;\n\td
 	error "mt.header(DKIM-Signature) failed"
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
-	error "mt.header(From) unexpected reply"
+	error "mt.header(DKIM-Signature) unexpected reply"
 end
 if mt.header(conn, "From", "user@example.com") ~= nil then
 	error "mt.header(From) failed"

@@ -1,4 +1,4 @@
--- $Id: t-sign-ss-macro.lua,v 1.1 2010/09/03 07:38:49 cm-msk Exp $
+-- $Id: t-sign-ss-macro.lua,v 1.2 2010/09/05 09:11:52 grooverdan Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -10,16 +10,17 @@
 mt.echo("*** simple/simple signing test using macros to validate origin")
 
 -- try to start the filter
+sock = "unix:" .. mt.getcwd() .. "/test.sock"
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
 end
-mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-ss-macro.conf")
+mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-ss-macro.conf", "-p", sock)
 mt.sleep(20)
 mt.set_timeout(600)
 
 -- try to connect to it
-conn = mt.connect("inet:12345@localhost")
+conn = mt.connect(sock)
 if conn == nil then
 	error "mt.connect() failed"
 end
