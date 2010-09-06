@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.57 2010/09/06 02:27:05 grooverdan Exp $
+# $Id: Makefile.am,v 1.58 2010/09/06 02:59:41 grooverdan Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -29,20 +29,28 @@ DISTCLEANFILES = opendkim-@VERSION@.tar.gz
 # though.
 DISTCHECK_CONFIGURE_FLAGS=--enable-arlib --enable-vbr --with-lua
 
+$(DIST_ARCHIVES): distcheck
+
+$(DIST_ARCHIVES).md5: $(DIST_ARCHIVES)
+	md5 $? > $@ || md5sum $? > $@
+
+$(DIST_ARCHIVES).sha1: $(DIST_ARCHIVES)
+	sha1 $? > $@ || sha1sum $? > $@
+
+$(DIST_ARCHIVES).asc: $(DIST_ARCHIVES)
+	gpg -a -u security@opendkim.org --detach-sign $?
+
+push: $(DIST_ARCHIVES) $(DIST_ARCHIVES).sha1 $(DIST_ARCHIVES).md5 $(DIST_ARCHIVES).asc
+	@echo "Are you sure you want to tag and release $(DIST_ARCHIVES)? (y/n)"
+	@read confirm && [ $$confirm = 'y' ]
+	cvs tag rel-opendkim-`echo $(VERSION) | sed 's/\./-/g'`
+	scp $^ RELEASE_NOTES cm-msk,opendkim@frs.sourceforge.net:/home/frs/project/o/op/opendkim/
+
 dist-hook:
 	[ -f $(distdir)/libopendkim/dkim.h ] && rm -f $(distdir)/libopendkim/dkim.h
 	sed -e '/^#define[ \t]*OPENDKIM_LIB_VERSION/s/0x[0-9]*/0x@HEX_VERSION@/' < $(srcdir)/libopendkim/dkim.h > $(distdir)/libopendkim/dkim.h
 	echo "looking to see if @VERSION@ is in the RELEASE_NOTES"
 	fgrep @VERSION@ $(srcdir)/RELEASE_NOTES
 	sed -e 's|\(@VERSION@[ \t]*\)[0-9?]\{4\}\(/[0-9?]\{2\}\)\{2\}|\1'`date +%Y/%m/%d`'|' < $(srcdir)/RELEASE_NOTES > $(distdir)/RELEASE_NOTES
-
-push:
-	@echo "Are you sure you want to tag and release $(DIST_ARCHIVES)? (y/n)"
-	@read confirm && [ $$confirm = 'y' ]
-	cvs tag rel-opendkim-`echo $(VERSION) | sed 's/\./-/g'`
-	gpg -a -u security@opendkim.org --detach-sign $(DIST_ARCHIVES)
-	sha1 $(DIST_ARCHIVES) > $(DIST_ARCHIVES).sha1 || sha1sum  $(DIST_ARCHIVES) > $(DIST_ARCHIVES).sha1
-	md5 $(DIST_ARCHIVES) > $(DIST_ARCHIVES).md5 || md5sum $(DIST_ARCHIVES) > $(DIST_ARCHIVES).md5
-	scp $(DIST_ARCHIVES) $(DIST_ARCHIVES).sha1 $(DIST_ARCHIVES).md5 $(DIST_ARCHIVES).asc RELEASE_NOTES cm-msk,opendkim@frs.sourceforge.net:/home/frs/project/o/op/opendkim/
 
 .PHONY: push
