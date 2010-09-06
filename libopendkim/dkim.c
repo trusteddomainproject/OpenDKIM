@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.62 2010/09/01 22:51:48 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.63 2010/09/06 06:01:57 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5471,9 +5471,17 @@ dkim_diffheaders(DKIM *dkim, int maxcost, char **ohdrs, int nohdrs,
 
 		for (c = 0; c < nohdrs; c++)
 		{
+			/* not even the same header field */
+			if (hdr->hdr_namelen != hdr->hdr_textlen &&
+			    strncmp(ohdrs[c], hdr->hdr_text,
+			            hdr->hdr_namelen + 1) != 0)
+				continue;
+
+			/* same, no changes at all */
 			if (strcmp(ohdrs[c], hdr->hdr_text) == 0)
 				continue;
 
+			/* check for approximate match */
 			status = tre_regaexec(&re, ohdrs[c], &matches,
 			                      params, 0);
 
