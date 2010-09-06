@@ -1,4 +1,4 @@
--- $Id: t-lua-speed-nolua.lua,v 1.4 2010/09/05 09:11:52 grooverdan Exp $
+-- $Id: t-lua-speed-nolua.lua,v 1.5 2010/09/06 06:41:46 grooverdan Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -15,13 +15,19 @@ if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
 end
 mt.startfilter(binpath .. "/opendkim", "-x", "t-lua-speed-nolua.conf", "-p", sock)
-mt.sleep(2)
 
 for x = 1, 1000 do
 	-- try to connect to it
-	conn = mt.connect(sock)
-	if conn == nil then
-		error "mt.connect() failed"
+	e, conn = pcall(mt.connect, sock)
+	timeout = 20
+	while not e and timeout > 0
+	do
+		mt.sleep(0.01)
+		timeout = timeout - 1
+		e, conn = pcall(mt.connect, sock)
+	end
+	if not e then
+		error( "mt.connect() failed " , conn)
 	end
 
 	-- send connection information
