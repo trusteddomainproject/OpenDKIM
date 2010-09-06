@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.56 2010/07/27 12:27:17 cm-msk Exp $
+# $Id: Makefile.am,v 1.57 2010/09/06 02:27:05 grooverdan Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -37,12 +37,12 @@ dist-hook:
 	sed -e 's|\(@VERSION@[ \t]*\)[0-9?]\{4\}\(/[0-9?]\{2\}\)\{2\}|\1'`date +%Y/%m/%d`'|' < $(srcdir)/RELEASE_NOTES > $(distdir)/RELEASE_NOTES
 
 push:
-	@echo "Are you sure you want to tag and release $(distdir).tar.gz? (y/n)"
+	@echo "Are you sure you want to tag and release $(DIST_ARCHIVES)? (y/n)"
 	@read confirm && [ $$confirm = 'y' ]
 	cvs tag rel-opendkim-`echo $(VERSION) | sed 's/\./-/g'`
-	gpg -a -u security@opendkim.org --detach-sign opendkim-2.2.0.tar.gz
-	sha1 $(distdir).tar.gz > $(distdir).tar.gz.sha1 || sha1sum  $(distdir).tar.gz > $(distdir).tar.gz.sha1
-	md5 $(distdir).tar.gz > $(distdir).tar.gz.md5
-	scp $(distdir).tar.gz $(distdir).tar.gz.sha1 $(distdir).tar.gz.md5 $(distdir).tar.gz.asc RELEASE_NOTES cm-msk,opendkim@frs.sourceforge.net:/home/frs/project/o/op/opendkim/
+	gpg -a -u security@opendkim.org --detach-sign $(DIST_ARCHIVES)
+	sha1 $(DIST_ARCHIVES) > $(DIST_ARCHIVES).sha1 || sha1sum  $(DIST_ARCHIVES) > $(DIST_ARCHIVES).sha1
+	md5 $(DIST_ARCHIVES) > $(DIST_ARCHIVES).md5 || md5sum $(DIST_ARCHIVES) > $(DIST_ARCHIVES).md5
+	scp $(DIST_ARCHIVES) $(DIST_ARCHIVES).sha1 $(DIST_ARCHIVES).md5 $(DIST_ARCHIVES).asc RELEASE_NOTES cm-msk,opendkim@frs.sourceforge.net:/home/frs/project/o/op/opendkim/
 
 .PHONY: push
