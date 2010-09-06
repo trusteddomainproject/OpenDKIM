@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.211 2010/09/05 13:41:49 grooverdan Exp $
+	$Id: RELEASE_NOTES,v 1.212 2010/09/06 02:09:36 grooverdan Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -31,6 +31,8 @@ release, and a summary of the changes in that release.
 	Feature request #SF3056571: Extend signer selection in the SigningTable
 		to include a token that will be replaced by the From:
 		domain.  Requested by Richard Rognlie.
+	Fix bug #SF3049483: Use ReportAddress for ADSP Reports. Reported by
+		Andreas Schulze.
 	Fix bug #SF3004995: Don't apply "SenderHeaders" to the library
 		as that impacts how ADSP works.
 	Fix bug #SF3025856: Fix "AllowSHA1Only", which was not working at all.

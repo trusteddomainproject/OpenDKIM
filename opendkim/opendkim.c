@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.194 2010/09/05 13:41:50 grooverdan Exp $
+**  $Id: opendkim.c,v 1.195 2010/09/06 02:09:36 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.194 2010/09/05 13:41:50 grooverdan Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.195 2010/09/06 02:09:36 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8128,7 +8128,10 @@ dkimf_policyreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	if (arftype == ARF_TYPE_DKIM)
 		arfdkim = dkimf_arfdkim(dfc);
 
-	/* we presume the MTA will add From: and Date: ... */
+	/* we presume the MTA will add Date: ... */
+
+	/* From: */
+	fprintf(out, "From: %s\n", reportaddr);
 
 	/* To: */
 	fprintf(out, "To: %s@%s\n", addr, dfc->mctx_domain);
