@@ -1,13 +1,13 @@
-# $Id: Makefile.am,v 1.2 2010/08/30 22:01:56 cm-msk Exp $
+# $Id: Makefile.am,v 1.3 2010/09/06 22:35:17 grooverdan Exp $
 
-AM_CFLAGS = $(COV_CFLAGS) $(PTHREAD_CFLAGS)
-AM_LDFLAGS = $(COV_LDFLAGS) $(PTHREAD_LDFLAGS)
+AM_CFLAGS = $(COV_CFLAGS)
+AM_LDFLAGS = $(COV_LDFLAGS)
 
 if DEBUG
 AM_CFLAGS += -g
 endif
 
-LDADD = ../libar.la $(COV_LIBADD) $(PTHREAD_LDADD)
+LDADD = ../libar.la $(COV_LIBADD) $(LIBRESOLV)
 AM_CPPFLAGS = -I..
 
 check_PROGRAMS = ar_test00 ar_test01
