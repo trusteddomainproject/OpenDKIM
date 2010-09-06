@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.18 2010/09/03 23:04:10 cm-msk Exp $
+**  $Id: stats.c,v 1.19 2010/09/06 05:03:20 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.18 2010/09/03 23:04:10 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.19 2010/09/06 05:03:20 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -47,7 +47,7 @@ static char stats_c_id[] = "@(#)$Id: stats.c,v 1.18 2010/09/03 23:04:10 cm-msk E
 /* macros, defaults */
 #define	DEFCT			"text/plain"
 #define	DEFCTE			"7bit"
-#define	DKIMF_STATS_MAXCOST	5
+#define	DKIMF_STATS_MAXCOST	10
 
 /* globals */
 static pthread_mutex_t stats_lock;
