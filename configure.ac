@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.168 2010/09/02 05:01:31 cm-msk Exp $
+# $Id: configure.ac,v 1.169 2010/09/06 04:20:20 grooverdan Exp $
 
 #
 # Setup
@@ -139,7 +139,13 @@ AC_TYPE_UINT32_T
 #
 # Checks for library functions.
 #
-AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strtol strtoul strtoull strlcpy strlcat])
+AC_FUNC_FORK
+AC_FUNC_GETGROUPS
+AC_FUNC_MALLOC
+AC_FUNC_MKTIME
+AC_FUNC_REALLOC
+
+AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname  gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strstr strtol strtoul strtoull strlcpy strlcat])
 
 #
 # Checks for structure members
