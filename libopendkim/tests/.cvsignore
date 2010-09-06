@@ -45,3 +45,4 @@ symbols.map
 .deps
 core
 *.core
+gmon.out
