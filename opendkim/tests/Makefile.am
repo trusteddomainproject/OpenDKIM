@@ -1,8 +1,9 @@
-# $Id: Makefile.am,v 1.18 2010/09/03 07:38:49 cm-msk Exp $
+# $Id: Makefile.am,v 1.19 2010/09/06 06:41:05 grooverdan Exp $
 
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \
 	t-sign-rs-lua t-verify-revoked t-verify-unsigned t-verify-unspec \
+	t-verify-syntax \
 	t-dontsign t-sign-ss-all
 
 TESTS = $(check_SCRIPTS)
@@ -27,6 +28,7 @@ EXTRA_DIST = \
 	t-verify-revoked t-verify-revoked.conf t-verify-revoked.lua \
 	t-verify-unsigned t-verify-unsigned.conf t-verify-unsigned.lua \
 	t-verify-unspec t-verify-unspec.conf t-verify-unspec.lua \
+	t-verify-syntax t-verify-syntax.conf t-verify-syntax.lua \
 	t-dontsign t-dontsign.conf t-dontsign.lua \
 	testkey.private pubkeys
 
