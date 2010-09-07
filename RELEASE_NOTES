@@ -1,13 +1,11 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.215 2010/09/07 04:51:15 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.216 2010/09/07 04:54:37 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.2.0		2010/10/03
-	Feature request: Allow On-* configuration options can now take 
-	        "Quarantine" as a valid action in case of error.
 	Feature request #SF2964366: Allow arbitrary data set operations
 		from inside Lua script hooks.
 	Feature request #SF2981598: Add "NoHeaderB" and "SingleAuthResult"
