@@ -4,7 +4,7 @@
 -- milter unit test utility
 .SH SYNOPSIS
 .B miltertest
-[-D name[=value]] [-s script] [-u] [-v] [-V]
+[-D name[=value]] [-s script] [-u] [-v] [-V] [-w]
 .SH DESCRIPTION
 .B miltertest
 simulates the MTA side of an MTA-milter interaction for testing a milter-aware
@@ -59,6 +59,9 @@ more and more information.
 .TP
 .I -V
 Print version number and exit.
+.TP
+.I -w
+Don't wait for child status to be returned when testing is complete.
 .SH FUNCTIONS
 The following functions are made available to Lua scripts for exercising
 a filter.  All functions return Lua constant "nil" on success or an error

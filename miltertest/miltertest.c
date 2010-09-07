@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.33 2010/09/07 04:21:26 cm-msk Exp $
+**  $Id: miltertest.c,v 1.34 2010/09/07 04:33:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.33 2010/09/07 04:21:26 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.34 2010/09/07 04:33:37 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -81,7 +81,7 @@ static char miltertest_c_id[] = "$Id: miltertest.c,v 1.33 2010/09/07 04:21:26 cm
 #define	BUFRSZ			1024
 #define	CHUNKSZ			65536
 
-#define	CMDLINEOPTS		"D:s:uvV"
+#define	CMDLINEOPTS		"D:s:uvVw"
 
 #define	DEFBODY			"Dummy message body.\r\n"
 #define	DEFCLIENTPORT		12345
@@ -209,6 +209,7 @@ static const luaL_Reg mt_library[] =
 
 /* globals */
 _Bool rusage;
+_Bool nowait;
 int verbose;
 unsigned int tmo;
 pid_t filterpid;
@@ -3774,7 +3775,9 @@ usage(void)
 	                "\t-D name[=value]\tdefine global variable\n"
 	                "\t-s script      \tscript to run (default = stdin)\n"
 	                "\t-u             \treport usage statistics\n"
-	                "\t-v             \tverbose mode\n",
+	                "\t-v             \tverbose mode\n"
+	                "\t-V             \tprint version number and exit\n"
+	                "\t-w             \tdon't wait for child at shutdown\n",
 	                progname, progname);
 
 	return EX_USAGE;
@@ -3810,6 +3813,7 @@ main(int argc, char **argv)
 	filterpid = 0;
 	tmo = DEFTIMEOUT;
 	rusage = FALSE;
+	nowait = FALSE;
 
 	l = lua_newstate(mt_lua_alloc, NULL);
 	if (l == NULL)
@@ -3866,6 +3870,10 @@ main(int argc, char **argv)
 			fprintf(stdout, "%s: %s v%s\n", progname, MT_PRODUCT,
 			        MT_VERSION);
 			return 0;
+
+		  case 'w':
+			nowait = TRUE;
+			break;
 
 		  default:
 			lua_close(l);
@@ -4150,7 +4158,7 @@ main(int argc, char **argv)
 			fprintf(stderr, "%s: %d: kill() %s\n", progname,
 			        filterpid, strerror(errno));
 		}
-		else
+		else if (!nowait)
 		{
 			if (verbose > 1)
 			{
@@ -4181,7 +4189,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (rusage)
+	if (rusage && !nowait)
 	{
 		struct rusage u;
 
