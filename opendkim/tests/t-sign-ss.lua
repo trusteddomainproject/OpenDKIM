@@ -1,4 +1,4 @@
--- $Id: t-sign-ss.lua,v 1.16 2010/09/07 04:48:41 cm-msk Exp $
+-- $Id: t-sign-ss.lua,v 1.17 2010/09/07 05:48:11 grooverdan Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -16,7 +16,7 @@ if os.getenv("srcdir") ~= nil then
 end
 
 -- try to start the filter
-mt.startfilter(binpath .. "opendkim", "-x", "t-sign-ss.conf", "-p", sock)
+mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-ss.conf", "-p", sock)
 
 -- try to connect to it
 conn = mt.connect(sock, 40, 0.05)
