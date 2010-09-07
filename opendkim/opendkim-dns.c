@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.5 2010/09/07 18:50:24 cm-msk Exp $";
+static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.6 2010/09/07 18:55:56 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -417,7 +417,7 @@ dkimf_ub_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 		if (bytes != NULL)
 			*bytes = ubdata->ubd_buflen;
 		if (error != NULL && status == -1)
-			*error = status		/* XXX -- improve this */
+			*error = status;	/* XXX -- improve this */
 	}
 
 	if (status == 0)
