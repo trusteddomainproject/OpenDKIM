@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.197 2010/09/07 05:48:58 grooverdan Exp $
+**  $Id: opendkim.c,v 1.198 2010/09/07 07:28:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.197 2010/09/07 05:48:58 grooverdan Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.198 2010/09/07 07:28:37 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4387,7 +4387,6 @@ dkimf_sighandler(int sig)
 	{
 		diesig = sig;
 		die = TRUE;
-		smfi_stop();
 	}
 	else if (sig == SIGUSR1)
 	{
