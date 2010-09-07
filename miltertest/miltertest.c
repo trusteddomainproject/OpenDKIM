@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.27 2010/09/05 11:57:17 grooverdan Exp $
+**  $Id: miltertest.c,v 1.28 2010/09/07 02:30:19 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.27 2010/09/05 11:57:17 grooverdan Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.28 2010/09/07 02:30:19 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -1062,7 +1062,7 @@ mt_getcwd(lua_State *l)
 
 	memset(dir, '\0', sizeof dir);
 
-	if ( getcwd(dir, MAXPATHLEN) == NULL)
+	if (getcwd(dir, MAXPATHLEN) == NULL)
 	{
 		lua_pushstring(l, "mt.getcwd(): getcwd returned error");
 		lua_error(l);
