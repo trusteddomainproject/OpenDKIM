@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.32 2010/09/07 03:24:40 cm-msk Exp $
+**  $Id: miltertest.c,v 1.33 2010/09/07 04:21:26 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.32 2010/09/07 03:24:40 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.33 2010/09/07 04:21:26 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -1370,6 +1370,14 @@ mt_connect(lua_State *l)
 
 			saverr = errno;
 
+			if (verbose > 1)
+			{
+				fprintf(stdout,
+				        "%s: connect(): %s; %u tr%s left\n",
+				        progname, strerror(errno), count - 1,
+				        count == 2 ? "y" : "ies");
+			}
+
 			usleep(interval);
 
 			count--;
@@ -1459,6 +1467,14 @@ mt_connect(lua_State *l)
 				break;
 
 			saverr = errno;
+
+			if (verbose > 1)
+			{
+				fprintf(stdout,
+				        "%s: connect(): %s; %u tr%s left\n",
+				        progname, strerror(errno), count - 1,
+				        count == 2 ? "y" : "ies");
+			}
 
 			usleep(interval);
 
