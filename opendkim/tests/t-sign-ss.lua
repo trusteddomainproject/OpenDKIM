@@ -1,4 +1,4 @@
--- $Id: t-sign-ss.lua,v 1.13 2010/09/07 02:59:15 grooverdan Exp $
+-- $Id: t-sign-ss.lua,v 1.14 2010/09/07 03:06:51 grooverdan Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -28,8 +28,7 @@ do
 	timeout = timeout - 1
 	e, conn = pcall(mt.connect, sock)
 end
--- if not e then
-if conn == nil then
+if not e then
 	error( "mt.connect() failed ")
 end
 
