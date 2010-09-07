@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: config.c,v 1.7 2010/09/07 05:50:16 grooverdan Exp $
+**  $Id: config.c,v 1.8 2010/09/07 06:26:16 cm-msk Exp $
 */
 
 #ifndef lint
-static char config_c_id[] = "@(#)$Id: config.c,v 1.7 2010/09/07 05:50:16 grooverdan Exp $";
+static char config_c_id[] = "@(#)$Id: config.c,v 1.8 2010/09/07 06:26:16 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -162,9 +162,10 @@ config_load_level(char *file, struct configdef *def,
 			}
 		}
 
-		/* break down the directive */
+		/* break down the line */
 		p = strtok_r(buf, " \t", &s);
-		if (p != NULL) {
+		if (p != NULL)
+		{
 			/* recognize the directive? */
 			for (n = 0; ; n++)
 			{
@@ -174,19 +175,25 @@ config_load_level(char *file, struct configdef *def,
 					conf_error = CONF_UNRECOG;
 					err = 1;
 					break;
-				}
+			     	}
 
 				if (strcasecmp(def[n].cd_name, p) == 0)
 					break;
 			}
-			/* skip leading whitespace on directive value */
-			p = s;
-			while (!err && (*p == ' ' || *p == '\t')) ++p;
+
+			/* skip leading whitespace on value */
+			if (!err)
+			{
+				for (p = s; *p != ' ' && *p != '\t'; p++)
+					continue;
+			}
+
 			if (*p == '\0' && !err)
 			{
 				conf_error = CONF_MISSING;
 				err = 1;
 			}
+
 			if (!err)
 			{
 				char *q;
@@ -198,9 +205,9 @@ config_load_level(char *file, struct configdef *def,
 					str = p;
 					/* trim trailing whitespace */
 					q = p + strlen(p) - 1;
-					while (p < q &&
-					     (*q == '\t' || *q == ' ') )
-					     *q-- = '\0';
+					while (p <= q &&
+					       (*q == '\t' || *q == ' '))
+						*q-- = '\0';
 					break;
 
 				  case CONFIG_TYPE_BOOLEAN:
@@ -249,7 +256,7 @@ config_load_level(char *file, struct configdef *def,
 		}
 		else
 		{
-			continue; /* blank line */
+			continue;			/* blank line */
 		}
 
 		/* a parse error, or only one argument, is no good */
