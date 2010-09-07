@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.216 2010/09/07 04:54:37 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.217 2010/09/07 06:08:09 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -68,12 +68,13 @@ release, and a summary of the changes in that release.
 		"unspecified" protocol family connections.
 	MILTERTEST: Add "-u" option to report resource usage statistics on
 		completion.
-	MILTERTEST: Add "mt.signal" function to allow signaling of filters
-		for things like configuration file reloads.
+	MILTERTEST: Add mt.signal() to allow signaling of filters for things
+		like configuration file reloads.
 	MILTERTEST: Enhance "mt.connect" to accept optional retry and interval
 		arguments.
 	MILTERTEST: Add "-w" option to request no waiting for the child process
 		to exit and report status.
+	MILTERTEST: Allow partial seconds argument to mt.sleep().
 	TOOLS: Feature request #SF3004335: Add support to opendkim-testkey
 		to get configuration file values and validate an entire
 		KeyTable.
