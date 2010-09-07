@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.6 2010/09/07 18:55:56 cm-msk Exp $";
+static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.7 2010/09/07 19:02:28 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -19,6 +19,7 @@ static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.6 2010/09/07 18:5
 #include <string.h>
 #include <assert.h>
 #include <pthread.h>
+#include <errno.h>
 
 /* libopendkim includes */
 #include <dkim.h>
