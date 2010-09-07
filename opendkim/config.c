@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: config.c,v 1.6 2010/02/23 23:32:23 cm-msk Exp $
+**  $Id: config.c,v 1.7 2010/09/07 05:50:16 grooverdan Exp $
 */
 
 #ifndef lint
-static char config_c_id[] = "@(#)$Id: config.c,v 1.6 2010/02/23 23:32:23 cm-msk Exp $";
+static char config_c_id[] = "@(#)$Id: config.c,v 1.7 2010/09/07 05:50:16 grooverdan Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -106,13 +106,13 @@ config_load_level(char *file, struct configdef *def,
                   unsigned int *line, char *outpath, size_t outpathlen,
                   int level)
 {
-	int arg;
 	int n = -1;
 	int err = 0;
 	unsigned int myline = 0;
 	int value = -1;
 	FILE *in;
 	char *p;
+	char *s;
 	char *str = NULL;
 	struct config *new = NULL;
 	struct config *cur = NULL;
@@ -162,32 +162,32 @@ config_load_level(char *file, struct configdef *def,
 			}
 		}
 
-		arg = 0;
-
-		/* break down the arguments */
-		/* XXX -- need something better than strtok(), for quoting */
-		for (p = strtok(buf, " \t");
-		     err == 0 && p != NULL; 
-		     p = strtok(NULL, " \t"))
-		{
-			/* recognize the first? */
-			if (arg == 0)
+		/* break down the directive */
+		p = strtok_r(buf, " \t", &s);
+		if (p != NULL) {
+			/* recognize the directive? */
+			for (n = 0; ; n++)
 			{
-				for (n = 0; ; n++)
+				/* nope */
+				if (def[n].cd_name == NULL)
 				{
-					/* nope */
-					if (def[n].cd_name == NULL)
-					{
-						conf_error = CONF_UNRECOG;
-						err = 1;
-						break;
-					}
-
-					if (strcasecmp(def[n].cd_name, p) == 0)
-						break;
+					conf_error = CONF_UNRECOG;
+					err = 1;
+					break;
 				}
+
+				if (strcasecmp(def[n].cd_name, p) == 0)
+					break;
 			}
-			else if (str == NULL)
+			/* skip leading whitespace on directive value */
+			p = s;
+			while (!err && (*p == ' ' || *p == '\t')) ++p;
+			if (*p == '\0' && !err)
+			{
+				conf_error = CONF_MISSING;
+				err = 1;
+			}
+			if (!err)
 			{
 				char *q;
 
@@ -196,6 +196,11 @@ config_load_level(char *file, struct configdef *def,
 				  case CONFIG_TYPE_STRING:
 				  case CONFIG_TYPE_INCLUDE:
 					str = p;
+					/* trim trailing whitespace */
+					q = p + strlen(p) - 1;
+					while (p < q &&
+					     (*q == '\t' || *q == ' ') )
+					     *q-- = '\0';
 					break;
 
 				  case CONFIG_TYPE_BOOLEAN:
@@ -241,16 +246,14 @@ config_load_level(char *file, struct configdef *def,
 					return NULL;
 				}
 			}
-
-			arg++;
+		}
+		else
+		{
+			continue; /* blank line */
 		}
 
-		/* no arguments */
-		if (arg == 0)
-			continue;
-
 		/* a parse error, or only one argument, is no good */
-		if (arg == 1 || err == 1)
+		if (err)
 		{
 			config_free(cur);
 
