@@ -1,4 +1,4 @@
--- $Id: t-verify-syntax.lua,v 1.1 2010/09/06 06:41:05 grooverdan Exp $
+-- $Id: t-verify-syntax.lua,v 1.2 2010/09/07 06:39:12 cm-msk Exp $
 
 -- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -9,7 +9,7 @@
 mt.echo("*** Syntax error in DKIM signature")
 
 -- try to start the filter
-sock = "unix:" .. mt.getcwd() .. "/test.sock"
+sock = "unix:" .. mt.getcwd() .. "/t-verify-syntax.sock"
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
@@ -17,16 +17,9 @@ end
 mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-syntax.conf", "-p", sock)
 
 -- try to connect to it
-e, conn = pcall(mt.connect, sock)
-timeout = 20
-while not e and timeout > 0
-do
-	mt.sleep(0.01)
-	timeout = timeout - 1
-	e, conn = pcall(mt.connect, sock)
-end
-if not e then
-	error( "mt.connect() failed " , conn)
+conn = mt.connect(sock, 40, 0.05)
+if conn == nil then
+	error "mt.connect() failed"
 end
 
 -- send connection information
