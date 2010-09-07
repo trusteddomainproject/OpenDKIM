@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.4 2010/09/07 02:26:12 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.5 2010/09/07 05:30:45 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.4 2010/09/07 02:26:12 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.5 2010/09/07 05:30:45 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -458,7 +458,7 @@ main(int argc, char **argv)
 			if (n != 17)
 			{
 				fprintf(stderr,
-				        "%s: unexpected field count at input line %d\n",
+				        "%s: unexpected messages field count at input line %d\n",
 				        progname, line);
 				continue;
 			}
@@ -664,7 +664,7 @@ main(int argc, char **argv)
 			if (n != 19)
 			{
 				fprintf(stderr,
-				        "%s: unexpected field count at input line %d\n",
+				        "%s: unexpected signatures field count at input line %d\n",
 				        progname, line);
 				continue;
 			}
