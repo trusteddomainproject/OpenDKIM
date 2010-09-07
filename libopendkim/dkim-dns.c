@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: dkim-dns.c,v 1.2 2010/08/30 22:01:56 cm-msk Exp $
+**  $Id: dkim-dns.c,v 1.3 2010/09/07 18:29:58 cm-msk Exp $
 */
 
 #ifndef lint
-static char dkim_dns_c_id[] = "@(#)$Id: dkim-dns.c,v 1.2 2010/08/30 22:01:56 cm-msk Exp $";
+static char dkim_dns_c_id[] = "@(#)$Id: dkim-dns.c,v 1.3 2010/09/07 18:29:58 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -14,12 +14,19 @@ static char dkim_dns_c_id[] = "@(#)$Id: dkim-dns.c,v 1.2 2010/08/30 22:01:56 cm-
 #include <netinet/in.h>
 #include <arpa/nameser.h>
 #include <resolv.h>
+#include <netdb.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <errno.h>
 
 /* libopendkim includes */
 #include "dkim.h"
 #include "dkim-dns.h"
+
+/* macros, limits, etc. */
+#ifndef MAXPACKET
+# define MAXPACKET      8192
+#endif /* ! MAXPACKET */
 
 /*
 **  Standard UNIX resolver stub functions
@@ -82,30 +89,31 @@ int
 dkim_res_query(void *srv, int type, char *query, unsigned char *buf,
                size_t buflen, void **qh)
 {
+	int n;
 	int ret;
 	struct dkim_res_qh *rq;
+	char qbuf[HFIXEDSZ + MAXPACKET];
+
+	n = res_mkquery(QUERY, query, C_IN, type, NULL, 0, NULL, qbuf,
+	                sizeof qbuf);
+	if (n == (size_t) -1)
+		return DKIM_DNS_ERROR;
+
+	ret = res_send(qbuf, n, buf, buflen);
+	if (ret == -1)
+		return DKIM_DNS_ERROR;
 
 	rq = (struct dkim_res_qh *) malloc(sizeof *rq);
 	if (rq == NULL)
-		return -1;
+		return DKIM_DNS_ERROR;
 
 	rq->rq_dnssec = DKIM_DNSSEC_UNKNOWN;
-
-	ret = res_search(query, C_IN, type, buf, buflen);
-	if (ret < 0)
-	{
-		rq->rq_error = DKIM_DNS_ERROR;
-		rq->rq_buflen = 0;
-	}
-	else
-	{
-		rq->rq_buflen = (size_t) ret;
-		rq->rq_error = DKIM_DNS_SUCCESS;
-	}
+	rq->rq_error = errno;
+	rq->rq_buflen = (size_t) ret;
 
 	*qh = (void *) rq;
 
-	return 0;
+	return DKIM_DNS_SUCCESS;
 }
 
 /*
@@ -137,8 +145,6 @@ dkim_res_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 
 	rq = qh;
 
-	ret = rq->rq_error;
-
 	if (bytes != NULL)
 		*bytes = rq->rq_buflen;
 	if (error != NULL)
@@ -146,5 +152,5 @@ dkim_res_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 	if (dnssec != NULL)
 		*dnssec = rq->rq_dnssec;
 
-	return ret;
+	return DKIM_DNS_SUCCESS;
 }
