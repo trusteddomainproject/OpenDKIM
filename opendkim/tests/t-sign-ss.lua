@@ -1,4 +1,4 @@
--- $Id: t-sign-ss.lua,v 1.12 2010/09/05 11:49:06 grooverdan Exp $
+-- $Id: t-sign-ss.lua,v 1.13 2010/09/07 02:59:15 grooverdan Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -8,25 +8,29 @@
 
 mt.echo("*** simple/simple signing test")
 
+cwd = mt.getcwd()
 -- try to start the filter
-sock = "unix:" .. mt.getcwd() .. "/test.sock"
-binpath = mt.getcwd() .. "/.."
+sock = "unix:" .. cwd .. "/test.sock"
+ -- -6 = length of "tests" from end
+binpath = string.sub(cwd, 1, -6)
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
 end
-mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-ss.conf", "-p", sock)
+mt.startfilter(binpath .. "opendkim", "-x", "t-sign-ss.conf", "-p", sock)
 
+sock = "unix:" .. cwd .. "/test.sock1"
 -- try to connect to it
 e, conn = pcall(mt.connect, sock)
-timeout = 20
+timeout = 60
 while not e and timeout > 0
 do
 	mt.sleep(0.01)
 	timeout = timeout - 1
 	e, conn = pcall(mt.connect, sock)
 end
-if not e then
-	error( "mt.connect() failed " , conn)
+-- if not e then
+if conn == nil then
+	error( "mt.connect() failed ")
 end
 
 -- send connection information
