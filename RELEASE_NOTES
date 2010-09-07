@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.214 2010/09/07 03:24:40 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.215 2010/09/07 04:51:15 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -74,6 +74,8 @@ release, and a summary of the changes in that release.
 		for things like configuration file reloads.
 	MILTERTEST: Enhance "mt.connect" to accept optional retry and interval
 		arguments.
+	MILTERTEST: Add "-w" option to request no waiting for the child process
+		to exit and report status.
 	TOOLS: Feature request #SF3004335: Add support to opendkim-testkey
 		to get configuration file values and validate an entire
 		KeyTable.
