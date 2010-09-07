@@ -593,8 +593,6 @@ Possible values (with abbreviated forms in parentheses):
 (t) temp-fail the message;
 .I reject
 (r) reject the message;
-.I quarantine
-(q) quarantine the message.
 The default is
 .I accept.
 

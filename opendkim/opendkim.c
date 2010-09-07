@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.195 2010/09/06 02:09:36 grooverdan Exp $
+**  $Id: opendkim.c,v 1.196 2010/09/07 04:24:14 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.195 2010/09/06 02:09:36 grooverdan Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.196 2010/09/07 04:24:14 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -508,8 +508,6 @@ struct lookup dkimf_values[] =
 	{ "reject",		SMFIS_REJECT },
 	{ "t",			SMFIS_TEMPFAIL },
 	{ "tempfail",		SMFIS_TEMPFAIL },
-	{ "q",			SMFIR_QUARANTINE },
-	{ "quarantine",		SMFIR_QUARANTINE },
 	{ NULL,			-1 },
 };
 
