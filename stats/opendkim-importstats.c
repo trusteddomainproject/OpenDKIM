@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.3 2010/09/03 22:49:37 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.4 2010/09/07 02:26:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.3 2010/09/03 22:49:37 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.4 2010/09/07 02:26:12 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -21,6 +21,9 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.3 201
 
 /* OpenDKIM includes */
 #include "build-config.h"
+
+/* libopendkim includes */
+#include <dkim-strl.h>
 
 /* libodbx includes */
 #ifdef USE_ODBX

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.5 2010/09/02 20:58:23 cm-msk Exp $
+# $Id: Makefile.am,v 1.6 2010/09/07 02:26:12 cm-msk Exp $
 #
 
 if USE_ODBX
@@ -6,10 +6,10 @@ if USE_ODBX
 sbin_PROGRAMS = opendkim-importstats
 
 opendkim_importstats_SOURCES = opendkim-importstats.c
-opendkim_importstats_CPPFLAGS = $(LIBODBX_CPPFLAGS)
+opendkim_importstats_CPPFLAGS = $(LIBODBX_CPPFLAGS) -I$(srcdir)/../libopendkim
 opendkim_importstats_CFLAGS = $(LIBODBX_CFLAGS) $(COV_CFLAGS)
 opendkim_importstats_LDFLAGS = $(COV_LDFLAGS)
-opendkim_importstats_LDADD = $(LIBODBX_LIBS) $(COV_LIBADD)
+opendkim_importstats_LDADD = $(LIBODBX_LIBS) ../libopendkim/libopendkim.la $(COV_LIBADD)
 
 exampledir = @docdir@
 dist_example_DATA = mkdb.mysql
