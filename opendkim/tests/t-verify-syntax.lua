@@ -1,4 +1,4 @@
--- $Id: t-verify-syntax.lua,v 1.2 2010/09/07 06:39:12 cm-msk Exp $
+-- $Id: t-verify-syntax.lua,v 1.3 2010/09/07 07:23:41 cm-msk Exp $
 
 -- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -6,7 +6,7 @@
 -- 
 -- Confirms that an message with a syntax error TEMPFAILs
 
-mt.echo("*** Syntax error in DKIM signature")
+mt.echo("*** syntax error in DKIM signature")
 
 -- try to start the filter
 sock = "unix:" .. mt.getcwd() .. "/t-verify-syntax.sock"
