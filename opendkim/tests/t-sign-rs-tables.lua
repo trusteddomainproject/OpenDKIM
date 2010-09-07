@@ -1,4 +1,4 @@
--- $Id: t-sign-rs-tables.lua,v 1.14 2010/09/07 04:20:56 cm-msk Exp $
+-- $Id: t-sign-rs-tables.lua,v 1.15 2010/09/07 04:48:41 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -8,13 +8,16 @@
 
 mt.echo("*** relaxed/simple signing test using tables")
 
--- try to start the filter
-sock = "unix:" .. mt.getcwd() .. "/test.sock"
+-- setup
+sock = "unix:" .. mt.getcwd() .. "/t-sign-rs-tables.sock"
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
 end
-mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-rs-tables.conf", "-p", sock)
+
+-- try to start the filter
+mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-rs-tables.conf",
+               "-p", sock)
 
 -- try to connect to it
 conn = mt.connect(sock, 40, 0.05)

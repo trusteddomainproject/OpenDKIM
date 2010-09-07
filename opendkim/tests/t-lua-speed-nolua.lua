@@ -1,4 +1,4 @@
--- $Id: t-lua-speed-nolua.lua,v 1.5 2010/09/06 06:41:46 grooverdan Exp $
+-- $Id: t-lua-speed-nolua.lua,v 1.6 2010/09/07 04:48:41 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -8,25 +8,21 @@
 
 mt.echo("*** simple/simple signing test without Lua, 1000 messages")
 
--- try to start the filter
-sock = "unix:" .. mt.getcwd() .. "/test.sock"
+-- setup
+sock = "unix:" .. mt.getcwd() .. "/t-lua-speed-nolua.sock"
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
 end
-mt.startfilter(binpath .. "/opendkim", "-x", "t-lua-speed-nolua.conf", "-p", sock)
+
+-- try to start the filter
+mt.startfilter(binpath .. "/opendkim", "-x", "t-lua-speed-nolua.conf",
+               "-p", sock)
 
 for x = 1, 1000 do
 	-- try to connect to it
-	e, conn = pcall(mt.connect, sock)
-	timeout = 20
-	while not e and timeout > 0
-	do
-		mt.sleep(0.01)
-		timeout = timeout - 1
-		e, conn = pcall(mt.connect, sock)
-	end
-	if not e then
+	conn = mt.connect(sock, 40, 0.05)
+	if conn == nil then
 		error( "mt.connect() failed " , conn)
 	end
 

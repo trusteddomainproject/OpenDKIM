@@ -1,4 +1,4 @@
--- $Id: t-dontsign.lua,v 1.7 2010/09/07 04:20:56 cm-msk Exp $
+-- $Id: t-dontsign.lua,v 1.8 2010/09/07 04:48:40 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -8,12 +8,14 @@
 
 mt.echo("*** DontSignMailTo test")
 
--- try to start the filter
-sock = "unix:" .. mt.getcwd() .. "/test.sock"
+-- setup
+sock = "unix:" .. mt.getcwd() .. "/t-dontsign.sock"
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
 end
+
+-- try to start the filter
 mt.startfilter(binpath .. "/opendkim", "-x", "t-dontsign.conf", "-p", sock)
 
 -- try to connect to it

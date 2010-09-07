@@ -1,4 +1,4 @@
--- $Id: t-sign-ss.lua,v 1.15 2010/09/07 04:20:56 cm-msk Exp $
+-- $Id: t-sign-ss.lua,v 1.16 2010/09/07 04:48:41 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -8,17 +8,16 @@
 
 mt.echo("*** simple/simple signing test")
 
-cwd = mt.getcwd()
--- try to start the filter
-sock = "unix:" .. cwd .. "/test.sock"
- -- -6 = length of "tests" from end
-binpath = string.sub(cwd, 1, -6)
+-- setup
+sock = "unix:" .. mt.getcwd() .. "/t-sign-ss.sock"
+binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
 end
+
+-- try to start the filter
 mt.startfilter(binpath .. "opendkim", "-x", "t-sign-ss.conf", "-p", sock)
 
-sock = "unix:" .. cwd .. "/test.sock1"
 -- try to connect to it
 conn = mt.connect(sock, 40, 0.05)
 if conn == nil then
