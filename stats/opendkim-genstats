@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.6 2010/09/07 22:19:12 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.7 2010/09/07 22:22:56 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -111,8 +111,8 @@ $MYSQL --execute="select count(*) as 'author sigs', sum(pass) as 'passed' from s
 $MYSQL --execute="select count(*) as 'third-party sigs', sum(pass) as 'passed' from signatures join messages on messages.id = signatures.message where not messages.from_domain = signatures.domain and messages.mailing_list = 1" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
-echo "<p>Signed header field frequency: <br>" >> $OUTPUT
-$MYSQL --execute="select headernames.name, count(signed_headers.id) as count from signed_headers join headernames on headernames.id = signed_headers.header group by signed_headers.header order by count(signed_headers.id) desc" >> $OUTPUT
+echo "<p>Signed header field frequency (top 20 shown): <br>" >> $OUTPUT
+$MYSQL --execute="select headernames.name, count(signed_headers.id) as count from signed_headers join headernames on headernames.id = signed_headers.header group by signed_headers.header order by count(signed_headers.id) desc limit 20" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 echo "<p>Count of unique signing domains in sample: <br>" >> $OUTPUT
