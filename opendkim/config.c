@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: config.c,v 1.8 2010/09/07 06:26:16 cm-msk Exp $
+**  $Id: config.c,v 1.9 2010/09/07 06:50:18 cm-msk Exp $
 */
 
 #ifndef lint
-static char config_c_id[] = "@(#)$Id: config.c,v 1.8 2010/09/07 06:26:16 cm-msk Exp $";
+static char config_c_id[] = "@(#)$Id: config.c,v 1.9 2010/09/07 06:50:18 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -184,7 +184,7 @@ config_load_level(char *file, struct configdef *def,
 			/* skip leading whitespace on value */
 			if (!err)
 			{
-				for (p = s; *p != ' ' && *p != '\t'; p++)
+				for (p = s; *p == ' ' || *p == '\t'; p++)
 					continue;
 			}
 
