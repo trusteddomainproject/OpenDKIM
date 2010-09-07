@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.217 2010/09/07 06:08:09 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.218 2010/09/07 07:23:15 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -63,7 +63,6 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Don't assert a "g=" default when processing keys so that
 		statistics reporting can tell whether or not it was originally
 		there.
-	MILTERTEST: sleep function can now sleep for fractions of a second.
 	MILTERTEST: Feature request #SF3005002: Enable testing of
 		"unspecified" protocol family connections.
 	MILTERTEST: Add "-u" option to report resource usage statistics on
