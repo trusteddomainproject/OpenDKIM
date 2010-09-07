@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.198 2010/09/07 07:28:37 cm-msk Exp $
+**  $Id: opendkim.c,v 1.199 2010/09/07 17:32:42 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.198 2010/09/07 07:28:37 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.199 2010/09/07 17:32:42 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -12009,9 +12009,18 @@ mlfi_eom(SMFICTX *ctx)
 				if (status == DKIM_STAT_CANTVRFY ||
 				    status == DKIM_STAT_INTERNAL)
 				{
+					char *err;
+					char tmp[BUFRSZ + 1];
+
+					memset(tmp, '\0', sizeof tmp);
+
+					err = dkim_geterror(dfc->mctx_dkimv);
+					if (err != NULL)
+						snprintf(tmp, ": %s", err);
+
 					syslog(LOG_INFO,
-					       "%s: error during reputation query",
-					       dfc->mctx_jobid);
+					       "%s: error during reputation query%s",
+					       dfc->mctx_jobid, tmp);
 				}
 				else if (rep > conf->conf_repreject)
 				{
