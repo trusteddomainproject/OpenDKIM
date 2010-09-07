@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.3 2010/09/02 03:09:59 cm-msk Exp $";
+static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.4 2010/09/07 18:41:39 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -335,7 +335,7 @@ dkimf_ub_cancel(void *srv, void *q)
 
 	free(q);
 
-	return 0;
+	return DKIM_DNS_SUCCESS;
 }
 
 /*
@@ -345,7 +345,7 @@ dkimf_ub_cancel(void *srv, void *q)
 **  	srv -- service handle
 **
 **  Return value:
-**  	0 on success, -1 on failure
+**  	A DKIM_DNS_* constant.
 */
 
 static int
@@ -365,18 +365,18 @@ dkimf_ub_query(void *srv, int type, char *query,
 
 	ubdata = (struct dkimf_unbound_cb_data *) malloc(sizeof *ubdata);
 	if (ubdata == NULL)
-		return -1;
+		return DKIM_DNS_ERROR;
 
 	status = dkimf_unbound_queue(ub, query, type, buf, buflen, ubdata);
 	if (status != 0)
 	{
 		free(ubdata);
-		return status;
+		return DKIM_DNS_ERROR;
 	}
 
 	*qh = ubdata;
 
-	return 0;
+	return DKIM_DNS_SUCCESS;
 }
 
 /*
@@ -392,7 +392,7 @@ dkimf_ub_query(void *srv, int type, char *query,
 **  	dnssec -- DNSSEC status (returned)
 **
 **  Return value:
-**  	0 on success, -1 on failure
+**  	A DKIM_DNS_* constant.
 */
 
 static int
@@ -416,8 +416,8 @@ dkimf_ub_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 			*dnssec = ubdata->ubd_result;
 		if (bytes != NULL)
 			*bytes = ubdata->ubd_buflen;
-		if (error != NULL)
-			*error = ubdata->ubd_rcode;
+		if (error != NULL && status == -1)
+			*error = status		/* XXX -- improve this */
 	}
 
 	if (status == 0)
@@ -655,7 +655,7 @@ dkimf_ar_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 	}
 
 	if (error != NULL)
-		*error = status;
+		*error = errno;
 
 	if (status == AR_STAT_SUCCESS)
 		return DKIM_DNS_SUCCESS;
