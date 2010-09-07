@@ -89,11 +89,17 @@ as a chunk of body text on the specified connection.
 Changes the current working directory to the named
 .I directory.
 .TP
-.B mt.connect(sockinfo)
+.B mt.connect(sockinfo[, count, interval])
 Makes a connection to a filter listening at the socket described by
 .I sockinfo.
 Returns a handle referring to that connection, or the Lua constant
-"nil" on error.
+"nil" on error.  If
+.I count
+and
+.I interval
+are included, they specify the number of times to try to connect to the filter
+and the delay between each connection in seconds (with floating point values
+permitted).
 .TP
 .B mt.conninfo(conn, host, ip)
 Sends information about a new SMTP connection to the MTA, represented by

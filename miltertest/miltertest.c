@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.31 2010/09/07 03:08:39 cm-msk Exp $
+**  $Id: miltertest.c,v 1.32 2010/09/07 03:24:40 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.31 2010/09/07 03:08:39 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.32 2010/09/07 03:24:40 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -1285,8 +1285,12 @@ mt_signal(lua_State *l)
 int
 mt_connect(lua_State *l)
 {
+	int top;
 	int af;
 	int fd;
+	int saverr = 0;
+	u_int count = 1;
+	useconds_t interval = 0;
 	char *at;
 	char *p;
 	const char *sockinfo;
@@ -1294,15 +1298,23 @@ mt_connect(lua_State *l)
 
 	assert(l != NULL);
 
-	if (lua_gettop(l) != 1 ||
-	    !lua_isstring(l, 1))
+	top = lua_gettop(l);
+
+	if (!(top == 1 && lua_isstring(l, 1)) &&
+	    !(top == 3 && lua_isstring(l, 1) && lua_isnumber(l, 2) &&
+	                  lua_isnumber(l, 3)))
 	{
 		lua_pushstring(l, "mt.connect(): Invalid argument");
 		lua_error(l);
 	}
 
 	sockinfo = lua_tostring(l, 1);
-	lua_pop(l, 1);
+	if (top == 3)
+	{
+		count = (u_int) lua_tonumber(l, 2);
+		interval = (useconds_t) (1000000. * lua_tonumber(l, 3));
+	}
+	lua_pop(l, top);
 
 	af = AF_UNSPEC;
 	p = strchr(sockinfo, ':');
@@ -1348,10 +1360,25 @@ mt_connect(lua_State *l)
 			lua_error(l);
 		}
 
-		if (connect(fd, (struct sockaddr *) &sa, sizeof sa) < 0)
+		while (count > 0)
 		{
-			lua_pushfstring(l, "mt.connect(): connect(): %s",
-			                strerror(errno));
+			saverr = 0;
+
+			if (connect(fd, (struct sockaddr *) &sa,
+			            sizeof sa) == 0)
+				break;
+
+			saverr = errno;
+
+			usleep(interval);
+
+			count--;
+		}
+
+		if (saverr != 0)
+		{
+			lua_pushfstring(l, "mt.connect(): %s: connect(): %s",
+			                sockinfo, strerror(errno));
 			lua_error(l);
 		}
 
@@ -1423,10 +1450,25 @@ mt_connect(lua_State *l)
 			lua_error(l);
 		}
 
-		if (connect(fd, (struct sockaddr *) &sa, sizeof sa) < 0)
+		while (count > 0)
 		{
-			lua_pushfstring(l, "mt.connect(): connect(): %s",
-			                strerror(errno));
+			saverr = 0;
+
+			if (connect(fd, (struct sockaddr *) &sa,
+			            sizeof sa) == 0)
+				break;
+
+			saverr = errno;
+
+			usleep(interval);
+
+			count--;
+		}
+
+		if (saverr != 0)
+		{
+			lua_pushfstring(l, "mt.connect(): %s: connect(): %s",
+			                sockinfo, strerror(errno));
 			lua_error(l);
 		}
 
