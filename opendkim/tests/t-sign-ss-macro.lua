@@ -1,4 +1,4 @@
--- $Id: t-sign-ss-macro.lua,v 1.3 2010/09/06 06:41:47 grooverdan Exp $
+-- $Id: t-sign-ss-macro.lua,v 1.4 2010/09/07 04:20:56 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -19,16 +19,9 @@ mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-ss-macro.conf", "-p", sock)
 mt.set_timeout(600)
 
 -- try to connect to it
-e, conn = pcall(mt.connect, sock)
-timeout = 200
-while not e and timeout > 0
-do
-	mt.sleep(0.01)
-	timeout = timeout - 1
-	e, conn = pcall(mt.connect, sock)
-end
-if not e then
-	error( "mt.connect() failed " , conn)
+conn = mt.connect(sock, 40, 0.05)
+if conn == nil then
+	error "mt.connect() failed"
 end
 
 -- send connection information

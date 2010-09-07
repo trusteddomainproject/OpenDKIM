@@ -1,4 +1,4 @@
--- $Id: t-sign-ss.lua,v 1.14 2010/09/07 03:06:51 grooverdan Exp $
+-- $Id: t-sign-ss.lua,v 1.15 2010/09/07 04:20:56 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -20,16 +20,9 @@ mt.startfilter(binpath .. "opendkim", "-x", "t-sign-ss.conf", "-p", sock)
 
 sock = "unix:" .. cwd .. "/test.sock1"
 -- try to connect to it
-e, conn = pcall(mt.connect, sock)
-timeout = 60
-while not e and timeout > 0
-do
-	mt.sleep(0.01)
-	timeout = timeout - 1
-	e, conn = pcall(mt.connect, sock)
-end
-if not e then
-	error( "mt.connect() failed ")
+conn = mt.connect(sock, 40, 0.05)
+if conn == nil then
+	error "mt.connect() failed"
 end
 
 -- send connection information
