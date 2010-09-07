@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.4 2010/09/07 18:41:39 cm-msk Exp $";
+static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.5 2010/09/07 18:50:24 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -316,7 +316,7 @@ dkimf_unbound_queue(struct dkimf_unbound *ub, char *name, int type,
 **  	q -- query handle
 **
 **  Return value:
-**  	0 on success, -1 on failure
+**  	A DKIM_DNS_* constant.
 */
 
 static int
@@ -560,7 +560,7 @@ dkimf_unbound_add_trustanchor(struct dkimf_unbound *ub, char *file)
 **  	q -- query handle
 **
 **  Return value:
-**  	0 on success, -1 on failure
+**  	A DKIM_DNS_* constant.
 */
 
 static int
@@ -577,7 +577,7 @@ dkimf_ar_cancel(void *srv, void *q)
 
 	(void) ar_cancelquery(ar, arq);
 
-	return 0;
+	return DKIM_DNS_SUCCESS;
 }
 
 /*
@@ -587,7 +587,7 @@ dkimf_ar_cancel(void *srv, void *q)
 **  	srv -- service handle
 **
 **  Return value:
-**  	0 on success, -1 on failure
+**  	A DKIM_DNS_* constant.
 */
 
 static int
@@ -611,7 +611,7 @@ dkimf_ar_query(void *srv, int type, char *query,
 
 	*qh = (void *) q;
 
-	return 0;
+	return DKIM_DNS_SUCCESS;
 }
 
 /*
@@ -627,7 +627,7 @@ dkimf_ar_query(void *srv, int type, char *query,
 **  	dnssec -- DNSSEC status (returned)
 **
 **  Return value:
-**  	0 on success, -1 on failure
+**  	A DKIM_DNS_* constant.
 */
 
 static int
@@ -653,9 +653,11 @@ dkimf_ar_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 		if (bytes != NULL)
 			*bytes = r;
 	}
-
-	if (error != NULL)
-		*error = errno;
+	else
+	{
+		if (error != NULL)
+			*error = errno;
+	}
 
 	if (status == AR_STAT_SUCCESS)
 		return DKIM_DNS_SUCCESS;
