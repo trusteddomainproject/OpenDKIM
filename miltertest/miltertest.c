@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.37 2010/09/07 06:54:50 grooverdan Exp $
+**  $Id: miltertest.c,v 1.38 2010/09/08 18:13:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.37 2010/09/07 06:54:50 grooverdan Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.38 2010/09/08 18:13:37 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -1288,7 +1288,7 @@ mt_connect(lua_State *l)
 {
 	int top;
 	int af;
-	int fd;
+	int fd = -1;
 	int saverr = 0;
 	u_int count = 1;
 	useconds_t interval = 0;
