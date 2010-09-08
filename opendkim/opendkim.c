@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.199 2010/09/07 17:32:42 cm-msk Exp $
+**  $Id: opendkim.c,v 1.200 2010/09/08 17:34:56 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.199 2010/09/07 17:32:42 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.200 2010/09/08 17:34:56 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -7145,7 +7145,7 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		retcode = conf->conf_handling.hndl_badsig;
 		if (conf->conf_dolog)
 		{
-			syslog(LOG_ERR, "%s: bad signature data",
+			syslog(LOG_NOTICE, "%s: bad signature data",
 			       JOBID(dfc->mctx_jobid));
 		}
 		replytxt = "bad DKIM signature data";
@@ -7166,7 +7166,9 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		retcode = conf->conf_handling.hndl_nosig;
 		if (conf->conf_dolog)
 		{
-			syslog(LOG_ERR, "%s: no signature data",
+			syslog(retcode == SMFIS_ACCEPT ? LOG_DEBUG
+			                               : LOG_NOTICE,
+			       "%s: no signature data",
 			       JOBID(dfc->mctx_jobid));
 		}
 		replytxt = "no DKIM signature data";
@@ -7209,6 +7211,31 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		replytxt = "DKIM signature verification failed";
 		break;
 
+	  case DKIM_STAT_REVOKED:
+		retcode = conf->conf_handling.hndl_badsig;
+		if (conf->conf_dolog)
+		{
+			u_char *selector = NULL;
+			u_char *domain = NULL;
+			DKIM_SIGINFO *sig;
+
+			sig = dkim_getsignature(dkim);
+			if (sig != NULL)
+			{
+				selector = dkim_sig_getselector(sig);
+				domain = dkim_sig_getdomain(sig);
+			}
+
+			if (selector != NULL && domain != NULL)
+			{
+				syslog(LOG_NOTICE,
+				       "%s: key revoked (s=%s, d=%s)",
+				       JOBID(dfc->mctx_jobid), selector,
+				       domain);
+			}
+		}
+		break;
+
 	  case DKIM_STAT_KEYFAIL:
 	  case DKIM_STAT_NOKEY:
 		if (status == DKIM_STAT_KEYFAIL)
@@ -7222,8 +7249,7 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 			u_char *domain = NULL;
 			DKIM_SIGINFO *sig;
 
-			if (dkim != NULL)
-				err = dkim_geterror(dkim);
+			err = dkim_geterror(dkim);
 
 			sig = dkim_getsignature(dkim);
 			if (sig != NULL)
@@ -12368,7 +12394,8 @@ mlfi_eom(SMFICTX *ctx)
 		break;
 
 	  case DKIMF_STATUS_REVOKED:
-		ret = SMFIS_TEMPFAIL;
+		ret = dkimf_libstatus(ctx, lastdkim, "mlfi_eom()",
+		                      DKIM_STAT_REVOKED);
 		break;
 
 	  case DKIMF_STATUS_NOSIGNATURE:

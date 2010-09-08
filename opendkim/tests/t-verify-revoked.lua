@@ -1,4 +1,4 @@
--- $Id: t-verify-revoked.lua,v 1.10 2010/09/07 04:48:41 cm-msk Exp $
+-- $Id: t-verify-revoked.lua,v 1.11 2010/09/08 17:34:56 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -91,7 +91,7 @@ end
 if mt.eom(conn) ~= nil then
 	error "mt.eom() failed"
 end
-if mt.getreply(conn) ~= SMFIR_TEMPFAIL then
+if mt.getreply(conn) ~= SMFIR_ACCEPT then
 	error "mt.eom() unexpected reply"
 end
 
