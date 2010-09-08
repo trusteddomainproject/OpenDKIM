@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.7 2010/09/07 22:22:56 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.8 2010/09/08 05:33:11 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -89,8 +89,8 @@ echo "<p>Overall pass/fail rate for signed mail, excluding list traffic: <br>" >
 $MYSQL --execute="select count(*) as signatures, sum(ignored) as ignored, sum(pass) as passed, sum(fail_body) as 'failed(body)' from signatures join messages on messages.id = signatures.message where messages.mailing_list = 0" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
-echo "<p>Top five error codes (see libopendkim/dkim.h): <br>" >> $OUTPUT
-$MYSQL --execute="select sigerror, count(*) as instances from signatures where not sigerror = 0 and not sigerror = 28 group by sigerror order by instances desc limit 5" >> $OUTPUT
+echo "<p>Top ten error codes (see libopendkim/dkim.h): <br>" >> $OUTPUT
+$MYSQL --execute="select sigerror, count(*) as instances from signatures where not sigerror = 0 and not sigerror = 28 group by sigerror order by instances desc limit 10" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 echo "<p>MLM/non-MLM signature comparison: <br>" >> $OUTPUT
