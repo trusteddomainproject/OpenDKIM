@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.200 2010/09/08 17:34:56 cm-msk Exp $
+**  $Id: opendkim.c,v 1.201 2010/09/08 18:22:06 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.200 2010/09/08 17:34:56 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.201 2010/09/08 18:22:06 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -13333,6 +13333,7 @@ main(int argc, char **argv)
 	{
 		curconf->conf_dolog = FALSE;
 		curconf->conf_sendreports = FALSE;
+		curconf->conf_sendadspreports = FALSE;
 		autorestart = FALSE;
 		dofork = FALSE;
 		become = NULL;
