@@ -1,1 +1,2 @@
 revoked._domainkey.example.com	k=rsa; t=y; p=
+test._domainkey.example.com v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC9p5rp5EjC8cZbnlUpasA5HoUYwSA+HEBsBZnxppmehsiCLY/rSGDxmYaOL2LhGJur4UnXzTRpB/VgPTNOn3bkudEARqu0H2W6afEcI46igMs8fuZlyIi+UMGdUbn5tgbTRS7g6r9bxOcxwTtZcKAhvCWfDiTc2QeEzzxxyL4jewIDAQAB
