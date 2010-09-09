@@ -1,4 +1,4 @@
--- $Id: t-verify-ss.lua,v 1.1 2010/09/08 00:55:15 cm-msk Exp $
+-- $Id: t-verify-ss.lua,v 1.2 2010/09/09 22:37:15 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -93,4 +93,14 @@ if mt.eom(conn) ~= nil then
 end
 if mt.getreply(conn) ~= SMFIR_ACCEPT then
 	error "mt.eom() unexpected reply"
+end
+
+-- verify that an Authentication-Results header field got added
+if not mt.eom_check(conn, MT_HDRINSERT, "Authentication-Results") and
+   not mt.eom_check(conn, MT_HDRADD, "Authentication-Results") then
+	error "no Authentication-Results added"
+end
+ar = mt.getheader(conn, "Authentication-Results", 0)
+if string.find(ar, "dkim=pass", 1, true) == nil then
+	error "incorrect DKIM result"
 end
