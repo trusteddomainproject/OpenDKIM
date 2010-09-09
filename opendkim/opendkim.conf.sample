@@ -1,7 +1,7 @@
 ##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
-## $Id: opendkim.conf.sample,v 1.12 2010/09/09 14:40:05 grooverdan Exp $
+## $Id: opendkim.conf.sample,v 1.13 2010/09/09 16:30:32 cm-msk Exp $
 ##
 
 ##
@@ -464,7 +464,7 @@ KeyFile			/var/db/dkim/example.private
 ##  Specifies additional recipient address(es) to receive outgoing failure
 ##  reports.
 
-# ReportBccAddress		postmaster@example.com,  john@example.com
+# ReportBccAddress	postmaster@example.com, john@example.com
 
 ##  RequiredHeaders { yes | no }
 ##  	default no

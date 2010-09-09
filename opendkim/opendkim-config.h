@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.28 2010/09/01 22:51:48 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.29 2010/09/09 16:30:32 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.28 2010/09/01 22:51:48 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.29 2010/09/09 16:30:32 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -136,6 +136,7 @@ struct configdef dkimf_config[] =
 	{ "ReportIntervalDB",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_REPORT_INTERVALS */
 	{ "ReportAddress",		CONFIG_TYPE_STRING,	FALSE },
+	{ "ReportBccAddress",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_DKIM_REPUTATION
 	{ "ReputationFail",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "ReputationPass",		CONFIG_TYPE_INTEGER,	FALSE },

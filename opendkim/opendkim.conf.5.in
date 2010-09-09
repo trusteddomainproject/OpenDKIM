@@ -726,12 +726,12 @@ used to construct the address.
 
 .TP
 .I ReportBccAddress (string)
-Specifies the address(es) to BCC outgoing reports too 
+Specifies address(es) to include in a Bcc: header field on outgoing reports
 (see
 .I SendReports
 and
 .I SendADSPReports
-below). If multiple addresses are required they can be comma separated.
+below). If multiple addresses are required, they should be comma separated.
 
 .TP
 .I ReportIntervalDB (dataset)
