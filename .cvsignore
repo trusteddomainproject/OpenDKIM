@@ -36,12 +36,11 @@ Makefile
 *.tar.gz
 *.tar.gz.md5
 *.tar.gz.sha1
-
+*.tar.gz.asc
 tags
 .deps
 autom4te.cache
 core
 *.core
-
 build-aux
 opendkim-[0-9].[0-9].[0-9]
