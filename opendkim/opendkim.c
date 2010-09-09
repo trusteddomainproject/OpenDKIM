@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.205 2010/09/09 16:30:32 cm-msk Exp $
+**  $Id: opendkim.c,v 1.206 2010/09/09 22:42:23 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.205 2010/09/09 16:30:32 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.206 2010/09/09 22:42:23 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -11400,221 +11400,9 @@ mlfi_eom(SMFICTX *ctx)
 		}
 #endif /* _FFR_STATS */
 
-		if (dfc->mctx_addheader &&
-		    dfc->mctx_status != DKIMF_STATUS_UNKNOWN)
+		if (dfc->mctx_addheader)
 		{
-			_Bool test;
-			u_int keybits;
-			char *authresult;
-			char *failstatus;
-			char comment[BUFRSZ + 1];
 			char val[MAXADDRESS + 1];
-
-			memset(comment, '\0', sizeof comment);
-
-			test = FALSE;
-			failstatus = (testkey ? "neutral" : "fail");
-
-#ifdef USE_UNBOUND
-			/* special handling for sketchy answers */
-			if (dfc->mctx_dnssec_key == DKIM_DNSSEC_BOGUS)
-			{
-				if (conf->conf_boguskey == DKIM_KEYACTIONS_FAIL)
-				{
-					dfc->mctx_status = DKIMF_STATUS_BAD;
-				}
-				else if (conf->conf_boguskey == DKIM_KEYACTIONS_NEUTRAL)			{
-					dfc->mctx_status = DKIMF_STATUS_VERIFYERR;
-					failstatus = "neutral";
-				}
-			}
-
-			if (dfc->mctx_dnssec_key == DKIM_DNSSEC_INSECURE)
-			{
-				if (conf->conf_insecurekey == DKIM_KEYACTIONS_FAIL)
-				{
-					dfc->mctx_status = DKIMF_STATUS_BAD;
-				}
-				else if (conf->conf_insecurekey == DKIM_KEYACTIONS_NEUTRAL)
-				{
-					dfc->mctx_status = DKIMF_STATUS_VERIFYERR;
-					failstatus = "neutral";
-				}
-			}
-#endif /* USE_UNBOUND */
-
-			switch (dfc->mctx_status)
-			{
-			  case DKIMF_STATUS_GOOD:
-				authresult = "pass";
-				sig = dkim_getsignature(dfc->mctx_dkimv);
-				assert(sig != NULL);
-				(void) dkim_sig_getkeysize(sig, &keybits);
-				snprintf(comment, sizeof comment, "%u-bit key",
-				         keybits);
-#ifdef USE_UNBOUND
-				switch (dfc->mctx_dnssec_key)
-				{
-				  case DKIM_DNSSEC_BOGUS:
-					strlcat(comment, "; bogus key",
-					           sizeof comment);
-					authresult = "fail";
-					break;
-
-				  case DKIM_DNSSEC_INSECURE:
-					strlcat(comment, "; insecure key",
-					           sizeof comment);
-					break;
-
-				  case DKIM_DNSSEC_SECURE:
-					strlcat(comment, "; secure key",
-					           sizeof comment);
-					break;
-
-				  default:
-					break;
-				}
-#endif /* USE_UNBOUND */
-				break;
-
-			  case DKIMF_STATUS_NOSIGNATURE:
-				authresult = "none";
-				strlcpy(comment, "no signature",
-				        sizeof comment);
-
-				if (!dfc->mctx_susp && !conf->conf_alwaysaddar)
-					dfc->mctx_addheader = FALSE;
-
-				break;
-
-			  case DKIMF_STATUS_BAD:
-			  case DKIMF_STATUS_REVOKED:
-			  case DKIMF_STATUS_PARTIAL:
-			  case DKIMF_STATUS_VERIFYERR:
-				authresult = failstatus;
-				if (dfc->mctx_status == DKIMF_STATUS_REVOKED)
-				{
-					strlcpy(comment, "revoked",
-					        sizeof comment);
-				}
-				else if (dfc->mctx_status == DKIMF_STATUS_PARTIAL)
-				{
-					authresult = "permerror";
-
-					strlcpy(comment,
-					        "partial verification",
-					        sizeof comment);
-				}
-				else if (dfc->mctx_status == DKIMF_STATUS_VERIFYERR)
-				{
-					const char *err;
-
-					authresult = "permerror";
-
-					err = dkim_geterror(dfc->mctx_dkimv);
-					if (err != NULL)
-					{
-						snprintf(comment,
-						         sizeof comment,
-						         "verification error: %s",
-						         err);
-					}
-					else
-					{
-						strlcpy(comment,
-						        "verification error",
-						        sizeof comment);
-					}
-				}
-				else
-				{
-					strlcpy(comment, "verification failed",
-					        sizeof comment);
-				}
-
-#ifdef USE_UNBOUND
-				switch (dfc->mctx_dnssec_key)
-				{
-				  case DKIM_DNSSEC_BOGUS:
-					strlcat(comment, "; bogus key",
-					        sizeof comment);
-					authresult = "fail";
-					break;
-
-				  case DKIM_DNSSEC_INSECURE:
-					strlcat(comment, "; insecure key",
-					        sizeof comment);
-					break;
-
-				  case DKIM_DNSSEC_SECURE:
-					strlcat(comment, "; secure key",
-					        sizeof comment);
-					break;
-
-				  default:
-					break;
-				}
-#endif /* USE_UNBOUND */
-
-				break;
-
-			  case DKIMF_STATUS_BADFORMAT:
-				authresult = "permerror";
-				strlcpy(comment, "bad format", sizeof comment);
-				break;
-
-			  case DKIMF_STATUS_NOKEY:
-				authresult = "permerror";
-				strlcpy(comment, "key not found",
-				        sizeof comment);
-				break;
-
-			  default:
-				authresult = "neutral";
-				break;
-			}
-
-#ifdef SMFIF_QUARANTINE
-			/* quarantine for "bad" results if requested */
-			if (quarantine &&
-			    (dfc->mctx_status == DKIMF_STATUS_BAD ||
-			     dfc->mctx_status == DKIMF_STATUS_REVOKED ||
-			     dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
-			     dfc->mctx_status == DKIMF_STATUS_VERIFYERR ||
-			     (dfc->mctx_status == DKIMF_STATUS_NOSIGNATURE &&
-			      dfc->mctx_addheader)))
-			{
-				char qreason[BUFRSZ + 1];
-
-				snprintf(qreason, sizeof qreason,
-				         "%s: %s: %s", progname, failstatus,
-				         comment);
-				if (dkimf_quarantine(ctx,
-				                     qreason) != MI_SUCCESS)
-				{
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_ERR,
-						       "%s: smfi_quarantine() failed",
-						       dfc->mctx_jobid);
-					}
-				}
-			}
-#endif /* SMFIF_QUARANTINE */
-
-			if (test)
-			{
-				if (comment[0] == '\0')
-				{
-					strlcpy(comment, "testing",
-					        sizeof comment);
-				}
-				else
-				{
-					strlcat(comment, "/testing",
-					        sizeof comment);
-				}
-			}
 
 			/*
 			**  Record DKIM and ADSP results in an
@@ -11623,11 +11411,6 @@ mlfi_eom(SMFICTX *ctx)
 
 			memset(val, '\0', sizeof val);
 			memset(header, '\0', sizeof header);
-
-			/* first, the DKIM bit */
-			strlcpy(val, "unknown", sizeof val);
-			(void) dkim_sig_getidentity(dfc->mctx_dkimv,
-			                            NULL, val, sizeof val - 1);
 
 			snprintf((char *) header, sizeof header, "%s%s",
 		        	 cc->cctx_noleadspc ? " " : "",
@@ -11643,230 +11426,474 @@ mlfi_eom(SMFICTX *ctx)
 
 			strlcat((char *) header, ";", sizeof header);
 			strlcat((char *) header, DELIMITER, sizeof header);
-			strlcat((char *) header, "dkim=", sizeof header);
-			strlcat((char *) header, authresult, sizeof header);
 
-			if (comment[0] != '\0')
+			if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN)
 			{
-				strlcat((char *) header, DELIMITER,
-					        sizeof header);
-				strlcat((char *) header, "(", sizeof header);
-				strlcat((char *) header, comment,
-				        sizeof header);
-				strlcat((char *) header, ")", sizeof header);
-			}
+				_Bool test;
+				u_int keybits;
+				char *authresult;
+				char *failstatus;
+				char comment[BUFRSZ + 1];
 
-			if (dfc->mctx_status != DKIMF_STATUS_NOSIGNATURE)
-			{
-				char ss[BUFRSZ + 1];
-				DKIM_STAT ts;
+				memset(comment, '\0', sizeof comment);
 
-				memset(ss, '\0', sizeof ss);
-
-				strlcat((char *) header, DELIMITER,
-				        sizeof header);
-				strlcat((char *) header,
-				        "header.i=", sizeof header);
-				strlcat((char *) header, val, sizeof header);
-
-				sig = dkim_getsignature(dfc->mctx_dkimv);
-				if (sig != NULL)
-				{
-					size_t ssl;
-
-					ssl = sizeof ss - 1;
-					ts = dkim_get_sigsubstring(dfc->mctx_dkimv,
-				                                   sig,
-					                           ss, &ssl);
-				}
-
-				if (sig != NULL && ts == DKIM_STAT_OK &&
-				    !conf->conf_noheaderb)
-				{
-					strlcat((char *) header, DELIMITER,
-					        sizeof header);
-					strlcat((char *) header,
-					        "header.b=", sizeof header);
-					strlcat((char *) header, ss,
-					        sizeof header);
-				}
-			}
-		}
-
-		/* now the ADSP bit, unless we couldn't get the domain */
-		if (dfc->mctx_status != DKIMF_STATUS_BADFORMAT)
-		{
-			_Bool first;
-
-			char tmphdr[DKIM_MAXHEADER + 1];
-
-			if (header[0] != '\0')
-			{
-				strlcat((char *) header, ";",
-				        sizeof header);
-				strlcat((char *) header, DELIMITER,
-				        sizeof header);
-			}
-
-			strlcat((char *) header, "dkim-adsp=", sizeof header);
-
-			if (authorsig)
-			{				/* pass */
-				strlcat((char *) header, "pass",
-					        sizeof header);
-			}
-			else if (!policydone)
-			{				/* temperror */
-				strlcat((char *) header, "temperror",
-				        sizeof header);
-			}
-#ifdef USE_UNBOUND
-			else if (dfc->mctx_dnssec_policy == DKIM_DNSSEC_BOGUS)
-			{				/* bogus */
-				strlcat((char *) header, "unknown",
-				        sizeof header);
-			}
-#endif /* USE_UNBOUND */
-			else if (dfc->mctx_presult == DKIM_PRESULT_NXDOMAIN)
-			{				/* nxdomain */
-				strlcat((char *) header, "nxdomain",
-				        sizeof header);
-			}
-			else if (dfc->mctx_pcode == DKIM_POLICY_NONE)
-			{				/* none */
-				strlcat((char *) header, "none",
-				        sizeof header);
-			}
-			else if (dfc->mctx_pcode == DKIM_POLICY_UNKNOWN)
-			{
-				if (!authorsig)
-				{			/* unknown */
-					strlcat((char *) header,
-					        "unknown", sizeof header);
-				}
-				else
-				{			/* signed */
-					strlcat((char *) header,
-					        "signed", sizeof header);
-				}
-			}
-			else if (dfc->mctx_pcode == DKIM_POLICY_ALL &&
-			         !authorsig)
-			{				/* fail */
-				strlcat((char *) header, "fail",
-				        sizeof header);
-			}
-			else if (dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE &&
-			         !authorsig)
-			{				/* discard */
-				strlcat((char *) header, "discard",
-				        sizeof header);
-			}
-			else
-			{				/* inconceivable! */
-				strlcat((char *) header, "permerror",
-				        sizeof header);
-			}
+				test = FALSE;
+				failstatus = (testkey ? "neutral" : "fail");
 
 #ifdef USE_UNBOUND
-			switch (dfc->mctx_dnssec_policy)
-			{
-			  case DKIM_DNSSEC_BOGUS:
-				strlcat((char *) header, " (bogus policy)",
-				        sizeof header);
-				break;
-
-			  case DKIM_DNSSEC_INSECURE:
-				strlcat((char *) header, " (insecure policy)",
-				        sizeof header);
-				break;
-
-			  case DKIM_DNSSEC_SECURE:
-				strlcat((char *) header, " (secure policy)",
-				        sizeof header);
-				break;
-
-			  default:
-				break;
-			}
-#endif /* USE_UNBOUND */
-
-			/* if we generated either, pretty it up */
-			if (header[0] != '\0')
-			{
-				int len;
-				char *p;
-				char *last;
-
-				c = sizeof AUTHRESULTSHDR + 2;
-				first = TRUE;
-				memset(tmphdr, '\0', sizeof tmphdr);
-
-				for (p = strtok_r((char *) header,
-				                  DELIMITER, &last);
-				     p != NULL;
-				     p = strtok_r(NULL, DELIMITER, &last))
+				/* special handling for sketchy answers */
+				if (dfc->mctx_dnssec_key == DKIM_DNSSEC_BOGUS)
 				{
-					len = strlen(p);
-
-					if (!first)
+					if (conf->conf_boguskey == DKIM_KEYACTIONS_FAIL)
 					{
-						if (c + len >= DKIM_HDRMARGIN)
+						dfc->mctx_status = DKIMF_STATUS_BAD;
+					}
+					else if (conf->conf_boguskey == DKIM_KEYACTIONS_NEUTRAL)			{
+						dfc->mctx_status = DKIMF_STATUS_VERIFYERR;
+						failstatus = "neutral";
+					}
+				}
+
+				if (dfc->mctx_dnssec_key == DKIM_DNSSEC_INSECURE)
+				{
+					if (conf->conf_insecurekey == DKIM_KEYACTIONS_FAIL)
+					{
+						dfc->mctx_status = DKIMF_STATUS_BAD;
+					}
+					else if (conf->conf_insecurekey == DKIM_KEYACTIONS_NEUTRAL)
+					{
+						dfc->mctx_status = DKIMF_STATUS_VERIFYERR;
+						failstatus = "neutral";
+					}
+				}
+#endif /* USE_UNBOUND */
+
+				switch (dfc->mctx_status)
+				{
+				  case DKIMF_STATUS_GOOD:
+					authresult = "pass";
+					sig = dkim_getsignature(dfc->mctx_dkimv);
+					assert(sig != NULL);
+					(void) dkim_sig_getkeysize(sig,
+					                           &keybits);
+					snprintf(comment, sizeof comment,
+					         "%u-bit key", keybits);
+#ifdef USE_UNBOUND
+					switch (dfc->mctx_dnssec_key)
+					{
+					  case DKIM_DNSSEC_BOGUS:
+						strlcat(comment, "; bogus key",
+						        sizeof comment);
+						authresult = "fail";
+						break;
+
+					  case DKIM_DNSSEC_INSECURE:
+						strlcat(comment,
+						        "; insecure key",
+						        sizeof comment);
+						break;
+
+					  case DKIM_DNSSEC_SECURE:
+						strlcat(comment,
+						        "; secure key",
+						        sizeof comment);
+						break;
+
+					  default:
+						break;
+					}
+#endif /* USE_UNBOUND */
+					break;
+
+				  case DKIMF_STATUS_NOSIGNATURE:
+					authresult = "none";
+					strlcpy(comment, "no signature",
+					        sizeof comment);
+					break;
+
+				  case DKIMF_STATUS_BAD:
+				  case DKIMF_STATUS_REVOKED:
+				  case DKIMF_STATUS_PARTIAL:
+				  case DKIMF_STATUS_VERIFYERR:
+					authresult = failstatus;
+					if (dfc->mctx_status == DKIMF_STATUS_REVOKED)
+					{
+						strlcpy(comment, "revoked",
+						        sizeof comment);
+					}
+					else if (dfc->mctx_status == DKIMF_STATUS_PARTIAL)
+					{
+						authresult = "permerror";
+
+						strlcpy(comment,
+						        "partial verification",
+						        sizeof comment);
+					}
+					else if (dfc->mctx_status == DKIMF_STATUS_VERIFYERR)
+					{
+						const char *err;
+
+						authresult = "permerror";
+
+						err = dkim_geterror(dfc->mctx_dkimv);
+						if (err != NULL)
 						{
-							strlcat(tmphdr, "\n\t",
-							        sizeof tmphdr);
-							c = 8;
+							snprintf(comment,
+							         sizeof comment,
+							         "verification error: %s",
+							         err);
 						}
 						else
 						{
-							strlcat(tmphdr, " ",
-							        sizeof tmphdr);
+							strlcpy(comment,
+							        "verification error",
+							        sizeof comment);
 						}
 					}
+					else
+					{
+						strlcpy(comment,
+						        "verification failed",
+						        sizeof comment);
+					}
 
-					strlcat(tmphdr, p, sizeof tmphdr);
-					first = FALSE;
-					c += len;
+#ifdef USE_UNBOUND
+					switch (dfc->mctx_dnssec_key)
+					{
+					  case DKIM_DNSSEC_BOGUS:
+						strlcat(comment, "; bogus key",
+						        sizeof comment);
+						authresult = "fail";
+						break;
+
+					  case DKIM_DNSSEC_INSECURE:
+						strlcat(comment,
+						        "; insecure key",
+						        sizeof comment);
+						break;
+
+					  case DKIM_DNSSEC_SECURE:
+						strlcat(comment,
+						        "; secure key",
+						        sizeof comment);
+						break;
+
+					  default:
+						break;
+					}
+#endif /* USE_UNBOUND */
+
+					break;
+
+				  case DKIMF_STATUS_BADFORMAT:
+					authresult = "permerror";
+					strlcpy(comment, "bad format",
+					        sizeof comment);
+					break;
+
+				  case DKIMF_STATUS_NOKEY:
+					authresult = "permerror";
+					strlcpy(comment, "key not found",
+					        sizeof comment);
+					break;
+
+				  default:
+					authresult = "neutral";
+					break;
 				}
 
-				strlcpy(dfc->mctx_dkimar, tmphdr,
-				        sizeof dfc->mctx_dkimar);
+				if (test)
+				{
+					if (comment[0] == '\0')
+					{
+						strlcpy(comment, "testing",
+						        sizeof comment);
+					}
+					else
+					{
+						strlcat(comment, "/testing",
+						        sizeof comment);
+					}
+				}
 
-				dkimf_add_ar_fields(dfc, conf, ctx);
+				/* first, the DKIM bit */
+				strlcpy(val, "unknown", sizeof val);
+				(void) dkim_sig_getidentity(dfc->mctx_dkimv,
+				                            NULL, val,
+				                            sizeof val - 1);
+
+				strlcat((char *) header, "dkim=",
+				        sizeof header);
+				strlcat((char *) header, authresult,
+				        sizeof header);
+
+				if (comment[0] != '\0')
+				{
+					strlcat((char *) header, DELIMITER,
+						        sizeof header);
+					strlcat((char *) header, "(",
+					        sizeof header);
+					strlcat((char *) header, comment,
+					        sizeof header);
+					strlcat((char *) header, ")",
+					        sizeof header);
+				}
+
+				if (dfc->mctx_status != DKIMF_STATUS_NOSIGNATURE)
+				{
+					char ss[BUFRSZ + 1];
+					DKIM_STAT ts;
+
+					memset(ss, '\0', sizeof ss);
+
+					strlcat((char *) header, DELIMITER,
+					        sizeof header);
+					strlcat((char *) header,
+					        "header.i=", sizeof header);
+					strlcat((char *) header, val,
+					        sizeof header);
+
+					sig = dkim_getsignature(dfc->mctx_dkimv);
+					if (sig != NULL)
+					{
+						size_t ssl;
+
+						ssl = sizeof ss - 1;
+						ts = dkim_get_sigsubstring(dfc->mctx_dkimv,
+					                                   sig,
+						                           ss,
+						                           &ssl);
+					}
+
+					if (sig != NULL &&
+					    ts == DKIM_STAT_OK &&
+					    !conf->conf_noheaderb)
+					{
+						strlcat((char *) header,
+						        DELIMITER,
+						        sizeof header);
+						strlcat((char *) header,
+						        "header.b=",
+						        sizeof header);
+						strlcat((char *) header, ss,
+						        sizeof header);
+					}
+				}
+			}
+
+			/* now the ADSP bit */
+			if (dfc->mctx_status != DKIMF_STATUS_BADFORMAT)
+			{
+				_Bool first;
+
+				char tmphdr[DKIM_MAXHEADER + 1];
+
+				if (header[0] != '\0')
+				{
+					strlcat((char *) header, ";",
+					        sizeof header);
+					strlcat((char *) header, DELIMITER,
+					        sizeof header);
+				}
+
+				strlcat((char *) header, "dkim-adsp=",
+				        sizeof header);
+
+				if (authorsig)
+				{				/* pass */
+					strlcat((char *) header, "pass",
+						        sizeof header);
+				}
+				else if (!policydone)
+				{				/* temperror */
+					strlcat((char *) header, "temperror",
+					        sizeof header);
+				}
+#ifdef USE_UNBOUND
+				else if (dfc->mctx_dnssec_policy == DKIM_DNSSEC_BOGUS)
+				{				/* bogus */
+					strlcat((char *) header, "unknown",
+					        sizeof header);
+				}
+#endif /* USE_UNBOUND */
+				else if (dfc->mctx_presult == DKIM_PRESULT_NXDOMAIN)
+				{				/* nxdomain */
+					strlcat((char *) header, "nxdomain",
+					        sizeof header);
+				}
+				else if (dfc->mctx_pcode == DKIM_POLICY_NONE)
+				{				/* none */
+					strlcat((char *) header, "none",
+					        sizeof header);
+				}
+				else if (dfc->mctx_pcode == DKIM_POLICY_UNKNOWN)
+				{
+					if (!authorsig)
+					{			/* unknown */
+						strlcat((char *) header,
+						        "unknown",
+						        sizeof header);
+					}
+					else
+					{			/* signed */
+						strlcat((char *) header,
+						        "signed",
+						        sizeof header);
+					}
+				}
+				else if (dfc->mctx_pcode == DKIM_POLICY_ALL &&
+				         !authorsig)
+				{				/* fail */
+					strlcat((char *) header, "fail",
+					        sizeof header);
+				}
+				else if (dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE &&
+				         !authorsig)
+				{				/* discard */
+					strlcat((char *) header, "discard",
+					        sizeof header);
+				}
+				else
+				{
+					strlcat((char *) header, "permerror",
+					        sizeof header);
+				}
+
+#ifdef USE_UNBOUND
+				switch (dfc->mctx_dnssec_policy)
+				{
+				  case DKIM_DNSSEC_BOGUS:
+					strlcat((char *) header,
+					        "(bogus policy)",
+					        sizeof header);
+					break;
+
+				  case DKIM_DNSSEC_INSECURE:
+					strlcat((char *) header,
+					        " (insecure policy)",
+					        sizeof header);
+					break;
+
+				  case DKIM_DNSSEC_SECURE:
+					strlcat((char *) header,
+					        " (secure policy)",
+					        sizeof header);
+					break;
+
+				  default:
+					break;
+				}
+#endif /* USE_UNBOUND */
+
+				/* if we generated either, pretty it up */
+				if (header[0] != '\0')
+				{
+					int len;
+					char *p;
+					char *last;
+
+					c = sizeof AUTHRESULTSHDR + 2;
+					first = TRUE;
+					memset(tmphdr, '\0', sizeof tmphdr);
+
+					for (p = strtok_r((char *) header,
+					                  DELIMITER, &last);
+					     p != NULL;
+					     p = strtok_r(NULL, DELIMITER,
+					                  &last))
+					{
+						len = strlen(p);
+
+						if (!first)
+						{
+							if (c + len >= DKIM_HDRMARGIN)
+							{
+								strlcat(tmphdr,
+								        "\n\t",
+								        sizeof tmphdr);
+								c = 8;
+							}
+							else
+							{
+								strlcat(tmphdr,
+								        " ",
+								        sizeof tmphdr);
+							}
+						}
+
+						strlcat(tmphdr, p,
+						        sizeof tmphdr);
+						first = FALSE;
+						c += len;
+					}
+
+					strlcpy(dfc->mctx_dkimar, tmphdr,
+					        sizeof dfc->mctx_dkimar);
+
+					dkimf_add_ar_fields(dfc, conf, ctx);
 
 #ifdef _FFR_RESIGN
-				if (dfc->mctx_resign)
-				{
-					snprintf(header, sizeof header,
-					         "%s: %s",
-					         AUTHRESULTSHDR, tmphdr);
-
-					status = dkimf_msr_header(dfc->mctx_srhead,
-					                          &lastdkim,
-					                          header,
-					                          strlen(header));
-					if (status != DKIM_STAT_OK)
+					if (dfc->mctx_resign)
 					{
-						return dkimf_libstatus(ctx,
-						                       lastdkim,
-						                       "dkim_header()",
-						                       status);
-					}
+						snprintf(header, sizeof header,
+						         "%s: %s",
+						         AUTHRESULTSHDR,
+						         dfc->mctx_dkimar);
 
-					status = dkimf_msr_eoh(dfc->mctx_srhead,
-					                       &lastdkim);
+						status = dkimf_msr_header(dfc->mctx_srhead,
+						                          &lastdkim,
+						                          header,
+						                          strlen(header));
+						if (status != DKIM_STAT_OK)
+						{
+							return dkimf_libstatus(ctx,
+							                       lastdkim,
+							                       "dkim_header()",
+							                       status);
+						}
 
-					if (status != DKIM_STAT_OK)
-					{
-						return dkimf_libstatus(ctx,
-						                       lastdkim,
-						                       "dkim_eoh()",
-						                       status);
+						status = dkimf_msr_eoh(dfc->mctx_srhead,
+						                       &lastdkim);
+
+						if (status != DKIM_STAT_OK)
+						{
+							return dkimf_libstatus(ctx,
+							                       lastdkim,
+							                       "dkim_eoh()",
+							                       status);
+						}
 					}
-				}
 #endif /* _FFR_RESIGN */
+				}
 			}
 		}
+
+#ifdef SMFIF_QUARANTINE
+		/* quarantine for "bad" results if requested */
+		if (quarantine &&
+		    (dfc->mctx_status == DKIMF_STATUS_BAD ||
+		     dfc->mctx_status == DKIMF_STATUS_REVOKED ||
+		     dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
+		     dfc->mctx_status == DKIMF_STATUS_VERIFYERR ||
+		     (dfc->mctx_status == DKIMF_STATUS_NOSIGNATURE &&
+		      dfc->mctx_addheader)))
+		{
+			char qreason[BUFRSZ + 1];
+
+			snprintf(qreason, sizeof qreason,
+			         "quarantined by %s", progname);
+			if (dkimf_quarantine(ctx,
+			                     qreason) != MI_SUCCESS)
+			{
+				if (conf->conf_dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s: smfi_quarantine() failed",
+					       dfc->mctx_jobid);
+				}
+			}
+		}
+#endif /* SMFIF_QUARANTINE */
 
 		/* send an ARF message for DKIM? */
 		if (dfc->mctx_status == DKIMF_STATUS_BAD &&
