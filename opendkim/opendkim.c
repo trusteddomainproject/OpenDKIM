@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.202 2010/09/08 19:22:43 cm-msk Exp $
+**  $Id: opendkim.c,v 1.203 2010/09/09 13:55:32 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.202 2010/09/08 19:22:43 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.203 2010/09/09 13:55:32 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -669,7 +669,8 @@ pthread_mutex_t bldb_lock;			/* bldb lock */
 DKIMF_DB ridb;					/* report intervals DB */
 pthread_mutex_t ridb_lock;			/* ridb lock */
 #endif /* _FFR_REPORT_INTERVALS */
-char reportaddr[MAXADDRESS + 1];		/* reporting address */
+char sendmailcommand[MAXADDRESS + 90];		/* sendmail command */
+char reportaddr[MAXADDRESS + 1];		/* reporting address - From header */
 char myhostname[DKIM_MAXHOSTNAMELEN + 1];	/* hostname */
 pthread_mutex_t conf_lock;			/* config lock */
 pthread_mutex_t count_lock;			/* counter lock */
@@ -4201,33 +4202,53 @@ dkimf_arfdkim(msgctx dfc)
 static void
 dkimf_reportaddr(struct dkimf_config *conf)
 {
+	uid_t uid;
+	struct passwd *pw;
 	assert(conf != NULL);
 
 	if (conf->conf_reportaddr != NULL)
 	{
+		int status;
+		char env[MAXADDRESS + 1];	/* reporting address */
+		char *user, *domain;
 		strlcpy(reportaddr, conf->conf_reportaddr,
 		           sizeof reportaddr);
-	}
-	else
-	{
-		uid_t uid;
-		struct passwd *pw;
-
-		uid = geteuid();
-
-		pw = getpwuid(uid);
-
-		if (pw == NULL)
+		strlcpy(env, conf->conf_reportaddr,
+		           sizeof reportaddr);
+		status = dkim_mail_parse(env, &user, &domain);
+		if (status == 0)
 		{
-			snprintf(reportaddr, sizeof reportaddr,
-			         "%u@%s", uid, myhostname);
+			snprintf(sendmailcommand, sizeof sendmailcommand,
+				"%s -t %s -f %s@%s", 
+				_PATH_SENDMAIL, SENDMAIL_OPTIONS,
+				user, domain);
+			return;
 		}
 		else
 		{
-			snprintf(reportaddr, sizeof reportaddr,
-			         "%s@%s", pw->pw_name, myhostname);
+			if (dolog)
+				syslog(LOG_ERR,"Error parsing ReportAddress - ignoring");
 		}
 	}
+	/* not successful case has already returned. Make up a value if not
+	 * set of an error occurs */
+
+	uid = geteuid();
+	pw = getpwuid(uid);
+
+	if (pw == NULL)
+	{
+		snprintf(reportaddr, sizeof reportaddr,
+		         "%u@%s", uid, myhostname);
+	}
+	else
+	{
+		snprintf(reportaddr, sizeof reportaddr,
+		         "%s@%s", pw->pw_name, myhostname);
+	}
+	snprintf(sendmailcommand, sizeof sendmailcommand,
+		"%s -t %s -f %s", 
+		_PATH_SENDMAIL, SENDMAIL_OPTIONS, reportaddr);
 }
 
 /*
@@ -7893,7 +7914,7 @@ dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 		return;
 
 	pthread_mutex_lock(&popen_lock);
-	out = popen(_PATH_SENDMAIL " -t" SENDMAIL_OPTIONS, "w");
+	out = popen(sendmailcommand, "w");
 	pthread_mutex_unlock(&popen_lock);
 
 	if (out == NULL)
@@ -8137,7 +8158,7 @@ dkimf_policyreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 		return;
 
 	pthread_mutex_lock(&popen_lock);
-	out = popen(_PATH_SENDMAIL " -t" SENDMAIL_OPTIONS, "w");
+	out = popen(sendmailcommand, "w");
 	pthread_mutex_unlock(&popen_lock);
 
 	if (out == NULL)
