@@ -1,4 +1,4 @@
--- $Id: t-verify-unsigned.lua,v 1.12 2010/09/07 04:48:41 cm-msk Exp $
+-- $Id: t-verify-unsigned.lua,v 1.13 2010/09/09 22:41:51 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -96,6 +96,9 @@ if not mt.eom_check(conn, MT_HDRINSERT, "Authentication-Results") and
 	error "no Authentication-Results added"
 end
 ar = mt.getheader(conn, "Authentication-Results", 0)
+if string.find(ar, "unknown-host;", 1, true) == nil then
+	error "missing authservid in Authentication-Results field"
+end
 if string.find(ar, "dkim=none", 1, true) == nil then
 	error "incorrect DKIM result"
 end
