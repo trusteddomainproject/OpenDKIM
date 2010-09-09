@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.203 2010/09/09 13:55:32 grooverdan Exp $
+**  $Id: opendkim.c,v 1.204 2010/09/09 14:40:05 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.203 2010/09/09 13:55:32 grooverdan Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.204 2010/09/09 14:40:05 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -261,6 +261,7 @@ struct dkimf_config
 	char *		conf_reproot;		/* root of reputation queries */
 #endif /* _FFR_DKIM_REPUTATION */
 	char *		conf_reportaddr;	/* report sender address */
+	char *		conf_reportaddrbcc;	/* report repcipient address as bcc */
 	char *		conf_localadsp_file;	/* local ADSP file */
 #ifdef _FFR_REDIRECT
 	char *		conf_redirect;		/* redirect failures to */
@@ -5041,6 +5042,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_reportaddr,
 		                  sizeof conf->conf_reportaddr);
 
+		(void) config_get(data, "ReportBccAddress",
+		                  &conf->conf_reportaddrbcc,
+		                  sizeof conf->conf_reportaddrbcc);
+
 		if (conf->conf_signalgstr == NULL)
 		{
 			(void) config_get(data, "SignatureAlgorithm",
@@ -7938,6 +7943,10 @@ dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 
 	/* To: */
 	fprintf(out, "To: %s@%s\n", addr, dkim_sig_getdomain(sig));
+
+	/* BCC: */
+	if (conf->conf_reportaddrbcc != NULL)
+		fprintf(out, "Bcc: %s\n", conf->conf_reportaddrbcc);
 
 	/* we presume sendmail will add Date: */
 

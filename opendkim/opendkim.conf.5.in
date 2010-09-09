@@ -725,6 +725,15 @@ below).  If not specified, the executing user and local hostname will be
 used to construct the address.
 
 .TP
+.I ReportBccAddress (string)
+Specifies the address(es) to BCC outgoing reports too 
+(see
+.I SendReports
+and
+.I SendADSPReports
+below). If multiple addresses are required they can be comma separated.
+
+.TP
 .I ReportIntervalDB (dataset)
 Specifies a set of domains that correspond to how often, in seconds, to report 
 DKIM signature failues. See
