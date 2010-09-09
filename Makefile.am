@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.58 2010/09/06 02:59:41 grooverdan Exp $
+# $Id: Makefile.am,v 1.59 2010/09/09 18:57:55 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
@@ -44,7 +44,7 @@ push: $(DIST_ARCHIVES) $(DIST_ARCHIVES).sha1 $(DIST_ARCHIVES).md5 $(DIST_ARCHIVE
 	@echo "Are you sure you want to tag and release $(DIST_ARCHIVES)? (y/n)"
 	@read confirm && [ $$confirm = 'y' ]
 	cvs tag rel-opendkim-`echo $(VERSION) | sed 's/\./-/g'`
-	scp $^ RELEASE_NOTES cm-msk,opendkim@frs.sourceforge.net:/home/frs/project/o/op/opendkim/
+	scp $(DIST_ARCHIVES) $(DIST_ARCHIVES).sha1 $(DIST_ARCHIVES).md5 $(DIST_ARCHIVES).asc RELEASE_NOTES cm-msk,opendkim@frs.sourceforge.net:/home/frs/project/o/op/opendkim/
 
 dist-hook:
 	[ -f $(distdir)/libopendkim/dkim.h ] && rm -f $(distdir)/libopendkim/dkim.h
