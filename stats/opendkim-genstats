@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.8 2010/09/08 05:33:11 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.9 2010/09/10 06:25:34 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -50,7 +50,7 @@ $MYSQL --execute="select count(*) as count, sum(if(sigcount > 0, 1, 0)) as signe
 echo "</p>" >> $OUTPUT
 
 echo "<p>Reporting hosts and record counts: <br>" >> $OUTPUT
-$MYSQL --execute="select reporters.name as 'reporter', count(*) as 'messages' from messages join reporters on messages.reporter = reporters.id group by messages.reporter order by count(*) desc" >> $OUTPUT
+$MYSQL --execute="select reporters.name as 'reporter', count(*) as 'messages', reporters.firstseen as 'since', max(msgtime) as 'last' from messages join reporters on messages.reporter = reporters.id group by messages.reporter order by count(*) desc" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 echo "<p>Overall message signature counts: <br>" >> $OUTPUT
