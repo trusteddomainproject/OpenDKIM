@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.20 2010/09/07 05:32:13 cm-msk Exp $
+**  $Id: stats.c,v 1.21 2010/09/10 05:50:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.20 2010/09/07 05:32:13 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.21 2010/09/10 05:50:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -369,7 +369,36 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 	{
 		fprintf(out, "S");
 
-		fprintf(out, "%s", dkim_sig_getdomain(sigs[c]));
+		p = dkim_sig_getdomain(sigs[c]);
+
+		if (anon)
+		{
+			MD5_CTX md5;
+			unsigned char *x;
+			unsigned char dig[MD5_DIGEST_LENGTH];
+
+			MD5_Init(&md5);
+			if (prefix != NULL)
+				MD5_Update(&md5, prefix, strlen(prefix));
+			MD5_Update(&md5, p, strlen(p));
+			MD5_Final(dig, &md5);
+
+			memset(tmp, '\0', sizeof tmp);
+
+			x = tmp;
+			for (c = 0; c < MD5_DIGEST_LENGTH; c++)
+			{
+				snprintf(x, sizeof tmp - 2 * c, "%02x",
+				         dig[c]);
+				x += 2;
+			}
+
+			fprintf(out, "%s", tmp);
+		}
+		else
+		{
+			fprintf(out, "%s", p);
+		}
 
 		(void) dkim_sig_getsignalg(sigs[c], &alg);
 		fprintf(out, "\t%d", alg);
