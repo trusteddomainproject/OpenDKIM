@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# $Id: cp-test,v 1.2 2010/09/11 10:40:51 grooverdan Exp $
+# $Id: cp-test,v 1.3 2010/09/11 10:48:29 grooverdan Exp $
 # small tool to copy a test case
 
 if [ $# -lt 2 ]
@@ -11,5 +11,7 @@ then
 fi
 for a in $1 $1.*;
 do
-	echo	cp $a ${a/$1/$2}
+	dest=${a/$1/$2}
+	echo copying $a to $dest
+	sed -e s/$1/$2/g  $a >  $dest
 done
