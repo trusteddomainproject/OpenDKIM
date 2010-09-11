@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.206 2010/09/09 22:42:23 cm-msk Exp $
+**  $Id: opendkim.c,v 1.207 2010/09/11 10:22:27 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.206 2010/09/09 22:42:23 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.207 2010/09/11 10:22:27 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8480,6 +8480,7 @@ mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
 
 			pthread_mutex_unlock(&conf_lock);
 
+			/* XXX result should depend on On-InternalError */
 			return SMFIS_TEMPFAIL;
 		}
 
