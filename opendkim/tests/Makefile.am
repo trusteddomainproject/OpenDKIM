@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.22 2010/09/11 10:38:03 grooverdan Exp $
+# $Id: Makefile.am,v 1.23 2010/09/11 12:50:09 grooverdan Exp $
 
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \
@@ -7,6 +7,7 @@ check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-verify-unsigned t-verify-unsigned-silent \
 	t-verify-syntax t-verify-ss t-verify-ss-bad \
 	t-dontsign
+#t-peer not working yet
 
 TESTS = $(check_SCRIPTS)
 
@@ -36,6 +37,7 @@ EXTRA_DIST = \
 	t-verify-ss-bad t-verify-ss-bad.conf t-verify-ss-bad.lua \
 	t-verify-syntax t-verify-syntax.conf t-verify-syntax.lua \
 	t-dontsign t-dontsign.conf t-dontsign.lua \
+	t-peer t-peer.conf t-peer.list t-peer.lua \
 	testkey.private pubkeys cp-test
 
 
