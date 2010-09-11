@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.21 2010/09/09 22:39:23 cm-msk Exp $
+# $Id: Makefile.am,v 1.22 2010/09/11 10:38:03 grooverdan Exp $
 
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \
@@ -36,7 +36,7 @@ EXTRA_DIST = \
 	t-verify-ss-bad t-verify-ss-bad.conf t-verify-ss-bad.lua \
 	t-verify-syntax t-verify-syntax.conf t-verify-syntax.lua \
 	t-dontsign t-dontsign.conf t-dontsign.lua \
-	testkey.private pubkeys
+	testkey.private pubkeys cp-test
 
 
 MOSTLYCLEANFILES=

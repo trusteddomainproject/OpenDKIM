@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# $Id: cp-test,v 1.1 2010/09/11 10:38:03 grooverdan Exp $
+# small tool to copy a test case
+
+if [ $# -lt 2 ]
+then
+	echo requires more parameters
+	exit 1
+fi
+for a in $1 $1.*;
+do
+	echo	cp $a ${a/$1/$2}
+done
