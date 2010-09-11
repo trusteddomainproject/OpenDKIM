@@ -1,10 +1,8 @@
--- $Id: t-peer.lua,v 1.1 2010/09/11 12:50:09 grooverdan Exp $
+-- $Id: t-peer.lua,v 1.2 2010/09/11 12:51:03 grooverdan Exp $
 
--- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 
 -- PeerList calculation test
--- 
--- Confirms that a signature is added with the correct contents.
 
 mt.echo("*** PeerList calculation test")
 
