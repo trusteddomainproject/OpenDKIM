@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.207 2010/09/11 10:22:27 grooverdan Exp $
+**  $Id: opendkim.c,v 1.208 2010/09/11 12:49:18 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.207 2010/09/11 10:22:27 grooverdan Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.208 2010/09/11 12:49:18 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8514,7 +8514,11 @@ mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
 		}
 
 		/* try IP address, if available */
-		if (ip != NULL && ip->sa_family == AF_INET)
+		if (ip != NULL && (ip->sa_family == AF_INET
+#ifdef AF_INET6
+			|| ip->sa_family == AF_INET6
+#endif /* AF_INET6 */
+			))
 		{
 			if (dkimf_checkip(conf->conf_peerdb, ip))
 				return SMFIS_ACCEPT;
