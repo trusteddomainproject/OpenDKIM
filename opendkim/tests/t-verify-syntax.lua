@@ -1,4 +1,4 @@
--- $Id: t-verify-syntax.lua,v 1.3 2010/09/07 07:23:41 cm-msk Exp $
+-- $Id: t-verify-syntax.lua,v 1.4 2010/09/12 01:26:05 cm-msk Exp $
 
 -- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -60,8 +60,7 @@ if mt.header(conn, "Subject", "Signing test") ~= nil then
 end
 -- syntax error in signature
 -- doesn't get processed until eoh though this could change later
--- if mt.header(conn, "DKIM-Signature", "v=1; a=rsa-sha256; c=relaxed/relaxed;\n\td=example.com; s=revoked;\n\th=domainkey-signature:mime-version:received:received:in-reply-to:\n\t references:date:message-id:subject:from:to:cc:content-type;\n\tbh=&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&34lkc8Kvp/4C7BZOHlFJr8XlPeQt1pLHo4V8JljV13c=;\n\tb=sF59xX14kHxUUF2NQs1sF7Jla+dfLKwqCkYRFfLAo1n48oRvlcc3W1nwWU/BEk6mp9\n\t 0ZoylqVfErDrxDTeAEDLwaaPSL+4ZMjvp3WZyuFp2gCoQb5U8INu+vdnNvAgr4hi1Ku4\n\t mEQhR5ncoCxOUWq4e7r1CCIH4DM2fLbZa4ywQ=") ~= nil then
-if mt.header(conn, "DKIM-Signature", "v=1; a=rsa-sha256; c=relaxed/relaxed;\n\td=example.com; s=revoked;\n\th=domainkey-signature:mime-version:received:received:in-reply-to:\n\t references:date:message-id:subject:from:to:cc:content-type;\n\tbh=34lkc8Kvp/4C7BZOHlFJr8XlPeQt1pLHo4V8JljV13c=;\n\tb=sF59xX14kHxUUF2NQs1sF7Jla+dfLKwqCkYRFfLAo1n48oRvlcc3W1nwWU/BEk6mp9\n\t 0ZoylqVfErDrxDTeAEDLwaaPSL+4ZMjvp3WZyuFp2gCoQb5U8INu+vdnNvAgr4hi1Ku4\n\t mEQhR5ncoCxOUWq4e7r1CCIH4DM2fLbZa4ywQ=%%%%%%%%%%%%%%%%%%%%%%%") ~= nil then
+if mt.header(conn, "DKIM-Signature", " v=1 a=rsa-sha256; c=simple/simple; d=example.com; s=test;\r\n\tt=1283905216; bh=3VWGQGY+cSNYd1MGM+X6hRXU0stl8JCaQtl4mbX/j2I=;\r\n\th=From:Date:Subject;\r\n\tb=AiGrvHu2mODRK2BlLXJy/YjCiBg3qr/QZ7laVq7ccMeA2QDmrksc9Hoj7lsFQc+bs\r\n\t lgIJh+8gzyQeGZz8TYX/LJaBg8kH8jn0w70hvI63sgN4wytwhvpvkPInUhLXgpkknj\r\n\t DT70LzX2ABd24nHDshfS22v+nwUl9xuMAq77UtbE=") ~= nil then
 	error "mt.header(DKIM-Signature) failed"
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
@@ -75,23 +74,6 @@ end
 if mt.eoh(conn) ~= nil then
 	error "mt.eoh() failed"
 end
-if mt.getreply(conn) ~= SMFIR_CONTINUE then
-	error "mt.eoh() unexpected reply - expected REJECT"
-end
-
--- send body
-if mt.bodystring(conn, "This is a test!\r\n") ~= nil then
-	error "mt.bodystring() failed"
-end
-if mt.getreply(conn) ~= SMFIR_SKIP and
-   mt.getreply(conn) ~= SMFIR_CONTINUE then
-	error "mt.bodystring() unexpected reply"
-end
-
--- end of message; let the filter react
-if mt.eom(conn) ~= nil then
-	error "mt.eom() failed"
-end
-if mt.getreply(conn) ~= SMFIR_ACCEPT then
-	error "mt.eom() unexpected reply"
+if mt.getreply(conn) ~= SMFIR_REPLYCODE then
+	error "mt.eoh() unexpected reply - expected REPLYCODE (reject)"
 end
