@@ -1,3 +1,6 @@
+.example.com
+!nonpeer.example.com
+smtp.example.net
 192.168.1.0/24
 !192.168.1.64
 !192.168.1.128/30

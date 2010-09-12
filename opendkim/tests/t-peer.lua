@@ -1,4 +1,4 @@
--- $Id: t-peer.lua,v 1.4 2010/09/12 02:26:50 grooverdan Exp $
+-- $Id: t-peer.lua,v 1.5 2010/09/12 02:59:11 grooverdan Exp $
 
 -- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -20,7 +20,14 @@ mt.startfilter(binpath .. "/opendkim", "-x", "t-peer.conf", "-p", sock)
 -- to prevent any verification or signing practices
 
 test = {
-	{"localhost", "127.0.0.1", SMFIR_CONTINUE }
+-- hostname test
+	{"peer.example.com", "127.0.0.1", SMFIR_ACCEPT }
+	, {"bob.example.com", "127.0.0.1", SMFIR_ACCEPT }
+	, {"bob.example.net", "127.0.0.1", SMFIR_CONTINUE }
+	, {"smtp.example.net", "127.0.0.1", SMFIR_ACCEPT }
+	, {"nonpeer.example.net", "127.0.0.1", SMFIR_CONTINUE }
+-- ipv4 tests
+	, {"localhost", "127.0.0.1", SMFIR_CONTINUE }
 	, {"localhost", "192.168.1.1", SMFIR_ACCEPT }
 	, {"localhost", "192.168.1.64", SMFIR_CONTINUE }
 	, {"localhost", "192.168.1.128", SMFIR_CONTINUE }
@@ -28,6 +35,7 @@ test = {
 	, {"localhost", "192.168.1.130", SMFIR_CONTINUE }
 	, {"localhost", "192.168.1.131", SMFIR_CONTINUE }
 	, {"localhost", "192.168.1.132", SMFIR_ACCEPT }
+-- ipv6 tests
 	, {"localhost", "9001:db8::8:800:200c:417a", SMFIR_CONTINUE }
 	, {"localhost", "2001:db8::91", SMFIR_ACCEPT }
 	, {"localhost", "2001:db8::fff0", SMFIR_CONTINUE }
