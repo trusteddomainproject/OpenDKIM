@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.209 2010/09/12 09:26:00 grooverdan Exp $
+**  $Id: opendkim.c,v 1.210 2010/09/12 15:54:46 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.209 2010/09/12 09:26:00 grooverdan Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.210 2010/09/12 15:54:46 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -259,7 +259,7 @@ struct dkimf_config
 #endif /* _FFR_DKIM_REPUTATION */
 	char *		conf_reportaddr;	/* report sender address */
 	char *		conf_reportaddrbcc;	/* report repcipient address as bcc */
-	char *		conf_sendmailcommand;	/* sendmail command (reports) */
+	char *		conf_mtacommand;	/* MTA command (reports) */
 	char *		conf_localadsp_file;	/* local ADSP file */
 #ifdef _FFR_REDIRECT
 	char *		conf_redirect;		/* redirect failures to */
@@ -4199,11 +4199,7 @@ dkimf_reportaddr(struct dkimf_config *conf)
 {
 	uid_t uid;
 	struct passwd *pw;
-	const char *cmd;
 	assert(conf != NULL);
-
-	cmd = (conf->conf_sendmailcommand != NULL) ? conf->conf_sendmailcommand 
-			: SENDMAIL_PATH ;
 
 	if (conf->conf_reportaddr != NULL)
 	{
@@ -4219,7 +4215,7 @@ dkimf_reportaddr(struct dkimf_config *conf)
 		{
 			snprintf(reportcmd, sizeof reportcmd,
 			         "%s -t -f %s@%s", 
-			         cmd, user, domain);
+			         conf->conf_mtacommand, user, domain);
 
 			return;
 		}
@@ -4250,9 +4246,8 @@ dkimf_reportaddr(struct dkimf_config *conf)
 		         "%s@%s", pw->pw_name, myhostname);
 	}
 
-	snprintf(reportcmd, sizeof reportcmd,
-		"%s -t -f %s", 
-		cmd, reportaddr);
+	snprintf(reportcmd, sizeof reportcmd, "%s -t -f %s", 
+	         conf->conf_mtacommand, reportaddr);
 }
 
 /*
@@ -4579,6 +4574,7 @@ dkimf_config_new(void)
 	new->conf_reporthost = myhostname;
 	new->conf_anonstats = TRUE;
 #endif /* _FFR_STATS */
+	new->conf_mtacommand = SENDMAIL_PATH;
 
 	memcpy(&new->conf_handling, &defaults, sizeof new->conf_handling);
 
@@ -5036,10 +5032,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                  &conf->conf_sendreports,
 			                  sizeof conf->conf_sendreports);
 		}
-		(void) config_get(data, "SendmailCommand",
-		                  &conf->conf_sendmailcommand,
-		                  sizeof conf->conf_sendmailcommand);
-
+		(void) config_get(data, "MTACommand",
+		                  &conf->conf_mtacommand,
+		                  sizeof conf->conf_mtacommand);
 
 		(void) config_get(data, "SendADSPReports",
 		                  &conf->conf_sendadspreports,

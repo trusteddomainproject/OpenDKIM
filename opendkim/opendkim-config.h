@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.30 2010/09/12 09:26:00 grooverdan Exp $
+**  $Id: opendkim-config.h,v 1.31 2010/09/12 15:54:46 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.30 2010/09/12 09:26:00 grooverdan Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.31 2010/09/12 15:54:46 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -100,6 +100,7 @@ struct configdef dkimf_config[] =
 	{ "MultipleSignatures",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "Mode",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MTA",			CONFIG_TYPE_STRING,	FALSE },
+	{ "MTACommand",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MustBeSigned",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_ADSP_LISTS
 	{ "NoDiscardableMailTo",	CONFIG_TYPE_STRING,	FALSE },
@@ -166,7 +167,6 @@ struct configdef dkimf_config[] =
 	{ "SenderMacro",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_SENDER_MACRO */
 	{ "SendReports",		CONFIG_TYPE_BOOLEAN,	FALSE },
-	{ "SendmailCommand",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SignatureAlgorithm",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SignatureTTL",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "SignHeaders",		CONFIG_TYPE_STRING,	FALSE },
