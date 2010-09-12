@@ -662,8 +662,8 @@ with a bang ("!") character means "not", allowing exclusions of specific
 hosts that are otherwise members of larger sets.   More precise entries
 are preferred over less precise ones, i.e. "192.168.1.1" will match before
 "!192.168.1.0/24".  The text form of IPv6 addresses will be forced to
-lowercase when queried (which is a proposed standard), so the contents of
-this data set should also use lowercase.
+lowercase when queried (RFC5952), so the contents of this data set should also
+use lowercase.
 
 .TP
 .I PidFile (string)
