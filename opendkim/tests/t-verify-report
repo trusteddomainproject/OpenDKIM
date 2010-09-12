@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: t-verify-report,v 1.1 2010/09/12 09:27:49 grooverdan Exp $
+# $Id: t-verify-report,v 1.2 2010/09/12 15:55:43 cm-msk Exp $
 # 
 # verify reporting of failed signatures
 
@@ -9,9 +9,9 @@ then
 	srcdir=`pwd`
 fi
 
-export TMPFILE=`mktemp --tmpdir=${TMPDIR:-/tmp} opendkim-XXXXXXXXX`
+export TMPFILE=`mktemp /tmp/opendkim-XXXXXXXXX`
 
 ../../miltertest/miltertest -s $srcdir/t-verify-report.lua || exit 1
-# ingore version differences in useragent
+# ignore version differences in useragent
 diff -I ^User-Agent -u t-verify-report.txt ${TMPFILE} || exit 1
 rm -f ${TMPFILE}

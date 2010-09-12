@@ -1,4 +1,4 @@
--- $Id: t-verify-report.lua,v 1.1 2010/09/12 09:27:49 grooverdan Exp $
+-- $Id: t-verify-report.lua,v 1.2 2010/09/12 15:55:43 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -36,7 +36,7 @@ end
 
 -- send envelope macros and sender data
 -- mt.helo() is called implicitly
-mt.macro(conn, SMFIC_MAIL, "i", "t-verify-revoked")
+mt.macro(conn, SMFIC_MAIL, "i", "t-verify-report")
 if mt.mailfrom(conn, "user@example.com") ~= nil then
 	error "mt.mailfrom() failed"
 end

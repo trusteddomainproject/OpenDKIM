@@ -1,0 +1,9 @@
+#!/bin/sh
+#
+# $Id: testmta,v 1.1 2010/09/12 15:55:43 cm-msk Exp $
+#
+# Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+#
+# Dummy "MTA" that just writes stdin to a file for testing.
+
+cat > $TMPFILE
