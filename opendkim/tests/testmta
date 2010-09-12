@@ -1,9 +1,15 @@
 #!/bin/sh
 #
-# $Id: testmta,v 1.1 2010/09/12 15:55:43 cm-msk Exp $
+# $Id: testmta,v 1.2 2010/09/12 19:24:24 cm-msk Exp $
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
 # Dummy "MTA" that just writes stdin to a file for testing.
 
-cat > $TMPFILE
+while [ "$1" != "" ];
+do
+	echo $1 >> $TMPFILE
+	shift
+done
+
+cat >> $TMPFILE
