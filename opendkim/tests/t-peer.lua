@@ -1,4 +1,4 @@
--- $Id: t-peer.lua,v 1.6 2010/09/12 03:26:10 grooverdan Exp $
+-- $Id: t-peer.lua,v 1.7 2010/09/12 05:45:41 grooverdan Exp $
 
 -- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -69,4 +69,6 @@ do
 	else
 		print(test[index][1] .. "(" .. test[index][2] .. ") worked")
 	end
+	-- disconnect
+	mt.disconnect(conn)
 end
