@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.171 2010/09/12 05:08:00 cm-msk Exp $
+# $Id: configure.ac,v 1.172 2010/09/12 09:40:00 grooverdan Exp $
 
 #
 # Setup
@@ -269,6 +269,12 @@ FFR_FEATURE([stats], [stats recording and reporting])
 AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
 
 FFR_FEATURE([default_sender], [default sender address])
+
+# sendmail command
+
+AC_PATH_PROG([SENDMAIL_PATH],[sendmail], [/usr/sbin/sendmail], [/sbin:/usr/sbin:/usr/local/sbin:$PATH])
+AC_DEFINE_UNQUOTED([SENDMAIL_PATH], "$ac_cv_path_SENDMAIL_PATH", [The path the the sendmail executable for report sending])
+AC_SUBST([SENDMAIL_PATH])
 
 #
 # use rpath at load time?
