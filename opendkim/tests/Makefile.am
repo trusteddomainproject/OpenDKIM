@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.25 2010/09/12 09:27:49 grooverdan Exp $
+# $Id: Makefile.am,v 1.26 2010/09/12 15:32:35 cm-msk Exp $
 
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \
@@ -37,7 +37,8 @@ EXTRA_DIST = \
 	t-verify-syntax t-verify-syntax.conf t-verify-syntax.lua \
 	t-dontsign t-dontsign.conf t-dontsign.lua \
 	t-peer t-peer.conf t-peer.list t-peer.lua \
-	t-verify-report t-verify-report.conf t-verify-report.txt t-verify-report.lua \
+	t-verify-report t-verify-report.conf t-verify-report.txt \
+		t-verify-report.lua \
 	testkey.private pubkeys cp-test sendmail
 
 
