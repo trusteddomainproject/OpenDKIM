@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.38 2010/09/08 18:13:37 cm-msk Exp $
+**  $Id: miltertest.c,v 1.39 2010/09/12 00:34:11 grooverdan Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.38 2010/09/08 18:13:37 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.39 2010/09/12 00:34:11 grooverdan Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -2020,7 +2020,7 @@ mt_conninfo(lua_State *l)
 	}
 	else
 	{
-#ifdef HAVE_INET_PTON
+#ifdef AF_INET6
 		struct in_addr a;
 		struct in6_addr a6;
 
@@ -2034,13 +2034,14 @@ mt_conninfo(lua_State *l)
 		}
 		else
 		{
+			family = 'U';
 			lua_pushfstring(l,
 			                "mt.conninfo(): invalid IP address `%s'",
 			                ipstr);
 			lua_error(l);
 		}
-#else /* HAVE_INET_PTON */
-		sa.s_addr = inet_addr(ipstr);
+#else /* AF_INET6 */
+		sa.s_addr = inet_pton(ipstr);
 		if (sa.s_addr == INADDR_NONE)
 		{
 			lua_pushfstring(l,
@@ -2049,7 +2050,7 @@ mt_conninfo(lua_State *l)
 			lua_error(l);
 		}
 		family = '4';
-#endif /* HAVE_INET_PTON */
+#endif /* AF_INET6 */
 	}
 
 	bp = buf;
