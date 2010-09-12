@@ -1,4 +1,4 @@
--- $Id: t-verify-syntax.lua,v 1.4 2010/09/12 01:26:05 cm-msk Exp $
+-- $Id: t-verify-syntax.lua,v 1.5 2010/09/12 05:39:56 cm-msk Exp $
 
 -- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -77,3 +77,5 @@ end
 if mt.getreply(conn) ~= SMFIR_REPLYCODE then
 	error "mt.eoh() unexpected reply - expected REPLYCODE (reject)"
 end
+
+mt.disconnect(conn)

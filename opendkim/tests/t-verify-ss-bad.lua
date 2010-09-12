@@ -1,4 +1,4 @@
--- $Id: t-verify-ss-bad.lua,v 1.1 2010/09/08 00:55:15 cm-msk Exp $
+-- $Id: t-verify-ss-bad.lua,v 1.2 2010/09/12 05:39:56 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -94,3 +94,5 @@ end
 if mt.getreply(conn) ~= SMFIR_REPLYCODE then
 	error "mt.eom() unexpected reply"
 end
+
+mt.disconnect(conn)

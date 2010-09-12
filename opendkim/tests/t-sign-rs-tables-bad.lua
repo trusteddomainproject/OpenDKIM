@@ -1,4 +1,4 @@
--- $Id: t-sign-rs-tables-bad.lua,v 1.8 2010/09/07 04:48:41 cm-msk Exp $
+-- $Id: t-sign-rs-tables-bad.lua,v 1.9 2010/09/12 05:39:56 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -73,3 +73,4 @@ if mt.getreply(conn) ~= SMFIR_TEMPFAIL then
 	error "mt.eoh() unexpected reply"
 end
 
+mt.disconnect(conn)

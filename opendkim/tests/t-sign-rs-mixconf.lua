@@ -1,4 +1,4 @@
--- $Id: t-sign-rs-mixconf.lua,v 1.7 2010/09/07 04:48:41 cm-msk Exp $
+-- $Id: t-sign-rs-mixconf.lua,v 1.8 2010/09/12 05:39:56 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -115,3 +115,5 @@ end
 if string.find(sig, "h=From:Date:Subject", 1, true) == nil then
 	error "signature has wrong h= value"
 end
+
+mt.disconnect(conn)

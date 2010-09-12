@@ -1,4 +1,4 @@
--- $Id: t-verify-unsigned-silent.lua,v 1.1 2010/09/09 22:39:23 cm-msk Exp $
+-- $Id: t-verify-unsigned-silent.lua,v 1.2 2010/09/12 05:39:56 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -95,3 +95,5 @@ if mt.eom_check(conn, MT_HDRINSERT, "Authentication-Results") or
    mt.eom_check(conn, MT_HDRADD, "Authentication-Results") then
 	error "Authentication-Results added"
 end
+
+mt.disconnect(conn)

@@ -1,4 +1,4 @@
--- $Id: t-sign-rs-tables.lua,v 1.15 2010/09/07 04:48:41 cm-msk Exp $
+-- $Id: t-sign-rs-tables.lua,v 1.16 2010/09/12 05:39:56 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -201,3 +201,5 @@ end
 if string.find(sig, "i=signer@example.com", 1, true) == nil then
 	error "signature has wrong i= value"
 end
+
+mt.disconnect(conn)

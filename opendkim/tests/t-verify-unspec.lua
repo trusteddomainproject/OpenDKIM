@@ -1,4 +1,4 @@
--- $Id: t-verify-unspec.lua,v 1.6 2010/09/07 04:48:41 cm-msk Exp $
+-- $Id: t-verify-unspec.lua,v 1.7 2010/09/12 05:39:56 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -89,3 +89,5 @@ end
 if mt.getreply(conn) ~= SMFIR_ACCEPT then
 	error "mt.eom() unexpected reply"
 end
+
+mt.disconnect(conn)

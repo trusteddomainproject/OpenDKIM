@@ -1,4 +1,4 @@
--- $Id: t-verify-ss.lua,v 1.2 2010/09/09 22:37:15 cm-msk Exp $
+-- $Id: t-verify-ss.lua,v 1.3 2010/09/12 05:39:56 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -104,3 +104,5 @@ ar = mt.getheader(conn, "Authentication-Results", 0)
 if string.find(ar, "dkim=pass", 1, true) == nil then
 	error "incorrect DKIM result"
 end
+
+mt.disconnect(conn)

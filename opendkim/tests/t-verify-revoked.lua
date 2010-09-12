@@ -1,4 +1,4 @@
--- $Id: t-verify-revoked.lua,v 1.11 2010/09/08 17:34:56 cm-msk Exp $
+-- $Id: t-verify-revoked.lua,v 1.12 2010/09/12 05:39:56 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -107,3 +107,5 @@ end
 if string.find(ar, "revoked", 1, true) == nil then
 	error "incorrect DKIM result"
 end
+
+mt.disconnect(conn)

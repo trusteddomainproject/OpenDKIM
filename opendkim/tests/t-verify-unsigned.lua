@@ -1,4 +1,4 @@
--- $Id: t-verify-unsigned.lua,v 1.13 2010/09/09 22:41:51 cm-msk Exp $
+-- $Id: t-verify-unsigned.lua,v 1.14 2010/09/12 05:39:56 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -102,3 +102,5 @@ end
 if string.find(ar, "dkim=none", 1, true) == nil then
 	error "incorrect DKIM result"
 end
+
+mt.disconnect(conn)
