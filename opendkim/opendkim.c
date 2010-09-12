@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.208 2010/09/11 12:49:18 grooverdan Exp $
+**  $Id: opendkim.c,v 1.209 2010/09/12 09:26:00 grooverdan Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.208 2010/09/11 12:49:18 grooverdan Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.209 2010/09/12 09:26:00 grooverdan Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -64,9 +64,6 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.208 2010/09/11 12:49:18 g
 #ifndef _PATH_DEVNULL
 # define _PATH_DEVNULL		"/dev/null"
 #endif /* ! _PATH_DEVNULL */
-#ifndef _PATH_SENDMAIL
-#  define _PATH_SENDMAIL	"/usr/sbin/sendmail"
-#endif /* ! _PATH_SENDMAIL */
 
 /* libmilter includes */
 #include "libmilter/mfapi.h"
@@ -262,6 +259,7 @@ struct dkimf_config
 #endif /* _FFR_DKIM_REPUTATION */
 	char *		conf_reportaddr;	/* report sender address */
 	char *		conf_reportaddrbcc;	/* report repcipient address as bcc */
+	char *		conf_sendmailcommand;	/* sendmail command (reports) */
 	char *		conf_localadsp_file;	/* local ADSP file */
 #ifdef _FFR_REDIRECT
 	char *		conf_redirect;		/* redirect failures to */
@@ -679,10 +677,6 @@ pthread_mutex_t popen_lock;			/* popen() lock */
 
 /* Other useful definitions */
 #define CRLF			"\r\n"		/* CRLF */
-
-#ifndef SENDMAIL_OPTIONS
-# define SENDMAIL_OPTIONS	""		/* options for reports */
-#endif /* SENDMAIL_OPTIONS */
 
 /* MACROS */
 #define	JOBID(x)	((x) == NULL ? JOBIDUNKNOWN : (x))
@@ -4205,7 +4199,11 @@ dkimf_reportaddr(struct dkimf_config *conf)
 {
 	uid_t uid;
 	struct passwd *pw;
+	const char *cmd;
 	assert(conf != NULL);
+
+	cmd = (conf->conf_sendmailcommand != NULL) ? conf->conf_sendmailcommand 
+			: SENDMAIL_PATH ;
 
 	if (conf->conf_reportaddr != NULL)
 	{
@@ -4220,9 +4218,8 @@ dkimf_reportaddr(struct dkimf_config *conf)
 		if (status == 0 && user != NULL && domain != NULL)
 		{
 			snprintf(reportcmd, sizeof reportcmd,
-			         "%s -t %s -f %s@%s", 
-			         _PATH_SENDMAIL, SENDMAIL_OPTIONS,
-			         user, domain);
+			         "%s -t -f %s@%s", 
+			         cmd, user, domain);
 
 			return;
 		}
@@ -4254,8 +4251,8 @@ dkimf_reportaddr(struct dkimf_config *conf)
 	}
 
 	snprintf(reportcmd, sizeof reportcmd,
-		"%s -t %s -f %s", 
-		_PATH_SENDMAIL, SENDMAIL_OPTIONS, reportaddr);
+		"%s -t -f %s", 
+		cmd, reportaddr);
 }
 
 /*
@@ -5039,6 +5036,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                  &conf->conf_sendreports,
 			                  sizeof conf->conf_sendreports);
 		}
+		(void) config_get(data, "SendmailCommand",
+		                  &conf->conf_sendmailcommand,
+		                  sizeof conf->conf_sendmailcommand);
+
 
 		(void) config_get(data, "SendADSPReports",
 		                  &conf->conf_sendadspreports,

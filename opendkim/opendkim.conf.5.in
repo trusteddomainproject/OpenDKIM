@@ -865,6 +865,18 @@ decisions.  By default, the DKIM library's internal list is used, which
 consists solely of the "From" header field.
 
 .TP
+.I SendmailCommand (string)
+Specifies a commandline of the sendmail executable.  By default this is
+@SENDMAIL_PATH@.  This is the command used by
+.I SendADSPReports
+and
+.I SendReports
+when sending reports.  This command will take "-t -f 
+.I ReportAddress
+" on the command line and the body and headers of a mail message as standard
+input.
+
+.TP
 .I SenderMacro (string)
 Use the milter macro string to determine the sender of the message.
 @SENDER_MACRO_MANNOTICE@

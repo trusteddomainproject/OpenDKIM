@@ -1,11 +1,13 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.224 2010/09/12 00:34:11 grooverdan Exp $
+	$Id: RELEASE_NOTES,v 1.225 2010/09/12 09:26:00 grooverdan Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.2.0		2010/10/03
+	Feature added: Added SendmailCommand for overriding default (mainly
+		for testing).
 	Feature request #SF2964366: Allow arbitrary data set operations
 		from inside Lua script hooks.
 	Feature request #SF2981598: Add "NoHeaderB" and "SingleAuthResult"
