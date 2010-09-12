@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.40 2010/09/12 05:27:12 cm-msk Exp $
+**  $Id: miltertest.c,v 1.41 2010/09/12 15:31:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.40 2010/09/12 05:27:12 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.41 2010/09/12 15:31:12 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -1920,7 +1920,6 @@ mt_conninfo(lua_State *l)
 	char *host;
 	char *bp;
 	char *ipstr;
-	struct in_addr sa;
 	char buf[BUFRSZ];
 	char tmp[BUFRSZ];
 
@@ -1959,7 +1958,7 @@ mt_conninfo(lua_State *l)
 	if (ipstr == NULL)
 	{
 #if (HAVE_GETADDRINFO && HAVE_INET_NTOP)
-		char *a;
+		char *a = NULL;
 		struct addrinfo *res;
 		struct sockaddr_in *s4;
 		struct sockaddr_in6 *s6;
@@ -1984,21 +1983,26 @@ mt_conninfo(lua_State *l)
 			family = '6';
 		}
 
-		memset(tmp, '\0', sizeof tmp);
-
-		if (inet_ntop(res->ai_family, a, tmp, sizeof tmp - 1) == NULL)
+		if (family != 'U')
 		{
-			freeaddrinfo(res);
-			lua_pushfstring(l,
-			                "mt.conninfo(): can't convert address for host `%s' to text",
-			                host);
-			lua_error(l);
+			memset(tmp, '\0', sizeof tmp);
+
+			if (inet_ntop(res->ai_family, a,
+			              tmp, sizeof tmp - 1) == NULL)
+			{
+				freeaddrinfo(res);
+				lua_pushfstring(l,
+				                "mt.conninfo(): can't convert address for host `%s' to text",
+				                host);
+				lua_error(l);
+			}
 		}
 
 		freeaddrinfo(res);
 		ipstr = tmp;
 #else /* HAVE_GETADDRINFO && HAVE_INET_NTOP */
 		struct hostent *h;
+		struct in_addr sa;
 
 		h = gethostbyname(host);
 		if (h == NULL)
@@ -2036,6 +2040,8 @@ mt_conninfo(lua_State *l)
 			lua_error(l);
 		}
 #else /* HAVE_INET_PTON */
+		struct in_addr sa;
+
 		sa.s_addr = inet_addr(ipstr);
 		if (sa.s_addr == INADDR_NONE)
 		{
