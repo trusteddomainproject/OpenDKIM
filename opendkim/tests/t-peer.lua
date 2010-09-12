@@ -1,4 +1,4 @@
--- $Id: t-peer.lua,v 1.5 2010/09/12 02:59:11 grooverdan Exp $
+-- $Id: t-peer.lua,v 1.6 2010/09/12 03:26:10 grooverdan Exp $
 
 -- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -24,8 +24,10 @@ test = {
 	{"peer.example.com", "127.0.0.1", SMFIR_ACCEPT }
 	, {"bob.example.com", "127.0.0.1", SMFIR_ACCEPT }
 	, {"bob.example.net", "127.0.0.1", SMFIR_CONTINUE }
+	, {"nonpeer.example.com", "127.0.0.1", SMFIR_CONTINUE }
+	, {"xyz.nonpeer.example.com", "127.0.0.1", SMFIR_CONTINUE }
+	, {"allowed.nonpeer.example.com", "127.0.0.1", SMFIR_ACCEPT }
 	, {"smtp.example.net", "127.0.0.1", SMFIR_ACCEPT }
-	, {"nonpeer.example.net", "127.0.0.1", SMFIR_CONTINUE }
 -- ipv4 tests
 	, {"localhost", "127.0.0.1", SMFIR_CONTINUE }
 	, {"localhost", "192.168.1.1", SMFIR_ACCEPT }
