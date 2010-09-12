@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.169 2010/09/06 04:20:20 grooverdan Exp $
+# $Id: configure.ac,v 1.170 2010/09/12 05:04:34 cm-msk Exp $
 
 #
 # Setup
@@ -74,7 +74,8 @@ AX_PTHREAD
 AC_SEARCH_LIBS(inet_addr, nsl)
 AC_SEARCH_LIBS(socket, socket)
 AC_SEARCH_LIBS(inet_aton, resolv)
-AC_SEARCH_LIBS(inet_pton, resolv)
+AC_SEARCH_LIBS(inet_pton, resolv,
+               AC_DEFINE(HAVE_INET_PTON, 1, [Define to 1 if you have the `inet_pton()' function.]))
 
 AC_HEADER_RESOLV
 
