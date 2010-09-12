@@ -1,4 +1,4 @@
--- $Id: t-verify-report.lua,v 1.2 2010/09/12 15:55:43 cm-msk Exp $
+-- $Id: t-verify-report.lua,v 1.3 2010/09/12 19:23:33 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -6,7 +6,7 @@
 -- 
 -- Confirms that a report is sent when the verification fails
 
-mt.echo("*** test reporting of failured signatures occurs")
+mt.echo("*** test reporting of failed signatures occurs")
 
 -- setup
 sock = "unix:" .. mt.getcwd() .. "/t-verify-report.sock"
