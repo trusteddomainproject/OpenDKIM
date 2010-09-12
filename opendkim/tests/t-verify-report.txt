@@ -1,3 +1,6 @@
+-t
+-f
+postmaster@example.org
 From: "Mail Admin" <postmaster@example.org>
 To: dkim-feedbacks@example.com
 Bcc: postmaster@example.net, tom@example.net, "hary" <hary@example.net>
