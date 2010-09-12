@@ -659,11 +659,12 @@ should contain on each line a hostname, domain name (e.g. ".example.com"),
 IP address, an IPv6 address (including an IPv4 mapped address), or a
 CIDR-style IP specification (e.g. "192.168.1.0/24").  An entry beginning
 with a bang ("!") character means "not", allowing exclusions of specific
-hosts that are otherwise members of larger sets.   More precise entries
-are preferred over less precise ones, i.e. "192.168.1.1" will match before
-"!192.168.1.0/24".  The text form of IPv6 addresses will be forced to
-lowercase when queried (RFC5952), so the contents of this data set should also
-use lowercase.
+hosts that are otherwise members of larger sets.   Host and domain names are 
+matched first and then the IP or IPv6 address depending on the connection 
+type. More precise entries are preferred over less precise ones, i.e. 
+"192.168.1.1" will match before "!192.168.1.0/24".  The text form of IPv6 
+addresses will be forced to lowercase when queried (RFC5952), so the contents
+of this data set should alsovuse lowercase.
 
 .TP
 .I PidFile (string)
