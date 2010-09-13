@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.21 2010/09/10 05:50:10 cm-msk Exp $
+**  $Id: stats.c,v 1.22 2010/09/13 16:34:11 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.21 2010/09/10 05:50:10 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.22 2010/09/13 16:34:11 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -373,6 +373,7 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 
 		if (anon)
 		{
+			int n;
 			MD5_CTX md5;
 			unsigned char *x;
 			unsigned char dig[MD5_DIGEST_LENGTH];
@@ -386,10 +387,10 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 			memset(tmp, '\0', sizeof tmp);
 
 			x = tmp;
-			for (c = 0; c < MD5_DIGEST_LENGTH; c++)
+			for (n = 0; n < MD5_DIGEST_LENGTH; n++)
 			{
-				snprintf(x, sizeof tmp - 2 * c, "%02x",
-				         dig[c]);
+				snprintf(x, sizeof tmp - 2 * n, "%02x",
+				         dig[n]);
 				x += 2;
 			}
 
