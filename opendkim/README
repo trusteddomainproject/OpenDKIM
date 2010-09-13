@@ -1,4 +1,4 @@
-$Id: README,v 1.18 2010/09/13 01:47:35 cm-msk Exp $
+$Id: README,v 1.19 2010/09/13 01:52:05 cm-msk Exp $
 
 INTRODUCTION
 ============
@@ -282,6 +282,7 @@ domain to one or more of these auto-responders:
         check-auth@verifier.port25.com
 	dkim@dkimtest-d01.mx.aol.com
 	dkim-reflector@messagesystems.com
+	dktest@exhalus.net
 
 It should be returned to you shortly showing your message in the body of a
 new message, including all of the header changes that were made in transit.
