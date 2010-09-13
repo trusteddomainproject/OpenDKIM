@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.63 2010/09/06 06:01:57 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.64 2010/09/13 05:33:13 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2460,17 +2460,11 @@ dkim_get_policy(DKIM *dkim, char *query, _Bool excheck, int *qstatus,
 	}
 	else
 	{
-		dkim_query_t qtype;
 		DKIM_SIGINFO *sig;
 
-		sig = dkim_getsignature(dkim);
-		if (sig == NULL)
-			qtype = DKIM_QUERY_DEFAULT;
-		else
-			qtype = sig->sig_query;
-
-		switch (qtype)
+		switch (dkim->dkim_libhandle->dkiml_querymethod)
 		{
+		  case DKIM_QUERY_UNKNOWN:
 		  case DKIM_QUERY_DNS:
 			status = dkim_get_policy_dns(dkim, query, excheck,
 			                             buf, sizeof buf, &qstat);
@@ -3556,6 +3550,8 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 			if (dkim->dkim_domain == NULL)
 				return DKIM_STAT_NORESOURCE;
 		}
+
+		dkim->dkim_state = DKIM_STATE_EOM2;
 
 		return DKIM_STAT_NOSIG;
 	}

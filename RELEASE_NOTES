@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.228 2010/09/13 02:07:15 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.229 2010/09/13 05:33:13 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -61,6 +61,9 @@ release, and a summary of the changes in that release.
 		reference revoked keys.
 	LIBOPENDKIM: Feature request #SF3026287: Add dkim_getuser() function.
 		Requested by Ale Vesely.
+	LIBOPENDKIM: Feature request #SF3065035: Apply library query
+		configuration to ADSP lookups as well, mainly to support
+		auotmated testing.
 	LIBOPENDKIM: Fix bug #SF3051762: Don't error out of dkim_get_key()
 		when in test mode by testing signature-specific features when
 		against dummy data.  Problem noted by Andreas Schulze.
@@ -71,6 +74,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Don't assert a "g=" default when processing keys so that
 		statistics reporting can tell whether or not it was originally
 		there.
+	LIBOPENDKIM: Minor fix to internal state machine when dealing with
+		unsigned messages.
 	MILTERTEST: Feature request #SF3005002: Enable testing of
 		"unspecified" protocol family connections.
 	MILTERTEST: Add "-u" option to report resource usage statistics on

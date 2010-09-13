@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.12 2010/08/30 22:01:56 cm-msk Exp $";
+static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.13 2010/09/13 05:33:13 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -186,6 +186,12 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 	assert(qstatus != NULL);
 
 	lib = dkim->dkim_libhandle;
+
+	if (lib->dkiml_querymethod == DKIM_QUERY_FILE)
+	{
+		return dkim_get_policy_file(dkim, query, ansbuf_a,
+		                            sizeof ansbuf_a, qstatus);
+	}
 
 	timeout.tv_sec = dkim->dkim_timeout;
 	timeout.tv_usec = 0;
