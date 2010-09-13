@@ -1,12 +1,12 @@
--- $Id: t-adsp-report.lua,v 1.1 2010/09/13 04:19:03 grooverdan Exp $
+-- $Id: t-adsp-report.lua,v 1.2 2010/09/13 05:25:10 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
--- reporting adsp failures
+-- reporting ADSP failures
 -- 
 -- Confirms that a report is sent adsp requests it
 
-mt.echo("*** test reporting of failured/missing signatures via adsp")
+mt.echo("*** test reporting of failure/missing signature via ADSP")
 
 -- setup
 sock = "unix:" .. mt.getcwd() .. "/t-adsp-report.sock"
@@ -37,14 +37,14 @@ end
 -- send envelope macros and sender data
 -- mt.helo() is called implicitly
 mt.macro(conn, SMFIC_MAIL, "i", "t-verify-revoked")
-if mt.mailfrom(conn, "user@example.com") ~= nil then
+if mt.mailfrom(conn, "user@example2.com") ~= nil then
 	error "mt.mailfrom() failed"
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
 	error "mt.mailfrom() unexpected reply"
 end
 
-if mt.header(conn, "From", "user@example.com") ~= nil then
+if mt.header(conn, "From", "user@example2.com") ~= nil then
 	error "mt.header(From) failed"
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
@@ -84,19 +84,19 @@ end
 if mt.eom(conn) ~= nil then
 	error "mt.eom() failed"
 end
-if mt.getreply(conn) ~= SMFIR_REJECT then
+if mt.getreply(conn) ~= SMFIR_ACCEPT then
 	error "mt.eom() unexpected reply"
 end
 
 -- verify that an Authentication-Results header field got added
--- if not mt.eom_check(conn, MT_HDRINSERT, "Authentication-Results") and
---    not mt.eom_check(conn, MT_HDRADD, "Authentication-Results") then
--- 	error "no Authentication-Results added"
--- end
--- ar = mt.getheader(conn, "Authentication-Results", 0)
--- if string.find(ar, "dkim=fail", 1, true) == nil then
--- 	print(ar)
--- 	error "incorrect DKIM result"
--- end
+if not mt.eom_check(conn, MT_HDRINSERT, "Authentication-Results") and
+   not mt.eom_check(conn, MT_HDRADD, "Authentication-Results") then
+	error "no Authentication-Results added"
+end
+ar = mt.getheader(conn, "Authentication-Results", 0)
+if string.find(ar, "dkim-adsp=fail", 1, true) == nil then
+	print(ar)
+	error "incorrect DKIM result"
+end
 
 mt.disconnect(conn)
