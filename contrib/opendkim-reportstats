@@ -2,7 +2,7 @@
 #
 # Script to upload OpenDKIM statistics data.  Contributed by John Wood.
 #
-# $Id: opendkim-reportstats,v 1.1 2010/09/13 01:34:05 cm-msk Exp $
+# $Id: opendkim-reportstats,v 1.2 2010/09/13 03:50:44 cm-msk Exp $
 #
 # License: BSD 3-clause
 #
@@ -48,13 +48,17 @@ version()
 usage()
 {
         echo
-        echo "Usage: $0 [ -register | -send | -version ]"
+        echo "Usage: $0 [ -register | -sendregistration | -send | -version ]"
         echo 
-        echo "  -register       Downloads the opendkim.org public key, generates
-                  stats reporting GPG setup and sends a registration
-                  request."
-        echo "  -sendstats      Sends current OpenDKIM stats to opendkim.org"
-        echo "  -version        Displays the version and exits"
+        echo "  -register          Downloads the opendkim.org public key, generates
+                     stats reporting GPG setup and sends a registration
+                     request."
+        echo
+        echo "  -sendregistration  Sends pre-setup GPG registration to opendkim.org
+                     in case initial registration has problems sending email"
+        echo
+        echo "  -sendstats         Sends current OpenDKIM stats to opendkim.org"
+        echo "  -version           Displays the version and exits"
         echo
         exit 0
 }
@@ -95,6 +99,21 @@ if [ -z "$GPG" ]; then
   echo "Cannot find the GPG binary required for secure stats reporting."
   echo "Please adjust script paths or install GPG."
   exit 1
+fi
+}
+
+check_gpg_setup()
+{
+GPGVERIFY=`gpg --homedir="$GNUPGDIR" --no-permission-warning --list-keys | grep "$STATEMAIL" | awk -FO '{print "O"$2}'`
+if [ "$GPGVERIFY" != "$STATEMAIL" ]; then
+   echo "Could not verify imported GPG key for: $STATEMAIL"
+   echo "Please run $0 -register first."
+   exit 1
+fi
+GPGSETUP=`gpg --homedir="$GNUPGDIR" --no-permission-warning --list-keys | grep -v "$STATEMAIL" | grep "OpenDKIM"`
+if [ -z "$GPGSETUP" ]; then
+   echo "It doesn't look like GPG finished setting up. Please run $0 -register again."
+   exit 1
 fi
 }
 
@@ -169,7 +188,8 @@ NAMELENGTH=0
 CONTACTEMAIL=""
 until [ "$NAMEVALID" = 1 ]; 
 do
-   read -p "Please enter your name: " INPUTNAME
+   printf "Please enter your name: "
+   read INPUTNAME
    NAMELENGTH=`echo "$INPUTNAME" | wc -c`
    if [ "$NAMELENGTH" -lt 5 ]; then
       INPUTNAME=""
@@ -181,7 +201,8 @@ do
 done
 until [ "$EMAILVALID" = 1 ];
 do
-   read -p "Please enter your contact email for OpenDKIM stats: " INPUTEMAIL
+   printf "Please enter your contact email for OpenDKIM stats: "
+   read INPUTEMAIL
    CONTACTEMAIL=`echo $INPUTEMAIL | egrep '[^[:space:]]+\>@[a-zA-Z_\.]+\.[a-zA-Z]{2,3}'`
    if [ ! -z "$CONTACTEMAIL" ]; then
       EMAILVALID=1
@@ -242,7 +263,8 @@ echo ""
 until [ "$AGREE" = 'y' ]; 
 do
    input_contact_info
-   read -p "$INPUTNAME <$INPUTEMAIL> is correct? [y/n]: " AGREE
+   printf "$INPUTNAME <$INPUTEMAIL> is correct? [y/n]: " 
+   read AGREE
 done
 
 if [ -z "$INPUTNAME" ] || [ -z "$INPUTEMAIL" ]; then
@@ -417,6 +439,13 @@ case "$1" in
                 check_web_app
                 register
                 opendkim_gpg_import
+                send_registration
+                ;;
+        -sendregistration)
+                set_paths
+                check_openssl
+                check_gpg
+                check_gpg_setup
                 send_registration
                 ;;
         -sendstats)
