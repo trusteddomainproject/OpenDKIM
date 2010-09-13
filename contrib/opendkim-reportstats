@@ -1,0 +1,434 @@
+#!/bin/sh
+#
+# Script to upload OpenDKIM statistics data.  Contributed by John Wood.
+#
+# $Id: opendkim-reportstats,v 1.1 2010/09/13 01:34:05 cm-msk Exp $
+#
+# License: BSD 3-clause
+#
+# Customize as needed. Statistics data paths need to match opendkim.conf.
+# Requires: OpenSSL, gpg, wget or curl, and an MTA (assumes sendmail -t)
+# There are probably bugs. Find them to win friends and gain prestige!
+
+# modifiable paths and flags
+UNIXDATE=`date +%s`
+HOSTNAME=`hostname`
+#
+# overloaded later once key is generated
+REPORTERNAME="OpenDKIM Filter User"
+REPORTEREMAIL="<`whoami`@$HOSTNAME>"
+#
+STATEMAIL="OpenDKIM Statistics Reporting Key <stats-report@opendkim.org>"
+STATEMAILSIMPLE="stats-report@opendkim.org"
+REGISTEREMAIL="OpenDKIM Stats Registration <stats-registration@opendkim.org>"
+OPENDKIMSTATSDIR="/var/db/opendkim"
+OPENDKIMSTATSFILE="stats.dat"
+OPENDKIMSTATSDAT="${OPENDKIMSTATSDIR}/${OPENDKIMSTATSFILE}"
+OPENDKIMDATOWNER="mailnull:mailnull"
+REPORTSTUB="${OPENDKIMSTATSDIR}/report_stub.txt"
+SENDMAILFLAGS="-t -f $REPORTEREMAIL"
+GNUPGDIR="${OPENDKIMSTATSDIR}/.gnupg"
+ODKGNUPGURL="http://www.opendkim.org/stats/stats_opendkim_org.pub"
+ODKGNUPGCERT="${GNUPGDIR}/opendkim_org.pem"
+ODKGNUPGMD5URL="http://www.opendkim.org/stats/stats_opendkim_org.pub.md5"
+ODKGNUPGMD5="${GNUPGDIR}/stats_opendkim_org.pub.md5"
+
+### No user serviceable parts beyond this point
+
+OPENDKIMSTATS="1.0.0"
+
+version()
+{
+        echo
+        echo "$0 version is ${OPENDKIMSTATS}."
+        echo 
+        exit 0
+}
+
+usage()
+{
+        echo
+        echo "Usage: $0 [ -register | -send | -version ]"
+        echo 
+        echo "  -register       Downloads the opendkim.org public key, generates
+                  stats reporting GPG setup and sends a registration
+                  request."
+        echo "  -sendstats      Sends current OpenDKIM stats to opendkim.org"
+        echo "  -version        Displays the version and exits"
+        echo
+        exit 0
+}
+
+set_paths()
+{
+# Try to ensure proper execution by adding likely paths
+PATH=$PATH:/usr/sbin:/sbin:/usr/bin:/usr/lib
+for i in /usr/local/bin /usr/local/sbin /opt/local/bin /opt/local/sbin /usr/sfw/bin /usr/sfw/sbin
+do 
+   if [ -d "$i" ]; then
+      PATH=$PATH:$i
+      export PATH
+   fi
+done
+# Solaris
+if [ -f '/usr/lib/sendmail' ]; then
+   SENDMAIL="/usr/lib/sendmail"
+else
+   SENDMAIL="/usr/sbin/sendmail"
+fi
+}
+
+check_openssl()
+{
+OPENSSL=`which openssl`
+if [ -z "$OPENSSL" ]; then
+   echo "Cannot find the OpenSSL binary required for secure stats reporting."
+   echo "Please adjust script paths or install OpenSSL."
+   exit 1
+fi
+}
+
+check_gpg()
+{
+GPG=`which gpg`
+if [ -z "$GPG" ]; then
+  echo "Cannot find the GPG binary required for secure stats reporting."
+  echo "Please adjust script paths or install GPG."
+  exit 1
+fi
+}
+
+check_web_app()
+{
+WGET=`which wget`
+if [ ! -z "$WGET" ]; then
+   WEBAPP=wget
+elif [ -z "$WGET" ]; then
+     CURL=`which curl`
+        if [ -z "$CURL" ]; then
+           echo "Cannot find either wget or curl, needed for OpenDKIM public key retrieval."
+           echo "Please install one of wget or curl."
+           exit 1
+        fi
+     WEBAPP=curl
+fi
+}
+
+get_opendkim_org_pub_cert()
+{
+check_web_app
+# safety net
+if [ $? != 0 ]; then
+   echo "Unable to find the wget or curl binaries in shell path."
+   exit 1
+fi
+# get the md5 sum file first 
+if [ "$WEBAPP" = wget ]; then
+   "$WEBAPP" -q -c --tries=10 -T 340 -O "$ODKGNUPGMD5" "$ODKGNUPGMD5URL" 
+elif [ "$WEBAPP" = curl ]; then
+   "$WEBAPP" -s -m 340 "$ODKGNUPGMD5URL" > "$ODKGNUPGMD5"
+fi
+if [ $? != 0 ]; then  
+   echo "Failed getting ${ODKGNUPGMD5URL}, cannot continue. Please try again."
+   exit 1
+fi
+# get the public cert 
+if [ "$WEBAPP" = wget ]; then
+   "$WEBAPP" -q -c --tries=10 -T 340 -O "$ODKGNUPGCERT" "$ODKGNUPGURL"
+elif [ "$WEBAPP" = curl ]; then
+   "$WEBAPP" -s -m 340 "$ODKGNUPGURL" > "$ODKGNUPGCERT"
+fi
+if [ $? != 0 ]; then 
+   echo "Failed getting ${ODKGNUPGURL}, cannot continue. Please try again."
+   exit 1
+fi
+# verify the md5 sum of the public cert
+if [ -f "$ODKGNUPGMD5" ] && [ -f "$ODKGNUPGCERT" ]; then 
+   ODKORGSUM=`cat "$ODKGNUPGMD5"`
+   LOCALSUM=`"$OPENSSL" md5 "$ODKGNUPGCERT" | awk '{print $2}'`
+else
+   echo "Missing or cannot read $ODKGNUPGMD5 or ${ODKGNUPGCERT}."
+   echo "Please verify disk permissions for ${GNUPGDIR}."
+   exit 1
+fi
+if [ "$ODKORGSUM" != "$LOCALSUM" ]; then
+   echo "MD5 sum for $ODKGNUPGCERT did not verify." 
+   echo "The md5 should be $ODKORGSUM but we got ${LOCALSUM}."
+   echo  "Please try again."
+   exit 1
+fi 
+}
+
+input_contact_info()
+{
+NAMEVALID=0
+INPUTNAME=""
+EMAILVALID=0
+INPUTEMAIL=""
+NAMELENGTH=0
+CONTACTEMAIL=""
+until [ "$NAMEVALID" = 1 ]; 
+do
+   read -p "Please enter your name: " INPUTNAME
+   NAMELENGTH=`echo "$INPUTNAME" | wc -c`
+   if [ "$NAMELENGTH" -lt 5 ]; then
+      INPUTNAME=""
+      echo "Name must be 5 characters or greater. Please try again."
+   fi
+   if [ ! -z "$INPUTNAME" ]; then
+      NAMEVALID=1
+   fi
+done
+until [ "$EMAILVALID" = 1 ];
+do
+   read -p "Please enter your contact email for OpenDKIM stats: " INPUTEMAIL
+   CONTACTEMAIL=`echo $INPUTEMAIL | egrep '[^[:space:]]+\>@[a-zA-Z_\.]+\.[a-zA-Z]{2,3}'`
+   if [ ! -z "$CONTACTEMAIL" ]; then
+      EMAILVALID=1
+   else
+      echo "Email address appears to be invalid, please try again."
+   fi
+done 
+}
+
+opendkim_gpg_import()
+{
+echo "Getting OpenDKIM's public GPG cert for registration." 
+get_opendkim_org_pub_cert
+if [ $? != 0 ]; then
+   echo "Failed to get opendkim.org's public GPG cert. Cannot continue."
+   exit 1
+fi
+echo "Importing OpenDKIM's publig GPG cert for registration."
+if [ ! -d "$GNUPGDIR" ]; then
+   echo "The GPG configuration directory $GNUPGDIR is missing, something went wrong."
+   exit 1
+fi
+cat > "${GNUPGDIR}/gpg.conf" <<EOF
+no-secmem-warning
+keyserver-options no-auto-key-retrieve
+no-random-seed-file
+trust-model always
+no-permission-warning
+EOF
+gpg --homedir="$GNUPGDIR" --no-permission-warning --import --trust-model always "$ODKGNUPGCERT"
+if [ $? != 0 ]; then
+   echo "Import of OpenDKIM's public GPG cert failed. Please try again."
+   exit 1
+fi
+GPGVERIFY=`gpg --homedir="$GNUPGDIR" --no-permission-warning --list-keys | grep "$STATEMAIL" | awk -FO '{print "O"$2}'`
+if [ "$GPGVERIFY" != "$STATEMAIL" ]; then
+   echo "Could not verify imported GPG key for: $STATEMAIL"
+   echo "Please try again."
+   exit 1
+fi
+}
+
+register()
+{
+mkdir -p "$GNUPGDIR"
+if [ $? != 0 ]; then
+   echo "Unable to create ${GNUPGDIR}."
+   echo "Please verify permissions and try again."
+   exit 1
+fi
+chmod 700 "$GNUPGDIR"
+echo ""
+echo "Setting up local GPG for reporting." 
+echo "The key's email address, etc. will be used for contact information."
+echo ""
+
+# get name/email for non-interactive GPG cert/key generation
+until [ "$AGREE" = 'y' ]; 
+do
+   input_contact_info
+   read -p "$INPUTNAME <$INPUTEMAIL> is correct? [y/n]: " AGREE
+done
+
+if [ -z "$INPUTNAME" ] || [ -z "$INPUTEMAIL" ]; then
+   echo "Missing contact information, cannot generate GPG certs."
+   echo "Please run $0 -register again."
+   exit 1
+fi
+
+# Generate the key
+INPUTFILE="${GNUPGDIR}/${UNIXDATE}.temp.gpg"
+echo "# input file to generate GnuPG keys automatically" > $INPUTFILE 
+echo >> $INPUTFILE
+echo "%echo Generating a standard key" >> $INPUTFILE 
+echo >> $INPUTFILE
+echo "#######################################" >> $INPUTFILE 
+echo "# parameters for the key" >> $INPUTFILE 
+echo >> $INPUTFILE
+echo "Key-Type: DSA" >> $INPUTFILE 
+echo "Key-Length: 1024" >> $INPUTFILE 
+echo "Subkey-Type: ELG-E" >> $INPUTFILE 
+echo "Subkey-Length: 2048" >> $INPUTFILE 
+echo >> $INPUTFILE
+echo "Name-Real: $INPUTNAME" >> $INPUTFILE 
+echo "Name-Comment: OpenDKIM GnuPG key" >> $INPUTFILE 
+echo "Name-Email: $INPUTEMAIL" >> $INPUTFILE 
+echo >> $INPUTFILE
+echo "Expire-Date: 0" >> $INPUTFILE 
+echo >> $INPUTFILE
+echo "######################################" >> $INPUTFILE 
+echo >> $INPUTFILE
+echo "# the keyring files" >> $INPUTFILE 
+echo "%pubring ${GNUPGDIR}/pubring.gpg" >> $INPUTFILE 
+echo "%secring ${GNUPGDIR}/secring.gpg" >> $INPUTFILE 
+echo >> $INPUTFILE
+echo "# perform key generation" >> $INPUTFILE 
+echo "%commit" >> $INPUTFILE 
+echo >> $INPUTFILE
+echo "%echo done" >> $INPUTFILE 
+echo "#EOF" >> $INPUTFILE 
+echo >> $INPUTFILE
+
+if [ ! -f "$INPUTFILE" ]; then
+   echo "Missing temp file for GPG key generation."
+   echo "Please try again."
+   exit 1
+fi
+
+# call GPG on the temp file
+echo "This may take a minute while the system gathers sufficient entropy.."
+gpg --batch --gen-key --homedir="$GNUPGDIR" --keyring="${GNUPGDIR}/pubring.gpg" --secret-keyring="${GNUPGDIR}/secring.gpg" "$INPUTFILE"
+
+if [ $? != 0 ]; then
+   echo "Generation of GPG key failed. Please try again."
+   exit 1
+fi
+rm "$INPUTFILE"
+}
+
+name_from_key()
+{
+#try to get name/email from gnupg key
+REPORTER=`gpg --homedir="$GNUPGDIR" --list-keys | grep 'OpenDKIM GnuPG key' | sed 's/^uid\*//'`
+if [ ! -z "$REPORTER" ]; then
+   REPORTERNAME=`echo $REPORTER | awk -F\< '{print $1}'`
+   REPORTEREMAIL=`echo $REPORTER | awk -F\< '{print "<"$2}'` 
+   if [ -z "$REPORTERNAME" ] || [ -z "$REPORTEREMAIL" ]; then
+      REPORTERNAME="OpenDKIM Filter User"
+      REPORTEREMAIL="<`whoami`@$HOSTNAME>"
+   fi
+fi
+}
+
+send_registration()
+{
+echo "Encrypting public key with opendkim.org's public key and sending to opendkim.org."
+gpg --batch -a --export --homedir="$GNUPGDIR" --out="/var/tmp/$HOSTNAME.public.key"
+if [ $? != 0 ]; then
+   echo "Unable to export public key. Please try again."
+   exit 1 
+fi
+if [ -f /var/tmp/$HOSTNAME.public.key ]; then
+   mv /var/tmp/$HOSTNAME.public.key "${GNUPGDIR}"/
+fi 
+# encrypt public key and prep for sending to OpenDKIM
+gpg -a --homedir="$GNUPGDIR" -o "${GNUPGDIR}/${HOSTNAME}.${UNIXDATE}.gpg" -e -r "$STATEMAILSIMPLE" -- "${GNUPGDIR}/${HOSTNAME}.public.key" 2>/dev/null
+if [ ! -f "${GNUPGDIR}/${HOSTNAME}.${UNIXDATE}.gpg" ]; then
+   echo "Encrypted key output file missing. Please try again."
+   rm /var/tmp/"{$HOSTNAME}".public.key
+   ls -l "${GNUPGDIR}/"
+   exit 1
+fi
+name_from_key
+# create a one time stub
+echo "From: $REPORTERNAME $REPORTEREMAIL
+To: $REGISTEREMAIL
+Subject: OpenDKIM stats reporting registration from $REPORTEREMAIL" > "$REPORTSTUB"
+# send registration email
+cat "$REPORTSTUB" "${GNUPGDIR}/${HOSTNAME}.${UNIXDATE}.gpg" | ${SENDMAIL} ${SENDMAILFLAGS}
+if [ $? != 0 ]; then
+   echo "Unable to send email with $SENDMAIL. Please verify MTA operation."
+   exit 1
+fi
+echo "Registration submitted to OpenDKIM." 
+echo "A verification email will be sent to the email address listed in the public key."
+rm "${GNUPGDIR}/${HOSTNAME}.${UNIXDATE}.gpg"
+rm "${GNUPGDIR}/${HOSTNAME}.public.key"
+}
+
+send_stats()
+{
+GPGVERIFY=`gpg --homedir="$GNUPGDIR" --no-permission-warning --list-keys | grep "$STATEMAIL" | awk -FO '{print "O"$2}'`
+if [ "$GPGVERIFY" != "$STATEMAIL" ]; then
+   echo "Could not verify imported GPG key for: $STATEMAIL"
+   echo "Please run $0 -register to setup before reporting."
+   exit 1
+fi
+name_from_key
+echo "From: $REPORTERNAME $REPORTEREMAIL
+To: $STATEMAIL
+Subject: opendkim-stats report from ${HOSTNAME} at $UNIXDATE" > "$REPORTSTUB"
+
+if [ ! -s "$OPENDKIMSTATSDAT" ]; then
+   echo "OpenDKIM stats zero bytes or missing. Exiting."
+   rm "$REPORTSTUB"
+   exit 1
+fi
+
+if [ ! -s "$REPORTSTUB" ]; then
+   echo "Report stub zero bytes or missing. Exiting"
+   exit 1
+fi
+# clearsign statistics data
+if [ -s "$OPENDKIMSTATSDAT" ]; then
+   gpg --homedir="$GNUPGDIR" --output "${GNUPGDIR}/${OPENDKIMSTATSFILE}.${HOSTNAME}.${UNIXDATE}.gpg" --clearsign $OPENDKIMSTATSDAT
+   if [ $? != 0 ]; then 
+      echo "GPG clearsign of stats file: $OPENDKIMSTATSDAT failed."
+      exit 1
+   fi
+   if [ ! -f "${GNUPGDIR}/${OPENDKIMSTATSFILE}.${HOSTNAME}.${UNIXDATE}.gpg" ]; then
+      "The GPG clearsigned version the stats file is missing, cannot proceed."
+      rm "$REPORTSTUB"
+      exit 1
+   fi 
+   cat "$REPORTSTUB" "${GNUPGDIR}/${OPENDKIMSTATSFILE}.${HOSTNAME}.${UNIXDATE}.gpg" | ${SENDMAIL} ${SENDMAILFLAGS}
+   if [ $? != 0 ]; then
+      echo "Sending of ${GNUPGDIR}/{OPENDKIMSTATSFILE}.${HOSTNAME}.${UNIXDATE}.gpg failed."
+      echo "Please verify MTA operation."
+      exit 1
+   fi 
+   rm "${GNUPGDIR}/${OPENDKIMSTATSFILE}.${HOSTNAME}.${UNIXDATE}.gpg"
+   # change this to cp when testing
+   mv "$OPENDKIMSTATSDAT" "${OPENDKIMSTATSDAT}".old
+   touch "$OPENDKIMSTATSDAT"
+   touch "${OPENDKIMSTATSDIR}"/last_report
+   chown "$OPENDKIMDATOWNER" "$OPENDKIMSTATSDAT"
+   chmod ug+rwx "$OPENDKIMSTATSDAT"
+   if [ -f "$REPORTSTUB" ]; then
+      rm "$REPORTSTUB"
+   fi 
+   echo 
+   echo "OpenDKIM stats sent at `date`"
+   echo
+   exit 0
+fi
+}
+
+case "$1" in
+        -register)
+                set_paths
+                check_openssl
+                check_gpg
+                check_web_app
+                register
+                opendkim_gpg_import
+                send_registration
+                ;;
+        -sendstats)
+                set_paths
+                check_openssl
+                check_gpg
+                send_stats
+                ;;
+        -version)
+                version
+                ;;
+        *)
+                usage
+esac
+echo

@@ -1,0 +1,74 @@
+OPENDKIM REPORTSTATS README
+===========================
+
+$Id: README.opendkim-reportstats,v 1.1 2010/09/13 01:34:05 cm-msk Exp $
+
+Please report any bugs to opendkim-users@lists.opendkim.org.
+
+There is a web site at http://www.opendkim.org that is home for the latest
+updates.
+
++--------------+
+| INTRODUCTION |
++--------------+
+
+The opendkim-reportstats script exists to help facilitate OpenDKIM statistics
+reporting.  You are not required to use it and are welcome to roll your own.
+At some point, all statistics data sent to OpenDKIM will need to be PGP 
+clear-signed to ensure there has been no tampering.  This script well make the
+tasks of setup and automated reporting a fairly painless procedure.
+
+The script has two main flags: -register and -sendstats.  While fairly 
+self-explanatory the functions themselves are non-trivial.
+
+-register
+
+This steps through the process of obtaining the OpenDKIM public GPG
+key, creating your own unique public/private keypair and sending
+opendkim.org the public key encrypted.  This is simply to ensure privacy.
+
+Only statistics reports that are clear-signed and verify will be accepted.
+The register process allows the OpenDKIM admin to selectively verify that
+sent statistics are from trusted users (regardless of the anonymity of
+the content).
+
+Once the OpenDKIM admin has validated your certificate and imported
+you will receive an email informing you that you may begin reporting.
+
+-sendstats
+
+Once the registration process is over, this mode will (via cron or some
+other method) automatically clear-sign and send statistics to opendkim.org.
+
+Much effort has been made to make the script as generic and dynamic
+as possible, however due to the complexity of modern systems problems
+may still occur.  Validating the dependencies listed below will help
+eliminate a good portion of foreseeable issues.  This script has been
+written with two methodologies in mind:
+
+1) If at any point a major problem is detected, stop. (Missing files, etc.)
+2) Clobber temporary data so in the event that 1) happens, restarting
+   should always be possible.
+
+Bug fixes and reports are always welcome.
+
+
++--------------+
+| DEPENDENCIES |
++--------------+
+
+For this script to operate properly the following are required:
+
+o OpenSSL (http://www.openssl.org, or ask your software vendor for a package).
+  Any version will get you started, however v0.9.8 or later is recommended.
+
+o sendmail v8.13.0 (or later), or Postfix 2.3, (or later) and libmilter.
+  (These are required for sending the statistics data.)
+
+o GNU wget ( http://www.gnu.org/software/wget/ )
+  
+  or
+
+o cURL ( http://curl.haxx.se/ )
+
+o GNU Privacy Guard (GNUPG) ( http://www.gnupg.org/ ) v1.4.10 or later

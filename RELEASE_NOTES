@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.225 2010/09/12 09:26:00 grooverdan Exp $
+	$Id: RELEASE_NOTES,v 1.226 2010/09/13 01:34:05 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -93,6 +93,7 @@ release, and a summary of the changes in that release.
 	TOOLS: Fix bug #SF3037452: Change owner/group/mode of stats database
 		when resetting it to whatever the replaced file had.
 		Problem noted by Andreas Schulze.
+	CONTRIB: Add opendkim-reportstats, contributed by John Wood.
 	BUILD: Fix --with-db.  Reported by John Wood.
 	Activate _FFR_ZTAGS.
 
