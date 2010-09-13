@@ -1,4 +1,4 @@
-$Id: README,v 1.16 2010/09/13 00:11:59 grooverdan Exp $
+$Id: README,v 1.17 2010/09/13 01:09:50 cm-msk Exp $
 
 COMPILING
 =========
@@ -249,23 +249,38 @@ TESTING
 =======
 
 To test, send a piece of e-mail through the MTA doing signing for your
-domain to autorespond+dkim@dk.elandsys.com.  It should be returned to you
-shortly showing your message in the body of a new message, including all of
-the header changes that were made in transit.  An alternative is to view 
-the source of the message in gmail.
+domain to one or more of these auto-responders:
 
-The message you generated should appear there with a DKIM-Signature: header
-added, containing the signature data your opendkim added, and an 
-Authentication-Results:vheader which the testing machine's opendkim added 
-after verifying thevsignature.  The value of this header should indicate a 
-"pass".  If it isn't, something in between has altered your message in a way
-that invalidated the signature.  Perhaps you have other filters running which
-appended or modified a header.
+	sa-test@sendmail.net
+	dktest@blackops.org
+	autorespond+dkim@dk.elandsys.com
+	dkim-test@altn.com
+        test@dkimtest.jason.long.name
+        check-auth@verifier.port25.com
+	dkim@dkimtest-d01.mx.aol.com
+	dkim-reflector@messagesystems.com
 
-The reply from the autoresponder address, or a e-mail sent from gmail, will 
-also itself be signed, and in the headers of the reply you should see its 
-signature and another Authentication-Results: header, which should also read
-"pass".
+It should be returned to you shortly showing your message in the body of a
+new message, including all of the header changes that were made in transit.
+
+An alternative is to send a message to an email service provider such
+as Gmail or Yahoo! that is known to verify DKIM signatures, and view the
+full text of the message you receive there.
+
+The message you generated should appear (either at the ESP to which you
+sent or in the auto-reply you receive) with a DKIM-Signature: header field
+added containing the signature data from your opendkim filter, and an 
+Authentication-Results: header field that the receiving machine added after
+verifying the signature.  The value of this header field should indicate a 
+"pass".  If it doesn't, something in between has altered your message in a way
+that invalidated the signature.  Perhaps you have other filters running that
+appended to or otherwise modified a header or the message body.
+
+The reply from the autoresponder address, or an e-mail sent back to you from
+your ESP account, will also itself be signed, and in the header of the reply
+you should see its signature and another Authentication-Results: header
+field added by your filter, which should also read "pass".
+
 
 LARGE KEYS
 ==========
