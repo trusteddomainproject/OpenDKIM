@@ -1,4 +1,4 @@
---  $Id: final.lua.sample,v 1.3 2010/02/23 22:37:35 cm-msk Exp $
+--  $Id: final.lua.sample,v 1.4 2010/09/13 06:45:21 cm-msk Exp $
 --
 --  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 --
@@ -29,7 +29,7 @@ if odkim.get_presult(ctx) == DKIM_PRESULT_NXDOMAIN then
 end
 
 --  2) Test for discardable.  We'll handle "unknown" and "all" through RFC5451.
-if odkim.get_presult(ctx) == DKIM_PRESULT_AUTHOR and
+if odkim.get_presult(ctx) == DKIM_PRESULT_FOUND and
    odkim.get_policy(ctx) == DKIM_POLICY_DISCARDABLE then
 	discard = true
 	for n = 1, nsigs
