@@ -163,9 +163,10 @@ Steps to compiling the library and the milter:
 	% make install
 
 
-INSTALLING AND CONFIGURING OPENDKIM
-===================================
+CONFIGURING OPENDKIM
+====================
 
 The README document (in the opendkim directory) covers the installation and
 configuration of opendkim.
 
+$Id: INSTALL,v 1.22 2010/09/13 01:39:48 cm-msk Exp $
