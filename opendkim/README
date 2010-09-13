@@ -1,20 +1,41 @@
-$Id: README,v 1.17 2010/09/13 01:09:50 cm-msk Exp $
+$Id: README,v 1.18 2010/09/13 01:47:35 cm-msk Exp $
 
-COMPILING
-=========
+INTRODUCTION
+============
 
-The INSTALL document covers the compilation and software installation of 
-opendkim and its prerequisites.
+This document will walk you through the process of configuring and activating
+the OpenDKIM filter once it has been compiled and installed.  In doing so you
+will:
 
-INSTALLING AND CONFIGURING OPENDKIM
-===================================
+o Generate a private and public key pair for use when signing your mail
+  (skipped if you will only be verifying)
+o Post your public key in your DNS space (also skipped if only verifying)
+o Choose a local socket interface between the filter and your MTA
+o Configure your filter
+o Activate your filter
+o Test your filter
 
-(1) Choose a selector name.  Current convention if you are using multiple 
+
+COMPILING AND INSTALLING
+========================
+
+The INSTALL document in the root of the build director covers the compilation
+and software installation of opendkim and its prerequisites.  You should
+complete that process before continuing with the next section.
+
+
+CONFIGURING OPENDKIM
+====================
+
+NOTE: If you will only be verfiying incoming mail and will not be signing,
+start at step (5).
+
+(1) Choose a selector name.  A selector is simply a symbolic name given to
+    a key you will be using to sign your mail.  You are free to choose any
+    name you wish.  One current convention if you are using multiple
     mailservers is to use the hostname (hostname only, not the fully-qualified
     domain name) of the host that will be providing the service.  Another 
-    convention is to use the current month and year, but you are free to choose
-    any name you wish, especially if you have a selector assignment scheme in 
-    mind.
+    convention is to use the current month and year.
 
 (2) Either:
   (a) Run the script "opendkim-genkey -s SELECTOR". The opendkim-genkey man
@@ -27,7 +48,7 @@ INSTALLING AND CONFIGURING OPENDKIM
   (b) Manually generate a public and private key:
     (i) Run this command:
 
-	    % openssl genrsa -out rsa.private 1024
+	    openssl genrsa -out rsa.private 1024
 
 	This generates a private key and writes it to the file "rsa.private".
 	The generated key is in PEM format and is a 1024-bit key, the
@@ -35,7 +56,7 @@ INSTALLING AND CONFIGURING OPENDKIM
 
     (ii) Run this command:
 
-	    % openssl rsa -in rsa.private -out rsa.public -pubout -outform PEM
+	    openssl rsa -in rsa.private -out rsa.public -pubout -outform PEM
 
 	This reads the private key generated in the previous step and
 	extracts from it the matching public key.  This is written to the
@@ -59,7 +80,7 @@ INSTALLING AND CONFIGURING OPENDKIM
 	  test mode so nobody should take any real action based on success
 	  or failure of the use of this key to verify a message.
 
-	  NOTE:  Keysizes above 2700 bits are unlikely to fit into a 512 byte
+	  NOTE:  Key sizes above 2700 bits are unlikely to fit into a 512 byte
 	  DNS record.
 
 (3) Publish your public DNS key.
@@ -67,8 +88,8 @@ INSTALLING AND CONFIGURING OPENDKIM
 
         SELECTOR._domainkey.DOMAIN
 
-    SELECTOR is the name you chose with the Selector config option or the
-    result of the KeyTable lookup.
+    SELECTOR is the name you chose in step (1) above and will use with the
+    Selector config option or the result of the KeyTable lookup.
 
     DOMAIN is the domain name specified in the "-d" command line, the Domain 
     option in the configuration file, or the domain that would be returned
@@ -138,7 +159,7 @@ INSTALLING AND CONFIGURING OPENDKIM
 	-x CONFPATH
 
     ...where CONFPATH is the path to the configuration file you wish to
-    use.  A few configuration example files are provided.
+    use.  One or more configuration example files are provided.
 
 (7) Configure your MTA:
 
@@ -176,12 +197,14 @@ INSTALLING AND CONFIGURING OPENDKIM
 (8) Restart/reload your MTA.
 
     For sendmail:
-	% kill -1 `head -1 /var/run/sendmail.pid`
+	kill -1 `head -1 /var/run/sendmail.pid`
 
     For Postfix:
-	% postfix reload
-	or the following if master.cf was changed
-	% /etc/init.d/postfix restart
+	postfix reload
+
+	...or the following if master.cf was changed:
+
+	/etc/init.d/postfix restart
 
 
 COMPLEX SIGNING CONFIGURATIONS
