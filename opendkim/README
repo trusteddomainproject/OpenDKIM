@@ -1,4 +1,4 @@
-$Id: README,v 1.15 2010/09/13 00:01:37 grooverdan Exp $
+$Id: README,v 1.16 2010/09/13 00:11:59 grooverdan Exp $
 
 COMPILING
 =========
@@ -251,18 +251,21 @@ TESTING
 To test, send a piece of e-mail through the MTA doing signing for your
 domain to autorespond+dkim@dk.elandsys.com.  It should be returned to you
 shortly showing your message in the body of a new message, including all of
-the header changes that were made in transit.  The message you generated
-should appear there with a DKIM-Signature: header added, containing
-the signature data your opendkim added, and an Authentication-Results:
-header which the testing machine's opendkim added after verifying the
-signature.  The value of this header should indicate a "pass".  If it
-isn't, something in between has altered your message in a way that
-invalidated the signature.  Perhaps you have other filters running which
+the header changes that were made in transit.  An alternative is to view 
+the source of the message in gmail.
+
+The message you generated should appear there with a DKIM-Signature: header
+added, containing the signature data your opendkim added, and an 
+Authentication-Results:vheader which the testing machine's opendkim added 
+after verifying thevsignature.  The value of this header should indicate a 
+"pass".  If it isn't, something in between has altered your message in a way
+that invalidated the signature.  Perhaps you have other filters running which
 appended or modified a header.
 
-The reply from the test machine will also itself be signed, and in the
-headers of the reply you should see its signature and another
-Authentication-Results: header, which should also read "pass".
+The reply from the autoresponder address, or a e-mail sent from gmail, will 
+also itself be signed, and in the headers of the reply you should see its 
+signature and another Authentication-Results: header, which should also read
+"pass".
 
 LARGE KEYS
 ==========
