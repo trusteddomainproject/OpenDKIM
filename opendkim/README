@@ -1,9 +1,9 @@
-$Id: README,v 1.14 2010/08/30 22:01:56 cm-msk Exp $
+$Id: README,v 1.15 2010/09/13 00:01:37 grooverdan Exp $
 
 COMPILING
 =========
 
-The INSTALL document covers the compulation and software installation of 
+The INSTALL document covers the compilation and software installation of 
 opendkim and its prerequisites.
 
 INSTALLING AND CONFIGURING OPENDKIM
