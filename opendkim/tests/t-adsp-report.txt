@@ -1,5 +1,5 @@
 From: "Mail Admin" <postmaster@example.org>
-To: dkim-feedbacks@example.com
+To: dkim-feedbacks@example2.com
 Bcc: postmaster@example.net, tom@example.net, "hary" <hary@example.net>
 Subject: DKIM failure report for (unknown-jobid)
 MIME-Version: 1.0
@@ -22,9 +22,9 @@ Original-Envelope-Id: (unknown-jobid)
 Reporting-MTA: unknown-host
 Feedback-Type: dkim
 DKIM-Failure: signature
-DKIM-Domain: example.com
+DKIM-Domain: example2.com
 DKIM-Selector: report
-DKIM-Identity: @example.com
+DKIM-Identity: @example2.com
 DKIM-Canonicalized-Header: ZGF0ZTpUdWUsIDIyIERlYyAyMDA5IDEzOjA0OjEyIC0w
     ODAwDQpzdWJqZWN0OlNpZ25pbmcgdGVzdA0KZnJvbTp1c2VyQGV4YW1wbGUuY29tDQpk
     a2ltLXNpZ25hdHVyZTp2PTE7IGE9cnNhLXNoYTI1NjsgYz1yZWxheGVkL3JlbGF4ZWQ7
