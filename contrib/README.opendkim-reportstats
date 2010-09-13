@@ -1,7 +1,7 @@
 OPENDKIM REPORTSTATS README
 ===========================
 
-$Id: README.opendkim-reportstats,v 1.1 2010/09/13 01:34:05 cm-msk Exp $
+$Id: README.opendkim-reportstats,v 1.2 2010/09/13 04:01:32 cm-msk Exp $
 
 Please report any bugs to opendkim-users@lists.opendkim.org.
 
@@ -34,6 +34,13 @@ the content).
 
 Once the OpenDKIM admin has validated your certificate and imported
 you will receive an email informing you that you may begin reporting.
+
+-sendregistration
+
+While the -register process sends your public key to opendkim.org, this
+flag will skip key import/generation in case there was a problem sending email 
+the first time. Only use this if you were unable to send your registration
+with -register.
 
 -sendstats
 
