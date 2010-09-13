@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.227 2010/09/13 02:04:53 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.228 2010/09/13 02:07:15 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -71,7 +71,6 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Don't assert a "g=" default when processing keys so that
 		statistics reporting can tell whether or not it was originally
 		there.
-	MILTERTEST: Fix IPv6 parsing in mt.conninfo function.
 	MILTERTEST: Feature request #SF3005002: Enable testing of
 		"unspecified" protocol family connections.
 	MILTERTEST: Add "-u" option to report resource usage statistics on
