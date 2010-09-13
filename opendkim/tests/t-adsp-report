@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# $Id: t-adsp-report,v 1.1 2010/09/13 04:19:03 grooverdan Exp $
+# 
+# verify reporting of adsp failures signatures
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+export TMPFILE=`mktemp --tmpdir=${TMPDIR:-/tmp} opendkim-XXXXXXXXX`
+
+../../miltertest/miltertest -s $srcdir/t-adsp-report.lua || exit 1
+# ingore version differences in useragent
+diff -I ^User-Agent -u t-adsp-report.txt ${TMPFILE} || exit 1
+rm -f ${TMPFILE}
