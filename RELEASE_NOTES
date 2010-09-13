@@ -1,13 +1,11 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.226 2010/09/13 01:34:05 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.227 2010/09/13 02:04:53 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.2.0		2010/10/03
-	Feature added: Added SendmailCommand for overriding default (mainly
-		for testing).
 	Feature request #SF2964366: Allow arbitrary data set operations
 		from inside Lua script hooks.
 	Feature request #SF2981598: Add "NoHeaderB" and "SingleAuthResult"
@@ -54,6 +52,7 @@ release, and a summary of the changes in that release.
 	Fix "LocalADSP", which was not working at all.
 	Fix some Lua test mode logic and a build issue that prevented
 		"ScreenPolicyScript" from working.
+	Added MTACommand for overriding default (mainly for testing).
 	Ignore "Domain" and "Selector" settings if "KeyTable" is set.
 		Problem noted by Rolf Sonneveld.
 	Add "On-PolicyError" to configuration tables.  Reported by Richard
