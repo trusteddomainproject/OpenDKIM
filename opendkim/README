@@ -1,4 +1,4 @@
-$Id: README,v 1.19 2010/09/13 01:52:05 cm-msk Exp $
+$Id: README,v 1.20 2010/09/13 01:59:16 cm-msk Exp $
 
 INTRODUCTION
 ============
@@ -275,14 +275,12 @@ To test, send a piece of e-mail through the MTA doing signing for your
 domain to one or more of these auto-responders:
 
 	sa-test@sendmail.net
-	dktest@blackops.org
-	autorespond+dkim@dk.elandsys.com
-	dkim-test@altn.com
-        test@dkimtest.jason.long.name
         check-auth@verifier.port25.com
-	dkim@dkimtest-d01.mx.aol.com
-	dkim-reflector@messagesystems.com
+	autorespond+dkim@dk.elandsys.com
+        test@dkimtest.jason.long.name
 	dktest@exhalus.net
+	dkim-test@altn.com
+	dktest@blackops.org
 
 It should be returned to you shortly showing your message in the body of a
 new message, including all of the header changes that were made in transit.
