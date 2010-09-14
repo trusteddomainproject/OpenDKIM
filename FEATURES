@@ -104,6 +104,9 @@ stats		Optional generation of per-message and per-signature
 		statistics of interest to the evolution of DKIM.
 		See stats/README for information.  (opendkim)
 
+statsext	Support for localized stats extensions.  See stats/README
+		for information.  (opendkim)
+
 vbr		Enable VBR (Vouch By Reference) header field addition
 		(outbound) and processing (inbound).  (opendkim)
 
@@ -117,4 +120,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.23 $, Last updated $Date: 2010/09/04 01:59:21 $
+$Revision: 1.24 $, Last updated $Date: 2010/09/14 18:23:38 $

@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.31 2010/09/12 15:54:46 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.32 2010/09/14 18:23:38 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.31 2010/09/12 15:54:46 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.32 2010/09/14 18:23:38 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -178,6 +178,11 @@ struct configdef dkimf_config[] =
 #ifdef _FFR_STATS
 	{ "Statistics",			CONFIG_TYPE_STRING,	FALSE },
 	{ "StatisticsName",		CONFIG_TYPE_STRING,	FALSE },
+# ifdef USE_LUA
+#  ifdef _FFR_STATSEXT
+	{ "StatisticsPolicyScript",	CONFIG_TYPE_STRING,	FALSE },
+#  endif /* _FFR_STATSEXT */
+# endif /* USE_LUA */
 	{ "StatisticsPrefix",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_STATS */
 	{ "StrictTestMode",		CONFIG_TYPE_BOOLEAN,	FALSE },

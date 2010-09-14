@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.174 2010/09/12 16:59:59 cm-msk Exp $
+# $Id: configure.ac,v 1.175 2010/09/14 18:23:38 cm-msk Exp $
 
 #
 # Setup
@@ -203,7 +203,7 @@ AC_DEFUN([FFR_FEATURE],
 				AC_DEFINE([_FFR_]TR_UP($1), 1,
 				          [enable $1 feature])
 				AC_SUBST(TR_UP($1)[_MANNOTICE],
-				         "(feature is experimental)")
+				         "(Note: Feature is experimental.)")
                               ],
                               [
 				AC_SUBST(TR_UP($1)[_MANNOTICE],
@@ -267,6 +267,12 @@ AM_CONDITIONAL([VBR], [test x"$enable_vbr" = x"yes"])
 
 FFR_FEATURE([stats], [stats recording and reporting])
 AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
+FFR_FEATURE([statsext], [extended stats recording and reporting])
+
+if test x"$enable_statsext" = x"yes" -a x"$enable_stats" != x"yes"
+then
+	AC_MSG_ERROR([--enable-statsext requires --enable-stats])
+fi
 
 FFR_FEATURE([default_sender], [default sender address])
 
@@ -931,11 +937,15 @@ else
 	AC_SUBST([LUA_MANNOTICE], "(Not enabled for this installation.)")
 fi
 
-
 AM_CONDITIONAL(LUA, test x"$lua_found" = x"yes")
 AC_SUBST(LIBLUA_INCDIRS)
 AC_SUBST(LIBLUA_LIBDIRS)
 AC_SUBST(LIBLUA_LIBS)
+
+if test x"$enable_statsext" = x"yes" -a x"$lua_found" != x"yes"
+then
+	AC_MSG_ERROR([--enable-statsext requires Lua support])
+fi
 
 #
 # libodbx

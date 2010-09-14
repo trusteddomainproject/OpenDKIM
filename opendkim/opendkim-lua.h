@@ -1,14 +1,14 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.h,v 1.4 2010/08/30 19:15:00 cm-msk Exp $
+**  $Id: opendkim-lua.h,v 1.5 2010/09/14 18:23:38 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_LUA_H_
 #define _OPENDKIM_LUA_H_
 
 #ifndef lint
-static char opendkim_lua_h_id[] = "@(#)$Id: opendkim-lua.h,v 1.4 2010/08/30 19:15:00 cm-msk Exp $";
+static char opendkim_lua_h_id[] = "@(#)$Id: opendkim-lua.h,v 1.5 2010/09/14 18:23:38 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -51,5 +51,9 @@ extern int dkimf_lua_screen_hook __P((void *, const char *, const char *,
                                       struct dkimf_lua_script_result *));
 extern int dkimf_lua_setup_hook __P((void *, const char *, const char *,
                                      struct dkimf_lua_script_result *));
+#ifdef _FFR_STATSEXT
+extern int dkimf_lua_stats_hook __P((void *, const char *, const char *,
+                                     struct dkimf_lua_script_result *));
+#endif /* _FFR_STATSEXT */
 
 #endif /* _OPENDKIM_LUA_H_ */

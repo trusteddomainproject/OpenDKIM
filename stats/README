@@ -1,4 +1,4 @@
-$Id: README,v 1.6 2010/09/04 06:31:03 cm-msk Exp $
+$Id: README,v 1.7 2010/09/14 18:23:39 cm-msk Exp $
 
 INTRODUCTION
 
@@ -34,6 +34,9 @@ scripts and documentation presume MySQL.
 
 	% ./configure --enable-stats
 	% make
+
+	If you wish to apply local extensions to the statistics reporting
+	system, see the EXTENSIONS section below.
 
 2.	Install MySQL.  Create credentials for an "opendkim" user, optionally
 	with some password.  Create a database called "opendkim".  Note that
@@ -87,8 +90,9 @@ scripts and documentation presume MySQL.
 	ask for the submission address you should use and then create this
 	script and add it to your crontab:
 
-		sendmail stats@opendkim.org < /path/to/stats/file
-		cp /dev/null /path/to/stats/file
+		mv /path/to/stats/file /path/to/stats/file.OLD
+		sendmail submission-address < /path/to/stats/file.OLD
+		rm /path/to/stats/file.OLD
 
 	When your data are received, The OpenDKIM project will use the
 	aforementioned "opendkim-importstats" tool to import your data into
@@ -163,3 +167,27 @@ fields, as follows:
 	DNSSEC value (see DKIM_DNSSEC_* constants from dkim.h)
 	colon-separated list of header fields signed
 	colon-separated list of header fields known to have changed
+
+
+EXTENSIONS
+
+For the purpose of allowing local experimentation, it is possible to
+extend the statistics reporting to include data about a message not covered by
+the basic schema distributed with OpenDKIM.
+
+Extension data are collected and stored during execution of the Lua "final"
+script and then written out to the stats file associated with that message.
+These items are written on "X" lines in the form "name value" (i.e. name and
+value separated by whitespace).  opendkim-importstats will insert these into
+your database using "name" as the name of the column to be updated and "value"
+as the value to be placed there.
+
+Choosing the "--enable-statsext" flag at build configuration time adds support
+for this.  The mechanism for recording these extra statistics is the
+odkim.exstats() function, detailed in the opendkim-lua(3) man page.
+
+In this way, one can create any supplementary message-specific columns as
+is desirable and populate them whatever way is appropriate for each.
+
+Participants that find particular additional columns produce interesting
+correlations are encouraged to share them with the OpenDKIM community.

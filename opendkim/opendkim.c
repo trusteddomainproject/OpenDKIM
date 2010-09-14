@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.210 2010/09/12 15:54:46 cm-msk Exp $
+**  $Id: opendkim.c,v 1.211 2010/09/14 18:23:38 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.210 2010/09/12 15:54:46 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.211 2010/09/14 18:23:38 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -277,6 +277,9 @@ struct dkimf_config
 #ifdef USE_LUA
 	char *		conf_screenscript;	/* Lua script: screening */
 	char *		conf_setupscript;	/* Lua script: setup */
+# ifdef _FFR_STATSEXT
+	char *		conf_statsscript;	/* Lua script: stats */
+# endif /* _FFR_STATSEXT */
 	char *		conf_finalscript;	/* Lua script: final */
 #endif /* USE_LUA */
 #ifdef _FFR_REPLACE_RULES
@@ -385,6 +388,9 @@ struct msgctx
 	struct signreq * mctx_srtail;		/* signature request tail */
 	struct addrlist * mctx_rcptlist;	/* recipient list */
 	DKIM_PSTATE	* mctx_pstate;		/* policy state handle */
+#ifdef _FFR_STATSEXT
+	struct statsext * mctx_statsext;	/* extension stats list */
+#endif /* _FFR_STATSEXT */
 	char		mctx_domain[DKIM_MAXHOSTNAMELEN + 1];
 						/* primary domain */
 	unsigned char	mctx_dkimar[DKIM_MAXHEADER + 1];
@@ -1387,21 +1393,24 @@ dkimf_xs_getheader(lua_State *l)
 	}
 
 	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	hdrname = lua_tostring(l, 2);
+	idx = (int) lua_tonumber(l, 3);
+
 	if (ctx != NULL)
 	{
 		cc = (struct connctx *) dkimf_getpriv(ctx);
 		dfc = cc->cctx_msg;
 		conf = cc->cctx_config;
-
-		hdrname = lua_tostring(l, 2);
-		idx = (int) lua_tonumber(l, 3);
 	}
 
 	lua_pop(l, 3);
 
 	if (ctx == NULL)
 	{
-		lua_pushstring(l, "dkimf_xs_getheader");
+		if (idx == 0)
+			lua_pushstring(l, "dkimf_xs_getheader");
+		else
+			lua_pushnil(l);
 		return 1;
 	}
 
@@ -3258,6 +3267,76 @@ dkimf_xs_getreputation(lua_State *l)
 
 	return 1;
 }
+
+# ifdef _FFR_STATSEXT
+/*
+**  DKIMF_XS_STATSEXT -- record extended statistics
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_statsext(lua_State *l)
+{
+	char *name;
+	char *value;
+	SMFICTX *ctx;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 3)
+	{
+		lua_pushstring(l,
+		               "odkim.stats(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2) ||
+	         !lua_isstring(l, 3))
+	{
+		lua_pushstring(l,
+		               "odkim.stats(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	name = (char *) lua_tostring(l, 2);
+	value = (char *) lua_tostring(l, 3);
+	lua_pop(l, 3);
+
+	if (ctx != NULL)
+	{
+		struct statsext *se;
+		struct connctx *cc;
+		struct msgctx *dfc;
+
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+
+		se = (struct statsext *) malloc(sizeof(struct statsext));
+		if (se == NULL)
+		{
+			lua_pushfstring(l, "odkim.stats(): malloc(): %s",
+			                strerror(errno));
+			lua_error(l);
+		}
+
+		se->se_next = dfc->mctx_statsext;
+		dfc->mctx_statsext = se;
+
+		strlcpy(se->se_name, name, sizeof se->se_name);
+		strlcpy(se->se_value, value, sizeof se->se_value);
+	}
+
+	lua_pushnil(l);
+
+	return 1;
+}
+# endif /* _FFR_STATSEXT */
 #endif /* USE_LUA */
 
 /*
@@ -4701,6 +4780,10 @@ dkimf_config_free(struct dkimf_config *conf)
 		free(conf->conf_setupscript);
 	if (conf->conf_screenscript != NULL)
 		free(conf->conf_screenscript);
+# ifdef _FFR_STATSEXT
+	if (conf->conf_statsscript != NULL)
+		free(conf->conf_statsscript);
+# endif /* _FFR_STATSEXT */
 	if (conf->conf_finalscript != NULL)
 		free(conf->conf_finalscript);
 #endif /* USE_LUA */
@@ -5414,6 +5497,72 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			}
 		}
 
+# ifdef _FFR_STATSEXT
+		str = NULL;
+		(void) config_get(data, "StatisticsPolicyScript", &str,
+		                  sizeof str);
+		if (str != NULL)
+		{
+			int fd;
+			ssize_t rlen;
+			struct stat s;
+			struct dkimf_lua_script_result lres;
+
+			fd = open(str, O_RDONLY, 0);
+			if (fd < 0)
+			{
+				snprintf(err, errlen, "%s: open(): %s", str,
+				         strerror(errno));
+				return -1;
+			}
+
+			if (fstat(fd, &s) == -1)
+			{
+				snprintf(err, errlen, "%s: fstat(): %s", str,
+				         strerror(errno));
+				close(fd);
+				return -1;
+			}
+
+			conf->conf_statsscript = malloc(s.st_size + 1);
+			if (conf->conf_statsscript == NULL)
+			{
+				snprintf(err, errlen, "malloc(): %s",
+				         strerror(errno));
+				close(fd);
+				return -1;
+			}
+
+			memset(conf->conf_statsscript, '\0', s.st_size + 1);
+			rlen = read(fd, conf->conf_statsscript, s.st_size);
+			if (rlen == -1)
+			{
+				snprintf(err, errlen, "%s: read(): %s",
+				         str, strerror(errno));
+				close(fd);
+				return -1;
+			}
+			else if (rlen < s.st_size)
+			{
+				snprintf(err, errlen, "%s: early EOF",
+				         str);
+				close(fd);
+				return -1;
+			}
+
+			close(fd);
+
+			memset(&lres, '\0', sizeof lres);
+			if (dkimf_lua_stats_hook(NULL, conf->conf_statsscript,
+			                         str, &lres) != 0)
+			{
+				strlcpy(err, lres.lrs_error, errlen);
+				free(lres.lrs_error);
+				return -1;
+			}
+		}
+# endif /* _FFR_STATSEXT */
+
 		str = NULL;
 		(void) config_get(data, "FinalPolicyScript", &str, sizeof str);
 		if (str != NULL)
@@ -5468,9 +5617,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			close(fd);
 
 			memset(&lres, '\0', sizeof lres);
-			if (dkimf_lua_final_hook(NULL, NULL,
-			                         conf->conf_finalscript,
-			                         &lres) != 0)
+			if (dkimf_lua_final_hook(NULL, conf->conf_finalscript,
+			                         str, &lres) != 0)
 			{
 				strlcpy(err, lres.lrs_error, errlen);
 				free(lres.lrs_error);
@@ -7101,6 +7249,24 @@ dkimf_cleanup(SMFICTX *ctx)
 
 		if (dfc->mctx_tmpstr != NULL)
 			dkimf_dstring_free(dfc->mctx_tmpstr);
+
+#ifdef _FFR_STATSEXT
+		if (dfc->mctx_statsext != NULL)
+		{
+			struct statsext *cur;
+			struct statsext *next;
+
+			cur = dfc->mctx_statsext;
+			while (cur != NULL)
+			{
+				next = cur->se_next;
+	
+				free(cur);
+
+				cur = next;
+			}
+		}
+#endif /* _FFR_STATSEXT */
 
 		free(dfc);
 		cc->cctx_msg = NULL;
@@ -11345,6 +11511,63 @@ mlfi_eom(SMFICTX *ctx)
 			u_int rhcnt;
 			_Bool fromlist = FALSE;
 
+# ifdef USE_LUA
+#  ifdef _FFR_STATSEXT
+			if (conf->conf_statsscript != NULL)
+			{
+				_Bool dofree = TRUE;
+				struct dkimf_lua_script_result lres;
+
+				memset(&lres, '\0', sizeof lres);
+
+				status = dkimf_lua_stats_hook(ctx,
+				                              conf->conf_statsscript,
+				                              "stats script",
+				                              &lres);
+
+				if (status != 0)
+				{
+					if (conf->conf_dolog)
+					{
+						if (lres.lrs_error == NULL)
+						{
+							dofree = FALSE;
+
+							switch (status)
+							{
+							  case 2:
+								lres.lrs_error = "processing error";
+								break;
+
+							  case 1:
+								lres.lrs_error = "syntax error";
+								break;
+
+							  case -1:
+								lres.lrs_error = "memory allocation error";
+								break;
+
+							  default:
+								lres.lrs_error = "unknown error";
+								break;
+							}
+						}
+
+						syslog(LOG_ERR,
+						       "%s: dkimf_lua_stats_hook() failed: %s",
+						       dfc->mctx_jobid,
+						       lres.lrs_error);
+					}
+
+					if (dofree)
+						free(lres.lrs_error);
+
+					return SMFIS_TEMPFAIL;
+				}
+			}
+#  endif /* _FFR_STATSEXT */
+# endif /* USE_LUA */
+
 			hdr = dkimf_findheader(dfc, "Precedence", 0);
 			if (hdr != NULL &&
 			    strcasecmp(hdr->hdr_val, "list") == 0)
@@ -11390,6 +11613,9 @@ mlfi_eom(SMFICTX *ctx)
 			                       fromlist,
 			                       conf->conf_anonstats,
 			                       rhcnt,
+# ifdef _FFR_STATSEXT
+			                       dfc->mctx_statsext,
+# endif /* _FFR_STATSEXT */
 			                       (struct sockaddr *) &cc->cctx_ip) != 0)
 			{
 				if (dolog)

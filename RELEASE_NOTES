@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.230 2010/09/13 06:44:31 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.231 2010/09/14 18:23:38 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -59,6 +59,10 @@ release, and a summary of the changes in that release.
 		Rognlie.
 	Don't automatically temp-fail messages bearing signatures that
 		reference revoked keys.
+	Some fixes to the "final" Lua script self-test code.
+	Add _FFR_STATSEXT: Allows arbitrary local extensions to statistics
+		gathering via a fourth Lua script that can cause the
+		generation of additional SQL insertion operations.
 	LIBOPENDKIM: Feature request #SF3026287: Add dkim_getuser() function.
 		Requested by Ale Vesely.
 	LIBOPENDKIM: Feature request #SF3065035: Apply library query

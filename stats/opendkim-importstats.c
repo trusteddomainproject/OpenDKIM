@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.6 2010/09/10 18:32:10 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.7 2010/09/14 18:23:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.6 2010/09/10 18:32:10 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.7 2010/09/14 18:23:39 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -33,7 +33,7 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.6 201
 #endif /* USE_ODBX */
 
 /* macros, definitions */
-#define	CMDLINEOPTS	"d:h:mP:p:Ss:u:"
+#define	CMDLINEOPTS	"d:h:mP:p:Ss:u:x"
 
 #define	DEFDBHOST	"localhost"
 #define	DEFDBNAME	"opendkim"
@@ -262,7 +262,11 @@ usage(void)
 	                "\t-p dbpasswd\tdatabase password\n"
 	                "\t-S         \tdon't skip duplicate messages\n",
 	                "\t-s dbscheme\tdatabase scheme (default: \"%s\")\n"
-	                "\t-u dbuser  \tdatabase user (default: \"%s\")\n",
+	                "\t-u dbuser  \tdatabase user (default: \"%s\")\n"
+#ifdef _FFR_STATSEXT
+	                "\t-x         \timport extension records\n"
+#endif /* _FFR_STATSEXT */
+	        ,
 	        progname, progname, DEFDBNAME, DEFDBHOST, DEFDBSCHEME,
 	        DEFDBUSER);
 
@@ -284,6 +288,7 @@ main(int argc, char **argv)
 {
 	int c;
 	int n;
+	int extensions = 0;
 	int nfields = 0;
 	int line;
 	int err;
@@ -345,6 +350,12 @@ main(int argc, char **argv)
 		  case 'u':
 			dbuser = optarg;
 			break;
+
+#ifdef _FFR_STATSEXT
+		  case 'x':
+			extensions = 1;
+			break;
+#endif /* _FFR_STATSEXT */
 
 		  default:
 			return usage();
@@ -878,6 +889,51 @@ main(int argc, char **argv)
 				}
 			}
 		}
+
+#ifdef _FFR_STATSEXT
+		/* processing section for extensions */
+		else if (c == 'X')
+		{
+			if (n != 2)
+			{
+				fprintf(stderr,
+				        "%s: unexpected extension field count (%d) at input line %d\n",
+				        progname, n, line);
+				continue;
+			}
+			else if (msgid <= 0)
+			{
+				fprintf(stderr,
+				        "%s: extension record before message record at input line %d\n",
+				        progname, line);
+				continue;
+			}
+			else if (skipsigs == 1 || extensions == 0)
+			{
+				continue;
+			}
+
+			if (sanitize(db, fields[0], safesql, sizeof safesql) ||
+			    sanitize(db, fields[1], safesql, sizeof safesql))
+			{
+				fprintf(stderr,
+				        "%s: unsafe data at input line %d\n",
+				        progname, line);
+				continue;
+			}
+
+			snprintf(sql, sizeof sql,
+			         "UPDATE messages SET %s = %s WHERE id = %d",
+			         fields[0], fields[1], msgid);
+
+			err = sql_do(db, sql);
+			if (err == -1)
+			{
+				(void) odbx_finish(db);
+				return EX_SOFTWARE;
+			}
+		}
+#endif /* _FFR_STATSEXT */
 
 		/* unknown record type */
 		else

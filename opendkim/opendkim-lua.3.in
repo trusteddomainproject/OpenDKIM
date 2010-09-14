@@ -37,6 +37,14 @@ verification.  For example, the user might decide only signatures added by
 domains exactly matching that in the From: domain are acceptable, and the
 rest should be ignored.
 .TP
+.I statistics
+The statistics script is run after all of the DKIM verification and signing
+work has been completed but before any final message handling is done.
+The main purpose of this script is to give the user an opportunity to examine
+the message or its signatures and make arbitrary additional statistical
+observations that should be recorded by the statistics module.
+@STATSEXT_MANNOTICE@
+.TP
 .I final
 The final script is run after all of the DKIM verification and signing work
 has been completed.  The user has an opportunity to examine the results
@@ -298,9 +306,44 @@ previously returned by a call to
 .B odkim.get_sighandle().
 Any pending verification of the message will act as if that signature was
 not present on the message.  Always returns the Lua constant "nil".
-.SH FINAL SCRIPT FUNCTIONS
-The screen script has the following functions available to it, whose
+.SH STATISTICS SCRIPT FUNCTIONS
+The statistics script has the following functions available to it, whose
 descriptions can be found above:
+.B odkim.get_header,
+.B odkim.get_rcpt,
+.B odkim.get_rcptarray,
+.B odkim.get_sigarray,
+.B odkim.get_sigcount,
+.B odkim.get_sighandle,
+.B odkim.log,
+.B odkim.sig_getdomain,
+.B odkim.sig_getidentity,
+and
+.B odkim.rcpt_count.
+
+The following functions are also available, defined in the next section:
+.B odkim.get_policy,
+.B odkim.get_reputation,
+.B odkim.rcpt_count,
+.B odkim.sig_bhresult,
+.B odkim.sig_bodylength,
+.B odkim.sig_canonlength,
+and
+.B odkim.sig_result.
+
+The following additional function is provided for this script:
+.TP
+.B odkim.stats(ctx, name, value)
+Records the additional statistic called
+.I name
+with its associated
+.I value
+for the message represented by
+.I ctx.
+.SH FINAL SCRIPT FUNCTIONS
+The final script has the following functions available to it, whose
+descriptions can be found above:
+.B odkim.get_header,
 .B odkim.get_rcpt,
 .B odkim.get_rcptarray,
 .B odkim.get_sigarray,
@@ -429,6 +472,13 @@ Valid values are the constants with DKIM_SIGERROR_ prefixes as defined in the
 .B libopendkim
 header file
 .I dkim.h.
+.TP
+.B odkim.stats(ctx, name, value)
+Records an additional
+.I name-value
+pair into the statistical information for the message represented by
+.I ctx.
+@STATSEXT_MANNOTICE@
 .SH VERSION
 This man page covers version @VERSION@ of
 .I OpenDKIM.

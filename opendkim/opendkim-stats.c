@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.16 2010/09/10 18:31:23 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.17 2010/09/14 18:23:38 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.16 2010/09/10 18:31:23 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.17 2010/09/14 18:23:38 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -349,6 +349,15 @@ main(int argc, char **argv)
 			s++;
 		}
 
+#ifdef _FFR_STATSEXT
+		/* processing section for extension data */
+		else if (c == 'X')
+		{
+			fprintf(stdout, "\tExtension data: %s=%s\n",
+			        fields[0], fields[1]);
+		}
+#endif /* _FFR_STATSEXT */
+ 
 		/* unknown record type */
 		else
 		{

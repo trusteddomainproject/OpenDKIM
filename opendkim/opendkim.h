@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.33 2010/09/01 22:51:48 cm-msk Exp $
+**  $Id: opendkim.h,v 1.34 2010/09/14 18:23:39 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.33 2010/09/01 22:51:48 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.34 2010/09/14 18:23:39 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
@@ -130,6 +130,20 @@ struct signreq
 	struct signreq *	srq_next;
 };
 
+#ifdef _FFR_STATSEXT
+/*
+**  STATSEXT -- statistics extension data
+*/
+
+typedef struct statsext * statsext;
+struct statsext
+{
+	char			se_name[BUFRSZ];
+	char			se_value[BUFRSZ];
+	struct statsext * 	se_next;
+};
+#endif /* _FFR_STATSEXT */
+
 /* externs */
 extern _Bool dolog;
 extern char *progname;
@@ -192,6 +206,9 @@ extern int dkimf_xs_setresult __P((lua_State *));
 extern int dkimf_xs_sigbhresult __P((lua_State *));
 extern int dkimf_xs_sigignore __P((lua_State *));
 extern int dkimf_xs_sigresult __P((lua_State *));
+#  ifdef _FFR_STATSEXT
+extern int dkimf_xs_statsext __P((lua_State *));
+#  endif /* _FFR_STATSEXT */
 extern int dkimf_xs_verify __P((lua_State *));
 # endif /* DKIMF_LUA_PROTOTYPES */
 #endif /* USE_LUA */

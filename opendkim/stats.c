@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.22 2010/09/13 16:34:11 cm-msk Exp $
+**  $Id: stats.c,v 1.23 2010/09/14 18:23:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.22 2010/09/13 16:34:11 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.23 2010/09/14 18:23:39 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -92,6 +92,9 @@ int
 dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
                    Header hdrlist, DKIM *dkimv, dkim_policy_t pcode,
                    _Bool fromlist, _Bool anon, u_int rhcnt,
+#ifdef _FFR_STATSEXT
+                   struct statsext *se,
+#endif /* _FFR_STATSEXT */
                    struct sockaddr *sa)
 {
 	_Bool exists;
@@ -516,6 +519,16 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 
 		fprintf(out, "\n");
 	}
+
+#ifdef _FFR_STATSEXT
+	if (se != NULL)
+	{
+		struct statsext *cur;
+
+		for (cur = se; cur != NULL; cur = cur->se_next)
+			fprintf(out, "X%s\t%s\n", cur->se_name, cur->se_value);
+	}
+#endif /* _FFR_STATSEXT */
 
 	/* close output */
 	fclose(out);
