@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.17 2010/09/14 18:23:38 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.18 2010/09/14 18:34:18 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.17 2010/09/14 18:23:38 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.18 2010/09/14 18:34:18 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -22,6 +22,7 @@ static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.17 2010/09/14 18:
 
 /* OpenDKIM includes */
 #include "build-config.h"
+#include "stats.h"
 
 /* libopendkim includes */
 #include <dkim.h>
@@ -180,33 +181,33 @@ main(int argc, char **argv)
 			}
 
 			/* format the data */
-			rtime = (time_t) atoi(fields[5]);
+			rtime = (time_t) atoi(fields[DKIMS_MI_MSGTIME]);
 			adsp = "not found";
 			adsppf = "passed";
-			if (fields[8][0] == '1')
+			if (fields[DKIMS_MI_ADSP_FOUND][0] == '1')
 			{
 				adsp = "invalid";
 
-				if (fields[9][0] == '1')
+				if (fields[DKIMS_MI_ADSP_UNKNOWN][0] == '1')
 					adsp = "unknown";
-				else if (fields[10][0] == '1')
+				else if (fields[DKIMS_MI_ADSP_ALL][0] == '1')
 					adsp = "all";
-				else if (fields[11][0] == '1')
+				else if (fields[DKIMS_MI_ADSP_DISCARD][0] == '1')
 					adsp = "discardable";
 
-				if (fields[12][0] == '1')
+				if (fields[DKIMS_MI_ADSP_FAIL][0] == '1')
 					adsppf = "failed";
 			}
 
-			if (fields[15][0] == '\0')
+			if (fields[DKIMS_MI_CONTENTTYPE][0] == '\0')
 				ct = "(default)";
 			else
-				ct = fields[15];
+				ct = fields[DKIMS_MI_CONTENTTYPE];
 
-			if (fields[16][0] == '\0')
+			if (fields[DKIMS_MI_CONTENTENCODING][0] == '\0')
 				cte = "(default)";
 			else
-				cte = fields[16];
+				cte = fields[DKIMS_MI_CONTENTENCODING];
 
 			if (ms > 0)
 			{
@@ -215,11 +216,16 @@ main(int argc, char **argv)
 			}
 
 			fprintf(stdout, "Job %s at %s (size %s)\n\treceived via %s at %s\tfrom domain = `%s', %s Received header fields\n\tContent type %s, content transfer encoding %s\n\t%s to come from a mailing list\n\tADSP %s (%s)\n",
-			        fields[0], fields[1], fields[6], fields[3],
-			        ctime(&rtime), fields[2], fields[14],
+			        fields[DKIMS_MI_JOBID],
+			        fields[DKIMS_MI_REPORTER],
+			        fields[DKIMS_MI_MSGLEN],
+			        fields[DKIMS_MI_IPADDR],
+			        ctime(&rtime),
+			        fields[DKIMS_MI_FROMDOMAIN],
+			        fields[DKIMS_MI_RECEIVEDCNT],
 			        ct, cte,
-			        fields[13][0] == '0' ? "Does not appear"
-			                             : "Appears",
+			        fields[DKIMS_MI_MAILINGLIST][0] == '0' ? "Does not appear"
+			                                               : "Appears",
 			        adsp, adsppf);
 
 			m++;
@@ -253,37 +259,37 @@ main(int argc, char **argv)
 			ms++;
 
 			/* format output */
-			if (fields[5][0] == '1')
+			if (fields[DKIMS_SI_PASS][0] == '1')
 				sigstat = "PASSED";
-			else if (fields[6][0] == '1')
+			else if (fields[DKIMS_SI_FAIL_BODY][0] == '1')
 				sigstat = "FAILED (body changed)";
-			else if (fields[4][0] == '1')
+			else if (fields[DKIMS_SI_IGNORE][0] == '1')
 				sigstat = "IGNORED";
-			else if (atoi(fields[12]) == DKIM_SIGERROR_KEYREVOKED)
+			else if (atoi(fields[DKIMS_SI_SIGERROR]) == DKIM_SIGERROR_KEYREVOKED)
 				sigstat = "REVOKED";
-			else if (fields[12][0] != '0')
-				sigstat = "ERROR (syntax error in signature)";
+			else if (fields[DKIMS_SI_SIGERROR][0] != '0')
+				sigstat = "ERROR";
 			else
 				sigstat = "UNKNOWN";
 
 			alg = "rsa-sha1";
-			if (fields[1][0] == '1')
+			if (fields[DKIMS_SI_ALGORITHM][0] == '1')
 				alg = "rsa-sha256";
 
 			hc = "simple";
-			if (fields[2][0] == '1')
+			if (fields[DKIMS_SI_HEADER_CANON][0] == '1')
 				hc = "relaxed";
 
 			bc = "simple";
-			if (fields[3][0] == '1')
+			if (fields[DKIMS_SI_BODY_CANON][0] == '1')
 				bc = "relaxed";
 
-			if (fields[7][0] == '-')
+			if (fields[DKIMS_SI_SIGLENGTH][0] == '-')
 				siglen = "(whole message)";
 			else
-				siglen = fields[7];
+				siglen = fields[DKIMS_SI_SIGLENGTH];
 
-			switch (fields[16][0])
+			switch (fields[DKIMS_SI_DNSSEC][0])
 			{
 			  case '-':
 				dnssec = "UNKNOWN";
@@ -302,7 +308,7 @@ main(int argc, char **argv)
 				break;
 			}
 
-			syntax = atoi(fields[12]);
+			syntax = atoi(fields[DKIMS_SI_SIGERROR]);
 			syntax = (syntax == DKIM_SIGERROR_VERSION ||
 			          syntax == DKIM_SIGERROR_DOMAIN ||
 			          syntax == DKIM_SIGERROR_TIMESTAMPS ||
@@ -331,20 +337,26 @@ main(int argc, char **argv)
 			          syntax == DKIM_SIGERROR_MBSFAILED);
 
 			fprintf(stdout, "\tSignature %d from %s\n\t\talgorithm %s\n\t\theader canonicalization %s, body canonicalization %s\n\t\t%s\n\t\tsigned bytes: %s\n\t\tSignature properties: %s %s %s %s\n\t\tKey properties: %s %s %s %s %s %s\n\t\tDNSSEC status: %s\n\t\tSigned fields: %s\n\t\tChanged fields: %s\n",
-			        ms, fields[0], alg, hc, bc, sigstat, siglen,
-			        fields[13][0] == '1' ? "t=" : "",
-			        atoi(fields[12]) == DKIM_SIGERROR_FUTURE ? "t=future"
-				                                         : "",
-			        fields[14][0] == '1' ? "x=" : "",
-			        fields[15][0] == '1' ? "z=" : "",
-			        fields[8][0] == '1' ? "t=" : "",
-			        fields[9][0] == '1' ? "g=" : "",
-			        fields[10][0] == '1' ? "g=name" : "",
+			        ms,
+			        fields[DKIMS_SI_DOMAIN],
+			        alg, hc, bc, sigstat, siglen,
+			        fields[DKIMS_SI_SIG_T][0] == '1' ? "t=" : "",
+			        atoi(fields[DKIMS_SI_SIGERROR]) == DKIM_SIGERROR_FUTURE ? "t=future"
+				                                                        : "",
+			        fields[DKIMS_SI_SIG_X][0] == '1' ? "x=" : "",
+			        fields[DKIMS_SI_SIG_Z][0] == '1' ? "z=" : "",
+			        fields[DKIMS_SI_KEY_T][0] == '1' ? "t=" : "",
+			        fields[DKIMS_SI_KEY_G][0] == '1' ? "g=" : "",
+			        fields[DKIMS_SI_KEY_G_NAME][0] == '1' ? "g=name"
+			                                              : "",
 			        syntax != 0 ? "syntax" : "",
-			        atoi(fields[12]) == DKIM_SIGERROR_NOKEY ? "NXDOMAIN" : "",
-			        fields[11][0] == '1' ? "DK" : "",
+			        atoi(fields[DKIMS_SI_SIGERROR]) == DKIM_SIGERROR_NOKEY ? "NXDOMAIN"
+			                                                               : "",
+			        fields[DKIMS_SI_KEY_DK_COMPAT][0] == '1' ? "DK"
+			                                                 : "",
 			        dnssec,
-			        fields[17], fields[18]);
+			        fields[DKIMS_SI_SIGNED_FIELDS],
+			        fields[DKIMS_SI_CHANGED_FIELDS]);
 
 			s++;
 		}
