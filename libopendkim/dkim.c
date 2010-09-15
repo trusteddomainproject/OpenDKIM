@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.64 2010/09/13 05:33:13 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.65 2010/09/15 23:09:18 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5322,7 +5322,13 @@ dkim_ohdrs(DKIM *dkim, DKIM_SIGINFO *sig, char **ptrs, int *pcnt)
 				char c;
 
 				if (!isxdigit(*(p + 1)) || !isxdigit(*(p + 2)))
+				{
+					dkim_error(dkim,
+					           "invalid trailing character (0x%02f 0x%02f) in z= tag value",
+					           *(p + 1), *(p + 2));
+
 					return DKIM_STAT_INVALID;
+				}
 
 				c = 16 * dkim_hexchar(*(p + 1)) + dkim_hexchar(*(p + 2));
 
