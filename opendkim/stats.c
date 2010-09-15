@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.23 2010/09/14 18:23:39 cm-msk Exp $
+**  $Id: stats.c,v 1.24 2010/09/15 23:02:50 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.23 2010/09/14 18:23:39 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.24 2010/09/15 23:02:50 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -512,6 +512,10 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 			{
 				fprintf(out, "\t-");
 			}
+		}
+		else
+		{
+			fprintf(out, "\t-");
 		}
 #else /* _FFR_DIFFHEADERS */
 		fprintf(out, "\t-");
