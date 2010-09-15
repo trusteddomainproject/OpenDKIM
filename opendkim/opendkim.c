@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.211 2010/09/14 18:23:38 cm-msk Exp $
+**  $Id: opendkim.c,v 1.212 2010/09/15 23:24:19 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.211 2010/09/14 18:23:38 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.212 2010/09/15 23:24:19 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -13144,6 +13144,7 @@ main(int argc, char **argv)
 			       VERSION);
 			printf("\tCompiled with %s\n",
 			       SSLeay_version(SSLEAY_VERSION));
+			printf("\tlibmilter version 0x%x\n", SMFI_VERSION);
 			printf("\tSupported signing algorithms:\n");
 			for (c = 0; dkimf_sign[c].str != NULL; c++)
 			{
