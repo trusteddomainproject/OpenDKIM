@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.43 2010/09/14 18:23:39 cm-msk Exp $
+**  $Id: util.c,v 1.44 2010/09/16 04:26:35 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.43 2010/09/14 18:23:39 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.44 2010/09/16 04:26:35 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -244,7 +244,7 @@ dkimf_optlist(FILE *where)
 
 		fprintf(where, "\t\t%s\n", optlist[c]);
 	}
-        fprintf(where, "%s\n", LIBOPENDKIM_FEATURE_STRING);
+        fprintf(where, "\t%s\n", LIBOPENDKIM_FEATURE_STRING);
 }
 
 /*
