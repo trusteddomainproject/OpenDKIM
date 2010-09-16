@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.175 2010/09/14 18:23:38 cm-msk Exp $
+# $Id: configure.ac,v 1.176 2010/09/16 04:26:57 cm-msk Exp $
 
 #
 # Setup
@@ -622,6 +622,10 @@ then
 		AC_CHECK_FUNC([smfi_insheader],
 			      AC_DEFINE([HAVE_SMFI_INSHEADER], 1,
 					[Define if libmilter has smfi_insheader()]))
+
+		AC_CHECK_FUNC([smfi_version],
+			      AC_DEFINE([HAVE_SMFI_VERSION], 1,
+					[Define if libmilter has smfi_version()]))
 
 		if test x"$breakloop" = x"yes"
 		then
