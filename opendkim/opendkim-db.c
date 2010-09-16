@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.95 2010/09/03 07:14:42 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.96 2010/09/16 04:47:39 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.95 2010/09/03 07:14:42 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.96 2010/09/16 04:47:39 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -640,7 +640,6 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 
 	memset(new, '\0', sizeof(struct dkimf_db));
 
-	new->db_lock = lock;
 	new->db_flags = flags;
 	new->db_type = DKIMF_DB_TYPE_UNKNOWN;
 
@@ -693,6 +692,30 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		}
 
 		p++;
+	}
+
+	/* force DB accesses to be mutex-protected */
+	if (new->db_type == DKIMF_DB_TYPE_DSN)
+		new->db_flags |= DKIMF_DB_FLAG_MAKELOCK;
+
+	/* use provided lock, or create a new one if needed */
+	if (lock != NULL)
+	{
+		new->db_lock = lock;
+		new->db_flags &= ~DKIMF_DB_FLAG_MAKELOCK;
+	}
+	else if ((new->db_flags & DKIMF_DB_FLAG_MAKELOCK) != 0)
+	{
+		new->db_lock = (pthread_mutex_t *) malloc(sizeof(pthread_mutex_t));
+		if (new->db_lock == NULL)
+		{
+			if (err != NULL)
+				*err = strerror(errno);
+			free(new);
+			return -1;
+		}
+
+		pthread_mutex_init(new->db_lock, NULL);
 	}
 
 	switch (new->db_type)
@@ -2527,6 +2550,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		dsn = (struct dkimf_db_dsn *) db->db_data;
 
+		if (db->db_lock != NULL)
+			(void) pthread_mutex_lock(db->db_lock);
+
 		memset(&elen, '\0', sizeof elen);
 		elen = sizeof escaped - 1;
 		err = odbx_escape((odbx_t *) db->db_handle, buf,
@@ -2535,6 +2561,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		if (err < 0)
 		{
 			db->db_status = err;
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
 			return err;
 		}
 
@@ -2548,6 +2576,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		if (err < 0)
 		{
 			db->db_status = err;
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
 			return err;
 		}
 
@@ -2558,6 +2588,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			if (err < 0)
 			{
 				db->db_status = err;
+				if (db->db_lock != NULL)
+					(void) pthread_mutex_unlock(db->db_lock);
 				return err;
 			}
 			else if (err == ODBX_RES_DONE)
@@ -2565,6 +2597,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				if (exists != NULL && rescnt == 0)
 					*exists = FALSE;
 				err = odbx_result_finish(result);
+				if (db->db_lock != NULL)
+					(void) pthread_mutex_unlock(db->db_lock);
 				return 0;
 			}
 
@@ -2575,6 +2609,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				{
 					db->db_status = err;
 					err = odbx_result_finish(result);
+					if (db->db_lock != NULL)
+						(void) pthread_mutex_unlock(db->db_lock);
 					return db->db_status;
 				}
 				else if (err == ODBX_RES_DONE)
@@ -2630,6 +2666,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 			err = odbx_result_finish(result);
 		}
+
+		if (db->db_lock != NULL)
+			(void) pthread_mutex_unlock(db->db_lock);
 
 		return 0;
 	  }
@@ -3028,6 +3067,13 @@ dkimf_db_close(DKIMF_DB db)
 		db->db_array = NULL;
 	}
 
+	if (db->db_lock != NULL &&
+	    (db->db_flags & DKIMF_DB_FLAG_MAKELOCK) != 0)
+	{
+		pthread_mutex_destroy(db->db_lock);
+		free(db->db_lock);
+	}
+
 	switch (db->db_type)
 	{
 	  case DKIMF_DB_TYPE_FILE:
@@ -3066,6 +3112,7 @@ dkimf_db_close(DKIMF_DB db)
 	  case DKIMF_DB_TYPE_DSN:
 		(void) odbx_finish((odbx_t *) db->db_handle);
 		free(db->db_data);
+		free(db);
 		return 0;
 #endif /* USE_ODBX */
 
