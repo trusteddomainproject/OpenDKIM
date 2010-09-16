@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.232 2010/09/15 23:27:01 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.233 2010/09/16 05:35:38 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -61,6 +61,8 @@ release, and a summary of the changes in that release.
 		reference revoked keys.
 	Some fixes to the "final" Lua script self-test code.
 	Include libmilter version in "-V" output.
+	Single-thread DB queries done via OpenDBX handles as they can't be
+		used to do parallel queries.
 	Add _FFR_STATSEXT: Allows arbitrary local extensions to statistics
 		gathering via a fourth Lua script that can cause the
 		generation of additional SQL insertion operations.
