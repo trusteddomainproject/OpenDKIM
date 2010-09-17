@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.96 2010/09/16 04:47:39 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.97 2010/09/17 14:24:10 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.96 2010/09/16 04:47:39 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.97 2010/09/17 14:24:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -74,6 +74,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.96 2010/09/16 04:47
 #endif /* _FFR_LDAP_CACHING */
 
 #define	DKIMF_DB_IFLAG_FREEARRAY 0x01
+#define	DKIMF_DB_IFLAG_RECONNECT 0x02
 
 #ifndef FALSE
 # define FALSE			0
@@ -2553,6 +2554,34 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		if (db->db_lock != NULL)
 			(void) pthread_mutex_lock(db->db_lock);
 
+		/* see if we need to reopen */
+		if ((db->db_iflags & DKIMF_DB_IFLAG_RECONNECT) != 0)
+		{
+			err = odbx_init((odbx_t **) &db->db_handle,
+			                STRORNULL(dsn->dsn_backend),
+			                STRORNULL(dsn->dsn_host),
+			                STRORNULL(dsn->dsn_port));
+			if (err < 0)
+			{
+				db->db_status = err;
+				return -1;
+			}
+
+			err = odbx_bind((odbx_t *) db->db_handle,
+			                STRORNULL(dsn->dsn_dbase),
+		                        STRORNULL(dsn->dsn_user),
+		                        STRORNULL(dsn->dsn_password),
+		                        ODBX_BIND_SIMPLE);
+			if (err < 0)
+			{
+				(void) odbx_finish((odbx_t *) db->db_handle);
+				db->db_status = err;
+				return -1;
+			}
+
+			db->db_iflags &= ~DKIMF_DB_IFLAG_RECONNECT;
+		}
+
 		memset(&elen, '\0', sizeof elen);
 		elen = sizeof escaped - 1;
 		err = odbx_escape((odbx_t *) db->db_handle, buf,
@@ -2576,9 +2605,22 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		if (err < 0)
 		{
 			db->db_status = err;
-			if (db->db_lock != NULL)
-				(void) pthread_mutex_unlock(db->db_lock);
-			return err;
+			if (odbx_error_type((odbx_t *) db->db_handle, err) < 0)
+			{
+				(void) odbx_unbind((odbx_t *) db->db_handle);
+				(void) odbx_finish((odbx_t *) db->db_handle);
+				db->db_iflags |= DKIMF_DB_IFLAG_RECONNECT;
+				if (db->db_lock != NULL)
+					(void) pthread_mutex_unlock(db->db_lock);
+				return dkimf_db_get(db, buf, buflen, req,
+				                    reqnum, exists);
+			}
+			else
+			{
+				if (db->db_lock != NULL)
+					(void) pthread_mutex_unlock(db->db_lock);
+				return err;
+			}
 		}
 
 		for (rescnt = 0; ; rescnt++)
