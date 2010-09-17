@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.19 2010/09/01 17:39:53 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.20 2010/09/17 04:20:22 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -230,6 +230,7 @@ struct dkim
 #ifdef _FFR_RESIGN
 	_Bool			dkim_hdrbind;
 #endif /* _FFR_RESIGN */
+	_Bool			dkim_eoh_reentry;
 	int			dkim_mode;
 	int			dkim_state;
 	int			dkim_chunkstate;

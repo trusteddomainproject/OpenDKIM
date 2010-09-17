@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.65 2010/09/15 23:09:18 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.66 2010/09/17 04:20:22 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2338,6 +2338,9 @@ dkim_getsender(DKIM *dkim, u_char **hdrs)
 	assert(dkim != NULL);
 	assert(hdrs != NULL);
 
+	if (dkim->dkim_sender != NULL)
+		return DKIM_STAT_OK;
+
 	for (c = 0; hdrs[c] != NULL; c++)
 	{
 		hlen = strlen(hdrs[c]);
@@ -3047,7 +3050,7 @@ dkim_eoh_verify(DKIM *dkim)
 	}
 
 	/* call the prescreen callback, if defined */
-	if (lib->dkiml_prescreen != NULL)
+	if (lib->dkiml_prescreen != NULL && !dkim->dkim_eoh_reentry)
 	{
 		status = lib->dkiml_prescreen(dkim,
 		                              dkim->dkim_siglist,
@@ -3088,9 +3091,12 @@ dkim_eoh_verify(DKIM *dkim)
 	}
 
 	/* run the headers */
-	status = dkim_canon_runheaders(dkim);
-	if (status != DKIM_STAT_OK)
-		return status;
+	if (!dkim->dkim_eoh_reentry)
+	{
+		status = dkim_canon_runheaders(dkim);
+		if (status != DKIM_STAT_OK)
+			return status;
+	}
 
 	/* do public key verification of all still-enabled signatures here */
 	if ((lib->dkiml_flags & DKIM_LIBFLAGS_DELAYSIGPROC) == 0)
@@ -3104,7 +3110,12 @@ dkim_eoh_verify(DKIM *dkim)
 				status = dkim_sig_process(dkim,
 				                          dkim->dkim_siglist[c]);
 				if (status != DKIM_STAT_OK)
+				{
+					if (status == DKIM_STAT_CBTRYAGAIN)
+						dkim->dkim_eoh_reentry = TRUE;
+
 					return status;
+				}
 			}
 		}
 	}
