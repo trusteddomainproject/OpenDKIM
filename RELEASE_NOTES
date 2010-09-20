@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.236 2010/09/17 14:24:10 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.237 2010/09/20 21:50:03 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -72,6 +72,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Feature request #SF3065035: Apply library query
 		configuration to ADSP lookups as well, mainly to support
 		auotmated testing.
+	LIBOPENDKIM: Fix bug #SF3071368: Fix tiny memory leak in dkim_init().
+		Reported by Al Garcia.
 	LIBOPENDKIM: Fix bug #SF3051762: Don't error out of dkim_get_key()
 		when in test mode by testing signature-specific features when
 		against dummy data.  Problem noted by Andreas Schulze.

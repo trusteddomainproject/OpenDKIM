@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.66 2010/09/17 04:20:22 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.67 2010/09/20 21:50:03 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3929,6 +3929,8 @@ dkim_close(DKIM_LIB *lib)
 	
 	if (lib->dkiml_signre)
 		(void) regfree(&lib->dkiml_hdrre);
+
+	free(lib->dkiml_flist);
 	
 	free((void *) lib);
 
