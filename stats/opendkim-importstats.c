@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.7 2010/09/14 18:23:39 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.8 2010/09/21 20:58:06 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.7 2010/09/14 18:23:39 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.8 2010/09/21 20:58:06 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -111,12 +111,12 @@ findinlist(char *str, char *list)
 		{
 			if (p - q == len && strncasecmp(str, q, len) == 0)
 				return 1;
+
+			q = p + 1;
 		}
 
 		if (*p == '\0')
 			break;
-
-		q = p + 1;
 	}
 
 	return 0;
@@ -804,23 +804,6 @@ main(int argc, char **argv)
 				fprintf(stderr,
 				        "%s: failed to create signature record for input line %d\n",
 				        progname, line);
-				(void) odbx_finish(db);
-				return EX_SOFTWARE;
-			}
-
-			snprintf(sql, sizeof sql, "SELECT LAST_INSERT_ID()");
-
-			sigid = sql_get_int(db, sql);
-			if (sigid == -1)
-			{
-				(void) odbx_finish(db);
-				return EX_SOFTWARE;
-			}
-			else if (sigid == 0)
-			{
-				fprintf(stderr,
-				        "%s: failed to create domain record for `%s'\n",
-				        progname, fields[0]);
 				(void) odbx_finish(db);
 				return EX_SOFTWARE;
 			}
