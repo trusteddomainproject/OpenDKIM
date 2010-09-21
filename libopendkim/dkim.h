@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.33 2010/09/21 17:43:11 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.34 2010/09/21 18:52:47 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1484,7 +1484,7 @@ extern unsigned long dkim_ssl_version __P((void));
 #define DKIM_FEATURE_PARSE_TIME		2
 #define DKIM_FEATURE_QUERY_CACHE	3
 #define DKIM_FEATURE_SHA256		4
-#define DKIM_FEATURE_ASYNC_DNS		5
+#define DKIM_FEATURE_UNUSED_1		5 /* was DKIM_FEATURE_ASYNC_DNS */
 #define DKIM_FEATURE_DNSSEC		6
 #define DKIM_FEATURE_RESIGN		7
 
