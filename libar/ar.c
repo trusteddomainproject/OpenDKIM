@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char ar_c_id[] = "@(#)$Id: ar.c,v 1.8 2010/08/30 22:01:56 cm-msk Exp $";
+static char ar_c_id[] = "@(#)$Id: ar.c,v 1.9 2010/09/21 17:43:10 cm-msk Exp $";
 #endif /* !lint */
 
 /* OS stuff */
@@ -777,12 +777,12 @@ static int
 ar_anscount(unsigned char *buf, size_t len)
 {
 	int ret = 0;
-	u_int16_t qdcount;
-	u_int16_t ancount;
-	u_int16_t class;
-	u_int16_t type;
-	u_int16_t rrsize;
-	u_int32_t ttl;
+	uint16_t qdcount;
+	uint16_t ancount;
+	uint16_t class;
+	uint16_t type;
+	uint16_t rrsize;
+	uint32_t ttl;
 	int n;
 	unsigned char *cp;
 	unsigned char *eom;

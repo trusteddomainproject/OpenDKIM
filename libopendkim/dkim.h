@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.32 2010/09/01 22:51:48 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.33 2010/09/21 17:43:11 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -351,19 +351,6 @@ struct dkim_hdrdiff
 /*
 **  PROTOTYPES
 */
-
-/*
-**  DKIM_SET_TRUST_ANCHOR -- set trust anchor file path
-**
-**  Parameters:
-**  	lib -- DKIM_LIB handle to update
-**  	tafile -- trust anchor file path
-** 
-**  Return value:
-**  	A DKIM_STAT constant.
-*/
-
-extern DKIM_STAT dkim_set_trust_anchor __P((DKIM_LIB *lib, char *tafile));
 
 /*
 **  DKIM_INIT -- initialize the DKIM package

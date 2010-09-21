@@ -4,12 +4,17 @@
 **
 **  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-testkey.c,v 1.9 2010/08/02 03:18:22 cm-msk Exp $
+**  $Id: opendkim-testkey.c,v 1.10 2010/09/21 17:43:11 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.9 2010/08/02 03:18:22 cm-msk Exp $";
+static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10 2010/09/21 17:43:11 cm-msk Exp $";
 #endif /* !lint */
+
+/* for Solaris */
+#ifndef _REENTRANT
+# define _REENTRANT
+#endif /* _REENTRANT */
 
 /* system includes */
 #include <sys/types.h>
@@ -39,6 +44,10 @@ static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.9 2010/08
 /* macros */
 #define	CMDLINEOPTS	"d:k:s:vx:"
 #define	BUFRSZ		2048
+
+#ifndef MIN
+# define MIN(x,y)	((x) < (y) ? (x) : (y))
+#endif /* !MIN */
 
 /* prototypes */
 void dkimf_log_ssl_errors(void);

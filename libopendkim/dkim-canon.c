@@ -6,10 +6,15 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.20 2010/07/24 20:21:55 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.21 2010/09/21 17:43:10 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
+
+/* for Solaris */
+#ifndef _REENTRANT
+# define _REENTRANT
+#endif /* _REENTRANT */
 
 /* system includes */
 #include <sys/param.h>

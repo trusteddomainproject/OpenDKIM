@@ -4,12 +4,17 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: config.c,v 1.9 2010/09/07 06:50:18 cm-msk Exp $
+**  $Id: config.c,v 1.10 2010/09/21 17:43:11 cm-msk Exp $
 */
 
 #ifndef lint
-static char config_c_id[] = "@(#)$Id: config.c,v 1.9 2010/09/07 06:50:18 cm-msk Exp $";
+static char config_c_id[] = "@(#)$Id: config.c,v 1.10 2010/09/21 17:43:11 cm-msk Exp $";
 #endif /* !lint */
+
+/* for Solaris */
+#ifndef _REENTRANT
+# define _REENTRANT
+#endif /* _REENTRANT */
 
 /* system includes */
 #include <sys/types.h>
