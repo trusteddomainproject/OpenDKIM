@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.9 2010/09/10 06:25:34 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.10 2010/09/21 21:25:59 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -137,6 +137,10 @@ echo "</p>" >> $OUTPUT
 
 echo "<p>Correlation of Received: count to signature successes: <br>" >> $OUTPUT
 $MYSQL --execute="select received_count, sum(sigcount) as 'total sigs', sum(signatures.pass) as 'passed', 100*sum(signatures.pass)/sum(sigcount) as '% pass' from messages join signatures on signatures.message = messages.id where received_count > 0 and sigcount > 0 group by received_count" >> $OUTPUT
+echo "</p>" >> $OUTPUT
+
+echo "<p>Most frequent header field changes resulting in signature failures: <br>" >> $OUTPUT
+$MYSQL --execute="select headernames.name, count(headernames.name) as instances from signed_headers join headernames on headernames.id = signed_headers.header where changed = 1 group by signed_headers.header" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 # output a footer
