@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.8 2010/09/21 20:58:06 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.9 2010/09/21 21:56:43 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.8 2010/09/21 20:58:06 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.9 2010/09/21 21:56:43 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -260,7 +260,7 @@ usage(void)
 	                "\t-m         \tinput is in email format\n"
 	                "\t-P dbport  \tdatabase port\n"
 	                "\t-p dbpasswd\tdatabase password\n"
-	                "\t-S         \tdon't skip duplicate messages\n",
+	                "\t-S         \tdon't skip duplicate messages\n"
 	                "\t-s dbscheme\tdatabase scheme (default: \"%s\")\n"
 	                "\t-u dbuser  \tdatabase user (default: \"%s\")\n"
 #ifdef _FFR_STATSEXT
