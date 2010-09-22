@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.176 2010/09/16 04:26:57 cm-msk Exp $
+# $Id: configure.ac,v 1.177 2010/09/22 05:21:47 cm-msk Exp $
 
 #
 # Setup
@@ -414,7 +414,6 @@ AC_ARG_ENABLE([arlib],
               [
 		AC_DEFINE(USE_ARLIB, 1,
 		          [enable provided asynchronous resolver library])
-		LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING libar"
               ])
 )
 
@@ -706,7 +705,6 @@ then
 else
 	AC_DEFINE([USE_UNBOUND], 1,
 	          [use unbound DNSSEC libary for DNS])
-	LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING unbound"
 	AC_SUBST([UNBOUND_MANNOTICE], "" )
 fi
 
