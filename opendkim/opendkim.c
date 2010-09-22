@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.215 2010/09/21 23:26:00 cm-msk Exp $
+**  $Id: opendkim.c,v 1.216 2010/09/22 07:00:43 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.215 2010/09/21 23:26:00 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.216 2010/09/22 07:00:43 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8842,6 +8842,9 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 	    || conf->conf_setupscript != NULL
 	    || conf->conf_screenscript != NULL
 	    || conf->conf_finalscript != NULL
+# ifdef _FFR_STATSEXT
+	    || conf->conf_statsscript != NULL
+# endif /* _FFR_STATSEXT */
 #endif /* USE_LUA */
 	   )
 	{
