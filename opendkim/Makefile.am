@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.79 2010/09/01 22:51:48 cm-msk Exp $
+# $Id: Makefile.am,v 1.80 2010/09/23 19:07:49 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -93,6 +93,10 @@ if USE_ODBX
 opendkim_testkey_CPPFLAGS += $(LIBODBX_CPPFLAGS)
 opendkim_testkey_CFLAGS += $(LIBODBX_CFLAGS)
 opendkim_testkey_LDADD += $(LIBODBX_LIBS)
+endif
+if USE_LDAP
+opendkim_testkey_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
+opendkim_testkey_LDADD += $(OPENLDAP_LIBS)
 endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
