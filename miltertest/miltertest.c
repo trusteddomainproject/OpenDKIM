@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.41 2010/09/12 15:31:12 cm-msk Exp $
+**  $Id: miltertest.c,v 1.42 2010/09/23 18:37:32 cm-msk Exp $
 */
 
 #ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.41 2010/09/12 15:31:12 cm-msk Exp $";
+static char miltertest_c_id[] = "$Id: miltertest.c,v 1.42 2010/09/23 18:37:32 cm-msk Exp $";
 #endif /* ! lint */
 
 #include "build-config.h"
@@ -48,6 +48,11 @@ static char miltertest_c_id[] = "$Id: miltertest.c,v 1.41 2010/09/12 15:31:12 cm
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
+
+/* types */
+#ifndef HAVE_USECONDS_T
+typedef unsigned int useconds_t;
+#endif /* ! HAVE_USECONDS_T */
 
 /* macros */
 #ifndef FALSE
@@ -2119,6 +2124,7 @@ mt_conninfo(lua_State *l)
 int
 mt_unknown(lua_State *l)
 {
+#ifdef SMFIC_UNKNOWN
 	char rcmd;
 	size_t buflen;
 	size_t s;
@@ -2126,6 +2132,7 @@ mt_unknown(lua_State *l)
 	char *cmd;
 	char *bp;
 	char buf[BUFRSZ];
+#endif /* SMFIC_UNKNOWN */
 
 	assert(l != NULL);
 
@@ -2190,9 +2197,9 @@ mt_unknown(lua_State *l)
 	}
 
 	lua_pushnil(l);
+#endif /* ! SMFIC_UNKNOWN */
 
 	return 1;
-#endif /* ! SMFIC_UNKNOWN */
 }
 
 /*
@@ -2489,10 +2496,12 @@ mt_rcptto(lua_State *l)
 int
 mt_data(lua_State *l)
 {
+#ifdef SMFIC_DATA
 	char rcmd;
 	size_t buflen;
 	struct mt_context *ctx;
 	char buf[BUFRSZ];
+#endif /* SMFIC_DATA */
 
 	assert(l != NULL);
 
@@ -2549,9 +2558,9 @@ mt_data(lua_State *l)
 	}
 
 	lua_pushnil(l);
+#endif /* ! SMFIC_DATA */
 
 	return 1;
-#endif /* ! SMFIC_DATA */
 }
 
 /*

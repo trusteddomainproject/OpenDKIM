@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.177 2010/09/22 05:21:47 cm-msk Exp $
+# $Id: configure.ac,v 1.178 2010/09/23 18:37:32 cm-msk Exp $
 
 #
 # Setup
@@ -86,6 +86,12 @@ AC_SEARCH_LIBS(getaddrinfo, resolv,
 
 
 AC_HEADER_RESOLV
+
+#
+# Check for types
+#
+
+AC_CHECK_TYPES([useconds_t])
 
 #
 # See if libopendkim will need -lresolv
