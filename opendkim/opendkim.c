@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.217 2010/09/24 03:48:02 cm-msk Exp $
+**  $Id: opendkim.c,v 1.218 2010/09/24 21:14:12 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.217 2010/09/24 03:48:02 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.218 2010/09/24 21:14:12 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -8382,7 +8382,7 @@ dkimf_policyreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "DKIM failure report for job %s on %s\n\n",
 	        dfc->mctx_jobid, hostname);
 	fprintf(out,
-	        "The failed message's header block is\nattached.\n");
+	        "The failed message's header block is attached.\n");
 	fprintf(out, "\n");
 
 	/* second part: formatted gunk */
