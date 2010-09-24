@@ -1,4 +1,4 @@
--- $Id: t-peer.lua,v 1.8 2010/09/24 21:20:41 cm-msk Exp $
+-- $Id: t-peer.lua,v 1.9 2010/09/24 21:26:53 cm-msk Exp $
 
 -- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -52,11 +52,11 @@ do
 	-- try to connect to it
 	conn = mt.connect(sock, 40, 0.05)
 	if conn == nil then
-		error "mt.connect() failed"
+		error("mt.connect() failed")
 	end
 
 	if mt.conninfo(conn, test[index][1], test[index][2]) ~= nil then
-		error "mt.conninfo() failed"
+		error("mt.conninfo() failed")
 	end
 	if mt.getreply(conn) ~= test[index][3] then
 		stre = "mt.conninfo() unexpected reply " .. test[index][1] ..
@@ -66,7 +66,7 @@ do
 		else 	
 			stre = stre .. "SMFIR_ACCEPT"
 		end
-		error stre
+		error(stre)
 	end
 
 	-- disconnect
