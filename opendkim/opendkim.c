@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.219 2010/09/24 21:16:06 cm-msk Exp $
+**  $Id: opendkim.c,v 1.220 2010/09/24 23:49:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.219 2010/09/24 21:16:06 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.220 2010/09/24 23:49:07 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -224,8 +224,6 @@ struct dkimf_config
 	char *		conf_thirdpartyfile;	/* third party sigs file */
 	char *		conf_omitlist;		/* omit header list */
 	char *		conf_domlist;		/* signing domain list */
-	char *		conf_mtalist;		/* signing MTA list */
-	char *		conf_macrolist;		/* signing MTA macro list */
 	char *		conf_signalgstr;	/* signature algorithm string */
 	char *		conf_modestr;		/* mode string */
 	char *		conf_canonstr;		/* canonicalization(s) string */
@@ -4703,6 +4701,8 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_alwayshdrsdb != NULL)
 		dkimf_db_close(conf->conf_alwayshdrsdb);
 
+	if (conf->conf_senderhdrs != NULL)
+		free(conf->conf_senderhdrs);
 	if (conf->conf_senderhdrsdb != NULL)
 		dkimf_db_close(conf->conf_senderhdrsdb);
 
@@ -4710,11 +4710,9 @@ dkimf_config_free(struct dkimf_config *conf)
 		free(conf->conf_mtas);
 	if (conf->conf_mtasdb != NULL)
 		dkimf_db_close(conf->conf_mtasdb);
-	if (conf->conf_mtalist != NULL)
-		free(conf->conf_mtalist);
 
-	if (conf->conf_macrolist != NULL)
-		free(conf->conf_macrolist);
+	if (conf->conf_macros != NULL)
+		free(conf->conf_macros);
 	if (conf->conf_macrosdb != NULL)
 		dkimf_db_close(conf->conf_macrosdb);
 
@@ -5871,11 +5869,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 
 	str = NULL;
-	if (conf->conf_mtalist != NULL)
-	{
-		str = conf->conf_mtalist;
-	}
-	else if (data != NULL)
+	if (data != NULL)
 	{
 		(void) config_get(data, "MTA", &str, sizeof str);
 	}
@@ -5892,6 +5886,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			         str, dberr);
 			return -1;
 		}
+
+		status = dkimf_db_mkarray(conf->conf_mtasdb, &conf->conf_mtas);
+		if (status == -1)
+			return -1;
 	}
 
 	str = NULL;
@@ -5928,6 +5926,11 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			         str, dberr);
 			return -1;
 		}
+
+		status = dkimf_db_mkarray(conf->conf_senderhdrsdb,
+		                          &conf->conf_senderhdrs);
+		if (status == -1)
+			return -1;
 	}
 	else
 	{
@@ -6130,11 +6133,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 
 	str = NULL;
-	if (conf->conf_macrolist != NULL)
-	{
-		str = conf->conf_macrolist;
-	}
-	else if (data != NULL)
+	if (data != NULL)
 	{
 		(void) config_get(data, "MacroList", &str, sizeof str);
 	}
@@ -6762,15 +6761,6 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      DKIM_OPTS_SIGNHDRS,
 		                      (void *) dkim_should_signhdrs,
 		                      sizeof (u_char **));
-
-		if (status != DKIM_STAT_OK)
-			return FALSE;
-	}
-
-	if (conf->conf_senderhdrsdb != NULL)
-	{
-		status = dkimf_db_mkarray(conf->conf_senderhdrsdb,
-		                          &conf->conf_senderhdrs);
 
 		if (status != DKIM_STAT_OK)
 			return FALSE;
