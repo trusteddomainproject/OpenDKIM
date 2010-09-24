@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.216 2010/09/22 07:00:43 cm-msk Exp $
+**  $Id: opendkim.c,v 1.217 2010/09/24 03:48:02 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.216 2010/09/22 07:00:43 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.217 2010/09/24 03:48:02 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -13198,27 +13198,6 @@ main(int argc, char **argv)
 		return EX_SOFTWARE;
 	}
 
-#ifdef USE_UNBOUND
-	if (dkimf_unbound_init(&unbound) != 0)
-	{
-		fprintf(stderr, "%s: failed to initialize libunbound\n",
-		        progname);
-
-		return EX_SOFTWARE;
-	}
-#endif /* USE_UNBOUND */
-
-#ifdef USE_ARLIB
-	arlib = ar_init(NULL, NULL, NULL, 0);
-	if (arlib == NULL)
-	{
-		fprintf(stderr, "%s: failed to initialize libar\n",
-		        progname);
-
-		return EX_SOFTWARE;
-	}
-#endif /* USE_ARLIB */
-
 	if (conffile != NULL)
 	{
 		u_int line = 0;
@@ -13972,7 +13951,8 @@ main(int argc, char **argv)
 						}
 						else if (WIFEXITED(status))
 						{
-							if (WEXITSTATUS(status) == EX_CONFIG)
+							if (WEXITSTATUS(status) == EX_CONFIG ||
+							    WEXITSTATUS(status) == EX_SOFTWARE)
 							{
 								syslog(LOG_NOTICE,
 								       "exited with status %d",
@@ -14120,6 +14100,27 @@ main(int argc, char **argv)
 			return EX_OK;
 		}
 	}
+
+#ifdef USE_UNBOUND
+	if (dkimf_unbound_init(&unbound) != 0)
+	{
+		if (curconf->conf_dolog)
+			syslog(LOG_ERR, "failed to initialize libunbound");
+
+		return EX_SOFTWARE;
+	}
+#endif /* USE_UNBOUND */
+
+#ifdef USE_ARLIB
+	arlib = ar_init(NULL, NULL, NULL, 0);
+	if (arlib == NULL)
+	{
+		if (curconf->conf_dolog)
+			syslog(LOG_ERR, "failed to initialize libar");
+
+		return EX_SOFTWARE;
+	}
+#endif /* USE_ARLIB */
 
 	/* write out the pid */
 	if (!autorestart && pidfile != NULL)
