@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char ar_c_id[] = "@(#)$Id: ar.c,v 1.9 2010/09/21 17:43:10 cm-msk Exp $";
+static char ar_c_id[] = "@(#)$Id: ar.c,v 1.10 2010/09/24 03:49:57 cm-msk Exp $";
 #endif /* !lint */
 
 /* OS stuff */
@@ -435,7 +435,7 @@ ar_alldead(AR_LIB lib)
 	for (q = lib->ar_queries; q != NULL; q = q->q_next)
 	{
 		pthread_mutex_lock(&q->q_lock);
-		q->q_flags |= (QUERY_NOREPLY|QUERY_ERROR);
+		q->q_flags |= QUERY_ERROR;
 		pthread_cond_signal(&q->q_reply);
 		pthread_mutex_unlock(&q->q_lock);
 	}
@@ -2045,9 +2045,9 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 		}
 	}
 
-	while ((query->q_flags & (QUERY_REPLY|QUERY_NOREPLY)) == 0)
+	while ((query->q_flags & (QUERY_REPLY|QUERY_NOREPLY|QUERY_ERROR)) == 0)
 	{
-		if (infinite == 1)
+		if (infinite)
 		{
 			status = pthread_cond_wait(&query->q_reply,
 			                           &query->q_lock);
