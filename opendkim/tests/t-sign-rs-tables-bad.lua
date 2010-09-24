@@ -1,4 +1,4 @@
--- $Id: t-sign-rs-tables-bad.lua,v 1.9 2010/09/12 05:39:56 cm-msk Exp $
+-- $Id: t-sign-rs-tables-bad.lua,v 1.10 2010/09/24 21:40:31 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -22,55 +22,55 @@ mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-rs-tables-bad.conf",
 -- try to connect to it
 conn = mt.connect(sock, 40, 0.05)
 if conn == nil then
-	error "mt.connect() failed"
+	error("mt.connect() failed")
 end
 
 -- send connection information
 -- mt.negotiate() is called implicitly
 if mt.conninfo(conn, "localhost", "127.0.0.1") ~= nil then
-	error "mt.conninfo() failed"
+	error("mt.conninfo() failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
-	error "mt.conninfo() unexpected reply"
+	error("mt.conninfo() unexpected reply")
 end
 
 -- send envelope macros and sender data
 -- mt.helo() is called implicitly
 mt.macro(conn, SMFIC_MAIL, "i", "t-sign-rs-tables-bad")
 if mt.mailfrom(conn, "user@example.com") ~= nil then
-	error "mt.mailfrom() failed"
+	error("mt.mailfrom() failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
-	error "mt.mailfrom() unexpected reply"
+	error("mt.mailfrom() unexpected reply")
 end
 
 -- send headers
 -- mt.rcptto() is called implicitly
 if mt.header(conn, "From", "user@example.com") ~= nil then
-	error "mt.header(From) failed"
+	error("mt.header(From) failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
-	error "mt.header(From) unexpected reply"
+	error("mt.header(From) unexpected reply")
 end
 if mt.header(conn, "Date", "Tue, 22 Dec 2009 13:04:12 -0800") ~= nil then
-	error "mt.header(Date) failed"
+	error("mt.header(Date) failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
-	error "mt.header(Date) unexpected reply"
+	error("mt.header(Date) unexpected reply")
 end
 if mt.header(conn, "Subject", "Signing test") ~= nil then
-	error "mt.header(Subject) failed"
+	error("mt.header(Subject) failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
-	error "mt.header(Subject) unexpected reply"
+	error("mt.header(Subject) unexpected reply")
 end
 
 -- send EOH
 if mt.eoh(conn) ~= nil then
-	error "mt.eoh() failed"
+	error("mt.eoh() failed")
 end
 if mt.getreply(conn) ~= SMFIR_TEMPFAIL then
-	error "mt.eoh() unexpected reply"
+	error("mt.eoh() unexpected reply")
 end
 
 mt.disconnect(conn)
