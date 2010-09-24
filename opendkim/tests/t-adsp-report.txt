@@ -12,8 +12,7 @@ Content-Type: text/plain
 
 DKIM failure report for job (unknown-jobid) on unknown-host
 
-The canonicalized form of the failed message's header and body are
-attached.
+The failed message's header is attached.
 
 --dkimreport/unknown-host/(unknown-jobid)
 Content-Type: message/feedback-report
