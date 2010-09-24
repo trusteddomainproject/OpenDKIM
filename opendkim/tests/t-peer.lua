@@ -1,4 +1,4 @@
--- $Id: t-peer.lua,v 1.7 2010/09/12 05:45:41 grooverdan Exp $
+-- $Id: t-peer.lua,v 1.8 2010/09/24 21:20:41 cm-msk Exp $
 
 -- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -46,7 +46,8 @@ test = {
 	, {"localhost", "2001:db8::fff3", SMFIR_CONTINUE }
 	, {"localhost", "2001:db8::fff4", SMFIR_ACCEPT }
 	}
-for index=1,table.getn(test)
+
+for index = 1, table.getn(test)
 do
 	-- try to connect to it
 	conn = mt.connect(sock, 40, 0.05)
@@ -58,17 +59,16 @@ do
 		error "mt.conninfo() failed"
 	end
 	if mt.getreply(conn) ~= test[index][3] then
-		stre = "mt.conninfo() unexpected reply " .. test[index][1] .. "(" .. test[index][2] .. ") should be " 
+		stre = "mt.conninfo() unexpected reply " .. test[index][1] ..
+		       "(" .. test[index][2] .. ") should be " 
 		if test[index][3] == SMFIR_CONTINUE then
-			stre = stre .. "SMFIR_CONTINE"
+			stre = stre .. "SMFIR_CONTINUE"
 		else 	
 			stre = stre .. "SMFIR_ACCEPT"
 		end
-		print(stre)
-		error "mt.conninfo() unexpected reply"
-	else
-		print(test[index][1] .. "(" .. test[index][2] .. ") worked")
+		error stre
 	end
+
 	-- disconnect
 	mt.disconnect(conn)
 end
