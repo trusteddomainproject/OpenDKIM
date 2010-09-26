@@ -1,4 +1,4 @@
--- $Id: mkdb.mysql,v 1.9 2010/09/10 06:07:03 cm-msk Exp $
+-- $Id: mkdb.mysql,v 1.10 2010/09/26 03:04:23 cm-msk Exp $
 
 -- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -33,7 +33,7 @@ create table if not exists messages (
 	from_domain int unsigned not null,
 	ipaddr varchar(255) not null,
 	anonymized tinyint unsigned not null,
-	msgtime timestamp not null,
+	msgtime timestamp not null default CURRENT_TIMESTAMP,
 	size int unsigned not null,
 	sigcount int unsigned not null,
 	adsp_found int unsigned not null,
