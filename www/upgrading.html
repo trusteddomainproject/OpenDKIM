@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>OpenDKIM</title>
+<link rel="stylesheet" type="text/css" href="opendkim.css" media="screen" />
+</head>
+<body>
+<div id="header">
+	<a class="logo" href="http://www.opendkim.org/">OpenDKIM</a>
+	<div id="frontnav">
+      <ul>
+		<li><a href="http://sourceforge.net/projects/opendkim/files/">Download</a></li>
+		<li><a href="docs.html">Documentation</a></li>
+		<li><a href="http://sourceforge.net/tracker/?group_id=269812/">Bug/Feature Tracking</a></li>
+		<li><a href="http://lists.opendkim.org/">Mailing lists</a></li>
+		<li><a href="community.html">Community</a></li>
+		<li><a href="donate.html">Donate</a></li>
+		<li><a href="links.html">Links</a></li>
+		<li><a href="license.html">License</a></li>
+      </ul>
+	</div>
+</div>
+<div id="bodytext">
+<h1>Upgrading</h1>
+<p>
+This page contains information about upgrading from various versions
+of this package to the current one, or in some cases from other similar
+packages to this one.
+</p>
+
+<p>
+Only changes that must be made (i.e. those for which there is no backward
+compatibility) are described here.  See the <tt>RELEASE_NOTES</tt> file
+for more information on the full set of changes in each release to see if
+there are other changes of interest.
+</p>
+
+<h3>dkim-milter</h3>
+
+<p>
+Since OpenDKIM came into being as a code fork from Sendmail, Inc.'s
+<b>dkim-milter</b> package, there is a great deal of backward compatibility
+that package.  However, a few things have changed:
+
+<ul>
+ <li> In version 2.1.0 of OpenDKIM, a number of command line options were
+      removed as they are redundant to the configuraton file and generally
+      access to them at the command line is not useful (i.e. there's little
+      chance one would need to change them quickly, such as during testing).
+      See the <a href="#2.1.0">OpenDKIM 2.1.0</a> section for specifics.
+ <li> In version 2.0.0 of OpenDKIM, the <tt>KeyList</tt> configuration
+      parameter and its corresponding command line flag were removed and
+      replaced by a new mechanism for doing key sets.  See the
+      <a href="#2.0.0">OpenDKIM 2.0.0</a> section for specifics.
+</ul>
+</p>
+
+<h3> <a name="2.1.0"> OpenDKIM 2.1.0 </a> </h3>
+
+<p>
+Version 2.1.0 pruned a number of command line flags that were not in common
+use and were redundant to configuration file items.  The ones left behind
+were those likely to be inconvenient to writing shell scripts (especially
+the automated start/stop type) if removed.  This meant any such scripts
+that used them before would have to be updated.  The removed options were:
+
+<ul>
+ <li> <tt>-a</tt> peer host list
+ <li> <tt>-C</tt> error handling configuration
+ <li> <tt>-h</tt> add X-DKIM header field
+ <li> <tt>-i</tt> internal hosts list
+ <li> <tt>-I</tt> external hosts list
+ <li> <tt>-m</tt> MTA names list
+ <li> <tt>-M</tt> MTA macro names/values list
+ <li> <tt>-P</tt> PID file to create (re-added in 2.1.3)
+ <li> <tt>-R</tt> send failure reports
+ <li> <tt>-U</tt> POP-before-SMTP database
+</ul>
+</p>
+
+<h3> <a name="2.0.0"> OpenDKIM 2.0.0 </a> </h3>
+
+<p>
+In OpenDKIM 2.0.0, the <tt>KeyList</tt> parameter was removed.  The function
+previously served by that file has been split into two new settings, namely
+<tt>KeyTable</tt> (which gives a list of key names that map to a domain,
+a selector and a private key) and <tt>SigningTable</tt> which matches
+message senders to specific keys named in the key table.  Detailed
+instructions for making this conversion are available in the file
+<tt>opendkim/README</tt> in the source code tarball.
+</p>
+
+</div>
+<div id="footer">
+	&copy; 2010  The OpenDKIM Project -- $Id: upgrading.html,v 1.1 2010/09/27 17:58:04 cm-msk Exp $
+ </div>
+</body>
+</html>
