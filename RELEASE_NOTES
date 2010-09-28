@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.240 2010/09/28 18:00:48 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.241 2010/09/28 20:03:57 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -33,7 +33,6 @@ release, and a summary of the changes in that release.
 		recipients when delivering DKIM/ADSP failure reports through
 		a new ReportBccAddress configuration option.  Requested by 
 		Andreas Schulze.
-	Fix PeerList to work with IPv6 addresses.
 	Fix bug #SF3004995: Don't apply "SenderHeaders" to the library
 		as that impacts how ADSP works.
 	Fix bug #SF3025856: Fix "AllowSHA1Only", which was not working at all.
@@ -45,6 +44,7 @@ release, and a summary of the changes in that release.
 		by Andreas Schulze.
 	Fix bug #SF3058204: Fix numerous possible double-free() incidents in
 		dkimf_config_free().  Reported by Richard Rognlie.
+	Fix PeerList to work with IPv6 addresses.
 	Fix loop boundary check in dkimf_db_close().  Reported by Richard
 		Rognlie.
 	Fix assertion failure in dkimf_db_get() when used with a "match both"
