@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.98 2010/09/21 17:43:11 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.99 2010/09/28 18:00:48 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.98 2010/09/21 17:43:11 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.99 2010/09/28 18:00:48 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -506,7 +506,12 @@ dkimf_db_nextpunct(char *str)
 
 	for (p = str; *p != '\0'; p++)
 	{
-		if (isascii(*p) && ispunct(*p) && *p != '.')
+		if (*p == ':' ||
+		    *p == '/' ||
+		    *p == '@' ||
+		    *p == '+' ||
+		    *p == '=' ||
+		    *p == '?')
 			return p;
 	}
 

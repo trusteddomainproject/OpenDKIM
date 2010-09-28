@@ -123,6 +123,10 @@ defines a MySQL database listening at port 3306 on host "dbhost"; the userid
 database name is "odkim", and the data are in columns "host" (the keys)
 and "v1" and "v2" (the values) inside table "macros".  This example would
 thus return two values when a match is found.
+
+No value within the DSN may contain any of the six punctuation characters
+(":", "/", "@", "+", "?" and "=") used to separate portions of the DSN from
+each other.
 .TP
 .I e)
 If the string begins with "ldap:", "ldaps:" or "ldapi:", it is presumed

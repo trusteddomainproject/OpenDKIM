@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.239 2010/09/21 21:02:51 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.240 2010/09/28 18:00:48 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -65,6 +65,8 @@ release, and a summary of the changes in that release.
 		used to do parallel queries.
 	Attempt to reconnect after SQL disconnections.
 	Revise text/plain portion of policy reports.  Noted by Andreas Schulze.
+	Fix up DSN parsing so that it is not needlessly restrictive.
+		Reported by Todd Lyons.
 	Add _FFR_STATSEXT: Allows arbitrary local extensions to statistics
 		gathering via a fourth Lua script that can cause the
 		generation of additional SQL insertion operations.
