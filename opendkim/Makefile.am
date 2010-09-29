@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.80 2010/09/23 19:07:49 cm-msk Exp $
+# $Id: Makefile.am,v 1.81 2010/09/29 17:28:42 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -6,7 +6,8 @@ endif
 
 sbin_PROGRAMS = opendkim-genzone opendkim-testkey opendkim-testadsp
 dist_sbin_SCRIPTS = opendkim-genkey
-dist_doc_DATA = opendkim.conf.sample opendkim.conf.simple opendkim.conf.simple-verify
+dist_doc_DATA = opendkim.conf.sample opendkim.conf.simple \
+	opendkim.conf.simple-verify README.SQL
 
 if BUILD_FILTER
 sbin_PROGRAMS += opendkim
