@@ -1166,3 +1166,8 @@ RFC4871 - DomainKeys Identified Mail
 RFC5451 - Message Header Field for Indicating Message Authentication Status
 .P
 RFC5617 - DKIM Author Domain Signing Practises
+.P
+RFC5965 - An Extensible Format for Email Feedback Reports
+.P
+RFC6008 - Authentication-Results Registration for Differentiating among
+Cryptographic Results
