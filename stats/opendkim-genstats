@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.12 2010/09/29 20:17:09 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.13 2010/09/29 20:30:00 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -144,7 +144,7 @@ $MYSQL --execute="select headernames.name, count(headernames.name) as instances 
 echo "</p>" >> $OUTPUT
 
 echo "<p>Signing domain use counts: <br>" >> $OUTPUT
-$MYSQL --execute="select msgcount, count(*) as domains from (select domain, count(*) as msgcount from signatures group by 1) a group by 1 order by 1 limit 5 asc"
+$MYSQL --execute="select msgcount, count(*) as domains from (select domain, count(*) as msgcount from signatures group by 1) a group by 1 order by 1 asc limit 5" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 # output a footer
