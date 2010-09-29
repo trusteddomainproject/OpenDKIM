@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.11 2010/09/21 21:27:54 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.12 2010/09/29 20:17:09 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -141,6 +141,10 @@ echo "</p>" >> $OUTPUT
 
 echo "<p>Most frequent header field changes resulting in signature failures: <br>" >> $OUTPUT
 $MYSQL --execute="select headernames.name, count(headernames.name) as instances from signed_headers join headernames on headernames.id = signed_headers.header where changed = 1 group by signed_headers.header order by instances desc limit 10" >> $OUTPUT
+echo "</p>" >> $OUTPUT
+
+echo "<p>Signing domain use counts: <br>" >> $OUTPUT
+$MYSQL --execute="select msgcount, count(*) as domains from (select domain, count(*) as msgcount from signatures group by 1) a group by 1 order by 1 limit 5 asc"
 echo "</p>" >> $OUTPUT
 
 # output a footer
