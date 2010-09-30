@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.221 2010/09/30 15:04:20 cm-msk Exp $
+**  $Id: opendkim.c,v 1.222 2010/09/30 20:36:00 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.221 2010/09/30 15:04:20 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.222 2010/09/30 20:36:00 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -221,7 +221,6 @@ struct dkimf_config
 	char *		conf_externalfile;	/* external hosts file */
 	char *		conf_exemptfile;	/* exempt domains file */
 	char *		conf_tmpdir;		/* temp directory */
-	char *		conf_thirdpartyfile;	/* third party sigs file */
 	char *		conf_omitlist;		/* omit header list */
 	char *		conf_domlist;		/* signing domain list */
 	char *		conf_signalgstr;	/* signature algorithm string */
@@ -294,7 +293,6 @@ struct dkimf_config
 	char **		conf_vbr_trusted;	/* trusted certifiers */
 #endif /* _FFR_VBR */
 	DKIMF_DB	conf_domainsdb;		/* domains to sign (DB) */
-	char **		conf_domains;		/* domains to sign (array) */
 	DKIMF_DB	conf_omithdrdb;		/* headers to omit (DB) */
 	char **		conf_omithdrs;		/* headers to omit (array) */
 	DKIMF_DB	conf_signhdrsdb;	/* headers to sign (DB) */
@@ -314,11 +312,9 @@ struct dkimf_config
 	DKIMF_DB	conf_nodiscardto;	/* no discardable to (DB) */
 #endif /* _FFR_ADSP_LISTS */
 	DKIMF_DB	conf_thirdpartydb;	/* trustsigsfrom DB */
-	char **		conf_thirdparty;	/* trustsigsfrom addrs */
 	DKIMF_DB	conf_localadsp_db;	/* local ADSP DB */
 	DKIMF_DB	conf_macrosdb;		/* macros/values (DB) */
 	char **		conf_macros;		/* macros/values to check */
-	char **		conf_values;		/* macros/values to check */
 	regex_t **	conf_nosignpats;	/* do-not-sign patterns */
 	DKIMF_DB	conf_peerdb;		/* DB of "peers" */
 	DKIMF_DB	conf_internal;		/* DB of "internal" hosts */
@@ -4679,8 +4675,6 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_libopendkim != NULL)
 		dkim_close(conf->conf_libopendkim);
 
-	if (conf->conf_domains != NULL)
-		free(conf->conf_domains);
 	if (conf->conf_domainsdb != NULL)
 		dkimf_db_close(conf->conf_domainsdb);
 
@@ -4690,8 +4684,6 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_omithdrdb != NULL)
 		dkimf_db_close(conf->conf_omithdrdb);
 
-	if (conf->conf_thirdparty != NULL)
-		free(conf->conf_thirdparty);
 	if (conf->conf_thirdpartydb != NULL)
 		dkimf_db_close(conf->conf_thirdpartydb);
 
@@ -4701,24 +4693,14 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_alwayshdrsdb != NULL)
 		dkimf_db_close(conf->conf_alwayshdrsdb);
 
-	if (conf->conf_senderhdrs != NULL &&
-	    conf->conf_senderhdrs != (char **) dkim_default_senderhdrs)
-		free(conf->conf_senderhdrs);
 	if (conf->conf_senderhdrsdb != NULL)
 		dkimf_db_close(conf->conf_senderhdrsdb);
 
-	if (conf->conf_mtas != NULL)
-		free(conf->conf_mtas);
 	if (conf->conf_mtasdb != NULL)
 		dkimf_db_close(conf->conf_mtasdb);
 
-	if (conf->conf_macros != NULL)
-		free(conf->conf_macros);
 	if (conf->conf_macrosdb != NULL)
 		dkimf_db_close(conf->conf_macrosdb);
-
-	if (conf->conf_values != NULL)
-		free(conf->conf_values);
 
 	if (conf->conf_mbsdb != NULL)
 		dkimf_db_close(conf->conf_mbsdb);
@@ -6059,11 +6041,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 
 	str = NULL;
-	if (conf->conf_thirdpartyfile != NULL)
-	{
-		str = conf->conf_thirdpartyfile;
-	}
-	else if (data != NULL)
+	if (data != NULL)
 	{
 		(void) config_get(data, "TrustSignaturesFrom", &str,
 		                  sizeof str);
@@ -6775,7 +6753,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	if (status != DKIM_STAT_OK)
 		return FALSE;
 
-	if (conf->conf_thirdparty != NULL)
+	if (conf->conf_thirdpartydb != NULL)
 	{
 		status = dkim_set_prescreen(conf->conf_libopendkim,
 		                            dkimf_prescreen);
