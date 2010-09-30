@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.220 2010/09/24 23:49:07 cm-msk Exp $
+**  $Id: opendkim.c,v 1.221 2010/09/30 15:04:20 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.220 2010/09/24 23:49:07 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.221 2010/09/30 15:04:20 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4701,7 +4701,8 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_alwayshdrsdb != NULL)
 		dkimf_db_close(conf->conf_alwayshdrsdb);
 
-	if (conf->conf_senderhdrs != NULL)
+	if (conf->conf_senderhdrs != NULL &&
+	    conf->conf_senderhdrs != (char **) dkim_default_senderhdrs)
 		free(conf->conf_senderhdrs);
 	if (conf->conf_senderhdrsdb != NULL)
 		dkimf_db_close(conf->conf_senderhdrsdb);
