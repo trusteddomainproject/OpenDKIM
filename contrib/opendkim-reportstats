@@ -2,7 +2,7 @@
 #
 # Script to upload OpenDKIM statistics data.  Contributed by John Wood.
 #
-# $Id: opendkim-reportstats,v 1.2 2010/09/13 03:50:44 cm-msk Exp $
+# $Id: opendkim-reportstats,v 1.3 2010/10/01 05:10:09 cm-msk Exp $
 #
 # License: BSD 3-clause
 #
@@ -326,7 +326,7 @@ rm "$INPUTFILE"
 name_from_key()
 {
 #try to get name/email from gnupg key
-REPORTER=`gpg --homedir="$GNUPGDIR" --list-keys | grep 'OpenDKIM GnuPG key' | sed 's/^uid\*//'`
+REPORTER=`gpg --homedir="$GNUPGDIR" --list-keys | grep 'OpenDKIM GnuPG key' | sed 's/^uid *//'`
 if [ ! -z "$REPORTER" ]; then
    REPORTERNAME=`echo $REPORTER | awk -F\< '{print $1}'`
    REPORTEREMAIL=`echo $REPORTER | awk -F\< '{print "<"$2}'` 
