@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.9 2010/09/21 21:56:43 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.10 2010/10/01 05:24:26 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.9 2010/09/21 21:56:43 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.10 2010/10/01 05:24:26 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -33,7 +33,7 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.9 201
 #endif /* USE_ODBX */
 
 /* macros, definitions */
-#define	CMDLINEOPTS	"d:h:mP:p:Ss:u:x"
+#define	CMDLINEOPTS	"d:h:mP:p:rSs:u:x"
 
 #define	DEFDBHOST	"localhost"
 #define	DEFDBNAME	"opendkim"
@@ -260,6 +260,7 @@ usage(void)
 	                "\t-m         \tinput is in email format\n"
 	                "\t-P dbport  \tdatabase port\n"
 	                "\t-p dbpasswd\tdatabase password\n"
+	                "\t-r         \tdon't add unknown reporters\n"
 	                "\t-S         \tdon't skip duplicate messages\n"
 	                "\t-s dbscheme\tdatabase scheme (default: \"%s\")\n"
 	                "\t-u dbuser  \tdatabase user (default: \"%s\")\n"
@@ -295,6 +296,7 @@ main(int argc, char **argv)
 	int mail = 0;
 	int dontskip = 0;
 	int skipsigs = 0;
+	int norepadd = 0;
 	int repid;
 	int domid;
 	int msgid;
@@ -337,6 +339,10 @@ main(int argc, char **argv)
 
 		  case 'p':
 			dbpassword = optarg;
+			break;
+
+		  case 'r':
+			norepadd = 1;
 			break;
 
 		  case 'S':
@@ -494,6 +500,18 @@ main(int argc, char **argv)
 				}
 				else if (repid == 0)
 				{
+					if (norepadd == 1)
+					{
+						fprintf(stderr,
+						        "%s: no such reporter `%s' at line %d\n",
+						        progname, fields[1],
+						        line);
+
+						skipsigs = 1;
+
+						continue;
+					}
+
 					snprintf(sql, sizeof sql,
 					         "INSERT INTO reporters (name) VALUES ('%s')",
 					         safesql);
@@ -594,6 +612,9 @@ main(int argc, char **argv)
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
 				        progname, line);
+
+				skipsigs = 1;
+
 				continue;
 			}
 
