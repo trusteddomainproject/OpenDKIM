@@ -1,45 +1,135 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.1.1 released
+Subject: OpenDKIM v2.2.0 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.1.1, now available
+The OpenDKIM project announces availability of OpenDKIM v2.2.0, now available
 for download from SourceForge.
 
-This is a bug fix release.  The fixes are concentrated around the Lua
-scripting functionality and support of a specific set of milter features
-in "miltertest".  If these functions are working for you already or you're
-not using them, there is no need to upgrade at this time.
+This a major new feature release and also include several bug fixes.  Also,
+the statistics system has been overhauled to improve both its simplicity and
+its versatility.
 
 The full RELEASE_NOTES for this version:
 
-2.1.1		2010/06/22
-	Force IPv6 addresses to lowercase, which is about to become standard
-		(see draft-ietf-6man-text-addr-representation).  Problem
-		noted by Reuben Farrelly.
-	Permit configurations in which KeyTable and SetupPolicyScript are
-		defined but SigningTable isn't.
-	Return an error when making a default signing request if KeyFile and
-		Selector were not both specified.
-	Fix odkim.sign() so that it pulls from the correct Lua stack index,
-		avoiding a NULL dereference and a crash.  Problem noted
-		by Jozsef Kovacs.
-	Fix bug #SF3015441: Argument processing for odkim.log() was incorrect.
-		Problem reported by Jozsef Kovacs.
-	Fix bug #SF3016124: odbx_field_value() returns NULL if the requested
-		column contains an SQL NULL.  Problem reported by Jozsef
-		Kovacs.
-	Patch #SF3015439: Fix bugs in data set name parsing (e.g. allow dots
-		in fields so that fully qualified hostnames can be given).
-		Patch from Jozsef Kovacs.
-	MILTERTEST: Fix bug #SF3005615: Observe negotiated SMFIP_NO* protocol
-		option bits.
+2.2.0		2010/10/03
+	Feature request #SF2964366: Allow arbitrary data set operations
+		from inside Lua script hooks.
+	Feature request #SF2981598: Add "NoHeaderB" and "SingleAuthResult"
+		settings so that only one Authentication-Results header field
+		is added, and reduce its variability.  Requested by Gary Mills.
+	Feature request #SF3013084: Add "DomainKeysCompat" setting.
+	Feature request #SF3017358: Allow a token in the KeyTable that gets
+		replaced with the sender's domain name.
+	Feature request #SF3019876: Enable registration and use of generic
+		DNS functions.
+	Feature request #SF3021566: Change "ADSPDiscard" to "ADSPAction",
+		allowing selection of what action to take when a message is
+		determined by ADSP to be "discardable".
+	Feature request #SF3023232: Allow selection of a signer (for the
+		signature's "i=" tag) when calling odkim.sign() or via an
+		optional second parameter in the SigningTable.
+	Feature request #SF3024854: Always log a warning if a key file
+		has unsafe group/other read/write bits set.  Further, if the
+		new "RequireSafeKeys" setting is true, refuse to use the data.
+	Feature request #SF3030548: Add "DefaultSender".
+	Feature request #SF3056571: Extend signer selection in the SigningTable
+		to include a token that will be replaced by the From:
+		domain.  Requested by Richard Rognlie.
+	Feature request #SF3062077: Allow the specification of additional 
+		recipients when delivering DKIM/ADSP failure reports through
+		a new ReportBccAddress configuration option.  Requested by 
+		Andreas Schulze.
+	Fix bug #SF3004995: Don't apply "SenderHeaders" to the library
+		as that impacts how ADSP works.
+	Fix bug #SF3025856: Fix "AllowSHA1Only", which was not working at all.
+	Fix bug #SF3037504: Rework database schema and tools to meet revised
+		reporting requirements.
+	Fix bug #SF3049483: Use ReportAddress for ADSP Reports and for the
+		sender envelope address.  Reported by Andreas Schulze.
+	Fix bug #SF3051536: Allow disabling of reputation queries.  Requested
+		by Andreas Schulze.
+	Fix bug #SF3058204: Fix numerous possible double-free() incidents in
+		dkimf_config_free().  Reported by Richard Rognlie.
+	Fix PeerList to work with IPv6 addresses.
+	Fix loop boundary check in dkimf_db_close().  Reported by Richard
+		Rognlie.
+	Fix assertion failure in dkimf_db_get() when used with a "match both"
+		operation.  Reported by Richard Rognlie.
+	Fix "LocalADSP", which was not working at all.
+	Fix some Lua test mode logic and a build issue that prevented
+		"ScreenPolicyScript" from working.
+	Added MTACommand for overriding default (mainly for testing).
+	Ignore "Domain" and "Selector" settings if "KeyTable" is set.
+		Problem noted by Rolf Sonneveld.
+	Add "On-PolicyError" to configuration tables.  Reported by Richard
+		Rognlie.
+	Don't automatically temp-fail messages bearing signatures that
+		reference revoked keys.
+	Some fixes to the "final" Lua script self-test code.
+	Include libmilter version in "-V" output.
+	Single-thread DB queries done via OpenDBX handles as they can't be
+		used to do parallel queries.
+	Attempt to reconnect after SQL disconnections.
+	Revise text/plain portion of policy reports.  Noted by Andreas Schulze.
+	Fix up DSN parsing so that it is not needlessly restrictive.
+		Reported by Todd Lyons.
+	Add _FFR_STATSEXT: Allows arbitrary local extensions to statistics
+		gathering via a fourth Lua script that can cause the
+		generation of additional SQL insertion operations.
+	LIBOPENDKIM: Feature request #SF3026287: Add dkim_getuser() function.
+		Requested by Ale Vesely.
+	LIBOPENDKIM: Feature request #SF3065035: Apply library query
+		configuration to ADSP lookups as well, mainly to support
+		auotmated testing.
+	LIBOPENDKIM: Fix bug #SF3071368: Fix tiny memory leak in dkim_init().
+		Reported by Al Garcia.
+	LIBOPENDKIM: Fix bug #SF3051762: Don't error out of dkim_get_key()
+		when in test mode by testing signature-specific features when
+		against dummy data.  Problem noted by Andreas Schulze.
+	LIBOPENDKIM: Don't build against pthread libraries if not needed.
+		Requested by Ale Vesely.
+	LIBOPENDKIM: Add dkim_get_signer(), dkim_policy_state_new() and
+		dkim_policy_state_free().
+	LIBOPENDKIM: Don't assert a "g=" default when processing keys so that
+		statistics reporting can tell whether or not it was originally
+		there.
+	LIBOPENDKIM: Minor fix to internal state machine when dealing with
+		unsigned messages.
+	LIBOPENDKIM: Rename DKIM_PRESULT_AUTHOR to DKIM_PRESULT_FOUND.
+	LIBOPENDKIM: Improved error reporting from dkim_ohdrs().
+	LIBOPENDKIM: Improved re-entrancy of dkim_eoh_verify(), requested
+		by Frederik Deweerdt.
+	LIBOPENDKIM: Undefine DKIM_FEATURE_ASYNC_DNS (obsolete).
+	MILTERTEST: Feature request #SF3005002: Enable testing of
+		"unspecified" protocol family connections.
+	MILTERTEST: Add "-u" option to report resource usage statistics on
+		completion.
+	MILTERTEST: Add mt.signal() to allow signaling of filters for things
+		like configuration file reloads.
+	MILTERTEST: Enhance mt.connect() to accept optional retry and interval
+		arguments.
+	MILTERTEST: Add "-w" option to request no waiting for the child process
+		to exit and report status.
+	MILTERTEST: Allow partial seconds argument to mt.sleep().
+	TOOLS: Feature request #SF3004335: Add support to opendkim-testkey
+		to get configuration file values and validate an entire
+		KeyTable.
+	TOOLS: Update opendkim-genkeys script to support 
+		draft-ietf-marf-dkim-reporting.
+	TOOLS: Flip logic of "-a" flag to opendkim-stats.
+	TOOLS: Fix bug #SF3037452: Change owner/group/mode of stats database
+		when resetting it to whatever the replaced file had.
+		Problem noted by Andreas Schulze.
+	CONTRIB: Add opendkim-reportstats, contributed by John Wood.
+	BUILD: Fix --with-db.  Reported by John Wood.
+	Activate _FFR_ZTAGS.
+
+Thanks go out to all of those who contributed code, testing effort or other
+support to this release during its extended Beta period.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
 which can be found via http://www.opendkim.org.
-
-Thanks go out to the members of the OpenDKIM team and to all of those who
-contributed code, testing effort or other support to this release.
 
 
 The OpenDKIM Project
