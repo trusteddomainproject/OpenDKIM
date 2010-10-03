@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.43 2010/09/01 22:51:47 cm-msk Exp $
+$Id: BRANCHES,v 1.44 2010/10/03 23:08:31 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -8,8 +8,6 @@ Production Branches
 ~~~~~~~~~~~~~~~~~~~
 
 HEAD/TRUNK	ongoing development
-
-br-2-1		v2.1.x releases
 
 
 Experimental Branches (branch name contains owner)
@@ -27,6 +25,8 @@ br-1-1		v1.1.x releases
 br-1-2		v1.2.x releases
 
 br-2-0		v2.0.x releases
+
+br-2-1		v2.1.x releases
 
 br-dblack-autoimprovements
 		m4 subdirectory for macros
