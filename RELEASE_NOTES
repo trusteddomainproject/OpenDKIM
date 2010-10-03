@@ -1,11 +1,14 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.241 2010/09/28 20:03:57 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.242 2010/10/03 22:42:38 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.2.0		2010/10/03
+	Feature request #SF2874043: Add _FFR_ADSP_LISTS allowing control over
+		action taken when mail is sent to known lists from
+		ADSP "discardable" sources.
 	Feature request #SF2964366: Allow arbitrary data set operations
 		from inside Lua script hooks.
 	Feature request #SF2981598: Add "NoHeaderB" and "SingleAuthResult"
@@ -25,7 +28,8 @@ release, and a summary of the changes in that release.
 	Feature request #SF3024854: Always log a warning if a key file
 		has unsafe group/other read/write bits set.  Further, if the
 		new "RequireSafeKeys" setting is true, refuse to use the data.
-	Feature request #SF3030548: Add "DefaultSender".
+	Feature request #SF3030548: Add _FFR_DEFAULT_SENDER, adding the
+		"DefaultSender" setting.  Requested by Andreas Schulze.
 	Feature request #SF3056571: Extend signer selection in the SigningTable
 		to include a token that will be replaced by the From:
 		domain.  Requested by Richard Rognlie.
