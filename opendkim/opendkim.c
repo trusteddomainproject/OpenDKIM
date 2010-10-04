@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.222 2010/09/30 20:36:00 cm-msk Exp $
+**  $Id: opendkim.c,v 1.223 2010/10/04 04:13:56 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.222 2010/09/30 20:36:00 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.223 2010/10/04 04:13:56 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -6600,10 +6600,6 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		(void) dkimf_unbound_setup(lib, unbound);
 	}
 #endif /* USE_UNBOUND */
-
-#ifdef USE_ARLIB
-	(void) dkimf_arlib_setup(lib, arlib);
-#endif /* USE_ARLIB */
 
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_TIMEOUT,
 	                    &conf->conf_dnstimeout,
@@ -14080,17 +14076,6 @@ main(int argc, char **argv)
 	}
 #endif /* USE_UNBOUND */
 
-#ifdef USE_ARLIB
-	arlib = ar_init(NULL, NULL, NULL, 0);
-	if (arlib == NULL)
-	{
-		if (curconf->conf_dolog)
-			syslog(LOG_ERR, "failed to initialize libar");
-
-		return EX_SOFTWARE;
-	}
-#endif /* USE_ARLIB */
-
 	/* write out the pid */
 	if (!autorestart && pidfile != NULL)
 	{
@@ -14154,6 +14139,19 @@ main(int argc, char **argv)
 			       "can't configure DKIM library; continuing");
 		}
 	}
+
+#ifdef USE_ARLIB
+	arlib = ar_init(NULL, NULL, NULL, 0);
+	if (arlib == NULL)
+	{
+		if (curconf->conf_dolog)
+			syslog(LOG_ERR, "failed to initialize libar");
+
+		return EX_SOFTWARE;
+	}
+
+	(void) dkimf_arlib_setup(curconf->conf_libopendkim, arlib);
+#endif /* USE_ARLIB */
 
 	if ((curconf->conf_mode & DKIMF_MODE_VERIFIER) != 0 &&
 	    !dkim_libfeature(curconf->conf_libopendkim, DKIM_FEATURE_SHA256))
