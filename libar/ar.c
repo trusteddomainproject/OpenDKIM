@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char ar_c_id[] = "@(#)$Id: ar.c,v 1.11 2010/10/04 04:36:25 cm-msk Exp $";
+static char ar_c_id[] = "@(#)$Id: ar.c,v 1.12 2010/10/04 21:20:47 cm-msk Exp $";
 #endif /* !lint */
 
 /* OS stuff */
@@ -918,6 +918,10 @@ ar_dispatcher(void *tp)
 		usetimeout = (lib->ar_queries != NULL);
 		for (q = lib->ar_queries; q != NULL; q = q->q_next)
 		{
+			/* skip queries for which we're no longer waiting */
+			if ((q->q_flags & (QUERY_ERROR|QUERY_REPLY|QUERY_NOREPLY)) != 0)
+				continue;
+
 			/* check for absolute timeout */
 			if (q->q_timeout.tv_sec != 0 &&
 			    (q->q_flags & QUERY_INFINIWAIT) == 0)
