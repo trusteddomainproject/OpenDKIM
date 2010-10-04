@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.12 2010/09/04 22:56:18 cm-msk Exp $";
+static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.13 2010/10/04 04:37:26 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -241,6 +241,8 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 			lib->dkiml_dns_callback(dkim->dkim_user_context);
 		}
 	}
+
+	(void) lib->dkiml_dns_cancel(lib->dkiml_dns_service, q);
 
 	if (status != 0)
 	{
