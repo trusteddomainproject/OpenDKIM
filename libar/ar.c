@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char ar_c_id[] = "@(#)$Id: ar.c,v 1.10 2010/09/24 03:49:57 cm-msk Exp $";
+static char ar_c_id[] = "@(#)$Id: ar.c,v 1.11 2010/10/04 04:36:25 cm-msk Exp $";
 #endif /* !lint */
 
 /* OS stuff */
@@ -58,7 +58,7 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.10 2010/09/24 03:49:57 cm-msk Exp $";
 
 #if !POLL && !KQUEUES
 # define SELECT			1
-# define READ_READY(x, y)	FD_ISSET((y), &(x))
+# define SOCKET_READY(x, y)	FD_ISSET((y), &(x))
 #endif /* !POLL && !KQUEUES */
 
 #ifndef MSG_WAITALL
@@ -959,7 +959,7 @@ ar_dispatcher(void *tp)
 		wrote = FALSE;
 
 		/* read what's available for dispatch */
-		if (READ_READY(rfds, lib->ar_nsfd))
+		if (SOCKET_READY(rfds, lib->ar_nsfd))
 		{
 			_Bool requeued = FALSE;
 			size_t r;
@@ -1205,7 +1205,7 @@ ar_dispatcher(void *tp)
 		}
 
 		/* send a pending query */
-		if (READ_READY(wfds, lib->ar_nsfd) && lib->ar_pending != NULL)
+		if (SOCKET_READY(wfds, lib->ar_nsfd) && lib->ar_pending != NULL)
 		{
 			q = lib->ar_pending;
 
@@ -1234,7 +1234,7 @@ ar_dispatcher(void *tp)
 
 		/* pending resends */
 		if (!wrote && lib->ar_resend > 0 &&
-		    READ_READY(wfds, lib->ar_nsfd))
+		    SOCKET_READY(wfds, lib->ar_nsfd))
 		{
 			for (q = lib->ar_queries;
 			     !wrote && q != NULL && lib->ar_resend > 0;
@@ -1253,7 +1253,7 @@ ar_dispatcher(void *tp)
 		}
 
 		/* control socket messages */
-		if (READ_READY(rfds, lib->ar_control[1]))
+		if (SOCKET_READY(rfds, lib->ar_control[1]))
 		{
 			size_t rlen;
 			AR_QUERY q;
