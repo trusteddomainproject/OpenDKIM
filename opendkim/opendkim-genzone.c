@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-genzone.c,v 1.11 2010/06/28 18:47:43 cm-msk Exp $
+**  $Id: opendkim-genzone.c,v 1.12 2010/10/05 15:38:13 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.11 2010/06/28 18:47:43 cm-msk Exp $";
+static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.12 2010/10/05 15:38:13 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -734,14 +734,14 @@ main(int argc, char **argv)
 		if (ttl == -1)
 		{
 			snprintf(tmpbuf, sizeof tmpbuf,
-			         "%s%s\tIN\tTXT\t( \"k=rsa; p=", selector,
-			         suffix ? DKIMZONE : "");
+			         "%s%s\tIN\tTXT\t( \"v=DKIM1; k=rsa; p=",
+			         selector, suffix ? DKIMZONE : "");
 		}
 		else
 		{
 			snprintf(tmpbuf, sizeof tmpbuf,
-			         "%s%s\t%d\tIN\tTXT\t( \"k=rsa; p=", selector,
-			         suffix ? DKIMZONE : "", ttl);
+			         "%s%s\t%d\tIN\tTXT\t( \"v=DKIM1; k=rsa; p=",
+			         selector, suffix ? DKIMZONE : "", ttl);
 		}
 
 		fprintf(out, "%s", tmpbuf);
