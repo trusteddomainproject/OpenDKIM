@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.246 2010/10/05 15:38:13 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.247 2010/10/06 14:09:33 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -7,6 +7,8 @@ release, and a summary of the changes in that release.
 
 2.2.1		2010/10/25
 	Avoid assertion failures when using "-V" and arlib.
+	LIBOPENDKIM: Fix bug #SF3081964: dkim.h requires <sys/time.h>.
+		Patch from Kaspar Brand.
 	LIBOPENDKIM: Cancel completed reputation queries.  Problem noted
 		by John Wood.
 	LIBAR: Don't compute timeouts based on completed or dead queries.

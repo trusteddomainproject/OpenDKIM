@@ -13,12 +13,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.34 2010/09/21 18:52:47 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.35 2010/10/06 14:09:03 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
 #include <sys/param.h>
+#include <sys/time.h>
 #include <stdbool.h>
 
 /*
