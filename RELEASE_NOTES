@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.249 2010/10/06 14:12:31 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.250 2010/10/07 07:02:24 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -7,6 +7,7 @@ release, and a summary of the changes in that release.
 
 2.2.1		2010/10/25
 	Avoid assertion failures when using "-V" and arlib.
+	Fix "refile" loading.  Problem noted by Steve Jenkins.
 	LIBOPENDKIM: Fix bug #SF3081964: dkim.h requires <sys/time.h>.
 		Patch from Kaspar Brand.
 	LIBOPENDKIM: Cancel completed reputation queries.  Problem noted
