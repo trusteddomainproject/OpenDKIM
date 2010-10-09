@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.20 2010/09/17 04:20:22 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.20.2.1 2010/10/09 04:55:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -318,6 +318,7 @@ struct dkim_lib
 	void			(*dkiml_free) (void *closure, void *p);
 	u_char **		dkiml_senderhdrs;
 	u_char **		dkiml_alwayshdrs;
+	u_char **		dkiml_oversignhdrs;
 	u_char **		dkiml_mbs;
 #ifdef QUERY_CACHE
 	DB *			dkiml_cache;
