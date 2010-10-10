@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.68.4.1 2010/10/10 03:34:33 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.68.4.2 2010/10/10 23:27:07 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5494,7 +5494,7 @@ dkim_diffheaders(DKIM *dkim, dkim_canon_t canon, int maxcost,
 
 	for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
 	{
-		dkim_dstring_clear(tmphdr);
+		dkim_dstring_blank(tmphdr);
 
 		status = dkim_canon_header_string(tmphdr, canon,
 		                                  hdr->hdr_text,
