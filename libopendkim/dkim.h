@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.35 2010/10/06 14:09:03 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.35.4.1 2010/10/10 03:34:33 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -1362,6 +1362,7 @@ extern DKIM_STAT dkim_ohdrs __P((DKIM *dkim, DKIM_SIGINFO *sig, char **ptrs,
 **
 **  Parameters:
 **  	dkim -- DKIM handle
+**  	canon -- canonicalization mode in use
 **  	maxcost -- maximum "cost" of changes to be reported
 **  	ohdrs -- original headers, presumably extracted from a "z" tag
 **  	nohdrs -- number of headers at "ohdrs" available
@@ -1376,9 +1377,10 @@ extern DKIM_STAT dkim_ohdrs __P((DKIM *dkim, DKIM_SIGINFO *sig, char **ptrs,
 **  	destroyed.
 */
 
-extern DKIM_STAT dkim_diffheaders __P((DKIM *dkim, int maxcost, char **ohdrs,
-                                       int nohdrs, struct dkim_hdrdiff **out,
-                                       int *nout));
+extern DKIM_STAT dkim_diffheaders __P((DKIM *dkim, dkim_canon_t canon,
+                                       int maxcost,
+                                       char **ohdrs, int nohdrs,
+                                       struct dkim_hdrdiff **out, int *nout));
 
 /*
 **  DKIM_GETPARTIAL -- return a DKIM handle's "body length tag" flag

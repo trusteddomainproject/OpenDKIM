@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.68 2010/09/21 17:43:10 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.68.4.1 2010/10/10 03:34:33 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5380,6 +5380,7 @@ dkim_ohdrs(DKIM *dkim, DKIM_SIGINFO *sig, char **ptrs, int *pcnt)
 **
 **  Parameters:
 **  	dkim -- DKIM handle
+**  	canon -- header canonicalization mode in use
 **  	maxcost -- maximum "cost" of changes to be reported
 **  	ohdrs -- original headers, presumably extracted from a "z" tag
 **  	nohdrs -- number of headers at "ohdrs" available
@@ -5395,7 +5396,8 @@ dkim_ohdrs(DKIM *dkim, DKIM_SIGINFO *sig, char **ptrs, int *pcnt)
 */
 
 DKIM_STAT
-dkim_diffheaders(DKIM *dkim, int maxcost, char **ohdrs, int nohdrs,
+dkim_diffheaders(DKIM *dkim, dkim_canon_t canon, int maxcost,
+                 char **ohdrs, int nohdrs,
                  struct dkim_hdrdiff **out, int *nout)
 {
 #ifdef _FFR_DIFFHEADERS
@@ -5409,6 +5411,8 @@ dkim_diffheaders(DKIM *dkim, int maxcost, char **ohdrs, int nohdrs,
 	void *cls;
 	struct dkim_header *hdr;
 	struct dkim_hdrdiff *diffs = NULL;
+	struct dkim_dstring *tmphdr;
+	struct dkim_dstring **cohdrs;
 	DKIM_LIB *lib;
 	regaparams_t params;
 	regamatch_t matches;
@@ -5423,6 +5427,13 @@ dkim_diffheaders(DKIM *dkim, int maxcost, char **ohdrs, int nohdrs,
 		return DKIM_STAT_INVALID;
 	if (maxcost == 0)
 		return DKIM_STAT_INVALID;
+
+	tmphdr = dkim_dstring_new(dkim, BUFRSZ, MAXBUFRSZ);
+	if (tmphdr == NULL)
+	{
+		dkim_error(dkim, "failed to allocate dynamic string");
+		return DKIM_STAT_NORESOURCE;
+	}
 
 	lib = dkim->dkim_libhandle;
 	cls = dkim->dkim_closure;
@@ -5442,13 +5453,66 @@ dkim_diffheaders(DKIM *dkim, int maxcost, char **ohdrs, int nohdrs,
 	matches.nmatch = 0;
 	matches.pmatch = NULL;
 
+	/* canonicalize all the original header fields */
+	cohdrs = DKIM_MALLOC(dkim, sizeof(struct dkim_dstring *) * nohdrs);
+	if (cohdrs == NULL)
+	{
+		dkim_error(dkim, strerror(errno));
+		return DKIM_STAT_NORESOURCE;
+	}
+
+	for (c = 0; c < nohdrs; c++)
+	{
+		cohdrs[c] = dkim_dstring_new(dkim, DKIM_MAXHEADER, 0);
+		if (cohdrs[c] == NULL)
+		{
+			for (n = 0; n < c; n++)
+				dkim_dstring_free(cohdrs[n]);
+
+			DKIM_FREE(dkim, cohdrs);
+
+			dkim_error(dkim, strerror(errno));
+
+			return DKIM_STAT_NORESOURCE;
+		}
+
+		status = dkim_canon_header_string(cohdrs[c], canon,
+		                                  ohdrs[c], strlen(ohdrs[c]),
+		                                  FALSE);
+		if (status != DKIM_STAT_OK)
+		{
+			for (n = 0; n < c; n++)
+				dkim_dstring_free(cohdrs[n]);
+
+			DKIM_FREE(dkim, cohdrs);
+
+			dkim_error(dkim, strerror(errno));
+
+			return status;
+		}
+	}
+
 	for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
 	{
+		dkim_dstring_clear(tmphdr);
+
+		status = dkim_canon_header_string(tmphdr, canon,
+		                                  hdr->hdr_text,
+		                                  hdr->hdr_textlen, FALSE);
+		if (status != DKIM_STAT_OK)
+		{
+			dkim_dstring_free(tmphdr);
+			for (c = 0; c < nohdrs; c++)
+				dkim_dstring_free(cohdrs[c]);
+			DKIM_FREE(dkim, cohdrs);
+			return status;
+		}
+
 		memset(restr, '\0', sizeof restr);
 
 		end = restr + sizeof restr;
 
-		for (p = hdr->hdr_text, q = restr;
+		for (p = dkim_dstring_get(tmphdr), q = restr;
 		     *p != '\0' && q < end - 3;
 		     p++)
 		{
@@ -5486,6 +5550,11 @@ dkim_diffheaders(DKIM *dkim, int maxcost, char **ohdrs, int nohdrs,
 			if (diffs != NULL)
 				dkim_mfree(lib, cls, diffs);
 
+			dkim_dstring_free(tmphdr);
+			for (c = 0; c < nohdrs; c++)
+				dkim_dstring_free(cohdrs[c]);
+			DKIM_FREE(dkim, cohdrs);
+
 			return DKIM_STAT_INTERNAL;
 		}
 
@@ -5493,17 +5562,19 @@ dkim_diffheaders(DKIM *dkim, int maxcost, char **ohdrs, int nohdrs,
 		{
 			/* not even the same header field */
 			if (hdr->hdr_namelen != hdr->hdr_textlen &&
-			    strncmp(ohdrs[c], hdr->hdr_text,
+			    strncmp(dkim_dstring_get(cohdrs[c]),
+			            dkim_dstring_get(tmphdr),
 			            hdr->hdr_namelen + 1) != 0)
 				continue;
 
 			/* same, no changes at all */
-			if (strcmp(ohdrs[c], hdr->hdr_text) == 0)
+			if (strcmp(dkim_dstring_get(cohdrs[c]),
+			           dkim_dstring_get(tmphdr)) == 0)
 				continue;
 
 			/* check for approximate match */
-			status = tre_regaexec(&re, ohdrs[c], &matches,
-			                      params, 0);
+			status = tre_regaexec(&re, dkim_dstring_get(cohdrs[c]),
+			                      &matches, params, 0);
 
 			if (status == 0)
 			{
@@ -5535,6 +5606,11 @@ dkim_diffheaders(DKIM *dkim, int maxcost, char **ohdrs, int nohdrs,
 							           diffs);
 						}
 
+						dkim_dstring_free(tmphdr);
+						for (c = 0; c < nohdrs; c++)
+							dkim_dstring_free(cohdrs[c]);
+						DKIM_FREE(dkim, cohdrs);
+
 						return DKIM_STAT_NORESOURCE;
 					}
 
@@ -5558,6 +5634,11 @@ dkim_diffheaders(DKIM *dkim, int maxcost, char **ohdrs, int nohdrs,
 
 	*out = diffs;
 	*nout = n;
+
+	dkim_dstring_free(tmphdr);
+	for (c = 0; c < nohdrs; c++)
+		dkim_dstring_free(cohdrs[c]);
+	DKIM_FREE(dkim, cohdrs);
 
 	return DKIM_STAT_OK;
 #else /* _FFR_DIFFHEADERS */

@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.21 2010/09/21 17:43:10 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.21.4.1 2010/10/10 03:34:33 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -252,21 +252,22 @@ dkim_canon_buffer(DKIM_CANON *canon, u_char *buf, size_t buflen)
 }
 
 /*
-**  DKIM_CANON_HEADER -- canonicalize a header and write it
+**  DKIM_CANON_HEADER_STRING -- canonicalize a header field
 **
 **  Parameters:
-**  	dkim -- DKIM handle
-**  	canon -- DKIM_CANON handle
-**  	hdr -- header handle
+**  	dstr -- dkim_dstring to use for output
+**  	canon -- canonicalization mode to apply
+**  	hdr -- header field input
+**  	hdrlen -- bytes to process at "hdr"
 **  	crlf -- write a CRLF at the end?
 **
 **  Return value:
 **  	A DKIM_STAT constant.
 */
 
-static DKIM_STAT
-dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
-                  _Bool crlf)
+DKIM_STAT
+dkim_canon_header_string(struct dkim_dstring *dstr, dkim_canon_t canon,
+                         unsigned char *hdr, size_t hdrlen, _Bool crlf)
 {
 	_Bool space;
 	int n;
@@ -275,40 +276,25 @@ dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
 	u_char *end;
 	u_char tmpbuf[BUFRSZ];
 
-	assert(canon != NULL);
+	assert(dstr != NULL);
 	assert(hdr != NULL);
 
 	tmp = tmpbuf;
 	end = tmpbuf + sizeof tmpbuf - 1;
 
-	if (dkim->dkim_canonbuf == NULL)
-	{
-		dkim->dkim_canonbuf = dkim_dstring_new(dkim, hdr->hdr_textlen,
-		                                       0);
-		if (dkim->dkim_canonbuf == NULL)
-			return DKIM_STAT_NORESOURCE;
-	}
-	else
-	{
-		dkim_dstring_blank(dkim->dkim_canonbuf);
-	}
-
 	n = 0;
 
-	dkim_canon_buffer(canon, NULL, 0);
-
-	switch (canon->canon_canon)
+	switch (canon)
 	{
 	  case DKIM_CANON_SIMPLE:
-		if (!dkim_dstring_catn(dkim->dkim_canonbuf,
-		                       hdr->hdr_text, hdr->hdr_textlen) ||
-		    (crlf && !dkim_dstring_catn(dkim->dkim_canonbuf, CRLF, 2)))
+		if (!dkim_dstring_catn(dstr, hdr, hdrlen) ||
+		    (crlf && !dkim_dstring_catn(dstr, CRLF, 2)))
 			return DKIM_STAT_NORESOURCE;
 		break;
 
 	  case DKIM_CANON_RELAXED:
 		/* process header field name (before colon) first */
-		for (p = hdr->hdr_text; *p != '\0'; p++)
+		for (p = hdr; p < hdr + hdrlen; p++)
 		{
 			/*
 			**  Discard spaces before the colon or before the end
@@ -337,7 +323,7 @@ dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
 			{
 				*tmp = '\0';
 
-				if (!dkim_dstring_catn(dkim->dkim_canonbuf,
+				if (!dkim_dstring_catn(dstr,
 				                       tmpbuf, tmp - tmpbuf))
 					return DKIM_STAT_NORESOURCE;
 
@@ -381,7 +367,7 @@ dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
 				{
 					*tmp = '\0';
 
-					if (!dkim_dstring_catn(dkim->dkim_canonbuf,
+					if (!dkim_dstring_catn(dstr,
 					                       tmpbuf,
 					                       tmp - tmpbuf))
 						return DKIM_STAT_NORESOURCE;
@@ -400,7 +386,7 @@ dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
 			{
 				*tmp = '\0';
 
-				if (!dkim_dstring_catn(dkim->dkim_canonbuf,
+				if (!dkim_dstring_catn(dstr,
 				                       tmpbuf, tmp - tmpbuf))
 					return DKIM_STAT_NORESOURCE;
 
@@ -413,16 +399,63 @@ dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
 		{
 			*tmp = '\0';
 
-			if (!dkim_dstring_catn(dkim->dkim_canonbuf,
+			if (!dkim_dstring_catn(dstr,
 			                       tmpbuf, tmp - tmpbuf))
 				return DKIM_STAT_NORESOURCE;
 		}
 
-		if (crlf && !dkim_dstring_catn(dkim->dkim_canonbuf, CRLF, 2))
+		if (crlf && !dkim_dstring_catn(dstr, CRLF, 2))
 			return DKIM_STAT_NORESOURCE;
 
 		break;
 	}
+
+	return DKIM_STAT_OK;
+}
+
+/*
+**  DKIM_CANON_HEADER -- canonicalize a header and write it
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**  	canon -- DKIM_CANON handle
+**  	hdr -- header handle
+**  	crlf -- write a CRLF at the end?
+**
+**  Return value:
+**  	A DKIM_STAT constant.
+*/
+
+static DKIM_STAT
+dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
+                  _Bool crlf)
+{
+	DKIM_STAT status;
+
+	assert(dkim != NULL);
+	assert(canon != NULL);
+	assert(hdr != NULL);
+
+	if (dkim->dkim_canonbuf == NULL)
+	{
+		dkim->dkim_canonbuf = dkim_dstring_new(dkim, hdr->hdr_textlen,
+		                                       0);
+		if (dkim->dkim_canonbuf == NULL)
+			return DKIM_STAT_NORESOURCE;
+	}
+	else
+	{
+		dkim_dstring_blank(dkim->dkim_canonbuf);
+	}
+
+	dkim_canon_buffer(canon, NULL, 0);
+
+	status = dkim_canon_header_string(dkim->dkim_canonbuf,
+	                                  canon->canon_canon,
+	                                  hdr->hdr_text, hdr->hdr_textlen,
+	                                  crlf);
+	if (status != DKIM_STAT_OK)
+		return status;
 
 	dkim_canon_buffer(canon, dkim_dstring_get(dkim->dkim_canonbuf),
 	                  dkim_dstring_len(dkim->dkim_canonbuf));
