@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.223 2010/10/04 04:13:56 cm-msk Exp $
+**  $Id: opendkim.c,v 1.224 2010/10/10 23:18:04 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.223 2010/10/04 04:13:56 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.224 2010/10/10 23:18:04 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -5130,6 +5130,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_reportprefix,
 		                  sizeof conf->conf_reportprefix);
 
+		str = NULL;
 		(void) config_get(data, "StatisticsName", &str, sizeof str);
 		if (str != NULL)
 			conf->conf_reporthost = str;
