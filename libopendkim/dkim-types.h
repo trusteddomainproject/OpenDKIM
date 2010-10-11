@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.20 2010/09/17 04:20:22 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.21 2010/10/11 04:54:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -309,6 +309,7 @@ struct dkim_lib
 	u_int			dkiml_version;
 	u_int			dkiml_callback_int;
 	u_int			dkiml_flsize;
+	u_int			dkiml_nalwayshdrs;
 	time_t			dkiml_fixedtime;
 	unsigned long		dkiml_sigttl;
 	unsigned long		dkiml_clockdrift;

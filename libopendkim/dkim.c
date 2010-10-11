@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.68 2010/09/21 17:43:10 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.69 2010/10/11 04:54:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -2122,9 +2122,12 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 
 	delimlen = strlen(delim);
 
-	n = dkim->dkim_hdrcnt * sizeof(_Bool);
-	always = DKIM_MALLOC(dkim, n);
-	memset(always, '\0', n);
+	n = dkim->dkim_libhandle->dkiml_nalwayshdrs * sizeof(_Bool);
+	if (n > 0)
+	{
+		always = DKIM_MALLOC(dkim, n);
+		memset(always, '\0', n);
+	}
 
 	/*
 	**  We need to generate a DKIM-Signature: header template
@@ -2168,7 +2171,8 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	if (status != DKIM_STAT_OK)
 	{
 		dkim_error(dkim, "dkim_canon_getfinal() failed");
-		(void) DKIM_FREE(dkim, always);
+		if (always != NULL)
+			(void) DKIM_FREE(dkim, always);
 		return (size_t) -1;
 	}
 
@@ -2185,7 +2189,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	}
 
 	/* h= */
-	for (n = 0; n < dkim->dkim_hdrcnt; n++)
+	for (n = 0; n < dkim->dkim_libhandle->dkiml_nalwayshdrs; n++)
 		always[n] = TRUE;
 
 	firsthdr = TRUE;
@@ -2214,9 +2218,10 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		{
 			u_char **ah = dkim->dkim_libhandle->dkiml_alwayshdrs;
 
-			for (n = 0; ah[n] != NULL && n < dkim->dkim_hdrcnt; n++)
+			for (n = 0; ah[n] != NULL; n++)
 			{
-				if (strcasecmp(tmp, ah[n]) == 0)
+				if (strncasecmp(hdr->hdr_text, ah[n],
+				                hdr->hdr_namelen) == 0)
 				{
 					always[n] = FALSE;
 					break;
@@ -2230,7 +2235,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	{
 		u_char **ah = dkim->dkim_libhandle->dkiml_alwayshdrs;
 
-		for (n = 0; ah[n] != NULL && n < dkim->dkim_hdrcnt; n++)
+		for (n = 0; ah[n] != NULL; n++)
 		{
 			if (always[n])
 			{
@@ -2313,7 +2318,8 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	dkim_dstring_catn(dstr, delim, delimlen);
 	dkim_dstring_catn(dstr, "b=", 2);
 
-	DKIM_FREE(dkim, always);
+	if (always != NULL)
+		DKIM_FREE(dkim, always);
 
 	return dkim_dstring_len(dstr);
 }
@@ -4166,10 +4172,16 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		else if (ptr == NULL)
 		{
 			lib->dkiml_alwayshdrs = NULL;
+			lib->dkiml_nalwayshdrs = 0;
 		}
 		else
 		{
+			u_int n;
+
 			lib->dkiml_alwayshdrs = (u_char **) ptr;
+			for (n = 0; lib->dkiml_alwayshdrs[n] != NULL; n++)
+				continue;
+			lib->dkiml_nalwayshdrs = n;
 		}
 		return DKIM_STAT_OK;
 
