@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.251 2010/10/10 23:18:03 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.252 2010/10/11 04:54:57 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -14,6 +14,7 @@ release, and a summary of the changes in that release.
 		Patch from Kaspar Brand.
 	LIBOPENDKIM: Cancel completed reputation queries.  Problem noted
 		by John Wood.
+	LIBOPENDKIM: Simplify DKIM_OPTS_ALWAYSHDRS handling.
 	LIBAR: Fix bug #SF3080720: Don't compute timeouts based on completed
 		or dead queries.  Problem noted by John Wood.
 	TOOLS: Write "v=" tags in key records output by opendkim-genzone.
