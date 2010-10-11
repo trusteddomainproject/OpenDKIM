@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test92_c_id[] = "@(#)$Id: t-test92.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
+static char t_test92_c_id[] = "@(#)$Id: t-test92.c,v 1.3 2010/10/11 04:53:46 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -26,6 +26,7 @@ static char t_test92_c_id[] = "@(#)$Id: t-test92.c,v 1.2 2009/12/08 19:14:27 cm-
 
 char *extra_hdrs[] =
 {
+	"Subject",
 	"Cc",
 	"Bcc",
 	NULL
