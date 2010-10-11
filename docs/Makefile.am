@@ -1,8 +1,8 @@
-# $Id: Makefile.am,v 1.9 2010/10/04 21:07:58 cm-msk Exp $
+# $Id: Makefile.am,v 1.10 2010/10/11 19:30:37 cm-msk Exp $
 
 #AUTOMAKE_OPTIONS = foreign
 
-dist_doc_DATA = draft-ietf-dkim-implementation-report-02.txt \
+dist_doc_DATA = draft-ietf-dkim-implementation-report-03.txt \
 	draft-ietf-dkim-mailinglists-03.txt \
 	draft-ietf-marf-dkim-reporting-00.txt \
 	rfc4686.txt \

@@ -3,12 +3,12 @@
 
 DKIM Working Group                                          M. Kucherawy
 Internet-Draft                                                 Cloudmark
-Intended status: Informational                           October 4, 2010
-Expires: April 7, 2011
+Intended status: Informational                          October 11, 2010
+Expires: April 14, 2011
 
 
                      RFC4871 Implementation Report
-                draft-ietf-dkim-implementation-report-02
+                draft-ietf-dkim-implementation-report-03
 
 Abstract
 
@@ -31,7 +31,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 7, 2011.
+   This Internet-Draft will expire on April 14, 2011.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Kucherawy                 Expires April 7, 2011                 [Page 1]
+Kucherawy                Expires April 14, 2011                 [Page 1]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
@@ -108,19 +108,19 @@ Table of Contents
 
 
 
-Kucherawy                 Expires April 7, 2011                 [Page 2]
+Kucherawy                Expires April 14, 2011                 [Page 2]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 1.  Introduction
 
-   DomainKeys Identified Mail ([DKIM]), published in May 2007, has
-   reached a level of maturity sufficient to consider its advancement
-   along the standards track.  Enclosed is a summary of collected
-   interoperability data provided from sources that are aggregating such
-   information as well as from a more formal DKIM interoperability event
-   that took place in October 2007.
+   DomainKeys Identified Mail (DKIM), published in May 2007, has reached
+   a level of maturity sufficient to consider its advancement along the
+   standards track.  Enclosed is a summary of collected interoperability
+   data provided from sources that are aggregating such information as
+   well as from a more formal DKIM interoperability event that took
+   place in October 2007.
 
 
 
@@ -164,12 +164,14 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                 Expires April 7, 2011                 [Page 3]
+Kucherawy                Expires April 14, 2011                 [Page 3]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 2.  Definitions
+
+   DomainKeys Identified Mail is defined in [DKIM].
 
    Various terms specific to email are used in this document.  Their
    definitions and further discussion can be found in [EMAIL-ARCH].
@@ -218,9 +220,7 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-
-
-Kucherawy                 Expires April 7, 2011                 [Page 4]
+Kucherawy                Expires April 14, 2011                 [Page 4]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
@@ -254,9 +254,9 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
    Participants were encouraged before the event to craft a set of test
    messages meant to exercise their own implementations as well as those
    of the other participants, both in terms of successful verifications
-   as well as some expected to fail.  Some test cases were developed
-   with the intent of confounding verifiers that may not have
-   implemented the [ABNF] of [DKIM] correctly.
+   as well as some expected to fail.  Test cases were developed with the
+   intent of confounding verifiers that may not have implemented the
+   [ABNF] of [DKIM] correctly.
 
    The participants set up Mail Transfer Agents (MTAs) equipped with
    their own DKIM signing and verifying modules, and their own tools to
@@ -276,7 +276,7 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                 Expires April 7, 2011                 [Page 5]
+Kucherawy                Expires April 14, 2011                 [Page 5]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
@@ -295,6 +295,9 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
    ambiguities.  The participants discussed each of these in turn and
    were able to come to consensus on how they believed the specification
    should be changed to resolve them.
+
+   The participants agreed to keep the results about the specific tests
+   private.  Accordingly, those data are not presented here.
 
 3.4.  Results
 
@@ -325,17 +328,18 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
    o  clarifications about "relaxed" body canonicalization (errata
       #1384)
 
-   o  correction to the signature example (errata #1386)
-
-   o  ABNF corrections regarding the "h=" tag (errata #1461)
 
 
 
 
-Kucherawy                 Expires April 7, 2011                 [Page 6]
+Kucherawy                Expires April 14, 2011                 [Page 6]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
+
+   o  correction to the signature example (errata #1386)
+
+   o  ABNF corrections regarding the "h=" tag (errata #1461)
 
    o  ABNF corrections regarding the "v=" tag (errata #1487)
 
@@ -384,11 +388,7 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-
-
-
-
-Kucherawy                 Expires April 7, 2011                 [Page 7]
+Kucherawy                Expires April 14, 2011                 [Page 7]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
@@ -444,7 +444,7 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                 Expires April 7, 2011                 [Page 8]
+Kucherawy                Expires April 14, 2011                 [Page 8]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
@@ -483,8 +483,8 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
       successfully verified.
 
    Pass Rates for Non-List Mail:  Where "list mail" is defined as any
-      mail not bearing one of the header fields defined in [LIST-ID] or
-      in [LIST-URLS], or a "Precedence: list" field, selecting only for
+      mail bearing one of the header fields defined in [LIST-ID] or in
+      [LIST-URLS], or a "Precedence: list" field, selecting only for
       mail that is not list mail revealed a successful verification rate
       of 93.6%; selecting only for list mail produced a 84.7% success
       rate.
@@ -500,7 +500,7 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                 Expires April 7, 2011                 [Page 9]
+Kucherawy                Expires April 14, 2011                 [Page 9]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
@@ -556,7 +556,7 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                 Expires April 7, 2011                [Page 10]
+Kucherawy                Expires April 14, 2011                [Page 10]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
@@ -584,6 +584,8 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
    Verified signatures:  1.2 billion (85.7%)
 
+   AUID matches From: domain:  1.2 billion (85.7%)
+
    Failed signatures (body changed):  78 million (5.6%)
 
    Failed signatures (other):  34 million (2.4%)
@@ -596,30 +598,35 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
    Unsigned mail:  72.1%
 
+   AUID matches From: domain:  68.7%
+
    Signed mail that verified:  14.7%
 
    Signed mail that verified in test mode:  11.7%
 
    Signed mail that failed:  0.2%
 
-   Signed mail that failed in test mode:  0.2%
-
-   Body hash mismatch:  0.5%
 
 
 
 
 
 
-
-Kucherawy                 Expires April 7, 2011                [Page 11]
+Kucherawy                Expires April 14, 2011                [Page 11]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
+   Signed mail that failed in test mode:  0.2%
+
+   Body hash mismatch:  0.5%
+
    Signature missing required parameters:  0.3%
 
    Granularity mismatch:  0.2%
+
+   These data are reported based on an implementation that only
+   evaluates one signature per message.
 
    All other reportable anomalies occurred in vanishingly small
    percentages.
@@ -661,14 +668,7 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-
-
-
-
-
-
-
-Kucherawy                 Expires April 7, 2011                [Page 12]
+Kucherawy                Expires April 14, 2011                [Page 12]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
@@ -724,7 +724,7 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                 Expires April 7, 2011                [Page 13]
+Kucherawy                Expires April 14, 2011                [Page 13]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
@@ -780,7 +780,7 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                 Expires April 7, 2011                [Page 14]
+Kucherawy                Expires April 14, 2011                [Page 14]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
@@ -836,7 +836,7 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                 Expires April 7, 2011                [Page 15]
+Kucherawy                Expires April 14, 2011                [Page 15]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
@@ -892,7 +892,7 @@ Appendix A.  Acknowledgements
 
 
 
-Kucherawy                 Expires April 7, 2011                [Page 16]
+Kucherawy                Expires April 14, 2011                [Page 16]
 
 Internet-Draft        RFC4871 Implementation Report         October 2010
 
@@ -948,5 +948,5 @@ Author's Address
 
 
 
-Kucherawy                 Expires April 7, 2011                [Page 17]
+Kucherawy                Expires April 14, 2011                [Page 17]
 
