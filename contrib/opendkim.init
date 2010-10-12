@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: opendkim.init,v 1.3 2010/06/07 15:22:51 cm-msk Exp $
+# $Id: opendkim.init,v 1.4 2010/10/12 21:24:51 cm-msk Exp $
 #
 #### BEGIN INIT INFO
 # Provides:          opendkim
@@ -49,15 +49,17 @@ od_status() {
 }
 
 od_getpid() {
-	if [ -n "$1" -a "$1" = "-p" ]; then
+	if [ -n "$1" -a "$1" = "-P" ]; then
 		shift
 		PIDFILE=$1
 		shift
-		if [ ! -f "$PIDFILE" ]; then
-			return 1
-		fi
-		PID=$(cat "$PIDFILE")
+	else
+		PIDFILE=$(grep -i '^pidfile' $CONFIG | head -n 1 | awk '{print $2}')
 	fi
+	if [ ! -f "$PIDFILE" ]; then
+		return 1
+	fi
+	PID=$(cat "$PIDFILE")
 	if [ -n "$(which pgrep)" ]; then
 		for p in $(pgrep -f $DAEMON); do
 			if [ "$PID" = "$p" ]; then
