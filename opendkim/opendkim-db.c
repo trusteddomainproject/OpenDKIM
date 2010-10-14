@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-db.c,v 1.101 2010/10/07 07:01:52 cm-msk Exp $
+**  $Id: opendkim-db.c,v 1.101.6.1 2010/10/14 20:18:15 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101 2010/10/07 07:01:52 cm-msk Exp $";
+static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.6.1 2010/10/14 20:18:15 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -71,6 +71,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101 2010/10/07 07:0
 /* macros */
 #define	BUFRSZ			1024
 #define	DEFARRAYSZ		16
+#define DKIMF_DB_DEFASIZE	8
 #define DKIMF_DB_MODE		0644
 #define DKIMF_LDAP_MAXURIS	8
 #define DKIMF_LDAP_TIMEOUT	5
@@ -243,6 +244,301 @@ struct dkimf_db_table dbtypes[] =
 };
 
 static char *dkimf_db_ldap_param[DKIMF_LDAP_PARAM_MAX + 1];
+
+#ifdef _FFR_DB_HANDLE_POOLS
+struct handle_pool
+{
+	u_int		hp_dbtype;
+	u_int		hp_max;
+	u_int		hp_alloc;
+	u_int		hp_asize;
+	u_int		hp_count;
+	void *		hp_hdata;
+	void **		hp_handles;
+	pthread_mutex_t	hp_lock;
+	pthread_cond_t	hp_signal;
+};
+#endif /* _FFR_DB_HANDLE_POOLS */
+
+#ifdef _FFR_DB_HANDLE_POOLS
+/*
+**  DKIMF_DB_HP_NEW -- create a handle pool
+**
+**  Parameters:
+**  	type -- DB type
+**  	max -- maximum pool size
+**  	hdata -- data needed to make new handles
+**
+**  Return value:
+**  	Pointer to a newly-allocated handle pool, or NULL on error.
+*/
+
+static struct handle_pool *
+dkimf_db_hp_new(u_int type, u_int max, void *hdata)
+{
+	struct handle_pool *new;
+
+	new = (struct handle_pool *) malloc(*new);
+	if (new != NULL)
+	{
+		new->hp_alloc = 0;
+		new->hp_asize = 0;
+		new->hp_count = 0;
+		new->hp_dbtype = type;
+		new->hp_handles = NULL;
+		new->hp_hdata = hdata;
+		new->hp_max = max;
+		pthread_mutex_init(&new->hp_lock, NULL);
+		pthread_cond_init(&new->hp_signal, NULL);
+	}
+
+	return new;
+}
+
+/*
+**  DKIMF_DB_HP_FREE -- free a handle pool
+**
+**  Parameters:
+**  	pool -- bool to free up
+**
+**  Return value:
+**  	None.
+*/
+
+static void
+dkimf_db_hp_free(struct handle_pool *pool)
+{
+	u_int c;
+
+	assert(pool != NULL);
+
+	for (c = 0; c < pool->hp_count; c++)
+	{
+		switch (pool->hp_dbtype)
+		{
+#ifdef USE_ODBX
+		  case DKIMF_DB_TYPE_DSN:
+		  {
+			odbx_t *odbx;
+
+			odbx = (odbx_t *) pool->hp_handles[c];
+
+			(void) odbx_unbind(odbx);
+			(void) odbx_finish(odbx);
+			free(odbx);
+
+			break;
+		  }
+#endif /* USE_ODBX */
+
+		  default:
+			break;
+		}
+	}
+
+	pthread_mutex_destroy(&pool->hp_lock);
+	pthread_cond_destroy(&pool->hp_signal);
+	free(pool->hp_handles);
+	free(pool);
+}
+
+/*
+**  DKIMF_DB_HP_GET -- get a handle from a handle pool
+**
+**  Parameters:
+**  	pool -- pool from which to get a handle
+**  	err -- error string (returned)
+**
+**  Return value:
+**  	A handle appropriate to the associated DB type that is not currently
+**  	in use by another thread, or NULL on error.
+*/
+
+static void *
+dkimf_db_hp_get(struct hp_pool *pool, char **err)
+{
+	void *ret;
+
+	assert(pool != NULL);
+
+	pthread_mutex_lock(&pool->hp_lock);
+
+	for (;;)
+	{
+		/* if one is available, return it */
+		if (pool->hp_count > 0)
+		{
+			ret = pool->hp_handles[0];
+
+			if (pool->hp_count > 1)
+			{
+				memmove(&pool->hp_handles[0],
+				        &pool->hp_handles[1],
+				        sizeof(void *) * (pool->hp_count - 1));
+			}
+
+			pool->hp_count--;
+
+			pthread_mutex_unlock(&pool->hp_lock);
+
+			return ret;
+		}
+
+		/* if we can allocate one, do so */
+		if (pool->hp_alloc <= pool->hp_max)
+		{
+			switch (pool->hp_dbtype)
+			{
+#ifdef USE_ODBX
+			  case DKIMF_DB_TYPE_DSN:
+			  {
+				int dberr;
+				odbx_t *odbx;
+				struct dkimf_db_dsn *dsn;
+
+				dsn = (struct dkimf_db_dsn *) pool->hp_hdata;
+
+				dberr = odbx_init(&odbx,
+				                  STRORNULL(dsn->dsn_backend),
+				                  STRORNULL(dsn->dsn_host),
+				                  STRORNULL(dsn->dsn_port));
+
+				if (dberr < 0)
+				{
+					if (err != NULL)
+					{
+						*err = (char *) odbx_error(NULL,
+						                           dberr);
+					}
+
+					(void) odbx_finish(odbx);
+					ptrhead_mutex_unlock(&pool->hp_lock);
+
+					return NULL;
+				}
+
+				dberr = odbx_bind(odbx,
+				                        STRORNULL(dsn->dsn_dbase),
+				                        STRORNULL(dsn->dsn_user),
+				                        STRORNULL(dsn->dsn_password),
+				                        ODBX_BIND_SIMPLE);
+				if (dberr < 0)
+				{
+					if (err != NULL)
+					{
+						*err = (char *) odbx_error(odbx,
+						                           dberr);
+					}
+
+					(void) odbx_finish(odbx);
+					ptrhead_mutex_unlock(&pool->hp_lock);
+
+					return NULL;
+				}
+
+				ret = odbx;
+			  }
+#endif /* USE_ODBX */
+
+			  default:
+				assert(0);
+				break;
+			}
+
+			pool->hp_alloc++;
+
+			pthread_mutex_unlock(&pool->hp_lock);
+
+			return ret;
+		}
+
+		/* already full; wait for one */
+		pthread_cond_wait(&pool->hp_lock, &pool->hp_signal);
+	}
+}
+
+/*
+**  DKIMF_DB_HP_DEAD -- report that a handle found in the pool was dead
+**
+**  Parameters:
+**  	pool -- handle pool to be updated
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	The caller is expected to identify a dead handle and deallocate it.
+*/
+
+static void
+dkimf_db_hp_dead(struct handle_pool *pool)
+{
+	assert(pool != NULL);
+
+	pthread_mutex_lock(&pool->hp_lock);
+	pool->hp_alloc--;
+	pthread_cond_signal(&pool->hp_signal);
+	pthread_mutex_unlock(&pool->hp_lock);
+}
+
+/*
+**  DKIMF_DB_HP_PUT -- put a handle back into a handle pool after use
+**
+**  Parameters:
+**  	pool -- pool from which to get a handle
+**  	handle -- handle being returned
+**
+**  Return value:
+**  	None.
+*/
+
+static void
+dkimf_db_hp_put(struct hp_pool *pool, void *handle)
+{
+	assert(pool != NULL);
+	assert(handle != NULL);
+
+	pthread_mutex_lock(&pool->hp_lock);
+
+	/* need to grow the array? */
+	if (pool->hp_asize == pool->hp_count)
+	{
+		u_int newasz;
+
+		if (pool->hp_asize == 0)
+		{
+			newasz = DKIMF_DB_DEFASIZE;
+			pool->hp_handles = (void **) malloc(newasz * sizeof(void *));
+			assert(pool->hp_handles != NULL);
+		}
+		else
+		{
+			void **newa;
+
+			newasz = pool->hp_asize * 2;
+			newa = (void **) realloc(pool->hp_handles,
+			                         newasz * sizeof(void *));
+			assert(newa != NULL);
+			pool->hp_handles = newa;
+		}
+
+		pool->hp_asize = newasz;
+	}
+
+	/* append it */
+	pool->hp_handles[pool->hp_count] = handle;
+
+	/* increment the count */
+	pool->hp_count++;
+
+	/* signal any waiters */
+	pthread_cond_signal(&pool->hp_signal);
+
+	/* all done */
+	pthread_mutex_unlock(&pool->hp_lock);
+}
+
+#endif /* _FFR_DB_HANDLE_POOLS */
 
 #if (USE_SASL && USE_LDAP)
 /*
@@ -1518,7 +1814,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		if (dberr < 0)
 		{
 			if (err != NULL)
-				*err = (char *) odbx_error(NULL, dberr);
+				*err = (char *) odbx_error(odbx, dberr);
 			(void) odbx_finish(odbx);
 			free(dsn);
 			free(tmp);
