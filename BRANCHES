@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.45 2010/10/10 03:54:26 cm-msk Exp $
+$Id: BRANCHES,v 1.46 2010/10/14 23:07:26 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -13,6 +13,9 @@ HEAD/TRUNK	ongoing development
 Experimental Branches (branch name contains owner)
 ~~~~~~~~~~~~~~~~~~~~~
 
+br-msk-db-handle-pools
+		Handle pools for odbx handles (bug #SF3067338)
+
 br-msk-diffheaders-canon
 		Addition of a canonicalization parameter to dkim_diffheaders()
 		(bug #SF3079094)
@@ -21,7 +24,7 @@ br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
 
 br-msk-oversign	Feature to enable "oversigning" of critical header fields
-		so extra ones can't be added
+		so extra ones can't be added (feature request #SF3081697)
 
 
 Closed Branches
