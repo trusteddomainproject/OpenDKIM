@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.224 2010/10/10 23:18:04 cm-msk Exp $
+**  $Id: opendkim.c,v 1.225 2010/10/14 18:15:49 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.224 2010/10/10 23:18:04 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.225 2010/10/14 18:15:49 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -672,7 +672,6 @@ char reportcmd[BUFRSZ + 1];			/* reporting command */
 char reportaddr[MAXADDRESS + 1];		/* reporting address */
 char myhostname[DKIM_MAXHOSTNAMELEN + 1];	/* hostname */
 pthread_mutex_t conf_lock;			/* config lock */
-pthread_mutex_t count_lock;			/* counter lock */
 pthread_mutex_t popen_lock;			/* popen() lock */
 
 /* Other useful definitions */
