@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: dkim-dns.c,v 1.4 2010/09/07 18:41:39 cm-msk Exp $
+**  $Id: dkim-dns.c,v 1.5 2010/10/14 19:16:06 cm-msk Exp $
 */
 
 #ifndef lint
-static char dkim_dns_c_id[] = "@(#)$Id: dkim-dns.c,v 1.4 2010/09/07 18:41:39 cm-msk Exp $";
+static char dkim_dns_c_id[] = "@(#)$Id: dkim-dns.c,v 1.5 2010/10/14 19:16:06 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -22,6 +22,9 @@ static char dkim_dns_c_id[] = "@(#)$Id: dkim-dns.c,v 1.4 2010/09/07 18:41:39 cm-
 /* libopendkim includes */
 #include "dkim.h"
 #include "dkim-dns.h"
+
+/* OpenDKIM includes */
+#include "build-config.h"
 
 /* macros, limits, etc. */
 #ifndef MAXPACKET
@@ -93,15 +96,45 @@ dkim_res_query(void *srv, int type, char *query, unsigned char *buf,
 	int ret;
 	struct dkim_res_qh *rq;
 	char qbuf[HFIXEDSZ + MAXPACKET];
+#ifdef HAVE_RES_NINIT
+	struct __res_state statp;
+#endif /* HAVE_RES_NINIT */
 
+#ifdef HAVE_RES_NINIT
+	res_ninit(&statp);
+#endif /* HAVE_RES_NINIT */
+
+#ifdef HAVE_RES_NINIT
+	n = res_nmkquery(&statp, QUERY, query, C_IN, type, NULL, 0, NULL,
+	                 qbuf, sizeof qbuf);
+#else /* HAVE_RES_NINIT */
 	n = res_mkquery(QUERY, query, C_IN, type, NULL, 0, NULL, qbuf,
 	                sizeof qbuf);
+#endif /* HAVE_RES_NINIT */
 	if (n == (size_t) -1)
+	{
+#ifdef HAVE_RES_NINIT
+		res_nclose(&statp);
+#endif /* HAVE_RES_NINIT */
 		return DKIM_DNS_ERROR;
+	}
 
+#ifdef HAVE_RES_NINIT
+	ret = res_nsend(&statp, qbuf, n, buf, buflen);
+#else /* HAVE_RES_NINIT */
 	ret = res_send(qbuf, n, buf, buflen);
+#endif /* HAVE_RES_NINIT */
 	if (ret == -1)
+	{
+#ifdef HAVE_RES_NINIT
+		res_nclose(&statp);
+#endif /* HAVE_RES_NINIT */
 		return DKIM_DNS_ERROR;
+	}
+
+#ifdef HAVE_RES_NINIT
+	res_nclose(&statp);
+#endif /* HAVE_RES_NINIT */
 
 	rq = (struct dkim_res_qh *) malloc(sizeof *rq);
 	if (rq == NULL)

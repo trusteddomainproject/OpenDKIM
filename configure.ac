@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.179 2010/10/04 04:41:33 cm-msk Exp $
+# $Id: configure.ac,v 1.180 2010/10/14 19:16:06 cm-msk Exp $
 
 #
 # Setup
@@ -83,6 +83,9 @@ AC_SEARCH_LIBS(inet_ntop, resolv,
 AC_SEARCH_LIBS(getaddrinfo, resolv,
                AC_DEFINE(HAVE_GETADDRINFO, 1,
                          [Define to 1 if you have the `getaddrinfo()' function.]))
+AC_SEARCH_LIBS(res_ninit, resolv,
+               AC_DEFINE(HAVE_RES_NINIT, 1,
+                         [Define to 1 if you have the `res_ninit()' function.]))
 
 
 AC_HEADER_RESOLV

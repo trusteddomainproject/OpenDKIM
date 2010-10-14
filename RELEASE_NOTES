@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.252 2010/10/11 04:54:57 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.253 2010/10/14 19:16:06 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -12,6 +12,8 @@ release, and a summary of the changes in that release.
 		configuration file.  Reported by Andreas Schulze.
 	LIBOPENDKIM: Fix bug #SF3081964: dkim.h requires <sys/time.h>.
 		Patch from Kaspar Brand.
+	LIBOPENDKIM: Fix bug #SF3087251: Use thread-safe resolver functions
+		when avaialble.  Problem noted by Christian Pelissier.
 	LIBOPENDKIM: Cancel completed reputation queries.  Problem noted
 		by John Wood.
 	LIBOPENDKIM: Simplify DKIM_OPTS_ALWAYSHDRS handling.
