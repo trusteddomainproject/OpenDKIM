@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: dkim-dns.c,v 1.5 2010/10/14 19:16:06 cm-msk Exp $
+**  $Id: dkim-dns.c,v 1.6 2010/10/15 17:06:53 cm-msk Exp $
 */
 
 #ifndef lint
-static char dkim_dns_c_id[] = "@(#)$Id: dkim-dns.c,v 1.5 2010/10/14 19:16:06 cm-msk Exp $";
+static char dkim_dns_c_id[] = "@(#)$Id: dkim-dns.c,v 1.6 2010/10/15 17:06:53 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -101,6 +101,7 @@ dkim_res_query(void *srv, int type, char *query, unsigned char *buf,
 #endif /* HAVE_RES_NINIT */
 
 #ifdef HAVE_RES_NINIT
+	memset(&statp, '\0', sizeof statp);
 	res_ninit(&statp);
 #endif /* HAVE_RES_NINIT */
 
