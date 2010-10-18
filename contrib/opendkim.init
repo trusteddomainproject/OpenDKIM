@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: opendkim.init,v 1.4 2010/10/12 21:24:51 cm-msk Exp $
+# $Id: opendkim.init,v 1.5 2010/10/18 19:57:00 cm-msk Exp $
 #
 #### BEGIN INIT INFO
 # Provides:          opendkim
@@ -75,6 +75,7 @@ od_getpid() {
 			fi
 		done
 	fi
+	return 1
 }
 
 od_killproc() {
