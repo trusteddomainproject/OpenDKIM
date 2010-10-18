@@ -1,4 +1,4 @@
--- $Id: mkdb.mysql,v 1.10 2010/09/26 03:04:23 cm-msk Exp $
+-- $Id: mkdb.mysql,v 1.10.8.1 2010/10/18 00:10:32 cm-msk Exp $
 
 -- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 
@@ -72,6 +72,8 @@ create table if not exists signatures (
 	key_g_name tinyint unsigned not null,
 	key_dk_compat tinyint unsigned not null,
 	sigerror tinyint unsigned not null,
+	sig_i tinyint not null,
+	sig_i_user tinyint not null,
 	sig_t tinyint unsigned not null,
 	sig_x tinyint unsigned not null,
 	sig_z tinyint unsigned not null,

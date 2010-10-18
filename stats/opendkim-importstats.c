@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.10 2010/10/01 05:24:26 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.10.8.1 2010/10/18 00:10:32 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.10 2010/10/01 05:24:26 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.10.8.1 2010/10/18 00:10:32 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -693,7 +693,7 @@ main(int argc, char **argv)
 		{
 			int changed;
 
-			if (n != 19)
+			if (n != 21)
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",
@@ -775,7 +775,9 @@ main(int argc, char **argv)
 			    sanitize(db, fields[15], safesql, sizeof safesql) ||
 			    sanitize(db, fields[16], safesql, sizeof safesql) ||
 			    sanitize(db, fields[17], safesql, sizeof safesql) ||
-			    sanitize(db, fields[18], safesql, sizeof safesql))
+			    sanitize(db, fields[18], safesql, sizeof safesql) ||
+			    sanitize(db, fields[19], safesql, sizeof safesql) ||
+			    sanitize(db, fields[20], safesql, sizeof safesql))
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
@@ -784,7 +786,7 @@ main(int argc, char **argv)
 			}
 
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, sigerror, sig_t, sig_x, sig_z, dnssec) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+			         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, sigerror, sig_t, sig_x, sig_z, dnssec, sig_i, sig_i_user) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
 			         msgid,			/* message */
 			         domid,			/* domain */
 			         fields[1],		/* algorithm */
@@ -802,7 +804,9 @@ main(int argc, char **argv)
 			         fields[13],		/* sig_t */
 			         fields[14],		/* sig_x */
 			         fields[15],		/* sig_z */
-			         fields[16]);		/* dnssec */
+			         fields[16],		/* dnssec */
+			         fields[19],		/* sig_i */
+			         fields[20]);		/* sig_i_user */
 
 			sigid = sql_do(db, sql);
 			if (sigid == -1)
