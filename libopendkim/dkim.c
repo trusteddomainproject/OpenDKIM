@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.69 2010/10/11 04:54:27 cm-msk Exp $";
+static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.70 2010/10/19 04:08:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -4911,7 +4911,7 @@ dkim_policy(DKIM *dkim, dkim_policy_t *pcode, DKIM_PSTATE *pstate)
 **  	A DKIM_DNSSEC_* constant.
 */
 
-u_int
+int
 dkim_policy_getdnssec(DKIM *dkim)
 {
 	assert(dkim != NULL);
@@ -6519,7 +6519,7 @@ dkim_sig_hdrsigned(DKIM_SIGINFO *sig, char *hdr)
 **  	A DKIM_DNSSEC_* constant.
 */
 
-u_int
+int
 dkim_sig_getdnssec(DKIM_SIGINFO *sig)
 {
 	assert(sig != NULL);

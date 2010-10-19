@@ -9,7 +9,7 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.21 2010/10/11 04:54:27 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.22 2010/10/19 04:08:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -116,7 +116,7 @@ struct dkim_siginfo
 	u_int			sig_hashtype;
 	u_int			sig_keytype;
 	u_int			sig_keybits;
-	u_int			sig_dnssec_key;
+	int			sig_dnssec_key;
 	size_t			sig_siglen;
 	size_t			sig_keylen;
 	size_t			sig_b64keylen;
@@ -248,7 +248,7 @@ struct dkim
 #endif /* QUERY_CACHE */
 	u_int			dkim_version;
 	u_int			dkim_sigcount;
-	u_int			dkim_dnssec_policy;
+	int			dkim_dnssec_policy;
 	size_t			dkim_margin;
 	size_t			dkim_b64siglen;
 	size_t			dkim_keylen;

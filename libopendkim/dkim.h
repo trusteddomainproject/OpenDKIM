@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.35 2010/10/06 14:09:03 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.36 2010/10/19 04:08:27 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -700,7 +700,7 @@ extern _Bool dkim_sig_hdrsigned __P((DKIM_SIGINFO *sig, char *hdr));
 **  	A DKIM_DNSSEC_* constant.
 */
 
-extern u_int dkim_sig_getdnssec __P((DKIM_SIGINFO *sig));
+extern int dkim_sig_getdnssec __P((DKIM_SIGINFO *sig));
 
 /*
 **  DKIM_SIG_GETREPORTINFO -- retrieve reporting information from a key
@@ -1226,7 +1226,7 @@ extern DKIM_STAT dkim_policy __P((DKIM *dkim, dkim_policy_t *pcode,
 **  	A DKIM_DNSSEC_* constant.
 */
 
-extern u_int dkim_policy_getdnssec __P((DKIM *dkim));
+extern int dkim_policy_getdnssec __P((DKIM *dkim));
 
 /*
 **  DKIM_POLICY_GETREPORTINFO -- retrieve reporting information from policy
