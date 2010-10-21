@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.181 2010/10/14 19:24:46 cm-msk Exp $
+# $Id: configure.ac,v 1.181.4.1 2010/10/21 19:57:51 cm-msk Exp $
 
 #
 # Setup
@@ -277,6 +277,7 @@ AM_CONDITIONAL([VBR], [test x"$enable_vbr" = x"yes"])
 FFR_FEATURE([stats], [stats recording and reporting])
 AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
 FFR_FEATURE([statsext], [extended stats recording and reporting])
+FFR_FEATURE([stats_i], [stats recording for 'i=' presence and content])
 
 if test x"$enable_statsext" = x"yes" -a x"$enable_stats" != x"yes"
 then

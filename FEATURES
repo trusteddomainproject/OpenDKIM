@@ -104,6 +104,9 @@ stats		Optional generation of per-message and per-signature
 		statistics of interest to the evolution of DKIM.
 		See stats/README for information.  (opendkim)
 
+stats_i		Addition of statistics recording support for "i=" signature
+		tag presence and values.  (opendkim)
+
 statsext	Support for localized stats extensions.  See stats/README
 		for information.  (opendkim)
 
@@ -120,4 +123,4 @@ Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 
 
-$Revision: 1.24 $, Last updated $Date: 2010/09/14 18:23:38 $
+$Revision: 1.24.8.1 $, Last updated $Date: 2010/10/21 19:57:51 $
