@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.17 2010/10/17 23:53:42 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.18 2010/10/21 06:09:43 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -77,7 +77,7 @@ echo "" >> $OUTPUT
 echo "<p> Use of 'l=' tag: </p>" >> $OUTPUT
 $MYSQL --execute="select count(*) as 'l= present', pass from signatures where not siglength = -1 group by pass" >> $OUTPUT
 $MYSQL --execute="select count(*) as 'l=0', pass from signatures where siglength = 0 group by pass" >> $OUTPUT
-$MYSQL --execute="select count(*) as 'l= < msgsize', pass from signatures join messages on signatures.message = messages.id where signatures.siglength < messages.size group by pass" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'l= < msgsize', pass from signatures join messages on signatures.message = messages.id where signatures.siglength >= 0 and signatures.siglength < messages.size group by pass" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo "<p> Key properties: </p>" >> $OUTPUT
