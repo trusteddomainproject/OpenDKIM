@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.25.8.2 2010/10/21 19:15:59 cm-msk Exp $
+**  $Id: stats.c,v 1.25.8.3 2010/10/21 20:03:44 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.25.8.2 2010/10/21 19:15:59 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.25.8.3 2010/10/21 20:03:44 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -528,6 +528,7 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 		fprintf(out, "\t-");
 #endif /* _FFR_DIFFHEADERS */
 
+#ifdef _FFR_STATS_I
 		/*
 		**  Reporting of i= has two columns:
 		**
@@ -583,6 +584,7 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 
 			fprintf(out, "\t%d\t%d", domain, user);
 		}
+#endif /* _FFR_STATS_I */
 
 		fprintf(out, "\n");
 	}
