@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.253 2010/10/14 19:16:06 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.254 2010/10/22 21:56:07 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -10,6 +10,9 @@ release, and a summary of the changes in that release.
 	Fix "refile" loading.  Problem noted by Steve Jenkins.
 	Fix collision between "ReputationRoot" and "StatisticsName" in the
 		configuration file.  Reported by Andreas Schulze.
+	Convert sender's domain name to lowercase prior to doing any database
+		queries with it.  This was done before, but lost during the
+		database overhaul in 1.2.0.  Reported by Gary Mills.
 	LIBOPENDKIM: Fix bug #SF3081964: dkim.h requires <sys/time.h>.
 		Patch from Kaspar Brand.
 	LIBOPENDKIM: Fix bug #SF3087251: Use thread-safe resolver functions
