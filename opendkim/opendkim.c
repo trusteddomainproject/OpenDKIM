@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.226 2010/10/22 21:56:07 cm-msk Exp $
+**  $Id: opendkim.c,v 1.227 2010/10/23 04:29:29 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.226 2010/10/22 21:56:07 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.227 2010/10/23 04:29:29 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -12235,28 +12235,22 @@ mlfi_eom(SMFICTX *ctx)
 
 				if (add_vbr_header)
 				{
-					char hdr[DKIM_MAXHEADER + 1];
-
-					memset(hdr, '\0', sizeof hdr);
-
-					snprintf(hdr, sizeof hdr, "%s.md",
-					         VBR_INFOHEADER);
-					dkimf_lowercase(hdr);
 					snprintf(header, sizeof header,
-					         "%s%s%s%s vbr=%s%s%s%s header.%s=%s",
+					         "%s%s%s%s vbr=%s%s%s%s header.vbr-info=%s",
 					         cc->cctx_noleadspc ? " " : "",
 					         authservid,
 					         conf->conf_authservidwithjobid ? "/"
 					                                        : "",
 					         conf->conf_authservidwithjobid ? dfc->mctx_jobid
 					                                        : "",
+					         vbr_result,
 					         vbr_certifier == NULL ? ""
 					                               : " (",
 					         vbr_certifier == NULL ? ""
  					                               : vbr_certifier,
 					         vbr_certifier == NULL ? ""
 					                               : ")",
-					         hdr, vbr_domain, vbr_result);
+					         vbr_domain);
 		
 					if (dkimf_insheader(ctx, 1,
 					                    AUTHRESULTSHDR,
