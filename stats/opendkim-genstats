@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.19 2010/10/24 17:14:51 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.20 2010/10/24 19:50:58 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -176,7 +176,7 @@ $MYSQL --execute="select count(*) as count, pass, messages.spam from signatures 
 echo "</p>" >> $OUTPUT
 
 echo "<p> Signing domain use counts with spam correlation: </p>" >> $OUTPUT
-$MYSQL --execute="select msgcount, count(*) as domains, sum(spam) as spam, (sum(spam)/count(*)) as pct from (select domain, count(*) as msgcount, messages.spam as spam from signatures join messages on messages.id = signatures.message where not spam = -1 group by 1) a group by 1 order by 1 asc limit 10" >> $OUTPUT
+$MYSQL --execute="select msgcount, count(*) as domains, sum(spam) as spam, 100*(sum(spam)/count(*)) as pct from (select domain, count(*) as msgcount, messages.spam as spam from signatures join messages on messages.id = signatures.message where not spam = -1 group by 1) a group by 1 order by 1 asc limit 10" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 # output a footer
