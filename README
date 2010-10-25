@@ -1,8 +1,6 @@
 OPENDKIM README
 ===============
 
-$Id: README,v 1.11 2010/10/13 06:57:10 cm-msk Exp $
-
 This directory has the latest open source DKIM filter software from The
 OpenDKIM Project.
 
@@ -289,3 +287,8 @@ The suggested solutions to this problem are:
     first daemon port (port 25) does the header rewriting and then routes
     the message to the second port; the latter does no rewriting but does the
     signing and then sends the message on its way.
+
+--
+Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+
+$Id: README,v 1.12 2010/10/25 17:14:09 cm-msk Exp $
