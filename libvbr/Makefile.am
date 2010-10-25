@@ -1,6 +1,6 @@
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: Makefile.am,v 1.5 2010/10/25 17:13:17 cm-msk Exp $
+# $Id: Makefile.am,v 1.6 2010/10/25 17:18:33 cm-msk Exp $
 
 lib_LTLIBRARIES = libvbr.la
 libvbr_la_SOURCES = vbr.c
@@ -9,7 +9,7 @@ libvbrincludedir = $(includedir)/vbr
 libvbrinclude_HEADERS = vbr.h
 
 if RPATH
-libvbr_la_LDFLAGS = -rpath $(libdir)
+libvbr_la_LDFLAGS += -rpath $(libdir)
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
