@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.44 2010/09/16 04:26:35 cm-msk Exp $
+**  $Id: util.c,v 1.45 2010/10/25 04:38:31 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.44 2010/09/16 04:26:35 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.45 2010/10/25 04:38:31 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -809,8 +809,10 @@ dkimf_inet_ntoa(struct in_addr a, char *buf, size_t buflen)
 void
 dkimf_trimspaces(u_char *str)
 {
+	size_t len = 0;
 	u_char *p;
 	u_char *last;
+	u_char *firsttext = NULL;
 
 	assert(str != NULL);
 
@@ -818,18 +820,29 @@ dkimf_trimspaces(u_char *str)
 
 	for (p = str; *p != '\0'; p++)
 	{
-		if (isascii(*p) && isspace(*p) && last == NULL)
-		{
-			last = p;
-			continue;
-		}
+		len++;
 
-		if (!isascii(*p) || !isspace(*p))
+		if (isascii(*p) && isspace(*p))
+		{
+			if (last == NULL)
+			{
+				last = p;
+				continue;
+			}
+		}
+		else
+		{
 			last = NULL;
+			if (firsttext == NULL)
+				firsttext = p;
+		}
 	}
 
 	if (last != NULL)
 		*last = '\0';
+
+	if (firsttext != str)
+		memmove(str, firsttext, len - (firsttext - str) + 1);
 }
 
 /*
