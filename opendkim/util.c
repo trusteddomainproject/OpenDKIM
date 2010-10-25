@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.46 2010/10/25 17:17:41 cm-msk Exp $
+**  $Id: util.c,v 1.47 2010/10/25 18:27:04 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.46 2010/10/25 17:17:41 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.47 2010/10/25 18:27:04 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -845,7 +845,7 @@ dkimf_trimspaces(u_char *str)
 	if (last != NULL)
 		*last = '\0';
 
-	if (firsttext != str)
+	if (firsttext != NULL && firsttext != str)
 		memmove(str, firsttext, len - (firsttext - str) + 1);
 }
 
