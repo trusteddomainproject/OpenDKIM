@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.3 2009/11/22 08:15:50 grooverdan Exp $";
+static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.4 2010/10/25 05:01:04 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -321,8 +321,8 @@ vbr_txt_decode(u_char *ansbuf, size_t anslen, u_char *buf, size_t buflen)
 
 	/* set up pointers */
 	memcpy(&hdr, ansbuf, sizeof hdr);
-	cp = (u_char *) &ansbuf + HFIXEDSZ;
-	eom = (u_char *) &ansbuf + anslen;
+	cp = ansbuf + HFIXEDSZ;
+	eom = ansbuf + anslen;
 
 	/* skip over the name at the front of the answer */
 	for (qdcount = ntohs((unsigned short) hdr.qdcount);
@@ -330,8 +330,7 @@ vbr_txt_decode(u_char *ansbuf, size_t anslen, u_char *buf, size_t buflen)
 	     qdcount--)
 	{
 		/* copy it first */
-		(void) dn_expand((unsigned char *) &ansbuf, eom, cp,
-		                 qname, sizeof qname);
+		(void) dn_expand(ansbuf, eom, cp, qname, sizeof qname);
 
 		if ((n = dn_skipname(cp, eom)) < 0)
 			return FALSE;
@@ -361,8 +360,8 @@ vbr_txt_decode(u_char *ansbuf, size_t anslen, u_char *buf, size_t buflen)
 		return FALSE;
 
 	/* grab the label, even though we know what we asked... */
-	if ((n = dn_expand((unsigned char *) &ansbuf, eom, cp,
-	                   (RES_UNC_T) qname, sizeof qname)) < 0)
+	if ((n = dn_expand(ansbuf, eom, cp, (RES_UNC_T) qname,
+	                   sizeof qname)) < 0)
 		return FALSE;
 	/* ...and move past it */
 	cp += n;
