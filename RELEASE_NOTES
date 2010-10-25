@@ -1,5 +1,5 @@
 			OPENDKIM RELEASE NOTES
-	$Id: RELEASE_NOTES,v 1.255 2010/10/23 05:13:40 cm-msk Exp $
+	$Id: RELEASE_NOTES,v 1.256 2010/10/25 05:01:41 cm-msk Exp $
 
 
 This listing shows the versions of the OpenDKIM package, the date of
@@ -24,6 +24,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Simplify DKIM_OPTS_ALWAYSHDRS handling.
 	LIBAR: Fix bug #SF3080720: Don't compute timeouts based on completed
 		or dead queries.  Problem noted by John Wood.
+	LIBVBR: Fix some pointer errors causing false negatives.  Problem
+		noted by Frederik Pettai.
 	TOOLS: Write "v=" tags in key records output by opendkim-genzone.
 
 2.2.0		2010/10/03
