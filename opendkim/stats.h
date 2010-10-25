@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.h,v 1.9 2010/09/14 18:23:39 cm-msk Exp $
+**  $Id: stats.h,v 1.10 2010/10/25 17:16:00 cm-msk Exp $
 */
 
 #ifndef _STATS_H_
 #define _STATS_H_
 
 #ifndef lint
-static char stats_h_id[] = "@(#)$Id: stats.h,v 1.9 2010/09/14 18:23:39 cm-msk Exp $";
+static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10 2010/10/25 17:16:00 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -64,7 +64,9 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.9 2010/09/14 18:23:39 cm-msk Ex
 #define	DKIMS_SI_DNSSEC		16
 #define	DKIMS_SI_SIGNED_FIELDS	17
 #define	DKIMS_SI_CHANGED_FIELDS	18
-#define DKIMS_SI_MAX		18
+#define	DKIMS_SI_SIG_I		19
+#define	DKIMS_SI_SIG_I_USER	20
+#define DKIMS_SI_MAX		20
 
 /* PROTOTYPES */
 extern void dkimf_stats_init __P((void));

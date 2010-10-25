@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.22 2010/10/25 03:47:37 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.23 2010/10/25 17:16:00 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -73,6 +73,14 @@ echo "" >> $OUTPUT
 echo "<p> Signature properties: </p>" >> $OUTPUT
 $MYSQL --execute="select sum(sig_t) as 't=', sum(sig_x) as 'x=', sum(sig_z) as 'z=' from signatures" >> $OUTPUT
 echo "" >> $OUTPUT
+
+echo "<p> Use of 'i=' tag: </p>" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'i= absent', pass from signatures where sig_i = 0 group by pass" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'i= present, matching d=', pass from signatures where sig_i = 1 group by pass" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'i= present, subdomain of d=', pass from signatures where sig_i = 2 group by pass" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'i= present, no local-part', pass from signatures where sig_i_user = 1 group by pass" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'i= present, local-part matches From', pass from signatures where sig_i_user = 2 group by pass" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'i= present, local-part does not match From', pass from signatures where sig_i_user = 3 group by pass" >> $OUTPUT
 
 echo "<p> Use of 'l=' tag: </p>" >> $OUTPUT
 $MYSQL --execute="select count(*) as 'l= present', pass from signatures where not siglength = -1 group by pass" >> $OUTPUT

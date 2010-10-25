@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.26 2010/10/25 04:24:00 cm-msk Exp $
+**  $Id: stats.c,v 1.27 2010/10/25 17:16:00 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.26 2010/10/25 04:24:00 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.27 2010/10/25 17:16:00 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -529,6 +529,68 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 #else /* _FFR_DIFFHEADERS */
 		fprintf(out, "\t-");
 #endif /* _FFR_DIFFHEADERS */
+
+#ifdef _FFR_STATS_I
+		/*
+		**  Reporting of i= has two columns:
+		**
+		**  -1 -- processing error or data not available
+		**  0 -- "i=" not present
+		**  1 -- "i=" present with default value
+		**  2 -- "i=" present but has some other value (a subdomain)
+		**
+		**  -1 -- processing error or data not available
+		**  0 -- "i=" not present
+		**  1 -- "i=" present but with no local-part
+		**  2 -- "i=" has a local-part matching that of the From: line
+		**  3 -- "i=" has some other local-part
+		*/
+
+		p = dkim_sig_gettagvalue(sigs[c], FALSE, "i");
+		if (p == NULL)
+		{
+			fprintf(out, "\t0\t0");
+		}
+		else
+		{
+			int user = -1;
+			int domain = -1;
+			char *at;
+
+			at = strchr(p, '@');
+			if (at != NULL)
+			{
+				if (strcasecmp(from, at + 1) == 0)
+					domain = 1;
+				else
+					domain = 2;
+
+				if (p == at)
+				{
+					user = 1;
+				}
+				else
+				{
+					size_t ulen;
+					size_t llen;
+					char *local;
+
+					local = dkim_getuser(dkimv);
+					llen = strlen(local);
+
+					ulen = at - p;
+
+					if (llen == ulen &&
+					    strncmp(local, p, ulen) == 0)
+						user = 2;
+					else
+						user = 3;
+				}
+			}
+
+			fprintf(out, "\t%d\t%d", domain, user);
+		}
+#endif /* _FFR_STATS_I */
 
 		fprintf(out, "\n");
 	}

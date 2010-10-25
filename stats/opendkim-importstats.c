@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-importstats.c,v 1.10 2010/10/01 05:24:26 cm-msk Exp $
+**  $Id: opendkim-importstats.c,v 1.11 2010/10/25 17:16:00 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.10 2010/10/01 05:24:26 cm-msk Exp $";
+static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.11 2010/10/25 17:16:00 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -693,7 +693,11 @@ main(int argc, char **argv)
 		{
 			int changed;
 
+#ifdef _FFR_STATS_I
+			if (n != 19 && n != 21)
+#else /* _FFR_STATS_I */
 			if (n != 19)
+#endif /* _FFR_STATS_I */
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",
@@ -775,7 +779,15 @@ main(int argc, char **argv)
 			    sanitize(db, fields[15], safesql, sizeof safesql) ||
 			    sanitize(db, fields[16], safesql, sizeof safesql) ||
 			    sanitize(db, fields[17], safesql, sizeof safesql) ||
+#ifdef _FFR_STATS_I
+			    sanitize(db, fields[18], safesql, sizeof safesql) ||
+			    (n == 21 &&
+			     sanitize(db, fields[19], safesql, sizeof safesql)) ||
+			    (n == 21 &&
+			     sanitize(db, fields[20], safesql, sizeof safesql)))
+#else /* _FFR_STATS_I */
 			    sanitize(db, fields[18], safesql, sizeof safesql))
+#endif /* _FFR_STATS_I */
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
@@ -783,26 +795,59 @@ main(int argc, char **argv)
 				continue;
 			}
 
-			snprintf(sql, sizeof sql,
-			         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, sigerror, sig_t, sig_x, sig_z, dnssec) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-			         msgid,			/* message */
-			         domid,			/* domain */
-			         fields[1],		/* algorithm */
-			         fields[2],		/* hdr_canon */
-			         fields[3],		/* body_canon */
-			         fields[4],		/* ignored */
-			         fields[5],		/* pass */
-			         fields[6],		/* fail_body */
-			         fields[7],		/* siglength */
-			         fields[8],		/* key_t */
-			         fields[9],		/* key_g */
-			         fields[10],		/* key_g_name */
-			         fields[11],		/* key_dk_compat */
-			         fields[12],		/* sigerror */
-			         fields[13],		/* sig_t */
-			         fields[14],		/* sig_x */
-			         fields[15],		/* sig_z */
-			         fields[16]);		/* dnssec */
+#ifdef _FFR_STATS_I
+			if (n == 21)
+			{
+				snprintf(sql, sizeof sql,
+				         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, sigerror, sig_t, sig_x, sig_z, dnssec, sig_i, sig_i_user) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+				         msgid,		/* message */
+				         domid,		/* domain */
+				         fields[1],	/* algorithm */
+				         fields[2],	/* hdr_canon */
+				         fields[3],	/* body_canon */
+				         fields[4],	/* ignored */
+				         fields[5],	/* pass */
+				         fields[6],	/* fail_body */
+				         fields[7],	/* siglength */
+				         fields[8],	/* key_t */
+				         fields[9],	/* key_g */
+				         fields[10],	/* key_g_name */
+				         fields[11],	/* key_dk_compat */
+				         fields[12],	/* sigerror */
+				         fields[13],	/* sig_t */
+				         fields[14],	/* sig_x */
+				         fields[15],	/* sig_z */
+				         fields[16],	/* dnssec */
+				         fields[19],	/* sig_i */
+				         fields[20]);	/* sig_i_user */
+			}
+			else
+			{
+#endif /* _FFR_STATS_I */
+				snprintf(sql, sizeof sql,
+				         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, sigerror, sig_t, sig_x, sig_z, dnssec) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+				         msgid,		/* message */
+				         domid,		/* domain */
+				         fields[1],	/* algorithm */
+				         fields[2],	/* hdr_canon */
+				         fields[3],	/* body_canon */
+				         fields[4],	/* ignored */
+				         fields[5],	/* pass */
+				         fields[6],	/* fail_body */
+				         fields[7],	/* siglength */
+				         fields[8],	/* key_t */
+				         fields[9],	/* key_g */
+				         fields[10],	/* key_g_name */
+				         fields[11],	/* key_dk_compat */
+				         fields[12],	/* sigerror */
+				         fields[13],	/* sig_t */
+				         fields[14],	/* sig_x */
+				         fields[15],	/* sig_z */
+				         fields[16]);	/* dnssec */
+
+#ifdef _FFR_STATS_I
+			}
+#endif /* _FFR_STATS_I */
 
 			sigid = sql_do(db, sql);
 			if (sigid == -1)
