@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.25 2010/09/15 23:09:19 cm-msk Exp $
+**  $Id: stats.c,v 1.26 2010/10/25 04:24:00 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.25 2010/09/15 23:09:19 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.26 2010/10/25 04:24:00 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -341,6 +341,7 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 				if (p != NULL)
 					*p = '\0';
 				dkimf_trimspaces(ct);
+				dkimf_lowercase(ct);
 			}
 		}
 		else if (strcasecmp(hdr->hdr_hdr,
@@ -359,6 +360,7 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 				if (p != NULL)
 					*p = '\0';
 				dkimf_trimspaces(cte);
+				dkimf_lowercase(cte);
 			}
 		}
 	}
