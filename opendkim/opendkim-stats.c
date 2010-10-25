@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.18 2010/09/14 18:34:18 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.19 2010/10/25 20:20:29 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.18 2010/09/14 18:34:18 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.19 2010/10/25 20:20:29 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -241,7 +241,11 @@ main(int argc, char **argv)
 			char *siglen;
 			char *dnssec;
 
+#ifdef _FFR_STATS_I
+			if (n != 19 && n != 21)
+#else /* _FFR_STATS_I */
 			if (n != 19)
+#endif /* _FFR_STATS_I */
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",
