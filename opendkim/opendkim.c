@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.227 2010/10/23 04:29:29 cm-msk Exp $
+**  $Id: opendkim.c,v 1.228 2010/10/25 04:23:37 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.227 2010/10/23 04:29:29 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.228 2010/10/25 04:23:37 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -3764,7 +3764,7 @@ dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure)
 **  Return value:
 **  	3 -- substitution token provided but domain not provided
 **  	2 -- requested key could not be loaded
-3*  	1 -- requested key not found
+**  	1 -- requested key not found
 **  	0 -- requested key added
 **  	-1 -- requested key found but add failed (memory? or format)
 */
