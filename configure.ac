@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.182 2010/10/25 17:16:00 cm-msk Exp $
+# $Id: configure.ac,v 1.183 2010/10/25 17:20:29 cm-msk Exp $
 
 #
 # Setup
@@ -282,6 +282,11 @@ FFR_FEATURE([stats_i], [stats recording for 'i=' presence and content])
 if test x"$enable_statsext" = x"yes" -a x"$enable_stats" != x"yes"
 then
 	AC_MSG_ERROR([--enable-statsext requires --enable-stats])
+fi
+
+if test x"$enable_stats_i" = x"yes" -a x"$enable_stats" != x"yes"
+then
+	AC_MSG_ERROR([--enable-stats_i requires --enable-stats])
 fi
 
 FFR_FEATURE([default_sender], [default sender address])
