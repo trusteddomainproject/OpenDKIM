@@ -1,7 +1,9 @@
 ##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
-## $Id: opendkim.conf.sample,v 1.13 2010/09/09 16:30:32 cm-msk Exp $
+## Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+##
+## $Id: opendkim.conf.sample,v 1.14 2010/10/25 17:14:44 cm-msk Exp $
 ##
 
 ##
