@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.228 2010/10/25 04:23:37 cm-msk Exp $
+**  $Id: opendkim.c,v 1.229 2010/10/25 20:40:14 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.228 2010/10/25 04:23:37 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.229 2010/10/25 20:40:14 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -10701,7 +10701,7 @@ mlfi_eom(SMFICTX *ctx)
 			if (no_i_whine && conf->conf_dolog)
 			{
 				syslog(LOG_WARNING,
-				       "WARNING: sendmail symbol 'i' not available");
+				       "WARNING: symbol 'i' not available");
 				no_i_whine = FALSE;
 			}
 			dfc->mctx_jobid = JOBIDUNKNOWN;
