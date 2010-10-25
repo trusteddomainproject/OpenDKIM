@@ -19,6 +19,8 @@ The full RELEASE_NOTES for this version:
 		database overhaul in 1.2.0.  Reported by Gary Mills.
 	Fix up Authentication-Results header field generation for VBR.
 		Reported by Fredrik Pettai.
+	Add _FFR_STATS_I enabling statistics reporting of "i=" signature
+		properties.
 	LIBOPENDKIM: Fix bug #SF3081964: dkim.h requires <sys/time.h>.
 		Patch from Kaspar Brand.
 	LIBOPENDKIM: Fix bug #SF3087251: Use thread-safe resolver functions
