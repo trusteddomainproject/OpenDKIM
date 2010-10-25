@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-genstats,v 1.23 2010/10/25 17:16:00 cm-msk Exp $
+# $Id: opendkim-genstats,v 1.24 2010/10/25 19:31:09 cm-msk Exp $
 #
 # Script to generate some HTML-ized statistics for OpenDKIM
 
@@ -86,6 +86,10 @@ echo "<p> Use of 'l=' tag: </p>" >> $OUTPUT
 $MYSQL --execute="select count(*) as 'l= present', pass from signatures where not siglength = -1 group by pass" >> $OUTPUT
 $MYSQL --execute="select count(*) as 'l=0', pass from signatures where siglength = 0 group by pass" >> $OUTPUT
 $MYSQL --execute="select count(*) as 'l= < msgsize', pass from signatures join messages on signatures.message = messages.id where signatures.siglength >= 0 and signatures.siglength < messages.size group by pass" >> $OUTPUT
+echo "" >> $OUTPUT
+
+echo "<p> Use of 'i=' tag: </p>" >> $OUTPUT
+$MYSQL --execute="select count(*), case sig_i when 0 then 'absent' when 1 then 'matches d=' when 2 then 'subdomain of d=' end as 'i= domain', case sig_i_user when 0 then 'absent' when 1 then 'empty' when 2 then 'matches From' when 3 then 'does not match From' end as 'i= local-part' from signatures where sig_i >= 0 group by sig_i, sig_i_user" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo "<p> Key properties: </p>" >> $OUTPUT
