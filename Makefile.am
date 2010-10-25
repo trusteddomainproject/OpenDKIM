@@ -1,4 +1,6 @@
-# $Id: Makefile.am,v 1.60 2010/09/13 07:10:38 cm-msk Exp $
+# Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+#
+# $Id: Makefile.am,v 1.61 2010/10/25 17:13:17 cm-msk Exp $
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4

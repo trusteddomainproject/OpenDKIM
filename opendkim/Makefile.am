@@ -1,4 +1,6 @@
-# $Id: Makefile.am,v 1.81 2010/09/29 17:28:42 cm-msk Exp $
+# Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+#
+# $Id: Makefile.am,v 1.82 2010/10/25 17:13:17 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g

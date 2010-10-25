@@ -1,5 +1,6 @@
-# $Id: Makefile.am,v 1.6 2010/09/07 02:26:12 cm-msk Exp $
+# Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
+# $Id: Makefile.am,v 1.7 2010/10/25 17:13:17 cm-msk Exp $
 
 if USE_ODBX
 

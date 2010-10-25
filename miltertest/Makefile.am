@@ -1,4 +1,6 @@
-# $Id: Makefile.am,v 1.9 2010/09/07 07:29:15 cm-msk Exp $
+# Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+#
+# $Id: Makefile.am,v 1.10 2010/10/25 17:13:17 cm-msk Exp $
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = --pedantic -Wall -O2

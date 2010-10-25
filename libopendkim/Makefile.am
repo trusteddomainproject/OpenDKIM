@@ -1,5 +1,6 @@
-# $Id: Makefile.am,v 1.53 2010/08/30 22:01:56 cm-msk Exp $
-
+# Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+#
+# $Id: Makefile.am,v 1.54 2010/10/25 17:13:17 cm-msk Exp $
 
 SUBDIRS=tests docs
 
