@@ -724,8 +724,15 @@ Removes all existing signatures when operating in signing mode.
 
 .TP
 .I ReplaceRules (string)
-Specifies a file containing a list of POSIX regular expressions that
-are applied the the message headers.
+Specifies a file containing a list of text replacement rules that are
+applied to the message headers to replace certain content expected to be
+changed as the message passes through local MTAs.  This can be used to
+accomodate expected changes such as are made to From: fields by MTA
+"masquerade" features.  Each entry in the file consists of a POSIX regular
+expression, followed by a tab (ASCII 9), followed by the text that should
+be used to replace the text matching the expression.  The '#' character
+denotes the beginning of a comment and text from that point on in a
+single line is ignored.  Blank lines are also skipped.
 @REPLACE_RULES_MANNOTICE@
 
 .TP
