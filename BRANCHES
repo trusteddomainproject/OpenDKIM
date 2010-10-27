@@ -1,4 +1,4 @@
-$Id: BRANCHES,v 1.46 2010/10/14 23:07:26 cm-msk Exp $
+$Id: BRANCHES,v 1.47 2010/10/27 18:26:07 cm-msk Exp $
 
 OpenDKIM Branch Listing
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -25,6 +25,10 @@ br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 
 br-msk-oversign	Feature to enable "oversigning" of critical header fields
 		so extra ones can't be added (feature request #SF3081697)
+
+br-msk-solaris-cleanup
+		Extensive reworking of various things so a build on Solaris
+		with the native compiler is clean (bug #SF2903325)
 
 
 Closed Branches
