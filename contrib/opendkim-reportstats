@@ -2,7 +2,7 @@
 #
 # Script to upload OpenDKIM statistics data.  Contributed by John Wood.
 #
-# $Id: opendkim-reportstats,v 1.3 2010/10/01 05:10:09 cm-msk Exp $
+# $Id: opendkim-reportstats,v 1.4 2010/10/27 05:03:28 cm-msk Exp $
 #
 # License: BSD 3-clause
 #
@@ -335,6 +335,8 @@ if [ ! -z "$REPORTER" ]; then
       REPORTEREMAIL="<`whoami`@$HOSTNAME>"
    fi
 fi
+#re-eval flags to set the envelope as well
+SENDMAILFLAGS="-t -f $REPORTEREMAIL"
 }
 
 send_registration()
@@ -410,7 +412,7 @@ if [ -s "$OPENDKIMSTATSDAT" ]; then
    fi 
    cat "$REPORTSTUB" "${GNUPGDIR}/${OPENDKIMSTATSFILE}.${HOSTNAME}.${UNIXDATE}.gpg" | ${SENDMAIL} ${SENDMAILFLAGS}
    if [ $? != 0 ]; then
-      echo "Sending of ${GNUPGDIR}/{OPENDKIMSTATSFILE}.${HOSTNAME}.${UNIXDATE}.gpg failed."
+      echo "Sending of ${GNUPGDIR}/${OPENDKIMSTATSFILE}.${HOSTNAME}.${UNIXDATE}.gpg failed."
       echo "Please verify MTA operation."
       exit 1
    fi 
