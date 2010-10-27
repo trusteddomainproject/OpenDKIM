@@ -4,22 +4,26 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.h,v 1.34 2010/09/14 18:23:39 cm-msk Exp $
+**  $Id: opendkim.h,v 1.34.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
 #ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.34 2010/09/14 18:23:39 cm-msk Exp $";
+static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.34.10.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
 
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
 #define	DKIMF_PRODUCTNS	"OpenDKIM-Filter"
 
+#include "build-config.h"
+
 /* system includes */
 #include <sys/types.h>
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 
 /* libmilter */
 #ifdef DKIMF_MILTER_PROTOTYPES
@@ -27,7 +31,6 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.34 2010/09/14 18:23:39 cm
 #endif /* DKIMF_MILTER_PROTOTYPES */
 
 /* libopendkim */
-#include "build-config.h"
 #include "dkim.h"
 
 #ifdef USE_LUA
@@ -123,9 +126,9 @@ typedef struct signreq * SIGNREQ;
 struct signreq
 {
 	void *			srq_keydata;
-	char *			srq_domain;
-	char *			srq_selector;
-	char *			srq_signer;
+	u_char *		srq_domain;
+	u_char *		srq_selector;
+	u_char *		srq_signer;
 	DKIM *			srq_dkim;
 	struct signreq *	srq_next;
 };

@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.18 2010/09/01 23:18:45 cm-msk Exp $";
+static char dkim_keys_c_id[] = "@(#)$Id: dkim-keys.c,v 1.18.10.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -81,7 +81,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	unsigned char *cp;
 	unsigned char *eom;
 	unsigned char *eob;
-	char qname[DKIM_MAXHOSTNAMELEN + 1];
+	unsigned char qname[DKIM_MAXHOSTNAMELEN + 1];
 	unsigned char ansbuf[MAXPACKET];
 	struct timeval timeout;
 	HEADER hdr;
@@ -94,8 +94,8 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 
 	lib = dkim->dkim_libhandle;
 
-	n = snprintf(qname, sizeof qname - 1, "%s.%s.%s", sig->sig_selector,
-	             DKIM_DNSKEYNAME, sig->sig_domain);
+	n = snprintf((char *) qname, sizeof qname - 1, "%s.%s.%s",
+	             sig->sig_selector, DKIM_DNSKEYNAME, sig->sig_domain);
 	if (n == -1 || n > sizeof qname - 1)
 	{
 		dkim_error(dkim, "key query name too large");
@@ -177,9 +177,9 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	     qdcount--)
 	{
 		/* copy it first */
-		(void) dn_expand((unsigned char *) &ansbuf, eom, cp, qname,
-		                 sizeof qname);
-
+		(void) dn_expand((unsigned char *) &ansbuf, eom, cp,
+		                 (char *) qname, sizeof qname);
+ 
 		if ((n = dn_skipname(cp, eom)) < 0)
 		{
 			dkim_error(dkim, "`%s' reply corrupt", qname);
@@ -372,7 +372,7 @@ dkim_get_key_file(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	FILE *f;
 	u_char *p;
 	u_char *p2;
-	char *path;
+	u_char *path;
 	char name[DKIM_MAXHOSTNAMELEN + 1];
 
 	assert(dkim != NULL);
@@ -388,7 +388,7 @@ dkim_get_key_file(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		return DKIM_STAT_KEYFAIL;
 	}
 
-	f = fopen(path, "r");
+	f = fopen((char *) path, "r");
 	if (f == NULL)
 	{
 		dkim_error(dkim, "%s: fopen(): %s", path, strerror(errno));
@@ -405,7 +405,7 @@ dkim_get_key_file(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	}
 
 	memset(buf, '\0', buflen);
-	while (fgets(buf, buflen, f) != NULL)
+	while (fgets((char *) buf, buflen, f) != NULL)
 	{
 		if (buf[0] == '#')
 			continue;
@@ -430,9 +430,9 @@ dkim_get_key_file(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 			}
 		}
 
-		if (strcasecmp(name, buf) == 0 && p2 != NULL)
+		if (strcasecmp((char *) name, (char *) buf) == 0 && p2 != NULL)
 		{
-			strlcpy(buf, p2, buflen);
+			strlcpy((char *) buf, (char *) p2, buflen);
 			fclose(f);
 			return DKIM_STAT_OK;
 		}

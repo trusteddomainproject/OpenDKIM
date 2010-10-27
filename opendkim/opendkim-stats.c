@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-stats.c,v 1.19 2010/10/25 20:20:29 cm-msk Exp $
+**  $Id: opendkim-stats.c,v 1.19.2.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.19 2010/10/25 20:20:29 cm-msk Exp $";
+static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.19.2.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* ! lint */
 
 /* system includes */
@@ -29,6 +29,10 @@ static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.19 2010/10/25 20:
 
 /* macros, definitions */
 #define	MAXLINE		2048
+
+#ifndef MAX
+# define MAX(x,y)	((x) > (y) ? (x) : (y))
+#endif /* ! MAX */
 
 /* globals */
 char *progname;

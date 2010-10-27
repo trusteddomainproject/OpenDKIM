@@ -9,14 +9,16 @@
 #define _DKIM_TYPES_H_
 
 #ifndef lint
-static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.22 2010/10/19 04:08:27 cm-msk Exp $";
+static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.22.2.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 #ifdef USE_TRE
 # ifdef TRE_PRE_080
 #  include <tre/regex.h>
@@ -70,7 +72,7 @@ struct dkim_dstring
 	int			ds_max;
 	int			ds_len;
 	DKIM *			ds_dkim;
-	char *			ds_buf;
+	unsigned char *		ds_buf;
 };
 
 /* struct dkim_header -- an RFC2822 header of some kind */
@@ -263,7 +265,7 @@ struct dkim
 	dkim_alg_t		dkim_signalg;
 	off_t			dkim_bodylen;
 	off_t			dkim_signlen;
-	const char *		dkim_id;
+	const u_char *		dkim_id;
 	u_char *		dkim_domain;
 	u_char *		dkim_user;
 	u_char *		dkim_selector;
@@ -276,7 +278,7 @@ struct dkim
 	u_char *		dkim_error;
 	u_char *		dkim_hdrlist;
 	u_char *		dkim_zdecode;
-	char *			dkim_tmpdir;
+	u_char *		dkim_tmpdir;
 	DKIM_SIGINFO *		dkim_signature;
 	void *			dkim_closure;
 	const void *		dkim_user_context;
@@ -351,7 +353,7 @@ struct dkim_lib
 	void			(*dkiml_dns_callback) (const void *context);
 	void			*dkiml_dns_service;
 	int			(*dkiml_dns_start) (void *srv, int type,
-				                    char *query,
+				                    unsigned char *query,
 				                    unsigned char *buf,
 				                    size_t buflen,
 				                    void **qh);

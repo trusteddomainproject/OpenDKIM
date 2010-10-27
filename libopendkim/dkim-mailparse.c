@@ -6,10 +6,11 @@
 */
 
 #ifndef lint
-static char dkim_mailparse_c_id[] = "@(#)$Id: dkim-mailparse.c,v 1.5 2010/02/25 20:11:46 cm-msk Exp $";
+static char dkim_mailparse_c_id[] = "@(#)$Id: dkim-mailparse.c,v 1.5.34.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system inludes */
+#include <sys/types.h>
 #include <ctype.h>
 #include <string.h>
 #include <limits.h>
@@ -111,8 +112,8 @@ dkim_mail_unescape(char *s)
 **  	everything is balanced.
 */
 
-static char *
-dkim_mail_matching_paren(char *s, char *e, int open_paren, int close_paren)
+static u_char *
+dkim_mail_matching_paren(u_char *s, u_char *e, int open_paren, int close_paren)
 {
 	int 		paren = 1;
 
@@ -150,11 +151,11 @@ dkim_mail_matching_paren(char *s, char *e, int open_paren, int close_paren)
 */
 
 static int
-dkim_mail_first_special(char *p, char *e, char **special_out)
+dkim_mail_first_special(u_char *p, u_char *e, u_char **special_out)
 {
 	size_t		i;
 	cmap_elem_type	is_special[CMAP_NELEMS] = { 0 };
-	char		*at_ptr = NULL;
+	u_char		*at_ptr = NULL;
 
 	/* set up special finder */
 	for (i = 0; SPECIALS[i] != '\0'; i++)
@@ -164,8 +165,7 @@ dkim_mail_first_special(char *p, char *e, char **special_out)
 	{
 		/* skip white space between tokens */
 		while (p < e && (*p == '(' ||
-		                 (isascii((unsigned char) *p) &&
-		                  isspace((unsigned char) *p))))
+		                 (isascii(*p) && isspace(*p))))
 		{
 			if (*p != '(')
 			{
@@ -250,15 +250,15 @@ dkim_mail_first_special(char *p, char *e, char **special_out)
 */
 
 static int
-dkim_mail_token(char *s, char *e, int *type_out, char **start_out,
-                char **end_out, int *uncommented_whitespace)
+dkim_mail_token(u_char *s, u_char *e, int *type_out, u_char **start_out,
+                u_char **end_out, int *uncommented_whitespace)
 {
-	char *p;
+	u_char *p;
 	int err = 0;
 	size_t i;
 	int token_type;
 	cmap_elem_type is_special[CMAP_NELEMS] = { 0 };
-	char *token_start, *token_end;
+	u_char *token_start, *token_end;
 
 	*start_out = NULL;
 	*end_out   = NULL;
@@ -357,21 +357,22 @@ dkim_mail_token(char *s, char *e, int *type_out, char **start_out,
 */
 
 int
-dkim_mail_parse(char *line, char **user_out, char **domain_out)
+dkim_mail_parse(unsigned char *line, unsigned char **user_out,
+                unsigned char **domain_out)
 {
 	int type;
 	int ws;
 	int err;
-	char *e, *special;
-	char *tok_s, *tok_e;
-	char *w;
+	u_char *e, *special;
+	u_char *tok_s, *tok_e;
+	u_char *w;
 
 	*user_out = NULL;
 	*domain_out = NULL;
 
 	err = 0;
 	w = line;
-	e = line + strlen(line);
+	e = line + strlen((char *) line);
 	ws = 0;
 
 	for (;;)
@@ -418,7 +419,6 @@ dkim_mail_parse(char *line, char **user_out, char **domain_out)
 				}
 				line = tok_e;
 			}
-			return 0;
 
 		  case ';':
 		  case ':':
@@ -467,8 +467,6 @@ dkim_mail_parse(char *line, char **user_out, char **domain_out)
 			return 0;
 		}
 	}
-
-	return err;
 }
 
 #ifdef DKIM_MAILPARSE_TEST

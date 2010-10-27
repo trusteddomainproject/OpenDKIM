@@ -9,12 +9,16 @@
 #define _DKIM_CANON_H_
 
 #ifndef lint
-static char dkim_canon_h_id[] = "@(#)$Id: dkim-canon.h,v 1.5 2009/11/17 20:09:21 cm-msk Exp $";
+static char dkim_canon_h_id[] = "@(#)$Id: dkim-canon.h,v 1.5.42.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 
 /* libopendkim includes */
 #include "dkim.h"

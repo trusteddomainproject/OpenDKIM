@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.7 2010/09/07 19:02:28 cm-msk Exp $";
+static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.7.10.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -350,7 +350,7 @@ dkimf_ub_cancel(void *srv, void *q)
 */
 
 static int
-dkimf_ub_query(void *srv, int type, char *query,
+dkimf_ub_query(void *srv, int type, unsigned char *query,
                unsigned char *buf, size_t buflen, void **qh)
 {
 	int status;
@@ -592,7 +592,7 @@ dkimf_ar_cancel(void *srv, void *q)
 */
 
 static int
-dkimf_ar_query(void *srv, int type, char *query,
+dkimf_ar_query(void *srv, int type, unsigned char *query,
                unsigned char *buf, size_t buflen, void **qh)
 {
 	AR_LIB ar;

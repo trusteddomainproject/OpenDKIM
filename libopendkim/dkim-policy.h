@@ -9,12 +9,16 @@
 #define _DKIM_POLICY_H_
 
 #ifndef lint
-static char dkim_policy_h_id[] = "@(#)$Id: dkim-policy.h,v 1.4 2009/07/23 17:40:23 cm-msk Exp $";
+static char dkim_policy_h_id[] = "@(#)$Id: dkim-policy.h,v 1.4.58.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 
 /* libopendkim includes */
 #include "dkim.h"

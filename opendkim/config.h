@@ -4,19 +4,23 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: config.h,v 1.3 2010/02/20 07:29:59 cm-msk Exp $
+**  $Id: config.h,v 1.3.34.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
 #ifndef lint
-static char config_h_id[] = "@(#)$Id: config.h,v 1.3 2010/02/20 07:29:59 cm-msk Exp $";
+static char config_h_id[] = "@(#)$Id: config.h,v 1.3.34.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 #include <stdio.h>
 
 /* types and things */

@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.c,v 1.27 2010/10/25 17:16:00 cm-msk Exp $
+**  $Id: stats.c,v 1.27.2.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #ifndef lint
-static char stats_c_id[] = "@(#)$Id: stats.c,v 1.27 2010/10/25 17:16:00 cm-msk Exp $";
+static char stats_c_id[] = "@(#)$Id: stats.c,v 1.27.2.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -89,7 +89,7 @@ dkimf_stats_init(void)
 */
 
 int
-dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
+dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
                    Header hdrlist, DKIM *dkimv, dkim_policy_t pcode,
                    _Bool fromlist, _Bool anon, u_int rhcnt,
 #ifdef _FFR_STATSEXT
@@ -120,7 +120,7 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 	DKIMF_DB db;
 	struct Header *hdr;
 	FILE *out;
-	char *from;
+	unsigned char *from;
 	char *p;
 #ifdef _FFR_DIFFHEADERS
 	struct dkim_hdrdiff *diffs;
@@ -129,15 +129,15 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 	DKIM_SIGINFO **sigs;
 	struct dkimf_db_data dbd;
 	char tmp[BUFRSZ + 1];
-	char ct[BUFRSZ + 1];
-	char cte[BUFRSZ + 1];
+	unsigned char ct[BUFRSZ + 1];
+	unsigned char cte[BUFRSZ + 1];
 
 	assert(path != NULL);
 	assert(jobid != NULL);
 	assert(name != NULL);
 
-	strlcpy(ct, DEFCT, sizeof ct);
-	strlcpy(cte, DEFCTE, sizeof cte);
+	strlcpy((char *) ct, DEFCT, sizeof ct);
+	strlcpy((char *) cte, DEFCTE, sizeof cte);
 
 	pthread_mutex_lock(&stats_lock);
 
@@ -192,20 +192,21 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 		MD5_Init(&md5);
 		if (prefix != NULL)
 			MD5_Update(&md5, prefix, strlen(prefix));
-		MD5_Update(&md5, from, strlen(from));
+		MD5_Update(&md5, from, strlen((char *) from));
 		MD5_Final(dig, &md5);
 
 		memset(tmp, '\0', sizeof tmp);
 
-		x = tmp;
+		x = (u_char *) tmp;
 		for (c = 0; c < MD5_DIGEST_LENGTH; c++)
 		{
-			snprintf(x, sizeof tmp - 2 * c, "%02x", dig[c]);
+			snprintf((char *) x, sizeof tmp - 2 * c,
+			         "%02x", dig[c]);
 			x += 2;
 		}
 	}
 
-	fprintf(out, "M%s\t%s\t%s", jobid, name, anon ? tmp : from);
+	fprintf(out, "M%s\t%s\t%s", jobid, name, anon ? tmp : (char *) from);
 
 	memset(tmp, '\0', sizeof tmp);
 
@@ -258,10 +259,11 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 
 		memset(tmp, '\0', sizeof tmp);
 
-		x = tmp;
+		x = (u_char *) tmp;
 		for (c = 0; c < MD5_DIGEST_LENGTH; c++)
 		{
-			snprintf(x, sizeof tmp - 2 * c, "%02x", dig[c]);
+			snprintf((char *) x, sizeof tmp - 2 * c,
+			         "%02x", dig[c]);
 			x += 2;
 		}
 
@@ -308,7 +310,8 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 
 	for (c = 0; c < nsigs; c++)
 	{
-		if (strcasecmp(dkim_sig_getdomain(sigs[c]), from) == 0 &&
+		if (strcasecmp((char *) dkim_sig_getdomain(sigs[c]),
+		               (char *) from) == 0 &&
 		    dkim_sig_geterror(sigs[c]) == DKIM_SIGERROR_OK)
 		{
 			validauthorsig = TRUE;
@@ -336,8 +339,8 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 						break;
 				}
 
-				strlcpy(ct, p, sizeof ct);
-				p = strchr(ct, ';');
+				strlcpy((char *) ct, p, sizeof ct);
+				p = strchr((char *) ct, ';');
 				if (p != NULL)
 					*p = '\0';
 				dkimf_trimspaces(ct);
@@ -355,8 +358,9 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 						break;
 				}
 
-				strlcpy(cte, hdr->hdr_val, sizeof cte);
-				p = strchr(cte, ';');
+				strlcpy((char *) cte, hdr->hdr_val,
+				        sizeof cte);
+				p = strchr((char *) cte, ';');
 				if (p != NULL)
 					*p = '\0';
 				dkimf_trimspaces(cte);
@@ -374,7 +378,7 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 	{
 		fprintf(out, "S");
 
-		p = dkim_sig_getdomain(sigs[c]);
+		p = (char *) dkim_sig_getdomain(sigs[c]);
 
 		if (anon)
 		{
@@ -391,11 +395,11 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 
 			memset(tmp, '\0', sizeof tmp);
 
-			x = tmp;
+			x = (u_char *) tmp;
 			for (n = 0; n < MD5_DIGEST_LENGTH; n++)
 			{
-				snprintf(x, sizeof tmp - 2 * n, "%02x",
-				         dig[n]);
+				snprintf((char *) x, sizeof tmp - 2 * n,
+				         "%02x", dig[n]);
 				x += 2;
 			}
 
@@ -427,18 +431,23 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 		                            &canonlen, &signlen);
 		fprintf(out, "\t%ld", (long) signlen);
 
-		p = dkim_sig_gettagvalue(sigs[c], TRUE, "t");
+		p = (char *) dkim_sig_gettagvalue(sigs[c], TRUE,
+		                                  (u_char *) "t");
 		fprintf(out, "\t%d", p != NULL);
 		
-		p = dkim_sig_gettagvalue(sigs[c], TRUE, "g");
+		p = (char *) dkim_sig_gettagvalue(sigs[c], TRUE,
+		                                  (u_char *) "g");
 		fprintf(out, "\t%d", p != NULL);
 		fprintf(out, "\t%d", p != NULL && *p != '\0' && *p != '*');
 
 		err = dkim_sig_geterror(sigs[c]);
 
 		/* DK-compatible keys */
-		if (dkim_sig_gettagvalue(sigs[c], TRUE, "v") == NULL &&
-		    ((p = dkim_sig_gettagvalue(sigs[c], TRUE, "g")) != NULL &&
+		if (dkim_sig_gettagvalue(sigs[c], TRUE,
+		                         (u_char *) "v") == NULL &&
+		    ((p = (char *) dkim_sig_gettagvalue(sigs[c],
+		                                        TRUE,
+		                                        (u_char *) "g")) != NULL &&
 		     *p == '\0'))
 			fprintf(out, "\t1");
 		else
@@ -447,18 +456,22 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 		/* syntax error codes */
 		fprintf(out, "\t%d", err);
 
-		p = dkim_sig_gettagvalue(sigs[c], FALSE, "t");
+		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
+		                                  (u_char *) "t");
 		fprintf(out, "\t%d", p != NULL);
 
-		p = dkim_sig_gettagvalue(sigs[c], FALSE, "x");
+		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
+		                                  (u_char *) "x");
 		fprintf(out, "\t%d", p != NULL);
 
-		p = dkim_sig_gettagvalue(sigs[c], FALSE, "z");
+		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
+		                                  (u_char *) "z");
 		fprintf(out, "\t%d", p != NULL);
 
 		fprintf(out, "\t%d", dkim_sig_getdnssec(sigs[c]));
 
-		p = dkim_sig_gettagvalue(sigs[c], FALSE, "h");
+		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
+		                                  (u_char *) "h");
 		if (p == NULL)
 		{
 			fprintf(out, "\t-");
@@ -546,7 +559,8 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 		**  3 -- "i=" has some other local-part
 		*/
 
-		p = dkim_sig_gettagvalue(sigs[c], FALSE, "i");
+		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
+		                                  (u_char *) "i");
 		if (p == NULL)
 		{
 			fprintf(out, "\t0\t0");
@@ -560,7 +574,7 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 			at = strchr(p, '@');
 			if (at != NULL)
 			{
-				if (strcasecmp(from, at + 1) == 0)
+				if (strcasecmp((char *) from, at + 1) == 0)
 					domain = 1;
 				else
 					domain = 2;
@@ -573,15 +587,16 @@ dkimf_stats_record(char *path, char *jobid, char *name, char *prefix,
 				{
 					size_t ulen;
 					size_t llen;
-					char *local;
+					unsigned char *local;
 
 					local = dkim_getuser(dkimv);
-					llen = strlen(local);
+					llen = strlen((char *) local);
 
 					ulen = at - p;
 
 					if (llen == ulen &&
-					    strncmp(local, p, ulen) == 0)
+					    strncmp((char *) local,
+					            p, ulen) == 0)
 						user = 2;
 					else
 						user = 3;

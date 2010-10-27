@@ -4,16 +4,21 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-ar.c,v 1.5 2009/10/07 18:06:17 cm-msk Exp $
+**  $Id: opendkim-ar.c,v 1.5.58.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_ar_c_id[] = "@(#)$Id: opendkim-ar.c,v 1.5 2009/10/07 18:06:17 cm-msk Exp $";
+static char opendkim_ar_c_id[] = "@(#)$Id: opendkim-ar.c,v 1.5.58.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
 #include <sys/param.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 #include <ctype.h>
 #include <assert.h>
 #include <string.h>
@@ -102,9 +107,9 @@ static int
 ares_tokenize(u_char *input, u_char *outbuf, size_t outbuflen,
               u_char **tokens, int ntokens)
 {
-	bool quoted = FALSE;
-	bool escaped = FALSE;
-	bool intok = FALSE;
+	_Bool quoted = FALSE;
+	_Bool escaped = FALSE;
+	_Bool intok = FALSE;
 	int n = 0;
 	int parens = 0;
 	u_char *p;
@@ -376,7 +381,7 @@ ares_xconvert(struct lookup *table, int code)
 int
 ares_parse(u_char *hdr, struct authres *ar)
 {
-	bool quoted;
+	_Bool quoted;
 	int n;
 	int ntoks;
 	int c;

@@ -6,8 +6,10 @@
 */
 
 #ifndef lint
-static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.13 2010/09/13 05:33:13 cm-msk Exp $";
+static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.13.10.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/param.h>
@@ -15,7 +17,9 @@ static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.13 2010/09/13 05:33
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <arpa/nameser.h>
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 #include <netdb.h>
 #include <resolv.h>
 #include <string.h>
@@ -23,8 +27,6 @@ static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.13 2010/09/13 05:33
 #include <errno.h>
 #include <assert.h>
 #include <ctype.h>
-
-#include "build-config.h"
 
 /* libopendkim includes */
 #include "dkim-internal.h"
@@ -74,7 +76,7 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 {
 	_Bool found;
 	int n;
-	char *path;
+	u_char *path;
 	unsigned char *p;
 	FILE *f;
 	unsigned char inbuf[BUFRSZ + 1];
@@ -86,7 +88,7 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 
 	path = dkim->dkim_libhandle->dkiml_queryinfo;
 
-	f = fopen(path, "r");
+	f = fopen((char *) path, "r");
 	if (f == NULL)
 	{
 		dkim_error(dkim, "%s: fopen(): %s", path,
@@ -94,12 +96,12 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 		return -1;
 	}
 
-	n = strlen(query);
+	n = strlen((char *) query);
 
 	memset(inbuf, '\0', sizeof inbuf);
 
 	found = FALSE;
-	while (!found && fgets(inbuf, sizeof inbuf - 1, f) != NULL)
+	while (!found && fgets((char *) inbuf, sizeof inbuf - 1, f) != NULL)
 	{
 		for (p = inbuf; *p != '\0'; p++)
 		{
@@ -111,7 +113,7 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 		}
 
 		/* is this a match? */
-		if (strncasecmp(inbuf, query, n) == 0 &&
+		if (strncasecmp((char *) inbuf, (char *) query, n) == 0 &&
 		    isascii(inbuf[n]) && isspace(inbuf[n]))
 		{
 			found = TRUE;
@@ -122,7 +124,7 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 			     p++)
 				continue;
 
-			strlcpy(buf, p, buflen);
+			strlcpy((char *) buf, (char *) p, buflen);
 
 			*qstatus = NOERROR;
 
@@ -494,7 +496,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	{
 		/* copy it first */
 		(void) dn_expand((unsigned char *) &ansbuf, eom, cp,
-		                 namebuf, sizeof namebuf);
+		                 (char *) namebuf, sizeof namebuf);
 
 		if ((n = dn_skipname(cp, eom)) < 0)
 		{
@@ -644,7 +646,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	}
 #endif /* QUERY_CACHE */
 
-	strlcpy(buf, outbuf, buflen);
+	strlcpy((char *) buf, (char *) outbuf, buflen);
 
 	return 1;
 }

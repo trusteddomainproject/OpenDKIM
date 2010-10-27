@@ -6,15 +6,19 @@
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.12 2010/08/30 22:01:56 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.12.10.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <arpa/nameser.h>
 #include <netinet/in.h>
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 #include <ctype.h>
 #include <assert.h>
 #include <string.h>

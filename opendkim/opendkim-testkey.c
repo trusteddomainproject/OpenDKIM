@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-testkey.c,v 1.10 2010/09/21 17:43:11 cm-msk Exp $
+**  $Id: opendkim-testkey.c,v 1.10.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10 2010/09/21 17:43:11 cm-msk Exp $";
+static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10.10.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
 
 /* for Solaris */
@@ -408,7 +408,7 @@ main(int argc, char **argv)
 			else if (status == 1)
 			{
 				(void) dkimf_db_close(db);
-				return 0;
+				break;
 			}
 
 			if (verbose > 1)

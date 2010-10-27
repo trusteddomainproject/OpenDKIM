@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.16 2010/08/29 00:21:47 grooverdan Exp $";
+static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.16.10.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -148,7 +148,7 @@ dkim_test_dns_get(DKIM *dkim, u_char *buf, size_t buflen)
 	end = answer + sizeof answer;
 
 	/* repeat the question */
-	n = dn_comp(td->dns_query, cp, end - cp, NULL, NULL);
+	n = dn_comp((char *) td->dns_query, cp, end - cp, NULL, NULL);
 	if (n < 0)
 	{
 		DKIM_FREE(dkim, td);
@@ -175,7 +175,7 @@ dkim_test_dns_get(DKIM *dkim, u_char *buf, size_t buflen)
 	}
 
 	/* the answer starts out the same way */
-	n = dn_comp(td->dns_query, cp, end - cp, NULL, NULL);
+	n = dn_comp((char *) td->dns_query, cp, end - cp, NULL, NULL);
 	if (n < 0)
 	{
 		DKIM_FREE(dkim, td);
@@ -199,7 +199,7 @@ dkim_test_dns_get(DKIM *dkim, u_char *buf, size_t buflen)
 	{
 	  case T_TXT:
 		/* figure out how many bytes we need total */
-		n = strlen(td->dns_reply);
+		n = strlen((char *) td->dns_reply);
 		len = n + n / 255 + 1;
 		if (end - cp < len + sizeof(uint16_t))
 		{
@@ -231,7 +231,7 @@ dkim_test_dns_get(DKIM *dkim, u_char *buf, size_t buflen)
 			return -1;
 		}
 		PUTSHORT(td->dns_prec, cp);
-		n = dn_comp(td->dns_reply, cp, end - cp, NULL, NULL);
+		n = dn_comp((char *) td->dns_reply, cp, end - cp, NULL, NULL);
 		if (n < 0)
 		{
 			DKIM_FREE(dkim, td);
@@ -290,7 +290,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 	assert(selector != NULL);
 	assert(domain != NULL);
 
-	dkim = dkim_verify(lib, "test", NULL, &stat);
+	dkim = dkim_verify(lib, (u_char *) "test", NULL, &stat);
 	if (dkim == NULL)
 	{
 		if (err != NULL)
@@ -301,8 +301,8 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 	snprintf(buf, sizeof buf, "v=1; d=%s; s=%s; h=x; b=x; a=x",
 	         domain, selector);
 
-	stat = dkim_process_set(dkim, DKIM_SETTYPE_SIGNATURE, buf, strlen(buf),
-	                        NULL, FALSE);
+	stat = dkim_process_set(dkim, DKIM_SETTYPE_SIGNATURE, (u_char *) buf,
+	                        strlen(buf), NULL, FALSE);
 	if (stat != DKIM_STAT_OK)
 	{
 		strlcpy(err, "syntax error on input", errlen);
@@ -321,7 +321,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 
 	sig = dkim->dkim_siglist[0];
 
-	dkim->dkim_user = dkim_strdup(dkim, "nobody", 0);
+	dkim->dkim_user = dkim_strdup(dkim, (u_char *) "nobody", 0);
 	if (dkim->dkim_user == NULL)
 	{
 		(void) dkim_free(dkim);
@@ -487,7 +487,7 @@ dkim_test_adsp(DKIM_LIB *lib, const char *domain, dkim_policy_t *presult,
 	assert(presult != NULL);
 	assert(presult2 != NULL);
 
-	dkim = dkim_verify(lib, "test", NULL, &stat);
+	dkim = dkim_verify(lib, (u_char *) "test", NULL, &stat);
 	if (dkim == NULL)
 	{
 		if (err != NULL)
@@ -496,7 +496,7 @@ dkim_test_adsp(DKIM_LIB *lib, const char *domain, dkim_policy_t *presult,
 	}
 
 	dkim->dkim_mode = DKIM_MODE_VERIFY;
-	dkim->dkim_domain = (char *) domain;
+	dkim->dkim_domain = (u_char *) domain;
 	dkim->dkim_sigcount = 0;
 
 	stat = dkim_policy(dkim, &pcode, NULL);
