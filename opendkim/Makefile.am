@@ -1,6 +1,6 @@
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: Makefile.am,v 1.82 2010/10/25 17:13:17 cm-msk Exp $
+# $Id: Makefile.am,v 1.82.2.1 2010/10/28 04:32:07 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -83,7 +83,7 @@ opendkim_testkey_CC = $(PTHREAD_CC)
 opendkim_testkey_CFLAGS += $(PTHREAD_CFLAGS)
 endif
 if LUA
-opendkim_testkey_CPPFLAGS += $(LIBLUA_INCDIRS)
+opendkim_testkey_CPPFLAGS += $(LIBLUA_INCDIRS) $(LIBMILTER_INCDIRS)
 opendkim_testkey_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_testkey_LDADD += $(LIBLUA_LIBS)
 endif
@@ -100,6 +100,9 @@ endif
 if USE_LDAP
 opendkim_testkey_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
 opendkim_testkey_LDADD += $(OPENLDAP_LIBS)
+endif
+if USE_SASL
+opendkim_testkey_CPPFLAGS += $(SASL_CPPFLAGS)
 endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
@@ -135,7 +138,7 @@ opendkim_genzone_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
 opendkim_genzone_LDADD += $(OPENLDAP_LIBS)
 endif
 if LUA
-opendkim_genzone_CPPFLAGS += $(LIBLUA_INCDIRS)
+opendkim_genzone_CPPFLAGS += $(LIBLUA_INCDIRS) $(LIBMILTER_INCDIRS)
 opendkim_genzone_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_genzone_LDADD += $(LIBLUA_LIBS)
 endif
