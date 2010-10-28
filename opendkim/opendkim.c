@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.229 2010/10/25 20:40:14 cm-msk Exp $
+**  $Id: opendkim.c,v 1.230 2010/10/28 06:10:07 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.229 2010/10/25 20:40:14 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -12107,8 +12107,10 @@ mlfi_eom(SMFICTX *ctx)
 	    	if (dkimf_findheader(dfc, VBR_INFOHEADER, 0) != NULL)
 		{
 			_Bool add_vbr_header = FALSE;
-			VBR_STAT vbr_status;
+			_Bool vbr_validsig = FALSE;
+			VBR_STAT vbr_status = VBR_STAT_OK;
 			int c;
+			int nsigs;
 			char *vbr_result;
 			char *vbr_domain;
 			char *vbr_certifier;
@@ -12119,6 +12121,7 @@ mlfi_eom(SMFICTX *ctx)
 			char *eq;
 			u_char *param;
 			u_char *value;
+			DKIM_SIGINFO **sigs;
 			Header vbr_header;
 			char tmp[DKIM_MAXHEADER + 1];
 
@@ -12130,7 +12133,7 @@ mlfi_eom(SMFICTX *ctx)
 				if (vbr_header == NULL)
 					break;
 
-				vbr_result = NULL;
+				vbr_result = "none";
 				vbr_domain = NULL;
 				vbr_certifier = NULL;
 				vbr_vouchers = NULL;
@@ -12181,15 +12184,42 @@ mlfi_eom(SMFICTX *ctx)
 					}
 				}
 			
-				/* use accessors to set parsed values */
-				vbr_setcert(dfc->mctx_vbr, vbr_vouchers);
-				vbr_settype(dfc->mctx_vbr, vbr_type);
-				vbr_setdomain(dfc->mctx_vbr, vbr_domain);
+				/* confirm a valid signature was there */
+				if (dfc->mctx_dkimv != NULL &&
+				    dkim_getsiglist(dfc->mctx_dkimv,
+				                    &sigs,
+				                    &nsigs) == DKIM_STAT_OK)
+				{
+					u_char *d;
+
+					for (c = 0; c < nsigs; c++)
+					{
+						d = dkim_sig_getdomain(sigs[c]);
+						if (strcasecmp((char *) d,
+						               vbr_domain) == 0 &&
+						    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0)
+						{
+							vbr_validsig = TRUE;
+							break;
+						}
+					}
+				}
+				
+				if (vbr_validsig)
+				{
+					/* use accessors to set parsed values */
+					vbr_setcert(dfc->mctx_vbr,
+					            vbr_vouchers);
+					vbr_settype(dfc->mctx_vbr, vbr_type);
+					vbr_setdomain(dfc->mctx_vbr,
+					              vbr_domain);
 		
-				/* attempt the query */
-				vbr_status = vbr_query(dfc->mctx_vbr,
-				                       &vbr_result,
-				                       &vbr_certifier);
+					/* attempt the query */
+					vbr_status = vbr_query(dfc->mctx_vbr,
+					                       &vbr_result,
+					                       &vbr_certifier);
+				}
+
 				switch (vbr_status)
 				{
 				  case VBR_STAT_DNSERROR:
@@ -12205,7 +12235,10 @@ mlfi_eom(SMFICTX *ctx)
 						       err == NULL ? "" : ": ",
 						       err == NULL ? "" : err);
 					}
-					vbr_result = "neutral";
+
+					add_vbr_header = TRUE;
+
+					vbr_result = "temperror";
 					break;
 
 				  case VBR_STAT_INVALID:
@@ -12222,10 +12255,17 @@ mlfi_eom(SMFICTX *ctx)
 						       err == NULL ? "" : ": ",
 						       err == NULL ? "" : err);
 					}
-					vbr_result = "neutral";
+
+					add_vbr_header = TRUE;
+
+					if (vbr_status == VBR_STAT_INVALID)
+						vbr_result = "temperror";
+					else
+						vbr_result = "permerror";
+
 					break;
 
-				  case DKIM_STAT_OK:
+				  case VBR_STAT_OK:
 					add_vbr_header = TRUE;
 					break;
 
