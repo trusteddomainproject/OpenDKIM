@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim.c,v 1.229.2.1 2010/10/27 21:43:09 cm-msk Exp $
+**  $Id: opendkim.c,v 1.229.2.2 2010/10/28 04:28:04 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.229.2.1 2010/10/27 21:43:09 cm-msk Exp $";
+static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.229.2.2 2010/10/28 04:28:04 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -1079,7 +1079,7 @@ dkimf_xs_fromdomain(lua_State *l)
 	{
 		cc = (struct connctx *) dkimf_getpriv(ctx);
 		dfc = cc->cctx_msg;
-		lua_pushstring(l, dfc->mctx_domain);
+		lua_pushstring(l, (char *) dfc->mctx_domain);
 	}
 
 	return 1;
@@ -2370,7 +2370,7 @@ dkimf_xs_getsigdomain(lua_State *l)
 	if (sig == NULL)
 		lua_pushlightuserdata(l, NULL);
 	else
-		lua_pushstring(l, dkim_sig_getdomain(sig));
+		lua_pushstring(l, (char *) dkim_sig_getdomain(sig));
 
 	return 1;
 }
@@ -2431,7 +2431,7 @@ dkimf_xs_getsigidentity(lua_State *l)
 {
 	DKIM_STAT status;
 	DKIM_SIGINFO *sig;
-	char addr[MAXADDRESS + 1];
+	u_char addr[MAXADDRESS + 1];
 
 	assert(l != NULL);
 
@@ -2462,7 +2462,7 @@ dkimf_xs_getsigidentity(lua_State *l)
 	if (status != DKIM_STAT_OK)
 		lua_pushnil(l);
 	else
-		lua_pushstring(l, addr);
+		lua_pushstring(l, (char *) addr);
 
 	return 1;
 }
