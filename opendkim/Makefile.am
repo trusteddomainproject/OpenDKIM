@@ -1,6 +1,6 @@
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: Makefile.am,v 1.82 2010/10/25 17:13:17 cm-msk Exp $
+# $Id: Makefile.am,v 1.83 2010/10/28 02:27:12 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -100,6 +100,9 @@ endif
 if USE_LDAP
 opendkim_testkey_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
 opendkim_testkey_LDADD += $(OPENLDAP_LIBS)
+endif
+if USE_SASL
+opendkim_testkey_CPPFLAGS += $(SASL_CPPFLAGS)
 endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
