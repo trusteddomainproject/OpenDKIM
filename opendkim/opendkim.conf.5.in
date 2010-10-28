@@ -372,7 +372,7 @@ setting in the configuration file.  The data set named here maps each key
 name to three values: (a) the name of the domain to use in the signature's
 "d=" value; (b) the name of the selector to use in the signature's "s=" value;
 and (c) either a private key or a path to a file containing a private key.
-If the second value consists solely of a percent sign ("%") character,
+If the first value consists solely of a percent sign ("%") character,
 it will be replaced by the apparent domain of the sender when generating
 a signature.
 If the third value starts with a slash ("/") character, or "./" or "../",
