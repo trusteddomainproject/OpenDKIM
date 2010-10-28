@@ -1,6 +1,6 @@
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: Makefile.am,v 1.83 2010/10/28 02:27:12 cm-msk Exp $
+# $Id: Makefile.am,v 1.84 2010/10/28 03:36:07 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -138,7 +138,7 @@ opendkim_genzone_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
 opendkim_genzone_LDADD += $(OPENLDAP_LIBS)
 endif
 if LUA
-opendkim_genzone_CPPFLAGS += $(LIBLUA_INCDIRS)
+opendkim_genzone_CPPFLAGS += $(LIBLUA_INCDIRS) $(LIBMILTER_INCDIRS)
 opendkim_genzone_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_genzone_LDADD += $(LIBLUA_LIBS)
 endif
