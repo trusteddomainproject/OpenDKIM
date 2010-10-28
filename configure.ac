@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.184 2010/10/28 02:15:34 cm-msk Exp $
+# $Id: configure.ac,v 1.185 2010/10/28 04:35:44 cm-msk Exp $
 
 #
 # Setup
@@ -901,6 +901,7 @@ fi
 
 if test x"$luapath" != x"yes" -a x"$luapath" != x"auto" -a x"$luapath" != x"no"
 then
+	AC_MSG_CHECKING([for Lua])
 	if test -f $luapath/include/lua51/lua.h
 	then
 		AC_MSG_RESULT($luapath)
