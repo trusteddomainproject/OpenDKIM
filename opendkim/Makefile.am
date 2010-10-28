@@ -1,6 +1,6 @@
 # Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: Makefile.am,v 1.84 2010/10/28 03:36:07 cm-msk Exp $
+# $Id: Makefile.am,v 1.85 2010/10/28 04:12:55 cm-msk Exp $
 
 if DEBUG
 AM_CFLAGS = -g
@@ -83,7 +83,7 @@ opendkim_testkey_CC = $(PTHREAD_CC)
 opendkim_testkey_CFLAGS += $(PTHREAD_CFLAGS)
 endif
 if LUA
-opendkim_testkey_CPPFLAGS += $(LIBLUA_INCDIRS)
+opendkim_testkey_CPPFLAGS += $(LIBLUA_INCDIRS) $(LIBMILTER_INCDIRS)
 opendkim_testkey_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_testkey_LDADD += $(LIBLUA_LIBS)
 endif
