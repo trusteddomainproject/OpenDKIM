@@ -70,7 +70,7 @@ with all unit tests still running.
 
 6) Stick to the coding style (braces, tabs, comments, etc.).  The code
 should look like it came from a coherent team; I shouldn't be able to tell
-where you patched something I wrote without using "cvs annotate".
+where you patched something I wrote without using "git blame".
 
 7) Anything you change should be documented in the RELEASE_NOTES file,
 following its current format.  You don't need to document fixed typos or
@@ -86,7 +86,7 @@ the trunk after passing a review.
 
 9) git commits on non-sandbox branches should describe what changed in enough
 detail to indicate to one of us why the change was made.  We can see what
-changed using "cvs diff", so the "why" is important here.  If you had
+changed using "git diff", so the "why" is important here.  If you had
 any review done of your work, name the person(s) that did the review in
 your commit comment.
 
@@ -112,7 +112,7 @@ Sandbox branching procedure:
 
 3) Check in the BRANCHES file "git commit -m 'add branch XXX'"
 
-4) "cvs tag base-<yourname>-<branchname>" (e.g. "git tag base-dblack-async-dns")
+4) "git tag base-<yourname>-<branchname>" (e.g. "git tag base-dblack-async-dns")
 to lay down a reference tag, so that later you can produce a final diff of
 your work relative to the branch point
 
