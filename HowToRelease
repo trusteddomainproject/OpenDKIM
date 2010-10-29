@@ -13,7 +13,7 @@ Release procedures for OpenDKIM
    This will produce an opendkim-(version).tar.gz tarball.
 
 3) Commit changes made to RELEASE_NOTES and potentially libopendkim/dkim.h
-   to CVS.
+   to the SourceForge git repository.
 
 4) Check that everything looks correct.
 
