@@ -106,6 +106,8 @@ lists are:
 	opendkim-dev		Chatter among OpenDKIM developers.
 
 	opendkim-cvs		Automated source code change announcements.
+				May be renamed soon to something more general
+				since we're moving away from CVS.
 
 Bug tracking is done via the trackers on SourceForge at
 http://sourceforge.net/projects/opendkim.  You can enter new bug
