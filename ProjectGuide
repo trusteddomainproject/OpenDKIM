@@ -28,13 +28,13 @@ external dependencies may be created.
 
 PATCH RELEASES: Patch releases (those for which only "z" increases) contain
 fixes to existing code only, and never contain new features or remove existing
-ones.  A patch release is typically scheduled for two weeks after an important
-bug is reported, and any other bugs that occur during that window are generally
-included in that release.  However, a patch release is never scheduled when
-doing so would collide with some other pending release.  Beta periods are
-generally not required, though developers should plan to add unit tests to
-fixes where possible.  Backward compatibility must be preserved in patch
-releases except where doing so is simply impossible.
+ones.  A patch release is typically scheduled for two or three weeks after an
+important bug is reported, and any other bugs that occur during that window
+are generally included in that release.  However, a patch release is never
+scheduled when doing so would collide with some other pending release.  Beta
+periods are generally not required, though developers should plan to add unit
+tests to fixes where possible.  Backward compatibility must be preserved in
+patch releases except where doing so is simply impossible.
 
 NOTES:
 - changes to anything in the "contrib" directory may appear in any release as
