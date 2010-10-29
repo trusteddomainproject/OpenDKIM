@@ -84,7 +84,7 @@ and do your experimenting there.  Commits to sandbox branches don't need
 to be reviewed by anyone.  Sandboxes only get merged to release branches or
 the trunk after passing a review.
 
-9) CVS commits on non-sandbox branches should describe what changed in enough
+9) git commits on non-sandbox branches should describe what changed in enough
 detail to indicate to one of us why the change was made.  We can see what
 changed using "cvs diff", so the "why" is important here.  If you had
 any review done of your work, name the person(s) that did the review in
@@ -106,20 +106,20 @@ than one bug tracking system in use, but let's stick with it for now.
 
 Sandbox branching procedure:
 
-1) Update your code to the point in CVS at which you want to branch
+1) Update your code to the point in git at which you want to branch
 
-2) update the BRANCHES file to contain your branch
+2) Update the BRANCHES file to contain your branch
 
-3) Check in the BRANCHES file "cvs commit -m 'add branch XXX'"
+3) Check in the BRANCHES file "git commit -m 'add branch XXX'"
 
-4) "cvs tag base-<yourname>-<branchname>" (e.g. "cvs tag base-dblack-async-dns")
+4) "cvs tag base-<yourname>-<branchname>" (e.g. "git tag base-dblack-async-dns")
 to lay down a reference tag, so that later you can produce a final diff of
 your work relative to the branch point
 
-5) "cvs tag -b br-<yourname>-<branchname>" to create the branch
+5) "git branch br-<yourname>-<branchname>" to create the branch
 
 6) Update your copy so it refers to the branch
-(e.g. "cvs update -r br-<yourname>-<branchname>").
+(e.g. "git checkout br-<yourname>-<branchname>").
 
 7) Code away!
 
