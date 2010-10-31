@@ -43,62 +43,113 @@ NOTES:
 
 OpenDKIM Source Code Management Policies
 
-1) Anything major (all new features, all new dependencies, any large
-rewrites or changes to algorithms, all package rearrangements, etc.) should
-get reviewed before going onto the trunk, and must get reviewed and run in
-the real world for a while before it gets released.  You can post the
-proposed diffs, or just describe the work you're doing, on the opendkim-dev
-list before actually starting commits.
+1) The source code management system in use is "git".  There following
+branch structure is also in use:
 
-2) Simple bug fixes to existing code can go in without being reviewed, but
-review is still encouraged.  All developers are encouraged to keep an eye
-on what's going through the opendkim-cvs list for possible mistakes or other
-spontaneous review.
+o Branch "master" always exists, and is the one to which all work is merged
+  prior to doing a release.  Only people doing the actual work of preparing
+  releases should make any changes to this branch.  All releases must also
+  be tagged from a point on this branch with a name like "rel-opendkim-x-y-z"
+  (consistent with the old CVS tag naming scheme).
 
-3) If you have questions about someone's design or choice of how to fix
+o Branch "develop" always exists, and is the one on which general development
+  work takes place.  It is open to all committers.  In general, this branch
+  has the following rules:
+
+	- beta releases are made from this branch
+	- bug fixes not requiring major code work can be done directly here
+	- features ready for production use are merged to this branch from
+	  their specific development branches for automated testing and beta
+	  cycles
+	- development of new features is NOT done here
+	- major bug fixes are NOT done here
+
+o A release branch is only necessary when there are two active release lines
+  in existence (e.g., when 2.0.x releases are still occurring while 2.1.0
+  development is in progress).  In this case, "develop" represents the
+  development of the new version while a release branch would sustain the
+  older release line(s) until they are no longer needed.  This means bug fixes
+  merged to a release branch must also be merged to "develop".  Release
+  branches are named after the major and minor versions they cover, e.g.
+  "release-2-0" for all 2.0.x releases.  The procedure for this branch is
+  the same as "develop" in that it is the destination for merges that should
+  go into releases represented by that branch.  These branches should be
+  uncommon.
+
+o Bug fixes requiring more than trivial code changes must be done on a new
+  branch whose name starts with "bug-" and is followed by the identity of the
+  branch holder, another hyphen, and then some description of the work being
+  done there; e.g. "bug-msk-sf1234567" (identifying a bug number) or
+  "bug-msk-startup-crash" (short description).  These are expected to be
+  reviewed by at least one other person before being merged back to "develop".
+
+o Feature requests must be done on a new branch following a similar naming
+  scheme except using a prefix of "feature-"; e.g. "feature-msk-dnssec" or
+  "feature-msk-sf234567".  These are also expected to get at least one
+  reviewer before being merged back to "develop".
+
+o Experimental work branches are prefixed with "exp-" and otherwise follow
+  the same naming convention.  It is expected these branches will evolve into
+  feature request or bug fix branches, or be abandoned.  That transition does
+  not require any review.
+
+2) A patch releases does not require a beta period.  They are, however,
+encouraged to be conducted, at least privately, and not last less than one
+week.  A minor or major release requires a beta period of not less than a
+month, and there should be very little change activity within the final week
+of the beta period; if the last week contains several changes, the beta
+should be extended.
+
+3) Active discussion of any non-trivial work being done on the opendkim-dev
+list is encouraged.
+
+4) All developers are encouraged to keep an eye on what's going through the
+opendkim-cvs list for possible mistakes or other spontaneous review.
+
+5) If you have questions about someone's design or choice of how to fix
 something, and especially if you have an idea about a more solid approach,
 feel free to bring it up on opendkim-dev.  We're a community of experienced
 people, so peer review is important and encouraged.
 
-4) Nothing, even small things, should go in to any release branch or the
-trunk without being build-tested and run someplace first.
+6) Nothing, even small things, should go in to any release branch or the
+develop branch without being build-tested and run someplace first.
 
-5) When making changes or improvements to libopendkim, write a unit test and
+7) When making changes or improvements to libopendkim, write a unit test and
 add it to the system to cover your work.  You can copy one of the existing
 ones and modify it accordingly.  Any changes to libopendkim have to leave it
 with all unit tests still running.
 
-6) Stick to the coding style (braces, tabs, comments, etc.).  The code
+8) Stick to the coding style (braces, tabs, comments, etc.).  The code
 should look like it came from a coherent team; I shouldn't be able to tell
 where you patched something I wrote without using "git blame".
 
-7) Anything you change should be documented in the RELEASE_NOTES file,
+9) Anything you change should be documented in the RELEASE_NOTES file,
 following its current format.  You don't need to document fixed typos or
 truly trivial things of that nature, but just about everything else should
 be mentioned.  Remember to give credit where credit is due, though we
 generally don't attribute credit to people who are part of the project
 itself unless it's really a major contribution.
 
-8) If you want a development sandbox, create a branch first (see below)
+10) If you want a development sandbox, create a branch first (see below)
 and do your experimenting there.  Commits to sandbox branches don't need
 to be reviewed by anyone.  Sandboxes only get merged to release branches or
 the trunk after passing a review.
 
-9) git commits on non-sandbox branches should describe what changed in enough
+11) git commits on non-sandbox branches should describe what changed in enough
 detail to indicate to one of us why the change was made.  We can see what
 changed using "git diff", so the "why" is important here.  If you had
 any review done of your work, name the person(s) that did the review in
 your commit comment.
 
-10) Nothing should cause compile-time warnings unless there's a really good
+12) Nothing should cause compile-time warnings unless there's a really good
 reason not to clean them up.  If that's the case, explain why the warnings
 should be tolerated in your commit comment.
 
-11) Start your commit comment with "MFC:" (move from current) if the diff is
+13) Start your commit comment with "MFC:" (move from current) if the diff is
 a copy from the trunk, or with "MFB:" (move from branch) if it's a copy to
 the trunk, and name the other branch involved.
 
-12) Where a commit references an open bug or feature request, specify such
+14) Where a commit references an open bug or feature request, specify such
 (e.g. "Fix bug #SF1234567" or "Feature request #SF2345678") as well as some
 descriptive text such as the problem being solved or the feature being
 added.  The "SF" prefix is legacy from the times when there was more
@@ -112,35 +163,39 @@ Sandbox branching procedure:
 
 3) Check in the BRANCHES file "git commit -m 'add branch XXX'"
 
-4) "git tag base-<yourname>-<branchname>" (e.g. "git tag base-dblack-async-dns")
-to lay down a reference tag, so that later you can produce a final diff of
-your work relative to the branch point
+4) "git tag base-exp-<yourname>-<branchname>" (e.g. "git tag
+base-exp-dblack-async-dns") to lay down a reference tag, so that later you
+can produce a final diff of your work relative to the branch point.
 
-5) "git branch br-<yourname>-<branchname>" to create the branch
+5) "git branch exp-<yourname>-<branchname>" to create the branch
 
 6) Update your copy so it refers to the branch
-(e.g. "git checkout br-<yourname>-<branchname>").
+(e.g. "git checkout exp-<yourname>-<branchname>").
 
 7) Code away!
 
+The same procedure applies for other types of branches.
+
 Production branch notes:
 
-1) All branches should belong to a person (i.e. be named, like "br-msk-...")
+1) All branches should belong to a person (i.e. be named, like "bug-msk-...")
 unless they are release branches, in which case they are named after that code
-fork (e.g. "br-1-1" is for 1.1.x releases).  No branches or tags should ever
-be deleted.
+fork (e.g. "release-1-1" is for 1.1.x releases).  Branches should be deleted
+only after they are either merged to develop or abandoned.
 
 2) Whoever's doing releases (currently only msk) is responsible for all
-non-sandbox branch creation, and is also responsible for placing release
-tags during releases.
+release branch creation and all merges to the master branch, and is also
+responsible for placing release tags during releases.
 
-3) New features and dependencies only ever go on the trunk, never on release
-branches.  The exception to this is FFRs; new FFRs can go in on any branch
-since they are off-by-default anyway, but still this should be avoided.  FFRs
-only ever "go live", becoming production code, on the trunk.
+3) New features and dependencies only ever go on the develop branch, never on
+release branches.  The exception to this is FFRs; new FFRs can go in on any
+release branch since they are off-by-default anyway, but still this should be
+avoided.  FFRs only ever "go live", becoming production code, on the master
+branch.
 
 4) Bug fixes relative to code that has already been released go on both the
-current release branch and the trunk.
+current release branch (if any) and the develop branch for later merge to the
+master.
 
 5) When it's time for a new release line to begin (e.g. 1.1.x has been
 created but it's time to get some new features out so we need to start
