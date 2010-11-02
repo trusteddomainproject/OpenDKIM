@@ -29,6 +29,8 @@ release, and a summary of the changes in that release.
 	LIBVBR: Fix some pointer errors causing false negatives.  Problem
 		noted by Fredrik Pettai.
 	TOOLS: Write "v=" tags in key records output by opendkim-genzone.
+	BUILD: Fix bug #SF3101842: opendkim-genzone requires LIBODBX_CFLAGS
+		on some systems.  Reported by Josephus.
 
 2.2.0		2010/10/03
 	Feature request #SF2874043: Add _FFR_ADSP_LISTS allowing control over
