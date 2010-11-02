@@ -128,6 +128,7 @@ opendkim_genzone_LDADD += $(LIBDB_LIBS)
 endif
 if USE_ODBX
 opendkim_genzone_CPPFLAGS += $(LIBODBX_CPPFLAGS)
+opendkim_genzone_CFLAGS += $(LIBODBX_CFLAGS)
 opendkim_genzone_LDADD += $(LIBODBX_LIBS)
 endif
 if USE_SASL

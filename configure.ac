@@ -975,6 +975,7 @@ AC_ARG_WITH([odbx],
 
 odbx_found="no"
 LIBODBX_CPPFLAGS=""
+LIBODBX_CFLAGS=""
 LIBODBX_LIBS=""
 
 if test \( x"$odbxpath" = x"auto" -o x"$odbxpath" = x"yes" \) -a \
@@ -1042,6 +1043,7 @@ then
 fi
 AM_CONDITIONAL(USE_ODBX, test x"$odbx_found" = x"yes")
 AC_SUBST(LIBODBX_CPPFLAGS)
+AC_SUBST(LIBODBX_CFLAGS)
 AC_SUBST(LIBODBX_LIBS)
 
 #
