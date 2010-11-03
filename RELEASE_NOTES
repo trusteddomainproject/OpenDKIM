@@ -5,6 +5,21 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.2.2		2010/11/29
+	When VBR is enabled, only perform a query when the "md" domain
+		in the VBR-Info header field matches the "d" field for any
+		valid signature.
+	BUILD: Fix bug #SF3101842: Fix opendkim-genzone build when OpenDBX
+		is in use.
+	BUILD: opendkim-testkey can require SASL build information when used
+		with OpenLDAP, or Lua information when built with Lua.
+	BUILD: Dissociate libopendkim and libunbound, as this is now handled
+		through the application rather than the library.
+	BUILD: Convert to using git for source code management.
+	STATS: Additional reporting improvements.
+	TOOLS: Handle input generated with and without the _FFR_STATS_I
+		extensions.  Problem noted by Graham Murray.
+
 2.2.1		2010/10/25
 	Avoid assertion failures when using "-V" and arlib.
 	Fix "refile" loading.  Problem noted by Steve Jenkins.
