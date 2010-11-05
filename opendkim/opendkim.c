@@ -3703,13 +3703,14 @@ dkimf_insecure(mode_t mode, gid_t grp)
 **  	buf -- key buffer
 **  	buflen -- pointer to key buffer's length (updated)
 **  	insecure -- key is insecure (returned)
+**  	error -- string returned on error
 **
 **  Return value:
 **  	TRUE on successful load, false otherwise
 */
 
 static _Bool
-dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure)
+dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure, char **error)
 {
 	assert(buf != NULL);
 	assert(buflen != NULL);
@@ -3724,11 +3725,22 @@ dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure)
 
 		fd = open(buf, O_RDONLY);
 		if (fd < 0)
+		{
+			if (error != NULL)
+				*error = strerror(errno);
 			return FALSE;
+		}
 
 		status = fstat(fd, &s);
-		if (status != 0)
+		if (status != 0 || !S_ISREG(s.st_mode))
 		{
+			if (error != NULL)
+			{
+				if (!S_ISREG(s.st_mode))
+					*error = "Not a regular file";
+				else
+					*error = strerror(errno);
+			}
 			close(fd);
 			return FALSE;
 		}
@@ -3798,6 +3810,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 	if (keytable != NULL)
 	{
 		_Bool insecure;
+		char *errstr;
 
 		assert(keyname != NULL);
 
@@ -3852,12 +3865,12 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 		keydatasz = sizeof keydata - 1;
 		insecure = FALSE;
 		if (!dkimf_loadkey(dbd[2].dbdata_buffer, &keydatasz,
-		                   &insecure))
+		                   &insecure, &errstr))
 		{
 			if (dolog)
 			{
 				syslog(LOG_ERR, "can't load key from %s: %s",
-				       dbd[2].dbdata_buffer, strerror(errno));
+				       dbd[2].dbdata_buffer, errstr);
 			}
 
 			return 2;
@@ -6429,6 +6442,14 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			snprintf(err, errlen, "%s: open(): %s",
 			         conf->conf_keyfile, strerror(errno));
+			free(s33krit);
+			return -1;
+		}
+		else if (!S_ISREG(s.st_mode))
+		{
+			snprintf(err, errlen, "%s: open(): Not a regular file",
+			         conf->conf_keyfile);
+			close(fd);
 			free(s33krit);
 			return -1;
 		}
