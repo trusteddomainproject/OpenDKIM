@@ -5,7 +5,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.2.2		2010/11/29
+2.2.2		2010/11/22
 	Fix bug #SF3095782: When VBR is enabled, only perform a query when
 		the "md" domain in the VBR-Info header field matches the
 		"d" field for any valid signature.
