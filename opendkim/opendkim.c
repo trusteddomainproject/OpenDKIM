@@ -7725,7 +7725,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		found = FALSE;
 		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 		                      req, 2, &found);
-		if (status != 0 || req[0].dbdata_buflen == 0)
+		if (status != 0 || (found && req[0].dbdata_buflen == 0))
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, tmpaddr);
@@ -7757,7 +7757,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(signer, '\0', sizeof signer);
 		status = dkimf_db_get(signdb, domain, strlen(domain), req, 2,
 		                      &found);
-		if (status != 0 || req[0].dbdata_buflen == 0)
+		if (status != 0 || (found && req[0].dbdata_buflen == 0))
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, domain);
@@ -7796,7 +7796,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			memset(signer, '\0', sizeof signer);
 			status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 			                      req, 2, &found);
-			if (status != 0 || req[0].dbdata_buflen == 0)
+			if (status != 0 ||
+			    (found && req[0].dbdata_buflen == 0))
 			{
 				if (status != 0 && dolog)
 					dkimf_db_error(signdb, tmpaddr);
@@ -7829,7 +7830,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			memset(signer, '\0', sizeof signer);
 			status = dkimf_db_get(signdb, p, strlen(p),
 			                      req, 2, &found);
-			if (status != 0 || req[0].dbdata_buflen == 0)
+			if (status != 0 ||
+			    (found && req[0].dbdata_buflen == 0))
 			{
 				if (status != 0 && dolog)
 					dkimf_db_error(signdb, p);
@@ -7866,7 +7868,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(signer, '\0', sizeof signer);
 		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 		                      req, 2, &found);
-		if (status != 0 || req[0].dbdata_buflen == 0)
+		if (status != 0 || (found && req[0].dbdata_buflen == 0))
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, tmpaddr);
@@ -7897,7 +7899,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(keyname, '\0', sizeof keyname);
 		memset(signer, '\0', sizeof signer);
 		status = dkimf_db_get(signdb, "*", 1, req, 2, &found);
-		if (status != 0 || req[0].dbdata_buflen == 0)
+		if (status != 0 || (found && req[0].dbdata_buflen == 0))
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, "*");

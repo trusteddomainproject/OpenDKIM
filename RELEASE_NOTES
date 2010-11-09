@@ -9,6 +9,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3095782: When VBR is enabled, only perform a query when
 		the "md" domain in the VBR-Info header field matches the
 		"d" field for any valid signature.
+	Fix bug #SF3105993: Handle missing records in Lua DB lookups more
+		correctly.  Reported by Luci Stanescu.
 	When reading keys, ensure what's being read is a regular file and
 		not something else.
 	BUILD: Fix bug #SF3101842: Fix opendkim-genzone build when OpenDBX
