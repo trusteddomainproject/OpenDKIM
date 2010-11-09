@@ -65,7 +65,7 @@ struct dkimf_unbound_cb_data
 	int			ubd_rcode;
 	int			ubd_id;
 	int			ubd_type;
-	u_int			ubd_result;
+	int			ubd_result;
 	DKIM_STAT		ubd_stat;
 	size_t			ubd_buflen;
 	u_char *		ubd_buf;
