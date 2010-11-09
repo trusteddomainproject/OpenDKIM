@@ -4,7 +4,7 @@
 
 #AUTOMAKE_OPTIONS = foreign
 
-dist_doc_DATA = draft-ietf-dkim-implementation-report-04.txt \
+dist_doc_DATA = draft-ietf-dkim-implementation-report-05.txt \
 	draft-ietf-dkim-mailinglists-04.txt \
 	draft-ietf-marf-dkim-reporting-00.txt \
 	draft-kucherawy-authres-vbr-00.txt \
