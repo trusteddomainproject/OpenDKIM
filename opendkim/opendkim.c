@@ -5280,6 +5280,14 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_trustanchorpath,
 		                  sizeof conf->conf_trustanchorpath);
 
+		if (conf->conf_trustanchorpath != NULL &&
+		    access(conf->conf_trustanchorpath, R_OK) != 0)
+		{
+			snprintf(err, errlen, "%s: %s",
+			         conf->conf_trustanchorpath, strerror(errno));
+			return -1;
+		}
+
 		str = NULL;
 		(void) config_get(data, "BogusKey", &str, sizeof str);
 		if (str != NULL)
@@ -11240,7 +11248,7 @@ mlfi_eom(SMFICTX *ctx)
 					/* XXX -- make the "5" configurable */
 					status = dkim_diffheaders(dfc->mctx_dkimv,
 					                          5,
-					                          ohdrs,
+					                          (char **) ohdrs,
 					                          nhdrs,
 					                          &diffs,
 					                          &ndiffs);
