@@ -4,14 +4,14 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: stats.h,v 1.10 2010/10/25 17:16:00 cm-msk Exp $
+**  $Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #ifndef _STATS_H_
 #define _STATS_H_
 
 #ifndef lint
-static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10 2010/10/25 17:16:00 cm-msk Exp $";
+static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -70,11 +70,15 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10 2010/10/25 17:16:00 cm-msk E
 
 /* PROTOTYPES */
 extern void dkimf_stats_init __P((void));
-extern int dkimf_stats_record __P((char *, char *, char *, char *, Header,
-                                   DKIM *, dkim_policy_t, _Bool, _Bool, u_int,
 #ifdef _FFR_STATSEXT
+extern int dkimf_stats_record __P((char *, u_char *, char *, char *, Header,
+                                   DKIM *, dkim_policy_t, _Bool, _Bool, u_int,
                                    struct statsext *,
-#endif /* _FFR_STATSEXT */
                                    struct sockaddr *));
+#else /* _FFR_STATSEXT */
+extern int dkimf_stats_record __P((char *, u_char *, char *, char *, Header,
+                                   DKIM *, dkim_policy_t, _Bool, _Bool, u_int,
+                                   struct sockaddr *));
+#endif /* _FFR_STATSEXT */
 
 #endif /* _STATS_H_ */

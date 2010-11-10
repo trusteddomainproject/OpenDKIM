@@ -9,13 +9,17 @@
 #define _DKIM_UTIL_H_
 
 #ifndef lint
-static char dkim_util_h_id[] = "@(#)$Id: dkim-util.h,v 1.5 2009/08/19 00:33:52 cm-msk Exp $";
+static char dkim_util_h_id[] = "@(#)$Id: dkim-util.h,v 1.5.58.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
 #include <sys/param.h>
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 
 /* libopendkim includes */
 #include "dkim.h"
@@ -32,12 +36,12 @@ extern unsigned char *dkim_strdup __P((DKIM *, const unsigned char *, size_t));
 extern DKIM_STAT dkim_tmpfile __P((DKIM *, int *, _Bool));
 
 extern void dkim_dstring_blank __P((struct dkim_dstring *));
-extern _Bool dkim_dstring_cat __P((struct dkim_dstring *, char *));
+extern _Bool dkim_dstring_cat __P((struct dkim_dstring *, u_char *));
 extern _Bool dkim_dstring_cat1 __P((struct dkim_dstring *, int));
-extern _Bool dkim_dstring_catn __P((struct dkim_dstring *, char *, size_t));
-extern _Bool dkim_dstring_copy __P((struct dkim_dstring *, char *));
+extern _Bool dkim_dstring_catn __P((struct dkim_dstring *, u_char *, size_t));
+extern _Bool dkim_dstring_copy __P((struct dkim_dstring *, u_char *));
 extern void dkim_dstring_free __P((struct dkim_dstring *));
-extern char *dkim_dstring_get __P((struct dkim_dstring *));
+extern u_char *dkim_dstring_get __P((struct dkim_dstring *));
 extern int dkim_dstring_len __P((struct dkim_dstring *));
 extern struct dkim_dstring *dkim_dstring_new __P((DKIM *, int, int));
 extern size_t dkim_dstring_printf __P((struct dkim_dstring *dstr, char *fmt,

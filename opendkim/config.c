@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: config.c,v 1.10 2010/09/21 17:43:11 cm-msk Exp $
+**  $Id: config.c,v 1.10.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #ifndef lint
-static char config_c_id[] = "@(#)$Id: config.c,v 1.10 2010/09/21 17:43:11 cm-msk Exp $";
+static char config_c_id[] = "@(#)$Id: config.c,v 1.10.10.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
 
 /* for Solaris */
@@ -332,7 +332,7 @@ config_load_level(char *file, struct configdef *def,
 			break;
 
 		  case CONFIG_TYPE_BOOLEAN:
-			new->cfg_bool = (bool) value;
+			new->cfg_bool = (_Bool) value;
 			break;
 
 		  case CONFIG_TYPE_INTEGER:
@@ -573,7 +573,7 @@ config_get(struct config *head, const char *name, void *value, size_t size)
 			switch (cur->cfg_type)
 			{
 			  case CONFIG_TYPE_BOOLEAN:
-				if (size != sizeof(bool))
+				if (size != sizeof(_Bool))
 				{
 					conf_error = CONF_ILLEGAL;
 					return -1;

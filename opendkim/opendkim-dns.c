@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.7 2010/09/07 19:02:28 cm-msk Exp $";
+static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.7.10.2 2010/10/28 04:28:04 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -47,6 +47,9 @@ static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.7 2010/09/07 19:0
 #ifndef TRUE
 # define TRUE	1
 #endif /* ! TRUE */
+#ifndef MIN
+# define MIN(x,y)	((x) < (y) ? (x) : (y))
+#endif /* ! MIN */
 
 #ifdef USE_UNBOUND
 /* struct dkimf_unbound -- unbound context */
@@ -350,7 +353,7 @@ dkimf_ub_cancel(void *srv, void *q)
 */
 
 static int
-dkimf_ub_query(void *srv, int type, char *query,
+dkimf_ub_query(void *srv, int type, unsigned char *query,
                unsigned char *buf, size_t buflen, void **qh)
 {
 	int status;
@@ -368,7 +371,8 @@ dkimf_ub_query(void *srv, int type, char *query,
 	if (ubdata == NULL)
 		return DKIM_DNS_ERROR;
 
-	status = dkimf_unbound_queue(ub, query, type, buf, buflen, ubdata);
+	status = dkimf_unbound_queue(ub, (char *) query, type, buf, buflen,
+	                             ubdata);
 	if (status != 0)
 	{
 		free(ubdata);
@@ -592,7 +596,7 @@ dkimf_ar_cancel(void *srv, void *q)
 */
 
 static int
-dkimf_ar_query(void *srv, int type, char *query,
+dkimf_ar_query(void *srv, int type, unsigned char *query,
                unsigned char *buf, size_t buflen, void **qh)
 {
 	AR_LIB ar;

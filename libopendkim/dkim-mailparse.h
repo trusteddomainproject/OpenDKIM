@@ -9,7 +9,7 @@
 #define _DKIM_MAILPARSE_H_
 
 #ifndef lint
-static char dkim_mailparse_h_id[] = "@(#)$Id: dkim-mailparse.h,v 1.3 2010/02/25 21:52:22 cm-msk Exp $";
+static char dkim_mailparse_h_id[] = "@(#)$Id: dkim-mailparse.h,v 1.3.34.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
 
 #ifdef __STDC__
@@ -23,7 +23,7 @@ static char dkim_mailparse_h_id[] = "@(#)$Id: dkim-mailparse.h,v 1.3 2010/02/25 
 #endif /* __STDC__ */
 
 /* prototypes */
-extern int dkim_mail_parse __P((char *line, char **user_out,
-                                char **domain_out));
+extern int dkim_mail_parse __P((unsigned char *line, unsigned char **user_out,
+                                unsigned char **domain_out));
 
 #endif /* ! _DKIM_MAILPARSE_H_ */

@@ -1,12 +1,17 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: dkim-dns.c,v 1.6 2010/10/15 17:06:53 cm-msk Exp $
+**  $Id: dkim-dns.c,v 1.6.4.1 2010/10/27 21:43:08 cm-msk Exp $
 */
 
 #ifndef lint
-static char dkim_dns_c_id[] = "@(#)$Id: dkim-dns.c,v 1.6 2010/10/15 17:06:53 cm-msk Exp $";
+static char dkim_dns_c_id[] = "@(#)$Id: dkim-dns.c,v 1.6.4.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
+
+/* for Solaris */
+#ifndef _REENTRANT
+# define _REENTRANT
+#endif /* ! REENTRANT */
 
 /* system includes */
 #include <sys/param.h>
@@ -16,6 +21,7 @@ static char dkim_dns_c_id[] = "@(#)$Id: dkim-dns.c,v 1.6 2010/10/15 17:06:53 cm-
 #include <resolv.h>
 #include <netdb.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include <errno.h>
 
@@ -89,13 +95,13 @@ dkim_res_cancel(void *srv, void *qh)
 */
 
 int
-dkim_res_query(void *srv, int type, char *query, unsigned char *buf,
+dkim_res_query(void *srv, int type, unsigned char *query, unsigned char *buf,
                size_t buflen, void **qh)
 {
 	int n;
 	int ret;
 	struct dkim_res_qh *rq;
-	char qbuf[HFIXEDSZ + MAXPACKET];
+	unsigned char qbuf[HFIXEDSZ + MAXPACKET];
 #ifdef HAVE_RES_NINIT
 	struct __res_state statp;
 #endif /* HAVE_RES_NINIT */
@@ -106,8 +112,8 @@ dkim_res_query(void *srv, int type, char *query, unsigned char *buf,
 #endif /* HAVE_RES_NINIT */
 
 #ifdef HAVE_RES_NINIT
-	n = res_nmkquery(&statp, QUERY, query, C_IN, type, NULL, 0, NULL,
-	                 qbuf, sizeof qbuf);
+	n = res_nmkquery(&statp, QUERY, (char *) query, C_IN, type, NULL, 0,
+	                 NULL, qbuf, sizeof qbuf);
 #else /* HAVE_RES_NINIT */
 	n = res_mkquery(QUERY, query, C_IN, type, NULL, 0, NULL, qbuf,
 	                sizeof qbuf);

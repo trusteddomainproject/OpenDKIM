@@ -6,8 +6,13 @@
 */
 
 #ifndef lint
-static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.5 2010/10/25 17:15:12 cm-msk Exp $";
+static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.5.2.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
+
+/* for Solaris */
+#ifndef _REENTRANT
+# define _REENTRANT
+#endif /* ! REENTRANT */
 
 /* system includes */
 #include <sys/param.h>
@@ -69,9 +74,9 @@ struct vbr_handle
 	void *		(*vbr_malloc) (void *closure, size_t nbytes);
 	void		(*vbr_free) (void *closure, void *p);
 	void *		vbr_closure;		/* memory closure */
-	char *		vbr_domain;		/* sending domain */
-	char *		vbr_type;		/* message type */
-	char *		vbr_cert;		/* claimed certifiers */
+	u_char *	vbr_domain;		/* sending domain */
+	u_char *	vbr_type;		/* message type */
+	u_char *	vbr_cert;		/* claimed certifiers */
 	u_char *	vbr_error;		/* error buffer */
 	u_char **	vbr_trusted;		/* trusted certifiers */
 };
@@ -235,7 +240,8 @@ vbr_verror(VBR *vbr, const char *format, va_list va)
 
 	for (;;)
 	{
-		flen = vsnprintf(vbr->vbr_error, vbr->vbr_errlen, format, va);
+		flen = vsnprintf((char *) vbr->vbr_error, vbr->vbr_errlen,
+		                 format, va);
 
 		/* compensate for broken vsnprintf() implementations */
 		if (flen == -1)
@@ -513,7 +519,7 @@ vbr_close(VBR *vbr)
 **  	A pointer to the stored string, or NULL if none was stored.
 */
 
-const char *
+const u_char *
 vbr_geterror(VBR *vbr)
 {
 	assert(vbr != NULL);
@@ -631,7 +637,7 @@ vbr_setdnscallback(VBR *vbr, void (*func)(const void *context))
 */
 
 void
-vbr_setdomain(VBR *vbr, char *domain)
+vbr_setdomain(VBR *vbr, u_char *domain)
 {
 	assert(vbr != NULL);
 	assert(domain != NULL);
@@ -651,7 +657,7 @@ vbr_setdomain(VBR *vbr, char *domain)
 */
 
 void
-vbr_setcert(VBR *vbr, char *cert)
+vbr_setcert(VBR *vbr, u_char *cert)
 {
 	assert(vbr != NULL);
 	assert(cert != NULL);
@@ -671,7 +677,7 @@ vbr_setcert(VBR *vbr, char *cert)
 */
 
 void
-vbr_settype(VBR *vbr, char *type)
+vbr_settype(VBR *vbr, u_char *type)
 {
 	assert(vbr != NULL);
 	assert(type != NULL);
@@ -691,12 +697,12 @@ vbr_settype(VBR *vbr, char *type)
 */
 
 void
-vbr_trustedcerts(VBR *vbr, char **certs)
+vbr_trustedcerts(VBR *vbr, u_char **certs)
 {
 	assert(vbr != NULL);
 	assert(certs != NULL);
 
-	vbr->vbr_trusted = (u_char **) certs;
+	vbr->vbr_trusted = certs;
 }
 
 /*
@@ -721,13 +727,13 @@ vbr_trustedcerts(VBR *vbr, char **certs)
 */
 
 VBR_STAT
-vbr_query(VBR *vbr, char **res, char **cert)
+vbr_query(VBR *vbr, u_char **res, u_char **cert)
 {
 	int n;
-	char *p;
-	char *last;
-	char certs[VBR_MAXHEADER + 1];
-	char query[VBR_MAXHOSTNAMELEN + 1];
+	u_char *p;
+	u_char *last;
+	u_char certs[VBR_MAXHEADER + 1];
+	u_char query[VBR_MAXHOSTNAMELEN + 1];
 
 	assert(vbr != NULL);
 	assert(res != NULL);
@@ -741,15 +747,16 @@ vbr_query(VBR *vbr, char **res, char **cert)
 		return VBR_STAT_INVALID;
 	}
 
-	strlcpy(certs, vbr->vbr_cert, sizeof certs);
+	strlcpy((char *) certs, vbr->vbr_cert, sizeof certs);
 
-	for (p = strtok_r(certs, ":", &last);
+	for (p = (u_char *) strtok_r((char *) certs, ":", (char **) &last);
 	     p != NULL;
-	     p = strtok_r(NULL, ":", &last))
+	     p = (u_char *) strtok_r(NULL, ":", (char **) &last))
 	{
 		for (n = 0; vbr->vbr_trusted[n] != NULL; n++)
 		{
-			if (strcasecmp(p, vbr->vbr_trusted[n]) == 0)
+			if (strcasecmp((char *) p,
+			               (char *) vbr->vbr_trusted[n]) == 0)
 			{
 				int status;
 #ifdef USE_ARLIB
@@ -757,16 +764,17 @@ vbr_query(VBR *vbr, char **res, char **cert)
 				AR_QUERY q;
 				AR_LIB ar;
 #endif /* USE_ARLIB */
-				char *last2;
-				char *p2;
+				u_char *last2;
+				u_char *p2;
 #ifdef USE_ARLIB
 				struct timeval timeout;
 #endif /* USE_ARLIB */
 				unsigned char ansbuf[MAXPACKET];
 				unsigned char buf[BUFRSZ];
 
-				snprintf(query, sizeof query, "%s.%s.%s",
-				         vbr->vbr_domain, VBR_PREFIX, p);
+				snprintf((char *) query, sizeof query,
+				         "%s.%s.%s", vbr->vbr_domain,
+				         VBR_PREFIX, p);
 
 #ifdef USE_ARLIB
 				ar = vbr->vbr_arlib;
@@ -808,8 +816,8 @@ vbr_query(VBR *vbr, char **res, char **cert)
 
 				(void) ar_cancelquery(ar, q);
 #else /* USE_ARLIB */
-				status = res_query(query, C_IN, T_TXT, ansbuf,
-				                   sizeof ansbuf);
+				status = res_query((char *) query, C_IN, T_TXT,
+				                   ansbuf, sizeof ansbuf);
 #endif /* USE_ARLIB */
 
 #ifdef USE_ARLIB
@@ -846,16 +854,19 @@ vbr_query(VBR *vbr, char **res, char **cert)
 					continue;
 
 				/* see if there's a vouch match */
-				for (p2 = strtok_r(buf, " \t", &last2);
+				for (p2 = (u_char *) strtok_r((char *) buf, " \t",
+				                              (char **) &last2);
 				     p2 != NULL;
-				     p2 = strtok_r(NULL, " \t", &last2))
+				     p2 = (u_char *) strtok_r(NULL, " \t",
+				                              (char **) &last2))
 				{
-					if (strcasecmp(p2, VBR_ALL) == 0 ||
-					    strcasecmp(p2,
-					               vbr->vbr_type) == 0)
+					if (strcasecmp((char *) p2,
+					               VBR_ALL) == 0 ||
+					    strcasecmp((char *) p2,
+					               (char *) vbr->vbr_type) == 0)
 					{
 						/* we have a winner! */
-						*res = "pass";
+						*res = (u_char *) "pass";
 						*cert = p;
 						return VBR_STAT_OK;
 					}
@@ -865,7 +876,7 @@ vbr_query(VBR *vbr, char **res, char **cert)
 	}
 
 	/* nobody vouched */
-	*res = "fail";
+	*res = (u_char *) "fail";
 	return VBR_STAT_OK;
 }
 
@@ -884,7 +895,7 @@ vbr_query(VBR *vbr, char **res, char **cert)
 */
 
 VBR_STAT
-vbr_getheader(VBR *vbr, char *hdr, size_t len)
+vbr_getheader(VBR *vbr, unsigned char *hdr, size_t len)
 {
 	size_t olen;
 
@@ -897,7 +908,7 @@ vbr_getheader(VBR *vbr, char *hdr, size_t len)
 		return VBR_STAT_INVALID;
 	}
 
-	olen = snprintf(hdr, len, "md=%s; mc=%s; mv=%s",
+	olen = snprintf((char *) hdr, len, "md=%s; mc=%s; mv=%s",
 	                vbr->vbr_domain, vbr->vbr_type, vbr->vbr_cert);
 	if (olen >= len)
 	{

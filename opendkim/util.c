@@ -4,11 +4,11 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.c,v 1.47 2010/10/25 18:27:04 cm-msk Exp $
+**  $Id: util.c,v 1.47.2.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.47 2010/10/25 18:27:04 cm-msk Exp $";
+static char util_c_id[] = "@(#)$Id: util.c,v 1.47.2.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -188,7 +188,7 @@ struct dkimf_dstring
 	int			ds_alloc;
 	int			ds_max;
 	int			ds_len;
-	char *			ds_buf;
+	u_char *		ds_buf;
 };
 
 /* base64 alphabet */
@@ -204,7 +204,7 @@ static unsigned char alphabet[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq
 **  	TRUE if "str" is either zero-length or contains only whitespace
 */
 
-bool
+_Bool
 dkimf_isblank(char *str)
 {
 	char *p;
@@ -233,7 +233,7 @@ dkimf_isblank(char *str)
 void
 dkimf_optlist(FILE *where)
 {
-	bool first = TRUE;
+	_Bool first = TRUE;
 	int c;
 
 	assert(where != NULL);
@@ -350,10 +350,10 @@ dkimf_lowercase(u_char *str)
 **  	TRUE if there's a match, FALSE otherwise.
 */
 
-bool
+_Bool
 dkimf_checkhost(DKIMF_DB db, char *host)
 {
-	bool exists;
+	_Bool exists;
 	int status;
 	char *p;
 	char buf[BUFRSZ + 1];
@@ -402,10 +402,10 @@ dkimf_checkhost(DKIMF_DB db, char *host)
 **  	TRUE if there's a match, FALSE otherwise.
 */
 
-bool
+_Bool
 dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 {
-	bool exists;
+	_Bool exists;
 	char ipbuf[DKIM_MAXHOSTNAMELEN + 1];
 
 	assert(ip != NULL);
@@ -435,7 +435,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 		dst_len = sizeof ipbuf - 1;
 
 		inet_ntop(AF_INET6, &addr, dst, dst_len);
-		dkimf_lowercase(dst);
+		dkimf_lowercase((u_char *) dst);
 
 		exists = FALSE;
 
@@ -465,7 +465,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 			dst_len = sizeof ipbuf - 1;
 
 			inet_ntop(AF_INET6, &addr, dst, dst_len);
-			dkimf_lowercase(dst);
+			dkimf_lowercase((u_char *) dst);
 
 			sz = strlcat(ipbuf, "/", sizeof ipbuf);
 			if (sz >= sizeof ipbuf)
@@ -509,7 +509,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 
 	if (ip->sa_family == AF_INET)
 	{
-		bool exists;
+		_Bool exists;
 		int c;
 		int status;
 		int bits;
@@ -632,10 +632,10 @@ dkimf_initpopauth(void)
 **  	- does the key contain anything meaningful, like an expiry time?
 */
 
-bool
+_Bool
 dkimf_checkpopauth(DKIMF_DB db, struct sockaddr *ip)
 {
-	bool exists;
+	_Bool exists;
 	int status;
 	struct sockaddr_in *sin;
 	struct in_addr addr;
@@ -677,7 +677,7 @@ dkimf_checkpopauth(DKIMF_DB db, struct sockaddr *ip)
 **  	Prints an error message when appropriate.
 */
 
-bool
+_Bool
 dkimf_load_replist(FILE *in, struct replace **list)
 {
 	int line;
@@ -932,7 +932,7 @@ dkimf_mkpath(char *path, size_t pathlen, char *root, char *file)
 **  	found in the list.
 */
 
-bool
+_Bool
 dkimf_hostlist(char *host, char **list)
 {
 	int c;
@@ -976,11 +976,11 @@ dkimf_hostlist(char *host, char **list)
 **  	specific size.
 */
 
-static bool
+static _Bool
 dkimf_dstring_resize(struct dkimf_dstring *dstr, int len)
 {
 	int newsz;
-	char *new;
+	u_char *new;
 
 	assert(dstr != NULL);
 	assert(len > 0);
@@ -1103,15 +1103,15 @@ dkimf_dstring_free(struct dkimf_dstring *dstr)
 **  	The dstring may be resized.
 */
 
-bool
-dkimf_dstring_copy(struct dkimf_dstring *dstr, char *str)
+_Bool
+dkimf_dstring_copy(struct dkimf_dstring *dstr, u_char *str)
 {
 	int len;
 
 	assert(dstr != NULL);
 	assert(str != NULL);
 
-	len = strlen(str);
+	len = strlen((char *) str);
 
 	/* too big? */
 	if (dstr->ds_max > 0 && len >= dstr->ds_max)
@@ -1126,7 +1126,8 @@ dkimf_dstring_copy(struct dkimf_dstring *dstr, char *str)
 	}
 
 	/* copy */
-	dstr->ds_len = strlcpy(dstr->ds_buf, str, dstr->ds_alloc);
+	dstr->ds_len = strlcpy((char *) dstr->ds_buf, (char *) str,
+	                       dstr->ds_alloc);
 
 	return TRUE;
 }
@@ -1145,15 +1146,15 @@ dkimf_dstring_copy(struct dkimf_dstring *dstr, char *str)
 **  	The dstring may be resized.
 */
 
-bool
-dkimf_dstring_cat(struct dkimf_dstring *dstr, char *str)
+_Bool
+dkimf_dstring_cat(struct dkimf_dstring *dstr, u_char *str)
 {
 	int len;
 
 	assert(dstr != NULL);
 	assert(str != NULL);
 
-	len = strlen(str) + dstr->ds_len;
+	len = strlen((char *) str) + dstr->ds_len;
 
 	/* too big? */
 	if (dstr->ds_max > 0 && len >= dstr->ds_max)
@@ -1168,7 +1169,8 @@ dkimf_dstring_cat(struct dkimf_dstring *dstr, char *str)
 	}
 
 	/* append */
-	dstr->ds_len = strlcat(dstr->ds_buf, str, dstr->ds_alloc);
+	dstr->ds_len = strlcat((char *) dstr->ds_buf, (char *) str,
+	                       dstr->ds_alloc);
 
 	return TRUE;
 }
@@ -1187,7 +1189,7 @@ dkimf_dstring_cat(struct dkimf_dstring *dstr, char *str)
 **  	The dstring may be resized.
 */
 
-bool
+_Bool
 dkimf_dstring_cat1(struct dkimf_dstring *dstr, int c)
 {
 	int len;
@@ -1225,7 +1227,7 @@ dkimf_dstring_cat1(struct dkimf_dstring *dstr, int c)
 **  	Pointer to the NULL-terminated contents of "dstr".
 */
 
-char *
+u_char *
 dkimf_dstring_get(struct dkimf_dstring *dstr)
 {
 	assert(dstr != NULL);
@@ -1398,7 +1400,7 @@ dkimf_socket_cleanup(char *sockspec)
 **  	TRUE iff "dest" was big enough (based on destlen)
 */
 
-bool
+_Bool
 dkimf_mkregexp(char *src, char *dst, size_t dstlen)
 {
 	char *p;
@@ -1558,7 +1560,7 @@ dkimf_base64_encode_file(infd, out, lm, rm, initial)
 **  	TRUE iff d1 is a subdomain of d2.
 */
 
-bool
+_Bool
 dkimf_subdomain(char *d1, char *d2)
 {
 	char *p;

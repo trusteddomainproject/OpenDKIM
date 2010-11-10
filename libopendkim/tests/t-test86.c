@@ -6,13 +6,17 @@
 */
 
 #ifndef lint
-static char t_test86_c_id[] = "@(#)$Id: t-test86.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
+static char t_test86_c_id[] = "@(#)$Id: t-test86.c,v 1.2.38.1 2010/10/28 04:25:38 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
 #include <arpa/nameser.h>
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>

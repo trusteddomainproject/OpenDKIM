@@ -6,13 +6,17 @@
 */
 
 #ifndef lint
-static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.7 2009/10/22 19:35:00 cm-msk Exp $";
+static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.7.58.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 #include <assert.h>
 #include <unistd.h>
 #include <limits.h>
@@ -178,7 +182,7 @@ static _Bool
 dkim_dstring_resize(struct dkim_dstring *dstr, int len)
 {
 	int newsz;
-	char *new;
+	unsigned char *new;
 	DKIM *dkim;
 	DKIM_LIB *lib;
 
@@ -331,14 +335,14 @@ dkim_dstring_free(struct dkim_dstring *dstr)
 */
 
 _Bool
-dkim_dstring_copy(struct dkim_dstring *dstr, char *str)
+dkim_dstring_copy(struct dkim_dstring *dstr, unsigned char *str)
 {
 	int len;
 
 	assert(dstr != NULL);
 	assert(str != NULL);
 
-	len = strlen(str);
+	len = strlen((char *) str);
 
 	/* too big? */
 	if (dstr->ds_max > 0 && len >= dstr->ds_max)
@@ -374,7 +378,7 @@ dkim_dstring_copy(struct dkim_dstring *dstr, char *str)
 */
 
 _Bool
-dkim_dstring_cat(struct dkim_dstring *dstr, char *str)
+dkim_dstring_cat(struct dkim_dstring *dstr, unsigned char *str)
 {
 	size_t len;
 	size_t needed;
@@ -382,7 +386,7 @@ dkim_dstring_cat(struct dkim_dstring *dstr, char *str)
 	assert(dstr != NULL);
 	assert(str != NULL);
 
-	len = strlen(str);
+	len = strlen((char *) str);
 	needed = dstr->ds_len + len;
 
 	/* too big? */
@@ -462,7 +466,7 @@ dkim_dstring_cat1(struct dkim_dstring *dstr, int c)
 */
 
 _Bool
-dkim_dstring_catn(struct dkim_dstring *dstr, char *str, size_t nbytes)
+dkim_dstring_catn(struct dkim_dstring *dstr, unsigned char *str, size_t nbytes)
 {
 	size_t needed;
 
@@ -501,7 +505,7 @@ dkim_dstring_catn(struct dkim_dstring *dstr, char *str, size_t nbytes)
 **  	Pointer to the NULL-terminated contents of "dstr".
 */
 
-char *
+unsigned char *
 dkim_dstring_get(struct dkim_dstring *dstr)
 {
 	assert(dstr != NULL);
@@ -570,7 +574,8 @@ dkim_dstring_printf(struct dkim_dstring *dstr, char *fmt, ...)
 
 	va_start(ap, fmt);
 	va_copy(ap2, ap);
-	len = vsnprintf(dstr->ds_buf + dstr->ds_len, dstr->ds_alloc, fmt, ap);
+	len = vsnprintf((char *) dstr->ds_buf + dstr->ds_len, dstr->ds_alloc,
+	                fmt, ap);
 	va_end(ap);
 
 	if (len > dstr->ds_len)
@@ -581,8 +586,8 @@ dkim_dstring_printf(struct dkim_dstring *dstr, char *fmt, ...)
 			return (size_t) -1;
 		}
 
-		len = vsnprintf(dstr->ds_buf + dstr->ds_len, dstr->ds_alloc,
-		                fmt, ap2);
+		len = vsnprintf((char *) dstr->ds_buf + dstr->ds_len,
+		                dstr->ds_alloc, fmt, ap2);
 	}
 
 	va_end(ap2);
