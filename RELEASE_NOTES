@@ -14,6 +14,8 @@ release, and a summary of the changes in that release.
 		correctly.  Reported by Luci Stanescu.
 	When reading keys, ensure what's being read is a regular file and
 		not something else.
+	Complain if TrustAnchorFile names something that can't be opened
+		for reading.
 	BUILD: Fix bug #SF3101842: Fix opendkim-genzone build when OpenDBX
 		is in use.
 	BUILD: opendkim-testkey can require SASL build information when used
