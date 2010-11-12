@@ -23,6 +23,10 @@ Specifies the name of the SQL database into which records should be
 imported.  The default is
 .I opendkim.
 .TP
+.I -F
+When a malformed line is detected in the input, write the parsed data to
+standard error.
+.TP
 .I -h host
 Names the host to which an SQL connection should be made.  The default is
 "localhost".

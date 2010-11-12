@@ -24,6 +24,8 @@ release, and a summary of the changes in that release.
 		through the application rather than the library.
 	BUILD: Convert to using git for source code management.
 	STATS: Additional reporting improvements.
+	STATS: Fix bug #SF3107659: Add additional diagnostic output to
+		opendkim-importstats when malformed input is found.
 	TOOLS: Handle input generated with and without the _FFR_STATS_I
 		extensions.  Problem noted by Graham Murray.
 

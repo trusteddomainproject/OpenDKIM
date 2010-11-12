@@ -33,7 +33,7 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.11 20
 #endif /* USE_ODBX */
 
 /* macros, definitions */
-#define	CMDLINEOPTS	"d:h:mP:p:rSs:u:x"
+#define	CMDLINEOPTS	"d:Fh:mP:p:rSs:u:x"
 
 #define	DEFDBHOST	"localhost"
 #define	DEFDBNAME	"opendkim"
@@ -77,6 +77,27 @@ sanitize(odbx_t *db, char *in, char *out, size_t len)
 	(void) odbx_escape(db, in, strlen(in), out, &outlen);
 
 	return (strncmp(in, out, outlen) != 0);
+}
+
+/*
+**  DUMPFIELDS -- dump array of fields for debugging
+**
+**  Parameters:
+**  	out -- output stream
+**  	fields -- array of fields
+**  	n -- length of fields array
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dumpfields(FILE *out, char **fields, int n)
+{
+	int c;
+
+	for (c = 0; c < n; c++)
+		fprintf(out, "\t%d = `%s'\n", c, fields[c]);
 }
 
 /*
@@ -295,6 +316,7 @@ main(int argc, char **argv)
 	int err;
 	int mail = 0;
 	int dontskip = 0;
+	int showfields = 0;
 	int skipsigs = 0;
 	int norepadd = 0;
 	int repid;
@@ -323,6 +345,10 @@ main(int argc, char **argv)
 		{
 		  case 'd':
 			dbname = optarg;
+			break;
+
+		  case 'F':
+			showfields = 1;
 			break;
 
 		  case 'h':
@@ -477,6 +503,10 @@ main(int argc, char **argv)
 				fprintf(stderr,
 				        "%s: unexpected message field count (%d) at input line %d\n",
 				        progname, n, line);
+
+				if (showfields == 1)
+					dumpfields(stderr, fields, n);
+
 				continue;
 			}
 
@@ -948,6 +978,10 @@ main(int argc, char **argv)
 				fprintf(stderr,
 				        "%s: unexpected extension field count (%d) at input line %d\n",
 				        progname, n, line);
+
+				if (showfields == 1)
+					dumpfields(stderr, fields, n);
+
 				continue;
 			}
 			else if (msgid <= 0)
