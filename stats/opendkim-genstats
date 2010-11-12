@@ -23,7 +23,8 @@ USER=${OPENDKIM_USER:-opendkim}
 PASSWORD=${OPENDKIM_PASSWORD:-password}
 
 # Where to write the report
-OUTPUT=${OPENDKIM_OUTPUT:-/var/www/docs/opendkim/report.html}
+REALOUTPUT=${OPENDKIM_OUTPUT:-/var/www/docs/opendkim/report.html}
+OUTPUT=${REALOUTPUT}.$$
 
 ###
 ### NO user-serviceable parts beyond this point
@@ -244,4 +245,5 @@ cat >> $OUTPUT << EOF
 EOF
 
 # all done!
+mv $OUTPUT $REALOUTPUT
 exit 0
