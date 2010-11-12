@@ -228,12 +228,12 @@ echo "</p>" >> $OUTPUT
 
 echo '<a name="mime_type_correlation"></a>' >> $OUTPUT
 echo "<p> Correlation of outer MIME types with pass/fail counts: </p>" >> $OUTPUT
-$MYSQL --execute="select count(*) as 'msg count', signatures.pass, messages.content_type from signatures join messages on signatures.message = messages.id group by messages.content_type, pass" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'msg count', sum(signatures.pass) as passed, messages.content_type from signatures join messages on signatures.message = messages.id group by messages.content_type" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 echo '<a name="mime_encoding_correlation"></a>' >> $OUTPUT
 echo "<p> Correlation of outer MIME encodings with pass/fail counts: </p>" >> $OUTPUT
-$MYSQL --execute="select count(*) as 'msg count', signatures.pass, messages.content_encoding from signatures join messages on signatures.message = messages.id group by messages.content_encoding, pass" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'msg count', sum(signatures.pass) as passed, messages.content_encoding from signatures join messages on signatures.message = messages.id group by messages.content_encoding" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 # output a footer
