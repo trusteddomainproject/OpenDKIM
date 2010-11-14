@@ -8,7 +8,7 @@
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
 if LUA
-sbin_PROGRAMS = miltertest
+bin_PROGRAMS = miltertest
 
 miltertest_SOURCES = miltertest.c
 miltertest_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBMILTER_INCDIRS) $(LIBLUA_INCDIRS)

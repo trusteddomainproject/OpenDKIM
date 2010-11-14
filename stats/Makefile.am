@@ -4,7 +4,7 @@
 
 if USE_ODBX
 
-sbin_PROGRAMS = opendkim-importstats
+bin_PROGRAMS = opendkim-importstats
 
 opendkim_importstats_SOURCES = opendkim-importstats.c
 opendkim_importstats_CPPFLAGS = $(LIBODBX_CPPFLAGS) -I$(srcdir)/../libopendkim
@@ -16,7 +16,7 @@ exampledir = @docdir@
 dist_example_DATA = mkdb.mysql
 
 dist_doc_DATA = README
-dist_sbin_SCRIPTS = opendkim-genstats
+dist_bin_SCRIPTS = opendkim-genstats
 
 man_MANS = opendkim-importstats.8
 
