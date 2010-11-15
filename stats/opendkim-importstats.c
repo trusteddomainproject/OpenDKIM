@@ -277,6 +277,7 @@ usage(void)
 {
 	fprintf(stderr, "%s: usage: %s [options]\n"
 	                "\t-d dbname  \tdatabase name (default: \"%s\")\n"
+	                "\t-F         \tdump parsed fields on errors\n"
 	                "\t-h dbhost  \tdatabase host/address (default: \"%s\")\n"
 	                "\t-m         \tinput is in email format\n"
 	                "\t-P dbport  \tdatabase port\n"
