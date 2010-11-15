@@ -641,6 +641,9 @@ ar_requeue(AR_LIB lib)
 **
 **  Return value:
 **  	None.
+**
+**  Notes:
+**  	Caller must already hold the query-specific lock.
 */
 
 static void
@@ -2002,9 +2005,9 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 	}
 	else if ((query->q_flags & QUERY_NOREPLY) != 0)
 	{
-		pthread_mutex_unlock(&query->q_lock);
 		if (query->q_errno != NULL)
 			*query->q_errno = ETIMEDOUT;
+		pthread_mutex_unlock(&query->q_lock);
 		return AR_STAT_EXPIRED;
 	}
 
@@ -2074,21 +2077,21 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 	/* recheck flags */
 	if ((query->q_flags & QUERY_ERROR) != 0)
 	{
-		pthread_mutex_unlock(&query->q_lock);
 		errno = lib->ar_deaderrno;
+		pthread_mutex_unlock(&query->q_lock);
 		return AR_STAT_ERROR;
 	}
 	else if ((query->q_flags & QUERY_REPLY) == 0)
 	{
-		pthread_mutex_unlock(&query->q_lock);
 		if (maintimeout && query->q_errno != NULL)
 			*query->q_errno = ETIMEDOUT;
+		pthread_mutex_unlock(&query->q_lock);
 		return (maintimeout ? AR_STAT_EXPIRED : AR_STAT_NOREPLY);
 	}
 
-	pthread_mutex_unlock(&query->q_lock);
 	if (len != NULL)
 		*len = query->q_replylen;
+	pthread_mutex_unlock(&query->q_lock);
 	return AR_STAT_SUCCESS;
 }
 
