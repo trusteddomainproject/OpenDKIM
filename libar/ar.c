@@ -1740,6 +1740,8 @@ ar_addquery(AR_LIB lib, char *name, int class, int type, int depth,
 		if (timeout->tv_sec < 0 || timeout->tv_sec > AR_MAXTIMEOUT ||
 		    timeout->tv_usec < 0 || timeout->tv_usec >= 1000000)
 		{
+			if (err != NULL)
+				*err = EINVAL;
 			errno = EINVAL;
 			return NULL;
 		}
