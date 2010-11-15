@@ -952,9 +952,14 @@ ar_dispatcher(void *tp)
 		if (status == -1)
 		{
 			if (errno == EINTR)
+			{
+				pthread_mutex_lock(&lib->ar_lock);
 				continue;
+			}
 			else
+			{
 				assert(status >= 0);
+			}
 		}
 
 		pthread_mutex_lock(&lib->ar_lock);
