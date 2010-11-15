@@ -117,7 +117,9 @@ struct ar_libhandle
 	int			ar_deaderrno;
 	int			ar_resend;
 	int			ar_retries;
+	size_t			ar_tcpmsglen;
 	size_t			ar_tcpbuflen;
+	size_t			ar_tcpbufidx;
 	size_t			ar_writelen;
 	size_t			ar_querybuflen;
 	pthread_t		ar_dispatcher;
@@ -877,12 +879,14 @@ ar_dispatcher(void *tp)
 	_Bool usetimeout;
 	int status;
 	int maxfd;
+	size_t r;
 	AR_LIB lib;
 	AR_QUERY q;
 #if SELECT
 	fd_set rfds;
 	fd_set wfds;
 #endif /* SELECT */
+	u_char *buf;
 	struct timeval timeout;
 	struct timeval timeleft;
 	sigset_t set;
@@ -970,14 +974,11 @@ ar_dispatcher(void *tp)
 
 		wrote = FALSE;
 
+		buf = NULL;
+
 		/* read what's available for dispatch */
 		if (SOCKET_READY(rfds, lib->ar_nsfd))
 		{
-			_Bool requeued = FALSE;
-			size_t r;
-			u_char *buf;
-			HEADER hdr;
-
 			if ((lib->ar_flags & AR_FLAG_USETCP) == 0)
 			{
 				r = recvfrom(lib->ar_nsfd, lib->ar_querybuf,
@@ -988,14 +989,12 @@ ar_dispatcher(void *tp)
 
 				buf = lib->ar_querybuf;
 			}
-			else
+			else if (lib->ar_tcpmsglen == 0)
 			{
 				u_short len;
 				_Bool err = FALSE;
-				int part;
-				unsigned char *where;
 
-				/* first get the length */
+				/* get the length */
 				len = 0;
 				r = recvfrom(lib->ar_nsfd, &len, sizeof len,
 				             MSG_WAITALL, NULL, NULL);
@@ -1029,7 +1028,8 @@ ar_dispatcher(void *tp)
 					continue;
 				}
 
-				len = ntohs(len);
+				lib->ar_tcpmsglen = ntohs(len);
+				lib->ar_tcpbufidx = 0;
 
 				/* allocate a buffer */
 				if (lib->ar_tcpbuf == NULL ||
@@ -1045,19 +1045,25 @@ ar_dispatcher(void *tp)
 					lib->ar_tcpbuflen = len;
 				}
 
-				/*
-				**  XXX -- improve multiplexing here by making
-				**  this its own case
-				*/
+			}
+			else
+			{
+				_Bool err = FALSE;
+				size_t rem;
+				ssize_t part;
+				u_char *where;
 
-				/* grab the reply (maybe in pieces) */
+				where = lib->ar_tcpbuf + lib->ar_tcpbufidx;
+				rem = lib->ar_tcpmsglen - lib->ar_tcpbufidx;
+
+				/* grab next piece of the (may be in pieces) */
 				r = 0;
-				where = lib->ar_tcpbuf;
-				while (len > 0)
+
+				while (lib->ar_tcpbufidx < lib->ar_tcpmsglen)
 				{
 					part = recvfrom(lib->ar_nsfd,
-					                where, len, 0,
-					                NULL, NULL);
+					                where, rem,
+					                0, NULL, NULL);
 					if (part == 0 || part == (size_t) -1)
 					{
 						if (errno == EINTR)
@@ -1067,10 +1073,13 @@ ar_dispatcher(void *tp)
 						break;
 					}
 
+
 					r += part;
-					len -= part;
 					where += part;
+					lib->ar_tcpbufidx += part;
 				}
+
+				pthread_mutex_lock(&lib->ar_lock);
 
 				if (err)
 				{
@@ -1086,13 +1095,27 @@ ar_dispatcher(void *tp)
 					continue;
 				}
 
-				buf = lib->ar_tcpbuf;
+				if (lib->ar_tcpbufidx == lib->ar_tcpmsglen)
+				{
+					buf = lib->ar_tcpbuf;
+					r = lib->ar_tcpmsglen;
+				}
 			}
+		}
+
+		if (buf != NULL)		/* something to parse */
+		{
+			_Bool requeued = FALSE;
+			HEADER hdr;
+
+			/* reset TCP read mode */
+			lib->ar_tcpmsglen = 0;
 
 			/* truncate extra data */
 			if (r > MAXPACKET)
 				r = MAXPACKET;
 
+			/* copy header */
 			memcpy(&hdr, buf, sizeof hdr);
 
 			/* check for truncation in UDP mode */
@@ -1217,7 +1240,8 @@ ar_dispatcher(void *tp)
 		}
 
 		/* send a pending query */
-		if (SOCKET_READY(wfds, lib->ar_nsfd) && lib->ar_pending != NULL)
+		if (SOCKET_READY(wfds, lib->ar_nsfd) &&
+		    lib->ar_pending != NULL)
 		{
 			q = lib->ar_pending;
 
@@ -1466,6 +1490,8 @@ ar_init(ar_malloc_t user_malloc, ar_free_t user_free, void *user_closure,
 	new->ar_nsfd = -1;
 	new->ar_nsfdpf = -1;
 	new->ar_tcpbuflen = 0;
+	new->ar_tcpmsglen = 0;
+	new->ar_tcpbufidx = 0;
 	new->ar_tcpbuf = NULL;
 	new->ar_pending = NULL;
 	new->ar_pendingtail = NULL;
@@ -2079,7 +2105,6 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 	/* recheck flags */
 	if ((query->q_flags & QUERY_ERROR) != 0)
 	{
-		errno = query->q_errno;
 		pthread_mutex_unlock(&query->q_lock);
 		return AR_STAT_ERROR;
 	}
