@@ -1209,10 +1209,10 @@ ar_dispatcher(void *tp)
 				memcpy(q->q_buf, buf, MIN(r, q->q_buflen));
 				q->q_flags |= QUERY_REPLY;
 				q->q_replylen = r;
-				pthread_cond_signal(&q->q_reply);
-				pthread_mutex_unlock(&q->q_lock);
 				if ((q->q_flags & QUERY_RESEND) != 0)
 					lib->ar_resend--;
+				pthread_cond_signal(&q->q_reply);
+				pthread_mutex_unlock(&q->q_lock);
 			}
 		}
 
@@ -1749,10 +1749,10 @@ ar_addquery(AR_LIB lib, char *name, int class, int type, int depth,
 
 	if ((lib->ar_flags & AR_FLAG_DEAD) != 0)
 	{
-		pthread_mutex_unlock(&lib->ar_lock);
 		if (err != NULL)
 			*err = lib->ar_deaderrno;
 		errno = lib->ar_deaderrno;
+		pthread_mutex_unlock(&lib->ar_lock);
 		return NULL;
 	}
 
@@ -2077,7 +2077,7 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 	/* recheck flags */
 	if ((query->q_flags & QUERY_ERROR) != 0)
 	{
-		errno = lib->ar_deaderrno;
+		errno = query->q_errno;
 		pthread_mutex_unlock(&query->q_lock);
 		return AR_STAT_ERROR;
 	}
