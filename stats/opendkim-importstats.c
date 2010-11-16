@@ -24,6 +24,7 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.11 20
 
 /* libopendkim includes */
 #include <dkim-strl.h>
+#include <dkim.h>
 
 /* libodbx includes */
 #ifdef USE_ODBX
