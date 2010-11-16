@@ -86,7 +86,9 @@ doesn't find it, you will need to specify the location with
 		/usr directories will be searched for the required includes
 		and libraries.
 
---with-unbound	The "unbound" asynchronous resolver library and include file.
+--with-unbound	Location of the Unbound DNSSEC capable asynchronous resolver 
+		library and include file.
+                
 
 
 FEATURES
