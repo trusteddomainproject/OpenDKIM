@@ -3370,7 +3370,7 @@ dkimf_add_ar_fields(struct msgctx *dfc, struct dkimf_config *conf,
 		     (dfc->mctx_status == DKIMF_STATUS_NOSIGNATURE &&
 		      dfc->mctx_addheader)) &&
 		    dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
-		                    dfc->mctx_dkimar) == MI_FAILURE)
+		                    (char *) dfc->mctx_dkimar) == MI_FAILURE)
 		{
 			if (conf->conf_dolog)
 			{
@@ -3381,7 +3381,7 @@ dkimf_add_ar_fields(struct msgctx *dfc, struct dkimf_config *conf,
 
 		if (dfc->mctx_dksigned &&
 		    dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
-		                    dfc->mctx_dkar) == MI_FAILURE)
+		                    (char *) dfc->mctx_dkar) == MI_FAILURE)
 		{
 			if (conf->conf_dolog)
 			{
@@ -3401,7 +3401,7 @@ dkimf_add_ar_fields(struct msgctx *dfc, struct dkimf_config *conf,
 		    dfc->mctx_dkpass)
 		{
 			if (dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
-			                    dfc->mctx_dkar) == MI_FAILURE)
+			                    (char *) dfc->mctx_dkar) == MI_FAILURE)
 			{
 				if (conf->conf_dolog)
 				{
@@ -3415,7 +3415,7 @@ dkimf_add_ar_fields(struct msgctx *dfc, struct dkimf_config *conf,
 		else
 		{
 			if (dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
-			                    dfc->mctx_dkimar) == MI_FAILURE)
+			                    (char *) dfc->mctx_dkimar) == MI_FAILURE)
 			{
 				if (conf->conf_dolog)
 				{
@@ -10238,7 +10238,7 @@ mlfi_eoh(SMFICTX *ctx)
 #ifdef VERIFY_DOMAINKEYS
 	if (dfc->mctx_dksigned && dfc->mctx_srhead == NULL)
 	{
-		dfc->mctx_dk = dk_verify(libdk, dfc->mctx_jobid, NULL,
+		dfc->mctx_dk = dk_verify(libdk, (char *) dfc->mctx_jobid, NULL,
 		                         &status);
 		if (dfc->mctx_dk == NULL && status != DKIM_STAT_OK)
 		{
@@ -10352,7 +10352,7 @@ mlfi_eoh(SMFICTX *ctx)
 #ifdef VERIFY_DOMAINKEYS
 		if (dfc->mctx_dk != NULL)
 		{
-			dkimf_dstring_cat(dfc->mctx_tmpstr, CRLF);
+			dkimf_dstring_cat(dfc->mctx_tmpstr, (u_char *) CRLF);
 			status = dk_header(dfc->mctx_dk,
 			                   dkimf_dstring_get(dfc->mctx_tmpstr),
 			                   dkimf_dstring_len(dfc->mctx_tmpstr));
@@ -11065,12 +11065,13 @@ mlfi_eom(SMFICTX *ctx)
 
 			memset(dfc->mctx_dkar, '\0', sizeof dfc->mctx_dkar);
 
-			snprintf(dfc->mctx_dkar, sizeof dfc->mctx_dkar,
+			snprintf((char *) dfc->mctx_dkar,
+			         sizeof dfc->mctx_dkar,
 			         "%s%s%s%s; domainkeys=%s%s%s%s%s header.%s=%s",
 			         cc->cctx_noleadspc ? " " : "",
 			         authservid,
 			         conf->conf_authservidwithjobid ? "/" : "",
-			         conf->conf_authservidwithjobid ? dfc->mctx_jobid
+			         conf->conf_authservidwithjobid ? (char *) dfc->mctx_jobid
 			                                        : "",
 			         authresult,
 			         comment == NULL ? "" : " (",
