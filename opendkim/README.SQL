@@ -32,7 +32,8 @@ configuration example, assume that a table called "dkim" has these fields:
   `domain_name` varchar(255) NOT NULL,
   `selector` varchar(63) NOT NULL,
   `private_key` text,
-  `public_key` text
+  `public_key` text,
+  INDEX(domain_name)
 
 A sample opendkim configuration that references a MySQL database could look
 like this:
@@ -85,7 +86,8 @@ example, this second table, named 'dkim_signing', might have these fields:
 
   `id` int(10) unsigned NOT NULL auto_increment,
   `author` varchar(255) NOT NULL,
-  `dkim_id` unsigned NOT NULL
+  `dkim_id` unsigned NOT NULL,
+  INDEX(author)
 
 The resulting opendkim configuration would be:
 
