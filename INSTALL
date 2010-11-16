@@ -135,7 +135,7 @@ http://www.postfix.org/MILTER_README.html
 
 You can view the configuration options with the following command:
 
-	./configure -help
+	./configure --help
 
 The commands shown below assume a UNIX system with standard build tools
 installed.
@@ -145,24 +145,24 @@ Steps to compiling the library and the milter:
 (1) Download the source from OpenDKIM (http://www.opendkim.org).
 
 (2) Unpack the tarball:
-	% tar -xzvf opendkim-$ver.tar.gz
+	tar -xzvf opendkim-<version>.tar.gz
 
-	Be sure you set $ver to the version number that you downloaded.
+    Note: Use <version> as the version number that you downloaded.
 
 (3) Change directories to the release directory (opendkim-<version>) that
     was created in step 2.
-	% cd opendkim-$ver
+	cd opendkim-<version>
 
 (4) Run the "configure" script to configure the package for your operating
     system.
-	% ./configure
+	./configure
 
 (5) Compile the package.
-	% make
+	make
 
 (6) Install the output of the build.  You probably need to become the
     superuser to run this step.
-	% make install
+	make install
 
 
 CONFIGURING OPENDKIM
