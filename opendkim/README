@@ -518,7 +518,8 @@ A Lua script can be specified as below:
         lua:/usr/local/keyretrive.lua
 
 The Lua script will receive a global variable called "query" which is a string
-containing the query to be performed.
+containing the query to be performed.  The returned value is the return value 
+of the script.
 
 
 MANUALLY CREATING DKIM KEYS
