@@ -102,6 +102,7 @@ fi
 %config(noreplace) %{_sysconfdir}/opendkim.conf
 %config %{_initrddir}/%{name}
 %{_sbindir}/*
+%{_bindir}/*
 %{_mandir}/*/*
 
 %files -n libopendkim

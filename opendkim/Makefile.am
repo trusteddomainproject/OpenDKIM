@@ -6,13 +6,13 @@ if DEBUG
 AM_CFLAGS = -g
 endif
 
-sbin_PROGRAMS = opendkim-genzone opendkim-testkey opendkim-testadsp
-dist_sbin_SCRIPTS = opendkim-genkey
+bin_PROGRAMS = opendkim-genzone opendkim-testkey opendkim-testadsp
+dist_bin_SCRIPTS = opendkim-genkey
 dist_doc_DATA = opendkim.conf.sample opendkim.conf.simple \
 	opendkim.conf.simple-verify README.SQL
 
 if BUILD_FILTER
-sbin_PROGRAMS += opendkim
+sbin_PROGRAMS = opendkim
 opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-dns.c opendkim-dns.h opendkim-lua.c opendkim-lua.h config.c config.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CC = $(PTHREAD_CC)
 opendkim_CFLAGS = $(PTHREAD_CFLAGS) $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
@@ -65,7 +65,7 @@ opendkim_CPPFLAGS += $(LIBMILTER_INCDIRS)
 endif
 
 if STATS
-sbin_PROGRAMS += opendkim-stats
+bin_PROGRAMS += opendkim-stats
 opendkim_stats_SOURCES = opendkim-stats.c
 opendkim_stats_CPPFLAGS = -I$(srcdir)/../libopendkim
 opendkim_stats_LDFLAGS = $(COV_LDFLAGS)

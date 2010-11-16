@@ -18,6 +18,9 @@ release, and a summary of the changes in that release.
 		for reading.
 	LIBAR: Rework some I/O logic to avoid a deadlock when the nameserver
 		becomes unresponsive during response processing.
+	BUILD: Move all scripts and executables except opendkim to a bin
+		directory for adminstrator convenience. They were previously in
+		the sbin directory.
 	BUILD: Fix bug #SF3101842: Fix opendkim-genzone build when OpenDBX
 		is in use.
 	BUILD: opendkim-testkey can require SASL build information when used

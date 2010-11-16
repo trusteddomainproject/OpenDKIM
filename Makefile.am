@@ -29,7 +29,7 @@ DISTCLEANFILES = opendkim-@VERSION@.tar.gz
 # non-experimental features and substitute it here e.g  @SUPPORTED_FEATURES@.
 # Perhaps all features would enable a more comprehensive test coverage map
 # though.
-DISTCHECK_CONFIGURE_FLAGS=--enable-arlib --enable-vbr --with-lua
+DISTCHECK_CONFIGURE_FLAGS=--enable-arlib --enable-vbr --with-lua --enable-stats --with-odbx
 
 $(DIST_ARCHIVES): distcheck
 
