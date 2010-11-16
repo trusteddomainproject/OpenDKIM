@@ -16,6 +16,8 @@ release, and a summary of the changes in that release.
 		not something else.
 	Complain if TrustAnchorFile names something that can't be opened
 		for reading.
+	LIBAR: Rework some I/O logic to avoid a deadlock when the nameserver
+		becomes unresponsive during response processing.
 	BUILD: Fix bug #SF3101842: Fix opendkim-genzone build when OpenDBX
 		is in use.
 	BUILD: opendkim-testkey can require SASL build information when used
