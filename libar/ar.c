@@ -1243,6 +1243,10 @@ ar_dispatcher(void *tp)
 		if (SOCKET_READY(wfds, lib->ar_nsfd) &&
 		    lib->ar_pending != NULL)
 		{
+			/* reset read state if there's nothing outstanding */
+			if (lib->ar_queries == NULL)
+				lib->ar_tcpmsglen = 0;
+
 			q = lib->ar_pending;
 
 			lib->ar_pending = q->q_next;
