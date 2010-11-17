@@ -10732,7 +10732,7 @@ mlfi_eom(SMFICTX *ctx)
 	**  later than expected (e.g. postfix).
 	*/
 
-	if (dfc->mctx_jobid == (u_char *) JOBIDUNKNOWN)
+	if (strcmp((char *) dfc->mctx_jobid, JOBIDUNKNOWN) == 0)
 	{
 		dfc->mctx_jobid = (u_char *) dkimf_getsymval(ctx, "i");
 		if (dfc->mctx_jobid == NULL)

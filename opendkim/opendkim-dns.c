@@ -609,8 +609,8 @@ dkimf_ar_query(void *srv, int type, unsigned char *query,
 
 	ar = (AR_LIB) srv;
 
-	q = ar_addquery(ar, query, C_IN, type, MAXCNAMEDEPTH, buf, buflen,
-	                (int *) NULL, (struct timeval *) NULL);
+	q = ar_addquery(ar, (char *) query, C_IN, type, MAXCNAMEDEPTH,
+	                buf, buflen, (int *) NULL, (struct timeval *) NULL);
 	if (q == NULL)
 		return -1;
 
