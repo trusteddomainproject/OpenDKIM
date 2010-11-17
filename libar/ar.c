@@ -1056,7 +1056,7 @@ ar_dispatcher(void *tp)
 				where = lib->ar_tcpbuf + lib->ar_tcpbufidx;
 				rem = lib->ar_tcpmsglen - lib->ar_tcpbufidx;
 
-				/* grab next piece of the (may be in pieces) */
+				/* grab next chunk (may be in pieces) */
 				r = 0;
 
 				while (lib->ar_tcpbufidx < lib->ar_tcpmsglen)
@@ -1078,8 +1078,6 @@ ar_dispatcher(void *tp)
 					where += part;
 					lib->ar_tcpbufidx += part;
 				}
-
-				pthread_mutex_lock(&lib->ar_lock);
 
 				if (err)
 				{
