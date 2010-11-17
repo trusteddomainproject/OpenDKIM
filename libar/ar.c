@@ -38,9 +38,14 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.12 2010/10/04 21:20:47 cm-msk Exp $";
 #include <assert.h>
 #include <signal.h>
 #include <string.h>
+#ifdef ARDEBUG
+# include <stdio.h>
+#endif /* ARDEBUG */
 
 /* important macros */
 #define AR_MAXHOSTNAMELEN	256
+
+#define	ARDEBUGOUT	"/var/tmp/ardebug.out"
 
 #ifndef MAXPACKET
 # define MAXPACKET	8192
@@ -158,8 +163,200 @@ static void ar_free(AR_LIB lib, void *ptr);
 static int ar_res_init(AR_LIB);
 
 /*
+**  GLOBALS
+*/
+
+#ifdef ARDEBUG
+static FILE *debugout;
+#endif /* ARDEBUG */
+
+/*
 **  ========================= PRIVATE FUNCTIONS =========================
 */
+
+#ifdef ARDEBUG
+/*
+**  AR_DEBUG_INIT -- set up debugging output
+**
+**  Parameters:
+**  	None.
+**
+**  Return value:
+**  	None.
+*/
+
+static void
+ar_debug_init(void)
+{
+	debugout = fopen(ARDEBUGOUT, "w");
+}
+
+/*
+**  AR_DEBUG_STOP -- close debugging output
+**
+**  Parameters:
+**  	None.
+**
+**  Return value:
+**  	None.
+*/
+
+static void
+ar_debug_stop(void)
+{
+	fclose(debugout);
+}
+/*
+**  AR_DEBUG_LOCKINIT -- print lock information
+**
+**  Parameters:
+** 	lock -- lock to be created
+** 	attr -- lock attributes
+**  	line -- line number where this was called
+**
+**  Return value:
+**  	See pthread_mutex_lock().
+*/
+
+static int
+ar_debug_lockinit(pthread_mutex_t *lock, pthread_mutexattr_t *attr, int line)
+{
+	fprintf(debugout, "%d: %lu: pthread_mutex_init(%p, %p)\n", line,
+	        pthread_self(), lock, attr);
+
+	return pthread_mutex_init(lock, attr);
+}
+
+/*
+**  AR_DEBUG_LOCK -- print lock information
+**
+**  Parameters:
+** 	lock -- lock to be retrieved
+**  	line -- line number where this was called
+**
+**  Return value:
+**  	See pthread_mutex_lock().
+*/
+
+static int
+ar_debug_lock(pthread_mutex_t *lock, int line)
+{
+	int ret;
+
+	fprintf(debugout, "%d: %lu: pthread_mutex_lock(%p)\n", line,
+	        pthread_self(), lock);
+
+	ret = pthread_mutex_lock(lock);
+
+	fprintf(debugout, "%d: %lu: lock acquired\n", line, pthread_self());
+
+	return ret;
+}
+
+/*
+**  AR_DEBUG_UNLOCK -- print unlock information
+**
+**  Parameters:
+** 	lock -- lock to be released
+**  	line -- line number where this was called
+**
+**  Return value:
+**  	See pthread_mutex_unlock().
+*/
+
+static int
+ar_debug_unlock(pthread_mutex_t *lock, int line)
+{
+	fprintf(debugout, "%d: %lu: pthread_mutex_unlock(%p)\n", line,
+	        pthread_self(), lock);
+
+	return pthread_mutex_unlock(lock);
+}
+
+/*
+**  AR_DEBUG_SIGNAL -- signal condition
+**
+**  Parameters:
+** 	cond -- condition to be signaled
+**  	line -- line number where this was called
+**
+**  Return value:
+**  	See pthread_mutex_unlock().
+*/
+
+static int
+ar_debug_signal(pthread_cond_t *cond, int line)
+{
+	fprintf(debugout, "%d: %lu: pthread_cond_signal(%p)\n", line,
+	        pthread_self(), cond);
+
+	return pthread_cond_signal(cond);
+}
+
+/*
+**  AR_DEBUG_CONDWAIT -- wait for a condition
+**
+**  Parameters:
+**  	cond -- condition variable
+**  	lock -- mutex
+**  	line -- line number
+**
+**  Return value:
+**  	See pthread_cond_wait().
+*/
+
+static int
+ar_debug_condwait(pthread_cond_t *cond, pthread_mutex_t *lock, int line)
+{
+	int ret;
+
+	fprintf(debugout, "%d: %lu: pthread_cond_wait(%p, %p)\n", line,
+	        pthread_self(), cond, lock);
+
+	ret = pthread_cond_wait(cond, lock);
+
+	fprintf(debugout, "%d: %lu: signal received\n", cond, lock);
+
+	return ret;
+}
+
+/*
+**  AR_DEBUG_CONDTIMEDWAIT -- wait for a condition with timeout
+**
+**  Parameters:
+**  	cond -- condition variable
+**  	lock -- mutex
+**  	timeout -- timeout
+**  	line -- line number
+**
+**  Return value:
+**  	See pthread_cond_timedwait().
+*/
+
+static int
+ar_debug_condtimedwait(pthread_cond_t *cond, pthread_mutex_t *lock,
+                       struct timespec *timeout, int line)
+{
+	int ret;
+
+	fprintf(debugout, "%d: %lu: pthread_cond_timedwait(%p, %p, %p)\n", line,
+	        pthread_self(), cond, lock, timeout);
+
+	ret = pthread_cond_timedwait(cond, lock, timeout);
+
+	fprintf(debugout, "%d: %lu: %s\n", line, pthread_self(),
+	        ret == ETIMEDOUT ? "timeout" : "signal received");
+
+	return ret;
+}
+
+# define pthread_cond_signal(x)		ar_debug_signal((x), __LINE__)
+# define pthread_cond_timedwait(x,y,z)	ar_debug_condtimedwait((x), (y), (z), __LINE__)
+# define pthread_cond_wait(x,y)		ar_debug_condwait((x), (y), __LINE__)
+# define pthread_mutex_init(x,y)	ar_debug_lockinit((x), (y), __LINE__)
+# define pthread_mutex_lock(x)		ar_debug_lock((x), __LINE__)
+# define pthread_mutex_unlock(x)	ar_debug_unlock((x), __LINE__)
+#endif /* ARDEBUG */
 
 /*
 **  AR_MALLOC -- allocate memory
@@ -1578,6 +1775,10 @@ ar_init(ar_malloc_t user_malloc, ar_free_t user_free, void *user_closure,
 		return NULL;
 	}
 
+#ifdef ARDEBUG
+	ar_debug_init();
+#endif /* ARDEBUG */
+
 	(void) pthread_mutex_init(&new->ar_lock, NULL);
 
 	status = pthread_create(&new->ar_dispatcher, NULL, ar_dispatcher, new);
@@ -1643,6 +1844,10 @@ ar_shutdown(AR_LIB lib)
 		else
 			free(lib);
 	}
+
+#ifdef ARDEBUG
+	ar_debug_stop();
+#endif /* ARDEBUG */
 
 	return status;
 }
