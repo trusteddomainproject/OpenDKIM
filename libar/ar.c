@@ -1105,6 +1105,14 @@ ar_dispatcher(void *tp)
 
 	for (;;)
 	{
+#ifdef ARDEBUG
+		if (lib->ar_pending == NULL && lib->ar_queries == NULL)
+		{
+			rewind(debugout);
+			ftruncate(fileno(debugout), 0);
+		}
+#endif /* ARDEBUG */
+
 		maxfd = MAX(lib->ar_nsfd, lib->ar_control[1]);
 
 		/* check on the control descriptor and the NS descriptor */
