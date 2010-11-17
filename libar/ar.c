@@ -221,7 +221,7 @@ ar_debug_stop(void)
 static int
 ar_debug_lockinit(pthread_mutex_t *lock, pthread_mutexattr_t *attr, int line)
 {
-	fprintf(debugout, "%d: %lu: pthread_mutex_init(%p, %p)\n", line,
+	fprintf(debugout, "%d: %lu: mutex_init(%p, %p)\n", line,
 	        pthread_self(), lock, attr);
 
 	return pthread_mutex_init(lock, attr);
@@ -243,7 +243,7 @@ ar_debug_lock(pthread_mutex_t *lock, int line)
 {
 	int ret;
 
-	fprintf(debugout, "%d: %lu: pthread_mutex_lock(%p)\n", line,
+	fprintf(debugout, "%d: %lu: lock(%p)\n", line,
 	        pthread_self(), lock);
 
 	ret = pthread_mutex_lock(lock);
@@ -267,7 +267,7 @@ ar_debug_lock(pthread_mutex_t *lock, int line)
 static int
 ar_debug_unlock(pthread_mutex_t *lock, int line)
 {
-	fprintf(debugout, "%d: %lu: pthread_mutex_unlock(%p)\n", line,
+	fprintf(debugout, "%d: %lu: unlock(%p)\n", line,
 	        pthread_self(), lock);
 
 	return pthread_mutex_unlock(lock);
@@ -287,7 +287,7 @@ ar_debug_unlock(pthread_mutex_t *lock, int line)
 static int
 ar_debug_signal(pthread_cond_t *cond, int line)
 {
-	fprintf(debugout, "%d: %lu: pthread_cond_signal(%p)\n", line,
+	fprintf(debugout, "%d: %lu: signal(%p)\n", line,
 	        pthread_self(), cond);
 
 	return pthread_cond_signal(cond);
@@ -310,7 +310,7 @@ ar_debug_condwait(pthread_cond_t *cond, pthread_mutex_t *lock, int line)
 {
 	int ret;
 
-	fprintf(debugout, "%d: %lu: pthread_cond_wait(%p, %p)\n", line,
+	fprintf(debugout, "%d: %lu: wait(%p, %p)\n", line,
 	        pthread_self(), cond, lock);
 
 	ret = pthread_cond_wait(cond, lock);
@@ -339,7 +339,7 @@ ar_debug_condtimedwait(pthread_cond_t *cond, pthread_mutex_t *lock,
 {
 	int ret;
 
-	fprintf(debugout, "%d: %lu: pthread_cond_timedwait(%p, %p, %p)\n", line,
+	fprintf(debugout, "%d: %lu: timedwait(%p, %p, %p)\n", line,
 	        pthread_self(), cond, lock, timeout);
 
 	ret = pthread_cond_timedwait(cond, lock, timeout);
