@@ -124,7 +124,7 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 	char *p;
 #ifdef _FFR_DIFFHEADERS
 	struct dkim_hdrdiff *diffs;
-	char *ohdrs[MAXHDRCNT];
+	unsigned char *ohdrs[MAXHDRCNT];
 #endif /* _FFR_DIFFHEADERS */
 	DKIM_SIGINFO **sigs;
 	struct dkimf_db_data dbd;
@@ -492,7 +492,7 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 
 		memset(tmp, '\0', sizeof tmp);
 
-		status = dkim_ohdrs(dkimv, sigs[c], ohdrs, &nhdrs);
+		status = dkim_ohdrs(dkimv, sigs[c], (u_char **) ohdrs, &nhdrs);
 		if (status == DKIM_STAT_OK)
 		{
 			if (dkim_diffheaders(dkimv, DKIMF_STATS_MAXCOST,
