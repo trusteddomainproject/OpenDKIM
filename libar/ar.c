@@ -189,6 +189,8 @@ static void
 ar_debug_init(void)
 {
 	debugout = fopen(ARDEBUGOUT, "w");
+	if (debugout != NULL)
+		setlinebuf(debugout);
 }
 
 /*
