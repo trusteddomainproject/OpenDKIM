@@ -1076,6 +1076,7 @@ ar_dispatcher(void *tp)
 {
 	_Bool wrote;
 	_Bool usetimeout;
+	_Bool reconnect;
 	int status;
 	int maxfd;
 	size_t r;
@@ -1532,6 +1533,7 @@ ar_dispatcher(void *tp)
 		}
 
 		/* look through what's left for retries */
+		reconnect = FALSE;
 		for (q = lib->ar_queries; q != NULL; q = q->q_next)
 		{
 			pthread_mutex_lock(&q->q_lock);
@@ -1541,27 +1543,28 @@ ar_dispatcher(void *tp)
 				{
 					ar_sendquery(lib, q);
 				}
-				else
+				else if (!reconnect)
 				{
 					lib->ar_nsidx = (lib->ar_nsidx + 1) % lib->ar_nscount;
-
-					/* reconnect */
-					pthread_mutex_unlock(&lib->ar_lock);
-					if (!ar_reconnect(lib))
-						return NULL;
-					pthread_mutex_lock(&lib->ar_lock);
-
-					/* arrange to re-send everything */
-					ar_requeue(lib);
+					reconnect = TRUE;
 				}
-
-				pthread_mutex_unlock(&q->q_lock);
-
-				break;
 			}
 			pthread_mutex_unlock(&q->q_lock);
 		}
+
+		/* reconnect? */
+		if (reconnect)
+		{
+			pthread_mutex_unlock(&lib->ar_lock);
+			if (!ar_reconnect(lib))
+				return NULL;
+			pthread_mutex_lock(&lib->ar_lock);
+
+			/* arrange to re-send everything */
+			ar_requeue(lib);
+		}
 	}
+
 	return NULL;
 }
 
