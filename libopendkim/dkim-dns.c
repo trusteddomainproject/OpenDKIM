@@ -115,7 +115,7 @@ dkim_res_query(void *srv, int type, unsigned char *query, unsigned char *buf,
 	n = res_nmkquery(&statp, QUERY, (char *) query, C_IN, type, NULL, 0,
 	                 NULL, qbuf, sizeof qbuf);
 #else /* HAVE_RES_NINIT */
-	n = res_mkquery(QUERY, query, C_IN, type, NULL, 0, NULL, qbuf,
+	n = res_mkquery(QUERY, (char *) query, C_IN, type, NULL, 0, NULL, qbuf,
 	                sizeof qbuf);
 #endif /* HAVE_RES_NINIT */
 	if (n == (size_t) -1)
