@@ -14,6 +14,8 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.12 2010/10/04 21:20:47 cm-msk Exp $";
 # define _XOPEN_SOURCE_EXTENDED
 #endif /* HPUX11 */
 
+#include "build-config.h"
+
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
@@ -29,7 +31,9 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.12 2010/10/04 21:20:47 cm-msk Exp $";
 #include <ctype.h>
 #include <resolv.h>
 #include <netdb.h>
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 #include <stdlib.h>
 #include <time.h>
 #include <errno.h>
@@ -116,12 +120,12 @@ struct ar_libhandle
 	int			ar_nsfd;
 	int			ar_nsfdpf;
 	int			ar_control[2];
-	int			ar_flags;
 	int			ar_nscount;
 	int			ar_nsidx;
 	int			ar_deaderrno;
 	int			ar_resend;
 	int			ar_retries;
+	u_int			ar_flags;
 	size_t			ar_tcpmsglen;
 	size_t			ar_tcpbuflen;
 	size_t			ar_tcpbufidx;
@@ -141,6 +145,8 @@ struct ar_libhandle
 	struct ar_query *	ar_queriestail;	/* awaiting replies (tail) */
 	struct ar_query *	ar_recycle;	/* recyclable queries */
 	struct timeval		ar_retry;	/* retry interval */
+	struct timeval		ar_deadsince;	/* when we lost all service */
+	struct timeval		ar_revivify;	/* how long to play dead */
 	struct __res_state	ar_res;		/* resolver data */
 };
 
@@ -637,82 +643,11 @@ ar_alldead(AR_LIB lib)
 	{
 		pthread_mutex_lock(&q->q_lock);
 		q->q_flags |= QUERY_ERROR;
+		if (q->q_errno != NULL)
+			*q->q_errno = QUERY_ERRNO_SERVICE;
 		pthread_cond_signal(&q->q_reply);
 		pthread_mutex_unlock(&q->q_lock);
 	}
-}
-
-/*
-**  AR_RECONNECT -- reconnect when TCP service dies
-**
-**  Parameters:
-**  	lib -- library handle
-**
-**  Return value:
-** 	TRUE iff reconnect was successful.
-**
-**  Notes:
-**  	If reconnection was impossible, all queries are marked with
-**  	QUERY_ERROR and signalled immediately.  ar_flags is marked with
-**  	AR_FLAG_DEAD, preventing further calls to ar_addquery().
-**  	Assumes the caller does not currently hold ar_lock.
-*/
-
-static _Bool
-ar_reconnect(AR_LIB lib)
-{
-	int c;
-	int saveerrno;
-	int nsnum;
-	int socklen;
-	struct sockaddr *sa;
-
-	assert(lib != NULL);
-
-	close(lib->ar_nsfd);
-	lib->ar_nsfd = -1;
-	lib->ar_nsfdpf = -1;
-
-	/* try to connect to someone */
-	for (c = 0; c < lib->ar_nscount; c++)
-	{
-		nsnum = (c + lib->ar_nsidx) % lib->ar_nscount;
-
-		sa = (struct sockaddr *) &lib->ar_nsaddrs[nsnum];
-
-#ifdef AF_INET6
-		if (sa->sa_family == AF_INET6)
-			socklen = sizeof(struct sockaddr_in6);
-		else
-			socklen = sizeof(struct sockaddr_in);
-#else /* AF_INET6 */
-		socklen = sizeof(struct sockaddr_in);
-#endif /* AF_INET6 */
-
-		lib->ar_nsfd = socket(sa->sa_family, SOCK_STREAM, 0);
-		if (lib->ar_nsfd == -1)
-			continue;
-
-		lib->ar_nsfdpf = sa->sa_family;
-
-		if (connect(lib->ar_nsfd, sa, socklen) == 0)
-			return TRUE;
-
-		close(lib->ar_nsfd);
-		lib->ar_nsfd = -1;
-		lib->ar_nsfdpf = -1;
-	}
-
-	saveerrno = errno;
-
-	/* unable to reconnect; arrange to terminate */
-	pthread_mutex_lock(&lib->ar_lock);
-	ar_alldead(lib);
-	lib->ar_flags |= AR_FLAG_DEAD;
-	lib->ar_deaderrno = saveerrno;
-	pthread_mutex_unlock(&lib->ar_lock);
-
-	return FALSE;
 }
 
 /*
@@ -834,6 +769,92 @@ ar_requeue(AR_LIB lib)
 }
 
 /*
+**  AR_RECONNECT -- reconnect when TCP service dies
+**
+**  Parameters:
+**  	lib -- library handle
+**
+**  Return value:
+** 	TRUE iff reconnect was successful.
+**
+**  Notes:
+**  	If reconnection was impossible, all queries are marked with
+**  	QUERY_ERROR and signalled immediately.  ar_flags is marked with
+**  	AR_FLAG_DEAD, preventing further calls to ar_addquery().
+**  	Assumes the caller holds ar_lock.
+*/
+
+static _Bool
+ar_reconnect(AR_LIB lib)
+{
+	int c;
+	int saveerrno;
+	int nsnum;
+	int socklen;
+	struct sockaddr *sa;
+
+	assert(lib != NULL);
+
+	if ((lib->ar_flags & AR_FLAG_RECONNECT) == 0)
+		return TRUE;
+
+	if ((lib->ar_flags & AR_FLAG_USETCP) == 0)
+	{
+		ar_requeue(lib);
+		lib->ar_flags &= ~AR_FLAG_RECONNECT;
+		return TRUE;
+	}
+
+	close(lib->ar_nsfd);
+	lib->ar_nsfd = -1;
+	lib->ar_nsfdpf = -1;
+
+	/* try to connect to someone */
+	for (c = 0; c < lib->ar_nscount; c++)
+	{
+		nsnum = (c + lib->ar_nsidx) % lib->ar_nscount;
+
+		sa = (struct sockaddr *) &lib->ar_nsaddrs[nsnum];
+
+#ifdef AF_INET6
+		if (sa->sa_family == AF_INET6)
+			socklen = sizeof(struct sockaddr_in6);
+		else
+			socklen = sizeof(struct sockaddr_in);
+#else /* AF_INET6 */
+		socklen = sizeof(struct sockaddr_in);
+#endif /* AF_INET6 */
+
+		lib->ar_nsfd = socket(sa->sa_family, SOCK_STREAM, 0);
+		if (lib->ar_nsfd == -1)
+			continue;
+
+		lib->ar_nsfdpf = sa->sa_family;
+
+		if (connect(lib->ar_nsfd, sa, socklen) == 0)
+		{
+			lib->ar_flags &= ~AR_FLAG_RECONNECT;
+			ar_requeue(lib);
+			return TRUE;
+		}
+
+		close(lib->ar_nsfd);
+		lib->ar_nsfd = -1;
+		lib->ar_nsfdpf = -1;
+	}
+
+	saveerrno = errno;
+
+	/* unable to reconnect; arrange to terminate */
+	ar_alldead(lib);
+	(void) gettimeofday(&lib->ar_deadsince, NULL);
+	lib->ar_flags |= AR_FLAG_DEAD;
+	lib->ar_deaderrno = saveerrno;
+
+	return FALSE;
+}
+
+/*
 **  AR_SENDQUERY -- send a query
 **
 **  Parameters:
@@ -841,13 +862,13 @@ ar_requeue(AR_LIB lib)
 **  	query -- query to send
 **
 **  Return value:
-**  	None.
+**  	TRUE iff the message was able to be sent.
 **
 **  Notes:
 **  	Caller must already hold the query-specific lock.
 */
 
-static void
+static _Bool
 ar_sendquery(AR_LIB lib, AR_QUERY query)
 {
 	size_t n;
@@ -862,7 +883,7 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 		if (query->q_errno != NULL)
 			*query->q_errno = QUERY_ERRNO_RETRIES;
 		pthread_cond_signal(&query->q_reply);
-		return;
+		return FALSE;
 	}
 	
 	for (;;)
@@ -889,7 +910,7 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 			if (query->q_errno != NULL)
 				*query->q_errno = QUERY_ERRNO_TOOBIG;
 			pthread_cond_signal(&query->q_reply);
-			return;
+			return FALSE;
 		}
 
 		ar_free(lib, lib->ar_querybuf);
@@ -956,14 +977,18 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 
 	if (n == (size_t) -1)
 	{
-		query->q_flags |= QUERY_REPLY;
+		lib->ar_flags |= AR_FLAG_RECONNECT;
+		query->q_flags |= QUERY_ERROR;
 		if (query->q_errno != NULL)
 			*query->q_errno = errno;
 		pthread_cond_signal(&query->q_reply);
+		return FALSE;
 	}
 
 	query->q_tries += 1;
 	(void) gettimeofday(&query->q_sent, NULL);
+
+	return TRUE;
 }
 
 /*
@@ -1074,7 +1099,6 @@ ar_anscount(unsigned char *buf, size_t len)
 static void *
 ar_dispatcher(void *tp)
 {
-	_Bool wrote;
 	_Bool usetimeout;
 	_Bool reconnect;
 	int status;
@@ -1109,12 +1133,27 @@ ar_dispatcher(void *tp)
 	for (;;)
 	{
 #ifdef ARDEBUG
+		/* truncate tracing output if everything is synched up */
 		if (lib->ar_pending == NULL && lib->ar_queries == NULL)
 		{
 			rewind(debugout);
 			ftruncate(fileno(debugout), 0);
 		}
 #endif /* ARDEBUG */
+
+		/* if we're dead, see if it's time to revivify */
+		if ((lib->ar_flags & AR_FLAG_DEAD) != 0)
+		{
+			if (ar_elapsed(&lib->ar_deadsince,
+			               &lib->ar_revivify))
+				lib->ar_flags &= ~AR_FLAG_DEAD;
+		}
+
+		/* attempt to reconnect if needed */
+		if ((lib->ar_flags & AR_FLAG_DEAD) == 0 &&
+		    (lib->ar_nsfd == -1 ||
+		     (lib->ar_flags & AR_FLAG_RECONNECT) != 0))
+		    	(void) ar_reconnect(lib);
 
 		maxfd = MAX(lib->ar_nsfd, lib->ar_control[1]);
 
@@ -1124,13 +1163,19 @@ ar_dispatcher(void *tp)
 		FD_ZERO(&wfds);
 		if (lib->ar_pending != NULL || lib->ar_resend > 0)
 			FD_SET(lib->ar_nsfd, &wfds);
-		FD_SET(lib->ar_nsfd, &rfds);
+		if (lib->ar_nsfd != -1)
+			FD_SET(lib->ar_nsfd, &rfds);
 		FD_SET(lib->ar_control[1], &rfds);
 
 		/* determine how long to wait */
-		timeout.tv_sec = AR_MAXTIMEOUT;
+		if ((lib->ar_flags & AR_FLAG_DEAD) != 0)
+			timeout.tv_sec = AR_DEFREVIVIFY;
+		else
+			timeout.tv_sec = AR_MAXTIMEOUT;
 		timeout.tv_usec = 0;
+
 		usetimeout = (lib->ar_queries != NULL);
+
 		for (q = lib->ar_queries; q != NULL; q = q->q_next)
 		{
 			/* skip queries for which we're no longer waiting */
@@ -1180,18 +1225,18 @@ ar_dispatcher(void *tp)
 		pthread_mutex_lock(&lib->ar_lock);
 #endif /* SELECT */
 
-		wrote = FALSE;
-
 		buf = NULL;
 
-		/* read what's available for dispatch */
-		if (SOCKET_READY(rfds, lib->ar_nsfd))
+		/* read what's available from the nameserver for dispatch */
+		if (lib->ar_nsfd != -1 &&
+		    SOCKET_READY(rfds, lib->ar_nsfd))
 		{
 			if ((lib->ar_flags & AR_FLAG_USETCP) == 0)
 			{
 				r = recvfrom(lib->ar_nsfd, lib->ar_querybuf,
 				             lib->ar_querybuflen, 0, NULL,
 				             NULL);
+
 				if (r == (size_t) -1)
 					continue;
 
@@ -1206,6 +1251,7 @@ ar_dispatcher(void *tp)
 				len = 0;
 				r = recvfrom(lib->ar_nsfd, &len, sizeof len,
 				             MSG_WAITALL, NULL, NULL);
+
 				if (r == (size_t) -1)
 				{
 					if (errno == EINTR)
@@ -1224,11 +1270,8 @@ ar_dispatcher(void *tp)
 
 				if (err)
 				{
-					/* reconnect */
-					pthread_mutex_unlock(&lib->ar_lock);
-					if (!ar_reconnect(lib))
-						return NULL;
-					pthread_mutex_lock(&lib->ar_lock);
+					/* request a reconnect */
+		     			lib->ar_flags |= AR_FLAG_RECONNECT;
 
 					/* arrange to re-send everything */
 					ar_requeue(lib);
@@ -1252,7 +1295,6 @@ ar_dispatcher(void *tp)
 					lib->ar_tcpbuf = ar_malloc(lib, len);
 					lib->ar_tcpbuflen = len;
 				}
-
 			}
 			else
 			{
@@ -1272,6 +1314,7 @@ ar_dispatcher(void *tp)
 					part = recvfrom(lib->ar_nsfd,
 					                where, rem,
 					                0, NULL, NULL);
+
 					if (part == 0 || part == (size_t) -1)
 					{
 						if (errno == EINTR)
@@ -1289,11 +1332,8 @@ ar_dispatcher(void *tp)
 
 				if (err)
 				{
-					/* reconnect */
-					pthread_mutex_unlock(&lib->ar_lock);
-					if (!ar_reconnect(lib))
-						return NULL;
-					pthread_mutex_lock(&lib->ar_lock);
+					/* request a reconnect */
+		     			lib->ar_flags |= AR_FLAG_RECONNECT;
 
 					/* arrange to re-send everything */
 					ar_requeue(lib);
@@ -1330,13 +1370,9 @@ ar_dispatcher(void *tp)
 			    ((lib->ar_flags & AR_FLAG_TRUNCCHECK) == 0 ||
 			     ar_anscount(buf, r) == 0))
 			{
+				/* request a reconnect */
 				lib->ar_flags |= AR_FLAG_USETCP;
-
-				/* reconnect */
-				pthread_mutex_unlock(&lib->ar_lock);
-				if (!ar_reconnect(lib))
-					return NULL;
-				pthread_mutex_lock(&lib->ar_lock);
+		     		lib->ar_flags |= AR_FLAG_RECONNECT;
 
 				/* arrange to re-send everything */
 				ar_requeue(lib);
@@ -1402,7 +1438,7 @@ ar_dispatcher(void *tp)
 				if (hdr.rcode == NOERROR || ancount == 0)
 				{
 					if ((n = dn_skipname(cp, eom)) < 0)
-						break;
+						continue;
 					cp += n;
 
 					GETSHORT(type, cp);
@@ -1445,60 +1481,7 @@ ar_dispatcher(void *tp)
 			}
 		}
 
-		/* send a pending query */
-		if (SOCKET_READY(wfds, lib->ar_nsfd) &&
-		    lib->ar_pending != NULL)
-		{
-			/* reset read state if there's nothing outstanding */
-			if (lib->ar_queries == NULL)
-				lib->ar_tcpmsglen = 0;
-
-			q = lib->ar_pending;
-
-			lib->ar_pending = q->q_next;
-			if (lib->ar_pending == NULL)
-				lib->ar_pendingtail = NULL;
-
-			q->q_next = NULL;
-
-			/* make and write the query */
-			pthread_mutex_lock(&q->q_lock);
-			ar_sendquery(lib, q);
-			pthread_mutex_unlock(&q->q_lock);
-			wrote = TRUE;
-			if (lib->ar_queriestail == NULL)
-			{
-				lib->ar_queries = q;
-				lib->ar_queriestail = q;
-			}
-			else
-			{
-				lib->ar_queriestail->q_next = q;
-				lib->ar_queriestail = q;
-			}
-		}
-
-		/* pending resends */
-		if (!wrote && lib->ar_resend > 0 &&
-		    SOCKET_READY(wfds, lib->ar_nsfd))
-		{
-			for (q = lib->ar_queries;
-			     !wrote && q != NULL && lib->ar_resend > 0;
-			     q = q->q_next)
-			{
-				pthread_mutex_lock(&q->q_lock);
-				if ((q->q_flags & QUERY_RESEND) != 0)
-				{
-					ar_sendquery(lib, q);
-					q->q_flags &= ~QUERY_RESEND;
-					wrote = TRUE;
-					lib->ar_resend--;
-				}
-				pthread_mutex_unlock(&q->q_lock);
-			}
-		}
-
-		/* control socket messages */
+		/* control socket messages (new work, resend requests) */
 		if (SOCKET_READY(rfds, lib->ar_control[1]))
 		{
 			size_t rlen;
@@ -1511,11 +1494,78 @@ ar_dispatcher(void *tp)
 				return NULL;
 			}
 
-			/* resend request */
+			/* specific resend request */
 			if (q != NULL && (q->q_flags & QUERY_RESEND) == 0)
 			{
 				q->q_flags |= QUERY_RESEND;
 				lib->ar_resend++;
+			}
+		}
+
+		/* send any pending queries */
+		if (lib->ar_nsfd != -1 &&
+		    SOCKET_READY(wfds, lib->ar_nsfd) &&
+		    lib->ar_pending != NULL)
+		{
+			_Bool sent;
+
+			/* reset read state if there's nothing outstanding */
+			if (lib->ar_queries == NULL)
+				lib->ar_tcpmsglen = 0;
+
+			for (q = lib->ar_pending; q != NULL; q = q->q_next)
+			{
+				sent = FALSE;
+
+				q = lib->ar_pending;
+
+				lib->ar_pending = q->q_next;
+				if (lib->ar_pending == NULL)
+					lib->ar_pendingtail = NULL;
+
+				q->q_next = NULL;
+
+				/* make and write the query */
+				pthread_mutex_lock(&q->q_lock);
+				sent = ar_sendquery(lib, q);
+				if (!sent)
+		     			lib->ar_flags |= AR_FLAG_RECONNECT;
+				pthread_mutex_unlock(&q->q_lock);
+
+				if (sent)
+				{
+					/* add it to the active queries list */
+					if (lib->ar_queriestail == NULL)
+					{
+						lib->ar_queries = q;
+						lib->ar_queriestail = q;
+					}
+					else
+					{
+						lib->ar_queriestail->q_next = q;
+						lib->ar_queriestail = q;
+					}
+				}
+			}
+		}
+
+		/* send any queued resends */
+		if (lib->ar_resend > 0 && lib->ar_nsfd != -1 &&
+		    SOCKET_READY(wfds, lib->ar_nsfd))
+		{
+			for (q = lib->ar_queries;
+			     q != NULL && lib->ar_resend > 0;
+			     q = q->q_next)
+			{
+				pthread_mutex_lock(&q->q_lock);
+				if ((q->q_flags & QUERY_RESEND) != 0)
+				{
+					if (!ar_sendquery(lib, q))
+		     				lib->ar_flags |= AR_FLAG_RECONNECT;
+					q->q_flags &= ~QUERY_RESEND;
+					lib->ar_resend--;
+				}
+				pthread_mutex_unlock(&q->q_lock);
 			}
 		}
 
@@ -1533,35 +1583,15 @@ ar_dispatcher(void *tp)
 		}
 
 		/* look through what's left for retries */
-		reconnect = FALSE;
 		for (q = lib->ar_queries; q != NULL; q = q->q_next)
 		{
 			pthread_mutex_lock(&q->q_lock);
 			if (ar_elapsed(&q->q_sent, &lib->ar_retry))
 			{
-				if ((lib->ar_flags & AR_FLAG_USETCP) == 0)
-				{
-					ar_sendquery(lib, q);
-				}
-				else if (!reconnect)
-				{
-					lib->ar_nsidx = (lib->ar_nsidx + 1) % lib->ar_nscount;
-					reconnect = TRUE;
-				}
+				if (!ar_sendquery(lib, q))
+		     			lib->ar_flags |= AR_FLAG_RECONNECT;
 			}
 			pthread_mutex_unlock(&q->q_lock);
-		}
-
-		/* reconnect? */
-		if (reconnect)
-		{
-			pthread_mutex_unlock(&lib->ar_lock);
-			if (!ar_reconnect(lib))
-				return NULL;
-			pthread_mutex_lock(&lib->ar_lock);
-
-			/* arrange to re-send everything */
-			ar_requeue(lib);
 		}
 	}
 
@@ -1715,6 +1745,10 @@ ar_init(ar_malloc_t user_malloc, ar_free_t user_free, void *user_closure,
 	new->ar_control[1] = -1;
 	new->ar_nsidx = 0;
 	new->ar_writelen = 0;
+	new->ar_deadsince.tv_sec = 0;
+	new->ar_deadsince.tv_usec = 0;
+	new->ar_revivify.tv_sec = AR_DEFREVIVIFY;
+	new->ar_revivify.tv_usec = 0;
 
 	if (ar_res_init(new) != 0)
 	{
@@ -1914,6 +1948,62 @@ ar_setmaxretry(AR_LIB lib, int new, int *old)
 }
 
 /*
+**  AR_POKE -- poke the dispatcher
+**
+**  Parameters:
+**  	lib -- AR library handle
+**
+**  Return value:
+**  	Bytes written to the dispatcher control socket (i.e. the return from
+**  	write(2)).
+**
+**  Notes:
+**  	Write a four-byte NULL to the control descriptor to indicate
+**  	to the dispatcher there's general work to do.  This will cause
+**  	it to check its "pending" list for work to do and dispatch it.
+**  	If the descriptor is not writeable, we don't much care because
+**  	that means the pipe is full of messages already which will wake
+**  	up the dispatcher anyway.
+*/
+
+static size_t
+ar_poke(AR_LIB lib)
+{
+	int maxfd;
+	int status;
+	size_t wlen;
+	AR_QUERY x = NULL;
+#if SELECT
+	fd_set wfds;
+	struct timeval stimeout;
+#endif /* SELECT */
+
+	assert(lib != NULL);
+
+	wlen = sizeof x;
+
+#if SELECT
+	/* XXX -- do this as ar_trywrite() or something */
+	maxfd = lib->ar_control[0];
+	FD_ZERO(&wfds);
+	FD_SET(lib->ar_control[0], &wfds);
+	stimeout.tv_sec = 0;
+	stimeout.tv_usec = 0;
+	status = select(maxfd + 1, NULL, &wfds, NULL, &stimeout);
+	if (status == 1)
+	{
+		wlen = write(lib->ar_control[0], &x, sizeof x);
+	}
+	else if (status == -1)
+	{
+		wlen = (size_t) -1;
+	}
+#endif /* SELECT */
+
+	return wlen;
+}
+
+/*
 **  AR_ADDQUERY -- add a query for processing
 **
 **  Parameters:
@@ -1939,15 +2029,9 @@ ar_addquery(AR_LIB lib, char *name, int class, int type, int depth,
 {
 	char prev;
 	int status;
-	int maxfd;
 	size_t wlen;
 	AR_QUERY q;
-	AR_QUERY x;
 	char *p;
-#if SELECT
-	fd_set wfds;
-	struct timeval stimeout;
-#endif /* SELECT */
 
 	assert(lib != NULL);
 	assert(name != NULL);
@@ -2066,45 +2150,14 @@ ar_addquery(AR_LIB lib, char *name, int class, int type, int depth,
 		lib->ar_pendingtail->q_next = q;
 		lib->ar_pendingtail = q;
 	}
-	x = NULL;
-	
-	/*
-	**  Write a four-byte NULL to the control descriptor to indicate
-	**  to the dispatcher there's general work to do.  This will cause
-	**  it to check its "pending" list for work to do and dispatch it.
-	**  If the descriptor is not writeable, we don't much care because
-	**  that means the pipe is full of messages already which will wake
-	**  up the dispatcher anyway.
-	*/
 
-#if SELECT
-	/* XXX -- do this as ar_trywrite() or something */
-	maxfd = lib->ar_control[0];
-	FD_ZERO(&wfds);
-	FD_SET(lib->ar_control[0], &wfds);
-	stimeout.tv_sec = 0;
-	stimeout.tv_usec = 0;
-	status = select(maxfd + 1, NULL, &wfds, NULL, &stimeout);
-	if (status == 1)
-	{
-		wlen = write(lib->ar_control[0], &x, sizeof x);
-	}
-	else if (status == 0)
-	{
-		wlen = sizeof x;
-	}
-	else
-	{
-		if (err != NULL)
-			*err = errno;
-	}
-#endif /* SELECT */
+	wlen = ar_poke(lib);
 
 	pthread_mutex_unlock(&lib->ar_lock);
 
 	switch (wlen)
 	{
-	  case sizeof x:
+	  case sizeof q:
 		return q;
 
 	  default:
