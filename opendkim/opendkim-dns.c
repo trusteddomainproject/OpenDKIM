@@ -612,7 +612,7 @@ dkimf_ar_query(void *srv, int type, unsigned char *query,
 	q = ar_addquery(ar, (char *) query, C_IN, type, MAXCNAMEDEPTH,
 	                buf, buflen, (int *) NULL, (struct timeval *) NULL);
 	if (q == NULL)
-		return -1;
+		return DKIM_DNS_ERROR;
 
 	*qh = (void *) q;
 
