@@ -44,6 +44,9 @@ extern void dkim_error __P((DKIM *, const char *, ...));
 #else /* __RES && __RES >= 19940415 */
 # define RES_UNC_T		unsigned char *
 #endif /* __RES && __RES >= 19940415 */
+#ifndef T_RRSIG
+# define T_RRSIG		46
+#endif /* ! T_RRSIG */
 
 /*
 **  DKIM_GET_KEY_DNS -- retrieve a DKIM key from DNS
@@ -77,6 +80,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	size_t anslen;
 	void *q;
 	DKIM_LIB *lib;
+	unsigned char *txtfound = NULL;
 	unsigned char *p;
 	unsigned char *cp;
 	unsigned char *eom;
@@ -266,6 +270,20 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 			cp += n;
 			continue;
 		}
+		else if (type == T_RRSIG)
+		{
+			/* get payload length */
+			if (cp + INT16SZ > eom)
+			{
+				dkim_error(dkim, "`%s' reply corrupt", qname);
+				return DKIM_STAT_KEYFAIL;
+			}
+			GETSHORT(n, cp);
+
+			cp += n;
+
+			continue;
+		}
 		else if (type != T_TXT)
 		{
 			dkim_error(dkim, "`%s' reply was unexpected type %d",
@@ -273,23 +291,37 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 			return DKIM_STAT_KEYFAIL;
 		}
 
-		if (ancount > 0)
+		if (txtfound != NULL)
 		{
 			dkim_error(dkim, "multiple DNS replies for `%s'",
 			           qname);
 			return DKIM_STAT_MULTIDNSREPLY;
 		}
 
-		/* found a record we can use; break */
-		break;
+		/* remember where this one started */
+		txtfound = cp;
+
+		/* get payload length */
+		if (cp + INT16SZ > eom)
+		{
+			dkim_error(dkim, "`%s' reply corrupt", qname);
+			return DKIM_STAT_KEYFAIL;
+		}
+		GETSHORT(n, cp);
+
+		/* move forward for now */
+		cp += n;
 	}
 
 	/* if ancount went below 0, there were no good records */
-	if (ancount < 0)
+	if (txtfound == NULL)
 	{
 		dkim_error(dkim, "`%s' reply was unresolved CNAME", qname);
 		return DKIM_STAT_KEYFAIL;
 	}
+
+	/* come back to the one we found */
+	cp = txtfound;
 
 	/* get payload length */
 	if (cp + INT16SZ > eom)

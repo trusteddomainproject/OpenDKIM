@@ -16,6 +16,8 @@ release, and a summary of the changes in that release.
 		not something else.
 	Complain if TrustAnchorFile names something that can't be opened
 		for reading.
+	LIBOPENDKIM: Don't complain about multiple records returned if one
+		of them was an RRSIG.  Problem noted by Andreas Schulze.
 	LIBAR: Rework some I/O logic to avoid a deadlock when the nameserver
 		becomes unresponsive during response processing.
 	BUILD: Move all scripts and executables except opendkim to a bin
