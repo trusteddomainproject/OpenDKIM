@@ -51,8 +51,11 @@ extern void dkim_error __P((DKIM *, const char *, ...));
 #endif /* __RES && __RES >= 19940415 */
 
 #ifndef T_AAAA
-# define T_AAAA	28
+# define T_AAAA	i		28
 #endif /* ! T_AAAA */
+#ifndef T_RRSIG
+# define T_RRSIG		46
+#endif /* ! T_RRSIG */
 
 /*
 **  DKIM_GET_POLICY_FILE -- acquire a domain's policy record using a local file
@@ -379,6 +382,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	unsigned char *p;
 	unsigned char *cp;
 	unsigned char *eom;
+	unsigned char *txtfound = NULL;
 	unsigned char ansbuf[MAXPACKET];
 	unsigned char namebuf[DKIM_MAXHOSTNAMELEN + 1];
 	unsigned char outbuf[BUFRSZ + 1];
@@ -572,6 +576,20 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 			cp += n;
 			continue;
 		}
+		else if (type == T_RRSIG)
+		{
+			/* get payload length */
+			if (cp + INT16SZ > eom)
+			{
+				dkim_error(dkim, "`%s' reply corrupt", query);
+				return DKIM_STAT_KEYFAIL;
+			}
+			GETSHORT(n, cp);
+
+			cp += n;
+
+			continue;
+		}
 		else if (type != T_TXT)
 		{
 			/* reject anything not valid (e.g. wildcards) */
@@ -580,7 +598,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 			return -1;
 		}
 
-		if (ancount > 0)
+		if (txtfound != NULL)
 		{
 			dkim_error(dkim, "multiple DNS replies for `%s'",
 			           query);
@@ -588,14 +606,16 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		}
 
 		/* process it */
-		break;
+		txtfound = cp;
 	}
 
-	if (ancount < 0)
+	if (txtfound == NULL)
 	{
 		dkim_error(dkim, "`%s' reply was unresolved CNAME", query);
 		return -1;
 	}
+
+	cp = txtfound;
 
 #ifdef QUERY_CACHE
 	GETLONG(ttl, cp);
