@@ -10,8 +10,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3095782: When VBR is enabled, only perform a query when
 		the "md" domain in the VBR-Info header field matches the
 		"d" field for any valid signature.
-	Fix bug #SF3105993: Handle missing records in Lua DB lookups more
-		correctly.  Reported by Luci Stanescu.
+	Fix bug #SF3105993: Better handling of missing records in Lua DB
+		lookups.  Reported by Luci Stanescu.
 	When reading keys, ensure what's being read is a regular file and
 		not something else.
 	Complain if TrustAnchorFile names something that can't be opened
@@ -19,7 +19,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Don't complain about multiple records returned if one
 		of them was an RRSIG.  Problem noted by Andreas Schulze.
 	LIBAR: Rework some I/O logic to avoid a deadlock when the nameserver
-		becomes unresponsive during response processing.
+		becomes unresponsive during response processing.  Problem
+		noted by Gary Mills.
 	BUILD: Move all scripts and executables except opendkim to a bin
 		directory for adminstrator convenience. They were previously in
 		the sbin directory.
