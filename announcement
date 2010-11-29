@@ -1,38 +1,45 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.2.1 released
+Subject: OpenDKIM v2.2.2 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.2.1, now available
+The OpenDKIM project announces availability of OpenDKIM v2.2.2, now available
 for download from SourceForge.
 
-This release fixes a number of minor bugs found since v2.2.0 was released.
+This release fixes a number of minor bugs found since v2.2.1 was released.
 
 The full RELEASE_NOTES for this version:
 
-2.2.1		2010/10/25
-	Avoid assertion failures when using "-V" and arlib.
-	Fix "refile" loading.  Problem noted by Steve Jenkins.
-	Fix collision between "ReputationRoot" and "StatisticsName" in the
-		configuration file.  Reported by Andreas Schulze.
-	Convert sender's domain name to lowercase prior to doing any database
-		queries with it.  This was done before, but lost during the
-		database overhaul in 1.2.0.  Reported by Gary Mills.
-	Fix up Authentication-Results header field generation for VBR.
-		Reported by Fredrik Pettai.
-	Add _FFR_STATS_I enabling statistics reporting of "i=" signature
-		properties.
-	LIBOPENDKIM: Fix bug #SF3081964: dkim.h requires <sys/time.h>.
-		Patch from Kaspar Brand.
-	LIBOPENDKIM: Fix bug #SF3087251: Use thread-safe resolver functions
-		when avaialble.  Problem noted by Christian Pelissier.
-	LIBOPENDKIM: Cancel completed reputation queries.  Problem noted
-		by John Wood.
-	LIBOPENDKIM: Simplify DKIM_OPTS_ALWAYSHDRS handling.
-	LIBAR: Fix bug #SF3080720: Don't compute timeouts based on completed
-		or dead queries.  Problem noted by John Wood.
-	LIBVBR: Fix some pointer errors causing false negatives.  Problem
-		noted by Fredrik Pettai.
-	TOOLS: Write "v=" tags in key records output by opendkim-genzone.
+2.2.2		2010/11/28
+	Fix bug #SF2903325: Clean up numerous signed vs. unsigned warnings.
+	Fix bug #SF3095782: When VBR is enabled, only perform a query when
+		the "md" domain in the VBR-Info header field matches the
+		"d" field for any valid signature.
+	Fix bug #SF3105993: Better handling of missing records in Lua DB
+		lookups.  Reported by Luci Stanescu.
+	When reading keys, ensure what's being read is a regular file and
+		not something else.
+	Complain if TrustAnchorFile names something that can't be opened
+		for reading.
+	LIBOPENDKIM: Don't complain about multiple records returned if one
+		of them was an RRSIG.  Problem noted by Andreas Schulze.
+	LIBAR: Rework some I/O logic to avoid a deadlock when the nameserver
+		becomes unresponsive during response processing.  Problem
+		noted by Gary Mills.
+	BUILD: Move all scripts and executables except opendkim to a bin
+		directory for adminstrator convenience. They were previously in
+		the sbin directory.
+	BUILD: Fix bug #SF3101842: Fix opendkim-genzone build when OpenDBX
+		is in use.
+	BUILD: opendkim-testkey can require SASL build information when used
+		with OpenLDAP, or Lua information when built with Lua.
+	BUILD: Dissociate libopendkim and libunbound, as this is now handled
+		through the application rather than the library.
+	BUILD: Convert to using git for source code management.
+	STATS: Additional reporting improvements.
+	STATS: Fix bug #SF3107659: Add additional diagnostic output to
+		opendkim-importstats when malformed input is found.
+	TOOLS: Handle input generated with and without the _FFR_STATS_I
+		extensions.  Problem noted by Graham Murray.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
