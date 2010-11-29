@@ -4,18 +4,22 @@
 **
 **  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-config.h,v 1.32 2010/09/14 18:23:38 cm-msk Exp $
+**  $Id: opendkim-config.h,v 1.32.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
 #ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.32 2010/09/14 18:23:38 cm-msk Exp $";
+static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.32.10.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
 
+/* system includes */
+#include <sys/types.h>
+
+/* macros */
 #ifndef FALSE
 # define FALSE	0
 #endif /* ! FALSE */
@@ -23,6 +27,7 @@ static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.32 2010/09/14 1
 # define TRUE	1
 #endif /* ! TRUE */
 
+/* config definition */
 struct configdef dkimf_config[] =
 {
 	{ "ADSPAction",			CONFIG_TYPE_STRING,	FALSE },
@@ -204,7 +209,7 @@ struct configdef dkimf_config[] =
 	{ "VBR-Type",			CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_VBR */
 	{ "X-Header",			CONFIG_TYPE_BOOLEAN,	FALSE },
-	{ NULL,				-1,			FALSE }
+	{ NULL,				(u_int) -1,		FALSE }
 };
 
 #endif /* _DKIM_CONFIG_H_ */

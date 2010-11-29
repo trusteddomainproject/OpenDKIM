@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# $Id: t-local-adsp,v 1.3 2010/09/13 05:23:34 cm-msk Exp $
+# 
+# verify config option Local-ADSP works
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+export TMPFILE=`mktemp /tmp/opendkim-XXXXXXXXX`
+
+../../miltertest/miltertest -s $srcdir/t-local-adsp.lua || exit 1

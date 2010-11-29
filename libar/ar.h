@@ -42,6 +42,7 @@ typedef void ar_free_t(void *, void *);
 #define	AR_FLAG_USETCP		0x01		/* use TCP instead of UDP */
 #define	AR_FLAG_DEAD		0x02		/* service now unavailable */
 #define	AR_FLAG_TRUNCCHECK	0x04		/* limited truncation checks */
+#define	AR_FLAG_RECONNECT	0x08		/* pending reconnect */
 
 #define	AR_STAT_ERROR		(-1)		/* error in transit */
 #define	AR_STAT_SUCCESS		0		/* reply available */
@@ -50,9 +51,10 @@ typedef void ar_free_t(void *, void *);
 
 #define QUERY_ERRNO_TOOBIG	(-1)		/* query too large */
 #define QUERY_ERRNO_RETRIES	(-2)		/* too many retries */
+#define QUERY_ERRNO_SERVICE	(-3)		/* lost contact with DNS */
 
+#define	AR_DEFREVIVIFY		2		/* how long to play dead */
 #define	AR_MAXTIMEOUT		10000000	/* max. allowed timeout (s) */
-
 
 /* PROTOTYPES */
 extern AR_QUERY ar_addquery(AR_LIB, char *, int, int, int, unsigned char *,

@@ -6,8 +6,10 @@
 */
 
 #ifndef lint
-static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.13 2010/09/13 05:33:13 cm-msk Exp $";
+static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.13.10.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/param.h>
@@ -15,7 +17,9 @@ static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.13 2010/09/13 05:33
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <arpa/nameser.h>
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 #include <netdb.h>
 #include <resolv.h>
 #include <string.h>
@@ -23,8 +27,6 @@ static char dkim_policy_c_id[] = "@(#)$Id: dkim-policy.c,v 1.13 2010/09/13 05:33
 #include <errno.h>
 #include <assert.h>
 #include <ctype.h>
-
-#include "build-config.h"
 
 /* libopendkim includes */
 #include "dkim-internal.h"
@@ -49,8 +51,11 @@ extern void dkim_error __P((DKIM *, const char *, ...));
 #endif /* __RES && __RES >= 19940415 */
 
 #ifndef T_AAAA
-# define T_AAAA	28
+# define T_AAAA	i		28
 #endif /* ! T_AAAA */
+#ifndef T_RRSIG
+# define T_RRSIG		46
+#endif /* ! T_RRSIG */
 
 /*
 **  DKIM_GET_POLICY_FILE -- acquire a domain's policy record using a local file
@@ -74,7 +79,7 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 {
 	_Bool found;
 	int n;
-	char *path;
+	u_char *path;
 	unsigned char *p;
 	FILE *f;
 	unsigned char inbuf[BUFRSZ + 1];
@@ -86,7 +91,7 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 
 	path = dkim->dkim_libhandle->dkiml_queryinfo;
 
-	f = fopen(path, "r");
+	f = fopen((char *) path, "r");
 	if (f == NULL)
 	{
 		dkim_error(dkim, "%s: fopen(): %s", path,
@@ -94,12 +99,12 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 		return -1;
 	}
 
-	n = strlen(query);
+	n = strlen((char *) query);
 
 	memset(inbuf, '\0', sizeof inbuf);
 
 	found = FALSE;
-	while (!found && fgets(inbuf, sizeof inbuf - 1, f) != NULL)
+	while (!found && fgets((char *) inbuf, sizeof inbuf - 1, f) != NULL)
 	{
 		for (p = inbuf; *p != '\0'; p++)
 		{
@@ -111,7 +116,7 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 		}
 
 		/* is this a match? */
-		if (strncasecmp(inbuf, query, n) == 0 &&
+		if (strncasecmp((char *) inbuf, (char *) query, n) == 0 &&
 		    isascii(inbuf[n]) && isspace(inbuf[n]))
 		{
 			found = TRUE;
@@ -122,7 +127,7 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 			     p++)
 				continue;
 
-			strlcpy(buf, p, buflen);
+			strlcpy((char *) buf, (char *) p, buflen);
 
 			*qstatus = NOERROR;
 
@@ -377,6 +382,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	unsigned char *p;
 	unsigned char *cp;
 	unsigned char *eom;
+	unsigned char *txtfound = NULL;
 	unsigned char ansbuf[MAXPACKET];
 	unsigned char namebuf[DKIM_MAXHOSTNAMELEN + 1];
 	unsigned char outbuf[BUFRSZ + 1];
@@ -494,7 +500,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	{
 		/* copy it first */
 		(void) dn_expand((unsigned char *) &ansbuf, eom, cp,
-		                 namebuf, sizeof namebuf);
+		                 (char *) namebuf, sizeof namebuf);
 
 		if ((n = dn_skipname(cp, eom)) < 0)
 		{
@@ -570,6 +576,20 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 			cp += n;
 			continue;
 		}
+		else if (type == T_RRSIG)
+		{
+			/* get payload length */
+			if (cp + INT16SZ > eom)
+			{
+				dkim_error(dkim, "`%s' reply corrupt", query);
+				return DKIM_STAT_KEYFAIL;
+			}
+			GETSHORT(n, cp);
+
+			cp += n;
+
+			continue;
+		}
 		else if (type != T_TXT)
 		{
 			/* reject anything not valid (e.g. wildcards) */
@@ -578,7 +598,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 			return -1;
 		}
 
-		if (ancount > 0)
+		if (txtfound != NULL)
 		{
 			dkim_error(dkim, "multiple DNS replies for `%s'",
 			           query);
@@ -586,14 +606,16 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		}
 
 		/* process it */
-		break;
+		txtfound = cp;
 	}
 
-	if (ancount < 0)
+	if (txtfound == NULL)
 	{
 		dkim_error(dkim, "`%s' reply was unresolved CNAME", query);
 		return -1;
 	}
+
+	cp = txtfound;
 
 #ifdef QUERY_CACHE
 	GETLONG(ttl, cp);
@@ -644,7 +666,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	}
 #endif /* QUERY_CACHE */
 
-	strlcpy(buf, outbuf, buflen);
+	strlcpy((char *) buf, (char *) outbuf, buflen);
 
 	return 1;
 }

@@ -9,7 +9,7 @@
 mt.echo("*** unsigned message (silent)")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-verify-unsigned-silent.sock"
+sock = "unix:" .. mt.getcwd() .. "/t-ver-unsigned-silent.sock"
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))

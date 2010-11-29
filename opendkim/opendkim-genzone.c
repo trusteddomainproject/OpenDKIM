@@ -1,11 +1,11 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-genzone.c,v 1.12 2010/10/05 15:38:13 cm-msk Exp $
+**  $Id: opendkim-genzone.c,v 1.12.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #ifndef lint
-static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.12 2010/10/05 15:38:13 cm-msk Exp $";
+static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.12.10.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -583,9 +583,7 @@ main(int argc, char **argv)
 		}
 		else if (status == 1)
 		{
-			(void) dkimf_db_close(db);
-			(void) BIO_free(outbio);
-			return 0;
+			break;
 		}
 
 		if (onlydomain != NULL && strcasecmp(domain, onlydomain) != 0)
@@ -782,12 +780,12 @@ main(int argc, char **argv)
 		(void) BIO_reset(outbio);
 	}
 
-	if (out != stdout)
-		fclose(out);
-
 	(void) BIO_flush(outbio);
 	(void) BIO_free(outbio);
 	(void) dkimf_db_close(db);
+
+	if (out != stdout)
+		fclose(out);
 
 	if (verbose > 0)
 	{

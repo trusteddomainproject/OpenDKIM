@@ -3,14 +3,14 @@
 OVERVIEW
 ========
 
-In order to install the opendkim as a milter plugin to an MTA you will
-need to perform the following steps:
+In order to install the opendkim as a milter to an MTA you will need to
+perform the following steps:
 
 * Compile the opendkim program itself.
 
-* Configure the DKIM subsystem for signing and verification.
+* Configure the opendkim for signing and/or verification.
 
-* Install the milter and configure your MTA to use it.
+* Install the opendkim and configure your MTA to use it.
 
 Note that there is a difference between "OpenDKIM" and "opendkim".
 "OpenDKIM" is a package containing a library, a filter and some tools to
@@ -21,7 +21,7 @@ libopendkim is a library available as an API for programmers everywhere.  That
 API is described in a set of HTML files in the OpenDKIM source code
 package.
 
-opendkim is a plugin that incorporates the libopendkim library and works
+The opendkim filter program incorporates the libopendkim library and works
 with recent versions of sendmail and Postfix or any other MTA that supports
 "milter".  For more information about milter, see <http://www.milter.org>.
 
@@ -86,7 +86,9 @@ doesn't find it, you will need to specify the location with
 		/usr directories will be searched for the required includes
 		and libraries.
 
---with-unbound	The "unbound" asynchronous resolver library and include file.
+--with-unbound	Location of the Unbound DNSSEC capable asynchronous resolver 
+		library and include file.
+                
 
 
 FEATURES
@@ -117,7 +119,7 @@ query_cache	Cache DNS replies in a local database.  Requires the
 COMPILING
 =========
 
-The opendkim plugin requires either sendmail v8.13.0 or Postfix v2.3 or later
+The opendkim filter requires either sendmail v8.13.0 or Postfix v2.3 or later
 for required milter protocol enhancements.
 
 To build this package you must first have installed or at least have available
@@ -133,7 +135,7 @@ http://www.postfix.org/MILTER_README.html
 
 You can view the configuration options with the following command:
 
-	./configure -help
+	./configure --help
 
 The commands shown below assume a UNIX system with standard build tools
 installed.
@@ -143,24 +145,24 @@ Steps to compiling the library and the milter:
 (1) Download the source from OpenDKIM (http://www.opendkim.org).
 
 (2) Unpack the tarball:
-	% tar -xzvf opendkim-$ver.tar.gz
+	tar -xzvf opendkim-<version>.tar.gz
 
-	Be sure you set $ver to the version number that you downloaded.
+    Note: Use <version> as the version number that you downloaded.
 
 (3) Change directories to the release directory (opendkim-<version>) that
     was created in step 2.
-	% cd opendkim-$ver
+	cd opendkim-<version>
 
 (4) Run the "configure" script to configure the package for your operating
     system.
-	% ./configure
+	./configure
 
 (5) Compile the package.
-	% make
+	make
 
 (6) Install the output of the build.  You probably need to become the
     superuser to run this step.
-	% make install
+	make install
 
 
 CONFIGURING OPENDKIM

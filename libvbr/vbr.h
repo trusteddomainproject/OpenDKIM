@@ -9,8 +9,11 @@
 #define _VBR_H_
 
 #ifndef lint
-static char vbr_h_id[] = "@(#)$Id: vbr.h,v 1.2 2009/11/06 09:23:57 cm-msk Exp $";
+static char vbr_h_id[] = "@(#)$Id: vbr.h,v 1.2.48.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
+
+/* system includes */
+#include <sys/types.h>
 
 /* strings */
 #define	VBR_ALL			"all"
@@ -80,7 +83,7 @@ extern void vbr_close __P((VBR *));
 **  	A pointer to the stored string, or NULL if none was stored.
 */
 
-extern const char *vbr_geterror __P((VBR *));
+extern const u_char *vbr_geterror __P((VBR *));
 
 /*
 **  VBR_GETHEADER -- generate and store the VBR-Info header
@@ -95,7 +98,7 @@ extern const char *vbr_geterror __P((VBR *));
 **  	STAT_NORESOURCE -- "hdr" was too short
 */
 
-extern VBR_STAT vbr_getheader __P((VBR *, char *, size_t));
+extern VBR_STAT vbr_getheader __P((VBR *, unsigned char *, size_t));
 
 /*
 **  VBR_SETCERT -- store the VBR certifiers of this message
@@ -108,7 +111,7 @@ extern VBR_STAT vbr_getheader __P((VBR *, char *, size_t));
 **  	None (yet).
 */
 
-extern void vbr_setcert __P((VBR *, char *));
+extern void vbr_setcert __P((VBR *, u_char *));
 
 /*
 **  VBR_SETTYPE -- store the VBR type of this message
@@ -121,7 +124,7 @@ extern void vbr_setcert __P((VBR *, char *));
 **  	None (yet).
 */
 
-extern void vbr_settype __P((VBR *, char *));
+extern void vbr_settype __P((VBR *, u_char *));
 
 /*
 **  VBR_SETDOMAIN -- declare the sender's domain
@@ -134,7 +137,7 @@ extern void vbr_settype __P((VBR *, char *));
 **  	None (yet).
 */
 
-extern void vbr_setdomain __P((VBR *, char *));
+extern void vbr_setdomain __P((VBR *, u_char *));
 
 /*
 **  VBR_TRUSTEDCERTS -- set list of trusted certifiers
@@ -147,7 +150,7 @@ extern void vbr_setdomain __P((VBR *, char *));
 **  	None (yet).
 */
 
-extern void vbr_trustedcerts __P((VBR *, char **));
+extern void vbr_trustedcerts __P((VBR *, u_char **));
 
 /*
 **  VBR_QUERY -- query the vouching servers for results
@@ -170,7 +173,7 @@ extern void vbr_trustedcerts __P((VBR *, char **));
 **  	- there's no attempt to validate the values found
 */
 
-extern VBR_STAT vbr_query __P((VBR *, char **, char **));
+extern VBR_STAT vbr_query __P((VBR *, u_char **, u_char **));
 
 /*
 **  VBR_SETTIMEOUT -- set the DNS timeout

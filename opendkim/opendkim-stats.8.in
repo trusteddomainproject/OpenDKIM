@@ -2,7 +2,7 @@
 .SH NAME
 opendkim-stats - output opendkim statistics
 .SH SYNOPSIS
-.B opendkim-stats statsfile
+.B opendkim-stats
 .I file
 .SH DESCRIPTION
 The

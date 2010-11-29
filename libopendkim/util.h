@@ -9,8 +9,10 @@
 #define _UTIL_H_
 
 #ifndef lint
-static char util_h_id[] = "@(#)$Id: util.h,v 1.5 2010/09/02 05:10:57 cm-msk Exp $";
+static char util_h_id[] = "@(#)$Id: util.h,v 1.5.10.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -18,7 +20,9 @@ static char util_h_id[] = "@(#)$Id: util.h,v 1.5 2010/09/02 05:10:57 cm-msk Exp 
 #ifdef USE_UNBOUND
 # include <sys/select.h>
 #endif /* USE_UNBOUND */
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 
 /* prototypes */
 extern int dkim_addrcmp __P((u_char *, u_char *));

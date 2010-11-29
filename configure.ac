@@ -15,7 +15,7 @@ AC_PREREQ(2.61)
 #
 m4_define([VERSION_RELEASE], 2)
 m4_define([VERSION_MAJOR_REV], 2)
-m4_define([VERSION_MINOR_REV], 1)
+m4_define([VERSION_MINOR_REV], 2)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -1040,6 +1040,11 @@ fi
 if test x"$odbx_found" = x"yes"
 then
 	AC_DEFINE([USE_ODBX], 1, [ODBX support for datasets enabled])
+else
+	if test x"$enable_stats" = x"yes"
+	then
+		AC_MSG_WARN(["opendbx is needed to import statistics into a SQL database - disabling opendkim-importstats"])
+	fi
 fi
 AM_CONDITIONAL(USE_ODBX, test x"$odbx_found" = x"yes")
 AC_SUBST(LIBODBX_CPPFLAGS)

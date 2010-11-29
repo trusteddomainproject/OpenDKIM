@@ -197,11 +197,9 @@ branch.
 current release branch (if any) and the develop branch for later merge to the
 master.
 
-5) When it's time for a new release line to begin (e.g. 1.1.x has been
+5) When it's time for a new release line to begin (e.g. 2.1.x has been
 created but it's time to get some new features out so we need to start
-the 1.2.x releases), start a new release branch and do releases from there.
-(A new release line can run concurrently with the trunk until new features
-start to go in, at which point a release branch is required.)
+the 2.2.x releases), start a new release branch and do releases from there.
  
 If anyone has questions about anything above, feel free to ask about them
 before doing something that could cause a mess.

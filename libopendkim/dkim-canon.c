@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.21 2010/09/21 17:43:10 cm-msk Exp $";
+static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.21.10.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -19,7 +19,9 @@ static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.21 2010/09/21 17:43:1
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
@@ -49,8 +51,8 @@ static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.21 2010/09/21 17:43:1
 #include "util.h"
 
 /* definitions */
-#define	CRLF	"\r\n"
-#define	SP	" "
+#define	CRLF	(u_char *) "\r\n"
+#define	SP	(u_char *) " "
 
 /* macros */
 #define	DKIM_ISLWSP(x)	((x) == 011 || (x) == 013 || (x) == 014 || (x) == 040)
@@ -483,9 +485,9 @@ dkim_canon_selecthdrs(DKIM *dkim, u_char *hdrlist, struct dkim_header **ptrs,
 	int m;
 	int shcnt;
 	size_t len;
-	u_char *bar;
+	char *bar;
 	char *ctx;
-	char *colon;
+	u_char *colon;
 	struct dkim_header *hdr;
 	struct dkim_header **lhdrs;
 	u_char **hdrs;
@@ -528,7 +530,7 @@ dkim_canon_selecthdrs(DKIM *dkim, u_char *hdrlist, struct dkim_header **ptrs,
 		}
 	}
 
-	strlcpy(dkim->dkim_hdrlist, hdrlist, DKIM_MAXHEADER);
+	strlcpy((char *) dkim->dkim_hdrlist, (char *) hdrlist, DKIM_MAXHEADER);
 
 	/* mark all headers as not used */
 	for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
@@ -558,7 +560,7 @@ dkim_canon_selecthdrs(DKIM *dkim, u_char *hdrlist, struct dkim_header **ptrs,
 	n = 0;
 
 	/* make a split-out copy of hdrlist */
-	for (bar = strtok_r(dkim->dkim_hdrlist, ":", &ctx);
+	for (bar = strtok_r((char *) dkim->dkim_hdrlist, ":", &ctx);
 	     bar != NULL;
 	     bar = strtok_r(NULL, ":", &ctx))
 	{
@@ -572,7 +574,7 @@ dkim_canon_selecthdrs(DKIM *dkim, u_char *hdrlist, struct dkim_header **ptrs,
 	{
 		lhdrs[shcnt] = NULL;
 
-		len = MIN(DKIM_MAXHEADER, strlen(hdrs[c]));
+		len = MIN(DKIM_MAXHEADER, strlen((char *) hdrs[c]));
 		while (len > 0 &&
 		       isascii(hdrs[c][len - 1]) &&
 		       isspace(hdrs[c][len - 1]))
@@ -584,7 +586,8 @@ dkim_canon_selecthdrs(DKIM *dkim, u_char *hdrlist, struct dkim_header **ptrs,
 				continue;
 
 			if (len == hdr->hdr_namelen &&
-			    strncasecmp(hdr->hdr_text, hdrs[c], len) == 0)
+			    strncasecmp((char *) hdr->hdr_text,
+			                (char *) hdrs[c], len) == 0)
 				lhdrs[shcnt] = hdr;
 		}
 
@@ -1103,7 +1106,8 @@ dkim_canon_runheaders(DKIM *dkim)
 				/* terminate the header field name and test */
 				hdr->hdr_text[hdr->hdr_namelen] = '\0';
 				status = regexec(&lib->dkiml_hdrre,
-				                 hdr->hdr_text, 0, NULL, 0);
+				                 (char *) hdr->hdr_text,
+				                 0, NULL, 0);
 
 				/* restore the character */
 				hdr->hdr_text[hdr->hdr_namelen] = savechar;
@@ -1530,7 +1534,7 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 						else
 						{
 							dkim_canon_buffer(cur,
-							                  "\r",
+							                  (u_char *) "\r",
 							                  1);
 						}
 					}

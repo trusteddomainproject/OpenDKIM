@@ -3,12 +3,12 @@
 
 DKIM Working Group                                          M. Kucherawy
 Internet-Draft                                                 Cloudmark
-Intended status: Informational                          October 11, 2010
-Expires: April 14, 2011
+Intended status: Informational                          November 9, 2010
+Expires: May 13, 2011
 
 
                      RFC4871 Implementation Report
-                draft-ietf-dkim-implementation-report-03
+                draft-ietf-dkim-implementation-report-05
 
 Abstract
 
@@ -31,7 +31,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 14, 2011.
+   This Internet-Draft will expire on May 13, 2011.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Kucherawy                Expires April 14, 2011                 [Page 1]
+Kucherawy                 Expires May 13, 2011                  [Page 1]
 
-Internet-Draft        RFC4871 Implementation Report         October 2010
+Internet-Draft        RFC4871 Implementation Report        November 2010
 
 
 Table of Contents
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Kucherawy                Expires April 14, 2011                 [Page 2]
+Kucherawy                 Expires May 13, 2011                  [Page 2]
 
-Internet-Draft        RFC4871 Implementation Report         October 2010
+Internet-Draft        RFC4871 Implementation Report        November 2010
 
 
 1.  Introduction
@@ -164,9 +164,9 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                Expires April 14, 2011                 [Page 3]
+Kucherawy                 Expires May 13, 2011                  [Page 3]
 
-Internet-Draft        RFC4871 Implementation Report         October 2010
+Internet-Draft        RFC4871 Implementation Report        November 2010
 
 
 2.  Definitions
@@ -220,9 +220,9 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                Expires April 14, 2011                 [Page 4]
+Kucherawy                 Expires May 13, 2011                  [Page 4]
 
-Internet-Draft        RFC4871 Implementation Report         October 2010
+Internet-Draft        RFC4871 Implementation Report        November 2010
 
 
 3.  DKIM Interoperability Event
@@ -276,9 +276,9 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                Expires April 14, 2011                 [Page 5]
+Kucherawy                 Expires May 13, 2011                  [Page 5]
 
-Internet-Draft        RFC4871 Implementation Report         October 2010
+Internet-Draft        RFC4871 Implementation Report        November 2010
 
 
    feature.
@@ -332,9 +332,9 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                Expires April 14, 2011                 [Page 6]
+Kucherawy                 Expires May 13, 2011                  [Page 6]
 
-Internet-Draft        RFC4871 Implementation Report         October 2010
+Internet-Draft        RFC4871 Implementation Report        November 2010
 
 
    o  correction to the signature example (errata #1386)
@@ -388,9 +388,9 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                Expires April 14, 2011                 [Page 7]
+Kucherawy                 Expires May 13, 2011                  [Page 7]
 
-Internet-Draft        RFC4871 Implementation Report         October 2010
+Internet-Draft        RFC4871 Implementation Report        November 2010
 
 
 4.  Collected DKIM Interoperability and Use Data
@@ -425,16 +425,16 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
    Reporting Hosts:  six individual MTAs representing four distinct
       ADMDs
 
-   Total Messages:  538702
+   Total Messages:  2558218
 
-   Signatures:  394786 messages (73.3%) were not signed; 140535 (26.1%)
-      had one signature; 3354 (0.6%) had two signatures; the remainder
+   Signatures:  1869088 messages (73.0%) were not signed; 676133 (26.4%)
+      had one signature; 12906 (0.5%) had two signatures; the remainder
       (less than 0.01%) had more.
 
-   Signing Algorithms:  49% of signatures used "rsa-sha1", while the
+   Signing Algorithms:  50.5% of signatures used "rsa-sha1", while the
       balance used "rsa-sha256".
 
-   Header Canonicalization Algorithms:  13.8% of signatures used
+   Header Canonicalization Algorithms:  14.7% of signatures used
       "simple", while the balance used "relaxed"; when grouped by
       domains, the percentages were similar.
 
@@ -444,84 +444,92 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                Expires April 14, 2011                 [Page 8]
+Kucherawy                 Expires May 13, 2011                  [Page 8]
 
-Internet-Draft        RFC4871 Implementation Report         October 2010
+Internet-Draft        RFC4871 Implementation Report        November 2010
 
 
-   Body Canonicalization Algorithms:  25.6% of signatures used "simple",
-      while the balance used "relaxed"; when grouped by domains, the
-      percentages were similar.
+   Body Canonicalization Algorithms:  26.9% of signatures used "simple",
+      while the balance used "relaxed"; 18.9% of observed signing
+      domains used "simple" while the balance used "relaxed".
 
-   Keys in Test Mode:  56.1% of keys retrieved from the DNS were tagged
+   Keys in Test Mode:  46.6% of keys retrieved from the DNS were tagged
       as being in test mode.
 
-   Keys with Specific Granularity:  Four keys were retrieved that had
+   Keys with Specific Granularity:  14 keys were retrieved that had
       specific names in their "g=" tags.
 
    Keys with Syntax Errors:  Less than 0.1% of keys retrieved from the
       DNS had syntax errors.
 
-   DomainKeys Compatibility:  1.4% of the retrieved keys appeared to be
+   DomainKeys Compatibility:  1.2% of the retrieved keys appeared to be
       intended for use with the older DomainKeys proposal rather than
       DKIM
 
-   Missing Keys:  2% of signatures received referenced keys that were
+   AUID use:  52.4% of signatures did not contain an explicit AUID ("i="
+      value).  Of those that did, 86.6% used a domain matching the SDID
+      ("d=" value).  Across all "i=" tags present, 42.8% provided no
+      local-part, 53.4% included a local-part matching the one found in
+      the From: field, and the remainder had a different local-part.
+
+   Missing Keys:  1.7% of signatures received referenced keys that were
       not found in the DNS
 
    Optional Signature Tags:  Of the optional signature tags supported by
-      the base specification, "t=" was seen 46.7% of the time (1% of
+      the base specification, "t=" was seen 46.6% of the time (1% of
       which included timestamps in the future, even after forgiving some
-      clock drift); "x=" was seen 4.4% of the time; "l=" was seen 4.6%
-      of the time; "z=" was seen 4.8% of the time.
+      clock drift); "x=" was seen 4.2% of the time; "l=" was seen 4% of
+      the time; "z=" was seen 7.2% of the time.
 
-   Body Length Limits:  Of the signatures for which "l=" was used, 6.4%
-      of them signed none of the body, and 100% of the rest had the body
-      extended after signing.
+   Body Length Limits:  Of the signatures for which "l=" was used, 8.4%
+      of them signed none of the body, and 84.6% of the rest had the
+      body extended after signing.
 
-   Signature Pass Rates:  Overall, 89.9% of observed signatures were
+   Signature Pass Rates:  Overall, 92% of observed signatures were
       successfully verified.
 
    Pass Rates for Non-List Mail:  Where "list mail" is defined as any
       mail bearing one of the header fields defined in [LIST-ID] or in
       [LIST-URLS], or a "Precedence: list" field, selecting only for
       mail that is not list mail revealed a successful verification rate
-      of 93.6%; selecting only for list mail produced a 84.7% success
+      of 94.9%; selecting only for list mail produced a 87.8% success
       rate.
 
-   DNSSEC:  Only one reporting site is currently checking for DNSSEC on
-      keys retrieved from the DNS.  It found no signed keys.
+
+
+
+
+
+Kucherawy                 Expires May 13, 2011                  [Page 9]
+
+Internet-Draft        RFC4871 Implementation Report        November 2010
+
+
+   DNSSEC:  No signed keys were reported in the accumulated data to
+      date.
 
    Common errors:  The top five verification errors observed: Key not
-      found in DNS (20.3%), key granularity mismatch (14.2%), DNS
-      retrieval failure such as timeouts (1.8%), key revoked (1.7%),
-      unknown key type (1.6%).
-
-
-
-
-Kucherawy                Expires April 14, 2011                 [Page 9]
-
-Internet-Draft        RFC4871 Implementation Report         October 2010
-
+      found in DNS (21.2%), key granularity mismatch (16%), DNS
+      retrieval failure such as timeouts (2.1%), key type unknown
+      (2.0%), key syntax error (1.0%).
 
    Detected Header Field Changes:  A subset of the reporting sites are
       capable of reporting header fields known to have been changed in
       transit (e.g. when "z=" tags were used by the signer).  In such
       cases, changes to the "To:" field were more common than any other
-      by a factor of two or more.
+      by almost an order of magnitude.
 
-   Most Commonly Signed Fields:  From: (100%), To: (95.5%), Subject:
-      (93.7%), Date: (92.3%), MIME-Version: (88.8%), Content-Type:
-      (80%), Message-Id: (75.9%), Received: (59.7%).  All others are
+   Most Commonly Signed Fields:  From: (100%), To: (95.4%), Subject:
+      (95.2%), Date: (94.6%), MIME-Version: (91.3%), Content-Type:
+      (82.9%), Message-Id: (75.6%), Received: (51.8%).  All others are
       below 50%.
 
-   Identities:  73.8% of the signatures observed included a "d=" value
+   Identities:  74.7% of the signatures observed included a "d=" value
       matching the domain in the From: field.
 
-   Multiple-use Signing Domains:  10516 unique signing domains were
-      observed.  Of these, 41.4% of them sent a single signed message in
-      the sample period, 18.3% sent two and 8.7% sent three.
+   Multiple-use Signing Domains:  24789 unique signing domains were
+      observed.  Of these, 32.9% of them sent a single signed message in
+      the sample period, 16.6% sent two and 9.2% sent three.
 
 4.1.3.  Conclusions
 
@@ -536,30 +544,28 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
    Overall signature pass rates are generally quite high.  The impact of
    signature survivability when correlated against Mailing List Manager
-   (MLM) activity is surprisingly low based on observed data.  More
-   research into this is recommended.  The DKIM Working Group is already
-   working on an Informational draft to discuss those issues.
+   (MLM) activity is detectable based on observed data.  More research
+   into this is recommended.  The DKIM Working Group is already working
+   on an Informational draft to discuss those issues.
 
    That the "To" field is the one most often associated with
    verification failures suggests some MTAs handling the message are
    correcting cases where the field is improperly formed.  A common case
    is failing to quote the comment portion of that field when required
    to do so by [MAIL].  Such corrections cause signatures to become
+
+
+
+Kucherawy                 Expires May 13, 2011                 [Page 10]
+
+Internet-Draft        RFC4871 Implementation Report        November 2010
+
+
    invalid.
 
    The counts of low-use signing domains suggest that spammers, who
    typically rotate domain names with high frequency, have adopted DKIM
    as a tool to try to get through message filters.
-
-
-
-
-
-
-Kucherawy                Expires April 14, 2011                [Page 10]
-
-Internet-Draft        RFC4871 Implementation Report         October 2010
-
 
 4.2.  AOL, Inc. Data
 
@@ -600,22 +606,22 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
    AUID matches From: domain:  68.7%
 
+
+
+
+
+
+
+Kucherawy                 Expires May 13, 2011                 [Page 11]
+
+Internet-Draft        RFC4871 Implementation Report        November 2010
+
+
    Signed mail that verified:  14.7%
 
    Signed mail that verified in test mode:  11.7%
 
    Signed mail that failed:  0.2%
-
-
-
-
-
-
-
-Kucherawy                Expires April 14, 2011                [Page 11]
-
-Internet-Draft        RFC4871 Implementation Report         October 2010
-
 
    Signed mail that failed in test mode:  0.2%
 
@@ -662,15 +668,9 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-
-
-
-
-
-
-Kucherawy                Expires April 14, 2011                [Page 12]
+Kucherawy                 Expires May 13, 2011                 [Page 12]
 
-Internet-Draft        RFC4871 Implementation Report         October 2010
+Internet-Draft        RFC4871 Implementation Report        November 2010
 
 
 5.  IANA Considerations
@@ -724,9 +724,9 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                Expires April 14, 2011                [Page 13]
+Kucherawy                 Expires May 13, 2011                 [Page 13]
 
-Internet-Draft        RFC4871 Implementation Report         October 2010
+Internet-Draft        RFC4871 Implementation Report        November 2010
 
 
 6.  Security Considerations
@@ -780,9 +780,9 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                Expires April 14, 2011                [Page 14]
+Kucherawy                 Expires May 13, 2011                 [Page 14]
 
-Internet-Draft        RFC4871 Implementation Report         October 2010
+Internet-Draft        RFC4871 Implementation Report        November 2010
 
 
 7.  References
@@ -836,9 +836,9 @@ Internet-Draft        RFC4871 Implementation Report         October 2010
 
 
 
-Kucherawy                Expires April 14, 2011                [Page 15]
+Kucherawy                 Expires May 13, 2011                 [Page 15]
 
-Internet-Draft        RFC4871 Implementation Report         October 2010
+Internet-Draft        RFC4871 Implementation Report        November 2010
 
 
 Appendix A.  Acknowledgements
@@ -892,9 +892,9 @@ Appendix A.  Acknowledgements
 
 
 
-Kucherawy                Expires April 14, 2011                [Page 16]
+Kucherawy                 Expires May 13, 2011                 [Page 16]
 
-Internet-Draft        RFC4871 Implementation Report         October 2010
+Internet-Draft        RFC4871 Implementation Report        November 2010
 
 
 Author's Address
@@ -948,5 +948,5 @@ Author's Address
 
 
 
-Kucherawy                Expires April 14, 2011                [Page 17]
+Kucherawy                 Expires May 13, 2011                 [Page 17]
 

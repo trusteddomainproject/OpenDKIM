@@ -6,6 +6,8 @@
 *.pc
 *.gcda
 *.gcno
+*.orig
+*.rej
 t-*[0-9]
 t-verifyperf
 t-signperf

@@ -13,14 +13,16 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.36 2010/10/19 04:08:27 cm-msk Exp $";
+static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.36.2.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/time.h>
-#include <stdbool.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 
 /*
 **  version -- 0xrrMMmmpp
@@ -404,9 +406,10 @@ extern void dkim_close __P((DKIM_LIB *lib));
 **  	updated.
 */
 
-extern DKIM *dkim_sign __P((DKIM_LIB *libhandle, const char *id,
+extern DKIM *dkim_sign __P((DKIM_LIB *libhandle, const unsigned char *id,
                             void *memclosure, const dkim_sigkey_t secretkey,
-                            const char *selector, const char *domain,
+                            const unsigned char *selector,
+                            const unsigned char *domain,
                             dkim_canon_t hdr_canon_alg,
                             dkim_canon_t body_canon_alg,
                             dkim_alg_t sign_alg,
@@ -427,7 +430,7 @@ extern DKIM *dkim_sign __P((DKIM_LIB *libhandle, const char *id,
 **  	updated.
 */
 
-extern DKIM *dkim_verify __P((DKIM_LIB *libhandle, const char *id,
+extern DKIM *dkim_verify __P((DKIM_LIB *libhandle, const unsigned char *id,
                               void *memclosure, DKIM_STAT *statp));
 
 /*
@@ -688,7 +691,7 @@ extern DKIM_STAT dkim_getsighdr_d __P((DKIM *dkim, size_t initial,
 **  	appeared in that list.
 */
 
-extern _Bool dkim_sig_hdrsigned __P((DKIM_SIGINFO *sig, char *hdr));
+extern _Bool dkim_sig_hdrsigned __P((DKIM_SIGINFO *sig, u_char *hdr));
 
 /*
 **  DKIM_SIG_GETDNSSEC -- retrieve DNSSEC results for a signature
@@ -746,7 +749,7 @@ extern DKIM_STAT dkim_sig_getreportinfo __P((DKIM *dkim, DKIM_SIGINFO *sig,
 */
 
 extern DKIM_STAT dkim_sig_getidentity __P((DKIM *dkim, DKIM_SIGINFO *sig,
-                                           char *val, size_t vallen));
+                                           u_char *val, size_t vallen));
 
 /*
 **  DKIM_SIG_GETCANONLEN -- report number of (canonicalized) body bytes that
@@ -978,7 +981,7 @@ extern u_char *dkim_getuser __P((DKIM *dkim));
 **  	or NULL if none.
 */
 
-extern char *dkim_get_signer __P((DKIM *dkim));
+extern unsigned char *dkim_get_signer __P((DKIM *dkim));
 
 /*
 **  DKIM_SET_SIGNER -- set DKIM signature's signer
@@ -991,7 +994,7 @@ extern char *dkim_get_signer __P((DKIM *dkim));
 **  	A DKIM_STAT_* constant.
 */
 
-extern DKIM_STAT dkim_set_signer __P((DKIM *dkim, const char *signer));
+extern DKIM_STAT dkim_set_signer __P((DKIM *dkim, const u_char *signer));
 
 /*
 **  DKIM_SET_DNS_CALLBACK -- set the DNS wait callback
@@ -1354,7 +1357,7 @@ extern const char *dkim_getpolicystr __P((int policy));
 **  	A DKIM_STAT_* constant.
 */
 
-extern DKIM_STAT dkim_ohdrs __P((DKIM *dkim, DKIM_SIGINFO *sig, char **ptrs,
+extern DKIM_STAT dkim_ohdrs __P((DKIM *dkim, DKIM_SIGINFO *sig, u_char **ptrs,
                                  int *pcnt));
 
 /*
@@ -1454,7 +1457,7 @@ extern DKIM_STAT dkim_get_reputation __P((DKIM *dkim, DKIM_SIGINFO *sig,
 **  	0 on success; other on error (see source)
 */
 
-extern int dkim_mail_parse __P((char *addr, char **user, char **domain));
+extern int dkim_mail_parse __P((u_char *addr, u_char **user, u_char **domain));
 
 /*
 **  DKIM_SSL_VERSION -- return the version of the OpenSSL library against
@@ -1585,7 +1588,7 @@ extern int dkim_test_key __P((DKIM_LIB *, char *, char *, char *, size_t,
 **  	necessarily been vetted in any way.  Caveat emptor.
 */
 
-extern u_char *dkim_sig_gettagvalue __P((DKIM_SIGINFO *, _Bool, char *));
+extern u_char *dkim_sig_gettagvalue __P((DKIM_SIGINFO *, _Bool, u_char *));
 
 /*
 **  DKIM_STRLCPY -- size-bounded strcpy()
@@ -1672,7 +1675,8 @@ extern void *dkim_dns_set_query_service __P((DKIM_LIB *, void *));
 */
 
 extern void dkim_dns_set_query_start __P((DKIM_LIB *,
-                                          int (*)(void *, int, char *,
+                                          int (*)(void *, int,
+                                                  unsigned char *,
                                                   unsigned char *,
                                                   size_t, void **)));
 
