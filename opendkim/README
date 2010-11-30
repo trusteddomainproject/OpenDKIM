@@ -196,7 +196,7 @@ for the above might look like this:
 
 	preskey	example.com:foo:/usr/local/etc/dkim/keys/president
 	comkey	example.com:bar:/usr/local/etc/dkim/keys/excom
-	netkey	example.com:baz:/usr/local/etc/dkim/keys/exnet
+	netkey	example.net:baz:/usr/local/etc/dkim/keys/exnet
 
 Per the documentation, multi-field data sets that are made of flat files have
 the fields separated by colons, but the key and value(s) are separated by
