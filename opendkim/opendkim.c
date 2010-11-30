@@ -13245,7 +13245,7 @@ main(int argc, char **argv)
 	{
 		fprintf(stderr,
 		        "%s: incompatible OpenSSL versions (library = 0x%09lx, filter = %09lx)\n",
-		        progname, dkim_ssl_version(), OPENSSL_VERSION_NUMBER);
+		        progname, dkim_ssl_version(), (long unsigned int) OPENSSL_VERSION_NUMBER);
 
 		return EX_SOFTWARE;
 	}
