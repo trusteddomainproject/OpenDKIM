@@ -2809,8 +2809,9 @@ dkimf_xs_addheader(lua_State *l)
 		               "odkim.add_header(): incorrect argument count");
 		lua_error(l);
 	}
-	else if (!lua_isstring(l, 1) ||
-	         !lua_isstring(l, 2))
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2) ||
+	         !lua_isstring(l, 3))
 	{
 		lua_pushstring(l,
 		               "odkim.add_header(): incorrect argument type");
@@ -2825,6 +2826,55 @@ dkimf_xs_addheader(lua_State *l)
 	if (ctx == NULL)
 		lua_pushnil(l);
 	else if (dkimf_insheader(ctx, 1, name, value) == MI_SUCCESS)
+		lua_pushnumber(l, 1);
+	else
+		lua_pushnil(l);
+
+	return 1;
+}
+
+/*
+**  DKIMF_XS_DELHEADER -- delete a header field
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_delheader(lua_State *l)
+{
+	int idx;
+	char *name;
+	SMFICTX *ctx;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 3)
+	{
+		lua_pushstring(l,
+		               "odkim.del_header(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2) ||
+	         !lua_isnumber(l, 3))
+	{
+		lua_pushstring(l,
+		               "odkim.del_header(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	name = (char *) lua_tostring(l, 2);
+	idx = lua_tonumber(l, 3);
+	lua_pop(l, 3);
+
+	if (ctx == NULL)
+		lua_pushnil(l);
+	else if (dkimf_chgheader(ctx, 1, name, NUL) == MI_SUCCESS)
 		lua_pushnumber(l, 1);
 	else
 		lua_pushnil(l);

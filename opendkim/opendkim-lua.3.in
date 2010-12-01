@@ -385,6 +385,15 @@ as an envelope recipient to the message represented by
 .I ctx.
 Returns 1 on success, or the Lua constant "nil" on failure.
 .TP
+.B odkim.del_header(ctx, name, n)
+Deletes the
+.I nth
+instance (starting from 0) of the header field called
+.I name
+from the message represented by
+.I ctx.
+Returns 1 on success, or the Lua constant "nil" on failure.
+.TP
 .B odkim.del_rcpt(ctx, addr)
 Deletes
 .I addr

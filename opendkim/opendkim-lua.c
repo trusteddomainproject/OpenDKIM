@@ -119,6 +119,7 @@ static const luaL_Reg dkimf_lua_lib_final[] =
 {
 	{ "add_header",		dkimf_xs_addheader	},
 	{ "add_rcpt",		dkimf_xs_addrcpt	},
+	{ "del_header",		dkimf_xs_delheader	},
 	{ "del_rcpt",		dkimf_xs_delrcpt	},
 	{ "get_header",		dkimf_xs_getheader	},
 	{ "get_policy",		dkimf_xs_getpolicy	},
