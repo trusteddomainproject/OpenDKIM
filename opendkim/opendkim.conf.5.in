@@ -93,8 +93,11 @@ default is "true".
 .TP
 .I AuthservID (string)
 Sets the "authserv-id" to use when generating the Authentication-Results:
-header after verifying a message.  The default is to use the local machine's
-hostname.
+header after verifying a message.  The default is to use the name of the MTA
+processing the message.  If the string "HOSTNAME" is provided, the name of
+the host running the filter (as returned by the
+.I gethostname(3)
+function) will be used.
 
 .TP
 .I AuthservIDWithJobID (Boolean)

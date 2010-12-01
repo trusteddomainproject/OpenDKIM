@@ -4961,7 +4961,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		str = NULL;
 		(void) config_get(data, "AuthservID", &str, sizeof str);
 		if (str != NULL)
-			conf->conf_authservid = strdup(str);
+		{
+			if (strcmp(str, "HOSTNAME") == 0)
+				conf->conf_authservid = strdup(myhostname);
+			else	
+				conf->conf_authservid = strdup(str);
+		}
 
 		(void) config_get(data, "AuthservIDWithJobID",
 		                  &conf->conf_authservidwithjobid,
