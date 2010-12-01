@@ -381,7 +381,8 @@ a signature.
 If the third value starts with a slash ("/") character, or "./" or "../",
 then it is presumed to refer to a file from which the private key should
 be read, otherwise it is itself a PEM-encoded private key or a base64-encoded
-DER private key.  The
+DER private key; a "%" in the third value in this case will be replaced by
+the apparent domain name of the sender.  The
 .I SigningTable
 (see below) is used to select records from this table to be used to add
 signatures based on the message sender.

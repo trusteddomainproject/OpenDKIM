@@ -3710,6 +3710,60 @@ dkimf_ridb_check(char *domain, unsigned int interval)
 #endif /* _FFR_REPORT_INTERVALS */
 
 /*
+**  DKIMF_REPTOKEN -- replace a token in an input string with another string
+**
+**  Parameters:
+**  	out -- output buffer
+**  	outlen -- output buffer length
+**  	in -- input string
+**  	sub -- substitution string
+**
+**  Return value:
+**  	Bytes of output; may be larger than "outlen" if "out" was too small.
+*/
+
+size_t
+dkimf_reptoken(u_char *out, size_t outlen, u_char *in, u_char *sub)
+{
+	size_t ret = 0;
+	u_char *p;
+	u_char *q;
+	u_char *end;
+
+	assert(out != NULL);
+	assert(in != NULL);
+	assert(sub != NULL);
+
+	memset(out, '\0', outlen);
+
+	q = out;
+	end = q + outlen - 1;
+
+	for (p = in; *p != '\0'; p++)
+	{
+		if (*p == '%')
+		{
+			size_t c;
+
+			c = strlcpy((char *) q, (char *) sub, outlen - ret);
+			q += c;
+			ret += c;
+		}
+		else
+		{
+			if (q < end)
+			{
+				*q = *p;
+				q++;
+				ret++;
+			}
+		}
+	}
+
+	return ret;
+}
+
+/*
 **  DKIMF_INSECURE -- see if an open file is safe to use
 **
 **  Parameters:
@@ -3920,6 +3974,23 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 			}
 
 			return 3;
+		}
+
+		if (keydata[0] == '/')
+		{
+			char *d;
+			char tmpdata[MAXBUFRSZ + 1];
+
+			memset(tmpdata, '\0', sizeof tmpdata);
+
+			if (domain[0] == '%' && domain[1] == '\0')
+				d = dfc->mctx_domain;
+			else
+				d = domain;
+
+			dkimf_reptoken(tmpdata, sizeof tmpdata, keydata, d);
+
+			memcpy(keydata, tmpdata, sizeof keydata);
 		}
 
 		keydatasz = sizeof keydata - 1;
@@ -7640,60 +7711,6 @@ dkimf_findheader(msgctx dfc, char *hname, int instance)
 	}
 
 	return NULL;
-}
-
-/*
-**  DKIMF_REPTOKEN -- replace a token in an input string with another string
-**
-**  Parameters:
-**  	out -- output buffer
-**  	outlen -- output buffer length
-**  	in -- input string
-**  	sub -- substitution string
-**
-**  Return value:
-**  	Bytes of output; may be larger than "outlen" if "out" was too small.
-*/
-
-size_t
-dkimf_reptoken(u_char *out, size_t outlen, u_char *in, u_char *sub)
-{
-	size_t ret = 0;
-	u_char *p;
-	u_char *q;
-	u_char *end;
-
-	assert(out != NULL);
-	assert(in != NULL);
-	assert(sub != NULL);
-
-	memset(out, '\0', outlen);
-
-	q = out;
-	end = q + outlen - 1;
-
-	for (p = in; *p != '\0'; p++)
-	{
-		if (*p == '%')
-		{
-			size_t c;
-
-			c = strlcpy((char *) q, (char *) sub, outlen - ret);
-			q += c;
-			ret += c;
-		}
-		else
-		{
-			if (q < end)
-			{
-				*q = *p;
-				q++;
-				ret++;
-			}
-		}
-	}
-
-	return ret;
 }
 
 /*
