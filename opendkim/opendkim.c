@@ -55,10 +55,13 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 #include <netdb.h>
 #include <signal.h>
 #include <regex.h>
-#include <openssl/sha.h>
-#include <openssl/err.h>
-#include <openssl/bio.h>
-#include <openssl/evp.h>
+
+#ifdef USE_LIBGCRYPT
+# include <gcrypt.h>
+#else /* USE_LIBGCRYPT */
+# include <openssl/sha.h>
+# include <openssl/err.h>
+#endif /* USE_LIBGCRYPT */
 
 #ifdef HAVE_PATHS_H
 # include <paths.h>
@@ -7096,6 +7099,7 @@ dkimf_initcontext(struct dkimf_config *conf)
 static void
 dkimf_log_ssl_errors(char *jobid, char *selector, char *domain)
 {
+#ifndef USE_LIBGCRYPT
 	assert(jobid != NULL);
 
 	/* log any queued SSL error messages */
@@ -7136,6 +7140,7 @@ dkimf_log_ssl_errors(char *jobid, char *selector, char *domain)
 
 		errno = saveerr;
 	}
+#endif /* USE_LIBGCRYPT */
 }
 
 /*
@@ -13200,8 +13205,13 @@ main(int argc, char **argv)
 
 			printf("%s: %s v%s\n", progname, DKIMF_PRODUCT,
 			       VERSION);
+#ifdef USE_LIBGCRYPT
+			printf("\tCompiled with libgcrypt %s\n",
+			       GCRYPT_VERSION);
+#else /* USE_LIBGCRYPT */
 			printf("\tCompiled with %s\n",
 			       SSLeay_version(SSLEAY_VERSION));
+#endif /* USE_LIBGCRYPT */
 			printf("\tSMFI_VERSION 0x%x\n", SMFI_VERSION);
 #ifdef HAVE_SMFI_VERSION
 			(void) smfi_version(&mvmajor, &mvminor, &mvrelease);
@@ -13241,6 +13251,7 @@ main(int argc, char **argv)
 	if (optind != argc)
 		return usage();
 
+#ifndef USE_LIBGCRYPT
 	if (dkim_ssl_version() != OPENSSL_VERSION_NUMBER)
 	{
 		fprintf(stderr,
@@ -13250,6 +13261,7 @@ main(int argc, char **argv)
 
 		return EX_SOFTWARE;
 	}
+#endif /* USE_LIBGCRYPT */
 
 	if (conffile != NULL)
 	{

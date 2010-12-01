@@ -34,12 +34,16 @@ static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.23 2010/10/28 02:41:2
 # include "ar.h"
 #endif /* USE_ARLIB */
 
+#ifdef USE_LIBGCRYPT
+# include <gcrypt.h>
+#else /* USE_LIBGCRYPT */
 /* OpenSSL includes */
-#include <openssl/pem.h>
-#include <openssl/rsa.h>
-#include <openssl/bio.h>
-#include <openssl/err.h>
-#include <openssl/sha.h>
+# include <openssl/pem.h>
+# include <openssl/rsa.h>
+# include <openssl/bio.h>
+# include <openssl/err.h>
+# include <openssl/sha.h>
+#endif /* USE_LIBGCRYPT */
 
 #ifdef QUERY_CACHE
 /* libdb includes */
@@ -135,6 +139,16 @@ struct dkim_siginfo
 	struct dkim_set *	sig_keytaglist;
 };
 
+#ifdef USE_LIBGCRYPT
+/* struct dkim_sha -- stuff needed to do a sha hash */
+struct dkim_sha
+{
+	int			sha_tmpfd;
+	u_int			sha_outlen;
+	gcry_md_hd_t		sha_hd;
+	u_char *		sha_out;
+};
+#else /* USE_LIBGCRYPT */
 /* struct dkim_sha1 -- stuff needed to do a sha1 hash */
 struct dkim_sha1
 {
@@ -144,7 +158,7 @@ struct dkim_sha1
 	u_char			sha1_out[SHA_DIGEST_LENGTH];
 };
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 /* struct dkim_sha256 -- stuff needed to do a sha256 hash */
 struct dkim_sha256
 {
@@ -153,7 +167,8 @@ struct dkim_sha256
 	SHA256_CTX		sha256_ctx;
 	u_char			sha256_out[SHA256_DIGEST_LENGTH];
 };
-#endif /* SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_LIBGCRYPT */
 
 /* struct dkim_canon -- a canonicalization status handle */
 struct dkim_canon
@@ -182,6 +197,14 @@ struct dkim_canon
 /* struct dkim_rsa -- stuff needed to do RSA sign/verify */
 struct dkim_rsa
 {
+#ifdef USE_LIBGCRYPT
+	size_t			rsa_rsaoutlen;
+	size_t			rsa_keysize;
+	gcry_sexp_t		rsa_key;
+	gcry_sexp_t		rsa_sig;
+	gcry_sexp_t		rsa_digest;
+	u_char *		rsa_rsaout;
+#else /* USE_LIBGCRYPT */
 	u_char			rsa_pad;
 	size_t			rsa_keysize;
 	size_t			rsa_rsainlen;
@@ -190,6 +213,7 @@ struct dkim_rsa
 	RSA *			rsa_rsa;
 	u_char *		rsa_rsain;
 	u_char *		rsa_rsaout;
+#endif /* USE_LIBGCRYPT */
 };
 
 /* struct dkim_test_dns_data -- simulated DNS replies */

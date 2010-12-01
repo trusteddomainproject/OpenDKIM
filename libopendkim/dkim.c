@@ -147,29 +147,38 @@ void dkim_error __P((DKIM *, const char *, ...));
 				(x) = NULL; \
 			}
 
-#define BIO_CLOBBER(x)	if ((x) != NULL) \
+# define DSTRING_CLOBBER(x) if ((x) != NULL) \
+			{ \
+				dkim_dstring_free((x)); \
+				(x) = NULL; \
+			}
+
+#ifdef USE_LIBGCRYPT
+# define SEXP_CLOBBER(x)	if ((x) != NULL) \
+			{ \
+				gcry_sexp_release((x)); \
+				(x) = NULL; \
+			}
+
+#else /* USE_LIBGCRYPT */
+# define BIO_CLOBBER(x)	if ((x) != NULL) \
 			{ \
 				BIO_free((x)); \
 				(x) = NULL; \
 			}
 
-#define RSA_CLOBBER(x)	if ((x) != NULL) \
+# define RSA_CLOBBER(x)	if ((x) != NULL) \
 			{ \
 				RSA_free((x)); \
 				(x) = NULL; \
 			}
 
-#define	EVP_CLOBBER(x)	if ((x) != NULL) \
+# define EVP_CLOBBER(x)	if ((x) != NULL) \
 			{ \
 				EVP_PKEY_free((x)); \
 				(x) = NULL; \
 			}
-
-#define	DSTRING_CLOBBER(x) if ((x) != NULL) \
-			{ \
-				dkim_dstring_free((x)); \
-				(x) = NULL; \
-			}
+#endif /* ! USE_LIBGCRYPT */
 
 /* macros */
 #define DKIM_ISLWSP(x)  ((x) == 011 || (x) == 013 || (x) == 014 || (x) == 040)
@@ -1847,13 +1856,16 @@ dkim_siglist_setup(DKIM *dkim)
 				break;
 
 			  case DKIM_SIGN_RSASHA256:
-#ifdef SHA256_DIGEST_LENGTH
-				hashtype = DKIM_HASHTYPE_SHA256;
+				if (dkim_libfeature(lib, DKIM_FEATURE_SHA256))
+				{
+					hashtype = DKIM_HASHTYPE_SHA256;
+				}
+				else
+				{
+					dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_INVALID_A;
+					continue;
+				}
 				break;
-#else /* SHA256_DIGEST_LENGTH */
-				dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_INVALID_A;
-				continue;
-#endif /* SHA256_DIGEST_LENGTH */
 
 			  default:
 				assert(0);
@@ -3318,6 +3330,7 @@ dkim_eom_sign(DKIM *dkim)
 	sig = dkim->dkim_siglist[0];
 	hc = sig->sig_hdrcanon;
 
+#ifndef USE_LIBGCRYPT
 	/* determine key properties */
 	key = BIO_new_mem_buf(dkim->dkim_key, dkim->dkim_keylen);
 	if (key == NULL)
@@ -3325,6 +3338,7 @@ dkim_eom_sign(DKIM *dkim)
 		dkim_error(dkim, "BIO_new_mem_buf() failed");
 		return DKIM_STAT_NORESOURCE;
 	}
+#endif /* USE_LIBGCRYPT */
 
 	switch (sig->sig_signalg)
 	{
@@ -3335,6 +3349,12 @@ dkim_eom_sign(DKIM *dkim)
 
 		assert(sig->sig_hashtype == DKIM_HASHTYPE_SHA1 ||
 		       sig->sig_hashtype == DKIM_HASHTYPE_SHA256);
+
+		if (sig->sig_hashtype == DKIM_HASHTYPE_SHA256)
+		{
+			assert(dkim_libfeature(dkim->dkim_libhandle,
+		                               DKIM_FEATURE_SHA256));
+		}
 
 		rsa = DKIM_MALLOC(dkim, sizeof(struct dkim_rsa));
 		if (rsa == NULL)
@@ -3348,6 +3368,28 @@ dkim_eom_sign(DKIM *dkim)
 		sig->sig_signature = (void *) rsa;
 		sig->sig_keytype = DKIM_KEYTYPE_RSA;
 
+#ifdef USE_LIBGCRYPT 
+		if (gcry_sexp_new(&rsa->rsa_key, dkim->dkim_key,
+		                  dkim->dkim_keylen, 1) != GPG_ERR_NO_ERROR)
+		{
+			dkim_error(dkim, "gcry_sexp_new() failed");
+			return DKIM_STAT_NORESOURCE;
+		}
+
+		rsa->rsa_keysize = gcry_pk_get_nbits(rsa->rsa_key);
+
+		rsa->rsa_rsaout = DKIM_MALLOC(dkim, rsa->rsa_keysize);
+		if (rsa->rsa_rsaout == NULL)
+		{
+			dkim_error(dkim, "unable to allocate %d byte(s)",
+			           rsa->rsa_keysize);
+			gcry_sexp_release(rsa->rsa_key);
+			rsa->rsa_key = NULL;
+			return DKIM_STAT_NORESOURCE;
+		}
+
+		sig->sig_keybits = rsa->rsa_keysize * 8;
+#else /* USE_LIBGCRYPT */
 		if (strncmp((char *) dkim->dkim_key, "-----", 5) == 0)
 		{					/* PEM */
 			rsa->rsa_pkey = PEM_read_bio_PrivateKey(key, NULL,
@@ -3396,6 +3438,7 @@ dkim_eom_sign(DKIM *dkim)
 		}
 
 		sig->sig_keybits = rsa->rsa_keysize * 8;
+#endif /* USE_LIBGCRYPT */
 
 		break;
 	  }
@@ -3449,10 +3492,43 @@ dkim_eom_sign(DKIM *dkim)
 	/* compute and store the signature */
 	switch (sig->sig_signalg)
 	{
+#ifdef USE_LIBGCRYPT
 	  case DKIM_SIGN_RSASHA1:
-#ifdef SHA256_DIGEST_LENGTH
 	  case DKIM_SIGN_RSASHA256:
-#endif /* SHA256_DIGEST_LENGTH */
+	  {
+		size_t outsize;
+		struct dkim_rsa *rsa;
+
+		rsa = (struct dkim_rsa *) sig->sig_signature;
+
+		status = gcry_pk_sign(&rsa->rsa_sig, rsa->rsa_digest,
+		                      rsa->rsa_key);
+		if (status != 0)
+		{
+			dkim_error(dkim,
+			           "signature generation failed (status %d)",
+			           status);
+			return DKIM_STAT_INTERNAL;
+		}
+
+		outsize = gcry_sexp_sprint(rsa->rsa_sig, GCRYSEXP_FMT_CANON,
+		                           rsa->rsa_rsaout, rsa->rsa_keysize);
+		if (outsize == 0)
+		{
+			dkim_error(dkim,
+			           "signature too large for buffer (%u bytes)",
+			           outsize);
+			return DKIM_STAT_INTERNAL;
+		}
+
+		signature = rsa->rsa_rsaout;
+		siglen = outsize;
+
+		break;
+	  }
+#else /* USE_LIBGCRYPT */
+	  case DKIM_SIGN_RSASHA1:
+	  case DKIM_SIGN_RSASHA256:
 	  {
 		int nid;
 		struct dkim_rsa *rsa;
@@ -3461,10 +3537,10 @@ dkim_eom_sign(DKIM *dkim)
 
 		nid = NID_sha1;
 
-#ifdef SHA256_DIGEST_LENGTH
-		if (sig->sig_hashtype == DKIM_HASHTYPE_SHA256)
+		if (dkim_libfeature(dkim->dkim_libhandle,
+		                    DKIM_FEATURE_SHA256) &&
+		    sig->sig_hashtype == DKIM_HASHTYPE_SHA256)
 			nid = NID_sha256;
-#endif /* SHA256_DIGEST_LENGTH */
 
 		status = RSA_sign(nid, digest, diglen,
 	                          rsa->rsa_rsaout, &l, rsa->rsa_rsa);
@@ -3486,6 +3562,7 @@ dkim_eom_sign(DKIM *dkim)
 
 		break;
 	  }
+#endif /* USE_LIBGCRYPT */
 
 	  default:
 		assert(0);
@@ -3499,7 +3576,9 @@ dkim_eom_sign(DKIM *dkim)
 	{
 		dkim_error(dkim, "unable to allocate %d byte(s)",
 		           dkim->dkim_b64siglen);
+#ifndef USE_LIBGCRYPT
 		BIO_free(key);
+#endif /* ! USE_LIBGCRYPT */
 		return DKIM_STAT_NORESOURCE;
 	}
 	memset(dkim->dkim_b64sig, '\0', dkim->dkim_b64siglen);
@@ -3507,7 +3586,9 @@ dkim_eom_sign(DKIM *dkim)
 	status = dkim_base64_encode(signature, siglen, dkim->dkim_b64sig,
 	                            dkim->dkim_b64siglen);
 
+#ifndef USE_LIBGCRYPT
 	BIO_free(key);
+#endif /* ! USE_LIBGCRYPT */
 
 	if (status == -1)
 	{
@@ -3855,8 +3936,10 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	u_char *td;
 	DKIM_LIB *libhandle;
 
+#ifndef USE_LIBGCRYPT
 	/* initialize OpenSSL algorithms */
 	OpenSSL_add_all_algorithms();
+#endif /* USE_LIBGCRYPT */
 
 	/* copy the parameters */
 	libhandle = (DKIM_LIB *) malloc(sizeof(struct dkim_lib));
@@ -3927,9 +4010,9 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef QUERY_CACHE
 	FEATURE_ADD(libhandle, DKIM_FEATURE_QUERY_CACHE);
 #endif /* QUERY_CACHE */
-#ifdef SHA256_DIGEST_LENGTH
+#ifdef HAVE_SHA256
 	FEATURE_ADD(libhandle, DKIM_FEATURE_SHA256);
-#endif /* SHA256_DIGEST_LENGTH */
+#endif /* HAVE_SHA256 */
 #ifdef _FFR_RESIGN
 	FEATURE_ADD(libhandle, DKIM_FEATURE_RESIGN);
 #endif /* _FFR_RESIGN */
@@ -3970,7 +4053,9 @@ dkim_close(DKIM_LIB *lib)
 	
 	free((void *) lib);
 
+#ifndef USE_LIBGCRYPT
 	EVP_cleanup();
+#endif /* ! USE_LIBGCRYPT */
 }
 
 /*
@@ -4455,9 +4540,15 @@ dkim_free(DKIM *dkim)
 				rsa = dkim->dkim_siglist[c]->sig_signature;
 				if (rsa != NULL)
 				{
+#ifdef USE_LIBGCRYPT
+					SEXP_CLOBBER(rsa->rsa_key);
+					SEXP_CLOBBER(rsa->rsa_digest);
+					SEXP_CLOBBER(rsa->rsa_sig);
+#else /* USE_LIBGCRYPT */
 					EVP_CLOBBER(rsa->rsa_pkey);
 					RSA_CLOBBER(rsa->rsa_rsa);
 					CLOBBER(rsa->rsa_rsaout);
+#endif /* USE_LIBGCRYPT */
 				}
 			}
 			CLOBBER(dkim->dkim_siglist[c]->sig_signature);
@@ -4530,19 +4621,22 @@ dkim_sign(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 	       signalg == DKIM_SIGN_RSASHA1 || signalg == DKIM_SIGN_RSASHA256);
 	assert(statp != NULL);
 
-#ifdef SHA256_DIGEST_LENGTH
-	if (signalg == DKIM_SIGN_DEFAULT)
-		signalg = DKIM_SIGN_RSASHA256;
-#else /* SHA256_DIGEST_LENGTH */
-	if (signalg == DKIM_SIGN_RSASHA256)
+	if (dkim_libfeature(libhandle, DKIM_FEATURE_SHA256))
 	{
-		*statp = DKIM_STAT_INVALID;
-		return NULL;
+		if (signalg == DKIM_SIGN_DEFAULT)
+			signalg = DKIM_SIGN_RSASHA256;
 	}
+	else
+	{
+		if (signalg == DKIM_SIGN_RSASHA256)
+		{
+			*statp = DKIM_STAT_INVALID;
+			return NULL;
+		}
 
-	if (signalg == DKIM_SIGN_DEFAULT)
-		signalg = DKIM_SIGN_RSASHA1;
-#endif /* SHA256_DIGEST_LENGTH */
+		if (signalg == DKIM_SIGN_DEFAULT)
+			signalg = DKIM_SIGN_RSASHA1;
+	}
 
 	new = dkim_new(libhandle, id, memclosure, hdrcanonalg, bodycanonalg,
 	               signalg, statp);
@@ -5119,6 +5213,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 			return status;
 		}
 
+#ifndef USE_LIBGCRYPT
 		/* load the public key */
 		key = BIO_new_mem_buf(sig->sig_key, sig->sig_keylen);
 		if (key == NULL)
@@ -5126,6 +5221,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 			dkim_error(dkim, "BIO_new_mem_buf() failed");
 			return DKIM_STAT_NORESOURCE;
 		}
+#endif /* USE_LIBGCRYPT */
 
 		/* set up to verify */
 		if (sig->sig_signature == NULL)
@@ -5136,7 +5232,9 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 				dkim_error(dkim,
 				           "unable to allocate %d byte(s)",
 				           sizeof(struct dkim_rsa));
+#ifndef USE_LIBGCRYPT
 				BIO_free(key);
+#endif /* ! USE_LIBGCRYPT */
 				return DKIM_STAT_NORESOURCE;
 			}
 
@@ -5148,6 +5246,45 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		}
 		memset(rsa, '\0', sizeof(struct dkim_rsa));
 
+#ifdef USE_LIBGCRYPT
+		if (gcry_sexp_new(&rsa->rsa_key, sig->sig_key,
+		                  sig->sig_keylen, 1) != GPG_ERR_NO_ERROR ||
+		    gcry_sexp_new(&rsa->rsa_sig,
+		                  digest, diglen, 0) != GPG_ERR_NO_ERROR ||
+		    gcry_sexp_new(&rsa->rsa_digest, sig->sig_sig,
+		                  sig->sig_siglen, 0) != GPG_ERR_NO_ERROR)
+		{
+			dkim_error(dkim, "s=%s d=%s: gcry_sexp_new() failed",
+			           dkim_sig_getselector(sig),
+			           dkim_sig_getdomain(sig));
+
+			if (rsa->rsa_key != NULL)
+				gcry_sexp_release(rsa->rsa_key);
+			if (rsa->rsa_digest != NULL)
+				gcry_sexp_release(rsa->rsa_digest);
+			if (rsa->rsa_sig != NULL)
+				gcry_sexp_release(rsa->rsa_sig);
+
+			rsa->rsa_key = NULL;
+			rsa->rsa_digest = NULL;
+			rsa->rsa_sig = NULL;
+
+			sig->sig_error = DKIM_SIGERROR_KEYDECODE;
+
+			return DKIM_STAT_OK;
+		}
+
+		if (gcry_pk_verify(rsa->rsa_sig, rsa->rsa_digest,
+		                   rsa->rsa_key) == 0)
+			rsastat = 1;
+		else
+			rsastat = 0;
+
+		gcry_sexp_release(rsa->rsa_key);
+		gcry_sexp_release(rsa->rsa_digest);
+		gcry_sexp_release(rsa->rsa_sig);
+
+#else /* USE_LIBGCRYPT */
 		rsa->rsa_pkey = d2i_PUBKEY_bio(key, NULL);
 		if (rsa->rsa_pkey == NULL)
 		{
@@ -5186,13 +5323,15 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 
 		nid = NID_sha1;
 
-#ifdef SHA256_DIGEST_LENGTH
-		if (sig->sig_hashtype == DKIM_HASHTYPE_SHA256)
+		if (dkim_libfeature(dkim->dkim_libhandle,
+		                    DKIM_FEATURE_SHA256) &&
+		    sig->sig_hashtype == DKIM_HASHTYPE_SHA256)
 			nid = NID_sha256;
-#endif /* SHA256_DIGEST_LENGTH */
 
 		rsastat = RSA_verify(nid, digest, diglen, rsa->rsa_rsain,
 	                    	rsa->rsa_rsainlen, rsa->rsa_rsa);
+#endif /* USE_LIBGCRYPT */
+
 		if (rsastat == 1)
 			sig->sig_flags |= DKIM_SIGFLAG_PASSED;
 		else
@@ -5200,9 +5339,12 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 
 		sig->sig_flags |= DKIM_SIGFLAG_PROCESSED;
 
+#ifdef USE_LIBGCRYPT
+#else /* USE_LIBGCRYPT */
 		BIO_free(key);
 		RSA_free(rsa->rsa_rsa);
 		rsa->rsa_rsa = NULL;
+#endif /* USE_LIBGCRYPT */
 	}
 
 	/* do the body hash check if possible */
@@ -6658,6 +6800,25 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 	{
 		switch (sig->sig_hashtype)
 		{
+#ifdef USE_LIBGCRYPT
+		  case DKIM_HASHTYPE_SHA1:
+		  case DKIM_HASHTYPE_SHA256:
+		  {
+			struct dkim_sha *sha;
+
+			sha = (struct dkim_sha *) sig->sig_hdrcanon->canon_hash;
+			if (hfd != NULL)
+				*hfd = sha->sha_tmpfd;
+
+			if (bfd != NULL)
+			{
+				sha = (struct dkim_sha *) sig->sig_bodycanon->canon_hash;
+				*bfd = sha->sha_tmpfd;
+			}
+
+			break;
+		  }
+#else /* USE_LIBGCRYPT */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -6675,7 +6836,7 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 			break;
 		  }
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -6692,7 +6853,8 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 
 			break;
 		  }
-#endif /* SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_LIBGCRYPT */
 
 		  default:
 			assert(0);

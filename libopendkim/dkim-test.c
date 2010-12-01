@@ -9,6 +9,8 @@
 static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.16.10.1 2010/10/27 21:43:08 cm-msk Exp $";
 #endif /* !lint */
 
+#include "build-config.h"
+
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
@@ -21,10 +23,14 @@ static char dkim_test_c_id[] = "@(#)$Id: dkim-test.c,v 1.16.10.1 2010/10/27 21:4
 #include <resolv.h>
 #include <errno.h>
 
+#ifdef USE_LIBGCRYPT
+# include <gcrypt.h>
+#else /* USE_LIBGCRYPT */
 /* openssl includes */
-#include <openssl/bio.h>
-#include <openssl/rsa.h>
-#include <openssl/evp.h>
+# include <openssl/bio.h>
+# include <openssl/rsa.h>
+# include <openssl/evp.h>
+#endif /* USE_LIBGCRYPT */
 
 /* libopendkim includes */
 #include "dkim-internal.h"
@@ -280,8 +286,11 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 	DKIM_STAT stat;
 	DKIM *dkim;
 	DKIM_SIGINFO *sig;
+#ifdef USE_LIBGCRYPT
+#else /* USE_LIBGCRYPT */
 	BIO *keybuf;
 	BIO *outkey;
+#endif /* USE_LIBGCRYPT */
 	void *ptr;
 	struct dkim_rsa *rsa;
 	char buf[BUFRSZ];
@@ -353,6 +362,34 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 
 	if (key != NULL)
 	{
+		rsa = DKIM_MALLOC(dkim, sizeof(struct dkim_rsa));
+		if (rsa == NULL)
+		{
+#ifndef USE_LIBGCRYPT
+			BIO_free(keybuf);
+#endif /* ! USE_LIBGCRYPT */
+			(void) dkim_free(dkim);
+			if (err != NULL)
+			{
+				snprintf(err, errlen,
+				         "unable to allocate %zu byte(s)",
+				         sizeof(struct dkim_rsa));
+			}
+			return -1;
+		}
+		memset(rsa, '\0', sizeof(struct dkim_rsa));
+
+#ifdef USE_LIBGCRYPT
+		if (gcry_sexp_new(&rsa->rsa_key, key,
+		                  keylen, 1) != GPG_ERR_NO_ERROR)
+		{
+			if (err != NULL)
+				strlcpy(err, "gcry_sexp_new() failed", errlen);
+
+			(void) dkim_free(dkim);
+			return -1;
+		}
+#else /* USE_LIBGCRYPT */
 		keybuf = BIO_new_mem_buf(key, keylen);
 		if (keybuf == NULL)
 		{
@@ -365,25 +402,18 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			(void) dkim_free(dkim);
 			return -1;
 		}
-
-		rsa = DKIM_MALLOC(dkim, sizeof(struct dkim_rsa));
-		if (rsa == NULL)
-		{
-			BIO_free(keybuf);
-			(void) dkim_free(dkim);
-			if (err != NULL)
-			{
-				snprintf(err, errlen,
-				         "unable to allocate %zu byte(s)",
-				         sizeof(struct dkim_rsa));
-			}
-			return -1;
-		}
-		memset(rsa, '\0', sizeof(struct dkim_rsa));
+#endif /* USE_LIBGCRYPT */
 
 		sig->sig_signature = (void *) rsa;
 		sig->sig_keytype = DKIM_KEYTYPE_RSA;
 
+#ifdef USE_LIBGCRYPT
+		if (err != NULL)
+			strlcpy(err, "function not implemented", errlen);
+
+		(void) dkim_free(dkim);
+		return -1;
+#else /* USE_LIBGCRYPT */
 		rsa->rsa_pkey = PEM_read_bio_PrivateKey(keybuf, NULL,
 		                                        NULL, NULL);
 		if (rsa->rsa_pkey == NULL)
@@ -451,6 +481,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 
 		BIO_free(keybuf);
 		BIO_free(outkey);
+#endif /* USE_LIBGCRYPT */
 	}
 
 	(void) dkim_free(dkim);

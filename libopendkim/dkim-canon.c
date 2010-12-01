@@ -83,6 +83,29 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 	{
 		switch (canon->canon_hashtype)
 		{
+#ifdef USE_LIBGCRYPT
+		  case DKIM_HASHTYPE_SHA1:
+		  case DKIM_HASHTYPE_SHA256:
+		  {
+			struct dkim_sha *sha;
+
+			sha = (struct dkim_sha *) canon->canon_hash;
+
+			if (sha->sha_tmpfd != -1)
+			{
+				close(sha->sha_tmpfd);
+				sha->sha_tmpfd = -1;
+			}
+
+			gcry_md_close(sha->sha_hd);
+
+			if (sha->sha_out != NULL)
+				DKIM_FREE(dkim, sha->sha_out);
+
+			break;
+		  }
+
+#else /* USE_LIBGCRYPT */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -99,7 +122,7 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 			break;
 		  }
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -115,7 +138,8 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 
 			break;
 		  }
-#endif /* SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_LIBGCRYPT */
 
 		  default:
 			assert(0);
@@ -165,6 +189,22 @@ dkim_canon_write(DKIM_CANON *canon, u_char *buf, size_t buflen)
 
 	switch (canon->canon_hashtype)
 	{
+#ifdef USE_LIBGCRYPT
+	  case DKIM_HASHTYPE_SHA1:
+	  case DKIM_HASHTYPE_SHA256:
+	  {
+		struct dkim_sha *sha;
+
+		sha = (struct dkim_sha *) canon->canon_hash;
+
+		gcry_md_write(sha->sha_hd, buf, buflen);
+
+		if (sha->sha_tmpfd != -1)
+			(void) write(sha->sha_tmpfd, buf, buflen);
+
+		break;
+	  }
+#else /* USE_LIBGCRYPT */
 	  case DKIM_HASHTYPE_SHA1:
 	  {
 		struct dkim_sha1 *sha1;
@@ -178,7 +218,7 @@ dkim_canon_write(DKIM_CANON *canon, u_char *buf, size_t buflen)
 		break;
 	  }
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 	  case DKIM_HASHTYPE_SHA256:
 	  {
 		struct dkim_sha256 *sha256;
@@ -191,7 +231,8 @@ dkim_canon_write(DKIM_CANON *canon, u_char *buf, size_t buflen)
 
 		break;
 	  }
-#endif /*SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_LIBGCRYPT */
 	}
 
 	canon->canon_wrote += buflen;
@@ -725,9 +766,8 @@ dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 		cur->canon_hashbuf = DKIM_MALLOC(dkim, DKIM_HASHBUFSIZE);
 		if (cur->canon_hashbuf == NULL)
 		{
-			dkim_error(dkim,
-			           "unable to allocate %d byte(s)",
-			           sizeof(struct dkim_sha1));
+			dkim_error(dkim, "unable to allocate %d byte(s)",
+			           DKIM_HASHBUFSIZE);
 			return DKIM_STAT_NORESOURCE;
 		}
 		cur->canon_hashbufsize = DKIM_HASHBUFSIZE;
@@ -738,6 +778,60 @@ dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 
 		switch (cur->canon_hashtype)
 		{
+#ifdef USE_LIBGCRYPT
+		  case DKIM_HASHTYPE_SHA1:
+		  case DKIM_HASHTYPE_SHA256:
+		  {
+			struct dkim_sha *sha;
+
+			sha = (struct dkim_sha *) DKIM_MALLOC(dkim,
+			                                      sizeof(struct dkim_sha));
+			if (sha == NULL)
+			{
+				dkim_error(dkim,
+				           "unable to allocate %d byte(s)",
+				           sizeof(struct dkim_sha));
+				return DKIM_STAT_NORESOURCE;
+			}
+
+			memset(sha, '\0', sizeof(struct dkim_sha));
+			sha->sha_tmpfd = -1;
+
+			/* XXX -- test for errors */
+			if (cur->canon_hashtype == DKIM_HASHTYPE_SHA1)
+			{
+				(void) gcry_md_open(&sha->sha_hd,
+				                    GCRY_MD_SHA1, 0);
+			}
+			else
+			{
+				(void) gcry_md_open(&sha->sha_hd,
+				                    GCRY_MD_SHA256, 0);
+			}
+
+			if (sha->sha_hd == NULL)
+			{
+				DKIM_FREE(dkim, sha);
+				return DKIM_STAT_INTERNAL;
+			}
+				
+			if (tmp)
+			{
+				status = dkim_tmpfile(dkim, &fd, keep);
+				if (status != DKIM_STAT_OK)
+				{
+					DKIM_FREE(dkim, sha);
+					return status;
+				}
+
+				sha->sha_tmpfd = fd;
+			}
+
+			cur->canon_hash = sha;
+
+		  	break;
+		  }
+#else /* USE_LIBGCRYPT */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -773,7 +867,7 @@ dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 		  	break;
 		  }
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -808,7 +902,8 @@ dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 
 		  	break;
 		  }
-#endif /* SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_LIBGCRYPT */
 
 		  default:
 			assert(0);
@@ -887,12 +982,15 @@ dkim_add_canon(DKIM *dkim, _Bool hdr, dkim_canon_t canon, int hashtype,
 
 	assert(dkim != NULL);
 	assert(canon == DKIM_CANON_SIMPLE || canon == DKIM_CANON_RELAXED);
-#ifdef DKIM_HASHTYPE_SHA256
-	assert(hashtype == DKIM_HASHTYPE_SHA1 ||
-	       hashtype == DKIM_HASHTYPE_SHA256);
-#else /* DKIM_HASHTYPE_SHA256 */
-	assert(hashtype == DKIM_HASHTYPE_SHA1);
-#endif /* DKIM_HASHTYPE_SHA256 */
+	if (dkim_libfeature(dkim->dkim_libhandle, DKIM_FEATURE_SHA256))
+	{
+		assert(hashtype == DKIM_HASHTYPE_SHA1 ||
+		       hashtype == DKIM_HASHTYPE_SHA256);
+	}
+	else
+	{
+		assert(hashtype == DKIM_HASHTYPE_SHA1);
+	}
 
 	if (!hdr)
 	{
@@ -1247,6 +1345,45 @@ dkim_canon_runheaders(DKIM *dkim)
 		/* finalize */
 		switch (cur->canon_hashtype)
 		{
+#ifdef USE_LIBGCRYPT
+		  case DKIM_HASHTYPE_SHA1:
+		  case DKIM_HASHTYPE_SHA256:
+		  {
+			int alg;
+			struct dkim_sha *sha;
+
+			sha = (struct dkim_sha *) cur->canon_hash;
+
+			if (cur->canon_hashtype == DKIM_HASHTYPE_SHA1)
+				alg = GCRY_MD_SHA1;
+			else
+				alg = GCRY_MD_SHA256;
+
+			sha->sha_outlen = gcry_md_get_algo_dlen(alg);
+
+			sha->sha_out = DKIM_MALLOC(dkim, sha->sha_outlen);
+			if (sha->sha_out == NULL)
+			{
+				dkim_error(dkim, "unable to allocate %u bytes",
+				           sha->sha_outlen);
+				return DKIM_STAT_NORESOURCE;
+			}
+
+			gcry_md_final(sha->sha_hd);
+
+			memcpy(sha->sha_out, gcry_md_read(sha->sha_hd, alg),
+			       sha->sha_outlen);
+
+			if (sha->sha_tmpfd != -1)
+			{
+				close(sha->sha_tmpfd);
+				sha->sha_tmpfd = -1;
+			}
+
+			break;
+		  }
+
+#else /* USE_LIBGCRYPT */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -1260,7 +1397,7 @@ dkim_canon_runheaders(DKIM *dkim)
 			break;
 		  }
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -1273,7 +1410,8 @@ dkim_canon_runheaders(DKIM *dkim)
 
 			break;
 		  }
-#endif /* SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_LIBGCRYPT */
 
 		  default:
 			assert(0);
@@ -1349,6 +1487,44 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 		/* now close it */
 		switch (cur->canon_hashtype)
 		{
+#ifdef USE_LIBGCRYPT
+		  case DKIM_HASHTYPE_SHA1:
+		  case DKIM_HASHTYPE_SHA256:
+		  {
+			int alg;
+			struct dkim_sha *sha;
+
+			sha = (struct dkim_sha *) cur->canon_hash;
+
+			if (cur->canon_hashtype == DKIM_HASHTYPE_SHA1)
+				alg = GCRY_MD_SHA1;
+			else
+				alg = GCRY_MD_SHA256;
+
+			sha->sha_outlen = gcry_md_get_algo_dlen(alg);
+
+			sha->sha_out = DKIM_MALLOC(dkim, sha->sha_outlen);
+			if (sha->sha_out == NULL)
+			{
+				dkim_error(dkim, "unable to allocate %u bytes",
+				           sha->sha_outlen);
+				return DKIM_STAT_NORESOURCE;
+			}
+
+			gcry_md_final(sha->sha_hd);
+
+			memcpy(sha->sha_out, gcry_md_read(sha->sha_hd, alg),
+			       sha->sha_outlen);
+
+			if (sha->sha_tmpfd != -1)
+			{
+				close(sha->sha_tmpfd);
+				sha->sha_tmpfd = -1;
+			}
+
+			break;
+		  }
+#else /* USE_LIBGCRYPT */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -1362,7 +1538,7 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 			break;
 		  }
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -1375,7 +1551,8 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 
 			break;
 		  }
-#endif /* SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_LIBGCRYPT */
 
 		  default:
 			assert(0);
@@ -1739,6 +1916,45 @@ dkim_canon_closebody(DKIM *dkim)
 		/* finalize */
 		switch (cur->canon_hashtype)
 		{
+#ifdef USE_LIBGCRYPT
+		  case DKIM_HASHTYPE_SHA1:
+		  case DKIM_HASHTYPE_SHA256:
+		  {
+			int alg;
+			u_int diglen;
+			struct dkim_sha *sha;
+
+			sha = (struct dkim_sha *) cur->canon_hash;
+
+			if (cur->canon_hashtype == DKIM_HASHTYPE_SHA1)
+				alg = GCRY_MD_SHA1;
+			else
+				alg = GCRY_MD_SHA256;
+
+			diglen = gcry_md_get_algo_dlen(alg);
+
+			sha->sha_out = DKIM_MALLOC(dkim, diglen);
+			if (sha->sha_out == NULL)
+			{
+				dkim_error(dkim, "unable to allocate %u bytes",
+				           diglen);
+				return DKIM_STAT_NORESOURCE;
+			}
+
+			gcry_md_final(sha->sha_hd);
+
+			memcpy(sha->sha_out, gcry_md_read(sha->sha_hd, alg),
+			       diglen);
+
+			if (sha->sha_tmpfd != -1)
+			{
+				close(sha->sha_tmpfd);
+				sha->sha_tmpfd = -1;
+			}
+
+			break;
+		  }
+#else /* USE_LIBGCRYPT */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -1752,7 +1968,7 @@ dkim_canon_closebody(DKIM *dkim)
 			break;
 		  }
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -1765,7 +1981,8 @@ dkim_canon_closebody(DKIM *dkim)
 
 			break;
 		  }
-#endif /* SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_LIBGCRYPT */
 
 		  default:
 			assert(0);
@@ -1802,6 +2019,19 @@ dkim_canon_getfinal(DKIM_CANON *canon, u_char **digest, size_t *dlen)
 
 	switch (canon->canon_hashtype)
 	{
+#ifdef USE_LIBGCRYPT
+	  case DKIM_HASHTYPE_SHA1:
+	  case DKIM_HASHTYPE_SHA256:
+	  {
+		struct dkim_sha *sha;
+
+		sha = (struct dkim_sha *) canon->canon_hash;
+		*digest = sha->sha_out;
+		*dlen = sha->sha_outlen;
+
+		return DKIM_STAT_OK;
+	  }
+#else /* USE_LIBGCRYPT */
 	  case DKIM_HASHTYPE_SHA1:
 	  {
 		struct dkim_sha1 *sha1;
@@ -1813,7 +2043,7 @@ dkim_canon_getfinal(DKIM_CANON *canon, u_char **digest, size_t *dlen)
 		return DKIM_STAT_OK;
 	  }
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 	  case DKIM_HASHTYPE_SHA256:
 	  {
 		struct dkim_sha256 *sha256;
@@ -1824,7 +2054,8 @@ dkim_canon_getfinal(DKIM_CANON *canon, u_char **digest, size_t *dlen)
 
 		return DKIM_STAT_OK;
 	  }
-#endif /* SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_LIBGCRYPT */
 
 	  default:
 		assert(0);

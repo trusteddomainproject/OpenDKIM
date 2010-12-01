@@ -21,13 +21,19 @@ static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.9.22.1 2010
 #include <pthread.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <errno.h>
 
+#ifdef USE_LIBGCRYPT
+/* libgcrypt includes */
+# include <gcrypt.h>
+#else /* USE_LIBGCRYPT */
 /* openssl includes */
-#include <openssl/crypto.h>
-#include <openssl/evp.h>
-#include <openssl/err.h>
-#include <openssl/ssl.h>
-#include <openssl/conf.h>
+# include <openssl/crypto.h>
+# include <openssl/evp.h>
+# include <openssl/err.h>
+# include <openssl/ssl.h>
+# include <openssl/conf.h>
+#endif /* USE_LIBGCRYPT */
 
 /* opendkim includes */
 #include "opendkim-crypto.h"
@@ -35,6 +41,61 @@ static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.9.22.1 2010
 
 /* globals */
 static _Bool crypto_init_done = FALSE;
+
+#ifdef USE_LIBGCRYPT
+
+/*
+**  DKIMF_CRYPTO_INIT -- set up libgcrypt dependencies
+**
+**  Parameters:
+**  	None.
+**
+**  Return value:
+**  	0 -- success
+**  	!0 -- an error code (a la errno)
+*/
+
+int
+dkimf_crypto_init(void)
+{
+	if (!gcry_check_version(GCRYPT_VERSION))
+		return EINVAL;
+     
+	gcry_control(GCRYCTL_SUSPEND_SECMEM_WARN);
+     
+	gcry_control(GCRYCTL_INIT_SECMEM, 16384, 0);
+     
+	gcry_control(GCRYCTL_RESUME_SECMEM_WARN);
+
+	gcry_control(GCRYCTL_SET_THREAD_CBS);
+     
+	gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
+
+	GCRYCTL_SET_THREAD_CBS;
+
+	crypto_init_done = TRUE;
+
+	return 0;
+}
+
+/*
+**  DKIMF_CRYPTO_FREE -- tear down libgcrypt dependencies
+**
+**  Parameters:
+**  	None.
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkimf_crypto_free(void)
+{
+	return;
+}
+
+#else /* USE_LIBGCRYPT */
+
 static pthread_mutex_t id_lock;
 static pthread_key_t id_key;
 static unsigned int nmutexes = 0;
@@ -315,3 +376,5 @@ dkimf_crypto_free(void)
 		crypto_init_done = FALSE;
 	}
 }
+
+#endif /* USE_LIBGCRYPT */

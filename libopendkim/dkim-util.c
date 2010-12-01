@@ -22,6 +22,7 @@ static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.7.58.1 2010/10/27 21:43
 #include <limits.h>
 #include <string.h>
 #include <errno.h>
+#include <stdio.h>
 
 /* libopendkim includes */
 #include "dkim-internal.h"
