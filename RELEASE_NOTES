@@ -9,6 +9,9 @@ release, and a summary of the changes in that release.
 	Feature request #SF3080604: Add odkim.parse_field() function.
 		Requested by Todd Lyons.
 	Feature request #SF3085536: Activate _FFR_STATS_I.
+	LIBOPENDKIM: Fix bug #SF3079094: Have dkim_diffheaders() take
+		canonicalization into account when generating its results
+		to avoid false positives.
 
 2.2.2		2010/11/28
 	Fix bug #SF2903325: Clean up numerous signed vs. unsigned warnings.

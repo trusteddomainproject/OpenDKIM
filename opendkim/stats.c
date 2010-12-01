@@ -495,7 +495,7 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		status = dkim_ohdrs(dkimv, sigs[c], (u_char **) ohdrs, &nhdrs);
 		if (status == DKIM_STAT_OK)
 		{
-			if (dkim_diffheaders(dkimv, DKIMF_STATS_MAXCOST,
+			if (dkim_diffheaders(dkimv, hc, DKIMF_STATS_MAXCOST,
 			                     (char **) ohdrs, nhdrs,
 			                     &diffs, &ndiffs) == DKIM_STAT_OK)
 			{

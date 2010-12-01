@@ -11241,12 +11241,15 @@ mlfi_eom(SMFICTX *ctx)
 		    dfc->mctx_status == DKIMF_STATUS_BAD)
 		{
 			int nhdrs;
+			dkim_canon_t canon;
 			u_char *ohdrs[MAXHDRCNT];
 
 			nhdrs = MAXHDRCNT;
 			memset(ohdrs, '\0', sizeof ohdrs);
 
 			sig = dkim_getsignature(dfc->mctx_dkimv);
+
+			(void) dkim_sig_getcanons(sig, &canon, NULL);
 
 			status = dkim_ohdrs(dfc->mctx_dkimv, sig,
 			                    ohdrs, &nhdrs);
@@ -11300,6 +11303,7 @@ mlfi_eom(SMFICTX *ctx)
 #ifdef _FFR_DIFFHEADERS
 					/* XXX -- make the "5" configurable */
 					status = dkim_diffheaders(dfc->mctx_dkimv,
+					                          canon,
 					                          5,
 					                          (char **) ohdrs,
 					                          nhdrs,

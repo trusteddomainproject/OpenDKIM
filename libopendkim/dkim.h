@@ -1365,6 +1365,7 @@ extern DKIM_STAT dkim_ohdrs __P((DKIM *dkim, DKIM_SIGINFO *sig, u_char **ptrs,
 **
 **  Parameters:
 **  	dkim -- DKIM handle
+**  	canon -- canonicalization mode in use
 **  	maxcost -- maximum "cost" of changes to be reported
 **  	ohdrs -- original headers, presumably extracted from a "z" tag
 **  	nohdrs -- number of headers at "ohdrs" available
@@ -1379,9 +1380,10 @@ extern DKIM_STAT dkim_ohdrs __P((DKIM *dkim, DKIM_SIGINFO *sig, u_char **ptrs,
 **  	destroyed.
 */
 
-extern DKIM_STAT dkim_diffheaders __P((DKIM *dkim, int maxcost, char **ohdrs,
-                                       int nohdrs, struct dkim_hdrdiff **out,
-                                       int *nout));
+extern DKIM_STAT dkim_diffheaders __P((DKIM *dkim, dkim_canon_t canon,
+                                       int maxcost,
+                                       char **ohdrs, int nohdrs,
+                                       struct dkim_hdrdiff **out, int *nout));
 
 /*
 **  DKIM_GETPARTIAL -- return a DKIM handle's "body length tag" flag
