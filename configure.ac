@@ -446,12 +446,134 @@ AC_ARG_ENABLE([debug],
 
 AM_CONDITIONAL([DEBUG], [test x"$enable_debug" = x"yes"])
 
+#
+# libgcrypt
+#
+
+AC_ARG_WITH([libgcrypt],
+            AS_HELP_STRING([--with-libgcrypt],
+                           [location of gcrypt includes and library]),
+                           [gcpath="$withval"], [gcpath="no"])
+gcrypt_found="no"
+
+if test \( x"$gcpath" = x"auto" -o x"$gcpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
+then
+	PKG_CHECK_MODULES([LIBGCRYPT], [libgcrypt >= 1.4.4],
+	                  [gcrypt_found="yes"],
+	                  [gcrypt_found="auto"
+	                   AC_MSG_WARN(["pkg-config for libgcrypt not found, trying manual search..."])
+	                  ])
+elif test x"$gcpath" != x"no"
+then
+	AC_MSG_NOTICE([checking for gcrypt library and includes in $gcpath])
+
+	saved_CFLAGS="$CFLAGS"
+	saved_CPPFLAGS="$CPPFLAGS"
+	saved_LDFLAGS="$LDFLAGS"
+	saved_LIBS="$LIBS"
+
+	LIBS="-lgcrypt $saved_LIBS"
+	CPPFLAGS="-I$gcpath/include $saved_CPPFLAGS"
+	CFLAGS="$saved_CFLAGS"
+	LDFLAGS="-L$gcpath/lib $saved_LDFLAGS"
+
+	AC_CHECK_HEADERS([gcrypt.h], ,
+                 AC_MSG_ERROR([required gcrypt header not found]))
+
+	AC_SEARCH_LIBS([gcry_control], [crypto], ,
+               AC_MSG_ERROR([libcrypto not found]))
+
+	LIBCRYPTO_CPPFLAGS="-I$gcpath/include"
+	LIBCRYPTO_LIBDIRS="-L$gcpath/lib"
+	LIBCRYPTO_LIBS="-lgcrypt"
+
+	CFLAGS="$saved_CFLAGS"
+	CPPFLAGS="$saved_CPPFLAGS"
+	LDFLAGS="$saved_LDFLAGS"
+	LIBS="$saved_LIBS"
+fi
+
+if test x"$gcpath" = x"yes" -a x"$gcrypt_found" = x"auto"
+then
+	gcdirs="/usr/local /usr"
+
+	for d in $gcdirs
+	do
+		AC_MSG_NOTICE([checking for gcrypt library and includes in $d])
+
+		saved_CFLAGS="$CFLAGS"
+		saved_CPPFLAGS="$CPPFLAGS"
+		saved_LDFLAGS="$LDFLAGS"
+		saved_LIBS="$LIBS"
+
+		LIBS="-lgcrypt $saved_LIBS"
+		CPPFLAGS="-I$d/include $saved_CPPFLAGS"
+		CFLAGS="$saved_CFLAGS"
+		LDFLAGS="-L$d/lib $saved_LDFLAGS"
+
+		gcrypt_h_found="no"
+		gcrypt_lib_found="no"
+
+		AC_CHECK_HEADERS([gcrypt.h], gcrypt_h_found="yes")
+		AC_SEARCH_LIBS([gcry_control], [gcrypt],
+		               gcrypt_lib_found="yes")
+
+		CFLAGS="$saved_CFLAGS"
+		CPPFLAGS="$saved_CPPFLAGS"
+		LDFLAGS="$saved_LDFLAGS"
+		LIBS="$saved_LIBS"
+
+		if test x"$gcrypt_h_found" = x"yes" -a \
+		        x"$gcrypt_lib_found" = x"yes"
+		then
+			LIBCRYPTO_CPPFLAGS="-I$d/include"
+			LIBCRYPTO_LIBDIRS="-L$d/lib"
+			LIBCRYPTO_LIBS="-lgcrypt"
+			gcrypt_found="yes"
+			AC_MSG_NOTICE(libgcrypt found in $d)
+			break
+		else
+			AC_MSG_NOTICE(not found in $d)
+		fi
+	done
+
+	if test x"$gcrypt_found" != x"yes"
+	then
+		AC_MSG_ERROR([gcrypt not found])
+	fi
+
+	saved_CPPFLAGS="$CPPFLAGS"
+	CPPFLAGS="-I$d/include $saved_CPPFLAGS"
+
+	sha256check='
+		#include <gcrypt.h>
+		int main()
+		{
+			int x = GCRY_MD_SHA256;
+		}'
+
+	AC_MSG_CHECKING([whether your gcrypt supports SHA256])
+	AC_LINK_IFELSE([$sha256check],
+	               AC_MSG_RESULT(yes),
+	               AC_MSG_WARN([SHA256 is required for DKIM but is not
+	                            supported with your version of gcrypt]))
+
+	CPPFLAGS="$saved_CPPFLAGS"
+fi
+
 AC_ARG_WITH([openssl],
             AS_HELP_STRING([--with-openssl],
                            [location of OpenSSL includes and library]),
                            [sslpath="$withval"], [sslpath="auto"])
 
 openssl_found="no"
+
+if test x"$gcrypt_found" = x"yes"
+then
+	sslpath="skip"
+	openssl_found="skip"
+fi
+
 if test \( "$sslpath" = "auto" -o x"$sslpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
 	PKG_CHECK_MODULES([LIBCRYPTO], [openssl >= 0.9.7],
@@ -496,52 +618,58 @@ then
         LIBCRYPTO_LIBS="-lssl -lcrypto"
 fi
 
-saved_CFLAGS="$CFLAGS"
-saved_CPPFLAGS="$CPPFLAGS"
-saved_LDFLAGS="$LDFLAGS"
-saved_LIBS="$LIBS"
+if test x"$openssl_found" = x"no"
+then
+	saved_CFLAGS="$CFLAGS"
+	saved_CPPFLAGS="$CPPFLAGS"
+	saved_LDFLAGS="$LDFLAGS"
+	saved_LIBS="$LIBS"
 
-LIBS="$LIBCRYPTO_LIBS $saved_LIBS"
-CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
-CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
-LDFLAGS="$LIBCRYPTO_LIBDIRS $saved_LDFLAGS"
+	LIBS="$LIBCRYPTO_LIBS $saved_LIBS"
+	CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
+	CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
+	LDFLAGS="$LIBCRYPTO_LIBDIRS $saved_LDFLAGS"
 
-AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
-                 AC_MSG_ERROR([required OpenSSL header not found]))
+	AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
+                 	AC_MSG_ERROR([required OpenSSL header not found]))
 
-# -ldl is needed to assist with compilation of static openssl libaries.
-# It appears to need dl for opening engine plugins. It fails at load time
-# It also fails to build on FreeBSD if enabled by default.
-AC_SEARCH_LIBS([ERR_peek_error], [crypto], ,
-               AC_MSG_ERROR([libcrypto not found]))
-AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
-	[
-		if test x"$enable_shared" = x"yes"
-		then
-			AC_MSG_ERROR([Cannot build shared opendkim against
-			              static openssl libaries. Configure with
-			              --disable-shared to get this working or
-			              obtain a shared libssl libary for
-			              opendkim to use.])
-		fi
+	# -ldl is needed to assist with compilation of static openssl libaries.
+	# It appears to need dl for opening engine plugins. It fails at load
+	# time It also fails to build on FreeBSD if enabled by default.
+	AC_SEARCH_LIBS([ERR_peek_error], [crypto], ,
+	               AC_MSG_ERROR([libcrypto not found]))
 
-		# avoid caching issue - last result of SSL_library_init
-		# shouldn't be cached for this next check
-		unset ac_cv_search_SSL_library_init
-		LIBCRYPTO_LIBS="$LIBCRYPTO_LIBS -ldl"
-		AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
-		               AC_MSG_ERROR([libssl not found]), [-ldl])
-	]
-)
-AC_CHECK_DECL([SHA256_DIGEST_LENGTH], ,
-              AC_MSG_WARN([SHA256 is required for DKIM but is not supported
-                           with your version of OpenSSL]),
-              [#include <openssl/sha.h>])
+	AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
+		[
+			if test x"$enable_shared" = x"yes"
+			then
+				AC_MSG_ERROR([Cannot build shared opendkim
+				              against static openssl libaries.
+				              Configure with --disable-shared
+				              to get this working or obtain a
+				              shared libssl libary for
+				              opendkim to use.])
+			fi
 
-CFLAGS="$saved_CFLAGS"
-CPPFLAGS="$saved_CPPFLAGS"
-LDFLAGS="$saved_LDFLAGS"
-LIBS="$saved_LIBS"
+			# avoid caching issue - last result of SSL_library_init
+			# shouldn't be cached for this next check
+			unset ac_cv_search_SSL_library_init
+			LIBCRYPTO_LIBS="$LIBCRYPTO_LIBS -ldl"
+			AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
+			               AC_MSG_ERROR([libssl not found]), [-ldl])
+		]
+	)
+
+	AC_CHECK_DECL([SHA256_DIGEST_LENGTH], ,
+	              AC_MSG_WARN([SHA256 is required for DKIM but is not
+	                           supported with your version of OpenSSL]),
+	              [#include <openssl/sha.h>])
+
+	CFLAGS="$saved_CFLAGS"
+	CPPFLAGS="$saved_CPPFLAGS"
+	LDFLAGS="$saved_LDFLAGS"
+	LIBS="$saved_LIBS"
+fi
 
 AC_SUBST(LIBCRYPTO_CFLAGS)
 AC_SUBST(LIBCRYPTO_CPPFLAGS)
