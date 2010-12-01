@@ -561,6 +561,12 @@ then
 	CPPFLAGS="$saved_CPPFLAGS"
 fi
 
+if test x"$gcrypt_found" = x"yes"
+then
+	AC_DEFINE(USE_LIBGCRYPT, 1,
+                  [Define to 1 to use libgcrypt instead of OpenSSL.])
+fi
+
 AC_ARG_WITH([openssl],
             AS_HELP_STRING([--with-openssl],
                            [location of OpenSSL includes and library]),
