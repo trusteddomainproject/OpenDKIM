@@ -16,6 +16,9 @@ release, and a summary of the changes in that release.
 	Feature request #SF3097083: Make SigningTable accessible from Lua.
 	Feature request #SF3103095: Allow "%" in a KeyTable entry's filename
 		component as well as the domain name.
+	Fix bug #SF3067338: Add _FFR_DB_HANDLE_POOLS as an experimental
+		solution to the fact that libodbx handle pools are not
+		thread-safe.  May be extensible to LDAP as well if needed.
 	LIBOPENDKIM: Fix bug #SF3079094: Have dkim_diffheaders() take
 		canonicalization into account when generating its results
 		to avoid false positives.

@@ -46,6 +46,9 @@ codecoverage	Enables generation of profiling code for all libraries,
 		produces a report about code coverage based on the available
 		code coverage tools (gprof, gcov or lcov). (all)
 
+db_handle_pools	Allow creation of a pool of handles to accommodate multiple
+		parallel queries when using OpenDBX.  (opendkim)
+
 default_sender	Allow declaration of sender address to use when a message
 		contains no obvious sender.  (opendkim)
 
@@ -103,9 +106,6 @@ sender_macro	Enable control over an MTA macro from which the address
 stats		Optional generation of per-message and per-signature
 		statistics of interest to the evolution of DKIM.
 		See stats/README for information.  (opendkim)
-
-stats_i		Addition of statistics recording support for "i=" signature
-		tag presence and values.  (opendkim)
 
 statsext	Support for localized stats extensions.  See stats/README
 		for information.  (opendkim)
