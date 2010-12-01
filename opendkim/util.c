@@ -111,6 +111,10 @@ static char *optlist[] =
 	"_FFR_CAPTURE_UNKNOWN_ERRORS",
 #endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
 
+#ifdef _FFR_DB_HANDLE_POOLS
+	"_FFR_DB_HANDLE_POOLS",
+#endif /* _FFR_DB_HANDLE_POOLS */
+
 #ifdef _FFR_DEFAULT_SENDER
 	"_FFR_DEFAULT_SENDER",
 #endif /* _FFR_DEFAULT_SENDER */
