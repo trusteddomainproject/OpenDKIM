@@ -946,9 +946,12 @@ include one field that contains a name found in the
 .I KeyTable
 (see above) that identifies which key should be used in generating
 the signature, and an optional second field naming the signer of the message
-that will be included in the "i=" tag in the generated signature.  Within this
-optional second field, any "%" character will be replaced by the domain found
-in the From: header field.
+that will be included in the "i=" tag in the generated signature.
+
+If the first field contains only a "%" character, it will be replaced by the
+domain found in the From: header field.  Similarly, within the optional
+second field, any "%" character will be replaced by the domain found in
+the From: header field.
 
 If this table specifies a regular expression file ("refile"),
 then the keys are wildcard patterns that are matched against the address

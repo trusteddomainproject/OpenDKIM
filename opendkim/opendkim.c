@@ -7889,6 +7889,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			else if (status == 1)
 				break;
 
+			if (keyname[0] == '%' && keyname[1] == '\0')
+				dkim_strlcpy(keyname, domain, sizeof keyname);
+
 			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
 			                               (char *) tmp);
@@ -7936,7 +7939,11 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
+			if (keyname[0] == '%' && keyname[1] == '\0')
+				dkim_strlcpy(keyname, domain, sizeof keyname);
+
 			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
+
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
 			                               (char *) tmp);
 			if (status != 0 && errkey != NULL)
@@ -7968,7 +7975,11 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
+			if (keyname[0] == '%' && keyname[1] == '\0')
+				dkim_strlcpy(keyname, domain, sizeof keyname);
+
 			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
+
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
 			                               (char *) tmp);
 			if (status != 0 && errkey != NULL)
@@ -8008,8 +8019,15 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			}
 			else if (found)
 			{
+				if (keyname[0] == '%' && keyname[1] == '\0')
+				{
+					dkim_strlcpy(keyname, domain,
+					             sizeof keyname);
+				}
+
 				dkimf_reptoken(tmp, sizeof tmp, signer,
 				               domain);
+
 				status = dkimf_add_signrequest(dfc, keydb,
 				                               keyname,
 				                               (char *) tmp);
@@ -8043,8 +8061,15 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			}
 			else if (found)
 			{
+				if (keyname[0] == '%' && keyname[1] == '\0')
+				{
+					dkim_strlcpy(keyname, domain,
+					             sizeof keyname);
+				}
+
 				dkimf_reptoken(tmp, sizeof tmp, signer,
 				               domain);
+
 				status = dkimf_add_signrequest(dfc, keydb,
 				                               keyname,
 				                               (char *) tmp);
@@ -8081,7 +8106,11 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
+			if (keyname[0] == '%' && keyname[1] == '\0')
+				dkim_strlcpy(keyname, domain, sizeof keyname);
+
 			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
+
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
 			                               (char *) tmp);
 			if (status != 0 && errkey != NULL)
@@ -8112,7 +8141,11 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		}
 		else if (found)
 		{
+			if (keyname[0] == '%' && keyname[1] == '\0')
+				dkim_strlcpy(keyname, domain, sizeof keyname);
+
 			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
+
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
 			                               (char *) tmp);
 			if (status != 0 && errkey != NULL)
