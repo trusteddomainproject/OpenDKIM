@@ -72,7 +72,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	int qdcount;
 	int ancount;
 	int error;
-	int dnssec;
+	int dnssec = DKIM_DNSSEC_UNKNOWN;
 	int c;
 	int n = 0;
 	int type = -1;
@@ -166,9 +166,9 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		}
 
 		(void) lib->dkiml_dns_cancel(lib->dkiml_dns_service, q);
-	}
 
-	sig->sig_dnssec_key = dnssec;
+		sig->sig_dnssec_key = dnssec;
+	}
 
 	/* set up pointers */
 	memcpy(&hdr, ansbuf, sizeof hdr);
