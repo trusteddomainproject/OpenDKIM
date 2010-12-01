@@ -1810,6 +1810,12 @@ dkimf_xs_dbhandle(lua_State *l)
 			lua_pushlightuserdata(l, conf->conf_localadsp_db);
 		break;
 
+	  case DB_SIGNINGTABLE:
+		if (conf->conf_signtabledb == NULL)
+			lua_pushnil(l);
+		else
+			lua_pushlightuserdata(l, conf->conf_signtabledb);
+		break;
 	  default:
 		lua_pushnil(l);
 		break;

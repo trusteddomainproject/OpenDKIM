@@ -76,6 +76,7 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.34.10.1 2010/10/27 21:43:
 #define	DB_MTAS		4
 #define	DB_MACROS	5
 #define	DB_LOCALADSP	6
+#define	DB_SIGNINGTABLE	7
 
 #define DKIMF_POLICY_NONE	(-1)		/* none/undefined */
 #define DKIMF_POLICY_UNKNOWN	0		/* unknown */
