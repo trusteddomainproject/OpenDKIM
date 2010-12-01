@@ -569,6 +569,12 @@ then
                   [Define to 1 to use libgcrypt instead of OpenSSL.])
 fi
 
+AM_CONDITIONAL([USE_LIBGCRYPT], [test x"$gcrypt_found" = x"yes"])
+
+#
+# OpenSSL
+#
+
 AC_ARG_WITH([openssl],
             AS_HELP_STRING([--with-openssl],
                            [location of OpenSSL includes and library]),
