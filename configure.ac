@@ -554,7 +554,9 @@ then
 
 	AC_MSG_CHECKING([whether your gcrypt supports SHA256])
 	AC_LINK_IFELSE([$sha256check],
-	               AC_MSG_RESULT(yes),
+	               AC_MSG_RESULT(yes)
+                       AC_DEFINE([HAVE_SHA256], 1,
+ 	                         [Define to 1 if your crypto library has SHA256 support]),
 	               AC_MSG_WARN([SHA256 is required for DKIM but is not
 	                            supported with your version of gcrypt]))
 
@@ -666,7 +668,9 @@ then
 		]
 	)
 
-	AC_CHECK_DECL([SHA256_DIGEST_LENGTH], ,
+	AC_CHECK_DECL([SHA256_DIGEST_LENGTH],
+                      AC_DEFINE([HAVE_SHA256], 1,
+ 	                        [Define to 1 if your crypto library has SHA256 support]),
 	              AC_MSG_WARN([SHA256 is required for DKIM but is not
 	                           supported with your version of OpenSSL]),
 	              [#include <openssl/sha.h>])
