@@ -4694,11 +4694,9 @@ dkim_resign(DKIM *new, DKIM *old, _Bool hdrbind)
 		hashtype = DKIM_HASHTYPE_SHA1;
 		break;
 
-# ifdef DKIM_SIGN_RSASHA256
 	  case DKIM_SIGN_RSASHA256:
 		hashtype = DKIM_HASHTYPE_SHA256;
 		break;
-# endif /* DKIM_SIGN_RSASHA256 */
 
 	  default:
 		assert(0);
