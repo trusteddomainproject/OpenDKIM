@@ -543,7 +543,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		fprintf(out, "\t-");
 #endif /* _FFR_DIFFHEADERS */
 
-#ifdef _FFR_STATS_I
 		/*
 		**  Reporting of i= has two columns:
 		**
@@ -605,7 +604,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 
 			fprintf(out, "\t%d\t%d", domain, user);
 		}
-#endif /* _FFR_STATS_I */
 
 		fprintf(out, "\n");
 	}

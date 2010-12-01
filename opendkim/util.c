@@ -167,10 +167,6 @@ static char *optlist[] =
 	"_FFR_STATS",
 #endif /* _FFR_STATS */
 
-#if _FFR_STATS_I
-	"_FFR_STATS_I",
-#endif /* _FFR_STATS_I */
-
 #if _FFR_STATSEXT
 	"_FFR_STATSEXT",
 #endif /* _FFR_STATSEXT */

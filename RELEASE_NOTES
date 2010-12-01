@@ -6,6 +6,7 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.3.0		2011/02/21
+	Feature request #SF3085536: Activate _FFR_STATS_I.
 
 2.2.2		2010/11/28
 	Fix bug #SF2903325: Clean up numerous signed vs. unsigned warnings.

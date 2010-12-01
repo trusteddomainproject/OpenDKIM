@@ -245,11 +245,7 @@ main(int argc, char **argv)
 			char *siglen;
 			char *dnssec;
 
-#ifdef _FFR_STATS_I
 			if (n != 19 && n != 21)
-#else /* _FFR_STATS_I */
-			if (n != 19)
-#endif /* _FFR_STATS_I */
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",

@@ -115,6 +115,9 @@ popauth		Enable POP-before-SMTP support.
 query_cache	Cache DNS replies in a local database.  Requires the
 		BerkeleyDB database.  (See "--with-db" above.)
 
+stats		Produce a filter and tools used for statistics collection,
+		analysis and submission.
+
 
 COMPILING
 =========
