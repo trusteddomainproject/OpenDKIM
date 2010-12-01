@@ -112,6 +112,12 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 # define MIN(x,y)	((x) < (y) ? (x) : (y))
 #endif /* ! MIN */
 
+#define	DKIMF_MILTER_ACCEPT	0
+#define	DKIMF_MILTER_REJECT	1
+#define	DKIMF_MILTER_TEMPFAIL	2
+#define	DKIMF_MILTER_DISCARD	3
+#define	DKIMF_MILTER_QUARANTINE	4
+
 /*
 **  ADDRLIST -- address list
 */
@@ -139,13 +145,13 @@ struct handling
 
 struct handling defaults =
 {
-	SMFIS_ACCEPT,
-	SMFIS_ACCEPT,
-	SMFIS_ACCEPT,
-	SMFIS_TEMPFAIL,
-	SMFIS_ACCEPT,
-	SMFIS_TEMPFAIL,
-	SMFIS_TEMPFAIL
+	DKIMF_MILTER_ACCEPT,
+	DKIMF_MILTER_ACCEPT,
+	DKIMF_MILTER_ACCEPT,
+	DKIMF_MILTER_TEMPFAIL,
+	DKIMF_MILTER_ACCEPT,
+	DKIMF_MILTER_TEMPFAIL,
+	DKIMF_MILTER_TEMPFAIL
 };
 
 /*
@@ -501,14 +507,16 @@ struct lookup dkimf_params[] =
 
 struct lookup dkimf_values[] =
 {
-	{ "a",			SMFIS_ACCEPT },
-	{ "accept",		SMFIS_ACCEPT },
-	{ "d",			SMFIS_DISCARD },
-	{ "discard",		SMFIS_DISCARD },
-	{ "r",			SMFIS_REJECT },
-	{ "reject",		SMFIS_REJECT },
-	{ "t",			SMFIS_TEMPFAIL },
-	{ "tempfail",		SMFIS_TEMPFAIL },
+	{ "a",			DKIMF_MILTER_ACCEPT },
+	{ "accept",		DKIMF_MILTER_ACCEPT },
+	{ "d",			DKIMF_MILTER_DISCARD },
+	{ "discard",		DKIMF_MILTER_DISCARD },
+	{ "q",			DKIMF_MILTER_QUARANTINE },
+	{ "quarantine",		DKIMF_MILTER_QUARANTINE },
+	{ "r",			DKIMF_MILTER_REJECT },
+	{ "reject",		DKIMF_MILTER_REJECT },
+	{ "t",			DKIMF_MILTER_TEMPFAIL },
+	{ "tempfail",		DKIMF_MILTER_TEMPFAIL },
 	{ NULL,			-1 },
 };
 
@@ -7455,6 +7463,46 @@ dkimf_cleanup(SMFICTX *ctx)
 }
 
 /*
+**  DKIMF_MILTERCODE -- apply an internal result code to libmilter
+**
+**  Parameters:
+**  	ctx -- milter context
+**  	dmc -- DKIMF_MILTER_* code
+**  	str -- quarantine string (optional)
+**
+**  Return value:
+**  	An SMFIS_* constant.
+*/
+
+sfsistat
+dkimf_miltercode(SMFICTX *ctx, int dmc, char *str)
+{
+	assert(ctx != NULL);
+
+	switch (dmc)
+	{
+	  case DKIMF_MILTER_ACCEPT:
+		return SMFIS_ACCEPT;
+
+	  case DKIMF_MILTER_DISCARD:
+		return SMFIS_DISCARD;
+
+	  case DKIMF_MILTER_QUARANTINE:
+		(void) dkimf_quarantine(ctx, progname);
+		return SMFIS_ACCEPT;
+
+	  case DKIMF_MILTER_REJECT:
+		return SMFIS_REJECT;
+
+	  case DKIMF_MILTER_TEMPFAIL:
+		return SMFIS_TEMPFAIL;
+	}
+
+	/* NOTREACHED */
+	return SMFIS_ACCEPT;
+}
+
+/*
 **  DKIMF_LIBSTATUS -- process a final status returned from libopendkim
 **
 **  Parameters:
@@ -7497,7 +7545,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		break;
 
 	  case DKIM_STAT_INTERNAL:
-		retcode = conf->conf_handling.hndl_internal;
+		retcode = dkimf_miltercode(ctx,
+		                           conf->conf_handling.hndl_internal);
 #ifdef _FFR_CAPTURE_UNKNOWN_ERRORS
 		dfc->mctx_capture = TRUE;
 #endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
@@ -7521,7 +7570,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 
 	  case DKIM_STAT_BADSIG:
 		assert(dkim != NULL);
-		retcode = conf->conf_handling.hndl_badsig;
+		retcode = dkimf_miltercode(ctx,
+		                           conf->conf_handling.hndl_badsig);
 		if (conf->conf_dolog)
 		{
 			syslog(LOG_NOTICE, "%s: bad signature data",
@@ -7542,7 +7592,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		break;
 
 	  case DKIM_STAT_NOSIG:
-		retcode = conf->conf_handling.hndl_nosig;
+		retcode = dkimf_miltercode(ctx,
+		                           conf->conf_handling.hndl_nosig);
 		if (conf->conf_dolog)
 		{
 			syslog(retcode == SMFIS_ACCEPT ? LOG_DEBUG
@@ -7554,7 +7605,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		break;
 
 	  case DKIM_STAT_NORESOURCE:
-		retcode = conf->conf_handling.hndl_internal;
+		retcode = dkimf_miltercode(ctx,
+		                           conf->conf_handling.hndl_internal);
 #ifdef _FFR_CAPTURE_UNKNOWN_ERRORS
 		dfc->mctx_capture = TRUE;
 #endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
@@ -7576,7 +7628,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		break;
 
 	  case DKIM_STAT_CANTVRFY:
-		retcode = conf->conf_handling.hndl_badsig;
+		retcode = dkimf_miltercode(ctx,
+		                           conf->conf_handling.hndl_badsig);
 		if (conf->conf_dolog && dkim != NULL)
 		{
 			const char *err = NULL;
@@ -7591,7 +7644,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		break;
 
 	  case DKIM_STAT_REVOKED:
-		retcode = conf->conf_handling.hndl_badsig;
+		retcode = dkimf_miltercode(ctx,
+		                           conf->conf_handling.hndl_badsig);
 		if (conf->conf_dolog)
 		{
 			u_char *selector = NULL;
@@ -7618,9 +7672,16 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 	  case DKIM_STAT_KEYFAIL:
 	  case DKIM_STAT_NOKEY:
 		if (status == DKIM_STAT_KEYFAIL)
-			retcode = conf->conf_handling.hndl_dnserr;
+		{
+			retcode = dkimf_miltercode(ctx,
+			                           conf->conf_handling.hndl_dnserr);
+		}
 		else
-			retcode = conf->conf_handling.hndl_nokey;
+		{
+			retcode = dkimf_miltercode(ctx,
+			                           conf->conf_handling.hndl_nokey);
+		}
+
 		if (conf->conf_dolog)
 		{
 			const char *err = NULL;
@@ -7658,7 +7719,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		break;
 
 	  case DKIM_STAT_SYNTAX:
-		retcode = conf->conf_handling.hndl_badsig;
+		retcode = dkimf_miltercode(ctx,
+		                           conf->conf_handling.hndl_badsig);
 		if (conf->conf_dolog)
 		{
 			const char *err = NULL;
@@ -9070,7 +9132,8 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 		if (conf->conf_dolog)
 			syslog(LOG_NOTICE, "too much header data");
 
-		return conf->conf_handling.hndl_security;
+		return dkimf_miltercode(ctx,
+		                        conf->conf_handling.hndl_security);
 	}
 
 	newhdr = (Header) malloc(sizeof(struct Header));
@@ -10575,7 +10638,8 @@ mlfi_eoh(SMFICTX *ctx)
 			if (conf->conf_handling.hndl_policyerr != SMFIS_ACCEPT)
 			{
 				dkimf_cleanup(ctx);
-				return conf->conf_handling.hndl_policyerr;
+				return dkimf_miltercode(ctx,
+				                        conf->conf_handling.hndl_policyerr);
 			}
 		}
 
@@ -11645,7 +11709,8 @@ mlfi_eom(SMFICTX *ctx)
 				if (conf->conf_handling.hndl_policyerr != SMFIS_ACCEPT)
 				{
 					dkimf_cleanup(ctx);
-					return conf->conf_handling.hndl_policyerr;
+					return dkimf_miltercode(ctx,
+					                        conf->conf_handling.hndl_policyerr);
 				}
 			}
 		}

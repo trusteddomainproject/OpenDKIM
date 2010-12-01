@@ -606,10 +606,12 @@ Possible values (with abbreviated forms in parentheses):
 (a) accept the message;
 .I discard
 (d) discard the message;
-.I tempfail
-(t) temp-fail the message;
+.I quarantine
+(q) quarantine the message;
 .I reject
-(r) reject the message.
+(r) reject the message;
+.I tempfail
+(t) temp-fail the message.
 The default is
 .I accept.
 
@@ -696,7 +698,7 @@ for signing. This feature was designed for POP-before-SMTP datastores.
 
 .TP
 .I Quarantine (Boolean)
-Requests that messages that fail verification be quarantined by the
+Requests that messages which fail verification be quarantined by the
 MTA.  (Requires a sufficiently recent version of the milter library.)
 
 .TP
