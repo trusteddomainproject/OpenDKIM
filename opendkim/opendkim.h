@@ -196,6 +196,7 @@ extern int dkimf_xs_getsigidentity __P((lua_State *));
 extern int dkimf_xs_getsymval __P((lua_State *));
 extern int dkimf_xs_internalip __P((lua_State *));
 extern int dkimf_xs_log __P((lua_State *));
+extern int dkimf_xs_parsefield __P((lua_State *));
 extern int dkimf_xs_popauth __P((lua_State *));
 extern int dkimf_xs_quarantine __P((lua_State *));
 extern int dkimf_xs_rcpt __P((lua_State *));

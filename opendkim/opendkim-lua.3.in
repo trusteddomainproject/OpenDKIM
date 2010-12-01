@@ -282,6 +282,13 @@ can be determined using
 above.  The requested handle is returned on success, or the Lua constant
 "nil" is returned on failure.
 .TP
+.B odkim.parse_field(string)
+Parses the contents of a header field, provided as
+.I string,
+into user and domain parts, discarding whitespace and comment components.
+Returns two strings, the user part and the domain part, or the Lua constant
+"nil" in case of a parsing error.
+.TP
 .B odkim.sig_getdomain(sig)
 Returns the name of the domain in the signature handle specified by
 .I sig,
@@ -316,6 +323,7 @@ descriptions can be found above:
 .B odkim.get_sigcount,
 .B odkim.get_sighandle,
 .B odkim.log,
+.B odkim.parse_field,
 .B odkim.sig_getdomain,
 .B odkim.sig_getidentity,
 and
@@ -350,6 +358,7 @@ descriptions can be found above:
 .B odkim.get_sigcount,
 .B odkim.get_sighandle,
 .B odkim.log,
+.B odkim.parse_field,
 .B odkim.set_result,
 .B odkim.sig_getdomain,
 .B odkim.sig_getidentity,

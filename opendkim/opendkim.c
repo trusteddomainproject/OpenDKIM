@@ -991,6 +991,58 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 */
 
 /*
+**  DKIMF_XS_PARSEFIELD -- parse an address field into its components
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_parsefield(lua_State *l)
+{
+	unsigned char *user = NULL;
+	unsigned char *domain = NULL;
+	unsigned char field[DKIM_MAXHEADER + 1];
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim.parse_field(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_isstring(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim.parse_field(): incorrect argument type");
+		lua_error(l);
+	}
+
+	dkim_strlcpy(field, lua_tostring(l, 1), sizeof field);
+	lua_pop(l, 1);
+
+	if (field == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+	else if (dkim_mail_parse(field, &user, &domain) != 0 ||
+	         user == NULL || domain == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+	else
+	{
+		lua_pushstring(l, user);
+		lua_pushstring(l, domain);
+		return 2;
+	}
+}
+
+/*
 **  DKIMF_XS_LOG -- log a string
 **
 **  Parameters:
