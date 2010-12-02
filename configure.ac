@@ -286,11 +286,6 @@ then
 	AC_MSG_ERROR([--enable-statsext requires --enable-stats])
 fi
 
-if test x"$enable_stats_i" = x"yes" -a x"$enable_stats" != x"yes"
-then
-	AC_MSG_ERROR([--enable-stats_i requires --enable-stats])
-fi
-
 FFR_FEATURE([default_sender], [default sender address])
 
 # sendmail command
@@ -965,6 +960,11 @@ AC_SUBST(LIBLUA_LIBS)
 if test x"$enable_statsext" = x"yes" -a x"$lua_found" != x"yes"
 then
 	AC_MSG_ERROR([--enable-statsext requires Lua support])
+fi
+
+if test x"$enable_rbl" = x"yes" -a x"$lua_found" != x"yes"
+then
+	AC_MSG_ERROR([--enable-rbl requires Lua support])
 fi
 
 #
