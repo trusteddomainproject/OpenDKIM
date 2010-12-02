@@ -2882,7 +2882,7 @@ dkimf_xs_delheader(lua_State *l)
 
 	if (ctx == NULL)
 		lua_pushnil(l);
-	else if (dkimf_chgheader(ctx, 1, name, NUL) == MI_SUCCESS)
+	else if (dkimf_chgheader(ctx, name, 1, NULL) == MI_SUCCESS)
 		lua_pushnumber(l, 1);
 	else
 		lua_pushnil(l);
@@ -7488,7 +7488,7 @@ dkimf_miltercode(SMFICTX *ctx, int dmc, char *str)
 		return SMFIS_DISCARD;
 
 	  case DKIMF_MILTER_QUARANTINE:
-		(void) dkimf_quarantine(ctx, progname);
+		(void) dkimf_quarantine(ctx, str == NULL ? progname : str);
 		return SMFIS_ACCEPT;
 
 	  case DKIMF_MILTER_REJECT:
@@ -7546,7 +7546,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 
 	  case DKIM_STAT_INTERNAL:
 		retcode = dkimf_miltercode(ctx,
-		                           conf->conf_handling.hndl_internal);
+		                           conf->conf_handling.hndl_internal,
+		                           NULL);
 #ifdef _FFR_CAPTURE_UNKNOWN_ERRORS
 		dfc->mctx_capture = TRUE;
 #endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
@@ -7571,7 +7572,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 	  case DKIM_STAT_BADSIG:
 		assert(dkim != NULL);
 		retcode = dkimf_miltercode(ctx,
-		                           conf->conf_handling.hndl_badsig);
+		                           conf->conf_handling.hndl_badsig,
+		                           NULL);
 		if (conf->conf_dolog)
 		{
 			syslog(LOG_NOTICE, "%s: bad signature data",
@@ -7593,7 +7595,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 
 	  case DKIM_STAT_NOSIG:
 		retcode = dkimf_miltercode(ctx,
-		                           conf->conf_handling.hndl_nosig);
+		                           conf->conf_handling.hndl_nosig,
+		                           NULL);
 		if (conf->conf_dolog)
 		{
 			syslog(retcode == SMFIS_ACCEPT ? LOG_DEBUG
@@ -7606,7 +7609,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 
 	  case DKIM_STAT_NORESOURCE:
 		retcode = dkimf_miltercode(ctx,
-		                           conf->conf_handling.hndl_internal);
+		                           conf->conf_handling.hndl_internal,
+		                           NULL);
 #ifdef _FFR_CAPTURE_UNKNOWN_ERRORS
 		dfc->mctx_capture = TRUE;
 #endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
@@ -7629,7 +7633,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 
 	  case DKIM_STAT_CANTVRFY:
 		retcode = dkimf_miltercode(ctx,
-		                           conf->conf_handling.hndl_badsig);
+		                           conf->conf_handling.hndl_badsig,
+		                           NULL);
 		if (conf->conf_dolog && dkim != NULL)
 		{
 			const char *err = NULL;
@@ -7645,7 +7650,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 
 	  case DKIM_STAT_REVOKED:
 		retcode = dkimf_miltercode(ctx,
-		                           conf->conf_handling.hndl_badsig);
+		                           conf->conf_handling.hndl_badsig,
+		                           NULL);
 		if (conf->conf_dolog)
 		{
 			u_char *selector = NULL;
@@ -7674,12 +7680,14 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		if (status == DKIM_STAT_KEYFAIL)
 		{
 			retcode = dkimf_miltercode(ctx,
-			                           conf->conf_handling.hndl_dnserr);
+			                           conf->conf_handling.hndl_dnserr,
+			                           NULL);
 		}
 		else
 		{
 			retcode = dkimf_miltercode(ctx,
-			                           conf->conf_handling.hndl_nokey);
+			                           conf->conf_handling.hndl_nokey,
+			                           NULL);
 		}
 
 		if (conf->conf_dolog)
@@ -7720,7 +7728,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 
 	  case DKIM_STAT_SYNTAX:
 		retcode = dkimf_miltercode(ctx,
-		                           conf->conf_handling.hndl_badsig);
+		                           conf->conf_handling.hndl_badsig,
+		                           NULL);
 		if (conf->conf_dolog)
 		{
 			const char *err = NULL;
@@ -9166,7 +9175,8 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 			syslog(LOG_NOTICE, "too much header data");
 
 		return dkimf_miltercode(ctx,
-		                        conf->conf_handling.hndl_security);
+		                        conf->conf_handling.hndl_security,
+		                        NULL);
 	}
 
 	newhdr = (Header) malloc(sizeof(struct Header));
@@ -11743,7 +11753,8 @@ mlfi_eom(SMFICTX *ctx)
 				{
 					dkimf_cleanup(ctx);
 					return dkimf_miltercode(ctx,
-					                        conf->conf_handling.hndl_policyerr);
+					                        conf->conf_handling.hndl_policyerr,
+					                        NULL);
 				}
 			}
 		}
