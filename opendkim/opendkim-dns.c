@@ -254,11 +254,11 @@ dkimf_unbound_wait(struct dkimf_unbound *ub,
 				return -1;
 			}
 
-			/* tell everyone to check for results */
-			pthread_cond_broadcast(&ub->ub_ready);
-
 			/* recover the lock so the loop can restart */
 			pthread_mutex_lock(&ub->ub_lock);
+
+			/* tell everyone to check for results */
+			pthread_cond_broadcast(&ub->ub_ready);
 
 			/* clear the "someone is polling" flag */
 			ub->ub_poller = FALSE;
