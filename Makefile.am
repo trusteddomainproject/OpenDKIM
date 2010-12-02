@@ -13,6 +13,9 @@ SUBDIRS += libopendkim contrib docs
 if VBR
 SUBDIRS += libvbr
 endif
+if RBL
+SUBDIRS += librbl
+endif
 if LUA
 SUBDIRS += miltertest
 endif

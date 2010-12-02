@@ -271,6 +271,9 @@ FFR_FEATURE([selector_header], [special header to choose signing key])
 
 FFR_FEATURE([sender_macro], [macro to determine sender])
 
+FFR_FEATURE([rbl], [Realtime Blacklist query support])
+AM_CONDITIONAL([RBL], [test x"$enable_rbl" = x"yes"])
+
 FFR_FEATURE([vbr], [Vouch-By-Reference support])
 AM_CONDITIONAL([VBR], [test x"$enable_vbr" = x"yes"])
 
@@ -1541,6 +1544,7 @@ AC_OUTPUT([	Makefile
 		libopendkim/opendkim.pc libopendkim/Makefile
 		libopendkim/docs/Makefile
 		libopendkim/tests/Makefile
+		librbl/rbl.pc librbl/Makefile
 		libvbr/vbr.pc libvbr/Makefile
 		miltertest/Makefile
 		opendkim/Makefile opendkim/opendkim.8 opendkim/opendkim-genkey
