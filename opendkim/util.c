@@ -16,6 +16,7 @@ static char util_c_id[] = "@(#)$Id: util.c,v 1.47.2.1 2010/10/27 21:43:09 cm-msk
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/file.h>
@@ -37,6 +38,13 @@ static char util_c_id[] = "@(#)$Id: util.c,v 1.47.2.1 2010/10/27 21:43:09 cm-msk
 # include <regex.h>
 #endif /* _FFR_REPLACE_RULES */
 
+#ifdef HAVE_PATHS_H
+# include <paths.h>
+#endif /* HAVE_PATHS_H */
+#ifndef _PATH_DEVNULL
+# define _PATH_DEVNULL		"/dev/null"
+#endif /* ! _PATH_DEVNULL */
+
 #ifdef SOLARIS
 # if SOLARIS <= 20600
 #  define socklen_t size_t
@@ -50,6 +58,9 @@ static char util_c_id[] = "@(#)$Id: util.c,v 1.47.2.1 2010/10/27 21:43:09 cm-msk
 #include "opendkim.h"
 #include "util.h"
 #include "opendkim-db.h"
+
+/* macros */
+#define	DEFARGS		8
 
 /* missing definitions */
 #ifndef INADDR_NONE
@@ -185,6 +196,13 @@ struct dkimf_dstring
 	int			ds_max;
 	int			ds_len;
 	u_char *		ds_buf;
+};
+
+/* struct dkimf_popen_handle -- a popen() replacement object */
+struct dkimf_popen_handle
+{
+	pid_t			popen_pid;
+	FILE *			popen_file;
 };
 
 /* base64 alphabet */
@@ -1705,3 +1723,209 @@ dkimf_wait_fd(int fd, struct timespec *until)
 	return select(fd + 1, &fds, NULL, NULL, &left);
 }
 #endif /* USE_UNBOUND */
+
+/*
+**  DKIMF_POPEN -- open a subprocess in a thread-safe manner
+**
+**  Parameters:
+**  	cmd -- command to execute
+**  
+**  Return value:
+**  	A DKIMF_POPEN handle, or NULL on error.
+*/
+
+DKIMF_POPEN
+dkimf_popen(char *cmd)
+{
+	int fds[2];
+	DKIMF_POPEN new;
+	char *tmp;
+
+	assert(cmd != NULL);
+
+	tmp = strdup(cmd);
+	if (tmp == NULL)
+		return NULL;
+
+	new = (DKIMF_POPEN) malloc(sizeof(struct dkimf_popen_handle));
+	if (new == NULL)
+		return NULL;
+
+	if (pipe(fds) != 0)
+	{
+		free(new);
+		return NULL;
+	}
+
+	new->popen_file = fdopen(fds[1], "w");
+	if (new->popen_file == NULL)
+	{
+		close(fds[0]);
+		close(fds[1]);
+		free(new);
+		return NULL;
+	}
+
+	new->popen_pid = fork();
+	if (new->popen_pid == -1)
+	{
+		close(fds[0]);
+		close(fds[1]);
+		free(new);
+		return NULL;
+	}
+	else if (new->popen_pid == 0)
+	{
+		/* child */
+
+		int devnull;
+		int nargs = 0;
+		int nalloc = 0;
+		size_t len;
+		_Bool inelement = FALSE;
+		_Bool quoted = FALSE;
+		_Bool escaped = FALSE;
+		char *p;
+		char **args = NULL;
+
+		devnull = open(_PATH_DEVNULL, O_RDONLY);
+		if (devnull == -1)
+		{
+			close(0);
+		}
+		else
+		{
+			(void) dup2(fds[0], 0);
+			(void) dup2(devnull, 1);
+			(void) dup2(devnull, 2);
+			close(devnull);
+		}
+
+		/* parse args into a vector */
+		len = strlen(tmp);
+
+		for (p = tmp; *p != '\0'; p++)
+		{
+			if (isascii(*p) && isspace(*p))
+			{
+				if (inelement)
+				{
+					if (escaped || quoted)
+					{
+						escaped = FALSE;
+						continue;
+					}
+
+					*p = '\0';
+					inelement = FALSE;
+				}
+			}
+			else if (*p == '\\' && !escaped)
+			{
+				memmove(p, p + 1, len);
+				len--;
+				p--;
+				escaped = TRUE;
+			}
+			else if (escaped)
+			{
+				continue;
+			}
+			else if (*p == '"')
+			{
+				quoted = !quoted;
+			}
+			else
+			{
+				if (!inelement)
+				{
+					if (nargs == 0)
+					{
+						args = (char **) malloc(sizeof(char *) * DEFARGS);
+						if (args == NULL)
+							exit(-1);
+
+						nalloc = DEFARGS;
+					}
+					else if (nalloc == nargs + 1)
+					{
+						char **new;
+
+						new = (char **) realloc(args, sizeof(char *) * (nalloc * 2));
+						if (new == NULL)
+							exit(-1);
+
+						nalloc *= 2;
+					}
+
+					args[nargs] = p;
+					args[nargs + 1] = NULL;
+
+					nargs++;
+
+					inelement = TRUE;
+				}
+			}
+		}
+
+		/* call execvp() */
+		exit(execvp((const char *) args[0], (char * const *) args));
+
+		/* NOTREACHED */
+	}
+	else
+	{
+		/* parent */
+		close(fds[0]);
+	}
+
+	return new;
+}
+
+/*
+**  DKIMF_PCLOSE -- close something previously opened with dkimf_popen()
+**
+**  Parameters:
+**  	child -- DKIMF_POPEN handle
+**
+**  Return value:
+**  	Exit status of child.
+*/
+
+int
+dkimf_pclose(DKIMF_POPEN child)
+{
+	int status = -1;
+	int ret;
+
+	assert(child != NULL);
+
+	fclose(child->popen_file);
+
+	do
+	{
+		ret = waitpid(child->popen_pid, &status, 0);
+	} while (ret == -1 && errno == EINTR);
+
+	free(child);
+
+	return status;
+}
+
+/*
+**  DKIMF_PSTREAM -- return the stream associated with a process
+**
+**  Parameters:
+**  	child -- child whose stream is wanted
+**
+**  Return value:
+**  	FILE handle associated with this child.
+*/
+
+FILE *
+dkimf_pstream(DKIMF_POPEN child)
+{
+	assert(child != NULL);
+
+	return child->popen_file;
+}

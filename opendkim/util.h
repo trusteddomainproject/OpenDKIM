@@ -41,6 +41,13 @@ struct replace
 };
 #endif /* _FFR_REPLACE_RULES */
 
+/*
+**  DKIMF_POPEN -- a popen() replacement handle
+*/
+
+struct dkimf_popen_handle;
+typedef struct dkimf_popen_handle * DKIMF_POPEN;
+
 /* PROTOTYPES */
 extern void dkimf_base64_encode_file __P((int, FILE *, int, int, int));
 extern _Bool dkimf_checkhost __P((DKIMF_DB, char *));
@@ -84,5 +91,9 @@ extern void dkimf_dstring_blank __P((struct dkimf_dstring *));
 extern _Bool dkimf_timespec_past __P((struct timespec *tv));
 extern int dkimf_wait_fd __P((int fd, struct timespec *until));
 #endif /* USE_UNBOUND */
+
+extern int dkimf_pclose __P((DKIMF_POPEN));
+extern DKIMF_POPEN dkimf_popen __P((char *));
+extern FILE *dkimf_pstream __P((DKIMF_POPEN));
 
 #endif /* _UTIL_H_ */

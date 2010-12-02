@@ -682,7 +682,6 @@ char reportcmd[BUFRSZ + 1];			/* reporting command */
 char reportaddr[MAXADDRESS + 1];		/* reporting address */
 char myhostname[DKIM_MAXHOSTNAMELEN + 1];	/* hostname */
 pthread_mutex_t conf_lock;			/* config lock */
-pthread_mutex_t popen_lock;			/* popen() lock */
 
 /* Other useful definitions */
 #define CRLF			"\r\n"		/* CRLF */
@@ -8202,6 +8201,7 @@ dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	DKIM_STAT dkstatus;
 	char *p;
 	char *last;
+	DKIMF_POPEN mta;
 	FILE *out;
 	DKIM_SIGINFO *sig;
 	struct Header *hdr;
@@ -8321,20 +8321,19 @@ dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	if (!sendreport)
 		return;
 
-	pthread_mutex_lock(&popen_lock);
-	out = popen(reportcmd, "w");
-	pthread_mutex_unlock(&popen_lock);
-
-	if (out == NULL)
+	mta = dkimf_popen(reportcmd);
+	if (mta == NULL)
 	{
 		if (conf->conf_dolog)
 		{
-			syslog(LOG_ERR, "%s: popen(): %s", dfc->mctx_jobid,
-			       strerror(errno));
+			syslog(LOG_ERR, "%s: dkimf_popen(): %s",
+			       dfc->mctx_jobid, strerror(errno));
 		}
 
 		return;
 	}
+
+	out = dkimf_pstream(mta);
 
 	/* determine the type of ARF failure and, if needed, a DKIM fail code */
 	arftype = dkimf_arftype(dfc);
@@ -8429,14 +8428,11 @@ dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "\n--dkimreport/%s/%s--\n", hostname, dfc->mctx_jobid);
 
 	/* send it */
-	pthread_mutex_lock(&popen_lock);
-	status = pclose(out);
-	pthread_mutex_unlock(&popen_lock);
-
+	status = dkimf_pclose(mta);
 	if (status != 0 && conf->conf_dolog)
 	{
-		syslog(LOG_ERR, "%s: pclose(): %s", dfc->mctx_jobid,
-		       strerror(errno));
+		syslog(LOG_ERR, "%s: dkimf_pclose(): returned status %d",
+		       dfc->mctx_jobid, status);
 	}
 }
 
@@ -8467,6 +8463,7 @@ dkimf_policyreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	DKIM_STAT dkstatus;
 	char *p;
 	char *last;
+	DKIMF_POPEN mta;
 	FILE *out;
 	DKIM_SIGINFO **sigs;
 	struct Header *hdr;
@@ -8569,20 +8566,19 @@ dkimf_policyreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	if (!sendreport)
 		return;
 
-	pthread_mutex_lock(&popen_lock);
-	out = popen(reportcmd, "w");
-	pthread_mutex_unlock(&popen_lock);
-
-	if (out == NULL)
+	mta = dkimf_popen(reportcmd);
+	if (mta == NULL)
 	{
 		if (conf->conf_dolog)
 		{
-			syslog(LOG_ERR, "%s: popen(): %s", dfc->mctx_jobid,
-			       strerror(errno));
+			syslog(LOG_ERR, "%s: dkimf_popen(): %s",
+			       dfc->mctx_jobid, strerror(errno));
 		}
 
 		return;
 	}
+
+	out = dkimf_pstream(mta);
 
 	/* determine the type of ARF failure and, if needed, a DKIM fail code */
 	arftype = dkimf_arftype(dfc);
@@ -8648,14 +8644,11 @@ dkimf_policyreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "\n--dkimreport/%s/%s--\n", hostname, dfc->mctx_jobid);
 
 	/* send it */
-	pthread_mutex_lock(&popen_lock);
-	status = pclose(out);
-	pthread_mutex_unlock(&popen_lock);
-
+	status = dkimf_pclose(mta);
 	if (status != 0 && conf->conf_dolog)
 	{
-		syslog(LOG_ERR, "%s: pclose(): %s", dfc->mctx_jobid,
-		       strerror(errno));
+		syslog(LOG_ERR, "%s: dkimf_pclose(): returned status %d",
+		       dfc->mctx_jobid, status);
 	}
 }
 
@@ -14626,7 +14619,6 @@ main(int argc, char **argv)
 	}
 #endif /* _FFR_REPORT_INTERVALS */
 
-	pthread_mutex_init(&popen_lock, NULL);
 	pthread_mutex_init(&conf_lock, NULL);
 
 	/* perform test mode */
