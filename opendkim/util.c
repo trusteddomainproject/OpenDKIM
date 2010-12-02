@@ -135,6 +135,10 @@ static char *optlist[] =
 	"_FFR_PARSE_TIME",
 #endif /* _FFR_PARSE_TIME */
 
+#if _FFR_RBL
+	"_FFR_RBL",
+#endif /* _FFR_RBL */
+
 #if _FFR_REDIRECT
 	"_FFR_REDIRECT",
 #endif /* _FFR_REDIRECT */
