@@ -1680,32 +1680,34 @@ dkimf_wait_fd(int fd, struct timespec *until)
 	struct timeval left;
 
 	assert(fd >= 0);
-	assert(until != NULL);
 
 	(void) gettimeofday(&now, NULL);
 
-	if (until->tv_sec < now.tv_sec ||
-	    (until->tv_sec == now.tv_sec &&
-	     until->tv_nsec < now.tv_usec * 1000))
+	if (until != NULL)
 	{
-		left.tv_sec = 0;
-		left.tv_usec = 0;
-	}
-	else
-	{
-		left.tv_sec = until->tv_sec - now.tv_sec;
-		left.tv_usec = until->tv_nsec / 1000 - now.tv_usec;
-
-		if (until->tv_nsec / 1000 < now.tv_usec)
+		if (until->tv_sec < now.tv_sec ||
+		    (until->tv_sec == now.tv_sec &&
+		     until->tv_nsec < now.tv_usec * 1000))
 		{
-			left.tv_usec += 1000000;
-			left.tv_sec--;
+			left.tv_sec = 0;
+			left.tv_usec = 0;
+		}
+		else
+		{
+			left.tv_sec = until->tv_sec - now.tv_sec;
+			left.tv_usec = until->tv_nsec / 1000 - now.tv_usec;
+
+			if (until->tv_nsec / 1000 < now.tv_usec)
+			{
+				left.tv_usec += 1000000;
+				left.tv_sec--;
+			}
 		}
 	}
 
 	FD_ZERO(&fds);
 	FD_SET(fd, &fds);
 
-	return select(fd + 1, &fds, NULL, NULL, &left);
+	return select(fd + 1, &fds, NULL, NULL, until == NULL ? NULL : &left);
 }
 #endif /* USE_UNBOUND */

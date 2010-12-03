@@ -228,7 +228,8 @@ dkimf_unbound_wait(struct dkimf_unbound *ub,
 			pthread_mutex_unlock(&ub->ub_lock);
 
 			/* wait for I/O to be available */
-			status = dkimf_wait_fd(ub_fd(ub->ub_ub), &timeout);
+			status = dkimf_wait_fd(ub_fd(ub->ub_ub),
+			                       to == NULL ? NULL : &timeout);
 
 			if (status == 0)
 			{
@@ -503,12 +504,39 @@ dkimf_unbound_close(struct dkimf_unbound *ub)
 	return 0;
 }
 
+# ifdef _FFR_RBL
+/*
+**  DKIMF_RBL_UNBOUND_SETUP -- connect libunbound to librbl
+**
+**  Parameters:
+**  	rbl -- librbl handle
+**  	ub -- dkimf_unbound handle to use
+**
+**  Return value:
+**  	0 on success, -1 on failure
+*/
+
+int
+dkimf_rbl_unbound_setup(RBL *rbl, struct dkimf_unbound *ub)
+{
+	assert(rbl != NULL);
+	assert(ub != NULL);
+
+	(void) rbl_dns_set_query_service(rbl, ub);
+	(void) rbl_dns_set_query_start(rbl, dkimf_ub_query);
+	(void) rbl_dns_set_query_cancel(rbl, dkimf_ub_cancel);
+	(void) rbl_dns_set_query_waitreply(rbl, dkimf_ub_waitreply);
+
+	return 0;
+}
+# endif /* _FFR_RBL */
+
 /*
 **  DKIMF_UNBOUND_SETUP -- connect libunbound to libopendkim
 **
 **  Parameters:
 **  	lib -- libopendkim handle
-**  	timeout -- timeout to use by default
+**  	ub -- dkimf_unbound handle to use
 **
 **  Return value:
 **  	0 on success, -1 on failure
@@ -673,6 +701,33 @@ dkimf_ar_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 }
 
 /* =========================== PUBLIC FUNCTIONS =========================== */
+
+# ifdef _FFR_RBL
+/*
+**  DKIMF_RBL_ARLIB_SETUP -- connect libar to librbl
+**
+**  Parameters:
+**  	rbl -- librbl handle
+**  	libar -- AR_LIB handle
+**
+**  Return value:
+**  	0 on success, -1 on failure
+*/
+
+int
+dkimf_rbl_arlib_setup(RBL *rbl, AR_LIB ar)
+{
+	assert(rbl != NULL);
+	assert(ar != NULL);
+
+	(void) rbl_dns_set_query_service(rbl, ar);
+	(void) rbl_dns_set_query_start(rbl, dkimf_ar_query);
+	(void) rbl_dns_set_query_cancel(rbl, dkimf_ar_cancel);
+	(void) rbl_dns_set_query_waitreply(rbl, dkimf_ar_waitreply);
+
+	return 0;
+}
+# endif /* _FFR_RBL */
 
 /*
 **  DKIMF_ARLIB_SETUP -- connect libar to libopendkim
