@@ -122,6 +122,8 @@ base32_encode(char *buf, size_t *buflen, const void *data, size_t size)
 		iout++;
 	}
 
+	/* XXX -- this may not have the trailing "=" padding right */
+
 	buf[iout] = '\0';
 
 	/* store number of bytes from data that was used */
