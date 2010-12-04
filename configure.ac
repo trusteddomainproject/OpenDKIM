@@ -235,6 +235,9 @@ AC_DEFUN([LIB_FFR_FEATURE],
 #
 FEATURE([popauth], [enable POP-before-SMTP support])
 
+FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
+LIB_FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
+
 FFR_FEATURE([adsp_lists], [support for ADSP filtering for lists])
 
 FFR_FEATURE([bodylength_db], [support for body length DBs])

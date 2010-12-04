@@ -106,6 +106,7 @@ struct dkim_set
 /* struct dkim_siginfo -- signature information for use by the caller */
 struct dkim_siginfo
 {
+	int			sig_dnssec_key;
 	u_int			sig_flags;
 	u_int			sig_error;
 	u_int			sig_bh;
@@ -113,7 +114,6 @@ struct dkim_siginfo
 	u_int			sig_hashtype;
 	u_int			sig_keytype;
 	u_int			sig_keybits;
-	int			sig_dnssec_key;
 	size_t			sig_siglen;
 	size_t			sig_keylen;
 	size_t			sig_b64keylen;
@@ -258,6 +258,9 @@ struct dkim
 	dkim_canon_t		dkim_hdrcanonalg;
 	dkim_canon_t		dkim_bodycanonalg;
 	dkim_alg_t		dkim_signalg;
+#ifdef _FFR_ATPS
+	_Bool			dkim_atps;
+#endif /* _FFR_ATPS */
 	off_t			dkim_bodylen;
 	off_t			dkim_signlen;
 	const u_char *		dkim_id;

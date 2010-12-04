@@ -2541,26 +2541,11 @@ dkim_get_policy(DKIM *dkim, u_char *query, _Bool excheck, int *qstatus,
 		if (p != NULL)
 			lpolicy = dkim_name_to_code(policies, (char *) p);
 
-		p = dkim_param_get(set, (u_char *) "t");
-		if (p != NULL)
-		{
-			u_int flag;
-			char *t;
-			char *last;
-			char tmp[BUFRSZ + 1];
-
-			strlcpy(tmp, (char *) p, sizeof tmp);
-
-			for (t = strtok_r(tmp, ":", &last);
-			     t != NULL;
-			     t = strtok_r(NULL, ":", &last))
-			{
-				flag = (u_int) dkim_name_to_code(policyflags,
-				                                 t);
-				if (flag != (u_int) -1)
-					lpflags |= flag;
-			}
-		}
+#ifdef _FFR_ATPS
+		p = dkim_param_get(set, (u_char *) "atps");
+		if (p != NULL && *p == 'y')
+			lpflags |= DKIM_PFLAG_ATPS;
+#endif /* _FFR_ATPS */
 
 		*policy = lpolicy;
 		*pflags = lpflags;
@@ -3933,6 +3918,9 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef _FFR_RESIGN
 	FEATURE_ADD(libhandle, DKIM_FEATURE_RESIGN);
 #endif /* _FFR_RESIGN */
+#ifdef _FFR_ATPS
+	FEATURE_ADD(libhandle, DKIM_FEATURE_ATPS);
+#endif /* _FFR_ATPS */
 
 	/* initialize the resolver */
 	(void) res_init();
@@ -4816,6 +4804,7 @@ dkim_policy_state_free(DKIM_PSTATE *pstate)
 **  Parameters:
 **  	dkim -- DKIM handle
 **  	pcode -- discovered policy (returned)
+**  	pflags -- discovered policy flags (returned)
 **  	pstate -- state, for re-entrancy (updated; can be NULL)
 **
 **  Return value:
@@ -4823,11 +4812,12 @@ dkim_policy_state_free(DKIM_PSTATE *pstate)
 */
 
 DKIM_STAT
-dkim_policy(DKIM *dkim, dkim_policy_t *pcode, DKIM_PSTATE *pstate)
+dkim_policy(DKIM *dkim, dkim_policy_t *pcode, u_int *pflags,
+            DKIM_PSTATE *pstate)
 {
 	int wlen;
 	int qstatus = NOERROR;
-	unsigned int pflags;
+	unsigned int lpflags;
 	DKIM_STAT status;
 	dkim_policy_t policy = DKIM_POLICY_NONE;
 	unsigned char query[DKIM_MAXHOSTNAMELEN + 1];
@@ -4848,7 +4838,7 @@ dkim_policy(DKIM *dkim, dkim_policy_t *pcode, DKIM_PSTATE *pstate)
 	{
 		qstatus = pstate->ps_qstatus;
 		policy = pstate->ps_policy;
-		pflags = pstate->ps_pflags;
+		lpflags = pstate->ps_pflags;
 	}
 
 	/*
@@ -4858,14 +4848,14 @@ dkim_policy(DKIM *dkim, dkim_policy_t *pcode, DKIM_PSTATE *pstate)
 	if (pstate == NULL || pstate->ps_state < 1)
 	{
 		status = dkim_get_policy(dkim, dkim->dkim_domain, TRUE,
-		                         &qstatus, &policy, &pflags);
+		                         &qstatus, &policy, &lpflags);
 		if (status != DKIM_STAT_OK)
 		{
 			if (status == DKIM_STAT_CBTRYAGAIN && pstate != NULL)
 			{
 				pstate->ps_qstatus = qstatus;
 				pstate->ps_policy = policy;
-				pstate->ps_pflags = pflags;
+				pstate->ps_pflags = lpflags;
 			}
 
 			return status;
@@ -4899,14 +4889,14 @@ dkim_policy(DKIM *dkim, dkim_policy_t *pcode, DKIM_PSTATE *pstate)
 		}
 
 		status = dkim_get_policy(dkim, query, FALSE,
-		                         &qstatus, &policy, &pflags);
+		                         &qstatus, &policy, &lpflags);
 		if (status != DKIM_STAT_OK)
 		{
 			if (status == DKIM_STAT_CBTRYAGAIN && pstate != NULL)
 			{
 				pstate->ps_qstatus = qstatus;
 				pstate->ps_policy = policy;
-				pstate->ps_pflags = pflags;
+				pstate->ps_pflags = lpflags;
 			}
 
 			return status;
@@ -4920,6 +4910,8 @@ dkim_policy(DKIM *dkim, dkim_policy_t *pcode, DKIM_PSTATE *pstate)
 		dkim->dkim_presult = DKIM_PRESULT_FOUND;
 	if (pcode != NULL)
 		*pcode = policy;
+	if (pflags != NULL)
+		*pflags = lpflags;
 
 	return DKIM_STAT_OK;
 }

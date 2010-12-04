@@ -1,10 +1,10 @@
 <html>
-<head><title>dkim_ohdrs()</title></head>
+<head><title>dkim_atps_check()</title></head>
 <body>
 <!--
 $Id: dkim_ohdrs.html,v 1.3 2010/07/24 04:52:15 cm-msk Exp $
 -->
-<h1>dkim_ohdrs()</h1>
+<h1>dkim_atps_check()</h1>
 <p align="right"><a href="index.html">[back to index]</a></p>
 
 <table border="0" cellspacing=4 cellpadding=4>
@@ -12,14 +12,14 @@ $Id: dkim_ohdrs.html,v 1.3 2010/07/24 04:52:15 cm-msk Exp $
 <tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
 <pre>
 #include &lt;dkim.h&gt;
-<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_ohdrs(
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_atps_check(
 	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
 	<a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *sig,
-        char **ptrs, int *pcnt)
+        struct timeval *timeout,
+        <a href="dkim_atps_t.html"><tt>dkim_atps_t</tt></a> *res
 );
 </pre>
-Retrieve the original header set from the "z=" tag in a received
-signature if present.
+Perform an Authorized Third Party Signer query regarding a signature.
 </td></tr>
 
 <!----------- Description ---------->
@@ -27,12 +27,12 @@ signature if present.
 <table border="1" cellspacing=1 cellpadding=4>
 <tr align="left" valign=top>
 <th width="80">Called When</th>
-<td><tt>dkim_ohdrs()</tt> is called after
-    <a href="dkim_eom.html"><tt>dkim_eom()</tt></a> to get the
-    original header set included in a signature on a message, if present,
-    for diagnostic purposes.  The original headers can be compared to
-    the received headers to detect modifications in transit which prevented
-    successful verification of the message. </td>
+<td><tt>dkim_atps_check()</tt> is called after
+    <a href="dkim_eom.html"><tt>dkim_eom()</tt></a> to check for
+    Authorized Third Party Signer status for the signing domain.  This
+    involves a DNS query to the sender's domain to ask it if the domain
+    that signed the message is an authorized third-party signer.
+    </td>
 </tr>
 </table>
 
@@ -45,18 +45,16 @@ signature if present.
         <a href="dkim_verify.html"><tt>dkim_verify</tt></a>.
 	</td></tr>
     <tr valign="top"><td>sig</td>
-	<td>Signature handle from which the original headers should be
-	extracted.
+	<td>Signature handle naming the domain that is being tested for
+	authorized third-party signer status.
 	</td></tr>
-    <tr valign="top"><td>ptrs</td>
-	<td>A pointer to a an array of <tt>(char *)</tt> pointers which will
-        be updated to point to the original headers.
-    <tr valign="top"><td>pcnt</td>
-	<td>On input, this is used as the count of available pointers
-        in the <tt>ptrs</tt> array.  When returned, this value indicates
-        the number of headers available.  If it is higher on return than
-	it was when called, then there were more headers than there were
-	pointers provided.
+    <tr valign="top"><td>timeout</td>
+	<td>A pointer to a <tt>struct timeval</tt> that tells this call
+        how long it should wait for a reply.  A value of NULL will use
+	the default library DNS timeout.
+    <tr valign="top"><td>res</td>
+	<td>A pointer to a <tt>dkim_atps_t</tt> that will receive the result
+	of this query.
 	</td></tr>
     </table>
 </td></tr>
@@ -65,15 +63,11 @@ signature if present.
 <tr><th valign="top" align=left>RETURN VALUES</th><td>
     <table border="1" cellspacing=0>
     <tr bgcolor="#dddddd"><th>Value</th><th>Description</th></tr>
-    <tr valign="top"><td><tt>DKIM_STAT_INVALID</tt></td>
-	<td>The function was called before <tt>dkim_eom</tt>, or with
-        a handle that was not opened for verification.
+    <tr valign="top"><td><tt>DKIM_STAT_CANTVRFY</tt></td>
+	<td>The query could not be initiated or completed.
 	</td></tr>
-    <tr valign="top"><td><tt>DKIM_STAT_INVALID</tt></td>
-	<td>The value contained in the "z=" tag contained corruption.
-	</td></tr>
-    <tr valign="top"><td><tt>DKIM_STAT_NORESOURCE</tt></td>
-	<td>A memory allocation operation failed.
+    <tr valign="top"><td><tt>DKIM_STAT_MULTIPLEDNSREPLY</tt></td>
+	<td>More than one reply was returned.
 	</td></tr>
     <tr valign="top"><td><tt>DKIM_STAT_OK</tt></td>
 	<td>Successful completion.
@@ -86,8 +80,7 @@ signature if present.
 <th valign="top" align=left>NOTES</th> 
 <td>
 <ul>
-<li>If there was no "z=" tag present, the value referenced by <tt>pcnt</tt>
-    will be set to zero.
+<li>None.
 </ul>
 </td>
 </tr>
@@ -98,7 +91,7 @@ signature if present.
 Copyright (c) 2007 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set

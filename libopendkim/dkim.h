@@ -289,6 +289,14 @@ typedef int dkim_opts_t;
 #define DKIM_REP_ROOT		"al.dkim-reputation.org"
 
 /*
+**  DKIM_PFLAG -- policy flags
+*/
+
+#define	DKIM_PFLAG_UNUSED1	0x01	/* no longer used */
+#define	DKIM_PFLAG_UNUSED2	0x02	/* no longer used */
+#define	DKIM_PFLAG_ATPS		0x04	/* atps */
+
+/*
 **  DKIM_DNSSEC -- results of DNSSEC queries
 */
 
@@ -296,6 +304,16 @@ typedef int dkim_opts_t;
 #define DKIM_DNSSEC_BOGUS	0
 #define DKIM_DNSSEC_INSECURE	1
 #define DKIM_DNSSEC_SECURE	2
+
+/*
+**  DKIM_ATPS -- ATPS result codes
+*/
+
+#define	DKIM_ATPS_UNKNOWN	(-1)
+#define	DKIM_ATPS_NOTFOUND	0
+#define	DKIM_ATPS_FOUND		1
+
+typedef int dkim_atps_t;
 
 /*
 **  DKIM_LIB -- library handle
@@ -1210,6 +1228,7 @@ extern void dkim_policy_state_free __P((DKIM_PSTATE *pstate));
 **  Parameters:
 **  	dkim -- DKIM handle
 **  	pcode -- discovered policy (returned)
+**  	pflags -- discovered policy flags (returned)
 **  	pstate -- state, for re-entrancy (updated; can be NULL)
 **
 **  Return value:
@@ -1217,7 +1236,7 @@ extern void dkim_policy_state_free __P((DKIM_PSTATE *pstate));
 */
 
 extern DKIM_STAT dkim_policy __P((DKIM *dkim, dkim_policy_t *pcode,
-                                  DKIM_PSTATE *pstate));
+                                  u_int *pflags, DKIM_PSTATE *pstate));
 
 /*
 **  DKIM_POLICY_GETDNSSEC -- retrieve DNSSEC results for a policy
@@ -1493,8 +1512,9 @@ extern unsigned long dkim_ssl_version __P((void));
 #define DKIM_FEATURE_UNUSED_1		5 /* was DKIM_FEATURE_ASYNC_DNS */
 #define DKIM_FEATURE_DNSSEC		6
 #define DKIM_FEATURE_RESIGN		7
+#define DKIM_FEATURE_ATPS		8
 
-#define	DKIM_FEATURE_MAX		7
+#define	DKIM_FEATURE_MAX		8
 
 extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
 
@@ -1728,6 +1748,22 @@ extern void dkim_dns_set_query_waitreply __P((DKIM_LIB *,
                                                       struct timeval *,
                                                       size_t *, int *,
                                                       int *)));
+
+/*
+**  DKIM_ATPS_CHECK -- check for Authorized Third Party Signing
+**
+**  Parameters:
+**  	dkim -- DKIM message handle
+**  	sig -- signature information handle
+**  	timeout -- timeout (can be NULL)
+**  	res -- ATPS result code
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_atps_check __P((DKIM *, DKIM_SIGINFO *,
+                                      struct timeval *, dkim_atps_t *res));
 
 /* default list of sender headers */
 extern const u_char *dkim_default_senderhdrs[];

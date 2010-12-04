@@ -499,7 +499,7 @@ dkim_test_adsp(DKIM_LIB *lib, const char *domain, dkim_policy_t *presult,
 	dkim->dkim_domain = (u_char *) domain;
 	dkim->dkim_sigcount = 0;
 
-	stat = dkim_policy(dkim, &pcode, NULL);
+	stat = dkim_policy(dkim, &pcode, NULL, NULL);
 	if (stat != DKIM_STAT_OK)
 	{
 		if (err != NULL)

@@ -15,6 +15,7 @@ $Id: dkim_policy.html,v 1.3 2010/07/24 04:58:44 cm-msk Exp $
 <a href="dkim_stat.html">DKIM_STAT</a> dkim_policy(
 	<a href="dkim.html">DKIM</a> *dkim,
 	<a href="dkim_policy_t.html">dkim_policy_t</a> *pcode,
+	unsigned int *pflags,
 	<a href="dkim_pstate.html">DKIM_PSTATE *</a> pstate
 );
 </pre>
@@ -46,6 +47,13 @@ Retrieve and evaluate the author domain signing practices (ADSP) for a message.
 	the policy type retrieved from the sender.  This can be NULL if that
 	information is not of interest to the caller.
 	</td></tr>
+    <tr valign="top"><td>pflags</td>
+	<td>A pointer to an unsigned integer which is updated to contain
+	policy flags retrieved from the sender.  This can be NULL if that
+	information is not of interest to the caller.  Valid flags are:
+        <ul>
+          <li> <tt>DKIM_PFLAG_ATSP</tt> -- policy shows ATSP enabled
+	</td></tr>
     <tr valign="top"><td>pstate</td>
 	<td>A caller may wish to use this function in a re-entrant manner,
 	such as when using a policy lookup callback that may return
@@ -68,7 +76,9 @@ Retrieve and evaluate the author domain signing practices (ADSP) for a message.
 <th valign="top" align=left>NOTES</th> 
 <td>
 <ul>
-<li>ADSP is defined in RFC5617.
+<li>ADSP (Author Domain Signing Practices) is defined in RFC5617.
+<li>ATPS (Authorized Third Party Signers) is an experimental protocol
+    defined in draft-kucherawy-dkim-atps.
 <li>It is an error to call this function with a handle that was created
     using <a href="dkim_sign.html"><tt>dkim_sign()</tt></a>.
 <li>This function will return <tt>DKIM_STAT_SYNTAX</tt> if the sender's

@@ -35,14 +35,6 @@ static struct nametable prv_keyparams[] =	/* key parameters */
 };
 struct nametable *keyparams = prv_keyparams;
 
-static struct nametable prv_policyflags[] =	/* policy flags */
-{
-	{ "y",		DKIM_PFLAG_TEST },
-	{ "s",		DKIM_PFLAG_NOSUBDOMAIN },
-	{ NULL,		-1 }
-};
-struct nametable *policyflags = prv_policyflags;
-
 static struct nametable prv_keyflags[] =	/* policy flags */
 {
 	{ "y",		DKIM_SIGFLAG_TESTKEY },
@@ -53,9 +45,9 @@ struct nametable *keyflags = prv_keyflags;
 
 static struct nametable prv_policyparams[] =	/* policy parameters */
 {
+	{ "atps",	DKIM_PPARAM_ATPS },
 	{ "dkim",	DKIM_PPARAM_POLICY },
 	{ "r",		DKIM_PPARAM_REPORTADDR },
-	{ "t",		DKIM_PPARAM_FLAGS },
 	{ NULL,		-1 }
 };
 struct nametable *policyparams = prv_policyparams;

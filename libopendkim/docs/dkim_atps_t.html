@@ -1,0 +1,57 @@
+<html>
+<head><title>dkim_atps_t</title></head>
+<body>
+<!--
+$Id: dkim_param_t.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
+-->
+<h1>dkim_atps_t</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Purpose</th>
+<td>A <tt>dkim_atps_t</tt> is a result from an Authorized Third-Party Signers
+    (ATPS) check. </td>
+</tr>
+<tr align="left" valign=top>
+<th width="80">Possible Values</th>
+<td>
+<ul>
+<li> <tt>DKIM_ATPS_UNKNOWN</tt> -- an ATPS test has not been performed or a
+                                   result could not be determined
+<li> <tt>DKIM_ATPS_FOUND</tt> -- the sending domain has authorized the signing
+                                 domain to sign its mail
+<li> <tt>DKIM_ATPS_NOTFOUND</tt> -- the sending domain has not authorized the
+                                    signing domain to sign its mail
+</ul>
+</td>
+</tr>
+</table>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

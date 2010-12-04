@@ -360,6 +360,10 @@ struct msgctx
 #ifdef _FFR_RESIGN
 	_Bool		mctx_resign;		/* arrange to re-sign */
 #endif /* _FFR_RESIGN */
+#ifdef _FFR_ATPS
+	int		mctx_atps;		/* ATPS status */
+#endif /* _FFR_ATPS */
+	u_int		mctx_pflags;		/* policy flags */
 	dkim_policy_t	mctx_pcode;		/* policy result code */
 #ifdef USE_LUA
 	int		mctx_mresult;		/* SMFI status code */
@@ -10658,7 +10662,7 @@ mlfi_eoh(SMFICTX *ctx)
 			return SMFIS_TEMPFAIL;
 		}
 
-		status = dkim_policy(dfc->mctx_dkimv, &policy,
+		status = dkim_policy(dfc->mctx_dkimv, &policy, NULL,
 		                     dfc->mctx_pstate);
 		if (status != DKIM_STAT_OK)
 		{
@@ -11588,6 +11592,7 @@ mlfi_eom(SMFICTX *ctx)
 			{
 				pstatus = dkim_policy(dfc->mctx_dkimv,
 				                      &dfc->mctx_pcode,
+				                      &dfc->mctx_pflags,
 				                      dfc->mctx_pstate);
 #ifdef USE_UNBOUND
 				dfc->mctx_dnssec_policy = dkim_policy_getdnssec(dfc->mctx_dkimv);
@@ -11613,6 +11618,36 @@ mlfi_eom(SMFICTX *ctx)
 				    conf->conf_insecurepolicy == DKIM_POLICYACTIONS_IGNORE)
 					dfc->mctx_presult = DKIM_PRESULT_NONE;
 #endif /* USE_UNBOUND */
+
+#ifdef _FFR_ATPS
+				if ((dfc->mctx_pflags & DKIM_PFLAG_ATPS) != 0)
+				{
+					dkim_atps_t atps;
+
+					sig = dkim_getsignature(dfc->mctx_dkimv);
+
+					if (sig != NULL &&
+					    strcasecmp(dkim_sig_getdomain(sig),
+					               dfc->mctx_domain) != 0 &&
+					    (dkim_sig_getflags(sig) &
+					     DKIM_SIGFLAG_PASSED) != 0 &&
+					    dkim_sig_getbh(sig) == DKIM_SIGBH_MATCH)
+					{
+						status = dkim_atps_check(dfc->mctx_dkimv,
+						                         sig,
+						                         NULL,
+						                         &atps);
+
+						if (status == DKIM_STAT_OK)
+						{
+							if (atps == DKIM_ATPS_FOUND)
+								dfc->mctx_atps = 1;
+							else
+								dfc->mctx_atps = -1;
+						}
+					}
+				}
+#endif /* _FFR_ATPS */
 
 				/*
 				**  Reject the message if the policy check
@@ -12261,7 +12296,37 @@ mlfi_eom(SMFICTX *ctx)
 				}
 #endif /* USE_UNBOUND */
 
-				/* if we generated either, pretty it up */
+#ifdef _FFR_ATPS
+				strlcat((char *) header, ";", sizeof header);
+				strlcat((char *) header, DELIMITER,
+				        sizeof header);
+
+				strlcat((char *) header, "x-dkim-atps=",
+				        sizeof header);
+
+				switch (dfc->mctx_atps)
+				{
+				  case -1:
+					strlcat((char *) header, "fail",
+					        sizeof header);
+					break;
+
+				  case 0:
+					strlcat((char *) header, "neutral",
+					        sizeof header);
+					break;
+
+				  case 1:
+					strlcat((char *) header, "pass",
+					        sizeof header);
+					break;
+
+				  default:
+					assert(0);
+				}
+#endif /* _FFR_ATPS */
+
+				/* if we generated anything, pretty it up */
 				if (header[0] != '\0')
 				{
 					int len;
