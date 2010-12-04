@@ -204,6 +204,7 @@ extern int dkimf_xs_quarantine __P((lua_State *));
 extern int dkimf_xs_rcpt __P((lua_State *));
 extern int dkimf_xs_rcptarray __P((lua_State *));
 extern int dkimf_xs_rcptcount __P((lua_State *));
+extern int dkimf_xs_replaceheader __P((lua_State *));
 extern int dkimf_xs_resign __P((lua_State *));
 extern int dkimf_xs_requestsig __P((lua_State *));
 extern int dkimf_xs_setpartial __P((lua_State *));

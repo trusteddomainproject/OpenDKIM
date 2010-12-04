@@ -194,6 +194,20 @@ parameter is required.)
 .B odkim.rcpt_count(ctx)
 Returns the count of envelope recipients on the message.
 .TP
+.B odkim.replace_header(ctx, name, n, newval)
+Retrieves the value of in instance
+.I n
+of header field
+.I name
+in the message referenced by
+.I ctx
+and replaces it with the string in
+.I newval.
+See
+.I odkim.get_header()
+above for more information about possible parameter values for
+.I n.
+.TP
 .B odkim.resign(ctx)
 Arranges that the arriving message will be verified and then re-signed in
 a single operation.  Returns 1 on success or the Lua constant "nil" on failure.

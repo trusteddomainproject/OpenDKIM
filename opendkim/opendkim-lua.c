@@ -60,6 +60,7 @@ static const luaL_Reg dkimf_lua_lib_setup[] =
 	{ "internal_ip",	dkimf_xs_internalip	},
 	{ "log",		dkimf_xs_log		},
 	{ "rcpt_count",		dkimf_xs_rcptcount	},
+	{ "replace_header",	dkimf_xs_replaceheader	},
 	{ "resign",		dkimf_xs_resign		},
 	{ "set_result",		dkimf_xs_setresult	},
 	{ "sign",		dkimf_xs_requestsig	},
