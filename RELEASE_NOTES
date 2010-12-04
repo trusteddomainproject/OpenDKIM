@@ -12,6 +12,8 @@ release, and a summary of the changes in that release.
 	Feature request #SF3060161: Add odkim.del_header() function.
 	Feature request #SF3061189: Add new "quarantine" option to all the
 		various "On-" settings.
+	Feature request #SF3074290: Add _FFR_ATPS, experimental support for
+		draft-kucherawy-dkim-atps.
 	Feature request #SF3080604: Add odkim.parse_field() function.
 		Requested by Todd Lyons.
 	Feature request #SF3085536: Activate _FFR_STATS_I, providing
