@@ -179,6 +179,7 @@ struct dkimf_config
 	_Bool		conf_fixcrlf;		/* fix bare CRs and LFs? */
 	_Bool		conf_logwhy;		/* log mode decision logic */
 	_Bool		conf_allowsha1only;	/* allow rsa-sha1 verifying */
+	_Bool		conf_stricthdrs;	/* strict header checks */
 	_Bool		conf_keeptmpfiles;	/* keep temporary files */
 	_Bool		conf_multisig;		/* multiple signatures */
 	_Bool		conf_enablecores;	/* enable coredumps */
@@ -5182,6 +5183,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_keeptmpfiles,
 		                  sizeof conf->conf_keeptmpfiles);
 
+		(void) config_get(data, "StrictHeaders",
+		                  &conf->conf_stricthdrs,
+		                  sizeof conf->conf_stricthdrs);
+
 		(void) config_get(data, "TemporaryDirectory",
 		                  &conf->conf_tmpdir,
 		                  sizeof conf->conf_tmpdir);
@@ -6853,7 +6858,8 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	}
 
 	if (conf->conf_sendreports || conf->conf_keeptmpfiles ||
-	    conf->conf_blen || conf->conf_ztags || conf->conf_fixcrlf)
+	    conf->conf_stricthdrs || conf->conf_blen || conf->conf_ztags ||
+	    conf->conf_fixcrlf)
 	{
 		u_int opts;
 
@@ -6875,6 +6881,8 @@ dkimf_config_setlib(struct dkimf_config *conf)
 			opts |= DKIM_LIBFLAGS_FIXCRLF;
 		if (conf->conf_acceptdk)
 			opts |= DKIM_LIBFLAGS_ACCEPTDK;
+		if (conf->conf_stricthdrs)
+			opts |= DKIM_LIBFLAGS_STRICTHDRS;
 
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_FLAGS, &opts, sizeof opts);

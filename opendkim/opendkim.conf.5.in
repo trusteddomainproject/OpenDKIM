@@ -1035,6 +1035,11 @@ different hashes, meaning such correlation is now only possible within the
 data from a single repoter.
 
 .TP
+.I StrictHeaders (Boolean)
+If set, instructs the DKIM library to refuse processing of a message if the
+header field count does not conform to RFC5322 Section 3.6.
+
+.TP
 .I StrictTestMode (Boolean)
 Selects strict CRLF mode during testing (see the
 .I -t

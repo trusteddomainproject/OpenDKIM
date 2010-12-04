@@ -927,7 +927,7 @@ dkim_set_getudata(DKIM_SET *set)
 **  Parameters:
 **  	dkim -- DKIM handle
 **  	name -- name of the header to find
-**  	namelen -- length of the header name at "namelen" (or 0)
+**  	namelen -- length of the header name at "name" (or 0)
 **  	inst -- instance to find (0 == first/any)
 **
 **  Return value:
@@ -5811,14 +5811,12 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 DKIM_STAT
 dkim_eoh(DKIM *dkim)
 {
-#ifdef _FFR_PARSE_TIME
 	struct dkim_header *hdr;
-#endif /* _FFR_PARSE_TIME */
 
 	assert(dkim != NULL);
 
 #ifdef _FFR_PARSE_TIME
-#define RFC2822DATE	"%a, %d %b %Y %H:%M:%S %z"
+# define RFC2822DATE	"%a, %d %b %Y %H:%M:%S %z"
 /* # define RFC2822DATE	"%a" */
 	/* store the Date: value for possible later scrutiny */
 	hdr = dkim_get_header(dkim, DKIM_DATEHEADER, DKIM_DATEHEADER_LEN, 0);
@@ -5842,6 +5840,72 @@ dkim_eoh(DKIM *dkim)
 		}
 	}
 #endif /* _FFR_PARSE_TIME */
+
+	if (dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_STRICTHDRS)
+	{
+		/* Date (must be exactly one) */
+		hdr = dkim_get_header(dkim, "Date", 4, 0);
+		if (hdr == NULL)
+			return DKIM_STAT_INVALID;
+
+		hdr = dkim_get_header(dkim, "Date", 4, 1);
+		if (hdr != NULL)
+			return DKIM_STAT_INVALID;
+
+		/* From (must be exactly one) */
+		hdr = dkim_get_header(dkim, "From", 4, 0);
+		if (hdr == NULL)
+			return DKIM_STAT_INVALID;
+
+		hdr = dkim_get_header(dkim, "From", 4, 1);
+		if (hdr != NULL)
+			return DKIM_STAT_INVALID;
+
+		/* Sender (no more than one) */
+		hdr = dkim_get_header(dkim, "Sender", 6, 1);
+		if (hdr != NULL)
+			return DKIM_STAT_INVALID;
+
+		/* Reply-To (no more than one) */
+		hdr = dkim_get_header(dkim, "Reply-To", 8, 1);
+		if (hdr != NULL)
+			return DKIM_STAT_INVALID;
+
+		/* To (no more than one) */
+		hdr = dkim_get_header(dkim, "To", 2, 1);
+		if (hdr != NULL)
+			return DKIM_STAT_INVALID;
+
+		/* Cc (no more than one) */
+		hdr = dkim_get_header(dkim, "Cc", 2, 1);
+		if (hdr != NULL)
+			return DKIM_STAT_INVALID;
+
+		/* Bcc (should we even bother?) */
+		hdr = dkim_get_header(dkim, "Bcc", 3, 1);
+		if (hdr != NULL)
+			return DKIM_STAT_INVALID;
+
+		/* Message-ID (no more than one) */
+		hdr = dkim_get_header(dkim, "Message-ID", 10, 1);
+		if (hdr != NULL)
+			return DKIM_STAT_INVALID;
+
+		/* In-Reply-To (no more than one) */
+		hdr = dkim_get_header(dkim, "In-Reply-To", 11, 1);
+		if (hdr != NULL)
+			return DKIM_STAT_INVALID;
+
+		/* References (no more than one) */
+		hdr = dkim_get_header(dkim, "References", 10, 1);
+		if (hdr != NULL)
+			return DKIM_STAT_INVALID;
+
+		/* Subject (no more than one) */
+		hdr = dkim_get_header(dkim, "Subject", 7, 1);
+		if (hdr != NULL)
+			return DKIM_STAT_INVALID;
+	}
 
 	if (dkim->dkim_mode == DKIM_MODE_VERIFY)
 		return dkim_eoh_verify(dkim);

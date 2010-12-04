@@ -22,6 +22,7 @@ release, and a summary of the changes in that release.
 	Feature request #SF3106132: Allow "%" in a SigningTable's value.
 	Replace popen() calls with a local implementation to remove
 		a potentially long wait inside a critical section.
+	LIBOPENDKIM: Feature request #SF3087029: Add DKIM_LIBFLAGS_STRICTHDRS.
 	LIBOPENDKIM: Fix bug #SF3079094: Have dkim_diffheaders() take
 		canonicalization into account when generating its results
 		to avoid false positives.

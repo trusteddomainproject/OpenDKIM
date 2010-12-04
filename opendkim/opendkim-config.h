@@ -190,6 +190,7 @@ struct configdef dkimf_config[] =
 # endif /* USE_LUA */
 	{ "StatisticsPrefix",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_STATS */
+	{ "StrictHeaders",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "StrictTestMode",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "SubDomains",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "Syslog",			CONFIG_TYPE_BOOLEAN,	FALSE },

@@ -601,6 +601,15 @@ Selector		my-selector-name
 
 Socket			inet:port@localhost
 
+##  StrictHeaders { yes | no }
+##  	default "no"
+##
+##  Requests that the DKIM library refuse to process a message whose
+##  header fields do not conform to the standards, in particular Section 3.6
+##  of RFC5322.
+
+# StrictHeaders		no
+
 ##  StrictTestMode { yes | no }
 ##  	default "no"
 ##
