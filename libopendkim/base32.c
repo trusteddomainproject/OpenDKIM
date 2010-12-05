@@ -32,7 +32,8 @@ static const char cb32[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 **
 **  Parameters:
 **  	buf -- destination buffer
-**  	buflen -- bytes available at buf (updated)
+**  	buflen -- in: bytes available at buf
+**                out: bytes used from "data"
 **  	data -- pointer to data to encode
 **  	size -- bytes at "data" to encode
 **
@@ -49,9 +50,11 @@ static const char cb32[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 int 
 base32_encode(char *buf, size_t *buflen, const void *data, size_t size)
 {
-	unsigned char *udata;
+	unsigned int lastbits;
+	unsigned int padding;
 	int iout = 0;
 	int iin = 0;
+	unsigned char *udata;
 
 	udata = (unsigned char *) data;
 
@@ -122,8 +125,26 @@ base32_encode(char *buf, size_t *buflen, const void *data, size_t size)
 		iout++;
 	}
 
-	/* XXX -- this may not have the trailing "=" padding right */
+	/* append padding */
+	lastbits = (size * 8) % 40;
+	if (lastbits == 0)
+		padding = 0;
+	else if (lastbits == 8)
+		padding = 6;
+	else if (lastbits == 16)
+		padding = 4;
+	else if (lastbits == 24)
+		padding = 3;
+	else if (lastbits == 32)
+		padding = 1;
 
+	while (padding > 0 && iout < *buflen)
+	{
+		buf[iout++] = '=';
+		padding--;
+	}
+
+	/* ensure NULL termination */
 	buf[iout] = '\0';
 
 	/* store number of bytes from data that was used */
