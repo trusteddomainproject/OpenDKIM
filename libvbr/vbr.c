@@ -36,14 +36,6 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.5.2.1 2010/10/27 21:43:09 cm-msk Ex
 /* libvbr includes */
 #include "vbr.h"
 
-/* local definitions needed for DNS queries */
-#define MAXPACKET		8192
-#if defined(__RES) && (__RES >= 19940415)
-# define RES_UNC_T		char *
-#else /* __RES && __RES >= 19940415 */
-# define RES_UNC_T		unsigned char *
-#endif /* __RES && __RES >= 19940415 */
-
 #ifndef FALSE
 # define FALSE			0
 #endif /* ! FALSE */
@@ -55,6 +47,25 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.5.2.1 2010/10/27 21:43:09 cm-msk Ex
 #define	DEFERRLEN		64
 #define	DEFTIMEOUT		10
 #define MAXCNAMEDEPTH		3
+
+/* local definitions needed for DNS queries */
+#define MAXPACKET		8192
+#if defined(__RES) && (__RES >= 19940415)
+# define RES_UNC_T		char *
+#else /* __RES && __RES >= 19940415 */
+# define RES_UNC_T		unsigned char *
+#endif /* __RES && __RES >= 19940415 */
+#ifndef T_RRSIG
+# define T_RRSIG		46
+#endif /* ! T_RRSIG */
+
+/* struct vbr_query -- an open VBR query */
+struct vbr_query
+{
+	void *		vq_qh;
+	size_t		vq_anslen;
+	u_char		vq_buf[HFIXEDSZ + MAXPACKET];
+};
 
 struct vbr_handle
 {
@@ -297,6 +308,158 @@ vbr_error(VBR *vbr, const char *format, ...)
 	va_start(va, format);
 	vbr_verror(vbr, format, va);
 	va_end(va);
+}
+
+/*
+**  VBR_RES_CANCEL -- cancel a pending resolver query
+**
+**  Parameters:
+**  	srv -- query service handle (ignored)
+**  	qh -- query handle (ignored)
+**
+**  Return value:
+**  	0 on success, !0 on error
+**
+**  Notes:
+**  	The standard UNIX resolver is synchronous, so in theory this can
+**  	never get called.  We have not yet got any use cases for one thread
+**  	canceling another thread's pending queries, so for now just return 0.
+*/
+
+static int
+vbr_res_cancel(void *srv, void *qh)
+{
+	if (qh != NULL)
+		free(qh);
+
+	return 0;
+}
+
+/*
+**  VBR_RES_QUERY -- initiate a DNS query
+**
+**  Parameters:
+**  	srv -- service handle (ignored)
+**  	type -- RR type to query
+**  	query -- the question to ask
+**  	buf -- where to write the answer
+**  	buflen -- bytes at "buf"
+** 	qh -- query handle, used with vbr_res_waitreply
+**
+**  Return value:
+**  	An VBR_DNS_* constant.
+**
+**  Notes:
+**  	This is a stub for the stock UNIX resolver (res_) functions, which
+**  	are synchronous so no handle needs to be created, so "qh" is set to
+**  	"buf".  "buf" is actually populated before this returns (unless
+**  	there's an error).
+*/
+
+static int
+vbr_res_query(void *srv, int type, unsigned char *query, unsigned char *buf,
+              size_t buflen, void **qh)
+{
+	int n;
+	int ret;
+	struct vbr_res_qh *vq;
+	unsigned char qbuf[HFIXEDSZ + MAXPACKET];
+#ifdef HAVE_RES_NINIT
+	struct __res_state statp;
+#endif /* HAVE_RES_NINIT */
+
+#ifdef HAVE_RES_NINIT
+	memset(&statp, '\0', sizeof statp);
+	res_ninit(&statp);
+#endif /* HAVE_RES_NINIT */
+
+#ifdef HAVE_RES_NINIT
+	n = res_nmkquery(&statp, QUERY, (char *) query, C_IN, type, NULL, 0,
+	                 NULL, qbuf, sizeof qbuf);
+#else /* HAVE_RES_NINIT */
+	n = res_mkquery(QUERY, (char *) query, C_IN, type, NULL, 0, NULL, qbuf,
+	                sizeof qbuf);
+#endif /* HAVE_RES_NINIT */
+	if (n == (size_t) -1)
+	{
+#ifdef HAVE_RES_NINIT
+		res_nclose(&statp);
+#endif /* HAVE_RES_NINIT */
+		return VBR_DNS_ERROR;
+	}
+
+#ifdef HAVE_RES_NINIT
+	ret = res_nsend(&statp, qbuf, n, buf, buflen);
+#else /* HAVE_RES_NINIT */
+	ret = res_send(qbuf, n, buf, buflen);
+#endif /* HAVE_RES_NINIT */
+	if (ret == -1)
+	{
+#ifdef HAVE_RES_NINIT
+		res_nclose(&statp);
+#endif /* HAVE_RES_NINIT */
+		return VBR_DNS_ERROR;
+	}
+
+#ifdef HAVE_RES_NINIT
+	res_nclose(&statp);
+#endif /* HAVE_RES_NINIT */
+
+	vq = (struct vbr_res_qh *) malloc(sizeof *vq);
+	if (vq == NULL)
+		return VBR_DNS_ERROR;
+
+	if (ret == -1)
+	{
+		vq->vq_error = errno;
+		vq->vq_buflen = 0;
+	}
+	else
+	{
+		vq->vq_error = 0;
+		vq->vq_buflen = (size_t) ret;
+	}
+
+	*qh = (void *) vq;
+
+	return VBR_DNS_SUCCESS;
+}
+
+/*
+**  VBR_RES_WAITREPLY -- wait for a reply to a pending query
+**
+**  Parameters:
+**  	srv -- service handle
+**  	qh -- query handle
+**  	to -- timeout
+**  	bytes -- number of bytes in the reply (returned)
+**  	error -- error code (returned)
+**
+**  Return value:
+**  	A VBR_DNS_* code.
+**
+**  Notes:
+**  	Since the stock UNIX resolver is synchronous, the reply was completed
+** 	before vbr_res_query() returned, and thus this is almost a no-op.
+*/
+
+int
+vbr_res_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
+                  int *error, int *dnssec)
+{
+	int ret;
+	struct vbr_res_qh *vq;
+
+	assert(qh != NULL);
+
+	vq = qh;
+
+	if (bytes != NULL)
+		*bytes = vq->vq_buflen;
+	if (error != NULL)
+		*error = vq->vq_error;
+
+	return VBR_DNS_SUCCESS;
 }
 
 /*
@@ -735,6 +898,7 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 			{
 				int status;
 #ifdef USE_ARLIB
+FIX ME
 				int arerror;
 				AR_QUERY q;
 				AR_LIB ar;
@@ -742,6 +906,7 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 				u_char *last2;
 				u_char *p2;
 #ifdef USE_ARLIB
+FIX ME
 				struct timeval timeout;
 #endif /* USE_ARLIB */
 				unsigned char ansbuf[MAXPACKET];
@@ -752,6 +917,7 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 				         VBR_PREFIX, p);
 
 #ifdef USE_ARLIB
+FIX ME
 				ar = vbr->vbr_arlib;
 				timeout.tv_sec = vbr->vbr_timeout;
 				timeout.tv_usec = 0;
@@ -791,11 +957,13 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 
 				(void) ar_cancelquery(ar, q);
 #else /* USE_ARLIB */
+FIX ME
 				status = res_query((char *) query, C_IN, T_TXT,
 				                   ansbuf, sizeof ansbuf);
 #endif /* USE_ARLIB */
 
 #ifdef USE_ARLIB
+FIX ME
 				if (status == AR_STAT_ERROR ||
 				    status == AR_STAT_EXPIRED)
 				{
@@ -804,6 +972,7 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 					return VBR_STAT_DNSERROR;
 				}
 #else /* USE_ARLIB */
+FIX ME
 				if (status == -1)
 				{
 					switch (h_errno)
@@ -892,4 +1061,121 @@ vbr_getheader(VBR *vbr, unsigned char *hdr, size_t len)
 	}
 
 	return VBR_STAT_OK;
+}
+
+/*
+**  VBR_DNS_SET_QUERY_SERVICE -- stores a handle representing the DNS
+**                               query service to be used, returning any
+**                               previous handle
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	h -- handle to be used
+**
+**  Return value:
+**  	Previously stored handle, or NULL if none.
+*/
+
+void *
+vbr_dns_set_query_service(VBR *vbr, void *h)
+{
+	void *old;
+
+	assert(vbr != NULL);
+
+	old = vbr->vbr_dns_service;
+
+	vbr->vbr_dns_service = h;
+
+	return old;
+}
+
+/*
+**  VBR_DNS_SET_QUERY_START -- stores a pointer to a query start function
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	func -- function to use to start queries
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- receives handle stored by
+**  		             vbr_dns_set_query_service()
+**  		int type -- DNS RR query type (C_IN assumed)
+**  		char *query -- question to ask
+**  		char *buf -- buffer into which to write reply
+**  		size_t buflen -- size of buf
+**  		void **qh -- returned query handle
+*/
+
+void
+vbr_dns_set_query_start(VBR *vbr, int (*func)(void *, int,
+                                              unsigned char *,
+                                              unsigned char *,
+                                              size_t, void **))
+{
+	assert(vbr != NULL);
+
+	vbr->vbr_dns_start = func;
+}
+
+/*
+**  VBR_DNS_SET_QUERY_CANCEL -- stores a pointer to a query cancel function
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	func -- function to use to cancel running queries
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- DNS service handle
+**  		void *qh -- query handle to be canceled
+*/
+
+void
+vbr_dns_set_query_cancel(VBR *vbr, int (*func)(void *, void *))
+{
+	assert(vbr != NULL);
+
+	vbr->vbr_dns_cancel = func;
+}
+
+/*
+**  VBR_DNS_SET_QUERY_WAITREPLY -- stores a pointer to wait for a DNS reply
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	func -- function to use to wait for a reply
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- DNS service handle
+**  		void *qh -- handle of query that has completed
+**  		struct timeval *timeout -- how long to wait
+**  		size_t *bytes -- bytes returned
+**  		int *error -- error code returned
+**  		int *dnssec -- DNSSEC status returned
+*/
+
+void
+vbr_dns_set_query_waitreply(VBR *vbr, int (*func)(void *, void *,
+                                                  struct timeval *,
+                                                  size_t *, int *,
+                                                  int *))
+{
+	assert(vbr != NULL);
+
+	vbr->vbr_dns_waitreply = func;
 }
