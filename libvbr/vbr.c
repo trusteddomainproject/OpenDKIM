@@ -33,11 +33,6 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.5.2.1 2010/10/27 21:43:09 cm-msk Ex
 # include <varargs.h>
 #endif /* _STDC_ */
 
-/* libar includes */
-#ifdef USE_ARLIB
-# include <ar.h>
-#endif /* USE_ARLIB */
-
 /* libvbr includes */
 #include "vbr.h"
 
@@ -64,21 +59,31 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.5.2.1 2010/10/27 21:43:09 cm-msk Ex
 struct vbr_handle
 {
 	size_t		vbr_errlen;		/* error buffer size */
-#ifdef USE_ARLIB
 	u_int		vbr_timeout;		/* query timeout */
 	u_int		vbr_callback_int;	/* callback interval */
-	AR_LIB		vbr_arlib;		/* libar handle */
 	void *		vbr_user_context;	/* user context for callback */
-	void		(*vbr_dns_callback) (const void *context);
-#endif /* USE_ARLIB */
-	void *		(*vbr_malloc) (void *closure, size_t nbytes);
-	void		(*vbr_free) (void *closure, void *p);
+	void		(*vbr_dns_callback) (const void *);
+	void *		(*vbr_malloc) (void *, size_t);
+	void		(*vbr_free) (void *, void *);
 	void *		vbr_closure;		/* memory closure */
 	u_char *	vbr_domain;		/* sending domain */
 	u_char *	vbr_type;		/* message type */
 	u_char *	vbr_cert;		/* claimed certifiers */
 	u_char *	vbr_error;		/* error buffer */
 	u_char **	vbr_trusted;		/* trusted certifiers */
+	void		*vbr_dns_service;
+	int		(*vbr_dns_start) (void *, int,
+			                  unsigned char *,
+			                  unsigned char *,
+			                  size_t,
+			                  void **);
+	int		(*vbr_dns_cancel) (void *, void *);
+	int		(*vbr_dns_waitreply) (void *,
+			                      void *,
+			                      struct timeval *,
+			                      size_t *,
+			                      int *,
+			                      int *);
 };
 
 /* prototypes */
@@ -448,26 +453,12 @@ vbr_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	new->vbr_malloc = caller_mallocf;
 	new->vbr_free = caller_freef;
 	new->vbr_closure = closure;
-#ifdef USE_ARLIB
 	new->vbr_timeout = DEFTIMEOUT;
 	new->vbr_callback_int = 0;
 	new->vbr_dns_callback = NULL;
 	new->vbr_user_context = NULL;
-#endif /* USE_ARLIB */
 	new->vbr_errlen = 0;
 	new->vbr_error = NULL;
-
-	/* initialize the resolver */
-#ifdef USE_ARLIB
-	new->vbr_arlib = ar_init(NULL, NULL, NULL, 0);
-	if (new->vbr_arlib == NULL)
-	{
-		free(new);
-		return NULL;
-	}
-#else /* USE_ARLIB */
-	(void) res_init();
-#endif /* USE_ARLIB */
 
 	new->vbr_domain = NULL;
 	new->vbr_type = NULL;
@@ -497,11 +488,6 @@ void
 vbr_close(VBR *vbr)
 {
 	assert(vbr != NULL);
-
-#ifdef USE_ARLIB
-	if (vbr->vbr_arlib != NULL)
-		ar_shutdown(vbr->vbr_arlib);
-#endif /* USE_ARLIB */
 
 	CLOBBER(vbr->vbr_error);
 
@@ -545,12 +531,8 @@ vbr_settimeout(VBR *vbr, u_int timeout)
 {
 	assert(vbr != NULL);
 
-#ifdef USE_ARLIB
 	vbr->vbr_timeout = timeout;
 	return VBR_STAT_OK;
-#else /* USE_ARLIB */
-	return VBR_STAT_NOTIMPLEMENT;
-#endif /* USE_ARLIB */
 }
 
 /*
@@ -569,12 +551,8 @@ vbr_setcallbackint(VBR *vbr, u_int cbint)
 {
 	assert(vbr != NULL);
 
-#ifdef USE_ARLIB
 	vbr->vbr_callback_int = cbint;
 	return VBR_STAT_OK;
-#else /* USE_ARLIB */
-	return VBR_STAT_NOTIMPLEMENT;
-#endif /* USE_ARLIB */
 }
 
 /*
@@ -593,12 +571,8 @@ vbr_setcallbackctx(VBR *vbr, void *ctx)
 {
 	assert(vbr != NULL);
 
-#ifdef USE_ARLIB
 	vbr->vbr_user_context = ctx;
 	return VBR_STAT_OK;
-#else /* USE_ARLIB */
-	return VBR_STAT_NOTIMPLEMENT;
-#endif /* USE_ARLIB */
 }
 
 /*
@@ -617,12 +591,8 @@ vbr_setdnscallback(VBR *vbr, void (*func)(const void *context))
 {
 	assert(vbr != NULL);
 
-#ifdef USE_ARLIB
 	vbr->vbr_dns_callback = func;
 	return VBR_STAT_OK;
-#else /* USE_ARLIB */
-	return VBR_STAT_NOTIMPLEMENT;
-#endif /* USE_ARLIB */
 }
 
 /*
