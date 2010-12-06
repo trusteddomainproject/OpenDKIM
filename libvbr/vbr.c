@@ -335,7 +335,7 @@ vbr_error(VBR *vbr, const char *format, ...)
 static void
 vbr_timeouts(struct timeval *timeout, struct timeval *ctimeout,
              struct timeval *wstart, struct timeval *wstop,
-             struct timeval *next)
+             struct timeval **next)
 {
 	assert(timeout != NULL);
 	assert(ctimeout != NULL);
@@ -349,16 +349,43 @@ vbr_timeouts(struct timeval *timeout, struct timeval *ctimeout,
 		if (timeout->tv_sec < ctimeout->tv_sec ||
 		    (timeout->tv_sec == ctimeout->tv_sec &&
 		     timeout->tv_usec < ctimeout->tv_usec))
-			memcpy(next, timeout, sizeof *next);
+			*next = timeout;
 		else
 			*next = ctimeout;
 	}
 	else
 	{
-		/* a later pass */
-FINISH ME
-		/* XXX -- compute time to next callback interval or to
-		** overall timeout */
+		struct timeval to1;
+		struct timeval to2;
+		struct timeval now;
+
+		/* compute start through overall timeout */
+		memcpy(&to1, wstart, sizeof to1);
+		to1.tv_sec += timeout->tv_sec;
+		to1.tv_usec += timeout->tv_usec;
+		if (to1.tv_usec > 1000000)
+		{
+			to1.tv_sec += (to1.tv_usec / 1000000);
+			to1.tv_usec = (to1.tv_usec % 1000000);
+		}
+
+		/* compute stop through callback timeout */
+		memcpy(&to2, wstop, sizeof to2);
+		to2.tv_sec += ctimeout->tv_sec;
+		to2.tv_usec += ctimeout->tv_usec;
+		if (to2.tv_usec > 1000000)
+		{
+			to2.tv_sec += (to2.tv_usec / 1000000);
+			to2.tv_usec = (to2.tv_usec % 1000000);
+		}
+
+		/* ...and decide */
+		if (to1.tv_sec < to2.tv_sec ||
+		    (to1.tv_sec == to2.tv_sec &&
+		     to1.tv_usec < to2.tv_usec))
+			*next = timeout;
+		else
+			*next = ctimeout;
 	}
 }
 
@@ -1003,16 +1030,10 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 				}
 				else
 				{
-					struct timeval to;
+					struct timeval *to;
 					struct timeval wstart;
 					struct timeval wstop;
 					struct timeval ctimeout;
-
-					ctimeout.tv_sec = vbr->vbr_callback_int;
-					ctimeout.tv_usec = 0;
-
-					timeout.tv_sec = vbr->vbr_timeout;
-					timeout.tv_usec = 0;
 
 					wstop.tv_sec = 0;
 					wstop.tv_usec = 0;
@@ -1022,6 +1043,12 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 						(void) gettimeofday(&wstart,
 						                    NULL);
 
+						ctimeout.tv_sec = vbr->vbr_callback_int;
+						ctimeout.tv_usec = 0;
+
+						timeout.tv_sec = vbr->vbr_timeout;
+						timeout.tv_usec = 0;
+
 						vbr_timeouts(&timeout,
 						             &ctimeout,
 						             &wstart,
@@ -1030,7 +1057,7 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 
 						status = vbr->vbr_dns_waitreply(vbr->vbr_dns_service,
 						                                vq->vq_qh,
-						                                &to,
+						                                to,
 						                                &vq->vq_buflen,
 						                                &dnserr,
 						                                NULL);
@@ -1038,7 +1065,8 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 						(void) gettimeofday(&wstop,
 						                    NULL);
 
-						if (status != VBR_DNS_NOREPLY)
+						if (status != VBR_DNS_NOREPLY ||
+						    to == &timeout)
 							break;
 
 						vbr->vbr_dns_callback(vbr->vbr_user_context);
