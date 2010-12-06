@@ -465,6 +465,11 @@ vbr_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	new->vbr_cert = NULL;
 	new->vbr_trusted = NULL;
 
+	new->vbr_dns_service = NULL;
+	new->vbr_dns_start = vbr_res_start;
+	new->vbr_dns_waitreply = vbr_res_waitreply;
+	new->vbr_dns_cancel = vbr_res_cancel;
+
 	return new;
 }
 
