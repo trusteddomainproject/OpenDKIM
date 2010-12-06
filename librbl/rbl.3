@@ -1,0 +1,334 @@
+.TH librbl 3
+.SH NAME
+.B rbl_init(), rbl_close(), rbl_geterror(), rbl_setdomain(),
+.B rbl_query_start(), rbl_query_check(), rbl_query_cancel(),
+.B rbl_settimeout(), rbl_setcallbackint(), rbl_setcallbackctx(),
+.B rbl_setdnscallback(), rbl_dns_set_query_service(),
+.B rbl_dns_set_query_start(), rbl_dns_set_query_cancel(),
+.B rbl_dns_set_query_waitreply()
+-- Realtime Blacklist (RBL) service facility
+.SH SYNOPSIS
+#include
+.I <rbl.h>
+
+RBL *
+.B rbl_init
+(void *(*
+.B mallocf
+)(void *, size_t), void (*
+.B freef
+)(void *, void *p), void *
+.B closure
+);
+
+unsigned char *
+.B rbl_geterror
+(RBL *
+.B rbl
+);
+
+RBL_STAT
+.B rbl_getheader
+(RBL *
+.B rbl,
+unsigned char *
+.B hdr,
+size_t
+.B len
+);
+
+void
+.B rbl_setdomain
+(RBL *
+.B rbl,
+unsigned char *
+.B qroot
+);
+
+RBL_STAT
+.B rbl_query_start
+(RBL *
+.B rbl,
+unsigned char *
+.B query,
+void *
+.B qh
+);
+
+RBL_STAT
+.B rbl_settimeout
+(RBL *
+.B rbl,
+unsigned int
+.B timeout
+);
+
+RBL_STAT
+.B rbl_setcallbackint
+(RBL *
+.B rbl,
+unsigned int
+.B cbint
+);
+
+RBL_STAT
+.B rbl_setcallbackctx
+(RBL *,
+.B rbl,
+void *
+.B ctx
+);
+
+RBL_STAT
+.B rbl_setdnscallback
+(RBL *,
+.B rbl,
+void (*
+.B func
+)(const void *));
+
+void *
+.B rbl_dns_set_query_service
+(RBL *
+.B rbl,
+void *
+.B svc
+);
+
+void
+.B rbl_dns_set_query_cancel
+(RBL *
+.B rbl,
+int (*
+.B func
+)(void *, void *));
+
+void
+.B rbl_dns_set_query_start
+(RBL *
+.B rbl,
+int (*
+.B func
+)(void *, int, unsigned char *, unsigned char *, size_t, void **));
+
+void
+.B rbl_dns_set_query_waitreply
+(RBL *
+.B rbl,
+int (*
+.B func
+)(void *, void *, struct timeval *, size_t *, int *, int *));
+
+void
+.B rbl_close
+(RBL *
+.B rbl
+);
+
+.SH DESCRIPTION
+These functions are an interface to a facility to conduct Realtime Blacklist
+(RBL) queries and return their results.  RBLs are described in RFC5782.
+
+An application first initializes the package by calling
+.B rbl_init().
+The optional
+.I mallocf
+parameter is a caller-provided memory allocation function taking a pointer
+to a caller-provided opaque data structure (the
+.I closure
+parameter) and a number of bytes to allocate.  If
+.I mallocf
+is not provided, the default system memory allocator function
+.B malloc(3)
+is used.  The optional
+.I freef
+parameter specifies a matching caller-provided memory deallocator function,
+taking a pointer to a caller-provided opaque data structure (the
+.I closure
+parameter) and a pointer to the memory to be released.  If
+.I freef
+is not provided, the default system memory release function
+.B free(3)
+is used.  A handle for future use of the initialized library instance
+is returned, or NULL on error and
+.I errno
+will be set to indicate the cause of the failure.
+
+The
+.B rbl_geterror()
+function can be used to poll the library for an error string that provides
+further description for the most recent failed operation.
+
+A call to
+.B rbl_setdomain()
+sets the RBL's base domain.  This specifies the "root" of all future queries
+for the provided
+.B rbl
+handle to
+.B qroot.
+Future queries passed to this handle will be prepended to the string
+provided here.
+
+A query is initialized with a call to
+.B rbl_query_start()
+which takes an RBL library handle as
+.B rbl,
+the string to be queried as
+.B query,
+and a pointer to a void pointer that will be updated to contain a reference
+to the initiated query as
+.B qh.
+
+A query previously started by
+.I rbl_query_start()
+can be canceled by calling
+.B rbl_query_cancel(),
+passing it an RBL library handle as
+.B rbl
+and a query handle as 
+.B qh
+as previously returned when the query was started.
+
+A query previously started by
+.I rbl_query_start()
+can be polled for its status or a result using
+.B rbl_query_check(),
+passing it an RBL library handle as
+.B rbl,
+a query handle as 
+.B qh,
+a pointer to a "struct timeval" ast
+.B timeout
+(which can be NULL if an infinite wait is acceptable), and a pointer to
+a 32-bit integer as
+.B res
+into which any result will be returned (or it can be NULL if the caller
+doesn't actually want the result).  Results are in network byte order.
+If this function returns RBL_STAT_FOUND or RBL_STAT_NOTFOUND, the query
+is automatically canceled and need not be passed to
+.I rbl_query_cancel().
+
+The
+.B rbl_settimeout()
+function can be used to change the query timeout.  The default is ten seconds.
+
+If it is useful to have the library periodically call a user-provided function
+as an indication that queries are still in progress, such a function can be
+registered with the
+.B rbl_setdnscallback()
+function.  The function provided should take a void context pointer as
+its sole argument.
+.B rbl_setcallbackctx()
+is used to tell the library what context pointer should be used, and
+.B rbl_setcallbackint()
+is used to tell the library what frequency, in seconds, should be used to
+call that callback function.  Each of these takes the corresponding RBL
+library handle as its first argument, and the obvious parameter for its second.
+
+By default, the library will use the stock system resolver to conduct DNS
+queries.  If alternates should be used, these can be specifed using the
+following functions:
+
+.B rbl_dns_set_query_service()
+sets a context pointer to the query service to be used, if any.  This will
+be passed as-is to the other DNS functions.  It returns its previous value.
+
+.B rbl_dns_set_query_cancel()
+sets a pointer to the function that should be called to cancel an open query,
+and should take the following parameters: a void pointer to the DNS query
+service to be used, and a void pointer to a query handle as previously returned
+by a call to
+.I rbl_dns_set_query_start().
+The function should return one of the DNS result codes described below.
+
+.B rbl_dns_set_query_start()
+sets a pointer to the function that should be called to initiate a new query,
+and should take the following parameters: a void pointer to the DNS query
+service to be used, a DNS record type (e.g. T_TXT), a pointer to a string
+containing the query to be started, a pointer to a buffer into which the
+reply should be written, the number of bytes available in that buffer,
+and a pointer to a void pointer that will be updated to contain a unique
+handle for that query once started.  The function should return one of the
+DNS result codes described below.
+
+.B rbl_dns_set_query_waitreply()
+sets a pointer to the function that should be called to wait for a reply
+to an open query, and should take the following parameters: a void pointer
+to the DNS query service to be used, a void pointer referencing the query of
+interest as previously returned by a call to
+.I rbl_dns_set_query_start(),
+a pointer to a "struct timeval" structure indicating how long the function
+should wait for a reply (or NULL if infinite waiting is acceptable),
+a pointer to a "size_t" that will be updated to contain the size of the
+received reply, a pointer to an integer that will contain an error code
+if the query fails (can be NULL if that information is not interesting to
+the caller), and a pointer to an integer that will contain a DNSSEC
+status indication (can be NULL if that information is not interesting to
+the caller).  The function should return one of the DNS result codes
+described below.
+
+When the library handle is no longer needed, it should be passed to
+.B rbl_close().
+
+.SH RETURN VALUES
+The following return codes, of type RBL_STAT, can be returned:
+.TP
+.I RBL_STAT_OK
+successful completion
+.TP
+.I RBL_STAT_INVALID
+operation failed because an invalid parameter was provided
+.TP
+.I RBL_STAT_DNSERROR
+operation could not be completed because of errors requesting or receiving
+a DNS reply; note that this does not include a successful reply that contains
+a "no record found" result, which is a successful answer
+.TP
+.I RBL_STAT_NORESOURCE
+a caller-provided buffer was too small to complete the requested operation,
+or a memory or file descriptor allocation failed
+.TP
+.I RBL_STAT_NOTIMPLEMENT
+an optional library feature was not selected at compilation time
+.TP
+.I RBL_STAT_FOUND
+the requested record was found in the RBL
+.TP
+.I RBL_STAT_NOTFOUND
+the requested record was not found in the RBL (but the query did complete)
+.TP
+.I RBL_STAT_NOREPLY
+a call to
+.I rbl_query_check()
+timed out before a result could be returned
+.TP
+.I RBL_STAT_EXPIRED
+the underlying resolver reported that the query expired; this is included to
+support resolvers that have an overall query timeout as well as a single
+wait timeout
+.SH DNS RETURN CODES
+Any registered DNS functions should return one of the following result codes:
+.TP
+.I RBL_DNS_ERROR
+An error occurred.  The cause of the error can be retrieved using
+.I rbl_geterror().
+.TP
+.I RBL_DNS_SUCCESS
+The operation was successful.
+.TP
+.I RBL_DNS_REPLY
+A reply is available (returned by the "waitreply" function).
+.TP
+.I RBL_DNS_NOREPLY
+No reply was received by the time the query timeout was reached (returned
+by the "waitreply" function).
+.TP
+.I RBL_DNS_EXPIRED
+The query expired completely (returned by the "waitreply" function).  Some
+resolvers set an overall timeout for the query at start time in addition to
+one for each single wait request; this code indicates the former timeout
+expired.
+.SH COPYRIGHT
+Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+.I intro(2)

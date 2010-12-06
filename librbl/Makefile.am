@@ -14,3 +14,5 @@ endif
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = rbl.pc
+
+dist_man_MANS = rbl.3
