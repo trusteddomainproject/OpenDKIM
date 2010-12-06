@@ -887,6 +887,16 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 
 	strlcpy((char *) certs, vbr->vbr_cert, sizeof certs);
 
+	if (vbr->vbr_malloc != NULL)
+		vq = vbr->vbr_malloc(vbr->vbr_closure, sizeof(*vq));
+	else
+		vq = malloc(sizeof(*vq));
+
+	if (vq == NULL)
+		return VBR_STAT_NORESOURCE;
+
+	memset(vq, '\0', sizeof *vq);
+
 	for (p = (u_char *) strtok_r((char *) certs, ":", (char **) &last);
 	     p != NULL;
 	     p = (u_char *) strtok_r(NULL, ":", (char **) &last))
@@ -897,18 +907,10 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 			               (char *) vbr->vbr_trusted[n]) == 0)
 			{
 				int status;
-#ifdef USE_ARLIB
-FIX ME
-				int arerror;
-				AR_QUERY q;
-				AR_LIB ar;
-#endif /* USE_ARLIB */
+				void *qh;
 				u_char *last2;
 				u_char *p2;
-#ifdef USE_ARLIB
-FIX ME
 				struct timeval timeout;
-#endif /* USE_ARLIB */
 				unsigned char ansbuf[MAXPACKET];
 				unsigned char buf[BUFRSZ];
 
@@ -916,24 +918,28 @@ FIX ME
 				         "%s.%s.%s", vbr->vbr_domain,
 				         VBR_PREFIX, p);
 
-#ifdef USE_ARLIB
-FIX ME
-				ar = vbr->vbr_arlib;
 				timeout.tv_sec = vbr->vbr_timeout;
 				timeout.tv_usec = 0;
-				q = ar_addquery(ar, query, C_IN, T_TXT,
-				                MAXCNAMEDEPTH, ansbuf,
-		                                sizeof ansbuf, &arerror,
-		                                vbr->vbr_timeout == 0 ? NULL
-				                                        : &timeout);
-				if (q == NULL)
+				qh = NULL;
+
+				status = vbr->vbr_dns_start(vbr->vbr_dns_service,
+				                            T_TXT, query,
+				                            vq->vq_buf,
+				                            sizeof vq->vq_buf,
+				                            &vq->vq_qh);
+
+				if (status != RBL_STAT_OK)
 				{
-					vbr_error(vbr, "ar_addquery() failed");
+					snprintf(vbr->vbr_error,
+					         sizeof vbr->vbr_error,
+					         "unable to start query for `%s'",
+					         query);
 					return VBR_STAT_DNSERROR;
 				}
 
 				if (vbr->vbr_dns_callback == NULL)
 				{
+FIX ME
 					status = ar_waitreply(ar, q, NULL,
 					                      NULL);
 				}
@@ -944,6 +950,7 @@ FIX ME
 						timeout.tv_sec = vbr->vbr_callback_int;
 						timeout.tv_usec = 0;
 
+FIX ME
 						status = ar_waitreply(ar, q,
 						                      NULL,
 						                      &timeout);
@@ -955,14 +962,9 @@ FIX ME
 					}
 				}
 
-				(void) ar_cancelquery(ar, q);
-#else /* USE_ARLIB */
 FIX ME
-				status = res_query((char *) query, C_IN, T_TXT,
-				                   ansbuf, sizeof ansbuf);
-#endif /* USE_ARLIB */
+				(void) ar_cancelquery(ar, q);
 
-#ifdef USE_ARLIB
 FIX ME
 				if (status == AR_STAT_ERROR ||
 				    status == AR_STAT_EXPIRED)
@@ -971,26 +973,6 @@ FIX ME
 						  query);
 					return VBR_STAT_DNSERROR;
 				}
-#else /* USE_ARLIB */
-FIX ME
-				if (status == -1)
-				{
-					switch (h_errno)
-					{
-					  case HOST_NOT_FOUND:
-					  case NO_DATA:
-						continue;
-
-					  case TRY_AGAIN:
-					  case NO_RECOVERY:
-					  default:
-						vbr_error(vbr,
-						          "failed to retreive %s",
-						          query);
-						return VBR_STAT_DNSERROR;
-					}
-				}
-#endif /* USE_ARLIB */
 
 				/* try to decode the reply */
 				if (!vbr_txt_decode(ansbuf, sizeof ansbuf,
