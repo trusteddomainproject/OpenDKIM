@@ -918,8 +918,6 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 				         "%s.%s.%s", vbr->vbr_domain,
 				         VBR_PREFIX, p);
 
-				timeout.tv_sec = vbr->vbr_timeout;
-				timeout.tv_usec = 0;
 				qh = NULL;
 
 				status = vbr->vbr_dns_start(vbr->vbr_dns_service,
@@ -937,11 +935,18 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 					return VBR_STAT_DNSERROR;
 				}
 
+				timeout.tv_sec = vbr->vbr_timeout;
+				timeout.tv_usec = 0;
+
 				if (vbr->vbr_dns_callback == NULL)
 				{
-FIX ME
-					status = ar_waitreply(ar, q, NULL,
-					                      NULL);
+					status = vbr->vbr_dns_waitreply(vbr->vbr_dns_service,
+					                                vq->vq_qh,
+					                                &timeout,
+					                                &vq->vq_anslen,
+					                                &dnserr,
+					                                NULL);
+
 				}
 				else
 				{
@@ -962,8 +967,8 @@ FIX ME
 					}
 				}
 
-FIX ME
-				(void) ar_cancelquery(ar, q);
+				vbr->vbr_dns_cancel(vbr->vbr_dns_service,
+					            vq->vq_qh);
 
 FIX ME
 				if (status == AR_STAT_ERROR ||
