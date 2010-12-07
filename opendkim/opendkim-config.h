@@ -36,6 +36,7 @@ struct configdef dkimf_config[] =
 	{ "AlwaysAddARHeader",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AlwaysSignHeaders",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_STATS
+	{ "AnonymousDomains",		CONFIG_TYPE_STRING,	FALSE },
 	{ "AnonymousStatistics",	CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* _FFR_STATS */
 	{ "AuthservID",			CONFIG_TYPE_STRING,	FALSE },
