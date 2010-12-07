@@ -494,6 +494,16 @@ cause the filter to allocate an unspecified amount of memory.  The
 default is 65536; a value of 0 removes the limit.
 
 .TP
+.I MaximumSignaturesToVerify (integer)
+Defines the maximum number of signatures on a message for which verification
+should be conducted.  The default is three.  Signatures are selected from
+the top of the message downward.  If
+.I TrustSignaturesFrom
+is set, signatures from domains in that data set are always verified, which
+may consume part or all of, or even exceed, this limit.
+@MAXVERIFY_MANNOTICE@
+
+.TP
 .I MaximumSignedBytes (integer)
 Specifies the maximum number of bytes of message body to be signed.
 Messages shorter than this limit will be signed in their entirety.

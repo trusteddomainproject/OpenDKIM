@@ -110,6 +110,9 @@ filter		Compile the opendkim filter.  Requires libmilter (see
 		"--with-milter" above).  This is on by default; if you
 		don't want the filter, specify "--disable-filter".
 
+maxverify	Allow limitation of the number of signatures verified per
+		message.
+
 popauth		Enable POP-before-SMTP support.
 
 query_cache	Cache DNS replies in a local database.  Requires the
