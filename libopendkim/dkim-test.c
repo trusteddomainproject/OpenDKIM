@@ -263,6 +263,7 @@ dkim_test_dns_get(DKIM *dkim, u_char *buf, size_t buflen)
 **  	domain -- domain name
 **  	key -- private key to verify (PEM format)
 **  	keylen -- size of private key
+**  	dnssec -- DNSSEC result (may be NULL)
 **  	err -- error buffer (may be NULL)
 **  	errlen -- size of error buffer
 **
@@ -274,7 +275,7 @@ dkim_test_dns_get(DKIM *dkim, u_char *buf, size_t buflen)
 
 int
 dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
-              char *key, size_t keylen, char *err, size_t errlen)
+              char *key, size_t keylen, int *dnssec, char *err, size_t errlen)
 {
 	int status = 0;
 	DKIM_STAT stat;
@@ -350,6 +351,9 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 		(void) dkim_free(dkim);
 		return -1;
 	}
+
+	if (dnssec != NULL)
+		*dnssec = dkim_sig_getdnssec(sig);
 
 	if (key != NULL)
 	{

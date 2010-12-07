@@ -195,6 +195,7 @@ main(int argc, char **argv)
 	int c;
 	int verbose = 0;
 	int line;
+	int dnssec;
 	char *key = NULL;
 	char *dataset = NULL;
 	char *conffile = NULL;
@@ -466,8 +467,10 @@ main(int argc, char **argv)
 				        progname, keyname);
 			}
 
+			dnssec = DKIM_DNSSEC_UNKNOWN;
+
 			status = dkim_test_key(lib, selector, domain,
-			                       keypath, keylen,
+			                       keypath, keylen, &dnssec,
 			                       err, sizeof err);
 
 			switch (status)
@@ -486,6 +489,37 @@ main(int argc, char **argv)
 
 			  default:
 				assert(0);
+			}
+
+			switch (dnssec)
+			{
+			  case DKIM_DNSSEC_INSECURE:
+				if (verbose > 1)
+				{
+					fprintf(stderr,
+					        "%s: key %s not secure\n",
+					        progname, keyname);
+				}
+				break;
+
+			  case DKIM_DNSSEC_SECURE:
+				if (verbose > 2)
+				{
+					fprintf(stderr,
+					        "%s: key %s secure\n",
+					        progname, keyname);
+				}
+				break;
+
+			  case DKIM_DNSSEC_BOGUS:
+				fprintf(stderr,
+				        "%s: key %s bogus (DNSSEC failed)\n",
+				        progname, keyname);
+				break;
+
+			  case DKIM_DNSSEC_UNKNOWN:
+			  default:
+				break;
 			}
 		}
 
@@ -570,10 +604,34 @@ main(int argc, char **argv)
 		(void) close(fd);
 	}
 
+	dnssec = DKIM_DNSSEC_UNKNOWN;
+
 	status = dkim_test_key(lib, selector, domain, key, (size_t) s.st_size,
-	                       err, sizeof err);
+	                       &dnssec, err, sizeof err);
 
 	(void) dkim_close(lib);
+
+	switch (dnssec)
+	{
+	  case DKIM_DNSSEC_INSECURE:
+		if (verbose > 1)
+			fprintf(stderr, "%s: key not secure\n", progname);
+		break;
+
+	  case DKIM_DNSSEC_SECURE:
+		if (verbose > 2)
+			fprintf(stderr, "%s: key secure\n", progname);
+		break;
+
+	  case DKIM_DNSSEC_BOGUS:
+		fprintf(stderr, "%s: key bogus (DNSSEC failed)\n",
+		        progname);
+		break;
+
+	  case DKIM_DNSSEC_UNKNOWN:
+	  default:
+		break;
+	}
 
 	switch (status)
 	{
