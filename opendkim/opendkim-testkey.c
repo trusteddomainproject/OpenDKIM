@@ -30,13 +30,13 @@ static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10.10.1 2
 #include <unistd.h>
 #include <assert.h>
 
-#ifdef USE_LIBGCRYPT
+#ifdef USE_GNUTLS
 /* gcrypt includes */
-# include <gcrypt.h>
-#else /* USE_LIBGCRYPT */
+# include <gcrypt/gcrypt.h>
+#else /* USE_GNUTLS */
 /* openssl includes */
 # include <openssl/err.h>
-#endif /* USE_LIBGCRYPT */
+#endif /* USE_GNUTLS */
 
 /* libopendkim includes */
 #include <dkim.h>
@@ -76,7 +76,13 @@ char *progname;
 void
 dkimf_log_ssl_errors(void)
 {
-#ifndef USE_LIBGCRYPT
+#ifdef USE_GNUTLS
+	const char *err;
+
+	err = dkimf_crypto_geterror();
+	if (err != NULL)
+		fprintf(stderr, "%s\n", errbuf);
+#else /* USE_GNUTLS */
 	/* log any queued SSL error messages */
 	if (ERR_peek_error() != 0)
 	{
@@ -106,7 +112,7 @@ dkimf_log_ssl_errors(void)
 
 		errno = saveerr;
 	}
-#endif /* ! USE_LIBGCRYPT */
+#endif /* ! USE_GNUTLS */
 }
 
 /*
@@ -356,9 +362,9 @@ main(int argc, char **argv)
 
 	memset(err, '\0', sizeof err);
 
-#ifndef USE_LIBGCRYPT
+#ifndef USE_GNUTLS
 	ERR_load_crypto_strings();
-#endif /* ! USE_LIBGCRYPT */
+#endif /* ! USE_GNUTLS */
 
 	/* process a KeyTable if specified */
 	if (dataset != NULL)

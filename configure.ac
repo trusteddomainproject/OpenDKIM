@@ -447,45 +447,45 @@ AC_ARG_ENABLE([debug],
 AM_CONDITIONAL([DEBUG], [test x"$enable_debug" = x"yes"])
 
 #
-# libgcrypt
+# gnutls
 #
 
-AC_ARG_WITH([libgcrypt],
-            AS_HELP_STRING([--with-libgcrypt],
-                           [location of gcrypt includes and library]),
-                           [gcpath="$withval"], [gcpath="no"])
-gcrypt_found="no"
+AC_ARG_WITH([gnutls],
+            AS_HELP_STRING([--with-gnutls],
+                           [location of GnuTLS includes and library]),
+                           [gtpath="$withval"], [gtpath="no"])
+gnutls_found="no"
 
-if test \( x"$gcpath" = x"auto" -o x"$gcpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
+if test \( x"$gtpath" = x"auto" -o x"$gtpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-	PKG_CHECK_MODULES([LIBGCRYPT], [libgcrypt >= 1.4.4],
-	                  [gcrypt_found="yes"],
-	                  [gcrypt_found="auto"
-	                   AC_MSG_WARN(["pkg-config for libgcrypt not found, trying manual search..."])
+	PKG_CHECK_MODULES([GNUTLS], [libgnutls >= 2.11.0],
+	                  [gnutls_found="yes"],
+	                  [gnutls_found="auto"
+	                   AC_MSG_WARN(["pkg-config for GnuTLS not found, trying manual search..."])
 	                  ])
-elif test x"$gcpath" != x"no"
+elif test x"$gtpath" != x"no"
 then
-	AC_MSG_NOTICE([checking for gcrypt library and includes in $gcpath])
+	AC_MSG_NOTICE([checking for GnuTLS library and includes in $gtpath])
 
 	saved_CFLAGS="$CFLAGS"
 	saved_CPPFLAGS="$CPPFLAGS"
 	saved_LDFLAGS="$LDFLAGS"
 	saved_LIBS="$LIBS"
 
-	LIBS="-lgcrypt $saved_LIBS"
-	CPPFLAGS="-I$gcpath/include $saved_CPPFLAGS"
+	LIBS="-lgnutls $saved_LIBS"
+	CPPFLAGS="-I$gtpath/include $saved_CPPFLAGS"
 	CFLAGS="$saved_CFLAGS"
-	LDFLAGS="-L$gcpath/lib $saved_LDFLAGS"
+	LDFLAGS="-L$gtpath/lib $saved_LDFLAGS"
 
-	AC_CHECK_HEADERS([gcrypt.h], ,
-                 AC_MSG_ERROR([required gcrypt header not found]))
+	AC_CHECK_HEADERS([gnutls/gnutls.h], ,
+                         AC_MSG_ERROR([required GnuTLS header not found]))
 
-	AC_SEARCH_LIBS([gcry_control], [crypto], ,
-               AC_MSG_ERROR([libcrypto not found]))
+	AC_SEARCH_LIBS([gnutls_global_init], [gnutls], ,
+                       AC_MSG_ERROR([libgnutls not found]), [-lnettle -lgmp])
 
-	LIBCRYPTO_CPPFLAGS="-I$gcpath/include"
-	LIBCRYPTO_LIBDIRS="-L$gcpath/lib"
-	LIBCRYPTO_LIBS="-lgcrypt"
+	LIBCRYPTO_CPPFLAGS="-I$gtpath/include"
+	LIBCRYPTO_LIBDIRS="-L$gtpath/lib"
+	LIBCRYPTO_LIBS="-lgnutls"
 
 	CFLAGS="$saved_CFLAGS"
 	CPPFLAGS="$saved_CPPFLAGS"
@@ -493,83 +493,83 @@ then
 	LIBS="$saved_LIBS"
 fi
 
-if test x"$gcpath" = x"yes" -a x"$gcrypt_found" = x"auto"
+if test x"$gtpath" = x"yes" -a x"$gnutls_found" = x"auto"
 then
 	gcdirs="/usr/local /usr"
 
 	for d in $gcdirs
 	do
-		AC_MSG_NOTICE([checking for gcrypt library and includes in $d])
+		AC_MSG_NOTICE([checking for GnuTLS library and includes in $d])
 
 		saved_CFLAGS="$CFLAGS"
 		saved_CPPFLAGS="$CPPFLAGS"
 		saved_LDFLAGS="$LDFLAGS"
 		saved_LIBS="$LIBS"
 
-		LIBS="-lgcrypt $saved_LIBS"
+		LIBS="-lgnutls $saved_LIBS"
 		CPPFLAGS="-I$d/include $saved_CPPFLAGS"
 		CFLAGS="$saved_CFLAGS"
 		LDFLAGS="-L$d/lib $saved_LDFLAGS"
 
-		gcrypt_h_found="no"
-		gcrypt_lib_found="no"
+		gnutls_h_found="no"
+		gnutls_lib_found="no"
 
-		AC_CHECK_HEADERS([gcrypt.h], gcrypt_h_found="yes")
-		AC_SEARCH_LIBS([gcry_control], [gcrypt],
-		               gcrypt_lib_found="yes")
+		AC_CHECK_HEADERS([gnutls/gnutls.h], gnutls_h_found="yes")
+		AC_SEARCH_LIBS([gnutls_global_init], [gnutls],
+		               gnutls_lib_found="yes", , [-lnettle -lgmp])
 
 		CFLAGS="$saved_CFLAGS"
 		CPPFLAGS="$saved_CPPFLAGS"
 		LDFLAGS="$saved_LDFLAGS"
 		LIBS="$saved_LIBS"
 
-		if test x"$gcrypt_h_found" = x"yes" -a \
-		        x"$gcrypt_lib_found" = x"yes"
+		if test x"$gnutls_h_found" = x"yes" -a \
+		        x"$gnutls_lib_found" = x"yes"
 		then
 			LIBCRYPTO_CPPFLAGS="-I$d/include"
 			LIBCRYPTO_LIBDIRS="-L$d/lib"
-			LIBCRYPTO_LIBS="-lgcrypt"
-			gcrypt_found="yes"
-			AC_MSG_NOTICE(libgcrypt found in $d)
+			LIBCRYPTO_LIBS="-lgnutls"
+			gnutls_found="yes"
+			AC_MSG_NOTICE(libgnutls found in $d)
 			break
 		else
 			AC_MSG_NOTICE(not found in $d)
 		fi
 	done
 
-	if test x"$gcrypt_found" != x"yes"
+	if test x"$gnutls_found" != x"yes"
 	then
-		AC_MSG_ERROR([gcrypt not found])
+		AC_MSG_ERROR([GnuTLS not found])
 	fi
 
 	saved_CPPFLAGS="$CPPFLAGS"
 	CPPFLAGS="-I$d/include $saved_CPPFLAGS"
 
 	sha256check='
-		#include <gcrypt.h>
+		#include <gnutls/gnutls.h>
 		int main()
 		{
-			int x = GCRY_MD_SHA256;
+			int x = GNUTLS_DIG_SHA256;
 		}'
 
-	AC_MSG_CHECKING([whether your gcrypt supports SHA256])
+	AC_MSG_CHECKING([whether your GnuTLS supports SHA256])
 	AC_LINK_IFELSE([$sha256check],
 	               AC_MSG_RESULT(yes)
                        AC_DEFINE([HAVE_SHA256], 1,
  	                         [Define to 1 if your crypto library has SHA256 support]),
 	               AC_MSG_WARN([SHA256 is required for DKIM but is not
-	                            supported with your version of gcrypt]))
+	                            supported with your version of gnutls]))
 
 	CPPFLAGS="$saved_CPPFLAGS"
 fi
 
-if test x"$gcrypt_found" = x"yes"
+if test x"$gnutls_found" = x"yes"
 then
-	AC_DEFINE(USE_LIBGCRYPT, 1,
-                  [Define to 1 to use libgcrypt instead of OpenSSL.])
+	AC_DEFINE(USE_GNUTLS, 1,
+                  [Define to 1 to use libgnutls instead of OpenSSL.])
 fi
 
-AM_CONDITIONAL([USE_LIBGCRYPT], [test x"$gcrypt_found" = x"yes"])
+AM_CONDITIONAL([USE_GNUTLS], [test x"$gnutls_found" = x"yes"])
 
 #
 # OpenSSL
@@ -582,7 +582,7 @@ AC_ARG_WITH([openssl],
 
 openssl_found="no"
 
-if test x"$gcrypt_found" = x"yes"
+if test x"$gnutls_found" = x"yes"
 then
 	sslpath="skip"
 	openssl_found="skip"

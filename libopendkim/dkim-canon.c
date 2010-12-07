@@ -83,7 +83,7 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 	{
 		switch (canon->canon_hashtype)
 		{
-#ifdef USE_LIBGCRYPT
+#ifdef USE_GNUTLS
 		  case DKIM_HASHTYPE_SHA1:
 		  case DKIM_HASHTYPE_SHA256:
 		  {
@@ -97,7 +97,7 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 				sha->sha_tmpfd = -1;
 			}
 
-			gcry_md_close(sha->sha_hd);
+			gnutls_hash_deinit(sha->sha_hd);
 
 			if (sha->sha_out != NULL)
 				DKIM_FREE(dkim, sha->sha_out);
@@ -105,7 +105,7 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 			break;
 		  }
 
-#else /* USE_LIBGCRYPT */
+#else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -139,7 +139,7 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 			break;
 		  }
 # endif /* HAVE_SHA256 */
-#endif /* USE_LIBGCRYPT */
+#endif /* USE_GNUTLS */
 
 		  default:
 			assert(0);
@@ -189,7 +189,7 @@ dkim_canon_write(DKIM_CANON *canon, u_char *buf, size_t buflen)
 
 	switch (canon->canon_hashtype)
 	{
-#ifdef USE_LIBGCRYPT
+#ifdef USE_GNUTLS
 	  case DKIM_HASHTYPE_SHA1:
 	  case DKIM_HASHTYPE_SHA256:
 	  {
@@ -197,14 +197,14 @@ dkim_canon_write(DKIM_CANON *canon, u_char *buf, size_t buflen)
 
 		sha = (struct dkim_sha *) canon->canon_hash;
 
-		gcry_md_write(sha->sha_hd, buf, buflen);
+		gnutls_hash(sha->sha_hd, buf, buflen);
 
 		if (sha->sha_tmpfd != -1)
 			(void) write(sha->sha_tmpfd, buf, buflen);
 
 		break;
 	  }
-#else /* USE_LIBGCRYPT */
+#else /* USE_GNUTLS */
 	  case DKIM_HASHTYPE_SHA1:
 	  {
 		struct dkim_sha1 *sha1;
@@ -232,7 +232,7 @@ dkim_canon_write(DKIM_CANON *canon, u_char *buf, size_t buflen)
 		break;
 	  }
 # endif /* HAVE_SHA256 */
-#endif /* USE_LIBGCRYPT */
+#endif /* USE_GNUTLS */
 	}
 
 	canon->canon_wrote += buflen;
@@ -778,7 +778,7 @@ dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 
 		switch (cur->canon_hashtype)
 		{
-#ifdef USE_LIBGCRYPT
+#ifdef USE_GNUTLS
 		  case DKIM_HASHTYPE_SHA1:
 		  case DKIM_HASHTYPE_SHA256:
 		  {
@@ -800,13 +800,13 @@ dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 			/* XXX -- test for errors */
 			if (cur->canon_hashtype == DKIM_HASHTYPE_SHA1)
 			{
-				(void) gcry_md_open(&sha->sha_hd,
-				                    GCRY_MD_SHA1, 0);
+				(void) gnutls_hash_init(&sha->sha_hd,
+				                        GNUTLS_DIG_SHA1, 0);
 			}
 			else
 			{
-				(void) gcry_md_open(&sha->sha_hd,
-				                    GCRY_MD_SHA256, 0);
+				(void) gnutls_hash_init(&sha->sha_hd,
+				                        GNUTLS_DIG_SHA256, 0);
 			}
 
 			if (sha->sha_hd == NULL)
@@ -831,7 +831,7 @@ dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 
 		  	break;
 		  }
-#else /* USE_LIBGCRYPT */
+#else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -903,7 +903,7 @@ dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 		  	break;
 		  }
 # endif /* HAVE_SHA256 */
-#endif /* USE_LIBGCRYPT */
+#endif /* USE_GNUTLS */
 
 		  default:
 			assert(0);
@@ -1345,7 +1345,7 @@ dkim_canon_runheaders(DKIM *dkim)
 		/* finalize */
 		switch (cur->canon_hashtype)
 		{
-#ifdef USE_LIBGCRYPT
+#ifdef USE_GNUTLS
 		  case DKIM_HASHTYPE_SHA1:
 		  case DKIM_HASHTYPE_SHA256:
 		  {
@@ -1355,11 +1355,11 @@ dkim_canon_runheaders(DKIM *dkim)
 			sha = (struct dkim_sha *) cur->canon_hash;
 
 			if (cur->canon_hashtype == DKIM_HASHTYPE_SHA1)
-				alg = GCRY_MD_SHA1;
+				alg = GNUTLS_DIG_SHA1;
 			else
-				alg = GCRY_MD_SHA256;
+				alg = GNUTLS_DIG_SHA256;
 
-			sha->sha_outlen = gcry_md_get_algo_dlen(alg);
+			sha->sha_outlen = gnutls_hash_get_len(alg);
 
 			sha->sha_out = DKIM_MALLOC(dkim, sha->sha_outlen);
 			if (sha->sha_out == NULL)
@@ -1369,10 +1369,7 @@ dkim_canon_runheaders(DKIM *dkim)
 				return DKIM_STAT_NORESOURCE;
 			}
 
-			gcry_md_final(sha->sha_hd);
-
-			memcpy(sha->sha_out, gcry_md_read(sha->sha_hd, alg),
-			       sha->sha_outlen);
+			gnutls_hash_output(sha->sha_hd, sha->sha_out);
 
 			if (sha->sha_tmpfd != -1)
 			{
@@ -1383,7 +1380,7 @@ dkim_canon_runheaders(DKIM *dkim)
 			break;
 		  }
 
-#else /* USE_LIBGCRYPT */
+#else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -1411,7 +1408,7 @@ dkim_canon_runheaders(DKIM *dkim)
 			break;
 		  }
 # endif /* HAVE_SHA256 */
-#endif /* USE_LIBGCRYPT */
+#endif /* USE_GNUTLS */
 
 		  default:
 			assert(0);
@@ -1487,7 +1484,7 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 		/* now close it */
 		switch (cur->canon_hashtype)
 		{
-#ifdef USE_LIBGCRYPT
+#ifdef USE_GNUTLS
 		  case DKIM_HASHTYPE_SHA1:
 		  case DKIM_HASHTYPE_SHA256:
 		  {
@@ -1497,11 +1494,11 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 			sha = (struct dkim_sha *) cur->canon_hash;
 
 			if (cur->canon_hashtype == DKIM_HASHTYPE_SHA1)
-				alg = GCRY_MD_SHA1;
+				alg = GNUTLS_DIG_SHA1;
 			else
-				alg = GCRY_MD_SHA256;
+				alg = GNUTLS_DIG_SHA256;
 
-			sha->sha_outlen = gcry_md_get_algo_dlen(alg);
+			sha->sha_outlen = gnutls_hash_get_len(alg);
 
 			sha->sha_out = DKIM_MALLOC(dkim, sha->sha_outlen);
 			if (sha->sha_out == NULL)
@@ -1511,10 +1508,7 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 				return DKIM_STAT_NORESOURCE;
 			}
 
-			gcry_md_final(sha->sha_hd);
-
-			memcpy(sha->sha_out, gcry_md_read(sha->sha_hd, alg),
-			       sha->sha_outlen);
+			gnutls_hash_output(sha->sha_hd, sha->sha_out);
 
 			if (sha->sha_tmpfd != -1)
 			{
@@ -1524,7 +1518,7 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 
 			break;
 		  }
-#else /* USE_LIBGCRYPT */
+#else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -1552,7 +1546,7 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 			break;
 		  }
 # endif /* HAVE_SHA256 */
-#endif /* USE_LIBGCRYPT */
+#endif /* USE_GNUTLS */
 
 		  default:
 			assert(0);
@@ -1916,7 +1910,7 @@ dkim_canon_closebody(DKIM *dkim)
 		/* finalize */
 		switch (cur->canon_hashtype)
 		{
-#ifdef USE_LIBGCRYPT
+#ifdef USE_GNUTLS
 		  case DKIM_HASHTYPE_SHA1:
 		  case DKIM_HASHTYPE_SHA256:
 		  {
@@ -1927,11 +1921,11 @@ dkim_canon_closebody(DKIM *dkim)
 			sha = (struct dkim_sha *) cur->canon_hash;
 
 			if (cur->canon_hashtype == DKIM_HASHTYPE_SHA1)
-				alg = GCRY_MD_SHA1;
+				alg = GNUTLS_DIG_SHA1;
 			else
-				alg = GCRY_MD_SHA256;
+				alg = GNUTLS_DIG_SHA256;
 
-			diglen = gcry_md_get_algo_dlen(alg);
+			diglen = gnutls_hash_get_len(alg);
 
 			sha->sha_out = DKIM_MALLOC(dkim, diglen);
 			if (sha->sha_out == NULL)
@@ -1941,10 +1935,7 @@ dkim_canon_closebody(DKIM *dkim)
 				return DKIM_STAT_NORESOURCE;
 			}
 
-			gcry_md_final(sha->sha_hd);
-
-			memcpy(sha->sha_out, gcry_md_read(sha->sha_hd, alg),
-			       diglen);
+			gnutls_hash_output(sha->sha_hd, sha->sha_out);
 
 			if (sha->sha_tmpfd != -1)
 			{
@@ -1954,7 +1945,7 @@ dkim_canon_closebody(DKIM *dkim)
 
 			break;
 		  }
-#else /* USE_LIBGCRYPT */
+#else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -1982,7 +1973,7 @@ dkim_canon_closebody(DKIM *dkim)
 			break;
 		  }
 # endif /* HAVE_SHA256 */
-#endif /* USE_LIBGCRYPT */
+#endif /* USE_GNUTLS */
 
 		  default:
 			assert(0);
@@ -2019,7 +2010,7 @@ dkim_canon_getfinal(DKIM_CANON *canon, u_char **digest, size_t *dlen)
 
 	switch (canon->canon_hashtype)
 	{
-#ifdef USE_LIBGCRYPT
+#ifdef USE_GNUTLS
 	  case DKIM_HASHTYPE_SHA1:
 	  case DKIM_HASHTYPE_SHA256:
 	  {
@@ -2031,7 +2022,7 @@ dkim_canon_getfinal(DKIM_CANON *canon, u_char **digest, size_t *dlen)
 
 		return DKIM_STAT_OK;
 	  }
-#else /* USE_LIBGCRYPT */
+#else /* USE_GNUTLS */
 	  case DKIM_HASHTYPE_SHA1:
 	  {
 		struct dkim_sha1 *sha1;
@@ -2055,7 +2046,7 @@ dkim_canon_getfinal(DKIM_CANON *canon, u_char **digest, size_t *dlen)
 		return DKIM_STAT_OK;
 	  }
 # endif /* HAVE_SHA256 */
-#endif /* USE_LIBGCRYPT */
+#endif /* USE_GNUTLS */
 
 	  default:
 		assert(0);

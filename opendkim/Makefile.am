@@ -6,10 +6,7 @@ if DEBUG
 AM_CFLAGS = -g
 endif
 
-bin_PROGRAMS = opendkim-testkey opendkim-testadsp
-if !USE_LIBGCRYPT
-bin_PROGRAMS += opendkim-genzone
-endif
+bin_PROGRAMS = opendkim-testkey opendkim-testadsp opendkim-genzone
 
 dist_bin_SCRIPTS = opendkim-genkey
 dist_doc_DATA = opendkim.conf.sample opendkim.conf.simple \
@@ -120,7 +117,6 @@ opendkim_testadsp_CFLAGS += $(PTHREAD_CFLAGS)
 opendkim_testadsp_LDADD += $(PTHREAD_LIBS)
 endif
 
-if !USE_LIBGCRYPT
 opendkim_genzone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-genzone.c opendkim-lua.c util.c util.h
 opendkim_genzone_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_genzone_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
@@ -147,7 +143,6 @@ if LUA
 opendkim_genzone_CPPFLAGS += $(LIBLUA_INCDIRS) $(LIBMILTER_INCDIRS)
 opendkim_genzone_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_genzone_LDADD += $(LIBLUA_LIBS)
-endif
 endif
 
 if LUA

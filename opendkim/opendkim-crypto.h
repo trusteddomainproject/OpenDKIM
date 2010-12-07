@@ -25,6 +25,9 @@ static char opendkim_crypto_h_id[] = "@(#)$Id: opendkim-crypto.h,v 1.2 2009/08/0
 #endif /* __STDC__ */
 
 /* PROTOTYPES */
+#ifdef USE_GNUTLS
+extern const char *dkimf_crypto_geterror __P((void));
+#endif /* USE_GNUTLS */
 extern int dkimf_crypto_init __P((void));
 extern void dkimf_crypto_free __P((void));
 
