@@ -6108,6 +6108,26 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 	}
 
+#ifdef _FFR_OVERSIGN
+	str = NULL;
+	if (data != NULL)
+		(void) config_get(data, "OverSignHeaders", &str, sizeof str);
+	if (str != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_oversigndb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, dberr);
+			return -1;
+		}
+	}
+#endif /* _FFR_OVERSIGN */
+
 	str = NULL;
 	if (data != NULL)
 		(void) config_get(data, "SenderHeaders", &str, sizeof str);
@@ -6898,6 +6918,24 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		if (status != DKIM_STAT_OK)
 			return FALSE;
 	}
+
+#ifdef _FFR_OVERSIGN
+	if (conf->conf_oversigndb != NULL)
+	{
+		status = dkimf_db_mkarray(conf->conf_oversigndb,
+		                          &conf->conf_oversignhdrs);
+		if (status == -1)
+			return FALSE;
+
+		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
+		                      DKIM_OPTS_OVERSIGNHDRS,
+		                      conf->conf_oversignhdrs,
+		                      sizeof conf->conf_oversignhdrs);
+
+		if (status != DKIM_STAT_OK)
+			return FALSE;
+	}
+#endif /* _FFR_OVERSIGN */
 
 	if (conf->conf_mbsdb != NULL)
 	{

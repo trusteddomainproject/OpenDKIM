@@ -316,6 +316,7 @@ struct dkim_lib
 	void			(*dkiml_free) (void *closure, void *p);
 	u_char **		dkiml_senderhdrs;
 	u_char **		dkiml_alwayshdrs;
+	u_char **		dkiml_oversignhdrs;
 	u_char **		dkiml_mbs;
 #ifdef QUERY_CACHE
 	DB *			dkiml_cache;

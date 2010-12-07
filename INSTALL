@@ -110,6 +110,8 @@ filter		Compile the opendkim filter.  Requires libmilter (see
 		"--with-milter" above).  This is on by default; if you
 		don't want the filter, specify "--disable-filter".
 
+oversign	Enable optional header field over-signing.
+
 popauth		Enable POP-before-SMTP support.
 
 query_cache	Cache DNS replies in a local database.  Requires the

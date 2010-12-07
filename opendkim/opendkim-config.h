@@ -120,6 +120,9 @@ struct configdef dkimf_config[] =
 	{ "On-PolicyError",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-NoSignature",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-Security",		CONFIG_TYPE_STRING,	FALSE },
+#ifdef _FFR_OVERSIGN
+	{ "OversignHeader",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_OVERSIGN */
 	{ "PeerList",			CONFIG_TYPE_STRING,	FALSE },
 	{ "PidFile",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef POPAUTH

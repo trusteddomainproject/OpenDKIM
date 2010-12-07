@@ -233,6 +233,8 @@ AC_DEFUN([LIB_FFR_FEATURE],
 #
 # opendkim
 #
+FEATURE([oversign], [enable header field over-signing])
+
 FEATURE([popauth], [enable POP-before-SMTP support])
 
 FFR_FEATURE([adsp_lists], [support for ADSP filtering for lists])

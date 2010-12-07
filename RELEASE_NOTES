@@ -14,6 +14,8 @@ release, and a summary of the changes in that release.
 		various "On-" settings.
 	Feature request #SF3080604: Add odkim.parse_field() function.
 		Requested by Todd Lyons.
+	Feature request #SF3081697: Add "OversignHeaders" configuration
+		option.
 	Feature request #SF3085536: Activate _FFR_STATS_I, providing
 		statistics reporting about use of "i=" in signatures.
 	Feature request #SF3097083: Make SigningTable accessible from Lua.
