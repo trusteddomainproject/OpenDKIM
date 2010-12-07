@@ -11886,7 +11886,7 @@ mlfi_eom(SMFICTX *ctx)
 				                      &found);
 
 				if (found)
-					anon = TRUE;
+					anon = !anon;
 			}
 
 			if (dkimf_stats_record(conf->conf_statspath,
