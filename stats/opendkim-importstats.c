@@ -725,7 +725,7 @@ main(int argc, char **argv)
 		{
 			int changed;
 
-			if (n != 19 && n != 21)
+			if (n != 19 && n != 21 && n != 22)
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",
@@ -808,10 +808,12 @@ main(int argc, char **argv)
 			    sanitize(db, fields[16], safesql, sizeof safesql) ||
 			    sanitize(db, fields[17], safesql, sizeof safesql) ||
 			    sanitize(db, fields[18], safesql, sizeof safesql) ||
-			    (n == 21 &&
+			    (n >= 21 &&
 			     sanitize(db, fields[19], safesql, sizeof safesql)) ||
-			    (n == 21 &&
-			     sanitize(db, fields[20], safesql, sizeof safesql)))
+			    (n >= 21 &&
+			     sanitize(db, fields[20], safesql, sizeof safesql)) ||
+			    (n == 22 &&
+			     sanitize(db, fields[21], safesql, sizeof safesql)) ||
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
@@ -819,6 +821,32 @@ main(int argc, char **argv)
 				continue;
 			}
 
+			if (n == 22)
+			{
+				snprintf(sql, sizeof sql,
+				         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, sigerror, sig_t, sig_x, sig_z, dnssec, sig_i, sig_i_user, key_s) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+				         msgid,		/* message */
+				         domid,		/* domain */
+				         fields[1],	/* algorithm */
+				         fields[2],	/* hdr_canon */
+				         fields[3],	/* body_canon */
+				         fields[4],	/* ignored */
+				         fields[5],	/* pass */
+				         fields[6],	/* fail_body */
+				         fields[7],	/* siglength */
+				         fields[8],	/* key_t */
+				         fields[9],	/* key_g */
+				         fields[10],	/* key_g_name */
+				         fields[11],	/* key_dk_compat */
+				         fields[12],	/* sigerror */
+				         fields[13],	/* sig_t */
+				         fields[14],	/* sig_x */
+				         fields[15],	/* sig_z */
+				         fields[16],	/* dnssec */
+				         fields[19],	/* sig_i */
+				         fields[20]);	/* sig_i_user */
+				         fields[21]);	/* key_s */
+			}
 			if (n == 21)
 			{
 				snprintf(sql, sizeof sql,

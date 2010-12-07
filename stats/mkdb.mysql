@@ -71,6 +71,7 @@ create table if not exists signatures (
 	key_g tinyint unsigned not null,
 	key_g_name tinyint unsigned not null,
 	key_dk_compat tinyint unsigned not null,
+	key_s tinyint not null,
 	sigerror tinyint unsigned not null,
 	sig_i tinyint not null,
 	sig_i_user tinyint not null,

@@ -169,6 +169,7 @@ fields, as follows:
 	colon-separated list of header fields known to have changed
 	"i=" domain (0 = absent, 1 = matches From:, 2 = other)
 	"i=" user (0 = absent, 1 = empty, 2 = matches From:, 3 = other)
+	"s=" present in key (0 = absent, 1 = "*", 2 = "email", 3 = other)
 
 
 EXTENSIONS
