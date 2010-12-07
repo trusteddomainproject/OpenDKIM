@@ -382,8 +382,8 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 		memset(rsa, '\0', sizeof(struct dkim_rsa));
 
 #ifdef USE_GNUTLS
-		rsa->rsa_key.data = key;
-		rsa->rsa_key.size = keylen;
+		keybuf.data = key;
+		keybuf.size = keylen;
 #else /* USE_GNUTLS */
 		keybuf = BIO_new_mem_buf(key, keylen);
 		if (keybuf == NULL)
@@ -403,7 +403,6 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 		sig->sig_keytype = DKIM_KEYTYPE_RSA;
 
 #ifdef USE_GNUTLS
-FINISH ME
 		if (err != NULL)
 			strlcpy(err, "function not implemented", errlen);
 

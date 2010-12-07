@@ -28,6 +28,7 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.70.2.1 2010/10/27 21:43:08 cm-msk
 #include <netdb.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <errno.h>
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -66,13 +67,21 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.70.2.1 2010/10/27 21:43:08 cm-msk
 # include <ar.h>
 #endif /* USE_ARLIB */
 
+#ifdef USE_GNUTLS
+/* GnuTLS includes */
+# include <gnutls/gnutls.h>
+# include <gnutls/crypto.h>
+# include <gnutls/abstract.h>
+# include <gnutls/x509.h>
+#else /* USE_GNUTLS */
 /* OpenSSL includes */
-#include <openssl/opensslv.h>
-#include <openssl/pem.h>
-#include <openssl/rsa.h>
-#include <openssl/bio.h>
-#include <openssl/err.h>
-#include <openssl/sha.h>
+# include <openssl/opensslv.h>
+# include <openssl/pem.h>
+# include <openssl/rsa.h>
+# include <openssl/bio.h>
+# include <openssl/err.h>
+# include <openssl/sha.h>
+#endif /* USE_GNUTLS */
 
 /* libopendkim includes */
 #include "dkim-internal.h"
@@ -153,7 +162,14 @@ void dkim_error __P((DKIM *, const char *, ...));
 				(x) = NULL; \
 			}
 
-#ifndef USE_GNUTLS
+#ifdef USE_GNUTLS
+# define KEY_CLOBBER(x)	if ((x) != NULL) \
+			{ \
+				gnutls_privkey_deinit((x)); \
+				(x) = NULL; \
+			}
+
+#else /* USE_GNUTLS */
 # define BIO_CLOBBER(x)	if ((x) != NULL) \
 			{ \
 				BIO_free((x)); \
@@ -3238,6 +3254,7 @@ dkim_eom_sign(DKIM *dkim)
 	u_char *signature = NULL;
 #ifdef USE_GNUTLS
 	gnutls_datum_t key;
+	gnutls_x509_privkey_t privkey;
 #else /* USE_GNUTLS */
 	BIO *key;
 #endif /* USE_GNUTLS */
@@ -3375,30 +3392,43 @@ dkim_eom_sign(DKIM *dkim)
 			return DKIM_STAT_NORESOURCE;
 		}
 
-		if (gnutls_x509_privkey_import(&rsa->rsa_key,
-		                               &key, PEM) != GNUTLS_E_SUCCESS &&
-		    gnutls_x509_privkey_import(&rsa->rsa_key,
-		                               &key, DER) != GNUTLS_E_SUCCESS)
+		if (gnutls_x509_privkey_init(&privkey) != GNUTLS_E_SUCCESS)
+		{
+			dkim_error(dkim, "gnutls_x509_privkey_init() failed");
+			(void) gnutls_privkey_deinit(rsa->rsa_key);
+			return DKIM_STAT_NORESOURCE;
+		}
+
+		status = gnutls_x509_privkey_import(privkey, &key,
+		                                    GNUTLS_X509_FMT_PEM);
+		if (status != GNUTLS_E_SUCCESS)
+		{
+			status = gnutls_x509_privkey_import(privkey, &key,
+		                                            GNUTLS_X509_FMT_DER);
+		}
+
+		if (status != GNUTLS_E_SUCCESS)
 		{
 			dkim_error(dkim,
 			           "gnutls_x509_privkey_import() failed");
-			(void) gnutls_privkey_deinit(&rsa->rsa_key);
+			(void) gnutls_x509_privkey_deinit(privkey);
+			(void) gnutls_privkey_deinit(rsa->rsa_key);
 			return DKIM_STAT_NORESOURCE;
 		}
 
-		(void) gnutls_privkey_get_pk_algorithm(GNUTLS_PK_RSA,
+		if (gnutls_privkey_import_x509(rsa->rsa_key, privkey,
+		                               0) != GNUTLS_E_SUCCESS)
+		{
+			dkim_error(dkim, "gnutls_privkey_import() failed");
+			(void) gnutls_x509_privkey_deinit(privkey);
+			(void) gnutls_privkey_deinit(rsa->rsa_key);
+			return DKIM_STAT_NORESOURCE;
+		}
+
+		(void) gnutls_privkey_get_pk_algorithm(rsa->rsa_key,
 		                                       &rsa->rsa_keysize);
 
-		rsa->rsa_rsaout = DKIM_MALLOC(dkim, rsa->rsa_keysize);
-		if (rsa->rsa_rsaout == NULL)
-		{
-			dkim_error(dkim, "unable to allocate %d byte(s)",
-			           rsa->rsa_keysize);
-			(void) gnutls_privkey_deinit(&rsa->rsa_key);
-			return DKIM_STAT_NORESOURCE;
-		}
-
-		sig->sig_keybits = rsa->rsa_keysize * 8;
+		sig->sig_keybits = rsa->rsa_keysize;
 #else /* USE_GNUTLS */
 		if (strncmp((char *) dkim->dkim_key, "-----", 5) == 0)
 		{					/* PEM */
@@ -3506,7 +3536,6 @@ dkim_eom_sign(DKIM *dkim)
 	  case DKIM_SIGN_RSASHA1:
 	  case DKIM_SIGN_RSASHA256:
 	  {
-		gnutls_datum_t out;
 		gnutls_datum_t dd;
 		struct dkim_rsa *rsa;
 
@@ -3515,7 +3544,7 @@ dkim_eom_sign(DKIM *dkim)
 		dd.data = digest;
 		dd.size = diglen;
 
-		status = gnutls_privkey_sign_hash(&rsa->rsa_key, &dd,
+		status = gnutls_privkey_sign_hash(rsa->rsa_key, &dd,
 		                                  &rsa->rsa_rsaout);
 		if (status != GNUTLS_E_SUCCESS)
 		{
@@ -4545,7 +4574,7 @@ dkim_free(DKIM *dkim)
 				if (rsa != NULL)
 				{
 #ifdef USE_GNUTLS
-					CLOBBER(rsa->rsa_key.data);
+					KEY_CLOBBER(rsa->rsa_key);
 					CLOBBER(rsa->rsa_digest.data);
 					CLOBBER(rsa->rsa_sig.data);
 #else /* USE_GNUTLS */
@@ -5264,7 +5293,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		rsa->rsa_digest.data = digest;
 		rsa->rsa_digest.size = diglen;
 
-		if (gnutls_pubkey_init(&rsa->rsa_key) != GNUTLS_E_SUCCESS)
+		if (gnutls_pubkey_init(&rsa->rsa_pubkey) != GNUTLS_E_SUCCESS)
 		{
 			dkim_error(dkim,
 			           "s=%s d=%s: gnutls_pubkey_init() failed",
@@ -5276,14 +5305,29 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 			return DKIM_STAT_OK;
 		}
 
-		if (gnutls_pubkey_verify_hash(&rsa->rsa_key, 0,
+		if (gnutls_pubkey_import(rsa->rsa_pubkey, &key,
+		                         GNUTLS_X509_FMT_DER) != GNUTLS_E_SUCCESS)
+		{
+			dkim_error(dkim,
+			           "s=%s d=%s: gnutls_pubkey_import() failed",
+			           dkim_sig_getselector(sig),
+			           dkim_sig_getdomain(sig));
+
+			sig->sig_error = DKIM_SIGERROR_KEYDECODE;
+
+			(void) gnutls_pubkey_deinit(rsa->rsa_pubkey);
+
+			return DKIM_STAT_OK;
+		}
+
+		if (gnutls_pubkey_verify_hash(rsa->rsa_pubkey, 0,
 		                              &rsa->rsa_digest,
 		                              &rsa->rsa_sig) == GNUTLS_E_SUCCESS)
 			rsastat = 1;
 		else
 			rsastat = 0;
 
-		(void) gnutls_pubkey_deinit(&rsa->rsa_key);
+		(void) gnutls_pubkey_deinit(rsa->rsa_pubkey);
 #else /* USE_GNUTLS */
 		rsa->rsa_pkey = d2i_PUBKEY_bio(key, NULL);
 		if (rsa->rsa_pkey == NULL)
@@ -7742,7 +7786,11 @@ dkim_sig_ignore(DKIM_SIGINFO *siginfo)
 unsigned long
 dkim_ssl_version(void)
 {
+#ifdef USE_GNUTLS
+	return (GNUTLS_VERSION_NUMBER << 8);
+#else /* USE_GNUTLS */
 	return OPENSSL_VERSION_NUMBER;
+#endif /* USE_GNUTLS */
 }
 
 /*

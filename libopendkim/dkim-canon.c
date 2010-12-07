@@ -97,7 +97,7 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 				sha->sha_tmpfd = -1;
 			}
 
-			gnutls_hash_deinit(sha->sha_hd);
+			gnutls_hash_deinit(sha->sha_hd, NULL);
 
 			if (sha->sha_out != NULL)
 				DKIM_FREE(dkim, sha->sha_out);
@@ -801,12 +801,12 @@ dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 			if (cur->canon_hashtype == DKIM_HASHTYPE_SHA1)
 			{
 				(void) gnutls_hash_init(&sha->sha_hd,
-				                        GNUTLS_DIG_SHA1, 0);
+				                        GNUTLS_DIG_SHA1);
 			}
 			else
 			{
 				(void) gnutls_hash_init(&sha->sha_hd,
-				                        GNUTLS_DIG_SHA256, 0);
+				                        GNUTLS_DIG_SHA256);
 			}
 
 			if (sha->sha_hd == NULL)
@@ -1936,6 +1936,7 @@ dkim_canon_closebody(DKIM *dkim)
 			}
 
 			gnutls_hash_output(sha->sha_hd, sha->sha_out);
+			sha->sha_outlen = diglen;
 
 			if (sha->sha_tmpfd != -1)
 			{

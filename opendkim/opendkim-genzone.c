@@ -23,10 +23,14 @@ static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.12.10.1 2010/
 #include <pwd.h>
 
 /* openssl includes */
-#include <openssl/rsa.h>
-#include <openssl/pem.h>
-#include <openssl/evp.h>
-#include <openssl/bio.h>
+#ifdef USE_GNUTLS
+# include <gnutls/gnutls.h>
+#else /* USE_GNUTLS */
+# include <openssl/rsa.h>
+# include <openssl/pem.h>
+# include <openssl/evp.h>
+# include <openssl/bio.h>
+#endif /* USE_GNUTLS */
 
 #ifndef FALSE
 # define FALSE		0
@@ -241,10 +245,13 @@ main(int argc, char **argv)
 	char *configfile = NULL;
 	char *nslist[MAXNS];
 	FILE *out;
+#ifdef USE_GNUTLS
+#else /* USE_GNUTLS */
 	BIO *private;
 	BIO *outbio = NULL;
 	EVP_PKEY *pkey;
 	RSA *rsa;
+#endif /* USE_GNUTLS */
 	DKIMF_DB db;
 	char keyname[BUFRSZ + 1];
 	char domain[BUFRSZ + 1];
@@ -439,12 +446,14 @@ main(int argc, char **argv)
 	if (dataset == NULL)
 		return usage();
 
+#ifndef USE_GNUTLS
 	outbio = BIO_new(BIO_s_mem());
 	if (outbio == NULL)
 	{
 		fprintf(stderr, "%s: BIO_new() failed\n", progname);
 		return 1;
 	}
+#endif /* ! USE_GNUTLS */
 
 	status = dkimf_db_open(&db, dataset, DKIMF_DB_FLAG_READONLY,
 	                       NULL, NULL);
@@ -578,7 +587,9 @@ main(int argc, char **argv)
 			fprintf(stderr, "%s: dkimf_db_walk(%d) failed\n",
 			        progname, c);
 			(void) dkimf_db_close(db);
+#ifndef USE_GNUTLS
 			(void) BIO_free(outbio);
+#endif /* ! USE_GNUTLS */
 			return 1;
 		}
 		else if (status == 1)
@@ -606,7 +617,9 @@ main(int argc, char **argv)
 			fprintf(stderr, "%s: key for `%s' load failed\n",
 			        progname, keyname);
 			(void) dkimf_db_close(db);
+#ifndef USE_GNUTLS
 			(void) BIO_free(outbio);
+#endif /* USE_GNUTLS */
 			return 1;
 		}
 
@@ -619,6 +632,9 @@ main(int argc, char **argv)
 		/* create a BIO for the private key */
 		if (strncmp(keydata, "-----", 5) == 0)
 		{
+#ifdef USE_GNUTLS
+FINISH ME
+#else /* USE_GNUTLS */
 			private = BIO_new_mem_buf(keydata, keylen);
 			if (private == NULL)
 			{
@@ -699,8 +715,12 @@ main(int argc, char **argv)
 				(void) BIO_free(outbio);
 				return 1;
 			}
+#endif /* USE_GNUTLS */
 		}
 
+#ifdef USE_GNUTLS
+FINISH ME
+#else /* USE_GNUTLS */
 		rsa = EVP_PKEY_get1_RSA(pkey);
 		if (rsa == NULL)
 		{
@@ -727,6 +747,7 @@ main(int argc, char **argv)
 			(void) BIO_free(outbio);
 			return 1;
 		}
+#endif /* USE_GNUTLS */
 
 		/* write the record */
 		if (ttl == -1)
@@ -747,6 +768,9 @@ main(int argc, char **argv)
 		olen = strflen(tmpbuf);
 
 		seenlf = FALSE;
+#ifdef USE_GNUTLS
+FINISH ME
+#else /* USE_GNUTLS */
 		for (len = BIO_get_mem_data(outbio, &p); len > 0; len--, p++)
 		{
 			if (*p == '\n')
@@ -773,15 +797,24 @@ main(int argc, char **argv)
 				olen = 9;
 			}
 		}
+#endif /* USE_GNUTLS */
 
 		fprintf(out, "\" )\n");
 
 		/* prepare for the next one */
+#ifdef USE_GNUTLS
+FINISH ME
+#else /* USE_GNUTLS */
 		(void) BIO_reset(outbio);
+#endif /* USE_GNUTLS */
 	}
 
+#ifdef USE_GNUTLS
+FINISH ME
+#else /* USE_GNUTLS */
 	(void) BIO_flush(outbio);
 	(void) BIO_free(outbio);
+#endif /* USE_GNUTLS */
 	(void) dkimf_db_close(db);
 
 	if (out != stdout)
