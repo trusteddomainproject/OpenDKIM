@@ -30,7 +30,6 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.70.2.1 2010/10/27 21:43:08 cm-msk
 #include <ctype.h>
 #include <assert.h>
 #include <string.h>
-#include <stdlib.h>
 #include <limits.h>
 #include <unistd.h>
 #include <resolv.h>
