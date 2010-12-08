@@ -36,6 +36,8 @@ static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.23 2010/10/28 02:41:2
 
 #ifdef USE_GNUTLS
 # include <gnutls/gnutls.h>
+# include <gnutls/crypto.h>
+# include <gnutls/abstract.h>
 #else /* USE_GNUTLS */
 /* OpenSSL includes */
 # include <openssl/pem.h>
@@ -200,10 +202,11 @@ struct dkim_rsa
 #ifdef USE_GNUTLS
 	size_t			rsa_rsaoutlen;
 	size_t			rsa_keysize;
-	gnutls_datum_t		rsa_key;
+	gnutls_privkey_t	rsa_key;
+	gnutls_pubkey_t		rsa_pubkey;
 	gnutls_datum_t		rsa_sig;
 	gnutls_datum_t		rsa_digest;
-	u_char *		rsa_rsaout;
+	gnutls_datum_t 		rsa_rsaout;
 #else /* USE_GNUTLS */
 	u_char			rsa_pad;
 	size_t			rsa_keysize;

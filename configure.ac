@@ -491,6 +491,8 @@ then
 	CPPFLAGS="$saved_CPPFLAGS"
 	LDFLAGS="$saved_LDFLAGS"
 	LIBS="$saved_LIBS"
+
+	gnutls_found="yes"
 fi
 
 if test x"$gtpath" = x"yes" -a x"$gnutls_found" = x"auto"
