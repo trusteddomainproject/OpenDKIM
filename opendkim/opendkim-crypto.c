@@ -61,7 +61,7 @@ static pthread_key_t logkey;
 static void
 dkimf_crypto_log(int sev, const char *str)
 {
-	const char *buf;
+	char *buf;
 
 	buf = pthread_getspecific(logkey);
 	if (buf == NULL)
