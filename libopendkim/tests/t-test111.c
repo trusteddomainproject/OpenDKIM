@@ -9,11 +9,19 @@
 static char t_test111_c_id[] = "@(#)$Id: t-test111.c,v 1.3 2010/03/01 18:21:46 cm-msk Exp $";
 #endif /* !lint */
 
+#include "build-config.h"
+
+
 /* system includes */
 #include <sys/types.h>
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+
+#ifdef USE_GNUTLS
+# include <gnutls/gnutls.h>
+#endif /* USE_GNUTLS */
+
 
 /* libopendkim includes */
 #include "../dkim.h"

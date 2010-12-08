@@ -9,11 +9,18 @@
 static char t_test00_c_id[] = "@(#)$Id: t-test00.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
 #endif /* !lint */
 
+#include "build-config.h"
+
+
 /* system includes */
 #include <sys/types.h>
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+
+#ifdef USE_GNUTLS
+# include <gnutls/gnutls.h>
+#endif /* USE_GNUTLS */
 
 
 /* libopendkim includes */
@@ -48,6 +55,11 @@ main(int argc, char **argv)
 	unsigned char hdr[MAXHEADER + 1];
 
 	printf("*** relaxed/relaxed rsa-sha1 signing\n");
+
+#ifdef USE_GNUTLS
+	(void) gnutls_global_init();
+#endif /* USE_GNUTLS */
+
 
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
@@ -147,6 +159,7 @@ main(int argc, char **argv)
 	status = dkim_getsighdr(dkim, hdr, sizeof hdr,
 	                        strlen(DKIM_SIGNHEADER) + 2);
 	assert(status == DKIM_STAT_OK);
+printf("%s\n", hdr);
 	assert(strcmp(SIG2, hdr) == 0);
 
 	status = dkim_free(dkim);
