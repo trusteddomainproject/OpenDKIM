@@ -159,7 +159,6 @@ main(int argc, char **argv)
 	status = dkim_getsighdr(dkim, hdr, sizeof hdr,
 	                        strlen(DKIM_SIGNHEADER) + 2);
 	assert(status == DKIM_STAT_OK);
-printf("%s\n", hdr);
 	assert(strcmp(SIG2, hdr) == 0);
 
 	status = dkim_free(dkim);
