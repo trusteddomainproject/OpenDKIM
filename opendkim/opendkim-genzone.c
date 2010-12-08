@@ -8,6 +8,8 @@
 static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.12.10.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
 
+#include "build-config.h"
+
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
@@ -17,6 +19,7 @@ static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.12.10.1 2010/
 #include <assert.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
@@ -25,6 +28,9 @@ static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.12.10.1 2010/
 /* openssl includes */
 #ifdef USE_GNUTLS
 # include <gnutls/gnutls.h>
+# include <gnutls/crypto.h>
+# include <gnutls/abstract.h>
+# include <gnutls/x509.h>
 #else /* USE_GNUTLS */
 # include <openssl/rsa.h>
 # include <openssl/pem.h>
@@ -246,6 +252,15 @@ main(int argc, char **argv)
 	char *nslist[MAXNS];
 	FILE *out;
 #ifdef USE_GNUTLS
+	gnutls_x509_privkey_t xprivkey;
+	gnutls_pubkey_t pubkey;
+	gnutls_datum_t key;
+	gnutls_datum_t km;
+	gnutls_datum_t ke;
+	gnutls_datum_t kd;
+	gnutls_datum_t kp;
+	gnutls_datum_t kq;
+	gnutls_datum_t ku;
 #else /* USE_GNUTLS */
 	BIO *private;
 	BIO *outbio = NULL;
@@ -460,14 +475,18 @@ main(int argc, char **argv)
 	if (status != 0)
 	{
 		fprintf(stderr, "%s: dkimf_db_open() failed\n", progname);
+#ifndef USE_GNUTLS
 		(void) BIO_free(outbio);
+#endif /* ! USE_GNUTLS */
 		return 1;
 	}
 
 	if (dkimf_db_type(db) == DKIMF_DB_TYPE_REFILE)
 	{
 		fprintf(stderr, "%s: invalid data set type\n", progname);
+#ifndef USE_GNUTLS
 		(void) BIO_free(outbio);
+#endif /* ! USE_GNUTLS */
 		(void) dkimf_db_close(db);
 		return 1;
 	}
@@ -483,7 +502,9 @@ main(int argc, char **argv)
 			fprintf(stderr, "%s: %s: fopen(): %s\n",
 			        progname, outfile, strerror(errno));
 			(void) dkimf_db_close(db);
+#ifndef USE_GNUTLS
 			(void) BIO_free(outbio);
+#endif /* ! USE_GNUTLS */
 			return 1;
 		}
 	}
@@ -629,12 +650,39 @@ main(int argc, char **argv)
 			        progname, keyname);
 		}
 
+#ifdef USE_GNUTLS
+		if (gnutls_x509_privkey_init(&xprivkey) != GNUTLS_E_SUCCESS)
+		{
+			fprintf(stderr,
+			        "%s: gnutls_x509_privkey_init() failed\n",
+			        progname);
+			(void) dkimf_db_close(db);
+			return 1;
+		}
+
+		key.data = keydata;
+		key.size = keylen;
+
+		status = gnutls_x509_privkey_import(xprivkey, &key,
+		                                    GNUTLS_X509_FMT_PEM);
+		if (status != GNUTLS_E_SUCCESS)
+		{
+			status = gnutls_x509_privkey_import(xprivkey, &key,
+		                                            GNUTLS_X509_FMT_DER);
+		}
+
+		if (status != GNUTLS_E_SUCCESS)
+		{
+			fprintf(stderr,
+			        "%s: gnutls_x509_privkey_import() failed\n",
+			        progname);
+			(void) gnutls_x509_privkey_deinit(xprivkey);
+			return -1;
+		}
+#else /* USE_GNUTLS */
 		/* create a BIO for the private key */
 		if (strncmp(keydata, "-----", 5) == 0)
 		{
-#ifdef USE_GNUTLS
-FINISH ME
-#else /* USE_GNUTLS */
 			private = BIO_new_mem_buf(keydata, keylen);
 			if (private == NULL)
 			{
@@ -715,12 +763,8 @@ FINISH ME
 				(void) BIO_free(outbio);
 				return 1;
 			}
-#endif /* USE_GNUTLS */
 		}
 
-#ifdef USE_GNUTLS
-FINISH ME
-#else /* USE_GNUTLS */
 		rsa = EVP_PKEY_get1_RSA(pkey);
 		if (rsa == NULL)
 		{
@@ -768,10 +812,46 @@ FINISH ME
 		olen = strflen(tmpbuf);
 
 		seenlf = FALSE;
+
 #ifdef USE_GNUTLS
-FINISH ME
+		if (gnutls_x509_privkey_export_rsa_raw(xprivkey, &km, &ke, &kd,
+		                                       &kp, &kq,
+		                                       &ku) != GNUTLS_E_SUCCESS)
+		{
+			fprintf(stderr,
+			        "%s: gnutls_x509_privkey_export_rsa_raw() failed\n",
+			        progname);
+			(void) dkimf_db_close(db);
+			(void) gnutls_x509_privkey_deinit(xprivkey);
+			return 1;
+		}
+
+		if (gnutls_pubkey_import_rsa_raw(pubkey,
+		                                 &km, &ke) != GNUTLS_E_SUCCESS)
+		{
+			fprintf(stderr,
+			        "%s: gnutls_x509_privkey_export_rsa_raw() failed\n",
+			        progname);
+			(void) dkimf_db_close(db);
+			(void) gnutls_x509_privkey_deinit(xprivkey);
+			return 1;
+		}
+
+		keylen = sizeof keydata;
+		if (gnutls_pubkey_export(pubkey, GNUTLS_X509_FMT_PEM,
+		                         keydata, &keylen) != GNUTLS_E_SUCCESS)
+		{
+			fprintf(stderr, "%s: gnutls_pubkey_export() failed\n",
+			        progname);
+			(void) dkimf_db_close(db);
+			(void) gnutls_x509_privkey_deinit(xprivkey);
+			return 1;
+		}
+
+		for (len = keylen, p = keydata; len > 0; len--, p++)
 #else /* USE_GNUTLS */
 		for (len = BIO_get_mem_data(outbio, &p); len > 0; len--, p++)
+#endif /* USE_GNUTLS */
 		{
 			if (*p == '\n')
 			{
@@ -797,24 +877,22 @@ FINISH ME
 				olen = 9;
 			}
 		}
-#endif /* USE_GNUTLS */
 
 		fprintf(out, "\" )\n");
 
 		/* prepare for the next one */
 #ifdef USE_GNUTLS
-FINISH ME
+		(void) gnutls_x509_privkey_deinit(xprivkey);
+		(void) gnutls_pubkey_deinit(pubkey);
 #else /* USE_GNUTLS */
 		(void) BIO_reset(outbio);
 #endif /* USE_GNUTLS */
 	}
 
-#ifdef USE_GNUTLS
-FINISH ME
-#else /* USE_GNUTLS */
+#ifndef USE_GNUTLS
 	(void) BIO_flush(outbio);
 	(void) BIO_free(outbio);
-#endif /* USE_GNUTLS */
+#endif /* ! USE_GNUTLS */
 	(void) dkimf_db_close(db);
 
 	if (out != stdout)
