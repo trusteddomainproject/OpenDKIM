@@ -20,6 +20,7 @@ static char opendkim_crypto_c_id[] = "@(#)$Id: opendkim-crypto.c,v 1.9.22.1 2010
 #endif /* HAVE_STDBOOL_H */
 #include <pthread.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <assert.h>
 #include <errno.h>
 
