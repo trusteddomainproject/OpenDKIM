@@ -194,6 +194,9 @@ struct dkimf_config
 #ifdef _FFR_STATS
 	_Bool		conf_anonstats;		/* anonymize stats? */
 #endif /* _FFR_STATS */
+#ifdef _FFR_VBR
+	_Bool		conf_vbr_trustedonly;	/* trusted certifiers only */
+#endif /* _FFR_VBR */
 	unsigned int	conf_mode;		/* operating mode */
 	unsigned int	conf_refcnt;		/* reference count */
 	unsigned int	conf_dnstimeout;	/* DNS timeout */
@@ -6168,6 +6171,13 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) dkimf_db_mkarray(conf->conf_vbr_trusteddb,
 		                        (char ***) &conf->conf_vbr_trusted);
 	}
+
+	if (data != NULL)
+	{
+		(void) config_get(data, "VBR-TrustedCertifiersOnly",
+		                  &conf->conf_vbr_trustedonly,
+		                  sizeof conf->conf_vbr_trustedonly);
+	}
 #endif /* _FFR_VBR */
 
 	if (data != NULL)
@@ -10431,6 +10441,8 @@ mlfi_eoh(SMFICTX *ctx)
 	/* store trusted certifiers */
 	if (conf->conf_vbr_trusted != NULL)
 		vbr_trustedcerts(dfc->mctx_vbr, conf->conf_vbr_trusted);
+	if (conf->conf_vbr_trustedonly)
+		vbr_options(dfc->mctx_vbr, VBR_OPT_TRUSTEDONLY);
 
 	/* if signing, store the values needed to make a header */
 	if (dfc->mctx_srhead != NULL)

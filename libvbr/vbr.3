@@ -1,8 +1,8 @@
 .TH libvbr 3
 .SH NAME
-.B vbr_init(), vbr_close(), vbr_geterror(), vbr_getheader(), vbr_setcert(),
-.B vbr_settype(), vbr_setdomain(), vbr_trustedcerts(), vbr_query(),
-.B vbr_settimeout(), vbr_setcallbackint(), vbr_setcallbackctx(),
+.B vbr_init(), vbr_options(), vbr_close(), vbr_geterror(), vbr_getheader(),
+.B vbr_setcert(), vbr_settype(), vbr_setdomain(), vbr_trustedcerts(),
+.B vbr_query(), vbr_settimeout(), vbr_setcallbackint(), vbr_setcallbackctx(),
 .B vbr_setdnscallback(), vbr_dns_set_query_service(),
 .B vbr_dns_set_query_start(), vbr_dns_set_query_cancel(),
 .B vbr_dns_set_query_waitreply()
@@ -19,6 +19,14 @@ VBR *
 .B freef
 )(void *, void *p), void *
 .B closure
+);
+
+void
+.B vbr_options
+(VBR *
+.B vbr
+, unsigned int
+.B opts
 );
 
 unsigned char *
@@ -176,6 +184,10 @@ is returned, or NULL on error and
 .I errno
 will be set to indicate the cause of the failure.
 
+The caller can use
+.B vbr_options()
+to set query processing options.  See the OPTIONS section for details.
+
 The
 .B vbr_geterror()
 function can be used to poll the library for an error string that provides
@@ -219,7 +231,8 @@ takes a VBR library instance as its first argument and a NULL-terminated
 array of pointers to certifier names as its second, which is used by
 .I vbr_query()
 to select vouching services the caller trusts.  The intersection of these
-trusted certifiers and those claimed by an arriving message.
+trusted certifiers and those claimed by an arriving message.  The list is
+initially empty.
 
 .B vbr_query()
 polls trusted certifiers to see if any of them agree with the assertion
@@ -303,6 +316,22 @@ described below.
 When the library handle is no longer needed, it should be passed to
 .B vbr_close().
 
+.SH OPTIONS
+Setting options is done using the
+.I vbr_options()
+function.  The
+.I opts
+parameter is a bitwise-OR list of the available options requested by the
+application.  The currently supported option:
+.TP
+.I VBR_FLAG_TRUSTEDONLY
+By default, a VBR query will be sent to the intersection of the trusted
+certifiers (provided by the
+.I vbr_trustedcerts()
+function) and the list of certifiers claimed on a message (provided by the
+.I vbr_sercert()
+function).  With this option enabled, the trusted certifiers will be checked
+and the provided certifiers will be ignored.
 .SH RETURN VALUES
 The following return codes, of type VBR_STAT, can be returned:
 .TP

@@ -77,6 +77,7 @@ struct vbr_query
 
 struct vbr_handle
 {
+	u_int		vbr_opts;		/* options */
 	size_t		vbr_errlen;		/* error buffer size */
 	u_int		vbr_timeout;		/* query timeout */
 	u_int		vbr_callback_int;	/* callback interval */
@@ -715,6 +716,25 @@ vbr_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	return new;
 }
 
+/*
+**  VBR_OPTIONS -- set VBR options
+**
+**  Parameters:
+**  	vbr -- VBR handle to modify
+**  	opts -- bitmask of options to use
+**
+**  Return value:
+**  	None.
+*/
+
+void
+vbr_options(VBR *vbr, unsigned int opts)
+{
+	assert(vbr != NULL);
+
+	vbr->vbr_opts = opts;
+}
+
 #define	CLOBBER(x)	if ((x) != NULL) \
 			{ \
 				vbr_free(vbr, vbr->vbr_closure, (x)); \
@@ -946,12 +966,21 @@ vbr_trustedcerts(VBR *vbr, u_char **certs)
 VBR_STAT
 vbr_query(VBR *vbr, u_char **res, u_char **cert)
 {
+	int c;
 	int n;
+	int status;
+	int dnserr;
 	struct vbr_query *vq;
+	void *qh;
 	u_char *p;
 	u_char *last;
+	u_char *last2;
+	u_char *p2;
+	struct timeval timeout;
 	u_char certs[VBR_MAXHEADER + 1];
 	u_char query[VBR_MAXHOSTNAMELEN + 1];
+	unsigned char buf[BUFRSZ];
+	unsigned char ansbuf[BUFRSZ];
 
 	assert(vbr != NULL);
 	assert(res != NULL);
@@ -977,136 +1006,147 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 
 	memset(vq, '\0', sizeof *vq);
 
-	for (p = (u_char *) strtok_r((char *) certs, ":", (char **) &last);
-	     p != NULL;
-	     p = (u_char *) strtok_r(NULL, ":", (char **) &last))
+	for (c = 0; ; c++)
 	{
-		for (n = 0; vbr->vbr_trusted[n] != NULL; n++)
+		if ((vbr->vbr_opts & VBR_OPT_TRUSTEDONLY) != 0)
 		{
-			if (strcasecmp((char *) p,
-			               (char *) vbr->vbr_trusted[n]) == 0)
+			/*
+			**  Query our trusted vouchers regardless of what the
+			**  sender said.
+			*/
+
+			if (vbr->vbr_trusted[c] == NULL)
+				break;
+			else
+				p = vbr->vbr_trusted[c];
+		}
+		else
+		{
+			/*
+			**  Query the sender's vouchers that also appear in our
+			**  trusted voucher list.
+			*/
+
+			_Bool found;
+
+			p = (u_char *) strtok_r(c == 0 ? (char *) certs : NULL,
+			                        ":", (char **) &last);
+			if (p == NULL)
+				break;
+
+			found = FALSE;
+
+			for (n = 0; vbr->vbr_trusted[n] != NULL; n++)
 			{
-				int status;
-				int dnserr;
-				void *qh;
-				u_char *last2;
-				u_char *p2;
-				struct timeval timeout;
-				unsigned char buf[BUFRSZ];
-				unsigned char ansbuf[BUFRSZ];
-
-				snprintf((char *) query, sizeof query,
-				         "%s.%s.%s", vbr->vbr_domain,
-				         VBR_PREFIX, p);
-
-				qh = NULL;
-
-				status = vbr->vbr_dns_start(vbr->vbr_dns_service,
-				                            T_TXT, query,
-				                            vq->vq_buf,
-				                            sizeof vq->vq_buf,
-				                            &vq->vq_qh);
-
-				if (status != VBR_STAT_OK)
+				if (strcasecmp((char *) p,
+				               (char *) vbr->vbr_trusted[n]) == 0)
 				{
-					snprintf(vbr->vbr_error,
-					         sizeof vbr->vbr_error,
-					         "unable to start query for `%s'",
-					         query);
-					return VBR_STAT_DNSERROR;
+					found = TRUE;
+					break;
 				}
+			}
+
+			if (!found)
+				continue;
+		}	
+
+		snprintf((char *) query, sizeof query, "%s.%s.%s",
+		         vbr->vbr_domain, VBR_PREFIX, p);
+
+		qh = NULL;
+
+		status = vbr->vbr_dns_start(vbr->vbr_dns_service, T_TXT, query,
+		                            vq->vq_buf, sizeof vq->vq_buf,
+		                            &vq->vq_qh);
+
+		if (status != VBR_STAT_OK)
+		{
+			snprintf(vbr->vbr_error, sizeof vbr->vbr_error,
+			         "unable to start query for `%s'",
+			         query);
+			return VBR_STAT_DNSERROR;
+		}
+
+		timeout.tv_sec = vbr->vbr_timeout;
+		timeout.tv_usec = 0;
+
+		if (vbr->vbr_dns_callback == NULL)
+		{
+			status = vbr->vbr_dns_waitreply(vbr->vbr_dns_service,
+			                                vq->vq_qh,
+			                                &timeout,
+			                                &vq->vq_buflen,
+			                                &dnserr,
+			                                NULL);
+		}
+		else
+		{
+			struct timeval *to;
+			struct timeval wstart;
+			struct timeval wstop;
+			struct timeval ctimeout;
+
+			wstop.tv_sec = 0;
+			wstop.tv_usec = 0;
+
+			for (;;)
+			{
+				(void) gettimeofday(&wstart, NULL);
+
+				ctimeout.tv_sec = vbr->vbr_callback_int;
+				ctimeout.tv_usec = 0;
 
 				timeout.tv_sec = vbr->vbr_timeout;
 				timeout.tv_usec = 0;
 
-				if (vbr->vbr_dns_callback == NULL)
-				{
-					status = vbr->vbr_dns_waitreply(vbr->vbr_dns_service,
-					                                vq->vq_qh,
-					                                &timeout,
-					                                &vq->vq_buflen,
-					                                &dnserr,
-					                                NULL);
-				}
-				else
-				{
-					struct timeval *to;
-					struct timeval wstart;
-					struct timeval wstop;
-					struct timeval ctimeout;
+				vbr_timeouts(&timeout, &ctimeout,
+				             &wstart, &wstop,
+				             &to);
 
-					wstop.tv_sec = 0;
-					wstop.tv_usec = 0;
+				status = vbr->vbr_dns_waitreply(vbr->vbr_dns_service,
+				                                vq->vq_qh,
+				                                to,
+				                                &vq->vq_buflen,
+				                                &dnserr,
+				                                NULL);
 
-					for (;;)
-					{
-						(void) gettimeofday(&wstart,
-						                    NULL);
+				(void) gettimeofday(&wstop, NULL);
 
-						ctimeout.tv_sec = vbr->vbr_callback_int;
-						ctimeout.tv_usec = 0;
+				if (status != VBR_DNS_NOREPLY ||
+				    to == &timeout)
+					break;
 
-						timeout.tv_sec = vbr->vbr_timeout;
-						timeout.tv_usec = 0;
+				vbr->vbr_dns_callback(vbr->vbr_user_context);
+			}
+		}
 
-						vbr_timeouts(&timeout,
-						             &ctimeout,
-						             &wstart,
-						             &wstop,
-						             &to);
+		vbr->vbr_dns_cancel(vbr->vbr_dns_service, vq->vq_qh);
 
-						status = vbr->vbr_dns_waitreply(vbr->vbr_dns_service,
-						                                vq->vq_qh,
-						                                to,
-						                                &vq->vq_buflen,
-						                                &dnserr,
-						                                NULL);
+		if (status == VBR_DNS_ERROR || status == VBR_DNS_EXPIRED)
+		{
+			vbr_error(vbr, "failed to retrieve %s", query);
+			return VBR_STAT_DNSERROR;
+		}
 
-						(void) gettimeofday(&wstop,
-						                    NULL);
+		/* try to decode the reply */
+		if (!vbr_txt_decode(ansbuf, sizeof ansbuf, buf, sizeof buf))
+			continue;
 
-						if (status != VBR_DNS_NOREPLY ||
-						    to == &timeout)
-							break;
-
-						vbr->vbr_dns_callback(vbr->vbr_user_context);
-					}
-				}
-
-				vbr->vbr_dns_cancel(vbr->vbr_dns_service,
-					            vq->vq_qh);
-
-				if (status == VBR_DNS_ERROR ||
-				    status == VBR_DNS_EXPIRED)
-				{
-					vbr_error(vbr, "failed to retrieve %s",
-						  query);
-					return VBR_STAT_DNSERROR;
-				}
-
-				/* try to decode the reply */
-				if (!vbr_txt_decode(ansbuf, sizeof ansbuf,
-				                    buf, sizeof buf))
-					continue;
-
-				/* see if there's a vouch match */
-				for (p2 = (u_char *) strtok_r((char *) buf, " \t",
-				                              (char **) &last2);
-				     p2 != NULL;
-				     p2 = (u_char *) strtok_r(NULL, " \t",
-				                              (char **) &last2))
-				{
-					if (strcasecmp((char *) p2,
-					               VBR_ALL) == 0 ||
-					    strcasecmp((char *) p2,
-					               (char *) vbr->vbr_type) == 0)
-					{
-						/* we have a winner! */
-						*res = (u_char *) "pass";
-						*cert = p;
-						return VBR_STAT_OK;
-					}
-				}
+		/* see if there's a vouch match */
+		for (p2 = (u_char *) strtok_r((char *) buf, " \t",
+		                              (char **) &last2);
+		     p2 != NULL;
+		     p2 = (u_char *) strtok_r(NULL, " \t",
+		                              (char **) &last2))
+		{
+			if (strcasecmp((char *) p2, VBR_ALL) == 0 ||
+			    strcasecmp((char *) p2,
+			               (char *) vbr->vbr_type) == 0)
+			{
+				/* we have a winner! */
+				*res = (u_char *) "pass";
+				*cert = p;
+				return VBR_STAT_OK;
 			}
 		}
 	}

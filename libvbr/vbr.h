@@ -33,6 +33,8 @@ typedef int VBR_STAT;
 #define VBR_STAT_NORESOURCE	3
 #define VBR_STAT_NOTIMPLEMENT	4
 
+#define	VBR_OPT_TRUSTEDONLY	0x01
+
 /* types */
 struct vbr_handle;
 typedef struct vbr_handle VBR;
@@ -59,6 +61,19 @@ extern VBR * vbr_init __P((void *(*caller_mallocf)(void *closure,
                                                    size_t nbytes),
                            void (*caller_freef)(void *closure, void *p),
                            void *closure));
+
+/*
+**  VBR_OPTIONS -- set VBR options
+**
+**  Parameters:
+**  	vbr -- VBR handle to modify
+**  	opts -- bitmask of options to use
+**
+**  Return value:
+**  	None.
+*/
+
+extern void vbr_options __P((VBR *, unsigned int));
 
 /*
 **  VBR_CLOSE -- shut down a VBR instance
