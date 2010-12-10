@@ -847,7 +847,7 @@ main(int argc, char **argv)
 				         fields[20],	/* sig_i_user */
 				         fields[21]);	/* key_s */
 			}
-			if (n == 21)
+			else if (n == 21)
 			{
 				snprintf(sql, sizeof sql,
 				         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, sigerror, sig_t, sig_x, sig_z, dnssec, sig_i, sig_i_user) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
