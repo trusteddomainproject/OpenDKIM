@@ -20,6 +20,9 @@ release, and a summary of the changes in that release.
 	Feature request #SF3103095: Allow "%" in a KeyTable entry's filename
 		component as well as the domain name.
 	Feature request #SF3106132: Allow "%" in a SigningTable's value.
+	Fix bug #SF3134119: With AutoRestart enabled, arrange to relay
+		SIGUSR1 from the parent to the child rather than terminating.
+		Reported by Yoshiaki Yanagihara.
 	Replace popen() calls with a local implementation to remove
 		a potentially long wait inside a critical section.
 	LIBOPENDKIM: Fix bug #SF3079094: Have dkim_diffheaders() take

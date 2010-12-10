@@ -14142,11 +14142,13 @@ main(int argc, char **argv)
 		sigaddset(&sa.sa_mask, SIGHUP);
 		sigaddset(&sa.sa_mask, SIGINT);
 		sigaddset(&sa.sa_mask, SIGTERM);
+		sigaddset(&sa.sa_mask, SIGUSR1);
 		sa.sa_flags = 0;
 
 		if (sigaction(SIGHUP, &sa, NULL) != 0 ||
 		    sigaction(SIGINT, &sa, NULL) != 0 ||
-		    sigaction(SIGTERM, &sa, NULL) != 0)
+		    sigaction(SIGTERM, &sa, NULL) != 0 ||
+		    sigaction(SIGUSR1, &sa, NULL) != 0)
 		{
 			if (curconf->conf_dolog)
 			{
@@ -14224,6 +14226,16 @@ main(int argc, char **argv)
 								(void) unlink(pidfile);
 
 							exit(EX_OK);
+						}
+						else if (reload)
+						{
+							dkimf_killchild(pid,
+							                SIGUSR1,
+							                curconf->conf_dolog);
+
+							reload = FALSE;
+
+							continue;
 						}
 					}
 
