@@ -10675,7 +10675,8 @@ mlfi_eoh(SMFICTX *ctx)
 			{
 				dkimf_cleanup(ctx);
 				return dkimf_miltercode(ctx,
-				                        conf->conf_handling.hndl_policyerr);
+				                        conf->conf_handling.hndl_policyerr,
+				                        NULL);
 			}
 		}
 
