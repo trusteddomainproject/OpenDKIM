@@ -872,6 +872,9 @@ ar_reconnect(AR_LIB lib)
 			return TRUE;
 		}
 
+		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+			syslog(LOG_DEBUG, "connect(): %s", strerror(errno));
+
 		close(lib->ar_nsfd);
 		lib->ar_nsfd = -1;
 		lib->ar_nsfdpf = -1;
