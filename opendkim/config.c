@@ -186,11 +186,18 @@ config_load_level(char *file, struct configdef *def,
 					break;
 			}
 
-			/* skip leading whitespace on value */
 			if (!err)
 			{
+				char *q;
+
+				/* skip leading whitespace on value */
 				for (p = s; *p == ' ' || *p == '\t'; p++)
 					continue;
+
+				/* ...and trim trailing whitespace */
+				q = p + strlen(p) - 1;
+				while (p <= q && (*q == '\t' || *q == ' '))
+					*q-- = '\0';
 			}
 
 			if (*p == '\0' && !err)
@@ -208,11 +215,6 @@ config_load_level(char *file, struct configdef *def,
 				  case CONFIG_TYPE_STRING:
 				  case CONFIG_TYPE_INCLUDE:
 					str = p;
-					/* trim trailing whitespace */
-					q = p + strlen(p) - 1;
-					while (p <= q &&
-					       (*q == '\t' || *q == ' '))
-						*q-- = '\0';
 					break;
 
 				  case CONFIG_TYPE_BOOLEAN:
