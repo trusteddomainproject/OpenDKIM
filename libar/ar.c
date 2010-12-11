@@ -845,7 +845,14 @@ ar_reconnect(AR_LIB lib)
 
 		lib->ar_nsfd = socket(sa->sa_family, SOCK_STREAM, 0);
 		if (lib->ar_nsfd == -1)
+		{
+			if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+			{
+				syslog(LOG_DEBUG, "arlib: socket(): %s",
+				       strerror(errno));
+
 			continue;
+		}
 
 		lib->ar_nsfdpf = sa->sa_family;
 
@@ -865,7 +872,7 @@ ar_reconnect(AR_LIB lib)
 		if (connect(lib->ar_nsfd, sa, socklen) == 0)
 		{
 			if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
-				syslog(LOG_DEBUG, "connected");
+				syslog(LOG_DEBUG, "arlib: connected");
 
 			lib->ar_flags &= ~AR_FLAG_RECONNECT;
 			ar_requeue(lib);
@@ -873,7 +880,10 @@ ar_reconnect(AR_LIB lib)
 		}
 
 		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
-			syslog(LOG_DEBUG, "connect(): %s", strerror(errno));
+		{
+			syslog(LOG_DEBUG, "arlib: connect(): %s",
+			       strerror(errno));
+		}
 
 		close(lib->ar_nsfd);
 		lib->ar_nsfd = -1;
@@ -884,7 +894,7 @@ ar_reconnect(AR_LIB lib)
 
 	/* unable to reconnect; arrange to terminate */
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
-		syslog(LOG_DEBUG, "failed to reconnect");
+		syslog(LOG_DEBUG, "arlib: failed to reconnect");
 	ar_alldead(lib);
 	(void) gettimeofday(&lib->ar_deadsince, NULL);
 	lib->ar_flags |= AR_FLAG_DEAD;
@@ -973,7 +983,7 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 	{
-		syslog(LOG_DEBUG, "sending %x `%s' id=%d", query,
+		syslog(LOG_DEBUG, "arlib: sending %x `%s' id=%d", query,
 		       query->q_name, query->q_id);
 	}
 
@@ -1567,7 +1577,7 @@ ar_dispatcher(void *tp)
 						if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 						{
 							syslog(LOG_DEBUG,
-							       "%x reply was CNAME, requerying",
+							       "arlib: %x reply was CNAME, requerying",
 							       q);
 						}
 						ar_requery(lib, q);
