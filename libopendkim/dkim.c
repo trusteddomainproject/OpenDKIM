@@ -840,6 +840,14 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 			return DKIM_STAT_INTERNAL;
 		}
 
+		status = dkim_add_plist(dkim, set, (u_char *) "s",
+		                        (u_char *) "*", FALSE);
+		if (status == -1)
+		{
+			set->set_bad = TRUE;
+			return DKIM_STAT_INTERNAL;
+		}
+
 		break;
 			
 	  default:
