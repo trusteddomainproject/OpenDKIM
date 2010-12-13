@@ -21,6 +21,7 @@ release, and a summary of the changes in that release.
 		component as well as the domain name.
 	Feature request #SF3106132: Allow "%" in a SigningTable's value.
 	Feature request #SF3136772: Sign the VBR-Info header field, if added.
+		Requested by Frederik Pettai.
 	Fix bug #SF3134119: With AutoRestart enabled, arrange to relay
 		SIGUSR1 from the parent to the child rather than terminating.
 		Reported by Yoshiaki Yanagihara.
