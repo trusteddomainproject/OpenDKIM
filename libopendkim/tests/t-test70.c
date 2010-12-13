@@ -48,6 +48,7 @@ main(int argc, char **argv)
 	int nhdrs;
 	int nsigs;
 	int ndiffs = 0;
+	dkim_canon_t hc;
 	DKIM_STAT status;
 	DKIM *dkim;
 	DKIM_LIB *lib;
@@ -55,7 +56,7 @@ main(int argc, char **argv)
 	struct dkim_hdrdiff *diffs = NULL;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
-	char *ohdrs[MAXHDRCNT];
+	unsigned char *ohdrs[MAXHDRCNT];
 
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
@@ -168,6 +169,11 @@ main(int argc, char **argv)
 	assert(nsigs == 1);
 
 	nhdrs = MAXHDRCNT;
+
+	status = dkim_sig_getcanons(sigs[0], &hc, NULL);
+	assert(status == DKIM_STAT_OK);
+	assert(hc == DKIM_CANON_RELAXED);
+	
 	status = dkim_ohdrs(dkim, sigs[0], ohdrs, &nhdrs);
 	assert(status == DKIM_STAT_OK);
 	assert(nhdrs == 8);
@@ -180,7 +186,7 @@ main(int argc, char **argv)
 	assert(strcmp(ohdrs[6], HEADER08) == 0);
 	assert(strcmp(ohdrs[7], HEADER09) == 0);
 
-	status = dkim_diffheaders(dkim, 5, ohdrs, nhdrs, &diffs, &ndiffs);
+	status = dkim_diffheaders(dkim, hc, 5, ohdrs, nhdrs, &diffs, &ndiffs);
 	assert(status == DKIM_STAT_OK);
 	assert(ndiffs == 1);
 	assert(strcmp(diffs[0].hd_old, ohdrs[3]) == 0);
