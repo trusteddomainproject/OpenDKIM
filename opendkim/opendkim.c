@@ -383,6 +383,7 @@ struct msgctx
 #endif /* VERIFY_DOMAINKEYS */
 #ifdef _FFR_VBR
 	VBR *		mctx_vbr;		/* VBR handle */
+	char *		mctx_vbrinfo;		/* VBR-Info header field */
 #endif /* _FFR_VBR */
 	struct Header *	mctx_hqhead;		/* header queue head */
 	struct Header *	mctx_hqtail;		/* header queue tail */
@@ -7428,6 +7429,8 @@ dkimf_cleanup(SMFICTX *ctx)
 #ifdef _FFR_VBR
 		if (dfc->mctx_vbr != NULL)
 			vbr_close(dfc->mctx_vbr);
+
+		TRYFREE(dfc->mctx_vbrinfo);
 #endif /* _FFR_VBR */
 
 #ifdef VERIFY_DOMAINKEYS
@@ -10435,6 +10438,9 @@ mlfi_eoh(SMFICTX *ctx)
 	/* if signing, store the values needed to make a header */
 	if (dfc->mctx_srhead != NULL)
 	{
+		Header newhdr;
+		char header[MAXHEADER + 1];
+
 		/* set the sending domain */
 		vbr_setdomain(dfc->mctx_vbr, dfc->mctx_domain);
 
@@ -10461,6 +10467,67 @@ mlfi_eoh(SMFICTX *ctx)
 			/* set the VBR certifier list */
 			(void) vbr_setcert(dfc->mctx_vbr, (u_char *) vbr_cert);
 		}
+
+		/* generate a VBR-Info header */
+		memset(header, '\0', sizeof header);
+
+		status = vbr_getheader(dfc->mctx_vbr, header, sizeof header);
+		if (status != VBR_STAT_OK)
+		{
+			syslog(LOG_ERR,
+			       "%s: can't create VBR-Info header field",
+			       dfc->mctx_jobid);
+		}
+
+		/* store it for addition in mlfi_eom() */
+		dfc->mctx_vbrinfo = strdup(header);
+		if (dfc->mctx_vbrinfo == NULL)
+		{
+			syslog(LOG_ERR, "%s: strdup(): %s", dfc->mctx_jobid,
+			       strerror(errno));
+			dkimf_cleanup(ctx);
+			return SMFIS_TEMPFAIL;
+		}
+
+		/* add it to our header set so it gets signed */
+		newhdr = (Header) malloc(sizeof(struct Header));
+		if (newhdr == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "malloc(): %s",
+				       strerror(errno));
+
+				dkimf_cleanup(ctx);
+				return SMFIS_TEMPFAIL;
+			}
+		}
+
+		(void) memset(newhdr, '\0', sizeof(struct Header));
+
+		newhdr->hdr_hdr = strdup(VBR_INFOHEADER);
+		newhdr->hdr_val = strdup(header);
+
+		if (newhdr->hdr_hdr == NULL ||
+		    newhdr->hdr_val == NULL)
+		{
+			syslog(LOG_ERR, "%s: strdup(): %s", dfc->mctx_jobid,
+			       strerror(errno));
+			TRYFREE(newhdr->hdr_hdr);
+			dkimf_cleanup(ctx);
+			return SMFIS_TEMPFAIL;
+		}
+
+		newhdr->hdr_next = NULL;
+		newhdr->hdr_prev = dfc->mctx_hqtail;
+
+		if (dfc->mctx_hqhead == NULL)
+			dfc->mctx_hqhead = newhdr;
+
+		if (dfc->mctx_hqtail != NULL)
+			dfc->mctx_hqtail->hdr_next = newhdr;
+
+		dfc->mctx_hqtail = newhdr;
 	}
 #endif /* _FFR_VBR */
 
@@ -12889,15 +12956,11 @@ mlfi_eom(SMFICTX *ctx)
 		}
 
 #ifdef _FFR_VBR
-		/* generate and add a VBR-Info header */
-		memset(header, '\0', sizeof header);
-
-		status = vbr_getheader(dfc->mctx_vbr, header, sizeof header);
-		/* XXX -- log errors */
-		if (status == DKIM_STAT_OK)
+		/* add VBR-Info header if generated */
+		if (dfc->mctx_vbrinfo != NULL)
 		{
 			if (dkimf_insheader(ctx, 1, VBR_INFOHEADER,
-			                    (char *) header) == MI_FAILURE)
+			                    dfc->mctx_vbrinfo) == MI_FAILURE)
 			{
 				if (conf->conf_dolog)
 				{
