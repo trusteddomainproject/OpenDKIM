@@ -30,6 +30,7 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Fix bug #SF3079094: Have dkim_diffheaders() take
 		canonicalization into account when generating its results
 		to avoid false positives.
+	STATS: Feature request #SF3125701: Add "s=" key value tracking.
 
 2.2.2		2010/11/28
 	Fix bug #SF2903325: Clean up numerous signed vs. unsigned warnings.

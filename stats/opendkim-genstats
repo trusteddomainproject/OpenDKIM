@@ -58,6 +58,7 @@ echo '<li> <a href="#sig_props">Signature properties</a>' >> $OUTPUT
 echo '<li> <a href="#l_tag">Use of "l=" tag</a>' >> $OUTPUT
 echo '<li> <a href="#i_tag">Use of "i=" tag</a>' >> $OUTPUT
 echo '<li> <a href="#key_props">Key properties</a>' >> $OUTPUT
+echo '<li> <a href="#key_s">Use of "s=" in keys</a>' >> $OUTPUT
 echo '<li> <a href="#dnssec">DNSSEC results</a>' >> $OUTPUT
 echo '<li> <a href="#passfail">Overall pass/fail rates for signed mail</a>' >> $OUTPUT
 echo '<li> <a href="#passfail_nolist">Overall pass/fail rates for signed mail, excluding list traffic</a>' >> $OUTPUT
@@ -131,6 +132,11 @@ echo "" >> $OUTPUT
 echo '<a name="key_props"></a>' >> $OUTPUT
 echo "<p> Key properties: </p>" >> $OUTPUT
 $MYSQL --execute="select sum(key_t) as 't=', sum(key_g) as 'g=', sum(key_g_name) as 'g=name', sum(key_dk_compat) as 'DK compat' from signatures" >> $OUTPUT
+echo "" >> $OUTPUT
+
+echo '<a name="key_s"></a>' >> $OUTPUT
+echo "<p> Use of s= in keys: </p>" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'keys', case key_s when 0 then 'absent' when 1 then 's=*' when 2 then 's=email' when 3 then 'other' end as 's= value' from signatures where key_s >= 0 group by key_s" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="dnssec"></a>' >> $OUTPUT

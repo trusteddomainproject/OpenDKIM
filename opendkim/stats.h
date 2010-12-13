@@ -66,7 +66,8 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-m
 #define	DKIMS_SI_CHANGED_FIELDS	18
 #define	DKIMS_SI_SIG_I		19
 #define	DKIMS_SI_SIG_I_USER	20
-#define DKIMS_SI_MAX		20
+#define	DKIMS_SI_KEY_S		21
+#define DKIMS_SI_MAX		21
 
 /* PROTOTYPES */
 extern void dkimf_stats_init __P((void));
