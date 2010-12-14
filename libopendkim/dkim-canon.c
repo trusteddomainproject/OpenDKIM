@@ -100,7 +100,10 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 			gnutls_hash_deinit(sha->sha_hd, NULL);
 
 			if (sha->sha_out != NULL)
+			{
 				DKIM_FREE(dkim, sha->sha_out);
+				sha->sha_out = NULL;
+			}
 
 			break;
 		  }
