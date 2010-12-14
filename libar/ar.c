@@ -652,7 +652,7 @@ ar_alldead(AR_LIB lib)
 			*q->q_errno = QUERY_ERRNO_SERVICE;
 
 		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
-			syslog(LOG_DEBUG, "arlib: signaling %x", q);
+			syslog(LOG_DEBUG, "arlib: signaling %p", q);
 
 		pthread_cond_signal(&q->q_reply);
 		pthread_mutex_unlock(&q->q_lock);
@@ -683,7 +683,7 @@ ar_requery(AR_LIB lib, AR_QUERY query)
 	assert(query != NULL);
 
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
-		syslog(LOG_DEBUG, "arlib: requering %x", query);
+		syslog(LOG_DEBUG, "arlib: requering %p", query);
 
 	/* remove from active queries */
 	for (q = lib->ar_queries, last = NULL;
@@ -931,7 +931,7 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 	{
 		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 		{
-			syslog(LOG_DEBUG, "arlib: %x retry count exceeded",
+			syslog(LOG_DEBUG, "arlib: %p retry count exceeded",
 			       query);
 		}
 
@@ -984,7 +984,7 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 	{
-		syslog(LOG_DEBUG, "arlib: sending %x `%s' id=%d", query,
+		syslog(LOG_DEBUG, "arlib: sending %p `%s' id=%d", query,
 		       query->q_name, query->q_id);
 	}
 
@@ -1041,7 +1041,7 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 	{
 		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 		{
-			syslog(LOG_DEBUG, "arlib: %x sendto/writev failed",
+			syslog(LOG_DEBUG, "arlib: %p sendto/writev failed",
 			       query);
 		}
 
@@ -1511,7 +1511,7 @@ ar_dispatcher(void *tp)
 				if (q != NULL)
 				{
 					syslog(LOG_DEBUG,
-					       "arlib: %x (id %d) reply received",
+					       "arlib: %p (id %d) reply received",
 					       q, q->q_id);
 				}
 				else
@@ -1587,7 +1587,7 @@ ar_dispatcher(void *tp)
 						if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 						{
 							syslog(LOG_DEBUG,
-							       "arlib: %x reply was CNAME, requerying",
+							       "arlib: %p reply was CNAME, requerying",
 							       q);
 						}
 						ar_requery(lib, q);
@@ -1608,7 +1608,7 @@ ar_dispatcher(void *tp)
 				if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 				{
 					syslog(LOG_DEBUG,
-					       "arlib: %x signaling", q);
+					       "arlib: %p signaling", q);
 				}
 				pthread_cond_signal(&q->q_reply);
 				pthread_mutex_unlock(&q->q_lock);
@@ -1637,7 +1637,7 @@ ar_dispatcher(void *tp)
 				if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 				{
 					syslog(LOG_DEBUG,
-					       "arlib: resend %x request", q);
+					       "arlib: resend %p request", q);
 				}
 
 				q->q_flags |= QUERY_RESEND;
@@ -1728,7 +1728,7 @@ ar_dispatcher(void *tp)
 			{
 				if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 				{
-					syslog(LOG_DEBUG, "arlib: expiring %x",
+					syslog(LOG_DEBUG, "arlib: expiring %p",
 					       q);
 				}
 				q->q_flags |= QUERY_NOREPLY;
@@ -1745,7 +1745,7 @@ ar_dispatcher(void *tp)
 			{
 				if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 				{
-					syslog(LOG_DEBUG, "arlib: retrying %x",
+					syslog(LOG_DEBUG, "arlib: retrying %p",
 					       q);
 				}
 
@@ -2318,7 +2318,7 @@ ar_addquery(AR_LIB lib, char *name, int class, int type, int depth,
 	wlen = ar_poke(lib);
 
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
-		syslog(LOG_DEBUG, "arlib: added query %x `%s'", q, q->q_name);
+		syslog(LOG_DEBUG, "arlib: added query %p `%s'", q, q->q_name);
 
 	pthread_mutex_unlock(&lib->ar_lock);
 
@@ -2357,7 +2357,7 @@ ar_cancelquery(AR_LIB lib, AR_QUERY query)
 	pthread_mutex_lock(&lib->ar_lock);
 
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
-		syslog(LOG_DEBUG, "arlib: canceling query %x", query);
+		syslog(LOG_DEBUG, "arlib: canceling query %p", query);
 
 	/* first, look in pending queries */
 	for (q = lib->ar_pending, last = NULL;
@@ -2423,7 +2423,7 @@ ar_cancelquery(AR_LIB lib, AR_QUERY query)
 	pthread_mutex_unlock(&lib->ar_lock);
 
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
-		syslog(LOG_DEBUG, "arlib: cancel failed for query %x", query);
+		syslog(LOG_DEBUG, "arlib: cancel failed for query %p", query);
 
 	return 1;
 }
@@ -2464,7 +2464,7 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 	assert(query != NULL);
 
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
-		syslog(LOG_DEBUG, "arlib: waiting for query %x", query);
+		syslog(LOG_DEBUG, "arlib: waiting for query %p", query);
 
 	pthread_mutex_lock(&query->q_lock);
 
@@ -2476,7 +2476,7 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 
 		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 		{
-			syslog(LOG_DEBUG, "arlib: wait for %x successful",
+			syslog(LOG_DEBUG, "arlib: wait for %p successful",
 			       query);
 		}
 
@@ -2488,7 +2488,7 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 
 		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 		{
-			syslog(LOG_DEBUG, "arlib: wait for %x error [1]",
+			syslog(LOG_DEBUG, "arlib: wait for %p error [1]",
 			       query);
 		}
 
@@ -2502,7 +2502,7 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 
 		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 		{
-			syslog(LOG_DEBUG, "arlib: wait for %x expired",
+			syslog(LOG_DEBUG, "arlib: wait for %p expired",
 			       query);
 		}
 
@@ -2579,7 +2579,7 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 
 		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 		{
-			syslog(LOG_DEBUG, "arlib: wait for %x error [2]",
+			syslog(LOG_DEBUG, "arlib: wait for %p error [2]",
 			       query);
 		}
 
@@ -2593,7 +2593,7 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 
 		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 		{
-			syslog(LOG_DEBUG, "arlib: wait for %x timeout (%s)",
+			syslog(LOG_DEBUG, "arlib: wait for %p timeout (%s)",
 			       query, maintimeout ? "expired" : "no reply");
 		}
 
@@ -2605,7 +2605,7 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 	pthread_mutex_unlock(&query->q_lock);
 
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
-		syslog(LOG_DEBUG, "arlib: wait for %x succeeded", query);
+		syslog(LOG_DEBUG, "arlib: wait for %p succeeded", query);
 
 	return AR_STAT_SUCCESS;
 }
