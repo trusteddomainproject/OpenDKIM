@@ -160,6 +160,7 @@ struct handling defaults =
 
 struct dkimf_config
 {
+	_Bool		conf_restrace;		/* resolver tracing? */
 	_Bool		conf_acceptdk;		/* accept DK keys? */
 	_Bool		conf_addxhdr;		/* add identifying header? */
 	_Bool		conf_blen;		/* use "l=" when signing */
@@ -5088,6 +5089,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 	if (data != NULL)
 	{
+		(void) config_get(data, "ResolverTracing",
+		                  &conf->conf_restrace,
+		                  sizeof conf->conf_restrace);
+
 		(void) config_get(data, "AlwaysAddARHeader",
 		                  &conf->conf_alwaysaddar,
 		                  sizeof conf->conf_alwaysaddar);
@@ -14478,7 +14483,8 @@ main(int argc, char **argv)
 	}
 
 #ifdef USE_ARLIB
-	arlib = ar_init(NULL, NULL, NULL, 0);
+	arlib = ar_init(NULL, NULL, NULL,
+	                curconf->conf_restrace ? AR_FLAG_TRACELOGGING : 0);
 	if (arlib == NULL)
 	{
 		if (curconf->conf_dolog)

@@ -43,6 +43,7 @@ typedef void ar_free_t(void *, void *);
 #define	AR_FLAG_DEAD		0x02		/* service now unavailable */
 #define	AR_FLAG_TRUNCCHECK	0x04		/* limited truncation checks */
 #define	AR_FLAG_RECONNECT	0x08		/* pending reconnect */
+#define	AR_FLAG_TRACELOGGING	0x10		/* debug logging */
 
 #define	AR_STAT_ERROR		(-1)		/* error in transit */
 #define	AR_STAT_SUCCESS		0		/* reply available */

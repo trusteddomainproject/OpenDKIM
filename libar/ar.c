@@ -42,6 +42,7 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.12 2010/10/04 21:20:47 cm-msk Exp $";
 #include <assert.h>
 #include <signal.h>
 #include <string.h>
+#include <syslog.h>
 #ifdef ARDEBUG
 # include <stdio.h>
 #endif /* ARDEBUG */
@@ -620,6 +621,9 @@ ar_alldead(AR_LIB lib)
 
 	assert(lib != NULL);
 
+	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		syslog(LOG_DEBUG, "arlib: marking all queries dead");
+
 	/* tack the pending list to the end of the active list */
 	if (lib->ar_pending != NULL)
 	{
@@ -642,9 +646,14 @@ ar_alldead(AR_LIB lib)
 	for (q = lib->ar_queries; q != NULL; q = q->q_next)
 	{
 		pthread_mutex_lock(&q->q_lock);
+
 		q->q_flags |= QUERY_ERROR;
 		if (q->q_errno != NULL)
 			*q->q_errno = QUERY_ERRNO_SERVICE;
+
+		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+			syslog(LOG_DEBUG, "arlib: signaling %x", q);
+
 		pthread_cond_signal(&q->q_reply);
 		pthread_mutex_unlock(&q->q_lock);
 	}
@@ -672,6 +681,9 @@ ar_requery(AR_LIB lib, AR_QUERY query)
 
 	assert(lib != NULL);
 	assert(query != NULL);
+
+	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		syslog(LOG_DEBUG, "arlib: requering %x", query);
 
 	/* remove from active queries */
 	for (q = lib->ar_queries, last = NULL;
@@ -731,6 +743,9 @@ static void
 ar_requeue(AR_LIB lib)
 {
 	assert(lib != NULL);
+
+	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		syslog(LOG_DEBUG, "arlib: requeueing everything");
 
 	if (lib->ar_queries != NULL)
 	{
@@ -795,6 +810,9 @@ ar_reconnect(AR_LIB lib)
 
 	assert(lib != NULL);
 
+	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		syslog(LOG_DEBUG, "arlib: attempting reconnect");
+
 	if ((lib->ar_flags & AR_FLAG_RECONNECT) == 0)
 		return TRUE;
 
@@ -827,15 +845,45 @@ ar_reconnect(AR_LIB lib)
 
 		lib->ar_nsfd = socket(sa->sa_family, SOCK_STREAM, 0);
 		if (lib->ar_nsfd == -1)
+		{
+			if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+			{
+				syslog(LOG_DEBUG, "arlib: socket(): %s",
+				       strerror(errno));
+			}
+
 			continue;
+		}
 
 		lib->ar_nsfdpf = sa->sa_family;
 
+		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		{
+			uint32_t addr;
+			struct sockaddr_in *si;
+
+			si = (struct sockaddr_in *) sa;
+			addr = si->sin_addr.s_addr;
+			syslog(LOG_DEBUG,
+			       "arlib: trying nameserver %d.%d.%d.%d",
+			       (addr >> 24), (addr >> 16) & 0xff,
+			       (addr >> 8) & 0xff, addr & 0xff);
+		}
+
 		if (connect(lib->ar_nsfd, sa, socklen) == 0)
 		{
+			if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+				syslog(LOG_DEBUG, "arlib: connected");
+
 			lib->ar_flags &= ~AR_FLAG_RECONNECT;
 			ar_requeue(lib);
 			return TRUE;
+		}
+
+		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		{
+			syslog(LOG_DEBUG, "arlib: connect(): %s",
+			       strerror(errno));
 		}
 
 		close(lib->ar_nsfd);
@@ -846,6 +894,8 @@ ar_reconnect(AR_LIB lib)
 	saveerrno = errno;
 
 	/* unable to reconnect; arrange to terminate */
+	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		syslog(LOG_DEBUG, "arlib: failed to reconnect");
 	ar_alldead(lib);
 	(void) gettimeofday(&lib->ar_deadsince, NULL);
 	lib->ar_flags |= AR_FLAG_DEAD;
@@ -879,6 +929,12 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 
 	if (lib->ar_retries > 0 && query->q_tries == lib->ar_retries)
 	{
+		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		{
+			syslog(LOG_DEBUG, "arlib: %x retry count exceeded",
+			       query);
+		}
+
 		query->q_flags |= QUERY_ERROR;
 		if (query->q_errno != NULL)
 			*query->q_errno = QUERY_ERRNO_RETRIES;
@@ -925,6 +981,12 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 	printf("*** SEND `%s' class=%d type=%d id=%d time=%d\n", query->q_name,
 	       query->q_class, query->q_type, hdr.id, time(NULL));
 #endif /* DEBUG */
+
+	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+	{
+		syslog(LOG_DEBUG, "arlib: sending %x `%s' id=%d", query,
+		       query->q_name, query->q_id);
+	}
 
 	/* send it */
 	if ((lib->ar_flags & AR_FLAG_USETCP) != 0)
@@ -977,6 +1039,12 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 
 	if (n == (size_t) -1)
 	{
+		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		{
+			syslog(LOG_DEBUG, "arlib: %x sendto/writev failed",
+			       query);
+		}
+
 		lib->ar_flags |= AR_FLAG_RECONNECT;
 		query->q_flags |= QUERY_ERROR;
 		if (query->q_errno != NULL)
@@ -1130,6 +1198,9 @@ ar_dispatcher(void *tp)
 	sigaddset(&set, SIGINT);
 	pthread_sigmask(SIG_BLOCK, &set, NULL);
 
+	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		syslog(LOG_DEBUG, "arlib: dispatcher starting");
+
 	for (;;)
 	{
 #ifdef ARDEBUG
@@ -1146,7 +1217,14 @@ ar_dispatcher(void *tp)
 		{
 			if (ar_elapsed(&lib->ar_deadsince,
 			               &lib->ar_revivify))
+			{
+				if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+				{
+					syslog(LOG_DEBUG,
+					       "arlib: dispatcher revivifying");
+				}
 				lib->ar_flags &= ~AR_FLAG_DEAD;
+			}
 		}
 
 		/* attempt to reconnect if needed */
@@ -1206,6 +1284,20 @@ ar_dispatcher(void *tp)
 
 		pthread_mutex_unlock(&lib->ar_lock);
 
+		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		{
+			if (usetimeout)
+			{
+				syslog(LOG_DEBUG,
+				       "arlib: dispatcher pausing (%u.%06u)",
+				       timeout.tv_sec, timeout.tv_usec);
+			}
+			else
+			{
+				syslog(LOG_DEBUG, "arlib: dispatcher pausing");
+			}
+		}
+
 		/* XXX -- effect a poll if we knew there was more pending */
 		status = select(maxfd + 1, &rfds, &wfds, NULL,
 		                usetimeout ? &timeout : NULL);
@@ -1231,6 +1323,9 @@ ar_dispatcher(void *tp)
 		if (lib->ar_nsfd != -1 &&
 		    SOCKET_READY(rfds, lib->ar_nsfd))
 		{
+			if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+				syslog(LOG_DEBUG, "arlib: reply received");
+
 			if ((lib->ar_flags & AR_FLAG_USETCP) == 0)
 			{
 				r = recvfrom(lib->ar_nsfd, lib->ar_querybuf,
@@ -1354,6 +1449,12 @@ ar_dispatcher(void *tp)
 			_Bool requeued = FALSE;
 			HEADER hdr;
 
+			if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+			{
+				syslog(LOG_DEBUG,
+				       "arlib: full reply received");
+			}
+
 			/* reset TCP read mode */
 			lib->ar_tcpmsglen = 0;
 
@@ -1370,6 +1471,12 @@ ar_dispatcher(void *tp)
 			    ((lib->ar_flags & AR_FLAG_TRUNCCHECK) == 0 ||
 			     ar_anscount(buf, r) == 0))
 			{
+				if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+				{
+					syslog(LOG_DEBUG,
+					       "arlib: truncation detected");
+				}
+
 				/* request a reconnect */
 				lib->ar_flags |= AR_FLAG_USETCP;
 		     		lib->ar_flags |= AR_FLAG_RECONNECT;
@@ -1398,6 +1505,22 @@ ar_dispatcher(void *tp)
 			printf("*** RECEIVE id=%d time=%d\n", hdr.id,
 			       time(NULL));
 #endif /* DEBUG */
+
+			if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+			{
+				if (q != NULL)
+				{
+					syslog(LOG_DEBUG,
+					       "arlib: %x (id %d) reply received",
+					       q, q->q_id);
+				}
+				else
+				{
+					syslog(LOG_DEBUG,
+					       "arlib: abandoned reply %d received",
+					       hdr.id);
+				}
+			}
 
 			/* don't recurse if user buffer is too small */
 			if (q != NULL && r > q->q_buflen)
@@ -1461,6 +1584,12 @@ ar_dispatcher(void *tp)
 						ar_undot(cname);
 						strlcpy(q->q_name, cname,
 						        sizeof q->q_name);
+						if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+						{
+							syslog(LOG_DEBUG,
+							       "arlib: %x reply was CNAME, requerying",
+							       q);
+						}
 						ar_requery(lib, q);
 						requeued = TRUE;
 					}
@@ -1476,6 +1605,11 @@ ar_dispatcher(void *tp)
 				q->q_replylen = r;
 				if ((q->q_flags & QUERY_RESEND) != 0)
 					lib->ar_resend--;
+				if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+				{
+					syslog(LOG_DEBUG,
+					       "arlib: %x signaling", q);
+				}
 				pthread_cond_signal(&q->q_reply);
 				pthread_mutex_unlock(&q->q_lock);
 			}
@@ -1487,6 +1621,9 @@ ar_dispatcher(void *tp)
 			size_t rlen;
 			AR_QUERY q;
 			
+			if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+				syslog(LOG_DEBUG, "arlib: control socket");
+
 			rlen = read(lib->ar_control[1], &q, sizeof q);
 			if (rlen == 0)
 			{
@@ -1497,6 +1634,12 @@ ar_dispatcher(void *tp)
 			/* specific resend request */
 			if (q != NULL && (q->q_flags & QUERY_RESEND) == 0)
 			{
+				if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+				{
+					syslog(LOG_DEBUG,
+					       "arlib: resend %x request", q);
+				}
+
 				q->q_flags |= QUERY_RESEND;
 				lib->ar_resend++;
 			}
@@ -1529,7 +1672,14 @@ ar_dispatcher(void *tp)
 				pthread_mutex_lock(&q->q_lock);
 				sent = ar_sendquery(lib, q);
 				if (!sent)
+				{
 		     			lib->ar_flags |= AR_FLAG_RECONNECT;
+					if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+					{
+						syslog(LOG_DEBUG,
+						       "arlib: send failed, requesting reconnect");
+					}
+				}
 				pthread_mutex_unlock(&q->q_lock);
 
 				if (sent)
@@ -1576,6 +1726,11 @@ ar_dispatcher(void *tp)
 			if ((q->q_flags & (QUERY_NOREPLY|QUERY_REPLY)) == 0 &&
 			    ar_expired(q))
 			{
+				if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+				{
+					syslog(LOG_DEBUG, "arlib: expiring %x",
+					       q);
+				}
 				q->q_flags |= QUERY_NOREPLY;
 				pthread_cond_signal(&q->q_reply);
 			}
@@ -1588,6 +1743,12 @@ ar_dispatcher(void *tp)
 			pthread_mutex_lock(&q->q_lock);
 			if (ar_elapsed(&q->q_sent, &lib->ar_retry))
 			{
+				if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+				{
+					syslog(LOG_DEBUG, "arlib: retrying %x",
+					       q);
+				}
+
 				if (!ar_sendquery(lib, q))
 		     			lib->ar_flags |= AR_FLAG_RECONNECT;
 			}
@@ -1863,6 +2024,9 @@ ar_shutdown(AR_LIB lib)
 	assert(lib != NULL);
 
 	close(lib->ar_control[0]);
+
+	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		syslog(LOG_DEBUG, "arlib: shutting down");
 
 	status = pthread_join(lib->ar_dispatcher, NULL);
 	if (status == 0)
@@ -2153,6 +2317,9 @@ ar_addquery(AR_LIB lib, char *name, int class, int type, int depth,
 
 	wlen = ar_poke(lib);
 
+	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		syslog(LOG_DEBUG, "arlib: added query %x `%s'", q, q->q_name);
+
 	pthread_mutex_unlock(&lib->ar_lock);
 
 	switch (wlen)
@@ -2188,6 +2355,9 @@ ar_cancelquery(AR_LIB lib, AR_QUERY query)
 	assert(query != NULL);
 
 	pthread_mutex_lock(&lib->ar_lock);
+
+	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		syslog(LOG_DEBUG, "arlib: canceling query %x", query);
 
 	/* first, look in pending queries */
 	for (q = lib->ar_pending, last = NULL;
@@ -2252,6 +2422,9 @@ ar_cancelquery(AR_LIB lib, AR_QUERY query)
 
 	pthread_mutex_unlock(&lib->ar_lock);
 
+	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		syslog(LOG_DEBUG, "arlib: cancel failed for query %x", query);
+
 	return 1;
 }
 
@@ -2290,6 +2463,9 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 	assert(lib != NULL);
 	assert(query != NULL);
 
+	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		syslog(LOG_DEBUG, "arlib: waiting for query %x", query);
+
 	pthread_mutex_lock(&query->q_lock);
 
 	if ((query->q_flags & QUERY_REPLY) != 0)
@@ -2297,11 +2473,25 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 		if (len != NULL)
 			*len = query->q_replylen;
 		pthread_mutex_unlock(&query->q_lock);
+
+		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		{
+			syslog(LOG_DEBUG, "arlib: wait for %x successful",
+			       query);
+		}
+
 		return AR_STAT_SUCCESS;
 	}
 	else if ((query->q_flags & QUERY_ERROR) != 0)
 	{
 		pthread_mutex_unlock(&query->q_lock);
+
+		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		{
+			syslog(LOG_DEBUG, "arlib: wait for %x error [1]",
+			       query);
+		}
+
 		return AR_STAT_ERROR;
 	}
 	else if ((query->q_flags & QUERY_NOREPLY) != 0)
@@ -2309,6 +2499,13 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 		if (query->q_errno != NULL)
 			*query->q_errno = ETIMEDOUT;
 		pthread_mutex_unlock(&query->q_lock);
+
+		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		{
+			syslog(LOG_DEBUG, "arlib: wait for %x expired",
+			       query);
+		}
+
 		return AR_STAT_EXPIRED;
 	}
 
@@ -2379,6 +2576,13 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 	if ((query->q_flags & QUERY_ERROR) != 0)
 	{
 		pthread_mutex_unlock(&query->q_lock);
+
+		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		{
+			syslog(LOG_DEBUG, "arlib: wait for %x error [2]",
+			       query);
+		}
+
 		return AR_STAT_ERROR;
 	}
 	else if ((query->q_flags & QUERY_REPLY) == 0)
@@ -2386,12 +2590,23 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 		if (maintimeout && query->q_errno != NULL)
 			*query->q_errno = ETIMEDOUT;
 		pthread_mutex_unlock(&query->q_lock);
+
+		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		{
+			syslog(LOG_DEBUG, "arlib: wait for %x timeout (%s)",
+			       query, maintimeout ? "expired" : "no reply");
+		}
+
 		return (maintimeout ? AR_STAT_EXPIRED : AR_STAT_NOREPLY);
 	}
 
 	if (len != NULL)
 		*len = query->q_replylen;
 	pthread_mutex_unlock(&query->q_lock);
+
+	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
+		syslog(LOG_DEBUG, "arlib: wait for %x succeeded", query);
+
 	return AR_STAT_SUCCESS;
 }
 
