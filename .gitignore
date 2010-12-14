@@ -23,6 +23,7 @@ config.guess
 config.sub
 configure
 configure.scan
+configure.lineno
 aclocal.m4
 depcomp
 install-sh
