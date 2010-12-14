@@ -813,9 +813,9 @@ main(int argc, char **argv)
 			    (n >= 21 &&
 			     sanitize(db, fields[20], safesql, sizeof safesql)) ||
 			    (n >= 23 &&
-			     sanitize(db, fields[22], safesql, sizeof safesql)) ||
+			     sanitize(db, fields[21], safesql, sizeof safesql)) ||
 			    (n >= 23 &&
-			     sanitize(db, fields[23], safesql, sizeof safesql)))
+			     sanitize(db, fields[22], safesql, sizeof safesql)))
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
