@@ -5089,6 +5089,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 	if (data != NULL)
 	{
+		(void) config_get(data, "ResolverTracing",
+		                  &conf->conf_restrace,
+		                  sizeof conf->conf_restrace);
+
 		(void) config_get(data, "AlwaysAddARHeader",
 		                  &conf->conf_alwaysaddar,
 		                  sizeof conf->conf_alwaysaddar);
