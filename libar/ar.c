@@ -850,6 +850,7 @@ ar_reconnect(AR_LIB lib)
 			{
 				syslog(LOG_DEBUG, "arlib: socket(): %s",
 				       strerror(errno));
+			}
 
 			continue;
 		}
