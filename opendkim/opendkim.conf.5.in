@@ -835,6 +835,12 @@ the default key is applied.
 @RESIGN_MANNOTICE@
 
 .TP
+.I ResolverTracing (Boolean)
+Requests resolver tracing features be enabled, if available.  The effect
+of this depends on how debugging features of the resolver might be implemented.
+Currently only effective with the OpenDKIM asynchronous resolver library.
+
+.TP
 .I ScreenPolicyScript (string)
 Gives the name of a Lua script that should be run after all of the header
 fields have been processed for a message; in particular, this is useful

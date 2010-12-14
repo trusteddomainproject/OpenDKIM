@@ -504,6 +504,15 @@ KeyFile			/var/db/dkim/example.private
 
 # ResignMailTo		dataset
 
+##  ResolverTracing { yes | no }
+##
+##  Requests enabling of resolver trace features, if available.  The effect
+##  of setting this flag depends on how trace features, if any, are implemented
+##  in the resolver in use.  Currently only effective when used with the
+##  OpenDKIM asynchronous resolver.
+
+# ResolverTracing	no
+
 ##  Selector name
 ##
 ##  The name of the selector to use when signing.  No default; must be
