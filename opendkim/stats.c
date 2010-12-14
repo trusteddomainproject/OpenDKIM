@@ -111,6 +111,7 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 #endif /* _FFR_DIFFHEADERS */
 	int err;
 	int c;
+	u_int keybits;
 	dkim_alg_t alg;
 	dkim_canon_t bc;
 	dkim_canon_t hc;
@@ -615,6 +616,10 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 			fprintf(out, "\t2");
 		else
 			fprintf(out, "\t3");
+
+		keybits = 0;
+		(void) dkim_sig_getkeysize(sigs[c], &keybits);
+		fprintf(out, "\t%u", keybits);
 		
 		fprintf(out, "\n");
 	}

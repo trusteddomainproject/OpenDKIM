@@ -57,6 +57,7 @@ echo '<li> <a href="#body_canon">Body canonicalization use</a>' >> $OUTPUT
 echo '<li> <a href="#sig_props">Signature properties</a>' >> $OUTPUT
 echo '<li> <a href="#l_tag">Use of "l=" tag</a>' >> $OUTPUT
 echo '<li> <a href="#i_tag">Use of "i=" tag</a>' >> $OUTPUT
+echo '<li> <a href="#key_sizes">Distribution of key sizes</a>' >> $OUTPUT
 echo '<li> <a href="#key_props">Key properties</a>' >> $OUTPUT
 echo '<li> <a href="#key_s">Use of "s=" in keys</a>' >> $OUTPUT
 echo '<li> <a href="#dnssec">DNSSEC results</a>' >> $OUTPUT
@@ -127,6 +128,11 @@ echo "" >> $OUTPUT
 echo '<a name="l_tag"></a>' >> $OUTPUT
 echo "<p> Use of 'i=' tag: </p>" >> $OUTPUT
 $MYSQL --execute="select count(*) as 'messages', case sig_i when 0 then 'absent' when 1 then 'matches d=' when 2 then 'subdomain of d=' end as 'i= domain', case sig_i_user when 0 then 'absent' when 1 then 'empty' when 2 then 'matches From' when 3 then 'does not match From' end as 'i= local-part' from signatures where sig_i >= 0 group by sig_i, sig_i_user" >> $OUTPUT
+echo "" >> $OUTPUT
+
+echo '<a name="key_sizes"></a>' >> $OUTPUT
+echo "<p> Distribution of key sizes: </p>" >> $OUTPUT
+$MYSQL --execute="select count(*) as 'count', keysize as 'bits' from signatures where keysize > 0 group by keysize order by keysize" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="key_props"></a>' >> $OUTPUT
