@@ -543,9 +543,15 @@ then
 	then
 		AC_MSG_ERROR([GnuTLS not found])
 	fi
+fi
+
+if test x"$gnutls_found" = x"yes"
+then
+	AC_DEFINE(USE_GNUTLS, 1,
+                  [Define to 1 to use libgnutls instead of OpenSSL.])
 
 	saved_CPPFLAGS="$CPPFLAGS"
-	CPPFLAGS="-I$d/include $saved_CPPFLAGS"
+	CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
 
 	sha256check='
 		#include <gnutls/gnutls.h>
@@ -560,15 +566,9 @@ then
                        AC_DEFINE([HAVE_SHA256], 1,
  	                         [Define to 1 if your crypto library has SHA256 support]),
 	               AC_MSG_WARN([SHA256 is required for DKIM but is not
-	                            supported with your version of gnutls]))
+	                            supported with your version of GnuTLS]))
 
 	CPPFLAGS="$saved_CPPFLAGS"
-fi
-
-if test x"$gnutls_found" = x"yes"
-then
-	AC_DEFINE(USE_GNUTLS, 1,
-                  [Define to 1 to use libgnutls instead of OpenSSL.])
 fi
 
 AM_CONDITIONAL([USE_GNUTLS], [test x"$gnutls_found" = x"yes"])
