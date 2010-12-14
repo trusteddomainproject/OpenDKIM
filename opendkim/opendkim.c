@@ -10807,6 +10807,12 @@ mlfi_eoh(SMFICTX *ctx)
 		dfc->mctx_headeronly = TRUE;
 		return SMFIS_CONTINUE;
 
+	  case DKIM_STAT_CANTVRFY:
+		dfc->mctx_status = DKIMF_STATUS_BADFORMAT;
+		dfc->mctx_addheader = TRUE;
+		dfc->mctx_headeronly = TRUE;
+		return SMFIS_CONTINUE;
+
 	  /* XXX -- other codes? */
 
 	  case DKIM_STAT_OK:
@@ -11917,6 +11923,7 @@ mlfi_eom(SMFICTX *ctx)
 				u_int keybits;
 				char *authresult;
 				char *failstatus;
+				const char *err;
 				char comment[BUFRSZ + 1];
 
 				memset(comment, '\0', sizeof comment);
@@ -12070,8 +12077,11 @@ mlfi_eom(SMFICTX *ctx)
 					break;
 
 				  case DKIMF_STATUS_BADFORMAT:
+					err = dkim_geterror(dfc->mctx_dkimv);
 					authresult = "permerror";
-					strlcpy(comment, "bad format",
+					strlcpy(comment,
+					        err == NULL ? "bad format"
+					                    : err,
 					        sizeof comment);
 					break;
 
@@ -12168,10 +12178,6 @@ mlfi_eom(SMFICTX *ctx)
 			/* now the ADSP bit */
 			if (dfc->mctx_status != DKIMF_STATUS_BADFORMAT)
 			{
-				_Bool first;
-
-				char tmphdr[DKIM_MAXHEADER + 1];
-
 				if (header[0] != '\0')
 				{
 					strlcat((char *) header, ";",
@@ -12268,88 +12274,90 @@ mlfi_eom(SMFICTX *ctx)
 					break;
 				}
 #endif /* USE_UNBOUND */
+			}
 
-				/* if we generated either, pretty it up */
-				if (header[0] != '\0')
+			/* if we generated either, pretty it up */
+			if (header[0] != '\0')
+			{
+				_Bool first;
+				int len;
+				char *p;
+				char *last;
+				char tmphdr[DKIM_MAXHEADER + 1];
+
+				c = sizeof AUTHRESULTSHDR + 2;
+				first = TRUE;
+				memset(tmphdr, '\0', sizeof tmphdr);
+
+				for (p = strtok_r((char *) header,
+				                  DELIMITER, &last);
+				     p != NULL;
+				     p = strtok_r(NULL, DELIMITER,
+				                  &last))
 				{
-					int len;
-					char *p;
-					char *last;
+					len = strlen(p);
 
-					c = sizeof AUTHRESULTSHDR + 2;
-					first = TRUE;
-					memset(tmphdr, '\0', sizeof tmphdr);
-
-					for (p = strtok_r((char *) header,
-					                  DELIMITER, &last);
-					     p != NULL;
-					     p = strtok_r(NULL, DELIMITER,
-					                  &last))
+					if (!first)
 					{
-						len = strlen(p);
-
-						if (!first)
+						if (c + len >= DKIM_HDRMARGIN)
 						{
-							if (c + len >= DKIM_HDRMARGIN)
-							{
-								strlcat(tmphdr,
-								        "\n\t",
-								        sizeof tmphdr);
-								c = 8;
-							}
-							else
-							{
-								strlcat(tmphdr,
-								        " ",
-								        sizeof tmphdr);
-							}
+							strlcat(tmphdr,
+							        "\n\t",
+							        sizeof tmphdr);
+							c = 8;
 						}
-
-						strlcat(tmphdr, p,
-						        sizeof tmphdr);
-						first = FALSE;
-						c += len;
+						else
+						{
+							strlcat(tmphdr,
+							        " ",
+							        sizeof tmphdr);
+						}
 					}
 
-					strlcpy((char *) dfc->mctx_dkimar,
-					        tmphdr,
-					        sizeof dfc->mctx_dkimar);
+					strlcat(tmphdr, p,
+					        sizeof tmphdr);
+					first = FALSE;
+					c += len;
+				}
 
-					dkimf_add_ar_fields(dfc, conf, ctx);
+				strlcpy((char *) dfc->mctx_dkimar,
+				        tmphdr,
+				        sizeof dfc->mctx_dkimar);
+
+				dkimf_add_ar_fields(dfc, conf, ctx);
 
 #ifdef _FFR_RESIGN
-					if (dfc->mctx_resign)
+				if (dfc->mctx_resign)
+				{
+					snprintf(header, sizeof header,
+					         "%s: %s",
+					         AUTHRESULTSHDR,
+					         dfc->mctx_dkimar);
+
+					status = dkimf_msr_header(dfc->mctx_srhead,
+					                          &lastdkim,
+					                          header,
+					                          strlen(header));
+					if (status != DKIM_STAT_OK)
 					{
-						snprintf(header, sizeof header,
-						         "%s: %s",
-						         AUTHRESULTSHDR,
-						         dfc->mctx_dkimar);
-
-						status = dkimf_msr_header(dfc->mctx_srhead,
-						                          &lastdkim,
-						                          header,
-						                          strlen(header));
-						if (status != DKIM_STAT_OK)
-						{
-							return dkimf_libstatus(ctx,
-							                       lastdkim,
-							                       "dkim_header()",
-							                       status);
-						}
-
-						status = dkimf_msr_eoh(dfc->mctx_srhead,
-						                       &lastdkim);
-
-						if (status != DKIM_STAT_OK)
-						{
-							return dkimf_libstatus(ctx,
-							                       lastdkim,
-							                       "dkim_eoh()",
-							                       status);
-						}
+						return dkimf_libstatus(ctx,
+						                       lastdkim,
+						                       "dkim_header()",
+						                       status);
 					}
-#endif /* _FFR_RESIGN */
+
+					status = dkimf_msr_eoh(dfc->mctx_srhead,
+					                       &lastdkim);
+
+					if (status != DKIM_STAT_OK)
+					{
+						return dkimf_libstatus(ctx,
+						                       lastdkim,
+						                       "dkim_eoh()",
+						                       status);
+					}
 				}
+#endif /* _FFR_RESIGN */
 			}
 		}
 
