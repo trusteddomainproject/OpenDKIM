@@ -61,6 +61,9 @@ Denote end-of-headers for a message.
     discovered signatures were either marked to be ignored, contained syntax
     errors, or failed verification attempts.  This is only tested if the
     <tt>DKIM_LIBFLAG_EOHCHECK</tt> library flag is set.
+<li>This function can return <tt>DKIM_STAT_CANTVRFY</tt> in either mode if
+    the input message does not conform to the header field count checks
+    imposed by the <tt>DKIM_LIBFLAG_STRICTHDRS</tt> library flag.
 <li>This function can return <tt>DKIM_STAT_NORESOURCE</tt> for a verifying
     handle if an attempt to construct a DNS query based on the selector and
     domain in a signature exceeded the maximum allowable query size.

@@ -7649,10 +7649,10 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 			if (err == NULL)
 				err = "unknown cause";
 
-			syslog(LOG_ERR, "%s: signature verification failed: %s",
+			syslog(LOG_ERR, "%s: signature processing failed: %s",
 				JOBID(dfc->mctx_jobid), err);
 		}
-		replytxt = "DKIM signature verification failed";
+		replytxt = "DKIM signature processing failed";
 		break;
 
 	  case DKIM_STAT_REVOKED:

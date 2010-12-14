@@ -5846,65 +5846,115 @@ dkim_eoh(DKIM *dkim)
 		/* Date (must be exactly one) */
 		hdr = dkim_get_header(dkim, "Date", 4, 0);
 		if (hdr == NULL)
-			return DKIM_STAT_INVALID;
+		{
+			dkim_error(dkim, "Date: header field absent");
+			return DKIM_STAT_CANTVRFY;
+		}
 
 		hdr = dkim_get_header(dkim, "Date", 4, 1);
 		if (hdr != NULL)
-			return DKIM_STAT_INVALID;
+		{
+			dkim_error(dkim,
+			           "multiple Date: header fields present");
+			return DKIM_STAT_CANTVRFY;
+		}
 
 		/* From (must be exactly one) */
 		hdr = dkim_get_header(dkim, "From", 4, 0);
 		if (hdr == NULL)
-			return DKIM_STAT_INVALID;
+		{
+			dkim_error(dkim, "From: header field absent");
+			return DKIM_STAT_CANTVRFY;
+		}
 
 		hdr = dkim_get_header(dkim, "From", 4, 1);
 		if (hdr != NULL)
-			return DKIM_STAT_INVALID;
+		{
+			dkim_error(dkim,
+			           "multiple From: header fields present");
+			return DKIM_STAT_CANTVRFY;
+		}
 
 		/* Sender (no more than one) */
 		hdr = dkim_get_header(dkim, "Sender", 6, 1);
 		if (hdr != NULL)
-			return DKIM_STAT_INVALID;
+		{
+			dkim_error(dkim,
+			           "multiple Sender: header fields present");
+			return DKIM_STAT_CANTVRFY;
+		}
 
 		/* Reply-To (no more than one) */
 		hdr = dkim_get_header(dkim, "Reply-To", 8, 1);
 		if (hdr != NULL)
-			return DKIM_STAT_INVALID;
+		{
+			dkim_error(dkim,
+			           "multiple Reply-To: header fields present");
+			return DKIM_STAT_CANTVRFY;
+		}
 
 		/* To (no more than one) */
 		hdr = dkim_get_header(dkim, "To", 2, 1);
 		if (hdr != NULL)
-			return DKIM_STAT_INVALID;
+		{
+			dkim_error(dkim,
+			           "multiple To: header fields present");
+			return DKIM_STAT_CANTVRFY;
+		}
 
 		/* Cc (no more than one) */
 		hdr = dkim_get_header(dkim, "Cc", 2, 1);
 		if (hdr != NULL)
-			return DKIM_STAT_INVALID;
+		{
+			dkim_error(dkim,
+			           "multiple Cc: header fields present");
+			return DKIM_STAT_CANTVRFY;
+		}
 
 		/* Bcc (should we even bother?) */
 		hdr = dkim_get_header(dkim, "Bcc", 3, 1);
 		if (hdr != NULL)
-			return DKIM_STAT_INVALID;
+		{
+			dkim_error(dkim,
+			           "multiple Bcc: header fields present");
+			return DKIM_STAT_CANTVRFY;
+		}
 
 		/* Message-ID (no more than one) */
 		hdr = dkim_get_header(dkim, "Message-ID", 10, 1);
 		if (hdr != NULL)
-			return DKIM_STAT_INVALID;
+		{
+			dkim_error(dkim,
+			           "multiple Message-ID: header fields present");
+			return DKIM_STAT_CANTVRFY;
+		}
 
 		/* In-Reply-To (no more than one) */
 		hdr = dkim_get_header(dkim, "In-Reply-To", 11, 1);
 		if (hdr != NULL)
-			return DKIM_STAT_INVALID;
+		{
+			dkim_error(dkim,
+			           "multiple In-Reply-To: header fields present");
+			return DKIM_STAT_CANTVRFY;
+		}
 
 		/* References (no more than one) */
 		hdr = dkim_get_header(dkim, "References", 10, 1);
 		if (hdr != NULL)
-			return DKIM_STAT_INVALID;
+		{
+			dkim_error(dkim,
+			           "multiple References: header fields present");
+			return DKIM_STAT_CANTVRFY;
+		}
 
 		/* Subject (no more than one) */
 		hdr = dkim_get_header(dkim, "Subject", 7, 1);
 		if (hdr != NULL)
-			return DKIM_STAT_INVALID;
+		{
+			dkim_error(dkim,
+			           "multiple Subject: header fields present");
+			return DKIM_STAT_CANTVRFY;
+		}
 	}
 
 	if (dkim->dkim_mode == DKIM_MODE_VERIFY)
