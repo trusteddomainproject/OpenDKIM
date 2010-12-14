@@ -202,7 +202,7 @@ struct dkim_rsa
 #ifdef USE_GNUTLS
 	size_t			rsa_rsaoutlen;
 	size_t			rsa_keysize;
-	gnutls_privkey_t	rsa_key;
+	gnutls_x509_privkey_t	rsa_key;
 	gnutls_pubkey_t		rsa_pubkey;
 	gnutls_datum_t		rsa_sig;
 	gnutls_datum_t		rsa_digest;
