@@ -1508,9 +1508,18 @@ ar_dispatcher(void *tp)
 
 			if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 			{
-				syslog(LOG_DEBUG,
-				       "arlib: %x (id %d) reply received",
-				       q, q->q_id);
+				if (q != NULL)
+				{
+					syslog(LOG_DEBUG,
+					       "arlib: %x (id %d) reply received",
+					       q, q->q_id);
+				}
+				else
+				{
+					syslog(LOG_DEBUG,
+					       "arlib: abandoned reply %d received",
+					       hdr.id);
+				}
 			}
 
 			/* don't recurse if user buffer is too small */
