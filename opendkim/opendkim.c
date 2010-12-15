@@ -8214,7 +8214,6 @@ dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	DKIM_STAT dkstatus;
 	char *p;
 	char *last;
-	DKIMF_POPEN mta;
 	FILE *out;
 	DKIM_SIGINFO *sig;
 	struct Header *hdr;
@@ -8334,19 +8333,17 @@ dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	if (!sendreport)
 		return;
 
-	mta = dkimf_popen(reportcmd);
-	if (mta == NULL)
+	out = popen(reportcmd, "w");
+	if (out == NULL)
 	{
 		if (conf->conf_dolog)
 		{
-			syslog(LOG_ERR, "%s: dkimf_popen(): %s",
+			syslog(LOG_ERR, "%s: popen(): %s",
 			       dfc->mctx_jobid, strerror(errno));
 		}
 
 		return;
 	}
-
-	out = dkimf_pstream(mta);
 
 	/* determine the type of ARF failure and, if needed, a DKIM fail code */
 	arftype = dkimf_arftype(dfc);
@@ -8441,10 +8438,10 @@ dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "\n--dkimreport/%s/%s--\n", hostname, dfc->mctx_jobid);
 
 	/* send it */
-	status = dkimf_pclose(mta);
+	status = pclose(out);
 	if (status != 0 && conf->conf_dolog)
 	{
-		syslog(LOG_ERR, "%s: dkimf_pclose(): returned status %d",
+		syslog(LOG_ERR, "%s: pclose(): returned status %d",
 		       dfc->mctx_jobid, status);
 	}
 }
@@ -8476,7 +8473,6 @@ dkimf_policyreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	DKIM_STAT dkstatus;
 	char *p;
 	char *last;
-	DKIMF_POPEN mta;
 	FILE *out;
 	DKIM_SIGINFO **sigs;
 	struct Header *hdr;
@@ -8579,19 +8575,17 @@ dkimf_policyreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	if (!sendreport)
 		return;
 
-	mta = dkimf_popen(reportcmd);
-	if (mta == NULL)
+	out = popen(reportcmd, "w");
+	if (out == NULL)
 	{
 		if (conf->conf_dolog)
 		{
-			syslog(LOG_ERR, "%s: dkimf_popen(): %s",
+			syslog(LOG_ERR, "%s: popen(): %s",
 			       dfc->mctx_jobid, strerror(errno));
 		}
 
 		return;
 	}
-
-	out = dkimf_pstream(mta);
 
 	/* determine the type of ARF failure and, if needed, a DKIM fail code */
 	arftype = dkimf_arftype(dfc);
@@ -8657,10 +8651,10 @@ dkimf_policyreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "\n--dkimreport/%s/%s--\n", hostname, dfc->mctx_jobid);
 
 	/* send it */
-	status = dkimf_pclose(mta);
+	status = pclose(out);
 	if (status != 0 && conf->conf_dolog)
 	{
-		syslog(LOG_ERR, "%s: dkimf_pclose(): returned status %d",
+		syslog(LOG_ERR, "%s: pclose(): returned status %d",
 		       dfc->mctx_jobid, status);
 	}
 }

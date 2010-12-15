@@ -22,8 +22,6 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3134119: With AutoRestart enabled, arrange to relay
 		SIGUSR1 from the parent to the child rather than terminating.
 		Reported by Yoshiaki Yanagihara.
-	Replace popen() calls with a local implementation to remove
-		a potentially long wait inside a critical section.
 	Trim whitespace from the end of all values in a config file, not just
 		strings.  Problem noted by Reuben Farrelly.
 	LIBAR: Feature request #SF3115073: Add flag for fine-grained activity
