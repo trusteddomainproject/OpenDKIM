@@ -1788,14 +1788,13 @@ dkimf_popen(char *cmd)
 		char *p;
 		char **args = NULL;
 
+		(void) dup2(fds[0], 0);
+		close(fds[0]);
+		close(fds[1]);
+
 		devnull = open(_PATH_DEVNULL, O_RDONLY);
-		if (devnull == -1)
+		if (devnull != -1)
 		{
-			close(0);
-		}
-		else
-		{
-			(void) dup2(fds[0], 0);
 			(void) dup2(devnull, 1);
 			(void) dup2(devnull, 2);
 			close(devnull);
