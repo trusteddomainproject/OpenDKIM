@@ -171,7 +171,7 @@ void dkim_error __P((DKIM *, const char *, ...));
 
 # define PUBKEY_CLOBBER(x)	if ((x) != NULL) \
 			{ \
-				gnutls_x509_crt_deinit((x)); \
+				gnutls_pubkey_deinit((x)); \
 				(x) = NULL; \
 			}
 
@@ -5307,10 +5307,10 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		rsa->rsa_digest.data = digest;
 		rsa->rsa_digest.size = diglen;
 
-		if (gnutls_x509_crt_init(&rsa->rsa_pubkey) != GNUTLS_E_SUCCESS)
+		if (gnutls_pubkey_init(&rsa->rsa_pubkey) != GNUTLS_E_SUCCESS)
 		{
 			dkim_error(dkim,
-			           "s=%s d=%s: gnutls_x509_crt_init() failed",
+			           "s=%s d=%s: gnutls_pubkey_init() failed",
 			           dkim_sig_getselector(sig),
 			           dkim_sig_getdomain(sig));
 
@@ -5319,12 +5319,12 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 			return DKIM_STAT_OK;
 		}
 
-		status = gnutls_x509_crt_import(rsa->rsa_pubkey, &key,
-		                                GNUTLS_X509_FMT_DER);
+		status = gnutls_pubkey_import(rsa->rsa_pubkey, &key,
+		                              GNUTLS_X509_FMT_DER);
 		if (status != GNUTLS_E_SUCCESS)
 		{
 			dkim_error(dkim,
-			           "s=%s d=%s: gnutls_x509_crt_import() failed",
+			           "s=%s d=%s: gnutls_pubkey_import() failed",
 			           dkim_sig_getselector(sig),
 			           dkim_sig_getdomain(sig));
 
@@ -5333,12 +5333,9 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 			return DKIM_STAT_OK;
 		}
 
-		if (gnutls_x509_crt_verify_hash(rsa->rsa_pubkey, 0,
-		                                &rsa->rsa_digest,
-		                                &rsa->rsa_sig) == GNUTLS_E_SUCCESS)
-			rsastat = 1;
-		else
-			rsastat = 0;
+		rsastat = gnutls_pubkey_verify_hash(rsa->rsa_pubkey, 0,
+		                                    &rsa->rsa_digest,
+		                                    &rsa->rsa_sig);
 #else /* USE_GNUTLS */
 		rsa->rsa_pkey = d2i_PUBKEY_bio(key, NULL);
 		if (rsa->rsa_pkey == NULL)

@@ -203,7 +203,7 @@ struct dkim_rsa
 	size_t			rsa_rsaoutlen;
 	size_t			rsa_keysize;
 	gnutls_x509_privkey_t	rsa_key;
-	gnutls_x509_crt_t	rsa_pubkey;
+	gnutls_pubkey_t		rsa_pubkey;
 	gnutls_datum_t		rsa_sig;
 	gnutls_datum_t		rsa_digest;
 	gnutls_datum_t 		rsa_rsaout;

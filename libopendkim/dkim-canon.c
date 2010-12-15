@@ -1374,12 +1374,6 @@ dkim_canon_runheaders(DKIM *dkim)
 
 			gnutls_hash_output(sha->sha_hd, sha->sha_out);
 
-			if (sha->sha_tmpfd != -1)
-			{
-				close(sha->sha_tmpfd);
-				sha->sha_tmpfd = -1;
-			}
-
 			break;
 		  }
 
@@ -1940,12 +1934,6 @@ dkim_canon_closebody(DKIM *dkim)
 
 			gnutls_hash_output(sha->sha_hd, sha->sha_out);
 			sha->sha_outlen = diglen;
-
-			if (sha->sha_tmpfd != -1)
-			{
-				close(sha->sha_tmpfd);
-				sha->sha_tmpfd = -1;
-			}
 
 			break;
 		  }
