@@ -180,6 +180,7 @@ struct dkimf_config
 	_Bool		conf_fixcrlf;		/* fix bare CRs and LFs? */
 	_Bool		conf_logwhy;		/* log mode decision logic */
 	_Bool		conf_allowsha1only;	/* allow rsa-sha1 verifying */
+	_Bool		conf_stricthdrs;	/* strict header checks */
 	_Bool		conf_keeptmpfiles;	/* keep temporary files */
 	_Bool		conf_multisig;		/* multiple signatures */
 	_Bool		conf_enablecores;	/* enable coredumps */
@@ -5187,6 +5188,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_keeptmpfiles,
 		                  sizeof conf->conf_keeptmpfiles);
 
+		(void) config_get(data, "StrictHeaders",
+		                  &conf->conf_stricthdrs,
+		                  sizeof conf->conf_stricthdrs);
+
 		(void) config_get(data, "TemporaryDirectory",
 		                  &conf->conf_tmpdir,
 		                  sizeof conf->conf_tmpdir);
@@ -6858,7 +6863,8 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	}
 
 	if (conf->conf_sendreports || conf->conf_keeptmpfiles ||
-	    conf->conf_blen || conf->conf_ztags || conf->conf_fixcrlf)
+	    conf->conf_stricthdrs || conf->conf_blen || conf->conf_ztags ||
+	    conf->conf_fixcrlf)
 	{
 		u_int opts;
 
@@ -6880,6 +6886,8 @@ dkimf_config_setlib(struct dkimf_config *conf)
 			opts |= DKIM_LIBFLAGS_FIXCRLF;
 		if (conf->conf_acceptdk)
 			opts |= DKIM_LIBFLAGS_ACCEPTDK;
+		if (conf->conf_stricthdrs)
+			opts |= DKIM_LIBFLAGS_STRICTHDRS;
 
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_FLAGS, &opts, sizeof opts);
@@ -7646,10 +7654,10 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 			if (err == NULL)
 				err = "unknown cause";
 
-			syslog(LOG_ERR, "%s: signature verification failed: %s",
+			syslog(LOG_ERR, "%s: signature processing failed: %s",
 				JOBID(dfc->mctx_jobid), err);
 		}
-		replytxt = "DKIM signature verification failed";
+		replytxt = "DKIM signature processing failed";
 		break;
 
 	  case DKIM_STAT_REVOKED:
@@ -10650,7 +10658,7 @@ mlfi_eoh(SMFICTX *ctx)
 	{
 		bool match = FALSE;
 		int status;
-		dkim_policy_t policy;
+		dkim_policy_t policy = DKIM_POLICY_NONE;
 		struct addrlist *a;
 
 		dfc->mctx_pstate = dkim_policy_state_new(dfc->mctx_dkimv);
@@ -10665,7 +10673,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 		status = dkim_policy(dfc->mctx_dkimv, &policy,
 		                     dfc->mctx_pstate);
-		if (status != DKIM_STAT_OK)
+		if (status != DKIM_STAT_OK && status != DKIM_STAT_SYNTAX)
 		{
 			const char *err;
 
@@ -10684,42 +10692,46 @@ mlfi_eoh(SMFICTX *ctx)
 				                        NULL);
 			}
 		}
-
-		for (a = dfc->mctx_rcptlist;
-		     a != NULL;
-		     a = a->a_next)
+		else if (policy == DKIM_POLICY_DISCARDABLE)
 		{
-			status = dkimf_db_get(conf->conf_nodiscardto,
-			                      a->a_addr, 0, NULL, 0,
-			                      &match);
-			if (status != 0)
+			for (a = dfc->mctx_rcptlist;
+			     a != NULL;
+			     a = a->a_next)
 			{
-				if (dolog)
+				status = dkimf_db_get(conf->conf_nodiscardto,
+				                      a->a_addr, 0, NULL, 0,
+				                      &match);
+				if (status != 0)
 				{
-					dkimf_db_error(conf->conf_nodiscardto,
-					               a->a_addr);
+					if (dolog)
+					{
+						dkimf_db_error(conf->conf_nodiscardto,
+						               a->a_addr);
+					}
+
+					return SMFIS_TEMPFAIL;
 				}
 
-				return SMFIS_TEMPFAIL;
-			}
-
-			if (match)
-			{
-				if (conf->conf_dolog)
+				if (match)
 				{
-					syslog(LOG_INFO,
-					       "%s: %s may not receive discardable mail",
-					       dfc->mctx_jobid, a->a_addr);
+					if (conf->conf_dolog)
+					{
+						syslog(LOG_INFO,
+						       "%s: %s may not receive discardable mail",
+						       dfc->mctx_jobid,
+						       a->a_addr);
+					}
 				}
+	
+				dkimf_cleanup(ctx);
+
+				(void) dkimf_setreply(ctx,
+				                      ADSP_DISCARDABLE_SMTP,
+				                      ADSP_DISCARDABLE_ESC,
+				                      ADSP_DISCARDABLE_TEXT);
+
+				return SMFIS_REJECT;
 			}
-
-			dkimf_cleanup(ctx);
-
-			(void) dkimf_setreply(ctx, ADSP_DISCARDABLE_SMTP,
-			                      ADSP_DISCARDABLE_ESC,
-			                      ADSP_DISCARDABLE_TEXT);
-
-			return SMFIS_REJECT;
 		}
 	}
 #endif /* _FFR_ADSP_LISTS */
@@ -10801,6 +10813,12 @@ mlfi_eoh(SMFICTX *ctx)
 
 	  case DKIM_STAT_NOKEY:
 		dfc->mctx_status = DKIMF_STATUS_NOKEY;
+		dfc->mctx_addheader = TRUE;
+		dfc->mctx_headeronly = TRUE;
+		return SMFIS_CONTINUE;
+
+	  case DKIM_STAT_SYNTAX:
+		dfc->mctx_status = DKIMF_STATUS_BADFORMAT;
 		dfc->mctx_addheader = TRUE;
 		dfc->mctx_headeronly = TRUE;
 		return SMFIS_CONTINUE;
@@ -11737,15 +11755,25 @@ mlfi_eom(SMFICTX *ctx)
 					return SMFIS_REJECT;
 				}
 			}
-			else if (conf->conf_dolog)
+			else if (pstatus != DKIM_STAT_SYNTAX)
 			{
-				const char *err;
-
-				err = dkim_geterror(dfc->mctx_dkimv);
-				if (err != NULL)
+				if (conf->conf_dolog)
 				{
-					syslog(LOG_ERR, "%s: ADSP query: %s",
-					       dfc->mctx_jobid, err);
+					const char *err;
+
+					err = dkim_geterror(dfc->mctx_dkimv);
+					if (err != NULL)
+					{
+						syslog(LOG_ERR,
+						       "%s: ADSP query: %s",
+						       dfc->mctx_jobid, err);
+					}
+					else
+					{
+						syslog(LOG_ERR,
+						       "%s: ADSP query failed",
+						       dfc->mctx_jobid);
+					}
 				}
 
 				if (conf->conf_handling.hndl_policyerr != SMFIS_ACCEPT)
@@ -11915,6 +11943,7 @@ mlfi_eom(SMFICTX *ctx)
 				u_int keybits;
 				char *authresult;
 				char *failstatus;
+				const char *err;
 				char comment[BUFRSZ + 1];
 
 				memset(comment, '\0', sizeof comment);
@@ -12068,8 +12097,11 @@ mlfi_eom(SMFICTX *ctx)
 					break;
 
 				  case DKIMF_STATUS_BADFORMAT:
+					err = dkim_geterror(dfc->mctx_dkimv);
 					authresult = "permerror";
-					strlcpy(comment, "bad format",
+					strlcpy(comment,
+					        err == NULL ? "bad format"
+					                    : err,
 					        sizeof comment);
 					break;
 
@@ -12166,10 +12198,6 @@ mlfi_eom(SMFICTX *ctx)
 			/* now the ADSP bit */
 			if (dfc->mctx_status != DKIMF_STATUS_BADFORMAT)
 			{
-				_Bool first;
-
-				char tmphdr[DKIM_MAXHEADER + 1];
-
 				if (header[0] != '\0')
 				{
 					strlcat((char *) header, ";",
@@ -12266,88 +12294,90 @@ mlfi_eom(SMFICTX *ctx)
 					break;
 				}
 #endif /* USE_UNBOUND */
+			}
 
-				/* if we generated either, pretty it up */
-				if (header[0] != '\0')
+			/* if we generated either, pretty it up */
+			if (header[0] != '\0')
+			{
+				_Bool first;
+				int len;
+				char *p;
+				char *last;
+				char tmphdr[DKIM_MAXHEADER + 1];
+
+				c = sizeof AUTHRESULTSHDR + 2;
+				first = TRUE;
+				memset(tmphdr, '\0', sizeof tmphdr);
+
+				for (p = strtok_r((char *) header,
+				                  DELIMITER, &last);
+				     p != NULL;
+				     p = strtok_r(NULL, DELIMITER,
+				                  &last))
 				{
-					int len;
-					char *p;
-					char *last;
+					len = strlen(p);
 
-					c = sizeof AUTHRESULTSHDR + 2;
-					first = TRUE;
-					memset(tmphdr, '\0', sizeof tmphdr);
-
-					for (p = strtok_r((char *) header,
-					                  DELIMITER, &last);
-					     p != NULL;
-					     p = strtok_r(NULL, DELIMITER,
-					                  &last))
+					if (!first)
 					{
-						len = strlen(p);
-
-						if (!first)
+						if (c + len >= DKIM_HDRMARGIN)
 						{
-							if (c + len >= DKIM_HDRMARGIN)
-							{
-								strlcat(tmphdr,
-								        "\n\t",
-								        sizeof tmphdr);
-								c = 8;
-							}
-							else
-							{
-								strlcat(tmphdr,
-								        " ",
-								        sizeof tmphdr);
-							}
+							strlcat(tmphdr,
+							        "\n\t",
+							        sizeof tmphdr);
+							c = 8;
 						}
-
-						strlcat(tmphdr, p,
-						        sizeof tmphdr);
-						first = FALSE;
-						c += len;
+						else
+						{
+							strlcat(tmphdr,
+							        " ",
+							        sizeof tmphdr);
+						}
 					}
 
-					strlcpy((char *) dfc->mctx_dkimar,
-					        tmphdr,
-					        sizeof dfc->mctx_dkimar);
+					strlcat(tmphdr, p,
+					        sizeof tmphdr);
+					first = FALSE;
+					c += len;
+				}
 
-					dkimf_add_ar_fields(dfc, conf, ctx);
+				strlcpy((char *) dfc->mctx_dkimar,
+				        tmphdr,
+				        sizeof dfc->mctx_dkimar);
+
+				dkimf_add_ar_fields(dfc, conf, ctx);
 
 #ifdef _FFR_RESIGN
-					if (dfc->mctx_resign)
+				if (dfc->mctx_resign)
+				{
+					snprintf(header, sizeof header,
+					         "%s: %s",
+					         AUTHRESULTSHDR,
+					         dfc->mctx_dkimar);
+
+					status = dkimf_msr_header(dfc->mctx_srhead,
+					                          &lastdkim,
+					                          header,
+					                          strlen(header));
+					if (status != DKIM_STAT_OK)
 					{
-						snprintf(header, sizeof header,
-						         "%s: %s",
-						         AUTHRESULTSHDR,
-						         dfc->mctx_dkimar);
-
-						status = dkimf_msr_header(dfc->mctx_srhead,
-						                          &lastdkim,
-						                          header,
-						                          strlen(header));
-						if (status != DKIM_STAT_OK)
-						{
-							return dkimf_libstatus(ctx,
-							                       lastdkim,
-							                       "dkim_header()",
-							                       status);
-						}
-
-						status = dkimf_msr_eoh(dfc->mctx_srhead,
-						                       &lastdkim);
-
-						if (status != DKIM_STAT_OK)
-						{
-							return dkimf_libstatus(ctx,
-							                       lastdkim,
-							                       "dkim_eoh()",
-							                       status);
-						}
+						return dkimf_libstatus(ctx,
+						                       lastdkim,
+						                       "dkim_header()",
+						                       status);
 					}
-#endif /* _FFR_RESIGN */
+
+					status = dkimf_msr_eoh(dfc->mctx_srhead,
+					                       &lastdkim);
+
+					if (status != DKIM_STAT_OK)
+					{
+						return dkimf_libstatus(ctx,
+						                       lastdkim,
+						                       "dkim_eoh()",
+						                       status);
+					}
 				}
+#endif /* _FFR_RESIGN */
 			}
 		}
 

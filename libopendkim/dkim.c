@@ -918,7 +918,7 @@ dkim_set_getudata(DKIM_SET *set)
 **  Parameters:
 **  	dkim -- DKIM handle
 **  	name -- name of the header to find
-**  	namelen -- length of the header name at "namelen" (or 0)
+**  	namelen -- length of the header name at "name" (or 0)
 **  	inst -- instance to find (0 == first/any)
 **
 **  Return value:
@@ -2863,6 +2863,142 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig, _Bool test)
 }
 
 /*
+**  DKIM_HEADERCHECK -- check header validity
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**
+**  Return value:
+**  	TRUE iff the header meets sanity checks.
+*/
+
+static _Bool
+dkim_headercheck(DKIM *dkim)
+{
+	struct dkim_header *hdr;
+
+	assert(dkim != NULL);
+
+	if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_STRICTHDRS) != 0)
+	{
+		/* Date (must be exactly one) */
+		hdr = dkim_get_header(dkim, "Date", 4, 0);
+		if (hdr == NULL)
+		{
+			dkim_error(dkim, "Date: header field absent");
+			return FALSE;
+		}
+
+		hdr = dkim_get_header(dkim, "Date", 4, 1);
+		if (hdr != NULL)
+		{
+			dkim_error(dkim,
+			           "multiple Date: header fields present");
+			return FALSE;
+		}
+
+		/* From (must be exactly one) */
+		hdr = dkim_get_header(dkim, "From", 4, 0);
+		if (hdr == NULL)
+		{
+			dkim_error(dkim, "From: header field absent");
+			return FALSE;
+		}
+
+		hdr = dkim_get_header(dkim, "From", 4, 1);
+		if (hdr != NULL)
+		{
+			dkim_error(dkim,
+			           "multiple From: header fields present");
+			return FALSE;
+		}
+
+		/* Sender (no more than one) */
+		hdr = dkim_get_header(dkim, "Sender", 6, 1);
+		if (hdr != NULL)
+		{
+			dkim_error(dkim,
+			           "multiple Sender: header fields present");
+			return FALSE;
+		}
+
+		/* Reply-To (no more than one) */
+		hdr = dkim_get_header(dkim, "Reply-To", 8, 1);
+		if (hdr != NULL)
+		{
+			dkim_error(dkim,
+			           "multiple Reply-To: header fields present");
+			return FALSE;
+		}
+
+		/* To (no more than one) */
+		hdr = dkim_get_header(dkim, "To", 2, 1);
+		if (hdr != NULL)
+		{
+			dkim_error(dkim,
+			           "multiple To: header fields present");
+			return FALSE;
+		}
+
+		/* Cc (no more than one) */
+		hdr = dkim_get_header(dkim, "Cc", 2, 1);
+		if (hdr != NULL)
+		{
+			dkim_error(dkim,
+			           "multiple Cc: header fields present");
+			return FALSE;
+		}
+
+		/* Bcc (should we even bother?) */
+		hdr = dkim_get_header(dkim, "Bcc", 3, 1);
+		if (hdr != NULL)
+		{
+			dkim_error(dkim,
+			           "multiple Bcc: header fields present");
+			return FALSE;
+		}
+
+		/* Message-ID (no more than one) */
+		hdr = dkim_get_header(dkim, "Message-ID", 10, 1);
+		if (hdr != NULL)
+		{
+			dkim_error(dkim,
+			           "multiple Message-ID: header fields present");
+			return FALSE;
+		}
+
+		/* In-Reply-To (no more than one) */
+		hdr = dkim_get_header(dkim, "In-Reply-To", 11, 1);
+		if (hdr != NULL)
+		{
+			dkim_error(dkim,
+			           "multiple In-Reply-To: header fields present");
+			return FALSE;
+		}
+
+		/* References (no more than one) */
+		hdr = dkim_get_header(dkim, "References", 10, 1);
+		if (hdr != NULL)
+		{
+			dkim_error(dkim,
+			           "multiple References: header fields present");
+			return FALSE;
+		}
+
+		/* Subject (no more than one) */
+		hdr = dkim_get_header(dkim, "Subject", 7, 1);
+		if (hdr != NULL)
+		{
+			dkim_error(dkim,
+			           "multiple Subject: header fields present");
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+/*
 **  DKIM_EOH_SIGN -- declare end-of-headers; prepare for signing
 ** 
 **  Parameters:
@@ -2903,6 +3039,13 @@ dkim_eoh_sign(DKIM *dkim)
 	keep = ((lib->dkiml_flags & DKIM_LIBFLAGS_KEEPFILES) != 0);
 
 	dkim->dkim_version = lib->dkiml_version;
+
+	/* check for header validity */
+	if (!dkim_headercheck(dkim))
+	{
+		dkim->dkim_state = DKIM_STATE_UNUSABLE;
+		return DKIM_STAT_SYNTAX;
+	}
 
 	/*
 	**  Verify that all the required headers are present and
@@ -3044,6 +3187,13 @@ dkim_eoh_verify(DKIM *dkim)
 	{
 		dkim->dkim_state = DKIM_STATE_UNUSABLE;
 		return status;
+	}
+
+	/* check for header validity */
+	if (!dkim_headercheck(dkim))
+	{
+		dkim->dkim_state = DKIM_STATE_UNUSABLE;
+		return DKIM_STAT_SYNTAX;
 	}
 
 	/* allocate the siginfo array if not already done */
@@ -5802,14 +5952,12 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 DKIM_STAT
 dkim_eoh(DKIM *dkim)
 {
-#ifdef _FFR_PARSE_TIME
 	struct dkim_header *hdr;
-#endif /* _FFR_PARSE_TIME */
 
 	assert(dkim != NULL);
 
 #ifdef _FFR_PARSE_TIME
-#define RFC2822DATE	"%a, %d %b %Y %H:%M:%S %z"
+# define RFC2822DATE	"%a, %d %b %Y %H:%M:%S %z"
 /* # define RFC2822DATE	"%a" */
 	/* store the Date: value for possible later scrutiny */
 	hdr = dkim_get_header(dkim, DKIM_DATEHEADER, DKIM_DATEHEADER_LEN, 0);
