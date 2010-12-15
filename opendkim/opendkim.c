@@ -10653,7 +10653,7 @@ mlfi_eoh(SMFICTX *ctx)
 	{
 		bool match = FALSE;
 		int status;
-		dkim_policy_t policy;
+		dkim_policy_t policy = DKIM_POLICY_NONE;
 		struct addrlist *a;
 
 		dfc->mctx_pstate = dkim_policy_state_new(dfc->mctx_dkimv);
@@ -10668,7 +10668,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 		status = dkim_policy(dfc->mctx_dkimv, &policy,
 		                     dfc->mctx_pstate);
-		if (status != DKIM_STAT_OK)
+		if (status != DKIM_STAT_OK && status != DKIM_STAT_SYNTAX)
 		{
 			const char *err;
 
@@ -10686,42 +10686,46 @@ mlfi_eoh(SMFICTX *ctx)
 				                        conf->conf_handling.hndl_policyerr);
 			}
 		}
-
-		for (a = dfc->mctx_rcptlist;
-		     a != NULL;
-		     a = a->a_next)
+		else if (policy == DKIM_POLICY_DISCARDABLE)
 		{
-			status = dkimf_db_get(conf->conf_nodiscardto,
-			                      a->a_addr, 0, NULL, 0,
-			                      &match);
-			if (status != 0)
+			for (a = dfc->mctx_rcptlist;
+			     a != NULL;
+			     a = a->a_next)
 			{
-				if (dolog)
+				status = dkimf_db_get(conf->conf_nodiscardto,
+				                      a->a_addr, 0, NULL, 0,
+				                      &match);
+				if (status != 0)
 				{
-					dkimf_db_error(conf->conf_nodiscardto,
-					               a->a_addr);
+					if (dolog)
+					{
+						dkimf_db_error(conf->conf_nodiscardto,
+						               a->a_addr);
+					}
+
+					return SMFIS_TEMPFAIL;
 				}
 
-				return SMFIS_TEMPFAIL;
-			}
-
-			if (match)
-			{
-				if (conf->conf_dolog)
+				if (match)
 				{
-					syslog(LOG_INFO,
-					       "%s: %s may not receive discardable mail",
-					       dfc->mctx_jobid, a->a_addr);
+					if (conf->conf_dolog)
+					{
+						syslog(LOG_INFO,
+						       "%s: %s may not receive discardable mail",
+						       dfc->mctx_jobid,
+						       a->a_addr);
+					}
 				}
+	
+				dkimf_cleanup(ctx);
+
+				(void) dkimf_setreply(ctx,
+				                      ADSP_DISCARDABLE_SMTP,
+				                      ADSP_DISCARDABLE_ESC,
+				                      ADSP_DISCARDABLE_TEXT);
+
+				return SMFIS_REJECT;
 			}
-
-			dkimf_cleanup(ctx);
-
-			(void) dkimf_setreply(ctx, ADSP_DISCARDABLE_SMTP,
-			                      ADSP_DISCARDABLE_ESC,
-			                      ADSP_DISCARDABLE_TEXT);
-
-			return SMFIS_REJECT;
 		}
 	}
 #endif /* _FFR_ADSP_LISTS */
@@ -10807,7 +10811,7 @@ mlfi_eoh(SMFICTX *ctx)
 		dfc->mctx_headeronly = TRUE;
 		return SMFIS_CONTINUE;
 
-	  case DKIM_STAT_CANTVRFY:
+	  case DKIM_STAT_SYNTAX:
 		dfc->mctx_status = DKIMF_STATUS_BADFORMAT;
 		dfc->mctx_addheader = TRUE;
 		dfc->mctx_headeronly = TRUE;
@@ -11745,15 +11749,25 @@ mlfi_eom(SMFICTX *ctx)
 					return SMFIS_REJECT;
 				}
 			}
-			else if (conf->conf_dolog)
+			else if (pstatus != DKIM_STAT_SYNTAX)
 			{
-				const char *err;
-
-				err = dkim_geterror(dfc->mctx_dkimv);
-				if (err != NULL)
+				if (conf->conf_dolog)
 				{
-					syslog(LOG_ERR, "%s: ADSP query: %s",
-					       dfc->mctx_jobid, err);
+					const char *err;
+
+					err = dkim_geterror(dfc->mctx_dkimv);
+					if (err != NULL)
+					{
+						syslog(LOG_ERR,
+						       "%s: ADSP query: %s",
+						       dfc->mctx_jobid, err);
+					}
+					else
+					{
+						syslog(LOG_ERR,
+						       "%s: ADSP query failed",
+						       dfc->mctx_jobid);
+					}
 				}
 
 				if (conf->conf_handling.hndl_policyerr != SMFIS_ACCEPT)
