@@ -5848,7 +5848,8 @@ dkim_eoh(DKIM *dkim)
 		if (hdr == NULL)
 		{
 			dkim_error(dkim, "Date: header field absent");
-			return DKIM_STAT_CANTVRFY;
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
 		}
 
 		hdr = dkim_get_header(dkim, "Date", 4, 1);
@@ -5856,7 +5857,8 @@ dkim_eoh(DKIM *dkim)
 		{
 			dkim_error(dkim,
 			           "multiple Date: header fields present");
-			return DKIM_STAT_CANTVRFY;
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
 		}
 
 		/* From (must be exactly one) */
@@ -5864,7 +5866,8 @@ dkim_eoh(DKIM *dkim)
 		if (hdr == NULL)
 		{
 			dkim_error(dkim, "From: header field absent");
-			return DKIM_STAT_CANTVRFY;
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
 		}
 
 		hdr = dkim_get_header(dkim, "From", 4, 1);
@@ -5872,7 +5875,8 @@ dkim_eoh(DKIM *dkim)
 		{
 			dkim_error(dkim,
 			           "multiple From: header fields present");
-			return DKIM_STAT_CANTVRFY;
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
 		}
 
 		/* Sender (no more than one) */
@@ -5881,7 +5885,8 @@ dkim_eoh(DKIM *dkim)
 		{
 			dkim_error(dkim,
 			           "multiple Sender: header fields present");
-			return DKIM_STAT_CANTVRFY;
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
 		}
 
 		/* Reply-To (no more than one) */
@@ -5890,7 +5895,8 @@ dkim_eoh(DKIM *dkim)
 		{
 			dkim_error(dkim,
 			           "multiple Reply-To: header fields present");
-			return DKIM_STAT_CANTVRFY;
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
 		}
 
 		/* To (no more than one) */
@@ -5899,7 +5905,8 @@ dkim_eoh(DKIM *dkim)
 		{
 			dkim_error(dkim,
 			           "multiple To: header fields present");
-			return DKIM_STAT_CANTVRFY;
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
 		}
 
 		/* Cc (no more than one) */
@@ -5908,7 +5915,8 @@ dkim_eoh(DKIM *dkim)
 		{
 			dkim_error(dkim,
 			           "multiple Cc: header fields present");
-			return DKIM_STAT_CANTVRFY;
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
 		}
 
 		/* Bcc (should we even bother?) */
@@ -5917,7 +5925,8 @@ dkim_eoh(DKIM *dkim)
 		{
 			dkim_error(dkim,
 			           "multiple Bcc: header fields present");
-			return DKIM_STAT_CANTVRFY;
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
 		}
 
 		/* Message-ID (no more than one) */
@@ -5926,7 +5935,8 @@ dkim_eoh(DKIM *dkim)
 		{
 			dkim_error(dkim,
 			           "multiple Message-ID: header fields present");
-			return DKIM_STAT_CANTVRFY;
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
 		}
 
 		/* In-Reply-To (no more than one) */
@@ -5935,7 +5945,8 @@ dkim_eoh(DKIM *dkim)
 		{
 			dkim_error(dkim,
 			           "multiple In-Reply-To: header fields present");
-			return DKIM_STAT_CANTVRFY;
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
 		}
 
 		/* References (no more than one) */
@@ -5944,7 +5955,8 @@ dkim_eoh(DKIM *dkim)
 		{
 			dkim_error(dkim,
 			           "multiple References: header fields present");
-			return DKIM_STAT_CANTVRFY;
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
 		}
 
 		/* Subject (no more than one) */
@@ -5953,7 +5965,8 @@ dkim_eoh(DKIM *dkim)
 		{
 			dkim_error(dkim,
 			           "multiple Subject: header fields present");
-			return DKIM_STAT_CANTVRFY;
+			dkim->dkim_state = DKIM_STATE_UNUSABLE;
+			return DKIM_STAT_SYNTAX;
 		}
 	}
 
