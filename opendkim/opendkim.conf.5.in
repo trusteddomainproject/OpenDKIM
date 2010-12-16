@@ -1145,7 +1145,14 @@ The default certifiers if not specified in X-VBR-Certifiers header field.
 .I VBR-TrustedCertifiers (string)
 A colon or comma sparated list of trusted certifiers to accept when 
 verifying VBR-Info headers.
-Under revision and may not be stable.
+@VBR_MANNOTICE@
+
+.TP
+.I VBR-TrustedCertifiersOnly (Boolean)
+By default, the certifiers that are in both the trusted certifiers list
+(above) and those in the message's VBR-Info header field will be checked
+for vouching.  With this option set, only the trusted certifiers will be
+checked.
 @VBR_MANNOTICE@
 
 .TP

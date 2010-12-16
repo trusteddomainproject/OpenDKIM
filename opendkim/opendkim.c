@@ -202,6 +202,9 @@ struct dkimf_config
 #ifdef _FFR_STATS
 	_Bool		conf_anonstats;		/* anonymize stats? */
 #endif /* _FFR_STATS */
+#ifdef _FFR_VBR
+	_Bool		conf_vbr_trustedonly;	/* trusted certifiers only */
+#endif /* _FFR_VBR */
 	unsigned int	conf_mode;		/* operating mode */
 	unsigned int	conf_refcnt;		/* reference count */
 	unsigned int	conf_dnstimeout;	/* DNS timeout */
@@ -6389,6 +6392,13 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) dkimf_db_mkarray(conf->conf_vbr_trusteddb,
 		                        (char ***) &conf->conf_vbr_trusted);
 	}
+
+	if (data != NULL)
+	{
+		(void) config_get(data, "VBR-TrustedCertifiersOnly",
+		                  &conf->conf_vbr_trustedonly,
+		                  sizeof conf->conf_vbr_trustedonly);
+	}
 #endif /* _FFR_VBR */
 
 	if (data != NULL)
@@ -10649,6 +10659,8 @@ mlfi_eoh(SMFICTX *ctx)
 	/* store trusted certifiers */
 	if (conf->conf_vbr_trusted != NULL)
 		vbr_trustedcerts(dfc->mctx_vbr, conf->conf_vbr_trusted);
+	if (conf->conf_vbr_trustedonly)
+		vbr_options(dfc->mctx_vbr, VBR_OPT_TRUSTEDONLY);
 
 	/* if signing, store the values needed to make a header */
 	if (dfc->mctx_srhead != NULL)
@@ -12719,7 +12731,8 @@ mlfi_eom(SMFICTX *ctx)
 						d = dkim_sig_getdomain(sigs[c]);
 						if (strcasecmp((char *) d,
 						               vbr_domain) == 0 &&
-						    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0)
+						    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0 &&
+						    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH)
 						{
 							vbr_validsig = TRUE;
 							break;
@@ -12800,7 +12813,7 @@ mlfi_eom(SMFICTX *ctx)
 				{
 					snprintf((char *) header,
 					         sizeof header,
-					         "%s%s%s%s vbr=%s%s%s%s header.vbr-info=%s",
+					         "%s%s%s%s vbr=%s header.md=%s",
 					         cc->cctx_noleadspc ? " " : "",
 					         authservid,
 					         conf->conf_authservidwithjobid ? "/"
@@ -12808,13 +12821,17 @@ mlfi_eom(SMFICTX *ctx)
 					         conf->conf_authservidwithjobid ? (char *) dfc->mctx_jobid
 					                                        : "",
 					         vbr_result,
-					         vbr_certifier == NULL ? ""
-					                               : " (",
-					         vbr_certifier == NULL ? ""
- 					                               : vbr_certifier,
-					         vbr_certifier == NULL ? ""
-					                               : ")",
 					         vbr_domain);
+
+					if (vbr_certifier != NULL)
+					{
+						dkim_strlcat(header,
+						             " header.mv=",
+						             sizeof header);
+						dkim_strlcat(header,
+						             vbr_certifier,
+						             sizeof header);
+					}
 		
 					if (dkimf_insheader(ctx, 1,
 					                    AUTHRESULTSHDR,

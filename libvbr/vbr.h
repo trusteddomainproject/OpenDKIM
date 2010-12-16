@@ -2,7 +2,7 @@
 **  Copyright (c) 2007 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef _VBR_H_
@@ -33,6 +33,8 @@ typedef int VBR_STAT;
 #define VBR_STAT_NORESOURCE	3
 #define VBR_STAT_NOTIMPLEMENT	4
 
+#define	VBR_OPT_TRUSTEDONLY	0x01
+
 /* types */
 struct vbr_handle;
 typedef struct vbr_handle VBR;
@@ -59,6 +61,19 @@ extern VBR * vbr_init __P((void *(*caller_mallocf)(void *closure,
                                                    size_t nbytes),
                            void (*caller_freef)(void *closure, void *p),
                            void *closure));
+
+/*
+**  VBR_OPTIONS -- set VBR options
+**
+**  Parameters:
+**  	vbr -- VBR handle to modify
+**  	opts -- bitmask of options to use
+**
+**  Return value:
+**  	None.
+*/
+
+extern void vbr_options __P((VBR *, unsigned int));
 
 /*
 **  VBR_CLOSE -- shut down a VBR instance
@@ -227,5 +242,92 @@ extern VBR_STAT vbr_setcallbackctx __P((VBR *, void *));
 
 extern VBR_STAT vbr_setdnscallback __P((VBR *vbr,
                                         void (*func)(const void *context)));
+
+/*
+**  VBR_DNS_SET_QUERY_SERVICE -- stores a handle representing the DNS
+**                               query service to be used, returning any
+**                               previous handle
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	h -- handle to be used
+**
+**  Return value:
+**  	Previously stored handle, or NULL if none.
+*/
+
+extern void *vbr_dns_set_query_service __P((VBR *, void *));
+
+/*
+**  VBR_DNS_SET_QUERY_START -- stores a pointer to a query start function
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	func -- function to use to start queries
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- receives handle stored by
+**  		             vbr_dns_set_query_service()
+**  		int type -- DNS RR query type (C_IN assumed)
+**  		char *query -- question to ask
+**  		char *buf -- buffer into which to write reply
+**  		size_t buflen -- size of buf
+**  		void **qh -- returned query handle
+*/
+
+extern void vbr_dns_set_query_start __P((VBR *, int (*)(void *, int,
+                                                        unsigned char *,
+                                                        unsigned char *,
+                                                        size_t, void **)));
+
+/*
+**  VBR_DNS_SET_QUERY_CANCEL -- stores a pointer to a query cancel function
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	func -- function to use to cancel running queries
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- DNS service handle
+**  		void *qh -- query handle to be canceled
+*/
+
+extern void vbr_dns_set_query_cancel __P((VBR *, int (*)(void *, void *)));
+
+/*
+**  VBR_DNS_SET_QUERY_WAITREPLY -- stores a pointer to wait for a DNS reply
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	func -- function to use to wait for a reply
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- DNS service handle
+**  		void *qh -- handle of query that has completed
+**  		struct timeval *timeout -- how long to wait
+**  		size_t *bytes -- bytes returned
+**  		int *error -- error code returned
+**  		int *dnssec -- DNSSEC status returned
+*/
+
+extern void vbr_dns_set_query_waitreply __P((VBR *, int (*)(void *, void *,
+                                                            struct timeval *,
+                                                            size_t *, int *,
+                                                            int *)));
 
 #endif /* _VBR_H_ */

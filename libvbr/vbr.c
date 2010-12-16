@@ -17,6 +17,7 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.5.2.1 2010/10/27 21:43:09 cm-msk Ex
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <arpa/nameser.h>
@@ -33,21 +34,8 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.5.2.1 2010/10/27 21:43:09 cm-msk Ex
 # include <varargs.h>
 #endif /* _STDC_ */
 
-/* libar includes */
-#ifdef USE_ARLIB
-# include <ar.h>
-#endif /* USE_ARLIB */
-
 /* libvbr includes */
 #include "vbr.h"
-
-/* local definitions needed for DNS queries */
-#define MAXPACKET		8192
-#if defined(__RES) && (__RES >= 19940415)
-# define RES_UNC_T		char *
-#else /* __RES && __RES >= 19940415 */
-# define RES_UNC_T		unsigned char *
-#endif /* __RES && __RES >= 19940415 */
 
 #ifndef FALSE
 # define FALSE			0
@@ -61,24 +49,61 @@ static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.5.2.1 2010/10/27 21:43:09 cm-msk Ex
 #define	DEFTIMEOUT		10
 #define MAXCNAMEDEPTH		3
 
+/* local definitions needed for DNS queries */
+#define MAXPACKET		8192
+#if defined(__RES) && (__RES >= 19940415)
+# define RES_UNC_T		char *
+#else /* __RES && __RES >= 19940415 */
+# define RES_UNC_T		unsigned char *
+#endif /* __RES && __RES >= 19940415 */
+#ifndef T_RRSIG
+# define T_RRSIG		46
+#endif /* ! T_RRSIG */
+
+#define VBR_DNS_ERROR		(-1)
+#define VBR_DNS_SUCCESS		0
+#define VBR_DNS_REPLY		1
+#define VBR_DNS_NOREPLY		2
+#define VBR_DNS_EXPIRED		3
+
+/* struct vbr_query -- an open VBR query */
+struct vbr_query
+{
+	int		vq_error;
+	size_t		vq_buflen;
+	void *		vq_qh;
+	u_char		vq_buf[HFIXEDSZ + MAXPACKET];
+};
+
 struct vbr_handle
 {
+	u_int		vbr_opts;		/* options */
 	size_t		vbr_errlen;		/* error buffer size */
-#ifdef USE_ARLIB
 	u_int		vbr_timeout;		/* query timeout */
 	u_int		vbr_callback_int;	/* callback interval */
-	AR_LIB		vbr_arlib;		/* libar handle */
 	void *		vbr_user_context;	/* user context for callback */
-	void		(*vbr_dns_callback) (const void *context);
-#endif /* USE_ARLIB */
-	void *		(*vbr_malloc) (void *closure, size_t nbytes);
-	void		(*vbr_free) (void *closure, void *p);
+	void		(*vbr_dns_callback) (const void *);
+	void *		(*vbr_malloc) (void *, size_t);
+	void		(*vbr_free) (void *, void *);
 	void *		vbr_closure;		/* memory closure */
 	u_char *	vbr_domain;		/* sending domain */
 	u_char *	vbr_type;		/* message type */
 	u_char *	vbr_cert;		/* claimed certifiers */
 	u_char *	vbr_error;		/* error buffer */
 	u_char **	vbr_trusted;		/* trusted certifiers */
+	void		*vbr_dns_service;
+	int		(*vbr_dns_start) (void *, int,
+			                  unsigned char *,
+			                  unsigned char *,
+			                  size_t,
+			                  void **);
+	int		(*vbr_dns_cancel) (void *, void *);
+	int		(*vbr_dns_waitreply) (void *,
+			                      void *,
+			                      struct timeval *,
+			                      size_t *,
+			                      int *,
+			                      int *);
 };
 
 /* prototypes */
@@ -295,6 +320,229 @@ vbr_error(VBR *vbr, const char *format, ...)
 }
 
 /*
+**  VBR_TIMEOUTS -- do timeout math
+**
+**  Parameters:
+**  	timeout -- general VBR timeout
+**  	ctimeout -- callback timeout
+**  	wstart -- previous wait start time
+** 	wstop -- previous wait stop time
+**  	next -- computed next timeout (updated)
+**
+**  Return value:
+**  	None.
+*/
+
+static void
+vbr_timeouts(struct timeval *timeout, struct timeval *ctimeout,
+             struct timeval *wstart, struct timeval *wstop,
+             struct timeval **next)
+{
+	assert(timeout != NULL);
+	assert(ctimeout != NULL);
+	assert(wstart != NULL);
+	assert(wstop != NULL);
+	assert(next != NULL);
+
+	if (wstop->tv_sec == 0 && wstop->tv_usec == 0)
+	{
+		/* first pass */
+		if (timeout->tv_sec < ctimeout->tv_sec ||
+		    (timeout->tv_sec == ctimeout->tv_sec &&
+		     timeout->tv_usec < ctimeout->tv_usec))
+			*next = timeout;
+		else
+			*next = ctimeout;
+	}
+	else
+	{
+		struct timeval to1;
+		struct timeval to2;
+		struct timeval now;
+
+		/* compute start through overall timeout */
+		memcpy(&to1, wstart, sizeof to1);
+		to1.tv_sec += timeout->tv_sec;
+		to1.tv_usec += timeout->tv_usec;
+		if (to1.tv_usec > 1000000)
+		{
+			to1.tv_sec += (to1.tv_usec / 1000000);
+			to1.tv_usec = (to1.tv_usec % 1000000);
+		}
+
+		/* compute stop through callback timeout */
+		memcpy(&to2, wstop, sizeof to2);
+		to2.tv_sec += ctimeout->tv_sec;
+		to2.tv_usec += ctimeout->tv_usec;
+		if (to2.tv_usec > 1000000)
+		{
+			to2.tv_sec += (to2.tv_usec / 1000000);
+			to2.tv_usec = (to2.tv_usec % 1000000);
+		}
+
+		/* ...and decide */
+		if (to1.tv_sec < to2.tv_sec ||
+		    (to1.tv_sec == to2.tv_sec &&
+		     to1.tv_usec < to2.tv_usec))
+			*next = timeout;
+		else
+			*next = ctimeout;
+	}
+}
+
+/*
+**  VBR_RES_CANCEL -- cancel a pending resolver query
+**
+**  Parameters:
+**  	srv -- query service handle (ignored)
+**  	qh -- query handle (ignored)
+**
+**  Return value:
+**  	0 on success, !0 on error
+**
+**  Notes:
+**  	The standard UNIX resolver is synchronous, so in theory this can
+**  	never get called.  We have not yet got any use cases for one thread
+**  	canceling another thread's pending queries, so for now just return 0.
+*/
+
+static int
+vbr_res_cancel(void *srv, void *qh)
+{
+	if (qh != NULL)
+		free(qh);
+
+	return 0;
+}
+
+/*
+**  VBR_RES_QUERY -- initiate a DNS query
+**
+**  Parameters:
+**  	srv -- service handle (ignored)
+**  	type -- RR type to query
+**  	query -- the question to ask
+**  	buf -- where to write the answer
+**  	buflen -- bytes at "buf"
+** 	qh -- query handle, used with vbr_res_waitreply
+**
+**  Return value:
+**  	An VBR_DNS_* constant.
+**
+**  Notes:
+**  	This is a stub for the stock UNIX resolver (res_) functions, which
+**  	are synchronous so no handle needs to be created, so "qh" is set to
+**  	"buf".  "buf" is actually populated before this returns (unless
+**  	there's an error).
+*/
+
+static int
+vbr_res_query(void *srv, int type, unsigned char *query, unsigned char *buf,
+              size_t buflen, void **qh)
+{
+	int n;
+	int ret;
+	struct vbr_query *vq;
+	unsigned char qbuf[HFIXEDSZ + MAXPACKET];
+#ifdef HAVE_RES_NINIT
+	struct __res_state statp;
+#endif /* HAVE_RES_NINIT */
+
+#ifdef HAVE_RES_NINIT
+	memset(&statp, '\0', sizeof statp);
+	res_ninit(&statp);
+#endif /* HAVE_RES_NINIT */
+
+#ifdef HAVE_RES_NINIT
+	n = res_nmkquery(&statp, QUERY, (char *) query, C_IN, type, NULL, 0,
+	                 NULL, qbuf, sizeof qbuf);
+#else /* HAVE_RES_NINIT */
+	n = res_mkquery(QUERY, (char *) query, C_IN, type, NULL, 0, NULL, qbuf,
+	                sizeof qbuf);
+#endif /* HAVE_RES_NINIT */
+	if (n == (size_t) -1)
+	{
+#ifdef HAVE_RES_NINIT
+		res_nclose(&statp);
+#endif /* HAVE_RES_NINIT */
+		return VBR_DNS_ERROR;
+	}
+
+#ifdef HAVE_RES_NINIT
+	ret = res_nsend(&statp, qbuf, n, buf, buflen);
+#else /* HAVE_RES_NINIT */
+	ret = res_send(qbuf, n, buf, buflen);
+#endif /* HAVE_RES_NINIT */
+	if (ret == -1)
+	{
+#ifdef HAVE_RES_NINIT
+		res_nclose(&statp);
+#endif /* HAVE_RES_NINIT */
+		return VBR_DNS_ERROR;
+	}
+
+#ifdef HAVE_RES_NINIT
+	res_nclose(&statp);
+#endif /* HAVE_RES_NINIT */
+
+	vq = (struct vbr_query *) malloc(sizeof *vq);
+	if (vq == NULL)
+		return VBR_DNS_ERROR;
+
+	if (ret == -1)
+	{
+		vq->vq_error = errno;
+		vq->vq_buflen = 0;
+	}
+	else
+	{
+		vq->vq_error = 0;
+		vq->vq_buflen = (size_t) ret;
+	}
+
+	*qh = (void *) vq;
+
+	return VBR_DNS_SUCCESS;
+}
+
+/*
+**  VBR_RES_WAITREPLY -- wait for a reply to a pending query
+**
+**  Parameters:
+**  	srv -- service handle
+**  	qh -- query handle
+**  	to -- timeout
+**  	bytes -- number of bytes in the reply (returned)
+**  	error -- error code (returned)
+**
+**  Return value:
+**  	A VBR_DNS_* code.
+**
+**  Notes:
+**  	Since the stock UNIX resolver is synchronous, the reply was completed
+** 	before vbr_res_query() returned, and thus this is almost a no-op.
+*/
+
+int
+vbr_res_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
+                  int *error, int *dnssec)
+{
+	int ret;
+	struct vbr_query *vq;
+
+	assert(qh != NULL);
+
+	vq = qh;
+
+	if (bytes != NULL)
+		*bytes = vq->vq_buflen;
+	if (error != NULL)
+		*error = vq->vq_error;
+
+	return VBR_DNS_SUCCESS;
+}
+
+/*
 **  VBR_TXT_DECODE -- decode a TXT reply
 **
 **  Parameters:
@@ -448,33 +696,43 @@ vbr_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	new->vbr_malloc = caller_mallocf;
 	new->vbr_free = caller_freef;
 	new->vbr_closure = closure;
-#ifdef USE_ARLIB
 	new->vbr_timeout = DEFTIMEOUT;
 	new->vbr_callback_int = 0;
 	new->vbr_dns_callback = NULL;
 	new->vbr_user_context = NULL;
-#endif /* USE_ARLIB */
 	new->vbr_errlen = 0;
 	new->vbr_error = NULL;
-
-	/* initialize the resolver */
-#ifdef USE_ARLIB
-	new->vbr_arlib = ar_init(NULL, NULL, NULL, 0);
-	if (new->vbr_arlib == NULL)
-	{
-		free(new);
-		return NULL;
-	}
-#else /* USE_ARLIB */
-	(void) res_init();
-#endif /* USE_ARLIB */
 
 	new->vbr_domain = NULL;
 	new->vbr_type = NULL;
 	new->vbr_cert = NULL;
 	new->vbr_trusted = NULL;
 
+	new->vbr_dns_service = NULL;
+	new->vbr_dns_start = vbr_res_query;
+	new->vbr_dns_waitreply = vbr_res_waitreply;
+	new->vbr_dns_cancel = vbr_res_cancel;
+
 	return new;
+}
+
+/*
+**  VBR_OPTIONS -- set VBR options
+**
+**  Parameters:
+**  	vbr -- VBR handle to modify
+**  	opts -- bitmask of options to use
+**
+**  Return value:
+**  	None.
+*/
+
+void
+vbr_options(VBR *vbr, unsigned int opts)
+{
+	assert(vbr != NULL);
+
+	vbr->vbr_opts = opts;
 }
 
 #define	CLOBBER(x)	if ((x) != NULL) \
@@ -497,11 +755,6 @@ void
 vbr_close(VBR *vbr)
 {
 	assert(vbr != NULL);
-
-#ifdef USE_ARLIB
-	if (vbr->vbr_arlib != NULL)
-		ar_shutdown(vbr->vbr_arlib);
-#endif /* USE_ARLIB */
 
 	CLOBBER(vbr->vbr_error);
 
@@ -545,12 +798,8 @@ vbr_settimeout(VBR *vbr, u_int timeout)
 {
 	assert(vbr != NULL);
 
-#ifdef USE_ARLIB
 	vbr->vbr_timeout = timeout;
 	return VBR_STAT_OK;
-#else /* USE_ARLIB */
-	return VBR_STAT_NOTIMPLEMENT;
-#endif /* USE_ARLIB */
 }
 
 /*
@@ -569,12 +818,8 @@ vbr_setcallbackint(VBR *vbr, u_int cbint)
 {
 	assert(vbr != NULL);
 
-#ifdef USE_ARLIB
 	vbr->vbr_callback_int = cbint;
 	return VBR_STAT_OK;
-#else /* USE_ARLIB */
-	return VBR_STAT_NOTIMPLEMENT;
-#endif /* USE_ARLIB */
 }
 
 /*
@@ -593,12 +838,8 @@ vbr_setcallbackctx(VBR *vbr, void *ctx)
 {
 	assert(vbr != NULL);
 
-#ifdef USE_ARLIB
 	vbr->vbr_user_context = ctx;
 	return VBR_STAT_OK;
-#else /* USE_ARLIB */
-	return VBR_STAT_NOTIMPLEMENT;
-#endif /* USE_ARLIB */
 }
 
 /*
@@ -617,12 +858,8 @@ vbr_setdnscallback(VBR *vbr, void (*func)(const void *context))
 {
 	assert(vbr != NULL);
 
-#ifdef USE_ARLIB
 	vbr->vbr_dns_callback = func;
 	return VBR_STAT_OK;
-#else /* USE_ARLIB */
-	return VBR_STAT_NOTIMPLEMENT;
-#endif /* USE_ARLIB */
 }
 
 /*
@@ -729,11 +966,20 @@ vbr_trustedcerts(VBR *vbr, u_char **certs)
 VBR_STAT
 vbr_query(VBR *vbr, u_char **res, u_char **cert)
 {
+	int c;
 	int n;
+	int status;
+	int dnserr;
+	struct vbr_query *vq;
+	void *qh;
 	u_char *p;
 	u_char *last;
+	u_char *last2;
+	u_char *p2;
+	struct timeval timeout;
 	u_char certs[VBR_MAXHEADER + 1];
 	u_char query[VBR_MAXHOSTNAMELEN + 1];
+	unsigned char buf[BUFRSZ];
 
 	assert(vbr != NULL);
 	assert(res != NULL);
@@ -749,128 +995,158 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 
 	strlcpy((char *) certs, vbr->vbr_cert, sizeof certs);
 
-	for (p = (u_char *) strtok_r((char *) certs, ":", (char **) &last);
-	     p != NULL;
-	     p = (u_char *) strtok_r(NULL, ":", (char **) &last))
+	if (vbr->vbr_malloc != NULL)
+		vq = vbr->vbr_malloc(vbr->vbr_closure, sizeof(*vq));
+	else
+		vq = malloc(sizeof(*vq));
+
+	if (vq == NULL)
+		return VBR_STAT_NORESOURCE;
+
+	memset(vq, '\0', sizeof *vq);
+
+	for (c = 0; ; c++)
 	{
-		for (n = 0; vbr->vbr_trusted[n] != NULL; n++)
+		if ((vbr->vbr_opts & VBR_OPT_TRUSTEDONLY) != 0)
 		{
-			if (strcasecmp((char *) p,
-			               (char *) vbr->vbr_trusted[n]) == 0)
+			/*
+			**  Query our trusted vouchers regardless of what the
+			**  sender said.
+			*/
+
+			if (vbr->vbr_trusted[c] == NULL)
+				break;
+			else
+				p = vbr->vbr_trusted[c];
+		}
+		else
+		{
+			/*
+			**  Query the sender's vouchers that also appear in our
+			**  trusted voucher list.
+			*/
+
+			_Bool found;
+
+			p = (u_char *) strtok_r(c == 0 ? (char *) certs : NULL,
+			                        ":", (char **) &last);
+			if (p == NULL)
+				break;
+
+			found = FALSE;
+
+			for (n = 0; vbr->vbr_trusted[n] != NULL; n++)
 			{
-				int status;
-#ifdef USE_ARLIB
-				int arerror;
-				AR_QUERY q;
-				AR_LIB ar;
-#endif /* USE_ARLIB */
-				u_char *last2;
-				u_char *p2;
-#ifdef USE_ARLIB
-				struct timeval timeout;
-#endif /* USE_ARLIB */
-				unsigned char ansbuf[MAXPACKET];
-				unsigned char buf[BUFRSZ];
+				if (strcasecmp((char *) p,
+				               (char *) vbr->vbr_trusted[n]) == 0)
+				{
+					found = TRUE;
+					break;
+				}
+			}
 
-				snprintf((char *) query, sizeof query,
-				         "%s.%s.%s", vbr->vbr_domain,
-				         VBR_PREFIX, p);
+			if (!found)
+				continue;
+		}	
 
-#ifdef USE_ARLIB
-				ar = vbr->vbr_arlib;
+		snprintf((char *) query, sizeof query, "%s.%s.%s",
+		         vbr->vbr_domain, VBR_PREFIX, p);
+
+		qh = NULL;
+
+		status = vbr->vbr_dns_start(vbr->vbr_dns_service, T_TXT, query,
+		                            vq->vq_buf, sizeof vq->vq_buf,
+		                            &vq->vq_qh);
+
+		if (status != VBR_STAT_OK)
+		{
+			snprintf(vbr->vbr_error, sizeof vbr->vbr_error,
+			         "unable to start query for `%s'",
+			         query);
+			return VBR_STAT_DNSERROR;
+		}
+
+		timeout.tv_sec = vbr->vbr_timeout;
+		timeout.tv_usec = 0;
+
+		if (vbr->vbr_dns_callback == NULL)
+		{
+			status = vbr->vbr_dns_waitreply(vbr->vbr_dns_service,
+			                                vq->vq_qh,
+			                                &timeout,
+			                                &vq->vq_buflen,
+			                                &dnserr,
+			                                NULL);
+		}
+		else
+		{
+			struct timeval *to;
+			struct timeval wstart;
+			struct timeval wstop;
+			struct timeval ctimeout;
+
+			wstop.tv_sec = 0;
+			wstop.tv_usec = 0;
+
+			for (;;)
+			{
+				(void) gettimeofday(&wstart, NULL);
+
+				ctimeout.tv_sec = vbr->vbr_callback_int;
+				ctimeout.tv_usec = 0;
+
 				timeout.tv_sec = vbr->vbr_timeout;
 				timeout.tv_usec = 0;
-				q = ar_addquery(ar, query, C_IN, T_TXT,
-				                MAXCNAMEDEPTH, ansbuf,
-		                                sizeof ansbuf, &arerror,
-		                                vbr->vbr_timeout == 0 ? NULL
-				                                        : &timeout);
-				if (q == NULL)
-				{
-					vbr_error(vbr, "ar_addquery() failed");
-					return VBR_STAT_DNSERROR;
-				}
 
-				if (vbr->vbr_dns_callback == NULL)
-				{
-					status = ar_waitreply(ar, q, NULL,
-					                      NULL);
-				}
-				else
-				{
-					for (;;)
-					{
-						timeout.tv_sec = vbr->vbr_callback_int;
-						timeout.tv_usec = 0;
+				vbr_timeouts(&timeout, &ctimeout,
+				             &wstart, &wstop,
+				             &to);
 
-						status = ar_waitreply(ar, q,
-						                      NULL,
-						                      &timeout);
+				status = vbr->vbr_dns_waitreply(vbr->vbr_dns_service,
+				                                vq->vq_qh,
+				                                to,
+				                                &vq->vq_buflen,
+				                                &dnserr,
+				                                NULL);
 
-						if (status != AR_STAT_NOREPLY)
-							break;
+				(void) gettimeofday(&wstop, NULL);
 
-						vbr->vbr_dns_callback(vbr->vbr_user_context);
-					}
-				}
+				if (status != VBR_DNS_NOREPLY ||
+				    to == &timeout)
+					break;
 
-				(void) ar_cancelquery(ar, q);
-#else /* USE_ARLIB */
-				status = res_query((char *) query, C_IN, T_TXT,
-				                   ansbuf, sizeof ansbuf);
-#endif /* USE_ARLIB */
+				vbr->vbr_dns_callback(vbr->vbr_user_context);
+			}
+		}
 
-#ifdef USE_ARLIB
-				if (status == AR_STAT_ERROR ||
-				    status == AR_STAT_EXPIRED)
-				{
-					vbr_error(vbr, "failed to retrieve %s",
-						  query);
-					return VBR_STAT_DNSERROR;
-				}
-#else /* USE_ARLIB */
-				if (status == -1)
-				{
-					switch (h_errno)
-					{
-					  case HOST_NOT_FOUND:
-					  case NO_DATA:
-						continue;
+		vbr->vbr_dns_cancel(vbr->vbr_dns_service, vq->vq_qh);
 
-					  case TRY_AGAIN:
-					  case NO_RECOVERY:
-					  default:
-						vbr_error(vbr,
-						          "failed to retreive %s",
-						          query);
-						return VBR_STAT_DNSERROR;
-					}
-				}
-#endif /* USE_ARLIB */
+		if (status == VBR_DNS_ERROR || status == VBR_DNS_EXPIRED)
+		{
+			vbr_error(vbr, "failed to retrieve %s", query);
+			return VBR_STAT_DNSERROR;
+		}
 
-				/* try to decode the reply */
-				if (!vbr_txt_decode(ansbuf, sizeof ansbuf,
-				                    buf, sizeof buf))
-					continue;
+		/* try to decode the reply */
+		if (!vbr_txt_decode(vq->vq_buf, vq->vq_buflen,
+		                    buf, sizeof buf))
+			continue;
 
-				/* see if there's a vouch match */
-				for (p2 = (u_char *) strtok_r((char *) buf, " \t",
-				                              (char **) &last2);
-				     p2 != NULL;
-				     p2 = (u_char *) strtok_r(NULL, " \t",
-				                              (char **) &last2))
-				{
-					if (strcasecmp((char *) p2,
-					               VBR_ALL) == 0 ||
-					    strcasecmp((char *) p2,
-					               (char *) vbr->vbr_type) == 0)
-					{
-						/* we have a winner! */
-						*res = (u_char *) "pass";
-						*cert = p;
-						return VBR_STAT_OK;
-					}
-				}
+		/* see if there's a vouch match */
+		for (p2 = (u_char *) strtok_r((char *) buf, " \t",
+		                              (char **) &last2);
+		     p2 != NULL;
+		     p2 = (u_char *) strtok_r(NULL, " \t",
+		                              (char **) &last2))
+		{
+			if (strcasecmp((char *) p2, VBR_ALL) == 0 ||
+			    strcasecmp((char *) p2,
+			               (char *) vbr->vbr_type) == 0)
+			{
+				/* we have a winner! */
+				*res = (u_char *) "pass";
+				*cert = p;
+				return VBR_STAT_OK;
 			}
 		}
 	}
@@ -917,4 +1193,121 @@ vbr_getheader(VBR *vbr, unsigned char *hdr, size_t len)
 	}
 
 	return VBR_STAT_OK;
+}
+
+/*
+**  VBR_DNS_SET_QUERY_SERVICE -- stores a handle representing the DNS
+**                               query service to be used, returning any
+**                               previous handle
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	h -- handle to be used
+**
+**  Return value:
+**  	Previously stored handle, or NULL if none.
+*/
+
+void *
+vbr_dns_set_query_service(VBR *vbr, void *h)
+{
+	void *old;
+
+	assert(vbr != NULL);
+
+	old = vbr->vbr_dns_service;
+
+	vbr->vbr_dns_service = h;
+
+	return old;
+}
+
+/*
+**  VBR_DNS_SET_QUERY_START -- stores a pointer to a query start function
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	func -- function to use to start queries
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- receives handle stored by
+**  		             vbr_dns_set_query_service()
+**  		int type -- DNS RR query type (C_IN assumed)
+**  		char *query -- question to ask
+**  		char *buf -- buffer into which to write reply
+**  		size_t buflen -- size of buf
+**  		void **qh -- returned query handle
+*/
+
+void
+vbr_dns_set_query_start(VBR *vbr, int (*func)(void *, int,
+                                              unsigned char *,
+                                              unsigned char *,
+                                              size_t, void **))
+{
+	assert(vbr != NULL);
+
+	vbr->vbr_dns_start = func;
+}
+
+/*
+**  VBR_DNS_SET_QUERY_CANCEL -- stores a pointer to a query cancel function
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	func -- function to use to cancel running queries
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- DNS service handle
+**  		void *qh -- query handle to be canceled
+*/
+
+void
+vbr_dns_set_query_cancel(VBR *vbr, int (*func)(void *, void *))
+{
+	assert(vbr != NULL);
+
+	vbr->vbr_dns_cancel = func;
+}
+
+/*
+**  VBR_DNS_SET_QUERY_WAITREPLY -- stores a pointer to wait for a DNS reply
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	func -- function to use to wait for a reply
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- DNS service handle
+**  		void *qh -- handle of query that has completed
+**  		struct timeval *timeout -- how long to wait
+**  		size_t *bytes -- bytes returned
+**  		int *error -- error code returned
+**  		int *dnssec -- DNSSEC status returned
+*/
+
+void
+vbr_dns_set_query_waitreply(VBR *vbr, int (*func)(void *, void *,
+                                                  struct timeval *,
+                                                  size_t *, int *,
+                                                  int *))
+{
+	assert(vbr != NULL);
+
+	vbr->vbr_dns_waitreply = func;
 }
