@@ -1,0 +1,8 @@
+-- $Id: t-sign-rs-lua.lua-setup,v 1.3 2010/07/23 18:50:52 cm-msk Exp $
+
+-- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+
+-- sample "setup" hook script that does various Lua things
+
+-- change a received header field before signing
+odkim.replace_header(ctx, "From", 0, "user@example.com")

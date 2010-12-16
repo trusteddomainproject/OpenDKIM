@@ -207,6 +207,11 @@ See
 .I odkim.get_header()
 above for more information about possible parameter values for
 .I n.
+Note that this only changes the content of the header field used when
+generating or verifying the signature; the actual delivered message is not
+modified.  This can be used to anticipate how an intermediate mail transfer
+agent might alter the message, thus correcting an avoidable signature
+invalidation.
 .TP
 .B odkim.resign(ctx)
 Arranges that the arriving message will be verified and then re-signed in
