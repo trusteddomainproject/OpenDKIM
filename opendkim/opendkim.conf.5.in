@@ -82,13 +82,29 @@ added when performing verification, which would mean the signed message
 and the verified message were different and the verification would fail.
 
 .TP
+.I AnonymousDomains (dataset)
+When
+.I Statistics
+is enabled, this data set is checked against the From: field of an arriving
+message to determine whether or not its data should be anonymized as described
+in
+.I AnonymousStatistics
+below.  When the domain is found, the domain is exempted from that setting.
+That is, if
+.I AnonymousStatistics
+is enabled and the domain is found in this data set, it will not be anonymized;
+if that feature is not enabled and the domain is found, it will be anonymized.
+@STATS_MANNOTICE@
+
+.TP
 .I AnonymousStatistics (Boolean)
 When
 .I Statistics
-is enabled, setting this flag will pass the From: domain and the client
-IP address portions of the reported data through a one-way hash algorithm
-to conceal those data while allowing some correlation to take place.  The
-default is "true".
+is enabled, setting this flag will pass the From: domain, signature domain
+and the client IP address portions of the reported data through a one-way
+hash algorithm to conceal those data while allowing some correlation to take
+place.  This is done for all messages.  The default is "true".
+@STATS_MANNOTICE@
 
 .TP
 .I AuthservID (string)

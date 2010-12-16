@@ -344,6 +344,9 @@ struct dkimf_config
 	DKIMF_DB	conf_exemptdb;		/* exempt domains DB */
 	DKIMF_DB	conf_keytabledb;	/* key table DB */
 	DKIMF_DB	conf_signtabledb;	/* signing table DB */
+#ifdef _FFR_STATS
+	DKIMF_DB	conf_anondb;		/* anonymized domains DB */
+#endif /* _FFR_STATS */
 #ifdef _FFR_RESIGN
 	DKIMF_DB	conf_resigndb;		/* resigning addresses */
 #endif /* _FFR_RESIGN */
@@ -6170,6 +6173,25 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			return -1;
 		}
 	}
+
+#ifdef _FFR_STATS
+	str = NULL;
+	(void) config_get(data, "AnonymousDomains", &str, sizeof str);
+	if (str != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_anondb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, dberr);
+			return -1;
+		}
+	}
+#endif /* _FFR_STATS */
 
 	/* internal list */
 	str = NULL;
@@ -12101,9 +12123,10 @@ mlfi_eom(SMFICTX *ctx)
 #ifdef _FFR_STATS
 		if (conf->conf_statspath != NULL && dfc->mctx_dkimv != NULL)
 		{
-			struct Header *hdr;
-			u_int rhcnt;
 			_Bool fromlist = FALSE;
+			_Bool anon;
+			u_int rhcnt;
+			struct Header *hdr;
 
 # ifdef USE_LUA
 #  ifdef _FFR_STATSEXT
@@ -12197,6 +12220,21 @@ mlfi_eom(SMFICTX *ctx)
 				}
 			}
 
+			anon = conf->conf_anonstats;
+
+			if (conf->conf_anondb != NULL)
+			{
+				_Bool found = FALSE;
+
+				status = dkimf_db_get(conf->conf_anondb,
+				                      dfc->mctx_domain,
+				                      0, NULL, 0,
+				                      &found);
+
+				if (found)
+					anon = !anon;
+			}
+
 			if (dkimf_stats_record(conf->conf_statspath,
 			                       dfc->mctx_jobid,
 			                       conf->conf_reporthost,
@@ -12205,7 +12243,7 @@ mlfi_eom(SMFICTX *ctx)
 			                       dfc->mctx_dkimv,
 			                       dfc->mctx_pcode,
 			                       fromlist,
-			                       conf->conf_anonstats,
+			                       anon,
 			                       rhcnt,
 # ifdef _FFR_STATSEXT
 			                       dfc->mctx_statsext,
