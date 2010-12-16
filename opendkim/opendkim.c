@@ -1452,7 +1452,7 @@ dkimf_xs_replaceheader(lua_State *l)
 	ctx = (SMFICTX *) lua_touserdata(l, 1);
 	hdrname = lua_tostring(l, 2);
 	idx = (int) lua_tonumber(l, 3);
-	newval = lua_tostring(1, 4);
+	newval = lua_tostring(l, 4);
 
 	if (ctx != NULL)
 	{
