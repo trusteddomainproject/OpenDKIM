@@ -1151,8 +1151,8 @@ verifying VBR-Info headers.
 .I VBR-TrustedCertifiersOnly (Boolean)
 By default, the certifiers that are in both the trusted certifiers list
 (above) and those in the message's VBR-Info header field will be checked
-for vouching.  With this option set, only the trusted certifiers will be
-checked.
+for vouching.  With this option set, the trusted certifiers will be
+checked and the ones claimed by the message will be ignored.
 @VBR_MANNOTICE@
 
 .TP
