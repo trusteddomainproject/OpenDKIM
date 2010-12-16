@@ -132,7 +132,9 @@ static const luaL_Reg dkimf_lua_lib_final[] =
 	{ "log",		dkimf_xs_log		},
 	{ "quarantine",		dkimf_xs_quarantine	},
 	{ "parse_field",	dkimf_xs_parsefield	},
+# ifdef _FFR_RBL
 	{ "rbl_check",		dkimf_xs_rblcheck	},
+# endif /* _FFR_RBL */
 	{ "rcpt_count",		dkimf_xs_rcptcount	},
 	{ "set_reply",		dkimf_xs_setreply	},
 	{ "set_result",		dkimf_xs_setresult	},
