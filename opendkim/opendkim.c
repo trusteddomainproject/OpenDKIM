@@ -4335,7 +4335,7 @@ dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 #ifdef _FFR_MAXVERIFY
 	if (conf->conf_maxverify > 0)
 	{
-		unsigned int n;
+		int n;
 		_Bool *ig = NULL;
 
 		ig = (_Bool *) malloc(sizeof(_Bool) * nsigs);
