@@ -6325,6 +6325,24 @@ dkim_sig_syntax(DKIM *dkim, u_char *str, size_t len)
 }
 
 /*
+**  DKIM_GETID -- retrieve "id" pointer from a handle
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**
+**  Return value:
+**  	The "id" pointer from inside the handle, stored when it was created.
+*/
+
+const char *
+dkim_getid(DKIM *dkim)
+{
+	assert(dkim != NULL);
+
+	return dkim->dkim_id;
+}
+
+/*
 **  DKIM_GETSIGLIST -- retrieve the list of signatures
 **
 **  Parameters:

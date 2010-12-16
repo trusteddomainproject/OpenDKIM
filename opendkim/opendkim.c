@@ -4535,6 +4535,7 @@ static DKIM_CBSTAT
 dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 {
 	int c;
+	unsigned int ni = 0;
 	u_char *domain;
 	u_char *sdomain;
 	SMFICTX *ctx;
@@ -4605,7 +4606,16 @@ dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 		for (c = 0; c < nsigs; c++)
 		{
 			if (ig[c])
+			{
 				dkim_sig_ignore(sigs[c]);
+				ni++;
+			}
+		}
+
+		if (conf->conf_dolog)
+		{
+			syslog(LOG_INFO, "%s: ignoring %u signature%s",
+			       dkim_getid(dkim), ni, ni == 1 ? "" : "s");
 		}
 
 		return DKIM_CBSTAT_CONTINUE;

@@ -20,6 +20,7 @@ dist_doc_DATA = dkim.html \
 	dkim_getcachestats.html \
 	dkim_getdomain.html \
 	dkim_geterror.html \
+	dkim_getid.html \
 	dkim_getmode.html \
 	dkim_getpolicystr.html \
 	dkim_getpresult.html \

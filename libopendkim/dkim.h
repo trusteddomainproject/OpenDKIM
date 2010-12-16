@@ -572,6 +572,18 @@ extern DKIM_STAT dkim_policy_syntax __P((DKIM *dkim, u_char *str, size_t len));
 extern DKIM_STAT dkim_sig_syntax __P((DKIM *dkim, u_char *str, size_t len));
 
 /*
+**  DKIM_GETID -- retrieve "id" pointer from a handle
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**
+**  Return value:
+**  	The "id" pointer from inside the handle, stored when it was created.
+*/
+
+extern const char *dkim_getid __P((DKIM *dkim));
+
+/*
 **  DKIM_GETCACHESTATS -- retrieve cache statistics
 **
 **  Parameters:
