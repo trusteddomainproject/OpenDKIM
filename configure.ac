@@ -1504,6 +1504,16 @@ AC_DEFINE_UNQUOTED([LIBOPENDKIM_FEATURE_STRING], "$LIBOPENDKIM_FEATURE_STRING",
                    [Feature string for printing])
 
 #
+# setup for testing
+# 
+
+AC_ARG_ENABLE([live-testing],
+              AS_HELP_STRING([--disable-live-testing],
+                             [disable tests that require Internet access]),
+              [live_tests="$withval"], [live_tests="yes"])
+AM_CONDITIONAL(LIVE_TESTS, test x"$live_tests" = x"yes")
+
+#
 # Platform Specific Configuration
 #
 AC_CANONICAL_HOST
