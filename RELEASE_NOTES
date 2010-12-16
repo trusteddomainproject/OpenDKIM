@@ -9,6 +9,7 @@ release, and a summary of the changes in that release.
 	Feature request #SF3053094: Correct documentation and improve function
 		of the AuthservID configuration setting.  Requested by
 		Andreas Schulze.
+	Feature request #SF3060152: Add odkim.replace_header() function.
 	Feature request #SF3060161: Add odkim.del_header() function.
 	Feature request #SF3061189: Add new "quarantine" option to all the
 		various "On-" settings.

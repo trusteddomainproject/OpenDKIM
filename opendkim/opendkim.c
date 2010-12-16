@@ -1536,6 +1536,93 @@ dkimf_xs_requestsig(lua_State *l)
 }
 
 /*
+**  DKIMF_XS_REPLACEHEADER -- replace a header field's value
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_replaceheader(lua_State *l)
+{
+	int idx;
+	const char *hdrname;
+	const char *newval;
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+	struct dkimf_config *conf;
+	Header hdr;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 4)
+	{
+		lua_pushstring(l,
+		               "odkim.replace_header(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1) ||
+	         !lua_isstring(l, 2) ||
+	         !lua_isnumber(l, 3) ||
+	         !lua_isstring(l, 4))
+	{
+		lua_pushstring(l,
+		               "odkim.replace_header(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	hdrname = lua_tostring(l, 2);
+	idx = (int) lua_tonumber(l, 3);
+	newval = lua_tostring(l, 4);
+
+	if (ctx != NULL)
+	{
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+		conf = cc->cctx_config;
+	}
+
+	lua_pop(l, 3);
+
+	if (ctx == NULL)
+	{
+		if (idx == 0)
+			lua_pushstring(l, "dkimf_xs_replaceheader");
+		else
+			lua_pushnil(l);
+		return 1;
+	}
+
+	hdr = dkimf_findheader(dfc, (char *) hdrname, idx);
+	if (hdr == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+	else
+	{
+		char *tmp;
+
+		tmp = strdup(newval);
+		if (tmp == NULL)
+		{
+			lua_pushnil(l);
+			return 1;
+		}
+
+		free(hdr->hdr_val);
+		hdr->hdr_val = tmp;
+
+		return 0;
+	}
+}
+
+/*
 **  DKIMF_XS_GETHEADER -- request a header value
 **
 **  Parameters:
