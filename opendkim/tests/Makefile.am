@@ -8,6 +8,12 @@ check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-verify-syntax t-verify-ss t-verify-ss-bad t-verify-report \
 	t-dontsign t-peer t-adsp-report t-local-adsp t-local-adsp-subdomain
 
+if LIVE_TESTS
+if RBL
+check_SCRIPTS += t-lua-rbl
+endif
+endif
+
 TESTS = $(check_SCRIPTS)
 
 EXTRA_DIST = \
@@ -36,6 +42,7 @@ EXTRA_DIST = \
 	t-verify-ss-bad t-verify-ss-bad.conf t-verify-ss-bad.lua \
 	t-verify-syntax t-verify-syntax.conf t-verify-syntax.lua \
 	t-dontsign t-dontsign.conf t-dontsign.lua \
+	t-lua-rbl t-lua-rbl.conf t-lua-rbl.lua t-lua-rbl.lua-final \
 	t-peer t-peer.conf t-peer.list t-peer.lua \
 	t-verify-report t-verify-report.conf t-verify-report.txt \
 		t-verify-report.lua \

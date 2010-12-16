@@ -271,6 +271,9 @@ FFR_FEATURE([selector_header], [special header to choose signing key])
 
 FFR_FEATURE([sender_macro], [macro to determine sender])
 
+FFR_FEATURE([rbl], [Realtime Blacklist query support])
+AM_CONDITIONAL([RBL], [test x"$enable_rbl" = x"yes"])
+
 FFR_FEATURE([vbr], [Vouch-By-Reference support])
 AM_CONDITIONAL([VBR], [test x"$enable_vbr" = x"yes"])
 
@@ -281,11 +284,6 @@ FFR_FEATURE([statsext], [extended stats recording and reporting])
 if test x"$enable_statsext" = x"yes" -a x"$enable_stats" != x"yes"
 then
 	AC_MSG_ERROR([--enable-statsext requires --enable-stats])
-fi
-
-if test x"$enable_stats_i" = x"yes" -a x"$enable_stats" != x"yes"
-then
-	AC_MSG_ERROR([--enable-stats_i requires --enable-stats])
 fi
 
 FFR_FEATURE([default_sender], [default sender address])
@@ -964,6 +962,11 @@ then
 	AC_MSG_ERROR([--enable-statsext requires Lua support])
 fi
 
+if test x"$enable_rbl" = x"yes" -a x"$lua_found" != x"yes"
+then
+	AC_MSG_ERROR([--enable-rbl requires Lua support])
+fi
+
 #
 # libodbx
 #
@@ -1501,6 +1504,16 @@ AC_DEFINE_UNQUOTED([LIBOPENDKIM_FEATURE_STRING], "$LIBOPENDKIM_FEATURE_STRING",
                    [Feature string for printing])
 
 #
+# setup for testing
+# 
+
+AC_ARG_ENABLE([live-testing],
+              AS_HELP_STRING([--disable-live-testing],
+                             [disable tests that require Internet access]),
+              [live_tests="$withval"], [live_tests="yes"])
+AM_CONDITIONAL(LIVE_TESTS, test x"$live_tests" = x"yes")
+
+#
 # Platform Specific Configuration
 #
 AC_CANONICAL_HOST
@@ -1541,6 +1554,7 @@ AC_OUTPUT([	Makefile
 		libopendkim/opendkim.pc libopendkim/Makefile
 		libopendkim/docs/Makefile
 		libopendkim/tests/Makefile
+		librbl/rbl.pc librbl/Makefile
 		libvbr/vbr.pc libvbr/Makefile
 		miltertest/Makefile
 		opendkim/Makefile opendkim/opendkim.8 opendkim/opendkim-genkey

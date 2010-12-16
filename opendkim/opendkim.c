@@ -48,6 +48,7 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 #include <unistd.h>
 #include <pwd.h>
 #include <grp.h>
+#include <math.h>
 #include <assert.h>
 #include <ctype.h>
 #include <fcntl.h>
@@ -74,6 +75,11 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 /* LUA includes */
 # include <lua.h>
 #endif /* USE_LUA */
+
+#ifdef _FFR_RBL
+/* librbl includes */
+# include <rbl.h>
+#endif /* _FFR_RBL */
 
 /* libopendkim includes */
 #include "dkim.h"
@@ -998,6 +1004,124 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 **  	something matching what the script would expect back from
 **  	the function such that the rest of the test will complete.
 */
+
+# ifdef _FFR_RBL
+/*
+**  DKIMF_XS_RBLCHECK -- do an RBL query
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_rblcheck(lua_State *l)
+{
+	_Bool found = FALSE;
+	RBL_STAT status;
+	uint32_t res;
+	double timeout = -1.;
+	double i;
+	const char *query;
+	const char *qroot = NULL;
+	void *qh;
+	RBL *rbl;
+	struct timeval to;
+
+	if (lua_gettop(l) < 2 || lua_gettop(l) > 3)
+	{
+		lua_pushstring(l,
+		               "odkim.rbl_check(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_isstring(l, 1) ||
+	         !lua_isstring(l, 2) ||
+	         (lua_gettop(l) == 3 && !lua_isnumber(l, 3)))
+	{
+		lua_pushstring(l,
+		               "odkim.rbl_check(): incorrect argument type");
+		lua_error(l);
+	}
+
+	query = lua_tostring(l, 1);
+	qroot = lua_tostring(l, 2);
+	if (lua_gettop(l) == 3)
+		timeout = lua_tonumber(l, 3);
+	lua_pop(l, lua_gettop(l));
+
+#  ifdef USE_ARLIB
+	if (arlib == NULL)
+		return 0;
+#  endif /* USE_ARLIB */
+
+#  ifdef USE_UNBOUND
+	if (unbound == NULL)
+		return 0;
+#  endif /* USE_UNBOUND */
+
+	rbl = rbl_init(NULL, NULL, NULL);
+	if (rbl == NULL)
+	{
+		lua_pushstring(l,
+		               "odkim.rbl_check(): can't create RBL handle");
+		lua_error(l);
+	}
+
+#  ifdef USE_ARLIB
+	dkimf_rbl_arlib_setup(rbl, arlib);
+#  endif /* USE_ARLIB */
+
+#  ifdef USE_UNBOUND
+	dkimf_rbl_unbound_setup(rbl, unbound);
+#  endif /* USE_UNBOUND */
+
+	rbl_setdomain(rbl, (u_char *) qroot);
+
+	status = rbl_query_start(rbl, (u_char *) query, &qh);
+	if (status != RBL_STAT_OK)
+	{
+		rbl_close(rbl);
+		lua_pushstring(l,
+		               "odkim.rbl_check(): RBL query failed");
+		lua_error(l);
+	}
+
+	to.tv_usec = modf(timeout, &i);
+	to.tv_sec = (u_int) i;
+
+	status = rbl_query_check(rbl, qh, timeout == -1. ? NULL : &to, &res);
+
+	if (status != RBL_STAT_NOTFOUND &&
+	    status != RBL_STAT_NOREPLY &&
+	    status != RBL_STAT_FOUND)
+		lua_pushstring(l, rbl_geterror(rbl));
+	else if (status == RBL_STAT_FOUND)
+		found = TRUE;
+
+	rbl_close(rbl);
+
+	if (status != RBL_STAT_NOTFOUND &&
+	    status != RBL_STAT_NOREPLY &&
+	    status != RBL_STAT_FOUND)
+	{
+		return 1;
+	}
+	else if (found)
+	{
+		lua_pushnumber(l, res >> 24);
+		lua_pushnumber(l, (res >> 16) & 0xff);
+		lua_pushnumber(l, (res >> 8) & 0xff);
+		lua_pushnumber(l, res & 0xff);
+		return 4;
+	}
+	else
+	{
+		return 0;
+	}
+}
+# endif /* _FFR_RBL */
 
 /*
 **  DKIMF_XS_PARSEFIELD -- parse an address field into its components

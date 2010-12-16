@@ -70,6 +70,9 @@ parsetime	Adds a utility function reporting the value of the Date:
 		to detect messages in which those values wildly differ.
 		INCOMPLETE.  (libopendkim)
 
+rbl		Option to query realtime blacklists from within Lua scripts.
+		Requires Lua.  (opendkim)
+
 redirect	Option to redirect messages to a specific address on
 		verification or ADSP failure.  (opendkim)
 

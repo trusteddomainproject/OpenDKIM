@@ -201,6 +201,7 @@ extern int dkimf_xs_log __P((lua_State *));
 extern int dkimf_xs_parsefield __P((lua_State *));
 extern int dkimf_xs_popauth __P((lua_State *));
 extern int dkimf_xs_quarantine __P((lua_State *));
+extern int dkimf_xs_rblcheck __P((lua_State *));
 extern int dkimf_xs_rcpt __P((lua_State *));
 extern int dkimf_xs_rcptarray __P((lua_State *));
 extern int dkimf_xs_rcptcount __P((lua_State *));
