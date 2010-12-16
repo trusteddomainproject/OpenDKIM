@@ -1046,9 +1046,9 @@ dkimf_xs_rblcheck(lua_State *l)
 
 	query = lua_tostring(l, 1);
 	qroot = lua_tostring(l, 2);
-	if (lua_gettop(l) == 2)
+	if (lua_gettop(l) == 3)
 		timeout = lua_tonumber(l, 3);
-	lua_pop(l, 3);
+	lua_pop(l, lua_gettop(l));
 
 #  ifdef USE_ARLIB
 	if (arlib == NULL)
