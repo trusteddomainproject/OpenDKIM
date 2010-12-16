@@ -235,6 +235,8 @@ AC_DEFUN([LIB_FFR_FEATURE],
 #
 FEATURE([popauth], [enable POP-before-SMTP support])
 
+FFR_FEATURE([maxverify], [signature verification limit])
+
 FFR_FEATURE([adsp_lists], [support for ADSP filtering for lists])
 
 FFR_FEATURE([bodylength_db], [support for body length DBs])

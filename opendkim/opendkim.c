@@ -209,6 +209,9 @@ struct dkimf_config
 	unsigned int	conf_refcnt;		/* reference count */
 	unsigned int	conf_dnstimeout;	/* DNS timeout */
 	unsigned int	conf_maxhdrsz;		/* max header bytes */
+#ifdef _FFR_MAXVERIFY
+	unsigned int	conf_maxverify;		/* max sigs to verify */
+#endif /* _FFR_MAXVERIFY */
 #ifdef USE_UNBOUND
 	unsigned int	conf_boguskey;		/* bogus key action */
 	unsigned int	conf_insecurekey;	/* insecure key action */
@@ -4545,6 +4548,73 @@ dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 	dfc = cc->cctx_msg;
 	domain = dkim_getdomain(dkim);
 
+#ifdef _FFR_MAXVERIFY
+	if (conf->conf_maxverify > 0)
+	{
+		int n;
+		_Bool *ig = NULL;
+
+		ig = (_Bool *) malloc(sizeof(_Bool) * nsigs);
+		if (ig == NULL)
+			return DKIM_CBSTAT_ERROR;
+
+		/* mark everything to be ignored */
+		for (c = 0; c < nsigs; c++)
+			ig[c] = TRUE;
+
+		n = conf->conf_maxverify;
+
+		if (conf->conf_thirdpartydb != NULL)
+		{
+			_Bool found;
+
+			/* unmark sigs that are explicitly trusted */
+			for (c = 0; c < nsigs; c++)
+			{
+				sdomain = dkim_sig_getdomain(sigs[c]);
+
+				found = FALSE;
+
+				if (dkimf_db_get(conf->conf_thirdpartydb,
+				                 (char *) sdomain, 0, NULL, 0,
+				                 &found) != 0)
+				{
+					free(ig);
+					return DKIM_CBSTAT_ERROR;
+				}
+
+				if (found)
+				{
+					ig[c] = FALSE;
+					n--;
+				}
+			}
+		}
+
+		/* unmark from the top down any that don't exceed the limit */
+		for (c = 0; c < nsigs && n > 0; c++)
+		{
+			if (ig[c])
+			{
+				n--;
+				ig[c] = FALSE;
+			}
+		}
+
+		/* mark what's left to be ignored */
+		for (c = 0; c < nsigs; c++)
+		{
+			if (ig[c])
+				dkim_sig_ignore(sigs[c]);
+		}
+
+		return DKIM_CBSTAT_CONTINUE;
+	}
+
+	if (conf->conf_thirdpartydb == NULL)
+		return DKIM_CBSTAT_CONTINUE;
+#endif /* _FFR_MAXVERIFY */
+
 	/* ignore signatures which are neither first-party nor trusted */
 	for (c = 0; c < nsigs; c++)
 	{
@@ -5052,6 +5122,9 @@ dkimf_config_new(void)
 	new->conf_hdrcanon = DKIM_CANON_DEFAULT;
 	new->conf_bodycanon = DKIM_CANON_DEFAULT;
 	new->conf_dnstimeout = DEFTIMEOUT;
+#ifdef _FFR_MAXVERIFY
+	new->conf_maxverify = DEFMAXVERIFY;
+#endif /* _FFR_MAXVERIFY */
 	new->conf_maxhdrsz = DEFMAXHDRSZ;
 	new->conf_signbytes = -1L;
 	new->conf_sigmintype = SIGMIN_BYTES;
@@ -5412,6 +5485,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 		(void) config_get(data, "MaximumHeaders", &conf->conf_maxhdrsz,
 		                  sizeof conf->conf_maxhdrsz);
+
+#ifdef _FFR_MAXVERIFY
+		(void) config_get(data, "MaximumSignaturesToVerify",
+		                  &conf->conf_maxverify,
+		                  sizeof conf->conf_maxverify);
+#endif /* _FFR_MAXVERIFY */
 
 #ifdef	_FFR_IDENTITY_HEADER
 		(void) config_get(data, "IdentityHeader",
@@ -7206,6 +7285,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	if (status != DKIM_STAT_OK)
 		return FALSE;
 
+#ifdef _FFR_MAXVERIFY
+	status = dkim_set_prescreen(conf->conf_libopendkim, dkimf_prescreen);
+	if (status != DKIM_STAT_OK)
+		return FALSE;
+#else /* _FFR_MAXVERIFY */
 	if (conf->conf_thirdpartydb != NULL)
 	{
 		status = dkim_set_prescreen(conf->conf_libopendkim,
@@ -7219,6 +7303,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		if (status != DKIM_STAT_OK)
 			return FALSE;
 	}
+#endif /* _FFR_MAXVERIFY */
 
 	return TRUE;
 }

@@ -23,6 +23,8 @@ release, and a summary of the changes in that release.
 	Feature request #SF3103095: Allow "%" in a KeyTable entry's filename
 		component as well as the domain name.
 	Feature request #SF3106132: Allow "%" in a SigningTable's value.
+	Feature request #SF3109963: Add "MaximumSignaturesToVerify" setting.
+		Suggested by John Wood.
 	Fix bug #SF3134119: With AutoRestart enabled, arrange to relay
 		SIGUSR1 from the parent to the child rather than terminating.
 		Reported by Yoshiaki Yanagihara.

@@ -142,6 +142,10 @@ static char *optlist[] =
 	"_FFR_LDAP_CACHING",
 #endif /* _FFR_IDENTITY_HEADER */
 
+#if _FFR_MAXVERIFY
+	"_FFR_MAXVERIFY",
+#endif /* _FFR_MAXVERIFY */
+
 #if _FFR_PARSE_TIME
 	"_FFR_PARSE_TIME",
 #endif /* _FFR_PARSE_TIME */
