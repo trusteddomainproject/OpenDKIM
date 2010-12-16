@@ -253,14 +253,9 @@ main(int argc, char **argv)
 	FILE *out;
 #ifdef USE_GNUTLS
 	gnutls_x509_privkey_t xprivkey;
+	gnutls_privkey_t privkey;
 	gnutls_pubkey_t pubkey;
 	gnutls_datum_t key;
-	gnutls_datum_t km;
-	gnutls_datum_t ke;
-	gnutls_datum_t kd;
-	gnutls_datum_t kp;
-	gnutls_datum_t kq;
-	gnutls_datum_t ku;
 #else /* USE_GNUTLS */
 	BIO *private;
 	BIO *outbio = NULL;
@@ -469,6 +464,10 @@ main(int argc, char **argv)
 		return 1;
 	}
 #endif /* ! USE_GNUTLS */
+
+#ifdef USE_GNUTLS
+	(void) gnutls_global_init();
+#endif /* USE_GNUTLS */
 
 	status = dkimf_db_open(&db, dataset, DKIMF_DB_FLAG_READONLY,
 	                       NULL, NULL);
@@ -679,6 +678,27 @@ main(int argc, char **argv)
 			(void) gnutls_x509_privkey_deinit(xprivkey);
 			return -1;
 		}
+
+		status = gnutls_privkey_init(&privkey);
+		if (status != GNUTLS_E_SUCCESS)
+		{
+			fprintf(stderr,
+			        "%s: gnutls_privkey_init() failed\n",
+			        progname);
+			(void) gnutls_x509_privkey_deinit(xprivkey);
+			return -1;
+		}
+
+		status = gnutls_privkey_import_x509(privkey, xprivkey, 0);
+		if (status != GNUTLS_E_SUCCESS)
+		{
+			fprintf(stderr,
+			        "%s: gnutls_privkey_import_x509() failed\n",
+			        progname);
+			(void) gnutls_x509_privkey_deinit(xprivkey);
+			(void) gnutls_privkey_deinit(privkey);
+			return -1;
+		}
 #else /* USE_GNUTLS */
 		/* create a BIO for the private key */
 		if (strncmp(keydata, "-----", 5) == 0)
@@ -814,26 +834,26 @@ main(int argc, char **argv)
 		seenlf = FALSE;
 
 #ifdef USE_GNUTLS
-		if (gnutls_x509_privkey_export_rsa_raw(xprivkey, &km, &ke, &kd,
-		                                       &kp, &kq,
-		                                       &ku) != GNUTLS_E_SUCCESS)
+		if (gnutls_pubkey_init(&pubkey) != GNUTLS_E_SUCCESS)
 		{
-			fprintf(stderr,
-			        "%s: gnutls_x509_privkey_export_rsa_raw() failed\n",
+			fprintf(stderr, "%s: gnutls_pubkey_init() failed\n",
 			        progname);
 			(void) dkimf_db_close(db);
 			(void) gnutls_x509_privkey_deinit(xprivkey);
 			return 1;
 		}
 
-		if (gnutls_pubkey_import_rsa_raw(pubkey,
-		                                 &km, &ke) != GNUTLS_E_SUCCESS)
+		if (gnutls_pubkey_import_privkey(pubkey,
+		                                 privkey,
+		                                 GNUTLS_KEY_DIGITAL_SIGNATURE,
+		                                 0) != GNUTLS_E_SUCCESS)
 		{
 			fprintf(stderr,
-			        "%s: gnutls_x509_privkey_export_rsa_raw() failed\n",
+			        "%s: gnutls_pubkey_import_privkey() failed\n",
 			        progname);
 			(void) dkimf_db_close(db);
 			(void) gnutls_x509_privkey_deinit(xprivkey);
+			(void) gnutls_pubkey_deinit(pubkey);
 			return 1;
 		}
 
@@ -883,6 +903,7 @@ main(int argc, char **argv)
 		/* prepare for the next one */
 #ifdef USE_GNUTLS
 		(void) gnutls_x509_privkey_deinit(xprivkey);
+		(void) gnutls_privkey_deinit(privkey);
 		(void) gnutls_pubkey_deinit(pubkey);
 #else /* USE_GNUTLS */
 		(void) BIO_reset(outbio);

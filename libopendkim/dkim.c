@@ -5336,6 +5336,11 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		rsastat = gnutls_pubkey_verify_hash(rsa->rsa_pubkey, 0,
 		                                    &rsa->rsa_digest,
 		                                    &rsa->rsa_sig);
+
+		(void) gnutls_pubkey_get_pk_algorithm(rsa->rsa_pubkey,
+		                                      &rsa->rsa_keysize);
+
+		sig->sig_keybits = rsa->rsa_keysize;
 #else /* USE_GNUTLS */
 		rsa->rsa_pkey = d2i_PUBKEY_bio(key, NULL);
 		if (rsa->rsa_pkey == NULL)
