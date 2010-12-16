@@ -980,7 +980,6 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 	u_char certs[VBR_MAXHEADER + 1];
 	u_char query[VBR_MAXHOSTNAMELEN + 1];
 	unsigned char buf[BUFRSZ];
-	unsigned char ansbuf[BUFRSZ];
 
 	assert(vbr != NULL);
 	assert(res != NULL);
@@ -1129,7 +1128,8 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 		}
 
 		/* try to decode the reply */
-		if (!vbr_txt_decode(ansbuf, sizeof ansbuf, buf, sizeof buf))
+		if (!vbr_txt_decode(vq->vq_buf, vq->vq_buflen,
+		                    buf, sizeof buf))
 			continue;
 
 		/* see if there's a vouch match */
