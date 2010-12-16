@@ -12490,7 +12490,8 @@ mlfi_eom(SMFICTX *ctx)
 						d = dkim_sig_getdomain(sigs[c]);
 						if (strcasecmp((char *) d,
 						               vbr_domain) == 0 &&
-						    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0)
+						    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0 &&
+						    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH)
 						{
 							vbr_validsig = TRUE;
 							break;
@@ -12571,7 +12572,7 @@ mlfi_eom(SMFICTX *ctx)
 				{
 					snprintf((char *) header,
 					         sizeof header,
-					         "%s%s%s%s vbr=%s%s%s%s header.vbr-info=%s",
+					         "%s%s%s%s vbr=%s header.md=%s",
 					         cc->cctx_noleadspc ? " " : "",
 					         authservid,
 					         conf->conf_authservidwithjobid ? "/"
@@ -12579,13 +12580,17 @@ mlfi_eom(SMFICTX *ctx)
 					         conf->conf_authservidwithjobid ? (char *) dfc->mctx_jobid
 					                                        : "",
 					         vbr_result,
-					         vbr_certifier == NULL ? ""
-					                               : " (",
-					         vbr_certifier == NULL ? ""
- 					                               : vbr_certifier,
-					         vbr_certifier == NULL ? ""
-					                               : ")",
 					         vbr_domain);
+
+					if (vbr_certifier != NULL)
+					{
+						dkim_strlcat(header,
+						             " header.mv=",
+						             sizeof header);
+						dkim_strlcat(header,
+						             vbr_certifier,
+						             sizeof header);
+					}
 		
 					if (dkimf_insheader(ctx, 1,
 					                    AUTHRESULTSHDR,
