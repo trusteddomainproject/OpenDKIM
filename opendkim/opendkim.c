@@ -4612,7 +4612,7 @@ dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 			}
 		}
 
-		if (conf->conf_dolog)
+		if (conf->conf_dolog && ni > 0)
 		{
 			syslog(LOG_INFO, "%s: ignoring %u signature%s",
 			       dkim_getid(dkim), ni, ni == 1 ? "" : "s");
