@@ -23,10 +23,10 @@ release, and a summary of the changes in that release.
 	Feature request #SF3103095: Allow "%" in a KeyTable entry's filename
 		component as well as the domain name.
 	Feature request #SF3106132: Allow "%" in a SigningTable's value.
-	Add "ResolverTracing" and "StrictHeaders" configuration file option.
 	Fix bug #SF3134119: With AutoRestart enabled, arrange to relay
 		SIGUSR1 from the parent to the child rather than terminating.
 		Reported by Yoshiaki Yanagihara.
+	Add "ResolverTracing" and "StrictHeaders" configuration file option.
 	Trim whitespace from the end of all values in a config file, not just
 		strings.  Problem noted by Reuben Farrelly.
 	LIBAR: Feature request #SF3115073: Add flag for fine-grained activity
@@ -35,11 +35,11 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Fix bug #SF3079094: Have dkim_diffheaders() take
 		canonicalization into account when generating its results
 		to avoid false positives.
+	LIBVBR: Feature request #SF3105477: Copy the generic DNS work from
+		libopendkim.
 	STATS: Feature request #SF3085536: Activate _FFR_STATS_I, providing
 		statistics reporting about use of "i=" in signatures.
 	STATS: Feature request #SF3125701: Add "s=" key value tracking.
-	LIBVBR: Feature request #SF3105477: Copy the generic DNS work from
-		libopendkim.
 
 2.2.2		2010/11/28
 	Fix bug #SF2903325: Clean up numerous signed vs. unsigned warnings.
