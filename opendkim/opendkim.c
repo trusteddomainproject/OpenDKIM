@@ -10439,7 +10439,7 @@ mlfi_eoh(SMFICTX *ctx)
 	if (dfc->mctx_srhead != NULL)
 	{
 		Header newhdr;
-		char header[MAXHEADER + 1];
+		char header[DKIM_MAXHEADER + 1];
 
 		/* set the sending domain */
 		vbr_setdomain(dfc->mctx_vbr, dfc->mctx_domain);
