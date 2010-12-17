@@ -113,9 +113,9 @@ dn_comp (0, 0, 0, 0, 0);
 return 0;
 }'
 AC_MSG_CHECKING([whether the resolver works without -lresolv])
-AC_LINK_IFELSE([
+AC_LINK_IFELSE([AC_LANG_SOURCE([
 $dnscheck
-] , [
+])] , [
 	AC_MSG_RESULT(yes)
 	LIBRESOLV=
 ] , [
@@ -123,9 +123,9 @@ $dnscheck
 	AC_MSG_CHECKING([whether the resolver works with -lresolv])
 	saved_LIBS="$LIBS"
 	LIBS=-lresolv
-	AC_LINK_IFELSE([
+	AC_LINK_IFELSE([AC_LANG_SOURCE([
 $dnscheck
-	] , [
+	])] , [
 		AC_MSG_RESULT(yes)
 		LIBRESOLV=-lresolv
 	] , [
@@ -932,7 +932,7 @@ then
 	saved_CPPFLAGS="$CPPFLAGS"
 	CPPFLAGS="$LIBLUA_INCDIRS"
 	AC_MSG_CHECKING([Lua version])
-	AC_COMPILE_IFELSE(	[
+	AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <lua.h>
 
 #if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501
@@ -944,7 +944,7 @@ main()
 {
 	return 0;
 }
-				],
+				])],
 				AC_MSG_RESULT([ok]), 
 				AC_MSG_ERROR([Lua version 5.1 or later required]))
 	CPPFLAGS="$saved_CPPFLAGS"
@@ -1121,7 +1121,7 @@ then
 	saved_CPPFLAGS="$CPPFLAGS"
 	CPPFLAGS="$OPENLDAP_CPPFLAGS"
 	AC_MSG_CHECKING([OpenLDAP version])
-	AC_COMPILE_IFELSE(	[
+	AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <ldap.h>
 
 #if !defined(LDAP_API_VERSION) || LDAP_API_VERSION < 2004
@@ -1133,7 +1133,7 @@ main()
 {
 	return 0;
 }
-				],
+				])],
 				AC_MSG_RESULT([ok]), 
 				AC_MSG_ERROR([OpenLDAP version 2.1.3 or later required]))
 	CPPFLAGS="$saved_CPPFLAGS"
