@@ -333,4 +333,3 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 
 #endif /* ! _FFR_ATPS */
 }
-
