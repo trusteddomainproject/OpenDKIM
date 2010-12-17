@@ -7,7 +7,9 @@ OpenDKIM Branch Listing
 Production Branches
 ~~~~~~~~~~~~~~~~~~~
 
-HEAD/TRUNK	ongoing development
+master		releases only
+
+develop		ongoing development
 
 
 Experimental Branches (branch name contains owner)
@@ -16,19 +18,26 @@ Experimental Branches (branch name contains owner)
 br-msk-db-handle-pools
 		Handle pools for odbx handles (bug #SF3067338)
 
-br-msk-diffheaders-canon
-		Addition of a canonicalization parameter to dkim_diffheaders()
-		(bug #SF3079094)
-
 br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
 
-br-msk-oversign	Feature to enable "oversigning" of critical header fields
-		so extra ones can't be added (feature request #SF3081697)
+feature-msk-sf3074290
+		Experimental use of ATPS (Authorized Third-Party Signers)
 
-br-msk-solaris-cleanup
-		Extensive reworking of various things so a build on Solaris
-		with the native compiler is clean (bug #SF2903325)
+feature-msk-sf3081697
+		Optional header field "oversigning"
+
+feature-msk-sf3106876
+		DNSSEC testing with opendkim-testkey
+
+feature-msk-sf3110593
+		Build-time support for GnuTLS; requires 2.11.7 or greater
+
+feature-msk-sf3136772
+		VBR-Info signing
+
+feature-msk-sf3137445
+		Record, report and import stats for key sizes
 
 
 Closed Branches
