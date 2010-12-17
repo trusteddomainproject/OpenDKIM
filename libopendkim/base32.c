@@ -152,3 +152,30 @@ base32_encode(char *buf, size_t *buflen, const void *data, size_t size)
 
 	return iout;
 }
+
+#ifdef TEST
+#include <openssl/sha.h>
+
+int
+main(int argc, char **argv)
+{
+	int x;
+	size_t buflen;
+	SHA_CTX sha;
+	char buf[128];
+	unsigned char shaout[SHA_DIGEST_LENGTH];
+
+	memset(buf, '\0', sizeof buf);
+	buflen = sizeof buf;
+
+	SHA1_Init(&sha);
+	SHA1_Update(&sha, argv[1], strlen(argv[1]));
+	SHA1_Final(shaout, &sha);
+
+	x = base32_encode(buf, &buflen, shaout, SHA_DIGEST_LENGTH);
+
+	printf("%s (%d)\n", buf, x);
+
+	return 0;
+}
+#endif /* TEST */
