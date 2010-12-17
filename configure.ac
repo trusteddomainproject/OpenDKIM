@@ -453,12 +453,13 @@ AM_CONDITIONAL([DEBUG], [test x"$enable_debug" = x"yes"])
 AC_ARG_WITH([gnutls],
             AS_HELP_STRING([--with-gnutls],
                            [location of GnuTLS includes and library]),
-                           [gtpath="$withval"], [gtpath="no"])
+            [gtpath="$withval"], [gtpath="no"])
+
 gnutls_found="no"
 
 if test \( x"$gtpath" = x"auto" -o x"$gtpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-	PKG_CHECK_MODULES([GNUTLS], [libgnutls >= 2.11.0],
+	PKG_CHECK_MODULES([GNUTLS], [libgnutls >= 2.11.7],
 	                  [gnutls_found="yes"],
 	                  [gnutls_found="auto"
 	                   AC_MSG_WARN(["pkg-config for GnuTLS not found, trying manual search..."])
@@ -552,6 +553,22 @@ then
 
 	saved_CPPFLAGS="$CPPFLAGS"
 	CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
+
+	versioncheck='
+		#include <gnutls/gnutls.h>
+
+		#if GNUTLS_VERSION_NUMBER < 0x020b07
+		# error GnuTLS 2.11.7 or later required
+		#endif 
+		int main()
+		{
+			return 0;
+		}'
+
+	AC_MSG_CHECKING([your GnuTLS version])
+	AC_LINK_IFELSE([$versioncheck],
+	               AC_MSG_RESULT(ok),
+	               AC_MSG_FAILURE([GnuTLS must be at least version 2.11.7]))
 
 	sha256check='
 		#include <gnutls/gnutls.h>
