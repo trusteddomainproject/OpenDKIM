@@ -114,6 +114,10 @@ static char *optlist[] =
 	"_FFR_ADSP_LISTS",
 #endif /* _FFR_ADSP_LISTS */
 
+#ifdef _FFR_ATPS
+	"_FFR_ATPS",
+#endif /* _FFR_ATPS */
+
 #ifdef _FFR_BODYLENGTH_DB
 	"_FFR_BODYLENGTH_DB",
 #endif /* _FFR_BODYLENGTH_DB */
