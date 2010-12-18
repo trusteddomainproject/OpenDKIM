@@ -65,7 +65,7 @@ DKIM_STAT
 dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 {
 #ifdef QUERY_CACHE
-	bool cached = FALSE;
+	_Bool cached = FALSE;
 	uint32_t ttl = 0;
 #endif /* QUERY_CACHE */
 	int status;

@@ -378,11 +378,15 @@ struct msgctx
 	_Bool		mctx_resign;		/* arrange to re-sign */
 #endif /* _FFR_RESIGN */
 	dkim_policy_t	mctx_pcode;		/* policy result code */
+#ifdef _FFR_ATPS
+	int		mctx_atps;		/* ATPS */
+#endif /* _FFR_ATPS */
 #ifdef USE_LUA
 	int		mctx_mresult;		/* SMFI status code */
 #endif /* USE_LUA */
 	int		mctx_presult;		/* policy result */
 	int		mctx_status;		/* status to report back */
+	unsigned int	mctx_pflags;		/* policy flags */
 	dkim_canon_t	mctx_hdrcanon;		/* header canonicalization */
 	dkim_canon_t	mctx_bodycanon;		/* body canonicalization */
 	dkim_alg_t	mctx_signalg;		/* signature algorithm */
@@ -11006,7 +11010,7 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 
 		status = dkim_policy(dfc->mctx_dkimv, &policy,
-		                     dfc->mctx_pstate);
+		                     &dfc->mctx_pflags, dfc->mctx_pstate);
 		if (status != DKIM_STAT_OK && status != DKIM_STAT_SYNTAX)
 		{
 			const char *err;
@@ -11946,6 +11950,7 @@ mlfi_eom(SMFICTX *ctx)
 			{
 				pstatus = dkim_policy(dfc->mctx_dkimv,
 				                      &dfc->mctx_pcode,
+				                      &dfc->mctx_pflags,
 				                      dfc->mctx_pstate);
 #ifdef USE_UNBOUND
 				dfc->mctx_dnssec_policy = dkim_policy_getdnssec(dfc->mctx_dkimv);
@@ -12118,6 +12123,36 @@ mlfi_eom(SMFICTX *ctx)
 					                        NULL);
 				}
 			}
+
+#ifdef _FFR_ATPS
+			if ((dfc->mctx_pflags & DKIM_PFLAG_ATPS) != 0)
+			{
+				dkim_atps_t atps;
+
+				sig = dkim_getsignature(dfc->mctx_dkimv);
+
+				if (sig != NULL &&
+				    strcasecmp(dkim_sig_getdomain(sig),
+				               dfc->mctx_domain) != 0 &&
+				    (dkim_sig_getflags(sig) &
+				     DKIM_SIGFLAG_PASSED) != 0 &&
+				    dkim_sig_getbh(sig) == DKIM_SIGBH_MATCH)
+				{
+					status = dkim_atps_check(dfc->mctx_dkimv,
+					                         sig,
+					                         NULL,
+					                         &atps);
+
+					if (status == DKIM_STAT_OK)
+					{
+						if (atps == DKIM_ATPS_FOUND)
+							dfc->mctx_atps = 1;
+						else
+							dfc->mctx_atps = -1;
+					}
+				}
+			}
+#endif /* _FFR_ATPS */
 		}
 
 #ifdef _FFR_STATS
@@ -12645,6 +12680,36 @@ mlfi_eom(SMFICTX *ctx)
 				}
 #endif /* USE_UNBOUND */
 			}
+
+#ifdef _FFR_ATPS
+			dkim_strlcat((char *) header, ";", sizeof header);
+			dkim_strlcat((char *) header, DELIMITER,
+			             sizeof header);
+
+			dkim_strlcat((char *) header, "x-dkim-atps=",
+			             sizeof header);
+
+			switch (dfc->mctx_atps)
+			{
+			  case -1:
+				dkim_strlcat((char *) header, "fail",
+				             sizeof header);
+				break;
+
+			  case 0:
+				dkim_strlcat((char *) header, "neutral",
+				             sizeof header);
+				break;
+
+			  case 1:
+				dkim_strlcat((char *) header, "pass",
+				             sizeof header);
+				break;
+
+			  default:
+				assert(0);
+			}
+#endif /* _FFR_ATPS */
 
 			/* if we generated either, pretty it up */
 			if (header[0] != '\0')

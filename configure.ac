@@ -235,7 +235,8 @@ AC_DEFUN([LIB_FFR_FEATURE],
 #
 FEATURE([popauth], [enable POP-before-SMTP support])
 
-FFR_FEATURE([maxverify], [signature verification limit])
+FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
+LIB_FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
 
 FFR_FEATURE([adsp_lists], [support for ADSP filtering for lists])
 
@@ -254,6 +255,8 @@ LIB_FFR_FEATURE([dkim_reputation], [experimental DKIM reputation checks])
 FFR_FEATURE([identity_header], [special header to set identity])
 
 FFR_FEATURE([ldap_caching], [LDAP query piggybacking and caching])
+
+FFR_FEATURE([maxverify], [signature verification limit])
 
 FFR_FEATURE([replace_rules], [support for string substitution when signing])
 
