@@ -21,9 +21,6 @@ br-msk-db-handle-pools
 br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
 
-feature-msk-sf3074290
-		Experimental use of ATPS (Authorized Third-Party Signers)
-
 feature-msk-sf3081697
 		Optional header field "oversigning"
 
