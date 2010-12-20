@@ -30,9 +30,6 @@ feature-msk-sf3081697
 feature-msk-sf3106876
 		DNSSEC testing with opendkim-testkey
 
-feature-msk-sf3110593
-		Build-time support for GnuTLS; requires 2.11.7 or greater
-
 
 Closed Branches
 ~~~~~~~~~~~~~~~
