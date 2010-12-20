@@ -725,7 +725,7 @@ main(int argc, char **argv)
 		{
 			int changed;
 
-			if (n != 19 && n != 21 && n != 22)
+			if (n != 19 && n != 21 && n != 22 && n != 23)
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",
