@@ -4039,7 +4039,6 @@ dkimf_db_mkarray_base(DKIMF_DB db, char ***a, const char **base)
 	int nout = 0;
 	int nbase;
 	size_t buflen;
-	char *p;
 	char **out = NULL;
 	char buf[BUFRSZ + 1];
 
@@ -4126,6 +4125,10 @@ dkimf_db_mkarray_base(DKIMF_DB db, char ***a, const char **base)
 		{
 			break;
 		}
+		else if (buf[0] != '+')
+		{
+			continue;
+		}
 
 		if (nout == nalloc - 1)
 		{
@@ -4145,10 +4148,7 @@ dkimf_db_mkarray_base(DKIMF_DB db, char ***a, const char **base)
 			nalloc *= 2;
 		}
 
-		p = buf;
-		if (*p == '+')
-			p++;
-		out[nout] = strdup(p);
+		out[nout] = strdup(&buf[1]);
 		if (out[nout] == NULL)
 		{
 			for (c = 0; c < nout; c++)
