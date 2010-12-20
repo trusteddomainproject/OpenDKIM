@@ -377,6 +377,9 @@ struct msgctx
 #ifdef _FFR_RESIGN
 	_Bool		mctx_resign;		/* arrange to re-sign */
 #endif /* _FFR_RESIGN */
+#ifdef _FFR_VBR
+	_Bool		mctx_vbrpurge;		/* purge X-VBR-* headers */
+#endif /* _FFR_VBR */
 	dkim_policy_t	mctx_pcode;		/* policy result code */
 #ifdef _FFR_ATPS
 	int		mctx_atps;		/* ATPS */
@@ -404,6 +407,7 @@ struct msgctx
 #endif /* VERIFY_DOMAINKEYS */
 #ifdef _FFR_VBR
 	VBR *		mctx_vbr;		/* VBR handle */
+	char *		mctx_vbrinfo;		/* VBR-Info header field */
 #endif /* _FFR_VBR */
 	struct Header *	mctx_hqhead;		/* header queue head */
 	struct Header *	mctx_hqtail;		/* header queue tail */
@@ -7783,6 +7787,8 @@ dkimf_cleanup(SMFICTX *ctx)
 #ifdef _FFR_VBR
 		if (dfc->mctx_vbr != NULL)
 			vbr_close(dfc->mctx_vbr);
+
+		TRYFREE(dfc->mctx_vbrinfo);
 #endif /* _FFR_VBR */
 
 #ifdef VERIFY_DOMAINKEYS
@@ -10767,41 +10773,52 @@ mlfi_eoh(SMFICTX *ctx)
 #endif /* _FFR_BODYLENGTH_DB */
 
 #ifdef _FFR_VBR
-	/* establish a VBR handle */
-	dfc->mctx_vbr = vbr_init(NULL, NULL, NULL);
-	if (dfc->mctx_vbr == NULL)
+	if (dfc->mctx_srhead != NULL)
 	{
-		syslog(LOG_ERR, "%s: can't create VBR context",
-		       dfc->mctx_jobid);
-		dkimf_cleanup(ctx);
-		return SMFIS_TEMPFAIL;
-	}
+		Header newhdr;
+		char header[DKIM_MAXHEADER + 1];
 
-	/* store trusted certifiers */
-	if (conf->conf_vbr_trusted != NULL)
+		/* establish a VBR handle */
+		dfc->mctx_vbr = vbr_init(NULL, NULL, NULL);
+		if (dfc->mctx_vbr == NULL)
+		{
+			syslog(LOG_ERR, "%s: can't create VBR context",
+			       dfc->mctx_jobid);
+			dkimf_cleanup(ctx);
+			return SMFIS_TEMPFAIL;
+		}
+
+		/* store the trusted certifiers */
 		vbr_trustedcerts(dfc->mctx_vbr, conf->conf_vbr_trusted);
 	if (conf->conf_vbr_trustedonly)
 		vbr_options(dfc->mctx_vbr, VBR_OPT_TRUSTEDONLY);
 
-	/* if signing, store the values needed to make a header */
-	if (dfc->mctx_srhead != NULL)
-	{
 		/* set the sending domain */
 		vbr_setdomain(dfc->mctx_vbr, dfc->mctx_domain);
 
 		/* VBR-Type; get value from headers or use default */
 		hdr = dkimf_findheader(dfc, XVBRTYPEHEADER, 0);
 		if (hdr != NULL)
+		{
+			dfc->mctx_vbrpurge = TRUE;
 			vbr_type = hdr->hdr_val;
+		}
 		else
+		{
 			vbr_type = conf->conf_vbr_deftype;
+		}
 
 		/* X-VBR-Certifiers; get value from headers or use default */
 		hdr = dkimf_findheader(dfc, XVBRCERTHEADER, 0);
 		if (hdr != NULL)
+		{
+			dfc->mctx_vbrpurge = TRUE;
 			vbr_cert = hdr->hdr_val;
+		}
 		else
+		{
 			vbr_cert = conf->conf_vbr_defcert;
+		}
 
 		/* set the message type and certifiers */
 		if (vbr_type != NULL && vbr_cert != NULL)
@@ -10811,6 +10828,69 @@ mlfi_eoh(SMFICTX *ctx)
 	
 			/* set the VBR certifier list */
 			(void) vbr_setcert(dfc->mctx_vbr, (u_char *) vbr_cert);
+		}
+
+		/* generate a VBR-Info header */
+		memset(header, '\0', sizeof header);
+
+		status = vbr_getheader(dfc->mctx_vbr, header, sizeof header);
+		if (status != VBR_STAT_OK)
+		{
+			syslog(LOG_ERR,
+			       "%s: can't create VBR-Info header field",
+			       dfc->mctx_jobid);
+		}
+		else
+		{
+			/* store it for addition in mlfi_eom() */
+			dfc->mctx_vbrinfo = strdup(header);
+			if (dfc->mctx_vbrinfo == NULL)
+			{
+				syslog(LOG_ERR, "%s: strdup(): %s",
+				       dfc->mctx_jobid, strerror(errno));
+				dkimf_cleanup(ctx);
+				return SMFIS_TEMPFAIL;
+			}
+
+			/* add it to our header set so it gets signed */
+			newhdr = (Header) malloc(sizeof(struct Header));
+			if (newhdr == NULL)
+			{
+				if (conf->conf_dolog)
+				{
+					syslog(LOG_ERR, "malloc(): %s",
+					       strerror(errno));
+
+					dkimf_cleanup(ctx);
+					return SMFIS_TEMPFAIL;
+				}
+			}
+
+			(void) memset(newhdr, '\0', sizeof(struct Header));
+
+			newhdr->hdr_hdr = strdup(VBR_INFOHEADER);
+			newhdr->hdr_val = strdup(header);
+
+			if (newhdr->hdr_hdr == NULL ||
+			    newhdr->hdr_val == NULL)
+			{
+				syslog(LOG_ERR, "%s: strdup(): %s",
+				       dfc->mctx_jobid, strerror(errno));
+				TRYFREE(newhdr->hdr_hdr);
+				dkimf_cleanup(ctx);
+				return SMFIS_TEMPFAIL;
+			}
+
+			newhdr->hdr_next = NULL;
+			newhdr->hdr_prev = dfc->mctx_hqtail;
+
+			if (dfc->mctx_hqhead == NULL)
+				dfc->mctx_hqhead = newhdr;
+
+			if (dfc->mctx_hqtail != NULL)
+				dfc->mctx_hqtail->hdr_next = newhdr;
+
+			dfc->mctx_hqtail = newhdr;
 		}
 	}
 #endif /* _FFR_VBR */
@@ -13344,15 +13424,11 @@ mlfi_eom(SMFICTX *ctx)
 		}
 
 #ifdef _FFR_VBR
-		/* generate and add a VBR-Info header */
-		memset(header, '\0', sizeof header);
-
-		status = vbr_getheader(dfc->mctx_vbr, header, sizeof header);
-		/* XXX -- log errors */
-		if (status == DKIM_STAT_OK)
+		/* add VBR-Info header if generated */
+		if (dfc->mctx_vbrinfo != NULL)
 		{
 			if (dkimf_insheader(ctx, 1, VBR_INFOHEADER,
-			                    (char *) header) == MI_FAILURE)
+			                    dfc->mctx_vbrinfo) == MI_FAILURE)
 			{
 				if (conf->conf_dolog)
 				{
@@ -13361,6 +13437,25 @@ mlfi_eom(SMFICTX *ctx)
 					       dfc->mctx_jobid,
 					       VBR_INFOHEADER);
 				}
+			}
+		}
+
+		if (dfc->mctx_vbrpurge)
+		{
+			if (dkimf_chgheader(ctx, XVBRTYPEHEADER,
+			                    0, NULL) != MI_SUCCESS ||
+			     conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: %s header remove failed",
+				       dfc->mctx_jobid, XVBRTYPEHEADER);
+			}
+
+			if (dkimf_chgheader(ctx, XVBRCERTHEADER,
+			                    0, NULL) != MI_SUCCESS ||
+			     conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: %s header remove failed",
+				       dfc->mctx_jobid, XVBRCERTHEADER);
 			}
 		}
 #endif /* _FFR_VBR */
