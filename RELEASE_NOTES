@@ -29,6 +29,8 @@ release, and a summary of the changes in that release.
 	Feature request #SF3106132: Allow "%" in a SigningTable's value.
 	Feature request #SF3109963: Add "MaximumSignaturesToVerify" setting.
 		Suggested by John Wood.
+	Feature request #SF3110593: Add compile-time support for GnuTLS as
+		an alternative to OpenSSL.  Suggested by Alessandro Vesely.
 	Feature request #SF3136772: Sign the VBR-Info header field, if added.
 		Requested by Frederik Pettai.
 	Fix bug #SF3134119: With AutoRestart enabled, arrange to relay
