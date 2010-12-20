@@ -15,6 +15,12 @@ AM_CFLAGS += $(PTHREAD_CFLAGS)
 AM_LDFLAGS += $(PTHREAD_CFLAGS)
 endif
 
+if USE_GNUTLS
+AM_CFLAGS += $(LIBCRYPTO_CFLAGS)
+AM_CPPFLAGS += $(LIBCRYPTO_CPPFLAGS)
+AM_LDFLAGS += $(LIBCRYPTO_LDFLAGS)
+endif
+
 PROF_SRCS = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c
 
 check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \

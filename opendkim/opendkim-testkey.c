@@ -16,6 +16,8 @@ static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10.10.1 2
 # define _REENTRANT
 #endif /* _REENTRANT */
 
+#include "build-config.h"
+
 /* system includes */
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -28,8 +30,13 @@ static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10.10.1 2
 #include <unistd.h>
 #include <assert.h>
 
+#ifdef USE_GNUTLS
+/* gcrypt includes */
+# include <gnutls/gnutls.h>
+#else /* USE_GNUTLS */
 /* openssl includes */
-#include <openssl/err.h>
+# include <openssl/err.h>
+#endif /* USE_GNUTLS */
 
 /* libopendkim includes */
 #include <dkim.h>
@@ -40,6 +47,7 @@ static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10.10.1 2
 #include "opendkim-db.h"
 #include "config.h"
 #include "opendkim-config.h"
+#include "opendkim-crypto.h"
 
 /* macros */
 #define	CMDLINEOPTS	"d:k:s:vx:"
@@ -69,6 +77,13 @@ char *progname;
 void
 dkimf_log_ssl_errors(void)
 {
+#ifdef USE_GNUTLS
+	const char *err;
+
+	err = dkimf_crypto_geterror();
+	if (err != NULL)
+		fprintf(stderr, "%s\n", err);
+#else /* USE_GNUTLS */
 	/* log any queued SSL error messages */
 	if (ERR_peek_error() != 0)
 	{
@@ -98,6 +113,7 @@ dkimf_log_ssl_errors(void)
 
 		errno = saveerr;
 	}
+#endif /* ! USE_GNUTLS */
 }
 
 /*
@@ -347,7 +363,9 @@ main(int argc, char **argv)
 
 	memset(err, '\0', sizeof err);
 
+#ifndef USE_GNUTLS
 	ERR_load_crypto_strings();
+#endif /* ! USE_GNUTLS */
 
 	/* process a KeyTable if specified */
 	if (dataset != NULL)

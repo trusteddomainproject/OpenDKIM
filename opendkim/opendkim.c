@@ -56,10 +56,13 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 #include <netdb.h>
 #include <signal.h>
 #include <regex.h>
-#include <openssl/sha.h>
-#include <openssl/err.h>
-#include <openssl/bio.h>
-#include <openssl/evp.h>
+
+#ifdef USE_GNUTLS
+# include <gnutls/gnutls.h>
+#else /* USE_GNUTLS */
+# include <openssl/sha.h>
+# include <openssl/err.h>
+#endif /* USE_GNUTLS */
 
 #ifdef HAVE_PATHS_H
 # include <paths.h>
@@ -7646,6 +7649,23 @@ dkimf_initcontext(struct dkimf_config *conf)
 static void
 dkimf_log_ssl_errors(char *jobid, char *selector, char *domain)
 {
+#ifdef USE_GNUTLS
+	const char *errbuf;
+
+	errbuf = dkimf_crypto_geterror();
+	if (errbuf != NULL)
+	{
+		if (selector != NULL && domain != NULL)
+		{
+			syslog(LOG_INFO, "%s: s=%s d=%s SSL %s", jobid,
+			       selector, domain, errbuf);
+		}
+		else
+		{
+			syslog(LOG_INFO, "%s: SSL %s", jobid, errbuf);
+		}
+	}
+#else /* USE_GNUTLS */
 	assert(jobid != NULL);
 
 	/* log any queued SSL error messages */
@@ -7686,6 +7706,7 @@ dkimf_log_ssl_errors(char *jobid, char *selector, char *domain)
 
 		errno = saveerr;
 	}
+#endif /* USE_GNUTLS */
 }
 
 /*
@@ -13987,8 +14008,12 @@ main(int argc, char **argv)
 
 			printf("%s: %s v%s\n", progname, DKIMF_PRODUCT,
 			       VERSION);
+#ifdef USE_GNUTLS
+			printf("\tCompiled with GnuTLS %s\n", GNUTLS_VERSION);
+#else /* USE_GNUTLS */
 			printf("\tCompiled with %s\n",
 			       SSLeay_version(SSLEAY_VERSION));
+#endif /* USE_GNUTLS */
 			printf("\tSMFI_VERSION 0x%x\n", SMFI_VERSION);
 #ifdef HAVE_SMFI_VERSION
 			(void) smfi_version(&mvmajor, &mvminor, &mvrelease);
@@ -14028,12 +14053,20 @@ main(int argc, char **argv)
 	if (optind != argc)
 		return usage();
 
+#ifdef USE_GNUTLS
+	if (dkim_ssl_version() != GNUTLS_VERSION_NUMBER * 256)
+#else /* USE_GNUTLS */
 	if (dkim_ssl_version() != OPENSSL_VERSION_NUMBER)
+#endif /* USE_GNUTLS */
 	{
 		fprintf(stderr,
-		        "%s: incompatible OpenSSL versions (library = 0x%09lx, filter = %09lx)\n",
+		        "%s: incompatible SSL versions (library = 0x%09lx, filter = %09lx)\n",
 		        progname, dkim_ssl_version(),
+#ifdef USE_GNUTLS
+		        GNUTLS_VERSION_NUMBER * 256);
+#else /* USE_GNUTLS */
 		        (unsigned long) OPENSSL_VERSION_NUMBER);
+#endif /* USE_GNUTLS */
 
 		return EX_SOFTWARE;
 	}

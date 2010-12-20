@@ -17,11 +17,14 @@ static char dkim_util_c_id[] = "@(#)$Id: dkim-util.c,v 1.7.58.1 2010/10/27 21:43
 #ifdef HAVE_STDBOOL_H
 # include <stdbool.h>
 #endif /* HAVE_STDBOOL_H */
+#include <stdlib.h>
+#include <stdarg.h>
 #include <assert.h>
 #include <unistd.h>
 #include <limits.h>
 #include <string.h>
 #include <errno.h>
+#include <stdio.h>
 
 /* libopendkim includes */
 #include "dkim-internal.h"

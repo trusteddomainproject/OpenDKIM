@@ -57,6 +57,10 @@ doesn't find it, you will need to specify the location with
 		Sendmail's "libdk" include file and library for verifying
 		messages signed with the older DomainKeys specification.
 
+--with-libgcrypt
+		Location of GNU's libgcrypt includes and library.
+		If not specified, "--with-openssl" is assumed.
+
 --with-lua	Lua interpreter library.  Enables fine-grained policy control
 		via Lua script hooks, and also enables building of the
 		"miltertest" test tool.
@@ -73,8 +77,9 @@ doesn't find it, you will need to specify the location with
 --with-openldap	Location of the OpenLDAP installation on your system.
 
 --with-openssl	Location of the OpenSSL installation on your system.
-		This is required.  If no specific location is provided,
-		the /usr/local and /usr directories will be searched for
+		Either this or libgcrypt required, and this one is assumed
+		if libgcrypt is not enabled.  If no specific location is
+		provided, several common install locations will be searched for
 		the required includes and libraries.
 
 --with-sasl	Location of the Cyrus SASL include file definitions. This is

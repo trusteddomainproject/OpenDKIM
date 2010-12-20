@@ -448,12 +448,167 @@ AC_ARG_ENABLE([debug],
 
 AM_CONDITIONAL([DEBUG], [test x"$enable_debug" = x"yes"])
 
+#
+# gnutls
+#
+
+AC_ARG_WITH([gnutls],
+            AS_HELP_STRING([--with-gnutls],
+                           [location of GnuTLS includes and library]),
+            [gtpath="$withval"], [gtpath="no"])
+
+gnutls_found="no"
+
+if test \( x"$gtpath" = x"auto" -o x"$gtpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
+then
+	PKG_CHECK_MODULES([GNUTLS], [libgnutls >= 2.11.7],
+	                  [gnutls_found="yes"],
+	                  [gnutls_found="auto"
+	                   AC_MSG_WARN(["pkg-config for GnuTLS not found, trying manual search..."])
+	                  ])
+elif test x"$gtpath" != x"no"
+then
+	AC_MSG_NOTICE([checking for GnuTLS library and includes in $gtpath])
+
+	saved_CFLAGS="$CFLAGS"
+	saved_CPPFLAGS="$CPPFLAGS"
+	saved_LDFLAGS="$LDFLAGS"
+	saved_LIBS="$LIBS"
+
+	LIBS="-lgnutls $saved_LIBS"
+	CPPFLAGS="-I$gtpath/include $saved_CPPFLAGS"
+	CFLAGS="$saved_CFLAGS"
+	LDFLAGS="-L$gtpath/lib $saved_LDFLAGS"
+
+	AC_CHECK_HEADERS([gnutls/gnutls.h], ,
+                         AC_MSG_ERROR([required GnuTLS header not found]))
+
+	AC_SEARCH_LIBS([gnutls_global_init], [gnutls], ,
+                       AC_MSG_ERROR([libgnutls not found]), [-lnettle -lgmp])
+
+	LIBCRYPTO_CPPFLAGS="-I$gtpath/include"
+	LIBCRYPTO_LIBDIRS="-L$gtpath/lib"
+	LIBCRYPTO_LIBS="-lgnutls"
+
+	CFLAGS="$saved_CFLAGS"
+	CPPFLAGS="$saved_CPPFLAGS"
+	LDFLAGS="$saved_LDFLAGS"
+	LIBS="$saved_LIBS"
+
+	gnutls_found="yes"
+fi
+
+if test x"$gtpath" = x"yes" -a x"$gnutls_found" = x"auto"
+then
+	gcdirs="/usr/local /usr"
+
+	for d in $gcdirs
+	do
+		AC_MSG_NOTICE([checking for GnuTLS library and includes in $d])
+
+		saved_CFLAGS="$CFLAGS"
+		saved_CPPFLAGS="$CPPFLAGS"
+		saved_LDFLAGS="$LDFLAGS"
+		saved_LIBS="$LIBS"
+
+		LIBS="-lgnutls $saved_LIBS"
+		CPPFLAGS="-I$d/include $saved_CPPFLAGS"
+		CFLAGS="$saved_CFLAGS"
+		LDFLAGS="-L$d/lib $saved_LDFLAGS"
+
+		gnutls_h_found="no"
+		gnutls_lib_found="no"
+
+		AC_CHECK_HEADERS([gnutls/gnutls.h], gnutls_h_found="yes")
+		AC_SEARCH_LIBS([gnutls_global_init], [gnutls],
+		               gnutls_lib_found="yes", , [-lnettle -lgmp])
+
+		CFLAGS="$saved_CFLAGS"
+		CPPFLAGS="$saved_CPPFLAGS"
+		LDFLAGS="$saved_LDFLAGS"
+		LIBS="$saved_LIBS"
+
+		if test x"$gnutls_h_found" = x"yes" -a \
+		        x"$gnutls_lib_found" = x"yes"
+		then
+			LIBCRYPTO_CPPFLAGS="-I$d/include"
+			LIBCRYPTO_LIBDIRS="-L$d/lib"
+			LIBCRYPTO_LIBS="-lgnutls"
+			gnutls_found="yes"
+			AC_MSG_NOTICE(libgnutls found in $d)
+			break
+		else
+			AC_MSG_NOTICE(not found in $d)
+		fi
+	done
+
+	if test x"$gnutls_found" != x"yes"
+	then
+		AC_MSG_ERROR([GnuTLS not found])
+	fi
+fi
+
+if test x"$gnutls_found" = x"yes"
+then
+	AC_DEFINE(USE_GNUTLS, 1,
+                  [Define to 1 to use libgnutls instead of OpenSSL.])
+
+	saved_CPPFLAGS="$CPPFLAGS"
+	CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
+
+	versioncheck='
+		#include <gnutls/gnutls.h>
+
+		#if GNUTLS_VERSION_NUMBER < 0x020b07
+		# error GnuTLS 2.11.7 or later required
+		#endif 
+		int main()
+		{
+			return 0;
+		}'
+
+	AC_MSG_CHECKING([your GnuTLS version])
+	AC_LINK_IFELSE([AC_LANG_SOURCE([$versioncheck])],
+	               AC_MSG_RESULT(ok),
+	               AC_MSG_FAILURE([GnuTLS must be at least version 2.11.7]))
+
+	sha256check='
+		#include <gnutls/gnutls.h>
+		int main()
+		{
+			int x = GNUTLS_DIG_SHA256;
+		}'
+
+	AC_MSG_CHECKING([whether your GnuTLS supports SHA256])
+	AC_LINK_IFELSE([AC_LANG_SOURCE([$sha256check])],
+	               AC_MSG_RESULT(yes)
+                       AC_DEFINE([HAVE_SHA256], 1,
+ 	                         [Define to 1 if your crypto library has SHA256 support]),
+	               AC_MSG_WARN([SHA256 is required for DKIM but is not
+	                            supported with your version of GnuTLS]))
+
+	CPPFLAGS="$saved_CPPFLAGS"
+fi
+
+AM_CONDITIONAL([USE_GNUTLS], [test x"$gnutls_found" = x"yes"])
+
+#
+# OpenSSL
+#
+
 AC_ARG_WITH([openssl],
             AS_HELP_STRING([--with-openssl],
                            [location of OpenSSL includes and library]),
                            [sslpath="$withval"], [sslpath="auto"])
 
 openssl_found="no"
+
+if test x"$gnutls_found" = x"yes"
+then
+	sslpath="skip"
+	openssl_found="skip"
+fi
+
 if test \( "$sslpath" = "auto" -o x"$sslpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
 	PKG_CHECK_MODULES([LIBCRYPTO], [openssl >= 0.9.7],
@@ -498,52 +653,60 @@ then
         LIBCRYPTO_LIBS="-lssl -lcrypto"
 fi
 
-saved_CFLAGS="$CFLAGS"
-saved_CPPFLAGS="$CPPFLAGS"
-saved_LDFLAGS="$LDFLAGS"
-saved_LIBS="$LIBS"
+if test x"$openssl_found" = x"no"
+then
+	saved_CFLAGS="$CFLAGS"
+	saved_CPPFLAGS="$CPPFLAGS"
+	saved_LDFLAGS="$LDFLAGS"
+	saved_LIBS="$LIBS"
 
-LIBS="$LIBCRYPTO_LIBS $saved_LIBS"
-CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
-CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
-LDFLAGS="$LIBCRYPTO_LIBDIRS $saved_LDFLAGS"
+	LIBS="$LIBCRYPTO_LIBS $saved_LIBS"
+	CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
+	CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
+	LDFLAGS="$LIBCRYPTO_LIBDIRS $saved_LDFLAGS"
 
-AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
-                 AC_MSG_ERROR([required OpenSSL header not found]))
+	AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
+                 	AC_MSG_ERROR([required OpenSSL header not found]))
 
-# -ldl is needed to assist with compilation of static openssl libaries.
-# It appears to need dl for opening engine plugins. It fails at load time
-# It also fails to build on FreeBSD if enabled by default.
-AC_SEARCH_LIBS([ERR_peek_error], [crypto], ,
-               AC_MSG_ERROR([libcrypto not found]))
-AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
-	[
-		if test x"$enable_shared" = x"yes"
-		then
-			AC_MSG_ERROR([Cannot build shared opendkim against
-			              static openssl libaries. Configure with
-			              --disable-shared to get this working or
-			              obtain a shared libssl libary for
-			              opendkim to use.])
-		fi
+	# -ldl is needed to assist with compilation of static openssl libaries.
+	# It appears to need dl for opening engine plugins. It fails at load
+	# time It also fails to build on FreeBSD if enabled by default.
+	AC_SEARCH_LIBS([ERR_peek_error], [crypto], ,
+	               AC_MSG_ERROR([libcrypto not found]))
 
-		# avoid caching issue - last result of SSL_library_init
-		# shouldn't be cached for this next check
-		unset ac_cv_search_SSL_library_init
-		LIBCRYPTO_LIBS="$LIBCRYPTO_LIBS -ldl"
-		AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
-		               AC_MSG_ERROR([libssl not found]), [-ldl])
-	]
-)
-AC_CHECK_DECL([SHA256_DIGEST_LENGTH], ,
-              AC_MSG_WARN([SHA256 is required for DKIM but is not supported
-                           with your version of OpenSSL]),
-              [#include <openssl/sha.h>])
+	AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
+		[
+			if test x"$enable_shared" = x"yes"
+			then
+				AC_MSG_ERROR([Cannot build shared opendkim
+				              against static openssl libaries.
+				              Configure with --disable-shared
+				              to get this working or obtain a
+				              shared libssl libary for
+				              opendkim to use.])
+			fi
 
-CFLAGS="$saved_CFLAGS"
-CPPFLAGS="$saved_CPPFLAGS"
-LDFLAGS="$saved_LDFLAGS"
-LIBS="$saved_LIBS"
+			# avoid caching issue - last result of SSL_library_init
+			# shouldn't be cached for this next check
+			unset ac_cv_search_SSL_library_init
+			LIBCRYPTO_LIBS="$LIBCRYPTO_LIBS -ldl"
+			AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
+			               AC_MSG_ERROR([libssl not found]), [-ldl])
+		]
+	)
+
+	AC_CHECK_DECL([SHA256_DIGEST_LENGTH],
+                      AC_DEFINE([HAVE_SHA256], 1,
+ 	                        [Define to 1 if your crypto library has SHA256 support]),
+	              AC_MSG_WARN([SHA256 is required for DKIM but is not
+	                           supported with your version of OpenSSL]),
+	              [#include <openssl/sha.h>])
+
+	CFLAGS="$saved_CFLAGS"
+	CPPFLAGS="$saved_CPPFLAGS"
+	LDFLAGS="$saved_LDFLAGS"
+	LIBS="$saved_LIBS"
+fi
 
 AC_SUBST(LIBCRYPTO_CFLAGS)
 AC_SUBST(LIBCRYPTO_CPPFLAGS)
