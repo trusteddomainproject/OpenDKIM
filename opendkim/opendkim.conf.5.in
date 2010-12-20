@@ -617,12 +617,15 @@ those tags will be applied.
 Specifies a set of header fields that should be omitted when generating
 signatures.  If an entry in the list names any header that is mandated
 by the DKIM specification, the entry is ignored.  A set of headers is listed
-in the DKIM specification as "SHOULD NOT" be signed; the default list for
-this parameter contains those headers (Return-Path, Received, Comments,
-Keywords, Bcc, Resent-Bcc and DKIM-Signature).  To omit no headers,
-simply use the string "-" (or any string that will match no headers).
-Note that specifying a list with this parameter replaces the default
-entirely.
+in the DKIM specification (RFC4871, Section 5.5) as "SHOULD NOT" be signed;
+the default list for this parameter contains those headers (Return-Path,
+Received, Comments, Keywords, Bcc, Resent-Bcc and DKIM-Signature).  To omit no
+headers, simply use the string "." (or any string that will match no headers).
+Specifying a list with this parameter replaces the default entirely, unless
+one entry is "*" in which case the list is interpreted as a delta to the
+default; for example, "*,+foobar" will use the entire default list plus
+the name "foobar", while "*,-Bcc" would use the entire default list except
+for the "Bcc" entry.
 
 .TP
 .I On-BadSignature (string)
@@ -965,10 +968,10 @@ Specifies the set of headers that should be included when generating
 signatures.  If the list omits any header that is mandated by the DKIM
 specification, those headers are implicitly added.  By default, those headers
 listed in the DKIM specification as "SHOULD" be signed (RFC4871, Section 5.5)
-will be signed by the filter.  Specifying a list here replaces that list
-entirely.  See the
+will be signed by the filter.  See the
 .I OmitHeaders
-configuration option for more information.
+configuration option for more information about the format and interpretation
+of this field.
 
 .TP
 .I SigningTable (dataset)

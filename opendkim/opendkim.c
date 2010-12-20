@@ -6184,7 +6184,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 #ifdef _FFR_STATS
 	str = NULL;
-	(void) config_get(data, "AnonymousDomains", &str, sizeof str);
+	if (data != NULL)
+		(void) config_get(data, "AnonymousDomains", &str, sizeof str);
 	if (str != NULL)
 	{
 		int status;
@@ -6428,7 +6429,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			return -1;
 		}
 
-		status = dkimf_db_mkarray(conf->conf_mtasdb, &conf->conf_mtas);
+		status = dkimf_db_mkarray(conf->conf_mtasdb, &conf->conf_mtas,
+		                          NULL);
 		if (status == -1)
 			return -1;
 	}
@@ -6469,7 +6471,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 
 		status = dkimf_db_mkarray(conf->conf_senderhdrsdb,
-		                          &conf->conf_senderhdrs);
+		                          &conf->conf_senderhdrs,
+		                          (const char **) dkim_default_senderhdrs);
 		if (status == -1)
 			return -1;
 	}
@@ -6509,7 +6512,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 
 		(void) dkimf_db_mkarray(conf->conf_vbr_trusteddb,
-		                        (char ***) &conf->conf_vbr_trusted);
+		                        (char ***) &conf->conf_vbr_trusted,
+		                        NULL);
 	}
 
 	if (data != NULL)
@@ -6710,7 +6714,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 
 		(void) dkimf_db_mkarray(conf->conf_macrosdb,
-		                        &conf->conf_macros);
+		                        &conf->conf_macros, NULL);
 	}
 
 	if (conf->conf_signalgstr != NULL)
@@ -7239,7 +7243,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	if (conf->conf_alwayshdrsdb != NULL)
 	{
 		status = dkimf_db_mkarray(conf->conf_alwayshdrsdb,
-		                          &conf->conf_alwayshdrs);
+		                          &conf->conf_alwayshdrs, NULL);
 		if (status == -1)
 			return FALSE;
 
@@ -7254,7 +7258,8 @@ dkimf_config_setlib(struct dkimf_config *conf)
 
 	if (conf->conf_mbsdb != NULL)
 	{
-		status = dkimf_db_mkarray(conf->conf_mbsdb, &conf->conf_mbs);
+		status = dkimf_db_mkarray(conf->conf_mbsdb, &conf->conf_mbs,
+		                          NULL);
 		if (status == -1)
 			return FALSE;
 
@@ -7269,7 +7274,8 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	if (conf->conf_omithdrdb != NULL)
 	{
 		status = dkimf_db_mkarray(conf->conf_omithdrdb,
-		                          &conf->conf_omithdrs);
+		                          &conf->conf_omithdrs,
+		                          (const char **) dkim_should_not_signhdrs);
 		if (status == -1)
 			return FALSE;
 
@@ -7295,7 +7301,8 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	if (conf->conf_signhdrsdb != NULL)
 	{
 		status = dkimf_db_mkarray(conf->conf_signhdrsdb,
-		                          &conf->conf_signhdrs);
+		                          &conf->conf_signhdrs,
+		                          (const char **) dkim_should_signhdrs);
 		if (status == -1)
 			return FALSE;
 

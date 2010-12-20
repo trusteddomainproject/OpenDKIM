@@ -6,6 +6,8 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.3.0		2011/02/21
+	Feature request #SF2964396: Allow SignHeaders, OmitHeaders and
+		SenderHeaders to be specified as deltas to the default lists.
 	Feature request #SF3053094: Correct documentation and improve function
 		of the AuthservID configuration setting.  Requested by
 		Andreas Schulze.

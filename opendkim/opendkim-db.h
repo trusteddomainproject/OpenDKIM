@@ -75,7 +75,7 @@ extern int dkimf_db_delete __P((DKIMF_DB, void *, size_t));
 extern int dkimf_db_fd __P((DKIMF_DB));
 extern int dkimf_db_get __P((DKIMF_DB, void *, size_t,
                              DKIMF_DBDATA, unsigned int, _Bool *));
-extern int dkimf_db_mkarray __P((DKIMF_DB, char ***));
+extern int dkimf_db_mkarray __P((DKIMF_DB, char ***, const char **));
 extern int dkimf_db_open __P((DKIMF_DB *, char *, u_int flags,
                               pthread_mutex_t *, char **));
 extern int dkimf_db_put __P((DKIMF_DB, void *, size_t, void *, size_t));
