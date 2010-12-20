@@ -49,6 +49,8 @@ release, and a summary of the changes in that release.
 	STATS: Feature request #SF3085536: Activate _FFR_STATS_I, providing
 		statistics reporting about use of "i=" in signatures.
 	STATS: Feature request #SF3125701: Add "s=" key value tracking.
+	STATS: Feature request #SF3137445: Track key sizes.  Suggested by
+		Todd Lyons.
 
 2.2.2		2010/11/28
 	Fix bug #SF2903325: Clean up numerous signed vs. unsigned warnings.

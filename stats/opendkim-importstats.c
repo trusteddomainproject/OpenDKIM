@@ -725,7 +725,7 @@ main(int argc, char **argv)
 		{
 			int changed;
 
-			if (n != 19 && n != 21 && n != 22)
+			if (n != 19 && n != 21 && n != 22 && n != 23)
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",
@@ -812,8 +812,10 @@ main(int argc, char **argv)
 			     sanitize(db, fields[19], safesql, sizeof safesql)) ||
 			    (n >= 21 &&
 			     sanitize(db, fields[20], safesql, sizeof safesql)) ||
-			    (n == 22 &&
-			     sanitize(db, fields[21], safesql, sizeof safesql)))
+			    (n >= 23 &&
+			     sanitize(db, fields[21], safesql, sizeof safesql)) ||
+			    (n >= 23 &&
+			     sanitize(db, fields[22], safesql, sizeof safesql)))
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
@@ -821,10 +823,10 @@ main(int argc, char **argv)
 				continue;
 			}
 
-			if (n == 22)
+			if (n == 23)
 			{
 				snprintf(sql, sizeof sql,
-				         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, sigerror, sig_t, sig_x, sig_z, dnssec, sig_i, sig_i_user, key_s) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+				         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, sigerror, sig_t, sig_x, sig_z, dnssec, sig_i, sig_i_user, key_s, keysize) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
 				         msgid,		/* message */
 				         domid,		/* domain */
 				         fields[1],	/* algorithm */
@@ -845,7 +847,8 @@ main(int argc, char **argv)
 				         fields[16],	/* dnssec */
 				         fields[19],	/* sig_i */
 				         fields[20],	/* sig_i_user */
-				         fields[21]);	/* key_s */
+				         fields[21],	/* key_s */
+				         fields[22]);	/* keysize */
 			}
 			else if (n == 21)
 			{
