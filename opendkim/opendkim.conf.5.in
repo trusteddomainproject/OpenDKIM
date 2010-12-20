@@ -964,8 +964,9 @@ If not set, no expiration time is added to signatures.
 Specifies the set of headers that should be included when generating
 signatures.  If the list omits any header that is mandated by the DKIM
 specification, those headers are implicitly added.  By default, those headers
-listed in the DKIM specification as "SHOULD" be signed will be signed by the
-filter.  Specifying a list here replaces that list entirely.  See the
+listed in the DKIM specification as "SHOULD" be signed (RFC4871, Section 5.5)
+will be signed by the filter.  Specifying a list here replaces that list
+entirely.  See the
 .I OmitHeaders
 configuration option for more information.
 
