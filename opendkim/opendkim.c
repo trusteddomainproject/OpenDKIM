@@ -333,6 +333,9 @@ struct dkimf_config
 #ifdef _FFR_RESIGN
 	DKIMF_DB	conf_resigndb;		/* resigning addresses */
 #endif /* _FFR_RESIGN */
+#ifdef _FFR_OVERSIGN
+	DKIMF_DB	conf_oversigndb;	/* fields to over-sign */
+#endif /* _FFR_OVERSIGN */
 	DKIM_LIB *	conf_libopendkim;	/* DKIM library handle */
 	struct handling	conf_handling;		/* message handling */
 };
