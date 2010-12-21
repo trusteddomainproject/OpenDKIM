@@ -2278,6 +2278,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		}
 	}
 
+#ifdef _FFR_OVERSIGN
 	if (dkim->dkim_libhandle->dkiml_oversignhdrs != NULL)
 	{
 		if (firsthdr)
@@ -2302,6 +2303,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 			                 dkim->dkim_libhandle->dkiml_oversignhdrs[n]);
 		}
 	}
+#endif /* _FFR_OVERSIGN */
 
 	/* if diagnostic headers were requested, include 'em */
 	if (dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_ZTAGS)
@@ -3958,6 +3960,9 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef _FFR_RESIGN
 	FEATURE_ADD(libhandle, DKIM_FEATURE_RESIGN);
 #endif /* _FFR_RESIGN */
+#ifdef _FFR_OVERSIGN
+	FEATURE_ADD(libhandle, DKIM_FEATURE_OVERSIGN);
+#endif /* _FFR_OVERSIGN */
 
 	/* initialize the resolver */
 	(void) res_init();
@@ -4210,6 +4215,7 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		}
 		return DKIM_STAT_OK;
 
+#ifdef _FFR_OVERSIGN
 	  case DKIM_OPTS_OVERSIGNHDRS:
 		if (len != sizeof lib->dkiml_oversignhdrs)
 			return DKIM_STAT_INVALID;
@@ -4223,6 +4229,7 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 			lib->dkiml_oversignhdrs = (u_char **) ptr;
 		}
 		return DKIM_STAT_OK;
+#endif /* _FFR_OVERSIGN */
 
 	  case DKIM_OPTS_ALWAYSHDRS:
 		if (len != sizeof lib->dkiml_alwayshdrs)

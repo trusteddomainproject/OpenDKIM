@@ -1490,7 +1490,7 @@ extern unsigned long dkim_ssl_version __P((void));
 #define DKIM_FEATURE_PARSE_TIME		2
 #define DKIM_FEATURE_QUERY_CACHE	3
 #define DKIM_FEATURE_SHA256		4
-#define DKIM_FEATURE_UNUSED_1		5 /* was DKIM_FEATURE_ASYNC_DNS */
+#define DKIM_FEATURE_OVERSIGN		5
 #define DKIM_FEATURE_DNSSEC		6
 #define DKIM_FEATURE_RESIGN		7
 
