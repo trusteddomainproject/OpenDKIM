@@ -1369,12 +1369,12 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 						free(new);
 						return -1;
 					}
+					dkimf_trimspaces(newl->db_list_value);
 				}
 				else
 				{
 					newl->db_list_value = NULL;
 				}
-				dkimf_trimspaces(newl->db_list_value);
 
 				newl->db_list_next = NULL;
 
