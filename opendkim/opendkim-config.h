@@ -121,7 +121,7 @@ struct configdef dkimf_config[] =
 	{ "On-NoSignature",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-Security",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_OVERSIGN
-	{ "OversignHeader",		CONFIG_TYPE_STRING,	FALSE },
+	{ "OverSignHeaders",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_OVERSIGN */
 	{ "PeerList",			CONFIG_TYPE_STRING,	FALSE },
 	{ "PidFile",			CONFIG_TYPE_STRING,	FALSE },
