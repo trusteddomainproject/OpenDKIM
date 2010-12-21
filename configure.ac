@@ -629,6 +629,7 @@ then
 			if test -f $d/include/openssl/opensslconf.h
 			then
 				sslpath=$d
+				openssl_found=yes
 				break
 			fi
 		done
@@ -653,7 +654,7 @@ then
         LIBCRYPTO_LIBS="-lssl -lcrypto"
 fi
 
-if test x"$openssl_found" = x"no"
+if test x"$openssl_found" = x"yes"
 then
 	saved_CFLAGS="$CFLAGS"
 	saved_CPPFLAGS="$CPPFLAGS"
