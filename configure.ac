@@ -639,6 +639,10 @@ then
 			if test -f $d/include/openssl/opensslconf.h
 			then
 				sslpath=$d
+        			LIBCRYPTO_CPPFLAGS="-I$sslpath/include"
+        			LIBCRYPTO_CFLAGS=""
+        			LIBCRYPTO_LIBDIRS="-L$sslpath/lib"
+        			LIBCRYPTO_LIBS="-lssl -lcrypto"
 				openssl_found=yes
 				break
 			fi
