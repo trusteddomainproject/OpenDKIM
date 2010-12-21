@@ -36,6 +36,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3134119: With AutoRestart enabled, arrange to relay
 		SIGUSR1 from the parent to the child rather than terminating.
 		Reported by Yoshiaki Yanagihara.
+	Fix bug #SF3141313: Trim whitespace from values in in-core data
+		sets.  Reported by Todd Lyons.
 	Add "ResolverTracing" and "StrictHeaders" configuration file option.
 	Trim whitespace from the end of all values in a config file, not just
 		strings.  Problem noted by Reuben Farrelly.
