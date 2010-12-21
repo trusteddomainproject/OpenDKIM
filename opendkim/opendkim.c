@@ -10809,10 +10809,15 @@ mlfi_eoh(SMFICTX *ctx)
 			return SMFIS_TEMPFAIL;
 		}
 
+		if (conf->conf_vbr_trustedonly)
+			vbr_options(dfc->mctx_vbr, VBR_OPT_TRUSTEDONLY);
+
 		/* store the trusted certifiers */
-		vbr_trustedcerts(dfc->mctx_vbr, conf->conf_vbr_trusted);
-	if (conf->conf_vbr_trustedonly)
-		vbr_options(dfc->mctx_vbr, VBR_OPT_TRUSTEDONLY);
+		if (conf->conf_vbr_trusted != NULL)
+		{
+			vbr_trustedcerts(dfc->mctx_vbr,
+			                 conf->conf_vbr_trusted);
+		}
 
 		/* set the sending domain */
 		vbr_setdomain(dfc->mctx_vbr, dfc->mctx_domain);
