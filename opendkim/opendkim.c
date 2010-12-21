@@ -315,6 +315,10 @@ struct dkimf_config
 	char **		conf_remar;		/* A-R removal list (array) */
 	DKIMF_DB	conf_mbsdb;		/* must-be-signed hdrs (DB) */
 	char **		conf_mbs;		/* must-be-signed (array) */
+#ifdef _FFR_OVERSIGN
+	DKIMF_DB	conf_oversigndb;	/* fields to over-sign (DB) */
+	char **		conf_oversignhdrs;	/*   "    "     "    (array) */
+#endif /* _FFR_OVERSIGN */
 	DKIMF_DB	conf_dontsigntodb;	/* don't-sign-to addrs (DB) */
 #ifdef _FFR_ADSP_LISTS
 	DKIMF_DB	conf_nodiscardto;	/* no discardable to (DB) */
@@ -333,9 +337,6 @@ struct dkimf_config
 #ifdef _FFR_RESIGN
 	DKIMF_DB	conf_resigndb;		/* resigning addresses */
 #endif /* _FFR_RESIGN */
-#ifdef _FFR_OVERSIGN
-	DKIMF_DB	conf_oversigndb;	/* fields to over-sign */
-#endif /* _FFR_OVERSIGN */
 	DKIM_LIB *	conf_libopendkim;	/* DKIM library handle */
 	struct handling	conf_handling;		/* message handling */
 };
@@ -4899,6 +4900,11 @@ dkimf_config_free(struct dkimf_config *conf)
 
 	if (conf->conf_senderhdrsdb != NULL)
 		dkimf_db_close(conf->conf_senderhdrsdb);
+
+#ifdef _FFR_OVERSIGN
+	if (conf->conf_oversigndb != NULL)
+		dkimf_db_close(conf->conf_oversigndb);
+#endif /* _FFR_OVERSIGN */
 
 	if (conf->conf_mtasdb != NULL)
 		dkimf_db_close(conf->conf_mtasdb);
