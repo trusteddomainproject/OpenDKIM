@@ -616,6 +616,16 @@ then
 	                  [openssl_found="no"
 	                   AC_MSG_WARN(["pkg-config for openssl not found, trying manual search..."])
 	                  ])
+elif test "$sslpath" != "auto" -a x"$sslpath" != x"yes"
+then
+	AC_MSG_CHECKING([for OpenSSL includes])
+	if test -f $sslpath/include/openssl/opensslconf.h
+	then
+		openssl_found=yes
+		AC_MSG_RESULT([$sslpath])
+	else
+		AC_MSG_RESULT([no])
+	fi
 fi
 
 if test x"$openssl_found" = x"no"
