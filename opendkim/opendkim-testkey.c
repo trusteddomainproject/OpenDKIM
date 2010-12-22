@@ -346,6 +346,8 @@ main(int argc, char **argv)
 		return EX_OSERR;
 	}
 
+FINISH ME: connect unbound, if enabled
+
 	memset(err, '\0', sizeof err);
 
 	ERR_load_crypto_strings();
