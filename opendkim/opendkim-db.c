@@ -4026,19 +4026,171 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 }
 
 /*
+**  DKIMF_DB_MKARRAY_BASE -- make a (char *) array treating the DB as a
+**                           delta to a provided base
+**
+**  Parameters:
+**  	db -- a DKIMF_DB handle
+**  	a -- array (returned)
+**  	base -- base array
+** 
+**  Return value:
+**  	Length of the created array, or -1 on error/empty.
+*/
+
+static int
+dkimf_db_mkarray_base(DKIMF_DB db, char ***a, const char **base)
+{
+	_Bool found;
+	int c;
+	int status;
+	int nalloc = 0;
+	int nout = 0;
+	int nbase;
+	size_t buflen;
+	char **out = NULL;
+	char buf[BUFRSZ + 1];
+
+	assert(db != NULL);
+	assert(a != NULL);
+
+	/* count base elements */
+	for (nbase = 0; base[nbase] != NULL; nbase++)
+		continue;
+
+	/* initialize output array */
+	nalloc = MAX(nbase, 16);
+	out = (char **) malloc(sizeof(char *) * nalloc);
+	if (out == NULL)
+		return -1;
+	out[0] = NULL;
+
+	/* copy the base array modulo removals in the DB */
+	for (c = 0; c < nbase; c++)
+	{
+		memset(buf, '\0', sizeof buf);
+
+		snprintf(buf, sizeof buf, "-%s", base[c]);
+
+		found = FALSE;
+		status = dkimf_db_get(db, buf, 0, NULL, 0, &found);
+		if (status != 0)
+		{
+			for (c = 0; c < nout; c++)
+				free(out[c]);
+			free(out);
+			return -1;
+		}
+
+		if (!found)
+		{
+			if (nout == nalloc - 1)
+			{
+				char **new;
+
+				new = (char **) realloc(out,
+				                        sizeof(char *) * (nalloc * 2));
+				if (new == NULL)
+				{
+					for (c = 0; c < nout; c++)
+						free(out[c]);
+					free(out);
+					return -1;
+				}
+
+				out = new;
+				nalloc *= 2;
+			}
+
+			out[nout] = strdup(base[c]);
+			if (out[nout] == NULL)
+			{
+				for (c = 0; c < nout; c++)
+					free(out[c]);
+				free(out);
+				return -1;
+			}
+
+			nout++;
+			out[nout] = NULL;
+		}
+	}
+
+	/* now add any in the DB that aren't in the array */
+	for (c = 0; ; c++)
+	{
+		buflen = sizeof buf - 1;
+		memset(buf, '\0', sizeof buf);
+
+		status = dkimf_db_walk(db, (c == 0), buf, &buflen, NULL, 0);
+		if (status == -1)
+		{
+			for (c = 0; c < nout; c++)
+				free(out[c]);
+			free(out);
+			return -1;
+		}
+		else if (status == 1)
+		{
+			break;
+		}
+		else if (buf[0] != '+')
+		{
+			continue;
+		}
+
+		if (nout == nalloc - 1)
+		{
+			char **new;
+
+			new = (char **) realloc(out,
+			                        sizeof(char *) * (nalloc * 2));
+			if (new == NULL)
+			{
+				for (c = 0; c < nout; c++)
+					free(out[c]);
+				free(out);
+				return -1;
+			}
+
+			out = new;
+			nalloc *= 2;
+		}
+
+		out[nout] = strdup(&buf[1]);
+		if (out[nout] == NULL)
+		{
+			for (c = 0; c < nout; c++)
+				free(out[c]);
+			free(out);
+			return -1;
+		}
+
+		nout++;
+		out[nout] = NULL;
+	}
+
+	*a = out;
+	return nout;
+}
+
+/*
 **  DKIMF_DB_MKARRAY -- make a (char *) array of DB contents
 **
 **  Parameters:
 **  	db -- a DKIMF_DB handle
 **  	a -- array (returned)
+**  	base -- base array (may be NULL)
 **
 **  Return value:
 **  	Length of the created array, or -1 on error/empty.
 */
 
 int
-dkimf_db_mkarray(DKIMF_DB db, char ***a)
+dkimf_db_mkarray(DKIMF_DB db, char ***a, const char **base)
 {
+	_Bool found;
+	int status;
 	char **out;
 
 	assert(db != NULL);
@@ -4060,6 +4212,13 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a)
 		*a = db->db_array;
 		return db->db_nrecs;
 	}
+
+	found = FALSE;
+	status = dkimf_db_get(db, "*", 0, NULL, 0, &found);
+	if (status != 0)
+		return -1;
+	if (found && base != NULL)
+		return dkimf_db_mkarray_base(db, a, base);
 
 	switch (db->db_type)
 	{
