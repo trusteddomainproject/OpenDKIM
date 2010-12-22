@@ -923,7 +923,9 @@ Specifies an ordered list of header fields that should be searched to
 determine the sender of a message.  This is mainly used when verifying a
 message to determine the origin domain, particularly for making signing
 decisions.  By default, the DKIM library's internal list is used, which
-consists solely of the "From" header field.
+consists solely of the "From" header field.  See the
+.I OmitHeaders
+setting for a description of possible values.
 
 .TP
 .I SenderMacro (string)
