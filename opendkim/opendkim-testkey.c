@@ -40,6 +40,7 @@ static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10.10.1 2
 
 /* opendkim includes */
 #include "opendkim-db.h"
+#include "opendkim-dns.h"
 #include "config.h"
 #include "opendkim-config.h"
 
