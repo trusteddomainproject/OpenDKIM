@@ -648,9 +648,21 @@ main(int argc, char **argv)
 		}
 
 		(void) close(fd);
+
+		if (verbose > 0)
+		{
+			fprintf(stderr, "%s: key loaded from %s\n",
+			        progname, keypath);
+		}
 	}
 
 	dnssec = DKIM_DNSSEC_UNKNOWN;
+
+	if (verbose > 0)
+	{
+		fprintf(stderr, "%s: checking key `%s._domainkey.%s'\n",
+		        progname, selector, domain);
+	}
 
 	status = dkim_test_key(lib, selector, domain, key, (size_t) s.st_size,
 	                       &dnssec, err, sizeof err);
@@ -687,6 +699,8 @@ main(int argc, char **argv)
 		return EX_UNAVAILABLE;
 
 	  case 0:
+		if (verbose > 1)
+			fprintf(stdout, "%s: key matches\n", progname);
 		return EX_OK;
 
 	  case 1:
