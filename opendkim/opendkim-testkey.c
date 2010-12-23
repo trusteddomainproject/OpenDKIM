@@ -55,6 +55,9 @@ int usage(void);
 
 /* globals */
 char *progname;
+#ifdef USE_UNBOUND
+struct dkimf_unbound *unbound;			/* libunbound handle */
+#endif /* USE_UNBOUND */
 
 /*
 **  DKIMF_LOG_SSL_ERRORS -- log any queued SSL library errors
@@ -201,6 +204,9 @@ main(int argc, char **argv)
 	char *conffile = NULL;
 	char *p;
 	DKIM_LIB *lib;
+#ifdef USE_UNBOUND
+	char *trustanchor = NULL;
+#endif /* USE_UNBOUND */
 	struct stat s;
 	char err[BUFRSZ];
 	char domain[BUFRSZ];
@@ -336,7 +342,22 @@ main(int argc, char **argv)
 		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_BINDUSER,
 		                        ldap_binduser);
 #endif /* USE_LDAP */
+
+#ifdef USE_UNBOUND
+		(void) config_get(cfg, "TrustAnchorFile",
+		                  &trustanchor, sizeof trustanchor);
+#endif /* USE_UNBOUND */
 	}
+
+#ifdef USE_UNBOUND
+	if (dkimf_unbound_init(&unbound) != 0)
+	{
+		fprintf(stderr, "%s: failed to initialize libunbound\n",
+		        progname);
+		(void) free(key);
+		return EX_SOFTWARE;
+	}
+#endif /* USE_UNBOUND */
 
 	lib = dkim_init(NULL, NULL);
 	if (lib == NULL)
@@ -346,7 +367,27 @@ main(int argc, char **argv)
 		return EX_OSERR;
 	}
 
-FINISH ME: connect unbound, if enabled
+#ifdef USE_UNBOUND
+	if (unbound != NULL)
+	{
+ 		if (trustanchor != NULL)
+		{
+			status = dkimf_unbound_add_trustanchor(unbound,
+			                                       trustanchor);
+			if (status != DKIM_STAT_OK)
+			{
+				fprintf(stderr,
+				        "%s: failed to set trust anchor\n",
+				        progname);
+
+				(void) free(key);
+				return EX_OSERR;
+			}
+		}
+
+		(void) dkimf_unbound_setup(lib, unbound);
+	}
+#endif /* USE_UNBOUND */
 
 	memset(err, '\0', sizeof err);
 
