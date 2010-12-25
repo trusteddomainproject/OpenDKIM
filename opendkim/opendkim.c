@@ -10203,7 +10203,7 @@ mlfi_eoh(SMFICTX *ctx)
 		                             (struct sockaddr *) &cc->cctx_ip);
 #endif /* POPAUTH */
 
-		if (authtype != NULL && authtype[0] != '\0' || internal)
+		if ((authtype != NULL && authtype[0] != '\0') || internal)
 			originok = TRUE;
 
 #ifdef POPAUTH
