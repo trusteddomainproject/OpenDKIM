@@ -540,7 +540,7 @@ main(int argc, char **argv)
 			switch (dnssec)
 			{
 			  case DKIM_DNSSEC_INSECURE:
-				if (verbose > 1)
+				if (verbose > 0)
 				{
 					fprintf(stderr,
 					        "%s: key %s not secure\n",
@@ -549,7 +549,7 @@ main(int argc, char **argv)
 				break;
 
 			  case DKIM_DNSSEC_SECURE:
-				if (verbose > 2)
+				if (verbose > 0)
 				{
 					fprintf(stderr,
 					        "%s: key %s secure\n",
@@ -649,7 +649,7 @@ main(int argc, char **argv)
 
 		(void) close(fd);
 
-		if (verbose > 0)
+		if (verbose > 1)
 		{
 			fprintf(stderr, "%s: key loaded from %s\n",
 			        progname, keypath);
@@ -658,7 +658,7 @@ main(int argc, char **argv)
 
 	dnssec = DKIM_DNSSEC_UNKNOWN;
 
-	if (verbose > 0)
+	if (verbose > 1)
 	{
 		fprintf(stderr, "%s: checking key `%s._domainkey.%s'\n",
 		        progname, selector, domain);
@@ -672,12 +672,12 @@ main(int argc, char **argv)
 	switch (dnssec)
 	{
 	  case DKIM_DNSSEC_INSECURE:
-		if (verbose > 1)
+		if (verbose > 0)
 			fprintf(stderr, "%s: key not secure\n", progname);
 		break;
 
 	  case DKIM_DNSSEC_SECURE:
-		if (verbose > 2)
+		if (verbose > 0)
 			fprintf(stderr, "%s: key secure\n", progname);
 		break;
 
