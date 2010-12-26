@@ -532,179 +532,6 @@ dkim_canon_flushblanks(DKIM_CANON *canon)
 }
 
 /*
-**  DKIM_CANON_SELECTHDRS -- choose headers to be included in canonicalization
-**
-**  Parameters:
-**  	dkim -- DKIM context in which this is performed
-**  	hdrlist -- string containing headers that should be marked, separated
-**  	           by the ":" character
-**  	ptrs -- array of header pointers (modified)
-**  	nptr -- number of pointers available at "ptrs"
-**
-**  Return value:
-**  	Count of headers added to "ptrs", or -1 on error.
-**
-**  Notes:
-**  	Selects headers to be passed to canonicalization and the order in
-**  	which this is done.  "ptrs" is populated by pointers to headers
-**  	in the order in which they should be fed to canonicalization.
-**
-**  	If any of the returned pointers is NULL, then a header named by
-**  	"hdrlist" was not found.
-*/
-
-static int
-dkim_canon_selecthdrs(DKIM *dkim, u_char *hdrlist, struct dkim_header **ptrs,
-                      int nptrs)
-{
-	int c;
-	int n;
-	int m;
-	int shcnt;
-	size_t len;
-	char *bar;
-	char *ctx;
-	u_char *colon;
-	struct dkim_header *hdr;
-	struct dkim_header **lhdrs;
-	u_char **hdrs;
-
-	assert(dkim != NULL);
-	assert(ptrs != NULL);
-	assert(nptrs != 0);
-
-	/* if there are no headers named, use them all */
-	if (hdrlist == NULL)
-	{
-		n = 0;
-
-		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
-		{
-			if (n >= nptrs)
-			{
-				dkim_error(dkim, "too many headers (max %d)",
-				           nptrs);
-				return -1;
-			}
-			ptrs[n] = hdr;
-			n++;
-		}
-
-		return n;
-	}
-
-	if (dkim->dkim_hdrlist == NULL)
-	{
-		dkim->dkim_hdrlist = dkim_malloc(dkim->dkim_libhandle,
-		                                 dkim->dkim_closure,
-		                                 DKIM_MAXHEADER);
-		if (dkim->dkim_hdrlist == NULL)
-		{
-			dkim_error(dkim, "unable to allocate %d bytes(s)",
-			           DKIM_MAXHEADER);
-
-			return -1;
-		}
-	}
-
-	strlcpy((char *) dkim->dkim_hdrlist, (char *) hdrlist, DKIM_MAXHEADER);
-
-	/* mark all headers as not used */
-	for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
-		hdr->hdr_flags &= ~DKIM_HDR_SIGNED;
-
-	n = dkim->dkim_hdrcnt * sizeof(struct dkim_header *);
-	lhdrs = DKIM_MALLOC(dkim, n);
-	if (lhdrs == NULL)
-		return -1;
-	memset(lhdrs, '\0', n);
-
-	shcnt = 1;
-	for (colon = dkim->dkim_hdrlist; *colon != '\0'; colon++)
-	{
-		if (*colon == ':')
-			shcnt++;
-	}
-	n = sizeof(u_char *) * shcnt;
-	hdrs = DKIM_MALLOC(dkim, n);
-	if (hdrs == NULL)
-	{
-		(void) DKIM_FREE(dkim, lhdrs);
-		return -1;
-	}
-	memset(hdrs, '\0', n);
-
-	n = 0;
-
-	/* make a split-out copy of hdrlist */
-	for (bar = strtok_r((char *) dkim->dkim_hdrlist, ":", &ctx);
-	     bar != NULL;
-	     bar = strtok_r(NULL, ":", &ctx))
-	{
-		hdrs[n] = (u_char *) bar;
-		n++;
-	}
-
-	/* for each named header, find the last unused one and use it up */
-	shcnt = 0;
-	for (c = 0; c < n; c++)
-	{
-		lhdrs[shcnt] = NULL;
-
-		len = MIN(DKIM_MAXHEADER, strlen((char *) hdrs[c]));
-		while (len > 0 &&
-		       isascii(hdrs[c][len - 1]) &&
-		       isspace(hdrs[c][len - 1]))
-			len--;
-
-		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
-		{
-			if (hdr->hdr_flags & DKIM_HDR_SIGNED)
-				continue;
-
-			if (len == hdr->hdr_namelen &&
-			    strncasecmp((char *) hdr->hdr_text,
-			                (char *) hdrs[c], len) == 0)
-				lhdrs[shcnt] = hdr;
-		}
-
-		if (lhdrs[shcnt] != NULL)
-		{
-			lhdrs[shcnt]->hdr_flags |= DKIM_HDR_SIGNED;
-			shcnt++;
-		}
-	}
-
-	/* bounds check */
-	if (shcnt > nptrs)
-	{
-		dkim_error(dkim, "too many headers (found %d, max %d)", shcnt,
-		           nptrs);
-
-		DKIM_FREE(dkim, lhdrs);
-		DKIM_FREE(dkim, hdrs);
-
-		return -1;
-	}
-
-	/* copy to the caller's buffers */
-	m = 0;
-	for (c = 0; c < shcnt; c++)
-	{
-		if (lhdrs[c] != NULL)
-		{
-			ptrs[m] = lhdrs[c];
-			m++;
-		}
-	}
-
-	DKIM_FREE(dkim, lhdrs);
-	DKIM_FREE(dkim, hdrs);
-
-	return m;
-}
-
-/*
 **  DKIM_CANON_FIXCRLF -- rebuffer a body chunk, fixing "naked" CRs and LFs
 **
 **  Parameters:
@@ -1100,6 +927,179 @@ dkim_add_canon(DKIM *dkim, _Bool hdr, dkim_canon_t canon, int hashtype,
 		*cout = new;
 
 	return DKIM_STAT_OK;
+}
+
+/*
+**  DKIM_CANON_SELECTHDRS -- choose headers to be included in canonicalization
+**
+**  Parameters:
+**  	dkim -- DKIM context in which this is performed
+**  	hdrlist -- string containing headers that should be marked, separated
+**  	           by the ":" character
+**  	ptrs -- array of header pointers (modified)
+**  	nptr -- number of pointers available at "ptrs"
+**
+**  Return value:
+**  	Count of headers added to "ptrs", or -1 on error.
+**
+**  Notes:
+**  	Selects headers to be passed to canonicalization and the order in
+**  	which this is done.  "ptrs" is populated by pointers to headers
+**  	in the order in which they should be fed to canonicalization.
+**
+**  	If any of the returned pointers is NULL, then a header named by
+**  	"hdrlist" was not found.
+*/
+
+int
+dkim_canon_selecthdrs(DKIM *dkim, u_char *hdrlist, struct dkim_header **ptrs,
+                      int nptrs)
+{
+	int c;
+	int n;
+	int m;
+	int shcnt;
+	size_t len;
+	char *bar;
+	char *ctx;
+	u_char *colon;
+	struct dkim_header *hdr;
+	struct dkim_header **lhdrs;
+	u_char **hdrs;
+
+	assert(dkim != NULL);
+	assert(ptrs != NULL);
+	assert(nptrs != 0);
+
+	/* if there are no headers named, use them all */
+	if (hdrlist == NULL)
+	{
+		n = 0;
+
+		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
+		{
+			if (n >= nptrs)
+			{
+				dkim_error(dkim, "too many headers (max %d)",
+				           nptrs);
+				return -1;
+			}
+			ptrs[n] = hdr;
+			n++;
+		}
+
+		return n;
+	}
+
+	if (dkim->dkim_hdrlist == NULL)
+	{
+		dkim->dkim_hdrlist = dkim_malloc(dkim->dkim_libhandle,
+		                                 dkim->dkim_closure,
+		                                 DKIM_MAXHEADER);
+		if (dkim->dkim_hdrlist == NULL)
+		{
+			dkim_error(dkim, "unable to allocate %d bytes(s)",
+			           DKIM_MAXHEADER);
+
+			return -1;
+		}
+	}
+
+	strlcpy((char *) dkim->dkim_hdrlist, (char *) hdrlist, DKIM_MAXHEADER);
+
+	/* mark all headers as not used */
+	for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
+		hdr->hdr_flags &= ~DKIM_HDR_SIGNED;
+
+	n = dkim->dkim_hdrcnt * sizeof(struct dkim_header *);
+	lhdrs = DKIM_MALLOC(dkim, n);
+	if (lhdrs == NULL)
+		return -1;
+	memset(lhdrs, '\0', n);
+
+	shcnt = 1;
+	for (colon = dkim->dkim_hdrlist; *colon != '\0'; colon++)
+	{
+		if (*colon == ':')
+			shcnt++;
+	}
+	n = sizeof(u_char *) * shcnt;
+	hdrs = DKIM_MALLOC(dkim, n);
+	if (hdrs == NULL)
+	{
+		(void) DKIM_FREE(dkim, lhdrs);
+		return -1;
+	}
+	memset(hdrs, '\0', n);
+
+	n = 0;
+
+	/* make a split-out copy of hdrlist */
+	for (bar = strtok_r((char *) dkim->dkim_hdrlist, ":", &ctx);
+	     bar != NULL;
+	     bar = strtok_r(NULL, ":", &ctx))
+	{
+		hdrs[n] = (u_char *) bar;
+		n++;
+	}
+
+	/* for each named header, find the last unused one and use it up */
+	shcnt = 0;
+	for (c = 0; c < n; c++)
+	{
+		lhdrs[shcnt] = NULL;
+
+		len = MIN(DKIM_MAXHEADER, strlen((char *) hdrs[c]));
+		while (len > 0 &&
+		       isascii(hdrs[c][len - 1]) &&
+		       isspace(hdrs[c][len - 1]))
+			len--;
+
+		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
+		{
+			if (hdr->hdr_flags & DKIM_HDR_SIGNED)
+				continue;
+
+			if (len == hdr->hdr_namelen &&
+			    strncasecmp((char *) hdr->hdr_text,
+			                (char *) hdrs[c], len) == 0)
+				lhdrs[shcnt] = hdr;
+		}
+
+		if (lhdrs[shcnt] != NULL)
+		{
+			lhdrs[shcnt]->hdr_flags |= DKIM_HDR_SIGNED;
+			shcnt++;
+		}
+	}
+
+	/* bounds check */
+	if (shcnt > nptrs)
+	{
+		dkim_error(dkim, "too many headers (found %d, max %d)", shcnt,
+		           nptrs);
+
+		DKIM_FREE(dkim, lhdrs);
+		DKIM_FREE(dkim, hdrs);
+
+		return -1;
+	}
+
+	/* copy to the caller's buffers */
+	m = 0;
+	for (c = 0; c < shcnt; c++)
+	{
+		if (lhdrs[c] != NULL)
+		{
+			ptrs[m] = lhdrs[c];
+			m++;
+		}
+	}
+
+	DKIM_FREE(dkim, lhdrs);
+	DKIM_FREE(dkim, hdrs);
+
+	return m;
 }
 
 /*

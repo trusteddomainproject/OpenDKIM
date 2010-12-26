@@ -39,6 +39,8 @@ extern DKIM_STAT dkim_canon_header_string __P((struct dkim_dstring *,
 extern DKIM_STAT dkim_canon_init __P((DKIM *, _Bool, _Bool));
 extern u_long dkim_canon_minbody __P((DKIM *));
 extern DKIM_STAT dkim_canon_runheaders __P((DKIM *));
+extern int dkim_canon_selecthdrs __P((DKIM *, u_char *, struct dkim_header **,
+                                      int));
 extern DKIM_STAT dkim_canon_signature __P((DKIM *, struct dkim_header *));
 
 #endif /* ! _DKIM_CANON_H_ */

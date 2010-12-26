@@ -8313,6 +8313,82 @@ dkim_sig_gettagvalue(DKIM_SIGINFO *sig, _Bool keytag, u_char *tag)
 }
 
 /*
+**  DKIM_SIG_GETSIGNEDHDRS -- retrieve the signed header fields covered by
+**                            a signature that passed
+**
+**  Parameters:
+**  	dkim -- DKIM instance
+**  	sig -- signature
+**  	hdrs -- rectangular array of header field strings
+**  	hdrlen -- length of each element of "hdrs"
+**  	nhdrs -- size of "hdrs" array (updated)
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+DKIM_STAT
+dkim_sig_getsignedhdrs(DKIM *dkim, DKIM_SIGINFO *sig,
+                       u_char *hdrs, size_t hdrlen, u_int *nhdrs)
+{
+	int status;
+	u_int n;
+	u_char *h;
+	u_char *p;
+	struct dkim_header **sighdrs;
+
+	assert(dkim != NULL);
+	assert(sig != NULL);
+	assert(nhdrs != NULL);
+
+	if ((sig->sig_flags & DKIM_SIGFLAG_PASSED) == 0 ||
+	    sig->sig_bh != DKIM_SIGBH_MATCH)
+		return DKIM_STAT_INVALID;
+
+	h = dkim_param_get(sig->sig_taglist, "h");
+	assert(h != NULL);
+
+	n = 1;
+	for (p = h; *p != '\0'; p++)
+	{
+		if (*p == ':')
+			n++;
+	}
+
+	if (*nhdrs < n)
+	{
+		*nhdrs = n;
+		return DKIM_STAT_NORESOURCE;
+	}
+
+	assert(hdrs != NULL);
+
+	sighdrs = (struct dkim_header **) DKIM_MALLOC(dkim,
+	                                              sizeof(struct dkim_header *) * n);
+	if (sighdrs == NULL)
+	{
+		*nhdrs = 0;
+		return DKIM_STAT_NORESOURCE;
+	}
+
+	status = dkim_canon_selecthdrs(dkim, h, sighdrs, n);
+	if (status == -1)
+	{
+		DKIM_FREE(dkim, sighdrs);
+		return DKIM_STAT_INTERNAL;
+	}
+
+	*nhdrs = status;
+
+	for (n = 0; n < status; n++)
+		strlcpy(&hdrs[n * hdrlen], sighdrs[n]->hdr_text, hdrlen);
+
+	DKIM_FREE(dkim, sighdrs);
+
+	return DKIM_STAT_OK;
+}
+
+/*
 **  DKIM_DNS_SET_QUERY_SERVICE -- stores a handle representing the DNS
 **                                query service to be used, returning any
 **                                previous handle

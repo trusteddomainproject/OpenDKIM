@@ -1627,6 +1627,24 @@ extern int dkim_test_key __P((DKIM_LIB *, char *, char *, char *, size_t,
 extern u_char *dkim_sig_gettagvalue __P((DKIM_SIGINFO *, _Bool, u_char *));
 
 /*
+**  DKIM_SIG_GETSIGNEDHDRS -- retrieve the signed header fields covered by
+**                            a signature that passed
+**
+**  Parameters:
+**  	dkim -- DKIM instance
+**  	sig -- signature
+**  	hdrs -- rectangular array of header field strings
+**  	hdrlen -- length of each element of "hdrs"
+**  	nhdrs -- size of "hdrs" array (updated)
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_sig_getsignedhdrs __P((DKIM *, DKIM_SIGINFO *,
+                                             u_char *, size_t, u_int *));
+
+/*
 **  DKIM_STRLCPY -- size-bounded strcpy()
 **
 **  Parameters:
