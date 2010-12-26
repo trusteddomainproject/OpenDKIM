@@ -44,6 +44,8 @@ EXTRA_DIST = \
 	t-verify-syntax t-verify-syntax.conf t-verify-syntax.lua \
 	t-dontsign t-dontsign.conf t-dontsign.lua \
 	t-lua-rbl t-lua-rbl.conf t-lua-rbl.lua t-lua-rbl.lua-final \
+	t-lua-verify-tests t-lua-verify-tests.lua t-lua-verify-tests.conf \
+		t-lua-verify-tests.lua-setup \
 	t-peer t-peer.conf t-peer.list t-peer.lua \
 	t-verify-report t-verify-report.conf t-verify-report.txt \
 		t-verify-report.lua \
