@@ -28,6 +28,9 @@ release, and a summary of the changes in that release.
 	Feature request #SF3097083: Make SigningTable accessible from Lua.
 	Feature request #SF3103095: Allow "%" in a KeyTable entry's filename
 		component as well as the domain name.
+	Feature request #SF3105480: Improved VBR correctness; don't conduct
+		VBR checks at all if there are disagreeing "mc" values in
+		multiple VBR-Info header fields.
 	Feature request #SF3106132: Allow "%" in a SigningTable's value.
 	Feature request #SF3109963: Add "MaximumSignaturesToVerify" setting.
 		Suggested by John Wood.

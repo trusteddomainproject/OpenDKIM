@@ -3682,6 +3682,78 @@ dkimf_xs_statsext(lua_State *l)
 # endif /* _FFR_STATSEXT */
 #endif /* USE_LUA */
 
+#ifdef _FFR_VBR
+/*
+**  DKIMF_VALID_VBR -- determine whether or not VBR should be verified
+**
+**  Parameters:
+**  	dfc -- filter context
+**  	conf -- configuration handle
+**
+**  Return value:
+**  	TRUE iff the message should have its VBR data checked
+*/
+
+static _Bool
+dkimf_valid_vbr(struct msgctx *dfc, struct dkimf_config *conf)
+{
+	_Bool ret;
+	int c = 0;
+	char *p;
+	char *q;
+	char *last = NULL;
+	Header hdr;
+	char mc[DKIM_MAXHEADER + 1];
+	char tmp[DKIM_MAXHEADER + 1];
+
+	assert(dfc != NULL);
+	assert(conf != NULL);
+
+	memset(mc, '\0', sizeof mc);
+
+	for (c = 0; c == 0 || ret; c++)
+	{
+		hdr = dkimf_findheader(dfc, VBR_INFOHEADER, c);
+
+		if (hdr == NULL)
+			break;
+
+		if (c == 0)
+			ret = TRUE;
+
+		strlcpy(tmp, hdr->hdr_val, sizeof tmp);
+
+		for (p = strtok_r(tmp, ";", &last);
+		     p != NULL;
+		     p = strtok_r(NULL, ";", &last))
+		{
+			q = strchr(p, '=');
+			if (q == NULL)
+				continue;
+			*q = '\0';
+
+			dkimf_trimspaces(p);
+			dkimf_trimspaces(q + 1);
+
+			if (strcasecmp(p, "mc") == 0)
+			{
+				if (mc[0] == '\0')
+					strlcpy(mc, q + 1, sizeof mc);
+				else if (strcasecmp(q + 1, mc) != 0)
+					ret = FALSE;
+
+				break;
+			}
+		}
+	}
+
+	if (mc[0] == '\0')
+		ret = FALSE;
+
+	return ret;
+}
+#endif /* _FFR_VBR */
+
 /*
 **  DKIMF_ADD_AR_FIELDS -- add Authentication-Results header fields
 **
@@ -10801,30 +10873,27 @@ mlfi_eoh(SMFICTX *ctx)
 #endif /* _FFR_BODYLENGTH_DB */
 
 #ifdef _FFR_VBR
+	/* establish a VBR handle */
+	dfc->mctx_vbr = vbr_init(NULL, NULL, NULL);
+	if (dfc->mctx_vbr == NULL)
+	{
+		syslog(LOG_ERR, "%s: can't create VBR context",
+		       dfc->mctx_jobid);
+		dkimf_cleanup(ctx);
+		return SMFIS_TEMPFAIL;
+	}
+
+	if (conf->conf_vbr_trustedonly)
+		vbr_options(dfc->mctx_vbr, VBR_OPT_TRUSTEDONLY);
+
+	/* store the trusted certifiers */
+	if (conf->conf_vbr_trusted != NULL)
+		vbr_trustedcerts(dfc->mctx_vbr, conf->conf_vbr_trusted);
+
 	if (dfc->mctx_srhead != NULL)
 	{
 		Header newhdr;
 		char header[DKIM_MAXHEADER + 1];
-
-		/* establish a VBR handle */
-		dfc->mctx_vbr = vbr_init(NULL, NULL, NULL);
-		if (dfc->mctx_vbr == NULL)
-		{
-			syslog(LOG_ERR, "%s: can't create VBR context",
-			       dfc->mctx_jobid);
-			dkimf_cleanup(ctx);
-			return SMFIS_TEMPFAIL;
-		}
-
-		if (conf->conf_vbr_trustedonly)
-			vbr_options(dfc->mctx_vbr, VBR_OPT_TRUSTEDONLY);
-
-		/* store the trusted certifiers */
-		if (conf->conf_vbr_trusted != NULL)
-		{
-			vbr_trustedcerts(dfc->mctx_vbr,
-			                 conf->conf_vbr_trusted);
-		}
 
 		/* set the sending domain */
 		vbr_setdomain(dfc->mctx_vbr, dfc->mctx_domain);
@@ -12946,7 +13015,7 @@ mlfi_eom(SMFICTX *ctx)
 			dkimf_policyreport(dfc, conf, hostname);
 
 #ifdef _FFR_VBR
-	    	if (dkimf_findheader(dfc, VBR_INFOHEADER, 0) != NULL)
+	    	if (dkimf_valid_vbr(dfc, conf))
 		{
 			_Bool add_vbr_header = FALSE;
 			_Bool vbr_validsig = FALSE;
@@ -12966,6 +13035,7 @@ mlfi_eom(SMFICTX *ctx)
 			DKIM_SIGINFO **sigs;
 			Header vbr_header;
 			char tmp[DKIM_MAXHEADER + 1];
+			char tmp2[DKIM_MAXHEADER + 1];
 
 			for (c = 0; ; c++)
 			{
