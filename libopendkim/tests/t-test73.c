@@ -181,7 +181,7 @@ main(int argc, char **argv)
 	assert(sig != NULL);
 
 	/* policy query, verify correct result */
-	status = dkim_policy(dkim, &pcode, NULL);
+	status = dkim_policy(dkim, &pcode, NULL, NULL);
 	assert(status == DKIM_STAT_OK);
 	assert(pcode == DKIM_POLICY_ALL);
 

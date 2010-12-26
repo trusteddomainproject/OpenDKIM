@@ -56,7 +56,6 @@ main(int argc, char **argv)
 	int nhdrs;
 	int nsigs;
 	int ndiffs = 0;
-	dkim_canon_t hc;
 	DKIM_STAT status;
 	DKIM *dkim;
 	DKIM_LIB *lib;
@@ -201,7 +200,8 @@ main(int argc, char **argv)
 	assert(strcmp(ohdrs[7], HEADER09) == 0);
 
 	assert(dkim_sig_getcanons(sigs[0], &hc, NULL) == DKIM_STAT_OK);
-	status = dkim_diffheaders(dkim, hc, 5, ohdrs, nhdrs, &diffs, &ndiffs);
+	status = dkim_diffheaders(dkim, hc, 5, (char **) ohdrs, nhdrs,
+	                          &diffs, &ndiffs);
 	assert(status == DKIM_STAT_OK);
 	assert(ndiffs == 1);
 	assert(strcmp(diffs[0].hd_old, ohdrs[3]) == 0);

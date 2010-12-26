@@ -251,7 +251,7 @@ main(int argc, char **argv)
 
 	testpolicy = 0;
 	suspicious = 0;
-	status = dkim_policy(dkim, &pcode, NULL);
+	status = dkim_policy(dkim, &pcode, NULL, NULL);
 	assert(status == DKIM_STAT_OK);
 	assert(pcode == DKIM_POLICY_UNKNOWN);
 
