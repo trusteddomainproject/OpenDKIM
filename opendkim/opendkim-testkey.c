@@ -211,6 +211,9 @@ main(int argc, char **argv)
 	int c;
 	int verbose = 0;
 	int line;
+	int argv_d = 0;
+	int argv_s = 0;
+	int argv_k = 0;
 	char *key = NULL;
 	char *dataset = NULL;
 	char *conffile = NULL;
@@ -234,14 +237,17 @@ main(int argc, char **argv)
 		{
 		  case 'd':
 			strlcpy(domain, optarg, sizeof domain);
+			argv_d = 1;
 			break;
 
 		  case 'k':
 			strlcpy(keypath, optarg, sizeof keypath);
+			argv_k = 1;
 			break;
 
 		  case 's':
 			strlcpy(selector, optarg, sizeof selector);
+			argv_s = 1;
 			break;
 
 		  case 'v':
@@ -290,20 +296,29 @@ main(int argc, char **argv)
 
 		(void) config_get(cfg, "KeyTable", &dataset, sizeof dataset);
 
-		p = NULL;
-		(void) config_get(cfg, "Domain", &p, sizeof p);
-		if (p != NULL)
-			strlcpy(domain, p, sizeof domain);
+		if (domain[0] == '\0')
+		{
+			p = NULL;
+			(void) config_get(cfg, "Domain", &p, sizeof p);
+			if (p != NULL)
+				strlcpy(domain, p, sizeof domain);
+		}
 
-		p = NULL;
-		(void) config_get(cfg, "Selector", &p, sizeof p);
-		if (p != NULL)
-			strlcpy(selector, p, sizeof selector);
+		if (selector[0] == '\0')
+		{
+			p = NULL;
+			(void) config_get(cfg, "Selector", &p, sizeof p);
+			if (p != NULL)
+				strlcpy(selector, p, sizeof selector);
+		}
 
-		p = NULL;
-		(void) config_get(cfg, "KeyFile", &p, sizeof p);
-		if (p != NULL)
-			strlcpy(keypath, p, sizeof keypath);
+		if (keypath[0] == '\0')
+		{
+			p = NULL;
+			(void) config_get(cfg, "KeyFile", &p, sizeof p);
+			if (p != NULL)
+				strlcpy(keypath, p, sizeof keypath);
+		}
 
 #ifdef USE_LDAP
 		(void) config_get(cfg, "LDAPUseTLS",
@@ -367,8 +382,8 @@ main(int argc, char **argv)
 	ERR_load_crypto_strings();
 #endif /* ! USE_GNUTLS */
 
-	/* process a KeyTable if specified */
-	if (dataset != NULL)
+	/* process a KeyTable if specified and not overridden */
+	if (dataset != NULL && argv_d == 0 && argv_k == 0 && argv_s == 0)
 	{
 		int c;
 		int pass = 0;
@@ -499,6 +514,11 @@ main(int argc, char **argv)
 				break;
 
 			  case 0:
+				if (verbose > 2)
+				{
+					fprintf(stdout, "%s: key %s: OK\n",
+					        progname, keyname);
+				}
 				pass++;
 				break;
 
@@ -586,6 +606,18 @@ main(int argc, char **argv)
 		}
 
 		(void) close(fd);
+
+		if (verbose > 1)
+		{
+			fprintf(stderr, "%s: key loaded from %s\n",
+			        progname, keypath);
+		}
+	}
+
+	if (verbose > 0)
+	{
+		fprintf(stderr, "%s: checking key `%s._domainkey.%s'\n",
+		        progname, selector, domain);
 	}
 
 	status = dkim_test_key(lib, selector, domain, key, (size_t) s.st_size,
@@ -601,6 +633,8 @@ main(int argc, char **argv)
 		return EX_UNAVAILABLE;
 
 	  case 0:
+		if (verbose > 2)
+			fprintf(stdout, "%s: key OK\n", progname);
 		return EX_OK;
 
 	  case 1:
