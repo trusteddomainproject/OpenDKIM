@@ -3688,14 +3688,13 @@ dkimf_xs_statsext(lua_State *l)
 **
 **  Parameters:
 **  	dfc -- filter context
-**  	conf -- configuration handle
 **
 **  Return value:
 **  	TRUE iff the message should have its VBR data checked
 */
 
 static _Bool
-dkimf_valid_vbr(struct msgctx *dfc, struct dkimf_config *conf)
+dkimf_valid_vbr(struct msgctx *dfc)
 {
 	_Bool ret;
 	int c = 0;
@@ -3707,7 +3706,6 @@ dkimf_valid_vbr(struct msgctx *dfc, struct dkimf_config *conf)
 	char tmp[DKIM_MAXHEADER + 1];
 
 	assert(dfc != NULL);
-	assert(conf != NULL);
 
 	memset(mc, '\0', sizeof mc);
 
@@ -13015,7 +13013,7 @@ mlfi_eom(SMFICTX *ctx)
 			dkimf_policyreport(dfc, conf, hostname);
 
 #ifdef _FFR_VBR
-	    	if (dkimf_valid_vbr(dfc, conf))
+	    	if (dkimf_valid_vbr(dfc))
 		{
 			_Bool add_vbr_header = FALSE;
 			_Bool vbr_validsig = FALSE;
