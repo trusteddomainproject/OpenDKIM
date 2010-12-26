@@ -59,6 +59,8 @@ release, and a summary of the changes in that release.
 		Todd Lyons.
 	TOOLS: Feature request #SF3106876: Amend opendkim-testkey to return
 		the DNSSEC results as well.
+	TOOLS: Fix bug #SF3143922: Command line parameters to opendkim-testkey
+		now override their configuration file counterparts.
 
 2.2.2		2010/11/28
 	Fix bug #SF2903325: Clean up numerous signed vs. unsigned warnings.
