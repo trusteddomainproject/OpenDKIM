@@ -1591,6 +1591,7 @@ extern int dkim_test_adsp __P((DKIM_LIB *, const char *, dkim_policy_t *,
 **  	domain -- domain name
 **  	key -- private key to verify (PEM format)
 **  	keylen -- size of private key
+**  	dnssec -- DNSSEC result (may be NULL)
 **  	err -- error buffer (may be NULL)
 **  	errlen -- size of error buffer
 **
@@ -1601,7 +1602,7 @@ extern int dkim_test_adsp __P((DKIM_LIB *, const char *, dkim_policy_t *,
 */
 
 extern int dkim_test_key __P((DKIM_LIB *, char *, char *, char *, size_t,
-                              char *, size_t));
+                              int *, char *, size_t));
 
 /*
 **  DKIM_SIG_GETTAGVALUE -- retrieve a tag's value from a signature or its key

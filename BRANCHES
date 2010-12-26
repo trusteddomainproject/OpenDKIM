@@ -24,9 +24,6 @@ br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 feature-msk-sf3081697
 		Optional header field "oversigning"
 
-feature-msk-sf3106876
-		DNSSEC testing with opendkim-testkey
-
 
 Closed Branches
 ~~~~~~~~~~~~~~~

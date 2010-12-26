@@ -78,7 +78,7 @@ opendkim_stats_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(COV_LIB
 opendkim_stats_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 endif
 
-opendkim_testkey_SOURCES = config.c config.h opendkim-crypto.c opendkim-db.c opendkim-db.h opendkim-lua.c opendkim-testkey.c util.c util.h $(srcdir)/../libopendkim/dkim.h $(srcdir)/../libopendkim/dkim-strl.h $(srcdir)/../libopendkim/dkim-test.h
+opendkim_testkey_SOURCES = config.c config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-dns.c opendkim-dns.h opendkim-lua.c opendkim-lua.h opendkim-testkey.c util.c util.h $(srcdir)/../libopendkim/dkim.h $(srcdir)/../libopendkim/dkim-strl.h $(srcdir)/../libopendkim/dkim-test.h
 opendkim_testkey_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_testkey_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_testkey_LDFLAGS = $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
@@ -108,6 +108,15 @@ opendkim_testkey_LDADD += $(OPENLDAP_LIBS)
 endif
 if USE_SASL
 opendkim_testkey_CPPFLAGS += $(SASL_CPPFLAGS)
+endif
+if USE_UNBOUND
+opendkim_testkey_CPPFLAGS += $(LIBUNBOUND_INCDIRS)
+opendkim_testkey_LDFLAGS += $(LIBUNBOUND_LIBDIRS)
+opendkim_testkey_LDADD += $(LIBUNBOUND_LIBS)
+endif
+if USE_ARLIB
+opendkim_testkey_CFLAGS += -I$(srcdir)/../libar
+opendkim_testkey_LDADD += ../libar/libar.la
 endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c

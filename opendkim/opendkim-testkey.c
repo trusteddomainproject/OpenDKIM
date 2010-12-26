@@ -11,6 +11,8 @@
 static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10.10.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
 
+#include "build-config.h"
+
 /* for Solaris */
 #ifndef _REENTRANT
 # define _REENTRANT
@@ -45,6 +47,7 @@ static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10.10.1 2
 
 /* opendkim includes */
 #include "opendkim-db.h"
+#include "opendkim-dns.h"
 #include "config.h"
 #include "opendkim-config.h"
 #include "opendkim-crypto.h"
@@ -63,6 +66,9 @@ int usage(void);
 
 /* globals */
 char *progname;
+#ifdef USE_UNBOUND
+struct dkimf_unbound *unbound;			/* libunbound handle */
+#endif /* USE_UNBOUND */
 
 /*
 **  DKIMF_LOG_SSL_ERRORS -- log any queued SSL library errors
@@ -214,11 +220,15 @@ main(int argc, char **argv)
 	int argv_d = 0;
 	int argv_s = 0;
 	int argv_k = 0;
+	int dnssec;
 	char *key = NULL;
 	char *dataset = NULL;
 	char *conffile = NULL;
 	char *p;
 	DKIM_LIB *lib;
+#ifdef USE_UNBOUND
+	char *trustanchor = NULL;
+#endif /* USE_UNBOUND */
 	struct stat s;
 	char err[BUFRSZ];
 	char domain[BUFRSZ];
@@ -366,7 +376,22 @@ main(int argc, char **argv)
 		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_BINDUSER,
 		                        ldap_binduser);
 #endif /* USE_LDAP */
+
+#ifdef USE_UNBOUND
+		(void) config_get(cfg, "TrustAnchorFile",
+		                  &trustanchor, sizeof trustanchor);
+#endif /* USE_UNBOUND */
 	}
+
+#ifdef USE_UNBOUND
+	if (dkimf_unbound_init(&unbound) != 0)
+	{
+		fprintf(stderr, "%s: failed to initialize libunbound\n",
+		        progname);
+		(void) free(key);
+		return EX_SOFTWARE;
+	}
+#endif /* USE_UNBOUND */
 
 	lib = dkim_init(NULL, NULL);
 	if (lib == NULL)
@@ -375,6 +400,28 @@ main(int argc, char **argv)
 		(void) free(key);
 		return EX_OSERR;
 	}
+
+#ifdef USE_UNBOUND
+	if (unbound != NULL)
+	{
+ 		if (trustanchor != NULL)
+		{
+			status = dkimf_unbound_add_trustanchor(unbound,
+			                                       trustanchor);
+			if (status != DKIM_STAT_OK)
+			{
+				fprintf(stderr,
+				        "%s: failed to set trust anchor\n",
+				        progname);
+
+				(void) free(key);
+				return EX_OSERR;
+			}
+		}
+
+		(void) dkimf_unbound_setup(lib, unbound);
+	}
+#endif /* USE_UNBOUND */
 
 	memset(err, '\0', sizeof err);
 
@@ -499,8 +546,10 @@ main(int argc, char **argv)
 				        progname, keyname);
 			}
 
+			dnssec = DKIM_DNSSEC_UNKNOWN;
+
 			status = dkim_test_key(lib, selector, domain,
-			                       keypath, keylen,
+			                       keypath, keylen, &dnssec,
 			                       err, sizeof err);
 
 			switch (status)
@@ -524,6 +573,37 @@ main(int argc, char **argv)
 
 			  default:
 				assert(0);
+			}
+
+			switch (dnssec)
+			{
+			  case DKIM_DNSSEC_INSECURE:
+				if (verbose > 0)
+				{
+					fprintf(stderr,
+					        "%s: key %s not secure\n",
+					        progname, keyname);
+				}
+				break;
+
+			  case DKIM_DNSSEC_SECURE:
+				if (verbose > 0)
+				{
+					fprintf(stderr,
+					        "%s: key %s secure\n",
+					        progname, keyname);
+				}
+				break;
+
+			  case DKIM_DNSSEC_BOGUS:
+				fprintf(stderr,
+				        "%s: key %s bogus (DNSSEC failed)\n",
+				        progname, keyname);
+				break;
+
+			  case DKIM_DNSSEC_UNKNOWN:
+			  default:
+				break;
 			}
 		}
 
@@ -614,16 +694,40 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (verbose > 0)
+	dnssec = DKIM_DNSSEC_UNKNOWN;
+
+	if (verbose > 1)
 	{
 		fprintf(stderr, "%s: checking key `%s._domainkey.%s'\n",
 		        progname, selector, domain);
 	}
 
 	status = dkim_test_key(lib, selector, domain, key, (size_t) s.st_size,
-	                       err, sizeof err);
+	                       &dnssec, err, sizeof err);
 
 	(void) dkim_close(lib);
+
+	switch (dnssec)
+	{
+	  case DKIM_DNSSEC_INSECURE:
+		if (verbose > 0)
+			fprintf(stderr, "%s: key not secure\n", progname);
+		break;
+
+	  case DKIM_DNSSEC_SECURE:
+		if (verbose > 0)
+			fprintf(stderr, "%s: key secure\n", progname);
+		break;
+
+	  case DKIM_DNSSEC_BOGUS:
+		fprintf(stderr, "%s: key bogus (DNSSEC failed)\n",
+		        progname);
+		break;
+
+	  case DKIM_DNSSEC_UNKNOWN:
+	  default:
+		break;
+	}
 
 	switch (status)
 	{

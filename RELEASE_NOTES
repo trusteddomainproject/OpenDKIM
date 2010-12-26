@@ -57,6 +57,8 @@ release, and a summary of the changes in that release.
 	STATS: Feature request #SF3125701: Add "s=" key value tracking.
 	STATS: Feature request #SF3137445: Track key sizes.  Suggested by
 		Todd Lyons.
+	TOOLS: Feature request #SF3106876: Amend opendkim-testkey to return
+		the DNSSEC results as well.
 
 2.2.2		2010/11/28
 	Fix bug #SF2903325: Clean up numerous signed vs. unsigned warnings.
