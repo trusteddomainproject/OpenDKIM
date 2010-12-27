@@ -14152,11 +14152,8 @@ main(int argc, char **argv)
 	}
 
 	/* if there's a default config file readable, use it */
-	if (conffile == NULL)
-	{
-		if (access(DEFCONFFILE, R_OK) == 0)
-			conffile = DEFCONFFILE;
-	}
+	if (conffile == NULL && access(DEFCONFFILE, R_OK) == 0)
+		conffile = DEFCONFFILE;
 
 	if (conffile != NULL)
 	{
