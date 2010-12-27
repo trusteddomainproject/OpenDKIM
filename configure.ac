@@ -1728,6 +1728,12 @@ AC_ARG_WITH([domain],
 AC_SUBST([DOMAIN])
 
 #
+# final command line tweaks
+#
+
+CPPFLAGS="$CPPFLAGS -DCONFIG_BASE=\\\"$sysconfdir\\\""
+
+#
 # Finish up
 #
 AC_OUTPUT([	Makefile

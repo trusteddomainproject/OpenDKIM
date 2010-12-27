@@ -54,6 +54,7 @@ static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10.10.1 2
 
 /* macros */
 #define	CMDLINEOPTS	"d:k:s:vx:"
+#define	DEFCONFFILE	CONFIG_BASE "/opendkim.conf"
 #define	BUFRSZ		2048
 
 #ifndef MIN
@@ -274,6 +275,9 @@ main(int argc, char **argv)
 	}
 
 	/* process config file */
+	if (conffile == NULL && access(DEFCONFFILE, R_OK) == 0)
+		conffile = DEFCONFFILE;
+
 	if (conffile != NULL)
 	{
 #ifdef USE_LDAP

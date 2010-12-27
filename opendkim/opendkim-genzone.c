@@ -59,6 +59,7 @@ static char opendkim_genzone_c_id[] = "$Id: opendkim-genzone.c,v 1.12.10.1 2010/
 /* definitions */
 #define	BUFRSZ		1024
 #define	CMDLINEOPTS	"C:d:DE:o:N:r:R:St:T:vx:"
+#define	DEFCONFFILE	CONFIG_BASE "/opendkim.conf"
 #define	DEFEXPIRE	604800
 #define	DEFREFRESH	10800
 #define	DEFRETRY	1800
@@ -369,6 +370,9 @@ main(int argc, char **argv)
 	if (optind != argc)
 		dataset = argv[optind];
 
+	/* process config file */
+	if (configfile == NULL && access(DEFCONFFILE, R_OK) == 0)
+		configfile = DEFCONFFILE;
 	if (configfile != NULL)
 	{
 #ifdef USE_LDAP

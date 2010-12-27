@@ -14151,6 +14151,13 @@ main(int argc, char **argv)
 		return EX_SOFTWARE;
 	}
 
+	/* if there's a default config file readable, use it */
+	if (conffile == NULL)
+	{
+		if (access(DEFCONFFILE, R_OK) == 0)
+			conffile = DEFCONFFILE;
+	}
+
 	if (conffile != NULL)
 	{
 		u_int line = 0;

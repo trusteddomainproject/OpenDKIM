@@ -46,6 +46,8 @@ release, and a summary of the changes in that release.
 	Add "ResolverTracing" and "StrictHeaders" configuration file option.
 	Trim whitespace from the end of all values in a config file, not just
 		strings.  Problem noted by Reuben Farrelly.
+	Assume a default location for opendkim.conf.  Suggested by Andreas
+		Schulze.
 	LIBAR: Feature request #SF3115073: Add flag for fine-grained activity
 		logging for debugging purposes.
 	LIBOPENDKIM: Feature request #SF3087029: Add DKIM_LIBFLAGS_STRICTHDRS.

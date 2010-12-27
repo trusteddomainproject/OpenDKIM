@@ -1215,6 +1215,10 @@ will use the
 function to parse that information.  Users should be familiar with the
 way that function handles the non-trivial cases (for example, "192.0.2/24"    
 and "192.0.2.0/24" are not the same thing).
+.SH FILES
+.TP
+.I @SYSCONFDIR@/opendkim.conf
+Default location of this file.
 .SH VERSION
 This man page covers version @VERSION@ of
 .I opendkim.

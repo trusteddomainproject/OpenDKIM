@@ -125,6 +125,8 @@ Names an
 .I opendkim.conf(5)
 file to be read for LDAP-specific parameters when an LDAP dataset is
 given on the command line.  Not required for other dataset types.
+The default is
+.I @SYSCONFDIR@/opendkim.conf.
 .SH VERSION
 This man page covers the version of
 .I opendkim-genzone

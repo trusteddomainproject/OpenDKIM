@@ -53,6 +53,7 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.34.10.1 2010/10/27 21:43:
 #define	CACHESTATSINT	300
 #define	CBINTERVAL	3
 #define CMDLINEOPTS	"Ab:c:d:DfF:k:lL:no:p:P:qQrs:S:t:T:u:vVWx:?"
+#define	DEFCONFFILE	CONFIG_BASE "/opendkim.conf"
 #define	DEFINTERNAL	"csl:127.0.0.1"
 #define	DEFMAXHDRSZ	65536
 #define	DEFMAXVERIFY	3
