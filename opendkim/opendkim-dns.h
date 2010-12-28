@@ -31,6 +31,7 @@ static char opendkim_dns_h_id[] = "@(#)$Id: opendkim-dns.h,v 1.2 2010/08/30 22:0
 struct dkimf_unbound;
 
 /* prototypes */
+extern int dkimf_unbound_add_conffile __P((struct dkimf_unbound *, char *));
 extern int dkimf_unbound_add_trustanchor __P((struct dkimf_unbound *, char *));
 extern int dkimf_unbound_close __P((struct dkimf_unbound *));
 extern int dkimf_unbound_init __P((struct dkimf_unbound **));

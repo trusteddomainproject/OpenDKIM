@@ -1157,6 +1157,16 @@ of the process umask.  See
 for more information.
 
 .TP
+.I UnboundConfigFile (string)
+Specifies a configuration file to be passed to the Unbound library that
+performs DNS queries applying the DNSSEC protocol.  See the Unbound
+documentation at http://unbound.net for the expected content of this file.
+The results of using this and the
+.I TrustAnchorFile
+setting at the same time are undefined.
+@UNBOUND_MANNOTICE@
+
+.TP
 .I UserID (string)
 Attempts to become the specified userid before starting operations.
 The value is of the form

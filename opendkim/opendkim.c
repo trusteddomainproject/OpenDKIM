@@ -310,6 +310,7 @@ struct dkimf_config
 	dkim_sigkey_t	conf_seckey;		/* secret key data */
 #ifdef USE_UNBOUND
 	char *		conf_trustanchorpath;	/* unbound trust anchor file */
+	char *		conf_unboundconfig;	/* unbound config file */
 #endif /* USE_UNBOUND */
 #ifdef _FFR_VBR
 	char *		conf_vbr_deftype;	/* default VBR type */
@@ -5876,6 +5877,18 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			return -1;
 		}
 
+		(void) config_get(data, "UnboundConfigFile",
+		                  &conf->conf_unboundconfig,
+		                  sizeof conf->conf_unboundconfig);
+
+		if (conf->conf_unboundconfig != NULL &&
+		    access(conf->conf_unboundconfig, R_OK) != 0)
+		{
+			snprintf(err, errlen, "%s: %s",
+			         conf->conf_unboundconfig, strerror(errno));
+			return -1;
+		}
+
 		str = NULL;
 		(void) config_get(data, "BogusKey", &str, sizeof str);
 		if (str != NULL)
@@ -7243,6 +7256,14 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		{
 			status = dkimf_unbound_add_trustanchor(unbound,
 			                                       conf->conf_trustanchorpath);
+			if (status != DKIM_STAT_OK)
+				return FALSE;
+		}
+
+		if (conf->conf_unboundconfig != NULL)
+		{
+			status = dkimf_unbound_add_conffile(unbound,
+			                                    conf->conf_unboundconfig);
 			if (status != DKIM_STAT_OK)
 				return FALSE;
 		}

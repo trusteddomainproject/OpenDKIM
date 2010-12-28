@@ -44,6 +44,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3141313: Trim whitespace from values in in-core data
 		sets.  Reported by Todd Lyons.
 	Add "ResolverTracing" and "StrictHeaders" configuration file option.
+	Add "UnboundConfigFile" configuration file option.  Suggested by
+		Andreas Schulze.
 	Trim whitespace from the end of all values in a config file, not just
 		strings.  Problem noted by Reuben Farrelly.
 	Assume a default location for opendkim.conf.  Suggested by Andreas

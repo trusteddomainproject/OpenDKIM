@@ -207,6 +207,9 @@ struct configdef dkimf_config[] =
 #endif /* USE_UNBOUND */
 	{ "TrustSignaturesFrom",	CONFIG_TYPE_STRING,	FALSE },
 	{ "UMask",			CONFIG_TYPE_INTEGER,	FALSE },
+#ifdef USE_UNBOUND
+	{ "UnboundConfigFile",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* USE_UNBOUND */
 	{ "UserID",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_VBR
 	{ "VBR-Certifiers",		CONFIG_TYPE_STRING,	FALSE },

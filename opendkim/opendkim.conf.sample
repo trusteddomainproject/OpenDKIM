@@ -677,6 +677,15 @@ Socket			inet:port@localhost
 
 # TestPublicKeys	/tmp/testkeys
 
+##  TrustAnchorFile filename
+##  	default (none)
+##
+## Specifies a file from which trust anchor data should be read when doing
+## DNS queries and applying the DNSSEC protocol.  See the Unbound documentation
+## at http://unbound.net for the expected format of this file.
+
+# TrustAnchorFile	/var/named/trustanchor
+
 ##  UMask mask
 ##  	default (none)
 ##
@@ -685,6 +694,17 @@ Socket			inet:port@localhost
 ##  See the umask(2) man page for more information.
 
 # UMask			022
+
+##  UnboundConfigFile filename
+##  	default (none)
+##
+##  Specifies a configuration file to be passed to the Unbound library that
+##  performs DNS queries applying the DNSSEC protocol.  See the Unbound
+##  documentation at http://unbound.net for the expected content of this file.
+##  The results of using this and the TrustAnchorFile setting at the same
+## time are undefined.
+
+# UnboundConfigFile	/var/named/unbound.conf
 
 ##  Userid userid
 ##  	default (none)

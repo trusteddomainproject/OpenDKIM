@@ -576,8 +576,33 @@ dkimf_unbound_add_trustanchor(struct dkimf_unbound *ub, char *file)
 
 	assert(ub != NULL);
 	assert(file != NULL);
-
 	status = ub_ctx_add_ta_file(ub->ub_ub, file);
+
+	return (status == 0 ? 0 : -1);
+}
+
+/*
+**  DKIMF_UNBOUND_ADD_CONFFILE -- add a configuration file to a libunbound
+**                                context
+**
+**  Parameters:
+**  	ub -- libunbound context
+**  	file -- path to add
+**
+**  Return value:
+**  	0 -- success
+**  	-1 -- error
+*/
+
+int
+dkimf_unbound_add_conffile(struct dkimf_unbound *ub, char *file)
+{
+	int status;
+
+	assert(ub != NULL);
+	assert(file != NULL);
+
+	status = ub_ctx_config(ub->ub_ub, file);
 
 	return (status == 0 ? 0 : -1);
 }
