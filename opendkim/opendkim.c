@@ -333,6 +333,10 @@ struct dkimf_config
 	char **		conf_remar;		/* A-R removal list (array) */
 	DKIMF_DB	conf_mbsdb;		/* must-be-signed hdrs (DB) */
 	char **		conf_mbs;		/* must-be-signed (array) */
+#ifdef _FFR_OVERSIGN
+	DKIMF_DB	conf_oversigndb;	/* fields to over-sign (DB) */
+	char **		conf_oversignhdrs;	/*   "    "     "    (array) */
+#endif /* _FFR_OVERSIGN */
 	DKIMF_DB	conf_dontsigntodb;	/* don't-sign-to addrs (DB) */
 #ifdef _FFR_ADSP_LISTS
 	DKIMF_DB	conf_nodiscardto;	/* no discardable to (DB) */
@@ -5281,6 +5285,11 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_senderhdrsdb != NULL)
 		dkimf_db_close(conf->conf_senderhdrsdb);
 
+#ifdef _FFR_OVERSIGN
+	if (conf->conf_oversigndb != NULL)
+		dkimf_db_close(conf->conf_oversigndb);
+#endif /* _FFR_OVERSIGN */
+
 	if (conf->conf_mtasdb != NULL)
 		dkimf_db_close(conf->conf_mtasdb);
 
@@ -6539,6 +6548,26 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 	}
 
+#ifdef _FFR_OVERSIGN
+	str = NULL;
+	if (data != NULL)
+		(void) config_get(data, "OverSignHeaders", &str, sizeof str);
+	if (str != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_oversigndb, str,
+		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, dberr);
+			return -1;
+		}
+	}
+#endif /* _FFR_OVERSIGN */
+
 	str = NULL;
 	if (data != NULL)
 		(void) config_get(data, "SenderHeaders", &str, sizeof str);
@@ -7349,6 +7378,24 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		if (status != DKIM_STAT_OK)
 			return FALSE;
 	}
+
+#ifdef _FFR_OVERSIGN
+	if (conf->conf_oversigndb != NULL)
+	{
+		status = dkimf_db_mkarray(conf->conf_oversigndb,
+		                          &conf->conf_oversignhdrs);
+		if (status == -1)
+			return FALSE;
+
+		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
+		                      DKIM_OPTS_OVERSIGNHDRS,
+		                      conf->conf_oversignhdrs,
+		                      sizeof conf->conf_oversignhdrs);
+
+		if (status != DKIM_STAT_OK)
+			return FALSE;
+	}
+#endif /* _FFR_OVERSIGN */
 
 	if (conf->conf_mbsdb != NULL)
 	{

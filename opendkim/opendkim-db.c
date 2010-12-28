@@ -4425,6 +4425,89 @@ dkimf_db_rewalk(DKIMF_DB db, char *str, DKIMF_DBDATA req, unsigned int reqnum,
 	return 1;
 }
 
+#ifdef _FFR_OVERSIGN
+/*
+**  DKIMF_DB_MERGE -- append the contents of one DB into another
+**
+**  Parameters:
+**  	dst -- destination DB
+**  	src -- source DB
+**
+**  Return value:
+**  	Number of new nodes added to "dst"; -1 on error.
+*/
+
+int
+dkimf_db_merge(DKIMF_DB dst, DKIMF_DB src)
+{
+	_Bool found;
+	int status;
+	int merged = 0;
+	struct dkimf_db_list *cur;
+
+	assert(dst != NULL);
+	assert(src != NULL);
+
+	if ((dst->db_type != DKIMF_DB_TYPE_CSL &&
+	     dst->db_type != DKIMF_DB_TYPE_FILE) ||
+	    (src->db_type != DKIMF_DB_TYPE_CSL &&
+	     src->db_type != DKIMF_DB_TYPE_FILE))
+		return -1;
+
+	for (cur = (struct dkimf_db_list *) src->db_handle;
+	     cur != NULL;
+	     cur = cur->db_list_next)
+	{
+		found = FALSE;
+
+		status = dkimf_db_get(dst, cur->db_list_value, 0, NULL, 0,
+		                      &found);
+
+		if (status != 0)
+			return -1;
+
+		if (!found)
+		{
+			struct dkimf_db_list *new;
+
+			new = (struct dkimf_db_list *) malloc(sizeof *new);
+			if (new == NULL)
+				return -1;
+
+			new->db_list_next = (struct dkimf_db_list *) dst->db_handle;
+
+			new->db_list_key = strdup(cur->db_list_key);
+			if (new->db_list_key == NULL)
+			{
+				free(new);
+				return -1;
+			}
+
+			if (cur->db_list_value == NULL)
+			{
+				new->db_list_value = NULL;
+			}
+			else
+			{
+				new->db_list_value = strdup(cur->db_list_value);
+				if (new->db_list_value == NULL)
+				{
+					free(new->db_list_key);
+					free(new);
+					return -1;
+				}
+			}
+
+			dst->db_handle = (struct dkimf_db_list *) dst->db_handle;
+
+			merged++;
+		}
+	}
+
+	return merged;
+}
+#endif /* _FFR_OVERSIGN */
+
 /*
 **  DKIMF_DB_FD -- retrieve a file descriptor associated with a database
 **

@@ -150,6 +150,10 @@ static char *optlist[] =
 	"_FFR_MAXVERIFY",
 #endif /* _FFR_MAXVERIFY */
 
+#if _FFR_OVERSIGN
+	"_FFR_OVERSIGN",
+#endif /* _FFR_OVERSIGN */
+
 #if _FFR_PARSE_TIME
 	"_FFR_PARSE_TIME",
 #endif /* _FFR_PARSE_TIME */

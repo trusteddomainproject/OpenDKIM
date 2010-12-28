@@ -258,6 +258,8 @@ FFR_FEATURE([ldap_caching], [LDAP query piggybacking and caching])
 
 FFR_FEATURE([maxverify], [signature verification limit])
 
+FFR_FEATURE([oversign], [enable header field over-signing])
+
 FFR_FEATURE([replace_rules], [support for string substitution when signing])
 
 FFR_FEATURE([report_intervals],

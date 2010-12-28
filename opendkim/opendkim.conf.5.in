@@ -700,6 +700,24 @@ The default is
 .I tempfail.
 
 .TP
+.I OversignHeaders (dataset)
+Specifies a set of header fields that should be included in all signature
+header lists (the "h=" tag) even if they were present at the time
+the signature was generated.  The set is empty by default.  The purpose of
+listing an absent header is to prevent its addition between the signer
+and the verifier, since the verifier would include that header if it were
+added when performing verification, which would mean the signed message
+and the verified message were different and the verification would fail.
+Unlike
+.I AlwaysSignHeaders,
+the names in this data set are always added to signatures even if they did
+appear in the original header field set.  Note that the fields in this list
+must also be present in the
+.I SignHeaders
+list, or any signature produced will be impossible to validate.
+@OVERSIGN_MANNOTICE@
+
+.TP
 .I PeerList (dataset)
 Identifies a set of "peers" that identifies clients whose connections
 should be accepted without processing by this filter.  The set
