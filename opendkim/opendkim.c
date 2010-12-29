@@ -7383,7 +7383,7 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	if (conf->conf_oversigndb != NULL)
 	{
 		status = dkimf_db_mkarray(conf->conf_oversigndb,
-		                          &conf->conf_oversignhdrs);
+		                          &conf->conf_oversignhdrs, NULL);
 		if (status == -1)
 			return FALSE;
 
