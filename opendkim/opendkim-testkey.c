@@ -229,6 +229,7 @@ main(int argc, char **argv)
 	DKIM_LIB *lib;
 #ifdef USE_UNBOUND
 	char *trustanchor = NULL;
+	char *ubconfig = NULL;
 #endif /* USE_UNBOUND */
 	struct stat s;
 	char err[BUFRSZ];
@@ -384,6 +385,9 @@ main(int argc, char **argv)
 #ifdef USE_UNBOUND
 		(void) config_get(cfg, "TrustAnchorFile",
 		                  &trustanchor, sizeof trustanchor);
+
+		(void) config_get(cfg, "UnboundConfigFile",
+		                  &ubconfig, sizeof ubconfig);
 #endif /* USE_UNBOUND */
 	}
 
@@ -416,6 +420,21 @@ main(int argc, char **argv)
 			{
 				fprintf(stderr,
 				        "%s: failed to set trust anchor\n",
+				        progname);
+
+				(void) free(key);
+				return EX_OSERR;
+			}
+		}
+
+ 		if (ubconfig != NULL)
+		{
+			status = dkimf_unbound_add_conffile(unbound,
+			                                    ubconfig);
+			if (status != DKIM_STAT_OK)
+			{
+				fprintf(stderr,
+				        "%s: failed to set unbound configuration file\n",
 				        progname);
 
 				(void) free(key);
