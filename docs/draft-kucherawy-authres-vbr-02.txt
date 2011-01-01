@@ -3,12 +3,12 @@
 
 Individual submission                                       M. Kucherawy
 Internet-Draft                                           Cloudmark, Inc.
-Intended status: Standards Track                       November 29, 2010
-Expires: June 2, 2011
+Intended status: Standards Track                         January 1, 2011
+Expires: July 5, 2011
 
 
    Authentication-Results Registration For Vouch By Reference Results
-                     draft-kucherawy-authres-vbr-01
+                     draft-kucherawy-authres-vbr-02
 
 Abstract
 
@@ -31,11 +31,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on June 2, 2011.
+   This Internet-Draft will expire on July 5, 2011.
 
 Copyright Notice
 
-   Copyright (c) 2010 IETF Trust and the persons identified as the
+   Copyright (c) 2011 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Kucherawy                 Expires June 2, 2011                  [Page 1]
+Kucherawy                 Expires July 5, 2011                  [Page 1]
 
-Internet-Draft        Auth-Results VBR Registration        November 2010
+Internet-Draft        Auth-Results VBR Registration         January 2011
 
 
 Table of Contents
@@ -67,9 +67,9 @@ Table of Contents
    6.  Security Considerations . . . . . . . . . . . . . . . . . . . . 5
    7.  References  . . . . . . . . . . . . . . . . . . . . . . . . . . 5
      7.1.  Normative References  . . . . . . . . . . . . . . . . . . . 5
-     7.2.  Informative References  . . . . . . . . . . . . . . . . . . 5
+     7.2.  Informative References  . . . . . . . . . . . . . . . . . . 6
    Appendix A.  Authentication-Results Examples  . . . . . . . . . . . 6
-     A.1.  VBR Results . . . . . . . . . . . . . . . . . . . . . . . . 6
+     A.1.  VBR Results . . . . . . . . . . . . . . . . . . . . . . . . 7
    Appendix B.  Acknowledgements . . . . . . . . . . . . . . . . . . . 7
 
 
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Kucherawy                 Expires June 2, 2011                  [Page 2]
+Kucherawy                 Expires July 5, 2011                  [Page 2]
 
-Internet-Draft        Auth-Results VBR Registration        November 2010
+Internet-Draft        Auth-Results VBR Registration         January 2011
 
 
 1.  Introduction
@@ -145,29 +145,31 @@ Internet-Draft        Auth-Results VBR Registration        November 2010
 4.  Definition
 
    This memo adds to the "Email Authentication Method Name Registry",
-   created by IANA upon publication of [AUTHRES], the "header.md" and
-   "header.mv" reporting items.
+   created by IANA upon publication of [AUTHRES], the following:
 
-   The value associated with "header.md" in the header field MUST be the
-   DNS domain name about which a VBR query was made.  This is typically
-   taken from the "md" tag of the "VBR-Info" header filed.  ([VBR]
-   describes the methods for selecting the construction and execution of
-   that query.)
+   o  The method "vbr"; and
 
-   The value associated with "header.mv" in the header field MUST be the
-   DNS domain that was queried as the potential voucher for the
-   "header.md" domain.  This is typically one of the values of the "mv"
-   tag in the "VBR-Info" header field on the message being evaluated,
-   although a local list of vouchers may be used in place of that value
-   as described in [VBR].
+   o  Associated with that method, the properties (reporting items)
+      "header.md" and "header.mv".
+
+   If "header.md" is present, its value MUST be the DNS domain name
+   about which a VBR query was made.  This is typically taken from the
+   "md" tag of the "VBR-Info" header field.  ([VBR] describes the
+   methods for selecting the construction and execution of that query.)
+
+   If "header.mv" is present, its value MUST be the DNS domain that was
+   queried as the potential voucher for the "header.md" domain.  This is
+   typically one of the values of the "mv" tag in the "VBR-Info" header
+   field on the message being evaluated, although a local list of
 
 
 
-
-Kucherawy                 Expires June 2, 2011                  [Page 3]
+Kucherawy                 Expires July 5, 2011                  [Page 3]
 
-Internet-Draft        Auth-Results VBR Registration        November 2010
+Internet-Draft        Auth-Results VBR Registration         January 2011
 
+
+   vouchers may be used in place of that value as described in [VBR].
 
    Where the VBR-Info header field was not present on a message but a
    mail server decides to conduct a VBR query anyway, the server MAY
@@ -204,6 +206,25 @@ Internet-Draft        Auth-Results VBR Registration        November 2010
    Per [IANA-CONSIDERATIONS], the following item is added to the "Email
    Authentication Method Name Registry":
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kucherawy                 Expires July 5, 2011                  [Page 4]
+
+Internet-Draft        Auth-Results VBR Registration         January 2011
+
+
    +------------+----------+--------+----------------+-----------------+
    |   Method   | Defined  | ptype  | property       | value           |
    +------------+----------+--------+----------------+-----------------+
@@ -217,13 +238,6 @@ Internet-Draft        Auth-Results VBR Registration        November 2010
    |            |          |        |                | acting as       |
    |            |          |        |                | the voucher     |
    +------------+----------+--------+----------------+-----------------+
-
-
-
-Kucherawy                 Expires June 2, 2011                  [Page 4]
-
-Internet-Draft        Auth-Results VBR Registration        November 2010
-
 
    Also, the following item is added to the "Email Authentication Method
    Results Registry":
@@ -259,6 +273,14 @@ Internet-Draft        Auth-Results VBR Registration        November 2010
 
    [AUTHRES]              Kucherawy, M., "Message Header Field for
                           Indicating Message Authentication Status",
+
+
+
+Kucherawy                 Expires July 5, 2011                  [Page 5]
+
+Internet-Draft        Auth-Results VBR Registration         January 2011
+
+
                           RFC 5451, April 2009.
 
    [KEYWORDS]             Bradner, S., "Key words for use in RFCs to
@@ -274,17 +296,46 @@ Internet-Draft        Auth-Results VBR Registration        November 2010
                           Writing an IANA Considerations Section in
                           RFCs", BCP 26, RFC 5226, May 2008.
 
-
-
-Kucherawy                 Expires June 2, 2011                  [Page 5]
-
-Internet-Draft        Auth-Results VBR Registration        November 2010
-
-
 Appendix A.  Authentication-Results Examples
 
    This section presents an example of the use of this new item header
    field to indicate VBR results.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kucherawy                 Expires July 5, 2011                  [Page 6]
+
+Internet-Draft        Auth-Results VBR Registration         January 2011
+
 
 A.1.  VBR Results
 
@@ -326,22 +377,21 @@ A.1.  VBR Results
    sender can be trusted, so a "pass" result is included in the
    Authentication-Results field affixed prior to delivery.
 
-
-
-
-
-
-
-Kucherawy                 Expires June 2, 2011                  [Page 6]
-
-Internet-Draft        Auth-Results VBR Registration        November 2010
-
-
 Appendix B.  Acknowledgements
 
    The author wishes to acknowledge the following for their review and
    constructive criticism of this proposal: JD Falk, John Levine,
    Alessandro Vesely
+
+
+
+
+
+
+Kucherawy                 Expires July 5, 2011                  [Page 7]
+
+Internet-Draft        Auth-Results VBR Registration         January 2011
+
 
 Author's Address
 
@@ -388,5 +438,11 @@ Author's Address
 
 
 
-Kucherawy                 Expires June 2, 2011                  [Page 7]
+
+
+
+
+
+
+Kucherawy                 Expires July 5, 2011                  [Page 8]
 
