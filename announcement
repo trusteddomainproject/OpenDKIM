@@ -1,38 +1,91 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.2.1 released
+Subject: OpenDKIM v2.3.0 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.2.1, now available
+The OpenDKIM project announces availability of OpenDKIM v2.3.0, now available
 for download from SourceForge.
 
-This release fixes a number of minor bugs found since v2.2.0 was released.
+This is a major new feature release with a few minor bug fixes included.
+There are also a few new experimental extensions available for those
+interested in participating.  A few worth noting:
+
+- the final Lua script can now do RBL queries
+- VBR support has been enhanced
+- statistics gathering has also been enhanced, with a few more pieces of data
+  being tracked and a few improvements made to anonymization of data
+- several simplifications have been made to various configuration settings
+- experimental support for Authorized Third-Party Signers (ATPS) was added
+- compile-time support for GNUTLS as a replacement for OpenSSL was added
+- will now use an opendkim.conf in the default location if it's there
 
 The full RELEASE_NOTES for this version:
 
-2.2.1		2010/10/25
-	Avoid assertion failures when using "-V" and arlib.
-	Fix "refile" loading.  Problem noted by Steve Jenkins.
-	Fix collision between "ReputationRoot" and "StatisticsName" in the
-		configuration file.  Reported by Andreas Schulze.
-	Convert sender's domain name to lowercase prior to doing any database
-		queries with it.  This was done before, but lost during the
-		database overhaul in 1.2.0.  Reported by Gary Mills.
-	Fix up Authentication-Results header field generation for VBR.
-		Reported by Fredrik Pettai.
-	Add _FFR_STATS_I enabling statistics reporting of "i=" signature
-		properties.
-	LIBOPENDKIM: Fix bug #SF3081964: dkim.h requires <sys/time.h>.
-		Patch from Kaspar Brand.
-	LIBOPENDKIM: Fix bug #SF3087251: Use thread-safe resolver functions
-		when avaialble.  Problem noted by Christian Pelissier.
-	LIBOPENDKIM: Cancel completed reputation queries.  Problem noted
-		by John Wood.
-	LIBOPENDKIM: Simplify DKIM_OPTS_ALWAYSHDRS handling.
-	LIBAR: Fix bug #SF3080720: Don't compute timeouts based on completed
-		or dead queries.  Problem noted by John Wood.
-	LIBVBR: Fix some pointer errors causing false negatives.  Problem
-		noted by Fredrik Pettai.
-	TOOLS: Write "v=" tags in key records output by opendkim-genzone.
+2.3.0		2011/02/21
+	Feature request #SF2964396: Allow SignHeaders, OmitHeaders and
+		SenderHeaders to be specified as deltas to the default lists.
+	Feature request #SF3053094: Correct documentation and improve function
+		of the AuthservID configuration setting.  Requested by
+		Andreas Schulze.
+	Feature request #SF3060152: Add odkim.replace_header() function.
+	Feature request #SF3060161: Add odkim.del_header() function.
+	Feature request #SF3061189: Add new "quarantine" option to all the
+		various "On-" settings.
+	Feature request #SF3066104: Add "AnonymousDomains" configuration
+		option.
+	Feature request #SF3074290: Add _FFR_ATPS, experimental support for
+		draft-kucherawy-dkim-atps.
+	Feature request #SF3076684: Add "VBR-TrustedCertifiersOnly" flag.
+	Feature request #SF3080604: Add odkim.parse_field() function.
+		Requested by Todd Lyons.
+	Feature request #SF3081697: Add "OversignHeaders" configuration
+		option.
+	Feature request #SF3085536: Activate _FFR_STATS_I, providing
+		statistics reporting about use of "i=" in signatures.
+	Feature request #SF3096630: Add odkim.rbl_check() function.
+	Feature request #SF3097083: Make SigningTable accessible from Lua.
+	Feature request #SF3103095: Allow "%" in a KeyTable entry's filename
+		component as well as the domain name.
+	Feature request #SF3105480: Improved VBR correctness; don't conduct
+		VBR checks at all if there are disagreeing "mc" values in
+		multiple VBR-Info header fields.
+	Feature request #SF3106132: Allow "%" in a SigningTable's value.
+	Feature request #SF3109963: Add "MaximumSignaturesToVerify" setting.
+		Suggested by John Wood.
+	Feature request #SF3110593: Add compile-time support for GnuTLS as
+		an alternative to OpenSSL.  Suggested by Alessandro Vesely.
+	Feature request #SF3136772: Sign the VBR-Info header field, if added.
+		Requested by Frederik Pettai.
+	Fix bug #SF3134119: With AutoRestart enabled, arrange to relay
+		SIGUSR1 from the parent to the child rather than terminating.
+		Reported by Yoshiaki Yanagihara.
+	Fix bug #SF3141313: Trim whitespace from values in in-core data
+		sets.  Reported by Todd Lyons.
+	Add "ResolverTracing" and "StrictHeaders" configuration file option.
+	Add "UnboundConfigFile" configuration file option.  Suggested by
+		Andreas Schulze.
+	Trim whitespace from the end of all values in a config file, not just
+		strings.  Problem noted by Reuben Farrelly.
+	Assume a default location for opendkim.conf.  Suggested by Andreas
+		Schulze.
+	LIBAR: Feature request #SF3115073: Add flag for fine-grained activity
+		logging for debugging purposes.
+	LIBOPENDKIM: Feature request #SF3087029: Add DKIM_LIBFLAGS_STRICTHDRS.
+	LIBOPENDKIM: Feautre request #SF3089990: Add dkim_sig_getsignedhdrs().
+	LIBOPENDKIM: Fix bug #SF3079094: Have dkim_diffheaders() take
+		canonicalization into account when generating its results
+		to avoid false positives.
+	LIBOPENDKIM: Add dkim_getid().
+	LIBVBR: Feature request #SF3105477: Copy the generic DNS work from
+		libopendkim.
+	STATS: Feature request #SF3085536: Activate _FFR_STATS_I, providing
+		statistics reporting about use of "i=" in signatures.
+	STATS: Feature request #SF3125701: Add "s=" key value tracking.
+	STATS: Feature request #SF3137445: Track key sizes.  Suggested by
+		Todd Lyons.
+	TOOLS: Feature request #SF3106876: Amend opendkim-testkey to return
+		the DNSSEC results as well.
+	TOOLS: Fix bug #SF3143922: Command line parameters to opendkim-testkey
+		now override their configuration file counterparts.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
