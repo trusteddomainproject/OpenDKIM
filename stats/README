@@ -219,11 +219,11 @@ To convert your existing databases, use these steps:
 		GROUP BY ipaddr;
 	d) UPDATE messages
 		SET ip = (SELECT id FROM ipaddrs WHERE addr = messages.ipaddr);
-	e) ALTER TABLE messages MODIFY COLUMN ip INT UNSIGNED NOT NULL;
-	f) ALTER TABLE messages ADD CONSTRAINT
-		FOREIGN KEY(ip) REFERENCES ipaddrs(id) ON DELETE CASCADE;
-	g) ALTER TABLE messages DROP COLUMN ipaddr;
-	h) UNLOCK TABLES;
+	e) ALTER TABLE messages MODIFY COLUMN ip INT UNSIGNED NOT NULL,
+		DROP COLUMN ipaddr,
+		ADD CONSTRAINT FOREIGN KEY(ip) REFERENCES ipaddrs(id)
+		ON DELETE CASCADE;
+	f) UNLOCK TABLES;
 
    The various ALTER TABLE commands may require a rebuild of the "messages"
    table.  This can take a large amount of time if the table is large.
