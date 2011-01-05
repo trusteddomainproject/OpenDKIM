@@ -323,6 +323,7 @@ main(int argc, char **argv)
 	int norepadd = 0;
 	int repid;
 	int domid;
+	int addrid;
 	int msgid;
 	int sigid;
 	int hdrid;
@@ -624,9 +625,54 @@ main(int argc, char **argv)
 				}
 			}
 
+			/* get, or create, the IP address ID if needed */
+			(void) sanitize(db, fields[3], safesql,
+			                sizeof safesql);
+
+			snprintf(sql, sizeof sql,
+			         "SELECT id FROM ipaddrs WHERE addr = '%s'",
+			         safesql);
+
+			addrid = sql_get_int(db, sql);
+			if (addrid == -1)
+			{
+				(void) odbx_finish(db);
+				return EX_SOFTWARE;
+			}
+			else if (addrid == 0)
+			{
+				snprintf(sql, sizeof sql,
+				         "INSERT INTO ipaddrs (addr) VALUES ('%s')",
+				         safesql);
+
+				addrid = sql_do(db, sql);
+				if (addrid == -1)
+				{
+					(void) odbx_finish(db);
+					return EX_SOFTWARE;
+				}
+
+				snprintf(sql, sizeof sql,
+				         "SELECT LAST_INSERT_ID()");
+
+				addrid = sql_get_int(db, sql);
+				if (addrid == -1)
+				{
+					(void) odbx_finish(db);
+					return EX_SOFTWARE;
+				}
+				else if (addrid == 0)
+				{
+					fprintf(stderr,
+					        "%s: failed to create IP address record for `%s'\n",
+					        progname, fields[3]);
+					(void) odbx_finish(db);
+					return EX_SOFTWARE;
+				}
+			}
+
 			/* verify data safety */
 			if (sanitize(db, fields[0], safesql, sizeof safesql) ||
-			    sanitize(db, fields[3], safesql, sizeof safesql) ||
 			    sanitize(db, fields[4], safesql, sizeof safesql) ||
 			    sanitize(db, fields[5], safesql, sizeof safesql) ||
 			    sanitize(db, fields[6], safesql, sizeof safesql) ||
@@ -675,11 +721,11 @@ main(int argc, char **argv)
 			}
 
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO messages (jobid, reporter, from_domain, ipaddr, anonymized, msgtime, size, sigcount, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received_count, content_type, content_encoding) VALUES ('%s', %d, %d, '%s', %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')",
+			         "INSERT INTO messages (jobid, reporter, from_domain, ipaddr, anonymized, msgtime, size, sigcount, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received_count, content_type, content_encoding) VALUES ('%s', %d, %d, %d, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')",
 			         fields[0],		/* jobid */
 			         repid,			/* reporter */
 			         domid,			/* from_domain */
-			         fields[3],		/* ipaddr */
+			         addrid,		/* ipaddr */
 			         fields[4],		/* anonymized */
 			         fields[5],		/* msgtime */
 			         fields[6],		/* size */

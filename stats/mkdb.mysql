@@ -25,6 +25,16 @@ create table if not exists domains (
 	key(name)
 ) engine=innodb default charset=latin1;
 
+-- table of IP addresses names we've seen
+create table if not exists ipaddrs (
+	id int unsigned not null auto_increment,
+	addr varchar(255) not null,
+	firstseen timestamp not null default CURRENT_TIMESTAMP,
+
+	primary key(id),
+	key(name)
+) engine=innodb default charset=latin1;
+
 -- table of messages names we've seen
 create table if not exists messages (
 	id int unsigned not null auto_increment,
@@ -49,9 +59,10 @@ create table if not exists messages (
 	primary key(id),
 	key(reporter),
 	key(from_domain),
-	key(ipaddr),
+	key(ip),
 	unique key(reporter, jobid, msgtime),
 	foreign key(from_domain) references domains(id) on delete cascade,
+	foreign key(ip) references ipaddrs(id) on delete cascade,
 	foreign key(reporter) references reporters(id) on delete cascade
 ) engine=innodb default charset=latin1;
 

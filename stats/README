@@ -195,3 +195,35 @@ is desirable and populate them whatever way is appropriate for each.
 
 Participants that find particular additional columns produce interesting
 correlations are encouraged to share them with the OpenDKIM community.
+
+
+CONVERTING TO THE IPADDRS SCHEMA
+
+In version 2.3.0 of OpenDKIM, the schema changed to add a new "ipaddrs"
+table, moving that data from each row of the "messages" table (causing
+duplication).  The code in 2.3.0 to do data import expects the new schema
+and is not back-compatible with prior releases.
+
+To convert your existing databases, use these steps:
+
+1) Run the stats/mkdb.mysql script from inside your MySQL client to create
+   the required new table.  Existing tables will not be altered.
+
+2) Run the following additional MySQL commands (lines are wrapped here for
+   readability but each represents a single command):
+
+	a) LOCK TABLES messages WRITE;
+	b) ALTER TABLE messages ADD COLUMN ip INT UNSIGNED AFTER ipaddr;
+	c) INSERT INTO ipaddrs (addr, firstseen) 
+		SELECT DISTINCT ipaddr, MIN(msgtime) FROM MESSAGES
+		GROUP BY IPADDR;
+	d) UPDATE messages
+		SET ip = (SELECT id FROM ipaddrs WHERE addr = messages.ipaddr);
+	e) ALTER TABLE messages MODIFY COLUMN ip INT UNSIGNED NOT NULL;
+	f) ALTER TABLE messages ADD CONSTRAINT
+		FOREIGN KEY(ip) REFERENCES ipaddrs(id) ON DELETE CASCADE;
+	g) ALTER TABLE messages DROP COLUMN ipaddr;
+	h) UNLOCK TABLES;
+
+   The various ALTER TABLE commands may require a rebuild of the "messages"
+   table.  This can take a large amount of time if the table is large.
