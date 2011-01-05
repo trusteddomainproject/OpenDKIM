@@ -215,8 +215,8 @@ To convert your existing databases, use these steps:
 	a) LOCK TABLES messages WRITE;
 	b) ALTER TABLE messages ADD COLUMN ip INT UNSIGNED AFTER ipaddr;
 	c) INSERT INTO ipaddrs (addr, firstseen) 
-		SELECT DISTINCT ipaddr, MIN(msgtime) FROM MESSAGES
-		GROUP BY IPADDR;
+		SELECT DISTINCT ipaddr, MIN(msgtime) FROM messages
+		GROUP BY ipaddr;
 	d) UPDATE messages
 		SET ip = (SELECT id FROM ipaddrs WHERE addr = messages.ipaddr);
 	e) ALTER TABLE messages MODIFY COLUMN ip INT UNSIGNED NOT NULL;
