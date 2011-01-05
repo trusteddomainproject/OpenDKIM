@@ -32,7 +32,7 @@ create table if not exists ipaddrs (
 	firstseen timestamp not null default CURRENT_TIMESTAMP,
 
 	primary key(id),
-	key(name)
+	key(addr)
 ) engine=innodb default charset=latin1;
 
 -- table of messages names we've seen
