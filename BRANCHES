@@ -21,11 +21,6 @@ br-msk-db-handle-pools
 br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
 
-bug-msk-sf3151405
-		Stats: Move IP address from "messages" table to its own table,
-		leaving behind an index reference column, and include a
-		conversion tool.
-
 
 Closed Branches
 ~~~~~~~~~~~~~~~
