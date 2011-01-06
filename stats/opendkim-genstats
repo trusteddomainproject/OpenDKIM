@@ -216,7 +216,7 @@ echo "" >> $OUTPUT
 
 echo '<a name="ip_correlation"></a>' >> $OUTPUT
 echo "<p> Correlation of IP addresses to signed From: domains: </p>" >> $OUTPUT
-$MYSQL --execute="select ipaddr, count(distinct from_domain) as domains from messages where sigcount > 0 and anonymized = 0 group by ipaddr order by domains desc limit 10" >> $OUTPUT
+$MYSQL --execute="select ipaddrs.addr, count(distinct from_domain) as domains from messages join ipaddrs on messages.ip = ipaddrs.id where sigcount > 0 and anonymized = 0 group by messages.ip order by domains desc limit 10" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="received_correlation"></a>' >> $OUTPUT
@@ -231,7 +231,7 @@ echo "" >> $OUTPUT
 
 echo '<a name="worst_adsp"></a>' >> $OUTPUT
 echo "<p> Worst ADSP use: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT domains.name, m.ipaddr, IF(m.adsp_all, 'all', 'discardable') AS type, SUM(IF(s.pass <> NULL, 0, 1)) AS missing, SUM(IF(s.pass, 0, 1)) AS failed, SUM(IFNULL(s.pass,0)) AS good FROM domains, messages AS m LEFT JOIN signatures AS s ON m.id = s.message WHERE domains.id = m.from_domain AND (s.domain = m.from_domain OR s.domain IS NULL) AND m.adsp_all + m.adsp_discardable = 1 GROUP BY m.from_domain, m.ipaddr ORDER BY missing DESC LIMIT 10"  >> $OUTPUT
+$MYSQL --execute="SELECT domains.name, a.addr, IF(m.adsp_all, 'all', 'discardable') AS type, SUM(IF(s.pass <> NULL, 0, 1)) AS missing, SUM(IF(s.pass, 0, 1)) AS failed, SUM(IFNULL(s.pass,0)) AS good FROM domains, messages AS m JOIN ipaddrs AS a ON messages.ip = ipaddrs.id LEFT JOIN signatures AS s ON m.id = s.message WHERE domains.id = m.from_domain AND (s.domain = m.from_domain OR s.domain IS NULL) AND m.adsp_all + m.adsp_discardable = 1 GROUP BY m.from_domain, m.ip ORDER BY missing DESC LIMIT 10"  >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="use_counts"></a>' >> $OUTPUT
