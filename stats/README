@@ -201,7 +201,7 @@ CONVERTING TO THE IPADDRS SCHEMA
 
 In version 2.3.0 of OpenDKIM, the schema changed to add a new "ipaddrs"
 table, moving that data from each row of the "messages" table (causing
-duplication).  The code in 2.3.0 to do data import expects the new schema
+duplication).  The opendkim-importstats tool in 2.3.0 expects the new schema
 and is not back-compatible with prior releases.
 
 To convert your existing databases, use these steps:
@@ -212,7 +212,7 @@ To convert your existing databases, use these steps:
 2) Run the following additional MySQL commands (lines are wrapped here for
    readability but each represents a single command):
 
-	a) LOCK TABLES messages WRITE;
+	a) LOCK TABLES messages WRITE, ipaddrs WRITE;
 	b) ALTER TABLE messages ADD COLUMN ip INT UNSIGNED AFTER ipaddr;
 	c) INSERT INTO ipaddrs (addr, firstseen) 
 		SELECT DISTINCT ipaddr, MIN(msgtime) FROM messages
