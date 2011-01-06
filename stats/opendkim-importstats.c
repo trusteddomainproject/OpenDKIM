@@ -721,11 +721,11 @@ main(int argc, char **argv)
 			}
 
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO messages (jobid, reporter, from_domain, ipaddr, anonymized, msgtime, size, sigcount, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received_count, content_type, content_encoding) VALUES ('%s', %d, %d, %d, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')",
+			         "INSERT INTO messages (jobid, reporter, from_domain, ip, anonymized, msgtime, size, sigcount, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received_count, content_type, content_encoding) VALUES ('%s', %d, %d, %d, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')",
 			         fields[0],		/* jobid */
 			         repid,			/* reporter */
 			         domid,			/* from_domain */
-			         addrid,		/* ipaddr */
+			         addrid,		/* ip */
 			         fields[4],		/* anonymized */
 			         fields[5],		/* msgtime */
 			         fields[6],		/* size */
