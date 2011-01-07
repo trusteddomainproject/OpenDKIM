@@ -3,12 +3,12 @@
 
 Individual submission                                       M. Kucherawy
 Internet-Draft                                           Cloudmark, Inc.
-Intended status: Standards Track                         January 1, 2011
-Expires: July 5, 2011
+Intended status: Standards Track                         January 7, 2011
+Expires: July 11, 2011
 
 
    Authentication-Results Registration For Vouch By Reference Results
-                     draft-kucherawy-authres-vbr-02
+                     draft-kucherawy-authres-vbr-03
 
 Abstract
 
@@ -31,7 +31,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on July 5, 2011.
+   This Internet-Draft will expire on July 11, 2011.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Kucherawy                 Expires July 5, 2011                  [Page 1]
+Kucherawy                 Expires July 11, 2011                 [Page 1]
 
 Internet-Draft        Auth-Results VBR Registration         January 2011
 
@@ -108,7 +108,7 @@ Table of Contents
 
 
 
-Kucherawy                 Expires July 5, 2011                  [Page 2]
+Kucherawy                 Expires July 11, 2011                 [Page 2]
 
 Internet-Draft        Auth-Results VBR Registration         January 2011
 
@@ -121,10 +121,8 @@ Internet-Draft        Auth-Results VBR Registration         January 2011
    domain-level reputation called Vouch By Reference [VBR] was published
    and is now beginning to see popular use.
 
-   Fortunately, [AUTHRES] created IANA registries of reporting
-   properties, enabling an easy remedy for this problem.  This memo thus
-   registers an additional reporting property allowing a VBR result to
-   be relayed as an annotation in a message header.
+   This memo thus registers an additional reporting property allowing a
+   VBR result to be relayed as an annotation in a message header.
 
 2.  Keywords
 
@@ -142,6 +140,10 @@ Internet-Draft        Auth-Results VBR Registration         January 2011
    result of that assessment to internal mail entities such as filters
    or user agents.
 
+   Reactions to the information contained in an Authentication-Results
+   header field that contains VBR (or any) results are not specified
+   here as they are entirely a matter of local policy at the receiver.
+
 4.  Definition
 
    This memo adds to the "Email Authentication Method Name Registry",
@@ -154,21 +156,21 @@ Internet-Draft        Auth-Results VBR Registration         January 2011
 
    If "header.md" is present, its value MUST be the DNS domain name
    about which a VBR query was made.  This is typically taken from the
-   "md" tag of the "VBR-Info" header field.  ([VBR] describes the
-   methods for selecting the construction and execution of that query.)
+   "md" tag of the "VBR-Info" header field.  ([VBR] describes alternate
+   methods for selecting the domain used as the subject of that query.)
 
    If "header.mv" is present, its value MUST be the DNS domain that was
    queried as the potential voucher for the "header.md" domain.  This is
-   typically one of the values of the "mv" tag in the "VBR-Info" header
-   field on the message being evaluated, although a local list of
 
 
 
-Kucherawy                 Expires July 5, 2011                  [Page 3]
+Kucherawy                 Expires July 11, 2011                 [Page 3]
 
 Internet-Draft        Auth-Results VBR Registration         January 2011
 
 
+   typically one of the values of the "mv" tag in the "VBR-Info" header
+   field on the message being evaluated, although a local list of
    vouchers may be used in place of that value as described in [VBR].
 
    Where the VBR-Info header field was not present on a message but a
@@ -218,9 +220,7 @@ Internet-Draft        Auth-Results VBR Registration         January 2011
 
 
 
-
-
-Kucherawy                 Expires July 5, 2011                  [Page 4]
+Kucherawy                 Expires July 11, 2011                 [Page 4]
 
 Internet-Draft        Auth-Results VBR Registration         January 2011
 
@@ -276,7 +276,7 @@ Internet-Draft        Auth-Results VBR Registration         January 2011
 
 
 
-Kucherawy                 Expires July 5, 2011                  [Page 5]
+Kucherawy                 Expires July 11, 2011                 [Page 5]
 
 Internet-Draft        Auth-Results VBR Registration         January 2011
 
@@ -332,7 +332,7 @@ Appendix A.  Authentication-Results Examples
 
 
 
-Kucherawy                 Expires July 5, 2011                  [Page 6]
+Kucherawy                 Expires July 11, 2011                 [Page 6]
 
 Internet-Draft        Auth-Results VBR Registration         January 2011
 
@@ -388,7 +388,7 @@ Appendix B.  Acknowledgements
 
 
 
-Kucherawy                 Expires July 5, 2011                  [Page 7]
+Kucherawy                 Expires July 11, 2011                 [Page 7]
 
 Internet-Draft        Auth-Results VBR Registration         January 2011
 
@@ -444,5 +444,5 @@ Author's Address
 
 
 
-Kucherawy                 Expires July 5, 2011                  [Page 8]
+Kucherawy                 Expires July 11, 2011                 [Page 8]
 
