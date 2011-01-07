@@ -251,7 +251,7 @@ echo "</p>" >> $OUTPUT
 
 echo '<a name="signing_trend"></a>' >> $OUTPUT
 echo "<p> Trend in signing rates </p>" >> $OUTPUT
-$MYSQL --execute="select YEAR(msgtime) as year, MONTH(msgtime) as month, (100. * SUM(SIGN(sigcount)) / COUNT(*)) as '% signed' from messages group by year,month order by year,month" >> $OUTPUT
+$MYSQL --execute="select YEAR(msgtime) as year, MONTHNAME(msgtime) as month, (100. * SUM(SIGN(sigcount)) / COUNT(*)) as '% signed' from messages group by year,month order by year,month" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 # output a footer
