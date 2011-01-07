@@ -55,6 +55,7 @@ struct configdef dkimf_config[] =
 	{ "BogusPolicy",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* USE_UNBOUND*/
 	{ "Canonicalization",		CONFIG_TYPE_STRING,	FALSE },
+	{ "CaptureUnknownErrors",	CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ClockDrift",			CONFIG_TYPE_INTEGER,	FALSE },
 #ifdef _FFR_DEFAULT_SENDER
 	{ "DefaultSender",		CONFIG_TYPE_STRING,	FALSE },
@@ -82,6 +83,7 @@ struct configdef dkimf_config[] =
 	{ "InsecurePolicy",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* USE_UNBOUND */
 	{ "InternalHosts",		CONFIG_TYPE_STRING,	FALSE },
+	{ "KeepAuthResults",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "KeepTemporaryFiles",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "KeyFile",			CONFIG_TYPE_STRING,	FALSE },
 	{ "KeyTable",			CONFIG_TYPE_STRING,	FALSE },
@@ -216,6 +218,7 @@ struct configdef dkimf_config[] =
 	{ "UserID",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_VBR
 	{ "VBR-Certifiers",		CONFIG_TYPE_STRING,	FALSE },
+	{ "VBR-PurgeFields",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "VBR-TrustedCertifiers",	CONFIG_TYPE_STRING,	FALSE },
 	{ "VBR-TrustedCertifiersOnly",	CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "VBR-Type",			CONFIG_TYPE_STRING,	FALSE },

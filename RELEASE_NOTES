@@ -45,13 +45,23 @@ release, and a summary of the changes in that release.
 		Reported by Yoshiaki Yanagihara.
 	Fix bug #SF3141313: Trim whitespace from values in in-core data
 		sets.  Reported by Todd Lyons.
-	Add "ResolverTracing" and "StrictHeaders" configuration file option.
-	Add "UnboundConfigFile" configuration file option.  Suggested by
-		Andreas Schulze.
+	Fix back-compatibility with very old implementations of milter in MTAs.
+	New configuration file options:
+		- "CaptureUnknownErrors", replacing the FFR of the same name
+		- "KeepAuthResults", suppressing required removal of
+		  Authentication-Results header fields
+		- "ResolverTracing", adding detailed logging of libar activity
+		- "StrictHeaders", requesing libopendkim to assert header
+		  field counts according to the standards
+		- "UnboundConfigFile", passing a configuration file name to
+		  libunbound (suggested by Andreas Schulze)
+		- "VBR-PurgeFields", removing "X-VBR-*" fields after using them
 	Trim whitespace from the end of all values in a config file, not just
 		strings.  Problem noted by Reuben Farrelly.
 	Assume a default location for opendkim.conf.  Suggested by Andreas
 		Schulze.
+	Don't needlessly demand milter features, causing aborts when they're
+		not available.  Problem noted by Todd Lyons.
 	LIBAR: Feature request #SF3115073: Add flag for fine-grained activity
 		logging for debugging purposes.
 	LIBOPENDKIM: Feature request #SF3087029: Add DKIM_LIBFLAGS_STRICTHDRS.
@@ -71,6 +81,7 @@ release, and a summary of the changes in that release.
 		the DNSSEC results as well.
 	TOOLS: Fix bug #SF3143922: Command line parameters to opendkim-testkey
 		now override their configuration file counterparts.
+	Activate _FFR_CAPTURE_UNKNOWN_ERRORS.
 
 2.2.2		2010/11/28
 	Fix bug #SF2903325: Clean up numerous signed vs. unsigned warnings.

@@ -169,6 +169,7 @@ struct handling defaults =
 
 struct dkimf_config
 {
+	_Bool		conf_capture;		/* capture unknown errors */
 	_Bool		conf_restrace;		/* resolver tracing? */
 	_Bool		conf_acceptdk;		/* accept DK keys? */
 	_Bool		conf_addxhdr;		/* add identifying header? */
@@ -183,6 +184,7 @@ struct dkimf_config
 	_Bool		conf_subdomains;	/* sign subdomains */
 	_Bool		conf_remsigs;		/* remove current signatures? */
 	_Bool		conf_remarall;		/* remove all matching ARs? */
+	_Bool		conf_keepar;		/* keep our ARs? */
 	_Bool		conf_dolog;		/* syslog interesting stuff? */
 	_Bool		conf_dolog_success;	/* syslog successes too? */
 	_Bool		conf_milterv2;		/* using milter v2? */
@@ -206,6 +208,7 @@ struct dkimf_config
 	_Bool		conf_anonstats;		/* anonymize stats? */
 #endif /* _FFR_STATS */
 #ifdef _FFR_VBR
+	_Bool		conf_vbr_purge;		/* purge X-VBR-* fields */
 	_Bool		conf_vbr_trustedonly;	/* trusted certifiers only */
 #endif /* _FFR_VBR */
 	unsigned int	conf_mode;		/* operating mode */
@@ -378,9 +381,7 @@ struct msgctx
 	_Bool		mctx_dksigned;		/* DK signature present */
 	_Bool		mctx_dkpass;		/* DK signature passed */
 #endif /* VERIFY_DOMAINKEYS */
-#ifdef _FFR_CAPTURE_UNKNOWN_ERRORS
 	_Bool		mctx_capture;		/* capture message? */
-#endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
 	_Bool		mctx_susp;		/* suspicious message? */
 #ifdef _FFR_RESIGN
 	_Bool		mctx_resign;		/* arrange to re-sign */
@@ -5666,6 +5667,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "RemoveARAll", &conf->conf_remarall,
 		                  sizeof conf->conf_remarall);
 
+		(void) config_get(data, "KeepAuthResults", &conf->conf_keepar,
+		                  sizeof conf->conf_keepar);
+
 		(void) config_get(data, "RemoveOldSignatures",
 		                  &conf->conf_remsigs,
 		                  sizeof conf->conf_remsigs);
@@ -5807,6 +5811,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "DomainKeysCompat",
 		                  &conf->conf_acceptdk,
 		                  sizeof conf->conf_acceptdk);
+
+		(void) config_get(data, "CaptureUnknownErrors",
+		                  &conf->conf_capture,
+		                  sizeof conf->conf_capture);
 
 		(void) config_get(data, "AllowSHA1Only",
 		                  &conf->conf_allowsha1only,
@@ -6633,6 +6641,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 	if (data != NULL)
 	{
+		(void) config_get(data, "VBR-PurgeFields",
+		                  &conf->conf_vbr_purge,
+		                  sizeof conf->conf_vbr_purge);
+
 		(void) config_get(data, "VBR-TrustedCertifiersOnly",
 		                  &conf->conf_vbr_trustedonly,
 		                  sizeof conf->conf_vbr_trustedonly);
@@ -8074,9 +8086,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		retcode = dkimf_miltercode(ctx,
 		                           conf->conf_handling.hndl_internal,
 		                           NULL);
-#ifdef _FFR_CAPTURE_UNKNOWN_ERRORS
-		dfc->mctx_capture = TRUE;
-#endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
+		if (conf->conf_capture)
+			dfc->mctx_capture = TRUE;
 		if (conf->conf_dolog)
 		{
 			const char *err = NULL;
@@ -8137,9 +8148,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		retcode = dkimf_miltercode(ctx,
 		                           conf->conf_handling.hndl_internal,
 		                           NULL);
-#ifdef _FFR_CAPTURE_UNKNOWN_ERRORS
-		dfc->mctx_capture = TRUE;
-#endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
+		if (conf->conf_capture)
+			dfc->mctx_capture = TRUE;
 		if (conf->conf_dolog)
 		{
 			const char *err = NULL;
@@ -9206,13 +9216,12 @@ mlfi_negotiate(SMFICTX *ctx,
 	unsigned long *pf0, unsigned long *pf1,
 	unsigned long *pf2, unsigned long *pf3)
 {
-	unsigned long reqactions = (SMFIF_ADDHDRS |
-	                            SMFIF_CHGHDRS );
-#if defined(SMFIF_SETSYMLIST) && defined(HAVE_SMFI_SETSYMLIST)
+	unsigned long reqactions = SMFIF_ADDHDRS;
+# if defined(SMFIF_SETSYMLIST) && defined(HAVE_SMFI_SETSYMLIST)
 	unsigned long wantactions = (SMFIF_SETSYMLIST);
-#else /* defined(SMFIF_SETSYMLIST) && defined(HAVE_SMFI_SETSYMLIST) */
+# else /* defined(SMFIF_SETSYMLIST) && defined(HAVE_SMFI_SETSYMLIST) */
 	unsigned long wantactions = 0;
-#endif /* defined(SMFIF_SETSYMLIST) && defined(HAVE_SMFI_SETSYMLIST) */
+# endif /* defined(SMFIF_SETSYMLIST) && defined(HAVE_SMFI_SETSYMLIST) */
 	unsigned long protosteps = (SMFIP_NOHELO |
 	                            SMFIP_NOUNKNOWN |
 	                            SMFIP_NODATA |
@@ -9246,11 +9255,23 @@ mlfi_negotiate(SMFICTX *ctx,
 	pthread_mutex_unlock(&conf_lock);
 
 	/* verify the actions we need are available */
-	if (quarantine)
+	if (conf->conf_remarall ||
+	    !conf->conf_keepar ||
+# ifdef _FFR_IDENTITY_HEADER
+	    conf->conf_rmidentityhdr ||
+# endif /* _FFR_IDENTITY_HEADER */
+# ifdef _FFR_SELECTOR_HEADER
+	    conf->conf_rmselectorhdr ||
+# endif /* _FFR_SELECTOR_HEADER */
+# ifdef _FFR_VBR
+	    conf->conf_vbr_purge ||
+# endif /* _FFR_VBR */
+	    conf->conf_remsigs)
+		reqactions |= SMFIF_CHGHDRS;
+# ifdef SMFIF_QUARANTINE
+	if (quarantine || conf->conf_capture)
 		reqactions |= SMFIF_QUARANTINE;
-# ifdef _FFR_CAPTURE_UNKNOWN_ERRORS
-	reqactions |= SMFIF_QUARANTINE;
-# endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
+# endif /* SMFIF_QUARANTINE */
 	if ((f0 & reqactions) != reqactions)
 	{
 		if (conf->conf_dolog)
@@ -9464,6 +9485,28 @@ mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
 
 	return SMFIS_CONTINUE;
 }
+
+#if SMFI_VERSION == 2
+/*
+**  MLFI_HELO -- handler for HELO/EHLO command (start of message)
+**
+**  Parameters:
+**  	ctx -- milter context
+**  	helo -- HELO/EHLO parameter
+**
+**  Return value:
+**  	An SMFIS_* constant.
+*/
+
+sfsistat
+mlfi_helo(SMFICTX *ctx, char *helo)
+{
+	assert(ctx != NULL);
+	assert(helo != NULL);
+
+	return SMFIS_CONTINUE;
+}
+#endif /* SMFI_VERSION == 2 */
 
 /*
 **  MLFI_ENVFROM -- handler for MAIL FROM command (start of message)
@@ -11725,7 +11768,7 @@ mlfi_eom(SMFICTX *ctx)
 	**  options when verifying.
 	*/
 
-	if (dfc->mctx_dkimv != NULL)
+	if (dfc->mctx_dkimv != NULL && !conf->conf_keepar)
 	{
 		struct authres *ares;
 
@@ -12001,8 +12044,7 @@ mlfi_eom(SMFICTX *ctx)
 			status = dkimf_libstatus(ctx, dfc->mctx_dkimv,
 			                         "dkim_eom()", status);
 
-#ifdef _FFR_CAPTURE_UNKNOWN_ERRORS
-# ifdef SMFIF_QUARANTINE
+#ifdef SMFIF_QUARANTINE
 			if (dfc->mctx_capture)
 			{
 				if (dkimf_quarantine(ctx,
@@ -12018,8 +12060,7 @@ mlfi_eom(SMFICTX *ctx)
 
 				status = SMFIS_ACCEPT;
 			}
-# endif /* ! SMFIF_QUARANTINE */
-#endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
+#endif /* ! SMFIF_QUARANTINE */
 			break;
 		}
 
@@ -13609,7 +13650,7 @@ mlfi_eom(SMFICTX *ctx)
 			}
 		}
 
-		if (dfc->mctx_vbrpurge)
+		if (conf->conf_vbr_purge && dfc->mctx_vbrpurge)
 		{
 			if (dkimf_chgheader(ctx, XVBRTYPEHEADER,
 			                    0, NULL) != MI_SUCCESS ||
@@ -13814,16 +13855,13 @@ struct smfiDesc smfilter =
 {
 	DKIMF_PRODUCT,	/* filter name */
 	SMFI_VERSION,	/* version code -- do not change */
-	(SMFIF_ADDHDRS | SMFIF_CHGHDRS |
-#ifdef SMFIF_QUARANTINE
-	 SMFIF_QUARANTINE |
-#endif /* SMFIF_QUARANTINE */
-#ifdef SMFIF_SETSYMLIST
-	 SMFIF_SETSYMLIST |
-#endif /* SMFIF_SETSYMLIST */
-	 0),		/* flags */
+	0,		/* flags; updated in main() */
 	mlfi_connect,	/* connection info filter */
+#if SMFI_VERSION == 2
+	mlfi_helo,	/* SMTP HELO command filter */
+#else /* SMFI_VERSION == 2 */
 	NULL,		/* SMTP HELO command filter */
+#endif /* SMFI_VERSION == 2 */
 	mlfi_envfrom,	/* envelope sender filter */
 	mlfi_envrcpt,	/* envelope recipient filter */
 	mlfi_header,	/* header filter */
@@ -15069,6 +15107,28 @@ main(int argc, char **argv)
 
 			return EX_UNAVAILABLE;
 		}
+
+		smfilter.xxfi_flags = SMFIF_ADDHDRS;
+#ifdef SMFIF_SETSYMLIST
+		smfilter.xxfi_flags |= SMFIF_SETSYMLIST;
+#endif /* SMFIF_SETSYMLIST */
+		if (curconf->conf_remarall ||
+		    !curconf->conf_keepar ||
+#ifdef _FFR_IDENTITY_HEADER
+		    curconf->conf_rmidentityhdr ||
+#endif /* _FFR_IDENTITY_HEADER */
+#ifdef _FFR_SELECTOR_HEADER
+		    curconf->conf_rmselectorhdr ||
+#endif /* _FFR_SELECTOR_HEADER */
+#ifdef _FFR_VBR
+		    curconf->conf_vbr_purge ||
+#endif /* _FFR_VBR */
+		    curconf->conf_remsigs)
+			smfilter.xxfi_flags |= SMFIF_CHGHDRS;
+#ifdef SMFIF_QUARANTINE
+		if (quarantine || curconf->conf_capture)
+			smfilter.xxfi_flags |= SMFIF_QUARANTINE;
+#endif /* SMFIF_QUARANTINE */
 
 		/* register with the milter interface */
 		if (smfi_register(smfilter) == MI_FAILURE)

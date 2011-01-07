@@ -242,9 +242,6 @@ FFR_FEATURE([adsp_lists], [support for ADSP filtering for lists])
 
 FFR_FEATURE([bodylength_db], [support for body length DBs])
 
-FFR_FEATURE([capture_unknown_errors],
-            [quarantine unknown verification failures])
-
 FFR_FEATURE([diffheaders], [compare signed and verified headers when possible])
 LIB_FFR_FEATURE([diffheaders],
                 [compare signed and verified headers when possible])

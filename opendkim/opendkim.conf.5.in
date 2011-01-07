@@ -211,6 +211,12 @@ record in a special way.  Possible values are
 @UNBOUND_MANNOTICE@
 
 .TP
+.I CaptureUnknownErrors (Boolean)
+When set, and on systems where MTA quarantine is available, the filter will
+request quarantine of a message that results in an internal error or resource
+exhaustion.
+
+.TP
 .I Canonicalization (string)
 Selects the canonicalization method(s) to be used when signing messages.
 When verifying, the message's DKIM-Signature: header specifies
@@ -366,6 +372,12 @@ option below.  If not specified, the default of "127.0.0.1" is applied.
 Naturally, providing a value here overrides the default, so if mail from
 127.0.0.1 should be signed, the list provided here should include that
 address explicitly.
+
+.TP
+.I KeepAuthResults (boolean)
+Suppresses removal of Authentication-Results header fields containing DKIM
+results apparently added by this filter (usually the result of a
+misconfiguration or a forgery).
 
 .TP
 .I KeepTemporaryFiles (boolean)
@@ -1199,6 +1211,12 @@ is specified.
 .TP
 .I VBR-Certifiers (string)
 The default certifiers if not specified in X-VBR-Certifiers header field.
+@VBR_MANNOTICE@
+
+.TP
+.I VBR-PurgeFields (string)
+If set, arranges to remove X-VBR-Certifiers and X-VBR-Type fields on messages
+prior to sending them.
 @VBR_MANNOTICE@
 
 .TP
