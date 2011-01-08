@@ -62,6 +62,8 @@ release, and a summary of the changes in that release.
 		Schulze.
 	Don't needlessly demand milter features, causing aborts when they're
 		not available.  Problem noted by Todd Lyons.
+	Make odkim.get_clienthost(), odkim.get_clientip() and
+		odkim.get_fromdomain() available in the final script.
 	LIBAR: Feature request #SF3115073: Add flag for fine-grained activity
 		logging for debugging purposes.
 	LIBOPENDKIM: Feature request #SF3087029: Add DKIM_LIBFLAGS_STRICTHDRS.
