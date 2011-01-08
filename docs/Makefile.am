@@ -8,7 +8,7 @@ dist_doc_DATA = draft-ietf-dkim-implementation-report-05.txt \
 	draft-ietf-dkim-mailinglists-04.txt \
 	draft-ietf-marf-dkim-reporting-01.txt \
 	draft-kucherawy-authres-vbr-03.txt \
-	draft-kucherawy-dkim-atps-01.txt \
+	draft-kucherawy-dkim-atps-02.txt \
 	rfc3447.txt \
 	rfc4686.txt \
 	rfc4871.txt \

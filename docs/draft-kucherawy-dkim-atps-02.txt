@@ -3,17 +3,17 @@
 
 Individual submission                                       M. Kucherawy
 Internet-Draft                                           Cloudmark, Inc.
-Intended status: Experimental                         September 29, 2010
-Expires: April 2, 2011
+Intended status: Experimental                            January 7, 2011
+Expires: July 11, 2011
 
 
                   DKIM Authorized Third-Party Signers
-                      draft-kucherawy-dkim-atps-01
+                      draft-kucherawy-dkim-atps-02
 
 Abstract
 
-   This memo proposes an experimental proposal to supplement Domain Keys
-   Identified Mail (DKIM) and Author Domain Signing Practices (ADSP)
+   This memo presents an experimental proposal to supplement Domain Keys
+   Identified Mail (DKIM) and Author Domain Signing Practices (ADSP) by
    allowing advertisement of third-party signature authorizations on
    behalf of an email originator.
 
@@ -32,11 +32,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 2, 2011.
+   This Internet-Draft will expire on July 11, 2011.
 
 Copyright Notice
 
-   Copyright (c) 2010 IETF Trust and the persons identified as the
+   Copyright (c) 2011 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Kucherawy                 Expires April 2, 2011                 [Page 1]
+Kucherawy                 Expires July 11, 2011                 [Page 1]
 
-Internet-Draft            DKIM ATPS Experiment            September 2010
+Internet-Draft            DKIM ATPS Experiment              January 2011
 
 
 Table of Contents
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Kucherawy                 Expires April 2, 2011                 [Page 2]
+Kucherawy                 Expires July 11, 2011                 [Page 2]
 
-Internet-Draft            DKIM ATPS Experiment            September 2010
+Internet-Draft            DKIM ATPS Experiment              January 2011
 
 
 1.  Introduction
@@ -156,17 +156,17 @@ Internet-Draft            DKIM ATPS Experiment            September 2010
 
    A Sender participates in this protocol if it wishes to announce that
    a message from it (in the RFC5322.From sense) should be considered
-   authentic as long as it bears a signature from any in a list of
+   authentic as long as it bears a signature from any in a set of
    specified domains.  One might, for example, wish to delegate signing
    authority for its DNS domain to an approved messaging service
-   provider without doing the work of key exchange described in Appendix
+   provider without doing the work of key transfer described in Appendix
    B.1.1 of [DKIM].
 
 
 
-Kucherawy                 Expires April 2, 2011                 [Page 3]
+Kucherawy                 Expires July 11, 2011                 [Page 3]
 
-Internet-Draft            DKIM ATPS Experiment            September 2010
+Internet-Draft            DKIM ATPS Experiment              January 2011
 
 
    A Verifier participates in this protocol if it wishes to ensure that
@@ -208,10 +208,10 @@ Internet-Draft            DKIM ATPS Experiment            September 2010
    If a Sender announces via the ADSP extension that it is using this
    protocol and the Verifier is also participating, then the Verifier
    issues a TXT query to the DNS to a specific name looking for
-   confirmation by the sender that a particular third party signature is
+   confirmation by the Sender that a particular third party signature is
    authorized by the Sender.  The query SHOULD be repeated for every
    domain found in the "d=" tag of a [DKIM] signature on the message
-   that verified is not otherwise considered unacceptable to the
+   that verified and is not otherwise considered unacceptable to the
    Verifier for policy reasons.  These MAY be done in any order or MAY
    be done in parallel.
 
@@ -220,28 +220,29 @@ Internet-Draft            DKIM ATPS Experiment            September 2010
 
 
 
-Kucherawy                 Expires April 2, 2011                 [Page 4]
+Kucherawy                 Expires July 11, 2011                 [Page 4]
 
-Internet-Draft            DKIM ATPS Experiment            September 2010
+Internet-Draft            DKIM ATPS Experiment              January 2011
 
 
    MAY be done in any order.
 
    The name for the query is constructed as follows:
 
-   1.  Extract the value of the "d=" tag from the signature and feed it
-       to the [SHA1] hash algorithm.
+   1.  Extract the value of the "d=" tag from the signature.
 
    2.  Convert any upper-case characters in that string to their lower-
        case equivalents.
 
-   3.  Convert the output of the SHA1 hash to a string of 32 hexadecimal
+   3.  Feed the resulting string to the [SHA1] hash algorithm.
+
+   4.  Convert the output of the SHA1 hash to a string of 32 hexadecimal
        digits by applying base32 encoding as defined in Section 6 of
        [BASE32].
 
-   4.  Append the string "._atps."
+   5.  Append the string "._atps."
 
-   5.  Append the domain name found in the RFC5322.From field of the
+   6.  Append the domain name found in the RFC5322.From field of the
        message.
 
    The query's formal syntax definition, per [ABNF]:
@@ -272,14 +273,15 @@ Internet-Draft            DKIM ATPS Experiment            September 2010
    o  No answer is returned (i.e.  [DNS] reply code NXDOMAIN).  In this
       case, the "d=" domain has not been authorized to act as a third-
       party signer for this Sender, and thus the Verifier MUST continue
-      to the next query.
 
 
 
-Kucherawy                 Expires April 2, 2011                 [Page 5]
+Kucherawy                 Expires July 11, 2011                 [Page 5]
 
-Internet-Draft            DKIM ATPS Experiment            September 2010
+Internet-Draft            DKIM ATPS Experiment              January 2011
 
+
+      to the next query.
 
    o  An error is returned (i.e. any other [DNS] reply code).  It is no
       longer possible to determine whether or not this message satisfies
@@ -325,17 +327,17 @@ Internet-Draft            DKIM ATPS Experiment            September 2010
 
    Defined In  [AUTHRES]
 
-   Auth Method  dkim-atps
 
 
 
 
 
-
-Kucherawy                 Expires April 2, 2011                 [Page 6]
+Kucherawy                 Expires July 11, 2011                 [Page 6]
 
-Internet-Draft            DKIM ATPS Experiment            September 2010
+Internet-Draft            DKIM ATPS Experiment              January 2011
 
+
+   Auth Method  dkim-atps
 
    Meaning  No DKIM Author Domain Signing Practices (ADSP) record was
       published, or the ADSP record did not indicate ATPS was in use, or
@@ -380,18 +382,18 @@ Internet-Draft            DKIM ATPS Experiment            September 2010
 
    Existing/New Code  existing
 
-   Defined In  [ADSP]
 
 
 
 
 
 
-
-Kucherawy                 Expires April 2, 2011                 [Page 7]
+Kucherawy                 Expires July 11, 2011                 [Page 7]
 
-Internet-Draft            DKIM ATPS Experiment            September 2010
+Internet-Draft            DKIM ATPS Experiment              January 2011
 
+
+   Defined In  [ADSP]
 
    Auth Method  dkim-atps
 
@@ -442,11 +444,9 @@ Internet-Draft            DKIM ATPS Experiment            September 2010
 
 
 
-
-
-Kucherawy                 Expires April 2, 2011                 [Page 8]
+Kucherawy                 Expires July 11, 2011                 [Page 8]
 
-Internet-Draft            DKIM ATPS Experiment            September 2010
+Internet-Draft            DKIM ATPS Experiment              January 2011
 
 
 6.1.  Transient Security Failures
@@ -500,9 +500,9 @@ Internet-Draft            DKIM ATPS Experiment            September 2010
 
 
 
-Kucherawy                 Expires April 2, 2011                 [Page 9]
+Kucherawy                 Expires July 11, 2011                 [Page 9]
 
-Internet-Draft            DKIM ATPS Experiment            September 2010
+Internet-Draft            DKIM ATPS Experiment              January 2011
 
 
                           M., Fenton, J., and M. Thomas, "DomainKeys
@@ -556,9 +556,9 @@ Appendix A.  Example Query and Reply
 
 
 
-Kucherawy                 Expires April 2, 2011                [Page 10]
+Kucherawy                 Expires July 11, 2011                [Page 10]
 
-Internet-Draft            DKIM ATPS Experiment            September 2010
+Internet-Draft            DKIM ATPS Experiment              January 2011
 
 
    2.  A SHA1 hash of "one.example.net" is computed and then converted
@@ -612,5 +612,5 @@ Author's Address
 
 
 
-Kucherawy                 Expires April 2, 2011                [Page 11]
+Kucherawy                 Expires July 11, 2011                [Page 11]
 
