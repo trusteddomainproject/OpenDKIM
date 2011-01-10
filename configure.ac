@@ -1026,7 +1026,7 @@ then
 				lua_found="yes"
 				LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
 	                  ],
-	                  [AC_MSG_WARN(["pkg-config for Lua not found, trying manual search..."])])
+	                  [AC_MSG_WARN([pkg-config for Lua not found, trying manual search...])])
 fi
 
 if test \( x"$luapath" = x"yes" -o x"$luapath" = x"auto" \) -a x"$lua_found" = x"no"
