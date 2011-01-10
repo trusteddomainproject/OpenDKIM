@@ -463,7 +463,7 @@ then
 	PKG_CHECK_MODULES([GNUTLS], [libgnutls >= 2.11.7],
 	                  [gnutls_found="yes"],
 	                  [gnutls_found="auto"
-	                   AC_MSG_WARN(["pkg-config for GnuTLS not found, trying manual search..."])
+	                   AC_MSG_WARN([pkg-config for GnuTLS not found, trying manual search...])
 	                  ])
 elif test x"$gtpath" != x"no"
 then
@@ -613,7 +613,7 @@ then
 	PKG_CHECK_MODULES([LIBCRYPTO], [openssl >= 0.9.7],
 	                  [openssl_found="yes"],
 	                  [openssl_found="no"
-	                   AC_MSG_WARN(["pkg-config for openssl not found, trying manual search..."])
+	                   AC_MSG_WARN([pkg-config for openssl not found, trying manual search...])
 	                  ])
 elif test "$sslpath" != "auto" -a x"$sslpath" != x"yes"
 then
@@ -1227,7 +1227,7 @@ then
 else
 	if test x"$enable_stats" = x"yes"
 	then
-		AC_MSG_WARN(["opendbx is needed to import statistics into a SQL database - disabling opendkim-importstats"])
+		AC_MSG_WARN([opendbx is needed to import statistics into a SQL database - disabling opendkim-importstats])
 	fi
 fi
 AM_CONDITIONAL(USE_ODBX, test x"$odbx_found" = x"yes")
