@@ -33,6 +33,9 @@ allsymbols	By default, the build will attempt to create a libopendkim
 		exports those as well.  This is intended only for running
 		library unit tests.  (libopendkim)
 
+atps		Support for experimental Authorized Third-Party Signatures
+		mechanism.  (opendkim, libopendkim)
+
 bodylength_db	Optionally query a local database of recipient addresses
 		to determine if an "l=" tag should be applied when
 		signing.  (opendkim)
@@ -64,6 +67,13 @@ identity_header	Enable selection of an identity for signing based on the
 
 ldap_caching	Adds code that ensures duplicate LDAP queries aren't sent
 		and local caching of LDAP replies is done.  (opendkim)
+
+maxverify	Control over maximum number of signatures per message to
+		be processed.  (opendkim)
+
+oversign	Optional specification of header fields to "oversign" to
+		prevent malicious addition of malicious extra instances.
+		(opendkim, libopendkim)
 
 parsetime	Adds a utility function reporting the value of the Date:
 		header for easy comparison to signature timestamps in order
