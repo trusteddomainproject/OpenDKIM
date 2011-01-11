@@ -7,6 +7,9 @@ AM_CFLAGS = -g
 endif
 
 bin_PROGRAMS = opendkim-testkey opendkim-testadsp opendkim-genzone
+if ATPS
+bin_PROGRAMS += opendkim-atpszone
+endif
 
 dist_bin_SCRIPTS = opendkim-genkey
 dist_doc_DATA = opendkim.conf.sample opendkim.conf.simple \
@@ -155,6 +158,36 @@ opendkim_genzone_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_genzone_LDADD += $(LIBLUA_LIBS)
 endif
 
+if ATPS
+opendkim_atpszone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-atpszone.c opendkim-lua.c util.c util.h
+opendkim_atpszone_CPPFLAGS = -I$(srcdir)/../libopendkim
+opendkim_atpszone_CFLAGS = $(COV_CFLAGS)
+opendkim_atpszone_LDFLAGS = $(COV_LDFLAGS)
+opendkim_atpszone_LDADD = ../libopendkim/libopendkim.la $(COV_LIBADD)
+if USE_DB_OPENDKIM
+opendkim_atpszone_CPPFLAGS += $(LIBDB_INCDIRS)
+opendkim_atpszone_LDFLAGS += $(LIBDB_LIBDIRS)
+opendkim_atpszone_LDADD += $(LIBDB_LIBS)
+endif
+if USE_ODBX
+opendkim_atpszone_CPPFLAGS += $(LIBODBX_CPPFLAGS)
+opendkim_atpszone_CFLAGS += $(LIBODBX_CFLAGS)
+opendkim_atpszone_LDADD += $(LIBODBX_LIBS)
+endif
+if USE_SASL
+opendkim_atpszone_CPPFLAGS += $(SASL_CPPFLAGS)
+endif
+if USE_LDAP
+opendkim_atpszone_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
+opendkim_atpszone_LDADD += $(OPENLDAP_LIBS)
+endif
+if LUA
+opendkim_atpszone_CPPFLAGS += $(LIBLUA_INCDIRS) $(LIBMILTER_INCDIRS)
+opendkim_atpszone_LDFLAGS += $(LIBLUA_LIBDIRS)
+opendkim_atpszone_LDADD += $(LIBLUA_LIBS)
+endif
+endif
+
 if LUA
 dist_doc_DATA += \
         setup.lua.sample \
@@ -162,7 +195,8 @@ dist_doc_DATA += \
 	final.lua.sample
 endif
 
-man_MANS = opendkim-genkey.8 opendkim-genzone.8 opendkim-testadsp.8 opendkim-testkey.8
+man_MANS = opendkim-genkey.8 opendkim-genzone.8 opendkim-testadsp.8 \
+	opendkim-testkey.8
 if BUILD_FILTER
 man_MANS += opendkim.conf.5 opendkim.8
 if LUA
@@ -171,4 +205,7 @@ endif
 endif
 if STATS
 man_MANS += opendkim-stats.8
+endif
+if ATPS
+man_MANS += opendkim-atpszone.8
 endif

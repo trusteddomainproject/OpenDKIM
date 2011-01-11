@@ -237,6 +237,7 @@ FEATURE([popauth], [enable POP-before-SMTP support])
 
 FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
 LIB_FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
+AM_CONDITIONAL([ATPS], [test x"$enable_atps" = x"yes"])
 
 FFR_FEATURE([adsp_lists], [support for ADSP filtering for lists])
 
@@ -1751,6 +1752,7 @@ AC_OUTPUT([	Makefile
 			opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8
 			opendkim/opendkim.conf.5 opendkim/opendkim.conf.simple
 			opendkim/opendkim.conf.simple-verify
+			opendkim/opendkim-atpszone.8
 		opendkim/tests/Makefile
 		stats/Makefile stats/opendkim-importstats.8
 ])
