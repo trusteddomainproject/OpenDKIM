@@ -47,3 +47,5 @@ core
 opendkim-lua.3
 opendkim.conf.simple-verify
 opendkim.conf.simple
+opendkim-atpszone
+opendkim-atpszone.8
