@@ -1,0 +1,15 @@
+#!/bin/sh
+
+YEAR=`date +%Y`
+LASTYEAR=$(($YEAR - 1))
+
+for i in `git diff develop --name-only @{$LASTYEAR-12-31}`
+do
+	if test -f $i
+	then
+		if grep -q 'Copyright.*$YEAR' $i
+		then
+			echo $i
+		fi
+	fi
+done
