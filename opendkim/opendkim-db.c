@@ -25,6 +25,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #ifdef HAVE_STDBOOL_H
 # include <stdbool.h>
 #endif /* HAVE_STDBOOL_H */
+#include <syslog.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -2873,6 +2874,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		/* see if we need to reopen */
 		if ((db->db_iflags & DKIMF_DB_IFLAG_RECONNECT) != 0)
 		{
+syslog(LOG_INFO, "DEBUG: DB reconnecting");
 			err = odbx_init((odbx_t **) &db->db_handle,
 			                STRORNULL(dsn->dsn_backend),
 			                STRORNULL(dsn->dsn_host),
@@ -2882,6 +2884,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				db->db_status = err;
 				return -1;
 			}
+syslog(LOG_INFO, "DEBUG: odbx_init() success");
 
 			err = odbx_bind((odbx_t *) db->db_handle,
 			                STRORNULL(dsn->dsn_dbase),
@@ -2894,6 +2897,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				db->db_status = err;
 				return -1;
 			}
+syslog(LOG_INFO, "DEBUG: odbx_bind() success");
 
 			db->db_iflags &= ~DKIMF_DB_IFLAG_RECONNECT;
 		}
@@ -2922,13 +2926,16 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		{
 			int status;
 
+syslog(LOG_INFO, "DEBUG: odbx_query() returned %d", err);
 			db->db_status = err;
 			status = odbx_error_type((odbx_t *) db->db_handle, err);
+syslog(LOG_INFO, "DEBUG: odbx_error_type() returned %d", status);
 			if (status < 0)
 			{
 				(void) odbx_unbind((odbx_t *) db->db_handle);
 				(void) odbx_finish((odbx_t *) db->db_handle);
 				db->db_iflags |= DKIMF_DB_IFLAG_RECONNECT;
+syslog(LOG_INFO, "DEBUG: reconnect requested");
 				if (db->db_lock != NULL)
 					(void) pthread_mutex_unlock(db->db_lock);
 				return dkimf_db_get(db, buf, buflen, req,
