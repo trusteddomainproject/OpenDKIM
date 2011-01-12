@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-importstats.c,v 1.11 2010/10/25 17:16:00 cm-msk Exp $
 */

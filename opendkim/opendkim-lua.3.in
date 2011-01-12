@@ -538,7 +538,7 @@ pair into the statistical information for the message represented by
 This man page covers version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT
-Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8),
 .I opendkim.conf(5)
