@@ -2920,8 +2920,11 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		err = odbx_query((odbx_t *) db->db_handle, query, 0);
 		if (err < 0)
 		{
+			int status;
+
 			db->db_status = err;
-			if (odbx_error_type((odbx_t *) db->db_handle, err) < 0)
+			status = odbx_error_type((odbx_t *) db->db_handle, err);
+			if (status < 0)
 			{
 				(void) odbx_unbind((odbx_t *) db->db_handle);
 				(void) odbx_finish((odbx_t *) db->db_handle);
