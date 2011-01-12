@@ -1,4 +1,7 @@
 #!/bin/sh
+#
+# Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+#
 
 YEAR=`date +%Y`
 LASTYEAR=$(($YEAR - 1))
@@ -7,9 +10,12 @@ for i in `git diff develop --name-only @{$LASTYEAR-12-31}`
 do
 	if test -f $i
 	then
-		if grep -q 'Copyright.*$YEAR' $i
+		if grep -q Copyright $i
 		then
-			echo $i
+			if ! grep -q Copyright.\*$YEAR $i
+			then
+				echo $i
+			fi
 		fi
 	fi
 done
