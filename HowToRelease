@@ -1,5 +1,8 @@
 Release procedures for OpenDKIM
 
+0) Run "./copyright-check" to ensure anything updated in the current year has
+   a current copyright notice in it.
+
 1) Edit configure.ac so that the new release number is formed with the
    VERSION_RELEASE* macros.
 
@@ -12,8 +15,7 @@ Release procedures for OpenDKIM
 
    This will produce an opendkim-(version).tar.gz tarball.
 
-3) Commit changes made to RELEASE_NOTES and potentially libopendkim/dkim.h
-   to the SourceForge git repository.
+3) Commit changes made to RELEASE_NOTES to the SourceForge git repository.
 
 4) Check that everything looks correct.
 
