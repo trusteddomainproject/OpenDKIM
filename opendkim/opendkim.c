@@ -13627,9 +13627,22 @@ mlfi_eom(SMFICTX *ctx)
 			}
 			else if (conf->conf_dolog_success)
 			{
+				char *d;
+				char *s;
+
+				if (sr->srq_domain != NULL)
+					d = sr->srq_domain;
+				else
+					d = dfc->mctx_domain;
+
+				if (sr->srq_selector != NULL)
+					s = sr->srq_selector;
+				else
+					s = conf->conf_selector;
+
 				syslog(LOG_INFO,
-				       "%s: %s header added",
-				       dfc->mctx_jobid, DKIM_SIGNHEADER);
+				       "%s: %s header added (s=%s, d=%s)",
+				       dfc->mctx_jobid, DKIM_SIGNHEADER, s, d);
 			}
 		}
 
