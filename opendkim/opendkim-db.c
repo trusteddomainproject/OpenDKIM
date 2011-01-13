@@ -2955,7 +2955,25 @@ syslog(LOG_INFO, "DEBUG: reconnect requested");
 			                  &result, NULL, 0);
 			if (err < 0)
 			{
+				int status;
 				db->db_status = err;
+
+syslog(LOG_INFO, "DEBUG: odbx_result() returned %d", err);
+				status = odbx_error_type((odbx_t *) db->db_handle,
+				                         err);
+syslog(LOG_INFO, "DEBUG: odbx_error_type() returned %d", status);
+				if (status < 0)
+				{
+					(void) odbx_unbind((odbx_t *) db->db_handle);
+					(void) odbx_finish((odbx_t *) db->db_handle);
+					db->db_iflags |= DKIMF_DB_IFLAG_RECONNECT;
+syslog(LOG_INFO, "DEBUG: reconnect requested");
+					if (db->db_lock != NULL)
+						(void) pthread_mutex_unlock(db->db_lock);
+					return dkimf_db_get(db, buf, buflen, req,
+					                    reqnum, exists);
+				}
+
 				if (db->db_lock != NULL)
 					(void) pthread_mutex_unlock(db->db_lock);
 				return err;
