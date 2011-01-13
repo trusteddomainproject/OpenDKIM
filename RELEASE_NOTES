@@ -45,6 +45,8 @@ release, and a summary of the changes in that release.
 		Reported by Yoshiaki Yanagihara.
 	Fix bug #SF3141313: Trim whitespace from values in in-core data
 		sets.  Reported by Todd Lyons.
+	Fix bug #SF3156124: More robust handling of database disconnects.
+		Reported by Miha Vrhovnik.
 	Fix back-compatibility with very old implementations of milter in MTAs.
 	New configuration file options:
 		- "CaptureUnknownErrors", replacing the FFR of the same name
