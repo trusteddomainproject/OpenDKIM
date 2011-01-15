@@ -74,6 +74,8 @@ release, and a summary of the changes in that release.
 		canonicalization into account when generating its results
 		to avoid false positives.
 	LIBOPENDKIM: Add dkim_getid().
+	LIBOPENDKIM: Treat no answers as an NXDOMAIN with respect to
+		retrieving ADSP records.
 	LIBVBR: Feature request #SF3105477: Copy the generic DNS work from
 		libopendkim.
 	STATS: Feature request #SF3085536: Activate _FFR_STATS_I, providing

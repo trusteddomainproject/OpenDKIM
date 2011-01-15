@@ -2564,8 +2564,11 @@ dkim_get_policy(DKIM *dkim, u_char *query, _Bool excheck, int *qstatus,
 
 	if (status == -1)
 		return DKIM_STAT_CANTVRFY;
+	else if (status == 0)
+		qstat = NXDOMAIN;
 
 	*qstatus = qstat;
+
 	if (!excheck && qstat == NOERROR && status == 1)
 	{
 		u_char *p;
