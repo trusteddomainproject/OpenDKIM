@@ -161,9 +161,9 @@ endif
 if ATPS
 opendkim_atpszone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-atpszone.c opendkim-lua.c util.c util.h
 opendkim_atpszone_CPPFLAGS = -I$(srcdir)/../libopendkim
-opendkim_atpszone_CFLAGS = $(COV_CFLAGS)
-opendkim_atpszone_LDFLAGS = $(COV_LDFLAGS)
-opendkim_atpszone_LDADD = ../libopendkim/libopendkim.la $(COV_LIBADD)
+opendkim_atpszone_CFLAGS = $(COV_CFLAGS) $(LIBCRYPTO_CFLAGS)
+opendkim_atpszone_LDFLAGS = $(COV_LDFLAGS) $(LIBCRYPTO_LIBDIRS)
+opendkim_atpszone_LDADD = ../libopendkim/libopendkim.la $(COV_LIBADD) $(LIBCRYPTO_LIBS)
 if USE_DB_OPENDKIM
 opendkim_atpszone_CPPFLAGS += $(LIBDB_INCDIRS)
 opendkim_atpszone_LDFLAGS += $(LIBDB_LIBDIRS)
