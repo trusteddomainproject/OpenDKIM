@@ -683,7 +683,7 @@ ar_requery(AR_LIB lib, AR_QUERY query)
 	assert(query != NULL);
 
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
-		syslog(LOG_DEBUG, "arlib: requering %p", query);
+		syslog(LOG_DEBUG, "arlib: requerying %p", query);
 
 	/* remove from active queries */
 	for (q = lib->ar_queries, last = NULL;
@@ -1041,8 +1041,8 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 	{
 		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 		{
-			syslog(LOG_DEBUG, "arlib: %p sendto/writev failed",
-			       query);
+			syslog(LOG_DEBUG, "arlib: %p sendto/writev failed: %s",
+			       query, strerror(errno));
 		}
 
 		lib->ar_flags |= AR_FLAG_RECONNECT;
