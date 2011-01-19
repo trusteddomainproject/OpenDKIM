@@ -2856,6 +2856,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 #ifdef USE_ODBX
 	  case DKIMF_DB_TYPE_DSN:
 	  {
+		_Bool reconnected = FALSE;
 		int err;
 		int fields;
 		int rescnt = 0;
@@ -2895,6 +2896,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				db->db_status = err;
 				return -1;
 			}
+
+			reconnected = TRUE;
+			db->db_iflags &= ~DKIMF_DB_IFLAG_RECONNECT;
 		}
 
 		memset(&elen, '\0', sizeof elen);
@@ -2922,6 +2926,14 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			int status;
 
 			db->db_status = err;
+
+			if (reconnected)
+			{
+				if (db->db_lock != NULL)
+					(void) pthread_mutex_unlock(db->db_lock);
+				return err;
+			}
+
 			status = odbx_error_type((odbx_t *) db->db_handle, err);
 
 #ifdef _FFR_POSTGRESQL_RECONNECT_HACK
@@ -2964,6 +2976,13 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			{
 				int status;
 				db->db_status = err;
+
+				if (reconnected)
+				{
+					if (db->db_lock != NULL)
+						(void) pthread_mutex_unlock(db->db_lock);
+					return err;
+				}
 
 				status = odbx_error_type((odbx_t *) db->db_handle,
 				                         err);
@@ -3071,9 +3090,6 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 			err = odbx_result_finish(result);
 		}
-
-		/* clear reconnect flag once a query succeded */
-		db->db_iflags &= ~DKIMF_DB_IFLAG_RECONNECT;
 
 		if (db->db_lock != NULL)
 			(void) pthread_mutex_unlock(db->db_lock);
