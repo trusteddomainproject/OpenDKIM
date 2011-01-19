@@ -25,6 +25,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #ifdef HAVE_STDBOOL_H
 # include <stdbool.h>
 #endif /* HAVE_STDBOOL_H */
+#include <syslog.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -2894,8 +2895,6 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				db->db_status = err;
 				return -1;
 			}
-
-			db->db_iflags &= ~DKIMF_DB_IFLAG_RECONNECT;
 		}
 
 		memset(&elen, '\0', sizeof elen);
@@ -2924,6 +2923,21 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 			db->db_status = err;
 			status = odbx_error_type((odbx_t *) db->db_handle, err);
+
+#ifdef _FFR_POSTGRESQL_RECONNECT_HACK
+			if (status >= 0)
+			{
+				const char *estr;
+
+				estr = odbx_error((odbx_t *) db->db_handle,
+		                                  db->db_status);
+
+				if (estr != NULL &&
+				    strncmp(estr, "FATAL:", 6) == 0)
+					status = -1;
+			}
+#endif /* _FFR_POSTGRESQL_RECONNECT_HACK */
+
 			if (status < 0)
 			{
 				(void) odbx_unbind((odbx_t *) db->db_handle);
@@ -2948,7 +2962,37 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			                  &result, NULL, 0);
 			if (err < 0)
 			{
+				int status;
 				db->db_status = err;
+
+				status = odbx_error_type((odbx_t *) db->db_handle,
+				                         err);
+
+#ifdef _FFR_POSTGRESQL_RECONNECT_HACK
+				if (status >= 0)
+				{
+					const char *estr;
+
+					estr = odbx_error((odbx_t *) db->db_handle,
+			                                  db->db_status);
+
+					if (estr != NULL &&
+					    strncmp(estr, "FATAL:", 6) == 0)
+						status = -1;
+				}
+#endif /* _FFR_POSTGRESQL_RECONNECT_HACK */
+
+				if (status < 0)
+				{
+					(void) odbx_unbind((odbx_t *) db->db_handle);
+					(void) odbx_finish((odbx_t *) db->db_handle);
+					db->db_iflags |= DKIMF_DB_IFLAG_RECONNECT;
+					if (db->db_lock != NULL)
+						(void) pthread_mutex_unlock(db->db_lock);
+					return dkimf_db_get(db, buf, buflen, req,
+					                    reqnum, exists);
+				}
+
 				if (db->db_lock != NULL)
 					(void) pthread_mutex_unlock(db->db_lock);
 				return err;
@@ -3027,6 +3071,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 			err = odbx_result_finish(result);
 		}
+
+		/* clear reconnect flag once a query succeded */
+		db->db_iflags &= ~DKIMF_DB_IFLAG_RECONNECT;
 
 		if (db->db_lock != NULL)
 			(void) pthread_mutex_unlock(db->db_lock);

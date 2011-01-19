@@ -258,6 +258,9 @@ FFR_FEATURE([maxverify], [signature verification limit])
 
 FFR_FEATURE([oversign], [enable header field over-signing])
 
+FFR_FEATURE([postgresql_reconnect_hack],
+            [hack to overcome PostgreSQL connection error detection bug])
+
 FFR_FEATURE([replace_rules], [support for string substitution when signing])
 
 FFR_FEATURE([report_intervals],
