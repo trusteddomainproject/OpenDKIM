@@ -2874,7 +2874,6 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		/* see if we need to reopen */
 		if ((db->db_iflags & DKIMF_DB_IFLAG_RECONNECT) != 0)
 		{
-syslog(LOG_INFO, "DEBUG: DB reconnecting");
 			err = odbx_init((odbx_t **) &db->db_handle,
 			                STRORNULL(dsn->dsn_backend),
 			                STRORNULL(dsn->dsn_host),
@@ -2884,7 +2883,6 @@ syslog(LOG_INFO, "DEBUG: DB reconnecting");
 				db->db_status = err;
 				return -1;
 			}
-syslog(LOG_INFO, "DEBUG: odbx_init() success");
 
 			err = odbx_bind((odbx_t *) db->db_handle,
 			                STRORNULL(dsn->dsn_dbase),
@@ -2897,9 +2895,6 @@ syslog(LOG_INFO, "DEBUG: odbx_init() success");
 				db->db_status = err;
 				return -1;
 			}
-syslog(LOG_INFO, "DEBUG: odbx_bind() success");
-
-			db->db_iflags &= ~DKIMF_DB_IFLAG_RECONNECT;
 		}
 
 		memset(&elen, '\0', sizeof elen);
@@ -2926,16 +2921,28 @@ syslog(LOG_INFO, "DEBUG: odbx_bind() success");
 		{
 			int status;
 
-syslog(LOG_INFO, "DEBUG: odbx_query() returned %d", err);
 			db->db_status = err;
 			status = odbx_error_type((odbx_t *) db->db_handle, err);
-syslog(LOG_INFO, "DEBUG: odbx_error_type() returned %d", status);
+
+#ifdef _FFR_POSTGRESQL_RECONNECT_HACK
+			if (status >= 0)
+			{
+				const char *estr;
+
+				estr = odbx_error((odbx_t *) db->db_handle,
+		                                  db->db_status);
+
+				if (estr != NULL &&
+				    strncmp(estr, "FATAL:", 6) == 0)
+					status = -1;
+			}
+#endif /* _FFR_POSTGRESQL_RECONNECT_HACK */
+
 			if (status < 0)
 			{
 				(void) odbx_unbind((odbx_t *) db->db_handle);
 				(void) odbx_finish((odbx_t *) db->db_handle);
 				db->db_iflags |= DKIMF_DB_IFLAG_RECONNECT;
-syslog(LOG_INFO, "DEBUG: reconnect requested");
 				if (db->db_lock != NULL)
 					(void) pthread_mutex_unlock(db->db_lock);
 				return dkimf_db_get(db, buf, buflen, req,
@@ -2958,16 +2965,28 @@ syslog(LOG_INFO, "DEBUG: reconnect requested");
 				int status;
 				db->db_status = err;
 
-syslog(LOG_INFO, "DEBUG: odbx_result() returned %d", err);
 				status = odbx_error_type((odbx_t *) db->db_handle,
 				                         err);
-syslog(LOG_INFO, "DEBUG: odbx_error_type() returned %d", status);
+
+#ifdef _FFR_POSTGRESQL_RECONNECT_HACK
+				if (status >= 0)
+				{
+					const char *estr;
+
+					estr = odbx_error((odbx_t *) db->db_handle,
+			                                  db->db_status);
+
+					if (estr != NULL &&
+					    strncmp(estr, "FATAL:", 6) == 0)
+						status = -1;
+				}
+#endif /* _FFR_POSTGRESQL_RECONNECT_HACK */
+
 				if (status < 0)
 				{
 					(void) odbx_unbind((odbx_t *) db->db_handle);
 					(void) odbx_finish((odbx_t *) db->db_handle);
 					db->db_iflags |= DKIMF_DB_IFLAG_RECONNECT;
-syslog(LOG_INFO, "DEBUG: reconnect requested");
 					if (db->db_lock != NULL)
 						(void) pthread_mutex_unlock(db->db_lock);
 					return dkimf_db_get(db, buf, buflen, req,
@@ -3052,6 +3071,9 @@ syslog(LOG_INFO, "DEBUG: reconnect requested");
 
 			err = odbx_result_finish(result);
 		}
+
+		/* clear reconnect flag once a query succeded */
+		db->db_iflags &= ~DKIMF_DB_IFLAG_RECONNECT;
 
 		if (db->db_lock != NULL)
 			(void) pthread_mutex_unlock(db->db_lock);
