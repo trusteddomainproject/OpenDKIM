@@ -46,7 +46,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3141313: Trim whitespace from values in in-core data
 		sets.  Reported by Todd Lyons.
 	Fix bug #SF3156124: More robust handling of database disconnects.
-		Reported by Miha Vrhovnik.
+		Also add _FFR_POSTGRESQL_RECONNECT_HACK, which will hopefully
+		be temporary.  Reported by Miha Vrhovnik.
 	Fix back-compatibility with very old implementations of milter in MTAs.
 	New configuration file options:
 		- "CaptureUnknownErrors", replacing the FFR of the same name
