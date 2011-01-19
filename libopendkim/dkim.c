@@ -3416,6 +3416,7 @@ dkim_eom_sign(DKIM *dkim)
 	u_char *signature = NULL;
 #ifdef USE_GNUTLS
 	gnutls_datum_t key;
+	gnutls_privkey_t privkey;
 #else /* USE_GNUTLS */
 	BIO *key;
 #endif /* USE_GNUTLS */
@@ -3523,9 +3524,6 @@ dkim_eom_sign(DKIM *dkim)
 	  case DKIM_SIGN_RSASHA1:
 	  case DKIM_SIGN_RSASHA256:
 	  {
-#ifdef USE_GNUTLS 
-		gnutls_privkey_t privkey;
-#endif /* USE_GNUTLS */
 		struct dkim_rsa *rsa;
 
 		assert(sig->sig_hashtype == DKIM_HASHTYPE_SHA1 ||

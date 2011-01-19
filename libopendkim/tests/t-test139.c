@@ -9,6 +9,8 @@
 static char t_test139_c_id[] = "@(#)$Id: t-test139.c,v 1.1.2.1 2010/10/09 04:55:27 cm-msk Exp $";
 #endif /* !lint */
 
+#include "build-config.h"
+
 /* system includes */
 #include <sys/types.h>
 #include <assert.h>
@@ -46,6 +48,10 @@ main(int argc, char **argv)
 	unsigned char hdr[MAXHEADER + 1];
 
 	printf("*** relaxed/relaxed rsa-sha1 verifying with oversigning\n");
+
+#ifdef USE_GNUTLS
+	(void) gnutls_global_init();
+#endif /* USE_GNUTLS */
 
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
