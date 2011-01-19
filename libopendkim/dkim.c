@@ -3590,8 +3590,6 @@ dkim_eom_sign(DKIM *dkim)
 		(void) gnutls_privkey_get_pk_algorithm(privkey,
 		                                       &rsa->rsa_keysize);
 
-		(void) gnutls_privkey_deinit(privkey);
-
 		sig->sig_keybits = rsa->rsa_keysize;
 #else /* USE_GNUTLS */
 		if (strncmp((char *) dkim->dkim_key, "-----", 5) == 0)
@@ -3714,19 +3712,21 @@ dkim_eom_sign(DKIM *dkim)
 		else
 			alg = GNUTLS_DIG_SHA256;
 
-		status = gnutls_x509_privkey_sign_hash2(rsa->rsa_key,
-		                                        alg, 0, &dd,
-		                                        &rsa->rsa_rsaout);
+		status = gnutls_privkey_sign_hash2(privkey, alg, 0, &dd,
+		                                   &rsa->rsa_rsaout);
 		if (status != GNUTLS_E_SUCCESS)
 		{
 			dkim_error(dkim,
 			           "signature generation failed (status %d)",
 			           status);
+			(void) gnutls_privkey_deinit(privkey);
 			return DKIM_STAT_INTERNAL;
 		}
 
 		signature = rsa->rsa_rsaout.data;
 		siglen = rsa->rsa_rsaout.size;
+
+		(void) gnutls_privkey_deinit(privkey);
 
 		break;
 	  }
