@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
