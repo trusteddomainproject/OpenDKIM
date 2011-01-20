@@ -848,7 +848,8 @@ result in "x-dkim-rep" being set to "neutral".
 .TP
 .I ReputationReject (integer)
 If the reputation returned by the DNS reputation service exceeds this value
-then the message is rejected.  The default value here is 1001.
+then the message is rejected.  The default value here is 1001, a deliberately
+impossible value so that rejections are not enabled by default.
 @DKIM_REPUTATION_MANNOTICE@
 
 .TP
