@@ -11,7 +11,6 @@ static char t_test132_c_id[] = "@(#)$Id: t-test132.c,v 1.1 2010/03/01 18:22:31 c
 
 #include "build-config.h"
 
-
 /* system includes */
 #include <sys/types.h>
 #include <assert.h>
@@ -21,7 +20,6 @@ static char t_test132_c_id[] = "@(#)$Id: t-test132.c,v 1.1 2010/03/01 18:22:31 c
 #ifdef USE_GNUTLS
 # include <gnutls/gnutls.h>
 #endif /* USE_GNUTLS */
-
 
 /* libopendkim includes */
 #include "../dkim.h"
@@ -62,7 +60,6 @@ main(int argc, char **argv)
 #ifdef USE_GNUTLS
 	(void) gnutls_global_init();
 #endif /* USE_GNUTLS */
-
 
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);

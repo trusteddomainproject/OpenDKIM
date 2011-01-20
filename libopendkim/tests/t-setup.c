@@ -11,17 +11,14 @@ static char t_setup_c_id[] = "@(#)$Id: t-setup.c,v 1.2 2009/12/08 19:14:26 cm-ms
 
 #include "build-config.h"
 
-
 /* system includes */
 #include <sys/types.h>
 #include <assert.h>
 #include <stdio.h>
 
-
 #ifdef USE_GNUTLS
 # include <gnutls/gnutls.h>
 #endif /* USE_GNUTLS */
-
 
 /* libopendkim includes */
 #include "../dkim.h"

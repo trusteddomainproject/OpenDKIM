@@ -11,7 +11,6 @@ static char t_cleanup_c_id[] = "@(#)$Id: t-cleanup.c,v 1.3 2010/09/02 05:10:57 c
 
 #include "build-config.h"
 
-
 /* system includes */
 #include <assert.h>
 #include <unistd.h>
@@ -20,7 +19,6 @@ static char t_cleanup_c_id[] = "@(#)$Id: t-cleanup.c,v 1.3 2010/09/02 05:10:57 c
 #ifdef USE_GNUTLS
 # include <gnutls/gnutls.h>
 #endif /* USE_GNUTLS */
-
 
 /* libopendkim includes */
 #include "t-testdata.h"

@@ -11,7 +11,6 @@ static char t_test133_c_id[] = "@(#)$Id: t-test133.c,v 1.2 2010/03/03 02:58:05 g
 
 #include "build-config.h"
 
-
 /* system includes */
 #include <sys/types.h>
 #include <assert.h>
@@ -20,7 +19,6 @@ static char t_test133_c_id[] = "@(#)$Id: t-test133.c,v 1.2 2010/03/03 02:58:05 g
 #ifdef USE_GNUTLS
 # include <gnutls/gnutls.h>
 #endif /* USE_GNUTLS */
-
 
 /* libopendkim includes */
 #include "../dkim.h"
