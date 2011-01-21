@@ -12428,7 +12428,7 @@ mlfi_eom(SMFICTX *ctx)
 				if (status == DKIM_STAT_OK)
 				{
 					for (c = 0;
-					     c < nsigs && atps == DKIM_ATPS_UNKNOWN;
+					     c < nsigs && atps != DKIM_ATPS_FOUND;
 					     c++)
 					{
 						if (strcasecmp(dkim_sig_getdomain(sigs[c]),
@@ -12442,7 +12442,7 @@ mlfi_eom(SMFICTX *ctx)
 							                         &atps);
 
 							if (status != DKIM_STAT_OK)
-								atps = DKIM_ATPS_UNKNOWN;
+								break;
 						}
 					}
 
