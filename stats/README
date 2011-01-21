@@ -142,6 +142,7 @@ A message record is a tab-separated, ordered sequence of fields, as follows:
 	count of Received: header fields
 	overall MIME Content-Type, if any
 	overall MIME Content-Transfer-Encoding, if any
+	ATPS status (-1 = not checked, 0 = no, 1 = yes)
 
 A signature record implicitly references the preceding message record.
 There may be more than one signature record per message; there could also be
