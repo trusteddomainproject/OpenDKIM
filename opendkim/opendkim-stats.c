@@ -175,8 +175,15 @@ main(int argc, char **argv)
 			char *adsppf;
 			char *ct;
 			char *cte;
+#ifdef _FFR_ATPS
+			char *atps;
+#endif /* _FFR_ATPS */
 
+#ifdef _FFR_ATPS
+			if (n != 17 && n != 18)
+#else /* _FFR_ATPS */
 			if (n != 17)
+#endif /* _FFR_ATPS */
 			{
 				fprintf(stderr,
 				        "%s: unexpected message field count (%d) at input line %d\n",
@@ -202,6 +209,14 @@ main(int argc, char **argv)
 				if (fields[DKIMS_MI_ADSP_FAIL][0] == '1')
 					adsppf = "failed";
 			}
+
+#ifdef _FFR_ATPS
+			atps = "not checked";
+			if (n == 18 && fields[DKIMS_MI_ATPS][0] == '0')
+				atps = "no match";
+			else if (n == 18 && fields[DKIMS_MI_ATPS][0] == '1')
+				atps = "match";
+#endif /* _FFR_ATPS */
 
 			if (fields[DKIMS_MI_CONTENTTYPE][0] == '\0')
 				ct = "(default)";
@@ -232,6 +247,10 @@ main(int argc, char **argv)
 			                                               : "Appears",
 			        adsp, adsppf);
 
+#ifdef _FFR_ATPS
+			fprintf(stdout, "\tATPS %s\n", atps);
+#endif /* _FFR_ATPS */
+
 			m++;
 		}
 
@@ -245,7 +264,7 @@ main(int argc, char **argv)
 			char *siglen;
 			char *dnssec;
 
-			if (n != 19 && n != 21)
+			if (n != 19 && n != 21 && n != 23)
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",
