@@ -7787,6 +7787,9 @@ dkimf_initcontext(struct dkimf_config *conf)
 #endif /* USE_UNBOUND */
 	ctx->mctx_pcode = DKIM_POLICY_NONE;
 	ctx->mctx_presult = DKIM_PRESULT_NONE;
+#ifdef _FFR_ATPS
+	ctx->mctx_atps = DKIM_ATPS_UNKNOWN;
+#endif /* _FFR_ATPS */
 
 	return ctx;
 }
@@ -12416,29 +12419,34 @@ mlfi_eom(SMFICTX *ctx)
 #ifdef _FFR_ATPS
 			if ((dfc->mctx_pflags & DKIM_PFLAG_ATPS) != 0)
 			{
-				dkim_atps_t atps;
+				int nsigs;
+				dkim_atps_t atps = DKIM_ATPS_UNKNOWN;
+				DKIM_SIGINFO **sigs;
 
-				sig = dkim_getsignature(dfc->mctx_dkimv);
-
-				if (sig != NULL &&
-				    strcasecmp(dkim_sig_getdomain(sig),
-				               dfc->mctx_domain) != 0 &&
-				    (dkim_sig_getflags(sig) &
-				     DKIM_SIGFLAG_PASSED) != 0 &&
-				    dkim_sig_getbh(sig) == DKIM_SIGBH_MATCH)
+				status = dkim_getsiglist(dfc->mctx_dkimv,
+				                         &sigs, &nsigs);
+				if (status == DKIM_STAT_OK)
 				{
-					status = dkim_atps_check(dfc->mctx_dkimv,
-					                         sig,
-					                         NULL,
-					                         &atps);
-
-					if (status == DKIM_STAT_OK)
+					for (c = 0;
+					     c < nsigs && atps == DKIM_ATPS_UNKNOWN;
+					     c++)
 					{
-						if (atps == DKIM_ATPS_FOUND)
-							dfc->mctx_atps = 1;
-						else
-							dfc->mctx_atps = -1;
+						if (strcasecmp(dkim_sig_getdomain(sigs[c]),
+						               dfc->mctx_domain) != 0 &&
+						    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0 &&
+						    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH)
+						{
+							status = dkim_atps_check(dfc->mctx_dkimv,
+							                         sigs[c],
+							                         NULL,
+							                         &atps);
+
+							if (status != DKIM_STAT_OK)
+								atps = DKIM_ATPS_UNKNOWN;
+						}
 					}
+
+					dfc->mctx_atps = atps;
 				}
 			}
 #endif /* _FFR_ATPS */
@@ -12572,6 +12580,9 @@ mlfi_eom(SMFICTX *ctx)
 # ifdef _FFR_STATSEXT
 			                       dfc->mctx_statsext,
 # endif /* _FFR_STATSEXT */
+# ifdef _FFR_ATPS
+			                       dfc->mctx_atps,
+# endif /* _FFR_ATPS */
 			                       (struct sockaddr *) &cc->cctx_ip) != 0)
 			{
 				if (dolog)
@@ -12980,17 +12991,17 @@ mlfi_eom(SMFICTX *ctx)
 
 			switch (dfc->mctx_atps)
 			{
-			  case -1:
-				dkim_strlcat((char *) header, "fail",
-				             sizeof header);
-				break;
-
-			  case 0:
+			  case DKIM_ATPS_UNKNOWN:
 				dkim_strlcat((char *) header, "neutral",
 				             sizeof header);
 				break;
 
-			  case 1:
+			  case DKIM_ATPS_NOTFOUND:
+				dkim_strlcat((char *) header, "fail",
+				             sizeof header);
+				break;
+
+			  case DKIM_ATPS_FOUND:
 				dkim_strlcat((char *) header, "pass",
 				             sizeof header);
 				break;
