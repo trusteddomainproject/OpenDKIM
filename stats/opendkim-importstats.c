@@ -501,7 +501,7 @@ main(int argc, char **argv)
 		}
 		else if (c == 'M')
 		{
-			if (n != 17)
+			if (n != 17 && n != 18)
 			{
 				fprintf(stderr,
 				        "%s: unexpected message field count (%d) at input line %d\n",
@@ -685,7 +685,9 @@ main(int argc, char **argv)
 			    sanitize(db, fields[13], safesql, sizeof safesql) ||
 			    sanitize(db, fields[14], safesql, sizeof safesql) ||
 			    sanitize(db, fields[15], safesql, sizeof safesql) ||
-			    sanitize(db, fields[16], safesql, sizeof safesql))
+			    sanitize(db, fields[16], safesql, sizeof safesql) ||
+			    (n >= 18 &&
+			     sanitize(db, fields[17], safesql, sizeof safesql)))
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
@@ -720,25 +722,51 @@ main(int argc, char **argv)
 				continue;
 			}
 
-			snprintf(sql, sizeof sql,
-			         "INSERT INTO messages (jobid, reporter, from_domain, ip, anonymized, msgtime, size, sigcount, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received_count, content_type, content_encoding) VALUES ('%s', %d, %d, %d, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')",
-			         fields[0],		/* jobid */
-			         repid,			/* reporter */
-			         domid,			/* from_domain */
-			         addrid,		/* ip */
-			         fields[4],		/* anonymized */
-			         fields[5],		/* msgtime */
-			         fields[6],		/* size */
-			         fields[7],		/* sigcount */
-			         fields[8],		/* adsp_found */
-			         fields[9],		/* adsp_unknown */
-			         fields[10],		/* adsp_all */
-			         fields[11],		/* adsp_discardable */
-			         fields[12],		/* adsp_fail */
-			         fields[13],		/* mailing_list */
-			         fields[14],		/* received_count */
-			         fields[15],		/* content_type */
-			         fields[16]);		/* content_encoding */
+			if (n == 18)
+			{
+				snprintf(sql, sizeof sql,
+				         "INSERT INTO messages (jobid, reporter, from_domain, ip, anonymized, msgtime, size, sigcount, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received_count, content_type, content_encoding, atps) VALUES ('%s', %d, %d, %d, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s', %s)",
+				         fields[0],	/* jobid */
+				         repid,		/* reporter */
+				         domid,		/* from_domain */
+				         addrid,	/* ip */
+				         fields[4],	/* anonymized */
+				         fields[5],	/* msgtime */
+				         fields[6],	/* size */
+				         fields[7],	/* sigcount */
+				         fields[8],	/* adsp_found */
+				         fields[9],	/* adsp_unknown */
+				         fields[10],	/* adsp_all */
+				         fields[11],	/* adsp_discardable */
+				         fields[12],	/* adsp_fail */
+				         fields[13],	/* mailing_list */
+				         fields[14],	/* received_count */
+				         fields[15],	/* content_type */
+				         fields[16],	/* content_encoding */
+				         fields[17]);	/* atps */
+			}
+			else
+			{
+				snprintf(sql, sizeof sql,
+				         "INSERT INTO messages (jobid, reporter, from_domain, ip, anonymized, msgtime, size, sigcount, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received_count, content_type, content_encoding) VALUES ('%s', %d, %d, %d, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')",
+				         fields[0],	/* jobid */
+				         repid,		/* reporter */
+				         domid,		/* from_domain */
+				         addrid,	/* ip */
+				         fields[4],	/* anonymized */
+				         fields[5],	/* msgtime */
+				         fields[6],	/* size */
+				         fields[7],	/* sigcount */
+				         fields[8],	/* adsp_found */
+				         fields[9],	/* adsp_unknown */
+				         fields[10],	/* adsp_all */
+				         fields[11],	/* adsp_discardable */
+				         fields[12],	/* adsp_fail */
+				         fields[13],	/* mailing_list */
+				         fields[14],	/* received_count */
+				         fields[15],	/* content_type */
+				         fields[16]);	/* content_encoding */
+			}
 
 			msgid = sql_do(db, sql);
 			if (msgid == -1)

@@ -43,7 +43,8 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-m
 #define DKIMS_MI_RECEIVEDCNT	14
 #define DKIMS_MI_CONTENTTYPE	15
 #define DKIMS_MI_CONTENTENCODING 16
-#define DKIMS_MI_MAX		16
+#define DKIMS_MI_ATPS		17
+#define DKIMS_MI_MAX		17
 
 #define	DKIMS_SI_DOMAIN		0
 #define	DKIMS_SI_ALGORITHM	1
@@ -72,15 +73,14 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-m
 
 /* PROTOTYPES */
 extern void dkimf_stats_init __P((void));
+extern int dkimf_stats_record __P((char *, u_char *, char *, char *, Header,
+                                   DKIM *, dkim_policy_t, _Bool, _Bool, u_int,
 #ifdef _FFR_STATSEXT
-extern int dkimf_stats_record __P((char *, u_char *, char *, char *, Header,
-                                   DKIM *, dkim_policy_t, _Bool, _Bool, u_int,
                                    struct statsext *,
-                                   struct sockaddr *));
-#else /* _FFR_STATSEXT */
-extern int dkimf_stats_record __P((char *, u_char *, char *, char *, Header,
-                                   DKIM *, dkim_policy_t, _Bool, _Bool, u_int,
-                                   struct sockaddr *));
 #endif /* _FFR_STATSEXT */
+#ifdef _FFR_ATPS
+                                   int,
+#endif /* _FFR_ATPS */
+                                   struct sockaddr *));
 
 #endif /* _STATS_H_ */
