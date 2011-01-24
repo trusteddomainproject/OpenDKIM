@@ -381,11 +381,27 @@ struct dkim_hdrdiff
 **  	None.
 **
 **  Return value:
-**  	A DKIM_STAT value.
+**  	A DKIM_LIB handle, or NULL on error.
 */
 
-extern DKIM_LIB *dkim_init __P((void *(*mallocf)(void *closure, size_t nbytes),
-                                void (*freef)(void *closure, void *p)));
+/*!
+** \fn DKIM_LIB *dkim_init(void *(*mallocf)(void *, size_t), void (*freef)(void *, void *))
+** \brief Initialize a libopendkim instance.
+**
+**  Creates a new library instance.  If provided, the mallocf() and freef()
+**  functions will be used when the instance needs to allocate or deallocate
+**  memory.  The first parameter to each is a "closure", which will be taken
+**  from corresponding calls to dkim_sign() or dkim_verify() so that memory
+**  operations specific to a message can be grouped.  The second parameter
+**  to each is the same thing one would pass to malloc() or free(),
+**  respectively.
+** 
+** \param mallocf Optional malloc()-style function to be used when allocating memory, taking an optional closure pointer.
+** \param freef Optional free()-style function to be used when deallocating memory, taking an optional closure pointer.
+*/
+
+extern DKIM_LIB *dkim_init __P((void *(*mallocf)(void *, size_t),
+                                void (*freef)(void *, void *)));
 
 /*
 **  DKIM_CLOSE -- shut down the DKIM package
@@ -395,6 +411,18 @@ extern DKIM_LIB *dkim_init __P((void *(*mallocf)(void *closure, size_t nbytes),
 **
 **  Return value:
 **  	None.
+*/
+
+/*!
+** \fn void dkim_close(DKIM_LIB *lib)
+** \brief Terminate a libopendkim instance.
+**
+**  Shuts down an existing library instance.  Any existing signing or
+**  verifying handles created under this instance should be destroyed with
+**  dkim_free() prior to calling this function.  Upon completion, the value
+**  of lib is no longer valid.
+** 
+** \param lib Library instance to be shut down.
 */
 
 extern void dkim_close __P((DKIM_LIB *lib));
