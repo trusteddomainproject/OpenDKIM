@@ -509,10 +509,18 @@ extern DKIM_STAT dkim_eoh __P((DKIM *dkim));
 **  	dkim -- a DKIM handle previously returned by dkim_sign() or
 **  	        dkim_verify()
 **  	buf -- the body chunk to be processed, in canonical format
-**  	len -- number of bytes to process starting at "hdr"
+**  	len -- number of bytes to process starting at "buf"
 **
 **  Return value:
 **  	A DKIM_STAT value.
+*/
+
+/*!
+** \fn DKIM_STAT dkim_body(DKIM *dkim, u_char *buf, size_t len)
+** \brief Process a body chunk.
+** \param dkim A DKIM message handle, returned by dkim_sign() or dkim_verify().
+** \param buf A pointer to a buffer containing a body chunk.
+** \param len Bytes available at "buf".
 */
 
 extern DKIM_STAT dkim_body __P((DKIM *dkim, u_char *buf, size_t len));
