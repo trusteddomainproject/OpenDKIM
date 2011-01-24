@@ -13,7 +13,7 @@ static char base32_h_id[] = "@(#)$Id$";
 #include <sys/types.h>
 
 /*
-**  BASE32_ENCODE -- encode a string using base32
+**  DKIM_BASE32_ENCODE -- encode a string using base32
 **
 **  Parameters:
 **  	buf -- destination buffer
@@ -31,6 +31,6 @@ static char base32_h_id[] = "@(#)$Id$";
 **  	*buflen is updated to count the number of bytes read from "data".
 */
 
-extern int base32_encode __P((char *, size_t *, const void *, size_t));
+extern int dkim_base32_encode __P((char *, size_t *, const void *, size_t));
 
 #endif /* ! _BASE32_H_ */

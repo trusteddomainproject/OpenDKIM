@@ -107,8 +107,8 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	/* base32-encode the hash */
 	memset(b32, '\0', sizeof b32);
 	buflen = sizeof b32;
-	if (base32_encode(b32, &buflen,
-	                  digest, sizeof digest) != DKIM_ATPS_QUERYLENGTH)
+	if (dkim_base32_encode(b32, &buflen,
+	                       digest, sizeof digest) != DKIM_ATPS_QUERYLENGTH)
 		return DKIM_STAT_INTERNAL;
 
 	/* form the query */

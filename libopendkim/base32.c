@@ -28,7 +28,7 @@
 static const char cb32[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
 /*
-**  BASE32_ENCODE -- encode a string using base32
+**  DKIM_BASE32_ENCODE -- encode a string using base32
 **
 **  Parameters:
 **  	buf -- destination buffer
@@ -48,7 +48,7 @@ static const char cb32[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 */
 
 int 
-base32_encode(char *buf, size_t *buflen, const void *data, size_t size)
+dkim_base32_encode(char *buf, size_t *buflen, const void *data, size_t size)
 {
 	unsigned int lastbits;
 	unsigned int padding;
