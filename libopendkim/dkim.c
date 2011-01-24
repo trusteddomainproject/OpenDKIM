@@ -4120,8 +4120,8 @@ dkim_new(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 **  DKIM_INIT -- initialize a DKIM library context
 **
 **  Parameters:
-**  	caller_mallocf -- caller-provided memory allocation function
-**  	caller_freef -- caller-provided memory release function
+**  	mallocf -- caller-provided memory allocation function
+**  	freef -- caller-provided memory release function
 **
 **  Return value:
 **  	A new DKIM_LIB handle suitable for use with other DKIM functions, or
@@ -4132,8 +4132,8 @@ dkim_new(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 */
 
 DKIM_LIB *
-dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
-          void (*caller_freef)(void *closure, void *p))
+dkim_init(void *(*mallocf)(void *, size_t),
+          void (*freef)(void *, void *))
 {
 	u_char *td;
 	DKIM_LIB *libhandle;
@@ -4154,8 +4154,8 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 
 	libhandle->dkiml_signre = FALSE;
 	libhandle->dkiml_skipre = FALSE;
-	libhandle->dkiml_malloc = caller_mallocf;
-	libhandle->dkiml_free = caller_freef;
+	libhandle->dkiml_malloc = mallocf;
+	libhandle->dkiml_free = freef;
 	strlcpy((char *) libhandle->dkiml_tmpdir, (char *) td, 
 	        sizeof libhandle->dkiml_tmpdir);
 	libhandle->dkiml_flags = DKIM_LIBFLAGS_DEFAULT;
