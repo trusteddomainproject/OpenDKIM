@@ -18,7 +18,7 @@ Experimental Branches (branch name contains owner)
 br-msk-db-handle-pools
 		Handle pools for odbx handles (bug #SF3067338)
 
-br-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
+exp-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
 
 
