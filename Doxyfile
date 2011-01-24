@@ -308,7 +308,7 @@ EXTRACT_PRIVATE        = NO
 # If the EXTRACT_STATIC tag is set to YES all static members of a file
 # will be included in the documentation.
 
-EXTRACT_STATIC         = YES
+EXTRACT_STATIC         = NO
 
 # If the EXTRACT_LOCAL_CLASSES tag is set to YES classes (and structs)
 # defined locally in source files will be included in the documentation.
@@ -766,7 +766,7 @@ COLS_IN_ALPHA_INDEX    = 5
 # The IGNORE_PREFIX tag can be used to specify one or more prefixes that
 # should be ignored while generating the index headers.
 
-IGNORE_PREFIX          =
+IGNORE_PREFIX          = dkim_
 
 #---------------------------------------------------------------------------
 # configuration options related to the HTML output
