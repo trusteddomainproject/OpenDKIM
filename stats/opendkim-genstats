@@ -163,7 +163,7 @@ echo "" >> $OUTPUT
 
 echo '<a name="error_codes"></a>' >> $OUTPUT
 echo "<p> Top ten error codes (see libopendkim/dkim.h): </p>" >> $OUTPUT
-$MYSQL --execute="select sigerror, count(*) as instances from signatures where not sigerror = 0 and not sigerror = 28 group by sigerror order by instances desc limit 10" >> $OUTPUT
+$MYSQL --execute="select sigerrorcodes.name as error, count(*) as instances from signatures join sigerrorcodes on sigerrorcodes.id = signatures.sigerror where not sigerror = 0 and not sigerror = 28 group by sigerror order by instances desc limit 10" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="mlm_comparison"></a>' >> $OUTPUT
