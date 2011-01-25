@@ -1,0 +1,9 @@
+This directory contains a prototype spec file for use in converting this
+source tarball into an RPM for installation on Linux systems that use the
+RPM system.
+
+Please submit bug reports and feature requests to
+opendkim-users@lists.opendkim.org or via the trackers on SourceForge.
+
+--
+Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.

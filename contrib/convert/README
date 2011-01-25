@@ -1,0 +1,9 @@
+This directory contains configuration file conversion scripts that are useful
+when upgrading between certain major releases of OpenDKIM.  They are supported
+by their respective authors.
+
+Please submit bug reports and feature requests to
+opendkim-users@lists.opendkim.org or via the trackers on SourceForge.
+
+--
+Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
