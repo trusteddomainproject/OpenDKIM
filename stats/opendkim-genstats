@@ -81,6 +81,7 @@ echo '<li> <a href="#use_counts">Signing domain use counts</a>' >> $OUTPUT
 echo '<li> <a href="#mime_type_correlation">Correlation of outer MIME types with pass/fail counts</a>' >> $OUTPUT
 echo '<li> <a href="#mime_encoding_correlation">Correlation of outer MIME encodings with pass/fail counts</a>' >> $OUTPUT
 echo '<li> <a href="#signing_trend">Trend in signing rates</a>' >> $OUTPUT
+echo '<li> <a href="#atps_use">ATPS use</a>' >> $OUTPUT
 echo "</ul>" >> $OUTPUT
 echo "<hr>" >> $OUTPUT
 
