@@ -119,3 +119,59 @@ create table if not exists signed_headers (
 	foreign key(signature) references signatures(id) on delete cascade,
 	foreign key(header) references headernames(id) on delete cascade
 ) engine=innodb default charset=latin1;
+
+-- table mapping signature error codes to descriptions
+create table if not exists sigerrorcodes (
+	id tinyint not null,
+	name varchar(255) not null,
+
+	primary key (id)
+) engine=innodb default charset=latin1;
+
+insert ignore into sigerrorcodes (id, name) values
+	(-1,	"unknown error"),
+	(0,	"no error"),
+	(1,	"unsupported version"),
+	(2,	"invalid domain (d=/i=)"),
+	(3,	"signature expired"),
+	(4,	"signature in the future"),
+	(5,	"x= < t="),
+	(6,	"c= missing"),
+	(7,	"c= invalid (header)"),
+	(8,	"c= invalid (body)"),
+	(9,	"a= missing"),
+	(10,	"a= invalid"),
+	(11,	"h= missing"),
+	(12,	"l= invalid"),
+	(13,	"q= invalid"),
+	(14,	"q= option invalid"),
+	(15,	"d= missing"),
+	(16,	"d= empty"),
+	(17,	"s= missing"),
+	(18,	"s= empty"),
+	(19,	"b= missing"),
+	(20,	"b= empty"),
+	(21,	"b= corrupt"),
+	(22,	"no key found in DNS"),
+	(23,	"DNS reply corrupt"),
+	(24,	"DNS query failed"),
+	(25,	"bh= missing"),
+	(26,	"bh= empty"),
+	(27,	"bh= corrupt"),
+	(28,	"signature mismatch"),
+	(29,	"unauthorized subdomain"),
+	(30,	"multiple records returned"),
+	(31,	"h= empty"),
+	(32,	"h= missing required entries"),
+	(33,	"l= value exceeds body size"),
+	(34,	"field-must-be-signed failure"),
+	(35,	"unknown key version"),
+	(36,	"unknown key hash"),
+	(37,	"signature-key hash mismatch"),
+	(38,	"not an email key"),
+	(39,	"key granularity mismatch"),
+	(40,	"key type missing"),
+	(41,	"key type unknown"),
+	(42,	"key revoked"),
+	(43,	"key could not be decoded")
+;
