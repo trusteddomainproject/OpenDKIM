@@ -1741,7 +1741,16 @@ CPPFLAGS="$CPPFLAGS -DCONFIG_BASE=\\\"$sysconfdir\\\""
 #
 AC_OUTPUT([	Makefile
 		docs/Makefile
-		contrib/Makefile contrib/opendkim.spec
+		contrib/Makefile
+			contrib/convert/Makefile
+			contrib/init/Makefile
+			contrib/init/generic/Makefile
+			contrib/init/rhel/Makefile
+			contrib/init/solaris/Makefile
+			contrib/lua/Makefile
+			contrib/spec/Makefile
+			contrib/spec/opendkim.spec
+			contrib/stats/Makefile
 		libar/ar.pc libar/Makefile libar/tests/Makefile
 		libopendkim/opendkim.pc libopendkim/Makefile
 		libopendkim/docs/Makefile

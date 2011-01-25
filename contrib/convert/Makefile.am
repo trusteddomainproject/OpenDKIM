@@ -4,6 +4,4 @@
 
 #AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = convert init lua spec stats
-
-dist_doc_DATA = README
+dist_doc_DATA = convert_keylist.sh

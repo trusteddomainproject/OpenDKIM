@@ -2,8 +2,8 @@
 #
 # $Id: Makefile.am,v 1.4 2010/10/25 17:13:17 cm-msk Exp $
 
-#AUTOMAKE_OPTIONS = foreign
+AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = convert init lua spec stats
+SUBDIRS = generic rhel solaris
 
-dist_doc_DATA = README
+#dist_doc_DATA = README
