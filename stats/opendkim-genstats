@@ -254,6 +254,11 @@ echo "<p> Trend in signing rates: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT YEAR(msgtime) AS year, MONTHNAME(msgtime) AS month, (100. * SUM(SIGN(sigcount)) / COUNT(*)) AS '% signed' FROM messages GROUP BY year,MONTH(msgtime) ORDER BY year,MONTH(msgtime)" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
+echo '<a name="atps_use"></a>' >> $OUTPUT
+echo "<p> ATPS use: </p>" >> $OUTPUT
+$MYSQL --execute="SELECT COUNT(DISTINCT from_domain) AS domains FROM messages WHERE NOT atps = -1" >> $OUTPUT
+echo "</p>" >> $OUTPUT
+
 # output a footer
 echo "<hr>" >> $OUTPUT
 echo '<font size="-1"> <i> $Id: opendkim-genstats,v 1.26 2010/10/27 06:18:45 cm-msk Exp $ </i> </font>' >> $OUTPUT
