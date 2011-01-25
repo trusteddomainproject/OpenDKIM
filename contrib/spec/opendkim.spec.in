@@ -52,7 +52,7 @@ make
 make install DESTDIR="$RPM_BUILD_ROOT"
 mkdir -p "$RPM_BUILD_ROOT"%{_sysconfdir}
 mkdir -p "$RPM_BUILD_ROOT"%{_initrddir}
-install -m 0755 contrib/opendkim.init "$RPM_BUILD_ROOT"%{_initrddir}/%{name}
+install -m 0755 contrib/init/generic/opendkim "$RPM_BUILD_ROOT"%{_initrddir}/%{name}
 echo '# Basic OpenDKIM config file
 # See opendkim.conf(5) or %{_docdir}/%{name}-%{version}/opendkim.conf.sample for more
 Mode	v
@@ -98,7 +98,7 @@ fi
 %files
 %defattr(-,root,root)
 %doc FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail README RELEASE_NOTES RELEASE_NOTES.Sendmail
-%doc contrib/convert_keylist.sh opendkim/*.sample
+%doc contrib/convert/convert_keylist.sh opendkim/*.sample
 %config(noreplace) %{_sysconfdir}/opendkim.conf
 %config %{_initrddir}/%{name}
 %{_sbindir}/*
