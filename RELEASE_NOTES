@@ -49,6 +49,8 @@ release, and a summary of the changes in that release.
 		Also add _FFR_POSTGRESQL_RECONNECT_HACK, which will hopefully
 		be temporary.  Reported by Miha Vrhovnik.
 	Fix back-compatibility with very old implementations of milter in MTAs.
+	Fix case-insensitive matching for domain names when doing signing
+		selection.  Problem noted by John Espiro.
 	New configuration file options:
 		- "CaptureUnknownErrors", replacing the FFR of the same name
 		- "KeepAuthResults", suppressing required removal of

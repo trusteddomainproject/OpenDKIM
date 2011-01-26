@@ -6798,7 +6798,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_domainsdb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_READONLY|
+		                        DKIMF_DB_FLAG_ICASE),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
