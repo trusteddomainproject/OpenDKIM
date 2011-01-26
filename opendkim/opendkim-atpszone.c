@@ -385,8 +385,8 @@ main(int argc, char **argv)
 		/* encode with base32 */
 		memset(base32, '\0', sizeof base32);
 		b32len = sizeof base32 - 1;
-		(void) base32_encode(base32, &b32len,
-		                     shaout, SHA_DIGEST_LENGTH);
+		(void) dkim_base32_encode(base32, &b32len,
+		                          shaout, SHA_DIGEST_LENGTH);
 
 		/* XXX -- generate output */
 		if (ttl == -1)

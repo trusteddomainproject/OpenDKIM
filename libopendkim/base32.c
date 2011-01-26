@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "base32.h"
+#include "dkim.h"
 
 #define BLKSIZE_RAW 5
 #define BLKSIZE_ENC 8
@@ -28,7 +28,7 @@
 static const char cb32[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
 /*
-**  BASE32_ENCODE -- encode a string using base32
+**  DKIM_BASE32_ENCODE -- encode a string using base32
 **
 **  Parameters:
 **  	buf -- destination buffer
@@ -48,7 +48,7 @@ static const char cb32[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 */
 
 int 
-base32_encode(char *buf, size_t *buflen, const void *data, size_t size)
+dkim_base32_encode(char *buf, size_t *buflen, const void *data, size_t size)
 {
 	unsigned int lastbits;
 	unsigned int padding;
@@ -172,7 +172,7 @@ main(int argc, char **argv)
 	SHA1_Update(&sha, argv[1], strlen(argv[1]));
 	SHA1_Final(shaout, &sha);
 
-	x = base32_encode(buf, &buflen, shaout, SHA_DIGEST_LENGTH);
+	x = dkim_base32_encode(buf, &buflen, shaout, SHA_DIGEST_LENGTH);
 
 	printf("%s (%d)\n", buf, x);
 

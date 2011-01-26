@@ -1797,6 +1797,27 @@ extern void dkim_dns_set_query_waitreply __P((DKIM_LIB *,
 extern DKIM_STAT dkim_atps_check __P((DKIM *, DKIM_SIGINFO *,
                                       struct timeval *, dkim_atps_t *res));
 
+/*
+**  DKIM_BASE32_ENCODE -- encode a string using base32
+**
+**  Parameters:
+**  	buf -- destination buffer
+**  	buflen -- bytes available at buf (updated)
+**  	data -- pointer to data to encode
+**  	size -- bytes at "data" to encode
+**
+**  Return value:
+**  	Length of encoding.
+**
+**  Notes:
+**  	buf should be at least a byte more than *buflen to hold the trailing
+**  	'\0'.
+**
+**  	*buflen is updated to count the number of bytes read from "data".
+*/
+
+extern int dkim_base32_encode __P((char *, size_t *, const void *, size_t));
+
 /* default list of sender headers */
 extern const u_char *dkim_default_senderhdrs[];
 
