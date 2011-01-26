@@ -62,6 +62,7 @@ struct configdef dkimf_config[] =
 #endif /* _FFR_DEFAULT_SENDER */
 	{ "Diagnostics",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DiagnosticDirectory",	CONFIG_TYPE_STRING,	FALSE },
+	{ "DNSConnect",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DNSTimeout",			CONFIG_TYPE_INTEGER,	FALSE },
 	{ "Domain",			CONFIG_TYPE_STRING,	FALSE },
 	{ "DomainKeysCompat",		CONFIG_TYPE_BOOLEAN,	FALSE },

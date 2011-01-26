@@ -249,6 +249,12 @@ fails on a message bearing a "z=" tag.  If not set (the default), these files
 are not generated.
 
 .TP
+.I DNSConnect (Boolean)
+Requests that the asynchronous resolver start using TCP immediately
+rather than using UDP until TCP is actually needed.  Does not work with
+all resolvers.
+
+.TP
 .I DNSTimeout (integer)
 Sets the DNS timeout in seconds.  A value of 0 causes an infinite wait.
 The default is 5.  Ignored if not using an asynchronous resolver package.

@@ -53,6 +53,7 @@ release, and a summary of the changes in that release.
 		selection.  Problem noted by John Espiro.
 	New configuration file options:
 		- "CaptureUnknownErrors", replacing the FFR of the same name
+		- "DNSConnect", requesting the resolver use TCP mode
 		- "KeepAuthResults", suppressing required removal of
 		  Authentication-Results header fields
 		- "ResolverTracing", adding detailed logging of libar activity

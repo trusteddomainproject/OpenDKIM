@@ -169,6 +169,7 @@ struct handling defaults =
 
 struct dkimf_config
 {
+	_Bool		conf_dnsconnect;	/* request TCP mode from DNS */
 	_Bool		conf_capture;		/* capture unknown errors */
 	_Bool		conf_restrace;		/* resolver tracing? */
 	_Bool		conf_acceptdk;		/* accept DK keys? */
@@ -5482,6 +5483,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 	if (data != NULL)
 	{
+		(void) config_get(data, "DNSConnect",
+		                  &conf->conf_dnsconnect,
+		                  sizeof conf->conf_dnsconnect);
+
 		(void) config_get(data, "ResolverTracing",
 		                  &conf->conf_restrace,
 		                  sizeof conf->conf_restrace);
@@ -15300,7 +15305,8 @@ main(int argc, char **argv)
 
 #ifdef USE_ARLIB
 	arlib = ar_init(NULL, NULL, NULL,
-	                curconf->conf_restrace ? AR_FLAG_TRACELOGGING : 0);
+	                (curconf->conf_restrace ? AR_FLAG_TRACELOGGING : 0) |
+	                (curconf->conf_dnsconnect ? AR_FLAG_USETCP : 0));
 	if (arlib == NULL)
 	{
 		if (curconf->conf_dolog)
