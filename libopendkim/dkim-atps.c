@@ -21,7 +21,7 @@ static char dkim_atps_c_id[] = "@(#)$Id$";
 #include <netdb.h>
 
 /* libopendkim includes */
-#include "base32.h"
+#include "dkim.h"
 #include "dkim-internal.h"
 #include "dkim-types.h"
 #include "util.h"
