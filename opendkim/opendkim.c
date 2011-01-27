@@ -11057,9 +11057,15 @@ mlfi_eoh(SMFICTX *ctx)
 		status = vbr_getheader(dfc->mctx_vbr, header, sizeof header);
 		if (status != VBR_STAT_OK)
 		{
+			const char *err;
+
+			err = vbr_geterror(dfc->mctx_vbr);
+
 			syslog(LOG_ERR,
-			       "%s: can't create VBR-Info header field",
-			       dfc->mctx_jobid);
+			       "%s: can't create VBR-Info header field%s%s",
+			       dfc->mctx_jobid,
+			       err == NULL ? "" : ": ",
+			       err == NULL ? "" : err);
 		}
 		else
 		{
