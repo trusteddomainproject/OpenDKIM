@@ -235,6 +235,8 @@ AC_DEFUN([LIB_FFR_FEATURE],
 #
 FEATURE([popauth], [enable POP-before-SMTP support])
 
+FEATURE([poll], [use poll() instead of select()])
+
 FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
 LIB_FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
 AM_CONDITIONAL([ATPS], [test x"$enable_atps" = x"yes"])

@@ -66,11 +66,6 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.12 2010/10/04 21:20:47 cm-msk Exp $";
 # define MIN(x,y)	((x) < (y) ? (x) : (y))
 #endif /* ! MIN */
 
-#if !POLL && !KQUEUES
-# define SELECT			1
-# define SOCKET_READY(x, y)	FD_ISSET((y), &(x))
-#endif /* !POLL && !KQUEUES */
-
 #ifndef MSG_WAITALL
 # define MSG_WAITALL	0
 #endif /* ! MSG_WAITALL */
@@ -83,6 +78,7 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.12 2010/10/04 21:20:47 cm-msk Exp $";
 
 /* ar includes */
 #include "ar.h"
+#include "ar-socket.h"
 #include "ar-strl.h"
 #include "manual.h"
 
@@ -118,6 +114,8 @@ typedef struct sockaddr SOCKADDR;
 
 struct ar_libhandle
 {
+	int			ar_partwrite;
+	int			ar_fullwrite;
 	int			ar_nsfd;
 	int			ar_nsfdpf;
 	int			ar_control[2];
@@ -137,6 +135,8 @@ struct ar_libhandle
 	unsigned char *		ar_querybuf;
 	unsigned char *		ar_tcpbuf;
 	SOCKADDR *		ar_nsaddrs;
+	AR_SOCKET_SET		ar_css;		/* client socket set */
+	AR_SOCKET_SET		ar_dss;		/* dispatcher socket set */
 	void *			(*ar_malloc) (void *closure, size_t nbytes);
 	void			(*ar_free) (void *closure, void *p);
 	void *			ar_closure;
@@ -145,6 +145,7 @@ struct ar_libhandle
 	struct ar_query *	ar_queries;	/* awaiting replies (head) */
 	struct ar_query *	ar_queriestail;	/* awaiting replies (tail) */
 	struct ar_query *	ar_recycle;	/* recyclable queries */
+	struct iovec		ar_iovec[2];	/* I/O vector */
 	struct timeval		ar_retry;	/* retry interval */
 	struct timeval		ar_deadsince;	/* when we lost all service */
 	struct timeval		ar_revivify;	/* how long to play dead */
@@ -749,7 +750,6 @@ ar_requeue(AR_LIB lib)
 
 	if (lib->ar_queries != NULL)
 	{
-		int maxfd;
 		int status;
 		fd_set wfds;
 		AR_QUERY x = NULL;
@@ -769,17 +769,12 @@ ar_requeue(AR_LIB lib)
 		lib->ar_queries = NULL;
 		lib->ar_queriestail = NULL;
 
-#if SELECT
-		/* XXX -- do this as ar_trywrite() or something */
-		maxfd = lib->ar_control[0];
-		FD_ZERO(&wfds);
-		FD_SET(lib->ar_control[0], &wfds);
-		stimeout.tv_sec = 0;
-		stimeout.tv_usec = 0;
-		status = select(maxfd + 1, NULL, &wfds, NULL, &stimeout);
+		ar_socket_reset(lib->ar_dss);
+		ar_socket_add(lib->ar_dss, lib->ar_control[0],
+		              AR_SOCKET_EVENT_WRITE);
+		status = ar_socket_wait(lib->ar_dss, 0);
 		if (status == 1)
 			(void) write(lib->ar_control[0], &x, sizeof x);
-#endif /* SELECT */
 	}
 }
 
@@ -826,6 +821,8 @@ ar_reconnect(AR_LIB lib)
 	close(lib->ar_nsfd);
 	lib->ar_nsfd = -1;
 	lib->ar_nsfdpf = -1;
+	lib->ar_partwrite = 0;
+	lib->ar_fullwrite = 0;
 
 	/* try to connect to someone */
 	for (c = 0; c < lib->ar_nscount; c++)
@@ -992,15 +989,16 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 	if ((lib->ar_flags & AR_FLAG_USETCP) != 0)
 	{
 		u_short len;
-		struct iovec io[2];
 
 		len = htons(n);
-		io[0].iov_base = (void *) &len;
-		io[0].iov_len = sizeof len;
-		io[1].iov_base = (void *) lib->ar_querybuf;
-		io[1].iov_len = lib->ar_writelen;
+		lib->ar_iovec[0].iov_base = (void *) &len;
+		lib->ar_iovec[0].iov_len = sizeof len;
+		lib->ar_iovec[1].iov_base = (void *) lib->ar_querybuf;
+		lib->ar_iovec[1].iov_len = lib->ar_writelen;
 
-		n = writev(lib->ar_nsfd, io, 2);
+		n = writev(lib->ar_nsfd, lib->ar_iovec, 2);
+
+		lib->ar_fullwrite = lib->ar_iovec[0].iov_len + lib->ar_iovec[1].iov_len;
 	}
 	else
 	{
@@ -1035,6 +1033,8 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 
 		n = sendto(lib->ar_nsfd, lib->ar_querybuf,
 		           lib->ar_writelen, 0, sa, socklen);
+
+		lib->ar_fullwrite = lib->ar_writelen;
 	}
 
 	if (n == (size_t) -1)
@@ -1051,6 +1051,10 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 			*query->q_errno = errno;
 		pthread_cond_signal(&query->q_reply);
 		return FALSE;
+	}
+	else
+	{
+		lib->ar_partwrite = n;
 	}
 
 	query->q_tries += 1;
@@ -1170,14 +1174,10 @@ ar_dispatcher(void *tp)
 	_Bool usetimeout;
 	_Bool reconnect;
 	int status;
-	int maxfd;
+	int to;
 	size_t r;
 	AR_LIB lib;
 	AR_QUERY q;
-#if SELECT
-	fd_set rfds;
-	fd_set wfds;
-#endif /* SELECT */
 	u_char *buf;
 	struct timeval timeout;
 	struct timeval timeleft;
@@ -1233,17 +1233,24 @@ ar_dispatcher(void *tp)
 		     (lib->ar_flags & AR_FLAG_RECONNECT) != 0))
 		    	(void) ar_reconnect(lib);
 
-		maxfd = MAX(lib->ar_nsfd, lib->ar_control[1]);
-
 		/* check on the control descriptor and the NS descriptor */
-#if SELECT
-		FD_ZERO(&rfds);
-		FD_ZERO(&wfds);
-		if (lib->ar_pending != NULL || lib->ar_resend > 0)
-			FD_SET(lib->ar_nsfd, &wfds);
+		ar_socket_reset(lib->ar_dss);
+
+		ar_socket_add(lib->ar_dss, lib->ar_control[1],
+		              AR_SOCKET_EVENT_READ);
+
+		if ((lib->ar_pending != NULL || lib->ar_resend > 0) ||
+		    lib->ar_partwrite < lib->ar_fullwrite)
+		{
+			ar_socket_add(lib->ar_dss, lib->ar_nsfd,
+			              AR_SOCKET_EVENT_WRITE);
+		}
+
 		if (lib->ar_nsfd != -1)
-			FD_SET(lib->ar_nsfd, &rfds);
-		FD_SET(lib->ar_control[1], &rfds);
+		{
+			ar_socket_add(lib->ar_dss, lib->ar_nsfd,
+			              AR_SOCKET_EVENT_READ);
+		}
 
 		/* determine how long to wait */
 		if ((lib->ar_flags & AR_FLAG_DEAD) != 0)
@@ -1284,12 +1291,14 @@ ar_dispatcher(void *tp)
 
 		pthread_mutex_unlock(&lib->ar_lock);
 
+		to = 1000 * timeout.tv_sec + timeout.tv_usec / 1000;
+
 		if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 		{
 			if (usetimeout)
 			{
 				syslog(LOG_DEBUG,
-				       "arlib: dispatcher pausing (%u.%06u)",
+				       "arlib: dispatcher pausing (%u.%06us)",
 				       timeout.tv_sec, timeout.tv_usec);
 			}
 			else
@@ -1299,8 +1308,7 @@ ar_dispatcher(void *tp)
 		}
 
 		/* XXX -- effect a poll if we knew there was more pending */
-		status = select(maxfd + 1, &rfds, &wfds, NULL,
-		                usetimeout ? &timeout : NULL);
+		status = ar_socket_wait(lib->ar_dss, usetimeout ? to : -1);
 		if (status == -1)
 		{
 			if (errno == EINTR)
@@ -1315,13 +1323,58 @@ ar_dispatcher(void *tp)
 		}
 
 		pthread_mutex_lock(&lib->ar_lock);
-#endif /* SELECT */
 
 		buf = NULL;
 
+		/* take another run at any incomplete writev() we have going */
+		if (lib->ar_nsfd != -1 &&
+		    lib->ar_partwrite < lib->ar_fullwrite &&
+		    ar_socket_check(lib->ar_dss, lib->ar_nsfd,
+		                    AR_SOCKET_EVENT_WRITE) == 1)
+		{
+			int c;
+			size_t n;
+			struct iovec io[2];
+
+			memcpy(&io, &lib->ar_iovec, sizeof io);
+			n = lib->ar_partwrite;
+
+			for (c = 0; c < 2; c++)
+			{
+				if (io[c].iov_len > (unsigned int) n)
+				{
+					io[c].iov_base = (char *) io[c].iov_base + n;
+					io[c].iov_len -= n;
+					break;
+				}
+
+				n -= (int) io[c].iov_len;
+				io[c].iov_len = 0;
+			}
+
+			n = writev(lib->ar_nsfd, io, 2);
+			if (n == -1)
+			{
+				/* request a reconnect */
+	     			lib->ar_flags |= AR_FLAG_RECONNECT;
+
+				/* arrange to re-send everything */
+				ar_requeue(lib);
+
+				continue;
+			}
+			else
+			{
+				lib->ar_partwrite += n;
+			}
+
+			continue;
+		}
+
 		/* read what's available from the nameserver for dispatch */
 		if (lib->ar_nsfd != -1 &&
-		    SOCKET_READY(rfds, lib->ar_nsfd))
+		    ar_socket_check(lib->ar_dss, lib->ar_nsfd,
+		                    AR_SOCKET_EVENT_READ) == 1)
 		{
 			if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 				syslog(LOG_DEBUG, "arlib: reply received");
@@ -1616,7 +1669,8 @@ ar_dispatcher(void *tp)
 		}
 
 		/* control socket messages (new work, resend requests) */
-		if (SOCKET_READY(rfds, lib->ar_control[1]))
+		if (ar_socket_check(lib->ar_dss, lib->ar_control[1],
+		                    AR_SOCKET_EVENT_READ) == 1)
 		{
 			size_t rlen;
 			AR_QUERY q;
@@ -1647,7 +1701,8 @@ ar_dispatcher(void *tp)
 
 		/* send any pending queries */
 		if (lib->ar_nsfd != -1 &&
-		    SOCKET_READY(wfds, lib->ar_nsfd) &&
+		    ar_socket_check(lib->ar_dss, lib->ar_nsfd,
+		                    AR_SOCKET_EVENT_WRITE) == 1 &&
 		    lib->ar_pending != NULL)
 		{
 			_Bool sent;
@@ -1696,12 +1751,22 @@ ar_dispatcher(void *tp)
 						lib->ar_queriestail = q;
 					}
 				}
+
+				ar_socket_reset(lib->ar_dss);
+				ar_socket_add(lib->ar_dss, lib->ar_nsfd,
+				              AR_SOCKET_EVENT_WRITE);
+
+				status = ar_socket_wait(lib->ar_dss, 0);
+
+				if (status != 1)
+					break;
 			}
 		}
 
 		/* send any queued resends */
 		if (lib->ar_resend > 0 && lib->ar_nsfd != -1 &&
-		    SOCKET_READY(wfds, lib->ar_nsfd))
+		    ar_socket_check(lib->ar_dss, lib->ar_nsfd,
+		                    AR_SOCKET_EVENT_WRITE) == 1)
 		{
 			for (q = lib->ar_queries;
 			     q != NULL && lib->ar_resend > 0;
@@ -1716,6 +1781,15 @@ ar_dispatcher(void *tp)
 					lib->ar_resend--;
 				}
 				pthread_mutex_unlock(&q->q_lock);
+
+				ar_socket_reset(lib->ar_dss);
+				ar_socket_add(lib->ar_dss, lib->ar_nsfd,
+				              AR_SOCKET_EVENT_WRITE);
+
+				status = ar_socket_wait(lib->ar_dss, 0);
+
+				if (status != 1)
+					break;
 			}
 		}
 
@@ -1886,6 +1960,21 @@ ar_init(ar_malloc_t user_malloc, ar_free_t user_free, void *user_closure,
 	if (new == NULL)
 		return NULL;
 
+	new->ar_dss = ar_socket_init(0);
+	if (new->ar_dss == NULL)
+	{
+		free(new);
+		return NULL;
+	}
+
+	new->ar_css = ar_socket_init(0);
+	if (new->ar_css == NULL)
+	{
+		ar_socket_free(new->ar_dss);
+		free(new);
+		return NULL;
+	}
+
 	new->ar_malloc = user_malloc;
 	new->ar_free = user_free;
 	new->ar_closure = user_closure;
@@ -1906,6 +1995,8 @@ ar_init(ar_malloc_t user_malloc, ar_free_t user_free, void *user_closure,
 	new->ar_control[1] = -1;
 	new->ar_nsidx = 0;
 	new->ar_writelen = 0;
+	new->ar_partwrite = 0;
+	new->ar_fullwrite = 0;
 	new->ar_deadsince.tv_sec = 0;
 	new->ar_deadsince.tv_usec = 0;
 	new->ar_revivify.tv_sec = AR_DEFREVIVIFY;
@@ -2054,6 +2145,9 @@ ar_shutdown(AR_LIB lib)
 			user_free(closure, lib);
 		else
 			free(lib);
+
+		ar_socket_free(lib->ar_css);
+		ar_socket_free(lib->ar_dss);
 	}
 
 #ifdef ARDEBUG
@@ -2137,32 +2231,18 @@ ar_poke(AR_LIB lib)
 	int status;
 	size_t wlen;
 	AR_QUERY x = NULL;
-#if SELECT
-	fd_set wfds;
-	struct timeval stimeout;
-#endif /* SELECT */
 
 	assert(lib != NULL);
 
 	wlen = sizeof x;
 
-#if SELECT
-	/* XXX -- do this as ar_trywrite() or something */
-	maxfd = lib->ar_control[0];
-	FD_ZERO(&wfds);
-	FD_SET(lib->ar_control[0], &wfds);
-	stimeout.tv_sec = 0;
-	stimeout.tv_usec = 0;
-	status = select(maxfd + 1, NULL, &wfds, NULL, &stimeout);
+	ar_socket_reset(lib->ar_css);
+	ar_socket_add(lib->ar_css, lib->ar_control[0], AR_SOCKET_EVENT_WRITE);
+	status = ar_socket_wait(lib->ar_css, 0);
 	if (status == 1)
-	{
 		wlen = write(lib->ar_control[0], &x, sizeof x);
-	}
 	else if (status == -1)
-	{
 		wlen = (size_t) -1;
-	}
-#endif /* SELECT */
 
 	return wlen;
 }

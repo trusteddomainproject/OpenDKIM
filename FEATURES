@@ -80,6 +80,9 @@ parsetime	Adds a utility function reporting the value of the Date:
 		to detect messages in which those values wildly differ.
 		INCOMPLETE.  (libopendkim)
 
+poll		Instructs the asynchronous resolver to use poll() instead
+		of select() to wait for I/O on sockets.  (libar)
+
 postgres_reconnect_hack
 		libpq (the postgresql client library) fails to identify
 		at least some error conditions as needing a connection
