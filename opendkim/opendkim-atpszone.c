@@ -86,7 +86,7 @@ int
 usage(void)
 {
 	fprintf(stderr, "%s: usage: %s [opts] [dataset]\n"
-	                "\t-A          \tinclude `._atps' suffix\n"
+	                "\t-A          \tinclude '._atps' suffix\n"
 	                "\t-C user@host\tcontact address to include in SOA\n"
 	                "\t-d domain   \twrite records for named domain only\n"
 	                "\t-E secs     \tuse specified expiration time in SOA\n"

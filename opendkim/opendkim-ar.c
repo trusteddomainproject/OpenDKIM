@@ -677,7 +677,7 @@ main(int argc, char **argv)
 
 	c = ares_tokenize(argv[1], buf, sizeof buf, toks, NTOKENS);
 	for (d = 0; d < c; d++)
-		printf("token %d = `%s'\n", d, toks[d]);
+		printf("token %d = '%s'\n", d, toks[d]);
 
 	printf("\n");
 
@@ -691,8 +691,8 @@ main(int argc, char **argv)
 	printf("%d result%s found\n", ar.ares_count,
 	       ar.ares_count == 1 ? "" : "s");
 
-	printf("authserv-id `%s'\n", ar.ares_host);
-	printf("version `%s'\n", ar.ares_version);
+	printf("authserv-id '%s'\n", ar.ares_host);
+	printf("version '%s'\n", ar.ares_version);
 
 	for (c = 0; c < ar.ares_count; c++)
 	{

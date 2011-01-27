@@ -198,7 +198,7 @@ usage(void)
 	fprintf(stderr, "%s: usage: %s [opts] [dataset]\n"
 	                "\t-C user@host\tcontact address to include in SOA\n"
 	                "\t-d domain   \twrite keys for named domain only\n"
-	                "\t-D          \tinclude `._domainkey' suffix\n"
+	                "\t-D          \tinclude '._domainkey' suffix\n"
 	                "\t-E secs     \tuse specified expiration time in SOA\n"
 	                "\t-o file     \toutput file\n"
 	                "\t-N ns[,...] \tlist NS records\n"
@@ -623,7 +623,7 @@ main(int argc, char **argv)
 
 		if (onlydomain != NULL && strcasecmp(domain, onlydomain) != 0)
 		{
-			fprintf(stderr, "%s: record %d for `%s' skipped\n",
+			fprintf(stderr, "%s: record %d for '%s' skipped\n",
 			        progname, c, keyname);
 
 			continue;
@@ -631,14 +631,14 @@ main(int argc, char **argv)
 
 		if (verbose > 1)
 		{
-			fprintf(stderr, "%s: record %d for `%s' retrieved\n",
+			fprintf(stderr, "%s: record %d for '%s' retrieved\n",
 			        progname, c, keyname);
 		}
 
 		keylen = sizeof keydata;
 		if (!loadkey(keydata, &keylen))
 		{
-			fprintf(stderr, "%s: key for `%s' load failed\n",
+			fprintf(stderr, "%s: key for '%s' load failed\n",
 			        progname, keyname);
 			(void) dkimf_db_close(db);
 #ifndef USE_GNUTLS
@@ -649,7 +649,7 @@ main(int argc, char **argv)
 
 		if (verbose > 1)
 		{
-			fprintf(stderr, "%s: key for `%s' loaded\n",
+			fprintf(stderr, "%s: key for '%s' loaded\n",
 			        progname, keyname);
 		}
 

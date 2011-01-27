@@ -156,7 +156,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
  
 		if ((n = dn_skipname(cp, eom)) < 0)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", query);
+			dkim_error(dkim, "'%s' reply corrupt", query);
 			*res = DKIM_ATPS_UNKNOWN;
 			return DKIM_STAT_CANTVRFY;
 		}
@@ -165,7 +165,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 		/* extract the type and class */
 		if (cp + INT16SZ + INT16SZ > eom)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", query);
+			dkim_error(dkim, "'%s' reply corrupt", query);
 			*res = DKIM_ATPS_UNKNOWN;
 			return DKIM_STAT_CANTVRFY;
 		}
@@ -175,7 +175,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 
 	if (type != T_TXT || class != C_IN)
 	{
-		dkim_error(dkim, "`%s' unexpected reply type/class", query);
+		dkim_error(dkim, "'%s' unexpected reply type/class", query);
 		*res = DKIM_ATPS_UNKNOWN;
 		return DKIM_STAT_CANTVRFY;
 	}
@@ -189,7 +189,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	/* if truncated, we can't do it */
 	if (dkim_check_dns_reply(ansbuf, anslen, C_IN, T_TXT) == 1)
 	{
-		dkim_error(dkim, "`%s' reply truncated", query);
+		dkim_error(dkim, "'%s' reply truncated", query);
 		*res = DKIM_ATPS_UNKNOWN;
 		return DKIM_STAT_CANTVRFY;
 	}
@@ -212,7 +212,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 		if ((n = dn_expand((unsigned char *) &ansbuf, eom, cp,
 		                   (RES_UNC_T) query, sizeof query)) < 0)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", query);
+			dkim_error(dkim, "'%s' reply corrupt", query);
 			*res = DKIM_ATPS_UNKNOWN;
 			return DKIM_STAT_CANTVRFY;
 		}
@@ -222,7 +222,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 		/* extract the type and class */
 		if (cp + INT16SZ + INT16SZ > eom)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", query);
+			dkim_error(dkim, "'%s' reply corrupt", query);
 			*res = DKIM_ATPS_UNKNOWN;
 			return DKIM_STAT_CANTVRFY;
 		}
@@ -253,7 +253,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 			/* get payload length */
 			if (cp + INT16SZ > eom)
 			{
-				dkim_error(dkim, "`%s' reply corrupt", query);
+				dkim_error(dkim, "'%s' reply corrupt", query);
 				*res = DKIM_ATPS_UNKNOWN;
 				return DKIM_STAT_CANTVRFY;
 			}
@@ -265,7 +265,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 		}
 		else if (type != T_TXT)
 		{
-			dkim_error(dkim, "`%s' reply was unexpected type %d",
+			dkim_error(dkim, "'%s' reply was unexpected type %d",
 			           query, type);
 			*res = DKIM_ATPS_UNKNOWN;
 			return DKIM_STAT_CANTVRFY;
@@ -273,7 +273,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 
 		if (txtfound != NULL)
 		{
-			dkim_error(dkim, "multiple DNS replies for `%s'",
+			dkim_error(dkim, "multiple DNS replies for '%s'",
 			           query);
 			*res = DKIM_ATPS_UNKNOWN;
 			return DKIM_STAT_MULTIDNSREPLY;
@@ -285,7 +285,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 		/* get payload length */
 		if (cp + INT16SZ > eom)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", query);
+			dkim_error(dkim, "'%s' reply corrupt", query);
 			*res = DKIM_ATPS_UNKNOWN;
 			return DKIM_STAT_CANTVRFY;
 		}
@@ -298,7 +298,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	/* if ancount went below 0, there were no good records */
 	if (txtfound == NULL)
 	{
-		dkim_error(dkim, "`%s' reply was unresolved CNAME", query);
+		dkim_error(dkim, "'%s' reply was unresolved CNAME", query);
 		*res = DKIM_ATPS_UNKNOWN;
 		return DKIM_STAT_CANTVRFY;
 	}
@@ -309,7 +309,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	/* get payload length */
 	if (cp + INT16SZ > eom)
 	{
-		dkim_error(dkim, "`%s' reply corrupt", query);
+		dkim_error(dkim, "'%s' reply corrupt", query);
 		*res = DKIM_ATPS_UNKNOWN;
 		return DKIM_STAT_CANTVRFY;
 	}
@@ -317,7 +317,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 
 	if (cp + n > eom)
 	{
-		dkim_error(dkim, "`%s' reply corrupt", query);
+		dkim_error(dkim, "'%s' reply corrupt", query);
 		*res = DKIM_ATPS_UNKNOWN;
 		return DKIM_STAT_CANTVRFY;
 	}

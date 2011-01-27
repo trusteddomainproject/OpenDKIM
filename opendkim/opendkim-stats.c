@@ -234,7 +234,7 @@ main(int argc, char **argv)
 				ms = 0;
 			}
 
-			fprintf(stdout, "Job %s at %s (size %s)\n\treceived via %s at %s\tfrom domain = `%s', %s Received header fields\n\tContent type %s, content transfer encoding %s\n\t%s to come from a mailing list\n\tADSP %s (%s)\n",
+			fprintf(stdout, "Job %s at %s (size %s)\n\treceived via %s at %s\tfrom domain = '%s', %s Received header fields\n\tContent type %s, content transfer encoding %s\n\t%s to come from a mailing list\n\tADSP %s (%s)\n",
 			        fields[DKIMS_MI_JOBID],
 			        fields[DKIMS_MI_REPORTER],
 			        fields[DKIMS_MI_MSGLEN],

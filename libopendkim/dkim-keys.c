@@ -140,7 +140,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 
 		if (status != 0)
 		{
-			dkim_error(dkim, "`%s' query failed", qname);
+			dkim_error(dkim, "'%s' query failed", qname);
 			return DKIM_STAT_KEYFAIL;
 		}
 	
@@ -155,13 +155,13 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		if (status == DKIM_DNS_EXPIRED)
 		{
 			(void) lib->dkiml_dns_cancel(lib->dkiml_dns_service, q);
-			dkim_error(dkim, "`%s' query timed out", qname);
+			dkim_error(dkim, "'%s' query timed out", qname);
 			return DKIM_STAT_KEYFAIL;
 		}
 		else if (status == DKIM_DNS_ERROR)
 		{
 			(void) lib->dkiml_dns_cancel(lib->dkiml_dns_service, q);
-			dkim_error(dkim, "`%s' query failed", qname);
+			dkim_error(dkim, "'%s' query failed", qname);
 			return DKIM_STAT_KEYFAIL;
 		}
 
@@ -186,7 +186,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
  
 		if ((n = dn_skipname(cp, eom)) < 0)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", qname);
+			dkim_error(dkim, "'%s' reply corrupt", qname);
 			return DKIM_STAT_KEYFAIL;
 		}
 		cp += n;
@@ -194,7 +194,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		/* extract the type and class */
 		if (cp + INT16SZ + INT16SZ > eom)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", qname);
+			dkim_error(dkim, "'%s' reply corrupt", qname);
 			return DKIM_STAT_KEYFAIL;
 		}
 		GETSHORT(type, cp);
@@ -203,21 +203,21 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 
 	if (type != T_TXT || class != C_IN)
 	{
-		dkim_error(dkim, "`%s' unexpected reply type/class", qname);
+		dkim_error(dkim, "'%s' unexpected reply type/class", qname);
 		return DKIM_STAT_KEYFAIL;
 	}
 
 	/* if NXDOMAIN, return DKIM_STAT_NOKEY */
 	if (hdr.rcode == NXDOMAIN)
 	{
-		dkim_error(dkim, "`%s' record not found", qname);
+		dkim_error(dkim, "'%s' record not found", qname);
 		return DKIM_STAT_NOKEY;
 	}
 
 	/* if truncated, we can't do it */
 	if (dkim_check_dns_reply(ansbuf, anslen, C_IN, T_TXT) == 1)
 	{
-		dkim_error(dkim, "`%s' reply truncated", qname);
+		dkim_error(dkim, "'%s' reply truncated", qname);
 		return DKIM_STAT_KEYFAIL;
 	}
 
@@ -236,7 +236,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		if ((n = dn_expand((unsigned char *) &ansbuf, eom, cp,
 		                   (RES_UNC_T) qname, sizeof qname)) < 0)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", qname);
+			dkim_error(dkim, "'%s' reply corrupt", qname);
 			return DKIM_STAT_KEYFAIL;
 		}
 		/* ...and move past it */
@@ -245,7 +245,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		/* extract the type and class */
 		if (cp + INT16SZ + INT16SZ > eom)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", qname);
+			dkim_error(dkim, "'%s' reply corrupt", qname);
 			return DKIM_STAT_KEYFAIL;
 		}
 
@@ -275,7 +275,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 			/* get payload length */
 			if (cp + INT16SZ > eom)
 			{
-				dkim_error(dkim, "`%s' reply corrupt", qname);
+				dkim_error(dkim, "'%s' reply corrupt", qname);
 				return DKIM_STAT_KEYFAIL;
 			}
 			GETSHORT(n, cp);
@@ -286,14 +286,14 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		}
 		else if (type != T_TXT)
 		{
-			dkim_error(dkim, "`%s' reply was unexpected type %d",
+			dkim_error(dkim, "'%s' reply was unexpected type %d",
 			           qname, type);
 			return DKIM_STAT_KEYFAIL;
 		}
 
 		if (txtfound != NULL)
 		{
-			dkim_error(dkim, "multiple DNS replies for `%s'",
+			dkim_error(dkim, "multiple DNS replies for '%s'",
 			           qname);
 			return DKIM_STAT_MULTIDNSREPLY;
 		}
@@ -304,7 +304,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		/* get payload length */
 		if (cp + INT16SZ > eom)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", qname);
+			dkim_error(dkim, "'%s' reply corrupt", qname);
 			return DKIM_STAT_KEYFAIL;
 		}
 		GETSHORT(n, cp);
@@ -316,7 +316,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	/* if ancount went below 0, there were no good records */
 	if (txtfound == NULL)
 	{
-		dkim_error(dkim, "`%s' reply was unresolved CNAME", qname);
+		dkim_error(dkim, "'%s' reply was unresolved CNAME", qname);
 		return DKIM_STAT_KEYFAIL;
 	}
 
@@ -326,7 +326,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	/* get payload length */
 	if (cp + INT16SZ > eom)
 	{
-		dkim_error(dkim, "`%s' reply corrupt", qname);
+		dkim_error(dkim, "'%s' reply corrupt", qname);
 		return DKIM_STAT_KEYFAIL;
 	}
 	GETSHORT(n, cp);
@@ -338,7 +338,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 
 	if (cp + n > eom)
 	{
-		dkim_error(dkim, "`%s' reply corrupt", qname);
+		dkim_error(dkim, "'%s' reply corrupt", qname);
 		return DKIM_STAT_SYNTAX;
 	}
 

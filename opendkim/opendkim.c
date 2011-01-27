@@ -1514,7 +1514,7 @@ dkimf_xs_requestsig(lua_State *l)
 			if (conf->conf_dolog)
 			{
 				syslog(LOG_ERR,
-				       "key `%s' could not be applied",
+				       "key '%s' could not be applied",
 				       keyname);
 			}
 			lua_pushnumber(l, 0);
@@ -1523,7 +1523,7 @@ dkimf_xs_requestsig(lua_State *l)
 		  case 2:
 			if (conf->conf_dolog)
 			{
-				syslog(LOG_ERR, "key `%s' could not be loaded",
+				syslog(LOG_ERR, "key '%s' could not be loaded",
 				       keyname);
 			}
 			lua_pushnumber(l, 0);
@@ -1531,14 +1531,14 @@ dkimf_xs_requestsig(lua_State *l)
 
 		  case 1:
 			if (conf->conf_dolog)
-				syslog(LOG_ERR, "key `%s' not found", keyname);
+				syslog(LOG_ERR, "key '%s' not found", keyname);
 			lua_pushnumber(l, 0);
 			return 1;
 
 		  case -1:
 			if (conf->conf_dolog)
 			{
-				syslog(LOG_ERR, "error requesting key `%s'",
+				syslog(LOG_ERR, "error requesting key '%s'",
 				       keyname);
 			}
 			lua_pushnumber(l, 0);
@@ -4323,7 +4323,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 			if (dolog)
 			{
 				syslog(LOG_ERR,
-				       "KeyTable entry for `%s' corrupt",
+				       "KeyTable entry for '%s' corrupt",
 				       keyname);
 			}
 
@@ -4336,7 +4336,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 			if (dolog)
 			{
 				syslog(LOG_ERR,
-				       "KeyTable entry for `%s' cannot be resolved", 
+				       "KeyTable entry for '%s' cannot be resolved",
 				       keyname);
 			}
 
@@ -5799,7 +5799,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			if (c == -1)
 			{
 				snprintf(err, errlen,
-				         "unknown ADSP action `%s'", str);
+				         "unknown ADSP action '%s'", str);
 				return -1;
 			}
 
@@ -5921,7 +5921,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			if (c == -1)
 			{
 				snprintf(err, errlen,
-				         "unknown key action `%s'", str);
+				         "unknown key action '%s'", str);
 				return -1;
 			}
 
@@ -5942,7 +5942,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			if (c == -1)
 			{
 				snprintf(err, errlen,
-				         "unknown key action `%s'", str);
+				         "unknown key action '%s'", str);
 				return -1;
 			}
 
@@ -5963,7 +5963,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			if (c == -1)
 			{
 				snprintf(err, errlen,
-				         "unknown policy action `%s'", str);
+				         "unknown policy action '%s'", str);
 				return -1;
 			}
 
@@ -5984,7 +5984,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			if (c == -1)
 			{
 				snprintf(err, errlen,
-				         "unknown policy action `%s'", str);
+				         "unknown policy action '%s'", str);
 				return -1;
 			}
 
@@ -10082,7 +10082,7 @@ mlfi_eoh(SMFICTX *ctx)
 			if (macrosender != NULL)
 			{
 				syslog(LOG_INFO,
-				       "%s: can't parse macro %s header value `%s'",
+				       "%s: can't parse macro %s header value '%s'",
 				       dfc->mctx_jobid, conf->conf_sendermacro,
 				       macrosender);
 			}
@@ -10091,7 +10091,7 @@ mlfi_eoh(SMFICTX *ctx)
 			if (from != NULL)
 			{
 				syslog(LOG_INFO,
-				       "%s: can't parse %s: header value `%s'",
+				       "%s: can't parse %s: header value '%s'",
 				       dfc->mctx_jobid, from->hdr_hdr,
 				       from->hdr_val);
 			}
@@ -10099,7 +10099,7 @@ mlfi_eoh(SMFICTX *ctx)
 			else if (conf->conf_defsender != NULL)
 			{
 				syslog(LOG_INFO,
-				       "%s: can't parse default sender value `%s'",
+				       "%s: can't parse default sender value '%s'",
 				       dfc->mctx_jobid, from);
 			}
 #endif /* _FFR_DEFAULT_SENDER */
@@ -10139,7 +10139,7 @@ mlfi_eoh(SMFICTX *ctx)
 			if (conf->conf_logwhy)
 			{
 				syslog(LOG_INFO,
-				       "%s: domain `%s' exempted, accepting",
+				       "%s: domain '%s' exempted, accepting",
 				       dfc->mctx_jobid, dfc->mctx_domain);
 			}
 
@@ -10284,7 +10284,7 @@ mlfi_eoh(SMFICTX *ctx)
 					if (dolog)
 					{
 						syslog(LOG_ERR,
-						       "%s: failed to add signature for key `%s'",
+						       "%s: failed to add signature for key '%s'",
 						       dfc->mctx_jobid,
 						       resignkey);
 					}
@@ -10449,7 +10449,7 @@ mlfi_eoh(SMFICTX *ctx)
 		if (!domainok && conf->conf_logwhy)
 		{
 			syslog(LOG_INFO,
-			       "%s: no signing domain match for `%s'",
+			       "%s: no signing domain match for '%s'",
 			       dfc->mctx_jobid, dfc->mctx_domain);
 		}
 
@@ -10492,7 +10492,7 @@ mlfi_eoh(SMFICTX *ctx)
 		if (!domainok && conf->conf_logwhy)
 		{
 			syslog(LOG_INFO,
-			       "%s: no signing subdomain match for `%s'",
+			       "%s: no signing subdomain match for '%s'",
 			       dfc->mctx_jobid, dfc->mctx_domain);
 		}
 	}
@@ -10531,7 +10531,7 @@ mlfi_eoh(SMFICTX *ctx)
 				if (dolog)
 				{
 					syslog(LOG_ERR,
-					       "%s: failed to add signature for key `%s'",
+					       "%s: failed to add signature for key '%s'",
 					       dfc->mctx_jobid, hdr->hdr_val);
 				}
 
@@ -10569,13 +10569,13 @@ mlfi_eoh(SMFICTX *ctx)
 
 				  case -2:
 					syslog(LOG_ERR,
-					       "%s: signing table references unknown key `%s'",
+					       "%s: signing table references unknown key '%s'",
 					       dfc->mctx_jobid, errkey);
 					break;
 
 				  case -3:
 					syslog(LOG_ERR,
-					       "%s: error loading key `%s'",
+					       "%s: error loading key '%s'",
 					       dfc->mctx_jobid, errkey);
 					break;
 
@@ -10594,7 +10594,7 @@ mlfi_eoh(SMFICTX *ctx)
 		if (!domainok && conf->conf_logwhy)
 		{
 			syslog(LOG_INFO,
-			       "%s: no signing table match for `%s@%s'",
+			       "%s: no signing table match for '%s@%s'",
 			       dfc->mctx_jobid, user, dfc->mctx_domain);
 		}
 	}
@@ -10721,7 +10721,7 @@ mlfi_eoh(SMFICTX *ctx)
 				if (conf->conf_dolog)
 				{
 					syslog(LOG_INFO,
-					       "%s: skipping signing of mail to `%s'",
+					       "%s: skipping signing of mail to '%s'",
 					       dfc->mctx_jobid,
 					       a->a_addr);
 				}
@@ -14404,7 +14404,7 @@ main(int argc, char **argv)
 			if (isatty(0))
 			{
 				fprintf(stdout,
-				        "%s: enter `query/n' where `n' is number of fields to request\n> ",
+				        "%s: enter 'query/n' where 'n' is number of fields to request\n> ",
 				        progname);
 			}
 
@@ -14423,7 +14423,7 @@ main(int argc, char **argv)
 			if (p == NULL)
 			{
 				(void) dkimf_db_close(dbtest);
-				fprintf(stderr, "%s: invalid query `%s'\n",
+				fprintf(stderr, "%s: invalid query '%s'\n",
 				        progname, query);
 				return EX_USAGE;
 			}
@@ -14432,7 +14432,7 @@ main(int argc, char **argv)
 			if (n < 0)
 			{
 				(void) dkimf_db_close(dbtest);
-				fprintf(stderr, "%s: invalid query `%s'\n",
+				fprintf(stderr, "%s: invalid query '%s'\n",
 				        progname, query);
 				return EX_USAGE;
 			}
@@ -14498,7 +14498,7 @@ main(int argc, char **argv)
 					if (dbdp[c].dbdata_buflen == 0)
 						fprintf(stdout, "<empty>\n");
 					else
-						fprintf(stdout, "`%s'\n", result[c]);
+						fprintf(stdout, "'%s'\n", result[c]);
 				}
 			}
 
@@ -14749,12 +14749,12 @@ main(int argc, char **argv)
 					if (curconf->conf_dolog)
 					{
 						syslog(LOG_ERR,
-						       "no such group or gid `%s'",
+						       "no such group or gid '%s'",
 						       colon + 1);
 					}
 
 					fprintf(stderr,
-					        "%s: no such group `%s'\n",
+					        "%s: no such group '%s'\n",
 					        progname, colon + 1);
 
 					return EX_DATAERR;
@@ -14778,11 +14778,11 @@ main(int argc, char **argv)
 				if (curconf->conf_dolog)
 				{
 					syslog(LOG_ERR,
-					       "no such user or uid `%s'",
+					       "no such user or uid '%s'",
 					       become);
 				}
 
-				fprintf(stderr, "%s: no such user `%s'\n",
+				fprintf(stderr, "%s: no such user '%s'\n",
 				        progname, become);
 
 				return EX_DATAERR;

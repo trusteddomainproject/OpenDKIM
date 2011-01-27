@@ -98,7 +98,7 @@ dumpfields(FILE *out, char **fields, int n)
 	int c;
 
 	for (c = 0; c < n; c++)
-		fprintf(out, "\t%d = `%s'\n", c, fields[c]);
+		fprintf(out, "\t%d = '%s'\n", c, fields[c]);
 }
 
 /*
@@ -536,7 +536,7 @@ main(int argc, char **argv)
 					if (norepadd == 1)
 					{
 						fprintf(stderr,
-						        "%s: no such reporter `%s' at line %d\n",
+						        "%s: no such reporter '%s' at line %d\n",
 						        progname, fields[1],
 						        line);
 
@@ -568,7 +568,7 @@ main(int argc, char **argv)
 					else if (repid == 0)
 					{
 						fprintf(stderr,
-						        "%s: failed to create reporter record for `%s'\n",
+						        "%s: failed to create reporter record for '%s'\n",
 						        progname,
 						        fields[1]);
 						(void) odbx_finish(db);
@@ -618,7 +618,7 @@ main(int argc, char **argv)
 				else if (domid == 0)
 				{
 					fprintf(stderr,
-					        "%s: failed to create domain record for `%s'\n",
+					        "%s: failed to create domain record for '%s'\n",
 					        progname, fields[2]);
 					(void) odbx_finish(db);
 					return EX_SOFTWARE;
@@ -664,7 +664,7 @@ main(int argc, char **argv)
 				else if (addrid == 0)
 				{
 					fprintf(stderr,
-					        "%s: failed to create IP address record for `%s'\n",
+					        "%s: failed to create IP address record for '%s'\n",
 					        progname, fields[3]);
 					(void) odbx_finish(db);
 					return EX_SOFTWARE;
@@ -787,7 +787,7 @@ main(int argc, char **argv)
 			else if (msgid == 0)
 			{
 				fprintf(stderr,
-				        "%s: failed to create message record for `%s'\n",
+				        "%s: failed to create message record for '%s'\n",
 				        progname, fields[0]);
 				(void) odbx_finish(db);
 				return EX_SOFTWARE;
@@ -857,7 +857,7 @@ main(int argc, char **argv)
 				else if (domid == 0)
 				{
 					fprintf(stderr,
-					        "%s: failed to create domain record for `%s'\n",
+					        "%s: failed to create domain record for '%s'\n",
 					        progname, fields[0]);
 					(void) odbx_finish(db);
 					return EX_SOFTWARE;
@@ -1041,7 +1041,7 @@ main(int argc, char **argv)
 					else if (hdrid == 0)
 					{
 						fprintf(stderr,
-						        "%s: failed to create header record for `%s'\n",
+						        "%s: failed to create header record for '%s'\n",
 						        progname, p);
 						(void) odbx_finish(db);
 						return EX_SOFTWARE;

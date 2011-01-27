@@ -614,7 +614,7 @@ rbl_query_start(RBL *rbl, u_char *query, void **qh)
 	else
 	{
 		snprintf(rbl->rbl_error, sizeof rbl->rbl_error,
-		         "unable to start query for `%s'", rblquery);
+		         "unable to start query for '%s'", rblquery);
 		return RBL_STAT_DNSERROR;
 	}
 }
@@ -690,7 +690,7 @@ rbl_query_check(RBL *rbl, void *qh, struct timeval *timeout, uint32_t *res)
 		if ((n = dn_skipname(cp, eom)) < 0)
 		{
 			snprintf(rbl->rbl_error, sizeof rbl->rbl_error,
-			         "`%s' reply corrupt", qname);
+			         "'%s' reply corrupt", qname);
 			return RBL_STAT_ERROR;
 		}
 		cp += n;
@@ -699,7 +699,7 @@ rbl_query_check(RBL *rbl, void *qh, struct timeval *timeout, uint32_t *res)
 		if (cp + INT16SZ + INT16SZ > eom)
 		{
 			snprintf(rbl->rbl_error, sizeof rbl->rbl_error,
-			         "`%s' reply corrupt", qname);
+			         "'%s' reply corrupt", qname);
 			return RBL_STAT_ERROR;
 		}
 		GETSHORT(type, cp);
@@ -709,7 +709,7 @@ rbl_query_check(RBL *rbl, void *qh, struct timeval *timeout, uint32_t *res)
 	if (type != T_A || class != C_IN)
 	{
 		snprintf(rbl->rbl_error, sizeof rbl->rbl_error,
-		         "`%s' unexpected reply type/class", qname);
+		         "'%s' unexpected reply type/class", qname);
 		return RBL_STAT_ERROR;
 	}
 
@@ -733,7 +733,7 @@ rbl_query_check(RBL *rbl, void *qh, struct timeval *timeout, uint32_t *res)
 		                   (RES_UNC_T) qname, sizeof qname)) < 0)
 		{
 			snprintf(rbl->rbl_error, sizeof rbl->rbl_error,
-			         "`%s' reply corrupt", qname);
+			         "'%s' reply corrupt", qname);
 			return RBL_STAT_ERROR;
 		}
 		/* ...and move past it */
@@ -743,7 +743,7 @@ rbl_query_check(RBL *rbl, void *qh, struct timeval *timeout, uint32_t *res)
 		if (cp + INT16SZ + INT16SZ > eom)
 		{
 			snprintf(rbl->rbl_error, sizeof rbl->rbl_error,
-			         "`%s' reply corrupt", qname);
+			         "'%s' reply corrupt", qname);
 			return RBL_STAT_ERROR;
 		}
 
@@ -769,7 +769,7 @@ rbl_query_check(RBL *rbl, void *qh, struct timeval *timeout, uint32_t *res)
 			if (cp + INT16SZ > eom)
 			{
 				snprintf(rbl->rbl_error, sizeof rbl->rbl_error,
-				         "`%s' reply corrupt", qname);
+				         "'%s' reply corrupt", qname);
 				return RBL_STAT_ERROR;
 			}
 			GETSHORT(n, cp);
@@ -781,14 +781,14 @@ rbl_query_check(RBL *rbl, void *qh, struct timeval *timeout, uint32_t *res)
 		else if (type != T_A)
 		{
 			snprintf(rbl->rbl_error, sizeof rbl->rbl_error,
-			         "`%s' unexpected reply type/class", qname);
+			         "'%s' unexpected reply type/class", qname);
 			return RBL_STAT_ERROR;
 		}
 
 		if (found != NULL)
 		{
 			snprintf(rbl->rbl_error, sizeof rbl->rbl_error,
-			         "multiple replies for `%s'", qname);
+			         "multiple replies for '%s'", qname);
 			return RBL_STAT_ERROR;
 		}
 
@@ -799,7 +799,7 @@ rbl_query_check(RBL *rbl, void *qh, struct timeval *timeout, uint32_t *res)
 		if (cp + INT16SZ > eom)
 		{
 			snprintf(rbl->rbl_error, sizeof rbl->rbl_error,
-			         "`%s' reply corrupt", qname);
+			         "'%s' reply corrupt", qname);
 			return RBL_STAT_ERROR;
 		}
 		GETSHORT(n, cp);
@@ -812,7 +812,7 @@ rbl_query_check(RBL *rbl, void *qh, struct timeval *timeout, uint32_t *res)
 	if (found == NULL)
 	{
 		snprintf(rbl->rbl_error, sizeof rbl->rbl_error,
-		         "`%s' reply was unresolved CNAME", qname);
+		         "'%s' reply was unresolved CNAME", qname);
 		return RBL_STAT_ERROR;
 	}
 
@@ -823,7 +823,7 @@ rbl_query_check(RBL *rbl, void *qh, struct timeval *timeout, uint32_t *res)
 	if (cp + INT16SZ > eom)
 	{
 		snprintf(rbl->rbl_error, sizeof rbl->rbl_error,
-		         "`%s' reply corrupt", qname);
+		         "'%s' reply corrupt", qname);
 		return RBL_STAT_ERROR;
 	}
 
@@ -831,14 +831,14 @@ rbl_query_check(RBL *rbl, void *qh, struct timeval *timeout, uint32_t *res)
 	if (n != sizeof(uint32_t))
 	{
 		snprintf(rbl->rbl_error, sizeof rbl->rbl_error,
-		         "`%s' reply corrupt", qname);
+		         "'%s' reply corrupt", qname);
 		return RBL_STAT_ERROR;
 	}
 
 	if (cp + n > eom)
 	{
 		snprintf(rbl->rbl_error, sizeof rbl->rbl_error,
-		         "`%s' reply corrupt", qname);
+		         "'%s' reply corrupt", qname);
 		return RBL_STAT_ERROR;
 	}
 

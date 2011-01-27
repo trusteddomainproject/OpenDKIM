@@ -975,13 +975,13 @@ ar_sendquery(AR_LIB lib, AR_QUERY query)
 	query->q_id = hdr.id;
 
 #ifdef DEBUG
-	printf("*** SEND `%s' class=%d type=%d id=%d time=%d\n", query->q_name,
+	printf("*** SEND '%s' class=%d type=%d id=%d time=%d\n", query->q_name,
 	       query->q_class, query->q_type, hdr.id, time(NULL));
 #endif /* DEBUG */
 
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 	{
-		syslog(LOG_DEBUG, "arlib: sending %p `%s' id=%d", query,
+		syslog(LOG_DEBUG, "arlib: sending %p '%s' id=%d", query,
 		       query->q_name, query->q_id);
 	}
 
@@ -2398,7 +2398,7 @@ ar_addquery(AR_LIB lib, char *name, int class, int type, int depth,
 	wlen = ar_poke(lib);
 
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
-		syslog(LOG_DEBUG, "arlib: added query %p `%s'", q, q->q_name);
+		syslog(LOG_DEBUG, "arlib: added query %p '%s'", q, q->q_name);
 
 	pthread_mutex_unlock(&lib->ar_lock);
 

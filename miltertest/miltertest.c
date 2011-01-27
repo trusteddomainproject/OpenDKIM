@@ -1218,7 +1218,7 @@ mt_startfilter(lua_State *l)
 
 		if (verbose > 0)
 		{
-			fprintf(stderr, "%s: `%s' started in process %d\n",
+			fprintf(stderr, "%s: '%s' started in process %d\n",
 			        progname, argv[0], filterpid);
 		}
 
@@ -1520,7 +1520,7 @@ mt_connect(lua_State *l)
 
 	if (verbose > 0)
 	{
-		fprintf(stdout, "%s: connected to `%s', fd %d\n",
+		fprintf(stdout, "%s: connected to '%s', fd %d\n",
 		        progname, sockinfo, fd);
 	}
 
@@ -1799,7 +1799,7 @@ mt_negotiate(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: option negotiation sent on fd %d, reply `%c'\n",
+		        "%s: option negotiation sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -1894,7 +1894,7 @@ mt_macro(lua_State *l)
 
 	if (verbose > 0)
 	{
-		fprintf(stdout, "%s: %d `%c' macro(s) sent on fd %d\n",
+		fprintf(stdout, "%s: %d '%c' macro(s) sent on fd %d\n",
 		        progname, n, type, ctx->ctx_fd);
 	}
 
@@ -1970,7 +1970,7 @@ mt_conninfo(lua_State *l)
 
 		if (getaddrinfo(host, NULL, NULL, &res) != 0)
 		{
-			lua_pushfstring(l, "mt.conninfo(): host `%s' unknown",
+			lua_pushfstring(l, "mt.conninfo(): host '%s' unknown",
 			                host);
 			lua_error(l);
 		}
@@ -1997,7 +1997,7 @@ mt_conninfo(lua_State *l)
 			{
 				freeaddrinfo(res);
 				lua_pushfstring(l,
-				                "mt.conninfo(): can't convert address for host `%s' to text",
+				                "mt.conninfo(): can't convert address for host '%s' to text",
 				                host);
 				lua_error(l);
 			}
@@ -2012,7 +2012,7 @@ mt_conninfo(lua_State *l)
 		h = gethostbyname(host);
 		if (h == NULL)
 		{
-			lua_pushfstring(l, "mt.conninfo(): host `%s' unknown",
+			lua_pushfstring(l, "mt.conninfo(): host '%s' unknown",
 			                host);
 			lua_error(l);
 		}
@@ -2040,7 +2040,7 @@ mt_conninfo(lua_State *l)
 		else
 		{
 			lua_pushfstring(l,
-			                "mt.conninfo(): invalid IP address `%s'",
+			                "mt.conninfo(): invalid IP address '%s'",
 			                ipstr);
 			lua_error(l);
 		}
@@ -2051,7 +2051,7 @@ mt_conninfo(lua_State *l)
 		if (sa.s_addr == INADDR_NONE)
 		{
 			lua_pushfstring(l,
-			                "mt.conninfo(): invalid IPv4 address `%s'",
+			                "mt.conninfo(): invalid IPv4 address '%s'",
 			                ipstr);
 			lua_error(l);
 		}
@@ -2102,7 +2102,7 @@ mt_conninfo(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: connection details sent on fd %d, reply `%c'\n",
+		        "%s: connection details sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2192,7 +2192,7 @@ mt_unknown(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: UNKNOWN sent on fd %d, reply `%c'\n",
+		        "%s: UNKNOWN sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2278,7 +2278,7 @@ mt_helo(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: HELO sent on fd %d, reply `%c'\n",
+		        "%s: HELO sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2373,7 +2373,7 @@ mt_mailfrom(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: MAIL sent on fd %d, reply `%c'\n",
+		        "%s: MAIL sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2474,7 +2474,7 @@ mt_rcptto(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: RCPT sent on fd %d, reply `%c'\n",
+		        "%s: RCPT sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2553,7 +2553,7 @@ mt_data(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: DATA sent on fd %d, reply `%c'\n",
+		        "%s: DATA sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2642,7 +2642,7 @@ mt_header(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: header sent on fd %d, reply `%c'\n",
+		        "%s: header sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2715,7 +2715,7 @@ mt_eoh(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: EOH sent on fd %d, reply `%c'\n",
+		        "%s: EOH sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2791,7 +2791,7 @@ mt_bodystring(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: %zu byte(s) of body sent on fd %d, reply `%c'\n",
+		        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
 		        progname, strlen(str), ctx->ctx_fd, rcmd);
 	}
 
@@ -2882,7 +2882,7 @@ mt_bodyrandom(lua_State *l)
 		if (verbose > 0)
 		{
 			fprintf(stdout,
-			        "%s: %zu byte(s) of body sent on fd %d, reply `%c'\n",
+			        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
 			        progname, strlen(buf), ctx->ctx_fd, rcmd);
 		}
 
@@ -2983,7 +2983,7 @@ mt_bodyfile(lua_State *l)
 			if (verbose > 0)
 			{
 				fprintf(stdout,
-				        "%s: %zu byte(s) of body sent on fd %d, reply `%c'\n",
+				        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
 				        progname, rlen, ctx->ctx_fd, rcmd);
 			}
 		}
@@ -3076,7 +3076,7 @@ mt_eom(lua_State *l)
 
 	if (verbose > 0)
 	{
-		fprintf(stdout, "%s: EOM sent on fd %d, reply `%c'\n",
+		fprintf(stdout, "%s: EOM sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -3862,7 +3862,7 @@ main(int argc, char **argv)
 			if (script != NULL)
 			{
 				fprintf(stderr,
-				        "%s: multiple use of `-%c' not permitted\n",
+				        "%s: multiple use of '-%c' not permitted\n",
 				        progname, c);
 				lua_close(l);
 				return EX_USAGE;

@@ -414,7 +414,7 @@ dkim_add_plist(DKIM *dkim, DKIM_SET *set, u_char *param, u_char *value,
 
 	if (!isprint(param[0]))
 	{
-		dkim_error(dkim, "invalid parameter `%s'", param);
+		dkim_error(dkim, "invalid parameter '%s'", param);
 		return -1;
 	}
 
@@ -2778,7 +2778,7 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig, _Bool test)
 	p = dkim_param_get(set, (u_char *) "v");
 	if (p != NULL && strcmp((char *) p, DKIM_VERSION_KEY) != 0)
 	{
-		dkim_error(dkim, "invalid key version `%s'", p);
+		dkim_error(dkim, "invalid key version '%s'", p);
 		sig->sig_error = DKIM_SIGERROR_KEYVERSION;
 		return DKIM_STAT_SYNTAX;
 	}
@@ -2787,7 +2787,7 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig, _Bool test)
 	p = dkim_param_get(set, (u_char *) "h");
 	if (!dkim_key_hashesok(p))
 	{
-		dkim_error(dkim, "unknown hash `%s'", p);
+		dkim_error(dkim, "unknown hash '%s'", p);
 		sig->sig_error = DKIM_SIGERROR_KEYUNKNOWNHASH;
 		return DKIM_STAT_SYNTAX;
 	}
@@ -2841,7 +2841,7 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig, _Bool test)
 	}
 	else if (dkim_name_to_code(keytypes, (char *) p) == -1)
 	{
-		dkim_error(dkim, "unknown key type `%s'", p);
+		dkim_error(dkim, "unknown key type '%s'", p);
 		sig->sig_error = DKIM_SIGERROR_KEYTYPEUNKNOWN;
 		return DKIM_STAT_SYNTAX;
 	}

@@ -212,7 +212,7 @@ main(int argc, char **argv)
 			if (bcanon == (dkim_canon_t) -1)
 			{
 				fprintf(stderr,
-				        "%s: unknown canonicalization `%s'\n",
+				        "%s: unknown canonicalization '%s'\n",
 				        progname, optarg);
 				return EX_USAGE;
 			}
@@ -223,7 +223,7 @@ main(int argc, char **argv)
 			if (hcanon == (dkim_canon_t) -1)
 			{
 				fprintf(stderr,
-				        "%s: unknown canonicalization `%s'\n",
+				        "%s: unknown canonicalization '%s'\n",
 				        progname, optarg);
 				return EX_USAGE;
 			}
@@ -233,7 +233,7 @@ main(int argc, char **argv)
 			msgsize = strtoul(optarg, &p, 10);
 			if (*p != '\0')
 			{
-				fprintf(stderr, "%s: invalid size `%s'\n",
+				fprintf(stderr, "%s: invalid size '%s'\n",
 				        progname, optarg);
 				return EX_USAGE;
 			}
@@ -244,7 +244,7 @@ main(int argc, char **argv)
 			if (signalg == (dkim_alg_t) -1)
 			{
 				fprintf(stderr,
-				        "%s: unknown signing algorithm `%s'\n",
+				        "%s: unknown signing algorithm '%s'\n",
 				        progname, optarg);
 				return EX_USAGE;
 			}
@@ -254,7 +254,7 @@ main(int argc, char **argv)
 			testint = strtoul(optarg, &p, 10);
 			if (*p != '\0')
 			{
-				fprintf(stderr, "%s: invalid seconds `%s'\n",
+				fprintf(stderr, "%s: invalid seconds '%s'\n",
 				        progname, optarg);
 				return EX_USAGE;
 			}

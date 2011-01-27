@@ -1061,7 +1061,7 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 		if (status != VBR_STAT_OK)
 		{
 			snprintf(vbr->vbr_error, sizeof vbr->vbr_error,
-			         "unable to start query for `%s'",
+			         "unable to start query for '%s'",
 			         query);
 			return VBR_STAT_DNSERROR;
 		}

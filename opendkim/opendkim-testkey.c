@@ -517,7 +517,7 @@ main(int argc, char **argv)
 			if (verbose > 1)
 			{
 				fprintf(stderr,
-				        "%s: record %d for `%s' retrieved\n",
+				        "%s: record %d for '%s' retrieved\n",
 				        progname, c, keyname);
 			}
 
@@ -557,7 +557,7 @@ main(int argc, char **argv)
 			if (!loadkey(keypath, &keylen))
 			{
 				fprintf(stderr,
-				        "%s: load of key `%s' failed\n",
+				        "%s: load of key '%s' failed\n",
 				        progname, keyname);
 				(void) dkimf_db_close(db);
 				return 1;
@@ -565,7 +565,7 @@ main(int argc, char **argv)
 
 			if (verbose > 1)
 			{
-				fprintf(stderr, "%s: checking key `%s'\n",
+				fprintf(stderr, "%s: checking key '%s'\n",
 				        progname, keyname);
 			}
 
@@ -721,7 +721,7 @@ main(int argc, char **argv)
 
 	if (verbose > 1)
 	{
-		fprintf(stderr, "%s: checking key `%s._domainkey.%s'\n",
+		fprintf(stderr, "%s: checking key '%s._domainkey.%s'\n",
 		        progname, selector, domain);
 	}
 
