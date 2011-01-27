@@ -1326,51 +1326,6 @@ ar_dispatcher(void *tp)
 
 		buf = NULL;
 
-		/* take another run at any incomplete writev() we have going */
-		if (lib->ar_nsfd != -1 &&
-		    lib->ar_partwrite < lib->ar_fullwrite &&
-		    ar_socket_check(lib->ar_dss, lib->ar_nsfd,
-		                    AR_SOCKET_EVENT_WRITE) == 1)
-		{
-			int c;
-			size_t n;
-			struct iovec io[2];
-
-			memcpy(&io, &lib->ar_iovec, sizeof io);
-			n = lib->ar_partwrite;
-
-			for (c = 0; c < 2; c++)
-			{
-				if (io[c].iov_len > (unsigned int) n)
-				{
-					io[c].iov_base = (char *) io[c].iov_base + n;
-					io[c].iov_len -= n;
-					break;
-				}
-
-				n -= (int) io[c].iov_len;
-				io[c].iov_len = 0;
-			}
-
-			n = writev(lib->ar_nsfd, io, 2);
-			if (n == -1)
-			{
-				/* request a reconnect */
-	     			lib->ar_flags |= AR_FLAG_RECONNECT;
-
-				/* arrange to re-send everything */
-				ar_requeue(lib);
-
-				continue;
-			}
-			else
-			{
-				lib->ar_partwrite += n;
-			}
-
-			continue;
-		}
-
 		/* read what's available from the nameserver for dispatch */
 		if (lib->ar_nsfd != -1 &&
 		    ar_socket_check(lib->ar_dss, lib->ar_nsfd,
@@ -1697,6 +1652,49 @@ ar_dispatcher(void *tp)
 				q->q_flags |= QUERY_RESEND;
 				lib->ar_resend++;
 			}
+		}
+
+		/* take another run at any incomplete writev() we have going */
+		if (lib->ar_nsfd != -1 &&
+		    lib->ar_partwrite < lib->ar_fullwrite &&
+		    ar_socket_check(lib->ar_dss, lib->ar_nsfd,
+		                    AR_SOCKET_EVENT_WRITE) == 1)
+		{
+			int c;
+			size_t n;
+			struct iovec io[2];
+
+			memcpy(&io, &lib->ar_iovec, sizeof io);
+			n = lib->ar_partwrite;
+
+			for (c = 0; c < 2; c++)
+			{
+				if (io[c].iov_len > (unsigned int) n)
+				{
+					io[c].iov_base = (char *) io[c].iov_base + n;
+					io[c].iov_len -= n;
+					break;
+				}
+
+				n -= (int) io[c].iov_len;
+				io[c].iov_len = 0;
+			}
+
+			n = writev(lib->ar_nsfd, io, 2);
+			if (n == -1)
+			{
+				/* request a reconnect */
+	     			lib->ar_flags |= AR_FLAG_RECONNECT;
+
+				/* arrange to re-send everything */
+				ar_requeue(lib);
+			}
+			else
+			{
+				lib->ar_partwrite += n;
+			}
+
+			continue;
 		}
 
 		/* send any pending queries */
