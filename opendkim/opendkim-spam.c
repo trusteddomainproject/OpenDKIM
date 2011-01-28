@@ -19,6 +19,9 @@
 /* opendbx includes */
 #include <odbx.h>
 
+/* libopendkim includes */
+#include <dkim-strl.h>
+
 /* opendkim includes */
 #include "config.h"
 
