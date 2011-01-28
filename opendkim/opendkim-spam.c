@@ -589,7 +589,7 @@ main(int argc, char **argv)
 		fprintf(stdout, "%s: updating record\n", progname);
 
 	snprintf(buf, sizeof buf,
-	         "UPDATE messages SET %s = %s + 1 WHERE id = %d",
+	         "UPDATE messages SET %s = %s + 1 WHERE id = %d AND %s >= 0",
 	         dbspamcol, msgid);
 	if (verbose >= 3)
 		fprintf(stdout, ">>> %s\n", buf);
