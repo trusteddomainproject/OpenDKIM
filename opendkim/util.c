@@ -78,6 +78,10 @@ static char *optlist[] =
 	"DEBUG",
 #endif /* DEBUG */
 
+#if POLL
+	"POLL",
+#endif /* POLL */
+
 #if POPAUTH
 	"POPAUTH",
 #endif /* POPAUTH */
@@ -153,6 +157,10 @@ static char *optlist[] =
 #if _FFR_PARSE_TIME
 	"_FFR_PARSE_TIME",
 #endif /* _FFR_PARSE_TIME */
+
+#if _FFR_POSTGRESQL_RECONNECT_HACK
+	"_FFR_POSTGRESQL_RECONNECT_HACK",
+#endif /* _FFR_POSTGRESQL_RECONNECT_HACK */
 
 #if _FFR_RBL
 	"_FFR_RBL",
