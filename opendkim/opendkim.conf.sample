@@ -180,7 +180,7 @@ Domain			example.com
 ##  	default (none)
 ##
 ##  Gives a list of recipient addresses or address patterns whose mail should
-##  not be signed.  Wildcard ("*") characters are allowed.
+##  not be signed.
 
 # DontSignMailTo	addr1,addr2,...
 
