@@ -1,0 +1,119 @@
+.TH opendkim-spam 8 "The OpenDKIM Project"
+.SH NAME
+.B opendkim-spam
+- DKIM filter spam correlation tool
+.SH SYNOPSIS
+.B opendkim-spam
+[options]
+.SH DESCRIPTION
+.B opendkim-spam
+accepts a regular format message (RFC5322) on standard input and uses it
+to update a local SQL database being updated by
+.I opendkim(8)
+with an indiciation that a user believes the input message is spam or
+otherwise abusive.  This feedback is important input toward developing
+DKIM-based domain reputation systems.
+
+The tool is intended to be used directly from within shell-based mail readers 
+such as
+.I alpine(1)
+or
+.I mutt(1)
+using a "pipe" command, which feeds the message being read to the specified
+program.
+
+This tool is experimental.  If the experiment proves useful, the
+feedback could be used as an input stream to a larger-scale collaborative
+feedback system that can be used to identify sources of signed mail
+that has a good reputation.
+.SH OPTIONS
+.TP
+.I -b backend
+Specifies the style of backend database in use.  The default is "mysql".
+.TP
+.I -c file
+Names a configuration file from which operating parameters will be read.
+The configuration file contains entries of the form "key value", one per
+line.  Empty lines or lines beginning with a hash ("#") character are
+ignored.  Command line equivalents for the configuration file are available
+as runtime overrides.
+The default configuration file location is
+.I @SYSCONFDIR@/opendkim.conf.
+See the CONFIGURATION FILE section for a list of known values.
+.TP
+.I -d name
+Indicates the name of the database to be accessed.  The default is
+"opendkim".
+.TP
+.I -h host
+Specifies the host where the database server is running.  The default
+is "localhost".
+.TP
+.I -p password
+Specifies the password to be used when authenticating to the database.
+The default is "opendkim".
+.TP
+.I -P port
+Specifies the port number where the database server is listening.  The
+default depends on which backend is in use.
+.TP
+.I -s column
+Names the database column whose value should be set to "1" as a result
+of this user action.  The default is "uspam".
+.TP
+.I -u user
+Identifies the database user to be used when connecting to the dataase.
+The default is "opendkim".
+.TP
+.I -v
+Requests verbose output.  Can be specified multiple times for more and
+more information.
+.TP
+.I -V
+Print version number and exit.
+.SH CONFIGURATION FILE
+The configuration file used by
+.B opendkim-spam(1)
+is expected to be a text file.  Empty lines or lines starting with a
+hash ("#") character are ignored.  All other lines should consist of a
+parameter name followed by one or more whitespace characters, then followed
+by its intended value.
+
+Parameters match command line options (specified above), but when present
+the command line options override the configuration file options.  The
+list of configuration file parameters and their command line equivalents
+are as follows; see above for descriptions:
+.TP
+.I DatabaseBackend
+-b
+.TP
+.I DatabaseName
+-d
+.TP
+.I DatabaseHost
+-h
+.TP
+.I DatabasePassword
+-p
+.TP
+.I DatabasePort
+-P
+.TP
+.I DatabaseSpamColumn
+-s
+.TP
+.I DatabaseUser
+-u
+.SH VERSION
+This man page covers the version of
+.I opendkim-spam
+that shipped with version @VERSION@ of
+.I OpenDKIM.
+.SH COPYRIGHT
+Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+.I alpine(1),
+.I mutt(1),
+.I opendkim(8)
+.P
+RFC4871 - DomainKeys Identified Mail

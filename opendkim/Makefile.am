@@ -10,6 +10,12 @@ bin_PROGRAMS = opendkim-testkey opendkim-testadsp opendkim-genzone
 if ATPS
 bin_PROGRAMS += opendkim-atpszone
 endif
+if STATS
+bin_PROGRAMS += opendkim-stats
+if USE_ODBX
+bin_PROGRAMS += opendkim-spam
+endif
+endif
 
 dist_bin_SCRIPTS = opendkim-genkey
 dist_doc_DATA = opendkim.conf.sample opendkim.conf.simple \
@@ -73,7 +79,6 @@ opendkim_CPPFLAGS += $(LIBMILTER_INCDIRS)
 endif
 
 if STATS
-bin_PROGRAMS += opendkim-stats
 opendkim_stats_SOURCES = opendkim-stats.c
 opendkim_stats_CPPFLAGS = -I$(srcdir)/../libopendkim
 opendkim_stats_LDFLAGS = $(COV_LDFLAGS)
@@ -188,6 +193,16 @@ opendkim_atpszone_LDADD += $(LIBLUA_LIBS)
 endif
 endif
 
+if STATS
+if USE_ODBX
+opendkim_spam_SOURCES = config.c config.h opendkim-spam.c
+opendkim_spam_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBODBX_CPPFLAGS)
+opendkim_spam_CFLAGS = $(COV_CFLAGS) $(LIBODBX_CFLAGS)
+opendkim_spam_LDFLAGS = $(COV_LDFLAGS) 
+opendkim_spam_LDADD = ../libopendkim/libopendkim.la $(COV_LIBADD) $(LIBODBX_LIBS)
+endif
+endif
+
 if LUA
 dist_doc_DATA += \
         setup.lua.sample \
@@ -208,4 +223,9 @@ man_MANS += opendkim-stats.8
 endif
 if ATPS
 man_MANS += opendkim-atpszone.8
+endif
+if STATS
+if USE_ODBX
+man_MANS += opendkim-spam.1
+endif
 endif
