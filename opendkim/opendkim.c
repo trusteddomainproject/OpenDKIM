@@ -11041,83 +11041,86 @@ mlfi_eoh(SMFICTX *ctx)
 			vbr_cert = conf->conf_vbr_defcert;
 		}
 
-		/* set the message type and certifiers */
+		/* set message type and certifiers, and generate a header */
 		if (vbr_type != NULL && vbr_cert != NULL)
 		{
+			memset(header, '\0', sizeof header);
+
 			/* set the VBR transaction type */
 			(void) vbr_settype(dfc->mctx_vbr, (u_char *) vbr_type);
 	
 			/* set the VBR certifier list */
 			(void) vbr_setcert(dfc->mctx_vbr, (u_char *) vbr_cert);
-		}
 
-		/* generate a VBR-Info header */
-		memset(header, '\0', sizeof header);
-
-		status = vbr_getheader(dfc->mctx_vbr, header, sizeof header);
-		if (status != VBR_STAT_OK)
-		{
-			const char *err;
-
-			err = vbr_geterror(dfc->mctx_vbr);
-
-			syslog(LOG_ERR,
-			       "%s: can't create VBR-Info header field%s%s",
-			       dfc->mctx_jobid,
-			       err == NULL ? "" : ": ",
-			       err == NULL ? "" : err);
-		}
-		else
-		{
-			/* store it for addition in mlfi_eom() */
-			dfc->mctx_vbrinfo = strdup(header);
-			if (dfc->mctx_vbrinfo == NULL)
+			status = vbr_getheader(dfc->mctx_vbr,
+			                       header, sizeof header);
+			if (status != VBR_STAT_OK)
 			{
-				syslog(LOG_ERR, "%s: strdup(): %s",
-				       dfc->mctx_jobid, strerror(errno));
-				dkimf_cleanup(ctx);
-				return SMFIS_TEMPFAIL;
+				const char *err;
+
+				err = vbr_geterror(dfc->mctx_vbr);
+
+				syslog(LOG_ERR,
+				       "%s: can't create VBR-Info header field%s%s",
+				       dfc->mctx_jobid,
+				       err == NULL ? "" : ": ",
+				       err == NULL ? "" : err);
 			}
-
-			/* add it to our header set so it gets signed */
-			newhdr = (Header) malloc(sizeof(struct Header));
-			if (newhdr == NULL)
+			else
 			{
-				if (conf->conf_dolog)
+				/* store it for addition in mlfi_eom() */
+				dfc->mctx_vbrinfo = strdup(header);
+				if (dfc->mctx_vbrinfo == NULL)
 				{
-					syslog(LOG_ERR, "malloc(): %s",
+					syslog(LOG_ERR, "%s: strdup(): %s",
+					       dfc->mctx_jobid,
 					       strerror(errno));
-
 					dkimf_cleanup(ctx);
 					return SMFIS_TEMPFAIL;
 				}
+
+				/* add it to header set so it gets signed */
+				newhdr = (Header) malloc(sizeof(struct Header));
+				if (newhdr == NULL)
+				{
+					if (conf->conf_dolog)
+					{
+						syslog(LOG_ERR, "malloc(): %s",
+						       strerror(errno));
+
+						dkimf_cleanup(ctx);
+						return SMFIS_TEMPFAIL;
+					}
+				}
+
+				(void) memset(newhdr, '\0',
+				              sizeof(struct Header));
+
+				newhdr->hdr_hdr = strdup(VBR_INFOHEADER);
+				newhdr->hdr_val = strdup(header);
+
+				if (newhdr->hdr_hdr == NULL ||
+				    newhdr->hdr_val == NULL)
+				{
+					syslog(LOG_ERR, "%s: strdup(): %s",
+					       dfc->mctx_jobid,
+					       strerror(errno));
+					TRYFREE(newhdr->hdr_hdr);
+					dkimf_cleanup(ctx);
+					return SMFIS_TEMPFAIL;
+				}
+
+				newhdr->hdr_next = NULL;
+				newhdr->hdr_prev = dfc->mctx_hqtail;
+
+				if (dfc->mctx_hqhead == NULL)
+					dfc->mctx_hqhead = newhdr;
+
+				if (dfc->mctx_hqtail != NULL)
+					dfc->mctx_hqtail->hdr_next = newhdr;
+
+				dfc->mctx_hqtail = newhdr;
 			}
-
-			(void) memset(newhdr, '\0', sizeof(struct Header));
-
-			newhdr->hdr_hdr = strdup(VBR_INFOHEADER);
-			newhdr->hdr_val = strdup(header);
-
-			if (newhdr->hdr_hdr == NULL ||
-			    newhdr->hdr_val == NULL)
-			{
-				syslog(LOG_ERR, "%s: strdup(): %s",
-				       dfc->mctx_jobid, strerror(errno));
-				TRYFREE(newhdr->hdr_hdr);
-				dkimf_cleanup(ctx);
-				return SMFIS_TEMPFAIL;
-			}
-
-			newhdr->hdr_next = NULL;
-			newhdr->hdr_prev = dfc->mctx_hqtail;
-
-			if (dfc->mctx_hqhead == NULL)
-				dfc->mctx_hqhead = newhdr;
-
-			if (dfc->mctx_hqtail != NULL)
-				dfc->mctx_hqtail->hdr_next = newhdr;
-
-			dfc->mctx_hqtail = newhdr;
 		}
 	}
 #endif /* _FFR_VBR */
