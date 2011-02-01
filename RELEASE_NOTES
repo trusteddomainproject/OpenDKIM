@@ -97,6 +97,8 @@ release, and a summary of the changes in that release.
 	TOOLS: Experimental new "opendkim-spam" tool to let users update a
 		stats database to indicate a message is spam, for possible
 		later correlation use.
+	BUILD: opendkim-genzone needs LIBCRYPTO_LDFLAGS.  Reported by
+		John Smith.
 	Activate _FFR_CAPTURE_UNKNOWN_ERRORS.
 
 2.2.2		2010/11/28
