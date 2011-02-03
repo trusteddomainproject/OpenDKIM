@@ -1,6 +1,6 @@
 -- $Id: t-verify-syntax.lua,v 1.6 2010/09/24 21:40:31 cm-msk Exp $
 
--- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 
 -- Syntax error proccessing test
 -- 

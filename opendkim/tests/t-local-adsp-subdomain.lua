@@ -1,6 +1,6 @@
 -- $Id: t-local-adsp-subdomain.lua,v 1.2 2010/09/13 05:25:10 cm-msk Exp $
 
--- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 
 -- 
 -- verify config option LocalADSP works

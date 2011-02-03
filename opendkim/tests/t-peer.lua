@@ -1,6 +1,6 @@
 -- $Id: t-peer.lua,v 1.9 2010/09/24 21:26:53 cm-msk Exp $
 
--- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 
 -- PeerList calculation test
 

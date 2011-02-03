@@ -1,6 +1,6 @@
 -- $Id: t-adsp-report.lua,v 1.3 2010/09/24 21:40:31 cm-msk Exp $
 
--- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 
 -- reporting ADSP failures
 -- 
