@@ -814,13 +814,21 @@ then
 		               	breakloop="yes"
 		               ])
 
-		AC_CHECK_FUNC([smfi_setsymlist],
-			      AC_DEFINE([HAVE_SMFI_SETSYMLIST], 1,
-					[Define if libmilter has smfi_setsymlist()]))
-
 		AC_CHECK_FUNC([smfi_insheader],
 			      AC_DEFINE([HAVE_SMFI_INSHEADER], 1,
 					[Define if libmilter has smfi_insheader()]))
+
+		AC_CHECK_FUNC([smfi_opensocket],
+			      AC_DEFINE([HAVE_SMFI_OPENSOCKET], 1,
+					[Define if libmilter has smfi_opensocket()]))
+
+		AC_CHECK_FUNC([smfi_progress],
+			      AC_DEFINE([HAVE_SMFI_PROGRESS], 1,
+					[Define if libmilter has smfi_progress()]))
+
+		AC_CHECK_FUNC([smfi_setsymlist],
+			      AC_DEFINE([HAVE_SMFI_SETSYMLIST], 1,
+					[Define if libmilter has smfi_setsymlist()]))
 
 		AC_CHECK_FUNC([smfi_version],
 			      AC_DEFINE([HAVE_SMFI_VERSION], 1,
