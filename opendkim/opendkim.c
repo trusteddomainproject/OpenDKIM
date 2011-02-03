@@ -667,12 +667,12 @@ static Header dkimf_findheader __P((msgctx, char *, int));
 void *dkimf_getpriv __P((SMFICTX *));
 char * dkimf_getsymval __P((SMFICTX *, char *));
 sfsistat dkimf_insheader __P((SMFICTX *, int, char *, char *));
-static void dkimf_policyreport __P((msgctx, struct dkimf_config *, char *));
+static void dkimf_policyreport __P((connctx, struct dkimf_config *, char *));
 sfsistat dkimf_quarantine __P((SMFICTX *, char *));
 void dkimf_sendprogress __P((const void *));
 sfsistat dkimf_setpriv __P((SMFICTX *, void *));
 sfsistat dkimf_setreply __P((SMFICTX *, char *, char *, char *));
-static void dkimf_sigreport __P((msgctx, struct dkimf_config *, char *));
+static void dkimf_sigreport __P((connctx, struct dkimf_config *, char *));
 
 /* GLOBALS */
 _Bool dolog;					/* logging? (exported) */
@@ -1635,11 +1635,29 @@ dkimf_xs_replaceheader(lua_State *l)
 	{
 		char *tmp;
 
-		tmp = strdup(newval);
-		if (tmp == NULL)
+		if (ctx != NULL && cc->cctx_noleadspc)
 		{
-			lua_pushnil(l);
-			return 1;
+			size_t len;
+
+			len = strlen(newval);
+			tmp = malloc(len + 2);
+			if (tmp == NULL)
+			{
+				lua_pushnil(l);
+				return 1;
+			}
+
+			tmp[0] = ' ';
+			memcpy(&tmp[1], newval, len + 1);
+		}
+		else
+		{
+			tmp = strdup(newval);
+			if (tmp == NULL)
+			{
+				lua_pushnil(l);
+				return 1;
+			}
 		}
 
 		free(hdr->hdr_val);
@@ -8724,7 +8742,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 **  DKIMF_SIGREPORT -- generate a report on signature failure (if possible)
 **
 **  Parameters:
-**   	dfc -- message context
+**   	cc -- connection context
 **  	conf -- current configuration object
 **  	hostname -- hostname to use for reporting MTA
 **
@@ -8733,7 +8751,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 */
 
 static void
-dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
+dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 {
 	_Bool sendreport = FALSE;
 	int bfd = -1;
@@ -8749,13 +8767,17 @@ dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	char *p;
 	char *last;
 	FILE *out;
+	msgctx dfc;
 	DKIM_SIGINFO *sig;
 	struct Header *hdr;
 	char fmt[BUFRSZ];
 	char opts[BUFRSZ];
 	u_char addr[MAXADDRESS + 1];
 
-	assert(dfc != NULL);
+	assert(cc != NULL);
+
+	dfc = cc->cctx_msg;
+
 	assert(dfc->mctx_dkimv != NULL);
 	assert(conf != NULL);
 	assert(hostname != NULL);
@@ -8966,7 +8988,10 @@ dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "\n");
 
 	for (hdr = dfc->mctx_hqhead; hdr != NULL; hdr = hdr->hdr_next)
-		fprintf(out, "%s: %s\n", hdr->hdr_hdr, hdr->hdr_val);
+	{
+		fprintf(out, "%s:%s%s\n", hdr->hdr_hdr,
+		        cc->cctx_noleadspc ? "" : " ", hdr->hdr_val);
+	}
 
 	/* end */
 	fprintf(out, "\n--dkimreport/%s/%s--\n", hostname, dfc->mctx_jobid);
@@ -8984,7 +9009,7 @@ dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 **  DKIMF_POLICYREPORT -- generate a report on policy failure (if possible)
 **
 **  Parameters:
-**   	dfc -- message context
+**   	cc -- connection context
 **  	conf -- current configuration object
 **  	hostname -- hostname to use as reporting MTA
 **
@@ -8993,7 +9018,7 @@ dkimf_sigreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 */
 
 static void
-dkimf_policyreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
+dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 {
 	_Bool sendreport = FALSE;
 #ifdef _FFR_REPORT_INTERVALS
@@ -9008,11 +9033,16 @@ dkimf_policyreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	char *p;
 	char *last;
 	FILE *out;
+	msgctx dfc;
 	DKIM_SIGINFO **sigs;
 	struct Header *hdr;
 	char fmt[BUFRSZ];
 	char opts[BUFRSZ];
 	char addr[MAXADDRESS + 1];
+
+	assert(cc != NULL);
+
+	dfc = cc->cctx_msg;
 
 	assert(dfc != NULL);
 	assert(dfc->mctx_dkimv != NULL);
@@ -9179,7 +9209,10 @@ dkimf_policyreport(msgctx dfc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "\n");
 
 	for (hdr = dfc->mctx_hqhead; hdr != NULL; hdr = hdr->hdr_next)
-		fprintf(out, "%s: %s\n", hdr->hdr_hdr, hdr->hdr_val);
+	{
+		fprintf(out, "%s:%s%s\n", hdr->hdr_hdr,
+		        cc->cctx_noleadspc ? "" : " ", hdr->hdr_val);
+	}
 
 	/* end */
 	fprintf(out, "\n--dkimreport/%s/%s--\n", hostname, dfc->mctx_jobid);
@@ -13142,11 +13175,11 @@ mlfi_eom(SMFICTX *ctx)
 		/* send an ARF message for DKIM? */
 		if (dfc->mctx_status == DKIMF_STATUS_BAD &&
 		    conf->conf_sendreports)
-			dkimf_sigreport(dfc, conf, hostname);
+			dkimf_sigreport(cc, conf, hostname);
 
 		/* send an ARF message for ADSP? */
 		if (dfc->mctx_susp && conf->conf_sendadspreports)
-			dkimf_policyreport(dfc, conf, hostname);
+			dkimf_policyreport(cc, conf, hostname);
 
 #ifdef _FFR_VBR
 	    	if (dkimf_valid_vbr(dfc))
