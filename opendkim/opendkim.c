@@ -830,7 +830,11 @@ dkimf_insheader(SMFICTX *ctx, int idx, char *hname, char *hvalue)
 	if (testmode)
 		return dkimf_test_insheader(ctx, idx, hname, hvalue);
 	else
+#ifdef HAVE_SMFI_INSHEADER
+		return smfi_addheader(ctx, hname, hvalue);
+#else /* HAVE_SMFI_INSHEADER */
 		return smfi_insheader(ctx, idx, hname, hvalue);
+#endif /* HAVE_SMFI_INSHEADER */
 }
 
 /*
@@ -876,8 +880,10 @@ dkimf_quarantine(SMFICTX *ctx, char *reason)
 
 	if (testmode)
 		return dkimf_test_quarantine(ctx, reason);
+#ifdef SMFIF_QUARANTINE
 	else
 		return smfi_quarantine(ctx, reason);
+#endif /* SMFIF_QUARANTINE */
 }
 
 /*
@@ -7770,8 +7776,10 @@ dkimf_sendprogress(const void *ctx)
 
 	if (testmode)
 		(void) dkimf_test_progress((SMFICTX *) ctx);
+#ifdef HAVE_SMFI_PROGRESS
 	else
 		(void) smfi_progress((SMFICTX *) ctx);
+#endif /* HAVE_SMFI_PROGRESS */
 }
 
 /*
@@ -15220,6 +15228,7 @@ main(int argc, char **argv)
 			return EX_UNAVAILABLE;
 		}
 
+#ifdef HAVE_SMFI_OPENSOCKET
 		/* try to establish the milter socket */
 		if (smfi_opensocket(FALSE) == MI_FAILURE)
 		{
@@ -15233,6 +15242,7 @@ main(int argc, char **argv)
 
 			return EX_UNAVAILABLE;
 		}
+#endif /* HAVE_SMFI_OPENSOCKET */
 	}
 
 	if (!autorestart && dofork)
