@@ -81,7 +81,7 @@ typedef unsigned int useconds_t;
 #endif /* SMFIP_NR_CONN */
 
 #define	MT_PRODUCT		"OpenDKIM milter test facility"
-#define	MT_VERSION		"1.3.0"
+#define	MT_VERSION		"1.4.0"
 
 #define	BUFRSZ			1024
 #define	CHUNKSZ			65536
@@ -3187,9 +3187,9 @@ mt_eom_check(lua_State *l)
 		return 1;
 	  }
 
-#ifdef SMFIR_INSHEADER
 	  case MT_HDRINSERT:
 	  {
+#ifdef SMFIR_INSHEADER
 		int idx = -1;
 		char *name = NULL;
 		char *value = NULL;
@@ -3257,11 +3257,11 @@ mt_eom_check(lua_State *l)
 				}
 			}
 		}
+#endif /* SMFIR_INSHEADER */
 
 		lua_pushboolean(l, 0);
 		return 1;
 	  }
-#endif /* SMFIR_INSHEADER */
 
 	  case MT_HDRCHANGE:
 	  {
