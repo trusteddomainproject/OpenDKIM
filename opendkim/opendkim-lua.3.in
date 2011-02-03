@@ -271,6 +271,7 @@ descriptions can be found above:
 .B odkim.get_dbhandle,
 .B odkim.get_fromdomain,
 .B odkim.get_header,
+.B odkim.get_mtasymbol,
 .B odkim.get_rcpt,
 .B odkim.get_rcptarray,
 .B odkim.log
@@ -338,6 +339,7 @@ not present on the message.  Always returns the Lua constant "nil".
 The statistics script has the following functions available to it, whose
 descriptions can be found above:
 .B odkim.get_header,
+.B odkim.get_mtasymbol,
 .B odkim.get_rcpt,
 .B odkim.get_rcptarray,
 .B odkim.get_sigarray,
@@ -376,6 +378,7 @@ descriptions can be found above:
 .B odkim.get_clientip,
 .B odkim.get_fromdomain,
 .B odkim.get_header,
+.B odkim.get_mtasymbol,
 .B odkim.get_rcpt,
 .B odkim.get_rcptarray,
 .B odkim.get_sigarray,

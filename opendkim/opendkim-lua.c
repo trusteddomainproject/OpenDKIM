@@ -77,6 +77,7 @@ static const luaL_Reg dkimf_lua_lib_screen[] =
 	{ "get_dbhandle",	dkimf_xs_dbhandle	},
 	{ "get_fromdomain",	dkimf_xs_fromdomain	},
 	{ "get_header",		dkimf_xs_getheader	},
+	{ "get_mtasymbol",	dkimf_xs_getsymval	},
 	{ "get_rcpt",		dkimf_xs_rcpt		},
 	{ "get_rcptarray",	dkimf_xs_rcptarray	},
 	{ "get_sigarray",	dkimf_xs_getsigarray	},
@@ -95,6 +96,7 @@ static const luaL_Reg dkimf_lua_lib_screen[] =
 static const luaL_Reg dkimf_lua_lib_stats[] =
 {
 	{ "get_header",		dkimf_xs_getheader	},
+	{ "get_mtasymbol",	dkimf_xs_getsymval	},
 	{ "get_policy",		dkimf_xs_getpolicy	},
 	{ "get_rcpt",		dkimf_xs_rcpt		},
 	{ "get_rcptarray",	dkimf_xs_rcptarray	},
@@ -126,6 +128,7 @@ static const luaL_Reg dkimf_lua_lib_final[] =
 	{ "get_clientip",	dkimf_xs_clientip	},
 	{ "get_fromdomain",	dkimf_xs_fromdomain	},
 	{ "get_header",		dkimf_xs_getheader	},
+	{ "get_mtasymbol",	dkimf_xs_getsymval	},
 	{ "get_policy",		dkimf_xs_getpolicy	},
 	{ "get_rcpt",		dkimf_xs_rcpt		},
 	{ "get_rcptarray",	dkimf_xs_rcptarray	},
