@@ -123,6 +123,10 @@ if USE_ARLIB
 opendkim_testkey_CFLAGS += -I$(srcdir)/../libar
 opendkim_testkey_LDADD += ../libar/libar.la
 endif
+if RBL
+opendkim_testkey_CPPFLAGS += -I$(srcdir)/../librbl
+opendkim_testkey_LDADD += ../librbl/librbl.la
+endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
 opendkim_testadsp_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
