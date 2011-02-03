@@ -2602,10 +2602,20 @@ mt_header(lua_State *l)
 	lua_pop(l, 3);
 
 	s = strlen(name) + 1 + strlen(value) + 1;
+#ifdef SMFIP_HDR_LEADSPC
+	if (!CHECK_MPOPTS(ctx, SMFIP_HDR_LEADSPC))
+		s++;
+#endif /* SMFIP_HDR_LEADSPC */
 
 	bp = buf;
 	memcpy(buf, name, strlen(name) + 1);
 	bp += strlen(name) + 1;
+#ifdef SMFIP_HDR_LEADSPC
+	if (!CHECK_MPOPTS(ctx, SMFIP_HDR_LEADSPC))
+		*bp++ = ' ';
+#else /* SMFIP_HDR_LEADSPC */
+	*bp++ = ' ';
+#endif /* SMFIP_HDR_LEADSPC */
 	memcpy(bp, value, strlen(value) + 1);
 
 	if (!mt_assert_state(ctx, STATE_ENVRCPT))
