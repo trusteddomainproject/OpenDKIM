@@ -21,30 +21,30 @@ mt.startfilter(binpath .. "/opendkim", "-x", "t-peer.conf", "-p", sock)
 
 test = {
 -- hostname test
-	{"peer.example.com", "127.0.0.1", SMFIR_ACCEPT }
-	, {"bob.example.com", "127.0.0.1", SMFIR_ACCEPT }
-	, {"bob.example.net", "127.0.0.1", SMFIR_CONTINUE }
-	, {"nonpeer.example.com", "127.0.0.1", SMFIR_CONTINUE }
-	, {"xyz.nonpeer.example.com", "127.0.0.1", SMFIR_CONTINUE }
-	, {"allowed.nonpeer.example.com", "127.0.0.1", SMFIR_ACCEPT }
-	, {"smtp.example.net", "127.0.0.1", SMFIR_ACCEPT }
+	{ "peer.example.com", "127.0.0.1", SMFIR_ACCEPT },
+	{ "bob.example.com", "127.0.0.1", SMFIR_ACCEPT },
+	{ "bob.example.net", "127.0.0.1", SMFIR_CONTINUE },
+	{ "nonpeer.example.com", "127.0.0.1", SMFIR_CONTINUE },
+	{ "xyz.nonpeer.example.com", "127.0.0.1", SMFIR_CONTINUE },
+	{ "allowed.nonpeer.example.com", "127.0.0.1", SMFIR_ACCEPT },
+	{ "smtp.example.net", "127.0.0.1", SMFIR_ACCEPT },
 -- ipv4 tests
-	, {"localhost", "127.0.0.1", SMFIR_CONTINUE }
-	, {"localhost", "192.168.1.1", SMFIR_ACCEPT }
-	, {"localhost", "192.168.1.64", SMFIR_CONTINUE }
-	, {"localhost", "192.168.1.128", SMFIR_CONTINUE }
-	, {"localhost", "192.168.1.129", SMFIR_CONTINUE }
-	, {"localhost", "192.168.1.130", SMFIR_CONTINUE }
-	, {"localhost", "192.168.1.131", SMFIR_CONTINUE }
-	, {"localhost", "192.168.1.132", SMFIR_ACCEPT }
+	{ "localhost", "127.0.0.1", SMFIR_CONTINUE },
+	{ "localhost", "192.168.1.1", SMFIR_ACCEPT },
+	{ "localhost", "192.168.1.64", SMFIR_CONTINUE },
+	{ "localhost", "192.168.1.128", SMFIR_CONTINUE },
+	{ "localhost", "192.168.1.129", SMFIR_CONTINUE },
+	{ "localhost", "192.168.1.130", SMFIR_CONTINUE },
+	{ "localhost", "192.168.1.131", SMFIR_CONTINUE },
+	{ "localhost", "192.168.1.132", SMFIR_ACCEPT },
 -- ipv6 tests
-	, {"localhost", "9001:db8::8:800:200c:417a", SMFIR_CONTINUE }
-	, {"localhost", "2001:db8::91", SMFIR_ACCEPT }
-	, {"localhost", "2001:db8::fff0", SMFIR_CONTINUE }
-	, {"localhost", "2001:db8::fff1", SMFIR_CONTINUE }
-	, {"localhost", "2001:db8::fff2", SMFIR_CONTINUE }
-	, {"localhost", "2001:db8::fff3", SMFIR_CONTINUE }
-	, {"localhost", "2001:db8::fff4", SMFIR_ACCEPT }
+	{ "localhost", "9001:db8::8:800:200c:417a", SMFIR_CONTINUE },
+	{ "localhost", "2001:db8::91", SMFIR_ACCEPT },
+	{ "localhost", "2001:db8::fff0", SMFIR_CONTINUE },
+	{ "localhost", "2001:db8::fff1", SMFIR_CONTINUE },
+	{ "localhost", "2001:db8::fff2", SMFIR_CONTINUE },
+	{ "localhost", "2001:db8::fff3", SMFIR_CONTINUE },
+	{ "localhost", "2001:db8::fff4", SMFIR_ACCEPT }
 	}
 
 for index = 1, table.getn(test)
@@ -56,7 +56,9 @@ do
 	end
 
 	if mt.conninfo(conn, test[index][1], test[index][2]) ~= nil then
-		error("mt.conninfo() failed")
+		stre = "mt.conninfo() failed for " .. test[index][1] .. 
+		       " (" .. test[index][2] .. ")"
+		error(stre)
 	end
 	if mt.getreply(conn) ~= test[index][3] then
 		stre = "mt.conninfo() unexpected reply " .. test[index][1] ..
