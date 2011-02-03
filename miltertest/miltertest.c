@@ -2613,8 +2613,6 @@ mt_header(lua_State *l)
 #ifdef SMFIP_HDR_LEADSPC
 	if (!CHECK_MPOPTS(ctx, SMFIP_HDR_LEADSPC))
 		*bp++ = ' ';
-#else /* SMFIP_HDR_LEADSPC */
-	*bp++ = ' ';
 #endif /* SMFIP_HDR_LEADSPC */
 	memcpy(bp, value, strlen(value) + 1);
 
