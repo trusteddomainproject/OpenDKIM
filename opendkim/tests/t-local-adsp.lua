@@ -74,7 +74,8 @@ end
 if mt.bodystring(conn, "This is a test!\r\n") ~= nil then
 	error "mt.bodystring() failed"
 end
-if mt.getreply(conn) ~= SMFIR_SKIP then
+if mt.getreply(conn) ~= SMFIR_SKIP and
+   mt.getreply(conn) ~= SMFIR_CONTINUE then
 	print(mt.getreply(conn))
 	error "mt.bodystring() unexpected reply"
 end
