@@ -6,7 +6,7 @@
 YEAR=`date +%Y`
 LASTYEAR=$(($YEAR - 1))
 
-for i in `git diff develop --name-only @{$LASTYEAR-12-31} | fgrep -v .jpg`
+for i in `git diff develop --name-only @{$LASTYEAR-12-31} | fgrep -v .jpg | fgrep -v contrib/`
 do
 	if test -f $i
 	then
