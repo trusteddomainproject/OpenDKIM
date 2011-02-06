@@ -537,8 +537,8 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 		if (!isascii(*p) || (!isprint(*p) && !isspace(*p)))
 		{
 			dkim_error(dkim,
-			           "invalid character (0x%02x) in %s data",
-			           *p, settype);
+			           "invalid character (ASCII 0x%02x at %d) in %s data",
+			           *p, p - str, settype);
 			if (syntax)
 				dkim_set_free(dkim, set);
 			else
@@ -560,8 +560,9 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 			}
 			else
 			{
-				dkim_error(dkim, "syntax error in %s data",
-				           settype);
+				dkim_error(dkim,
+				           "syntax error in %s data (ASCII 0x%02x at %d)",
+				           settype, *p, p - str);
 				if (syntax)
 					dkim_set_free(dkim, set);
 				else
@@ -583,8 +584,9 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 			}
 			else if (*p == ';' || spaced)
 			{
-				dkim_error(dkim, "syntax error in %s data",
-				           settype);
+				dkim_error(dkim,
+				           "syntax error in %s data (ASCII 0x%02x at %d)",
+				           settype, *p, p - str);
 				if (syntax)
 					dkim_set_free(dkim, set);
 				else
@@ -701,7 +703,8 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 		break;
 
 	  case 1:					/* after param */
-		dkim_error(dkim, "syntax error in %s data", settype);
+		dkim_error(dkim, "tag without value at end of %s data",
+		           settype);
 		if (syntax)
 			dkim_set_free(dkim, set);
 		else
