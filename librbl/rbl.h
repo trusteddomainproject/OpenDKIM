@@ -12,6 +12,9 @@ static char rbl_h_id[] = "$Id$";
 /* system includes */
 #include <sys/types.h>
 #include <sys/time.h>
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif /* HAVE_STDINT_H */
 
 /* definitions */
 #define	RBL_DEFTIMEOUT		5
