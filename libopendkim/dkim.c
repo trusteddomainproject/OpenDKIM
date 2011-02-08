@@ -537,8 +537,8 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 		if (!isascii(*p) || (!isprint(*p) && !isspace(*p)))
 		{
 			dkim_error(dkim,
-			           "invalid character (ASCII 0x%02x at %d) in %s data",
-			           *p, p - str, settype);
+			           "invalid character (ASCII 0x%02x at offset %d) in %s data",
+			           *p, p - hcopy, settype);
 			if (syntax)
 				dkim_set_free(dkim, set);
 			else
@@ -561,8 +561,8 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 			else
 			{
 				dkim_error(dkim,
-				           "syntax error in %s data (ASCII 0x%02x at %d)",
-				           settype, *p, p - str);
+				           "syntax error in %s data (ASCII 0x%02x at offset %d)",
+				           settype, *p, p - hcopy);
 				if (syntax)
 					dkim_set_free(dkim, set);
 				else
@@ -585,8 +585,8 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 			else if (*p == ';' || spaced)
 			{
 				dkim_error(dkim,
-				           "syntax error in %s data (ASCII 0x%02x at %d)",
-				           settype, *p, p - str);
+				           "syntax error in %s data (ASCII 0x%02x at offset %d)",
+				           settype, *p, p - hcopy);
 				if (syntax)
 					dkim_set_free(dkim, set);
 				else
