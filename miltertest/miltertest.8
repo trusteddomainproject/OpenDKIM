@@ -513,13 +513,16 @@ by the filter.
 .SH MILTER NOTES
 When
 .I mt.macro()
-is called, it has two effects: The set of macros matching the 
+is called, it replaces all previous macros of the same
 .I type
-parameter is replaced with the ones provided in the argument list, and all
-macros matching types that come later in the milter state machine are
-discarded.  For example, sending an SMFIC_MAIL macro set replaces any
-previous macros of the same type and also discards any that were previously
-received for type SMFIC_RCPT.
+with the ones provided in the argument list.  Thus, one call should be made
+that lists the complete set rather than one call per name-value pair.
+Also, as each stage in the milter process is executed, all macros corresponding
+stages after the current one are discarded.  For example, calling
+.I mt.helo(),
+which corresponds to SMFIC_HELO, will cause all prior macros of type
+SMFIC_MAIL and SMFIC_RCPT to be discarded as they represent milter stage
+that come later than SMFIC_HELO.
 
 Since the milter protocol and the internals of libmilter itself are not
 formally documented, there are myriad other subtleties of the milter protocol
