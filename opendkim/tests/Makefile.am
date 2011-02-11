@@ -51,11 +51,11 @@ EXTRA_DIST = \
 		t-verify-report.lua \
 	t-adsp-report t-adsp-report.conf t-adsp-report.txt \
 		t-adsp-report.lua \
-	testkey.private pubkeys cp-test testmta \
 	t-local-adsp t-local-adsp.conf t-local-adsp.txt \
 		t-local-adsp.lua \
 	t-local-adsp-subdomain t-local-adsp-subdomain.conf \
-		t-local-adsp-subdomain.lua
+		t-local-adsp-subdomain.lua \
+	testkey.private pubkeys cp-test testmta
 
 
 
