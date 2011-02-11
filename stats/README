@@ -189,7 +189,7 @@ as the value to be placed there.
 
 Choosing the "--enable-statsext" flag at build configuration time adds support
 for this.  The mechanism for recording these extra statistics is the
-odkim.exstats() function, detailed in the opendkim-lua(3) man page.
+odkim.stats() function, detailed in the opendkim-lua(3) man page.
 
 In this way, one can create any supplementary message-specific columns as
 is desirable and populate them whatever way is appropriate for each.
