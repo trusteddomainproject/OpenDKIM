@@ -831,9 +831,9 @@ dkimf_insheader(SMFICTX *ctx, int idx, char *hname, char *hvalue)
 		return dkimf_test_insheader(ctx, idx, hname, hvalue);
 	else
 #ifdef HAVE_SMFI_INSHEADER
-		return smfi_addheader(ctx, hname, hvalue);
-#else /* HAVE_SMFI_INSHEADER */
 		return smfi_insheader(ctx, idx, hname, hvalue);
+#else /* HAVE_SMFI_INSHEADER */
+		return smfi_addheader(ctx, hname, hvalue);
 #endif /* HAVE_SMFI_INSHEADER */
 }
 
@@ -2839,7 +2839,7 @@ dkimf_xs_getsymval(lua_State *l)
 	}
 	else
 	{
-		sym = smfi_getsymval(ctx, name);
+		sym = dkimf_getsymval(ctx, name);
 		if (sym == NULL)
 			lua_pushnil(l);
 		else
