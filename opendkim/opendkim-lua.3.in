@@ -530,13 +530,6 @@ Valid values are the constants with DKIM_SIGERROR_ prefixes as defined in the
 .B libopendkim
 header file
 .I dkim.h.
-.TP
-.B odkim.stats(ctx, name, value)
-Records an additional
-.I name-value
-pair into the statistical information for the message represented by
-.I ctx.
-@STATSEXT_MANNOTICE@
 .SH VERSION
 This man page covers version @VERSION@ of
 .I OpenDKIM.

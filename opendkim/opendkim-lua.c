@@ -151,9 +151,6 @@ static const luaL_Reg dkimf_lua_lib_final[] =
 	{ "sig_getdomain",	dkimf_xs_getsigdomain	},
 	{ "sig_getidentity",	dkimf_xs_getsigidentity	},
 	{ "sig_result",		dkimf_xs_sigresult	},
-# ifdef _FFR_STATSEXT
-	{ "stats",		dkimf_xs_statsext	},
-# endif /* _FFR_STATSEXT */
 	{ NULL,			NULL			}
 };
 #endif /* DKIMF_LUA_CONTEXT_HOOKS */
