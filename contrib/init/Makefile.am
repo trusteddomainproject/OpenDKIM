@@ -4,6 +4,6 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = generic rhel solaris
+SUBDIRS = generic redhat solaris
 
 #dist_doc_DATA = README
