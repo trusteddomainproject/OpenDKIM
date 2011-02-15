@@ -144,7 +144,7 @@ ares_tokenize(u_char *input, u_char *outbuf, size_t outbuflen,
 		{
 			escaped = TRUE;
 		}
-		else if (*p == '"')			/* quoting */
+		else if (*p == '"' && parens == 0)	/* quoting */
 		{
 			quoted = !quoted;
 
@@ -155,7 +155,7 @@ ares_tokenize(u_char *input, u_char *outbuf, size_t outbuflen,
 				intok = TRUE;
 			}
 		}
-		else if (*p == '(')			/* "(" (comment) */
+		else if (*p == '(' && !quoted)		/* "(" (comment) */
 		{
 			parens++;
 
@@ -170,21 +170,24 @@ ares_tokenize(u_char *input, u_char *outbuf, size_t outbuflen,
 			q++;
 
 		}
-		else if (*p == ')')			/* ")" (comment) */
+		else if (*p == ')' && !quoted)		/* ")" (comment) */
 		{
-			parens--;
-
-			if (parens == 0)
+			if (parens > 0)
 			{
-				intok = FALSE;
-				n++;
+				parens--;
 
-				*q = ')';
-				q++;
-				if (q <= end)
+				if (parens == 0)
 				{
-					*q = '\0';
+					intok = FALSE;
+					n++;
+
+					*q = ')';
 					q++;
+					if (q <= end)
+					{
+						*q = '\0';
+						q++;
+					}
 				}
 			}
 		}

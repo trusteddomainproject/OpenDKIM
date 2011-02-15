@@ -48,6 +48,10 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3156124: More robust handling of database disconnects.
 		Also add _FFR_POSTGRESQL_RECONNECT_HACK, which will hopefully
 		be temporary.  Reported by Miha Vrhovnik.
+	Fix bug #SF3181180: Correct handling of quoted strings containing
+		parentheses (and the opposite) when parsing
+		Authentication-Results header fields.  Reported by
+		Mark Martinec.
 	Fix back-compatibility with very old implementations of milter in MTAs.
 	Fix case-insensitive matching for domain names when doing signing
 		selection.  Problem noted by John Espiro.
