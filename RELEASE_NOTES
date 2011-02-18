@@ -84,6 +84,9 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Fix bug #SF3079094: Have dkim_diffheaders() take
 		canonicalization into account when generating its results
 		to avoid false positives.
+	LIBOPENDKIM: Fix bug #SF3184670: Add error codes for missing and empty
+		"v=" tags, thus avoiding a possible assertion failure when
+		DKIM_LIBFLAGS_BADSIGHANDLES is in use.  Reported by J. Coloos.
 	LIBOPENDKIM: Add dkim_getid().
 	LIBOPENDKIM: Treat no answers as an NXDOMAIN with respect to
 		retrieving ADSP records.

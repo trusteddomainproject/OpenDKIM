@@ -144,6 +144,8 @@ typedef int DKIM_SIGERROR;
 #define	DKIM_SIGERROR_KEYTYPEUNKNOWN	41	/* key type unknown */
 #define	DKIM_SIGERROR_KEYREVOKED	42	/* key revoked */
 #define	DKIM_SIGERROR_KEYDECODE		43	/* key couldn't be decoded */
+#define	DKIM_SIGERROR_MISSING_V		44	/* v= tag missing */
+#define	DKIM_SIGERROR_EMPTY_V		45	/* v= tag empty */
 
 /* generic DNS error codes */
 #define	DKIM_DNS_ERROR		(-1)		/* error in transit */

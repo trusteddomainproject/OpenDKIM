@@ -1772,7 +1772,18 @@ dkim_siglist_setup(DKIM *dkim)
 		dkim->dkim_siglist[c]->sig_selector = param;
 
 		/* some basic checks first */
-		if (!dkim_sig_versionok(dkim, set))
+		param = dkim_param_get(set, (u_char *) "v");
+		if (param == NULL)
+		{
+			dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_MISSING_V;
+			continue;
+		}
+		else if (param[0] == '\0')
+		{
+			dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_EMPTY_V;
+			continue;
+		}
+		else if (!dkim_sig_versionok(dkim, set))
 		{
 			dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_VERSION;
 			continue;
