@@ -623,6 +623,16 @@ mt_assert_state(struct mt_context *ctx, int state)
 			return FALSE;
 		}
 
+		/* decode and store requested protocol steps and actions */
+		(void) memcpy((char *) &nvers, buf, MILTER_LEN_BYTES);
+		(void) memcpy((char *) &nacts, buf + MILTER_LEN_BYTES,
+		              MILTER_LEN_BYTES);
+		(void) memcpy((char *) &npopts, buf + (MILTER_LEN_BYTES * 2),
+		              MILTER_LEN_BYTES);
+
+		ctx->ctx_mactions = ntohl(nacts);
+		ctx->ctx_mpopts = ntohl(npopts);
+
 		ctx->ctx_state = STATE_NEGOTIATED;
 	}
 
