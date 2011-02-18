@@ -29,6 +29,7 @@ static char t_test130_c_id[] = "@(#)$Id: t-test130.c,v 1.2 2009/12/08 19:14:27 c
 
 #define SIG1 "v=1; a=rsa-sha1; c=relaxed; d=example.com;\r\n\tt=1172620939; bh=ll/0h2aWgG+D3ewmE4Y3pY7Ukz8=; h=Received:Received:\r\n\t Received:From:To:Date:Subject:Message-ID; b=bj9kVUbnBYfe9sVzH9lT45\r\n\tTFKO3eQnDbXLfgmgu/b5QgxcnhT9ojnV2IAM4KUO8+hOo5sDEu5Co/0GASH0vHpSV4P\r\n\t377Iwew3FxvLpHsVbVKgXzoKD4QSbHRpWNxyL6LypaaqFa96YqjXuYXr0vpb88hticn\r\n\t6I16//WThMz8fMU="
 #define SIG2 "v=1; a=rsa-sha1; c=relaxed; d=example.com; s=test;\r\n\tt=1172620939; bh=ll/0h2aWgG+D3ewmE4Y3pY7Ukz8=; h=Received:Received:\r\n\t Received:From:To:Date:Subject:Message-ID; b=bj9kVUbnBYfe9sVzH9lT45\r\n\tTFKO3eQnDbXLfgmgu/b5QgxcnhT9ojnV2IAM4KUO8+hOo5sDEu5Co/0GASH0vHpSV4P\r\n\t377Iwew3FxvLpHsVbVKgXzoKD4QSbHRpWNxyL6LypaaqFa96YqjXuYXr0vpb88hticn\r\n\t6I16//WThMz8fMU="
+#define SIG3 "a=rsa-sha1; c=relaxed; d=example.com; s=test;\r\n\tt=1172620939; bh=ll/0h2aWgG+D3ewmE4Y3pY7Ukz8=; h=Received:Received:\r\n\t Received:From:To:Date:Subject:Message-ID; b=bj9kVUbnBYfe9sVzH9lT45\r\n\tTFKO3eQnDbXLfgmgu/b5QgxcnhT9ojnV2IAM4KUO8+hOo5sDEu5Co/0GASH0vHpSV4P\r\n\t377Iwew3FxvLpHsVbVKgXzoKD4QSbHRpWNxyL6LypaaqFa96YqjXuYXr0vpb88hticn\r\n\t6I16//WThMz8fMU="
 
 /*
 **  MAIN -- program mainline
@@ -87,6 +88,10 @@ main(int argc, char **argv)
 	status = dkim_header(dkim, hdr, strlen(hdr));
 	assert(status == DKIM_STAT_OK);
 
+	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG3);
+	status = dkim_header(dkim, hdr, strlen(hdr));
+	assert(status == DKIM_STAT_SYNTAX);
+
 	status = dkim_header(dkim, HEADER01, strlen(HEADER01));
 	assert(status == DKIM_STAT_OK);
 
@@ -120,9 +125,10 @@ main(int argc, char **argv)
 	status = dkim_getsiglist(dkim, &sigs, &nsigs);
 	assert(status == DKIM_STAT_OK);
 	assert(sigs != NULL);
-	assert(nsigs == 2);
+	assert(nsigs == 3);
 	assert(dkim_sig_geterror(sigs[0]) == DKIM_SIGERROR_MISSING_S);
 	assert(strcmp(dkim_sig_getdomain(sigs[0]), DOMAIN) == 0);
+	assert(dkim_sig_geterror(sigs[2]) == DKIM_SIGERROR_MISSING_V);
 
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);
