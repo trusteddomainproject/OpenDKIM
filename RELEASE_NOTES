@@ -97,6 +97,8 @@ release, and a summary of the changes in that release.
 	STATS: Feature request #SF3125701: Add "s=" key value tracking.
 	STATS: Feature request #SF3137445: Track key sizes.  Suggested by
 		Todd Lyons.
+	MILTERTEST: When asserting negotiation state, don't forget to capture
+		what was negotiated.
 	TOOLS: Feature request #SF3106876: Amend opendkim-testkey to return
 		the DNSSEC results as well.
 	TOOLS: Fix bug #SF3143922: Command line parameters to opendkim-testkey
