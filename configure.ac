@@ -1755,7 +1755,7 @@ AC_OUTPUT([	Makefile
 			contrib/convert/Makefile
 			contrib/init/Makefile
 			contrib/init/generic/Makefile
-			contrib/init/rhel/Makefile
+			contrib/init/redhat/Makefile
 			contrib/init/solaris/Makefile
 			contrib/lua/Makefile
 			contrib/spec/Makefile
