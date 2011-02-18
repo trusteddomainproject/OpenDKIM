@@ -60,21 +60,48 @@ The full RELEASE_NOTES for this version:
 		Reported by Yoshiaki Yanagihara.
 	Fix bug #SF3141313: Trim whitespace from values in in-core data
 		sets.  Reported by Todd Lyons.
-	Add "ResolverTracing" and "StrictHeaders" configuration file option.
-	Add "UnboundConfigFile" configuration file option.  Suggested by
-		Andreas Schulze.
+	Fix bug #SF3156124: More robust handling of database disconnects.
+		Also add _FFR_POSTGRESQL_RECONNECT_HACK, which will hopefully
+		be temporary.  Reported by Miha Vrhovnik.
+	Fix bug #SF3181180: Correct handling of quoted strings containing
+		parentheses (and the opposite) when parsing
+		Authentication-Results header fields.  Reported by
+		Mark Martinec.
+	Fix back-compatibility with very old implementations of milter in MTAs.
+	Fix case-insensitive matching for domain names when doing signing
+		selection.  Problem noted by John Espiro.
+	New configuration file options:
+		- "CaptureUnknownErrors", replacing the FFR of the same name
+		- "DNSConnect", requesting the resolver use TCP mode
+		- "KeepAuthResults", suppressing required removal of
+		  Authentication-Results header fields
+		- "ResolverTracing", adding detailed logging of libar activity
+		- "StrictHeaders", requesing libopendkim to assert header
+		  field counts according to the standards
+		- "UnboundConfigFile", passing a configuration file name to
+		  libunbound (suggested by Andreas Schulze)
+		- "VBR-PurgeFields", removing "X-VBR-*" fields after using them
 	Trim whitespace from the end of all values in a config file, not just
 		strings.  Problem noted by Reuben Farrelly.
 	Assume a default location for opendkim.conf.  Suggested by Andreas
 		Schulze.
+	Don't needlessly demand milter features, causing aborts when they're
+		not available.  Problem noted by Todd Lyons.
+	Make odkim.get_clienthost(), odkim.get_clientip() and
+		odkim.get_fromdomain() available in the final script.
+	When "SyslogSuccess" is active, log the selector and domain used.
+		Suggested by Miha Vrhovnik.
 	LIBAR: Feature request #SF3115073: Add flag for fine-grained activity
 		logging for debugging purposes.
+	LIBAR: Add support for using poll() instead of socket().
 	LIBOPENDKIM: Feature request #SF3087029: Add DKIM_LIBFLAGS_STRICTHDRS.
 	LIBOPENDKIM: Feautre request #SF3089990: Add dkim_sig_getsignedhdrs().
 	LIBOPENDKIM: Fix bug #SF3079094: Have dkim_diffheaders() take
 		canonicalization into account when generating its results
 		to avoid false positives.
 	LIBOPENDKIM: Add dkim_getid().
+	LIBOPENDKIM: Treat no answers as an NXDOMAIN with respect to
+		retrieving ADSP records.
 	LIBVBR: Feature request #SF3105477: Copy the generic DNS work from
 		libopendkim.
 	STATS: Feature request #SF3085536: Activate _FFR_STATS_I, providing
@@ -86,6 +113,12 @@ The full RELEASE_NOTES for this version:
 		the DNSSEC results as well.
 	TOOLS: Fix bug #SF3143922: Command line parameters to opendkim-testkey
 		now override their configuration file counterparts.
+	TOOLS: Experimental new "opendkim-spam" tool to let users update a
+		stats database to indicate a message is spam, for possible
+		later correlation use.
+	BUILD: opendkim-genzone needs LIBCRYPTO_LDFLAGS.  Reported by
+		John Smith.
+	Activate _FFR_CAPTURE_UNKNOWN_ERRORS.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
