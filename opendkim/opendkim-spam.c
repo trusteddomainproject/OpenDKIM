@@ -125,7 +125,7 @@ main(int argc, char **argv)
 	char *dbhost = NULL;
 	char *dbspamcol = NULL;
 	char *dbport = NULL;
-	char *conffile = NULL;
+	char *conffile = DEFCONFFILE;
 	char *job = NULL;
 	char *reporter = NULL;
 	struct config *conf = NULL;
@@ -593,7 +593,7 @@ main(int argc, char **argv)
 
 	snprintf(buf, sizeof buf,
 	         "UPDATE messages SET %s = %s + 1 WHERE id = %d AND %s >= 0",
-	         dbspamcol, msgid);
+	         dbspamcol, dbspamcol, msgid, dbspamcol);
 	if (verbose >= 3)
 		fprintf(stdout, ">>> %s\n", buf);
 	dberr = odbx_query(db, buf, 0);
