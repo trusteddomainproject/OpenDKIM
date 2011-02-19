@@ -38,7 +38,7 @@ line.  Empty lines or lines beginning with a hash ("#") character are
 ignored.  Command line equivalents for the configuration file are available
 as runtime overrides.
 The default configuration file location is
-.I @SYSCONFDIR@/opendkim.conf.
+.I @SYSCONFDIR@/opendkim-spam.conf.
 See the CONFIGURATION FILE section for a list of known values.
 .TP
 .I -d name
