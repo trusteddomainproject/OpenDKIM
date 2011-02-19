@@ -605,8 +605,17 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 			return DKIM_STAT_MULTIDNSREPLY;
 		}
 
-		/* process it */
+		/* remember it */
 		txtfound = cp;
+
+		/* skip the TTL */
+		cp += INT32SZ;
+
+		/* get the payload length */
+		GETSHORT(n, cp);
+
+		/* ...and move past that */
+		cp += n;
 	}
 
 	if (txtfound == NULL)
