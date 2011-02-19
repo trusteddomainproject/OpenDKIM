@@ -162,7 +162,7 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 **  Return value:
 **  	1 -- domain exists
 **  	0 -- domain does not exist
-**  	-1 failure
+**  	-1 -- failure
 */
 
 int
@@ -582,7 +582,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 			if (cp + INT16SZ > eom)
 			{
 				dkim_error(dkim, "'%s' reply corrupt", query);
-				return DKIM_STAT_KEYFAIL;
+				return -1;
 			}
 			GETSHORT(n, cp);
 
@@ -602,7 +602,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		{
 			dkim_error(dkim, "multiple DNS replies for '%s'",
 			           query);
-			return DKIM_STAT_MULTIDNSREPLY;
+			return -1;
 		}
 
 		/* remember it */
