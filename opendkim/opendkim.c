@@ -11373,7 +11373,7 @@ mlfi_eoh(SMFICTX *ctx)
 				       dfc->mctx_jobid, err);
 			}
 
-			if (conf->conf_handling.hndl_policyerr != SMFIS_ACCEPT)
+			if (conf->conf_handling.hndl_policyerr != DKIMF_MILTER_ACCEPT)
 			{
 				dkimf_cleanup(ctx);
 				return dkimf_miltercode(ctx,
@@ -12464,7 +12464,7 @@ mlfi_eom(SMFICTX *ctx)
 					}
 				}
 
-				if (conf->conf_handling.hndl_policyerr != SMFIS_ACCEPT)
+				if (conf->conf_handling.hndl_policyerr != DKIMF_MILTER_ACCEPT)
 				{
 					dkimf_cleanup(ctx);
 					return dkimf_miltercode(ctx,
