@@ -80,13 +80,15 @@ release, and a summary of the changes in that release.
 		logging for debugging purposes.
 	LIBAR: Add support for using poll() instead of socket().
 	LIBOPENDKIM: Feature request #SF3087029: Add DKIM_LIBFLAGS_STRICTHDRS.
-	LIBOPENDKIM: Feautre request #SF3089990: Add dkim_sig_getsignedhdrs().
+	LIBOPENDKIM: Feature request #SF3089990: Add dkim_sig_getsignedhdrs().
 	LIBOPENDKIM: Fix bug #SF3079094: Have dkim_diffheaders() take
 		canonicalization into account when generating its results
 		to avoid false positives.
 	LIBOPENDKIM: Fix bug #SF3184670: Add error codes for missing and empty
 		"v=" tags, thus avoiding a possible assertion failure when
 		DKIM_LIBFLAGS_BADSIGHANDLES is in use.  Reported by J. Coloos.
+	LIBOPENDKIM: Fix up handling of multi-TXT DNS replies inside
+		dkim_get_policy_dns().
 	LIBOPENDKIM: Add dkim_getid().
 	LIBOPENDKIM: Treat no answers as an NXDOMAIN with respect to
 		retrieving ADSP records.
