@@ -203,7 +203,8 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 
 	if (type != T_TXT || class != C_IN)
 	{
-		dkim_error(dkim, "'%s' unexpected reply type/class", qname);
+		dkim_error(dkim, "'%s' unexpected reply class/type (%d/%d)",
+		           qname, class, type);
 		return DKIM_STAT_KEYFAIL;
 	}
 

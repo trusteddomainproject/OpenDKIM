@@ -523,7 +523,8 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 
 	if (type != T_TXT || class != C_IN)
 	{
-		dkim_error(dkim, "'%s' unexpected reply class/type", query);
+		dkim_error(dkim, "'%s' unexpected reply class/type (%d/%d)",
+		           query, class, type);
 		return -1;
 	}
 
@@ -593,8 +594,9 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		else if (type != T_TXT)
 		{
 			/* reject anything not valid (e.g. wildcards) */
-			dkim_error(dkim, "'%s' unexpected reply class/type",
-			           query);
+			dkim_error(dkim,
+			           "'%s' unexpected reply class/type (%d/%d)",
+			           query, class, type);
 			return -1;
 		}
 
