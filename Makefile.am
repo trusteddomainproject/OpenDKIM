@@ -49,6 +49,7 @@ push: $(DIST_ARCHIVES) $(DIST_ARCHIVES).sha1 $(DIST_ARCHIVES).md5 $(DIST_ARCHIVE
 	@echo "Are you sure you want to tag and release $(DIST_ARCHIVES)? (y/n)"
 	@read confirm && [ $$confirm = 'y' ]
 	git tag rel-opendkim-`echo $(VERSION) | sed 's/\./-/g'`
+	git push --tags
 	scp $(DIST_ARCHIVES) $(DIST_ARCHIVES).sha1 $(DIST_ARCHIVES).md5 $(DIST_ARCHIVES).asc RELEASE_NOTES cm-msk,opendkim@frs.sourceforge.net:/home/frs/project/o/op/opendkim/
 
 dist-hook:
