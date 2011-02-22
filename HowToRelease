@@ -11,6 +11,7 @@ Release procedures for OpenDKIM
 	% make distclean
 	% autoreconf
 	% ./configure
+	% make
 	% make distcheck
 
    This will produce an opendkim-(version).tar.gz tarball after running
