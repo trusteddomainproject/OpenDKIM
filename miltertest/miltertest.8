@@ -111,8 +111,8 @@ connection
 from the host named
 .I host
 at IP address
-.I ip.
-If
+.I ip
+(both strings).  If
 .I host
 is the Lua constant "nil", the string "localhost" is assumed.  If
 .I ip
@@ -521,8 +521,8 @@ Also, as each stage in the milter process is executed, all macros corresponding
 stages after the current one are discarded.  For example, calling
 .I mt.helo(),
 which corresponds to SMFIC_HELO, will cause all prior macros of type
-SMFIC_MAIL and SMFIC_RCPT to be discarded as they represent milter stage
-that come later than SMFIC_HELO.
+SMFIC_MAIL and SMFIC_RCPT to be discarded as they represent a milter stage
+that comes later than SMFIC_HELO.
 
 Since the milter protocol and the internals of libmilter itself are not
 formally documented, there are myriad other subtleties of the milter protocol
