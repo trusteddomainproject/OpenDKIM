@@ -1,0 +1,116 @@
+.TH opendkim-atpszone 8 "The OpenDKIM Project"
+.SH NAME
+.B opendkim-atpszone
+- DKIM ATPS zone file generation tool
+.SH SYNOPSIS
+.B opendkim-atpszone
+[-A]
+[-C address]
+[-E secs]
+[-N ns[,...]]
+[-o file]
+[-r secs]
+[-R secs]
+[-S]
+[-t secs]
+[-T secs]
+[-v]
+[dataset]
+.SH DESCRIPTION
+.B opendkim-atpszone
+generates a file suitable for use with
+.I named(8)
+to publish a set of domains authorized as third-party signers for a local
+domain.
+
+The
+.I dataset
+parameter should specify a set of data as described in the
+.I opendkim(8)
+man page.  It can currently refer to flat files, Sleepycat databases,
+comma-separated lists, LDAP directories or SQL databases.  The keys in the
+named database are assumed to comprise a set of domains that are to be
+advertised using the experimental Authorized Third-Party Signers protocol
+as permitted to sign mail using DKIM on behalf of the local domain.  Values
+in the database are not used.
+.SH OPTIONS
+.TP
+.I -A
+Adds a "._atps" suffix to records in the zone file.
+.TP
+.I -C contact
+Uses
+.I contact
+as the contact information to be used when an SOA record is generated (see
+.I -S
+below).  If not specified, the userid of the executing user and the local
+hostname will be used; if the executing user can't be determined,
+"hostmaster" will be used.
+.TP
+.I -E secs
+When generating an SOA record (see
+.I -S
+below), use
+.I secs
+as the default record expiration time.  The default is 604800.
+.TP
+.I -N nslist
+Specifies a comma-separated list of nameservers, which will be output in
+NS records before the TXT records.  The first nameserver in this list will
+also be used in the SOA record (if
+.I -S
+is also specified) as the authority hostname.
+.TP
+.I -o file
+Sends output to the named
+.I file
+rather than standard output.
+.TP
+.I -r secs
+When generating an SOA record (see
+.I -S
+below), use
+.I secs
+as the zone refresh time.  The default is 10800.
+.TP
+.I -R secs
+When generating an SOA record (see
+.I -S
+below), use
+.I secs
+as the zone retry time.  The default is 1800.
+.TP
+.I -S
+Asks for an SOA record to be generated at the top of the output.  The
+content of this output can be controlled using the
+.I -E,
+.I -r,
+.I -R,
+.I -T
+options.  The serial number will be generated based on the current time of
+day.
+.TP
+.I -t ttl
+Puts a TTL (time-to-live) value of
+.I ttl
+on all records output.  The units are in seconds.
+.TP
+.I -T secs
+When generating an SOA record (see
+.I -S
+below), use
+.I secs
+as the default record TTL time.  The default is 86400.
+.TP
+.I -v
+Increases the verbosity of debugging output written to standard error.
+.SH VERSION
+This man page covers the version of
+.I opendkim-atpszone
+that shipped with version @VERSION@ of
+.I OpenDKIM.
+.SH COPYRIGHT
+Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+.I opendkim(8),
+.I opendkim.conf(5)

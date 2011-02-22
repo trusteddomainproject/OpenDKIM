@@ -1,0 +1,112 @@
+<html>
+<head><title>dkim_sig_getsignedhdrs()</title></head>
+<body>
+<!--
+$Id: dkim_sig_getsignedhdrs.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
+-->
+<h1>dkim_sig_getsignedhdrs()</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_sig_getsignedhdrs(
+	<a href="dkim.html"><tt>DKIM</tt></a> *DKIM,
+	<a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *sig,
+        unsigned char **hdrs,
+	size_t hdrlen,
+        unsigned int *nhdrs
+);
+</pre>
+Retrieve from a DKIM and signature handle the set of header fields that were
+included in the hashes of a valid signature.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_sig_getsignedhdrs()</tt> can be called at any time after
+    signature validation is completed via a call to
+    <a href="dkim_eom.html"><tt>dkim_eom()</tt></a> using a DKIM handle
+    that was created by <a href="dkim_verify.html"><tt>dkim_verify()</tt></a>.
+    Only a signature that fully validated is acceptable. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>A message validation handle previously created using
+	    <tt>dkim_verify()</tt>.
+	</td></tr>
+    <tr valign="top"><td>sig</td>
+	<td>Signature-specific handle.
+	</td></tr>
+    <tr valign="top"><td>hdrs</td>
+	<td>An array of character strings that should be filled by header
+	    fields that were included in this signature's header hash.
+	</td></tr>
+    <tr valign="top"><td>hdrlen</td>
+	<td>The number of bytes available in each element of the <tt>hdrs</tt>
+	    array.
+	</td></tr>
+    <tr valign="top"><td>nhdrs</td>
+	<td>This should contain a pointer to the number of elements available
+            in the <tt>hdrs</tt> array.  It will be updated to contain
+	    the number of header fields that were included in the signature.
+	    If insufficient array elements were available, the array will not
+	    be updated (but this value will) and an error code is returned.
+	    If temporary memory could not be acquired, this value will be set
+	    to zero and an error will be returned.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr><th valign="top" align=left>RETURN VALUES</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Value</th><th>Description</th></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_INTERNAL</tt></td>
+	<td>An internal error occurred.
+	</td></tr>
+    <tr valign="top"><td><tt>DKIM_STAT_NORESOURCE</td>
+	<td>The <tt>hdrs</tt> array was too small to contain the result, or
+	    not enough temporary memory could be allocated.  If on return
+	    from this function <tt>nhdrs</tt> contains 0, the latter occurred;
+	    otherwise, <tt>nhdrs</tt> will be updated to contain the size of
+	    the array needed to get all the data out.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

@@ -2,7 +2,7 @@
 **  Copyright (c) 2007 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -43,7 +43,8 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-m
 #define DKIMS_MI_RECEIVEDCNT	14
 #define DKIMS_MI_CONTENTTYPE	15
 #define DKIMS_MI_CONTENTENCODING 16
-#define DKIMS_MI_MAX		16
+#define DKIMS_MI_ATPS		17
+#define DKIMS_MI_MAX		17
 
 #define	DKIMS_SI_DOMAIN		0
 #define	DKIMS_SI_ALGORITHM	1
@@ -66,19 +67,20 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-m
 #define	DKIMS_SI_CHANGED_FIELDS	18
 #define	DKIMS_SI_SIG_I		19
 #define	DKIMS_SI_SIG_I_USER	20
-#define DKIMS_SI_MAX		20
+#define	DKIMS_SI_KEY_S		21
+#define	DKIMS_SI_KEYSIZE	22
+#define DKIMS_SI_MAX		22
 
 /* PROTOTYPES */
 extern void dkimf_stats_init __P((void));
+extern int dkimf_stats_record __P((char *, u_char *, char *, char *, Header,
+                                   DKIM *, dkim_policy_t, _Bool, _Bool, u_int,
 #ifdef _FFR_STATSEXT
-extern int dkimf_stats_record __P((char *, u_char *, char *, char *, Header,
-                                   DKIM *, dkim_policy_t, _Bool, _Bool, u_int,
                                    struct statsext *,
-                                   struct sockaddr *));
-#else /* _FFR_STATSEXT */
-extern int dkimf_stats_record __P((char *, u_char *, char *, char *, Header,
-                                   DKIM *, dkim_policy_t, _Bool, _Bool, u_int,
-                                   struct sockaddr *));
 #endif /* _FFR_STATSEXT */
+#ifdef _FFR_ATPS
+                                   int,
+#endif /* _FFR_ATPS */
+                                   struct sockaddr *));
 
 #endif /* _STATS_H_ */

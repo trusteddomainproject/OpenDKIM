@@ -2,7 +2,7 @@
 **  Copyright (c) 2007, 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-testkey.c,v 1.10.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -11,10 +11,14 @@
 static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10.10.1 2010/10/27 21:43:09 cm-msk Exp $";
 #endif /* !lint */
 
+#include "build-config.h"
+
 /* for Solaris */
 #ifndef _REENTRANT
 # define _REENTRANT
 #endif /* _REENTRANT */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -28,8 +32,13 @@ static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10.10.1 2
 #include <unistd.h>
 #include <assert.h>
 
+#ifdef USE_GNUTLS
+/* gcrypt includes */
+# include <gnutls/gnutls.h>
+#else /* USE_GNUTLS */
 /* openssl includes */
-#include <openssl/err.h>
+# include <openssl/err.h>
+#endif /* USE_GNUTLS */
 
 /* libopendkim includes */
 #include <dkim.h>
@@ -38,11 +47,14 @@ static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10.10.1 2
 
 /* opendkim includes */
 #include "opendkim-db.h"
+#include "opendkim-dns.h"
 #include "config.h"
 #include "opendkim-config.h"
+#include "opendkim-crypto.h"
 
 /* macros */
 #define	CMDLINEOPTS	"d:k:s:vx:"
+#define	DEFCONFFILE	CONFIG_BASE "/opendkim.conf"
 #define	BUFRSZ		2048
 
 #ifndef MIN
@@ -55,6 +67,9 @@ int usage(void);
 
 /* globals */
 char *progname;
+#ifdef USE_UNBOUND
+struct dkimf_unbound *unbound;			/* libunbound handle */
+#endif /* USE_UNBOUND */
 
 /*
 **  DKIMF_LOG_SSL_ERRORS -- log any queued SSL library errors
@@ -69,6 +84,13 @@ char *progname;
 void
 dkimf_log_ssl_errors(void)
 {
+#ifdef USE_GNUTLS
+	const char *err;
+
+	err = dkimf_crypto_geterror();
+	if (err != NULL)
+		fprintf(stderr, "%s\n", err);
+#else /* USE_GNUTLS */
 	/* log any queued SSL error messages */
 	if (ERR_peek_error() != 0)
 	{
@@ -98,6 +120,7 @@ dkimf_log_ssl_errors(void)
 
 		errno = saveerr;
 	}
+#endif /* ! USE_GNUTLS */
 }
 
 /*
@@ -195,11 +218,19 @@ main(int argc, char **argv)
 	int c;
 	int verbose = 0;
 	int line;
+	int argv_d = 0;
+	int argv_s = 0;
+	int argv_k = 0;
+	int dnssec;
 	char *key = NULL;
 	char *dataset = NULL;
 	char *conffile = NULL;
 	char *p;
 	DKIM_LIB *lib;
+#ifdef USE_UNBOUND
+	char *trustanchor = NULL;
+	char *ubconfig = NULL;
+#endif /* USE_UNBOUND */
 	struct stat s;
 	char err[BUFRSZ];
 	char domain[BUFRSZ];
@@ -218,14 +249,17 @@ main(int argc, char **argv)
 		{
 		  case 'd':
 			strlcpy(domain, optarg, sizeof domain);
+			argv_d = 1;
 			break;
 
 		  case 'k':
 			strlcpy(keypath, optarg, sizeof keypath);
+			argv_k = 1;
 			break;
 
 		  case 's':
 			strlcpy(selector, optarg, sizeof selector);
+			argv_s = 1;
 			break;
 
 		  case 'v':
@@ -242,6 +276,9 @@ main(int argc, char **argv)
 	}
 
 	/* process config file */
+	if (conffile == NULL && access(DEFCONFFILE, R_OK) == 0)
+		conffile = DEFCONFFILE;
+
 	if (conffile != NULL)
 	{
 #ifdef USE_LDAP
@@ -274,20 +311,29 @@ main(int argc, char **argv)
 
 		(void) config_get(cfg, "KeyTable", &dataset, sizeof dataset);
 
-		p = NULL;
-		(void) config_get(cfg, "Domain", &p, sizeof p);
-		if (p != NULL)
-			strlcpy(domain, p, sizeof domain);
+		if (domain[0] == '\0')
+		{
+			p = NULL;
+			(void) config_get(cfg, "Domain", &p, sizeof p);
+			if (p != NULL)
+				strlcpy(domain, p, sizeof domain);
+		}
 
-		p = NULL;
-		(void) config_get(cfg, "Selector", &p, sizeof p);
-		if (p != NULL)
-			strlcpy(selector, p, sizeof selector);
+		if (selector[0] == '\0')
+		{
+			p = NULL;
+			(void) config_get(cfg, "Selector", &p, sizeof p);
+			if (p != NULL)
+				strlcpy(selector, p, sizeof selector);
+		}
 
-		p = NULL;
-		(void) config_get(cfg, "KeyFile", &p, sizeof p);
-		if (p != NULL)
-			strlcpy(keypath, p, sizeof keypath);
+		if (keypath[0] == '\0')
+		{
+			p = NULL;
+			(void) config_get(cfg, "KeyFile", &p, sizeof p);
+			if (p != NULL)
+				strlcpy(keypath, p, sizeof keypath);
+		}
 
 #ifdef USE_LDAP
 		(void) config_get(cfg, "LDAPUseTLS",
@@ -335,7 +381,25 @@ main(int argc, char **argv)
 		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_BINDUSER,
 		                        ldap_binduser);
 #endif /* USE_LDAP */
+
+#ifdef USE_UNBOUND
+		(void) config_get(cfg, "TrustAnchorFile",
+		                  &trustanchor, sizeof trustanchor);
+
+		(void) config_get(cfg, "UnboundConfigFile",
+		                  &ubconfig, sizeof ubconfig);
+#endif /* USE_UNBOUND */
 	}
+
+#ifdef USE_UNBOUND
+	if (dkimf_unbound_init(&unbound) != 0)
+	{
+		fprintf(stderr, "%s: failed to initialize libunbound\n",
+		        progname);
+		(void) free(key);
+		return EX_SOFTWARE;
+	}
+#endif /* USE_UNBOUND */
 
 	lib = dkim_init(NULL, NULL);
 	if (lib == NULL)
@@ -345,12 +409,51 @@ main(int argc, char **argv)
 		return EX_OSERR;
 	}
 
+#ifdef USE_UNBOUND
+	if (unbound != NULL)
+	{
+ 		if (trustanchor != NULL)
+		{
+			status = dkimf_unbound_add_trustanchor(unbound,
+			                                       trustanchor);
+			if (status != DKIM_STAT_OK)
+			{
+				fprintf(stderr,
+				        "%s: failed to set trust anchor\n",
+				        progname);
+
+				(void) free(key);
+				return EX_OSERR;
+			}
+		}
+
+ 		if (ubconfig != NULL)
+		{
+			status = dkimf_unbound_add_conffile(unbound,
+			                                    ubconfig);
+			if (status != DKIM_STAT_OK)
+			{
+				fprintf(stderr,
+				        "%s: failed to set unbound configuration file\n",
+				        progname);
+
+				(void) free(key);
+				return EX_OSERR;
+			}
+		}
+
+		(void) dkimf_unbound_setup(lib, unbound);
+	}
+#endif /* USE_UNBOUND */
+
 	memset(err, '\0', sizeof err);
 
+#ifndef USE_GNUTLS
 	ERR_load_crypto_strings();
+#endif /* ! USE_GNUTLS */
 
-	/* process a KeyTable if specified */
-	if (dataset != NULL)
+	/* process a KeyTable if specified and not overridden */
+	if (dataset != NULL && argv_d == 0 && argv_k == 0 && argv_s == 0)
 	{
 		int c;
 		int pass = 0;
@@ -414,7 +517,7 @@ main(int argc, char **argv)
 			if (verbose > 1)
 			{
 				fprintf(stderr,
-				        "%s: record %d for `%s' retrieved\n",
+				        "%s: record %d for '%s' retrieved\n",
 				        progname, c, keyname);
 			}
 
@@ -454,7 +557,7 @@ main(int argc, char **argv)
 			if (!loadkey(keypath, &keylen))
 			{
 				fprintf(stderr,
-				        "%s: load of key `%s' failed\n",
+				        "%s: load of key '%s' failed\n",
 				        progname, keyname);
 				(void) dkimf_db_close(db);
 				return 1;
@@ -462,12 +565,14 @@ main(int argc, char **argv)
 
 			if (verbose > 1)
 			{
-				fprintf(stderr, "%s: checking key `%s'\n",
+				fprintf(stderr, "%s: checking key '%s'\n",
 				        progname, keyname);
 			}
 
+			dnssec = DKIM_DNSSEC_UNKNOWN;
+
 			status = dkim_test_key(lib, selector, domain,
-			                       keypath, keylen,
+			                       keypath, keylen, &dnssec,
 			                       err, sizeof err);
 
 			switch (status)
@@ -481,11 +586,47 @@ main(int argc, char **argv)
 				break;
 
 			  case 0:
+				if (verbose > 2)
+				{
+					fprintf(stdout, "%s: key %s: OK\n",
+					        progname, keyname);
+				}
 				pass++;
 				break;
 
 			  default:
 				assert(0);
+			}
+
+			switch (dnssec)
+			{
+			  case DKIM_DNSSEC_INSECURE:
+				if (verbose > 0)
+				{
+					fprintf(stderr,
+					        "%s: key %s not secure\n",
+					        progname, keyname);
+				}
+				break;
+
+			  case DKIM_DNSSEC_SECURE:
+				if (verbose > 0)
+				{
+					fprintf(stderr,
+					        "%s: key %s secure\n",
+					        progname, keyname);
+				}
+				break;
+
+			  case DKIM_DNSSEC_BOGUS:
+				fprintf(stderr,
+				        "%s: key %s bogus (DNSSEC failed)\n",
+				        progname, keyname);
+				break;
+
+			  case DKIM_DNSSEC_UNKNOWN:
+			  default:
+				break;
 			}
 		}
 
@@ -568,12 +709,48 @@ main(int argc, char **argv)
 		}
 
 		(void) close(fd);
+
+		if (verbose > 1)
+		{
+			fprintf(stderr, "%s: key loaded from %s\n",
+			        progname, keypath);
+		}
+	}
+
+	dnssec = DKIM_DNSSEC_UNKNOWN;
+
+	if (verbose > 1)
+	{
+		fprintf(stderr, "%s: checking key '%s._domainkey.%s'\n",
+		        progname, selector, domain);
 	}
 
 	status = dkim_test_key(lib, selector, domain, key, (size_t) s.st_size,
-	                       err, sizeof err);
+	                       &dnssec, err, sizeof err);
 
 	(void) dkim_close(lib);
+
+	switch (dnssec)
+	{
+	  case DKIM_DNSSEC_INSECURE:
+		if (verbose > 0)
+			fprintf(stderr, "%s: key not secure\n", progname);
+		break;
+
+	  case DKIM_DNSSEC_SECURE:
+		if (verbose > 0)
+			fprintf(stderr, "%s: key secure\n", progname);
+		break;
+
+	  case DKIM_DNSSEC_BOGUS:
+		fprintf(stderr, "%s: key bogus (DNSSEC failed)\n",
+		        progname);
+		break;
+
+	  case DKIM_DNSSEC_UNKNOWN:
+	  default:
+		break;
+	}
 
 	switch (status)
 	{
@@ -583,6 +760,8 @@ main(int argc, char **argv)
 		return EX_UNAVAILABLE;
 
 	  case 0:
+		if (verbose > 2)
+			fprintf(stdout, "%s: key OK\n", progname);
 		return EX_OK;
 
 	  case 1:

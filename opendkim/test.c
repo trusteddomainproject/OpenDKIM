@@ -2,7 +2,7 @@
 **  Copyright (c) 2007-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: test.c,v 1.15 2010/09/02 04:04:20 cm-msk Exp $
 */
@@ -161,7 +161,7 @@ dkimf_test_setreply(void *ctx, char *rcode, char *xcode, char *replytxt)
 	if (tverbose > 1)
 	{
 		fprintf(stdout,
-		        "### SETREPLY: rcode=`%s' xcode=`%s' replytxt=`%s'\n",
+		        "### SETREPLY: rcode='%s' xcode='%s' replytxt='%s'\n",
 		        STRORNULL(rcode), STRORNULL(xcode),
 		        STRORNULL(replytxt));
 	}
@@ -190,7 +190,7 @@ dkimf_test_insheader(void *ctx, int idx, char *hname, char *hvalue)
 	if (tverbose > 1)
 	{
 		fprintf(stdout,
-		        "### INSHEADER: idx=%d hname=`%s' hvalue=`%s'\n",
+		        "### INSHEADER: idx=%d hname='%s' hvalue='%s'\n",
 		        idx, STRORNULL(hname), STRORNULL(hvalue));
 	}
 
@@ -218,7 +218,7 @@ dkimf_test_chgheader(void *ctx, char *hname, int idx, char *hvalue)
 	if (tverbose > 1)
 	{
 		fprintf(stdout,
-		        "### CHGHEADER: hname=`%s' idx=%d hvalue=`%s'\n",
+		        "### CHGHEADER: hname='%s' idx=%d hvalue='%s'\n",
 		        STRORNULL(hname), idx, STRORNULL(hvalue));
 	}
 
@@ -244,7 +244,7 @@ dkimf_test_quarantine(void *ctx, char *reason)
 	if (tverbose > 1)
 	{
 		fprintf(stdout,
-		        "### QUARANTINE: reason=`%s'\n", STRORNULL(reason));
+		        "### QUARANTINE: reason='%s'\n", STRORNULL(reason));
 	}
 
 	return MI_SUCCESS;
@@ -270,7 +270,7 @@ dkimf_test_addheader(void *ctx, char *hname, char *hvalue)
 	if (tverbose > 1)
 	{
 		fprintf(stdout,
-		        "### ADDHEADER: hname=`%s' hvalue=`%s'\n",
+		        "### ADDHEADER: hname='%s' hvalue='%s'\n",
 		        STRORNULL(hname), STRORNULL(hvalue));
 	}
 
@@ -295,7 +295,7 @@ dkimf_test_delrcpt(void *ctx, char *addr)
 	assert(addr != NULL);
 
 	if (tverbose > 1)
-		fprintf(stdout, "### DELRCPT: `%s'\n", addr);
+		fprintf(stdout, "### DELRCPT: '%s'\n", addr);
 
 	return MI_SUCCESS;
 }
@@ -318,7 +318,7 @@ dkimf_test_addrcpt(void *ctx, char *addr)
 	assert(addr != NULL);
 
 	if (tverbose > 1)
-		fprintf(stdout, "### ADDRCPT: `%s'\n", addr);
+		fprintf(stdout, "### ADDRCPT: '%s'\n", addr);
 
 	return MI_SUCCESS;
 }
@@ -577,7 +577,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, time_t fixedtime,
 				            sizeof buf) >= sizeof buf)
 				{
 					fprintf(stderr,
-					        "%s: %s: line %d: header `%*s...' too large\n",
+					        "%s: %s: line %d: header '%*s...' too large\n",
 					        progname, file, lineno,
 					        20, buf);
 					FCLOSE(f);

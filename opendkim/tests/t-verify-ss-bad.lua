@@ -1,6 +1,6 @@
 -- $Id: t-verify-ss-bad.lua,v 1.3 2010/09/24 21:40:31 cm-msk Exp $
 
--- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 
 -- simple/simple verify test (should fail)
 -- 
@@ -46,7 +46,7 @@ end
 
 -- send headers
 -- mt.rcptto() is called implicitly
-if mt.header(conn, "DKIM-Signature", " v=1; a=rsa-sha256; c=simple/simple; d=example.com; s=test;\r\n\tt=1283905216; bh=3VWGQGY+cSNYd1MGM+X6hRXU0stl8JCaQtl4mbX/j2I=;\r\n\th=From:Date:Subject;\r\n\tb=AiGrvHu2mODRK2BlLXJy/YjCiBg3qr/QZ7laVq7ccMeA2QDmrksc9Hoj7lsFQc+bs\r\n\t lgIJh+8gzyQeGZz8TYX/LJaBg8kH8jn0w70hvI63sgN4wytwhvpvkPInUhLXgpkknj\r\n\t DT70LzX2ABd24nHDshfS22v+nwUl9xuMAq77UtbE=") ~= nil then
+if mt.header(conn, "DKIM-Signature", "v=1; a=rsa-sha256; c=simple/simple; d=example.com; s=test;\r\n\tt=1283905216; bh=3VWGQGY+cSNYd1MGM+X6hRXU0stl8JCaQtl4mbX/j2I=;\r\n\th=From:Date:Subject;\r\n\tb=AiGrvHu2mODRK2BlLXJy/YjCiBg3qr/QZ7laVq7ccMeA2QDmrksc9Hoj7lsFQc+bs\r\n\t lgIJh+8gzyQeGZz8TYX/LJaBg8kH8jn0w70hvI63sgN4wytwhvpvkPInUhLXgpkknj\r\n\t DT70LzX2ABd24nHDshfS22v+nwUl9xuMAq77UtbE=") ~= nil then
 	error("mt.header(DKIM-Signature) failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then

@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: miltertest.c,v 1.42 2010/09/23 18:37:32 cm-msk Exp $
 */
@@ -81,7 +81,7 @@ typedef unsigned int useconds_t;
 #endif /* SMFIP_NR_CONN */
 
 #define	MT_PRODUCT		"OpenDKIM milter test facility"
-#define	MT_VERSION		"1.3.0"
+#define	MT_VERSION		"1.4.0"
 
 #define	BUFRSZ			1024
 #define	CHUNKSZ			65536
@@ -622,6 +622,16 @@ mt_assert_state(struct mt_context *ctx, int state)
 			ctx->ctx_state = STATE_DEAD;
 			return FALSE;
 		}
+
+		/* decode and store requested protocol steps and actions */
+		(void) memcpy((char *) &nvers, buf, MILTER_LEN_BYTES);
+		(void) memcpy((char *) &nacts, buf + MILTER_LEN_BYTES,
+		              MILTER_LEN_BYTES);
+		(void) memcpy((char *) &npopts, buf + (MILTER_LEN_BYTES * 2),
+		              MILTER_LEN_BYTES);
+
+		ctx->ctx_mactions = ntohl(nacts);
+		ctx->ctx_mpopts = ntohl(npopts);
 
 		ctx->ctx_state = STATE_NEGOTIATED;
 	}
@@ -1218,7 +1228,7 @@ mt_startfilter(lua_State *l)
 
 		if (verbose > 0)
 		{
-			fprintf(stderr, "%s: `%s' started in process %d\n",
+			fprintf(stderr, "%s: '%s' started in process %d\n",
 			        progname, argv[0], filterpid);
 		}
 
@@ -1520,7 +1530,7 @@ mt_connect(lua_State *l)
 
 	if (verbose > 0)
 	{
-		fprintf(stdout, "%s: connected to `%s', fd %d\n",
+		fprintf(stdout, "%s: connected to '%s', fd %d\n",
 		        progname, sockinfo, fd);
 	}
 
@@ -1799,7 +1809,7 @@ mt_negotiate(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: option negotiation sent on fd %d, reply `%c'\n",
+		        "%s: option negotiation sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -1894,7 +1904,7 @@ mt_macro(lua_State *l)
 
 	if (verbose > 0)
 	{
-		fprintf(stdout, "%s: %d `%c' macro(s) sent on fd %d\n",
+		fprintf(stdout, "%s: %d '%c' macro(s) sent on fd %d\n",
 		        progname, n, type, ctx->ctx_fd);
 	}
 
@@ -1970,7 +1980,7 @@ mt_conninfo(lua_State *l)
 
 		if (getaddrinfo(host, NULL, NULL, &res) != 0)
 		{
-			lua_pushfstring(l, "mt.conninfo(): host `%s' unknown",
+			lua_pushfstring(l, "mt.conninfo(): host '%s' unknown",
 			                host);
 			lua_error(l);
 		}
@@ -1997,7 +2007,7 @@ mt_conninfo(lua_State *l)
 			{
 				freeaddrinfo(res);
 				lua_pushfstring(l,
-				                "mt.conninfo(): can't convert address for host `%s' to text",
+				                "mt.conninfo(): can't convert address for host '%s' to text",
 				                host);
 				lua_error(l);
 			}
@@ -2012,7 +2022,7 @@ mt_conninfo(lua_State *l)
 		h = gethostbyname(host);
 		if (h == NULL)
 		{
-			lua_pushfstring(l, "mt.conninfo(): host `%s' unknown",
+			lua_pushfstring(l, "mt.conninfo(): host '%s' unknown",
 			                host);
 			lua_error(l);
 		}
@@ -2040,7 +2050,7 @@ mt_conninfo(lua_State *l)
 		else
 		{
 			lua_pushfstring(l,
-			                "mt.conninfo(): invalid IP address `%s'",
+			                "mt.conninfo(): invalid IP address '%s'",
 			                ipstr);
 			lua_error(l);
 		}
@@ -2051,7 +2061,7 @@ mt_conninfo(lua_State *l)
 		if (sa.s_addr == INADDR_NONE)
 		{
 			lua_pushfstring(l,
-			                "mt.conninfo(): invalid IPv4 address `%s'",
+			                "mt.conninfo(): invalid IPv4 address '%s'",
 			                ipstr);
 			lua_error(l);
 		}
@@ -2102,7 +2112,7 @@ mt_conninfo(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: connection details sent on fd %d, reply `%c'\n",
+		        "%s: connection details sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2192,7 +2202,7 @@ mt_unknown(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: UNKNOWN sent on fd %d, reply `%c'\n",
+		        "%s: UNKNOWN sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2278,7 +2288,7 @@ mt_helo(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: HELO sent on fd %d, reply `%c'\n",
+		        "%s: HELO sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2373,7 +2383,7 @@ mt_mailfrom(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: MAIL sent on fd %d, reply `%c'\n",
+		        "%s: MAIL sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2474,7 +2484,7 @@ mt_rcptto(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: RCPT sent on fd %d, reply `%c'\n",
+		        "%s: RCPT sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2553,7 +2563,7 @@ mt_data(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: DATA sent on fd %d, reply `%c'\n",
+		        "%s: DATA sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2602,10 +2612,18 @@ mt_header(lua_State *l)
 	lua_pop(l, 3);
 
 	s = strlen(name) + 1 + strlen(value) + 1;
+#ifdef SMFIP_HDR_LEADSPC
+	if (!CHECK_MPOPTS(ctx, SMFIP_HDR_LEADSPC))
+		s++;
+#endif /* SMFIP_HDR_LEADSPC */
 
 	bp = buf;
 	memcpy(buf, name, strlen(name) + 1);
 	bp += strlen(name) + 1;
+#ifdef SMFIP_HDR_LEADSPC
+	if (!CHECK_MPOPTS(ctx, SMFIP_HDR_LEADSPC))
+		*bp++ = ' ';
+#endif /* SMFIP_HDR_LEADSPC */
 	memcpy(bp, value, strlen(value) + 1);
 
 	if (!mt_assert_state(ctx, STATE_ENVRCPT))
@@ -2642,7 +2660,7 @@ mt_header(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: header sent on fd %d, reply `%c'\n",
+		        "%s: header sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2715,7 +2733,7 @@ mt_eoh(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: EOH sent on fd %d, reply `%c'\n",
+		        "%s: EOH sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -2791,7 +2809,7 @@ mt_bodystring(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: %zu byte(s) of body sent on fd %d, reply `%c'\n",
+		        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
 		        progname, strlen(str), ctx->ctx_fd, rcmd);
 	}
 
@@ -2882,7 +2900,7 @@ mt_bodyrandom(lua_State *l)
 		if (verbose > 0)
 		{
 			fprintf(stdout,
-			        "%s: %zu byte(s) of body sent on fd %d, reply `%c'\n",
+			        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
 			        progname, strlen(buf), ctx->ctx_fd, rcmd);
 		}
 
@@ -2983,7 +3001,7 @@ mt_bodyfile(lua_State *l)
 			if (verbose > 0)
 			{
 				fprintf(stdout,
-				        "%s: %zu byte(s) of body sent on fd %d, reply `%c'\n",
+				        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
 				        progname, rlen, ctx->ctx_fd, rcmd);
 			}
 		}
@@ -3076,7 +3094,7 @@ mt_eom(lua_State *l)
 
 	if (verbose > 0)
 	{
-		fprintf(stdout, "%s: EOM sent on fd %d, reply `%c'\n",
+		fprintf(stdout, "%s: EOM sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
 
@@ -3179,9 +3197,9 @@ mt_eom_check(lua_State *l)
 		return 1;
 	  }
 
-#ifdef SMFIR_INSHEADER
 	  case MT_HDRINSERT:
 	  {
+#ifdef SMFIR_INSHEADER
 		int idx = -1;
 		char *name = NULL;
 		char *value = NULL;
@@ -3249,11 +3267,11 @@ mt_eom_check(lua_State *l)
 				}
 			}
 		}
+#endif /* SMFIR_INSHEADER */
 
 		lua_pushboolean(l, 0);
 		return 1;
 	  }
-#endif /* SMFIR_INSHEADER */
 
 	  case MT_HDRCHANGE:
 	  {
@@ -3862,7 +3880,7 @@ main(int argc, char **argv)
 			if (script != NULL)
 			{
 				fprintf(stderr,
-				        "%s: multiple use of `-%c' not permitted\n",
+				        "%s: multiple use of '-%c' not permitted\n",
 				        progname, c);
 				lua_close(l);
 				return EX_USAGE;

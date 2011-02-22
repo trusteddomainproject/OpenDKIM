@@ -2,12 +2,14 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
 static char t_signperf_c_id[] = "@(#)$Id: t-signperf.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -17,6 +19,10 @@ static char t_signperf_c_id[] = "@(#)$Id: t-signperf.c,v 1.2 2009/12/08 19:14:27
 #include <time.h>
 #include <unistd.h>
 #include <sysexits.h>
+
+#ifdef USE_GNUTLS
+# include <gnutls/gnutls.h>
+#endif /* USE_GNUTLS */
 
 /* libopendkim includes */
 #include "../dkim.h"
@@ -204,7 +210,7 @@ main(int argc, char **argv)
 			if (bcanon == (dkim_canon_t) -1)
 			{
 				fprintf(stderr,
-				        "%s: unknown canonicalization `%s'\n",
+				        "%s: unknown canonicalization '%s'\n",
 				        progname, optarg);
 				return EX_USAGE;
 			}
@@ -215,7 +221,7 @@ main(int argc, char **argv)
 			if (hcanon == (dkim_canon_t) -1)
 			{
 				fprintf(stderr,
-				        "%s: unknown canonicalization `%s'\n",
+				        "%s: unknown canonicalization '%s'\n",
 				        progname, optarg);
 				return EX_USAGE;
 			}
@@ -225,7 +231,7 @@ main(int argc, char **argv)
 			msgsize = strtoul(optarg, &p, 10);
 			if (*p != '\0')
 			{
-				fprintf(stderr, "%s: invalid size `%s'\n",
+				fprintf(stderr, "%s: invalid size '%s'\n",
 				        progname, optarg);
 				return EX_USAGE;
 			}
@@ -236,7 +242,7 @@ main(int argc, char **argv)
 			if (signalg == (dkim_alg_t) -1)
 			{
 				fprintf(stderr,
-				        "%s: unknown signing algorithm `%s'\n",
+				        "%s: unknown signing algorithm '%s'\n",
 				        progname, optarg);
 				return EX_USAGE;
 			}
@@ -246,17 +252,20 @@ main(int argc, char **argv)
 			testint = strtoul(optarg, &p, 10);
 			if (*p != '\0')
 			{
-				fprintf(stderr, "%s: invalid seconds `%s'\n",
+				fprintf(stderr, "%s: invalid seconds '%s'\n",
 				        progname, optarg);
 				return EX_USAGE;
 			}
 			break;
 
-
 		  default:
 			return usage();
 		}
 	}
+
+#ifdef USE_GNUTLS
+	(void) gnutls_global_init();
+#endif /* USE_GNUTLS */
 
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);

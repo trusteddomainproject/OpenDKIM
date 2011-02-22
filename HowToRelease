@@ -1,5 +1,8 @@
 Release procedures for OpenDKIM
 
+0) Run "./copyright-check" to ensure anything updated in the current year has
+   a current copyright notice in it.
+
 1) Edit configure.ac so that the new release number is formed with the
    VERSION_RELEASE* macros.
 
@@ -8,25 +11,19 @@ Release procedures for OpenDKIM
 	% make distclean
 	% autoreconf
 	% ./configure
+	% make
 	% make distcheck
 
-   This will produce an opendkim-(version).tar.gz tarball.
+   This will produce an opendkim-(version).tar.gz tarball after running
+   all unit tests.
 
-3) Commit changes made to RELEASE_NOTES and potentially libopendkim/dkim.h
-   to the SourceForge git repository.
+3) Commit changes made to RELEASE_NOTES to the SourceForge git repository.
+   Be sure to include any open feature requests, patches or bug fixes
+   from the SourceForge trackers.
 
 4) Check that everything looks correct.
 
-5) Deploy all needed files to SourceForge by doing 'make push'.
-
-6) Via the SourceForge UI, do the following things to the new files:
-
-	a) mark RELEASE_NOTES as a release notes file by checking the box
-	b) make the latest tarball the default download for Linux, Solaris
-	   and BSD
-	c) associate RELEASE_NOTES with the tarball
-
-7) Prepare a release announcement by using the file "announcement" from git
+5) Prepare a release announcement by using the file "announcement" from git
    as your template.  Change the From: to the name and address of the person
    making the announcement.  Make sure that address has permissions to post
    to opendkim-users and opendkim-announce.  There should be a paragraph
@@ -35,6 +32,15 @@ Release procedures for OpenDKIM
    and then the full RELEASE_NOTES block for the new release.  Commit this
    to git.
 
+6) Deploy all needed files to SourceForge by doing 'make push'.
+
+7) Via the SourceForge UI, do the following things to the new files:
+
+	a) mark RELEASE_NOTES as a release notes file by checking the box
+	b) make the latest tarball the default download for all operating
+	   systems
+	c) associate RELEASE_NOTES with the tarball
+
 8) Send the release announcement:
 
 	% sendmail -t < announcement
@@ -42,6 +48,6 @@ Release procedures for OpenDKIM
 9) Mark any bug fixes or feature requests, etc. as closed if this release
    contained them.
 
-10) Update our entry on FreshMeat (http://www.freshmeat.net)
+10) Update our entry on FreshMeat (http://www.freshmeat.net).
 
 $Id: HowToRelease,v 1.6 2009/11/22 19:23:21 cm-msk Exp $

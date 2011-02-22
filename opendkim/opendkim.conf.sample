@@ -1,7 +1,7 @@
 ##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
-## Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+## Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 ##
 ## $Id: opendkim.conf.sample,v 1.14 2010/10/25 17:14:44 cm-msk Exp $
 ##
@@ -180,7 +180,7 @@ Domain			example.com
 ##  	default (none)
 ##
 ##  Gives a list of recipient addresses or address patterns whose mail should
-##  not be signed.  Wildcard ("*") characters are allowed.
+##  not be signed.
 
 # DontSignMailTo	addr1,addr2,...
 
@@ -504,6 +504,15 @@ KeyFile			/var/db/dkim/example.private
 
 # ResignMailTo		dataset
 
+##  ResolverTracing { yes | no }
+##
+##  Requests enabling of resolver trace features, if available.  The effect
+##  of setting this flag depends on how trace features, if any, are implemented
+##  in the resolver in use.  Currently only effective when used with the
+##  OpenDKIM asynchronous resolver.
+
+# ResolverTracing	no
+
 ##  Selector name
 ##
 ##  The name of the selector to use when signing.  No default; must be
@@ -601,6 +610,15 @@ Selector		my-selector-name
 
 Socket			inet:port@localhost
 
+##  StrictHeaders { yes | no }
+##  	default "no"
+##
+##  Requests that the DKIM library refuse to process a message whose
+##  header fields do not conform to the standards, in particular Section 3.6
+##  of RFC5322.
+
+# StrictHeaders		no
+
 ##  StrictTestMode { yes | no }
 ##  	default "no"
 ##
@@ -659,6 +677,15 @@ Socket			inet:port@localhost
 
 # TestPublicKeys	/tmp/testkeys
 
+##  TrustAnchorFile filename
+##  	default (none)
+##
+## Specifies a file from which trust anchor data should be read when doing
+## DNS queries and applying the DNSSEC protocol.  See the Unbound documentation
+## at http://unbound.net for the expected format of this file.
+
+# TrustAnchorFile	/var/named/trustanchor
+
 ##  UMask mask
 ##  	default (none)
 ##
@@ -667,6 +694,17 @@ Socket			inet:port@localhost
 ##  See the umask(2) man page for more information.
 
 # UMask			022
+
+##  UnboundConfigFile filename
+##  	default (none)
+##
+##  Specifies a configuration file to be passed to the Unbound library that
+##  performs DNS queries applying the DNSSEC protocol.  See the Unbound
+##  documentation at http://unbound.net for the expected content of this file.
+##  The results of using this and the TrustAnchorFile setting at the same
+## time are undefined.
+
+# UnboundConfigFile	/var/named/unbound.conf
 
 ##  Userid userid
 ##  	default (none)

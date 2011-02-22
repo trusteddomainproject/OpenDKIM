@@ -53,8 +53,10 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.34.10.1 2010/10/27 21:43:
 #define	CACHESTATSINT	300
 #define	CBINTERVAL	3
 #define CMDLINEOPTS	"Ab:c:d:DfF:k:lL:no:p:P:qQrs:S:t:T:u:vVWx:?"
+#define	DEFCONFFILE	CONFIG_BASE "/opendkim.conf"
 #define	DEFINTERNAL	"csl:127.0.0.1"
 #define	DEFMAXHDRSZ	65536
+#define	DEFMAXVERIFY	3
 #define	DEFTIMEOUT	5
 #define	HOSTUNKNOWN	"unknown-host"
 #define	JOBIDUNKNOWN	"(unknown-jobid)"
@@ -76,6 +78,7 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.34.10.1 2010/10/27 21:43:
 #define	DB_MTAS		4
 #define	DB_MACROS	5
 #define	DB_LOCALADSP	6
+#define	DB_SIGNINGTABLE	7
 
 #define DKIMF_POLICY_NONE	(-1)		/* none/undefined */
 #define DKIMF_POLICY_UNKNOWN	0		/* unknown */
@@ -183,6 +186,7 @@ extern int dkimf_xs_dbclose __P((lua_State *));
 extern int dkimf_xs_dbhandle __P((lua_State *));
 extern int dkimf_xs_dbopen __P((lua_State *));
 extern int dkimf_xs_dbquery __P((lua_State *));
+extern int dkimf_xs_delheader __P((lua_State *));
 extern int dkimf_xs_delrcpt __P((lua_State *));
 extern int dkimf_xs_fromdomain __P((lua_State *));
 extern int dkimf_xs_getheader __P((lua_State *));
@@ -196,11 +200,14 @@ extern int dkimf_xs_getsigidentity __P((lua_State *));
 extern int dkimf_xs_getsymval __P((lua_State *));
 extern int dkimf_xs_internalip __P((lua_State *));
 extern int dkimf_xs_log __P((lua_State *));
+extern int dkimf_xs_parsefield __P((lua_State *));
 extern int dkimf_xs_popauth __P((lua_State *));
 extern int dkimf_xs_quarantine __P((lua_State *));
+extern int dkimf_xs_rblcheck __P((lua_State *));
 extern int dkimf_xs_rcpt __P((lua_State *));
 extern int dkimf_xs_rcptarray __P((lua_State *));
 extern int dkimf_xs_rcptcount __P((lua_State *));
+extern int dkimf_xs_replaceheader __P((lua_State *));
 extern int dkimf_xs_resign __P((lua_State *));
 extern int dkimf_xs_requestsig __P((lua_State *));
 extern int dkimf_xs_setpartial __P((lua_State *));

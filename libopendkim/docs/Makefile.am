@@ -20,6 +20,7 @@ dist_doc_DATA = dkim.html \
 	dkim_getcachestats.html \
 	dkim_getdomain.html \
 	dkim_geterror.html \
+	dkim_getid.html \
 	dkim_getmode.html \
 	dkim_getpolicystr.html \
 	dkim_getpresult.html \
@@ -74,6 +75,7 @@ dist_doc_DATA = dkim.html \
 	dkim_sig_getreportinfo.html \
 	dkim_sig_getselector.html \
 	dkim_sig_getsignalg.html \
+	dkim_sig_getsignedhdrs.html \
 	dkim_sig_getsigntime.html \
 	dkim_sig_gettagvalue.html \
 	dkim_sig_hdrsigned.html \

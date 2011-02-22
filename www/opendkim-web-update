@@ -1,0 +1,83 @@
+#!/bin/sh
+
+### setup
+DESTDIR=/home/opendkim/public_html
+TEMPDIR=/tmp/$$
+TAG=master
+REPOSITORY=git://opendkim.git.sourceforge.net/gitroot/opendkim/opendkim
+
+PROGNAME=`basename $0`
+
+while getopts d:r:t: flag
+do
+	case $flag in
+	d)
+		DESTDIR=$OPTARG
+		;;
+	r)
+		REPOSITORY=$OPTARG
+		;;
+	t)
+		TAG=$OPTARG
+		;;
+	?)
+		echo ${progname}: unknown option "$flag"
+		exit 1
+		;;
+	esac
+done
+
+mkdir $TEMPDIR
+cd $TEMPDIR
+
+### get the stuff
+#cvs -Q -d:pserver:anonymous@opendkim.cvs.sourceforge.net:/cvsroot/opendkim \
+#	login
+#cvs -Q -z3 -d:pserver:anonymous@opendkim.cvs.sourceforge.net:/cvsroot/opendkim \
+#	co -P -r $TAG \
+#	INSTALL README www libopendkim/docs opendkim miltertest
+
+git clone -q $REPOSITORY
+cd opendkim
+if [ x"$TAG" != x"" ]
+then
+	git checkout -q $TAG
+fi
+
+umask 002
+
+# top
+cp INSTALL README $DESTDIR
+
+# www
+cd $TEMPDIR/opendkim/www
+cp *.html *.css $DESTDIR
+if [ -d logos ]; then
+	cp -pr logos $DESTDIR
+fi
+
+# opendkim man pages and README
+cd $TEMPDIR/opendkim/opendkim
+for i in *.[0-9].in
+do
+	new=`echo $i | sed 's/\.in/\.html/'`
+	groff -mandoc -Thtml $i > $DESTDIR/$new
+done
+cp README $DESTDIR/opendkim-README
+
+# libopendkim docs
+cd $TEMPDIR/opendkim/libopendkim/docs
+mkdir -p $DESTDIR/libopendkim
+cp *.html $DESTDIR/libopendkim
+
+# miltertest docs
+cd $TEMPDIR/opendkim/miltertest
+for i in *.[0-9]
+do
+	groff -mandoc -Thtml $i > $DESTDIR/$i.html
+done
+
+# cleanup
+cd $TEMPDIR/..
+rm -rf $TEMPDIR
+exit 0

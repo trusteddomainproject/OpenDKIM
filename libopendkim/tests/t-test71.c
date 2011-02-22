@@ -2,12 +2,14 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
 static char t_test71_c_id[] = "@(#)$Id: t-test71.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -15,6 +17,9 @@ static char t_test71_c_id[] = "@(#)$Id: t-test71.c,v 1.2 2009/12/08 19:14:27 cm-
 #include <string.h>
 #include <stdio.h>
 
+#ifdef USE_GNUTLS
+# include <gnutls/gnutls.h>
+#endif /* USE_GNUTLS */
 
 /* libopendkim includes */
 #include "../dkim.h"
@@ -23,7 +28,6 @@ static char t_test71_c_id[] = "@(#)$Id: t-test71.c,v 1.2 2009/12/08 19:14:27 cm-
 #define	MAXHEADER	4096
 
 #define SIG2 "v=1; a=rsa-sha1; c=relaxed/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=ll/0h2aWgG+D3ewmE4Y3pY7Ukz8=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Cc:Message-ID;\r\n\tb=qo5Fy/OvM4nsRiazb81pxpjrUIhX0hHoXt3EchKVHklnI6vLKJPKRhChg6NCPcY20\r\n\t OVw8G0OqVhVxjUFb2By97EBJSECIjJabsvDsvjEfsrafj+f4H/FS1KauEBNNaP8KfN\r\n\t aLDkJzE2mKjcxoXBStRYq6iEsbyiAm57PVF4IoEQ="
-
 
 #define	XHDRNAME	"Cc: "
 #define	XHDRADDR	"nosuchuser@nosuchdomain.com"
@@ -206,6 +210,10 @@ main(int argc, char **argv)
 	unsigned char hdr[MAXHEADER + 1];
 
 	printf("*** relaxed/simple rsa-sha1 signing with large headers\n");
+
+#ifdef USE_GNUTLS
+	(void) gnutls_global_init();
+#endif /* USE_GNUTLS */
 
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);

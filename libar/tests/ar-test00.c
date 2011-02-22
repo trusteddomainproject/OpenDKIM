@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -151,7 +151,7 @@ main(int argc, char **argv)
 
 		/* output it */
 		addr = ntohl(addr);
-		printf("--- `%s' has address %02u.%02u.%02u.%02u\n",
+		printf("--- '%s' has address %02u.%02u.%02u.%02u\n",
 		       TESTQUERY,
 		       (addr & 0x000000ff),
 		       (addr & 0x0000ff00) >> 8,

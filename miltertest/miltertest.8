@@ -111,8 +111,8 @@ connection
 from the host named
 .I host
 at IP address
-.I ip.
-If
+.I ip
+(both strings).  If
 .I host
 is the Lua constant "nil", the string "localhost" is assumed.  If
 .I ip
@@ -391,7 +391,7 @@ end
 .PP
 -- mt.helo() is called implicitly
 .PP
-mt.macro(conn, SMFIC_MAIL, "j", "test-id")
+mt.macro(conn, SMFIC_MAIL, "i", "test-id")
 .PP
 if mt.mailfrom(conn, "user@example.com") ~= nil then
 .PP
@@ -487,11 +487,11 @@ end
 .PP
 if mt.getreply(conn) ~= SMFIR_ACCEPT then
 .PP
-	error "mt.bodystring() unexpected reply"
+	error "mt.eom() unexpected reply"
 .PP
 end
 
--- verify that a signature got added
+-- verify that a test header field got added
 .PP
 if not mt.eom_check(conn, MT_HDRINSERT, "Test-Header") then
 .PP
@@ -507,14 +507,32 @@ mt.disconnect(conn)
 If a filter negotiates one of the SMFIP_NO* protocol option bits and a
 script attempts to perform one of those protocol steps, an error is returned.
 It is up to the test author to use
-.I mt.test_option
+.I mt.test_option()
 function to see if performing a protocol step has been explicitly disabled
 by the filter.
+.SH MILTER NOTES
+When
+.I mt.macro()
+is called, it replaces all previous macros of the same
+.I type
+with the ones provided in the argument list.  Thus, one call should be made
+that lists the complete set rather than one call per name-value pair.
+Also, as each stage in the milter process is executed, all macros corresponding
+stages after the current one are discarded.  For example, calling
+.I mt.helo(),
+which corresponds to SMFIC_HELO, will cause all prior macros of type
+SMFIC_MAIL and SMFIC_RCPT to be discarded as they represent a milter stage
+that comes later than SMFIC_HELO.
+
+Since the milter protocol and the internals of libmilter itself are not
+formally documented, there are myriad other subtleties of the milter protocol
+and implementation that are not documented here and may not be documented
+elsewhere, and could change without notice.  Caveat emptor.
 .SH VERSION
-This man page covers version 1.3.0 of
+This man page covers version 1.4.0 of
 .I miltertest.
 .SH COPYRIGHT
-Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 Milter -- http://www.milter.org
 .P

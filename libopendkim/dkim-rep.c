@@ -2,7 +2,7 @@
 **  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -215,7 +215,7 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 
 	if (status != 0)
 	{
-		dkim_error(dkim, "DNS query for `%s' failed", query);
+		dkim_error(dkim, "DNS query for '%s' failed", query);
 		return -2;
 	}
 
@@ -246,7 +246,7 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 
 	if (status != 0)
 	{
-		dkim_error(dkim, "DNS query for `%s' failed: %s", query,
+		dkim_error(dkim, "DNS query for '%s' failed: %s", query,
 		           status == -1 ? "error" : "expired");
 		return -1;
 	}
@@ -267,7 +267,7 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 
 		if ((n = dn_skipname(cp, eom)) < 0)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", query);
+			dkim_error(dkim, "'%s' reply corrupt", query);
 			return -1;
 		}
 		cp += n;
@@ -275,7 +275,7 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 		/* extract the type and class */
 		if (cp + INT16SZ + INT16SZ > eom)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", query);
+			dkim_error(dkim, "'%s' reply corrupt", query);
 			return -1;
 		}
 		GETSHORT(type, cp);
@@ -284,7 +284,7 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 
 	if (type != T_TXT || class != C_IN)
 	{
-		dkim_error(dkim, "`%s' unexpected reply type/class", query);
+		dkim_error(dkim, "'%s' unexpected reply type/class", query);
 		return -1;
 	}
 
@@ -295,7 +295,7 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 	/* if truncated, we can't do it */
 	if (dkim_check_dns_reply(ansbuf, anslen, C_IN, T_TXT) == 1)
 	{
-		dkim_error(dkim, "`%s' reply truncated", query);
+		dkim_error(dkim, "'%s' reply truncated", query);
 		return -1;
 	}
 
@@ -314,7 +314,7 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 		if ((n = dn_expand((unsigned char *) &ansbuf, eom, cp,
 		                   (RES_UNC_T) qname, sizeof qname)) < 0)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", query);
+			dkim_error(dkim, "'%s' reply corrupt", query);
 			return -1;
 		}
 		/* ...and move past it */
@@ -323,7 +323,7 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 		/* extract the type and class */
 		if (cp + INT16SZ + INT16SZ > eom)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", query);
+			dkim_error(dkim, "'%s' reply corrupt", query);
 			return -1;
 		}
 
@@ -350,14 +350,14 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 		}
 		else if (type != T_TXT)
 		{
-			dkim_error(dkim, "`%s' reply was unexpected type %d",
+			dkim_error(dkim, "'%s' reply was unexpected type %d",
 			           query, type);
 			return -1;
 		}
 
 		if (ancount > 0)
 		{
-			dkim_error(dkim, "multiple DNS replies for `%s'",
+			dkim_error(dkim, "multiple DNS replies for '%s'",
 			           query);
 			return -1;
 		}
@@ -369,14 +369,14 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 	/* if ancount went below 0, there were no good records */
 	if (ancount < 0)
 	{
-		dkim_error(dkim, "`%s' reply was unresolved CNAME", query);
+		dkim_error(dkim, "'%s' reply was unresolved CNAME", query);
 		return -1;
 	}
 
 	/* get payload length */
 	if (cp + INT16SZ > eom)
 	{
-		dkim_error(dkim, "`%s' reply corrupt", query);
+		dkim_error(dkim, "'%s' reply corrupt", query);
 		return -1;
 	}
 	GETSHORT(n, cp);
@@ -388,7 +388,7 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 
 	if (cp + n > eom)
 	{
-		dkim_error(dkim, "`%s' reply corrupt", query);
+		dkim_error(dkim, "'%s' reply corrupt", query);
 		return -1;
 	}
 
@@ -432,7 +432,7 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 		out = (int) strtol(eq + 1, &e, 10);
 		if (*e != '\0' || errno == EINVAL)
 		{
-			dkim_error(dkim, "invalid reputation `%s'", eq + 1);
+			dkim_error(dkim, "invalid reputation '%s'", eq + 1);
 			return -1;
 		}
 

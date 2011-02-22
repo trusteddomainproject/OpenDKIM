@@ -37,7 +37,6 @@ extern struct nametable *keyflags;
 extern struct nametable *keyparams;
 extern struct nametable *keytypes;
 extern struct nametable *policies;
-extern struct nametable *policyflags;
 extern struct nametable *policyparams;
 extern struct nametable *policyresults;
 extern struct nametable *querytypes;

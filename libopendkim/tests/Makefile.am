@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.16 2010/09/01 01:19:07 grooverdan Exp $
+# $Id: Makefile.am,v 1.16.2.1 2010/10/09 04:55:27 cm-msk Exp $
 
 AM_CFLAGS = $(COV_CFLAGS)
 AM_LDFLAGS = $(COV_LDFLAGS)
@@ -13,6 +13,12 @@ AM_CPPFLAGS = -I..
 if USE_ARLIB
 AM_CFLAGS += $(PTHREAD_CFLAGS)
 AM_LDFLAGS += $(PTHREAD_CFLAGS)
+endif
+
+if USE_GNUTLS
+AM_CFLAGS += $(LIBCRYPTO_CFLAGS)
+AM_CPPFLAGS += $(LIBCRYPTO_CPPFLAGS)
+AM_LDFLAGS += $(LIBCRYPTO_LDFLAGS)
 endif
 
 PROF_SRCS = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c
@@ -37,7 +43,8 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test115 t-test116 t-test117 t-test119 t-test120 \
 	t-test121 t-test122 t-test123 t-test124 t-test125 t-test126 \
 	t-test127 t-test128 t-test129 t-test130 t-test131 t-test132 \
-	t-test133 t-test134 t-test135 t-test136 t-test137 \
+	t-test133 t-test134 t-test135 t-test136 t-test137 t-test138 \
+	t-test139 \
 	t-signperf t-verifyperf
 check_SCRIPTS = t-signperf-sha1 t-signperf-relaxed-relaxed \
 	t-signperf-simple-simple
@@ -195,6 +202,8 @@ t_test134_SOURCES = t-test134.c t-testdata.h
 t_test135_SOURCES = t-test135.c t-testdata.h
 t_test136_SOURCES = t-test136.c t-testdata.h
 t_test137_SOURCES = t-test137.c t-testdata.h
+t_test138_SOURCES = t-test138.c t-testdata.h
+t_test139_SOURCES = t-test139.c t-testdata.h
 
 MOSTLYCLEANFILES=
 

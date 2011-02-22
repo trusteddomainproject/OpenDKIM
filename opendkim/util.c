@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: util.c,v 1.47.2.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -16,6 +16,7 @@ static char util_c_id[] = "@(#)$Id: util.c,v 1.47.2.1 2010/10/27 21:43:09 cm-msk
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/file.h>
@@ -37,6 +38,13 @@ static char util_c_id[] = "@(#)$Id: util.c,v 1.47.2.1 2010/10/27 21:43:09 cm-msk
 # include <regex.h>
 #endif /* _FFR_REPLACE_RULES */
 
+#ifdef HAVE_PATHS_H
+# include <paths.h>
+#endif /* HAVE_PATHS_H */
+#ifndef _PATH_DEVNULL
+# define _PATH_DEVNULL		"/dev/null"
+#endif /* ! _PATH_DEVNULL */
+
 #ifdef SOLARIS
 # if SOLARIS <= 20600
 #  define socklen_t size_t
@@ -50,6 +58,9 @@ static char util_c_id[] = "@(#)$Id: util.c,v 1.47.2.1 2010/10/27 21:43:09 cm-msk
 #include "opendkim.h"
 #include "util.h"
 #include "opendkim-db.h"
+
+/* macros */
+#define	DEFARGS		8
 
 /* missing definitions */
 #ifndef INADDR_NONE
@@ -66,6 +77,10 @@ static char *optlist[] =
 #if DEBUG
 	"DEBUG",
 #endif /* DEBUG */
+
+#if POLL
+	"POLL",
+#endif /* POLL */
 
 #if POPAUTH
 	"POPAUTH",
@@ -103,13 +118,13 @@ static char *optlist[] =
 	"_FFR_ADSP_LISTS",
 #endif /* _FFR_ADSP_LISTS */
 
+#ifdef _FFR_ATPS
+	"_FFR_ATPS",
+#endif /* _FFR_ATPS */
+
 #ifdef _FFR_BODYLENGTH_DB
 	"_FFR_BODYLENGTH_DB",
 #endif /* _FFR_BODYLENGTH_DB */
-
-#if _FFR_CAPTURE_UNKNOWN_ERRORS
-	"_FFR_CAPTURE_UNKNOWN_ERRORS",
-#endif /* _FFR_CAPTURE_UNKNOWN_ERRORS */
 
 #ifdef _FFR_DEFAULT_SENDER
 	"_FFR_DEFAULT_SENDER",
@@ -131,9 +146,25 @@ static char *optlist[] =
 	"_FFR_LDAP_CACHING",
 #endif /* _FFR_IDENTITY_HEADER */
 
+#if _FFR_MAXVERIFY
+	"_FFR_MAXVERIFY",
+#endif /* _FFR_MAXVERIFY */
+
+#if _FFR_OVERSIGN
+	"_FFR_OVERSIGN",
+#endif /* _FFR_OVERSIGN */
+
 #if _FFR_PARSE_TIME
 	"_FFR_PARSE_TIME",
 #endif /* _FFR_PARSE_TIME */
+
+#if _FFR_POSTGRESQL_RECONNECT_HACK
+	"_FFR_POSTGRESQL_RECONNECT_HACK",
+#endif /* _FFR_POSTGRESQL_RECONNECT_HACK */
+
+#if _FFR_RBL
+	"_FFR_RBL",
+#endif /* _FFR_RBL */
 
 #if _FFR_REDIRECT
 	"_FFR_REDIRECT",
@@ -166,10 +197,6 @@ static char *optlist[] =
 #if _FFR_STATS
 	"_FFR_STATS",
 #endif /* _FFR_STATS */
-
-#if _FFR_STATS_I
-	"_FFR_STATS_I",
-#endif /* _FFR_STATS_I */
 
 #if _FFR_STATSEXT
 	"_FFR_STATSEXT",
@@ -1680,32 +1707,34 @@ dkimf_wait_fd(int fd, struct timespec *until)
 	struct timeval left;
 
 	assert(fd >= 0);
-	assert(until != NULL);
 
 	(void) gettimeofday(&now, NULL);
 
-	if (until->tv_sec < now.tv_sec ||
-	    (until->tv_sec == now.tv_sec &&
-	     until->tv_nsec < now.tv_usec * 1000))
+	if (until != NULL)
 	{
-		left.tv_sec = 0;
-		left.tv_usec = 0;
-	}
-	else
-	{
-		left.tv_sec = until->tv_sec - now.tv_sec;
-		left.tv_usec = until->tv_nsec / 1000 - now.tv_usec;
-
-		if (until->tv_nsec / 1000 < now.tv_usec)
+		if (until->tv_sec < now.tv_sec ||
+		    (until->tv_sec == now.tv_sec &&
+		     until->tv_nsec < now.tv_usec * 1000))
 		{
-			left.tv_usec += 1000000;
-			left.tv_sec--;
+			left.tv_sec = 0;
+			left.tv_usec = 0;
+		}
+		else
+		{
+			left.tv_sec = until->tv_sec - now.tv_sec;
+			left.tv_usec = until->tv_nsec / 1000 - now.tv_usec;
+
+			if (until->tv_nsec / 1000 < now.tv_usec)
+			{
+				left.tv_usec += 1000000;
+				left.tv_sec--;
+			}
 		}
 	}
 
 	FD_ZERO(&fds);
 	FD_SET(fd, &fds);
 
-	return select(fd + 1, &fds, NULL, NULL, &left);
+	return select(fd + 1, &fds, NULL, NULL, until == NULL ? NULL : &left);
 }
 #endif /* USE_UNBOUND */

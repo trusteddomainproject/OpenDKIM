@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-lua.c,v 1.20 2010/09/14 18:23:38 cm-msk Exp $
 */
@@ -60,6 +60,7 @@ static const luaL_Reg dkimf_lua_lib_setup[] =
 	{ "internal_ip",	dkimf_xs_internalip	},
 	{ "log",		dkimf_xs_log		},
 	{ "rcpt_count",		dkimf_xs_rcptcount	},
+	{ "replace_header",	dkimf_xs_replaceheader	},
 	{ "resign",		dkimf_xs_resign		},
 	{ "set_result",		dkimf_xs_setresult	},
 	{ "sign",		dkimf_xs_requestsig	},
@@ -76,12 +77,14 @@ static const luaL_Reg dkimf_lua_lib_screen[] =
 	{ "get_dbhandle",	dkimf_xs_dbhandle	},
 	{ "get_fromdomain",	dkimf_xs_fromdomain	},
 	{ "get_header",		dkimf_xs_getheader	},
+	{ "get_mtasymbol",	dkimf_xs_getsymval	},
 	{ "get_rcpt",		dkimf_xs_rcpt		},
 	{ "get_rcptarray",	dkimf_xs_rcptarray	},
 	{ "get_sigarray",	dkimf_xs_getsigarray	},
 	{ "get_sigcount",	dkimf_xs_getsigcount	},
 	{ "get_sighandle",	dkimf_xs_getsighandle	},
 	{ "log",		dkimf_xs_log		},
+	{ "parse_field",	dkimf_xs_parsefield	},
 	{ "rcpt_count",		dkimf_xs_rcptcount	},
 	{ "sig_getdomain",	dkimf_xs_getsigdomain	},
 	{ "sig_getidentity",	dkimf_xs_getsigidentity	},
@@ -93,6 +96,7 @@ static const luaL_Reg dkimf_lua_lib_screen[] =
 static const luaL_Reg dkimf_lua_lib_stats[] =
 {
 	{ "get_header",		dkimf_xs_getheader	},
+	{ "get_mtasymbol",	dkimf_xs_getsymval	},
 	{ "get_policy",		dkimf_xs_getpolicy	},
 	{ "get_rcpt",		dkimf_xs_rcpt		},
 	{ "get_rcptarray",	dkimf_xs_rcptarray	},
@@ -101,6 +105,7 @@ static const luaL_Reg dkimf_lua_lib_stats[] =
 	{ "get_sigcount",	dkimf_xs_getsigcount	},
 	{ "get_sighandle",	dkimf_xs_getsighandle	},
 	{ "log",		dkimf_xs_log		},
+	{ "parse_field",	dkimf_xs_parsefield	},
 	{ "rcpt_count",		dkimf_xs_rcptcount	},
 	{ "sig_bhresult",	dkimf_xs_sigbhresult	},
 	{ "sig_bodylength",	dkimf_xs_bodylength	},
@@ -117,8 +122,13 @@ static const luaL_Reg dkimf_lua_lib_final[] =
 {
 	{ "add_header",		dkimf_xs_addheader	},
 	{ "add_rcpt",		dkimf_xs_addrcpt	},
+	{ "del_header",		dkimf_xs_delheader	},
 	{ "del_rcpt",		dkimf_xs_delrcpt	},
+	{ "get_clienthost",	dkimf_xs_clienthost	},
+	{ "get_clientip",	dkimf_xs_clientip	},
+	{ "get_fromdomain",	dkimf_xs_fromdomain	},
 	{ "get_header",		dkimf_xs_getheader	},
+	{ "get_mtasymbol",	dkimf_xs_getsymval	},
 	{ "get_policy",		dkimf_xs_getpolicy	},
 	{ "get_rcpt",		dkimf_xs_rcpt		},
 	{ "get_rcptarray",	dkimf_xs_rcptarray	},
@@ -128,6 +138,10 @@ static const luaL_Reg dkimf_lua_lib_final[] =
 	{ "get_sighandle",	dkimf_xs_getsighandle	},
 	{ "log",		dkimf_xs_log		},
 	{ "quarantine",		dkimf_xs_quarantine	},
+	{ "parse_field",	dkimf_xs_parsefield	},
+# ifdef _FFR_RBL
+	{ "rbl_check",		dkimf_xs_rblcheck	},
+# endif /* _FFR_RBL */
 	{ "rcpt_count",		dkimf_xs_rcptcount	},
 	{ "set_reply",		dkimf_xs_setreply	},
 	{ "set_result",		dkimf_xs_setresult	},
@@ -137,9 +151,6 @@ static const luaL_Reg dkimf_lua_lib_final[] =
 	{ "sig_getdomain",	dkimf_xs_getsigdomain	},
 	{ "sig_getidentity",	dkimf_xs_getsigidentity	},
 	{ "sig_result",		dkimf_xs_sigresult	},
-# ifdef _FFR_STATSEXT
-	{ "stats",		dkimf_xs_statsext	},
-# endif /* _FFR_STATSEXT */
 	{ NULL,			NULL			}
 };
 #endif /* DKIMF_LUA_CONTEXT_HOOKS */

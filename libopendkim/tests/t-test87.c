@@ -2,12 +2,14 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
 static char t_test87_c_id[] = "@(#)$Id: t-test87.c,v 1.4 2010/09/02 05:10:57 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -16,6 +18,9 @@ static char t_test87_c_id[] = "@(#)$Id: t-test87.c,v 1.4 2010/09/02 05:10:57 cm-
 #include <stdio.h>
 #include <time.h>
 
+#ifdef USE_GNUTLS
+# include <gnutls/gnutls.h>
+#endif /* USE_GNUTLS */
 
 /* libopendkim includes */
 #include "../dkim.h"
@@ -52,6 +57,10 @@ main(int argc, char **argv)
 	unsigned char hdr[MAXHEADER + 1];
 
 	printf("*** relaxed/simple rsa-sha1 verifying with far future timestamp\n");
+
+#ifdef USE_GNUTLS
+	(void) gnutls_global_init();
+#endif /* USE_GNUTLS */
 
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
@@ -152,7 +161,7 @@ main(int argc, char **argv)
 	status = dkim_eom(dkim, NULL);
 	assert(status == DKIM_STAT_CANTVRFY);
 
-	status = dkim_policy(dkim, &pcode, NULL);
+	status = dkim_policy(dkim, &pcode, NULL, NULL);
 	assert(status == DKIM_STAT_OK);
 
 	presult = dkim_getpresult(dkim);

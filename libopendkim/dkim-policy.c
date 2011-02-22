@@ -2,7 +2,7 @@
 **  Copyright (c) 2007-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -162,7 +162,7 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 **  Return value:
 **  	1 -- domain exists
 **  	0 -- domain does not exist
-**  	-1 failure
+**  	-1 -- failure
 */
 
 int
@@ -207,7 +207,7 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 
 	if (status != 0 || q_a == NULL)
 	{
-		dkim_error(dkim, "A query failed for `%s'", query);
+		dkim_error(dkim, "A query failed for '%s'", query);
 		return -1;
 	}
 
@@ -217,7 +217,7 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 	if (status != 0 || q_aaaa == NULL)
 	{
 		(void) lib->dkiml_dns_cancel(lib->dkiml_dns_service, q_a);
-		dkim_error(dkim, "AAAA query failed for `%s'", query);
+		dkim_error(dkim, "AAAA query failed for '%s'", query);
 		return -1;
 	}
 
@@ -228,7 +228,7 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 	{
 		(void) lib->dkiml_dns_cancel(lib->dkiml_dns_service, q_a);
 		(void) lib->dkiml_dns_cancel(lib->dkiml_dns_service, q_aaaa);
-		dkim_error(dkim, "MX query failed for `%s'", query);
+		dkim_error(dkim, "MX query failed for '%s'", query);
 		return -1;
 	}
 
@@ -436,7 +436,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		                              ansbuf, anslen, &q);
 		if (status != 0 || q == NULL)
 		{
-			dkim_error(dkim, "query failed for `%s'", query);
+			dkim_error(dkim, "query failed for '%s'", query);
 			return -1;
 		}
 
@@ -472,7 +472,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 
 		if (status == DKIM_DNS_ERROR || status == DKIM_DNS_EXPIRED)
 		{
-			dkim_error(dkim, "`%s' query %s", query,
+			dkim_error(dkim, "'%s' query %s", query,
 			           status == DKIM_DNS_ERROR ? "error"
 			                                    : "expired");
 
@@ -504,7 +504,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 
 		if ((n = dn_skipname(cp, eom)) < 0)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", query);
+			dkim_error(dkim, "'%s' reply corrupt", query);
 			return -1;
 		}
 
@@ -513,7 +513,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		/* extract the type and class */
 		if (cp + INT16SZ + INT16SZ > eom)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", query);
+			dkim_error(dkim, "'%s' reply corrupt", query);
 			return -1;
 		}
 
@@ -523,14 +523,15 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 
 	if (type != T_TXT || class != C_IN)
 	{
-		dkim_error(dkim, "`%s' unexpected reply class/type", query);
+		dkim_error(dkim, "'%s' unexpected reply class/type (%d/%d)",
+		           query, class, type);
 		return -1;
 	}
 
 	/* if truncated, we can't do it */
 	if (dkim_check_dns_reply(ansbuf, anslen, C_IN, T_TXT) == 1)
 	{
-		dkim_error(dkim, "reply for `%s' truncated", query);
+		dkim_error(dkim, "reply for '%s' truncated", query);
 		return -1;
 	}
 
@@ -551,7 +552,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		if ((n = dn_expand((unsigned char *) &ansbuf, eom, cp,
 		                   (RES_UNC_T) namebuf, sizeof namebuf)) < 0)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", query);
+			dkim_error(dkim, "'%s' reply corrupt", query);
 			return -1;
 		}
 		/* ...and move past it */
@@ -560,7 +561,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		/* extract the type and class */
 		if (cp + INT16SZ + INT16SZ > eom)
 		{
-			dkim_error(dkim, "`%s' reply corrupt", query);
+			dkim_error(dkim, "'%s' reply corrupt", query);
 			return -1;
 		}
 		GETSHORT(type, cp);
@@ -581,8 +582,8 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 			/* get payload length */
 			if (cp + INT16SZ > eom)
 			{
-				dkim_error(dkim, "`%s' reply corrupt", query);
-				return DKIM_STAT_KEYFAIL;
+				dkim_error(dkim, "'%s' reply corrupt", query);
+				return -1;
 			}
 			GETSHORT(n, cp);
 
@@ -593,25 +594,35 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		else if (type != T_TXT)
 		{
 			/* reject anything not valid (e.g. wildcards) */
-			dkim_error(dkim, "`%s' unexpected reply class/type",
-			           query);
+			dkim_error(dkim,
+			           "'%s' unexpected reply class/type (%d/%d)",
+			           query, class, type);
 			return -1;
 		}
 
 		if (txtfound != NULL)
 		{
-			dkim_error(dkim, "multiple DNS replies for `%s'",
+			dkim_error(dkim, "multiple DNS replies for '%s'",
 			           query);
-			return DKIM_STAT_MULTIDNSREPLY;
+			return -1;
 		}
 
-		/* process it */
+		/* remember it */
 		txtfound = cp;
+
+		/* skip the TTL */
+		cp += INT32SZ;
+
+		/* get the payload length */
+		GETSHORT(n, cp);
+
+		/* ...and move past that */
+		cp += n;
 	}
 
 	if (txtfound == NULL)
 	{
-		dkim_error(dkim, "`%s' reply was unresolved CNAME", query);
+		dkim_error(dkim, "'%s' reply was unresolved CNAME", query);
 		return -1;
 	}
 
@@ -627,7 +638,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	/* get payload length */
 	if (cp + INT16SZ > eom)
 	{
-		dkim_error(dkim, "`%s' reply corrupt", query);
+		dkim_error(dkim, "'%s' reply corrupt", query);
 		return -1;
 	}
 	GETSHORT(n, cp);
@@ -635,7 +646,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	/* XXX -- maybe deal with a partial reply rather than require it all */
 	if (cp + n > eom || n > BUFRSZ)
 	{
-		dkim_error(dkim, "`%s' reply corrupt", query);
+		dkim_error(dkim, "'%s' reply corrupt", query);
 		return -1;
 	}
 

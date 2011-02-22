@@ -2,12 +2,14 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
 static char t_test42_c_id[] = "@(#)$Id: t-test42.c,v 1.2.38.1 2010/10/28 04:25:38 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 #include "build-config.h"
 
@@ -20,6 +22,10 @@ static char t_test42_c_id[] = "@(#)$Id: t-test42.c,v 1.2.38.1 2010/10/28 04:25:3
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+
+#ifdef USE_GNUTLS
+# include <gnutls/gnutls.h>
+#endif /* USE_GNUTLS */
 
 /* libopendkim includes */
 #include "../dkim.h"
@@ -132,6 +138,10 @@ main(int argc, char **argv)
 	pl = 0;
 	kl = 0;
 
+#ifdef USE_GNUTLS
+	(void) gnutls_global_init();
+#endif /* USE_GNUTLS */
+
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
@@ -238,7 +248,7 @@ main(int argc, char **argv)
 
 	testpolicy = 0;
 	suspicious = 0;
-	status = dkim_policy(dkim, &pcode, NULL);
+	status = dkim_policy(dkim, &pcode, NULL, NULL);
 	assert(status == DKIM_STAT_OK);
 	assert(pcode == DKIM_POLICY_UNKNOWN);
 

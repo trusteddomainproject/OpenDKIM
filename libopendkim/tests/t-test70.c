@@ -2,18 +2,24 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
 static char t_test70_c_id[] = "@(#)$Id: t-test70.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
 #endif /* !lint */
 
+#include "build-config.h"
+
 /* system includes */
 #include <sys/types.h>
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+
+#ifdef USE_GNUTLS
+# include <gnutls/gnutls.h>
+#endif /* USE_GNUTLS */
 
 /* libopendkim includes */
 #include "../dkim.h"
@@ -53,9 +59,14 @@ main(int argc, char **argv)
 	DKIM_LIB *lib;
 	DKIM_SIGINFO **sigs;
 	struct dkim_hdrdiff *diffs = NULL;
+	dkim_canon_t hc;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
-	char *ohdrs[MAXHDRCNT];
+	unsigned char *ohdrs[MAXHDRCNT];
+
+#ifdef USE_GNUTLS
+	(void) gnutls_global_init();
+#endif /* USE_GNUTLS */
 
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
@@ -168,6 +179,11 @@ main(int argc, char **argv)
 	assert(nsigs == 1);
 
 	nhdrs = MAXHDRCNT;
+
+	status = dkim_sig_getcanons(sigs[0], &hc, NULL);
+	assert(status == DKIM_STAT_OK);
+	assert(hc == DKIM_CANON_RELAXED);
+
 	status = dkim_ohdrs(dkim, sigs[0], ohdrs, &nhdrs);
 	assert(status == DKIM_STAT_OK);
 	assert(nhdrs == 8);
@@ -180,7 +196,9 @@ main(int argc, char **argv)
 	assert(strcmp(ohdrs[6], HEADER08) == 0);
 	assert(strcmp(ohdrs[7], HEADER09) == 0);
 
-	status = dkim_diffheaders(dkim, 5, ohdrs, nhdrs, &diffs, &ndiffs);
+	assert(dkim_sig_getcanons(sigs[0], &hc, NULL) == DKIM_STAT_OK);
+	status = dkim_diffheaders(dkim, hc, 5, (char **) ohdrs, nhdrs,
+	                          &diffs, &ndiffs);
 	assert(status == DKIM_STAT_OK);
 	assert(ndiffs == 1);
 	assert(strcmp(diffs[0].hd_old, ohdrs[3]) == 0);

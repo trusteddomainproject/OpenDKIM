@@ -1,4 +1,4 @@
-# Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+# Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 #
 # $Id: Makefile.am,v 1.61 2010/10/25 17:13:17 cm-msk Exp $
 
@@ -12,6 +12,9 @@ endif
 SUBDIRS += libopendkim contrib docs
 if VBR
 SUBDIRS += libvbr
+endif
+if RBL
+SUBDIRS += librbl
 endif
 if LUA
 SUBDIRS += miltertest
@@ -29,7 +32,7 @@ DISTCLEANFILES = opendkim-@VERSION@.tar.gz
 # non-experimental features and substitute it here e.g  @SUPPORTED_FEATURES@.
 # Perhaps all features would enable a more comprehensive test coverage map
 # though.
-DISTCHECK_CONFIGURE_FLAGS=--enable-arlib --enable-vbr --with-lua --enable-stats --with-odbx
+DISTCHECK_CONFIGURE_FLAGS=--enable-arlib --enable-vbr --with-lua --enable-stats --with-odbx --with-db --with-openssl=/usr/local
 
 $(DIST_ARCHIVES): distcheck
 

@@ -34,12 +34,18 @@ static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.23 2010/10/28 02:41:2
 # include "ar.h"
 #endif /* USE_ARLIB */
 
+#ifdef USE_GNUTLS
+# include <gnutls/gnutls.h>
+# include <gnutls/crypto.h>
+# include <gnutls/abstract.h>
+#else /* USE_GNUTLS */
 /* OpenSSL includes */
-#include <openssl/pem.h>
-#include <openssl/rsa.h>
-#include <openssl/bio.h>
-#include <openssl/err.h>
-#include <openssl/sha.h>
+# include <openssl/pem.h>
+# include <openssl/rsa.h>
+# include <openssl/bio.h>
+# include <openssl/err.h>
+# include <openssl/sha.h>
+#endif /* USE_GNUTLS */
 
 #ifdef QUERY_CACHE
 /* libdb includes */
@@ -106,6 +112,7 @@ struct dkim_set
 /* struct dkim_siginfo -- signature information for use by the caller */
 struct dkim_siginfo
 {
+	int			sig_dnssec_key;
 	u_int			sig_flags;
 	u_int			sig_error;
 	u_int			sig_bh;
@@ -113,7 +120,6 @@ struct dkim_siginfo
 	u_int			sig_hashtype;
 	u_int			sig_keytype;
 	u_int			sig_keybits;
-	int			sig_dnssec_key;
 	size_t			sig_siglen;
 	size_t			sig_keylen;
 	size_t			sig_b64keylen;
@@ -135,6 +141,16 @@ struct dkim_siginfo
 	struct dkim_set *	sig_keytaglist;
 };
 
+#ifdef USE_GNUTLS
+/* struct dkim_sha -- stuff needed to do a sha hash */
+struct dkim_sha
+{
+	int			sha_tmpfd;
+	u_int			sha_outlen;
+	gnutls_hash_hd_t	sha_hd;
+	u_char *		sha_out;
+};
+#else /* USE_GNUTLS */
 /* struct dkim_sha1 -- stuff needed to do a sha1 hash */
 struct dkim_sha1
 {
@@ -144,7 +160,7 @@ struct dkim_sha1
 	u_char			sha1_out[SHA_DIGEST_LENGTH];
 };
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 /* struct dkim_sha256 -- stuff needed to do a sha256 hash */
 struct dkim_sha256
 {
@@ -153,7 +169,8 @@ struct dkim_sha256
 	SHA256_CTX		sha256_ctx;
 	u_char			sha256_out[SHA256_DIGEST_LENGTH];
 };
-#endif /* SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_GNUTLS */
 
 /* struct dkim_canon -- a canonicalization status handle */
 struct dkim_canon
@@ -182,6 +199,15 @@ struct dkim_canon
 /* struct dkim_rsa -- stuff needed to do RSA sign/verify */
 struct dkim_rsa
 {
+#ifdef USE_GNUTLS
+	size_t			rsa_rsaoutlen;
+	size_t			rsa_keysize;
+	gnutls_x509_privkey_t	rsa_key;
+	gnutls_pubkey_t		rsa_pubkey;
+	gnutls_datum_t		rsa_sig;
+	gnutls_datum_t		rsa_digest;
+	gnutls_datum_t 		rsa_rsaout;
+#else /* USE_GNUTLS */
 	u_char			rsa_pad;
 	size_t			rsa_keysize;
 	size_t			rsa_rsainlen;
@@ -190,6 +216,7 @@ struct dkim_rsa
 	RSA *			rsa_rsa;
 	u_char *		rsa_rsain;
 	u_char *		rsa_rsaout;
+#endif /* USE_GNUTLS */
 };
 
 /* struct dkim_test_dns_data -- simulated DNS replies */
@@ -258,6 +285,9 @@ struct dkim
 	dkim_canon_t		dkim_hdrcanonalg;
 	dkim_canon_t		dkim_bodycanonalg;
 	dkim_alg_t		dkim_signalg;
+#ifdef _FFR_ATPS
+	_Bool			dkim_atps;
+#endif /* _FFR_ATPS */
 	off_t			dkim_bodylen;
 	off_t			dkim_signlen;
 	const u_char *		dkim_id;
@@ -316,6 +346,7 @@ struct dkim_lib
 	void			(*dkiml_free) (void *closure, void *p);
 	u_char **		dkiml_senderhdrs;
 	u_char **		dkiml_alwayshdrs;
+	u_char **		dkiml_oversignhdrs;
 	u_char **		dkiml_mbs;
 #ifdef QUERY_CACHE
 	DB *			dkiml_cache;

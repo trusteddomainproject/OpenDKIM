@@ -2,12 +2,14 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
 static char t_test131_c_id[] = "@(#)$Id: t-test131.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -15,6 +17,10 @@ static char t_test131_c_id[] = "@(#)$Id: t-test131.c,v 1.2 2009/12/08 19:14:27 c
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+
+#ifdef USE_GNUTLS
+# include <gnutls/gnutls.h>
+#endif /* USE_GNUTLS */
 
 /* libopendkim includes */
 #include "../dkim.h"
@@ -53,7 +59,6 @@ eatws(char *str)
 	*q = '\0';
 }
 
-
 /*
 **  MAIN -- program mainline
 **
@@ -81,6 +86,10 @@ main(int argc, char **argv)
 	dkim_sigkey_t key;
 	unsigned char hdr[MAXHEADER + 1];
 	unsigned char hdr2[MAXHEADER + 1];
+
+#ifdef USE_GNUTLS
+	(void) gnutls_global_init();
+#endif /* USE_GNUTLS */
 
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);

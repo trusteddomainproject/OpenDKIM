@@ -119,6 +119,8 @@ should be one of
 (database of domains to be signed),
 .I DB_LOCALADSP
 (database of local ADSP overrides),
+.I DB_SIGNINGTABLE
+(database of signing table entries),
 .I DB_THIRDPARTY
 (database of third party signatures to be trusted) and
 .I DB_DONTSIGNTO
@@ -192,6 +194,25 @@ parameter is required.)
 .B odkim.rcpt_count(ctx)
 Returns the count of envelope recipients on the message.
 .TP
+.B odkim.replace_header(ctx, name, n, newval)
+Retrieves the value of in instance
+.I n
+of header field
+.I name
+in the message referenced by
+.I ctx
+and replaces it with the string in
+.I newval.
+See
+.I odkim.get_header()
+above for more information about possible parameter values for
+.I n.
+Note that this only changes the content of the header field used when
+generating or verifying the signature; the actual delivered message is not
+modified.  This can be used to anticipate how an intermediate mail transfer
+agent might alter the message, thus correcting an avoidable signature
+invalidation.
+.TP
 .B odkim.resign(ctx)
 Arranges that the arriving message will be verified and then re-signed in
 a single operation.  Returns 1 on success or the Lua constant "nil" on failure.
@@ -250,6 +271,7 @@ descriptions can be found above:
 .B odkim.get_dbhandle,
 .B odkim.get_fromdomain,
 .B odkim.get_header,
+.B odkim.get_mtasymbol,
 .B odkim.get_rcpt,
 .B odkim.get_rcptarray,
 .B odkim.log
@@ -282,6 +304,13 @@ can be determined using
 above.  The requested handle is returned on success, or the Lua constant
 "nil" is returned on failure.
 .TP
+.B odkim.parse_field(string)
+Parses the contents of a header field, provided as
+.I string,
+into user and domain parts, discarding whitespace and comment components.
+Returns two strings, the user part and the domain part, or the Lua constant
+"nil" in case of a parsing error.
+.TP
 .B odkim.sig_getdomain(sig)
 Returns the name of the domain in the signature handle specified by
 .I sig,
@@ -310,12 +339,14 @@ not present on the message.  Always returns the Lua constant "nil".
 The statistics script has the following functions available to it, whose
 descriptions can be found above:
 .B odkim.get_header,
+.B odkim.get_mtasymbol,
 .B odkim.get_rcpt,
 .B odkim.get_rcptarray,
 .B odkim.get_sigarray,
 .B odkim.get_sigcount,
 .B odkim.get_sighandle,
 .B odkim.log,
+.B odkim.parse_field,
 .B odkim.sig_getdomain,
 .B odkim.sig_getidentity,
 and
@@ -343,13 +374,18 @@ for the message represented by
 .SH FINAL SCRIPT FUNCTIONS
 The final script has the following functions available to it, whose
 descriptions can be found above:
+.B odkim.get_clienthost,
+.B odkim.get_clientip,
+.B odkim.get_fromdomain,
 .B odkim.get_header,
+.B odkim.get_mtasymbol,
 .B odkim.get_rcpt,
 .B odkim.get_rcptarray,
 .B odkim.get_sigarray,
 .B odkim.get_sigcount,
 .B odkim.get_sighandle,
 .B odkim.log,
+.B odkim.parse_field,
 .B odkim.set_result,
 .B odkim.sig_getdomain,
 .B odkim.sig_getidentity,
@@ -371,6 +407,15 @@ Returns 1 on success, or the Lua constant "nil" on failure.
 Adds
 .I addr
 as an envelope recipient to the message represented by
+.I ctx.
+Returns 1 on success, or the Lua constant "nil" on failure.
+.TP
+.B odkim.del_header(ctx, name, n)
+Deletes the
+.I nth
+instance (starting from 0) of the header field called
+.I name
+from the message represented by
 .I ctx.
 Returns 1 on success, or the Lua constant "nil" on failure.
 .TP
@@ -419,6 +464,19 @@ using
 .I reason
 as a text string indicating the reason for the request.  Returns 1 on
 success or the Lua constant "nil" on failure.
+.TP
+.B odkim.rbl_check(query, qroot[, timeout])
+Makes an RBL query.  The root of the RBL is assumed to be at
+.I qroot
+and the subject of the query is
+.I query,
+so the query performed will be
+.I "query.qroot".
+The optional
+.I timeout
+parameter is the timeout to use.  Returns "nil" on error, no values if the
+requested record was not present in the RBL, or the four octets of the RBL
+entry if it was.  The octets are returned in big-endian order.
 .TP
 .B odkim.set_reply(ctx, rcode, xcode, message)
 Instructs the MTA to return the specified SMTP reply to the client sending
@@ -472,18 +530,11 @@ Valid values are the constants with DKIM_SIGERROR_ prefixes as defined in the
 .B libopendkim
 header file
 .I dkim.h.
-.TP
-.B odkim.stats(ctx, name, value)
-Records an additional
-.I name-value
-pair into the statistical information for the message represented by
-.I ctx.
-@STATSEXT_MANNOTICE@
 .SH VERSION
 This man page covers version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT
-Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8),
 .I opendkim.conf(5)

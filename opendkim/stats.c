@@ -2,7 +2,7 @@
 **  Copyright (c) 2007, 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: stats.c,v 1.27.2.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -95,6 +95,9 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 #ifdef _FFR_STATSEXT
                    struct statsext *se,
 #endif /* _FFR_STATSEXT */
+#ifdef _FFR_ATPS
+                   int atps,
+#endif /* _FFR_ATPS */
                    struct sockaddr *sa)
 {
 	_Bool exists;
@@ -111,6 +114,7 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 #endif /* _FFR_DIFFHEADERS */
 	int err;
 	int c;
+	u_int keybits;
 	dkim_alg_t alg;
 	dkim_canon_t bc;
 	dkim_canon_t hc;
@@ -372,6 +376,10 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 	fprintf(out, "\t%s", ct);
 	fprintf(out, "\t%s", cte);
 
+#ifdef _FFR_ATPS
+	fprintf(out, "\t%d", atps);
+#endif /* _FFR_ATPS */
+
 	fprintf(out, "\n");
 
 	for (c = 0; c < nsigs; c++)
@@ -495,8 +503,8 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		status = dkim_ohdrs(dkimv, sigs[c], (u_char **) ohdrs, &nhdrs);
 		if (status == DKIM_STAT_OK)
 		{
-			if (dkim_diffheaders(dkimv, DKIMF_STATS_MAXCOST,
-			                     ohdrs, nhdrs,
+			if (dkim_diffheaders(dkimv, hc, DKIMF_STATS_MAXCOST,
+			                     (char **) ohdrs, nhdrs,
 			                     &diffs, &ndiffs) == DKIM_STAT_OK)
 			{
 				int n;
@@ -543,7 +551,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		fprintf(out, "\t-");
 #endif /* _FFR_DIFFHEADERS */
 
-#ifdef _FFR_STATS_I
 		/*
 		**  Reporting of i= has two columns:
 		**
@@ -605,8 +612,22 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 
 			fprintf(out, "\t%d\t%d", domain, user);
 		}
-#endif /* _FFR_STATS_I */
 
+		p = (char *) dkim_sig_gettagvalue(sigs[c], TRUE,
+		                                  (u_char *) "s");
+		if (p == NULL)
+			fprintf(out, "\t0");
+		else if (*p == '*')
+			fprintf(out, "\t1");
+		else if (strcasecmp(p, "email") == 0)
+			fprintf(out, "\t2");
+		else
+			fprintf(out, "\t3");
+
+		keybits = 0;
+		(void) dkim_sig_getkeysize(sigs[c], &keybits);
+		fprintf(out, "\t%u", keybits);
+		
 		fprintf(out, "\n");
 	}
 

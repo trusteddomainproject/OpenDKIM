@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef _DKIM_H_
@@ -144,6 +144,8 @@ typedef int DKIM_SIGERROR;
 #define	DKIM_SIGERROR_KEYTYPEUNKNOWN	41	/* key type unknown */
 #define	DKIM_SIGERROR_KEYREVOKED	42	/* key revoked */
 #define	DKIM_SIGERROR_KEYDECODE		43	/* key couldn't be decoded */
+#define	DKIM_SIGERROR_MISSING_V		44	/* v= tag missing */
+#define	DKIM_SIGERROR_EMPTY_V		45	/* v= tag empty */
 
 /* generic DNS error codes */
 #define	DKIM_DNS_ERROR		(-1)		/* error in transit */
@@ -259,7 +261,7 @@ typedef int dkim_opts_t;
 #define	DKIM_OPTS_TIMEOUT	2
 #define	DKIM_OPTS_SENDERHDRS	3
 #define	DKIM_OPTS_SIGNHDRS	4
-#define	DKIM_OPTS_VERSION	5	/* unused */
+#define	DKIM_OPTS_OVERSIGNHDRS	5
 #define	DKIM_OPTS_QUERYMETHOD	6
 #define	DKIM_OPTS_QUERYINFO	7
 #define	DKIM_OPTS_FIXEDTIME	8
@@ -269,24 +271,33 @@ typedef int dkim_opts_t;
 #define	DKIM_OPTS_CLOCKDRIFT	12
 #define	DKIM_OPTS_MUSTBESIGNED	13
 
-#define	DKIM_LIBFLAGS_NONE		0x000
-#define	DKIM_LIBFLAGS_TMPFILES		0x001
-#define	DKIM_LIBFLAGS_KEEPFILES		0x002
-#define	DKIM_LIBFLAGS_SIGNLEN		0x004
-#define DKIM_LIBFLAGS_CACHE		0x008
-#define DKIM_LIBFLAGS_ZTAGS		0x010
-#define DKIM_LIBFLAGS_DELAYSIGPROC	0x020
-#define DKIM_LIBFLAGS_EOHCHECK		0x040
-#define DKIM_LIBFLAGS_ACCEPTV05		0x080
-#define DKIM_LIBFLAGS_FIXCRLF		0x100
-#define DKIM_LIBFLAGS_ACCEPTDK		0x200
-#define DKIM_LIBFLAGS_BADSIGHANDLES	0x400
-#define DKIM_LIBFLAGS_VERIFYONE		0x800
+#define	DKIM_LIBFLAGS_NONE		0x0000
+#define	DKIM_LIBFLAGS_TMPFILES		0x0001
+#define	DKIM_LIBFLAGS_KEEPFILES		0x0002
+#define	DKIM_LIBFLAGS_SIGNLEN		0x0004
+#define DKIM_LIBFLAGS_CACHE		0x0008
+#define DKIM_LIBFLAGS_ZTAGS		0x0010
+#define DKIM_LIBFLAGS_DELAYSIGPROC	0x0020
+#define DKIM_LIBFLAGS_EOHCHECK		0x0040
+#define DKIM_LIBFLAGS_ACCEPTV05		0x0080
+#define DKIM_LIBFLAGS_FIXCRLF		0x0100
+#define DKIM_LIBFLAGS_ACCEPTDK		0x0200
+#define DKIM_LIBFLAGS_BADSIGHANDLES	0x0400
+#define DKIM_LIBFLAGS_VERIFYONE		0x0800
+#define DKIM_LIBFLAGS_STRICTHDRS	0x1000
 
 #define	DKIM_LIBFLAGS_DEFAULT		DKIM_LIBFLAGS_NONE
 
 #define DKIM_REP_DEFREJECT	1001
 #define DKIM_REP_ROOT		"al.dkim-reputation.org"
+
+/*
+**  DKIM_PFLAG -- policy flags
+*/
+
+#define	DKIM_PFLAG_UNUSED1	0x01	/* no longer used */
+#define	DKIM_PFLAG_UNUSED2	0x02	/* no longer used */
+#define	DKIM_PFLAG_ATPS		0x04	/* atps */
 
 /*
 **  DKIM_DNSSEC -- results of DNSSEC queries
@@ -296,6 +307,16 @@ typedef int dkim_opts_t;
 #define DKIM_DNSSEC_BOGUS	0
 #define DKIM_DNSSEC_INSECURE	1
 #define DKIM_DNSSEC_SECURE	2
+
+/*
+**  DKIM_ATPS -- ATPS result codes
+*/
+
+#define	DKIM_ATPS_UNKNOWN	(-1)
+#define	DKIM_ATPS_NOTFOUND	0
+#define	DKIM_ATPS_FOUND		1
+
+typedef int dkim_atps_t;
 
 /*
 **  DKIM_LIB -- library handle
@@ -569,6 +590,18 @@ extern DKIM_STAT dkim_policy_syntax __P((DKIM *dkim, u_char *str, size_t len));
 */
 
 extern DKIM_STAT dkim_sig_syntax __P((DKIM *dkim, u_char *str, size_t len));
+
+/*
+**  DKIM_GETID -- retrieve "id" pointer from a handle
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**
+**  Return value:
+**  	The "id" pointer from inside the handle, stored when it was created.
+*/
+
+extern const char *dkim_getid __P((DKIM *dkim));
 
 /*
 **  DKIM_GETCACHESTATS -- retrieve cache statistics
@@ -1210,6 +1243,7 @@ extern void dkim_policy_state_free __P((DKIM_PSTATE *pstate));
 **  Parameters:
 **  	dkim -- DKIM handle
 **  	pcode -- discovered policy (returned)
+**  	pflags -- discovered policy flags (returned)
 **  	pstate -- state, for re-entrancy (updated; can be NULL)
 **
 **  Return value:
@@ -1217,7 +1251,7 @@ extern void dkim_policy_state_free __P((DKIM_PSTATE *pstate));
 */
 
 extern DKIM_STAT dkim_policy __P((DKIM *dkim, dkim_policy_t *pcode,
-                                  DKIM_PSTATE *pstate));
+                                  u_int *pflags, DKIM_PSTATE *pstate));
 
 /*
 **  DKIM_POLICY_GETDNSSEC -- retrieve DNSSEC results for a policy
@@ -1365,6 +1399,7 @@ extern DKIM_STAT dkim_ohdrs __P((DKIM *dkim, DKIM_SIGINFO *sig, u_char **ptrs,
 **
 **  Parameters:
 **  	dkim -- DKIM handle
+**  	canon -- canonicalization mode in use
 **  	maxcost -- maximum "cost" of changes to be reported
 **  	ohdrs -- original headers, presumably extracted from a "z" tag
 **  	nohdrs -- number of headers at "ohdrs" available
@@ -1379,9 +1414,10 @@ extern DKIM_STAT dkim_ohdrs __P((DKIM *dkim, DKIM_SIGINFO *sig, u_char **ptrs,
 **  	destroyed.
 */
 
-extern DKIM_STAT dkim_diffheaders __P((DKIM *dkim, int maxcost, char **ohdrs,
-                                       int nohdrs, struct dkim_hdrdiff **out,
-                                       int *nout));
+extern DKIM_STAT dkim_diffheaders __P((DKIM *dkim, dkim_canon_t canon,
+                                       int maxcost,
+                                       char **ohdrs, int nohdrs,
+                                       struct dkim_hdrdiff **out, int *nout));
 
 /*
 **  DKIM_GETPARTIAL -- return a DKIM handle's "body length tag" flag
@@ -1488,11 +1524,12 @@ extern unsigned long dkim_ssl_version __P((void));
 #define DKIM_FEATURE_PARSE_TIME		2
 #define DKIM_FEATURE_QUERY_CACHE	3
 #define DKIM_FEATURE_SHA256		4
-#define DKIM_FEATURE_UNUSED_1		5 /* was DKIM_FEATURE_ASYNC_DNS */
+#define DKIM_FEATURE_OVERSIGN		5
 #define DKIM_FEATURE_DNSSEC		6
 #define DKIM_FEATURE_RESIGN		7
+#define DKIM_FEATURE_ATPS		8
 
-#define	DKIM_FEATURE_MAX		7
+#define	DKIM_FEATURE_MAX		8
 
 extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
 
@@ -1556,6 +1593,7 @@ extern int dkim_test_adsp __P((DKIM_LIB *, const char *, dkim_policy_t *,
 **  	domain -- domain name
 **  	key -- private key to verify (PEM format)
 **  	keylen -- size of private key
+**  	dnssec -- DNSSEC result (may be NULL)
 **  	err -- error buffer (may be NULL)
 **  	errlen -- size of error buffer
 **
@@ -1566,7 +1604,7 @@ extern int dkim_test_adsp __P((DKIM_LIB *, const char *, dkim_policy_t *,
 */
 
 extern int dkim_test_key __P((DKIM_LIB *, char *, char *, char *, size_t,
-                              char *, size_t));
+                              int *, char *, size_t));
 
 /*
 **  DKIM_SIG_GETTAGVALUE -- retrieve a tag's value from a signature or its key
@@ -1589,6 +1627,24 @@ extern int dkim_test_key __P((DKIM_LIB *, char *, char *, char *, size_t,
 */
 
 extern u_char *dkim_sig_gettagvalue __P((DKIM_SIGINFO *, _Bool, u_char *));
+
+/*
+**  DKIM_SIG_GETSIGNEDHDRS -- retrieve the signed header fields covered by
+**                            a signature that passed
+**
+**  Parameters:
+**  	dkim -- DKIM instance
+**  	sig -- signature
+**  	hdrs -- rectangular array of header field strings
+**  	hdrlen -- length of each element of "hdrs"
+**  	nhdrs -- size of "hdrs" array (updated)
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_sig_getsignedhdrs __P((DKIM *, DKIM_SIGINFO *,
+                                             u_char *, size_t, u_int *));
 
 /*
 **  DKIM_STRLCPY -- size-bounded strcpy()
@@ -1726,6 +1782,43 @@ extern void dkim_dns_set_query_waitreply __P((DKIM_LIB *,
                                                       struct timeval *,
                                                       size_t *, int *,
                                                       int *)));
+
+/*
+**  DKIM_ATPS_CHECK -- check for Authorized Third Party Signing
+**
+**  Parameters:
+**  	dkim -- DKIM message handle
+**  	sig -- signature information handle
+**  	timeout -- timeout (can be NULL)
+**  	res -- ATPS result code
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_atps_check __P((DKIM *, DKIM_SIGINFO *,
+                                      struct timeval *, dkim_atps_t *res));
+
+/*
+**  DKIM_BASE32_ENCODE -- encode a string using base32
+**
+**  Parameters:
+**  	buf -- destination buffer
+**  	buflen -- bytes available at buf (updated)
+**  	data -- pointer to data to encode
+**  	size -- bytes at "data" to encode
+**
+**  Return value:
+**  	Length of encoding.
+**
+**  Notes:
+**  	buf should be at least a byte more than *buflen to hold the trailing
+**  	'\0'.
+**
+**  	*buflen is updated to count the number of bytes read from "data".
+*/
+
+extern int dkim_base32_encode __P((char *, size_t *, const void *, size_t));
 
 /* default list of sender headers */
 extern const u_char *dkim_default_senderhdrs[];

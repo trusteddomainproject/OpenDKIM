@@ -83,6 +83,32 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 	{
 		switch (canon->canon_hashtype)
 		{
+#ifdef USE_GNUTLS
+		  case DKIM_HASHTYPE_SHA1:
+		  case DKIM_HASHTYPE_SHA256:
+		  {
+			struct dkim_sha *sha;
+
+			sha = (struct dkim_sha *) canon->canon_hash;
+
+			if (sha->sha_tmpfd != -1)
+			{
+				close(sha->sha_tmpfd);
+				sha->sha_tmpfd = -1;
+			}
+
+			gnutls_hash_deinit(sha->sha_hd, NULL);
+
+			if (sha->sha_out != NULL)
+			{
+				DKIM_FREE(dkim, sha->sha_out);
+				sha->sha_out = NULL;
+			}
+
+			break;
+		  }
+
+#else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -99,7 +125,7 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 			break;
 		  }
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -115,7 +141,8 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 
 			break;
 		  }
-#endif /* SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_GNUTLS */
 
 		  default:
 			assert(0);
@@ -165,6 +192,22 @@ dkim_canon_write(DKIM_CANON *canon, u_char *buf, size_t buflen)
 
 	switch (canon->canon_hashtype)
 	{
+#ifdef USE_GNUTLS
+	  case DKIM_HASHTYPE_SHA1:
+	  case DKIM_HASHTYPE_SHA256:
+	  {
+		struct dkim_sha *sha;
+
+		sha = (struct dkim_sha *) canon->canon_hash;
+
+		gnutls_hash(sha->sha_hd, buf, buflen);
+
+		if (sha->sha_tmpfd != -1)
+			(void) write(sha->sha_tmpfd, buf, buflen);
+
+		break;
+	  }
+#else /* USE_GNUTLS */
 	  case DKIM_HASHTYPE_SHA1:
 	  {
 		struct dkim_sha1 *sha1;
@@ -178,7 +221,7 @@ dkim_canon_write(DKIM_CANON *canon, u_char *buf, size_t buflen)
 		break;
 	  }
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 	  case DKIM_HASHTYPE_SHA256:
 	  {
 		struct dkim_sha256 *sha256;
@@ -191,7 +234,8 @@ dkim_canon_write(DKIM_CANON *canon, u_char *buf, size_t buflen)
 
 		break;
 	  }
-#endif /*SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_GNUTLS */
 	}
 
 	canon->canon_wrote += buflen;
@@ -254,21 +298,22 @@ dkim_canon_buffer(DKIM_CANON *canon, u_char *buf, size_t buflen)
 }
 
 /*
-**  DKIM_CANON_HEADER -- canonicalize a header and write it
+**  DKIM_CANON_HEADER_STRING -- canonicalize a header field
 **
 **  Parameters:
-**  	dkim -- DKIM handle
-**  	canon -- DKIM_CANON handle
-**  	hdr -- header handle
+**  	dstr -- dkim_dstring to use for output
+**  	canon -- canonicalization mode to apply
+**  	hdr -- header field input
+**  	hdrlen -- bytes to process at "hdr"
 **  	crlf -- write a CRLF at the end?
 **
 **  Return value:
 **  	A DKIM_STAT constant.
 */
 
-static DKIM_STAT
-dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
-                  _Bool crlf)
+DKIM_STAT
+dkim_canon_header_string(struct dkim_dstring *dstr, dkim_canon_t canon,
+                         unsigned char *hdr, size_t hdrlen, _Bool crlf)
 {
 	_Bool space;
 	int n;
@@ -277,40 +322,25 @@ dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
 	u_char *end;
 	u_char tmpbuf[BUFRSZ];
 
-	assert(canon != NULL);
+	assert(dstr != NULL);
 	assert(hdr != NULL);
 
 	tmp = tmpbuf;
 	end = tmpbuf + sizeof tmpbuf - 1;
 
-	if (dkim->dkim_canonbuf == NULL)
-	{
-		dkim->dkim_canonbuf = dkim_dstring_new(dkim, hdr->hdr_textlen,
-		                                       0);
-		if (dkim->dkim_canonbuf == NULL)
-			return DKIM_STAT_NORESOURCE;
-	}
-	else
-	{
-		dkim_dstring_blank(dkim->dkim_canonbuf);
-	}
-
 	n = 0;
 
-	dkim_canon_buffer(canon, NULL, 0);
-
-	switch (canon->canon_canon)
+	switch (canon)
 	{
 	  case DKIM_CANON_SIMPLE:
-		if (!dkim_dstring_catn(dkim->dkim_canonbuf,
-		                       hdr->hdr_text, hdr->hdr_textlen) ||
-		    (crlf && !dkim_dstring_catn(dkim->dkim_canonbuf, CRLF, 2)))
+		if (!dkim_dstring_catn(dstr, hdr, hdrlen) ||
+		    (crlf && !dkim_dstring_catn(dstr, CRLF, 2)))
 			return DKIM_STAT_NORESOURCE;
 		break;
 
 	  case DKIM_CANON_RELAXED:
 		/* process header field name (before colon) first */
-		for (p = hdr->hdr_text; *p != '\0'; p++)
+		for (p = hdr; p < hdr + hdrlen; p++)
 		{
 			/*
 			**  Discard spaces before the colon or before the end
@@ -339,7 +369,7 @@ dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
 			{
 				*tmp = '\0';
 
-				if (!dkim_dstring_catn(dkim->dkim_canonbuf,
+				if (!dkim_dstring_catn(dstr,
 				                       tmpbuf, tmp - tmpbuf))
 					return DKIM_STAT_NORESOURCE;
 
@@ -383,7 +413,7 @@ dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
 				{
 					*tmp = '\0';
 
-					if (!dkim_dstring_catn(dkim->dkim_canonbuf,
+					if (!dkim_dstring_catn(dstr,
 					                       tmpbuf,
 					                       tmp - tmpbuf))
 						return DKIM_STAT_NORESOURCE;
@@ -402,7 +432,7 @@ dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
 			{
 				*tmp = '\0';
 
-				if (!dkim_dstring_catn(dkim->dkim_canonbuf,
+				if (!dkim_dstring_catn(dstr,
 				                       tmpbuf, tmp - tmpbuf))
 					return DKIM_STAT_NORESOURCE;
 
@@ -415,16 +445,63 @@ dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
 		{
 			*tmp = '\0';
 
-			if (!dkim_dstring_catn(dkim->dkim_canonbuf,
+			if (!dkim_dstring_catn(dstr,
 			                       tmpbuf, tmp - tmpbuf))
 				return DKIM_STAT_NORESOURCE;
 		}
 
-		if (crlf && !dkim_dstring_catn(dkim->dkim_canonbuf, CRLF, 2))
+		if (crlf && !dkim_dstring_catn(dstr, CRLF, 2))
 			return DKIM_STAT_NORESOURCE;
 
 		break;
 	}
+
+	return DKIM_STAT_OK;
+}
+
+/*
+**  DKIM_CANON_HEADER -- canonicalize a header and write it
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**  	canon -- DKIM_CANON handle
+**  	hdr -- header handle
+**  	crlf -- write a CRLF at the end?
+**
+**  Return value:
+**  	A DKIM_STAT constant.
+*/
+
+static DKIM_STAT
+dkim_canon_header(DKIM *dkim, DKIM_CANON *canon, struct dkim_header *hdr,
+                  _Bool crlf)
+{
+	DKIM_STAT status;
+
+	assert(dkim != NULL);
+	assert(canon != NULL);
+	assert(hdr != NULL);
+
+	if (dkim->dkim_canonbuf == NULL)
+	{
+		dkim->dkim_canonbuf = dkim_dstring_new(dkim, hdr->hdr_textlen,
+		                                       0);
+		if (dkim->dkim_canonbuf == NULL)
+			return DKIM_STAT_NORESOURCE;
+	}
+	else
+	{
+		dkim_dstring_blank(dkim->dkim_canonbuf);
+	}
+
+	dkim_canon_buffer(canon, NULL, 0);
+
+	status = dkim_canon_header_string(dkim->dkim_canonbuf,
+	                                  canon->canon_canon,
+	                                  hdr->hdr_text, hdr->hdr_textlen,
+	                                  crlf);
+	if (status != DKIM_STAT_OK)
+		return status;
 
 	dkim_canon_buffer(canon, dkim_dstring_get(dkim->dkim_canonbuf),
 	                  dkim_dstring_len(dkim->dkim_canonbuf));
@@ -455,6 +532,404 @@ dkim_canon_flushblanks(DKIM_CANON *canon)
 }
 
 /*
+**  DKIM_CANON_FIXCRLF -- rebuffer a body chunk, fixing "naked" CRs and LFs
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**  	canon -- canonicalization being handled
+**  	buf -- buffer to be fixed
+**  	buflen -- number of bytes at "buf"
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+**
+**  Side effects:
+**  	dkim->dkim_canonbuf will be initialized and used.
+*/
+
+static DKIM_STAT
+dkim_canon_fixcrlf(DKIM *dkim, DKIM_CANON *canon, u_char *buf, size_t buflen)
+{
+	u_char prev;
+	u_char *p;
+	u_char *eob;
+
+	assert(dkim != NULL);
+	assert(canon != NULL);
+	assert(buf != NULL);
+
+	if (dkim->dkim_canonbuf == NULL)
+	{
+		dkim->dkim_canonbuf = dkim_dstring_new(dkim, buflen, 0);
+		if (dkim->dkim_canonbuf == NULL)
+			return DKIM_STAT_NORESOURCE;
+	}
+	else
+	{
+		dkim_dstring_blank(dkim->dkim_canonbuf);
+	}
+
+	eob = buf + buflen - 1;
+
+	prev = canon->canon_lastchar;
+
+	for (p = buf; p <= eob; p++)
+	{
+		if (*p == '\n' && prev != '\r')
+		{
+			/* fix a solitary LF */
+			dkim_dstring_catn(dkim->dkim_canonbuf, CRLF, 2);
+		}
+		else if (*p == '\r')
+		{
+			if (p < eob && *(p + 1) != '\n')
+				/* fix a solitary CR */
+				dkim_dstring_catn(dkim->dkim_canonbuf, CRLF, 2);
+			else
+				/* CR at EOL, or CR followed by a LF */
+				dkim_dstring_cat1(dkim->dkim_canonbuf, *p);
+		}
+		else
+		{
+			/* something else */
+			dkim_dstring_cat1(dkim->dkim_canonbuf, *p);
+		}
+
+		prev = *p;
+	}
+
+	return DKIM_STAT_OK;
+}
+
+/* ========================= PUBLIC SECTION ========================= */
+
+/*
+**  DKIM_CANON_INIT -- initialize all canonicalizations
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**  	tmp -- make temp files?
+**  	keep -- keep temp files?
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+DKIM_STAT
+dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
+{
+	int fd;
+	DKIM_STAT status;
+	DKIM_CANON *cur;
+
+	assert(dkim != NULL);
+
+	for (cur = dkim->dkim_canonhead; cur != NULL; cur = cur->canon_next)
+	{
+		cur->canon_hashbuf = DKIM_MALLOC(dkim, DKIM_HASHBUFSIZE);
+		if (cur->canon_hashbuf == NULL)
+		{
+			dkim_error(dkim, "unable to allocate %d byte(s)",
+			           DKIM_HASHBUFSIZE);
+			return DKIM_STAT_NORESOURCE;
+		}
+		cur->canon_hashbufsize = DKIM_HASHBUFSIZE;
+		cur->canon_hashbuflen = 0;
+		cur->canon_buf = dkim_dstring_new(dkim, BUFRSZ, BUFRSZ);
+		if (cur->canon_buf == NULL)
+			return DKIM_STAT_NORESOURCE;
+
+		switch (cur->canon_hashtype)
+		{
+#ifdef USE_GNUTLS
+		  case DKIM_HASHTYPE_SHA1:
+		  case DKIM_HASHTYPE_SHA256:
+		  {
+			struct dkim_sha *sha;
+
+			sha = (struct dkim_sha *) DKIM_MALLOC(dkim,
+			                                      sizeof(struct dkim_sha));
+			if (sha == NULL)
+			{
+				dkim_error(dkim,
+				           "unable to allocate %d byte(s)",
+				           sizeof(struct dkim_sha));
+				return DKIM_STAT_NORESOURCE;
+			}
+
+			memset(sha, '\0', sizeof(struct dkim_sha));
+			sha->sha_tmpfd = -1;
+
+			/* XXX -- test for errors */
+			if (cur->canon_hashtype == DKIM_HASHTYPE_SHA1)
+			{
+				(void) gnutls_hash_init(&sha->sha_hd,
+				                        GNUTLS_DIG_SHA1);
+			}
+			else
+			{
+				(void) gnutls_hash_init(&sha->sha_hd,
+				                        GNUTLS_DIG_SHA256);
+			}
+
+			if (sha->sha_hd == NULL)
+			{
+				DKIM_FREE(dkim, sha);
+				return DKIM_STAT_INTERNAL;
+			}
+				
+			if (tmp)
+			{
+				status = dkim_tmpfile(dkim, &fd, keep);
+				if (status != DKIM_STAT_OK)
+				{
+					DKIM_FREE(dkim, sha);
+					return status;
+				}
+
+				sha->sha_tmpfd = fd;
+			}
+
+			cur->canon_hash = sha;
+
+		  	break;
+		  }
+#else /* USE_GNUTLS */
+		  case DKIM_HASHTYPE_SHA1:
+		  {
+			struct dkim_sha1 *sha1;
+
+			sha1 = (struct dkim_sha1 *) DKIM_MALLOC(dkim,
+			                                        sizeof(struct dkim_sha1));
+			if (sha1 == NULL)
+			{
+				dkim_error(dkim,
+				           "unable to allocate %d byte(s)",
+				           sizeof(struct dkim_sha1));
+				return DKIM_STAT_NORESOURCE;
+			}
+
+			memset(sha1, '\0', sizeof(struct dkim_sha1));
+			SHA1_Init(&sha1->sha1_ctx);
+
+			if (tmp)
+			{
+				status = dkim_tmpfile(dkim, &fd, keep);
+				if (status != DKIM_STAT_OK)
+				{
+					DKIM_FREE(dkim, sha1);
+					return status;
+				}
+
+				sha1->sha1_tmpfd = fd;
+				sha1->sha1_tmpbio = BIO_new_fd(fd, 1);
+			}
+
+			cur->canon_hash = sha1;
+
+		  	break;
+		  }
+
+# ifdef HAVE_SHA256
+		  case DKIM_HASHTYPE_SHA256:
+		  {
+			struct dkim_sha256 *sha256;
+
+			sha256 = (struct dkim_sha256 *) DKIM_MALLOC(dkim,
+			                                            sizeof(struct dkim_sha256));
+			if (sha256 == NULL)
+			{
+				dkim_error(dkim,
+				           "unable to allocate %d byte(s)",
+				           sizeof(struct dkim_sha256));
+				return DKIM_STAT_NORESOURCE;
+			}
+
+			memset(sha256, '\0', sizeof(struct dkim_sha256));
+			SHA256_Init(&sha256->sha256_ctx);
+
+			if (tmp)
+			{
+				status = dkim_tmpfile(dkim, &fd, keep);
+				if (status != DKIM_STAT_OK)
+				{
+					DKIM_FREE(dkim, sha256);
+					return status;
+				}
+
+				sha256->sha256_tmpfd = fd;
+				sha256->sha256_tmpbio = BIO_new_fd(fd, 1);
+			}
+
+			cur->canon_hash = sha256;
+
+		  	break;
+		  }
+# endif /* HAVE_SHA256 */
+#endif /* USE_GNUTLS */
+
+		  default:
+			assert(0);
+		}
+	}
+
+	return DKIM_STAT_OK;
+}
+
+/*
+**  DKIM_CANON_CLEANUP -- discard canonicalizations
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkim_canon_cleanup(DKIM *dkim)
+{
+	DKIM_CANON *cur;
+	DKIM_CANON *next;
+
+	assert(dkim != NULL);
+
+#ifdef _FFR_RESIGN
+	if (dkim->dkim_resign != NULL && dkim->dkim_hdrbind)
+		return;
+#endif /* _FFR_RESIGN */
+
+	cur = dkim->dkim_canonhead;
+	while (cur != NULL)
+	{
+		next = cur->canon_next;
+
+#ifdef _FFR_RESIGN
+		/* skip if resigning and body */
+		if (dkim->dkim_resign == NULL || cur->canon_hdr)
+			dkim_canon_free(dkim, cur);
+#else /* _FFR_RESIGN */
+		dkim_canon_free(dkim, cur);
+#endif /* _FFR_RESIGN */
+
+		cur = next;
+	}
+
+	dkim->dkim_canonhead = NULL;
+}
+
+/*
+**  DKIM_ADD_CANON -- add a new canonicalization handle if needed
+**
+**  Parameters:
+**  	dkim -- verification handle
+**  	hdr -- TRUE iff this is specifying a header canonicalization
+**  	canon -- canonicalization mode
+**  	hashtype -- hash type
+**  	hdrlist -- for header canonicalization, the header list
+**  	sighdr -- pointer to header being verified (NULL for signing)
+**  	length -- for body canonicalization, the length limit (-1 == all)
+**  	cout -- DKIM_CANON handle (returned)
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+DKIM_STAT
+dkim_add_canon(DKIM *dkim, _Bool hdr, dkim_canon_t canon, int hashtype,
+               u_char *hdrlist, struct dkim_header *sighdr,
+               off_t length, DKIM_CANON **cout)
+{
+	DKIM_CANON *cur;
+	DKIM_CANON *new;
+
+	assert(dkim != NULL);
+	assert(canon == DKIM_CANON_SIMPLE || canon == DKIM_CANON_RELAXED);
+	if (dkim_libfeature(dkim->dkim_libhandle, DKIM_FEATURE_SHA256))
+	{
+		assert(hashtype == DKIM_HASHTYPE_SHA1 ||
+		       hashtype == DKIM_HASHTYPE_SHA256);
+	}
+	else
+	{
+		assert(hashtype == DKIM_HASHTYPE_SHA1);
+	}
+
+	if (!hdr)
+	{
+		for (cur = dkim->dkim_canonhead; cur != NULL; cur = cur->canon_next)
+		{
+			if (cur->canon_hdr ||
+			    cur->canon_hashtype != hashtype ||
+			    cur->canon_canon != canon)
+				continue;
+
+			if (length != cur->canon_length)
+				continue;
+
+			if (cout != NULL)
+				*cout = cur;
+
+			return DKIM_STAT_OK;
+		}
+	}
+
+	new = (DKIM_CANON *) dkim_malloc(dkim->dkim_libhandle,
+	                                 dkim->dkim_closure, sizeof *new);
+	if (new == NULL)
+	{
+		dkim_error(dkim, "unable to allocate %d byte(s)", sizeof *new);
+		return DKIM_STAT_NORESOURCE;
+	}
+
+	new->canon_done = FALSE;
+	new->canon_hdr = hdr;
+	new->canon_canon = canon;
+	new->canon_hashtype = hashtype;
+	new->canon_hash = NULL;
+	new->canon_wrote = 0;
+	if (hdr)
+	{
+		new->canon_length = (off_t) -1;
+		new->canon_remain = (off_t) -1;
+	}
+	else
+	{
+		new->canon_length = length;
+		new->canon_remain = length;
+	}
+	new->canon_sigheader = sighdr;
+	new->canon_hdrlist = hdrlist;
+	new->canon_buf = NULL;
+	new->canon_next = NULL;
+	new->canon_done = FALSE;
+	new->canon_blankline = TRUE;
+	new->canon_blanks = 0;
+	new->canon_bodystate = 0;
+	new->canon_wrote = 0;
+	new->canon_hashbuflen = 0;
+	new->canon_hashbufsize = 0;
+	new->canon_hashbuf = NULL;
+	new->canon_lastchar = '\0';
+
+	if (dkim->dkim_canonhead == NULL)
+	{
+		dkim->dkim_canontail = new;
+		dkim->dkim_canonhead = new;
+	}
+	else
+	{
+		dkim->dkim_canontail->canon_next = new;
+		dkim->dkim_canontail = new;
+	}
+
+	if (cout != NULL)
+		*cout = new;
+
+	return DKIM_STAT_OK;
+}
+
+/*
 **  DKIM_CANON_SELECTHDRS -- choose headers to be included in canonicalization
 **
 **  Parameters:
@@ -476,7 +951,7 @@ dkim_canon_flushblanks(DKIM_CANON *canon)
 **  	"hdrlist" was not found.
 */
 
-static int
+int
 dkim_canon_selecthdrs(DKIM *dkim, u_char *hdrlist, struct dkim_header **ptrs,
                       int nptrs)
 {
@@ -625,347 +1100,6 @@ dkim_canon_selecthdrs(DKIM *dkim, u_char *hdrlist, struct dkim_header **ptrs,
 	DKIM_FREE(dkim, hdrs);
 
 	return m;
-}
-
-/*
-**  DKIM_CANON_FIXCRLF -- rebuffer a body chunk, fixing "naked" CRs and LFs
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	canon -- canonicalization being handled
-**  	buf -- buffer to be fixed
-**  	buflen -- number of bytes at "buf"
-**
-**  Return value:
-**  	A DKIM_STAT_* constant.
-**
-**  Side effects:
-**  	dkim->dkim_canonbuf will be initialized and used.
-*/
-
-static DKIM_STAT
-dkim_canon_fixcrlf(DKIM *dkim, DKIM_CANON *canon, u_char *buf, size_t buflen)
-{
-	u_char prev;
-	u_char *p;
-	u_char *eob;
-
-	assert(dkim != NULL);
-	assert(canon != NULL);
-	assert(buf != NULL);
-
-	if (dkim->dkim_canonbuf == NULL)
-	{
-		dkim->dkim_canonbuf = dkim_dstring_new(dkim, buflen, 0);
-		if (dkim->dkim_canonbuf == NULL)
-			return DKIM_STAT_NORESOURCE;
-	}
-	else
-	{
-		dkim_dstring_blank(dkim->dkim_canonbuf);
-	}
-
-	eob = buf + buflen - 1;
-
-	prev = canon->canon_lastchar;
-
-	for (p = buf; p <= eob; p++)
-	{
-		if (*p == '\n' && prev != '\r')
-		{
-			/* fix a solitary LF */
-			dkim_dstring_catn(dkim->dkim_canonbuf, CRLF, 2);
-		}
-		else if (*p == '\r')
-		{
-			if (p < eob && *(p + 1) != '\n')
-				/* fix a solitary CR */
-				dkim_dstring_catn(dkim->dkim_canonbuf, CRLF, 2);
-			else
-				/* CR at EOL, or CR followed by a LF */
-				dkim_dstring_cat1(dkim->dkim_canonbuf, *p);
-		}
-		else
-		{
-			/* something else */
-			dkim_dstring_cat1(dkim->dkim_canonbuf, *p);
-		}
-
-		prev = *p;
-	}
-
-	return DKIM_STAT_OK;
-}
-
-/* ========================= PUBLIC SECTION ========================= */
-
-/*
-**  DKIM_CANON_INIT -- initialize all canonicalizations
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	tmp -- make temp files?
-**  	keep -- keep temp files?
-**
-**  Return value:
-**  	A DKIM_STAT_* constant.
-*/
-
-DKIM_STAT
-dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
-{
-	int fd;
-	DKIM_STAT status;
-	DKIM_CANON *cur;
-
-	assert(dkim != NULL);
-
-	for (cur = dkim->dkim_canonhead; cur != NULL; cur = cur->canon_next)
-	{
-		cur->canon_hashbuf = DKIM_MALLOC(dkim, DKIM_HASHBUFSIZE);
-		if (cur->canon_hashbuf == NULL)
-		{
-			dkim_error(dkim,
-			           "unable to allocate %d byte(s)",
-			           sizeof(struct dkim_sha1));
-			return DKIM_STAT_NORESOURCE;
-		}
-		cur->canon_hashbufsize = DKIM_HASHBUFSIZE;
-		cur->canon_hashbuflen = 0;
-		cur->canon_buf = dkim_dstring_new(dkim, BUFRSZ, BUFRSZ);
-		if (cur->canon_buf == NULL)
-			return DKIM_STAT_NORESOURCE;
-
-		switch (cur->canon_hashtype)
-		{
-		  case DKIM_HASHTYPE_SHA1:
-		  {
-			struct dkim_sha1 *sha1;
-
-			sha1 = (struct dkim_sha1 *) DKIM_MALLOC(dkim,
-			                                        sizeof(struct dkim_sha1));
-			if (sha1 == NULL)
-			{
-				dkim_error(dkim,
-				           "unable to allocate %d byte(s)",
-				           sizeof(struct dkim_sha1));
-				return DKIM_STAT_NORESOURCE;
-			}
-
-			memset(sha1, '\0', sizeof(struct dkim_sha1));
-			SHA1_Init(&sha1->sha1_ctx);
-
-			if (tmp)
-			{
-				status = dkim_tmpfile(dkim, &fd, keep);
-				if (status != DKIM_STAT_OK)
-				{
-					DKIM_FREE(dkim, sha1);
-					return status;
-				}
-
-				sha1->sha1_tmpfd = fd;
-				sha1->sha1_tmpbio = BIO_new_fd(fd, 1);
-			}
-
-			cur->canon_hash = sha1;
-
-		  	break;
-		  }
-
-#ifdef SHA256_DIGEST_LENGTH
-		  case DKIM_HASHTYPE_SHA256:
-		  {
-			struct dkim_sha256 *sha256;
-
-			sha256 = (struct dkim_sha256 *) DKIM_MALLOC(dkim,
-			                                            sizeof(struct dkim_sha256));
-			if (sha256 == NULL)
-			{
-				dkim_error(dkim,
-				           "unable to allocate %d byte(s)",
-				           sizeof(struct dkim_sha256));
-				return DKIM_STAT_NORESOURCE;
-			}
-
-			memset(sha256, '\0', sizeof(struct dkim_sha256));
-			SHA256_Init(&sha256->sha256_ctx);
-
-			if (tmp)
-			{
-				status = dkim_tmpfile(dkim, &fd, keep);
-				if (status != DKIM_STAT_OK)
-				{
-					DKIM_FREE(dkim, sha256);
-					return status;
-				}
-
-				sha256->sha256_tmpfd = fd;
-				sha256->sha256_tmpbio = BIO_new_fd(fd, 1);
-			}
-
-			cur->canon_hash = sha256;
-
-		  	break;
-		  }
-#endif /* SHA256_DIGEST_LENGTH */
-
-		  default:
-			assert(0);
-		}
-	}
-
-	return DKIM_STAT_OK;
-}
-
-/*
-**  DKIM_CANON_CLEANUP -- discard canonicalizations
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**
-**  Return value:
-**  	None.
-*/
-
-void
-dkim_canon_cleanup(DKIM *dkim)
-{
-	DKIM_CANON *cur;
-	DKIM_CANON *next;
-
-	assert(dkim != NULL);
-
-#ifdef _FFR_RESIGN
-	if (dkim->dkim_resign != NULL && dkim->dkim_hdrbind)
-		return;
-#endif /* _FFR_RESIGN */
-
-	cur = dkim->dkim_canonhead;
-	while (cur != NULL)
-	{
-		next = cur->canon_next;
-
-#ifdef _FFR_RESIGN
-		/* skip if resigning and body */
-		if (dkim->dkim_resign == NULL || cur->canon_hdr)
-			dkim_canon_free(dkim, cur);
-#else /* _FFR_RESIGN */
-		dkim_canon_free(dkim, cur);
-#endif /* _FFR_RESIGN */
-
-		cur = next;
-	}
-
-	dkim->dkim_canonhead = NULL;
-}
-
-/*
-**  DKIM_ADD_CANON -- add a new canonicalization handle if needed
-**
-**  Parameters:
-**  	dkim -- verification handle
-**  	hdr -- TRUE iff this is specifying a header canonicalization
-**  	canon -- canonicalization mode
-**  	hashtype -- hash type
-**  	hdrlist -- for header canonicalization, the header list
-**  	sighdr -- pointer to header being verified (NULL for signing)
-**  	length -- for body canonicalization, the length limit (-1 == all)
-**  	cout -- DKIM_CANON handle (returned)
-**
-**  Return value:
-**  	A DKIM_STAT_* constant.
-*/
-
-DKIM_STAT
-dkim_add_canon(DKIM *dkim, _Bool hdr, dkim_canon_t canon, int hashtype,
-               u_char *hdrlist, struct dkim_header *sighdr,
-               off_t length, DKIM_CANON **cout)
-{
-	DKIM_CANON *cur;
-	DKIM_CANON *new;
-
-	assert(dkim != NULL);
-	assert(canon == DKIM_CANON_SIMPLE || canon == DKIM_CANON_RELAXED);
-#ifdef DKIM_HASHTYPE_SHA256
-	assert(hashtype == DKIM_HASHTYPE_SHA1 ||
-	       hashtype == DKIM_HASHTYPE_SHA256);
-#else /* DKIM_HASHTYPE_SHA256 */
-	assert(hashtype == DKIM_HASHTYPE_SHA1);
-#endif /* DKIM_HASHTYPE_SHA256 */
-
-	if (!hdr)
-	{
-		for (cur = dkim->dkim_canonhead; cur != NULL; cur = cur->canon_next)
-		{
-			if (cur->canon_hdr ||
-			    cur->canon_hashtype != hashtype ||
-			    cur->canon_canon != canon)
-				continue;
-
-			if (length != cur->canon_length)
-				continue;
-
-			if (cout != NULL)
-				*cout = cur;
-
-			return DKIM_STAT_OK;
-		}
-	}
-
-	new = (DKIM_CANON *) dkim_malloc(dkim->dkim_libhandle,
-	                                 dkim->dkim_closure, sizeof *new);
-	if (new == NULL)
-	{
-		dkim_error(dkim, "unable to allocate %d byte(s)", sizeof *new);
-		return DKIM_STAT_NORESOURCE;
-	}
-
-	new->canon_done = FALSE;
-	new->canon_hdr = hdr;
-	new->canon_canon = canon;
-	new->canon_hashtype = hashtype;
-	new->canon_hash = NULL;
-	new->canon_wrote = 0;
-	if (hdr)
-	{
-		new->canon_length = (off_t) -1;
-		new->canon_remain = (off_t) -1;
-	}
-	else
-	{
-		new->canon_length = length;
-		new->canon_remain = length;
-	}
-	new->canon_sigheader = sighdr;
-	new->canon_hdrlist = hdrlist;
-	new->canon_buf = NULL;
-	new->canon_next = NULL;
-	new->canon_done = FALSE;
-	new->canon_blankline = TRUE;
-	new->canon_blanks = 0;
-	new->canon_bodystate = 0;
-	new->canon_wrote = 0;
-	new->canon_hashbuflen = 0;
-	new->canon_hashbufsize = 0;
-	new->canon_hashbuf = NULL;
-	new->canon_lastchar = '\0';
-
-	if (dkim->dkim_canonhead == NULL)
-	{
-		dkim->dkim_canontail = new;
-		dkim->dkim_canonhead = new;
-	}
-	else
-	{
-		dkim->dkim_canontail->canon_next = new;
-		dkim->dkim_canontail = new;
-	}
-
-	if (cout != NULL)
-		*cout = new;
-
-	return DKIM_STAT_OK;
 }
 
 /*
@@ -1247,6 +1381,36 @@ dkim_canon_runheaders(DKIM *dkim)
 		/* finalize */
 		switch (cur->canon_hashtype)
 		{
+#ifdef USE_GNUTLS
+		  case DKIM_HASHTYPE_SHA1:
+		  case DKIM_HASHTYPE_SHA256:
+		  {
+			int alg;
+			struct dkim_sha *sha;
+
+			sha = (struct dkim_sha *) cur->canon_hash;
+
+			if (cur->canon_hashtype == DKIM_HASHTYPE_SHA1)
+				alg = GNUTLS_DIG_SHA1;
+			else
+				alg = GNUTLS_DIG_SHA256;
+
+			sha->sha_outlen = gnutls_hash_get_len(alg);
+
+			sha->sha_out = DKIM_MALLOC(dkim, sha->sha_outlen);
+			if (sha->sha_out == NULL)
+			{
+				dkim_error(dkim, "unable to allocate %u bytes",
+				           sha->sha_outlen);
+				return DKIM_STAT_NORESOURCE;
+			}
+
+			gnutls_hash_output(sha->sha_hd, sha->sha_out);
+
+			break;
+		  }
+
+#else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -1260,7 +1424,7 @@ dkim_canon_runheaders(DKIM *dkim)
 			break;
 		  }
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -1273,7 +1437,8 @@ dkim_canon_runheaders(DKIM *dkim)
 
 			break;
 		  }
-#endif /* SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_GNUTLS */
 
 		  default:
 			assert(0);
@@ -1349,6 +1514,41 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 		/* now close it */
 		switch (cur->canon_hashtype)
 		{
+#ifdef USE_GNUTLS
+		  case DKIM_HASHTYPE_SHA1:
+		  case DKIM_HASHTYPE_SHA256:
+		  {
+			int alg;
+			struct dkim_sha *sha;
+
+			sha = (struct dkim_sha *) cur->canon_hash;
+
+			if (cur->canon_hashtype == DKIM_HASHTYPE_SHA1)
+				alg = GNUTLS_DIG_SHA1;
+			else
+				alg = GNUTLS_DIG_SHA256;
+
+			sha->sha_outlen = gnutls_hash_get_len(alg);
+
+			sha->sha_out = DKIM_MALLOC(dkim, sha->sha_outlen);
+			if (sha->sha_out == NULL)
+			{
+				dkim_error(dkim, "unable to allocate %u bytes",
+				           sha->sha_outlen);
+				return DKIM_STAT_NORESOURCE;
+			}
+
+			gnutls_hash_output(sha->sha_hd, sha->sha_out);
+
+			if (sha->sha_tmpfd != -1)
+			{
+				close(sha->sha_tmpfd);
+				sha->sha_tmpfd = -1;
+			}
+
+			break;
+		  }
+#else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -1362,7 +1562,7 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 			break;
 		  }
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -1375,7 +1575,8 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 
 			break;
 		  }
-#endif /* SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_GNUTLS */
 
 		  default:
 			assert(0);
@@ -1739,6 +1940,37 @@ dkim_canon_closebody(DKIM *dkim)
 		/* finalize */
 		switch (cur->canon_hashtype)
 		{
+#ifdef USE_GNUTLS
+		  case DKIM_HASHTYPE_SHA1:
+		  case DKIM_HASHTYPE_SHA256:
+		  {
+			int alg;
+			u_int diglen;
+			struct dkim_sha *sha;
+
+			sha = (struct dkim_sha *) cur->canon_hash;
+
+			if (cur->canon_hashtype == DKIM_HASHTYPE_SHA1)
+				alg = GNUTLS_DIG_SHA1;
+			else
+				alg = GNUTLS_DIG_SHA256;
+
+			diglen = gnutls_hash_get_len(alg);
+
+			sha->sha_out = DKIM_MALLOC(dkim, diglen);
+			if (sha->sha_out == NULL)
+			{
+				dkim_error(dkim, "unable to allocate %u bytes",
+				           diglen);
+				return DKIM_STAT_NORESOURCE;
+			}
+
+			gnutls_hash_output(sha->sha_hd, sha->sha_out);
+			sha->sha_outlen = diglen;
+
+			break;
+		  }
+#else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
 		  {
 			struct dkim_sha1 *sha1;
@@ -1752,7 +1984,7 @@ dkim_canon_closebody(DKIM *dkim)
 			break;
 		  }
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
 			struct dkim_sha256 *sha256;
@@ -1765,7 +1997,8 @@ dkim_canon_closebody(DKIM *dkim)
 
 			break;
 		  }
-#endif /* SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_GNUTLS */
 
 		  default:
 			assert(0);
@@ -1802,6 +2035,19 @@ dkim_canon_getfinal(DKIM_CANON *canon, u_char **digest, size_t *dlen)
 
 	switch (canon->canon_hashtype)
 	{
+#ifdef USE_GNUTLS
+	  case DKIM_HASHTYPE_SHA1:
+	  case DKIM_HASHTYPE_SHA256:
+	  {
+		struct dkim_sha *sha;
+
+		sha = (struct dkim_sha *) canon->canon_hash;
+		*digest = sha->sha_out;
+		*dlen = sha->sha_outlen;
+
+		return DKIM_STAT_OK;
+	  }
+#else /* USE_GNUTLS */
 	  case DKIM_HASHTYPE_SHA1:
 	  {
 		struct dkim_sha1 *sha1;
@@ -1813,7 +2059,7 @@ dkim_canon_getfinal(DKIM_CANON *canon, u_char **digest, size_t *dlen)
 		return DKIM_STAT_OK;
 	  }
 
-#ifdef SHA256_DIGEST_LENGTH
+# ifdef HAVE_SHA256
 	  case DKIM_HASHTYPE_SHA256:
 	  {
 		struct dkim_sha256 *sha256;
@@ -1824,7 +2070,8 @@ dkim_canon_getfinal(DKIM_CANON *canon, u_char **digest, size_t *dlen)
 
 		return DKIM_STAT_OK;
 	  }
-#endif /* SHA256_DIGEST_LENGTH */
+# endif /* HAVE_SHA256 */
+#endif /* USE_GNUTLS */
 
 	  default:
 		assert(0);

@@ -2,7 +2,7 @@
 **  Copyright (c) 2007-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-ar.c,v 1.5.58.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -144,7 +144,7 @@ ares_tokenize(u_char *input, u_char *outbuf, size_t outbuflen,
 		{
 			escaped = TRUE;
 		}
-		else if (*p == '"')			/* quoting */
+		else if (*p == '"' && parens == 0)	/* quoting */
 		{
 			quoted = !quoted;
 
@@ -155,7 +155,7 @@ ares_tokenize(u_char *input, u_char *outbuf, size_t outbuflen,
 				intok = TRUE;
 			}
 		}
-		else if (*p == '(')			/* "(" (comment) */
+		else if (*p == '(' && !quoted)		/* "(" (comment) */
 		{
 			parens++;
 
@@ -170,21 +170,24 @@ ares_tokenize(u_char *input, u_char *outbuf, size_t outbuflen,
 			q++;
 
 		}
-		else if (*p == ')')			/* ")" (comment) */
+		else if (*p == ')' && !quoted)		/* ")" (comment) */
 		{
-			parens--;
-
-			if (parens == 0)
+			if (parens > 0)
 			{
-				intok = FALSE;
-				n++;
+				parens--;
 
-				*q = ')';
-				q++;
-				if (q <= end)
+				if (parens == 0)
 				{
-					*q = '\0';
+					intok = FALSE;
+					n++;
+
+					*q = ')';
 					q++;
+					if (q <= end)
+					{
+						*q = '\0';
+						q++;
+					}
 				}
 			}
 		}
@@ -677,7 +680,7 @@ main(int argc, char **argv)
 
 	c = ares_tokenize(argv[1], buf, sizeof buf, toks, NTOKENS);
 	for (d = 0; d < c; d++)
-		printf("token %d = `%s'\n", d, toks[d]);
+		printf("token %d = '%s'\n", d, toks[d]);
 
 	printf("\n");
 
@@ -691,8 +694,8 @@ main(int argc, char **argv)
 	printf("%d result%s found\n", ar.ares_count,
 	       ar.ares_count == 1 ? "" : "s");
 
-	printf("authserv-id `%s'\n", ar.ares_host);
-	printf("version `%s'\n", ar.ares_version);
+	printf("authserv-id '%s'\n", ar.ares_host);
+	printf("version '%s'\n", ar.ares_version);
 
 	for (c = 0; c < ar.ares_count; c++)
 	{

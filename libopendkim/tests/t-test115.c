@@ -2,18 +2,24 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
 static char t_test115_c_id[] = "@(#)$Id: t-test115.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
 #endif /* !lint */
 
+#include "build-config.h"
+
 /* system includes */
 #include <sys/types.h>
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+
+#ifdef USE_GNUTLS
+# include <gnutls/gnutls.h>
+#endif /* USE_GNUTLS */
 
 /* libopendkim includes */
 #include "../dkim.h"
@@ -55,6 +61,10 @@ main(int argc, char **argv)
 	unsigned char hdr[MAXHEADER + 1];
 
 	printf("*** detection of various key anomalies\n");
+
+#ifdef USE_GNUTLS
+	(void) gnutls_global_init();
+#endif /* USE_GNUTLS */
 
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);

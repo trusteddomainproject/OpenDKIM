@@ -2,12 +2,14 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
 static char t_test65_c_id[] = "@(#)$Id: t-test65.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
 #endif /* !lint */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -16,6 +18,9 @@ static char t_test65_c_id[] = "@(#)$Id: t-test65.c,v 1.2 2009/12/08 19:14:27 cm-
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef USE_GNUTLS
+# include <gnutls/gnutls.h>
+#endif /* USE_GNUTLS */
 
 /* libopendkim includes */
 #include "../dkim.h"
@@ -192,6 +197,10 @@ main(int argc, char **argv)
 	printf("*** relaxed/simple rsa-sha1 signing with leak detection\n");
 
 	debug_init();
+
+#ifdef USE_GNUTLS
+	(void) gnutls_global_init();
+#endif /* USE_GNUTLS */
 
 	/* instantiate the library */
 	lib = dkim_init(debug_malloc, debug_free);

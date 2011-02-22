@@ -107,15 +107,7 @@ typedef int dkim_pparam_t;
 #define DKIM_PPARAM_POLICY	0	/* dkim */
 #define DKIM_PPARAM_FLAGS	1	/* t */
 #define DKIM_PPARAM_REPORTADDR	2	/* r */
-
-/*
-**  DKIM_PFLAG -- policy flags
-*/
-
-#define	DKIM_PFLAG_TEST		0x01	/* t */
-#define	DKIM_PFLAG_NOSUBDOMAIN	0x02	/* s */
-
-#define DKIM_PFLAG_DEFAULT	0x00
+#define DKIM_PPARAM_ATPS	3	/* atps */
 
 /*
 **  DKIM_SETTYPE -- types of sets

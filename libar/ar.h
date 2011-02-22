@@ -2,7 +2,7 @@
 **  Copyright (c) 2004, 2005, 2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef _AR_H_
@@ -43,6 +43,7 @@ typedef void ar_free_t(void *, void *);
 #define	AR_FLAG_DEAD		0x02		/* service now unavailable */
 #define	AR_FLAG_TRUNCCHECK	0x04		/* limited truncation checks */
 #define	AR_FLAG_RECONNECT	0x08		/* pending reconnect */
+#define	AR_FLAG_TRACELOGGING	0x10		/* debug logging */
 
 #define	AR_STAT_ERROR		(-1)		/* error in transit */
 #define	AR_STAT_SUCCESS		0		/* reply available */
@@ -60,13 +61,13 @@ typedef void ar_free_t(void *, void *);
 extern AR_QUERY ar_addquery(AR_LIB, char *, int, int, int, unsigned char *,
                             size_t, int *, struct timeval *);
 extern int ar_cancelquery(AR_LIB, AR_QUERY);
-extern char *ar_strerror(int err);
+extern char *ar_strerror(int);
 extern int ar_waitreply(AR_LIB, AR_QUERY, size_t *, struct timeval *);
 extern AR_LIB ar_init(ar_malloc_t *, ar_free_t *, void *, int);
 extern void ar_recycle(AR_LIB, AR_QUERY);
 extern int ar_resend(AR_LIB, AR_QUERY);
-extern void ar_setmaxretry(AR_LIB lib, int new, int *old);
-extern void ar_setretry(AR_LIB lib, struct timeval *new, struct timeval *old);
+extern void ar_setmaxretry(AR_LIB, int, int *);
+extern void ar_setretry(AR_LIB, struct timeval *, struct timeval *);
 extern int ar_shutdown(AR_LIB);
 
 #endif /* ! _AR_H_ */

@@ -82,19 +82,38 @@ added when performing verification, which would mean the signed message
 and the verified message were different and the verification would fail.
 
 .TP
+.I AnonymousDomains (dataset)
+When
+.I Statistics
+is enabled, this data set is checked against the From: field of an arriving
+message to determine whether or not its data should be anonymized as described
+in
+.I AnonymousStatistics
+below.  When the domain is found, the domain is exempted from that setting.
+That is, if
+.I AnonymousStatistics
+is enabled and the domain is found in this data set, it will not be anonymized;
+if that feature is not enabled and the domain is found, it will be anonymized.
+@STATS_MANNOTICE@
+
+.TP
 .I AnonymousStatistics (Boolean)
 When
 .I Statistics
-is enabled, setting this flag will pass the From: domain and the client
-IP address portions of the reported data through a one-way hash algorithm
-to conceal those data while allowing some correlation to take place.  The
-default is "true".
+is enabled, setting this flag will pass the From: domain, signature domain
+and the client IP address portions of the reported data through a one-way
+hash algorithm to conceal those data while allowing some correlation to take
+place.  This is done for all messages.  The default is "true".
+@STATS_MANNOTICE@
 
 .TP
 .I AuthservID (string)
 Sets the "authserv-id" to use when generating the Authentication-Results:
-header after verifying a message.  The default is to use the local machine's
-hostname.
+header after verifying a message.  The default is to use the name of the MTA
+processing the message.  If the string "HOSTNAME" is provided, the name of
+the host running the filter (as returned by the
+.I gethostname(3)
+function) will be used.
 
 .TP
 .I AuthservIDWithJobID (Boolean)
@@ -192,6 +211,12 @@ record in a special way.  Possible values are
 @UNBOUND_MANNOTICE@
 
 .TP
+.I CaptureUnknownErrors (Boolean)
+When set, and on systems where MTA quarantine is available, the filter will
+request quarantine of a message that results in an internal error or resource
+exhaustion.
+
+.TP
 .I Canonicalization (string)
 Selects the canonicalization method(s) to be used when signing messages.
 When verifying, the message's DKIM-Signature: header specifies
@@ -222,6 +247,12 @@ failures.  Not recommended for normal operation.
 Directory into which to write diagnostic reports when message verification
 fails on a message bearing a "z=" tag.  If not set (the default), these files
 are not generated.
+
+.TP
+.I DNSConnect (Boolean)
+Requests that the asynchronous resolver start using TCP immediately
+rather than using UDP until TCP is actually needed.  Does not work with
+all resolvers.
 
 .TP
 .I DNSTimeout (integer)
@@ -349,6 +380,12 @@ Naturally, providing a value here overrides the default, so if mail from
 address explicitly.
 
 .TP
+.I KeepAuthResults (boolean)
+Suppresses removal of Authentication-Results header fields containing DKIM
+results apparently added by this filter (usually the result of a
+misconfiguration or a forgery).
+
+.TP
 .I KeepTemporaryFiles (boolean)
 Instructs the filter to create temporary files containing the header and
 body canonicalizations of messages that are signed or verified.
@@ -378,7 +415,8 @@ a signature.
 If the third value starts with a slash ("/") character, or "./" or "../",
 then it is presumed to refer to a file from which the private key should
 be read, otherwise it is itself a PEM-encoded private key or a base64-encoded
-DER private key.  The
+DER private key; a "%" in the third value in this case will be replaced by
+the apparent domain name of the sender.  The
 .I SigningTable
 (see below) is used to select records from this table to be used to add
 signatures based on the message sender.
@@ -490,6 +528,16 @@ cause the filter to allocate an unspecified amount of memory.  The
 default is 65536; a value of 0 removes the limit.
 
 .TP
+.I MaximumSignaturesToVerify (integer)
+Defines the maximum number of signatures on a message for which verification
+should be conducted.  The default is three.  Signatures are selected from
+the top of the message downward.  If
+.I TrustSignaturesFrom
+is set, signatures from domains in that data set are always verified, which
+may consume part or all of, or even exceed, this limit.
+@MAXVERIFY_MANNOTICE@
+
+.TP
 .I MaximumSignedBytes (integer)
 Specifies the maximum number of bytes of message body to be signed.
 Messages shorter than this limit will be signed in their entirety.
@@ -587,12 +635,15 @@ those tags will be applied.
 Specifies a set of header fields that should be omitted when generating
 signatures.  If an entry in the list names any header that is mandated
 by the DKIM specification, the entry is ignored.  A set of headers is listed
-in the DKIM specification as "SHOULD NOT" be signed; the default list for
-this parameter contains those headers (Return-Path, Received, Comments,
-Keywords, Bcc, Resent-Bcc and DKIM-Signature).  To omit no headers,
-simply use the string "-" (or any string that will match no headers).
-Note that specifying a list with this parameter replaces the default
-entirely.
+in the DKIM specification (RFC4871, Section 5.5) as "SHOULD NOT" be signed;
+the default list for this parameter contains those headers (Return-Path,
+Received, Comments, Keywords, Bcc, Resent-Bcc and DKIM-Signature).  To omit no
+headers, simply use the string "." (or any string that will match no headers).
+Specifying a list with this parameter replaces the default entirely, unless
+one entry is "*" in which case the list is interpreted as a delta to the
+default; for example, "*,+foobar" will use the entire default list plus
+the name "foobar", while "*,-Bcc" would use the entire default list except
+for the "Bcc" entry.
 
 .TP
 .I On-BadSignature (string)
@@ -602,10 +653,12 @@ Possible values (with abbreviated forms in parentheses):
 (a) accept the message;
 .I discard
 (d) discard the message;
-.I tempfail
-(t) temp-fail the message;
+.I quarantine
+(q) quarantine the message;
 .I reject
-(r) reject the message.
+(r) reject the message;
+.I tempfail
+(t) temp-fail the message.
 The default is
 .I accept.
 
@@ -665,6 +718,24 @@ The default is
 .I tempfail.
 
 .TP
+.I OversignHeaders (dataset)
+Specifies a set of header fields that should be included in all signature
+header lists (the "h=" tag) even if they were present at the time
+the signature was generated.  The set is empty by default.  The purpose of
+listing an absent header is to prevent its addition between the signer
+and the verifier, since the verifier would include that header if it were
+added when performing verification, which would mean the signed message
+and the verified message were different and the verification would fail.
+Unlike
+.I AlwaysSignHeaders,
+the names in this data set are always added to signatures even if they did
+appear in the original header field set.  Note that the fields in this list
+must also be present in the
+.I SignHeaders
+list, or any signature produced will be impossible to validate.
+@OVERSIGN_MANNOTICE@
+
+.TP
 .I PeerList (dataset)
 Identifies a set of "peers" that identifies clients whose connections
 should be accepted without processing by this filter.  The set
@@ -692,7 +763,7 @@ for signing. This feature was designed for POP-before-SMTP datastores.
 
 .TP
 .I Quarantine (Boolean)
-Requests that messages that fail verification be quarantined by the
+Requests that messages which fail verification be quarantined by the
 MTA.  (Requires a sufficiently recent version of the milter library.)
 
 .TP
@@ -783,7 +854,8 @@ result in "x-dkim-rep" being set to "neutral".
 .TP
 .I ReputationReject (integer)
 If the reputation returned by the DNS reputation service exceeds this value
-then the message is rejected.  The default value here is 1001.
+then the message is rejected.  The default value here is 1001, a deliberately
+impossible value so that rejections are not enabled by default.
 @DKIM_REPUTATION_MANNOTICE@
 
 .TP
@@ -827,6 +899,12 @@ If there is a match without a
 .I KeyTable,
 the default key is applied.
 @RESIGN_MANNOTICE@
+
+.TP
+.I ResolverTracing (Boolean)
+Requests resolver tracing features be enabled, if available.  The effect
+of this depends on how debugging features of the resolver might be implemented.
+Currently only effective with the OpenDKIM asynchronous resolver library.
 
 .TP
 .I ScreenPolicyScript (string)
@@ -882,7 +960,9 @@ Specifies an ordered list of header fields that should be searched to
 determine the sender of a message.  This is mainly used when verifying a
 message to determine the origin domain, particularly for making signing
 decisions.  By default, the DKIM library's internal list is used, which
-consists solely of the "From" header field.
+consists solely of the "From" header field.  See the
+.I OmitHeaders
+setting for a description of possible values.
 
 .TP
 .I SenderMacro (string)
@@ -926,10 +1006,11 @@ If not set, no expiration time is added to signatures.
 Specifies the set of headers that should be included when generating
 signatures.  If the list omits any header that is mandated by the DKIM
 specification, those headers are implicitly added.  By default, those headers
-listed in the DKIM specification as "SHOULD" be signed will be signed by the
-filter.  Specifying a list here replaces that list entirely.  See the
+listed in the DKIM specification as "SHOULD" be signed (RFC4871, Section 5.5)
+will be signed by the filter.  See the
 .I OmitHeaders
-configuration option for more information.
+configuration option for more information about the format and interpretation
+of this field.
 
 .TP
 .I SigningTable (dataset)
@@ -940,9 +1021,12 @@ include one field that contains a name found in the
 .I KeyTable
 (see above) that identifies which key should be used in generating
 the signature, and an optional second field naming the signer of the message
-that will be included in the "i=" tag in the generated signature.  Within this
-optional second field, any "%" character will be replaced by the domain found
-in the From: header field.
+that will be included in the "i=" tag in the generated signature.
+
+If the first field contains only a "%" character, it will be replaced by the
+domain found in the From: header field.  Similarly, within the optional
+second field, any "%" character will be replaced by the domain found in
+the From: header field.
 
 If this table specifies a regular expression file ("refile"),
 then the keys are wildcard patterns that are matched against the address
@@ -1026,6 +1110,11 @@ different hashes, meaning such correlation is now only possible within the
 data from a single repoter.
 
 .TP
+.I StrictHeaders (Boolean)
+If set, instructs the DKIM library to refuse processing of a message if the
+header field count does not conform to RFC5322 Section 3.6.
+
+.TP
 .I StrictTestMode (Boolean)
 Selects strict CRLF mode during testing (see the
 .I -t
@@ -1105,6 +1194,16 @@ of the process umask.  See
 for more information.
 
 .TP
+.I UnboundConfigFile (string)
+Specifies a configuration file to be passed to the Unbound library that
+performs DNS queries applying the DNSSEC protocol.  See the Unbound
+documentation at http://unbound.net for the expected content of this file.
+The results of using this and the
+.I TrustAnchorFile
+setting at the same time are undefined.
+@UNBOUND_MANNOTICE@
+
+.TP
 .I UserID (string)
 Attempts to become the specified userid before starting operations.
 The value is of the form
@@ -1122,10 +1221,23 @@ The default certifiers if not specified in X-VBR-Certifiers header field.
 @VBR_MANNOTICE@
 
 .TP
+.I VBR-PurgeFields (string)
+If set, arranges to remove X-VBR-Certifiers and X-VBR-Type fields on messages
+prior to sending them.
+@VBR_MANNOTICE@
+
+.TP
 .I VBR-TrustedCertifiers (string)
 A colon or comma sparated list of trusted certifiers to accept when 
 verifying VBR-Info headers.
-Under revision and may not be stable.
+@VBR_MANNOTICE@
+
+.TP
+.I VBR-TrustedCertifiersOnly (Boolean)
+By default, the certifiers that are in both the trusted certifiers list
+(above) and those in the message's VBR-Info header field will be checked
+for vouching.  With this option set, the trusted certifiers will be
+checked and the ones claimed by the message will be ignored.
 @VBR_MANNOTICE@
 
 .TP
@@ -1156,6 +1268,10 @@ will use the
 function to parse that information.  Users should be familiar with the
 way that function handles the non-trivial cases (for example, "192.0.2/24"    
 and "192.0.2.0/24" are not the same thing).
+.SH FILES
+.TP
+.I @SYSCONFDIR@/opendkim.conf
+Default location of this file.
 .SH VERSION
 This man page covers version @VERSION@ of
 .I opendkim.
@@ -1164,7 +1280,7 @@ This man page covers version @VERSION@ of
 Copyright (c) 2007, 2008, Sendmail, Inc. and its suppliers.  All rights
 reserved.
 
-Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8), opendkim-lua(3), sendmail(8)
 .P

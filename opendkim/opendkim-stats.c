@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-stats.c,v 1.19.2.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -175,8 +175,15 @@ main(int argc, char **argv)
 			char *adsppf;
 			char *ct;
 			char *cte;
+#ifdef _FFR_ATPS
+			char *atps;
+#endif /* _FFR_ATPS */
 
+#ifdef _FFR_ATPS
+			if (n != 17 && n != 18)
+#else /* _FFR_ATPS */
 			if (n != 17)
+#endif /* _FFR_ATPS */
 			{
 				fprintf(stderr,
 				        "%s: unexpected message field count (%d) at input line %d\n",
@@ -203,6 +210,14 @@ main(int argc, char **argv)
 					adsppf = "failed";
 			}
 
+#ifdef _FFR_ATPS
+			atps = "not checked";
+			if (n == 18 && fields[DKIMS_MI_ATPS][0] == '0')
+				atps = "no match";
+			else if (n == 18 && fields[DKIMS_MI_ATPS][0] == '1')
+				atps = "match";
+#endif /* _FFR_ATPS */
+
 			if (fields[DKIMS_MI_CONTENTTYPE][0] == '\0')
 				ct = "(default)";
 			else
@@ -219,7 +234,7 @@ main(int argc, char **argv)
 				ms = 0;
 			}
 
-			fprintf(stdout, "Job %s at %s (size %s)\n\treceived via %s at %s\tfrom domain = `%s', %s Received header fields\n\tContent type %s, content transfer encoding %s\n\t%s to come from a mailing list\n\tADSP %s (%s)\n",
+			fprintf(stdout, "Job %s at %s (size %s)\n\treceived via %s at %s\tfrom domain = '%s', %s Received header fields\n\tContent type %s, content transfer encoding %s\n\t%s to come from a mailing list\n\tADSP %s (%s)\n",
 			        fields[DKIMS_MI_JOBID],
 			        fields[DKIMS_MI_REPORTER],
 			        fields[DKIMS_MI_MSGLEN],
@@ -231,6 +246,10 @@ main(int argc, char **argv)
 			        fields[DKIMS_MI_MAILINGLIST][0] == '0' ? "Does not appear"
 			                                               : "Appears",
 			        adsp, adsppf);
+
+#ifdef _FFR_ATPS
+			fprintf(stdout, "\tATPS %s\n", atps);
+#endif /* _FFR_ATPS */
 
 			m++;
 		}
@@ -245,11 +264,7 @@ main(int argc, char **argv)
 			char *siglen;
 			char *dnssec;
 
-#ifdef _FFR_STATS_I
-			if (n != 19 && n != 21)
-#else /* _FFR_STATS_I */
-			if (n != 19)
-#endif /* _FFR_STATS_I */
+			if (n != 19 && n != 21 && n != 23)
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",

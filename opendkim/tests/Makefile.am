@@ -6,7 +6,14 @@ check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-verify-revoked t-verify-unspec \
 	t-verify-unsigned t-verify-unsigned-silent \
 	t-verify-syntax t-verify-ss t-verify-ss-bad t-verify-report \
-	t-dontsign t-peer t-adsp-report t-local-adsp t-local-adsp-subdomain
+	t-dontsign t-peer t-adsp-report t-local-adsp t-local-adsp-subdomain \
+	t-lua-verify-tests
+
+if LIVE_TESTS
+if RBL
+check_SCRIPTS += t-lua-rbl
+endif
+endif
 
 TESTS = $(check_SCRIPTS)
 
@@ -36,16 +43,19 @@ EXTRA_DIST = \
 	t-verify-ss-bad t-verify-ss-bad.conf t-verify-ss-bad.lua \
 	t-verify-syntax t-verify-syntax.conf t-verify-syntax.lua \
 	t-dontsign t-dontsign.conf t-dontsign.lua \
+	t-lua-rbl t-lua-rbl.conf t-lua-rbl.lua t-lua-rbl.lua-final \
+	t-lua-verify-tests t-lua-verify-tests.lua t-lua-verify-tests.conf \
+		t-lua-verify-tests.lua-setup \
 	t-peer t-peer.conf t-peer.list t-peer.lua \
 	t-verify-report t-verify-report.conf t-verify-report.txt \
 		t-verify-report.lua \
 	t-adsp-report t-adsp-report.conf t-adsp-report.txt \
 		t-adsp-report.lua \
-	testkey.private pubkeys cp-test testmta \
 	t-local-adsp t-local-adsp.conf t-local-adsp.txt \
 		t-local-adsp.lua \
 	t-local-adsp-subdomain t-local-adsp-subdomain.conf \
-		t-local-adsp-subdomain.lua
+		t-local-adsp-subdomain.lua \
+	testkey.private pubkeys cp-test testmta
 
 
 

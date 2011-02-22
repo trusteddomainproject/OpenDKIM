@@ -1,6 +1,6 @@
 -- $Id: t-local-adsp.lua,v 1.2 2010/09/13 05:25:10 cm-msk Exp $
 
--- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 
 -- 
 -- verify config option LocalADSP works
@@ -74,7 +74,8 @@ end
 if mt.bodystring(conn, "This is a test!\r\n") ~= nil then
 	error "mt.bodystring() failed"
 end
-if mt.getreply(conn) ~= SMFIR_SKIP then
+if mt.getreply(conn) ~= SMFIR_SKIP and
+   mt.getreply(conn) ~= SMFIR_CONTINUE then
 	print(mt.getreply(conn))
 	error "mt.bodystring() unexpected reply"
 end

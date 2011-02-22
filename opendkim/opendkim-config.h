@@ -2,7 +2,7 @@
 **  Copyright (c) 2006-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-config.h,v 1.32.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -36,6 +36,7 @@ struct configdef dkimf_config[] =
 	{ "AlwaysAddARHeader",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AlwaysSignHeaders",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_STATS
+	{ "AnonymousDomains",		CONFIG_TYPE_STRING,	FALSE },
 	{ "AnonymousStatistics",	CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* _FFR_STATS */
 	{ "AuthservID",			CONFIG_TYPE_STRING,	FALSE },
@@ -54,12 +55,14 @@ struct configdef dkimf_config[] =
 	{ "BogusPolicy",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* USE_UNBOUND*/
 	{ "Canonicalization",		CONFIG_TYPE_STRING,	FALSE },
+	{ "CaptureUnknownErrors",	CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ClockDrift",			CONFIG_TYPE_INTEGER,	FALSE },
 #ifdef _FFR_DEFAULT_SENDER
 	{ "DefaultSender",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_DEFAULT_SENDER */
 	{ "Diagnostics",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DiagnosticDirectory",	CONFIG_TYPE_STRING,	FALSE },
+	{ "DNSConnect",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DNSTimeout",			CONFIG_TYPE_INTEGER,	FALSE },
 	{ "Domain",			CONFIG_TYPE_STRING,	FALSE },
 	{ "DomainKeysCompat",		CONFIG_TYPE_BOOLEAN,	FALSE },
@@ -81,6 +84,7 @@ struct configdef dkimf_config[] =
 	{ "InsecurePolicy",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* USE_UNBOUND */
 	{ "InternalHosts",		CONFIG_TYPE_STRING,	FALSE },
+	{ "KeepAuthResults",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "KeepTemporaryFiles",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "KeyFile",			CONFIG_TYPE_STRING,	FALSE },
 	{ "KeyTable",			CONFIG_TYPE_STRING,	FALSE },
@@ -98,7 +102,9 @@ struct configdef dkimf_config[] =
 	{ "LocalADSP",			CONFIG_TYPE_STRING,	FALSE },
 	{ "LogWhy",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "MaximumHeaders",		CONFIG_TYPE_INTEGER,	FALSE },
-	{ "MaximumSignedBytes",		CONFIG_TYPE_INTEGER,	FALSE },
+#ifdef _FFR_MAXVERIFY
+	{ "MaximumSignaturesToVerify",	CONFIG_TYPE_INTEGER,	FALSE },
+#endif /* _FFR_MAXVERIFY */
 	{ "MacroList",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MilterDebug",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "Minimum",			CONFIG_TYPE_STRING,	FALSE },
@@ -120,6 +126,9 @@ struct configdef dkimf_config[] =
 	{ "On-PolicyError",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-NoSignature",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-Security",		CONFIG_TYPE_STRING,	FALSE },
+#ifdef _FFR_OVERSIGN
+	{ "OverSignHeaders",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_OVERSIGN */
 	{ "PeerList",			CONFIG_TYPE_STRING,	FALSE },
 	{ "PidFile",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef POPAUTH
@@ -155,6 +164,7 @@ struct configdef dkimf_config[] =
 	{ "ResignAll",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ResignMailTo",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_RESIGN */
+	{ "ResolverTracing",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef USE_LUA
 	{ "ScreenPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* USE_LUA */
@@ -190,6 +200,7 @@ struct configdef dkimf_config[] =
 # endif /* USE_LUA */
 	{ "StatisticsPrefix",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_STATS */
+	{ "StrictHeaders",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "StrictTestMode",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "SubDomains",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "Syslog",			CONFIG_TYPE_BOOLEAN,	FALSE },
@@ -202,10 +213,15 @@ struct configdef dkimf_config[] =
 #endif /* USE_UNBOUND */
 	{ "TrustSignaturesFrom",	CONFIG_TYPE_STRING,	FALSE },
 	{ "UMask",			CONFIG_TYPE_INTEGER,	FALSE },
+#ifdef USE_UNBOUND
+	{ "UnboundConfigFile",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* USE_UNBOUND */
 	{ "UserID",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_VBR
 	{ "VBR-Certifiers",		CONFIG_TYPE_STRING,	FALSE },
+	{ "VBR-PurgeFields",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "VBR-TrustedCertifiers",	CONFIG_TYPE_STRING,	FALSE },
+	{ "VBR-TrustedCertifiersOnly",	CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "VBR-Type",			CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_VBR */
 	{ "X-Header",			CONFIG_TYPE_BOOLEAN,	FALSE },

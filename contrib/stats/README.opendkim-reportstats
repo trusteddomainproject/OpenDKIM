@@ -81,6 +81,6 @@ o cURL ( http://curl.haxx.se/ )
 o GNU Privacy Guard (GNUPG) ( http://www.gnupg.org/ ) v1.4.10 or later
 
 --
-Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 
 $Id: README.opendkim-reportstats,v 1.3 2010/10/25 17:13:47 cm-msk Exp $

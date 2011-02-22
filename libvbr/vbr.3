@@ -1,0 +1,380 @@
+.TH libvbr 3
+.SH NAME
+.B vbr_init(), vbr_options(), vbr_close(), vbr_geterror(), vbr_getheader(),
+.B vbr_setcert(), vbr_settype(), vbr_setdomain(), vbr_trustedcerts(),
+.B vbr_query(), vbr_settimeout(), vbr_setcallbackint(), vbr_setcallbackctx(),
+.B vbr_setdnscallback(), vbr_dns_set_query_service(),
+.B vbr_dns_set_query_start(), vbr_dns_set_query_cancel(),
+.B vbr_dns_set_query_waitreply()
+-- Vouch By Reference service facility
+.SH SYNOPSIS
+#include
+.I <vbr.h>
+
+VBR *
+.B vbr_init
+(void *(*
+.B mallocf
+)(void *, size_t), void (*
+.B freef
+)(void *, void *p), void *
+.B closure
+);
+
+void
+.B vbr_options
+(VBR *
+.B vbr
+, unsigned int
+.B opts
+);
+
+unsigned char *
+.B vbr_geterror
+(VBR *
+.B vbr
+);
+
+VBR_STAT
+.B vbr_getheader
+(VBR *
+.B vbr,
+unsigned char *
+.B hdr,
+size_t
+.B len
+);
+
+void
+.B vbr_setcert
+(VBR *
+.B vbr,
+unsigned char *
+.B cert
+);
+
+void
+.B vbr_settype
+(VBR *
+.B vbr,
+unsigned char *
+.B cert
+);
+
+void
+.B vbr_setdomain
+(VBR *
+.B vbr,
+unsigned char *
+.B cert
+);
+
+void
+.B vbr_trustedcerts
+(VBR *
+.B vbr,
+unsigned char **
+.B cert
+);
+
+VBR_STAT
+.B vbr_query
+(VBR *
+.B vbr,
+unsigned char **
+.B res,
+unsigned char **
+.B cert
+);
+
+VBR_STAT
+.B vbr_settimeout
+(VBR *
+.B vbr,
+unsigned int
+.B timeout
+);
+
+VBR_STAT
+.B vbr_setcallbackint
+(VBR *
+.B vbr,
+unsigned int
+.B cbint
+);
+
+VBR_STAT
+.B vbr_setcallbackctx
+(VBR *,
+.B vbr,
+void *
+.B ctx
+);
+
+VBR_STAT
+.B vbr_setdnscallback
+(VBR *,
+.B vbr,
+void (*
+.B func
+)(const void *));
+
+void *
+.B vbr_dns_set_query_service
+(VBR *
+.B vbr,
+void *
+.B svc
+);
+
+void
+.B vbr_dns_set_query_cancel
+(VBR *
+.B vbr,
+int (*
+.B func
+)(void *, void *));
+
+void
+.B vbr_dns_set_query_start
+(VBR *
+.B vbr,
+int (*
+.B func
+)(void *, int, unsigned char *, unsigned char *, size_t, void **));
+
+void
+.B vbr_dns_set_query_waitreply
+(VBR *
+.B vbr,
+int (*
+.B func
+)(void *, void *, struct timeval *, size_t *, int *, int *));
+
+void
+.B vbr_close
+(VBR *);
+
+.SH DESCRIPTION
+These functions are an interface to a facility to conduct Vouch By Reference
+(VBR) queries and return their results.  VBR is defined in RFC5518.
+
+An application first initializes the package by calling
+.B vbr_init().
+The optional
+.I mallocf
+parameter is a caller-provided memory allocation function taking a pointer
+to a caller-provided opaque data structure (the
+.I closure
+parameter) and a number of bytes to allocate.  If
+.I mallocf
+is not provided, the default system memory allocator function
+.B malloc(3)
+is used.  The optional
+.I freef
+parameter specifies a matching caller-provided memory deallocator function,
+taking a pointer to a caller-provided opaque data structure (the
+.I closure
+parameter) and a pointer to the memory to be released.  If
+.I freef
+is not provided, the default system memory release function
+.B free(3)
+is used.  A handle for future use of the initialized library instance
+is returned, or NULL on error and
+.I errno
+will be set to indicate the cause of the failure.
+
+The caller can use
+.B vbr_options()
+to set query processing options.  See the OPTIONS section for details.
+
+The
+.B vbr_geterror()
+function can be used to poll the library for an error string that provides
+further description for the most recent failed operation.
+
+Calling
+.B vbr_getheader()
+can be used to generate an RFC-compliant VBR-Info: haeder field based on data
+provided by other accessor functions, namely
+.I vbr_setcert(),
+.I vbr_settype()
+and
+.I vbr_setdomain()
+(below).  A library instance is provided as the first parameter, and a pointer
+to the destination buffer and its length are provided in the second and third.
+Note that only the value of the header field is stored into the buffer,
+not its name; the standard name of the header field is available as the
+VBR_INFOHEADER macro.
+
+.B vbr_setcert()
+takes a VBR library instance as its first argument and a colon-separated
+list of claimed vouching domains as its second.
+Similarly,
+.B vbr_settype()
+sets the message type, and
+.B vbr_setdomain()
+sets the sending domain.  These correspond, respectively, to the "mv", "mc"
+and "md" values from a received message's VBR-Info header field.  These values
+are used by the library instance when calling
+.I vbr_getheader()
+to generate VBR information header fields to attach to outgoing messages
+or when calling
+.I vbr_query()
+to check for a vouching reference.  Note that the library does no validation
+of the possible values of the message type (to allow for new message types
+that may appear outside of the original RFC), and has no context to validate
+the domain.
+
+.B vbr_trustedcerts()
+takes a VBR library instance as its first argument and a NULL-terminated
+array of pointers to certifier names as its second, which is used by
+.I vbr_query()
+to select vouching services the caller trusts.  The intersection of these
+trusted certifiers and those claimed by an arriving message.  The list is
+initially empty.
+
+.B vbr_query()
+polls trusted certifiers to see if any of them agree with the assertion
+made by the message sender.  The pointer
+.B res
+will be set to point to a result string after the query has been
+resolved.  The result will be "pass" if any trusted certifier concurred with
+the assertion made by the sender.  If
+.B cert
+is not NULL, it will be updated to point to the name of the trusted certifier
+that concurred with the sender's assertion when a "pass" result is returned.
+If any queries were made but none of them resulted in concurrence, a result
+of "fail" is returned.  If no query was made because of errors or because
+the trusted certifier set and the sender's certifier set included no vouchers
+in common,
+.B cert
+will be unchanged.
+
+The
+.B vbr_settimeout()
+function can be used to change the query timeout.  The default is ten seconds.
+Note that this timeout is applied for each voucher query, so a call to
+.I vbr_query()
+can take longer than this if multiple queries need to be made.
+
+If it is useful to have the library periodically call a user-provided function
+as an indication that queries are still in progress, such a function can be
+registered with the
+.B vbr_setdnscallback()
+function.  The function provided should take a void context pointer as
+its sole argument.
+.B vbr_setcallbackctx()
+is used to tell the library what context pointer should be used, and
+.B vbr_setcallbackint()
+is used to tell the library what frequency, in seconds, should be used to
+call that callback function.  Each of these takes the corresponding VBR
+library handle as its first argument, and the obvious parameter for its second.
+
+By default, the library will use the stock system resolver to conduct DNS
+queries.  If alternates should be used, these can be specifed using the
+following functions:
+
+.B vbr_dns_set_query_service()
+sets a context pointer to the query service to be used, if any.  This will
+be passed as-is to the other DNS functions.  It returns its previous value.
+
+.B vbr_dns_set_query_cancel()
+sets a pointer to the function that should be called to cancel an open query,
+and should take the following parameters: a void pointer to the DNS query
+service to be used, and a void pointer to a query handle as previously returned
+by a call to
+.I vbr_dns_set_query_start().
+The function should return one of the DNS result codes described below.
+
+.B vbr_dns_set_query_start()
+sets a pointer to the function that should be called to initiate a new query,
+and should take the following parameters: a void pointer to the DNS query
+service to be used, a DNS record type (e.g. T_TXT), a pointer to a string
+containing the query to be started, a pointer to a buffer into which the
+reply should be written, the number of bytes available in that buffer,
+and a pointer to a void pointer that will be updated to contain a unique
+handle for that query once started.  The function should return one of the
+DNS result codes described below.
+
+.B vbr_dns_set_query_waitreply()
+sets a pointer to the function that should be called to wait for a reply
+to an open query, and should take the following parameters: a void pointer
+to the DNS query service to be used, a void pointer referencing the query of
+interest as previously returned by a call to
+.I vbr_dns_set_query_start(),
+a pointer to a "struct timeval" structure indicating how long the function
+should wait for a reply (or NULL if infinite waiting is acceptable),
+a pointer to a "size_t" that will be updated to contain the size of the
+received reply, a pointer to an integer that will contain an error code
+if the query fails (can be NULL if that information is not interesting to
+the caller), and a pointer to an integer that will contain a DNSSEC
+status indication (can be NULL if that information is not interesting to
+the caller).  The function should return one of the DNS result codes
+described below.
+
+When the library handle is no longer needed, it should be passed to
+.B vbr_close().
+
+.SH OPTIONS
+Setting options is done using the
+.I vbr_options()
+function.  The
+.I opts
+parameter is a bitwise-OR list of the available options requested by the
+application.  The currently supported option:
+.TP
+.I VBR_FLAG_TRUSTEDONLY
+By default, a VBR query will be sent to the intersection of the trusted
+certifiers (provided by the
+.I vbr_trustedcerts()
+function) and the list of certifiers claimed on a message (provided by the
+.I vbr_sercert()
+function).  With this option enabled, the trusted certifiers will be checked
+and the provided certifiers will be ignored.
+.SH RETURN VALUES
+The following return codes, of type VBR_STAT, can be returned:
+.TP
+.I VBR_STAT_OK
+successful completion
+.TP
+.I VBR_STAT_INVALID
+operation failed because an invalid parameter was provided
+.TP
+.I VBR_STAT_DNSERROR
+operation could not be completed because of errors requesting or receiving
+a DNS reply; note that this does not include a successful reply that contains
+a "no record found" result, which is a successful answer
+.TP
+.I VBR_STAT_NORESOURCE
+a caller-provided buffer was too small to complete the requested operation,
+or a memory or file descriptor allocation failed
+.TP
+.I VBR_STAT_NOTIMPLEMENT
+an optional library feature was not selected at compilation time
+.SH DNS RETURN CODES
+Any registered DNS functions should return one of the following result codes:
+.TP
+.I VBR_DNS_ERROR
+An error occurred.  The cause of the error can be retrieved using
+.I vbr_geterror().
+.TP
+.I VBR_DNS_SUCCESS
+The operation was successful.
+.TP
+.I VBR_DNS_REPLY
+A reply is available (returned by the "waitreply" function).
+.TP
+.I VBR_DNS_NOREPLY
+No reply was received by the time the query timeout was reached (returned
+by the "waitreply" function).
+.TP
+.I VBR_DNS_EXPIRED
+The query expired completely (returned by the "waitreply" function).  Some
+resolvers set an overall timeout for the query at start time in addition to
+one for each single wait request; this code indicates the former timeout
+expired.
+.SH COPYRIGHT
+Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+.I intro(2)

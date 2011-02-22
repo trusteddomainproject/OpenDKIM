@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 #
-# Copyright (c) 2009, 2010  The OpenDKIM Project.  All rights reserved.
+# Copyright (c) 2009-2011  The OpenDKIM Project.  All rights reserved.
 # 
 # $Id: configure.ac,v 1.185 2010/10/28 04:35:44 cm-msk Exp $
 
@@ -14,8 +14,8 @@ AC_PREREQ(2.61)
 # Package version
 #
 m4_define([VERSION_RELEASE], 2)
-m4_define([VERSION_MAJOR_REV], 2)
-m4_define([VERSION_MINOR_REV], 2)
+m4_define([VERSION_MAJOR_REV], 3)
+m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -113,9 +113,9 @@ dn_comp (0, 0, 0, 0, 0);
 return 0;
 }'
 AC_MSG_CHECKING([whether the resolver works without -lresolv])
-AC_LINK_IFELSE([
+AC_LINK_IFELSE([AC_LANG_SOURCE([
 $dnscheck
-] , [
+])] , [
 	AC_MSG_RESULT(yes)
 	LIBRESOLV=
 ] , [
@@ -123,9 +123,9 @@ $dnscheck
 	AC_MSG_CHECKING([whether the resolver works with -lresolv])
 	saved_LIBS="$LIBS"
 	LIBS=-lresolv
-	AC_LINK_IFELSE([
+	AC_LINK_IFELSE([AC_LANG_SOURCE([
 $dnscheck
-	] , [
+	])] , [
 		AC_MSG_RESULT(yes)
 		LIBRESOLV=-lresolv
 	] , [
@@ -139,7 +139,7 @@ AC_SUBST([LIBRESOLV])
 #
 # Checks for header files
 #
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h iso/limits_iso.h netdb.h netinet/in.h paths.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h iso/limits_iso.h netdb.h netinet/in.h paths.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h stdint.h])
 
 #
 # Checks for typedefs, structures, and compiler characteristics.
@@ -235,12 +235,15 @@ AC_DEFUN([LIB_FFR_FEATURE],
 #
 FEATURE([popauth], [enable POP-before-SMTP support])
 
+FEATURE([poll], [use poll() instead of select()])
+
+FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
+LIB_FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
+AM_CONDITIONAL([ATPS], [test x"$enable_atps" = x"yes"])
+
 FFR_FEATURE([adsp_lists], [support for ADSP filtering for lists])
 
 FFR_FEATURE([bodylength_db], [support for body length DBs])
-
-FFR_FEATURE([capture_unknown_errors],
-            [quarantine unknown verification failures])
 
 FFR_FEATURE([diffheaders], [compare signed and verified headers when possible])
 LIB_FFR_FEATURE([diffheaders],
@@ -252,6 +255,13 @@ LIB_FFR_FEATURE([dkim_reputation], [experimental DKIM reputation checks])
 FFR_FEATURE([identity_header], [special header to set identity])
 
 FFR_FEATURE([ldap_caching], [LDAP query piggybacking and caching])
+
+FFR_FEATURE([maxverify], [signature verification limit])
+
+FFR_FEATURE([oversign], [enable header field over-signing])
+
+FFR_FEATURE([postgresql_reconnect_hack],
+            [hack to overcome PostgreSQL connection error detection bug])
 
 FFR_FEATURE([replace_rules], [support for string substitution when signing])
 
@@ -271,22 +281,19 @@ FFR_FEATURE([selector_header], [special header to choose signing key])
 
 FFR_FEATURE([sender_macro], [macro to determine sender])
 
+FFR_FEATURE([rbl], [Realtime Blacklist query support])
+AM_CONDITIONAL([RBL], [test x"$enable_rbl" = x"yes"])
+
 FFR_FEATURE([vbr], [Vouch-By-Reference support])
 AM_CONDITIONAL([VBR], [test x"$enable_vbr" = x"yes"])
 
 FFR_FEATURE([stats], [stats recording and reporting])
 AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
 FFR_FEATURE([statsext], [extended stats recording and reporting])
-FFR_FEATURE([stats_i], [stats recording for 'i=' presence and content])
 
 if test x"$enable_statsext" = x"yes" -a x"$enable_stats" != x"yes"
 then
 	AC_MSG_ERROR([--enable-statsext requires --enable-stats])
-fi
-
-if test x"$enable_stats_i" = x"yes" -a x"$enable_stats" != x"yes"
-then
-	AC_MSG_ERROR([--enable-stats_i requires --enable-stats])
 fi
 
 FFR_FEATURE([default_sender], [default sender address])
@@ -446,19 +453,188 @@ AC_ARG_ENABLE([debug],
 
 AM_CONDITIONAL([DEBUG], [test x"$enable_debug" = x"yes"])
 
+#
+# gnutls
+#
+
+AC_ARG_WITH([gnutls],
+            AS_HELP_STRING([--with-gnutls],
+                           [location of GnuTLS includes and library]),
+            [gtpath="$withval"], [gtpath="no"])
+
+gnutls_found="no"
+
+if test \( x"$gtpath" = x"auto" -o x"$gtpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
+then
+	PKG_CHECK_MODULES([GNUTLS], [libgnutls >= 2.11.7],
+	                  [gnutls_found="yes"],
+	                  [gnutls_found="auto"
+	                   AC_MSG_WARN([pkg-config for GnuTLS not found, trying manual search...])
+	                  ])
+elif test x"$gtpath" != x"no"
+then
+	AC_MSG_NOTICE([checking for GnuTLS library and includes in $gtpath])
+
+	saved_CFLAGS="$CFLAGS"
+	saved_CPPFLAGS="$CPPFLAGS"
+	saved_LDFLAGS="$LDFLAGS"
+	saved_LIBS="$LIBS"
+
+	LIBS="-lgnutls $saved_LIBS"
+	CPPFLAGS="-I$gtpath/include $saved_CPPFLAGS"
+	CFLAGS="$saved_CFLAGS"
+	LDFLAGS="-L$gtpath/lib $saved_LDFLAGS"
+
+	AC_CHECK_HEADERS([gnutls/gnutls.h], ,
+                         AC_MSG_ERROR([required GnuTLS header not found]))
+
+	AC_SEARCH_LIBS([gnutls_global_init], [gnutls], ,
+                       AC_MSG_ERROR([libgnutls not found]), [-lnettle -lgmp])
+
+	LIBCRYPTO_CPPFLAGS="-I$gtpath/include"
+	LIBCRYPTO_LIBDIRS="-L$gtpath/lib"
+	LIBCRYPTO_LIBS="-lgnutls"
+
+	CFLAGS="$saved_CFLAGS"
+	CPPFLAGS="$saved_CPPFLAGS"
+	LDFLAGS="$saved_LDFLAGS"
+	LIBS="$saved_LIBS"
+
+	gnutls_found="yes"
+fi
+
+if test x"$gtpath" = x"yes" -a x"$gnutls_found" = x"auto"
+then
+	gcdirs="/usr/local /usr"
+
+	for d in $gcdirs
+	do
+		AC_MSG_NOTICE([checking for GnuTLS library and includes in $d])
+
+		saved_CFLAGS="$CFLAGS"
+		saved_CPPFLAGS="$CPPFLAGS"
+		saved_LDFLAGS="$LDFLAGS"
+		saved_LIBS="$LIBS"
+
+		LIBS="-lgnutls $saved_LIBS"
+		CPPFLAGS="-I$d/include $saved_CPPFLAGS"
+		CFLAGS="$saved_CFLAGS"
+		LDFLAGS="-L$d/lib $saved_LDFLAGS"
+
+		gnutls_h_found="no"
+		gnutls_lib_found="no"
+
+		AC_CHECK_HEADERS([gnutls/gnutls.h], gnutls_h_found="yes")
+		AC_SEARCH_LIBS([gnutls_global_init], [gnutls],
+		               gnutls_lib_found="yes", , [-lnettle -lgmp])
+
+		CFLAGS="$saved_CFLAGS"
+		CPPFLAGS="$saved_CPPFLAGS"
+		LDFLAGS="$saved_LDFLAGS"
+		LIBS="$saved_LIBS"
+
+		if test x"$gnutls_h_found" = x"yes" -a \
+		        x"$gnutls_lib_found" = x"yes"
+		then
+			LIBCRYPTO_CPPFLAGS="-I$d/include"
+			LIBCRYPTO_LIBDIRS="-L$d/lib"
+			LIBCRYPTO_LIBS="-lgnutls"
+			gnutls_found="yes"
+			AC_MSG_NOTICE(libgnutls found in $d)
+			break
+		else
+			AC_MSG_NOTICE(not found in $d)
+		fi
+	done
+
+	if test x"$gnutls_found" != x"yes"
+	then
+		AC_MSG_ERROR([GnuTLS not found])
+	fi
+fi
+
+if test x"$gnutls_found" = x"yes"
+then
+	AC_DEFINE(USE_GNUTLS, 1,
+                  [Define to 1 to use libgnutls instead of OpenSSL.])
+
+	saved_CPPFLAGS="$CPPFLAGS"
+	CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
+
+	versioncheck='
+		#include <gnutls/gnutls.h>
+
+		#if GNUTLS_VERSION_NUMBER < 0x020b07
+		# error GnuTLS 2.11.7 or later required
+		#endif 
+		int main()
+		{
+			return 0;
+		}'
+
+	AC_MSG_CHECKING([your GnuTLS version])
+	AC_LINK_IFELSE([AC_LANG_SOURCE([$versioncheck])],
+	               AC_MSG_RESULT(ok),
+	               AC_MSG_FAILURE([GnuTLS must be at least version 2.11.7]))
+
+	sha256check='
+		#include <gnutls/gnutls.h>
+		int main()
+		{
+			int x = GNUTLS_DIG_SHA256;
+		}'
+
+	AC_MSG_CHECKING([whether your GnuTLS supports SHA256])
+	AC_LINK_IFELSE([AC_LANG_SOURCE([$sha256check])],
+	               AC_MSG_RESULT(yes)
+                       AC_DEFINE([HAVE_SHA256], 1,
+ 	                         [Define to 1 if your crypto library has SHA256 support]),
+	               AC_MSG_WARN([SHA256 is required for DKIM but is not
+	                            supported with your version of GnuTLS]))
+
+	CPPFLAGS="$saved_CPPFLAGS"
+fi
+
+AM_CONDITIONAL([USE_GNUTLS], [test x"$gnutls_found" = x"yes"])
+
+#
+# OpenSSL
+#
+
 AC_ARG_WITH([openssl],
             AS_HELP_STRING([--with-openssl],
                            [location of OpenSSL includes and library]),
                            [sslpath="$withval"], [sslpath="auto"])
 
 openssl_found="no"
+
+if test x"$gnutls_found" = x"yes"
+then
+	sslpath="skip"
+	openssl_found="skip"
+fi
+
 if test \( "$sslpath" = "auto" -o x"$sslpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
 	PKG_CHECK_MODULES([LIBCRYPTO], [openssl >= 0.9.7],
 	                  [openssl_found="yes"],
 	                  [openssl_found="no"
-	                   AC_MSG_WARN(["pkg-config for openssl not found, trying manual search..."])
+	                   AC_MSG_WARN([pkg-config for openssl not found, trying manual search...])
 	                  ])
+elif test "$sslpath" != "auto" -a x"$sslpath" != x"yes"
+then
+	AC_MSG_CHECKING([for OpenSSL includes])
+	if test -f $sslpath/include/openssl/opensslconf.h
+	then
+		LIBCRYPTO_CPPFLAGS="-I$sslpath/include"
+		LIBCRYPTO_CFLAGS=""
+		LIBCRYPTO_LIBDIRS="-L$sslpath/lib"
+		LIBCRYPTO_LIBS="-lssl -lcrypto"
+		openssl_found=yes
+		AC_MSG_RESULT([$sslpath])
+	else
+		AC_MSG_RESULT([no])
+	fi
 fi
 
 if test x"$openssl_found" = x"no"
@@ -472,6 +648,7 @@ then
 			if test -f $d/include/openssl/opensslconf.h
 			then
 				sslpath=$d
+				openssl_found=yes
 				break
 			fi
 		done
@@ -496,52 +673,60 @@ then
         LIBCRYPTO_LIBS="-lssl -lcrypto"
 fi
 
-saved_CFLAGS="$CFLAGS"
-saved_CPPFLAGS="$CPPFLAGS"
-saved_LDFLAGS="$LDFLAGS"
-saved_LIBS="$LIBS"
+if test x"$openssl_found" = x"yes"
+then
+	saved_CFLAGS="$CFLAGS"
+	saved_CPPFLAGS="$CPPFLAGS"
+	saved_LDFLAGS="$LDFLAGS"
+	saved_LIBS="$LIBS"
 
-LIBS="$LIBCRYPTO_LIBS $saved_LIBS"
-CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
-CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
-LDFLAGS="$LIBCRYPTO_LIBDIRS $saved_LDFLAGS"
+	LIBS="$LIBCRYPTO_LIBS $saved_LIBS"
+	CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
+	CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
+	LDFLAGS="$LIBCRYPTO_LIBDIRS $saved_LDFLAGS"
 
-AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
-                 AC_MSG_ERROR([required OpenSSL header not found]))
+	AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
+                 	AC_MSG_ERROR([required OpenSSL header not found]))
 
-# -ldl is needed to assist with compilation of static openssl libaries.
-# It appears to need dl for opening engine plugins. It fails at load time
-# It also fails to build on FreeBSD if enabled by default.
-AC_SEARCH_LIBS([ERR_peek_error], [crypto], ,
-               AC_MSG_ERROR([libcrypto not found]))
-AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
-	[
-		if test x"$enable_shared" = x"yes"
-		then
-			AC_MSG_ERROR([Cannot build shared opendkim against
-			              static openssl libaries. Configure with
-			              --disable-shared to get this working or
-			              obtain a shared libssl libary for
-			              opendkim to use.])
-		fi
+	# -ldl is needed to assist with compilation of static openssl libaries.
+	# It appears to need dl for opening engine plugins. It fails at load
+	# time It also fails to build on FreeBSD if enabled by default.
+	AC_SEARCH_LIBS([ERR_peek_error], [crypto], ,
+	               AC_MSG_ERROR([libcrypto not found]))
 
-		# avoid caching issue - last result of SSL_library_init
-		# shouldn't be cached for this next check
-		unset ac_cv_search_SSL_library_init
-		LIBCRYPTO_LIBS="$LIBCRYPTO_LIBS -ldl"
-		AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
-		               AC_MSG_ERROR([libssl not found]), [-ldl])
-	]
-)
-AC_CHECK_DECL([SHA256_DIGEST_LENGTH], ,
-              AC_MSG_WARN([SHA256 is required for DKIM but is not supported
-                           with your version of OpenSSL]),
-              [#include <openssl/sha.h>])
+	AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
+		[
+			if test x"$enable_shared" = x"yes"
+			then
+				AC_MSG_ERROR([Cannot build shared opendkim
+				              against static openssl libaries.
+				              Configure with --disable-shared
+				              to get this working or obtain a
+				              shared libssl libary for
+				              opendkim to use.])
+			fi
 
-CFLAGS="$saved_CFLAGS"
-CPPFLAGS="$saved_CPPFLAGS"
-LDFLAGS="$saved_LDFLAGS"
-LIBS="$saved_LIBS"
+			# avoid caching issue - last result of SSL_library_init
+			# shouldn't be cached for this next check
+			unset ac_cv_search_SSL_library_init
+			LIBCRYPTO_LIBS="$LIBCRYPTO_LIBS -ldl"
+			AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
+			               AC_MSG_ERROR([libssl not found]), [-ldl])
+		]
+	)
+
+	AC_CHECK_DECL([SHA256_DIGEST_LENGTH],
+                      AC_DEFINE([HAVE_SHA256], 1,
+ 	                        [Define to 1 if your crypto library has SHA256 support]),
+	              AC_MSG_WARN([SHA256 is required for DKIM but is not
+	                           supported with your version of OpenSSL]),
+	              [#include <openssl/sha.h>])
+
+	CFLAGS="$saved_CFLAGS"
+	CPPFLAGS="$saved_CPPFLAGS"
+	LDFLAGS="$saved_LDFLAGS"
+	LIBS="$saved_LIBS"
+fi
 
 AC_SUBST(LIBCRYPTO_CFLAGS)
 AC_SUBST(LIBCRYPTO_CPPFLAGS)
@@ -629,13 +814,21 @@ then
 		               	breakloop="yes"
 		               ])
 
-		AC_CHECK_FUNC([smfi_setsymlist],
-			      AC_DEFINE([HAVE_SMFI_SETSYMLIST], 1,
-					[Define if libmilter has smfi_setsymlist()]))
-
 		AC_CHECK_FUNC([smfi_insheader],
 			      AC_DEFINE([HAVE_SMFI_INSHEADER], 1,
 					[Define if libmilter has smfi_insheader()]))
+
+		AC_CHECK_FUNC([smfi_opensocket],
+			      AC_DEFINE([HAVE_SMFI_OPENSOCKET], 1,
+					[Define if libmilter has smfi_opensocket()]))
+
+		AC_CHECK_FUNC([smfi_progress],
+			      AC_DEFINE([HAVE_SMFI_PROGRESS], 1,
+					[Define if libmilter has smfi_progress()]))
+
+		AC_CHECK_FUNC([smfi_setsymlist],
+			      AC_DEFINE([HAVE_SMFI_SETSYMLIST], 1,
+					[Define if libmilter has smfi_setsymlist()]))
 
 		AC_CHECK_FUNC([smfi_version],
 			      AC_DEFINE([HAVE_SMFI_VERSION], 1,
@@ -847,7 +1040,7 @@ then
 				lua_found="yes"
 				LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
 	                  ],
-	                  [AC_MSG_WARN(["pkg-config for Lua not found, trying manual search..."])])
+	                  [AC_MSG_WARN([pkg-config for Lua not found, trying manual search...])])
 fi
 
 if test \( x"$luapath" = x"yes" -o x"$luapath" = x"auto" \) -a x"$lua_found" = x"no"
@@ -933,7 +1126,7 @@ then
 	saved_CPPFLAGS="$CPPFLAGS"
 	CPPFLAGS="$LIBLUA_INCDIRS"
 	AC_MSG_CHECKING([Lua version])
-	AC_COMPILE_IFELSE(	[
+	AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <lua.h>
 
 #if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501
@@ -945,7 +1138,7 @@ main()
 {
 	return 0;
 }
-				],
+				])],
 				AC_MSG_RESULT([ok]), 
 				AC_MSG_ERROR([Lua version 5.1 or later required]))
 	CPPFLAGS="$saved_CPPFLAGS"
@@ -963,6 +1156,11 @@ AC_SUBST(LIBLUA_LIBS)
 if test x"$enable_statsext" = x"yes" -a x"$lua_found" != x"yes"
 then
 	AC_MSG_ERROR([--enable-statsext requires Lua support])
+fi
+
+if test x"$enable_rbl" = x"yes" -a x"$lua_found" != x"yes"
+then
+	AC_MSG_ERROR([--enable-rbl requires Lua support])
 fi
 
 #
@@ -1043,7 +1241,7 @@ then
 else
 	if test x"$enable_stats" = x"yes"
 	then
-		AC_MSG_WARN(["opendbx is needed to import statistics into a SQL database - disabling opendkim-importstats"])
+		AC_MSG_WARN([opendbx is needed to import statistics into a SQL database - disabling opendkim-importstats])
 	fi
 fi
 AM_CONDITIONAL(USE_ODBX, test x"$odbx_found" = x"yes")
@@ -1117,7 +1315,7 @@ then
 	saved_CPPFLAGS="$CPPFLAGS"
 	CPPFLAGS="$OPENLDAP_CPPFLAGS"
 	AC_MSG_CHECKING([OpenLDAP version])
-	AC_COMPILE_IFELSE(	[
+	AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <ldap.h>
 
 #if !defined(LDAP_API_VERSION) || LDAP_API_VERSION < 2004
@@ -1129,7 +1327,7 @@ main()
 {
 	return 0;
 }
-				],
+				])],
 				AC_MSG_RESULT([ok]), 
 				AC_MSG_ERROR([OpenLDAP version 2.1.3 or later required]))
 	CPPFLAGS="$saved_CPPFLAGS"
@@ -1502,6 +1700,16 @@ AC_DEFINE_UNQUOTED([LIBOPENDKIM_FEATURE_STRING], "$LIBOPENDKIM_FEATURE_STRING",
                    [Feature string for printing])
 
 #
+# setup for testing
+# 
+
+AC_ARG_ENABLE([live-testing],
+              AS_HELP_STRING([--disable-live-testing],
+                             [disable tests that require Internet access]),
+              [live_tests="$withval"], [live_tests="yes"])
+AM_CONDITIONAL(LIVE_TESTS, test x"$live_tests" = x"yes")
+
+#
 # Platform Specific Configuration
 #
 AC_CANONICAL_HOST
@@ -1533,15 +1741,31 @@ AC_ARG_WITH([domain],
 AC_SUBST([DOMAIN])
 
 #
+# final command line tweaks
+#
+
+CPPFLAGS="$CPPFLAGS -DCONFIG_BASE=\\\"$sysconfdir\\\""
+
+#
 # Finish up
 #
 AC_OUTPUT([	Makefile
 		docs/Makefile
-		contrib/Makefile contrib/opendkim.spec
+		contrib/Makefile
+			contrib/convert/Makefile
+			contrib/init/Makefile
+			contrib/init/generic/Makefile
+			contrib/init/redhat/Makefile
+			contrib/init/solaris/Makefile
+			contrib/lua/Makefile
+			contrib/spec/Makefile
+			contrib/spec/opendkim.spec
+			contrib/stats/Makefile
 		libar/ar.pc libar/Makefile libar/tests/Makefile
 		libopendkim/opendkim.pc libopendkim/Makefile
 		libopendkim/docs/Makefile
 		libopendkim/tests/Makefile
+		librbl/rbl.pc librbl/Makefile
 		libvbr/vbr.pc libvbr/Makefile
 		miltertest/Makefile
 		opendkim/Makefile opendkim/opendkim.8 opendkim/opendkim-genkey
@@ -1550,6 +1774,7 @@ AC_OUTPUT([	Makefile
 			opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8
 			opendkim/opendkim.conf.5 opendkim/opendkim.conf.simple
 			opendkim/opendkim.conf.simple-verify
+			opendkim/opendkim-atpszone.8 opendkim/opendkim-spam.1
 		opendkim/tests/Makefile
 		stats/Makefile stats/opendkim-importstats.8
 ])

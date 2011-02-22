@@ -2,7 +2,7 @@
 **  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-db.c,v 1.101.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -25,6 +25,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #ifdef HAVE_STDBOOL_H
 # include <stdbool.h>
 #endif /* HAVE_STDBOOL_H */
+#include <syslog.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -73,6 +74,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 /* macros */
 #define	BUFRSZ			1024
 #define	DEFARRAYSZ		16
+#define DKIMF_DB_DEFASIZE	8
 #define DKIMF_DB_MODE		0644
 #define DKIMF_LDAP_MAXURIS	8
 #define DKIMF_LDAP_TIMEOUT	5
@@ -245,6 +247,301 @@ struct dkimf_db_table dbtypes[] =
 };
 
 static char *dkimf_db_ldap_param[DKIMF_LDAP_PARAM_MAX + 1];
+
+#ifdef _FFR_DB_HANDLE_POOLS
+struct handle_pool
+{
+	u_int		hp_dbtype;
+	u_int		hp_max;
+	u_int		hp_alloc;
+	u_int		hp_asize;
+	u_int		hp_count;
+	void *		hp_hdata;
+	void **		hp_handles;
+	pthread_mutex_t	hp_lock;
+	pthread_cond_t	hp_signal;
+};
+#endif /* _FFR_DB_HANDLE_POOLS */
+
+#ifdef _FFR_DB_HANDLE_POOLS
+/*
+**  DKIMF_DB_HP_NEW -- create a handle pool
+**
+**  Parameters:
+**  	type -- DB type
+**  	max -- maximum pool size
+**  	hdata -- data needed to make new handles
+**
+**  Return value:
+**  	Pointer to a newly-allocated handle pool, or NULL on error.
+*/
+
+static struct handle_pool *
+dkimf_db_hp_new(u_int type, u_int max, void *hdata)
+{
+	struct handle_pool *new;
+
+	new = (struct handle_pool *) malloc(*new);
+	if (new != NULL)
+	{
+		new->hp_alloc = 0;
+		new->hp_asize = 0;
+		new->hp_count = 0;
+		new->hp_dbtype = type;
+		new->hp_handles = NULL;
+		new->hp_hdata = hdata;
+		new->hp_max = max;
+		pthread_mutex_init(&new->hp_lock, NULL);
+		pthread_cond_init(&new->hp_signal, NULL);
+	}
+
+	return new;
+}
+
+/*
+**  DKIMF_DB_HP_FREE -- free a handle pool
+**
+**  Parameters:
+**  	pool -- bool to free up
+**
+**  Return value:
+**  	None.
+*/
+
+static void
+dkimf_db_hp_free(struct handle_pool *pool)
+{
+	u_int c;
+
+	assert(pool != NULL);
+
+	for (c = 0; c < pool->hp_count; c++)
+	{
+		switch (pool->hp_dbtype)
+		{
+#ifdef USE_ODBX
+		  case DKIMF_DB_TYPE_DSN:
+		  {
+			odbx_t *odbx;
+
+			odbx = (odbx_t *) pool->hp_handles[c];
+
+			(void) odbx_unbind(odbx);
+			(void) odbx_finish(odbx);
+			free(odbx);
+
+			break;
+		  }
+#endif /* USE_ODBX */
+
+		  default:
+			break;
+		}
+	}
+
+	pthread_mutex_destroy(&pool->hp_lock);
+	pthread_cond_destroy(&pool->hp_signal);
+	free(pool->hp_handles);
+	free(pool);
+}
+
+/*
+**  DKIMF_DB_HP_GET -- get a handle from a handle pool
+**
+**  Parameters:
+**  	pool -- pool from which to get a handle
+**  	err -- error string (returned)
+**
+**  Return value:
+**  	A handle appropriate to the associated DB type that is not currently
+**  	in use by another thread, or NULL on error.
+*/
+
+static void *
+dkimf_db_hp_get(struct hp_pool *pool, char **err)
+{
+	void *ret;
+
+	assert(pool != NULL);
+
+	pthread_mutex_lock(&pool->hp_lock);
+
+	for (;;)
+	{
+		/* if one is available, return it */
+		if (pool->hp_count > 0)
+		{
+			ret = pool->hp_handles[0];
+
+			if (pool->hp_count > 1)
+			{
+				memmove(&pool->hp_handles[0],
+				        &pool->hp_handles[1],
+				        sizeof(void *) * (pool->hp_count - 1));
+			}
+
+			pool->hp_count--;
+
+			pthread_mutex_unlock(&pool->hp_lock);
+
+			return ret;
+		}
+
+		/* if we can allocate one, do so */
+		if (pool->hp_alloc <= pool->hp_max)
+		{
+			switch (pool->hp_dbtype)
+			{
+#ifdef USE_ODBX
+			  case DKIMF_DB_TYPE_DSN:
+			  {
+				int dberr;
+				odbx_t *odbx;
+				struct dkimf_db_dsn *dsn;
+
+				dsn = (struct dkimf_db_dsn *) pool->hp_hdata;
+
+				dberr = odbx_init(&odbx,
+				                  STRORNULL(dsn->dsn_backend),
+				                  STRORNULL(dsn->dsn_host),
+				                  STRORNULL(dsn->dsn_port));
+
+				if (dberr < 0)
+				{
+					if (err != NULL)
+					{
+						*err = (char *) odbx_error(NULL,
+						                           dberr);
+					}
+
+					(void) odbx_finish(odbx);
+					ptrhead_mutex_unlock(&pool->hp_lock);
+
+					return NULL;
+				}
+
+				dberr = odbx_bind(odbx,
+				                        STRORNULL(dsn->dsn_dbase),
+				                        STRORNULL(dsn->dsn_user),
+				                        STRORNULL(dsn->dsn_password),
+				                        ODBX_BIND_SIMPLE);
+				if (dberr < 0)
+				{
+					if (err != NULL)
+					{
+						*err = (char *) odbx_error(odbx,
+						                           dberr);
+					}
+
+					(void) odbx_finish(odbx);
+					ptrhead_mutex_unlock(&pool->hp_lock);
+
+					return NULL;
+				}
+
+				ret = odbx;
+			  }
+#endif /* USE_ODBX */
+
+			  default:
+				assert(0);
+				break;
+			}
+
+			pool->hp_alloc++;
+
+			pthread_mutex_unlock(&pool->hp_lock);
+
+			return ret;
+		}
+
+		/* already full; wait for one */
+		pthread_cond_wait(&pool->hp_lock, &pool->hp_signal);
+	}
+}
+
+/*
+**  DKIMF_DB_HP_DEAD -- report that a handle found in the pool was dead
+**
+**  Parameters:
+**  	pool -- handle pool to be updated
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	The caller is expected to identify a dead handle and deallocate it.
+*/
+
+static void
+dkimf_db_hp_dead(struct handle_pool *pool)
+{
+	assert(pool != NULL);
+
+	pthread_mutex_lock(&pool->hp_lock);
+	pool->hp_alloc--;
+	pthread_cond_signal(&pool->hp_signal);
+	pthread_mutex_unlock(&pool->hp_lock);
+}
+
+/*
+**  DKIMF_DB_HP_PUT -- put a handle back into a handle pool after use
+**
+**  Parameters:
+**  	pool -- pool from which to get a handle
+**  	handle -- handle being returned
+**
+**  Return value:
+**  	None.
+*/
+
+static void
+dkimf_db_hp_put(struct hp_pool *pool, void *handle)
+{
+	assert(pool != NULL);
+	assert(handle != NULL);
+
+	pthread_mutex_lock(&pool->hp_lock);
+
+	/* need to grow the array? */
+	if (pool->hp_asize == pool->hp_count)
+	{
+		u_int newasz;
+
+		if (pool->hp_asize == 0)
+		{
+			newasz = DKIMF_DB_DEFASIZE;
+			pool->hp_handles = (void **) malloc(newasz * sizeof(void *));
+			assert(pool->hp_handles != NULL);
+		}
+		else
+		{
+			void **newa;
+
+			newasz = pool->hp_asize * 2;
+			newa = (void **) realloc(pool->hp_handles,
+			                         newasz * sizeof(void *));
+			assert(newa != NULL);
+			pool->hp_handles = newa;
+		}
+
+		pool->hp_asize = newasz;
+	}
+
+	/* append it */
+	pool->hp_handles[pool->hp_count] = handle;
+
+	/* increment the count */
+	pool->hp_count++;
+
+	/* signal any waiters */
+	pthread_cond_signal(&pool->hp_signal);
+
+	/* all done */
+	pthread_mutex_unlock(&pool->hp_lock);
+}
+
+#endif /* _FFR_DB_HANDLE_POOLS */
 
 #if (USE_SASL && USE_LDAP)
 /*
@@ -804,6 +1101,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 						free(new);
 						return -1;
 					}
+					dkimf_trimspaces(newl->db_list_key);
 
 					newl->db_list_value = strdup(q);
 					if (newl->db_list_value == NULL)
@@ -818,6 +1116,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 						free(new);
 						return -1;
 					}
+					dkimf_trimspaces(newl->db_list_value);
 
 					newl->db_list_next = NULL;
 
@@ -856,6 +1155,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 					free(new);
 					return -1;
 				}
+				dkimf_trimspaces(newl->db_list_key);
 
 				if (eq != NULL)
 				{
@@ -872,6 +1172,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 						free(new);
 						return -1;
 					}
+					dkimf_trimspaces(newl->db_list_value);
 				}
 				else
 				{
@@ -1012,6 +1313,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 
 						return -1;
 					}
+					dkimf_trimspaces(newl->db_list_key);
 
 					newl->db_list_value = strdup(q);
 					if (newl->db_list_value == NULL)
@@ -1024,6 +1326,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 							dkimf_db_list_free(list);
 						return -1;
 					}
+					dkimf_trimspaces(newl->db_list_value);
 
 					newl->db_list_next = NULL;
 
@@ -1050,6 +1353,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 					free(new);
 					return -1;
 				}
+				dkimf_trimspaces(newl->db_list_key);
 
 				if (value != NULL)
 				{
@@ -1066,6 +1370,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 						free(new);
 						return -1;
 					}
+					dkimf_trimspaces(newl->db_list_value);
 				}
 				else
 				{
@@ -1214,6 +1519,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 					free(newl);
 					return -1;
 				}
+				dkimf_trimspaces(newl->db_relist_data);
 			}
 			else
 			{
@@ -1520,7 +1826,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		if (dberr < 0)
 		{
 			if (err != NULL)
-				*err = (char *) odbx_error(NULL, dberr);
+				*err = (char *) odbx_error(odbx, dberr);
 			(void) odbx_finish(odbx);
 			free(dsn);
 			free(tmp);
@@ -2550,6 +2856,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 #ifdef USE_ODBX
 	  case DKIMF_DB_TYPE_DSN:
 	  {
+		_Bool reconnected = FALSE;
 		int err;
 		int fields;
 		int rescnt = 0;
@@ -2590,6 +2897,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				return -1;
 			}
 
+			reconnected = TRUE;
 			db->db_iflags &= ~DKIMF_DB_IFLAG_RECONNECT;
 		}
 
@@ -2615,8 +2923,34 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		err = odbx_query((odbx_t *) db->db_handle, query, 0);
 		if (err < 0)
 		{
+			int status;
+
 			db->db_status = err;
-			if (odbx_error_type((odbx_t *) db->db_handle, err) < 0)
+
+			if (reconnected)
+			{
+				if (db->db_lock != NULL)
+					(void) pthread_mutex_unlock(db->db_lock);
+				return err;
+			}
+
+			status = odbx_error_type((odbx_t *) db->db_handle, err);
+
+#ifdef _FFR_POSTGRESQL_RECONNECT_HACK
+			if (status >= 0)
+			{
+				const char *estr;
+
+				estr = odbx_error((odbx_t *) db->db_handle,
+		                                  db->db_status);
+
+				if (estr != NULL &&
+				    strncmp(estr, "FATAL:", 6) == 0)
+					status = -1;
+			}
+#endif /* _FFR_POSTGRESQL_RECONNECT_HACK */
+
+			if (status < 0)
 			{
 				(void) odbx_unbind((odbx_t *) db->db_handle);
 				(void) odbx_finish((odbx_t *) db->db_handle);
@@ -2640,7 +2974,44 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			                  &result, NULL, 0);
 			if (err < 0)
 			{
+				int status;
 				db->db_status = err;
+
+				if (reconnected)
+				{
+					if (db->db_lock != NULL)
+						(void) pthread_mutex_unlock(db->db_lock);
+					return err;
+				}
+
+				status = odbx_error_type((odbx_t *) db->db_handle,
+				                         err);
+
+#ifdef _FFR_POSTGRESQL_RECONNECT_HACK
+				if (status >= 0)
+				{
+					const char *estr;
+
+					estr = odbx_error((odbx_t *) db->db_handle,
+			                                  db->db_status);
+
+					if (estr != NULL &&
+					    strncmp(estr, "FATAL:", 6) == 0)
+						status = -1;
+				}
+#endif /* _FFR_POSTGRESQL_RECONNECT_HACK */
+
+				if (status < 0)
+				{
+					(void) odbx_unbind((odbx_t *) db->db_handle);
+					(void) odbx_finish((odbx_t *) db->db_handle);
+					db->db_iflags |= DKIMF_DB_IFLAG_RECONNECT;
+					if (db->db_lock != NULL)
+						(void) pthread_mutex_unlock(db->db_lock);
+					return dkimf_db_get(db, buf, buflen, req,
+					                    reqnum, exists);
+				}
+
 				if (db->db_lock != NULL)
 					(void) pthread_mutex_unlock(db->db_lock);
 				return err;
@@ -3721,19 +4092,171 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 }
 
 /*
+**  DKIMF_DB_MKARRAY_BASE -- make a (char *) array treating the DB as a
+**                           delta to a provided base
+**
+**  Parameters:
+**  	db -- a DKIMF_DB handle
+**  	a -- array (returned)
+**  	base -- base array
+** 
+**  Return value:
+**  	Length of the created array, or -1 on error/empty.
+*/
+
+static int
+dkimf_db_mkarray_base(DKIMF_DB db, char ***a, const char **base)
+{
+	_Bool found;
+	int c;
+	int status;
+	int nalloc = 0;
+	int nout = 0;
+	int nbase;
+	size_t buflen;
+	char **out = NULL;
+	char buf[BUFRSZ + 1];
+
+	assert(db != NULL);
+	assert(a != NULL);
+
+	/* count base elements */
+	for (nbase = 0; base[nbase] != NULL; nbase++)
+		continue;
+
+	/* initialize output array */
+	nalloc = MAX(nbase, 16);
+	out = (char **) malloc(sizeof(char *) * nalloc);
+	if (out == NULL)
+		return -1;
+	out[0] = NULL;
+
+	/* copy the base array modulo removals in the DB */
+	for (c = 0; c < nbase; c++)
+	{
+		memset(buf, '\0', sizeof buf);
+
+		snprintf(buf, sizeof buf, "-%s", base[c]);
+
+		found = FALSE;
+		status = dkimf_db_get(db, buf, 0, NULL, 0, &found);
+		if (status != 0)
+		{
+			for (c = 0; c < nout; c++)
+				free(out[c]);
+			free(out);
+			return -1;
+		}
+
+		if (!found)
+		{
+			if (nout == nalloc - 1)
+			{
+				char **new;
+
+				new = (char **) realloc(out,
+				                        sizeof(char *) * (nalloc * 2));
+				if (new == NULL)
+				{
+					for (c = 0; c < nout; c++)
+						free(out[c]);
+					free(out);
+					return -1;
+				}
+
+				out = new;
+				nalloc *= 2;
+			}
+
+			out[nout] = strdup(base[c]);
+			if (out[nout] == NULL)
+			{
+				for (c = 0; c < nout; c++)
+					free(out[c]);
+				free(out);
+				return -1;
+			}
+
+			nout++;
+			out[nout] = NULL;
+		}
+	}
+
+	/* now add any in the DB that aren't in the array */
+	for (c = 0; ; c++)
+	{
+		buflen = sizeof buf - 1;
+		memset(buf, '\0', sizeof buf);
+
+		status = dkimf_db_walk(db, (c == 0), buf, &buflen, NULL, 0);
+		if (status == -1)
+		{
+			for (c = 0; c < nout; c++)
+				free(out[c]);
+			free(out);
+			return -1;
+		}
+		else if (status == 1)
+		{
+			break;
+		}
+		else if (buf[0] != '+')
+		{
+			continue;
+		}
+
+		if (nout == nalloc - 1)
+		{
+			char **new;
+
+			new = (char **) realloc(out,
+			                        sizeof(char *) * (nalloc * 2));
+			if (new == NULL)
+			{
+				for (c = 0; c < nout; c++)
+					free(out[c]);
+				free(out);
+				return -1;
+			}
+
+			out = new;
+			nalloc *= 2;
+		}
+
+		out[nout] = strdup(&buf[1]);
+		if (out[nout] == NULL)
+		{
+			for (c = 0; c < nout; c++)
+				free(out[c]);
+			free(out);
+			return -1;
+		}
+
+		nout++;
+		out[nout] = NULL;
+	}
+
+	*a = out;
+	return nout;
+}
+
+/*
 **  DKIMF_DB_MKARRAY -- make a (char *) array of DB contents
 **
 **  Parameters:
 **  	db -- a DKIMF_DB handle
 **  	a -- array (returned)
+**  	base -- base array (may be NULL)
 **
 **  Return value:
 **  	Length of the created array, or -1 on error/empty.
 */
 
 int
-dkimf_db_mkarray(DKIMF_DB db, char ***a)
+dkimf_db_mkarray(DKIMF_DB db, char ***a, const char **base)
 {
+	_Bool found;
+	int status;
 	char **out;
 
 	assert(db != NULL);
@@ -3755,6 +4278,13 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a)
 		*a = db->db_array;
 		return db->db_nrecs;
 	}
+
+	found = FALSE;
+	status = dkimf_db_get(db, "*", 0, NULL, 0, &found);
+	if (status != 0)
+		return -1;
+	if (found && base != NULL)
+		return dkimf_db_mkarray_base(db, a, base);
 
 	switch (db->db_type)
 	{
@@ -3960,6 +4490,89 @@ dkimf_db_rewalk(DKIMF_DB db, char *str, DKIMF_DBDATA req, unsigned int reqnum,
 
 	return 1;
 }
+
+#ifdef _FFR_OVERSIGN
+/*
+**  DKIMF_DB_MERGE -- append the contents of one DB into another
+**
+**  Parameters:
+**  	dst -- destination DB
+**  	src -- source DB
+**
+**  Return value:
+**  	Number of new nodes added to "dst"; -1 on error.
+*/
+
+int
+dkimf_db_merge(DKIMF_DB dst, DKIMF_DB src)
+{
+	_Bool found;
+	int status;
+	int merged = 0;
+	struct dkimf_db_list *cur;
+
+	assert(dst != NULL);
+	assert(src != NULL);
+
+	if ((dst->db_type != DKIMF_DB_TYPE_CSL &&
+	     dst->db_type != DKIMF_DB_TYPE_FILE) ||
+	    (src->db_type != DKIMF_DB_TYPE_CSL &&
+	     src->db_type != DKIMF_DB_TYPE_FILE))
+		return -1;
+
+	for (cur = (struct dkimf_db_list *) src->db_handle;
+	     cur != NULL;
+	     cur = cur->db_list_next)
+	{
+		found = FALSE;
+
+		status = dkimf_db_get(dst, cur->db_list_value, 0, NULL, 0,
+		                      &found);
+
+		if (status != 0)
+			return -1;
+
+		if (!found)
+		{
+			struct dkimf_db_list *new;
+
+			new = (struct dkimf_db_list *) malloc(sizeof *new);
+			if (new == NULL)
+				return -1;
+
+			new->db_list_next = (struct dkimf_db_list *) dst->db_handle;
+
+			new->db_list_key = strdup(cur->db_list_key);
+			if (new->db_list_key == NULL)
+			{
+				free(new);
+				return -1;
+			}
+
+			if (cur->db_list_value == NULL)
+			{
+				new->db_list_value = NULL;
+			}
+			else
+			{
+				new->db_list_value = strdup(cur->db_list_value);
+				if (new->db_list_value == NULL)
+				{
+					free(new->db_list_key);
+					free(new);
+					return -1;
+				}
+			}
+
+			dst->db_handle = (struct dkimf_db_list *) dst->db_handle;
+
+			merged++;
+		}
+	}
+
+	return merged;
+}
+#endif /* _FFR_OVERSIGN */
 
 /*
 **  DKIMF_DB_FD -- retrieve a file descriptor associated with a database

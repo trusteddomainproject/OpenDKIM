@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -35,14 +35,6 @@ static struct nametable prv_keyparams[] =	/* key parameters */
 };
 struct nametable *keyparams = prv_keyparams;
 
-static struct nametable prv_policyflags[] =	/* policy flags */
-{
-	{ "y",		DKIM_PFLAG_TEST },
-	{ "s",		DKIM_PFLAG_NOSUBDOMAIN },
-	{ NULL,		-1 }
-};
-struct nametable *policyflags = prv_policyflags;
-
 static struct nametable prv_keyflags[] =	/* policy flags */
 {
 	{ "y",		DKIM_SIGFLAG_TESTKEY },
@@ -53,9 +45,9 @@ struct nametable *keyflags = prv_keyflags;
 
 static struct nametable prv_policyparams[] =	/* policy parameters */
 {
+	{ "atps",	DKIM_PPARAM_ATPS },
 	{ "dkim",	DKIM_PPARAM_POLICY },
 	{ "r",		DKIM_PPARAM_REPORTADDR },
-	{ "t",		DKIM_PPARAM_FLAGS },
 	{ NULL,		-1 }
 };
 struct nametable *policyparams = prv_policyparams;
@@ -217,6 +209,8 @@ static struct nametable prv_sigerrors[] =	/* signature parsing errors */
 	{ "unknown key type",			DKIM_SIGERROR_KEYTYPEUNKNOWN },
 	{ "key revoked",			DKIM_SIGERROR_KEYREVOKED },
 	{ "unable to apply public key",		DKIM_SIGERROR_KEYDECODE },
+	{ "version missing",			DKIM_SIGERROR_MISSING_V },
+	{ "version empty",			DKIM_SIGERROR_EMPTY_V },
 	{ NULL,					-1 },
 };
 struct nametable *sigerrors = prv_sigerrors;

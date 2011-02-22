@@ -142,6 +142,7 @@ A message record is a tab-separated, ordered sequence of fields, as follows:
 	count of Received: header fields
 	overall MIME Content-Type, if any
 	overall MIME Content-Transfer-Encoding, if any
+	ATPS status (-1 = not checked, 0 = no, 1 = yes)
 
 A signature record implicitly references the preceding message record.
 There may be more than one signature record per message; there could also be
@@ -169,6 +170,8 @@ fields, as follows:
 	colon-separated list of header fields known to have changed
 	"i=" domain (0 = absent, 1 = matches From:, 2 = other)
 	"i=" user (0 = absent, 1 = empty, 2 = matches From:, 3 = other)
+	"s=" present in key (0 = absent, 1 = "*", 2 = "email", 3 = other)
+	key size, in bits
 
 
 EXTENSIONS
@@ -186,10 +189,42 @@ as the value to be placed there.
 
 Choosing the "--enable-statsext" flag at build configuration time adds support
 for this.  The mechanism for recording these extra statistics is the
-odkim.exstats() function, detailed in the opendkim-lua(3) man page.
+odkim.stats() function, detailed in the opendkim-lua(3) man page.
 
 In this way, one can create any supplementary message-specific columns as
 is desirable and populate them whatever way is appropriate for each.
 
 Participants that find particular additional columns produce interesting
 correlations are encouraged to share them with the OpenDKIM community.
+
+
+CONVERTING TO THE IPADDRS SCHEMA
+
+In version 2.3.0 of OpenDKIM, the schema changed to add a new "ipaddrs"
+table, moving that data from each row of the "messages" table (causing
+duplication).  The opendkim-importstats tool in 2.3.0 expects the new schema
+and is not back-compatible with prior releases.
+
+To convert your existing databases, use these steps:
+
+1) Run the stats/mkdb.mysql script from inside your MySQL client to create
+   the required new table.  Existing tables will not be altered.
+
+2) Run the following additional MySQL commands (lines are wrapped here for
+   readability but each represents a single command):
+
+	a) LOCK TABLES messages WRITE, ipaddrs WRITE;
+	b) ALTER TABLE messages ADD COLUMN ip INT UNSIGNED AFTER ipaddr;
+	c) INSERT INTO ipaddrs (addr, firstseen) 
+		SELECT DISTINCT ipaddr, MIN(msgtime) FROM messages
+		GROUP BY ipaddr;
+	d) UPDATE messages
+		SET ip = (SELECT id FROM ipaddrs WHERE addr = messages.ipaddr);
+	e) ALTER TABLE messages MODIFY COLUMN ip INT UNSIGNED NOT NULL,
+		DROP COLUMN ipaddr,
+		ADD CONSTRAINT FOREIGN KEY(ip) REFERENCES ipaddrs(id)
+		ON DELETE CASCADE;
+	f) UNLOCK TABLES;
+
+   The various ALTER TABLE commands may require a rebuild of the "messages"
+   table.  This can take a large amount of time if the table is large.

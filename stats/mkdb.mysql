@@ -1,6 +1,6 @@
 -- $Id: mkdb.mysql,v 1.11 2010/10/25 17:16:00 cm-msk Exp $
 
--- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 
 -- MySQL command sequence to create a database to accumulate OpenDKIM
 -- statistics reports
@@ -25,13 +25,23 @@ create table if not exists domains (
 	key(name)
 ) engine=innodb default charset=latin1;
 
+-- table of IP addresses we've seen
+create table if not exists ipaddrs (
+	id int unsigned not null auto_increment,
+	addr varchar(255) not null,
+	firstseen timestamp not null default CURRENT_TIMESTAMP,
+
+	primary key(id),
+	key(addr)
+) engine=innodb default charset=latin1;
+
 -- table of messages names we've seen
 create table if not exists messages (
 	id int unsigned not null auto_increment,
 	jobid varchar(255) not null,
 	reporter int unsigned not null,
 	from_domain int unsigned not null,
-	ipaddr varchar(255) not null,
+	ip int unsigned not null,
 	anonymized tinyint unsigned not null,
 	msgtime timestamp not null default CURRENT_TIMESTAMP,
 	size int unsigned not null,
@@ -49,9 +59,10 @@ create table if not exists messages (
 	primary key(id),
 	key(reporter),
 	key(from_domain),
-	key(ipaddr),
+	key(ip),
 	unique key(reporter, jobid, msgtime),
 	foreign key(from_domain) references domains(id) on delete cascade,
+	foreign key(ip) references ipaddrs(id) on delete cascade,
 	foreign key(reporter) references reporters(id) on delete cascade
 ) engine=innodb default charset=latin1;
 
@@ -64,6 +75,7 @@ create table if not exists signatures (
 	hdr_canon tinyint unsigned not null,
 	body_canon tinyint unsigned not null,
 	ignored tinyint unsigned not null,
+	keysize smallint not null,
 	pass tinyint unsigned not null,
 	fail_body tinyint unsigned not null,
 	siglength int not null,
@@ -71,13 +83,15 @@ create table if not exists signatures (
 	key_g tinyint unsigned not null,
 	key_g_name tinyint unsigned not null,
 	key_dk_compat tinyint unsigned not null,
+	key_s tinyint not null,
 	sigerror tinyint unsigned not null,
 	sig_i tinyint not null,
 	sig_i_user tinyint not null,
 	sig_t tinyint unsigned not null,
 	sig_x tinyint unsigned not null,
 	sig_z tinyint unsigned not null,
-	dnssec int not null,
+	dnssec tinyint not null,
+	atps tinyint not null,
 
 	primary key(id),
 	key(domain),
@@ -105,3 +119,59 @@ create table if not exists signed_headers (
 	foreign key(signature) references signatures(id) on delete cascade,
 	foreign key(header) references headernames(id) on delete cascade
 ) engine=innodb default charset=latin1;
+
+-- table mapping signature error codes to descriptions
+create table if not exists sigerrorcodes (
+	id tinyint not null,
+	name varchar(255) not null,
+
+	primary key (id)
+) engine=innodb default charset=latin1;
+
+insert ignore into sigerrorcodes (id, name) values
+	(-1,	"unknown error"),
+	(0,	"no error"),
+	(1,	"unsupported version"),
+	(2,	"invalid domain (d=/i=)"),
+	(3,	"signature expired"),
+	(4,	"signature in the future"),
+	(5,	"x= < t="),
+	(6,	"c= missing"),
+	(7,	"c= invalid (header)"),
+	(8,	"c= invalid (body)"),
+	(9,	"a= missing"),
+	(10,	"a= invalid"),
+	(11,	"h= missing"),
+	(12,	"l= invalid"),
+	(13,	"q= invalid"),
+	(14,	"q= option invalid"),
+	(15,	"d= missing"),
+	(16,	"d= empty"),
+	(17,	"s= missing"),
+	(18,	"s= empty"),
+	(19,	"b= missing"),
+	(20,	"b= empty"),
+	(21,	"b= corrupt"),
+	(22,	"no key found in DNS"),
+	(23,	"DNS reply corrupt"),
+	(24,	"DNS query failed"),
+	(25,	"bh= missing"),
+	(26,	"bh= empty"),
+	(27,	"bh= corrupt"),
+	(28,	"signature mismatch"),
+	(29,	"unauthorized subdomain"),
+	(30,	"multiple records returned"),
+	(31,	"h= empty"),
+	(32,	"h= missing required entries"),
+	(33,	"l= value exceeds body size"),
+	(34,	"field-must-be-signed failure"),
+	(35,	"unknown key version"),
+	(36,	"unknown key hash"),
+	(37,	"signature-key hash mismatch"),
+	(38,	"not an email key"),
+	(39,	"key granularity mismatch"),
+	(40,	"key type missing"),
+	(41,	"key type unknown"),
+	(42,	"key revoked"),
+	(43,	"key could not be decoded")
+;

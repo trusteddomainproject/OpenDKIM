@@ -375,6 +375,9 @@ Read the named configuration file.  See the
 man page for details.  Values in the configuration file are overridden
 when their equivalents are provided on the command line until a configuration
 reload occurs.  The OPERATION section describes how reloads are triggered.
+The default is to read a configuration file from
+.I @SYSCONFDIR@/opendkim.conf
+if one exists, or otherwise to apply defaults to all values.
 .SH OPERATION
 A message will be verified unless it conforms to the signing criteria,
 which are: (1) the domain on the From: address or Sender: address (if present)

@@ -33,6 +33,9 @@ allsymbols	By default, the build will attempt to create a libopendkim
 		exports those as well.  This is intended only for running
 		library unit tests.  (libopendkim)
 
+atps		Support for experimental Authorized Third-Party Signatures
+		mechanism.  (opendkim, libopendkim)
+
 bodylength_db	Optionally query a local database of recipient addresses
 		to determine if an "l=" tag should be applied when
 		signing.  (opendkim)
@@ -65,10 +68,32 @@ identity_header	Enable selection of an identity for signing based on the
 ldap_caching	Adds code that ensures duplicate LDAP queries aren't sent
 		and local caching of LDAP replies is done.  (opendkim)
 
+maxverify	Control over maximum number of signatures per message to
+		be processed.  (opendkim)
+
+oversign	Optional specification of header fields to "oversign" to
+		prevent malicious addition of malicious extra instances.
+		(opendkim, libopendkim)
+
 parsetime	Adds a utility function reporting the value of the Date:
 		header for easy comparison to signature timestamps in order
 		to detect messages in which those values wildly differ.
 		INCOMPLETE.  (libopendkim)
+
+poll		Instructs the asynchronous resolver to use poll() instead
+		of select() to wait for I/O on sockets.  (libar)
+
+postgres_reconnect_hack
+		libpq (the postgresql client library) fails to identify
+		at least some error conditions as needing a connection
+		to be restarted before a query can be completed.  This
+		code compensates for that problem by checking for fatal
+		errors in ad different (but unconventional) manner.  It is
+		hoped that this can be removed in the near future.
+		(opendkim)
+
+rbl		Option to query realtime blacklists from within Lua scripts.
+		Requires Lua.  (opendkim)
 
 redirect	Option to redirect messages to a specific address on
 		verification or ADSP failure.  (opendkim)
@@ -104,9 +129,6 @@ stats		Optional generation of per-message and per-signature
 		statistics of interest to the evolution of DKIM.
 		See stats/README for information.  (opendkim)
 
-stats_i		Addition of statistics recording support for "i=" signature
-		tag presence and values.  (opendkim)
-
 statsext	Support for localized stats extensions.  See stats/README
 		for information.  (opendkim)
 
@@ -120,7 +142,7 @@ COPYRIGHT
 Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 	All rights reserved.
 
-Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 
 
 $Revision: 1.25 $, Last updated $Date: 2010/10/25 17:16:00 $

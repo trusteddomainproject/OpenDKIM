@@ -1,45 +1,133 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.2.2 released
+Subject: OpenDKIM v2.3.0 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.2.2, now available
+The OpenDKIM project announces availability of OpenDKIM v2.3.0, now available
 for download from SourceForge.
 
-This release fixes a number of minor bugs found since v2.2.1 was released.
+This is a major new feature release with a few minor bug fixes included.
+There are also a few new experimental extensions available for those
+interested in participating.  A few worth noting:
+
+- the final Lua script can now do RBL queries
+- VBR support has been enhanced
+- statistics gathering has also been enhanced, with a few more pieces of data
+  being tracked and a few improvements made to anonymization of data
+- several simplifications have been made to various configuration settings
+- experimental support for Authorized Third-Party Signers (ATPS) was added
+- compile-time support for GNUTLS as a replacement for OpenSSL was added
+- will now use an opendkim.conf in the default location if it's there
 
 The full RELEASE_NOTES for this version:
 
-2.2.2		2010/11/28
-	Fix bug #SF2903325: Clean up numerous signed vs. unsigned warnings.
-	Fix bug #SF3095782: When VBR is enabled, only perform a query when
-		the "md" domain in the VBR-Info header field matches the
-		"d" field for any valid signature.
-	Fix bug #SF3105993: Better handling of missing records in Lua DB
-		lookups.  Reported by Luci Stanescu.
-	When reading keys, ensure what's being read is a regular file and
-		not something else.
-	Complain if TrustAnchorFile names something that can't be opened
-		for reading.
-	LIBOPENDKIM: Don't complain about multiple records returned if one
-		of them was an RRSIG.  Problem noted by Andreas Schulze.
-	LIBAR: Rework some I/O logic to avoid a deadlock when the nameserver
-		becomes unresponsive during response processing.  Problem
-		noted by Gary Mills.
-	BUILD: Move all scripts and executables except opendkim to a bin
-		directory for adminstrator convenience. They were previously in
-		the sbin directory.
-	BUILD: Fix bug #SF3101842: Fix opendkim-genzone build when OpenDBX
-		is in use.
-	BUILD: opendkim-testkey can require SASL build information when used
-		with OpenLDAP, or Lua information when built with Lua.
-	BUILD: Dissociate libopendkim and libunbound, as this is now handled
-		through the application rather than the library.
-	BUILD: Convert to using git for source code management.
-	STATS: Additional reporting improvements.
-	STATS: Fix bug #SF3107659: Add additional diagnostic output to
-		opendkim-importstats when malformed input is found.
-	TOOLS: Handle input generated with and without the _FFR_STATS_I
-		extensions.  Problem noted by Graham Murray.
+2.3.0		2011/02/21
+	Feature request #SF2964396: Allow SignHeaders, OmitHeaders and
+		SenderHeaders to be specified as deltas to the default lists.
+	Feature request #SF3053094: Correct documentation and improve function
+		of the AuthservID configuration setting.  Requested by
+		Andreas Schulze.
+	Feature request #SF3060152: Add odkim.replace_header() function.
+	Feature request #SF3060161: Add odkim.del_header() function.
+	Feature request #SF3061189: Add new "quarantine" option to all the
+		various "On-" settings.
+	Feature request #SF3066104: Add "AnonymousDomains" configuration
+		option.
+	Feature request #SF3074290: Add _FFR_ATPS, experimental support for
+		draft-kucherawy-dkim-atps.
+	Feature request #SF3076684: Add "VBR-TrustedCertifiersOnly" flag.
+	Feature request #SF3080604: Add odkim.parse_field() function.
+		Requested by Todd Lyons.
+	Feature request #SF3081697: Add "OversignHeaders" configuration
+		option.
+	Feature request #SF3085536: Activate _FFR_STATS_I, providing
+		statistics reporting about use of "i=" in signatures.
+	Feature request #SF3096630: Add odkim.rbl_check() function.
+	Feature request #SF3097083: Make SigningTable accessible from Lua.
+	Feature request #SF3103095: Allow "%" in a KeyTable entry's filename
+		component as well as the domain name.
+	Feature request #SF3105480: Improved VBR correctness; don't conduct
+		VBR checks at all if there are disagreeing "mc" values in
+		multiple VBR-Info header fields.
+	Feature request #SF3106132: Allow "%" in a SigningTable's value.
+	Feature request #SF3109963: Add "MaximumSignaturesToVerify" setting.
+		Suggested by John Wood.
+	Feature request #SF3110593: Add compile-time support for GnuTLS as
+		an alternative to OpenSSL.  Suggested by Alessandro Vesely.
+	Feature request #SF3136772: Sign the VBR-Info header field, if added.
+		Requested by Frederik Pettai.
+	Fix bug #SF3134119: With AutoRestart enabled, arrange to relay
+		SIGUSR1 from the parent to the child rather than terminating.
+		Reported by Yoshiaki Yanagihara.
+	Fix bug #SF3141313: Trim whitespace from values in in-core data
+		sets.  Reported by Todd Lyons.
+	Fix bug #SF3156124: More robust handling of database disconnects.
+		Also add _FFR_POSTGRESQL_RECONNECT_HACK, which will hopefully
+		be temporary.  Reported by Miha Vrhovnik.
+	Fix bug #SF3181180: Correct handling of quoted strings containing
+		parentheses (and the opposite) when parsing
+		Authentication-Results header fields.  Reported by
+		Mark Martinec.
+	Fix back-compatibility with very old implementations of milter in MTAs.
+	Fix case-insensitive matching for domain names when doing signing
+		selection.  Problem noted by John Espiro.
+	New configuration file options:
+		- "CaptureUnknownErrors", replacing the FFR of the same name
+		- "DNSConnect", requesting the resolver use TCP mode
+		- "KeepAuthResults", suppressing required removal of
+		  Authentication-Results header fields
+		- "ResolverTracing", adding detailed logging of libar activity
+		- "StrictHeaders", requesing libopendkim to assert header
+		  field counts according to the standards
+		- "UnboundConfigFile", passing a configuration file name to
+		  libunbound (suggested by Andreas Schulze)
+		- "VBR-PurgeFields", removing "X-VBR-*" fields after using them
+	Trim whitespace from the end of all values in a config file, not just
+		strings.  Problem noted by Reuben Farrelly.
+	Assume a default location for opendkim.conf.  Suggested by Andreas
+		Schulze.
+	Don't needlessly demand milter features, causing aborts when they're
+		not available.  Problem noted by Todd Lyons.
+	Make odkim.get_clienthost(), odkim.get_clientip() and
+		odkim.get_fromdomain() available in the final script.
+	When "SyslogSuccess" is active, log the selector and domain used.
+		Suggested by Miha Vrhovnik.
+	LIBAR: Feature request #SF3115073: Add flag for fine-grained activity
+		logging for debugging purposes.
+	LIBAR: Add support for using poll() instead of socket().
+	LIBOPENDKIM: Feature request #SF3087029: Add DKIM_LIBFLAGS_STRICTHDRS.
+	LIBOPENDKIM: Feature request #SF3089990: Add dkim_sig_getsignedhdrs().
+	LIBOPENDKIM: Fix bug #SF3079094: Have dkim_diffheaders() take
+		canonicalization into account when generating its results
+		to avoid false positives.
+	LIBOPENDKIM: Fix bug #SF3184670: Add error codes for missing and empty
+		"v=" tags, thus avoiding a possible assertion failure when
+		DKIM_LIBFLAGS_BADSIGHANDLES is in use.  Reported by J. Coloos.
+	LIBOPENDKIM: Fix up handling of multi-TXT DNS replies inside
+		dkim_get_policy_dns().
+	LIBOPENDKIM: Add dkim_getid().
+	LIBOPENDKIM: Treat no answers as an NXDOMAIN with respect to
+		retrieving ADSP records.
+	LIBOPENDKIM: When an unexpected DNS type or class is received,
+		log the received values.
+	LIBVBR: Feature request #SF3105477: Copy the generic DNS work from
+		libopendkim.
+	STATS: Feature request #SF3085536: Activate _FFR_STATS_I, providing
+		statistics reporting about use of "i=" in signatures.
+	STATS: Feature request #SF3125701: Add "s=" key value tracking.
+	STATS: Feature request #SF3137445: Track key sizes.  Suggested by
+		Todd Lyons.
+	MILTERTEST: When asserting negotiation state, don't forget to capture
+		what was negotiated.
+	TOOLS: Feature request #SF3106876: Amend opendkim-testkey to return
+		the DNSSEC results as well.
+	TOOLS: Fix bug #SF3143922: Command line parameters to opendkim-testkey
+		now override their configuration file counterparts.
+	TOOLS: Experimental new "opendkim-spam" tool to let users update a
+		stats database to indicate a message is spam, for possible
+		later correlation use.
+	BUILD: opendkim-genzone needs LIBCRYPTO_LDFLAGS.  Reported by
+		John Smith.
+	Activate _FFR_CAPTURE_UNKNOWN_ERRORS.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
