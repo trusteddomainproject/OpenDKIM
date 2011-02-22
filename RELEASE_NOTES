@@ -96,6 +96,8 @@ release, and a summary of the changes in that release.
 		log the received values.
 	LIBVBR: Feature request #SF3105477: Copy the generic DNS work from
 		libopendkim.
+	LIBVBR: Feature request #SF3127200: Add proper documentation (i.e.,
+		a man page).
 	STATS: Feature request #SF3085536: Activate _FFR_STATS_I, providing
 		statistics reporting about use of "i=" in signatures.
 	STATS: Feature request #SF3125701: Add "s=" key value tracking.
@@ -105,6 +107,8 @@ release, and a summary of the changes in that release.
 		what was negotiated.
 	TOOLS: Feature request #SF3106876: Amend opendkim-testkey to return
 		the DNSSEC results as well.
+	TOOLS: Feature request #SF3074290: Add a zone file generation tool
+		for ATPS.
 	TOOLS: Fix bug #SF3143922: Command line parameters to opendkim-testkey
 		now override their configuration file counterparts.
 	TOOLS: Experimental new "opendkim-spam" tool to let users update a
