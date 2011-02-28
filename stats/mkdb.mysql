@@ -10,6 +10,7 @@ create table if not exists reporters (
 	id int unsigned not null auto_increment,
 	name varchar(255) not null,
 	firstseen timestamp not null default CURRENT_TIMESTAMP,
+        enabled tinyint not null default 1,
 
 	primary key(id),
 	key(name)
