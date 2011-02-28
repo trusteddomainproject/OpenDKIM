@@ -81,44 +81,45 @@ echo '<li> <a href="#worst_adsp">Worst ADSP use</a>' >> $OUTPUT
 echo '<li> <a href="#use_counts">Signing domain use counts</a>' >> $OUTPUT
 echo '<li> <a href="#mime_type_correlation">Correlation of outer MIME types with pass/fail counts</a>' >> $OUTPUT
 echo '<li> <a href="#mime_encoding_correlation">Correlation of outer MIME encodings with pass/fail counts</a>' >> $OUTPUT
-echo '<li> <a href="#signing_trend">Trend in signing rates</a>' >> $OUTPUT
+echo '<li> <a href="#signing_trend_msg">Trend in message signing rates</a>' >> $OUTPUT
+echo '<li> <a href="#signing_trend_domain">Trend in domain signing rates</a>' >> $OUTPUT
 echo '<li> <a href="#atps_use">ATPS use</a>' >> $OUTPUT
 echo "</ul>" >> $OUTPUT
 echo "<hr>" >> $OUTPUT
 
 echo '<a name="total_records"></a>' >> $OUTPUT
 echo "<p> Total records (messages) received: </p>" >> $OUTPUT
-$MYSQL --execute="select count(*) as count, sum(if(sigcount > 0, 1, 0)) as signed from messages" >> $OUTPUT
+$MYSQL --execute="SELECT COUNT(*) as COUNT, SUM(SIGN(sigcount)) AS signed FROM messages" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="reporters"></a>' >> $OUTPUT
 echo "<p> Reporting hosts and record counts: </p>" >> $OUTPUT
-$MYSQL --execute="select reporters.name as 'reporter', count(*) as 'messages', reporters.firstseen as 'since', max(msgtime) as 'last' from messages join reporters on messages.reporter = reporters.id group by messages.reporter order by count(*) desc" >> $OUTPUT
+$MYSQL --execute="SELECT reporters.name AS reporter, COUNT(*) AS messages, reporters.firstseen AS since, MAX(msgtime) AS last FROM messages JOIN reporters ON messages.reporter = reporters.id GROUP BY messages.reporter ORDER BY COUNT(*) DESC" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="signature_counts"></a>' >> $OUTPUT
 echo "<p> Overall message signature counts: </p>" >> $OUTPUT
-$MYSQL --execute="select sigcount, count(*) as messages from messages group by sigcount" >> $OUTPUT
+$MYSQL --execute="SELECT sigcount, COUNT(*) AS messages FROM messages GROUP BY sigcount" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="algorithm_use"></a>' >> $OUTPUT
 echo "<p> Signature algorithm use: </p>" >> $OUTPUT
-$MYSQL --execute="select if(algorithm = 0, 'rsa-sha1', 'rsa-sha256') as 'signing algorithm', count(algorithm) as count from signatures group by algorithm" >> $OUTPUT
+$MYSQL --execute="SELECT IF(algorithm = 0, 'rsa-sha1', 'rsa-sha256') AS 'signing algorithm', COUNT(algorithm) AS count FROM signatures GROUP BY algorithm" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="hdr_canon"></a>' >> $OUTPUT
 echo "<p> Header canonicalization use: </p>" >> $OUTPUT
-$MYSQL --execute="select if(hdr_canon = 0, 'simple', 'relaxed') as canonicalization, count(hdr_canon) as count, count(distinct domain) as domains, sum(pass) as passed from signatures group by hdr_canon" >> $OUTPUT
+$MYSQL --execute="SELECT IF(hdr_canon = 0, 'simple', 'relaxed') AS canonicalization, COUNT(hdr_canon) AS count, COUNT(DISTINCT domain) AS domains, SUM(pass) AS passed FROM signatures GROUP BY hdr_canon" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="body_canon"></a>' >> $OUTPUT
 echo "<p> Body canonicalization use: </p>" >> $OUTPUT
-$MYSQL --execute="select if(body_canon = 0, 'simple', 'relaxed') as canonicalization, count(body_canon) as count, count(distinct domain) as domains, sum(pass) as passed from signatures group by body_canon" >> $OUTPUT
+$MYSQL --execute="SELECT IF(body_canon = 0, 'simple', 'relaxed') AS canonicalization, COUNT(body_canon) AS count, COUNT(DISTINCT domain) AS domains, SUM(pass) AS passed FROM signatures GROUP BY body_canon" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="sig_props"></a>' >> $OUTPUT
 echo "<p> Signature properties: </p>" >> $OUTPUT
-$MYSQL --execute="select sum(sig_t) as 't=', sum(sig_x) as 'x=', sum(sig_z) as 'z=' from signatures" >> $OUTPUT
+$MYSQL --execute="SELECT SUM(sig_t) AS 't=', SUM(sig_x) AS 'x=', SUM(sig_z) AS 'z=' FROM signatures" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="l_tag"></a>' >> $OUTPUT
@@ -256,9 +257,14 @@ echo "<p> Correlation of outer MIME encodings with pass/fail counts: </p>" >> $O
 $MYSQL --execute="select count(*) as 'msg count', sum(signatures.pass) as passed, messages.content_encoding from signatures join messages on signatures.message = messages.id group by messages.content_encoding" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
-echo '<a name="signing_trend"></a>' >> $OUTPUT
-echo "<p> Trend in signing rates: </p>" >> $OUTPUT
+echo '<a name="signing_trend_msg"></a>' >> $OUTPUT
+echo "<p> Trend in message signing rates: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT YEAR(msgtime) AS year, MONTHNAME(msgtime) AS month, (100. * SUM(SIGN(sigcount)) / COUNT(*)) AS '% signed' FROM messages GROUP BY year,MONTH(msgtime) ORDER BY year,MONTH(msgtime)" >> $OUTPUT
+echo "</p>" >> $OUTPUT
+
+echo '<a name="signing_trend_domain"></a>' >> $OUTPUT
+echo "<p> Trend in domain signing rates: </p>" >> $OUTPUT
+$MYSQL --execute="SELECT COUNT(DISTINCT domain) AS domains, YEAR(msgtime) AS year, MONTHNAME(msgtime) AS month FROM signatures JOIN messages ON signatures.message = messages.id GROUP BY year, MONTH(msgtime) ORDER BY year, MONTH(msgtime)" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 echo '<a name="atps_use"></a>' >> $OUTPUT
