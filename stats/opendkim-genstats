@@ -99,7 +99,7 @@ echo "" >> $OUTPUT
 
 echo '<a name="signature_counts"></a>' >> $OUTPUT
 echo "<p> Overall message signature counts: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT sigcount, COUNT(*) AS messages FROM messages GROUP BY sigcount" >> $OUTPUT
+$MYSQL --execute="SELECT sigcount, COUNT(*) AS messages FROM messages JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 GROUP BY sigcount" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="algorithm_use"></a>' >> $OUTPUT
@@ -229,7 +229,7 @@ echo "" >> $OUTPUT
 
 echo '<a name="received_correlation"></a>' >> $OUTPUT
 echo "<p> Correlation of Received: count to signature successes: </p>" >> $OUTPUT
-$MYSQL --execute="select received_count, sum(sigcount) as 'total sigs', sum(signatures.pass) as 'passed', 100*sum(signatures.pass)/sum(sigcount) as '% pass' from messages join signatures on signatures.message = messages.id where received_count > 0 and sigcount > 0 group by received_count" >> $OUTPUT
+$MYSQL --execute="SELECT received_count, SUM(sigcount) AS 'total sigs', SUM(signatures.pass) AS 'passed', 100*SUM(signatures.pass)/SUM(sigcount) AS '% pass' FROM messages JOIN signatures ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND received_count > 0 AND sigcount > 0 GROUP BY received_count" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="broken_headers"></a>' >> $OUTPUT
