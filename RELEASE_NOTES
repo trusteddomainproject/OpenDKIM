@@ -5,6 +5,12 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.3.1		2011/03/??
+	STATS: Omit data from reporters that are not currently marked
+		"enabled" in the reporters table.
+	STATS: A few more reports.
+	MILTERTEST: Don't use non-standard printf() conversions.
+
 2.3.0		2011/02/21
 	Feature request #SF2964396: Allow SignHeaders, OmitHeaders and
 		SenderHeaders to be specified as deltas to the default lists.
