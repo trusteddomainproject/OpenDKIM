@@ -89,7 +89,7 @@ echo "<hr>" >> $OUTPUT
 
 echo '<a name="total_records"></a>' >> $OUTPUT
 echo "<p> Total records (messages) received: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) as COUNT, SUM(SIGN(sigcount)) AS signed FROM messages JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1" >> $OUTPUT
+$MYSQL --execute="SELECT COUNT(*) as count, SUM(SIGN(sigcount)) AS signed FROM messages JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="reporters"></a>' >> $OUTPUT
