@@ -8172,10 +8172,14 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		                           NULL);
 		if (conf->conf_dolog)
 		{
-			syslog(retcode == SMFIS_ACCEPT ? LOG_DEBUG
-			                               : LOG_NOTICE,
-			       "%s: no signature data",
-			       JOBID(dfc->mctx_jobid));
+			if (conf->conf_logwhy ||
+			    retcode != SMFIS_ACCEPT)
+			{
+				syslog(retcode == SMFIS_ACCEPT ? LOG_DEBUG
+				                               : LOG_NOTICE,
+				       "%s: no signature data",
+				       JOBID(dfc->mctx_jobid));
+			}
 		}
 		replytxt = "no DKIM signature data";
 		break;

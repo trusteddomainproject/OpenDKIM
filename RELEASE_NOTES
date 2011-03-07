@@ -6,6 +6,9 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.3.1		2011/03/??
+	Feature request #SF3199824: Don't log "no signature data" unless
+		LogWhy is enabled or the action for unsigned mail is something
+		other than "accept".
 	STATS: Fix bug #SF3195449: Omit data from reporters that are not
 		currently marked "enabled" in the reporters table.
 	STATS: A few more reports.
