@@ -10,6 +10,8 @@ release, and a summary of the changes in that release.
 		currently marked "enabled" in the reporters table.
 	STATS: A few more reports.
 	MILTERTEST: Don't use non-standard printf() conversions.
+	TOOLS: Feature request #SF3200848: Add a backgrounding option
+		(on by default) to opendkim-spam.
 
 2.3.0		2011/02/21
 	Feature request #SF2964396: Allow SignHeaders, OmitHeaders and
