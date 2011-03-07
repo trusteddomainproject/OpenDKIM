@@ -13462,6 +13462,14 @@ mlfi_eom(SMFICTX *ctx)
 						       dfc->mctx_jobid);
 					}
 
+					if (conf->conf_dolog)
+					{
+						syslog(LOG_INFO,
+						       "%s: DKIM reputation: %d (max %d); rejecting",
+						       dfc->mctx_jobid, rep,
+						       conf->conf_repreject);
+					}
+
 					dkimf_cleanup(ctx);
 					return SMFIS_REJECT;
 				}
@@ -13486,6 +13494,13 @@ mlfi_eom(SMFICTX *ctx)
 					                                        : "",
 					         result, rep,
 					         dkim_sig_getdomain(sig));
+
+					if (conf->conf_dolog_success)
+					{
+						syslog(LOG_INFO,
+						       "%s: DKIM reputation: %d",
+						       dfc->mctx_jobid, rep);
+					}
 
 					if (dkimf_insheader(ctx, 1,
 					                    AUTHRESULTSHDR,
