@@ -7282,13 +7282,14 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 **
 **  Parameters:
 **  	conf -- DKIM filter configuration data
+**  	err -- error string (returned; may be NULL)
 **
 **  Return value:
 **  	TRUE on success, FALSE otherwise.
 */
 
 static _Bool
-dkimf_config_setlib(struct dkimf_config *conf)
+dkimf_config_setlib(struct dkimf_config *conf, char **err)
 {
 	DKIM_STAT status;
 	u_int opts;
@@ -7300,7 +7301,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	{
 		lib = dkim_init(NULL, NULL);
 		if (lib == NULL)
+		{
+			if (err != NULL)
+				*err = "failed to initialize DKIM library";
 			return FALSE;
+		}
 
 		conf->conf_libopendkim = lib;
 	}
@@ -7326,18 +7331,41 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	{
 		if (conf->conf_trustanchorpath != NULL)
 		{
+			if (access(conf->conf_trustanchorpath, R_OK) != 0)
+			{
+				if (err != NULL)
+					*err = "can't access unbound trust anchor";
+				return FALSE;
+			}
+
 			status = dkimf_unbound_add_trustanchor(unbound,
 			                                       conf->conf_trustanchorpath);
 			if (status != DKIM_STAT_OK)
+			{
+				if (err != NULL)
+					*err = "failed to add unbound trust anchor";
 				return FALSE;
+			}
 		}
 
 		if (conf->conf_unboundconfig != NULL)
 		{
+			if (access(conf->conf_unboundconfig, R_OK) != 0)
+			{
+				if (err != NULL)
+					*err = "can't access unbound configuration file";
+				return FALSE;
+			}
+
 			status = dkimf_unbound_add_conffile(unbound,
 			                                    conf->conf_unboundconfig);
 			if (status != DKIM_STAT_OK)
+			{
+				if (err != NULL)
+					*err = "failed to add unbound configuration file";
+			
 				return FALSE;
+			}
 		}
 
 		(void) dkimf_unbound_setup(lib, unbound);
@@ -7357,7 +7385,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      sizeof drift);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM clock drift limit";
 			return FALSE;
+		}
 	}
 
 	if (conf->conf_sigttl != 0)
@@ -7369,7 +7401,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      sizeof sigtime);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM signature TTL";
 			return FALSE;
+		}
 	}
 
 	if (conf->conf_sendreports || conf->conf_keeptmpfiles ||
@@ -7382,7 +7418,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      DKIM_OPTS_FLAGS, &opts, sizeof opts);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to retrieve DKIM library options";
 			return FALSE;
+		}
 
 		if (conf->conf_sendreports || conf->conf_keeptmpfiles)
 			opts |= DKIM_LIBFLAGS_TMPFILES;
@@ -7403,7 +7443,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      DKIM_OPTS_FLAGS, &opts, sizeof opts);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 
 	if (conf->conf_alwayshdrsdb != NULL)
@@ -7411,7 +7455,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		status = dkimf_db_mkarray(conf->conf_alwayshdrsdb,
 		                          &conf->conf_alwayshdrs, NULL);
 		if (status == -1)
+		{
+			if (err != NULL)
+				*err = "failed to generate DB array";
 			return FALSE;
+		}
 
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_ALWAYSHDRS,
@@ -7419,7 +7467,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      sizeof conf->conf_alwayshdrs);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 
 #ifdef _FFR_OVERSIGN
@@ -7428,7 +7480,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		status = dkimf_db_mkarray(conf->conf_oversigndb,
 		                          &conf->conf_oversignhdrs, NULL);
 		if (status == -1)
+		{
+			if (err != NULL)
+				*err = "failed to generate DB array";
 			return FALSE;
+		}
 
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_OVERSIGNHDRS,
@@ -7436,7 +7492,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      sizeof conf->conf_oversignhdrs);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 #endif /* _FFR_OVERSIGN */
 
@@ -7445,14 +7505,22 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		status = dkimf_db_mkarray(conf->conf_mbsdb, &conf->conf_mbs,
 		                          NULL);
 		if (status == -1)
+		{
+			if (err != NULL)
+				*err = "failed to generate DB array";
 			return FALSE;
+		}
 
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_MUSTBESIGNED,
 		                      conf->conf_mbs, sizeof conf->conf_mbs);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 
 	if (conf->conf_omithdrdb != NULL)
@@ -7461,7 +7529,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                          &conf->conf_omithdrs,
 		                          (const char **) dkim_should_not_signhdrs);
 		if (status == -1)
+		{
+			if (err != NULL)
+				*err = "failed to generate DB array";
 			return FALSE;
+		}
 
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SKIPHDRS,
@@ -7469,7 +7541,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      sizeof conf->conf_omithdrs);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 	else
 	{
@@ -7479,7 +7555,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      sizeof (u_char **));
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 
 	if (conf->conf_signhdrsdb != NULL)
@@ -7488,14 +7568,22 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                          &conf->conf_signhdrs,
 		                          (const char **) dkim_should_signhdrs);
 		if (status == -1)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SIGNHDRS, conf->conf_signhdrs,
 		                      sizeof conf->conf_signhdrs);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 	else
 	{
@@ -7505,7 +7593,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      sizeof (u_char **));
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 
 	status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
@@ -7514,25 +7606,41 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	                      sizeof conf->conf_tmpdir);
 
 	if (status != DKIM_STAT_OK)
+	{
+		if (err != NULL)
+			*err = "failed to set DKIM library options";
 		return FALSE;
+	}
 
 #ifdef _FFR_MAXVERIFY
 	status = dkim_set_prescreen(conf->conf_libopendkim, dkimf_prescreen);
 	if (status != DKIM_STAT_OK)
+	{
+		if (err != NULL)
+			*err = "failed to set DKIM prescreen function";
 		return FALSE;
+	}
 #else /* _FFR_MAXVERIFY */
 	if (conf->conf_thirdpartydb != NULL)
 	{
 		status = dkim_set_prescreen(conf->conf_libopendkim,
 		                            dkimf_prescreen);
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM prescreen function";
 			return FALSE;
+		}
 	}
 	else
 	{
 		status = dkim_set_prescreen(conf->conf_libopendkim, NULL);
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM prescreen function";
 			return FALSE;
+		}
 	}
 #endif /* _FFR_MAXVERIFY */
 
@@ -7638,6 +7746,8 @@ dkimf_config_reload(void)
 
 		if (!err)
 		{
+			char *errstr = NULL;
+
 			if (curconf->conf_refcnt == 0)
 				dkimf_config_free(curconf);
 
@@ -7652,12 +7762,13 @@ dkimf_config_reload(void)
 				       conffile);
 			}
 
-			if (!dkimf_config_setlib(curconf))
+			if (!dkimf_config_setlib(curconf, &errstr))
 			{
 				if (curconf->conf_dolog)
 				{
 					syslog(LOG_WARNING,
-					       "can't configure DKIM library; continuing");
+					       "can't configure DKIM library: %s; continuing",
+					       errstr);
 				}
 			}
 		}
@@ -14283,11 +14394,11 @@ main(int argc, char **argv)
 			break;
 
 		  case 'V':
-			if (!dkimf_config_setlib(curconf))
+			if (!dkimf_config_setlib(curconf, &p))
 			{
 				fprintf(stderr,
-				        "%s: can't configure DKIM library\n",
-				        progname);
+				        "%s: can't configure DKIM library: %s\n",
+				        progname, p);
 
 				return EX_SOFTWARE;
 			}
@@ -15365,12 +15476,13 @@ main(int argc, char **argv)
 	}
 
 	/* initialize DKIM library */
-	if (!dkimf_config_setlib(curconf))
+	if (!dkimf_config_setlib(curconf, &p))
 	{
 		if (curconf->conf_dolog)
 		{
 			syslog(LOG_WARNING,
-			       "can't configure DKIM library; continuing");
+			       "can't configure DKIM library: %s; continuing",
+			       p);
 		}
 	}
 
