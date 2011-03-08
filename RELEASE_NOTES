@@ -5,7 +5,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.3.1		2011/03/??
+2.3.1		2011/03/21
 	Feature request #SF3196060: Log retrieved reputation values.
 		Patch from Andreas Schulze.
 	Feature request #SF3199824: Don't log "no signature data" unless
