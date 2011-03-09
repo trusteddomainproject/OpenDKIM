@@ -32,22 +32,30 @@ Release procedures for OpenDKIM
    and then the full RELEASE_NOTES block for the new release.  Commit this
    to git.
 
-6) Deploy all needed files to SourceForge by doing 'make push'.
+6) Merge the "develop" branch to the "master" branch, as follows:
 
-7) Via the SourceForge UI, do the following things to the new files:
+	% git checkout master
+	% git merge develop
+	[massage in and commit any conflicts]
+	% git push
+
+7) Deploy all needed files to SourceForge by doing 'make push'.  This will
+   also place the release tag.
+
+8) Via the SourceForge UI, do the following things to the new files:
 
 	a) mark RELEASE_NOTES as a release notes file by checking the box
 	b) make the latest tarball the default download for all operating
 	   systems
 	c) associate RELEASE_NOTES with the tarball
 
-8) Send the release announcement:
+9) Send the release announcement:
 
 	% sendmail -t < announcement
 
-9) Mark any bug fixes or feature requests, etc. as closed if this release
-   contained them.
+10) Mark any bug fixes or feature requests, etc. as closed if this release
+    contained them.
 
-10) Update our entry on FreshMeat (http://www.freshmeat.net).
+11) Update our entry on FreshMeat (http://www.freshmeat.net).
 
 $Id: HowToRelease,v 1.6 2009/11/22 19:23:21 cm-msk Exp $
