@@ -13,6 +13,9 @@ release, and a summary of the changes in that release.
 		other than "accept".
 	Fix bug #SF3196069: Log more detail when dkimf_config_setlib() fails.
 		Problem noted by Andreas Schulze.
+	Fix bug #SF3204725: Add "ReplaceHeaders" data set to constrain what
+		header fields are affected by "ReplaceRules".  Problem
+		noted by Chris Callegari.
 	STATS: Fix bug #SF3195449: Omit data from reporters that are not
 		currently marked "enabled" in the reporters table.
 	STATS: A few more reports.

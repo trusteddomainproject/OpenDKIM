@@ -309,7 +309,9 @@ struct dkimf_config
 	char *		conf_finalscript;	/* Lua script: final */
 #endif /* USE_LUA */
 #ifdef _FFR_REPLACE_RULES
+	char *		conf_rephdrs;		/* replacement headers */
 	struct replace * conf_replist;		/* replacement list */
+	DKIMF_DB	conf_rephdrsdb;		/* replacement headers (DB) */
 #endif /* _FFR_REPLACE_RULES */
 	dkim_sigkey_t	conf_seckey;		/* secret key data */
 #ifdef USE_UNBOUND
@@ -5351,6 +5353,8 @@ dkimf_config_free(struct dkimf_config *conf)
 #ifdef _FFR_REPLACE_RULES
 	if (conf->conf_replist != NULL)
 		dkimf_free_replist(conf->conf_replist);
+	if (conf->conf_rephdrsdb != NULL)
+		dkimf_db_close(conf->conf_rephdrsdb);
 #endif /* _FFR_REPLACE_RULES */
 
 #ifdef _FFR_VBR
@@ -7037,6 +7041,29 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 #ifdef _FFR_REPLACE_RULES
 	/* replacement list */
+	str = NULL;
+	if (data != NULL)
+	{
+		(void) config_get(data, "ReplaceHeaders", &str, sizeof str);
+	}
+	if (str != NULL)
+	{
+		int status;
+		int dbtype;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_rephdrsdb, str,
+		                       (DKIMF_DB_FLAG_READONLY |
+		                        DKIMF_DB_FLAG_ICASE), NULL,
+		                       &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, dberr);
+			return -1;
+		}
+	}
+
 	str = NULL;
 	if (data != NULL)
 		(void) config_get(data, "ReplaceRules", &str, sizeof str);
@@ -9875,6 +9902,9 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 sfsistat
 mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 {
+#ifdef _FFR_REPLACE_RULES
+	_Bool dorepl = FALSE;
+#endif /* _FFR_REPLACE_RULES */
 	msgctx dfc;
 	connctx cc;
 	Header newhdr;
@@ -9977,7 +10007,30 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 	}
 
 #ifdef _FFR_REPLACE_RULES
-	if (conf->conf_replist != NULL)	/* XXX -- signing mode only? */
+	if (conf->conf_rephdrsdb == NULL)
+	{
+		dorepl = TRUE;
+	}
+	else
+	{
+		_Bool found;
+
+		found = FALSE;
+
+		if (dkimf_db_get(conf->conf_rephdrsdb,
+		                 (char *) headerf, 0, NULL, 0,
+		                 &found) != 0)
+		{
+			if (conf->conf_dolog)
+				syslog(LOG_ERR, "dkimf_db_get() failed");
+
+			return SMFIS_TEMPFAIL;
+		}
+
+		dorepl = found;
+	}
+
+	if (conf->conf_replist != NULL && dorepl)
 	{
 		int status;
 		regmatch_t match;

@@ -794,6 +794,14 @@ domain names (e.g. ".example.com").
 Removes all existing signatures when operating in signing mode.
 
 .TP
+.I ReplaceHeaders (data set)
+Defines a set of header fields that should be affected by the text
+replacement rules defined by the
+.I ReplaceRules
+setting.  By default, all header fields are included.
+@REPLACE_RULES_MANNOTICE@
+
+.TP
 .I ReplaceRules (string)
 Specifies a file containing a list of text replacement rules that are
 applied to the message headers to replace certain content expected to be
