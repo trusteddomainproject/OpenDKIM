@@ -617,7 +617,7 @@ main(int argc, char **argv)
 	{
 		fprintf(stderr,
 		        "%s: could not determine message id for '%s'\n",
-		        progname, reporter);
+		        progname, job);
 
 		(void) odbx_unbind(db);
 		(void) odbx_finish(db);
