@@ -400,6 +400,8 @@ main(int argc, char **argv)
 			return EX_OSERR;
 
 		  case 0:
+			(void) setsid();
+			/* XXX -- should probably dup2() /dev/null here */
 			break;
 
 		  default:
