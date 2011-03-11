@@ -1916,7 +1916,7 @@ dkimf_xs_dbopen(lua_State *l)
 		flags |= DKIMF_DB_FLAG_ICASE;
 	lua_pop(l, lua_gettop(l));
 
-	status = dkimf_db_open(&db, name, DKIMF_DB_FLAG_READONLY, NULL, &err);
+	status = dkimf_db_open(&db, name, flags, NULL, &err);
 
 	if (status != 0)
 	{
