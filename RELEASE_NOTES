@@ -16,6 +16,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3204725: Add "ReplaceHeaders" data set to constrain what
 		header fields are affected by "ReplaceRules".  Problem
 		noted by Chris Callegari.
+	Patch #SF3205699: Make all header field name and domain name data
+		sets case insensitive.  Submitted by Richard Rognlie.
 	Add a case-insensitivity flag to odkim.db_open().
 	STATS: Fix bug #SF3195449: Omit data from reporters that are not
 		currently marked "enabled" in the reporters table.
