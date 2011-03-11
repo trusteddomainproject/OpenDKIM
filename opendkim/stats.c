@@ -126,6 +126,7 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 	FILE *out;
 	unsigned char *from;
 	char *p;
+	char *q;
 #ifdef _FFR_DIFFHEADERS
 	struct dkim_hdrdiff *diffs;
 	unsigned char *ohdrs[MAXHDRCNT];
@@ -566,6 +567,7 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		**  3 -- "i=" has some other local-part
 		*/
 
+		q = (char *) dkim_sig_getdomain(sigs[c]);
 		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
 		                                  (u_char *) "i");
 		if (p == NULL)
@@ -581,7 +583,7 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 			at = strchr(p, '@');
 			if (at != NULL)
 			{
-				if (strcasecmp((char *) from, at + 1) == 0)
+				if (strcasecmp((char *) q, at + 1) == 0)
 					domain = 1;
 				else
 					domain = 2;

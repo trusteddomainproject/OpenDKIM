@@ -21,6 +21,8 @@ release, and a summary of the changes in that release.
 	Add a case-insensitivity flag to odkim.db_open().
 	STATS: Fix bug #SF3195449: Omit data from reporters that are not
 		currently marked "enabled" in the reporters table.
+	STATS: Evaluate "i=" against the "d=" domain, not the "From" domain.
+		Problem noted by Mark Martinec.
 	STATS: A few more reports.
 	MILTERTEST: Don't use non-standard printf() conversions.
 	TOOLS: Feature request #SF3200848: Add a backgrounding option
