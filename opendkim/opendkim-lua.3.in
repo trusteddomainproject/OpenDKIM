@@ -85,10 +85,13 @@ Closes the specified data set.  Returns 1.  The current implementation
 will conduct data set garbage collection when the script terminates, so this
 is not strictly necessary, but is recommended.
 .TP
-.B odkim.db_open(db, name)
+.B odkim.db_open(name[, icase])
 Opens the data set specified by
 .I name.
-See the
+If
+.I icase
+is provided and is "true", then queries into the database will be
+case-insensitive.  See the
 .I opendkim(8)
 man page for information on specifying a data set.  On success, returns a
 handle that can be passed to

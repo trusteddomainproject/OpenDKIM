@@ -1888,6 +1888,7 @@ dkimf_xs_internalip(lua_State *l)
 int
 dkimf_xs_dbopen(lua_State *l)
 {
+	unsigned int flags = DKIMF_DB_FLAG_READONLY;
 	int status;
 	DKIMF_DB db;
 	char *name;
@@ -1896,13 +1897,14 @@ dkimf_xs_dbopen(lua_State *l)
 
 	assert(l != NULL);
 
-	if (lua_gettop(l) != 1)
+	if (lua_gettop(l) != 1 && lua_gettop(l) != 2)
 	{
 		lua_pushstring(l,
 		               "odkim.db_open(): incorrect argument count");
 		lua_error(l);
 	}
-	else if (!lua_isstring(l, 1))
+	else if (!lua_isstring(l, 1) ||
+	         (lua_gettop(l) == 2 && !lua_isboolean(l, 2)))
 	{
 		lua_pushstring(l,
 		               "odkim.db_open(): incorrect argument type");
@@ -1910,7 +1912,9 @@ dkimf_xs_dbopen(lua_State *l)
 	}
 
 	name = (char *)lua_tostring(l, 1);
-	lua_pop(l, 1);
+	if (lua_gettop(l) == 2 && lua_toboolean(l, 2))
+		flags |= DKIMF_DB_FLAG_ICASE;
+	lua_pop(l, lua_gettop(l));
 
 	status = dkimf_db_open(&db, name, DKIMF_DB_FLAG_READONLY, NULL, &err);
 
