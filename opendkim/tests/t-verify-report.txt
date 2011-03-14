@@ -19,22 +19,29 @@ attached.
 --dkimreport/unknown-host/(unknown-jobid)
 Content-Type: message/feedback-report
 
-User-Agent: OpenDKIM-Filter/2.2.2
+User-Agent: OpenDKIM-Filter/2.3.1
 Version: 0.1
 Original-Envelope-Id: (unknown-jobid)
+Original-Mail-From: user@example.com
 Reporting-MTA: unknown-host
-Feedback-Type: dkim
+Source-IP: 127.0.0.1
+Message-ID: <184510.abcdefg@example.com>
+Arrival-Date: Mon, 14 Mar 2011 16:41:35 -0700
+Reported-Domain: example.com
+Delivery-Result: other
+Feedback-Type: auth-failure
 DKIM-Failure: signature
 DKIM-Domain: example.com
 DKIM-Selector: report
 DKIM-Identity: @example.com
 DKIM-Canonicalized-Header: ZGF0ZTpUdWUsIDIyIERlYyAyMDA5IDEzOjA0OjEyIC0w
-    ODAwDQpzdWJqZWN0OlNpZ25pbmcgdGVzdA0KZnJvbTp1c2VyQGV4YW1wbGUuY29tDQpk
-    a2ltLXNpZ25hdHVyZTp2PTE7IGE9cnNhLXNoYTI1NjsgYz1yZWxheGVkL3JlbGF4ZWQ7
-    IGQ9ZXhhbXBsZS5jb207IHM9cmVwb3J0OyBoPWRvbWFpbmtleS1zaWduYXR1cmU6bWlt
-    ZS12ZXJzaW9uOnJlY2VpdmVkOnJlY2VpdmVkOmluLXJlcGx5LXRvOiByZWZlcmVuY2Vz
-    OmRhdGU6bWVzc2FnZS1pZDpzdWJqZWN0OmZyb206dG86Y2M6Y29udGVudC10eXBlOyBi
-    aD0zNGxrYzhLdnAvNEM3QlpPSGxGSnI4WGxQZVF0MXBMSG80VjhKbGpWMTNjPTsgYj0=
+    ODAwDQptZXNzYWdlLWlkOjwxODQ1MTAuYWJjZGVmZ0BleGFtcGxlLmNvbT4NCnN1Ympl
+    Y3Q6U2lnbmluZyB0ZXN0DQpmcm9tOnVzZXJAZXhhbXBsZS5jb20NCmRraW0tc2lnbmF0
+    dXJlOnY9MTsgYT1yc2Etc2hhMjU2OyBjPXJlbGF4ZWQvcmVsYXhlZDsgZD1leGFtcGxl
+    LmNvbTsgcz1yZXBvcnQ7IGg9ZG9tYWlua2V5LXNpZ25hdHVyZTptaW1lLXZlcnNpb246
+    cmVjZWl2ZWQ6cmVjZWl2ZWQ6aW4tcmVwbHktdG86IHJlZmVyZW5jZXM6ZGF0ZTptZXNz
+    YWdlLWlkOnN1YmplY3Q6ZnJvbTp0bzpjYzpjb250ZW50LXR5cGU7IGJoPTM0bGtjOEt2
+    cC80QzdCWk9IbEZKcjhYbFBlUXQxcExIbzRWOEpsalYxM2M9OyBiPQ==
 DKIM-Canonicalized-Body: VGhpcyBpcyBhIHRlc3QhDQo=
 
 --dkimreport/unknown-host/(unknown-jobid)
@@ -51,5 +58,6 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
 From: user@example.com
 Date: Tue, 22 Dec 2009 13:04:12 -0800
 Subject: Signing test
+Message-ID: <184510.abcdefg@example.com>
 
 --dkimreport/unknown-host/(unknown-jobid)--

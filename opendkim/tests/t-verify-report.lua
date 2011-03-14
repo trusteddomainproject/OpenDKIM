@@ -70,6 +70,12 @@ end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
 	error("mt.header(Subject) unexpected reply")
 end
+if mt.header(conn, "Message-ID", "<184510.abcdefg@example.com>") ~= nil then
+	error("mt.header(Message-ID) failed")
+end
+if mt.getreply(conn) ~= SMFIR_CONTINUE then
+	error("mt.header(Message-ID) unexpected reply")
+end
 
 -- send EOH
 if mt.eoh(conn) ~= nil then

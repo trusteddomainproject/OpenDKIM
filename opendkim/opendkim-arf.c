@@ -39,23 +39,14 @@ arf_type_string(int type)
 	  case ARF_TYPE_ABUSE:
 		return "abuse";
 
-	  case ARF_TYPE_DKIM:
-		return "dkim";
-
 	  case ARF_TYPE_FRAUD:
 		return "fraud";
 
-	  case ARF_TYPE_MISCATEGORIZED:
-		return "miscategorized";
-
-	  case ARF_TYPE_NOTSPAM:
-		return "not-spam";
-
-	  case ARF_TYPE_OPTOUT:
-		return "opt-out";
-
 	  case ARF_TYPE_VIRUS:
 		return "virus";
+
+	  case ARF_TYPE_AUTHFAIL:
+		return "auth-failure";
 
 	  case ARF_TYPE_UNKNOWN:
 	  case ARF_TYPE_OTHER:

@@ -430,6 +430,8 @@ struct msgctx
 #ifdef _FFR_STATSEXT
 	struct statsext * mctx_statsext;	/* extension stats list */
 #endif /* _FFR_STATSEXT */
+	unsigned char	mctx_envfrom[MAXADDRESS + 1];
+						/* envelope sender */
 	unsigned char	mctx_domain[DKIM_MAXHOSTNAMELEN + 1];
 						/* primary domain */
 	unsigned char	mctx_dkimar[DKIM_MAXHEADER + 1];
@@ -4800,7 +4802,7 @@ dkimf_arftype(msgctx dfc)
 	if (dfc->mctx_susp)
 		return ARF_TYPE_FRAUD;
 	else
-		return ARF_TYPE_DKIM;
+		return ARF_TYPE_AUTHFAIL;
 }
 
 /*
@@ -8958,6 +8960,7 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	int arftype = ARF_TYPE_UNKNOWN;
 	int arfdkim = ARF_DKIMF_UNKNOWN;
 	u_int interval;
+	time_t now;
 	DKIM_STAT dkstatus;
 	char *p;
 	char *last;
@@ -8965,6 +8968,8 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	msgctx dfc;
 	DKIM_SIGINFO *sig;
 	struct Header *hdr;
+	struct tm tm;
+	char ipstr[DKIM_MAXHOSTNAMELEN + 1];
 	char fmt[BUFRSZ];
 	char opts[BUFRSZ];
 	u_char addr[MAXADDRESS + 1];
@@ -9098,7 +9103,7 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 
 	/* determine the type of ARF failure and, if needed, a DKIM fail code */
 	arftype = dkimf_arftype(dfc);
-	if (arftype == ARF_TYPE_DKIM)
+	if (arftype == ARF_TYPE_AUTHFAIL)
 		arfdkim = dkimf_arfdkim(dfc);
 
 	/* From: */
@@ -9137,19 +9142,62 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "\n");
 
 	/* second part: formatted gunk */
+	memset(ipstr, '\0', sizeof ipstr);
+
+	switch (cc->cctx_ip.ss_family)
+	{
+	  case AF_INET:
+	  {
+		struct sockaddr_in sin4;
+
+		memcpy(&sin4, &cc->cctx_ip, sizeof sin4);
+
+		(void) inet_ntop(AF_INET, &sin4.sin_addr, ipstr, sizeof ipstr);
+
+		break;
+	  }
+
+#ifdef AF_INET6
+	  case AF_INET6:
+	  {
+		struct sockaddr_in6 sin6;
+
+		memcpy(&sin6, &cc->cctx_ip, sizeof sin6);
+
+		(void) inet_ntop(AF_INET6, &sin6.sin6_addr, ipstr, sizeof ipstr);
+
+		break;
+	  }
+#endif /* AF_INET6 */
+	}
+
+	hdr = dkimf_findheader(dfc, (char *) "Message-ID", 0);
+
+	memset(fmt, '\0', sizeof fmt);
+	(void) time(&now);
+	(void) localtime_r(&now, &tm);
+	(void) strftime(fmt, sizeof fmt, "%a, %e %b %Y %H:%M:%S %z", &tm);
+
 	fprintf(out, "--dkimreport/%s/%s\n", hostname, dfc->mctx_jobid);
 	fprintf(out, "Content-Type: message/feedback-report\n");
 	fprintf(out, "\n");
 	fprintf(out, "User-Agent: %s/%s\n", DKIMF_PRODUCTNS, VERSION);
 	fprintf(out, "Version: %s\n", ARF_VERSION);
 	fprintf(out, "Original-Envelope-Id: %s\n", dfc->mctx_jobid);
+	fprintf(out, "Original-Mail-From: %s\n", dfc->mctx_envfrom);
 	fprintf(out, "Reporting-MTA: %s\n", hostname);
+	fprintf(out, "Source-IP: %s\n", ipstr);
+	fprintf(out, "Message-ID: %s\n",
+	        hdr == NULL ? "(none)" : hdr->hdr_val);
+	fprintf(out, "Arrival-Date: %s\n", fmt);
+	fprintf(out, "Reported-Domain: %s\n", dkim_sig_getdomain(sig));
+	fprintf(out, "Delivery-Result: other\n");
 #ifdef _FFR_REPORT_INTERVALS
 	if (icount > 1)
 		fprintf(out, "Incidents: %d\n", icount);
 #endif /* _FFR_REPORT_INTERVALS */
 	fprintf(out, "Feedback-Type: %s\n", arf_type_string(arftype));
-	if (arftype == ARF_TYPE_DKIM)
+	if (arftype == ARF_TYPE_AUTHFAIL)
 	{
 		memset(addr, '\0', sizeof addr);
 		dkim_sig_getidentity(dfc->mctx_dkimv, sig, addr,
@@ -9348,7 +9396,7 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 
 	/* determine the type of ARF failure and, if needed, a DKIM fail code */
 	arftype = dkimf_arftype(dfc);
-	if (arftype == ARF_TYPE_DKIM)
+	if (arftype == ARF_TYPE_AUTHFAIL)
 		arfdkim = dkimf_arfdkim(dfc);
 
 	/* we presume the MTA will add Date: ... */
@@ -9787,6 +9835,12 @@ mlfi_envfrom(SMFICTX *ctx, char **envfrom)
 
 		dkimf_cleanup(ctx);
 		return SMFIS_TEMPFAIL;
+	}
+
+	if (envfrom[0] != NULL)
+	{
+		strlcpy(dfc->mctx_envfrom, envfrom[0],
+		        sizeof dfc->mctx_envfrom);
 	}
 
 	/*
