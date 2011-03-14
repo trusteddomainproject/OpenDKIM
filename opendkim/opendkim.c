@@ -5541,8 +5541,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_authservidwithjobid,
 		                  sizeof conf->conf_authservidwithjobid);
 
-		(void) config_get(data, "BaseDirectory", basedir,
-		                  sizeof basedir);
+		str = NULL;
+		(void) config_get(data, "BaseDirectory", &str, sizeof str);
+		if (str != NULL)
+			strlcpy(basedir, str, sizeof basedir);
 
 		(void) config_get(data, "BodyLengths", &conf->conf_blen,
 		                  sizeof conf->conf_blen);
