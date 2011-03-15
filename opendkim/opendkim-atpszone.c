@@ -68,6 +68,7 @@ static char opendkim_atpszone_c_id[] = "$Id: opendkim-genzone.c,v 1.12.10.1 2010
 #define	DEFTTL		86400
 #define	HOSTMASTER	"hostmaster"
 #define	MAXNS		16
+#define	VALIDATPS	"v=ATPS1"
 
 /* globals */
 char *progname;
@@ -392,12 +393,14 @@ main(int argc, char **argv)
 		if (ttl == -1)
 		{
 			fprintf(out, "%s%s\tIN\tTXT\t\"%s\"\n",
-			        base32, suffix ? ATPSZONE : "", domain);
+			        base32, suffix ? ATPSZONE : "",
+			        VALIDATPS);
 		}
 		else
 		{
 			fprintf(out, "%s%s\t%d\tIN\tTXT\t\"%s\"\n",
-			        base32, suffix ? ATPSZONE : "", ttl, domain);
+			        base32, suffix ? ATPSZONE : "", ttl,
+			        VALIDATPS);
 		}
 	}
 

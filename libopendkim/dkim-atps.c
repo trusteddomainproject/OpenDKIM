@@ -45,6 +45,8 @@ extern void dkim_error __P((DKIM *, const char *, ...));
 
 #define	DKIM_ATPS_QUERYLENGTH	32
 
+#define	DKIM_ATPS_VALID		"v=ATPS1"
+
 /*
 **  DKIM_ATPS_CHECK -- check for Authorized Third Party Signing
 **
@@ -69,6 +71,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	int type;
 	int error;
 	int n;
+	unsigned int c;
 	size_t buflen;
 	size_t anslen;
 	DKIM_LIB *lib;
@@ -76,6 +79,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	u_char *sdomain;
 	u_char *txtfound = NULL;
 	void *qh;
+	u_char *p;
 	u_char *cp;
 	u_char *eom;
         SHA_CTX ctx;
@@ -85,6 +89,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	u_char digest[SHA_DIGEST_LENGTH];
 	u_char b32[DKIM_ATPS_QUERYLENGTH + 1];
 	u_char query[DKIM_MAXHOSTNAMELEN + 1];
+	u_char buf[BUFRSZ + 1];
 
 	assert(dkim != NULL);
 	assert(sig != NULL);
@@ -322,9 +327,27 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 		return DKIM_STAT_CANTVRFY;
 	}
 
-	/* XXX -- we have a payload; that's enough for now */
+	/* extract the payload */
+	memset(buf, '\0', buflen);
+	p = buf;
+	eom = buf + buflen - 1;
+	while (n > 0 && p < eom)
+	{
+		c = *cp++;
+		n--;
+		while (c > 0 && p < eom)
+		{
+			*p++ = *cp++;
+			c--;
+			n--;
+		}
+	}
 
-	*res = DKIM_ATPS_FOUND;
+	if (strcmp(buf, DKIM_ATPS_VALID) == 0)
+		*res = DKIM_ATPS_FOUND;
+	else
+		*res = DKIM_ATPS_NOTFOUND;
+
 	return DKIM_STAT_OK;
 
 #else /* ! _FFR_ATPS */

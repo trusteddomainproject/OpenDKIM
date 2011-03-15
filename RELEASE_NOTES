@@ -23,6 +23,7 @@ release, and a summary of the changes in that release.
 	Patch #SF3205699: Make all header field name and domain name data
 		sets case insensitive.  Submitted by Richard Rognlie.
 	Add a case-insensitivity flag to odkim.db_open().
+	LIBOPENDKIM: Update for draft-kucherawy-dkim-atps-03.
 	STATS: Fix bug #SF3195449: Omit data from reporters that are not
 		currently marked "enabled" in the reporters table.
 	STATS: Evaluate "i=" against the "d=" domain, not the "From" domain.
