@@ -32,6 +32,8 @@ extern void dkim_collapse __P((u_char *));
 extern _Bool dkim_hdrlist __P((u_char *, size_t, u_char **, _Bool));
 extern int dkim_hexchar __P((int c));
 extern void dkim_lowerhdr __P((u_char *));
+extern void dkim_min_timeval __P((struct timeval *, struct timeval *,
+                                  struct timeval *, struct timeval **));
 extern int dkim_qp_decode __P((u_char *, u_char *, int));
 
 #ifdef NEED_FAST_STRTOUL

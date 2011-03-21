@@ -427,7 +427,7 @@ dkimf_ub_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 	}
 
 	if (status == 0)
-		return DKIM_DNS_NOREPLY;
+		return DKIM_DNS_EXPIRED;
 	else if (status == 1)
 		return DKIM_DNS_SUCCESS;
 	else
@@ -704,7 +704,7 @@ dkimf_ar_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 	q = (AR_QUERY) qh;
 
 	status = ar_waitreply(ar, q, &r, to);
-	if (status == 0)
+	if (status == AR_STAT_SUCCESS)
 	{
 		if (dnssec != NULL)
 			*dnssec = DKIM_DNSSEC_UNKNOWN;
@@ -720,7 +720,7 @@ dkimf_ar_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 	if (status == AR_STAT_SUCCESS)
 		return DKIM_DNS_SUCCESS;
 	else if (status == AR_STAT_NOREPLY)
-		return DKIM_DNS_NOREPLY;
+		return DKIM_DNS_EXPIRED;
 	else
 		return DKIM_DNS_ERROR;
 }

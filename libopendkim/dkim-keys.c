@@ -144,13 +144,50 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 			return DKIM_STAT_KEYFAIL;
 		}
 	
-		timeout.tv_sec = dkim->dkim_timeout;
-		timeout.tv_usec = 0;
+		if (lib->dkiml_dns_callback == NULL)
+		{
+			timeout.tv_sec = dkim->dkim_timeout;
+			timeout.tv_usec = 0;
 
-		status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service, q,
-		                                  dkim->dkim_timeout == 0 ? NULL
-		                                                          : &timeout,
-		                                  &anslen, &error, &dnssec);
+			status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
+			                                  q,
+			                                  dkim->dkim_timeout == 0 ? NULL
+			                                                          : &timeout,
+			                                  &anslen, &error,
+			                                  &dnssec);
+		}
+		else
+		{
+			struct timeval master;
+			struct timeval next;
+			struct timeval *wt;
+
+			(void) gettimeofday(&master, NULL);
+			master.tv_sec += dkim->dkim_timeout;
+
+			for (;;)
+			{
+				(void) gettimeofday(&next, NULL);
+				next.tv_sec += lib->dkiml_callback_int;
+
+				dkim_min_timeval(&master, &next,
+				                 &timeout, &wt);
+
+				status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
+				                                  q,
+				                                  dkim->dkim_timeout == 0 ? NULL
+				                                                          : &timeout,
+				                                  &anslen,
+				                                  &error,
+				                                  &dnssec);
+
+				if (status != DKIM_DNS_NOREPLY ||
+				    wt == &master)
+					break;
+
+				lib->dkiml_dns_callback(dkim->dkim_user_context);
+			}
+		}
 
 		if (status == DKIM_DNS_EXPIRED)
 		{

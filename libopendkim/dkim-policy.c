@@ -264,19 +264,26 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 	else
 	{
 		int which = 0;
+		struct timeval master;
+		struct timeval next;
+		struct timeval *wt;
+
+		(void) gettimeofday(&master, NULL);
+		master.tv_sec += dkim->dkim_timeout;
  
 		while (which <= 2)
 		{
-			timeout.tv_sec = lib->dkiml_callback_int;
-			timeout.tv_usec = 0;
+			(void) gettimeofday(&next, NULL);
+			next.tv_sec += lib->dkiml_callback_int;
+
+			dkim_min_timeval(&master, &next, &timeout, &wt);
 
 			switch (which)
 			{
 			  case 0:
 				status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
 				                                  q_a,
-			                                          dkim->dkim_timeout == 0 ? NULL
-			                                                                  : &timeout,
+			                                          &timeout,
 				                                  &anslen_a,
 				                                  NULL, NULL);
 
@@ -285,8 +292,7 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 			  case 1:
 				status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
 				                                  q_aaaa,
-			                                          dkim->dkim_timeout == 0 ? NULL
-			                                                                  : &timeout,
+			                                          &timeout,
 				                                  &anslen_aaaa,
 				                                  NULL, NULL);
 
@@ -295,15 +301,14 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 			  case 2:
 				status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
 				                                  q_mx,
-			                                          dkim->dkim_timeout == 0 ? NULL
-			                                                                  : &timeout,
+			                                          &timeout,
 				                                  &anslen_mx,
 				                                  NULL, NULL);
 
 				break;
 			}
 
-			if (status != DKIM_DNS_NOREPLY)
+			if (status != DKIM_DNS_NOREPLY && wt == &master)
 			{
 				if (which == 2)
 				{
@@ -312,6 +317,10 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 				else
 				{
 					which++;
+
+					(void) gettimeofday(&master, NULL);
+					master.tv_sec += dkim->dkim_timeout;
+ 
 					continue;
 				}
 			}
@@ -449,10 +458,20 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		}
 		else
 		{
+			struct timeval master;
+			struct timeval next;
+			struct timeval *wt;
+
+			(void) gettimeofday(&master, NULL);
+			master.tv_sec += dkim->dkim_timeout;
+
 			for (;;)
 			{
-				timeout.tv_sec = lib->dkiml_callback_int;
-				timeout.tv_usec = 0;
+				(void) gettimeofday(&next, NULL);
+				next.tv_sec += dkim->dkim_timeout;
+
+				dkim_min_timeval(&master, &next,
+				                 &timeout, &wt);
 
 				status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
 				                                  q,
@@ -461,7 +480,8 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 				                                  NULL,
 				                                  &dkim->dkim_dnssec_policy);
 
-				if (status != DKIM_DNS_NOREPLY)
+				if (status != DKIM_DNS_NOREPLY ||
+				    wt == &master)
 					break;
 
 				lib->dkiml_dns_callback(dkim->dkim_user_context);
