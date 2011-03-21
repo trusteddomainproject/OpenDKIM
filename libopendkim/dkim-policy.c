@@ -308,7 +308,7 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 				break;
 			}
 
-			if (status != DKIM_DNS_NOREPLY && wt == &master)
+			if (status != DKIM_DNS_NOREPLY || wt == &master)
 			{
 				if (which == 2)
 				{
