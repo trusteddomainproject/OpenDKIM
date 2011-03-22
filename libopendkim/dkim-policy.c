@@ -308,7 +308,13 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 				break;
 			}
 
-			if (status != DKIM_DNS_NOREPLY || wt == &master)
+			if (wt == &next &&
+			    (status == DKIM_DNS_NOREPLY ||
+			     status == DKIM_DNS_EXPIRED))
+			{
+				lib->dkiml_dns_callback(dkim->dkim_user_context);
+			}
+			else
 			{
 				if (which == 2)
 				{
@@ -324,8 +330,6 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 					continue;
 				}
 			}
-
-			lib->dkiml_dns_callback(dkim->dkim_user_context);
 		}
 	}
 
@@ -468,7 +472,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 			for (;;)
 			{
 				(void) gettimeofday(&next, NULL);
-				next.tv_sec += dkim->dkim_timeout;
+				next.tv_sec += lib->dkiml_callback_int;
 
 				dkim_min_timeval(&master, &next,
 				                 &timeout, &wt);
@@ -480,11 +484,19 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 				                                  NULL,
 				                                  &dkim->dkim_dnssec_policy);
 
-				if (status != DKIM_DNS_NOREPLY ||
-				    wt == &master)
-					break;
+				if (wt == &next)
+				{
+					if (status == DKIM_DNS_NOREPLY ||
+					    status == DKIM_DNS_EXPIRED)
+						lib->dkiml_dns_callback(dkim->dkim_user_context);
+					else
+						break;
 
-				lib->dkiml_dns_callback(dkim->dkim_user_context);
+				}
+				else
+				{
+					break;
+				}
 			}
 		}
 
@@ -579,13 +591,15 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		cp += n;
 
 		/* extract the type and class */
-		if (cp + INT16SZ + INT16SZ > eom)
+		if (cp + INT16SZ + INT16SZ + INT32SZ + INT16SZ > eom)
 		{
 			dkim_error(dkim, "'%s' reply corrupt", query);
 			return -1;
 		}
-		GETSHORT(type, cp);
-		GETSHORT(class, cp);
+		GETSHORT(type, cp);			/* TYPE */
+		GETSHORT(class, cp);			/* CLASS */
+		cp += INT32SZ;				/* skip TTL */
+		GETSHORT(n, cp);			/* RDLENGTH */
 
 		/* handle a CNAME (skip it; assume it was resolved) */
 		if (type == T_CNAME)
@@ -599,16 +613,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		}
 		else if (type == T_RRSIG)
 		{
-			/* get payload length */
-			if (cp + INT16SZ > eom)
-			{
-				dkim_error(dkim, "'%s' reply corrupt", query);
-				return -1;
-			}
-			GETSHORT(n, cp);
-
 			cp += n;
-
 			continue;
 		}
 		else if (type != T_TXT)

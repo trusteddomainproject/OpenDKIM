@@ -181,11 +181,16 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 				                                  &error,
 				                                  &dnssec);
 
-				if (status != DKIM_DNS_NOREPLY ||
-				    wt == &master)
+				if (wt == &next)
+				{
+					if (status == DKIM_DNS_NOREPLY ||
+					    status == DKIM_DNS_EXPIRED)
+						lib->dkiml_dns_callback(dkim->dkim_user_context);
+				}
+				else
+				{
 					break;
-
-				lib->dkiml_dns_callback(dkim->dkim_user_context);
+				}
 			}
 		}
 
@@ -281,22 +286,22 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		cp += n;
 
 		/* extract the type and class */
-		if (cp + INT16SZ + INT16SZ > eom)
+		if (cp + INT16SZ + INT16SZ + INT32SZ + INT16SZ > eom)
 		{
 			dkim_error(dkim, "'%s' reply corrupt", qname);
 			return DKIM_STAT_KEYFAIL;
 		}
 
-		GETSHORT(type, cp);
-		GETSHORT(class, cp);
-
+		GETSHORT(type, cp);			/* TYPE */
+		GETSHORT(class, cp);			/* CLASS */
 #ifdef QUERY_CACHE
 		/* get the TTL */
-		GETLONG(ttl, cp);
+		GETLONG(ttl, cp);			/* TTL */
 #else /* QUERY_CACHE */
 		/* skip the TTL */
-		cp += INT32SZ;
+		cp += INT32SZ;				/* TTL */
 #endif /* QUERY_CACHE */
+		GETSHORT(n, cp);			/* RDLENGTH */
 
 		/* skip CNAME if found; assume it was resolved */
 		if (type == T_CNAME)
@@ -310,16 +315,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		}
 		else if (type == T_RRSIG)
 		{
-			/* get payload length */
-			if (cp + INT16SZ > eom)
-			{
-				dkim_error(dkim, "'%s' reply corrupt", qname);
-				return DKIM_STAT_KEYFAIL;
-			}
-			GETSHORT(n, cp);
-
 			cp += n;
-
 			continue;
 		}
 		else if (type != T_TXT)
@@ -338,14 +334,6 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 
 		/* remember where this one started */
 		txtfound = cp;
-
-		/* get payload length */
-		if (cp + INT16SZ > eom)
-		{
-			dkim_error(dkim, "'%s' reply corrupt", qname);
-			return DKIM_STAT_KEYFAIL;
-		}
-		GETSHORT(n, cp);
 
 		/* move forward for now */
 		cp += n;
