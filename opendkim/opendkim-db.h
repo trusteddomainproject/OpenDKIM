@@ -68,6 +68,7 @@ struct dkimf_db_data
 typedef struct dkimf_db_data * DKIMF_DBDATA;
 
 #define	DKIMF_DB_DATA_BINARY	0x01		/* data is binary */
+#define	DKIMF_DB_DATA_OPTIONAL	0x02		/* data is optional */
 
 /* prototypes */
 extern int dkimf_db_close __P((DKIMF_DB));

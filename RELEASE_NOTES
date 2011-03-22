@@ -20,6 +20,8 @@ release, and a summary of the changes in that release.
 		noted by Chris Callegari.
 	Fix bug #SF3211114: Extract "BaseDirectory" from configuration
 		file properly.
+	Fix bug #SF3234178: Correct handling of a KeyTable entry for which the
+		key data is empty.  Based on a patch from Yoshiaki Yanagihara.
 	Patch #SF3205699: Make all header field name and domain name data
 		sets case insensitive.  Submitted by Richard Rognlie.
 	Add a case-insensitivity flag to odkim.db_open().

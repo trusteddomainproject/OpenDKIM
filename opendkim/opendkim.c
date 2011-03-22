@@ -8694,6 +8694,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		req[0].dbdata_buflen = sizeof keyname - 1;
 		req[1].dbdata_buffer = (char *) signer;
 		req[1].dbdata_buflen = sizeof signer - 1;
+		req[1].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 
 		/* first try full "user@host" */
 		snprintf(tmpaddr, sizeof tmpaddr, "%s@%s", user, domain);
