@@ -187,6 +187,8 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 					if (status == DKIM_DNS_NOREPLY ||
 					    status == DKIM_DNS_EXPIRED)
 						lib->dkiml_dns_callback(dkim->dkim_user_context);
+					else
+						break;
 				}
 				else
 				{
