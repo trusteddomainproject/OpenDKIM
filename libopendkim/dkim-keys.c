@@ -75,6 +75,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	int dnssec = DKIM_DNSSEC_UNKNOWN;
 	int c;
 	int n = 0;
+	int rdlength;
 	int type = -1;
 	int class = -1;
 	size_t anslen;
@@ -306,10 +307,6 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		/* skip CNAME if found; assume it was resolved */
 		if (type == T_CNAME)
 		{
-			char chost[DKIM_MAXHOSTNAMELEN + 1];
-
-			n = dn_expand((u_char *) &ansbuf, eom, cp,
-			              chost, DKIM_MAXHOSTNAMELEN);
 			cp += n;
 			continue;
 		}
@@ -334,6 +331,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 
 		/* remember where this one started */
 		txtfound = cp;
+		rdlength = n;
 
 		/* move forward for now */
 		cp += n;
@@ -349,20 +347,12 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	/* come back to the one we found */
 	cp = txtfound;
 
-	/* get payload length */
-	if (cp + INT16SZ > eom)
-	{
-		dkim_error(dkim, "'%s' reply corrupt", qname);
-		return DKIM_STAT_KEYFAIL;
-	}
-	GETSHORT(n, cp);
-
 	/*
 	**  XXX -- maybe deal with a partial reply rather than require
 	**  	   it all
 	*/
 
-	if (cp + n > eom)
+	if (cp + rdlength > eom)
 	{
 		dkim_error(dkim, "'%s' reply corrupt", qname);
 		return DKIM_STAT_SYNTAX;
@@ -372,15 +362,15 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	memset(buf, '\0', buflen);
 	p = buf;
 	eob = buf + buflen - 1;
-	while (n > 0 && p < eob)
+	while (rdlength > 0 && p < eob)
 	{
 		c = *cp++;
-		n--;
+		rdlength--;
 		while (c > 0 && p < eob)
 		{
 			*p++ = *cp++;
 			c--;
-			n--;
+			rdlength--;
 		}
 	}
 

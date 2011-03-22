@@ -381,6 +381,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	int qdcount;
 	int ancount;
 	int status;
+	int rdlength;
 	int n;
 	int c;
 	int type = -1;
@@ -604,10 +605,6 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		/* handle a CNAME (skip it; assume it was resolved) */
 		if (type == T_CNAME)
 		{
-			char chost[DKIM_MAXHOSTNAMELEN + 1];
-
-			n = dn_expand((u_char *) &ansbuf, eom, cp,
-			              chost, DKIM_MAXHOSTNAMELEN);
 			cp += n;
 			continue;
 		}
@@ -634,12 +631,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 
 		/* remember it */
 		txtfound = cp;
-
-		/* skip the TTL */
-		cp += INT32SZ;
-
-		/* get the payload length */
-		GETSHORT(n, cp);
+		rdlength = n;
 
 		/* ...and move past that */
 		cp += n;
@@ -660,16 +652,8 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	cp += INT32SZ;
 #endif /* QUERY_CACHE */
 
-	/* get payload length */
-	if (cp + INT16SZ > eom)
-	{
-		dkim_error(dkim, "'%s' reply corrupt", query);
-		return -1;
-	}
-	GETSHORT(n, cp);
-
 	/* XXX -- maybe deal with a partial reply rather than require it all */
-	if (cp + n > eom || n > BUFRSZ)
+	if (cp + rdlength > eom || rdlength > BUFRSZ)
 	{
 		dkim_error(dkim, "'%s' reply corrupt", query);
 		return -1;
@@ -679,15 +663,15 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	memset(outbuf, '\0', sizeof outbuf);
 	p = outbuf;
 	eom = outbuf + sizeof outbuf - 1;
-	while (n > 0 && p < eom)
+	while (rdlength > 0 && p < eom)
 	{
 		c = *cp++;
-		n--;
+		rdlength--;
 		while (c > 0 && p < eom)
 		{
 			*p++ = *cp++;
 			c--;
-			n--;
+			rdlength--;
 		}
 	}
 
