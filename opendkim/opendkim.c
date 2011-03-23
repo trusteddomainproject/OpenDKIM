@@ -8647,6 +8647,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(&dbd, '\0', sizeof dbd);
 		dbd[0].dbdata_buffer = keyname;
 		dbd[1].dbdata_buffer = (char *) signer;
+		dbd[1].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 
 		/* walk RE set, find match(es), make request(s) */
 		for (;;)
