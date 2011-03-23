@@ -4333,13 +4333,13 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 
 		dbd[0].dbdata_buffer = domain;
 		dbd[0].dbdata_buflen = sizeof domain - 1;
-		dbd[0].dbdata_flags = 0;
+		dbd[0].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 		dbd[1].dbdata_buffer = selector;
 		dbd[1].dbdata_buflen = sizeof selector - 1;
-		dbd[1].dbdata_flags = 0;
+		dbd[1].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 		dbd[2].dbdata_buffer = keydata;
 		dbd[2].dbdata_buflen = sizeof keydata - 1;
-		dbd[2].dbdata_flags = 0;
+		dbd[2].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 
 		if (dkimf_db_get(keytable, keyname, strlen(keyname),
 		                 dbd, 3, &found) != 0)
@@ -4349,8 +4349,11 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 			return 1;
 
 		if (dbd[0].dbdata_buflen == 0 ||
+		    dbd[0].dbdata_buflen == (size_t) -1 ||
 		    dbd[1].dbdata_buflen == 0 ||
-		    dbd[2].dbdata_buflen == 0)
+		    dbd[1].dbdata_buflen == (size_t) -1 ||
+		    dbd[2].dbdata_buflen == 0 ||
+		    dbd[2].dbdata_buflen == (size_t) -1)
 		{
 			if (dolog)
 			{
@@ -8702,7 +8705,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		found = FALSE;
 		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 		                      req, 2, &found);
-		if (status != 0 || (found && req[0].dbdata_buflen == 0))
+		if (status != 0 ||
+		    (found && (req[0].dbdata_buflen == 0 ||
+		               req[0].dbdata_buflen == (size_t) -1)))
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, tmpaddr);
@@ -8738,7 +8743,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(signer, '\0', sizeof signer);
 		status = dkimf_db_get(signdb, domain, strlen((char *) domain),
 		                      req, 2, &found);
-		if (status != 0 || (found && req[0].dbdata_buflen == 0))
+		if (status != 0 ||
+		    (found && (req[0].dbdata_buflen == 0 ||
+		               req[0].dbdata_buflen == (size_t) -1)))
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, (char *) domain);
@@ -8782,7 +8789,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 			                      req, 2, &found);
 			if (status != 0 ||
-			    (found && req[0].dbdata_buflen == 0))
+			    (found && (req[0].dbdata_buflen == 0 ||
+			               req[0].dbdata_buflen == (size_t) -1)))
 			{
 				if (status != 0 && dolog)
 					dkimf_db_error(signdb, tmpaddr);
@@ -8824,7 +8832,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			status = dkimf_db_get(signdb, p, strlen(p),
 			                      req, 2, &found);
 			if (status != 0 ||
-			    (found && req[0].dbdata_buflen == 0))
+			    (found && (req[0].dbdata_buflen == 0 ||
+			               req[0].dbdata_buflen == (size_t) -1)))
 			{
 				if (status != 0 && dolog)
 					dkimf_db_error(signdb, p);
@@ -8869,7 +8878,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(signer, '\0', sizeof signer);
 		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 		                      req, 2, &found);
-		if (status != 0 || (found && req[0].dbdata_buflen == 0))
+		if (status != 0 ||
+		    (found && (req[0].dbdata_buflen == 0 ||
+		               req[0].dbdata_buflen == (size_t) -1)))
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, tmpaddr);
@@ -8904,7 +8915,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(keyname, '\0', sizeof keyname);
 		memset(signer, '\0', sizeof signer);
 		status = dkimf_db_get(signdb, "*", 1, req, 2, &found);
-		if (status != 0 || (found && req[0].dbdata_buflen == 0))
+		if (status != 0 ||
+		    (found && (req[0].dbdata_buflen == 0 ||
+		               req[0].dbdata_buflen == (size_t) -1)))
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, "*");
@@ -14830,6 +14843,8 @@ main(int argc, char **argv)
 				{
 					if (dbdp[c].dbdata_buflen == 0)
 						fprintf(stdout, "<empty>\n");
+					else if (dbdp[c].dbdata_buflen == (size_t) -1)
+						fprintf(stdout, "<absent>\n");
 					else
 						fprintf(stdout, "'%s'\n", result[c]);
 				}

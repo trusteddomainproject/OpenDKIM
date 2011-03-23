@@ -692,7 +692,7 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 		{
 			if ((req[c].dbdata_flags & DKIMF_DB_DATA_OPTIONAL) == 0)
 				ret = -1;
-			req[c].dbdata_buflen = 0;
+			req[c].dbdata_buflen = (size_t) -1;
 		}
 	}
 
