@@ -2613,7 +2613,7 @@ mt_header(lua_State *l)
 
 	s = strlen(name) + 1 + strlen(value) + 1;
 #ifdef SMFIP_HDR_LEADSPC
-	if (!CHECK_MPOPTS(ctx, SMFIP_HDR_LEADSPC))
+	if (CHECK_MPOPTS(ctx, SMFIP_HDR_LEADSPC))
 		s++;
 #endif /* SMFIP_HDR_LEADSPC */
 
@@ -2621,7 +2621,7 @@ mt_header(lua_State *l)
 	memcpy(buf, name, strlen(name) + 1);
 	bp += strlen(name) + 1;
 #ifdef SMFIP_HDR_LEADSPC
-	if (!CHECK_MPOPTS(ctx, SMFIP_HDR_LEADSPC))
+	if (CHECK_MPOPTS(ctx, SMFIP_HDR_LEADSPC))
 		*bp++ = ' ';
 #endif /* SMFIP_HDR_LEADSPC */
 	memcpy(bp, value, strlen(value) + 1);
