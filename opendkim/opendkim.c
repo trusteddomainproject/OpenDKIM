@@ -9202,7 +9202,8 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "Original-Mail-From: %s\n", dfc->mctx_envfrom);
 	fprintf(out, "Reporting-MTA: %s\n", hostname);
 	fprintf(out, "Source-IP: %s\n", ipstr);
-	fprintf(out, "Message-ID: %s\n",
+	fprintf(out, "Message-ID:%s%s\n",
+	        cc->cctx_noleadspc ? "" : " ",
 	        hdr == NULL ? "(none)" : hdr->hdr_val);
 	fprintf(out, "Arrival-Date: %s\n", fmt);
 	fprintf(out, "Reported-Domain: %s\n", dkim_sig_getdomain(sig));
