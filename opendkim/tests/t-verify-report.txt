@@ -4,24 +4,24 @@ postmaster@example.org
 From: "Mail Admin" <postmaster@example.org>
 To: dkim-feedbacks@example.com
 Bcc: postmaster@example.net, tom@example.net, "hary" <hary@example.net>
-Subject: DKIM failure report for (unknown-jobid)
+Subject: DKIM failure report for t-verify-report
 MIME-Version: 1.0
 Content-Type: multipart/report; report-type=feedback-report;
-	boundary="dkimreport/unknown-host/(unknown-jobid)"
---dkimreport/unknown-host/(unknown-jobid)
+	boundary="dkimreport/unknown-host/t-verify-report"
+--dkimreport/unknown-host/t-verify-report
 Content-Type: text/plain
 
-DKIM failure report for job (unknown-jobid) on unknown-host
+DKIM failure report for job t-verify-report on unknown-host
 
 The canonicalized form of the failed message's header and body are
 attached.
 
---dkimreport/unknown-host/(unknown-jobid)
+--dkimreport/unknown-host/t-verify-report
 Content-Type: message/feedback-report
 
 User-Agent: OpenDKIM-Filter/2.3.1
 Version: 0.1
-Original-Envelope-Id: (unknown-jobid)
+Original-Envelope-Id: t-verify-report
 Original-Mail-From: user@example.com
 Reporting-MTA: unknown-host
 Source-IP: 127.0.0.1
@@ -44,7 +44,7 @@ DKIM-Canonicalized-Header: ZGF0ZTpUdWUsIDIyIERlYyAyMDA5IDEzOjA0OjEyIC0w
     cC80QzdCWk9IbEZKcjhYbFBlUXQxcExIbzRWOEpsalYxM2M9OyBiPQ==
 DKIM-Canonicalized-Body: VGhpcyBpcyBhIHRlc3QhDQo=
 
---dkimreport/unknown-host/(unknown-jobid)
+--dkimreport/unknown-host/t-verify-report
 Content-Type: text/rfc822-headers
 
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
@@ -60,4 +60,4 @@ Date: Tue, 22 Dec 2009 13:04:12 -0800
 Subject: Signing test
 Message-ID: <184510.abcdefg@example.com>
 
---dkimreport/unknown-host/(unknown-jobid)--
+--dkimreport/unknown-host/t-verify-report--
