@@ -34,9 +34,18 @@ if mt.getreply(conn) ~= SMFIR_CONTINUE then
 	error("mt.conninfo() unexpected reply")
 end
 
+-- send HELO unles it was negotiated out
+if not mt.test_option(conn, SMFIP_NOHELO) then
+	if mt.helo(conn, "localhost") ~= nil then
+		error("mt.helo() failed")
+	end
+	if mt.getreply(conn) ~= SMFIR_CONTINUE then
+		error("mt.helo() unexpected reply")
+	end
+end
+	
 -- send envelope macros and sender data
--- mt.helo() is called implicitly
-mt.macro(conn, SMFIC_MAIL, "i", "t-verify-revoked")
+mt.macro(conn, SMFIC_MAIL, "i", "t-adsp-report")
 if mt.mailfrom(conn, "user@example2.com") ~= nil then
 	error("mt.mailfrom() failed")
 end
