@@ -9424,7 +9424,7 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "To: %s@%s\n", addr, dfc->mctx_domain);
 
 	/* Subject: */
-	fprintf(out, "Subject: DKIM failure report for %s\n",
+	fprintf(out, "Subject: ADSP failure report for %s\n",
 	        dfc->mctx_jobid);
 
 	/* MIME stuff */
