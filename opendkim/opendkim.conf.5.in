@@ -534,7 +534,11 @@ should be conducted.  The default is three.  Signatures are selected from
 the top of the message downward.  If
 .I TrustSignaturesFrom
 is set, signatures from domains in that data set are always verified, which
-may consume part or all of, or even exceed, this limit.
+may consume part or all of, or even exceed, this limit.  Note that this could
+cause an author domain signature to be ignored, causing the ADSP evaluation
+to fail and, if
+.I SendADSPReports
+is enabled, a questionable report could be generated.
 @MAXVERIFY_MANNOTICE@
 
 .TP
