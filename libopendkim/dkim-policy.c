@@ -599,7 +599,11 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		}
 		GETSHORT(type, cp);			/* TYPE */
 		GETSHORT(class, cp);			/* CLASS */
-		cp += INT32SZ;				/* skip TTL */
+#ifdef QUERY_CACHE
+		GETLONG(ttl, cp);			/* TTL */
+#else /* QUERY_CACHE */
+		cp += INT32SZ;
+#endif /* QUERY_CACHE */
 		GETSHORT(n, cp);			/* RDLENGTH */
 
 		/* handle a CNAME (skip it; assume it was resolved) */
@@ -644,13 +648,6 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	}
 
 	cp = txtfound;
-
-#ifdef QUERY_CACHE
-	GETLONG(ttl, cp);
-#else /* QUERY_CACHE */
-	/* skip the TTL */
-	cp += INT32SZ;
-#endif /* QUERY_CACHE */
 
 	/* XXX -- maybe deal with a partial reply rather than require it all */
 	if (cp + rdlength > eom || rdlength > BUFRSZ)
