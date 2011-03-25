@@ -13715,14 +13715,17 @@ mlfi_eom(SMFICTX *ctx)
 				if (status == DKIM_STAT_CANTVRFY ||
 				    status == DKIM_STAT_INTERNAL)
 				{
-					char *err;
+					const char *err;
 					char tmp[BUFRSZ + 1];
 
 					memset(tmp, '\0', sizeof tmp);
 
 					err = dkim_geterror(dfc->mctx_dkimv);
 					if (err != NULL)
-						snprintf(tmp, ": %s", err);
+					{
+						snprintf(tmp, sizeof tmp,
+						         ": %s", err);
+					}
 
 					syslog(LOG_INFO,
 					       "%s: error during reputation query%s",
@@ -13764,12 +13767,12 @@ mlfi_eom(SMFICTX *ctx)
 						result = "neutral";
 
 					snprintf(header, sizeof header,
-					        "%s%s%s%s; x-dkim-rep=%s (%d) header.d=%s",
+					         "%s%s%s%s; x-dkim-rep=%s (%d) header.d=%s",
 					         cc->cctx_noleadspc ? " " : "",
 					         authservid,
 					         conf->conf_authservidwithjobid ? "/"
 					                                        : "",
-					         conf->conf_authservidwithjobid ? dfc->mctx_jobid
+					         conf->conf_authservidwithjobid ? (char *) dfc->mctx_jobid
 					                                        : "",
 					         result, rep,
 					         dkim_sig_getdomain(sig));
