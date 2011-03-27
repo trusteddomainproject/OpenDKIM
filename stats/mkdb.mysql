@@ -175,4 +175,6 @@ insert ignore into sigerrorcodes (id, name) values
 	(41,	"key type unknown"),
 	(42,	"key revoked"),
 	(43,	"key could not be decoded")
+	(44,	"v= missing")
+	(45,	"v= empty")
 ;
