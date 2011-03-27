@@ -217,7 +217,6 @@ main(int argc, char **argv)
 	int len;
 	int c;
 	int verbose = 0;
-	int line;
 	int argv_d = 0;
 	int argv_s = 0;
 	int argv_k = 0;

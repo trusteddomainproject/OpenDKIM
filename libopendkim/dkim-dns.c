@@ -186,7 +186,6 @@ int
 dkim_res_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
                    int *error, int *dnssec)
 {
-	int ret;
 	struct dkim_res_qh *rq;
 
 	assert(qh != NULL);

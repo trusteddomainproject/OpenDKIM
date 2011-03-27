@@ -100,13 +100,8 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 #endif /* _FFR_ATPS */
                    struct sockaddr *sa)
 {
-	_Bool exists;
-	_Bool sigfailed;
-	_Bool sigfailedbody;
-	_Bool sigpassed;
 	_Bool validauthorsig = FALSE;
 	int status = 0;
-	int version;
 	int nsigs = 0;
 #ifdef _FFR_DIFFHEADERS
 	int nhdrs;
@@ -121,7 +116,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 	off_t canonlen;
 	off_t signlen;
 	off_t msglen;
-	DKIMF_DB db;
 	struct Header *hdr;
 	FILE *out;
 	unsigned char *from;
@@ -132,7 +126,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 	unsigned char *ohdrs[MAXHDRCNT];
 #endif /* _FFR_DIFFHEADERS */
 	DKIM_SIGINFO **sigs;
-	struct dkimf_db_data dbd;
 	char tmp[BUFRSZ + 1];
 	unsigned char ct[BUFRSZ + 1];
 	unsigned char cte[BUFRSZ + 1];

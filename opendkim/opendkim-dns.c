@@ -89,11 +89,6 @@ struct dkimf_unbound_cb_data
 static void
 dkimf_unbound_cb(void *mydata, int err, struct ub_result *result)
 {
-	int n = 0;
-	int c;
-	unsigned char *cp;
-	unsigned char *p;
-	unsigned char *eob;
 	struct dkimf_unbound_cb_data *ubdata;
 
 	ubdata = (struct dkimf_unbound_cb_data *) mydata;

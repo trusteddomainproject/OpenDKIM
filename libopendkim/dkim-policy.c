@@ -168,7 +168,6 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 int
 dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 {
-	int c;
 	size_t anslen_a;
 	size_t anslen_aaaa;
 	size_t anslen_mx;
@@ -178,9 +177,6 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 	void *q_a;
 	void *q_aaaa;
 	void *q_mx;
-	int error_a;
-	int error_aaaa;
-	int error_mx;
 	struct timeval timeout;
 	unsigned char ansbuf_a[MAXPACKET];
 	unsigned char ansbuf_aaaa[MAXPACKET];
@@ -391,7 +387,6 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 #endif /* QUERY_CACHE */
 	size_t anslen;
 	void *q;
-	int arerror;
 	DKIM_LIB *lib;
 	unsigned char *p;
 	unsigned char *cp;

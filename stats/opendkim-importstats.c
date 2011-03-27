@@ -162,7 +162,6 @@ sql_get_int(odbx_t *db, char *sql)
 {
 	int out = 0;
 	int err;
-	size_t safelen;
 	odbx_result_t *result = NULL;
 
 	assert(db != NULL);
@@ -233,9 +232,7 @@ sql_get_int(odbx_t *db, char *sql)
 int
 sql_do(odbx_t *db, char *sql)
 {
-	int out = 0;
 	int err;
-	size_t safelen;
 	odbx_result_t *result = NULL;
 
 	assert(db != NULL);
@@ -261,6 +258,8 @@ sql_do(odbx_t *db, char *sql)
 		return -1;
 
 	odbx_result_finish(result);
+
+	return 0;
 }
 
 /*

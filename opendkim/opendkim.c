@@ -7099,7 +7099,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	if (str != NULL)
 	{
 		int status;
-		int dbtype;
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_rephdrsdb, str,
@@ -13493,7 +13492,6 @@ mlfi_eom(SMFICTX *ctx)
 			DKIM_SIGINFO **sigs;
 			Header vbr_header;
 			char tmp[DKIM_MAXHEADER + 1];
-			char tmp2[DKIM_MAXHEADER + 1];
 
 			for (c = 0; ; c++)
 			{

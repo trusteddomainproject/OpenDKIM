@@ -117,23 +117,19 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	_Bool seenlf;
 	_Bool suffix = FALSE;
 	_Bool writesoa = FALSE;
 	int c;
 	int status;
 	int verbose = 0;
-	int olen;
 	int ttl = -1;
 	int defttl = DEFTTL;
 	int expire = DEFEXPIRE;
 	int refresh = DEFREFRESH;
 	int retry = DEFRETRY;
 	int nscount = 0;
-	long len;
 	time_t now;
 	size_t dlen;
-	size_t shalen;
 	size_t b32len;
 	char *p;
 	char *dataset = NULL;

@@ -3839,7 +3839,6 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		int fields;
 		odbx_result_t *result;
 		struct dkimf_db_dsn *dsn;
-		char query[BUFRSZ];
 
 		dsn = (struct dkimf_db_dsn *) db->db_data;
 		result = (odbx_result_t *) db->db_cursor;

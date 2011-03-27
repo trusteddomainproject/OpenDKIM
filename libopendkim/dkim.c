@@ -2554,8 +2554,6 @@ dkim_get_policy(DKIM *dkim, u_char *query, _Bool excheck, int *qstatus,
 	}
 	else
 	{
-		DKIM_SIGINFO *sig;
-
 		switch (dkim->dkim_libhandle->dkiml_querymethod)
 		{
 		  case DKIM_QUERY_UNKNOWN:
@@ -6199,7 +6197,9 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 DKIM_STAT
 dkim_eoh(DKIM *dkim)
 {
+#ifdef _FFR_PARSE_TIME
 	struct dkim_header *hdr;
+#endif /* _FFR_PARSE_TIME */
 
 	assert(dkim != NULL);
 
