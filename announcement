@@ -11,7 +11,7 @@ items listed below is causing you trouble.
 
 The full RELEASE_NOTES for this version:
 
-2.3.1		2011/03/21
+2.3.1		2011/03/28
 	Feature request #SF3196060: Log retrieved reputation values.
 		Patch from Andreas Schulze.
 	Feature request #SF3199824: Don't log "no signature data" unless
@@ -26,15 +26,22 @@ The full RELEASE_NOTES for this version:
 		noted by Chris Callegari.
 	Fix bug #SF3211114: Extract "BaseDirectory" from configuration
 		file properly.
+	Fix bug #SF3234178: Correct handling of a KeyTable entry for which the
+		key data is empty.  Based on a patch from Yoshiaki Yanagihara.
 	Patch #SF3205699: Make all header field name and domain name data
 		sets case insensitive.  Submitted by Richard Rognlie.
 	Add a case-insensitivity flag to odkim.db_open().
+	Minor correction to DNS function return codes for unbound, which
+		doesn't have an expired/no-reply distinction like libar does.
+	LIBOPENDKIM: Fix up timeout handling with a DNS callback is in use.
+	LIBOPENDKIM: Update for draft-kucherawy-dkim-atps-03.
 	STATS: Fix bug #SF3195449: Omit data from reporters that are not
 		currently marked "enabled" in the reporters table.
 	STATS: Evaluate "i=" against the "d=" domain, not the "From" domain.
 		Problem noted by Mark Martinec.
 	STATS: A few more reports.
 	MILTERTEST: Don't use non-standard printf() conversions.
+	MILTERTEST: Get the SMFIP_HDR_LEADSPC logic right.
 	TOOLS: Feature request #SF3200848: Add a backgrounding option
 		(on by default) to opendkim-spam.
 
