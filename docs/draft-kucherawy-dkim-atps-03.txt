@@ -3,8 +3,8 @@
 
 Individual submission                                       M. Kucherawy
 Internet-Draft                                           Cloudmark, Inc.
-Intended status: Experimental                             March 14, 2011
-Expires: September 15, 2011
+Intended status: Experimental                             March 28, 2011
+Expires: September 29, 2011
 
 
                   DKIM Authorized Third-Party Signers
@@ -32,7 +32,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on September 15, 2011.
+   This Internet-Draft will expire on September 29, 2011.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Kucherawy              Expires September 15, 2011               [Page 1]
+Kucherawy              Expires September 29, 2011               [Page 1]
 
 Internet-Draft            DKIM ATPS Experiment                March 2011
 
@@ -108,7 +108,7 @@ Table of Contents
 
 
 
-Kucherawy              Expires September 15, 2011               [Page 2]
+Kucherawy              Expires September 29, 2011               [Page 2]
 
 Internet-Draft            DKIM ATPS Experiment                March 2011
 
@@ -164,7 +164,7 @@ Internet-Draft            DKIM ATPS Experiment                March 2011
 
 
 
-Kucherawy              Expires September 15, 2011               [Page 3]
+Kucherawy              Expires September 29, 2011               [Page 3]
 
 Internet-Draft            DKIM ATPS Experiment                March 2011
 
@@ -220,7 +220,7 @@ Internet-Draft            DKIM ATPS Experiment                March 2011
 
 
 
-Kucherawy              Expires September 15, 2011               [Page 4]
+Kucherawy              Expires September 29, 2011               [Page 4]
 
 Internet-Draft            DKIM ATPS Experiment                March 2011
 
@@ -241,7 +241,7 @@ Internet-Draft            DKIM ATPS Experiment                March 2011
        Section 6 of [BASE32].  The base32 encoding is used because its
        output is restricted to characters that are legal for use in
        labels in the DNS, and evaluates the same way in the DNS whether
-       converted using uppercase or lowercase characters.
+       encoded using uppercase or lowercase characters.
 
    5.  Append the string "._atps."
 
@@ -276,7 +276,7 @@ Internet-Draft            DKIM ATPS Experiment                March 2011
 
 
 
-Kucherawy              Expires September 15, 2011               [Page 5]
+Kucherawy              Expires September 29, 2011               [Page 5]
 
 Internet-Draft            DKIM ATPS Experiment                March 2011
 
@@ -332,7 +332,7 @@ Internet-Draft            DKIM ATPS Experiment                March 2011
 
 
 
-Kucherawy              Expires September 15, 2011               [Page 6]
+Kucherawy              Expires September 29, 2011               [Page 6]
 
 Internet-Draft            DKIM ATPS Experiment                March 2011
 
@@ -388,7 +388,7 @@ Internet-Draft            DKIM ATPS Experiment                March 2011
 
 
 
-Kucherawy              Expires September 15, 2011               [Page 7]
+Kucherawy              Expires September 29, 2011               [Page 7]
 
 Internet-Draft            DKIM ATPS Experiment                March 2011
 
@@ -444,7 +444,7 @@ Internet-Draft            DKIM ATPS Experiment                March 2011
 
 
 
-Kucherawy              Expires September 15, 2011               [Page 8]
+Kucherawy              Expires September 29, 2011               [Page 8]
 
 Internet-Draft            DKIM ATPS Experiment                March 2011
 
@@ -500,7 +500,7 @@ Internet-Draft            DKIM ATPS Experiment                March 2011
 
 
 
-Kucherawy              Expires September 15, 2011               [Page 9]
+Kucherawy              Expires September 29, 2011               [Page 9]
 
 Internet-Draft            DKIM ATPS Experiment                March 2011
 
@@ -556,7 +556,7 @@ Internet-Draft            DKIM ATPS Experiment                March 2011
 
 
 
-Kucherawy              Expires September 15, 2011              [Page 10]
+Kucherawy              Expires September 29, 2011              [Page 10]
 
 Internet-Draft            DKIM ATPS Experiment                March 2011
 
@@ -612,7 +612,7 @@ Appendix A.  Example Query and Reply
 
 
 
-Kucherawy              Expires September 15, 2011              [Page 11]
+Kucherawy              Expires September 29, 2011              [Page 11]
 
 Internet-Draft            DKIM ATPS Experiment                March 2011
 
@@ -668,5 +668,5 @@ Author's Address
 
 
 
-Kucherawy              Expires September 15, 2011              [Page 12]
+Kucherawy              Expires September 29, 2011              [Page 12]
 
