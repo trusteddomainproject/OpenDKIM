@@ -348,8 +348,9 @@ Nesting is allowed to a maximum of five levels.
 
 .TP
 .I InsecureKey (string)
-Instructs the filter to treat a passing signature associated with an
-insecure key in a special way.  Possible values are
+Instructs the filter to treat a passing signature associated with a
+key found in an insecure (i.e. not protected by DNSSEC) DNS record in
+a special way.  Possible values are
 .I neutral
 (return a "neutral" result),
 .I none
@@ -360,8 +361,8 @@ insecure key in a special way.  Possible values are
 
 .TP
 .I InsecurePolicy (string)
-Instructs the filter to treat an ADSP policy found in an insecure DNS
-record in a special way.  Possible values are
+Instructs the filter to treat an ADSP policy found in an insecure (i.e.
+not protected by DNSSEC) DNS record in a special way.  Possible values are
 .I apply
 (apply the policy; this is the default) and
 .I ignore
