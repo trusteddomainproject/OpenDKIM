@@ -2,7 +2,7 @@
 **  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-arf.h,v 1.3 2009/08/03 19:10:47 cm-msk Exp $
 */
