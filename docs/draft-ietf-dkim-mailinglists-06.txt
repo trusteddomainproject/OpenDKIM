@@ -3,12 +3,12 @@
 
 DKIM Working Group                                          M. Kucherawy
 Internet-Draft                                                 Cloudmark
-Intended status: Informational                            March 28, 2011
+Intended status: BCP                                      March 28, 2011
 Expires: September 29, 2011
 
 
                          DKIM And Mailing Lists
-                    draft-ietf-dkim-mailinglists-05
+                    draft-ietf-dkim-mailinglists-06
 
 Abstract
 
@@ -16,7 +16,8 @@ Abstract
    domain (ADMD) to assume some responsibility for a message.  As the
    industry has now gained some deployment experience, the goal for this
    document is to explore the use of DKIM for scenarios that include
-   intermediaries, such as Mailing List Managers (MLMs).
+   intermediaries, such as Mailing List Managers (MLMs) and describe the
+   Best Current Practices.
 
 Status of this Memo
 
@@ -48,13 +49,15 @@ Copyright Notice
    to this document.  Code Components extracted from this document must
    include Simplified BSD License text as described in Section 4.e of
    the Trust Legal Provisions and are provided without warranty as
-   described in the Simplified BSD License.
 
 
 
 Kucherawy              Expires September 29, 2011               [Page 1]
 
 Internet-Draft           DKIM and Mailing Lists               March 2011
+
+
+   described in the Simplified BSD License.
 
 
 Table of Contents
@@ -80,11 +83,11 @@ Table of Contents
      4.4.  Wrapping A Non-Participating MLM . . . . . . . . . . . . . 13
    5.  Participating MLMs . . . . . . . . . . . . . . . . . . . . . . 14
      5.1.  General  . . . . . . . . . . . . . . . . . . . . . . . . . 14
-     5.2.  DKIM Author Domain Signing Practices . . . . . . . . . . . 14
+     5.2.  DKIM Author Domain Signing Practices . . . . . . . . . . . 15
      5.3.  Subscriptions  . . . . . . . . . . . . . . . . . . . . . . 15
      5.4.  Author-Related Signing . . . . . . . . . . . . . . . . . . 15
      5.5.  Verification Outcomes at MLMs  . . . . . . . . . . . . . . 16
-     5.6.  Signature Removal Issues . . . . . . . . . . . . . . . . . 16
+     5.6.  Signature Removal Issues . . . . . . . . . . . . . . . . . 17
      5.7.  MLM Signatures . . . . . . . . . . . . . . . . . . . . . . 18
      5.8.  Verification Outcomes at Final Receiving Sites . . . . . . 19
      5.9.  Use With FBLs  . . . . . . . . . . . . . . . . . . . . . . 20
@@ -101,9 +104,6 @@ Table of Contents
      B.1.  MLMs and ADSP  . . . . . . . . . . . . . . . . . . . . . . 28
      B.2.  MLMs and FBLs  . . . . . . . . . . . . . . . . . . . . . . 28
    Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 29
-
-
-
 
 
 
@@ -128,7 +128,8 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    managers (MLMs), that actively take delivery of messages, re-format
    them, and re-post them, often invalidating DKIM signatures.  The goal
    for this document is to explore the use of DKIM for scenarios that
-   include intermediaries.  Questions that will be discussed include:
+   include intermediaries, and recommend Best Current Practices based on
+   acquired experience.  Questions that will be discussed include:
 
    o  Under what circumstances is it advisable for an author, or its
       organization, to apply DKIM to mail sent to mailing lists?
@@ -145,7 +146,7 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    These and others are open questions for which there may be no
    definitive answers.  However, based on experience since the
    publication of [DKIM] and its gradual deployment, there are some
-   views that are useful to consider.
+   views that are useful to consider and some recommended procedures.
 
    In general there are, in relation to DKIM, two categories of MLMs:
    participating and non-participating.  As each types has its own
@@ -160,7 +161,6 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    affixing a validated domain-level identifier to the message as it
    passes through a gateway.  Although not the only possibility, this is
    most commonly done as a message passes through a Mail Transport Agent
-   (MTA) as it departs an Administrative Mail Domain (ADMD) toward the
 
 
 
@@ -169,6 +169,7 @@ Kucherawy              Expires September 29, 2011               [Page 3]
 Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
+   (MTA) as it departs an Administrative Mail Domain (ADMD) toward the
    general Internet.
 
    A DKIM signature will fail to verify if a portion of the message
@@ -216,7 +217,6 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    the original message, and that recipients perceive the message as
    "from" the original author rather than the MLM, creates confusion
    about responsibility and autonomy for the re-posted message.  This
-   has important implications for use of DKIM.
 
 
 
@@ -224,6 +224,8 @@ Kucherawy              Expires September 29, 2011               [Page 4]
 
 Internet-Draft           DKIM and Mailing Lists               March 2011
 
+
+   has important implications for use of DKIM.
 
    A DKIM signature on a message is an expression of some responsibility
    for the message taken by the signing domain.  An open issue, and one
@@ -271,8 +273,6 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    See Section 6 for additional discussion.
 
    FBLs tend to use the ARF ([MARF]) or the IODEF ([IODEF]) format.
-
-
 
 
 
@@ -627,9 +627,9 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
 4.1.  Author-Related Signing
 
    If an author knows that the MLM to which a message is being sent is a
-   non-participating resending MLM, the author is advised to be cautious
-   when deciding whether or not to send to the list when that mail would
-   be signed.  The MLM could make a change that would invalidate the
+   non-participating resending MLM, the author SHOULD be cautious when
+   deciding whether or not to send to the list when that mail would be
+   signed.  The MLM could make a change that would invalidate the
    author's signature but not remove it prior to re-distribution.
    Hence, list recipients would receive a message purportedly from the
    author but bearing a DKIM signature that would not verify.  There
@@ -641,8 +641,8 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    strict policy.
 
    For domains that do publish strict ADSP policies, the originating
-   site can consider using a separate message stream (see Section 2.4),
-   such as a sub-domain, for the "personal" mail -- a subdomain that is
+   site SHOULD use a separate message stream (see Section 2.4), such as
+   a sub-domain, for the "personal" mail -- a subdomain that is
    different from domain(s) used for other mail streams.  This allows
    each to develop an independent reputation, and more stringent
    policies (including ADSP) can be applied to the mail stream(s) that
@@ -658,9 +658,9 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    successful only for the mail streams subject to the most end-to-end
    control by the originating organization.  That typically excludes
    mail going through MLMs.  Therefore, authors whose ADSP is published
-   as "discardable" are advised not to send mail to MLMs, as it is
-   likely to be rejected by ADSP-aware verifiers or recipients.  (This
-   is discussed further in Section 5.6 below.)
+   as "discardable" SHOULD NOT send mail to MLMs, as it is likely to be
+   rejected by ADSP-aware verifiers or recipients.  (This is discussed
+   further in Section 5.6 below.)
 
 
 
@@ -677,7 +677,7 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
 
    There does not appear to be a reliable way to determine that a piece
    of mail arrived via a non-participating MLM.  Sites whose users
-   subscribe to non-participating MLMs should be prepared for legitimate
+   subscribe to non-participating MLMs SHOULD be prepared for legitimate
    mail to arrive with no valid signature, just as it always has in the
    absence of DKIM.
 
@@ -700,8 +700,8 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    unsigned or the signature can no longer be verified, discarding of
    the message is requested.  There is no exception in the policy for a
    message that may have been altered by an MLM, nor is there a reliable
-   way to identify such mail.  Participants are thus advised to honor
-   the policy and disallow the message.
+   way to identify such mail.  Therefore, participants SHOULD honour the
+   policy and disallow the message.
 
 4.4.  Wrapping A Non-Participating MLM
 
@@ -767,16 +767,16 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    header field proposed for relaying such general operational MLM
    details apart from what [LIST-URLS] already supports.  This sort of
    information is what is commonly included in appended footer text or
-   prepended header text.  The working group recommends periodic,
-   automatic mailings to the list to remind subscribers of list policy.
-   These will be repetitive, of course, but by being generally the same
-   each time they can be easily filtered if desired.
+   prepended header text.  The working group RECOMMENDS periodic,
+   automatic mailings to the list to remind subscribers of list policy,
+   and otherwise RECOMMENDS use of standard header fields to express
+   list operation parameters rather than body changes.  These periodic
+   mailings will be repetitive, of course, but by being generally the
+   same each time they can be easily filtered if desired.
 
-5.2.  DKIM Author Domain Signing Practices
 
-   [ADSP] presents a particular challenge.  An author domain posting a
-   policy of "discardable" imposes a very tight restriction on the use
-   of mailing lists, essentially constraining that domain's users to
+
+
 
 
 
@@ -785,36 +785,41 @@ Kucherawy              Expires September 29, 2011              [Page 14]
 Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
+5.2.  DKIM Author Domain Signing Practices
+
+   [ADSP] presents a particular challenge.  An author domain posting a
+   policy of "discardable" imposes a very tight restriction on the use
+   of mailing lists, essentially constraining that domain's users to
    lists operated by aliasing MLMs only; any MLM that alters a message
    from such a domain or removes its signature subjects the message to
    severe action by verifiers or receivers.  It is the consensus of the
-   working group that a resending MLM is advised to reject outright any
-   mail from an author whose domain posts such a policy as it is likely
-   to be rejected by any ADSP-aware recipients, and might also be well
-   advised to discourage such subscribers when they first sign up to the
-   list.  Further discussion of this appears in Section 5.3.
+   working group that a resending MLM SHOULD reject outright any mail
+   from an author whose domain posts such a policy as it is likely to be
+   rejected by any ADSP-aware recipients, and SHOULD also discourage
+   such subscribers when they first sign up to the list.  Further
+   discussion of this appears in Section 5.3.
 
    Where the above practice is not observed and "discardable" mail
    arrives via a list to a verifier that applies ADSP checks which fail,
-   the message can either be discarded (i.e. accept the message at the
-   [SMTP] level but discard it without delivery) or the message can be
-   rejected by returning a 5xx error code.  In the latter case, some
-   advice for how to conduct the rejection in a potentially meaningful
-   way can be found in Section 5.10.
+   the message SHOULD either be discarded (i.e. accept the message at
+   the [SMTP] level but discard it without delivery) or rejected by
+   returning a 5xx error code.  In the latter case, some advice for how
+   to conduct the rejection in a potentially meaningful way can be found
+   in Section 5.10.
 
    See also Appendix B.5 of [ADSP] for further discussion.
 
 5.3.  Subscriptions
 
-   At subscription time, an ADSP-aware MLM could check for a published
+   At subscription time, an ADSP-aware MLM SHOULD check for a published
    ADSP record for the new subscriber's domain.  If the policy specifies
-   "discardable", the MLM might disallow the subscription or present a
+   "discardable", the MLM SHOULD disallow the subscription or present a
    warning that the subscriber's submissions to the mailing list might
    not be deliverable to some recipients because of the subscriber's
    ADMD's published policy.
 
    Of course, such a policy record could be applied after subscription,
-   so this is not a universal solution.  An MLM implementation could do
+   so this is not a universal solution.  An MLM implementation MAY do
    periodic checks of its subscribers and issue warnings where such a
    policy is detected, or simply check upon each submission.
 
@@ -827,12 +832,7 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    future, as DKIM signature outputs (e.g. the AUID or SDID of
    [DKIM-UPDATE]) are used as inputs to reputation modules, there may be
    a desire to insulate one's reputation from influence by the unknown
-   results of sending mail through an MLM.  In that case, authors may be
-   well-advised to create a mail stream specifically used for generating
-   signatures when sending traffic to MLMs.
-
-   This suggestion can be made more general.  Mail that is of a
-   transactional or generally end-to-end nature, and not likely to be
+   results of sending mail through an MLM.  In that case, authors SHOULD
 
 
 
@@ -841,7 +841,12 @@ Kucherawy              Expires September 29, 2011              [Page 15]
 Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
-   forwarded around either by MLMs or users, should come from a
+   create a mail stream specifically used for generating signatures when
+   sending traffic to MLMs.
+
+   This suggestion can be made more general.  Mail that is of a
+   transactional or generally end-to-end nature, and not likely to be
+   forwarded around either by MLMs or users, SHOULD come from a
    different mail stream than a stream that serves more varied uses.
 
 5.5.  Verification Outcomes at MLMs
@@ -857,38 +862,33 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    except that the requirement for it would be imposed by the MLM and
    not the author's organization.
 
-   As described, the MLM might conduct DKIM verification of a signed
+   As described, the MLM MAY conduct DKIM verification of a signed
    message to attempt to confirm the identity of the author.  Although
    it is a common and intuitive conclusion, not all signed mail will
-   include an author signature (see [ADSP]).  MLM implementers are
-   advised to accommodate such in their configurations.  For example, an
-   MLM might be designed to accommodate a list of possible signing
-   domains (the "d=" portion of a DKIM signature) for a given author,
-   and determine at verification time if any of those are present.
+   include an author signature (see [ADSP]).  MLM implementers SHOULD
+   accommodate such in their configurations.  For example, an MLM might
+   be designed to accommodate a list of possible signing domains (the
+   "d=" portion of a DKIM signature) for a given author, and determine
+   at verification time if any of those are present.
 
-   A message that cannot be thus authenticated could be held for
+   A message that cannot be thus authenticated MAY be held for
    moderation or rejected outright.
 
    This logic could apply to any list operation, not just list
-   submission.  In particular, this improved authentication could apply
-   to subscription, unsubscription, and/or changes to subscriber options
+   submission.  In particular, this improved authentication MAY apply to
+   subscription, unsubscription, and/or changes to subscriber options
    that are sent via email rather than through an authenticated,
    interactive channel such as the web.
 
-   In the case of verification of signatures on submissions, MLMs are
-   advised to add an [AUTH-RESULTS] header field to indicate the
-   signature(s) observed on the submission as it arrived at the MLM and
-   what the outcome of the evaluation was.  Downstream agents may or may
-   not trust the content of that header field depending on their own a
+   In the case of verification of signatures on submissions, MLMs SHOULD
+   add an [AUTH-RESULTS] header field to indicate the signature(s)
+   observed on the submission as it arrived at the MLM and what the
+   outcome of the evaluation was.  Downstream agents may or may not
+   trust the content of that header field depending on their own a
    priori knowledge of the operation of the ADMD generating (and,
    preferably, signing) that header field.  See [AUTH-RESULTS] for
    further discussion.
 
-5.6.  Signature Removal Issues
-
-   A message that arrives signed with DKIM means some domain prior to
-   MLM Input has made a claim of some responsibility for the message.
-   An obvious benefit to leaving the input-side signatures intact, then,
 
 
 
@@ -897,13 +897,18 @@ Kucherawy              Expires September 29, 2011              [Page 16]
 Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
+5.6.  Signature Removal Issues
+
+   A message that arrives signed with DKIM means some domain prior to
+   MLM Input has made a claim of some responsibility for the message.
+   An obvious benefit to leaving the input-side signatures intact, then,
    is to preserve that chain of responsibility of the message so that
    the receivers of the final message have an opportunity to evaluate
    the message with that information available to them.
 
    However, if the MLM is configured to make changes to the message
    prior to re-posting that would invalidate the original signature(s),
-   further action is recommended to prevent invalidated signatures from
+   further action is RECOMMENDED to prevent invalidated signatures from
    arriving at final recipients, possibly triggering unwarranted filter
    actions.  (Note, however, that such filtering actions are plainly
    wrong; [DKIM] stipulates that an invalid signature is to be treated
@@ -941,11 +946,6 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    presumably, the necessary public keys have already been downloaded
    and one or both of the message hashes could be reused.
 
-   Per the discussion in [AUTH-RESULTS], there is no a priori reason for
-   the final receivers to put any faith in the veracity of that header
-   field when added by the MLM.  Thus, the final recipients of the
-   message have no way to verify on their own the authenticity of the
-
 
 
 Kucherawy              Expires September 29, 2011              [Page 17]
@@ -953,15 +953,19 @@ Kucherawy              Expires September 29, 2011              [Page 17]
 Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
-   author's identity on that message.  However, should that field be the
+   Per the discussion in [AUTH-RESULTS], there is no a priori reason for
+   the final receivers to put any faith in the veracity of that header
+   field when added by the MLM.  Thus, the final recipients of the
+   message have no way to verify on their own the authenticity of the
+   author's identity on that message.  However, if that field is the
    only one on the message when the verifier gets it, and the verifier
    explicitly trusts the signer (in this case, the MLM), the verifier is
    in a position to believe that a valid author signature was present on
    the message.
 
-   This can be generalized as follows: A receiver is advised to consider
-   only [AUTH-RESULTS] fields bearing an authserv-id that appears in a
-   list of sites the receiver trusts that is also included in the header
+   This can be generalized as follows: A receiver SHOULD consider only
+   [AUTH-RESULTS] fields bearing an authserv-id that appears in a list
+   of sites the receiver trusts and which is also included in the header
    hash of a [DKIM] signature added by a domain in the same trusted
    list.
 
@@ -977,12 +981,12 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
 
 5.7.  MLM Signatures
 
-   DKIM-aware resending MLMs and authoring MLMs are encouraged to affix
-   their own signatures when distributing messages.  The MLM is
-   responsible for the alterations it makes to the original messages it
-   is re-sending, and should express this via a signature.  This is also
-   helpful for getting feedback from any FBLs that might be set up so
-   that undesired list mail can generate appropriate action.
+   DKIM-aware resending MLMs and authoring MLMs SHOULD affix their own
+   signatures when distributing messages.  The MLM is responsible for
+   the alterations it makes to the original messages it is re-sending,
+   and should express this via a signature.  This is also helpful for
+   getting feedback from any FBLs that might be set up so that undesired
+   list mail can generate appropriate action.
 
    MLM signatures will likely be used by recipient systems to recognize
    list mail, and they give the MLM's ADMD an opportunity to develop a
@@ -991,16 +995,12 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    A signing MLM is, as any other MLM, free to omit redistribution of a
    message if that message was not signed in accordance with its own
    local configuration or policy.  It could also redistribute but not
-   sign such mail.  However, selective signing is discouraged;
+   sign such mail.  However, selective signing is NOT RECOMMENDED;
    essentially that would create two message streams from the MLM, one
    signed and one not, which can confuse DKIM-aware verifiers and
    receivers.
 
-   A signing MLM could add a List-Post: header field (see [LIST-URLS])
-   using a DNS domain matching what will be used in the "d=" tag of the
-   DKIM signature it will add to the new message.  This could be used by
-   verifiers or receivers to identify the DKIM signature that was added
-   by the MLM.  This is not required, however; it is believed the
+   A signing MLM SHOULD add a List-Post: header field (see [LIST-URLS])
 
 
 
@@ -1009,12 +1009,16 @@ Kucherawy              Expires September 29, 2011              [Page 18]
 Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
+   using a DNS domain matching what will be used in the "d=" tag of the
+   DKIM signature it will add to the new message.  This could be used by
+   verifiers or receivers to identify the DKIM signature that was added
+   by the MLM.  This is not required, however; it is believed the
    reputation of the signer will be a more critical data point rather
    than this suggested binding.  Furthermore, this is not a binding
    recognized by any current specification document.
 
-   Such MLMs are advised to ensure the signature's header hash will
-   cover:
+   Such MLMs SHOULD ensure the signature's header hash will cover at
+   least:
 
    o  Any [AUTH-RESULTS] fields added by the MLM;
 
@@ -1023,15 +1027,16 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    o  Any [MAIL] fields, especially Sender and Reply-To, added or
       replaced by the MLM.
 
-   A DKIM-aware resending MLM is encouraged to sign the entire message
-   after being prepared for distribution (i.e. the "MLM Output" from
-   Section 3.2).  Any other configuration might generate signatures that
-   cannot be expected to validate.  The signature would deally include
-   any original signatures and any header fields that were covered by
-   those signatures, but not any that were not already signed.
+   A DKIM-aware resending MLM SHOULD sign the entire message after being
+   prepared for distribution (i.e. the "MLM Output" from Section 3.2).
+   Any other configuration might generate signatures that cannot be
+   expected to validate.  As with any other DKIM signing operation, the
+   choice of what portions of the header and body of the output message
+   should include those parts of the header and body for which the MLM
+   wishes to assert responsibility.
 
-   DKIM-aware authoring MLMs are advised to sign the mail they send
-   according to the regular signing guidelines given in [DKIM].
+   DKIM-aware authoring MLMs MUST sign the mail they send according to
+   the regular signing guidelines given in [DKIM].
 
    One concern is that having an MLM apply its signature to unsigned
    mail might cause some verifiers or receivers to interpret the
@@ -1045,18 +1050,13 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
 
 5.8.  Verification Outcomes at Final Receiving Sites
 
-   In general, verifiers and receivers can treat a signed message from
-   an MLM like any other signed message; indeed, it would be difficult
-   to discern any difference since specifications such as [LIST-URLS]
-   and [LIST-ID] are not universally deployed and can be trivially
-   spoofed.
+   In general, verifiers and receivers SHOULD treat a signed message
+   from an MLM like any other signed message; indeed, it would be
+   difficult to discern any difference since specifications such as
+   [LIST-URLS] and [LIST-ID] are not universally deployed and can be
+   trivially spoofed.
 
    However, because the author domain will commonly be different from
-   the MLM's signing domain, there may be a conflict with [ADSP] as
-   discussed in Section 4.3 and Section 5.6, especially where an ADMD
-   has misused ADSP.
-
-
 
 
 
@@ -1065,22 +1065,26 @@ Kucherawy              Expires September 29, 2011              [Page 19]
 Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
+   the MLM's signing domain, there may be a conflict with [ADSP] as
+   discussed in Section 4.3 and Section 5.6, especially where an ADMD
+   has misused ADSP.
+
 5.9.  Use With FBLs
 
-   An FBL operator may wish to act on a complaint from a user about a
+   An FBL operator might wish to act on a complaint from a user about a
    posting to a list.  Some FBLs could choose to generate feedback
    reports based on DKIM verifications in the subject message.  Such
-   operators are advised to send a report to each domain with a valid
-   signature that has an FBL agreement established, as DKIM signatures
-   are claims of some responsibility for that message.  Because authors
-   generally have limited control over the operation of a list, this
-   point makes MLM signing all the more important.
+   operators SHOULD send a report to each domain with a valid signature
+   that has an FBL agreement established, as DKIM signatures are claims
+   of some responsibility for that message.  Because authors generally
+   have limited control over the operation of a list, this point makes
+   MLM signing all the more important.
 
-   Where the FBL wishes to be more specific, it could act solely on a
-   DKIM signature where the signing domain matches the DNS domain found
-   in a List-Post: header field (or similar).
+   Where the FBL wishes to be more specific, it MAY act solely on a DKIM
+   signature where the signing domain matches the DNS domain found in a
+   List-Post: header field (or similar).
 
-   Use of FBLs in this way should be made explicit to list subscribers.
+   Use of FBLs in this way SHOULD be made explicit to list subscribers.
    For example, if it is the policy of the MLM's ADMD to handle an FBL
    item by unsubscribing the user that was the apparent sender of the
    offending message, advising subscribers of this in advance would help
@@ -1089,30 +1093,26 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
 5.10.  Handling Choices at Receivers
 
    A recipient that explicitly trusts signatures from a particular MLM
-   may wish to extend that trust to an [AUTH-RESULTS] header field
-   signed by that MLM.  The recipient may then do additional processing
+   MAY wish to extend that trust to an [AUTH-RESULTS] header field
+   signed by that MLM.  The recipient MAY then do additional processing
    of the message, using the results recorded in the Authentication-
    Results header field instead of the original author's DKIM signature.
    This includes possibly processing the message as per ADSP
    requirements.
 
-   Receivers are advised to ignore or remove all unsigned externally-
-   applied Authentication-Results header fields, and those not signed by
-   an ADMD that can be trusted by the receiver.  See Section 5 and
-   Section 7 of [AUTH-RESULTS] for further discussion.
+   Receivers SHOULD ignore or remove all unsigned externally-applied
+   Authentication-Results header fields, and those not signed by an ADMD
+   that can be trusted by the receiver.  See Section 5 and Section 7 of
+   [AUTH-RESULTS] for further discussion.
 
    Upon DKIM and ADSP evaluation during an SMTP session (a common
-   implementation), an agent might decide to reject a message during an
+   implementation), an agent MAY decide to reject a message during an
    SMTP session.  If this is done, use of an [SMTP] failure code not
    normally used for "user unknown" (550) is suggested; 554 seems an
-   appropriate candidate.  If the rejecting SMTP server supports
-   [ENHANCED] status codes, is advised to make a distinction between
-   messages rejected deliberately due to policy decisions rather than
-   those rejected because of other deliverability issues.  In
-   particular, a policy rejection is advised to be relayed using a 5.7.1
-   enhanced status code and some appropriate wording in the text part of
-   the reply, in contrast to a code of 5.1.1 indicating the user does
-   not exist.  Those MLMs that automatically attempt to remove users
+   appropriate candidate and thus SHOULD be used.  If the rejecting SMTP
+   server supports [ENHANCED] status codes, it SHOULD make a distinction
+   between messages rejected deliberately due to policy decisions rather
+   than those rejected because of other deliverability issues.  In
 
 
 
@@ -1121,23 +1121,23 @@ Kucherawy              Expires September 29, 2011              [Page 20]
 Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
-   with prolonged delivery problems (such as account deletion) will thus
-   be able to tell the difference between policy rejection and other
-   delivery failures, and act accordingly.  SMTP servers doing so are
-   also advised to use appropriate wording in the text portion of the
-   reply, perhaps explicitly using the string "ADSP" to facilitate
-   searching of relevant data in logs.
+   particular, a policy rejection SHOULD be relayed using a 5.7.1
+   enhanced status code and some appropriate wording in the text part of
+   the reply, in contrast to a code of 5.1.1 indicating the user does
+   not exist.  Those MLMs that automatically attempt to remove users
+   with prolonged delivery problems (such as account deletion) SHOULD
+   thus detect the difference between policy rejection and other
+   delivery failures, and act accordingly.  SMTP servers doing so SHOULD
+   also use appropriate wording in the text portion of the reply,
+   perhaps explicitly using the string "ADSP" to facilitate searching of
+   relevant data in logs.
 
    The preceding paragraph does not apply to an [ADSP] policy of
    "discardable".  In such cases where the submission fails that test,
-   the receiver or verifier is strongly advised to discard the message
-   but return an SMTP success code, i.e. accept the message but drop it
-   without delivery.  An SMTP rejection of such mail instead of the
-   requested discard action causes more harm than good.
-
-
-
-
+   the receiver or verifier SHOULD discard the message but return an
+   SMTP success code, i.e. accept the message but drop it without
+   delivery.  An SMTP rejection of such mail instead of the requested
+   discard action causes more harm than good.
 
 
 
@@ -1183,10 +1183,10 @@ Internet-Draft           DKIM and Mailing Lists               March 2011
    forensic details about DKIM verification failures.  At the time of
    this writing, this is still a work in progress.
 
-   MLMs are encouraged to apply these or other DKIM failure reporting
-   mechanisms as a method for providing feedback to signers about issues
-   with DKIM infrastructure.  This is especially important for MLMs that
-   implement DKIM verification as a mechanism for authentication of list
+   MLMs SHOULD apply these or other DKIM failure reporting mechanisms as
+   a method for providing feedback to signers about issues with DKIM
+   infrastructure.  This is especially important for MLMs that implement
+   DKIM verification as a mechanism for authentication of list
    configuration commands and submissions from subscribers.
 
 
