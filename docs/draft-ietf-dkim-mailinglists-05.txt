@@ -3,12 +3,12 @@
 
 DKIM Working Group                                          M. Kucherawy
 Internet-Draft                                                 Cloudmark
-Intended status: Informational                          October 15, 2010
-Expires: April 18, 2011
+Intended status: Informational                            March 28, 2011
+Expires: September 29, 2011
 
 
                          DKIM And Mailing Lists
-                    draft-ietf-dkim-mailinglists-04
+                    draft-ietf-dkim-mailinglists-05
 
 Abstract
 
@@ -33,11 +33,11 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 18, 2011.
+   This Internet-Draft will expire on September 29, 2011.
 
 Copyright Notice
 
-   Copyright (c) 2010 IETF Trust and the persons identified as the
+   Copyright (c) 2011 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Kucherawy                Expires April 18, 2011                 [Page 1]
+Kucherawy              Expires September 29, 2011               [Page 1]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 Table of Contents
@@ -63,7 +63,7 @@ Table of Contents
      1.1.  Background . . . . . . . . . . . . . . . . . . . . . . . .  3
      1.2.  MLMs In Infrastructure . . . . . . . . . . . . . . . . . .  4
      1.3.  Feedback Loops And Other Bi-Lateral Agreements . . . . . .  5
-     1.4.  Document Scope and Goals . . . . . . . . . . . . . . . . .  5
+     1.4.  Document Scope and Goals . . . . . . . . . . . . . . . . .  6
    2.  Definitions  . . . . . . . . . . . . . . . . . . . . . . . . .  7
      2.1.  Other Terms  . . . . . . . . . . . . . . . . . . . . . . .  7
      2.2.  DKIM-Specific References . . . . . . . . . . . . . . . . .  7
@@ -87,7 +87,7 @@ Table of Contents
      5.6.  Signature Removal Issues . . . . . . . . . . . . . . . . . 16
      5.7.  MLM Signatures . . . . . . . . . . . . . . . . . . . . . . 18
      5.8.  Verification Outcomes at Final Receiving Sites . . . . . . 19
-     5.9.  Use With FBLs  . . . . . . . . . . . . . . . . . . . . . . 19
+     5.9.  Use With FBLs  . . . . . . . . . . . . . . . . . . . . . . 20
      5.10. Handling Choices at Receivers  . . . . . . . . . . . . . . 20
    6.  DKIM Reporting . . . . . . . . . . . . . . . . . . . . . . . . 22
    7.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 23
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Kucherawy                Expires April 18, 2011                 [Page 2]
+Kucherawy              Expires September 29, 2011               [Page 2]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 1.  Introduction
@@ -164,9 +164,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                 [Page 3]
+Kucherawy              Expires September 29, 2011               [Page 3]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
    general Internet.
@@ -194,45 +194,44 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 1.2.  MLMs In Infrastructure
 
-   The previous section describes some of the things MLMs commonly do
-   that produce broken signatures and thus reducing the perceived value
-   of DKIM.
+   Section 3.3 describes some of the things MLMs commonly do that
+   produce broken signatures, thus reducing the perceived value of DKIM.
 
-   Further, while the advent of standards that are specific to MLM
+   Further, while there are published standards that are specific to MLM
    behaviour (e.g.  [MAIL], [LIST-ID] and [LIST-URLS]), their adoption
    has been spotty at best.  Hence, efforts to specify the use of DKIM
    in the context of MLMs needs to be incremental and value-based.
 
-   MLM behaviors are well-established.  Although it can be argued that
-   they frustrate widespread DKIM adoption, it cannot be said that such
-   behaviours are not standards compliant.  Thus, the best approach is
-   to provide these best practices to all parties involved, imposing the
-   minimum requirements possible to MLMs themselves.
+   Other MLM behaviours are well-established.  Although it can be argued
+   that they frustrate widespread DKIM adoption, it cannot be said that
+   such behaviours are not standards compliant.  Thus, the best approach
+   is to provide these best practices to all parties involved, imposing
+   the minimum requirements possible to MLMs themselves.
 
    An MLM is an autonomous agent that takes delivery of a message and
    can re-post it as a new message, or construct a digest of it along
    with other messages to the members of the list (see [EMAIL-ARCH],
    Section 5.3).  However, the fact that the RFC5322.From field of such
-   a message is typically the same as that of the original message and
-   that recipients perceive the message as "from" the original author
-   rather than the MLM creates confusion about responsibility and
-   autonomy for the re-posted message.  This has important implications
+   a message (in the non-digest case) is typically the same as that of
+   the original message, and that recipients perceive the message as
+   "from" the original author rather than the MLM, creates confusion
+   about responsibility and autonomy for the re-posted message.  This
+   has important implications for use of DKIM.
 
 
 
-Kucherawy                Expires April 18, 2011                 [Page 4]
+Kucherawy              Expires September 29, 2011               [Page 4]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
-
-   for use of DKIM.
 
    A DKIM signature on a message is an expression of some responsibility
    for the message taken by the signing domain.  An open issue, and one
    this document intends to address, is some idea of how such a
    signature might be used by a recipient's evaluation module after the
    message has gone through a mailing list and may or may not have been
-   invalidated, and if it has, where the invalidation may have happened.
+   invalidated, and if it has, where and how the invalidation may have
+   happened.
 
    Note that where in this document there is discussion of an MLM
    conducting validation of DKIM signatures or ADSP policies, the actual
@@ -252,16 +251,35 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
    An FBL reporting address (i.e., an address to which FBL reports are
    sent) is part of this bi-lateral registration.  Some FBLs require
-   DKIM use by the registrant.  Messages signed and sent by a registrant
-   through an MLM can therefore result in having abuse reports sent to
-   the original author when the actual problem pertains to the operation
-   of the MLM.  However, the original author has no involvement in
-   operation of the MLM, meaning the FBL report is not actionable and
-   thus is undesirable.
+   DKIM use by the registrant.
+
+   A DKIM-signed message sent to an MLM, and then distributed to all of
+   a list's recipients, could result in a complaint from one of the
+   recipients for some reason.  This could be an actual complaint from
+   some subscriber that finds the message abusive or otherwise
+   undesirable, or it could be an automated complaint such as receiver
+   detection of an invalidated DKIM signature or some other condition.
+   It could also be a complaint that results from antagonistic
+   behaviour, such as is common when a subscriber to a list is having
+   trouble unsubscribing, and then begins issuing complaints about all
+   submissions to the list.  This would result in a complaint being
+   generated in the context of an FBL report back to the message author.
+   However, the original author has no involvement in operation of the
+   MLM itself, meaning the FBL report is not actionable and thus
+   undesirable.
 
    See Section 6 for additional discussion.
 
    FBLs tend to use the ARF ([MARF]) or the IODEF ([IODEF]) format.
+
+
+
+
+
+Kucherawy              Expires September 29, 2011               [Page 5]
+
+Internet-Draft           DKIM and Mailing Lists               March 2011
+
 
 1.4.  Document Scope and Goals
 
@@ -273,14 +291,6 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
    Wherever possible, MLMs will be conceptually decoupled from MTAs
    despite the very tight integration that is sometimes observed in
    implementation.  This is done to emphasize the functional
-
-
-
-Kucherawy                Expires April 18, 2011                 [Page 5]
-
-Internet-Draft           DKIM and Mailing Lists             October 2010
-
-
    independence of MLM services and responsibilities from those of an
    MTA.
 
@@ -322,19 +332,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-
-
-
-
-
-
-
-
-
-
-Kucherawy                Expires April 18, 2011                 [Page 6]
+Kucherawy              Expires September 29, 2011               [Page 6]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 2.  Definitions
@@ -347,9 +347,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 2.2.  DKIM-Specific References
 
-   Readers are encouraged to become familiar with [DKIM] and [ADSP]
-   which are core specification documents as well as [DKIM-OVERVIEW] and
-   [DKIM-DEPLOYMENT] which are DKIM's primary tutorial documents.
+   Readers are encouraged to become familiar with [DKIM] and [ADSP],
+   which are core specification documents, as well as [DKIM-OVERVIEW]
+   and [DKIM-DEPLOYMENT], which are DKIM's primary tutorial documents.
 
 2.3.  'DKIM-Friendly'
 
@@ -388,9 +388,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                 [Page 7]
+Kucherawy              Expires September 29, 2011               [Page 7]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 3.  Mailing Lists and DKIM
@@ -420,13 +420,13 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
       author's ADMD and the general Internet.  The originator and/or
       author might also be a signer.
 
-   verifier:  Any agent that conducts DKIM signature analysis.  One
+   verifier:  Any agent that conducts DKIM signature analysis.  One is
       typically running at the MTA that sits between the general
       Internet and the receiver's ADMD.  Note that any agent that
       handles a signed message could conduct verification; this document
       only considers that action and its outcomes either at an MLM or at
       the receiver.  Filtering decisions could be made by this agent
-      based on verificaiton results.
+      based on verification results.
 
    receiver:  The agent that is the final transit relay for the message
       prior to being delivered to the recipient(s) of the message.
@@ -444,9 +444,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                 [Page 8]
+Kucherawy              Expires September 29, 2011               [Page 8]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 3.2.  Types Of Mailing Lists
@@ -482,11 +482,11 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
       bulk marketing mail.
 
    digesting:  A special case of the resending MLM is one that sends a
-      single message comprising an aggregation of recent MLM submissons,
-      which might be a message of [MIME] type "multipart/digest" (see
-      [MIME-TYPES]).  This is obviously a new message but it may contain
-      a sequence of original messages that may themselves have been
-      DKIM-signed.
+      single message comprising an aggregation of recent MLM
+      submissions, which might be a message of [MIME] type "multipart/
+      digest" (see [MIME-TYPES]).  This is obviously a new message but
+      it may contain a sequence of original messages that may themselves
+      have been DKIM-signed.
 
    In the remainder of this document we distinguish two relevant steps,
    corresponding to the following SMTP transactions:
@@ -500,9 +500,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                 [Page 9]
+Kucherawy              Expires September 29, 2011               [Page 9]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
    MLM Output:  MLM (sending its reconstructed copy of the originating
@@ -556,9 +556,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                [Page 10]
+Kucherawy              Expires September 29, 2011              [Page 10]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
    Other header fields:  Some lists will add or replace header fields
@@ -573,14 +573,15 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
       message to remind subscribers of an administrative URL for
       subscription issues, or of list policy, etc.  Changes to the body
       will alter the body hash computed at the DKIM verifier, so these
-      will render any existing signatures unverifiable.
+      will render any existing signatures that cover those portions of
+      the message body unverifiable.
 
    Major body changes:  There are some MLMs that make more substantial
       changes to message bodies when preparing them for re-distribution,
       such as adding, deleting, reordering, or reformatting [MIME]
-      parts, "flatten" HTML messages into plain text, or insert headers
-      or footers within HTML messages.  Most or all of these changes
-      will invalidate a DKIM signature.
+      parts, "flattening" HTML messages into plain text, or insert
+      headers or footers within HTML messages.  Most or all of these
+      changes will invalidate a DKIM signature.
 
    MIME part removal:  Some MLMs that are MIME-aware will remove large
       MIME parts from submissions and replace them with URLs to reduce
@@ -611,10 +612,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-
-Kucherawy                Expires April 18, 2011                [Page 11]
+Kucherawy              Expires September 29, 2011              [Page 11]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 4.  Non-Participating MLMs
@@ -641,12 +641,12 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
    strict policy.
 
    For domains that do publish strict ADSP policies, the originating
-   site can consider using a separate message stream, such as a sub-
-   domain, for the "personal" mail -- a subdomain that is different from
-   domain(s) used for other mail streams.  This allows each to develop
-   an independent reputation, and more stringent policies (including
-   ADSP) can be applied to the mail stream(s) that do not go through
-   mailing lists or perhaps do not get signed at all.
+   site can consider using a separate message stream (see Section 2.4),
+   such as a sub-domain, for the "personal" mail -- a subdomain that is
+   different from domain(s) used for other mail streams.  This allows
+   each to develop an independent reputation, and more stringent
+   policies (including ADSP) can be applied to the mail stream(s) that
+   do not go through mailing lists or perhaps do not get signed at all.
 
    However, all of this presupposes a level of infrastructure
    understanding that is not expected to be common.  Thus, it will be
@@ -668,9 +668,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                [Page 12]
+Kucherawy              Expires September 29, 2011              [Page 12]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 4.2.  Verification Outcomes at Receivers
@@ -724,9 +724,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                [Page 13]
+Kucherawy              Expires September 29, 2011              [Page 13]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 5.  Participating MLMs
@@ -741,8 +741,8 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
    software adopt more DKIM-friendly processing.
 
    Changes that merely add new header fields, such as those specified by
-   [LIST-ID], [LIST-URLS] and [MAIL] are generally the most friendly to
-   a DKIM-participating email infrastructure, in that their addition by
+   [LIST-ID], [LIST-URLS] and [MAIL], are generally the most friendly to
+   a DKIM-participating email infrastructure in that their addition by
    an MLM will not affect any existing DKIM signatures unless those
    fields were already present and covered by a signature's hash or a
    signature was created specifically to disallow their addition (see
@@ -780,9 +780,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                [Page 14]
+Kucherawy              Expires September 29, 2011              [Page 14]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
    lists operated by aliasing MLMs only; any MLM that alters a message
@@ -795,8 +795,8 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
    list.  Further discussion of this appears in Section 5.3.
 
    Where the above practice is not observed and "discardable" mail
-   arrives via a list to a verifier that applies ADSP checks, the
-   message can either be discarded (i.e. accept the message at the
+   arrives via a list to a verifier that applies ADSP checks which fail,
+   the message can either be discarded (i.e. accept the message at the
    [SMTP] level but discard it without delivery) or the message can be
    rejected by returning a 5xx error code.  In the latter case, some
    advice for how to conduct the rejection in a potentially meaningful
@@ -810,8 +810,8 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
    ADSP record for the new subscriber's domain.  If the policy specifies
    "discardable", the MLM might disallow the subscription or present a
    warning that the subscriber's submissions to the mailing list might
-   not be deliverable to some recipients because subscriber's ADMD's
-   published policy.
+   not be deliverable to some recipients because of the subscriber's
+   ADMD's published policy.
 
    Of course, such a policy record could be applied after subscription,
    so this is not a universal solution.  An MLM implementation could do
@@ -836,9 +836,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                [Page 15]
+Kucherawy              Expires September 29, 2011              [Page 15]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
    forwarded around either by MLMs or users, should come from a
@@ -860,9 +860,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
    As described, the MLM might conduct DKIM verification of a signed
    message to attempt to confirm the identity of the author.  Although
    it is a common and intuitive conclusion, not all signed mail will
-   include an author signature (see [ADSP]).  MLM implementors are
-   advised to accomodate such in their configurations.  For example, an
-   MLM might be designed to accomodate a list of possible signing
+   include an author signature (see [ADSP]).  MLM implementers are
+   advised to accommodate such in their configurations.  For example, an
+   MLM might be designed to accommodate a list of possible signing
    domains (the "d=" portion of a DKIM signature) for a given author,
    and determine at verification time if any of those are present.
 
@@ -892,9 +892,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                [Page 16]
+Kucherawy              Expires September 29, 2011              [Page 16]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
    is to preserve that chain of responsibility of the message so that
@@ -916,13 +916,16 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
    2.  Apply local policy to authenticate the identity of the author;
 
-   3.  Add an [AUTH-RESULTS] header field to the message to indicate the
+   3.  Remove all existing [AUTH-RESULTS] fields (optional);
+
+   4.  Add an [AUTH-RESULTS] header field to the message to indicate the
        results of the above;
 
-   4.  Remove all previously-evaluated DKIM signatures;
+   5.  Remove all previously-evaluated DKIM signatures;
 
-   5.  Affix a new signature that covers the Authentication-Results
-       header field just added (see Section 5.7).
+   6.  Affix a new signature that covers the entire message on the
+       output side, including the Authentication-Results header field
+       just added (see Section 5.7).
 
    Removing the original signature(s) seems particularly appropriate
    when the MLM knows it is likely to invalidate any or all of them due
@@ -942,19 +945,25 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
    the final receivers to put any faith in the veracity of that header
    field when added by the MLM.  Thus, the final recipients of the
    message have no way to verify on their own the authenticity of the
+
+
+
+Kucherawy              Expires September 29, 2011              [Page 17]
+
+Internet-Draft           DKIM and Mailing Lists               March 2011
+
+
    author's identity on that message.  However, should that field be the
    only one on the message when the verifier gets it, and the verifier
    explicitly trusts the signer (in this case, the MLM), the verifier is
-
-
-
-Kucherawy                Expires April 18, 2011                [Page 17]
-
-Internet-Draft           DKIM and Mailing Lists             October 2010
-
-
    in a position to believe that a valid author signature was present on
    the message.
+
+   This can be generalized as follows: A receiver is advised to consider
+   only [AUTH-RESULTS] fields bearing an authserv-id that appears in a
+   list of sites the receiver trusts that is also included in the header
+   hash of a [DKIM] signature added by a domain in the same trusted
+   list.
 
    Since an aliasing MLM makes no substantive changes to a message, it
    need not consider the issue of signature removal as the original
@@ -987,27 +996,22 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
    signed and one not, which can confuse DKIM-aware verifiers and
    receivers.
 
-   As is typical with DKIM signing, the MLM signature must be generated
-   immediately prior to sending, only after all other processing the MLM
-   wishes to apply has been completed.  Failing to do so generates a
-   signature that can not be expected to validate.
-
    A signing MLM could add a List-Post: header field (see [LIST-URLS])
    using a DNS domain matching what will be used in the "d=" tag of the
    DKIM signature it will add to the new message.  This could be used by
    verifiers or receivers to identify the DKIM signature that was added
    by the MLM.  This is not required, however; it is believed the
+
+
+
+Kucherawy              Expires September 29, 2011              [Page 18]
+
+Internet-Draft           DKIM and Mailing Lists               March 2011
+
+
    reputation of the signer will be a more critical data point rather
    than this suggested binding.  Furthermore, this is not a binding
    recognized by any current specification document.
-
-
-
-
-Kucherawy                Expires April 18, 2011                [Page 18]
-
-Internet-Draft           DKIM and Mailing Lists             October 2010
-
 
    Such MLMs are advised to ensure the signature's header hash will
    cover:
@@ -1021,7 +1025,10 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
    A DKIM-aware resending MLM is encouraged to sign the entire message
    after being prepared for distribution (i.e. the "MLM Output" from
-   Section 3.2), including any original signatures.
+   Section 3.2).  Any other configuration might generate signatures that
+   cannot be expected to validate.  The signature would deally include
+   any original signatures and any header fields that were covered by
+   those signatures, but not any that were not already signed.
 
    DKIM-aware authoring MLMs are advised to sign the mail they send
    according to the regular signing guidelines given in [DKIM].
@@ -1049,6 +1056,15 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
    discussed in Section 4.3 and Section 5.6, especially where an ADMD
    has misused ADSP.
 
+
+
+
+
+Kucherawy              Expires September 29, 2011              [Page 19]
+
+Internet-Draft           DKIM and Mailing Lists               March 2011
+
+
 5.9.  Use With FBLs
 
    An FBL operator may wish to act on a complaint from a user about a
@@ -1057,14 +1073,6 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
    operators are advised to send a report to each domain with a valid
    signature that has an FBL agreement established, as DKIM signatures
    are claims of some responsibility for that message.  Because authors
-
-
-
-Kucherawy                Expires April 18, 2011                [Page 19]
-
-Internet-Draft           DKIM and Mailing Lists             October 2010
-
-
    generally have limited control over the operation of a list, this
    point makes MLM signing all the more important.
 
@@ -1105,6 +1113,14 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
    enhanced status code and some appropriate wording in the text part of
    the reply, in contrast to a code of 5.1.1 indicating the user does
    not exist.  Those MLMs that automatically attempt to remove users
+
+
+
+Kucherawy              Expires September 29, 2011              [Page 20]
+
+Internet-Draft           DKIM and Mailing Lists               March 2011
+
+
    with prolonged delivery problems (such as account deletion) will thus
    be able to tell the difference between policy rejection and other
    delivery failures, and act accordingly.  SMTP servers doing so are
@@ -1113,14 +1129,6 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
    searching of relevant data in logs.
 
    The preceding paragraph does not apply to an [ADSP] policy of
-
-
-
-Kucherawy                Expires April 18, 2011                [Page 20]
-
-Internet-Draft           DKIM and Mailing Lists             October 2010
-
-
    "discardable".  In such cases where the submission fails that test,
    the receiver or verifier is strongly advised to discard the message
    but return an SMTP success code, i.e. accept the message but drop it
@@ -1164,17 +1172,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-
-
-
-
-
-
-
-
-Kucherawy                Expires April 18, 2011                [Page 21]
+Kucherawy              Expires September 29, 2011              [Page 21]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 6.  DKIM Reporting
@@ -1228,9 +1228,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                [Page 22]
+Kucherawy              Expires September 29, 2011              [Page 22]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 7.  IANA Considerations
@@ -1284,9 +1284,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                [Page 23]
+Kucherawy              Expires September 29, 2011              [Page 23]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 8.  Security Considerations
@@ -1340,9 +1340,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                [Page 24]
+Kucherawy              Expires September 29, 2011              [Page 24]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 9.  References
@@ -1396,9 +1396,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                [Page 25]
+Kucherawy              Expires September 29, 2011              [Page 25]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
               and Namespace for the Identification of Mailing Lists",
@@ -1452,9 +1452,9 @@ Internet-Draft           DKIM and Mailing Lists             October 2010
 
 
 
-Kucherawy                Expires April 18, 2011                [Page 26]
+Kucherawy              Expires September 29, 2011              [Page 26]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 Appendix A.  Acknowledgements
@@ -1508,9 +1508,9 @@ Appendix A.  Acknowledgements
 
 
 
-Kucherawy                Expires April 18, 2011                [Page 27]
+Kucherawy              Expires September 29, 2011              [Page 27]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 Appendix B.  Example Scenarios
@@ -1564,9 +1564,9 @@ B.2.  MLMs and FBLs
 
 
 
-Kucherawy                Expires April 18, 2011                [Page 28]
+Kucherawy              Expires September 29, 2011              [Page 28]
 
-Internet-Draft           DKIM and Mailing Lists             October 2010
+Internet-Draft           DKIM and Mailing Lists               March 2011
 
 
 Author's Address
@@ -1620,5 +1620,5 @@ Author's Address
 
 
 
-Kucherawy                Expires April 18, 2011                [Page 29]
+Kucherawy              Expires September 29, 2011              [Page 29]
 
