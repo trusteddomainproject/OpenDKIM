@@ -4661,7 +4661,9 @@ static DKIM_CBSTAT
 dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 {
 	int c;
+#ifdef _FFR_MAXVERIFY
 	unsigned int ni = 0;
+#endif /* _FFR_MAXVERIFY */
 	u_char *domain;
 	u_char *sdomain;
 	SMFICTX *ctx;
