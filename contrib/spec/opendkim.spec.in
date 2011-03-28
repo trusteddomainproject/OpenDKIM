@@ -8,7 +8,7 @@ Version: @VERSION@
 Release: 1
 License: BSD
 Group: System Environment/Daemons
-Requires: libopendkim
+Requires: libopendkim = %{version}-%{release}
 BuildRequires: sendmail-devel, openssl-devel
 Source: opendkim-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
