@@ -10,6 +10,7 @@ create table if not exists reporters (
 	id int unsigned not null auto_increment,
 	name varchar(255) not null,
 	firstseen timestamp not null default CURRENT_TIMESTAMP,
+        enabled tinyint not null default 1,
 
 	primary key(id),
 	key(name)
@@ -174,4 +175,6 @@ insert ignore into sigerrorcodes (id, name) values
 	(41,	"key type unknown"),
 	(42,	"key revoked"),
 	(43,	"key could not be decoded")
+	(44,	"v= missing")
+	(45,	"v= empty")
 ;

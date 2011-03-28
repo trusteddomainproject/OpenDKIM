@@ -1,0 +1,73 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>OpenDKIM</title>
+<link rel="stylesheet" type="text/css" href="opendkim.css" media="screen" />
+</head>
+<body>
+<div id="header">
+	<a class="logo" href="http://www.opendkim.org">OpenDKIM</a>
+	<div id="frontnav">
+      <ul>
+		<li><a href="http://sourceforge.net/projects/opendkim/files/">Download</a></li>
+		<li><a href="docs.html">Documentation</a></li>
+		<li><a href="http://sourceforge.net/tracker/?group_id=269812/">Bug/Feature Tracking</a></li>
+		<li><a href="http://lists.opendkim.org/">Mailing lists</a></li>
+		<li><a href="community.html">Community</a></li>
+		<li><a href="services.html">Services</a></li>
+		<li><a href="donate.html">Donate</a></li>
+		<li><a href="links.html">Links</a></li>
+		<li><a href="license.html">License</a></li>
+      </ul>
+	</div>
+</div>
+<div id="bodytext">
+<h1>DKIM-Related Services </h1>
+<p>
+This page highlights some add-on services that can be used with OpenDKIM
+after message authentication to evaluate the quality of the message or
+the domain that added the signature(s).
+</p>
+<p>
+The OpenDKIM Project does not specifically endorse use of any of these by
+listing them here; we are simply making users aware of their existence.
+</p>
+
+<table columns="3" border="1">
+ <tr>
+  <td> <b> Service Name </b> </td>
+  <td> <b> Service Provider </b> </td>
+  <td> <b> Service Description </b> </td>
+ </tr>
+
+ <tr>
+  <td> <a href="http://www.trust-cloud.com"><b> TrustCloud </b></a> </td>
+  <td> <a href="http://www.trustsphere.com"><b> TrustSphere </b></a> </td>
+  <td> <p>
+       TrustCloud offers the industry's most comprehensive list of good sending
+       domains.  Uniquely, TrustCloud also has deep coverage of domains across
+       the Asia-Pacific region, a region which to date has remained largely
+       ignored.  TrustCloud can be integrated directly into OpenDKIM by way
+       of a Lua script that queries the TrustCloud domain+ip list allowing a
+       reputation metric to be overlaid on the authentication data offered by
+       OpenDKIM.
+       </p>
+       <p>
+       Internet Service Providers (ISPs), enterprises and governments can use
+       TrustCloud to improve customer satisfaction and reduce total cost of
+       operations of their email infrastructure.  It removes the hassle of
+       having to investigate false positive support calls and helps them
+       provide a higher quality of service to their users by improving
+       effectiveness of email filtering.  It does so by virtually eliminating
+       false positives.
+       </p> </td>
+ </tr>
+</table>
+
+</div>
+<div id="footer">
+	&copy; 2010 The OpenDKIM Project -- $Id: stats.html,v 1.6 2010/10/08 03:09:40 cm-msk Exp $
+ </div>
+</body>
+</html>

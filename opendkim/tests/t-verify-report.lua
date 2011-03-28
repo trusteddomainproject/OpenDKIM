@@ -1,6 +1,6 @@
 -- $Id: t-verify-report.lua,v 1.4 2010/09/24 21:40:31 cm-msk Exp $
 
--- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 
 -- reporting key verify test
 -- 
@@ -34,8 +34,17 @@ if mt.getreply(conn) ~= SMFIR_CONTINUE then
 	error("mt.conninfo() unexpected reply")
 end
 
+-- send HELO unles it was negotiated out
+if not mt.test_option(conn, SMFIP_NOHELO) then
+	if mt.helo(conn, "localhost") ~= nil then
+		error("mt.helo() failed")
+	end
+	if mt.getreply(conn) ~= SMFIR_CONTINUE then
+		error("mt.helo() unexpected reply")
+	end
+end
+	
 -- send envelope macros and sender data
--- mt.helo() is called implicitly
 mt.macro(conn, SMFIC_MAIL, "i", "t-verify-report")
 if mt.mailfrom(conn, "user@example.com") ~= nil then
 	error("mt.mailfrom() failed")
@@ -69,6 +78,12 @@ if mt.header(conn, "Subject", "Signing test") ~= nil then
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
 	error("mt.header(Subject) unexpected reply")
+end
+if mt.header(conn, "Message-ID", "<184510.abcdefg@example.com>") ~= nil then
+	error("mt.header(Message-ID) failed")
+end
+if mt.getreply(conn) ~= SMFIR_CONTINUE then
+	error("mt.header(Message-ID) unexpected reply")
 end
 
 -- send EOH

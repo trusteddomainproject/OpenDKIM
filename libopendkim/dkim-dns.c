@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: dkim-dns.c,v 1.6.4.1 2010/10/27 21:43:08 cm-msk Exp $
 */
@@ -186,7 +186,6 @@ int
 dkim_res_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
                    int *error, int *dnssec)
 {
-	int ret;
 	struct dkim_res_qh *rq;
 
 	assert(qh != NULL);

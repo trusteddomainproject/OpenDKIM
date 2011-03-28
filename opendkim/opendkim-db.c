@@ -684,14 +684,15 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 	}
 
 	/* mark the ones that got no data */
-	if (ridx < reqnum - 1)
+	if (ridx < reqnum)
 	{
 		int c;
 
-		for (c = ridx + 1; c < reqnum; c++)
+		for (c = ridx; c < reqnum; c++)
 		{
-			ret = -1;
-			req[c].dbdata_buflen = 0;
+			if ((req[c].dbdata_flags & DKIMF_DB_DATA_OPTIONAL) == 0)
+				ret = -1;
+			req[c].dbdata_buflen = (size_t) -1;
 		}
 	}
 
@@ -3838,7 +3839,6 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		int fields;
 		odbx_result_t *result;
 		struct dkimf_db_dsn *dsn;
-		char query[BUFRSZ];
 
 		dsn = (struct dkimf_db_dsn *) db->db_data;
 		result = (odbx_result_t *) db->db_cursor;

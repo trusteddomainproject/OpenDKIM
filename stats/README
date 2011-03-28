@@ -173,6 +173,9 @@ fields, as follows:
 	"s=" present in key (0 = absent, 1 = "*", 2 = "email", 3 = other)
 	key size, in bits
 
+Fields for which no value is known or appropriate should be represented as
+"-" in the file.
+
 
 EXTENSIONS
 

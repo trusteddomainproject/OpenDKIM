@@ -2,7 +2,7 @@
 **  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-arf.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $
 */
@@ -39,23 +39,14 @@ arf_type_string(int type)
 	  case ARF_TYPE_ABUSE:
 		return "abuse";
 
-	  case ARF_TYPE_DKIM:
-		return "dkim";
-
 	  case ARF_TYPE_FRAUD:
 		return "fraud";
 
-	  case ARF_TYPE_MISCATEGORIZED:
-		return "miscategorized";
-
-	  case ARF_TYPE_NOTSPAM:
-		return "not-spam";
-
-	  case ARF_TYPE_OPTOUT:
-		return "opt-out";
-
 	  case ARF_TYPE_VIRUS:
 		return "virus";
+
+	  case ARF_TYPE_AUTHFAIL:
+		return "auth-failure";
 
 	  case ARF_TYPE_UNKNOWN:
 	  case ARF_TYPE_OTHER:

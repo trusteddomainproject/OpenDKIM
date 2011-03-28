@@ -69,15 +69,15 @@ feature changes the absence of SHA256 support from an error to a warning.
 Add an "Authentication-Results:" header field even to unsigned messages
 from domains with no "signs all" policy.  The reported DKIM result
 will be "none" in such cases.  Normally unsigned mail from non-strict
-domains does not cause the results header to be added.
+domains does not cause the results header field to be added.
 
 .TP
 .I AlwaysSignHeaders (dataset)
 Specifies a set of header fields that should be included in all signature
 header lists (the "h=" tag) even if they were not present at the time
 the signature was generated.  The set is empty by default.  The purpose of
-listing an absent header is to prevent its addition between the signer
-and the verifier, since the verifier would include that header if it were
+listing an absent header field is to prevent its addition between the signer
+and the verifier, since the verifier would include that header field if it were
 added when performing verification, which would mean the signed message
 and the verified message were different and the verification would fail.
 
@@ -109,16 +109,16 @@ place.  This is done for all messages.  The default is "true".
 .TP
 .I AuthservID (string)
 Sets the "authserv-id" to use when generating the Authentication-Results:
-header after verifying a message.  The default is to use the name of the MTA
-processing the message.  If the string "HOSTNAME" is provided, the name of
-the host running the filter (as returned by the
+header field after verifying a message.  The default is to use the name of
+the MTA processing the message.  If the string "HOSTNAME" is provided, the
+name of the host running the filter (as returned by the
 .I gethostname(3)
 function) will be used.
 
 .TP
 .I AuthservIDWithJobID (Boolean)
 If "true", requests that the authserv-id portion of the added
-Authentication-Results: headers contain the job ID of the message being
+Authentication-Results: header fields contain the job ID of the message being
 evaluated.
 
 .TP
@@ -219,7 +219,7 @@ exhaustion.
 .TP
 .I Canonicalization (string)
 Selects the canonicalization method(s) to be used when signing messages.
-When verifying, the message's DKIM-Signature: header specifies
+When verifying, the message's DKIM-Signature: header field specifies
 the canonicalization method.  The recognized values are
 .I relaxed
 and
@@ -228,7 +228,7 @@ as defined by the DKIM specification.  The default is
 .I simple.
 The value may include two different canonicalizations separated by a
 slash ("/") character, in which case the first will be applied to the
-headers and the second to the body.
+header and the second to the body.
 
 .TP
 .I ClockDrift (integer)
@@ -239,7 +239,7 @@ is 300.
 .TP
 .I Diagnostics (Boolean)
 Requests the inclusion of "z=" tags in signatures, which encode the
-original header set for use by verifiers when diagnosing verification
+original header field set for use by verifiers when diagnosing verification
 failures.  Not recommended for normal operation.
 
 .TP
@@ -331,7 +331,7 @@ will do that conversion anyway.  The default is to leave them as-is.
 
 .TP
 .I IdentityHeader (string)
-This specifies the header where an identity is stored.
+This specifies the header field where an identity is stored.
 @IDENTITY_HEADER_MANNOTICE@
 
 .TP
@@ -534,7 +534,11 @@ should be conducted.  The default is three.  Signatures are selected from
 the top of the message downward.  If
 .I TrustSignaturesFrom
 is set, signatures from domains in that data set are always verified, which
-may consume part or all of, or even exceed, this limit.
+may consume part or all of, or even exceed, this limit.  Note that this could
+cause an author domain signature to be ignored, causing the ADSP evaluation
+to fail and, if
+.I SendADSPReports
+is enabled, a questionable report could be generated.
 @MAXVERIFY_MANNOTICE@
 
 .TP
@@ -619,10 +623,10 @@ for more information.
 
 .TP
 .I MustBeSigned (dataset)
-Specifies a set of headers that, if present, must be covered by the
-DKIM signature when verifying a message.  If a header in this set is present
-in the message and is not signed, the filter will treat even an otherwise
-valid signature as invalid.  The default is an empty list.
+Specifies a set of header fields that, if present, must be covered by the
+DKIM signature when verifying a message.  If a header field in this set is
+present in the message and is not signed, the filter will treat even
+an otherwise valid signature as invalid.  The default is an empty list.
 
 .TP
 .I NoHeaderB (Boolean)
@@ -633,12 +637,13 @@ those tags will be applied.
 .TP
 .I OmitHeaders (dataset)
 Specifies a set of header fields that should be omitted when generating
-signatures.  If an entry in the list names any header that is mandated
-by the DKIM specification, the entry is ignored.  A set of headers is listed
-in the DKIM specification (RFC4871, Section 5.5) as "SHOULD NOT" be signed;
-the default list for this parameter contains those headers (Return-Path,
-Received, Comments, Keywords, Bcc, Resent-Bcc and DKIM-Signature).  To omit no
-headers, simply use the string "." (or any string that will match no headers).
+signatures.  If an entry in the list names any header field that is mandated
+by the DKIM specification, the entry is ignored.  A set of header fields is
+listed in the DKIM specification (RFC4871, Section 5.5) as "SHOULD NOT" be
+signed; the default list for this parameter contains those fields
+(Return-Path, Received, Comments, Keywords, Bcc, Resent-Bcc and
+DKIM-Signature).  To omit no headers, simply use the string "." (or any
+string that will match no header field names).
 Specifying a list with this parameter replaces the default entirely, unless
 one entry is "*" in which case the list is interpreted as a delta to the
 default; for example, "*,+foobar" will use the entire default list plus
@@ -722,8 +727,8 @@ The default is
 Specifies a set of header fields that should be included in all signature
 header lists (the "h=" tag) even if they were present at the time
 the signature was generated.  The set is empty by default.  The purpose of
-listing an absent header is to prevent its addition between the signer
-and the verifier, since the verifier would include that header if it were
+listing an absent header field is to prevent its addition between the signer
+and the verifier, since the verifier would include that header field if it were
 added when performing verification, which would mean the signed message
 and the verified message were different and the verification would fail.
 Unlike
@@ -785,7 +790,7 @@ below.  By default, only those containing a DKIM result are removed.
 .I RemoveARFrom (dataset)
 Defines a set of hostnames whose Authentication-Results: header fields should
 be removed before the message is passed for delivery.  By default only
-those headers matching the local host's canonical name will be removed.
+those header fields matching the local host's canonical name will be removed.
 Matching is only done on full hostnames (e.g. "host.example.com") or on
 domain names (e.g. ".example.com").
 
@@ -794,9 +799,17 @@ domain names (e.g. ".example.com").
 Removes all existing signatures when operating in signing mode.
 
 .TP
+.I ReplaceHeaders (data set)
+Defines a set of header fields that should be affected by the text
+replacement rules defined by the
+.I ReplaceRules
+setting.  By default, all header fields are included.
+@REPLACE_RULES_MANNOTICE@
+
+.TP
 .I ReplaceRules (string)
 Specifies a file containing a list of text replacement rules that are
-applied to the message headers to replace certain content expected to be
+applied to the message header fields to replace certain content expected to be
 changed as the message passes through local MTAs.  This can be used to
 accomodate expected changes such as are made to From: fields by MTA
 "masquerade" features.  Each entry in the file consists of a POSIX regular
@@ -911,7 +924,7 @@ Currently only effective with the OpenDKIM asynchronous resolver library.
 Gives the name of a Lua script that should be run after all of the header
 fields have been processed for a message; in particular, this is useful
 after all DKIM signatures have been detected and initial evaluation has
-been done.  The script has access to all of the headers and connection
+been done.  The script has access to all of the header fields and connection
 information and can that certain signatures be ignored based on that
 information.  See
 .I opendkim-lua(3)
@@ -981,7 +994,7 @@ reproduce the problem.
 .TP
 .I SetupPolicyScript (string)
 Gives the name of a Lua script that should be run once all header fields
-for a message have arrived.  The script has access to all of the headers
+for a message have arrived.  The script has access to all of the header fields
 and connection information and can request DKIM verification or signing
 based on that information.  See
 .I opendkim-lua(3)
@@ -1003,9 +1016,9 @@ If not set, no expiration time is added to signatures.
 
 .TP
 .I SignHeaders (dataset)
-Specifies the set of headers that should be included when generating
-signatures.  If the list omits any header that is mandated by the DKIM
-specification, those headers are implicitly added.  By default, those headers
+Specifies the set of header fields that should be included when generating
+signatures.  If the list omits any header field that is mandated by the DKIM
+specification, those fields are implicitly added.  By default, those fields
 listed in the DKIM specification as "SHOULD" be signed (RFC4871, Section 5.5)
 will be signed by the filter.  See the
 .I OmitHeaders
@@ -1229,7 +1242,7 @@ prior to sending them.
 .TP
 .I VBR-TrustedCertifiers (string)
 A colon or comma sparated list of trusted certifiers to accept when 
-verifying VBR-Info headers.
+verifying VBR-Info header field.
 @VBR_MANNOTICE@
 
 .TP
@@ -1251,7 +1264,7 @@ Causes
 .I opendkim
 to add a header indicating the presence of this filter in the path of
 the message from injection to delivery.  The product's name, version, and
-the job ID are included in the header's contents.
+the job ID are included in the header field's contents.
 
 .SH NOTES
 When using DNS timeouts (see the

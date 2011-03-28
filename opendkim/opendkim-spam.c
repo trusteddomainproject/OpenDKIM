@@ -15,6 +15,9 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <assert.h>
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif /* HAVE_STDBOOL_H */
 
 /* opendbx includes */
 #include <odbx.h>
@@ -27,7 +30,7 @@
 
 /* definitions, macros, etc. */
 #define	BUFRSZ		1024
-#define	CMDLINEOPTS	"b:c:d:h:p:s:u:vV"
+#define	CMDLINEOPTS	"b:c:d:fh:p:s:u:vV"
 #define	DEFDBBACKEND	"mysql"
 #define	DEFCONFFILE	CONFIG_BASE "/opendkim-spam.conf"
 #define	DEFDBHOST	"localhost"
@@ -52,6 +55,7 @@ char *progname;
 /* config definition */
 struct configdef spam_config[] =
 {
+	{ "Background",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DatabaseBackend",		CONFIG_TYPE_STRING,	FALSE },
 	{ "DatabaseHost",		CONFIG_TYPE_STRING,	FALSE },
 	{ "DatabaseName",		CONFIG_TYPE_STRING,	FALSE },
@@ -78,6 +82,7 @@ usage(void)
 	        "\t-b backend  \tdatabase backend (default: %s)\n"
 	        "\t-c file     \tconfiguration file (default: %s)\n"
 	        "\t-d dbname   \tdatabase name (default: %s)\n"
+	        "\t-f          \trun in the foreground\n"
 	        "\t-h dbhost   \tdatabase hostname (default: %s)\n"
 	        "\t-p dbpass   \tdatabase password (default: %s)\n"
 	        "\t-P dbport   \tdatabase port (default: %s)\n"
@@ -111,6 +116,7 @@ usage(void)
 int
 main(int argc, char **argv)
 {
+	_Bool dofork = TRUE;
 	int c;
 	int verbose = 0;
 	int dberr;
@@ -152,6 +158,10 @@ main(int argc, char **argv)
 			dbname = optarg;
 			break;
 
+		  case 'f':
+			dofork = FALSE;
+			break;
+
 		  case 'h':
 			dbhost = optarg;
 			break;
@@ -188,6 +198,7 @@ main(int argc, char **argv)
 	/* load from config file, if specified */
 	if (conffile != NULL)
 	{
+		_Bool tmpf;
 		unsigned int line;
 		char path[MAXPATHLEN + 1];
 
@@ -225,6 +236,12 @@ main(int argc, char **argv)
                                   &dbspamcol, sizeof dbspamcol);
                 (void) config_get(conf, "DatabaseUser",
                                   &dbuser, sizeof dbuser);
+
+		if (config_get(conf, "Background", &tmpf, sizeof tmpf) == 1)
+		{
+			if (dofork && !tmpf)
+				tmpf = FALSE;
+		}
 	}
 
 	if (dbbackend == NULL)
@@ -365,6 +382,31 @@ main(int argc, char **argv)
 	{
 		fprintf(stdout, "%s: requesting reporter id for '%s'\n",
 		        progname, reporter);
+	}
+
+	if (dofork)
+	{
+		pid_t pid;
+
+		pid = fork();
+		switch (pid)
+		{
+		  case -1:
+			fprintf(stderr, "%s: fork(): %s\n",
+			        progname, strerror(errno));
+
+			(void) odbx_unbind(db);
+			(void) odbx_finish(db);
+			return EX_OSERR;
+
+		  case 0:
+			(void) setsid();
+			/* XXX -- should probably dup2() /dev/null here */
+			break;
+
+		  default:
+			return 0;
+		}
 	}
 
 	/* retrieve reporter ID */
@@ -577,7 +619,7 @@ main(int argc, char **argv)
 	{
 		fprintf(stderr,
 		        "%s: could not determine message id for '%s'\n",
-		        progname, reporter);
+		        progname, job);
 
 		(void) odbx_unbind(db);
 		(void) odbx_finish(db);

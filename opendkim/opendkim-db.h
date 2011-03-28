@@ -2,7 +2,7 @@
 **  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 **      All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-db.h,v 1.15 2010/09/16 04:47:39 cm-msk Exp $
 */
@@ -68,6 +68,7 @@ struct dkimf_db_data
 typedef struct dkimf_db_data * DKIMF_DBDATA;
 
 #define	DKIMF_DB_DATA_BINARY	0x01		/* data is binary */
+#define	DKIMF_DB_DATA_OPTIONAL	0x02		/* data is optional */
 
 /* prototypes */
 extern int dkimf_db_close __P((DKIMF_DB));

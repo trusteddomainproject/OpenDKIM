@@ -358,7 +358,6 @@ vbr_timeouts(struct timeval *timeout, struct timeval *ctimeout,
 	{
 		struct timeval to1;
 		struct timeval to2;
-		struct timeval now;
 
 		/* compute start through overall timeout */
 		memcpy(&to1, wstart, sizeof to1);
@@ -527,7 +526,6 @@ int
 vbr_res_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
                   int *error, int *dnssec)
 {
-	int ret;
 	struct vbr_query *vq;
 
 	assert(qh != NULL);

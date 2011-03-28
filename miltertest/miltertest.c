@@ -2613,7 +2613,7 @@ mt_header(lua_State *l)
 
 	s = strlen(name) + 1 + strlen(value) + 1;
 #ifdef SMFIP_HDR_LEADSPC
-	if (!CHECK_MPOPTS(ctx, SMFIP_HDR_LEADSPC))
+	if (CHECK_MPOPTS(ctx, SMFIP_HDR_LEADSPC))
 		s++;
 #endif /* SMFIP_HDR_LEADSPC */
 
@@ -2621,7 +2621,7 @@ mt_header(lua_State *l)
 	memcpy(buf, name, strlen(name) + 1);
 	bp += strlen(name) + 1;
 #ifdef SMFIP_HDR_LEADSPC
-	if (!CHECK_MPOPTS(ctx, SMFIP_HDR_LEADSPC))
+	if (CHECK_MPOPTS(ctx, SMFIP_HDR_LEADSPC))
 		*bp++ = ' ';
 #endif /* SMFIP_HDR_LEADSPC */
 	memcpy(bp, value, strlen(value) + 1);
@@ -2809,7 +2809,7 @@ mt_bodystring(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
+		        "%s: %lu byte(s) of body sent on fd %d, reply '%c'\n",
 		        progname, strlen(str), ctx->ctx_fd, rcmd);
 	}
 
@@ -2900,7 +2900,7 @@ mt_bodyrandom(lua_State *l)
 		if (verbose > 0)
 		{
 			fprintf(stdout,
-			        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
+			        "%s: %lu byte(s) of body sent on fd %d, reply '%c'\n",
 			        progname, strlen(buf), ctx->ctx_fd, rcmd);
 		}
 
@@ -3001,7 +3001,7 @@ mt_bodyfile(lua_State *l)
 			if (verbose > 0)
 			{
 				fprintf(stdout,
-				        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
+				        "%s: %lu byte(s) of body sent on fd %d, reply '%c'\n",
 				        progname, rlen, ctx->ctx_fd, rcmd);
 			}
 		}
@@ -3954,7 +3954,7 @@ main(int argc, char **argv)
 		if (rlen != s.st_size)
 		{
 			fprintf(stderr,
-			        "%s: %s: read() returned %zu (expecting %ld)\n",
+			        "%s: %s: read() returned %lu (expecting %ld)\n",
 			        progname, script, rlen, s.st_size);
 			free((void *) io.lua_io_script);
 			close(fd);

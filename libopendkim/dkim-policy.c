@@ -168,7 +168,6 @@ dkim_get_policy_file(DKIM *dkim, unsigned char *query, unsigned char *buf,
 int
 dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 {
-	int c;
 	size_t anslen_a;
 	size_t anslen_aaaa;
 	size_t anslen_mx;
@@ -178,9 +177,6 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 	void *q_a;
 	void *q_aaaa;
 	void *q_mx;
-	int error_a;
-	int error_aaaa;
-	int error_mx;
 	struct timeval timeout;
 	unsigned char ansbuf_a[MAXPACKET];
 	unsigned char ansbuf_aaaa[MAXPACKET];
@@ -264,19 +260,26 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 	else
 	{
 		int which = 0;
+		struct timeval master;
+		struct timeval next;
+		struct timeval *wt;
+
+		(void) gettimeofday(&master, NULL);
+		master.tv_sec += dkim->dkim_timeout;
  
 		while (which <= 2)
 		{
-			timeout.tv_sec = lib->dkiml_callback_int;
-			timeout.tv_usec = 0;
+			(void) gettimeofday(&next, NULL);
+			next.tv_sec += lib->dkiml_callback_int;
+
+			dkim_min_timeval(&master, &next, &timeout, &wt);
 
 			switch (which)
 			{
 			  case 0:
 				status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
 				                                  q_a,
-			                                          dkim->dkim_timeout == 0 ? NULL
-			                                                                  : &timeout,
+			                                          &timeout,
 				                                  &anslen_a,
 				                                  NULL, NULL);
 
@@ -285,8 +288,7 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 			  case 1:
 				status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
 				                                  q_aaaa,
-			                                          dkim->dkim_timeout == 0 ? NULL
-			                                                                  : &timeout,
+			                                          &timeout,
 				                                  &anslen_aaaa,
 				                                  NULL, NULL);
 
@@ -295,15 +297,20 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 			  case 2:
 				status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
 				                                  q_mx,
-			                                          dkim->dkim_timeout == 0 ? NULL
-			                                                                  : &timeout,
+			                                          &timeout,
 				                                  &anslen_mx,
 				                                  NULL, NULL);
 
 				break;
 			}
 
-			if (status != DKIM_DNS_NOREPLY)
+			if (wt == &next &&
+			    (status == DKIM_DNS_NOREPLY ||
+			     status == DKIM_DNS_EXPIRED))
+			{
+				lib->dkiml_dns_callback(dkim->dkim_user_context);
+			}
+			else
 			{
 				if (which == 2)
 				{
@@ -312,11 +319,13 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 				else
 				{
 					which++;
+
+					(void) gettimeofday(&master, NULL);
+					master.tv_sec += dkim->dkim_timeout;
+ 
 					continue;
 				}
 			}
-
-			lib->dkiml_dns_callback(dkim->dkim_user_context);
 		}
 	}
 
@@ -368,6 +377,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	int qdcount;
 	int ancount;
 	int status;
+	int rdlength;
 	int n;
 	int c;
 	int type = -1;
@@ -377,7 +387,6 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 #endif /* QUERY_CACHE */
 	size_t anslen;
 	void *q;
-	int arerror;
 	DKIM_LIB *lib;
 	unsigned char *p;
 	unsigned char *cp;
@@ -449,10 +458,20 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		}
 		else
 		{
+			struct timeval master;
+			struct timeval next;
+			struct timeval *wt;
+
+			(void) gettimeofday(&master, NULL);
+			master.tv_sec += dkim->dkim_timeout;
+
 			for (;;)
 			{
-				timeout.tv_sec = lib->dkiml_callback_int;
-				timeout.tv_usec = 0;
+				(void) gettimeofday(&next, NULL);
+				next.tv_sec += lib->dkiml_callback_int;
+
+				dkim_min_timeval(&master, &next,
+				                 &timeout, &wt);
 
 				status = lib->dkiml_dns_waitreply(lib->dkiml_dns_service,
 				                                  q,
@@ -461,10 +480,19 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 				                                  NULL,
 				                                  &dkim->dkim_dnssec_policy);
 
-				if (status != DKIM_DNS_NOREPLY)
-					break;
+				if (wt == &next)
+				{
+					if (status == DKIM_DNS_NOREPLY ||
+					    status == DKIM_DNS_EXPIRED)
+						lib->dkiml_dns_callback(dkim->dkim_user_context);
+					else
+						break;
 
-				lib->dkiml_dns_callback(dkim->dkim_user_context);
+				}
+				else
+				{
+					break;
+				}
 			}
 		}
 
@@ -559,36 +587,29 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		cp += n;
 
 		/* extract the type and class */
-		if (cp + INT16SZ + INT16SZ > eom)
+		if (cp + INT16SZ + INT16SZ + INT32SZ + INT16SZ > eom)
 		{
 			dkim_error(dkim, "'%s' reply corrupt", query);
 			return -1;
 		}
-		GETSHORT(type, cp);
-		GETSHORT(class, cp);
+		GETSHORT(type, cp);			/* TYPE */
+		GETSHORT(class, cp);			/* CLASS */
+#ifdef QUERY_CACHE
+		GETLONG(ttl, cp);			/* TTL */
+#else /* QUERY_CACHE */
+		cp += INT32SZ;
+#endif /* QUERY_CACHE */
+		GETSHORT(n, cp);			/* RDLENGTH */
 
 		/* handle a CNAME (skip it; assume it was resolved) */
 		if (type == T_CNAME)
 		{
-			char chost[DKIM_MAXHOSTNAMELEN + 1];
-
-			n = dn_expand((u_char *) &ansbuf, eom, cp,
-			              chost, DKIM_MAXHOSTNAMELEN);
 			cp += n;
 			continue;
 		}
 		else if (type == T_RRSIG)
 		{
-			/* get payload length */
-			if (cp + INT16SZ > eom)
-			{
-				dkim_error(dkim, "'%s' reply corrupt", query);
-				return -1;
-			}
-			GETSHORT(n, cp);
-
 			cp += n;
-
 			continue;
 		}
 		else if (type != T_TXT)
@@ -609,12 +630,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 
 		/* remember it */
 		txtfound = cp;
-
-		/* skip the TTL */
-		cp += INT32SZ;
-
-		/* get the payload length */
-		GETSHORT(n, cp);
+		rdlength = n;
 
 		/* ...and move past that */
 		cp += n;
@@ -628,23 +644,8 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 
 	cp = txtfound;
 
-#ifdef QUERY_CACHE
-	GETLONG(ttl, cp);
-#else /* QUERY_CACHE */
-	/* skip the TTL */
-	cp += INT32SZ;
-#endif /* QUERY_CACHE */
-
-	/* get payload length */
-	if (cp + INT16SZ > eom)
-	{
-		dkim_error(dkim, "'%s' reply corrupt", query);
-		return -1;
-	}
-	GETSHORT(n, cp);
-
 	/* XXX -- maybe deal with a partial reply rather than require it all */
-	if (cp + n > eom || n > BUFRSZ)
+	if (cp + rdlength > eom || rdlength > BUFRSZ)
 	{
 		dkim_error(dkim, "'%s' reply corrupt", query);
 		return -1;
@@ -654,15 +655,15 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	memset(outbuf, '\0', sizeof outbuf);
 	p = outbuf;
 	eom = outbuf + sizeof outbuf - 1;
-	while (n > 0 && p < eom)
+	while (rdlength > 0 && p < eom)
 	{
 		c = *cp++;
-		n--;
+		rdlength--;
 		while (c > 0 && p < eom)
 		{
 			*p++ = *cp++;
 			c--;
-			n--;
+			rdlength--;
 		}
 	}
 

@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -789,4 +789,61 @@ dkim_check_dns_reply(unsigned char *ansbuf, size_t anslen,
 		return 2;
 
 	return (trunc ? 1 : 0);
+}
+
+/*
+**  DKIM_MIN_TIMEVAL -- determine the timeout to apply before reaching
+**                      one of two timevals
+**
+**  Parameters:
+**  	t1 -- first timeout (absolute)
+**  	t2 -- second timeout (absolute) (may be NULL)
+**  	t -- final timeout (relative)
+**  	which -- which of t1 and t2 hit first
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkim_min_timeval(struct timeval *t1, struct timeval *t2, struct timeval *t,
+                 struct timeval **which)
+{
+	struct timeval *next;
+	struct timeval now;
+
+	assert(t1 != NULL);
+	assert(t != NULL);
+
+	if (t2 == NULL ||
+	    t2->tv_sec > t1->tv_sec ||
+	    (t2->tv_sec == t1->tv_sec && t2->tv_usec > t1->tv_usec))
+		next = t1;
+	else
+		next = t2;
+
+	(void) gettimeofday(&now, NULL);
+
+	if (next->tv_sec < now.tv_sec ||
+	    (next->tv_sec == now.tv_sec && next->tv_usec < now.tv_usec))
+	{
+		t->tv_sec = 0;
+		t->tv_usec = 0;
+	}
+	else
+	{
+		t->tv_sec = next->tv_sec - now.tv_sec;
+		if (next->tv_usec < now.tv_usec)
+		{
+			t->tv_sec--;
+			t->tv_usec = next->tv_usec - now.tv_usec + 1000000;
+		}
+		else
+		{
+			t->tv_usec = next->tv_usec - now.tv_usec;
+		}
+	}
+
+	if (which != NULL)
+		*which = next;
 }

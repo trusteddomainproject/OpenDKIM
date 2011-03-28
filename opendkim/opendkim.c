@@ -309,7 +309,9 @@ struct dkimf_config
 	char *		conf_finalscript;	/* Lua script: final */
 #endif /* USE_LUA */
 #ifdef _FFR_REPLACE_RULES
+	char *		conf_rephdrs;		/* replacement headers */
 	struct replace * conf_replist;		/* replacement list */
+	DKIMF_DB	conf_rephdrsdb;		/* replacement headers (DB) */
 #endif /* _FFR_REPLACE_RULES */
 	dkim_sigkey_t	conf_seckey;		/* secret key data */
 #ifdef USE_UNBOUND
@@ -428,6 +430,8 @@ struct msgctx
 #ifdef _FFR_STATSEXT
 	struct statsext * mctx_statsext;	/* extension stats list */
 #endif /* _FFR_STATSEXT */
+	unsigned char	mctx_envfrom[MAXADDRESS + 1];
+						/* envelope sender */
 	unsigned char	mctx_domain[DKIM_MAXHOSTNAMELEN + 1];
 						/* primary domain */
 	unsigned char	mctx_dkimar[DKIM_MAXHEADER + 1];
@@ -1886,6 +1890,7 @@ dkimf_xs_internalip(lua_State *l)
 int
 dkimf_xs_dbopen(lua_State *l)
 {
+	unsigned int flags = DKIMF_DB_FLAG_READONLY;
 	int status;
 	DKIMF_DB db;
 	char *name;
@@ -1894,13 +1899,14 @@ dkimf_xs_dbopen(lua_State *l)
 
 	assert(l != NULL);
 
-	if (lua_gettop(l) != 1)
+	if (lua_gettop(l) != 1 && lua_gettop(l) != 2)
 	{
 		lua_pushstring(l,
 		               "odkim.db_open(): incorrect argument count");
 		lua_error(l);
 	}
-	else if (!lua_isstring(l, 1))
+	else if (!lua_isstring(l, 1) ||
+	         (lua_gettop(l) == 2 && !lua_isboolean(l, 2)))
 	{
 		lua_pushstring(l,
 		               "odkim.db_open(): incorrect argument type");
@@ -1908,9 +1914,11 @@ dkimf_xs_dbopen(lua_State *l)
 	}
 
 	name = (char *)lua_tostring(l, 1);
-	lua_pop(l, 1);
+	if (lua_gettop(l) == 2 && lua_toboolean(l, 2))
+		flags |= DKIMF_DB_FLAG_ICASE;
+	lua_pop(l, lua_gettop(l));
 
-	status = dkimf_db_open(&db, name, DKIMF_DB_FLAG_READONLY, NULL, &err);
+	status = dkimf_db_open(&db, name, flags, NULL, &err);
 
 	if (status != 0)
 	{
@@ -4325,13 +4333,13 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 
 		dbd[0].dbdata_buffer = domain;
 		dbd[0].dbdata_buflen = sizeof domain - 1;
-		dbd[0].dbdata_flags = 0;
+		dbd[0].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 		dbd[1].dbdata_buffer = selector;
 		dbd[1].dbdata_buflen = sizeof selector - 1;
-		dbd[1].dbdata_flags = 0;
+		dbd[1].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 		dbd[2].dbdata_buffer = keydata;
 		dbd[2].dbdata_buflen = sizeof keydata - 1;
-		dbd[2].dbdata_flags = 0;
+		dbd[2].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 
 		if (dkimf_db_get(keytable, keyname, strlen(keyname),
 		                 dbd, 3, &found) != 0)
@@ -4341,8 +4349,11 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 			return 1;
 
 		if (dbd[0].dbdata_buflen == 0 ||
+		    dbd[0].dbdata_buflen == (size_t) -1 ||
 		    dbd[1].dbdata_buflen == 0 ||
-		    dbd[2].dbdata_buflen == 0)
+		    dbd[1].dbdata_buflen == (size_t) -1 ||
+		    dbd[2].dbdata_buflen == 0 ||
+		    dbd[2].dbdata_buflen == (size_t) -1)
 		{
 			if (dolog)
 			{
@@ -4650,7 +4661,9 @@ static DKIM_CBSTAT
 dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 {
 	int c;
+#ifdef _FFR_MAXVERIFY
 	unsigned int ni = 0;
+#endif /* _FFR_MAXVERIFY */
 	u_char *domain;
 	u_char *sdomain;
 	SMFICTX *ctx;
@@ -4794,7 +4807,7 @@ dkimf_arftype(msgctx dfc)
 	if (dfc->mctx_susp)
 		return ARF_TYPE_FRAUD;
 	else
-		return ARF_TYPE_DKIM;
+		return ARF_TYPE_AUTHFAIL;
 }
 
 /*
@@ -5351,6 +5364,8 @@ dkimf_config_free(struct dkimf_config *conf)
 #ifdef _FFR_REPLACE_RULES
 	if (conf->conf_replist != NULL)
 		dkimf_free_replist(conf->conf_replist);
+	if (conf->conf_rephdrsdb != NULL)
+		dkimf_db_close(conf->conf_rephdrsdb);
 #endif /* _FFR_REPLACE_RULES */
 
 #ifdef _FFR_VBR
@@ -5533,8 +5548,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_authservidwithjobid,
 		                  sizeof conf->conf_authservidwithjobid);
 
-		(void) config_get(data, "BaseDirectory", basedir,
-		                  sizeof basedir);
+		str = NULL;
+		(void) config_get(data, "BaseDirectory", &str, sizeof str);
+		if (str != NULL)
+			strlcpy(basedir, str, sizeof basedir);
 
 		(void) config_get(data, "BodyLengths", &conf->conf_blen,
 		                  sizeof conf->conf_blen);
@@ -6305,7 +6322,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_peerdb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6324,7 +6343,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_anondb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6350,7 +6371,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_internal, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6364,7 +6387,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_internal, DEFINTERNAL,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6389,7 +6414,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_exignore, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6414,7 +6441,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_exemptdb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6432,7 +6461,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_signhdrsdb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6450,7 +6481,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_remardb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6472,7 +6505,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_nodiscardto, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6491,7 +6526,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_dontsigntodb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6509,7 +6546,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_mbsdb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6533,7 +6572,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_omithdrdb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6576,7 +6617,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_alwayshdrsdb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6595,7 +6638,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_oversigndb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6614,7 +6659,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_senderhdrsdb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6655,7 +6702,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		int status;
 
 		status = dkimf_db_open(&conf->conf_vbr_trusteddb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6692,8 +6741,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			status = dkimf_db_open(&conf->conf_signtabledb,
 			                       conf->conf_signtable,
-			                       DKIMF_DB_FLAG_READONLY, NULL,
-			                       &dberr);
+			                       (DKIMF_DB_FLAG_ICASE |
+			                        DKIMF_DB_FLAG_READONLY),
+			                       NULL, &dberr);
 			if (status != 0)
 			{
 				snprintf(err, errlen,
@@ -6756,7 +6806,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_localadsp_db, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6777,7 +6829,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_thirdpartydb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6802,7 +6856,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_resigndb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -6827,7 +6883,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_domainsdb, str,
-		                       (DKIMF_DB_FLAG_READONLY|
+		                       (DKIMF_DB_FLAG_READONLY |
 		                        DKIMF_DB_FLAG_ICASE),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -7037,6 +7093,28 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 #ifdef _FFR_REPLACE_RULES
 	/* replacement list */
+	str = NULL;
+	if (data != NULL)
+	{
+		(void) config_get(data, "ReplaceHeaders", &str, sizeof str);
+	}
+	if (str != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_rephdrsdb, str,
+		                       (DKIMF_DB_FLAG_READONLY |
+		                        DKIMF_DB_FLAG_ICASE), NULL,
+		                       &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, dberr);
+			return -1;
+		}
+	}
+
 	str = NULL;
 	if (data != NULL)
 		(void) config_get(data, "ReplaceRules", &str, sizeof str);
@@ -7282,13 +7360,14 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 **
 **  Parameters:
 **  	conf -- DKIM filter configuration data
+**  	err -- error string (returned; may be NULL)
 **
 **  Return value:
 **  	TRUE on success, FALSE otherwise.
 */
 
 static _Bool
-dkimf_config_setlib(struct dkimf_config *conf)
+dkimf_config_setlib(struct dkimf_config *conf, char **err)
 {
 	DKIM_STAT status;
 	u_int opts;
@@ -7300,7 +7379,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	{
 		lib = dkim_init(NULL, NULL);
 		if (lib == NULL)
+		{
+			if (err != NULL)
+				*err = "failed to initialize DKIM library";
 			return FALSE;
+		}
 
 		conf->conf_libopendkim = lib;
 	}
@@ -7326,18 +7409,41 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	{
 		if (conf->conf_trustanchorpath != NULL)
 		{
+			if (access(conf->conf_trustanchorpath, R_OK) != 0)
+			{
+				if (err != NULL)
+					*err = "can't access unbound trust anchor";
+				return FALSE;
+			}
+
 			status = dkimf_unbound_add_trustanchor(unbound,
 			                                       conf->conf_trustanchorpath);
 			if (status != DKIM_STAT_OK)
+			{
+				if (err != NULL)
+					*err = "failed to add unbound trust anchor";
 				return FALSE;
+			}
 		}
 
 		if (conf->conf_unboundconfig != NULL)
 		{
+			if (access(conf->conf_unboundconfig, R_OK) != 0)
+			{
+				if (err != NULL)
+					*err = "can't access unbound configuration file";
+				return FALSE;
+			}
+
 			status = dkimf_unbound_add_conffile(unbound,
 			                                    conf->conf_unboundconfig);
 			if (status != DKIM_STAT_OK)
+			{
+				if (err != NULL)
+					*err = "failed to add unbound configuration file";
+			
 				return FALSE;
+			}
 		}
 
 		(void) dkimf_unbound_setup(lib, unbound);
@@ -7357,7 +7463,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      sizeof drift);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM clock drift limit";
 			return FALSE;
+		}
 	}
 
 	if (conf->conf_sigttl != 0)
@@ -7369,7 +7479,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      sizeof sigtime);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM signature TTL";
 			return FALSE;
+		}
 	}
 
 	if (conf->conf_sendreports || conf->conf_keeptmpfiles ||
@@ -7382,7 +7496,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      DKIM_OPTS_FLAGS, &opts, sizeof opts);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to retrieve DKIM library options";
 			return FALSE;
+		}
 
 		if (conf->conf_sendreports || conf->conf_keeptmpfiles)
 			opts |= DKIM_LIBFLAGS_TMPFILES;
@@ -7403,7 +7521,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      DKIM_OPTS_FLAGS, &opts, sizeof opts);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 
 	if (conf->conf_alwayshdrsdb != NULL)
@@ -7411,7 +7533,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		status = dkimf_db_mkarray(conf->conf_alwayshdrsdb,
 		                          &conf->conf_alwayshdrs, NULL);
 		if (status == -1)
+		{
+			if (err != NULL)
+				*err = "failed to generate DB array";
 			return FALSE;
+		}
 
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_ALWAYSHDRS,
@@ -7419,7 +7545,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      sizeof conf->conf_alwayshdrs);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 
 #ifdef _FFR_OVERSIGN
@@ -7428,7 +7558,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		status = dkimf_db_mkarray(conf->conf_oversigndb,
 		                          &conf->conf_oversignhdrs, NULL);
 		if (status == -1)
+		{
+			if (err != NULL)
+				*err = "failed to generate DB array";
 			return FALSE;
+		}
 
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_OVERSIGNHDRS,
@@ -7436,7 +7570,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      sizeof conf->conf_oversignhdrs);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 #endif /* _FFR_OVERSIGN */
 
@@ -7445,14 +7583,22 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		status = dkimf_db_mkarray(conf->conf_mbsdb, &conf->conf_mbs,
 		                          NULL);
 		if (status == -1)
+		{
+			if (err != NULL)
+				*err = "failed to generate DB array";
 			return FALSE;
+		}
 
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_MUSTBESIGNED,
 		                      conf->conf_mbs, sizeof conf->conf_mbs);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 
 	if (conf->conf_omithdrdb != NULL)
@@ -7461,7 +7607,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                          &conf->conf_omithdrs,
 		                          (const char **) dkim_should_not_signhdrs);
 		if (status == -1)
+		{
+			if (err != NULL)
+				*err = "failed to generate DB array";
 			return FALSE;
+		}
 
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SKIPHDRS,
@@ -7469,7 +7619,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      sizeof conf->conf_omithdrs);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 	else
 	{
@@ -7479,7 +7633,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      sizeof (u_char **));
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 
 	if (conf->conf_signhdrsdb != NULL)
@@ -7488,14 +7646,22 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                          &conf->conf_signhdrs,
 		                          (const char **) dkim_should_signhdrs);
 		if (status == -1)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 
 		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SIGNHDRS, conf->conf_signhdrs,
 		                      sizeof conf->conf_signhdrs);
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 	else
 	{
@@ -7505,7 +7671,11 @@ dkimf_config_setlib(struct dkimf_config *conf)
 		                      sizeof (u_char **));
 
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM library options";
 			return FALSE;
+		}
 	}
 
 	status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
@@ -7514,25 +7684,41 @@ dkimf_config_setlib(struct dkimf_config *conf)
 	                      sizeof conf->conf_tmpdir);
 
 	if (status != DKIM_STAT_OK)
+	{
+		if (err != NULL)
+			*err = "failed to set DKIM library options";
 		return FALSE;
+	}
 
 #ifdef _FFR_MAXVERIFY
 	status = dkim_set_prescreen(conf->conf_libopendkim, dkimf_prescreen);
 	if (status != DKIM_STAT_OK)
+	{
+		if (err != NULL)
+			*err = "failed to set DKIM prescreen function";
 		return FALSE;
+	}
 #else /* _FFR_MAXVERIFY */
 	if (conf->conf_thirdpartydb != NULL)
 	{
 		status = dkim_set_prescreen(conf->conf_libopendkim,
 		                            dkimf_prescreen);
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM prescreen function";
 			return FALSE;
+		}
 	}
 	else
 	{
 		status = dkim_set_prescreen(conf->conf_libopendkim, NULL);
 		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set DKIM prescreen function";
 			return FALSE;
+		}
 	}
 #endif /* _FFR_MAXVERIFY */
 
@@ -7638,6 +7824,8 @@ dkimf_config_reload(void)
 
 		if (!err)
 		{
+			char *errstr = NULL;
+
 			if (curconf->conf_refcnt == 0)
 				dkimf_config_free(curconf);
 
@@ -7652,12 +7840,13 @@ dkimf_config_reload(void)
 				       conffile);
 			}
 
-			if (!dkimf_config_setlib(curconf))
+			if (!dkimf_config_setlib(curconf, &errstr))
 			{
 				if (curconf->conf_dolog)
 				{
 					syslog(LOG_WARNING,
-					       "can't configure DKIM library; continuing");
+					       "can't configure DKIM library: %s; continuing",
+					       errstr);
 				}
 			}
 		}
@@ -8172,10 +8361,14 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		                           NULL);
 		if (conf->conf_dolog)
 		{
-			syslog(retcode == SMFIS_ACCEPT ? LOG_DEBUG
-			                               : LOG_NOTICE,
-			       "%s: no signature data",
-			       JOBID(dfc->mctx_jobid));
+			if (conf->conf_logwhy ||
+			    retcode != SMFIS_ACCEPT)
+			{
+				syslog(retcode == SMFIS_ACCEPT ? LOG_DEBUG
+				                               : LOG_NOTICE,
+				       "%s: no signature data",
+				       JOBID(dfc->mctx_jobid));
+			}
 		}
 		replytxt = "no DKIM signature data";
 		break;
@@ -8455,6 +8648,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(&dbd, '\0', sizeof dbd);
 		dbd[0].dbdata_buffer = keyname;
 		dbd[1].dbdata_buffer = (char *) signer;
+		dbd[1].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 
 		/* walk RE set, find match(es), make request(s) */
 		for (;;)
@@ -8505,6 +8699,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		req[0].dbdata_buflen = sizeof keyname - 1;
 		req[1].dbdata_buffer = (char *) signer;
 		req[1].dbdata_buflen = sizeof signer - 1;
+		req[1].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 
 		/* first try full "user@host" */
 		snprintf(tmpaddr, sizeof tmpaddr, "%s@%s", user, domain);
@@ -8512,7 +8707,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		found = FALSE;
 		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 		                      req, 2, &found);
-		if (status != 0 || (found && req[0].dbdata_buflen == 0))
+		if (status != 0 ||
+		    (found && (req[0].dbdata_buflen == 0 ||
+		               req[0].dbdata_buflen == (size_t) -1)))
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, tmpaddr);
@@ -8548,7 +8745,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(signer, '\0', sizeof signer);
 		status = dkimf_db_get(signdb, domain, strlen((char *) domain),
 		                      req, 2, &found);
-		if (status != 0 || (found && req[0].dbdata_buflen == 0))
+		if (status != 0 ||
+		    (found && (req[0].dbdata_buflen == 0 ||
+		               req[0].dbdata_buflen == (size_t) -1)))
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, (char *) domain);
@@ -8592,7 +8791,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 			                      req, 2, &found);
 			if (status != 0 ||
-			    (found && req[0].dbdata_buflen == 0))
+			    (found && (req[0].dbdata_buflen == 0 ||
+			               req[0].dbdata_buflen == (size_t) -1)))
 			{
 				if (status != 0 && dolog)
 					dkimf_db_error(signdb, tmpaddr);
@@ -8634,7 +8834,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			status = dkimf_db_get(signdb, p, strlen(p),
 			                      req, 2, &found);
 			if (status != 0 ||
-			    (found && req[0].dbdata_buflen == 0))
+			    (found && (req[0].dbdata_buflen == 0 ||
+			               req[0].dbdata_buflen == (size_t) -1)))
 			{
 				if (status != 0 && dolog)
 					dkimf_db_error(signdb, p);
@@ -8679,7 +8880,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(signer, '\0', sizeof signer);
 		status = dkimf_db_get(signdb, tmpaddr, strlen(tmpaddr),
 		                      req, 2, &found);
-		if (status != 0 || (found && req[0].dbdata_buflen == 0))
+		if (status != 0 ||
+		    (found && (req[0].dbdata_buflen == 0 ||
+		               req[0].dbdata_buflen == (size_t) -1)))
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, tmpaddr);
@@ -8714,7 +8917,9 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		memset(keyname, '\0', sizeof keyname);
 		memset(signer, '\0', sizeof signer);
 		status = dkimf_db_get(signdb, "*", 1, req, 2, &found);
-		if (status != 0 || (found && req[0].dbdata_buflen == 0))
+		if (status != 0 ||
+		    (found && (req[0].dbdata_buflen == 0 ||
+		               req[0].dbdata_buflen == (size_t) -1)))
 		{
 			if (status != 0 && dolog)
 				dkimf_db_error(signdb, "*");
@@ -8771,6 +8976,7 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	int arftype = ARF_TYPE_UNKNOWN;
 	int arfdkim = ARF_DKIMF_UNKNOWN;
 	u_int interval;
+	time_t now;
 	DKIM_STAT dkstatus;
 	char *p;
 	char *last;
@@ -8778,6 +8984,8 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	msgctx dfc;
 	DKIM_SIGINFO *sig;
 	struct Header *hdr;
+	struct tm tm;
+	char ipstr[DKIM_MAXHOSTNAMELEN + 1];
 	char fmt[BUFRSZ];
 	char opts[BUFRSZ];
 	u_char addr[MAXADDRESS + 1];
@@ -8911,7 +9119,7 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 
 	/* determine the type of ARF failure and, if needed, a DKIM fail code */
 	arftype = dkimf_arftype(dfc);
-	if (arftype == ARF_TYPE_DKIM)
+	if (arftype == ARF_TYPE_AUTHFAIL)
 		arfdkim = dkimf_arfdkim(dfc);
 
 	/* From: */
@@ -8950,19 +9158,63 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "\n");
 
 	/* second part: formatted gunk */
+	memset(ipstr, '\0', sizeof ipstr);
+
+	switch (cc->cctx_ip.ss_family)
+	{
+	  case AF_INET:
+	  {
+		struct sockaddr_in sin4;
+
+		memcpy(&sin4, &cc->cctx_ip, sizeof sin4);
+
+		(void) inet_ntop(AF_INET, &sin4.sin_addr, ipstr, sizeof ipstr);
+
+		break;
+	  }
+
+#ifdef AF_INET6
+	  case AF_INET6:
+	  {
+		struct sockaddr_in6 sin6;
+
+		memcpy(&sin6, &cc->cctx_ip, sizeof sin6);
+
+		(void) inet_ntop(AF_INET6, &sin6.sin6_addr, ipstr, sizeof ipstr);
+
+		break;
+	  }
+#endif /* AF_INET6 */
+	}
+
+	hdr = dkimf_findheader(dfc, (char *) "Message-ID", 0);
+
+	memset(fmt, '\0', sizeof fmt);
+	(void) time(&now);
+	(void) localtime_r(&now, &tm);
+	(void) strftime(fmt, sizeof fmt, "%a, %e %b %Y %H:%M:%S %z", &tm);
+
 	fprintf(out, "--dkimreport/%s/%s\n", hostname, dfc->mctx_jobid);
 	fprintf(out, "Content-Type: message/feedback-report\n");
 	fprintf(out, "\n");
 	fprintf(out, "User-Agent: %s/%s\n", DKIMF_PRODUCTNS, VERSION);
 	fprintf(out, "Version: %s\n", ARF_VERSION);
 	fprintf(out, "Original-Envelope-Id: %s\n", dfc->mctx_jobid);
+	fprintf(out, "Original-Mail-From: %s\n", dfc->mctx_envfrom);
 	fprintf(out, "Reporting-MTA: %s\n", hostname);
+	fprintf(out, "Source-IP: %s\n", ipstr);
+	fprintf(out, "Message-ID:%s%s\n",
+	        cc->cctx_noleadspc ? "" : " ",
+	        hdr == NULL ? "(none)" : hdr->hdr_val);
+	fprintf(out, "Arrival-Date: %s\n", fmt);
+	fprintf(out, "Reported-Domain: %s\n", dkim_sig_getdomain(sig));
+	fprintf(out, "Delivery-Result: other\n");
 #ifdef _FFR_REPORT_INTERVALS
 	if (icount > 1)
 		fprintf(out, "Incidents: %d\n", icount);
 #endif /* _FFR_REPORT_INTERVALS */
 	fprintf(out, "Feedback-Type: %s\n", arf_type_string(arftype));
-	if (arftype == ARF_TYPE_DKIM)
+	if (arftype == ARF_TYPE_AUTHFAIL)
 	{
 		memset(addr, '\0', sizeof addr);
 		dkim_sig_getidentity(dfc->mctx_dkimv, sig, addr,
@@ -9161,7 +9413,7 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 
 	/* determine the type of ARF failure and, if needed, a DKIM fail code */
 	arftype = dkimf_arftype(dfc);
-	if (arftype == ARF_TYPE_DKIM)
+	if (arftype == ARF_TYPE_AUTHFAIL)
 		arfdkim = dkimf_arfdkim(dfc);
 
 	/* we presume the MTA will add Date: ... */
@@ -9173,7 +9425,7 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "To: %s@%s\n", addr, dfc->mctx_domain);
 
 	/* Subject: */
-	fprintf(out, "Subject: DKIM failure report for %s\n",
+	fprintf(out, "Subject: ADSP failure report for %s\n",
 	        dfc->mctx_jobid);
 
 	/* MIME stuff */
@@ -9602,6 +9854,12 @@ mlfi_envfrom(SMFICTX *ctx, char **envfrom)
 		return SMFIS_TEMPFAIL;
 	}
 
+	if (envfrom[0] != NULL)
+	{
+		strlcpy(dfc->mctx_envfrom, envfrom[0],
+		        sizeof dfc->mctx_envfrom);
+	}
+
 	/*
 	**  Save it in this thread's private space.
 	*/
@@ -9760,6 +10018,9 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 sfsistat
 mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 {
+#ifdef _FFR_REPLACE_RULES
+	_Bool dorepl = FALSE;
+#endif /* _FFR_REPLACE_RULES */
 	msgctx dfc;
 	connctx cc;
 	Header newhdr;
@@ -9862,7 +10123,30 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 	}
 
 #ifdef _FFR_REPLACE_RULES
-	if (conf->conf_replist != NULL)	/* XXX -- signing mode only? */
+	if (conf->conf_rephdrsdb == NULL)
+	{
+		dorepl = TRUE;
+	}
+	else
+	{
+		_Bool found;
+
+		found = FALSE;
+
+		if (dkimf_db_get(conf->conf_rephdrsdb,
+		                 (char *) headerf, 0, NULL, 0,
+		                 &found) != 0)
+		{
+			if (conf->conf_dolog)
+				syslog(LOG_ERR, "dkimf_db_get() failed");
+
+			return SMFIS_TEMPFAIL;
+		}
+
+		dorepl = found;
+	}
+
+	if (conf->conf_replist != NULL && dorepl)
 	{
 		int status;
 		regmatch_t match;
@@ -13210,7 +13494,6 @@ mlfi_eom(SMFICTX *ctx)
 			DKIM_SIGINFO **sigs;
 			Header vbr_header;
 			char tmp[DKIM_MAXHEADER + 1];
-			char tmp2[DKIM_MAXHEADER + 1];
 
 			for (c = 0; ; c++)
 			{
@@ -13432,14 +13715,17 @@ mlfi_eom(SMFICTX *ctx)
 				if (status == DKIM_STAT_CANTVRFY ||
 				    status == DKIM_STAT_INTERNAL)
 				{
-					char *err;
+					const char *err;
 					char tmp[BUFRSZ + 1];
 
 					memset(tmp, '\0', sizeof tmp);
 
 					err = dkim_geterror(dfc->mctx_dkimv);
 					if (err != NULL)
-						snprintf(tmp, ": %s", err);
+					{
+						snprintf(tmp, sizeof tmp,
+						         ": %s", err);
+					}
 
 					syslog(LOG_INFO,
 					       "%s: error during reputation query%s",
@@ -13458,6 +13744,14 @@ mlfi_eom(SMFICTX *ctx)
 						       dfc->mctx_jobid);
 					}
 
+					if (conf->conf_dolog)
+					{
+						syslog(LOG_INFO,
+						       "%s: DKIM reputation: %d (max %d); rejecting",
+						       dfc->mctx_jobid, rep,
+						       conf->conf_repreject);
+					}
+
 					dkimf_cleanup(ctx);
 					return SMFIS_REJECT;
 				}
@@ -13473,15 +13767,22 @@ mlfi_eom(SMFICTX *ctx)
 						result = "neutral";
 
 					snprintf(header, sizeof header,
-					        "%s%s%s%s; x-dkim-rep=%s (%d) header.d=%s",
+					         "%s%s%s%s; x-dkim-rep=%s (%d) header.d=%s",
 					         cc->cctx_noleadspc ? " " : "",
 					         authservid,
 					         conf->conf_authservidwithjobid ? "/"
 					                                        : "",
-					         conf->conf_authservidwithjobid ? dfc->mctx_jobid
+					         conf->conf_authservidwithjobid ? (char *) dfc->mctx_jobid
 					                                        : "",
 					         result, rep,
 					         dkim_sig_getdomain(sig));
+
+					if (conf->conf_dolog_success)
+					{
+						syslog(LOG_INFO,
+						       "%s: DKIM reputation: %d",
+						       dfc->mctx_jobid, rep);
+					}
 
 					if (dkimf_insheader(ctx, 1,
 					                    AUTHRESULTSHDR,
@@ -14264,11 +14565,11 @@ main(int argc, char **argv)
 			break;
 
 		  case 'V':
-			if (!dkimf_config_setlib(curconf))
+			if (!dkimf_config_setlib(curconf, &p))
 			{
 				fprintf(stderr,
-				        "%s: can't configure DKIM library\n",
-				        progname);
+				        "%s: can't configure DKIM library: %s\n",
+				        progname, p);
 
 				return EX_SOFTWARE;
 			}
@@ -14547,6 +14848,8 @@ main(int argc, char **argv)
 				{
 					if (dbdp[c].dbdata_buflen == 0)
 						fprintf(stdout, "<empty>\n");
+					else if (dbdp[c].dbdata_buflen == (size_t) -1)
+						fprintf(stdout, "<absent>\n");
 					else
 						fprintf(stdout, "'%s'\n", result[c]);
 				}
@@ -15346,12 +15649,13 @@ main(int argc, char **argv)
 	}
 
 	/* initialize DKIM library */
-	if (!dkimf_config_setlib(curconf))
+	if (!dkimf_config_setlib(curconf, &p))
 	{
 		if (curconf->conf_dolog)
 		{
 			syslog(LOG_WARNING,
-			       "can't configure DKIM library; continuing");
+			       "can't configure DKIM library: %s; continuing",
+			       p);
 		}
 	}
 
@@ -15446,7 +15750,9 @@ main(int argc, char **argv)
 			}
 		}
 
-		status = dkimf_db_open(&bldb, bldbfile, DKIMF_DB_FLAG_READONLY,
+		status = dkimf_db_open(&bldb, bldbfile,
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
 		                       &bldb_lock, &err);
 		if (status != 0)
 		{
@@ -15486,7 +15792,9 @@ main(int argc, char **argv)
 			}
 		}
 
-		status = dkimf_db_open(&ridb, ridbfile, DKIMF_DB_FLAG_READONLY,
+		status = dkimf_db_open(&ridb, ridbfile,
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
 		                       &ridb_lock, &err);
 		if (status != 0)
 		{

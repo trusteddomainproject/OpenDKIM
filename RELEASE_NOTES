@@ -5,6 +5,40 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.3.1		2011/03/28
+	Feature request #SF3196060: Log retrieved reputation values.
+		Patch from Andreas Schulze.
+	Feature request #SF3199824: Don't log "no signature data" unless
+		LogWhy is enabled or the action for unsigned mail is something
+		other than "accept".
+	Fix bug #SF3196069: Log more detail when dkimf_config_setlib() fails.
+		Problem noted by Andreas Schulze.
+	Fix bug #SF3197890: Update ARF report format for DKIM verification
+		failures to use what's in draft-ietf-dkim-marf-reporting.
+	Fix bug #SF3204725: Add "ReplaceHeaders" data set to constrain what
+		header fields are affected by "ReplaceRules".  Problem
+		noted by Chris Callegari.
+	Fix bug #SF3211114: Extract "BaseDirectory" from configuration
+		file properly.
+	Fix bug #SF3234178: Correct handling of a KeyTable entry for which the
+		key data is empty.  Based on a patch from Yoshiaki Yanagihara.
+	Patch #SF3205699: Make all header field name and domain name data
+		sets case insensitive.  Submitted by Richard Rognlie.
+	Add a case-insensitivity flag to odkim.db_open().
+	Minor correction to DNS function return codes for unbound, which
+		doesn't have an expired/no-reply distinction like libar does.
+	LIBOPENDKIM: Fix up timeout handling with a DNS callback is in use.
+	LIBOPENDKIM: Update for draft-kucherawy-dkim-atps-03.
+	STATS: Fix bug #SF3195449: Omit data from reporters that are not
+		currently marked "enabled" in the reporters table.
+	STATS: Evaluate "i=" against the "d=" domain, not the "From" domain.
+		Problem noted by Mark Martinec.
+	STATS: A few more reports.
+	MILTERTEST: Don't use non-standard printf() conversions.
+	MILTERTEST: Get the SMFIP_HDR_LEADSPC logic right.
+	TOOLS: Feature request #SF3200848: Add a backgrounding option
+		(on by default) to opendkim-spam.
+
 2.3.0		2011/02/21
 	Feature request #SF2964396: Allow SignHeaders, OmitHeaders and
 		SenderHeaders to be specified as deltas to the default lists.
@@ -96,6 +130,8 @@ release, and a summary of the changes in that release.
 		log the received values.
 	LIBVBR: Feature request #SF3105477: Copy the generic DNS work from
 		libopendkim.
+	LIBVBR: Feature request #SF3127200: Add proper documentation (i.e.,
+		a man page).
 	STATS: Feature request #SF3085536: Activate _FFR_STATS_I, providing
 		statistics reporting about use of "i=" in signatures.
 	STATS: Feature request #SF3125701: Add "s=" key value tracking.
@@ -105,6 +141,8 @@ release, and a summary of the changes in that release.
 		what was negotiated.
 	TOOLS: Feature request #SF3106876: Amend opendkim-testkey to return
 		the DNSSEC results as well.
+	TOOLS: Feature request #SF3074290: Add a zone file generation tool
+		for ATPS.
 	TOOLS: Fix bug #SF3143922: Command line parameters to opendkim-testkey
 		now override their configuration file counterparts.
 	TOOLS: Experimental new "opendkim-spam" tool to let users update a

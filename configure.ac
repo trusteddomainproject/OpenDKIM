@@ -15,7 +15,7 @@ AC_PREREQ(2.61)
 #
 m4_define([VERSION_RELEASE], 2)
 m4_define([VERSION_MAJOR_REV], 3)
-m4_define([VERSION_MINOR_REV], 0)
+m4_define([VERSION_MINOR_REV], 1)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -24,7 +24,7 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "revision" with internal source code changes
 #
 m4_define([LIBVERSION_CURRENT], 3)
-m4_define([LIBVERSION_REVISION], 1)
+m4_define([LIBVERSION_REVISION], 2)
 m4_define([LIBVERSION_AGE], 0)
 
 #
@@ -1706,7 +1706,7 @@ AC_DEFINE_UNQUOTED([LIBOPENDKIM_FEATURE_STRING], "$LIBOPENDKIM_FEATURE_STRING",
 AC_ARG_ENABLE([live-testing],
               AS_HELP_STRING([--disable-live-testing],
                              [disable tests that require Internet access]),
-              [live_tests="$withval"], [live_tests="yes"])
+              [live_tests="$enable_live_testing"], [live_tests="yes"])
 AM_CONDITIONAL(LIVE_TESTS, test x"$live_tests" = x"yes")
 
 #

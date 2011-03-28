@@ -2,7 +2,7 @@
 **  Copyright (c) 2005, 2007, 2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef _UTIL_H_
@@ -32,6 +32,8 @@ extern void dkim_collapse __P((u_char *));
 extern _Bool dkim_hdrlist __P((u_char *, size_t, u_char **, _Bool));
 extern int dkim_hexchar __P((int c));
 extern void dkim_lowerhdr __P((u_char *));
+extern void dkim_min_timeval __P((struct timeval *, struct timeval *,
+                                  struct timeval *, struct timeval **));
 extern int dkim_qp_decode __P((u_char *, u_char *, int));
 
 #ifdef NEED_FAST_STRTOUL

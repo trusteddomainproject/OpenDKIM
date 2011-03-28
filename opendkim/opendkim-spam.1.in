@@ -41,6 +41,10 @@ The default configuration file location is
 .I @SYSCONFDIR@/opendkim-spam.conf.
 See the CONFIGURATION FILE section for a list of known values.
 .TP
+.I -f
+Run in the foreground rather than executing as a background process.
+Intended mainly for debugging.
+.TP
 .I -d name
 Indicates the name of the database to be accessed.  The default is
 "opendkim".
@@ -83,6 +87,9 @@ Parameters match command line options (specified above), but when present
 the command line options override the configuration file options.  The
 list of configuration file parameters and their command line equivalents
 are as follows; see above for descriptions:
+.TP
+.I Background
+-f (opposite meaning)
 .TP
 .I DatabaseBackend
 -b

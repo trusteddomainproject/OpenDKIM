@@ -41,7 +41,7 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test103 t-test104 t-test105 t-test106 t-test107 t-test108 \
 	t-test109 t-test110 t-test111 t-test112 t-test114 \
 	t-test115 t-test116 t-test117 t-test119 t-test120 \
-	t-test121 t-test122 t-test123 t-test124 t-test125 t-test126 \
+	t-test121 t-test122 t-test123 t-test125 t-test126 \
 	t-test127 t-test128 t-test129 t-test130 t-test131 t-test132 \
 	t-test133 t-test134 t-test135 t-test136 t-test137 t-test138 \
 	t-test139 \
@@ -50,6 +50,9 @@ check_SCRIPTS = t-signperf-sha1 t-signperf-relaxed-relaxed \
 	t-signperf-simple-simple
 if ALL_SYMBOLS
 check_PROGRAMS += t-test49 t-test113 t-test118
+endif
+if LIVE_TESTS
+check_PROGRAMS += t-test124
 endif
 check_PROGRAMS += t-cleanup
 TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
@@ -188,7 +191,9 @@ t_test120_SOURCES = t-test120.c t-testdata.h
 t_test121_SOURCES = t-test121.c t-testdata.h
 t_test122_SOURCES = t-test122.c t-testdata.h
 t_test123_SOURCES = t-test123.c t-testdata.h
+if LIVE_TESTS
 t_test124_SOURCES = t-test124.c t-testdata.h
+endif
 t_test125_SOURCES = t-test125.c t-testdata.h
 t_test126_SOURCES = t-test126.c t-testdata.h
 t_test127_SOURCES = t-test127.c t-testdata.h

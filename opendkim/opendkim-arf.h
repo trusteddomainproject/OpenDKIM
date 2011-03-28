@@ -2,7 +2,7 @@
 **  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-arf.h,v 1.3 2009/08/03 19:10:47 cm-msk Exp $
 */
@@ -31,13 +31,10 @@ static char dkim_arf_h_id[] = "@(#)$Id: opendkim-arf.h,v 1.3 2009/08/03 19:10:47
 
 #define	ARF_TYPE_UNKNOWN	(-1)
 #define	ARF_TYPE_ABUSE		0
-#define ARF_TYPE_DKIM		1
-#define	ARF_TYPE_FRAUD		2
-#define	ARF_TYPE_MISCATEGORIZED	3
-#define	ARF_TYPE_NOTSPAM	4
-#define	ARF_TYPE_OPTOUT		5
-#define	ARF_TYPE_VIRUS		6
-#define	ARF_TYPE_OTHER		7
+#define	ARF_TYPE_FRAUD		1
+#define	ARF_TYPE_VIRUS		2
+#define	ARF_TYPE_AUTHFAIL	3
+#define	ARF_TYPE_OTHER		4
 
 #define ARF_DKIMF_UNKNOWN	(-1)
 #define ARF_DKIMF_BODYHASH	0

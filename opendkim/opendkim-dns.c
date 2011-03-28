@@ -2,7 +2,7 @@
 **  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -89,11 +89,6 @@ struct dkimf_unbound_cb_data
 static void
 dkimf_unbound_cb(void *mydata, int err, struct ub_result *result)
 {
-	int n = 0;
-	int c;
-	unsigned char *cp;
-	unsigned char *p;
-	unsigned char *eob;
 	struct dkimf_unbound_cb_data *ubdata;
 
 	ubdata = (struct dkimf_unbound_cb_data *) mydata;
@@ -427,7 +422,7 @@ dkimf_ub_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 	}
 
 	if (status == 0)
-		return DKIM_DNS_NOREPLY;
+		return DKIM_DNS_EXPIRED;
 	else if (status == 1)
 		return DKIM_DNS_SUCCESS;
 	else
@@ -704,7 +699,7 @@ dkimf_ar_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 	q = (AR_QUERY) qh;
 
 	status = ar_waitreply(ar, q, &r, to);
-	if (status == 0)
+	if (status == AR_STAT_SUCCESS)
 	{
 		if (dnssec != NULL)
 			*dnssec = DKIM_DNSSEC_UNKNOWN;
@@ -720,7 +715,7 @@ dkimf_ar_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 	if (status == AR_STAT_SUCCESS)
 		return DKIM_DNS_SUCCESS;
 	else if (status == AR_STAT_NOREPLY)
-		return DKIM_DNS_NOREPLY;
+		return DKIM_DNS_EXPIRED;
 	else
 		return DKIM_DNS_ERROR;
 }
