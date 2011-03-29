@@ -75,6 +75,10 @@ struct configdef dkimf_config[] =
 #endif /* USE_LUA */
 	{ "FixCRLF",			CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_IDENTITY_HEADER
+#ifdef _FFR_RATE_LIMIT
+	{ "FlowData",			CONFIG_TYPE_STRING,	FALSE },
+	{ "FlowDataTTL",		CONFIG_TYPE_INTEGER,	FALSE },
+#endif /* _FFR_RATE_LIMIT */
 	{ "IdentityHeader",		CONFIG_TYPE_STRING,     FALSE },
 	{ "IdentityHeaderRemove",	CONFIG_TYPE_BOOLEAN,    FALSE },
 #endif /* _FFR_IDENTITY_HEADER */
@@ -138,6 +142,9 @@ struct configdef dkimf_config[] =
 #ifdef QUERY_CACHE
 	{ "QueryCache",			CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* QUERY_CACHE */
+#ifdef _FFR_RATE_LIMIT
+	{ "RateLimits",			CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_RATE_LIMIT */
 #ifdef _FFR_REDIRECT
 	{ "RedirectFailuresTo",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_REDIRECT */

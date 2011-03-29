@@ -162,6 +162,10 @@ static char *optlist[] =
 	"_FFR_POSTGRESQL_RECONNECT_HACK",
 #endif /* _FFR_POSTGRESQL_RECONNECT_HACK */
 
+#if _FFR_RATE_LIMIT
+	"_FFR_RATE_LIMIT",
+#endif /* _FFR_RATE_LIMIT */
+
 #if _FFR_RBL
 	"_FFR_RBL",
 #endif /* _FFR_RBL */
