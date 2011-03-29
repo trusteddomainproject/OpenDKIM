@@ -40,34 +40,6 @@ struct flowdata
 pthread_mutex_t ratelock;
 
 /*
-**  DKIMF_RATE_INIT -- initialize the rate module
-**
-**  Parameters:
-**  	None.
-**
-**  Return value:
-**  	0 on success, -1 on failure (and check errno)
-*/
-
-int
-dkimf_rate_init(void)
-{
-	int ret;
-
-	ret = pthread_mutex_init(&ratelock, NULL);
-
-	if (ret != 0)
-	{
-		errno = ret;
-		return -1;
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-/*
 **  DKIMF_RATE_CHECK -- conduct a rate limit check, expire data, increment
 **
 **  Parameters:
