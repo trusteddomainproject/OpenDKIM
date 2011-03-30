@@ -137,7 +137,6 @@ struct dkimf_db
 	u_int			db_type;
 	int			db_status;
 	int			db_nrecs;
-	size_t			db_size;
 	pthread_mutex_t *	db_lock;
 	void *			db_handle;	/* handler handle */
 	void *			db_data;	/* dkimf_db handle */
