@@ -468,18 +468,22 @@ using
 as a text string indicating the reason for the request.  Returns 1 on
 success or the Lua constant "nil" on failure.
 .TP
-.B odkim.rbl_check(query, qroot[, timeout])
+.B odkim.rbl_check(ctx, query, qroot[, timeout])
 Makes an RBL query.  The root of the RBL is assumed to be at
 .I qroot
 and the subject of the query is
 .I query,
 so the query performed will be
 .I "query.qroot".
+The context handle
+.I ctx
+must also be provided as it contains a handle to the established DNS service.
 The optional
 .I timeout
-parameter is the timeout to use.  Returns "nil" on error, no values if the
-requested record was not present in the RBL, or the four octets of the RBL
-entry if it was.  The octets are returned in big-endian order.
+parameter is the timeout to use, in seconds.  Returns "nil" on error, no
+values if the requested record was not present in the RBL, or the four
+octets of the RBL entry if it was.  The octets are returned in big-endian
+order.
 .TP
 .B odkim.set_reply(ctx, rcode, xcode, message)
 Instructs the MTA to return the specified SMTP reply to the client sending
