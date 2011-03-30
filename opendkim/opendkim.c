@@ -7961,14 +7961,15 @@ dkimf_stdio(void)
 void
 dkimf_sendprogress(const void *ctx)
 {
-	assert(ctx != NULL);
-
-	if (testmode)
-		(void) dkimf_test_progress((SMFICTX *) ctx);
+	if (ctx != NULL)
+	{
+		if (testmode)
+			(void) dkimf_test_progress((SMFICTX *) ctx);
 #ifdef HAVE_SMFI_PROGRESS
-	else
-		(void) smfi_progress((SMFICTX *) ctx);
+		else
+			(void) smfi_progress((SMFICTX *) ctx);
 #endif /* HAVE_SMFI_PROGRESS */
+	}
 }
 
 /*
@@ -11172,9 +11173,6 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 	}
 
-	if (dfc->mctx_dkimv != NULL)
-		(void) dkim_set_user_context(dfc->mctx_dkimv, ctx);
-
 	/* if requested, verify RFC5322-required headers (RFC5322 3.6) */
 	if (conf->conf_reqhdrs)
 	{
@@ -12314,6 +12312,9 @@ mlfi_eom(SMFICTX *ctx)
 	if (dfc->mctx_dkimv != NULL)
 	{
 		_Bool policydone = FALSE;
+
+		/* enable the DNS callback */
+		(void) dkim_set_user_context(dfc->mctx_dkimv, ctx);
 
 		/*
 		**  Signal end-of-message to DKIM
