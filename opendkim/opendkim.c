@@ -13249,8 +13249,21 @@ mlfi_eom(SMFICTX *ctx)
 				}
 				else if (!policydone)
 				{				/* temperror */
+					const char *err;
+
 					strlcat((char *) header, "temperror",
 					        sizeof header);
+
+					err = dkim_geterror(dfc->mctx_dkimv);
+					if (err != NULL)
+					{
+						strlcat((char *) header, " (",
+						        sizeof header);
+						strlcat((char *) header, err,
+						        sizeof header);
+						strlcat((char *) header, ")",
+						        sizeof header);
+					}
 				}
 #ifdef USE_UNBOUND
 				else if (dfc->mctx_dnssec_policy == DKIM_DNSSEC_BOGUS)
@@ -13298,8 +13311,21 @@ mlfi_eom(SMFICTX *ctx)
 				}
 				else
 				{
+					const char *err;
+
 					strlcat((char *) header, "permerror",
 					        sizeof header);
+
+					err = dkim_geterror(dfc->mctx_dkimv);
+					if (err != NULL)
+					{
+						strlcat((char *) header, " (",
+						        sizeof header);
+						strlcat((char *) header, err,
+						        sizeof header);
+						strlcat((char *) header, ")",
+						        sizeof header);
+					}
 				}
 
 #ifdef USE_UNBOUND
