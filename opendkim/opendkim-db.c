@@ -137,6 +137,7 @@ struct dkimf_db
 	u_int			db_type;
 	int			db_status;
 	int			db_nrecs;
+	size_t			db_size;
 	pthread_mutex_t *	db_lock;
 	void *			db_handle;	/* handler handle */
 	void *			db_data;	/* dkimf_db handle */
@@ -218,6 +219,7 @@ struct dkimf_db_ldap_cache
 struct dkimf_db_lua
 {
 	char *			lua_script;
+	size_t			lua_scriptlen;
 	char *			lua_error;
 };
 #endif /* USE_LUA */
@@ -2147,7 +2149,9 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 	  {
 		int fd;
 		ssize_t rlen;
+		char *tmp;
 		struct stat s;
+		struct dkimf_lua_script_result lres;
 		struct dkimf_db_lua *lua;
 
 		fd = open(p, O_RDONLY);
@@ -2176,8 +2180,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		memset(lua, '\0', sizeof *lua);
 		new->db_data = (void *) lua;
 
-		lua->lua_script = (void *) malloc(s.st_size + 1);
-		if (lua->lua_script == NULL)
+		tmp = (void *) malloc(s.st_size + 1);
+		if (tmp == NULL)
 		{
 			if (err != NULL)
 				*err = strerror(errno);
@@ -2185,9 +2189,9 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			close(fd);
 			return -1;
 		}
-		memset(lua->lua_script, '\0', s.st_size + 1);
+		memset(tmp, '\0', s.st_size + 1);
 
-		rlen = read(fd, lua->lua_script, s.st_size);
+		rlen = read(fd, tmp, s.st_size);
 		if (rlen < s.st_size)
 		{
 			if (err != NULL)
@@ -2197,11 +2201,27 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 				else
 					*err = "Read truncated";
 			}
-			free(lua->lua_script);
+			free(tmp);
 			free(new->db_data);
 			close(fd);
 			return -1;
 		}
+
+		close(fd);
+
+		/* try to compile it */
+		if (dkimf_lua_db_hook(tmp, 0, NULL, &lres, 
+		                      (void *) &lua->lua_script,
+		                      &lua->lua_scriptlen) != 0)
+		{
+			if (err != NULL)
+				*err = "Lua compilation error";
+			free(tmp);
+			free(new->db_data);
+			return -1;
+		}
+
+		free(tmp);
 	  }
 #endif /* USE_LUA */
 	}
@@ -3420,8 +3440,10 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		lua = (struct dkimf_db_lua *) db->db_data;
 
-		status = dkimf_lua_db_hook(lua->lua_script, (const char *) buf,
-		                           &lres);
+		status = dkimf_lua_db_hook((const char *) lua->lua_script,
+		                           lua->lua_scriptlen,
+		                           (const char *) buf, &lres,
+		                           NULL, NULL);
 		if (status != 0)
 			return -1;
 
