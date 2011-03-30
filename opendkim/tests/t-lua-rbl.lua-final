@@ -5,7 +5,7 @@
 -- sample "final" hook script that issues an RBL query
 
 -- make the RBL request
-a,b,c,d = odkim.rbl_check("2.0.0.127", "sbl.spamhaus.org")
+a,b,c,d = odkim.rbl_check(ctx, "2.0.0.127", "sbl.spamhaus.org")
 
 odkim.add_header(ctx, "X-Lua-RBL", tostring(a) .. "." .. tostring(b) .. "." ..
                                    tostring(c) .. "." .. tostring(d))
