@@ -13069,11 +13069,17 @@ mlfi_eom(SMFICTX *ctx)
 					}
 					else if (dfc->mctx_status == DKIMF_STATUS_VERIFYERR)
 					{
+						int errcode;
 						const char *err;
+						DKIM_SIGINFO *sig;
 
 						authresult = "permerror";
 
-						err = dkim_geterror(dfc->mctx_dkimv);
+						sig = dkim_getsignature(dfc->mctx_dkimv);
+						assert(sig != NULL);
+
+						errcode = dkim_sig_geterror(sig);
+						err = dkim_sig_geterrorstr(errcode);
 						if (err != NULL)
 						{
 							snprintf(comment,
