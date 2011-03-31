@@ -355,7 +355,7 @@ dkimf_db_hp_free(struct handle_pool *pool)
 **
 **  Parameters:
 **  	pool -- pool from which to get a handle
-**  	err -- error string (returned)
+**  	err -- error code (returned)
 **
 **  Return value:
 **  	A handle appropriate to the associated DB type that is not currently
@@ -363,7 +363,7 @@ dkimf_db_hp_free(struct handle_pool *pool)
 */
 
 static void *
-dkimf_db_hp_get(struct handle_pool *pool, const char **err)
+dkimf_db_hp_get(struct handle_pool *pool, int *err)
 {
 	void *ret;
 
@@ -414,10 +414,7 @@ dkimf_db_hp_get(struct handle_pool *pool, const char **err)
 				if (dberr < 0)
 				{
 					if (err != NULL)
-					{
-						*err = (char *) odbx_error(NULL,
-						                           dberr);
-					}
+						*err = dberr;
 
 					(void) odbx_finish(odbx);
 					pthread_mutex_unlock(&pool->hp_lock);
@@ -433,10 +430,7 @@ dkimf_db_hp_get(struct handle_pool *pool, const char **err)
 				if (dberr < 0)
 				{
 					if (err != NULL)
-					{
-						*err = (char *) odbx_error(odbx,
-						                           dberr);
-					}
+						*err = dberr;
 
 					(void) odbx_finish(odbx);
 					pthread_mutex_unlock(&pool->hp_lock);
@@ -2887,7 +2881,6 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		u_long elen;
 		odbx_result_t *result;
 # ifdef _FFR_DB_HANDLE_POOLS
-		const char *errstr = NULL;
 		odbx_t *odbx = NULL;
 # endif /* _FFR_DB_HANDLE_POOLS */
 		struct dkimf_db_dsn *dsn;
@@ -2898,9 +2891,12 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 # ifdef _FFR_DB_HANDLE_POOLS
 		odbx = dkimf_db_hp_get((struct handle_pool *) db->db_handle,
-		                       &errstr);
+		                       &err);
 		if (odbx == NULL)
+		{
+			db->db_status = err;
 			return -1;
+		}
 # else /* _FFR_DB_HANDLE_POOLS */
 		if (db->db_lock != NULL)
 			(void) pthread_mutex_lock(db->db_lock);
