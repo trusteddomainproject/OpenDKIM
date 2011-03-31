@@ -230,6 +230,14 @@ struct dkimf_config
 	int		conf_adspaction;	/* apply ADSP "discardable"? */
 	size_t		conf_sigmin;		/* signature minimum */
 	size_t		conf_keylen;		/* size of secret key */
+#ifdef USE_LUA
+	size_t		conf_screenfuncsz;	/* screening function size */
+	size_t		conf_setupfuncsz;	/* setup function size */
+# ifdef _FFR_STATS
+	size_t		conf_statsfuncsz;	/* stats function size */
+# endif /* _FFR_STATS */
+	size_t		conf_finalfuncsz;	/* final function size */
+#endif /* USE_LUA */
 #ifdef _FFR_DKIM_REPUTATION
 	long		conf_repfail;		/* reputation "fail" limit */
 	long		conf_reppass;		/* reputation "pass" limit */
@@ -302,11 +310,15 @@ struct dkimf_config
 #endif /* USE_LDAP */
 #ifdef USE_LUA
 	char *		conf_screenscript;	/* Lua script: screening */
+	void *		conf_screenfunc;	/* Lua function: screening */
 	char *		conf_setupscript;	/* Lua script: setup */
+	void *		conf_setupfunc;		/* Lua function: setup */
 # ifdef _FFR_STATSEXT
 	char *		conf_statsscript;	/* Lua script: stats */
+	void *		conf_statsfunc;		/* Lua function: stats */
 # endif /* _FFR_STATSEXT */
 	char *		conf_finalscript;	/* Lua script: final */
+	void *		conf_finalfunc;		/* Lua function: final */
 #endif /* USE_LUA */
 #ifdef _FFR_REPLACE_RULES
 	char *		conf_rephdrs;		/* replacement headers */
@@ -5394,14 +5406,22 @@ dkimf_config_free(struct dkimf_config *conf)
 #ifdef USE_LUA
 	if (conf->conf_setupscript != NULL)
 		free(conf->conf_setupscript);
+	if (conf->conf_setupfunc != NULL)
+		free(conf->conf_setupfunc);
 	if (conf->conf_screenscript != NULL)
 		free(conf->conf_screenscript);
+	if (conf->conf_screenfunc != NULL)
+		free(conf->conf_screenfunc);
 # ifdef _FFR_STATSEXT
 	if (conf->conf_statsscript != NULL)
 		free(conf->conf_statsscript);
+	if (conf->conf_statsfunc != NULL)
+		free(conf->conf_statsfunc);
 # endif /* _FFR_STATSEXT */
 	if (conf->conf_finalscript != NULL)
 		free(conf->conf_finalscript);
+	if (conf->conf_finalfunc != NULL)
+		free(conf->conf_finalfunc);
 #endif /* USE_LUA */
 
 	config_free(conf->conf_data);
@@ -6093,7 +6113,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			memset(&lres, '\0', sizeof lres);
 			if (dkimf_lua_setup_hook(NULL, conf->conf_setupscript,
-			                         str, &lres) != 0)
+			                         0, str, &lres,
+			                         &conf->conf_setupfunc,
+			                         &conf->conf_setupfuncsz) != 0)
 			{
 				strlcpy(err, lres.lrs_error, errlen);
 				free(lres.lrs_error);
@@ -6157,8 +6179,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			memset(&lres, '\0', sizeof lres);
 			if (dkimf_lua_screen_hook(NULL,
-			                          conf->conf_screenscript,
-			                          str, &lres) != 0)
+			                          conf->conf_screenscript, 0,
+			                          str, &lres,
+			                          &conf->conf_screenfunc,
+			                          &conf->conf_screenfuncsz) != 0)
 			{
 				strlcpy(err, lres.lrs_error, errlen);
 				free(lres.lrs_error);
@@ -6223,7 +6247,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			memset(&lres, '\0', sizeof lres);
 			if (dkimf_lua_stats_hook(NULL, conf->conf_statsscript,
-			                         str, &lres) != 0)
+			                         0, str, &lres,
+			                         &conf->conf_statsfunc,
+			                         &conf->conf_statsfuncsz) != 0)
 			{
 				strlcpy(err, lres.lrs_error, errlen);
 				free(lres.lrs_error);
@@ -6287,7 +6313,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			memset(&lres, '\0', sizeof lres);
 			if (dkimf_lua_final_hook(NULL, conf->conf_finalscript,
-			                         str, &lres) != 0)
+			                         0, str, &lres,
+			                         &conf->conf_finalfunc,
+			                         &conf->conf_finalfuncsz) != 0)
 			{
 				strlcpy(err, lres.lrs_error, errlen);
 				free(lres.lrs_error);
@@ -10943,8 +10971,10 @@ mlfi_eoh(SMFICTX *ctx)
 
 		dfc->mctx_mresult = SMFIS_CONTINUE;
 
-		status = dkimf_lua_setup_hook(ctx, conf->conf_setupscript,
-		                              "setup script", &lres);
+		status = dkimf_lua_setup_hook(ctx, conf->conf_setupfunc,
+		                              conf->conf_setupfuncsz,
+		                              "setup script", &lres,
+		                              NULL, NULL);
 
 		if (status != 0)
 		{
@@ -11715,8 +11745,10 @@ mlfi_eoh(SMFICTX *ctx)
 
 		memset(&lres, '\0', sizeof lres);
 
-		status = dkimf_lua_screen_hook(ctx, conf->conf_screenscript,
-		                               "screen script", &lres);
+		status = dkimf_lua_screen_hook(ctx, conf->conf_screenfunc,
+		                               conf->conf_screenfuncsz,
+		                               "screen script", &lres,
+		                               NULL, NULL);
 
 		if (status != 0)
 		{
@@ -12812,9 +12844,11 @@ mlfi_eom(SMFICTX *ctx)
 				memset(&lres, '\0', sizeof lres);
 
 				status = dkimf_lua_stats_hook(ctx,
-				                              conf->conf_statsscript,
+				                              conf->conf_statsfunc,
+				                              conf->conf_statsfuncsz,
 				                              "stats script",
-				                              &lres);
+				                              &lres,
+				                              NULL, NULL);
 
 				if (status != 0)
 				{
@@ -13901,8 +13935,10 @@ mlfi_eom(SMFICTX *ctx)
 
 		dfc->mctx_mresult = SMFIS_CONTINUE;
 
-		status = dkimf_lua_final_hook(ctx, conf->conf_finalscript,
-		                              "final script", &lres);
+		status = dkimf_lua_final_hook(ctx, conf->conf_finalfunc,
+		                              conf->conf_finalfuncsz,
+		                              "final script", &lres,
+		                              NULL, NULL);
 
 		if (status != 0)
 		{
