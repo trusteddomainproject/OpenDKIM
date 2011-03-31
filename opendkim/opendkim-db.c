@@ -2899,6 +2899,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 # ifdef _FFR_DB_HANDLE_POOLS
 		odbx = dkimf_db_hp_get((struct handle_pool *) db->db_handle,
 		                       &errstr);
+		if (odbx == NULL)
+			return -1;
 # else /* _FFR_DB_HANDLE_POOLS */
 		if (db->db_lock != NULL)
 			(void) pthread_mutex_lock(db->db_lock);
