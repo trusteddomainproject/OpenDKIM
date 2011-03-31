@@ -49,6 +49,7 @@ static const luaL_Reg dkimf_lua_lib_setup[] =
 	{ "db_check",		dkimf_xs_dbquery	},
 	{ "db_close",		dkimf_xs_dbclose	},
 	{ "db_open",		dkimf_xs_dbopen		},
+	{ "export",		dkimf_xs_export		},
 	{ "get_clienthost",	dkimf_xs_clienthost	},
 	{ "get_clientip",	dkimf_xs_clientip	},
 	{ "get_dbhandle",	dkimf_xs_dbhandle	},
@@ -74,6 +75,7 @@ static const luaL_Reg dkimf_lua_lib_screen[] =
 	{ "db_check",		dkimf_xs_dbquery	},
 	{ "db_close",		dkimf_xs_dbclose	},
 	{ "db_open",		dkimf_xs_dbopen		},
+	{ "export",		dkimf_xs_export		},
 	{ "get_dbhandle",	dkimf_xs_dbhandle	},
 	{ "get_fromdomain",	dkimf_xs_fromdomain	},
 	{ "get_header",		dkimf_xs_getheader	},
@@ -442,6 +444,9 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
 
+	/* import other globals */
+	dkimf_import_globals(ctx, l);
+
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name))
 	{
 	  case 0:
@@ -555,6 +560,9 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 	/* milter context */
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
+
+	/* import other globals */
+	dkimf_import_globals(ctx, l);
 
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name))
 	{
@@ -774,6 +782,9 @@ dkimf_lua_stats_hook(void *ctx, const char *script,
 	/* milter context */
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
+
+	/* import other globals */
+	dkimf_import_globals(ctx, l);
 
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name))
 	{
@@ -998,6 +1009,9 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 	/* milter context */
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
+
+	/* import other globals */
+	dkimf_import_globals(ctx, l);
 
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name))
 	{

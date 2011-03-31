@@ -98,6 +98,10 @@ handle that can be passed to
 .B odkim.db_check();
 raises an exception on failure.
 .TP
+.B odkim.export(ctx, name, value[, name2, value2[, ...]])
+Exports variables named with their corresponding values so that they
+will be available to later scripts.
+.TP
 .B odkim.get_clienthost(ctx)
 Returns the name of the host on the other end of the SMTP connection
 sending the current message.  This is usually a hostname, but might be
@@ -271,6 +275,7 @@ descriptions can be found above:
 .B odkim.db_check,
 .B odkim.db_close,
 .B odkim.db_open,
+.B odkim.export,
 .B odkim.get_dbhandle,
 .B odkim.get_fromdomain,
 .B odkim.get_header,

@@ -163,6 +163,20 @@ struct handling defaults =
 	DKIMF_MILTER_TEMPFAIL
 };
 
+#ifdef _FFR_LUA_GLOBALS
+/*
+**  LUA_GLOBAL -- linked list of Lua globals
+*/
+
+struct lua_global
+{
+	int		lg_type;
+	char *		lg_name;
+	void *		lg_value;
+	struct lua_global * lg_next;
+};
+#endif /* _FFR_LUA_GLOBALS */
+
 /*
 **  CONFIG -- configuration data
 */
@@ -430,6 +444,10 @@ struct msgctx
 #ifdef _FFR_STATSEXT
 	struct statsext * mctx_statsext;	/* extension stats list */
 #endif /* _FFR_STATSEXT */
+#ifdef _FFR_LUA_GLOBALS
+	struct lua_global * mctx_luaglobalh;	/* Lua global list */
+	struct lua_global * mctx_luaglobalt;	/* Lua global list */
+#endif /* _FFR_LUA_GLOBALS */
 	unsigned char	mctx_envfrom[MAXADDRESS + 1];
 						/* envelope sender */
 	unsigned char	mctx_domain[DKIM_MAXHOSTNAMELEN + 1];
@@ -1041,6 +1059,192 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 **  	something matching what the script would expect back from
 **  	the function such that the rest of the test will complete.
 */
+
+# ifdef _FFR_LUA_GLOBALS
+/*
+**  DKIMF_IMPORT_GLOBALS -- add globals to a Lua state
+**
+**  Parameters:
+**  	ctx -- filter context
+**  	l -- Lua state
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkimf_import_globals(void *p, lua_State *l)
+{
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *mctx;
+	struct lua_global *lg;
+
+	if (p == NULL)
+		return;
+
+	ctx = (SMFICTX *) p;
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	mctx = cc->cctx_msg;
+
+	lg = mctx->mctx_luaglobalh;
+	while (lg != NULL)
+	{
+		switch (lg->lg_type)
+		{
+		  case LUA_TNIL:
+			lua_pushnil(l);
+			lua_setglobal(l, lg->lg_name);
+			break;
+
+		  case LUA_TNUMBER:
+		  {
+			lua_Number x;
+
+			memcpy(&x, lg->lg_value, sizeof x);
+			lua_pushnumber(l, x);
+			lua_setglobal(l, lg->lg_name);
+			break;
+		  }
+
+		  case LUA_TBOOLEAN:
+			lua_pushboolean(l, (long) lg->lg_value);
+			lua_setglobal(l, lg->lg_name);
+			break;
+
+		  case LUA_TSTRING:
+			lua_pushstring(l, (char *) lg->lg_value);
+			lua_setglobal(l, lg->lg_name);
+			break;
+
+		  default:
+			assert(0);
+		}
+
+		lg = lg->lg_next;
+	}
+}
+
+/*
+**  DKIMF_XS_EXPORT -- export a global for use in later scripts
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_export(lua_State *l)
+{
+	int c;
+	int top;
+	int type;
+	struct lua_global *lg;
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *msg;
+
+	top = lua_gettop(l);
+
+	if (top < 3 || top % 2 != 1)
+	{
+		lua_pushstring(l,
+		               "odkim.export(): incorrect argument count");
+		lua_error(l);
+	}
+
+	for (c = 2; c < top; c += 2)
+	{
+		if (!lua_isstring(l, c) ||
+		    (!lua_isnil(l, c + 1) &&
+		     !lua_isstring(l, c + 1) &&
+		     !lua_isnumber(l, c + 1) &&
+		     !lua_isboolean(l, c + 1)))
+		{
+			lua_pushstring(l,
+			               "odkim.export(): incorrect argument type");
+			lua_error(l);
+		}
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	if (ctx == NULL)
+	{
+		lua_pop(l, top);
+		return 0;
+	}
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	msg = cc->cctx_msg;
+
+	for (c = 2; c < top; c += 2)
+	{
+		type = lua_type(l, c + 1);
+
+		if (type != LUA_TNIL &&
+		    type != LUA_TNUMBER &&
+		    type != LUA_TBOOLEAN &&
+		    type != LUA_TSTRING)
+			continue;
+
+		lg = (struct lua_global *) malloc(sizeof *lg);
+		if (lg != NULL)
+		{
+			lg->lg_name = strdup(lua_tostring(l, c));
+			if (lg->lg_name == NULL)
+			{
+				free(lg);
+				continue;
+			}
+
+			lg->lg_type = type;
+
+			lg->lg_next = NULL;
+
+			if (msg->mctx_luaglobalh == NULL)
+				msg->mctx_luaglobalh = lg;
+			else
+				msg->mctx_luaglobalt->lg_next = lg;
+
+			msg->mctx_luaglobalt = lg;
+
+			switch (lg->lg_type)
+			{
+			  case LUA_TNIL:
+				lg->lg_value = NULL;
+				break;
+
+			  case LUA_TNUMBER:
+				lg->lg_value = malloc(sizeof(lua_Number));
+				if (lg->lg_value != NULL)
+				{
+					lua_Number x;
+
+					x = lua_tonumber(l, c + 1);
+					memcpy(lg->lg_value, &x, sizeof x);
+				}
+				break;
+
+			  case LUA_TBOOLEAN:
+				if (lua_toboolean(l, c + 1))
+					lg->lg_value = (void *) 1;
+				else
+					lg->lg_value = (void *) 0;
+				break;
+
+			  case LUA_TSTRING:
+				lg->lg_value = strdup(lua_tostring(l, c + 1));
+				break;
+			}
+		}
+	}
+
+	lua_pop(l, top);
+
+	return 0;
+}
+# endif /* _FFR_LUA_GLOBALS */
 
 # ifdef _FFR_RBL
 /*
@@ -8220,6 +8424,28 @@ dkimf_cleanup(SMFICTX *ctx)
 			}
 		}
 #endif /* _FFR_STATSEXT */
+
+#ifdef _FFR_LUA_GLOBALS
+		if (dfc->mctx_luaglobalh != NULL)
+		{
+			struct lua_global *cur;
+			struct lua_global *next;
+
+			cur = dfc->mctx_luaglobalh;
+			while (cur != NULL)
+			{
+				next = cur->lg_next;
+
+				if (cur->lg_type == LUA_TNUMBER ||
+				    cur->lg_type == LUA_TSTRING)
+					free(cur->lg_value);
+
+				free(cur);
+
+				cur = next;
+			}
+		}
+#endif /* _FFR_LUA_GLOBALS */
 
 		free(dfc);
 		cc->cctx_msg = NULL;

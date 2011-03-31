@@ -188,6 +188,9 @@ extern int dkimf_xs_dbopen __P((lua_State *));
 extern int dkimf_xs_dbquery __P((lua_State *));
 extern int dkimf_xs_delheader __P((lua_State *));
 extern int dkimf_xs_delrcpt __P((lua_State *));
+#  ifdef _FFR_LUA_GLOBALS
+extern int dkimf_xs_export __P((lua_State *));
+#  endif /* _FFR_LUA_GLOBALS */
 extern int dkimf_xs_fromdomain __P((lua_State *));
 extern int dkimf_xs_getheader __P((lua_State *));
 extern int dkimf_xs_getpolicy __P((lua_State *));
