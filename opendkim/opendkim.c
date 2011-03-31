@@ -5406,14 +5406,22 @@ dkimf_config_free(struct dkimf_config *conf)
 #ifdef USE_LUA
 	if (conf->conf_setupscript != NULL)
 		free(conf->conf_setupscript);
+	if (conf->conf_setupfunc != NULL)
+		free(conf->conf_setupfunc);
 	if (conf->conf_screenscript != NULL)
 		free(conf->conf_screenscript);
+	if (conf->conf_screenfunc != NULL)
+		free(conf->conf_screenfunc);
 # ifdef _FFR_STATSEXT
 	if (conf->conf_statsscript != NULL)
 		free(conf->conf_statsscript);
+	if (conf->conf_statsfunc != NULL)
+		free(conf->conf_statsfunc);
 # endif /* _FFR_STATSEXT */
 	if (conf->conf_finalscript != NULL)
 		free(conf->conf_finalscript);
+	if (conf->conf_finalfunc != NULL)
+		free(conf->conf_finalfunc);
 #endif /* USE_LUA */
 
 	config_free(conf->conf_data);
