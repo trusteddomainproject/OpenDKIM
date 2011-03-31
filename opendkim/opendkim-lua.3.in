@@ -346,6 +346,7 @@ not present on the message.  Always returns the Lua constant "nil".
 .SH STATISTICS SCRIPT FUNCTIONS
 The statistics script has the following functions available to it, whose
 descriptions can be found above:
+.B odkim.export,
 .B odkim.get_header,
 .B odkim.get_mtasymbol,
 .B odkim.get_rcpt,
@@ -363,6 +364,7 @@ and
 The following functions are also available, defined in the next section:
 .B odkim.get_policy,
 .B odkim.get_reputation,
+.B odkim.rbl_check,
 .B odkim.rcpt_count,
 .B odkim.sig_bhresult,
 .B odkim.sig_bodylength,
@@ -485,6 +487,7 @@ The optional
 parameter is the timeout to use.  Returns "nil" on error, no values if the
 requested record was not present in the RBL, or the four octets of the RBL
 entry if it was.  The octets are returned in big-endian order.
+@RBL_MANNOTICE@
 .TP
 .B odkim.set_reply(ctx, rcode, xcode, message)
 Instructs the MTA to return the specified SMTP reply to the client sending

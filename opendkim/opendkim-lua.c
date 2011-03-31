@@ -49,7 +49,9 @@ static const luaL_Reg dkimf_lua_lib_setup[] =
 	{ "db_check",		dkimf_xs_dbquery	},
 	{ "db_close",		dkimf_xs_dbclose	},
 	{ "db_open",		dkimf_xs_dbopen		},
+# ifdef _FFR_LUA_GLOBALS
 	{ "export",		dkimf_xs_export		},
+# endif /* _FFR_LUA_GLOBALS */
 	{ "get_clienthost",	dkimf_xs_clienthost	},
 	{ "get_clientip",	dkimf_xs_clientip	},
 	{ "get_dbhandle",	dkimf_xs_dbhandle	},
@@ -75,7 +77,9 @@ static const luaL_Reg dkimf_lua_lib_screen[] =
 	{ "db_check",		dkimf_xs_dbquery	},
 	{ "db_close",		dkimf_xs_dbclose	},
 	{ "db_open",		dkimf_xs_dbopen		},
+# ifdef _FFR_LUA_GLOBALS
 	{ "export",		dkimf_xs_export		},
+# endif /* _FFR_LUA_GLOBALS */
 	{ "get_dbhandle",	dkimf_xs_dbhandle	},
 	{ "get_fromdomain",	dkimf_xs_fromdomain	},
 	{ "get_header",		dkimf_xs_getheader	},
@@ -97,6 +101,9 @@ static const luaL_Reg dkimf_lua_lib_screen[] =
 # ifdef _FFR_STATSEXT
 static const luaL_Reg dkimf_lua_lib_stats[] =
 {
+#  ifdef _FFR_LUA_GLOBALS
+	{ "export",		dkimf_xs_export		},
+#  endif /* _FFR_LUA_GLOBALS */
 	{ "get_header",		dkimf_xs_getheader	},
 	{ "get_mtasymbol",	dkimf_xs_getsymval	},
 	{ "get_policy",		dkimf_xs_getpolicy	},
@@ -108,6 +115,11 @@ static const luaL_Reg dkimf_lua_lib_stats[] =
 	{ "get_sighandle",	dkimf_xs_getsighandle	},
 	{ "log",		dkimf_xs_log		},
 	{ "parse_field",	dkimf_xs_parsefield	},
+#  ifdef _FFR_LUA_GLOBALS
+#   ifdef _FFR_RBL
+	{ "rbl_check",		dkimf_xs_rblcheck	},
+#   endif /* _FFR_RBL */
+#  endif /* _FFR_LUA_GLOBALS */
 	{ "rcpt_count",		dkimf_xs_rcptcount	},
 	{ "sig_bhresult",	dkimf_xs_sigbhresult	},
 	{ "sig_bodylength",	dkimf_xs_bodylength	},
