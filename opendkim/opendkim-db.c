@@ -3050,13 +3050,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 					if (estr != NULL &&
 					    strncmp(estr, "FATAL:", 6) == 0)
-					{
-# ifdef _FFR_DB_HANDLE_POOLS
-						dkimf_db_hp_put((struct handle_pool *) db->db_handle,
-						                (void *) odbx);
-# endif /* _FFR_DB_HANDLE_POOLS */
 						status = -1;
-					}
 				}
 #endif /* _FFR_POSTGRESQL_RECONNECT_HACK */
 
