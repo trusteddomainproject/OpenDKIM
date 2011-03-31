@@ -480,6 +480,7 @@ The optional
 parameter is the timeout to use.  Returns "nil" on error, no values if the
 requested record was not present in the RBL, or the four octets of the RBL
 entry if it was.  The octets are returned in big-endian order.
+@RBL_MANNOTICE@
 .TP
 .B odkim.set_reply(ctx, rcode, xcode, message)
 Instructs the MTA to return the specified SMTP reply to the client sending
