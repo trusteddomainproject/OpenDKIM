@@ -2396,7 +2396,10 @@ ar_addquery(AR_LIB lib, char *name, int class, int type, int depth,
 	wlen = ar_poke(lib);
 
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
-		syslog(LOG_DEBUG, "arlib: added query %p '%s'", q, q->q_name);
+	{
+		syslog(LOG_DEBUG, "arlib: added query %p %d/%d '%s'",
+		       q, q->q_class, q->q_type, q->q_name);
+	}
 
 	pthread_mutex_unlock(&lib->ar_lock);
 

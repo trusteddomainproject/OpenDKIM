@@ -12,6 +12,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3258459: Don't send progress messages during EOH.  Problem
 		reported by Gary Mills.
 	Add ADSP processing error information to A-R header fields.
+	LIBAR: Include class and type in debugging messages.  Suggested
+		by Gary Mills.
 	CONTRIB: Adjust installed path in RedHat start script.  Patch
 		from Naresh V.
 	CONTRIB: Require the current libopendkim in the opendkim definition
