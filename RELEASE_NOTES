@@ -6,6 +6,7 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.3.2		2011/04/15
+	Fix bug #SF3156559: Don't compile Lua scripts anew for each execution.
 	Fix bug #SF3235131: Don't report ADSP errors as signature errors
 		in Authentication-Results header fields.
 	Fix bug #SF3258459: Don't send progress messages during EOH.  Problem
