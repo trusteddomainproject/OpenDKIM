@@ -15301,6 +15301,14 @@ main(int argc, char **argv)
 
 	die = FALSE;
 
+	/* initialize DKIM library */
+	if (!dkimf_config_setlib(curconf, &p))
+	{
+		fprintf(stderr, "%s: can't configure DKIM library: %s\n",
+		        progname, p);
+		return EX_SOFTWARE;
+	}
+
 	if (autorestart)
 	{
 		_Bool quitloop = FALSE;
@@ -15705,17 +15713,6 @@ main(int argc, char **argv)
 	{
 		fprintf(stderr, "%s: error initializing crypto library: %s\n",
 		        progname, strerror(status));
-	}
-
-	/* initialize DKIM library */
-	if (!dkimf_config_setlib(curconf, &p))
-	{
-		if (curconf->conf_dolog)
-		{
-			syslog(LOG_WARNING,
-			       "can't configure DKIM library: %s; continuing",
-			       p);
-		}
 	}
 
 	if ((curconf->conf_mode & DKIMF_MODE_VERIFIER) != 0 &&
