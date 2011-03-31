@@ -5,6 +5,17 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.3.2		2011/04/15
+	Fix bug #SF3235131: Don't report ADSP errors as signature errors
+		in Authentication-Results header fields.
+	Fix bug #SF3258459: Don't send progress messages during EOH.  Problem
+		reported by Gary Mills.
+	Add ADSP processing error information to A-R header fields.
+	CONTRIB: Adjust installed path in RedHat start script.  Patch
+		from Naresh V.
+	CONTRIB: Require the current libopendkim in the opendkim definition
+		in the RPM spec file.  Patch from Naresh V.
+
 2.3.1		2011/03/28
 	Feature request #SF3196060: Log retrieved reputation values.
 		Patch from Andreas Schulze.
