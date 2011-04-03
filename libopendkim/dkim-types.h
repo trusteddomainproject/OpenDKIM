@@ -338,8 +338,8 @@ struct dkim_lib
 	u_int			dkiml_flsize;
 	u_int			dkiml_nalwayshdrs;
 	time_t			dkiml_fixedtime;
-	unsigned long		dkiml_sigttl;
-	unsigned long		dkiml_clockdrift;
+	time_t			dkiml_sigttl;
+	time_t			dkiml_clockdrift;
 	dkim_query_t		dkiml_querymethod;
 	u_int *			dkiml_flist;
 	void *			(*dkiml_malloc) (void *closure, size_t nbytes);
