@@ -7858,6 +7858,19 @@ dkimf_config_reload(void)
 			err = TRUE;
 		}
 
+		if (!dkimf_config_setlib(curconf, &errstr))
+		{
+			if (curconf->conf_dolog)
+			{
+				syslog(LOG_WARNING,
+				       "can't configure DKIM library: %s; continuing",
+				       errstr);
+			}
+			config_free(cfg);
+			dkimf_config_free(new);
+			err = TRUE;
+		}
+
 		if (!err)
 		{
 			char *errstr = NULL;
@@ -7874,16 +7887,6 @@ dkimf_config_reload(void)
 				syslog(LOG_INFO,
 				       "configuration reloaded from %s",
 				       conffile);
-			}
-
-			if (!dkimf_config_setlib(curconf, &errstr))
-			{
-				if (curconf->conf_dolog)
-				{
-					syslog(LOG_WARNING,
-					       "can't configure DKIM library: %s; continuing",
-					       errstr);
-				}
 			}
 		}
 	}
