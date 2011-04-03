@@ -7812,6 +7812,7 @@ dkimf_config_reload(void)
 		u_int line;
 		struct config *cfg;
 		char *missing;
+		char *errstr = NULL;
 		char path[MAXPATHLEN + 1];
 
 		strlcpy(path, conffile, sizeof path);
@@ -7873,8 +7874,6 @@ dkimf_config_reload(void)
 
 		if (!err)
 		{
-			char *errstr = NULL;
-
 			if (curconf->conf_refcnt == 0)
 				dkimf_config_free(curconf);
 
