@@ -12,6 +12,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3258459: Don't send progress messages during EOH.  Problem
 		reported by Gary Mills.
 	Add ADSP processing error information to A-R header fields.
+	LIBOPENDKIM: Use a time_t to store TTL and clock drift options
+		rather than unsigned long.  Patch from Piotr Sikora.
 	LIBAR: Include class and type in debugging messages.  Suggested
 		by Gary Mills.
 	CONTRIB: Adjust installed path in RedHat start script.  Patch
