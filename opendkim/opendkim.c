@@ -5418,7 +5418,8 @@ dkimf_config_free(struct dkimf_config *conf)
 		ar_shutdown(conf->conf_arlib);
 #endif /* USE_ARLIB */
 
-	config_free(conf->conf_data);
+	if (conf->conf_data != NULL)
+		config_free(conf->conf_data);
 
 	free(conf);
 }
@@ -7859,7 +7860,7 @@ dkimf_config_reload(void)
 			err = TRUE;
 		}
 
-		if (!dkimf_config_setlib(curconf, &errstr))
+		if (!err && !dkimf_config_setlib(new, &errstr))
 		{
 			if (curconf->conf_dolog)
 			{
