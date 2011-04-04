@@ -889,7 +889,7 @@ extern DKIM_STAT dkim_sig_getsignalg __P((DKIM_SIGINFO *sig, dkim_alg_t *alg));
 **  	A DKIM_STAT value.
 */
 
-extern DKIM_STAT dkim_sig_getsigntime __P((DKIM_SIGINFO *sig, time_t *when));
+extern DKIM_STAT dkim_sig_getsigntime __P((DKIM_SIGINFO *sig, uint64_t *when));
 
 /*
 **  DKIM_SIG_GETSELECTOR -- retrieve selector used to generate the signature
@@ -964,7 +964,7 @@ extern const void *dkim_get_user_context __P((DKIM *dkim));
 **  	or 0 if no such header was found or the value in it was unusable
 */
 
-extern time_t dkim_get_msgdate __P((DKIM *dkim));
+extern uint64_t dkim_get_msgdate __P((DKIM *dkim));
 
 /*
 **  DKIM_GETMODE -- return the mode (signing, verifying, etc.) of a handle

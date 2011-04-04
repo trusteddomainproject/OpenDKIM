@@ -7521,7 +7521,7 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 
 	if (conf->conf_clockdrift != 0)
 	{
-		time_t drift = (time_t) conf->conf_clockdrift;
+		uint64_t drift = conf->conf_clockdrift;
 
 		status = dkim_options(lib, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_CLOCKDRIFT, &drift,
@@ -7537,7 +7537,7 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 
 	if (conf->conf_sigttl != 0)
 	{
-		time_t sigtime = (time_t) conf->conf_sigttl;
+		uint64_t sigtime = conf->conf_sigttl;
 
 		status = dkim_options(lib, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SIGNATURETTL, &sigtime,
@@ -14442,7 +14442,7 @@ main(int argc, char **argv)
 	u_int mvrelease;
 #endif /* HAVE_SMFI_VERSION */
 	sigset_t sigset;
-	time_t fixedtime = (time_t) -1;
+	uint64_t fixedtime = (uint64_t) -1;
 	time_t maxrestartrate_t = 0;
 	pthread_t rt;
 	unsigned long tmpl;
@@ -14556,7 +14556,8 @@ main(int argc, char **argv)
 				fixedtime = strtoul(optarg, &p, 10);
 			}
 
-			if (fixedtime == (time_t) ULONG_MAX || errno != 0 ||
+			if (fixedtime == (uint64_t) ULONG_MAX ||
+			    errno != 0 ||
 			    *p != '\0')
 			{
 				fprintf(stderr, "%s: invalid time value\n",

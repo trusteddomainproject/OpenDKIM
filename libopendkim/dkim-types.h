@@ -277,9 +277,9 @@ struct dkim
 	size_t			dkim_b64siglen;
 	size_t			dkim_keylen;
 	size_t			dkim_errlen;
-	time_t			dkim_timestamp;
+	uint64_t		dkim_timestamp;
 #ifdef _FFR_PARSE_TIME
-	time_t			dkim_msgdate;
+	uint64_t		dkim_msgdate;
 #endif /* _FFR_PARSE_TIME */
 	dkim_query_t		dkim_querymethod;
 	dkim_canon_t		dkim_hdrcanonalg;
@@ -337,9 +337,9 @@ struct dkim_lib
 	u_int			dkiml_callback_int;
 	u_int			dkiml_flsize;
 	u_int			dkiml_nalwayshdrs;
-	time_t			dkiml_fixedtime;
-	time_t			dkiml_sigttl;
-	time_t			dkiml_clockdrift;
+	uint64_t		dkiml_fixedtime;
+	uint64_t		dkiml_sigttl;
+	uint64_t		dkiml_clockdrift;
 	dkim_query_t		dkiml_querymethod;
 	u_int *			dkiml_flist;
 	void *			(*dkiml_malloc) (void *closure, size_t nbytes);

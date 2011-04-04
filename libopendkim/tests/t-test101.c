@@ -48,7 +48,7 @@ main(int argc, char **argv)
 	off_t canonlen;
 	off_t signlen;
 	dkim_alg_t signalg;
-	time_t signtime;
+	uint64_t signtime;
 	dkim_canon_t hcanon;
 	dkim_canon_t bcanon;
 	DKIM_STAT status;

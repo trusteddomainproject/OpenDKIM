@@ -367,7 +367,7 @@ dkimf_test_getsymval(void *ctx, char *sym)
 */
 
 int
-dkimf_testfile(DKIM_LIB *libopendkim, char *file, time_t fixedtime,
+dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
                bool strict, int verbose)
 {
 	bool inheaders = TRUE;
@@ -393,7 +393,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, time_t fixedtime,
 	tverbose = verbose;
 
 	/* pass fixed signing time to the library */
-	if (fixedtime != (time_t) -1)
+	if (fixedtime != (uint64_t) -1)
 	{
 		(void) dkim_options(libopendkim, DKIM_OP_SETOPT,
 		                    DKIM_OPTS_FIXEDTIME,

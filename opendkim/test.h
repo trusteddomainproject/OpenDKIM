@@ -25,7 +25,7 @@ static char test_h_id[] = "@(#)$Id: test.h,v 1.8 2010/09/02 04:04:20 cm-msk Exp 
 #include "dkim.h"
 
 /* PROTOTYPES */
-extern int dkimf_testfile __P((DKIM_LIB *, char *, time_t, bool, int));
+extern int dkimf_testfile __P((DKIM_LIB *, char *, uint64_t, bool, int));
 
 extern int dkimf_test_addheader __P((void *, char *, char *));
 extern int dkimf_test_addrcpt __P((void *, char *));

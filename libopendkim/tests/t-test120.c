@@ -44,7 +44,7 @@ main(int argc, char **argv)
 {
 	u_int flags;
 	DKIM_STAT status;
-	time_t fixed_time;
+	uint64_t fixed_time;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	DKIM *dkim;
 	DKIM_LIB *lib;
