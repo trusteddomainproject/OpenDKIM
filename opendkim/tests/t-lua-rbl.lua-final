@@ -1,6 +1,6 @@
 -- $Id: t-lua-speed-lua.lua-setup,v 1.1 2010/07/06 23:43:20 cm-msk Exp $
 
--- Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 
 -- sample "final" hook script that issues an RBL query
 
