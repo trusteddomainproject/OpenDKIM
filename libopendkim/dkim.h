@@ -23,6 +23,7 @@ static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.36.2.1 2010/10/27 21:43:08 cm-msk
 #ifdef HAVE_STDBOOL_H
 # include <stdbool.h>
 #endif /* HAVE_STDBOOL_H */
+#include <inttypes.h>
 
 /*
 **  version -- 0xrrMMmmpp
