@@ -2899,9 +2899,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		int rowcnt = 0;
 		u_long elen;
 		odbx_result_t *result;
-# ifdef _FFR_DB_HANDLE_POOLS
 		odbx_t *odbx = NULL;
-# endif /* _FFR_DB_HANDLE_POOLS */
 		struct dkimf_db_dsn *dsn;
 		char query[BUFRSZ];
 		char escaped[BUFRSZ];
