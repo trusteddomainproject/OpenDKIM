@@ -127,7 +127,7 @@ struct dkim_siginfo
 	dkim_alg_t		sig_signalg;
 	dkim_canon_t		sig_hdrcanonalg;
 	dkim_canon_t		sig_bodycanonalg;
-	unsigned long long	sig_timestamp;
+	uint64_t		sig_timestamp;
 	u_char *		sig_domain;
 	u_char *		sig_selector;
 	u_char *		sig_sig;
