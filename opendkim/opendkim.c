@@ -391,6 +391,7 @@ struct dkimf_config
 typedef struct msgctx * msgctx;
 struct msgctx
 {
+	_Bool		mctx_eom;		/* in EOM? (enables progress) */
 	_Bool		mctx_addheader;		/* Authentication-Results: */
 	_Bool		mctx_headeronly;	/* in EOM, only add headers */
 #ifdef _FFR_BODYLENGTH_DB
@@ -8030,12 +8031,21 @@ dkimf_sendprogress(const void *ctx)
 {
 	if (ctx != NULL)
 	{
-		if (testmode)
-			(void) dkimf_test_progress((SMFICTX *) ctx);
+		struct connctx *cc;
+		struct msgctx *dfc;
+
+		cc = (struct connctx *) dkimf_getpriv((SMFICTX *) ctx);
+		dfc = cc->cctx_msg;
+
+		if (dfc->mctx_eom)
+		{
+			if (testmode)
+				(void) dkimf_test_progress((SMFICTX *) ctx);
 #ifdef HAVE_SMFI_PROGRESS
-		else
-			(void) smfi_progress((SMFICTX *) ctx);
+			else
+				(void) smfi_progress((SMFICTX *) ctx);
 #endif /* HAVE_SMFI_PROGRESS */
+		}
 	}
 }
 
@@ -11689,6 +11699,7 @@ mlfi_eoh(SMFICTX *ctx)
 		status = dkimf_msr_eoh(dfc->mctx_srhead, &lastdkim);
 	if (status == DKIM_STAT_OK && dfc->mctx_dkimv != NULL)
 	{
+		(void) dkim_set_user_context(dfc->mctx_dkimv, ctx);
 		lastdkim = dfc->mctx_dkimv;
 		status = dkim_eoh(dfc->mctx_dkimv);
 	}
@@ -12022,6 +12033,8 @@ mlfi_eom(SMFICTX *ctx)
 	dfc = cc->cctx_msg;
 	assert(dfc != NULL);
 	conf = cc->cctx_config;
+
+	dfc->mctx_eom = TRUE;
 
 	/*
 	**  If necessary, try again to get the job ID in case it came down
@@ -12383,9 +12396,6 @@ mlfi_eom(SMFICTX *ctx)
 	if (dfc->mctx_dkimv != NULL)
 	{
 		_Bool policydone = FALSE;
-
-		/* enable the DNS callback */
-		(void) dkim_set_user_context(dfc->mctx_dkimv, ctx);
 
 		/*
 		**  Signal end-of-message to DKIM
