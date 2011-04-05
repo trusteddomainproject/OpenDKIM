@@ -3766,8 +3766,8 @@ dkim_eom_sign(DKIM *dkim)
 		else
 			alg = GNUTLS_DIG_SHA256;
 
-		status = gnutls_privkey_sign_hash2(privkey, alg, 0, &dd,
-		                                   &rsa->rsa_rsaout);
+		status = gnutls_privkey_sign_hash(privkey, alg, 0, &dd,
+		                                  &rsa->rsa_rsaout);
 		if (status != GNUTLS_E_SUCCESS)
 		{
 			dkim_error(dkim,
