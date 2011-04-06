@@ -2139,13 +2139,13 @@ ar_shutdown(AR_LIB lib)
 		closure = lib->ar_closure;
 		user_free = lib->ar_free;
 
+		ar_socket_free(lib->ar_css);
+		ar_socket_free(lib->ar_dss);
+
 		if (user_free != NULL)
 			user_free(closure, lib);
 		else
 			free(lib);
-
-		ar_socket_free(lib->ar_css);
-		ar_socket_free(lib->ar_dss);
 	}
 
 #ifdef ARDEBUG
