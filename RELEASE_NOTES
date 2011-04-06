@@ -21,6 +21,8 @@ release, and a summary of the changes in that release.
 		rather than unsigned long.  Patch from Piotr Sikora.
 	LIBAR: Include class and type in debugging messages.  Suggested
 		by Gary Mills.
+	LIBAR: Start the dispatcher on the first query, not in ar_init().
+		Allows ar_init() to be called before a fork() safely.
 	CONTRIB: Adjust installed path in RedHat start script.  Patch
 		from Naresh V.
 	CONTRIB: Require the current libopendkim in the opendkim definition
