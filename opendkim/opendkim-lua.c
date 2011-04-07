@@ -68,6 +68,9 @@ static const luaL_Reg dkimf_lua_lib_setup[] =
 	{ "sign",		dkimf_xs_requestsig	},
 	{ "use_ltag",		dkimf_xs_setpartial	},
 	{ "verify",		dkimf_xs_verify		},
+# ifdef _FFR_XTAGS
+	{ "xtags",		dkimf_xs_xtags		},
+# endif /* _FFR_XTAGS */
 	{ NULL,			NULL			}
 };
 
@@ -153,6 +156,9 @@ static const luaL_Reg dkimf_lua_lib_final[] =
 	{ "sig_getdomain",	dkimf_xs_getsigdomain	},
 	{ "sig_getidentity",	dkimf_xs_getsigidentity	},
 	{ "sig_result",		dkimf_xs_sigresult	},
+# ifdef _FFR_XTAGS
+	{ "xtags",		dkimf_xs_xtags		},
+# endif /* _FFR_XTAGS */
 	{ NULL,			NULL			}
 };
 #endif /* DKIMF_LUA_CONTEXT_HOOKS */
