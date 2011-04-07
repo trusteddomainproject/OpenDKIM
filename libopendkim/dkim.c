@@ -8660,15 +8660,21 @@ dkim_dns_set_query_waitreply(DKIM_LIB *lib, int (*func)(void *, void *,
 **
 **  Return value:
 **  	A DKIM_STAT_* constant.
+**
+**  Notes:
+**  	A value that contains spaces won't be wrapped nicely by the signature
+**  	generation code.  Support for this should be added later.
 */
 
 DKIM_STAT
 dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
 {
+#ifdef _FFR_XTAGS
+	u_char last = '\0';
 	dkim_param_t pcode;
+	u_char *p;
 	struct dkim_xtag *x;
 
-#ifdef _FFR_XTAGS
 	assert(dkim != NULL);
 	assert(tag != NULL);
 	assert(value != NULL);
@@ -8677,9 +8683,57 @@ dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
 		return DKIM_STAT_INVALID;
 
 	/* check that it's not in sigparams */
+	if (tag[0] == '\0' || value[0] == '\0')
+		return DKIM_STAT_INVALID;
 	pcode = dkim_name_to_code(sigparams, tag);
 	if (pcode != (dkim_param_t) -1)
 		return DKIM_STAT_INVALID;
+
+	/* confirm valid syntax, per RFC4871 */
+	for (p = tag; *p != '\0'; p++)
+	{
+		if (!(isascii(*p) && (isalnum(*p) || *p == '_')))
+			return DKIM_STAT_INVALID;
+	}
+
+	if (value[0] == '\n' ||
+	    value[0] == '\r' ||
+	    value[0] == '\t' ||
+	    value[0] == ' ')
+		return DKIM_STAT_INVALID;
+
+	for (p = value; *p != '\0'; p++)
+	{
+		/* valid characters in general */
+		if (!(*p == '\n' ||
+		      *p == '\r' ||
+		      *p == '\t' ||
+		      *p == ' ' ||
+		      (*p >= 0x21 && *p <= 0x7e && *p != 0x3b)))
+			return DKIM_STAT_INVALID;
+
+		/* CR has to be followed by LF */
+		if (last == '\r' && *p != '\n')
+			return DKIM_STAT_INVALID;
+
+		/* LF has to be followed by space or tab */
+		if (last == '\n' && *p != ' ' && *p != '\t')
+			return DKIM_STAT_INVALID;
+
+		last = *p;
+	}
+
+	/* can't end with space */
+	if (last == '\n' || last == '\r' ||
+	    last == '\t' || last == ' ')
+		return DKIM_STAT_INVALID;
+
+	/* check for dupicates */
+	for (x = dkim->dkim_xtags; x != NULL; x = x->xt_next)
+	{
+		if (strcmp(x->xt_tag, tag) == 0)
+			return DKIM_STAT_INVALID;
+	}
 
 	x = (struct dkim_xtag *) DKIM_MALLOC(dkim, sizeof(struct dkim_xtag));
 	if (x == NULL)
