@@ -2257,6 +2257,19 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		                    dkim->dkim_signer);
 	}
 
+#ifdef _FFR_XTAGS
+	if (dkim->dkim_xtags != NULL)
+	{
+		struct dkim_xtag *x;
+
+		for (x = dkim->dkim_xtags; x != NULL; x = x->xt_next)
+		{
+			dkim_dstring_printf(dstr, ";%s%s=%s", delim,
+			                    x->xt_tag, x->xt_value);
+		}
+	}
+#endif /* _FFR_XTAGS */
+
 	memset(b64hash, '\0', sizeof b64hash);
 
 	(void) dkim_canon_closebody(dkim);
@@ -4280,6 +4293,9 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef _FFR_OVERSIGN
 	FEATURE_ADD(libhandle, DKIM_FEATURE_OVERSIGN);
 #endif /* _FFR_OVERSIGN */
+#ifdef _FFR_XTAGS
+	FEATURE_ADD(libhandle, DKIM_FEATURE_XTAGS);
+#endif /* _FFR_XTAGS */
 
 	/* initialize the resolver */
 	(void) res_init();
@@ -4836,6 +4852,22 @@ dkim_free(DKIM *dkim)
 
 		CLOBBER(dkim->dkim_siglist);
 	}
+
+#ifdef _FFR_XTAGS
+	if (dkim->dkim_xtags != NULL)
+	{
+		struct dkim_xtag *cur;
+		struct dkim_xtag *next;
+
+		cur = dkim->dkim_xtags;
+		while (cur != NULL)
+		{
+			next = cur->xt_next;
+			free(cur);
+			cur = next;
+		}
+	}
+#endif /* _FFR_XTAGS */
 
 	/* destroy canonicalizations */
 	dkim_canon_cleanup(dkim);
@@ -8616,4 +8648,54 @@ dkim_dns_set_query_waitreply(DKIM_LIB *lib, int (*func)(void *, void *,
 		lib->dkiml_dns_waitreply = func;
 	else
 		lib->dkiml_dns_waitreply = dkim_res_waitreply;
+}
+
+/*
+**  DKIM_ADD_XTAG -- add an extension tag/value
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle to extend
+**  	tag -- name of tag to add
+**  	value -- value to include
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+DKIM_STAT
+dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
+{
+	dkim_param_t pcode;
+	struct dkim_xtag *x;
+
+#ifdef _FFR_XTAGS
+	assert(dkim != NULL);
+	assert(tag != NULL);
+	assert(value != NULL);
+
+	if (dkim->dkim_mode != DKIM_MODE_SIGN)
+		return DKIM_STAT_INVALID;
+
+	/* check that it's not in sigparams */
+	pcode = dkim_name_to_code(sigparams, tag);
+	if (pcode != (dkim_param_t) -1)
+		return DKIM_STAT_INVALID;
+
+	x = (struct dkim_xtag *) DKIM_MALLOC(dkim, sizeof(struct dkim_xtag));
+	if (x == NULL)
+	{
+		dkim_error(dkim, "unable to allocate %d byte(s)",
+		           sizeof(struct dkim_xtag));
+		return DKIM_STAT_NORESOURCE;
+	}
+
+	x->xt_tag = tag;
+	x->xt_value = value;
+	x->xt_next = dkim->dkim_xtags;
+	dkim->dkim_xtags = x;
+
+	return DKIM_STAT_OK;
+#else /* _FFR_XTAGS */
+	return DKIM_STAT_NOTIMPLEMENT;
+#endif /* _FFR_XTAGS */
 }
