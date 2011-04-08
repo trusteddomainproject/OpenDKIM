@@ -36,6 +36,9 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 # include <netinet/in.h>
 # include <arpa/inet.h>
 #endif /* USE_LUA */
+#ifdef AF_INET6
+# include <arpa/inet.h>
+#endif /* AF_INET6 */
 #ifdef HAVE_STDBOOL_H
 # include <stdbool.h>
 #endif /* HAVE_STDBOOL_H */

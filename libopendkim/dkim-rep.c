@@ -22,11 +22,22 @@ static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.13 2010/10/04 04:37:26 cm
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <netdb.h>
+#include <errno.h>
 
+#ifdef USE_GNUTLS
+/* GnuTLS includes */
+# include <gnutls/gnutls.h>
+# include <gnutls/crypto.h>
+# ifndef MD5_DIGEST_LENGTH
+#  define MD5_DIGEST_LENGTH 16
+# endif /* ! MD5_DIGEST_LENGTH */
+#else /* USE_GNUTLS */
 /* openssl includes */
-#include <openssl/md5.h>
+# include <openssl/md5.h>
+#endif /* USE_GNUTLS */
 
 /* libopendkim includes */
 #include "dkim-internal.h"
@@ -60,7 +71,7 @@ extern void dkim_error __P((DKIM *, const char *, ...));
 */
 
 static int
-dkim_md5_to_string(MD5_CTX *md5, unsigned char *str, size_t len)
+dkim_md5_to_string(void *md5, unsigned char *str, size_t len)
 {
 	int c;
 	int out = 0;
@@ -73,7 +84,11 @@ dkim_md5_to_string(MD5_CTX *md5, unsigned char *str, size_t len)
 	if (len < 2 * MD5_DIGEST_LENGTH + 1)
 		return -1;
 
+#ifdef USE_GNUTLS
+	(void) gnutls_hash_deinit(md5, digest);
+#else /* USE_GNUTLS */
 	MD5_Final(digest, md5);
+#endif /* USE_GNUTLS */
 
 	for (cvt = str, c = 0; c < MD5_DIGEST_LENGTH; c++)
 	{
@@ -159,9 +174,15 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 	char *eob;
 	unsigned char *cp;
 	unsigned char *eom;
+#ifdef USE_GNUTLS
+	gnutls_hash_hd_t md5_user;
+	gnutls_hash_hd_t md5_domain;
+	gnutls_hash_hd_t md5_signdomain;
+#else /* USE_GNUTLS */
 	MD5_CTX md5_user;
 	MD5_CTX md5_domain;
 	MD5_CTX md5_signdomain;
+#endif /* USE_GNUTLS */
 	HEADER hdr;
 	struct timeval timeout;
 	unsigned char md5_user_str[MD5_DIGEST_LENGTH * 2 + 1];
@@ -181,20 +202,41 @@ dkim_reputation(DKIM *dkim, u_char *user, u_char *domain, char *signdomain,
 
 	/* hash the values */
 	memset(md5_user_str, '\0', sizeof md5_user_str);
+#ifdef USE_GNUTLS
+	if (gnutls_hash_init(&md5_user, GNUTLS_DIG_MD5) == 0)
+		gnutls_hash(md5_user, (void *) user, strlen((char *) user));
+#else /* USE_GNUTLS */
 	MD5_Init(&md5_user);
 	MD5_Update(&md5_user, (void *) user, strlen((char *) user));
+#endif /* USE_GNUTLS */
 	(void) dkim_md5_to_string(&md5_user, md5_user_str,
 	                          sizeof md5_user_str);
 
 	memset(md5_domain_str, '\0', sizeof md5_domain_str);
+#ifdef USE_GNUTLS
+	if (gnutls_hash_init(&md5_domain, GNUTLS_DIG_MD5) == 0)
+	{
+		gnutls_hash(md5_domain, (void *) domain,
+		            strlen((char *) domain));
+	}
+#else /* USE_GNUTLS */
 	MD5_Init(&md5_domain);
 	MD5_Update(&md5_domain, (void *) domain, strlen((char *) domain));
+#endif /* USE_GNUTLS */
 	(void) dkim_md5_to_string(&md5_domain, md5_domain_str,
 	                          sizeof md5_domain_str);
 
 	memset(md5_signdomain_str, '\0', sizeof md5_signdomain_str);
+#ifdef USE_GNUTLS
+	if (gnutls_hash_init(&md5_signdomain, GNUTLS_DIG_MD5) == 0)
+	{
+		gnutls_hash(md5_signdomain, (void *) signdomain,
+		            strlen((char *) signdomain));
+	}
+#else /* USE_GNUTLS */
 	MD5_Init(&md5_signdomain);
 	MD5_Update(&md5_signdomain, (void *) signdomain, strlen(signdomain));
+#endif /* USE_GNUTLS */
 	(void) dkim_md5_to_string(&md5_signdomain, md5_signdomain_str,
 	                          sizeof md5_signdomain_str);
 

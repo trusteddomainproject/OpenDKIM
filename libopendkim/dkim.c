@@ -3592,9 +3592,16 @@ dkim_eom_sign(DKIM *dkim)
 
 	/* set signature timestamp */
 	if (dkim->dkim_libhandle->dkiml_fixedtime != 0)
+	{
 		dkim->dkim_timestamp = dkim->dkim_libhandle->dkiml_fixedtime;
+	}
 	else
-		(void) time(&dkim->dkim_timestamp);
+	{
+		time_t now;
+
+		(void) time(&now);
+		dkim->dkim_timestamp = (uint64_t) now;
+	}
 
 	/* sign with l= if requested */
 	if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_SIGNLEN) != 0)

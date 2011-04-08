@@ -492,7 +492,8 @@ then
                          AC_MSG_ERROR([required GnuTLS header not found]))
 
 	AC_SEARCH_LIBS([gnutls_global_init], [gnutls], ,
-                       AC_MSG_ERROR([libgnutls not found]), [-lnettle -lgmp])
+                       AC_MSG_ERROR([libgnutls not found]),
+	               [-lnettle -lgmp -ldl])
 
 	LIBCRYPTO_CPPFLAGS="-I$gtpath/include"
 	LIBCRYPTO_LIBDIRS="-L$gtpath/lib"
