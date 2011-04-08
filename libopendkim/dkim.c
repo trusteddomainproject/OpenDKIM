@@ -6170,11 +6170,9 @@ dkim_diffheaders(DKIM *dkim, dkim_canon_t canon, int maxcost,
 DKIM_STAT
 dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 {
-	int status;
 	u_char *colon;
 	u_char *end = NULL;
 	struct dkim_header *h;
-	unsigned char name[DKIM_MAXHEADER + 1];
 
 	assert(dkim != NULL);
 	assert(hdr != NULL);
@@ -6198,14 +6196,17 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 			end--;
 	}
 
-	strlcpy((char *) name, (char *) hdr, sizeof name);
-	if (end != NULL)
-		name[end - hdr] = '\0';
-
 	/* see if this is one we should skip */
 	if (dkim->dkim_mode == DKIM_MODE_SIGN &&
 	    dkim->dkim_libhandle->dkiml_skipre)
 	{
+		int status;
+		unsigned char name[DKIM_MAXHEADER + 1];
+
+		strlcpy((char *) name, (char *) hdr, sizeof name);
+		if (end != NULL)
+			name[end - hdr] = '\0';
+
 		status = regexec(&dkim->dkim_libhandle->dkiml_skiphdrre,
 		                 (char *) name, 0, NULL, 0);
 
