@@ -6215,19 +6215,6 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 			assert(status == REG_NOMATCH);
 	}
 
-	/* see if this is one we should sign, if a list was given */
-	if (dkim->dkim_mode == DKIM_MODE_SIGN &&
-	    dkim->dkim_libhandle->dkiml_signre)
-	{
-		status = regexec(&dkim->dkim_libhandle->dkiml_hdrre,
-		                 (char *) name, 0, NULL, 0);
-
-		if (status == REG_NOMATCH)
-			return DKIM_STAT_OK;
-		else
-			assert(status == 0);
-	}
-
 	h = DKIM_MALLOC(dkim, sizeof(struct dkim_header));
 
 	if (h == NULL)
