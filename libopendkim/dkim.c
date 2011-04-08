@@ -2385,10 +2385,14 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	if (dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_ZTAGS)
 	{
 		_Bool first;
+		int status;
+		size_t len;
 		u_char *p;
 		u_char *q;
 		u_char *end;
-		size_t len;
+		u_char *hend;
+		u_char *colon;
+		unsigned char name[DKIM_MAXHEADER + 1];
 
 		dkim_dstring_cat1(dstr, ';');
 		dkim_dstring_catn(dstr, (u_char *) delim, delimlen);
@@ -2399,6 +2403,46 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 
 		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
 		{
+			/* apply "skip" header and "sign" header lists */
+			hend = hdr->hdr_text + hdr->hdr_textlen;
+			colon = memchr(hdr->hdr_text, ':', hdr->hdr_textlen);
+			if (colon != NULL)
+			{
+				hend = colon;
+
+				while (hend > hdr->hdr_text &&
+				       isascii(*(hend - 1)) &&
+				       isspace(*(hend - 1)))
+					hend--;
+			}
+
+			strlcpy((char *) name, (char *) hdr->hdr_text,
+			        sizeof name);
+			if (hend != NULL)
+				name[hend - hdr->hdr_text] = '\0';
+
+			if (dkim->dkim_libhandle->dkiml_skipre)
+			{
+				status = regexec(&dkim->dkim_libhandle->dkiml_skiphdrre,
+				                 (char *) name, 0, NULL, 0);
+
+				if (status == 0)
+					continue;
+				else
+					assert(status == REG_NOMATCH);
+			}
+
+			if (dkim->dkim_libhandle->dkiml_signre)
+			{
+				status = regexec(&dkim->dkim_libhandle->dkiml_hdrre,
+				                 (char *) name, 0, NULL, 0);
+
+				if (status == REG_NOMATCH)
+					continue;
+				else
+					assert(status == 0);
+			}
+
 			q = tmp;
 			len = 0;
 
@@ -6126,9 +6170,11 @@ dkim_diffheaders(DKIM *dkim, dkim_canon_t canon, int maxcost,
 DKIM_STAT
 dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 {
+	int status;
 	u_char *colon;
 	u_char *end = NULL;
 	struct dkim_header *h;
+	unsigned char name[DKIM_MAXHEADER + 1];
 
 	assert(dkim != NULL);
 	assert(hdr != NULL);
@@ -6152,17 +6198,14 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 			end--;
 	}
 
+	strlcpy((char *) name, (char *) hdr, sizeof name);
+	if (end != NULL)
+		name[end - hdr] = '\0';
+
 	/* see if this is one we should skip */
 	if (dkim->dkim_mode == DKIM_MODE_SIGN &&
 	    dkim->dkim_libhandle->dkiml_skipre)
 	{
-		int status;
-		unsigned char name[DKIM_MAXHEADER + 1];
-
-		strlcpy((char *) name, (char *) hdr, sizeof name);
-		if (end != NULL)
-			name[end - hdr] = '\0';
-
 		status = regexec(&dkim->dkim_libhandle->dkiml_skiphdrre,
 		                 (char *) name, 0, NULL, 0);
 
@@ -6170,6 +6213,19 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 			return DKIM_STAT_OK;
 		else
 			assert(status == REG_NOMATCH);
+	}
+
+	/* see if this is one we should sign, if a list was given */
+	if (dkim->dkim_mode == DKIM_MODE_SIGN &&
+	    dkim->dkim_libhandle->dkiml_signre)
+	{
+		status = regexec(&dkim->dkim_libhandle->dkiml_hdrre,
+		                 (char *) name, 0, NULL, 0);
+
+		if (status == REG_NOMATCH)
+			return DKIM_STAT_OK;
+		else
+			assert(status == 0);
 	}
 
 	h = DKIM_MALLOC(dkim, sizeof(struct dkim_header));
