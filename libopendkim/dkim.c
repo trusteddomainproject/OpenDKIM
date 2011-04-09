@@ -6232,7 +6232,48 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 		return DKIM_STAT_NORESOURCE;
 	}
 
-	h->hdr_text = dkim_strdup(dkim, hdr, len);
+	if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_FIXCRLF) != 0)
+	{
+		u_char prev = '\0';
+		u_char *p;
+		struct dkim_dstring *tmphdr;
+
+		tmphdr = dkim_dstring_new(dkim, BUFRSZ, MAXBUFRSZ);
+		if (tmphdr == NULL)
+			return DKIM_STAT_NORESOURCE;
+
+		for (p = hdr; *p != '\0'; p++)
+		{
+			if (*p == '\n' && prev != '\r')		/* bare LF */
+			{
+				dkim_dstring_catn(tmphdr, CRLF, 2);
+			}
+			else if (prev == '\r' && *p != '\n')	/* bare CR */
+			{
+				dkim_dstring_cat1(tmphdr, '\n');
+				dkim_dstring_cat1(tmphdr, *p);
+			}
+			else					/* other */
+			{
+				dkim_dstring_cat1(tmphdr, *p);
+			}
+
+			prev = *p;
+		}
+
+		if (prev == '\r')				/* end CR */
+			dkim_dstring_cat1(tmphdr, '\n');
+
+		h->hdr_text = dkim_strdup(dkim, dkim_dstring_get(tmphdr),
+		                          dkim_dstring_len(tmphdr));
+
+		dkim_dstring_free(tmphdr);
+	}
+	else
+	{
+		h->hdr_text = dkim_strdup(dkim, hdr, len);
+	}
+
 	if (h->hdr_text == NULL)
 		return DKIM_STAT_NORESOURCE;
 	h->hdr_namelen = end != NULL ? end - hdr : len;
