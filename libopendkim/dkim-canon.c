@@ -1657,8 +1657,7 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 
 	dkim->dkim_bodylen += buflen;
 
-	fixcrlf = (dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_FIXCRLF) != 0 &&
-	          (dkim->dkim_mode == DKIM_MODE_SIGN);
+	fixcrlf = (dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_FIXCRLF);
 
 	for (cur = dkim->dkim_canonhead; cur != NULL; cur = cur->canon_next)
 	{
