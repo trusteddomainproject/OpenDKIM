@@ -2,7 +2,9 @@
 #
 # $Id: Makefile.am,v 1.13 2010/10/25 17:13:17 cm-msk Exp $
 
+if LIVE_TESTS
 SUBDIRS = tests
+endif
 
 lib_LTLIBRARIES = libar.la
 libar_la_SOURCES = ar.c ar-socket.c ar-strl.c manual.c ar-socket.h ar-strl.h manual.h
