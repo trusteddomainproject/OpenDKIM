@@ -27,16 +27,6 @@ unsigned char *
 .B rbl
 );
 
-RBL_STAT
-.B rbl_getheader
-(RBL *
-.B rbl,
-unsigned char *
-.B hdr,
-size_t
-.B len
-);
-
 void
 .B rbl_setdomain
 (RBL *
@@ -51,7 +41,7 @@ RBL_STAT
 .B rbl,
 unsigned char *
 .B query,
-void *
+void **
 .B qh
 );
 
