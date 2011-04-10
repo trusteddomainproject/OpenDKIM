@@ -1463,6 +1463,7 @@ extern DKIM_STAT dkim_set_margin __P((DKIM *dkim, int value));
 
 /*
 **  DKIM_GET_REPUTATION -- query reputation service about a signature
+**                         (OBSOLETE; moved to libdkimrep)
 **
 **  Parameters:
 **  	dkim -- DKIM handle
@@ -1471,10 +1472,6 @@ extern DKIM_STAT dkim_set_margin __P((DKIM *dkim, int value));
 **  	rep -- integer reputation (returned)
 **
 **  Return value:
-**  	DKIM_STAT_OK -- "rep" now contains a reputation
-**  	DKIM_STAT_NOKEY -- no reputation data available
-**  	DKIM_STAT_CANTVRFY -- data retrieval error of some kind
-**  	DKIM_STAT_INTERNAL -- internal error of some kind
 **  	DKIM_STAT_NOTIMPLEMENT -- not implemented
 */
 
