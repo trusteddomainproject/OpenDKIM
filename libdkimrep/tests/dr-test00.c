@@ -23,7 +23,9 @@ static char dr_test00_c_id[] = "@(#)$Id: t-test124.c,v 1.2 2009/12/08 19:14:27 c
 #include "dkim-rep.h"
 
 #define	DKIM_REP_ROOT	"al.dkim-reputation.org"
-#define	TESTDOMAIN	"freelotto.com"
+#define	TESTDOMAIN	"example.com"
+#define	TESTUSER1	"good"
+#define	TESTUSER2	"bad"
 
 /*
 **  MAIN -- program mainline
@@ -48,14 +50,14 @@ main(int argc, char **argv)
 	(void) gnutls_global_init();
 #endif /* USE_GNUTLS */
 
-	printf("*** checking reputation for \"%s\"\n", TESTDOMAIN);
+	printf("*** basic reputation checks\n");
 
 	dr = dkim_rep_init(NULL, NULL, NULL);
 	assert(dr != NULL);
 
 	dkim_rep_setdomain(dr, DKIM_REP_ROOT);
 
-	status = dkim_rep_query_start(dr, "user", TESTDOMAIN,
+	status = dkim_rep_query_start(dr, TESTUSER1, TESTDOMAIN,
 	                              TESTDOMAIN, &qh);
 	assert(status == DKIM_REP_DNS_SUCCESS);
 	assert(qh != NULL);
@@ -65,9 +67,25 @@ main(int argc, char **argv)
 
 	rep = 0;
 	status = dkim_rep_query_check(dr, qh, &timeout, &rep);
-	assert(status == DKIM_REP_DNS_SUCCESS);
+	assert(status == DKIM_REP_STAT_FOUND);
 
-	printf("--- \"%s\" reputation %d\n", TESTDOMAIN, rep);
+	printf("--- %s@%s d=%s reputation %d\n", TESTUSER1, TESTDOMAIN,
+	       TESTDOMAIN, rep);
+
+	status = dkim_rep_query_start(dr, TESTUSER2, TESTDOMAIN,
+	                              TESTDOMAIN, &qh);
+	assert(status == DKIM_REP_DNS_SUCCESS);
+	assert(qh != NULL);
+
+	timeout.tv_sec = 5;
+	timeout.tv_usec = 5;
+
+	rep = 0;
+	status = dkim_rep_query_check(dr, qh, &timeout, &rep);
+	assert(status == DKIM_REP_STAT_FOUND);
+
+	printf("--- %s@%s d=%s reputation %d\n", TESTUSER2, TESTDOMAIN,
+	       TESTDOMAIN, rep);
 
 	dkim_rep_close(dr);
 
