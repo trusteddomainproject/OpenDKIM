@@ -3663,12 +3663,20 @@ dkimf_xs_getreputation(lua_State *l)
 	}
 	else
 	{
+# ifdef _FFR_DKIM_REPUTATION
 		DKIM_REP dr;
 
 		dr = dkim_rep_init(NULL, NULL, NULL);
 		if (dr != NULL)
 		{
 			void *qh;
+
+#  ifdef USE_ARLIB
+			dkimf_rep_arlib_setup(dr, conf->conf_arlib);
+#  endif /* USE_ARLIB */
+#  ifdef USE_UNBOUND
+			dkimf_rep_unbound_setup(dr, conf->conf_unbound);
+#  endif /* USE_UNBOUND */
 
 			if (strlen(qroot) != 0)
 				dkim_rep_setdomain(dr, qroot);
@@ -3702,6 +3710,9 @@ dkimf_xs_getreputation(lua_State *l)
 		}
 
 		lua_pushnil(l);
+# else /* _FFR_DKIM_REPUTATION */
+		lua_pushnil(l);
+# endif /* _FFR_DKIM_REPUTATION */
 	}
 
 	return 1;
@@ -13870,6 +13881,15 @@ mlfi_eom(SMFICTX *ctx)
 				else
 				{
 					void *qh;
+
+# ifdef USE_ARLIB
+					dkimf_rep_arlib_setup(dr,
+					                      conf->conf_arlib);
+# endif /* USE_ARLIB */
+# ifdef USE_UNBOUND
+					dkimf_rep_unbound_setup(dr,
+					                        conf->conf_unbound);
+# endif /* USE_UNBOUND */
 
 					if (conf->conf_reproot != NULL)
 					{

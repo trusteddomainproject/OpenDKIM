@@ -127,6 +127,10 @@ if USE_ARLIB
 opendkim_testkey_CFLAGS += -I$(srcdir)/../libar
 opendkim_testkey_LDADD += ../libar/libar.la
 endif
+if DKIM_REPUTATION
+opendkim_testkey_CPPFLAGS += -I$(srcdir)/../libdkimrep
+opendkim_testkey_LDADD += ../libdkimrep/libdkimrep.la
+endif
 if RBL
 opendkim_testkey_CPPFLAGS += -I$(srcdir)/../librbl
 opendkim_testkey_LDADD += ../librbl/librbl.la
