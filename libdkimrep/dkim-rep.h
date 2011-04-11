@@ -20,6 +20,17 @@ typedef struct dkim_rep_handle * DKIM_REP;
 
 /* macros */
 #define	DKIM_REP_STAT_OK	0
+#define	DKIM_REP_STAT_SYNTAX	1
+#define	DKIM_REP_STAT_NOTFOUND	2
+#define	DKIM_REP_STAT_FOUND	3
+#define	DKIM_REP_STAT_ERROR	4
+#define	DKIM_REP_STAT_EXPIRED	5
+#define	DKIM_REP_STAT_NOREPLY	6
+
+#define	DKIM_REP_DNS_SUCCESS	0
+#define	DKIM_REP_DNS_ERROR	1
+#define	DKIM_REP_DNS_EXPIRED	2
+#define	DKIM_REP_DNS_NOREPLY	3
 
 /* prototypes */
 

@@ -57,18 +57,6 @@ static char dkim_rep_c_id[] = "@(#)$Id: dkim-rep.c,v 1.13 2010/10/04 04:37:26 cm
 #define	DKIM_REP_MAXERRORSTRING	256
 #define	DKIM_REP_MAXHOSTNAMELEN	256
 
-#define	DKIM_REP_STAT_SYNTAX	1
-#define	DKIM_REP_STAT_NOTFOUND	2
-#define	DKIM_REP_STAT_FOUND	3
-#define	DKIM_REP_STAT_ERROR	4
-#define	DKIM_REP_STAT_EXPIRED	5
-#define	DKIM_REP_STAT_NOREPLY	6
-
-#define	DKIM_REP_DNS_SUCCESS	0
-#define	DKIM_REP_DNS_ERROR	1
-#define	DKIM_REP_DNS_EXPIRED	2
-#define	DKIM_REP_DNS_NOREPLY	3
-
 #ifndef FALSE
 # define FALSE			0
 #endif /* ! FALSE */
@@ -489,12 +477,6 @@ DKIM_REP_STAT
 dkim_rep_query_start(DKIM_REP dr, u_char *user, u_char *domain,
                      u_char *signdomain, void **qh)
 {
-	assert(dr != NULL);
-	assert(user != NULL);
-	assert(domain != NULL);
-	assert(signdomain != NULL);
-	assert(qh != NULL);
-
 	int out;
 	size_t anslen;
 	int qdcount;
@@ -507,7 +489,8 @@ dkim_rep_query_start(DKIM_REP dr, u_char *user, u_char *domain,
 	uint32_t ttl;
 #endif /* QUERY_CACHE */
 	int error;
-	void *q;
+	struct dkim_rep_query *q;
+	void *rq;
 	char *eq;
 	char *e;
 #ifdef USE_GNUTLS
@@ -526,6 +509,16 @@ dkim_rep_query_start(DKIM_REP dr, u_char *user, u_char *domain,
 	unsigned char ansbuf[MAXPACKET];
 	char query[DKIM_REP_MAXHOSTNAMELEN + 1];
 	char qname[DKIM_REP_MAXHOSTNAMELEN + 1];
+
+	assert(dr != NULL);
+	assert(user != NULL);
+	assert(domain != NULL);
+	assert(signdomain != NULL);
+	assert(qh != NULL);
+
+	q = (struct dkim_rep_query *) malloc(sizeof(struct dkim_rep_query));
+	if (q == NULL)
+		return DKIM_REP_STAT_ERROR;
 
 	/* hash the values */
 	memset(md5_user_str, '\0', sizeof md5_user_str);
@@ -578,18 +571,21 @@ dkim_rep_query_start(DKIM_REP dr, u_char *user, u_char *domain,
 	anslen = sizeof ansbuf;
 
 	status = dr->dkim_rep_dns_start(dr->dkim_rep_dns_service, T_TXT,
-	                                query, ansbuf, anslen, &q);
+	                                query, q->drq_buf, sizeof q->drq_buf,
+	                                &rq);
 
 	if (status != 0)
 	{
 		snprintf(dr->dkim_rep_error, sizeof dr->dkim_rep_error,
 		         "DNS query for '%s' failed", query);
-		return -2;
+		return DKIM_REP_STAT_ERROR;
 	}
+
+	q->drq_qh = rq;
 
 	*qh = q;
 
-	return 0;
+	return DKIM_REP_STAT_OK;
 }
 
 /*
