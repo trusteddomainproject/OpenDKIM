@@ -22,7 +22,6 @@ static char dr_test00_c_id[] = "@(#)$Id: t-test124.c,v 1.2 2009/12/08 19:14:27 c
 /* libdkimrep includes */
 #include "dkim-rep.h"
 
-#define	DKIM_REP_ROOT	"al.dkim-reputation.org"
 #define	TESTDOMAIN	"example.com"
 #define	TESTUSER1	"good"
 #define	TESTUSER2	"bad"
@@ -54,8 +53,6 @@ main(int argc, char **argv)
 
 	dr = dkim_rep_init(NULL, NULL, NULL);
 	assert(dr != NULL);
-
-	dkim_rep_setdomain(dr, DKIM_REP_ROOT);
 
 	status = dkim_rep_query_start(dr, TESTUSER1, TESTDOMAIN,
 	                              TESTDOMAIN, &qh);

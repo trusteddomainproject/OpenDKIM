@@ -32,6 +32,8 @@ typedef struct dkim_rep_handle * DKIM_REP;
 #define	DKIM_REP_DNS_EXPIRED	2
 #define	DKIM_REP_DNS_NOREPLY	3
 
+#define	DKIM_REP_DEFROOT	"al.dkim-reputation.org"
+
 /* prototypes */
 
 /*

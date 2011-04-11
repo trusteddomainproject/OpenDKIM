@@ -392,6 +392,7 @@ dkim_rep_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	new->dkim_rep_dns_start = dkim_rep_res_query;
 	new->dkim_rep_dns_waitreply = dkim_rep_res_waitreply;
 	new->dkim_rep_dns_cancel = dkim_rep_res_cancel;
+	dkim_rep_setdomain(new, DKIM_REP_DEFROOT);
 
 	return new;
 }
