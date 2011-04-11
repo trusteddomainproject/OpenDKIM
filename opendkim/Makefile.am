@@ -69,6 +69,10 @@ if RBL
 opendkim_CPPFLAGS += -I$(srcdir)/../librbl
 opendkim_LDADD += ../librbl/librbl.la
 endif
+if DKIM_REPUTATION
+opendkim_CPPFLAGS += -I$(srcdir)/../libdkimrep
+opendkim_LDADD += ../libdkimrep/libdkimrep.la
+endif
 if VERIFY_DOMAINKEYS
 opendkim_CPPFLAGS += $(LIBDK_INCDIRS)
 opendkim_LDFLAGS += $(LIBDK_LIBDIRS)
