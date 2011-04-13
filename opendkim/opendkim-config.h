@@ -30,6 +30,7 @@ static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.32.10.1 2010/10
 /* config definition */
 struct configdef dkimf_config[] =
 {
+	{ "AddAllSignatureResults",	CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ADSPAction",			CONFIG_TYPE_STRING,	FALSE },
 	{ "ADSPNoSuchDomain",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AllowSHA1Only",		CONFIG_TYPE_BOOLEAN,	FALSE },

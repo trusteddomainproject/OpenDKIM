@@ -172,6 +172,7 @@ struct handling defaults =
 
 struct dkimf_config
 {
+	_Bool		conf_allsigs;		/* report on all signatures */
 	_Bool		conf_dnsconnect;	/* request TCP mode from DNS */
 	_Bool		conf_capture;		/* capture unknown errors */
 	_Bool		conf_restrace;		/* resolver tracing? */
@@ -5561,6 +5562,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 	if (data != NULL)
 	{
+		(void) config_get(data, "AddAllSignatureResults",
+		                  &conf->conf_allsigs,
+		                  sizeof conf->conf_allsigs);
+
 		(void) config_get(data, "DNSConnect",
 		                  &conf->conf_dnsconnect,
 		                  sizeof conf->conf_dnsconnect);
@@ -9568,6 +9573,49 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 }
 
 /*
+**  DKIMF_AR_ALL_SIGS -- append Authentication-Results items for all signatures
+**
+**  Parameters:
+**  	hdr -- header buffer
+** 	hdrlen -- size of header buffer
+**  	conf -- config object
+**  	dkim -- DKIM verification handle
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkimf_ar_all_sigs(char *hdr, size_t hdrlen, struct dkimf_config *conf,
+                  DKIM *dkim)
+{
+	int nsigs;
+	DKIM_STAT status;
+	DKIM_SIGINFO **sigs;
+
+	assert(hdr != NULL);
+	assert(conf != NULL);
+	assert(dkim != NULL);
+
+	status = dkim_getsiglist(dkim, &sigs, &nsigs);
+	if (status == DKIM_STAT_OK)
+	{
+		int c;
+		char *result;
+		char *dnssec;
+
+		for (c = 0; c < nsigs; c++)
+		{
+FINISH ME
+			result = 
+			dnssec = 
+
+			strlcat(...)
+		}
+	}
+}
+
+/*
 **  END private section
 **  ==================================================================
 **  BEGIN milter section
@@ -13050,7 +13098,18 @@ mlfi_eom(SMFICTX *ctx)
 			strlcat((char *) header, ";", sizeof header);
 			strlcat((char *) header, DELIMITER, sizeof header);
 
-			if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN)
+			if ((dfc->mctx_status == DKIMF_STATUS_GOOD ||
+			     dfc->mctx_status == DKIMF_STATUS_BAD ||
+			     dfc->mctx_status == DKIMF_STATUS_REVOKED ||
+			     dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
+			     dfc->mctx_status == DKIMF_STATUS_NOKEY ||
+			     dfc->mctx_status == DKIMF_STATUS_VERIFYERR) &&
+			    conf->conf_allsigs)
+			{
+				dkimf_ar_all_sigs(header, sizeof header,
+				                  conf, dfc->mctx_dkimv);
+			}
+			else if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN)
 			{
 				_Bool test;
 				u_int keybits;
