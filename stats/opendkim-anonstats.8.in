@@ -1,0 +1,47 @@
+.TH opendkim-anonstats 8 "The OpenDKIM Project"
+.SH NAME
+.B opendkim-anonstats
+- OpenDKIM statistics anonymization tool
+.SH SYNOPSIS
+.B opendkim-anonstats
+[options] [file]
+.SH DESCRIPTION
+.B opendkim-anonstats
+prepares a statistics report for submission by anonymizing domain names
+using a hash and some optional locally-provided data.
+
+Statistics are collected by the
+.I opendkim(8)
+filter into a local file.  Depending on the configuration of that program,
+the data may or may not have the domain names anonymized (hashed) to prepare
+for submission to a public database.  If a local site wishes to generate clear
+reports for local use and then hash them for public submission, this tool
+can be used for that purpose.
+
+The converted data are written to standard output.  If
+.I file
+is not specified, standard input is assumed.
+.SH OPTIONS
+.TP
+.I -p prefix
+Specifies a string to prefix to domain names being hashed.  This guarantees
+that reverse-engineering which domains are contained in the report is
+[approximately] impossible.  Without this, domain names are simply hashed
+which means they can be guessed easily if they are common, or eventually
+if brute-forced.  However, hashed domain names cannot be used for
+correlation between reporting sites, reducing the utility of the submitted
+data.
+
+This is the same thing that the
+.I StatisticsPrefix
+setting does in the filter's configuration file.
+.SH VERSION
+This man page covers the version of
+.I opendkim-anonstats
+that shipped with version @VERSION@ of
+.I OpenDKIM.
+.SH COPYRIGHT
+Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+.I opendkim(8),
+.I opendkim.conf(5)
