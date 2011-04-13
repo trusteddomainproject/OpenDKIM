@@ -9601,14 +9601,20 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, struct dkimf_config *conf,
 	if (status == DKIM_STAT_OK)
 	{
 		int c;
+		u_int keybits;
 		char *result;
 		char *dnssec;
+		char *domain;
+		char *hdrb;
 
 		for (c = 0; c < nsigs; c++)
 		{
 FINISH ME
 			result = 
 			dnssec = 
+			keybits = 
+			domain = 
+			hdrb = 
 
 			strlcat(...)
 		}
