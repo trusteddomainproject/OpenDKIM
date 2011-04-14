@@ -42,12 +42,8 @@ Release procedures for OpenDKIM
 7) Deploy all needed files to SourceForge by doing 'make push'.  This will
    also place the release tag.
 
-8) Via the SourceForge UI, do the following things to the new files:
-
-	a) mark RELEASE_NOTES as a release notes file by checking the box
-	b) make the latest tarball the default download for all operating
-	   systems
-	c) associate RELEASE_NOTES with the tarball
+8) Via the SourceForge UI, make the latest tarball the default download for
+   all operating systems.
 
 9) Send the release announcement:
 
