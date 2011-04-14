@@ -8424,7 +8424,7 @@ dkim_libfeature(DKIM_LIB *lib, u_int fc)
 **  	Library version, i.e. value of the OPENDKIM_LIB_VERSION macro.
 */
 
-unsigned long
+uint32_t
 dkim_libversion(void)
 {
 	return OPENDKIM_LIB_VERSION;

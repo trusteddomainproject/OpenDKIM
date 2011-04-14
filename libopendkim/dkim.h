@@ -1545,7 +1545,7 @@ extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
 **  	Library version, i.e. value of the OPENDKIM_LIB_VERSION macro.
 */
 
-extern unsigned long dkim_libversion __P((void));
+extern uint32_t dkim_libversion __P((void));
 
 /*
 **  DKIM_GET_SIGSUBSTRING -- retrieve a minimal signature substring for

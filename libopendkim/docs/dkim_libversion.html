@@ -13,10 +13,13 @@ $Id: dkim_libversion.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
 <pre>
 #include &lt;dkim.h&gt;
 
-unsigned long dkim_libversion(void);
+uint32_t dkim_libversion(void);
 
 </pre>
 Returns the version of the library against which an application was linked.
+The version is encoded as a four-octet integer, with the octets representing
+(from highest-order to lowest-order) the release number, the major version
+number, the minor version number, and the patch level.
 </td></tr>
 
 <!----------- Description ---------->
@@ -49,7 +52,7 @@ None.
 Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set
