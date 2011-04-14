@@ -57,11 +57,12 @@ The memory thus allocated will be deallocated by the library when the
     <tr valign="top"><td>buf</td>
 	<td>The address of a pointer that will be updated to reference
 	    a buffer into which the generated signature header was
-	    placed.
+	    placed.  The buffer is NUL-terminated.
 	</td></tr>
     <tr valign="top"><td>len</td>
 	<td>The address of an integer that will be updated to contain the
-	    length of the generated signature header.
+	    length of the generated signature header.  The length does not
+	    include the NUL byte at the end.
 	</td></tr>
     </table>
 </td></tr>
@@ -93,7 +94,7 @@ The memory thus allocated will be deallocated by the library when the
 Copyright (c) 2005, 2007 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set

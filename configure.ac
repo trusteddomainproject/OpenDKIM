@@ -15,7 +15,7 @@ AC_PREREQ(2.61)
 #
 m4_define([VERSION_RELEASE], 2)
 m4_define([VERSION_MAJOR_REV], 3)
-m4_define([VERSION_MINOR_REV], 1)
+m4_define([VERSION_MINOR_REV], 2)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -24,7 +24,7 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "revision" with internal source code changes
 #
 m4_define([LIBVERSION_CURRENT], 3)
-m4_define([LIBVERSION_REVISION], 2)
+m4_define([LIBVERSION_REVISION], 3)
 m4_define([LIBVERSION_AGE], 0)
 
 #
@@ -153,6 +153,7 @@ AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
 
 #
 # Checks for library functions.
@@ -244,6 +245,8 @@ AM_CONDITIONAL([ATPS], [test x"$enable_atps" = x"yes"])
 FFR_FEATURE([adsp_lists], [support for ADSP filtering for lists])
 
 FFR_FEATURE([bodylength_db], [support for body length DBs])
+
+FFR_FEATURE([db_handle_pools], [experimental database handle pools])
 
 FFR_FEATURE([diffheaders], [compare signed and verified headers when possible])
 LIB_FFR_FEATURE([diffheaders],
@@ -489,7 +492,8 @@ then
                          AC_MSG_ERROR([required GnuTLS header not found]))
 
 	AC_SEARCH_LIBS([gnutls_global_init], [gnutls], ,
-                       AC_MSG_ERROR([libgnutls not found]), [-lnettle -lgmp])
+                       AC_MSG_ERROR([libgnutls not found]),
+	               [-lnettle -lgmp -ldl])
 
 	LIBCRYPTO_CPPFLAGS="-I$gtpath/include"
 	LIBCRYPTO_LIBDIRS="-L$gtpath/lib"

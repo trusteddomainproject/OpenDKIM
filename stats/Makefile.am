@@ -1,4 +1,4 @@
-# Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+# Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 #
 # $Id: Makefile.am,v 1.7 2010/10/25 17:13:17 cm-msk Exp $
 
@@ -16,7 +16,7 @@ exampledir = @docdir@
 dist_example_DATA = mkdb.mysql
 
 dist_doc_DATA = README
-dist_bin_SCRIPTS = opendkim-genstats
+dist_bin_SCRIPTS = opendkim-gengraphs opendkim-genstats
 
 man_MANS = opendkim-importstats.8
 

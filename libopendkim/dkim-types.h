@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef _DKIM_TYPES_H_
@@ -127,7 +127,7 @@ struct dkim_siginfo
 	dkim_alg_t		sig_signalg;
 	dkim_canon_t		sig_hdrcanonalg;
 	dkim_canon_t		sig_bodycanonalg;
-	unsigned long long	sig_timestamp;
+	uint64_t		sig_timestamp;
 	u_char *		sig_domain;
 	u_char *		sig_selector;
 	u_char *		sig_sig;
@@ -277,9 +277,9 @@ struct dkim
 	size_t			dkim_b64siglen;
 	size_t			dkim_keylen;
 	size_t			dkim_errlen;
-	time_t			dkim_timestamp;
+	uint64_t		dkim_timestamp;
 #ifdef _FFR_PARSE_TIME
-	time_t			dkim_msgdate;
+	uint64_t		dkim_msgdate;
 #endif /* _FFR_PARSE_TIME */
 	dkim_query_t		dkim_querymethod;
 	dkim_canon_t		dkim_hdrcanonalg;
@@ -337,9 +337,9 @@ struct dkim_lib
 	u_int			dkiml_callback_int;
 	u_int			dkiml_flsize;
 	u_int			dkiml_nalwayshdrs;
-	time_t			dkiml_fixedtime;
-	unsigned long		dkiml_sigttl;
-	unsigned long		dkiml_clockdrift;
+	uint64_t		dkiml_fixedtime;
+	uint64_t		dkiml_sigttl;
+	uint64_t		dkiml_clockdrift;
 	dkim_query_t		dkiml_querymethod;
 	u_int *			dkiml_flist;
 	void *			(*dkiml_malloc) (void *closure, size_t nbytes);

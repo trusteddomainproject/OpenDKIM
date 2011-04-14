@@ -129,7 +129,7 @@ $MYSQL --execute="SELECT COUNT(*) AS 'l=0', pass FROM signatures JOIN messages O
 $MYSQL --execute="SELECT COUNT(*) AS 'l= < msgsize', pass FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE signatures.siglength >= 0 AND signatures.siglength < messages.size GROUP BY pass" >> $OUTPUT
 echo "" >> $OUTPUT
 
-echo '<a name="l_tag"></a>' >> $OUTPUT
+echo '<a name="i_tag"></a>' >> $OUTPUT
 echo "<p> Use of 'i=' tag: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(*) AS 'messages', CASE sig_i WHEN 0 THEN 'absent' WHEN 1 THEN 'matches d=' WHEN 2 THEN 'subdomain of d=' END AS 'i= domain', CASE sig_i_user WHEN 0 THEN 'absent' WHEN 1 THEN 'empty' WHEN 2 THEN 'matches From' WHEN 3 THEN 'does not match From' END AS 'i= local-part' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND sig_i >= 0 GROUP BY sig_i, sig_i_user" >> $OUTPUT
 echo "" >> $OUTPUT

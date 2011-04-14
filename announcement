@@ -1,49 +1,40 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.3.1 released
+Subject: OpenDKIM v2.3.2 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.3.1, now available
+The OpenDKIM project announces availability of OpenDKIM v2.3.2, now available
 for download from SourceForge.
 
-This is a minor tidy-up and bug fix release following 2.3.0.  You only 
-need to upgrade if you want to stay completely current or if one of the
-items listed below is causing you trouble.
+This is a bug fix release following 2.3.1.  Upgrade is recommended for
+all users, especially those running 2.3.1 which picked up a milter-related
+bug triggered by slow DNS responses.
 
 The full RELEASE_NOTES for this version:
 
-2.3.1		2011/03/28
-	Feature request #SF3196060: Log retrieved reputation values.
-		Patch from Andreas Schulze.
-	Feature request #SF3199824: Don't log "no signature data" unless
-		LogWhy is enabled or the action for unsigned mail is something
-		other than "accept".
-	Fix bug #SF3196069: Log more detail when dkimf_config_setlib() fails.
-		Problem noted by Andreas Schulze.
-	Fix bug #SF3197890: Update ARF report format for DKIM verification
-		failures to use what's in draft-ietf-dkim-marf-reporting.
-	Fix bug #SF3204725: Add "ReplaceHeaders" data set to constrain what
-		header fields are affected by "ReplaceRules".  Problem
-		noted by Chris Callegari.
-	Fix bug #SF3211114: Extract "BaseDirectory" from configuration
-		file properly.
-	Fix bug #SF3234178: Correct handling of a KeyTable entry for which the
-		key data is empty.  Based on a patch from Yoshiaki Yanagihara.
-	Patch #SF3205699: Make all header field name and domain name data
-		sets case insensitive.  Submitted by Richard Rognlie.
-	Add a case-insensitivity flag to odkim.db_open().
-	Minor correction to DNS function return codes for unbound, which
-		doesn't have an expired/no-reply distinction like libar does.
-	LIBOPENDKIM: Fix up timeout handling with a DNS callback is in use.
-	LIBOPENDKIM: Update for draft-kucherawy-dkim-atps-03.
-	STATS: Fix bug #SF3195449: Omit data from reporters that are not
-		currently marked "enabled" in the reporters table.
-	STATS: Evaluate "i=" against the "d=" domain, not the "From" domain.
-		Problem noted by Mark Martinec.
-	STATS: A few more reports.
-	MILTERTEST: Don't use non-standard printf() conversions.
-	MILTERTEST: Get the SMFIP_HDR_LEADSPC logic right.
-	TOOLS: Feature request #SF3200848: Add a backgrounding option
-		(on by default) to opendkim-spam.
+2.3.2		2011/04/14
+	Fix bug #SF3067338: Create a pool of DB handles for SQL operations
+		so that queries don't all share one serially.
+	Fix bug #SF3156559: Don't compile Lua scripts anew for each execution.
+	Fix bug #SF3210385: Fix issue with configuration reload failures
+		having some side effects on the remaining active configuration
+		handle.  Reported by Andreas Schulze.
+	Fix bug #SF3235131: Don't report ADSP errors as signature errors
+		in Authentication-Results header fields.
+	Fix bug #SF3258459: Don't send progress messages during EOH.  Problem
+		reported by Gary Mills.
+	Fix bug #SF3276469: When generating "z=" tags, apply omit and sign
+		header field lists.  Problem noted by Todd Lyons.
+	Add ADSP processing error information to A-R header fields.
+	LIBOPENDKIM: Use a time_t to store TTL and clock drift options
+		rather than unsigned long.  Patch from Piotr Sikora.
+	LIBAR: Include class and type in debugging messages.  Suggested
+		by Gary Mills.
+	LIBAR: Start the dispatcher on the first query, not in ar_init().
+		Allows ar_init() to be called before a fork() safely.
+	CONTRIB: Adjust installed path in RedHat start script.  Patch
+		from Naresh V.
+	CONTRIB: Require the current libopendkim in the opendkim definition
+		in the RPM spec file.  Patch from Naresh V.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,

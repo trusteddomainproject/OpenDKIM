@@ -5,6 +5,31 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.3.2		2011/04/14
+	Fix bug #SF3067338: Create a pool of DB handles for SQL operations
+		so that queries don't all share one serially.
+	Fix bug #SF3156559: Don't compile Lua scripts anew for each execution.
+	Fix bug #SF3210385: Fix issue with configuration reload failures
+		having some side effects on the remaining active configuration
+		handle.  Reported by Andreas Schulze.
+	Fix bug #SF3235131: Don't report ADSP errors as signature errors
+		in Authentication-Results header fields.
+	Fix bug #SF3258459: Don't send progress messages during EOH.  Problem
+		reported by Gary Mills.
+	Fix bug #SF3276469: When generating "z=" tags, apply omit and sign
+		header field lists.  Problem noted by Todd Lyons.
+	Add ADSP processing error information to A-R header fields.
+	LIBOPENDKIM: Use a time_t to store TTL and clock drift options
+		rather than unsigned long.  Patch from Piotr Sikora.
+	LIBAR: Include class and type in debugging messages.  Suggested
+		by Gary Mills.
+	LIBAR: Start the dispatcher on the first query, not in ar_init().
+		Allows ar_init() to be called before a fork() safely.
+	CONTRIB: Adjust installed path in RedHat start script.  Patch
+		from Naresh V.
+	CONTRIB: Require the current libopendkim in the opendkim definition
+		in the RPM spec file.  Patch from Naresh V.
+
 2.3.1		2011/03/28
 	Feature request #SF3196060: Log retrieved reputation values.
 		Patch from Andreas Schulze.

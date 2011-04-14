@@ -320,7 +320,7 @@ rbl_geterror(RBL *rbl)
 **
 **  Parameters:
 **  	rbl -- RBL handle, created by rbl_init()
-**  	qroot-- certifiers string
+**  	qroot -- query root
 **
 **  Return value:
 **  	None (yet).

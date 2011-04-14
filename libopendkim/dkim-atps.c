@@ -26,8 +26,17 @@ static char dkim_atps_c_id[] = "@(#)$Id$";
 #include "dkim-types.h"
 #include "util.h"
 
+#ifdef USE_GNUTLS
+/* GnuTLS includes */
+# include <gnutls/gnutls.h>
+# include <gnutls/crypto.h>
+# ifndef SHA_DIGEST_LENGTH
+#  define SHA_DIGEST_LENGTH 20
+# endif /* ! SHA_DIGEST_LENGTH */
+#else /* USE_GNUTLS */
 /* openssl includes */
-#include <openssl/sha.h>
+# include <openssl/sha.h>
+#endif /* USE_GNUTLS */
 
 /* prototypes */
 extern void dkim_error __P((DKIM *, const char *, ...));
@@ -82,7 +91,11 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	u_char *p;
 	u_char *cp;
 	u_char *eom;
+#ifdef USE_GNUTLS
+	gnutls_hash_hd_t ctx;
+#else /* USE_GNUTLS */
         SHA_CTX ctx;
+#endif /* USE_GNUTLS */
 	struct timeval to;
 	HEADER hdr;
 	u_char ansbuf[MAXPACKET];
@@ -105,9 +118,16 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 		return DKIM_STAT_INVALID;
 
 	/* construct a SHA1 hash of the signing domain */
+# ifdef USE_GNUTLS
+	if (gnutls_hash_init(&ctx, GNUTLS_DIG_SHA1) != 0 ||
+	    gnutls_hash(ctx, sdomain, strlen(sdomain)) != 0)
+		return DKIM_STAT_INTERNAL;
+	gnutls_hash_deinit(ctx, digest);
+# else /* USE_GNUTLS */
 	SHA1_Init(&ctx);
 	SHA1_Update(&ctx, sdomain, strlen(sdomain));
 	SHA1_Final(digest, &ctx);
+# endif /* USE_GNUTLS */
 
 	/* base32-encode the hash */
 	memset(b32, '\0', sizeof b32);

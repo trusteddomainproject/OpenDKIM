@@ -74,6 +74,9 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 /* macros */
 #define	BUFRSZ			1024
 #define	DEFARRAYSZ		16
+#ifdef _FFR_DB_HANDLE_POOLS
+# define DEFPOOLMAX		10
+#endif /* _FFR_DB_HANDLE_POOLS */
 #define DKIMF_DB_DEFASIZE	8
 #define DKIMF_DB_MODE		0644
 #define DKIMF_LDAP_MAXURIS	8
@@ -95,6 +98,8 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #ifndef MAX
 # define MAX(x,y)	((x) > (y) ? (x) : (y))
 #endif /* ! MAX */
+
+#define STRORNULL(x)	((x)[0] == '\0' ? NULL : (x))
 
 #ifdef USE_DB
 # ifndef DB_NOTFOUND
@@ -218,6 +223,7 @@ struct dkimf_db_ldap_cache
 struct dkimf_db_lua
 {
 	char *			lua_script;
+	size_t			lua_scriptlen;
 	char *			lua_error;
 };
 #endif /* USE_LUA */
@@ -281,7 +287,7 @@ dkimf_db_hp_new(u_int type, u_int max, void *hdata)
 {
 	struct handle_pool *new;
 
-	new = (struct handle_pool *) malloc(*new);
+	new = (struct handle_pool *) malloc(sizeof *new);
 	if (new != NULL)
 	{
 		new->hp_alloc = 0;
@@ -350,7 +356,7 @@ dkimf_db_hp_free(struct handle_pool *pool)
 **
 **  Parameters:
 **  	pool -- pool from which to get a handle
-**  	err -- error string (returned)
+**  	err -- error code (returned)
 **
 **  Return value:
 **  	A handle appropriate to the associated DB type that is not currently
@@ -358,7 +364,7 @@ dkimf_db_hp_free(struct handle_pool *pool)
 */
 
 static void *
-dkimf_db_hp_get(struct hp_pool *pool, char **err)
+dkimf_db_hp_get(struct handle_pool *pool, int *err)
 {
 	void *ret;
 
@@ -409,13 +415,10 @@ dkimf_db_hp_get(struct hp_pool *pool, char **err)
 				if (dberr < 0)
 				{
 					if (err != NULL)
-					{
-						*err = (char *) odbx_error(NULL,
-						                           dberr);
-					}
+						*err = dberr;
 
 					(void) odbx_finish(odbx);
-					ptrhead_mutex_unlock(&pool->hp_lock);
+					pthread_mutex_unlock(&pool->hp_lock);
 
 					return NULL;
 				}
@@ -428,18 +431,17 @@ dkimf_db_hp_get(struct hp_pool *pool, char **err)
 				if (dberr < 0)
 				{
 					if (err != NULL)
-					{
-						*err = (char *) odbx_error(odbx,
-						                           dberr);
-					}
+						*err = dberr;
 
 					(void) odbx_finish(odbx);
-					ptrhead_mutex_unlock(&pool->hp_lock);
+					pthread_mutex_unlock(&pool->hp_lock);
 
 					return NULL;
 				}
 
 				ret = odbx;
+
+				break;
 			  }
 #endif /* USE_ODBX */
 
@@ -456,7 +458,7 @@ dkimf_db_hp_get(struct hp_pool *pool, char **err)
 		}
 
 		/* already full; wait for one */
-		pthread_cond_wait(&pool->hp_lock, &pool->hp_signal);
+		pthread_cond_wait(&pool->hp_signal, &pool->hp_lock);
 	}
 }
 
@@ -496,7 +498,7 @@ dkimf_db_hp_dead(struct handle_pool *pool)
 */
 
 static void
-dkimf_db_hp_put(struct hp_pool *pool, void *handle)
+dkimf_db_hp_put(struct handle_pool *pool, void *handle)
 {
 	assert(pool != NULL);
 	assert(handle != NULL);
@@ -1800,11 +1802,23 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 				*err = strerror(EINVAL);
 			free(dsn);
 			free(tmp);
+			free(new);
 			return -1;
 		}
 
-# define STRORNULL(x)	((x)[0] == '\0' ? NULL : (x))
-
+# ifdef _FFR_DB_HANDLE_POOLS
+		new->db_handle = dkimf_db_hp_new(new->db_type,
+		                                 DEFPOOLMAX, dsn);
+		if (new == NULL)
+		{
+			if (err != NULL)
+				*err = strerror(errno);
+			free(dsn);
+			free(tmp);
+			free(new);
+			return -1;
+		}
+# else /* _FFR_DB_HANDLE_POOLS */
 		/* create odbx handle */
 		dberr = odbx_init(&odbx,
 		                  STRORNULL(dsn->dsn_backend),
@@ -1837,10 +1851,13 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 
 		/* store handle */
 		new->db_handle = (void *) odbx;
+# endif /* _FFR_DB_HANDLE_POOLS */
+
 		new->db_data = (void *) dsn;
 
 		/* clean up */
 		free(tmp);
+
 		break;
 	  }
 #endif /* USE_ODBX */
@@ -2147,7 +2164,9 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 	  {
 		int fd;
 		ssize_t rlen;
+		char *tmp;
 		struct stat s;
+		struct dkimf_lua_script_result lres;
 		struct dkimf_db_lua *lua;
 
 		fd = open(p, O_RDONLY);
@@ -2176,8 +2195,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		memset(lua, '\0', sizeof *lua);
 		new->db_data = (void *) lua;
 
-		lua->lua_script = (void *) malloc(s.st_size + 1);
-		if (lua->lua_script == NULL)
+		tmp = (void *) malloc(s.st_size + 1);
+		if (tmp == NULL)
 		{
 			if (err != NULL)
 				*err = strerror(errno);
@@ -2185,9 +2204,9 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			close(fd);
 			return -1;
 		}
-		memset(lua->lua_script, '\0', s.st_size + 1);
+		memset(tmp, '\0', s.st_size + 1);
 
-		rlen = read(fd, lua->lua_script, s.st_size);
+		rlen = read(fd, tmp, s.st_size);
 		if (rlen < s.st_size)
 		{
 			if (err != NULL)
@@ -2197,11 +2216,27 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 				else
 					*err = "Read truncated";
 			}
-			free(lua->lua_script);
+			free(tmp);
 			free(new->db_data);
 			close(fd);
 			return -1;
 		}
+
+		close(fd);
+
+		/* try to compile it */
+		if (dkimf_lua_db_hook(tmp, 0, NULL, &lres, 
+		                      (void *) &lua->lua_script,
+		                      &lua->lua_scriptlen) != 0)
+		{
+			if (err != NULL)
+				*err = "Lua compilation error";
+			free(tmp);
+			free(new->db_data);
+			return -1;
+		}
+
+		free(tmp);
 	  }
 #endif /* USE_LUA */
 	}
@@ -2864,12 +2899,22 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		int rowcnt = 0;
 		u_long elen;
 		odbx_result_t *result;
+		odbx_t *odbx = NULL;
 		struct dkimf_db_dsn *dsn;
 		char query[BUFRSZ];
 		char escaped[BUFRSZ];
 
 		dsn = (struct dkimf_db_dsn *) db->db_data;
 
+# ifdef _FFR_DB_HANDLE_POOLS
+		odbx = dkimf_db_hp_get((struct handle_pool *) db->db_handle,
+		                       &err);
+		if (odbx == NULL)
+		{
+			db->db_status = err;
+			return -1;
+		}
+# else /* _FFR_DB_HANDLE_POOLS */
 		if (db->db_lock != NULL)
 			(void) pthread_mutex_lock(db->db_lock);
 
@@ -2902,9 +2947,13 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			db->db_iflags &= ~DKIMF_DB_IFLAG_RECONNECT;
 		}
 
+		odbx = (odbx_t *) db->db_handle;
+
+# endif /* _FFR_DB_HANDLE_POOLS */
+
 		memset(&elen, '\0', sizeof elen);
 		elen = sizeof escaped - 1;
-		err = odbx_escape((odbx_t *) db->db_handle, buf,
+		err = odbx_escape(odbx, buf,
 		                  (buflen == 0 ? strlen(buf) : buflen),
 		                  escaped, &elen);
 		if (err < 0)
@@ -2912,6 +2961,12 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			db->db_status = err;
 			if (db->db_lock != NULL)
 				(void) pthread_mutex_unlock(db->db_lock);
+
+# ifdef _FFR_DB_HANDLE_POOLS
+			dkimf_db_hp_put((struct handle_pool *) db->db_handle,
+			                (void *) odbx);
+# endif /* _FFR_DB_HANDLE_POOLS */
+
 			return err;
 		}
 
@@ -2921,7 +2976,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		         dsn->dsn_table,
 		         dsn->dsn_keycol, escaped);
 
-		err = odbx_query((odbx_t *) db->db_handle, query, 0);
+		err = odbx_query(odbx, query, 0);
 		if (err < 0)
 		{
 			int status;
@@ -2932,18 +2987,22 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			{
 				if (db->db_lock != NULL)
 					(void) pthread_mutex_unlock(db->db_lock);
+# ifdef _FFR_DB_HANDLE_POOLS
+				dkimf_db_hp_put((struct handle_pool *) db->db_handle,
+				                (void *) odbx);
+# endif /* _FFR_DB_HANDLE_POOLS */
+
 				return err;
 			}
 
-			status = odbx_error_type((odbx_t *) db->db_handle, err);
+			status = odbx_error_type(odbx, err);
 
 #ifdef _FFR_POSTGRESQL_RECONNECT_HACK
 			if (status >= 0)
 			{
 				const char *estr;
 
-				estr = odbx_error((odbx_t *) db->db_handle,
-		                                  db->db_status);
+				estr = odbx_error(odbx, db->db_status);
 
 				if (estr != NULL &&
 				    strncmp(estr, "FATAL:", 6) == 0)
@@ -2953,11 +3012,18 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 			if (status < 0)
 			{
-				(void) odbx_unbind((odbx_t *) db->db_handle);
-				(void) odbx_finish((odbx_t *) db->db_handle);
+				(void) odbx_unbind(odbx);
+				(void) odbx_finish(odbx);
+
+# ifdef _FFR_DB_HANDLE_POOLS
+				dkimf_db_hp_dead((struct handle_pool *) db->db_handle);
+# else /* _FFR_DB_HANDLE_POOLS */
 				db->db_iflags |= DKIMF_DB_IFLAG_RECONNECT;
+# endif /* _FFR_DB_HANDLE_POOLS */
+
 				if (db->db_lock != NULL)
 					(void) pthread_mutex_unlock(db->db_lock);
+
 				return dkimf_db_get(db, buf, buflen, req,
 				                    reqnum, exists);
 			}
@@ -2971,8 +3037,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		for (rescnt = 0; ; rescnt++)
 		{
-			err = odbx_result((odbx_t *) db->db_handle,
-			                  &result, NULL, 0);
+			err = odbx_result(odbx, &result, NULL, 0);
 			if (err < 0)
 			{
 				int status;
@@ -2982,19 +3047,21 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				{
 					if (db->db_lock != NULL)
 						(void) pthread_mutex_unlock(db->db_lock);
+# ifdef _FFR_DB_HANDLE_POOLS
+					dkimf_db_hp_put((struct handle_pool *) db->db_handle,
+					                (void *) odbx);
+# endif /* _FFR_DB_HANDLE_POOLS */
 					return err;
 				}
 
-				status = odbx_error_type((odbx_t *) db->db_handle,
-				                         err);
+				status = odbx_error_type(odbx, err);
 
 #ifdef _FFR_POSTGRESQL_RECONNECT_HACK
 				if (status >= 0)
 				{
 					const char *estr;
 
-					estr = odbx_error((odbx_t *) db->db_handle,
-			                                  db->db_status);
+					estr = odbx_error(odbx, db->db_status);
 
 					if (estr != NULL &&
 					    strncmp(estr, "FATAL:", 6) == 0)
@@ -3004,17 +3071,29 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 				if (status < 0)
 				{
-					(void) odbx_unbind((odbx_t *) db->db_handle);
-					(void) odbx_finish((odbx_t *) db->db_handle);
+					(void) odbx_unbind(odbx);
+					(void) odbx_finish(odbx);
+
+# ifdef _FFR_DB_HANDLE_POOLS
+					dkimf_db_hp_dead((struct handle_pool *) db->db_handle);
+# else /* _FFR_DB_HANDLE_POOLS */
 					db->db_iflags |= DKIMF_DB_IFLAG_RECONNECT;
+# endif /* _FFR_DB_HANDLE_POOLS */
+
 					if (db->db_lock != NULL)
 						(void) pthread_mutex_unlock(db->db_lock);
+
 					return dkimf_db_get(db, buf, buflen, req,
 					                    reqnum, exists);
 				}
 
 				if (db->db_lock != NULL)
 					(void) pthread_mutex_unlock(db->db_lock);
+# ifdef _FFR_DB_HANDLE_POOLS
+				dkimf_db_hp_put((struct handle_pool *) db->db_handle,
+				                (void *) odbx);
+# endif /* _FFR_DB_HANDLE_POOLS */
+
 				return err;
 			}
 			else if (err == ODBX_RES_DONE)
@@ -3024,6 +3103,11 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				err = odbx_result_finish(result);
 				if (db->db_lock != NULL)
 					(void) pthread_mutex_unlock(db->db_lock);
+# ifdef _FFR_DB_HANDLE_POOLS
+				dkimf_db_hp_put((struct handle_pool *) db->db_handle,
+				                (void *) odbx);
+# endif /* _FFR_DB_HANDLE_POOLS */
+
 				return 0;
 			}
 
@@ -3036,6 +3120,10 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 					err = odbx_result_finish(result);
 					if (db->db_lock != NULL)
 						(void) pthread_mutex_unlock(db->db_lock);
+# ifdef _FFR_DB_HANDLE_POOLS
+					dkimf_db_hp_put((struct handle_pool *) db->db_handle,
+					                (void *) odbx);
+# endif /* _FFR_DB_HANDLE_POOLS */
 					return db->db_status;
 				}
 				else if (err == ODBX_RES_DONE)
@@ -3094,6 +3182,11 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		if (db->db_lock != NULL)
 			(void) pthread_mutex_unlock(db->db_lock);
+
+# ifdef _FFR_DB_HANDLE_POOLS
+		dkimf_db_hp_put((struct handle_pool *) db->db_handle,
+		                (void *) odbx);
+# endif /* _FFR_DB_HANDLE_POOLS */
 
 		return 0;
 	  }
@@ -3420,8 +3513,10 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		lua = (struct dkimf_db_lua *) db->db_data;
 
-		status = dkimf_lua_db_hook(lua->lua_script, (const char *) buf,
-		                           &lres);
+		status = dkimf_lua_db_hook((const char *) lua->lua_script,
+		                           lua->lua_scriptlen,
+		                           (const char *) buf, &lres,
+		                           NULL, NULL);
 		if (status != 0)
 			return -1;
 
@@ -3535,7 +3630,11 @@ dkimf_db_close(DKIMF_DB db)
 
 #ifdef USE_ODBX
 	  case DKIMF_DB_TYPE_DSN:
+# ifdef _FFR_DB_HANDLE_POOLS
+		dkimf_db_hp_free((struct handle_pool *) db->db_handle);
+# else /* _FFR_DB_HANDLE_POOLS */
 		(void) odbx_finish((odbx_t *) db->db_handle);
+# endif /* _FFR_DB_HANDLE_POOLS */
 		free(db->db_data);
 		free(db);
 		return 0;

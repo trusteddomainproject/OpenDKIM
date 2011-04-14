@@ -27,16 +27,6 @@ unsigned char *
 .B rbl
 );
 
-RBL_STAT
-.B rbl_getheader
-(RBL *
-.B rbl,
-unsigned char *
-.B hdr,
-size_t
-.B len
-);
-
 void
 .B rbl_setdomain
 (RBL *
@@ -51,7 +41,7 @@ RBL_STAT
 .B rbl,
 unsigned char *
 .B query,
-void *
+void **
 .B qh
 );
 
@@ -329,6 +319,6 @@ resolvers set an overall timeout for the query at start time in addition to
 one for each single wait request; this code indicates the former timeout
 expired.
 .SH COPYRIGHT
-Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I intro(2)

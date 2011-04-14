@@ -31,8 +31,17 @@ static char stats_c_id[] = "@(#)$Id: stats.c,v 1.27.2.1 2010/10/27 21:43:09 cm-m
 #include <ctype.h>
 #include <stdio.h>
 
+#ifdef USE_GNUTLS
+/* GnuTLS includes */
+# include <gnutls/gnutls.h>
+# include <gnutls/crypto.h>
+# ifndef MD5_DIGEST_LENGTH
+#  define MD5_DIGEST_LENGTH 16
+# endif /* ! MD5_DIGEST_LENGTH */
+#else /* USE_GNUTLS */
 /* libcrypto includes */
-#include <openssl/md5.h>
+# include <openssl/md5.h>
+#endif /* USE_GNUTLS */
 
 /* libopendkim includes */
 #include <dkim.h>
@@ -183,15 +192,32 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 
 	if (anon)
 	{
+#ifdef USE_GNUTLS
+		gnutls_hash_hd_t md5;
+#else /* USE_GNUTLS */
 		MD5_CTX md5;
+#endif /* USE_GNUTLS */
 		unsigned char *x;
 		unsigned char dig[MD5_DIGEST_LENGTH];
 
+#ifdef USE_GNUTLS
+		if (gnutls_hash_init(&md5, GNUTLS_DIG_MD5) == 0)
+		{
+			if (prefix != NULL)
+			{
+				gnutls_hash(md5, (void *) prefix,
+				            strlen(prefix));
+			}
+			gnutls_hash(md5, (void *) from, strlen(from));
+			gnutls_hash_deinit(md5, dig);
+		}
+#else /* USE_GNUTLS */
 		MD5_Init(&md5);
 		if (prefix != NULL)
 			MD5_Update(&md5, prefix, strlen(prefix));
 		MD5_Update(&md5, from, strlen((char *) from));
 		MD5_Final(dig, &md5);
+#endif /* USE_GNUTLS */
 
 		memset(tmp, '\0', sizeof tmp);
 
@@ -245,15 +271,32 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 	}
 	else
 	{
+#ifdef USE_GNUTLS
+		gnutls_hash_hd_t md5;
+#else /* USE_GNUTLS */
 		MD5_CTX md5;
+#endif /* USE_GNUTLS */
 		unsigned char *x;
 		unsigned char dig[MD5_DIGEST_LENGTH];
 
+#ifdef USE_GNUTLS
+		if (gnutls_hash_init(&md5, GNUTLS_DIG_MD5) == 0)
+		{
+			if (prefix != NULL)
+			{
+				gnutls_hash(md5, (void *) prefix,
+				            strlen(prefix));
+			}
+			gnutls_hash(md5, (void *) tmp, strlen(tmp));
+			gnutls_hash_deinit(md5, dig);
+		}
+#else /* USE_GNUTLS */
 		MD5_Init(&md5);
 		if (prefix != NULL)
 			MD5_Update(&md5, prefix, strlen(prefix));
 		MD5_Update(&md5, tmp, strlen(tmp));
 		MD5_Final(dig, &md5);
+#endif /* USE_GNUTLS */
 
 		memset(tmp, '\0', sizeof tmp);
 
@@ -385,15 +428,32 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		if (anon)
 		{
 			int n;
+#ifdef USE_GNUTLS
+			gnutls_hash_hd_t md5;
+#else /* USE_GNUTLS */
 			MD5_CTX md5;
+#endif /* USE_GNUTLS */
 			unsigned char *x;
 			unsigned char dig[MD5_DIGEST_LENGTH];
 
+#ifdef USE_GNUTLS
+			if (gnutls_hash_init(&md5, GNUTLS_DIG_MD5) == 0)
+			{
+				if (prefix != NULL)
+				{
+					gnutls_hash(md5, (void *) prefix,
+					            strlen(prefix));
+				}
+				gnutls_hash(md5, (void *) p, strlen(p));
+				gnutls_hash_deinit(md5, dig);
+			}
+#else /* USE_GNUTLS */
 			MD5_Init(&md5);
 			if (prefix != NULL)
 				MD5_Update(&md5, prefix, strlen(prefix));
 			MD5_Update(&md5, p, strlen(p));
 			MD5_Final(dig, &md5);
+#endif /* USE_GNUTLS */
 
 			memset(tmp, '\0', sizeof tmp);
 

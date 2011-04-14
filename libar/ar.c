@@ -114,6 +114,7 @@ typedef struct sockaddr SOCKADDR;
 
 struct ar_libhandle
 {
+	int			ar_drun;
 	int			ar_partwrite;
 	int			ar_fullwrite;
 	int			ar_nsfd;
@@ -1977,6 +1978,7 @@ ar_init(ar_malloc_t user_malloc, ar_free_t user_free, void *user_closure,
 	new->ar_free = user_free;
 	new->ar_closure = user_closure;
 	new->ar_flags = flags;
+	new->ar_drun = 0;
 	new->ar_nsfd = -1;
 	new->ar_nsfdpf = -1;
 	new->ar_tcpbuflen = 0;
@@ -2078,20 +2080,6 @@ ar_init(ar_malloc_t user_malloc, ar_free_t user_free, void *user_closure,
 
 	(void) pthread_mutex_init(&new->ar_lock, NULL);
 
-	status = pthread_create(&new->ar_dispatcher, NULL, ar_dispatcher, new);
-	if (status != 0)
-	{
-		TMP_CLOSE(new->ar_control[0]);
-		TMP_CLOSE(new->ar_control[1]);
-		TMP_CLOSE(new->ar_nsfd);
-
-		TMP_FREE(new->ar_querybuf);
-		TMP_FREE(new->ar_nsaddrs);
-		TMP_FREE(new);
-
-		return NULL;
-	}
-
 	return new;
 }
 
@@ -2117,7 +2105,11 @@ ar_shutdown(AR_LIB lib)
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
 		syslog(LOG_DEBUG, "arlib: shutting down");
 
-	status = pthread_join(lib->ar_dispatcher, NULL);
+	status = 0;
+
+	if (lib->ar_drun != 0)
+		status = pthread_join(lib->ar_dispatcher, NULL);
+
 	if (status == 0)
 	{
 		void *closure;
@@ -2139,13 +2131,13 @@ ar_shutdown(AR_LIB lib)
 		closure = lib->ar_closure;
 		user_free = lib->ar_free;
 
+		ar_socket_free(lib->ar_css);
+		ar_socket_free(lib->ar_dss);
+
 		if (user_free != NULL)
 			user_free(closure, lib);
 		else
 			free(lib);
-
-		ar_socket_free(lib->ar_css);
-		ar_socket_free(lib->ar_dss);
 	}
 
 #ifdef ARDEBUG
@@ -2321,6 +2313,23 @@ ar_addquery(AR_LIB lib, char *name, int class, int type, int depth,
 
 	pthread_mutex_lock(&lib->ar_lock);
 
+	/* start the dispatcher if it's not already running */
+	if (lib->ar_drun == 0)
+	{
+		status = pthread_create(&lib->ar_dispatcher, NULL,
+		                        ar_dispatcher, lib);
+		if (status != 0)
+		{
+			if (err != NULL)
+				*err = status;
+			errno = status;
+			pthread_mutex_unlock(&lib->ar_lock);
+			return NULL;
+		}
+
+		lib->ar_drun = 1;
+	}
+
 	if ((lib->ar_flags & AR_FLAG_DEAD) != 0)
 	{
 		if (err != NULL)
@@ -2396,7 +2405,10 @@ ar_addquery(AR_LIB lib, char *name, int class, int type, int depth,
 	wlen = ar_poke(lib);
 
 	if ((lib->ar_flags & AR_FLAG_TRACELOGGING) != 0)
-		syslog(LOG_DEBUG, "arlib: added query %p '%s'", q, q->q_name);
+	{
+		syslog(LOG_DEBUG, "arlib: added query %p %d/%d '%s'",
+		       q, q->q_class, q->q_type, q->q_name);
+	}
 
 	pthread_mutex_unlock(&lib->ar_lock);
 

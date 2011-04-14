@@ -36,6 +36,9 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 # include <netinet/in.h>
 # include <arpa/inet.h>
 #endif /* USE_LUA */
+#ifdef AF_INET6
+# include <arpa/inet.h>
+#endif /* AF_INET6 */
 #ifdef HAVE_STDBOOL_H
 # include <stdbool.h>
 #endif /* HAVE_STDBOOL_H */
@@ -230,6 +233,14 @@ struct dkimf_config
 	int		conf_adspaction;	/* apply ADSP "discardable"? */
 	size_t		conf_sigmin;		/* signature minimum */
 	size_t		conf_keylen;		/* size of secret key */
+#ifdef USE_LUA
+	size_t		conf_screenfuncsz;	/* screening function size */
+	size_t		conf_setupfuncsz;	/* setup function size */
+# ifdef _FFR_STATS
+	size_t		conf_statsfuncsz;	/* stats function size */
+# endif /* _FFR_STATS */
+	size_t		conf_finalfuncsz;	/* final function size */
+#endif /* USE_LUA */
 #ifdef _FFR_DKIM_REPUTATION
 	long		conf_repfail;		/* reputation "fail" limit */
 	long		conf_reppass;		/* reputation "pass" limit */
@@ -302,11 +313,15 @@ struct dkimf_config
 #endif /* USE_LDAP */
 #ifdef USE_LUA
 	char *		conf_screenscript;	/* Lua script: screening */
+	void *		conf_screenfunc;	/* Lua function: screening */
 	char *		conf_setupscript;	/* Lua script: setup */
+	void *		conf_setupfunc;		/* Lua function: setup */
 # ifdef _FFR_STATSEXT
 	char *		conf_statsscript;	/* Lua script: stats */
+	void *		conf_statsfunc;		/* Lua function: stats */
 # endif /* _FFR_STATSEXT */
 	char *		conf_finalscript;	/* Lua script: final */
+	void *		conf_finalfunc;		/* Lua function: final */
 #endif /* USE_LUA */
 #ifdef _FFR_REPLACE_RULES
 	char *		conf_rephdrs;		/* replacement headers */
@@ -317,7 +332,11 @@ struct dkimf_config
 #ifdef USE_UNBOUND
 	char *		conf_trustanchorpath;	/* unbound trust anchor file */
 	char *		conf_unboundconfig;	/* unbound config file */
+	struct dkimf_unbound * conf_unbound;	/* libunbound handle */
 #endif /* USE_UNBOUND */
+#ifdef USE_ARLIB
+	AR_LIB		conf_arlib;		/* libar handle */
+#endif /* USE_ARLIB */
 #ifdef _FFR_VBR
 	char *		conf_vbr_deftype;	/* default VBR type */
 	char *		conf_vbr_defcert;	/* default VBR certifiers */
@@ -375,6 +394,7 @@ struct dkimf_config
 typedef struct msgctx * msgctx;
 struct msgctx
 {
+	_Bool		mctx_eom;		/* in EOM? (enables progress) */
 	_Bool		mctx_addheader;		/* Authentication-Results: */
 	_Bool		mctx_headeronly;	/* in EOM, only add headers */
 #ifdef _FFR_BODYLENGTH_DB
@@ -700,12 +720,6 @@ char *progname;					/* program name */
 char *sock;					/* listening socket */
 char *conffile;					/* configuration file */
 struct dkimf_config *curconf;			/* current configuration */
-#ifdef USE_UNBOUND
-struct dkimf_unbound *unbound;			/* libunbound handle */
-#endif /* USE_UNBOUND */
-#ifdef USE_ARLIB
-AR_LIB arlib;					/* libar handle */
-#endif /* USE_ARLIB */
 #ifdef POPAUTH
 DKIMF_DB popdb;					/* POP auth DB */
 #endif /* POPAUTH */
@@ -1065,36 +1079,42 @@ dkimf_xs_rblcheck(lua_State *l)
 	const char *qroot = NULL;
 	void *qh;
 	RBL *rbl;
+	SMFICTX *ctx;
+	struct connctx *cc = NULL;
 	struct timeval to;
 
-	if (lua_gettop(l) < 2 || lua_gettop(l) > 3)
+	if (lua_gettop(l) < 3 || lua_gettop(l) > 4)
 	{
 		lua_pushstring(l,
 		               "odkim.rbl_check(): incorrect argument count");
 		lua_error(l);
 	}
-	else if (!lua_isstring(l, 1) ||
+	else if (!lua_isuserdata(l, 1) ||
 	         !lua_isstring(l, 2) ||
-	         (lua_gettop(l) == 3 && !lua_isnumber(l, 3)))
+	         !lua_isstring(l, 3) ||
+	         (lua_gettop(l) == 4 && !lua_isnumber(l, 4)))
 	{
 		lua_pushstring(l,
 		               "odkim.rbl_check(): incorrect argument type");
 		lua_error(l);
 	}
 
-	query = lua_tostring(l, 1);
-	qroot = lua_tostring(l, 2);
-	if (lua_gettop(l) == 3)
-		timeout = lua_tonumber(l, 3);
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	if (ctx != NULL)
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+	query = lua_tostring(l, 2);
+	qroot = lua_tostring(l, 3);
+	if (lua_gettop(l) == 4)
+		timeout = lua_tonumber(l, 4);
 	lua_pop(l, lua_gettop(l));
 
 #  ifdef USE_ARLIB
-	if (arlib == NULL)
+	if (cc == NULL || cc->cctx_config->conf_arlib == NULL)
 		return 0;
 #  endif /* USE_ARLIB */
 
 #  ifdef USE_UNBOUND
-	if (unbound == NULL)
+	if (cc == NULL || cc->cctx_config->conf_unbound == NULL)
 		return 0;
 #  endif /* USE_UNBOUND */
 
@@ -1107,11 +1127,11 @@ dkimf_xs_rblcheck(lua_State *l)
 	}
 
 #  ifdef USE_ARLIB
-	dkimf_rbl_arlib_setup(rbl, arlib);
+	dkimf_rbl_arlib_setup(rbl, cc->cctx_config->conf_arlib);
 #  endif /* USE_ARLIB */
 
 #  ifdef USE_UNBOUND
-	dkimf_rbl_unbound_setup(rbl, unbound);
+	dkimf_rbl_unbound_setup(rbl, cc->cctx_config->conf_unbound);
 #  endif /* USE_UNBOUND */
 
 	rbl_setdomain(rbl, (u_char *) qroot);
@@ -5394,17 +5414,36 @@ dkimf_config_free(struct dkimf_config *conf)
 #ifdef USE_LUA
 	if (conf->conf_setupscript != NULL)
 		free(conf->conf_setupscript);
+	if (conf->conf_setupfunc != NULL)
+		free(conf->conf_setupfunc);
 	if (conf->conf_screenscript != NULL)
 		free(conf->conf_screenscript);
+	if (conf->conf_screenfunc != NULL)
+		free(conf->conf_screenfunc);
 # ifdef _FFR_STATSEXT
 	if (conf->conf_statsscript != NULL)
 		free(conf->conf_statsscript);
+	if (conf->conf_statsfunc != NULL)
+		free(conf->conf_statsfunc);
 # endif /* _FFR_STATSEXT */
 	if (conf->conf_finalscript != NULL)
 		free(conf->conf_finalscript);
+	if (conf->conf_finalfunc != NULL)
+		free(conf->conf_finalfunc);
 #endif /* USE_LUA */
 
-	config_free(conf->conf_data);
+#ifdef USE_UNBOUND
+	if (conf->conf_unbound != NULL)
+		dkimf_unbound_close(conf->conf_unbound);
+#endif /* USE_UNBOUND */
+
+#ifdef USE_ARLIB
+	if (conf->conf_arlib != NULL)
+		ar_shutdown(conf->conf_arlib);
+#endif /* USE_ARLIB */
+
+	if (conf->conf_data != NULL)
+		config_free(conf->conf_data);
 
 	free(conf);
 }
@@ -6093,7 +6132,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			memset(&lres, '\0', sizeof lres);
 			if (dkimf_lua_setup_hook(NULL, conf->conf_setupscript,
-			                         str, &lres) != 0)
+			                         0, str, &lres,
+			                         &conf->conf_setupfunc,
+			                         &conf->conf_setupfuncsz) != 0)
 			{
 				strlcpy(err, lres.lrs_error, errlen);
 				free(lres.lrs_error);
@@ -6157,8 +6198,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			memset(&lres, '\0', sizeof lres);
 			if (dkimf_lua_screen_hook(NULL,
-			                          conf->conf_screenscript,
-			                          str, &lres) != 0)
+			                          conf->conf_screenscript, 0,
+			                          str, &lres,
+			                          &conf->conf_screenfunc,
+			                          &conf->conf_screenfuncsz) != 0)
 			{
 				strlcpy(err, lres.lrs_error, errlen);
 				free(lres.lrs_error);
@@ -6223,7 +6266,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			memset(&lres, '\0', sizeof lres);
 			if (dkimf_lua_stats_hook(NULL, conf->conf_statsscript,
-			                         str, &lres) != 0)
+			                         0, str, &lres,
+			                         &conf->conf_statsfunc,
+			                         &conf->conf_statsfuncsz) != 0)
 			{
 				strlcpy(err, lres.lrs_error, errlen);
 				free(lres.lrs_error);
@@ -6287,7 +6332,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			memset(&lres, '\0', sizeof lres);
 			if (dkimf_lua_final_hook(NULL, conf->conf_finalscript,
-			                         str, &lres) != 0)
+			                         0, str, &lres,
+			                         &conf->conf_finalfunc,
+			                         &conf->conf_finalfuncsz) != 0)
 			{
 				strlcpy(err, lres.lrs_error, errlen);
 				free(lres.lrs_error);
@@ -7404,50 +7451,72 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 	/* set the DNS callback */
 	(void) dkim_set_dns_callback(lib, dkimf_sendprogress, CBINTERVAL);
 
-#ifdef USE_UNBOUND
-	if (unbound != NULL)
+#ifdef USE_ARLIB
+	conf->conf_arlib = ar_init(NULL, NULL, NULL,
+	                           (curconf->conf_restrace ? AR_FLAG_TRACELOGGING
+	                                                   : 0) |
+	                           (curconf->conf_dnsconnect ? AR_FLAG_USETCP
+	                                                     : 0));
+	if (conf->conf_arlib == NULL)
 	{
-		if (conf->conf_trustanchorpath != NULL)
-		{
-			if (access(conf->conf_trustanchorpath, R_OK) != 0)
-			{
-				if (err != NULL)
-					*err = "can't access unbound trust anchor";
-				return FALSE;
-			}
+		if (err != NULL)
+			*err = "failed to initialize libar";
 
-			status = dkimf_unbound_add_trustanchor(unbound,
-			                                       conf->conf_trustanchorpath);
-			if (status != DKIM_STAT_OK)
-			{
-				if (err != NULL)
-					*err = "failed to add unbound trust anchor";
-				return FALSE;
-			}
-		}
-
-		if (conf->conf_unboundconfig != NULL)
-		{
-			if (access(conf->conf_unboundconfig, R_OK) != 0)
-			{
-				if (err != NULL)
-					*err = "can't access unbound configuration file";
-				return FALSE;
-			}
-
-			status = dkimf_unbound_add_conffile(unbound,
-			                                    conf->conf_unboundconfig);
-			if (status != DKIM_STAT_OK)
-			{
-				if (err != NULL)
-					*err = "failed to add unbound configuration file";
-			
-				return FALSE;
-			}
-		}
-
-		(void) dkimf_unbound_setup(lib, unbound);
+		return FALSE;
 	}
+
+	(void) dkimf_arlib_setup(lib, conf->conf_arlib);
+#endif /* USE_ARLIB */
+
+#ifdef USE_UNBOUND
+	if (dkimf_unbound_init(&conf->conf_unbound) != 0)
+	{
+		if (err != NULL)
+			*err = "failed to initialize libunbound";
+
+		return FALSE;
+	}
+
+	if (conf->conf_trustanchorpath != NULL)
+	{
+		if (access(conf->conf_trustanchorpath, R_OK) != 0)
+		{
+			if (err != NULL)
+				*err = "can't access unbound trust anchor";
+			return FALSE;
+		}
+
+		status = dkimf_unbound_add_trustanchor(conf->conf_unbound,
+		                                       conf->conf_trustanchorpath);
+		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to add unbound trust anchor";
+			return FALSE;
+		}
+	}
+
+	if (conf->conf_unboundconfig != NULL)
+	{
+		if (access(conf->conf_unboundconfig, R_OK) != 0)
+		{
+			if (err != NULL)
+				*err = "can't access unbound configuration file";
+			return FALSE;
+		}
+
+		status = dkimf_unbound_add_conffile(conf->conf_unbound,
+		                                    conf->conf_unboundconfig);
+		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to add unbound configuration file";
+		
+			return FALSE;
+		}
+	}
+
+	(void) dkimf_unbound_setup(lib, conf->conf_unbound);
 #endif /* USE_UNBOUND */
 
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_TIMEOUT,
@@ -7456,7 +7525,7 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 
 	if (conf->conf_clockdrift != 0)
 	{
-		time_t drift = (time_t) conf->conf_clockdrift;
+		uint64_t drift = conf->conf_clockdrift;
 
 		status = dkim_options(lib, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_CLOCKDRIFT, &drift,
@@ -7472,7 +7541,7 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 
 	if (conf->conf_sigttl != 0)
 	{
-		time_t sigtime = (time_t) conf->conf_sigttl;
+		uint64_t sigtime = conf->conf_sigttl;
 
 		status = dkim_options(lib, DKIM_OP_SETOPT,
 		                      DKIM_OPTS_SIGNATURETTL, &sigtime,
@@ -7776,6 +7845,7 @@ dkimf_config_reload(void)
 		u_int line;
 		struct config *cfg;
 		char *missing;
+		char *errstr = NULL;
 		char path[MAXPATHLEN + 1];
 
 		strlcpy(path, conffile, sizeof path);
@@ -7822,10 +7892,21 @@ dkimf_config_reload(void)
 			err = TRUE;
 		}
 
+		if (!err && !dkimf_config_setlib(new, &errstr))
+		{
+			if (curconf->conf_dolog)
+			{
+				syslog(LOG_WARNING,
+				       "can't configure DKIM library: %s; continuing",
+				       errstr);
+			}
+			config_free(cfg);
+			dkimf_config_free(new);
+			err = TRUE;
+		}
+
 		if (!err)
 		{
-			char *errstr = NULL;
-
 			if (curconf->conf_refcnt == 0)
 				dkimf_config_free(curconf);
 
@@ -7838,16 +7919,6 @@ dkimf_config_reload(void)
 				syslog(LOG_INFO,
 				       "configuration reloaded from %s",
 				       conffile);
-			}
-
-			if (!dkimf_config_setlib(curconf, &errstr))
-			{
-				if (curconf->conf_dolog)
-				{
-					syslog(LOG_WARNING,
-					       "can't configure DKIM library: %s; continuing",
-					       errstr);
-				}
 			}
 		}
 	}
@@ -7961,14 +8032,24 @@ dkimf_stdio(void)
 void
 dkimf_sendprogress(const void *ctx)
 {
-	assert(ctx != NULL);
+	if (ctx != NULL)
+	{
+		struct connctx *cc;
+		struct msgctx *dfc;
 
-	if (testmode)
-		(void) dkimf_test_progress((SMFICTX *) ctx);
+		cc = (struct connctx *) dkimf_getpriv((SMFICTX *) ctx);
+		dfc = cc->cctx_msg;
+
+		if (dfc->mctx_eom)
+		{
+			if (testmode)
+				(void) dkimf_test_progress((SMFICTX *) ctx);
 #ifdef HAVE_SMFI_PROGRESS
-	else
-		(void) smfi_progress((SMFICTX *) ctx);
+			else
+				(void) smfi_progress((SMFICTX *) ctx);
 #endif /* HAVE_SMFI_PROGRESS */
+		}
+	}
 }
 
 /*
@@ -10942,8 +11023,10 @@ mlfi_eoh(SMFICTX *ctx)
 
 		dfc->mctx_mresult = SMFIS_CONTINUE;
 
-		status = dkimf_lua_setup_hook(ctx, conf->conf_setupscript,
-		                              "setup script", &lres);
+		status = dkimf_lua_setup_hook(ctx, conf->conf_setupfunc,
+		                              conf->conf_setupfuncsz,
+		                              "setup script", &lres,
+		                              NULL, NULL);
 
 		if (status != 0)
 		{
@@ -11171,9 +11254,6 @@ mlfi_eoh(SMFICTX *ctx)
 			}
 		}
 	}
-
-	if (dfc->mctx_dkimv != NULL)
-		(void) dkim_set_user_context(dfc->mctx_dkimv, ctx);
 
 	/* if requested, verify RFC5322-required headers (RFC5322 3.6) */
 	if (conf->conf_reqhdrs)
@@ -11622,6 +11702,7 @@ mlfi_eoh(SMFICTX *ctx)
 		status = dkimf_msr_eoh(dfc->mctx_srhead, &lastdkim);
 	if (status == DKIM_STAT_OK && dfc->mctx_dkimv != NULL)
 	{
+		(void) dkim_set_user_context(dfc->mctx_dkimv, ctx);
 		lastdkim = dfc->mctx_dkimv;
 		status = dkim_eoh(dfc->mctx_dkimv);
 	}
@@ -11717,8 +11798,10 @@ mlfi_eoh(SMFICTX *ctx)
 
 		memset(&lres, '\0', sizeof lres);
 
-		status = dkimf_lua_screen_hook(ctx, conf->conf_screenscript,
-		                               "screen script", &lres);
+		status = dkimf_lua_screen_hook(ctx, conf->conf_screenfunc,
+		                               conf->conf_screenfuncsz,
+		                               "screen script", &lres,
+		                               NULL, NULL);
 
 		if (status != 0)
 		{
@@ -11953,6 +12036,8 @@ mlfi_eom(SMFICTX *ctx)
 	dfc = cc->cctx_msg;
 	assert(dfc != NULL);
 	conf = cc->cctx_config;
+
+	dfc->mctx_eom = TRUE;
 
 	/*
 	**  If necessary, try again to get the job ID in case it came down
@@ -12811,9 +12896,11 @@ mlfi_eom(SMFICTX *ctx)
 				memset(&lres, '\0', sizeof lres);
 
 				status = dkimf_lua_stats_hook(ctx,
-				                              conf->conf_statsscript,
+				                              conf->conf_statsfunc,
+				                              conf->conf_statsfuncsz,
 				                              "stats script",
-				                              &lres);
+				                              &lres,
+				                              NULL, NULL);
 
 				if (status != 0)
 				{
@@ -13068,11 +13155,17 @@ mlfi_eom(SMFICTX *ctx)
 					}
 					else if (dfc->mctx_status == DKIMF_STATUS_VERIFYERR)
 					{
+						int errcode;
 						const char *err;
+						DKIM_SIGINFO *sig;
 
 						authresult = "permerror";
 
-						err = dkim_geterror(dfc->mctx_dkimv);
+						sig = dkim_getsignature(dfc->mctx_dkimv);
+						assert(sig != NULL);
+
+						errcode = dkim_sig_geterror(sig);
+						err = dkim_sig_geterrorstr(errcode);
 						if (err != NULL)
 						{
 							snprintf(comment,
@@ -13242,8 +13335,21 @@ mlfi_eom(SMFICTX *ctx)
 				}
 				else if (!policydone)
 				{				/* temperror */
+					const char *err;
+
 					strlcat((char *) header, "temperror",
 					        sizeof header);
+
+					err = dkim_geterror(dfc->mctx_dkimv);
+					if (err != NULL)
+					{
+						strlcat((char *) header, " (",
+						        sizeof header);
+						strlcat((char *) header, err,
+						        sizeof header);
+						strlcat((char *) header, ")",
+						        sizeof header);
+					}
 				}
 #ifdef USE_UNBOUND
 				else if (dfc->mctx_dnssec_policy == DKIM_DNSSEC_BOGUS)
@@ -13291,8 +13397,21 @@ mlfi_eom(SMFICTX *ctx)
 				}
 				else
 				{
+					const char *err;
+
 					strlcat((char *) header, "permerror",
 					        sizeof header);
+
+					err = dkim_geterror(dfc->mctx_dkimv);
+					if (err != NULL)
+					{
+						strlcat((char *) header, " (",
+						        sizeof header);
+						strlcat((char *) header, err,
+						        sizeof header);
+						strlcat((char *) header, ")",
+						        sizeof header);
+					}
 				}
 
 #ifdef USE_UNBOUND
@@ -13868,8 +13987,10 @@ mlfi_eom(SMFICTX *ctx)
 
 		dfc->mctx_mresult = SMFIS_CONTINUE;
 
-		status = dkimf_lua_final_hook(ctx, conf->conf_finalscript,
-		                              "final script", &lres);
+		status = dkimf_lua_final_hook(ctx, conf->conf_finalfunc,
+		                              conf->conf_finalfuncsz,
+		                              "final script", &lres,
+		                              NULL, NULL);
 
 		if (status != 0)
 		{
@@ -14334,7 +14455,7 @@ main(int argc, char **argv)
 	u_int mvrelease;
 #endif /* HAVE_SMFI_VERSION */
 	sigset_t sigset;
-	time_t fixedtime = (time_t) -1;
+	uint64_t fixedtime = (uint64_t) -1;
 	time_t maxrestartrate_t = 0;
 	pthread_t rt;
 	unsigned long tmpl;
@@ -14448,7 +14569,8 @@ main(int argc, char **argv)
 				fixedtime = strtoul(optarg, &p, 10);
 			}
 
-			if (fixedtime == (time_t) ULONG_MAX || errno != 0 ||
+			if (fixedtime == (uint64_t) ULONG_MAX ||
+			    errno != 0 ||
 			    *p != '\0')
 			{
 				fprintf(stderr, "%s: invalid time value\n",
@@ -15232,6 +15354,14 @@ main(int argc, char **argv)
 
 	die = FALSE;
 
+	/* initialize DKIM library */
+	if (!dkimf_config_setlib(curconf, &p))
+	{
+		fprintf(stderr, "%s: can't configure DKIM library: %s\n",
+		        progname, p);
+		return EX_SOFTWARE;
+	}
+
 	if (autorestart)
 	{
 		_Bool quitloop = FALSE;
@@ -15584,16 +15714,6 @@ main(int argc, char **argv)
 		}
 	}
 
-#ifdef USE_UNBOUND
-	if (dkimf_unbound_init(&unbound) != 0)
-	{
-		if (curconf->conf_dolog)
-			syslog(LOG_ERR, "failed to initialize libunbound");
-
-		return EX_SOFTWARE;
-	}
-#endif /* USE_UNBOUND */
-
 	/* write out the pid */
 	if (!autorestart && pidfile != NULL)
 	{
@@ -15647,32 +15767,6 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s: error initializing crypto library: %s\n",
 		        progname, strerror(status));
 	}
-
-	/* initialize DKIM library */
-	if (!dkimf_config_setlib(curconf, &p))
-	{
-		if (curconf->conf_dolog)
-		{
-			syslog(LOG_WARNING,
-			       "can't configure DKIM library: %s; continuing",
-			       p);
-		}
-	}
-
-#ifdef USE_ARLIB
-	arlib = ar_init(NULL, NULL, NULL,
-	                (curconf->conf_restrace ? AR_FLAG_TRACELOGGING : 0) |
-	                (curconf->conf_dnsconnect ? AR_FLAG_USETCP : 0));
-	if (arlib == NULL)
-	{
-		if (curconf->conf_dolog)
-			syslog(LOG_ERR, "failed to initialize libar");
-
-		return EX_SOFTWARE;
-	}
-
-	(void) dkimf_arlib_setup(curconf->conf_libopendkim, arlib);
-#endif /* USE_ARLIB */
 
 	if ((curconf->conf_mode & DKIMF_MODE_VERIFIER) != 0 &&
 	    !dkim_libfeature(curconf->conf_libopendkim, DKIM_FEATURE_SHA256))
@@ -15953,10 +16047,6 @@ main(int argc, char **argv)
 		(void) unlink(pidfile);
 
 	dkimf_crypto_free();
-
-#ifdef USE_UNBOUND
-	dkimf_unbound_close(unbound);
-#endif /* USE_UNBOUND */
 
 	return status;
 }

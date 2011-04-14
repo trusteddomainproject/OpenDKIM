@@ -371,8 +371,7 @@ main(int argc, char **argv)
 #ifdef USE_GNUTLS
 		(void) gnutls_hash_init(&sha, GNUTLS_DIG_SHA1);
 		(void) gnutls_hash(sha, domain, strlen(domain));
-		(void) gnutls_hash_output(sha, shaout);
-		(void) gnutls_hash_deinit(sha);
+		(void) gnutls_hash_deinit(sha, shaout);
 #else /* USE_GNUTLS */
 		SHA1_Init(&sha);
 		SHA1_Update(&sha, domain, strlen(domain));

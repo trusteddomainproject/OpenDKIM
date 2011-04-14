@@ -46,7 +46,7 @@ main(int argc, char **argv)
 	u_int flags;
 #endif /* TEST_KEEP_FILES */
 	DKIM_STAT status;
-	unsigned long fixed_time;
+	uint64_t fixed_time;
 	DKIM *dkim;
 	DKIM_LIB *lib;
 	dkim_sigkey_t key;

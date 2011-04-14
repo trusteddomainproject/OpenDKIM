@@ -39,6 +39,8 @@ struct dkimf_lua_io
 {
 	_Bool		lua_io_done;
 	const char *	lua_io_script;
+	size_t		lua_io_len;
+	size_t		lua_io_alloc;
 };
 
 #ifdef DKIMF_LUA_CONTEXT_HOOKS
@@ -186,9 +188,62 @@ dkimf_lua_reader(lua_State *l, void *data, size_t *size)
 	else
 	{
 		io->lua_io_done = TRUE;
-		*size = strlen(io->lua_io_script);
+		*size = io->lua_io_len;
 		return io->lua_io_script;
 	}
+}
+
+/*
+**  DKIMF_LUA_WRITER -- extract a compiled script from a Lua state
+**
+**  Parameters:
+**  	l -- Lua state
+**  	buf -- buffer being written
+**  	sz -- size of buffer 
+**  	data -- pointer to a Lua I/O structure
+**
+**  Return value:
+**  	0 on success, !0 on error.
+*/
+
+static int
+dkimf_lua_writer(lua_State *l, const void *buf, size_t sz, void *data)
+{
+	struct dkimf_lua_io *io;
+
+	assert(l != NULL);
+	assert(buf != NULL);
+	assert(data != NULL);
+
+	io = (struct dkimf_lua_io *) data;
+
+	if (io->lua_io_alloc < io->lua_io_len + sz)
+	{
+		size_t newsz;
+		size_t need;
+		void *new;
+
+		newsz = io->lua_io_alloc;
+		need = io->lua_io_len + sz;
+		while (newsz < need)
+			newsz += BUFRSZ;
+
+		if (io->lua_io_alloc == 0)
+			new = malloc(newsz);
+		else
+			new = realloc((void *) io->lua_io_script, newsz);
+
+		if (new == NULL)
+			return -1;
+
+		io->lua_io_script = new;
+		io->lua_io_alloc = newsz;
+	}
+
+	memcpy((void *) (io->lua_io_script + io->lua_io_len), buf, sz);
+	io->lua_io_len += sz;
+
+	return 0;
 }
 
 /*
@@ -355,8 +410,11 @@ dkimf_lua_gc_cleanup(struct dkimf_lua_gc *gc)
 **  Parameters:
 **  	ctx -- session context, for making calls back to opendkim.c
 **  	script -- script to run
+**  	scriptlen -- length of script; if 0, use strlen()
 **  	name -- name of the script (for logging)
 **  	lres -- Lua result structure
+**  	keep -- where to save the script (or NULL)
+**  	funclen -- size of the saved object
 **
 **  Return value:
 **  	2 -- processing error
@@ -370,16 +428,12 @@ dkimf_lua_gc_cleanup(struct dkimf_lua_gc *gc)
 ** 
 **  Notes:
 **  	Called by mlfi_eoh() so it can decide what signature(s) to apply.
-**
-**  	Will require the ability to access databases, i.e. the
-**  	dkimf_db_*() functions and the "conf" handle that contains
-**  	references to available databases.  opendkim.c will need to export
-**  	some functions for getting DB handles for this purpose.
 */
 
 int
-dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
-                     struct dkimf_lua_script_result *lres)
+dkimf_lua_setup_hook(void *ctx, const char *script, size_t scriptlen,
+                     const char *name, struct dkimf_lua_script_result *lres,
+                     void **keep, size_t *funclen)
 {
 	int status;
 	lua_State *l = NULL;
@@ -391,6 +445,10 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 
 	io.lua_io_done = FALSE;
 	io.lua_io_script = script;
+	if (scriptlen == 0)
+		io.lua_io_len = strlen(script);
+	else
+		io.lua_io_len = scriptlen;
 
 	gc.gc_head = NULL;
 	gc.gc_tail = NULL;
@@ -463,6 +521,20 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 		assert(0);
 	}
 
+	if (keep != NULL && funclen != NULL)
+	{
+		io.lua_io_done = FALSE;
+		io.lua_io_script = NULL;
+		io.lua_io_len = 0;
+		io.lua_io_alloc = 0;
+
+		if (lua_dump(l, dkimf_lua_writer, &io) == 0)
+		{
+			*keep = (void *) io.lua_io_script;
+			*funclen = io.lua_io_len;
+		}
+	}
+
 	status = lua_pcall(l, 0, LUA_MULTRET, 0);
 	if (lua_isstring(l, 1))
 		lres->lrs_error = strdup(lua_tostring(l, 1));
@@ -482,8 +554,11 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 **  Parameters:
 **  	ctx -- session context, for making calls back to opendkim.c
 **  	script -- script to run
+**  	scriptlen -- length of script; if 0, use strlen()
 **  	name -- name of the script (for logging)
 **  	lres -- Lua result structure
+**  	keep -- where to save the script (or NULL)
+**  	funclen -- size of the saved object
 **
 **  Return value:
 **  	2 -- processing error
@@ -494,16 +569,12 @@ dkimf_lua_setup_hook(void *ctx, const char *script, const char *name,
 **  Notes:
 **  	Called by mlfi_eom() so it can decide whether or not the message
 **  	is acceptable.
-**
-**  	Will require the ability to access databases, i.e. the
-**  	dkimf_db_*() functions and the "conf" handle that contains
-**  	references to available databases.  opendkim.c will need to export
-**  	some functions for getting DB handles for this purpose.
 */
 
 int
-dkimf_lua_screen_hook(void *ctx, const char *script,
-                      const char *name, struct dkimf_lua_script_result *lres)
+dkimf_lua_screen_hook(void *ctx, const char *script, size_t scriptlen,
+                      const char *name, struct dkimf_lua_script_result *lres,
+                      void **keep, size_t *funclen)
 {
 	int status;
 	lua_State *l = NULL;
@@ -515,6 +586,10 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 
 	io.lua_io_done = FALSE;
 	io.lua_io_script = script;
+	if (scriptlen == 0)
+		io.lua_io_len = strlen(script);
+	else
+		io.lua_io_len = scriptlen;
 
 	gc.gc_head = NULL;
 	gc.gc_tail = NULL;
@@ -577,6 +652,20 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 		assert(0);
 	}
 
+	if (keep != NULL && funclen != NULL)
+	{
+		io.lua_io_done = FALSE;
+		io.lua_io_script = NULL;
+		io.lua_io_len = 0;
+		io.lua_io_alloc = 0;
+
+		if (lua_dump(l, dkimf_lua_writer, &io) == 0)
+		{
+			*keep = (void *) io.lua_io_script;
+			*funclen = io.lua_io_len;
+		}
+	}
+
 	status = lua_pcall(l, 0, LUA_MULTRET, 0);
 	if (lua_isstring(l, 1))
 		lres->lrs_error = strdup(lua_tostring(l, 1));
@@ -596,8 +685,11 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 **  Parameters:
 **  	ctx -- session context, for making calls back to opendkim.c
 **  	script -- script to run
+**  	scriptlen -- length of script; if 0, use strlen()
 **  	name -- name of the script (for logging)
 **  	lres -- Lua result structure
+**  	keep -- where to save the script (or NULL)
+**  	funclen -- size of the saved object
 **
 **  Return value:
 **  	2 -- processing error
@@ -611,8 +703,9 @@ dkimf_lua_screen_hook(void *ctx, const char *script,
 */
 
 int
-dkimf_lua_stats_hook(void *ctx, const char *script,
-                     const char *name, struct dkimf_lua_script_result *lres)
+dkimf_lua_stats_hook(void *ctx, const char *script, size_t scriptlen,
+                     const char *name, struct dkimf_lua_script_result *lres,
+                     void **keep, size_t *funclen)
 {
 	int status;
 	lua_State *l = NULL;
@@ -624,6 +717,10 @@ dkimf_lua_stats_hook(void *ctx, const char *script,
 
 	io.lua_io_done = FALSE;
 	io.lua_io_script = script;
+	if (scriptlen == 0)
+		io.lua_io_len = strlen(script);
+	else
+		io.lua_io_len = scriptlen;
 
 	gc.gc_head = NULL;
 	gc.gc_tail = NULL;
@@ -796,6 +893,20 @@ dkimf_lua_stats_hook(void *ctx, const char *script,
 		assert(0);
 	}
 
+	if (keep != NULL && funclen != NULL)
+	{
+		io.lua_io_done = FALSE;
+		io.lua_io_script = NULL;
+		io.lua_io_len = 0;
+		io.lua_io_alloc = 0;
+
+		if (lua_dump(l, dkimf_lua_writer, &io) == 0)
+		{
+			*keep = (void *) io.lua_io_script;
+			*funclen = io.lua_io_len;
+		}
+	}
+
 	status = lua_pcall(l, 0, LUA_MULTRET, 0);
 	if (lua_isstring(l, 1))
 		lres->lrs_error = strdup(lua_tostring(l, 1));
@@ -815,8 +926,11 @@ dkimf_lua_stats_hook(void *ctx, const char *script,
 **  Parameters:
 **  	ctx -- session context, for making calls back to opendkim.c
 **  	script -- script to run
+**  	scriptlen -- length of script; if 0, use strlen()
 **  	name -- name of the script (for logging)
 **  	lres -- Lua result structure
+**  	keep -- where to save the script (or NULL)
+**  	funclen -- size of the saved object
 **
 **  Return value:
 **  	2 -- processing error
@@ -827,16 +941,12 @@ dkimf_lua_stats_hook(void *ctx, const char *script,
 **  Notes:
 **  	Called by mlfi_eom() so it can decide whether or not the message
 **  	is acceptable.
-**
-**  	Will require the ability to access databases, i.e. the
-**  	dkimf_db_*() functions and the "conf" handle that contains
-**  	references to available databases.  opendkim.c will need to export
-**  	some functions for getting DB handles for this purpose.
 */
 
 int
-dkimf_lua_final_hook(void *ctx, const char *script,
-                     const char *name, struct dkimf_lua_script_result *lres)
+dkimf_lua_final_hook(void *ctx, const char *script, size_t scriptlen,
+                     const char *name, struct dkimf_lua_script_result *lres,
+                     void **keep, size_t *funclen)
 {
 	int status;
 	lua_State *l = NULL;
@@ -848,6 +958,10 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 
 	io.lua_io_done = FALSE;
 	io.lua_io_script = script;
+	if (scriptlen == 0)
+		io.lua_io_len = strlen(script);
+	else
+		io.lua_io_len = scriptlen;
 
 	gc.gc_head = NULL;
 	gc.gc_tail = NULL;
@@ -1020,6 +1134,20 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 		assert(0);
 	}
 
+	if (keep != NULL && funclen != NULL)
+	{
+		io.lua_io_done = FALSE;
+		io.lua_io_script = NULL;
+		io.lua_io_len = 0;
+		io.lua_io_alloc = 0;
+
+		if (lua_dump(l, dkimf_lua_writer, &io) == 0)
+		{
+			*keep = (void *) io.lua_io_script;
+			*funclen = io.lua_io_len;
+		}
+	}
+
 	status = lua_pcall(l, 0, LUA_MULTRET, 0);
 	if (lua_isstring(l, 1))
 		lres->lrs_error = strdup(lua_tostring(l, 1));
@@ -1037,8 +1165,11 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 **
 **  Parameters:
 **  	script -- script to run
+**  	scriptlen -- length of script; if 0, use strlen()
 **  	query -- query string
 **  	lres -- Lua result structure
+**  	keep -- where to save the script (or NULL)
+**  	funclen -- size of the saved object
 **
 **  Return value:
 **  	2 -- processing error
@@ -1048,8 +1179,9 @@ dkimf_lua_final_hook(void *ctx, const char *script,
 */
 
 int
-dkimf_lua_db_hook(const char *script, const char *query,
-                  struct dkimf_lua_script_result *lres)
+dkimf_lua_db_hook(const char *script, size_t scriptlen, const char *query,
+                  struct dkimf_lua_script_result *lres, void **keep,
+                  size_t *funclen)
 {
 	int status;
 	struct dkimf_lua_io io;
@@ -1060,6 +1192,10 @@ dkimf_lua_db_hook(const char *script, const char *query,
 
 	io.lua_io_done = FALSE;
 	io.lua_io_script = script;
+	if (scriptlen == 0)
+		io.lua_io_len = strlen(script);
+	else
+		io.lua_io_len = scriptlen;
 
 	l = lua_newstate(dkimf_lua_alloc, NULL);
 	if (l == NULL)
@@ -1068,7 +1204,10 @@ dkimf_lua_db_hook(const char *script, const char *query,
 	luaL_openlibs(l);
 
 	/* query string */
-	lua_pushstring(l, query);
+	if (query == NULL)
+		lua_pushnil(l);
+	else
+		lua_pushstring(l, query);
 	lua_setglobal(l, "query");
 
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, script))
@@ -1090,6 +1229,20 @@ dkimf_lua_db_hook(const char *script, const char *query,
 
 	  default:
 		assert(0);
+	}
+
+	if (keep != NULL && funclen != NULL)
+	{
+		io.lua_io_done = FALSE;
+		io.lua_io_script = NULL;
+		io.lua_io_len = 0;
+		io.lua_io_alloc = 0;
+
+		if (lua_dump(l, dkimf_lua_writer, &io) == 0)
+		{
+			*keep = (void *) io.lua_io_script;
+			*funclen = io.lua_io_len;
+		}
 	}
 
 	status = lua_pcall(l, 0, LUA_MULTRET, 0);

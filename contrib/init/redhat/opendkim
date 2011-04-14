@@ -29,7 +29,7 @@
 
 . /etc/rc.d/init.d/functions
 
-DAEMON=/usr/local/sbin/opendkim
+DAEMON=/usr/sbin/opendkim
 PID_FILE=/var/run/opendkim/opendkim.pid
 CONF_FILE=/etc/opendkim.conf
 RETVAL=0
@@ -41,7 +41,7 @@ start() {
 		echo OpenDKIM already running as pid $PID
 	        exit 2;
 	else
-		daemon --pidfile=$PID_FILE $DAEMON -x $CONF_FILE
+		daemon $DAEMON -x $CONF_FILE -P $PID_FILE
 		RETVAL=$?
 		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/opendkim
 		echo

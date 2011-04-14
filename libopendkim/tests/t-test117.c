@@ -55,8 +55,8 @@ main(int argc, char **argv)
 #endif /* TEST_KEEP_FILES */
 	u_int test_uint;
 	u_int timeout;
-	time_t fixed_time;
-	time_t test_time;
+	uint64_t fixed_time;
+	uint64_t test_time;
 	DKIM_STAT status;
 	DKIM *dkim;
 	DKIM_LIB *lib;

@@ -740,7 +740,7 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 		value = dkim_param_get(set, (u_char *) "t");
 		if (value != NULL)
 		{
-			unsigned long long tmp = 0;
+			uint64_t tmp = 0;
 			char *end;
 
 			errno = 0;
@@ -748,19 +748,19 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 			if (value[0] == '-')
 			{
 				errno = ERANGE;
-				tmp = (unsigned long long) -1;
+				tmp = (uint64_t) -1;
 			}
 			else if (value[0] == '\0')
 			{
 				errno = EINVAL;
-				tmp = (unsigned long long) -1;
+				tmp = (uint64_t) -1;
 			}
 			else
 			{
 				tmp = strtoull((char *) value, &end, 10);
 			}
 
-			if (tmp == (unsigned long long) -1 || errno != 0 ||
+			if (tmp == (uint64_t) -1 || errno != 0 ||
 			    *end != '\0')
 			{
 				dkim_error(dkim,
@@ -777,7 +777,7 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 		value = dkim_param_get(set, (u_char *) "x");
 		if (value != NULL)
 		{
-			unsigned long long tmp = 0;
+			uint64_t tmp = 0;
 			char *end;
 
 			errno = 0;
@@ -785,19 +785,19 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 			if (value[0] == '-')
 			{
 				errno = ERANGE;
-				tmp = (unsigned long long) -1;
+				tmp = (uint64_t) -1;
 			}
 			else if (value[0] == '\0')
 			{
 				errno = EINVAL;
-				tmp = (unsigned long long) -1;
+				tmp = (uint64_t) -1;
 			}
 			else
 			{
 				tmp = strtoull((char *) value, &end, 10);
 			}
 
-			if (tmp == (unsigned long long) -1 || errno != 0 ||
+			if (tmp == (uint64_t) -1 || errno != 0 ||
 			    *end != '\0')
 			{
 				dkim_error(dkim,
@@ -1512,11 +1512,11 @@ dkim_sig_domainok(DKIM *dkim, DKIM_SET *set)
 */
 
 static _Bool
-dkim_sig_expired(DKIM_SET *set, time_t drift)
+dkim_sig_expired(DKIM_SET *set, uint64_t drift)
 {
-	unsigned long long expire;
-	unsigned long long nowl;
 	time_t now;
+	uint64_t expire;
+	uint64_t nowl;
 	u_char *val;
 
 	assert(set != NULL);
@@ -1526,12 +1526,17 @@ dkim_sig_expired(DKIM_SET *set, time_t drift)
 	if (val == NULL)
 		return FALSE;
 
-	expire = strtoull((char *) val, NULL, 10);
+	if (sizeof(uint64_t) == sizeof(unsigned long long))
+		expire = strtoull((char *) val, NULL, 10);
+	else if (sizeof(uint64_t) == sizeof(unsigned long))
+		expire = strtoul((char *) val, NULL, 10);
+	else
+		expire = (unsigned int) strtoul((char *) val, NULL, 10);
 
 	(void) time(&now);
-	nowl = (unsigned long long) now;
+	nowl = (uint64_t) now;
 
-	return (nowl >= expire + (unsigned long long) drift);
+	return (nowl >= expire + drift);
 }
 
 /*
@@ -1555,8 +1560,8 @@ dkim_sig_expired(DKIM_SET *set, time_t drift)
 static _Bool
 dkim_sig_timestampsok(DKIM_SET *set)
 {
-	unsigned long long signtime;
-	unsigned long long expire;
+	uint64_t signtime;
+	uint64_t expire;
 	u_char *val;
 
 	assert(set != NULL);
@@ -1565,12 +1570,22 @@ dkim_sig_timestampsok(DKIM_SET *set)
 	val = dkim_param_get(set, (u_char *) "t");
 	if (val == NULL)
 		return TRUE;
-	signtime = strtoull((char *) val, NULL, 10);
+	if (sizeof(uint64_t) == sizeof(unsigned long long))
+		signtime = strtoull((char *) val, NULL, 10);
+	else if (sizeof(uint64_t) == sizeof(unsigned long))
+		signtime = strtoul((char *) val, NULL, 10);
+	else
+		signtime = (unsigned int) strtoul((char *) val, NULL, 10);
 
 	val = dkim_param_get(set, (u_char *) "x");
 	if (val == NULL)
 		return TRUE;
-	expire = strtoull((char *) val, NULL, 10);
+	if (sizeof(uint64_t) == sizeof(unsigned long long))
+		expire = strtoull((char *) val, NULL, 10);
+	else if (sizeof(uint64_t) == sizeof(unsigned long))
+		expire = strtoul((char *) val, NULL, 10);
+	else
+		expire = (unsigned int) strtoul((char *) val, NULL, 10);
 
 	return (signtime < expire);
 }
@@ -1592,11 +1607,10 @@ dkim_sig_timestampsok(DKIM_SET *set)
 */
 
 static _Bool
-dkim_sig_future(DKIM_SET *set, time_t drift)
+dkim_sig_future(DKIM_SET *set, uint64_t drift)
 {
-	unsigned long long signtime;
-	unsigned long long nowl;
-	unsigned long long driftl;
+	uint64_t signtime;
+	uint64_t nowl;
 	time_t now;
 	u_char *val;
 
@@ -1607,14 +1621,17 @@ dkim_sig_future(DKIM_SET *set, time_t drift)
 	if (val == NULL)
 		return FALSE;
 
-	signtime = strtoull((char *) val, NULL, 10);
+	if (sizeof(uint64_t) == sizeof(unsigned long long))
+		signtime = strtoull((char *) val, NULL, 10);
+	else if (sizeof(uint64_t) == sizeof(unsigned long))
+		signtime = strtoul((char *) val, NULL, 10);
+	else
+		signtime = (unsigned int) strtoul((char *) val, NULL, 10);
 
 	(void) time(&now);
-	nowl = (unsigned long long) now;
+	nowl = (uint64_t) now;
 
-	driftl = (unsigned long long) drift;
-
-	return (nowl < signtime - driftl);
+	return (nowl < signtime - drift);
 }
 
 /*
@@ -1675,7 +1692,7 @@ dkim_siglist_setup(DKIM *dkim)
 	size_t len;
 	DKIM_STAT status;
 	off_t signlen = (off_t) -1;
-	time_t drift;
+	uint64_t drift;
 	dkim_canon_t bodycanon;
 	dkim_canon_t hdrcanon;
 	dkim_alg_t signalg;
@@ -2023,9 +2040,24 @@ dkim_siglist_setup(DKIM *dkim)
 		}
 		else
 		{
-			dkim->dkim_siglist[c]->sig_timestamp = strtoull((char *) param,
-			                                                NULL,
-			                                                10);
+			if (sizeof(uint64_t) == sizeof(unsigned long long))
+			{
+				dkim->dkim_siglist[c]->sig_timestamp = strtoull((char *) param,
+				                                                NULL,
+				                                                10);
+			}
+			else if (sizeof(uint64_t) == sizeof(unsigned long))
+			{
+				dkim->dkim_siglist[c]->sig_timestamp = strtoul((char *) param,
+				                                               NULL,
+				                                               10);
+			}
+			else
+			{
+				dkim->dkim_siglist[c]->sig_timestamp = (unsigned int) strtoul((char *) param,
+				                                                              NULL,
+				                                                              10);
+			}
 		}
 
 		/* body hash */
@@ -2158,6 +2190,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	int delimlen;
 	size_t hashlen;
 	size_t tmplen;
+	char *format;
 	u_char *hash;
 	struct dkim_header *hdr;
 	_Bool *always = NULL;
@@ -2184,8 +2217,14 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	*/
 
 	/* basic required stuff */
-	tmplen = dkim_dstring_printf(dstr,
-	                             "v=%s;%sa=%s;%sc=%s/%s;%sd=%s;%ss=%s;%st=%llu",
+	if (sizeof(sig->sig_timestamp) == sizeof(unsigned long long))
+		format = "v=%s;%sa=%s;%sc=%s/%s;%sd=%s;%ss=%s;%st=%llu";
+	else if (sizeof(sig->sig_timestamp) == sizeof(unsigned long))
+		format = "v=%s;%sa=%s;%sc=%s/%s;%sd=%s;%ss=%s;%st=%lu";
+	else 
+		format = "v=%s;%sa=%s;%sc=%s/%s;%sd=%s;%ss=%s;%st=%u";
+
+	tmplen = dkim_dstring_printf(dstr, format,
 	                             DKIM_VERSION_SIG, delim,
 	                             dkim_code_to_name(algorithms,
 	                                               sig->sig_signalg),
@@ -2201,10 +2240,15 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 
 	if (dkim->dkim_libhandle->dkiml_sigttl != 0)
 	{
-		unsigned long long expire;
+		uint64_t expire;
 
-		expire = sig->sig_timestamp + (unsigned long long) dkim->dkim_libhandle->dkiml_sigttl;
-		dkim_dstring_printf(dstr, ";%sx=%llu", delim, expire);
+		expire = sig->sig_timestamp + dkim->dkim_libhandle->dkiml_sigttl;
+		if (sizeof(expire) == sizeof(unsigned long long))
+			dkim_dstring_printf(dstr, ";%sx=%llu", delim, expire);
+		else if (sizeof(expire) == sizeof(unsigned long))
+			dkim_dstring_printf(dstr, ";%sx=%lu", delim, expire);
+		else
+			dkim_dstring_printf(dstr, ";%sx=%u", delim, expire);
 	}
 
 	if (dkim->dkim_signer != NULL)
@@ -2341,10 +2385,14 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	if (dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_ZTAGS)
 	{
 		_Bool first;
+		int status;
+		size_t len;
 		u_char *p;
 		u_char *q;
 		u_char *end;
-		size_t len;
+		u_char *hend;
+		u_char *colon;
+		unsigned char name[DKIM_MAXHEADER + 1];
 
 		dkim_dstring_cat1(dstr, ';');
 		dkim_dstring_catn(dstr, (u_char *) delim, delimlen);
@@ -2355,6 +2403,46 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 
 		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
 		{
+			/* apply "skip" header and "sign" header lists */
+			hend = hdr->hdr_text + hdr->hdr_textlen;
+			colon = memchr(hdr->hdr_text, ':', hdr->hdr_textlen);
+			if (colon != NULL)
+			{
+				hend = colon;
+
+				while (hend > hdr->hdr_text &&
+				       isascii(*(hend - 1)) &&
+				       isspace(*(hend - 1)))
+					hend--;
+			}
+
+			strlcpy((char *) name, (char *) hdr->hdr_text,
+			        sizeof name);
+			if (hend != NULL)
+				name[hend - hdr->hdr_text] = '\0';
+
+			if (dkim->dkim_libhandle->dkiml_skipre)
+			{
+				status = regexec(&dkim->dkim_libhandle->dkiml_skiphdrre,
+				                 (char *) name, 0, NULL, 0);
+
+				if (status == 0)
+					continue;
+				else
+					assert(status == REG_NOMATCH);
+			}
+
+			if (dkim->dkim_libhandle->dkiml_signre)
+			{
+				status = regexec(&dkim->dkim_libhandle->dkiml_hdrre,
+				                 (char *) name, 0, NULL, 0);
+
+				if (status == REG_NOMATCH)
+					continue;
+				else
+					assert(status == 0);
+			}
+
 			q = tmp;
 			len = 0;
 
@@ -3183,7 +3271,7 @@ dkim_eoh_sign(DKIM *dkim)
 
 			(void) time(&now);
 
-			dkim->dkim_siglist[0]->sig_timestamp = (unsigned long long) now;
+			dkim->dkim_siglist[0]->sig_timestamp = (uint64_t) now;
 		}
 	}
 
@@ -3504,9 +3592,16 @@ dkim_eom_sign(DKIM *dkim)
 
 	/* set signature timestamp */
 	if (dkim->dkim_libhandle->dkiml_fixedtime != 0)
+	{
 		dkim->dkim_timestamp = dkim->dkim_libhandle->dkiml_fixedtime;
+	}
 	else
-		(void) time(&dkim->dkim_timestamp);
+	{
+		time_t now;
+
+		(void) time(&now);
+		dkim->dkim_timestamp = (uint64_t) now;
+	}
 
 	/* sign with l= if requested */
 	if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_SIGNLEN) != 0)
@@ -3722,8 +3817,8 @@ dkim_eom_sign(DKIM *dkim)
 		else
 			alg = GNUTLS_DIG_SHA256;
 
-		status = gnutls_privkey_sign_hash2(privkey, alg, 0, &dd,
-		                                   &rsa->rsa_rsaout);
+		status = gnutls_privkey_sign_hash(privkey, alg, 0, &dd,
+		                                  &rsa->rsa_rsaout);
 		if (status != GNUTLS_E_SUCCESS)
 		{
 			dkim_error(dkim,
@@ -5082,7 +5177,7 @@ dkim_resign(DKIM *new, DKIM *old, _Bool hdrbind)
 
 		(void) time(&now);
 
-		new->dkim_siglist[0]->sig_timestamp = (unsigned long long) now;
+		new->dkim_siglist[0]->sig_timestamp = (uint64_t) now;
 	}
 
 	return DKIM_STAT_OK;
@@ -6224,7 +6319,7 @@ dkim_eoh(DKIM *dkim)
 
 			p = strptime(colon, RFC2822DATE, &tm);
 			if (p != NULL)
-				dkim->dkim_msgdate = mktime(&tm);
+				dkim->dkim_msgdate = (uint64_t) mktime(&tm);
 		}
 	}
 #endif /* _FFR_PARSE_TIME */
@@ -7407,7 +7502,7 @@ dkim_sig_getsignalg(DKIM_SIGINFO *sig, dkim_alg_t *alg)
 */
 
 DKIM_STAT
-dkim_sig_getsigntime(DKIM_SIGINFO *sig, time_t *when)
+dkim_sig_getsigntime(DKIM_SIGINFO *sig, uint64_t *when)
 {
 	assert(sig != NULL);
 	assert(when != NULL);
@@ -7415,7 +7510,7 @@ dkim_sig_getsigntime(DKIM_SIGINFO *sig, time_t *when)
 	if (sig->sig_timestamp == 0)
 		return DKIM_STAT_INVALID;
 
-	*when = (time_t) sig->sig_timestamp;
+	*when = sig->sig_timestamp;
 
 	return DKIM_STAT_OK;
 }
@@ -7736,10 +7831,11 @@ dkim_get_user_context(DKIM *dkim)
 **
 **  Return value:
 **  	time_t representing the value in the Date: header of the message,
-**  	or 0 if no such header was found or the value in it was unusable
+**  	returned as an unsigned 64-bit quantity, or 0 if no such header
+**  	was found or the value in it was unusable.
 */
 
-time_t
+uint64_t
 dkim_get_msgdate(DKIM *dkim)
 {
 	assert(dkim != NULL);
