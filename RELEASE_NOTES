@@ -16,9 +16,9 @@ release, and a summary of the changes in that release.
 		in Authentication-Results header fields.
 	Fix bug #SF3258459: Don't send progress messages during EOH.  Problem
 		reported by Gary Mills.
-	Fix bug #SF3276469: When generating "z=" tags, apply omit and sign
-		header field lists.  Problem noted by Todd Lyons.
 	Add ADSP processing error information to A-R header fields.
+	LIBOPENDKIM: Fix bug #SF3276469: When generating "z=" tags, apply
+		omit and sign header field lists.  Problem noted by Todd Lyons.
 	LIBOPENDKIM: Use a time_t to store TTL and clock drift options
 		rather than unsigned long.  Patch from Piotr Sikora.
 	LIBAR: Include class and type in debugging messages.  Suggested
