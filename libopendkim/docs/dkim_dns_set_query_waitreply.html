@@ -41,6 +41,15 @@ The function will be passed the following arguments:
       the security of the reply
 </ol>
 
+The function is expected to return one of the following:
+<ul>
+ <li><tt>DKIM_DNS_SUCCESS</tt> -- a reply is available
+ <li><tt>DKIM_DNS_EXPIRED</tt> -- the query expired (artifact of libar)
+ <li><tt>DKIM_DNS_ERROR</tt> -- an I/O error occurred
+ <li><tt>DKIM_DNS_NOREPLY</tt> -- the specified timeout expired before a reply
+     was received
+</ul>
+
 </td></tr>
 
 <!----------- Description ---------->
@@ -74,11 +83,7 @@ during <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a> when verifying.  </td>
 <th valign="top" align=left>RETURN VALUES</th> 
 <td>
 <ul>
-<li><tt>DKIM_DNS_SUCCESS</tt> -- a reply is available
-<li><tt>DKIM_DNS_EXPIRED</tt> -- the query expired (artifact of libar)
-<li><tt>DKIM_DNS_ERROR</tt> -- an I/O error occurred
-<li><tt>DKIM_DNS_NOREPLY</tt> -- the specified timeout expired before a reply
-    was received
+<li>None.
 </ul>
 </td>
 </tr>

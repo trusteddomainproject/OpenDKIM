@@ -35,6 +35,12 @@ The function will be passed the following arguments:
       opaque handle for the started query 
 </ol>
 
+The function is expected to return one of the following:
+<ul>
+ <li><tt>DKIM_DNS_SUCCESS</tt> -- query was successfully initiated
+ <li><tt>DKIM_DNS_ERROR</tt> -- an error occurred
+</ul>
+
 </td></tr>
 
 <!----------- Description ---------->
@@ -68,8 +74,7 @@ during <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a> when verifying.  </td>
 <th valign="top" align=left>RETURN VALUES</th> 
 <td>
 <ul>
-<li><tt>DKIM_DNS_SUCCESS</tt> -- query was successfully initiated
-<li><tt>DKIM_DNS_ERROR</tt> -- an error occurred
+<li>None.
 </ul>
 </td>
 </tr>
