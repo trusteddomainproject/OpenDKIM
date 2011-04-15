@@ -1015,7 +1015,7 @@ extern u_char *dkim_getuser __P((DKIM *dkim));
 **  	or NULL if none.
 */
 
-extern unsigned char *dkim_get_signer __P((DKIM *dkim));
+extern const unsigned char *dkim_get_signer __P((DKIM *dkim));
 
 /*
 **  DKIM_SET_SIGNER -- set DKIM signature's signer

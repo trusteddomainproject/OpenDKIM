@@ -7553,7 +7553,7 @@ dkim_sig_getcanons(DKIM_SIGINFO *sig, dkim_canon_t *hdr, dkim_canon_t *body)
 **  	or NULL if none.
 */
 
-unsigned char *
+const unsigned char *
 dkim_get_signer(DKIM *dkim)
 {
 	assert(dkim != NULL);
