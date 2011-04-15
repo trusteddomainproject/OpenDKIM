@@ -29,8 +29,10 @@ The function will be passed the following arguments:
       <a href="dkim_dns_set_query_service.html"><tt>dkim_dns_set_query_service()</tt></a>
  <li> The DNS query type (e.g., <tt>T_TXT</tt>)
  <li> A NULL-terminated string containing the name to be queried
- <li> A pointer to a buffer into which the result should be written
+ <li> The address of a buffer into which the result should be written
  <li> The length of that buffer
+ <li> The address of a <tt>void *</tt> that should be updated to contain an
+      opaque handle for the started query 
 </ol>
 
 </td></tr>
