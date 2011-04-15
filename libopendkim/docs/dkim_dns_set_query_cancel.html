@@ -1,0 +1,97 @@
+<html>
+<head><title>dkim_dns_set_query_cancel()</title></head>
+<body>
+<!--
+$Id: dkim_dns_set_query_cancel.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
+-->
+<h1>dkim_dns_set_query_cancel()</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+<tt>void</tt> dkim_dns_set_query_cancel(
+	<a href="dkim_lib.html"><tt>DKIM_LIB</tt></a> *libopendkim,
+        <tt>int</tt> (*func)(<tt>void *, void *</tt>)
+);
+
+</pre>
+Declares the function to be used by a libopendkim instance when it needs to
+cancel a DNS query already in progress.  By default, a stub function that
+does nothing is set, since there is no way to cancel a query in the standard
+UNIX resolver library. <p>
+
+The function will be passed the following arguments:
+<ol>
+ <li> An opaque DNS service handle as previously specified by a call to
+      <a href="dkim_dns_set_query_service.html"><tt>dkim_dns_set_query_service()</tt></a>
+ <li> A handle for a previously initiated DNS query as returned by the
+      function provided by
+      <a href="dkim_dns_set_query_start.html"><tt>dkim_dns_set_query_start()</tt></a>
+</ol>
+
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_dns_set_query_cancel()</tt> can be called at any time, but is
+presumably most useful prior to doing any DNS operations such as are done
+during <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a> when verifying.  </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>libopendkim</td>
+	<td>The library instantiation handle, returned by
+        <a href="dkim_init.html"><tt>dkim_init()</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>func</td>
+	<td>A pointer to a function that should be used to cancel
+	DNS queries.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr>
+<th valign="top" align=left>RETURN VALUES</th> 
+<td>
+<ul>
+<li><tt>DKIM_DNS_SUCCESS</tt> -- query was successfully canceled
+<li><tt>DKIM_DNS_ERROR</tt> -- an error occurred
+</ul>
+</td>
+</tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

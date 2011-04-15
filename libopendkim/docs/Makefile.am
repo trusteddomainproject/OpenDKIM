@@ -9,6 +9,10 @@ dist_doc_DATA = dkim.html \
 	dkim_cbstat.html \
 	dkim_chunk.html \
 	dkim_close.html \
+	dkim_dns_set_query_cancel.html \
+	dkim_dns_set_query_service.html \
+	dkim_dns_set_query_start.html \
+	dkim_dns_set_query_waitreply.html \
 	dkim_dnssec.html \
 	dkim_eoh.html \
 	dkim_eom.html \
