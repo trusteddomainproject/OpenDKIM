@@ -7957,8 +7957,6 @@ dkim_set_policy_lookup(DKIM_LIB *libopendkim,
 **
 **  Return value:
 **  	DKIM_STAT_OK -- success
-**  	DKIM_STAT_INVALID -- called against a signing handle or too late
-**  	                     (i.e. after dkim_eoh() was called)
 */
 
 DKIM_STAT
