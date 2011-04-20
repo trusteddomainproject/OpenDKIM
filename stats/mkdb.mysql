@@ -13,7 +13,7 @@ create table if not exists reporters (
         enabled tinyint not null default 1,
 
 	primary key(id),
-	key(name)
+	unique key(name)
 ) engine=innodb default charset=latin1;
 
 -- table of domain names we've seen
@@ -23,7 +23,7 @@ create table if not exists domains (
 	firstseen timestamp not null default CURRENT_TIMESTAMP,
 
 	primary key(id),
-	key(name)
+	unique key(name)
 ) engine=innodb default charset=latin1;
 
 -- table of IP addresses we've seen
@@ -33,7 +33,7 @@ create table if not exists ipaddrs (
 	firstseen timestamp not null default CURRENT_TIMESTAMP,
 
 	primary key(id),
-	key(addr)
+	unique key(addr)
 ) engine=innodb default charset=latin1;
 
 -- table of messages names we've seen
@@ -106,7 +106,7 @@ create table if not exists headernames (
 	name varchar(255) not null,
 
 	primary key(id),
-	key(name)
+	unique key(name)
 ) engine=innodb default charset=latin1;
 
 -- table correlating signatures to signed headers
@@ -178,3 +178,22 @@ insert ignore into sigerrorcodes (id, name) values
 	(44,	"v= missing")
 	(45,	"v= empty")
 ;
+
+-- table mapping domain codes to flow predictions
+create table if not exists predictions (
+	id int unsigned not null auto_increment,
+	domain int unsigned not null,
+	rate_avg float unsigned,
+	rate_max int unsigned,
+	rate_stddev float unsigned,
+	rate_limit float unsigned,
+	spam_avg float unsigned,
+	spam_max int unsigned,
+	spam_stddev float unsigned,
+	spam_limit float unsigned,
+	updated timestamp not null default CURRENT_TIMESTAMP,
+
+	primary key(id),
+	unique key(domain),
+	foreign key(domain) references domains(id) on delete cascade
+) engine=innodb default charset=latin1;

@@ -1,0 +1,84 @@
+#!/bin/sh
+#
+# Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
+#
+# $Id: opendkim-genstats,v 1.26 2010/10/27 06:18:45 cm-msk Exp $
+#
+# Script to generate rate and spam ratio predictions for each domain
+# based on accumulated data.  EXPERIMENTAL.
+
+###
+### Setup
+###
+
+# Command to perform a MySQL query and output HTML
+MYSQL_CMD="mysql"
+
+# Database name
+DB=${OPENDKIM_DB:-opendkim}
+
+# Database user
+USER=${OPENDKIM_USER:-opendkim}
+
+# Database user's password
+PASSWORD=${OPENDKIM_PASSWORD:-password}
+
+# Where to write the report
+REALOUTPUT=${OPENDKIM_OUTPUT:-/var/www/docs/opendkim/rates.html}
+OUTPUT=${REALOUTPUT}.$$
+
+###
+### NO user-serviceable parts beyond this point
+###
+
+MYSQL="$MYSQL_CMD --user=$USER --password=$PASSWORD --database=$DB"
+
+# Compute mean and standard deviation for message counts for each
+# signing domain
+$MYSQL --execute="INSERT INTO predictions (domain, rate_max, rate_avg, rate_stddev) SELECT domain, MAX(counts.c), AVG(counts.c), STDDEV_POP(counts.c) FROM (SELECT domain, COUNT(pass) AS c FROM signatures JOIN messages ON signatures.message = messages.id WHERE pass = 1 GROUP BY domain, DATE(messages.msgtime)) AS counts GROUP BY domain ON DUPLICATE KEY UPDATE updated = CURRENT_TIMESTAMP(), rate_max = VALUES(rate_max), rate_avg = VALUES(rate_avg), rate_stddev = VALUES(rate_stddev)"
+
+# Compute mean and standard deviation for message counts for unsigned mail
+$MYSQL --execute="INSERT INTO predictions (domain, rate_max, rate_avg, rate_stddev) SELECT 0, MAX(counts.c), AVG(counts.c), STDDEV_POP(counts.c) FROM (SELECT COUNT(from_domain) AS c FROM messages WHERE sigcount = 0 OR messages.id NOT IN (SELECT message FROM signatures WHERE pass = 1) GROUP BY DATE(messages.msgtime)) AS counts ON DUPLICATE KEY UPDATE updated = CURRENT_TIMESTAMP(), rate_max = VALUES(rate_max), rate_avg = VALUES(rate_avg), rate_stddev = VALUES(rate_stddev)"
+
+# Compute mean and standard deviation for spam counts for each
+# signing domain
+$MYSQL --execute="INSERT INTO predictions (domain, spam_max, spam_avg, spam_stddev) SELECT domain, MAX(counts.c), AVG(counts.c), STDDEV_POP(counts.c) FROM (SELECT domain, COUNT(pass) AS c FROM signatures JOIN messages ON signatures.message = messages.id WHERE pass = 1 AND spam = 1 GROUP BY domain, DATE(messages.msgtime)) AS counts GROUP BY domain ON DUPLICATE KEY UPDATE updated = CURRENT_TIMESTAMP(), spam_max = VALUES(spam_max), spam_avg = VALUES(spam_avg), spam_stddev = VALUES(spam_stddev)"
+
+# Compute mean and standard deviation for spam counts for unsigned mail
+$MYSQL --execute="INSERT INTO predictions (domain, spam_max, spam_avg, spam_stddev) SELECT 0, MAX(counts.c), AVG(counts.c), STDDEV_POP(counts.c) FROM (SELECT COUNT(from_domain) AS c FROM messages WHERE spam = 1 AND (sigcount = 0 OR messages.id NOT IN (SELECT message FROM signatures WHERE pass = 1)) GROUP BY DATE(messages.msgtime)) AS counts ON DUPLICATE KEY UPDATE updated = CURRENT_TIMESTAMP(), spam_max = VALUES(spam_max), spam_avg = VALUES(spam_avg), spam_stddev = VALUES(spam_stddev)"
+
+# Compute predicted rate and spam maxima using a normal distribution and
+# the standard score method, and then the daily limit based on these, for
+# each signing domain and for unsigned mail
+$MYSQL --execute="UPDATE predictions SET rate_high = rate_avg + (rate_stddev * 1.96), spam_high = IFNULL(spam_avg, 0) + (IFNULL(spam_stddev, 0) * 1.96), daily_limit = rate_avg + (rate_stddev * 1.96) - IFNULL(spam_avg, 0) - (IFNULL(spam_stddev, 0) * 1.96), updated = CURRENT_TIMESTAMP()"
+
+###
+### Generate a report
+###
+
+# output a header
+cat > $OUTPUT << EOF
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+  <head>
+   <title>
+    OpenDKIM Rate Recommendations
+   </title>
+  </head>
+
+  <body>
+EOF
+
+echo "<h1>OpenDKIM Rate Recommendations generated at `date` </h1>" >> $OUTPUT
+echo "<hr>" >> $OUTPUT
+
+$MYSQL --html --execute="SELECT domains.name, rate_avg, rate_max, rate_stddev, rate_high, spam_avg, spam_max, spam_stddev, spam_high, daily_limit, updated FROM predictions LEFT OUTER JOIN domains ON predictions.domain = domains.id WHERE domain IN (13, 22, 205, 450, 795, 313943, 0)" >> $OUTPUT
+
+cat >> $OUTPUT << EOF
+  </body>
+</html>
+EOF
+
+# all done!
+mv $OUTPUT $REALOUTPUT
+exit 0
