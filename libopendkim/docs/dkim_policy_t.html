@@ -23,10 +23,14 @@ $Id: dkim_policy_t.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
 <th width="80">Possible Values</th>
 <td>
 <ul>
-<li> <tt>DKIM_POLICY_UNKNOWN</tt> -- some messages from this domain are signed
-<li> <tt>DKIM_POLICY_ALL</tt> -- all messages from this domain are signed
-<li> <tt>DKIM_POLICY_STRICT</tt> -- all messages from this domain are signed
-     and the signature always comes from this domain
+<li> <tt>DKIM_POLICY_UNKNOWN</tt> -- messages from this domain may or may not
+                                     include a signature from the same domain
+<li> <tt>DKIM_POLICY_ALL</tt> -- all messages from this domain include
+                                 a signature from the same domain
+<li> <tt>DKIM_POLICY_DISCARDABLE</tt> -- all messages from this domain include
+                                         a signature from the same domain, and
+                                         any that don't should be considered
+                                         discardable
 </ul>
 </td>
 </tr>
@@ -39,7 +43,7 @@ $Id: dkim_policy_t.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
 Copyright (c) 2005, 2007 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set
