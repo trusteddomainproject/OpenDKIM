@@ -3642,6 +3642,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		if (out != NULL)
 		{
+			if (exists != NULL)
+				*exists = TRUE;
+
 			if (dkimf_db_datasplit(out, vlen, req, reqnum) != 0)
 			{
 				free(out);
@@ -3649,6 +3652,13 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			}
 
 			free(out);
+			return 0;
+		}
+		else if (ret == MEMCACHED_NOTFOUND)
+		{
+			if (exists != NULL)
+				*exists = FALSE;
+
 			return 0;
 		}
 		else
