@@ -70,6 +70,9 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #ifdef USE_LUA
 # include <lua.h>
 #endif /* USE_LUA */
+#ifdef USE_LIBMEMCACHED
+# include <libmemcached/memcached.h>
+#endif /* USE_LIBMEMCACHED */
 
 /* macros */
 #define	BUFRSZ			1024
@@ -249,6 +252,9 @@ struct dkimf_db_table dbtypes[] =
 #ifdef USE_LUA
 	{ "lua",		DKIMF_DB_TYPE_LUA },
 #endif /* USE_LUA */
+#ifdef USE_LIBMEMCACHED
+	{ "memcache",		DKIMF_DB_TYPE_MEMCACHE },
+#endif /* USE_LIBMEMCACHED */
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
 
@@ -2239,6 +2245,75 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		free(tmp);
 	  }
 #endif /* USE_LUA */
+
+#ifdef USE_LIBMEMCACHED
+	  case DKIMF_DB_TYPE_MEMCACHE:
+	  {
+		int ns = 0;
+		in_port_t port;
+		char *colon;
+		char *q;
+		char *key;
+		char *last;
+		char *tmp;
+		memcached_st *mcs = NULL;
+
+		tmp = strdup(p);
+		if (tmp == NULL)
+			return -1;
+
+		q = strchr(tmp, '/');
+		if (q == NULL)
+		{
+			free(tmp);
+			return -1;
+		}
+		*q = '\0';
+
+		key = strdup(q + 1);
+		if (key == NULL)
+		{
+			free(tmp);
+			return -1;
+		}
+
+		mcs = memcached_create(NULL);
+		if (mcs == NULL)
+		{
+			free(tmp);
+			free(key);
+			return -1;
+		}
+
+		for (q = strtok_r(tmp, ",", &last);
+		     q != NULL;
+		     q = strtok_r(NULL, ",", &last))
+		{
+			colon = strchr(q, ':');
+			if (colon != NULL)
+				*colon = '\0';
+
+			if (colon == NULL)
+				port = MEMCACHED_DEFAULT_PORT;
+			else
+				port = atoi(colon + 1);
+
+			if (memcached_server_add(mcs,
+			                         q, port) != MEMCACHED_SUCCESS)
+			{
+				free(tmp);
+				free(key);
+				memcached_free(mcs);
+				return -1;
+			}
+		}
+
+		new->db_handle = mcs;
+		new->db_data = key;
+
+		free(tmp);
+	  }
+#endif /* USE_LIBMEMCACHED */
 	}
 
 	*db = new;
@@ -2277,6 +2352,7 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
 	    db->db_type == DKIMF_DB_TYPE_LDAP || 
 	    db->db_type == DKIMF_DB_TYPE_LUA || 
+	    db->db_type == DKIMF_DB_TYPE_MEMCACHE || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -3545,6 +3621,44 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 	  }
 #endif /* USE_LUA */
 
+#ifdef USE_LIBMEMCACHED
+	  case DKIMF_DB_TYPE_MEMCACHE:
+	  {
+		memcached_st *mcs;
+		memcached_return_t ret;
+		char *out;
+		char *key;
+		size_t vlen;
+		uint32_t flags;
+		char query[BUFRSZ + 1];
+
+		mcs = (memcached_st *) db->db_handle;
+		key = (char *) db->db_data;
+
+		snprintf(query, sizeof query, "%s:%s", key, buf);
+		
+		out = memcached_get(mcs, query, strlen(query), &vlen,
+		                    &flags, &ret);
+
+		if (out != NULL)
+		{
+			if (dkimf_db_datasplit(out, vlen, req, reqnum) != 0)
+			{
+				free(out);
+				return -1;
+			}
+
+			free(out);
+			return 0;
+		}
+		else
+		{
+			db->db_status = (int) ret;
+			return -1;
+		}
+	  }
+#endif /* USE_LIBMEMCACHED */
+
 	  default:
 		assert(0);
 		return 0;		/* to silence the compiler */
@@ -3704,6 +3818,19 @@ dkimf_db_close(DKIMF_DB db)
 	  }
 #endif /* USE_LUA */
 
+#ifdef USE_LIBMEMCACHED
+	  case DKIMF_DB_TYPE_MEMCACHE:
+	  {
+		memcached_st *mcs;
+
+		mcs = (memcached_st *) db->db_handle;
+
+		memcached_free(mcs);
+		free(db->db_data);
+		return 0;
+	  }
+#endif /* USE_LIBMEMCACHED */
+
 	  default:
 		assert(0);
 		return -1;
@@ -3765,6 +3892,13 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 			return 0;
 	  }
 #endif /* USE_LUA */
+
+#ifdef USE_LIBMEMCACHED
+	  case DKIMF_DB_TYPE_MEMCACHE:
+		return strlcpy(err,
+		               memcached_strerror((memcached_st *) db->db_handle,
+		                                  db->db_status), errlen);
+#endif /* USE_LIBMEMCACHED */
 
 	  default:
 		assert(0);

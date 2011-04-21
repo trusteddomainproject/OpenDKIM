@@ -149,19 +149,33 @@ called script can then access.  The script may return any number of values
 as required for the type of query being performed.
 .TP
 .I g)
+If the string begins with "memcache:", it is presumed to refer to a
+memory cache database provided by
+.B memcached.
+The remainder of the string is a comma-separated list of hosts to which
+query attempts should be made, each optionally followed by ":" and a port
+number; that list must be followed by a slash ("/") character and a
+string that will be used to prefix queries send to the cache.  For example:
+
+memcache:localhost,otherhost/keyname
+
+This would use either "localhost" or "otherhost" to conduct queries,
+and all strings sent to the dataset will be prefixed with "keyname:".
+.TP
+.I h)
 If the string contains none of these prefixes but ends with ".db", it
 is presumed to be a Sleepycat DB as described above (if support for same
 is compiled in).
 .TP
-.I h)
+.I i)
 If the string contains none of these prefixes but starts with a slash ("/")
 character, it is presumed to be a flat file as described above.
 .TP
-.I i)
+.I j)
 If the string begins with "csl:", the string is treated as a comma-separated
 list as described in j) below.
 .TP
-.I j)
+.I k)
 In any other case, the string is presumed to be a comma-separated list.
 Elements in the list are either simple data elements that are part of the
 set or, in the case of an entry of the form "x=y", are stored as key-value
