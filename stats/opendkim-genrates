@@ -27,6 +27,18 @@ PASSWORD=${OPENDKIM_PASSWORD:-password}
 REALOUTPUT=${OPENDKIM_OUTPUT:-/var/www/docs/opendkim/rates.html}
 OUTPUT=${REALOUTPUT}.$$
 
+# Prediction parameters
+#PISIZE=50
+#STDSCORE=0.67
+#PISIZE=68
+#STDSCORE=1.00
+PISIZE=90
+STDSCORE=1.64
+#PISIZE=95
+#STDSCORE=1.96
+#PISIZE=99
+#STDSCORE=2.58
+
 ###
 ### NO user-serviceable parts beyond this point
 ###
@@ -50,7 +62,7 @@ $MYSQL --execute="INSERT INTO predictions (domain, spam_max, spam_avg, spam_stdd
 # Compute predicted rate and spam maxima using a normal distribution and
 # the standard score method, and then the daily limit based on these, for
 # each signing domain and for unsigned mail
-$MYSQL --execute="UPDATE predictions SET rate_high = rate_avg + (rate_stddev * 1.96), spam_high = IFNULL(spam_avg, 0) + (IFNULL(spam_stddev, 0) * 1.96), daily_limit = rate_avg + (rate_stddev * 1.96) - IFNULL(spam_avg, 0) - (IFNULL(spam_stddev, 0) * 1.96), updated = CURRENT_TIMESTAMP()"
+$MYSQL --execute="UPDATE predictions SET rate_high = rate_avg + (rate_stddev * $STDSCORE), spam_high = IFNULL(spam_avg, 0) + (IFNULL(spam_stddev, 0) * $STDSCORE), daily_limit = rate_avg + (rate_stddev * $STDSCORE) - IFNULL(spam_avg, 0) - (IFNULL(spam_stddev, 0) * $STDSCORE), updated = CURRENT_TIMESTAMP()"
 
 ###
 ### Generate a report
@@ -70,6 +82,7 @@ cat > $OUTPUT << EOF
 EOF
 
 echo "<h1>OpenDKIM Rate Recommendations generated at `date` </h1>" >> $OUTPUT
+echo "$PISIZE% prediction interval, standard score $STDSCORE" >> $OUTPUT
 echo "<hr>" >> $OUTPUT
 
 $MYSQL --html --execute="SELECT domains.name, rate_avg, rate_max, rate_stddev, rate_high, spam_avg, spam_max, spam_stddev, spam_high, daily_limit, updated FROM predictions LEFT OUTER JOIN domains ON predictions.domain = domains.id WHERE domain IN (13, 22, 205, 450, 795, 313943, 0)" >> $OUTPUT
