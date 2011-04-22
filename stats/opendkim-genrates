@@ -82,8 +82,8 @@ cat > $OUTPUT << EOF
 EOF
 
 echo "<h1>OpenDKIM Rate Recommendations generated at `date` </h1>" >> $OUTPUT
-echo "$PISIZE% prediction interval, standard score $STDSCORE" >> $OUTPUT
 echo "<hr>" >> $OUTPUT
+echo "$PISIZE% prediction interval, standard score $STDSCORE" >> $OUTPUT
 
 $MYSQL --html --execute="SELECT domains.name, rate_avg, rate_max, rate_stddev, rate_high, spam_avg, spam_max, spam_stddev, spam_high, daily_limit, updated FROM predictions LEFT OUTER JOIN domains ON predictions.domain = domains.id WHERE domain IN (13, 22, 127, 205, 309, 418, 450, 795, 22199, 144284, 313943, 0)" >> $OUTPUT
 
