@@ -183,10 +183,12 @@ insert ignore into sigerrorcodes (id, name) values
 create table if not exists predictions (
 	id int unsigned not null auto_increment,
 	domain int unsigned not null,
+	rate_samples int unsigned not null,
 	rate_avg float unsigned,
 	rate_max int unsigned,
 	rate_stddev float unsigned,
 	rate_high float unsigned,
+	spam_samples int unsigned not null,
 	spam_avg float unsigned,
 	spam_max int unsigned,
 	spam_stddev float unsigned,
