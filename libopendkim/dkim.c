@@ -7431,11 +7431,11 @@ dkim_sig_getflags(DKIM_SIGINFO *sig)
 **  	sig -- DKIM_SIGINFO handle
 **
 **  Return value:
-**  	An unsigned integer which is one of the DKIM_SIGBH_* constants
+**  	An integer that is one of the DKIM_SIGBH_* constants
 **  	indicating the current state of "bh" evaluation of the signature.
 */
 
-unsigned int
+int
 dkim_sig_getbh(DKIM_SIGINFO *sig)
 {
 	assert(sig != NULL);

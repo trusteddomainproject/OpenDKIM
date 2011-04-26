@@ -846,11 +846,11 @@ extern unsigned int dkim_sig_getflags __P((DKIM_SIGINFO *sig));
 **  	sig -- DKIM_SIGINFO handle
 **
 **  Return value:
-**  	An unsigned integer which is one of the DKIM_SIGBH_* constants
+**  	An integer that is one of the DKIM_SIGBH_* constants
 **  	indicating the current state of "bh" evaluation of the signature.
 */
 
-extern unsigned int dkim_sig_getbh __P((DKIM_SIGINFO *sig));
+extern int dkim_sig_getbh __P((DKIM_SIGINFO *sig));
 
 /*
 **  DKIM_SIG_GETKEYSIZE -- retreive key size after verifying
