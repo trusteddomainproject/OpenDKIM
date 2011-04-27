@@ -87,6 +87,12 @@ echo "$PISIZE% prediction interval, standard score $STDSCORE" >> $OUTPUT
 
 $MYSQL --html --execute="SELECT domains.name, rate_avg, rate_max, rate_stddev, rate_high, spam_avg, spam_max, spam_stddev, spam_high, daily_limit, updated FROM predictions LEFT OUTER JOIN domains ON predictions.domain = domains.id WHERE domain IN (13, 22, 127, 205, 309, 418, 450, 795, 22199, 144284, 313943, 0)" >> $OUTPUT
 
+echo "<br>" >> $OUTPUT
+
+echo "Analysis of low-time domain behaviour (<= 15 days, >= 10 msgs)" >> $OUTPUT
+
+$MYSQL --html --execute="SELECT AVG(counts.c), STDDEV_POP(counts.c), AVG(counts.s), STDDEV_POP(counts.s) FROM (SELECT COUNT(*) AS c, SUM(spam) AS s FROM messages JOIN signatures ON signatures.message = messages.id JOIN domains ON signatures.domain = domains.id WHERE NOT spam = -1 AND domains.firstseen >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 15 DAY) AND pass = 1 GROUP BY signatures.domain, DATE(msgtime) HAVING COUNT(*) >= 10) counts" >> $OUTPUT
+
 cat >> $OUTPUT << EOF
   </body>
 </html>
