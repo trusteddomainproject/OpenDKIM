@@ -91,7 +91,7 @@ echo "<br>" >> $OUTPUT
 
 echo "Analysis of low-time domain behaviour (<= 15 days, >= 10 msgs)" >> $OUTPUT
 
-$MYSQL --html --execute="SELECT AVG(counts.c), STDDEV_POP(counts.c), AVG(counts.s), STDDEV_POP(counts.s) FROM (SELECT COUNT(*) AS c, SUM(spam) AS s FROM messages JOIN signatures ON signatures.message = messages.id JOIN domains ON signatures.domain = domains.id WHERE NOT spam = -1 AND domains.firstseen >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 15 DAY) AND pass = 1 GROUP BY signatures.domain, DATE(msgtime) HAVING COUNT(*) >= 10) counts" >> $OUTPUT
+$MYSQL --html --execute="SELECT AVG(counts.c) AS rate_avg, STDDEV_POP(counts.c) AS rate_stddev, AVG(counts.s) AS spam_avg, STDDEV_POP(counts.s) AS spam_stddev FROM (SELECT COUNT(*) AS c, SUM(spam) AS s FROM messages JOIN signatures ON signatures.message = messages.id JOIN domains ON signatures.domain = domains.id WHERE NOT spam = -1 AND domains.firstseen >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 15 DAY) AND pass = 1 GROUP BY signatures.domain, DATE(msgtime) HAVING COUNT(*) >= 10) counts" >> $OUTPUT
 
 cat >> $OUTPUT << EOF
   </body>
