@@ -12,10 +12,10 @@ $Id: index.html,v 1.12 2010/08/30 22:01:56 cm-msk Exp $
 <h2>Introduction</h2>
 
 <b>DomainKeys Identified Mail</b> ("DKIM") is a specification for signing
-messages at the domain level using simple cryptographic methods to prevent
-the falsification of sender domains.  While the most obvious application of
-this is to defend against forged mail, other applications can make use of this
-capability. <p>
+messages at the domain level using simple cryptographic methods to indicate
+that the signing domain accepts some responsibility for the message.  While
+the most obvious application of this is to defend against forged mail,
+other applications can make use of this capability. <p>
 
 DKIM is an amalgamation of DomainKeys, created by Yahoo!, Inc., and
 Internet Identified Mail (IIM) created by Cisco, Inc.  Both can be found
@@ -24,7 +24,9 @@ about DomainKeys can be found
 <a href="http://antispam.yahoo.com/domainkeys">here</a>. <p>
 
 This API (<tt>libopendkim</tt>) allows an application to sign or verify
-messages according to the <b>DKIM</b> proposed standard.  Also provided
+messages according to the <b>DKIM</b> proposed standard.  Support is
+included for ADSP, a mechanism for determining whether or not the
+purported author domain claims all of its mail is signed.  Also provided
 is an implementation of a filter, using Sendmail's <b>milter</b>
 package, that uses <tt>libopendkim</tt> to implement this facility. <p>
 
