@@ -24,10 +24,11 @@ about DomainKeys can be found
 <a href="http://antispam.yahoo.com/domainkeys">here</a>. <p>
 
 This API (<tt>libopendkim</tt>) allows an application to sign or verify
-messages according to the <b>DKIM</b> proposed standard.  Support is
-included for ADSP, a mechanism for determining whether or not the
-purported author domain claims all of its mail is signed.  Also provided
-is an implementation of a filter, using Sendmail's <b>milter</b>
+messages according to the <b>DKIM</b> proposed standard.  It also includes
+a number of extensions to support other protocols that are not part of
+DKIM itself.  Support is included for ADSP, a mechanism for determining
+whether or not the purported author domain claims all of its mail is signed.
+Also provided is an implementation of a filter, using Sendmail's <b>milter</b>
 package, that uses <tt>libopendkim</tt> to implement this facility. <p>
 
 <h2>Data Types</h2>
