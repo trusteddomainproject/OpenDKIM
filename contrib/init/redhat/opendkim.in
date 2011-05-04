@@ -29,9 +29,9 @@
 
 . /etc/rc.d/init.d/functions
 
-DAEMON=/usr/sbin/opendkim
+DAEMON=@prefix@/sbin/opendkim
 PID_FILE=/var/run/opendkim/opendkim.pid
-CONF_FILE=/etc/opendkim.conf
+CONF_FILE=@prefix@/etc/opendkim.conf
 RETVAL=0
 
 start() {
