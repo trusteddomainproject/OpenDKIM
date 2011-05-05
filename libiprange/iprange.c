@@ -2,6 +2,12 @@
 **  Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 */
 
+/* TODO:
+** - needs a dispatcher thread that handles all of the various subqueries
+**   for a given main query, so the caller only waits on a final result
+** - needs support for IPv6
+*/
+
 #ifndef lint
 static char iprange_c_id[] = "$Id$";
 #endif /* !lint */
