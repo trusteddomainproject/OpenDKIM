@@ -3,7 +3,7 @@
 */
 
 /* TODO:
-** - needs a dispatcher thread that handles all of the various subqueries
+** - needs a worker pool that handles all of the various subqueries
 **   for a given main query, so the caller only waits on a final result
 ** - needs support for IPv6
 */
