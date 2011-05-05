@@ -13,6 +13,9 @@ SUBDIRS += libopendkim contrib docs
 if VBR
 SUBDIRS += libvbr
 endif
+if IPRANGE
+SUBDIRS += libiprange
+endif
 if RBL
 SUBDIRS += librbl
 endif

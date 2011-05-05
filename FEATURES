@@ -65,6 +65,9 @@ dkim_reputation	Add experimental support for querying an open DKIM reputation
 identity_header	Enable selection of an identity for signing based on the
 		value found in a particular header. (opendkim)
 
+iprange		Option to query IP range-style realtime blacklists from
+		within Lua scripts.  Requires Lua.  (opendkim)
+
 ldap_caching	Adds code that ensures duplicate LDAP queries aren't sent
 		and local caching of LDAP replies is done.  (opendkim)
 

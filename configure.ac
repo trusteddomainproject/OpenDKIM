@@ -284,6 +284,9 @@ FFR_FEATURE([selector_header], [special header to choose signing key])
 
 FFR_FEATURE([sender_macro], [macro to determine sender])
 
+FFR_FEATURE([iprange], [IP range-based Realtime Blacklist query support])
+AM_CONDITIONAL([iprange], [test x"$enable_iprange" = x"yes"])
+
 FFR_FEATURE([rbl], [Realtime Blacklist query support])
 AM_CONDITIONAL([RBL], [test x"$enable_rbl" = x"yes"])
 
@@ -1767,6 +1770,7 @@ AC_OUTPUT([	Makefile
 			contrib/spec/opendkim.spec
 			contrib/stats/Makefile
 		libar/ar.pc libar/Makefile libar/tests/Makefile
+		libiprange/iprange.pc libiprange/Makefile
 		libopendkim/opendkim.pc libopendkim/Makefile
 		libopendkim/docs/Makefile
 		libopendkim/tests/Makefile
