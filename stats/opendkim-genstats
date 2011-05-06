@@ -126,7 +126,7 @@ echo '<a name="l_tag"></a>' >> $OUTPUT
 echo "<p> Use of 'l=' tag: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(*) AS 'l= present', pass FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND NOT siglength = -1 GROUP BY pass" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(*) AS 'l=0', pass FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE siglength = 0 GROUP BY pass" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'l= < msgsize', pass FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE signatures.siglength >= 0 AND signatures.siglength < messages.size GROUP BY pass" >> $OUTPUT
+$MYSQL --execute="SELECT COUNT(*) AS 'l <= msgsize', pass FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE signatures.siglength >= 0 AND signatures.siglength < messages.size GROUP BY pass" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="i_tag"></a>' >> $OUTPUT
