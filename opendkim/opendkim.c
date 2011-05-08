@@ -343,6 +343,7 @@ struct dkimf_config
 	DKIMF_DB	conf_vbr_trusteddb;	/* trusted certifiers (DB) */
 	u_char **	conf_vbr_trusted;	/* trusted certifiers */
 #endif /* _FFR_VBR */
+	DKIMF_DB	conf_bldb;		/* l= recipients (DB) */
 	DKIMF_DB	conf_domainsdb;		/* domains to sign (DB) */
 	DKIMF_DB	conf_omithdrdb;		/* headers to omit (DB) */
 	char **		conf_omithdrs;		/* headers to omit (array) */
@@ -397,9 +398,7 @@ struct msgctx
 	_Bool		mctx_eom;		/* in EOM? (enables progress) */
 	_Bool		mctx_addheader;		/* Authentication-Results: */
 	_Bool		mctx_headeronly;	/* in EOM, only add headers */
-#ifdef _FFR_BODYLENGTH_DB
 	_Bool		mctx_ltag;		/* sign with l= tag? */
-#endif /*_FFR_BODYLENGTH_DB */
 #ifdef VERIFY_DOMAINKEYS
 	_Bool		mctx_dksigned;		/* DK signature present */
 	_Bool		mctx_dkpass;		/* DK signature passed */
@@ -723,10 +722,6 @@ struct dkimf_config *curconf;			/* current configuration */
 #ifdef POPAUTH
 DKIMF_DB popdb;					/* POP auth DB */
 #endif /* POPAUTH */
-#ifdef _FFR_BODYLENGTH_DB
-DKIMF_DB bldb;					/* DB of rcpts to receive l= */
-pthread_mutex_t bldb_lock;			/* bldb lock */
-#endif /* _FFR_BODYLENGTH_DB */
 #ifdef _FFR_REPORT_INTERVALS
 DKIMF_DB ridb;					/* report intervals DB */
 pthread_mutex_t ridb_lock;			/* ridb lock */
@@ -2392,7 +2387,6 @@ dkimf_xs_setpartial(lua_State *l)
 	ctx = (SMFICTX *) lua_touserdata(l, 1);
 	lua_pop(l, 1);
 
-# ifdef _FFR_BODYLENGTHDB
 	if (ctx != NULL)
 	{
 		struct connctx *cc;
@@ -2402,7 +2396,6 @@ dkimf_xs_setpartial(lua_State *l)
 		dfc = cc->cctx_msg;
 		dfc->mctx_ltag = TRUE;
 	}
-# endif /* _FFR_BODYLENGTHDB */
 
 	lua_pushnil(l);
 
@@ -5326,6 +5319,9 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_domainsdb != NULL)
 		dkimf_db_close(conf->conf_domainsdb);
 
+	if (conf->conf_bldb != NULL)
+		dkimf_db_close(conf->conf_bldb);
+
 	if (conf->conf_domlist != NULL)
 		free(conf->conf_domlist);
 
@@ -5591,9 +5587,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "BaseDirectory", &str, sizeof str);
 		if (str != NULL)
 			strlcpy(basedir, str, sizeof basedir);
-
-		(void) config_get(data, "BodyLengths", &conf->conf_blen,
-		                  sizeof conf->conf_blen);
 
 		if (conf->conf_canonstr == NULL)
 		{
@@ -6488,6 +6481,27 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_exemptdb, str,
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, dberr);
+			return -1;
+		}
+	}
+
+	/* BodyLengthDB */
+	str = NULL;
+	if (data != NULL)
+		(void) config_get(data, "BodyLengthDB", &str, sizeof str);
+	if (str != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_bldb, str,
 		                       (DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
@@ -7930,12 +7944,12 @@ dkimf_config_reload(void)
 	return;
 }
 
-#ifdef _FFR_BODYLENGTH_DB
 /*
 **  DKIMF_CHECKBLDB -- determine if an envelope recipient is one for which
 **                     signing should be done with body length tags
 **
 **  Parameters:
+**  	db -- DB handle
 **  	to -- the recipient header
 **  	jobid -- string of job ID for logging
 **
@@ -7944,18 +7958,20 @@ dkimf_config_reload(void)
 */
 
 static _Bool
-dkimf_checkbldb(char *to, char *jobid)
+dkimf_checkbldb(DKIMF_DB db, char *to, char *jobid)
 {
+	int c;
 	_Bool exists = FALSE;
 	DKIM_STAT status;
 	char *domain;
-	char *address;
+	char *user;
+	char *p;
 	char addr[MAXADDRESS + 1];
 	char dbaddr[MAXADDRESS + 1];
 
 	strlcpy(addr, to, sizeof addr);
-	status = dkim_mail_parse(addr, &address, &domain);
-	if (status != 0 || address == NULL || domain == NULL)
+	status = dkim_mail_parse(addr, &user, &domain);
+	if (status != 0 || user == NULL || domain == NULL)
 	{
 		if (dolog)
 		{
@@ -7966,29 +7982,42 @@ dkimf_checkbldb(char *to, char *jobid)
 		return FALSE;
 	}
 
-	if (snprintf(dbaddr, sizeof dbaddr, "%s@%s", address,
-	             domain) >= (int) sizeof dbaddr)
+	for (p = domain; ; p = strchr(p + 1, '.'))
 	{
-		if (dolog)
+		for (c = 0; c < 2; c++)
 		{
-			syslog(LOG_ERR, "%s: overflow parsing \"%s\"",
-			       jobid, to);
-		}
-	}
+			if (snprintf(dbaddr, sizeof dbaddr, "%s@%s",
+			             c == 0 ? user : "*",
+			             p == NULL ? "*" : p) >= (int) sizeof dbaddr)
+			{
+				if (dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s: overflow parsing \"%s\"",
+					       jobid, to);
+				}
 
-	status = dkimf_db_get(bldb, dbaddr, 0, NULL, 0, &exists);
-	if (status == 0)
-	{
-		return exists;
-	}
-	else if (dolog)
-	{
-		dkimf_db_error(bldb, dbaddr);
+				return FALSE;
+			}
+
+			status = dkimf_db_get(db, dbaddr, 0, NULL, 0, &exists);
+			if (status == 0)
+			{
+				if (exists)
+					return TRUE;
+			}
+			else if (dolog)
+			{
+				dkimf_db_error(db, dbaddr);
+			}
+		}
+
+		if (p == NULL)
+			break;
 	}
 
 	return FALSE;
 }
-#endif /* _FFR_BODYLENGTH_DB */
 
 /*
 **  DKIMF_STDIO -- set up the base descriptors to go nowhere
@@ -9987,9 +10016,7 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 #ifdef _FFR_ADSP_LISTS
 	    || conf->conf_nodiscardto != NULL
 #endif /* _FFR_ADSP_LISTS */
-#ifdef _FFR_BODYLENGTH_DB
-	    || bldb != NULL
-#endif /* _FFR_BODYLENGTH_DB */
+	    || conf->conf_bldb != NULL
 #ifdef _FFR_REDIRECT
 	    || conf->conf_redirect != NULL
 #endif /* _FFR_REDIRECT */
@@ -10066,8 +10093,8 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 		dfc->mctx_rcptlist = a;
 	}
 
-#ifdef _FFR_BODYLENGTH_DB
-	if (bldb != NULL && dkimf_checkbldb(addr, dfc->mctx_jobid))
+	if (conf->conf_bldb != NULL &&
+	    dkimf_checkbldb(conf->conf_bldb, addr, dfc->mctx_jobid))
 	{
 		dfc->mctx_ltag = TRUE;
 		if (conf->conf_dolog)
@@ -10077,7 +10104,6 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 				dfc->mctx_jobid, addr);
 		}
 	}
-#endif /*  _FFR_BODYLENGTH_DB */
 
 	return SMFIS_CONTINUE;
 }
@@ -11384,7 +11410,6 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 	}
 
-#ifdef _FFR_BODYLENGTH_DB
 	if (dfc->mctx_ltag && dfc->mctx_srhead != NULL)
 	{
 		struct signreq *sr;
@@ -11394,7 +11419,6 @@ mlfi_eoh(SMFICTX *ctx)
 		     sr = sr->srq_next)
 			dkim_setpartial(sr->srq_dkim, TRUE);
 	}
-#endif /* _FFR_BODYLENGTH_DB */
 
 #ifdef _FFR_VBR
 	/* establish a VBR handle */
@@ -14467,9 +14491,6 @@ main(int argc, char **argv)
 #ifdef POPAUTH
 	char *popdbfile = NULL;
 #endif /* POPAUTH */
-#ifdef _FFR_BODYLENGTH_DB
-	char *bldbfile = NULL;
-#endif /* _FFR_BODYLENGTH_DB  */
 #ifdef _FFR_REPORT_INTERVALS
 	char *ridbfile = NULL;
 #endif /* _FFR_REPORT_INTERVALS  */
@@ -14490,9 +14511,6 @@ main(int argc, char **argv)
 #ifdef POPAUTH
 	popdb = NULL;
 #endif /* POPAUTH */
-#ifdef _FFR_BODYLENGTH_DB
-	bldb = NULL;
-#endif /* _FFR_BODYLENGTH_DB */
 #ifdef _FFR_REPORT_INTERVALS
 	ridb = NULL;
 #endif /* _FFR_REPORT_INTERVALS */
@@ -15138,14 +15156,6 @@ main(int argc, char **argv)
 			(void) config_get(cfg, "Userid", &become,
 			                  sizeof become);
 		}
-
-#ifdef _FFR_BODYLENGTH_DB
-		if (bldbfile == NULL)
-		{
-			(void) config_get(cfg, "BodyLengthDBFile",
-			                  &bldbfile, sizeof bldbfile);
-		}
-#endif /* _FFR_BODYLENGTH_DB */
 
 #ifdef _FFR_REPORT_INTERVALS
 		if (ridbfile == NULL)
@@ -15825,48 +15835,6 @@ main(int argc, char **argv)
 	}
 #endif /* VERIFY_DOMAINKEYS */
 
-#ifdef _FFR_BODYLENGTH_DB
-	if (bldbfile != NULL)
-	{
-		char *err = NULL;
-
-		status = pthread_mutex_init(&bldb_lock, NULL);
-		if (status != 0)
-		{
-			fprintf(stderr,
-			        "%s: can't initialize body length DB mutex: %s\n",
-			        progname, strerror(status));
-			if (dolog)
-			{
-				syslog(LOG_ERR,
-				       "can't initialize body length DB mutex: %s",
-				       strerror(status));
-			}
-		}
-
-		status = dkimf_db_open(&bldb, bldbfile,
-		                       (DKIMF_DB_FLAG_ICASE |
-		                        DKIMF_DB_FLAG_READONLY),
-		                       &bldb_lock, &err);
-		if (status != 0)
-		{
-			fprintf(stderr, "%s: can't open database %s: %s\n",
-			        progname, bldbfile, err);
-			if (dolog)
-			{
-				syslog(LOG_ERR, "can't open database %s: %s",
-				       bldbfile, err);
-			}
-			dkimf_zapkey(curconf);
-
-			if (!autorestart && pidfile != NULL)
-				(void) unlink(pidfile);
-
-			return EX_UNAVAILABLE;
-		}
-	}
-#endif /* _FFR_BODYLENGTH_DB */
-
 #ifdef _FFR_REPORT_INTERVALS
 	if (ridbfile != NULL)
 	{
@@ -15900,11 +15868,6 @@ main(int argc, char **argv)
 				       ridbfile, err);
 			}
 			dkimf_zapkey(curconf);
-
-#ifdef _FFR_BODYLENGTH_DB
-			if (bldb != NULL)
-				dkimf_db_close(bldb);
-#endif /* _FFR_BODYLENGTH_DB */
 
 			if (!autorestart && pidfile != NULL)
 				(void) unlink(pidfile);
@@ -16021,11 +15984,6 @@ main(int argc, char **argv)
 		       "%s v%s terminating with status %d, errno = %d",
 		       DKIMF_PRODUCT, VERSION, status, errno);
 	}
-
-#ifdef _FFR_BODYLENGTH_DB
-	if (bldb != NULL)
-		dkimf_db_close(bldb);
-#endif /* _FFR_BODYLENGTH_DB */
 
 #ifdef _FFR_REPORT_INTERVALS
 	if (ridb != NULL)

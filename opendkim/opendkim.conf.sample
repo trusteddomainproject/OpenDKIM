@@ -117,13 +117,14 @@
 
 # BaseDirectory		/var/run/opendkim
 
-##  BodyLengths { yes | no }
-##  	default "no"
+##  BodyLengthDB dataset
+##  	default (none)
 ##
-##  Indicate whether or not signatures with body length tags should be
-##  generated.
+##  A data set that is checked against envelope recipients to see if a
+##  body length tag should be included in the generated signature.
+##  This has security implications; see opendkim.conf(5) for details.
 
-# BodyLengths		No
+# BodyLengthDB		dataset
 
 ##  Canonicalization hdrcanon[/bodycanon]
 ##  	default "simple/simple"

@@ -170,25 +170,20 @@ It's also useful for arranging that any crash dumps will be saved to
 a specific location.
 
 .TP
-.I BodyLengths (Boolean)
-Requests that
-.I opendkim
-include the "l=" body length tag when generating signatures.  This
-indicates to the verifier that only a certain amount of the original
-message was signed, allowing tolerance of things like mailing list
-managers that append list-specific text to the end of mailings
-it processes.  However, this also enables an abuse attack.  See the
-DKIM specification for more information.
-
-.TP
-.I BodyLengthDBFile (dataset)
+.I BodyLengthDB (dataset)
 Requests that
 .I opendkim
 include a "l=" body length tag when the set contains any of the envelope
-recipient addresses.
-@BODYLENGTH_DB_MANNOTICE@
+recipient addresses.  The addresses presented are tested against the database
+in various forms as described under the
+.I SigningTable
+setting (below).  This feature of the protocol exists to improve the
+likelihood that a signature will survive transit through a mailing list
+server, as they commonly append footers to messages.  Note, however,
+that this creates a potential security issue since someone could add
+arbitrary text to the signed message and the signature would still validate.
+See the DKIM specification for details.
 
-.TP
 .I BogusKey (string)
 Instructs the filter to treat a passing signature associated with a bogus
 (forged) key in a special way.  Possible values are
@@ -546,9 +541,9 @@ is enabled, a questionable report could be generated.
 .I MaximumSignedBytes (integer)
 Specifies the maximum number of bytes of message body to be signed.
 Messages shorter than this limit will be signed in their entirety.
-Setting this value forces
-.I BodyLengths
-to be "True".
+Setting this value implies use of
+.I BodyLengthDB
+for all addresses.
 
 .TP
 .I MilterDebug (integer)

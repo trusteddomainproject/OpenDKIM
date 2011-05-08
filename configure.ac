@@ -244,8 +244,6 @@ AM_CONDITIONAL([ATPS], [test x"$enable_atps" = x"yes"])
 
 FFR_FEATURE([adsp_lists], [support for ADSP filtering for lists])
 
-FFR_FEATURE([bodylength_db], [support for body length DBs])
-
 FFR_FEATURE([db_handle_pools], [experimental database handle pools])
 
 FFR_FEATURE([diffheaders], [compare signed and verified headers when possible])
@@ -1449,8 +1447,7 @@ then
 fi
 
 AM_CONDITIONAL(USE_DB_OPENDKIM,
-               test x"$enable_bodylength_db" = x"yes" -o \
-	            x"$enable_popauth" = x"yes" -o \
+               test x"$enable_popauth" = x"yes" -o \
 	            x"$enable_report_intervals" = x"yes" -o \
                     x"$bdbrequested" = x"yes")
 AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")

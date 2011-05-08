@@ -36,10 +36,6 @@ allsymbols	By default, the build will attempt to create a libopendkim
 atps		Support for experimental Authorized Third-Party Signatures
 		mechanism.  (opendkim, libopendkim)
 
-bodylength_db	Optionally query a local database of recipient addresses
-		to determine if an "l=" tag should be applied when
-		signing.  (opendkim)
-
 capture_unknown_errors
 		When dkim_eom() returns an unexpected error of some kind,
 		quarantine the message for further analysis.  (opendkim)

@@ -46,10 +46,7 @@ struct configdef dkimf_config[] =
 	{ "AutoRestartRate",		CONFIG_TYPE_STRING,	FALSE },
 	{ "Background",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "BaseDirectory",		CONFIG_TYPE_STRING,	FALSE },
-	{ "BodyLengths",		CONFIG_TYPE_BOOLEAN,	FALSE },
-#ifdef _FFR_BODYLENGTH_DB
-	{ "BodyLengthDBFile",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_BODYLENGTH_DB */
+	{ "BodyLengthDB",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef USE_UNBOUND
 	{ "BogusKey",			CONFIG_TYPE_STRING,	FALSE },
 	{ "BogusPolicy",		CONFIG_TYPE_STRING,	FALSE },

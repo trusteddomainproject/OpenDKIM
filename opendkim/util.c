@@ -122,10 +122,6 @@ static char *optlist[] =
 	"_FFR_ATPS",
 #endif /* _FFR_ATPS */
 
-#ifdef _FFR_BODYLENGTH_DB
-	"_FFR_BODYLENGTH_DB",
-#endif /* _FFR_BODYLENGTH_DB */
-
 #ifdef _FFR_DEFAULT_SENDER
 	"_FFR_DEFAULT_SENDER",
 #endif /* _FFR_DEFAULT_SENDER */
