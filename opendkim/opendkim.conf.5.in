@@ -184,8 +184,8 @@ DKIM specification for more information.
 .I BodyLengthDBFile (dataset)
 Requests that
 .I opendkim
-include a "l=" body length tag when the set contains the recipient 
-addresses.
+include a "l=" body length tag when the set contains any of the envelope
+recipient addresses.
 @BODYLENGTH_DB_MANNOTICE@
 
 .TP
