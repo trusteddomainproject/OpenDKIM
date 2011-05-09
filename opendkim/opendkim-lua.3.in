@@ -242,7 +242,7 @@ and
 (permanent failure/rejection).  Returns 1 on success or the Lua constant
 "nil" on failure.
 .TP
-.B odkim.sign(ctx[, keyname[, signer]])
+.B odkim.sign(ctx[, keyname[, signer[, signlen]]])
 Requests that the filter sign the message represented by
 .I ctx
 using the specified
@@ -257,7 +257,10 @@ domain, selector and key should be used to sign.  Returns 1 on success
 and 0 on failure.  If a
 .I signer
 is specified, the string there will be included in the generated signature's
-"i=" tag.
+"i=" tag.  If a
+.I signlen
+is specified, the signature will cover that many bytes of the message body.
+The order of these last two parameters is interchangeable.
 .TP
 .B odkim.use_ltag(ctx)
 Requests that all signatures added to the message represented by
