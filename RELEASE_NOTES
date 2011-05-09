@@ -6,6 +6,9 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.4.0		2011/06/06
+	Feature request #SF3241982: Optionally an Authentication-Results
+		field for all signatures present, not just the first good
+		one.
 	Feature request #SF3256630: Add hooks for post-verification rate
 		controls.
 	Feature request #SF3290461: Add support for querying a memcache
