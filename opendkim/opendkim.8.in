@@ -495,7 +495,7 @@ This man page covers version @VERSION@ of
 Copyright (c) 2005-2008, Sendmail, Inc. and its suppliers.  All rights
 reserved.
 
-Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim.conf(5), sendmail(8)
 .P
