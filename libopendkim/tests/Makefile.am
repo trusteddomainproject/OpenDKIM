@@ -51,9 +51,6 @@ check_SCRIPTS = t-signperf-sha1 t-signperf-relaxed-relaxed \
 if ALL_SYMBOLS
 check_PROGRAMS += t-test49 t-test113 t-test118
 endif
-if LIVE_TESTS
-check_PROGRAMS += t-test124
-endif
 check_PROGRAMS += t-cleanup
 TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
 
@@ -191,9 +188,6 @@ t_test120_SOURCES = t-test120.c t-testdata.h
 t_test121_SOURCES = t-test121.c t-testdata.h
 t_test122_SOURCES = t-test122.c t-testdata.h
 t_test123_SOURCES = t-test123.c t-testdata.h
-if LIVE_TESTS
-t_test124_SOURCES = t-test124.c t-testdata.h
-endif
 t_test125_SOURCES = t-test125.c t-testdata.h
 t_test126_SOURCES = t-test126.c t-testdata.h
 t_test127_SOURCES = t-test127.c t-testdata.h

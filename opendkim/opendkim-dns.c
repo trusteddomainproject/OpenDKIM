@@ -24,15 +24,24 @@ static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.7.10.2 2010/10/28
 /* libopendkim includes */
 #include <dkim.h>
 
+#ifdef _FFR_DKIM_REPUTATION
+/* libdkimrep includes */
+# include <dkim-rep.h>
+#endif /* _FFR_DKIM_REPUTATION */
+
 #ifdef USE_UNBOUND
 /* libunbound includes */
 # include <unbound.h>
 #endif /* USE_UNBOUND */
 
+#ifdef _FFR_RBL
+/* librbl includes */
+# include <rbl.h>
+#endif /* _FFR_RBL */
+
 #ifdef USE_ARLIB
 /* libar includes */
 # include <ar.h>
-
 # define MAXCNAMEDEPTH	3
 #endif /* USE_ARLIB */
 
@@ -526,6 +535,33 @@ dkimf_rbl_unbound_setup(RBL *rbl, struct dkimf_unbound *ub)
 }
 # endif /* _FFR_RBL */
 
+# ifdef _FFR_DKIM_REPUTATION
+/*
+**  DKIMF_RBL_UNBOUND_SETUP -- connect libunbound to librbl
+**
+**  Parameters:
+**  	dr -- DKIM_REP handle
+**  	ub -- dkimf_unbound handle to use
+**
+**  Return value:
+**  	0 on success, -1 on failure
+*/
+
+int
+dkimf_rep_unbound_setup(DKIM_REP dr, struct dkimf_unbound *ub)
+{
+	assert(dr != NULL);
+	assert(ub != NULL);
+
+	(void) dkim_rep_dns_set_query_service(dr, ub);
+	(void) dkim_rep_dns_set_query_start(dr, dkimf_ub_query);
+	(void) dkim_rep_dns_set_query_cancel(dr, dkimf_ub_cancel);
+	(void) dkim_rep_dns_set_query_waitreply(dr, dkimf_ub_waitreply);
+
+	return 0;
+}
+# endif /* _FFR_DKIM_REPUTATION */
+
 /*
 **  DKIMF_UNBOUND_SETUP -- connect libunbound to libopendkim
 **
@@ -748,6 +784,33 @@ dkimf_rbl_arlib_setup(RBL *rbl, AR_LIB ar)
 	return 0;
 }
 # endif /* _FFR_RBL */
+
+# ifdef _FFR_DKIM_REPORTING
+/*
+**  DKIMF_REP_ARLIB_SETUP -- connect libar to libdkimrep
+**
+**  Parameters:
+**  	dr -- DKIM_REP handle
+**  	libar -- AR_LIB handle
+**
+**  Return value:
+**  	0 on success, -1 on failure
+*/
+
+int
+dkimf_rep_arlib_setup(DKIM_REP dr, AR_LIB ar)
+{
+	assert(dr != NULL);
+	assert(ar != NULL);
+
+	(void) dkim_rep_dns_set_query_service(dr, ar);
+	(void) dkim_rep_dns_set_query_start(dr, dkimf_ar_query);
+	(void) dkim_rep_dns_set_query_cancel(dr, dkimf_ar_cancel);
+	(void) dkim_rep_dns_set_query_waitreply(dr, dkimf_ar_waitreply);
+
+	return 0;
+}
+# endif /* _FFR_DKIM_REPUTATION */
 
 /*
 **  DKIMF_ARLIB_SETUP -- connect libar to libopendkim

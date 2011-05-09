@@ -94,9 +94,6 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.70.2.1 2010/10/27 21:43:08 cm-msk
 #ifdef QUERY_CACHE
 # include "dkim-cache.h"
 #endif /* QUERY_CACHE */
-#ifdef _FFR_DKIM_REPUTATION
-# include "dkim-rep.h"
-#endif /* _FFR_DKIM_REPUTATION */
 #include "util.h"
 #include "base64.h"
 #include "dkim-strl.h"
@@ -4323,9 +4320,6 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef _FFR_DIFFHEADERS
 	FEATURE_ADD(libhandle, DKIM_FEATURE_DIFFHEADERS);
 #endif /* _FFR_DIFFHEADERS */
-#ifdef _FFR_DKIM_REPUTATION
-	FEATURE_ADD(libhandle, DKIM_FEATURE_DKIM_REPUTATION);
-#endif /* _FFR_DKIM_REPUTATION */
 #ifdef _FFR_PARSE_TIME
 	FEATURE_ADD(libhandle, DKIM_FEATURE_PARSE_TIME);
 #endif /* _FFR_PARSE_TIME */
@@ -8283,7 +8277,8 @@ dkim_getcachestats(u_int *queries, u_int *hits, u_int *expired)
 
 /*
 **  DKIM_GET_REPUTATION -- query reputation service about a signature
-**
+**                         (OBSOLETE; moved to libdkimrep)
+**  
 **  Parameters:
 **  	dkim -- DKIM handle
 **  	sig -- DKIM_SIGINFO handle
@@ -8291,51 +8286,13 @@ dkim_getcachestats(u_int *queries, u_int *hits, u_int *expired)
 **  	rep -- integer reputation (returned)
 **
 **  Return value:
-**  	DKIM_STAT_OK -- "rep" now contains a reputation
-**  	DKIM_STAT_NOKEY -- no reputation data available
-**  	DKIM_STAT_CANTVRFY -- data retrieval error of some kind
-**  	DKIM_STAT_INTERNAL -- internal error of some kind
 **  	DKIM_STAT_NOTIMPLEMENT -- not implemented
-**  	DKIM_STAT_INVALID -- domain could not be determined
 */
 
 DKIM_STAT
 dkim_get_reputation(DKIM *dkim, DKIM_SIGINFO *sig, char *qroot, int *rep)
 {
-#ifdef _FFR_DKIM_REPUTATION
-	int status;
-	int lrep;
-
-	assert(dkim != NULL);
-	assert(sig != NULL);
-	assert(qroot != NULL);
-	assert(rep != NULL);
-
-	if (dkim->dkim_domain == NULL)
-		return DKIM_STAT_INVALID;
-
-	status = dkim_reputation(dkim, dkim->dkim_user, dkim->dkim_domain,
-	                         dkim_sig_getdomain(sig), qroot, &lrep);
-
-	switch (status)
-	{
-	  case 1:
-		*rep = lrep;
-		return DKIM_STAT_OK;
-
-	  case 0:
-		return DKIM_STAT_NOKEY;
-
-	  case -1:
-		return DKIM_STAT_CANTVRFY;
-
-	  case -2:
-	  default:
-		return DKIM_STAT_INTERNAL;
-	}
-#else /* _FFR_DKIM_REPUTATION */
 	return DKIM_STAT_NOTIMPLEMENT;
-#endif /* _FFR_DKIM_REPUTATION */
 }
 
 /*

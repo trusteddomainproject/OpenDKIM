@@ -87,6 +87,11 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 # include <rbl.h>
 #endif /* _FFR_RBL */
 
+#ifdef _FFR_DKIM_REPUTATION
+/* libdkimrep includes */
+# include <dkim-rep.h>
+#endif /* _FFR_DKIM_REPUTATION */
+
 /* libopendkim includes */
 #include "dkim.h"
 #ifdef _FFR_VBR
@@ -3897,6 +3902,7 @@ dkimf_xs_getreputation(lua_State *l)
 	char *qroot;
 	DKIM_SIGINFO *sig;
 	struct connctx *cc;
+	struct dkimf_config *conf;
 	struct msgctx *dfc;
 
 	assert(l != NULL);
@@ -3929,6 +3935,7 @@ dkimf_xs_getreputation(lua_State *l)
 
 	cc = (struct connctx *) dkimf_getpriv(ctx);
 	dfc = cc->cctx_msg;
+	conf = cc->cctx_config;
 
 	if (dfc->mctx_dkimv == NULL)
 	{
@@ -3936,15 +3943,56 @@ dkimf_xs_getreputation(lua_State *l)
 	}
 	else
 	{
-		if (strlen(qroot) == 0)
-			qroot = NULL;
+# ifdef _FFR_DKIM_REPUTATION
+		DKIM_REP dr;
 
-		status = dkim_get_reputation(dfc->mctx_dkimv, sig,
-		                             qroot, &rep);
-		if (status != DKIM_STAT_OK)
-			lua_pushnil(l);
-		else
-			lua_pushnumber(l, rep);
+		dr = dkim_rep_init(NULL, NULL, NULL);
+		if (dr != NULL)
+		{
+			void *qh;
+
+#  ifdef USE_ARLIB
+			dkimf_rep_arlib_setup(dr, conf->conf_arlib);
+#  endif /* USE_ARLIB */
+#  ifdef USE_UNBOUND
+			dkimf_rep_unbound_setup(dr, conf->conf_unbound);
+#  endif /* USE_UNBOUND */
+
+			if (strlen(qroot) != 0)
+				dkim_rep_setdomain(dr, qroot);
+
+			status = dkim_rep_query_start(dr,
+			                              dkim_getuser(dfc->mctx_dkimv),
+			                              dkim_getdomain(dfc->mctx_dkimv),
+			                              dkim_sig_getdomain(sig),
+			                              &qh);
+			if (status == DKIM_REP_STAT_OK && qh != NULL)
+			{
+				int rep = 0;
+				struct timeval timeout;
+
+				timeout.tv_sec = conf->conf_dnstimeout;
+				timeout.tv_usec = 0;
+
+				status = dkim_rep_query_check(dr, qh,
+				                              &timeout, &rep);
+				if (status == DKIM_REP_STAT_FOUND)
+					lua_pushnumber(l, rep);
+				else
+					lua_pushnil(l);
+			}
+			else
+			{
+				lua_pushnil(l);
+			}
+
+			dkim_rep_close(dr);
+		}
+
+		lua_pushnil(l);
+# else /* _FFR_DKIM_REPUTATION */
+		lua_pushnil(l);
+# endif /* _FFR_DKIM_REPUTATION */
 	}
 
 	return 1;
@@ -14446,100 +14494,123 @@ mlfi_eom(SMFICTX *ctx)
 
 			if (sig != NULL)
 			{
-				char *qroot;
+				DKIM_REP dr;
 
-				if (conf->conf_reproot == NULL)
-					qroot = DKIM_REP_ROOT;
-				else
-					qroot = conf->conf_reproot;
-
-				status = dkim_get_reputation(dfc->mctx_dkimv,
-				                             sig, qroot, &rep);
-
-				if (status == DKIM_STAT_CANTVRFY ||
-				    status == DKIM_STAT_INTERNAL)
+				dr = dkim_rep_init(NULL, NULL, NULL);
+				if (dr != NULL)
 				{
-					const char *err;
-					char tmp[BUFRSZ + 1];
-
-					memset(tmp, '\0', sizeof tmp);
-
-					err = dkim_geterror(dfc->mctx_dkimv);
-					if (err != NULL)
-					{
-						snprintf(tmp, sizeof tmp,
-						         ": %s", err);
-					}
-
 					syslog(LOG_INFO,
-					       "%s: error during reputation query%s",
-					       dfc->mctx_jobid, tmp);
-				}
-				else if (rep > conf->conf_repreject)
-				{
-					if (dkimf_setreply(ctx,
-					                   REPDENYSMTP,
-					                   REPDENYESC,
-					                   REPDENYTXT) != MI_SUCCESS &&
-					    conf->conf_dolog)
-					{
-						syslog(LOG_NOTICE,
-						       "%s: smfi_setreply() failed",
-						       dfc->mctx_jobid);
-					}
-
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_INFO,
-						       "%s: DKIM reputation: %d (max %d); rejecting",
-						       dfc->mctx_jobid, rep,
-						       conf->conf_repreject);
-					}
-
-					dkimf_cleanup(ctx);
-					return SMFIS_REJECT;
+					       "%s: can't initialize reputation query",
+					       dfc->mctx_jobid);
 				}
 				else
 				{
-					char *result;
+					void *qh;
 
-					if (rep > conf->conf_repfail)
-						result = "fail";
-					else if (rep < conf->conf_reppass)
-						result = "pass";
-					else
-						result = "neutral";
+# ifdef USE_ARLIB
+					dkimf_rep_arlib_setup(dr,
+					                      conf->conf_arlib);
+# endif /* USE_ARLIB */
+# ifdef USE_UNBOUND
+					dkimf_rep_unbound_setup(dr,
+					                        conf->conf_unbound);
+# endif /* USE_UNBOUND */
 
-					snprintf(header, sizeof header,
-					         "%s%s%s%s; x-dkim-rep=%s (%d) header.d=%s",
-					         cc->cctx_noleadspc ? " " : "",
-					         authservid,
-					         conf->conf_authservidwithjobid ? "/"
-					                                        : "",
-					         conf->conf_authservidwithjobid ? (char *) dfc->mctx_jobid
-					                                        : "",
-					         result, rep,
-					         dkim_sig_getdomain(sig));
-
-					if (conf->conf_dolog_success)
+					if (conf->conf_reproot != NULL)
 					{
-						syslog(LOG_INFO,
-						       "%s: DKIM reputation: %d",
-						       dfc->mctx_jobid, rep);
+						dkim_rep_setdomain(dr,
+						                   conf->conf_reproot);
 					}
 
-					if (dkimf_insheader(ctx, 1,
-					                    AUTHRESULTSHDR,
-					                    header) == MI_FAILURE)
+					status = dkim_rep_query_start(dr,
+					                              dkim_getuser(dfc->mctx_dkimv),
+					                              dkim_getdomain(dfc->mctx_dkimv),
+					                              dkim_sig_getdomain(sig),
+					                              &qh);
+					if (status == DKIM_REP_STAT_OK &&
+					    qh != NULL)
 					{
-						if (conf->conf_dolog)
+						int rep = 0;
+						struct timeval timeout;
+
+						timeout.tv_sec = conf->conf_dnstimeout;
+						timeout.tv_usec = 0;
+
+						status = dkim_rep_query_check(dr,
+						                              qh,
+						                              &timeout,
+						                              &rep);
+						if (status == DKIM_REP_STAT_FOUND &&
+						    rep > conf->conf_repreject)
 						{
-							syslog(LOG_ERR,
-							       "%s: %s header add failed",
-							       dfc->mctx_jobid,
-							       AUTHRESULTSHDR);
+							if (dkimf_setreply(ctx,
+							                   REPDENYSMTP,
+							                   REPDENYESC,
+							                   REPDENYTXT) != MI_SUCCESS &&
+							    conf->conf_dolog)
+							{
+								syslog(LOG_NOTICE,
+								       "%s: smfi_setreply() failed",
+								       dfc->mctx_jobid);
+							}
+
+							if (conf->conf_dolog)
+							{
+								syslog(LOG_INFO,
+								       "%s: DKIM reputation: %d (max %d); rejecting",
+								       dfc->mctx_jobid, rep,
+								       conf->conf_repreject);
+							}
+
+							dkim_rep_close(dr);
+							dkimf_cleanup(ctx);
+							return SMFIS_REJECT;
+						}
+						else
+						{
+							char *result;
+
+							if (rep > conf->conf_repfail)
+								result = "fail";
+							else if (rep < conf->conf_reppass)
+								result = "pass";
+							else
+								result = "neutral";
+
+							snprintf(header, sizeof header,
+							         "%s%s%s%s; x-dkim-rep=%s (%d) header.d=%s",
+							         cc->cctx_noleadspc ? " " : "",
+							         authservid,
+							         conf->conf_authservidwithjobid ? "/"
+							                                        : "",
+							         conf->conf_authservidwithjobid ? (char *) dfc->mctx_jobid
+							                                        : "",
+							         result, rep,
+							         dkim_sig_getdomain(sig));
+
+							if (conf->conf_dolog_success)
+							{
+								syslog(LOG_INFO,
+								       "%s: DKIM reputation: %d",
+								       dfc->mctx_jobid, rep);
+							}
+
+							if (dkimf_insheader(ctx, 1,
+							                    AUTHRESULTSHDR,
+							                    header) == MI_FAILURE)
+							{
+								if (conf->conf_dolog)
+								{
+									syslog(LOG_ERR,
+									       "%s: %s header add failed",
+									       dfc->mctx_jobid,
+									       AUTHRESULTSHDR);
+								}
+							}
 						}
 					}
+
+					dkim_rep_close(dr);
 				}
 			}
 		}

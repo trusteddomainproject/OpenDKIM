@@ -252,6 +252,7 @@ LIB_FFR_FEATURE([diffheaders],
 
 FFR_FEATURE([dkim_reputation], [experimental DKIM reputation checks])
 LIB_FFR_FEATURE([dkim_reputation], [experimental DKIM reputation checks])
+AM_CONDITIONAL([DKIM_REPUTATION], [test x"$enable_dkim_reputation" = x"yes"])
 
 FFR_FEATURE([identity_header], [special header to set identity])
 
@@ -1846,7 +1847,10 @@ AC_OUTPUT([	Makefile
 			contrib/spec/Makefile
 			contrib/spec/opendkim.spec
 			contrib/stats/Makefile
-		libar/ar.pc libar/Makefile libar/tests/Makefile
+		libar/ar.pc libar/Makefile
+		libar/tests/Makefile
+		libdkimrep/dkim-rep.pc libdkimrep/Makefile
+		libdkimrep/tests/Makefile
 		libopendkim/opendkim.pc libopendkim/Makefile
 		libopendkim/docs/Makefile
 		libopendkim/tests/Makefile
