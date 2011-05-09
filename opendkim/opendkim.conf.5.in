@@ -544,7 +544,6 @@ cause an author domain signature to be ignored, causing the ADSP evaluation
 to fail and, if
 .I SendADSPReports
 is enabled, a questionable report could be generated.
-@MAXVERIFY_MANNOTICE@
 
 .TP
 .I MaximumSignedBytes (integer)

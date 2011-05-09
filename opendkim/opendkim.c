@@ -242,9 +242,7 @@ struct dkimf_config
 	unsigned int	conf_refcnt;		/* reference count */
 	unsigned int	conf_dnstimeout;	/* DNS timeout */
 	unsigned int	conf_maxhdrsz;		/* max header bytes */
-#ifdef _FFR_MAXVERIFY
 	unsigned int	conf_maxverify;		/* max sigs to verify */
-#endif /* _FFR_MAXVERIFY */
 #ifdef USE_UNBOUND
 	unsigned int	conf_boguskey;		/* bogus key action */
 	unsigned int	conf_insecurekey;	/* insecure key action */
@@ -5043,9 +5041,7 @@ static DKIM_CBSTAT
 dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 {
 	int c;
-#ifdef _FFR_MAXVERIFY
 	unsigned int ni = 0;
-#endif /* _FFR_MAXVERIFY */
 	u_char *domain;
 	u_char *sdomain;
 	SMFICTX *ctx;
@@ -5059,7 +5055,6 @@ dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 	dfc = cc->cctx_msg;
 	domain = dkim_getdomain(dkim);
 
-#ifdef _FFR_MAXVERIFY
 	if (conf->conf_maxverify > 0)
 	{
 		int n;
@@ -5130,10 +5125,6 @@ dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 
 		return DKIM_CBSTAT_CONTINUE;
 	}
-
-	if (conf->conf_thirdpartydb == NULL)
-		return DKIM_CBSTAT_CONTINUE;
-#endif /* _FFR_MAXVERIFY */
 
 	/* ignore signatures which are neither first-party nor trusted */
 	for (c = 0; c < nsigs; c++)
@@ -5642,9 +5633,7 @@ dkimf_config_new(void)
 	new->conf_hdrcanon = DKIM_CANON_DEFAULT;
 	new->conf_bodycanon = DKIM_CANON_DEFAULT;
 	new->conf_dnstimeout = DEFTIMEOUT;
-#ifdef _FFR_MAXVERIFY
 	new->conf_maxverify = DEFMAXVERIFY;
-#endif /* _FFR_MAXVERIFY */
 	new->conf_maxhdrsz = DEFMAXHDRSZ;
 	new->conf_signbytes = -1L;
 	new->conf_sigmintype = SIGMIN_BYTES;
@@ -6052,11 +6041,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "MaximumHeaders", &conf->conf_maxhdrsz,
 		                  sizeof conf->conf_maxhdrsz);
 
-#ifdef _FFR_MAXVERIFY
 		(void) config_get(data, "MaximumSignaturesToVerify",
 		                  &conf->conf_maxverify,
 		                  sizeof conf->conf_maxverify);
-#endif /* _FFR_MAXVERIFY */
 
 #ifdef	_FFR_IDENTITY_HEADER
 		(void) config_get(data, "IdentityHeader",
@@ -8215,7 +8202,6 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 		return FALSE;
 	}
 
-#ifdef _FFR_MAXVERIFY
 	status = dkim_set_prescreen(conf->conf_libopendkim, dkimf_prescreen);
 	if (status != DKIM_STAT_OK)
 	{
@@ -8223,29 +8209,6 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 			*err = "failed to set DKIM prescreen function";
 		return FALSE;
 	}
-#else /* _FFR_MAXVERIFY */
-	if (conf->conf_thirdpartydb != NULL)
-	{
-		status = dkim_set_prescreen(conf->conf_libopendkim,
-		                            dkimf_prescreen);
-		if (status != DKIM_STAT_OK)
-		{
-			if (err != NULL)
-				*err = "failed to set DKIM prescreen function";
-			return FALSE;
-		}
-	}
-	else
-	{
-		status = dkim_set_prescreen(conf->conf_libopendkim, NULL);
-		if (status != DKIM_STAT_OK)
-		{
-			if (err != NULL)
-				*err = "failed to set DKIM prescreen function";
-			return FALSE;
-		}
-	}
-#endif /* _FFR_MAXVERIFY */
 
 	return TRUE;
 }

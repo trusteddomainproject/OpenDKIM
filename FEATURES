@@ -63,9 +63,6 @@ ldap_caching	Adds code that ensures duplicate LDAP queries aren't sent
 lua_globals	Optional mechanism for passing variables between Lua
 		scripts.  (opendkim)
 
-maxverify	Control over maximum number of signatures per message to
-		be processed.  (opendkim)
-
 oversign	Optional specification of header fields to "oversign" to
 		prevent malicious addition of malicious extra instances.
 		(opendkim, libopendkim)

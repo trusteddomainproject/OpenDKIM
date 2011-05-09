@@ -292,6 +292,14 @@ KeyFile			/var/db/dkim/example.private
 
 # MaximumHeaders	n
 
+##  MaximumSignaturesToVerify n
+##  	(default 3)
+##
+##  Verify no more than "n" signatures on an arriving message.
+##  A value of 0 means "no limit".
+
+# MaximumSignaturesToVerify	n
+
 ##  MaximumSignedBytes n
 ##
 ##  Don't sign more than "n" bytes of the message.  The default is to 

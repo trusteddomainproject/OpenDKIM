@@ -146,10 +146,6 @@ static char *optlist[] =
 	"_FFR_LUA_GLOBALS",
 #endif /* _FFR_LUA_GLOBALS */
 
-#if _FFR_MAXVERIFY
-	"_FFR_MAXVERIFY",
-#endif /* _FFR_MAXVERIFY */
-
 #if _FFR_OVERSIGN
 	"_FFR_OVERSIGN",
 #endif /* _FFR_OVERSIGN */
