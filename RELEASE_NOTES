@@ -24,6 +24,7 @@ release, and a summary of the changes in that release.
 		support to its own library.
 	LIBOPENDKIM: Feature request #SF3279589: Add support for generic
 		extension tags in signatures.
+	STATS: Feature request #SF3066106: Add "opendkim-anonstats" tool.
 
 2.3.2		2011/04/14
 	Fix bug #SF3067338: Create a pool of DB handles for SQL operations
