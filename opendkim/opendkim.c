@@ -101,6 +101,9 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 
 /* opendkim includes */
 #include "config.h"
+#ifdef _FFR_RATE_LIMIT
+# include "flowrate.h"
+#endif /* _FFR_RATE_LIMIT */
 #include "opendkim-db.h"
 #include "opendkim-config.h"
 #include "opendkim-crypto.h"
@@ -228,6 +231,9 @@ struct dkimf_config
 	unsigned int	conf_boguspolicy;	/* bogus policy action */
 	unsigned int	conf_insecurepolicy;	/* insecure policy action */
 #endif /* USE_UNBOUND */
+#ifdef _FFR_RATE_LIMIT
+	unsigned int	conf_flowdatattl;	/* flow data TTL */
+#endif /* _FFR_RATE_LIMIT */
 	int		conf_clockdrift;	/* tolerable clock drift */
 	int		conf_sigmintype;	/* signature minimum type */
 	int		conf_adspaction;	/* apply ADSP "discardable"? */
@@ -384,6 +390,10 @@ struct dkimf_config
 #ifdef _FFR_RESIGN
 	DKIMF_DB	conf_resigndb;		/* resigning addresses */
 #endif /* _FFR_RESIGN */
+#ifdef _FFR_RATE_LIMIT
+	DKIMF_DB	conf_ratelimitdb;	/* domain rate limits */
+	DKIMF_DB	conf_flowdatadb;	/* domain flow data */
+#endif /* _FFR_RATE_LIMIT */
 	DKIM_LIB *	conf_libopendkim;	/* DKIM library handle */
 	struct handling	conf_handling;		/* message handling */
 };
@@ -5360,6 +5370,9 @@ dkimf_config_new(void)
 	new->conf_reporthost = myhostname;
 	new->conf_anonstats = TRUE;
 #endif /* _FFR_STATS */
+#ifdef _FFR_RATE_LIMIT
+	new->conf_flowdatattl = DEFFLOWDATATTL;
+#endif /* _FFR_RATE_LIMIT */
 	new->conf_mtacommand = SENDMAIL_PATH;
 
 	memcpy(&new->conf_handling, &defaults, sizeof new->conf_handling);
@@ -5477,6 +5490,13 @@ dkimf_config_free(struct dkimf_config *conf)
 #ifdef _FFR_RESIGN
 	if (conf->conf_resigndb != NULL)
 		dkimf_db_close(conf->conf_resigndb);
+#endif /* _FFR_RESIGN */
+
+#ifdef _FFR_RESIGN
+	if (conf->conf_ratelimitdb != NULL)
+		dkimf_db_close(conf->conf_ratelimitdb);
+	if (conf->conf_flowdatadb != NULL)
+		dkimf_db_close(conf->conf_flowdatadb);
 #endif /* _FFR_RESIGN */
 
 #ifdef USE_LUA
@@ -6995,11 +7015,70 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, &dberr);
+			         str, dberr);
 			return -1;
 		}
 	}
 #endif /* _FFR_RESIGN */
+
+#ifdef _FFR_RATE_LIMIT
+	str = NULL;
+	if (data != NULL)
+	{
+		(void) config_get(data, "RateLimits", &str, sizeof str);
+	}
+	if (str != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_ratelimitdb, str,
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, dberr);
+			return -1;
+		}
+	}
+
+	str = NULL;
+	if (data != NULL)
+	{
+		(void) config_get(data, "FlowData", &str, sizeof str);
+	}
+	if (str != NULL)
+	{
+		int dbtype;
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_flowdatadb, str,
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_MAKELOCK),
+		                       NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, dberr);
+			return -1;
+		}
+
+		dbtype = dkimf_db_type(conf->conf_flowdatadb);
+		if (dbtype != DKIMF_DB_TYPE_BDB)
+		{
+			snprintf(err, errlen,
+			         "%s: invalid data set type for FlowData",
+			         str);
+			return -1;
+		}
+	}
+
+	(void) config_get(data, "FlowDataTTL", &conf->conf_flowdatattl,
+	                  sizeof conf->conf_flowdatattl);
+#endif /* _FFR_RATE_LIMIT */
 
 	str = NULL;
 	if (conf->conf_domlist != NULL)
@@ -13684,6 +13763,73 @@ mlfi_eom(SMFICTX *ctx)
 			}
 		}
 #endif /* SMFIF_QUARANTINE */
+
+#ifdef _FFR_RATE_LIMIT
+		/* enact rate limiting */
+		if (conf->conf_ratelimitdb != NULL &&
+		    conf->conf_flowdatadb != NULL)
+		{
+			int exceeded = 0;
+			int nvalid = 0;
+			int nsigs = 0;
+			unsigned int limit;
+			DKIM_SIGINFO **sigs;
+
+			if (dkim_getsiglist(dfc->mctx_dkimv, &sigs,
+			                    &nsigs) == DKIM_STAT_OK)
+			{
+				for (c = 0; c < nsigs; c++)
+				{
+					if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 &&
+					    dkim_sig_getbh(sigs[c]) != DKIM_SIGBH_MATCH)
+						continue;
+
+					nvalid++;
+
+					if (dkimf_rate_check(dkim_sig_getdomain(sigs[c]),
+					                     conf->conf_ratelimitdb,
+					                     conf->conf_flowdatadb,
+					                     conf->conf_flowdatattl,
+					                     &limit) == 1)
+					{
+						exceeded++;
+
+						if (conf->conf_dolog)
+						{
+							syslog(LOG_ERR,
+							       "%s: rate limit for '%s' (%u) exceeded",
+							       dfc->mctx_jobid,
+							       dkim_sig_getdomain(sigs[c]),
+							       limit);
+						}
+					}
+				}
+			}
+
+			if (nvalid == 0)
+			{
+				if (dkimf_rate_check(NULL,
+				                     conf->conf_ratelimitdb,
+				                     conf->conf_flowdatadb,
+				                     conf->conf_flowdatattl,
+				                     &limit) == 1)
+				{
+					exceeded++;
+
+					if (conf->conf_dolog)
+					{
+						syslog(LOG_ERR,
+						       "%s: rate limit for unsigned mail (%u) exceeded",
+						       dfc->mctx_jobid,
+						       limit);
+					}
+				}
+			}
+
+			if (exceeded > 0)
+				return SMFIS_TEMPFAIL;
+		}
+#endif /* _FFR_RATE_LIMIT */
 
 		/* send an ARF message for DKIM? */
 		if (dfc->mctx_status == DKIMF_STATUS_BAD &&

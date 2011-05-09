@@ -264,6 +264,8 @@ FFR_FEATURE([oversign], [enable header field over-signing])
 FFR_FEATURE([postgresql_reconnect_hack],
             [hack to overcome PostgreSQL connection error detection bug])
 
+FFR_FEATURE([rate_limit], [support for DKIM-based rate limiting])
+
 FFR_FEATURE([replace_rules], [support for string substitution when signing])
 
 FFR_FEATURE([report_intervals],
