@@ -18,6 +18,8 @@ release, and a summary of the changes in that release.
 	Feature request #SF3299041: Be tougher on use of the "l=" tag by
 		removing "BodyLengths", renaming "BodyLengthDBFile" to
 		"BodyLengthDB", and allowing pattern matches.
+	LIBOPENDKIM: Feature request #SF3151534: Extract DKIM reputation
+		support to its own library.
 	LIBOPENDKIM: Feature request #SF3279589: Add support for generic
 		extension tags in signatures.
 
