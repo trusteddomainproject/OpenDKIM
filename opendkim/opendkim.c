@@ -175,6 +175,7 @@ struct handling defaults =
 
 struct dkimf_config
 {
+	_Bool		conf_allsigs;		/* report on all signatures */
 	_Bool		conf_dnsconnect;	/* request TCP mode from DNS */
 	_Bool		conf_capture;		/* capture unknown errors */
 	_Bool		conf_restrace;		/* resolver tracing? */
@@ -644,15 +645,15 @@ struct lookup dkimf_dnssec[] =
 	{ NULL,			-1 },
 };
 
-#define	DKIM_KEYACTIONS_NONE	0
-#define	DKIM_KEYACTIONS_NEUTRAL	1
-#define	DKIM_KEYACTIONS_FAIL	2
+#define	DKIMF_KEYACTIONS_NONE	0
+#define	DKIMF_KEYACTIONS_NEUTRAL 1
+#define	DKIMF_KEYACTIONS_FAIL	2
 
 struct lookup dkimf_keyactions[] =
 {
-	{ "none",		DKIM_KEYACTIONS_NONE },
-	{ "neutral",		DKIM_KEYACTIONS_NEUTRAL },
-	{ "fail",		DKIM_KEYACTIONS_FAIL },
+	{ "none",		DKIMF_KEYACTIONS_NONE },
+	{ "neutral",		DKIMF_KEYACTIONS_NEUTRAL },
+	{ "fail",		DKIMF_KEYACTIONS_FAIL },
 	{ NULL,			-1 },
 };
 
@@ -5649,6 +5650,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 	if (data != NULL)
 	{
+		(void) config_get(data, "AddAllSignatureResults",
+		                  &conf->conf_allsigs,
+		                  sizeof conf->conf_allsigs);
+
 		(void) config_get(data, "DNSConnect",
 		                  &conf->conf_dnsconnect,
 		                  sizeof conf->conf_dnsconnect);
@@ -6094,7 +6099,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 		else
 		{
-			conf->conf_boguskey = DKIM_KEYACTIONS_FAIL;
+			conf->conf_boguskey = DKIMF_KEYACTIONS_FAIL;
 		}
 
 		str = NULL;
@@ -6115,7 +6120,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 		else
 		{
-			conf->conf_boguskey = DKIM_KEYACTIONS_NONE;
+			conf->conf_boguskey = DKIMF_KEYACTIONS_NONE;
 		}
 
 		str = NULL;
@@ -9754,6 +9759,140 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 }
 
 /*
+**  DKIMF_AR_ALL_SIGS -- append Authentication-Results items for all signatures
+**
+**  Parameters:
+**  	hdr -- header buffer
+** 	hdrlen -- size of header buffer
+**  	dkim -- DKIM verification handle
+**  	conf -- config object
+**  	status -- message context status (may be updated)
+**
+**  Return value:
+**  	FALSE iff the filter should reject the message based on results.
+*/
+
+void
+dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
+                  struct dkimf_config *conf, int *status)
+{
+	int nsigs;
+	DKIM_STAT dstatus;
+	DKIM_SIGINFO **sigs;
+
+	assert(hdr != NULL);
+	assert(dkim != NULL);
+	assert(conf != NULL);
+	assert(status != NULL);
+
+	dstatus = dkim_getsiglist(dkim, &sigs, &nsigs);
+	if (dstatus == DKIM_STAT_OK)
+	{
+		int c;
+		int sigerror;
+		int sec;
+		DKIM_STAT ts;
+		u_int keybits;
+		size_t ssl;
+		char *result;
+		char *dnssec;
+		char *domain;
+		char ss[BUFRSZ + 1];
+		char tmp[BUFRSZ + 1];
+
+		for (c = 0; c < nsigs; c++)
+		{
+			sigerror = dkim_sig_geterror(sigs[c]);
+
+			domain = dkim_sig_getdomain(sigs[c]);
+
+			(void) dkim_sig_getkeysize(sigs[c], &keybits);
+
+			ssl = sizeof ss - 1;
+			ts = dkim_get_sigsubstring(dkim, sigs[c], ss, &ssl);
+
+			if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0 &&
+			    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH)
+			{
+				result = "pass";
+			}
+			else if (sigerror == DKIM_SIGERROR_MULTIREPLY ||
+			         sigerror == DKIM_SIGERROR_KEYFAIL ||
+			         sigerror == DKIM_SIGERROR_DNSSYNTAX)
+			{
+				result = "temperror";
+			}
+			else if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PROCESSED) != 0 &&
+			         ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 ||
+			          dkim_sig_getbh(sigs[c]) != DKIM_SIGBH_MATCH))
+			{
+				result = "fail";
+			}
+			else if (sigerror != DKIM_SIGERROR_UNKNOWN &&
+			         sigerror != DKIM_SIGERROR_OK)
+			{
+				result = "permerror";
+			}
+			else
+			{
+				result = "neutral";
+			}
+
+			dnssec = NULL;
+
+#ifdef USE_UNBOUND
+			switch (dkim_sig_getdnssec(sigs[c]))
+			{
+			  case DKIM_DNSSEC_UNKNOWN:
+				break;
+
+			  case DKIM_DNSSEC_INSECURE:
+				dnssec = "insecure";
+				if (conf->conf_insecurekey == DKIMF_KEYACTIONS_FAIL)
+				{
+					*status = DKIMF_STATUS_BAD;
+				}
+				else if (conf->conf_insecurekey == DKIMF_KEYACTIONS_NEUTRAL)
+				{
+					*status = DKIMF_STATUS_VERIFYERR;
+					result = "neutral";
+				}
+				break;
+
+			  case DKIM_DNSSEC_BOGUS:
+				dnssec = "bogus";
+				if (conf->conf_boguskey == DKIMF_KEYACTIONS_FAIL)
+				{
+					*status = DKIMF_STATUS_BAD;
+				}
+				else if (conf->conf_boguskey == DKIMF_KEYACTIONS_NEUTRAL)			{
+					*status = DKIMF_STATUS_VERIFYERR;
+					result = "neutral";
+				}
+				break;
+
+			  case DKIM_DNSSEC_SECURE:
+				dnssec = "secure";
+				break;
+			}
+#endif /* USE_UNBOUND */
+
+			snprintf(tmp, sizeof tmp,
+			         "%s%sdkim=%s (%u bits%s%s) header.d=%s%s%s",
+			         c == 0 ? "" : ";",
+			         DELIMITER, result,
+			         keybits,
+			         dnssec == NULL ? "" : "; ", dnssec,
+			         domain,
+			         ts == DKIM_STAT_OK ? " header.b=" : "",
+			         ts == DKIM_STAT_OK ? ss : "");
+
+			strlcat(hdr, tmp, hdrlen);
+		}
+	}
+}
+
+/*
 **  END private section
 **  ==================================================================
 **  BEGIN milter section
@@ -13231,7 +13370,19 @@ mlfi_eom(SMFICTX *ctx)
 			strlcat((char *) header, ";", sizeof header);
 			strlcat((char *) header, DELIMITER, sizeof header);
 
-			if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN)
+			if ((dfc->mctx_status == DKIMF_STATUS_GOOD ||
+			     dfc->mctx_status == DKIMF_STATUS_BAD ||
+			     dfc->mctx_status == DKIMF_STATUS_REVOKED ||
+			     dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
+			     dfc->mctx_status == DKIMF_STATUS_NOKEY ||
+			     dfc->mctx_status == DKIMF_STATUS_VERIFYERR) &&
+			    conf->conf_allsigs)
+			{
+				dkimf_ar_all_sigs(header, sizeof header,
+				                  dfc->mctx_dkimv,
+				                  conf, &dfc->mctx_status);
+			}
+			else if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN)
 			{
 				_Bool test;
 				u_int keybits;
@@ -13249,11 +13400,11 @@ mlfi_eom(SMFICTX *ctx)
 				/* special handling for sketchy answers */
 				if (dfc->mctx_dnssec_key == DKIM_DNSSEC_BOGUS)
 				{
-					if (conf->conf_boguskey == DKIM_KEYACTIONS_FAIL)
+					if (conf->conf_boguskey == DKIMF_KEYACTIONS_FAIL)
 					{
 						dfc->mctx_status = DKIMF_STATUS_BAD;
 					}
-					else if (conf->conf_boguskey == DKIM_KEYACTIONS_NEUTRAL)			{
+					else if (conf->conf_boguskey == DKIMF_KEYACTIONS_NEUTRAL)			{
 						dfc->mctx_status = DKIMF_STATUS_VERIFYERR;
 						failstatus = "neutral";
 					}
@@ -13261,11 +13412,11 @@ mlfi_eom(SMFICTX *ctx)
 
 				if (dfc->mctx_dnssec_key == DKIM_DNSSEC_INSECURE)
 				{
-					if (conf->conf_insecurekey == DKIM_KEYACTIONS_FAIL)
+					if (conf->conf_insecurekey == DKIMF_KEYACTIONS_FAIL)
 					{
 						dfc->mctx_status = DKIMF_STATUS_BAD;
 					}
-					else if (conf->conf_insecurekey == DKIM_KEYACTIONS_NEUTRAL)
+					else if (conf->conf_insecurekey == DKIMF_KEYACTIONS_NEUTRAL)
 					{
 						dfc->mctx_status = DKIMF_STATUS_VERIFYERR;
 						failstatus = "neutral";
