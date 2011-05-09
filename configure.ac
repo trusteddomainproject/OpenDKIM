@@ -870,7 +870,7 @@ AC_SUBST(LIBMILTER_LIBS)
 AC_ARG_WITH([libmemcached],
             AS_HELP_STRING([--with-libmemcached],
                            [location of libmemcached includes and library]),
-            [libmcdpath="$withval"], [libmcdpath="auto"])
+            [libmcdpath="$withval"], [libmcdpath="no"])
 
 libmemcache_found="no"
 
