@@ -8,26 +8,27 @@ release, and a summary of the changes in that release.
 2.4.0		2011/06/06
 	Feature request #SF3060140: Extension of odkim.sign() to include
 		maximum signed byte count.
-	Feature request #SF3171865: Mechanism to maintain state between
-		Lua scripts.
+	Feature request #SF3171865: Add _FFR_LUA_GLOBALS, enabling a
+		mechanism to maintain state between Lua scripts.
 	Feature request #SF3241982: Optionally an Authentication-Results
 		field for all signatures present, not just the first good
 		one.
-	Feature request #SF3256630: Add hooks for post-verification rate
-		controls.
-	Feature request #SF3290461: Add support for querying a memcache
-		daemon via libmemcached.
+	Feature request #SF3256630: Add _FFR_RATE_LIMIT, enabling hooks for
+		post-verification rate controls.
+	Feature request #SF3290461: Add optional support for querying a
+		memcache daemon via libmemcached.
 	Feature request #SF3299041: Be tougher on use of the "l=" tag by
 		removing "BodyLengths", renaming "BodyLengthDBFile" to
-		"BodyLengthDB", and allowing pattern matches.
+		"BodyLengthDB", and allowing pattern matches.  This
+		effectively activates _FFR_BODYLENGTH_DB as well.
 	LIBOPENDKIM: Feature request #SF2969516: Teach dkim_chunk() about
 		DKIM_LIBFLAGS_FIXCRLF.
 	LIBOPENDKIM: Feature request #SF3123731: Extend FixCRLF to cover
 		header fields.
 	LIBOPENDKIM: Feature request #SF3151534: Extract DKIM reputation
 		support to its own library.
-	LIBOPENDKIM: Feature request #SF3279589: Add support for generic
-		extension tags in signatures.
+	LIBOPENDKIM: Feature request #SF3279589: Add _FFR_XTAGS, adding
+		support for generic extension tags in signatures.
 	STATS: Feature request #SF3066106: Add "opendkim-anonstats" tool.
 	CONTRIB: Paths in init/redhat/opendkim are now auto-generated.
 

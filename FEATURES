@@ -64,6 +64,9 @@ identity_header	Enable selection of an identity for signing based on the
 ldap_caching	Adds code that ensures duplicate LDAP queries aren't sent
 		and local caching of LDAP replies is done.  (opendkim)
 
+lua_globals	Optional mechanism for passing variables between Lua
+		scripts.  (opendkim)
+
 maxverify	Control over maximum number of signatures per message to
 		be processed.  (opendkim)
 
@@ -86,6 +89,9 @@ postgres_reconnect_hack
 		code compensates for that problem by checking for fatal
 		errors in ad different (but unconventional) manner.  It is
 		hoped that this can be removed in the near future.
+		(opendkim)
+
+rate_limit	Experimental rate limiting based on confirmed signer domains.
 		(opendkim)
 
 rbl		Option to query realtime blacklists from within Lua scripts.
@@ -130,6 +136,9 @@ statsext	Support for localized stats extensions.  See stats/README
 
 vbr		Enable VBR (Vouch By Reference) header field addition
 		(outbound) and processing (inbound).  (opendkim)
+
+xtags		DKIM library extensions for adding arbitrary experimental
+		signature tags and values.  (libopendkim)
 
 
 COPYRIGHT
