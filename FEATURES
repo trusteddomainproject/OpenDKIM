@@ -36,10 +36,6 @@ allsymbols	By default, the build will attempt to create a libopendkim
 atps		Support for experimental Authorized Third-Party Signatures
 		mechanism.  (opendkim, libopendkim)
 
-capture_unknown_errors
-		When dkim_eom() returns an unexpected error of some kind,
-		quarantine the message for further analysis.  (opendkim)
-
 codecoverage	Enables generation of profiling code for all libraries,
 		programs and tests.  When running the library tests,
 		produces a report about code coverage based on the available
@@ -56,7 +52,7 @@ diffheaders	When verification fails for a message for which a "z="
 
 dkim_reputation	Add experimental support for querying an open DKIM reputation
 		service.  The service's URL is http://www.dkim-reputation.org.
-		(opendkim, libopendkim)
+		(opendkim, libdkimrep, libopendkim)
 
 identity_header	Enable selection of an identity for signing based on the
 		value found in a particular header. (opendkim)
