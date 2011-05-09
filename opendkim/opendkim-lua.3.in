@@ -265,6 +265,18 @@ Requests that the message represented by
 .I ctx
 be subjected to DKIM signature verification.  Returns the Lua constant
 "nil" on success, or an error string on failure.
+.TP
+.B odkim.xtags(ctx, tag, value)
+Requests that all signatures added to the message represented by
+.I ctx
+include the named extension
+.I tag
+and
+.I value.
+Returns the number of signatures successfully modified, or -1 on error.
+An error can occur if the named tag is one already explicitly supported by
+the DKIM library, or if there is a syntax error in the tag or value.
+@XTAGS_MANNOTICE@
 .SH SCREEN SCRIPT FUNCTIONS
 The screen script has the following functions available to it, whose
 descriptions can be found above:
@@ -389,11 +401,12 @@ descriptions can be found above:
 .B odkim.get_sighandle,
 .B odkim.log,
 .B odkim.parse_field,
+.B odkim.rcpt_count,
 .B odkim.set_result,
 .B odkim.sig_getdomain,
 .B odkim.sig_getidentity,
 and
-.B odkim.rcpt_count.
+.B odkim.xtags.
 
 The following additional functions are provided for this script:
 .TP

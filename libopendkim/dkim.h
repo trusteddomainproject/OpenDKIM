@@ -1529,8 +1529,9 @@ extern unsigned long dkim_ssl_version __P((void));
 #define DKIM_FEATURE_DNSSEC		6
 #define DKIM_FEATURE_RESIGN		7
 #define DKIM_FEATURE_ATPS		8
+#define DKIM_FEATURE_XTAGS		9
 
-#define	DKIM_FEATURE_MAX		8
+#define	DKIM_FEATURE_MAX		9
 
 extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
 
@@ -1783,6 +1784,20 @@ extern void dkim_dns_set_query_waitreply __P((DKIM_LIB *,
                                                       struct timeval *,
                                                       size_t *, int *,
                                                       int *)));
+
+/*
+**  DKIM_ADD_XTAG -- add an extension tag/value
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle to extend
+**  	tag -- name of tag to add
+**  	value -- value to include
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_add_xtag __P((DKIM *, const char *, const char *));
 
 /*
 **  DKIM_ATPS_CHECK -- check for Authorized Third Party Signing

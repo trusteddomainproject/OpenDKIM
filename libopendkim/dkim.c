@@ -2257,6 +2257,19 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		                    dkim->dkim_signer);
 	}
 
+#ifdef _FFR_XTAGS
+	if (dkim->dkim_xtags != NULL)
+	{
+		struct dkim_xtag *x;
+
+		for (x = dkim->dkim_xtags; x != NULL; x = x->xt_next)
+		{
+			dkim_dstring_printf(dstr, ";%s%s=%s", delim,
+			                    x->xt_tag, x->xt_value);
+		}
+	}
+#endif /* _FFR_XTAGS */
+
 	memset(b64hash, '\0', sizeof b64hash);
 
 	(void) dkim_canon_closebody(dkim);
@@ -4331,6 +4344,9 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef _FFR_OVERSIGN
 	FEATURE_ADD(libhandle, DKIM_FEATURE_OVERSIGN);
 #endif /* _FFR_OVERSIGN */
+#ifdef _FFR_XTAGS
+	FEATURE_ADD(libhandle, DKIM_FEATURE_XTAGS);
+#endif /* _FFR_XTAGS */
 
 	/* initialize the resolver */
 	(void) res_init();
@@ -4887,6 +4903,22 @@ dkim_free(DKIM *dkim)
 
 		CLOBBER(dkim->dkim_siglist);
 	}
+
+#ifdef _FFR_XTAGS
+	if (dkim->dkim_xtags != NULL)
+	{
+		struct dkim_xtag *cur;
+		struct dkim_xtag *next;
+
+		cur = dkim->dkim_xtags;
+		while (cur != NULL)
+		{
+			next = cur->xt_next;
+			free(cur);
+			cur = next;
+		}
+	}
+#endif /* _FFR_XTAGS */
 
 	/* destroy canonicalizations */
 	dkim_canon_cleanup(dkim);
@@ -8665,4 +8697,108 @@ dkim_dns_set_query_waitreply(DKIM_LIB *lib, int (*func)(void *, void *,
 		lib->dkiml_dns_waitreply = func;
 	else
 		lib->dkiml_dns_waitreply = dkim_res_waitreply;
+}
+
+/*
+**  DKIM_ADD_XTAG -- add an extension tag/value
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle to extend
+**  	tag -- name of tag to add
+**  	value -- value to include
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+**
+**  Notes:
+**  	A value that contains spaces won't be wrapped nicely by the signature
+**  	generation code.  Support for this should be added later.
+*/
+
+DKIM_STAT
+dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
+{
+#ifdef _FFR_XTAGS
+	u_char last = '\0';
+	dkim_param_t pcode;
+	u_char *p;
+	struct dkim_xtag *x;
+
+	assert(dkim != NULL);
+	assert(tag != NULL);
+	assert(value != NULL);
+
+	if (dkim->dkim_mode != DKIM_MODE_SIGN)
+		return DKIM_STAT_INVALID;
+
+	/* check that it's not in sigparams */
+	if (tag[0] == '\0' || value[0] == '\0')
+		return DKIM_STAT_INVALID;
+	pcode = dkim_name_to_code(sigparams, tag);
+	if (pcode != (dkim_param_t) -1)
+		return DKIM_STAT_INVALID;
+
+	/* confirm valid syntax, per RFC4871 */
+	for (p = tag; *p != '\0'; p++)
+	{
+		if (!(isascii(*p) && (isalnum(*p) || *p == '_')))
+			return DKIM_STAT_INVALID;
+	}
+
+	if (value[0] == '\n' ||
+	    value[0] == '\r' ||
+	    value[0] == '\t' ||
+	    value[0] == ' ')
+		return DKIM_STAT_INVALID;
+
+	for (p = value; *p != '\0'; p++)
+	{
+		/* valid characters in general */
+		if (!(*p == '\n' ||
+		      *p == '\r' ||
+		      *p == '\t' ||
+		      *p == ' ' ||
+		      (*p >= 0x21 && *p <= 0x7e && *p != 0x3b)))
+			return DKIM_STAT_INVALID;
+
+		/* CR has to be followed by LF */
+		if (last == '\r' && *p != '\n')
+			return DKIM_STAT_INVALID;
+
+		/* LF has to be followed by space or tab */
+		if (last == '\n' && *p != ' ' && *p != '\t')
+			return DKIM_STAT_INVALID;
+
+		last = *p;
+	}
+
+	/* can't end with space */
+	if (last == '\n' || last == '\r' ||
+	    last == '\t' || last == ' ')
+		return DKIM_STAT_INVALID;
+
+	/* check for dupicates */
+	for (x = dkim->dkim_xtags; x != NULL; x = x->xt_next)
+	{
+		if (strcmp(x->xt_tag, tag) == 0)
+			return DKIM_STAT_INVALID;
+	}
+
+	x = (struct dkim_xtag *) DKIM_MALLOC(dkim, sizeof(struct dkim_xtag));
+	if (x == NULL)
+	{
+		dkim_error(dkim, "unable to allocate %d byte(s)",
+		           sizeof(struct dkim_xtag));
+		return DKIM_STAT_NORESOURCE;
+	}
+
+	x->xt_tag = tag;
+	x->xt_value = value;
+	x->xt_next = dkim->dkim_xtags;
+	dkim->dkim_xtags = x;
+
+	return DKIM_STAT_OK;
+#else /* _FFR_XTAGS */
+	return DKIM_STAT_NOTIMPLEMENT;
+#endif /* _FFR_XTAGS */
 }

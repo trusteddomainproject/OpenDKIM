@@ -282,15 +282,17 @@ FFR_FEATURE([selector_header], [special header to choose signing key])
 
 FFR_FEATURE([sender_macro], [macro to determine sender])
 
+FFR_FEATURE([stats], [stats recording and reporting])
+AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
+FFR_FEATURE([statsext], [extended stats recording and reporting])
+
 FFR_FEATURE([rbl], [Realtime Blacklist query support])
 AM_CONDITIONAL([RBL], [test x"$enable_rbl" = x"yes"])
 
 FFR_FEATURE([vbr], [Vouch-By-Reference support])
 AM_CONDITIONAL([VBR], [test x"$enable_vbr" = x"yes"])
 
-FFR_FEATURE([stats], [stats recording and reporting])
-AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
-FFR_FEATURE([statsext], [extended stats recording and reporting])
+LIB_FFR_FEATURE([xtags], [extension signature tags])
 
 if test x"$enable_statsext" = x"yes" -a x"$enable_stats" != x"yes"
 then

@@ -1175,6 +1175,78 @@ dkimf_xs_rblcheck(lua_State *l)
 }
 # endif /* _FFR_RBL */
 
+# ifdef _FFR_XTAGS
+/*
+**  DKIMF_XS_XTAG -- add an extension tag
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_xtag(lua_State *l)
+{
+	SMFICTX *ctx;
+	const char *tag = NULL;
+	const char *value = NULL;
+
+	if (lua_gettop(l) != 3)
+	{
+		lua_pushstring(l,
+		               "odkim.xtag(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_isuserdata(l, 1) ||
+	         !lua_isstring(l, 2) ||
+	         !lua_isstring(l, 3))
+	{
+		lua_pushstring(l,
+		               "odkim.xtag(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	tag = lua_tostring(l, 2);
+	value = lua_tostring(l, 3);
+	lua_pop(l, 3);
+
+	if (ctx != NULL)
+	{
+		int n = 0;
+		int status;
+		struct connctx *cc;
+		struct msgctx *dfc;
+		struct signreq *sr;
+
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+
+		for (sr = dfc->mctx_srhead; sr != NULL; sr = sr->srq_next)
+		{
+			status = dkim_xtag(sr->srq_dkim, tag, value);
+			if (status != DKIM_STAT_OK)
+			{
+				lua_pushnumber(l, -1);
+				return 1;
+			}
+
+			n++;
+		}
+
+		lua_pushnumber(l, n);
+		return 1;
+	}
+	else
+	{
+		lua_pushnumber(l, 0);
+		return 1;
+	}
+}
+# endif /* _FFR_XTAGS */
+
 /*
 **  DKIMF_XS_PARSEFIELD -- parse an address field into its components
 **

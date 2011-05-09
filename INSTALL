@@ -128,6 +128,8 @@ query_cache	Cache DNS replies in a local database.  Requires the
 stats		Produce a filter and tools used for statistics collection,
 		analysis and submission.
 
+xtags		Support for signature extension tags.
+
 
 COMPILING
 =========
