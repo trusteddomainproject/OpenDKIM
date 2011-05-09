@@ -520,8 +520,10 @@ dkimf_lua_setup_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
 
+# ifdef _FFR_LUA_GLOBALS
 	/* import other globals */
 	dkimf_import_globals(ctx, l);
+# endif /* _FFR_LUA_GLOBALS */
 
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name))
 	{
@@ -654,8 +656,10 @@ dkimf_lua_screen_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
 
+# ifdef _FFR_LUA_GLOBALS
 	/* import other globals */
 	dkimf_import_globals(ctx, l);
+# endif /* _FFR_LUA_GLOBALS */
 
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name))
 	{
@@ -898,8 +902,10 @@ dkimf_lua_stats_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
 
+# ifdef _FFR_LUA_GLOBALS
 	/* import other globals */
 	dkimf_import_globals(ctx, l);
+# endif /* _FFR_LUA_GLOBALS */
 
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name))
 	{
@@ -1142,8 +1148,10 @@ dkimf_lua_final_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
 
+# ifdef _FFR_LUA_GLOBALS
 	/* import other globals */
 	dkimf_import_globals(ctx, l);
+# endif /* _FFR_LUA_GLOBALS */
 
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name))
 	{

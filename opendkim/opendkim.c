@@ -8413,7 +8413,7 @@ dkimf_checkbldb(DKIMF_DB db, char *to, char *jobid)
 	char dbaddr[MAXADDRESS + 1];
 
 	strlcpy(addr, to, sizeof addr);
-	status = dkim_mail_parse(addr, &user, &domain);
+	status = dkim_mail_parse(addr, (u_char **) &user, (u_char **) &domain);
 	if (status != 0 || user == NULL || domain == NULL)
 	{
 		if (dolog)
