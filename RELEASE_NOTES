@@ -6,6 +6,8 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.4.0		2011/06/06
+	Feature request #SF3060140: Extension of odkim.sign() to include
+		maximum signed byte count.
 	Feature request #SF3171865: Mechanism to maintain state between
 		Lua scripts.
 	Feature request #SF3241982: Optionally an Authentication-Results
