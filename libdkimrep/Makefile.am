@@ -8,7 +8,11 @@ endif
 
 lib_LTLIBRARIES = libdkimrep.la
 libdkimrep_la_SOURCES = dkim-rep.c dkim-rep.h
-libdkimrep_la_LDFLAGS = -version-info 1:0:0
+libdkimrep_la_LDFLAGS = -no-undefined -version-info 1:0:0 $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
+libdkimrep_la_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
+libdkimrep_la_CPPFLAGS = $(LIBCRYPTO_CPPFLAGS)
+libdkimrep_la_LIBADD = $(LIBCRYPTO_LIBS) $(COV_LIBADD)
+
 libdkimrepinclude_HEADERS = dkim-rep.h
 libdkimrepincludedir = $(includedir)/dkim-rep
 
