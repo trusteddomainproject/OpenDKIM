@@ -785,7 +785,7 @@ dkimf_rbl_arlib_setup(RBL *rbl, AR_LIB ar)
 }
 # endif /* _FFR_RBL */
 
-# ifdef _FFR_DKIM_REPORTING
+# ifdef _FFR_DKIM_REPUTATION
 /*
 **  DKIMF_REP_ARLIB_SETUP -- connect libar to libdkimrep
 **
