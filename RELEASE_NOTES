@@ -5,6 +5,11 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.4.0		2011/06/06
+	Feature request #SF3299041: Be tougher on use of the "l=" tag by
+		removing "BodyLengths", renaming "BodyLengthDBFile" to
+		"BodyLengthDB", and allowing pattern matches.
+
 2.3.2		2011/04/14
 	Fix bug #SF3067338: Create a pool of DB handles for SQL operations
 		so that queries don't all share one serially.
