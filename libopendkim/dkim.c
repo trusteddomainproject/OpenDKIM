@@ -116,6 +116,10 @@ void dkim_error __P((DKIM *, const char *, ...));
 #define	DKIM_CHUNKSTATE_BODY	2
 #define	DKIM_CHUNKSTATE_DONE	3
 
+#define	DKIM_CRLF_UNKNOWN	(-1)
+#define	DKIM_CRLF_LF		0
+#define	DKIM_CRLF_CRLF		1
+
 #define	DKIM_PHASH(x)		((x) - 32)
 
 #ifdef _FFR_DIFFHEADERS
@@ -4206,6 +4210,7 @@ dkim_new(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 	                                              : bodycanon_alg);
 	new->dkim_querymethod = DKIM_QUERY_DEFAULT;
 	new->dkim_mode = DKIM_MODE_UNKNOWN;
+	new->dkim_chunkcrlf = DKIM_CRLF_UNKNOWN;
 	new->dkim_state = DKIM_STATE_INIT;
 	new->dkim_presult = DKIM_PRESULT_NONE;
 	new->dkim_dnssec_policy = DKIM_DNSSEC_UNKNOWN;
@@ -6478,6 +6483,9 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 
 	bso = ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_BADSIGHANDLES) != 0);
 
+	if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_FIXCRLF) == 0)
+		dkim->dkim_chunkcrlf = DKIM_CRLF_CRLF;
+
 	/* verify chunking state */
 	if (dkim->dkim_chunkstate >= DKIM_CHUNKSTATE_DONE)
 	{
@@ -6540,15 +6548,53 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 		switch (dkim->dkim_chunksm)
 		{
 		  case 0:
-			dkim_dstring_cat1(dkim->dkim_hdrbuf, *p);
-			if (*p == '\r')
-				dkim->dkim_chunksm = 1;
+			if (*p == '\n' &&
+			    dkim->dkim_chunkcrlf != DKIM_CRLF_CRLF)
+			{
+				dkim->dkim_chunkcrlf = DKIM_CRLF_LF;
+
+				/*
+				**  If this is a CRLF up front, change state
+				**  and write the rest as part of the body.
+				*/
+
+				if (dkim->dkim_hhead == NULL &&
+				    dkim_dstring_len(dkim->dkim_hdrbuf) == 2)
+				{
+					status = dkim_eoh(dkim);
+					if (status != DKIM_STAT_OK)
+						return status;
+
+					dkim->dkim_chunkstate = DKIM_CHUNKSTATE_BODY;
+					if (p < end)
+					{
+						return dkim_body(dkim, p + 1,
+						                 end - p);
+					}
+					else
+					{
+						return DKIM_STAT_OK;
+					}
+				}
+
+				dkim_dstring_catn(dkim->dkim_hdrbuf, CRLF, 2);
+				dkim->dkim_chunksm = 2;
+			}
+			else
+			{
+				dkim_dstring_cat1(dkim->dkim_hdrbuf, *p);
+				if (*p == '\r')
+					dkim->dkim_chunksm = 1;
+			}
 			break;
 
 		  case 1:
 			dkim_dstring_cat1(dkim->dkim_hdrbuf, *p);
 			if (*p == '\n')
 			{
+				if (dkim->dkim_chunkcrlf == DKIM_CRLF_UNKNOWN)
+					dkim->dkim_chunkcrlf = DKIM_CRLF_CRLF;
+
 				/*
 				**  If this is a CRLF up front, change state
 				**  and write the rest as part of the body.
@@ -6586,12 +6632,16 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 			{
 				dkim_dstring_cat1(dkim->dkim_hdrbuf, *p);
 				dkim->dkim_chunksm = 0;
+				break;
 			}
-			else if (*p == '\r')
+			else if (*p == '\r' &&
+			         dkim->dkim_chunkcrlf == DKIM_CRLF_CRLF)
 			{
 				dkim->dkim_chunksm = 3;
+				break;
 			}
-			else
+			else if (*p != '\n' ||
+			         dkim->dkim_chunkcrlf != DKIM_CRLF_LF)
 			{
 				status = dkim_header(dkim,
 				                     dkim_dstring_get(dkim->dkim_hdrbuf),
@@ -6603,8 +6653,9 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 				dkim_dstring_blank(dkim->dkim_hdrbuf);
 				dkim_dstring_cat1(dkim->dkim_hdrbuf, *p);
 				dkim->dkim_chunksm = 0;
+				break;
 			}
-			break;
+			/* FALLTHROUGH */
 				
 		  case 3:
 			if (*p == '\n')

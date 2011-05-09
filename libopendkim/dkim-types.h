@@ -269,6 +269,7 @@ struct dkim
 	int			dkim_state;
 	int			dkim_chunkstate;
 	int			dkim_chunksm;
+	int			dkim_chunkcrlf;
 	int			dkim_timeout;
 	int			dkim_presult;
 	int			dkim_hdrcnt;
