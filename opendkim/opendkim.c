@@ -7963,6 +7963,7 @@ dkimf_checkbldb(DKIMF_DB db, char *to, char *jobid)
 	int c;
 	_Bool exists = FALSE;
 	DKIM_STAT status;
+	size_t out;
 	char *domain;
 	char *user;
 	char *p;
@@ -7986,9 +7987,14 @@ dkimf_checkbldb(DKIMF_DB db, char *to, char *jobid)
 	{
 		for (c = 0; c < 2; c++)
 		{
-			if (snprintf(dbaddr, sizeof dbaddr, "%s@%s",
-			             c == 0 ? user : "*",
-			             p == NULL ? "*" : p) >= (int) sizeof dbaddr)
+			if (c == 1 && p == NULL)
+			{
+				dbaddr[0] = '*';
+				dbaddr[1] = '\0';
+			}
+			else if (snprintf(dbaddr, sizeof dbaddr, "%s@%s",
+			                  c == 0 ? user : "*",
+			                  p == NULL ? "*" : p) >= (int) sizeof dbaddr)
 			{
 				if (dolog)
 				{
