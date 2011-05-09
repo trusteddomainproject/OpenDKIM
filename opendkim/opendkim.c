@@ -14871,6 +14871,9 @@ main(int argc, char **argv)
 #ifdef USE_LUA
 			                "\tlua:path\n"
 #endif /* USE_LUA */
+#ifdef USE_LIBMEMCACHED
+			                "\tmemcache:host[:port][,...]/prefix\n"
+#endif /* USE_LIBMEMCACHED */
 			                "> ");
 		}
 

@@ -39,6 +39,11 @@ opendkim_CPPFLAGS += $(LIBODBX_CPPFLAGS)
 opendkim_CFLAGS += $(LIBODBX_CFLAGS)
 opendkim_LDADD += $(LIBODBX_LIBS)
 endif
+if USE_LIBMEMCACHED
+opendkim_CPPFLAGS += $(LIBMEMCACHED_INCDIRS)
+opendkim_LDFLAGS += $(LIBMEMCACHED_LIBDIRS)
+opendkim_LDADD += $(LIBMEMCACHED_LIBS)
+endif
 if LUA
 SUBDIRS=tests
 opendkim_CPPFLAGS += $(LIBLUA_INCDIRS) -DDKIMF_LUA_CONTEXT_HOOKS
@@ -107,6 +112,11 @@ opendkim_testkey_CPPFLAGS += $(LIBODBX_CPPFLAGS)
 opendkim_testkey_CFLAGS += $(LIBODBX_CFLAGS)
 opendkim_testkey_LDADD += $(LIBODBX_LIBS)
 endif
+if USE_LIBMEMCACHED
+opendkim_testkey_CPPFLAGS += $(LIBMEMCACHED_INCDIRS)
+opendkim_testkey_LDFLAGS += $(LIBMEMCACHED_LIBDIRS)
+opendkim_testkey_LDADD += $(LIBMEMCACHED_LIBS)
+endif
 if USE_LDAP
 opendkim_testkey_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
 opendkim_testkey_LDADD += $(OPENLDAP_LIBS)
@@ -154,6 +164,11 @@ opendkim_genzone_CPPFLAGS += $(LIBODBX_CPPFLAGS)
 opendkim_genzone_CFLAGS += $(LIBODBX_CFLAGS)
 opendkim_genzone_LDADD += $(LIBODBX_LIBS)
 endif
+if USE_LIBMEMCACHED
+opendkim_genzone_CPPFLAGS += $(LIBMEMCACHED_INCDIRS)
+opendkim_genzone_LDFLAGS += $(LIBMEMCACHED_LIBDIRS)
+opendkim_genzone_LDADD += $(LIBMEMCACHED_LIBS)
+endif
 if USE_SASL
 opendkim_genzone_CPPFLAGS += $(SASL_CPPFLAGS)
 endif
@@ -182,6 +197,11 @@ if USE_ODBX
 opendkim_atpszone_CPPFLAGS += $(LIBODBX_CPPFLAGS)
 opendkim_atpszone_CFLAGS += $(LIBODBX_CFLAGS)
 opendkim_atpszone_LDADD += $(LIBODBX_LIBS)
+endif
+if USE_LIBMEMCACHED
+opendkim_atpszone_CPPFLAGS += $(LIBMEMCACHED_INCDIRS)
+opendkim_atpszone_LDFLAGS += $(LIBMEMCACHED_LIBDIRS)
+opendkim_atpszone_LDADD += $(LIBMEMCACHED_LIBS)
 endif
 if USE_SASL
 opendkim_atpszone_CPPFLAGS += $(SASL_CPPFLAGS)

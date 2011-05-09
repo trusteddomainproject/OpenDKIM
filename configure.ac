@@ -858,6 +858,83 @@ AC_SUBST(LIBMILTER_LIBDIRS)
 AC_SUBST(LIBMILTER_LIBS)
 
 #
+# libmemcached
+# 
+AC_ARG_WITH([libmemcached],
+            AS_HELP_STRING([--with-libmemcached],
+                           [location of libmemcached includes and library]),
+            [libmcdpath="$withval"], [libmcdpath="auto"])
+
+libmemcache_found="no"
+
+if test \( x"$libmcdpath" = x"auto" -o x"$libmcdpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
+then
+	PKG_CHECK_MODULES([LIBMEMCACHED], [libmemcached], 
+	                  [
+                          	libmemcache_found="yes"
+	                  	LIBMEMCACHED_INCDIRS="$LIBMEMCACHED_CFLAGS"
+	                  ],
+	                  [
+	                  	AC_MSG_WARN([pkg-config for libmemcached not found, trying manual search...])
+	                  ])
+fi
+
+if test \( x"$libmcdpath" = x"auto" -o x"$libmcdpath" = x"yes" \) -a x"$libmemcache_found" = x"no"
+then
+	AC_MSG_CHECKING([for libmemcached])
+
+	libmcddirs="/usr /usr/local"
+	for d in $libmcddirs
+	do
+		if test -f $d/include/libmemcached/memcached.h
+		then
+			libmcdpath=$d
+			AC_MSG_RESULT($d)
+			LIBMEMCACHED_INCDIRS="-I$libmcdpath/include"
+			LIBMEMCACHED_LIBDIRS="-L$libmcdpath/lib"
+			LIBMEMCACHED_LIBS="-lmemcached"
+			libmemcache_found="yes"
+			break
+		fi
+	done
+	if test x"$LIBMEMCACHED_LIBS" = x""
+	then
+		AC_MSG_ERROR([not found])
+	fi
+elif test x"$libmcdpath" != x"no" -a x"$libmemcache_found" = x"no"
+then
+	AC_MSG_CHECKING([for libmemcached])
+	if test -f $libmcdpath/include/libmemcached/memcached.h
+	then
+		AC_MSG_RESULT([$libmcdpath])
+		LIBMEMCACHED_INCDIRS="-I$libmcdpath/include"
+		LIBMEMCACHED_LIBDIRS="-L$libmcdpath/lib"
+		LIBMEMCACHED_LIBS="-lmemcached"
+		libmemcache_found="yes"
+	else
+		AC_MSG_ERROR([not found at $libmcdpath])
+	fi
+fi
+
+if test x"$libmcdpath" = x"no" -o x"$libmemcache_found" = x"no"
+then
+	LIBMEMCACHED_INCDIRS=""
+	LIBMEMCACHED_LIBDIRS=""
+	LIBMEMCACHED_LIBS=""
+	AC_SUBST([LIBMEMCACHED_MANNOTICE],
+	         "(Not enabled for this installation.)" )
+else
+	AC_DEFINE([USE_LIBMEMCACHED], 1,
+	          [use memcache query library])
+	AC_SUBST([LIBMEMCACHED_MANNOTICE], "" )
+fi
+
+AM_CONDITIONAL(USE_LIBMEMCACHED, test x"$libmcdpath" != x"no")
+AC_SUBST(LIBMEMCACHED_INCDIRS)
+AC_SUBST(LIBMEMCACHED_LIBDIRS)
+AC_SUBST(LIBMEMCACHED_LIBS)
+
+#
 # libunbound
 #
 AC_ARG_WITH([unbound],
