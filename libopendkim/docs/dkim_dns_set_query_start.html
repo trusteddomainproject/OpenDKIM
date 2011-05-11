@@ -27,7 +27,7 @@ The function will be passed the following arguments:
 <ol>
  <li> An opaque DNS service handle as previously specified by a call to
       <a href="dkim_dns_set_query_service.html"><tt>dkim_dns_set_query_service()</tt></a>
- <li> The DNS query type (e.g., <tt>T_TXT</tt>)
+ <li> The DNS query type (e.g., <tt>ns_t_txt</tt> or the older <tt>T_TXT</tt>)
  <li> A NULL-terminated string containing the name to be queried
  <li> The address of a buffer into which the result should be written
  <li> The length of that buffer
@@ -40,6 +40,12 @@ The function is expected to return one of the following:
  <li><tt>DKIM_DNS_SUCCESS</tt> -- query was successfully initiated
  <li><tt>DKIM_DNS_ERROR</tt> -- an error occurred
 </ul>
+
+<p> The query type should be a DNS resource record type as registered with
+IANA (<a href="http://www.iana.org/assignments/dns-parameters">here</a>).
+The constants are typically given names for use in source code via the
+include file <tt>&lt;arpa/nameser.h&gt;</tt>. </p>
+
 
 </td></tr>
 
