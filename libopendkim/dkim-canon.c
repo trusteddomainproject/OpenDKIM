@@ -185,6 +185,8 @@ dkim_canon_write(DKIM_CANON *canon, u_char *buf, size_t buflen)
 	if (canon->canon_remain != (off_t) -1)
 		buflen = MIN(buflen, canon->canon_remain);
 
+	canon->canon_wrote += buflen;
+
 	if (buf == NULL || buflen == 0)
 		return;
 
@@ -238,7 +240,6 @@ dkim_canon_write(DKIM_CANON *canon, u_char *buf, size_t buflen)
 #endif /* USE_GNUTLS */
 	}
 
-	canon->canon_wrote += buflen;
 	if (canon->canon_remain != (off_t) -1)
 		canon->canon_remain -= buflen;
 }
@@ -1663,10 +1664,6 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 	{
 		/* skip done hashes and those which are of the wrong type */
 		if (cur->canon_done || cur->canon_hdr)
-			continue;
-
-		/* short-circuit completed canonicalizations */
-		if (cur->canon_remain == 0)
 			continue;
 
 		start = buf;
