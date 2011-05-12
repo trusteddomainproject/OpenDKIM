@@ -44,7 +44,7 @@ required for developing applications against libopendkim.
 if [ -d /usr/include/kerberos ]; then
 	INCLUDES="$INCLUDES -I/usr/include/kerberos"
 fi
-./configure --prefix=%{_prefix} --libdir=%{_libdir} --mandir=%{_mandir} CPPFLAGS="$INCLUDES"
+./configure --prefix=%{_prefix} --sysconfdir=%{_sysconfdir} --libdir=%{_libdir} --mandir=%{_mandir} CPPFLAGS="$INCLUDES"
 
 make
 
@@ -53,11 +53,24 @@ make install DESTDIR="$RPM_BUILD_ROOT"
 mkdir -p "$RPM_BUILD_ROOT"%{_sysconfdir}
 mkdir -p "$RPM_BUILD_ROOT"%{_initrddir}
 install -m 0755 contrib/init/generic/opendkim "$RPM_BUILD_ROOT"%{_initrddir}/%{name}
-echo '# Basic OpenDKIM config file
-# See opendkim.conf(5) or %{_docdir}/%{name}-%{version}/opendkim.conf.sample for more
+echo '## Basic OpenDKIM config file for verification only
+## See opendkim.conf(5) or %{_docdir}/%{name}-%{version}/opendkim.conf.sample for more
+PidFile %{_localstatedir}/run/opendkim/opendkim.pid
 Mode	v
 Syslog	yes
-Socket	local:%{_localstatedir}/run/opendkim/opendkim.socket' > "$RPM_BUILD_ROOT"%{_sysconfdir}/opendkim.conf
+#Umask   002
+#UserID  opendkim:mail
+#Socket	local:%{_localstatedir}/run/opendkim/opendkim.socket
+Socket  inet:8891@localhost
+
+## After setting Mode to "sv", running
+## opendkim-genkey -D %{_sysconfdir}/opendkim -s key -d `hostname --domain`
+## and putting %{_sysconfdir}/opendkim
+#Canonicalization        relaxed/simple
+#Domain                  example.com # change to domain
+#Selector                key
+#KeyFile                 %{_sysconfdir}/opendkim/key.private
+' > "$RPM_BUILD_ROOT"%{_sysconfdir}/opendkim.conf
 rm -r "$RPM_BUILD_ROOT"/%{_prefix}/share/doc/opendkim
 
 %post
@@ -67,9 +80,18 @@ if ! getent passwd opendkim >/dev/null 2>&1; then
 		%{_sbindir}/groupadd opendkim
 		%{_sbindir}/usermod -g opendkim opendkim
 	fi
+	if getent group mail >/dev/null; then
+		%{_sbindir}/usermod -G mail opendkim
+	fi
 fi
 test -d %{_localstatedir}/run/opendkim || mkdir %{_localstatedir}/run/opendkim
 chown opendkim:opendkim %{_localstatedir}/run/opendkim
+if [ ! -d %{_sysconfdir}/opendkim ]; then
+	mkdir %{_sysconfdir}/opendkim
+	chmod o-rx %{_sysconfdir}/opendkim
+	opendkim-genkey -D %{_sysconfdir}/opendkim -s key -d `hostname --domain`
+	chown -R opendkim:opendkim %{_sysconfdir}/opendkim
+fi
 if [ -x /sbin/chkconfig ]; then
 	/sbin/chkconfig --add opendkim
 elif [ -x /usr/lib/lsb/install_initd ]; then
@@ -99,6 +121,7 @@ fi
 %defattr(-,root,root)
 %doc FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail README RELEASE_NOTES RELEASE_NOTES.Sendmail
 %doc contrib/convert/convert_keylist.sh opendkim/*.sample
+%doc opendkim/opendkim.conf.simple-verify opendkim/opendkim.conf.simple
 %config(noreplace) %{_sysconfdir}/opendkim.conf
 %config %{_initrddir}/%{name}
 %{_sbindir}/*
