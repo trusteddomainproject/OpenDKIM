@@ -1829,6 +1829,10 @@ AC_SUBST([DOMAIN])
 
 CPPFLAGS="$CPPFLAGS -DCONFIG_BASE=\\\"$sysconfdir\\\""
 
+test "x$prefix" = xNONE && prefix=$ac_default_prefix 
+SYSCONFDIR=`eval echo "$sysconfdir"`
+AC_SUBST([SYSCONFDIR])
+
 #
 # Finish up
 #

@@ -5,7 +5,7 @@
 - Configuration file for opendkim
 
 .SH LOCATION
-.I /etc/mail/opendkim.conf
+.I @SYSCONFDIR@/opendkim.conf
 
 .SH DESCRIPTION
 .I opendkim(8)
