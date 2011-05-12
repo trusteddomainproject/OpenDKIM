@@ -66,6 +66,13 @@ struct dkim_xtag
 };
 #endif /* _FFR_XTAGS */
 
+/* struct dkim_queryinfo -- DNS query information */
+struct dkim_queryinfo
+{
+	int			dq_type;
+	const char		dq_name[DKIM_MAXHOSTNAMELEN + 1];
+};
+
 /* struct dkim_pstate -- policy query state */
 struct dkim_pstate
 {

@@ -91,12 +91,17 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
 
  <tr>
   <td> <a href="dkim_pstate.html"> <tt>DKIM_PSTATE</tt> </a> </td>
-  <td> Polciy lookup state information. </td>
+  <td> Policy lookup state information. </td>
  </tr>
 
  <tr>
   <td> <a href="dkim_query_t.html"> <tt>dkim_query_t</tt> </a> </td>
   <td> A key query method. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_queryinfo.html"> <tt>DKIM_QUERYINFO</tt> </a> </td>
+  <td> A handle describing a required DNS query. </td>
  </tr>
 
  <tr>
@@ -378,6 +383,12 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
+  <td> <a href="dkim_policy_getqueries.html">
+       <tt>dkim_policy_getqueries()</tt> </a> </td>
+  <td> Get the set of DNS queries needed to do a policy evaluaton. </td>
+ </tr>
+
+ <tr>
   <td> <a href="dkim_policy_state_free.html">
        <tt>dkim_policy_state_free()</tt> </a> </td>
   <td> Free a policy state handle. </td>
@@ -456,6 +467,13 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  <tr>
   <td> <a href="dkim_sig_getkeysize.html"> <tt>dkim_sig_getkeysize()</tt> </a> </td>
   <td> Retrieve the size in bits of the key used to verify a message. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_sig_getqueries.html">
+       <tt>dkim_sig_getqueries()</tt> </a> </td>
+  <td> Get the set of DNS queries needed to complete signature
+       validation. </td>
  </tr>
 
  <tr>
@@ -568,6 +586,17 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  <tr>
   <td> <a href="dkim_policy_syntax.html"> <tt>dkim_policy_syntax()</tt> </a> </td>
   <td> Check the syntax of a policy record. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_qi_getname.html"> <tt>dkim_qi_getname()</tt> </a> </td>
+  <td> Retrieve the DNS name from a <tt>DKIM_QUERYINFO</tt> handle. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_qi_gettype.html"> <tt>dkim_qi_gettype()</tt> </a> </td>
+  <td> Retrieve the DNS resource record type from a <tt>DKIM_QUERYINFO</tt>
+       handle. </td>
  </tr>
 
  <tr>

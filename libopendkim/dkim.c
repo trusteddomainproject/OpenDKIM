@@ -144,6 +144,10 @@ void dkim_error __P((DKIM *, const char *, ...));
 # define RES_UNC_T		unsigned char *
 #endif /* __RES && __RES >= 19940415 */
 
+#ifndef T_AAAA
+# define T_AAAA			28
+#endif /* ! T_AAAA */
+
 /* need fast strtoul() and strtoull()? */
 #ifdef NEED_FAST_STRTOUL
 # define strtoul(x,y,z)		dkim_strtoul((x), (y), (z))
@@ -8850,4 +8854,186 @@ dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
 #else /* _FFR_XTAGS */
 	return DKIM_STAT_NOTIMPLEMENT;
 #endif /* _FFR_XTAGS */
+}
+
+/*
+**  DKIM_QI_GETNAME -- retrieve the DNS name from a DKIM_QUERYINFO object
+**
+**  Parameters:
+**  	query -- DKIM_QUERYINFO handle
+**
+**  Return value:
+**  	A pointer to a NULL-terminated string indicating the name to be
+**  	queried, or NULL on error.
+*/
+
+const char *
+dkim_qi_getname(DKIM_QUERYINFO *query)
+{
+	assert(query != NULL);
+
+	return query->dq_name;
+}
+
+/*
+**  DKIM_QI_GETTYPE -- retrieve the DNS RR type from a DKIM_QUERYINFO object
+**
+**  Parameters:
+**  	query -- DKIM_QUERYINFO handle
+**
+**  Return value:
+**  	The DNS RR type to be queried, or -1 on error.
+*/
+
+int
+dkim_qi_gettype(DKIM_QUERYINFO *query)
+{
+	assert(query != NULL);
+
+	return query->dq_type;
+}
+
+/*
+**  DKIM_SIG_GETQUERIES -- retrieve the queries needed to validate a signature
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**  	sig -- DKIM_SIGINFO handle
+**  	qi -- DKIM_QUERYINFO handle array (returned)
+**  	nqi -- number of entries in the "qi" array
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+DKIM_STAT
+dkim_sig_getqueries(DKIM *dkim, DKIM_SIGINFO *sig,
+                    DKIM_QUERYINFO ***qi, unsigned int *nqi)
+{
+	DKIM_QUERYINFO **new;
+	DKIM_QUERYINFO *newp;
+
+	assert(dkim != NULL);
+	assert(sig != NULL);
+	assert(qi != NULL);
+	assert(nqi != NULL);
+
+	new = DKIM_MALLOC(dkim, sizeof(struct dkim_queryinfo *));
+	if (new == NULL)
+		return DKIM_STAT_NORESOURCE;
+
+	newp = DKIM_MALLOC(dkim, sizeof(struct dkim_queryinfo));
+	if (newp == NULL)
+	{
+		DKIM_FREE(dkim, new);
+		return DKIM_STAT_NORESOURCE;
+	}
+
+	memset(newp, '\0', sizeof(struct dkim_queryinfo));
+
+	if (sig->sig_selector != NULL && sig->sig_domain != NULL)
+	{
+		newp->dq_type = T_TXT;
+		snprintf((char *) newp->dq_name, sizeof newp->dq_name,
+		         "%s.%s.%s",
+		         sig->sig_selector, DKIM_DNSKEYNAME, sig->sig_domain);
+	}
+
+	new[0] = newp;
+
+	*qi = new;
+	*nqi = 1;
+
+	return DKIM_STAT_OK;
+}
+
+/*
+**  DKIM_POLICY_GETQUERIES -- retrieve the queries needed to conduct ADSP
+**                            checks
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**  	qi -- DKIM_QUERYINFO handle array (returned)
+**  	nqi -- number of entries in the "qi" array
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+DKIM_STAT
+dkim_policy_getqueries(DKIM *dkim,
+                       DKIM_QUERYINFO ***qi, unsigned int *nqi)
+{
+	int c;
+	DKIM_QUERYINFO **new;
+
+	assert(dkim != NULL);
+	assert(qi != NULL);
+	assert(nqi != NULL);
+
+	new = DKIM_MALLOC(dkim, 4 * sizeof(struct dkim_queryinfo *));
+	if (new == NULL)
+		return DKIM_STAT_NORESOURCE;
+
+	memset(new, '\0', 4 * sizeof(struct dkim_queryinfo *));
+
+	for (c = 0; c < 4; c++)
+	{
+		new[c] = DKIM_MALLOC(dkim, sizeof(struct dkim_queryinfo));
+		if (new[c] == NULL)
+		{
+			int d;
+
+			for (d = 0; d < c; d++)
+				free(new[d]);
+
+			free(new);
+
+			return DKIM_STAT_NORESOURCE;
+		}
+
+		memset(new[c], '\0', sizeof(struct dkim_queryinfo));
+
+		switch (c)
+		{
+		  case 0:
+			new[c]->dq_type = T_A;
+			break;
+
+		  case 1:
+			new[c]->dq_type = T_AAAA;
+			break;
+
+		  case 2:
+			new[c]->dq_type = T_MX;
+			break;
+
+		  case 3:
+			new[c]->dq_type = T_TXT;
+			break;
+		}
+
+		if (dkim->dkim_domain != NULL)
+		{
+			if (c != 3)
+			{
+				strlcpy((char *) new[c]->dq_name,
+				        dkim->dkim_domain,
+			                sizeof new[c]->dq_name);
+			}
+			else
+			{
+				snprintf((char *) new[c]->dq_name,
+				         sizeof new[c]->dq_name,
+				         "%s.%s.%s",
+				         DKIM_DNSPOLICYNAME, DKIM_DNSKEYNAME,
+				         dkim->dkim_domain);
+			}
+		}
+	}
+
+	*qi = new;
+	*nqi = 4;
+
+	return DKIM_STAT_OK;
 }

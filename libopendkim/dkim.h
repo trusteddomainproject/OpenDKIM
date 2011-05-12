@@ -357,6 +357,13 @@ typedef struct dkim_siginfo DKIM_SIGINFO;
 #define DKIM_SIGBH_MISMATCH		1
 
 /*
+**  DKIM_QUERYINFO -- information about a DNS query that is/may be needed
+*/
+
+struct dkim_queryinfo;
+typedef struct dkim_queryinfo DKIM_QUERYINFO;
+
+/*
 **  DKIM_PSTATE -- policy query state
 */
 
@@ -726,6 +733,23 @@ extern DKIM_STAT dkim_getsighdr_d __P((DKIM *dkim, size_t initial,
 */
 
 extern _Bool dkim_sig_hdrsigned __P((DKIM_SIGINFO *sig, u_char *hdr));
+
+/*
+**  DKIM_SIG_GETQUERIES -- retrieve the queries needed to validate a signature
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**  	sig -- DKIM_SIGINFO handle
+**  	qi -- DKIM_QUERYINFO handle array (returned)
+**  	nqi -- number of entries in the "qi" array
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_sig_getqueries __P((DKIM *dkim, DKIM_SIGINFO *sig,
+                                          DKIM_QUERYINFO ***qi,
+                                          unsigned int *nqi));
 
 /*
 **  DKIM_SIG_GETDNSSEC -- retrieve DNSSEC results for a signature
@@ -1213,6 +1237,23 @@ extern const char *dkim_sig_geterrorstr __P((DKIM_SIGERROR sigerr));
 */
 
 extern void dkim_sig_ignore __P((DKIM_SIGINFO *siginfo));
+
+/*
+**  DKIM_POLICY_GETQUERIES -- retrieve the queries needed to conduct an ADSP
+**                            evaluation
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**  	qi -- DKIM_QUERYINFO handle array (returned)
+**  	nqi -- number of entries in the "qi" array
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_policy_getqueries __P((DKIM *dkim,
+                                             DKIM_QUERYINFO ***qi,
+                                             unsigned int *nqi));
 
 /*
 **  DKIM_POLICY_STATE_NEW -- initialize and return a DKIM policy state handle
@@ -1811,6 +1852,31 @@ extern DKIM_STAT dkim_add_xtag __P((DKIM *, const char *, const char *));
 
 extern DKIM_STAT dkim_atps_check __P((DKIM *, DKIM_SIGINFO *,
                                       struct timeval *, dkim_atps_t *res));
+
+/*
+**  DKIM_QI_GETNAME -- retrieve the DNS name from a DKIM_QUERYINFO object
+**
+**  Parameters:
+**  	query -- DKIM_QUERYINFO handle
+**
+**  Return value:
+**  	A pointer to a NULL-terminated string indicating the name to be
+**  	queried, or NULL on error.
+*/
+
+extern const char *dkim_qi_getname __P((DKIM_QUERYINFO *));
+
+/*
+**  DKIM_QI_GETTYPE -- retrieve the DNS RR type from a DKIM_QUERYINFO object
+**
+**  Parameters:
+**  	query -- DKIM_QUERYINFO handle
+**
+**  Return value:
+**  	The DNS RR type to be queried, or -1 on error.
+*/
+
+extern int dkim_qi_gettype __P((DKIM_QUERYINFO *));
 
 /*
 **  DKIM_BASE32_ENCODE -- encode a string using base32

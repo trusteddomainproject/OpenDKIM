@@ -48,6 +48,7 @@ dist_doc_DATA = dkim.html \
 	dkim_param_t.html \
 	dkim_policy.html \
 	dkim_policy_getdnssec.html \
+	dkim_policy_getqueries.html \
 	dkim_policy_getreportinfo.html \
 	dkim_policy_state_free.html \
 	dkim_policy_state_new.html \
@@ -55,7 +56,10 @@ dist_doc_DATA = dkim.html \
 	dkim_policy_t.html \
 	dkim_presult.html \
 	dkim_pstate.html \
+	dkim_qi_getname.html \
+	dkim_qi_gettype.html \
 	dkim_query_t.html \
+	dkim_queryinfo.html \
 	dkim_resign.html \
 	dkim_set_dns_callback.html \
 	dkim_set_final.html \
@@ -77,6 +81,7 @@ dist_doc_DATA = dkim.html \
 	dkim_sig_geterrorstr.html \
 	dkim_sig_getflags.html \
 	dkim_sig_getkeysize.html \
+	dkim_sig_getqueries.html \
 	dkim_sig_getreportinfo.html \
 	dkim_sig_getselector.html \
 	dkim_sig_getsignalg.html \

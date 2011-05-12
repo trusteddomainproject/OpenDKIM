@@ -1,0 +1,97 @@
+<html>
+<head><title>dkim_sig_getqueries()</title></head>
+<body>
+<!--
+$Id: dkim_sig_getqueries.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
+-->
+<h1>dkim_sig_getqueries()</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_sig_getqueries(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+	<a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *sig,
+	<a href="dkim_queryinfo.html"><tt>DKIM_QUERYINFO</tt></a> **qi,
+	unsigned int *nqi
+);
+</pre>
+Given a signature handle, return the DNS query or queries that would be
+required to complete verification of that signature.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_sig_getqueries()</tt> can be called at any time after
+    signature handles are completely received and stored via a call to
+    <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a>. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific handle, previously returned by
+	    <a href="dkim_verify.html"><tt>dkim_verify()</tt></a>. </td>
+	</td></tr>
+    <tr valign="top"><td>sig</td>
+	<td>Signature-specific handle, acquired from
+	    <a href="dkim_getsiglist.html"><tt>dkim_getsiglist()</tt></a>. </td>
+	</td></tr>
+    <tr valign="top"><td>qi</td>
+	<td>An array of <tt>DKIM_QUERYINFO</tt> handles allocated by the
+	    the library to return the set of required DNS queries.
+	</td></tr>
+    <tr valign="top"><td>nqi</td>
+	<td>The number of elements in the <tt>qi</tt> array.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr><th valign="top" align=left>RETURN VALUES</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Value</th><th>Description</th></tr>
+    <tr valign="top"><td>DKIM_STAT_NORESOURCE</td>
+	<td>Memory could not be allocated for the new array.
+	</td></tr>
+    <tr valign="top"><td>DKIM_STAT_OK</td>
+	<td>The array was allocated and returned.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>The caller is responsible for deallocating the array and each element of it
+    returned function.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

@@ -29,6 +29,10 @@ release, and a summary of the changes in that release.
 		support to its own library.
 	LIBOPENDKIM: Feature request #SF3279589: Add _FFR_XTAGS, adding
 		support for generic extension tags in signatures.
+	LIBOPENDKIM: Feature request #SF3300738: Add dkim_sig_getqueries()
+		and dkim_policy_getqueries() to assist API consumers that
+		have their own DNS mechanisms not directly adaptable to ours.
+		Requested by Heikki Gruner.
 	STATS: Feature request #SF3066106: Add "opendkim-anonstats" tool.
 	CONTRIB: Paths in init/redhat/opendkim are now auto-generated.
 	Activate _FFR_MAXVERIFY.
