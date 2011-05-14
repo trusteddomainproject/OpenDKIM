@@ -41,7 +41,7 @@ static char iprange_c_id[] = "$Id$";
 # define T_RRSIG		46
 #endif /* ! T_RRSIG */
 
-/* struct iprange_query -- an open IPRANGE IPRANGE query */
+/* struct iprange_query -- an open IPRANGE query */
 struct iprange_query
 {
 	void *			rq_qh;
@@ -49,7 +49,7 @@ struct iprange_query
 	u_char			rq_buf[HFIXEDSZ + MAXPACKET];
 };
 
-/* struct iprange_handle -- an IPRANGE IPRANGE library context */
+/* struct iprange_handle -- an IPRANGE library context */
 struct iprange_handle
 {
 	u_int			iprange_timeout;
@@ -239,7 +239,7 @@ iprange_res_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 }
 
 /*
-**  IPRANGE_INIT -- initialize an IPRANGE IPRANGE handle
+**  IPRANGE_INIT -- initialize an IPRANGE handle
 **
 **  Parameters:
 **  	caller_mallocf -- caller-provided memory allocation function
