@@ -391,7 +391,7 @@ struct dkim_hdrdiff
 **  	None.
 **
 **  Return value:
-**  	A DKIM_STAT value.
+**  	A new DKIM library instance handle, or NULL on failure.
 */
 
 extern DKIM_LIB *dkim_init __P((void *(*mallocf)(void *closure, size_t nbytes),
