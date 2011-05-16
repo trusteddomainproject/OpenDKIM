@@ -98,6 +98,12 @@ echo "<br>" >> $OUTPUT
 
 echo "Analysis of low-time domain behaviour (<= 15 days, >= 5 msgs), blackops.org only" >> $OUTPUT
 $MYSQL --html --execute="SELECT AVG(counts.c) AS rate_avg, MAX(counts.c) rate_max, STDDEV_POP(counts.c) AS rate_stddev, AVG(counts.s) AS spam_avg, MAX(counts.s) AS spam_max, STDDEV_POP(counts.s) AS spam_stddev, AVG(counts.c) + STDDEV_POP(counts.c) * $STDSCORE - AVG(counts.s) - STDDEV_POP(counts.s) * $STDSCORE AS daily_limit_low, AVG(counts.c) + STDDEV_POP(counts.c) * $STDSCORE - AVG(counts.s) + STDDEV_POP(counts.s) * $STDSCORE AS daily_limit_high FROM (SELECT COUNT(*) AS c, SUM(spam) AS s FROM messages JOIN signatures ON signatures.message = messages.id JOIN domains ON signatures.domain = domains.id WHERE NOT spam = -1 AND reporter = 11 AND domains.firstseen >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 15 DAY) AND pass = 1 GROUP BY signatures.domain, DATE(msgtime) HAVING COUNT(*) >= 5) counts" >> $OUTPUT
+
+echo "<br>" >> $OUTPUT
+
+echo "Analysis of high spam domain duration (>= 75% spam, >= 2 msgs)" >> $OUTPUT
+$MYSQL --html --execute="SELECT COUNT(*) AS domains, MIN(l) AS 'min duration', MAX(l) AS 'max duration', AVG(l) AS 'mean duration', STDDEV_POP(l) AS 'duration stddev' FROM (SELECT COUNT(*) AS c, SUM(messages.spam)/COUNT(*) AS r, DATEDIFF(MAX(messages.msgtime), MIN(messages.msgtime)) AS l FROM signatures JOIN messages ON signatures.message = messages.id WHERE NOT spam = -1 AND pass = 1 GROUP BY signatures.domain) t1 WHERE r > 0.75 AND c > 2"
+
 cat >> $OUTPUT << EOF
   </body>
 </html>
