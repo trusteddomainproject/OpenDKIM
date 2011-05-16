@@ -102,7 +102,7 @@ $MYSQL --html --execute="SELECT AVG(counts.c) AS rate_avg, MAX(counts.c) rate_ma
 echo "<br>" >> $OUTPUT
 
 echo "Analysis of high spam domain duration (>= 75% spam, >= 2 msgs)" >> $OUTPUT
-$MYSQL --html --execute="SELECT COUNT(*) AS domains, MIN(l) AS 'min duration', MAX(l) AS 'max duration', AVG(l) AS 'mean duration', STDDEV_POP(l) AS 'duration stddev' FROM (SELECT COUNT(*) AS c, SUM(messages.spam)/COUNT(*) AS r, DATEDIFF(MAX(messages.msgtime), MIN(messages.msgtime)) AS l FROM signatures JOIN messages ON signatures.message = messages.id WHERE NOT spam = -1 AND pass = 1 GROUP BY signatures.domain) t1 WHERE r > 0.75 AND c > 2"
+$MYSQL --html --execute="SELECT COUNT(*) AS domains, MIN(l) AS 'min duration', MAX(l) AS 'max duration', AVG(l) AS 'mean duration', STDDEV_POP(l) AS 'duration stddev' FROM (SELECT COUNT(*) AS c, SUM(messages.spam)/COUNT(*) AS r, DATEDIFF(MAX(messages.msgtime), MIN(messages.msgtime)) AS l FROM signatures JOIN messages ON signatures.message = messages.id WHERE NOT spam = -1 AND pass = 1 GROUP BY signatures.domain) t1 WHERE r > 0.75 AND c > 2" >> $OUTPUT
 
 cat >> $OUTPUT << EOF
   </body>
