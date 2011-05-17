@@ -10,7 +10,7 @@ release, and a summary of the changes in that release.
 		maximum signed byte count.
 	Feature request #SF3171865: Add _FFR_LUA_GLOBALS, enabling a
 		mechanism to maintain state between Lua scripts.
-	Feature request #SF3241982: Optionally an Authentication-Results
+	Feature request #SF3241982: Optionally add an Authentication-Results
 		field for all signatures present, not just the first good
 		one.
 	Feature request #SF3256630: Add _FFR_RATE_LIMIT, enabling hooks for
