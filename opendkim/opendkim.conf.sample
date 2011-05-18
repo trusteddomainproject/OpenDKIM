@@ -152,6 +152,14 @@
 
 # Diagnostics		No
 
+##  DisableADSP { yes | no }
+##  	default "no"
+##
+##  Suppresses Author Domain Signing Practices (ADSP) checks, which conduct
+##  additional DNS queries.
+
+# DisableADSP		No
+
 ##  DNSTimeout n
 ##  	default 10
 ##

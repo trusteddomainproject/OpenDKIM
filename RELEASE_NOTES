@@ -21,6 +21,7 @@ release, and a summary of the changes in that release.
 		removing "BodyLengths", renaming "BodyLengthDBFile" to
 		"BodyLengthDB", and allowing pattern matches.  This
 		effectively activates _FFR_BODYLENGTH_DB as well.
+	Feature request #SF3303911: Add "DisableADSP" setting.
 	LIBOPENDKIM: Feature request #SF2969516: Teach dkim_chunk() about
 		DKIM_LIBFLAGS_FIXCRLF.
 	LIBOPENDKIM: Feature request #SF3123731: Extend FixCRLF to cover

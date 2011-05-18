@@ -194,6 +194,7 @@ struct lua_global
 
 struct dkimf_config
 {
+	_Bool		conf_noadsp;		/* suppress ADSP */
 	_Bool		conf_allsigs;		/* report on all signatures */
 	_Bool		conf_dnsconnect;	/* request TCP mode from DNS */
 	_Bool		conf_capture;		/* capture unknown errors */
@@ -6231,6 +6232,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "ADSPNoSuchDomain",
 		                  &conf->conf_adspnxdomain,
 		                  sizeof conf->conf_adspnxdomain);
+
+		(void) config_get(data, "DisableADSP",
+		                  &conf->conf_noadsp,
+		                  sizeof conf->conf_noadsp);
 
 		str = NULL;
 		(void) config_get(data, "ADSPAction", &str, sizeof str);
@@ -13249,7 +13254,8 @@ mlfi_eom(SMFICTX *ctx)
 		**  messages.
 		*/
 
-		if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN && !authorsig)
+		if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN && !authorsig &&
+		    !conf->conf_noadsp)
 		{
 			DKIM_STAT pstatus;
 			_Bool localadsp = FALSE;
@@ -13934,7 +13940,8 @@ mlfi_eom(SMFICTX *ctx)
 			}
 
 			/* now the ADSP bit */
-			if (dfc->mctx_status != DKIMF_STATUS_BADFORMAT)
+			if (dfc->mctx_status != DKIMF_STATUS_BADFORMAT &&
+			    !conf->conf_noadsp)
 			{
 				if (header[0] != '\0')
 				{
