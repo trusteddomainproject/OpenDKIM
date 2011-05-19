@@ -14517,7 +14517,7 @@ mlfi_eom(SMFICTX *ctx)
 				DKIM_REP dr;
 
 				dr = dkim_rep_init(NULL, NULL, NULL);
-				if (dr != NULL)
+				if (dr == NULL)
 				{
 					syslog(LOG_INFO,
 					       "%s: can't initialize reputation query",
