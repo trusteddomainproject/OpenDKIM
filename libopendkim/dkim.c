@@ -8792,7 +8792,7 @@ dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
 		return DKIM_STAT_INVALID;
 
 	/* confirm valid syntax, per RFC4871 */
-	for (p = tag; *p != '\0'; p++)
+	for (p = (u_char *) tag; *p != '\0'; p++)
 	{
 		if (!(isascii(*p) && (isalnum(*p) || *p == '_')))
 			return DKIM_STAT_INVALID;
@@ -8804,7 +8804,7 @@ dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
 	    value[0] == ' ')
 		return DKIM_STAT_INVALID;
 
-	for (p = value; *p != '\0'; p++)
+	for (p = (u_char *) value; *p != '\0'; p++)
 	{
 		/* valid characters in general */
 		if (!(*p == '\n' ||

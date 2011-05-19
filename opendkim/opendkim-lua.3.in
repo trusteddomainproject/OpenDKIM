@@ -273,7 +273,7 @@ Requests that the message represented by
 be subjected to DKIM signature verification.  Returns the Lua constant
 "nil" on success, or an error string on failure.
 .TP
-.B odkim.xtags(ctx, tag, value)
+.B odkim.xtag(ctx, tag, value)
 Requests that all signatures added to the message represented by
 .I ctx
 include the named extension

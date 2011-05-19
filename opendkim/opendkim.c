@@ -1445,7 +1445,7 @@ dkimf_xs_xtag(lua_State *l)
 
 		for (sr = dfc->mctx_srhead; sr != NULL; sr = sr->srq_next)
 		{
-			status = dkim_xtag(sr->srq_dkim, tag, value);
+			status = dkim_add_xtag(sr->srq_dkim, tag, value);
 			if (status != DKIM_STAT_OK)
 			{
 				lua_pushnumber(l, -1);
