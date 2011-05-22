@@ -284,9 +284,6 @@ typedef int dkim_opts_t;
 
 #define	DKIM_LIBFLAGS_DEFAULT		DKIM_LIBFLAGS_NONE
 
-#define DKIM_REP_DEFREJECT	1001
-#define DKIM_REP_ROOT		"al.dkim-reputation.org"
-
 /*
 **  DKIM_PFLAG -- policy flags
 */
