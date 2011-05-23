@@ -272,6 +272,8 @@ $MYSQL --execute="SELECT COUNT(DISTINCT from_domain) AS domains FROM messages JO
 echo "</p>" >> $OUTPUT
 
 # output a footer
+echo "Report completed `date`" >> $OUTPUT
+
 echo "<hr>" >> $OUTPUT
 echo '<font size="-1"> <i> $Id: opendkim-genstats,v 1.26 2010/10/27 06:18:45 cm-msk Exp $ </i> </font>' >> $OUTPUT
 cat >> $OUTPUT << EOF
