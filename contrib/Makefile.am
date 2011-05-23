@@ -4,6 +4,6 @@
 
 #AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = convert init lua spec stats
+SUBDIRS = convert init lua reputation spec stats
 
 dist_doc_DATA = README
