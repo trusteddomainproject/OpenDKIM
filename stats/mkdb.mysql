@@ -179,24 +179,38 @@ insert ignore into sigerrorcodes (id, name) values
 	(45,	"v= empty")
 ;
 
+-- table containing data aggregation for staging to predictions
+create table if not exists aggregate (
+	id int auto_increment,
+	domain int,
+	updated timestamp not null default current_timestamp on update current_timestamp,
+	date timestamp not null default '0000-00-00 00:00:00',
+	messages int,
+	spam int,
+	ratio float,
+
+        primary key (id),
+	unique key (domain, date),
+	foreign key(domain) references domains(id) on delete cascade
+) engine=innodb default charset=latin1;
+
 -- table mapping domain codes to flow predictions
 create table if not exists predictions (
-	id int unsigned not null auto_increment,
-	domain int unsigned not null,
-	rate_samples int unsigned not null,
-	rate_avg float unsigned,
-	rate_max int unsigned,
-	rate_stddev float unsigned,
-	rate_high float unsigned,
-	spam_samples int unsigned not null,
-	spam_avg float unsigned,
-	spam_max int unsigned,
-	spam_stddev float unsigned,
-	spam_high float unsigned,
-	daily_limit int unsigned,
-	updated timestamp not null default CURRENT_TIMESTAMP,
+	id int not null auto_increment,
+	domain int,
+	rate_samples int,
+	rate_max int,
+	rate_avg float,
+	rate_stddev float,
+	rate_high int,
+	ratio_max float,
+	ratio_avg float,
+	ratio_stddev float,
+	ratio_high float,
+	daily_limit_high int,
+	daily_limit_low int,
 
-	primary key(id),
-	unique key(domain),
+        primary key (id),
+	unique key (domain),
 	foreign key(domain) references domains(id) on delete cascade
 ) engine=innodb default charset=latin1;
