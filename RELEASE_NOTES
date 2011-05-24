@@ -34,6 +34,9 @@ release, and a summary of the changes in that release.
 		and dkim_policy_getqueries() to assist API consumers that
 		have their own DNS mechanisms not directly adaptable to ours.
 		Requested by Heikki Gruner.
+	LIBOPENDKIM: Return an error from dkim_getsighdr() or
+		dkim_getsighdr_d() if called after a key load failure.
+		Problem noted by Heikki Gruner.
 	STATS: Feature request #SF3066106: Add "opendkim-anonstats" tool.
 	CONTRIB: Paths in init/redhat/opendkim are now auto-generated.
 	Activate _FFR_MAXVERIFY.

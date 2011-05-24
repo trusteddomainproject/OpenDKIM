@@ -3714,6 +3714,8 @@ dkim_eom_sign(DKIM *dkim)
 		                                       &rsa->rsa_keysize);
 
 		sig->sig_keybits = rsa->rsa_keysize;
+		sig->sig_flags |= DKIM_SIGFLAG_KEYLOADED;
+
 #else /* USE_GNUTLS */
 		if (strncmp((char *) dkim->dkim_key, "-----", 5) == 0)
 		{					/* PEM */
@@ -3763,6 +3765,7 @@ dkim_eom_sign(DKIM *dkim)
 		}
 
 		sig->sig_keybits = rsa->rsa_keysize * 8;
+		sig->sig_flags |= DKIM_SIGFLAG_KEYLOADED;
 #endif /* USE_GNUTLS */
 
 		break;
@@ -6893,6 +6896,12 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 	sig = dkim->dkim_signature;
 	if (sig == NULL)
 		sig = dkim->dkim_siglist[0];
+
+	if ((sig->sig_flags & DKIM_SIGFLAG_KEYLOADED) == 0)
+	{
+		dkim_error(dkim, "private key load failure");
+		return DKIM_STAT_INVALID;
+	}
 
 	tmpbuf = dkim_dstring_new(dkim, BUFRSZ, MAXBUFRSZ);
 	if (tmpbuf == NULL)
