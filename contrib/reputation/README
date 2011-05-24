@@ -6,14 +6,37 @@ reputation system based on OpenDKIM's statistics package.
 The statistics package is able to capture the flow of mail arriving as it
 passes through OpenDKIM.  All messages, even unsigned ones, are recorded.
 For signed messages, all signatures are recorded including pass/fail,
-signing domain, etc.  The statistics system can also upload the
-locally-collected data to an arbitrary central repository where it can be
-aggregated and then made available to participants to query.
+signing domain, signature properties, etc.  The statistics system can also
+upload the locally-collected data to an arbitrary central repository where
+it can be aggregated and then made available to participants to query.
 
-This central system has not yet been designed, but may be in the future.
-This directory contains a description sufficient to build such a system,
-but also (and primarily) for building a local store that can be used
-as an intelligent filter based on DKIM verification results.
+This central system has not yet been designed to be queryable as a public
+service, but may be in the future.  This directory contains a description
+sufficient to build such a system, but also (and primarily) for building a
+local store that can be used as an intelligent filter based on DKIM
+verification results.
+
+REQUIREMENTS
+
+The requirements for this reputation system are as follows:
+
+1) Reputation must be based on the domain(s) that have some kind of
+   responsibility for the message.
+
+2) Reputation should be expressed in such a way that it can be easily
+   converted to a message flow limit.
+
+3) There must be some reasonable, even if tiny, allowance made for
+   domains about which no data have been accumulated.
+
+4) The system may output a few values for a given domain, such as
+   "strict", "medium" and "light", and these would be applied at the
+   discretion of the implementation.
+
+5) Data expiration must be configurable at the discretion of the site using
+   the system.  That is, the system should neither impose a specific lifetime
+   of the data accumulated, though it should discuss the impacts of different
+   choices of data lifetime.
 
 OVERVIEW
 
@@ -56,8 +79,8 @@ This means, for each arriving message, we have a set of one or more valid
 DKIM signatures, and an indication of whether or not the message is
 considered spam.
 
-For the purposes of illustration of this method, we will use a calendar
-day (i.e., midnight to midnight) as a single data point.
+For the purposes of illustration of this method, we will use the counts from
+a single calendar day (i.e., midnight to midnight) as a data point.
 
 The next section describes the reputation system in detail, and the following
 one explains how to configure and activate it.
@@ -137,8 +160,9 @@ day for a given domain; it is the ratio of spam to messages, or the percent
 of mail that is spam for a given day from a given domain.
 
 In general, we construct a prediction interval around the Cm and R data
-for any given domain.  This gives a low and high end of a range within 
-which the next daily message count and daily spam ratio are expected to fall.
+for any given domain based on observed data to date.  This gives a low
+and high end of a range within which the next daily message count and daily
+spam ratio are expected to fall.
 
 Note that we are not always interested in the lower boundary of the prediction
 interval as there's no action to be taken should a daily message count or
@@ -149,7 +173,7 @@ Thus, at the start of day X, we compute a prediction interval for all domains
 for which we have accumulated data (including the NULL domain) for the
 message count and the spam ratio.  If during day X we observe that the domain
 has sent more than the predicted high or the ratio of received mail to spam
-exceeds the high prediction, intervention is enacted.
+exceeds the high prediction, intervention can be enacted.
 
 This seems to be a good fit on simple analysis: If a domain sends the same
 amount of mail every day, then the mean will be that value, the standard
@@ -159,7 +183,11 @@ grants some tolerance in the prediction interval for increases in traffic
 that might not be present using a simpler model.  For the spam ratio, the
 mean gives an indication of how clean the domain's stream is, and the
 standard deviation a measure of how erratic the domain's behaviour typically
-is.
+is.  This can be used as a measure of the trustworthiness of the stream
+in terms of sending desirable content.  In fact, one could conceive of
+a system that uses the low, middle and high points in the ratio's prediction
+interval to impose light, moderate and aggressive rate limiting modes against
+senders.
 
 Note, though, that these statistical quantities are only really useful
 once a substantial number of data points exist.  It's necessary then to
@@ -173,11 +201,4 @@ and low-data.  An obvious question, then, is what a good threshold is at
 which a domain transitions from one to the other.  So we have two problems
 to solve.
 
-We compute the threshold between low-data and high-data based on another
-prediction interval.  In this case, we compute a high-end prediction on
-the time a domain that sends a lot of spam (at least 75% for this experiment)
-tends to be in use.  Domains for which we have less data than this are
-considered low-data, and those for which we have more are high-data.  Once
-a domain's lifetime exceeds this threshold, it is subjected to the mechanism
-described above.  Prior to that, we apply a different algorithm, described
-next.
+First, we need a method to determine the threshold.
