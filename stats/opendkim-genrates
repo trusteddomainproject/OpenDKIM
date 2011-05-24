@@ -47,24 +47,17 @@ STDSCORE=1.64
 
 MYSQL="$MYSQL_CMD --user=$USER --password=$PASSWORD --database=$DB"
 
-# Compute mean and standard deviation for message counts for each
-# signing domain
-$MYSQL --execute="INSERT INTO predictions (domain, rate_samples, rate_max, rate_avg, rate_stddev) SELECT domain, COUNT(counts.c), MAX(counts.c), AVG(counts.c), STDDEV_POP(counts.c) FROM (SELECT domain, COUNT(pass) AS c FROM signatures JOIN messages ON signatures.message = messages.id WHERE pass = 1 GROUP BY domain, DATE(messages.msgtime)) AS counts GROUP BY domain ON DUPLICATE KEY UPDATE updated = CURRENT_TIMESTAMP(), rate_samples = VALUES(rate_samples), rate_max = VALUES(rate_max), rate_avg = VALUES(rate_avg), rate_stddev = VALUES(rate_stddev)"
+# Compute/update message counts and spam ratios for all signing domains
+$MYSQL --execute="INSERT IGNORE INTO aggregate (domain, updated, date, messages, spam) SELECT signatures.domain, CURRENT_TIMESTAMP(), DATE(messages.msgtime), COUNT(*), SUM(spam) FROM messages JOIN signatures ON signatures.message = messages.id WHERE NOT spam = -1 AND pass = 1 AND NOT DATE(messages.msgtime) = DATE(CURRENT_TIMESTAMP()) GROUP BY domain, DATE(messages.msgtime)"
 
-# Compute mean and standard deviation for message counts for unsigned mail
-$MYSQL --execute="INSERT INTO predictions (domain, rate_samples, rate_max, rate_avg, rate_stddev) SELECT 0, COUNT(counts.c), MAX(counts.c), AVG(counts.c), STDDEV_POP(counts.c) FROM (SELECT COUNT(from_domain) AS c FROM messages WHERE sigcount = 0 OR messages.id NOT IN (SELECT message FROM signatures WHERE pass = 1) GROUP BY DATE(messages.msgtime)) AS counts ON DUPLICATE KEY UPDATE updated = CURRENT_TIMESTAMP(), rate_samples = VALUES(rate_samples), rate_max = VALUES(rate_max), rate_avg = VALUES(rate_avg), rate_stddev = VALUES(rate_stddev)"
+# Compute/update message counts and spam ratios for unsigned mail
+$MYSQL --execute="INSERT IGNORE INTO aggregate (domain, updated, date, messages, spam) SELECT 0, CURRENT_TIMESTAMP(), DATE(messages.msgtime), COUNT(*), SUM(spam) FROM messages WHERE NOT DATE (messages.msgtime) = DATE(CURRENT_TIMESTAMP()) AND (sigcount = 0 OR messages.id NOT IN (SELECT message FROM signatures WHERE pass = 1)) GROUP BY DATE(messages.msgtime)"
 
-# Compute mean and standard deviation for spam counts for each
-# signing domain
-$MYSQL --execute="INSERT INTO predictions (domain, spam_samples, spam_max, spam_avg, spam_stddev) SELECT domain, COUNT(counts.c), MAX(counts.c), AVG(counts.c), STDDEV_POP(counts.c) FROM (SELECT domain, COUNT(pass) AS c FROM signatures JOIN messages ON signatures.message = messages.id WHERE pass = 1 AND spam = 1 GROUP BY domain, DATE(messages.msgtime)) AS counts GROUP BY domain ON DUPLICATE KEY UPDATE updated = CURRENT_TIMESTAMP(), spam_samples = VALUES(spam_samples), spam_max = VALUES(spam_max), spam_avg = VALUES(spam_avg), spam_stddev = VALUES(spam_stddev)"
+# Compute ratios wherever they're missing
+$MYSQL --execute="UPDATE aggregate SET ratio = spam / messages WHERE ratio IS NULL"
 
-# Compute mean and standard deviation for spam counts for unsigned mail
-$MYSQL --execute="INSERT INTO predictions (domain, spam_samples, spam_max, spam_avg, spam_stddev) SELECT 0, COUNT(counts.c), MAX(counts.c), AVG(counts.c), STDDEV_POP(counts.c) FROM (SELECT COUNT(from_domain) AS c FROM messages WHERE spam = 1 AND (sigcount = 0 OR messages.id NOT IN (SELECT message FROM signatures WHERE pass = 1)) GROUP BY DATE(messages.msgtime)) AS counts ON DUPLICATE KEY UPDATE updated = CURRENT_TIMESTAMP(), spam_samples = VALUES(spam_samples), spam_max = VALUES(spam_max), spam_avg = VALUES(spam_avg), spam_stddev = VALUES(spam_stddev)"
-
-# Compute predicted rate and spam maxima using a normal distribution and
-# the standard score method, and then the daily limit based on these, for
-# each signing domain and for unsigned mail
-$MYSQL --execute="UPDATE predictions SET rate_high = rate_avg + (rate_stddev * $STDSCORE), spam_high = IFNULL(spam_avg, 0) + (IFNULL(spam_stddev, 0) * $STDSCORE), daily_limit = rate_avg + (rate_stddev * $STDSCORE) - IFNULL(spam_avg, 0) - (IFNULL(spam_stddev, 0) * $STDSCORE), updated = CURRENT_TIMESTAMP()"
+# Compute predictions
+$MYSQL --execute="INSERT INTO predictions (domain, rate_samples, rate_max, rate_avg, rate_stddev, rate_high, ratio_max, ratio_avg, ratio_stddev, ratio_high, daily_limit) SELECT domain, COUNT(aggregate.messages), MAX(aggregate.messages), AVG(aggregate.messages), STDDEV_POP(aggregate.messages), AVG(aggregate.messages) + STDDEV_POP(aggregate.messages) * $STDSCORE, MAX(aggregate.ratio), AVG(aggregate.ratio), STDDEV_POP(aggregate.ratio), AVG(aggregate.ratio) + STDDEV_POP(aggregate.ratio) * $STDSCORE, AVG(aggregate.messages) + STDDEV_POP(aggregate.messages) * $STDSCORE * (1 - (AVG(aggregate.ratio) + STDDEV_POP(aggregate.ratio) * $STDSCORE)) FROM aggregate GROUP BY domain ON DUPLICATE KEY UPDATE rate_samples = VALUES(rate_samples), rate_max = VALUES(rate_max), rate_avg = VALUES(rate_avg), rate_stddev = VALUES(rate_stddev), rate_high = VALUES(rate_high), ratio_max = VALUES(ratio_max), ratio_avg = VALUES(ratio_avg), ratio_stddev = VALUES(ratio_stddev), ratio_high = VALUES(ratio_high), daily_limit = VALUES(daily_limit)"
 
 ###
 ### Generate a report
@@ -87,17 +80,17 @@ echo "<h1>OpenDKIM Rate Recommendations generated at `date` </h1>" >> $OUTPUT
 echo "<hr>" >> $OUTPUT
 echo "$PISIZE% prediction interval, standard score $STDSCORE" >> $OUTPUT
 
-$MYSQL --html --execute="SELECT domains.name, rate_avg, rate_max, rate_stddev, rate_high, spam_avg, spam_max, spam_stddev, spam_high, daily_limit, updated FROM predictions LEFT OUTER JOIN domains ON predictions.domain = domains.id WHERE domain IN (13, 22, 127, 205, 309, 418, 450, 795, 22199, 144284, 313943, 0)" >> $OUTPUT
+$MYSQL --html --execute="SELECT domains.name, rate_avg, rate_max, rate_stddev, rate_high, ratio_avg, ratio_max, ratio_stddev, ratio_high, daily_limit FROM predictions LEFT OUTER JOIN domains ON predictions.domain = domains.id WHERE domain IN (13, 22, 127, 205, 309, 418, 450, 795, 22199, 144284, 313943, 0)" >> $OUTPUT
 
 echo "<br>" >> $OUTPUT
 
 echo "Analysis of low-time domain behaviour (<= 15 days, >= 10 msgs), all sites reporting" >> $OUTPUT
-$MYSQL --html --execute="SELECT AVG(counts.c) AS rate_avg, MAX(counts.c) as rate_max, STDDEV_POP(counts.c) AS rate_stddev, AVG(counts.s) AS spam_avg, MAX(counts.s) as spam_max, STDDEV_POP(counts.s) AS spam_stddev, AVG(counts.c) + STDDEV_POP(counts.c) * $STDSCORE - AVG(counts.s) - STDDEV_POP(counts.s) * $STDSCORE AS daily_limit_low, AVG(counts.c) + STDDEV_POP(counts.c) * $STDSCORE - AVG(counts.s) + STDDEV_POP(counts.s) * $STDSCORE AS daily_limit_high FROM (SELECT COUNT(*) AS c, SUM(spam) AS s FROM messages JOIN signatures ON signatures.message = messages.id JOIN domains ON signatures.domain = domains.id WHERE NOT spam = -1 AND domains.firstseen >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 15 DAY) AND pass = 1 GROUP BY signatures.domain, DATE(msgtime) HAVING COUNT(*) >= 10) counts" >> $OUTPUT
+$MYSQL --html --execute="SELECT AVG(counts.c) AS rate_avg, MAX(counts.c) as rate_max, STDDEV_POP(counts.c) AS rate_stddev, AVG(counts.s) AS ratio_avg, MAX(counts.s) as ratio_max, STDDEV_POP(counts.s) AS ratio_stddev, AVG(counts.c) + STDDEV_POP(counts.c) * $STDSCORE - AVG(counts.s) - STDDEV_POP(counts.s) * $STDSCORE AS daily_limit_low, AVG(counts.c) + STDDEV_POP(counts.c) * $STDSCORE - AVG(counts.s) + STDDEV_POP(counts.s) * $STDSCORE AS daily_limit_high FROM (SELECT COUNT(*) AS c, SUM(spam) AS s FROM messages JOIN signatures ON signatures.message = messages.id JOIN domains ON signatures.domain = domains.id WHERE NOT spam = -1 AND domains.firstseen >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 15 DAY) AND pass = 1 GROUP BY signatures.domain, DATE(msgtime) HAVING COUNT(*) >= 10) counts" >> $OUTPUT
 
 echo "<br>" >> $OUTPUT
 
 echo "Analysis of low-time domain behaviour (<= 15 days, >= 5 msgs), blackops.org only" >> $OUTPUT
-$MYSQL --html --execute="SELECT AVG(counts.c) AS rate_avg, MAX(counts.c) rate_max, STDDEV_POP(counts.c) AS rate_stddev, AVG(counts.s) AS spam_avg, MAX(counts.s) AS spam_max, STDDEV_POP(counts.s) AS spam_stddev, AVG(counts.c) + STDDEV_POP(counts.c) * $STDSCORE - AVG(counts.s) - STDDEV_POP(counts.s) * $STDSCORE AS daily_limit_low, AVG(counts.c) + STDDEV_POP(counts.c) * $STDSCORE - AVG(counts.s) + STDDEV_POP(counts.s) * $STDSCORE AS daily_limit_high FROM (SELECT COUNT(*) AS c, SUM(spam) AS s FROM messages JOIN signatures ON signatures.message = messages.id JOIN domains ON signatures.domain = domains.id WHERE NOT spam = -1 AND reporter = 11 AND domains.firstseen >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 15 DAY) AND pass = 1 GROUP BY signatures.domain, DATE(msgtime) HAVING COUNT(*) >= 5) counts" >> $OUTPUT
+$MYSQL --html --execute="SELECT AVG(counts.c) AS rate_avg, MAX(counts.c) rate_max, STDDEV_POP(counts.c) AS rate_stddev, AVG(counts.s) AS ratio_avg, MAX(counts.s) AS ratio_max, STDDEV_POP(counts.s) AS ratio_stddev, AVG(counts.c) + STDDEV_POP(counts.c) * $STDSCORE - AVG(counts.s) - STDDEV_POP(counts.s) * $STDSCORE AS daily_limit_low, AVG(counts.c) + STDDEV_POP(counts.c) * $STDSCORE - AVG(counts.s) + STDDEV_POP(counts.s) * $STDSCORE AS daily_limit_high FROM (SELECT COUNT(*) AS c, SUM(spam) AS s FROM messages JOIN signatures ON signatures.message = messages.id JOIN domains ON signatures.domain = domains.id WHERE NOT spam = -1 AND reporter = 11 AND domains.firstseen >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 15 DAY) AND pass = 1 GROUP BY signatures.domain, DATE(msgtime) HAVING COUNT(*) >= 5) counts" >> $OUTPUT
 
 echo "<br>" >> $OUTPUT
 
