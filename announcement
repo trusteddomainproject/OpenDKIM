@@ -1,40 +1,60 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.3.2 released
+Subject: OpenDKIM v2.4.0 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.3.2, now available
+The OpenDKIM project announces availability of OpenDKIM v2.4.0, now available
 for download from SourceForge.
 
-This is a bug fix release following 2.3.1.  Upgrade is recommended for
-all users, especially those running 2.3.1 which picked up a milter-related
-bug triggered by slow DNS responses.
+This is primarily a new feature release, along with a few bug fixes.
+Upgrading is not mandatory unless, of course, you want access to one of
+the features described below.  For most users it should be a direct binary
+replacement.
+
+There is one backward compatibility issue, referring to the "BodyLengths"
+setting which has been removed.  Instead, see the documentation for
+"BodyLengthDB".
+
+IMPORTANT NOTE:  The 2.4.x line of OpenDKIM releases will be the last series
+that contains support hooks for DomainKeys.  As of 2.5.0 (late this year or
+early next), that support will be discontinued.
 
 The full RELEASE_NOTES for this version:
 
-2.3.2		2011/04/14
-	Fix bug #SF3067338: Create a pool of DB handles for SQL operations
-		so that queries don't all share one serially.
-	Fix bug #SF3156559: Don't compile Lua scripts anew for each execution.
-	Fix bug #SF3210385: Fix issue with configuration reload failures
-		having some side effects on the remaining active configuration
-		handle.  Reported by Andreas Schulze.
-	Fix bug #SF3235131: Don't report ADSP errors as signature errors
-		in Authentication-Results header fields.
-	Fix bug #SF3258459: Don't send progress messages during EOH.  Problem
-		reported by Gary Mills.
-	Fix bug #SF3276469: When generating "z=" tags, apply omit and sign
-		header field lists.  Problem noted by Todd Lyons.
-	Add ADSP processing error information to A-R header fields.
-	LIBOPENDKIM: Use a time_t to store TTL and clock drift options
-		rather than unsigned long.  Patch from Piotr Sikora.
-	LIBAR: Include class and type in debugging messages.  Suggested
-		by Gary Mills.
-	LIBAR: Start the dispatcher on the first query, not in ar_init().
-		Allows ar_init() to be called before a fork() safely.
-	CONTRIB: Adjust installed path in RedHat start script.  Patch
-		from Naresh V.
-	CONTRIB: Require the current libopendkim in the opendkim definition
-		in the RPM spec file.  Patch from Naresh V.
+2.4.0		2011/06/06
+	Feature request #SF3060140: Extension of odkim.sign() to include
+		maximum signed byte count.
+	Feature request #SF3171865: Add _FFR_LUA_GLOBALS, enabling a
+		mechanism to maintain state between Lua scripts.
+	Feature request #SF3241982: Optionally add an Authentication-Results
+		field for all signatures present, not just the first good
+		one.
+	Feature request #SF3256630: Add _FFR_RATE_LIMIT, enabling hooks for
+		post-verification rate controls.
+	Feature request #SF3290461: Add optional support for querying a
+		memcache daemon via libmemcached.
+	Feature request #SF3299041: Be tougher on use of the "l=" tag by
+		removing "BodyLengths", renaming "BodyLengthDBFile" to
+		"BodyLengthDB", and allowing pattern matches.  This
+		effectively activates _FFR_BODYLENGTH_DB as well.
+	Feature request #SF3303911: Add "DisableADSP" setting.
+	LIBOPENDKIM: Feature request #SF2969516: Teach dkim_chunk() about
+		DKIM_LIBFLAGS_FIXCRLF.
+	LIBOPENDKIM: Feature request #SF3123731: Extend FixCRLF to cover
+		header fields.
+	LIBOPENDKIM: Feature request #SF3151534: Extract DKIM reputation
+		support to its own library.
+	LIBOPENDKIM: Feature request #SF3279589: Add _FFR_XTAGS, adding
+		support for generic extension tags in signatures.
+	LIBOPENDKIM: Feature request #SF3300738: Add dkim_sig_getqueries()
+		and dkim_policy_getqueries() to assist API consumers that
+		have their own DNS mechanisms not directly adaptable to ours.
+		Requested by Heikki Gruner.
+	LIBOPENDKIM: Return an error from dkim_getsighdr() or
+		dkim_getsighdr_d() if called after a key load failure.
+		Problem noted by Heikki Gruner.
+	STATS: Feature request #SF3066106: Add "opendkim-anonstats" tool.
+	CONTRIB: Paths in init/redhat/opendkim are now auto-generated.
+	Activate _FFR_MAXVERIFY.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
