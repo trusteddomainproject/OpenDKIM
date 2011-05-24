@@ -51,7 +51,7 @@ MYSQL="$MYSQL_CMD --user=$USER --password=$PASSWORD --database=$DB"
 $MYSQL --execute="INSERT IGNORE INTO aggregate (domain, updated, date, messages, spam) SELECT signatures.domain, CURRENT_TIMESTAMP(), DATE(messages.msgtime), COUNT(*), SUM(spam) FROM messages JOIN signatures ON signatures.message = messages.id WHERE NOT spam = -1 AND pass = 1 AND NOT DATE(messages.msgtime) = DATE(CURRENT_TIMESTAMP()) GROUP BY domain, DATE(messages.msgtime)"
 
 # Compute/update message counts and spam ratios for unsigned mail
-$MYSQL --execute="INSERT IGNORE INTO aggregate (domain, updated, date, messages, spam) SELECT 0, CURRENT_TIMESTAMP(), DATE(messages.msgtime), COUNT(*), SUM(spam) FROM messages WHERE NOT DATE (messages.msgtime) = DATE(CURRENT_TIMESTAMP()) AND (sigcount = 0 OR messages.id NOT IN (SELECT message FROM signatures WHERE pass = 1)) GROUP BY DATE(messages.msgtime)"
+$MYSQL --execute="INSERT IGNORE INTO aggregate (domain, updated, date, messages, spam) SELECT 0, CURRENT_TIMESTAMP(), DATE(messages.msgtime), COUNT(*), SUM(spam) FROM messages WHERE NOT spam = -1 AND NOT DATE (messages.msgtime) = DATE(CURRENT_TIMESTAMP()) AND (sigcount = 0 OR messages.id NOT IN (SELECT message FROM signatures WHERE pass = 1)) GROUP BY DATE(messages.msgtime)"
 
 # Compute ratios wherever they're missing
 $MYSQL --execute="UPDATE aggregate SET ratio = spam / messages WHERE ratio IS NULL"
