@@ -164,9 +164,20 @@ is.
 Note, though, that these statistical quantities are only really useful
 once a substantial number of data points exist.  It's necessary then to
 create a second system for handling domains about which there is little
-information available.
+information available.  This is a particularly sensitive point given the
+fact that many domains are created solely to send a spam campaign and are
+then abandoned, and many of these sign their mail.
 
 Thus, the system as a whole divides domains into two categories: high-data
 and low-data.  An obvious question, then, is what a good threshold is at
 which a domain transitions from one to the other.  So we have two problems
 to solve.
+
+We compute the threshold between low-data and high-data based on another
+prediction interval.  In this case, we compute a high-end prediction on
+the time a domain that sends a lot of spam (at least 75% for this experiment)
+tends to be in use.  Domains for which we have less data than this are
+considered low-data, and those for which we have more are high-data.  Once
+a domain's lifetime exceeds this threshold, it is subjected to the mechanism
+described above.  Prior to that, we apply a different algorithm, described
+next.
