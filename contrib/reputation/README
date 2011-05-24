@@ -185,9 +185,9 @@ mean gives an indication of how clean the domain's stream is, and the
 standard deviation a measure of how erratic the domain's behaviour typically
 is.  This can be used as a measure of the trustworthiness of the stream
 in terms of sending desirable content.  In fact, one could conceive of
-a system that uses the low, middle and high points in the ratio's prediction
-interval to impose light, moderate and aggressive rate limiting modes against
-senders.
+a system that uses the low, middle (mean) and high points in the ratio's
+prediction interval to impose light, moderate and aggressive rate limiting
+modes against senders.
 
 Note, though, that these statistical quantities are only really useful
 once a substantial number of data points exist.  It's necessary then to
@@ -201,4 +201,7 @@ and low-data.  An obvious question, then, is what a good threshold is at
 which a domain transitions from one to the other.  So we have two problems
 to solve.
 
-First, we need a method to determine the threshold.
+First, we need a method to determine that threshold.  In a simple system,
+a fixed time limit could be imposed, i.e. a domain transitions from
+low-data to high-data after having some predetermined number of days of
+activity recorded.  We would like to do something a little more automated.
