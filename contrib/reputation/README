@@ -38,6 +38,7 @@ The requirements for this reputation system are as follows:
    of the data accumulated, though it should discuss the impacts of different
    choices of data lifetime.
 
+
 OVERVIEW
 
 The system computes a recommended flow based on the history of the
@@ -84,6 +85,7 @@ a single calendar day (i.e., midnight to midnight) as a data point.
 
 The next section describes the reputation system in detail, and the following
 one explains how to configure and activate it.
+
 
 DESIGN DETAILS
 
@@ -187,7 +189,15 @@ is.  This can be used as a measure of the trustworthiness of the stream
 in terms of sending desirable content.  In fact, one could conceive of
 a system that uses the low, middle (mean) and high points in the ratio's
 prediction interval to impose light, moderate and aggressive rate limiting
-modes against senders.
+modes against senders.  We can call these Plow, Pmed, Phigh; the one a site
+chooses to use is simply called P.
+
+A simpler model combining these is possible: On day X, allow through a
+quantity of mail from a domain equal to the high end of its prediction
+interval on Cm multiplied by the quantity (1 - P).  Where the standard
+deviation around R is larger than the mean, this quantity can be negative;
+in that case, we simply use a value of zero, effectively cutting that domain
+off; it has earned itself a ban.
 
 Note, though, that these statistical quantities are only really useful
 once a substantial number of data points exist.  It's necessary then to
@@ -205,3 +215,151 @@ First, we need a method to determine that threshold.  In a simple system,
 a fixed time limit could be imposed, i.e. a domain transitions from
 low-data to high-data after having some predetermined number of days of
 activity recorded.  We would like to do something a little more automated.
+For now we will use the fixed time limit and return to this question later.
+
+If the current day is X(0), let N be the fixed time threshold in days.
+Thus the low-time threshold is at day X(N).  Compute the mean and standard
+deviation for the Cm and R values across all signing domains for data from
+X(1) to X(N).  This gives us the ability to construct a prediction interval
+for those values in the aggregate across all low-time domains.  This quantity
+is thus a measure of how we expect new domains to behave given the observed
+behaviour of other new domains.  Therefore, we enforce the prediction
+interval of Cm on low-time domains, modulated by R as above.  As a tiny
+measure of "benefit of the doubt", a flow limit computed in this way to be
+zero is modulated further to permit some small (perhaps fixed, perhaps based
+on a ratio) quantity of mail until a single spam message is detected, at
+which point no further mail is allowed that day.
+
+Now we revisit the question of what N should be.  The statistics package
+can be used to determine the first and last time a domain name was seen
+used in a signature.  So for each domain name we also compute L, the
+difference in days between "first seen" and "last seen".  This gives us yet
+another data set upon which to compute a mean and standard deviation.
+If we constrain this to include only L values for domains that send mostly
+spam, we can see how long a spam-generating domain tends to live before
+being abandoned for attracting attention.  For the deployed test system,
+we set N using a simple value of twice the average of L; the standard
+deviation in this case is ignored.  An alternate approach is to compute a
+prediction interval around the mean L value; the high end value becomes
+the value used for N.
+
+Next we need to design the system so that messages that are disallowed
+because of the above rate controls are still counted in that domain's
+aggregated data.  A "temporary failure" result returned in that case may
+cause a re-send attempt; this is not to be counted as a separate message
+in order to get a real view of what that domain attempted to send.
+
+We finally need to define an initial state, where the system doesn't know
+anything.  For simplicity, we will run the system in wide-open data
+collection only mode for 30 days prior to doing any rate throttling.
+
+
+SUMMARY
+
+Given a set of numbers, one can compute the well-known statistical
+quantities know as the mean (the average value of the set) and standard
+deviation (a measure of the dispersal of values about the mean) as useful
+tools to describe the set.
+
+Select a prediction interval width to be used for the system (e.g.,
+75%, 90%, or 95%).  Using a lookup table, this gives the standard score, "z",
+to be used at various points in this algorithm.
+
+Select a ratio that indicates a relatively unknown domain that sends more
+than that ratio of spam is considered undesirable.  Call this S.
+
+Select Mmin, a minimum number of messages to allow in per day from an unknown
+source regardless of calculated limits.
+
+Select a strictness setting, "light", "medium" or "strict".
+
+Let D be a set of domain names.  It is further partitioned into Dlow and
+Dhigh, these being, respectively, domains about which we have only a small
+amount of data and those about which we have accumulated a useful amount
+of data.
+
+For each M received, record the following details:
+
+	- the set of domain names taken from valid DKIM signatures, if any
+	- the time at which the message was received
+	- a Boolean indication of whether or not the message was spam
+
+Partition these records into "buckets", one per day.  We can now compute
+the following quantities about any given domain or about the system as a
+whole, and across all observed days or for any given day
+
+	- total messages sent (Cm)
+	- total spam sent (Cs)
+	- count of days for which data are available
+
+For each domain D, compute the following quantities:
+
+	- mean messages sent (uCm)
+	- mean spam messages sent (uCs)
+	- mean spam ratio (uR = uCs / uCm)
+	- the time, in days, between this domain's first use in a valid
+	  signature and its last use in a valid signature (L)
+
+Discard those for which uR is less than S or uCm is less than 2.
+
+Compute the mean and standard deviation for L, and then a prediction interval
+around uL.  Denote the high end of this prediction interval to be N.
+Partition the set of known domains D into Dlow and Dhigh based on whether
+or not L for a given domain is above or below this value.
+
+Compute a prediction interval around uCm and uR for all domains in Dlow.
+Denote the high end of the prediction interval around uCm as Chigh, and
+the high end of the prediction interval around uR as Rhigh.  Impose a
+per-domain overall message rate on domains in Dlow defined by:
+
+	M = Chigh * (1 - Rhigh)
+
+Furthermore ensure that a given domain does not exceed a daily spam ratio R
+selected based on the strictness setting: use Rlow for "light", uR for
+"medium", or Rhigh for "strict".
+
+This allows messages to be sent by a low time domain up to what it might
+legitimately send regardless of content, modulated downward by the average
+low time domain's expected behaviour.  If most low time domains send
+undesirable mail, this number will approach zero or even be negative.
+If that's the case, the hard-coded minimum rate Mmin is used, except that
+no further mail is accepted once a single piece of spam is observed.
+
+Next, compute a prediction interval around uCm and uR for each domain in
+Dhigh.  Denote the high end of the prediction interval around a domain's Cm
+as Chigh, and the high end of the prediction interval around R as Rhigh.
+Impose a per-domain overall message rate on domains in Dhigh defined by:
+
+	M = Chigh * (1 - Rhigh)
+
+Similarly restrict the spam ratio for each high-time domani according
+to Rlow, uR or Rhigh as described above.
+
+This allows messages to be sent by a high time domain up to what it might
+legitimately send regardless of content, modulated downward by that domain's
+expected behaviour.  Unlike for the low time domains, this is not dependent
+on the behaviour of other domains.  A domain that earns a high enough value
+of Rhigh can cause its daily limit to be modulated down to zero.
+
+
+DISCUSSION
+
+The standard deviation in the computation of Rhigh acts as a measure of
+trust in the domain's behaviour; the more erratic its spam behaviour is,
+the higher the standard deviation becomes, the larger the value of Rhigh
+gets, and the more Chigh is penalized.
+
+The more well-behaved a domain is, the more leeway it is given.  It is
+presumed that any domain will have some variability in its Cm values, meaning
+it will have a standard deviation around C, meaning Chigh will be bigger
+than average.  A well-behaved (low Rhigh) domain, then, will implicitly give
+the domain room to "grow" as it continues to behave well.
+
+A domain that is well-behaved for a long period will have relatively low
+values for Rlow, uR and Rhigh.  Thus, since both an overall message rate
+and a spam rate are enforced, a sudden surge in spam from a typically
+well-behaved domain will be intercepted by the enforcement of the R-limits
+even if there's lots of room left in a given day to play with the M limit.
+
+This system obviously creates a long-term incentive for a particular signing
+domain to behave well and do so consistently.
