@@ -495,6 +495,12 @@ ramp-up of clean mail with some spam mixed in.  This certainly seems to make
 success for a small amount of spam a relatively expensive prospect, which
 probably removes the incentive.
 
+This analysis thus far relates to high-time domains.  Since the math is
+the same, the same sort of conclusions apply to low-time domains, except
+that finding an optimal value for Rhigh would require co-ordinating that
+effort across all other low-time domains also probably creates a sufficiently
+high bar that it would not be worth the effort.
+
 
 EXPERIMENTAL DATA
 
