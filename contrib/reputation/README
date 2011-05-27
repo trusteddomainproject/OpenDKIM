@@ -380,6 +380,14 @@ Message-ID field is also likely useful for this purpose since an attacker
 would be unlikely to recycle these lest subsequent deliveries by caught by
 filters that attempt to detect and suppress duplicates.
 
+The study did not consider the impact of a time range on the data
+used as input.  The cost of storing infinite data is non-trivial, so it
+is likely a production system would have to discard old data after some
+period.  This means the various computations of means and standard deviations
+will only include data for a fixed period, meaning periods of good or bad
+behaviour beyond such a time window will not be factored into the results.
+
+
 
 THREAT ANALYSIS
 
@@ -504,6 +512,18 @@ high bar that it would not be worth the effort.
 
 EXPERIMENTAL DATA
 
-The following data were collected by OpenDKIM over several months:
+OpenDKIM collected over 16.5M message records and just under 5M signature
+records in a nine-month period to provide input for this study.  21 reporting
+sites provided data, spread over three continents.
 
-[show and then explain some data from http://www.opendkim.org/stats/rates.html]
+First, the low-time range calculation:
+
+
+
+Some example high-time domains:
+
+
+
+EXPERIMENTAL SETUP
+
+[attach schemae and queries used above here]
