@@ -518,10 +518,68 @@ sites provided data, spread over three continents.
 
 First, the low-time range calculation:
 
++---------+--------------+--------------+---------------+-----------------+
+| domains | min duration | max duration | mean duration | duration stddev |
++---------+--------------+--------------+---------------+-----------------+
+|    1258 |            0 |          239 |        7.6932 |         17.7871 |
++---------+--------------+--------------+---------------+-----------------+
 
+Using 75% prediction intervals, the standard score is 1.16, so the low-high
+threshold is computed by:
+
+	T = 7.6932 + 17.7871 * 1.15
+	  = 7.6932 + 20.4552
+	  = 28.1484
+
+Behaviour of domains younger than this results in the following values:
+
+     domains: 1543
+          uC: 51.2541
+   stddev(C): 85.8353
+       Chigh: 149.9646
+          uR: 0.29100661
+   stddev(R): 0.28465461
+       Rhigh: 0.61835941
+           M: 88.92600565
+
+Thus individual young domains in would be permitted to send no more than
+89 messages each, and no more than 61.8% of it can be spam.  Exceeding either
+limit would disallow any more mail from those domains in the current day.
 
 Some example high-time domains:
 
++------------------+---------+----------+-------+------+-------+------+-------+
+| name             | uC      | sd(C)    | Chigh | uR   | sd(R) | Rhi  | M     |
++------------------+---------+----------+-------+------+-------+------+-------+
+| NULL             | 14700.7 | 20234.66 | 37971 | 0.26 |  0.18 | 0.47 | 20205 |
+| gmail.com        |   583.4 |   762.00 |  1460 | 0.01 |  0.04 | 0.06 |  1378 |
+| yahoo.com        |   494.0 |   586.01 |  1168 | 0.20 |  0.33 | 0.58 |   493 |
+| blackops.org     |     1.7 |     1.20 |     3 | 0.00 |  0.00 | 0.00 |     3 |
+| opendkim.org     |     6.9 |     7.45 |    15 | 0.02 |  0.08 | 0.10 |    14 |
+| yahoogroups.com  |   184.7 |   162.91 |   372 | 0.03 |  0.15 | 0.21 |   295 |
+| googlegroups.com |    49.5 |    57.62 |   116 | 0.07 |  0.24 | 0.34 |    76 |
+| paypal.com       |    70.2 |    62.52 |   142 | 0.00 |  0.00 | 0.00 |   142 |
+| linkedin.com     |   232.8 |   243.93 |   513 | 0.00 |  0.00 | 0.00 |   511 |
+| returnpath.net   |     1.4 |     0.49 |     2 | 0.00 |  0.00 | 0.00 |     2 |
+| orangefinder.com |    16.4 |     4.45 |    22 | 1.00 |  0.00 | 1.00 |     0 |
+| gooldlangi.com   |    62.4 |    48.89 |   119 | 0.62 |  0.30 | 0.97 |     4 |
++------------------+---------+----------+-------+------+-------+------+-------+
+(Some column names have been shortened to fit the page.)
+
+The "NULL" domain represents unsigned mail.
+
+Low values of uR represent relatively clean streams, while two domains at
+the bottom send mostly or almost entirely spam and are thus severely rate
+limited.  Unsigned mail receives no benefit from its erratic volume nature
+(the high standard deviation on C) because its spam "Rhi" value counteracts
+that property.
+
+We can see that domains which tend to behave well (those with low "Rhi"
+values) are given high limits relative to their average volumes, while those
+that do not (with high "Rhi" values) have their overall flow limits greatly
+reduced corresponding to the resulting mistrust.  Moreover, a surge in
+spam volume from an otherwise well-behaved source would be restricted because
+"Rhi" would be quickly exceeded.
 
 
 EXPERIMENTAL SETUP
