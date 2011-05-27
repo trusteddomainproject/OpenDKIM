@@ -81,7 +81,10 @@ DKIM signatures, and an indication of whether or not the message is
 considered spam.
 
 For the purposes of illustration of this method, we will use the counts from
-a single calendar day (i.e., midnight to midnight) as a data point.
+a single calendar day (i.e., midnight to midnight) as a data point.  One
+could use any time quantum, but days and hours seem to be the most likely
+to reveal patterns or be equitable to use of time series analysis, which will
+be tried in a later paper.
 
 The next section describes the reputation system in detail, and the following
 one explains how to configure and activate it.
@@ -364,9 +367,137 @@ even if there's lots of room left in a given day to play with the M limit.
 This system obviously creates a long-term incentive for a particular signing
 domain to behave well and do so consistently.
 
+When a threshold is reached or exceeded, it is important to log the
+delivery attempt details so that a view of what the signing domain
+ultimately presented for delivery is recorded; throttling mail without doing
+so leads to falsely low data for the current day.  It is difficult to do this
+precisely where SMTP-level rejection (especially 4xx, or temporary failure
+codes, which invite the sender to re-try) is done, but a reasonably good
+estimation can be made by recording the actual DKIM signature (i.e., the
+value of the "b=" tag), which is highly unlikely to suffer collisions,
+coupled with the intended recipient(s) of the message.  The value of the
+Message-ID field is also likely useful for this purpose since an attacker
+would be unlikely to recycle these lest subsequent deliveries by caught by
+filters that attempt to detect and suppress duplicates.
+
+
+THREAT ANALYSIS
+
+The most obvious question one must ask when presenting a system like this
+is: How can one try to game this system?  Put another way, if someone
+wanting to maximize delivery through this system had the above details
+and/or the source code, what could that person do to get the most mail
+through?  The answer comes from analyzing how the two filtering limits 
+are computed.  First, we consider them separately.
+
+The simplest is the spam ratio being enforced.  Based on operator preference,
+this will be either Rlow, uR or Rhigh.  In any case, the number needs to be
+as high as possible.  For the uR case, that means having a history of sending
+as much spam as possible.  For Rlow, which is uR minus the product of the
+standard deviation and the standard score, the goal is to maximize uR and
+minimize the standard deviation, so constantly send a high ratio of spam.
+For Rhigh, which is uR plus the product of the standard deviation and the
+standard score, the goal is to maximize both uR and the standard deviation,
+which means send a high ratio overall while also having somewhat erratic
+behaviour, meaning some days the ratio is relatively low and sometimes it
+is relatively high.  In general, maximizing this value means the system will
+expect the domain to send a lot of spam, so then the next day the same
+expectation is established and then a lot of spam doesn't get noticed as
+easily.  Conversely, a well-behaved domain will have relatively low
+values of Rlow (low uR and small standard deviation), uR, or Rhigh (low uR
+and larger standard deviation, i.e., a low average ratio but erratic
+behaviour), and then if such a domain starts to send spam suddenly, that
+day's R value will exceed any of those thresholds rather quickly.  Thus,
+to beat this part of the system, one needs to have a history of sending
+a high ratio and somewhat erratic behaviour.
+
+The other limit enforced is the overall flow limit.  Recall that this
+is computed using:
+
+	M = Chigh * (1 - Rhigh)
+
+Recall also that Chigh is the high-end of a prediction interval around the
+total mail volume.  Chigh is equal to uC (average mail volume overall)
+for that domain plus the product of the standard score and the standard
+deviation of the domain's flow data.  Thus, Chigh is maximized by having a
+high daily average message throughput coupled with erratic daily volumes.
+
+The obvious goal then is to maximize both Chigh and (1 - Rhigh), meaning the
+domains that can get the most mail through are those that tend to send a lot 
+but don't have very consistent daily volumes, and have as small a value
+of Rhigh as possible.
+
+Since the flow limit and the spam ratio limit are enforced together, they
+must be considered together.  Note, then, that of the two filtering methods
+used here, they counteract each other when spam is present: maximizing
+Rhigh minimizes (1 - Rhigh) and thus minimizes M.  Moreover, to earn a high
+M limit, a spammer has to send a lot of mail over time (to get Chigh up) that
+does not attract negative attention (which would get Rhigh up).  In the
+face of an effective user community with a functioning user feedback system,
+this would be a difficult and expensive task indeed.  Since the efficacy of
+spam is a game of economy wherein a small expense in sending a huge volume
+provides a relatively high return, making a succesful spam campaign more
+expensive prospect is a likely win.
+
+There is probably a "sweet spot" that minimizes the expense of getting
+a relatively high M limit and low Rhigh limit.  For a given target M, we want
+Chigh to be maximal and Rhigh to be optimal.  For every fraction that
+Rhigh increases, (1 - Rhigh) proportionally decreases, so Chigh must
+proportionally increase.  So if, for example, Rhigh goes from 0.1 to 0.2,
+(1 - Rhigh) goes from 0.9 to 0.8; a corresponding increase of 0.8/0.9 or
+89% in Chigh would have to occur to preserve the same value of M.  Generally,
+to counteract any increase in Rhigh requires a substantial increase in
+Chigh to preserve the same value of M.
+
+To illustrate this, the following table shows the percent increase in
+Chigh one would need to offset a change in Rhigh from the line shown to
+the one before it:
+
+Rhigh	(1-Rhigh)	%d Chigh
+-----	---------	--------
+0.00	1.00
+0.05	0.95		95.0000
+0.10	0.90		94.7368
+0.15	0.85		94.4444
+0.20	0.80		94.1176
+0.25	0.75		93.7500
+0.30	0.70		93.3333
+0.35	0.65		92.8571
+0.40	0.60		92.3077
+0.45	0.55		91.6667
+0.50	0.50		90.9091
+0.55	0.45		90.0000
+0.60	0.40		88.8889
+0.65	0.35		87.5000
+0.70	0.30		85.7143
+0.75	0.25		83.3333
+0.80	0.20		80.0000
+0.85	0.15		75.0000
+0.90	0.10		66.6666
+0.95	0.05		49.9999
+
+This shows an increment rate of 0.05 in Rhigh.  Using larger steps does not
+improve this much for the attacker; for example:
+
+Rhigh	(1-Rhigh)	%d Chigh
+-----	---------	--------
+0.00	1.00
+0.20	0.80		80.0000
+0.40	0.60		75.0000
+0.60	0.40		66.6667
+0.80	0.20		50.0000
+1.00	0.00		0.0000
+
+The increase in Chigh to offset any increase in Rhigh is substantial.  So
+in general, running a relatively clean ship and then trying to get a higher
+amount of spam through suddenly without hitting limits requires substantial
+ramp-up of clean mail with some spam mixed in.  This certainly seems to make
+success for a small amount of spam a relatively expensive prospect, which
+probably removes the incentive.
+
 
 EXPERIMENTAL DATA
 
 The following data were collected by OpenDKIM over several months:
 
-
+[show and then explain some data from http://www.opendkim.org/stats/rates.html]
