@@ -1784,9 +1784,7 @@ ar_dispatcher(void *tp)
 				ar_socket_reset(lib->ar_dss);
 				ar_socket_add(lib->ar_dss, lib->ar_nsfd,
 				              AR_SOCKET_EVENT_WRITE);
-
 				status = ar_socket_wait(lib->ar_dss, 0);
-
 				if (status != 1)
 					break;
 			}
@@ -1813,6 +1811,17 @@ ar_dispatcher(void *tp)
 		/* look through what's left for retries */
 		for (q = lib->ar_queries; q != NULL; q = q->q_next)
 		{
+			/* bail if ar_sendquery() would block */
+			if (lib->ar_nsfd == -1)
+				break;
+
+			ar_socket_reset(lib->ar_dss);
+			ar_socket_add(lib->ar_dss, lib->ar_nsfd,
+			              AR_SOCKET_EVENT_WRITE);
+			if (ar_socket_check(lib->ar_dss, lib->ar_nsfd,
+			                    AR_SOCKET_EVENT_WRITE) != 1)
+				break;
+
 			pthread_mutex_lock(&q->q_lock);
 			if (ar_elapsed(&q->q_sent, &lib->ar_retry))
 			{
