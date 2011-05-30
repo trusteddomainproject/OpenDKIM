@@ -1818,8 +1818,8 @@ ar_dispatcher(void *tp)
 			ar_socket_reset(lib->ar_dss);
 			ar_socket_add(lib->ar_dss, lib->ar_nsfd,
 			              AR_SOCKET_EVENT_WRITE);
-			if (ar_socket_check(lib->ar_dss, lib->ar_nsfd,
-			                    AR_SOCKET_EVENT_WRITE) != 1)
+			status = ar_socket_wait(lib->ar_dss, 0);
+			if (status != 1)
 				break;
 
 			pthread_mutex_lock(&q->q_lock);
