@@ -22,6 +22,9 @@ release, and a summary of the changes in that release.
 		"BodyLengthDB", and allowing pattern matches.  This
 		effectively activates _FFR_BODYLENGTH_DB as well.
 	Feature request #SF3303911: Add "DisableADSP" setting.
+	In the stats recording code, only check for a domain match for
+		signatures that don't have errors (i.e., short circuit if
+		sigerror is not zero).
 	LIBOPENDKIM: Feature request #SF2969516: Teach dkim_chunk() about
 		DKIM_LIBFLAGS_FIXCRLF.
 	LIBOPENDKIM: Feature request #SF3123731: Extend FixCRLF to cover
