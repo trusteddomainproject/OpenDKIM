@@ -37,6 +37,9 @@ The full RELEASE_NOTES for this version:
 		"BodyLengthDB", and allowing pattern matches.  This
 		effectively activates _FFR_BODYLENGTH_DB as well.
 	Feature request #SF3303911: Add "DisableADSP" setting.
+	In the stats recording code, only check for a domain match for
+		signatures that don't have errors (i.e., short circuit if
+		sigerror is not zero).
 	LIBOPENDKIM: Feature request #SF2969516: Teach dkim_chunk() about
 		DKIM_LIBFLAGS_FIXCRLF.
 	LIBOPENDKIM: Feature request #SF3123731: Extend FixCRLF to cover
@@ -52,6 +55,9 @@ The full RELEASE_NOTES for this version:
 	LIBOPENDKIM: Return an error from dkim_getsighdr() or
 		dkim_getsighdr_d() if called after a key load failure.
 		Problem noted by Heikki Gruner.
+	LIBAR: Check that the descriptor's write socket is writable before
+		calling ar_sendquery() when trying to identify open requests
+		that need retransmission.
 	STATS: Feature request #SF3066106: Add "opendkim-anonstats" tool.
 	CONTRIB: Paths in init/redhat/opendkim are now auto-generated.
 	Activate _FFR_MAXVERIFY.
