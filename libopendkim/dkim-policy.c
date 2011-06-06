@@ -51,7 +51,7 @@ extern void dkim_error __P((DKIM *, const char *, ...));
 #endif /* __RES && __RES >= 19940415 */
 
 #ifndef T_AAAA
-# define T_AAAA	i		28
+# define T_AAAA			28
 #endif /* ! T_AAAA */
 #ifndef T_RRSIG
 # define T_RRSIG		46

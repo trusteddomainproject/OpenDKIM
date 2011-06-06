@@ -15,7 +15,7 @@ $Id: dkim_getsiglist.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
 
 <a href="dkim_stat.html">DKIM_STAT</a> dkim_getsiglist(
 	<a href="dkim.html">DKIM</a> *dkim,
-	<a href="dkim_siginfo.html">DKIM_SIGINFO</a> **sigs,
+	<a href="dkim_siginfo.html">DKIM_SIGINFO</a> ***sigs,
 	int *nsigs
 );
 </pre>
@@ -73,7 +73,8 @@ message.
 <th valign="top" align=left>NOTES</th> 
 <td>
 <ul>
-<li>None.
+<li>The array returned is allocated and maintained by the library, and
+    must not be deallocated by the caller. 
 </ul>
 </td>
 </tr>
@@ -84,7 +85,7 @@ message.
 Copyright (c) 2007 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set

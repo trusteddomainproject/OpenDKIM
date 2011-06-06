@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim.h,v 1.34.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -54,6 +54,7 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.34.10.1 2010/10/27 21:43:
 #define	CBINTERVAL	3
 #define CMDLINEOPTS	"Ab:c:d:DfF:k:lL:no:p:P:qQrs:S:t:T:u:vVWx:?"
 #define	DEFCONFFILE	CONFIG_BASE "/opendkim.conf"
+#define	DEFFLOWDATATTL	86400
 #define	DEFINTERNAL	"csl:127.0.0.1"
 #define	DEFMAXHDRSZ	65536
 #define	DEFMAXVERIFY	3
@@ -128,6 +129,7 @@ struct Header
 typedef struct signreq * SIGNREQ;
 struct signreq
 {
+	off_t			srq_signlen;
 	void *			srq_keydata;
 	u_char *		srq_domain;
 	u_char *		srq_selector;
@@ -188,6 +190,9 @@ extern int dkimf_xs_dbopen __P((lua_State *));
 extern int dkimf_xs_dbquery __P((lua_State *));
 extern int dkimf_xs_delheader __P((lua_State *));
 extern int dkimf_xs_delrcpt __P((lua_State *));
+#  ifdef _FFR_LUA_GLOBALS
+extern int dkimf_xs_export __P((lua_State *));
+#  endif /* _FFR_LUA_GLOBALS */
 extern int dkimf_xs_fromdomain __P((lua_State *));
 extern int dkimf_xs_getheader __P((lua_State *));
 extern int dkimf_xs_getpolicy __P((lua_State *));
@@ -220,6 +225,9 @@ extern int dkimf_xs_sigresult __P((lua_State *));
 extern int dkimf_xs_statsext __P((lua_State *));
 #  endif /* _FFR_STATSEXT */
 extern int dkimf_xs_verify __P((lua_State *));
+#  ifdef _FFR_XTAGS
+extern int dkimf_xs_xtag __P((lua_State *));
+#  endif /* _FFR_XTAGS */
 # endif /* DKIMF_LUA_PROTOTYPES */
 #endif /* USE_LUA */
 

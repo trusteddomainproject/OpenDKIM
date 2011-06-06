@@ -154,11 +154,6 @@ typedef int DKIM_SIGERROR;
 #define	DKIM_DNS_NOREPLY	1		/* reply not available (yet) */
 #define	DKIM_DNS_EXPIRED	2		/* no reply, query expired */
 
-#define	DKIM_DNSSEC_UNKNOWN	(-1)		/* not checked */
-#define	DKIM_DNSSEC_BOGUS	0		/* forged */
-#define	DKIM_DNSSEC_INSECURE	1		/* unprotected */
-#define	DKIM_DNSSEC_SECURE	2		/* verified */
-
 /*
 **  DKIM_CANON -- canonicalization method
 */
@@ -289,9 +284,6 @@ typedef int dkim_opts_t;
 
 #define	DKIM_LIBFLAGS_DEFAULT		DKIM_LIBFLAGS_NONE
 
-#define DKIM_REP_DEFREJECT	1001
-#define DKIM_REP_ROOT		"al.dkim-reputation.org"
-
 /*
 **  DKIM_PFLAG -- policy flags
 */
@@ -351,10 +343,18 @@ typedef struct dkim_siginfo DKIM_SIGINFO;
 #define DKIM_SIGFLAG_PASSED		0x04
 #define DKIM_SIGFLAG_TESTKEY		0x08
 #define DKIM_SIGFLAG_NOSUBDOMAIN	0x10
+#define DKIM_SIGFLAG_KEYLOADED		0x20
 
 #define DKIM_SIGBH_UNTESTED		(-1)
 #define DKIM_SIGBH_MATCH		0
 #define DKIM_SIGBH_MISMATCH		1
+
+/*
+**  DKIM_QUERYINFO -- information about a DNS query that is/may be needed
+*/
+
+struct dkim_queryinfo;
+typedef struct dkim_queryinfo DKIM_QUERYINFO;
 
 /*
 **  DKIM_PSTATE -- policy query state
@@ -384,7 +384,7 @@ struct dkim_hdrdiff
 **  	None.
 **
 **  Return value:
-**  	A DKIM_STAT value.
+**  	A new DKIM library instance handle, or NULL on failure.
 */
 
 extern DKIM_LIB *dkim_init __P((void *(*mallocf)(void *closure, size_t nbytes),
@@ -728,6 +728,23 @@ extern DKIM_STAT dkim_getsighdr_d __P((DKIM *dkim, size_t initial,
 extern _Bool dkim_sig_hdrsigned __P((DKIM_SIGINFO *sig, u_char *hdr));
 
 /*
+**  DKIM_SIG_GETQUERIES -- retrieve the queries needed to validate a signature
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**  	sig -- DKIM_SIGINFO handle
+**  	qi -- DKIM_QUERYINFO handle array (returned)
+**  	nqi -- number of entries in the "qi" array
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_sig_getqueries __P((DKIM *dkim, DKIM_SIGINFO *sig,
+                                          DKIM_QUERYINFO ***qi,
+                                          unsigned int *nqi));
+
+/*
 **  DKIM_SIG_GETDNSSEC -- retrieve DNSSEC results for a signature
 **
 **  Parameters:
@@ -846,11 +863,11 @@ extern unsigned int dkim_sig_getflags __P((DKIM_SIGINFO *sig));
 **  	sig -- DKIM_SIGINFO handle
 **
 **  Return value:
-**  	An unsigned integer which is one of the DKIM_SIGBH_* constants
+**  	An integer that is one of the DKIM_SIGBH_* constants
 **  	indicating the current state of "bh" evaluation of the signature.
 */
 
-extern unsigned int dkim_sig_getbh __P((DKIM_SIGINFO *sig));
+extern int dkim_sig_getbh __P((DKIM_SIGINFO *sig));
 
 /*
 **  DKIM_SIG_GETKEYSIZE -- retreive key size after verifying
@@ -1015,7 +1032,7 @@ extern u_char *dkim_getuser __P((DKIM *dkim));
 **  	or NULL if none.
 */
 
-extern unsigned char *dkim_get_signer __P((DKIM *dkim));
+extern const unsigned char *dkim_get_signer __P((DKIM *dkim));
 
 /*
 **  DKIM_SET_SIGNER -- set DKIM signature's signer
@@ -1213,6 +1230,23 @@ extern const char *dkim_sig_geterrorstr __P((DKIM_SIGERROR sigerr));
 */
 
 extern void dkim_sig_ignore __P((DKIM_SIGINFO *siginfo));
+
+/*
+**  DKIM_POLICY_GETQUERIES -- retrieve the queries needed to conduct an ADSP
+**                            evaluation
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**  	qi -- DKIM_QUERYINFO handle array (returned)
+**  	nqi -- number of entries in the "qi" array
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_policy_getqueries __P((DKIM *dkim,
+                                             DKIM_QUERYINFO ***qi,
+                                             unsigned int *nqi));
 
 /*
 **  DKIM_POLICY_STATE_NEW -- initialize and return a DKIM policy state handle
@@ -1463,6 +1497,7 @@ extern DKIM_STAT dkim_set_margin __P((DKIM *dkim, int value));
 
 /*
 **  DKIM_GET_REPUTATION -- query reputation service about a signature
+**                         (OBSOLETE; moved to libdkimrep)
 **
 **  Parameters:
 **  	dkim -- DKIM handle
@@ -1471,10 +1506,6 @@ extern DKIM_STAT dkim_set_margin __P((DKIM *dkim, int value));
 **  	rep -- integer reputation (returned)
 **
 **  Return value:
-**  	DKIM_STAT_OK -- "rep" now contains a reputation
-**  	DKIM_STAT_NOKEY -- no reputation data available
-**  	DKIM_STAT_CANTVRFY -- data retrieval error of some kind
-**  	DKIM_STAT_INTERNAL -- internal error of some kind
 **  	DKIM_STAT_NOTIMPLEMENT -- not implemented
 */
 
@@ -1529,8 +1560,9 @@ extern unsigned long dkim_ssl_version __P((void));
 #define DKIM_FEATURE_DNSSEC		6
 #define DKIM_FEATURE_RESIGN		7
 #define DKIM_FEATURE_ATPS		8
+#define DKIM_FEATURE_XTAGS		9
 
-#define	DKIM_FEATURE_MAX		8
+#define	DKIM_FEATURE_MAX		9
 
 extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
 
@@ -1545,7 +1577,7 @@ extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
 **  	Library version, i.e. value of the OPENDKIM_LIB_VERSION macro.
 */
 
-extern unsigned long dkim_libversion __P((void));
+extern uint32_t dkim_libversion __P((void));
 
 /*
 **  DKIM_GET_SIGSUBSTRING -- retrieve a minimal signature substring for
@@ -1785,6 +1817,20 @@ extern void dkim_dns_set_query_waitreply __P((DKIM_LIB *,
                                                       int *)));
 
 /*
+**  DKIM_ADD_XTAG -- add an extension tag/value
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle to extend
+**  	tag -- name of tag to add
+**  	value -- value to include
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_add_xtag __P((DKIM *, const char *, const char *));
+
+/*
 **  DKIM_ATPS_CHECK -- check for Authorized Third Party Signing
 **
 **  Parameters:
@@ -1799,6 +1845,31 @@ extern void dkim_dns_set_query_waitreply __P((DKIM_LIB *,
 
 extern DKIM_STAT dkim_atps_check __P((DKIM *, DKIM_SIGINFO *,
                                       struct timeval *, dkim_atps_t *res));
+
+/*
+**  DKIM_QI_GETNAME -- retrieve the DNS name from a DKIM_QUERYINFO object
+**
+**  Parameters:
+**  	query -- DKIM_QUERYINFO handle
+**
+**  Return value:
+**  	A pointer to a NULL-terminated string indicating the name to be
+**  	queried, or NULL on error.
+*/
+
+extern const char *dkim_qi_getname __P((DKIM_QUERYINFO *));
+
+/*
+**  DKIM_QI_GETTYPE -- retrieve the DNS RR type from a DKIM_QUERYINFO object
+**
+**  Parameters:
+**  	query -- DKIM_QUERYINFO handle
+**
+**  Return value:
+**  	The DNS RR type to be queried, or -1 on error.
+*/
+
+extern int dkim_qi_gettype __P((DKIM_QUERYINFO *));
 
 /*
 **  DKIM_BASE32_ENCODE -- encode a string using base32

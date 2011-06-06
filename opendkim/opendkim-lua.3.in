@@ -98,6 +98,10 @@ handle that can be passed to
 .B odkim.db_check();
 raises an exception on failure.
 .TP
+.B odkim.export(ctx, name, value[, name2, value2[, ...]])
+Exports variables named with their corresponding values so that they
+will be available to later scripts.
+.TP
 .B odkim.get_clienthost(ctx)
 Returns the name of the host on the other end of the SMTP connection
 sending the current message.  This is usually a hostname, but might be
@@ -238,7 +242,7 @@ and
 (permanent failure/rejection).  Returns 1 on success or the Lua constant
 "nil" on failure.
 .TP
-.B odkim.sign(ctx[, keyname[, signer]])
+.B odkim.sign(ctx[, keyname[, signer[, signlen]]])
 Requests that the filter sign the message represented by
 .I ctx
 using the specified
@@ -253,7 +257,10 @@ domain, selector and key should be used to sign.  Returns 1 on success
 and 0 on failure.  If a
 .I signer
 is specified, the string there will be included in the generated signature's
-"i=" tag.
+"i=" tag.  If a
+.I signlen
+is specified, the signature will cover that many bytes of the message body.
+The order of these last two parameters is interchangeable.
 .TP
 .B odkim.use_ltag(ctx)
 Requests that all signatures added to the message represented by
@@ -265,12 +272,25 @@ Requests that the message represented by
 .I ctx
 be subjected to DKIM signature verification.  Returns the Lua constant
 "nil" on success, or an error string on failure.
+.TP
+.B odkim.xtag(ctx, tag, value)
+Requests that all signatures added to the message represented by
+.I ctx
+include the named extension
+.I tag
+and
+.I value.
+Returns the number of signatures successfully modified, or -1 on error.
+An error can occur if the named tag is one already explicitly supported by
+the DKIM library, or if there is a syntax error in the tag or value.
+@XTAGS_MANNOTICE@
 .SH SCREEN SCRIPT FUNCTIONS
 The screen script has the following functions available to it, whose
 descriptions can be found above:
 .B odkim.db_check,
 .B odkim.db_close,
 .B odkim.db_open,
+.B odkim.export,
 .B odkim.get_dbhandle,
 .B odkim.get_fromdomain,
 .B odkim.get_header,
@@ -341,6 +361,7 @@ not present on the message.  Always returns the Lua constant "nil".
 .SH STATISTICS SCRIPT FUNCTIONS
 The statistics script has the following functions available to it, whose
 descriptions can be found above:
+.B odkim.export,
 .B odkim.get_header,
 .B odkim.get_mtasymbol,
 .B odkim.get_rcpt,
@@ -358,6 +379,7 @@ and
 The following functions are also available, defined in the next section:
 .B odkim.get_policy,
 .B odkim.get_reputation,
+.B odkim.rbl_check,
 .B odkim.rcpt_count,
 .B odkim.sig_bhresult,
 .B odkim.sig_bodylength,
@@ -389,11 +411,12 @@ descriptions can be found above:
 .B odkim.get_sighandle,
 .B odkim.log,
 .B odkim.parse_field,
+.B odkim.rcpt_count,
 .B odkim.set_result,
 .B odkim.sig_getdomain,
 .B odkim.sig_getidentity,
 and
-.B odkim.rcpt_count.
+.B odkim.xtags.
 
 The following additional functions are provided for this script:
 .TP

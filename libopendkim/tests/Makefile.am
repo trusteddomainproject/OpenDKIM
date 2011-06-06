@@ -44,15 +44,12 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test121 t-test122 t-test123 t-test125 t-test126 \
 	t-test127 t-test128 t-test129 t-test130 t-test131 t-test132 \
 	t-test133 t-test134 t-test135 t-test136 t-test137 t-test138 \
-	t-test139 t-test141 \
+	t-test139 t-test140 t-test141 t-test142 t-test143 t-test144 \
 	t-signperf t-verifyperf
 check_SCRIPTS = t-signperf-sha1 t-signperf-relaxed-relaxed \
 	t-signperf-simple-simple
 if ALL_SYMBOLS
 check_PROGRAMS += t-test49 t-test113 t-test118
-endif
-if LIVE_TESTS
-check_PROGRAMS += t-test124
 endif
 check_PROGRAMS += t-cleanup
 TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
@@ -191,9 +188,6 @@ t_test120_SOURCES = t-test120.c t-testdata.h
 t_test121_SOURCES = t-test121.c t-testdata.h
 t_test122_SOURCES = t-test122.c t-testdata.h
 t_test123_SOURCES = t-test123.c t-testdata.h
-if LIVE_TESTS
-t_test124_SOURCES = t-test124.c t-testdata.h
-endif
 t_test125_SOURCES = t-test125.c t-testdata.h
 t_test126_SOURCES = t-test126.c t-testdata.h
 t_test127_SOURCES = t-test127.c t-testdata.h
@@ -209,7 +203,11 @@ t_test136_SOURCES = t-test136.c t-testdata.h
 t_test137_SOURCES = t-test137.c t-testdata.h
 t_test138_SOURCES = t-test138.c t-testdata.h
 t_test139_SOURCES = t-test139.c t-testdata.h
+t_test140_SOURCES = t-test140.c t-testdata.h
 t_test141_SOURCES = t-test141.c t-testdata.h
+t_test142_SOURCES = t-test142.c t-testdata.h
+t_test143_SOURCES = t-test143.c t-testdata.h
+t_test144_SOURCES = t-test144.c t-testdata.h
 
 MOSTLYCLEANFILES=
 

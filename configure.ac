@@ -14,8 +14,8 @@ AC_PREREQ(2.61)
 # Package version
 #
 m4_define([VERSION_RELEASE], 2)
-m4_define([VERSION_MAJOR_REV], 3)
-m4_define([VERSION_MINOR_REV], 2)
+m4_define([VERSION_MAJOR_REV], 4)
+m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -23,8 +23,8 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "current" and reset "revision" with API changes
 # 	- bump "revision" with internal source code changes
 #
-m4_define([LIBVERSION_CURRENT], 3)
-m4_define([LIBVERSION_REVISION], 3)
+m4_define([LIBVERSION_CURRENT], 4)
+m4_define([LIBVERSION_REVISION], 0)
 m4_define([LIBVERSION_AGE], 0)
 
 #
@@ -244,8 +244,6 @@ AM_CONDITIONAL([ATPS], [test x"$enable_atps" = x"yes"])
 
 FFR_FEATURE([adsp_lists], [support for ADSP filtering for lists])
 
-FFR_FEATURE([bodylength_db], [support for body length DBs])
-
 FFR_FEATURE([db_handle_pools], [experimental database handle pools])
 
 FFR_FEATURE([diffheaders], [compare signed and verified headers when possible])
@@ -254,17 +252,20 @@ LIB_FFR_FEATURE([diffheaders],
 
 FFR_FEATURE([dkim_reputation], [experimental DKIM reputation checks])
 LIB_FFR_FEATURE([dkim_reputation], [experimental DKIM reputation checks])
+AM_CONDITIONAL([DKIM_REPUTATION], [test x"$enable_dkim_reputation" = x"yes"])
 
 FFR_FEATURE([identity_header], [special header to set identity])
 
 FFR_FEATURE([ldap_caching], [LDAP query piggybacking and caching])
 
-FFR_FEATURE([maxverify], [signature verification limit])
+FFR_FEATURE([lua_globals], [passing of global variabls between Lua scripts])
 
 FFR_FEATURE([oversign], [enable header field over-signing])
 
 FFR_FEATURE([postgresql_reconnect_hack],
             [hack to overcome PostgreSQL connection error detection bug])
+
+FFR_FEATURE([rate_limit], [support for DKIM-based rate limiting])
 
 FFR_FEATURE([replace_rules], [support for string substitution when signing])
 
@@ -284,15 +285,17 @@ FFR_FEATURE([selector_header], [special header to choose signing key])
 
 FFR_FEATURE([sender_macro], [macro to determine sender])
 
+FFR_FEATURE([stats], [stats recording and reporting])
+AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
+FFR_FEATURE([statsext], [extended stats recording and reporting])
+
 FFR_FEATURE([rbl], [Realtime Blacklist query support])
 AM_CONDITIONAL([RBL], [test x"$enable_rbl" = x"yes"])
 
 FFR_FEATURE([vbr], [Vouch-By-Reference support])
 AM_CONDITIONAL([VBR], [test x"$enable_vbr" = x"yes"])
 
-FFR_FEATURE([stats], [stats recording and reporting])
-AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
-FFR_FEATURE([statsext], [extended stats recording and reporting])
+LIB_FFR_FEATURE([xtags], [extension signature tags])
 
 if test x"$enable_statsext" = x"yes" -a x"$enable_stats" != x"yes"
 then
@@ -858,6 +861,83 @@ fi
 AC_SUBST(LIBMILTER_INCDIRS)
 AC_SUBST(LIBMILTER_LIBDIRS)
 AC_SUBST(LIBMILTER_LIBS)
+
+#
+# libmemcached
+# 
+AC_ARG_WITH([libmemcached],
+            AS_HELP_STRING([--with-libmemcached],
+                           [location of libmemcached includes and library]),
+            [libmcdpath="$withval"], [libmcdpath="no"])
+
+libmemcache_found="no"
+
+if test \( x"$libmcdpath" = x"auto" -o x"$libmcdpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
+then
+	PKG_CHECK_MODULES([LIBMEMCACHED], [libmemcached], 
+	                  [
+                          	libmemcache_found="yes"
+	                  	LIBMEMCACHED_INCDIRS="$LIBMEMCACHED_CFLAGS"
+	                  ],
+	                  [
+	                  	AC_MSG_WARN([pkg-config for libmemcached not found, trying manual search...])
+	                  ])
+fi
+
+if test \( x"$libmcdpath" = x"auto" -o x"$libmcdpath" = x"yes" \) -a x"$libmemcache_found" = x"no"
+then
+	AC_MSG_CHECKING([for libmemcached])
+
+	libmcddirs="/usr /usr/local"
+	for d in $libmcddirs
+	do
+		if test -f $d/include/libmemcached/memcached.h
+		then
+			libmcdpath=$d
+			AC_MSG_RESULT($d)
+			LIBMEMCACHED_INCDIRS="-I$libmcdpath/include"
+			LIBMEMCACHED_LIBDIRS="-L$libmcdpath/lib"
+			LIBMEMCACHED_LIBS="-lmemcached"
+			libmemcache_found="yes"
+			break
+		fi
+	done
+	if test x"$LIBMEMCACHED_LIBS" = x""
+	then
+		AC_MSG_ERROR([not found])
+	fi
+elif test x"$libmcdpath" != x"no" -a x"$libmemcache_found" = x"no"
+then
+	AC_MSG_CHECKING([for libmemcached])
+	if test -f $libmcdpath/include/libmemcached/memcached.h
+	then
+		AC_MSG_RESULT([$libmcdpath])
+		LIBMEMCACHED_INCDIRS="-I$libmcdpath/include"
+		LIBMEMCACHED_LIBDIRS="-L$libmcdpath/lib"
+		LIBMEMCACHED_LIBS="-lmemcached"
+		libmemcache_found="yes"
+	else
+		AC_MSG_ERROR([not found at $libmcdpath])
+	fi
+fi
+
+if test x"$libmcdpath" = x"no" -o x"$libmemcache_found" = x"no"
+then
+	LIBMEMCACHED_INCDIRS=""
+	LIBMEMCACHED_LIBDIRS=""
+	LIBMEMCACHED_LIBS=""
+	AC_SUBST([LIBMEMCACHED_MANNOTICE],
+	         "(Not enabled for this installation.)" )
+else
+	AC_DEFINE([USE_LIBMEMCACHED], 1,
+	          [use memcache query library])
+	AC_SUBST([LIBMEMCACHED_MANNOTICE], "" )
+fi
+
+AM_CONDITIONAL(USE_LIBMEMCACHED, test x"$libmcdpath" != x"no")
+AC_SUBST(LIBMEMCACHED_INCDIRS)
+AC_SUBST(LIBMEMCACHED_LIBDIRS)
+AC_SUBST(LIBMEMCACHED_LIBS)
 
 #
 # libunbound
@@ -1449,8 +1529,7 @@ then
 fi
 
 AM_CONDITIONAL(USE_DB_OPENDKIM,
-               test x"$enable_bodylength_db" = x"yes" -o \
-	            x"$enable_popauth" = x"yes" -o \
+               test x"$enable_popauth" = x"yes" -o \
 	            x"$enable_report_intervals" = x"yes" -o \
                     x"$bdbrequested" = x"yes")
 AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")
@@ -1750,6 +1829,10 @@ AC_SUBST([DOMAIN])
 
 CPPFLAGS="$CPPFLAGS -DCONFIG_BASE=\\\"$sysconfdir\\\""
 
+test "x$prefix" = xNONE && prefix=$ac_default_prefix 
+SYSCONFDIR=`eval echo "$sysconfdir"`
+AC_SUBST([SYSCONFDIR])
+
 #
 # Finish up
 #
@@ -1760,12 +1843,16 @@ AC_OUTPUT([	Makefile
 			contrib/init/Makefile
 			contrib/init/generic/Makefile
 			contrib/init/redhat/Makefile
+			contrib/init/redhat/opendkim
 			contrib/init/solaris/Makefile
 			contrib/lua/Makefile
 			contrib/spec/Makefile
 			contrib/spec/opendkim.spec
 			contrib/stats/Makefile
-		libar/ar.pc libar/Makefile libar/tests/Makefile
+		libar/ar.pc libar/Makefile
+		libar/tests/Makefile
+		libdkimrep/dkim-rep.pc libdkimrep/Makefile
+		libdkimrep/tests/Makefile
 		libopendkim/opendkim.pc libopendkim/Makefile
 		libopendkim/docs/Makefile
 		libopendkim/tests/Makefile
@@ -1780,5 +1867,6 @@ AC_OUTPUT([	Makefile
 			opendkim/opendkim.conf.simple-verify
 			opendkim/opendkim-atpszone.8 opendkim/opendkim-spam.1
 		opendkim/tests/Makefile
-		stats/Makefile stats/opendkim-importstats.8
+		stats/Makefile stats/opendkim-anonstats.8
+			stats/opendkim-importstats.8
 ])

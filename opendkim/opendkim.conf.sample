@@ -117,13 +117,14 @@
 
 # BaseDirectory		/var/run/opendkim
 
-##  BodyLengths { yes | no }
-##  	default "no"
+##  BodyLengthDB dataset
+##  	default (none)
 ##
-##  Indicate whether or not signatures with body length tags should be
-##  generated.
+##  A data set that is checked against envelope recipients to see if a
+##  body length tag should be included in the generated signature.
+##  This has security implications; see opendkim.conf(5) for details.
 
-# BodyLengths		No
+# BodyLengthDB		dataset
 
 ##  Canonicalization hdrcanon[/bodycanon]
 ##  	default "simple/simple"
@@ -150,6 +151,14 @@
 ##  be generated.
 
 # Diagnostics		No
+
+##  DisableADSP { yes | no }
+##  	default "no"
+##
+##  Suppresses Author Domain Signing Practices (ADSP) checks, which conduct
+##  additional DNS queries.
+
+# DisableADSP		No
 
 ##  DNSTimeout n
 ##  	default 10
@@ -290,6 +299,14 @@ KeyFile			/var/db/dkim/example.private
 ##  is 65536.  A value of 0 disables this test.
 
 # MaximumHeaders	n
+
+##  MaximumSignaturesToVerify n
+##  	(default 3)
+##
+##  Verify no more than "n" signatures on an arriving message.
+##  A value of 0 means "no limit".
+
+# MaximumSignaturesToVerify	n
 
 ##  MaximumSignedBytes n
 ##

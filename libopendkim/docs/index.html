@@ -12,10 +12,10 @@ $Id: index.html,v 1.12 2010/08/30 22:01:56 cm-msk Exp $
 <h2>Introduction</h2>
 
 <b>DomainKeys Identified Mail</b> ("DKIM") is a specification for signing
-messages at the domain level using simple cryptographic methods to prevent
-the falsification of sender domains.  While the most obvious application of
-this is to defend against forged mail, other applications can make use of this
-capability. <p>
+messages at the domain level using simple cryptographic methods to indicate
+that the signing domain accepts some responsibility for the message.  While
+the most obvious application of this is to defend against forged mail,
+other applications can make use of this capability. <p>
 
 DKIM is an amalgamation of DomainKeys, created by Yahoo!, Inc., and
 Internet Identified Mail (IIM) created by Cisco, Inc.  Both can be found
@@ -24,8 +24,11 @@ about DomainKeys can be found
 <a href="http://antispam.yahoo.com/domainkeys">here</a>. <p>
 
 This API (<tt>libopendkim</tt>) allows an application to sign or verify
-messages according to the <b>DKIM</b> proposed standard.  Also provided
-is an implementation of a filter, using Sendmail's <b>milter</b>
+messages according to the <b>DKIM</b> proposed standard.  It also includes
+a number of extensions to support other protocols that are not part of
+DKIM itself.  Support is included for ADSP, a mechanism for determining
+whether or not the purported author domain claims all of its mail is signed.
+Also provided is an implementation of a filter, using Sendmail's <b>milter</b>
 package, that uses <tt>libopendkim</tt> to implement this facility. <p>
 
 <h2>Data Types</h2>
@@ -88,12 +91,17 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
 
  <tr>
   <td> <a href="dkim_pstate.html"> <tt>DKIM_PSTATE</tt> </a> </td>
-  <td> Polciy lookup state information. </td>
+  <td> Policy lookup state information. </td>
  </tr>
 
  <tr>
   <td> <a href="dkim_query_t.html"> <tt>dkim_query_t</tt> </a> </td>
   <td> A key query method. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_queryinfo.html"> <tt>DKIM_QUERYINFO</tt> </a> </td>
+  <td> A handle describing a required DNS query. </td>
  </tr>
 
  <tr>
@@ -143,6 +151,17 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  <tr>
   <td> <a href="dkim_getcachestats.html"> <tt>dkim_getcachestats()</tt> </a> </td>
   <td> Retrieve caching statistics. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_geterror.html"> <tt>dkim_geterror()</tt> </a> </td>
+  <td> Retrieve the most recent internal error message associated with a
+       DKIM handle. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_getmode.html"> <tt>dkim_getmode()</tt> </a> </td>
+  <td> Return the mode (signing or verifying) of a DKIM handle. </td>
  </tr>
 
  <tr>
@@ -241,6 +260,11 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
+  <td> <a href="dkim_add_xtag.html"> <tt>dkim_add_xtag()</tt> </a> </td>
+  <td> Add an extension tag and corresponding value. </td>
+ </tr>
+
+ <tr>
   <td> <a href="dkim_getpartial.html"> <tt>dkim_getpartial()</tt> </a> </td>
   <td> Check partial signature request flag. </td>
  </tr>
@@ -304,17 +328,6 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
-  <td> <a href="dkim_geterror.html"> <tt>dkim_geterror()</tt> </a> </td>
-  <td> Retrieve the most recent internal error message associated with a
-       DKIM handle. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_getmode.html"> <tt>dkim_getmode()</tt> </a> </td>
-  <td> Return the mode (signing or verifying) of a DKIM handle. </td>
- </tr>
-
- <tr>
   <td> <a href="dkim_getpolicystr.html"> <tt>dkim_getpolicystr()</tt> </a> </td>
   <td> Translate a policy code into a user-friendly string. </td>
  </tr>
@@ -367,6 +380,12 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  <tr>
   <td> <a href="dkim_policy.html"> <tt>dkim_policy()</tt> </a> </td>
   <td> Evaluate sender signing policy information. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_policy_getqueries.html">
+       <tt>dkim_policy_getqueries()</tt> </a> </td>
+  <td> Get the set of DNS queries needed to do a policy evaluaton. </td>
  </tr>
 
  <tr>
@@ -448,6 +467,13 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  <tr>
   <td> <a href="dkim_sig_getkeysize.html"> <tt>dkim_sig_getkeysize()</tt> </a> </td>
   <td> Retrieve the size in bits of the key used to verify a message. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_sig_getqueries.html">
+       <tt>dkim_sig_getqueries()</tt> </a> </td>
+  <td> Get the set of DNS queries needed to complete signature
+       validation. </td>
  </tr>
 
  <tr>
@@ -560,6 +586,17 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  <tr>
   <td> <a href="dkim_policy_syntax.html"> <tt>dkim_policy_syntax()</tt> </a> </td>
   <td> Check the syntax of a policy record. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_qi_getname.html"> <tt>dkim_qi_getname()</tt> </a> </td>
+  <td> Retrieve the DNS name from a <tt>DKIM_QUERYINFO</tt> handle. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_qi_gettype.html"> <tt>dkim_qi_gettype()</tt> </a> </td>
+  <td> Retrieve the DNS resource record type from a <tt>DKIM_QUERYINFO</tt>
+       handle. </td>
  </tr>
 
  <tr>

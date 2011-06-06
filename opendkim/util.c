@@ -122,10 +122,6 @@ static char *optlist[] =
 	"_FFR_ATPS",
 #endif /* _FFR_ATPS */
 
-#ifdef _FFR_BODYLENGTH_DB
-	"_FFR_BODYLENGTH_DB",
-#endif /* _FFR_BODYLENGTH_DB */
-
 #ifdef _FFR_DEFAULT_SENDER
 	"_FFR_DEFAULT_SENDER",
 #endif /* _FFR_DEFAULT_SENDER */
@@ -146,9 +142,9 @@ static char *optlist[] =
 	"_FFR_LDAP_CACHING",
 #endif /* _FFR_LDAP_CACHING */
 
-#if _FFR_MAXVERIFY
-	"_FFR_MAXVERIFY",
-#endif /* _FFR_MAXVERIFY */
+#if _FFR_LUA_GLOBALS
+	"_FFR_LUA_GLOBALS",
+#endif /* _FFR_LUA_GLOBALS */
 
 #if _FFR_OVERSIGN
 	"_FFR_OVERSIGN",
@@ -161,6 +157,10 @@ static char *optlist[] =
 #if _FFR_POSTGRESQL_RECONNECT_HACK
 	"_FFR_POSTGRESQL_RECONNECT_HACK",
 #endif /* _FFR_POSTGRESQL_RECONNECT_HACK */
+
+#if _FFR_RATE_LIMIT
+	"_FFR_RATE_LIMIT",
+#endif /* _FFR_RATE_LIMIT */
 
 #if _FFR_RBL
 	"_FFR_RBL",

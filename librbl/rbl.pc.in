@@ -5,7 +5,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: RBL (Real-time Blacklist library)
+Name: RBL (Real-time Blacklist) library
 Description: Library for assisting in RBL query functions
 URL: http://www.opendkim.org
 Version: @VERSION@

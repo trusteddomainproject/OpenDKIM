@@ -324,7 +324,7 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		                            &canonlen, &signlen);
 	}
 
-	fprintf(out, "\t%lu", msglen);
+	fprintf(out, "\t%lu", canonlen);
 
 	fprintf(out, "\t%d", nsigs);
 
@@ -351,9 +351,9 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 
 	for (c = 0; c < nsigs; c++)
 	{
-		if (strcasecmp((char *) dkim_sig_getdomain(sigs[c]),
-		               (char *) from) == 0 &&
-		    dkim_sig_geterror(sigs[c]) == DKIM_SIGERROR_OK)
+		if (dkim_sig_geterror(sigs[c]) == DKIM_SIGERROR_OK &&
+		    strcasecmp((char *) dkim_sig_getdomain(sigs[c]),
+		               (char *) from) == 0)
 		{
 			validauthorsig = TRUE;
 			break;

@@ -23,7 +23,7 @@ dist_doc_DATA = opendkim.conf.sample opendkim.conf.simple \
 
 if BUILD_FILTER
 sbin_PROGRAMS = opendkim
-opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-dns.c opendkim-dns.h opendkim-lua.c opendkim-lua.h config.c config.h stats.c stats.h test.c test.h util.c util.h
+opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-dns.c opendkim-dns.h opendkim-lua.c opendkim-lua.h config.c config.h flowrate.c flowrate.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CC = $(PTHREAD_CC)
 opendkim_CFLAGS = $(PTHREAD_CFLAGS) $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
@@ -38,6 +38,11 @@ if USE_ODBX
 opendkim_CPPFLAGS += $(LIBODBX_CPPFLAGS)
 opendkim_CFLAGS += $(LIBODBX_CFLAGS)
 opendkim_LDADD += $(LIBODBX_LIBS)
+endif
+if USE_LIBMEMCACHED
+opendkim_CPPFLAGS += $(LIBMEMCACHED_INCDIRS)
+opendkim_LDFLAGS += $(LIBMEMCACHED_LIBDIRS)
+opendkim_LDADD += $(LIBMEMCACHED_LIBS)
 endif
 if LUA
 SUBDIRS=tests
@@ -68,6 +73,10 @@ endif
 if RBL
 opendkim_CPPFLAGS += -I$(srcdir)/../librbl
 opendkim_LDADD += ../librbl/librbl.la
+endif
+if DKIM_REPUTATION
+opendkim_CPPFLAGS += -I$(srcdir)/../libdkimrep
+opendkim_LDADD += ../libdkimrep/libdkimrep.la
 endif
 if VERIFY_DOMAINKEYS
 opendkim_CPPFLAGS += $(LIBDK_INCDIRS)
@@ -107,6 +116,11 @@ opendkim_testkey_CPPFLAGS += $(LIBODBX_CPPFLAGS)
 opendkim_testkey_CFLAGS += $(LIBODBX_CFLAGS)
 opendkim_testkey_LDADD += $(LIBODBX_LIBS)
 endif
+if USE_LIBMEMCACHED
+opendkim_testkey_CPPFLAGS += $(LIBMEMCACHED_INCDIRS)
+opendkim_testkey_LDFLAGS += $(LIBMEMCACHED_LIBDIRS)
+opendkim_testkey_LDADD += $(LIBMEMCACHED_LIBS)
+endif
 if USE_LDAP
 opendkim_testkey_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
 opendkim_testkey_LDADD += $(OPENLDAP_LIBS)
@@ -122,6 +136,10 @@ endif
 if USE_ARLIB
 opendkim_testkey_CFLAGS += -I$(srcdir)/../libar
 opendkim_testkey_LDADD += ../libar/libar.la
+endif
+if DKIM_REPUTATION
+opendkim_testkey_CPPFLAGS += -I$(srcdir)/../libdkimrep
+opendkim_testkey_LDADD += ../libdkimrep/libdkimrep.la
 endif
 if RBL
 opendkim_testkey_CPPFLAGS += -I$(srcdir)/../librbl
@@ -154,6 +172,11 @@ opendkim_genzone_CPPFLAGS += $(LIBODBX_CPPFLAGS)
 opendkim_genzone_CFLAGS += $(LIBODBX_CFLAGS)
 opendkim_genzone_LDADD += $(LIBODBX_LIBS)
 endif
+if USE_LIBMEMCACHED
+opendkim_genzone_CPPFLAGS += $(LIBMEMCACHED_INCDIRS)
+opendkim_genzone_LDFLAGS += $(LIBMEMCACHED_LIBDIRS)
+opendkim_genzone_LDADD += $(LIBMEMCACHED_LIBS)
+endif
 if USE_SASL
 opendkim_genzone_CPPFLAGS += $(SASL_CPPFLAGS)
 endif
@@ -182,6 +205,11 @@ if USE_ODBX
 opendkim_atpszone_CPPFLAGS += $(LIBODBX_CPPFLAGS)
 opendkim_atpszone_CFLAGS += $(LIBODBX_CFLAGS)
 opendkim_atpszone_LDADD += $(LIBODBX_LIBS)
+endif
+if USE_LIBMEMCACHED
+opendkim_atpszone_CPPFLAGS += $(LIBMEMCACHED_INCDIRS)
+opendkim_atpszone_LDFLAGS += $(LIBMEMCACHED_LIBDIRS)
+opendkim_atpszone_LDADD += $(LIBMEMCACHED_LIBS)
 endif
 if USE_SASL
 opendkim_atpszone_CPPFLAGS += $(SASL_CPPFLAGS)

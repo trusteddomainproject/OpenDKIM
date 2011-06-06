@@ -1,0 +1,82 @@
+<html>
+<head><title>dkim_qi_gettype()</title></head>
+<body>
+<!--
+$Id: dkim_qi_gettype.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
+-->
+<h1>dkim_qi_gettype()</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+
+int dkim_qi_gettype(
+	<a href="dkim_queryinfo.html"><tt>DKIM_QUERYINFO</tt></a> *query
+);
+</pre>
+Retrieve from a DKIM_QUERYINFO handle the type to be used in performing the
+DNS query referenced by <tt>query</tt>.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_qi_gettype()</tt> can be called at any time after
+    query information is returned by
+    <a href="dkim_sig_getqueries.html"><tt>dkim_sig_getqueries()</tt></a> or
+    <a href="dkim_policy_getqueries.html"><tt>dkim_policy_getqueries()</tt></a>. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>query</td>
+	<td>A reference to a <tt>DKIM_QUERYINFO</tt> handle.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr><th valign="top" align=left>RETURN VALUES</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Value</th><th>Description</th></tr>
+    <tr valign="top"><td><tt>-1</tt></td>
+	<td>No query type could be determined for this query handle.
+	</td></tr>
+    <tr valign="top"><td>otherwise</td>
+	<td>A DNS resource record type.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

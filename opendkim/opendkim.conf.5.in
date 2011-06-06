@@ -5,7 +5,7 @@
 - Configuration file for opendkim
 
 .SH LOCATION
-.I /etc/mail/opendkim.conf
+.I @SYSCONFDIR@/opendkim.conf
 
 .SH DESCRIPTION
 .I opendkim(8)
@@ -44,6 +44,15 @@ See the
 man page for a description of such parameters.
 
 .SH PARAMETERS
+.TP
+.I AddAllSignatureResults (Boolean)
+If "true", results for all signatures will be reported by an added
+Authentication-Results header field.  Otherwise, only one signature will
+be reported, and which one depends on the
+.I TrustSignaturesFrom
+setting or, in its absence, which one(s) passed first or, if none passed,
+which one was found first during message processing.
+
 .TP
 .I ADSPAction (string)
 Selects the action to be taken when an ADSP check against a message with
@@ -170,25 +179,20 @@ It's also useful for arranging that any crash dumps will be saved to
 a specific location.
 
 .TP
-.I BodyLengths (Boolean)
+.I BodyLengthDB (dataset)
 Requests that
 .I opendkim
-include the "l=" body length tag when generating signatures.  This
-indicates to the verifier that only a certain amount of the original
-message was signed, allowing tolerance of things like mailing list
-managers that append list-specific text to the end of mailings
-it processes.  However, this also enables an abuse attack.  See the
-DKIM specification for more information.
+include a "l=" body length tag when the set contains any of the envelope
+recipient addresses.  The addresses presented are tested against the database
+in various forms as described under the
+.I SigningTable
+setting (below).  This feature of the protocol exists to improve the
+likelihood that a signature will survive transit through a mailing list
+server, as they commonly append footers to messages.  Note, however,
+that this creates a potential security issue since someone could add
+arbitrary text to the signed message and the signature would still validate.
+See the DKIM specification for details.
 
-.TP
-.I BodyLengthDBFile (dataset)
-Requests that
-.I opendkim
-include a "l=" body length tag when the set contains the recipient 
-addresses.
-@BODYLENGTH_DB_MANNOTICE@
-
-.TP
 .I BogusKey (string)
 Instructs the filter to treat a passing signature associated with a bogus
 (forged) key in a special way.  Possible values are
@@ -247,6 +251,11 @@ failures.  Not recommended for normal operation.
 Directory into which to write diagnostic reports when message verification
 fails on a message bearing a "z=" tag.  If not set (the default), these files
 are not generated.
+
+.TP
+.I DisableADSP (Boolean)
+If set, suppresses Author Domain Signing Practices (ADSP) checks, which
+require multiple additional DNS queries.
 
 .TP
 .I DNSConnect (Boolean)
@@ -540,15 +549,14 @@ cause an author domain signature to be ignored, causing the ADSP evaluation
 to fail and, if
 .I SendADSPReports
 is enabled, a questionable report could be generated.
-@MAXVERIFY_MANNOTICE@
 
 .TP
 .I MaximumSignedBytes (integer)
 Specifies the maximum number of bytes of message body to be signed.
 Messages shorter than this limit will be signed in their entirety.
-Setting this value forces
-.I BodyLengths
-to be "True".
+Setting this value implies use of
+.I BodyLengthDB
+for all addresses.
 
 .TP
 .I MilterDebug (integer)

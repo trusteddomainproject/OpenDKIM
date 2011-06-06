@@ -36,14 +36,6 @@ allsymbols	By default, the build will attempt to create a libopendkim
 atps		Support for experimental Authorized Third-Party Signatures
 		mechanism.  (opendkim, libopendkim)
 
-bodylength_db	Optionally query a local database of recipient addresses
-		to determine if an "l=" tag should be applied when
-		signing.  (opendkim)
-
-capture_unknown_errors
-		When dkim_eom() returns an unexpected error of some kind,
-		quarantine the message for further analysis.  (opendkim)
-
 codecoverage	Enables generation of profiling code for all libraries,
 		programs and tests.  When running the library tests,
 		produces a report about code coverage based on the available
@@ -60,7 +52,7 @@ diffheaders	When verification fails for a message for which a "z="
 
 dkim_reputation	Add experimental support for querying an open DKIM reputation
 		service.  The service's URL is http://www.dkim-reputation.org.
-		(opendkim, libopendkim)
+		(opendkim, libdkimrep, libopendkim)
 
 identity_header	Enable selection of an identity for signing based on the
 		value found in a particular header. (opendkim)
@@ -68,8 +60,8 @@ identity_header	Enable selection of an identity for signing based on the
 ldap_caching	Adds code that ensures duplicate LDAP queries aren't sent
 		and local caching of LDAP replies is done.  (opendkim)
 
-maxverify	Control over maximum number of signatures per message to
-		be processed.  (opendkim)
+lua_globals	Optional mechanism for passing variables between Lua
+		scripts.  (opendkim)
 
 oversign	Optional specification of header fields to "oversign" to
 		prevent malicious addition of malicious extra instances.
@@ -90,6 +82,9 @@ postgres_reconnect_hack
 		code compensates for that problem by checking for fatal
 		errors in ad different (but unconventional) manner.  It is
 		hoped that this can be removed in the near future.
+		(opendkim)
+
+rate_limit	Experimental rate limiting based on confirmed signer domains.
 		(opendkim)
 
 rbl		Option to query realtime blacklists from within Lua scripts.
@@ -134,6 +129,9 @@ statsext	Support for localized stats extensions.  See stats/README
 
 vbr		Enable VBR (Vouch By Reference) header field addition
 		(outbound) and processing (inbound).  (opendkim)
+
+xtags		DKIM library extensions for adding arbitrary experimental
+		signature tags and values.  (libopendkim)
 
 
 COPYRIGHT

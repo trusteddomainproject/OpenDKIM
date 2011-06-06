@@ -30,6 +30,7 @@ static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.32.10.1 2010/10
 /* config definition */
 struct configdef dkimf_config[] =
 {
+	{ "AddAllSignatureResults",	CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ADSPAction",			CONFIG_TYPE_STRING,	FALSE },
 	{ "ADSPNoSuchDomain",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AllowSHA1Only",		CONFIG_TYPE_BOOLEAN,	FALSE },
@@ -46,10 +47,7 @@ struct configdef dkimf_config[] =
 	{ "AutoRestartRate",		CONFIG_TYPE_STRING,	FALSE },
 	{ "Background",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "BaseDirectory",		CONFIG_TYPE_STRING,	FALSE },
-	{ "BodyLengths",		CONFIG_TYPE_BOOLEAN,	FALSE },
-#ifdef _FFR_BODYLENGTH_DB
-	{ "BodyLengthDBFile",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_BODYLENGTH_DB */
+	{ "BodyLengthDB",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef USE_UNBOUND
 	{ "BogusKey",			CONFIG_TYPE_STRING,	FALSE },
 	{ "BogusPolicy",		CONFIG_TYPE_STRING,	FALSE },
@@ -62,6 +60,7 @@ struct configdef dkimf_config[] =
 #endif /* _FFR_DEFAULT_SENDER */
 	{ "Diagnostics",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DiagnosticDirectory",	CONFIG_TYPE_STRING,	FALSE },
+	{ "DisableADSP",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DNSConnect",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DNSTimeout",			CONFIG_TYPE_INTEGER,	FALSE },
 	{ "Domain",			CONFIG_TYPE_STRING,	FALSE },
@@ -75,6 +74,10 @@ struct configdef dkimf_config[] =
 #endif /* USE_LUA */
 	{ "FixCRLF",			CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_IDENTITY_HEADER
+#ifdef _FFR_RATE_LIMIT
+	{ "FlowData",			CONFIG_TYPE_STRING,	FALSE },
+	{ "FlowDataTTL",		CONFIG_TYPE_INTEGER,	FALSE },
+#endif /* _FFR_RATE_LIMIT */
 	{ "IdentityHeader",		CONFIG_TYPE_STRING,     FALSE },
 	{ "IdentityHeaderRemove",	CONFIG_TYPE_BOOLEAN,    FALSE },
 #endif /* _FFR_IDENTITY_HEADER */
@@ -102,9 +105,7 @@ struct configdef dkimf_config[] =
 	{ "LocalADSP",			CONFIG_TYPE_STRING,	FALSE },
 	{ "LogWhy",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "MaximumHeaders",		CONFIG_TYPE_INTEGER,	FALSE },
-#ifdef _FFR_MAXVERIFY
 	{ "MaximumSignaturesToVerify",	CONFIG_TYPE_INTEGER,	FALSE },
-#endif /* _FFR_MAXVERIFY */
 	{ "MacroList",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MilterDebug",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "Minimum",			CONFIG_TYPE_STRING,	FALSE },
@@ -138,6 +139,9 @@ struct configdef dkimf_config[] =
 #ifdef QUERY_CACHE
 	{ "QueryCache",			CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* QUERY_CACHE */
+#ifdef _FFR_RATE_LIMIT
+	{ "RateLimits",			CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_RATE_LIMIT */
 #ifdef _FFR_REDIRECT
 	{ "RedirectFailuresTo",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_REDIRECT */

@@ -13,7 +13,7 @@ $Id: dkim_set_final.html,v 1.3 2010/07/24 04:52:15 cm-msk Exp $
 <pre>
 #include &lt;dkim.h&gt;
 <a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_set_final(
-	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+	<a href="dkim_lib.html"><tt>DKIM_LIB</tt></a> *libopendkim,
         <a href="dkim_cbstat.html">DKIM_CBSTAT</a> (*func)(<a href="dkim.html">DKIM</a> *dkim, <a href="dkim_siginfo.html">DKIM_SIGINFO</a> **sigs, int nsigs));
 );
 </pre>
@@ -76,9 +76,9 @@ of <tt>DKIM_STAT_CBINVALID</tt>. <p>
 <tr><th valign="top" align=left>ARGUMENTS</th><td>
     <table border="1" cellspacing=0>
     <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
-    <tr valign="top"><td>dkim</td>
-	<td>Message-specific handle, returned by
-        <a href="dkim_verify.html"><tt>dkim_verify()</tt></a>.
+    <tr valign="top"><td>libopendkim</td>
+	<td>The library instantiation handle, returned by
+        <a href="dkim_init.html"><tt>dkim_init()</tt></a>.
 	</td></tr>
     <tr valign="top"><td>func</td>
 	<td>A pointer to a function which takes a <tt>DKIM</tt> handle,
@@ -117,7 +117,7 @@ of <tt>DKIM_STAT_CBINVALID</tt>. <p>
 Copyright (c) 2007 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set

@@ -5,3 +5,5 @@
 AUTOMAKE_OPTIONS = foreign
 
 dist_doc_DATA = opendkim.spec.in
+
+EXTRA_DIST = opendkim.spec

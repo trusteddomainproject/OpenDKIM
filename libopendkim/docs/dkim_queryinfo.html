@@ -1,0 +1,51 @@
+<html>
+<head><title>DKIM_QUERYINFO</title></head>
+<body>
+<!--
+$Id: dkim_siginfo.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
+-->
+<h1>DKIM_QUERYINFO</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Purpose</th>
+<td>A <tt>DKIM_QUERYINFO</tt> handle stores data having to do with a
+    DNS query that is or may be needed.  This is useful when the
+    application has some mechanism for resolving DNS queries that does
+    not make direct use of the DNS handling system provided by libopendkim.
+    It is created by the
+    <a href="dkim_sig_getqueries.html"><tt>dkim_sig_getqueries()</tt></a> and
+    <a href="dkim_policy_getqueries.html"><tt>dkim_policy_getqueries()</tt></a>
+    functions and must be freed by the caller.
+    </td>
+</tr>
+</table>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>More than one of these handles may exist at any given time.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

@@ -184,6 +184,7 @@ of the library's operation.
 	</td></tr>
     <tr valign="top"><td>len</td>
 	<td>Number of bytes available for reading/writing at <tt>data</tt>.
+	    Usually one can simply use <tt>sizeof(data)</tt> here. </tt>
 	</td></tr>
     </table>
 </td></tr>
@@ -251,7 +252,6 @@ are:
  <tr>
   <td><tt>DKIM_LIBFLAGS_FIXCRLF</tt></td>
   <td>Convert "naked" CR and LF characters into CRLFs when canonicalizing.
-      Only applies to body processing during signing.
       </td>
  </tr>
  <tr>

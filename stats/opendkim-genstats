@@ -126,12 +126,12 @@ echo '<a name="l_tag"></a>' >> $OUTPUT
 echo "<p> Use of 'l=' tag: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(*) AS 'l= present', pass FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND NOT siglength = -1 GROUP BY pass" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(*) AS 'l=0', pass FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE siglength = 0 GROUP BY pass" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'l= < msgsize', pass FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE signatures.siglength >= 0 AND signatures.siglength < messages.size GROUP BY pass" >> $OUTPUT
+$MYSQL --execute="SELECT COUNT(*) AS 'l <= msgsize', pass FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE signatures.siglength >= 0 AND signatures.siglength < messages.size GROUP BY pass" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="i_tag"></a>' >> $OUTPUT
 echo "<p> Use of 'i=' tag: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'messages', CASE sig_i WHEN 0 THEN 'absent' WHEN 1 THEN 'matches d=' WHEN 2 THEN 'subdomain of d=' END AS 'i= domain', CASE sig_i_user WHEN 0 THEN 'absent' WHEN 1 THEN 'empty' WHEN 2 THEN 'matches From' WHEN 3 THEN 'does not match From' END AS 'i= local-part' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND sig_i >= 0 GROUP BY sig_i, sig_i_user" >> $OUTPUT
+$MYSQL --execute="SELECT COUNT(*) AS 'signatures', CASE sig_i WHEN 0 THEN 'absent' WHEN 1 THEN 'matches d=' WHEN 2 THEN 'subdomain of d=' END AS 'i= domain', CASE sig_i_user WHEN 0 THEN 'absent' WHEN 1 THEN 'empty' WHEN 2 THEN 'matches From' WHEN 3 THEN 'does not match From' END AS 'i= local-part' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND sig_i >= 0 GROUP BY sig_i, sig_i_user" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="key_sizes"></a>' >> $OUTPUT
@@ -272,6 +272,8 @@ $MYSQL --execute="SELECT COUNT(DISTINCT from_domain) AS domains FROM messages JO
 echo "</p>" >> $OUTPUT
 
 # output a footer
+echo "<p> Report completed `date` </p>" >> $OUTPUT
+
 echo "<hr>" >> $OUTPUT
 echo '<font size="-1"> <i> $Id: opendkim-genstats,v 1.26 2010/10/27 06:18:45 cm-msk Exp $ </i> </font>' >> $OUTPUT
 cat >> $OUTPUT << EOF

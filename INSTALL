@@ -44,7 +44,7 @@ doesn't find it, you will need to specify the location with
 		a specific path, the /usr/local/BerkeleyDB, /usr/local and
 		/usr directories will be searched for both the required
 		includes and the required libraries.  Required for the
-		following features: bodylengthdb, query_cache, stats
+		following features: query_cache, stats
 
 --with-db-incdir
 --with-db-libdir
@@ -127,6 +127,8 @@ query_cache	Cache DNS replies in a local database.  Requires the
 
 stats		Produce a filter and tools used for statistics collection,
 		analysis and submission.
+
+xtags		Support for signature extension tags.
 
 
 COMPILING

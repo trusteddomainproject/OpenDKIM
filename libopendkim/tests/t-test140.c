@@ -1,12 +1,12 @@
 /*
-**  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
+**  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
 **  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
-static char t_test124_c_id[] = "@(#)$Id: t-test124.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
+static char t_test140_c_id[] = "@(#)$Id: t-test00.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -14,8 +14,8 @@ static char t_test124_c_id[] = "@(#)$Id: t-test124.c,v 1.2 2009/12/08 19:14:27 c
 /* system includes */
 #include <sys/types.h>
 #include <assert.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #ifdef USE_GNUTLS
 # include <gnutls/gnutls.h>
@@ -23,17 +23,11 @@ static char t_test124_c_id[] = "@(#)$Id: t-test124.c,v 1.2 2009/12/08 19:14:27 c
 
 /* libopendkim includes */
 #include "../dkim.h"
-#include "../dkim-rep.h"
 #include "t-testdata.h"
 
 #define	MAXHEADER	4096
 
-/*
-**  XXX -- need to have a hard-coded domain that's always there; this one
-**  isn't guaranteed to be
-*/
-
-#define SIG2 "v=1; a=rsa-sha256; c=relaxed/relaxed; d=freelotto.com; s=test;\r\n\tt=1172620939; bh=QVUr2KBvm7/Q/ustiYzOlFMN9G8IMqBzUX81BdpjSDI=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID; b=qyl\r\n\tGDIlwT+HP/6iiL3+WPCykGTvQZ6imIMiK4gk1A6mLAmwIUnBJeZA4EU0LWxNbGVAfVM\r\n\t92lP3rQpdADzJyCBeSBllH1hXwS2SMwDCK025E6ZpYVVphVFEv+2IcC2U8mHPxuYj8n\r\n\tAD4bJNjCwdVpVCq3PngQy2B1+jUNKrbKHg="
+#define SIG2 "v=1; a=rsa-sha1; c=relaxed/relaxed; d=example.com; s=test;\r\n\tt=1172620939; foo=bar; bh=Z9ONHHsBrKN0pbfrOu025VfbdR4=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=EVdrR7ZmtS41Max1cC19k6sUZx2QUpn/SmcJ4xJjcsvYYJzabx8yAbo30fWPHYuXZ\r\n\t eev7e/9wRwbCTzejwag9CkDaNxqLIEHnheby73XbA2pzAtY5EMFk5WZuWilDCwH3f2\r\n\t BJ0liJoaw1mDrlUH7SvxsStcqm1npWv4yEQkKkGY="
 
 /*
 **  MAIN -- program mainline
@@ -48,23 +42,15 @@ static char t_test124_c_id[] = "@(#)$Id: t-test124.c,v 1.2 2009/12/08 19:14:27 c
 int
 main(int argc, char **argv)
 {
-#ifndef _FFR_DKIM_REPUTATION
-	printf("*** DKIM reputation query SKIPPED\n");
-
-#else /* ! DKIM_SIGN_RSASHA256 */
-
-# ifdef TEST_KEEP_FILES
+#ifdef TEST_KEEP_FILES
 	u_int flags;
-# endif /* TEST_KEEP_FILES */
-	long rep = 0;
+#endif /* TEST_KEEP_FILES */
 	DKIM_STAT status;
+	uint64_t fixed_time;
 	DKIM *dkim;
-	DKIM_SIGINFO *sig;
 	DKIM_LIB *lib;
-	dkim_query_t qtype = DKIM_QUERY_FILE;
+	dkim_sigkey_t key;
 	unsigned char hdr[MAXHEADER + 1];
-
-	printf("*** DKIM reputation query\n");
 
 #ifdef USE_GNUTLS
 	(void) gnutls_global_init();
@@ -74,26 +60,36 @@ main(int argc, char **argv)
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
 
-# ifdef TEST_KEEP_FILES
+	if (!dkim_libfeature(lib, DKIM_FEATURE_XTAGS))
+	{
+		printf("*** relaxed/relaxed rsa-sha1 signing with extension tags SKIPPED\n");
+		dkim_close(lib);
+		return 0;
+	}
+
+	printf("*** relaxed/relaxed rsa-sha1 signing with extension tags\n");
+
+#ifdef TEST_KEEP_FILES
 	/* set flags */
 	flags = (DKIM_LIBFLAGS_TMPFILES|DKIM_LIBFLAGS_KEEPFILES);
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FLAGS, &flags,
 	                    sizeof flags);
-# endif /* TEST_KEEP_FILES */
+#endif /* TEST_KEEP_FILES */
 
-	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYMETHOD,
-	                    &qtype, sizeof qtype);
-	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYINFO,
-	                    KEYFILE, strlen(KEYFILE));
+	key = KEY;
 
-	dkim = dkim_verify(lib, JOBID, NULL, &status);
+	dkim = dkim_sign(lib, JOBID, NULL, key, SELECTOR, DOMAIN,
+	                 DKIM_CANON_RELAXED, DKIM_CANON_RELAXED,
+	                 DKIM_SIGN_RSASHA1, -1L, &status);
 	assert(dkim != NULL);
 
-	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG2);
-	status = dkim_header(dkim, hdr, strlen(hdr));
-	assert(status == DKIM_STAT_OK);
+	/* fix signing time */
+	fixed_time = 1172620939;
+	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FIXEDTIME,
+	                    &fixed_time, sizeof fixed_time);
 
-	status = dkim_header(dkim, HEADER01, strlen(HEADER01));
+	/* add an "extension tag" */
+	status = dkim_add_xtag(dkim, "foo", "bar");
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER02, strlen(HEADER02));
@@ -165,22 +161,18 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_eom(dkim, NULL);
-	assert(status == DKIM_STAT_NOKEY); /* XXX -- no key for freelotto.com */
-
-	sig = dkim_getsignature(dkim);
-	assert(sig != NULL);
-
-	status = dkim_get_reputation(dkim, sig, DKIM_REP_ROOT, &rep);
 	assert(status == DKIM_STAT_OK);
 
-	/* XXX -- need a hard-coded domain name here too */
-	printf("--- freelotto.com reputation %ld\n", rep);
+	memset(hdr, '\0', sizeof hdr);
+	status = dkim_getsighdr(dkim, hdr, sizeof hdr,
+	                        strlen(DKIM_SIGNHEADER) + 2);
+	assert(status == DKIM_STAT_OK);
+	assert(strcmp(SIG2, hdr) == 0);
 
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);
 
 	dkim_close(lib);
-#endif /* ! DKIM_SIGN_RSASHA256 */
 
 	return 0;
 }

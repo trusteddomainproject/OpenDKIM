@@ -14,10 +14,10 @@ $Id: dkim_set_key_lookup.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
 #include &lt;dkim.h&gt;
 <a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_set_key_lookup(
 	<a href="dkim_lib.html"><tt>DKIM_LIB</tt></a> *libopendkim,
-        <a href="dkim_stat.html"><tt>DKIM_CBSTAT</tt></a> (*func) (<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
-        <a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *siginfo,
-	                   unsigned char *buf,
-	                   size_t buflen));
+        <a href="dkim_cbstat.html"><tt>DKIM_CBSTAT</tt></a> (*func) (<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+                             <a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *siginfo,
+	                     unsigned char *buf,
+	                     size_t buflen));
 );
 </pre>
 Defines a function which should do key lookups rather than implementing
@@ -86,7 +86,7 @@ in the signature will be ignored.
 Copyright (c) 2007 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set
