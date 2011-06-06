@@ -25,4 +25,5 @@ Makefile
 .libs
 core
 *.core
+opendkim-anonstats
 opendkim-importstats
