@@ -615,20 +615,20 @@ config_get(struct config *head, const char *name, void *value, size_t size)
 	return 0;
 }
 
-#ifdef DEBUG
 /*
 **  CONFIG_DUMP -- dump configuration contents
 **
 **  Parameters:
 **  	cfg -- head of assembled configuration values
 **  	out -- stream to which to write
+**  	name -- name of value of interest
 **
 **  Return value:
 **  	None.
 */
 
 void
-config_dump(struct config *cfg, FILE *out)
+config_dump(struct config *cfg, FILE *out, const char *name)
 {
 	struct config *cur;
 
@@ -637,12 +637,20 @@ config_dump(struct config *cfg, FILE *out)
 
 	for (cur = cfg; cur != NULL; cur = cur->cfg_next)
 	{
-		fprintf(out, "%p: \"%s\" ", cur, cur->cfg_name);
+		if (name != NULL)
+		{
+			if (strcasecmp(name, cur->cfg_name) != 0)
+				continue;
+		}
+		else
+		{
+			fprintf(out, "%p: \"%s\" ", cur, cur->cfg_name);
+		}
 
 		switch (cur->cfg_type)
 		{
 		  case CONFIG_TYPE_STRING:
-			fprintf(out, "\"%s\"\n", cur->cfg_string);
+			fprintf(out, "%s\n", cur->cfg_string);
 			break;
 
 		  case CONFIG_TYPE_INTEGER:
@@ -658,4 +666,3 @@ config_dump(struct config *cfg, FILE *out)
 		}
 	}
 }
-#endif /* DEBUG */

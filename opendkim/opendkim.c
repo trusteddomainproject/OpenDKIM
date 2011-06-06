@@ -15119,6 +15119,7 @@ usage(void)
 	                "\t-c canon    \tcanonicalization to use when signing\n"
 	                "\t-d domlist  \tdomains to sign\n"
 	                "\t-D          \talso sign subdomains\n"
+	                "\t-e name     \textract configuration value and exit\n"
 	                "\t-f          \tdon't fork-and-exit\n"
 	                "\t-F time     \tfixed timestamp to use when signing (test mode only)\n"
 	                "\t-k keyfile  \tlocation of secret key file\n"
@@ -15178,6 +15179,7 @@ main(int argc, char **argv)
 	const char *args = CMDLINEOPTS;
 	FILE *f;
 	char *become = NULL;
+	char *extract = NULL;
 	char *p;
 	char *pidfile = NULL;
 #ifdef POPAUTH
@@ -15259,6 +15261,10 @@ main(int argc, char **argv)
 
 		  case 'D':
 			curconf->conf_subdomains = TRUE;
+			break;
+
+		  case 'e':
+			extract = optarg;
 			break;
 
 		  case 'f':
@@ -15495,7 +15501,7 @@ main(int argc, char **argv)
 		}
 
 #ifdef DEBUG
-		config_dump(cfg, stdout);
+		config_dump(cfg, stdout, NULL);
 #endif /* DEBUG */
 
 		missing = config_check(cfg, dkimf_config);
@@ -15524,6 +15530,17 @@ main(int argc, char **argv)
 	{
 		config_free(cfg);
 		dkimf_config_free(curconf);
+		return EX_OK;
+	}
+
+	if (extract)
+	{
+		if (cfg != NULL)
+		{
+			config_dump(cfg, stdout, extract);
+			config_free(cfg);
+			dkimf_config_free(curconf);
+		}
 		return EX_OK;
 	}
 
