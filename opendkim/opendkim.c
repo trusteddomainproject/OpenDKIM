@@ -15501,7 +15501,7 @@ main(int argc, char **argv)
 		}
 
 #ifdef DEBUG
-		config_dump(cfg, stdout, NULL);
+		(void) config_dump(cfg, stdout, NULL);
 #endif /* DEBUG */
 
 		missing = config_check(cfg, dkimf_config);
@@ -15535,13 +15535,18 @@ main(int argc, char **argv)
 
 	if (extract)
 	{
+		int ret = EX_OK;
+
 		if (cfg != NULL)
 		{
-			config_dump(cfg, stdout, extract);
+			if (!config_validname(dkimf_config, extract))
+				ret = EX_DATAERR;
+			else if (config_dump(cfg, stdout, extract) == 0)
+				ret = EX_CONFIG;
 			config_free(cfg);
 			dkimf_config_free(curconf);
 		}
-		return EX_OK;
+		return ret;
 	}
 
 	dolog = curconf->conf_dolog;

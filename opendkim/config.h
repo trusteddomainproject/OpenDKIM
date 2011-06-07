@@ -2,7 +2,7 @@
 **  Copyright (c) 2006-2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: config.h,v 1.3.34.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -48,11 +48,12 @@ struct configdef
 
 /* prototypes */
 extern char *config_check __P((struct config *, struct configdef *));
-extern void config_dump __P((struct config *, FILE *, const char *));
+extern unsigned int config_dump __P((struct config *, FILE *, const char *));
 extern char *config_error __P((void));
 extern void config_free __P((struct config *));
 extern int config_get __P((struct config *, const char *, void *, size_t));
 extern struct config *config_load __P((char *, struct configdef *,
                                        unsigned int *, char *, size_t));
+extern _Bool config_validname __P((struct configdef *, const char *));
 
 #endif /* _CONFIG_H_ */

@@ -616,6 +616,38 @@ config_get(struct config *head, const char *name, void *value, size_t size)
 }
 
 /*
+**  CONFIG_VALIDNAME -- return True IFF the name provided was valid
+**
+**  Parameters:
+**  	def -- configuration definition
+**  	name -- name of value of interest
+**
+**  Return value:
+**  	True IFF "name" was defined inside "cd"
+*/
+
+_Bool
+config_validname(struct configdef *def, const char *name)
+{
+	unsigned int n;
+
+	assert(def != NULL);
+	assert(name != NULL);
+
+	for (n = 0; ; n++)
+	{
+		if (def[n].cd_name == NULL)
+			return FALSE;
+
+		if (strcasecmp(name, def[n].cd_name) == 0)
+			return TRUE;
+	}
+
+	assert(0);
+	/* NOTREACHED */
+}
+
+/*
 **  CONFIG_DUMP -- dump configuration contents
 **
 **  Parameters:
@@ -624,12 +656,13 @@ config_get(struct config *head, const char *name, void *value, size_t size)
 **  	name -- name of value of interest
 **
 **  Return value:
-**  	None.
+**  	Number of items that matched.
 */
 
-void
+unsigned int
 config_dump(struct config *cfg, FILE *out, const char *name)
 {
+	unsigned int nprinted = 0;
 	struct config *cur;
 
 	assert(cfg != NULL);
@@ -664,5 +697,9 @@ config_dump(struct config *cfg, FILE *out, const char *name)
 		  default:
 			assert(0);
 		}
+
+		nprinted++;
 	}
+
+	return nprinted;
 }
