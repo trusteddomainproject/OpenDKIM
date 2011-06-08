@@ -33,9 +33,6 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.70.2.1 2010/10/27 21:43:08 cm-msk
 #include <string.h>
 #include <limits.h>
 #include <unistd.h>
-#ifndef USE_GNUTLS
-# include <pthread.h>
-#endif /* ! USE_GNUTLS */
 #include <resolv.h>
 #ifdef USE_TRE
 # ifdef TRE_PRE_080
@@ -97,6 +94,9 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.70.2.1 2010/10/27 21:43:08 cm-msk
 #ifdef QUERY_CACHE
 # include "dkim-cache.h"
 #endif /* QUERY_CACHE */
+#ifdef _FFR_DKIM_REPUTATION
+# include "dkim-rep.h"
+#endif /* _FFR_DKIM_REPUTATION */
 #include "util.h"
 #include "base64.h"
 #include "dkim-strl.h"
@@ -118,10 +118,6 @@ void dkim_error __P((DKIM *, const char *, ...));
 #define	DKIM_CHUNKSTATE_HEADER	1
 #define	DKIM_CHUNKSTATE_BODY	2
 #define	DKIM_CHUNKSTATE_DONE	3
-
-#define	DKIM_CRLF_UNKNOWN	(-1)
-#define	DKIM_CRLF_LF		0
-#define	DKIM_CRLF_CRLF		1
 
 #define	DKIM_PHASH(x)		((x) - 32)
 
@@ -146,10 +142,6 @@ void dkim_error __P((DKIM *, const char *, ...));
 #else /* __RES && __RES >= 19940415 */
 # define RES_UNC_T		unsigned char *
 #endif /* __RES && __RES >= 19940415 */
-
-#ifndef T_AAAA
-# define T_AAAA			28
-#endif /* ! T_AAAA */
 
 /* need fast strtoul() and strtoull()? */
 #ifdef NEED_FAST_STRTOUL
@@ -2265,19 +2257,6 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		                    dkim->dkim_signer);
 	}
 
-#ifdef _FFR_XTAGS
-	if (dkim->dkim_xtags != NULL)
-	{
-		struct dkim_xtag *x;
-
-		for (x = dkim->dkim_xtags; x != NULL; x = x->xt_next)
-		{
-			dkim_dstring_printf(dstr, ";%s%s=%s", delim,
-			                    x->xt_tag, x->xt_value);
-		}
-	}
-#endif /* _FFR_XTAGS */
-
 	memset(b64hash, '\0', sizeof b64hash);
 
 	(void) dkim_canon_closebody(dkim);
@@ -3717,8 +3696,6 @@ dkim_eom_sign(DKIM *dkim)
 		                                       &rsa->rsa_keysize);
 
 		sig->sig_keybits = rsa->rsa_keysize;
-		sig->sig_flags |= DKIM_SIGFLAG_KEYLOADED;
-
 #else /* USE_GNUTLS */
 		if (strncmp((char *) dkim->dkim_key, "-----", 5) == 0)
 		{					/* PEM */
@@ -3768,7 +3745,6 @@ dkim_eom_sign(DKIM *dkim)
 		}
 
 		sig->sig_keybits = rsa->rsa_keysize * 8;
-		sig->sig_flags |= DKIM_SIGFLAG_KEYLOADED;
 #endif /* USE_GNUTLS */
 
 		break;
@@ -4220,7 +4196,6 @@ dkim_new(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 	                                              : bodycanon_alg);
 	new->dkim_querymethod = DKIM_QUERY_DEFAULT;
 	new->dkim_mode = DKIM_MODE_UNKNOWN;
-	new->dkim_chunkcrlf = DKIM_CRLF_UNKNOWN;
 	new->dkim_state = DKIM_STATE_INIT;
 	new->dkim_presult = DKIM_PRESULT_NONE;
 	new->dkim_dnssec_policy = DKIM_DNSSEC_UNKNOWN;
@@ -4245,57 +4220,6 @@ dkim_new(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 
 	return new;
 }
-
-#ifndef USE_GNUTLS
-/*
-**  DKIM_INIT_OPENSSL -- initialize OpenSSL algorithms if needed
-**
-**  Parameters:
-**  	None.
-**
-**  Return value:
-**  	None.
-*/
-
-static pthread_mutex_t openssl_lock = PTHREAD_MUTEX_INITIALIZER;
-static unsigned openssl_refcount = 0;
-
-static void
-dkim_init_openssl(void)
-{
-	pthread_mutex_lock(&openssl_lock);
-
-	if (openssl_refcount == 0)
-		OpenSSL_add_all_algorithms();
-	openssl_refcount++;
-
-	pthread_mutex_unlock(&openssl_lock);
-}
-
-/*
-**  DKIM_CLOSE_OPENSSL -- clean up OpenSSL algorithms if needed
-**
-**  Parameters:
-**  	None.
-**
-**  Return value:
-**  	None.
-*/
-
-static void
-dkim_close_openssl(void)
-{
-	assert(openssl_refcount > 0);
-
-	pthread_mutex_lock(&openssl_lock);
-
-	openssl_refcount--;
-	if (openssl_refcount == 0)
-		EVP_cleanup();
-
-	pthread_mutex_unlock(&openssl_lock);
-}
-#endif /* ! USE_GNUTLS */
 
 /* ========================= PUBLIC SECTION ========================== */
 
@@ -4323,7 +4247,7 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 
 #ifndef USE_GNUTLS
 	/* initialize OpenSSL algorithms */
-	dkim_init_openssl();
+	OpenSSL_add_all_algorithms();
 #endif /* USE_GNUTLS */
 
 	/* copy the parameters */
@@ -4445,7 +4369,7 @@ dkim_close(DKIM_LIB *lib)
 	free((void *) lib);
 
 #ifndef USE_GNUTLS
-	dkim_close_openssl();
+	EVP_cleanup();
 #endif /* ! USE_GNUTLS */
 }
 
@@ -4963,22 +4887,6 @@ dkim_free(DKIM *dkim)
 
 		CLOBBER(dkim->dkim_siglist);
 	}
-
-#ifdef _FFR_XTAGS
-	if (dkim->dkim_xtags != NULL)
-	{
-		struct dkim_xtag *cur;
-		struct dkim_xtag *next;
-
-		cur = dkim->dkim_xtags;
-		while (cur != NULL)
-		{
-			next = cur->xt_next;
-			free(cur);
-			cur = next;
-		}
-	}
-#endif /* _FFR_XTAGS */
 
 	/* destroy canonicalizations */
 	dkim_canon_cleanup(dkim);
@@ -6324,48 +6232,7 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 		return DKIM_STAT_NORESOURCE;
 	}
 
-	if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_FIXCRLF) != 0)
-	{
-		u_char prev = '\0';
-		u_char *p;
-		struct dkim_dstring *tmphdr;
-
-		tmphdr = dkim_dstring_new(dkim, BUFRSZ, MAXBUFRSZ);
-		if (tmphdr == NULL)
-			return DKIM_STAT_NORESOURCE;
-
-		for (p = hdr; *p != '\0'; p++)
-		{
-			if (*p == '\n' && prev != '\r')		/* bare LF */
-			{
-				dkim_dstring_catn(tmphdr, CRLF, 2);
-			}
-			else if (prev == '\r' && *p != '\n')	/* bare CR */
-			{
-				dkim_dstring_cat1(tmphdr, '\n');
-				dkim_dstring_cat1(tmphdr, *p);
-			}
-			else					/* other */
-			{
-				dkim_dstring_cat1(tmphdr, *p);
-			}
-
-			prev = *p;
-		}
-
-		if (prev == '\r')				/* end CR */
-			dkim_dstring_cat1(tmphdr, '\n');
-
-		h->hdr_text = dkim_strdup(dkim, dkim_dstring_get(tmphdr),
-		                          dkim_dstring_len(tmphdr));
-
-		dkim_dstring_free(tmphdr);
-	}
-	else
-	{
-		h->hdr_text = dkim_strdup(dkim, hdr, len);
-	}
-
+	h->hdr_text = dkim_strdup(dkim, hdr, len);
 	if (h->hdr_text == NULL)
 		return DKIM_STAT_NORESOURCE;
 	h->hdr_namelen = end != NULL ? end - hdr : len;
@@ -6544,9 +6411,6 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 
 	bso = ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_BADSIGHANDLES) != 0);
 
-	if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_FIXCRLF) == 0)
-		dkim->dkim_chunkcrlf = DKIM_CRLF_CRLF;
-
 	/* verify chunking state */
 	if (dkim->dkim_chunkstate >= DKIM_CHUNKSTATE_DONE)
 	{
@@ -6609,53 +6473,15 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 		switch (dkim->dkim_chunksm)
 		{
 		  case 0:
-			if (*p == '\n' &&
-			    dkim->dkim_chunkcrlf != DKIM_CRLF_CRLF)
-			{
-				dkim->dkim_chunkcrlf = DKIM_CRLF_LF;
-
-				/*
-				**  If this is a CRLF up front, change state
-				**  and write the rest as part of the body.
-				*/
-
-				if (dkim->dkim_hhead == NULL &&
-				    dkim_dstring_len(dkim->dkim_hdrbuf) == 2)
-				{
-					status = dkim_eoh(dkim);
-					if (status != DKIM_STAT_OK)
-						return status;
-
-					dkim->dkim_chunkstate = DKIM_CHUNKSTATE_BODY;
-					if (p < end)
-					{
-						return dkim_body(dkim, p + 1,
-						                 end - p);
-					}
-					else
-					{
-						return DKIM_STAT_OK;
-					}
-				}
-
-				dkim_dstring_catn(dkim->dkim_hdrbuf, CRLF, 2);
-				dkim->dkim_chunksm = 2;
-			}
-			else
-			{
-				dkim_dstring_cat1(dkim->dkim_hdrbuf, *p);
-				if (*p == '\r')
-					dkim->dkim_chunksm = 1;
-			}
+			dkim_dstring_cat1(dkim->dkim_hdrbuf, *p);
+			if (*p == '\r')
+				dkim->dkim_chunksm = 1;
 			break;
 
 		  case 1:
 			dkim_dstring_cat1(dkim->dkim_hdrbuf, *p);
 			if (*p == '\n')
 			{
-				if (dkim->dkim_chunkcrlf == DKIM_CRLF_UNKNOWN)
-					dkim->dkim_chunkcrlf = DKIM_CRLF_CRLF;
-
 				/*
 				**  If this is a CRLF up front, change state
 				**  and write the rest as part of the body.
@@ -6693,16 +6519,12 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 			{
 				dkim_dstring_cat1(dkim->dkim_hdrbuf, *p);
 				dkim->dkim_chunksm = 0;
-				break;
 			}
-			else if (*p == '\r' &&
-			         dkim->dkim_chunkcrlf == DKIM_CRLF_CRLF)
+			else if (*p == '\r')
 			{
 				dkim->dkim_chunksm = 3;
-				break;
 			}
-			else if (*p != '\n' ||
-			         dkim->dkim_chunkcrlf != DKIM_CRLF_LF)
+			else
 			{
 				status = dkim_header(dkim,
 				                     dkim_dstring_get(dkim->dkim_hdrbuf),
@@ -6714,9 +6536,8 @@ dkim_chunk(DKIM *dkim, u_char *buf, size_t buflen)
 				dkim_dstring_blank(dkim->dkim_hdrbuf);
 				dkim_dstring_cat1(dkim->dkim_hdrbuf, *p);
 				dkim->dkim_chunksm = 0;
-				break;
 			}
-			/* FALLTHROUGH */
+			break;
 				
 		  case 3:
 			if (*p == '\n')
@@ -6950,12 +6771,6 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 	sig = dkim->dkim_signature;
 	if (sig == NULL)
 		sig = dkim->dkim_siglist[0];
-
-	if ((sig->sig_flags & DKIM_SIGFLAG_KEYLOADED) == 0)
-	{
-		dkim_error(dkim, "private key load failure");
-		return DKIM_STAT_INVALID;
-	}
 
 	tmpbuf = dkim_dstring_new(dkim, BUFRSZ, MAXBUFRSZ);
 	if (tmpbuf == NULL)
@@ -8436,8 +8251,7 @@ dkim_getcachestats(u_int *queries, u_int *hits, u_int *expired)
 
 /*
 **  DKIM_GET_REPUTATION -- query reputation service about a signature
-**                         (OBSOLETE; moved to libdkimrep)
-**  
+**
 **  Parameters:
 **  	dkim -- DKIM handle
 **  	sig -- DKIM_SIGINFO handle
@@ -8445,13 +8259,51 @@ dkim_getcachestats(u_int *queries, u_int *hits, u_int *expired)
 **  	rep -- integer reputation (returned)
 **
 **  Return value:
+**  	DKIM_STAT_OK -- "rep" now contains a reputation
+**  	DKIM_STAT_NOKEY -- no reputation data available
+**  	DKIM_STAT_CANTVRFY -- data retrieval error of some kind
+**  	DKIM_STAT_INTERNAL -- internal error of some kind
 **  	DKIM_STAT_NOTIMPLEMENT -- not implemented
+**  	DKIM_STAT_INVALID -- domain could not be determined
 */
 
 DKIM_STAT
 dkim_get_reputation(DKIM *dkim, DKIM_SIGINFO *sig, char *qroot, int *rep)
 {
+#ifdef _FFR_DKIM_REPUTATION
+	int status;
+	int lrep;
+
+	assert(dkim != NULL);
+	assert(sig != NULL);
+	assert(qroot != NULL);
+	assert(rep != NULL);
+
+	if (dkim->dkim_domain == NULL)
+		return DKIM_STAT_INVALID;
+
+	status = dkim_reputation(dkim, dkim->dkim_user, dkim->dkim_domain,
+	                         dkim_sig_getdomain(sig), qroot, &lrep);
+
+	switch (status)
+	{
+	  case 1:
+		*rep = lrep;
+		return DKIM_STAT_OK;
+
+	  case 0:
+		return DKIM_STAT_NOKEY;
+
+	  case -1:
+		return DKIM_STAT_CANTVRFY;
+
+	  case -2:
+	  default:
+		return DKIM_STAT_INTERNAL;
+	}
+#else /* _FFR_DKIM_REPUTATION */
 	return DKIM_STAT_NOTIMPLEMENT;
+#endif /* _FFR_DKIM_REPUTATION */
 }
 
 /*
@@ -8813,290 +8665,4 @@ dkim_dns_set_query_waitreply(DKIM_LIB *lib, int (*func)(void *, void *,
 		lib->dkiml_dns_waitreply = func;
 	else
 		lib->dkiml_dns_waitreply = dkim_res_waitreply;
-}
-
-/*
-**  DKIM_ADD_XTAG -- add an extension tag/value
-**
-**  Parameters:
-**  	dkim -- DKIM signing handle to extend
-**  	tag -- name of tag to add
-**  	value -- value to include
-**
-**  Return value:
-**  	A DKIM_STAT_* constant.
-**
-**  Notes:
-**  	A value that contains spaces won't be wrapped nicely by the signature
-**  	generation code.  Support for this should be added later.
-*/
-
-DKIM_STAT
-dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
-{
-#ifdef _FFR_XTAGS
-	u_char last = '\0';
-	dkim_param_t pcode;
-	u_char *p;
-	struct dkim_xtag *x;
-
-	assert(dkim != NULL);
-	assert(tag != NULL);
-	assert(value != NULL);
-
-	if (dkim->dkim_mode != DKIM_MODE_SIGN)
-		return DKIM_STAT_INVALID;
-
-	/* check that it's not in sigparams */
-	if (tag[0] == '\0' || value[0] == '\0')
-		return DKIM_STAT_INVALID;
-	pcode = dkim_name_to_code(sigparams, tag);
-	if (pcode != (dkim_param_t) -1)
-		return DKIM_STAT_INVALID;
-
-	/* confirm valid syntax, per RFC4871 */
-	for (p = (u_char *) tag; *p != '\0'; p++)
-	{
-		if (!(isascii(*p) && (isalnum(*p) || *p == '_')))
-			return DKIM_STAT_INVALID;
-	}
-
-	if (value[0] == '\n' ||
-	    value[0] == '\r' ||
-	    value[0] == '\t' ||
-	    value[0] == ' ')
-		return DKIM_STAT_INVALID;
-
-	for (p = (u_char *) value; *p != '\0'; p++)
-	{
-		/* valid characters in general */
-		if (!(*p == '\n' ||
-		      *p == '\r' ||
-		      *p == '\t' ||
-		      *p == ' ' ||
-		      (*p >= 0x21 && *p <= 0x7e && *p != 0x3b)))
-			return DKIM_STAT_INVALID;
-
-		/* CR has to be followed by LF */
-		if (last == '\r' && *p != '\n')
-			return DKIM_STAT_INVALID;
-
-		/* LF has to be followed by space or tab */
-		if (last == '\n' && *p != ' ' && *p != '\t')
-			return DKIM_STAT_INVALID;
-
-		last = *p;
-	}
-
-	/* can't end with space */
-	if (last == '\n' || last == '\r' ||
-	    last == '\t' || last == ' ')
-		return DKIM_STAT_INVALID;
-
-	/* check for dupicates */
-	for (x = dkim->dkim_xtags; x != NULL; x = x->xt_next)
-	{
-		if (strcmp(x->xt_tag, tag) == 0)
-			return DKIM_STAT_INVALID;
-	}
-
-	x = (struct dkim_xtag *) DKIM_MALLOC(dkim, sizeof(struct dkim_xtag));
-	if (x == NULL)
-	{
-		dkim_error(dkim, "unable to allocate %d byte(s)",
-		           sizeof(struct dkim_xtag));
-		return DKIM_STAT_NORESOURCE;
-	}
-
-	x->xt_tag = tag;
-	x->xt_value = value;
-	x->xt_next = dkim->dkim_xtags;
-	dkim->dkim_xtags = x;
-
-	return DKIM_STAT_OK;
-#else /* _FFR_XTAGS */
-	return DKIM_STAT_NOTIMPLEMENT;
-#endif /* _FFR_XTAGS */
-}
-
-/*
-**  DKIM_QI_GETNAME -- retrieve the DNS name from a DKIM_QUERYINFO object
-**
-**  Parameters:
-**  	query -- DKIM_QUERYINFO handle
-**
-**  Return value:
-**  	A pointer to a NULL-terminated string indicating the name to be
-**  	queried, or NULL on error.
-*/
-
-const char *
-dkim_qi_getname(DKIM_QUERYINFO *query)
-{
-	assert(query != NULL);
-
-	return query->dq_name;
-}
-
-/*
-**  DKIM_QI_GETTYPE -- retrieve the DNS RR type from a DKIM_QUERYINFO object
-**
-**  Parameters:
-**  	query -- DKIM_QUERYINFO handle
-**
-**  Return value:
-**  	The DNS RR type to be queried, or -1 on error.
-*/
-
-int
-dkim_qi_gettype(DKIM_QUERYINFO *query)
-{
-	assert(query != NULL);
-
-	return query->dq_type;
-}
-
-/*
-**  DKIM_SIG_GETQUERIES -- retrieve the queries needed to validate a signature
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	sig -- DKIM_SIGINFO handle
-**  	qi -- DKIM_QUERYINFO handle array (returned)
-**  	nqi -- number of entries in the "qi" array
-**
-**  Return value:
-**  	A DKIM_STAT_* constant.
-*/
-
-DKIM_STAT
-dkim_sig_getqueries(DKIM *dkim, DKIM_SIGINFO *sig,
-                    DKIM_QUERYINFO ***qi, unsigned int *nqi)
-{
-	DKIM_QUERYINFO **new;
-	DKIM_QUERYINFO *newp;
-
-	assert(dkim != NULL);
-	assert(sig != NULL);
-	assert(qi != NULL);
-	assert(nqi != NULL);
-
-	new = DKIM_MALLOC(dkim, sizeof(struct dkim_queryinfo *));
-	if (new == NULL)
-		return DKIM_STAT_NORESOURCE;
-
-	newp = DKIM_MALLOC(dkim, sizeof(struct dkim_queryinfo));
-	if (newp == NULL)
-	{
-		DKIM_FREE(dkim, new);
-		return DKIM_STAT_NORESOURCE;
-	}
-
-	memset(newp, '\0', sizeof(struct dkim_queryinfo));
-
-	if (sig->sig_selector != NULL && sig->sig_domain != NULL)
-	{
-		newp->dq_type = T_TXT;
-		snprintf((char *) newp->dq_name, sizeof newp->dq_name,
-		         "%s.%s.%s",
-		         sig->sig_selector, DKIM_DNSKEYNAME, sig->sig_domain);
-	}
-
-	new[0] = newp;
-
-	*qi = new;
-	*nqi = 1;
-
-	return DKIM_STAT_OK;
-}
-
-/*
-**  DKIM_POLICY_GETQUERIES -- retrieve the queries needed to conduct ADSP
-**                            checks
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	qi -- DKIM_QUERYINFO handle array (returned)
-**  	nqi -- number of entries in the "qi" array
-**
-**  Return value:
-**  	A DKIM_STAT_* constant.
-*/
-
-DKIM_STAT
-dkim_policy_getqueries(DKIM *dkim,
-                       DKIM_QUERYINFO ***qi, unsigned int *nqi)
-{
-	int c;
-	DKIM_QUERYINFO **new;
-
-	assert(dkim != NULL);
-	assert(qi != NULL);
-	assert(nqi != NULL);
-
-	new = DKIM_MALLOC(dkim, 4 * sizeof(struct dkim_queryinfo *));
-	if (new == NULL)
-		return DKIM_STAT_NORESOURCE;
-
-	memset(new, '\0', 4 * sizeof(struct dkim_queryinfo *));
-
-	for (c = 0; c < 4; c++)
-	{
-		new[c] = DKIM_MALLOC(dkim, sizeof(struct dkim_queryinfo));
-		if (new[c] == NULL)
-		{
-			int d;
-
-			for (d = 0; d < c; d++)
-				free(new[d]);
-
-			free(new);
-
-			return DKIM_STAT_NORESOURCE;
-		}
-
-		memset(new[c], '\0', sizeof(struct dkim_queryinfo));
-
-		switch (c)
-		{
-		  case 0:
-			new[c]->dq_type = T_A;
-			break;
-
-		  case 1:
-			new[c]->dq_type = T_AAAA;
-			break;
-
-		  case 2:
-			new[c]->dq_type = T_MX;
-			break;
-
-		  case 3:
-			new[c]->dq_type = T_TXT;
-			break;
-		}
-
-		if (dkim->dkim_domain != NULL)
-		{
-			if (c != 3)
-			{
-				strlcpy((char *) new[c]->dq_name,
-				        dkim->dkim_domain,
-			                sizeof new[c]->dq_name);
-			}
-			else
-			{
-				snprintf((char *) new[c]->dq_name,
-				         sizeof new[c]->dq_name,
-				         "%s.%s.%s",
-				         DKIM_DNSPOLICYNAME, DKIM_DNSKEYNAME,
-				         dkim->dkim_domain);
-			}
-		}
-	}
-
-	*qi = new;
-	*nqi = 4;
-
-	return DKIM_STAT_OK;
 }
