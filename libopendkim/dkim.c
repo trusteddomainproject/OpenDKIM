@@ -4386,9 +4386,6 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef _FFR_DIFFHEADERS
 	FEATURE_ADD(libhandle, DKIM_FEATURE_DIFFHEADERS);
 #endif /* _FFR_DIFFHEADERS */
-#ifdef _FFR_DKIM_REPUTATION
-	FEATURE_ADD(libhandle, DKIM_FEATURE_DKIM_REPUTATION);
-#endif /* _FFR_DKIM_REPUTATION */
 #ifdef _FFR_PARSE_TIME
 	FEATURE_ADD(libhandle, DKIM_FEATURE_PARSE_TIME);
 #endif /* _FFR_PARSE_TIME */
