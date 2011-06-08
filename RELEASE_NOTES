@@ -5,6 +5,10 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.4.1		2011/06/??
+	Patch #SF3313534: Improve thread-safe use of OpenSSL in dkim_init()
+		and dkim_free().  Patch from Masatake Daimon.
+
 2.4.0		2011/06/06
 	Feature request #SF3060140: Extension of odkim.sign() to include
 		maximum signed byte count.
