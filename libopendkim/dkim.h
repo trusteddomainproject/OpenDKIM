@@ -957,7 +957,7 @@ extern DKIM_STAT dkim_sig_getcanons __P((DKIM_SIGINFO *sig, dkim_canon_t *hdr,
 **  	A DKIM_STAT_* constant.
 */
 
-extern DKIM_STAT dkim_set_user_context __P((DKIM *dkim, const void *ctx));
+extern DKIM_STAT dkim_set_user_context __P((DKIM *dkim, void *ctx));
 
 /*
 **  DKIM_GET_USER_CONTEXT -- retrieve DKIM handle user context
@@ -969,7 +969,7 @@ extern DKIM_STAT dkim_set_user_context __P((DKIM *dkim, const void *ctx));
 **  	User context pointer.
 */
 
-extern const void *dkim_get_user_context __P((DKIM *dkim));
+extern void *dkim_get_user_context __P((DKIM *dkim));
 
 /*
 **  DKIM_GET_MSGDATE -- retrieve value extracted from the Date: header

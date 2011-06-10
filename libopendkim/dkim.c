@@ -7978,11 +7978,11 @@ dkim_set_dns_callback(DKIM_LIB *libopendkim, void (*func)(const void *context),
 */
 
 DKIM_STAT
-dkim_set_user_context(DKIM *dkim, const void *ctx)
+dkim_set_user_context(DKIM *dkim, void *ctx)
 {
 	assert(dkim != NULL);
 
-	dkim->dkim_user_context = ctx;
+	dkim->dkim_user_context = (const void *) ctx;
 
 	return DKIM_STAT_OK;
 }
@@ -7997,12 +7997,12 @@ dkim_set_user_context(DKIM *dkim, const void *ctx)
 **  	User context associated with a DKIM handle
 */
 
-const void *
+void *
 dkim_get_user_context(DKIM *dkim)
 {
 	assert(dkim != NULL);
 
-	return dkim->dkim_user_context;
+	return (void *) dkim->dkim_user_context;
 }
 
 /*
