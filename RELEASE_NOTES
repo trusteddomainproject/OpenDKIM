@@ -11,6 +11,9 @@ release, and a summary of the changes in that release.
 		the PidFile setting, if any, from configuration.
 	LIBOPENDKIM: Patch #SF3313534: Improve thread-safe use of OpenSSL
 		in dkim_init() and dkim_free().  Patch from Masatake Daimon.
+	LIBOPENDKIM: Make the user context pointer (void) rather than
+		(const void) since the caller is allowed to change it.
+		Problem noted by Heikki Gruner.
 
 2.4.0		2011/06/06
 	Feature request #SF3060140: Extension of odkim.sign() to include
