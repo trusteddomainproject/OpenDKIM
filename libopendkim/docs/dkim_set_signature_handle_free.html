@@ -14,7 +14,7 @@ $Id: dkim_set_signature_handle_free.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
 #include &lt;dkim.h&gt;
 <a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_set_signature_handle_free(
 	<a href="dkim_lib.html"><tt>DKIM_LIB</tt></a> *libopendkim,
-        void * (*func)(void *closure, void *ptr));
+        void (*func)(void *closure, void *ptr));
 );
 </pre>
 Defines a callback function to be used for deallocating local data storage
@@ -50,7 +50,7 @@ was previously allocated.
         is the same as the <tt>memclosure</tt> passed to
         <a href="dkim_verify.html"><tt>dkim_verify()</tt></a>, and the second
         is the pointer previously returned by a call to the callback set by
-        <a href="dkim_set_signature_handle_free.html"><tt>dkim_set_signature_handle_free()</tt></a>.
+        <a href="dkim_set_signature_handle.html"><tt>dkim_set_signature_handle()</tt></a>.
         If NULL, no callback will be used.
 	</td></tr>
     </table>
