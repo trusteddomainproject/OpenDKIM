@@ -34,14 +34,7 @@ exec_prefix=@exec_prefix@
 
 DAEMON=@sbindir@/opendkim
 CONF_FILE=@sysconfdir@/opendkim.conf
-
-CONFPID_FILE="`$DAEMON -x $CONF_FILE -e PidFile`"
-if [ x"$CONFPID_FILE" = x"" ];
-then
-	PID_FILE=@localstatedir@/run/opendkim/opendkim.pid
-else
-	PID_FILE="$CONFPID_FILE"
-fi
+PID_FILE=@localstatedir@/run/opendkim/opendkim.pid
 RETVAL=0
 
 start() {
