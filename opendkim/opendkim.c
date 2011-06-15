@@ -15689,9 +15689,16 @@ main(int argc, char **argv)
 
 			if (status != 0)
 			{
+				char errbuf[BUFRSZ + 1];
+
+				memset(errbuf, '\0', sizeof errbuf);
+
+				dkimf_db_strerror(dbtest, errbuf,
+				                  sizeof errbuf);
+
 				fprintf(stderr,
-				        "%s: dkimf_db_get() returned %d\n",
-				        progname, status);
+				        "%s: dkimf_db_get() returned %d: \"%s\"\n",
+				        progname, status, errbuf);
 			}
 			else if (!exists)
 			{
