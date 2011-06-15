@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 $1
 x=$?
 # keep consistant with Makefile.am
