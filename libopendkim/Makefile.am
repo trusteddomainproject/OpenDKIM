@@ -39,7 +39,7 @@ libopendkim_la_CFLAGS += $(LIBTRE_CFLAGS)
 libopendkim_la_LIBADD += $(LIBTRE_LIBS)
 endif
 
-DISTCLEANFILES=symbols.map
+DISTCLEANFILES=symbols.map *.gcno *.gcda
 
 symbols.map: $(libopendkim_include_HEADERS)
 	grep '^extern' $? | \
@@ -47,4 +47,4 @@ symbols.map: $(libopendkim_include_HEADERS)
 		sed -e s/\[\*\;\]//g -e s/\[\\\[\\\]\]//g | \
 		sort -u -o $@
 
-MOSTLYCLEANFILES=symbols.map
+MOSTLYCLEANFILES=symbols.map *.gcno *.gcda
