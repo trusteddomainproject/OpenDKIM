@@ -7178,6 +7178,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			status = dkimf_db_open(&conf->conf_signtabledb,
 			                       conf->conf_signtable,
 			                       (DKIMF_DB_FLAG_ICASE |
+			                        DKIMF_DB_FLAG_ASCIIONLY |
 			                        DKIMF_DB_FLAG_READONLY),
 			                       NULL, &dberr);
 			if (status != 0)
@@ -15598,7 +15599,9 @@ main(int argc, char **argv)
 			*p = '\0';
 
 		p = NULL;
-		status = dkimf_db_open(&dbtest, dbname, DKIMF_DB_FLAG_READONLY,
+		status = dkimf_db_open(&dbtest, dbname,
+		                       (DKIMF_DB_FLAG_READONLY |
+		                        DKIMF_DB_FLAG_ASCIIONLY),
 		                       NULL, &p);
 		if (status != 0)
 		{

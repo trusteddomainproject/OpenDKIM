@@ -25,6 +25,7 @@ static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.15 2010/09/16 04:47
 #define	DKIMF_DB_FLAG_VALLIST	0x08
 #define	DKIMF_DB_FLAG_USETLS	0x10
 #define	DKIMF_DB_FLAG_MAKELOCK	0x20
+#define	DKIMF_DB_FLAG_ASCIIONLY	0x40
 
 #define	DKIMF_DB_TYPE_UNKNOWN	(-1)
 #define	DKIMF_DB_TYPE_FILE	0

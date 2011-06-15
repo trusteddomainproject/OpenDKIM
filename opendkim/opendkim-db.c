@@ -2687,6 +2687,30 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 	assert(buf != NULL);
 	assert(req != NULL || reqnum == 0);
 
+	/*
+	**  Indicate "not found" if we require ASCII-only and there was
+	**  non-ASCII in the query.
+	*/
+
+	if ((db->db_flags & DKIMF_DB_FLAG_ASCIIONLY) != 0)
+	{
+		char *p;
+		char *end;
+
+		end = (char *) buf + buflen;
+
+		for (p = (char *) buf; p <= end; p++)
+		{
+			if (!isascii(*p))
+			{
+				if (*exists)
+					*exists = FALSE;
+
+				return 0;
+			}
+		}
+	}
+
 	switch (db->db_type)
 	{
 	  case DKIMF_DB_TYPE_FILE:
