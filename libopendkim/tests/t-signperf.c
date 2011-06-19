@@ -305,7 +305,7 @@ main(int argc, char **argv)
 			w = 0;
 		}
 
-		body[c++] = (random() + 32) % 127;
+		body[c] = (random() % 95) + 32;
 		w++;
 	}
 
@@ -344,6 +344,8 @@ main(int argc, char **argv)
 
 			msgrem -= wsz;
 		}
+
+		(void) dkim_body(dkim, CRLF, 2);
 
 		status = dkim_eom(dkim, NULL);
 
