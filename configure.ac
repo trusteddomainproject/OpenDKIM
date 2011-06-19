@@ -418,6 +418,13 @@ int main() {
 	x = random();
 }'
 	AC_MSG_CHECKING([names of profiling output files])
+
+	saved_CFLAGS="$CFLAGS"
+	saved_LDFLAGS="$LDFLAGS"
+
+	CFLAGS="$CFLAGS $COV_CFLAGS"
+	LDFLAGS="$LDFLAGS $COV_LDFLAGS"
+
 	AC_RUN_IFELSE([AC_LANG_SOURCE([$gprofcheck])],
 	              [	if test -f "gmon.out"
 			then
@@ -431,6 +438,9 @@ int main() {
 			fi
 	              ],
 	              [AC_MSG_RESULT(unknown)])
+
+	CFLAGS="$saved_CFLAGS"
+	LDFLAGS="$saved_LDFLAGS"
 fi
 
 AM_CONDITIONAL(LCOV, test x"$haslcov" = x"yes" -a x"$hasgcov" = x"yes")
