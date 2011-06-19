@@ -8,6 +8,8 @@ release, and a summary of the changes in that release.
 2.4.1		2011/06/??
 	Fix bug #SF3312691: Add "-e" command line switch to extract a value
 		from configuration.
+	Fix bug #SF3321766: Remove "-d" from usage message (not implemented).
+		Patch from Andreas Schulze.
 	Print database error strings instead of just return codes in
 		query test mode, and clean up error strings when extracting
 		them from the layers below.
