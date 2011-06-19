@@ -435,7 +435,7 @@ extern DKIM *dkim_sign __P((DKIM_LIB *libhandle, const unsigned char *id,
                             dkim_canon_t hdr_canon_alg,
                             dkim_canon_t body_canon_alg,
                             dkim_alg_t sign_alg,
-                            off_t length, DKIM_STAT *statp));
+                            ssize_t length, DKIM_STAT *statp));
 
 /*
 **  DKIM_VERIFY -- make a new DKIM context for verifying
@@ -823,8 +823,8 @@ extern DKIM_STAT dkim_sig_getidentity __P((DKIM *dkim, DKIM_SIGINFO *sig,
 */
 
 extern DKIM_STAT dkim_sig_getcanonlen __P((DKIM *dkim, DKIM_SIGINFO *sig,
-                                           off_t *msglen, off_t *canonlen,
-                                           off_t *signlen));
+                                           ssize_t *msglen, ssize_t *canonlen,
+                                           ssize_t *signlen));
 
 /*
 **  DKIM_OPTIONS -- set/get options

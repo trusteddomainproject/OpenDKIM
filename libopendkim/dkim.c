@@ -1699,7 +1699,7 @@ dkim_siglist_setup(DKIM *dkim)
 	size_t b64siglen;
 	size_t len;
 	DKIM_STAT status;
-	off_t signlen = (off_t) -1;
+	ssize_t signlen = (ssize_t) -1;
 	uint64_t drift;
 	dkim_canon_t bodycanon;
 	dkim_canon_t hdrcanon;
@@ -1961,7 +1961,7 @@ dkim_siglist_setup(DKIM *dkim)
 			}
 			else
 			{
-				signlen = (off_t) strtoul((char *) param,
+				signlen = (ssize_t) strtoul((char *) param,
 				                          &q, 10);
 			}
 
@@ -4028,7 +4028,7 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 		sig = dkim->dkim_siglist[c];
 
 		if (sig->sig_bodycanon != NULL &&
-		    sig->sig_bodycanon->canon_length != (off_t) -1 &&
+		    sig->sig_bodycanon->canon_length != (ssize_t) -1 &&
 		    sig->sig_bodycanon->canon_wrote < sig->sig_bodycanon->canon_length)
 			sig->sig_error = DKIM_SIGERROR_TOOLARGE_L;
 	}
@@ -5024,7 +5024,7 @@ dkim_sign(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
           const dkim_sigkey_t secretkey, const unsigned char *selector,
           const unsigned char *domain, dkim_canon_t hdrcanonalg,
 	  dkim_canon_t bodycanonalg, dkim_alg_t signalg,
-          off_t length, DKIM_STAT *statp)
+          ssize_t length, DKIM_STAT *statp)
 {
 	DKIM *new;
 
@@ -5105,7 +5105,7 @@ dkim_sign(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 
 		new->dkim_selector = dkim_strdup(new, selector, 0);
 		new->dkim_domain = dkim_strdup(new, domain, 0);
-		if (length == (off_t) -1)
+		if (length == (ssize_t) -1)
 			new->dkim_signlen = ULONG_MAX;
 		else
 			new->dkim_signlen = length;
@@ -7561,8 +7561,8 @@ dkim_sig_getidentity(DKIM *dkim, DKIM_SIGINFO *sig, u_char *val, size_t vallen)
 */
 
 DKIM_STAT
-dkim_sig_getcanonlen(DKIM *dkim, DKIM_SIGINFO *sig, off_t *msglen,
-                     off_t *canonlen, off_t *signlen)
+dkim_sig_getcanonlen(DKIM *dkim, DKIM_SIGINFO *sig, ssize_t *msglen,
+                     ssize_t *canonlen, ssize_t *signlen)
 {
 	assert(dkim != NULL);
 	assert(sig != NULL);

@@ -23,8 +23,8 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "current" and reset "revision" with API changes
 # 	- bump "revision" with internal source code changes
 #
-m4_define([LIBVERSION_CURRENT], 4)
-m4_define([LIBVERSION_REVISION], 1)
+m4_define([LIBVERSION_CURRENT], 5)
+m4_define([LIBVERSION_REVISION], 0)
 m4_define([LIBVERSION_AGE], 0)
 
 #
@@ -405,10 +405,39 @@ then
 	AC_SUBST(COV_LIBADD)
 fi
 
+# see if profiling-enabled binaries generate profile output with the
+# standard name "gmon.out" or "<file>.gmon"
+
+gprof_gmon_out="unknown"
+if test x"$hasgprof" = x"yes"
+then
+	gprofcheck='
+int main() {
+	long x;
+
+	x = random();
+}'
+	AC_MSG_CHECKING([names of profiling output files])
+	AC_RUN_IFELSE([AC_LANG_SOURCE([$gprofcheck])],
+	              [	if test -f "gmon.out"
+			then
+				gprof_gmon_out="yes"
+				rm -f gmon.out
+				AC_MSG_RESULT(gmon.out)
+			else
+				gprof_gmon_out="no"
+				rm -f *.gmon
+				AC_MSG_RESULT([<binary>.gmon])
+			fi
+	              ],
+	              [AC_MSG_RESULT(unknown)])
+fi
+
 AM_CONDITIONAL(LCOV, test x"$haslcov" = x"yes" -a x"$hasgcov" = x"yes")
 AM_CONDITIONAL(GCOV, test x"$hasgcov" = x"yes")
 AM_CONDITIONAL(GCOV_ONLY, test x"$hasgcov" = x"yes" -a x"$haslcov" != x"yes")
 AM_CONDITIONAL(GPROF, test x"$hasgprof" = x"yes" -a x"$hasgcov" != x"yes")
+AM_CONDITIONAL(GPROF_FILENAMES, test x"$gprof_gmon_out" = x"no")
 
 #
 # opendkim

@@ -129,7 +129,7 @@ struct Header
 typedef struct signreq * SIGNREQ;
 struct signreq
 {
-	off_t			srq_signlen;
+	ssize_t			srq_signlen;
 	void *			srq_keydata;
 	u_char *		srq_domain;
 	u_char *		srq_selector;

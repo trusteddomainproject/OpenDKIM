@@ -122,9 +122,9 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 	dkim_alg_t alg;
 	dkim_canon_t bc;
 	dkim_canon_t hc;
-	off_t canonlen;
-	off_t signlen;
-	off_t msglen;
+	ssize_t canonlen;
+	ssize_t signlen;
+	ssize_t msglen;
 	struct Header *hdr;
 	FILE *out;
 	unsigned char *from;
