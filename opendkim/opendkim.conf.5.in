@@ -193,6 +193,7 @@ that this creates a potential security issue since someone could add
 arbitrary text to the signed message and the signature would still validate.
 See the DKIM specification for details.
 
+.TP
 .I BogusKey (string)
 Instructs the filter to treat a passing signature associated with a bogus
 (forged) key in a special way.  Possible values are
