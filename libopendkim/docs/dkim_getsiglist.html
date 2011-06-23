@@ -75,6 +75,9 @@ message.
 <ul>
 <li>The array returned is allocated and maintained by the library, and
     must not be deallocated by the caller. 
+<li>The first time this function is called, the array's order mirrors the
+    order of signature fields found in the message being verified.  The caller
+    is free to rearrange this order via the prescreen callback.
 </ul>
 </td>
 </tr>
