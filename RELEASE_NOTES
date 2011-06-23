@@ -22,6 +22,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Make the user context pointer (void) rather than
 		(const void) since the caller is allowed to change it.
 		Problem noted by Heikki Gruner.
+	LIBOPENDKIM: Proper handling of DKIM_CBSTAT_ERROR from the prescreen
+		and final callbacks.  Problem noted by Heikki Gruner.
 	BUILD: Adjust gprof code to accomodate systems that put profiling
 		output in <binary>.gmon rather than gmon.out.
 

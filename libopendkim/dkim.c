@@ -3405,6 +3405,9 @@ dkim_eoh_verify(DKIM *dkim)
 		  case DKIM_CBSTAT_TRYAGAIN:
 			return DKIM_STAT_CBTRYAGAIN;
 
+		  case DKIM_CBSTAT_ERROR:
+			return DKIM_STAT_CBERROR;
+
 		  default:
 			return DKIM_STAT_CBINVALID;
 		}
@@ -4048,6 +4051,9 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 
 		  case DKIM_CBSTAT_TRYAGAIN:
 			return DKIM_STAT_CBTRYAGAIN;
+
+		  case DKIM_CBSTAT_ERROR:
+			return DKIM_STAT_CBERROR;
 
 		  default:
 			return DKIM_STAT_CBINVALID;
