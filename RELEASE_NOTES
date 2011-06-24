@@ -17,6 +17,8 @@ release, and a summary of the changes in that release.
 		query test mode, and clean up error strings when extracting
 		them from the layers below.
 	Minor fixes related to use of OpenDBX.
+	LIBOPENDKIM: Fix bug #SF3328330: Correct generation of "z=" tags.
+		Problem reported by Christophe Wolfhugel.
 	LIBOPENDKIM: Patch #SF3313534: Improve thread-safe use of OpenSSL
 		in dkim_init() and dkim_free().  Patch from Masatake Daimon.
 	LIBOPENDKIM: Patch #SF3314269: Change all uses of off_t to

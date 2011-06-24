@@ -2491,7 +2491,8 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 				}
 				else if (q < end - 3)
 				{
-					snprintf((char *) q, len, "=%02X", *p);
+					snprintf((char *) q, sizeof tmp - len,
+					         "=%02X", *p);
 					q += 3;
 					len += 3;
 				}
