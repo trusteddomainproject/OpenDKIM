@@ -424,6 +424,7 @@ struct dkimf_config
 typedef struct msgctx * msgctx;
 struct msgctx
 {
+	_Bool		mctx_bldbdone;		/* BodyLengthDB applied? */
 	_Bool		mctx_eom;		/* in EOM? (enables progress) */
 	_Bool		mctx_addheader;		/* Authentication-Results: */
 	_Bool		mctx_headeronly;	/* in EOM, only add headers */
@@ -10621,6 +10622,7 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 #ifdef _FFR_ADSP_LISTS
 	    || conf->conf_nodiscardto != NULL
 #endif /* _FFR_ADSP_LISTS */
+	    || conf->conf_bldb != NULL
 #ifdef _FFR_REDIRECT
 	    || conf->conf_redirect != NULL
 #endif /* _FFR_REDIRECT */
@@ -10671,18 +10673,6 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 		a->a_addr = copy;
 
 		dfc->mctx_rcptlist = a;
-	}
-
-	if (conf->conf_bldb != NULL &&
-	    dkimf_checkbldb(conf->conf_bldb, addr, dfc->mctx_jobid))
-	{
-		dfc->mctx_ltag = TRUE;
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_INFO,
-				"%s: matched %s, signing with l= requested",
-				dfc->mctx_jobid, addr);
-		}
 	}
 
 	return SMFIS_CONTINUE;
@@ -11158,6 +11148,31 @@ mlfi_eoh(SMFICTX *ctx)
 			dkimf_cleanup(ctx);
 			return SMFIS_ACCEPT;
 		}
+	}
+
+	/* apply BodyLengthDB */
+	if (conf->conf_bldb != NULL && !dfc->mctx_bldbdone)
+	{
+		struct addrlist *a;
+
+		for (a = dfc->mctx_rcptlist; a != NULL; a = a->a_next)
+		{
+	    		if (dkimf_checkbldb(conf->conf_bldb, a->a_addr,
+			                    dfc->mctx_jobid))
+			{
+				dfc->mctx_ltag = TRUE;
+				if (conf->conf_dolog)
+				{
+					syslog(LOG_INFO,
+						"%s: BodyLengthDB matched %s, signing with l= requested",
+						dfc->mctx_jobid, a->a_addr);
+				}
+
+				break;
+			}
+		}
+
+		dfc->mctx_bldbdone = TRUE;
 	}
 
 	/* assume we're not signing */
