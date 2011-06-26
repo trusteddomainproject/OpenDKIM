@@ -4352,6 +4352,9 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	libhandle->dkiml_timeout = DEFTIMEOUT;
 	libhandle->dkiml_senderhdrs = (u_char **) dkim_default_senderhdrs;
 	libhandle->dkiml_alwayshdrs = NULL;
+#ifdef _FFR_OVERSIGN
+	libhandle->dkiml_oversignhdrs = NULL;
+#endif /* _FFR_OVERSIGN */
 	libhandle->dkiml_nalwayshdrs = 0;
 	libhandle->dkiml_mbs = NULL;
 	libhandle->dkiml_querymethod = DKIM_QUERY_UNKNOWN;

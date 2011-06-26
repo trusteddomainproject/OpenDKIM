@@ -29,6 +29,8 @@ release, and a summary of the changes in that release.
 		Problem noted by Heikki Gruner.
 	LIBOPENDKIM: Proper handling of DKIM_CBSTAT_ERROR from the prescreen
 		and final callbacks.  Problem noted by Heikki Gruner.
+	LIBOPENDKIM: Fix up initialization under _FFR_OVERSIGN.  Problem
+		noted by Eray Aslan.
 	BUILD: Adjust gprof code to accomodate systems that put profiling
 		output in <binary>.gmon rather than gmon.out.
 
