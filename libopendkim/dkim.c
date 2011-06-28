@@ -8536,6 +8536,8 @@ dkim_get_sigsubstring(DKIM *dkim, DKIM_SIGINFO *sig, char *buf, size_t *buflen)
 
 	minlen = MIN(*buflen, dkim->dkim_minsiglen);
 	strncpy(buf, b1, minlen);
+	if (minlen < *buflen)
+		buf[minlen] = '\0';
 	*buflen = minlen;
 
 	return DKIM_STAT_OK;
