@@ -11727,9 +11727,9 @@ mlfi_eoh(SMFICTX *ctx)
 
 	/* verify request with verify mode disabled */
 #ifdef _FFR_RESIGN
-	if (msgsigned && (dfc->mctx_srhead == NULL || dfc->mctx_resign) &&
+	if ((dfc->mctx_srhead == NULL || dfc->mctx_resign) &&
 #else /* _FFR_RESIGN */
-	if (msgsigned && dfc->mctx_srhead == NULL &&
+	if (dfc->mctx_srhead == NULL &&
 #endif /* _FFR_RESIGN */
 	    (conf->conf_mode & DKIMF_MODE_VERIFIER) == 0)
 		return SMFIS_ACCEPT;

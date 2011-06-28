@@ -5,12 +5,14 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.4.1		2011/06/??
+2.4.1		2011/06/28
 	Fix bug #SF3312691: Add "-e" command line switch to extract a value
 		from configuration.
 	Fix bug #SF3324488: Accommodate postfix's job ID generation by moving
 		the BodyLengthDB check down to EOH.  Reported by Andreas
 		Schulze.
+	Fix bug #SF3327106: Fix mode-based short-circuit logic.  Reported
+		by Yoshiaki Yanagihara.
 	Patch #SF3321766: Remove "-d" from usage message (not implemented).
 		Patch from Andreas Schulze.
 	Print database error strings instead of just return codes in
