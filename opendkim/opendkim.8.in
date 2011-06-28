@@ -10,6 +10,7 @@
 [-c canon]
 [-d domain[,...]]
 [-D]
+[-e name]
 [-f]
 [-F time]
 [-k keyfile]
@@ -173,7 +174,7 @@ character, it is presumed to be a flat file as described above.
 .TP
 .I j)
 If the string begins with "csl:", the string is treated as a comma-separated
-list as described in j) below.
+list as described in k) below.
 .TP
 .I k)
 In any other case, the string is presumed to be a comma-separated list.
@@ -226,6 +227,11 @@ other domains will be verified rather than being signed.
 Sign subdomains of those listed by the
 .I -d
 option as well as the actual domains.
+.TP
+.I -e name
+Extracts the value of
+.I name
+from the configuration file (if any).
 .TP
 .I -f
 Normally

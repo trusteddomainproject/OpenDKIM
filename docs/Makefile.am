@@ -5,9 +5,9 @@
 #AUTOMAKE_OPTIONS = foreign
 
 dist_doc_DATA = draft-ietf-dkim-implementation-report-06.txt \
-	draft-ietf-dkim-mailinglists-10.txt \
-	draft-ietf-marf-dkim-reporting-01.txt \
-	draft-kucherawy-authres-vbr-04.txt \
+	draft-ietf-dkim-mailinglists-12.txt \
+	draft-ietf-marf-dkim-reporting-02.txt \
+	draft-kucherawy-dkim-atps-03.txt \
 	rfc3447.txt \
 	rfc4686.txt \
 	rfc4871.txt \

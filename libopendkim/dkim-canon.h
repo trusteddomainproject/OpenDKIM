@@ -2,7 +2,7 @@
 **  Copyright (c) 2007, 2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef _DKIM_CANON_H_
@@ -28,7 +28,7 @@ static char dkim_canon_h_id[] = "@(#)$Id: dkim-canon.h,v 1.5.42.1 2010/10/27 21:
 /* prototypes */
 extern DKIM_STAT dkim_add_canon __P((DKIM *, _Bool, dkim_canon_t, int,
                                      u_char *, struct dkim_header *,
-                                     off_t length, DKIM_CANON **));
+                                     ssize_t length, DKIM_CANON **));
 extern DKIM_STAT dkim_canon_bodychunk __P((DKIM *, u_char *, size_t));
 extern void dkim_canon_cleanup __P((DKIM *));
 extern DKIM_STAT dkim_canon_closebody __P((DKIM *));

@@ -59,7 +59,8 @@ the DKIM specification (e.g a DNS lookup).
 	 <li> a pointer to an integer which should receive the result of
 	      the query attempt, and should be one of the known constants
 	      used to report the status of a DNS query (e.g. <tt>NXDOMAIN</tt>,
-	      <tt>NOERROR</tt>, <tt>SERVFAIL</tt>, etc.)
+	      <tt>NOERROR</tt>, <tt>SERVFAIL</tt>, etc., typically defined
+	      in <tt>&lt;arpa/nameser.h&gt;</tt>)
 	</ol>
 	The function should return a valid
 	<a href="dkim_cbstat.html"><tt>DKIM_CBSTAT</tt></a> constant; in

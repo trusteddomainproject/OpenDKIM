@@ -89,7 +89,6 @@ usage(void)
 	fprintf(stderr, "%s: usage: %s [opts] [dataset]\n"
 	                "\t-A          \tinclude '._atps' suffix\n"
 	                "\t-C user@host\tcontact address to include in SOA\n"
-	                "\t-d domain   \twrite records for named domain only\n"
 	                "\t-E secs     \tuse specified expiration time in SOA\n"
 	                "\t-o file     \toutput file\n"
 	                "\t-N ns[,...] \tlist NS records\n"
@@ -384,7 +383,7 @@ main(int argc, char **argv)
 		(void) dkim_base32_encode(base32, &b32len,
 		                          shaout, SHA_DIGEST_LENGTH);
 
-		/* XXX -- generate output */
+		/* generate output */
 		if (ttl == -1)
 		{
 			fprintf(out, "%s%s\tIN\tTXT\t\"%s\"\n",

@@ -295,8 +295,15 @@ if GPROF
 MOSTLYCLEANFILES+=*.prof gmon.out *.gmon
 
 check-local: check-TESTS
+if GPROF_FILENAMES
+	for i in $(check_PROGRAMS); do \
+		./$$i; \
+		gprof $$i $$i.gmon > $$i.prof; \
+	done
+else
 	for i in $(check_PROGRAMS); do \
 		./$$i; \
 		gprof $$i > $$i.prof; \
 	done
+endif
 endif

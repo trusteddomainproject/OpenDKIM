@@ -182,7 +182,7 @@ dkim_canon_write(DKIM_CANON *canon, u_char *buf, size_t buflen)
 {
 	assert(canon != NULL);
 
-	if (canon->canon_remain != (off_t) -1)
+	if (canon->canon_remain != (ssize_t) -1)
 		buflen = MIN(buflen, canon->canon_remain);
 
 	canon->canon_wrote += buflen;
@@ -240,7 +240,7 @@ dkim_canon_write(DKIM_CANON *canon, u_char *buf, size_t buflen)
 #endif /* USE_GNUTLS */
 	}
 
-	if (canon->canon_remain != (off_t) -1)
+	if (canon->canon_remain != (ssize_t) -1)
 		canon->canon_remain -= buflen;
 }
 
@@ -839,7 +839,7 @@ dkim_canon_cleanup(DKIM *dkim)
 DKIM_STAT
 dkim_add_canon(DKIM *dkim, _Bool hdr, dkim_canon_t canon, int hashtype,
                u_char *hdrlist, struct dkim_header *sighdr,
-               off_t length, DKIM_CANON **cout)
+               ssize_t length, DKIM_CANON **cout)
 {
 	DKIM_CANON *cur;
 	DKIM_CANON *new;
@@ -891,8 +891,8 @@ dkim_add_canon(DKIM *dkim, _Bool hdr, dkim_canon_t canon, int hashtype,
 	new->canon_wrote = 0;
 	if (hdr)
 	{
-		new->canon_length = (off_t) -1;
-		new->canon_remain = (off_t) -1;
+		new->canon_length = (ssize_t) -1;
+		new->canon_remain = (ssize_t) -1;
 	}
 	else
 	{
@@ -1618,7 +1618,7 @@ dkim_canon_minbody(DKIM *dkim)
 			continue;
 
 		/* if this one wants the whole message, short-circuit */
-		if (cur->canon_remain == (off_t) -1)
+		if (cur->canon_remain == (ssize_t) -1)
 			return ULONG_MAX;
 
 		/* compare to current minimum */
@@ -1742,6 +1742,7 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 							dkim_canon_flushblanks(cur);
 						cur->canon_blankline = FALSE;
 					}
+
 					wlen++;
 				}
 

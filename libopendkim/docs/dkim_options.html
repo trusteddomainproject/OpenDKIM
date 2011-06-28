@@ -116,32 +116,32 @@ of the library's operation.
                                 generation.</td></tr>
            <tr valign="top"><td><tt>DKIM_OPTS_SIGNHDRS</tt></td>
                             <td><tt>data</tt> refers to an unordered,
-                                NULL-terminated array of header names which
-                                are the ones that should be included when
-                                signing a message.
+                                NULL-terminated array of header field names.
+				Input header fields whose names match an
+				entry in this list will be signed.
 
                                 Wildcarding using the asterisk ("*")
                                 character, meaning "match zero or more
                                 characters", is permitted.
 
-                                The <tt>From</tt> header is mandatory and
+                                The <tt>From</tt> header field is mandatory and
                                 thus implicitly added to any list provided
                                 by the caller.
 
                                 The constant <tt>should_signhdrs</tt> may be
-                                specified as the <tt>data</tt>, whicn contains
-				all of the headers RFC4871 section 5.5 says
-				should be signed.
+                                specified as the <tt>data</tt>, which contains
+				all of the header fields RFC4871 section 5.5
+				says should be signed.
 
-                                The default is to sign all headers.
+                                The default is to sign all header fields.
 
                                 If <tt>data</tt> refers to a NULL pointer,
                                 the default is restored.
 
                                 Attempting <tt>DKIM_OP_GETOPT</tt> on this
                                 option returns an error as it is converted
-                                to regular expressions and not currently
-                                stored in a useable form.</td></tr>
+                                internally to regular expressions and not
+				currently stored in a useable form.</td></tr>
            <tr valign="top"><td><tt>DKIM_OPTS_SKIPHDRS</tt></td>
                             <td><tt>data</tt> refers to an unordered,
                                 NULL-terminated array of header names which

@@ -201,9 +201,9 @@ struct dkim_canon
 	u_int			canon_blanks;
 	size_t			canon_hashbuflen;
 	size_t			canon_hashbufsize;
-	off_t			canon_remain;
-	off_t			canon_wrote;
-	off_t			canon_length;
+	ssize_t			canon_remain;
+	ssize_t			canon_wrote;
+	ssize_t			canon_length;
 	dkim_canon_t		canon_canon;
 	u_char *		canon_hashbuf;
 	u_char *		canon_hdrlist;
@@ -306,8 +306,8 @@ struct dkim
 #ifdef _FFR_ATPS
 	_Bool			dkim_atps;
 #endif /* _FFR_ATPS */
-	off_t			dkim_bodylen;
-	off_t			dkim_signlen;
+	ssize_t			dkim_bodylen;
+	ssize_t			dkim_signlen;
 	const u_char *		dkim_id;
 	u_char *		dkim_domain;
 	u_char *		dkim_user;

@@ -15,9 +15,9 @@ $Id: dkim_sig_getcanonlen.html,v 1.3 2010/07/24 04:52:15 cm-msk Exp $
 <a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_sig_getcanonlen(
 	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
 	<a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *sig,
-        off_t *msglen,
-        off_t *canonlen,
-        off_t *signlen
+        ssize_t *msglen,
+        ssize_t *canonlen,
+        ssize_t *signlen
 );
 </pre>
 Retrieve the number of bytes of message body presented for signing
@@ -53,7 +53,7 @@ or verifying, and/or the number of bytes actually signed or verified.
 	being evaluated.
 	</td></tr>
     <tr valign="top"><td>msglen</td>
-	<td>A pointer to an <tt>off_t</tt> which will receive a count of
+	<td>A pointer to an <tt>ssize_t</tt> which will receive a count of
         the number of bytes in the <i>canonicalized</i> form of the message.
         This should always be the number of bytes in the message body
         plus or minus whatever was required to canonicalize it (so for
@@ -62,7 +62,7 @@ or verifying, and/or the number of bytes actually signed or verified.
         Can be NULL if this information is not needed by the caller.
 	</td></tr>
     <tr valign="top"><td>canonlen</td>
-	<td>A pointer to an <tt>off_t</tt> which will receive a count of
+	<td>A pointer to an <tt>ssize_t</tt> which will receive a count of
         the number of bytes in the <i>canonicalized</i> form of the message
         that were included in the signed data.  If <tt>msglen</tt> and
         <tt>canonlen</tt> are the same, then the entire message was signed.
@@ -75,7 +75,7 @@ or verifying, and/or the number of bytes actually signed or verified.
 	Can be NULL if this information is not needed by the caller.
 	</td></tr>
     <tr valign="top"><td>signlen</td>
-	<td>A pointer to an <tt>off_t</tt> which will receive the signature
+	<td>A pointer to an <tt>ssize_t</tt> which will receive the signature
         length limit for this signature (i.e. the value of the "l=" tag
 	if one was present on the signature).  If no limit was set by
 	the signer, a value of -1 is returned.
@@ -100,7 +100,7 @@ or verifying, and/or the number of bytes actually signed or verified.
 Copyright (c) 2005-2007 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set

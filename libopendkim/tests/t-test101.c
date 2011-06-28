@@ -44,9 +44,9 @@ main(int argc, char **argv)
 {
 	u_int flags;
 	int bits;
-	off_t msglen;
-	off_t canonlen;
-	off_t signlen;
+	ssize_t msglen;
+	ssize_t canonlen;
+	ssize_t signlen;
 	dkim_alg_t signalg;
 	uint64_t signtime;
 	dkim_canon_t hcanon;

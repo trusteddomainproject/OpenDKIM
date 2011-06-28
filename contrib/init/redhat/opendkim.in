@@ -33,8 +33,8 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 
 DAEMON=@sbindir@/opendkim
-PID_FILE=@localstatedir@/run/opendkim/opendkim.pid
 CONF_FILE=@sysconfdir@/opendkim.conf
+PID_FILE=@localstatedir@/run/opendkim/opendkim.pid
 RETVAL=0
 
 start() {

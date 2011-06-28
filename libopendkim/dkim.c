@@ -33,6 +33,9 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.70.2.1 2010/10/27 21:43:08 cm-msk
 #include <string.h>
 #include <limits.h>
 #include <unistd.h>
+#ifndef USE_GNUTLS
+# include <pthread.h>
+#endif /* ! USE_GNUTLS */
 #include <resolv.h>
 #ifdef USE_TRE
 # ifdef TRE_PRE_080
@@ -1696,7 +1699,7 @@ dkim_siglist_setup(DKIM *dkim)
 	size_t b64siglen;
 	size_t len;
 	DKIM_STAT status;
-	off_t signlen = (off_t) -1;
+	ssize_t signlen = (ssize_t) -1;
 	uint64_t drift;
 	dkim_canon_t bodycanon;
 	dkim_canon_t hdrcanon;
@@ -1958,7 +1961,7 @@ dkim_siglist_setup(DKIM *dkim)
 			}
 			else
 			{
-				signlen = (off_t) strtoul((char *) param,
+				signlen = (ssize_t) strtoul((char *) param,
 				                          &q, 10);
 			}
 
@@ -2486,9 +2489,10 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 					q++;
 					len++;
 				}
-				else if (q < end - 3)
+				else if (q < end - 4)
 				{
-					snprintf((char *) q, len, "=%02X", *p);
+					snprintf((char *) q, 4,
+					         "=%02X", *p);
 					q += 3;
 					len += 3;
 				}
@@ -3402,6 +3406,9 @@ dkim_eoh_verify(DKIM *dkim)
 		  case DKIM_CBSTAT_TRYAGAIN:
 			return DKIM_STAT_CBTRYAGAIN;
 
+		  case DKIM_CBSTAT_ERROR:
+			return DKIM_STAT_CBERROR;
+
 		  default:
 			return DKIM_STAT_CBINVALID;
 		}
@@ -4025,7 +4032,7 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 		sig = dkim->dkim_siglist[c];
 
 		if (sig->sig_bodycanon != NULL &&
-		    sig->sig_bodycanon->canon_length != (off_t) -1 &&
+		    sig->sig_bodycanon->canon_length != (ssize_t) -1 &&
 		    sig->sig_bodycanon->canon_wrote < sig->sig_bodycanon->canon_length)
 			sig->sig_error = DKIM_SIGERROR_TOOLARGE_L;
 	}
@@ -4045,6 +4052,9 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 
 		  case DKIM_CBSTAT_TRYAGAIN:
 			return DKIM_STAT_CBTRYAGAIN;
+
+		  case DKIM_CBSTAT_ERROR:
+			return DKIM_STAT_CBERROR;
 
 		  default:
 			return DKIM_STAT_CBINVALID;
@@ -4243,6 +4253,57 @@ dkim_new(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 	return new;
 }
 
+#ifndef USE_GNUTLS
+/*
+**  DKIM_INIT_OPENSSL -- initialize OpenSSL algorithms if needed
+**
+**  Parameters:
+**  	None.
+**
+**  Return value:
+**  	None.
+*/
+
+static pthread_mutex_t openssl_lock = PTHREAD_MUTEX_INITIALIZER;
+static unsigned openssl_refcount = 0;
+
+static void
+dkim_init_openssl(void)
+{
+	pthread_mutex_lock(&openssl_lock);
+
+	if (openssl_refcount == 0)
+		OpenSSL_add_all_algorithms();
+	openssl_refcount++;
+
+	pthread_mutex_unlock(&openssl_lock);
+}
+
+/*
+**  DKIM_CLOSE_OPENSSL -- clean up OpenSSL algorithms if needed
+**
+**  Parameters:
+**  	None.
+**
+**  Return value:
+**  	None.
+*/
+
+static void
+dkim_close_openssl(void)
+{
+	assert(openssl_refcount > 0);
+
+	pthread_mutex_lock(&openssl_lock);
+
+	openssl_refcount--;
+	if (openssl_refcount == 0)
+		EVP_cleanup();
+
+	pthread_mutex_unlock(&openssl_lock);
+}
+#endif /* ! USE_GNUTLS */
+
 /* ========================= PUBLIC SECTION ========================== */
 
 /*
@@ -4269,7 +4330,7 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 
 #ifndef USE_GNUTLS
 	/* initialize OpenSSL algorithms */
-	OpenSSL_add_all_algorithms();
+	dkim_init_openssl();
 #endif /* USE_GNUTLS */
 
 	/* copy the parameters */
@@ -4291,6 +4352,9 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	libhandle->dkiml_timeout = DEFTIMEOUT;
 	libhandle->dkiml_senderhdrs = (u_char **) dkim_default_senderhdrs;
 	libhandle->dkiml_alwayshdrs = NULL;
+#ifdef _FFR_OVERSIGN
+	libhandle->dkiml_oversignhdrs = NULL;
+#endif /* _FFR_OVERSIGN */
 	libhandle->dkiml_nalwayshdrs = 0;
 	libhandle->dkiml_mbs = NULL;
 	libhandle->dkiml_querymethod = DKIM_QUERY_UNKNOWN;
@@ -4350,9 +4414,6 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef _FFR_OVERSIGN
 	FEATURE_ADD(libhandle, DKIM_FEATURE_OVERSIGN);
 #endif /* _FFR_OVERSIGN */
-#ifdef _FFR_XTAGS
-	FEATURE_ADD(libhandle, DKIM_FEATURE_XTAGS);
-#endif /* _FFR_XTAGS */
 
 	/* initialize the resolver */
 	(void) res_init();
@@ -4391,7 +4452,7 @@ dkim_close(DKIM_LIB *lib)
 	free((void *) lib);
 
 #ifndef USE_GNUTLS
-	EVP_cleanup();
+	dkim_close_openssl();
 #endif /* ! USE_GNUTLS */
 }
 
@@ -4973,7 +5034,7 @@ dkim_sign(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
           const dkim_sigkey_t secretkey, const unsigned char *selector,
           const unsigned char *domain, dkim_canon_t hdrcanonalg,
 	  dkim_canon_t bodycanonalg, dkim_alg_t signalg,
-          off_t length, DKIM_STAT *statp)
+          ssize_t length, DKIM_STAT *statp)
 {
 	DKIM *new;
 
@@ -5054,7 +5115,7 @@ dkim_sign(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 
 		new->dkim_selector = dkim_strdup(new, selector, 0);
 		new->dkim_domain = dkim_strdup(new, domain, 0);
-		if (length == (off_t) -1)
+		if (length == (ssize_t) -1)
 			new->dkim_signlen = ULONG_MAX;
 		else
 			new->dkim_signlen = length;
@@ -7510,8 +7571,8 @@ dkim_sig_getidentity(DKIM *dkim, DKIM_SIGINFO *sig, u_char *val, size_t vallen)
 */
 
 DKIM_STAT
-dkim_sig_getcanonlen(DKIM *dkim, DKIM_SIGINFO *sig, off_t *msglen,
-                     off_t *canonlen, off_t *signlen)
+dkim_sig_getcanonlen(DKIM *dkim, DKIM_SIGINFO *sig, ssize_t *msglen,
+                     ssize_t *canonlen, ssize_t *signlen)
 {
 	assert(dkim != NULL);
 	assert(sig != NULL);
@@ -7927,11 +7988,11 @@ dkim_set_dns_callback(DKIM_LIB *libopendkim, void (*func)(const void *context),
 */
 
 DKIM_STAT
-dkim_set_user_context(DKIM *dkim, const void *ctx)
+dkim_set_user_context(DKIM *dkim, void *ctx)
 {
 	assert(dkim != NULL);
 
-	dkim->dkim_user_context = ctx;
+	dkim->dkim_user_context = (const void *) ctx;
 
 	return DKIM_STAT_OK;
 }
@@ -7946,12 +8007,12 @@ dkim_set_user_context(DKIM *dkim, const void *ctx)
 **  	User context associated with a DKIM handle
 */
 
-const void *
+void *
 dkim_get_user_context(DKIM *dkim)
 {
 	assert(dkim != NULL);
 
-	return dkim->dkim_user_context;
+	return (void *) dkim->dkim_user_context;
 }
 
 /*

@@ -2687,6 +2687,30 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 	assert(buf != NULL);
 	assert(req != NULL || reqnum == 0);
 
+	/*
+	**  Indicate "not found" if we require ASCII-only and there was
+	**  non-ASCII in the query.
+	*/
+
+	if ((db->db_flags & DKIMF_DB_FLAG_ASCIIONLY) != 0)
+	{
+		char *p;
+		char *end;
+
+		end = (char *) buf + buflen;
+
+		for (p = (char *) buf; p <= end; p++)
+		{
+			if (!isascii(*p))
+			{
+				if (*exists)
+					*exists = FALSE;
+
+				return 0;
+			}
+		}
+	}
+
 	switch (db->db_type)
 	{
 	  case DKIMF_DB_TYPE_FILE:
@@ -3027,7 +3051,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 # endif /* _FFR_DB_HANDLE_POOLS */
 
-		memset(&elen, '\0', sizeof elen);
+		memset(escaped, '\0', sizeof escaped);
 		elen = sizeof escaped - 1;
 		err = odbx_escape(odbx, buf,
 		                  (buflen == 0 ? strlen(buf) : buflen),
@@ -3144,6 +3168,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 						status = -1;
 				}
 #endif /* _FFR_POSTGRESQL_RECONNECT_HACK */
+
+				if (result != NULL)
+					(void) odbx_result_finish(result);
 
 				if (status < 0)
 				{
@@ -3881,8 +3908,20 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 
 #ifdef USE_ODBX
 	  case DKIMF_DB_TYPE_DSN:
-		return strlcpy(err, odbx_error((odbx_t *) db->db_handle,
-		                               db->db_status), errlen);
+	  {
+		char *p;
+
+		strlcpy(err, odbx_error((odbx_t *) db->db_handle,
+		                        db->db_status), errlen);
+		for (p = err + strlen(err) - 1; p >= err; p--)
+		{
+			if (*p == '\n')
+				*p = '\0';
+			else
+				break;
+		}
+	  }
+
 #endif /* USE_ODBX */
 
 #ifdef USE_LDAP

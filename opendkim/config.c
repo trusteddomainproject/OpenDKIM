@@ -2,7 +2,7 @@
 **  Copyright (c) 2006-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: config.c,v 1.10.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -615,21 +615,54 @@ config_get(struct config *head, const char *name, void *value, size_t size)
 	return 0;
 }
 
-#ifdef DEBUG
+/*
+**  CONFIG_VALIDNAME -- return True IFF the name provided was valid
+**
+**  Parameters:
+**  	def -- configuration definition
+**  	name -- name of value of interest
+**
+**  Return value:
+**  	True IFF "name" was defined inside "cd"
+*/
+
+_Bool
+config_validname(struct configdef *def, const char *name)
+{
+	unsigned int n;
+
+	assert(def != NULL);
+	assert(name != NULL);
+
+	for (n = 0; ; n++)
+	{
+		if (def[n].cd_name == NULL)
+			return FALSE;
+
+		if (strcasecmp(name, def[n].cd_name) == 0)
+			return TRUE;
+	}
+
+	assert(0);
+	/* NOTREACHED */
+}
+
 /*
 **  CONFIG_DUMP -- dump configuration contents
 **
 **  Parameters:
 **  	cfg -- head of assembled configuration values
 **  	out -- stream to which to write
+**  	name -- name of value of interest
 **
 **  Return value:
-**  	None.
+**  	Number of items that matched.
 */
 
-void
-config_dump(struct config *cfg, FILE *out)
+unsigned int
+config_dump(struct config *cfg, FILE *out, const char *name)
 {
+	unsigned int nprinted = 0;
 	struct config *cur;
 
 	assert(cfg != NULL);
@@ -637,12 +670,20 @@ config_dump(struct config *cfg, FILE *out)
 
 	for (cur = cfg; cur != NULL; cur = cur->cfg_next)
 	{
-		fprintf(out, "%p: \"%s\" ", cur, cur->cfg_name);
+		if (name != NULL)
+		{
+			if (strcasecmp(name, cur->cfg_name) != 0)
+				continue;
+		}
+		else
+		{
+			fprintf(out, "%p: \"%s\" ", cur, cur->cfg_name);
+		}
 
 		switch (cur->cfg_type)
 		{
 		  case CONFIG_TYPE_STRING:
-			fprintf(out, "\"%s\"\n", cur->cfg_string);
+			fprintf(out, "%s\n", cur->cfg_string);
 			break;
 
 		  case CONFIG_TYPE_INTEGER:
@@ -656,6 +697,9 @@ config_dump(struct config *cfg, FILE *out)
 		  default:
 			assert(0);
 		}
+
+		nprinted++;
 	}
+
+	return nprinted;
 }
-#endif /* DEBUG */

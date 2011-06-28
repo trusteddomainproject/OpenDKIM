@@ -14,7 +14,7 @@ $Id: dkim_set_user_context.html,v 1.3 2010/07/24 04:52:15 cm-msk Exp $
 #include &lt;dkim.h&gt;
 <a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_set_user_context(
 	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
-        const void *ctx);
+        void *ctx);
 );
 </pre>
 Specifies an opaque user context pointer to be passed to the
