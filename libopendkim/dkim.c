@@ -7548,11 +7548,18 @@ dkim_sig_getidentity(DKIM *dkim, DKIM_SIGINFO *sig, u_char *val, size_t vallen)
 		                     vallen - 1);
 
 		if (len == -1)
+		{
 			return DKIM_STAT_SYNTAX;
-		else if (len > vallen)
+		}
+		else if (len >= vallen)
+		{
 			return DKIM_STAT_NORESOURCE;
+		}
 		else
+		{
+			val[len] = '\0';
 			return DKIM_STAT_OK;
+		}
 	}
 }
 

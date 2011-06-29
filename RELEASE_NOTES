@@ -6,8 +6,9 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.4.2		2011/??/??
-	LIBOPENDKIM: Terminate the string returned by dkim_sig_getsubstring()
-		whenever possible.  Suggested by Heikki Gruner.
+	LIBOPENDKIM: Terminate the strings returned by dkim_sig_getsubstring()
+		and dkim_sig_getidentity() whenever possible.  Suggested by
+		Heikki Gruner.
 
 2.4.1		2011/06/28
 	Fix bug #SF3312691: Add "-e" command line switch to extract a value
