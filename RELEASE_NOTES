@@ -6,6 +6,8 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.4.2		2011/??/??
+	Don't apply BodyLengthDB when not signing.  Problem noted by
+		Andreas Schulze.
 	LIBOPENDKIM: Terminate the strings returned by dkim_sig_getsubstring()
 		and dkim_sig_getidentity() whenever possible.  Suggested by
 		Heikki Gruner.

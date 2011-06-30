@@ -11150,8 +11150,9 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 	}
 
-	/* apply BodyLengthDB */
-	if (conf->conf_bldb != NULL && !dfc->mctx_bldbdone)
+	/* apply BodyLengthDB if signing */
+	if (conf->conf_bldb != NULL && !dfc->mctx_bldbdone &&
+	    dfc->mctx_srhead != NULL)
 	{
 		struct addrlist *a;
 
