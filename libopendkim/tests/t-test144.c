@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test00_c_id[] = "@(#)$Id: t-test00.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
+static char t_test144_c_id[] = "@(#)$Id: t-test00.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
