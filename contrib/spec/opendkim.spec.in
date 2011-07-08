@@ -71,7 +71,7 @@ Socket  inet:8891@localhost
 #Selector                key
 #KeyFile                 %{_sysconfdir}/opendkim/key.private
 ' > "$RPM_BUILD_ROOT"%{_sysconfdir}/opendkim.conf
-rm -r "$RPM_BUILD_ROOT"/%{_prefix}/share/doc/opendkim
+rm -r "$RPM_BUILD_ROOT"%{_prefix}/share/doc/opendkim
 
 %post
 if ! getent passwd opendkim >/dev/null 2>&1; then
