@@ -3881,7 +3881,7 @@ dkim_eom_sign(DKIM *dkim)
 
 		status = RSA_sign(nid, digest, diglen,
 	                          rsa->rsa_rsaout, &l, rsa->rsa_rsa);
-		if (status == 0 || l == 0)
+		if (status != 1 || l == 0)
 		{
 			RSA_free(rsa->rsa_rsa);
 			rsa->rsa_rsa = NULL;
