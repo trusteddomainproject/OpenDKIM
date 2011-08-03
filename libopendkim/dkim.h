@@ -290,7 +290,6 @@ typedef int dkim_opts_t;
 
 #define	DKIM_PFLAG_UNUSED1	0x01	/* no longer used */
 #define	DKIM_PFLAG_UNUSED2	0x02	/* no longer used */
-#define	DKIM_PFLAG_ATPS		0x04	/* atps */
 
 /*
 **  DKIM_DNSSEC -- results of DNSSEC queries

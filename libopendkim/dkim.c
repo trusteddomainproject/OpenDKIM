@@ -2711,12 +2711,6 @@ dkim_get_policy(DKIM *dkim, u_char *query, _Bool excheck, int *qstatus,
 		if (p != NULL)
 			lpolicy = dkim_name_to_code(policies, (char *) p);
 
-#ifdef _FFR_ATPS
-		p = dkim_param_get(set, (u_char *) "atps");
-		if (p != NULL && *p == 'y')
-			lpflags |= DKIM_PFLAG_ATPS;
-#endif /* _FFR_ATPS */
-
 		*policy = lpolicy;
 		*pflags = lpflags;
 	}

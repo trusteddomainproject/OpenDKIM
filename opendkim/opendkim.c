@@ -13277,6 +13277,11 @@ mlfi_eom(SMFICTX *ctx)
 			DKIM_STAT pstatus;
 			_Bool localadsp = FALSE;
 			int localresult = DKIM_PRESULT_NONE;
+#ifdef _FFR_ATPS
+			int nsigs;
+			dkim_atps_t atps = DKIM_ATPS_UNKNOWN;
+			DKIM_SIGINFO **sigs;
+#endif /* _FFR_ATPS */
 
 			if (conf->conf_localadsp_db != NULL)
 			{
@@ -13473,37 +13478,30 @@ mlfi_eom(SMFICTX *ctx)
 			}
 
 #ifdef _FFR_ATPS
-			if ((dfc->mctx_pflags & DKIM_PFLAG_ATPS) != 0)
+			status = dkim_getsiglist(dfc->mctx_dkimv,
+			                         &sigs, &nsigs);
+			if (status == DKIM_STAT_OK)
 			{
-				int nsigs;
-				dkim_atps_t atps = DKIM_ATPS_UNKNOWN;
-				DKIM_SIGINFO **sigs;
-
-				status = dkim_getsiglist(dfc->mctx_dkimv,
-				                         &sigs, &nsigs);
-				if (status == DKIM_STAT_OK)
+				for (c = 0;
+				     c < nsigs && atps != DKIM_ATPS_FOUND;
+				     c++)
 				{
-					for (c = 0;
-					     c < nsigs && atps != DKIM_ATPS_FOUND;
-					     c++)
+					if (strcasecmp(dkim_sig_getdomain(sigs[c]),
+					               dfc->mctx_domain) != 0 &&
+					    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0 &&
+					    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH)
 					{
-						if (strcasecmp(dkim_sig_getdomain(sigs[c]),
-						               dfc->mctx_domain) != 0 &&
-						    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0 &&
-						    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH)
-						{
-							status = dkim_atps_check(dfc->mctx_dkimv,
-							                         sigs[c],
-							                         NULL,
-							                         &atps);
+						status = dkim_atps_check(dfc->mctx_dkimv,
+						                         sigs[c],
+						                         NULL,
+						                         &atps);
 
-							if (status != DKIM_STAT_OK)
-								break;
-						}
+						if (status != DKIM_STAT_OK)
+							break;
 					}
-
-					dfc->mctx_atps = atps;
 				}
+
+				dfc->mctx_atps = atps;
 			}
 #endif /* _FFR_ATPS */
 		}
