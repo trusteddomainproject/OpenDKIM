@@ -8,7 +8,7 @@ release, and a summary of the changes in that release.
 2.4.2		2011/??/??
 	Don't apply BodyLengthDB when not signing.  Problem noted by
 		Andreas Schulze.
-	Update for draft-kucherawy-dkim-atps-06.
+	LIBOPENDKIM: Update for draft-kucherawy-dkim-atps-06.
 	LIBOPENDKIM: Terminate the strings returned by dkim_sig_getsubstring()
 		and dkim_sig_getidentity() whenever possible.  Suggested by
 		Heikki Gruner.
