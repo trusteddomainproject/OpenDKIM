@@ -302,6 +302,11 @@ then
 	AC_MSG_ERROR([--enable-statsext requires --enable-stats])
 fi
 
+if test x"$enable_atps" = x"yes" -a x"$enable_xtags" != x"yes"
+then
+	AC_MSG_ERROR([--enable-atps requires --enable-xtags])
+fi
+
 FFR_FEATURE([default_sender], [default sender address])
 
 # sendmail command
