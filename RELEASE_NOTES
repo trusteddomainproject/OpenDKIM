@@ -5,13 +5,15 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.4.2		2011/??/??
+2.4.2		2011/08/05
 	Don't apply BodyLengthDB when not signing.  Problem noted by
 		Andreas Schulze.
 	LIBOPENDKIM: Update for draft-kucherawy-dkim-atps-06.
 	LIBOPENDKIM: Terminate the strings returned by dkim_sig_getsubstring()
 		and dkim_sig_getidentity() whenever possible.  Suggested by
 		Heikki Gruner.
+	CONTRIB: Change "chkconfig" instruction in RHEL init script,
+		and a minor tweak to the RPM spec file.  From Steve Jenkins.
 
 2.4.1		2011/06/28
 	Fix bug #SF3312691: Add "-e" command line switch to extract a value
