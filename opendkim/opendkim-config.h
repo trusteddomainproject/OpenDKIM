@@ -40,6 +40,9 @@ struct configdef dkimf_config[] =
 	{ "AnonymousDomains",		CONFIG_TYPE_STRING,	FALSE },
 	{ "AnonymousStatistics",	CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* _FFR_STATS */
+#ifdef _FFR_ATPS
+	{ "ATPSDomains",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_ATPS */
 	{ "AuthservID",			CONFIG_TYPE_STRING,	FALSE },
 	{ "AuthservIDWithJobID",	CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AutoRestart",		CONFIG_TYPE_BOOLEAN,	FALSE },
