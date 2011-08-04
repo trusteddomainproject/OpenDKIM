@@ -6,7 +6,7 @@
 -- 
 -- Confirms that a signature is added with the correct contents.
 
-mt.echo("*** relaxed/simple signing test")
+mt.echo("*** relaxed/simple signing test with ATPS")
 
 -- setup
 sock = "unix:" .. mt.getcwd() .. "/t-sign-atps.lua.sock"
@@ -23,9 +23,6 @@ conn = mt.connect(sock, 40, 0.05)
 if conn == nil then
 	error("mt.connect() failed")
 end
-
-mt.set_timeout(300)
-mt.sleep(10)
 
 -- send connection information
 -- mt.negotiate() is called implicitly

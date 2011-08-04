@@ -9,4 +9,4 @@ then
 	srcdir=`pwd`
 fi
 
-../../miltertest/miltertest -s $srcdir/t-sign-atps.lua -v -v -v
+../../miltertest/miltertest -s $srcdir/t-sign-atps.lua
