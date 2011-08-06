@@ -627,7 +627,7 @@ return a non-zero exit status on any error.
 
 .TP
 .I MultipleSignatures (Boolean)
-Allow addition of multiple signatures when key lists are in use.  See
+Allow addition of multiple signatures when a signing table is in use.  See
 .I SigningTable
 for more information.
 

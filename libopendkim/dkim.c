@@ -2711,12 +2711,6 @@ dkim_get_policy(DKIM *dkim, u_char *query, _Bool excheck, int *qstatus,
 		if (p != NULL)
 			lpolicy = dkim_name_to_code(policies, (char *) p);
 
-#ifdef _FFR_ATPS
-		p = dkim_param_get(set, (u_char *) "atps");
-		if (p != NULL && *p == 'y')
-			lpflags |= DKIM_PFLAG_ATPS;
-#endif /* _FFR_ATPS */
-
 		*policy = lpolicy;
 		*pflags = lpflags;
 	}
@@ -3881,7 +3875,7 @@ dkim_eom_sign(DKIM *dkim)
 
 		status = RSA_sign(nid, digest, diglen,
 	                          rsa->rsa_rsaout, &l, rsa->rsa_rsa);
-		if (status == 0 || l == 0)
+		if (status != 1 || l == 0)
 		{
 			RSA_free(rsa->rsa_rsa);
 			rsa->rsa_rsa = NULL;
@@ -7548,11 +7542,18 @@ dkim_sig_getidentity(DKIM *dkim, DKIM_SIGINFO *sig, u_char *val, size_t vallen)
 		                     vallen - 1);
 
 		if (len == -1)
+		{
 			return DKIM_STAT_SYNTAX;
-		else if (len > vallen)
+		}
+		else if (len >= vallen)
+		{
 			return DKIM_STAT_NORESOURCE;
+		}
 		else
+		{
+			val[len] = '\0';
 			return DKIM_STAT_OK;
+		}
 	}
 }
 
@@ -8536,6 +8537,8 @@ dkim_get_sigsubstring(DKIM *dkim, DKIM_SIGINFO *sig, char *buf, size_t *buflen)
 
 	minlen = MIN(*buflen, dkim->dkim_minsiglen);
 	strncpy(buf, b1, minlen);
+	if (minlen < *buflen)
+		buf[minlen] = '\0';
 	*buflen = minlen;
 
 	return DKIM_STAT_OK;

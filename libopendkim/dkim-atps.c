@@ -86,6 +86,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	DKIM_LIB *lib;
 	u_char *fdomain;
 	u_char *sdomain;
+	u_char *adomain;
 	u_char *txtfound = NULL;
 	void *qh;
 	u_char *p;
@@ -109,12 +110,13 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	assert(res != NULL);
 
 #ifdef _FFR_ATPS
-
+	lib = dkim->dkim_libhandle;
 	sdomain = dkim_sig_getdomain(sig);
 	fdomain = dkim_getdomain(dkim);
-	lib = dkim->dkim_libhandle;
+	adomain = dkim_sig_gettagvalue(sig, FALSE, "atps");
 
-	if (sdomain == NULL || fdomain == NULL)
+	if (sdomain == NULL || fdomain == NULL || adomain == NULL ||
+	    strcasecmp(adomain, fdomain) != 0)
 		return DKIM_STAT_INVALID;
 
 	/* construct a SHA1 hash of the signing domain */

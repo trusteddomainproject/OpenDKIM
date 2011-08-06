@@ -7,7 +7,7 @@ check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-verify-unsigned t-verify-unsigned-silent \
 	t-verify-syntax t-verify-ss t-verify-ss-bad t-verify-report \
 	t-dontsign t-peer t-adsp-report t-local-adsp t-local-adsp-subdomain \
-	t-lua-verify-tests
+	t-lua-verify-tests t-sign-atps
 
 if LIVE_TESTS
 if RBL
@@ -55,6 +55,7 @@ EXTRA_DIST = \
 		t-local-adsp.lua \
 	t-local-adsp-subdomain t-local-adsp-subdomain.conf \
 		t-local-adsp-subdomain.lua \
+	t-sign-atps t-sign-atps.conf t-sign-atps.lua \
 	testkey.private pubkeys cp-test testmta
 
 

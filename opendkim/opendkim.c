@@ -389,6 +389,9 @@ struct dkimf_config
 	char **		conf_oversignhdrs;	/*   "    "     "    (array) */
 #endif /* _FFR_OVERSIGN */
 	DKIMF_DB	conf_dontsigntodb;	/* don't-sign-to addrs (DB) */
+#ifdef _FFR_ATPS
+	DKIMF_DB	conf_atpsdb;		/* ATPS domains */
+#endif /* _FFR_ATPS */
 #ifdef _FFR_ADSP_LISTS
 	DKIMF_DB	conf_nodiscardto;	/* no discardable to (DB) */
 #endif /* _FFR_ADSP_LISTS */
@@ -5720,6 +5723,11 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_dontsigntodb != NULL)
 		dkimf_db_close(conf->conf_dontsigntodb);
 
+#ifdef _FFR_ATPS
+	if (conf->conf_atpsdb != NULL)
+		dkimf_db_close(conf->conf_atpsdb);
+#endif /* _FFR_ATPS */
+
 #ifdef _FFR_DKIM_REPUTATION
 	if (conf->conf_reproot != NULL)
 		free(conf->conf_reproot);
@@ -6953,6 +6961,28 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 	}
 #endif /* _FFR_ADSP_LISTS */
+
+#ifdef _FFR_ATPS
+	str = NULL;
+	if (data != NULL)
+		(void) config_get(data, "ATPSDomains", &str, sizeof str);
+	if (str != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_atpsdb, str,
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, dberr);
+			return -1;
+		}
+	}
+#endif /* _FFR_ATPS */
 
 	str = NULL;
 	if (data != NULL)
@@ -11150,8 +11180,9 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 	}
 
-	/* apply BodyLengthDB */
-	if (conf->conf_bldb != NULL && !dfc->mctx_bldbdone)
+	/* apply BodyLengthDB if signing */
+	if (conf->conf_bldb != NULL && !dfc->mctx_bldbdone &&
+	    dfc->mctx_srhead != NULL)
 	{
 		struct addrlist *a;
 
@@ -11811,11 +11842,28 @@ mlfi_eoh(SMFICTX *ctx)
 	/* create all required signing handles */
 	if (dfc->mctx_srhead != NULL)
 	{
+#ifdef _FFR_ATPS
+		_Bool atps = FALSE;
+#endif /* _FFR_ATPS */
 		ssize_t signlen;
 		u_char *sdomain;
 		u_char *selector;
 		struct signreq *sr;
 		dkim_sigkey_t keydata;
+
+#ifdef _FFR_ATPS
+		if (conf->conf_atpsdb != NULL)
+		{
+			status = dkimf_db_get(conf->conf_atpsdb,
+			                      dfc->mctx_domain, 0, NULL, 0,
+			                      &atps);
+			if (status != 0 && dolog)
+			{
+				dkimf_db_error(conf->conf_atpsdb,
+				               dfc->mctx_domain);
+			}
+		}
+#endif /* _FFR_ATPS */
 
 		for (sr = dfc->mctx_srhead; sr != NULL; sr = sr->srq_next)
 		{
@@ -11849,39 +11897,46 @@ mlfi_eoh(SMFICTX *ctx)
 			                         dfc->mctx_signalg,
 			                         signlen, &status);
 
-			if (sr->srq_dkim == NULL && status != DKIM_STAT_OK)
+			if (sr->srq_dkim == NULL || status != DKIM_STAT_OK)
 			{
-				return dkimf_libstatus(ctx, NULL, "dkim_sign()",
+				return dkimf_libstatus(ctx, NULL,
+				                       "dkim_sign()",
 				                       status);
 			}
-			else
-			{
-				(void) dkim_set_user_context(sr->srq_dkim,
-				                             ctx);
 
-				if (sr->srq_signer != NULL)
-				{
-					(void) dkim_set_signer(sr->srq_dkim,
-					                       sr->srq_signer);
-				}
+#ifdef _FFR_ATPS
+			status = dkim_add_xtag(sr->srq_dkim, DKIM_ATPSTAG,
+			                       dfc->mctx_domain);
+			if (status != DKIM_STAT_OK && dolog)
+			{
+				syslog(LOG_ERR,
+				       "%s dkim_add_xtag() for \"%s\" failed",
+				       dfc->mctx_jobid, DKIM_ATPSTAG);
+			}
+#endif /* _FFR_ATPS */
+
+			(void) dkim_set_user_context(sr->srq_dkim, ctx);
+
+			if (sr->srq_signer != NULL)
+			{
+				(void) dkim_set_signer(sr->srq_dkim,
+				                       sr->srq_signer);
+			}
 
 #ifdef _FFR_RESIGN
-				if (dfc->mctx_resign &&
-				    dfc->mctx_dkimv != NULL)
+			if (dfc->mctx_resign && dfc->mctx_dkimv != NULL)
+			{
+				status = dkim_resign(sr->srq_dkim,
+				                     dfc->mctx_dkimv,
+				                     FALSE);
+				if (status != DKIM_STAT_OK)
 				{
-					status = dkim_resign(sr->srq_dkim,
-					                     dfc->mctx_dkimv,
-					                     FALSE);
-					if (status != DKIM_STAT_OK)
-					{
-						return dkimf_libstatus(ctx,
-						                       NULL,
-						                       "dkim_resign()",
-						                       status);
-					}
+					return dkimf_libstatus(ctx, NULL,
+					                       "dkim_resign()",
+					                       status);
 				}
-#endif /* _FFR_RESIGN */
 			}
+#endif /* _FFR_RESIGN */
 		}
 	}
 
@@ -13276,6 +13331,11 @@ mlfi_eom(SMFICTX *ctx)
 			DKIM_STAT pstatus;
 			_Bool localadsp = FALSE;
 			int localresult = DKIM_PRESULT_NONE;
+#ifdef _FFR_ATPS
+			int nsigs;
+			dkim_atps_t atps = DKIM_ATPS_UNKNOWN;
+			DKIM_SIGINFO **sigs;
+#endif /* _FFR_ATPS */
 
 			if (conf->conf_localadsp_db != NULL)
 			{
@@ -13472,37 +13532,30 @@ mlfi_eom(SMFICTX *ctx)
 			}
 
 #ifdef _FFR_ATPS
-			if ((dfc->mctx_pflags & DKIM_PFLAG_ATPS) != 0)
+			status = dkim_getsiglist(dfc->mctx_dkimv,
+			                         &sigs, &nsigs);
+			if (status == DKIM_STAT_OK)
 			{
-				int nsigs;
-				dkim_atps_t atps = DKIM_ATPS_UNKNOWN;
-				DKIM_SIGINFO **sigs;
-
-				status = dkim_getsiglist(dfc->mctx_dkimv,
-				                         &sigs, &nsigs);
-				if (status == DKIM_STAT_OK)
+				for (c = 0;
+				     c < nsigs && atps != DKIM_ATPS_FOUND;
+				     c++)
 				{
-					for (c = 0;
-					     c < nsigs && atps != DKIM_ATPS_FOUND;
-					     c++)
+					if (strcasecmp(dkim_sig_getdomain(sigs[c]),
+					               dfc->mctx_domain) != 0 &&
+					    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0 &&
+					    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH)
 					{
-						if (strcasecmp(dkim_sig_getdomain(sigs[c]),
-						               dfc->mctx_domain) != 0 &&
-						    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0 &&
-						    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH)
-						{
-							status = dkim_atps_check(dfc->mctx_dkimv,
-							                         sigs[c],
-							                         NULL,
-							                         &atps);
+						status = dkim_atps_check(dfc->mctx_dkimv,
+						                         sigs[c],
+						                         NULL,
+						                         &atps);
 
-							if (status != DKIM_STAT_OK)
-								break;
-						}
+						if (status != DKIM_STAT_OK)
+							break;
 					}
-
-					dfc->mctx_atps = atps;
 				}
+
+				dfc->mctx_atps = atps;
 			}
 #endif /* _FFR_ATPS */
 		}

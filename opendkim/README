@@ -37,13 +37,12 @@ start at step (5).
     domain name) of the host that will be providing the service.  Another 
     convention is to use the current month and year.
 
-(2) Either:
-  (a) Run the script "opendkim-genkey -s SELECTOR". The opendkim-genkey man
-      page has full details of options.  This will generate a private key
-      in PEM format and output a TXT record containing the matching public
-      key appropriate for insertion into your DNS zone file.  Insert it in
-      your zone file, increment the serial number, and reload your DNS system
-      so the data is published.
+(2) Run the script "opendkim-genkey -s SELECTOR". The opendkim-genkey man
+    page has full details of options.  This will generate a private key
+    in PEM format and output a TXT record containing the matching public
+    key appropriate for insertion into your DNS zone file.  Insert it in
+    your zone file, increment the serial number, and reload your DNS system
+    so the data is published.
 
 (3) Publish your public DNS key.
     The public key DNS record should appear as a TXT resource record at:

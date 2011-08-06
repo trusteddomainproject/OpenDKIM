@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test00_c_id[] = "@(#)$Id: t-test00.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
+static char t_test144_c_id[] = "@(#)$Id: t-test00.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -28,7 +28,7 @@ static char t_test00_c_id[] = "@(#)$Id: t-test00.c,v 1.2 2009/12/08 19:14:27 cm-
 #define	MAXHEADER	4096
 
 #define BADKEY		"-----BEGIN RSA PRIVATE KEY-----" \
-	"MIICXQIBAAKBgQC4GUGr+d/6SFNzVLYpphnRd0QPGKz2uWnV65RAxa1Pw352Bqiz" \
+	"MIICXQIBAAKBgQC4GUGr*d/6SFNzVLYpphnRd0QPGKz2uWnV65RAxa1Pw352Bqiz" \
 	"qiKOBjgYGzj8pJQSs8tOvv/2k6jpI809RnESqOFgF0gu3UJbNnu3+cd8k/kiQj+q" \
 	"4cKKRpAT92ccxc7svhCNgN1sBGmROYZuysG3Vu3Dyc079gSLtnSrgXb+gQIDAQAB" \
 	"AoGAemlI0opm1Kvs2T4VliH8/tvX5FXbBH8LEZQAUwVeFTB/UQlieXyCV39pIxZO" \

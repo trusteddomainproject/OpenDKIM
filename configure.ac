@@ -15,7 +15,7 @@ AC_PREREQ(2.61)
 #
 m4_define([VERSION_RELEASE], 2)
 m4_define([VERSION_MAJOR_REV], 4)
-m4_define([VERSION_MINOR_REV], 1)
+m4_define([VERSION_MINOR_REV], 2)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -24,7 +24,7 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "revision" with internal source code changes
 #
 m4_define([LIBVERSION_CURRENT], 5)
-m4_define([LIBVERSION_REVISION], 0)
+m4_define([LIBVERSION_REVISION], 1)
 m4_define([LIBVERSION_AGE], 0)
 
 #
@@ -300,6 +300,11 @@ LIB_FFR_FEATURE([xtags], [extension signature tags])
 if test x"$enable_statsext" = x"yes" -a x"$enable_stats" != x"yes"
 then
 	AC_MSG_ERROR([--enable-statsext requires --enable-stats])
+fi
+
+if test x"$enable_atps" = x"yes" -a x"$enable_xtags" != x"yes"
+then
+	AC_MSG_ERROR([--enable-atps requires --enable-xtags])
 fi
 
 FFR_FEATURE([default_sender], [default sender address])

@@ -2,7 +2,7 @@
 #
 # opendkim    Start and stop OpenDKIM.
 
-# chkconfig: - 41 61
+# chkconfig: 2345 41 61
 # description: OpenDKIM implements the DomainKeys Identified Mail (DKIM)
 #              service and a milter-based filter application that can plug
 #              in to any milter-aware MTA.
