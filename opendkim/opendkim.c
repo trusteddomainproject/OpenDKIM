@@ -11905,13 +11905,17 @@ mlfi_eoh(SMFICTX *ctx)
 			}
 
 #ifdef _FFR_ATPS
-			status = dkim_add_xtag(sr->srq_dkim, DKIM_ATPSTAG,
-			                       dfc->mctx_domain);
-			if (status != DKIM_STAT_OK && dolog)
+			if (atps)
 			{
-				syslog(LOG_ERR,
-				       "%s dkim_add_xtag() for \"%s\" failed",
-				       dfc->mctx_jobid, DKIM_ATPSTAG);
+				status = dkim_add_xtag(sr->srq_dkim,
+				                       DKIM_ATPSTAG,
+				                       dfc->mctx_domain);
+				if (status != DKIM_STAT_OK && dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s dkim_add_xtag() for \"%s\" failed",
+					       dfc->mctx_jobid, DKIM_ATPSTAG);
+				}
 			}
 #endif /* _FFR_ATPS */
 
