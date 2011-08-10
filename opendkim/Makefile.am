@@ -6,7 +6,8 @@ if DEBUG
 AM_CFLAGS = -g
 endif
 
-bin_PROGRAMS = opendkim-testkey opendkim-testadsp opendkim-genzone
+bin_PROGRAMS = opendkim-genzone opendkim-testadsp opendkim-testkey \
+	opendkim-testmsg
 if ATPS
 bin_PROGRAMS += opendkim-atpszone
 endif
@@ -155,6 +156,17 @@ if USE_ARLIB
 opendkim_testadsp_CC = $(PTHREAD_CC)
 opendkim_testadsp_CFLAGS += $(PTHREAD_CFLAGS)
 opendkim_testadsp_LDADD += $(PTHREAD_LIBS)
+endif
+
+opendkim_testmsg_SOURCES = opendkim-testmsg.c
+opendkim_testmsg_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
+opendkim_testmsg_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
+opendkim_testmsg_LDFLAGS = $(COV_LDFLAGS)
+opendkim_testmsg_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(LIBRESOLV) $(COV_LIBADD)
+if USE_ARLIB
+opendkim_testmsg_CC = $(PTHREAD_CC)
+opendkim_testmsg_CFLAGS += $(PTHREAD_CFLAGS)
+opendkim_testmsg_LDADD += $(PTHREAD_LIBS)
 endif
 
 opendkim_genzone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-genzone.c opendkim-lua.c util.c util.h

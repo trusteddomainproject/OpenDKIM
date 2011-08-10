@@ -1,0 +1,48 @@
+.TH opendkim-testmsg 8 "The OpenDKIM Project"
+.SH NAME
+.B opendkim-testmsg
+- DKIM message tst
+.SH SYNOPSIS
+.B opendkim-testmsg
+[-d domain] [-s selector] [-k keypath]
+.SH DESCRIPTION
+.B opendkim-testmsg
+signs or verifies an input message.  This is similar to the test mode for 
+.I opendkim(8)
+except that it does not use the same configuration system or milter interface.
+Rather, it is a direct access to the DKIM library with those functions
+"out of the way".
+
+The message is read from standard input.  In signing mode, the complete
+signed message will then be written to standard output.  When verifying,
+there will be no output unless an error occurred.
+
+To sign a message, the three parameters listed in the SYNOPSIS above
+must be provided.  If all of them are absent, the input message will be
+verified.
+
+.SH OPTIONS
+.TP
+.I -d domain
+Names the domain in which signing is to be done.  More specifically,
+names the domain in which the public key matching the provided private key
+would be found in a live test.
+.TP
+.I -k keypath
+Specifies the path to the private key file which should be used to sign
+the input message.
+.TP
+.I -s selector
+Names the selector within the specified domain that should be included in
+the signature.
+.SH VERSION
+This man page covers the version of
+.I opendkim-testmsg
+that shipped with version @VERSION@ of
+.I OpenDKIM.
+.SH COPYRIGHT
+Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+.I opendkim(8)
+.P
+RFC4871 - DomainKeys Identified Mail
