@@ -14,8 +14,8 @@ AC_PREREQ(2.61)
 # Package version
 #
 m4_define([VERSION_RELEASE], 2)
-m4_define([VERSION_MAJOR_REV], 4)
-m4_define([VERSION_MINOR_REV], 2)
+m4_define([VERSION_MAJOR_REV], 5)
+m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -1907,7 +1907,8 @@ AC_OUTPUT([	Makefile
 			opendkim/opendkim-genkey.8 opendkim/opendkim-genzone.8
 			opendkim/opendkim-lua.3 opendkim/opendkim-testadsp.8
 			opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8
-			opendkim/opendkim.conf.5 opendkim/opendkim.conf.simple
+			opendkim/opendkim-testmsg.8 opendkim/opendkim.conf.5
+			opendkim/opendkim.conf.simple
 			opendkim/opendkim.conf.simple-verify
 			opendkim/opendkim-atpszone.8 opendkim/opendkim-spam.1
 		opendkim/tests/Makefile
