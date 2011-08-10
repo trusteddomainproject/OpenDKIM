@@ -980,10 +980,12 @@ incident.
 .TP
 .I SenderHeaders (dataset)
 Specifies an ordered list of header fields that should be searched to
-determine the sender of a message.  This is mainly used when verifying a
-message to determine the origin domain, particularly for making signing
-decisions.  By default, the DKIM library's internal list is used, which
-consists solely of the "From" header field.  See the
+determine the sender of a message.  The first header field found is the
+one whose value is used.  This is mainly used when verifying a
+message to determine the origin domain (for policy checks), and when signing
+for deciding which signing request(s) to make.  By default, the DKIM
+library's internal list is used, which consists solely of the "From" header
+field.  See the
 .I OmitHeaders
 setting for a description of possible values.
 
