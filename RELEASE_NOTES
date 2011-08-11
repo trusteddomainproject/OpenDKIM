@@ -5,6 +5,11 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.5.0		2011/10/??
+	TOOLS: Add opendkim-testmsg, for signing/verifying messages without
+		all the milter code being invoked.  Requested by
+		Todd Nagengast.
+
 2.4.2		2011/08/05
 	Don't apply BodyLengthDB when not signing.  Problem noted by
 		Andreas Schulze.
