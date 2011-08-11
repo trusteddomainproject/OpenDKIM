@@ -72,6 +72,7 @@ main(int argc, char **argv)
 	int tfd;
 	dkim_policy_t pcode;
 	int presult;
+	u_int flags;
 	DKIM_STAT status;
 	ssize_t rlen;
 	ssize_t wlen;
@@ -206,6 +207,11 @@ main(int argc, char **argv)
 			return EX_SOFTWARE;
 		}
 	}
+
+	/* set flags */
+	flags = DKIM_LIBFLAGS_FIXCRLF;
+	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FLAGS, &flags,
+	                    sizeof flags);
 
 	tfd = mkstemp(fn);
 	if (tfd < 0)
