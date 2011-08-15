@@ -23,8 +23,15 @@ static char opendkim_testmsg_c_id[] = "@(#)$Id: opendkim-testadsp.c,v 1.8 2010/0
 #include <dkim.h>
 
 /* macros */
+#ifndef FALSE
+# define FALSE		0
+#endif /* ! FALSE */
+#ifndef TRUE
+# define TRUE		1
+#endif /* ! TRUE */
+
 #define	BUFRSZ		1024
-#define	CMDLINEOPTS	"d:k:s:"
+#define	CMDLINEOPTS	"Cd:k:s:"
 #define STRORNULL(x)	((x) == NULL ? "(null)" : (x))
 #define	TMPTEMPLATE	"/var/tmp/dkimXXXXXX"
 
@@ -47,10 +54,43 @@ char *progname;
 int
 usage(void)
 {
-	fprintf(stderr, "%s: usage: %s [-d domain] [-k key] [-s selector]\n",
+	fprintf(stderr,
+	        "%s: usage: %s [options]\nValid options:\n"
+	        "\t-C         \tpreserve CRLFs\n"
+	        "\t-d domain  \tset signing domain\n"
+	        "\t-k keyfile \tprivate key file\n"
+	        "\t-s selector\tset signing selector\n",
 	        progname, progname);
 
 	return EX_CONFIG;
+}
+
+/*
+**  DECR -- remove CRs from a string
+**
+**  Parameters:
+**  	str -- string to modify; must be NULL-terminated
+**
+**  Return value:
+**  	None.
+*/
+
+void
+decr(char *str)
+{
+	char *p;
+	char *q;
+
+	for (p = str, q = str; *p != '\0'; p++)
+	{
+		if (*p == '\r')
+			continue;
+
+		if (p != q)
+			*q = *p;
+
+		q++;
+	}
 }
 
 /*
@@ -66,7 +106,8 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	_Bool testkey = NULL;
+	_Bool keepcrlf = FALSE;
+	_Bool testkey = FALSE;
 	int c;
 	int n = 0;
 	int tfd;
@@ -99,6 +140,10 @@ main(int argc, char **argv)
 	{
 		switch (c)
 		{
+		  case 'C':
+			keepcrlf = TRUE;
+			break;
+
 		  case 'd':
 			domain = optarg;
 			n++;
@@ -321,7 +366,10 @@ main(int argc, char **argv)
 		}
 
 		/* print it and the message */
-		fprintf(stdout, "%s: %s\r\n", DKIM_SIGNHEADER, sighdr);
+		if (!keepcrlf)
+			decr(sighdr);
+		fprintf(stdout, "%s: %s%s\n", DKIM_SIGNHEADER, sighdr,
+		        keepcrlf ? "\r" : "");
 		(void) lseek(tfd, 0, SEEK_SET);
 		for (;;)
 		{
