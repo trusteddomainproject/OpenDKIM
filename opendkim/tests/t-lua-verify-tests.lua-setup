@@ -4,5 +4,5 @@
 
 -- sample "setup" hook script that does various Lua things
 
--- change a received header field before signing
+-- change the From: header field before signing
 odkim.replace_header(ctx, "From", 0, "user@example.com")
