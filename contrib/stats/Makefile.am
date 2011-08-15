@@ -5,4 +5,4 @@
 #AUTOMAKE_OPTIONS = foreign
 
 dist_doc_DATA = README.opendkim-reportstats \
-	opendkim-reportstats
+	opendkim-reportstats stats.lua
