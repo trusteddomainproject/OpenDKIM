@@ -4,7 +4,7 @@
 #
 # $Id: opendkim.init,v 1.6 2010/10/25 17:13:47 cm-msk Exp $
 #
-#### BEGIN INIT INFO
+### BEGIN INIT INFO
 # Provides:          opendkim
 # Required-Start:    $syslog $time $local_fs $remote_fs $named $network
 # Required-Stop:     $syslog $time $local_fs $remote_fs $named
