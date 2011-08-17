@@ -79,11 +79,6 @@ if DKIM_REPUTATION
 opendkim_CPPFLAGS += -I$(srcdir)/../libdkimrep
 opendkim_LDADD += ../libdkimrep/libdkimrep.la
 endif
-if VERIFY_DOMAINKEYS
-opendkim_CPPFLAGS += $(LIBDK_INCDIRS)
-opendkim_LDFLAGS += $(LIBDK_LIBDIRS)
-opendkim_LDADD += $(LIBDK_LIBS)
-endif
 
 opendkim_CPPFLAGS += $(LIBMILTER_INCDIRS)
 endif
