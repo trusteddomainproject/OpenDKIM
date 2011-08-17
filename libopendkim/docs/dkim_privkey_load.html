@@ -1,0 +1,86 @@
+<html>
+<head><title>dkim_privkey_load()</title></head>
+<body>
+<!--
+$Id: dkim_privkey_load.html,v 1.5 2010/07/24 04:52:15 cm-msk Exp $
+-->
+<h1>dkim_privkey_load()</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_privkey_load(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim
+);
+</pre>
+Attempt to load and prepare a private key for signing.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_privkey_load()</tt> is called after 
+    <a href="dkim_sign.html"><tt>dkim_sign()</tt></a> is called to create
+    a message signing handle.  It attemps to parse the key provided
+    as an argument to that function and extract some parameters of it.
+    This same operation will be done implicitly by
+    <a href="dkim_eom.html"><tt>dkim_eom()</tt></a> if not called explicitly
+    beforehand.
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>Message-specific handle, returned by <a href="dkim_sign.html">
+        <tt>dkim_sign()</tt></a>.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr>
+<th valign="top" align=left>RETURN VALUES</th> 
+<td>
+<ul>
+<li><tt>DKIM_STAT_OK</tt> indicates the key was successfully parsed
+    and loaded by the crypto library.
+<li><tt>DKIM_STAT_NORESOURCE</tt> indicates the key could not be parsed.
+</ul>
+</td>
+</tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>This library relies on a cryptography library to compute hashes and
+    sign or verify them.  It has been observed that different libraries
+    have different levels of strictness about parsing keys provided to
+    them.  This is property is not under control of this library;
+    this library merely responds to error codes that might be passed up
+    from the crypto library.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+<br>
+Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

@@ -1831,6 +1831,18 @@ extern void dkim_dns_set_query_waitreply __P((DKIM_LIB *,
 extern DKIM_STAT dkim_add_xtag __P((DKIM *, const char *, const char *));
 
 /*
+**  DKIM_PRIVKEY_LOAD -- explicitly try to load the private key
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_privkey_load __P((DKIM *));
+
+/*
 **  DKIM_ATPS_CHECK -- check for Authorized Third Party Signing
 **
 **  Parameters:

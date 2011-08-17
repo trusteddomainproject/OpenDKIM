@@ -218,19 +218,22 @@ struct dkim_rsa
 {
 #ifdef USE_GNUTLS
 	size_t			rsa_rsaoutlen;
-	size_t			rsa_keysize;
+	unsigned int		rsa_keysize;
 	gnutls_x509_privkey_t	rsa_key;
+	gnutls_privkey_t	rsa_privkey;
 	gnutls_pubkey_t		rsa_pubkey;
 	gnutls_datum_t		rsa_sig;
 	gnutls_datum_t		rsa_digest;
 	gnutls_datum_t 		rsa_rsaout;
+	gnutls_datum_t 		rsa_keydata;
 #else /* USE_GNUTLS */
 	u_char			rsa_pad;
-	size_t			rsa_keysize;
+	int			rsa_keysize;
 	size_t			rsa_rsainlen;
 	size_t			rsa_rsaoutlen;
 	EVP_PKEY *		rsa_pkey;
 	RSA *			rsa_rsa;
+	BIO *			rsa_keydata;
 	u_char *		rsa_rsain;
 	u_char *		rsa_rsaout;
 #endif /* USE_GNUTLS */
@@ -323,6 +326,7 @@ struct dkim
 	u_char *		dkim_zdecode;
 	u_char *		dkim_tmpdir;
 	DKIM_SIGINFO *		dkim_signature;
+	void *			dkim_keydata;
 	void *			dkim_closure;
 	const void *		dkim_user_context;
 #ifdef _FFR_RESIGN

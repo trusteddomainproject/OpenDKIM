@@ -9,6 +9,9 @@ release, and a summary of the changes in that release.
 	Feature request #SF3385816: Discontinue DomainKeys support.
 	LIBOPENDKIM: Feature request #SF3317160: Per RFC4871bis, remove
 		granularity checks.
+	LIBOPENDKIM: Feature request #SF3385768: Add dkim_privkey_load(),
+		allowing validation of a private key before reaching
+		end-of-message.  Requested by Heikki Gruner.
 	LIBOPENDKIM: Don't report the absence of "c=" as an error, since
 		there is a default.
 	TOOLS: Add opendkim-testmsg, for signing/verifying messages without

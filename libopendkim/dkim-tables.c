@@ -14,9 +14,6 @@ static char dkim_tables_c_id[] = "@(#)$Id: dkim-tables.c,v 1.7 2010/09/02 05:10:
 #include <string.h>
 #include <assert.h>
 
-/* OpenSSL includes */
-#include <openssl/sha.h>
-
 /* libopendkim includes */
 #include "dkim-tables.h"
 #include "dkim-internal.h"
@@ -92,9 +89,7 @@ struct nametable *sigparams = prv_sigparams;
 static struct nametable prv_algorithms[] =	/* signing algorithms */
 {
 	{ "rsa-sha1",	DKIM_SIGN_RSASHA1 },
-#ifdef SHA256_DIGEST_LENGTH
 	{ "rsa-sha256",	DKIM_SIGN_RSASHA256 },
-#endif /* SHA256_DIGEST_LENGTH */
 	{ NULL,		-1 },
 };
 struct nametable *algorithms = prv_algorithms;
@@ -110,9 +105,7 @@ struct nametable *canonicalizations = prv_canonicalizations;
 static struct nametable prv_hashes[] =		/* hashes */
 {
 	{ "sha1",	DKIM_HASHTYPE_SHA1 },
-#ifdef SHA256_DIGEST_LENGTH
 	{ "sha256",	DKIM_HASHTYPE_SHA256 },
-#endif /* SHA256_DIGEST_LENGTH */
 	{ NULL,		-1 },
 };
 struct nametable *hashes = prv_hashes;
