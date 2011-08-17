@@ -821,8 +821,6 @@ dkimf_lua_stats_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_setglobal(l, "DKIM_SIGERROR_FUTURE");
 	lua_pushnumber(l, DKIM_SIGERROR_TIMESTAMPS);
 	lua_setglobal(l, "DKIM_SIGERROR_TIMESTAMPS");
-	lua_pushnumber(l, DKIM_SIGERROR_MISSING_C);
-	lua_setglobal(l, "DKIM_SIGERROR_MISSING_C");
 	lua_pushnumber(l, DKIM_SIGERROR_INVALID_HC);
 	lua_setglobal(l, "DKIM_SIGERROR_INVALID_HC");
 	lua_pushnumber(l, DKIM_SIGERROR_INVALID_BC);
@@ -887,8 +885,6 @@ dkimf_lua_stats_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_setglobal(l, "DKIM_SIGERROR_KEYHASHMISMATCH");
 	lua_pushnumber(l, DKIM_SIGERROR_NOTEMAILKEY);
 	lua_setglobal(l, "DKIM_SIGERROR_NOTEMAILKEY");
-	lua_pushnumber(l, DKIM_SIGERROR_GRANULARITY);
-	lua_setglobal(l, "DKIM_SIGERROR_GRANULARITY");
 	lua_pushnumber(l, DKIM_SIGERROR_KEYTYPEMISSING);
 	lua_setglobal(l, "DKIM_SIGERROR_KEYTYPEMISSING");
 	lua_pushnumber(l, DKIM_SIGERROR_KEYTYPEUNKNOWN);
@@ -1067,8 +1063,6 @@ dkimf_lua_final_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_setglobal(l, "DKIM_SIGERROR_FUTURE");
 	lua_pushnumber(l, DKIM_SIGERROR_TIMESTAMPS);
 	lua_setglobal(l, "DKIM_SIGERROR_TIMESTAMPS");
-	lua_pushnumber(l, DKIM_SIGERROR_MISSING_C);
-	lua_setglobal(l, "DKIM_SIGERROR_MISSING_C");
 	lua_pushnumber(l, DKIM_SIGERROR_INVALID_HC);
 	lua_setglobal(l, "DKIM_SIGERROR_INVALID_HC");
 	lua_pushnumber(l, DKIM_SIGERROR_INVALID_BC);
@@ -1133,8 +1127,6 @@ dkimf_lua_final_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_setglobal(l, "DKIM_SIGERROR_KEYHASHMISMATCH");
 	lua_pushnumber(l, DKIM_SIGERROR_NOTEMAILKEY);
 	lua_setglobal(l, "DKIM_SIGERROR_NOTEMAILKEY");
-	lua_pushnumber(l, DKIM_SIGERROR_GRANULARITY);
-	lua_setglobal(l, "DKIM_SIGERROR_GRANULARITY");
 	lua_pushnumber(l, DKIM_SIGERROR_KEYTYPEMISSING);
 	lua_setglobal(l, "DKIM_SIGERROR_KEYTYPEMISSING");
 	lua_pushnumber(l, DKIM_SIGERROR_KEYTYPEUNKNOWN);

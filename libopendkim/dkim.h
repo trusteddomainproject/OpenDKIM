@@ -108,7 +108,7 @@ typedef int DKIM_SIGERROR;
 #define DKIM_SIGERROR_EXPIRED		3	/* signature expired */
 #define DKIM_SIGERROR_FUTURE		4	/* signature in the future */
 #define DKIM_SIGERROR_TIMESTAMPS	5	/* x= < t= */
-#define DKIM_SIGERROR_MISSING_C		6	/* c= missing */
+#define DKIM_SIGERROR_UNUSED		6	/* OBSOLETE */
 #define DKIM_SIGERROR_INVALID_HC	7	/* c= invalid (header) */
 #define DKIM_SIGERROR_INVALID_BC	8	/* c= invalid (body) */
 #define DKIM_SIGERROR_MISSING_A		9	/* a= missing */
@@ -141,7 +141,7 @@ typedef int DKIM_SIGERROR;
 #define	DKIM_SIGERROR_KEYUNKNOWNHASH	36	/* unknown key hash */
 #define	DKIM_SIGERROR_KEYHASHMISMATCH	37	/* sig-key hash mismatch */
 #define	DKIM_SIGERROR_NOTEMAILKEY	38	/* not an e-mail key */
-#define	DKIM_SIGERROR_GRANULARITY	39	/* key granularity mismatch */
+#define	DKIM_SIGERROR_UNUSED2		39	/* OBSOLETE */
 #define	DKIM_SIGERROR_KEYTYPEMISSING	40	/* key type missing */
 #define	DKIM_SIGERROR_KEYTYPEUNKNOWN	41	/* key type unknown */
 #define	DKIM_SIGERROR_KEYREVOKED	42	/* key revoked */

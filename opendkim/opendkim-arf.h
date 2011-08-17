@@ -38,11 +38,10 @@ static char dkim_arf_h_id[] = "@(#)$Id: opendkim-arf.h,v 1.3 2009/08/03 19:10:47
 
 #define ARF_DKIMF_UNKNOWN	(-1)
 #define ARF_DKIMF_BODYHASH	0
-#define ARF_DKIMF_GRANULARITY	1
-#define ARF_DKIMF_REVOKED	2
-#define ARF_DKIMF_SIGNATURE	3
-#define ARF_DKIMF_SYNTAX	4
-#define ARF_DKIMF_OTHER		5
+#define ARF_DKIMF_REVOKED	1
+#define ARF_DKIMF_SIGNATURE	2
+#define ARF_DKIMF_SYNTAX	3
+#define ARF_DKIMF_OTHER		4
 
 #define	ARF_FORMAT_ARF		"arf"
 

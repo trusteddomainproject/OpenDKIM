@@ -25,7 +25,6 @@ static char dkim_tables_c_id[] = "@(#)$Id: dkim-tables.c,v 1.7 2010/09/02 05:10:
 static struct nametable prv_keyparams[] =	/* key parameters */
 {
 	{ "a",		DKIM_KEY_ALGORITHM },
-	{ "g",		DKIM_KEY_GRANULARITY },
 	{ "n",		DKIM_KEY_NOTES },
 	{ "p",		DKIM_KEY_DATA },
 	{ "s",		DKIM_KEY_SERVICE },
@@ -171,7 +170,6 @@ static struct nametable prv_sigerrors[] =	/* signature parsing errors */
 	{ "signature expired",			DKIM_SIGERROR_EXPIRED },
 	{ "signature timestamp in the future",	DKIM_SIGERROR_FUTURE },
 	{ "signature timestamp order error",	DKIM_SIGERROR_TIMESTAMPS },
-	{ "canonicalization missing",		DKIM_SIGERROR_MISSING_C },
 	{ "invalid header canonicalization",	DKIM_SIGERROR_INVALID_HC },
 	{ "invalid body canonicalization",	DKIM_SIGERROR_INVALID_BC },
 	{ "signature algorithm missing",	DKIM_SIGERROR_MISSING_A },
@@ -204,7 +202,6 @@ static struct nametable prv_sigerrors[] =	/* signature parsing errors */
 	{ "unknown key hash",			DKIM_SIGERROR_KEYUNKNOWNHASH },
 	{ "signature-key hash mismatch",	DKIM_SIGERROR_KEYHASHMISMATCH },
 	{ "not an e-mail key",			DKIM_SIGERROR_NOTEMAILKEY },
-	{ "key granularity mismatch",		DKIM_SIGERROR_GRANULARITY },
 	{ "key type missing",			DKIM_SIGERROR_KEYTYPEMISSING },
 	{ "unknown key type",			DKIM_SIGERROR_KEYTYPEUNKNOWN },
 	{ "key revoked",			DKIM_SIGERROR_KEYREVOKED },

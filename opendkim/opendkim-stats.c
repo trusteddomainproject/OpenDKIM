@@ -335,7 +335,6 @@ main(int argc, char **argv)
 			syntax = (syntax == DKIM_SIGERROR_VERSION ||
 			          syntax == DKIM_SIGERROR_DOMAIN ||
 			          syntax == DKIM_SIGERROR_TIMESTAMPS ||
-			          syntax == DKIM_SIGERROR_MISSING_C ||
 			          syntax == DKIM_SIGERROR_INVALID_HC ||
 			          syntax == DKIM_SIGERROR_INVALID_BC ||
 			          syntax == DKIM_SIGERROR_MISSING_A ||

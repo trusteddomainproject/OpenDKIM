@@ -6,6 +6,10 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.5.0		2011/10/??
+	LIBOPENDKIM: Feature request #SF3317160: Per RFC4871bis, remove
+		granularity checks.
+	LIBOPENDKIM: Don't report the absence of "c=" as an error, since
+		there is a default.
 	TOOLS: Add opendkim-testmsg, for signing/verifying messages without
 		all the milter code being invoked.  Requested by
 		Todd Nagengast.

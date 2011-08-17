@@ -1032,115 +1032,6 @@ dkim_key_smtp(DKIM_SET *set)
 }
 
 /*
-**  DKIM_KEY_GRANOK -- return TRUE iff the granularity of the key is
-**                     appropriate to the signature being evaluated
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	sig -- DKIM_SIGINFO handle
-**  	v -- "v" tag value from the key (may be NULL)
-**  	gran -- granularity string from the retrieved key
-**  	user -- sending userid
-**
-**  Return value:
-**  	TRUE iff the value of the granularity is a match for the signer.
-*/
-
-static _Bool
-dkim_key_granok(DKIM *dkim, DKIM_SIGINFO *sig, u_char *v, u_char *gran,
-                u_char *user)
-{
-	int status;
-	DKIM_SET *set;
-	char *at;
-	char *end;
-	u_char *p;
-	char *q;
-	char restr[MAXADDRESS + 1];
-	char cmp[MAXADDRESS + 1];
-	regex_t re;
-
-	assert(dkim != NULL);
-	assert(sig != NULL);
-	assert(gran != NULL);
-	assert(user != NULL);
-
-	memset(cmp, '\0', sizeof cmp);
-
-	/* handle empty granularity */
-	if (gran[0] == '\0')
-	{
-		if (v == NULL &&
-		    (dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_ACCEPTDK))
-			return TRUE;
-		else
-			return FALSE;
-	}
-
-	/* if it's just "*", it matches everything */
-	if (gran[0] == '*' && gran[1] == '\0')
-		return TRUE;
-
-	/* ensure we're evaluating against a signature data set */
-	set = sig->sig_taglist;
-	assert(set != NULL);
-	assert(set->set_type == DKIM_SETTYPE_SIGNATURE);
-
-	/* get the value of the "i" parameter */
-	p = dkim_param_get(set, (u_char *) "i");
-
-	/* validate the "i" parameter */
-	if (p != NULL)
-		(void) dkim_qp_decode(p, (u_char *) cmp, sizeof cmp - 1);
-	at = strchr(cmp, '@');
-	if (at == NULL || at == cmp)
-		strlcpy(cmp, (char *) user, sizeof cmp);
-	else
-		*at = '\0';
-
-	/* if it's not wildcarded, enforce an exact match */
-	if (strchr((char *) gran, '*') == NULL)
-		return (strcmp((char *) gran, (char *) user) == 0);
-
-	/* evaluate the wildcard */
-	end = restr + sizeof restr;
-	memset(restr, '\0', sizeof restr);
-	restr[0] = '^';
-	for (p = gran, q = restr + 1; *p != '\0' && q < end - 2; p++)
-	{
-		if (isascii(*p) && ispunct(*p))
-		{
-			if (*p == '*')
-			{
-				*q++ = '.';
-				*q++ = '*';
-			}
-			else
-			{
-				*q++ = '\\';
-				*q++ = *p;
-			}
-		}
-		else
-		{
-			*q++ = *p;
-		}
-	}
-
-	if (strlcat(restr, "$", sizeof restr) >= sizeof restr)
-		return FALSE;
-
-	status = regcomp(&re, restr, 0);
-	if (status != 0)
-		return FALSE;
-
-	status = regexec(&re, (char *) user, 0, NULL, 0);
-	(void) regfree(&re);
-
-	return (status == 0 ? TRUE : FALSE);
-}
-
-/*
 **  DKIM_KEY_HASHOK -- return TRUE iff a signature's hash is in the approved
 **                     list of hashes for a given key
 **
@@ -1838,8 +1729,8 @@ dkim_siglist_setup(DKIM *dkim)
 		param = dkim_param_get(set, (u_char *) "c");
 		if (param == NULL)
 		{
-			dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_MISSING_C;
-			continue;
+			hdrcanon = DKIM_CANON_SIMPLE;
+			bodycanon = DKIM_CANON_SIMPLE;
 		}
 		else
 		{
@@ -2921,30 +2812,6 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig, _Bool test)
 		dkim_error(dkim, "key type mismatch");
 		sig->sig_error = DKIM_SIGERROR_NOTEMAILKEY;
 		return DKIM_STAT_CANTVRFY;
-	}
-
-	/* check key granularity */
-	p = dkim_param_get(set, (u_char *) "g");
-	if (!test && p != NULL)
-	{
-		char *at;
-		u_char *v;
-
-		v = dkim_param_get(set, (u_char *) "v");
-
-		memset(buf, '\0', sizeof buf);
-		dkim_sig_getidentity(dkim, sig, buf, sizeof buf);
-
-		at = strchr((char *) buf, '@');
-		if (at != NULL)
-			*at = '\0';
-
-		if (!dkim_key_granok(dkim, sig, v, p, buf))
-		{
-			dkim_error(dkim, "granularity mismatch");
-			sig->sig_error = DKIM_SIGERROR_GRANULARITY;
-			return DKIM_STAT_CANTVRFY;
-		}
 	}
 
 	/* then key type */
