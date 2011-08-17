@@ -111,11 +111,6 @@ static char t_testdata_h[] = "@(#)$Id: t-testdata.h,v 1.2 2010/07/23 01:54:20 cm
 	"GKz2uWnV65RAxa1Pw352BqizqiKOBjgYGzj8pJQSs8tOvv/2k6jpI809RnESqOFg" \
 	"F0gu3UJbNnu3+cd8k/kiQj+q4cKKRpAT92ccxc7svhCNgN1sBGmROYZuysG3Vu3D" \
 	"yc079gSLtnSrgXb+gQIDAQAB"
-#define	PUBLICKEYG	"v=DKIM1; k=rsa; t=y:s; g=M*K; p=" \
-	"MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC4GUGr+d/6SFNzVLYpphnRd0QP" \
-	"GKz2uWnV65RAxa1Pw352BqizqiKOBjgYGzj8pJQSs8tOvv/2k6jpI809RnESqOFg" \
-	"F0gu3UJbNnu3+cd8k/kiQj+q4cKKRpAT92ccxc7svhCNgN1sBGmROYZuysG3Vu3D" \
-	"yc079gSLtnSrgXb+gQIDAQAB"
 #define	PUBLICKEYNOS	"v=DKIM1; k=rsa; t=y; p=" \
 	"MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC4GUGr+d/6SFNzVLYpphnRd0QP" \
 	"GKz2uWnV65RAxa1Pw352BqizqiKOBjgYGzj8pJQSs8tOvv/2k6jpI809RnESqOFg" \

@@ -69,14 +69,6 @@ main(int argc, char **argv)
 	}
 	fprintf(f, "\n");
 
-	fprintf(f, "%s.%s.%s ", SELECTOR2, DKIM_DNSKEYNAME, DOMAIN2);
-	for (p = PUBLICKEYG; *p != '\0'; p++)
-	{
-		if (*p != '\n')
-			putc(*p, f);
-	}
-	fprintf(f, "\n");
-
 	fprintf(f, "%s.%s.%s ", SELECTORBADV, DKIM_DNSKEYNAME, DOMAIN);
 	for (p = PUBLICKEYBADV; *p != '\0'; p++)
 	{
