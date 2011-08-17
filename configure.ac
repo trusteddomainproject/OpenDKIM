@@ -1737,66 +1737,6 @@ AC_SUBST(LIBDB_INCDIRS)
 AC_SUBST(LIBDB_LIBDIRS)
 AC_SUBST(LIBDB_LIBS)
 
-#
-# libdk
-#
-AC_ARG_WITH([domainkeys],
-            AS_HELP_STRING([--with-domainkeys],
-                           [location of libdk includes and library]),
-            [dk="$withval"], [dk="no"])
-
-if test x"$dk" = x"yes"
-then
-	AC_MSG_CHECKING([for DomainKeys])
-
-	dkdirs="/usr /usr/local"
-	for d in $dkdirs
-	do
-		if test -f $d/include/dk.h -a -f $d/lib/libdk.a
-		then
-			dk=$d
-			AC_MSG_RESULT([$d])
-			LIBDK_INCDIRS="-I$dk/include"
-			LIBDK_LIBDIRS="-L$dk/lib"
-			LIBDK_LIBS="-ldk"
-			AC_DEFINE([VERIFY_DOMAINKEYS], 1,
-			          [compile with libdk for DomainKeys support])
-			AC_SUBST([DOMAINKEYS_MANNOTICE], "")
-			break
-		fi
-	done
-
-	if test x"$dk" = x"yes"
-	then
-		AC_MSG_ERROR([not found])
-	fi
-elif test x"$dk" = x"no"
-then
-	LIBDK_INCDIRS=""
-	LIBDK_LIBDIRS=""
-	LIBDK_LIBS=""
-	AC_SUBST([DOMAINKEYS_MANNOTICE],
-	         "(Not enabled for this installation.)")
-else
-	AC_MSG_CHECKING([for DomainKeys])
-
-	if test -f $dk/include/dk.h -a -f $dk/lib/libdk.a
-	then
-		AC_MSG_RESULT($dk)
-		LIBDK_INCDIRS="-I$dk/include"
-		LIBDK_LIBDIRS="-L$dk/lib"
-		LIBDK_LIBS="-ldk"
-		AC_DEFINE([VERIFY_DOMAINKEYS], 1,
-		          [compile with libdk for DomainKeys support])
-	else
-		AC_MSG_ERROR([not found at $dk])
-	fi
-fi
-
-AC_SUBST(LIBDK_INCDIRS)
-AC_SUBST(LIBDK_LIBDIRS)
-AC_SUBST(LIBDK_LIBS)
-
 LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBRESOLV"
 # This (below) is just for the pkg-config file opendkim.pc.in
 LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
@@ -1820,8 +1760,6 @@ fi
 AC_SUBST(LIBOPENDKIM_LIBS)
 AC_SUBST(LIBOPENDKIM_LIBS_PKG)
 AC_SUBST(LIBOPENDKIM_INC)
-
-AM_CONDITIONAL(VERIFY_DOMAINKEYS, test x"$dk" != x"no")
 
 AC_DEFINE_UNQUOTED([LIBOPENDKIM_FEATURE_STRING], "$LIBOPENDKIM_FEATURE_STRING",
                    [Feature string for printing])

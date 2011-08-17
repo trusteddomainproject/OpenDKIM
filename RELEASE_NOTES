@@ -6,6 +6,7 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.5.0		2011/10/??
+	Feature request #SF3385816: Discontinue DomainKeys support.
 	LIBOPENDKIM: Feature request #SF3317160: Per RFC4871bis, remove
 		granularity checks.
 	LIBOPENDKIM: Don't report the absence of "c=" as an error, since

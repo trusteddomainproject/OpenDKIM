@@ -99,11 +99,6 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 #endif /* _FFR_VBR */
 #include "dkim-strl.h"
 
-#ifdef VERIFY_DOMAINKEYS
-/* libdk includes */
-# include <dk.h>
-#endif /* VERIFY_DOMAINKEYS */
-
 /* opendkim includes */
 #include "config.h"
 #ifdef _FFR_RATE_LIMIT
@@ -432,10 +427,6 @@ struct msgctx
 	_Bool		mctx_addheader;		/* Authentication-Results: */
 	_Bool		mctx_headeronly;	/* in EOM, only add headers */
 	_Bool		mctx_ltag;		/* sign with l= tag? */
-#ifdef VERIFY_DOMAINKEYS
-	_Bool		mctx_dksigned;		/* DK signature present */
-	_Bool		mctx_dkpass;		/* DK signature passed */
-#endif /* VERIFY_DOMAINKEYS */
 	_Bool		mctx_capture;		/* capture message? */
 	_Bool		mctx_susp;		/* suspicious message? */
 #ifdef _FFR_RESIGN
@@ -466,9 +457,6 @@ struct msgctx
 	struct dkimf_dstring * mctx_tmpstr;	/* temporary string */
 	u_char *	mctx_jobid;		/* job ID */
 	DKIM *		mctx_dkimv;		/* verification handle */
-#ifdef VERIFY_DOMAINKEYS
-	DK *		mctx_dk;		/* DK handle */
-#endif /* VERIFY_DOMAINKEYS */
 #ifdef _FFR_VBR
 	VBR *		mctx_vbr;		/* VBR handle */
 	char *		mctx_vbrinfo;		/* VBR-Info header field */
@@ -492,10 +480,6 @@ struct msgctx
 						/* primary domain */
 	unsigned char	mctx_dkimar[DKIM_MAXHEADER + 1];
 						/* DKIM Auth-Results content */
-#ifdef VERIFY_DOMAINKEYS
-	unsigned char	mctx_dkar[DKIM_MAXHEADER + 1];
-						/* DK Auth-Results content */
-#endif /* VERIFY_DOMAINKEYS */
 };
 
 /*
@@ -749,9 +733,6 @@ int thread_count;				/* thread count */
 #ifdef QUERY_CACHE
 time_t cache_lastlog;				/* last cache stats logged */
 #endif /* QUERY_CACHE */
-#ifdef VERIFY_DOMAINKEYS
-DK_LIB *libdk;					/* libdk handle */
-#endif /* VERIFY_DOMAINKEYS */
 char *progname;					/* program name */
 char *sock;					/* listening socket */
 char *conffile;					/* configuration file */
@@ -4194,80 +4175,6 @@ dkimf_add_ar_fields(struct msgctx *dfc, struct dkimf_config *conf,
 	assert(conf != NULL);
 	assert(ctx != NULL);
 
-#ifdef VERIFY_DOMAINKEYS
-	/*
-	**  XXX -- I'm not happy with this solution, but it'll go away when
-	**         we discontinue DomainKeys support so I can live with it.
-	*/
-
-	if (!conf->conf_singleauthres)
-	{
-		if ((dfc->mctx_status == DKIMF_STATUS_BAD ||
-		     dfc->mctx_status == DKIMF_STATUS_GOOD ||
-		     dfc->mctx_status == DKIMF_STATUS_REVOKED ||
-		     dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
-		     dfc->mctx_status == DKIMF_STATUS_VERIFYERR ||
-		     (dfc->mctx_status == DKIMF_STATUS_NOSIGNATURE &&
-		      dfc->mctx_addheader)) &&
-		    dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
-		                    (char *) dfc->mctx_dkimar) == MI_FAILURE)
-		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: %s header add failed",
-				       dfc->mctx_jobid, AUTHRESULTSHDR);
-			}
-		}
-
-		if (dfc->mctx_dksigned &&
-		    dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
-		                    (char *) dfc->mctx_dkar) == MI_FAILURE)
-		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: %s header add failed",
-				       dfc->mctx_jobid, AUTHRESULTSHDR);
-			}
-		}
-	}
-	else
-	{
-		if ((dfc->mctx_status == DKIMF_STATUS_BAD ||
-		     dfc->mctx_status == DKIMF_STATUS_REVOKED ||
-		     dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
-		     dfc->mctx_status == DKIMF_STATUS_VERIFYERR ||
-		     (dfc->mctx_status == DKIMF_STATUS_NOSIGNATURE &&
-		      dfc->mctx_addheader)) &&
-		    dfc->mctx_dkpass)
-		{
-			if (dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
-			                    (char *) dfc->mctx_dkar) == MI_FAILURE)
-			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: %s header add failed",
-					       dfc->mctx_jobid,
-					       AUTHRESULTSHDR);
-				}
-			}
-		}
-		else
-		{
-			if (dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
-			                    (char *) dfc->mctx_dkimar) == MI_FAILURE)
-			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: %s header add failed",
-					       dfc->mctx_jobid,
-					       AUTHRESULTSHDR);
-				}
-			}
-		}
-	}
-#else /* VERIFY_DOMAINKEYS */
 	if (dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
 	                    (char *) dfc->mctx_dkimar) == MI_FAILURE)
 	{
@@ -4277,7 +4184,6 @@ dkimf_add_ar_fields(struct msgctx *dfc, struct dkimf_config *conf,
 			       dfc->mctx_jobid, AUTHRESULTSHDR);
 		}
 	}
-#endif /* VERIFY_DOMAINKEYS */
 }
 
 /*
@@ -6017,12 +5923,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "RequireSafeKeys",
 		                  &conf->conf_safekeys,
 		                  sizeof conf->conf_safekeys);
-
-#ifdef VERIFY_DOMAINKEYS
-		(void) config_get(data, "SingleAuthResult",
-		                  &conf->conf_singleauthres,
-		                  sizeof conf->conf_singleauthres);
-#endif /* VERIFY_DOMAINKEYS */
 
 		(void) config_get(data, "NoHeaderB",
 		                  &conf->conf_noheaderb,
@@ -8673,11 +8573,6 @@ dkimf_cleanup(SMFICTX *ctx)
 	/* release memory, reset state */
 	if (dfc != NULL)
 	{
-#ifdef VERIFY_DOMAINKEYS
-		dfc->mctx_dksigned = FALSE;
-		dfc->mctx_dkpass = FALSE;
-#endif /* VERIFY_DOMAINKEYS */
-
 		if (dfc->mctx_hqhead != NULL)
 		{
 			Header hdr;
@@ -8747,11 +8642,6 @@ dkimf_cleanup(SMFICTX *ctx)
 
 		TRYFREE(dfc->mctx_vbrinfo);
 #endif /* _FFR_VBR */
-
-#ifdef VERIFY_DOMAINKEYS
-		if (dfc->mctx_dk != NULL)
-			dk_free(dfc->mctx_dk);
-#endif /* VERIFY_DOMAINKEYS */
 
 		if (dfc->mctx_tmpstr != NULL)
 			dkimf_dstring_free(dfc->mctx_tmpstr);
@@ -10978,11 +10868,6 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 	}
 #endif /* _FFR_SELECT_CANONICALIZATION */
 
-#ifdef VERIFY_DOMAINKEYS
-	if (strcasecmp(headerf, DK_SIGNHEADER) == 0)
-		dfc->mctx_dksigned = TRUE;
-#endif /* VERIFY_DOMAINKEYS */
-
 	return SMFIS_CONTINUE;
 }
 
@@ -12213,25 +12098,6 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 #endif /* _FFR_VBR */
 
-#ifdef VERIFY_DOMAINKEYS
-	if (dfc->mctx_dksigned && dfc->mctx_srhead == NULL)
-	{
-		dfc->mctx_dk = dk_verify(libdk, (char *) dfc->mctx_jobid, NULL,
-		                         &status);
-		if (dfc->mctx_dk == NULL && status != DKIM_STAT_OK)
-		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR,
-				       "%s: dk_verify() returned status %d",
-				       dfc->mctx_jobid, status);
-			}
-
-			/* XXX -- temp-fail or continue? */
-		}
-	}
-#endif /* VERIFY_DOMAINKEYS */
-
 	/* run the headers */
 	for (hdr = dfc->mctx_hqhead; hdr != NULL; hdr = hdr->hdr_next)
 	{
@@ -12326,49 +12192,7 @@ mlfi_eoh(SMFICTX *ctx)
 				                     "dkim_header()", status);
 			}
 		}
-
-#ifdef VERIFY_DOMAINKEYS
-		if (dfc->mctx_dk != NULL)
-		{
-			dkimf_dstring_cat(dfc->mctx_tmpstr, (u_char *) CRLF);
-			status = dk_header(dfc->mctx_dk,
-			                   dkimf_dstring_get(dfc->mctx_tmpstr),
-			                   dkimf_dstring_len(dfc->mctx_tmpstr));
-			if (status != DK_STAT_OK)
-			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: dk_header() returned status %d",
-					       dfc->mctx_jobid, status);
-				}
-
-				dk_free(dfc->mctx_dk);
-				dfc->mctx_dk = NULL;
-			}
-		}
-#endif /* VERIFY_DOMAINKEYS */
 	}
-
-#ifdef VERIFY_DOMAINKEYS
-	/* signal end of headers to libdk */
-	if (dfc->mctx_dk != NULL)
-	{
-		status = dk_eoh(dfc->mctx_dk);
-		if (status != DK_STAT_OK)
-		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR,
-				       "%s: dk_eoh() returned status %d",
-				       dfc->mctx_jobid, status);
-			}
-
-			dk_free(dfc->mctx_dk);
-			dfc->mctx_dk = NULL;
-		}
-	}
-#endif /* VERIFY_DOMAINKEYS */
 
 	/* return any error status from earlier */
 	if (ms != SMFIS_CONTINUE)
@@ -12605,25 +12429,6 @@ mlfi_body(SMFICTX *ctx, u_char *bodyp, size_t bodylen)
 	conf = cc->cctx_config;
 	dfc = cc->cctx_msg;
 	assert(dfc != NULL);
-
-#ifdef VERIFY_DOMAINKEYS
-	if (dfc->mctx_dk != NULL)
-	{
-		status = dk_body(dfc->mctx_dk, bodyp, bodylen);
-		if (status != DK_STAT_OK)
-		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR,
-				       "%s: dk_body() returned status %d",
-				       dfc->mctx_jobid, status);
-			}
-
-			dk_free(dfc->mctx_dk);
-			dfc->mctx_dk = NULL;
-		}
-	}
-#endif /* VERIFY_DOMAINKEYS */
 
 	/*
 	**  No need to do anything if the body was empty.
@@ -12985,98 +12790,6 @@ mlfi_eom(SMFICTX *ctx)
 
 		free(ares);
 	}
-
-#ifdef VERIFY_DOMAINKEYS
-	/* complete DomainKeys verification */
-	if (dfc->mctx_dk != NULL)
-	{
-		_Bool addheader = FALSE;
-		DK_FLAGS flags;
-		char *authresult = NULL;
-		char *comment = NULL;
-		char hdr[DKIM_MAXHEADER + 1];
-		char val[MAXADDRESS + 1];
-
-		flags = 0;
-
-		status = dk_eom(dfc->mctx_dk, &flags);
-		switch (status)
-		{
-		  case DK_STAT_OK:
-			addheader = dfc->mctx_dksigned;
-			dfc->mctx_dkpass = TRUE;
-			authresult = "pass";
-			break;
-
-		  case DK_STAT_BADSIG:
-			addheader = TRUE;
-			authresult = "fail";
-			break;
-
-		  case DK_STAT_NOSIG:
-			/* XXX -- extract policy */
-			addheader = TRUE;
-			authresult = "neutral";
-			comment = "no signature";
-			break;
-
-		  case DK_STAT_NOKEY:
-			/* XXX -- extract policy */
-			addheader = TRUE;
-			authresult = "neutral";
-			comment = "no key";
-			break;
-
-		  default:
-			/* XXX -- do better? */
-			if (conf->conf_dolog)
-			{
-#if (DK_LIB_VERSION >= 0x00050000)
-				const char *err;
-
-				err = dk_geterror(dfc->mctx_dk);
-				if (err == NULL)
-					err = strerror(errno);
-
-				syslog(LOG_INFO,
-				       "%s: dk_eom() returned status %d: %s",
-				       dfc->mctx_jobid, status, err);
-#else /* (DK_LIB_VERSION >= 0x00050000) */
-				syslog(LOG_INFO,
-				       "%s: dk_eom() returned status %d",
-				       dfc->mctx_jobid, status);
-#endif /* (DK_LIB_VERSION >= 0x00050000) */
-			}
-			break;
-		}
-
-		if (addheader)
-		{
-			strlcpy(hdr, "unknown", sizeof hdr);
-			strlcpy(val, "unknown", sizeof val);
-
-			(void) dk_getidentity(dfc->mctx_dk, hdr, sizeof hdr,
-			                      val, sizeof val);
-
-			memset(dfc->mctx_dkar, '\0', sizeof dfc->mctx_dkar);
-
-			snprintf((char *) dfc->mctx_dkar,
-			         sizeof dfc->mctx_dkar,
-			         "%s%s%s%s; domainkeys=%s%s%s%s%s header.%s=%s",
-			         cc->cctx_noleadspc ? " " : "",
-			         authservid,
-			         conf->conf_authservidwithjobid ? "/" : "",
-			         conf->conf_authservidwithjobid ? (char *) dfc->mctx_jobid
-			                                        : "",
-			         authresult,
-			         comment == NULL ? "" : " (",
-			         comment == NULL ? "" : comment,
-			         comment == NULL ? "" : ")",
-			         !(flags & DK_FLAG_TESTING) ? "" : " (testing)",
-			         hdr, val);
-		}
-	}
-#endif /* VERIFY_DOMAINKEYS */
 
 	/* complete verification if started */
 	if (dfc->mctx_dkimv != NULL)
@@ -16615,20 +16328,6 @@ main(int argc, char **argv)
 		                    DKIM_OPTS_QUERYINFO,
 		                    testpubkeys, strlen(testpubkeys));
 	}
-
-#ifdef VERIFY_DOMAINKEYS
-	libdk = dk_init(NULL, NULL);
-	if (libdk == NULL)
-	{
-		if (curconf->conf_dolog)
-			syslog(LOG_ERR, "can't initialize DK library");
-
-		if (!autorestart && pidfile != NULL)
-			(void) unlink(pidfile);
-
-		return EX_UNAVAILABLE;
-	}
-#endif /* VERIFY_DOMAINKEYS */
 
 #ifdef _FFR_REPORT_INTERVALS
 	if (ridbfile != NULL)

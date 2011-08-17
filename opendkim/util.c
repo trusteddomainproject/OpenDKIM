@@ -110,10 +110,6 @@ static char *optlist[] =
 	"USE_UNBOUND",
 #endif /* USE_UNBOUND */
 
-#if VERIFY_DOMAINKEYS
-	"VERIFY_DOMAINKEYS",
-#endif /* VERIFY_DOMAINKEYS */
-
 #ifdef _FFR_ADSP_LISTS
 	"_FFR_ADSP_LISTS",
 #endif /* _FFR_ADSP_LISTS */

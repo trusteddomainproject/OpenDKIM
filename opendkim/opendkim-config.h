@@ -193,9 +193,6 @@ struct configdef dkimf_config[] =
 	{ "SignatureTTL",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "SignHeaders",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SigningTable",		CONFIG_TYPE_STRING,	FALSE },
-#ifdef VERIFY_DOMAINKEYS
-	{ "SingleAuthResult",		CONFIG_TYPE_BOOLEAN,	FALSE },
-#endif /* VERIFY_DOMAINKEYS */
 	{ "Socket",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_STATS
 	{ "Statistics",			CONFIG_TYPE_STRING,	FALSE },
