@@ -9689,6 +9689,31 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "Feedback-Type: %s\n", arf_type_string(arftype));
 	if (arftype == ARF_TYPE_AUTHFAIL)
 	{
+		fprintf(out, "Auth-Failure: ");
+		if (dkim_sig_getbh(sig) == DKIM_SIGBH_MISMATCH)
+		{
+			fprintf(out, "bodyhash\n");
+		}
+		else
+		{
+			const char *tmperror;
+
+			switch (dkim_sig_geterror(sig))
+			{
+			  case DKIM_SIGERROR_KEYREVOKED:
+				fprintf(out, "revoked\n");
+				break;
+
+			  default:
+				tmperror = dkim_sig_geterrorstr(dkim_sig_geterror(sig));
+				fprintf(out, "signature");
+				if (tmperror != NULL)
+					fprintf(out, " (%s)", tmperror);
+				fprintf(out, "\n");
+				break;
+			}
+		}
+
 		memset(addr, '\0', sizeof addr);
 		dkim_sig_getidentity(dfc->mctx_dkimv, sig, addr,
 		                     sizeof addr - 1);
