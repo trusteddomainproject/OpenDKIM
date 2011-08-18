@@ -7,6 +7,8 @@ release, and a summary of the changes in that release.
 
 2.5.0		2011/10/??
 	Feature request #SF3385816: Discontinue DomainKeys support.
+	Feature request #SF3393282: Update ARF output per
+		draft-ietf-marf-authfailure-report-01.
 	LIBOPENDKIM: Feature request #SF3317160: Per RFC4871bis, remove
 		granularity checks.
 	LIBOPENDKIM: Feature request #SF3385768: Add dkim_privkey_load(),
