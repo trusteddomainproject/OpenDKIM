@@ -3665,6 +3665,12 @@ dkim_eom_sign(DKIM *dkim)
 	}
 
 	rsa = dkim->dkim_keydata;
+	if (rsa->rsa_privkey == NULL)
+	{
+		dkim_error(dkim, "private key load failed");
+		return DKIM_STAT_NORESOURCE;
+	}
+
 	sig->sig_keybits = rsa->rsa_keysize;
 	sig->sig_signature = dkim->dkim_keydata;
 	sig->sig_flags |= DKIM_SIGFLAG_KEYLOADED;
