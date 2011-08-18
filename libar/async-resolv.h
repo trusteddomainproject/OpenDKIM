@@ -5,11 +5,11 @@
 **  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef _AR_H_
-#define _AR_H_
+#ifndef _ASYNC_RESOLV_H_
+#define _ASYNC_RESOLV_H_
 
 #ifndef lint
-static char ar_h_id[] = "@(#)$Id: ar.h,v 1.4 2010/09/02 05:10:57 cm-msk Exp $";
+static char async_resolv_h_id[] = "@(#)$Id: ar.h,v 1.4 2010/09/02 05:10:57 cm-msk Exp $";
 #endif /* !lint */
 
 /* system includes */
@@ -70,4 +70,4 @@ extern void ar_setmaxretry(AR_LIB, int, int *);
 extern void ar_setretry(AR_LIB, struct timeval *, struct timeval *);
 extern int ar_shutdown(AR_LIB);
 
-#endif /* ! _AR_H_ */
+#endif /* ! _ASYNC_RESOLV_H_ */

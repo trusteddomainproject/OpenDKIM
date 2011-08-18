@@ -77,7 +77,7 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.12 2010/10/04 21:20:47 cm-msk Exp $";
 #endif /* __RES && __RES >= 19940415 */
 
 /* ar includes */
-#include "ar.h"
+#include "async-resolv.h"
 #include "ar-socket.h"
 #include "ar-strl.h"
 #include "manual.h"

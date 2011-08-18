@@ -14,6 +14,8 @@ release, and a summary of the changes in that release.
 		end-of-message.  Requested by Heikki Gruner.
 	LIBOPENDKIM: Don't report the absence of "c=" as an error, since
 		there is a default.
+	LIBAR: Fix bug #SF2917856: Rename "ar.h" to "async-resolv.h" since
+		"ar.h" is already in common use.
 	TOOLS: Add opendkim-testmsg, for signing/verifying messages without
 		all the milter code being invoked.  Requested by
 		Todd Nagengast.

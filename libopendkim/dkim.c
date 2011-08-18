@@ -64,11 +64,6 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.70.2.1 2010/10/27 21:43:08 cm-msk
 # include <varargs.h>
 #endif /* _STDC_ */
 
-/* libar includes */
-#if USE_ARLIB
-# include <ar.h>
-#endif /* USE_ARLIB */
-
 #ifdef USE_GNUTLS
 /* GnuTLS includes */
 # include <gnutls/gnutls.h>
@@ -3665,7 +3660,11 @@ dkim_eom_sign(DKIM *dkim)
 	}
 
 	rsa = dkim->dkim_keydata;
+#ifdef USE_GNUTLS
 	if (rsa->rsa_privkey == NULL)
+#else /* USE_GNUTLS */
+	if (rsa->rsa_rsa == NULL)
+#endif /* USE_GNUTLS */
 	{
 		dkim_error(dkim, "private key load failed");
 		return DKIM_STAT_NORESOURCE;

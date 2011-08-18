@@ -6,7 +6,7 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: Asynchronous Resolver
-Description: Library for performing Asynchronous DNS provided by OpenDKIM
+Description: Library for performing asynchronous DNS provided by OpenDKIM
 URL: http://opendkim.org
 Version: @VERSION@
 Libs: -L${libdir} @PTHREAD_CFLAGS@ -lar

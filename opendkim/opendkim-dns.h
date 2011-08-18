@@ -51,7 +51,7 @@ extern int dkimf_rep_unbound_setup __P((DKIM_REP, struct dkimf_unbound *));
 
 #ifdef USE_ARLIB
 /* libar includes */
-#include <ar.h>
+#include <async-resolv.h>
 
 /* prototypes */
 extern int dkimf_arlib_setup __P((DKIM_LIB *, AR_LIB));

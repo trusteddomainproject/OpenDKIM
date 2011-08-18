@@ -41,7 +41,7 @@ static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.7.10.2 2010/10/28
 
 #ifdef USE_ARLIB
 /* libar includes */
-# include <ar.h>
+# include <async-resolv.h>
 # define MAXCNAMEDEPTH	3
 #endif /* USE_ARLIB */
 
