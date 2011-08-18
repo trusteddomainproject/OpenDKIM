@@ -30,6 +30,7 @@ Arrival-Date: Mon, 14 Mar 2011 16:41:35 -0700
 Reported-Domain: example.com
 Delivery-Result: other
 Feedback-Type: auth-failure
+Auth-Failure: signature (signature verification failed)
 DKIM-Failure: signature
 DKIM-Domain: example.com
 DKIM-Selector: report
