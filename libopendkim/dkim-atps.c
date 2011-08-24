@@ -73,6 +73,7 @@ DKIM_STAT
 dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
                 dkim_atps_t *res)
 {
+#ifdef _FFR_ATPS
 	int status;
 	int qdcount;
 	int ancount;
@@ -104,6 +105,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	u_char b32[DKIM_ATPS_QUERYLENGTH + 1];
 	u_char query[DKIM_MAXHOSTNAMELEN + 1];
 	u_char buf[BUFRSZ + 1];
+#endif /* _FFR_ATPS */
 
 	assert(dkim != NULL);
 	assert(sig != NULL);
