@@ -75,7 +75,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	int dnssec = DKIM_DNSSEC_UNKNOWN;
 	int c;
 	int n = 0;
-	int rdlength;
+	int rdlength = 0;
 	int type = -1;
 	int class = -1;
 	size_t anslen;
