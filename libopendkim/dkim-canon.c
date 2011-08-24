@@ -317,7 +317,6 @@ dkim_canon_header_string(struct dkim_dstring *dstr, dkim_canon_t canon,
                          unsigned char *hdr, size_t hdrlen, _Bool crlf)
 {
 	_Bool space;
-	int n;
 	u_char *p;
 	u_char *tmp;
 	u_char *end;
@@ -328,8 +327,6 @@ dkim_canon_header_string(struct dkim_dstring *dstr, dkim_canon_t canon,
 
 	tmp = tmpbuf;
 	end = tmpbuf + sizeof tmpbuf - 1;
-
-	n = 0;
 
 	switch (canon)
 	{
@@ -1420,7 +1417,7 @@ dkim_canon_runheaders(DKIM *dkim)
 			SHA1_Final(sha1->sha1_out, &sha1->sha1_ctx);
 
 			if (sha1->sha1_tmpbio != NULL)
-				BIO_flush(sha1->sha1_tmpbio);
+				(void) BIO_flush(sha1->sha1_tmpbio);
 
 			break;
 		  }
@@ -1434,7 +1431,7 @@ dkim_canon_runheaders(DKIM *dkim)
 			SHA256_Final(sha256->sha256_out, &sha256->sha256_ctx);
 
 			if (sha256->sha256_tmpbio != NULL)
-				BIO_flush(sha256->sha256_tmpbio);
+				(void) BIO_flush(sha256->sha256_tmpbio);
 
 			break;
 		  }
@@ -1558,7 +1555,7 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 			SHA1_Final(sha1->sha1_out, &sha1->sha1_ctx);
 
 			if (sha1->sha1_tmpbio != NULL)
-				BIO_flush(sha1->sha1_tmpbio);
+				(void) BIO_flush(sha1->sha1_tmpbio);
 
 			break;
 		  }
@@ -1572,7 +1569,7 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 			SHA256_Final(sha256->sha256_out, &sha256->sha256_ctx);
 
 			if (sha256->sha256_tmpbio != NULL)
-				BIO_flush(sha256->sha256_tmpbio);
+				(void) BIO_flush(sha256->sha256_tmpbio);
 
 			break;
 		  }
@@ -1976,7 +1973,7 @@ dkim_canon_closebody(DKIM *dkim)
 			SHA1_Final(sha1->sha1_out, &sha1->sha1_ctx);
 
 			if (sha1->sha1_tmpbio != NULL)
-				BIO_flush(sha1->sha1_tmpbio);
+				(void) BIO_flush(sha1->sha1_tmpbio);
 
 			break;
 		  }
@@ -1990,7 +1987,7 @@ dkim_canon_closebody(DKIM *dkim)
 			SHA256_Final(sha256->sha256_out, &sha256->sha256_ctx);
 
 			if (sha256->sha256_tmpbio != NULL)
-				BIO_flush(sha256->sha256_tmpbio);
+				(void) BIO_flush(sha256->sha256_tmpbio);
 
 			break;
 		  }
