@@ -17,7 +17,6 @@
 ##      		in the case of DKIM signature failure
 ##      -ff format	Format of feedback. "arf" or "smtp"
 ##      -fi interval	Interval of report formats.
-## 	-g gran		key granularity (default = "*")
 ## 	-h algs		list of allowed hash algorithms (default = unspecified)
 ## 	-n text		include "text" as a note in the output key record
 ## 	-r		restrict this key to e-mail use only
@@ -43,7 +42,6 @@ domain="@DOMAIN@"
 outdir="."
 nosubdomains=0
 hashalgs=""
-keygran="*"
 note=""
 flags=""
 feedback="postmaster"
@@ -133,16 +131,6 @@ do
 			exit 1
 			;;
 		esac
-		;;
-
-	-g)	if [ $# -eq 1 ]
-		then
-			echo $progname: -g requires a value
-			exit 1
-		fi
-
-		shift
-		keygran=$1
 		;;
 
 	-h)	if [ $# -eq 1 ]
@@ -268,7 +256,7 @@ else
 	comment=""
 fi
 
-echo ${selector}._domainkey   IN   TXT  '"'v=DKIM1\;$noteout$hashout$feedbackout$feedbackinterval$feedbackformat g=$keygran\; k=rsa\;$flagsout p=$pubkey'"' $comment > ${selector}.txt
+echo ${selector}._domainkey   IN   TXT  '"'v=DKIM1\;$noteout$hashout$feedbackout$feedbackinterval$feedbackformat k=rsa\;$flagsout p=$pubkey'"' $comment > ${selector}.txt
 
 if [ $verbose -eq 1 ]
 then

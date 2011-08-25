@@ -59,13 +59,6 @@ Defines the number that specifies the interval in which no more that one
 report should be sent. By default interval equates to 0 requesting all reports.
 
 .TP
-.I -g granularity
-Defines the key
-.I granularity,
-i.e. the user(s) who may use the key.  The default is "*" meaning any
-user can use the key.
-
-.TP
 .I -h algorithms
 Specifies a list of hash
 .I algorithms
@@ -110,7 +103,7 @@ that shipped with version @VERSION@ of
 Copyright (c) 2007, 2008 Sendmail, Inc. and its suppliers.  All rights
 reserved.
 
-Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8),
 .I openssl(8)
