@@ -524,7 +524,7 @@ main(int argc, char **argv)
 				        progname, line);
 			}
 
-			if (n != 17 && n != 18)
+			if (n != 18)
 			{
 				fprintf(stderr,
 				        "%s: unexpected message field count (%d) at input line %d\n",
@@ -744,29 +744,26 @@ main(int argc, char **argv)
 				continue;
 			}
 
-			if (n == 18)
-			{
-				snprintf(sql, sizeof sql,
-				         "INSERT INTO messages (jobid, reporter, from_domain, ip, anonymized, msgtime, size, sigcount, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received_count, content_type, content_encoding, atps) VALUES ('%s', %d, %d, %d, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s', %s)",
-				         fields[0],	/* jobid */
-				         repid,		/* reporter */
-				         domid,		/* from_domain */
-				         addrid,	/* ip */
-				         fields[4],	/* anonymized */
-				         fields[5],	/* msgtime */
-				         fields[6],	/* size */
-				         fields[7],	/* sigcount */
-				         fields[8],	/* adsp_found */
-				         fields[9],	/* adsp_unknown */
-				         fields[10],	/* adsp_all */
-				         fields[11],	/* adsp_discardable */
-				         fields[12],	/* adsp_fail */
-				         fields[13],	/* mailing_list */
-				         fields[14],	/* received_count */
-				         fields[15],	/* content_type */
-				         fields[16],	/* content_encoding */
-				         fields[17]);	/* atps */
-			}
+			snprintf(sql, sizeof sql,
+			         "INSERT INTO messages (jobid, reporter, from_domain, ip, anonymized, msgtime, size, sigcount, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received_count, content_type, content_encoding, atps) VALUES ('%s', %d, %d, %d, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s', %s)",
+			         fields[0],	/* jobid */
+			         repid,		/* reporter */
+			         domid,		/* from_domain */
+			         addrid,	/* ip */
+			         fields[4],	/* anonymized */
+			         fields[5],	/* msgtime */
+			         fields[6],	/* size */
+			         fields[7],	/* sigcount */
+			         fields[8],	/* adsp_found */
+			         fields[9],	/* adsp_unknown */
+			         fields[10],	/* adsp_all */
+			         fields[11],	/* adsp_discardable */
+			         fields[12],	/* adsp_fail */
+			         fields[13],	/* mailing_list */
+			         fields[14],	/* received_count */
+			         fields[15],	/* content_type */
+			         fields[16],	/* content_encoding */
+			         fields[17]);	/* atps */
 
 			msgid = sql_do(db, sql);
 			if (msgid == -1)
@@ -806,7 +803,7 @@ main(int argc, char **argv)
 				        progname, line);
 			}
 
-			if (n != 23)
+			if (n != 21)
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",
@@ -900,35 +897,30 @@ main(int argc, char **argv)
 				continue;
 			}
 
-			if (n == 23)
-			{
-				snprintf(sql, sizeof sql,
-				         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, sigerror, sig_t, sig_x, sig_z, dnssec, sig_i, sig_i_user, key_s, keysize) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-				         msgid,		/* message */
-				         domid,		/* domain */
-				         fields[1],	/* algorithm */
-				         fields[2],	/* hdr_canon */
-				         fields[3],	/* body_canon */
-				         fields[4],	/* ignored */
-				         fields[5],	/* pass */
-				         fields[6],	/* fail_body */
-				         fields[7],	/* siglength */
-				         fields[8],	/* key_t */
-				         fields[9],	/* key_g */
-				         fields[10],	/* key_g_name */
-				         fields[11],	/* key_dk_compat */
-				         fields[12],	/* sigerror */
-				         fields[13],	/* sig_t */
-				         fields[14],	/* sig_x */
-				         fields[15],	/* sig_z */
-				         fields[16],	/* dnssec */
-				         /* fields[17],	   signed fields */
-				         /* fields[18],	   changed fields */
-				         fields[19],	/* sig_i */
-				         fields[20],	/* sig_i_user */
-				         fields[21],	/* key_s */
-				         fields[22]);	/* keysize */
-			}
+			snprintf(sql, sizeof sql,
+			         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, sigerror, sig_t, sig_x, sig_z, dnssec, sig_i, sig_i_user, key_s, keysize) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+			         msgid,		/* message */
+			         domid,		/* domain */
+			         fields[1],	/* algorithm */
+			         fields[2],	/* hdr_canon */
+			         fields[3],	/* body_canon */
+			         fields[4],	/* ignored */
+			         fields[5],	/* pass */
+			         fields[6],	/* fail_body */
+			         fields[7],	/* siglength */
+			         fields[8],	/* key_t */
+			         fields[9],	/* key_g */
+			         fields[10],	/* key_g_name */
+			         fields[11],	/* key_dk_compat */
+			         fields[12],	/* sigerror */
+			         fields[13],	/* sig_t */
+			         fields[14],	/* sig_x */
+			         fields[15],	/* sig_z */
+			         fields[16],	/* dnssec */
+			         fields[17],	/* sig_i */
+			         fields[18],	/* sig_i_user */
+			         fields[19],	/* key_s */
+			         fields[20]);	/* keysize */
 
 			sigid = sql_do(db, sql);
 			if (sigid == -1)
