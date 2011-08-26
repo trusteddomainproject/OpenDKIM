@@ -196,11 +196,6 @@ $MYSQL --execute="SELECT COUNT(*) AS 'author sigs', SUM(pass) AS 'passed' FROM s
 $MYSQL --execute="SELECT COUNT(*) AS 'third-party sigs', SUM(pass) AS 'passed' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND NOT from_domain = domain AND mailing_list = 1" >> $OUTPUT
 echo "" >> $OUTPUT
 
-echo '<a name="signed_fields"></a>' >> $OUTPUT
-echo "<p> Signed header field frequency (top 20 shown): </p>" >> $OUTPUT
-$MYSQL --execute="SELECT headernames.name, COUNT(signed_headers.id) AS count FROM signed_headers JOIN headernames ON headernames.id = signed_headers.header GROUP BY signed_headers.header ORDER BY COUNT(signed_headers.id) DESC LIMIT 20" >> $OUTPUT
-echo "" >> $OUTPUT
-
 echo '<a name="unique_domains"></a>' >> $OUTPUT
 echo "<p> Count of unique signed From: domains in sample: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(DISTINCT from_domain) AS domains FROM messages JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND anonymized = 0" >> $OUTPUT
@@ -229,11 +224,6 @@ echo "" >> $OUTPUT
 echo '<a name="received_correlation"></a>' >> $OUTPUT
 echo "<p> Correlation of Received: count to signature successes: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT received_count, SUM(sigcount) AS 'total sigs', SUM(signatures.pass) AS 'passed', 100*SUM(signatures.pass)/SUM(sigcount) AS '% pass' FROM messages JOIN signatures ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND received_count > 0 AND sigcount > 0 GROUP BY received_count" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="broken_headers"></a>' >> $OUTPUT
-echo "<p> Most frequent header field changes resulting in signature failures: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT headernames.name, COUNT(headernames.name) AS instances FROM signed_headers JOIN headernames ON headernames.id = signed_headers.header WHERE changed = 1 GROUP BY signed_headers.header ORDER BY instances DESC LIMIT 10" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="worst_adsp"></a>' >> $OUTPUT
