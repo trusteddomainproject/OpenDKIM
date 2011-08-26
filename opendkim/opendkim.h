@@ -93,6 +93,10 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.34.10.1 2010/10/27 21:43:
 #define	XHEADERNAME	"X-DKIM"
 #define	XSELECTCANONHDR	"X-Canonicalization"
 
+#ifdef _FFR_STATS
+# define DKIMF_STATS_VERSION	3
+#endif /* _FFR_STATS */
+
 #ifdef _FFR_VBR
 # define XVBRTYPEHEADER	"X-VBR-Type"
 # define XVBRCERTHEADER	"X-VBR-Certifiers"

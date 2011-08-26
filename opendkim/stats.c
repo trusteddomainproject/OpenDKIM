@@ -163,6 +163,10 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		return -1;
 	}
 
+	/* write version if file is new */
+	if (ftell(out) == 0)
+		fprintf(out, "V%d\n", DKIMF_STATS_VERSION);
+
 	/* write info */
 	status = dkim_getsiglist(dkimv, &sigs, &nsigs);
 	if (status != DKIM_STAT_OK)
