@@ -326,6 +326,7 @@ main(int argc, char **argv)
 	int msgid;
 	int sigid;
 	int hdrid;
+	int inversion = -1;
 	char *p;
 	char *dbhost = DEFDBHOST;
 	char *dbname = DEFDBNAME;
@@ -498,8 +499,31 @@ main(int argc, char **argv)
 		{
 			continue;
 		}
+		else if (c == 'V')
+		{
+			if (n != 1)
+			{
+				fprintf(stderr,
+				        "%s: unexpected version field count (%d) at input line %d\n",
+				        progname, n, line);
+
+				if (showfields == 1)
+					dumpfields(stderr, fields, n);
+
+				continue;
+			}
+
+			inversion = atoi(fields[0]);
+		}
 		else if (c == 'M')
 		{
+			if (inversion != DKIMF_STATS_VERSION)
+			{
+				fprintf(stderr,
+				        "%s: ignoring old format at input line %d\n",
+				        progname, line);
+			}
+
 			if (n != 17 && n != 18)
 			{
 				fprintf(stderr,
@@ -798,6 +822,13 @@ main(int argc, char **argv)
 		{
 			int changed;
 
+			if (inversion != DKIMF_STATS_VERSION)
+			{
+				fprintf(stderr,
+				        "%s: ignoring old format at input line %d\n",
+				        progname, line);
+			}
+
 			if (n != 19 && n != 21 && n != 22 && n != 23)
 			{
 				fprintf(stderr,
@@ -1066,6 +1097,13 @@ main(int argc, char **argv)
 		/* processing section for extensions */
 		else if (c == 'X')
 		{
+			if (inversion != DKIMF_STATS_VERSION)
+			{
+				fprintf(stderr,
+				        "%s: ignoring old format at input line %d\n",
+				        progname, line);
+			}
+
 			if (n != 2)
 			{
 				fprintf(stderr,
