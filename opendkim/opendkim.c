@@ -10111,15 +10111,15 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 		size_t ssl;
 		char *result;
 		char *dnssec;
-		char *domain;
 		char ss[BUFRSZ + 1];
 		char tmp[BUFRSZ + 1];
+		char val[MAXADDRESS + 1];
 
 		for (c = 0; c < nsigs; c++)
 		{
 			sigerror = dkim_sig_geterror(sigs[c]);
 
-			domain = dkim_sig_getdomain(sigs[c]);
+			dnssec = NULL;
 
 			(void) dkim_sig_getkeysize(sigs[c], &keybits);
 
@@ -10192,13 +10192,19 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 			}
 #endif /* USE_UNBOUND */
 
+			memset(val, '\0', sizeof val);
+
+			(void) dkim_sig_getidentity(dkim, sigs[c],
+			                            val, sizeof val - 1);
+
 			snprintf(tmp, sizeof tmp,
-			         "%s%sdkim=%s (%u bits%s%s) header.d=%s%s%s",
+			         "%s%sdkim=%s (%u-bit key%s%s) header.i=%s%s%s",
 			         c == 0 ? "" : ";",
 			         DELIMITER, result,
 			         keybits,
-			         dnssec == NULL ? "" : "; ", dnssec,
-			         domain,
+			         dnssec == NULL ? "" : "; ",
+			         dnssec == NULL ? "" : dnssec,
+			         val,
 			         ts == DKIM_STAT_OK ? " header.b=" : "",
 			         ts == DKIM_STAT_OK ? ss : "");
 
