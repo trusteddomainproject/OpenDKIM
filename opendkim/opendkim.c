@@ -13224,6 +13224,13 @@ mlfi_eom(SMFICTX *ctx)
 					                                 sizeof smtpprefix,
 					                                 NULL);
 
+					/* send an ARF message for ADSP? */
+					if (conf->conf_sendadspreports)
+					{
+						dkimf_policyreport(cc, conf,
+						                   hostname);
+					}
+
 					if (conf->conf_adspaction == SMFIS_DISCARD)
 					{
 						dkimf_cleanup(ctx);
