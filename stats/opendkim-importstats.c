@@ -21,6 +21,7 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.11 20
 
 /* OpenDKIM includes */
 #include "build-config.h"
+#include "stats.h"
 
 /* libopendkim includes */
 #include <dkim-strl.h>
@@ -517,7 +518,7 @@ main(int argc, char **argv)
 		}
 		else if (c == 'M')
 		{
-			if (inversion != DKIMF_STATS_VERSION)
+			if (inversion != DKIMS_VERSION)
 			{
 				fprintf(stderr,
 				        "%s: ignoring old format at input line %d\n",
@@ -796,7 +797,7 @@ main(int argc, char **argv)
 		{
 			int changed;
 
-			if (inversion != DKIMF_STATS_VERSION)
+			if (inversion != DKIMS_VERSION)
 			{
 				fprintf(stderr,
 				        "%s: ignoring old format at input line %d\n",
@@ -952,7 +953,7 @@ main(int argc, char **argv)
 		/* processing section for extensions */
 		else if (c == 'X')
 		{
-			if (inversion != DKIMF_STATS_VERSION)
+			if (inversion != DKIMS_VERSION)
 			{
 				fprintf(stderr,
 				        "%s: ignoring old format at input line %d\n",

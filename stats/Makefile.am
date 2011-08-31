@@ -13,7 +13,7 @@ opendkim_anonstats_LDFLAGS = $(LIBCRYPTO_LIBDIRS)
 opendkim_anonstats_LDADD = $(LIBCRYPTO_LIBS)
 
 opendkim_importstats_SOURCES = opendkim-importstats.c
-opendkim_importstats_CPPFLAGS = $(LIBODBX_CPPFLAGS) -I$(srcdir)/../libopendkim
+opendkim_importstats_CPPFLAGS = $(LIBODBX_CPPFLAGS) -I$(srcdir)/../libopendkim -I$(srcdir)/../opendkim
 opendkim_importstats_CFLAGS = $(LIBODBX_CFLAGS) $(COV_CFLAGS)
 opendkim_importstats_LDFLAGS = $(COV_LDFLAGS)
 opendkim_importstats_LDADD = $(LIBODBX_LIBS) ../libopendkim/libopendkim.la $(COV_LIBADD)

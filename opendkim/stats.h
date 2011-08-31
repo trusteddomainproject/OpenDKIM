@@ -25,6 +25,8 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-m
 /* opendkim includes */
 #include "opendkim.h"
 
+#define DKIMS_VERSION		3
+
 /* column numbers */
 #define	DKIMS_MI_JOBID		0
 #define	DKIMS_MI_REPORTER	1

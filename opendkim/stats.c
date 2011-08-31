@@ -165,7 +165,7 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 
 	/* write version if file is new */
 	if (ftell(out) == 0)
-		fprintf(out, "V%d\n", DKIMF_STATS_VERSION);
+		fprintf(out, "V%d\n", DKIMS_VERSION);
 
 	/* write info */
 	status = dkim_getsiglist(dkimv, &sigs, &nsigs);
