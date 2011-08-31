@@ -10032,7 +10032,9 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 
 			dnssec = NULL;
 
-			(void) dkim_sig_getkeysize(sigs[c], &keybits);
+			if (dkim_sig_getkeysize(sigs[c],
+			                        &keybits) != DKIM_STAT_OK)
+				keybits = 0;
 
 			ssl = sizeof ss - 1;
 			ts = dkim_get_sigsubstring(dkim, sigs[c], ss, &ssl);

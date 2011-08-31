@@ -11,6 +11,8 @@ release, and a summary of the changes in that release.
 		draft-ietf-marf-authfailure-report-01.
 	Fix bug #SF3400670: Send ADSP failure reports when rejecting
 		a message.  Reported by Andreas Schulze.
+	Fix Authentication-Results generation with "AddAllSignatureResults"
+		enabled.  Reported by Todd Nagengast.
 	LIBOPENDKIM: Feature request #SF3317160: Per RFC4871bis, remove
 		granularity checks.
 	LIBOPENDKIM: Feature request #SF3385768: Add dkim_privkey_load(),
