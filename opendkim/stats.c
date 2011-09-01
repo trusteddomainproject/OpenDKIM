@@ -501,11 +501,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		                                  (u_char *) "t");
 		fprintf(out, "\t%d", p != NULL);
 		
-		p = (char *) dkim_sig_gettagvalue(sigs[c], TRUE,
-		                                  (u_char *) "g");
-		fprintf(out, "\t%d", p != NULL);
-		fprintf(out, "\t%d", p != NULL && *p != '\0' && *p != '*');
-
 		err = dkim_sig_geterror(sigs[c]);
 
 		/* DK-compatible keys */

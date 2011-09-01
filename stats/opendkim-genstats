@@ -141,7 +141,7 @@ echo "" >> $OUTPUT
 
 echo '<a name="key_props"></a>' >> $OUTPUT
 echo "<p> Key properties: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT SUM(key_t) AS 't=', SUM(key_g) AS 'g=', SUM(key_g_name) AS 'g=name', SUM(key_dk_compat) AS 'DK compat' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1" >> $OUTPUT
+$MYSQL --execute="SELECT SUM(key_t) AS 't=' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="key_s"></a>' >> $OUTPUT
