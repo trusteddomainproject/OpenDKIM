@@ -65,18 +65,15 @@ my $minmsgs      = 10;
 my $minspamcount = 2;
 
 # prediction interval calculation
-#my $pisize      = 50;
-#my $stdscore    = 0.67;
-#my $pisize      = 68;
-#my $stdscore    = 1.00;
-my $pisize       = 75;
-my $stdscore     = 1.15;
-#my $pisize      = 90;
-#my $stdscore    = 1.64;
-#my $pisize      = 95;
-#my $stdscore    = 1.96;
-#my $pisize      = 99;
-#my $stdscore    = 2.58;
+my $def_pi       = 75;
+my $pisize;
+my $stdscore;
+my %stdscores    = (	50,	0.67,
+			68,	1.00,
+			75,	1.15,
+			90,	1.64,
+			95,	1.96,
+			99,	2.58 );
 
 # Minimum messages.id value; used to mark the start of useful data
 my $minmsgid     = 5855122;
@@ -95,6 +92,7 @@ sub usage
 	print STDERR "\t--dbuser=user      database user [$def_dbuser]\n";
 	print STDERR "\t--help             print help and exit\n";
 	print STDERR "\t--output=file      output file [$def_output]\n";
+	print STDERR "\t--prediction=pct   prediction interval [$def_pi]\n";
 	print STDERR "\t--verbose          verbose output\n";
 	print STDERR "\t--version          print version and exit\n";
 }
@@ -106,7 +104,8 @@ my $opt_retval = &Getopt::Long::GetOptions ('dbhost=s' => \$dbhost,
                                             'dbport=s' => \$dbport,
                                             'dbuser=s' => \$dbuser,
                                             'help!' => \$helponly,
-                                            'output!' => \$reportout,
+                                            'outputs' => \$reportout,
+                                            'prediction=i' => \$pisize,
                                             'verbose!' => \$verbose,
                                             'version!' => \$showversion,
                                            );
@@ -202,6 +201,22 @@ if (!defined($reportout))
 	{
 		$reportout = $def_output;
 	}
+}
+
+if (!defined($pisize))
+{
+	$pisize = $def_pi;
+}
+
+$stdscore = $stdscores{$pisize};
+if (!defined($stdscore))
+{
+	print STDERR "$progname: unknown prediction interval size $pisize\n";
+	exit(1);
+}
+elsif ($verbose)
+{
+	print STDERR "$progname: using standard score $stdscore\n";
 }
 
 my $dbi_dsn = "DBI:" . $dbscheme . ":database=" . $dbname .
