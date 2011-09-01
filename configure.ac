@@ -1782,4 +1782,5 @@ AC_OUTPUT([	Makefile
 		opendkim/tests/Makefile
 		stats/Makefile stats/opendkim-importstats.8
 			stats/opendkim-genrates.pl
+			stats/opendkim-genrates.8
 ])

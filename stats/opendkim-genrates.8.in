@@ -1,0 +1,85 @@
+.TH opendkim-genrates 8 "The OpenDKIM Project"
+.SH NAME
+.B opendkim-genrates
+- OpenDKIM statistics import tool
+.SH SYNOPSIS
+.B opendkim-genrates.pl
+[options]
+.SH DESCRIPTION
+.B opendkim-genrates
+collates data accumulated by the OpenDKIM statistics feature into daily
+summaries that are then used to compute a recommended rate limit
+for each signing domain.  It also generates a report of its findings,
+which includes some specific (currently hard-coded) interesting domains.
+
+The schemae that are used both as input (tables from which the values are
+taken) and output (tables into which results are stored) can be found in
+the
+.I stats/mkdb.mysql
+file in the OpenDKIM package.  The target tables are called "aggregate"
+and "predictions".  This latter table can then be used by mail filtering
+software to impose flow and spam ratio limits on a per-domain basis.
+
+For a detailed description of the algorithms, see the white paper
+"Enforcing Rate Limits Based on Authenticated Sender Reputation."
+
+This work is experimental.
+
+.SH OPTIONS
+.TP
+.I --dbhost=host
+Attempts to connect to the database server on the named
+.I host.
+The default is "localhost".
+.TP
+.I --dbname=name
+Requests a connection to the database called
+.I name.
+The default is "opendkim".
+.TP
+.I --dbpasswd=password
+Attempts to authenticate to the database server using the specified
+.I password.
+The default is "opendkim".
+.TP
+.I --dbport=port
+Tries to connect to the database at the specified TCP
+.I port.
+The default is 3306.
+.TP
+.I --dbuser=user
+Attempts to authenticate to the database server as the specified
+.I user.
+The default is "opendkim".
+.TP
+.I --help
+Prints a usage message and exits.
+.TP
+.I --output=file
+Writes the HTML report to the specified
+.I file.
+The default is "/var/www/docs/opendkim/rates.html".
+.TP
+.I --prediction=pct
+For calculations, constructs a prediction interval described by the
+percentage value
+.I pct.
+The default is 75.  Accepted values are 50, 68, 75, 90, 95 and 99.
+.TP
+.I --verbose
+Requests verbose output.
+.TP
+.I --version
+Prints version number and exits.
+.SH VERSION
+This man page covers the version of
+.I opendkim-genrates
+that shipped with version @VERSION@ of
+.I OpenDKIM.
+.SH COPYRIGHT
+Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+.I opendkim(8),
+.I opendkim-importstats(8)
+.P
+RFC4871 - DomainKeys Identified Mail
