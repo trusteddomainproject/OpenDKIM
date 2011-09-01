@@ -10029,12 +10029,15 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 		char ss[BUFRSZ + 1];
 		char tmp[BUFRSZ + 1];
 		char val[MAXADDRESS + 1];
+		char comment[BUFRSZ + 1];
 
 		for (c = 0; c < nsigs; c++)
 		{
-			sigerror = dkim_sig_geterror(sigs[c]);
-
 			dnssec = NULL;
+
+			memset(comment, '\0', sizeof comment);
+
+			sigerror = dkim_sig_geterror(sigs[c]);
 
 			if (dkim_sig_getkeysize(sigs[c],
 			                        &keybits) != DKIM_STAT_OK)
@@ -10058,7 +10061,16 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 			         ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 ||
 			          dkim_sig_getbh(sigs[c]) != DKIM_SIGBH_MATCH))
 			{
+				char *err;
+
 				result = "fail";
+
+				err = dkim_sig_geterrorstr(dkim_sig_geterror(sigs[c]));
+				if (err != NULL)
+				{
+					snprintf(comment, sizeof comment,
+					         " (%s)", err);
+				}
 			}
 			else if (sigerror != DKIM_SIGERROR_UNKNOWN &&
 			         sigerror != DKIM_SIGERROR_OK)
@@ -10115,9 +10127,9 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 			                            val, sizeof val - 1);
 
 			snprintf(tmp, sizeof tmp,
-			         "%s%sdkim=%s (%u-bit key%s%s) header.i=%s%s%s",
+			         "%s%sdkim=%s%s (%u-bit key%s%s) header.i=%s%s%s",
 			         c == 0 ? "" : ";",
-			         DELIMITER, result,
+			         DELIMITER, result, comment,
 			         keybits,
 			         dnssec == NULL ? "" : "; ",
 			         dnssec == NULL ? "" : dnssec,
