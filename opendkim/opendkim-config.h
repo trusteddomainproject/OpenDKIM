@@ -79,6 +79,7 @@ struct configdef dkimf_config[] =
 #ifdef _FFR_IDENTITY_HEADER
 #ifdef _FFR_RATE_LIMIT
 	{ "FlowData",			CONFIG_TYPE_STRING,	FALSE },
+	{ "FlowDataFactor",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "FlowDataTTL",		CONFIG_TYPE_INTEGER,	FALSE },
 #endif /* _FFR_RATE_LIMIT */
 	{ "IdentityHeader",		CONFIG_TYPE_STRING,     FALSE },

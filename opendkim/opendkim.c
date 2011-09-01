@@ -247,6 +247,7 @@ struct dkimf_config
 #endif /* USE_UNBOUND */
 #ifdef _FFR_RATE_LIMIT
 	unsigned int	conf_flowdatattl;	/* flow data TTL */
+	unsigned int	conf_flowfactor;	/* flow factor */
 #endif /* _FFR_RATE_LIMIT */
 	int		conf_clockdrift;	/* tolerable clock drift */
 	int		conf_sigmintype;	/* signature minimum type */
@@ -5555,6 +5556,7 @@ dkimf_config_new(void)
 #endif /* _FFR_STATS */
 #ifdef _FFR_RATE_LIMIT
 	new->conf_flowdatattl = DEFFLOWDATATTL;
+	new->conf_flowfactor = 1;
 #endif /* _FFR_RATE_LIMIT */
 	new->conf_mtacommand = SENDMAIL_PATH;
 
@@ -7289,6 +7291,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 	(void) config_get(data, "FlowDataTTL", &conf->conf_flowdatattl,
 	                  sizeof conf->conf_flowdatattl);
+	(void) config_get(data, "FlowDataFactor", &conf->conf_flowfactor,
+	                  sizeof conf->conf_flowfactor);
 #endif /* _FFR_RATE_LIMIT */
 
 	str = NULL;
@@ -14056,6 +14060,7 @@ mlfi_eom(SMFICTX *ctx)
 					if (dkimf_rate_check(dkim_sig_getdomain(sigs[c]),
 					                     conf->conf_ratelimitdb,
 					                     conf->conf_flowdatadb,
+					                     conf->conf_flowfactor,
 					                     conf->conf_flowdatattl,
 					                     &limit) == 1)
 					{
@@ -14078,6 +14083,7 @@ mlfi_eom(SMFICTX *ctx)
 				if (dkimf_rate_check(NULL,
 				                     conf->conf_ratelimitdb,
 				                     conf->conf_flowdatadb,
+				                     conf->conf_flowfactor,
 				                     conf->conf_flowdatattl,
 				                     &limit) == 1)
 				{

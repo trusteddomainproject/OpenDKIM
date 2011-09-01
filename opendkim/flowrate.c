@@ -46,6 +46,7 @@ pthread_mutex_t ratelock;
 **  	domain -- domain name being queried (or NULL for unsigned mail)
 **  	ratedb -- data set containing per-domain rate limits
 **  	flowdb -- data set containing per-domain flow data (updated)
+**  	factor -- divisor
 **  	ttl -- TTL to apply (i.e. data expiration)
 **  	limit -- limit for this domain (returned)
 **
@@ -57,7 +58,7 @@ pthread_mutex_t ratelock;
 
 int
 dkimf_rate_check(const char *domain, DKIMF_DB ratedb, DKIMF_DB flowdb,
-                 int ttl, unsigned int *limit)
+                 int factor, int ttl, unsigned int *limit)
 {
 	_Bool found = FALSE;
 	int status;
@@ -111,7 +112,7 @@ dkimf_rate_check(const char *domain, DKIMF_DB ratedb, DKIMF_DB flowdb,
 		}
 
 		f.fd_count = 0;
-		f.fd_limit = (unsigned int) strtoul(limbuf, &p, 10);
+		f.fd_limit = (unsigned int) strtoul(limbuf, &p, 10) / factor;
 		(void) time(&f.fd_since);
 		if (*p != '\0')
 		{
