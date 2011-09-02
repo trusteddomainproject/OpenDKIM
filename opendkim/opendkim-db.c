@@ -1107,7 +1107,6 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 							dkimf_db_list_free(list);
 						free(new);
 						free(tmp);
-						free(new);
 						return -1;
 					}
 					dkimf_trimspaces(newl->db_list_key);
