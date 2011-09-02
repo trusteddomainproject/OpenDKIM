@@ -69,7 +69,6 @@ echo '<li> <a href="#mlm_comparison">MLM/non-MLM signature comparison</a>' >> $O
 echo '<li> <a href="#adsp">ADSP policies found and failures</a>' >> $OUTPUT
 echo '<li> <a href="#third_party">Author vs. third-party signatures, non-MLM traffic</a>' >> $OUTPUT
 echo '<li> <a href="#third_party_list">Author vs. third-party signatures, MLM traffic</a>' >> $OUTPUT
-echo '<li> <a href="#signed_fields">Signed header field frequency</a>' >> $OUTPUT
 echo '<li> <a href="#unique_domains">Count of unique signed From: domains in sample</a>' >> $OUTPUT
 echo '<li> <a href="#top_signing_domains">Top 10 signing domains by signature count</a>' >> $OUTPUT
 echo '<li> <a href="#top_passing_domains">Top 10 signing domains by passing signature percentage</a>' >> $OUTPUT
