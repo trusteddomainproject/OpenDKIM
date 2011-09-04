@@ -75,7 +75,6 @@ echo '<li> <a href="#top_passing_domains">Top 10 signing domains by passing sign
 echo '<li> <a href="#top_failing_domains">Top 10 signing domains by failed signature percentage</a>' >> $OUTPUT
 echo '<li> <a href="#ip_correlation">Correlation of IP addresses to signed From: domains</a>' >> $OUTPUT
 echo '<li> <a href="#received_correlation">Correlation of Received: count to signature successes</a>' >> $OUTPUT
-echo '<li> <a href="#broken_headers">Most frequent header field changes resulting in signature failures</a>' >> $OUTPUT
 echo '<li> <a href="#worst_adsp">Worst ADSP use</a>' >> $OUTPUT
 echo '<li> <a href="#use_counts">Signing domain use counts</a>' >> $OUTPUT
 echo '<li> <a href="#mime_type_correlation">Correlation of outer MIME types with pass/fail counts</a>' >> $OUTPUT
