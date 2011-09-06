@@ -54,8 +54,6 @@ create table if not exists messages (
 	adsp_fail int unsigned not null,
 	mailing_list int unsigned not null,
 	received_count int unsigned not null,
-	content_type varchar(64),
-	content_encoding varchar(64),
 
 	primary key(id),
 	key(reporter),

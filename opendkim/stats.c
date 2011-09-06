@@ -136,15 +136,10 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 #endif /* _FFR_DIFFHEADERS */
 	DKIM_SIGINFO **sigs;
 	char tmp[BUFRSZ + 1];
-	unsigned char ct[BUFRSZ + 1];
-	unsigned char cte[BUFRSZ + 1];
 
 	assert(path != NULL);
 	assert(jobid != NULL);
 	assert(name != NULL);
-
-	strlcpy((char *) ct, DEFCT, sizeof ct);
-	strlcpy((char *) cte, DEFCTE, sizeof cte);
 
 	pthread_mutex_lock(&stats_lock);
 
@@ -371,51 +366,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 	fprintf(out, "\t%d", fromlist);
 
 	fprintf(out, "\t%u", rhcnt);
-
-	for (hdr = hdrlist; hdr != NULL; hdr = hdr->hdr_next)
-	{
-		if (strcasecmp(hdr->hdr_hdr, "Content-Type") == 0)
-		{
-			if (!dkimf_isblank(hdr->hdr_val))
-			{
-				for (p = hdr->hdr_val; *p != '\0'; p++)
-				{
-					if (!isascii(*p) || !isspace(*p))
-						break;
-				}
-
-				strlcpy((char *) ct, p, sizeof ct);
-				p = strchr((char *) ct, ';');
-				if (p != NULL)
-					*p = '\0';
-				dkimf_trimspaces(ct);
-				dkimf_lowercase(ct);
-			}
-		}
-		else if (strcasecmp(hdr->hdr_hdr,
-		                    "Content-Transfer-Encoding") == 0)
-		{
-			if (!dkimf_isblank(hdr->hdr_val))
-			{
-				for (p = hdr->hdr_val; *p != '\0'; p++)
-				{
-					if (!isascii(*p) || !isspace(*p))
-						break;
-				}
-
-				strlcpy((char *) cte, hdr->hdr_val,
-				        sizeof cte);
-				p = strchr((char *) cte, ';');
-				if (p != NULL)
-					*p = '\0';
-				dkimf_trimspaces(cte);
-				dkimf_lowercase(cte);
-			}
-		}
-	}
-
-	fprintf(out, "\t%s", ct);
-	fprintf(out, "\t%s", cte);
 
 #ifdef _FFR_ATPS
 	fprintf(out, "\t%d", atps);

@@ -140,8 +140,6 @@ A message record is a tab-separated, ordered sequence of fields, as follows:
 	ADSP failed for this message (0 = no, 1 = yes)
 	appeared to come from a mailing list (0 = no, 1 = yes)
 	count of Received: header fields
-	overall MIME Content-Type, if any
-	overall MIME Content-Transfer-Encoding, if any
 	ATPS status (-1 = not checked, 0 = no, 1 = yes)
 
 A signature record implicitly references the preceding message record.

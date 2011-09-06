@@ -43,10 +43,8 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-m
 #define DKIMS_MI_ADSP_FAIL	12
 #define DKIMS_MI_MAILINGLIST	13
 #define DKIMS_MI_RECEIVEDCNT	14
-#define DKIMS_MI_CONTENTTYPE	15
-#define DKIMS_MI_CONTENTENCODING 16
-#define DKIMS_MI_ATPS		17
-#define DKIMS_MI_MAX		17
+#define DKIMS_MI_ATPS		15
+#define DKIMS_MI_MAX		15
 
 #define	DKIMS_SI_DOMAIN		0
 #define	DKIMS_SI_ALGORITHM	1

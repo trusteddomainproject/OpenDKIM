@@ -167,8 +167,33 @@ main(int argc, char **argv)
 			fields[n++] = p;
 		}
 
+		/* processing section for version tags */
+		if (c == 'V')
+		{
+			int inversion;
+
+			if (n != 1)
+			{
+				fprintf(stderr,
+				        "%s: unexpected version field count (%d) at input line %d\n",
+				        progname, n, line);
+
+				continue;
+			}
+
+			inversion = atoi(fields[0]);
+			if (inversion != DKIMS_VERSION)
+			{
+				fprintf(stderr,
+				        "%s: unknown version (%d) at input line %d\n",
+				        progname, inversion, line);
+
+				continue;
+			}
+		}
+
 		/* processing section for messages */
-		if (c == 'M')
+		else if (c == 'M')
 		{
 			time_t rtime;
 			char *adsp;
@@ -180,9 +205,9 @@ main(int argc, char **argv)
 #endif /* _FFR_ATPS */
 
 #ifdef _FFR_ATPS
-			if (n != 17 && n != 18)
+			if (n != 16)
 #else /* _FFR_ATPS */
-			if (n != 17)
+			if (n != 15)
 #endif /* _FFR_ATPS */
 			{
 				fprintf(stderr,
@@ -212,21 +237,11 @@ main(int argc, char **argv)
 
 #ifdef _FFR_ATPS
 			atps = "not checked";
-			if (n == 18 && fields[DKIMS_MI_ATPS][0] == '0')
+			if (n == 16 && fields[DKIMS_MI_ATPS][0] == '0')
 				atps = "no match";
-			else if (n == 18 && fields[DKIMS_MI_ATPS][0] == '1')
+			else if (n == 16 && fields[DKIMS_MI_ATPS][0] == '1')
 				atps = "match";
 #endif /* _FFR_ATPS */
-
-			if (fields[DKIMS_MI_CONTENTTYPE][0] == '\0')
-				ct = "(default)";
-			else
-				ct = fields[DKIMS_MI_CONTENTTYPE];
-
-			if (fields[DKIMS_MI_CONTENTENCODING][0] == '\0')
-				cte = "(default)";
-			else
-				cte = fields[DKIMS_MI_CONTENTENCODING];
 
 			if (ms > 0)
 			{
@@ -234,7 +249,7 @@ main(int argc, char **argv)
 				ms = 0;
 			}
 
-			fprintf(stdout, "Job %s at %s (size %s)\n\treceived via %s at %s\tfrom domain = '%s', %s Received header fields\n\tContent type %s, content transfer encoding %s\n\t%s to come from a mailing list\n\tADSP %s (%s)\n",
+			fprintf(stdout, "Job %s at %s (size %s)\n\treceived via %s at %s\tfrom domain = '%s', %s Received header fields\n\t%s to come from a mailing list\n\tADSP %s (%s)\n",
 			        fields[DKIMS_MI_JOBID],
 			        fields[DKIMS_MI_REPORTER],
 			        fields[DKIMS_MI_MSGLEN],
@@ -242,7 +257,6 @@ main(int argc, char **argv)
 			        ctime(&rtime),
 			        fields[DKIMS_MI_FROMDOMAIN],
 			        fields[DKIMS_MI_RECEIVEDCNT],
-			        ct, cte,
 			        fields[DKIMS_MI_MAILINGLIST][0] == '0' ? "Does not appear"
 			                                               : "Appears",
 			        adsp, adsppf);
@@ -358,7 +372,7 @@ main(int argc, char **argv)
 			          syntax == DKIM_SIGERROR_TOOLARGE_L ||
 			          syntax == DKIM_SIGERROR_MBSFAILED);
 
-			fprintf(stdout, "\tSignature %d from %s\n\t\talgorithm %s\n\t\theader canonicalization %s, body canonicalization %s\n\t\t%s\n\t\tsigned bytes: %s\n\t\tSignature properties: %s %s %s %s\n\t\tKey properties: %s %s %s %s %s %s\n\t\tDNSSEC status: %s\n\t\tSigned fields: %s\n\t\tChanged fields: %s\n",
+			fprintf(stdout, "\tSignature %d from %s\n\t\talgorithm %s\n\t\theader canonicalization %s, body canonicalization %s\n\t\t%s\n\t\tsigned bytes: %s\n\t\tSignature properties: %s %s %s %s\n\t\tKey properties: %s %s %s\n\t\tDNSSEC status: %s\n",
 			        ms,
 			        fields[DKIMS_SI_DOMAIN],
 			        alg, hc, bc, sigstat, siglen,
@@ -368,17 +382,10 @@ main(int argc, char **argv)
 			        fields[DKIMS_SI_SIG_X][0] == '1' ? "x=" : "",
 			        fields[DKIMS_SI_SIG_Z][0] == '1' ? "z=" : "",
 			        fields[DKIMS_SI_KEY_T][0] == '1' ? "t=" : "",
-			        fields[DKIMS_SI_KEY_G][0] == '1' ? "g=" : "",
-			        fields[DKIMS_SI_KEY_G_NAME][0] == '1' ? "g=name"
-			                                              : "",
 			        syntax != 0 ? "syntax" : "",
 			        atoi(fields[DKIMS_SI_SIGERROR]) == DKIM_SIGERROR_NOKEY ? "NXDOMAIN"
 			                                                               : "",
-			        fields[DKIMS_SI_KEY_DK_COMPAT][0] == '1' ? "DK"
-			                                                 : "",
-			        dnssec,
-			        fields[DKIMS_SI_SIGNED_FIELDS],
-			        fields[DKIMS_SI_CHANGED_FIELDS]);
+			        dnssec);
 
 			s++;
 		}
