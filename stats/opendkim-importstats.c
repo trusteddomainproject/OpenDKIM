@@ -400,7 +400,7 @@ main(int argc, char **argv)
 	if (odbx_init(&db, dbscheme, dbhost, dbport) < 0)
 	{
 		fprintf(stderr, "%s: odbx_init() failed\n", progname);
-		return EX_SOFTWARE;
+		return EX_TEMPFAIL;
 	}
 
 	/* bind with user, password, database information */
@@ -410,7 +410,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s: odbx_bind(): %s\n", progname,
 		        odbx_error(db, err));
 		(void) odbx_finish(db);
-		return EX_SOFTWARE;
+		return EX_TEMPFAIL;
 	}
 
 	/* initialize stuff */
@@ -480,7 +480,7 @@ main(int argc, char **argv)
 					        fields == NULL ? "m" : "re",
 					        strerror(errno));
 					(void) odbx_finish(db);
-					return EX_OSERR;
+					return EX_SOFTWARE;
 				}
 
 				nfields = newnf;
