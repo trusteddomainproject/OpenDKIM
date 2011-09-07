@@ -205,9 +205,9 @@ main(int argc, char **argv)
 #endif /* _FFR_ATPS */
 
 #ifdef _FFR_ATPS
-			if (n != 14)
+			if (n != 9)
 #else /* _FFR_ATPS */
-			if (n != 13)
+			if (n != 8)
 #endif /* _FFR_ATPS */
 			{
 				fprintf(stderr,
@@ -218,28 +218,12 @@ main(int argc, char **argv)
 
 			/* format the data */
 			rtime = (time_t) atoi(fields[DKIMS_MI_MSGTIME]);
-			adsp = "not found";
-			adsppf = "passed";
-			if (fields[DKIMS_MI_ADSP_FOUND][0] == '1')
-			{
-				adsp = "invalid";
-
-				if (fields[DKIMS_MI_ADSP_UNKNOWN][0] == '1')
-					adsp = "unknown";
-				else if (fields[DKIMS_MI_ADSP_ALL][0] == '1')
-					adsp = "all";
-				else if (fields[DKIMS_MI_ADSP_DISCARD][0] == '1')
-					adsp = "discardable";
-
-				if (fields[DKIMS_MI_ADSP_FAIL][0] == '1')
-					adsppf = "failed";
-			}
 
 #ifdef _FFR_ATPS
 			atps = "not checked";
-			if (n == 14 && fields[DKIMS_MI_ATPS][0] == '0')
+			if (n == 9 && fields[DKIMS_MI_ATPS][0] == '0')
 				atps = "no match";
-			else if (n == 14 && fields[DKIMS_MI_ATPS][0] == '1')
+			else if (n == 9 && fields[DKIMS_MI_ATPS][0] == '1')
 				atps = "match";
 #endif /* _FFR_ATPS */
 
@@ -249,14 +233,13 @@ main(int argc, char **argv)
 				ms = 0;
 			}
 
-			fprintf(stdout, "Job %s at %s (size %s)\n\treceived via %s at %s\tfrom domain = '%s'\n\tADSP %s (%s)\n",
+			fprintf(stdout, "Job %s at %s (size %s)\n\treceived via %s at %s\tfrom domain = '%s'\n",
 			        fields[DKIMS_MI_JOBID],
 			        fields[DKIMS_MI_REPORTER],
 			        fields[DKIMS_MI_MSGLEN],
 			        fields[DKIMS_MI_IPADDR],
 			        ctime(&rtime),
-			        fields[DKIMS_MI_FROMDOMAIN],
-			        adsp, adsppf);
+			        fields[DKIMS_MI_FROMDOMAIN]);
 
 #ifdef _FFR_ATPS
 			fprintf(stdout, "\tATPS %s\n", atps);

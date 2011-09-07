@@ -13386,7 +13386,6 @@ mlfi_eom(SMFICTX *ctx)
 			                       conf->conf_reportprefix,
 			                       dfc->mctx_hqhead,
 			                       dfc->mctx_dkimv,
-			                       dfc->mctx_pcode,
 			                       anon,
 # ifdef _FFR_STATSEXT
 			                       dfc->mctx_statsext,

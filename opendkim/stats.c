@@ -87,7 +87,6 @@ dkimf_stats_init(void)
 **  	prefix -- hashing prefix
 **  	hdrlist -- list of headers on the message
 **  	dkimv -- verifying handle from which data can be taken
-**  	pcode -- policy code
 **  	anon -- data are anonymized
 **  	rhcnt -- count of Received: header fields
 **  	sa -- client socket information
@@ -98,8 +97,7 @@ dkimf_stats_init(void)
 
 int
 dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
-                   Header hdrlist, DKIM *dkimv, dkim_policy_t pcode,
-                   _Bool anon,
+                   Header hdrlist, DKIM *dkimv, _Bool anon,
 #ifdef _FFR_STATSEXT
                    struct statsext *se,
 #endif /* _FFR_STATSEXT */
@@ -325,42 +323,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 	fprintf(out, "\t%lu", canonlen);
 
 	fprintf(out, "\t%d", nsigs);
-
-	fprintf(out, "\t%d", dkim_getpresult(dkimv) == DKIM_PRESULT_FOUND);
-
-	switch (pcode)
-	{
-	  case DKIM_POLICY_UNKNOWN:
-		fprintf(out, "\t1\t0\t0");
-		break;
-
-	  case DKIM_POLICY_ALL:
-		fprintf(out, "\t0\t1\t0");
-		break;
-
-	  case DKIM_POLICY_DISCARDABLE:
-		fprintf(out, "\t0\t0\t1");
-		break;
-
-	  default:
-		fprintf(out, "\t0\t0\t0");
-		break;
-	}
-
-	for (c = 0; c < nsigs; c++)
-	{
-		if (dkim_sig_geterror(sigs[c]) == DKIM_SIGERROR_OK &&
-		    strcasecmp((char *) dkim_sig_getdomain(sigs[c]),
-		               (char *) from) == 0)
-		{
-			validauthorsig = TRUE;
-			break;
-		}
-	}
-
-	fprintf(out, "\t%d", (pcode == DKIM_POLICY_ALL ||
-	                      pcode == DKIM_POLICY_DISCARDABLE) &&
-	                     !validauthorsig);
 
 #ifdef _FFR_ATPS
 	fprintf(out, "\t%d", atps);
