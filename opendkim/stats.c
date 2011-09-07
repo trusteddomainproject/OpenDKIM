@@ -100,7 +100,7 @@ dkimf_stats_init(void)
 int
 dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
                    Header hdrlist, DKIM *dkimv, dkim_policy_t pcode,
-                   _Bool fromlist, _Bool anon, u_int rhcnt,
+                   _Bool fromlist, _Bool anon,
 #ifdef _FFR_STATSEXT
                    struct statsext *se,
 #endif /* _FFR_STATSEXT */
@@ -364,8 +364,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 	                     !validauthorsig);
 
 	fprintf(out, "\t%d", fromlist);
-
-	fprintf(out, "\t%u", rhcnt);
 
 #ifdef _FFR_ATPS
 	fprintf(out, "\t%d", atps);

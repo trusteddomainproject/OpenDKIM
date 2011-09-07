@@ -42,9 +42,8 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-m
 #define DKIMS_MI_ADSP_DISCARD	11
 #define DKIMS_MI_ADSP_FAIL	12
 #define DKIMS_MI_MAILINGLIST	13
-#define DKIMS_MI_RECEIVEDCNT	14
-#define DKIMS_MI_ATPS		15
-#define DKIMS_MI_MAX		15
+#define DKIMS_MI_ATPS		14
+#define DKIMS_MI_MAX		14
 
 #define	DKIMS_SI_DOMAIN		0
 #define	DKIMS_SI_ALGORITHM	1
@@ -69,7 +68,7 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-m
 /* PROTOTYPES */
 extern void dkimf_stats_init __P((void));
 extern int dkimf_stats_record __P((char *, u_char *, char *, char *, Header,
-                                   DKIM *, dkim_policy_t, _Bool, _Bool, u_int,
+                                   DKIM *, dkim_policy_t, _Bool, _Bool,
 #ifdef _FFR_STATSEXT
                                    struct statsext *,
 #endif /* _FFR_STATSEXT */

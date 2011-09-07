@@ -123,6 +123,8 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 #endif /* _FFR_STATS */
 
 /* macros */
+#define CMDLINEOPTS	"Ab:c:d:De:fF:k:lL:no:p:P:qQrs:S:t:T:u:vVWx:?"
+
 #ifndef MIN
 # define MIN(x,y)	((x) < (y) ? (x) : (y))
 #endif /* ! MIN */
@@ -13303,7 +13305,6 @@ mlfi_eom(SMFICTX *ctx)
 		{
 			_Bool fromlist = FALSE;
 			_Bool anon;
-			u_int rhcnt;
 			struct Header *hdr;
 
 # ifdef USE_LUA
@@ -13390,16 +13391,6 @@ mlfi_eom(SMFICTX *ctx)
 				fromlist = TRUE;
 			}
 
-			for (c = 0; ; c++)
-			{
-				if (dkimf_findheader(dfc, "Received",
-				                     c) == NULL)
-				{
-					rhcnt = c;
-					break;
-				}
-			}
-
 			anon = conf->conf_anonstats;
 
 			if (conf->conf_anondb != NULL)
@@ -13424,7 +13415,6 @@ mlfi_eom(SMFICTX *ctx)
 			                       dfc->mctx_pcode,
 			                       fromlist,
 			                       anon,
-			                       rhcnt,
 # ifdef _FFR_STATSEXT
 			                       dfc->mctx_statsext,
 # endif /* _FFR_STATSEXT */
