@@ -74,7 +74,6 @@ echo '<li> <a href="#top_signing_domains">Top 10 signing domains by signature co
 echo '<li> <a href="#top_passing_domains">Top 10 signing domains by passing signature percentage</a>' >> $OUTPUT
 echo '<li> <a href="#top_failing_domains">Top 10 signing domains by failed signature percentage</a>' >> $OUTPUT
 echo '<li> <a href="#ip_correlation">Correlation of IP addresses to signed From: domains</a>' >> $OUTPUT
-echo '<li> <a href="#received_correlation">Correlation of Received: count to signature successes</a>' >> $OUTPUT
 echo '<li> <a href="#worst_adsp">Worst ADSP use</a>' >> $OUTPUT
 echo '<li> <a href="#use_counts">Signing domain use counts</a>' >> $OUTPUT
 echo '<li> <a href="#signing_trend_msg">Trend in message signing rates</a>' >> $OUTPUT
@@ -215,11 +214,6 @@ echo "" >> $OUTPUT
 echo '<a name="ip_correlation"></a>' >> $OUTPUT
 echo "<p> Correlation of IP addresses to signed From: domains: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT ipaddrs.addr, COUNT(DISTINCT from_domain) AS domains FROM messages JOIN ipaddrs ON messages.ip = ipaddrs.id JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND sigcount > 0 AND anonymized = 0 GROUP BY messages.ip ORDER BY domains DESC LIMIT 10" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="received_correlation"></a>' >> $OUTPUT
-echo "<p> Correlation of Received: count to signature successes: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT received_count, SUM(sigcount) AS 'total sigs', SUM(signatures.pass) AS 'passed', 100*SUM(signatures.pass)/SUM(sigcount) AS '% pass' FROM messages JOIN signatures ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND received_count > 0 AND sigcount > 0 GROUP BY received_count" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="worst_adsp"></a>' >> $OUTPUT
