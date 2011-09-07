@@ -77,8 +77,6 @@ echo '<li> <a href="#ip_correlation">Correlation of IP addresses to signed From:
 echo '<li> <a href="#received_correlation">Correlation of Received: count to signature successes</a>' >> $OUTPUT
 echo '<li> <a href="#worst_adsp">Worst ADSP use</a>' >> $OUTPUT
 echo '<li> <a href="#use_counts">Signing domain use counts</a>' >> $OUTPUT
-echo '<li> <a href="#mime_type_correlation">Correlation of outer MIME types with pass/fail counts</a>' >> $OUTPUT
-echo '<li> <a href="#mime_encoding_correlation">Correlation of outer MIME encodings with pass/fail counts</a>' >> $OUTPUT
 echo '<li> <a href="#signing_trend_msg">Trend in message signing rates</a>' >> $OUTPUT
 echo '<li> <a href="#signing_trend_domain">Trend in domain signing rates</a>' >> $OUTPUT
 echo '<li> <a href="#atps_use">ATPS use</a>' >> $OUTPUT
@@ -232,16 +230,6 @@ echo "" >> $OUTPUT
 echo '<a name="use_counts"></a>' >> $OUTPUT
 echo "<p> Signing domain use counts: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT msgcount, COUNT(*) AS domains FROM (SELECT domain, COUNT(*) AS msgcount FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 GROUP BY 1) a GROUP BY 1 ORDER BY 1 ASC LIMIT 10" >> $OUTPUT
-echo "</p>" >> $OUTPUT
-
-echo '<a name="mime_type_correlation"></a>' >> $OUTPUT
-echo "<p> Correlation of outer MIME types with pass/fail counts: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'msg count', SUM(signatures.pass) AS passed, messages.content_type FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON reporters.id = messages.reporter GROUP BY messages.content_type" >> $OUTPUT
-echo "</p>" >> $OUTPUT
-
-echo '<a name="mime_encoding_correlation"></a>' >> $OUTPUT
-echo "<p> Correlation of outer MIME encodings with pass/fail counts: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'msg count', SUM(signatures.pass) AS passed, messages.content_encoding FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 GROUP BY messages.content_encoding" >> $OUTPUT
 echo "</p>" >> $OUTPUT
 
 echo '<a name="signing_trend_msg"></a>' >> $OUTPUT
