@@ -13,7 +13,8 @@ create table if not exists reporters (
         enabled tinyint not null default 1,
 
 	primary key(id),
-	key(name)
+	key(name),
+	key(enabled)
 ) engine=innodb default charset=latin1;
 
 -- table of domain names we've seen
