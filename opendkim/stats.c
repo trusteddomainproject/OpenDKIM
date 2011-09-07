@@ -88,7 +88,6 @@ dkimf_stats_init(void)
 **  	hdrlist -- list of headers on the message
 **  	dkimv -- verifying handle from which data can be taken
 **  	pcode -- policy code
-**  	fromlist -- message appeared to be from a list
 **  	anon -- data are anonymized
 **  	rhcnt -- count of Received: header fields
 **  	sa -- client socket information
@@ -100,7 +99,7 @@ dkimf_stats_init(void)
 int
 dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
                    Header hdrlist, DKIM *dkimv, dkim_policy_t pcode,
-                   _Bool fromlist, _Bool anon,
+                   _Bool anon,
 #ifdef _FFR_STATSEXT
                    struct statsext *se,
 #endif /* _FFR_STATSEXT */
@@ -362,8 +361,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 	fprintf(out, "\t%d", (pcode == DKIM_POLICY_ALL ||
 	                      pcode == DKIM_POLICY_DISCARDABLE) &&
 	                     !validauthorsig);
-
-	fprintf(out, "\t%d", fromlist);
 
 #ifdef _FFR_ATPS
 	fprintf(out, "\t%d", atps);

@@ -525,7 +525,7 @@ main(int argc, char **argv)
 				        progname, line);
 			}
 
-			if (n != 15)
+			if (n != 14)
 			{
 				fprintf(stderr,
 				        "%s: unexpected message field count (%d) at input line %d\n",
@@ -706,8 +706,7 @@ main(int argc, char **argv)
 			    sanitize(db, fields[10], safesql, sizeof safesql) ||
 			    sanitize(db, fields[11], safesql, sizeof safesql) ||
 			    sanitize(db, fields[12], safesql, sizeof safesql) ||
-			    sanitize(db, fields[13], safesql, sizeof safesql) ||
-			    sanitize(db, fields[14], safesql, sizeof safesql))
+			    sanitize(db, fields[13], safesql, sizeof safesql))
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
@@ -743,7 +742,7 @@ main(int argc, char **argv)
 			}
 
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO messages (jobid, reporter, from_domain, ip, anonymized, msgtime, size, sigcount, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, atps) VALUES ('%s', %d, %d, %d, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+			         "INSERT INTO messages (jobid, reporter, from_domain, ip, anonymized, msgtime, size, sigcount, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, atps) VALUES ('%s', %d, %d, %d, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s)",
 			         fields[0],	/* jobid */
 			         repid,		/* reporter */
 			         domid,		/* from_domain */
@@ -757,8 +756,7 @@ main(int argc, char **argv)
 			         fields[10],	/* adsp_all */
 			         fields[11],	/* adsp_discardable */
 			         fields[12],	/* adsp_fail */
-			         fields[13],	/* mailing_list */
-			         fields[14]);	/* atps */
+			         fields[13]);	/* atps */
 
 			msgid = sql_do(db, sql);
 			if (msgid == -1)

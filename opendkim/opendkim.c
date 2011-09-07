@@ -13303,7 +13303,6 @@ mlfi_eom(SMFICTX *ctx)
 #ifdef _FFR_STATS
 		if (conf->conf_statspath != NULL && dfc->mctx_dkimv != NULL)
 		{
-			_Bool fromlist = FALSE;
 			_Bool anon;
 			struct Header *hdr;
 
@@ -13366,31 +13365,6 @@ mlfi_eom(SMFICTX *ctx)
 #  endif /* _FFR_STATSEXT */
 # endif /* USE_LUA */
 
-			hdr = dkimf_findheader(dfc, "Precedence", 0);
-			if (hdr != NULL &&
-			    strcasecmp(hdr->hdr_val, "list") == 0)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "List-Id", 0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "List-Post", 0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "List-Unsubscribe",
-			                          0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "Mailing-List",
-			                          0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-
 			anon = conf->conf_anonstats;
 
 			if (conf->conf_anondb != NULL)
@@ -13413,7 +13387,6 @@ mlfi_eom(SMFICTX *ctx)
 			                       dfc->mctx_hqhead,
 			                       dfc->mctx_dkimv,
 			                       dfc->mctx_pcode,
-			                       fromlist,
 			                       anon,
 # ifdef _FFR_STATSEXT
 			                       dfc->mctx_statsext,

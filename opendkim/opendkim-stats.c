@@ -205,9 +205,9 @@ main(int argc, char **argv)
 #endif /* _FFR_ATPS */
 
 #ifdef _FFR_ATPS
-			if (n != 15)
-#else /* _FFR_ATPS */
 			if (n != 14)
+#else /* _FFR_ATPS */
+			if (n != 13)
 #endif /* _FFR_ATPS */
 			{
 				fprintf(stderr,
@@ -237,9 +237,9 @@ main(int argc, char **argv)
 
 #ifdef _FFR_ATPS
 			atps = "not checked";
-			if (n == 15 && fields[DKIMS_MI_ATPS][0] == '0')
+			if (n == 14 && fields[DKIMS_MI_ATPS][0] == '0')
 				atps = "no match";
-			else if (n == 15 && fields[DKIMS_MI_ATPS][0] == '1')
+			else if (n == 14 && fields[DKIMS_MI_ATPS][0] == '1')
 				atps = "match";
 #endif /* _FFR_ATPS */
 
@@ -249,15 +249,13 @@ main(int argc, char **argv)
 				ms = 0;
 			}
 
-			fprintf(stdout, "Job %s at %s (size %s)\n\treceived via %s at %s\tfrom domain = '%s'\n\t%s to come from a mailing list\n\tADSP %s (%s)\n",
+			fprintf(stdout, "Job %s at %s (size %s)\n\treceived via %s at %s\tfrom domain = '%s'\n\tADSP %s (%s)\n",
 			        fields[DKIMS_MI_JOBID],
 			        fields[DKIMS_MI_REPORTER],
 			        fields[DKIMS_MI_MSGLEN],
 			        fields[DKIMS_MI_IPADDR],
 			        ctime(&rtime),
 			        fields[DKIMS_MI_FROMDOMAIN],
-			        fields[DKIMS_MI_MAILINGLIST][0] == '0' ? "Does not appear"
-			                                               : "Appears",
 			        adsp, adsppf);
 
 #ifdef _FFR_ATPS

@@ -52,7 +52,6 @@ create table if not exists messages (
 	adsp_all int unsigned not null,
 	adsp_discardable int unsigned not null,
 	adsp_fail int unsigned not null,
-	mailing_list int unsigned not null,
 
 	primary key(id),
 	key(reporter),
