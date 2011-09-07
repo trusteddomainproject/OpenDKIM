@@ -66,7 +66,6 @@ echo '<li> <a href="#passfail">Overall pass/fail rates for signed mail</a>' >> $
 echo '<li> <a href="#passfail_nolist">Overall pass/fail rates for signed mail, excluding list traffic</a>' >> $OUTPUT
 echo '<li> <a href="#error_codes">Top ten error codes</a>' >> $OUTPUT
 echo '<li> <a href="#mlm_comparison">MLM/non-MLM signature comparison</a>' >> $OUTPUT
-echo '<li> <a href="#adsp">ADSP policies found and failures</a>' >> $OUTPUT
 echo '<li> <a href="#third_party">Author vs. third-party signatures, non-MLM traffic</a>' >> $OUTPUT
 echo '<li> <a href="#third_party_list">Author vs. third-party signatures, MLM traffic</a>' >> $OUTPUT
 echo '<li> <a href="#unique_domains">Count of unique signed From: domains in sample</a>' >> $OUTPUT
@@ -74,7 +73,6 @@ echo '<li> <a href="#top_signing_domains">Top 10 signing domains by signature co
 echo '<li> <a href="#top_passing_domains">Top 10 signing domains by passing signature percentage</a>' >> $OUTPUT
 echo '<li> <a href="#top_failing_domains">Top 10 signing domains by failed signature percentage</a>' >> $OUTPUT
 echo '<li> <a href="#ip_correlation">Correlation of IP addresses to signed From: domains</a>' >> $OUTPUT
-echo '<li> <a href="#worst_adsp">Worst ADSP use</a>' >> $OUTPUT
 echo '<li> <a href="#use_counts">Signing domain use counts</a>' >> $OUTPUT
 echo '<li> <a href="#signing_trend_msg">Trend in message signing rates</a>' >> $OUTPUT
 echo '<li> <a href="#signing_trend_domain">Trend in domain signing rates</a>' >> $OUTPUT
@@ -174,11 +172,6 @@ echo "<p> MLM/non-MLM signature comparison: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT mailing_list, COUNT(*) AS signatures, SUM(pass) AS passed, 100*SUM(pass)/COUNT(*) AS '%pass' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 GROUP BY mailing_list" >> $OUTPUT
 echo "" >> $OUTPUT
 
-echo '<a name="adsp"></a>' >> $OUTPUT
-echo "<p> ADSP policies found and failures: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT SUM(adsp_found) AS found, SUM(adsp_unknown) AS 'unknown', SUM(adsp_all) AS 'all', SUM(adsp_discardable) AS 'discardable', SUM(adsp_fail) AS 'failed' FROM messages JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1" >> $OUTPUT
-echo "" >> $OUTPUT
-
 echo '<a name="third_party"></a>' >> $OUTPUT
 echo "<p> Author vs. third-party signatures, non-MLM traffic: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(*) AS 'author sigs', SUM(pass) AS 'passed' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND from_domain = domain and mailing_list = 0" >> $OUTPUT
@@ -214,11 +207,6 @@ echo "" >> $OUTPUT
 echo '<a name="ip_correlation"></a>' >> $OUTPUT
 echo "<p> Correlation of IP addresses to signed From: domains: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT ipaddrs.addr, COUNT(DISTINCT from_domain) AS domains FROM messages JOIN ipaddrs ON messages.ip = ipaddrs.id JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND sigcount > 0 AND anonymized = 0 GROUP BY messages.ip ORDER BY domains DESC LIMIT 10" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="worst_adsp"></a>' >> $OUTPUT
-echo "<p> Worst ADSP use: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT domains.name, a.addr, IF(m.adsp_all, 'all', 'discardable') AS type, SUM(IF(s.pass <> NULL, 0, 1)) AS missing, SUM(IF(s.pass, 0, 1)) AS failed, SUM(IFNULL(s.pass,0)) AS good FROM domains, messages AS m JOIN ipaddrs AS a ON m.ip = a.id LEFT JOIN signatures AS s ON m.id = s.message JOIN reporters AS r ON r.id = m.reporter WHERE enabled = 1 AND domains.id = m.from_domain AND (s.domain = m.from_domain OR s.domain IS NULL) AND m.adsp_all + m.adsp_discardable = 1 GROUP BY m.from_domain, m.ip ORDER BY missing DESC LIMIT 10"  >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="use_counts"></a>' >> $OUTPUT
