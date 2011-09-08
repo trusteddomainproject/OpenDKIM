@@ -647,26 +647,37 @@ main(int argc, char **argv)
 				addrid = sql_do(db, sql);
 				if (addrid == -1)
 				{
-					(void) odbx_finish(db);
-					return EX_SOFTWARE;
-				}
+					/* repeat the get */
+					snprintf(sql, sizeof sql,
+					         "SELECT id FROM ipaddrs WHERE addr = '%s'",
+					         safesql);
 
-				snprintf(sql, sizeof sql,
-				         "SELECT LAST_INSERT_ID()");
-
-				addrid = sql_get_int(db, sql);
-				if (addrid == -1)
-				{
-					(void) odbx_finish(db);
-					return EX_SOFTWARE;
+					addrid = sql_get_int(db, sql);
+					if (addrid == -1)
+					{
+						(void) odbx_finish(db);
+						return EX_SOFTWARE;
+					}
 				}
-				else if (addrid == 0)
+				else
 				{
-					fprintf(stderr,
-					        "%s: failed to create IP address record for '%s'\n",
-					        progname, fields[3]);
-					(void) odbx_finish(db);
-					return EX_SOFTWARE;
+					snprintf(sql, sizeof sql,
+					         "SELECT LAST_INSERT_ID()");
+
+					addrid = sql_get_int(db, sql);
+					if (addrid == -1)
+					{
+						(void) odbx_finish(db);
+						return EX_SOFTWARE;
+					}
+					else if (addrid == 0)
+					{
+						fprintf(stderr,
+						        "%s: failed to create IP address record for '%s'\n",
+						        progname, fields[3]);
+						(void) odbx_finish(db);
+						return EX_SOFTWARE;
+					}
 				}
 			}
 
