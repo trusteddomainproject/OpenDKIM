@@ -72,8 +72,6 @@ create table if not exists signatures (
 	pass tinyint unsigned not null,
 	fail_body tinyint unsigned not null,
 	siglength int not null,
-	key_t tinyint unsigned not null,
-	key_s tinyint not null,
 	sigerror tinyint unsigned not null,
 	sig_i tinyint not null,
 	sig_i_user tinyint not null,

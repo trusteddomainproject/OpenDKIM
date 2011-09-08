@@ -258,7 +258,7 @@ main(int argc, char **argv)
 			char *siglen;
 			char *dnssec;
 
-			if (n != 19 && n != 21 && n != 23)
+			if (n != 16)
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",
@@ -352,7 +352,7 @@ main(int argc, char **argv)
 			          syntax == DKIM_SIGERROR_TOOLARGE_L ||
 			          syntax == DKIM_SIGERROR_MBSFAILED);
 
-			fprintf(stdout, "\tSignature %d from %s\n\t\talgorithm %s\n\t\theader canonicalization %s, body canonicalization %s\n\t\t%s\n\t\tsigned bytes: %s\n\t\tSignature properties: %s %s %s %s\n\t\tKey properties: %s %s %s\n\t\tDNSSEC status: %s\n",
+			fprintf(stdout, "\tSignature %d from %s\n\t\talgorithm %s\n\t\theader canonicalization %s, body canonicalization %s\n\t\t%s\n\t\tsigned bytes: %s\n\t\tSignature properties: %s %s %s %s\n\t\tKey properties: %s %s\n\t\tDNSSEC status: %s\n",
 			        ms,
 			        fields[DKIMS_SI_DOMAIN],
 			        alg, hc, bc, sigstat, siglen,
@@ -361,7 +361,6 @@ main(int argc, char **argv)
 				                                                        : "",
 			        fields[DKIMS_SI_SIG_X][0] == '1' ? "x=" : "",
 			        fields[DKIMS_SI_SIG_Z][0] == '1' ? "z=" : "",
-			        fields[DKIMS_SI_KEY_T][0] == '1' ? "t=" : "",
 			        syntax != 0 ? "syntax" : "",
 			        atoi(fields[DKIMS_SI_SIGERROR]) == DKIM_SIGERROR_NOKEY ? "NXDOMAIN"
 			                                                               : "",

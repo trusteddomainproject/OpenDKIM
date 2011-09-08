@@ -404,10 +404,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		                            &canonlen, &signlen);
 		fprintf(out, "\t%ld", (long) signlen);
 
-		p = (char *) dkim_sig_gettagvalue(sigs[c], TRUE,
-		                                  (u_char *) "t");
-		fprintf(out, "\t%d", p != NULL);
-		
 		err = dkim_sig_geterror(sigs[c]);
 
 		/* DK-compatible keys */
@@ -500,17 +496,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 
 			fprintf(out, "\t%d\t%d", domain, user);
 		}
-
-		p = (char *) dkim_sig_gettagvalue(sigs[c], TRUE,
-		                                  (u_char *) "s");
-		if (p == NULL)
-			fprintf(out, "\t0");
-		else if (*p == '*')
-			fprintf(out, "\t1");
-		else if (strcasecmp(p, "email") == 0)
-			fprintf(out, "\t2");
-		else
-			fprintf(out, "\t3");
 
 		keybits = 0;
 		(void) dkim_sig_getkeysize(sigs[c], &keybits);
