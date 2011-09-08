@@ -18,6 +18,9 @@ release, and a summary of the changes in that release.
 		there is a default.
 	LIBAR: Fix bug #SF2917856: Rename "ar.h" to "async-resolv.h" since
 		"ar.h" is already in common use.
+	STATS: Feature request #SF3397903: Drop all support for data needed
+		for the DKIM Implementation Report, as it has been completed.
+		Leave stuff that's useful for reputation R&D.
 	TOOLS: Add opendkim-testmsg, for signing/verifying messages without
 		all the milter code being invoked.  Requested by
 		Todd Nagengast.
