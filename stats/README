@@ -144,7 +144,6 @@ fields, as follows:
 	algorithm (0 = rsa-sha1, 1 = rsa-sha256)
 	header canonicalization (0 = simple, 1 = relaxed)
 	body canonicalization (0 = simple, 1 = relaxed)
-	tagged for ignore (0 = no, 1 = yes)
 	pass (0 = no, 1 = yes)
 	failed due to "bh" mismatch (0 = no, 1 = yes)
 	"l=" tag value (-1 = not present)

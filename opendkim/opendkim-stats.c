@@ -280,8 +280,6 @@ main(int argc, char **argv)
 				sigstat = "PASSED";
 			else if (fields[DKIMS_SI_FAIL_BODY][0] == '1')
 				sigstat = "FAILED (body changed)";
-			else if (fields[DKIMS_SI_IGNORE][0] == '1')
-				sigstat = "IGNORED";
 			else if (atoi(fields[DKIMS_SI_SIGERROR]) == DKIM_SIGERROR_KEYREVOKED)
 				sigstat = "REVOKED";
 			else if (fields[DKIMS_SI_SIGERROR][0] != '0')

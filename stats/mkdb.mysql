@@ -67,7 +67,6 @@ create table if not exists signatures (
 	algorithm tinyint unsigned not null,
 	hdr_canon tinyint unsigned not null,
 	body_canon tinyint unsigned not null,
-	ignored tinyint unsigned not null,
 	keysize smallint not null,
 	pass tinyint unsigned not null,
 	fail_body tinyint unsigned not null,

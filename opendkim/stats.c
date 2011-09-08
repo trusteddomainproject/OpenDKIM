@@ -332,6 +332,9 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 
 	for (c = 0; c < nsigs; c++)
 	{
+		if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_IGNORE) != 0)
+			continue;
+
 		fprintf(out, "S");
 
 		p = (char *) dkim_sig_getdomain(sigs[c]);
@@ -388,10 +391,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 
 		(void) dkim_sig_getcanons(sigs[c], &hc, &bc);
 		fprintf(out, "\t%d\t%d", hc, bc);
-
-		fprintf(out, "\t%d",
-		        (dkim_sig_getflags(sigs[c]) &
-		         DKIM_SIGFLAG_IGNORE) != 0);
 
 		fprintf(out, "\t%d",
 		        (dkim_sig_getflags(sigs[c]) &
