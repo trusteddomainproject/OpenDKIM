@@ -133,13 +133,6 @@ A message record is a tab-separated, ordered sequence of fields, as follows:
 	UNIX timestamp of message receive time
 	message size, in bytes
 	signature count
-	ADSP record found in DNS (0 = no, 1 = yes)
-	ADSP "unknown" policy found in DNS (0 = no, 1 = yes)
-	ADSP "all" policy found in DNS (0 = no, 1 = yes)
-	ADSP "discardable" policy found in DNS (0 = no, 1 = yes)
-	ADSP failed for this message (0 = no, 1 = yes)
-	appeared to come from a mailing list (0 = no, 1 = yes)
-	count of Received: header fields
 	ATPS status (-1 = not checked, 0 = no, 1 = yes)
 
 A signature record implicitly references the preceding message record.
@@ -155,18 +148,8 @@ fields, as follows:
 	pass (0 = no, 1 = yes)
 	failed due to "bh" mismatch (0 = no, 1 = yes)
 	"l=" tag value (-1 = not present)
-	"t=" present in key (0 = no, 1 = yes)
-	"g=" present in key (0 = no, 1 = yes)
-	"g=" present in key with a value other than "*" (0 = no, 1 = yes)
-	key was DK-compatible (0 = no, 1 = yes)
 	error code from signature
-	"t=" present in signature (0 = no, 1 = yes)
-	"x=" present in signature (0 = no, 1 = yes)
-	"z=" present in signature (0 = no, 1 = yes)
 	DNSSEC value (see DKIM_DNSSEC_* constants from dkim.h)
-	"i=" domain (0 = absent, 1 = matches From:, 2 = other)
-	"i=" user (0 = absent, 1 = empty, 2 = matches From:, 3 = other)
-	"s=" present in key (0 = absent, 1 = "*", 2 = "email", 3 = other)
 	key size, in bits
 
 Fields for which no value is known or appropriate should be represented as

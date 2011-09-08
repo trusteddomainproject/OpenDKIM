@@ -406,96 +406,10 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 
 		err = dkim_sig_geterror(sigs[c]);
 
-		/* DK-compatible keys */
-		if (dkim_sig_gettagvalue(sigs[c], TRUE,
-		                         (u_char *) "v") == NULL &&
-		    ((p = (char *) dkim_sig_gettagvalue(sigs[c],
-		                                        TRUE,
-		                                        (u_char *) "g")) != NULL &&
-		     *p == '\0'))
-			fprintf(out, "\t1");
-		else
-			fprintf(out, "\t0");
-		
 		/* syntax error codes */
 		fprintf(out, "\t%d", err);
 
-		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
-		                                  (u_char *) "t");
-		fprintf(out, "\t%d", p != NULL);
-
-		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
-		                                  (u_char *) "x");
-		fprintf(out, "\t%d", p != NULL);
-
-		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
-		                                  (u_char *) "z");
-		fprintf(out, "\t%d", p != NULL);
-
 		fprintf(out, "\t%d", dkim_sig_getdnssec(sigs[c]));
-
-		/*
-		**  Reporting of i= has two columns:
-		**
-		**  -1 -- processing error or data not available
-		**  0 -- "i=" not present
-		**  1 -- "i=" present with default value
-		**  2 -- "i=" present but has some other value (a subdomain)
-		**
-		**  -1 -- processing error or data not available
-		**  0 -- "i=" not present
-		**  1 -- "i=" present but with no local-part
-		**  2 -- "i=" has a local-part matching that of the From: line
-		**  3 -- "i=" has some other local-part
-		*/
-
-		q = (char *) dkim_sig_getdomain(sigs[c]);
-		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
-		                                  (u_char *) "i");
-		if (p == NULL)
-		{
-			fprintf(out, "\t0\t0");
-		}
-		else
-		{
-			int user = -1;
-			int domain = -1;
-			char *at;
-
-			at = strchr(p, '@');
-			if (at != NULL)
-			{
-				if (strcasecmp((char *) q, at + 1) == 0)
-					domain = 1;
-				else
-					domain = 2;
-
-				if (p == at)
-				{
-					user = 1;
-				}
-				else
-				{
-					size_t ulen;
-					size_t llen;
-					unsigned char *local;
-
-					local = dkim_getuser(dkimv);
-					llen = strlen((char *) local);
-
-					ulen = at - p;
-
-					if (llen == ulen &&
-					    strncmp((char *) local,
-					            p, ulen) == 0)
-						user = 2;
-					else
-						user = 3;
-				}
-			}
-
-			fprintf(out, "\t%d\t%d", domain, user);
-		}
 
 		keybits = 0;
 		(void) dkim_sig_getkeysize(sigs[c], &keybits);

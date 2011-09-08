@@ -786,7 +786,7 @@ main(int argc, char **argv)
 				        progname, line);
 			}
 
-			if (n != 16)
+			if (n != 11)
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",
@@ -860,12 +860,7 @@ main(int argc, char **argv)
 			    sanitize(db, fields[7], safesql, sizeof safesql) ||
 			    sanitize(db, fields[8], safesql, sizeof safesql) ||
 			    sanitize(db, fields[9], safesql, sizeof safesql) ||
-			    sanitize(db, fields[10], safesql, sizeof safesql) ||
-			    sanitize(db, fields[11], safesql, sizeof safesql) ||
-			    sanitize(db, fields[12], safesql, sizeof safesql) ||
-			    sanitize(db, fields[13], safesql, sizeof safesql) ||
-			    sanitize(db, fields[14], safesql, sizeof safesql) ||
-			    sanitize(db, fields[15], safesql, sizeof safesql))
+			    sanitize(db, fields[10], safesql, sizeof safesql))
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
@@ -874,7 +869,7 @@ main(int argc, char **argv)
 			}
 
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, sigerror, sig_t, sig_x, sig_z, dnssec, sig_i, sig_i_user, keysize) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+			         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, sigerror, dnssec, keysize) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
 			         msgid,		/* message */
 			         domid,		/* domain */
 			         fields[1],	/* algorithm */
@@ -885,13 +880,8 @@ main(int argc, char **argv)
 			         fields[6],	/* fail_body */
 			         fields[7],	/* siglength */
 			         fields[8],	/* sigerror */
-			         fields[9],	/* sig_t */
-			         fields[10],	/* sig_x */
-			         fields[11],	/* sig_z */
-			         fields[12],	/* dnssec */
-			         fields[13],	/* sig_i */
-			         fields[14],	/* sig_i_user */
-			         fields[15]);	/* keysize */
+			         fields[9],	/* dnssec */
+			         fields[10]);	/* keysize */
 
 			sigid = sql_do(db, sql);
 			if (sigid == -1)

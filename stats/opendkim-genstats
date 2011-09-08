@@ -54,9 +54,7 @@ echo '<li> <a href="#signature_counts">Overall message signature counts</a>' >> 
 echo '<li> <a href="#algorithm_use">Signature algorithm use</a>' >> $OUTPUT
 echo '<li> <a href="#hdr_canon">Header canonicalization use</a>' >> $OUTPUT
 echo '<li> <a href="#body_canon">Body canonicalization use</a>' >> $OUTPUT
-echo '<li> <a href="#sig_props">Signature properties</a>' >> $OUTPUT
 echo '<li> <a href="#l_tag">Use of "l=" tag</a>' >> $OUTPUT
-echo '<li> <a href="#i_tag">Use of "i=" tag</a>' >> $OUTPUT
 echo '<li> <a href="#key_sizes">Distribution of key sizes</a>' >> $OUTPUT
 echo '<li> <a href="#key_props">Key properties</a>' >> $OUTPUT
 echo '<li> <a href="#key_s">Use of "s=" in keys</a>' >> $OUTPUT
@@ -110,21 +108,11 @@ echo "<p> Body canonicalization use: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT IF(body_canon = 0, 'simple', 'relaxed') AS canonicalization, COUNT(body_canon) AS count, COUNT(DISTINCT domain) AS domains, SUM(pass) AS passed FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 GROUP BY body_canon" >> $OUTPUT
 echo "" >> $OUTPUT
 
-echo '<a name="sig_props"></a>' >> $OUTPUT
-echo "<p> Signature properties: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT SUM(sig_t) AS 't=', SUM(sig_x) AS 'x=', SUM(sig_z) AS 'z=' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1" >> $OUTPUT
-echo "" >> $OUTPUT
-
 echo '<a name="l_tag"></a>' >> $OUTPUT
 echo "<p> Use of 'l=' tag: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(*) AS 'l= present', pass FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND NOT siglength = -1 GROUP BY pass" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(*) AS 'l=0', pass FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE siglength = 0 GROUP BY pass" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(*) AS 'l <= msgsize', pass FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE signatures.siglength >= 0 AND signatures.siglength < messages.size GROUP BY pass" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="i_tag"></a>' >> $OUTPUT
-echo "<p> Use of 'i=' tag: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'signatures', CASE sig_i WHEN 0 THEN 'absent' WHEN 1 THEN 'matches d=' WHEN 2 THEN 'subdomain of d=' END AS 'i= domain', CASE sig_i_user WHEN 0 THEN 'absent' WHEN 1 THEN 'empty' WHEN 2 THEN 'matches From' WHEN 3 THEN 'does not match From' END AS 'i= local-part' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND sig_i >= 0 GROUP BY sig_i, sig_i_user" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="key_sizes"></a>' >> $OUTPUT
