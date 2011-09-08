@@ -48,8 +48,7 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-m
 #define	DKIMS_SI_SIGLENGTH	6
 #define	DKIMS_SI_SIGERROR	7
 #define	DKIMS_SI_DNSSEC		8
-#define	DKIMS_SI_KEYSIZE	9
-#define DKIMS_SI_MAX		9
+#define DKIMS_SI_MAX		8
 
 /* PROTOTYPES */
 extern void dkimf_stats_init __P((void));

@@ -149,7 +149,6 @@ fields, as follows:
 	"l=" tag value (-1 = not present)
 	error code from signature
 	DNSSEC value (see DKIM_DNSSEC_* constants from dkim.h)
-	key size, in bits
 
 Fields for which no value is known or appropriate should be represented as
 "-" in the file.

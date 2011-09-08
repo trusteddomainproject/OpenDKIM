@@ -115,11 +115,6 @@ $MYSQL --execute="SELECT COUNT(*) AS 'l=0', pass FROM signatures JOIN messages O
 $MYSQL --execute="SELECT COUNT(*) AS 'l <= msgsize', pass FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE signatures.siglength >= 0 AND signatures.siglength < messages.size GROUP BY pass" >> $OUTPUT
 echo "" >> $OUTPUT
 
-echo '<a name="key_sizes"></a>' >> $OUTPUT
-echo "<p> Distribution of key sizes: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'count', keysize AS 'bits' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND keysize > 0 GROUP BY keysize ORDER BY keysize" >> $OUTPUT
-echo "" >> $OUTPUT
-
 echo '<a name="key_props"></a>' >> $OUTPUT
 echo "<p> Key properties: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT SUM(key_t) AS 't=' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1" >> $OUTPUT
@@ -147,7 +142,7 @@ echo "" >> $OUTPUT
 
 echo '<a name="passfail_nolist"></a>' >> $OUTPUT
 echo "<p> Overall pass/fail rate for signed mail, excluding list traffic: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS signatures, SUM(ignored) AS ignored, SUM(pass) AS passed, SUM(fail_body) AS 'failed(body)' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND mailing_list = 0" >> $OUTPUT
+$MYSQL --execute="SELECT COUNT(*) AS signatures, SUM(pass) AS passed, SUM(fail_body) AS 'failed(body)' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND mailing_list = 0" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="error_codes"></a>' >> $OUTPUT

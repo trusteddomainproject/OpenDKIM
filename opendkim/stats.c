@@ -410,10 +410,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 
 		fprintf(out, "\t%d", dkim_sig_getdnssec(sigs[c]));
 
-		keybits = 0;
-		(void) dkim_sig_getkeysize(sigs[c], &keybits);
-		fprintf(out, "\t%u", keybits);
-		
 		fprintf(out, "\n");
 	}
 

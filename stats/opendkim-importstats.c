@@ -797,7 +797,7 @@ main(int argc, char **argv)
 				        progname, line);
 			}
 
-			if (n != 10)
+			if (n != 9)
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",
@@ -869,8 +869,7 @@ main(int argc, char **argv)
 			    sanitize(db, fields[5], safesql, sizeof safesql) ||
 			    sanitize(db, fields[6], safesql, sizeof safesql) ||
 			    sanitize(db, fields[7], safesql, sizeof safesql) ||
-			    sanitize(db, fields[8], safesql, sizeof safesql) ||
-			    sanitize(db, fields[9], safesql, sizeof safesql))
+			    sanitize(db, fields[8], safesql, sizeof safesql))
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
@@ -879,7 +878,7 @@ main(int argc, char **argv)
 			}
 
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, pass, fail_body, siglength, sigerror, dnssec, keysize) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+			         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, pass, fail_body, siglength, sigerror, dnssec) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
 			         msgid,		/* message */
 			         domid,		/* domain */
 			         fields[1],	/* algorithm */
@@ -889,8 +888,7 @@ main(int argc, char **argv)
 			         fields[5],	/* fail_body */
 			         fields[6],	/* siglength */
 			         fields[7],	/* sigerror */
-			         fields[8],	/* dnssec */
-			         fields[9]);	/* keysize */
+			         fields[8]);	/* dnssec */
 
 			sigid = sql_do(db, sql);
 			if (sigid == -1)
