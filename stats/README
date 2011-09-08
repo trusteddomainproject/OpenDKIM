@@ -4,20 +4,28 @@ INTRODUCTION
 
 This is the development area for OpenDKIM's statistics collection system.
 
-The OpenDKIM filter has an option to collect and record statistics
-about DKIM's operation including information like number of signatures,
-percent of signature failures, first-party vs. third-party signatures,
-ADSP statistics, etc. and store them into a file.  An additional tool
-called opendkim-stats (in this directory) can be used to retrieve
-this information and display it, mail it someplace for data aggregation,
-or insert it into an SQL database.
+In earlier versions, the statistics system gathered numerous details about
+messages and their DKIM signatures in order to produce a report about
+the observed implementation of DKIM on the Internet.  The data recorded
+included the number of signatures, percent of signature failures, first-party
+vs. third-party signatures, ADSP statistics, etc.  These data were collected
+and submitted to the Internet Engineering Task Force as part of a
+requirement to advance DKIM to Draft Standard status, and this work was
+very successful.
 
-This is especially useful for the industry to collect usage statistics
-about how DKIM is being used, the proliferation of third-party signing,
-etc.  You are encouraged, but certainly not required, to provide usage
+As of v2.5.0, the statistics system has been repurposed for the purposes
+of supporting ongoing research and development into DKIM-based
+reputation services.  The data collected has been drastically reduced
+to include only information about message arrival times, From domains,
+signing domains, sending IP addresses, and whether or not the message was
+reported as spam.
+
+You are encouraged, but certainly not required, to provide this
 information to The OpenDKIM Project.  The code that does the reporting is
 open source and included in this package, so you can easily verify that
-nothing private is being revealed in the data thus submitted.
+nothing other than the above is being revealed in the data thus submitted.
+Participants that submit data will be invited to be part of an experimental
+reputation system based on DKIM that should begin to appear in the near future.
 
 This directory contains information and software for generating, receiving
 and processing such reports, including commands for creating a MySQL database
