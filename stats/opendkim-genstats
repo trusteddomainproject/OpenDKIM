@@ -142,7 +142,7 @@ echo "" >> $OUTPUT
 
 echo '<a name="passfail"></a>' >> $OUTPUT
 echo "<p> Overall pass/fail rate for signed mail: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS signatures, SUM(ignored) AS ignored, SUM(pass) AS passed, SUM(fail_body) AS 'failed(body)' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1" >> $OUTPUT
+$MYSQL --execute="SELECT COUNT(*) AS signatures, SUM(pass) AS passed, SUM(fail_body) AS 'failed(body)' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="passfail_nolist"></a>' >> $OUTPUT
