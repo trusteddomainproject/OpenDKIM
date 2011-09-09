@@ -20,6 +20,8 @@ release, and a summary of the changes in that release.
 		end-of-message.  Requested by Heikki Gruner.
 	LIBOPENDKIM: Don't report the absence of "c=" as an error, since
 		there is a default.
+	LIBOPENDKIM: NOERROR is the same as NXDOMAIN for the purposes of
+		the ADSP existence check.  Problem noted by Todd Nagengast.
 	LIBAR: Fix bug #SF2917856: Rename "ar.h" to "async-resolv.h" since
 		"ar.h" is already in common use.
 	TOOLS: Add opendkim-testmsg, for signing/verifying messages without

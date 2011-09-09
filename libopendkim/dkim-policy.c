@@ -336,20 +336,20 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 	/* check each for NXDOMAIN or some other issue */
 	memcpy(&hdr, ansbuf_a, sizeof hdr);
 	*qstatus = hdr.rcode;
-	if (hdr.rcode == NOERROR)
+	if (hdr.rcode == NOERROR && ntohs(hdr.ancount) != 0)
 		return 1;
 
 	memcpy(&hdr, ansbuf_aaaa, sizeof hdr);
 	*qstatus = hdr.rcode;
-	if (hdr.rcode == NOERROR)
+	if (hdr.rcode == NOERROR && ntohs(hdr.ancount) != 0)
 		return 1;
 
 	memcpy(&hdr, ansbuf_mx, sizeof hdr);
 	*qstatus = hdr.rcode;
-	if (hdr.rcode == NOERROR)
+	if (hdr.rcode == NOERROR && ntohs(hdr.ancount) != 0)
 		return 1;
 
-	/* looks good */
+	/* effectively NXDOMAIN */
 	return 0;
 }
 
