@@ -252,13 +252,10 @@ main(int argc, char **argv)
 		else if (c == 'S')
 		{
 			char *sigstat;
-			char *alg;
-			char *hc;
-			char *bc;
 			char *siglen;
 			char *dnssec;
 
-			if (n != 11)
+			if (n != 6)
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",
@@ -286,18 +283,6 @@ main(int argc, char **argv)
 				sigstat = "ERROR";
 			else
 				sigstat = "UNKNOWN";
-
-			alg = "rsa-sha1";
-			if (fields[DKIMS_SI_ALGORITHM][0] == '1')
-				alg = "rsa-sha256";
-
-			hc = "simple";
-			if (fields[DKIMS_SI_HEADER_CANON][0] == '1')
-				hc = "relaxed";
-
-			bc = "simple";
-			if (fields[DKIMS_SI_BODY_CANON][0] == '1')
-				bc = "relaxed";
 
 			if (fields[DKIMS_SI_SIGLENGTH][0] == '-')
 				siglen = "(whole message)";
@@ -350,10 +335,10 @@ main(int argc, char **argv)
 			          syntax == DKIM_SIGERROR_TOOLARGE_L ||
 			          syntax == DKIM_SIGERROR_MBSFAILED);
 
-			fprintf(stdout, "\tSignature %d from %s\n\t\talgorithm %s\n\t\theader canonicalization %s, body canonicalization %s\n\t\t%s\n\t\tsigned bytes: %s\n\t\tSignature properties: %s\n\t\tKey properties: %s %s\n\t\tDNSSEC status: %s\n",
+			fprintf(stdout, "\tSignature %d from %s\n\t\t%s\n\t\tsigned bytes: %s\n\t\tSignature properties: %s\n\t\tKey properties: %s %s\n\t\tDNSSEC status: %s\n",
 			        ms,
 			        fields[DKIMS_SI_DOMAIN],
-			        alg, hc, bc, sigstat, siglen,
+			        sigstat, siglen,
 			        atoi(fields[DKIMS_SI_SIGERROR]) == DKIM_SIGERROR_FUTURE ? "t=future"
 				                                                        : "",
 			        syntax != 0 ? "syntax" : "",

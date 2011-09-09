@@ -40,15 +40,12 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-m
 #define DKIMS_MI_MAX		8
 
 #define	DKIMS_SI_DOMAIN		0
-#define	DKIMS_SI_ALGORITHM	1
-#define	DKIMS_SI_HEADER_CANON	2
-#define	DKIMS_SI_BODY_CANON	3
-#define	DKIMS_SI_PASS		4
-#define	DKIMS_SI_FAIL_BODY	5
-#define	DKIMS_SI_SIGLENGTH	6
-#define	DKIMS_SI_SIGERROR	7
-#define	DKIMS_SI_DNSSEC		8
-#define DKIMS_SI_MAX		8
+#define	DKIMS_SI_PASS		1
+#define	DKIMS_SI_FAIL_BODY	2
+#define	DKIMS_SI_SIGLENGTH	3
+#define	DKIMS_SI_SIGERROR	4
+#define	DKIMS_SI_DNSSEC		5
+#define DKIMS_SI_MAX		5
 
 /* PROTOTYPES */
 extern void dkimf_stats_init __P((void));

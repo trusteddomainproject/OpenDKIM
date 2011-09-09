@@ -51,9 +51,6 @@ echo "<ul>" >> $OUTPUT
 echo '<li> <a href="#total_records">Total messages received</a>' >> $OUTPUT
 echo '<li> <a href="#reporters">Reporting hosts and record counts</a>' >> $OUTPUT
 echo '<li> <a href="#signature_counts">Overall message signature counts</a>' >> $OUTPUT
-echo '<li> <a href="#algorithm_use">Signature algorithm use</a>' >> $OUTPUT
-echo '<li> <a href="#hdr_canon">Header canonicalization use</a>' >> $OUTPUT
-echo '<li> <a href="#body_canon">Body canonicalization use</a>' >> $OUTPUT
 echo '<li> <a href="#l_tag">Use of "l=" tag</a>' >> $OUTPUT
 echo '<li> <a href="#key_sizes">Distribution of key sizes</a>' >> $OUTPUT
 echo '<li> <a href="#key_props">Key properties</a>' >> $OUTPUT
@@ -91,21 +88,6 @@ echo "" >> $OUTPUT
 echo '<a name="signature_counts"></a>' >> $OUTPUT
 echo "<p> Overall message signature counts: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT sigcount, COUNT(*) AS messages FROM messages JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 GROUP BY sigcount" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="algorithm_use"></a>' >> $OUTPUT
-echo "<p> Signature algorithm use: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT IF(algorithm = 0, 'rsa-sha1', 'rsa-sha256') AS 'signing algorithm', COUNT(algorithm) AS count FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 GROUP BY algorithm" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="hdr_canon"></a>' >> $OUTPUT
-echo "<p> Header canonicalization use: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT IF(hdr_canon = 0, 'simple', 'relaxed') AS canonicalization, COUNT(hdr_canon) AS count, COUNT(DISTINCT domain) AS domains, SUM(pass) AS passed FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 GROUP BY hdr_canon" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="body_canon"></a>' >> $OUTPUT
-echo "<p> Body canonicalization use: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT IF(body_canon = 0, 'simple', 'relaxed') AS canonicalization, COUNT(body_canon) AS count, COUNT(DISTINCT domain) AS domains, SUM(pass) AS passed FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 GROUP BY body_canon" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="l_tag"></a>' >> $OUTPUT

@@ -149,9 +149,6 @@ none.  As above, a signature record is a tab-separated, ordered sequence of
 fields, as follows:
 
 	domain of the signature
-	algorithm (0 = rsa-sha1, 1 = rsa-sha256)
-	header canonicalization (0 = simple, 1 = relaxed)
-	body canonicalization (0 = simple, 1 = relaxed)
 	pass (0 = no, 1 = yes)
 	failed due to "bh" mismatch (0 = no, 1 = yes)
 	"l=" tag value (-1 = not present)
