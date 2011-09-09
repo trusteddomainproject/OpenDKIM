@@ -1062,8 +1062,6 @@ if test x"$ldnspath" = x"yes"
 then
 	ldns_found="no"
 
-	AC_MSG_CHECKING([for libdns])
-
 	ldnsdirs="/usr /usr/local"
 	for d in $ldnsdirs
 	do
@@ -1077,17 +1075,15 @@ then
 		then
 			LIBLDNS_LIBDIRS="-L$d/lib"
 			LIBLDNS_LIBS="-lldns"
-			AC_MSG_NOTICE(libldns found in $d)
 			break
 		fi
 	done
 	if test x"$LIBLDNS_LIBS" = x""
 	then
-		AC_MSG_ERROR([not found])
+		AC_MSG_ERROR([libldns not found])
 	fi
 elif test x"$ldnspath" != x"no"
 then
-	AC_MSG_CHECKING([for libldns])
 	ldns_found="no"
 	saved_LDFLAGS="$LDFLAGS"
 	LDFLAGS="-L$d/lib $LDFLAGS"
@@ -1098,8 +1094,9 @@ then
 	then
 		LIBLDNS_LIBDIRS="-L$d/lib"
 		LIBLDNS_LIBS="-lldns"
-		AC_MSG_NOTICE(libldns found in $d)
 		break
+	else
+		AC_MSG_ERROR(libldns not found in $d)
 	fi
 fi
 
