@@ -13,14 +13,13 @@ and submitted to the Internet Engineering Task Force as part of a
 requirement to advance DKIM to Draft Standard status, and this work was
 very successful.
 
-As of v2.5.0, the statistics system has been repurposed for the purposes
-of supporting ongoing research and development into DKIM-based
-reputation services.  The data collected has been drastically reduced
-to include only information about message arrival times, From domains,
-signing domains, sending IP addresses, and whether or not the message was
-reported as spam.
+As of v2.5.0, the statistics system has been repurposed to support ongoing
+research and development into open DKIM-based reputation services.  The data
+collected has been drastically reduced to include only information about
+message arrival times, From domains, signing domains, sending IP addresses,
+and whether or not the message was reported as spam.
 
-You are encouraged, but certainly not required, to provide this
+You are invited, but certainly not required, to provide this
 information to The OpenDKIM Project.  The code that does the reporting is
 open source and included in this package, so you can easily verify that
 nothing other than the above is being revealed in the data thus submitted.
@@ -59,10 +58,6 @@ scripts and documentation presume MySQL.
 5.	Configure OpenDKIM to have statistics enabled, and begin reporting
 	them to a file someplace.  See the opendkim(8) and opendkim.conf(5)
 	man pages for details.
-
-	By default, statistics will be recorded anonymized.  If you wish to
-	provide unencoded statistics to improve the utility of the data
-	at some privacy expense, adjust your configuration accordingly.
 
 6.	Restart opendkim.
 
@@ -137,7 +132,6 @@ A message record is a tab-separated, ordered sequence of fields, as follows:
 	reporter (string; defaults to hostname)
 	first domain found in the From: header field (string)
 	SMTP client IP address (string)
-	anonymized (0 = no, 1 = yes)
 	UNIX timestamp of message receive time
 	message size, in bytes
 	signature count

@@ -205,9 +205,9 @@ main(int argc, char **argv)
 #endif /* _FFR_ATPS */
 
 #ifdef _FFR_ATPS
-			if (n != 9)
-#else /* _FFR_ATPS */
 			if (n != 8)
+#else /* _FFR_ATPS */
+			if (n != 7)
 #endif /* _FFR_ATPS */
 			{
 				fprintf(stderr,
@@ -221,9 +221,9 @@ main(int argc, char **argv)
 
 #ifdef _FFR_ATPS
 			atps = "not checked";
-			if (n == 9 && fields[DKIMS_MI_ATPS][0] == '0')
+			if (n == 8 && fields[DKIMS_MI_ATPS][0] == '0')
 				atps = "no match";
-			else if (n == 9 && fields[DKIMS_MI_ATPS][0] == '1')
+			else if (n == 8 && fields[DKIMS_MI_ATPS][0] == '1')
 				atps = "match";
 #endif /* _FFR_ATPS */
 

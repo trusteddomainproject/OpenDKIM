@@ -87,8 +87,6 @@ dkimf_stats_init(void)
 **  	prefix -- hashing prefix
 **  	hdrlist -- list of headers on the message
 **  	dkimv -- verifying handle from which data can be taken
-**  	anon -- data are anonymized
-**  	rhcnt -- count of Received: header fields
 **  	sa -- client socket information
 **
 **  Return value:
@@ -97,7 +95,7 @@ dkimf_stats_init(void)
 
 int
 dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
-                   Header hdrlist, DKIM *dkimv, _Bool anon,
+                   Header hdrlist, DKIM *dkimv,
 #ifdef _FFR_STATSEXT
                    struct statsext *se,
 #endif /* _FFR_STATSEXT */
@@ -186,47 +184,7 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		return 0;
 	}
 
-	if (anon)
-	{
-#ifdef USE_GNUTLS
-		gnutls_hash_hd_t md5;
-#else /* USE_GNUTLS */
-		MD5_CTX md5;
-#endif /* USE_GNUTLS */
-		unsigned char *x;
-		unsigned char dig[MD5_DIGEST_LENGTH];
-
-#ifdef USE_GNUTLS
-		if (gnutls_hash_init(&md5, GNUTLS_DIG_MD5) == 0)
-		{
-			if (prefix != NULL)
-			{
-				gnutls_hash(md5, (void *) prefix,
-				            strlen(prefix));
-			}
-			gnutls_hash(md5, (void *) from, strlen(from));
-			gnutls_hash_deinit(md5, dig);
-		}
-#else /* USE_GNUTLS */
-		MD5_Init(&md5);
-		if (prefix != NULL)
-			MD5_Update(&md5, prefix, strlen(prefix));
-		MD5_Update(&md5, from, strlen((char *) from));
-		MD5_Final(dig, &md5);
-#endif /* USE_GNUTLS */
-
-		memset(tmp, '\0', sizeof tmp);
-
-		x = (u_char *) tmp;
-		for (c = 0; c < MD5_DIGEST_LENGTH; c++)
-		{
-			snprintf((char *) x, sizeof tmp - 2 * c,
-			         "%02x", dig[c]);
-			x += 2;
-		}
-	}
-
-	fprintf(out, "M%s\t%s\t%s", jobid, name, anon ? tmp : (char *) from);
+	fprintf(out, "M%s\t%s\t%s", jobid, name, (char *) from);
 
 	memset(tmp, '\0', sizeof tmp);
 
@@ -258,56 +216,9 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 	}
 
 	if (tmp[0] == '\0')
-	{
 		fprintf(out, "\tunknown");
-	}
-	else if (!anon)
-	{
-		fprintf(out, "\t%s", tmp);
-	}
 	else
-	{
-#ifdef USE_GNUTLS
-		gnutls_hash_hd_t md5;
-#else /* USE_GNUTLS */
-		MD5_CTX md5;
-#endif /* USE_GNUTLS */
-		unsigned char *x;
-		unsigned char dig[MD5_DIGEST_LENGTH];
-
-#ifdef USE_GNUTLS
-		if (gnutls_hash_init(&md5, GNUTLS_DIG_MD5) == 0)
-		{
-			if (prefix != NULL)
-			{
-				gnutls_hash(md5, (void *) prefix,
-				            strlen(prefix));
-			}
-			gnutls_hash(md5, (void *) tmp, strlen(tmp));
-			gnutls_hash_deinit(md5, dig);
-		}
-#else /* USE_GNUTLS */
-		MD5_Init(&md5);
-		if (prefix != NULL)
-			MD5_Update(&md5, prefix, strlen(prefix));
-		MD5_Update(&md5, tmp, strlen(tmp));
-		MD5_Final(dig, &md5);
-#endif /* USE_GNUTLS */
-
-		memset(tmp, '\0', sizeof tmp);
-
-		x = (u_char *) tmp;
-		for (c = 0; c < MD5_DIGEST_LENGTH; c++)
-		{
-			snprintf((char *) x, sizeof tmp - 2 * c,
-			         "%02x", dig[c]);
-			x += 2;
-		}
-
 		fprintf(out, "\t%s", tmp);
-	}
-
-	fprintf(out, "\t%u", anon);
 
 	fprintf(out, "\t%lu", time(NULL));
 
@@ -338,53 +249,7 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		fprintf(out, "S");
 
 		p = (char *) dkim_sig_getdomain(sigs[c]);
-
-		if (anon)
-		{
-			int n;
-#ifdef USE_GNUTLS
-			gnutls_hash_hd_t md5;
-#else /* USE_GNUTLS */
-			MD5_CTX md5;
-#endif /* USE_GNUTLS */
-			unsigned char *x;
-			unsigned char dig[MD5_DIGEST_LENGTH];
-
-#ifdef USE_GNUTLS
-			if (gnutls_hash_init(&md5, GNUTLS_DIG_MD5) == 0)
-			{
-				if (prefix != NULL)
-				{
-					gnutls_hash(md5, (void *) prefix,
-					            strlen(prefix));
-				}
-				gnutls_hash(md5, (void *) p, strlen(p));
-				gnutls_hash_deinit(md5, dig);
-			}
-#else /* USE_GNUTLS */
-			MD5_Init(&md5);
-			if (prefix != NULL)
-				MD5_Update(&md5, prefix, strlen(prefix));
-			MD5_Update(&md5, p, strlen(p));
-			MD5_Final(dig, &md5);
-#endif /* USE_GNUTLS */
-
-			memset(tmp, '\0', sizeof tmp);
-
-			x = (u_char *) tmp;
-			for (n = 0; n < MD5_DIGEST_LENGTH; n++)
-			{
-				snprintf((char *) x, sizeof tmp - 2 * n,
-				         "%02x", dig[n]);
-				x += 2;
-			}
-
-			fprintf(out, "%s", tmp);
-		}
-		else
-		{
-			fprintf(out, "%s", p);
-		}
+		fprintf(out, "%s", p);
 
 		(void) dkim_sig_getsignalg(sigs[c], &alg);
 		fprintf(out, "\t%d", alg);

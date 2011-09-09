@@ -44,7 +44,6 @@ create table if not exists messages (
 	reporter int unsigned not null,
 	from_domain int unsigned not null,
 	ip int unsigned not null,
-	anonymized tinyint unsigned not null,
 	msgtime timestamp not null default CURRENT_TIMESTAMP,
 	size int unsigned not null,
 	sigcount int unsigned not null,

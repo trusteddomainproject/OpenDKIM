@@ -6180,12 +6180,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_allowsha1only,
 		                  sizeof conf->conf_allowsha1only);
 
-#ifdef _FFR_STATS
-		(void) config_get(data, "AnonymousStatistics",
-		                  &conf->conf_anonstats,
-		                  sizeof conf->conf_anonstats);
-#endif /* _FFR_STATS */
-
 #ifdef USE_LDAP
 		(void) config_get(data, "LDAPUseTLS",
 		                  &conf->conf_ldap_usetls,
@@ -6654,28 +6648,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			return -1;
 		}
 	}
-
-#ifdef _FFR_STATS
-	str = NULL;
-	if (data != NULL)
-		(void) config_get(data, "AnonymousDomains", &str, sizeof str);
-	if (str != NULL)
-	{
-		int status;
-		char *dberr = NULL;
-
-		status = dkimf_db_open(&conf->conf_anondb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
-		                        DKIMF_DB_FLAG_READONLY),
-		                       NULL, &dberr);
-		if (status != 0)
-		{
-			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, dberr);
-			return -1;
-		}
-	}
-#endif /* _FFR_STATS */
 
 	/* internal list */
 	str = NULL;
@@ -13303,7 +13275,6 @@ mlfi_eom(SMFICTX *ctx)
 #ifdef _FFR_STATS
 		if (conf->conf_statspath != NULL && dfc->mctx_dkimv != NULL)
 		{
-			_Bool anon;
 			struct Header *hdr;
 
 # ifdef USE_LUA
@@ -13365,28 +13336,12 @@ mlfi_eom(SMFICTX *ctx)
 #  endif /* _FFR_STATSEXT */
 # endif /* USE_LUA */
 
-			anon = conf->conf_anonstats;
-
-			if (conf->conf_anondb != NULL)
-			{
-				_Bool found = FALSE;
-
-				status = dkimf_db_get(conf->conf_anondb,
-				                      dfc->mctx_domain,
-				                      0, NULL, 0,
-				                      &found);
-
-				if (found)
-					anon = !anon;
-			}
-
 			if (dkimf_stats_record(conf->conf_statspath,
 			                       dfc->mctx_jobid,
 			                       conf->conf_reporthost,
 			                       conf->conf_reportprefix,
 			                       dfc->mctx_hqhead,
 			                       dfc->mctx_dkimv,
-			                       anon,
 # ifdef _FFR_STATSEXT
 			                       dfc->mctx_statsext,
 # endif /* _FFR_STATSEXT */
