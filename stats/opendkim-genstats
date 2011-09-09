@@ -58,11 +58,8 @@ echo '<li> <a href="#key_s">Use of "s=" in keys</a>' >> $OUTPUT
 echo '<li> <a href="#dnssec">DNSSEC results</a>' >> $OUTPUT
 echo '<li> <a href="#dnssec_trend">DNSSEC trend</a>' >> $OUTPUT
 echo '<li> <a href="#passfail">Overall pass/fail rates for signed mail</a>' >> $OUTPUT
-echo '<li> <a href="#passfail_nolist">Overall pass/fail rates for signed mail, excluding list traffic</a>' >> $OUTPUT
 echo '<li> <a href="#error_codes">Top ten error codes</a>' >> $OUTPUT
-echo '<li> <a href="#mlm_comparison">MLM/non-MLM signature comparison</a>' >> $OUTPUT
 echo '<li> <a href="#third_party">Author vs. third-party signatures, non-MLM traffic</a>' >> $OUTPUT
-echo '<li> <a href="#third_party_list">Author vs. third-party signatures, MLM traffic</a>' >> $OUTPUT
 echo '<li> <a href="#unique_domains">Count of unique signed From: domains in sample</a>' >> $OUTPUT
 echo '<li> <a href="#top_signing_domains">Top 10 signing domains by signature count</a>' >> $OUTPUT
 echo '<li> <a href="#top_passing_domains">Top 10 signing domains by passing signature percentage</a>' >> $OUTPUT
@@ -122,32 +119,15 @@ echo "<p> Overall pass/fail rate for signed mail: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(*) AS signatures, SUM(pass) AS passed, SUM(fail_body) AS 'failed(body)' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1" >> $OUTPUT
 echo "" >> $OUTPUT
 
-echo '<a name="passfail_nolist"></a>' >> $OUTPUT
-echo "<p> Overall pass/fail rate for signed mail, excluding list traffic: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS signatures, SUM(pass) AS passed, SUM(fail_body) AS 'failed(body)' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND mailing_list = 0" >> $OUTPUT
-echo "" >> $OUTPUT
-
 echo '<a name="error_codes"></a>' >> $OUTPUT
 echo "<p> Top ten error codes (see libopendkim/dkim.h): </p>" >> $OUTPUT
 $MYSQL --execute="SELECT sigerrorcodes.name AS error, COUNT(*) AS instances FROM signatures JOIN sigerrorcodes ON sigerrorcodes.id = signatures.sigerror JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND NOT sigerror = 0 AND NOT sigerror = 28 GROUP BY sigerror ORDER BY instances DESC LIMIT 10" >> $OUTPUT
 echo "" >> $OUTPUT
 
-echo '<a name="mlm_comparison"></a>' >> $OUTPUT
-echo "<p> MLM/non-MLM signature comparison: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT mailing_list, COUNT(*) AS signatures, SUM(pass) AS passed, 100*SUM(pass)/COUNT(*) AS '%pass' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 GROUP BY mailing_list" >> $OUTPUT
-echo "" >> $OUTPUT
-
 echo '<a name="third_party"></a>' >> $OUTPUT
 echo "<p> Author vs. third-party signatures, non-MLM traffic: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'author sigs', SUM(pass) AS 'passed' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND from_domain = domain and mailing_list = 0" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'third-party sigs', SUM(pass) AS 'passed' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE reporters.enabled = 1 AND NOT messages.from_domain = signatures.domain AND messages.mailing_list = 0" >> $OUTPUT
-
-echo '<a name="third_party_list"></a>' >> $OUTPUT
-echo "<p> Author vs. third-party signatures, MLM traffic: </p>" >> $OUTPUT
-echo "" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'author sigs', SUM(pass) AS 'passed' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND from_domain = domain AND mailing_list = 1" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'third-party sigs', SUM(pass) AS 'passed' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND NOT from_domain = domain AND mailing_list = 1" >> $OUTPUT
-echo "" >> $OUTPUT
+$MYSQL --execute="SELECT COUNT(*) AS 'author sigs', SUM(pass) AS 'passed' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND from_domain = domain" >> $OUTPUT
+$MYSQL --execute="SELECT COUNT(*) AS 'third-party sigs', SUM(pass) AS 'passed' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE reporters.enabled = 1 AND NOT messages.from_domain = signatures.domain" >> $OUTPUT
 
 echo '<a name="unique_domains"></a>' >> $OUTPUT
 echo "<p> Count of unique signed From: domains in sample: </p>" >> $OUTPUT
