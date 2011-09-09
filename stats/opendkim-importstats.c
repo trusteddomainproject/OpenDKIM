@@ -910,6 +910,106 @@ main(int argc, char **argv)
 			}
 		}
 
+		/* processing section for message status updates */
+		else if (c == 'U' && inversion == DKIMS_VERSION)
+		{
+			if (n != 4)
+			{
+				fprintf(stderr,
+				        "%s: unexpected update field count (%d) at input line %d\n",
+				        progname, n, line);
+
+				if (showfields == 1)
+					dumpfields(stderr, fields, n);
+
+				continue;
+			}
+
+			/* get the reporter ID */
+			if (strcasecmp(reporter, fields[1]) != 0)
+			{
+				(void) sanitize(db, fields[1], safesql,
+				                sizeof safesql);
+
+				snprintf(sql, sizeof sql,
+				         "SELECT id FROM reporters WHERE name = '%s'",
+				         safesql);
+
+				repid = sql_get_int(db, sql);
+				if (repid == -1)
+				{
+					(void) odbx_finish(db);
+					return EX_SOFTWARE;
+				}
+				else if (repid == 0)
+				{
+					if (norepadd == 1)
+					{
+						fprintf(stderr,
+						        "%s: no such reporter '%s' at line %d\n",
+						        progname, fields[1],
+						        line);
+					}
+
+					continue;
+				}
+
+				strlcpy(reporter, fields[1], sizeof reporter);
+			}
+
+			/* verify data safety */
+			if (sanitize(db, fields[0], safesql, sizeof safesql) ||
+			    sanitize(db, fields[2], safesql, sizeof safesql) ||
+			    sanitize(db, fields[3], safesql, sizeof safesql))
+			{
+				fprintf(stderr,
+				        "%s: unsafe data at input line %d\n",
+				        progname, line);
+
+				continue;
+			}
+
+			/* get the message ID */
+			if (strcmp(fields[2], "0") == 0)
+			{
+				snprintf(sql, sizeof sql,
+				         "SELECT MAX(id) FROM messages WHERE jobid = '%s' and reporter = %d",
+				         fields[0], repid);
+			}
+			else
+			{
+				snprintf(sql, sizeof sql,
+				         "SELECT id FROM messages WHERE jobid = '%s' and reporter = %d and msgtime = from_unixtime(%s)",
+				         fields[0], repid, fields[2]);
+			}
+
+			msgid = sql_get_int(db, sql);
+			if (msgid == -1)
+			{
+				(void) odbx_finish(db);
+				return EX_SOFTWARE;
+			}
+			else if (msgid == 0)
+			{
+				fprintf(stderr,
+				        "%s: unknown message for update at line %d\n",
+				        progname, line);
+				continue;
+			}
+
+			snprintf(sql, sizeof sql,
+			         "UPDATE messages SET spam = %s WHERE id = %d",
+			         fields[3],	/* spam */
+			         msgid);	/* message ID */
+
+			msgid = sql_do(db, sql);
+			if (msgid == -1)
+			{
+				(void) odbx_finish(db);
+				return EX_SOFTWARE;
+			}
+		}
+
 #ifdef _FFR_STATSEXT
 		/* processing section for extensions */
 		else if (c == 'X')

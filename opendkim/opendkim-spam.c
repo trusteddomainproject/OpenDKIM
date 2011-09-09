@@ -62,6 +62,7 @@ struct configdef spam_config[] =
 	{ "DatabasePassword",		CONFIG_TYPE_STRING,	FALSE },
 	{ "DatabaseSpamColumn",		CONFIG_TYPE_STRING,	FALSE },
 	{ "DatabaseUser",		CONFIG_TYPE_STRING,	FALSE },
+	{ "StatisticssFile",		CONFIG_TYPE_STRING,	FALSE },
 	{ NULL,				(u_int) -1,		FALSE }
 };
 
@@ -84,6 +85,7 @@ usage(void)
 	        "\t-d dbname   \tdatabase name [%s]\n"
 	        "\t-f          \trun in the foreground\n"
 	        "\t-h dbhost   \tdatabase hostname [%s]\n"
+	        "\t-o file     \tstatistics file\n"
 	        "\t-p dbpass   \tdatabase password [%s]\n"
 	        "\t-P dbport   \tdatabase port [%s]\n"
 	        "\t-s dbspamcol\tdatabase spam column name [%s]\n"
@@ -134,8 +136,10 @@ main(int argc, char **argv)
 	char *conffile = DEFCONFFILE;
 	char *job = NULL;
 	char *reporter = NULL;
+	char *statsfile = NULL;
+	FILE *sf;
 	struct config *conf = NULL;
-	odbx_t *db;
+	odbx_t *db = NULL;
 	odbx_result_t *result;
 	char buf[BUFRSZ + 1];
 	char rcvd[MAXHEADER + 1];
@@ -168,6 +172,10 @@ main(int argc, char **argv)
 
 		  case 'P':
 			dbport = optarg;
+			break;
+
+		  case 'o':
+			statsfile = optarg;
 			break;
 
 		  case 'p':
@@ -236,6 +244,8 @@ main(int argc, char **argv)
                                   &dbspamcol, sizeof dbspamcol);
                 (void) config_get(conf, "DatabaseUser",
                                   &dbuser, sizeof dbuser);
+                (void) config_get(conf, "StatisticsFile",
+                                  &statsfile, sizeof statsfile);
 
 		if (config_get(conf, "Background", &tmpf, sizeof tmpf) == 1)
 		{
@@ -258,33 +268,47 @@ main(int argc, char **argv)
 		dbuser = DEFDBUSER;
 
 	/* connect to the DB */
-	dberr = odbx_init(&db, dbbackend, dbhost, dbport);
-	if (dberr < 0)
+	if (statsfile != NULL)
 	{
-		fprintf(stderr, "%s: odbx_init(): %s\n", progname,
-		        odbx_error(NULL, dberr));
-		return EX_SOFTWARE;
+		sf = fopen(statsfile, "a");
+		if (sf == NULL)
+		{
+			fprintf(stderr, "%s: %s: fopen(): %s\n", progname,
+			        statsfile, strerror(errno));
+			return EX_OSERR;
+		}
 	}
-
-	if (verbose >= 1)
+	else
 	{
-		fprintf(stdout, "%s: connected to database on %s\n",
-		        progname, dbhost);
-	}
+		dberr = odbx_init(&db, dbbackend, dbhost, dbport);
+		if (dberr < 0)
+		{
+			fprintf(stderr, "%s: odbx_init(): %s\n", progname,
+			        odbx_error(NULL, dberr));
+			return EX_SOFTWARE;
+		}
 
-	dberr = odbx_bind(db, dbname, dbuser, dbpass, ODBX_BIND_SIMPLE);
-	if (dberr < 0)
-	{
-		fprintf(stderr, "%s: odbx_bind(): %s\n", progname,
-		        odbx_error(db, dberr));
-		(void) odbx_finish(db);
-		return EX_SOFTWARE;
-	}
+		if (verbose >= 1)
+		{
+			fprintf(stdout, "%s: connected to database on %s\n",
+			        progname, dbhost);
+		}
 
-	if (verbose >= 2)
-	{
-		fprintf(stdout, "%s: database binding successful\n",
-		        progname);
+		dberr = odbx_bind(db, dbname, dbuser, dbpass,
+		                  ODBX_BIND_SIMPLE);
+		if (dberr < 0)
+		{
+			fprintf(stderr, "%s: odbx_bind(): %s\n", progname,
+			        odbx_error(db, dberr));
+			(void) odbx_finish(db);
+			return EX_SOFTWARE;
+		}
+
+		if (verbose >= 2)
+		{
+			fprintf(stdout, "%s: database binding successful\n",
+			        progname);
+		}
 	}
 
 	/* read first Received:, extract reporter and job ID */
@@ -322,8 +346,15 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s: Received header field not found\n",
 		        progname);
 
-		(void) odbx_unbind(db);
-		(void) odbx_finish(db);
+		if (db != NULL)
+		{
+			(void) odbx_unbind(db);
+			(void) odbx_finish(db);
+		}
+		else
+		{
+			fclose(sf);
+		}
 		return EX_DATAERR;
 	}
 
@@ -354,8 +385,15 @@ main(int argc, char **argv)
 		        "%s: could not locate job ID in Received header field\n",
 		        progname);
 
-		(void) odbx_unbind(db);
-		(void) odbx_finish(db);
+		if (db != NULL)
+		{
+			(void) odbx_unbind(db);
+			(void) odbx_finish(db);
+		}
+		else
+		{
+			fclose(sf);
+		}
 		return EX_DATAERR;
 	}
 	else if (reporter == NULL)
@@ -364,8 +402,15 @@ main(int argc, char **argv)
 		        "%s: could not locate receiving host in Received header field\n",
 		        progname);
 
-		(void) odbx_unbind(db);
-		(void) odbx_finish(db);
+		if (db != NULL)
+		{
+			(void) odbx_unbind(db);
+			(void) odbx_finish(db);
+		}
+		else
+		{
+			fclose(sf);
+		}
 		return EX_DATAERR;
 	}
 
@@ -376,6 +421,13 @@ main(int argc, char **argv)
 			*p = '\0';
 			break;
 		}
+	}
+
+	if (sf != NULL)
+	{
+		fprintf(sf, "U%s %s 0 1\n", job, reporter);
+		fclose(sf);
+		return 0;
 	}
 
 	if (verbose >= 1)
@@ -524,7 +576,7 @@ main(int argc, char **argv)
 
 	/* get message ID */
 	snprintf(buf, sizeof buf,
-	         "SELECT id FROM messages WHERE jobid = '%s' AND reporter = %d",
+	         "SELECT MAX(id) FROM messages WHERE jobid = '%s' AND reporter = %d",
 	         job, repid);
 	if (verbose >= 3)
 		fprintf(stdout, ">>> %s\n", buf);

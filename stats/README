@@ -125,6 +125,7 @@ There are currently these record types:
 
 	M	identifies a message
 	S	identifies a signature
+	U	updates a message
 
 A message record is a tab-separated, ordered sequence of fields, as follows:
 
@@ -136,6 +137,7 @@ A message record is a tab-separated, ordered sequence of fields, as follows:
 	message size, in bytes
 	signature count
 	ATPS status (-1 = not checked, 0 = no, 1 = yes)
+	spam status (-1 = not checked, 0 = no, 1 = yes)
 
 A signature record implicitly references the preceding message record.
 There may be more than one signature record per message; there could also be
@@ -151,6 +153,25 @@ fields, as follows:
 
 Fields for which no value is known or appropriate should be represented as
 "-" in the file.
+
+
+UPDATES
+
+As of v2.5.0, a "spam" column is present in the table tracking per-message
+information.  When a batch of new message information is sent, this field
+is typically populated with a spam value of 0 (not spam).  An update record
+can be sent later that changes the value in this column.
+
+The fields in this case are:
+
+	MTA-provided job/envelope ID (string)
+	reporter (string; defaults to hostname)
+	UNIX timestamp of message receive time
+	spam indicator (-1 = not tested, 0 = not spam, 1 = spam)
+
+The first three fields must match those given for the corresponding "M"
+(new message) record at some time in the past.  The "spam" column for that
+message will be replaced with the value found in the fourth field.
 
 
 EXTENSIONS
