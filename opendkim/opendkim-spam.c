@@ -79,15 +79,15 @@ int
 usage(void)
 {
 	fprintf(stderr, "%s: usage: %s [options]\n"
-	        "\t-b backend  \tdatabase backend (default: %s)\n"
-	        "\t-c file     \tconfiguration file (default: %s)\n"
-	        "\t-d dbname   \tdatabase name (default: %s)\n"
+	        "\t-b backend  \tdatabase backend [%s]\n"
+	        "\t-c file     \tconfiguration file [%s]\n"
+	        "\t-d dbname   \tdatabase name [%s]\n"
 	        "\t-f          \trun in the foreground\n"
-	        "\t-h dbhost   \tdatabase hostname (default: %s)\n"
-	        "\t-p dbpass   \tdatabase password (default: %s)\n"
-	        "\t-P dbport   \tdatabase port (default: %s)\n"
-	        "\t-s dbspamcol\tdatabase spam column name (default: %s)\n"
-	        "\t-u dbuser   \tdatabase user (default: %s)\n"
+	        "\t-h dbhost   \tdatabase hostname [%s]\n"
+	        "\t-p dbpass   \tdatabase password [%s]\n"
+	        "\t-P dbport   \tdatabase port [%s]\n"
+	        "\t-s dbspamcol\tdatabase spam column name [%s]\n"
+	        "\t-u dbuser   \tdatabase user [%s]\n"
 	        "\t-v          \tbe more verbose\n"
 	        "\t-V          \tprint version number and exit\n",
 	        progname, progname,
