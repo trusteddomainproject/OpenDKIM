@@ -251,12 +251,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		p = (char *) dkim_sig_getdomain(sigs[c]);
 		fprintf(out, "%s", p);
 
-		(void) dkim_sig_getsignalg(sigs[c], &alg);
-		fprintf(out, "\t%d", alg);
-
-		(void) dkim_sig_getcanons(sigs[c], &hc, &bc);
-		fprintf(out, "\t%d\t%d", hc, bc);
-
 		fprintf(out, "\t%d",
 		        (dkim_sig_getflags(sigs[c]) &
 		         DKIM_SIGFLAG_PASSED) != 0);
