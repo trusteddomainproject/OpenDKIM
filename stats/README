@@ -166,12 +166,13 @@ The fields in this case are:
 
 	MTA-provided job/envelope ID (string)
 	reporter (string; defaults to hostname)
-	UNIX timestamp of message receive time
+	UNIX timestamp of message receive time (0 if not known)
 	spam indicator (-1 = not tested, 0 = not spam, 1 = spam)
 
 The first three fields must match those given for the corresponding "M"
-(new message) record at some time in the past.  The "spam" column for that
-message will be replaced with the value found in the fourth field.
+(new message) record at some time in the past.  Where the timestamp is 0,
+the latest record matching the first two is updated.  The "spam" column for
+that message will be replaced with the value found in the fourth field.
 
 
 EXTENSIONS
