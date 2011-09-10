@@ -523,9 +523,11 @@ main(int argc, char **argv)
 				fprintf(stderr,
 				        "%s: ignoring old format at input line %d\n",
 				        progname, line);
+
+				continue;
 			}
 
-			if (n != 9)
+			if (n != 8)
 			{
 				fprintf(stderr,
 				        "%s: unexpected message field count (%d) at input line %d\n",
@@ -711,8 +713,7 @@ main(int argc, char **argv)
 			    sanitize(db, fields[4], safesql, sizeof safesql) ||
 			    sanitize(db, fields[5], safesql, sizeof safesql) ||
 			    sanitize(db, fields[6], safesql, sizeof safesql) ||
-			    sanitize(db, fields[7], safesql, sizeof safesql) ||
-			    sanitize(db, fields[8], safesql, sizeof safesql))
+			    sanitize(db, fields[7], safesql, sizeof safesql))
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
@@ -726,7 +727,7 @@ main(int argc, char **argv)
 			/* see if this is a duplicate */
 			snprintf(sql, sizeof sql,
 			         "SELECT id FROM messages WHERE jobid = '%s' and reporter = %d and msgtime = from_unixtime(%s)",
-			         fields[0], repid, fields[5]);
+			         fields[0], repid, fields[4]);
 
 			msgid = sql_get_int(db, sql);
 			if (msgid == -1)
@@ -748,16 +749,15 @@ main(int argc, char **argv)
 			}
 
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO messages (jobid, reporter, from_domain, ip, anonymized, msgtime, size, sigcount, atps) VALUES ('%s', %d, %d, %d, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s)",
+			         "INSERT INTO messages (jobid, reporter, from_domain, ip, msgtime, size, sigcount, atps) VALUES ('%s', %d, %d, %d, from_unixtime(%s), %s, %s, %s)",
 			         fields[0],	/* jobid */
 			         repid,		/* reporter */
 			         domid,		/* from_domain */
 			         addrid,	/* ip */
-			         fields[4],	/* anonymized */
-			         fields[5],	/* msgtime */
-			         fields[6],	/* size */
-			         fields[7],	/* sigcount */
-			         fields[8]);	/* atps */
+			         fields[4],	/* msgtime */
+			         fields[5],	/* size */
+			         fields[6],	/* sigcount */
+			         fields[7]);	/* atps */
 
 			msgid = sql_do(db, sql);
 			if (msgid == -1)
@@ -795,6 +795,8 @@ main(int argc, char **argv)
 				fprintf(stderr,
 				        "%s: ignoring old format at input line %d\n",
 				        progname, line);
+
+				continue;
 			}
 
 			if (n != 6)
@@ -875,7 +877,7 @@ main(int argc, char **argv)
 			}
 
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO signatures (message, domain, pass, fail_body, siglength, sigerror, dnssec) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+			         "INSERT INTO signatures (message, domain, pass, fail_body, siglength, sigerror, dnssec) VALUES (%d, %d, %s, %s, %s, %s, %s)",
 			         msgid,		/* message */
 			         domid,		/* domain */
 			         fields[1],	/* pass */
@@ -1019,6 +1021,8 @@ main(int argc, char **argv)
 				fprintf(stderr,
 				        "%s: ignoring old format at input line %d\n",
 				        progname, line);
+
+				continue;
 			}
 
 			if (n != 2)
