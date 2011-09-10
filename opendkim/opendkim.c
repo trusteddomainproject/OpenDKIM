@@ -7261,8 +7261,11 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 	}
 
-	(void) config_get(data, "FlowDataTTL", &conf->conf_flowdatattl,
-	                  sizeof conf->conf_flowdatattl);
+	if (data != NULL)
+	{
+		(void) config_get(data, "FlowDataTTL", &conf->conf_flowdatattl,
+		                  sizeof conf->conf_flowdatattl);
+	}
 #endif /* _FFR_RATE_LIMIT */
 
 	str = NULL;
