@@ -24,14 +24,14 @@
 </div>
 <div id="bodytext">
 <h1>DKIM Statistics</h1>
-As of v2.1.0, OpenDKIM has a comprehensive statistics gathering package
-included as an option.  If enabled, it will log to a local database information
+In v2.1.0, OpenDKIM introduced comprehensive statistics gathering package
+included as an option.  If enabled, it logged to a local database information
 about the DKIM properties of every message that the filter sees, including
 those that weren't even signed.
 <p>
-The purpose of this statistics gathering is twofold:
+The purpose of this statistics gathering was twofold:
 <ol>
- <li> To gather statistics you can use to analyze what you're seeing at your
+ <li> To gather statistics you could use to analyze what you're seeing at your
       site in terms of signed messages, unsigned messages, messages that
       fail verification, messages that fail ADSP policy checks,
       multiply-signed messages, third-party signatures, etc. 
@@ -41,21 +41,36 @@ The purpose of this statistics gathering is twofold:
       possibly identify specific problem areas or interesting patterns.
 </ol>
 <p>
-You are encouraged to participate in the latter.  This is being done in
-conjunction with the Internet Engineering Task Force's DKIM Working Group,
-the body that created the DKIM standard.  We will submit the names of any
-company or person that contributes data as part of our report to that body
-for appropriate credit.
+The data we collected were used to create the
+<a href="http://www.ietf.org/iesg/implementation/report-rfc4871.txt">RFC4871
+Implementation Report</a> in support of the efforts of the DKIM Working Group
+at the IETF to advance DKIM to Draft Standard status.  The Working Group
+expresses its thanks to those that participated!
+</p>
+
+<p>
+In v2.5.0, much of this mechanism is being stripped down as a lot of the
+data collected back then is no longer needed.  Instead, a reduced
+data set is being collected in support of research toward producing a
+DKIM-based domain reputation system.  This system can be used to develop
+localized reputation based only on your own observations about what is
+acceptable mail and what is not, or you can submit it back to The OpenDKIM
+Project to collaborate in the research and development of this system,
+and benefit from it as it evolves.
+</p>
+
 <p>
 You are <b>not</b> required to participate.  In fact, it is necessary to
 provide a specific build-time option just to get the statistics stuff
 compiled in (and the filter works <i>just fine</i> without doing so), and then
 you'd need to take specific additional actions to submit the data back to The
-OpenDKIM Project.  The data submitted will identify you as the submitter, but
-you can choose to submit only hashes of the author domains of the messages you
-are reporting; this way we can't tell what the author domain was, but we can
-tell if two different messages about which you submit data are from the same
-author domain.  This is important for accurate data collection.
+OpenDKIM Project.  The data submitted will identify you as the submitter, and
+the From: domain and the signing domain(s) of the mail it records will
+be revealed, but no content or recipient information will be returned
+to The OpenDKIM Project.  Since the source code is open, you can confirm
+this for yourself.
+</p>
+
 <p>
 If you are interested in experimenting with the statistics features or learning
 more, download v2.2.0 or later and look at the <tt>README</tt> file in the

@@ -36,10 +36,6 @@ struct configdef dkimf_config[] =
 	{ "AllowSHA1Only",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AlwaysAddARHeader",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AlwaysSignHeaders",		CONFIG_TYPE_STRING,	FALSE },
-#ifdef _FFR_STATS
-	{ "AnonymousDomains",		CONFIG_TYPE_STRING,	FALSE },
-	{ "AnonymousStatistics",	CONFIG_TYPE_BOOLEAN,	FALSE },
-#endif /* _FFR_STATS */
 #ifdef _FFR_ATPS
 	{ "ATPSDomains",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_ATPS */

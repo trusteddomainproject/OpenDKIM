@@ -87,10 +87,6 @@ dkimf_stats_init(void)
 **  	prefix -- hashing prefix
 **  	hdrlist -- list of headers on the message
 **  	dkimv -- verifying handle from which data can be taken
-**  	pcode -- policy code
-**  	fromlist -- message appeared to be from a list
-**  	anon -- data are anonymized
-**  	rhcnt -- count of Received: header fields
 **  	sa -- client socket information
 **
 **  Return value:
@@ -99,8 +95,7 @@ dkimf_stats_init(void)
 
 int
 dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
-                   Header hdrlist, DKIM *dkimv, dkim_policy_t pcode,
-                   _Bool fromlist, _Bool anon, u_int rhcnt,
+                   Header hdrlist, DKIM *dkimv,
 #ifdef _FFR_STATSEXT
                    struct statsext *se,
 #endif /* _FFR_STATSEXT */
@@ -136,15 +131,10 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 #endif /* _FFR_DIFFHEADERS */
 	DKIM_SIGINFO **sigs;
 	char tmp[BUFRSZ + 1];
-	unsigned char ct[BUFRSZ + 1];
-	unsigned char cte[BUFRSZ + 1];
 
 	assert(path != NULL);
 	assert(jobid != NULL);
 	assert(name != NULL);
-
-	strlcpy((char *) ct, DEFCT, sizeof ct);
-	strlcpy((char *) cte, DEFCTE, sizeof cte);
 
 	pthread_mutex_lock(&stats_lock);
 
@@ -162,6 +152,10 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 
 		return -1;
 	}
+
+	/* write version if file is new */
+	if (ftell(out) == 0)
+		fprintf(out, "V%d\n", DKIMS_VERSION);
 
 	/* write info */
 	status = dkim_getsiglist(dkimv, &sigs, &nsigs);
@@ -190,47 +184,7 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		return 0;
 	}
 
-	if (anon)
-	{
-#ifdef USE_GNUTLS
-		gnutls_hash_hd_t md5;
-#else /* USE_GNUTLS */
-		MD5_CTX md5;
-#endif /* USE_GNUTLS */
-		unsigned char *x;
-		unsigned char dig[MD5_DIGEST_LENGTH];
-
-#ifdef USE_GNUTLS
-		if (gnutls_hash_init(&md5, GNUTLS_DIG_MD5) == 0)
-		{
-			if (prefix != NULL)
-			{
-				gnutls_hash(md5, (void *) prefix,
-				            strlen(prefix));
-			}
-			gnutls_hash(md5, (void *) from, strlen(from));
-			gnutls_hash_deinit(md5, dig);
-		}
-#else /* USE_GNUTLS */
-		MD5_Init(&md5);
-		if (prefix != NULL)
-			MD5_Update(&md5, prefix, strlen(prefix));
-		MD5_Update(&md5, from, strlen((char *) from));
-		MD5_Final(dig, &md5);
-#endif /* USE_GNUTLS */
-
-		memset(tmp, '\0', sizeof tmp);
-
-		x = (u_char *) tmp;
-		for (c = 0; c < MD5_DIGEST_LENGTH; c++)
-		{
-			snprintf((char *) x, sizeof tmp - 2 * c,
-			         "%02x", dig[c]);
-			x += 2;
-		}
-	}
-
-	fprintf(out, "M%s\t%s\t%s", jobid, name, anon ? tmp : (char *) from);
+	fprintf(out, "M%s\t%s\t%s", jobid, name, (char *) from);
 
 	memset(tmp, '\0', sizeof tmp);
 
@@ -262,56 +216,9 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 	}
 
 	if (tmp[0] == '\0')
-	{
 		fprintf(out, "\tunknown");
-	}
-	else if (!anon)
-	{
-		fprintf(out, "\t%s", tmp);
-	}
 	else
-	{
-#ifdef USE_GNUTLS
-		gnutls_hash_hd_t md5;
-#else /* USE_GNUTLS */
-		MD5_CTX md5;
-#endif /* USE_GNUTLS */
-		unsigned char *x;
-		unsigned char dig[MD5_DIGEST_LENGTH];
-
-#ifdef USE_GNUTLS
-		if (gnutls_hash_init(&md5, GNUTLS_DIG_MD5) == 0)
-		{
-			if (prefix != NULL)
-			{
-				gnutls_hash(md5, (void *) prefix,
-				            strlen(prefix));
-			}
-			gnutls_hash(md5, (void *) tmp, strlen(tmp));
-			gnutls_hash_deinit(md5, dig);
-		}
-#else /* USE_GNUTLS */
-		MD5_Init(&md5);
-		if (prefix != NULL)
-			MD5_Update(&md5, prefix, strlen(prefix));
-		MD5_Update(&md5, tmp, strlen(tmp));
-		MD5_Final(dig, &md5);
-#endif /* USE_GNUTLS */
-
-		memset(tmp, '\0', sizeof tmp);
-
-		x = (u_char *) tmp;
-		for (c = 0; c < MD5_DIGEST_LENGTH; c++)
-		{
-			snprintf((char *) x, sizeof tmp - 2 * c,
-			         "%02x", dig[c]);
-			x += 2;
-		}
-
 		fprintf(out, "\t%s", tmp);
-	}
-
-	fprintf(out, "\t%u", anon);
 
 	fprintf(out, "\t%lu", time(NULL));
 
@@ -328,91 +235,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 
 	fprintf(out, "\t%d", nsigs);
 
-	fprintf(out, "\t%d", dkim_getpresult(dkimv) == DKIM_PRESULT_FOUND);
-
-	switch (pcode)
-	{
-	  case DKIM_POLICY_UNKNOWN:
-		fprintf(out, "\t1\t0\t0");
-		break;
-
-	  case DKIM_POLICY_ALL:
-		fprintf(out, "\t0\t1\t0");
-		break;
-
-	  case DKIM_POLICY_DISCARDABLE:
-		fprintf(out, "\t0\t0\t1");
-		break;
-
-	  default:
-		fprintf(out, "\t0\t0\t0");
-		break;
-	}
-
-	for (c = 0; c < nsigs; c++)
-	{
-		if (dkim_sig_geterror(sigs[c]) == DKIM_SIGERROR_OK &&
-		    strcasecmp((char *) dkim_sig_getdomain(sigs[c]),
-		               (char *) from) == 0)
-		{
-			validauthorsig = TRUE;
-			break;
-		}
-	}
-
-	fprintf(out, "\t%d", (pcode == DKIM_POLICY_ALL ||
-	                      pcode == DKIM_POLICY_DISCARDABLE) &&
-	                     !validauthorsig);
-
-	fprintf(out, "\t%d", fromlist);
-
-	fprintf(out, "\t%u", rhcnt);
-
-	for (hdr = hdrlist; hdr != NULL; hdr = hdr->hdr_next)
-	{
-		if (strcasecmp(hdr->hdr_hdr, "Content-Type") == 0)
-		{
-			if (!dkimf_isblank(hdr->hdr_val))
-			{
-				for (p = hdr->hdr_val; *p != '\0'; p++)
-				{
-					if (!isascii(*p) || !isspace(*p))
-						break;
-				}
-
-				strlcpy((char *) ct, p, sizeof ct);
-				p = strchr((char *) ct, ';');
-				if (p != NULL)
-					*p = '\0';
-				dkimf_trimspaces(ct);
-				dkimf_lowercase(ct);
-			}
-		}
-		else if (strcasecmp(hdr->hdr_hdr,
-		                    "Content-Transfer-Encoding") == 0)
-		{
-			if (!dkimf_isblank(hdr->hdr_val))
-			{
-				for (p = hdr->hdr_val; *p != '\0'; p++)
-				{
-					if (!isascii(*p) || !isspace(*p))
-						break;
-				}
-
-				strlcpy((char *) cte, hdr->hdr_val,
-				        sizeof cte);
-				p = strchr((char *) cte, ';');
-				if (p != NULL)
-					*p = '\0';
-				dkimf_trimspaces(cte);
-				dkimf_lowercase(cte);
-			}
-		}
-	}
-
-	fprintf(out, "\t%s", ct);
-	fprintf(out, "\t%s", cte);
-
 #ifdef _FFR_ATPS
 	fprintf(out, "\t%d", atps);
 #endif /* _FFR_ATPS */
@@ -421,66 +243,13 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 
 	for (c = 0; c < nsigs; c++)
 	{
+		if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_IGNORE) != 0)
+			continue;
+
 		fprintf(out, "S");
 
 		p = (char *) dkim_sig_getdomain(sigs[c]);
-
-		if (anon)
-		{
-			int n;
-#ifdef USE_GNUTLS
-			gnutls_hash_hd_t md5;
-#else /* USE_GNUTLS */
-			MD5_CTX md5;
-#endif /* USE_GNUTLS */
-			unsigned char *x;
-			unsigned char dig[MD5_DIGEST_LENGTH];
-
-#ifdef USE_GNUTLS
-			if (gnutls_hash_init(&md5, GNUTLS_DIG_MD5) == 0)
-			{
-				if (prefix != NULL)
-				{
-					gnutls_hash(md5, (void *) prefix,
-					            strlen(prefix));
-				}
-				gnutls_hash(md5, (void *) p, strlen(p));
-				gnutls_hash_deinit(md5, dig);
-			}
-#else /* USE_GNUTLS */
-			MD5_Init(&md5);
-			if (prefix != NULL)
-				MD5_Update(&md5, prefix, strlen(prefix));
-			MD5_Update(&md5, p, strlen(p));
-			MD5_Final(dig, &md5);
-#endif /* USE_GNUTLS */
-
-			memset(tmp, '\0', sizeof tmp);
-
-			x = (u_char *) tmp;
-			for (n = 0; n < MD5_DIGEST_LENGTH; n++)
-			{
-				snprintf((char *) x, sizeof tmp - 2 * n,
-				         "%02x", dig[n]);
-				x += 2;
-			}
-
-			fprintf(out, "%s", tmp);
-		}
-		else
-		{
-			fprintf(out, "%s", p);
-		}
-
-		(void) dkim_sig_getsignalg(sigs[c], &alg);
-		fprintf(out, "\t%d", alg);
-
-		(void) dkim_sig_getcanons(sigs[c], &hc, &bc);
-		fprintf(out, "\t%d\t%d", hc, bc);
-
-		fprintf(out, "\t%d",
-		        (dkim_sig_getflags(sigs[c]) &
-		         DKIM_SIGFLAG_IGNORE) != 0);
+		fprintf(out, "%s", p);
 
 		fprintf(out, "\t%d",
 		        (dkim_sig_getflags(sigs[c]) &
@@ -493,196 +262,13 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		                            &canonlen, &signlen);
 		fprintf(out, "\t%ld", (long) signlen);
 
-		p = (char *) dkim_sig_gettagvalue(sigs[c], TRUE,
-		                                  (u_char *) "t");
-		fprintf(out, "\t%d", p != NULL);
-		
-		p = (char *) dkim_sig_gettagvalue(sigs[c], TRUE,
-		                                  (u_char *) "g");
-		fprintf(out, "\t%d", p != NULL);
-		fprintf(out, "\t%d", p != NULL && *p != '\0' && *p != '*');
-
 		err = dkim_sig_geterror(sigs[c]);
 
-		/* DK-compatible keys */
-		if (dkim_sig_gettagvalue(sigs[c], TRUE,
-		                         (u_char *) "v") == NULL &&
-		    ((p = (char *) dkim_sig_gettagvalue(sigs[c],
-		                                        TRUE,
-		                                        (u_char *) "g")) != NULL &&
-		     *p == '\0'))
-			fprintf(out, "\t1");
-		else
-			fprintf(out, "\t0");
-		
 		/* syntax error codes */
 		fprintf(out, "\t%d", err);
 
-		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
-		                                  (u_char *) "t");
-		fprintf(out, "\t%d", p != NULL);
-
-		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
-		                                  (u_char *) "x");
-		fprintf(out, "\t%d", p != NULL);
-
-		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
-		                                  (u_char *) "z");
-		fprintf(out, "\t%d", p != NULL);
-
 		fprintf(out, "\t%d", dkim_sig_getdnssec(sigs[c]));
 
-		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
-		                                  (u_char *) "h");
-		if (p == NULL)
-		{
-			fprintf(out, "\t-");
-		}
-		else
-		{
-			strlcpy(tmp, p, sizeof tmp);
-			for (p = tmp; *p != '\0'; p++)
-			{
-				if (isascii(*p) && isupper(*p))
-					*p = tolower(*p);
-			}
-			fprintf(out, "\t%s", tmp);
-		}
-
-#ifdef _FFR_DIFFHEADERS
-		nhdrs = MAXHDRCNT;
-
-		memset(tmp, '\0', sizeof tmp);
-
-		status = dkim_ohdrs(dkimv, sigs[c], (u_char **) ohdrs, &nhdrs);
-		if (status == DKIM_STAT_OK)
-		{
-			if (dkim_diffheaders(dkimv, hc, DKIMF_STATS_MAXCOST,
-			                     (char **) ohdrs, nhdrs,
-			                     &diffs, &ndiffs) == DKIM_STAT_OK)
-			{
-				int n;
-				char *p;
-
-				for (n = 0; n < ndiffs; n++)
-				{
-					p = strchr(diffs[n].hd_old, ':');
-					if (p != NULL)
-						*p = '\0';
-					dkimf_lowercase(diffs[n].hd_old);
-
-					if (tmp[0] != '\0')
-						strlcat(tmp, ":", sizeof tmp);
-
-					strlcat(tmp, diffs[n].hd_old,
-					        sizeof tmp);
-				}
-
-				if (n == 0)
-					tmp[0] = '-';
-
-				fprintf(out, "\t%s", tmp);
-
-				if (ndiffs > 0)
-					free(diffs);
-			}
-			else
-			{
-				fprintf(out, "\t-");
-			}
-		}
-		else
-		{
-			if (dolog)
-			{
-				syslog(LOG_ERR, "%s: dkim_ohdrs(): %s",
-				       jobid, dkim_geterror(dkimv));
-			}
-
-			fprintf(out, "\t-");
-		}
-#else /* _FFR_DIFFHEADERS */
-		fprintf(out, "\t-");
-#endif /* _FFR_DIFFHEADERS */
-
-		/*
-		**  Reporting of i= has two columns:
-		**
-		**  -1 -- processing error or data not available
-		**  0 -- "i=" not present
-		**  1 -- "i=" present with default value
-		**  2 -- "i=" present but has some other value (a subdomain)
-		**
-		**  -1 -- processing error or data not available
-		**  0 -- "i=" not present
-		**  1 -- "i=" present but with no local-part
-		**  2 -- "i=" has a local-part matching that of the From: line
-		**  3 -- "i=" has some other local-part
-		*/
-
-		q = (char *) dkim_sig_getdomain(sigs[c]);
-		p = (char *) dkim_sig_gettagvalue(sigs[c], FALSE,
-		                                  (u_char *) "i");
-		if (p == NULL)
-		{
-			fprintf(out, "\t0\t0");
-		}
-		else
-		{
-			int user = -1;
-			int domain = -1;
-			char *at;
-
-			at = strchr(p, '@');
-			if (at != NULL)
-			{
-				if (strcasecmp((char *) q, at + 1) == 0)
-					domain = 1;
-				else
-					domain = 2;
-
-				if (p == at)
-				{
-					user = 1;
-				}
-				else
-				{
-					size_t ulen;
-					size_t llen;
-					unsigned char *local;
-
-					local = dkim_getuser(dkimv);
-					llen = strlen((char *) local);
-
-					ulen = at - p;
-
-					if (llen == ulen &&
-					    strncmp((char *) local,
-					            p, ulen) == 0)
-						user = 2;
-					else
-						user = 3;
-				}
-			}
-
-			fprintf(out, "\t%d\t%d", domain, user);
-		}
-
-		p = (char *) dkim_sig_gettagvalue(sigs[c], TRUE,
-		                                  (u_char *) "s");
-		if (p == NULL)
-			fprintf(out, "\t0");
-		else if (*p == '*')
-			fprintf(out, "\t1");
-		else if (strcasecmp(p, "email") == 0)
-			fprintf(out, "\t2");
-		else
-			fprintf(out, "\t3");
-
-		keybits = 0;
-		(void) dkim_sig_getkeysize(sigs[c], &keybits);
-		fprintf(out, "\t%u", keybits);
-		
 		fprintf(out, "\n");
 	}
 

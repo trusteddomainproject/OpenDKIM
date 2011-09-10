@@ -4,20 +4,27 @@ INTRODUCTION
 
 This is the development area for OpenDKIM's statistics collection system.
 
-The OpenDKIM filter has an option to collect and record statistics
-about DKIM's operation including information like number of signatures,
-percent of signature failures, first-party vs. third-party signatures,
-ADSP statistics, etc. and store them into a file.  An additional tool
-called opendkim-stats (in this directory) can be used to retrieve
-this information and display it, mail it someplace for data aggregation,
-or insert it into an SQL database.
+In earlier versions, the statistics system gathered numerous details about
+messages and their DKIM signatures in order to produce a report about
+the observed implementation of DKIM on the Internet.  The data recorded
+included the number of signatures, percent of signature failures, first-party
+vs. third-party signatures, ADSP statistics, etc.  These data were collected
+and submitted to the Internet Engineering Task Force as part of a
+requirement to advance DKIM to Draft Standard status, and this work was
+very successful.
 
-This is especially useful for the industry to collect usage statistics
-about how DKIM is being used, the proliferation of third-party signing,
-etc.  You are encouraged, but certainly not required, to provide usage
+As of v2.5.0, the statistics system has been repurposed to support ongoing
+research and development into open DKIM-based reputation services.  The data
+collected has been drastically reduced to include only information about
+message arrival times, From domains, signing domains, sending IP addresses,
+and whether or not the message was reported as spam.
+
+You are invited, but certainly not required, to provide this
 information to The OpenDKIM Project.  The code that does the reporting is
 open source and included in this package, so you can easily verify that
-nothing private is being revealed in the data thus submitted.
+nothing other than the above is being revealed in the data thus submitted.
+Participants that submit data will be invited to be part of an experimental
+reputation system based on DKIM that should begin to appear in the near future.
 
 This directory contains information and software for generating, receiving
 and processing such reports, including commands for creating a MySQL database
@@ -51,10 +58,6 @@ scripts and documentation presume MySQL.
 5.	Configure OpenDKIM to have statistics enabled, and begin reporting
 	them to a file someplace.  See the opendkim(8) and opendkim.conf(5)
 	man pages for details.
-
-	By default, statistics will be recorded anonymized.  If you wish to
-	provide unencoded statistics to improve the utility of the data
-	at some privacy expense, adjust your configuration accordingly.
 
 6.	Restart opendkim.
 
@@ -122,6 +125,7 @@ There are currently these record types:
 
 	M	identifies a message
 	S	identifies a signature
+	U	updates a message
 
 A message record is a tab-separated, ordered sequence of fields, as follows:
 
@@ -129,20 +133,11 @@ A message record is a tab-separated, ordered sequence of fields, as follows:
 	reporter (string; defaults to hostname)
 	first domain found in the From: header field (string)
 	SMTP client IP address (string)
-	anonymized (0 = no, 1 = yes)
 	UNIX timestamp of message receive time
 	message size, in bytes
 	signature count
-	ADSP record found in DNS (0 = no, 1 = yes)
-	ADSP "unknown" policy found in DNS (0 = no, 1 = yes)
-	ADSP "all" policy found in DNS (0 = no, 1 = yes)
-	ADSP "discardable" policy found in DNS (0 = no, 1 = yes)
-	ADSP failed for this message (0 = no, 1 = yes)
-	appeared to come from a mailing list (0 = no, 1 = yes)
-	count of Received: header fields
-	overall MIME Content-Type, if any
-	overall MIME Content-Transfer-Encoding, if any
 	ATPS status (-1 = not checked, 0 = no, 1 = yes)
+	spam status (-1 = not checked, 0 = no, 1 = yes)
 
 A signature record implicitly references the preceding message record.
 There may be more than one signature record per message; there could also be
@@ -150,31 +145,34 @@ none.  As above, a signature record is a tab-separated, ordered sequence of
 fields, as follows:
 
 	domain of the signature
-	algorithm (0 = rsa-sha1, 1 = rsa-sha256)
-	header canonicalization (0 = simple, 1 = relaxed)
-	body canonicalization (0 = simple, 1 = relaxed)
-	tagged for ignore (0 = no, 1 = yes)
 	pass (0 = no, 1 = yes)
 	failed due to "bh" mismatch (0 = no, 1 = yes)
 	"l=" tag value (-1 = not present)
-	"t=" present in key (0 = no, 1 = yes)
-	"g=" present in key (0 = no, 1 = yes)
-	"g=" present in key with a value other than "*" (0 = no, 1 = yes)
-	key was DK-compatible (0 = no, 1 = yes)
 	error code from signature
-	"t=" present in signature (0 = no, 1 = yes)
-	"x=" present in signature (0 = no, 1 = yes)
-	"z=" present in signature (0 = no, 1 = yes)
 	DNSSEC value (see DKIM_DNSSEC_* constants from dkim.h)
-	colon-separated list of header fields signed
-	colon-separated list of header fields known to have changed
-	"i=" domain (0 = absent, 1 = matches From:, 2 = other)
-	"i=" user (0 = absent, 1 = empty, 2 = matches From:, 3 = other)
-	"s=" present in key (0 = absent, 1 = "*", 2 = "email", 3 = other)
-	key size, in bits
 
 Fields for which no value is known or appropriate should be represented as
 "-" in the file.
+
+
+UPDATES
+
+As of v2.5.0, a "spam" column is present in the table tracking per-message
+information.  When a batch of new message information is sent, this field
+is typically populated with a spam value of 0 (not spam).  An update record
+can be sent later that changes the value in this column.
+
+The fields in this case are:
+
+	MTA-provided job/envelope ID (string)
+	reporter (string; defaults to hostname)
+	UNIX timestamp of message receive time (0 if not known)
+	spam indicator (-1 = not tested, 0 = not spam, 1 = spam)
+
+The first three fields must match those given for the corresponding "M"
+(new message) record at some time in the past.  Where the timestamp is 0,
+the latest record matching the first two is updated.  The "spam" column for
+that message will be replaced with the value found in the fourth field.
 
 
 EXTENSIONS

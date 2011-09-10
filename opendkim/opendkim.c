@@ -123,6 +123,8 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 #endif /* _FFR_STATS */
 
 /* macros */
+#define CMDLINEOPTS	"Ab:c:d:De:fF:k:lL:no:p:P:qQrs:S:t:T:u:vVWx:?"
+
 #ifndef MIN
 # define MIN(x,y)	((x) < (y) ? (x) : (y))
 #endif /* ! MIN */
@@ -6180,12 +6182,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_allowsha1only,
 		                  sizeof conf->conf_allowsha1only);
 
-#ifdef _FFR_STATS
-		(void) config_get(data, "AnonymousStatistics",
-		                  &conf->conf_anonstats,
-		                  sizeof conf->conf_anonstats);
-#endif /* _FFR_STATS */
-
 #ifdef USE_LDAP
 		(void) config_get(data, "LDAPUseTLS",
 		                  &conf->conf_ldap_usetls,
@@ -6654,28 +6650,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			return -1;
 		}
 	}
-
-#ifdef _FFR_STATS
-	str = NULL;
-	if (data != NULL)
-		(void) config_get(data, "AnonymousDomains", &str, sizeof str);
-	if (str != NULL)
-	{
-		int status;
-		char *dberr = NULL;
-
-		status = dkimf_db_open(&conf->conf_anondb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
-		                        DKIMF_DB_FLAG_READONLY),
-		                       NULL, &dberr);
-		if (status != 0)
-		{
-			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, dberr);
-			return -1;
-		}
-	}
-#endif /* _FFR_STATS */
 
 	/* internal list */
 	str = NULL;
@@ -7261,6 +7235,13 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	if (data != NULL)
 	{
 		(void) config_get(data, "FlowData", &str, sizeof str);
+
+		(void) config_get(data, "FlowDataTTL", &conf->conf_flowdatattl,
+		                  sizeof conf->conf_flowdatattl);
+
+		(void) config_get(data, "FlowDataFactor",
+		                  &conf->conf_flowfactor,
+		                  sizeof conf->conf_flowfactor);
 	}
 	if (str != NULL)
 	{
@@ -7288,11 +7269,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			return -1;
 		}
 	}
-
-	(void) config_get(data, "FlowDataTTL", &conf->conf_flowdatattl,
-	                  sizeof conf->conf_flowdatattl);
-	(void) config_get(data, "FlowDataFactor", &conf->conf_flowfactor,
-	                  sizeof conf->conf_flowfactor);
 #endif /* _FFR_RATE_LIMIT */
 
 	str = NULL;
@@ -13332,9 +13308,6 @@ mlfi_eom(SMFICTX *ctx)
 #ifdef _FFR_STATS
 		if (conf->conf_statspath != NULL && dfc->mctx_dkimv != NULL)
 		{
-			_Bool fromlist = FALSE;
-			_Bool anon;
-			u_int rhcnt;
 			struct Header *hdr;
 
 # ifdef USE_LUA
@@ -13396,66 +13369,12 @@ mlfi_eom(SMFICTX *ctx)
 #  endif /* _FFR_STATSEXT */
 # endif /* USE_LUA */
 
-			hdr = dkimf_findheader(dfc, "Precedence", 0);
-			if (hdr != NULL &&
-			    strcasecmp(hdr->hdr_val, "list") == 0)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "List-Id", 0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "List-Post", 0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "List-Unsubscribe",
-			                          0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-			else if (dkimf_findheader(dfc, "Mailing-List",
-			                          0) != NULL)
-			{
-				fromlist = TRUE;
-			}
-
-			for (c = 0; ; c++)
-			{
-				if (dkimf_findheader(dfc, "Received",
-				                     c) == NULL)
-				{
-					rhcnt = c;
-					break;
-				}
-			}
-
-			anon = conf->conf_anonstats;
-
-			if (conf->conf_anondb != NULL)
-			{
-				_Bool found = FALSE;
-
-				status = dkimf_db_get(conf->conf_anondb,
-				                      dfc->mctx_domain,
-				                      0, NULL, 0,
-				                      &found);
-
-				if (found)
-					anon = !anon;
-			}
-
 			if (dkimf_stats_record(conf->conf_statspath,
 			                       dfc->mctx_jobid,
 			                       conf->conf_reporthost,
 			                       conf->conf_reportprefix,
 			                       dfc->mctx_hqhead,
 			                       dfc->mctx_dkimv,
-			                       dfc->mctx_pcode,
-			                       fromlist,
-			                       anon,
-			                       rhcnt,
 # ifdef _FFR_STATSEXT
 			                       dfc->mctx_statsext,
 # endif /* _FFR_STATSEXT */
