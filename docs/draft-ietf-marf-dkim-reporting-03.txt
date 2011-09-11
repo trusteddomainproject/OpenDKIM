@@ -3,12 +3,12 @@
 
 MARF Working Group                                          M. Kucherawy
 Internet-Draft                                                 Cloudmark
-Intended status: Standards Track                            May 15, 2011
-Expires: November 16, 2011
+Intended status: Standards Track                      September 10, 2011
+Expires: March 13, 2012
 
 
                 Extensions to DKIM for Failure Reporting
-                   draft-ietf-marf-dkim-reporting-02
+                   draft-ietf-marf-dkim-reporting-03
 
 Abstract
 
@@ -31,7 +31,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on November 16, 2011.
+   This Internet-Draft will expire on March 13, 2012.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Kucherawy               Expires November 16, 2011               [Page 1]
+Kucherawy                Expires March 13, 2012                 [Page 1]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
 Table of Contents
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Kucherawy               Expires November 16, 2011               [Page 2]
+Kucherawy                Expires March 13, 2012                 [Page 2]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
 1.  Introduction
@@ -129,7 +129,7 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
 
    This document extends [DKIM] and [ADSP] to add an optional reporting
    address, and an optional means of specifying a desired report format
-   and other parameters.  Accompanying documents extend [ARF] and SPF
+   and other parameters.  Similar documents extend [ARF] and SPF
    (RFC4408) to improve the reporting capabilities of those standards as
    well, and are intended to be deployed together.  The full suite of
    documents is:
@@ -164,9 +164,9 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
 
 
 
-Kucherawy               Expires November 16, 2011               [Page 3]
+Kucherawy                Expires March 13, 2012                 [Page 3]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
 2.  Definitions
@@ -220,9 +220,9 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
 
 
 
-Kucherawy               Expires November 16, 2011               [Page 4]
+Kucherawy                Expires March 13, 2012                 [Page 4]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
 3.  Optional Reporting Address for DKIM
@@ -242,10 +242,11 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
       this key fails verification because either (a) the signature
       verification itself failed, or (b) the body hash test failed.  The
       format of this reply is selected by the value of the "rf=" tag,
-      defined below.  If only a local-part is included, then to generate
-      a complete address to which the report is sent, the verifier
-      simply appends to this value an "@" followed by the domain found
-      in the "d=" tag of the signature whose validation failed.
+      defined below.  The value MUST be interpreted as a local-part
+      only.  To construct the actual address to which the report is
+      sent, the verifier simply appends to this value an "@" followed by
+      the domain found in the "d=" tag of the signature whose validation
+      failed.
 
       ABNF:
 
@@ -272,15 +273,16 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
       "0").  The value is an unsigned 32-bit integer that specifies an
       interval during which the report generator SHOULD NOT issue more
       than one report about a given incident type.  A value of "0"
-      requests a report for every incident.  Where the requested
 
 
 
-Kucherawy               Expires November 16, 2011               [Page 5]
+Kucherawy                Expires March 13, 2012                 [Page 5]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
+      requests a report for every incident; a value of "1" requests a
+      report for every other incident; etc.  Where the requested
       interval is not zero, the agent generating a report SHOULD include
       an "Incidents:" field in the generated report so the receiving
       agent has some indication of how many reports were suppressed.
@@ -330,11 +332,9 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
 
 
 
-
-
-Kucherawy               Expires November 16, 2011               [Page 6]
+Kucherawy                Expires March 13, 2012                 [Page 6]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
 4.  Optional Reporting Address for DKIM-ADSP
@@ -355,11 +355,12 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
       [ADSP], in particular because a message arrived without a
       signature that validates, which contradicts what the ADSP record
       claims, the format of this reply MUST be in the format specified
-      by the "rf=" tag defined below.  If only a local-part is provided,
-      then to generate a complete address to which the report is sent,
-      the verifier simply appends to this value an "@" followed by the
-      domain whose policy was queried in order to evaluate the sender's
-      ADSP.
+      by the "rf=" tag, defined below.  The value MUST be interpreted as
+      a local-part only.  To construct the actual address to which the
+      report is sent, the verifier simply appends to this value an "@"
+      followed by the domain whose policy was queried in order to
+      evaluate the sender's ADSP, i.e., the one taken from the
+      RFC5322.From domain of the message under evaluation.
 
       ABNF:
 
@@ -384,15 +385,16 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
       "0").  The value is an unsigned 32-bit integer that specifies an
       interval during which the report generator SHOULD NOT issue more
       than one report about a given type of incident should be
-      generated.  A value of "0" requests a report for every incident.
 
 
 
-Kucherawy               Expires November 16, 2011               [Page 7]
+Kucherawy                Expires March 13, 2012                 [Page 7]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
+      generated.  A value of "0" requests a report for every incident; a
+      value of "1" requests a report for every other incident; etc.
       Where the requested interval is not zero, the agent generating a
       report SHOULD include an "Incidents:" field in the generated
       report so the receiving agent has some indication of how many
@@ -442,11 +444,9 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
 
 
 
-
-
-Kucherawy               Expires November 16, 2011               [Page 8]
+Kucherawy                Expires March 13, 2012                 [Page 8]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
 5.  Requested Reports
@@ -500,15 +500,15 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
 
 
 
-Kucherawy               Expires November 16, 2011               [Page 9]
+Kucherawy                Expires March 13, 2012                 [Page 9]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
 6.  Reporting Formats
 
    This section lists reporting formats supported by this reporting
-   mechanism.  Currently only two formats are supported:
+   mechanism.  Initially, two formats are supported:
 
    arf:  Abuse Reporting Format, as defined in [ARF] and extended in
       RFCxxxx.
@@ -518,7 +518,7 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
       requests evaluation of sender authentication concurrent with the
       SMTP session, and rejection (if appropriate) whenever possible
       rather than acceptance of the message and later generation of a
-      feedback report of some kind (e.g. "arf" above) when verification
+      feedback report of some kind (e.g. "arf", above) when verification
       fails.  The presence of an "rs" tag (see Section 3 and Section 4)
       further requests a specific substring be included in the reply to
       ease automatic handling of such errors by sending or relaying
@@ -556,9 +556,9 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
 
 
 
-Kucherawy               Expires November 16, 2011              [Page 10]
+Kucherawy                Expires March 13, 2012                [Page 10]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
 7.  IANA Considerations
@@ -612,9 +612,9 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
 
 
 
-Kucherawy               Expires November 16, 2011              [Page 11]
+Kucherawy                Expires March 13, 2012                [Page 11]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
 8.  Security Considerations
@@ -624,7 +624,7 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
 
 8.1.  Inherited Considerations
 
-   Implementors are advised to consider the Security Considerations
+   Implementers are advised to consider the Security Considerations
    sections of [DKIM] and [ADSP].
 
 8.2.  Forgeries
@@ -668,9 +668,9 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
 
 
 
-Kucherawy               Expires November 16, 2011              [Page 12]
+Kucherawy                Expires March 13, 2012                [Page 12]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
    discovered data in the DNS.
@@ -724,9 +724,9 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
 
 
 
-Kucherawy               Expires November 16, 2011              [Page 13]
+Kucherawy                Expires March 13, 2012                [Page 13]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
 9.  References
@@ -780,9 +780,9 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
 
 
 
-Kucherawy               Expires November 16, 2011              [Page 14]
+Kucherawy                Expires March 13, 2012                [Page 14]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
 Appendix A.  Acknowledgements
@@ -836,9 +836,9 @@ Appendix A.  Acknowledgements
 
 
 
-Kucherawy               Expires November 16, 2011              [Page 15]
+Kucherawy                Expires March 13, 2012                [Page 15]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
 Appendix B.  Examples
@@ -892,9 +892,9 @@ B.2.  Example Use of DKIM ADSP Extension Tags
 
 
 
-Kucherawy               Expires November 16, 2011              [Page 16]
+Kucherawy                Expires March 13, 2012                [Page 16]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
    o  Only reports about unsigned messages should be generated.
@@ -948,9 +948,9 @@ Internet-Draft          DKIM Reporting Extensions               May 2011
 
 
 
-Kucherawy               Expires November 16, 2011              [Page 17]
+Kucherawy                Expires March 13, 2012                [Page 17]
 
-Internet-Draft          DKIM Reporting Extensions               May 2011
+Internet-Draft          DKIM Reporting Extensions         September 2011
 
 
 Author's Address
@@ -1004,5 +1004,5 @@ Author's Address
 
 
 
-Kucherawy               Expires November 16, 2011              [Page 18]
+Kucherawy                Expires March 13, 2012                [Page 18]
 
