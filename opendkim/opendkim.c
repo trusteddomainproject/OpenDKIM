@@ -9661,12 +9661,32 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 			}
 			else if (strcasecmp(p, ARF_OPTIONS_DKIM_SYNTAX) == 0)
 			{
-				DKIM_SIGINFO **sigs;
-				int nsigs;
+				err = dkim_sig_geterror(sig);
 
-				(void) dkim_getsiglist(dfc->mctx_dkimv,
-				                       &sigs, &nsigs);
-				if (nsigs == 0)
+				if (err == DKIM_SIGERROR_TIMESTAMPS ||
+				    err == DKIM_SIGERROR_INVALID_HC ||
+				    err == DKIM_SIGERROR_INVALID_BC ||
+				    err == DKIM_SIGERROR_MISSING_A ||
+				    err == DKIM_SIGERROR_INVALID_A ||
+				    err == DKIM_SIGERROR_MISSING_H ||
+				    err == DKIM_SIGERROR_INVALID_L ||
+				    err == DKIM_SIGERROR_INVALID_Q ||
+				    err == DKIM_SIGERROR_INVALID_QO ||
+				    err == DKIM_SIGERROR_MISSING_D ||
+				    err == DKIM_SIGERROR_EMPTY_D ||
+				    err == DKIM_SIGERROR_MISSING_S ||
+				    err == DKIM_SIGERROR_EMPTY_S ||
+				    err == DKIM_SIGERROR_MISSING_B ||
+				    err == DKIM_SIGERROR_EMPTY_B ||
+				    err == DKIM_SIGERROR_CORRUPT_B ||
+				    err == DKIM_SIGERROR_MISSING_BH ||
+				    err == DKIM_SIGERROR_EMPTY_BH ||
+				    err == DKIM_SIGERROR_CORRUPT_BH ||
+				    err == DKIM_SIGERROR_EMPTY_H ||
+				    err == DKIM_SIGERROR_INVALID_H ||
+				    err == DKIM_SIGERROR_TOOLARGE_L ||
+				    err == DKIM_SIGERROR_MISSING_V ||
+				    err == DKIM_SIGERROR_EMPTY_V)
 				{
 					sendreport = TRUE;
 					break;
