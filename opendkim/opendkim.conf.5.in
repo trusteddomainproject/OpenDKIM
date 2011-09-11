@@ -211,6 +211,14 @@ slash ("/") character, in which case the first will be applied to the
 header and the second to the body.
 
 .TP
+.I ChangeRootDirectory (string)
+Requests that the operating system change the effective root directory
+of the process to the one specified here prior to beginning execution.
+Requires superuser access.  A warning will be generated if
+.I Userid
+is not also set.
+
+.TP
 .I ClockDrift (integer)
 Sets the tolerance in seconds to be applied when determining whether a
 signature was either expired or generated in the future.  The default

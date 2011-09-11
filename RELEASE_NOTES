@@ -9,6 +9,8 @@ release, and a summary of the changes in that release.
 	Feature request #SF3385816: Discontinue DomainKeys support.
 	Feature request #SF3393282: Update ARF output per
 		draft-ietf-marf-authfailure-report-01.
+	Feature request #SF3406814: Add ability to invoke chroot().
+		Requested by Andreas Schulze.
 	Fix bug #SF3400670: Send ADSP failure reports when rejecting
 		a message.  Reported by Andreas Schulze.
 	Fix Authentication-Results generation with "AddAllSignatureResults"
@@ -27,6 +29,8 @@ release, and a summary of the changes in that release.
 	STATS: Feature request #SF3397903: Drop all support for data needed
 		for the DKIM Implementation Report, as it has been completed.
 		Leave stuff that's useful for reputation R&D.
+	STATS: Feature request #SF3402857: Modify opendkim-spam to be able
+		to write update records to statistics files.
 	TOOLS: Add opendkim-testmsg, for signing/verifying messages without
 		all the milter code being invoked.  Requested by
 		Todd Nagengast.

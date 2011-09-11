@@ -290,6 +290,7 @@ struct dkimf_config
 	char *		conf_modestr;		/* mode string */
 	char *		conf_canonstr;		/* canonicalization(s) string */
 	char *		conf_siglimit;		/* signing limits */
+	char *		conf_chroot;		/* chroot(2) directory */
 	u_char *	conf_selector;		/* key selector */
 #ifdef _FFR_DEFAULT_SENDER
 	char *		conf_defsender;		/* default sender address */
@@ -14938,6 +14939,7 @@ main(int argc, char **argv)
 	const char *args = CMDLINEOPTS;
 	FILE *f;
 	char *become = NULL;
+	char *chrootdir = NULL;
 	char *extract = NULL;
 	char *p;
 	char *pidfile = NULL;
@@ -15657,6 +15659,9 @@ main(int argc, char **argv)
 			                  sizeof popdbfile);
 		}
 #endif /* POPAUTH */
+
+		(void) config_get(cfg, "ChangeRootDirectory", &chrootdir,
+		                  sizeof chrootdir);
 	}
 
 #ifndef SMFIF_QUARANTINE
@@ -15687,9 +15692,56 @@ main(int argc, char **argv)
 		dofork = FALSE;
 		become = NULL;
 		pidfile = NULL;
+		chrootdir = NULL;
 	}
 
 	dkimf_setmaxfd();
+
+	/* change root if requested */
+	if (chrootdir != NULL)
+	{
+		/* warn if doing so as root without then giving up root */
+		if (become == NULL && getuid() == 0)
+		{
+			if (curconf->conf_dolog)
+			{
+				syslog(LOG_WARNING,
+				       "using ChangeRootDirectory without Userid not advised");
+			}
+
+			fprintf(stderr,
+			        "%s: use of ChangeRootDirectory without Userid not advised\n",
+			        progname);
+		}
+
+		/* change to the new root first */
+		if (chdir(chrootdir) != 0)
+		{
+			if (curconf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: chdir(): %s",
+				       chrootdir, strerror(errno));
+			}
+
+			fprintf(stderr, "%s: %s: chdir(): %s\n", progname,
+			        chrootdir, strerror(errno));
+			return EX_OSERR;
+		}
+
+		/* now change the root */
+		if (chroot(chrootdir) != 0)
+		{
+			if (curconf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: chroot(): %s",
+				       chrootdir, strerror(errno));
+			}
+
+			fprintf(stderr, "%s: %s: chroot(): %s\n", progname,
+			        chrootdir, strerror(errno));
+			return EX_OSERR;
+		}
+	}
 
 	/* change user if appropriate */
 	if (become != NULL)
