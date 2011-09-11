@@ -1,26 +1,64 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.4.2 released
+Subject: OpenDKIM v2.5.0 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.4.2, now available
+The OpenDKIM project announces availability of OpenDKIM v2.5.0, now available
 for download from SourceForge.
 
-This is a minor bug fix release prior to beginning development work on the
-v2.5.x line, which will contain new features.  Upgrading is not required
-or urgent unless you're specifically interested in one of the changes
-listed below.
+This is a major new feature release.  It also includes a few important bug
+fixes and some code updates to keep up with changes in evolving specifications.
+Upgrading is recommended.
+
+There are two major architectural changes in this release:
+
+1) The statistics subsystem was originally added to support the work of the
+DKIM working group at the IETF to produce an interoperability report, needed
+to advance the DKIM standard to the next maturity level.  That has now been
+completed, and we thank those that participated in making this possible.
+As of this release, the statistics reporting subsystem has been repurposed
+into something that reports messages, their passing/failing signatures, and
+an indication of whether or not the message was identified as spam somehow.
+This is being done to support some ongoing research and development of an
+open DKIM-based domain reputation system.  The visible changes are: (a) it
+is no longer possible to submit anonymized data, as such is not useful to the 
+new purpose of this piece of the project; and (b) the set of data being
+submitted is substantially smaller.  This means those of you participating
+may wish to re-evaluate your participation, though obviously we would be
+pleased to have you continue.  Those that do start or continue to submit
+this data will be eligible to participate in the reputation experiments
+as they unfold.
+
+2) DomainKeys, the predecessor to DKIM, is no longer supported as of this
+version.  Sites wishing to continue to do DomainKeys verification will need
+to seek out and install other software.
 
 The full RELEASE_NOTES for this version:
 
-2.4.2		2011/08/05
-	Don't apply BodyLengthDB when not signing.  Problem noted by
-		Andreas Schulze.
-	LIBOPENDKIM: Update for draft-kucherawy-dkim-atps-06.
-	LIBOPENDKIM: Terminate the strings returned by dkim_sig_getsubstring()
-		and dkim_sig_getidentity() whenever possible.  Suggested by
-		Heikki Gruner.
-	CONTRIB: Change "chkconfig" instruction in RHEL init script,
-		and a minor tweak to the RPM spec file.  From Steve Jenkins.
+2.5.0		2011/10/??
+	Feature request #SF3385816: Discontinue DomainKeys support.
+	Feature request #SF3393282: Update ARF output per
+		draft-ietf-marf-authfailure-report-01.
+	Fix bug #SF3400670: Send ADSP failure reports when rejecting
+		a message.  Reported by Andreas Schulze.
+	Fix Authentication-Results generation with "AddAllSignatureResults"
+		enabled.  Reported by Todd Nagengast.
+	LIBOPENDKIM: Feature request #SF3317160: Per RFC4871bis, remove
+		granularity checks.
+	LIBOPENDKIM: Feature request #SF3385768: Add dkim_privkey_load(),
+		allowing validation of a private key before reaching
+		end-of-message.  Requested by Heikki Gruner.
+	LIBOPENDKIM: Don't report the absence of "c=" as an error, since
+		there is a default.
+	LIBOPENDKIM: NOERROR is the same as NXDOMAIN for the purposes of
+		the ADSP existence check.  Problem noted by Todd Nagengast.
+	LIBAR: Fix bug #SF2917856: Rename "ar.h" to "async-resolv.h" since
+		"ar.h" is already in common use.
+	STATS: Feature request #SF3397903: Drop all support for data needed
+		for the DKIM Implementation Report, as it has been completed.
+		Leave stuff that's useful for reputation R&D.
+	TOOLS: Add opendkim-testmsg, for signing/verifying messages without
+		all the milter code being invoked.  Requested by
+		Todd Nagengast.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
