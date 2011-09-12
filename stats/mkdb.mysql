@@ -209,6 +209,8 @@ create table if not exists predictions (
 	ratio_high float,
 	daily_limit_high int,
 	daily_limit_low int,
+	today_mail int,
+	today_spam float,
 
         primary key (id),
 	unique key (domain),
