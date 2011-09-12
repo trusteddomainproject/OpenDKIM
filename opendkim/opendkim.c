@@ -9525,6 +9525,8 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 			}
 			else if (strcasecmp(p, ARF_OPTIONS_DKIM_SYNTAX) == 0)
 			{
+				int err;
+
 				err = dkim_sig_geterror(sig);
 
 				if (err == DKIM_SIGERROR_TIMESTAMPS ||
@@ -10058,7 +10060,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 			         ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 ||
 			          dkim_sig_getbh(sigs[c]) != DKIM_SIGBH_MATCH))
 			{
-				char *err;
+				const char *err;
 
 				result = "fail";
 
