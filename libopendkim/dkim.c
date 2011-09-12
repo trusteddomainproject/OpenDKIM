@@ -2216,6 +2216,8 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	if (n > 0)
 	{
 		always = DKIM_MALLOC(dkim, n);
+		if (always == NULL)
+			return (size_t) -1;
 		memset(always, '\0', n);
 	}
 
@@ -2303,8 +2305,6 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	}
 
 	/* h= */
-	if (always == NULL)
-		return (size_t) -1;
 	for (n = 0; n < dkim->dkim_libhandle->dkiml_nalwayshdrs; n++)
 		always[n] = TRUE;
 
