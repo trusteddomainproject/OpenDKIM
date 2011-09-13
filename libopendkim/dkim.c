@@ -8666,3 +8666,25 @@ dkim_dns_set_query_waitreply(DKIM_LIB *lib, int (*func)(void *, void *,
 	else
 		lib->dkiml_dns_waitreply = dkim_res_waitreply;
 }
+
+/*
+**  DKIM_SIG_GETHASHES -- retrieve hashes
+**
+**  Parameters:
+**  	sig -- signature from which to get completed hashes
+**  	hh -- pointer to header hash buffer (returned)
+**  	hhlen -- bytes used at hh (returned)
+**  	bh -- pointer to body hash buffer (returned)
+**  	bhlen -- bytes used at bh (returned)
+**
+**  Return value:
+**  	DKIM_STAT_OK -- successful completion
+**  	DKIM_STAT_INVALID -- hashing hasn't been completed
+*/
+
+DKIM_STAT
+dkim_sig_gethashes(DKIM_SIGINFO *sig, void **hh, size_t *hhlen,
+                   void **bh, size_t *bhlen)
+{
+	return dkim_canon_gethashes(sig, hh, hhlen, bh, bhlen);
+}

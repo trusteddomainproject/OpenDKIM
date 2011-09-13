@@ -33,6 +33,8 @@ extern DKIM_STAT dkim_canon_bodychunk __P((DKIM *, u_char *, size_t));
 extern void dkim_canon_cleanup __P((DKIM *));
 extern DKIM_STAT dkim_canon_closebody __P((DKIM *));
 extern DKIM_STAT dkim_canon_getfinal __P((DKIM_CANON *, u_char **, size_t *));
+extern DKIM_STAT dkim_canon_gethashes __P((DKIM_SIGINFO *, void **, size_t *,
+                                           void **, size_t *));
 extern DKIM_STAT dkim_canon_header_string __P((struct dkim_dstring *,
                                                dkim_canon_t, unsigned char *,
                                                size_t, _Bool));
