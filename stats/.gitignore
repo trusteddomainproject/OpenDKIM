@@ -27,3 +27,5 @@ core
 *.core
 opendkim-importstats
 opendkim-anonstats
+opendkim-genrates.pl
+opendkim-modtotals.pl
