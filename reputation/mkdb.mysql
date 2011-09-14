@@ -1,0 +1,44 @@
+-- $Id: mkdb.mysql,v 1.11 2010/10/25 17:16:00 cm-msk Exp $
+
+-- Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
+
+-- MySQL command sequence to create a database to accumulate OpenDKIM
+-- statistics reports
+
+-- table containing data aggregation for staging to predictions
+create table if not exists aggregate (
+	id int auto_increment,
+	domain int,
+	updated timestamp not null default current_timestamp on update current_timestamp,
+	date timestamp not null default '0000-00-00 00:00:00',
+	messages int,
+	spam int,
+	ratio float,
+
+        primary key (id),
+	unique key (domain, date),
+	foreign key(domain) references domains(id) on delete cascade
+) engine=innodb default charset=latin1;
+
+-- table mapping domain codes to flow predictions
+create table if not exists predictions (
+	id int not null auto_increment,
+	domain int,
+	rate_samples int,
+	rate_max int,
+	rate_avg float,
+	rate_stddev float,
+	rate_high int,
+	ratio_max float,
+	ratio_avg float,
+	ratio_stddev float,
+	ratio_high float,
+	daily_limit_high int,
+	daily_limit_low int,
+	today_mail int,
+	today_spam float,
+
+        primary key (id),
+	unique key (domain),
+	foreign key(domain) references domains(id) on delete cascade
+) engine=innodb default charset=latin1;
