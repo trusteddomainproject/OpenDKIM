@@ -3,7 +3,7 @@
 -- Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 
 -- MySQL command sequence to create a database to accumulate OpenDKIM
--- statistics reports
+-- reputation data
 
 -- table containing data aggregation for staging to predictions
 create table if not exists aggregate (
