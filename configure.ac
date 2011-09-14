@@ -1762,7 +1762,6 @@ AC_OUTPUT([	Makefile
 			contrib/init/redhat/Makefile
 			contrib/init/solaris/Makefile
 			contrib/lua/Makefile
-			contrib/reputation/Makefile
 			contrib/spec/Makefile
 			contrib/spec/opendkim.spec
 			contrib/stats/Makefile
@@ -1782,6 +1781,9 @@ AC_OUTPUT([	Makefile
 			opendkim/opendkim-atpszone.8 opendkim/opendkim-spam.1
 		opendkim/tests/Makefile
 		stats/Makefile stats/opendkim-importstats.8
-			stats/opendkim-genrates.pl stats/opendkim-genrates.8
-			stats/opendkim-modtotals.pl stats/opendkim-modtotals.8
+		reputation/Makefile
+			reputation/opendkim-genrates.pl
+			reputation/opendkim-genrates.8
+			reputation/opendkim-modtotals.pl
+			reputation/opendkim-modtotals.8
 ])
