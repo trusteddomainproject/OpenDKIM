@@ -1245,6 +1245,14 @@ This default VBR type if not specified in the X-VBR-Type header field.
 @VBR_MANNOTICE@
 
 .TP
+.I WeakSyntaxChecks (Boolean)
+Requests that the library continue processing messages even if syntax errors
+are discovered early in message analysis.  This means, for example, that
+a signed message with a mangled From: field will still proceed to verification
+even if the author's domain could not be determined, which makes later
+ADSP checks impossible.
+
+.TP
 .I X-Header (Boolean)
 Causes
 .I opendkim

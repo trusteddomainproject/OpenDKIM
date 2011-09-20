@@ -226,6 +226,7 @@ struct configdef dkimf_config[] =
 	{ "VBR-TrustedCertifiersOnly",	CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "VBR-Type",			CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_VBR */
+	{ "WeakSyntaxChecks",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "X-Header",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ NULL,				(u_int) -1,		FALSE }
 };

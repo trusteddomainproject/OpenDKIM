@@ -191,6 +191,7 @@ struct lua_global
 
 struct dkimf_config
 {
+	_Bool		conf_weaksyntax;	/* do weaker syntax checking */
 	_Bool		conf_noadsp;		/* suppress ADSP */
 	_Bool		conf_allsigs;		/* report on all signatures */
 	_Bool		conf_dnsconnect;	/* request TCP mode from DNS */
@@ -6139,6 +6140,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_dolog_success,
 		                  sizeof conf->conf_dolog_success);
 
+		(void) config_get(data, "WeakSyntaxChecks",
+		                  &conf->conf_weaksyntax,
+		                  sizeof conf->conf_weaksyntax);
+
 		(void) config_get(data, "ADSPNoSuchDomain",
 		                  &conf->conf_adspnxdomain,
 		                  sizeof conf->conf_adspnxdomain);
@@ -7795,6 +7800,8 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 	(void) dkim_options(lib, DKIM_OP_GETOPT, DKIM_OPTS_FLAGS,
 	                    &opts, sizeof opts);
 	opts |= DKIM_LIBFLAGS_ACCEPTV05;
+	if (conf->conf_weaksyntax)
+		opts |= DKIM_LIBFLAGS_BADSIGHANDLES;
 #ifdef QUERY_CACHE
 	if (querycache)
 	{
@@ -11034,8 +11041,9 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 #endif /* _FFR_DEFAULT_SENDER */
 
-	if (status != 0 || user == NULL || domain == NULL ||
-	    user[0] == '\0' || domain[0] == '\0')
+	if ((conf->conf_mode & DKIMF_MODE_SIGNER) != 0 &&
+	    (status != 0 || user == NULL || domain == NULL ||
+	     user[0] == '\0' || domain[0] == '\0'))
 	{
 		if (conf->conf_dolog)
 		{
@@ -11071,12 +11079,16 @@ mlfi_eoh(SMFICTX *ctx)
 		dfc->mctx_status = DKIMF_STATUS_BADFORMAT;
 		return SMFIS_CONTINUE;
 	}
-	strlcpy((char *) dfc->mctx_domain, (char *) domain,
-	        sizeof dfc->mctx_domain);
-	dkimf_lowercase(dfc->mctx_domain);
+
+	if (domain != NULL)
+	{
+		strlcpy((char *) dfc->mctx_domain, (char *) domain,
+		        sizeof dfc->mctx_domain);
+		dkimf_lowercase(dfc->mctx_domain);
+	}
 
 	/* if it's exempt, bail out */
-	if (conf->conf_exemptdb != NULL)
+	if (conf->conf_exemptdb != NULL && dfc->mctx_domain[0] != '\0')
 	{
 		_Bool match = FALSE;
 		int status;
