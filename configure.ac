@@ -274,6 +274,9 @@ FFR_FEATURE([report_intervals],
 FFR_FEATURE([redirect],
             [support for redirecting failed verifications to a mailbox])
 
+FFR_FEATURE([reputation],
+            [support for experimental reputation checks])
+
 FFR_FEATURE([resign],
             [support for one-step re-signing])
 
