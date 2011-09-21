@@ -89,14 +89,14 @@ dkimf_rep_init(DKIMF_REP *rep, time_t factor, DKIMF_DB limits, DKIMF_DB ratios)
 
 	if (pthread_mutex_init(&new->rep_lock, NULL) != 0)
 	{
-		free(rep);
+		free(new);
 		return -1;
 	}
 
 	status = dkimf_db_open(&new->rep_reps, "db:", 0, NULL, NULL);
 	if (status != 0)
 	{
-		free(rep);
+		free(new);
 		return -1;
 	}
 
@@ -104,7 +104,7 @@ dkimf_rep_init(DKIMF_REP *rep, time_t factor, DKIMF_DB limits, DKIMF_DB ratios)
 	if (status != 0)
 	{
 		dkimf_db_close(new->rep_reps);
-		free(rep);
+		free(new);
 		return -1;
 	}
 
