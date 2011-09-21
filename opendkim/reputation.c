@@ -310,36 +310,42 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool lowtime, _Bool spam)
 		}
 	}
 
-	/* XXX -- there's no "sig" if the message was unsigned, hence
-	**  no hashes... */
-
 	/* see if we've seen this one before */
-	if (dkim_sig_gethashes(sig, &hh, &hhlen, &bh, &bhlen) != DKIM_STAT_OK)
+	if (sig == NULL)
 	{
-		pthread_mutex_unlock(&rep->rep_lock);
-		return -1;
+		/* we don't have hashes if it wasn't signed, so assume new */
+		f = FALSE;
 	}
-
-	if (hhlen + bhlen > sizeof hashbuf)
+	else
 	{
-		pthread_mutex_unlock(&rep->rep_lock);
-		return -1;
-	}
+		if (dkim_sig_gethashes(sig, &hh, &hhlen,
+		                       &bh, &bhlen) != DKIM_STAT_OK)
+		{
+			pthread_mutex_unlock(&rep->rep_lock);
+			return -1;
+		}
 
-	memcpy(hashbuf, hh, hhlen);
-	memcpy(hashbuf + hhlen, bh, bhlen);
+		if (hhlen + bhlen > sizeof hashbuf)
+		{
+			pthread_mutex_unlock(&rep->rep_lock);
+			return -1;
+		}
 
-	req.dbdata_buffer = (void *) &when;
-	req.dbdata_buflen = sizeof when;
-	req.dbdata_flags = DKIMF_DB_DATA_BINARY;
+		memcpy(hashbuf, hh, hhlen);
+		memcpy(hashbuf + hhlen, bh, bhlen);
 
-	f = FALSE;
+		req.dbdata_buffer = (void *) &when;
+		req.dbdata_buflen = sizeof when;
+		req.dbdata_flags = DKIMF_DB_DATA_BINARY;
 
-	if (dkimf_db_get(rep->rep_dups, hashbuf, hhlen + bhlen,
-	                 &req, 1, &f) != 0)
-	{
-		pthread_mutex_unlock(&rep->rep_lock);
-		return -1;
+		f = FALSE;
+
+		if (dkimf_db_get(rep->rep_dups, hashbuf, hhlen + bhlen,
+		                 &req, 1, &f) != 0)
+		{
+			pthread_mutex_unlock(&rep->rep_lock);
+			return -1;
+		}
 	}
 
 	/* up the counts if this is new */
@@ -357,22 +363,30 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool lowtime, _Bool spam)
 		return -1;
 	}
 
-	hashlen = hhlen + bhlen;
-
 	/* if accepting it now would be within limits */
 	if (reps.reps_count < reps.reps_limit &&
 	    reps.reps_spam / reps.reps_count < reps.reps_ratio)
 	{
-		/* remove from rep_dups if found there */
-		(void) dkimf_db_delete(rep->rep_dups, hashbuf, hashlen);
+		if (sig != NULL)
+		{
+			/* remove from rep_dups if found there */
+			hashlen = hhlen + bhlen;
+			(void) dkimf_db_delete(rep->rep_dups, hashbuf, hashlen);
+		}
 
 		pthread_mutex_unlock(&rep->rep_lock);
 		return 0;
 	}
 	else
 	{
-		(void) dkimf_db_put(rep->rep_dups, hashbuf, hashlen, &now,
-		                    sizeof now);
+		if (sig != NULL)
+		{
+			/* record the dup */
+			hashlen = hhlen + bhlen;
+			(void) dkimf_db_put(rep->rep_dups, hashbuf, hashlen,
+			                    &now, sizeof now);
+		}
+
 		pthread_mutex_unlock(&rep->rep_lock);
 		return 1;
 	}
