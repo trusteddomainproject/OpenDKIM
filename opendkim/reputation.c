@@ -31,8 +31,10 @@ static char reputation_c_id[] = "@(#)$Id: stats.c,v 1.27.2.1 2010/10/27 21:43:09
 #include "opendkim-db.h"
 
 /* macros */
-#define	DKIMF_REP_MAXHASHES	64
 #define	DKIMF_REP_DEFTTL	3600
+#define	DKIMF_REP_LOWTIMEDOMAIN	"LOW-TIME"
+#define	DKIMF_REP_MAXHASHES	64
+#define	DKIMF_REP_NULLDOMAIN	"NULL"
 
 /* data types */
 struct reputation
@@ -140,16 +142,21 @@ dkimf_rep_close(DKIMF_REP rephandle)
 **  Parameters:
 **  	rephandle -- reputation service handle
 **  	sig -- a valid signature on this message
+**  	lowtime -- check low-time domain record (ignoring sig)
 **  	spam -- spammy or not spammy?  That is the question.
 **
 **  Return value:
+**  	2 -- no data found for this domain
 **  	1 -- deny the request
 **  	0 -- allow the request
 **  	-1 -- error
+**
+**  Notes:
+**  	If "sig" is NULL, the null domain record is queried.
 */
 
 int
-dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam)
+dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool lowtime, _Bool spam)
 {
 	_Bool f;
 	size_t hashlen;
@@ -167,7 +174,6 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam)
 	unsigned char hashbuf[DKIMF_REP_MAXHASHES];
 
 	assert(rep != NULL);
-	assert(sig != NULL);
 
 	(void) time(&now);
 
@@ -227,7 +233,13 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam)
 	req.dbdata_buflen = sizeof reps;
 	req.dbdata_flags = DKIMF_DB_DATA_BINARY;
 
-	dkim_strlcpy(domain, dkim_sig_getdomain(sig), sizeof domain);
+	if (lowtime)
+		dkim_strlcpy(domain, DKIMF_REP_LOWTIMEDOMAIN, sizeof domain);
+	else if (sig == NULL)
+		dkim_strlcpy(domain, DKIMF_REP_NULLDOMAIN, sizeof domain);
+	else
+		dkim_strlcpy(domain, dkim_sig_getdomain(sig), sizeof domain);
+
 	dlen = strlen(domain);
 
 	/* check cache first */
@@ -262,7 +274,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam)
 		if (!f)
 		{
 			pthread_mutex_unlock(&rep->rep_lock);
-			return 0;
+			return 2;
 		}
 
 		reps.reps_limit = strtoul(buf, &p, 10) / rep->rep_factor + 1;
@@ -287,24 +299,19 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam)
 		if (!f)
 		{
 			pthread_mutex_unlock(&rep->rep_lock);
-			return 0;
+			return 2;
 		}
 
-		reps.reps_limit = strtof(buf, &p);
+		reps.reps_ratio = strtof(buf, &p);
 		if (*p != '\0')
 		{
 			pthread_mutex_unlock(&rep->rep_lock);
 			return -1;
 		}
-
-		/* write it to the cache */
-		if (dkimf_db_put(rep->rep_reps, domain, dlen, &reps,
-		                 sizeof reps) != 0)
-		{
-			pthread_mutex_unlock(&rep->rep_lock);
-			return -1;
-		}
 	}
+
+	/* XXX -- there's no "sig" if the message was unsigned, hence
+	**  no hashes... */
 
 	/* see if we've seen this one before */
 	if (dkim_sig_gethashes(sig, &hh, &hhlen, &bh, &bhlen) != DKIM_STAT_OK)
@@ -343,12 +350,21 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam)
 			reps.reps_spam++;
 	}
 
+	/* write it to the cache */
+	if (dkimf_db_put(rep->rep_reps, domain, dlen, &reps, sizeof reps) != 0)
+	{
+		pthread_mutex_unlock(&rep->rep_lock);
+		return -1;
+	}
+
+	hashlen = hhlen + bhlen;
+
 	/* if accepting it now would be within limits */
 	if (reps.reps_count < reps.reps_limit &&
 	    reps.reps_spam / reps.reps_count < reps.reps_ratio)
 	{
 		/* remove from rep_dups if found there */
-		(void) dkimf_db_delete(rep->rep_reps, hashbuf, hashlen);
+		(void) dkimf_db_delete(rep->rep_dups, hashbuf, hashlen);
 
 		pthread_mutex_unlock(&rep->rep_lock);
 		return 0;

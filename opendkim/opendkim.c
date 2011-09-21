@@ -118,6 +118,9 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 #ifdef _FFR_STATS
 # include "stats.h"
 #endif /* _FFR_STATS */
+#ifdef _FFR_REPUTATION
+# include "reputation.h"
+#endif /* _FFR_REPUTATION */
 
 /* macros */
 #ifndef MIN
@@ -222,6 +225,9 @@ struct dkimf_config
 #ifdef _FFR_MAXVERIFY
 	unsigned int	conf_maxverify;		/* max sigs to verify */
 #endif /* _FFR_MAXVERIFY */
+#ifdef _FFR_REPUTATION
+	unsigned int	conf_repfactor;		/* reputation factor */
+#endif /* _FFR_REPUTATION */
 #ifdef USE_UNBOUND
 	unsigned int	conf_boguskey;		/* bogus key action */
 	unsigned int	conf_insecurekey;	/* insecure key action */
@@ -383,6 +389,13 @@ struct dkimf_config
 #ifdef _FFR_RESIGN
 	DKIMF_DB	conf_resigndb;		/* resigning addresses */
 #endif /* _FFR_RESIGN */
+#ifdef _FFR_REPUTATION
+	char *		conf_repratios;		/* reputed ratios */
+	DKIMF_DB	conf_repratiosdb;	/* reputed ratios DB */
+	char *		conf_replimits;		/* reputed limits */
+	DKIMF_DB	conf_replimitsdb;	/* reputed limits DB */
+	DKIMF_REP	conf_rep;		/* reputation subsystem */
+#endif /* _FFR_REPUTATION */
 	DKIM_LIB *	conf_libopendkim;	/* DKIM library handle */
 	struct handling	conf_handling;		/* message handling */
 };
@@ -5289,6 +5302,9 @@ dkimf_config_new(void)
 #ifdef _FFR_DKIM_REPUTATION
 	new->conf_repreject = DKIM_REP_DEFREJECT;
 #endif /* _FFR_DKIM_REPUTATION */
+#ifdef _FFR_REPUTATION
+	new->conf_repfactor = DKIMF_REP_DEFFACTOR;
+#endif /* _FFR_REPUTATION */
 	new->conf_safekeys = TRUE;
 	new->conf_adspaction = SMFIS_CONTINUE;
 #ifdef _FFR_STATS
@@ -5410,6 +5426,15 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_resigndb != NULL)
 		dkimf_db_close(conf->conf_resigndb);
 #endif /* _FFR_RESIGN */
+
+#ifdef _FFR_REPUTATION
+	if (conf->conf_repratiosdb != NULL)
+		dkimf_db_close(conf->conf_repratiosdb);
+	if (conf->conf_replimitsdb != NULL)
+		dkimf_db_close(conf->conf_replimitsdb);
+	if (conf->conf_rep != NULL)
+		dkimf_rep_close(conf->conf_rep);
+#endif /* _FFR_REPUTATION */
 
 #ifdef USE_LUA
 	if (conf->conf_setupscript != NULL)
@@ -5692,32 +5717,35 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  sizeof conf->conf_rmidentityhdr);
 #endif /* _FFR_IDENTITY_HEADER */
 #ifdef _FFR_DKIM_REPUTATION
-		(void) config_get(data, "ReputationFail", &conf->conf_repfail,
+		(void) config_get(data, "DKIMReputationFail",
+		                  &conf->conf_repfail,
 		                  sizeof conf->conf_repfail);
 
-		(void) config_get(data, "ReputationPass", &conf->conf_reppass,
+		(void) config_get(data, "DKIMReputationPass",
+		                  &conf->conf_reppass,
 		                  sizeof conf->conf_reppass);
 
-		(void) config_get(data, "ReputationReject",
+		(void) config_get(data, "DKIMReputationReject",
 		                  &conf->conf_repreject,
 		                  sizeof conf->conf_repreject);
 
 		str = NULL;
-		(void) config_get(data, "ReputationRoot", &str, sizeof str);
+		(void) config_get(data, "DKIMReputationRoot",
+		                  &str, sizeof str);
 		if (str != NULL)
 			conf->conf_reproot = strdup(str);
 
 		if (conf->conf_repfail < conf->conf_reppass)
 		{
 			snprintf(err, errlen,
-			         "invalid reputation thresholds (ReputationFail < ReputationPass)");
+			         "invalid reputation thresholds (DKIMReputationFail < DKIMReputationPass)");
 			return -1;
 		}
 
 		if (conf->conf_repreject < conf->conf_repfail)
 		{
 			snprintf(err, errlen,
-			         "invalid reputation thresholds (ReputationReject < ReputationFail)");
+			         "invalid reputation thresholds (DKIMReputationReject < DKIMReputationFail)");
 			return -1;
 		}
 #endif /* _FFR_DKIM_REPUTATION */
@@ -7188,6 +7216,59 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		fclose(f);
 	}
 #endif /* _FFR_REPLACE_RULES */
+
+#ifdef _FFR_REPUTATION
+	if (data != NULL)
+	{
+		(void) config_get(data, "ReputationLimits",
+		                  &conf->conf_replimits,
+		                  sizeof conf->conf_replimits);
+
+		(void) config_get(data, "ReputationRatios",
+		                  &conf->conf_repratios,
+		                  sizeof conf->conf_repratios);
+
+		(void) config_get(data, "ReputationFactor",
+		                  &conf->conf_repfactor,
+		                  sizeof conf->conf_repfactor);
+	}
+
+	if (conf->conf_replimits != NULL &&
+	    conf->conf_repratios != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_replimitsdb,
+		                       conf->conf_replimits,
+		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         conf->conf_replimits, dberr);
+			return -1;
+		}
+
+		status = dkimf_db_open(&curconf->conf_repratiosdb,
+		                       curconf->conf_repratios,
+		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         conf->conf_repratios, dberr);
+			return -1;
+		}
+
+		if (dkimf_rep_init(&conf->conf_rep, conf->conf_repfactor,
+	                           conf->conf_replimitsdb,
+	                           conf->conf_repratiosdb) != 0)
+		{
+			snprintf(err, errlen,
+			         "can't initialize reputation subsystem\n");
+			return -1;
+		}
+	}
+#endif /* _FFR_REPUTATION */
 
 	dkimf_reportaddr(conf);
 
@@ -13021,6 +13102,75 @@ mlfi_eom(SMFICTX *ctx)
 			}
 		}
 #endif /* _FFR_STATS */
+
+#ifdef _FFR_REPUTATION
+		if (dfc->mctx_dkimv != NULL && conf->conf_rep != NULL)
+		{
+			DKIM_SIGINFO **sigs;
+			int nsigs;
+
+			status = dkim_getsiglist(dfc->mctx_dkimv,
+			                         &sigs, &nsigs);
+
+			if (status == DKIM_STAT_OK)
+			{
+				int c;
+				_Bool checked = FALSE;
+				_Bool found = FALSE;
+				const char *domain = NULL;
+
+				for (c = 0; c < nsigs; c++)
+				{
+					if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 ||
+					    dkim_sig_getbh(sigs[c]) != DKIM_SIGBH_MATCH)
+						continue;
+
+					checked = TRUE;
+
+					status = dkimf_rep_check(conf->conf_rep,
+					                         sigs[c],
+					                         FALSE,
+					                         FALSE);
+
+					if (status == 1)
+						domain = dkim_sig_getdomain(sigs[c]);
+					else if (status == 0)
+						found = TRUE;
+				}
+
+				if (domain != NULL)
+				{
+					if (dolog)
+					{
+						syslog(LOG_NOTICE,
+						       "%s blocked by reputation on %s",
+						       dfc->mctx_jobid,
+						       domain);
+					}
+
+					return SMFIS_TEMPFAIL;
+				}
+
+				if (!checked)
+				{
+					if (dkimf_rep_check(conf->conf_rep,
+					                    NULL,
+					                    nsigs > 0 && !found,
+					                    FALSE) == 1)
+					{
+						if (dolog)
+						{
+							syslog(LOG_NOTICE,
+							       "%s blocked by reputation on NULL domain",
+							       dfc->mctx_jobid);
+						}
+
+						return SMFIS_TEMPFAIL;
+					}
+				}
+			}
+		}
+#endif /* _FFR_REPUTATION */
 
 		if (dfc->mctx_addheader)
 		{
