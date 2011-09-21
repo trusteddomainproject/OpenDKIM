@@ -17,7 +17,7 @@
 #		that can plug in to any milter-aware MTA.
 ### END INIT INFO
 
-# OpenDKIM startup script v1.5 for RHEL/CentOS/Fedora
+# OpenDKIM startup script v1.6 for RHEL/CentOS/Fedora
 # by Steve Jenkins (SteveJenkins.com) - 09-20-2011
 # Based on a script by Andrew Colin Kissa (TopDog) for dkim-milter - 05-28-2009
 # - Additional functionality to prevent multiple instances and a reload
