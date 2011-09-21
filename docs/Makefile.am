@@ -7,7 +7,7 @@
 dist_doc_DATA = draft-ietf-dkim-implementation-report-06.txt \
 	draft-ietf-marf-authfailure-report-01.txt \
 	draft-ietf-marf-dkim-reporting-03.txt \
-	draft-kucherawy-dkim-atps-06.txt \
+	draft-kucherawy-dkim-atps-07.txt \
 	rfc3447.txt \
 	rfc4686.txt \
 	rfc5016.txt \
