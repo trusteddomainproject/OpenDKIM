@@ -365,7 +365,7 @@ and primary group ID of the named
 .I userid
 unless an alternate
 .I group
-is specified.
+is specified.  See the FILE PERMISSIONS section for more information.
 .TP
 .I -v
 Increase verbose output during test mode (see
@@ -457,6 +457,22 @@ TestPublicKeys,
 UMask,
 UserID (-u).  The filter does not automatically check the configuration
 file for changes and reload.
+.SH FILE PERMISSIONS
+When the filter is started as the superuser and the UserID (-u) setting is
+used, the filter gives up its root privileges by changing to the specified
+user after the following steps are taken: (1) the configuration file (if any)
+is loaded; (2) if the KeyFile (-k) setting is used, that key is loaded into
+memory; (3) all data sets in the configuration file are opened, and those
+that are based on flat files are also read into memory; and (4) if
+ChangeRootDirectory is set, the process root is changed to that directory.
+This means on configuration reload, the filter will not be accessing these
+files or the configuration file as the superuser (and possibly from a
+different root), and any key files referenced by the KeyTable will also be
+accessed by the new user.
+
+Thus, keys referenced by the KeyTable must always be accessible for read by
+the unprivileged user.  Also, run-time reloads are not possible if any of the
+other files will not be readable by the unprivileged user.
 .SH ENVIRONMENT
 The following environment variable(s) can be used to adjust the behaviour
 of this filter:
