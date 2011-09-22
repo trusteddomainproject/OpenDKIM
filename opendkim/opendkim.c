@@ -463,6 +463,9 @@ struct msgctx
 #ifdef _FFR_STATSEXT
 	struct statsext * mctx_statsext;	/* extension stats list */
 #endif /* _FFR_STATSEXT */
+#ifdef _FFR_REPUTATION
+	SHA_CTX		mctx_hash;		/* hash, for dup detection */
+#endif /* _FFR_REPUTATION */
 	unsigned char	mctx_envfrom[MAXADDRESS + 1];
 						/* envelope sender */
 	unsigned char	mctx_domain[DKIM_MAXHOSTNAMELEN + 1];
@@ -8174,6 +8177,9 @@ dkimf_initcontext(struct dkimf_config *conf)
 #ifdef _FFR_ATPS
 	ctx->mctx_atps = DKIM_ATPS_UNKNOWN;
 #endif /* _FFR_ATPS */
+#ifdef _FFR_REPUTATION
+	SHA1_Init(&ctx->mctx_hash);
+#endif /* _FFR_REPUTATION */
 
 	return ctx;
 }
@@ -10220,6 +10226,11 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 		return SMFIS_TEMPFAIL;
 	}
 
+#ifdef _FFR_REPUTATION
+	SHA1_Update(&dfc->mctx_hash, headerf, strlen(headerf));
+	SHA1_Update(&dfc->mctx_hash, headerv, strlen(headerv));
+#endif /* _FFR_REPUTATION */
+
 	(void) memset(newhdr, '\0', sizeof(struct Header));
 
 	newhdr->hdr_hdr = strdup(headerf);
@@ -12030,6 +12041,10 @@ mlfi_body(SMFICTX *ctx, u_char *bodyp, size_t bodylen)
 	if (bodylen == 0)
 		return SMFIS_CONTINUE;
 
+#ifdef _FFR_REPUTATION
+	SHA1_Update(&dfc->mctx_hash, bodyp, bodylen);
+#endif /* _FFR_REPUTATION */
+
 	/*
 	**  Tell the filter to skip it if we don't care about the body.
 	*/
@@ -13118,6 +13133,9 @@ mlfi_eom(SMFICTX *ctx)
 				_Bool checked = FALSE;
 				_Bool found = FALSE;
 				const char *domain = NULL;
+				unsigned char digest[SHA_DIGEST_LENGTH];
+
+				SHA1_Final(digest, &dfc->mctx_hash);
 
 				for (c = 0; c < nsigs; c++)
 				{
@@ -13130,7 +13148,9 @@ mlfi_eom(SMFICTX *ctx)
 					status = dkimf_rep_check(conf->conf_rep,
 					                         sigs[c],
 					                         FALSE,
-					                         FALSE);
+					                         FALSE,
+					                         digest,
+					                         SHA_DIGEST_LENGTH);
 
 					if (status == 1)
 						domain = dkim_sig_getdomain(sigs[c]);
@@ -13156,7 +13176,9 @@ mlfi_eom(SMFICTX *ctx)
 					if (dkimf_rep_check(conf->conf_rep,
 					                    NULL,
 					                    nsigs > 0 && !found,
-					                    FALSE) == 1)
+					                    FALSE,
+					                    digest,
+					                    SHA_DIGEST_LENGTH) == 1)
 					{
 						if (dolog)
 						{

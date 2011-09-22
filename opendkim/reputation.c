@@ -156,13 +156,12 @@ dkimf_rep_close(DKIMF_REP rephandle)
 */
 
 int
-dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool lowtime, _Bool spam)
+dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool lowtime, _Bool spam,
+                void *hash, size_t hashlen)
 {
 	_Bool f;
-	size_t hashlen;
 	size_t dlen;
-	size_t hhlen;
-	size_t bhlen;
+	size_t hlen;
 	time_t when;
 	time_t now;
 	void *hh;
@@ -188,13 +187,13 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool lowtime, _Bool spam)
 		req.dbdata_buflen = sizeof when;
 		req.dbdata_flags = DKIMF_DB_DATA_BINARY;
 
-		while (dkimf_db_walk(rep->rep_dups, f, hashbuf, &hashlen,
+		while (dkimf_db_walk(rep->rep_dups, f, hashbuf, &hlen,
 		                     &req, 1) == 0)
 		{
 			if (when + rep->rep_ttl < now)
 			{
 				(void) dkimf_db_delete(rep->rep_reps, hashbuf,
-				                       hashlen);
+				                       hlen);
 			}
 
 			req.dbdata_buffer = (void *) &when;
@@ -209,13 +208,13 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool lowtime, _Bool spam)
 		req.dbdata_flags = DKIMF_DB_DATA_BINARY;
 
 		f = TRUE;
-		while (dkimf_db_walk(rep->rep_reps, f, hashbuf, &hashlen,
+		while (dkimf_db_walk(rep->rep_reps, f, hashbuf, &hlen,
 		                     &req, 1) == 0)
 		{
 			if (reps.reps_retrieved + rep->rep_ttl < now)
 			{
 				(void) dkimf_db_delete(rep->rep_reps, hashbuf,
-				                       hashlen);
+				                       hlen);
 			}
 
 			req.dbdata_buffer = (void *) &reps;
@@ -310,42 +309,16 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool lowtime, _Bool spam)
 		}
 	}
 
-	/* see if we've seen this one before */
-	if (sig == NULL)
+	req.dbdata_buffer = (void *) &when;
+	req.dbdata_buflen = sizeof when;
+	req.dbdata_flags = DKIMF_DB_DATA_BINARY;
+
+	f = FALSE;
+
+	if (dkimf_db_get(rep->rep_dups, hash, hashlen, &req, 1, &f) != 0)
 	{
-		/* we don't have hashes if it wasn't signed, so assume new */
-		f = FALSE;
-	}
-	else
-	{
-		if (dkim_sig_gethashes(sig, &hh, &hhlen,
-		                       &bh, &bhlen) != DKIM_STAT_OK)
-		{
-			pthread_mutex_unlock(&rep->rep_lock);
-			return -1;
-		}
-
-		if (hhlen + bhlen > sizeof hashbuf)
-		{
-			pthread_mutex_unlock(&rep->rep_lock);
-			return -1;
-		}
-
-		memcpy(hashbuf, hh, hhlen);
-		memcpy(hashbuf + hhlen, bh, bhlen);
-
-		req.dbdata_buffer = (void *) &when;
-		req.dbdata_buflen = sizeof when;
-		req.dbdata_flags = DKIMF_DB_DATA_BINARY;
-
-		f = FALSE;
-
-		if (dkimf_db_get(rep->rep_dups, hashbuf, hhlen + bhlen,
-		                 &req, 1, &f) != 0)
-		{
-			pthread_mutex_unlock(&rep->rep_lock);
-			return -1;
-		}
+		pthread_mutex_unlock(&rep->rep_lock);
+		return -1;
 	}
 
 	/* up the counts if this is new */
@@ -354,38 +327,31 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool lowtime, _Bool spam)
 		reps.reps_count++;
 		if (spam)
 			reps.reps_spam++;
-	}
 
-	/* write it to the cache */
-	if (dkimf_db_put(rep->rep_reps, domain, dlen, &reps, sizeof reps) != 0)
-	{
-		pthread_mutex_unlock(&rep->rep_lock);
-		return -1;
+		/* write it to the cache */
+		if (dkimf_db_put(rep->rep_reps, domain, dlen,
+		                 &reps, sizeof reps) != 0)
+		{
+			pthread_mutex_unlock(&rep->rep_lock);
+			return -1;
+		}
 	}
 
 	/* if accepting it now would be within limits */
 	if (reps.reps_count < reps.reps_limit &&
 	    reps.reps_spam / reps.reps_count < reps.reps_ratio)
 	{
-		if (sig != NULL)
-		{
-			/* remove from rep_dups if found there */
-			hashlen = hhlen + bhlen;
-			(void) dkimf_db_delete(rep->rep_dups, hashbuf, hashlen);
-		}
+		/* remove from rep_dups if found there */
+		(void) dkimf_db_delete(rep->rep_dups, hash, hashlen);
 
 		pthread_mutex_unlock(&rep->rep_lock);
 		return 0;
 	}
 	else
 	{
-		if (sig != NULL)
-		{
-			/* record the dup */
-			hashlen = hhlen + bhlen;
-			(void) dkimf_db_put(rep->rep_dups, hashbuf, hashlen,
-			                    &now, sizeof now);
-		}
+		/* record the dup */
+		(void) dkimf_db_put(rep->rep_dups, hash, hashlen,
+		                    &now, sizeof now);
 
 		pthread_mutex_unlock(&rep->rep_lock);
 		return 1;
