@@ -1454,6 +1454,7 @@ fi
 AM_CONDITIONAL(USE_DB_OPENDKIM,
                test x"$enable_bodylength_db" = x"yes" -o \
 	            x"$enable_popauth" = x"yes" -o \
+	            x"$enable_reputation" = x"yes" -o \
 	            x"$enable_report_intervals" = x"yes" -o \
                     x"$bdbrequested" = x"yes")
 AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")
