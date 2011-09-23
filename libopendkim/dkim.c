@@ -6373,7 +6373,11 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 	}
 
 	if (h->hdr_text == NULL)
+	{
+		DKIM_FREE(dkim, h);
 		return DKIM_STAT_NORESOURCE;
+	}
+
 	h->hdr_namelen = end != NULL ? end - hdr : len;
 	h->hdr_textlen = len;
 	if (colon == NULL)
