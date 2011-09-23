@@ -2046,11 +2046,14 @@ dkim_siglist_setup(DKIM *dkim)
 				{
 					strlcpy((char *) tmp, (char *) p,
 					        sizeof tmp);
+					p = tmp;
 					opts = (u_char *) strchr((char *) tmp,
 					                         '/');
-					*opts = '\0';
-					opts++;
-					p = tmp;
+					if (opts != NULL)
+					{
+						*opts = '\0';
+						opts++;
+					}
 				}
 
 				/* unknown type */
