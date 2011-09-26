@@ -59,6 +59,9 @@ static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.36.2.1 2010/10/27 21:43:08 cm-msk
 					/* reserved DNS sub-zone */
 #define	DKIM_DNSPOLICYNAME	"_adsp"	/* reserved DNS sub-zone */
 
+/* macros */
+#define	DKIM_SIG_CHECK(x)	((dkim_sig_getflags((x)) & DKIM_SIGFLAG_PASSED != 0) && (dkim_sig_getbh((x)) == DKIM_SIGBH_MATCH))
+
 /*
 **  DKIM_STAT -- status code type
 */
