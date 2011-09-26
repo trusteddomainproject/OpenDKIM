@@ -56,7 +56,7 @@ The value returned is a bitwise-OR of the following constants: <br>
 	<td>The signature has had DNS validation attempted.
 	</td></tr>
     <tr valign="top"><td><tt>DKIM_SIGFLAG_PASSED</tt></td>
-	<td>DNS validation succeeded.
+	<td>DNS validation succeeded.  See NOTES below.
 	</td></tr>
     <tr valign="top"><td><tt>DKIM_SIGFLAG_TESTKEY</tt></td>
 	<td>Key's "in test" flag was set.
@@ -72,7 +72,12 @@ The value returned is a bitwise-OR of the following constants: <br>
 <th valign="top" align=left>NOTES</th> 
 <td>
 <ul>
-<li>None.
+<li> The DKIM_SIGFLAG_PASSED flag is set if the header hash, the public key
+     and the digital signature resulted in a successful verification.  It
+     does not reflect whether the computed body hash matched the one found
+     in the signature.  It is necessary for the caller to use the
+     <a href="dkim_sig_getbh.html"><tt>dkim_sig_getbh()</tt></a> as well to
+     test for that case.
 </ul>
 </td>
 </tr>
