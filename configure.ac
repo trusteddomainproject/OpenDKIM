@@ -1395,7 +1395,7 @@ then
 				saslpath=$d
 				AC_MSG_RESULT($d)
 		        	sasl_found="yes"
-				SASL_CPPFLAGS="-I$ldappath/include"
+				SASL_CPPFLAGS="-I$saslpath/include"
 				break
 			fi
 		done
@@ -1411,6 +1411,155 @@ then
 fi
 AM_CONDITIONAL(USE_SASL, test x"$sasl_found" = x"yes")
 AC_SUBST(SASL_CPPFLAGS)
+
+#
+# libcurl, required by reputation
+#
+AC_ARG_WITH([libcurl],
+            AS_HELP_STRING([--with-libcurl],
+                           [location of CURL includes and library]),
+            [curlpath="$withval"], [curlpath="auto"])
+
+CURL_CPPFLAGS=""
+CURL_LDFLAGS=""
+CURL_LIBS=""
+
+curl_found="no"
+if test \( x"$curlpath" = x"auto" -o x"$curlpath" = x"yes" \) -a \
+	x"$PKG_CONFIG" != x""
+then
+        PKG_CHECK_MODULES([CURL], [curl >= 7.16.3],
+	[
+		curl_found="yes"
+		CURL_CPPFLAGS="$CURL_CFLAGS"
+	],
+	[
+	        curl_found="no"
+        	AC_MSG_WARN([pkg-config for curl not found, trying manual
+		            search...])
+        ])
+fi
+
+if test x"$curlpath" != x"no" -a x"$curl_found" = x"no"
+then
+	AC_MSG_CHECKING([for CURL])
+	if test x"$curlpath" != x"auto" -a x"$curlpath" != x"yes"
+	then
+		if test -f $curlpath/include/curl/curl.h
+		then
+			AC_MSG_RESULT($curlpath)
+		        curl_found="yes"
+			CURL_CPPFLAGS="-I$curlpath/include"
+			CURL_LDFLAGS="-I$curlpath/lib"
+			CURL_LIBS="-lcurl"
+		else
+			AC_MSG_ERROR(not found at $curlpath)
+		fi
+	else
+		curldirs="/usr /usr/local"
+		for d in $curldirs
+		do
+			if test -f $d/include/curl/curl.h
+			then
+				curlpath=$d
+				AC_MSG_RESULT($d)
+		        	curl_found="yes"
+				CURL_CPPFLAGS="-I$curlpath/include"
+				CURL_LDFLAGS="-I$curlpath/lib"
+				CURL_LIBS="-lcurl"
+				break
+			fi
+		done
+	fi
+	if test x"$curl_found" != x"yes"
+	then
+		AC_MSG_RESULT([no])
+	fi
+fi
+AC_SUBST(CURL_CPPFLAGS)
+AC_SUBST(CURL_LDFLAGS)
+AC_SUBST(CURL_LIBS)
+
+if test x"$enable_reputation" = x"yes" -a \
+        x"$curl_found" != x"yes"
+then
+	AC_MSG_ERROR([reputation requires curl])
+fi
+
+#
+# libxml2, required by reputation
+#
+AC_ARG_WITH([libxml2],
+            AS_HELP_STRING([--with-libxml2],
+                           [location of XML2 includes and library]),
+            [xml2path="$withval"], [xml2path="auto"])
+
+LIBXML2_CPPFLAGS=""
+LIBXML2_LDFLAGS=""
+LIBXML2_LIBS=""
+
+xml2_found="no"
+if test \( x"$xml2path" = x"auto" -o x"$xml2path" = x"yes" \) -a \
+	x"$PKG_CONFIG" != x""
+then
+        PKG_CHECK_MODULES([LIBXML2], [libxml2 >= 2.6.31],
+	[
+		xml2_found="yes"
+		LIBXML2_CPPFLAGS="$LIBXML2_CFLAGS"
+	],
+	[
+	        xml2_found="no"
+        	AC_MSG_WARN([pkg-config for libxml2 not found, trying manual
+		            search...])
+        ])
+fi
+
+if test x"$xml2path" != x"no" -a x"$xml2_found" = x"no"
+then
+	AC_MSG_CHECKING([for libxml2])
+	if test x"$xml2path" != x"auto" -a x"$xml2path" != x"yes"
+	then
+		if test -f $xml2path/include/libxml/parser.h
+		then
+			AC_MSG_RESULT($xml2path)
+		        xml2_found="yes"
+			LIBXML2_CPPFLAGS="-I$xml2path/include"
+			LIBXML2_LDFLAGS="-I$xml2path/lib"
+			LIBXML2_LIBS="-lxml2"
+		else
+			AC_MSG_ERROR(not found at $xml2path)
+		fi
+	else
+		xml2dirs="/usr /usr/local"
+		for d in $xml2dirs
+		do
+			if test -f $d/include/libxml/parser.h
+			then
+				xml2path=$d
+				AC_MSG_RESULT($d)
+		        	xml2_found="yes"
+				LIBXML2_CPPFLAGS="-I$xml2path/include"
+				LIBXML2_LDFLAGS="-I$xml2path/lib"
+				LIBXML2_LIBS="-lxml2"
+				break
+			fi
+		done
+	fi
+	if test x"$xml2_found" != x"yes"
+	then
+		AC_MSG_RESULT([no])
+	fi
+fi
+AC_SUBST(LIBXML2_CPPFLAGS)
+AC_SUBST(LIBXML2_LDFLAGS)
+AC_SUBST(LIBXML2_LIBS)
+
+if test x"$enable_reputation" = x"yes" -a \
+        x"$xml2_found" != x"yes"
+then
+	AC_MSG_ERROR([reputation requires libxml2])
+fi
+
 
 #
 # libdb
@@ -1790,4 +1939,5 @@ AC_OUTPUT([	Makefile
 			reputation/opendkim-genrates.8
 			reputation/opendkim-modtotals.pl
 			reputation/opendkim-modtotals.8
+			reputation/repute.pc
 ])
