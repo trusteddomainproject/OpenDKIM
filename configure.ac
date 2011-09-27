@@ -1570,7 +1570,7 @@ then
 				saslpath=$d
 				AC_MSG_RESULT($d)
 		        	sasl_found="yes"
-				SASL_CPPFLAGS="-I$ldappath/include"
+				SASL_CPPFLAGS="-I$saslpath/include"
 				break
 			fi
 		done
