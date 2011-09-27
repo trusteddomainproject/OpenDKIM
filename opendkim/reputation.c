@@ -72,8 +72,7 @@ struct reps
 
 int
 dkimf_rep_init(DKIMF_REP *rep, time_t factor,
-               DKIMF_DB limits, DKIMF_DB ratios,
-               DKIMF_DB counts, DKIMF_DB spam)
+               DKIMF_DB limits, DKIMF_DB ratios)
 {
 	int status;
 	DKIMF_REP new;
@@ -92,8 +91,6 @@ dkimf_rep_init(DKIMF_REP *rep, time_t factor,
 	new->rep_factor = factor;
 	new->rep_limits = limits;
 	new->rep_ratios = ratios;
-	new->rep_counts = counts;
-	new->rep_spam = spam;
 
 	if (pthread_mutex_init(&new->rep_lock, NULL) != 0)
 	{
@@ -313,47 +310,6 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool lowtime, _Bool spam,
 			pthread_mutex_unlock(&rep->rep_lock);
 			return -1;
 		}
-
-		/* get current counts if possible */
-		if (rep->rep_counts != NULL &&
-		    rep->rep_spam != NULL)
-		{
-			req.dbdata_buffer = buf;
-			req.dbdata_buflen = sizeof buf;
-			req.dbdata_flags = 0;
-
-			if (dkimf_db_get(rep->rep_counts, domain, dlen, &req,
-			                 1, &f) != 0)
-			{
-				pthread_mutex_unlock(&rep->rep_lock);
-				return -1;
-			}
-
-			reps.reps_count = strtoul(buf, &p, 10) / rep->rep_factor;
-			if (*p != '\0')
-			{
-				pthread_mutex_unlock(&rep->rep_lock);
-				return -1;
-			}
-
-			req.dbdata_buffer = buf;
-			req.dbdata_buflen = sizeof buf;
-			req.dbdata_flags = 0;
-
-			if (dkimf_db_get(rep->rep_spam, domain, dlen, &req,
-			                 1, &f) != 0)
-			{
-				pthread_mutex_unlock(&rep->rep_lock);
-				return -1;
-			}
-
-			reps.reps_spam = strtoul(buf, &p, 10) / rep->rep_factor;
-			if (*p != '\0')
-			{
-				pthread_mutex_unlock(&rep->rep_lock);
-				return -1;
-			}
-		}
 	}
 
 	req.dbdata_buffer = (void *) &when;
@@ -385,10 +341,6 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool lowtime, _Bool spam,
 	}
 
 	/* if accepting it now would be within limits */
-	/* XXX -- verify this math given the added counts/spam DBs */
-	/* XXX -- what's there is good against local limits and the predicted
-		spam ratio, but doesn't apply intelligence of how the
-		signing domain has hit other sites today */
 	if (reps.reps_count < reps.reps_limit &&
 	    reps.reps_spam / reps.reps_count < reps.reps_ratio)
 	{
