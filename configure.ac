@@ -1939,5 +1939,7 @@ AC_OUTPUT([	Makefile
 			reputation/opendkim-genrates.8
 			reputation/opendkim-modtotals.pl
 			reputation/opendkim-modtotals.8
+			reputation/opendkim-repute.pl
+			reputation/opendkim-repute.8
 			reputation/repute.pc
 ])
