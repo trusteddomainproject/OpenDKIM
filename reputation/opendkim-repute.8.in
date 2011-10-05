@@ -72,6 +72,11 @@ Requests verbose output.
 .TP
 .I --version
 Prints version number and exits.
+.SH NOTES
+For the moment, a hard-coded set of domains is used to select a finite
+list of REPUTE files to generate.  This script will eventually be replaced
+by a short piece of PHP code that extracts the data directly from the server
+in response to a web server query.
 .SH VERSION
 This man page covers the version of
 .I opendkim-repute
