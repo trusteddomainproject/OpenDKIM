@@ -1,0 +1,504 @@
+
+
+
+Network Working Group                                      N. Borenstein
+Internet-Draft                                                  Mimecast
+Intended status: Informational                              M. Kucherawy
+Expires: April 6, 2012                                         Cloudmark
+                                                         October 4, 2011
+
+
+             Reputation Data Interchange using HTTP and XML
+                draft-kucherawy-reputation-query-http-01
+
+Abstract
+
+   This document defines a mechanism to conduct queries for reputation
+   information using the Domain Name System.
+
+Status of this Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on April 6, 2012.
+
+Copyright Notice
+
+   Copyright (c) 2011 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+
+
+
+
+Borenstein & Kucherawy    Expires April 6, 2012                 [Page 1]
+
+Internet-Draft    Reputation Queries with HTTP and XML      October 2011
+
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . . . 3
+   2.  Document Series . . . . . . . . . . . . . . . . . . . . . . . . 3
+   3.  Terminology and Definitions . . . . . . . . . . . . . . . . . . 3
+     3.1.  Keywords  . . . . . . . . . . . . . . . . . . . . . . . . . 3
+     3.2.  Other Definitions . . . . . . . . . . . . . . . . . . . . . 3
+   4.  Description . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+     4.1.  Query . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+     4.2.  Response  . . . . . . . . . . . . . . . . . . . . . . . . . 5
+       4.2.1.  XML Schema  . . . . . . . . . . . . . . . . . . . . . . 5
+       4.2.2.  Example Reply . . . . . . . . . . . . . . . . . . . . . 7
+   5.  IANA Considerations . . . . . . . . . . . . . . . . . . . . . . 8
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . . . 8
+     6.1.  General . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+     7.1.  Normative References  . . . . . . . . . . . . . . . . . . . 8
+     7.2.  Informative References  . . . . . . . . . . . . . . . . . . 9
+   Appendix A.  Public Discussion  . . . . . . . . . . . . . . . . . . 9
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . . . 9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Borenstein & Kucherawy    Expires April 6, 2012                 [Page 2]
+
+Internet-Draft    Reputation Queries with HTTP and XML      October 2011
+
+
+1.  Introduction
+
+   This memo defines a method to query a reputation data service for
+   information about an entity, using the HyperText Transfer Protocol
+   (HTTP) as the transport mechanism and XML as the payload format.  It
+   is part of a series defining the overall reputation query/response
+   structure as well as the concept of reputation "vocabularies" for
+   particular applications.
+
+
+2.  Document Series
+
+   This memo represents the media type registration, part of a series of
+   documents that define the overall service and introduce the initial
+   exemplary applications.  The series is as follows:
+
+   1.  RFCxxxx: A Model for Reputation Interchange
+
+   2.  RFCxxxx+1: A Media Type for Reputation Information
+
+   3.  RFCxxxx+2: Using UDP for Reputation Interchange
+
+   4.  RFCxxxx+3: Using the DNS for Reputation Interchange
+
+   5.  RFCxxxx+4: Using HTTP/XML for Reputation Interchange (this memo)
+
+   6.  RFCxxxx+5: A Reputation Vocabulary for Email Identity Reputation
+
+   7.  RFCxxxx+6: A Reputation Vocabulary for Email Property Reputation
+
+
+3.  Terminology and Definitions
+
+   This section defines terms used in the rest of the document.
+
+3.1.  Keywords
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [KEYWORDS].
+
+3.2.  Other Definitions
+
+   Other terms of importance in this memo are defined in RFCxxxx, the
+   base memo in this document series.
+
+
+
+
+
+
+Borenstein & Kucherawy    Expires April 6, 2012                 [Page 3]
+
+Internet-Draft    Reputation Queries with HTTP and XML      October 2011
+
+
+4.  Description
+
+4.1.  Query
+
+   A reputation query made via [HTTP] encodes the question being asked
+   partly in the [URI] and partly within the GET instruction of the
+   protocol.
+
+   The components to the question being asked comprise the following:
+
+   o  The subject of the query;
+
+   o  The name of the host, or the IP address, at which the reputation
+      service is available;
+
+   o  The name of the reputation application, i.e., the context within
+      which the query is being made;
+
+   o  Optionally, name(s) of the reputation attributies that are being
+      requested.
+
+   The name of the application MUST be one registered with IANA.  A
+   server receiving a query about an unregistered application or one it
+   does not explicitly support MUST return a 404 error code.
+
+   The syntax for the URI portion of the query is defined in [URI].  For
+   reputation queries, the following are parameters to the URI
+   construction:
+
+   o  Select the scheme by which the service is being provided.  This
+      specification supports "http" or "https".
+
+   o  Select the authority based on the reputation service to be queried
+      and any required client authentication details.
+
+   o  The path is constructed as follows:
+
+      1.  The first path segment is the name of the reptuation within
+          which the query is being made.
+
+      2.  The second path segment comprises the name about which
+          reputation information is being requested.  Any encoding of
+          this name is a matter specified by the server via some out-of-
+          band mechanism to its clients, and is not specified here.
+
+      3.  The optional third path segment comprises a comma-separated
+          list of reputation attributes that are of interest to the
+          client.  If omitted, the client is implying it would like the
+
+
+
+Borenstein & Kucherawy    Expires April 6, 2012                 [Page 4]
+
+Internet-Draft    Reputation Queries with HTTP and XML      October 2011
+
+
+          server to return all available attributes and scores.
+
+   For example, a query about the use of the domain "example.org" in the
+   email context to a service run at "example.com" requesting the
+   "SENDS-SPAM" reputation attribute using HTTP to conduct the query
+   with no specific client authentication information would be formed as
+   follows:
+
+   http://example.com/email/example.org/sends-spam
+
+   Matching of the attribute name(s) is case-insensitive.
+
+   In [ABNF] terms:
+
+   rep-query := scheme "://" authority "/" rep-application
+                [ "/" rep-assertion *( "," rep-assertion ) ]
+
+   rep-application := token
+                   ; MUST be registered with IANA
+
+   rep-assertion := token
+                 ; MUST be registered with IANA
+
+   "token" is imported from [MIME].
+
+   "scheme" and "authority" are imported from [HTTP].
+
+4.2.  Response
+
+   The response is expected to be an XML document.  The "format"
+   parameter of the "application/reputon" media type MUST be "xml" when
+   used in this mode.
+
+   The XML schema definition describing the format of that response is
+   included below.
+
+4.2.1.  XML Schema
+
+   The following XML schema describes the format of the reply:
+
+
+
+
+
+
+
+
+
+
+
+
+Borenstein & Kucherawy    Expires April 6, 2012                 [Page 5]
+
+Internet-Draft    Reputation Queries with HTTP and XML      October 2011
+
+
+   <?xml version="1.0" encoding="ISO-8859-1" ?%gt;
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <!-- definition of local types -->
+    <xs:simpleType name="exttype">
+     <xs:restriction base="xs:token">
+      <xs:pattern value="\w+(-\w*)*:\s?[\w\p{P}]+"/>
+     <xs:/restriction>
+    <xs:/simpleType>
+
+    <!-- definition of simple elements -->
+    <xs:element name="rater" type="xs:token"/>
+    <xs:element name="rater-authenticity" type="xs:decimal"/>
+    <xs:element name="assertion" type="xs:token"/>
+    <xs:element name="extension" type="exttype"/>
+    <xs:element name="rated" type="xs:token"/>
+    <xs:element name="rating" type="xs:decimal"/>
+    <xs:element name="sample-size" type="xs:positiveInteger"/>
+    <xs:element name="updated" type="xs:positiveInteger"/>
+
+    <!-- definition of complex elements -->
+    <xs:complexType name="assertiontype">
+     <xs:sequence>
+      <xs:element ref="rater" minOccurs="1"/>
+      <xs:element ref="rater-authenticity" minOccurs="1"/>
+      <xs:element ref="assertion" minOccurs="1"/>
+      <xs:element ref="extension"/>
+      <xs:element ref="rated" minOccurs="1"/>
+      <xs:element ref="rating" minOccurs="1"/>
+      <xs:element ref="sample-size" minOccurs="1"/>
+      <xs:element ref="updated" minOccurs="1"/>
+     <xs:/sequence>
+    <xs:/complexType>
+
+    <xs:complexType name="reporttype">
+     <xs:sequence>
+      <xs:element name="reputon" type="assertiontype"
+                     maxOccurs="unbounded" minOccurs="1"/>
+     <xs:/sequence>
+    <xs:/complexType>
+
+    <xs:element name="reputation" type="reporttype"/>
+   </xs:schema>
+
+   The elements that comprise an "assertion" are used as follows:
+
+
+
+
+
+
+Borenstein & Kucherawy    Expires April 6, 2012                 [Page 6]
+
+Internet-Draft    Reputation Queries with HTTP and XML      October 2011
+
+
+   rater:  The identity of the agent making the assertion.
+
+   rater-authenticity:  An expression by the rater of its confidence in
+      the report it is giving.  Expressed as a decimal value between 0
+      and 1 inclusive.
+
+   assertion:  The assertion being made.  This MUST be an assertion
+      registered within the specified application by IANA.
+
+   extension:  (OPTIONAL) One or more application-specific vocabulary
+      extensions and their corresponding values.  If present, each of
+      these MUST be a vocabulary extension registered with IANA.
+
+   rated:  The identity about which an assertion is being made.
+
+   rating:  The value of the assertion.  This is a decimal number from 0
+      to 1, with 0 meaning the assertion is completely false (according
+      to the agent making the assertion) and 1 meaning the assertion is
+      completely true.
+
+   sample-size:  The count of data points the asserting agent used to
+      produce the value provided in the previous element.
+
+   updated:  The time at which the current rating was computed.
+      Expressed in number of seconds since 00:00:00 UTC, January 1,
+      1970.
+
+4.2.2.  Example Reply
+
+   The following is an example reputon generated using the above schema,
+   including the media type definition line:
+
+     Content-Type: application/reputon; app="email"; format="xml"
+
+     <?xml version="1.0" encoding="US-ASCII"?>
+
+     <reputation>
+      <reputon>
+       <rater>rep.example.net</rater>
+       <rater-authenticity>0.95</rater-authenticity>
+       <assertion>SENDS-SPAM</assertion>
+       <extension>IDENTITY: DKIM</extension>
+       <rated>example.com</rated>
+       <rating>0.0012</rating>
+       <sample-size>16938213</sample-size>
+       <updated>1317795852</updated>
+      </reputon>
+     </reputation>
+
+
+
+Borenstein & Kucherawy    Expires April 6, 2012                 [Page 7]
+
+Internet-Draft    Reputation Queries with HTTP and XML      October 2011
+
+
+   Here, reputation agent "rep.example.net" is asserting within the
+   context of email that "example.com" appears to send spam 1.2% of the
+   time, based on just short of 17 million messages analyzed or reported
+   to date.  The identity "example.com", the subject of the query, is
+   extracted from the analyzed messages using the [DKIM] "d=" parameter
+   for messages where signatures validate.  The reputation agent is 95%
+   confident of this result.  (See [RFCxxxx+5] for details about the
+   registered email vocabulary.)
+
+
+5.  IANA Considerations
+
+   This memo presents no actions for IANA.
+
+
+6.  Security Considerations
+
+   This memo describes security considerations introduced by the media
+   type defined here.
+
+6.1.  General
+
+   This memo is part of a series introducing a reputation query and
+   response system (see Section 2).  The Security Considerations
+   sections of the other memos should also be consulted.
+
+
+7.  References
+
+7.1.  Normative References
+
+   [ABNF]     Crocker, D. and P. Overell, "Augmented BNF for Syntax
+              Specifications: ABNF", RFC 5234, January 2008.
+
+   [HTTP]     Fielding, R., Gettys, J., Mogul, J., Frystyk, H.,
+              Masinter, L., Leach, P., and T. Berners-Lee, "Hypertext
+              Transfer Protocol -- HTTP/1.1", RFC 2616, June 1999.
+
+   [KEYWORDS]
+              Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [MIME]     Freed, N. and N. Borenstein, "Multipurpose Internet Mail
+              Extensions (MIME) Part One: Format of Internet Message
+              Bodies", RFC 2045, November 1996.
+
+   [URI]      Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
+              Resource Identifier (URI): Generic Syntax", RFC 3986,
+
+
+
+Borenstein & Kucherawy    Expires April 6, 2012                 [Page 8]
+
+Internet-Draft    Reputation Queries with HTTP and XML      October 2011
+
+
+              January 2005.
+
+7.2.  Informative References
+
+   [DKIM]     Crocker, D., Ed., Hansen, T., Ed., and M. Kucherawy, Ed.,
+              "DomainKeys Identified Mail (DKIM) Signatures", RFC 6376,
+              September 2011.
+
+
+Appendix A.  Public Discussion
+
+   Public discussion of this suite of memos takes place on the
+   domainrep@ietf.org mailing list.  See
+   https://www.ietf.org/mailman/listinfo/domainrep.
+
+
+Authors' Addresses
+
+   Nathaniel Borenstein
+   Mimecast
+   203 Crescent St., Suite 303
+   Waltham, MA  02453
+   USA
+
+   Phone: +1 781 996 5340
+   Email: nsb@guppylake.com
+
+
+   Murray S. Kucherawy
+   Cloudmark
+   128 King St., 2nd Floor
+   San Francisco, CA  94107
+   USA
+
+   Phone: +1 415 946 3800
+   Email: msk@cloudmark.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Borenstein & Kucherawy    Expires April 6, 2012                 [Page 9]
+

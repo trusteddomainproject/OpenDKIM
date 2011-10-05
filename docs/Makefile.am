@@ -8,6 +8,10 @@ dist_doc_DATA = draft-ietf-dkim-implementation-report-06.txt \
 	draft-ietf-dkim-mailinglists-06.txt \
 	draft-ietf-marf-dkim-reporting-01.txt \
 	draft-kucherawy-authres-vbr-04.txt \
+	draft-kucherawy-reputation-media-type-00.txt \
+	draft-kucherawy-reputation-model-00.txt \
+	draft-kucherawy-reputation-query-http-01.txt \
+	draft-kucherawy-reputation-vocab-identity-00.txt \
 	rfc3447.txt \
 	rfc4686.txt \
 	rfc4871.txt \
