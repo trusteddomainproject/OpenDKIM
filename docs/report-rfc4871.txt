@@ -2,115 +2,16 @@
 
 
 DKIM Working Group                                          M. Kucherawy
-Internet-Draft                                                 Cloudmark
-Intended status: Informational                            March 28, 2011
-Expires: September 29, 2011
+March 28, 2011                                                 Cloudmark
 
 
                      RFC4871 Implementation Report
-                draft-ietf-dkim-implementation-report-06
 
 Abstract
 
    This document contains an implementation report for the IESG covering
    DomainKeys Identified Mail (DKIM) in support of the advancement of
    that specification along the Standards Track.
-
-Status of this Memo
-
-   This Internet-Draft is submitted in full conformance with the
-   provisions of BCP 78 and BCP 79.
-
-   Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF).  Note that other groups may also distribute
-   working documents as Internet-Drafts.  The list of current Internet-
-   Drafts is at http://datatracker.ietf.org/drafts/current/.
-
-   Internet-Drafts are draft documents valid for a maximum of six months
-   and may be updated, replaced, or obsoleted by other documents at any
-   time.  It is inappropriate to use Internet-Drafts as reference
-   material or to cite them other than as "work in progress."
-
-   This Internet-Draft will expire on September 29, 2011.
-
-Copyright Notice
-
-   Copyright (c) 2011 IETF Trust and the persons identified as the
-   document authors.  All rights reserved.
-
-   This document is subject to BCP 78 and the IETF Trust's Legal
-   Provisions Relating to IETF Documents
-   (http://trustee.ietf.org/license-info) in effect on the date of
-   publication of this document.  Please review these documents
-   carefully, as they describe your rights and restrictions with respect
-   to this document.  Code Components extracted from this document must
-   include Simplified BSD License text as described in Section 4.e of
-   the Trust Legal Provisions and are provided without warranty as
-   described in the Simplified BSD License.
-
-
-
-
-
-Kucherawy              Expires September 29, 2011               [Page 1]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
-
-
-Table of Contents
-
-   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
-   2.  Definitions  . . . . . . . . . . . . . . . . . . . . . . . . .  4
-   3.  DKIM Interoperability Event  . . . . . . . . . . . . . . . . .  5
-     3.1.  Participants . . . . . . . . . . . . . . . . . . . . . . .  5
-     3.2.  Testing Methodology  . . . . . . . . . . . . . . . . . . .  5
-     3.3.  Observations . . . . . . . . . . . . . . . . . . . . . . .  5
-     3.4.  Results  . . . . . . . . . . . . . . . . . . . . . . . . .  6
-   4.  Collected DKIM Interoperability and Use Data . . . . . . . . .  8
-     4.1.  The OpenDKIM Project . . . . . . . . . . . . . . . . . . .  8
-       4.1.1.  Details  . . . . . . . . . . . . . . . . . . . . . . .  8
-       4.1.2.  Results  . . . . . . . . . . . . . . . . . . . . . . .  8
-       4.1.3.  Conclusions  . . . . . . . . . . . . . . . . . . . . . 10
-     4.2.  AOL, Inc. Data . . . . . . . . . . . . . . . . . . . . . . 11
-     4.3.  Google Mail Data . . . . . . . . . . . . . . . . . . . . . 11
-   5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 13
-   6.  Security Considerations  . . . . . . . . . . . . . . . . . . . 14
-   7.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 15
-     7.1.  Normative References . . . . . . . . . . . . . . . . . . . 15
-     7.2.  Informative References . . . . . . . . . . . . . . . . . . 15
-   Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 16
-   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 17
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy              Expires September 29, 2011               [Page 2]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
 
 
 1.  Introduction
@@ -123,106 +24,12 @@ Internet-Draft        RFC4871 Implementation Report           March 2011
    place in October 2007.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy              Expires September 29, 2011               [Page 3]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
-
-
 2.  Definitions
 
    DomainKeys Identified Mail is defined in [DKIM].
 
    Various terms specific to email are used in this document.  Their
    definitions and further discussion can be found in [EMAIL-ARCH].
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy              Expires September 29, 2011               [Page 4]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
 
 
 3.  DKIM Interoperability Event
@@ -273,14 +80,6 @@ Internet-Draft        RFC4871 Implementation Report           March 2011
    [DKIM] in terms of both signature and key features.  Most of the
    packages implemented all of the optional features of both signatures
    and keys.  There were at least two implementations of each optional
-
-
-
-Kucherawy              Expires September 29, 2011               [Page 5]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
-
-
    feature.
 
    The interoperability testing was largely successful.  As might be
@@ -328,15 +127,6 @@ Internet-Draft        RFC4871 Implementation Report           March 2011
    o  clarifications about "relaxed" body canonicalization (errata
       #1384)
 
-
-
-
-
-Kucherawy              Expires September 29, 2011               [Page 6]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
-
-
    o  correction to the signature example (errata #1386)
 
    o  ABNF corrections regarding the "h=" tag (errata #1461)
@@ -347,50 +137,6 @@ Internet-Draft        RFC4871 Implementation Report           March 2011
 
    o  discussion about what constitutes the actual value of the "b=" tag
       (errata #1596)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy              Expires September 29, 2011               [Page 7]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
 
 
 4.  Collected DKIM Interoperability and Use Data
@@ -438,17 +184,6 @@ Internet-Draft        RFC4871 Implementation Report           March 2011
       domains, 11.8% of domains used "simple" while the balance used
       "relaxed".
 
-
-
-
-
-
-
-Kucherawy              Expires September 29, 2011               [Page 8]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
-
-
    Body Canonicalization Algorithms:  26.2% of signatures used "simple",
       while the balance used "relaxed"; 19.1% of observed signing
       domains used "simple" while the balance used "relaxed".
@@ -494,16 +229,6 @@ Internet-Draft        RFC4871 Implementation Report           March 2011
       mail that is not list mail revealed a successful verification rate
       of 93.5%; selecting only for list mail produced a 90.5% success
       rate.
-
-
-
-
-
-
-Kucherawy              Expires September 29, 2011               [Page 9]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
-
 
    DNSSEC:  There has been scant but detectable uptake in the checking
       of whether or not DKIM or ADSP records in the DNS are protected by
@@ -553,14 +278,6 @@ Internet-Draft        RFC4871 Implementation Report           March 2011
    verification failures suggests some MTAs handling the message are
    correcting cases where the field is improperly formed.  A common case
    is failing to quote the comment portion of that field when required
-
-
-
-Kucherawy              Expires September 29, 2011              [Page 10]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
-
-
    to do so by [MAIL].  Such corrections cause signatures to become
    invalid.  The working group may want to consider revising Section 5.5
    of [DKIM] to either reduce the list of recommended header fields for
@@ -607,16 +324,6 @@ Internet-Draft        RFC4871 Implementation Report           March 2011
 
    Google Mail reports the following:
 
-
-
-
-
-
-Kucherawy              Expires September 29, 2011              [Page 11]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
-
-
    Unsigned mail:  72.1%
 
    AUID matches From: domain:  68.7%
@@ -642,152 +349,9 @@ Internet-Draft        RFC4871 Implementation Report           March 2011
    percentages.
 
 
+5.  References
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy              Expires September 29, 2011              [Page 12]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
-
-
-5.  IANA Considerations
-
-   This memo contains no actions for IANA.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy              Expires September 29, 2011              [Page 13]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
-
-
-6.  Security Considerations
-
-   This document is an implementation report and thus has no security
-   considerations.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy              Expires September 29, 2011              [Page 14]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
-
-
-7.  References
-
-7.1.  Normative References
+5.1.  Normative References
 
    [DKIM]     Allman, E., Callas, J., Delany, M., Libbey, M., Fenton,
               J., and M. Thomas, "DomainKeys Identified Mail (DKIM)
@@ -797,7 +361,7 @@ Internet-Draft        RFC4871 Implementation Report           March 2011
               Crocker, D., "Internet Mail Architecture", RFC 5598,
               July 2009.
 
-7.2.  Informative References
+5.2.  Informative References
 
    [ABNF]     Crocker, D. and P. Overell, "Augmented BNF for Syntax
               Specifications: ABNF", RFC 5234, January 2008.
@@ -815,32 +379,6 @@ Internet-Draft        RFC4871 Implementation Report           March 2011
               October 2008.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy              Expires September 29, 2011              [Page 15]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
-
-
 Appendix A.  Acknowledgements
 
    The author wishes to acknowledge the following for their review and
@@ -855,48 +393,6 @@ Appendix A.  Acknowledgements
    for graciously hosting the 2007 DKIM interoperability event.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy              Expires September 29, 2011              [Page 16]
-
-Internet-Draft        RFC4871 Implementation Report           March 2011
-
-
 Author's Address
 
    Murray S. Kucherawy
@@ -908,45 +404,3 @@ Author's Address
    Phone: +1 415 946 3800
    Email: msk@cloudmark.com
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy              Expires September 29, 2011              [Page 17]
-
