@@ -13,6 +13,9 @@ librepute_la_CC = $(PTHREAD_CC)
 libreputeincludedir = $(includedir)/repute
 libreputeinclude_HEADERS = repute.h
 
+dist_bin_SCRIPTS = opendkim-genrates.pl opendkim-modtotals.pl \
+	opendkim-repute.pl 
+
 if RPATH
 librepute_la_LDFLAGS += -rpath $(libdir)
 endif
