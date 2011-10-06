@@ -12,9 +12,11 @@ release, and a summary of the changes in that release.
 	Feature request #SF3406814: Add ability to invoke chroot().
 		Requested by Andreas Schulze.
 	Add "WeakSyntaxChecks" suppressing some short-circuiting error checks
-		 on syntax.  Requested by Todd Nagengast. 
-	Fix bug #SF3400670: Send ADSP failure reports when rejecting
-		a message.  Reported by Andreas Schulze.
+		on syntax.  Requested by Todd Nagengast. 
+	Fix bug #SF3400670: Send ADSP failure reports when rejecting a
+		message.  Reported by Andreas Schulze.
+	Fix bug #SF3419149: Add MaximumSignedBytes to opendkim-config.h.
+		Reported by Adam Bernstein.
 	Fix Authentication-Results generation with "AddAllSignatureResults"
 		enabled.  Reported by Todd Nagengast.
 	LIBOPENDKIM: Feature request #SF3317160: Per RFC4871bis, remove
