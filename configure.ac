@@ -276,6 +276,7 @@ FFR_FEATURE([redirect],
 
 FFR_FEATURE([reputation],
             [support for experimental reputation checks])
+AM_CONDITIONAL([REPUTE], [test x"$enable_reputation" = x"yes"])
 
 FFR_FEATURE([resign],
             [support for one-step re-signing])
