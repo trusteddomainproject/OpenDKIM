@@ -15019,6 +15019,9 @@ main(int argc, char **argv)
 #ifdef USE_LUA
 			                "\tlua:path\n"
 #endif /* USE_LUA */
+#ifdef _FFR_REPUTATION
+			                "\trepute:server\n"
+#endif /* _FFR_REPUTATION */
 			                "> ");
 		}
 
