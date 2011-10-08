@@ -41,6 +41,11 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #include <dkim.h>
 #include <dkim-strl.h>
 
+/* repute includes */
+#ifdef _FFR_REPUTATION
+# include <repute.h>
+#endif /* _FFR_REPUTATION */
+
 /* opendkim includes */
 #include "util.h"
 #ifdef OPENDKIM_DB_ONLY
@@ -228,6 +233,12 @@ struct dkimf_db_lua
 };
 #endif /* USE_LUA */
 
+#ifdef _FFR_REPUTATION
+struct dkimf_db_repute
+{
+	char			repute_server[DKIM_MAXHOSTNAMELEN + 1];
+};
+#endif /* _FFR_REPUTATION */
 
 /* globals */
 struct dkimf_db_table dbtypes[] =
@@ -249,6 +260,9 @@ struct dkimf_db_table dbtypes[] =
 #ifdef USE_LUA
 	{ "lua",		DKIMF_DB_TYPE_LUA },
 #endif /* USE_LUA */
+#ifdef _FFR_REPUTATION
+	{ "repute",		DKIMF_DB_TYPE_REPUTE },
+#endif /* _FFR_REPUTATION */
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
 
@@ -2235,8 +2249,32 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		}
 
 		free(tmp);
+		break;
 	  }
 #endif /* USE_LUA */
+
+#ifdef _FFR_REPUTATION
+	  case DKIMF_DB_TYPE_REPUTE:
+	  {
+		struct dkimf_db_repute *r;
+
+		r = (struct dkimf_db_repute *) malloc(sizeof *r);
+		if (r == NULL)
+		{
+			if (err != NULL)
+				*err = strerror(errno);
+			return -1;
+		}
+		memset(r, '\0', sizeof *r);
+
+		strlcpy(r->repute_server, p, sizeof r->repute_server);
+		
+		new->db_data = (void *) r;
+
+		break;
+	  }
+#endif /* _FFR_REPUTATION */
+
 	}
 
 	*db = new;
@@ -2275,6 +2313,7 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
 	    db->db_type == DKIMF_DB_TYPE_LDAP || 
 	    db->db_type == DKIMF_DB_TYPE_LUA || 
+	    db->db_type == DKIMF_DB_TYPE_REPUTE || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -2420,6 +2459,7 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
 	    db->db_type == DKIMF_DB_TYPE_LDAP || 
 	    db->db_type == DKIMF_DB_TYPE_LUA || 
+	    db->db_type == DKIMF_DB_TYPE_REPUTE || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -3543,6 +3583,56 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 	  }
 #endif /* USE_LUA */
 
+#ifdef _FFR_REPUTATION
+	  case DKIMF_DB_TYPE_REPUTE:
+	  {
+		int c;
+		float rep;
+		float conf;
+		unsigned long samp;
+		REPUTE_STAT rstat;
+		struct dkimf_db_repute *r;
+
+		r = (struct dkimf_db_repute *) db->db_data;
+
+		rstat = repute_query(buf, r->repute_server,
+		                     &rep, &conf, &samp);
+
+		if (rstat != REPUTE_STAT_OK)
+			return -1;
+
+		if (exists != NULL)
+			*exists = TRUE;
+
+		if (reqnum >= 1)
+		{
+			if (req[0].dbdata_buflen != sizeof rep)
+				return -1;
+			memcpy(req[0].dbdata_buffer, &rep, sizeof rep);
+		}
+
+		if (reqnum >= 2)
+		{
+			if (req[1].dbdata_buflen != sizeof conf)
+				return -1;
+			memcpy(req[1].dbdata_buffer, &conf, sizeof conf);
+		}
+
+		if (reqnum >= 3)
+		{
+			if (req[2].dbdata_buflen != sizeof samp)
+				return -1;
+			memcpy(req[2].dbdata_buffer, &samp, sizeof samp);
+		}
+
+		/* tag requests that weren't fulfilled */
+		for (c = 3; c < reqnum; c++)
+			req[c].dbdata_buflen = 0;
+
+		return 0;
+	  }
+#endif /* _FFR_REPUTATION */
+
 	  default:
 		assert(0);
 		return 0;		/* to silence the compiler */
@@ -3701,6 +3791,13 @@ dkimf_db_close(DKIMF_DB db)
 		return 0;
 	  }
 #endif /* USE_LUA */
+
+#ifdef _FFR_REPUTATION
+	  case DKIMF_DB_TYPE_REPUTE:
+		free(db->db_data);
+		free(db);
+		return 0;
+#endif /* _FFR_REPUTATION */
 
 	  default:
 		assert(0);
