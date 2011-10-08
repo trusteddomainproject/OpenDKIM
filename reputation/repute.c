@@ -201,6 +201,7 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 	{
 		/* skip unnamed things or things that aren't reputons */
 		if (node->name == NULL ||
+		    node->type != XML_ELEMENT_NODE ||
 		    strcasecmp(node->name, REPUTE_NAME_REPUTON) != 0 ||
 		    node->children == NULL)
 			continue;
@@ -216,7 +217,9 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 		     reputon = reputon->next)
 		{
 			/* skip unnamed and empty things */
-			if (reputon->name == NULL || reputon->content == NULL)
+			if (reputon->name == NULL ||
+			    reputon->content == NULL ||
+			    reputon->type != XML_ELEMENT_NODE)
 				continue;
 
 			/* skip unknown names */
@@ -500,8 +503,9 @@ repute_query(const char *domain, const char *server, float *repout,
 	if (rio == NULL)
 		return REPUTE_STAT_INTERNAL;
 
-	snprintf(url, sizeof url, "%s://%s/%s/%s", REPUTE_URI_SCHEME,
-	         server, REPUTE_URI_APPLICATION, domain);
+	snprintf(url, sizeof url, "%s://%s/%s/%s/%s", REPUTE_URI_SCHEME,
+	         server, REPUTE_URI_APPLICATION, domain,
+	         REPUTE_ASSERT_SENDS_SPAM);
 
 	status = repute_doquery(rio, url);
 	if (status != REPUTE_STAT_OK)
