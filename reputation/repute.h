@@ -58,4 +58,10 @@ typedef int REPUTE_STAT;
 
 #define	REPUTE_EXT_ID_DKIM	"IDENTITY: DKIM"
 
+/* prototypes */
+extern void repute_close(void);
+extern void repute_init(void);
+extern REPUTE_STAT repute_query(const char *, const char *, float *,
+                                float *, unsigned long *);
+
 #endif /* ! _REPUTE_H_ */
