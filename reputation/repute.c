@@ -528,4 +528,3 @@ repute_query(const char *domain, const char *server, float *repout,
 
 	return REPUTE_STAT_OK;
 }
-
