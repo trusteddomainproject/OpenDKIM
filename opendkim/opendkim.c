@@ -10696,6 +10696,22 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 		                        NULL);
 	}
 
+	/*
+	**  Completely ignore a field name containing a semicolon; this is
+	**  strangely legal by RFC5322, but completely incompatible with DKIM.
+	*/
+
+	if (strchr(headerf, ';') != NULL)
+	{
+		if (conf->conf_dolog)
+		{
+			syslog(LOG_NOTICE, "ignoring header field '%s'",
+			       headerf);
+		}
+
+		return SMFIS_CONTINUE;
+	}
+
 	newhdr = (Header) malloc(sizeof(struct Header));
 	if (newhdr == NULL)
 	{

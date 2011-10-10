@@ -19,6 +19,9 @@ release, and a summary of the changes in that release.
 		Reported by Adam Bernstein.
 	Fix Authentication-Results generation with "AddAllSignatureResults"
 		enabled.  Reported by Todd Nagengast.
+	Ignore header field names that contain semi-colons, as they produce
+		syntactically invalid signatures.  Problem noted by
+		Heikki Gruner.
 	LIBOPENDKIM: Feature request #SF3317160: Per RFC4871bis, remove
 		granularity checks.
 	LIBOPENDKIM: Feature request #SF3385768: Add dkim_privkey_load(),
