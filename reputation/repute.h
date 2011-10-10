@@ -45,6 +45,7 @@ typedef int REPUTE_STAT;
 #define	REPUTE_XML_CODE_RATER_AUTH	4
 #define	REPUTE_XML_CODE_RATING		5
 #define	REPUTE_XML_CODE_SAMPLE_SIZE	6
+#define	REPUTE_XML_CODE_UPDATED		7
 
 #define	REPUTE_XML_ASSERTION	"assertion"
 #define	REPUTE_XML_EXTENSION	"extension"
@@ -53,6 +54,7 @@ typedef int REPUTE_STAT;
 #define	REPUTE_XML_RATER_AUTH	"rater-authenticity"
 #define	REPUTE_XML_RATING	"rating"
 #define	REPUTE_XML_SAMPLE_SIZE	"sample-size"
+#define	REPUTE_XML_UPDATED	"updated"
 
 #define	REPUTE_ASSERT_SENDS_SPAM "sends-spam"
 
@@ -62,6 +64,6 @@ typedef int REPUTE_STAT;
 extern void repute_close(void);
 extern void repute_init(void);
 extern REPUTE_STAT repute_query(const char *, const char *, float *,
-                                float *, unsigned long *);
+                                float *, unsigned long *, time_t *);
 
 #endif /* ! _REPUTE_H_ */

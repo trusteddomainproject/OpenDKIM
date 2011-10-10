@@ -54,6 +54,7 @@ struct repute_lookup repute_lookup_elements[] =
 	{ REPUTE_XML_CODE_RATER_AUTH,	REPUTE_XML_RATER_AUTH },
 	{ REPUTE_XML_CODE_RATING,	REPUTE_XML_RATING },
 	{ REPUTE_XML_CODE_SAMPLE_SIZE,	REPUTE_XML_SAMPLE_SIZE },
+	{ REPUTE_XML_CODE_UPDATED,	REPUTE_XML_UPDATED },
 	{ REPUTE_XML_CODE_UNKNOWN,	NULL }
 };
 
@@ -160,7 +161,7 @@ repute_name_to_code(struct repute_lookup *tbl, const char *name)
 
 static REPUTE_STAT
 repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
-             unsigned long *sample)
+             unsigned long *sample, time_t *when)
 {
 	_Bool found_dkim = FALSE;
 	_Bool found_spam = FALSE;
@@ -168,6 +169,7 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 	float conftmp;
 	float reptmp;
 	unsigned long sampletmp;
+	time_t whentmp;
 	char *p;
 	xmlDocPtr doc = NULL;
 	xmlNode *node = NULL;
@@ -196,7 +198,7 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 		return REPUTE_STAT_PARSE;
 	}
 
-	/* iterate through reputons looking for the right report */
+	/* iterate through nodes looking for a reputon */
 	for (node = node->children; node != NULL; node = node->next)
 	{
 		/* skip unnamed things or things that aren't reputons */
@@ -211,15 +213,17 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 		conftmp = 0.;
 		reptmp = 0.;
 		sampletmp = 0L;
+		whentmp = 0;
 
 		for (reputon = node->children;
 		     reputon != NULL;
 		     reputon = reputon->next)
 		{
-			/* skip unnamed and empty things */
+			/* look for the reputon */
 			if (reputon->name == NULL ||
-			    reputon->content == NULL ||
-			    reputon->type != XML_ELEMENT_NODE)
+			    reputon->type != XML_ELEMENT_NODE ||
+			    reputon->children == NULL ||
+			    reputon->children->content == NULL)
 				continue;
 
 			/* skip unknown names */
@@ -239,18 +243,19 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 				break;
 
 			  case REPUTE_XML_CODE_RATER_AUTH:
-				conftmp = strtof(reputon->content, &p);
+				conftmp = strtof(reputon->children->content,
+				                 &p);
 				if (*p != '\0' || conftmp < 0 || conftmp > 1)
 					continue;
 
 			  case REPUTE_XML_CODE_ASSERTION:
-				if (strcasecmp(reputon->content,
+				if (strcasecmp(reputon->children->content,
 				               REPUTE_ASSERT_SENDS_SPAM) == 0)
 					found_spam = TRUE;
 				break;
 
 			  case REPUTE_XML_CODE_EXTENSION:
-				if (strcasecmp(reputon->content,
+				if (strcasecmp(reputon->children->content,
 				               REPUTE_EXT_ID_DKIM) == 0)
 					found_dkim = TRUE;
 				break;
@@ -264,15 +269,27 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 				break;
 
 			  case REPUTE_XML_CODE_RATING:
-				reptmp = strtof(reputon->content, &p);
+				reptmp = strtof(reputon->children->content,
+				                &p);
 				if (*p != '\0' || reptmp < -1 || reptmp > 1)
 					continue;
+				break;
 
 			  case REPUTE_XML_CODE_SAMPLE_SIZE:
 				errno = 0;
-				sampletmp = strtoul(reputon->content, &p, 10);
+				sampletmp = strtoul(reputon->children->content,
+				                    &p, 10);
 				if (errno != 0)
 					continue;
+				break;
+
+			  case REPUTE_XML_CODE_UPDATED:
+				errno = 0;
+				whentmp = strtoul(reputon->children->content,
+				                  &p, 10);
+				if (errno != 0)
+					continue;
+				break;
 
 			  default:
 				break;
@@ -286,6 +303,8 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 				*conf = conftmp;
 			if (sample != NULL)
 				*sample = sampletmp;
+			if (when != NULL)
+				*when = whentmp;
 
 			break;
 		}
@@ -479,6 +498,7 @@ repute_close(void)
 **  	repout -- reputation (returned)
 **  	confout -- confidence (returned)
 **  	sampout -- sample count (returned)
+**  	whenout -- update timestamp (returned)
 **
 **  Return value:
 **  	A REPUTE_STAT_* constant.
@@ -486,12 +506,13 @@ repute_close(void)
 
 REPUTE_STAT
 repute_query(const char *domain, const char *server, float *repout,
-             float *confout, unsigned long *sampout)
+             float *confout, unsigned long *sampout, time_t *whenout)
 {
 	REPUTE_STAT status;
 	float conf;
 	float rep;
 	unsigned long samples;
+	time_t when;
 	struct repute_io *rio;
 	char url[REPUTE_URL];
 
@@ -515,7 +536,7 @@ repute_query(const char *domain, const char *server, float *repout,
 	}
 
 	status = repute_parse(rio->repute_buf, rio->repute_offset,
-	                      &rep, &conf, &samples);
+	                      &rep, &conf, &samples, &when);
 	if (status != REPUTE_STAT_OK)
 	{
 		repute_put_io(rio);
@@ -527,6 +548,8 @@ repute_query(const char *domain, const char *server, float *repout,
 		*confout = conf;
 	if (sampout != NULL)
 		*sampout = samples;
+	if (whenout != NULL)
+		*whenout = when;
 
 	repute_put_io(rio);
 
