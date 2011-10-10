@@ -3590,13 +3590,14 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		float rep;
 		float conf;
 		unsigned long samp;
+		time_t when;
 		REPUTE_STAT rstat;
 		struct dkimf_db_repute *r;
 
 		r = (struct dkimf_db_repute *) db->db_data;
 
 		rstat = repute_query(buf, r->repute_server,
-		                     &rep, &conf, &samp);
+		                     &rep, &conf, &samp, &when);
 
 		if (rstat != REPUTE_STAT_OK)
 			return -1;
@@ -3606,27 +3607,73 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		if (reqnum >= 1)
 		{
-			if (req[0].dbdata_buflen != sizeof rep)
-				return -1;
-			memcpy(req[0].dbdata_buffer, &rep, sizeof rep);
+			if ((req[0].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
+			{
+				if (req[0].dbdata_buflen != sizeof rep)
+					return -1;
+				memcpy(req[0].dbdata_buffer, &rep, sizeof rep);
+			}
+			else
+			{
+				req[0].dbdata_buflen = snprintf(req[0].dbdata_buffer,
+				                                req[0].dbdata_buflen,
+				                                "%f", rep);
+			}
 		}
 
 		if (reqnum >= 2)
 		{
-			if (req[1].dbdata_buflen != sizeof conf)
-				return -1;
-			memcpy(req[1].dbdata_buffer, &conf, sizeof conf);
+			if ((req[1].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
+			{
+				if (req[1].dbdata_buflen != sizeof conf)
+					return -1;
+				memcpy(req[1].dbdata_buffer, &conf,
+				       sizeof conf);
+			}
+			else
+			{
+				req[1].dbdata_buflen = snprintf(req[1].dbdata_buffer,
+				                                req[1].dbdata_buflen,
+				                                "%f", conf);
+			}
 		}
 
 		if (reqnum >= 3)
 		{
-			if (req[2].dbdata_buflen != sizeof samp)
-				return -1;
-			memcpy(req[2].dbdata_buffer, &samp, sizeof samp);
+			if ((req[2].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
+			{
+				if (req[2].dbdata_buflen != sizeof samp)
+					return -1;
+				memcpy(req[2].dbdata_buffer, &samp,
+				       sizeof samp);
+			}
+			else
+			{
+				req[2].dbdata_buflen = snprintf(req[2].dbdata_buffer,
+				                                req[2].dbdata_buflen,
+				                                "%lu", samp);
+			}
+		}
+
+		if (reqnum >= 4)
+		{
+			if ((req[3].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
+			{
+				if (req[3].dbdata_buflen != sizeof when)
+					return -1;
+				memcpy(req[3].dbdata_buffer, &when,
+				       sizeof when);
+			}
+			else
+			{
+				req[3].dbdata_buflen = snprintf(req[3].dbdata_buffer,
+				                                req[3].dbdata_buflen,
+				                                "%lu", when);
+			}
 		}
 
 		/* tag requests that weren't fulfilled */
-		for (c = 3; c < reqnum; c++)
+		for (c = 4; c < reqnum; c++)
 			req[c].dbdata_buflen = 0;
 
 		return 0;
