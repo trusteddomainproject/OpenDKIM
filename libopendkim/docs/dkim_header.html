@@ -60,6 +60,9 @@ field.</td>
     will be added by the canonicalization code.  However, a CRLF may appear
     elsewhere in the value if, for example, the header field is meant to be
     wrapped.
+<li>A header field whose name includes a semi-colon cannot be used as it
+    will produce a syntactically invalid signature.  Such header fields cause
+    this function to return <tt>DKIM_STAT_SYNTAX</tt>.
 </ul>
 </td>
 </tr>
@@ -70,7 +73,7 @@ field.</td>
 Copyright (c) 2005-2007 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set
