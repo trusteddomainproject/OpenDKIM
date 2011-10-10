@@ -4,7 +4,7 @@
 
 #AUTOMAKE_OPTIONS = foreign
 
-dist_doc_DATA = draft-ietf-marf-authfailure-report-02.txt \
+dist_doc_DATA = draft-ietf-marf-authfailure-report-03.txt \
 	draft-ietf-marf-dkim-reporting-03.txt \
 	draft-kucherawy-dkim-atps-07.txt \
 	report-rfc4871.txt \
