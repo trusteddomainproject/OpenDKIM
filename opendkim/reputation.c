@@ -32,7 +32,6 @@ static char reputation_c_id[] = "@(#)$Id: stats.c,v 1.27.2.1 2010/10/27 21:43:09
 
 /* macros */
 #define	DKIMF_REP_DEFTTL	3600
-#define	DKIMF_REP_LOWTIMEDOMAIN	"LOW-TIME"
 #define	DKIMF_REP_MAXHASHES	64
 #define	DKIMF_REP_NULLDOMAIN	"NULL"
 
@@ -159,7 +158,7 @@ dkimf_rep_close(DKIMF_REP rephandle)
 */
 
 int
-dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool lowtime, _Bool spam,
+dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
                 void *hash, size_t hashlen)
 {
 	_Bool f;
@@ -235,9 +234,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool lowtime, _Bool spam,
 	req.dbdata_buflen = sizeof reps;
 	req.dbdata_flags = DKIMF_DB_DATA_BINARY;
 
-	if (lowtime)
-		dkim_strlcpy(domain, DKIMF_REP_LOWTIMEDOMAIN, sizeof domain);
-	else if (sig == NULL)
+	if (sig == NULL)
 		dkim_strlcpy(domain, DKIMF_REP_NULLDOMAIN, sizeof domain);
 	else
 		dkim_strlcpy(domain, dkim_sig_getdomain(sig), sizeof domain);

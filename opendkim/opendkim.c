@@ -13148,7 +13148,6 @@ mlfi_eom(SMFICTX *ctx)
 					status = dkimf_rep_check(conf->conf_rep,
 					                         sigs[c],
 					                         FALSE,
-					                         FALSE,
 					                         digest,
 					                         SHA_DIGEST_LENGTH);
 
@@ -13176,7 +13175,6 @@ mlfi_eom(SMFICTX *ctx)
 					if (dkimf_rep_check(conf->conf_rep,
 					                    NULL,
 					                    nsigs > 0 && !found,
-					                    FALSE,
 					                    digest,
 					                    SHA_DIGEST_LENGTH) == 1)
 					{
