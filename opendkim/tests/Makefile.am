@@ -14,7 +14,7 @@ if RBL
 check_SCRIPTS += t-lua-rbl
 endif
 endif
-if REPUTATION
+if REPUTE
 check_SCRIPTS += t-verify-ss-rep
 endif
 
