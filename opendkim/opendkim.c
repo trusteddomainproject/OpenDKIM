@@ -395,6 +395,8 @@ struct dkimf_config
 	char *		conf_replimits;		/* reputed limits */
 	DKIMF_DB	conf_replimitsdb;	/* reputed limits DB */
 	DKIMF_REP	conf_rep;		/* reputation subsystem */
+	char *		conf_repspamcheck;	/* reputation spam RE string */
+	regex_t		conf_repspamre;		/* reputation spam RE */
 #endif /* _FFR_REPUTATION */
 	DKIM_LIB *	conf_libopendkim;	/* DKIM library handle */
 	struct handling	conf_handling;		/* message handling */
@@ -425,6 +427,9 @@ struct msgctx
 #ifdef _FFR_VBR
 	_Bool		mctx_vbrpurge;		/* purge X-VBR-* headers */
 #endif /* _FFR_VBR */
+#ifdef _FFR_REPUTATION
+	_Bool		mctx_spam;		/* is spam? */
+#endif /* _FFR_REPUTATION */
 	dkim_policy_t	mctx_pcode;		/* policy result code */
 #ifdef _FFR_ATPS
 	int		mctx_atps;		/* ATPS */
@@ -5435,6 +5440,8 @@ dkimf_config_free(struct dkimf_config *conf)
 		dkimf_db_close(conf->conf_repratiosdb);
 	if (conf->conf_replimitsdb != NULL)
 		dkimf_db_close(conf->conf_replimitsdb);
+	if (conf->conf_repspamcheck != NULL)
+		regfree(&conf->conf_repspamre);
 	if (conf->conf_rep != NULL)
 		dkimf_rep_close(conf->conf_rep);
 #endif /* _FFR_REPUTATION */
@@ -7234,6 +7241,35 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "ReputationFactor",
 		                  &conf->conf_repfactor,
 		                  sizeof conf->conf_repfactor);
+
+		(void) config_get(data, "ReputationSpamCheck",
+		                  &conf->conf_repspamcheck,
+		                  sizeof conf->conf_repspamcheck);
+	}
+
+	if (conf->conf_repspamcheck != NULL)
+	{
+		size_t tmplen;
+		char tmpre[BUFRSZ + 1];
+
+		tmplen = strlen(conf->conf_repspamcheck);
+		if (conf->conf_repspamcheck[0] != '/' ||
+		    conf->conf_repspamcheck[tmplen] != '/')
+		{
+			snprintf(err, errlen,
+			         "invalid value for ReputationSpamCheck");
+			return -1;
+		}
+
+		strlcpy(tmpre, conf->conf_repspamcheck + 1, sizeof tmpre);
+		tmpre[tmplen - 1] = '\0';
+
+		if (regcomp(&conf->conf_repspamre, tmpre, REG_EXTENDED) != 0)
+		{
+			snprintf(err, errlen,
+			         "unusable value for ReputationSpamCheck");
+			return -1;
+		}
 	}
 
 	if (conf->conf_replimits != NULL &&
@@ -7267,7 +7303,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	                           conf->conf_repratiosdb) != 0)
 		{
 			snprintf(err, errlen,
-			         "can't initialize reputation subsystem\n");
+			         "can't initialize reputation subsystem");
 			return -1;
 		}
 	}
@@ -11707,6 +11743,15 @@ mlfi_eoh(SMFICTX *ctx)
 
 			last = *p;
 		}
+
+#ifdef _FFR_REPUTATION
+		/* check for spam flag */
+		if (conf->conf_repspamcheck != NULL &&
+		    regexec(&conf->conf_repspamre, 
+		            dkimf_dstring_get(dfc->mctx_tmpstr),
+		            0, NULL, 0) == 0)
+			dfc->mctx_spam = TRUE;
+#endif /* _FFR_REPUTATION */
 
 		if (dfc->mctx_srhead != NULL)
 		{
