@@ -7253,8 +7253,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char tmpre[BUFRSZ + 1];
 
 		tmplen = strlen(conf->conf_repspamcheck);
-		if (conf->conf_repspamcheck[0] != '/' ||
-		    conf->conf_repspamcheck[tmplen] != '/')
+		if (tmplen < 3 ||
+		    conf->conf_repspamcheck[0] != '/' ||
+		    conf->conf_repspamcheck[tmplen - 1] != '/')
 		{
 			snprintf(err, errlen,
 			         "invalid value for ReputationSpamCheck");
@@ -7262,7 +7263,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 
 		strlcpy(tmpre, conf->conf_repspamcheck + 1, sizeof tmpre);
-		tmpre[tmplen - 1] = '\0';
+		tmpre[tmplen - 2] = '\0';
 
 		if (regcomp(&conf->conf_repspamre, tmpre, REG_EXTENDED) != 0)
 		{
@@ -13192,7 +13193,7 @@ mlfi_eom(SMFICTX *ctx)
 
 					status = dkimf_rep_check(conf->conf_rep,
 					                         sigs[c],
-					                         FALSE,
+					                         dfc->mctx_spam,
 					                         digest,
 					                         SHA_DIGEST_LENGTH);
 
@@ -13219,7 +13220,7 @@ mlfi_eom(SMFICTX *ctx)
 				{
 					if (dkimf_rep_check(conf->conf_rep,
 					                    NULL,
-					                    nsigs > 0 && !found,
+					                    dfc->mctx_spam,
 					                    digest,
 					                    SHA_DIGEST_LENGTH) == 1)
 					{
