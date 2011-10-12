@@ -359,7 +359,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 	/* if accepting it now would be within limits */
 	if (reps.reps_count < reps.reps_limit &&
-	    reps.reps_spam / reps.reps_count < reps.reps_ratio)
+	    (float) reps.reps_spam / (float) reps.reps_count <= reps.reps_ratio)
 	{
 		/* remove from rep_dups if found there */
 		(void) dkimf_db_delete(rep->rep_dups, hash, hashlen);
