@@ -1488,6 +1488,55 @@ dkimf_xs_clientip(lua_State *l)
 	return 1;
 }
 
+#ifdef _FFR_REPUTATION
+/*
+**  DKIMF_XS_SPAM -- tag message as spam
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_spam(lua_State *l)
+{
+	SMFICTX *ctx;
+	const char *keyname = NULL;
+	const char *ident = NULL;
+	struct connctx *cc;
+	struct msgctx *dfc;
+	struct dkimf_config *conf;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l, "odkim.spam(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l, "odkim.spam(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	if (ctx != NULL)
+	{
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+
+		dfc->mctx_spam = TRUE;
+	}
+
+	lua_pop(l, 1);
+
+	return 0;
+}
+#endif /* _FFR_REPUTATION */
+
 /*
 **  DKIMF_XS_REQUESTSIG -- request a signature
 **
