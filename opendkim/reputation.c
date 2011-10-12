@@ -272,6 +272,16 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 		if (!f)
 		{
+			if (dkimf_db_get(rep->rep_limits, "*", 1, &req,
+			                 1, &f) != 0)
+			{
+				pthread_mutex_unlock(&rep->rep_lock);
+				return -1;
+			}
+		}
+
+		if (!f)
+		{
 			pthread_mutex_unlock(&rep->rep_lock);
 			return 2;
 		}
@@ -293,6 +303,16 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		{
 			pthread_mutex_unlock(&rep->rep_lock);
 			return -1;
+		}
+
+		if (!f)
+		{
+			if (dkimf_db_get(rep->rep_ratios, "*", 1, &req,
+			                 1, &f) != 0)
+			{
+				pthread_mutex_unlock(&rep->rep_lock);
+				return -1;
+			}
 		}
 
 		if (!f)
