@@ -3,21 +3,18 @@
 
 Individual submission                                       M. Kucherawy
 Internet-Draft                                           Cloudmark, Inc.
-Updates: 6376 (if approved)                           September 21, 2011
-Intended status: Experimental
-Expires: March 24, 2012
+Intended status: Experimental                           October 13, 2011
+Expires: April 15, 2012
 
 
                   DKIM Authorized Third-Party Signers
-                      draft-kucherawy-dkim-atps-07
+                      draft-kucherawy-dkim-atps-08
 
 Abstract
 
    This memo presents an experimental proposal to supplement Domain Keys
    Identified Mail (DKIM) by allowing advertisement of third-party
    signature authorizations on behalf of an email originator.
-
-   This memo updates RFC6376.
 
 Status of This Memo
 
@@ -34,7 +31,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on March 24, 2012.
+   This Internet-Draft will expire on April 15, 2012.
 
 Copyright Notice
 
@@ -49,15 +46,16 @@ Copyright Notice
    to this document.  Code Components extracted from this document must
    include Simplified BSD License text as described in Section 4.e of
    the Trust Legal Provisions and are provided without warranty as
-
-
-
-Kucherawy                Expires March 24, 2012                 [Page 1]
-
-Internet-Draft            DKIM ATPS Experiment            September 2011
-
-
    described in the Simplified BSD License.
+
+
+
+
+
+Kucherawy                Expires April 15, 2012                 [Page 1]
+
+Internet-Draft            DKIM ATPS Experiment              October 2011
+
 
 Table of Contents
 
@@ -108,9 +106,11 @@ Table of Contents
 
 
 
-Kucherawy                Expires March 24, 2012                 [Page 2]
+
+
+Kucherawy                Expires April 15, 2012                 [Page 2]
 
-Internet-Draft            DKIM ATPS Experiment            September 2011
+Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
 1.  Introduction
@@ -164,9 +164,9 @@ Internet-Draft            DKIM ATPS Experiment            September 2011
 
 
 
-Kucherawy                Expires March 24, 2012                 [Page 3]
+Kucherawy                Expires April 15, 2012                 [Page 3]
 
-Internet-Draft            DKIM ATPS Experiment            September 2011
+Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
    authority for its DNS domain to an approved messaging service
@@ -220,9 +220,9 @@ Internet-Draft            DKIM ATPS Experiment            September 2011
 
 
 
-Kucherawy                Expires March 24, 2012                 [Page 4]
+Kucherawy                Expires April 15, 2012                 [Page 4]
 
-Internet-Draft            DKIM ATPS Experiment            September 2011
+Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
    process SHOULD be applied if the "atps" tag's value matches any of
@@ -276,9 +276,9 @@ Internet-Draft            DKIM ATPS Experiment            September 2011
 
 
 
-Kucherawy                Expires March 24, 2012                 [Page 5]
+Kucherawy                Expires April 15, 2012                 [Page 5]
 
-Internet-Draft            DKIM ATPS Experiment            September 2011
+Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
       Further queries SHOULD NOT be initiated.
@@ -308,6 +308,7 @@ Internet-Draft            DKIM ATPS Experiment            September 2011
       the value "ATPS1".  ABNF:
 
            atps-v-tag = %x76 [FWS] "=" [FWS] %x41.54.50.53.31
+                      ; FWS is imported from [DKIM]
 
 5.  Interpretation
 
@@ -328,15 +329,15 @@ Internet-Draft            DKIM ATPS Experiment            September 2011
    be treated with suspicion or even discarded.
 
    A Verifier implementing both ADSP and ATPS SHOULD treat a message for
-   which the ATPS test described above passes as if it were signed by
 
 
 
-Kucherawy                Expires March 24, 2012                 [Page 6]
+Kucherawy                Expires April 15, 2012                 [Page 6]
 
-Internet-Draft            DKIM ATPS Experiment            September 2011
+Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
+   which the ATPS test described above passes as if it were signed by
    the author domain.  That is, a pass of ATPS means a pass for ADSP.
 
 7.  IANA Considerations
@@ -381,17 +382,18 @@ Internet-Draft            DKIM ATPS Experiment            September 2011
 
    Defined In  [THIS MEMO]
 
-   ptype  header
 
 
 
 
 
 
-Kucherawy                Expires March 24, 2012                 [Page 7]
+Kucherawy                Expires April 15, 2012                 [Page 7]
 
-Internet-Draft            DKIM ATPS Experiment            September 2011
+Internet-Draft            DKIM ATPS Experiment              October 2011
 
+
+   ptype  header
 
    property  from
 
@@ -442,11 +444,9 @@ Internet-Draft            DKIM ATPS Experiment            September 2011
 
 
 
-
-
-Kucherawy                Expires March 24, 2012                 [Page 8]
+Kucherawy                Expires April 15, 2012                 [Page 8]
 
-Internet-Draft            DKIM ATPS Experiment            September 2011
+Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
    Code  temperror
@@ -500,9 +500,9 @@ Internet-Draft            DKIM ATPS Experiment            September 2011
 
 
 
-Kucherawy                Expires March 24, 2012                 [Page 9]
+Kucherawy                Expires April 15, 2012                 [Page 9]
 
-Internet-Draft            DKIM ATPS Experiment            September 2011
+Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
    Authors of third party signers will likely need to become the norm.
@@ -556,9 +556,9 @@ Internet-Draft            DKIM ATPS Experiment            September 2011
 
 
 
-Kucherawy                Expires March 24, 2012                [Page 10]
+Kucherawy                Expires April 15, 2012                [Page 10]
 
-Internet-Draft            DKIM ATPS Experiment            September 2011
+Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
                           Indicate Requirement Levels", BCP 14,
@@ -612,9 +612,9 @@ Appendix A.  Example Query and Reply
 
 
 
-Kucherawy                Expires March 24, 2012                [Page 11]
+Kucherawy                Expires April 15, 2012                [Page 11]
 
-Internet-Draft            DKIM ATPS Experiment            September 2011
+Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
        "ZTZGRRV3F45A4U6HLDKBF3ZCOW4V2AJX".
@@ -632,8 +632,9 @@ Internet-Draft            DKIM ATPS Experiment            September 2011
 
 Appendix B.  Acknowledgements
 
-   The author wishes to acknowledge Dave Crocker and Mark Martinec for
-   their review and constructive criticism of this proposal.
+   The author wishes to acknowledge Dave Crocker, Frank Ellermann and
+   Mark Martinec for their review and constructive criticism of this
+   proposal.
 
    The author also wishes to acknowledge Doug Otis and Daniel Black for
    their original draft upon which this work was based.
@@ -667,6 +668,5 @@ Author's Address
 
 
 
-
-Kucherawy                Expires March 24, 2012                [Page 12]
+Kucherawy                Expires April 15, 2012                [Page 12]
 
