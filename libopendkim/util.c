@@ -69,63 +69,6 @@ dkim_collapse(u_char *str)
 	*r = '\0';
 }
 
-#if 0
-/*
-**  DKIM_ADDRCMP -- like strcmp(), except for e-mail addresses (i.e. local-part
-**                  is case-sensitive, while the domain part is not)
-**
-**  Parameters:
-**  	s1, s2 -- the strings
-**
-**  Return value:
-**  	Like strcmp().  However, if "s2" contains only a domain name,
-**  	don't bother comparing the local-parts.
-*/
-
-int
-dkim_addrcmp(u_char *s1, u_char *s2)
-{
-	int ret;
-	u_char *at1, *at2;
-
-	assert(s1 != NULL);
-	assert(s2 != NULL);
-
-	at1 = (u_char *) strchr(s1, '@');
-	at2 = (u_char *) strchr(s2, '@');
-
-	/* if one or both contain no "@"s, just be strcmp() */
-	if (at1 == NULL || at2 == NULL)
-		return strcmp(s1, s2);
-
-	/* first check the local-parts */
-	*at1 = '\0';
-	*at2 = '\0';
-
-	/* if "s2" contains only a domain name, skip the local-part check */
-	if (at2 != s2)
-	{
-		/* compare the local-parts, case-sensitive */
-		ret = strcmp(s1, s2);
-		if (ret != 0)
-		{
-			*at1 = '@';
-			*at2 = '@';
-
-			return ret;
-		}
-	}
-
-	/* now compare the domains, case-insensitive */
-	ret = strcasecmp(at1 + 1, at2 + 1);
-
-	*at1 = '@';
-	*at2 = '@';
-
-	return ret;
-}
-#endif /* 0 */
-
 /*
 **  DKIM_HDRLIST -- build up a header list for use in a regexp
 **
@@ -142,6 +85,7 @@ dkim_addrcmp(u_char *s1, u_char *s2)
 _Bool
 dkim_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 {
+	_Bool escape = FALSE;
 	int c;
 	int len;
 	u_char *p;
@@ -177,6 +121,13 @@ dkim_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 			if (q >= end)
 				return FALSE;
 
+			if (escape)
+			{
+				*q = *p;
+				q++;
+				escape = FALSE;
+			}
+
 			switch (*p)
 			{
 			  case '*':
@@ -195,6 +146,10 @@ dkim_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 					return FALSE;
 				*q = '.';
 				q++;
+				break;
+
+			  case '\\'
+				escape = TRUE;
 				break;
 
 			  default:
