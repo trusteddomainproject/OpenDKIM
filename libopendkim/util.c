@@ -148,7 +148,7 @@ dkim_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 				q++;
 				break;
 
-			  case '\\'
+			  case '\\':
 				escape = TRUE;
 				break;
 
@@ -801,4 +801,71 @@ dkim_min_timeval(struct timeval *t1, struct timeval *t2, struct timeval *t,
 
 	if (which != NULL)
 		*which = next;
+}
+
+/*
+**  DKIM_COPY_ARRAY -- copy an array of char pointers
+**
+**  Parameters:
+**  	
+**  	in -- input array, must be NULL-terminated
+**
+**  Return value:
+**  	A copy of "in" and its elements, or NULL on failure.
+*/
+
+const char **
+dkim_copy_array(char **in)
+{
+	unsigned int c;
+	unsigned int n;
+	char **out;
+
+	assert(in != NULL);
+
+	for (n = 0; in[n] != NULL; n++)
+		continue;
+
+	out = malloc(sizeof(char *) * (n + 1));
+
+	for (c = 0; c < n; c++)
+	{
+		out[c] = strdup(in[c]);
+		if (out[c] == NULL)
+		{
+			for (n = 0; n < c; n++)
+				free(out[n]);
+			free(out);
+			return NULL;
+		}
+	}
+
+	out[c] = NULL;
+
+	return (const char **) out;
+}
+
+/*
+**  DKIM_CLOBBER_ARRAY -- clobber a cloned array of char pointers
+**
+**  Parameters:
+**  	in -- input array, must be NULL-terminated
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkim_clobber_array(char **in)
+{
+	unsigned int c;
+	unsigned int n;
+	char **out;
+
+	assert(in != NULL);
+
+	for (n = 0; in[n] != NULL; n++)
+		free(in[n]);
+
+	free(in);
 }

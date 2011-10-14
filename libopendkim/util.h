@@ -28,7 +28,9 @@ static char util_h_id[] = "@(#)$Id: util.h,v 1.5.10.1 2010/10/27 21:43:08 cm-msk
 extern int dkim_addrcmp __P((u_char *, u_char *));
 extern int dkim_check_dns_reply __P((unsigned char *ansbuf, size_t anslen,
                                      int xclass, int xtype));
+extern void dkim_clobber_array __P((char **));
 extern void dkim_collapse __P((u_char *));
+extern const char **dkim_copy_array __P((char **));
 extern _Bool dkim_hdrlist __P((u_char *, size_t, u_char **, _Bool));
 extern int dkim_hexchar __P((int c));
 extern void dkim_lowerhdr __P((u_char *));

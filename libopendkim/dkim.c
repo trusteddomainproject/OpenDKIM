@@ -4368,6 +4368,21 @@ dkim_close(DKIM_LIB *lib)
 	if (lib->dkiml_signre)
 		(void) regfree(&lib->dkiml_hdrre);
 
+
+#ifdef _FFR_OVERSIGN
+	if (lib->dkiml_oversignhdrs != NULL)
+		dkim_clobber_array((char **) lib->dkiml_oversignhdrs);
+#endif /* _FFR_OVERSIGN */
+
+	if (lib->dkiml_senderhdrs != (u_char **) dkim_default_senderhdrs)
+		dkim_clobber_array((char **) lib->dkiml_senderhdrs);
+
+	if (lib->dkiml_alwayshdrs != NULL)
+		dkim_clobber_array((char **) lib->dkiml_alwayshdrs);
+
+	if (lib->dkiml_mbs != NULL)
+		dkim_clobber_array((char **) lib->dkiml_mbs);
+
 	free(lib->dkiml_flist);
 	
 	free((void *) lib);
@@ -4581,11 +4596,23 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		}
 		else if (ptr == NULL)
 		{
+			if (lib->dkiml_senderhdrs != (u_char **) dkim_default_senderhdrs)
+				dkim_clobber_array((char **) lib->dkiml_senderhdrs);
+
 			lib->dkiml_senderhdrs = (u_char **) dkim_default_senderhdrs;
 		}
 		else
 		{
-			lib->dkiml_senderhdrs = (u_char **) ptr;
+			const char **tmp;
+
+			tmp = dkim_copy_array(ptr);
+			if (tmp == NULL)
+				return DKIM_STAT_NORESOURCE;
+
+			if (lib->dkiml_senderhdrs != (u_char **) dkim_default_senderhdrs)
+				dkim_clobber_array((char **) lib->dkiml_senderhdrs);
+
+			lib->dkiml_senderhdrs = (u_char **) tmp;
 		}
 		return DKIM_STAT_OK;
 
@@ -4600,7 +4627,16 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		}
 		else
 		{
-			lib->dkiml_oversignhdrs = (u_char **) ptr;
+			const char **tmp;
+
+			tmp = dkim_copy_array(ptr);
+			if (tmp == NULL)
+				return DKIM_STAT_NORESOURCE;
+
+			if (lib->dkiml_oversignhdrs != NULL)
+				dkim_clobber_array((char **) lib->dkiml_oversignhdrs);
+
+			lib->dkiml_oversignhdrs = (u_char **) tmp;
 		}
 		return DKIM_STAT_OK;
 #endif /* _FFR_OVERSIGN */
@@ -4615,14 +4651,25 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		}
 		else if (ptr == NULL)
 		{
+			if (lib->dkiml_alwayshdrs != NULL)
+				dkim_clobber_array((char **) lib->dkiml_alwayshdrs);
+
 			lib->dkiml_alwayshdrs = NULL;
 			lib->dkiml_nalwayshdrs = 0;
 		}
 		else
 		{
 			u_int n;
+			const char **tmp;
 
-			lib->dkiml_alwayshdrs = (u_char **) ptr;
+			tmp = dkim_copy_array(ptr);
+			if (tmp == NULL)
+				return DKIM_STAT_NORESOURCE;
+
+			if (lib->dkiml_alwayshdrs != NULL)
+				dkim_clobber_array((char **) lib->dkiml_alwayshdrs);
+
+			lib->dkiml_alwayshdrs = (u_char **) tmp;
 			for (n = 0; lib->dkiml_alwayshdrs[n] != NULL; n++)
 				continue;
 			lib->dkiml_nalwayshdrs = n;
@@ -4643,7 +4690,16 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		}
 		else
 		{
-			lib->dkiml_mbs = (u_char **) ptr;
+			const char **tmp;
+
+			tmp = dkim_copy_array(ptr);
+			if (tmp == NULL)
+				return DKIM_STAT_NORESOURCE;
+
+			if (lib->dkiml_mbs != NULL)
+				dkim_clobber_array((char **) lib->dkiml_mbs);
+
+			lib->dkiml_mbs = (u_char **) tmp;
 		}
 		return DKIM_STAT_OK;
 
