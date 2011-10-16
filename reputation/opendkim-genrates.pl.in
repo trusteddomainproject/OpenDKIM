@@ -314,6 +314,24 @@ if ($verbose)
 }
 
 #
+# Tag domains that are low-time
+#
+if ($verbose)
+{
+	print STDERR "$progname: updating low_time flag\n";
+}
+
+$dbi_s = $dbi_h->prepare("UPDATE domains SET low_time = IF(NOW(), DATEDIFF(DATE(firstseen)) < $thresh, 1, 0)");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: low_time update failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+$dbi_s->finish;
+
+#
 # Compute/update message counts and spam ratios for all signing domains
 #
 if ($verbose)

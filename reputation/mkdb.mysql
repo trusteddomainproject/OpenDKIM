@@ -43,3 +43,6 @@ create table if not exists predictions (
 	unique key (domain),
 	foreign key(domain) references domains(id) on delete cascade
 ) engine=innodb default charset=latin1;
+
+-- alter domains table to contain "low time" flag
+alter table domains add column low_time tinyint unsigned not null default 0;
