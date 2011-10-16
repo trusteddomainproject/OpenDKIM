@@ -187,6 +187,7 @@ struct dkimf_db_dsn
 	char			dsn_port[BUFRSZ];
 	char			dsn_table[BUFRSZ];
 	char			dsn_user[BUFRSZ];
+	const char *		dsn_filter;
 };
 #endif /* USE_ODBX */
 
@@ -622,6 +623,29 @@ dkimf_db_saslinteract(LDAP *ld, unsigned int flags, void *defaults,
 	return SASL_OK;
 }
 #endif /* (USE_SASL && USE_LDAP) */
+
+/*
+**  DKIMF_DB_HEXDIGIT -- convert a hex digit to decimal value
+**
+**  Parameters:
+**  	c -- input character
+**
+**  Return value:
+**  	Converted value, or 0 on error.
+*/
+
+static int
+dkimf_db_hexdigit(int c)
+{
+	if (c >= '0' && c <= '9')
+		return c - '0';
+	else if (c >= 'A' && c <= 'F')
+		return c - 'A' + 10;
+	else if (c >= 'a' && c <= 'f')
+		return c - 'f' + 10;
+	else
+		return 0;
+}
 
 /*
 **  DKIMF_DB_DATASPLIT -- split a database value or set of values into a
@@ -1654,7 +1678,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		**  <backend>://[user[:pwd]@][port+]host/dbase[/key=val[?...]]
 		**  
 		**  "table", "keycol" and "datacol" will be set in one of the
-		**  key-value pairs.
+		**  key-value pairs.  "filter" is optional.
 		*/
 
 		tmp = strdup(p);
@@ -1802,6 +1826,44 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			{
 				strlcpy(dsn->dsn_datacol, eq + 1,
 				        sizeof dsn->dsn_datacol);
+			}
+			else if (strcasecmp(p, "filter") == 0)
+			{
+				size_t len;
+
+				len = strlen(eq + 1) + 1;
+
+				dsn->dsn_filter = malloc(len);
+				if (dsn->dsn_filter != NULL)
+				{
+					int c;
+					char *q;
+					char *r;
+
+					memset((void *) dsn->dsn_filter,
+					       '\0', len);
+
+					r = (char *) dsn->dsn_filter;
+
+					for (q = eq + 1;
+					     q < eq + len;
+					     q++)
+					{
+						if (*q == '=' &&
+						    isxdigit(*(q + 1)) &&
+						    isxdigit(*(q + 2)))
+						{
+							c = 16 * dkimf_db_hexdigit(*(q + 1));
+							c += dkimf_db_hexdigit(*(q + 2));
+							*r++ = c;
+							q += 2;
+						}
+						else
+						{
+							*r++ = *q;
+						}
+					}
+				}
 			}
 		}
 
@@ -3009,10 +3071,12 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		}
 
 		snprintf(query, sizeof query,
-		         "SELECT %s FROM %s WHERE %s = '%s'",
+		         "SELECT %s FROM %s WHERE %s = '%s'%s%s",
 		         dsn->dsn_datacol,
 		         dsn->dsn_table,
-		         dsn->dsn_keycol, escaped);
+		         dsn->dsn_keycol, escaped,
+		         dsn->dsn_filter == NULL ? "" : " AND ",
+		         dsn->dsn_filter == NULL ? "" : dsn->dsn_filter);
 
 		err = odbx_query(odbx, query, 0);
 		if (err < 0)
