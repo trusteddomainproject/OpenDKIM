@@ -30,7 +30,8 @@ struct reputation;
 typedef struct reputation * DKIMF_REP;
 
 /* PROTOTYPES */
-extern int dkimf_rep_init __P((DKIMF_REP *, time_t, DKIMF_DB, DKIMF_DB));
+extern int dkimf_rep_init __P((DKIMF_REP *, time_t, DKIMF_DB, DKIMF_DB,
+                               DKIMF_DB));
 extern int dkimf_rep_check __P((DKIMF_REP, DKIM_SIGINFO *, _Bool,
                                 void *, size_t));
 extern void dkimf_rep_close __P((DKIMF_REP));

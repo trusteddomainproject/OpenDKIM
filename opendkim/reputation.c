@@ -34,6 +34,7 @@ static char reputation_c_id[] = "@(#)$Id: stats.c,v 1.27.2.1 2010/10/27 21:43:09
 #define	DKIMF_REP_DEFTTL	3600
 #define	DKIMF_REP_MAXHASHES	64
 #define	DKIMF_REP_NULLDOMAIN	"NULL"
+#define	DKIMF_REP_LOWTIME	"LOWTIME"
 
 /* data types */
 struct reputation
@@ -44,6 +45,7 @@ struct reputation
 	DKIMF_DB	rep_ratios;
 	DKIMF_DB	rep_counts;
 	DKIMF_DB	rep_spam;
+	DKIMF_DB	rep_lowtime;
 	time_t		rep_ttl;
 	time_t		rep_lastflush;
 	unsigned int	rep_factor;
@@ -71,7 +73,7 @@ struct reps
 
 int
 dkimf_rep_init(DKIMF_REP *rep, time_t factor,
-               DKIMF_DB limits, DKIMF_DB ratios)
+               DKIMF_DB limits, DKIMF_DB ratios, DKIMF_DB lowtime)
 {
 	int status;
 	DKIMF_REP new;
@@ -90,6 +92,7 @@ dkimf_rep_init(DKIMF_REP *rep, time_t factor,
 	new->rep_factor = factor;
 	new->rep_limits = limits;
 	new->rep_ratios = ratios;
+	new->rep_lowtime = lowtime;
 
 	if (pthread_mutex_init(&new->rep_lock, NULL) != 0)
 	{
@@ -251,6 +254,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 	if (!f)
 	{
+		_Bool lowtime = FALSE;
 		char *p;
 
 		/* cache miss; build a new cache entry */
@@ -262,6 +266,32 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		req.dbdata_buflen = sizeof buf;
 		req.dbdata_flags = 0;
 
+		if (rep->rep_lowtime != NULL)
+		{
+			/* see if it's a low-time domain */
+			if (dkimf_db_get(rep->rep_lowtime, domain, dlen, &req,
+			                 1, &f) != 0)
+			{
+				pthread_mutex_unlock(&rep->rep_lock);
+				return -1;
+			}
+
+			if (f)
+				lowtime = (atoi(buf) != 0);
+
+			memset(buf, '\0', sizeof buf);
+
+			req.dbdata_buffer = buf;
+			req.dbdata_buflen = sizeof buf;
+			req.dbdata_flags = 0;
+		}
+
+		if (lowtime)
+		{
+			dkim_strlcpy(domain, DKIMF_REP_LOWTIME, sizeof domain);
+			dlen = strlen(domain);
+		}
+		
 		/* get the total message limit */
 		if (dkimf_db_get(rep->rep_limits, domain, dlen, &req,
 		                 1, &f) != 0)
@@ -377,5 +407,4 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		return 1;
 	}
 }
-
 #endif /* _FFR_REPUTATION */

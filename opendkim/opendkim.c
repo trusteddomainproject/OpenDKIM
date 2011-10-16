@@ -394,6 +394,8 @@ struct dkimf_config
 	DKIMF_DB	conf_repratiosdb;	/* reputed ratios DB */
 	char *		conf_replimits;		/* reputed limits */
 	DKIMF_DB	conf_replimitsdb;	/* reputed limits DB */
+	char *		conf_replowtime;	/* reputed low timers */
+	DKIMF_DB	conf_replowtimedb;	/* reputed low timers DB */
 	DKIMF_REP	conf_rep;		/* reputation subsystem */
 	char *		conf_repspamcheck;	/* reputation spam RE string */
 	regex_t		conf_repspamre;		/* reputation spam RE */
@@ -7287,6 +7289,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_repratios,
 		                  sizeof conf->conf_repratios);
 
+		(void) config_get(data, "ReputationLowTime",
+		                  &conf->conf_replowtime,
+		                  sizeof conf->conf_replowtime);
+
 		(void) config_get(data, "ReputationFactor",
 		                  &conf->conf_repfactor,
 		                  sizeof conf->conf_repfactor);
@@ -7322,6 +7328,32 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 	}
 
+	if (conf->conf_replowtime != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_replowtimedb,
+		                       conf->conf_replowtime,
+		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         conf->conf_replowtime, dberr);
+			return -1;
+		}
+
+		status = dkimf_db_open(&curconf->conf_replowtimedb,
+		                       curconf->conf_replowtime,
+		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         conf->conf_replowtime, dberr);
+			return -1;
+		}
+	}
+
 	if (conf->conf_replimits != NULL &&
 	    conf->conf_repratios != NULL)
 	{
@@ -7350,7 +7382,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 		if (dkimf_rep_init(&conf->conf_rep, conf->conf_repfactor,
 	                           conf->conf_replimitsdb,
-	                           conf->conf_repratiosdb) != 0)
+	                           conf->conf_repratiosdb,
+		                   conf->conf_replowtimedb) != 0)
 		{
 			snprintf(err, errlen,
 			         "can't initialize reputation subsystem");
