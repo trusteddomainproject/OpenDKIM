@@ -910,7 +910,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 							{
 								if (rem > 0)
 								{
-									*q++ = ',';
+									*q++ = '=';
 									rem--;
 								}
 	
@@ -1019,8 +1019,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 							olen += alen;
 
 							val = ukv->ukv_value;
-							if (val == NULL ||
-							    val[0] == '\0')
+							if (val == NULL)
 							{
 								if (ifemp[0] != '\0')
 								{
@@ -1459,6 +1458,26 @@ main(int argc, char **argv)
 	status = ut_generate(ut, "{/keys*}", outbuf, sizeof outbuf);
 	assert(status > 0);
 	assert(strcmp(outbuf, "/semi=%3B/dot=./comma=%2C") == 0);
+
+	status = ut_generate(ut, "{;hello:5}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, ";hello=Hello") == 0);
+
+	status = ut_generate(ut, "{;list}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, ";list=red,green,blue") == 0);
+
+	status = ut_generate(ut, "{;list*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, ";red;green;blue") == 0);
+
+	status = ut_generate(ut, "{;keys}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, ";keys=semi,%3B,dot,.,comma,%2C") == 0);
+
+	status = ut_generate(ut, "{;keys*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, ";semi=%3B;dot=.;comma=%2C") == 0);
 
 	ut_destroy(ut);
 
