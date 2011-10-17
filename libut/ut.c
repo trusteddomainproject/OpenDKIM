@@ -9,6 +9,8 @@ static char ut_c_id[] = "$Id$";
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
@@ -171,7 +173,7 @@ ut_free(struct ut_keyvalue *kv)
 
 	if (kv->ukv_type == UT_KEYTYPE_STRING)
 	{
-		free(kv->ukv_key);
+		free((void *) kv->ukv_key);
 		if (kv->ukv_value != NULL)
 			free(kv->ukv_value);
 
@@ -185,7 +187,7 @@ ut_free(struct ut_keyvalue *kv)
 		tmp = kv->ukv_value;
 		while (tmp != NULL)
 		{
-			free(tmp->ukv_key);
+			free((void *) tmp->ukv_key);
 			if (tmp->ukv_value != NULL)
 				free(tmp->ukv_value);
 
@@ -421,7 +423,7 @@ ut_keyvalue(URITEMP ut, int type, const char *key, void *value)
 		new->ukv_value = strdup((char *) value);
 		if (new->ukv_value == NULL)
 		{
-			free(new->ukv_key);
+			free((void *) new->ukv_key);
 			free(new);
 			return -1;
 		}
