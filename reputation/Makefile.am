@@ -6,9 +6,9 @@ dist_doc_DATA = README
 
 lib_LTLIBRARIES = librepute.la
 librepute_la_SOURCES = repute.c repute.h
-librepute_la_LIBADD = $(PTHREAD_LIBS) $(LIBRESOLV) $(CURL_LIBS) $(LIBXML2_LIBS)
+librepute_la_LIBADD = $(PTHREAD_LIBS) $(LIBRESOLV) $(CURL_LIBS) $(LIBXML2_LIBS) ../libut/libut.la
 librepute_la_LDFLAGS = -no-undefined $(PTHREAD_CFLAGS) $(CURL_LDFLAGS) $(LIBXML2_LDFLAGS) -version-info 1:0:0
-librepute_la_CFLAGS = $(PTHREAD_CFLAGS) $(CURL_CPPFLAGS) $(LIBXML2_CPPFLAGS)
+librepute_la_CFLAGS = $(PTHREAD_CFLAGS) $(CURL_CPPFLAGS) $(LIBXML2_CPPFLAGS) -I../libut
 librepute_la_CC = $(PTHREAD_CC)
 libreputeincludedir = $(includedir)/repute
 libreputeinclude_HEADERS = repute.h

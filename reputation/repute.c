@@ -24,6 +24,9 @@ static char repute_c_id[] = "$Id$";
 /* libcurl includes */
 #include <curl/curl.h>
 
+/* libut includes */
+#include <ut.h>
+
 /* librepute includes */
 #include "repute.h"
 
@@ -435,6 +438,66 @@ repute_doquery(struct repute_io *rio, const char *url)
 }
 
 /*
+**  REPUTE_GET_TEMPLATE -- retrieve a URI template for a service
+**
+**  Parameters:
+**  	domain -- domain name where the service can be found
+**  	buf -- buffer into which to write the retrieved template
+**  	buflen -- bytes available at "buf"
+**
+**  Return value:
+**  	A REPUTE_STAT_* constant.
+*/
+
+static int
+repute_get_template(const char *domain, char *buf, size_t buflen)
+{
+	int out;
+	int cstatus;
+	struct repute_io *rio;
+	char url[REPUTE_BUFBASE + 1];
+
+	assert(domain != NULL);
+	assert(buf != NULL);
+
+	rio = repute_get_io();
+	if (rio == NULL)
+		return REPUTE_STAT_INTERNAL;
+
+	snprintf(url, sizeof url, REPUTE_URI_TEMPLATE, domain);
+
+	cstatus = curl_easy_setopt(rio->repute_curl, CURLOPT_WRITEDATA, rio);
+	if (cstatus != CURLE_OK)
+	{
+		repute_put_io(rio);
+		return REPUTE_STAT_INTERNAL;
+	}
+
+	cstatus = curl_easy_setopt(rio->repute_curl, CURLOPT_URL, url);
+	if (cstatus != CURLE_OK)
+	{
+		repute_put_io(rio);
+		return REPUTE_STAT_INTERNAL;
+	}
+
+	cstatus = curl_easy_perform(rio->repute_curl);
+	if (cstatus != CURLE_OK)
+	{
+		repute_put_io(rio);
+		return REPUTE_STAT_QUERY;
+	}
+
+	out = snprintf(buf, buflen, "%s", rio->repute_buf);
+
+	repute_put_io(rio);
+
+	if (out > buflen)
+		return REPUTE_STAT_INTERNAL;
+	else
+		return REPUTE_STAT_OK;
+}
+
+/*
 **  REPUTE_INIT -- initialize REPUTE subsystem
 **
 **  Parameters:
@@ -514,19 +577,50 @@ repute_query(const char *domain, const char *server, float *repout,
 	unsigned long samples;
 	time_t when;
 	struct repute_io *rio;
+	URITEMP ut;
 	char url[REPUTE_URL];
+	char genurl[REPUTE_URL];
+	char template[REPUTE_URL];
 
 	assert(domain != NULL);
 	assert(server != NULL);
 	assert(repout != NULL);
 
+	if (repute_get_template(domain, template,
+	                        sizeof template) != REPUTE_STAT_OK)
+		snprintf(template, sizeof template, "%s", REPUTE_URI_TEMPLATE);
+
+	ut = ut_init();
+	if (ut == NULL)
+		return REPUTE_STAT_INTERNAL;
+
+	if (ut_keyvalue(ut, UT_KEYTYPE_STRING,
+	                "domain", (void *) domain) != 0 ||
+	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
+	                "service", (void *) server) != 0 ||
+	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
+	                "application", REPUTE_URI_APPLICATION) != 0 ||
+	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
+	                "assertion", REPUTE_ASSERT_SENDS_SPAM) != 0)
+	{
+		ut_destroy(ut);
+		return REPUTE_STAT_INTERNAL;
+	}
+
+	if (ut_generate(ut, template, genurl, sizeof genurl) <= 0)
+	{
+		ut_destroy(ut);
+		return REPUTE_STAT_INTERNAL;
+	}
+
+	ut_destroy(ut);
+
+	snprintf(url, sizeof url, "%s://%s/%s", REPUTE_URI_SCHEME,
+	         server, genurl);
+
 	rio = repute_get_io();
 	if (rio == NULL)
 		return REPUTE_STAT_INTERNAL;
-
-	snprintf(url, sizeof url, "%s://%s/%s/%s/%s", REPUTE_URI_SCHEME,
-	         server, REPUTE_URI_APPLICATION, domain,
-	         REPUTE_ASSERT_SENDS_SPAM);
 
 	status = repute_doquery(rio, url);
 	if (status != REPUTE_STAT_OK)
