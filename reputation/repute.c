@@ -426,6 +426,7 @@ static REPUTE_STAT
 repute_doquery(struct repute_io *rio, const char *url)
 {
 	CURLcode cstatus;
+	long rcode;
 
 	assert(rio != NULL);
 	assert(url != NULL);
@@ -440,6 +441,11 @@ repute_doquery(struct repute_io *rio, const char *url)
 
 	cstatus = curl_easy_perform(rio->repute_curl);
 	if (cstatus != CURLE_OK)
+		return REPUTE_STAT_QUERY;
+
+	cstatus = curl_easy_getinfo(rio->repute_curl, CURLINFO_RESPONSE_CODE,
+	                            &rcode);
+	if (rcode != 200)
 		return REPUTE_STAT_QUERY;
 
 	return REPUTE_STAT_OK;
