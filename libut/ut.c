@@ -193,8 +193,6 @@ ut_free(struct ut_keyvalue *kv)
 			free(tmp);
 			tmp = next;
 		}
-
-		free(kv->ukv_value);
 	}
 
 	free(kv);
@@ -268,12 +266,26 @@ ut_append(char *ap, size_t rem, int allow, const char *in, int maxlen)
 			ap += 3;
 			rem -= 3;
 			out += 3;
+
+			if (maxlen > 0)
+			{
+				maxlen -= 3;
+				if (maxlen <= 0)
+					break;
+			}
 		}
 		else
 		{
 			*ap++ = *p;
 			rem--;
 			out++;
+
+			if (maxlen > 0)
+			{
+				maxlen--;
+				if (maxlen <= 0)
+					break;
+			}
 		}
 	}
 
@@ -509,7 +521,7 @@ ut_keyvalue(URITEMP ut, int type, const char *key, void *value)
 			}
 		}
 
-		if (c % 2 != 1)
+		if (c % 2 != 0)
 		{
 			ut_free(new);
 			return -1;
@@ -749,10 +761,6 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 			     v != NULL;
 			     v = strtok_r(NULL, ",", &ctx))
 			{
-				ukv = ut_findkey(ut, v);
-				if (ukv == NULL)
-					continue;
-
 				colon = strchr(v, ':');
 				explode = strchr(v, '*');
 
@@ -765,6 +773,13 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 				{
 					maxlen = -1;
 				}
+
+				if (explode != NULL)
+					*explode = '\0';
+
+				ukv = ut_findkey(ut, v);
+				if (ukv == NULL)
+					continue;
 
 				if (!ut_valid_varname(v))
 					continue;
@@ -901,7 +916,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 							{
 								if (rem > 0)
 								{
-									*q++ = '=';
+									*q++ = ',';
 									rem--;
 								}
 	
@@ -914,7 +929,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 
 						while (ikv != NULL)
 						{
-							if (lsep == 0 &&
+							if (lsep == 1 &&
 							    ikv != ukv->ukv_value)
 							{
 								if (rem > 0)
@@ -924,13 +939,12 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 								}
 	
 								olen++;
-								lsep = 1;
 							}
 
 							alen = ut_append(q,
 							                 rem,
 							                 allow,
-							                 ikv->ukv_value,
+							                 ikv->ukv_key,
 							                 -1);
 
 							q += alen;
@@ -941,6 +955,8 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 							olen += alen;
 
 							ikv = ikv->ukv_next;
+
+							lsep = 1;
 						}
 					}
 					else
@@ -952,7 +968,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 
 						while (ikv != NULL)
 						{
-							if (lsep == 0 &&
+							if (lsep == 1 &&
 							    ikv != ukv->ukv_value &&
 							    sep[0] != '\0')
 							{
@@ -963,13 +979,12 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 								}
 	
 								olen++;
-								lsep = 1;
 							}
 
 							alen = ut_append(q,
 							                 rem,
 							                 allow,
-							                 ikv->ukv_value,
+							                 ikv->ukv_key,
 							                 -1);
 
 							q += alen;
@@ -980,6 +995,8 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 							olen += alen;
 
 							ikv = ikv->ukv_next;
+
+							lsep = 1;
 						}
 					}
 
@@ -1022,7 +1039,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 							{
 								if (rem > 0)
 								{
-									*q++ = '=';
+									*q++ = ',';
 									rem--;
 								}
 	
@@ -1035,7 +1052,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 
 						while (ikv != NULL)
 						{
-							if (lsep == 0 &&
+							if (lsep == 1 &&
 							    ikv != ukv->ukv_value &&
 							    sep[0] != '\0')
 							{
@@ -1046,7 +1063,6 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 								}
 	
 								olen++;
-								lsep = 1;
 							}
 
 							alen = ut_append(q,
@@ -1064,7 +1080,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 
 							if (rem > 0)
 							{
-								*q++ = '=';
+								*q++ = ',';
 								rem--;
 							}
 
@@ -1082,6 +1098,8 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 							else
 								rem -= alen;
 							olen += alen;
+
+							lsep = 1;
 
 							ikv = ikv->ukv_next;
 						}
@@ -1095,7 +1113,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 
 						while (ikv != NULL)
 						{
-							if (lsep == 0 &&
+							if (lsep == 1 &&
 							    ikv != ukv->ukv_value &&
 							    sep[0] != '\0')
 							{
@@ -1106,7 +1124,6 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 								}
 	
 								olen++;
-								lsep = 1;
 							}
 
 							alen = ut_append(q,
@@ -1142,6 +1159,8 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 							else
 								rem -= alen;
 							olen += alen;
+
+							lsep = 1;
 
 							ikv = ikv->ukv_next;
 						}
@@ -1171,6 +1190,9 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 **  Return value:
 **  	Exit status.
 */
+
+char *listvals[] = { "red", "green", "blue", NULL };
+char *keyvals[] = { "semi", ";", "dot", ".", "comma", ",", NULL };
 
 int
 main(int argc, char **argv)
@@ -1315,6 +1337,47 @@ main(int argc, char **argv)
 	status = ut_generate(ut, "{&x,y,empty}", outbuf, sizeof outbuf);
 	assert(status > 0);
 	assert(strcmp(outbuf, "&x=1024&y=768&empty=") == 0);
+
+	ut_destroy(ut);
+
+	/* Level 4 examples */
+	ut = ut_init();
+	assert(ut != NULL);
+
+	status = ut_keyvalue(ut, UT_KEYTYPE_STRING, "var", "value");
+	assert(status == 0);
+	status = ut_keyvalue(ut, UT_KEYTYPE_STRING, "hello", "Hello World!");
+	assert(status == 0);
+	status = ut_keyvalue(ut, UT_KEYTYPE_STRING, "path", "/foo/bar");
+	assert(status == 0);
+	status = ut_keyvalue(ut, UT_KEYTYPE_LIST, "list", listvals);
+	assert(status == 0);
+	status = ut_keyvalue(ut, UT_KEYTYPE_KEYVALUE, "keys", keyvals);
+	assert(status == 0);
+
+	status = ut_generate(ut, "{var:3}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "val") == 0);
+
+	status = ut_generate(ut, "{var:30}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "value") == 0);
+
+	status = ut_generate(ut, "{list}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "red,green,blue") == 0);
+
+	status = ut_generate(ut, "{list*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "red,green,blue") == 0);
+
+	status = ut_generate(ut, "{keys}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "semi,%3B,dot,.,comma,%2C") == 0);
+
+	status = ut_generate(ut, "{keys*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "semi=%3B,dot=.,comma=%2C") == 0);
 
 	ut_destroy(ut);
 
