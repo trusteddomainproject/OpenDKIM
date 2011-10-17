@@ -1009,6 +1009,8 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 
 						if (named == 1)
 						{
+							char *val;
+
 							alen = ut_append(q,
 							                 rem,
 							                 allow,
@@ -1022,7 +1024,9 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 								rem -= alen;
 							olen += alen;
 
-							if (ukv->ukv_value == NULL)
+							val = ukv->ukv_value;
+							if (val == NULL ||
+							    val[0] == '\0')
 							{
 								if (ifemp[0] != '\0')
 								{
@@ -1039,7 +1043,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 							{
 								if (rem > 0)
 								{
-									*q++ = ',';
+									*q++ = '=';
 									rem--;
 								}
 	
@@ -1053,12 +1057,11 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 						while (ikv != NULL)
 						{
 							if (lsep == 1 &&
-							    ikv != ukv->ukv_value &&
-							    sep[0] != '\0')
+							    ikv != ukv->ukv_value)
 							{
 								if (rem > 0)
 								{
-									*q++ = sep[0];
+									*q++ = ',';
 									rem--;
 								}
 	
@@ -1378,6 +1381,66 @@ main(int argc, char **argv)
 	status = ut_generate(ut, "{keys*}", outbuf, sizeof outbuf);
 	assert(status > 0);
 	assert(strcmp(outbuf, "semi=%3B,dot=.,comma=%2C") == 0);
+
+	status = ut_generate(ut, "{+path:6}/here", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "/foo/b/here") == 0);
+
+	status = ut_generate(ut, "{+list}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "red,green,blue") == 0);
+
+	status = ut_generate(ut, "{+list*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "red,green,blue") == 0);
+
+	status = ut_generate(ut, "{+keys}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "semi,;,dot,.,comma,,") == 0);
+
+	status = ut_generate(ut, "{+keys*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "semi=;,dot=.,comma=,") == 0);
+
+	status = ut_generate(ut, "{#path:6*}/here", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "#/foo/b/here") == 0);
+
+	status = ut_generate(ut, "{#list}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "#red,green,blue") == 0);
+
+	status = ut_generate(ut, "{#list*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "#red,green,blue") == 0);
+
+	status = ut_generate(ut, "{#keys}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "#semi,;,dot,.,comma,,") == 0);
+
+	status = ut_generate(ut, "{#keys*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "#semi=;,dot=.,comma=,") == 0);
+
+	status = ut_generate(ut, "X{.var:3}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "X.val") == 0);
+
+	status = ut_generate(ut, "X{.list}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "X.red,green,blue") == 0);
+
+	status = ut_generate(ut, "X{.list*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "X.red.green.blue") == 0);
+
+	status = ut_generate(ut, "X{.keys}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "X.semi,%3B,dot,.,comma,%2C") == 0);
+
+	status = ut_generate(ut, "X{.keys*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "X.semi=%3B.dot=..comma=%2C") == 0);
 
 	ut_destroy(ut);
 
