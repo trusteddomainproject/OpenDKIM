@@ -399,7 +399,7 @@ ut_keyvalue(URITEMP ut, int type, const char *key, void *value)
 	if (new == NULL)
 		return -1;
 
-	memset(new, '\0', sizeof new);
+	memset(new, '\0', sizeof *new);
 	new->ukv_type = type;
 
 	new->ukv_key = strdup(key);
@@ -608,6 +608,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 			}
 
 			olen++;
+			continue;
 		}
 
 		if (UT_UNRESERVED(*p) || UT_RESERVED(*p))
@@ -646,7 +647,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 
 			p++;
 
-			if (*p == '}' || !UT_VARCHAR(p))
+			if (*p == '}' || (!UT_OPERATOR(*p) && !UT_VARCHAR(p)))
 			{
 				*q++ = '{';
 				rem--;
@@ -669,6 +670,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 				ifemp = "";
 				allow = UT_ALLOW_U;
 				p++;
+				vlistlen--;
 				break;
 
 			  case '/':
@@ -678,6 +680,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 				ifemp = "";
 				allow = UT_ALLOW_U;
 				p++;
+				vlistlen--;
 				break;
 
 			  case ';':
@@ -687,6 +690,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 				ifemp = "";
 				allow = UT_ALLOW_U;
 				p++;
+				vlistlen--;
 				break;
 
 			  case '?':
@@ -696,6 +700,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 				ifemp = "=";
 				allow = UT_ALLOW_U;
 				p++;
+				vlistlen--;
 				break;
 
 			  case '&':
@@ -705,15 +710,17 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 				ifemp = "=";
 				allow = UT_ALLOW_U;
 				p++;
+				vlistlen--;
 				break;
 
 			  case '#':
 				first = "#";
 				sep = ",";
-				named = 1;
+				named = 0;
 				ifemp = "";
 				allow = UT_ALLOW_UR;
 				p++;
+				vlistlen--;
 				break;
 
 			  case '+':
@@ -723,6 +730,7 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 				ifemp = "";
 				allow = UT_ALLOW_UR;
 				p++;
+				vlistlen--;
 				break;
 
 			  default:
@@ -1155,7 +1163,10 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 		}
 	}
 
-	return olen;
+	if (error != UT_ERROR_OK)
+		return error;
+	else
+		return olen;
 }
 
 #ifdef TEST
@@ -1193,6 +1204,43 @@ main(int argc, char **argv)
 	assert(status > 0);
 	assert(strcmp(outbuf, "Hello%20World%21") == 0);
 
+	ut_destroy(ut);
+
+	/* Level 2 examples */
+	ut = ut_init();
+	assert(ut != NULL);
+
+	status = ut_keyvalue(ut, UT_KEYTYPE_STRING, "var", "value");
+	assert(status == 0);
+	status = ut_keyvalue(ut, UT_KEYTYPE_STRING, "hello", "Hello World!");
+	assert(status == 0);
+	status = ut_keyvalue(ut, UT_KEYTYPE_STRING, "path", "/foo/bar");
+	assert(status == 0);
+
+	status = ut_generate(ut, "{+var}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "value") == 0);
+	
+	status = ut_generate(ut, "{+hello}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "Hello%20World!") == 0);
+	
+	status = ut_generate(ut, "{+path}/here", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "/foo/bar/here") == 0);
+	
+	status = ut_generate(ut, "here?ref={+path}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "here?ref=/foo/bar") == 0);
+	
+	status = ut_generate(ut, "X{#var}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "X#value") == 0);
+	
+	status = ut_generate(ut, "X{#hello}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "X#Hello%20World!") == 0);
+	
 	ut_destroy(ut);
 
 	return 0;
