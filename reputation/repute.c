@@ -30,21 +30,33 @@ static char repute_c_id[] = "$Id$";
 /* librepute includes */
 #include "repute.h"
 
+/* limits */
+#define	REPUTE_BUFBASE	1024
+#define	REPUTE_URL	1024
+
 /* data types */
 struct repute_io
 {
-	CURL *		repute_curl;
-	size_t		repute_alloc;
-	size_t		repute_len;
-	size_t		repute_offset;
-	char *		repute_buf;
-	struct repute_io * repute_next;
+	CURL *			repute_curl;
+	size_t			repute_alloc;
+	size_t			repute_len;
+	size_t			repute_offset;
+	char *			repute_buf;
+	struct repute_io *	repute_next;
+};
+
+struct repute_handle
+{
+	pthread_mutex_t		rep_lock;
+	struct repute_io *	rep_ios;
+	const char *		rep_server;
+	char			rep_uritemp[REPUTE_URL + 1];
 };
 
 struct repute_lookup
 {
-	int		rt_code;
-	const char *	rt_name;
+	int			rt_code;
+	const char *		rt_name;
 };
 
 /* lookup tables */
@@ -60,14 +72,6 @@ struct repute_lookup repute_lookup_elements[] =
 	{ REPUTE_XML_CODE_UPDATED,	REPUTE_XML_UPDATED },
 	{ REPUTE_XML_CODE_UNKNOWN,	NULL }
 };
-
-/* globals */
-static pthread_mutex_t rep_lock;
-static struct repute_io *rep_ios = NULL;
-
-/* limits */
-#define	REPUTE_BUFBASE	1024
-#define	REPUTE_URL	1024
 
 /*
 **  REPUTE_CURL_WRITEDATA -- callback for libcurl to deliver data
@@ -321,7 +325,7 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 **  REPUTE_GET_IO -- get or create an I/O handle
 **
 **  Parameters:
-**  	None.
+**  	rep -- REPUTE handle
 **
 **  Return value:
 **  	An I/O handle if one could be either recycled or created, or NULL
@@ -329,17 +333,19 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 */
 
 static struct repute_io *
-repute_get_io(void)
+repute_get_io(REPUTE rep)
 {
+	assert(rep != NULL);
+
 	struct repute_io *rio = NULL;
 
-	pthread_mutex_lock(&rep_lock);
+	pthread_mutex_lock(&rep->rep_lock);
 
-	if (rep_ios != NULL)
+	if (rep->rep_ios != NULL)
 	{
-		rio = rep_ios;
+		rio = rep->rep_ios;
 
-		rep_ios = rep_ios->repute_next;
+		rep->rep_ios = rep->rep_ios->repute_next;
 
 		rio->repute_len = 0;
 		rio->repute_offset = 0;
@@ -377,7 +383,7 @@ repute_get_io(void)
 		}
 	}
 
-	pthread_mutex_unlock(&rep_lock);
+	pthread_mutex_unlock(&rep->rep_lock);
 
 	return rio;
 }
@@ -386,6 +392,7 @@ repute_get_io(void)
 **  REPUTE_PUT_IO -- recycle an I/O handle
 **
 **  Parameters:
+**  	rep -- REPUTE handle
 **  	rio -- REPUTE I/O handle to be recycled
 **
 **  Return value:
@@ -393,16 +400,17 @@ repute_get_io(void)
 */
 
 static void
-repute_put_io(struct repute_io *rio)
+repute_put_io(REPUTE rep, struct repute_io *rio)
 {
+	assert(rep != NULL);
 	assert(rio != NULL);
 
-	pthread_mutex_lock(&rep_lock);
+	pthread_mutex_lock(&rep->rep_lock);
 
-	rio->repute_next = rep_ios;
-	rep_ios = rio;
+	rio->repute_next = rep->rep_ios;
+	rep->rep_ios = rio;
 
-	pthread_mutex_unlock(&rep_lock);
+	pthread_mutex_unlock(&rep->rep_lock);
 }
 
 /*
@@ -441,7 +449,7 @@ repute_doquery(struct repute_io *rio, const char *url)
 **  REPUTE_GET_TEMPLATE -- retrieve a URI template for a service
 **
 **  Parameters:
-**  	domain -- domain name where the service can be found
+**  	rep -- REPUTE handle
 **  	buf -- buffer into which to write the retrieved template
 **  	buflen -- bytes available at "buf"
 **
@@ -450,51 +458,48 @@ repute_doquery(struct repute_io *rio, const char *url)
 */
 
 static int
-repute_get_template(const char *domain, char *buf, size_t buflen)
+repute_get_template(REPUTE rep)
 {
 	int out;
 	int cstatus;
 	struct repute_io *rio;
 	char url[REPUTE_BUFBASE + 1];
 
-	assert(domain != NULL);
-	assert(buf != NULL);
+	assert(rep != NULL);
 
-	rio = repute_get_io();
+	rio = repute_get_io(rep);
 	if (rio == NULL)
 		return REPUTE_STAT_INTERNAL;
 
-	snprintf(url, sizeof url, REPUTE_URI_TEMPLATE, domain);
+	snprintf(url, sizeof url, REPUTE_URI_TEMPLATE, rep->rep_server);
 
 	cstatus = curl_easy_setopt(rio->repute_curl, CURLOPT_WRITEDATA, rio);
 	if (cstatus != CURLE_OK)
 	{
-		repute_put_io(rio);
+		repute_put_io(rep, rio);
 		return REPUTE_STAT_INTERNAL;
 	}
 
 	cstatus = curl_easy_setopt(rio->repute_curl, CURLOPT_URL, url);
 	if (cstatus != CURLE_OK)
 	{
-		repute_put_io(rio);
+		repute_put_io(rep, rio);
 		return REPUTE_STAT_INTERNAL;
 	}
 
 	cstatus = curl_easy_perform(rio->repute_curl);
 	if (cstatus != CURLE_OK)
 	{
-		repute_put_io(rio);
+		repute_put_io(rep, rio);
 		return REPUTE_STAT_QUERY;
 	}
 
-	out = snprintf(buf, buflen, "%s", rio->repute_buf);
+	(void) snprintf(rep->rep_uritemp, sizeof rep->rep_uritemp, "%s",
+	                rio->repute_buf);
 
-	repute_put_io(rio);
+	repute_put_io(rep, rio);
 
-	if (out > buflen)
-		return REPUTE_STAT_INTERNAL;
-	else
-		return REPUTE_STAT_OK;
+	return REPUTE_STAT_OK;
 }
 
 /*
@@ -513,29 +518,62 @@ repute_init(void)
 	xmlInitParser();
 
 	curl_global_init(CURL_GLOBAL_ALL);
-
-	pthread_mutex_init(&rep_lock, NULL);
-
-	rep_ios = NULL;
 }
 
 /*
-**  REPUTE_CLOSE -- tear down REPUTE subsystem
+**  REPUTE_NEW -- make a new REPUTE handle
+**
+**  Parameters:
+**  	None.
+**
+**  Return value:
+**  	A new REPUTE handle on success, NULL on failure.
+*/
+
+REPUTE
+repute_new(const char *server)
+{
+	struct repute_handle *new;
+
+	assert(server != NULL);
+
+	new = malloc(sizeof *new);
+	if (new == NULL)
+		return NULL;
+
+	memset(new, '\0', sizeof *new);
+
+	new->rep_server = strdup(server);
+	if (new->rep_server == NULL)
+	{
+		free(new);
+		return NULL;
+	}
+
+	pthread_mutex_init(&new->rep_lock, NULL);
+
+	return new;
+}
+
+/*
+**  REPUTE_CLOSE -- tear down a REPUTE handle
 **
 **  Paramters:
-**  	None.
+**  	rep -- REPUTE handle to shut down
 **
 **  Return value:
 **  	None.
 */
 
 void
-repute_close(void)
+repute_close(REPUTE rep)
 {
 	struct repute_io *rio;
 	struct repute_io *next;
 
-	rio = rep_ios;
+	assert(rep == NULL);
+
+	rio = rep->rep_ios;
 	while (rio != NULL)
 	{
 		next = rio->repute_next;
@@ -549,15 +587,19 @@ repute_close(void)
 		rio = next;
 	}
 
-	pthread_mutex_destroy(&rep_lock);
+	pthread_mutex_destroy(&rep->rep_lock);
+
+	free((void *) rep->rep_server);
+
+	free(rep);
 }
 
 /*
 **  REPUTE_QUERY -- query a REPUTE server for a spam reputation
 **
 **  Parameters:
+**  	rep -- REPUTE handle
 **  	domain -- domain of interest
-**  	server -- REPUTE server to query
 **  	repout -- reputation (returned)
 **  	confout -- confidence (returned)
 **  	sampout -- sample count (returned)
@@ -568,12 +610,12 @@ repute_close(void)
 */
 
 REPUTE_STAT
-repute_query(const char *domain, const char *server, float *repout,
+repute_query(REPUTE rep, const char *domain, float *repout,
              float *confout, unsigned long *sampout, time_t *whenout)
 {
 	REPUTE_STAT status;
 	float conf;
-	float rep;
+	float reputation;
 	unsigned long samples;
 	time_t when;
 	struct repute_io *rio;
@@ -582,13 +624,18 @@ repute_query(const char *domain, const char *server, float *repout,
 	char genurl[REPUTE_URL];
 	char template[REPUTE_URL];
 
+	assert(rep != NULL);
 	assert(domain != NULL);
-	assert(server != NULL);
 	assert(repout != NULL);
 
-	if (repute_get_template(domain, template,
-	                        sizeof template) != REPUTE_STAT_OK)
-		snprintf(template, sizeof template, "%s", REPUTE_URI_TEMPLATE);
+	if (rep->rep_uritemp[0] == '\0')
+	{
+		if (repute_get_template(rep) != REPUTE_STAT_OK)
+		{
+			snprintf(rep->rep_uritemp, sizeof rep->rep_uritemp,
+			         "%s", REPUTE_URI_TEMPLATE);
+		}
+	}
 
 	ut = ut_init();
 	if (ut == NULL)
@@ -597,7 +644,7 @@ repute_query(const char *domain, const char *server, float *repout,
 	if (ut_keyvalue(ut, UT_KEYTYPE_STRING,
 	                "domain", (void *) domain) != 0 ||
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
-	                "service", (void *) server) != 0 ||
+	                "service", (void *) rep->rep_server) != 0 ||
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
 	                "application", REPUTE_URI_APPLICATION) != 0 ||
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
@@ -607,7 +654,7 @@ repute_query(const char *domain, const char *server, float *repout,
 		return REPUTE_STAT_INTERNAL;
 	}
 
-	if (ut_generate(ut, template, genurl, sizeof genurl) <= 0)
+	if (ut_generate(ut, rep->rep_uritemp, genurl, sizeof genurl) <= 0)
 	{
 		ut_destroy(ut);
 		return REPUTE_STAT_INTERNAL;
@@ -616,28 +663,28 @@ repute_query(const char *domain, const char *server, float *repout,
 	ut_destroy(ut);
 
 	snprintf(url, sizeof url, "%s://%s/%s", REPUTE_URI_SCHEME,
-	         server, genurl);
+	         rep->rep_server, genurl);
 
-	rio = repute_get_io();
+	rio = repute_get_io(rep);
 	if (rio == NULL)
 		return REPUTE_STAT_INTERNAL;
 
 	status = repute_doquery(rio, url);
 	if (status != REPUTE_STAT_OK)
 	{
-		repute_put_io(rio);
+		repute_put_io(rep, rio);
 		return status;
 	}
 
 	status = repute_parse(rio->repute_buf, rio->repute_offset,
-	                      &rep, &conf, &samples, &when);
+	                      &reputation, &conf, &samples, &when);
 	if (status != REPUTE_STAT_OK)
 	{
-		repute_put_io(rio);
+		repute_put_io(rep, rio);
 		return status;
 	}
 
-	*repout = rep;
+	*repout = reputation;
 	if (confout != NULL)
 		*confout = conf;
 	if (sampout != NULL)
@@ -645,7 +692,7 @@ repute_query(const char *domain, const char *server, float *repout,
 	if (whenout != NULL)
 		*whenout = when;
 
-	repute_put_io(rio);
+	repute_put_io(rep, rio);
 
 	return REPUTE_STAT_OK;
 }
