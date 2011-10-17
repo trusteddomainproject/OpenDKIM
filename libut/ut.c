@@ -1479,6 +1479,46 @@ main(int argc, char **argv)
 	assert(status > 0);
 	assert(strcmp(outbuf, ";semi=%3B;dot=.;comma=%2C") == 0);
 
+	status = ut_generate(ut, "{?var:3}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "?var=val") == 0);
+
+	status = ut_generate(ut, "{?list}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "?list=red,green,blue") == 0);
+
+	status = ut_generate(ut, "{?list*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "?red&green&blue") == 0);
+
+	status = ut_generate(ut, "{?keys}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "?keys=semi,%3B,dot,.,comma,%2C") == 0);
+
+	status = ut_generate(ut, "{?keys*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "?semi=%3B&dot=.&comma=%2C") == 0);
+
+	status = ut_generate(ut, "{&var:3}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "&var=val") == 0);
+
+	status = ut_generate(ut, "{&list}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "&list=red,green,blue") == 0);
+
+	status = ut_generate(ut, "{&list*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "&red&green&blue") == 0);
+
+	status = ut_generate(ut, "{&keys}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "&keys=semi,%3B,dot,.,comma,%2C") == 0);
+
+	status = ut_generate(ut, "{&keys*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "&semi=%3B&dot=.&comma=%2C") == 0);
+
 	ut_destroy(ut);
 
 	return 0;
