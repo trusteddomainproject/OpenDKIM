@@ -462,6 +462,7 @@ repute_get_template(REPUTE rep)
 {
 	int out;
 	int cstatus;
+	long rcode;
 	struct repute_io *rio;
 	char url[REPUTE_BUFBASE + 1];
 
@@ -489,6 +490,14 @@ repute_get_template(REPUTE rep)
 
 	cstatus = curl_easy_perform(rio->repute_curl);
 	if (cstatus != CURLE_OK)
+	{
+		repute_put_io(rep, rio);
+		return REPUTE_STAT_QUERY;
+	}
+
+	cstatus = curl_easy_getinfo(rio->repute_curl, CURLINFO_RESPONSE_CODE,
+	                            &rcode);
+	if (rcode != 200)
 	{
 		repute_put_io(rep, rio);
 		return REPUTE_STAT_QUERY;
@@ -633,7 +642,7 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 		if (repute_get_template(rep) != REPUTE_STAT_OK)
 		{
 			snprintf(rep->rep_uritemp, sizeof rep->rep_uritemp,
-			         "%s", REPUTE_URI_TEMPLATE);
+			         "%s", REPUTE_URI_DEFTEMPLATE);
 		}
 	}
 
