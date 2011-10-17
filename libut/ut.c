@@ -1300,6 +1300,22 @@ main(int argc, char **argv)
 	assert(status > 0);
 	assert(strcmp(outbuf, ";x=1024;y=768;empty") == 0);
 
+	status = ut_generate(ut, "{?x,y}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "?x=1024&y=768") == 0);
+
+	status = ut_generate(ut, "{?x,y,empty}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "?x=1024&y=768&empty=") == 0);
+
+	status = ut_generate(ut, "?fixed=yes{&x}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "?fixed=yes&x=1024") == 0);
+
+	status = ut_generate(ut, "{&x,y,empty}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "&x=1024&y=768&empty=") == 0);
+
 	ut_destroy(ut);
 
 	return 0;
