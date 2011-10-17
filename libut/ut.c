@@ -797,6 +797,8 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 				  case UT_KEYTYPE_STRING:
 					if (named == 1)
 					{
+						char *val;
+
 						alen = ut_append(q, rem, allow,
 						                 v, -1);
 						q += alen;
@@ -806,7 +808,9 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 							rem -= alen;
 						olen += alen;
 
-						if (ukv->ukv_value == NULL)
+						val = (char *) ukv->ukv_value;
+						if (val == NULL ||
+						    val[0] == '\0')
 						{
 							if (ifemp[0] != '\0')
 							{
@@ -828,18 +832,6 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 							}
 
 							olen++;
-
-							alen = ut_append(q,
-							                 rem,
-							                 allow,
-							                 ukv->ukv_value,
-							                 maxlen);
-							q += alen;
-							if (alen > rem)
-								rem = 0;
-							else
-								rem -= alen;
-							olen += alen;
 						}
 					}
 
@@ -1241,6 +1233,73 @@ main(int argc, char **argv)
 	assert(status > 0);
 	assert(strcmp(outbuf, "X#Hello%20World!") == 0);
 	
+	ut_destroy(ut);
+
+	/* Level 3 examples */
+	ut = ut_init();
+	assert(ut != NULL);
+
+	status = ut_keyvalue(ut, UT_KEYTYPE_STRING, "var", "value");
+	assert(status == 0);
+	status = ut_keyvalue(ut, UT_KEYTYPE_STRING, "hello", "Hello World!");
+	assert(status == 0);
+	status = ut_keyvalue(ut, UT_KEYTYPE_STRING, "empty", "");
+	assert(status == 0);
+	status = ut_keyvalue(ut, UT_KEYTYPE_STRING, "path", "/foo/bar");
+	assert(status == 0);
+	status = ut_keyvalue(ut, UT_KEYTYPE_STRING, "x", "1024");
+	assert(status == 0);
+	status = ut_keyvalue(ut, UT_KEYTYPE_STRING, "y", "768");
+	assert(status == 0);
+
+	status = ut_generate(ut, "map?{x,y}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "map?1024,768") == 0);
+
+	status = ut_generate(ut, "{x,hello,y}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "1024,Hello%20World%21,768") == 0);
+
+	status = ut_generate(ut, "{+x,hello,y}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "1024,Hello%20World!,768") == 0);
+
+	status = ut_generate(ut, "{+path,x}/here", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "/foo/bar,1024/here") == 0);
+
+	status = ut_generate(ut, "{#x,hello,y}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "#1024,Hello%20World!,768") == 0);
+
+	status = ut_generate(ut, "{#path,x}/here", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "#/foo/bar,1024/here") == 0);
+
+	status = ut_generate(ut, "X{.var}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "X.value") == 0);
+
+	status = ut_generate(ut, "X{.x,y}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "X.1024.768") == 0);
+
+	status = ut_generate(ut, "{/var}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "/value") == 0);
+
+	status = ut_generate(ut, "{/var,x}/here", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "/value/1024/here") == 0);
+
+	status = ut_generate(ut, "{;x,y}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, ";x=1024;y=768") == 0);
+
+	status = ut_generate(ut, "{;x,y,empty}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, ";x=1024;y=768;empty") == 0);
+
 	ut_destroy(ut);
 
 	return 0;
