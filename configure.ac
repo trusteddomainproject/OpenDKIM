@@ -1924,6 +1924,7 @@ AC_OUTPUT([	Makefile
 		libopendkim/docs/Makefile
 		libopendkim/tests/Makefile
 		librbl/rbl.pc librbl/Makefile
+		libut/ut.pc libut/Makefile
 		libvbr/vbr.pc libvbr/Makefile
 		miltertest/Makefile
 		opendkim/Makefile opendkim/opendkim.8 opendkim/opendkim-genkey
