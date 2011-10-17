@@ -234,13 +234,6 @@ struct dkimf_db_lua
 };
 #endif /* USE_LUA */
 
-#ifdef _FFR_REPUTATION
-struct dkimf_db_repute
-{
-	char			repute_server[DKIM_MAXHOSTNAMELEN + 1];
-};
-#endif /* _FFR_REPUTATION */
-
 /* globals */
 struct dkimf_db_table dbtypes[] =
 {
@@ -2318,19 +2311,13 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 #ifdef _FFR_REPUTATION
 	  case DKIMF_DB_TYPE_REPUTE:
 	  {
-		struct dkimf_db_repute *r;
+		REPUTE r;
 
-		r = (struct dkimf_db_repute *) malloc(sizeof *r);
+		r = repute_new(p);
+
 		if (r == NULL)
-		{
-			if (err != NULL)
-				*err = strerror(errno);
 			return -1;
-		}
-		memset(r, '\0', sizeof *r);
 
-		strlcpy(r->repute_server, p, sizeof r->repute_server);
-		
 		new->db_data = (void *) r;
 
 		break;
@@ -3656,12 +3643,11 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		unsigned long samp;
 		time_t when;
 		REPUTE_STAT rstat;
-		struct dkimf_db_repute *r;
+		REPUTE r;
 
-		r = (struct dkimf_db_repute *) db->db_data;
+		r = (REPUTE) db->db_data;
 
-		rstat = repute_query(buf, r->repute_server,
-		                     &rep, &conf, &samp, &when);
+		rstat = repute_query(r, buf, &rep, &conf, &samp, &when);
 
 		if (rstat != REPUTE_STAT_OK)
 			return -1;

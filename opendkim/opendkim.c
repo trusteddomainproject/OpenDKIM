@@ -99,6 +99,11 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 # include <dk.h>
 #endif /* VERIFY_DOMAINKEYS */
 
+#ifdef _FFR_REPUTATION
+/* reputation includes */
+# include <repute.h>
+#endif /* _FFR_REPUTATION */
+
 /* opendkim includes */
 #include "config.h"
 #include "opendkim-db.h"
@@ -16289,6 +16294,10 @@ main(int argc, char **argv)
 #ifdef _FFR_STATS
 	dkimf_stats_init();
 #endif /* _FFR_STATS */
+
+#ifdef _FFR_REPUTATION
+	repute_init();
+#endif /* _FFR_REPUTATION */
 
 	if (curconf->conf_dolog)
 	{
