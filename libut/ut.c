@@ -266,13 +266,6 @@ ut_append(char *ap, size_t rem, int allow, const char *in, int maxlen)
 			ap += 3;
 			rem -= 3;
 			out += 3;
-
-			if (maxlen > 0)
-			{
-				maxlen -= 3;
-				if (maxlen <= 0)
-					break;
-			}
 		}
 		else
 		{
@@ -280,12 +273,13 @@ ut_append(char *ap, size_t rem, int allow, const char *in, int maxlen)
 			rem--;
 			out++;
 
-			if (maxlen > 0)
-			{
-				maxlen--;
-				if (maxlen <= 0)
-					break;
-			}
+		}
+
+		if (maxlen > 0)
+		{
+			maxlen--;
+			if (maxlen <= 0)
+				break;
 		}
 	}
 
@@ -1441,6 +1435,30 @@ main(int argc, char **argv)
 	status = ut_generate(ut, "X{.keys*}", outbuf, sizeof outbuf);
 	assert(status > 0);
 	assert(strcmp(outbuf, "X.semi=%3B.dot=..comma=%2C") == 0);
+
+	status = ut_generate(ut, "{/var:1,var}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "/v/value") == 0);
+
+	status = ut_generate(ut, "{/list}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "/red,green,blue") == 0);
+
+	status = ut_generate(ut, "{/list*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "/red/green/blue") == 0);
+
+	status = ut_generate(ut, "{/list*,path:4}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "/red/green/blue/%2Ffoo") == 0);
+
+	status = ut_generate(ut, "{/keys}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "/semi,%3B,dot,.,comma,%2C") == 0);
+
+	status = ut_generate(ut, "{/keys*}", outbuf, sizeof outbuf);
+	assert(status > 0);
+	assert(strcmp(outbuf, "/semi=%3B/dot=./comma=%2C") == 0);
 
 	ut_destroy(ut);
 
