@@ -39,7 +39,6 @@ struct repute_io
 {
 	CURL *			repute_curl;
 	size_t			repute_alloc;
-	size_t			repute_len;
 	size_t			repute_offset;
 	char *			repute_buf;
 	struct repute_io *	repute_next;
@@ -103,8 +102,9 @@ repute_curl_writedata(char *ptr, size_t size, size_t nmemb, void *userdata)
 		io->repute_buf = malloc(io->repute_alloc);
 		if (io->repute_buf == NULL)
 			return 0;
+		memset(io->repute_buf, '\0', io->repute_alloc);
 	}
-	else if (io->repute_len + need < io->repute_alloc)
+	else if (io->repute_offset + need < io->repute_alloc)
 	{
 		size_t newsize;
 		char *newbuf;
@@ -112,7 +112,14 @@ repute_curl_writedata(char *ptr, size_t size, size_t nmemb, void *userdata)
 		newsize = MAX(io->repute_alloc * 2, io->repute_alloc + need);
 		newbuf = realloc(io->repute_buf, newsize);
 		if (newbuf == NULL)
+		{
 			return 0;
+		}
+		else
+		{
+			memset(newbuf + io->repute_offset, '\0',
+			       newsize - io->repute_offset);
+		}
 		io->repute_buf = newbuf;
 		io->repute_alloc = newsize;
 	}
@@ -347,7 +354,6 @@ repute_get_io(REPUTE rep)
 
 		rep->rep_ios = rep->rep_ios->repute_next;
 
-		rio->repute_len = 0;
 		rio->repute_offset = 0;
 	}
 	else
@@ -356,7 +362,6 @@ repute_get_io(REPUTE rep)
 		if (rio != NULL)
 		{
 			rio->repute_alloc = 0;
-			rio->repute_len = 0;
 			rio->repute_offset = 0;
 			rio->repute_buf = NULL;
 			rio->repute_next = NULL;
@@ -511,6 +516,8 @@ repute_get_template(REPUTE rep)
 
 	(void) snprintf(rep->rep_uritemp, sizeof rep->rep_uritemp, "%s",
 	                rio->repute_buf);
+	if (rep->rep_uritemp[rio->repute_offset - 1] == '\n')
+		rep->rep_uritemp[rio->repute_offset - 1] = '\0';
 
 	repute_put_io(rep, rio);
 
