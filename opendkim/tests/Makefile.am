@@ -14,6 +14,9 @@ if RBL
 check_SCRIPTS += t-lua-rbl
 endif
 endif
+if REPUTE
+check_SCRIPTS += t-verify-ss-rep
+endif
 
 TESTS = $(check_SCRIPTS)
 
@@ -43,6 +46,7 @@ EXTRA_DIST = \
 	t-verify-unspec t-verify-unspec.conf t-verify-unspec.lua \
 	t-verify-ss t-verify-ss.conf t-verify-ss.lua \
 	t-verify-ss-bad t-verify-ss-bad.conf t-verify-ss-bad.lua \
+	t-verify-ss-rep t-verify-ss-rep.conf t-verify-ss-rep.lua \
 	t-verify-syntax t-verify-syntax.conf t-verify-syntax.lua \
 	t-dontsign t-dontsign.conf t-dontsign.lua \
 	t-lua-rbl t-lua-rbl.conf t-lua-rbl.lua t-lua-rbl.lua-final \

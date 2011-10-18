@@ -1,0 +1,75 @@
+INTRODUCTION
+
+This area contains a snapshot of the ongoing development of a rudimentary
+reputation system based on OpenDKIM's statistics package.
+
+The statistics package is able to capture the flow of mail arriving as it
+passes through OpenDKIM.  All messages, even unsigned ones, are recorded.
+For signed messages, all signatures are recorded including pass/fail,
+signing domain, certain signature properties, etc.  The statistics system
+can also upload the locally-collected data to an arbitrary central repository
+where it can be aggregated and then made available to participants to query.
+
+This central system has not yet been designed to be queryable as a public
+service, but may be in the future.  This directory contains a description
+sufficient to build such a system, but also (and primarily) for building a
+local store that can be used as an intelligent filter based on DKIM
+verification results.
+
+REQUIREMENTS
+
+The requirements for this reputation system are as follows:
+
+1) Reputation must be based on the domain(s) that have some kind of
+   responsibility for the message.
+
+2) Reputation should be expressed in such a way that it can be easily
+   converted to a message flow limit.
+
+3) There must be some reasonable, even if tiny, allowance made for
+   domains about which no data have been accumulated.
+
+4) The system may output a few values for a given domain, such as
+   "strict", "medium" and "light", and these would be applied at the
+   discretion of the implementation.
+
+5) Data expiration must be configurable at the discretion of the site using
+   the system.  That is, the system should neither impose a specific lifetime
+   of the data accumulated, though it should discuss the impacts of different
+   choices of data lifetime.
+
+
+OVERVIEW
+
+The system computes a recommended flow based on the history of the
+behaviour of the signing domain(s) on a message.  Mail that is unsigned will
+be treated as though it was signed by the NULL domain, meaning all unsigned
+mail is presumed to come from a common source ("the unknown", as it were).
+What remains, then, is to determine the perceived value of mail from each
+of these sources.  This is done via data collection and statistical methods.
+
+Full details of this system can be found in the white paper entitled
+"Enforcing Rate Limits Based on Authenticated Sender Reputation",
+included in this directory.
+
+SETUP INSTRUCTIONS
+
+[provide details about how to set up a local instance of the reputation system
+ described above here]
+
+
+TROUBLESHOOTING
+
+[provide some troubleshooting tips]
+
+
+SUPPORT/QUESTIONS/COMMENTS
+
+This work is still evolving.  For support, subscribe to the "opendkim-users"
+list at http://lists.opendkim.org and post your question there.
+
+To report bugs or assist in development, subscribe to the "opendkim-dev"
+list at http://lists.opendkim.org and post there.
+
+Please do not use the trackers at SourceForge for reporting bugs or filing
+feature requests until this work is no longer considered experimental.

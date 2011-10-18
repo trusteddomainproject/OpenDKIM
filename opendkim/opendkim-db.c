@@ -41,6 +41,11 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #include <dkim.h>
 #include <dkim-strl.h>
 
+/* repute includes */
+#ifdef _FFR_REPUTATION
+# include <repute.h>
+#endif /* _FFR_REPUTATION */
+
 /* opendkim includes */
 #include "util.h"
 #ifdef OPENDKIM_DB_ONLY
@@ -185,6 +190,7 @@ struct dkimf_db_dsn
 	char			dsn_port[BUFRSZ];
 	char			dsn_table[BUFRSZ];
 	char			dsn_user[BUFRSZ];
+	const char *		dsn_filter;
 };
 #endif /* USE_ODBX */
 
@@ -231,7 +237,6 @@ struct dkimf_db_lua
 };
 #endif /* USE_LUA */
 
-
 /* globals */
 struct dkimf_db_table dbtypes[] =
 {
@@ -255,6 +260,9 @@ struct dkimf_db_table dbtypes[] =
 #ifdef USE_LIBMEMCACHED
 	{ "memcache",		DKIMF_DB_TYPE_MEMCACHE },
 #endif /* USE_LIBMEMCACHED */
+#ifdef _FFR_REPUTATION
+	{ "repute",		DKIMF_DB_TYPE_REPUTE },
+#endif /* _FFR_REPUTATION */
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
 
@@ -614,6 +622,29 @@ dkimf_db_saslinteract(LDAP *ld, unsigned int flags, void *defaults,
 	return SASL_OK;
 }
 #endif /* (USE_SASL && USE_LDAP) */
+
+/*
+**  DKIMF_DB_HEXDIGIT -- convert a hex digit to decimal value
+**
+**  Parameters:
+**  	c -- input character
+**
+**  Return value:
+**  	Converted value, or 0 on error.
+*/
+
+static int
+dkimf_db_hexdigit(int c)
+{
+	if (c >= '0' && c <= '9')
+		return c - '0';
+	else if (c >= 'A' && c <= 'F')
+		return c - 'A' + 10;
+	else if (c >= 'a' && c <= 'f')
+		return c - 'f' + 10;
+	else
+		return 0;
+}
 
 /*
 **  DKIMF_DB_DATASPLIT -- split a database value or set of values into a
@@ -1576,10 +1607,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		bdbtype = DB_HASH;
 # endif /* DB_VERSION_CHECK(2,0,0) */
 
-#ifdef _FFR_LDAP_CACHING
 		if (*p == '\0' && (flags & DKIMF_DB_FLAG_READONLY) == 0)
 			p = NULL;
-#endif /* _FFR_LDAP_CACHING */
 
 # if DB_VERSION_CHECK(3,0,0)
 		status = db_create(&newdb, NULL, 0);
@@ -1647,7 +1676,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		**  <backend>://[user[:pwd]@][port+]host/dbase[/key=val[?...]]
 		**  
 		**  "table", "keycol" and "datacol" will be set in one of the
-		**  key-value pairs.
+		**  key-value pairs.  "filter" is optional.
 		*/
 
 		tmp = strdup(p);
@@ -1795,6 +1824,44 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			{
 				strlcpy(dsn->dsn_datacol, eq + 1,
 				        sizeof dsn->dsn_datacol);
+			}
+			else if (strcasecmp(p, "filter") == 0)
+			{
+				size_t len;
+
+				len = strlen(eq + 1) + 1;
+
+				dsn->dsn_filter = malloc(len);
+				if (dsn->dsn_filter != NULL)
+				{
+					int c;
+					char *q;
+					char *r;
+
+					memset((void *) dsn->dsn_filter,
+					       '\0', len);
+
+					r = (char *) dsn->dsn_filter;
+
+					for (q = eq + 1;
+					     q < eq + len;
+					     q++)
+					{
+						if (*q == '=' &&
+						    isxdigit(*(q + 1)) &&
+						    isxdigit(*(q + 2)))
+						{
+							c = 16 * dkimf_db_hexdigit(*(q + 1));
+							c += dkimf_db_hexdigit(*(q + 2));
+							*r++ = c;
+							q += 2;
+						}
+						else
+						{
+							*r++ = *q;
+						}
+					}
+				}
 			}
 		}
 
@@ -2242,6 +2309,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		}
 
 		free(tmp);
+		break;
 	  }
 #endif /* USE_LUA */
 
@@ -2311,8 +2379,23 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		new->db_data = key;
 
 		free(tmp);
+		break;
 	  }
-#endif /* USE_LIBMEMCACHED */
+
+	  case DKIMF_DB_TYPE_REPUTE:
+	  {
+		REPUTE r;
+
+		r = repute_new(p);
+
+		if (r == NULL)
+			return -1;
+
+		new->db_data = (void *) r;
+
+		break;
+	  }
+#endif /* _FFR_REPUTATION */
 	}
 
 	*db = new;
@@ -2352,6 +2435,7 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 	    db->db_type == DKIMF_DB_TYPE_LDAP || 
 	    db->db_type == DKIMF_DB_TYPE_LUA || 
 	    db->db_type == DKIMF_DB_TYPE_MEMCACHE || 
+	    db->db_type == DKIMF_DB_TYPE_REPUTE || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -2497,6 +2581,7 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
 	    db->db_type == DKIMF_DB_TYPE_LDAP || 
 	    db->db_type == DKIMF_DB_TYPE_LUA || 
+	    db->db_type == DKIMF_DB_TYPE_REPUTE || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -3070,10 +3155,12 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		}
 
 		snprintf(query, sizeof query,
-		         "SELECT %s FROM %s WHERE %s = '%s'",
+		         "SELECT %s FROM %s WHERE %s = '%s'%s%s",
 		         dsn->dsn_datacol,
 		         dsn->dsn_table,
-		         dsn->dsn_keycol, escaped);
+		         dsn->dsn_keycol, escaped,
+		         dsn->dsn_filter == NULL ? "" : " AND ",
+		         dsn->dsn_filter == NULL ? "" : dsn->dsn_filter);
 
 		err = odbx_query(odbx, query, 0);
 		if (err < 0)
@@ -3693,7 +3780,101 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			return -1;
 		}
 	  }
-#endif /* USE_LIBMEMCACHED */
+
+	  case DKIMF_DB_TYPE_REPUTE:
+	  {
+		int c;
+		float rep;
+		float conf;
+		unsigned long samp;
+		time_t when;
+		REPUTE_STAT rstat;
+		REPUTE r;
+
+		r = (REPUTE) db->db_data;
+
+		rstat = repute_query(r, buf, &rep, &conf, &samp, &when);
+
+		if (rstat != REPUTE_STAT_OK)
+			return -1;
+
+		if (exists != NULL)
+			*exists = TRUE;
+
+		if (reqnum >= 1)
+		{
+			if ((req[0].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
+			{
+				if (req[0].dbdata_buflen != sizeof rep)
+					return -1;
+				memcpy(req[0].dbdata_buffer, &rep, sizeof rep);
+			}
+			else
+			{
+				req[0].dbdata_buflen = snprintf(req[0].dbdata_buffer,
+				                                req[0].dbdata_buflen,
+				                                "%f", rep);
+			}
+		}
+
+		if (reqnum >= 2)
+		{
+			if ((req[1].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
+			{
+				if (req[1].dbdata_buflen != sizeof conf)
+					return -1;
+				memcpy(req[1].dbdata_buffer, &conf,
+				       sizeof conf);
+			}
+			else
+			{
+				req[1].dbdata_buflen = snprintf(req[1].dbdata_buffer,
+				                                req[1].dbdata_buflen,
+				                                "%f", conf);
+			}
+		}
+
+		if (reqnum >= 3)
+		{
+			if ((req[2].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
+			{
+				if (req[2].dbdata_buflen != sizeof samp)
+					return -1;
+				memcpy(req[2].dbdata_buffer, &samp,
+				       sizeof samp);
+			}
+			else
+			{
+				req[2].dbdata_buflen = snprintf(req[2].dbdata_buffer,
+				                                req[2].dbdata_buflen,
+				                                "%lu", samp);
+			}
+		}
+
+		if (reqnum >= 4)
+		{
+			if ((req[3].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
+			{
+				if (req[3].dbdata_buflen != sizeof when)
+					return -1;
+				memcpy(req[3].dbdata_buffer, &when,
+				       sizeof when);
+			}
+			else
+			{
+				req[3].dbdata_buflen = snprintf(req[3].dbdata_buffer,
+				                                req[3].dbdata_buflen,
+				                                "%lu", when);
+			}
+		}
+
+		/* tag requests that weren't fulfilled */
+		for (c = 4; c < reqnum; c++)
+			req[c].dbdata_buflen = 0;
+
+		return 0;
+	  }
+#endif /* _FFR_REPUTATION */
 
 	  default:
 		assert(0);
@@ -3866,6 +4047,11 @@ dkimf_db_close(DKIMF_DB db)
 		return 0;
 	  }
 #endif /* USE_LIBMEMCACHED */
+
+	  case DKIMF_DB_TYPE_REPUTE:
+		free(db->db_data);
+		free(db);
+		return 0;
 
 	  default:
 		assert(0);

@@ -2073,3 +2073,49 @@ dkim_canon_getfinal(DKIM_CANON *canon, u_char **digest, size_t *dlen)
 		return DKIM_STAT_INTERNAL;
 	}
 }
+
+/*
+**  DKIM_CANON_GETHASHES -- retrieve hashes
+**
+**  Parameters:
+**  	sig -- signature from which to get completed hashes
+**  	hh -- pointer to header hash buffer (returned)
+**  	hhlen -- bytes used at hh (returned)
+**  	bh -- pointer to body hash buffer (returned)
+**  	bhlen -- bytes used at bh (returned)
+**
+**  Return value:
+**  	DKIM_STAT_OK -- successful completion
+**  	DKIM_STAT_INVALID -- hashing hasn't been completed
+*/
+
+DKIM_STAT
+dkim_canon_gethashes(DKIM_SIGINFO *sig, void **hh, size_t *hhlen,
+                     void **bh, size_t *bhlen)
+{
+	DKIM_STAT status;
+	struct dkim_canon *hdc;
+	struct dkim_canon *bdc;
+	u_char *hd;
+	u_char *bd;
+	size_t hdlen;
+	size_t bdlen;
+
+	hdc = sig->sig_hdrcanon;
+	bdc = sig->sig_bodycanon;
+
+	status = dkim_canon_getfinal(hdc, &hd, &hdlen);
+	if (status != DKIM_STAT_OK)
+		return status;
+
+	status = dkim_canon_getfinal(bdc, &bd, &bdlen);
+	if (status != DKIM_STAT_OK)
+		return status;
+
+	*hh = hd;
+	*hhlen = hdlen;
+	*bh = bd;
+	*bhlen = bdlen;
+
+	return DKIM_STAT_OK;
+}

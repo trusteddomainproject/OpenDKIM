@@ -1907,6 +1907,24 @@ extern int dkim_qi_gettype __P((DKIM_QUERYINFO *));
 
 extern int dkim_base32_encode __P((char *, size_t *, const void *, size_t));
 
+/*
+**  DKIM_SIG_GETHASHES -- retrieve hashes
+**
+**  Parameters:
+**  	sig -- signature from which to get completed hashes
+**  	hh -- pointer to header hash buffer (returned)
+**  	hhlen -- bytes used at hh (returned)
+**  	bh -- pointer to body hash buffer (returned)
+**  	bhlen -- bytes used at bh (returned)
+**
+**  Return value:
+**  	DKIM_STAT_OK -- successful completion
+**  	DKIM_STAT_INVALID -- hashing hasn't been completed
+*/
+
+extern DKIM_STAT dkim_sig_gethashes __P((DKIM_SIGINFO *, void **, size_t *,
+                                         void **, size_t *));
+
 /* default list of sender headers */
 extern const u_char *dkim_default_senderhdrs[];
 

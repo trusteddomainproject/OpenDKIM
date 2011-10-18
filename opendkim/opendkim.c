@@ -99,6 +99,11 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 #endif /* _FFR_VBR */
 #include "dkim-strl.h"
 
+#ifdef _FFR_REPUTATION
+/* reputation includes */
+# include <repute.h>
+#endif /* _FFR_REPUTATION */
+
 /* opendkim includes */
 #include "config.h"
 #ifdef _FFR_RATE_LIMIT
@@ -121,6 +126,9 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 #ifdef _FFR_STATS
 # include "stats.h"
 #endif /* _FFR_STATS */
+#ifdef _FFR_REPUTATION
+# include "reputation.h"
+#endif /* _FFR_REPUTATION */
 
 /* macros */
 #define CMDLINEOPTS	"Ab:c:d:De:fF:k:lL:no:p:P:qQrs:S:t:T:u:vVWx:?"
@@ -242,6 +250,9 @@ struct dkimf_config
 	unsigned int	conf_dnstimeout;	/* DNS timeout */
 	unsigned int	conf_maxhdrsz;		/* max header bytes */
 	unsigned int	conf_maxverify;		/* max sigs to verify */
+#ifdef _FFR_REPUTATION
+	unsigned int	conf_repfactor;		/* reputation factor */
+#endif /* _FFR_REPUTATION */
 #ifdef USE_UNBOUND
 	unsigned int	conf_boguskey;		/* bogus key action */
 	unsigned int	conf_insecurekey;	/* insecure key action */
@@ -416,6 +427,17 @@ struct dkimf_config
 	DKIMF_DB	conf_ratelimitdb;	/* domain rate limits */
 	DKIMF_DB	conf_flowdatadb;	/* domain flow data */
 #endif /* _FFR_RATE_LIMIT */
+#ifdef _FFR_REPUTATION
+	char *		conf_repratios;		/* reputed ratios */
+	DKIMF_DB	conf_repratiosdb;	/* reputed ratios DB */
+	char *		conf_replimits;		/* reputed limits */
+	DKIMF_DB	conf_replimitsdb;	/* reputed limits DB */
+	char *		conf_replowtime;	/* reputed low timers */
+	DKIMF_DB	conf_replowtimedb;	/* reputed low timers DB */
+	DKIMF_REP	conf_rep;		/* reputation subsystem */
+	char *		conf_repspamcheck;	/* reputation spam RE string */
+	regex_t		conf_repspamre;		/* reputation spam RE */
+#endif /* _FFR_REPUTATION */
 	DKIM_LIB *	conf_libopendkim;	/* DKIM library handle */
 	struct handling	conf_handling;		/* message handling */
 };
@@ -440,6 +462,9 @@ struct msgctx
 #ifdef _FFR_VBR
 	_Bool		mctx_vbrpurge;		/* purge X-VBR-* headers */
 #endif /* _FFR_VBR */
+#ifdef _FFR_REPUTATION
+	_Bool		mctx_spam;		/* is spam? */
+#endif /* _FFR_REPUTATION */
 	dkim_policy_t	mctx_pcode;		/* policy result code */
 #ifdef _FFR_ATPS
 	int		mctx_atps;		/* ATPS */
@@ -479,6 +504,9 @@ struct msgctx
 	struct lua_global * mctx_luaglobalh;	/* Lua global list */
 	struct lua_global * mctx_luaglobalt;	/* Lua global list */
 #endif /* _FFR_LUA_GLOBALS */
+#ifdef _FFR_REPUTATION
+	SHA_CTX		mctx_hash;		/* hash, for dup detection */
+#endif /* _FFR_REPUTATION */
 	unsigned char	mctx_envfrom[MAXADDRESS + 1];
 						/* envelope sender */
 	unsigned char	mctx_domain[DKIM_MAXHOSTNAMELEN + 1];
@@ -1742,6 +1770,55 @@ dkimf_xs_clientip(lua_State *l)
 
 	return 1;
 }
+
+#ifdef _FFR_REPUTATION
+/*
+**  DKIMF_XS_SPAM -- tag message as spam
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_spam(lua_State *l)
+{
+	SMFICTX *ctx;
+	const char *keyname = NULL;
+	const char *ident = NULL;
+	struct connctx *cc;
+	struct msgctx *dfc;
+	struct dkimf_config *conf;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l, "odkim.spam(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l, "odkim.spam(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	if (ctx != NULL)
+	{
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+
+		dfc->mctx_spam = TRUE;
+	}
+
+	lua_pop(l, 1);
+
+	return 0;
+}
+#endif /* _FFR_REPUTATION */
 
 /*
 **  DKIMF_XS_REQUESTSIG -- request a signature
@@ -5552,6 +5629,9 @@ dkimf_config_new(void)
 #ifdef _FFR_DKIM_REPUTATION
 	new->conf_repreject = DKIM_REP_DEFREJECT;
 #endif /* _FFR_DKIM_REPUTATION */
+#ifdef _FFR_REPUTATION
+	new->conf_repfactor = DKIMF_REP_DEFFACTOR;
+#endif /* _FFR_REPUTATION */
 	new->conf_safekeys = TRUE;
 	new->conf_adspaction = SMFIS_CONTINUE;
 #ifdef _FFR_STATS
@@ -5692,6 +5772,17 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_flowdatadb != NULL)
 		dkimf_db_close(conf->conf_flowdatadb);
 #endif /* _FFR_RESIGN */
+
+#ifdef _FFR_REPUTATION
+	if (conf->conf_repratiosdb != NULL)
+		dkimf_db_close(conf->conf_repratiosdb);
+	if (conf->conf_replimitsdb != NULL)
+		dkimf_db_close(conf->conf_replimitsdb);
+	if (conf->conf_repspamcheck != NULL)
+		regfree(&conf->conf_repspamre);
+	if (conf->conf_rep != NULL)
+		dkimf_rep_close(conf->conf_rep);
+#endif /* _FFR_REPUTATION */
 
 #ifdef USE_LUA
 	if (conf->conf_setupscript != NULL)
@@ -5967,32 +6058,35 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  sizeof conf->conf_rmidentityhdr);
 #endif /* _FFR_IDENTITY_HEADER */
 #ifdef _FFR_DKIM_REPUTATION
-		(void) config_get(data, "ReputationFail", &conf->conf_repfail,
+		(void) config_get(data, "DKIMReputationFail",
+		                  &conf->conf_repfail,
 		                  sizeof conf->conf_repfail);
 
-		(void) config_get(data, "ReputationPass", &conf->conf_reppass,
+		(void) config_get(data, "DKIMReputationPass",
+		                  &conf->conf_reppass,
 		                  sizeof conf->conf_reppass);
 
-		(void) config_get(data, "ReputationReject",
+		(void) config_get(data, "DKIMReputationReject",
 		                  &conf->conf_repreject,
 		                  sizeof conf->conf_repreject);
 
 		str = NULL;
-		(void) config_get(data, "ReputationRoot", &str, sizeof str);
+		(void) config_get(data, "DKIMReputationRoot",
+		                  &str, sizeof str);
 		if (str != NULL)
 			conf->conf_reproot = strdup(str);
 
 		if (conf->conf_repfail < conf->conf_reppass)
 		{
 			snprintf(err, errlen,
-			         "invalid reputation thresholds (ReputationFail < ReputationPass)");
+			         "invalid reputation thresholds (DKIMReputationFail < DKIMReputationPass)");
 			return -1;
 		}
 
 		if (conf->conf_repreject < conf->conf_repfail)
 		{
 			snprintf(err, errlen,
-			         "invalid reputation thresholds (ReputationReject < ReputationFail)");
+			         "invalid reputation thresholds (DKIMReputationReject < DKIMReputationFail)");
 			return -1;
 		}
 #endif /* _FFR_DKIM_REPUTATION */
@@ -7551,6 +7645,120 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 #endif /* _FFR_REPLACE_RULES */
 
+#ifdef _FFR_REPUTATION
+	if (data != NULL)
+	{
+		(void) config_get(data, "ReputationLimits",
+		                  &conf->conf_replimits,
+		                  sizeof conf->conf_replimits);
+
+		(void) config_get(data, "ReputationRatios",
+		                  &conf->conf_repratios,
+		                  sizeof conf->conf_repratios);
+
+		(void) config_get(data, "ReputationLowTime",
+		                  &conf->conf_replowtime,
+		                  sizeof conf->conf_replowtime);
+
+		(void) config_get(data, "ReputationFactor",
+		                  &conf->conf_repfactor,
+		                  sizeof conf->conf_repfactor);
+
+		(void) config_get(data, "ReputationSpamCheck",
+		                  &conf->conf_repspamcheck,
+		                  sizeof conf->conf_repspamcheck);
+	}
+
+	if (conf->conf_repspamcheck != NULL)
+	{
+		size_t tmplen;
+		char tmpre[BUFRSZ + 1];
+
+		tmplen = strlen(conf->conf_repspamcheck);
+		if (tmplen < 3 ||
+		    conf->conf_repspamcheck[0] != '/' ||
+		    conf->conf_repspamcheck[tmplen - 1] != '/')
+		{
+			snprintf(err, errlen,
+			         "invalid value for ReputationSpamCheck");
+			return -1;
+		}
+
+		strlcpy(tmpre, conf->conf_repspamcheck + 1, sizeof tmpre);
+		tmpre[tmplen - 2] = '\0';
+
+		if (regcomp(&conf->conf_repspamre, tmpre, REG_EXTENDED) != 0)
+		{
+			snprintf(err, errlen,
+			         "unusable value for ReputationSpamCheck");
+			return -1;
+		}
+	}
+
+	if (conf->conf_replowtime != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_replowtimedb,
+		                       conf->conf_replowtime,
+		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         conf->conf_replowtime, dberr);
+			return -1;
+		}
+
+		status = dkimf_db_open(&curconf->conf_replowtimedb,
+		                       curconf->conf_replowtime,
+		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         conf->conf_replowtime, dberr);
+			return -1;
+		}
+	}
+
+	if (conf->conf_replimits != NULL &&
+	    conf->conf_repratios != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_replimitsdb,
+		                       conf->conf_replimits,
+		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         conf->conf_replimits, dberr);
+			return -1;
+		}
+
+		status = dkimf_db_open(&curconf->conf_repratiosdb,
+		                       curconf->conf_repratios,
+		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         conf->conf_repratios, dberr);
+			return -1;
+		}
+
+		if (dkimf_rep_init(&conf->conf_rep, conf->conf_repfactor,
+	                           conf->conf_replimitsdb,
+	                           conf->conf_repratiosdb,
+		                   conf->conf_replowtimedb) != 0)
+		{
+			snprintf(err, errlen,
+			         "can't initialize reputation subsystem");
+			return -1;
+		}
+	}
+#endif /* _FFR_REPUTATION */
+
 	dkimf_reportaddr(conf);
 
 	/* load the secret key, if one was specified */
@@ -8454,6 +8662,9 @@ dkimf_initcontext(struct dkimf_config *conf)
 #ifdef _FFR_ATPS
 	ctx->mctx_atps = DKIM_ATPS_UNKNOWN;
 #endif /* _FFR_ATPS */
+#ifdef _FFR_REPUTATION
+	SHA1_Init(&ctx->mctx_hash);
+#endif /* _FFR_REPUTATION */
 
 	return ctx;
 }
@@ -10722,6 +10933,11 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 		return SMFIS_TEMPFAIL;
 	}
 
+#ifdef _FFR_REPUTATION
+	SHA1_Update(&dfc->mctx_hash, headerf, strlen(headerf));
+	SHA1_Update(&dfc->mctx_hash, headerv, strlen(headerv));
+#endif /* _FFR_REPUTATION */
+
 	(void) memset(newhdr, '\0', sizeof(struct Header));
 
 	newhdr->hdr_hdr = strdup(headerf);
@@ -12241,6 +12457,15 @@ mlfi_eoh(SMFICTX *ctx)
 			last = *p;
 		}
 
+#ifdef _FFR_REPUTATION
+		/* check for spam flag */
+		if (conf->conf_repspamcheck != NULL &&
+		    regexec(&conf->conf_repspamre, 
+		            dkimf_dstring_get(dfc->mctx_tmpstr),
+		            0, NULL, 0) == 0)
+			dfc->mctx_spam = TRUE;
+#endif /* _FFR_REPUTATION */
+
 		if (dfc->mctx_srhead != NULL)
 		{
 			DKIM *dkim;
@@ -12512,6 +12737,10 @@ mlfi_body(SMFICTX *ctx, u_char *bodyp, size_t bodylen)
 
 	if (bodylen == 0)
 		return SMFIS_CONTINUE;
+
+#ifdef _FFR_REPUTATION
+	SHA1_Update(&dfc->mctx_hash, bodyp, bodylen);
+#endif /* _FFR_REPUTATION */
 
 	/*
 	**  Tell the filter to skip it if we don't care about the body.
@@ -13442,6 +13671,80 @@ mlfi_eom(SMFICTX *ctx)
 			}
 		}
 #endif /* _FFR_STATS */
+
+#ifdef _FFR_REPUTATION
+		if (dfc->mctx_dkimv != NULL && conf->conf_rep != NULL)
+		{
+			DKIM_SIGINFO **sigs;
+			int nsigs;
+
+			status = dkim_getsiglist(dfc->mctx_dkimv,
+			                         &sigs, &nsigs);
+
+			if (status == DKIM_STAT_OK)
+			{
+				int c;
+				_Bool checked = FALSE;
+				_Bool found = FALSE;
+				const char *domain = NULL;
+				unsigned char digest[SHA_DIGEST_LENGTH];
+
+				SHA1_Final(digest, &dfc->mctx_hash);
+
+				for (c = 0; c < nsigs; c++)
+				{
+					if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 ||
+					    dkim_sig_getbh(sigs[c]) != DKIM_SIGBH_MATCH)
+						continue;
+
+					checked = TRUE;
+
+					status = dkimf_rep_check(conf->conf_rep,
+					                         sigs[c],
+					                         dfc->mctx_spam,
+					                         digest,
+					                         SHA_DIGEST_LENGTH);
+
+					if (status == 1)
+						domain = dkim_sig_getdomain(sigs[c]);
+					else if (status == 0)
+						found = TRUE;
+				}
+
+				if (domain != NULL)
+				{
+					if (dolog)
+					{
+						syslog(LOG_NOTICE,
+						       "%s blocked by reputation on %s",
+						       dfc->mctx_jobid,
+						       domain);
+					}
+
+					return SMFIS_TEMPFAIL;
+				}
+
+				if (!checked)
+				{
+					if (dkimf_rep_check(conf->conf_rep,
+					                    NULL,
+					                    dfc->mctx_spam,
+					                    digest,
+					                    SHA_DIGEST_LENGTH) == 1)
+					{
+						if (dolog)
+						{
+							syslog(LOG_NOTICE,
+							       "%s blocked by reputation on NULL domain",
+							       dfc->mctx_jobid);
+						}
+
+						return SMFIS_TEMPFAIL;
+					}
+				}
+			}
+		}
+#endif /* _FFR_REPUTATION */
 
 		if (dfc->mctx_addheader)
 		{
@@ -15393,6 +15696,9 @@ main(int argc, char **argv)
 #ifdef USE_LIBMEMCACHED
 			                "\tmemcache:host[:port][,...]/prefix\n"
 #endif /* USE_LIBMEMCACHED */
+#ifdef _FFR_REPUTATION
+			                "\trepute:server\n"
+#endif /* _FFR_REPUTATION */
 			                "> ");
 		}
 
@@ -16524,6 +16830,10 @@ main(int argc, char **argv)
 #ifdef _FFR_STATS
 	dkimf_stats_init();
 #endif /* _FFR_STATS */
+
+#ifdef _FFR_REPUTATION
+	repute_init();
+#endif /* _FFR_REPUTATION */
 
 	if (curconf->conf_dolog)
 	{

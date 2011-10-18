@@ -61,6 +61,12 @@ struct configdef dkimf_config[] =
 	{ "Diagnostics",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DiagnosticDirectory",	CONFIG_TYPE_STRING,	FALSE },
 	{ "DisableADSP",		CONFIG_TYPE_BOOLEAN,	FALSE },
+#ifdef _FFR_DKIM_REPUTATION
+	{ "DKIMReputationFail",		CONFIG_TYPE_INTEGER,	FALSE },
+	{ "DKIMReputationPass",		CONFIG_TYPE_INTEGER,	FALSE },
+	{ "DKIMReputationReject",	CONFIG_TYPE_INTEGER,	FALSE },
+	{ "DKIMReputationRoot",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_DKIM_REPUTATION */
 	{ "DNSConnect",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DNSTimeout",			CONFIG_TYPE_INTEGER,	FALSE },
 	{ "Domain",			CONFIG_TYPE_STRING,	FALSE },
@@ -158,12 +164,13 @@ struct configdef dkimf_config[] =
 #endif /* _FFR_REPORT_INTERVALS */
 	{ "ReportAddress",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReportBccAddress",		CONFIG_TYPE_STRING,	FALSE },
-#ifdef _FFR_DKIM_REPUTATION
-	{ "ReputationFail",		CONFIG_TYPE_INTEGER,	FALSE },
-	{ "ReputationPass",		CONFIG_TYPE_INTEGER,	FALSE },
-	{ "ReputationReject",		CONFIG_TYPE_INTEGER,	FALSE },
-	{ "ReputationRoot",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_DKIM_REPUTATION */
+#ifdef _FFR_REPUTATION
+	{ "ReputationFactor",		CONFIG_TYPE_INTEGER,	FALSE },
+	{ "ReputationLimits",		CONFIG_TYPE_STRING,	FALSE },
+	{ "ReputationLowTime",		CONFIG_TYPE_STRING,	FALSE },
+	{ "ReputationRatios",		CONFIG_TYPE_STRING,	FALSE },
+	{ "ReputationSpamCheck",	CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_REPUTATION */
 	{ "RequiredHeaders",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "RequireSafeKeys",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_RESIGN

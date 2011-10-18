@@ -25,6 +25,9 @@ endif
 if STATS
 SUBDIRS += stats
 endif
+if REPUTE
+SUBDIRS += libut reputation
+endif
 SUBDIRS += opendkim
 dist_doc_DATA = FEATURES KNOWNBUGS LICENSE LICENSE.Sendmail \
 	RELEASE_NOTES.Sendmail

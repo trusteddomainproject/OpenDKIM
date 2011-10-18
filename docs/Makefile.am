@@ -4,9 +4,14 @@
 
 #AUTOMAKE_OPTIONS = foreign
 
-dist_doc_DATA = draft-ietf-marf-authfailure-report-03.txt \
+dist_doc_DATA = draft-gregorio-uritemplate-07.txt \
+	draft-ietf-marf-authfailure-report-03.txt \
 	draft-ietf-marf-dkim-reporting-03.txt \
 	draft-kucherawy-dkim-atps-08.txt \
+	draft-kucherawy-reputation-media-type-00.txt \
+	draft-kucherawy-reputation-model-00.txt \
+	draft-kucherawy-reputation-query-http-01.txt \
+	draft-kucherawy-reputation-vocab-identity-00.txt \
 	report-rfc4871.txt \
 	rfc3447.txt \
 	rfc4686.txt \

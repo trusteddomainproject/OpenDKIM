@@ -13,8 +13,7 @@ create table if not exists reporters (
         enabled tinyint not null default 1,
 
 	primary key(id),
-	key(name),
-	key(enabled)
+	unique key(name),
 ) engine=innodb default charset=latin1;
 
 -- table of domain names we've seen
@@ -24,7 +23,7 @@ create table if not exists domains (
 	firstseen timestamp not null default CURRENT_TIMESTAMP,
 
 	primary key(id),
-	key(name)
+	unique key(name)
 ) engine=innodb default charset=latin1;
 
 -- table of IP addresses we've seen

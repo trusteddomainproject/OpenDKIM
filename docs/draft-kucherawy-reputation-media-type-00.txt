@@ -1,0 +1,560 @@
+
+
+
+Network Working Group                                      N. Borenstein
+Internet-Draft                                                  Mimecast
+Intended status: Informational                              M. Kucherawy
+Expires: December 3, 2011                                      Cloudmark
+                                                            June 1, 2011
+
+
+                A Media Type for Reputation Interchange
+                draft-kucherawy-reputation-media-type-00
+
+Abstract
+
+   This document defines a media type for exchanging reputation
+   information about an arbitrary class of object.
+
+Status of this Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on December 3, 2011.
+
+Copyright Notice
+
+   Copyright (c) 2011 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+
+
+
+
+Borenstein & Kucherawy  Expires December 3, 2011                [Page 1]
+
+Internet-Draft            Reputation Media Type                June 2011
+
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . . . 3
+   2.  Document Series . . . . . . . . . . . . . . . . . . . . . . . . 3
+   3.  Terminology and Definitions . . . . . . . . . . . . . . . . . . 3
+     3.1.  Keywords  . . . . . . . . . . . . . . . . . . . . . . . . . 3
+     3.2.  Other Definitions . . . . . . . . . . . . . . . . . . . . . 3
+   4.  Description . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+     4.1.  Formal Definition . . . . . . . . . . . . . . . . . . . . . 6
+   5.  IANA Considerations . . . . . . . . . . . . . . . . . . . . . . 6
+     5.1.  application/reputon Media Type Registration . . . . . . . . 6
+     5.2.  Reputation Applications Registry  . . . . . . . . . . . . . 8
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . . . 8
+     6.1.  General . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+     7.1.  Normative References  . . . . . . . . . . . . . . . . . . . 9
+     7.2.  Informative References  . . . . . . . . . . . . . . . . . . 9
+   Appendix A.  Public Discussion  . . . . . . . . . . . . . . . . . . 9
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . . . 9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Borenstein & Kucherawy  Expires December 3, 2011                [Page 2]
+
+Internet-Draft            Reputation Media Type                June 2011
+
+
+1.  Introduction
+
+   This memo defines a media type for use when answering a reputation
+   query using the "long form" query defined in RFCxxxx+4, which uses
+   [HTTP].  It is part of a series defining the overall reputation
+   query/response structure as well as the concept of reputation
+   "vocabularies" for particular applications.
+
+
+2.  Document Series
+
+   This memo represents the media type registration, part of a series of
+   documents that define the overall service and introduce the initial
+   exemplary applications.  The series is as follows:
+
+   1.  RFCxxxx: A Model for Reputation Interchange
+
+   2.  RFCxxxx+1: A Media Type for Reputation Information (this memo)
+
+   3.  RFCxxxx+2: Using UDP for Reputation Interchange
+
+   4.  RFCxxxx+3: Using the DNS for Reputation Interchange
+
+   5.  RFCxxxx+4: Using HTTP/XML for Reputation Interchange
+
+   6.  RFCxxxx+5: A Reputation Vocabulary for Email Identity Reputation
+
+   7.  RFCxxxx+6: A Reputation Vocabulary for Email Property Reputation
+
+
+3.  Terminology and Definitions
+
+   This section defines terms used in the rest of the document.
+
+3.1.  Keywords
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [KEYWORDS].
+
+3.2.  Other Definitions
+
+   Other terms of importance in this memo are defined in RFCxxxx, the
+   base memo in this document series.
+
+
+
+
+
+
+
+Borenstein & Kucherawy  Expires December 3, 2011                [Page 3]
+
+Internet-Draft            Reputation Media Type                June 2011
+
+
+4.  Description
+
+   A new media type, "application/reputon", is defined for the
+   representation of reputational data.  This media type has two
+   optional parameters: "app", which conveys the specific application of
+   reputation data in use, and usually extends the set of data values
+   that MAY be included in the media object itself; and "format", which
+   specifies the format with which the content are relayed.
+
+   The default for "format" is "text", which is defined here.  Reputons
+   bearing unrecognized format values MUST be ignored.
+
+   The body of the media type consists of [MAIL]-style attribute/value
+   pairs, six of which are standard for all apps:
+
+   RATER:  The identity of the entity providing the reputation
+      information, generally expressed as a DNS domain name.
+
+   RATER-AUTHENTICITY:  The level of confidence in that identity being
+      genuine, expressed as a floating-point number between 0 and 1
+      inclusive.
+
+   ASSERTION:  A keyword indicating the specific assertion or claim
+      being rated.  In the absence of an "app" parameter, the reputon
+      can only indicate generic goodness, with the default assertion
+      "IS-GOOD," but each application is expected to define additional
+      types of ASSERTION.
+
+   RATED:  The identity of the entity being rated.
+
+   RATING:  The overall rating score for that entity, expressed as a
+      floating-point number between 0 and 1 inclusive.
+
+   SAMPLE-SIZE:  The number of data points underlying that score,
+      possibly an approximation.  Expressed as an unsigned 64-bit
+      integer.
+
+   A particular application that registers itself with IANA MAY also
+   define extension attribute/value pairs beyond the six mandatory ones.
+
+   Thus, the following example:
+
+
+
+
+
+
+
+
+
+
+Borenstein & Kucherawy  Expires December 3, 2011                [Page 4]
+
+Internet-Draft            Reputation Media Type                June 2011
+
+
+         Content-type: application/reputon
+
+         RATER: RatingsRUs.example.com
+         RATER-AUTHENTICITY: 1.0
+         ASSERTION: IS-GOOD
+         RATED: Alex Rodriguez
+         RATING: 0.99
+         SAMPLE-SIZE: 50000
+
+   ...indicates that we are absolutely sure (1.0) that the entity
+   "RatingsRUs.example.com" consolidated 50000 data points (perhaps from
+   everyone in Yankee Stadium) and concluded that Alex Rodriguez is very
+   very good (0.99) at something.  It doesn't tell us what he's good at,
+   and while it might be playing baseball, it could just as well be
+   paying his taxes on time.
+
+   A more sophisticated usage would define a baseball application with a
+   vocabulary of specific assertions, so that this example:
+
+         Content-type: application/reputon; app="baseball"
+
+         RATER: baseball-reference.example.com
+         RATER-AUTHENTICITY: 1.0
+         ASSERTION: HITS-FOR-POWER
+         RATED: Alex Rodriguez
+         RATING: 0.99
+         SAMPLE-SIZE: 50000
+
+   ...would indicate that 50000 fans polled by the entity baseball-
+   reference.example.com rate A-Rod very highly in hitting for power,
+   whereas this example:
+
+         Content-type: application/reputon; app="baseball"
+
+         RATER: baseball-reference.example.com
+         RATER-AUTHENTICITY: 1.0
+         ASSERTION: CLUTCH-HITTER
+         RATED: Alex Rodriguez
+         RATING: 0.4
+         SAMPLE-SIZE: 50000
+
+   ...would indicate that a similar poll indicated a somewhat weaker
+   consensus that A-Rod tends to choke in critical baseball situations.
+
+   In practice, most usage of reputons is expected to make use of the
+   "app" parameter to target an application-specific set of assertions.
+
+
+
+
+
+Borenstein & Kucherawy  Expires December 3, 2011                [Page 5]
+
+Internet-Draft            Reputation Media Type                June 2011
+
+
+4.1.  Formal Definition
+
+   More formally, using [ABNF], the content of the application/reputon
+   MIME object MUST conform to the following syntax:
+
+   reputon := rater rater-auth assertion *extension
+              rated rating sampsize
+
+   rater := %x52.41.54.45.52.3A
+            *WSP (atom / quoted-string) [CFWS] CRLF
+
+   rater-auth := %x52.41.54.45.52.2D.41.55.54.45.4E.54.49.43.49.54.59.3A
+                 *WSP 1*DIGIT "." 1*DIGIT [CFWS] CRLF
+              ; must be a number between 0 and 1 inclusive
+
+   assertion := %x41.53.53.45.52.54.49.4F.4E.3A
+                *WSP dot-atom-text [CFWS] CRLF
+
+   extension := dot-atom-text %x3A *WSP dot-atom-text [CFWS] CRLF
+             ; must be registered with IANA within a reputation
+             ; vocabulary registration
+
+   rated := %x52.41.54.45.44.3A
+            *WSP (atom / quoted-string) [CFWS] CRLF
+
+   rating := %x52.41.54.49.4E.47.3A
+             *WSP 1*DIGIT "." 1*DIGIT [CFWS] CRLF
+          ; must be a number between 0 and 1 inclusive
+
+   sampsize := %x53.41.4D.50.4C.45.2D.53.49.5A.45.3A
+               *WSP 1*DIGIT [CFWS] CRLF
+            ; must be an unsigned 64-bit integer
+
+   "atom", "quoted-string" and "dot-atom-text" are imported from [MAIL].
+
+
+5.  IANA Considerations
+
+   This memo presents two actions for IANA, namely the creation of the
+   new media type "application/reputon" and the creation of a registry
+   for reputation application types.  Another memo in this series
+   creates an initial registry entry for the latter.
+
+5.1.  application/reputon Media Type Registration
+
+   This section provides the media type registration application from
+   [MIME-REG] for processing by IANA:
+
+
+
+
+Borenstein & Kucherawy  Expires December 3, 2011                [Page 6]
+
+Internet-Draft            Reputation Media Type                June 2011
+
+
+   To:  ietf-types@iana.org
+
+   Subject:  Registration of media type application/reputon
+
+   Type name:  application
+
+   Subtype name:  reputon
+
+   Required parameters:  none
+
+   Optional parameters:
+
+      app:  Names the reputation application in use within the reputon,
+         which defines the valid assertions and any extensions that may
+         also be valid (i.e., the vocabulary) for that application.
+         These MUST be registered with IANA.
+
+      format:  Describes the format of the content of the MIME object.
+         The default is "text" which is defined in this memo.
+
+   Encoding considerations:  "7bit" encoding is sufficient and MUST be
+      used to maintain readability when viewed by non-MIME mail readers.
+
+   Security considerations:  See Section 6 of [this document].
+
+   Interoperability considerations:  Implementers MUST ignore any "app"
+      values, attribute/value pairs, or vocabulary items they do not
+      support.
+
+   Published specification:  [this document]
+
+   Applications that use this media type:  Any application that wishes
+      to query a service that provides reputation data using the "long
+      form" defined in RFCxxxx.  The example application is one that
+      provides reputation expressions about DNS domain names found in
+      email messages.
+
+   Additional information:  The value of the "app" parameter MUST also
+      be registered with IANA.
+
+   Person and email address to contact for further information:
+
+         Nathaniel Borenstein <nps@guppylake.com>
+
+         Murray S. Kucherawy <msk@cloudmark.com>
+
+
+
+
+
+
+Borenstein & Kucherawy  Expires December 3, 2011                [Page 7]
+
+Internet-Draft            Reputation Media Type                June 2011
+
+
+   Intended usage:  COMMON
+
+   Author:
+
+         Nathaniel Borenstein
+
+         Murray S. Kucherawy
+
+   Change controller:  IESG
+
+5.2.  Reputation Applications Registry
+
+   IANA is requested to create the "Reputation Applications" registry.
+   This registry will contain names of applications used with the
+   application/reputon media type, as defined by this memo.
+
+   New registrations or updates MUST be published in accordance with the
+   "Specification Required" guidelines as described in
+   [IANA-CONSIDERATIONS].
+
+   New registrations and updates MUST contain the following information:
+
+   1.  Name of the application being registered or updated
+
+   2.  Short description of the application (i.e., the class of entity
+       about which it reports reputation data)
+
+   3.  The document in which the application is defined
+
+   4.  New or updated status, which MUST be one of:
+
+       current:  The application is in current use
+
+       deprecated:  The application is in current use but its use is
+          discouraged
+
+       historic:  The application is no longer in current use
+
+
+6.  Security Considerations
+
+   This memo describes security considerations introduced by the media
+   type defined here.
+
+6.1.  General
+
+   This memo is part of a series introducing a reputation query and
+   response system (see Section 2).  The Security Considerations
+
+
+
+Borenstein & Kucherawy  Expires December 3, 2011                [Page 8]
+
+Internet-Draft            Reputation Media Type                June 2011
+
+
+   sections of the other memos should also be consulted.
+
+   As this message structure is designed for use with the "long form" of
+   the reputation query, the Security Considerations of RFCxxxx+3 would
+   be of particular interest to implementers.
+
+
+7.  References
+
+7.1.  Normative References
+
+   [ABNF]     Crocker, D. and P. Overell, "Augmented BNF for Syntax
+              Specifications: ABNF", RFC 5234, January 2008.
+
+7.2.  Informative References
+
+   [HTTP]     Fielding, R., Gettys, J., Mogul, J., Frystyk, H.,
+              Masinter, L., Leach, P., and T. Berners-Lee, "Hypertext
+              Transfer Protocol -- HTTP/1.1", RFC 2616, June 1999.
+
+   [IANA-CONSIDERATIONS]
+              Narten, T. and H. Alvestrand, "Guidelines for Writing an
+              IANA Considerations Section in RFCs", RFC 5226, May 2008.
+
+   [KEYWORDS]
+              Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [MAIL]     Resnick, P., Ed., "Internet Message Format", RFC 5322,
+              October 2008.
+
+   [MIME-REG]
+              Freed, N. and J. Klensin, "Media Type Specifications and
+              Registration Procedures", RFC 4288, December 2005.
+
+
+Appendix A.  Public Discussion
+
+   Public discussion of this suite of memos takes place on the
+   domainrep@ietf.org mailing list.  See
+   https://www.ietf.org/mailman/listinfo/domainrep.
+
+
+
+
+
+
+
+
+
+
+Borenstein & Kucherawy  Expires December 3, 2011                [Page 9]
+
+Internet-Draft            Reputation Media Type                June 2011
+
+
+Authors' Addresses
+
+   Nathaniel Borenstein
+   Mimecast
+   203 Crescent St., Suite 303
+   Waltham, MA  02453
+   USA
+
+   Phone: +1 781 996 5340
+   Email: nsb@guppylake.com
+
+
+   Murray S. Kucherawy
+   Cloudmark
+   128 King St., 2nd Floor
+   San Francisco, CA  94107
+   USA
+
+   Phone: +1 415 946 3800
+   Email: msk@cloudmark.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Borenstein & Kucherawy  Expires December 3, 2011               [Page 10]
+

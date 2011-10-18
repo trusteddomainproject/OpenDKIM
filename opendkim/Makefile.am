@@ -24,7 +24,7 @@ dist_doc_DATA = opendkim.conf.sample opendkim.conf.simple \
 
 if BUILD_FILTER
 sbin_PROGRAMS = opendkim
-opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-dns.c opendkim-dns.h opendkim-lua.c opendkim-lua.h config.c config.h flowrate.c flowrate.h stats.c stats.h test.c test.h util.c util.h
+opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-dns.c opendkim-dns.h opendkim-lua.c opendkim-lua.h config.c config.h flowrate.c flowrate.h reputation.c reptuation.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CC = $(PTHREAD_CC)
 opendkim_CFLAGS = $(PTHREAD_CFLAGS) $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
@@ -78,6 +78,10 @@ endif
 if DKIM_REPUTATION
 opendkim_CPPFLAGS += -I$(srcdir)/../libdkimrep
 opendkim_LDADD += ../libdkimrep/libdkimrep.la
+endif
+if REPUTE
+opendkim_CFLAGS += -I$(srcdir)/../reputation
+opendkim_LDADD += ../reputation/librepute.la
 endif
 
 opendkim_CPPFLAGS += $(LIBMILTER_INCDIRS)
@@ -141,6 +145,10 @@ if RBL
 opendkim_testkey_CPPFLAGS += -I$(srcdir)/../librbl
 opendkim_testkey_LDADD += ../librbl/librbl.la
 endif
+if REPUTE
+opendkim_testkey_CPPFLAGS += -I$(srcdir)/../reputation
+opendkim_testkey_LDADD += ../reputation/librepute.la
+endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
 opendkim_testadsp_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
@@ -196,6 +204,10 @@ opendkim_genzone_CPPFLAGS += $(LIBLUA_INCDIRS) $(LIBMILTER_INCDIRS)
 opendkim_genzone_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_genzone_LDADD += $(LIBLUA_LIBS)
 endif
+if REPUTE
+opendkim_genzone_CPPFLAGS += -I$(srcdir)/../reputation
+opendkim_genzone_LDADD += ../reputation/librepute.la
+endif
 
 if ATPS
 opendkim_atpszone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-atpszone.c opendkim-lua.c util.c util.h
@@ -229,6 +241,10 @@ if LUA
 opendkim_atpszone_CPPFLAGS += $(LIBLUA_INCDIRS) $(LIBMILTER_INCDIRS)
 opendkim_atpszone_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_atpszone_LDADD += $(LIBLUA_LIBS)
+endif
+if REPUTE
+opendkim_atpszone_CPPFLAGS += -I$(srcdir)/../reputation
+opendkim_atpszone_LDADD += ../reputation/librepute.la
 endif
 endif
 
