@@ -657,7 +657,7 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 		return REPUTE_STAT_INTERNAL;
 
 	if (ut_keyvalue(ut, UT_KEYTYPE_STRING,
-	                "domain", (void *) domain) != 0 ||
+	                "subject", (void *) domain) != 0 ||
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
 	                "service", (void *) rep->rep_server) != 0 ||
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
