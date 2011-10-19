@@ -36,8 +36,7 @@ typedef int REPUTE_STAT;
 
 #define	REPUTE_URI_APPLICATION	"email"
 #define	REPUTE_URI_SCHEME	"http"
-#define	REPUTE_URI_TEMPLATE	"http://%s/.well-known/repute_template"
-#define	REPUTE_URI_DEFTEMPLATE	"{application}/{domain}/{assertion}"
+#define	REPUTE_URI_TEMPLATE	"{scheme}://{service}/.well-known/repute_template"
 
 #define	REPUTE_XML_CODE_UNKNOWN		(-1)
 #define	REPUTE_XML_CODE_ASSERTION	0
@@ -68,6 +67,7 @@ typedef struct repute_handle * REPUTE;
 
 /* prototypes */
 extern void repute_close(REPUTE);
+extern const char *repute_error(REPUTE);
 extern void repute_init(void);
 extern REPUTE repute_new(const char *);
 extern REPUTE_STAT repute_query(REPUTE, const char *, float *,

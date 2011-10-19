@@ -50,6 +50,7 @@ struct repute_handle
 	struct repute_io *	rep_ios;
 	const char *		rep_server;
 	char			rep_uritemp[REPUTE_URL + 1];
+	char			rep_error[REPUTE_BUFBASE + 1];
 };
 
 struct repute_lookup
@@ -475,15 +476,37 @@ repute_get_template(REPUTE rep)
 	int cstatus;
 	long rcode;
 	struct repute_io *rio;
+	URITEMP ut;
 	char url[REPUTE_BUFBASE + 1];
 
 	assert(rep != NULL);
 
+	ut = ut_init();
+	if (ut == NULL)
+		return REPUTE_STAT_INTERNAL;
+
+	if (ut_keyvalue(ut, UT_KEYTYPE_STRING,
+	                "scheme", REPUTE_URI_SCHEME) != 0 ||
+	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
+	                "service", (void *) rep->rep_server) != 0 ||
+	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
+	                "application", REPUTE_URI_APPLICATION) != 0)
+	{
+		ut_destroy(ut);
+		return REPUTE_STAT_INTERNAL;
+	}
+
+	if (ut_generate(ut, REPUTE_URI_TEMPLATE, url, sizeof url) <= 0)
+	{
+		ut_destroy(ut);
+		return REPUTE_STAT_INTERNAL;
+	}
+
+	ut_destroy(ut);
+
 	rio = repute_get_io(rep);
 	if (rio == NULL)
 		return REPUTE_STAT_INTERNAL;
-
-	snprintf(url, sizeof url, REPUTE_URI_TEMPLATE, rep->rep_server);
 
 	cstatus = curl_easy_setopt(rio->repute_curl, CURLOPT_WRITEDATA, rio);
 	if (cstatus != CURLE_OK)
@@ -642,7 +665,6 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 	time_t when;
 	struct repute_io *rio;
 	URITEMP ut;
-	char url[REPUTE_URL];
 	char genurl[REPUTE_URL];
 	char template[REPUTE_URL];
 
@@ -653,10 +675,7 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 	if (rep->rep_uritemp[0] == '\0')
 	{
 		if (repute_get_template(rep) != REPUTE_STAT_OK)
-		{
-			snprintf(rep->rep_uritemp, sizeof rep->rep_uritemp,
-			         "%s", REPUTE_URI_DEFTEMPLATE);
-		}
+			return REPUTE_STAT_QUERY;
 	}
 
 	ut = ut_init();
@@ -665,6 +684,8 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 
 	if (ut_keyvalue(ut, UT_KEYTYPE_STRING,
 	                "subject", (void *) domain) != 0 ||
+	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
+	                "scheme", REPUTE_URI_SCHEME) != 0 ||
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
 	                "service", (void *) rep->rep_server) != 0 ||
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
@@ -684,14 +705,11 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 
 	ut_destroy(ut);
 
-	snprintf(url, sizeof url, "%s://%s/%s", REPUTE_URI_SCHEME,
-	         rep->rep_server, genurl);
-
 	rio = repute_get_io(rep);
 	if (rio == NULL)
 		return REPUTE_STAT_INTERNAL;
 
-	status = repute_doquery(rio, url);
+	status = repute_doquery(rio, genurl);
 	if (status != REPUTE_STAT_OK)
 	{
 		repute_put_io(rep, rio);
@@ -717,4 +735,22 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 	repute_put_io(rep, rio);
 
 	return REPUTE_STAT_OK;
+}
+
+/*
+**  REPUTE_ERROR -- return a pointer to the error buffer
+**
+**  Parameters:
+**  	rep -- REPUTE handle
+**
+**  Return value:
+**  	Pointer to the error buffer inside the REPUTE handle.
+*/
+
+const char *
+repute_error(REPUTE rep)
+{
+	assert(rep != NULL);
+
+	return rep->rep_error;
 }
