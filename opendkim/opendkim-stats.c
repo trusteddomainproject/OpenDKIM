@@ -200,15 +200,10 @@ main(int argc, char **argv)
 			char *adsppf;
 			char *ct;
 			char *cte;
-#ifdef _FFR_ATPS
 			char *atps;
-#endif /* _FFR_ATPS */
+			char *spam;
 
-#ifdef _FFR_ATPS
-			if (n != 8)
-#else /* _FFR_ATPS */
-			if (n != 7)
-#endif /* _FFR_ATPS */
+			if (n != DKIMS_MI_MAX + 1)
 			{
 				fprintf(stderr,
 				        "%s: unexpected message field count (%d) at input line %d\n",
@@ -219,13 +214,21 @@ main(int argc, char **argv)
 			/* format the data */
 			rtime = (time_t) atoi(fields[DKIMS_MI_MSGTIME]);
 
-#ifdef _FFR_ATPS
 			atps = "not checked";
-			if (n == 8 && fields[DKIMS_MI_ATPS][0] == '0')
+#ifdef _FFR_ATPS
+			if (fields[DKIMS_MI_ATPS][0] == '0')
 				atps = "no match";
-			else if (n == 8 && fields[DKIMS_MI_ATPS][0] == '1')
+			else if (fields[DKIMS_MI_ATPS][0] == '1')
 				atps = "match";
 #endif /* _FFR_ATPS */
+
+			spam = "unknown";
+#ifdef _FFR_REPUTATION
+			if (fields[DKIMS_MI_SPAM][0] == '0')
+				spam = "not spam";
+			else if (fields[DKIMS_MI_SPAM][0] == '1')
+				spam = "spam";
+#endif /* _FFR_REPUTATION */
 
 			if (ms > 0)
 			{
@@ -245,6 +248,10 @@ main(int argc, char **argv)
 			fprintf(stdout, "\tATPS %s\n", atps);
 #endif /* _FFR_ATPS */
 
+#ifdef _FFR_REPUTATION
+			fprintf(stdout, "\tSpam: %s\n", spam);
+#endif /* _FFR_REPUTATION */
+
 			m++;
 		}
 
@@ -255,7 +262,7 @@ main(int argc, char **argv)
 			char *siglen;
 			char *dnssec;
 
-			if (n != 6)
+			if (n != DKIMS_SI_MAX + 1)
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",

@@ -36,7 +36,8 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-m
 #define	DKIMS_MI_MSGLEN		5
 #define	DKIMS_MI_SIGCOUNT	6
 #define DKIMS_MI_ATPS		7
-#define DKIMS_MI_MAX		7
+#define DKIMS_MI_SPAM		8
+#define DKIMS_MI_MAX		8
 
 #define	DKIMS_SI_DOMAIN		0
 #define	DKIMS_SI_PASS		1
@@ -53,9 +54,6 @@ extern int dkimf_stats_record __P((char *, u_char *, char *, char *, Header,
 #ifdef _FFR_STATSEXT
                                    struct statsext *,
 #endif /* _FFR_STATSEXT */
-#ifdef _FFR_ATPS
-                                   int,
-#endif /* _FFR_ATPS */
-                                   struct sockaddr *));
+                                   int, int, struct sockaddr *));
 
 #endif /* _STATS_H_ */

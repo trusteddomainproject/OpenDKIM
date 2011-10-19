@@ -13660,7 +13660,14 @@ mlfi_eom(SMFICTX *ctx)
 # endif /* _FFR_STATSEXT */
 # ifdef _FFR_ATPS
 			                       dfc->mctx_atps,
+# else /* _FFR_ATPS */
+			                       -1,
 # endif /* _FFR_ATPS */
+# ifdef _FFR_REPUTATION
+			                       dfc->mctx_spam,
+# else /* _FFR_REPUTATION */
+			                       -1,
+# endif /* _FFR_REPUTATION */
 			                       (struct sockaddr *) &cc->cctx_ip) != 0)
 			{
 				if (dolog)

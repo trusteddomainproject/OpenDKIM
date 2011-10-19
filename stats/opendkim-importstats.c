@@ -527,7 +527,7 @@ main(int argc, char **argv)
 				continue;
 			}
 
-			if (n != 8)
+			if (n != DKIMS_MI_MAX + 1)
 			{
 				fprintf(stderr,
 				        "%s: unexpected message field count (%d) at input line %d\n",
@@ -713,7 +713,8 @@ main(int argc, char **argv)
 			    sanitize(db, fields[4], safesql, sizeof safesql) ||
 			    sanitize(db, fields[5], safesql, sizeof safesql) ||
 			    sanitize(db, fields[6], safesql, sizeof safesql) ||
-			    sanitize(db, fields[7], safesql, sizeof safesql))
+			    sanitize(db, fields[7], safesql, sizeof safesql) ||
+			    sanitize(db, fields[8], safesql, sizeof safesql))
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
@@ -749,7 +750,7 @@ main(int argc, char **argv)
 			}
 
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO messages (jobid, reporter, from_domain, ip, msgtime, size, sigcount, atps) VALUES ('%s', %d, %d, %d, from_unixtime(%s), %s, %s, %s)",
+			         "INSERT INTO messages (jobid, reporter, from_domain, ip, msgtime, size, sigcount, atps, spam) VALUES ('%s', %d, %d, %d, from_unixtime(%s), %s, %s, %s, %s)",
 			         fields[0],	/* jobid */
 			         repid,		/* reporter */
 			         domid,		/* from_domain */
@@ -757,7 +758,8 @@ main(int argc, char **argv)
 			         fields[4],	/* msgtime */
 			         fields[5],	/* size */
 			         fields[6],	/* sigcount */
-			         fields[7]);	/* atps */
+			         fields[7],	/* atps */
+			         fields[8]);	/* spam */
 
 			msgid = sql_do(db, sql);
 			if (msgid == -1)
@@ -799,7 +801,7 @@ main(int argc, char **argv)
 				continue;
 			}
 
-			if (n != 6)
+			if (n != DKIMS_SI_MAX + 1)
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",
