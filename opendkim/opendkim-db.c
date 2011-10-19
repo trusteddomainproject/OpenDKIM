@@ -4134,6 +4134,16 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 		                                  db->db_status), errlen);
 #endif /* USE_LIBMEMCACHED */
 
+#ifdef _FFR_REPUTATION
+	  case DKIMF_DB_TYPE_REPUTE:
+	  {
+		REPUTE rep;
+
+		rep = (REPUTE) db->db_data;
+		return strlcpy(err, repute_error(rep), errlen);
+	  }
+#endif /* _FFR_REPUTATION */
+
 	  default:
 		assert(0);
 		return -1;		/* to silence the compiler */
