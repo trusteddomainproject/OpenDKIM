@@ -74,6 +74,30 @@ struct repute_lookup repute_lookup_elements[] =
 };
 
 /*
+**  REPUTE_LIBXML2_ERRHANDLER -- error handler function provided to libxml2
+**
+**  Parameters:
+**  	ctx -- a "parsing" context (generally a FILE *)
+**  	fmt -- message format
+**  	... -- variable arguments
+**
+**  Return value:
+** 	None.
+**
+**  Notes:
+**  	Oddly, libxml2 writes errors to stderr by default without a provided
+**  	handler function.  We check for errors in other ways and this
+**  	program typically runs as a daemon, so we'll suppress that by
+**  	providing an error handler that does nothing.
+*/
+
+static void
+repute_libxml2_errhandler(void *ctx, const char *fmt, ...)
+{
+	return;
+}
+
+/*
 **  REPUTE_CURL_WRITEDATA -- callback for libcurl to deliver data
 **
 **  Parameters:
@@ -192,6 +216,8 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 
 	assert(buf != NULL);
 	assert(rep != NULL);
+
+	xmlSetGenericErrorFunc(NULL, repute_libxml2_errhandler);
 
 	doc = xmlParseMemory(buf, buflen);
 	if (doc == NULL)
