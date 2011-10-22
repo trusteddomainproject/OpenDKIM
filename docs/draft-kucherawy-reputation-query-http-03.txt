@@ -4,12 +4,12 @@
 Network Working Group                                      N. Borenstein
 Internet-Draft                                                  Mimecast
 Intended status: Informational                              M. Kucherawy
-Expires: April 21, 2012                                        Cloudmark
-                                                        October 19, 2011
+Expires: April 23, 2012                                        Cloudmark
+                                                        October 21, 2011
 
 
              Reputation Data Interchange using HTTP and XML
-                draft-kucherawy-reputation-query-http-02
+                draft-kucherawy-reputation-query-http-03
 
 Abstract
 
@@ -31,7 +31,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 21, 2012.
+   This Internet-Draft will expire on April 23, 2012.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Borenstein & Kucherawy   Expires April 21, 2012                 [Page 1]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 1]
 
 Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
@@ -108,7 +108,7 @@ Table of Contents
 
 
 
-Borenstein & Kucherawy   Expires April 21, 2012                 [Page 2]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 2]
 
 Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
@@ -164,7 +164,7 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
 
 
-Borenstein & Kucherawy   Expires April 21, 2012                 [Page 3]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 3]
 
 Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
@@ -203,8 +203,6 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
    scheme:  The transport scheme the client will be using for the query.
 
-   subject:  The subject of the query.
-
    service:  The hostname or IP address being queried.
 
    Which scheme(s) can be used depends on how the reputation service
@@ -220,7 +218,9 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
 
 
-Borenstein & Kucherawy   Expires April 21, 2012                 [Page 4]
+
+
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 4]
 
 Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
@@ -233,6 +233,9 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
    user:  The "user" portion of a client credential.
 
+   Other required or optional query parameters might be defined by
+   documents that register new vocabularies with IANA.
+
    The template is retrieved by requesting the [WELL-KNOWN-URI]
    "repute_template" from the host providing reputation service using
    HTTP.  If the template cannot be retrieved, the query should be
@@ -242,13 +245,14 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
    {scheme}://{service}/{application}/{subject}/{assertion}
 
-   A query about the use of the domain "example.org" in the email
-   application context to a service run at "example.com" requesting the
-   "SENDS-SPAM" reputation attribute using HTTP to conduct the query
+   A query about the use of the domain "example.org" in the "email-id"
+   application context to a service run at "example.com", where that
+   application declares a required "subject" parameter, requesting the
+   "SENDS-SPAM" reputation assertion using HTTP to conduct the query
    with no specific client authentication information would be formed as
    follows:
 
-   http://example.com/email/example.org/sends-spam
+   http://example.com/email-id/example.org/sends-spam
 
    Matching of the attribute name(s) MUST be case-insensitive.
 
@@ -272,11 +276,7 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
 
 
-
-
-
-
-Borenstein & Kucherawy   Expires April 21, 2012                 [Page 5]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 5]
 
 Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
@@ -332,7 +332,7 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
 
 
-Borenstein & Kucherawy   Expires April 21, 2012                 [Page 6]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 6]
 
 Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
@@ -388,7 +388,7 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
 
 
-Borenstein & Kucherawy   Expires April 21, 2012                 [Page 7]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 7]
 
 Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
@@ -444,7 +444,7 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
 
 
-Borenstein & Kucherawy   Expires April 21, 2012                 [Page 8]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 8]
 
 Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
@@ -500,5 +500,5 @@ Authors' Addresses
 
 
 
-Borenstein & Kucherawy   Expires April 21, 2012                 [Page 9]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 9]
 

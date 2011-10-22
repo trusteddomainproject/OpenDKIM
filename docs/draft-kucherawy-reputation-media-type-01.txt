@@ -4,12 +4,12 @@
 Network Working Group                                      N. Borenstein
 Internet-Draft                                                  Mimecast
 Intended status: Informational                              M. Kucherawy
-Expires: December 3, 2011                                      Cloudmark
-                                                            June 1, 2011
+Expires: April 23, 2012                                        Cloudmark
+                                                        October 21, 2011
 
 
                 A Media Type for Reputation Interchange
-                draft-kucherawy-reputation-media-type-00
+                draft-kucherawy-reputation-media-type-01
 
 Abstract
 
@@ -31,7 +31,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on December 3, 2011.
+   This Internet-Draft will expire on April 23, 2012.
 
 Copyright Notice
 
@@ -52,30 +52,30 @@ Copyright Notice
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 1]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 1]
 
-Internet-Draft            Reputation Media Type                June 2011
+Internet-Draft            Reputation Media Type             October 2011
 
 
 Table of Contents
 
-   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . . . 3
-   2.  Document Series . . . . . . . . . . . . . . . . . . . . . . . . 3
-   3.  Terminology and Definitions . . . . . . . . . . . . . . . . . . 3
-     3.1.  Keywords  . . . . . . . . . . . . . . . . . . . . . . . . . 3
-     3.2.  Other Definitions . . . . . . . . . . . . . . . . . . . . . 3
-   4.  Description . . . . . . . . . . . . . . . . . . . . . . . . . . 4
-     4.1.  Formal Definition . . . . . . . . . . . . . . . . . . . . . 6
-   5.  IANA Considerations . . . . . . . . . . . . . . . . . . . . . . 6
-     5.1.  application/reputon Media Type Registration . . . . . . . . 6
-     5.2.  Reputation Applications Registry  . . . . . . . . . . . . . 8
-   6.  Security Considerations . . . . . . . . . . . . . . . . . . . . 8
-     6.1.  General . . . . . . . . . . . . . . . . . . . . . . . . . . 8
-   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . . . 9
-     7.1.  Normative References  . . . . . . . . . . . . . . . . . . . 9
-     7.2.  Informative References  . . . . . . . . . . . . . . . . . . 9
-   Appendix A.  Public Discussion  . . . . . . . . . . . . . . . . . . 9
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . . . 9
+   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
+   2.  Document Series  . . . . . . . . . . . . . . . . . . . . . . .  3
+   3.  Terminology and Definitions  . . . . . . . . . . . . . . . . .  3
+     3.1.  Keywords . . . . . . . . . . . . . . . . . . . . . . . . .  3
+     3.2.  Other Definitions  . . . . . . . . . . . . . . . . . . . .  3
+   4.  Description  . . . . . . . . . . . . . . . . . . . . . . . . .  4
+     4.1.  Formal Definition  . . . . . . . . . . . . . . . . . . . .  6
+   5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  6
+     5.1.  application/reputon Media Type Registration  . . . . . . .  6
+     5.2.  Reputation Applications Registry . . . . . . . . . . . . .  8
+   6.  Security Considerations  . . . . . . . . . . . . . . . . . . .  9
+     6.1.  General  . . . . . . . . . . . . . . . . . . . . . . . . .  9
+   7.  References . . . . . . . . . . . . . . . . . . . . . . . . . .  9
+     7.1.  Normative References . . . . . . . . . . . . . . . . . . .  9
+     7.2.  Informative References . . . . . . . . . . . . . . . . . .  9
+   Appendix A.  Public Discussion . . . . . . . . . . . . . . . . . . 10
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 10
 
 
 
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 2]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 2]
 
-Internet-Draft            Reputation Media Type                June 2011
+Internet-Draft            Reputation Media Type             October 2011
 
 
 1.  Introduction
@@ -120,6 +120,9 @@ Internet-Draft            Reputation Media Type                June 2011
    [HTTP].  It is part of a series defining the overall reputation
    query/response structure as well as the concept of reputation
    "vocabularies" for particular applications.
+
+   Also included is the specification for an IANA registry to contain
+   definitions and symbolic names for known reputation vocabularies.
 
 
 2.  Document Series
@@ -161,12 +164,9 @@ Internet-Draft            Reputation Media Type                June 2011
 
 
 
-
-
-
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 3]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 3]
 
-Internet-Draft            Reputation Media Type                June 2011
+Internet-Draft            Reputation Media Type             October 2011
 
 
 4.  Description
@@ -220,9 +220,9 @@ Internet-Draft            Reputation Media Type                June 2011
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 4]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 4]
 
-Internet-Draft            Reputation Media Type                June 2011
+Internet-Draft            Reputation Media Type             October 2011
 
 
          Content-type: application/reputon
@@ -276,9 +276,9 @@ Internet-Draft            Reputation Media Type                June 2011
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 5]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 5]
 
-Internet-Draft            Reputation Media Type                June 2011
+Internet-Draft            Reputation Media Type             October 2011
 
 
 4.1.  Formal Definition
@@ -332,9 +332,9 @@ Internet-Draft            Reputation Media Type                June 2011
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 6]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 6]
 
-Internet-Draft            Reputation Media Type                June 2011
+Internet-Draft            Reputation Media Type             October 2011
 
 
    To:  ietf-types@iana.org
@@ -388,9 +388,9 @@ Internet-Draft            Reputation Media Type                June 2011
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 7]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 7]
 
-Internet-Draft            Reputation Media Type                June 2011
+Internet-Draft            Reputation Media Type             October 2011
 
 
    Intended usage:  COMMON
@@ -431,6 +431,32 @@ Internet-Draft            Reputation Media Type                June 2011
 
        historic:  The application is no longer in current use
 
+   5.  A table of query parameters that are specific to this
+       application; each table entry must include:
+
+       Name:  Name of the query parameter
+
+       Status:  (as above)
+
+
+
+
+
+
+
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 8]
+
+Internet-Draft            Reputation Media Type             October 2011
+
+
+       Description:  A short description of the purpose of this
+          parameter
+
+       Syntax:  A reference to a description of valid syntax for the
+          parameter's value
+
+       Required:  "yes" if the parameter is mandatory, "no" otherwise
+
 
 6.  Security Considerations
 
@@ -441,14 +467,6 @@ Internet-Draft            Reputation Media Type                June 2011
 
    This memo is part of a series introducing a reputation query and
    response system (see Section 2).  The Security Considerations
-
-
-
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 8]
-
-Internet-Draft            Reputation Media Type                June 2011
-
-
    sections of the other memos should also be consulted.
 
    As this message structure is designed for use with the "long form" of
@@ -480,6 +498,13 @@ Internet-Draft            Reputation Media Type                June 2011
    [MAIL]     Resnick, P., Ed., "Internet Message Format", RFC 5322,
               October 2008.
 
+
+
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 9]
+
+Internet-Draft            Reputation Media Type             October 2011
+
+
    [MIME-REG]
               Freed, N. and J. Klensin, "Media Type Specifications and
               Registration Procedures", RFC 4288, December 2005.
@@ -490,19 +515,6 @@ Appendix A.  Public Discussion
    Public discussion of this suite of memos takes place on the
    domainrep@ietf.org mailing list.  See
    https://www.ietf.org/mailman/listinfo/domainrep.
-
-
-
-
-
-
-
-
-
-
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 9]
-
-Internet-Draft            Reputation Media Type                June 2011
 
 
 Authors' Addresses
@@ -544,17 +556,5 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-Borenstein & Kucherawy  Expires December 3, 2011               [Page 10]
+Borenstein & Kucherawy   Expires April 23, 2012                [Page 10]
 

@@ -4,12 +4,12 @@
 Network Working Group                                      N. Borenstein
 Internet-Draft                                                  Mimecast
 Intended status: Informational                              M. Kucherawy
-Expires: December 3, 2011                                      Cloudmark
-                                                            June 1, 2011
+Expires: April 23, 2012                                        Cloudmark
+                                                        October 21, 2011
 
 
               A Reputation Vocabulary for Email Identities
-              draft-kucherawy-reputation-vocab-identity-00
+              draft-kucherawy-reputation-vocab-identity-01
 
 Abstract
 
@@ -32,7 +32,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on December 3, 2011.
+   This Internet-Draft will expire on April 23, 2012.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 1]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 1]
 
-Internet-Draft   Email Identities Reputation Vocabulary        June 2011
+Internet-Draft   Email Identities Reputation Vocabulary     October 2011
 
 
 Table of Contents
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 2]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 2]
 
-Internet-Draft   Email Identities Reputation Vocabulary        June 2011
+Internet-Draft   Email Identities Reputation Vocabulary     October 2011
 
 
 1.  Introduction
@@ -164,9 +164,9 @@ Internet-Draft   Email Identities Reputation Vocabulary        June 2011
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 3]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 3]
 
-Internet-Draft   Email Identities Reputation Vocabulary        June 2011
+Internet-Draft   Email Identities Reputation Vocabulary     October 2011
 
 
 3.3.  Other Definitions
@@ -184,7 +184,7 @@ Internet-Draft   Email Identities Reputation Vocabulary        June 2011
 
 4.1.  Assertions
 
-   The "email" reputation application recognizes the following
+   The "email-id" reputation application recognizes the following
    assertions:
 
    PERPETRATES-FRAUD:  The subject identity is associated with
@@ -220,9 +220,9 @@ Internet-Draft   Email Identities Reputation Vocabulary        June 2011
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 4]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 4]
 
-Internet-Draft   Email Identities Reputation Vocabulary        June 2011
+Internet-Draft   Email Identities Reputation Vocabulary     October 2011
 
 
 5.  IANA Considerations
@@ -244,6 +244,12 @@ Internet-Draft   Email Identities Reputation Vocabulary        June 2011
 
    o  Status: current
 
+   o  Application-specific query parameters:
+
+      subject:  (current) identifies the subject of the reputation
+         query; in this case, it is the email identity whose reputation
+         is requested
+
 
 6.  Security Considerations
 
@@ -259,13 +265,21 @@ Internet-Draft   Email Identities Reputation Vocabulary        June 2011
 
 7.  Informative References
 
-   [DKIM]     Allman, E., Callas, J., Delany, M., Libbey, M., Fenton,
-              J., and M. Thomas, "DomainKeys Identified Mail (DKIM)
-              Signatures", RFC 4871, May 2007.
+   [DKIM]     Crocker, D., Ed., Hansen, T., Ed., and M. Kucherawy, Ed.,
+              "DomainKeys Identified Mail (DKIM) Signatures", RFC 6376,
+              September 2011.
 
    [EMAIL-ARCH]
               Crocker, D., "Internet Mail Architecture", RFC 5598,
               July 2009.
+
+
+
+
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 5]
+
+Internet-Draft   Email Identities Reputation Vocabulary     October 2011
+
 
    [KEYWORDS]
               Bradner, S., "Key words for use in RFCs to Indicate
@@ -273,13 +287,6 @@ Internet-Draft   Email Identities Reputation Vocabulary        June 2011
 
    [MAIL]     Resnick, P., Ed., "Internet Message Format", RFC 5322,
               October 2008.
-
-
-
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 5]
-
-Internet-Draft   Email Identities Reputation Vocabulary        June 2011
-
 
    [SMTP]     Klensin, J., "Simple Mail Transfer Protocol", RFC 5321,
               October 2008.
@@ -325,12 +332,5 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-
-
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 6]
+Borenstein & Kucherawy   Expires April 23, 2012                 [Page 6]
 
