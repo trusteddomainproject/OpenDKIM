@@ -7,7 +7,7 @@
 dist_doc_DATA = draft-gregorio-uritemplate-07.txt \
 	draft-ietf-marf-authfailure-report-03.txt \
 	draft-ietf-marf-dkim-reporting-03.txt \
-	draft-kucherawy-dkim-atps-08.txt \
+	draft-kucherawy-dkim-atps-09.txt \
 	draft-kucherawy-reputation-media-type-01.txt \
 	draft-kucherawy-reputation-model-00.txt \
 	draft-kucherawy-reputation-query-http-03.txt \

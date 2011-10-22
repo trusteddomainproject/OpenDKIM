@@ -3,12 +3,12 @@
 
 Individual submission                                       M. Kucherawy
 Internet-Draft                                           Cloudmark, Inc.
-Intended status: Experimental                           October 13, 2011
-Expires: April 15, 2012
+Intended status: Experimental                           October 22, 2011
+Expires: April 24, 2012
 
 
                   DKIM Authorized Third-Party Signers
-                      draft-kucherawy-dkim-atps-08
+                      draft-kucherawy-dkim-atps-09
 
 Abstract
 
@@ -31,7 +31,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 15, 2012.
+   This Internet-Draft will expire on April 24, 2012.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Kucherawy                Expires April 15, 2012                 [Page 1]
+Kucherawy                Expires April 24, 2012                 [Page 1]
 
 Internet-Draft            DKIM ATPS Experiment              October 2011
 
@@ -76,12 +76,13 @@ Table of Contents
      7.3.  Email Authentication Result Name Registry Update . . . . .  8
      7.4.  DKIM-Signature Tag Specification Registry  . . . . . . . .  9
    8.  Security Considerations  . . . . . . . . . . . . . . . . . . .  9
-     8.1.  Transient Security Failures  . . . . . . . . . . . . . . .  9
-     8.2.  Load on the DNS  . . . . . . . . . . . . . . . . . . . . . 10
-   9.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 10
-     9.1.  Normative References . . . . . . . . . . . . . . . . . . . 10
+     8.1.  False Privacy  . . . . . . . . . . . . . . . . . . . . . .  9
+     8.2.  Transient Security Failures  . . . . . . . . . . . . . . . 10
+     8.3.  Load on the DNS  . . . . . . . . . . . . . . . . . . . . . 10
+   9.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+     9.1.  Normative References . . . . . . . . . . . . . . . . . . . 11
      9.2.  Informative References . . . . . . . . . . . . . . . . . . 11
-   Appendix A.  Example Query and Reply . . . . . . . . . . . . . . . 11
+   Appendix A.  Example Query and Reply . . . . . . . . . . . . . . . 12
    Appendix B.  Acknowledgements  . . . . . . . . . . . . . . . . . . 12
 
 
@@ -107,8 +108,7 @@ Table of Contents
 
 
 
-
-Kucherawy                Expires April 15, 2012                 [Page 2]
+Kucherawy                Expires April 24, 2012                 [Page 2]
 
 Internet-Draft            DKIM ATPS Experiment              October 2011
 
@@ -164,7 +164,7 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
 
-Kucherawy                Expires April 15, 2012                 [Page 3]
+Kucherawy                Expires April 24, 2012                 [Page 3]
 
 Internet-Draft            DKIM ATPS Experiment              October 2011
 
@@ -220,7 +220,7 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
 
-Kucherawy                Expires April 15, 2012                 [Page 4]
+Kucherawy                Expires April 24, 2012                 [Page 4]
 
 Internet-Draft            DKIM ATPS Experiment              October 2011
 
@@ -276,7 +276,7 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
 
-Kucherawy                Expires April 15, 2012                 [Page 5]
+Kucherawy                Expires April 24, 2012                 [Page 5]
 
 Internet-Draft            DKIM ATPS Experiment              October 2011
 
@@ -332,7 +332,7 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
 
-Kucherawy                Expires April 15, 2012                 [Page 6]
+Kucherawy                Expires April 24, 2012                 [Page 6]
 
 Internet-Draft            DKIM ATPS Experiment              October 2011
 
@@ -388,7 +388,7 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
 
-Kucherawy                Expires April 15, 2012                 [Page 7]
+Kucherawy                Expires April 24, 2012                 [Page 7]
 
 Internet-Draft            DKIM ATPS Experiment              October 2011
 
@@ -444,7 +444,7 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
 
-Kucherawy                Expires April 15, 2012                 [Page 8]
+Kucherawy                Expires April 24, 2012                 [Page 8]
 
 Internet-Draft            DKIM ATPS Experiment              October 2011
 
@@ -489,7 +489,37 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
    This section discusses potential security issues related to this
    experimental protocol.
 
-8.1.  Transient Security Failures
+8.1.  False Privacy
+
+   The fact that the authorized third-party domain name is hashed and
+   then encoded with base32 may give some the false sense that the
+   relationship between the two parties is somehow protected.  This is
+   not the case.  Indeed, the very purpose of this protocol is to make
+   it possible for such relationships to be discovered, so such an
+   obscuration would make that process more difficult without a shared
+
+
+
+Kucherawy                Expires April 24, 2012                 [Page 9]
+
+Internet-Draft            DKIM ATPS Experiment              October 2011
+
+
+   secret delivered out-of-band to message verifiers (which also adds
+   further complexity.  Rather, the hash and encode steps are done
+   merely to convert any third-party domain name to a fixed width in the
+   construction of the DNS query.
+
+   Similarly, the use of SHA1 is selected because its output, passed
+   through base32 encoding, produces a string containing only characters
+   that are legal in DNS labels.  Although SHA256 is more resilient to
+   pre-image attacks, its output under base32 does include padding
+   characters that cannot be used in DNS labels.  This could be overcome
+   through further specification of the construction of the query, such
+   as appending a single byte that represents the number of padding
+   characters included, which would make the label legal again.
+
+8.2.  Transient Security Failures
 
    Approving a third party signer exposes the Author to the risk that
    the third party signer becomes compromised and then begins to sign
@@ -497,17 +527,9 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
    obviously reflect negatively on the Author, and the impact of this
    can become more severe as automated domain reputation systems are
    developed and deployed.  Thorough vetting and monitoring practices by
-
-
-
-Kucherawy                Expires April 15, 2012                 [Page 9]
-
-Internet-Draft            DKIM ATPS Experiment              October 2011
-
-
    Authors of third party signers will likely need to become the norm.
 
-8.2.  Load on the DNS
+8.3.  Load on the DNS
 
    A Verifier participating in DKIM, ADSP and ATPS will now issue a
    number of TXT queries to the DNS equal to as many as one (for the
@@ -531,6 +553,14 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
 9.  References
 
+
+
+
+Kucherawy                Expires April 24, 2012                [Page 10]
+
+Internet-Draft            DKIM ATPS Experiment              October 2011
+
+
 9.1.  Normative References
 
    [ABNF]                 Crocker, D. and P. Overell, "Augmented BNF for
@@ -553,14 +583,6 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
                           RFC 1035, November 1987.
 
    [KEYWORDS]             Bradner, S., "Key words for use in RFCs to
-
-
-
-Kucherawy                Expires April 15, 2012                [Page 10]
-
-Internet-Draft            DKIM ATPS Experiment              October 2011
-
-
                           Indicate Requirement Levels", BCP 14,
                           RFC 2119, March 1997.
 
@@ -583,6 +605,17 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
    [MAIL]                 Resnick, P., Ed., "Internet Message Format",
                           RFC 5322, October 2008.
+
+
+
+
+
+
+
+Kucherawy                Expires April 24, 2012                [Page 11]
+
+Internet-Draft            DKIM ATPS Experiment              October 2011
+
 
 Appendix A.  Example Query and Reply
 
@@ -609,14 +642,6 @@ Appendix A.  Example Query and Reply
 
    4.  A SHA1 hash of "two.example.net" is computed and then converted
        to printable form using base32 encoding, resulting in the string
-
-
-
-Kucherawy                Expires April 15, 2012                [Page 11]
-
-Internet-Draft            DKIM ATPS Experiment              October 2011
-
-
        "ZTZGRRV3F45A4U6HLDKBF3ZCOW4V2AJX".
 
    5.  A TXT query is issued to
@@ -632,12 +657,21 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
 Appendix B.  Acknowledgements
 
-   The author wishes to acknowledge Dave Crocker, Frank Ellermann and
-   Mark Martinec for their review and constructive criticism of this
-   proposal.
+   The author wishes to acknowledge Dave Crocker, Frank Ellermann, Mark
+   Martinec and Phil Pennock for their review and constructive criticism
+   of this proposal.
 
    The author also wishes to acknowledge Doug Otis and Daniel Black for
    their original draft upon which this work was based.
+
+
+
+
+
+Kucherawy                Expires April 24, 2012                [Page 12]
+
+Internet-Draft            DKIM ATPS Experiment              October 2011
+
 
 Author's Address
 
@@ -668,5 +702,27 @@ Author's Address
 
 
 
-Kucherawy                Expires April 15, 2012                [Page 12]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kucherawy                Expires April 24, 2012                [Page 13]
 
