@@ -19,6 +19,8 @@ release, and a summary of the changes in that release.
 		Reported by Adam Bernstein.
 	Fix Authentication-Results generation with "AddAllSignatureResults"
 		enabled.  Reported by Todd Nagengast.
+	Don't override "On-NoSignature" when "Quarantine" is set.  Reported
+		by Jarry Jeremy.
 	Ignore header field names that contain semi-colons, as they produce
 		syntactically invalid signatures.  Problem noted by
 		Heikki Gruner.
