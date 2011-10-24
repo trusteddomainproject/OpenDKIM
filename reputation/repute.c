@@ -210,6 +210,7 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 	unsigned long sampletmp;
 	time_t whentmp;
 	char *p;
+	const char *start;
 	xmlDocPtr doc = NULL;
 	xmlNode *node = NULL;
 	xmlNode *reputon = NULL;
@@ -218,6 +219,25 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 	assert(rep != NULL);
 
 	xmlSetGenericErrorFunc(NULL, repute_libxml2_errhandler);
+
+	for (start = buf; *start != '\0'; start++)
+	{
+		if (*start == '\n' && *(start + 1) == '\n')
+		{
+			buflen = buflen - (start - buf + 2);
+			buf = start + 2;
+			break;
+		}
+		else if (*start == '\r' &&
+		         *(start + 1) == '\n' &&
+		         *(start + 2) == '\r' &&
+		         *(start + 3) == '\n')
+		{
+			buflen = buflen - (start - buf + 4);
+			buf = start + 4;
+			break;
+		}
+	}
 
 	doc = xmlParseMemory(buf, buflen);
 	if (doc == NULL)
