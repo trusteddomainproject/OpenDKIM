@@ -14323,31 +14323,6 @@ mlfi_eom(SMFICTX *ctx)
 			}
 		}
 
-#ifdef SMFIF_QUARANTINE
-		/* quarantine for "bad" results if requested */
-		if (quarantine &&
-		    (dfc->mctx_status == DKIMF_STATUS_BAD ||
-		     dfc->mctx_status == DKIMF_STATUS_REVOKED ||
-		     dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
-		     dfc->mctx_status == DKIMF_STATUS_VERIFYERR)
-		{
-			char qreason[BUFRSZ + 1];
-
-			snprintf(qreason, sizeof qreason,
-			         "quarantined by %s", progname);
-			if (dkimf_quarantine(ctx,
-			                     qreason) != MI_SUCCESS)
-			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: smfi_quarantine() failed",
-					       dfc->mctx_jobid);
-				}
-			}
-		}
-#endif /* SMFIF_QUARANTINE */
-
 #ifdef _FFR_RATE_LIMIT
 		/* enact rate limiting */
 		if (conf->conf_ratelimitdb != NULL &&
