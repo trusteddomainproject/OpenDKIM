@@ -14329,9 +14329,7 @@ mlfi_eom(SMFICTX *ctx)
 		    (dfc->mctx_status == DKIMF_STATUS_BAD ||
 		     dfc->mctx_status == DKIMF_STATUS_REVOKED ||
 		     dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
-		     dfc->mctx_status == DKIMF_STATUS_VERIFYERR ||
-		     (dfc->mctx_status == DKIMF_STATUS_NOSIGNATURE &&
-		      dfc->mctx_addheader)))
+		     dfc->mctx_status == DKIMF_STATUS_VERIFYERR)
 		{
 			char qreason[BUFRSZ + 1];
 
