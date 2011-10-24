@@ -220,6 +220,8 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 
 	xmlSetGenericErrorFunc(NULL, repute_libxml2_errhandler);
 
+	/* skip any header found */
+	/* XXX -- this should verify a desirable Content-Type */
 	for (start = buf; *start != '\0'; start++)
 	{
 		if (*start == '\n' && *(start + 1) == '\n')
