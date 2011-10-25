@@ -5,7 +5,7 @@
 #AUTOMAKE_OPTIONS = foreign
 
 dist_doc_DATA = draft-gregorio-uritemplate-07.txt \
-	draft-ietf-marf-authfailure-report-03.txt \
+	draft-ietf-marf-authfailure-report-04.txt \
 	draft-ietf-marf-dkim-reporting-03.txt \
 	draft-kucherawy-dkim-atps-10.txt \
 	draft-kucherawy-reputation-media-type-01.txt \
