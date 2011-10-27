@@ -1603,6 +1603,12 @@ CURL_CPPFLAGS=""
 CURL_LDFLAGS=""
 CURL_LIBS=""
 
+if test x"$enable_reputation" != x"yes" -a \
+        x"$curlpath" = x"auto"
+then
+	curlpath="no"
+fi
+
 curl_found="no"
 if test \( x"$curlpath" = x"auto" -o x"$curlpath" = x"yes" \) -a \
 	x"$PKG_CONFIG" != x""
@@ -1676,6 +1682,12 @@ AC_ARG_WITH([libxml2],
 LIBXML2_CPPFLAGS=""
 LIBXML2_LDFLAGS=""
 LIBXML2_LIBS=""
+
+if test x"$enable_reputation" != x"yes" -a \
+        x"$xml2path" = x"auto"
+then
+	xml2path="no"
+fi
 
 xml2_found="no"
 if test \( x"$xml2path" = x"auto" -o x"$xml2path" = x"yes" \) -a \
