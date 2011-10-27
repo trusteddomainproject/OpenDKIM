@@ -1635,7 +1635,7 @@ then
 			AC_MSG_RESULT($curlpath)
 		        curl_found="yes"
 			CURL_CPPFLAGS="-I$curlpath/include"
-			CURL_LDFLAGS="-I$curlpath/lib"
+			CURL_LDFLAGS="-L$curlpath/lib"
 			CURL_LIBS="-lcurl"
 		else
 			AC_MSG_ERROR(not found at $curlpath)
@@ -1650,7 +1650,7 @@ then
 				AC_MSG_RESULT($d)
 		        	curl_found="yes"
 				CURL_CPPFLAGS="-I$curlpath/include"
-				CURL_LDFLAGS="-I$curlpath/lib"
+				CURL_LDFLAGS="-L$curlpath/lib"
 				CURL_LIBS="-lcurl"
 				break
 			fi
