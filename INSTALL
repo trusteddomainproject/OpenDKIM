@@ -53,10 +53,6 @@ doesn't find it, you will need to specify the location with
 		include, library path and libary name where the default 
 		locations of --with-db are not enough.
 
---with-domainkeys
-		Sendmail's "libdk" include file and library for verifying
-		messages signed with the older DomainKeys specification.
-
 --with-libgcrypt
 		Location of GNU's libgcrypt includes and library.
 		If not specified, "--with-openssl" is assumed.
