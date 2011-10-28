@@ -266,7 +266,7 @@ dist_doc_DATA += \
 endif
 
 man_MANS = opendkim-genkey.8 opendkim-genzone.8 opendkim-testadsp.8 \
-	opendkim-testkey.8
+	opendkim-testkey.8 opendkim-testmsg.8
 if BUILD_FILTER
 man_MANS += opendkim.conf.5 opendkim.8
 if LUA
