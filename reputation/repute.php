@@ -4,7 +4,7 @@
 ###
 
 #
-# PHP code to query a reputation datbaase and generate a reputon
+# PHP code to query a reputation database and generate a reputon
 #
 
 #
