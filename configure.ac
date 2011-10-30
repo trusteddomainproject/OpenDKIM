@@ -1693,7 +1693,7 @@ xml2_found="no"
 if test \( x"$xml2path" = x"auto" -o x"$xml2path" = x"yes" \) -a \
 	x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([LIBXML], [libxml >= 2.6.31],
+        PKG_CHECK_MODULES([LIBXML], [libxml-2.0 >= 2.6.31],
 	[
 		xml2_found="yes"
 		LIBXML2_CPPFLAGS="$LIBXML2_CFLAGS"
