@@ -4,12 +4,12 @@
 Network Working Group                                      N. Borenstein
 Internet-Draft                                                  Mimecast
 Intended status: Informational                              M. Kucherawy
-Expires: April 23, 2012                                        Cloudmark
-                                                        October 21, 2011
+Expires: May 3, 2012                                           Cloudmark
+                                                        October 31, 2011
 
 
                 A Media Type for Reputation Interchange
-                draft-kucherawy-reputation-media-type-01
+                draft-kucherawy-reputation-media-type-02
 
 Abstract
 
@@ -31,7 +31,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 23, 2012.
+   This Internet-Draft will expire on May 3, 2012.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 1]
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 1]
 
 Internet-Draft            Reputation Media Type             October 2011
 
@@ -66,15 +66,17 @@ Table of Contents
      3.2.  Other Definitions  . . . . . . . . . . . . . . . . . . . .  3
    4.  Description  . . . . . . . . . . . . . . . . . . . . . . . . .  4
      4.1.  Formal Definition  . . . . . . . . . . . . . . . . . . . .  6
-   5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  6
-     5.1.  application/reputon Media Type Registration  . . . . . . .  6
-     5.2.  Reputation Applications Registry . . . . . . . . . . . . .  8
-   6.  Security Considerations  . . . . . . . . . . . . . . . . . . .  9
-     6.1.  General  . . . . . . . . . . . . . . . . . . . . . . . . .  9
-   7.  References . . . . . . . . . . . . . . . . . . . . . . . . . .  9
-     7.1.  Normative References . . . . . . . . . . . . . . . . . . .  9
-     7.2.  Informative References . . . . . . . . . . . . . . . . . .  9
-   Appendix A.  Public Discussion . . . . . . . . . . . . . . . . . . 10
+   5.  Scores . . . . . . . . . . . . . . . . . . . . . . . . . . . .  6
+   6.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  7
+     6.1.  application/reputon Media Type Registration  . . . . . . .  7
+     6.2.  Reputation Applications Registry . . . . . . . . . . . . .  8
+   7.  Security Considerations  . . . . . . . . . . . . . . . . . . .  9
+     7.1.  General  . . . . . . . . . . . . . . . . . . . . . . . . .  9
+   8.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+     8.1.  Normative References . . . . . . . . . . . . . . . . . . . 10
+     8.2.  Informative References . . . . . . . . . . . . . . . . . . 10
+   Appendix A.  Acknowledgments . . . . . . . . . . . . . . . . . . . 10
+   Appendix B.  Public Discussion . . . . . . . . . . . . . . . . . . 10
    Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 10
 
 
@@ -106,9 +108,7 @@ Table of Contents
 
 
 
-
-
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 2]
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 2]
 
 Internet-Draft            Reputation Media Type             October 2011
 
@@ -164,7 +164,7 @@ Internet-Draft            Reputation Media Type             October 2011
 
 
 
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 3]
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 3]
 
 Internet-Draft            Reputation Media Type             October 2011
 
@@ -200,9 +200,10 @@ Internet-Draft            Reputation Media Type             October 2011
    RATED:  The identity of the entity being rated.
 
    RATING:  The overall rating score for that entity, expressed as a
-      floating-point number between 0 and 1 inclusive.
+      floating-point number between 0.0 and 1.0 inclusive.  See
+      Section 5 for discussion.
 
-   SAMPLE-SIZE:  The number of data points underlying that score,
+   SAMPLE-SIZE:  The number of data points used to compute that score,
       possibly an approximation.  Expressed as an unsigned 64-bit
       integer.
 
@@ -219,8 +220,7 @@ Internet-Draft            Reputation Media Type             October 2011
 
 
 
-
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 4]
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 4]
 
 Internet-Draft            Reputation Media Type             October 2011
 
@@ -276,7 +276,7 @@ Internet-Draft            Reputation Media Type             October 2011
 
 
 
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 5]
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 5]
 
 Internet-Draft            Reputation Media Type             October 2011
 
@@ -289,53 +289,72 @@ Internet-Draft            Reputation Media Type             October 2011
    reputon := rater rater-auth assertion *extension
               rated rating sampsize
 
-   rater := %x52.41.54.45.52.3A
+   rater := "RATER:"
             *WSP (atom / quoted-string) [CFWS] CRLF
 
-   rater-auth := %x52.41.54.45.52.2D.41.55.54.45.4E.54.49.43.49.54.59.3A
+   rater-auth := "RATER-AUTHENTICITY:"
                  *WSP 1*DIGIT "." 1*DIGIT [CFWS] CRLF
-              ; must be a number between 0 and 1 inclusive
+              ; must be a number between -1 and 1 inclusive
 
-   assertion := %x41.53.53.45.52.54.49.4F.4E.3A
+   assertion := "ASSERTION:"
                 *WSP dot-atom-text [CFWS] CRLF
 
    extension := dot-atom-text %x3A *WSP dot-atom-text [CFWS] CRLF
              ; must be registered with IANA within a reputation
              ; vocabulary registration
 
-   rated := %x52.41.54.45.44.3A
+   rated := "RATED:"
             *WSP (atom / quoted-string) [CFWS] CRLF
 
-   rating := %x52.41.54.49.4E.47.3A
+   rating := "RATING:"
              *WSP 1*DIGIT "." 1*DIGIT [CFWS] CRLF
           ; must be a number between 0 and 1 inclusive
 
-   sampsize := %x53.41.4D.50.4C.45.2D.53.49.5A.45.3A
+   sampsize := "SAMPLE-SIZE":
                *WSP 1*DIGIT [CFWS] CRLF
             ; must be an unsigned 64-bit integer
 
    "atom", "quoted-string" and "dot-atom-text" are imported from [MAIL].
 
 
-5.  IANA Considerations
+5.  Scores
+
+   The score presented as the value in the RATING parameter appears as a
+   floating point value between 0.0 and 1.0 inclusive.  The intent is
+   that the definition of an assertion within an application will
+   declare what the anchor values 0.0 and 1.0 specifically mean.
+   Generally speaking, 1.0 implies full agreement with the assertion,
+   while 0.0 indicates no support for the assertion.
+
+   The definition will also specify the type of scale in use when
+   generating scores, to which all reputation service providers for that
+   application space must adhere.  This will allow a client to change
+
+
+
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 6]
+
+Internet-Draft            Reputation Media Type             October 2011
+
+
+   which reputation service provider is being queried for a given
+   without having to learn through some out-of-band method what the new
+   provider's values mean.  For example, a registration might state that
+   ratings are linear, which would mean a score of "x" is twice as
+   strong as a value of "x/2".
+
+
+6.  IANA Considerations
 
    This memo presents two actions for IANA, namely the creation of the
    new media type "application/reputon" and the creation of a registry
    for reputation application types.  Another memo in this series
    creates an initial registry entry for the latter.
 
-5.1.  application/reputon Media Type Registration
+6.1.  application/reputon Media Type Registration
 
    This section provides the media type registration application from
    [MIME-REG] for processing by IANA:
-
-
-
-
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 6]
-
-Internet-Draft            Reputation Media Type             October 2011
-
 
    To:  ietf-types@iana.org
 
@@ -360,11 +379,19 @@ Internet-Draft            Reputation Media Type             October 2011
    Encoding considerations:  "7bit" encoding is sufficient and MUST be
       used to maintain readability when viewed by non-MIME mail readers.
 
-   Security considerations:  See Section 6 of [this document].
+   Security considerations:  See Section 7 of [this document].
 
    Interoperability considerations:  Implementers MUST ignore any "app"
       values, attribute/value pairs, or vocabulary items they do not
       support.
+
+
+
+
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 7]
+
+Internet-Draft            Reputation Media Type             October 2011
+
 
    Published specification:  [this document]
 
@@ -383,16 +410,6 @@ Internet-Draft            Reputation Media Type             October 2011
 
          Murray S. Kucherawy <msk@cloudmark.com>
 
-
-
-
-
-
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 7]
-
-Internet-Draft            Reputation Media Type             October 2011
-
-
    Intended usage:  COMMON
 
    Author:
@@ -403,7 +420,7 @@ Internet-Draft            Reputation Media Type             October 2011
 
    Change controller:  IESG
 
-5.2.  Reputation Applications Registry
+6.2.  Reputation Applications Registry
 
    IANA is requested to create the "Reputation Applications" registry.
    This registry will contain names of applications used with the
@@ -424,6 +441,14 @@ Internet-Draft            Reputation Media Type             October 2011
 
    4.  New or updated status, which MUST be one of:
 
+
+
+
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 8]
+
+Internet-Draft            Reputation Media Type             October 2011
+
+
        current:  The application is in current use
 
        deprecated:  The application is in current use but its use is
@@ -431,23 +456,12 @@ Internet-Draft            Reputation Media Type             October 2011
 
        historic:  The application is no longer in current use
 
-   5.  A table of query parameters that are specific to this
+   5.  An optional table of query parameters that are specific to this
        application; each table entry must include:
 
        Name:  Name of the query parameter
 
        Status:  (as above)
-
-
-
-
-
-
-
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 8]
-
-Internet-Draft            Reputation Media Type             October 2011
-
 
        Description:  A short description of the purpose of this
           parameter
@@ -457,31 +471,52 @@ Internet-Draft            Reputation Media Type             October 2011
 
        Required:  "yes" if the parameter is mandatory, "no" otherwise
 
+   A document creating a reputation application MUST include:
 
-6.  Security Considerations
+   1.  A list of one or more assertions registered within this
+       application; each table entry must include:
+
+       Name:  Name of the assertion
+
+       Description:  A short description of the assertion, with specific
+          meanings for values of 0.0 and 1.0
+
+       Scale:  A short description of the scale used in computing the
+          value (see Section 5 of this memo)
+
+
+7.  Security Considerations
 
    This memo describes security considerations introduced by the media
    type defined here.
 
-6.1.  General
+7.1.  General
 
    This memo is part of a series introducing a reputation query and
    response system (see Section 2).  The Security Considerations
    sections of the other memos should also be consulted.
 
    As this message structure is designed for use with the "long form" of
+
+
+
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 9]
+
+Internet-Draft            Reputation Media Type             October 2011
+
+
    the reputation query, the Security Considerations of RFCxxxx+3 would
    be of particular interest to implementers.
 
 
-7.  References
+8.  References
 
-7.1.  Normative References
+8.1.  Normative References
 
    [ABNF]     Crocker, D. and P. Overell, "Augmented BNF for Syntax
               Specifications: ABNF", RFC 5234, January 2008.
 
-7.2.  Informative References
+8.2.  Informative References
 
    [HTTP]     Fielding, R., Gettys, J., Mogul, J., Frystyk, H.,
               Masinter, L., Leach, P., and T. Berners-Lee, "Hypertext
@@ -498,23 +533,32 @@ Internet-Draft            Reputation Media Type             October 2011
    [MAIL]     Resnick, P., Ed., "Internet Message Format", RFC 5322,
               October 2008.
 
-
-
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 9]
-
-Internet-Draft            Reputation Media Type             October 2011
-
-
    [MIME-REG]
               Freed, N. and J. Klensin, "Media Type Specifications and
               Registration Procedures", RFC 4288, December 2005.
 
 
-Appendix A.  Public Discussion
+Appendix A.  Acknowledgments
+
+   The authors wish to acknowledge the contributions of the following to
+   this specification: Frank Ellermann.
+
+
+Appendix B.  Public Discussion
 
    Public discussion of this suite of memos takes place on the
    domainrep@ietf.org mailing list.  See
    https://www.ietf.org/mailman/listinfo/domainrep.
+
+
+
+
+
+
+
+Borenstein & Kucherawy     Expires May 3, 2012                 [Page 10]
+
+Internet-Draft            Reputation Media Type             October 2011
 
 
 Authors' Addresses
@@ -556,5 +600,17 @@ Authors' Addresses
 
 
 
-Borenstein & Kucherawy   Expires April 23, 2012                [Page 10]
+
+
+
+
+
+
+
+
+
+
+
+
+Borenstein & Kucherawy     Expires May 3, 2012                 [Page 11]
 

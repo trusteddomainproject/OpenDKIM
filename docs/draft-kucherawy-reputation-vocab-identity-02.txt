@@ -4,12 +4,12 @@
 Network Working Group                                      N. Borenstein
 Internet-Draft                                                  Mimecast
 Intended status: Informational                              M. Kucherawy
-Expires: April 23, 2012                                        Cloudmark
-                                                        October 21, 2011
+Expires: May 3, 2012                                           Cloudmark
+                                                        October 31, 2011
 
 
               A Reputation Vocabulary for Email Identities
-              draft-kucherawy-reputation-vocab-identity-01
+              draft-kucherawy-reputation-vocab-identity-02
 
 Abstract
 
@@ -32,7 +32,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 23, 2012.
+   This Internet-Draft will expire on May 3, 2012.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 1]
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 1]
 
 Internet-Draft   Email Identities Reputation Vocabulary     October 2011
 
@@ -72,8 +72,9 @@ Table of Contents
      5.1.  Registration of 'email-id' Reputation Application . . . . . 5
    6.  Security Considerations . . . . . . . . . . . . . . . . . . . . 5
      6.1.  General . . . . . . . . . . . . . . . . . . . . . . . . . . 5
-   7.  Informative References  . . . . . . . . . . . . . . . . . . . . 5
-   Appendix A.  Public Discussion  . . . . . . . . . . . . . . . . . . 6
+   7.  Informative References  . . . . . . . . . . . . . . . . . . . . 6
+   Appendix A.  Acknowledgments  . . . . . . . . . . . . . . . . . . . 6
+   Appendix B.  Public Discussion  . . . . . . . . . . . . . . . . . . 6
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . . . 6
 
 
@@ -107,8 +108,7 @@ Table of Contents
 
 
 
-
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 2]
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 2]
 
 Internet-Draft   Email Identities Reputation Vocabulary     October 2011
 
@@ -164,7 +164,7 @@ Internet-Draft   Email Identities Reputation Vocabulary     October 2011
 
 
 
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 3]
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 3]
 
 Internet-Draft   Email Identities Reputation Vocabulary     October 2011
 
@@ -196,14 +196,34 @@ Internet-Draft   Email Identities Reputation Vocabulary     October 2011
    SENDS-SPAM:  The subject identity is associated with unwanted bulk
       email
 
+   SENDS-TO-INVALID-RECIPIENTS:  The subject delivery attempts to
+      nonexistent recipients
+
+   For all assertions, the RATING scale is linear: A value of 0.0 means
+   there is no data to support the assertion, a value of 1.0 means all
+   accumulated data support the assertion, and the intervening values
+   have a linear relationship (i.e., a score of "x" is twice as strong
+   of an assertion as a value of "x/2").
+
 4.2.  Vocabulary Extensions
 
-   The "email" reputation application recognizes the following
+   The "email-id" reputation application recognizes the following
    extensions to the vocabulary defined in [RFCxxxx]:
 
    IDENTITY:  A token indicating the source of the identity; that is,
       where the subject identity was found in the message.  This MUST be
       one of:
+
+
+
+
+
+
+
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 4]
+
+Internet-Draft   Email Identities Reputation Vocabulary     October 2011
+
 
       DKIM:  The signing domain, i.e. the value of the "d=" tag, found
          on a valid [DKIM] signature in the message
@@ -214,15 +234,6 @@ Internet-Draft   Email Identities Reputation Vocabulary     October 2011
       RFC5322.FROM:  The RFC5322.From field of the message (see [MAIL])
 
       SPF:  The identity verified by [SPF])
-
-
-
-
-
-
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 4]
-
-Internet-Draft   Email Identities Reputation Vocabulary     October 2011
 
 
 5.  IANA Considerations
@@ -263,6 +274,13 @@ Internet-Draft   Email Identities Reputation Vocabulary     October 2011
    sections of the other memos should also be consulted.
 
 
+
+
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 5]
+
+Internet-Draft   Email Identities Reputation Vocabulary     October 2011
+
+
 7.  Informative References
 
    [DKIM]     Crocker, D., Ed., Hansen, T., Ed., and M. Kucherawy, Ed.,
@@ -272,14 +290,6 @@ Internet-Draft   Email Identities Reputation Vocabulary     October 2011
    [EMAIL-ARCH]
               Crocker, D., "Internet Mail Architecture", RFC 5598,
               July 2009.
-
-
-
-
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 5]
-
-Internet-Draft   Email Identities Reputation Vocabulary     October 2011
-
 
    [KEYWORDS]
               Bradner, S., "Key words for use in RFCs to Indicate
@@ -296,11 +306,35 @@ Internet-Draft   Email Identities Reputation Vocabulary     October 2011
               RFC 4408, April 2006.
 
 
-Appendix A.  Public Discussion
+Appendix A.  Acknowledgments
+
+   The authors wish to acknowledge the contributions of the following to
+   this specification: David F. Skoll.
+
+
+Appendix B.  Public Discussion
 
    Public discussion of this suite of memos takes place on the
    domainrep@ietf.org mailing list.  See
    https://www.ietf.org/mailman/listinfo/domainrep.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 6]
+
+Internet-Draft   Email Identities Reputation Vocabulary     October 2011
 
 
 Authors' Addresses
@@ -332,5 +366,27 @@ Authors' Addresses
 
 
 
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 6]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Borenstein & Kucherawy     Expires May 3, 2012                  [Page 7]
 
