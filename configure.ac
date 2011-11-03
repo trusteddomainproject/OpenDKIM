@@ -1696,7 +1696,8 @@ then
         PKG_CHECK_MODULES([LIBXML], [libxml-2.0 >= 2.6.31],
 	[
 		xml2_found="yes"
-		LIBXML2_CPPFLAGS="$LIBXML2_CFLAGS"
+		LIBXML2_CPPFLAGS="$LIBXML_CFLAGS"
+		LIBXML2_LIBS="$LIBXML_LIBS"
 	],
 	[
 	        xml2_found="no"
