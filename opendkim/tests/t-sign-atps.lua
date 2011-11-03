@@ -35,7 +35,7 @@ end
 
 -- send envelope macros and sender data
 -- mt.helo() is called implicitly
-mt.macro(conn, SMFIC_MAIL, "i", "t-sign-rs")
+mt.macro(conn, SMFIC_MAIL, "i", "t-sign-atps")
 if mt.mailfrom(conn, "user@example.com") ~= nil then
 	error("mt.mailfrom() failed")
 end
