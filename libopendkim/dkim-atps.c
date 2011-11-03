@@ -24,6 +24,7 @@ static char dkim_atps_c_id[] = "@(#)$Id$";
 #include "dkim.h"
 #include "dkim-internal.h"
 #include "dkim-types.h"
+#include "dkim-tables.h"
 #include "util.h"
 
 #ifdef USE_GNUTLS
@@ -33,6 +34,9 @@ static char dkim_atps_c_id[] = "@(#)$Id$";
 # ifndef SHA_DIGEST_LENGTH
 #  define SHA_DIGEST_LENGTH 20
 # endif /* ! SHA_DIGEST_LENGTH */
+# ifndef SHA256_DIGEST_LENGTH
+#  define SHA256_DIGEST_LENGTH 32
+# endif /* ! SHA256_DIGEST_LENGTH */
 #else /* USE_GNUTLS */
 /* openssl includes */
 # include <openssl/sha.h>
@@ -51,10 +55,18 @@ extern void dkim_error __P((DKIM *, const char *, ...));
 #ifndef T_RRSIG
 # define T_RRSIG		46
 #endif /* ! T_RRSIG */
+#ifndef MAX
+# define MAX(x,y)		((x) > (y) ? (x) : (y))
+#endif /* ! MAX */
 
 #define	DKIM_ATPS_QUERYLENGTH	32
-
 #define	DKIM_ATPS_VALID		"v=ATPS1"
+
+#ifdef SHA256_DIGEST_LENGTH
+# define MAXDIGEST		MAX(SHA_DIGEST_LENGTH, SHA256_DIGEST_LENGTH)
+#else /* SHA256_DIGEST_LENGTH */
+# define MAXDIGEST		SHA_DIGEST_LENGTH
+#endif /* SHA256_DIGEST_LENGTH */
 
 /*
 **  DKIM_ATPS_CHECK -- check for Authorized Third Party Signing
@@ -81,6 +93,11 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	int type;
 	int error;
 	int n;
+	int hash = DKIM_HASHTYPE_SHA1;
+	int diglen;
+#ifdef USE_GNUTLS
+	int ghash;
+#endif /* USE_GNUTLS */
 	unsigned int c;
 	size_t buflen;
 	size_t anslen;
@@ -89,6 +106,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	u_char *sdomain;
 	u_char *adomain;
 	u_char *txtfound = NULL;
+	u_char *ahash = NULL;
 	void *qh;
 	u_char *p;
 	u_char *cp;
@@ -97,11 +115,14 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	gnutls_hash_hd_t ctx;
 #else /* USE_GNUTLS */
         SHA_CTX ctx;
+# ifdef HAVE_SHA256
+	SHA256_CTX ctx2;
+# endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 	struct timeval to;
 	HEADER hdr;
 	u_char ansbuf[MAXPACKET];
-	u_char digest[SHA_DIGEST_LENGTH];
+	u_char digest[MAXDIGEST];
 	u_char b32[DKIM_ATPS_QUERYLENGTH + 1];
 	u_char query[DKIM_MAXHOSTNAMELEN + 1];
 	u_char buf[BUFRSZ + 1];
@@ -116,28 +137,86 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	sdomain = dkim_sig_getdomain(sig);
 	fdomain = dkim_getdomain(dkim);
 	adomain = dkim_sig_gettagvalue(sig, FALSE, "atps");
+	ahash = dkim_sig_gettagvalue(sig, FALSE, "atpsh");
 
 	if (sdomain == NULL || fdomain == NULL || adomain == NULL ||
 	    strcasecmp(adomain, fdomain) != 0)
 		return DKIM_STAT_INVALID;
 
-	/* construct a SHA1 hash of the signing domain */
+	/* confirm it requested a hash we know how to do */
+	if (ahash != NULL)
+	{
+		hash = dkim_name_to_code(hashes, ahash);
+		if (hash == -1)
+			return DKIM_STAT_INVALID;
+	}
+
+	switch (hash)
+	{
+	  case DKIM_HASHTYPE_SHA1:
+		diglen = SHA_DIGEST_LENGTH;
+		break;
+
+#  ifdef HAVE_SHA256
+	  case DKIM_HASHTYPE_SHA256:
+		diglen = SHA256_DIGEST_LENGTH;
+		break;
+#  endif /* HAVE_SHA256 */
+
+	  default:
+		assert(0);
+		break;
+	}
+
+	/* construct a hash of the signing domain */
 # ifdef USE_GNUTLS
-	if (gnutls_hash_init(&ctx, GNUTLS_DIG_SHA1) != 0 ||
+	switch (hash)
+	{
+	  case DKIM_HASHTYPE_SHA1:
+		ghash = GNUTLS_DIG_SHA1;
+		break;
+
+	  case DKIM_HASHTYPE_SHA256:
+		ghash = GNUTLS_DIG_SHA256;
+		break;
+
+	  default:
+		assert(0);
+		break;
+	}
+
+	if (gnutls_hash_init(&ctx, ghash) != 0 ||
 	    gnutls_hash(ctx, sdomain, strlen(sdomain)) != 0)
 		return DKIM_STAT_INTERNAL;
 	gnutls_hash_deinit(ctx, digest);
 # else /* USE_GNUTLS */
-	SHA1_Init(&ctx);
-	SHA1_Update(&ctx, sdomain, strlen(sdomain));
-	SHA1_Final(digest, &ctx);
+	switch (hash)
+	{
+	  case DKIM_HASHTYPE_SHA1:
+		SHA1_Init(&ctx);
+		SHA1_Update(&ctx, sdomain, strlen(sdomain));
+		SHA1_Final(digest, &ctx);
+		break;
+
+#  ifdef HAVE_SHA256
+	  case DKIM_HASHTYPE_SHA256:
+		SHA256_Init(&ctx2);
+		SHA256_Update(&ctx2, sdomain, strlen(sdomain));
+		SHA256_Final(digest, &ctx2);
+		break;
+#  endif /* HAVE_SHA256 */
+
+	  default:
+		assert(0);
+		break;
+	}
 # endif /* USE_GNUTLS */
 
 	/* base32-encode the hash */
 	memset(b32, '\0', sizeof b32);
 	buflen = sizeof b32;
 	if (dkim_base32_encode(b32, &buflen,
-	                       digest, sizeof digest) != DKIM_ATPS_QUERYLENGTH)
+	                       digest, diglen) != DKIM_ATPS_QUERYLENGTH)
 		return DKIM_STAT_INTERNAL;
 
 	/* form the query */
