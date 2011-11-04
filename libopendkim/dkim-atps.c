@@ -59,7 +59,7 @@ extern void dkim_error __P((DKIM *, const char *, ...));
 # define MAX(x,y)		((x) > (y) ? (x) : (y))
 #endif /* ! MAX */
 
-#define	DKIM_ATPS_QUERYLENGTH	32
+#define	DKIM_ATPS_QUERYLENGTH	64
 #define	DKIM_ATPS_VALID		"v=ATPS1"
 
 #ifdef SHA256_DIGEST_LENGTH
