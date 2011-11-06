@@ -2074,11 +2074,11 @@ AC_OUTPUT([	Makefile
 		opendkim/tests/Makefile
 		stats/Makefile stats/opendkim-importstats.8
 		reputation/Makefile
-			reputation/opendkim-genrates.pl
+			reputation/opendkim-genrates
 			reputation/opendkim-genrates.8
-			reputation/opendkim-modtotals.pl
+			reputation/opendkim-modtotals
 			reputation/opendkim-modtotals.8
-			reputation/opendkim-repute.pl
+			reputation/opendkim-repute
 			reputation/opendkim-repute.8
 			reputation/repute.pc
 ])
