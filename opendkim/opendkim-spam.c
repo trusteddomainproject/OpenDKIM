@@ -19,8 +19,10 @@
 # include <stdbool.h>
 #endif /* HAVE_STDBOOL_H */
 
+#ifdef USE_ODBX
 /* opendbx includes */
-#include <odbx.h>
+# include <odbx.h>
+#endif /* USE_ODBX */
 
 /* libopendkim includes */
 #include <dkim-strl.h>
@@ -30,7 +32,7 @@
 
 /* definitions, macros, etc. */
 #define	BUFRSZ		1024
-#define	CMDLINEOPTS	"b:c:d:fh:p:s:u:vV"
+#define	CMDLINEOPTS	"b:c:d:fh:o:p:P:s:u:vV"
 #define	DEFDBBACKEND	"mysql"
 #define	DEFCONFFILE	CONFIG_BASE "/opendkim-spam.conf"
 #define	DEFDBHOST	"localhost"
@@ -139,8 +141,10 @@ main(int argc, char **argv)
 	char *statsfile = NULL;
 	FILE *sf;
 	struct config *conf = NULL;
+#ifdef USE_ODBX
 	odbx_t *db = NULL;
 	odbx_result_t *result;
+#endif /* USE_ODBX */
 	char buf[BUFRSZ + 1];
 	char rcvd[MAXHEADER + 1];
 
@@ -230,22 +234,53 @@ main(int argc, char **argv)
 		}
 
 		/* extract values */
-                (void) config_get(conf, "DatabaseBackend",
-                                  &dbbackend, sizeof dbbackend);
-                (void) config_get(conf, "DatabaseHost",
-                                  &dbhost, sizeof dbhost);
-                (void) config_get(conf, "DatabaseName",
-                                  &dbname, sizeof dbname);
-                (void) config_get(conf, "DatabasePassword",
-                                  &dbpass, sizeof dbpass);
-                (void) config_get(conf, "DatabasePort",
-                                  &dbport, sizeof dbport);
-                (void) config_get(conf, "DatabaseSpamColumn",
-                                  &dbspamcol, sizeof dbspamcol);
-                (void) config_get(conf, "DatabaseUser",
-                                  &dbuser, sizeof dbuser);
-                (void) config_get(conf, "StatisticsFile",
-                                  &statsfile, sizeof statsfile);
+		if (dbbackend == NULL)
+		{
+			(void) config_get(conf, "DatabaseBackend",
+			                  &dbbackend, sizeof dbbackend);
+		}
+
+		if (dbhost == NULL)
+		{
+			(void) config_get(conf, "DatabaseHost",
+			                  &dbhost, sizeof dbhost);
+		}
+
+                if (dbname == NULL)
+		{
+			(void) config_get(conf, "DatabaseName",
+			                  &dbname, sizeof dbname);
+		}
+
+		if (dbpass == NULL)
+		{
+			(void) config_get(conf, "DatabasePassword",
+			                  &dbpass, sizeof dbpass);
+		}
+
+		if (dbport == NULL)
+		{
+			(void) config_get(conf, "DatabasePort",
+			                  &dbport, sizeof dbport);
+		}
+
+		if (dbspamcol == NULL)
+		{
+			(void) config_get(conf, "DatabaseSpamColumn",
+			                  &dbspamcol, sizeof dbspamcol);
+		}
+
+                if (dbuser == NULL)
+		{
+			(void) config_get(conf, "DatabaseUser",
+			                  &dbuser, sizeof dbuser);
+		}
+
+		if (statsfile == NULL)
+		{
+			(void) config_get(conf, "StatisticsFile",
+			                  &statsfile, sizeof statsfile);
+		}
 
 		if (config_get(conf, "Background", &tmpf, sizeof tmpf) == 1)
 		{
@@ -280,6 +315,13 @@ main(int argc, char **argv)
 	}
 	else
 	{
+#ifndef USE_ODBX
+		fprintf(stderr, "%s: SQL not supported in this installation\n",
+		        progname);
+		return EX_SOFTWARE;
+
+#else /* ! USE_ODBX */
+
 		dberr = odbx_init(&db, dbbackend, dbhost, dbport);
 		if (dberr < 0)
 		{
@@ -309,6 +351,7 @@ main(int argc, char **argv)
 			fprintf(stdout, "%s: database binding successful\n",
 			        progname);
 		}
+#endif /* ! USE_ODBX */
 	}
 
 	/* read first Received:, extract reporter and job ID */
@@ -346,6 +389,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s: Received header field not found\n",
 		        progname);
 
+#ifdef USE_ODBX
 		if (db != NULL)
 		{
 			(void) odbx_unbind(db);
@@ -353,8 +397,11 @@ main(int argc, char **argv)
 		}
 		else
 		{
+#endif /* USE_ODBX */
 			fclose(sf);
+#ifdef USE_ODBX
 		}
+#endif /* USE_ODBX */
 		return EX_DATAERR;
 	}
 
@@ -385,6 +432,7 @@ main(int argc, char **argv)
 		        "%s: could not locate job ID in Received header field\n",
 		        progname);
 
+#ifdef USE_ODBX
 		if (db != NULL)
 		{
 			(void) odbx_unbind(db);
@@ -392,8 +440,11 @@ main(int argc, char **argv)
 		}
 		else
 		{
+#endif /* USE_ODBX */
 			fclose(sf);
+#ifdef USE_ODBX
 		}
+#endif /* USE_ODBX */
 		return EX_DATAERR;
 	}
 	else if (reporter == NULL)
@@ -402,6 +453,7 @@ main(int argc, char **argv)
 		        "%s: could not locate receiving host in Received header field\n",
 		        progname);
 
+#ifdef USE_ODBX
 		if (db != NULL)
 		{
 			(void) odbx_unbind(db);
@@ -409,8 +461,11 @@ main(int argc, char **argv)
 		}
 		else
 		{
+#endif /* USE_ODBX */
 			fclose(sf);
+#ifdef USE_ODBX
 		}
+#endif /* USE_ODBX */
 		return EX_DATAERR;
 	}
 
@@ -430,6 +485,7 @@ main(int argc, char **argv)
 		return 0;
 	}
 
+#ifdef USE_ODBX
 	if (verbose >= 1)
 	{
 		fprintf(stdout, "%s: requesting reporter id for '%s'\n",
@@ -446,7 +502,6 @@ main(int argc, char **argv)
 		  case -1:
 			fprintf(stderr, "%s: fork(): %s\n",
 			        progname, strerror(errno));
-
 			(void) odbx_unbind(db);
 			(void) odbx_finish(db);
 			return EX_OSERR;
@@ -746,6 +801,7 @@ main(int argc, char **argv)
 	/* close down */
 	(void) odbx_unbind(db);
 	(void) odbx_finish(db);
+#endif /* USE_ODBX */
 
 	return 0;
 }

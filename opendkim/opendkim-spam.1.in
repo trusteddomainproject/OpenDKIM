@@ -25,7 +25,7 @@ program.
 This tool is experimental.  If the experiment proves useful, the
 feedback could be used as an input stream to a larger-scale collaborative
 feedback system that can be used to identify sources of signed mail
-that has a good reputation.
+that have good reputations.
 .SH OPTIONS
 .TP
 .I -b backend
@@ -55,7 +55,8 @@ is "localhost".
 .TP
 .I -o file
 Writes an update record to an OpenDKIM statistics file rather than directly
-to a database.  There is no default.
+to a database.  There is no default.  Note that if this option is used,
+all database-specific options are ignored.
 .TP
 .I -p password
 Specifies the password to be used when authenticating to the database.
@@ -118,6 +119,11 @@ are as follows; see above for descriptions:
 .TP
 .I StatisticsFile
 -o
+.SH NOTES
+It is possible to compile this application without SQL support, in which
+case only the
+.I StatisticsFile
+setting has any meaning (and, in fact, it is required in that case).
 .SH VERSION
 This man page covers the version of
 .I opendkim-spam
@@ -130,4 +136,4 @@ Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
 .I mutt(1),
 .I opendkim(8)
 .P
-RFC4871 - DomainKeys Identified Mail
+RFC6376 - DomainKeys Identified Mail
