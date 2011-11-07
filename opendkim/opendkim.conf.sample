@@ -33,7 +33,7 @@
 ##
 ##  By default, the filter will refuse to start if support for SHA256 is
 ##  not available since this violates the strong recommendations of
-##  RFC4871 section 3.3, which says:
+##  RFC6376 Section 3.3, which says:
 ##
 ##  "Verifiers MUST implement both rsa-sha1 and rsa-sha256.  Signers MUST
 ##   implement and SHOULD sign using rsa-sha256."

@@ -17,8 +17,8 @@ source library for producing DKIM-aware applications, and a "milter"-based
 filter for providing DKIM service.
 
 The DKIM sender authentication system was originally created by the E-mail
-Signing Technology Group (ESTG) and is now a proposed standard of the
-IETF (RFC4871).  DKIM is an amalgamation of the DomainKeys (DK) proposal by
+Signing Technology Group (ESTG) and is now a draft standard of the
+IETF (RFC6376).  DKIM is an amalgamation of the DomainKeys (DK) proposal by
 Yahoo!, Inc. and the Internet Identified Mail (IIM) proposal by Cisco.
 
 "milter" is a portmanteau of "mail filter" and refers to a protocol and API

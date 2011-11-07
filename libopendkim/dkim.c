@@ -219,28 +219,20 @@ const u_char *dkim_default_senderhdrs[] =
 	NULL
 };
 
-/* recommended list of headers to sign, from RFC4871 section 5.5 */
+/* recommended list of headers to sign, from RFC6376 Section 5.4 */
 const u_char *dkim_should_signhdrs[] =
 {
 	"from",
-	"sender",
 	"reply-to",
 	"subject",
 	"date",
-	"message-id",
 	"to",
 	"cc",
-	"mime-version",
-	"content-type",
-	"content-transfer-encoding",
-	"content-id",
-	"content-description",
 	"resent-date",
 	"resent-from",
 	"resent-sender",
 	"resent-to",
 	"resent-cc",
-	"resent-message-id",
 	"in-reply-to",
 	"references",
 	"list-id",
@@ -253,16 +245,13 @@ const u_char *dkim_should_signhdrs[] =
 	NULL
 };
 
-/* recommended list of headers not to sign, from RFC4871 section 5.5 */
+/* recommended list of headers not to sign, from RFC6376 Section 5.4 */
 const u_char *dkim_should_not_signhdrs[] =
 {
 	"return-path",
 	"received",
 	"comments",
 	"keywords",
-	"bcc",
-	"resent-bcc",
-	"dkim-signature",
 	NULL
 };
 
@@ -6924,7 +6913,7 @@ dkim_getsignature(DKIM *dkim)
 **  	A DKIM_STAT_* constant.
 **
 **  Notes:
-**  	Per RFC4871 section 3.7, the signature header returned here does
+**  	Per RFC6376 Section 3.7, the signature header returned here does
 **  	not contain a trailing CRLF.
 */
 
@@ -8863,7 +8852,7 @@ dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
 	if (pcode != (dkim_param_t) -1)
 		return DKIM_STAT_INVALID;
 
-	/* confirm valid syntax, per RFC4871 */
+	/* confirm valid syntax, per RFC6376 */
 	for (p = (u_char *) tag; *p != '\0'; p++)
 	{
 		if (!(isascii(*p) && (isalnum(*p) || *p == '_')))

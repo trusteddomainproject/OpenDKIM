@@ -71,4 +71,4 @@ Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 .I opendkim(8),
 .I opendkim.conf(5)
 .P
-RFC4871 - DomainKeys Identified Mail
+RFC6376 - DomainKeys Identified Mail

@@ -24,7 +24,7 @@ release, and a summary of the changes in that release.
 	Ignore header field names that contain semi-colons, as they produce
 		syntactically invalid signatures.  Problem noted by
 		Heikki Gruner.
-	LIBOPENDKIM: Feature request #SF3317160: Per RFC4871bis, remove
+	LIBOPENDKIM: Feature request #SF3317160: Per RFC6376, remove
 		granularity checks.
 	LIBOPENDKIM: Feature request #SF3385768: Add dkim_privkey_load(),
 		allowing validation of a private key before reaching
@@ -32,6 +32,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Feature request #SF3423226: Copy header field name lists
 		instead of using the caller's copy.  Suggested by
 		Heikki Gruner.
+	LIBOPENDKIM: Update list of header fields that should be signed
+		per RFC6376.
 	LIBOPENDKIM: Don't report the absence of "c=" as an error, since
 		there is a default.
 	LIBOPENDKIM: NOERROR is the same as NXDOMAIN for the purposes of

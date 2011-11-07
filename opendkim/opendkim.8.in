@@ -523,8 +523,6 @@ Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 .P
 Sendmail Operations Guide
 .P
-RFC4871 - DomainKeys Identified Mail
-.P
 RFC5321 - Simple Mail Transfer Protocol
 .P
 RFC5322 - Internet Messages
@@ -533,3 +531,5 @@ RFC5451 - Message Header Field for Indicating Message Authentication Status
 .P
 RFC6008 - Authentication-Results Registration for Differentiating among
 Cryptographic Results
+.P
+RFC6376 - DomainKeys Identified Mail

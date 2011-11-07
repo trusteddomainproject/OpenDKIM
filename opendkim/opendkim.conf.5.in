@@ -69,7 +69,7 @@ from nonexistent domains according to the author domain signing practises
 
 .TP
 .I AllowSHA1Only (Boolean)
-Permit verify mode when only SHA1 support is available.  RFC4871 requires
+Permit verify mode when only SHA1 support is available.  RFC6376 requires
 that verifiers implement both SHA1 and SHA256 support.  Setting this
 feature changes the absence of SHA256 support from an error to a warning.
 
@@ -665,7 +665,7 @@ those tags will be applied.
 Specifies a set of header fields that should be omitted when generating
 signatures.  If an entry in the list names any header field that is mandated
 by the DKIM specification, the entry is ignored.  A set of header fields is
-listed in the DKIM specification (RFC4871, Section 5.5) as "SHOULD NOT" be
+listed in the DKIM specification (RFC6376, Section 5.4) as "SHOULD NOT" be
 signed; the default list for this parameter contains those fields
 (Return-Path, Received, Comments, Keywords, Bcc, Resent-Bcc and
 DKIM-Signature).  To omit no headers, simply use the string "." (or any
@@ -1015,7 +1015,7 @@ If not set, no expiration time is added to signatures.
 Specifies the set of header fields that should be included when generating
 signatures.  If the list omits any header field that is mandated by the DKIM
 specification, those fields are implicitly added.  By default, those fields
-listed in the DKIM specification as "SHOULD" be signed (RFC4871, Section 5.5)
+listed in the DKIM specification as "SHOULD" be signed (RFC6376, Section 5.4)
 will be signed by the filter.  See the
 .I OmitHeaders
 configuration option for more information about the format and interpretation
@@ -1298,8 +1298,6 @@ Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8), opendkim-lua(3), sendmail(8)
 .P
-RFC4871 - DomainKeys Identified Mail
-.P
 RFC5451 - Message Header Field for Indicating Message Authentication Status
 .P
 RFC5617 - DKIM Author Domain Signing Practises
@@ -1308,3 +1306,5 @@ RFC5965 - An Extensible Format for Email Feedback Reports
 .P
 RFC6008 - Authentication-Results Registration for Differentiating among
 Cryptographic Results
+.P
+RFC6376 - DomainKeys Identified Mail

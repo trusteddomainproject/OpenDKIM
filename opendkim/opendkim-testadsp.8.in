@@ -22,6 +22,6 @@ Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8)
 .P
-RFC4871 - DomainKeys Identified Mail
+RFC6376 - DomainKeys Identified Mail
 .P
 RFC5617 - DKIM Author Domain Signing Practises

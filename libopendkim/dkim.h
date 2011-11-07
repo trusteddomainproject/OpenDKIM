@@ -1928,10 +1928,10 @@ extern DKIM_STAT dkim_sig_gethashes __P((DKIM_SIGINFO *, void **, size_t *,
 /* default list of sender headers */
 extern const u_char *dkim_default_senderhdrs[];
 
-/* list of headers that should be signed, per RFC4871 section 5.5 */
+/* list of headers that should be signed, per RFC6376 Section 5.4 */
 extern const u_char *dkim_should_signhdrs[]; 
 
-/* list of headers that should not be signed, per RFC4871 section 5.5 */
+/* list of headers that should not be signed, per RFC6376 Section 5.4 */
 extern const u_char *dkim_should_not_signhdrs[];
 
 
