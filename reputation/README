@@ -9,6 +9,7 @@ For signed messages, all signatures are recorded including pass/fail,
 signing domain, certain signature properties, etc.  The statistics system
 can also upload the locally-collected data to an arbitrary central repository
 where it can be aggregated and then made available to participants to query.
+See the stats/README for details of this component.
 
 This central system has not yet been designed to be queryable as a public
 service, but may be in the future.  This directory contains a description
@@ -50,12 +51,78 @@ of these sources.  This is done via data collection and statistical methods.
 
 Full details of this system can be found in the white paper entitled
 "Enforcing Rate Limits Based on Authenticated Sender Reputation",
-included in this directory.
+which will be included in this directory upon publication.
+
 
 SETUP INSTRUCTIONS
 
-[provide details about how to set up a local instance of the reputation system
- described above here]
+1) If you intend only to query for reputations, skip to step 11.
+
+2) Follow the steps to get opendkim configured for creating statistics
+   reports.
+
+3) If you intend to submit your data, follow the steps to create
+   and register a submission key (GPG required), and then begin sending
+   your reports regularly via cron(8).  Skip to step (3).
+
+4) If you intend to do local reputation, create a new SQL database with
+   tables as described in stats/mkdb.mysql and in reputation/mkdb.mysql.
+   (You may need to edit these if you are using a backend other than MySQL.)
+
+5) Rather than sending your stats reports off to a central site, import
+   them periodically using cron(8) and opendkim-importstats(8).
+
+6) Somewhere after midnight daily, arrange to run opendkim-genrates(8).
+   This takes your statistical reports from SQL and rolls them up into 
+   spam and flow predictions, which opendkim can then query.
+
+7) Install a web server (e.g., Apache), and ensure it includes support for
+   inline PHP. 
+
+8) Select a URI that will be the root of your reputation query.  Configure
+   your web server such that this URI points to a specific directory.
+   This documentation refers to that directory as $REPROOT.
+
+9) Create a REPUTE query template that will be returned from
+   http://<your-URI>/.well-known/repute_template.  This would be in
+   $REPROOT/.well-known/repute_template.  The template describes to a
+   REPUTE client how to form the HTTP query that your server will use.  The
+   template used for this experimental work is as follows:
+
+   http://{service}/repute.php?subject={subject}&application={application}
+        &assertion={assertion}&service={service}
+
+   (...except it should all be on one line)
+
+10) Install reputation/repute.php and reputation/repute-config.php into
+    $REPROOT.  Edit repute-config.php as needed to match your database
+    parameters.
+
+11) Configure opendkim to query the reputation server by adding
+    these configuration items:
+
+	ReputationLimits        csl:*=1000000
+	ReputationRatios        repute:<repute-server>
+	ReputationFactor        24
+	ReputationSpamCheck     /^X-Spam: ?[Yy][Ee][Ss]/
+
+    This tells opendkim the following things:
+
+	- all domains are allowed to send up to 1M messages a day
+	- domain reputations should be obtained via the REPUTE protocol from
+	  <repute-server>
+	- the daily limit should be enforced in 24 chunks (i.e., applied
+	  hourly rather than daily)
+	- a message is spam if any header field matches the regular expression
+	  shown
+
+    If you have configured a local reputation service, you can replace
+    the ReputationLimits setting with a query to the data set that contains
+    those numbers for you, i.e., the "daily_limit_low" column in the
+    "predictions" table.  This will cause opendkim to enforce per-domain
+    transmission limits based on past observations in addition to enforcing
+    maximum spam rates for each domain.
+    
 
 
 TROUBLESHOOTING
