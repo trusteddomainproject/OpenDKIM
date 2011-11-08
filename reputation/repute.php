@@ -61,7 +61,7 @@ $samples = $row[2];
 #
 # construct the reputon
 #
-printf("Content-Type: application/reputon\n");
+printf("Content-Type: application/reputon; format=xml\n");
 printf("\n");
 printf("<reputation>\n");
 printf(" <reputon>\n");
