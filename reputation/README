@@ -63,7 +63,7 @@ SETUP INSTRUCTIONS
 
 3) If you intend to submit your data, follow the steps to create
    and register a submission key (GPG required), and then begin sending
-   your reports regularly via cron(8).  Skip to step (3).
+   your reports regularly via cron(8).  Skip to step 11.
 
 4) If you intend to do local reputation, create a new SQL database with
    tables as described in stats/mkdb.mysql and in reputation/mkdb.mysql.
