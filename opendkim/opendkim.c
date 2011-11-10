@@ -7721,20 +7721,24 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 	}
 
-	if (conf->conf_replimits != NULL &&
-	    conf->conf_repratios != NULL)
+	if (conf->conf_repratios != NULL)
 	{
 		int status;
 		char *dberr = NULL;
 
-		status = dkimf_db_open(&conf->conf_replimitsdb,
-		                       conf->conf_replimits,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
-		if (status != 0)
+		if (conf->conf_replimits != NULL)
 		{
-			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         conf->conf_replimits, dberr);
-			return -1;
+			status = dkimf_db_open(&conf->conf_replimitsdb,
+			                       conf->conf_replimits,
+			                       DKIMF_DB_FLAG_READONLY, NULL,
+			                       &dberr);
+			if (status != 0)
+			{
+				snprintf(err, errlen,
+				         "%s: dkimf_db_open(): %s",
+				         conf->conf_replimits, dberr);
+				return -1;
+			}
 		}
 
 		status = dkimf_db_open(&curconf->conf_repratiosdb,

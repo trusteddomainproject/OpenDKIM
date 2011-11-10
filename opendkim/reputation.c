@@ -79,7 +79,6 @@ dkimf_rep_init(DKIMF_REP *rep, time_t factor,
 	DKIMF_REP new;
 
 	assert(rep != NULL);
-	assert(limits != NULL);
 	assert(ratios != NULL);
 	assert(factor != 0);
 
@@ -259,6 +258,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 		/* cache miss; build a new cache entry */
 		reps.reps_count = 0;
+		reps.reps_limit = ULONG_MAX;
 		reps.reps_spam = 0;
 		reps.reps_retrieved = time(NULL);
 
@@ -293,34 +293,38 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		}
 		
 		/* get the total message limit */
-		if (dkimf_db_get(rep->rep_limits, domain, dlen, &req,
-		                 1, &f) != 0)
+		if (rep->rep_limits != NULL)
 		{
-			pthread_mutex_unlock(&rep->rep_lock);
-			return -1;
-		}
-
-		if (!f)
-		{
-			if (dkimf_db_get(rep->rep_limits, "*", 1, &req,
+			if (dkimf_db_get(rep->rep_limits, domain, dlen, &req,
 			                 1, &f) != 0)
 			{
 				pthread_mutex_unlock(&rep->rep_lock);
 				return -1;
 			}
-		}
 
-		if (!f)
-		{
-			pthread_mutex_unlock(&rep->rep_lock);
-			return 2;
-		}
+			if (!f)
+			{
+				if (dkimf_db_get(rep->rep_limits, "*", 1, &req,
+				                 1, &f) != 0)
+				{
+					pthread_mutex_unlock(&rep->rep_lock);
+					return -1;
+				}
+			}
 
-		reps.reps_limit = strtoul(buf, &p, 10) / rep->rep_factor + 1;
-		if (*p != '\0')
-		{
-			pthread_mutex_unlock(&rep->rep_lock);
-			return -1;
+			if (!f)
+			{
+				pthread_mutex_unlock(&rep->rep_lock);
+				return 2;
+			}
+
+			reps.reps_limit = strtoul(buf, &p,
+			                          10) / rep->rep_factor + 1;
+			if (*p != '\0')
+			{
+				pthread_mutex_unlock(&rep->rep_lock);
+				return -1;
+			}
 		}
 
 		/* get the spam ratio */
