@@ -3,12 +3,12 @@
 
 Individual submission                                       M. Kucherawy
 Internet-Draft                                           Cloudmark, Inc.
-Intended status: Experimental                           October 23, 2011
-Expires: April 25, 2012
+Intended status: Experimental                          November 13, 2011
+Expires: May 16, 2012
 
 
                   DKIM Authorized Third-Party Signers
-                      draft-kucherawy-dkim-atps-10
+                      draft-kucherawy-dkim-atps-11
 
 Abstract
 
@@ -31,7 +31,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 25, 2012.
+   This Internet-Draft will expire on May 16, 2012.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Kucherawy                Expires April 25, 2012                 [Page 1]
+Kucherawy                 Expires May 16, 2012                  [Page 1]
 
-Internet-Draft            DKIM ATPS Experiment              October 2011
+Internet-Draft            DKIM ATPS Experiment             November 2011
 
 
 Table of Contents
@@ -70,18 +70,19 @@ Table of Contents
      4.3.  ATPS Reply Details . . . . . . . . . . . . . . . . . . . .  6
    5.  Interpretation . . . . . . . . . . . . . . . . . . . . . . . .  7
    6.  Relationship to ADSP . . . . . . . . . . . . . . . . . . . . .  7
-   7.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  7
-     7.1.  ATPS Tag Registry  . . . . . . . . . . . . . . . . . . . .  7
-     7.2.  Email Authentication Method Name Registry Update . . . . .  8
-     7.3.  Email Authentication Result Name Registry Update . . . . .  8
-     7.4.  DKIM-Signature Tag Specification Registry  . . . . . . . .  9
-   8.  Security Considerations  . . . . . . . . . . . . . . . . . . . 10
-     8.1.  False Privacy  . . . . . . . . . . . . . . . . . . . . . . 10
-     8.2.  Transient Security Failures  . . . . . . . . . . . . . . . 10
-     8.3.  Load on the DNS  . . . . . . . . . . . . . . . . . . . . . 10
-   9.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 11
-     9.1.  Normative References . . . . . . . . . . . . . . . . . . . 11
-     9.2.  Informative References . . . . . . . . . . . . . . . . . . 11
+   7.  Experiment Process . . . . . . . . . . . . . . . . . . . . . .  7
+   8.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  7
+     8.1.  ATPS Tag Registry  . . . . . . . . . . . . . . . . . . . .  8
+     8.2.  Email Authentication Method Name Registry Update . . . . .  8
+     8.3.  Email Authentication Result Name Registry Update . . . . .  8
+     8.4.  DKIM-Signature Tag Specification Registry  . . . . . . . . 10
+   9.  Security Considerations  . . . . . . . . . . . . . . . . . . . 10
+     9.1.  False Privacy  . . . . . . . . . . . . . . . . . . . . . . 10
+     9.2.  Transient Security Failures  . . . . . . . . . . . . . . . 10
+     9.3.  Load on the DNS  . . . . . . . . . . . . . . . . . . . . . 11
+   10. References . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+     10.1. Normative References . . . . . . . . . . . . . . . . . . . 11
+     10.2. Informative References . . . . . . . . . . . . . . . . . . 12
    Appendix A.  Example Query and Reply . . . . . . . . . . . . . . . 12
    Appendix B.  Acknowledgements  . . . . . . . . . . . . . . . . . . 13
 
@@ -107,10 +108,9 @@ Table of Contents
 
 
 
-
-Kucherawy                Expires April 25, 2012                 [Page 2]
+Kucherawy                 Expires May 16, 2012                  [Page 2]
 
-Internet-Draft            DKIM ATPS Experiment              October 2011
+Internet-Draft            DKIM ATPS Experiment             November 2011
 
 
 1.  Introduction
@@ -164,9 +164,9 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
 
-Kucherawy                Expires April 25, 2012                 [Page 3]
+Kucherawy                 Expires May 16, 2012                  [Page 3]
 
-Internet-Draft            DKIM ATPS Experiment              October 2011
+Internet-Draft            DKIM ATPS Experiment             November 2011
 
 
    authority for its DNS domain to an approved messaging service
@@ -211,7 +211,7 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
    "domain-name" and "key-h-tag-alg" are imported from [DKIM].
 
-   The registration for these tags can be found in Section 7.
+   The registration for these tags can be found in Section 8.
 
 4.2.  ATPS Query Details
 
@@ -220,9 +220,9 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
 
-Kucherawy                Expires April 25, 2012                 [Page 4]
+Kucherawy                 Expires May 16, 2012                  [Page 4]
 
-Internet-Draft            DKIM ATPS Experiment              October 2011
+Internet-Draft            DKIM ATPS Experiment             November 2011
 
 
    any local policy requirements (which are not discussed here or in
@@ -276,9 +276,9 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
 
-Kucherawy                Expires April 25, 2012                 [Page 5]
+Kucherawy                 Expires May 16, 2012                  [Page 5]
 
-Internet-Draft            DKIM ATPS Experiment              October 2011
+Internet-Draft            DKIM ATPS Experiment             November 2011
 
 
    See Appendix A for an example of a query construction.
@@ -332,9 +332,9 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
 
 
-Kucherawy                Expires April 25, 2012                 [Page 6]
+Kucherawy                 Expires May 16, 2012                  [Page 6]
 
-Internet-Draft            DKIM ATPS Experiment              October 2011
+Internet-Draft            DKIM ATPS Experiment             November 2011
 
 
 5.  Interpretation
@@ -359,13 +359,41 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
    which the ATPS test described above passes as if it were signed by
    the author domain.  That is, a pass of ATPS means a pass for ADSP.
 
-7.  IANA Considerations
+7.  Experiment Process
+
+   The working group that developed DKIM was not convinced that third
+   party assertions were critical to DKIM's success, nor were they
+   likely to be immediately useful.  However, this was not based on
+   actual experience as there is no specific history on this question.
+   Thus, this experiment was devised.
+
+   The experimental protocol described here has been implemented as an
+   extension to DKIM in two software products, one of which is open
+   source and seeing increasingly wide use.  It is included there to
+   allow customers of those systems to make use of it should they
+   believe such third party assertions are useful to the overall DKIM
+   mechanism.  Further adoption as part of the experiment is welcome and
+   encouraged.
+
+   Use of the protocol and anecdotes of how it affects the overall DKIM
+   experience will be collected by those implementers and the author of
+   this memo.  If the response is substantial and positive, advancement
+   along the Standards Track might be warranted.
+
+8.  IANA Considerations
 
    No actions are required by IANA at this time.  The following need
    only be applied if and when this specification reaches the Standards
    Track.
 
-7.1.  ATPS Tag Registry
+
+
+Kucherawy                 Expires May 16, 2012                  [Page 7]
+
+Internet-Draft            DKIM ATPS Experiment             November 2011
+
+
+8.1.  ATPS Tag Registry
 
    An Authorized Third Party Signature (ATPS) Tag Registry will be
    created by IANA to enumerate the tags that are valid for use in ATPS
@@ -386,20 +414,13 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
    The registry's sole initial entry is:
 
-
-
-Kucherawy                Expires April 25, 2012                 [Page 7]
-
-Internet-Draft            DKIM ATPS Experiment              October 2011
-
-
        +-----+--------------+---------+
        | Tag | Specified In | Status  |
        +-----+--------------+---------+
        |  v  | [this memo]  | current |
        +-----+--------------+---------+
 
-7.2.  Email Authentication Method Name Registry Update
+8.2.  Email Authentication Method Name Registry Update
 
    The following should be added to the Email Authentication Method Name
    Registry established by [AUTHRES] as per [IANA-CONSIDERATIONS]:
@@ -415,10 +436,18 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
    value  contents of the [MAIL] From: header field, with comments
       removed
 
-7.3.  Email Authentication Result Name Registry Update
+8.3.  Email Authentication Result Name Registry Update
 
    The following should be added to the Email Authentication Result Name
    Registry established by [AUTHRES] as per [IANA-CONSIDERATIONS]:
+
+
+
+
+Kucherawy                 Expires May 16, 2012                  [Page 8]
+
+Internet-Draft            DKIM ATPS Experiment             November 2011
+
 
    Code  none
 
@@ -438,16 +467,6 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
    Defined In  [AUTHRES]
 
    Auth Method  dkim-atps
-
-
-
-
-
-
-Kucherawy                Expires April 25, 2012                 [Page 8]
-
-Internet-Draft            DKIM ATPS Experiment              October 2011
-
 
    Meaning  An ATPS evaluation was performed and a valid signature from
       an authorized third-party was found on the message.
@@ -477,6 +496,15 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
       that is likely transient in nature, such as a temporary DNS error.
       A later attempt may produce a final result.
 
+
+
+
+
+Kucherawy                 Expires May 16, 2012                  [Page 9]
+
+Internet-Draft            DKIM ATPS Experiment             November 2011
+
+
    Code  permerror
 
    Existing/New Code  existing
@@ -489,21 +517,10 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
       that is not likely transient in nature, such as a permanent DNS
       error.  A later attempt is unlikely to produce a final result.
 
-7.4.  DKIM-Signature Tag Specification Registry
+8.4.  DKIM-Signature Tag Specification Registry
 
    The following should be added to the DKIM-Signature Tag Speficication
    Registry established by [DKIM] as per [IANA-CONSIDERATIONS]:
-
-
-
-
-
-
-
-Kucherawy                Expires April 25, 2012                 [Page 9]
-
-Internet-Draft            DKIM ATPS Experiment              October 2011
-
 
       +-------+-------------+---------+
       | TYPE  | REFERENCE   | STATUS  |
@@ -513,12 +530,12 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
       | atpsh | [THIS MEMO] | current |
       +-------+-------------+---------+
 
-8.  Security Considerations
+9.  Security Considerations
 
    This section discusses potential security issues related to this
    experimental protocol.
 
-8.1.  False Privacy
+9.1.  False Privacy
 
    The fact that the authorized third-party domain name is hashed and
    then encoded with base32 may give some the false sense that the
@@ -531,17 +548,25 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
    merely to convert any third-party domain name to a fixed width in the
    construction of the DNS query.
 
-8.2.  Transient Security Failures
+9.2.  Transient Security Failures
 
    Approving a third party signer exposes the Author to the risk that
    the third party signer becomes compromised and then begins to sign
    malicious or nuisance messages on behalf of the Author.  This can
+
+
+
+Kucherawy                 Expires May 16, 2012                 [Page 10]
+
+Internet-Draft            DKIM ATPS Experiment             November 2011
+
+
    obviously reflect negatively on the Author, and the impact of this
    can become more severe as automated domain reputation systems are
    developed and deployed.  Thorough vetting and monitoring practices by
    Authors of third party signers will likely need to become the norm.
 
-8.3.  Load on the DNS
+9.3.  Load on the DNS
 
    A Verifier participating in DKIM, ADSP and ATPS will now issue a
    number of TXT queries to the DNS equal to as many as one (for the
@@ -554,13 +579,6 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
    return when they are issued in parallel could trigger timeouts in the
    MTA.
 
-
-
-Kucherawy                Expires April 25, 2012                [Page 10]
-
-Internet-Draft            DKIM ATPS Experiment              October 2011
-
-
    An alternative to this that has not yet been explored is the storage
    of the ATPS data at a specific URL tied to the Author's domain name.
    This would alleviate pressure on the DNS at the expense of requiring
@@ -570,9 +588,9 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
    implement caching of this data to prevent ATPS from being used as a
    denial-of-service vector.
 
-9.  References
+10.  References
 
-9.1.  Normative References
+10.1.  Normative References
 
    [ABNF]                 Crocker, D. and P. Overell, "Augmented BNF for
                           Syntax Specifications: ABNF", STD 68,
@@ -591,13 +609,21 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
    [DNS]                  Mockapetris, P., "Domain names -
                           implementation and specification", STD 13,
+
+
+
+Kucherawy                 Expires May 16, 2012                 [Page 11]
+
+Internet-Draft            DKIM ATPS Experiment             November 2011
+
+
                           RFC 1035, November 1987.
 
    [KEYWORDS]             Bradner, S., "Key words for use in RFCs to
                           Indicate Requirement Levels", BCP 14,
                           RFC 2119, March 1997.
 
-9.2.  Informative References
+10.2.  Informative References
 
    [ADSP]                 Allman, E., Fenton, J., Delany, M., and J.
                           Levine, "DomainKeys Identified Mail (DKIM)
@@ -609,14 +635,6 @@ Internet-Draft            DKIM ATPS Experiment              October 2011
 
    [IANA-CONSIDERATIONS]  Narten, T. and H. Alvestrand, "Guidelines for
                           Writing an IANA Considerations Section in
-
-
-
-Kucherawy                Expires April 25, 2012                [Page 11]
-
-Internet-Draft            DKIM ATPS Experiment              October 2011
-
-
                           RFCs", BCP 26, RFC 5226, May 2008.
 
    [MAIL]                 Resnick, P., Ed., "Internet Message Format",
@@ -646,6 +664,15 @@ Appendix A.  Example Query and Reply
        returned, the algorithm stops with a result of "temperror" or
        "permerror" as appropriate.
 
+
+
+
+
+Kucherawy                 Expires May 16, 2012                 [Page 12]
+
+Internet-Draft            DKIM ATPS Experiment             November 2011
+
+
    4.  A SHA1 hash of "two.example.net" is computed and then converted
        to printable form using base32 encoding, resulting in the string
        "ZTZGRRV3F45A4U6HLDKBF3ZCOW4V2AJX".
@@ -660,18 +687,6 @@ Appendix A.  Example Query and Reply
 
    7.  As there are no valid signatures left to test, the algorithm
        stops with an "unknown" result.
-
-
-
-
-
-
-
-
-Kucherawy                Expires April 25, 2012                [Page 12]
-
-Internet-Draft            DKIM ATPS Experiment              October 2011
-
 
 Appendix B.  Acknowledgements
 
@@ -709,20 +724,5 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy                Expires April 25, 2012                [Page 13]
+Kucherawy                 Expires May 16, 2012                 [Page 13]
 
