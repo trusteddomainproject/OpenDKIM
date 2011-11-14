@@ -27,7 +27,7 @@ static char t_test141_c_id[] = "@(#)$Id: t-test52.c,v 1.2 2009/12/08 19:14:27 cm
 
 #define	MAXHEADER	4096
 
-#define SIG2 "v=1; a=rsa-sha256; c=relaxed/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=yHBAX+3IwxTZIynBuB/5tlsBInJq9n8qz5fgAycHi80=;\r\n\th=From:To:Date:Subject:Message-ID;\r\n\tz=From:=20Murray=20S.=20Kucherawy=20<msk@sendmail.com>|To:=20Sendma\r\n\t il=20Test=20Address=20<sa-test@sendmail.net>|Date:=20Thu,=2005=20M\r\n\t ay=202005=2011:59:09=20-0700|Subject:=20DKIM=20test=20message|Mess\r\n\t age-ID:=20<439094BF.5010709@sendmail.com>;\r\n\tb=H82IO1rXD0LnIrnRx6eCwWmGzuPqtxdmU54zvuuLah/HAzDM/rRn8nWC1usCU8buK\r\n\t GNCyrTzuNTOTB2fWI0XuMAsSaGI9fw/VO3sfGf+4yJn98U6BpK6iPqLaIdnexyb7Zo\r\n\t DK5SW7Bi/90vMNViofUf4Uoy+DiUKXHzUpX5BYiQ="
+#define SIG2 "v=1; a=rsa-sha256; c=relaxed/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=yHBAX+3IwxTZIynBuB/5tlsBInJq9n8qz5fgAycHi80=;\r\n\th=From:To:Date:Subject;\r\n\tz=From:=20Murray=20S.=20Kucherawy=20<msk@sendmail.com>|To:=20Sendma\r\n\t il=20Test=20Address=20<sa-test@sendmail.net>|Date:=20Thu,=2005=20M\r\n\t ay=202005=2011:59:09=20-0700|Subject:=20DKIM=20test=20message;\r\n\tb=Zmf0/xi9CoU+UUkR76Es1p8Xip2e+56Y6fDiB+Qg7iNj7oMtXnSdcF7z/Mh4Exd6e\r\n\t f1z5kFvmfZFt91EVcYxM5lMy4jxBT++bUPYngJ5JZeTf2qaQt4zjjjZy7qzHikWU6w\r\n\t aMf3sqVa3PvFkyScaP3651n1wfXwYm6cRjgz7KJE="
 
 /*
 **  MAIN -- program mainline
