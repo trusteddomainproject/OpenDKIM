@@ -15681,7 +15681,7 @@ main(int argc, char **argv)
 			                "\tmemcache:host[:port][,...]/prefix\n"
 #endif /* USE_LIBMEMCACHED */
 #ifdef _FFR_REPUTATION
-			                "\trepute:server\n"
+			                "\trepute:server[:reporter]\n"
 #endif /* _FFR_REPUTATION */
 			                "> ");
 		}

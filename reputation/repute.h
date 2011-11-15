@@ -70,7 +70,7 @@ typedef struct repute_handle * REPUTE;
 extern void repute_close(REPUTE);
 extern const char *repute_error(REPUTE);
 extern void repute_init(void);
-extern REPUTE repute_new(const char *);
+extern REPUTE repute_new(const char *, unsigned int);
 extern REPUTE_STAT repute_query(REPUTE, const char *, float *,
                                 float *, unsigned long *, unsigned long *,
                                 time_t *);

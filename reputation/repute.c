@@ -46,6 +46,7 @@ struct repute_io
 
 struct repute_handle
 {
+	unsigned int		rep_reporter;
 	pthread_mutex_t		rep_lock;
 	struct repute_io *	rep_ios;
 	const char *		rep_server;
@@ -635,14 +636,15 @@ repute_init(void)
 **  REPUTE_NEW -- make a new REPUTE handle
 **
 **  Parameters:
-**  	None.
+**  	server -- server hostname
+**  	reporter -- reporter ID to use
 **
 **  Return value:
 **  	A new REPUTE handle on success, NULL on failure.
 */
 
 REPUTE
-repute_new(const char *server)
+repute_new(const char *server, unsigned int reporter)
 {
 	struct repute_handle *new;
 
@@ -654,6 +656,7 @@ repute_new(const char *server)
 
 	memset(new, '\0', sizeof *new);
 
+	new->rep_reporter = reporter;
 	new->rep_server = strdup(server);
 	if (new->rep_server == NULL)
 	{
@@ -750,6 +753,17 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 	ut = ut_init();
 	if (ut == NULL)
 		return REPUTE_STAT_INTERNAL;
+
+	if (rep->rep_reporter != 0)
+	{
+		snprintf(genurl, sizeof genurl, "%u", rep->rep_reporter);
+		if (ut_keyvalue(ut, UT_KEYTYPE_STRING,
+		                "reporter", genurl) != 0)
+		{
+			ut_destroy(ut);
+			return REPUTE_STAT_INTERNAL;
+		}
+	}
 
 	if (ut_keyvalue(ut, UT_KEYTYPE_STRING,
 	                "subject", (void *) domain) != 0 ||

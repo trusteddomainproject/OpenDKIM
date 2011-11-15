@@ -2384,9 +2384,22 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 
 	  case DKIMF_DB_TYPE_REPUTE:
 	  {
+		unsigned int reporter = 0;
+		char *q;
 		REPUTE r;
 
-		r = repute_new(p);
+		q = strchr(p, ':');
+		if (q != NULL)
+		{
+			char *s;
+
+			*q = '\0';
+			reporter = (unsigned int) strtoul(q + 1, &s, 10);
+			if (*s != '\0')
+			 	return -1;
+		}
+
+		r = repute_new(p, reporter);
 
 		if (r == NULL)
 			return -1;
