@@ -13,7 +13,7 @@ librepute_la_CC = $(PTHREAD_CC)
 libreputeincludedir = $(includedir)/repute
 libreputeinclude_HEADERS = repute.h
 
-dist_bin_SCRIPTS = opendkim-genrates opendkim-modtotals opendkim-repute
+dist_bin_SCRIPTS = opendkim-genrates opendkim-modtotals
 
 if RPATH
 librepute_la_LDFLAGS += -rpath $(libdir)
@@ -22,5 +22,5 @@ endif
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = repute.pc
 
-dist_man_MANS = opendkim-genrates.8 opendkim-modtotals.8 opendkim-repute.8
+dist_man_MANS = opendkim-genrates.8 opendkim-modtotals.8
 #dist_man_MANS = repute.3

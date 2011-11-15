@@ -8,6 +8,7 @@
 -- table containing data aggregation for staging to predictions
 create table if not exists aggregate (
 	id int auto_increment,
+	reporter int,
 	domain int,
 	updated timestamp not null default current_timestamp on update current_timestamp,
 	date timestamp not null default '0000-00-00 00:00:00',
@@ -23,6 +24,7 @@ create table if not exists aggregate (
 -- table mapping domain codes to flow predictions
 create table if not exists predictions (
 	id int not null auto_increment,
+	reporter int,
 	domain int,
 	updated timestamp not null default current_timestamp on update current_timestamp,
 	rate_samples int,
