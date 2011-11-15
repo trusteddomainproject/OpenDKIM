@@ -17,7 +17,7 @@ create table if not exists aggregate (
 	ratio float,
 
         primary key (id),
-	unique key (domain, date),
+	unique key (domain, date, reporter),
 	foreign key(domain) references domains(id) on delete cascade
 ) engine=innodb default charset=latin1;
 
@@ -42,7 +42,7 @@ create table if not exists predictions (
 	today_spam float,
 
         primary key (id),
-	unique key (domain),
+	unique key (domain, reporter),
 	foreign key(domain) references domains(id) on delete cascade
 ) engine=innodb default charset=latin1;
 
