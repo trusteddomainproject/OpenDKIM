@@ -89,10 +89,7 @@ SETUP INSTRUCTIONS
    REPUTE client how to form the HTTP query that your server will use.  The
    template used for this experimental work is as follows:
 
-   http://{service}/repute.php?subject={subject}&application={application}
-        &assertion={assertion}&service={service}
-
-   (...except it should all be on one line)
+   http://{service}/repute.php{?subject,application,assertion,service,reporter}
 
 10) Install reputation/repute.php and reputation/repute-config.php into
     $REPROOT.  Edit repute-config.php as needed to match your database
