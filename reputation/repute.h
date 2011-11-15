@@ -60,6 +60,7 @@ typedef int REPUTE_STAT;
 #define	REPUTE_ASSERT_SENDS_SPAM "sends-spam"
 
 #define	REPUTE_EXT_ID_DKIM	"IDENTITY: DKIM"
+#define	REPUTE_EXT_RATE		"RATE:"
 
 /* other types */
 struct repute_handle;
@@ -71,6 +72,7 @@ extern const char *repute_error(REPUTE);
 extern void repute_init(void);
 extern REPUTE repute_new(const char *);
 extern REPUTE_STAT repute_query(REPUTE, const char *, float *,
-                                float *, unsigned long *, time_t *);
+                                float *, unsigned long *, unsigned long *,
+                                time_t *);
 
 #endif /* ! _REPUTE_H_ */

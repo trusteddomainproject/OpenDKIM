@@ -193,6 +193,8 @@ repute_name_to_code(struct repute_lookup *tbl, const char *name)
 **  	rep -- returned reputation
 **  	conf -- confidence
 **  	sample -- sample size
+**  	limit -- recommented flow limit
+**  	when -- timestamp on the report
 **
 **  Return value:
 **  	A REPUTE_STAT_* constant.
@@ -200,7 +202,7 @@ repute_name_to_code(struct repute_lookup *tbl, const char *name)
 
 static REPUTE_STAT
 repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
-             unsigned long *sample, time_t *when)
+             unsigned long *sample, unsigned long *limit, time_t *when)
 {
 	_Bool found_dkim = FALSE;
 	_Bool found_spam = FALSE;
@@ -208,6 +210,7 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 	float conftmp;
 	float reptmp;
 	unsigned long sampletmp;
+	unsigned long limittmp;
 	time_t whentmp;
 	char *p;
 	const char *start;
@@ -276,6 +279,7 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 		conftmp = 0.;
 		reptmp = 0.;
 		sampletmp = 0L;
+		limittmp = ULONG_MAX;
 		whentmp = 0;
 
 		for (reputon = node->children;
@@ -320,7 +324,19 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 			  case REPUTE_XML_CODE_EXTENSION:
 				if (strcasecmp(reputon->children->content,
 				               REPUTE_EXT_ID_DKIM) == 0)
+				{
 					found_dkim = TRUE;
+				}
+				else if (strncasecmp(reputon->children->content,
+				                     REPUTE_EXT_RATE,
+				                     sizeof REPUTE_EXT_RATE - 1) == 0)
+				{
+					errno = 0;
+					limittmp = strtoul(reputon->children->content + sizeof REPUTE_EXT_RATE,
+				                           &p, 10);
+					if (errno != 0)
+						continue;
+				}
 				break;
 
 			  case REPUTE_XML_CODE_RATED:
@@ -368,6 +384,8 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 				*sample = sampletmp;
 			if (when != NULL)
 				*when = whentmp;
+			if (limit != NULL)
+				*limit = limittmp;
 
 			break;
 		}
@@ -696,6 +714,7 @@ repute_close(REPUTE rep)
 **  	repout -- reputation (returned)
 **  	confout -- confidence (returned)
 **  	sampout -- sample count (returned)
+**  	limitout -- limit (returned)
 **  	whenout -- update timestamp (returned)
 **
 **  Return value:
@@ -704,12 +723,14 @@ repute_close(REPUTE rep)
 
 REPUTE_STAT
 repute_query(REPUTE rep, const char *domain, float *repout,
-             float *confout, unsigned long *sampout, time_t *whenout)
+             float *confout, unsigned long *sampout, unsigned long *limitout,
+             time_t *whenout)
 {
 	REPUTE_STAT status;
 	float conf;
 	float reputation;
 	unsigned long samples;
+	unsigned long limit;
 	time_t when;
 	struct repute_io *rio;
 	URITEMP ut;
@@ -765,7 +786,7 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 	}
 
 	status = repute_parse(rio->repute_buf, rio->repute_offset,
-	                      &reputation, &conf, &samples, &when);
+	                      &reputation, &conf, &samples, &limit, &when);
 	if (status != REPUTE_STAT_OK)
 	{
 		repute_put_io(rep, rio);
@@ -779,6 +800,8 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 		*sampout = samples;
 	if (whenout != NULL)
 		*whenout = when;
+	if (limitout != NULL)
+		*limitout = limit;
 
 	repute_put_io(rep, rio);
 

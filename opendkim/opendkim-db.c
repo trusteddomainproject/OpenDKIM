@@ -3787,13 +3787,15 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		float rep;
 		float conf;
 		unsigned long samp;
+		unsigned long limit;
 		time_t when;
 		REPUTE_STAT rstat;
 		REPUTE r;
 
 		r = (REPUTE) db->db_data;
 
-		rstat = repute_query(r, buf, &rep, &conf, &samp, &when);
+		rstat = repute_query(r, buf, &rep, &conf,
+		                     &samp, &limit, &when);
 
 		if (rstat != REPUTE_STAT_OK)
 			return -1;
@@ -3868,8 +3870,25 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			}
 		}
 
+		if (reqnum >= 5)
+		{
+			if ((req[4].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
+			{
+				if (req[4].dbdata_buflen != sizeof limit)
+					return -1;
+				memcpy(req[4].dbdata_buffer, &limit,
+				       sizeof limit);
+			}
+			else
+			{
+				req[4].dbdata_buflen = snprintf(req[4].dbdata_buffer,
+				                                req[4].dbdata_buflen,
+				                                "%lu", limit);
+			}
+		}
+
 		/* tag requests that weren't fulfilled */
-		for (c = 4; c < reqnum; c++)
+		for (c = 5; c < reqnum; c++)
 			req[c].dbdata_buflen = 0;
 
 		return 0;
