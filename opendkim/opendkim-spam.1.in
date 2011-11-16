@@ -71,7 +71,7 @@ Names the database column whose value should be set to "1" as a result
 of this user action.  The default is "uspam".
 .TP
 .I -u user
-Identifies the database user to be used when connecting to the dataase.
+Identifies the database user to be used when connecting to the database.
 The default is "opendkim".
 .TP
 .I -v
