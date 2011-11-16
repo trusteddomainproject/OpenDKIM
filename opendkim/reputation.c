@@ -170,7 +170,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 	time_t now;
 	void *hh;
 	void *bh;
-	struct dkimf_db_data req;
+	struct dkimf_db_data req[5];
 	struct reps reps;
 	char buf[BUFRSZ + 1];
 	char domain[DKIM_MAXHOSTNAMELEN + 1];
@@ -187,9 +187,9 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 	{
 		f = TRUE;
 		
-		req.dbdata_buffer = (void *) &when;
-		req.dbdata_buflen = sizeof when;
-		req.dbdata_flags = DKIMF_DB_DATA_BINARY;
+		req[0].dbdata_buffer = (void *) &when;
+		req[0].dbdata_buflen = sizeof when;
+		req[0].dbdata_flags = DKIMF_DB_DATA_BINARY;
 
 		while (dkimf_db_walk(rep->rep_dups, f, hashbuf, &hlen,
 		                     &req, 1) == 0)
@@ -200,16 +200,16 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 				                       hlen);
 			}
 
-			req.dbdata_buffer = (void *) &when;
-			req.dbdata_buflen = sizeof when;
-			req.dbdata_flags = DKIMF_DB_DATA_BINARY;
+			req[0].dbdata_buffer = (void *) &when;
+			req[0].dbdata_buflen = sizeof when;
+			req[0].dbdata_flags = DKIMF_DB_DATA_BINARY;
 
 			f = FALSE;
 		}
 
-		req.dbdata_buffer = (void *) &reps;
-		req.dbdata_buflen = sizeof reps;
-		req.dbdata_flags = DKIMF_DB_DATA_BINARY;
+		req[0].dbdata_buffer = (void *) &reps;
+		req[0].dbdata_buflen = sizeof reps;
+		req[0].dbdata_flags = DKIMF_DB_DATA_BINARY;
 
 		f = TRUE;
 		while (dkimf_db_walk(rep->rep_reps, f, hashbuf, &hlen,
@@ -221,9 +221,9 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 				                       hlen);
 			}
 
-			req.dbdata_buffer = (void *) &reps;
-			req.dbdata_buflen = sizeof reps;
-			req.dbdata_flags = DKIMF_DB_DATA_BINARY;
+			req[0].dbdata_buffer = (void *) &reps;
+			req[0].dbdata_buflen = sizeof reps;
+			req[0].dbdata_flags = DKIMF_DB_DATA_BINARY;
 
 			f = FALSE;
 		}
@@ -232,9 +232,9 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 	}
 
 	/* get the ratio and limit for this domain */
-	req.dbdata_buffer = (void *) &reps;
-	req.dbdata_buflen = sizeof reps;
-	req.dbdata_flags = DKIMF_DB_DATA_BINARY;
+	req[0].dbdata_buffer = (void *) &reps;
+	req[0].dbdata_buflen = sizeof reps;
+	req[0].dbdata_flags = DKIMF_DB_DATA_BINARY;
 
 	if (sig == NULL)
 		dkim_strlcpy(domain, DKIMF_REP_NULLDOMAIN, sizeof domain);
@@ -262,9 +262,9 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		reps.reps_spam = 0;
 		reps.reps_retrieved = time(NULL);
 
-		req.dbdata_buffer = buf;
-		req.dbdata_buflen = sizeof buf;
-		req.dbdata_flags = 0;
+		req[0].dbdata_buffer = buf;
+		req[0].dbdata_buflen = sizeof buf;
+		req[0].dbdata_flags = 0;
 
 		if (rep->rep_lowtime != NULL)
 		{
@@ -281,9 +281,9 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 			memset(buf, '\0', sizeof buf);
 
-			req.dbdata_buffer = buf;
-			req.dbdata_buflen = sizeof buf;
-			req.dbdata_flags = 0;
+			req[0].dbdata_buffer = buf;
+			req[0].dbdata_buflen = sizeof buf;
+			req[0].dbdata_flags = 0;
 		}
 
 		if (lowtime)
@@ -295,8 +295,19 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		/* get the total message limit */
 		if (rep->rep_limits != NULL)
 		{
+			int fields = 1;
+
+			if (dkimf_db_type(rep->rep_limits) == DKIMF_DB_TYPE_REPUTE)
+				fields = 5;
+
+			memset(req, '\0', sizeof req);
+
+			req[fields - 1].dbdata_buffer = buf;
+			req[fields - 1].dbdata_buflen = sizeof buf;
+			req[fields - 1].dbdata_flags = 0;
+
 			if (dkimf_db_get(rep->rep_limits, domain, dlen, &req,
-			                 1, &f) != 0)
+			                 fields, &f) != 0)
 			{
 				pthread_mutex_unlock(&rep->rep_lock);
 				return -1;
@@ -305,7 +316,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			if (!f)
 			{
 				if (dkimf_db_get(rep->rep_limits, "*", 1, &req,
-				                 1, &f) != 0)
+				                 fields, &f) != 0)
 				{
 					pthread_mutex_unlock(&rep->rep_lock);
 					return -1;
@@ -328,9 +339,9 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		}
 
 		/* get the spam ratio */
-		req.dbdata_buffer = buf;
-		req.dbdata_buflen = sizeof buf;
-		req.dbdata_flags = 0;
+		req[0].dbdata_buffer = buf;
+		req[0].dbdata_buflen = sizeof buf;
+		req[0].dbdata_flags = 0;
 
 		if (dkimf_db_get(rep->rep_ratios, domain, dlen, &req,
 		                 1, &f) != 0)
@@ -363,9 +374,9 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		}
 	}
 
-	req.dbdata_buffer = (void *) &when;
-	req.dbdata_buflen = sizeof when;
-	req.dbdata_flags = DKIMF_DB_DATA_BINARY;
+	req[0].dbdata_buffer = (void *) &when;
+	req[0].dbdata_buflen = sizeof when;
+	req[0].dbdata_flags = DKIMF_DB_DATA_BINARY;
 
 	f = FALSE;
 
