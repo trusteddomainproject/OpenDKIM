@@ -7,11 +7,11 @@
 dist_doc_DATA = draft-gregorio-uritemplate-07.txt \
 	draft-ietf-marf-authfailure-report-04.txt \
 	draft-ietf-marf-dkim-reporting-03.txt \
+	draft-ietf-repute-email-identifiers-00.txt \
+	draft-ietf-repute-media-type-00.txt \
+	draft-ietf-repute-query-http-00.txt \
 	draft-kucherawy-dkim-atps-11.txt \
-	draft-kucherawy-reputation-media-type-02.txt \
 	draft-kucherawy-reputation-model-00.txt \
-	draft-kucherawy-reputation-query-http-03.txt \
-	draft-kucherawy-reputation-vocab-identity-02.txt \
 	report-rfc4871.txt \
 	rfc3447.txt \
 	rfc4686.txt \

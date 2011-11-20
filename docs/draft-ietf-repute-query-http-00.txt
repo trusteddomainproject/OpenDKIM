@@ -1,15 +1,15 @@
 
 
 
-Network Working Group                                      N. Borenstein
+REPUTE Working Group                                       N. Borenstein
 Internet-Draft                                                  Mimecast
-Intended status: Informational                              M. Kucherawy
-Expires: April 23, 2012                                        Cloudmark
-                                                        October 21, 2011
+Intended status: Standards Track                            M. Kucherawy
+Expires: May 22, 2012                                          Cloudmark
+                                                       November 19, 2011
 
 
              Reputation Data Interchange using HTTP and XML
-                draft-kucherawy-reputation-query-http-03
+                    draft-ietf-repute-query-http-00
 
 Abstract
 
@@ -31,7 +31,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 23, 2012.
+   This Internet-Draft will expire on May 22, 2012.
 
 Copyright Notice
 
@@ -52,29 +52,27 @@ Copyright Notice
 
 
 
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 1]
+Borenstein & Kucherawy    Expires May 22, 2012                  [Page 1]
 
-Internet-Draft    Reputation Queries with HTTP and XML      October 2011
+Internet-Draft    Reputation Queries with HTTP and XML     November 2011
 
 
 Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . . . 3
-   2.  Document Series . . . . . . . . . . . . . . . . . . . . . . . . 3
-   3.  Terminology and Definitions . . . . . . . . . . . . . . . . . . 3
-     3.1.  Keywords  . . . . . . . . . . . . . . . . . . . . . . . . . 3
-     3.2.  Other Definitions . . . . . . . . . . . . . . . . . . . . . 3
-   4.  Description . . . . . . . . . . . . . . . . . . . . . . . . . . 4
-     4.1.  Query . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
-     4.2.  Response  . . . . . . . . . . . . . . . . . . . . . . . . . 5
-       4.2.1.  XML Schema  . . . . . . . . . . . . . . . . . . . . . . 5
-       4.2.2.  Example Reply . . . . . . . . . . . . . . . . . . . . . 7
-   5.  IANA Considerations . . . . . . . . . . . . . . . . . . . . . . 8
-   6.  Security Considerations . . . . . . . . . . . . . . . . . . . . 8
-     6.1.  General . . . . . . . . . . . . . . . . . . . . . . . . . . 8
-   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . . . 8
-     7.1.  Normative References  . . . . . . . . . . . . . . . . . . . 8
-     7.2.  Informative References  . . . . . . . . . . . . . . . . . . 9
+   2.  Terminology and Definitions . . . . . . . . . . . . . . . . . . 3
+     2.1.  Keywords  . . . . . . . . . . . . . . . . . . . . . . . . . 3
+     2.2.  Other Definitions . . . . . . . . . . . . . . . . . . . . . 3
+   3.  Description . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+     3.1.  Query . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+     3.2.  Response  . . . . . . . . . . . . . . . . . . . . . . . . . 5
+       3.2.1.  XML Schema  . . . . . . . . . . . . . . . . . . . . . . 5
+       3.2.2.  Example Reply . . . . . . . . . . . . . . . . . . . . . 7
+   4.  IANA Considerations . . . . . . . . . . . . . . . . . . . . . . 8
+   5.  Security Considerations . . . . . . . . . . . . . . . . . . . . 8
+   6.  References  . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+     6.1.  Normative References  . . . . . . . . . . . . . . . . . . . 8
+     6.2.  Informative References  . . . . . . . . . . . . . . . . . . 9
    Appendix A.  Acknowledgements . . . . . . . . . . . . . . . . . . . 9
    Appendix B.  Public Discussion  . . . . . . . . . . . . . . . . . . 9
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . . . 9
@@ -108,9 +106,11 @@ Table of Contents
 
 
 
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 2]
+
+
+Borenstein & Kucherawy    Expires May 22, 2012                  [Page 2]
 
-Internet-Draft    Reputation Queries with HTTP and XML      October 2011
+Internet-Draft    Reputation Queries with HTTP and XML     November 2011
 
 
 1.  Introduction
@@ -123,55 +123,25 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
    particular applications.
 
 
-2.  Document Series
-
-   This memo represents the media type registration, part of a series of
-   documents that define the overall service and introduce the initial
-   exemplary applications.  The series is as follows:
-
-   1.  RFCxxxx: A Model for Reputation Interchange
-
-   2.  RFCxxxx+1: A Media Type for Reputation Information
-
-   3.  RFCxxxx+2: Using UDP for Reputation Interchange
-
-   4.  RFCxxxx+3: Using the DNS for Reputation Interchange
-
-   5.  RFCxxxx+4: Using HTTP/XML for Reputation Interchange (this memo)
-
-   6.  RFCxxxx+5: A Reputation Vocabulary for Email Identity Reputation
-
-   7.  RFCxxxx+6: A Reputation Vocabulary for Email Property Reputation
-
-
-3.  Terminology and Definitions
+2.  Terminology and Definitions
 
    This section defines terms used in the rest of the document.
 
-3.1.  Keywords
+2.1.  Keywords
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
    document are to be interpreted as described in [KEYWORDS].
 
-3.2.  Other Definitions
+2.2.  Other Definitions
 
    Other terms of importance in this memo are defined in RFCxxxx, the
    base memo in this document series.
 
 
+3.  Description
 
-
-
-
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 3]
-
-Internet-Draft    Reputation Queries with HTTP and XML      October 2011
-
-
-4.  Description
-
-4.1.  Query
+3.1.  Query
 
    A reputation query made via [HTTP] encodes the question being asked
    partly in the [URI] and partly within the GET instruction of the
@@ -191,6 +161,14 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
       attributies that are being requested.
 
    The name of the application MUST be one registered with IANA.  A
+
+
+
+Borenstein & Kucherawy    Expires May 22, 2012                  [Page 3]
+
+Internet-Draft    Reputation Queries with HTTP and XML     November 2011
+
+
    server receiving a query about an unregistered application or one it
    does not explicitly support MUST return a 404 error code.
 
@@ -216,15 +194,6 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
    The following variables are OPTIONAL, but might be required by the
    template presented for a specific service:
 
-
-
-
-
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 4]
-
-Internet-Draft    Reputation Queries with HTTP and XML      October 2011
-
-
    assertion:  A list of one or more specific assertions of interest to
       the client.  If absent, the server MUST infer that all available
       assertion information is being requested.
@@ -239,9 +208,22 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
    The template is retrieved by requesting the [WELL-KNOWN-URI]
    "repute_template" from the host providing reputation service using
    HTTP.  If the template cannot be retrieved, the query should be
-   aborted and/or retried at a later time.
+   aborted and/or retried at a later time.  The server responding to the
+   template request SHOULD include an Expires field indicating a
+   duration for which the template should be considered valid by clients
+   and not re-queried.  Clients SHOULD adhere to the expiration time
+   thus provided or, if none is provided, assume that the template is
+   valid for no less than one day and not repeat the query.
 
    For example, given the following template:
+
+
+
+
+Borenstein & Kucherawy    Expires May 22, 2012                  [Page 4]
+
+Internet-Draft    Reputation Queries with HTTP and XML     November 2011
+
 
    {scheme}://{service}/{application}/{subject}/{assertion}
 
@@ -256,7 +238,7 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
    Matching of the attribute name(s) MUST be case-insensitive.
 
-4.2.  Response
+3.2.  Response
 
    The response is expected to be an XML document.  The "format"
    parameter of the "application/reputon" media type MUST be "xml" when
@@ -265,7 +247,7 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
    The XML schema definition describing the format of that response is
    included below.
 
-4.2.1.  XML Schema
+3.2.1.  XML Schema
 
    The following XML schema describes the format of the reply:
 
@@ -276,9 +258,27 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
 
 
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 5]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Borenstein & Kucherawy    Expires May 22, 2012                  [Page 5]
 
-Internet-Draft    Reputation Queries with HTTP and XML      October 2011
+Internet-Draft    Reputation Queries with HTTP and XML     November 2011
 
 
    <?xml version="1.0" encoding="ISO-8859-1" ?%gt;
@@ -332,9 +332,9 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
 
 
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 6]
+Borenstein & Kucherawy    Expires May 22, 2012                  [Page 6]
 
-Internet-Draft    Reputation Queries with HTTP and XML      October 2011
+Internet-Draft    Reputation Queries with HTTP and XML     November 2011
 
 
    rater:  The identity of the agent making the assertion.
@@ -364,7 +364,7 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
       Expressed in number of seconds since 00:00:00 UTC, January 1,
       1970.
 
-4.2.2.  Example Reply
+3.2.2.  Example Reply
 
    The following is an example reputon generated using the above schema,
    including the media type definition line:
@@ -388,9 +388,9 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 
 
 
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 7]
+Borenstein & Kucherawy    Expires May 22, 2012                  [Page 7]
 
-Internet-Draft    Reputation Queries with HTTP and XML      October 2011
+Internet-Draft    Reputation Queries with HTTP and XML     November 2011
 
 
    Here, reputation agent "rep.example.net" is asserting within the
@@ -403,28 +403,24 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
    registered email vocabulary.)
 
 
-5.  IANA Considerations
+4.  IANA Considerations
 
    This memo presents no actions for IANA.  Registration of the well-
    known URI "repute_template" will be done as defined in
    [WELL-KNOWN-URI] which is not a function of IANA.
 
 
-6.  Security Considerations
+5.  Security Considerations
 
-   This memo describes security considerations introduced by the media
-   type defined here.
+   This memo describes security considerations introduced by the query
+   mechanism defined here.
 
-6.1.  General
-
-   This memo is part of a series introducing a reputation query and
-   response system (see Section 2).  The Security Considerations
-   sections of the other memos should also be consulted.
+   [TBD]
 
 
-7.  References
+6.  References
 
-7.1.  Normative References
+6.1.  Normative References
 
    [HTTP]     Fielding, R., Gettys, J., Mogul, J., Frystyk, H.,
               Masinter, L., Leach, P., and T. Berners-Lee, "Hypertext
@@ -441,22 +437,22 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
    [URI-TEMPLATE]
               Gregorio, J., Fielding, R., Hadley, M., Nottingham, M.,
               and D. Orchard, "URI Template",
-
-
-
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 8]
-
-Internet-Draft    Reputation Queries with HTTP and XML      October 2011
-
-
               I-D draft-gregorio-uritemplate, September 2011.
 
    [WELL-KNOWN-URI]
               Nottingham, M. and E. Hammer-Lahav, "Defining Well-Known
+
+
+
+Borenstein & Kucherawy    Expires May 22, 2012                  [Page 8]
+
+Internet-Draft    Reputation Queries with HTTP and XML     November 2011
+
+
               Uniform Resource Identifiers (URIs)", RFC 5785,
               April 2010.
 
-7.2.  Informative References
+6.2.  Informative References
 
    [DKIM]     Crocker, D., Ed., Hansen, T., Ed., and M. Kucherawy, Ed.,
               "DomainKeys Identified Mail (DKIM) Signatures", RFC 6376,
@@ -466,7 +462,7 @@ Internet-Draft    Reputation Queries with HTTP and XML      October 2011
 Appendix A.  Acknowledgements
 
    The authors would like to thank the following for their contributions
-   to this work: Mark Nottingham.
+   to this work: Mark Nottingham, and David F. Skoll.
 
 
 Appendix B.  Public Discussion
@@ -500,5 +496,9 @@ Authors' Addresses
 
 
 
-Borenstein & Kucherawy   Expires April 23, 2012                 [Page 9]
+
+
+
+
+Borenstein & Kucherawy    Expires May 22, 2012                  [Page 9]
 
