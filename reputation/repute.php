@@ -24,7 +24,7 @@ $reporter = $_GET["reporter"];
 if (!isset($subject) || !isset($application) || !isset($assertion) ||
     !isset($service))
 	die("Malformed query");
-if (strtolower($application) != "email")
+if (strtolower($application) != "email-id")
 	die("Unrecognized application");
 if (strtolower($assertion) != "sends-spam")
 	die("Unrecognized assertion");
