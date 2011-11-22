@@ -192,7 +192,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		req[0].dbdata_flags = DKIMF_DB_DATA_BINARY;
 
 		while (dkimf_db_walk(rep->rep_dups, f, hashbuf, &hlen,
-		                     &req, 1) == 0)
+		                     req, 1) == 0)
 		{
 			if (when + rep->rep_ttl < now)
 			{
@@ -213,7 +213,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 		f = TRUE;
 		while (dkimf_db_walk(rep->rep_reps, f, hashbuf, &hlen,
-		                     &req, 1) == 0)
+		                     req, 1) == 0)
 		{
 			if (reps.reps_retrieved + rep->rep_ttl < now)
 			{
@@ -245,7 +245,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 	/* check cache first */
 	f = FALSE;
-	if (dkimf_db_get(rep->rep_reps, domain, dlen, &req, 1, &f) != 0)
+	if (dkimf_db_get(rep->rep_reps, domain, dlen, req, 1, &f) != 0)
 	{
 		pthread_mutex_unlock(&rep->rep_lock);
 		return -1;
@@ -269,7 +269,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		if (rep->rep_lowtime != NULL)
 		{
 			/* see if it's a low-time domain */
-			if (dkimf_db_get(rep->rep_lowtime, domain, dlen, &req,
+			if (dkimf_db_get(rep->rep_lowtime, domain, dlen, req,
 			                 1, &f) != 0)
 			{
 				pthread_mutex_unlock(&rep->rep_lock);
@@ -306,7 +306,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			req[fields - 1].dbdata_buflen = sizeof buf;
 			req[fields - 1].dbdata_flags = 0;
 
-			if (dkimf_db_get(rep->rep_limits, domain, dlen, &req,
+			if (dkimf_db_get(rep->rep_limits, domain, dlen, req,
 			                 fields, &f) != 0)
 			{
 				pthread_mutex_unlock(&rep->rep_lock);
@@ -315,7 +315,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 			if (!f)
 			{
-				if (dkimf_db_get(rep->rep_limits, "*", 1, &req,
+				if (dkimf_db_get(rep->rep_limits, "*", 1, req,
 				                 fields, &f) != 0)
 				{
 					pthread_mutex_unlock(&rep->rep_lock);
@@ -343,7 +343,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		req[0].dbdata_buflen = sizeof buf;
 		req[0].dbdata_flags = 0;
 
-		if (dkimf_db_get(rep->rep_ratios, domain, dlen, &req,
+		if (dkimf_db_get(rep->rep_ratios, domain, dlen, req,
 		                 1, &f) != 0)
 		{
 			pthread_mutex_unlock(&rep->rep_lock);
@@ -352,7 +352,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 		if (!f)
 		{
-			if (dkimf_db_get(rep->rep_ratios, "*", 1, &req,
+			if (dkimf_db_get(rep->rep_ratios, "*", 1, req,
 			                 1, &f) != 0)
 			{
 				pthread_mutex_unlock(&rep->rep_lock);
@@ -380,7 +380,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 	f = FALSE;
 
-	if (dkimf_db_get(rep->rep_dups, hash, hashlen, &req, 1, &f) != 0)
+	if (dkimf_db_get(rep->rep_dups, hash, hashlen, req, 1, &f) != 0)
 	{
 		pthread_mutex_unlock(&rep->rep_lock);
 		return -1;
