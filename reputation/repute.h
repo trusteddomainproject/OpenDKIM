@@ -36,7 +36,7 @@ typedef int REPUTE_STAT;
 #define	REPUTE_NAME_REPUTATION	"reputation"
 #define	REPUTE_NAME_REPUTON	"reputon"
 
-#define	REPUTE_URI_APPLICATION	"email"
+#define	REPUTE_URI_APPLICATION	"email-id"
 #define	REPUTE_URI_SCHEME	"http"
 #define	REPUTE_URI_TEMPLATE	"{scheme}://{service}/.well-known/repute_template"
 
