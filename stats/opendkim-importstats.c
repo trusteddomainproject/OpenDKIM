@@ -35,7 +35,7 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.11 20
 #endif /* USE_ODBX */
 
 /* macros, definitions */
-#define	CMDLINEOPTS	"d:Fh:mP:p:rSs:u:x"
+#define	CMDLINEOPTS	"d:Fh:mP:p:rSs:u:vx"
 
 #define	DEFDBHOST	"localhost"
 #define	DEFDBNAME	"opendkim"
@@ -48,6 +48,7 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.11 20
 /* globals */
 char *progname;
 char reporter[MAXREPORTER + 1];
+int verbose;
 
 /*
 **  SANITIZE -- sanitize a string
@@ -168,6 +169,9 @@ sql_get_int(odbx_t *db, char *sql)
 	assert(db != NULL);
 	assert(sql != NULL);
 
+	if (verbose > 0)
+		fprintf(stderr, "> %s\n", sql);
+
 	err = odbx_query(db, sql, strlen(sql));
 	if (err < 0)
 	{
@@ -239,6 +243,9 @@ sql_do(odbx_t *db, char *sql)
 	assert(db != NULL);
 	assert(sql != NULL);
 
+	if (verbose > 0)
+		fprintf(stderr, "> %s\n", sql);
+
 	err = odbx_query(db, sql, strlen(sql));
 	if (err < 0)
 	{
@@ -287,6 +294,7 @@ usage(void)
 	                "\t-S         \tdon't skip duplicate messages\n"
 	                "\t-s dbscheme\tdatabase scheme (default: \"%s\")\n"
 	                "\t-u dbuser  \tdatabase user (default: \"%s\")\n"
+	                "\t-v         \tincrease verbose output\n"
 #ifdef _FFR_STATSEXT
 	                "\t-x         \timport extension records\n"
 #endif /* _FFR_STATSEXT */
@@ -343,6 +351,8 @@ main(int argc, char **argv)
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 
+	verbose = 0;
+
 	while ((c = getopt(argc, argv, CMDLINEOPTS)) != -1)
 	{
 		switch (c)
@@ -385,6 +395,10 @@ main(int argc, char **argv)
 
 		  case 'u':
 			dbuser = optarg;
+			break;
+
+		  case 'v':
+			verbose++;
 			break;
 
 #ifdef _FFR_STATSEXT

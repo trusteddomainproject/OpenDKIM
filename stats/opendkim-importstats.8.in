@@ -58,6 +58,9 @@ Specifies the user that should be used to authenticate to the SQL
 database.  The default is
 .I opendkim.
 .TP
+.I -v
+Increase verbosity of the output.
+.TP
 .I -x
 Apply schema extension records.
 .SH VERSION
