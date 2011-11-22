@@ -279,6 +279,9 @@ FFR_FEATURE([reputation],
             [support for experimental reputation checks])
 AM_CONDITIONAL([REPUTE], [test x"$enable_reputation" = x"yes"])
 
+FFR_FEATURE([reputation_cache],
+            [support for experimental reputation caching])
+
 FFR_FEATURE([resign],
             [support for one-step re-signing])
 
@@ -1796,6 +1799,7 @@ AM_CONDITIONAL(USE_DB_OPENDKIM,
                test x"$enable_popauth" = x"yes" -o \
 	            x"$enable_reputation" = x"yes" -o \
 	            x"$enable_report_intervals" = x"yes" -o \
+	            x"$enable_reputation_cache" = x"yes" -o \
                     x"$bdbrequested" = x"yes")
 AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")
 

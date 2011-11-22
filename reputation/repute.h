@@ -28,6 +28,8 @@ static char repute_h_id[] = "$Id$";
 #define	REPUTE_STAT_PARSE	2	/* parse failure */
 #define	REPUTE_STAT_QUERY	3	/* query failure */
 
+#define	REPUTE_CACHE		86400	/* XXX -- make this configurable */
+
 typedef int REPUTE_STAT;
 
 /* constant strings */

@@ -237,6 +237,27 @@ struct dkimf_db_lua
 };
 #endif /* USE_LUA */
 
+#ifdef _FFR_REPUTATION
+struct dkimf_db_repute
+{
+	REPUTE			repute_handle;
+# ifdef _FFR_REPUTATION_CACHE
+	DKIMF_DB		repute_cache;
+# endif /* _FFR_REPUTATION_CACHE */
+};
+
+# ifdef _FFR_REPUTATION_CACHE
+struct dkimf_db_repute_cache
+{
+	float			repcache_rep;
+	float			repcache_conf;
+	unsigned long		repcache_samp;
+	unsigned long		repcache_limit;
+	time_t			repcache_when;
+};
+# endif /* _FFR_REPUTATION_CACHE */
+#endif /* _FFR_REPUTATION */
+
 /* globals */
 struct dkimf_db_table dbtypes[] =
 {
@@ -2387,6 +2408,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		unsigned int reporter = 0;
 		char *q;
 		REPUTE r;
+		struct dkimf_db_repute *dbr;
 
 		q = strchr(p, ':');
 		if (q != NULL)
@@ -2404,7 +2426,19 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		if (r == NULL)
 			return -1;
 
-		new->db_data = (void *) r;
+		dbr = (struct dkimf_db_repute *) malloc(sizeof *dbr);
+		if (dbr == NULL)
+		{
+			repute_close(r);
+			return -1;
+		}
+
+		dbr->repute_handle = r;
+# ifdef _FFR_REPUTATION_CACHE
+		dbr->repute_cache = NULL;
+# endif /* _FFR_REPUTATION_CACHE */
+
+		new->db_data = (void *) dbr;
 
 		break;
 	  }
@@ -3796,6 +3830,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 	  case DKIMF_DB_TYPE_REPUTE:
 	  {
+		_Bool found = FALSE;
 		int c;
 		float rep;
 		float conf;
@@ -3804,19 +3839,83 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		time_t when;
 		REPUTE_STAT rstat;
 		REPUTE r;
+		struct dkimf_db_repute *dbr;
 
-		r = (REPUTE) db->db_data;
+		dbr = (struct dkimf_db_repute *) db->db_data;
+		r = dbr->repute_handle;
 
-		/* XXX -- add caching capability here */
+#ifdef _FFR_REPUTATION_CACHE
+		if (dbr->repute_cache != NULL)
+		{
+			int status;
+			time_t now;
+			struct dkimf_db_repute_cache rc;
+			struct dkimf_db_data req;
 
-		rstat = repute_query(r, buf, &rep, &conf,
-		                     &samp, &limit, &when);
+			memset(&rc, '\0', sizeof rc);
 
-		if (rstat != REPUTE_STAT_OK)
-			return -1;
+			req.dbdata_buffer = (void *) &rc;
+			req.dbdata_buflen = sizeof rc;
+			req.dbdata_flags = DKIMF_DB_DATA_BINARY;
 
-		if (exists != NULL)
-			*exists = TRUE;
+			status = dkimf_db_get(dbr->repute_cache, buf,
+			                      strlen(buf), &req, 1, &found);
+
+			(void) time(&now);
+
+			if (found && rc.repcache_when + REPUTE_CACHE < now)
+				found = FALSE;
+
+			if (status == 0 && found && when > now + REPUTE_CACHE)
+			{
+				rep = rc.repcache_rep;
+				conf = rc.repcache_conf;
+				samp = rc.repcache_samp;
+				limit = rc.repcache_limit;
+				when = rc.repcache_when;
+			}
+		}
+#endif /* _FFR_REPUTATION_CACHE */
+
+		if (!found)
+		{
+			rstat = repute_query(r, buf, &rep, &conf,
+			                     &samp, &limit, &when);
+
+			if (rstat != REPUTE_STAT_OK)
+				return -1;
+
+			if (exists != NULL)
+			{
+				*exists = TRUE;
+
+#ifdef _FFR_REPUTATION_CACHE
+				if (dbr->repute_cache == NULL)
+				{
+					(void) dkimf_db_open(&dbr->repute_cache,
+					                     "db:",
+					                     DKIMF_DB_FLAG_MAKELOCK,
+					                     NULL,
+					                     NULL);
+				}
+
+				if (dbr->repute_cache != NULL)
+				{
+					struct dkimf_db_repute_cache rc;
+
+					rc.repcache_rep = rep;
+					rc.repcache_conf = conf;
+					rc.repcache_samp = samp;
+					rc.repcache_limit = limit;
+					rc.repcache_when = when;
+
+					(void) dkimf_db_put(dbr->repute_cache,
+					                    buf, strlen(buf),
+					                    &rc, sizeof rc);
+				}
+#endif /* _FFR_REPUTATION_CACHE */
+			}
+		}
 
 		if (reqnum >= 1)
 		{
@@ -4082,10 +4181,22 @@ dkimf_db_close(DKIMF_DB db)
 	  }
 #endif /* USE_LIBMEMCACHED */
 
+#ifdef _FFR_REPUTATION
 	  case DKIMF_DB_TYPE_REPUTE:
+	  {
+		struct dkimf_db_repute *dbr;
+
+		dbr = db->db_data;
+		repute_close(dbr->repute_handle);
+# ifdef _FFR_REPUTATION_CACHE
+		if (dbr->repute_cache != NULL)
+			dkimf_db_close(dbr->repute_cache);
+# endif /* _FFR_REPUTATION_CACHE */
 		free(db->db_data);
 		free(db);
 		return 0;
+	  }
+#endif /* _FFR_REPUTATION */
 
 	  default:
 		assert(0);
