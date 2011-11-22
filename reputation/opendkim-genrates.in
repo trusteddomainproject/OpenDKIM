@@ -344,7 +344,7 @@ if ($verbose)
 	print STDERR "$progname: computing overall counts and ratios for signers\n";
 }
 
-$dbi_s = $dbi_h->prepare("INSERT IGNORE INTO aggregate (domain, updated, date, messages, spam, reporter) SELECT signatures.domain, CURRENT_TIMESTAMP(), DATE(messages.msgtime), COUNT(*), SUM(spam), NULL FROM messages JOIN signatures ON signatures.message = messages.id WHERE NOT spam = -1 AND pass = 1 AND messages.id >= $minmsgid AND NOT DATE(messages.msgtime) = DATE(CURRENT_TIMESTAMP()) GROUP BY 1, 3");
+$dbi_s = $dbi_h->prepare("INSERT IGNORE INTO aggregate (domain, updated, date, messages, spam, reporter) SELECT signatures.domain, CURRENT_TIMESTAMP(), DATE(messages.msgtime), COUNT(*), SUM(spam), 0 FROM messages JOIN signatures ON signatures.message = messages.id WHERE NOT spam = -1 AND pass = 1 AND messages.id >= $minmsgid AND NOT DATE(messages.msgtime) = DATE(CURRENT_TIMESTAMP()) GROUP BY 1, 3");
 if (!$dbi_s->execute)
 {
 	print STDERR "$progname: pass #1 failed: " . $dbi_h->errstr;
@@ -381,7 +381,7 @@ if ($verbose)
 	print STDERR "$progname: computing overall counts and ratios for unsigned mail\n";
 }
 
-$dbi_s = $dbi_h->prepare("INSERT IGNORE INTO aggregate (domain, updated, date, messages, spam, reporter) SELECT 0, CURRENT_TIMESTAMP(), DATE(messages.msgtime), COUNT(*), SUM(spam), NULL FROM messages WHERE NOT spam = -1 AND messages.id >= $minmsgid AND NOT DATE (messages.msgtime) = DATE(CURRENT_TIMESTAMP()) AND (sigcount = 0 OR messages.id NOT IN (SELECT message FROM signatures WHERE pass = 1)) GROUP BY 2");
+$dbi_s = $dbi_h->prepare("INSERT IGNORE INTO aggregate (domain, updated, date, messages, spam, reporter) SELECT 0, CURRENT_TIMESTAMP(), DATE(messages.msgtime), COUNT(*), SUM(spam), 0 FROM messages WHERE NOT spam = -1 AND messages.id >= $minmsgid AND NOT DATE (messages.msgtime) = DATE(CURRENT_TIMESTAMP()) AND (sigcount = 0 OR messages.id NOT IN (SELECT message FROM signatures WHERE pass = 1)) GROUP BY 2");
 if (!$dbi_s->execute)
 {
 	print STDERR "$progname: pass #3 failed: " . $dbi_h->errstr;
@@ -417,7 +417,7 @@ if ($verbose)
 	print STDERR "$progname: computing overall counts and ratios for low-time domains\n";
 }
 
-$dbi_s = $dbi_h->prepare("INSERT IGNORE INTO aggregate (domain, updated, date, messages, spam, reporter) SELECT -1, CURRENT_TIMESTAMP(), DATE(messages.msgtime), COUNT(*), SUM(spam), NULL FROM messages JOIN signatures ON signatures.message = messages.id JOIN domains on signatures.domain = domains.id WHERE NOT spam = -1 AND messages.id >= $minmsgid AND NOT DATE (messages.msgtime) = DATE(CURRENT_TIMESTAMP()) AND (sigcount = 0 OR messages.id NOT IN (SELECT message FROM signatures WHERE pass = 1)) AND DATEDIFF(DATE(NOW()), DATE(domains.firstseen)) < $thresh GROUP BY 3");
+$dbi_s = $dbi_h->prepare("INSERT IGNORE INTO aggregate (domain, updated, date, messages, spam, reporter) SELECT -1, CURRENT_TIMESTAMP(), DATE(messages.msgtime), COUNT(*), SUM(spam), 0 FROM messages JOIN signatures ON signatures.message = messages.id JOIN domains on signatures.domain = domains.id WHERE NOT spam = -1 AND messages.id >= $minmsgid AND NOT DATE (messages.msgtime) = DATE(CURRENT_TIMESTAMP()) AND (sigcount = 0 OR messages.id NOT IN (SELECT message FROM signatures WHERE pass = 1)) AND DATEDIFF(DATE(NOW()), DATE(domains.firstseen)) < $thresh GROUP BY 3");
 if (!$dbi_s->execute)
 {
 	print STDERR "$progname: pass #5 failed: " . $dbi_h->errstr;
@@ -471,7 +471,7 @@ if ($verbose)
 	print STDERR "$progname: computing specific domain predictions\n";
 }
 
-$dbi_s = $dbi_h->prepare("INSERT INTO predictions (reporter, domain, name, rate_samples, rate_max, rate_avg, rate_stddev, rate_high, ratio_max, ratio_avg, ratio_stddev, ratio_high, daily_limit_low, daily_limit_high) SELECT reporter, domain, domains.name, COUNT(aggregate.messages), MAX(aggregate.messages), AVG(aggregate.messages), STDDEV_POP(aggregate.messages), AVG(aggregate.messages) + STDDEV_POP(aggregate.messages) * $stdscore, MAX(aggregate.ratio), AVG(aggregate.ratio), STDDEV_POP(aggregate.ratio), AVG(aggregate.ratio) + STDDEV_POP(aggregate.ratio) * $stdscore, (AVG(aggregate.messages) + STDDEV_POP(aggregate.messages) * $stdscore) * (1 - (AVG(aggregate.ratio) + STDDEV_POP(aggregate.ratio) * $stdscore)), (AVG(aggregate.messages) + STDDEV_POP(aggregate.messages) * $stdscore) * (1 - (AVG(aggregate.ratio) - STDDEV_POP(aggregate.ratio) * $stdscore)) FROM aggregate JOIN domains ON aggregate.domain = domains.id GROUP BY 1, 2 ON DUPLICATE KEY UPDATE rate_samples = VALUES(rate_samples), rate_max = VALUES(rate_max), rate_avg = VALUES(rate_avg), rate_stddev = VALUES(rate_stddev), rate_high = VALUES(rate_high), ratio_max = VALUES(ratio_max), ratio_avg = VALUES(ratio_avg), ratio_stddev = VALUES(ratio_stddev), ratio_high = VALUES(ratio_high), daily_limit_low = VALUES(daily_limit_low), daily_limit_high = VALUES(daily_limit_high)");
+$dbi_s = $dbi_h->prepare("INSERT INTO predictions (reporter, domain, name, rate_samples, rate_max, rate_avg, rate_stddev, rate_high, ratio_max, ratio_avg, ratio_stddev, ratio_high, daily_limit_low, daily_limit_high) SELECT reporter, domain, domains.name, COUNT(aggregate.messages), MAX(aggregate.messages), AVG(aggregate.messages), STDDEV_POP(aggregate.messages), AVG(aggregate.messages) + STDDEV_POP(aggregate.messages) * $stdscore, MAX(aggregate.ratio), AVG(aggregate.ratio), STDDEV_POP(aggregate.ratio), AVG(aggregate.ratio) + STDDEV_POP(aggregate.ratio) * $stdscore, (AVG(aggregate.messages) + STDDEV_POP(aggregate.messages) * $stdscore) * (1 - (AVG(aggregate.ratio) + STDDEV_POP(aggregate.ratio) * $stdscore)), (AVG(aggregate.messages) + STDDEV_POP(aggregate.messages) * $stdscore) * (1 - (AVG(aggregate.ratio) - STDDEV_POP(aggregate.ratio) * $stdscore)) FROM aggregate JOIN domains ON aggregate.domain = domains.id GROUP BY 1, 2 ON DUPLICATE KEY UPDATE updated = NOW(), rate_samples = VALUES(rate_samples), rate_max = VALUES(rate_max), rate_avg = VALUES(rate_avg), rate_stddev = VALUES(rate_stddev), rate_high = VALUES(rate_high), ratio_max = VALUES(ratio_max), ratio_avg = VALUES(ratio_avg), ratio_stddev = VALUES(ratio_stddev), ratio_high = VALUES(ratio_high), daily_limit_low = VALUES(daily_limit_low), daily_limit_high = VALUES(daily_limit_high)");
 if (!$dbi_s->execute)
 {
 	print STDERR "$progname: pass #8 failed: " . $dbi_h->errstr;
