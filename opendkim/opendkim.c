@@ -9826,7 +9826,7 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	/* To: */
 	fprintf(out, "To: %s@%s\n", addr, dkim_sig_getdomain(sig));
 
-	/* BCC: */
+	/* Bcc: */
 	if (conf->conf_reportaddrbcc != NULL)
 		fprintf(out, "Bcc: %s\n", conf->conf_reportaddrbcc);
 
@@ -10146,6 +10146,10 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 
 	/* To: */
 	fprintf(out, "To: %s@%s\n", addr, dfc->mctx_domain);
+
+	/* Bcc: */
+	if (conf->conf_reportaddrbcc != NULL)
+		fprintf(out, "Bcc: %s\n", conf->conf_reportaddrbcc);
 
 	/* Subject: */
 	fprintf(out, "Subject: ADSP failure report for %s\n",
