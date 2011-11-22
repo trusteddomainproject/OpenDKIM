@@ -685,7 +685,7 @@ repute_close(REPUTE rep)
 	struct repute_io *rio;
 	struct repute_io *next;
 
-	assert(rep == NULL);
+	assert(rep != NULL);
 
 	rio = rep->rep_ios;
 	while (rio != NULL)
