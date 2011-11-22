@@ -3807,6 +3807,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		r = (REPUTE) db->db_data;
 
+		/* XXX -- add caching capability here */
+
 		rstat = repute_query(r, buf, &rep, &conf,
 		                     &samp, &limit, &when);
 
