@@ -26,6 +26,7 @@ create table if not exists predictions (
 	id int not null auto_increment,
 	reporter int,
 	domain int,
+	name varchar(255),
 	updated timestamp not null default current_timestamp on update current_timestamp,
 	rate_samples int,
 	rate_max int,
