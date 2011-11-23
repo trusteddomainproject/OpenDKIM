@@ -4784,39 +4784,6 @@ dkimf_db_rewalk(DKIMF_DB db, char *str, DKIMF_DBDATA req, unsigned int reqnum,
 }
 
 /*
-**  DKIMF_DB_FD -- retrieve a file descriptor associated with a database
-**
-**  Parameters:
-**  	db -- DKIMF_DB handle
-**
-**  Return value:
-**  	File descriptor associated with the DB, or -1 if none.
-*/
-
-int
-dkimf_db_fd(DKIMF_DB db)
-{
-	int fd = -1;
-
-#ifdef USE_DB
-	if (db->db_type == DKIMF_DB_TYPE_BDB)
-	{
-		DB *bdb;
-
-		bdb = (DB *) db->db_handle;
-
-# if DB_VERSION_CHECK(2,0,0)
-		(void) bdb->fd(bdb, &fd);
-# else /* DB_VERSION_CHECK(2,0,0) */
-		fd = bdb->fd(bdb);
-# endif /* DB_VERSION_CHECK(2,0,0) */
-	}
-#endif /* USE_DB */
-
-	return fd;
-}
-
-/*
 **  DKIMF_DB_SET_LDAP_PARAM -- set an LDAP parameter
 **
 **  Parameters:

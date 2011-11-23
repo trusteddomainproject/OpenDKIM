@@ -76,7 +76,6 @@ typedef struct dkimf_db_data * DKIMF_DBDATA;
 /* prototypes */
 extern int dkimf_db_close __P((DKIMF_DB));
 extern int dkimf_db_delete __P((DKIMF_DB, void *, size_t));
-extern int dkimf_db_fd __P((DKIMF_DB));
 extern int dkimf_db_get __P((DKIMF_DB, void *, size_t,
                              DKIMF_DBDATA, unsigned int, _Bool *));
 extern int dkimf_db_mkarray __P((DKIMF_DB, char ***, const char **));
