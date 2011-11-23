@@ -7709,16 +7709,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			         conf->conf_replowtime, dberr);
 			return -1;
 		}
-
-		status = dkimf_db_open(&curconf->conf_replowtimedb,
-		                       curconf->conf_replowtime,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
-		if (status != 0)
-		{
-			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         conf->conf_replowtime, dberr);
-			return -1;
-		}
 	}
 
 	if (conf->conf_repratios != NULL)
@@ -7741,8 +7731,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			}
 		}
 
-		status = dkimf_db_open(&curconf->conf_repratiosdb,
-		                       curconf->conf_repratios,
+		status = dkimf_db_open(&conf->conf_repratiosdb,
+		                       conf->conf_repratios,
 		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
 		if (status != 0)
 		{
