@@ -3,6 +3,7 @@
 postmaster@example.org
 From: "Mail Admin" <postmaster@example.org>
 To: adsp-feedback@example2.com
+Bcc: postmaster@example.net
 Subject: ADSP failure report for t-adsp-report
 MIME-Version: 1.0
 Content-Type: multipart/report; report-type=feedback-report;
