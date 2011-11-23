@@ -2368,12 +2368,15 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 
 	/* establish write-lock */
 	fd = -1;
+	if ((db->db_flags & DKIMF_DB_FLAG_NOFDLOCK) == 0)
+	{
 # if DB_VERSION_CHECK(2,0,0)
-	status = bdb->fd(bdb, &fd);
+		status = bdb->fd(bdb, &fd);
 # else /* DB_VERSION_CHECK(2,0,0) */
-	status = 0;
-	fd = bdb->fd(bdb);
+		status = 0;
+		fd = bdb->fd(bdb);
 # endif /* DB_VERSION_CHECK(2,0,0) */
+	}
 
 	if (db->db_lock != NULL)
 		(void) pthread_mutex_lock(db->db_lock);
@@ -2526,17 +2529,20 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 
 	/* establish write-lock */
 	fd = -1;
-# if DB_VERSION_CHECK(2,0,0)
-	status = bdb->fd(bdb, &fd);
-	if (status != 0)
+	if ((db->db_flags & DKIMF_DB_FLAG_NOFDLOCK) == 0)
 	{
-		db->db_status = status;
-		return status;
-	}
+# if DB_VERSION_CHECK(2,0,0)
+		status = bdb->fd(bdb, &fd);
+		if (status != 0)
+		{
+			db->db_status = status;
+			return status;
+		}
 # else /* DB_VERSION_CHECK(2,0,0) */
-	status = 0;
-	fd = bdb->fd(bdb);
+		status = 0;
+		fd = bdb->fd(bdb);
 # endif /* DB_VERSION_CHECK(2,0,0) */
+	}
 
 	if (db->db_lock != NULL)
 		(void) pthread_mutex_lock(db->db_lock);
