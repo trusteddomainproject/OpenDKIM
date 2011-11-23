@@ -2402,7 +2402,9 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		free(tmp);
 		break;
 	  }
+#endif /* USE_LIBMEMCACHED */
 
+#ifdef _FFR_REPUTATION
 	  case DKIMF_DB_TYPE_REPUTE:
 	  {
 		unsigned int reporter = 0;
@@ -3827,7 +3829,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			return -1;
 		}
 	  }
+#endif /* USE_LIBMEMCACHED */
 
+#ifdef _FFR_REPUTATION
 	  case DKIMF_DB_TYPE_REPUTE:
 	  {
 		_Bool found = FALSE;
@@ -3844,7 +3848,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		dbr = (struct dkimf_db_repute *) db->db_data;
 		r = dbr->repute_handle;
 
-#ifdef _FFR_REPUTATION_CACHE
+# ifdef _FFR_REPUTATION_CACHE
 		if (dbr->repute_cache != NULL)
 		{
 			int status;
@@ -3875,7 +3879,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				when = rc.repcache_when;
 			}
 		}
-#endif /* _FFR_REPUTATION_CACHE */
+# endif /* _FFR_REPUTATION_CACHE */
 
 		if (!found)
 		{
@@ -3889,7 +3893,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			{
 				*exists = TRUE;
 
-#ifdef _FFR_REPUTATION_CACHE
+# ifdef _FFR_REPUTATION_CACHE
 				if (dbr->repute_cache == NULL)
 				{
 					(void) dkimf_db_open(&dbr->repute_cache,
@@ -3913,7 +3917,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 					                    buf, strlen(buf),
 					                    &rc, sizeof rc);
 				}
-#endif /* _FFR_REPUTATION_CACHE */
+# endif /* _FFR_REPUTATION_CACHE */
 			}
 		}
 
