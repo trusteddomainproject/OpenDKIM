@@ -741,7 +741,7 @@ main(int argc, char **argv)
 
 			/* see if this is a duplicate */
 			snprintf(sql, sizeof sql,
-			         "SELECT id FROM messages WHERE jobid = '%s' and reporter = %d and msgtime = from_unixtime(%s)",
+			         "SELECT id FROM messages WHERE jobid = '%s' AND reporter = %d AND msgtime = FROM_UNIXTIME(%s)",
 			         fields[0], repid, fields[4]);
 
 			msgid = sql_get_int(db, sql);
@@ -764,7 +764,7 @@ main(int argc, char **argv)
 			}
 
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO messages (jobid, reporter, from_domain, ip, msgtime, size, sigcount, atps, spam) VALUES ('%s', %d, %d, %d, from_unixtime(%s), %s, %s, %s, %s)",
+			         "INSERT INTO messages (jobid, reporter, from_domain, ip, msgtime, size, sigcount, atps, spam) VALUES ('%s', %d, %d, %d, FROM_UNIXTIME(%s), %s, %s, %s, %s)",
 			         fields[0],	/* jobid */
 			         repid,		/* reporter */
 			         domid,		/* from_domain */
@@ -991,13 +991,13 @@ main(int argc, char **argv)
 			if (strcmp(fields[2], "0") == 0)
 			{
 				snprintf(sql, sizeof sql,
-				         "SELECT MAX(id) FROM messages WHERE jobid = '%s' and reporter = %d",
+				         "SELECT MAX(id) FROM messages WHERE jobid = '%s' AND reporter = %d",
 				         fields[0], repid);
 			}
 			else
 			{
 				snprintf(sql, sizeof sql,
-				         "SELECT id FROM messages WHERE jobid = '%s' and reporter = %d and msgtime = from_unixtime(%s)",
+				         "SELECT id FROM messages WHERE jobid = '%s' AND reporter = %d AND msgtime = FROM_UNIXTIME(%s)",
 				         fields[0], repid, fields[2]);
 			}
 
