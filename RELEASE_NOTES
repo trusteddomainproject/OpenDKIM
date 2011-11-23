@@ -61,6 +61,8 @@ release, and a summary of the changes in that release.
 		Leave stuff that's useful for reputation R&D.
 	STATS: Feature request #SF3402857: Modify opendkim-spam to be able
 		to write update records to statistics files.
+	STATS: Feature request #SF3439384: Make opendkim-importstats more
+		backend-agnostic.  Requested by Andreas Schulze.
 	TOOLS: Add opendkim-testmsg, for signing/verifying messages without
 		all the milter code being invoked.  Requested by
 		Todd Nagengast.

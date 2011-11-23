@@ -45,10 +45,25 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.11 20
 #define	MAXLINE		2048
 #define	MAXREPORTER	256
 
+/* data structures */
+struct table
+{
+	char *		tbl_left;
+	char *		tbl_right;
+};
+
 /* globals */
 char *progname;
 char reporter[MAXREPORTER + 1];
 int verbose;
+
+struct table last_insert_id[] =
+{
+	{ "mysql",	"LAST_INSERT_ID()" },
+	{ "sqlite3",	"LAST_INSERT_ROWID()" },
+	{ "pgsql",	"LASTVAL()" },
+	{ NULL,		NULL }
+};
 
 /*
 **  SANITIZE -- sanitize a string
@@ -144,6 +159,39 @@ findinlist(char *str, char *list)
 	}
 
 	return 0;
+}
+
+/*
+**  SQL_MKTIME -- convert a UNIX time_t (as a string) to an SQL time string
+**
+**  Parameters:
+**  	in -- input time
+**  	out -- output buffer
+**  	outlen -- bytes available at "out"
+**
+**  Return value:
+**  	0 -- error
+**  	>0 -- bytes of "out" used
+*/
+
+int
+sql_mktime(const char *in, char *out, size_t outlen)
+{
+	time_t convert;
+	struct tm *local;
+	char *p;
+
+	assert(in != NULL);
+	assert(out != NULL);
+
+	errno = 0;
+	convert = strtoul(in, &p, 10);
+	if (errno != 0 || *p != '\0')
+		return 0;
+
+	local = localtime(&convert);
+
+	return strftime(out, outlen, "%Y-%m-%d %H:%M:%S", local);
 }
 
 /*
@@ -337,6 +385,7 @@ main(int argc, char **argv)
 	int hdrid;
 	int inversion = -1;
 	char *p;
+	char *lastrow = NULL;
 	char *dbhost = DEFDBHOST;
 	char *dbname = DEFDBNAME;
 	char *dbscheme = DEFDBSCHEME;
@@ -346,6 +395,7 @@ main(int argc, char **argv)
 	char **fields = NULL;
 	odbx_t *db = NULL;
 	char buf[MAXLINE + 1];
+	char timebuf[MAXLINE + 1];
 	char sql[MAXLINE + 1];
 	char safesql[MAXLINE * 2 + 1];
 
@@ -410,6 +460,22 @@ main(int argc, char **argv)
 		  default:
 			return usage();
 		}
+	}
+
+	for (c = 0; ; c++)
+	{
+		if (strcasecmp(last_insert_id[c].tbl_left, dbscheme) == 0)
+		{
+			lastrow = last_insert_id[c].tbl_right;
+			break;
+		}
+	}
+
+	if (lastrow == NULL)
+	{
+		fprintf(stderr, "%s: scheme \"%s\" not currently supported\n",
+		        progname, dbscheme);
+		return EX_SOFTWARE;
 	}
 
 	/* try to connect to the database */
@@ -597,7 +663,7 @@ main(int argc, char **argv)
 					}
 
 					snprintf(sql, sizeof sql,
-					         "SELECT LAST_INSERT_ID()");
+					         "SELECT %s", lastrow);
 
 					repid = sql_get_int(db, sql);
 					if (repid == -1)
@@ -647,7 +713,7 @@ main(int argc, char **argv)
 				}
 
 				snprintf(sql, sizeof sql,
-				         "SELECT LAST_INSERT_ID()");
+				         "SELECT %s", lastrow);
 
 				domid = sql_get_int(db, sql);
 				if (domid == -1)
@@ -703,7 +769,7 @@ main(int argc, char **argv)
 				else
 				{
 					snprintf(sql, sizeof sql,
-					         "SELECT LAST_INSERT_ID()");
+					         "SELECT %s", lastrow);
 
 					addrid = sql_get_int(db, sql);
 					if (addrid == -1)
@@ -740,9 +806,10 @@ main(int argc, char **argv)
 			}
 
 			/* see if this is a duplicate */
+			(void) sql_mktime(fields[4], timebuf, sizeof timebuf);
 			snprintf(sql, sizeof sql,
-			         "SELECT id FROM messages WHERE jobid = '%s' AND reporter = %d AND msgtime = FROM_UNIXTIME(%s)",
-			         fields[0], repid, fields[4]);
+			         "SELECT id FROM messages WHERE jobid = '%s' AND reporter = %d AND msgtime = '%s'",
+			         fields[0], repid, timebuf);
 
 			msgid = sql_get_int(db, sql);
 			if (msgid == -1)
@@ -763,13 +830,14 @@ main(int argc, char **argv)
 				continue;
 			}
 
+			(void) sql_mktime(fields[4], timebuf, sizeof timebuf);
 			snprintf(sql, sizeof sql,
-			         "INSERT INTO messages (jobid, reporter, from_domain, ip, msgtime, size, sigcount, atps, spam) VALUES ('%s', %d, %d, %d, FROM_UNIXTIME(%s), %s, %s, %s, %s)",
+			         "INSERT INTO messages (jobid, reporter, from_domain, ip, msgtime, size, sigcount, atps, spam) VALUES ('%s', %d, %d, %d, '%s', %s, %s, %s, %s)",
 			         fields[0],	/* jobid */
 			         repid,		/* reporter */
 			         domid,		/* from_domain */
 			         addrid,	/* ip */
-			         fields[4],	/* msgtime */
+			         timebuf,	/* msgtime */
 			         fields[5],	/* size */
 			         fields[6],	/* sigcount */
 			         fields[7],	/* atps */
@@ -783,7 +851,7 @@ main(int argc, char **argv)
 			}
 
 			/* get back the message ID */
-			snprintf(sql, sizeof sql, "SELECT LAST_INSERT_ID()");
+			snprintf(sql, sizeof sql, "SELECT %s", lastrow);
 
 			msgid = sql_get_int(db, sql);
 			if (msgid == -1)
@@ -861,8 +929,8 @@ main(int argc, char **argv)
 					return EX_SOFTWARE;
 				}
 
-				snprintf(sql, sizeof sql,
-				         "SELECT LAST_INSERT_ID()");
+				snprintf(sql, sizeof sql, "SELECT %s",
+				         lastrow);
 
 				domid = sql_get_int(db, sql);
 				if (domid == -1)
@@ -910,7 +978,7 @@ main(int argc, char **argv)
 			}
 
 			/* get back the signature ID */
-			snprintf(sql, sizeof sql, "SELECT LAST_INSERT_ID()");
+			snprintf(sql, sizeof sql, "SELECT %s", lastrow);
 
 			sigid = sql_get_int(db, sql);
 			if (sigid == -1)
@@ -996,9 +1064,11 @@ main(int argc, char **argv)
 			}
 			else
 			{
+				(void) sql_mktime(fields[2], timebuf,
+				                  sizeof timebuf);
 				snprintf(sql, sizeof sql,
-				         "SELECT id FROM messages WHERE jobid = '%s' AND reporter = %d AND msgtime = FROM_UNIXTIME(%s)",
-				         fields[0], repid, fields[2]);
+				         "SELECT id FROM messages WHERE jobid = '%s' AND reporter = %d AND msgtime = '%s'",
+				         fields[0], repid, timebuf);
 			}
 
 			msgid = sql_get_int(db, sql);
