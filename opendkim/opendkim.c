@@ -7731,8 +7731,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			}
 		}
 
-		status = dkimf_db_open(&conf->conf_repratiosdb,
-		                       conf->conf_repratios,
+		status = dkimf_db_open(&curconf->conf_repratiosdb,
+		                       curconf->conf_repratios,
 		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
 		if (status != 0)
 		{
