@@ -174,6 +174,14 @@ static char *optlist[] =
 	"_FFR_REPORT_INTERVALS",
 #endif /* _FFR_REPORT_INTERVALS */
 
+#if _FFR_REPUTATION
+	"_FFR_REPUTATION",
+#endif /* _FFR_REPUTATION */
+
+#if _FFR_REPUTATION_CACHE
+	"_FFR_REPUTATION_CACHE",
+#endif /* _FFR_REPUTATION_CACHE */
+
 #if _FFR_RESIGN
 	"_FFR_RESIGN",
 #endif /* _FFR_RESIGN */
