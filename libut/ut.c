@@ -1168,6 +1168,8 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 				}
 			}
 
+			free(vlist);
+
 			p = eb;
 		}
 	}
