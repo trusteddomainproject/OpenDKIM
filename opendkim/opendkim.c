@@ -5128,6 +5128,8 @@ dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 			       dkim_getid(dkim), ni, ni == 1 ? "" : "s");
 		}
 
+		free(ig);
+
 		return DKIM_CBSTAT_CONTINUE;
 	}
 
