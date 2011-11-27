@@ -381,7 +381,7 @@ if ($verbose)
 	print STDERR "$progname: computing overall counts and ratios for unsigned mail\n";
 }
 
-$dbi_s = $dbi_h->prepare("INSERT IGNORE INTO aggregate (domain, updated, date, messages, spam, reporter) SELECT 0, CURRENT_TIMESTAMP(), DATE(messages.msgtime), COUNT(*), SUM(spam), 0 FROM messages WHERE NOT spam = -1 AND messages.id >= $minmsgid AND NOT DATE (messages.msgtime) = DATE(CURRENT_TIMESTAMP()) AND (sigcount = 0 OR messages.id NOT IN (SELECT message FROM signatures WHERE pass = 1)) GROUP BY 2");
+$dbi_s = $dbi_h->prepare("INSERT IGNORE INTO aggregate (domain, updated, date, messages, spam, reporter) SELECT 0, CURRENT_TIMESTAMP(), DATE(messages.msgtime), COUNT(*), SUM(spam), 0 FROM messages WHERE NOT spam = -1 AND messages.id >= $minmsgid AND NOT DATE (messages.msgtime) = DATE(CURRENT_TIMESTAMP()) AND (sigcount = 0 OR messages.id NOT IN (SELECT message FROM signatures WHERE pass = 1)) GROUP BY 3");
 if (!$dbi_s->execute)
 {
 	print STDERR "$progname: pass #3 failed: " . $dbi_h->errstr;
