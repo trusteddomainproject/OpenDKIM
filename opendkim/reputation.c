@@ -33,8 +33,8 @@ static char reputation_c_id[] = "@(#)$Id: stats.c,v 1.27.2.1 2010/10/27 21:43:09
 /* macros */
 #define	DKIMF_REP_DEFTTL	3600
 #define	DKIMF_REP_MAXHASHES	64
-#define	DKIMF_REP_NULLDOMAIN	"NULL"
-#define	DKIMF_REP_LOWTIME	"LOWTIME"
+#define	DKIMF_REP_NULLDOMAIN	"UNSIGNED"
+#define	DKIMF_REP_LOWTIME	"LOW-TIME"
 
 /* data types */
 struct reputation
