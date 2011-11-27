@@ -47,6 +47,7 @@ create table if not exists messages (
 	size int unsigned not null,
 	sigcount int unsigned not null,
 	spam tinyint unsigned not null default 0,
+	atps tinyint not null,
 
 	primary key(id),
 	key(reporter),
@@ -68,7 +69,6 @@ create table if not exists signatures (
 	siglength int not null,
 	sigerror tinyint unsigned not null,
 	dnssec tinyint not null,
-	atps tinyint not null,
 
 	primary key(id),
 	key(domain),
