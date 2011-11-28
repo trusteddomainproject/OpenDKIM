@@ -254,7 +254,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 	if (!f)
 	{
 		_Bool lowtime = FALSE;
-		char *p;
+		char *p = NULL;
 
 		/* cache miss; build a new cache entry */
 		reps.reps_count = 0;
@@ -331,7 +331,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 			reps.reps_limit = strtoul(buf, &p,
 			                          10) / rep->rep_factor + 1;
-			if (*p != '\0')
+			if (p != NULL && *p != '\0')
 			{
 				pthread_mutex_unlock(&rep->rep_lock);
 				return -1;
@@ -366,8 +366,9 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			return 2;
 		}
 
+		p = NULL;
 		reps.reps_ratio = strtof(buf, &p);
-		if (*p != '\0')
+		if (p != NULL && *p != '\0')
 		{
 			pthread_mutex_unlock(&rep->rep_lock);
 			return -1;
