@@ -3,7 +3,7 @@
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \
 	t-sign-rs-lua t-sign-ss-all t-sign-ss-replace \
-	t-verify-revoked t-verify-unspec \
+	t-verify-revoked t-verify-unspec t-verify-malformed \
 	t-verify-unsigned t-verify-unsigned-silent \
 	t-verify-syntax t-verify-ss t-verify-ss-bad t-verify-report \
 	t-dontsign t-peer t-adsp-report t-local-adsp t-local-adsp-subdomain \
@@ -41,6 +41,7 @@ EXTRA_DIST = \
 		t-sign-ss-replace.txt \
 	t-verify-revoked t-verify-revoked.conf t-verify-revoked.lua \
 	t-verify-unsigned t-verify-unsigned.conf t-verify-unsigned.lua \
+	t-verify-malformed t-verify-malformed.conf t-verify-malformed.lua \
 	t-verify-unsigned-silent t-verify-unsigned-silent.conf \
 		t-verify-unsigned-silent.lua \
 	t-verify-unspec t-verify-unspec.conf t-verify-unspec.lua \
