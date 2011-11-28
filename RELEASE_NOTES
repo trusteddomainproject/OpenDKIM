@@ -14,6 +14,8 @@ release, and a summary of the changes in that release.
 		reports.  Reported by Richard Rognlie.
 	Fix Authentication-Results generation with "AddAllSignatureResults"
 		enabled.  Reported by Todd Nagengast.
+	Fix a crash bug when trying to handle certain malformed header fields
+		in verify-only mode.  Reported by Todd Lyons.
 	Cope with versions of Sleepycat DB that crash when asking for a file
 		descriptor for in-memory databases.  Problem reported by
 		Todd Lyons.
