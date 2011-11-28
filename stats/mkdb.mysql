@@ -46,8 +46,8 @@ create table if not exists messages (
 	msgtime timestamp not null default CURRENT_TIMESTAMP,
 	size int unsigned not null,
 	sigcount int unsigned not null,
-	spam tinyint unsigned not null default 0,
-	atps tinyint not null,
+	spam tinyint not null default -1,
+	atps tinyint not null default -1,
 
 	primary key(id),
 	key(reporter),
