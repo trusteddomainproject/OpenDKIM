@@ -11777,6 +11777,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 	/* still no key selected; check the signing table (if any) */
 	if (originok && dfc->mctx_srhead == NULL &&
+	    (user != NULL && dfc->mctx_domain[0] != '\0') && 
 	    conf->conf_keytabledb != NULL && conf->conf_signtabledb != NULL)
 	{
 		int found;
@@ -11785,7 +11786,7 @@ mlfi_eoh(SMFICTX *ctx)
 		memset(errkey, '\0', sizeof errkey);
 		found = dkimf_apply_signtable(dfc, conf->conf_keytabledb,
 		                              conf->conf_signtabledb,
-		                              user, domain,
+		                              user, dfc->mctx_domain,
 		                              errkey, sizeof errkey,
 		                              conf->conf_multisig);
 
