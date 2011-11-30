@@ -11354,8 +11354,7 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 
 	/* apply BodyLengthDB if signing */
-	if (conf->conf_bldb != NULL && !dfc->mctx_bldbdone &&
-	    dfc->mctx_srhead != NULL)
+	if (conf->conf_bldb != NULL && !dfc->mctx_bldbdone)
 	{
 		struct addrlist *a;
 
