@@ -11,11 +11,11 @@ can also upload the locally-collected data to an arbitrary central repository
 where it can be aggregated and then made available to participants to query.
 See the stats/README for details of this component.
 
-This central system has not yet been designed to be queryable as a public
-service, but may be in the future.  This directory contains a description
-sufficient to build such a system, but also (and primarily) for building a
-local store that can be used as an intelligent filter based on DKIM
-verification results.
+This central service implements a queryable system based on the REPUTE
+protocols under development within the Internet Engineering Task Force.
+This directory contains a description sufficient to build such a system,
+but also (and primarily) for building a local store that can be used as
+an intelligent filter based on DKIM verification results.
 
 REQUIREMENTS
 
@@ -98,33 +98,33 @@ SETUP INSTRUCTIONS
 11) Configure opendkim to query the reputation server by adding
     these configuration items:
 
-	ReputationLimits        csl:*=1000000
+	ReputationLimits        repute:<repute-server>:<reporter-id>
 	ReputationRatios        repute:<repute-server>
 	ReputationFactor        24
 	ReputationSpamCheck     /^X-Spam: ?[Yy][Ee][Ss]/
 
     This tells opendkim the following things:
 
-	- all domains are allowed to send up to 1M messages a day
 	- domain reputations should be obtained via the REPUTE protocol from
 	  <repute-server>
+	- message limits based on those reputations should also be
+	  retrieved from the same service; you may include your
+	  own <reporter-id> if you have one to get limits tailored
+	  to your site based on the data you have reported
 	- the daily limit should be enforced in 24 chunks (i.e., applied
 	  hourly rather than daily)
 	- a message is spam if any header field matches the regular expression
 	  shown
 
     If you have configured a local reputation service, you can replace
-    the ReputationLimits setting with a query to the data set that contains
-    those numbers for you, i.e., the "daily_limit_low" column in the
-    "predictions" table.  This will cause opendkim to enforce per-domain
-    transmission limits based on past observations in addition to enforcing
-    maximum spam rates for each domain.
-    
+    the ReputationLimits and ReputationRatios setting with a query to the
+    data set that contains those numbers for you, i.e., the "daily_limit_low"
+    and "rate_high" columns in the "predictions" table.
 
 
 TROUBLESHOOTING
 
-[provide some troubleshooting tips]
+[some troubleshooting tips will be added here as experience is gained]
 
 
 SUPPORT/QUESTIONS/COMMENTS
