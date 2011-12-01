@@ -16741,8 +16741,8 @@ main(int argc, char **argv)
 	/* perform test mode */
 	if (testfile != NULL)
 	{
-		status = dkimf_testfile(curconf->conf_libopendkim, testfile,
-		                        fixedtime, stricttest, verbose);
+		status = dkimf_testfiles(curconf->conf_libopendkim, testfile,
+		                         fixedtime, stricttest, verbose);
 		dkim_close(curconf->conf_libopendkim);
 		return status;
 	}

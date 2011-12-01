@@ -33,6 +33,7 @@ release, and a summary of the changes in that release.
 	Ignore header field names that contain semi-colons, as they produce
 		syntactically invalid signatures.  Problem noted by
 		Heikki Gruner.
+	Allow a set of test files to be passed via "-t" rather than just one.
 	LIBOPENDKIM: Feature request #SF3317160: Per RFC6376, remove
 		granularity checks.
 	LIBOPENDKIM: Feature request #SF3385768: Add dkim_privkey_load(),

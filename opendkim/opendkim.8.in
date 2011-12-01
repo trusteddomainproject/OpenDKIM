@@ -24,7 +24,7 @@
 [-r]
 [-s selector]
 [-S signalg]
-[-t testfile]
+[-t testfiles]
 [-T secs]
 [-u userid[:group]]
 [-v]
@@ -345,11 +345,12 @@ if it is available, otherwise it will be
 .I rsa-sha1.
 
 .TP
-.I -t testfile
-Evaluates (verifies) an RFC5322-formatted message found in
-.I testfile
+.I -t testfiles
+Evaluates (verifies) one or more RFC5322-formatted message found in
+.I testfiles
 and exits.  The value of
-.I testfile
+.I testfiles
+should be a comma-separated list of one or more filenames, one of which
 may be "-" if the message should be read from standard input.
 .TP
 .I -T secs
