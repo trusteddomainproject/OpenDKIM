@@ -49,6 +49,7 @@ struct reputation
 	time_t		rep_ttl;
 	time_t		rep_lastflush;
 	unsigned int	rep_factor;
+	unsigned int	rep_minimum;
 	pthread_mutex_t	rep_lock;
 };
 
@@ -65,14 +66,19 @@ struct reps
 **  DKIMF_REP_INIT -- initialize reputation
 **
 **  Parameters:
-**  	rephandle -- reputation DB query handle (returned)
+**  	rep -- reputation DB query handle (returned)
+**  	factor -- number of slices in a reputation limit
+**  	minimum -- always accept at least this many messages
+**  	limits -- DB from which to get per-domain limits
+**  	ratios -- DB from which to get per-domain ratios
+**  	lowtime -- DB from which to check for low-time domain status
 **
 **  Return value:
 **  	0 on success, -1 on error.
 */
 
 int
-dkimf_rep_init(DKIMF_REP *rep, time_t factor,
+dkimf_rep_init(DKIMF_REP *rep, time_t factor, unsigned int minimum,
                DKIMF_DB limits, DKIMF_DB ratios, DKIMF_DB lowtime)
 {
 	int status;
@@ -92,6 +98,7 @@ dkimf_rep_init(DKIMF_REP *rep, time_t factor,
 	new->rep_limits = limits;
 	new->rep_ratios = ratios;
 	new->rep_lowtime = lowtime;
+	new->rep_minimum = minimum;
 
 	if (pthread_mutex_init(&new->rep_lock, NULL) != 0)
 	{
@@ -404,8 +411,9 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 	}
 
 	/* if accepting it now would be within limits */
-	if (reps.reps_count < reps.reps_limit &&
-	    (float) reps.reps_spam / (float) reps.reps_count <= reps.reps_ratio)
+	if (reps.reps_count <= rep->rep_minimum ||
+	    (reps.reps_count < reps.reps_limit &&
+	     (float) reps.reps_spam / (float) reps.reps_count <= reps.reps_ratio))
 	{
 		/* remove from rep_dups if found there */
 		(void) dkimf_db_delete(rep->rep_dups, hash, hashlen);

@@ -252,6 +252,7 @@ struct dkimf_config
 	unsigned int	conf_maxverify;		/* max sigs to verify */
 #ifdef _FFR_REPUTATION
 	unsigned int	conf_repfactor;		/* reputation factor */
+	unsigned int	conf_repminimum;	/* reputation minimum */
 #endif /* _FFR_REPUTATION */
 #ifdef USE_UNBOUND
 	unsigned int	conf_boguskey;		/* bogus key action */
@@ -7669,6 +7670,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "ReputationSpamCheck",
 		                  &conf->conf_repspamcheck,
 		                  sizeof conf->conf_repspamcheck);
+
+		(void) config_get(data, "ReputationMinimum",
+		                  &conf->conf_repminimum,
+		                  sizeof conf->conf_repminimum);
 	}
 
 	if (conf->conf_repspamcheck != NULL)
@@ -7744,6 +7749,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 
 		if (dkimf_rep_init(&conf->conf_rep, conf->conf_repfactor,
+	                           conf->conf_repminimum,
 	                           conf->conf_replimitsdb,
 	                           conf->conf_repratiosdb,
 		                   conf->conf_replowtimedb) != 0)

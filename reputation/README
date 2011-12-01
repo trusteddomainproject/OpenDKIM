@@ -98,9 +98,10 @@ SETUP INSTRUCTIONS
 11) Configure opendkim to query the reputation server by adding
     these configuration items:
 
-	ReputationLimits        repute:<repute-server>:<reporter-id>
 	ReputationRatios        repute:<repute-server>
+	ReputationLimits        repute:<repute-server>:<reporter-id>
 	ReputationFactor        24
+	ReputationMinimum       2
 	ReputationSpamCheck     /^X-Spam: ?[Yy][Ee][Ss]/
 
     This tells opendkim the following things:
@@ -113,6 +114,8 @@ SETUP INSTRUCTIONS
 	  to your site based on the data you have reported
 	- the daily limit should be enforced in 24 chunks (i.e., applied
 	  hourly rather than daily)
+	- any domain is allowed to get at least two messages in regardless
+	  of its reputation or the "spam" verdict on a message
 	- a message is spam if any header field matches the regular expression
 	  shown
 
