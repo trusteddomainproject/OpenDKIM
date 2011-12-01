@@ -15,6 +15,7 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.11 20
 #include <assert.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
