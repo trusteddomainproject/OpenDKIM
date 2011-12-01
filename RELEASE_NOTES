@@ -12,12 +12,12 @@ release, and a summary of the changes in that release.
 		Reported by Adam Bernstein.
 	Fix bug #SF3441240: Appy ReportBccAddress when generating ADSP
 		reports.  Reported by Richard Rognlie.
+	Fix bug #SF3447199: Fix logic preventing the application of the
+		BodyLengthDB.  Problem noted by Richard Rognlie.
 	Fix Authentication-Results generation with "AddAllSignatureResults"
 		enabled.  Reported by Todd Nagengast.
 	Fix a crash bug when trying to handle certain malformed header fields
 		in verify-only mode.  Reported by Todd Lyons.
-	Fix logic preventing the application of the BodyLengthDB.  Problem
-		noted by Richard Rognlie.
 	Cope with versions of Sleepycat DB that crash when asking for a file
 		descriptor for in-memory databases.  Problem reported by
 		Todd Lyons.
