@@ -412,7 +412,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 	/* if accepting it now would be within limits */
 	if (reps.reps_count <= rep->rep_minimum ||
-	    (reps.reps_count < reps.reps_limit &&
+	    (reps.reps_count <= reps.reps_limit &&
 	     (float) reps.reps_spam / (float) reps.reps_count <= reps.reps_ratio))
 	{
 		/* remove from rep_dups if found there */
