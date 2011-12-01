@@ -4,12 +4,12 @@
 Network Working Group                                      N. Borenstein
 Internet-Draft                                                  Mimecast
 Intended status: Informational                              M. Kucherawy
-Expires: December 3, 2011                                      Cloudmark
-                                                            June 1, 2011
+Expires: June 1, 2012                                          Cloudmark
+                                                       November 29, 2011
 
 
                    A Model for Reputation Interchange
-                  draft-kucherawy-reputation-model-00
+                       draft-ietf-repute-model-00
 
 Abstract
 
@@ -35,7 +35,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on December 3, 2011.
+   This Internet-Draft will expire on June 1, 2012.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 1]
+Borenstein & Kucherawy    Expires June 1, 2012                  [Page 1]
 
-Internet-Draft               Reputation Base                   June 2011
+Internet-Draft               Reputation Base               November 2011
 
 
    the Trust Legal Provisions and are provided without warranty as
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 2]
+Borenstein & Kucherawy    Expires June 1, 2012                  [Page 2]
 
-Internet-Draft               Reputation Base                   June 2011
+Internet-Draft               Reputation Base               November 2011
 
 
 1.  Introduction
@@ -164,9 +164,9 @@ Internet-Draft               Reputation Base                   June 2011
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 3]
+Borenstein & Kucherawy    Expires June 1, 2012                  [Page 3]
 
-Internet-Draft               Reputation Base                   June 2011
+Internet-Draft               Reputation Base               November 2011
 
 
    application.
@@ -220,12 +220,16 @@ Internet-Draft               Reputation Base                   June 2011
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 4]
+Borenstein & Kucherawy    Expires June 1, 2012                  [Page 4]
 
-Internet-Draft               Reputation Base                   June 2011
+Internet-Draft               Reputation Base               November 2011
 
 
    about a movie or a baseball player.
+
+   Vocabularies have symbolic names, and these have to be registered
+   with IANA to prevent name collisions.  The IANA registries are
+   created in a separate memo.
 
 
 4.  Information Represented in the Protocol
@@ -269,18 +273,18 @@ Internet-Draft               Reputation Base                   June 2011
    for reputation data about a third entity, and the second entity will
    respond with that data.
 
+
+
+
+Borenstein & Kucherawy    Expires June 1, 2012                  [Page 5]
+
+Internet-Draft               Reputation Base               November 2011
+
+
    It is anticipated that a few applications, at least including the
    email-sending-domain application, will need a small, lightweight
    protocol for such queries and responses, while other applications
    will need to be able to retrieve larger and more complex responses.
-
-
-
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 5]
-
-Internet-Draft               Reputation Base                   June 2011
-
-
    For this reason, two subsequent documents define two such protocols,
    one based on DNS queries and a terse representation, and one based on
    [HTTP] queries with an XML representation.
@@ -328,13 +332,9 @@ Internet-Draft               Reputation Base                   June 2011
 
 
 
-
-
-
-
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 6]
+Borenstein & Kucherawy    Expires June 1, 2012                  [Page 6]
 
-Internet-Draft               Reputation Base                   June 2011
+Internet-Draft               Reputation Base               November 2011
 
 
 7.2.  Malformed Messages
@@ -388,9 +388,9 @@ Appendix A.  Public Discussion
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 7]
+Borenstein & Kucherawy    Expires June 1, 2012                  [Page 7]
 
-Internet-Draft               Reputation Base                   June 2011
+Internet-Draft               Reputation Base               November 2011
 
 
 Authors' Addresses
@@ -444,5 +444,5 @@ Authors' Addresses
 
 
 
-Borenstein & Kucherawy  Expires December 3, 2011                [Page 8]
+Borenstein & Kucherawy    Expires June 1, 2012                  [Page 8]
 
