@@ -237,13 +237,13 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 #ifdef _FFR_ATPS
 	fprintf(out, "\t%d", atps);
 #else /* _FFR_ATPS */
-	fprintf(out, "\t-");
+	fprintf(out, "\t-1");
 #endif /* _FFR_ATPS */
 
 #ifdef _FFR_REPUTATION
 	fprintf(out, "\t%d", spam);
 #else /* _FFR_REPUTATION */
-	fprintf(out, "\t-");
+	fprintf(out, "\t-1");
 #endif /* _FFR_REPUTATION */
 
 	fprintf(out, "\n");
