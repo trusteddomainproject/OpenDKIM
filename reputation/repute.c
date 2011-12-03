@@ -130,7 +130,7 @@ repute_curl_writedata(char *ptr, size_t size, size_t nmemb, void *userdata)
 			return 0;
 		memset(io->repute_buf, '\0', io->repute_alloc);
 	}
-	else if (io->repute_offset + need < io->repute_alloc)
+	else if (io->repute_offset + need > io->repute_alloc)
 	{
 		size_t newsize;
 		char *newbuf;
