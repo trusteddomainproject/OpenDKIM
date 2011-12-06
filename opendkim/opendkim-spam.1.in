@@ -29,7 +29,8 @@ that have good reputations.
 .SH OPTIONS
 .TP
 .I -b backend
-Specifies the style of backend database in use.  The default is "mysql".
+Specifies the style of backend database in use.  The default is
+"@SQL_BACKEND@".
 .TP
 .I -c file
 Names a configuration file from which operating parameters will be read.

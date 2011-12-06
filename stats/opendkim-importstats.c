@@ -40,7 +40,7 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.11 20
 
 #define	DEFDBHOST	"localhost"
 #define	DEFDBNAME	"opendkim"
-#define	DEFDBSCHEME	"mysql"
+#define	DEFDBSCHEME	SQL_BACKEND
 #define	DEFDBUSER	"opendkim"
 
 #define	MAXLINE		2048

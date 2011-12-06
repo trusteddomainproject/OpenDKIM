@@ -51,7 +51,7 @@ Don't skip duplicate message records and their associated signatures.
 .TP
 .I -s scheme
 Specifies the SQL scheme (backend) to be used to access the SQL database
-database.  The default is "mysql".
+database.  The default is "@SQL_BACKEND@".
 .TP
 .I -u user
 Specifies the user that should be used to authenticate to the SQL
