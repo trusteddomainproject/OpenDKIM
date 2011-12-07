@@ -15,7 +15,7 @@ its only argument the path to this database.  The
 statistics gathering is disabled by default, but can be enabled through a
 .I Statistics
 entry in
-.I /etc/opendkim.conf.
+.I @SYSCONFDIR@/opendkim.conf.
 
 See the
 .I opendkim.conf(5)
