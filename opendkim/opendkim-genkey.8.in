@@ -41,7 +41,7 @@ prior to creating files.  By default the current directory is used.
 Defines the 
 .I user
 part of the email address user@domain which will received ARF 
-(draft-ietf-marf-base) feedback reports if a DKIM signature fails as part of 
+(RFC5965) feedback reports if a DKIM signature fails as part of 
 draft-ietf-marf-dkim-reporting. By default this is set to 
 .I postmaster.
 
@@ -51,7 +51,7 @@ Defines the feedback format of draft-ietf-marf-dkim-reporting. Options are
 .I arf
 and
 .I smtp.
-By default the arf format is used.
+By default the, ARF format is used.
 
 .TP
 .I -fi interval
