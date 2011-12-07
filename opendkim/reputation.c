@@ -31,6 +31,7 @@ static char reputation_c_id[] = "@(#)$Id: stats.c,v 1.27.2.1 2010/10/27 21:43:09
 #include "opendkim-db.h"
 
 /* macros */
+#define	DKIMF_REP_DEFCACHE	"db:"
 #define	DKIMF_REP_DEFTTL	3600
 #define	DKIMF_REP_MAXHASHES	64
 #define	DKIMF_REP_NULLDOMAIN	"UNSIGNED"
@@ -69,6 +70,7 @@ struct reps
 **  	rep -- reputation DB query handle (returned)
 **  	factor -- number of slices in a reputation limit
 **  	minimum -- always accept at least this many messages
+**  	cache -- data set to which to cache
 **  	limits -- DB from which to get per-domain limits
 **  	ratios -- DB from which to get per-domain ratios
 **  	lowtime -- DB from which to check for low-time domain status
@@ -79,7 +81,7 @@ struct reps
 
 int
 dkimf_rep_init(DKIMF_REP *rep, time_t factor, unsigned int minimum,
-               DKIMF_DB limits, DKIMF_DB ratios, DKIMF_DB lowtime)
+               char *cache, DKIMF_DB limits, DKIMF_DB ratios, DKIMF_DB lowtime)
 {
 	int status;
 	DKIMF_REP new;
@@ -91,6 +93,9 @@ dkimf_rep_init(DKIMF_REP *rep, time_t factor, unsigned int minimum,
 	new = malloc(sizeof *new);
 	if (new == NULL)
 		return -1;
+
+	if (cache == NULL)
+		cache = DKIMF_REP_DEFCACHE;
 
 	new->rep_lastflush = time(NULL);
 	new->rep_ttl = DKIMF_REP_DEFTTL;
@@ -106,7 +111,7 @@ dkimf_rep_init(DKIMF_REP *rep, time_t factor, unsigned int minimum,
 		return -1;
 	}
 
-	status = dkimf_db_open(&new->rep_reps, "db:", 0, NULL, NULL);
+	status = dkimf_db_open(&new->rep_reps, cache, 0, NULL, NULL);
 	if (status != 0)
 	{
 		free(new);

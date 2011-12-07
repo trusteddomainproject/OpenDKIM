@@ -436,6 +436,7 @@ struct dkimf_config
 	char *		conf_replowtime;	/* reputed low timers */
 	DKIMF_DB	conf_replowtimedb;	/* reputed low timers DB */
 	DKIMF_REP	conf_rep;		/* reputation subsystem */
+	char *		conf_repcache;		/* reputation cache DB */
 	char *		conf_repspamcheck;	/* reputation spam RE string */
 	regex_t		conf_repspamre;		/* reputation spam RE */
 #endif /* _FFR_REPUTATION */
@@ -7655,6 +7656,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_replimits,
 		                  sizeof conf->conf_replimits);
 
+		(void) config_get(data, "ReputationCache",
+		                  &conf->conf_repcache,
+		                  sizeof conf->conf_repcache);
+
 		(void) config_get(data, "ReputationRatios",
 		                  &conf->conf_repratios,
 		                  sizeof conf->conf_repratios);
@@ -7750,6 +7755,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 		if (dkimf_rep_init(&conf->conf_rep, conf->conf_repfactor,
 	                           conf->conf_repminimum,
+	                           conf->conf_repcache,
 	                           conf->conf_replimitsdb,
 	                           conf->conf_repratiosdb,
 		                   conf->conf_replowtimedb) != 0)
