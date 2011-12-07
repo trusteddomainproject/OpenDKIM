@@ -3196,8 +3196,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 					if (db->db_lock != NULL)
 						(void) pthread_mutex_unlock(db->db_lock);
 
-					return dkimf_db_get(db, buf, buflen, req,
-					                    reqnum, exists);
+					return dkimf_db_get(db, buf, buflen,
+					                    req, reqnum,
+					                    exists);
 				}
 
 				if (db->db_lock != NULL)
