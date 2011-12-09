@@ -257,7 +257,5 @@ if ATPS
 man_MANS += opendkim-atpszone.8
 endif
 if STATS
-if USE_ODBX
 man_MANS += opendkim-spam.1
-endif
 endif
