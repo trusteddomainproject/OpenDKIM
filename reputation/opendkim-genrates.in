@@ -522,6 +522,7 @@ print $out "<table border=1 columns=12>\n";
 print $out " <tr>\n";
 print $out "  <td>Domain ID</td>\n";
 print $out "  <td>Domain Name</td>\n";
+print $out "  <td>Reporter ID</td>\n";
 print $out "  <td>Mean Rate</td>\n";
 print $out "  <td>Max Rate</td>\n";
 print $out "  <td>Rate Std. Dev.</td>\n";
@@ -533,7 +534,7 @@ print $out "  <td>Spam Ratio High Prediction</td>\n";
 print $out "  <td>Volume Limit (low)</td>\n";
 print $out "  <td>Volume Limit (high)</td>\n";
 print $out " </tr>\n";
-$dbi_s = $dbi_h->prepare("SELECT predictions.domain, domains.name, rate_avg, rate_max, rate_stddev, rate_high, ratio_avg, ratio_max, ratio_stddev, ratio_high, daily_limit_low, daily_limit_high FROM predictions LEFT OUTER JOIN domains ON predictions.domain = domains.id WHERE domain IN (13, 22, 127, 205, 309, 418, 450, 795, 22199, 144284, 313943, 537522, 0, -1)");
+$dbi_s = $dbi_h->prepare("SELECT domain, name, reporter, rate_avg, rate_max, rate_stddev, rate_high, ratio_avg, ratio_max, ratio_stddev, ratio_high, daily_limit_low, daily_limit_high FROM predictions WHERE domain IN (13, 22, 127, 205, 309, 418, 450, 795, 22199, 144284, 313943, 537522, 0, -1)");
 if (!$dbi_s->execute)
 {
 	print STDERR "$progname: report #1 failed: " . $dbi_h->errstr;
@@ -546,7 +547,7 @@ else
 	while ($dbi_a = $dbi_s->fetchrow_arrayref())
 	{
 		print $out " <tr>\n";
-		for ($idx = 0; $idx < 12; $idx++)
+		for ($idx = 0; $idx < 13; $idx++)
 		{
 			if (defined($dbi_a->[$idx]))
 			{
