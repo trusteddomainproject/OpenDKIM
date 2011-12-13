@@ -311,12 +311,22 @@ else
 		}
 		print $out " </tr>\n";
 
-		$thresh = $dbi_a->[3] + $dbi_a->[4] * $stdscore;
+		if (defined($dbi_a->[3]) && defined($dbi_a->[4]))
+		{
+			$thresh = $dbi_a->[3] + $dbi_a->[4] * $stdscore;
+		}
 	}
 }
 print $out "</table>\n";
 print $out "<br>\n";
 $dbi_s->finish;
+
+if (!defined($thresh))
+{
+	print STDERR "$progname: unable to determine low-time threshold\n";
+	$dbi_h->disconnect;
+	exit(1);
+}
 
 if ($verbose)
 {
