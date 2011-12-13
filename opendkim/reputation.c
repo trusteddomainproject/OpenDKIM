@@ -209,7 +209,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		{
 			if (when + rep->rep_ttl < now)
 			{
-				(void) dkimf_db_delete(rep->rep_reps, hashbuf,
+				(void) dkimf_db_delete(rep->rep_dups, hashbuf,
 				                       hlen);
 			}
 
