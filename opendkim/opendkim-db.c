@@ -3936,7 +3936,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		}
 
 		if (reqnum >= 1 && req[0].dbdata_buffer != NULL &&
-		    req[0].dbdata_buflen == 0)
+		    req[0].dbdata_buflen != 0)
 		{
 			if ((req[0].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
 			{
@@ -3953,7 +3953,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		}
 
 		if (reqnum >= 2 && req[1].dbdata_buffer != NULL &&
-		    req[1].dbdata_buflen == 0)
+		    req[1].dbdata_buflen != 0)
 		{
 			if ((req[1].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
 			{
@@ -3971,7 +3971,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		}
 
 		if (reqnum >= 3 && req[2].dbdata_buffer != NULL &&
-		    req[2].dbdata_buflen == 0)
+		    req[2].dbdata_buflen != 0)
 		{
 			if ((req[2].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
 			{
@@ -3989,7 +3989,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		}
 
 		if (reqnum >= 4 && req[3].dbdata_buffer != NULL &&
-		    req[3].dbdata_buflen == 0)
+		    req[3].dbdata_buflen != 0)
 		{
 			if ((req[3].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
 			{
@@ -4007,7 +4007,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		}
 
 		if (reqnum >= 5 && req[4].dbdata_buffer != NULL &&
-		    req[4].dbdata_buflen == 0)
+		    req[4].dbdata_buflen != 0)
 		{
 			if ((req[4].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
 			{
