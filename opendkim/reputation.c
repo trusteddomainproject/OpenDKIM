@@ -173,7 +173,8 @@ dkimf_rep_close(DKIMF_REP rephandle)
 
 int
 dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
-                void *hash, size_t hashlen)
+                void *hash, size_t hashlen, unsigned long *limit,
+                float *ratio, unsigned long *count, unsigned long *spamcnt)
 {
 	_Bool f;
 	size_t dlen;
@@ -414,6 +415,16 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			return -1;
 		}
 	}
+
+	/* export requested stats */
+	if (limit != NULL)
+		*limit = reps.reps_limit;
+	if (ratio != NULL)
+		*ratio = reps.reps_ratio;
+	if (count != NULL)
+		*count = reps.reps_count;
+	if (spamcnt != NULL)
+		*spamcnt = reps.reps_spam;
 
 	/* if accepting it now would be within limits */
 	if (reps.reps_count <= rep->rep_minimum ||

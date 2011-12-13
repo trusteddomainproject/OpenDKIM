@@ -13694,6 +13694,10 @@ mlfi_eom(SMFICTX *ctx)
 #ifdef _FFR_REPUTATION
 		if (dfc->mctx_dkimv != NULL && conf->conf_rep != NULL)
 		{
+			float ratio;
+			unsigned long count;
+			unsigned long limit;
+			unsigned long spam;
 			DKIM_SIGINFO **sigs;
 			int nsigs;
 
@@ -13704,7 +13708,6 @@ mlfi_eom(SMFICTX *ctx)
 			{
 				int c;
 				_Bool checked = FALSE;
-				_Bool found = FALSE;
 				const char *domain = NULL;
 				unsigned char digest[SHA_DIGEST_LENGTH];
 
@@ -13722,12 +13725,14 @@ mlfi_eom(SMFICTX *ctx)
 					                         sigs[c],
 					                         dfc->mctx_spam,
 					                         digest,
-					                         SHA_DIGEST_LENGTH);
+					                         SHA_DIGEST_LENGTH,
+					                         &limit,
+					                         &ratio,
+					                         &count,
+					                         &spam);
 
 					if (status == 1)
 						domain = dkim_sig_getdomain(sigs[c]);
-					else if (status == 0)
-						found = TRUE;
 				}
 
 				if (domain != NULL)
@@ -13735,9 +13740,10 @@ mlfi_eom(SMFICTX *ctx)
 					if (dolog)
 					{
 						syslog(LOG_NOTICE,
-						       "%s blocked by reputation on %s",
+						       "%s blocked by reputation on %s (%f, count %lu, spam %lu, limit %lu)",
 						       dfc->mctx_jobid,
-						       domain);
+						       domain, ratio, count,
+						       spam, limit);
 					}
 
 					return SMFIS_TEMPFAIL;
@@ -13749,13 +13755,19 @@ mlfi_eom(SMFICTX *ctx)
 					                    NULL,
 					                    dfc->mctx_spam,
 					                    digest,
-					                    SHA_DIGEST_LENGTH) == 1)
+					                    SHA_DIGEST_LENGTH,
+					                    &limit,
+					                    &ratio,
+					                    &count,
+					                    &spam) == 1)
 					{
 						if (dolog)
 						{
 							syslog(LOG_NOTICE,
-							       "%s blocked by reputation on NULL domain",
-							       dfc->mctx_jobid);
+							       "%s blocked by reputation on NULL domain (%f, count %lu, spam %lu, limit %lu)",
+							       dfc->mctx_jobid,
+							       ratio, count,
+						               spam, limit);
 						}
 
 						return SMFIS_TEMPFAIL;
