@@ -76,7 +76,7 @@ my %stdscores    = (	50,	0.67,
 			99,	2.58 );
 
 # Minimum messages.id value; used to mark the start of useful data
-my $minmsgid     = 5855122;
+my $minmsgid     = 0;
 
 ###
 ### NO user-serviceable parts beyond this point
@@ -201,6 +201,11 @@ if (!defined($reportout))
 	{
 		$reportout = $def_output;
 	}
+}
+
+if (defined($ENV{'OPENDKIM_MINMSGID'}))
+{
+	$minmsgid = $ENV{'OPENDKIM_MINMSGID'};
 }
 
 if ($verbose)
