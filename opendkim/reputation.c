@@ -20,6 +20,7 @@ static char reputation_c_id[] = "@(#)$Id: stats.c,v 1.27.2.1 2010/10/27 21:43:09
 #include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 #include <assert.h>
 
 /* libopendkim includes */
@@ -342,8 +343,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 				return 2;
 			}
 
-			reps.reps_limit = strtoul(buf, &p,
-			                          10) / rep->rep_factor + 1;
+			reps.reps_limit = (unsigned long) (ceil((double) strtoul(buf, &p, 10) / (double) rep->rep_factor) + 1.);
 			if (p != NULL && *p != '\0')
 			{
 				pthread_mutex_unlock(&rep->rep_lock);
