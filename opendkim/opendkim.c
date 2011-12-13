@@ -14214,7 +14214,7 @@ mlfi_eom(SMFICTX *ctx)
 			dkim_strlcat((char *) header, DELIMITER,
 			             sizeof header);
 
-			dkim_strlcat((char *) header, "x-dkim-atps=",
+			dkim_strlcat((char *) header, "dkim-atps=",
 			             sizeof header);
 
 			switch (dfc->mctx_atps)
