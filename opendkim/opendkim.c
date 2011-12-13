@@ -13732,24 +13732,13 @@ mlfi_eom(SMFICTX *ctx)
 					                         &spam);
 
 					if (status == 1)
-						domain = dkim_sig_getdomain(sigs[c]);
-				}
-
-				if (domain != NULL)
-				{
-					if (dolog)
 					{
-						syslog(LOG_NOTICE,
-						       "%s blocked by reputation on %s (%f, count %lu, spam %lu, limit %lu)",
-						       dfc->mctx_jobid,
-						       domain, ratio, count,
-						       spam, limit);
+						domain = dkim_sig_getdomain(sigs[c]);
+						break;
 					}
-
-					return SMFIS_TEMPFAIL;
 				}
 
-				if (!checked)
+				if (domain == NULL && !checked)
 				{
 					if (dkimf_rep_check(conf->conf_rep,
 					                    NULL,
@@ -13760,18 +13749,21 @@ mlfi_eom(SMFICTX *ctx)
 					                    &ratio,
 					                    &count,
 					                    &spam) == 1)
-					{
-						if (dolog)
-						{
-							syslog(LOG_NOTICE,
-							       "%s blocked by reputation on NULL domain (%f, count %lu, spam %lu, limit %lu)",
-							       dfc->mctx_jobid,
-							       ratio, count,
-						               spam, limit);
-						}
+						domain = "NULL domain";
+				}
 
-						return SMFIS_TEMPFAIL;
+				if (domain != NULL)
+				{
+					if (dolog)
+					{
+						syslog(LOG_NOTICE,
+						       "%s blocked by reputation on %s (%f, count %lu, spam %lu, limit %lu)",
+						       dfc->mctx_jobid,
+						       domain, ratio, count,
+					               spam, limit);
 					}
+
+					return SMFIS_TEMPFAIL;
 				}
 			}
 		}
