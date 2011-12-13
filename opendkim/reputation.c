@@ -226,12 +226,12 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		req[0].dbdata_flags = DKIMF_DB_DATA_BINARY;
 
 		f = TRUE;
-		while (dkimf_db_walk(rep->rep_reps, f, hashbuf, &hlen,
+		while (dkimf_db_walk(rep->rep_reps, f, domain, &hlen,
 		                     req, 1) == 0)
 		{
 			if (reps.reps_retrieved + rep->rep_ttl < now)
 			{
-				(void) dkimf_db_delete(rep->rep_reps, hashbuf,
+				(void) dkimf_db_delete(rep->rep_reps, domain,
 				                       hlen);
 			}
 
