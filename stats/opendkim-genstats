@@ -51,10 +51,6 @@ echo "<ul>" >> $OUTPUT
 echo '<li> <a href="#total_records">Total messages received</a>' >> $OUTPUT
 echo '<li> <a href="#reporters">Reporting hosts and record counts</a>' >> $OUTPUT
 echo '<li> <a href="#signature_counts">Overall message signature counts</a>' >> $OUTPUT
-echo '<li> <a href="#l_tag">Use of "l=" tag</a>' >> $OUTPUT
-echo '<li> <a href="#key_sizes">Distribution of key sizes</a>' >> $OUTPUT
-echo '<li> <a href="#key_props">Key properties</a>' >> $OUTPUT
-echo '<li> <a href="#key_s">Use of "s=" in keys</a>' >> $OUTPUT
 echo '<li> <a href="#dnssec">DNSSEC results</a>' >> $OUTPUT
 echo '<li> <a href="#dnssec_trend">DNSSEC trend</a>' >> $OUTPUT
 echo '<li> <a href="#passfail">Overall pass/fail rates for signed mail</a>' >> $OUTPUT
@@ -85,23 +81,6 @@ echo "" >> $OUTPUT
 echo '<a name="signature_counts"></a>' >> $OUTPUT
 echo "<p> Overall message signature counts: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT sigcount, COUNT(*) AS messages FROM messages JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 GROUP BY sigcount" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="l_tag"></a>' >> $OUTPUT
-echo "<p> Use of 'l=' tag: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'l= present', pass FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND NOT siglength = -1 GROUP BY pass" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'l=0', pass FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE siglength = 0 GROUP BY pass" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'l <= msgsize', pass FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE signatures.siglength >= 0 AND signatures.siglength < messages.size GROUP BY pass" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="key_props"></a>' >> $OUTPUT
-echo "<p> Key properties: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT SUM(key_t) AS 't=' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="key_s"></a>' >> $OUTPUT
-echo "<p> Use of s= in keys: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'keys', CASE key_s WHEN 0 THEN 'absent' WHEN 1 THEN 's=*' WHEN 2 THEN 's=email' WHEN 3 THEN 'other' END AS 's= value' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND key_s >= 0 GROUP BY key_s" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="dnssec"></a>' >> $OUTPUT
