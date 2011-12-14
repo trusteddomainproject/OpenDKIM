@@ -201,7 +201,7 @@ sql_get_int(odbx_t *db, char *sql)
 		if (out == 0)
 		{
 			char *p;
-			char *op;
+			const char *op;
 
 			op = odbx_field_value(result, 0);
 			if (op == NULL)
