@@ -205,6 +205,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		req[0].dbdata_buflen = sizeof when;
 		req[0].dbdata_flags = DKIMF_DB_DATA_BINARY;
 
+		hlen = sizeof hashbuf;
 		while (dkimf_db_walk(rep->rep_dups, f, hashbuf, &hlen,
 		                     req, 1) == 0)
 		{
@@ -219,6 +220,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			req[0].dbdata_flags = DKIMF_DB_DATA_BINARY;
 
 			f = FALSE;
+			hlen = sizeof hashbuf;
 		}
 
 		req[0].dbdata_buffer = (void *) &reps;
@@ -226,6 +228,8 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		req[0].dbdata_flags = DKIMF_DB_DATA_BINARY;
 
 		f = TRUE;
+		hlen = sizeof domain;
+		memset(domain, '\0', sizeof domain);
 		while (dkimf_db_walk(rep->rep_reps, f, domain, &hlen,
 		                     req, 1) == 0)
 		{
@@ -240,6 +244,8 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			req[0].dbdata_flags = DKIMF_DB_DATA_BINARY;
 
 			f = FALSE;
+			hlen = sizeof domain;
+			memset(domain, '\0', sizeof domain);
 		}
 
 		rep->rep_lastflush = now;
