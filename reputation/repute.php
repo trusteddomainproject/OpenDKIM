@@ -66,6 +66,8 @@ if (!($result = mysql_query($query1, $connection)))
 # extract results
 #
 $row = mysql_fetch_array($result, MYSQL_NUM);
+if (!$row)
+	die("No data available");
 $rating = $row[0];
 $updated = $row[1];
 $samples = $row[2];
@@ -77,6 +79,8 @@ if (!($result = mysql_query($query2, $connection)))
 	die("Query failed");
 
 $row = mysql_fetch_array($result, MYSQL_NUM);
+if (!$row)
+	die("No data available");
 $rate = $row[0];
 
 #
