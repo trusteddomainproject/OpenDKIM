@@ -3891,6 +3891,9 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				samp = rc.repcache_samp;
 				limit = rc.repcache_limit;
 				when = rc.repcache_when;
+
+				if (exists != NULL)
+					*exists = TRUE;
 			}
 		}
 # endif /* _FFR_REPUTATION_CACHE */
