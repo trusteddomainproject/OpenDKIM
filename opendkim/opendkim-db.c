@@ -3876,34 +3876,40 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			req.dbdata_buflen = sizeof rc;
 			req.dbdata_flags = DKIMF_DB_DATA_BINARY;
 
-			status = dkimf_db_get(dbr->repute_cache, buf,
-			                      strlen(buf), &req, 1, &found);
+			status = dkimf_db_get(dbr->repute_cache, buf, buflen,
+			                      &req, 1, &found);
 
 			(void) time(&now);
 
-			if (found && rc.repcache_when + REPUTE_CACHE < now)
-				found = FALSE;
-
-			if (status == 0 && found && when > now + REPUTE_CACHE)
+			if (status == 0 && found)
 			{
-				rep = rc.repcache_rep;
-				conf = rc.repcache_conf;
-				samp = rc.repcache_samp;
-				limit = rc.repcache_limit;
-				when = rc.repcache_when;
+				if (rc.repcache_when + REPUTE_CACHE < now)
+				{
+					found = FALSE;
+				}
+				else
+				{
+					rep = rc.repcache_rep;
+					conf = rc.repcache_conf;
+					samp = rc.repcache_samp;
+					limit = rc.repcache_limit;
+					when = rc.repcache_when;
 
-				if (exists != NULL)
-					*exists = TRUE;
+					if (exists != NULL)
+						*exists = TRUE;
+				}
 			}
 		}
 # endif /* _FFR_REPUTATION_CACHE */
 
 		if (!found)
 		{
-			rstat = repute_query(r, buf, &rep, &conf,
+			rstat = repute_query(r, (char *) buf, &rep, &conf,
 			                     &samp, &limit, &when);
 
-			if (rstat != REPUTE_STAT_OK)
+			if (rstat == REPUTE_STAT_PARSE)
+				return 0;
+			else if (rstat != REPUTE_STAT_OK)
 				return -1;
 
 			if (exists != NULL)
@@ -3931,7 +3937,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 					rc.repcache_when = when;
 
 					(void) dkimf_db_put(dbr->repute_cache,
-					                    buf, strlen(buf),
+					                    buf, buflen,
 					                    &rc, sizeof rc);
 				}
 # endif /* _FFR_REPUTATION_CACHE */
