@@ -13757,7 +13757,7 @@ mlfi_eom(SMFICTX *ctx)
 					if (dolog)
 					{
 						syslog(LOG_NOTICE,
-						       "%s blocked by reputation on %s (%f, count %lu, spam %lu, limit %lu)",
+						       "%s blocked by reputation of %s (%f, count %lu, spam %lu, limit %lu)",
 						       dfc->mctx_jobid,
 						       domain, ratio, count,
 					               spam, limit);
