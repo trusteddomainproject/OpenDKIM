@@ -333,6 +333,18 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 				return -1;
 			}
 
+			if (!f && !lowtime && sig != NULL)
+			{
+				if (dkimf_db_get(rep->rep_limits,
+				                 DKIMF_REP_LOWTIME,
+				                 strlen(DKIMF_REP_LOWTIME),
+				                 req, fields, &f) != 0)
+				{
+					pthread_mutex_unlock(&rep->rep_lock);
+					return -1;
+				}
+			}
+
 			if (!f)
 			{
 				if (dkimf_db_get(rep->rep_limits, "*", 1, req,
@@ -367,6 +379,18 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		{
 			pthread_mutex_unlock(&rep->rep_lock);
 			return -1;
+		}
+
+		if (!f && !lowtime && sig != NULL)
+		{
+			if (dkimf_db_get(rep->rep_limits,
+			                 DKIMF_REP_LOWTIME,
+			                 strlen(DKIMF_REP_LOWTIME),
+			                 req, 1, &f) != 0)
+			{
+				pthread_mutex_unlock(&rep->rep_lock);
+				return -1;
+			}
 		}
 
 		if (!f)
