@@ -201,8 +201,18 @@ sql_get_int(odbx_t *db, char *sql)
 		if (out == 0)
 		{
 			char *p;
+			char *op;
 
-			out = strtol(odbx_field_value(result, 0), &p, 10);
+			op = odbx_field_value(result, 0);
+			if (op == NULL)
+			{
+				fprintf(stderr, "%s: unexpected NULL value\n",
+				        progname);
+				odbx_result_finish(result);
+				return -1;
+			}
+
+			out = strtol(op, &p, 10);
 			if (*p != '\0')
 			{
 				fprintf(stderr, "%s: malformed integer\n",
