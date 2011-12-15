@@ -13618,10 +13618,10 @@ mlfi_eom(SMFICTX *ctx)
 				     c < nsigs && atps != DKIM_ATPS_FOUND;
 				     c++)
 				{
-					if (strcasecmp(dkim_sig_getdomain(sigs[c]),
-					               dfc->mctx_domain) != 0 &&
-					    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0 &&
-					    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH)
+					if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0 &&
+					    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH &&
+					    strcasecmp(dkim_sig_getdomain(sigs[c]),
+					               dfc->mctx_domain) != 0)
 					{
 						status = dkim_atps_check(dfc->mctx_dkimv,
 						                         sigs[c],
