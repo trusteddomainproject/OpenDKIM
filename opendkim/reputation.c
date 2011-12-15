@@ -383,7 +383,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 		if (!f && !lowtime && sig != NULL)
 		{
-			if (dkimf_db_get(rep->rep_limits,
+			if (dkimf_db_get(rep->rep_ratios,
 			                 DKIMF_REP_LOWTIME,
 			                 strlen(DKIMF_REP_LOWTIME),
 			                 req, 1, &f) != 0)
