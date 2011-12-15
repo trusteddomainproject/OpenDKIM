@@ -29,6 +29,7 @@
 
 /* opendkim includes */
 #include "config.h"
+#include "stats.h"
 
 /* definitions, macros, etc. */
 #define	BUFRSZ		1024
@@ -64,7 +65,7 @@ struct configdef spam_config[] =
 	{ "DatabasePassword",		CONFIG_TYPE_STRING,	FALSE },
 	{ "DatabaseSpamColumn",		CONFIG_TYPE_STRING,	FALSE },
 	{ "DatabaseUser",		CONFIG_TYPE_STRING,	FALSE },
-	{ "StatisticssFile",		CONFIG_TYPE_STRING,	FALSE },
+	{ "StatisticsFile",		CONFIG_TYPE_STRING,	FALSE },
 	{ NULL,				(u_int) -1,		FALSE }
 };
 
@@ -312,6 +313,10 @@ main(int argc, char **argv)
 			        statsfile, strerror(errno));
 			return EX_OSERR;
 		}
+
+		/* write version if file is new */
+		if (ftell(sf) == 0)
+			fprintf(sf, "V%d\n", DKIMS_VERSION);
 	}
 	else
 	{
@@ -480,7 +485,7 @@ main(int argc, char **argv)
 
 	if (sf != NULL)
 	{
-		fprintf(sf, "U%s %s 0 1\n", job, reporter);
+		fprintf(sf, "U%s\t%s\t0\t1\n", job, reporter);
 		fclose(sf);
 		return 0;
 	}
