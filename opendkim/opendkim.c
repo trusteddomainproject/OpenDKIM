@@ -7668,7 +7668,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_replowtime,
 		                  sizeof conf->conf_replowtime);
 
-		(void) config_get(data, "ReputationFactor",
+		(void) config_get(data, "ReputationTimeFactor",
 		                  &conf->conf_repfactor,
 		                  sizeof conf->conf_repfactor);
 

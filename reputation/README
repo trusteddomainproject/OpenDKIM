@@ -100,7 +100,7 @@ SETUP INSTRUCTIONS
 
 	ReputationRatios        repute:<repute-server>
 	ReputationLimits        repute:<repute-server>:<reporter-id>
-	ReputationFactor        24
+	ReputationTimeFactor    24
 	ReputationMinimum       2
 	ReputationSpamCheck     /^X-Spam: ?[Yy][Ee][Ss]/
 
