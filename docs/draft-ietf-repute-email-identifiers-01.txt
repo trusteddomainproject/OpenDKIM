@@ -4,16 +4,16 @@
 REPUTE Working Group                                       N. Borenstein
 Internet-Draft                                                  Mimecast
 Intended status: Standards Track                            M. Kucherawy
-Expires: May 22, 2012                                          Cloudmark
-                                                       November 19, 2011
+Expires: June 18, 2012                                         Cloudmark
+                                                       December 16, 2011
 
 
-              A Reputation Vocabulary for Email Identities
-                 draft-ietf-repute-email-identifiers-00
+             A Reputation Vocabulary for Email Identifiers
+                 draft-ietf-repute-email-identifiers-01
 
 Abstract
 
-   This document defines a vocabulary for describing email identities
+   This document defines a vocabulary for describing email identifiers
    (typically authors or signers) with the application/reputon media
    type.
 
@@ -32,7 +32,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on May 22, 2012.
+   This Internet-Draft will expire on June 18, 2012.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Borenstein & Kucherawy    Expires May 22, 2012                  [Page 1]
+Borenstein & Kucherawy    Expires June 18, 2012                 [Page 1]
 
-Internet-Draft   Email Identities Reputation Vocabulary    November 2011
+Internet-Draft   Email Identifiers Reputation Vocabulary   December 2011
 
 
 Table of Contents
@@ -108,17 +108,17 @@ Table of Contents
 
 
 
-Borenstein & Kucherawy    Expires May 22, 2012                  [Page 2]
+Borenstein & Kucherawy    Expires June 18, 2012                 [Page 2]
 
-Internet-Draft   Email Identities Reputation Vocabulary    November 2011
+Internet-Draft   Email Identifiers Reputation Vocabulary   December 2011
 
 
 1.  Introduction
 
    This memo defines a "vocabulary" for describing reputation of an
-   email identity.  A "vocabulary" in this context is defined in
+   email identifier.  A "vocabulary" in this context is defined in
    [RFCxxxx] and is used to describe assertions a reputation service
-   provider can make about email identities as well as meta-data that
+   provider can make about email identifiers as well as meta-data that
    can be included in such a reply beyond the base set specified there.
 
 
@@ -145,7 +145,7 @@ Internet-Draft   Email Identities Reputation Vocabulary    November 2011
 
 3.  Discussion
 
-   The expression of reputation about an email identity requires
+   The expression of reputation about an email identifier requires
    extensions of the base set defined in [RFCxxxx].  This memo defines
    and registers some common assertions about an entity found in a piece
    of [MAIL].
@@ -155,8 +155,8 @@ Internet-Draft   Email Identities Reputation Vocabulary    November 2011
    The "email-id" reputation application recognizes the following
    assertions:
 
-   PERPETRATES-FRAUD:  The subject identity is associated with
-      fraudulent email
+   FRAUD:  The subject identifier is associated with sending or handling
+      of fraudulent email
 
 
 
@@ -164,19 +164,19 @@ Internet-Draft   Email Identities Reputation Vocabulary    November 2011
 
 
 
-Borenstein & Kucherawy    Expires May 22, 2012                  [Page 3]
+Borenstein & Kucherawy    Expires June 18, 2012                 [Page 3]
 
-Internet-Draft   Email Identities Reputation Vocabulary    November 2011
+Internet-Draft   Email Identifiers Reputation Vocabulary   December 2011
 
 
-   SENDS-MALWARE:  The subject identity is associated with the sending
-      or relaying of malware via email
+   MALWARE:  The subject identifier is associated with the sending or
+      handling of malware via email
 
-   SENDS-SPAM:  The subject identity is associated with unwanted bulk
-      email
+   SPAM:  The subject identifier is associated with sending or handling
+      of unwanted bulk email
 
-   SENDS-TO-INVALID-RECIPIENTS:  The subject delivery attempts to
-      nonexistent recipients
+   INVALID-RECIPIENTS:  The subject identifier is associated with
+      delivery attempts to nonexistent recipients
 
    For all assertions, the RATING scale is linear: A value of 0.0 means
    there is no data to support the assertion, a value of 1.0 means all
@@ -187,11 +187,11 @@ Internet-Draft   Email Identities Reputation Vocabulary    November 2011
 3.2.  Vocabulary Extensions
 
    The "email-id" reputation application recognizes the following
-   OPTIONAL extensions to the vocabulary defined in [RFCxxxx]:
+   OPTIONAL extensions to the basic vocabulary defined in [RFCxxxx]:
 
-   IDENTITY:  A token indicating the source of the identity; that is,
-      where the subject identity was found in the message.  This MUST be
-      one of:
+   IDENTITY:  A token indicating the source of the identifier; that is,
+      where the subject identifier was found in the message.  This MUST
+      be one of:
 
       DKIM:  The signing domain, i.e. the value of the "d=" tag, found
          on a valid [DKIM] signature in the message
@@ -205,7 +205,8 @@ Internet-Draft   Email Identities Reputation Vocabulary    November 2011
 
       RFC5322.FROM:  The RFC5322.From field of the message (see [MAIL])
 
-      SPF:  The identity verified by [SPF])
+      SPF:  The domain name portion of the identifier (RFC5321.MailFrom
+         or RFC5321.Helo) verified by [SPF])
 
    RATE:  A token that recommends an overall message acceptance rate for
       the subject domain.  This is expected to be a value tailored to
@@ -219,10 +220,9 @@ Internet-Draft   Email Identities Reputation Vocabulary    November 2011
 
 
 
-
-Borenstein & Kucherawy    Expires May 22, 2012                  [Page 4]
+Borenstein & Kucherawy    Expires June 18, 2012                 [Page 4]
 
-Internet-Draft   Email Identities Reputation Vocabulary    November 2011
+Internet-Draft   Email Identifiers Reputation Vocabulary   December 2011
 
 
    SOURCES:  A token relating a count of the number of sources of data
@@ -249,7 +249,7 @@ Internet-Draft   Email Identities Reputation Vocabulary    November 2011
    o  Application name: email-id
 
    o  Short description: Evaluates DNS domain names found in email
-      identities
+      identifiers
 
    o  Defining document: [this memo]
 
@@ -257,9 +257,9 @@ Internet-Draft   Email Identities Reputation Vocabulary    November 2011
 
    o  Application-specific query parameters:
 
-      subject:  (current) identifies the subject of the reputation
-         query; in this case, it is the email identity whose reputation
-         is requested
+      subject:  (current) specifies the subject of the reputation query;
+         in this case, it is the email identifier whose reputation is
+         requested
 
 
 5.  Security Considerations
@@ -276,9 +276,9 @@ Internet-Draft   Email Identities Reputation Vocabulary    November 2011
 
 
 
-Borenstein & Kucherawy    Expires May 22, 2012                  [Page 5]
+Borenstein & Kucherawy    Expires June 18, 2012                 [Page 5]
 
-Internet-Draft   Email Identities Reputation Vocabulary    November 2011
+Internet-Draft   Email Identifiers Reputation Vocabulary   December 2011
 
 
               "DomainKeys Identified Mail (DKIM) Signatures", RFC 6376,
@@ -306,7 +306,8 @@ Internet-Draft   Email Identities Reputation Vocabulary    November 2011
 Appendix A.  Acknowledgments
 
    The authors wish to acknowledge the contributions of the following to
-   this specification: John Levine, and David F. Skoll.
+   this specification: Scott Kitterman, John Levine, Doug Otis, and
+   David F. Skoll.
 
 
 Appendix B.  Public Discussion
@@ -331,10 +332,9 @@ Authors' Addresses
 
 
 
-
-Borenstein & Kucherawy    Expires May 22, 2012                  [Page 6]
+Borenstein & Kucherawy    Expires June 18, 2012                 [Page 6]
 
-Internet-Draft   Email Identities Reputation Vocabulary    November 2011
+Internet-Draft   Email Identifiers Reputation Vocabulary   December 2011
 
 
    Murray S. Kucherawy
@@ -388,5 +388,5 @@ Internet-Draft   Email Identities Reputation Vocabulary    November 2011
 
 
 
-Borenstein & Kucherawy    Expires May 22, 2012                  [Page 7]
+Borenstein & Kucherawy    Expires June 18, 2012                 [Page 7]
 
