@@ -59,7 +59,7 @@ typedef int REPUTE_STAT;
 #define	REPUTE_XML_SAMPLE_SIZE	"sample-size"
 #define	REPUTE_XML_UPDATED	"updated"
 
-#define	REPUTE_ASSERT_SENDS_SPAM "sends-spam"
+#define	REPUTE_ASSERT_SPAM	"spam"
 
 #define	REPUTE_EXT_ID_DKIM	"IDENTITY: DKIM"
 #define	REPUTE_EXT_RATE		"RATE:"

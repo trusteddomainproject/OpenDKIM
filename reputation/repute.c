@@ -318,7 +318,7 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 
 			  case REPUTE_XML_CODE_ASSERTION:
 				if (strcasecmp(reputon->children->content,
-				               REPUTE_ASSERT_SENDS_SPAM) == 0)
+				               REPUTE_ASSERT_SPAM) == 0)
 					found_spam = TRUE;
 				break;
 
@@ -774,7 +774,7 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
 	                "application", REPUTE_URI_APPLICATION) != 0 ||
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
-	                "assertion", REPUTE_ASSERT_SENDS_SPAM) != 0)
+	                "assertion", REPUTE_ASSERT_SPAM) != 0)
 	{
 		ut_destroy(ut);
 		return REPUTE_STAT_INTERNAL;

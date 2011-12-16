@@ -26,7 +26,7 @@ if (!isset($subject) || !isset($application) || !isset($assertion) ||
 	die("Malformed query");
 if (strtolower($application) != "email-id")
 	die("Unrecognized application");
-if (strtolower($assertion) != "sends-spam")
+if (strtolower($assertion) != "spam")
 	die("Unrecognized assertion");
 
 if (!isset($reporter))
@@ -92,7 +92,7 @@ printf("<reputation>\n");
 printf(" <reputon>\n");
 printf("  <rater>$service</rater>\n");
 printf("  <rater-authenticity>1</rater-authenticity>\n");
-printf("  <assertion>sends-spam</assertion>\n");
+printf("  <assertion>SPAM</assertion>\n");
 printf("  <extension>IDENTITY: DKIM</extension>\n");
 printf("  <extension>RATE: $rate</extension>\n");
 printf("  <rated>$subject</rated>\n");
