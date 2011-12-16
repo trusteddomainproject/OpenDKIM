@@ -169,6 +169,7 @@ struct configdef dkimf_config[] =
 	{ "ReputationLimits",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationLowTime",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationMinimum",		CONFIG_TYPE_INTEGER,	FALSE },
+	{ "ReputationLimitModifiers",	CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationRatios",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationSpamCheck",	CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationTimeFactor",	CONFIG_TYPE_INTEGER,	FALSE },

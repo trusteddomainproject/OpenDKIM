@@ -433,6 +433,8 @@ struct dkimf_config
 	DKIMF_DB	conf_repratiosdb;	/* reputed ratios DB */
 	char *		conf_replimits;		/* reputed limits */
 	DKIMF_DB	conf_replimitsdb;	/* reputed limits DB */
+	char *		conf_replimitmods;	/* reputed limit modifiers */
+	DKIMF_DB	conf_replimitmodsdb;	/* reputed limit mods DB */
 	char *		conf_replowtime;	/* reputed low timers */
 	DKIMF_DB	conf_replowtimedb;	/* reputed low timers DB */
 	DKIMF_REP	conf_rep;		/* reputation subsystem */
@@ -5782,6 +5784,8 @@ dkimf_config_free(struct dkimf_config *conf)
 		dkimf_db_close(conf->conf_repratiosdb);
 	if (conf->conf_replimitsdb != NULL)
 		dkimf_db_close(conf->conf_replimitsdb);
+	if (conf->conf_replimitmodsdb != NULL)
+		dkimf_db_close(conf->conf_replimitmodsdb);
 	if (conf->conf_repspamcheck != NULL)
 		regfree(&conf->conf_repspamre);
 	if (conf->conf_rep != NULL)
@@ -7656,6 +7660,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_replimits,
 		                  sizeof conf->conf_replimits);
 
+		(void) config_get(data, "ReputationLimitModifiers",
+		                  &conf->conf_replimitmods,
+		                  sizeof conf->conf_replimitmods);
+
 		(void) config_get(data, "ReputationCache",
 		                  &conf->conf_repcache,
 		                  sizeof conf->conf_repcache);
@@ -7743,6 +7751,21 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			}
 		}
 
+		if (conf->conf_replimitmods != NULL)
+		{
+			status = dkimf_db_open(&conf->conf_replimitmodsdb,
+			                       conf->conf_replimitmods,
+			                       DKIMF_DB_FLAG_READONLY, NULL,
+			                       &dberr);
+			if (status != 0)
+			{
+				snprintf(err, errlen,
+				         "%s: dkimf_db_open(): %s",
+				         conf->conf_replimitmods, dberr);
+				return -1;
+			}
+		}
+
 		status = dkimf_db_open(&conf->conf_repratiosdb,
 		                       conf->conf_repratios,
 		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
@@ -7757,6 +7780,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	                           conf->conf_repminimum,
 	                           conf->conf_repcache,
 	                           conf->conf_replimitsdb,
+	                           conf->conf_replimitmodsdb,
 	                           conf->conf_repratiosdb,
 		                   conf->conf_replowtimedb) != 0)
 		{

@@ -44,6 +44,7 @@ struct reputation
 	DKIMF_DB	rep_reps;
 	DKIMF_DB	rep_dups;
 	DKIMF_DB	rep_limits;
+	DKIMF_DB	rep_limitmods;
 	DKIMF_DB	rep_ratios;
 	DKIMF_DB	rep_counts;
 	DKIMF_DB	rep_spam;
@@ -73,6 +74,7 @@ struct reps
 **  	minimum -- always accept at least this many messages
 **  	cache -- data set to which to cache
 **  	limits -- DB from which to get per-domain limits
+**  	limitmods -- DB from which to get per-domain limit modifiers
 **  	ratios -- DB from which to get per-domain ratios
 **  	lowtime -- DB from which to check for low-time domain status
 **
@@ -82,7 +84,8 @@ struct reps
 
 int
 dkimf_rep_init(DKIMF_REP *rep, time_t factor, unsigned int minimum,
-               char *cache, DKIMF_DB limits, DKIMF_DB ratios, DKIMF_DB lowtime)
+               char *cache, DKIMF_DB limits, DKIMF_DB limitmods,
+               DKIMF_DB ratios, DKIMF_DB lowtime)
 {
 	int status;
 	DKIMF_REP new;
@@ -102,6 +105,7 @@ dkimf_rep_init(DKIMF_REP *rep, time_t factor, unsigned int minimum,
 	new->rep_ttl = DKIMF_REP_DEFTTL;
 	new->rep_factor = factor;
 	new->rep_limits = limits;
+	new->rep_limitmods = limitmods;
 	new->rep_ratios = ratios;
 	new->rep_lowtime = lowtime;
 	new->rep_minimum = minimum;
@@ -366,6 +370,56 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			{
 				pthread_mutex_unlock(&rep->rep_lock);
 				return -1;
+			}
+
+			if (rep->rep_limitmods != NULL)
+			{
+				f = FALSE;
+
+				req[0].dbdata_buffer = buf;
+				req[0].dbdata_buflen = sizeof buf;
+				req[0].dbdata_flags = 0;
+
+				if (dkimf_db_get(rep->rep_limitmods,
+				                 domain, dlen,
+				                 req, 1, &f) != 0)
+				{
+					pthread_mutex_unlock(&rep->rep_lock);
+					return -1;
+				}
+
+				if (f)
+				{
+					unsigned int mod = 0;
+
+					mod = strtoul(&buf[1], &p, 10);
+					if (*p != '\0')
+						buf[0] = '\0';
+
+					switch (buf[0])
+					{
+					  case '+':
+						reps.reps_limit += mod;
+						break;
+
+					  case '*':
+						reps.reps_limit *= mod;
+						break;
+
+					  case '-':
+						reps.reps_limit -= mod;
+						break;
+
+					  case '/':
+						if (mod != 0)
+							reps.reps_limit /= mod;
+						break;
+
+					  case '=':
+						reps.reps_limit = mod;
+						break;
+					}
+				}
 			}
 		}
 
