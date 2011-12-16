@@ -265,9 +265,9 @@ Other OpenDKIM issues:
  https://sourceforge.net/tracker/?group_id=269812
 
 
-+-----------------------------------------+
-| Sendmail MASQUERADING AND GENERICSTABLE |
-+-----------------------------------------+
++-----------------------------+
+| Sendmail REWRITING FEATURES |
++-----------------------------+
 
 There are two features of the sendmail MTA which, if activated, can interfere
 with successful use of the DKIM service.  The two features are MASQUERADE_AS
@@ -296,6 +296,17 @@ The suggested solutions to this problem are:
     first daemon port (port 25) does the header rewriting and then routes
     the message to the second port; the latter does no rewriting but does the
     signing and then sends the message on its way.
+
+There is also a feature of Sendmail that will cause it to alter addresses
+after signing but before they are transmitted.  The feature, which is on
+by default, passes addresses in header fields to the resolver functions
+to ensure they are canonical.  This can result in the replacement of those
+strings in the sent message with their canonical forms only after the message
+is signed, which will invalidate the signatures.  To suppress this feature,
+add the following line to your sendmail.mc and submit.mc configuration files,
+re-generate your configuration and restart the filter:
+
+	FEATURE(`nocanonify')
 
 --
 Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
