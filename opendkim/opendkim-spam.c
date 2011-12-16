@@ -35,6 +35,7 @@
 #define	BUFRSZ		1024
 #define	CMDLINEOPTS	"b:c:d:fh:o:p:P:s:u:vV"
 #define	DEFDBBACKEND	SQL_BACKEND
+#undef	DEFCONFFILE
 #define	DEFCONFFILE	CONFIG_BASE "/opendkim-spam.conf"
 #define	DEFDBHOST	"localhost"
 #define	DEFDBNAME	"opendkim"
