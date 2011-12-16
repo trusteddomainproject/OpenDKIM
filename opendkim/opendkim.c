@@ -598,6 +598,12 @@ struct lookup
 # define REPDENYTXT		"rejected due to DKIM reputation evaluation"
 #endif /* _FFR_DKIM_REPUTATION */
 
+#ifdef _FFR_REPUTATION
+# define REPDENYSMTP		"450"
+# define REPDENYESC		"4.7.1"
+# define REPDENYTXT		"Message deferred for policy reasons"
+#endif /* _FFR_REPUTATION */
+
 #define	DELIMITER		"\001"
 
 struct lookup dkimf_adspactions[] =
@@ -13787,6 +13793,18 @@ mlfi_eom(SMFICTX *ctx)
 					               spam, limit);
 					}
 
+					if (dkimf_setreply(ctx,
+					                   REPDENYSMTP,
+					                   REPDENYESC,
+					                   REPDENYTXT) != MI_SUCCESS &&
+					    conf->conf_dolog)
+					{
+						syslog(LOG_NOTICE,
+						       "%s: smfi_setreply() failed",
+						       dfc->mctx_jobid);
+					}
+
+					dkimf_cleanup(ctx);
 					return SMFIS_TEMPFAIL;
 				}
 			}
