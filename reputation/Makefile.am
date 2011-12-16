@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-dist_doc_DATA = README
+dist_doc_DATA = README repute.php repute-config.php
 
 lib_LTLIBRARIES = librepute.la
 librepute_la_SOURCES = repute.c repute.h
