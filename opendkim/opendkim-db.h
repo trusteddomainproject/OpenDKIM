@@ -75,6 +75,7 @@ typedef struct dkimf_db_data * DKIMF_DBDATA;
 #define	DKIMF_DB_DATA_OPTIONAL	0x02		/* data is optional */
 
 /* prototypes */
+extern int dkimf_db_chown __P((DKIMF_DB, uid_t uid));
 extern int dkimf_db_close __P((DKIMF_DB));
 extern int dkimf_db_delete __P((DKIMF_DB, void *, size_t));
 extern int dkimf_db_get __P((DKIMF_DB, void *, size_t,

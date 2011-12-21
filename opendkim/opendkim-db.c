@@ -5163,3 +5163,54 @@ dkimf_db_set_ldap_param(int param, char *str)
 
 	dkimf_db_ldap_param[param] = str;
 }
+
+/*
+**  DKIMF_DB_CHOWN -- set ownership and permissions on a DB
+**
+**  Parameters:
+**  	db -- DKIMF_DB handle
+**  	uid -- target uid
+**
+**  Return value:
+**  	1 -- success
+**  	0 -- not a DB that can be chowned
+**  	-1 -- fchown() failed
+*/
+
+int
+dkimf_db_chown(DKIMF_DB db, uid_t uid)
+{
+	int fd = -1;
+	int status;
+	DB *bdb;
+
+	assert(db != NULL);
+	assert(uid >= 0);
+
+	if (dkimf_db_type(db) != DKIMF_DB_TYPE_BDB ||
+	    (db->db_flags & DKIMF_DB_FLAG_READONLY) != 0)
+		return 0;
+
+#ifdef USE_DB
+	bdb = (DB *) db->db_handle;
+
+# if DB_VERSION_CHECK(2,0,0)
+	status = bdb->fd(bdb, &fd);
+# else /* DB_VERSION_CHECK(2,0,0) */
+	fd = bdb->fd(bdb);
+# endif /* DB_VERSION_CHECK(2,0,0) */
+
+	if (fd == -1)
+		return 0;
+
+	if (fchown(fd, uid, -1) != 0)
+		return -1;
+	else
+		return 1;
+
+#else /* USE_DB */
+
+	return 0;
+
+#endif /* USE_DB */
+}
