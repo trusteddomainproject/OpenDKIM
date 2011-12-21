@@ -33,7 +33,6 @@ static char reputation_c_id[] = "@(#)$Id: stats.c,v 1.27.2.1 2010/10/27 21:43:09
 
 /* macros */
 #define	DKIMF_REP_DEFCACHE	"db:"
-#define	DKIMF_REP_DEFTTL	3600
 #define	DKIMF_REP_MAXHASHES	64
 #define	DKIMF_REP_NULLDOMAIN	"UNSIGNED"
 #define	DKIMF_REP_LOWTIME	"LOW-TIME"
@@ -73,6 +72,7 @@ struct reps
 **  	factor -- number of slices in a reputation limit
 **  	minimum -- always accept at least this many messages
 **  	cache -- data set to which to cache
+**  	cachettl -- TTL for cache entries
 **  	limits -- DB from which to get per-domain limits
 **  	limitmods -- DB from which to get per-domain limit modifiers
 **  	ratios -- DB from which to get per-domain ratios
@@ -84,8 +84,8 @@ struct reps
 
 int
 dkimf_rep_init(DKIMF_REP *rep, time_t factor, unsigned int minimum,
-               char *cache, DKIMF_DB limits, DKIMF_DB limitmods,
-               DKIMF_DB ratios, DKIMF_DB lowtime)
+               unsigned int cachettl, char *cache, DKIMF_DB limits,
+               DKIMF_DB limitmods, DKIMF_DB ratios, DKIMF_DB lowtime)
 {
 	int status;
 	DKIMF_REP new;
@@ -102,7 +102,7 @@ dkimf_rep_init(DKIMF_REP *rep, time_t factor, unsigned int minimum,
 		cache = DKIMF_REP_DEFCACHE;
 
 	new->rep_lastflush = time(NULL);
-	new->rep_ttl = DKIMF_REP_DEFTTL;
+	new->rep_ttl = cachettl;
 	new->rep_factor = factor;
 	new->rep_limits = limits;
 	new->rep_limitmods = limitmods;

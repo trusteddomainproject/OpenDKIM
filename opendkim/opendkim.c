@@ -253,6 +253,7 @@ struct dkimf_config
 #ifdef _FFR_REPUTATION
 	unsigned int	conf_repfactor;		/* reputation factor */
 	unsigned int	conf_repminimum;	/* reputation minimum */
+	unsigned int	conf_repcachettl;	/* reputation cache TTL */
 #endif /* _FFR_REPUTATION */
 #ifdef USE_UNBOUND
 	unsigned int	conf_boguskey;		/* bogus key action */
@@ -5643,6 +5644,7 @@ dkimf_config_new(void)
 #endif /* _FFR_DKIM_REPUTATION */
 #ifdef _FFR_REPUTATION
 	new->conf_repfactor = DKIMF_REP_DEFFACTOR;
+	new->conf_repfactor = DKIMF_REP_DEFCACHETTL;
 #endif /* _FFR_REPUTATION */
 	new->conf_safekeys = TRUE;
 	new->conf_adspaction = SMFIS_CONTINUE;
@@ -7674,6 +7676,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_repcache,
 		                  sizeof conf->conf_repcache);
 
+		(void) config_get(data, "ReputationCacheTTL",
+		                  &conf->conf_repcachettl,
+		                  sizeof conf->conf_repcachettl);
+
 		(void) config_get(data, "ReputationRatios",
 		                  &conf->conf_repratios,
 		                  sizeof conf->conf_repratios);
@@ -7784,6 +7790,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 		if (dkimf_rep_init(&conf->conf_rep, conf->conf_repfactor,
 	                           conf->conf_repminimum,
+	                           conf->conf_repcachettl,
 	                           conf->conf_repcache,
 	                           conf->conf_replimitsdb,
 	                           conf->conf_replimitmodsdb,

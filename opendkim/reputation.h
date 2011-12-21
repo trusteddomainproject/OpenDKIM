@@ -23,6 +23,7 @@ static char reputaton_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 
 #include "opendkim-db.h"
 
 /* definitions */
+#define	DKIMF_REP_DEFCACHETTL	3600
 #define	DKIMF_REP_DEFFACTOR	1
 
 /* data types */
@@ -30,8 +31,9 @@ struct reputation;
 typedef struct reputation * DKIMF_REP;
 
 /* PROTOTYPES */
-extern int dkimf_rep_init __P((DKIMF_REP *, time_t, unsigned int, char *,
-                               DKIMF_DB, DKIMF_DB, DKIMF_DB, DKIMF_DB));
+extern int dkimf_rep_init __P((DKIMF_REP *, time_t, unsigned int, unsigned int,
+                               char *, DKIMF_DB, DKIMF_DB, DKIMF_DB,
+                               DKIMF_DB));
 extern int dkimf_rep_check __P((DKIMF_REP, DKIM_SIGINFO *, _Bool,
                                 void *, size_t, unsigned long *, float *,
                                 unsigned long *, unsigned long *));

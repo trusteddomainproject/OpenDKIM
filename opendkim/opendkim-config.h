@@ -166,6 +166,7 @@ struct configdef dkimf_config[] =
 	{ "ReportBccAddress",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_REPUTATION
 	{ "ReputationCache",		CONFIG_TYPE_STRING,	FALSE },
+	{ "ReputationCacheTTL",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "ReputationLimits",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationLowTime",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationMinimum",		CONFIG_TYPE_INTEGER,	FALSE },
