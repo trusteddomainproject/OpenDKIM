@@ -16217,6 +16217,15 @@ main(int argc, char **argv)
 		else
 			gid = gr->gr_gid;
 
+#ifdef _FFR_REPUTATION
+		/* chown things that need chowning */
+		if (curconf->conf_rep != NULL)
+		{
+			(void) dkimf_rep_chown_cache(curconf->conf_rep,
+			                             pw->pw_uid);
+		}
+#endif /* _FFR_REPUTATION */
+
 		/* make all the process changes */
 		if (getuid() != pw->pw_uid)
 		{
