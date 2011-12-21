@@ -873,8 +873,8 @@ dkimf_testfiles(DKIM_LIB *libopendkim, char *flist, uint64_t fixedtime,
 	ms = mlfi_connect((SMFICTX *) tctx, "localhost", (_SOCK_ADDR *) &sin);
 	if (MLFI_OUTPUT(ms, tverbose))
 	{
-		fprintf(stderr, "%s: %s: mlfi_connect() returned %s\n",
-		        progname, file, milter_status[ms]);
+		fprintf(stderr, "%s: mlfi_connect() returned %s\n",
+		        progname, milter_status[ms]);
 	}
 	if (ms != SMFIS_CONTINUE)
 		return EX_SOFTWARE;
@@ -913,8 +913,8 @@ dkimf_testfiles(DKIM_LIB *libopendkim, char *flist, uint64_t fixedtime,
 	ms = mlfi_close((SMFICTX *) tctx);
 	if (MLFI_OUTPUT(ms, tverbose))
 	{
-		fprintf(stderr, "%s: %s: mlfi_close() returned %s\n",
-		        progname, file, milter_status[ms]);
+		fprintf(stderr, "%s: mlfi_close() returned %s\n",
+		        progname, milter_status[ms]);
 	}
 
 	return EX_OK;
