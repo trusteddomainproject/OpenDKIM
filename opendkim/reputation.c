@@ -316,6 +316,8 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			dlen = strlen(domain);
 		}
 		
+		f = FALSE;
+
 		/* get the total message limit */
 		if (rep->rep_limits != NULL)
 		{
@@ -427,6 +429,8 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		req[0].dbdata_buffer = buf;
 		req[0].dbdata_buflen = sizeof buf;
 		req[0].dbdata_flags = 0;
+
+		f = FALSE;
 
 		if (dkimf_db_get(rep->rep_ratios, domain, dlen, req,
 		                 1, &f) != 0)
