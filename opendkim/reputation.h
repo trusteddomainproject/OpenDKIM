@@ -37,6 +37,7 @@ extern int dkimf_rep_init __P((DKIMF_REP *, time_t, unsigned int, unsigned int,
 extern int dkimf_rep_check __P((DKIMF_REP, DKIM_SIGINFO *, _Bool,
                                 void *, size_t, unsigned long *, float *,
                                 unsigned long *, unsigned long *));
+extern int dkimf_rep_chown_cache __P((DKIMF_REP, uid_t));
 extern void dkimf_rep_close __P((DKIMF_REP));
 
 #endif /* _REPUTATION_H_ */

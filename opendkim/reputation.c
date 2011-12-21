@@ -535,4 +535,28 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		return 1;
 	}
 }
+
+/*
+**  DKIMF_REP_CHOWN_CACHE -- set the owner of a cache file
+**
+**  Parameters:
+**  	rep -- reputation handle
+**  	uid -- target UID
+**
+**  Return value:
+**  	0 -- success
+**  	-1 -- failure
+*/
+
+int
+dkimf_rep_chown_cache(DKIMF_REP rep, uid_t uid)
+{
+	assert(rep != NULL);
+	assert(uid >= 0);
+
+	if (dkimf_db_chown(rep->rep_reps, uid) == 1)
+		return 0;
+	else
+		return -1;
+}
 #endif /* _FFR_REPUTATION */
