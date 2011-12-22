@@ -81,6 +81,7 @@ struct dkimf_unbound_cb_data
 	DKIM_STAT		ubd_stat;
 	size_t			ubd_buflen;
 	u_char *		ubd_buf;
+	const char *		ubd_strerror;
 };
 
 /*
@@ -101,18 +102,21 @@ dkimf_unbound_cb(void *mydata, int err, struct ub_result *result)
 	struct dkimf_unbound_cb_data *ubdata;
 
 	ubdata = (struct dkimf_unbound_cb_data *) mydata;
+
+	if (err != 0)
+	{
+		ubdata->ubd_done = TRUE;
+		ubdata->ubd_stat = DKIM_STAT_INTERNAL;
+		ubdata->ubd_strerror = ub_strerror(err);
+		return;
+	}
+
 	ubdata->ubd_done = FALSE;
 	ubdata->ubd_stat = DKIM_STAT_NOKEY;
 	ubdata->ubd_rcode = result->rcode;
 	memcpy(ubdata->ubd_buf, result->answer_packet,
 	       MIN(ubdata->ubd_buflen, result->answer_len));
 	ubdata->ubd_buflen = result->answer_len;
-
-	if (err != 0)
-	{
-		ubdata->ubd_stat = DKIM_STAT_INTERNAL;
-		return;
-	}
 
 	/*
 	**  Check whether reply is either secure or insecure.  If bogus,
@@ -375,6 +379,7 @@ dkimf_ub_query(void *srv, int type, unsigned char *query,
 	ubdata = (struct dkimf_unbound_cb_data *) malloc(sizeof *ubdata);
 	if (ubdata == NULL)
 		return DKIM_DNS_ERROR;
+	memset(ubdata, '\0', sizeof *ubdata);
 
 	status = dkimf_unbound_queue(ub, (char *) query, type, buf, buflen,
 	                             ubdata);
