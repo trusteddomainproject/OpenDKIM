@@ -14,6 +14,9 @@ release, and a summary of the changes in that release.
 		reports.  Reported by Richard Rognlie.
 	Fix Authentication-Results generation with "AddAllSignatureResults"
 		enabled.  Reported by Todd Nagengast.
+	Cope with versions of Sleepycat DB that crash when asking for a file
+		descriptor for in-memory databases.  Problem reported by
+		Todd Lyons.
 	Don't override "On-NoSignature" when "Quarantine" is set.  Reported
 		by Jarry Jeremy.
 	Ignore header field names that contain semi-colons, as they produce
@@ -472,7 +475,7 @@ release, and a summary of the changes in that release.
 	Restore "-P" to the command line as it's convenient for start/stop
 		scripts.
 	MILTERTEST: Support multiple macro values in mt_macros().
-	BUILD: Improved support for BerkeleyDB file locations.
+	BUILD: Improved support for Sleepycat DB file locations.
 
 2.1.2		2010/07/06
 	When testing the domains data set for a domain match for signing,
