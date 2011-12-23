@@ -11172,8 +11172,9 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 #endif /* _FFR_DEFAULT_SENDER */
 
-	if (status != 0 || user == NULL || domain == NULL ||
-	    user[0] == '\0' || domain[0] == '\0')
+	if ((conf->conf_mode & DKIMF_MODE_SIGNER) != 0 &&
+	    (status != 0 || user == NULL || domain == NULL ||
+	     user[0] == '\0' || domain[0] == '\0'))
 	{
 		if (conf->conf_dolog)
 		{
@@ -11209,9 +11210,13 @@ mlfi_eoh(SMFICTX *ctx)
 		dfc->mctx_status = DKIMF_STATUS_BADFORMAT;
 		return SMFIS_CONTINUE;
 	}
-	strlcpy((char *) dfc->mctx_domain, (char *) domain,
-	        sizeof dfc->mctx_domain);
-	dkimf_lowercase(dfc->mctx_domain);
+
+	if (domain != NULL)
+	{
+		strlcpy((char *) dfc->mctx_domain, (char *) domain,
+		        sizeof dfc->mctx_domain);
+		dkimf_lowercase(dfc->mctx_domain);
+	}
 
 	/* if it's exempt, bail out */
 	if (conf->conf_exemptdb != NULL)
