@@ -53,10 +53,6 @@ Indicates the name of the database to be accessed.  The default is
 Specifies the host where the database server is running.  The default
 is "localhost".
 .TP
-.I -o file
-Writes an update record to an OpenDKIM statistics file rather than directly
-to a database.  There is no default.
-.TP
 .I -p password
 Specifies the password to be used when authenticating to the database.
 The default is "opendkim".
@@ -115,9 +111,6 @@ are as follows; see above for descriptions:
 .TP
 .I DatabaseUser
 -u
-.TP
-.I StatisticsFile
--o
 .SH VERSION
 This man page covers the version of
 .I opendkim-spam

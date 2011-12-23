@@ -11,7 +11,10 @@ if ATPS
 bin_PROGRAMS += opendkim-atpszone
 endif
 if STATS
-bin_PROGRAMS += opendkim-spam opendkim-stats
+bin_PROGRAMS += opendkim-stats
+if USE_ODBX
+bin_PROGRAMS += opendkim-spam
+endif
 endif
 
 dist_bin_SCRIPTS = opendkim-genkey
@@ -223,11 +226,13 @@ endif
 endif
 
 if STATS
+if USE_ODBX
 opendkim_spam_SOURCES = config.c config.h opendkim-spam.c
 opendkim_spam_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBODBX_CPPFLAGS)
 opendkim_spam_CFLAGS = $(COV_CFLAGS) $(LIBODBX_CFLAGS)
 opendkim_spam_LDFLAGS = $(COV_LDFLAGS) 
 opendkim_spam_LDADD = ../libopendkim/libopendkim.la $(COV_LIBADD) $(LIBODBX_LIBS)
+endif
 endif
 
 if LUA
