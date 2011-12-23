@@ -8,6 +8,8 @@ release, and a summary of the changes in that release.
 2.4.3		2011/12/26
 	Fix bug #SF3400670: Send ADSP failure reports when rejecting
 		a message.  Reported by Andreas Schulze.
+	Fix bug #SF3419149: Add MaximumSignedBytes to opendkim-config.h.
+		Reported by Adam Bernstein.
 	Fix Authentication-Results generation with "AddAllSignatureResults"
 		enabled.  Reported by Todd Nagengast.
 	LIBOPENDKIM: NOERROR is the same as NXDOMAIN for the purposes of

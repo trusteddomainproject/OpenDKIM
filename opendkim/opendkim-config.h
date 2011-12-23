@@ -108,6 +108,7 @@ struct configdef dkimf_config[] =
 	{ "LocalADSP",			CONFIG_TYPE_STRING,	FALSE },
 	{ "LogWhy",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "MaximumHeaders",		CONFIG_TYPE_INTEGER,	FALSE },
+	{ "MaximumSignedBytes",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "MaximumSignaturesToVerify",	CONFIG_TYPE_INTEGER,	FALSE },
 	{ "MacroList",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MilterDebug",		CONFIG_TYPE_INTEGER,	FALSE },
