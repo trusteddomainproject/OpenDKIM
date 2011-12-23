@@ -5182,7 +5182,9 @@ dkimf_db_chown(DKIMF_DB db, uid_t uid)
 {
 	int fd = -1;
 	int status;
+#ifdef USE_DB
 	DB *bdb;
+#endif /* USE_DB */
 
 	assert(db != NULL);
 	assert(uid >= 0);
