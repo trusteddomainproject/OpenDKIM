@@ -534,7 +534,7 @@ ar_elapsed(struct timeval *start, struct timeval *length)
 
 	tmp.tv_sec = start->tv_sec + length->tv_sec;
 	tmp.tv_usec = start->tv_usec + length->tv_usec;
-	if (tmp.tv_usec > 1000000)
+	if (tmp.tv_usec >= 1000000)
 	{
 		tmp.tv_usec -= 1000000;
 		tmp.tv_sec += 1;
@@ -2631,7 +2631,7 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 		{
 			until.tv_sec = now.tv_sec + timeout->tv_sec;
 			until.tv_nsec = now.tv_usec + timeout->tv_usec;
-			if (until.tv_nsec > 1000000)
+			if (until.tv_nsec >= 1000000)
 			{
 				until.tv_sec += 1;
 				until.tv_nsec -= 1000000;

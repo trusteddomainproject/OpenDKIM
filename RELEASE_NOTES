@@ -19,6 +19,13 @@ release, and a summary of the changes in that release.
 		the ADSP existence check.  Problem noted by Todd Nagengast.
 	LIBOPENDKIM: Return DKIM_STAT_SYNTAX from dkim_header() if the header
 		field name contained a semi-colon.
+	LIBAR: After computing a timeout, if the fractional seconds portion
+		adds to exactly a second, convert that amount to seconds.
+		Previous versions only converted when the fractional portion
+		exceeded a second.  This led to threads that spin
+		indefinitely.  Problem noted by Todd Lyons and Gary Mills;
+		forensic evidence revealing the problem at long last provided
+		by Todd Lyons.
 
 2.4.2		2011/08/05
 	Don't apply BodyLengthDB when not signing.  Problem noted by
