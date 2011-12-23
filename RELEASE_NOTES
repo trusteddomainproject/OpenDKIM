@@ -17,6 +17,8 @@ release, and a summary of the changes in that release.
 		Heikki Gruner.
 	LIBOPENDKIM: NOERROR is the same as NXDOMAIN for the purposes of
 		the ADSP existence check.  Problem noted by Todd Nagengast.
+	LIBOPENDKIM: Return DKIM_STAT_SYNTAX from dkim_header() if the header
+		field name contained a semi-colon.
 
 2.4.2		2011/08/05
 	Don't apply BodyLengthDB when not signing.  Problem noted by

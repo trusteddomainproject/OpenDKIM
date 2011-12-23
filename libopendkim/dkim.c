@@ -6276,6 +6276,7 @@ DKIM_STAT
 dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 {
 	u_char *colon;
+	u_char *semicolon;
 	u_char *end = NULL;
 	struct dkim_header *h;
 
@@ -6300,6 +6301,11 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 		while (end > hdr && isascii(*(end - 1)) && isspace(*(end - 1)))
 			end--;
 	}
+
+	/* don't allow a field name containing a semicolon */
+	semicolon = memchr(hdr, ';', len);
+	if (semicolon != NULL && colon != NULL && semicolon < colon)
+		return DKIM_STAT_SYNTAX;
 
 	/* see if this is one we should skip */
 	if (dkim->dkim_mode == DKIM_MODE_SIGN &&
