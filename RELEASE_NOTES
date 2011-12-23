@@ -12,6 +12,9 @@ release, and a summary of the changes in that release.
 		Reported by Adam Bernstein.
 	Fix Authentication-Results generation with "AddAllSignatureResults"
 		enabled.  Reported by Todd Nagengast.
+	Ignore header field names that contain semi-colons, as they produce
+		syntactically invalid signatures.  Problem noted by
+		Heikki Gruner.
 	LIBOPENDKIM: NOERROR is the same as NXDOMAIN for the purposes of
 		the ADSP existence check.  Problem noted by Todd Nagengast.
 
