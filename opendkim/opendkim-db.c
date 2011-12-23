@@ -1576,10 +1576,12 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		bdbtype = DB_HASH;
 # endif /* DB_VERSION_CHECK(2,0,0) */
 
-#ifdef _FFR_LDAP_CACHING
-		if (*p == '\0' && (flags & DKIMF_DB_FLAG_READONLY) == 0)
+		if (*p == '\0')
+		{
+			new->db_flags |= DKIMF_DB_FLAG_NOFDLOCK;
+			flags = new->db_flags;
 			p = NULL;
-#endif /* _FFR_LDAP_CACHING */
+		}
 
 # if DB_VERSION_CHECK(3,0,0)
 		status = db_create(&newdb, NULL, 0);
