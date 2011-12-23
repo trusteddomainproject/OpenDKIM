@@ -8,6 +8,8 @@ release, and a summary of the changes in that release.
 2.4.3		2011/12/26
 	Fix bug #SF3400670: Send ADSP failure reports when rejecting
 		a message.  Reported by Andreas Schulze.
+	Fix Authentication-Results generation with "AddAllSignatureResults"
+		enabled.  Reported by Todd Nagengast.
 
 2.4.2		2011/08/05
 	Don't apply BodyLengthDB when not signing.  Problem noted by
