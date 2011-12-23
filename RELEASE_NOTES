@@ -39,6 +39,8 @@ release, and a summary of the changes in that release.
 		indefinitely.  Problem noted by Todd Lyons and Gary Mills;
 		forensic evidence revealing the problem at long last provided
 		by Todd Lyons.
+	STATS: Fix a crash bug in opendkim-importstats due to improper handling
+		of NULL returns from SQL.  Reported by Andreas Schulze.
 
 2.4.2		2011/08/05
 	Don't apply BodyLengthDB when not signing.  Problem noted by
