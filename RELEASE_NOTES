@@ -10,6 +10,8 @@ release, and a summary of the changes in that release.
 		a message.  Reported by Andreas Schulze.
 	Fix Authentication-Results generation with "AddAllSignatureResults"
 		enabled.  Reported by Todd Nagengast.
+	LIBOPENDKIM: NOERROR is the same as NXDOMAIN for the purposes of
+		the ADSP existence check.  Problem noted by Todd Nagengast.
 
 2.4.2		2011/08/05
 	Don't apply BodyLengthDB when not signing.  Problem noted by
