@@ -4,6 +4,4 @@
 
 #AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = convert init ldap lua spec stats
-
-dist_doc_DATA = README
+dist_doc_DATA = example.com.ldif opendkim.schema README.LDAP

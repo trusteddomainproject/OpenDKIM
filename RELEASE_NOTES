@@ -73,6 +73,8 @@ release, and a summary of the changes in that release.
 	TOOLS: Add opendkim-testmsg, for signing/verifying messages without
 		all the milter code being invoked.  Requested by
 		Todd Nagengast.
+	CONTRIB: Add LDAP documentation and examples.  Provided by
+		Patrick Ben Koetter.
 
 2.4.2		2011/08/05
 	Don't apply BodyLengthDB when not signing.  Problem noted by
