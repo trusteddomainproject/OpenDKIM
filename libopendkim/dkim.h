@@ -384,7 +384,8 @@ struct dkim_hdrdiff
 **  DKIM_INIT -- initialize the DKIM package
 **
 **  Parameters:
-**  	None.
+**  	mallocf -- a function to receive malloc()-like calls, or NULL
+**   	freef -- a function to receive corresponding free()-like calls, or NULL
 **
 **  Return value:
 **  	A new DKIM library instance handle, or NULL on failure.
@@ -477,7 +478,7 @@ extern DKIM *dkim_verify __P((DKIM_LIB *libhandle, const unsigned char *id,
 **  	its reference count reaches zero.  See documentation for details.
 */
 
-extern DKIM_STAT dkim_resign __P((DKIM *new, DKIM *old, _Bool hdrbind));
+extern DKIM_STAT dkim_resign __P((DKIM *news, DKIM *olds, _Bool hdrbind));
 
 /*
 **  DKIM_HEADER -- process a header
