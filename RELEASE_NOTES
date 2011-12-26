@@ -28,6 +28,9 @@ release, and a summary of the changes in that release.
 	Ignore header field names that contain semi-colons, as they produce
 		syntactically invalid signatures.  Problem noted by
 		Heikki Gruner.
+	LIBOPENDKIM: Fix bug #SF3465400: Don't use "new" as a parameter name
+		in dkim.h since that's an error for C++.  Reported by
+		Amit Schreiber.
 	LIBOPENDKIM: NOERROR is the same as NXDOMAIN for the purposes of
 		the ADSP existence check.  Problem noted by Todd Nagengast.
 	LIBOPENDKIM: Return DKIM_STAT_SYNTAX from dkim_header() if the header
