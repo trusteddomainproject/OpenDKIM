@@ -2059,6 +2059,7 @@ AC_OUTPUT([	Makefile
 			contrib/init/redhat/Makefile
 			contrib/init/redhat/opendkim
 			contrib/init/solaris/Makefile
+			contrib/ldap/Makefile
 			contrib/lua/Makefile
 			contrib/spec/Makefile
 			contrib/spec/opendkim.spec
