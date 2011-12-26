@@ -491,6 +491,7 @@ struct msgctx
 	int		mctx_hdrbytes;		/* header space allocated */
 	struct dkimf_dstring * mctx_tmpstr;	/* temporary string */
 	u_char *	mctx_jobid;		/* job ID */
+	u_char *	mctx_laddr;		/* address triggering l= */
 	DKIM *		mctx_dkimv;		/* verification handle */
 #ifdef _FFR_VBR
 	VBR *		mctx_vbr;		/* VBR handle */
@@ -11413,13 +11414,7 @@ mlfi_eoh(SMFICTX *ctx)
 			                    dfc->mctx_jobid))
 			{
 				dfc->mctx_ltag = TRUE;
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_INFO,
-						"%s: BodyLengthDB matched %s, signing with l= requested",
-						dfc->mctx_jobid, a->a_addr);
-				}
-
+				dfc->mctx_laddr = a->a_addr;
 				break;
 			}
 		}
@@ -12072,6 +12067,13 @@ mlfi_eoh(SMFICTX *ctx)
 		u_char *selector;
 		struct signreq *sr;
 		dkim_sigkey_t keydata;
+
+		if (conf->conf_dolog && dfc->mctx_laddr != NULL)
+		{
+			syslog(LOG_INFO,
+				"%s: BodyLengthDB matched %s, signing with l= requested",
+				dfc->mctx_jobid, dfc->mctx_laddr);
+		}
 
 #ifdef _FFR_ATPS
 		if (conf->conf_atpsdb != NULL)
