@@ -1,26 +1,57 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.4.2 released
+Subject: OpenDKIM v2.4.3 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.4.2, now available
+The OpenDKIM project announces availability of OpenDKIM v2.4.3, now available
 for download from SourceForge.
 
-This is a minor bug fix release prior to beginning development work on the
-v2.5.x line, which will contain new features.  Upgrading is not required
-or urgent unless you're specifically interested in one of the changes
-listed below.
+This is a bug fix release including all non-trivial bugs fixed during the
+development of v2.5.0.  Upgrading is recommended.
+
+The release of v2.5.0 has been delayed to mid-January, 2012 to allow an
+extended Beta cycle.
 
 The full RELEASE_NOTES for this version:
 
-2.4.2		2011/08/05
-	Don't apply BodyLengthDB when not signing.  Problem noted by
-		Andreas Schulze.
-	LIBOPENDKIM: Update for draft-kucherawy-dkim-atps-06.
-	LIBOPENDKIM: Terminate the strings returned by dkim_sig_getsubstring()
-		and dkim_sig_getidentity() whenever possible.  Suggested by
+2.4.3		2011/12/26
+	Fix bug #SF3400670: Send ADSP failure reports when rejecting
+		a message.  Reported by Andreas Schulze.
+	Fix bug #SF3419149: Add MaximumSignedBytes to opendkim-config.h.
+		Reported by Adam Bernstein.
+	Fix bug #SF3441240: Appy ReportBccAddress when generating ADSP
+		reports.  Reported by Richard Rognlie.
+	Fix bug #SF3447199: Fix logic preventing the application of the
+		BodyLengthDB.  Problem noted by Richard Rognlie.
+	Fix Authentication-Results generation with "AddAllSignatureResults"
+		enabled.  Reported by Todd Nagengast.
+	Fix a crash bug when trying to handle certain malformed header fields
+		in verify-only mode.  Reported by Todd Lyons.
+	Improve error checking in the callback provided to libunbound to
+		avoid crashes.  Problem noted by Todd Lyons.
+	Cope with versions of Sleepycat DB that crash when asking for a file
+		descriptor for in-memory databases.  Problem reported by
+		Todd Lyons.
+	Don't override "On-NoSignature" when "Quarantine" is set.  Reported
+		by Jarry Jeremy.
+	Ignore header field names that contain semi-colons, as they produce
+		syntactically invalid signatures.  Problem noted by
 		Heikki Gruner.
-	CONTRIB: Change "chkconfig" instruction in RHEL init script,
-		and a minor tweak to the RPM spec file.  From Steve Jenkins.
+	LIBOPENDKIM: Fix bug #SF3465400: Don't use "new" as a parameter name
+		in dkim.h since that's an error for C++.  Reported by
+		Amit Schreiber.
+	LIBOPENDKIM: NOERROR is the same as NXDOMAIN for the purposes of
+		the ADSP existence check.  Problem noted by Todd Nagengast.
+	LIBOPENDKIM: Return DKIM_STAT_SYNTAX from dkim_header() if the header
+		field name contained a semi-colon.
+	LIBAR: After computing a timeout, if the fractional seconds portion
+		adds to exactly a second, convert that amount to seconds.
+		Previous versions only converted when the fractional portion
+		exceeded a second.  This led to threads that spin
+		indefinitely.  Problem noted by Todd Lyons and Gary Mills;
+		forensic evidence revealing the problem at long last provided
+		by Todd Lyons.
+	STATS: Fix a crash bug in opendkim-importstats due to improper handling
+		of NULL returns from SQL.  Reported by Andreas Schulze.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
