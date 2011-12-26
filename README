@@ -298,6 +298,6 @@ The suggested solutions to this problem are:
     signing and then sends the message on its way.
 
 --
-Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 
 $Id: README,v 1.13 2010/10/25 20:41:55 cm-msk Exp $
