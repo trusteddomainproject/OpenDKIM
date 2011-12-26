@@ -13,8 +13,39 @@ release, and a summary of the changes in that release.
 		Requested by Andreas Schulze.
 	Add "WeakSyntaxChecks" suppressing some short-circuiting error checks
 		on syntax.  Requested by Todd Nagengast. 
-	Fix bug #SF3400670: Send ADSP failure reports when rejecting a
-		message.  Reported by Andreas Schulze.
+	Allow a set of test files to be passed via "-t" rather than just one.
+	LIBOPENDKIM: Feature request #SF3317160: Per RFC6376, remove
+		granularity checks.
+	LIBOPENDKIM: Feature request #SF3385768: Add dkim_privkey_load(),
+		allowing validation of a private key before reaching
+		end-of-message.  Requested by Heikki Gruner.
+	LIBOPENDKIM: Feature request #SF3423226: Copy header field name lists
+		instead of using the caller's copy.  Suggested by
+		Heikki Gruner.
+	LIBOPENDKIM: Update list of header fields that should be signed
+		per RFC6376.
+	LIBOPENDKIM: Don't report the absence of "c=" as an error, since
+		there is a default.
+	LIBOPENDKIM: Add DKIM_SIG_CHECK() macro.  Suggested by Heikki
+		Gruner.
+	LIBAR: Fix bug #SF2917856: Rename "ar.h" to "async-resolv.h" since
+		"ar.h" is already in common use.
+	STATS: Feature request #SF3397903: Drop all support for data needed
+		for the DKIM Implementation Report, as it has been completed.
+		Leave stuff that's useful for reputation R&D.
+	STATS: Feature request #SF3402857: Modify opendkim-spam to be able
+		to write update records to statistics files.
+	STATS: Feature request #SF3439384: Make opendkim-importstats more
+		backend-agnostic.  Requested by Andreas Schulze.
+	TOOLS: Add opendkim-testmsg, for signing/verifying messages without
+		all the milter code being invoked.  Requested by
+		Todd Nagengast.
+	CONTRIB: Add LDAP documentation and examples.  Provided by
+		Patrick Ben Koetter.
+
+2.4.3		2011/12/26
+	Fix bug #SF3400670: Send ADSP failure reports when rejecting
+		a message.  Reported by Andreas Schulze.
 	Fix bug #SF3419149: Add MaximumSignedBytes to opendkim-config.h.
 		Reported by Adam Bernstein.
 	Fix bug #SF3441240: Appy ReportBccAddress when generating ADSP
@@ -35,27 +66,13 @@ release, and a summary of the changes in that release.
 	Ignore header field names that contain semi-colons, as they produce
 		syntactically invalid signatures.  Problem noted by
 		Heikki Gruner.
-	Allow a set of test files to be passed via "-t" rather than just one.
-	LIBOPENDKIM: Feature request #SF3317160: Per RFC6376, remove
-		granularity checks.
-	LIBOPENDKIM: Feature request #SF3385768: Add dkim_privkey_load(),
-		allowing validation of a private key before reaching
-		end-of-message.  Requested by Heikki Gruner.
-	LIBOPENDKIM: Feature request #SF3423226: Copy header field name lists
-		instead of using the caller's copy.  Suggested by
-		Heikki Gruner.
-	LIBOPENDKIM: Update list of header fields that should be signed
-		per RFC6376.
-	LIBOPENDKIM: Don't report the absence of "c=" as an error, since
-		there is a default.
+	LIBOPENDKIM: Fix bug #SF3465400: Don't use "new" as a parameter name
+		in dkim.h since that's an error for C++.  Reported by
+		Amit Schreiber.
 	LIBOPENDKIM: NOERROR is the same as NXDOMAIN for the purposes of
 		the ADSP existence check.  Problem noted by Todd Nagengast.
-	LIBOPENDKIM: Add DKIM_SIG_CHECK() macro.  Suggested by Heikki
-		Gruner.
 	LIBOPENDKIM: Return DKIM_STAT_SYNTAX from dkim_header() if the header
 		field name contained a semi-colon.
-	LIBAR: Fix bug #SF2917856: Rename "ar.h" to "async-resolv.h" since
-		"ar.h" is already in common use.
 	LIBAR: After computing a timeout, if the fractional seconds portion
 		adds to exactly a second, convert that amount to seconds.
 		Previous versions only converted when the fractional portion
@@ -63,18 +80,8 @@ release, and a summary of the changes in that release.
 		indefinitely.  Problem noted by Todd Lyons and Gary Mills;
 		forensic evidence revealing the problem at long last provided
 		by Todd Lyons.
-	STATS: Feature request #SF3397903: Drop all support for data needed
-		for the DKIM Implementation Report, as it has been completed.
-		Leave stuff that's useful for reputation R&D.
-	STATS: Feature request #SF3402857: Modify opendkim-spam to be able
-		to write update records to statistics files.
-	STATS: Feature request #SF3439384: Make opendkim-importstats more
-		backend-agnostic.  Requested by Andreas Schulze.
-	TOOLS: Add opendkim-testmsg, for signing/verifying messages without
-		all the milter code being invoked.  Requested by
-		Todd Nagengast.
-	CONTRIB: Add LDAP documentation and examples.  Provided by
-		Patrick Ben Koetter.
+	STATS: Fix a crash bug in opendkim-importstats due to improper handling
+		of NULL returns from SQL.  Reported by Andreas Schulze.
 
 2.4.2		2011/08/05
 	Don't apply BodyLengthDB when not signing.  Problem noted by
