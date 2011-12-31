@@ -338,7 +338,7 @@ specification for details.
 .TP
 .I -S signalg
 Selects the signing algorithm to use when generating signatures.
-Use 'dkim-filter -V' to see the list of supported algorithms.
+Use 'opendkim -V' to see the list of supported algorithms.
 The default is
 .I rsa-sha256
 if it is available, otherwise it will be
@@ -420,8 +420,9 @@ configuration file setting.
 
 For (a) above, the test is whether or not the MTA macro "{auth_type}" is set
 and contains any non-empty value.  This means the MTA must pass the value of
-that macro to the filter in order for its value to be tested.  Check your
-MTA's configuration documentation for details.
+that macro to the filter before or during the end-of-header (EOH) phase
+in order for its value to be tested.  Check your MTA's configuration
+documentation for details.
 
 When signing a message, a
 .I DKIM-Signature:
@@ -458,6 +459,19 @@ TestPublicKeys,
 UMask,
 UserID (-u).  The filter does not automatically check the configuration
 file for changes and reload.
+.SH MTA MACROS
+.B opendkim
+makes use of three MTA-provided macros, plus any demanded by configuration.
+The basic three are: "i" (the envelope ID, also known as the job ID or the
+queue ID), which is used for logging; "daemon_name" (the symbolic name given
+to the MTA instance that accepted the connection), which is used when
+performing tests against any "MTAs" setting used; and "auth_type", which is
+used to determine whether or not the SMTP client authenticated to the MTA.
+If the MTA does not provide them to
+.B opendkim
+then it is not able to apply their corresponding tests or do useful logging.
+Consult your MTA documentation to determine how to adjust your its
+configuration if some or all of these are not available.
 .SH FILE PERMISSIONS
 When the filter is started as the superuser and the UserID (-u) setting is
 used, the filter gives up its root privileges by changing to the specified
