@@ -5926,7 +5926,7 @@ dkim_ohdrs(DKIM *dkim, DKIM_SIGINFO *sig, u_char **ptrs, int *pcnt)
 				if (!isxdigit(*(p + 1)) || !isxdigit(*(p + 2)))
 				{
 					dkim_error(dkim,
-					           "invalid trailing character (0x%02f 0x%02f) in z= tag value",
+					           "invalid trailing character (0x%02x 0x%02x) in z= tag value",
 					           *(p + 1), *(p + 2));
 
 					return DKIM_STAT_INVALID;
