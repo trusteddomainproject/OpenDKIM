@@ -1,6 +1,6 @@
 -- $Id: t-verify-ss-rep.lua,v 1.4 2010/09/24 21:40:31 cm-msk Exp $
 
--- Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 
 -- simple/simple verify test with reputation checks
 -- 
