@@ -404,6 +404,7 @@ struct dkimf_config
 	DKIMF_DB	conf_dontsigntodb;	/* don't-sign-to addrs (DB) */
 #ifdef _FFR_ATPS
 	DKIMF_DB	conf_atpsdb;		/* ATPS domains */
+	char *		conf_atpshash;		/* ATPS hash algorithm */
 #endif /* _FFR_ATPS */
 #ifdef _FFR_ADSP_LISTS
 	DKIMF_DB	conf_nodiscardto;	/* no discardable to (DB) */
@@ -663,6 +664,15 @@ struct lookup dkimf_sign[] =
 {
 	{ "rsa-sha1",		DKIM_SIGN_RSASHA1 },
 	{ "rsa-sha256",		DKIM_SIGN_RSASHA256 },
+	{ NULL,			-1 },
+};
+
+struct lookup dkimf_atpshash[] =
+{
+#ifdef HAVE_SHA256
+	{ "sha256",		1 },
+#endif /* HAVE_SHA256 */
+	{ "sha1",		1 },
 	{ NULL,			-1 },
 };
 
@@ -5645,7 +5655,7 @@ dkimf_config_new(void)
 #endif /* _FFR_DKIM_REPUTATION */
 #ifdef _FFR_REPUTATION
 	new->conf_repfactor = DKIMF_REP_DEFFACTOR;
-	new->conf_repfactor = DKIMF_REP_DEFCACHETTL;
+	new->conf_repcachettl = DKIMF_REP_DEFCACHETTL;
 #endif /* _FFR_REPUTATION */
 	new->conf_safekeys = TRUE;
 	new->conf_adspaction = SMFIS_CONTINUE;
@@ -5658,6 +5668,9 @@ dkimf_config_new(void)
 	new->conf_flowfactor = 1;
 #endif /* _FFR_RATE_LIMIT */
 	new->conf_mtacommand = SENDMAIL_PATH;
+#ifdef _FFR_ATPS
+	new->conf_atpshash = dkimf_atpshash[0].str;
+#endif /* _FFR_ATPS */
 
 	memcpy(&new->conf_handling, &defaults, sizeof new->conf_handling);
 
@@ -6952,9 +6965,23 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 #endif /* _FFR_ADSP_LISTS */
 
 #ifdef _FFR_ATPS
+
 	str = NULL;
 	if (data != NULL)
+	{
+		(void) config_get(data, "ATPSHashAlgorithm",
+		                  &conf->conf_atpshash,
+		                  sizeof conf->conf_atpshash);
 		(void) config_get(data, "ATPSDomains", &str, sizeof str);
+	}
+
+	if (dkimf_configlookup(conf->conf_atpshash, dkimf_atpshash) != 1)
+	{
+		snprintf(err, errlen, "unknown ATPS hash \"%s\"",
+		         conf->conf_atpshash);
+		return -1;
+	}
+
 	if (str != NULL)
 	{
 		int status;
@@ -12139,6 +12166,16 @@ mlfi_eoh(SMFICTX *ctx)
 					syslog(LOG_ERR,
 					       "%s dkim_add_xtag() for \"%s\" failed",
 					       dfc->mctx_jobid, DKIM_ATPSTAG);
+				}
+
+				status = dkim_add_xtag(sr->srq_dkim,
+				                       DKIM_ATPSHTAG,
+				                       conf->conf_atpshash);
+				if (status != DKIM_STAT_OK && dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s dkim_add_xtag() for \"%s\" failed",
+					       dfc->mctx_jobid, DKIM_ATPSHTAG);
 				}
 			}
 #endif /* _FFR_ATPS */

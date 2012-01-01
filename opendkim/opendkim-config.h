@@ -38,6 +38,7 @@ struct configdef dkimf_config[] =
 	{ "AlwaysSignHeaders",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_ATPS
 	{ "ATPSDomains",		CONFIG_TYPE_STRING,	FALSE },
+	{ "ATPSHashAlgorithm",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_ATPS */
 	{ "AuthservID",			CONFIG_TYPE_STRING,	FALSE },
 	{ "AuthservIDWithJobID",	CONFIG_TYPE_BOOLEAN,	FALSE },
