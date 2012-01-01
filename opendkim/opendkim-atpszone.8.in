@@ -7,6 +7,7 @@
 [-A]
 [-C address]
 [-E secs]
+[-h hash]
 [-N ns[,...]]
 [-o file]
 [-r secs]
@@ -53,6 +54,10 @@ When generating an SOA record (see
 below), use
 .I secs
 as the default record expiration time.  The default is 604800.
+.TP
+.I -h hash
+Specifies which SHA hash algorithm to use.  Must be one of "sha1" and "sha256",
+with "sha256" being the default if it is available.
 .TP
 .I -N nslist
 Specifies a comma-separated list of nameservers, which will be output in
