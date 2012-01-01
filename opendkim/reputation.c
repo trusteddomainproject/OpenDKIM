@@ -361,11 +361,13 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 				}
 			}
 
-			if (!f)
+			if (!f || req[fields - 1].dbdata_buflen >= sizeof buf)
 			{
 				pthread_mutex_unlock(&rep->rep_lock);
 				return 2;
 			}
+
+			buf[req[fields - 1].dbdata_buflen] = '\0';
 
 			reps.reps_limit = (unsigned long) (ceil((double) strtoul(buf, &p, 10) / (double) rep->rep_factor) + 1.);
 			if (p != NULL && *p != '\0')
@@ -390,10 +392,11 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 					return -1;
 				}
 
-				if (f)
+				if (f && req[0].dbdata_buflen < sizeof buf)
 				{
 					unsigned int mod = 0;
 
+					buf[req[0].dbdata_buflen] = '\0';
 					mod = strtoul(&buf[1], &p, 10);
 					if (*p != '\0')
 						buf[0] = '\0';
@@ -461,12 +464,13 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			}
 		}
 
-		if (!f)
+		if (!f || req[0].dbdata_buflen >= sizeof buf)
 		{
 			pthread_mutex_unlock(&rep->rep_lock);
 			return 2;
 		}
 
+		buf[req[0].dbdata_buflen] = '\0';
 		p = NULL;
 		reps.reps_ratio = strtof(buf, &p);
 		if (p != NULL && *p != '\0')
