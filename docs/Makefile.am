@@ -11,7 +11,7 @@ dist_doc_DATA = draft-gregorio-uritemplate-07.txt \
 	draft-ietf-repute-media-type-00.txt \
 	draft-ietf-repute-model-00.txt \
 	draft-ietf-repute-query-http-00.txt \
-	draft-kucherawy-dkim-atps-13.txt \
+	draft-kucherawy-dkim-atps-14.txt \
 	report-rfc4871.txt \
 	rfc3447.txt \
 	rfc4686.txt \
