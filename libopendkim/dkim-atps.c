@@ -140,16 +140,13 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	ahash = dkim_sig_gettagvalue(sig, FALSE, "atpsh");
 
 	if (sdomain == NULL || fdomain == NULL || adomain == NULL ||
-	    strcasecmp(adomain, fdomain) != 0)
+	    ahash == NULL || strcasecmp(adomain, fdomain) != 0)
 		return DKIM_STAT_INVALID;
 
 	/* confirm it requested a hash we know how to do */
-	if (ahash != NULL)
-	{
-		hash = dkim_name_to_code(hashes, ahash);
-		if (hash == -1)
-			return DKIM_STAT_INVALID;
-	}
+	hash = dkim_name_to_code(hashes, ahash);
+	if (hash == -1)
+		return DKIM_STAT_INVALID;
 
 	switch (hash)
 	{
