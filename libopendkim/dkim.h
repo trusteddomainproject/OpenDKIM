@@ -47,7 +47,8 @@ static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.36.2.1 2010/10/27 21:43:08 cm-msk
 #endif /* __STDC__ */
 
 /* definitions */
-#define	DKIM_ATPSTAG		"atps"	/* special tag name */
+#define	DKIM_ATPSTAG		"atps"	/* ATPS tag name */
+#define	DKIM_ATPSHTAG		"atpsh"	/* ATPS tag name */
 #define DKIM_HDRMARGIN		75	/* "standard" header margin */
 #define DKIM_MAXHEADER		4096	/* buffer for caching one header */
 #define	DKIM_MAXHOSTNAMELEN	256	/* max. FQDN we support */
