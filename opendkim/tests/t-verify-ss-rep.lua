@@ -268,7 +268,8 @@ end
 if mt.eom(conn) ~= nil then
 	error("mt.eom() failed")
 end
-if mt.getreply(conn) ~= SMFIR_TEMPFAIL then
+if mt.getreply(conn) ~= SMFIR_TEMPFAIL and
+   mt.getreply(conn) ~= SMFIR_REPLYCODE then
 	error("mt.eom() unexpected reply")
 end
 
@@ -349,7 +350,7 @@ end
 if mt.eom(conn) ~= nil then
 	error("mt.eom() failed")
 end
-if mt.getreply(conn) ~= SMFIR_TEMPFAIL then
+if mt.getreply(conn) ~= SMFIR_ACCEPT then
 	error("mt.eom() unexpected reply")
 end
 
