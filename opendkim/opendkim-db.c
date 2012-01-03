@@ -5190,7 +5190,8 @@ dkimf_db_chown(DKIMF_DB db, uid_t uid)
 	assert(uid >= 0);
 
 	if (dkimf_db_type(db) != DKIMF_DB_TYPE_BDB ||
-	    (db->db_flags & DKIMF_DB_FLAG_READONLY) != 0)
+	    (db->db_flags & DKIMF_DB_FLAG_READONLY) != 0 ||
+	    (db->db_flags & DKIMF_DB_FLAG_NOFDLOCK) != 0)
 		return 0;
 
 #ifdef USE_DB
