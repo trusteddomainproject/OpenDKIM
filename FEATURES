@@ -103,6 +103,9 @@ report_intervals
 		Support for report intervals, part of the DKIM reporting
 		extensions.  (opendkim)
 
+reputation	Support for an experimental collaborative reputation system.
+		(opendkim)
+
 resign		Experimental API features for simultaneous verifying and
 		re-signing of a single message.  (libopendkim, opendkim)
 
