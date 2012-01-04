@@ -9,7 +9,7 @@
 create table if not exists aggregate (
 	id int auto_increment,
 	reporter int,
-	domain int unsigned not null,
+	domain int not null,
 	updated timestamp not null default current_timestamp on update current_timestamp,
 	date timestamp not null default '0000-00-00 00:00:00',
 	messages int,
@@ -17,15 +17,14 @@ create table if not exists aggregate (
 	ratio float,
 
 	primary key (id),
-	unique key (domain, date, reporter),
-	foreign key(domain) references domains(id) on delete cascade
+	unique key (domain, date, reporter)
 ) engine=innodb default charset=latin1;
 
 -- table mapping domain codes to flow predictions
 create table if not exists predictions (
 	id int not null auto_increment,
 	reporter int,
-	domain int unsigned not null,
+	domain int not null,
 	name varchar(255),
 	updated timestamp not null default current_timestamp on update current_timestamp,
 	rate_samples int,
@@ -44,8 +43,7 @@ create table if not exists predictions (
 
 	primary key (id),
 	key (name),
-	unique key (domain, reporter),
-	foreign key(domain) references domains(id) on delete cascade
+	unique key (domain, reporter)
 ) engine=innodb default charset=latin1;
 
 -- alter domains table to contain "low time" flag
