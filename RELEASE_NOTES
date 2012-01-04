@@ -14,6 +14,24 @@ release, and a summary of the changes in that release.
 	Add "WeakSyntaxChecks" suppressing some short-circuiting error checks
 		on syntax.  Requested by Todd Nagengast. 
 	Allow a set of test files to be passed via "-t" rather than just one.
+	Add _FFR_REPUTATION, and several new support libraries (in the
+		libut/ and reputation/ directories) for doing DKIM-based
+		reputation evaluations of arriving messages.  Full
+		documentation of the algorithms will appear in an upcoming
+		white paper.  This also includes several new configuration
+		options that make use of reputation data pulled from servers:
+			ReputationCache
+			ReputationCacheTTL
+			ReputationLimits
+			ReputationLowTime
+			ReputationMinimum
+			ReputationLimitModifiers
+			ReputationRatios
+			ReputationSpamCheck
+			ReputationTimeFactor
+		For now these are briefly documented in reputation/README.
+		As this subsystem matures, they will be fully documented in
+		opendkim.conf(5).
 	LIBOPENDKIM: Feature request #SF3317160: Per RFC6376, remove
 		granularity checks.
 	LIBOPENDKIM: Feature request #SF3385768: Add dkim_privkey_load(),
