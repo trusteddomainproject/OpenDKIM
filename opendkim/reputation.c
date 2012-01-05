@@ -40,6 +40,10 @@ static char reputation_c_id[] = "@(#)$Id: stats.c,v 1.27.2.1 2010/10/27 21:43:09
 /* data types */
 struct reputation
 {
+	time_t		rep_ttl;
+	time_t		rep_lastflush;
+	unsigned int	rep_factor;
+	unsigned int	rep_minimum;
 	DKIMF_DB	rep_reps;
 	DKIMF_DB	rep_dups;
 	DKIMF_DB	rep_limits;
@@ -48,10 +52,6 @@ struct reputation
 	DKIMF_DB	rep_counts;
 	DKIMF_DB	rep_spam;
 	DKIMF_DB	rep_lowtime;
-	time_t		rep_ttl;
-	time_t		rep_lastflush;
-	unsigned int	rep_factor;
-	unsigned int	rep_minimum;
 	pthread_mutex_t	rep_lock;
 };
 

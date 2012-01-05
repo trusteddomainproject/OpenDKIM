@@ -50,6 +50,8 @@ struct repute_handle
 	pthread_mutex_t		rep_lock;
 	struct repute_io *	rep_ios;
 	const char *		rep_server;
+	const char *		rep_useragent;
+	const char *		rep_curlversion;
 	char			rep_uritemp[REPUTE_URL + 1];
 	char			rep_error[REPUTE_BUFBASE + 1];
 };
@@ -452,6 +454,13 @@ repute_get_io(REPUTE rep)
 					free(rio);
 					rio = NULL;
 				}
+
+				if (rep->rep_useragent != NULL)
+				{
+					(void) curl_easy_setopt(rio->repute_curl,
+					                        CURLOPT_USERAGENT,
+					                        rep->rep_useragent);
+				}
 			}
 		}
 	}
@@ -647,6 +656,7 @@ REPUTE
 repute_new(const char *server, unsigned int reporter)
 {
 	struct repute_handle *new;
+	curl_version_info_data *vinfo;
 
 	assert(server != NULL);
 
@@ -663,6 +673,10 @@ repute_new(const char *server, unsigned int reporter)
 		free(new);
 		return NULL;
 	}
+
+	vinfo = curl_version_info(CURLVERSION_NOW);
+	if (vinfo != NULL && vinfo->version != NULL)
+		new->rep_curlversion = strdup(vinfo->version);
 
 	pthread_mutex_init(&new->rep_lock, NULL);
 
@@ -706,6 +720,44 @@ repute_close(REPUTE rep)
 	free((void *) rep->rep_server);
 
 	free(rep);
+}
+
+/*
+**  REPUTE_CURLVERSION -- get libcurl version string
+**
+**  Parameters:
+**  	rep -- REPUTE handle
+**
+**  Return value:
+**  	A pointer to a string containing the libcurl version, or NULL.
+*/
+
+const char *
+repute_curlversion(REPUTE rep)
+{
+	assert(rep != NULL);
+
+	return rep->rep_curlversion;
+}
+
+/*
+**  REPUTE_USERAGENT -- set user agent for REPUTE queries
+**
+**  Parameters:
+**  	rep -- REPUTE handle
+**  	ua -- User-Agent string to use
+**
+**  Return value:
+**  	None.
+*/
+
+void
+repute_useragent(REPUTE rep, const char *ua)
+{
+	if (rep->rep_useragent != NULL)
+		free(rep->rep_useragent);
+
+	rep->rep_useragent = strdup(ua);
 }
 
 /*

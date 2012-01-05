@@ -133,8 +133,11 @@ struct configdef dkimf_config[] =
 	{ "On-DNSError",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-InternalError",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-KeyNotFound",		CONFIG_TYPE_STRING,	FALSE },
-	{ "On-PolicyError",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-NoSignature",		CONFIG_TYPE_STRING,	FALSE },
+	{ "On-PolicyError",		CONFIG_TYPE_STRING,	FALSE },
+#ifdef _FFR_REPUTATION
+	{ "On-ReputationError",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_REPUTATION */
 	{ "On-Security",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_OVERSIGN
 	{ "OverSignHeaders",		CONFIG_TYPE_STRING,	FALSE },

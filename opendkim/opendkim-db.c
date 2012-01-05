@@ -58,6 +58,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #ifdef USE_LUA
 # include "opendkim-lua.h"
 #endif /* USE_LUA */
+#include "opendkim.h"
 
 /* various DB library includes */
 #ifdef USE_DB
@@ -2415,6 +2416,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		char *q;
 		REPUTE r;
 		struct dkimf_db_repute *dbr;
+		char useragent[BUFRSZ + 1];
 
 		q = strchr(p, ':');
 		if (q != NULL)
@@ -2428,9 +2430,16 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		}
 
 		r = repute_new(p, reporter);
-
 		if (r == NULL)
 			return -1;
+
+		q = (char *) repute_curlversion(r);
+		snprintf(useragent, sizeof useragent, "%s/%s %s%s%s",
+		         DKIMF_PRODUCTNS, VERSION,
+		         "libcurl",
+		         q == NULL ? "" : "/",
+		         q == NULL ? "" : q);
+		repute_useragent(r, useragent);
 
 		dbr = (struct dkimf_db_repute *) malloc(sizeof *dbr);
 		if (dbr == NULL)

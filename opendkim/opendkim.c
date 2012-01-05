@@ -165,18 +165,24 @@ struct handling
 	int		hndl_dnserr;		/* DNS error */
 	int		hndl_policyerr;		/* policy retrieval error */
 	int		hndl_internal;		/* internal error */
+#ifdef _FFR_REPUTATION
+	int		hndl_reperr;		/* reputation error */
+#endif /* _FFR_REPUTATION */
 	int		hndl_security;		/* security concerns */
 };
 
 struct handling defaults =
 {
-	DKIMF_MILTER_ACCEPT,
-	DKIMF_MILTER_ACCEPT,
-	DKIMF_MILTER_ACCEPT,
-	DKIMF_MILTER_TEMPFAIL,
-	DKIMF_MILTER_ACCEPT,
-	DKIMF_MILTER_TEMPFAIL,
-	DKIMF_MILTER_TEMPFAIL
+	DKIMF_MILTER_ACCEPT,			/* nosig */
+	DKIMF_MILTER_ACCEPT,			/* badsig */
+	DKIMF_MILTER_ACCEPT,			/* nokey */
+	DKIMF_MILTER_TEMPFAIL,			/* dnserr */
+	DKIMF_MILTER_ACCEPT,			/* policyerr */
+	DKIMF_MILTER_TEMPFAIL,			/* internal */
+#ifdef _FFR_REPUTATION
+	DKIMF_MILTER_ACCEPT,			/* reperror */
+#endif /* _FFR_REPUTATION */
+	DKIMF_MILTER_TEMPFAIL			/* security */
 };
 
 #ifdef _FFR_LUA_GLOBALS
@@ -568,6 +574,7 @@ struct lookup
 #define	HNDL_SECURITY		5
 #define	HNDL_NOKEY		6
 #define	HNDL_POLICYERROR	7
+#define	HNDL_REPERROR		8
 
 #define	DKIMF_MODE_SIGNER	0x01
 #define	DKIMF_MODE_VERIFIER	0x02
@@ -619,14 +626,17 @@ struct lookup dkimf_adspactions[] =
 
 struct lookup dkimf_params[] =
 {
-	{ "nosignature",	HNDL_NOSIGNATURE },
 	{ "badsignature",	HNDL_BADSIGNATURE },
+	{ "default",		HNDL_DEFAULT },
 	{ "dnserror",		HNDL_DNSERROR },
 	{ "internal",		HNDL_INTERNAL },
-	{ "security",		HNDL_SECURITY },
 	{ "keynotfound",	HNDL_NOKEY },
+	{ "nosignature",	HNDL_NOSIGNATURE },
 	{ "policyerror",	HNDL_POLICYERROR },
-	{ "default",		HNDL_DEFAULT },
+#ifdef _FFR_REPUTATION
+	{ "reputationerror",	HNDL_REPERROR },
+#endif /* _FFR_REPUTATION */
+	{ "security",		HNDL_SECURITY },
 	{ NULL,			-1 },
 };
 
@@ -5893,6 +5903,9 @@ dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl)
 				hndl->hndl_security = action;
 				hndl->hndl_nokey = action;
 				hndl->hndl_policyerr = action;
+#ifdef _FFR_REPUTATION
+				hndl->hndl_reperr = action;
+#endif /* _FFR_REPUTATION */
 				break;
 
 			  case HNDL_NOSIGNATURE:
@@ -5922,6 +5935,12 @@ dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl)
 			  case HNDL_POLICYERROR:
 				hndl->hndl_policyerr = action;
 				break;
+
+#ifdef _FFR_REPUTATION
+			  case HNDL_REPERROR:
+				hndl->hndl_reperr = action;
+				break;
+#endif /* _FFR_REPUTATION */
 
 			  default:
 				break;
@@ -6144,9 +6163,13 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                   &conf->conf_handling);
 		dkimf_parsehandler(data, "On-NoSignature",
 		                   &conf->conf_handling);
-		dkimf_parsehandler(data, "On-Security", &conf->conf_handling);
 		dkimf_parsehandler(data, "On-PolicyError",
 		                   &conf->conf_handling);
+#ifdef _FFR_REPUTATION
+		dkimf_parsehandler(data, "On-ReptuationError",
+		                   &conf->conf_handling);
+#endif /* _FFR_REPUTATION */
+		dkimf_parsehandler(data, "On-Security", &conf->conf_handling);
 
 		(void) config_get(data, "RemoveARAll", &conf->conf_remarall,
 		                  sizeof conf->conf_remarall);
@@ -13812,20 +13835,54 @@ mlfi_eom(SMFICTX *ctx)
 						domain = dkim_sig_getdomain(sigs[c]);
 						break;
 					}
+					else if (status == -1)
+					{
+						if (conf->conf_dolog)
+						{
+							const char *cd;
+
+							cd = dkim_sig_getdomain(sigs[c]);
+							syslog(LOG_NOTICE,
+							       "%s: reputation query for \"%s\" failed",
+							       dfc->mctx_jobid,
+							       cd);
+						}
+
+						return dkimf_miltercode(ctx,
+						                        conf->conf_handling.hndl_reperr,
+						                        NULL);
+					}
 				}
 
 				if (domain == NULL && !checked)
 				{
-					if (dkimf_rep_check(conf->conf_rep,
-					                    NULL,
-					                    dfc->mctx_spam,
-					                    digest,
-					                    SHA_DIGEST_LENGTH,
-					                    &limit,
-					                    &ratio,
-					                    &count,
-					                    &spam) == 1)
+					status = dkimf_rep_check(conf->conf_rep,
+					                         NULL,
+					                         dfc->mctx_spam,
+					                         digest,
+					                         SHA_DIGEST_LENGTH,
+					                         &limit,
+					                         &ratio,
+					                         &count,
+					                         &spam);
+
+					if (status == 1)
+					{
 						domain = "NULL domain";
+					}
+					else if (status == -1)
+					{
+						if (conf->conf_dolog)
+						{
+							syslog(LOG_NOTICE,
+							       "%s: reputation query for NULL domain failed",
+							       dfc->mctx_jobid);
+						}
+
+						return dkimf_miltercode(ctx,
+						                        conf->conf_handling.hndl_reperr,
+						                        NULL);
+					}
 				}
 
 				if (domain != NULL)
