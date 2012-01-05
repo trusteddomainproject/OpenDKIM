@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2011, 2012, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
