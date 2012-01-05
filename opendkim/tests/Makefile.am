@@ -66,9 +66,6 @@ EXTRA_DIST = \
 	t-sign-atps t-sign-atps.conf t-sign-atps.lua \
 	testkey.private pubkeys cp-test testmta
 
-
-
-
 MOSTLYCLEANFILES=
 
 if GCOV_ONLY

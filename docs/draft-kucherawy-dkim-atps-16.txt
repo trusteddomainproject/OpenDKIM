@@ -3,12 +3,12 @@
 
 Individual submission                                       M. Kucherawy
 Internet-Draft                                           Cloudmark, Inc.
-Intended status: Experimental                            January 4, 2012
-Expires: July 7, 2012
+Intended status: Experimental                            January 5, 2012
+Expires: July 8, 2012
 
 
                   DKIM Authorized Third-Party Signers
-                      draft-kucherawy-dkim-atps-15
+                      draft-kucherawy-dkim-atps-16
 
 Abstract
 
@@ -33,7 +33,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on July 7, 2012.
+   This Internet-Draft will expire on July 8, 2012.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Kucherawy                 Expires July 7, 2012                  [Page 1]
+Kucherawy                 Expires July 8, 2012                  [Page 1]
 
 Internet-Draft            DKIM ATPS Experiment              January 2012
 
@@ -68,25 +68,25 @@ Table of Contents
      4.1.  Hash Selection . . . . . . . . . . . . . . . . . . . . . .  4
      4.2.  Extension to DKIM  . . . . . . . . . . . . . . . . . . . .  5
      4.3.  ATPS Query Details . . . . . . . . . . . . . . . . . . . .  5
-     4.4.  ATPS Reply Details . . . . . . . . . . . . . . . . . . . .  6
+     4.4.  ATPS Reply Details . . . . . . . . . . . . . . . . . . . .  7
    5.  Interpretation . . . . . . . . . . . . . . . . . . . . . . . .  8
    6.  Relationship to ADSP . . . . . . . . . . . . . . . . . . . . .  8
    7.  Experiment Process . . . . . . . . . . . . . . . . . . . . . .  8
    8.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  9
      8.1.  ATPS Tag Registry  . . . . . . . . . . . . . . . . . . . .  9
-     8.2.  Email Authentication Method Name Registry Update . . . . .  9
+     8.2.  Email Authentication Method Name Registry Update . . . . . 10
      8.3.  Email Authentication Result Name Registry Update . . . . . 10
      8.4.  DKIM-Signature Tag Specification Registry  . . . . . . . . 11
-   9.  Security Considerations  . . . . . . . . . . . . . . . . . . . 11
-     9.1.  Hash Selection . . . . . . . . . . . . . . . . . . . . . . 11
+   9.  Security Considerations  . . . . . . . . . . . . . . . . . . . 12
+     9.1.  Hash Selection . . . . . . . . . . . . . . . . . . . . . . 12
      9.2.  False Privacy  . . . . . . . . . . . . . . . . . . . . . . 12
      9.3.  Transient Security Failures  . . . . . . . . . . . . . . . 12
-     9.4.  Load on the DNS  . . . . . . . . . . . . . . . . . . . . . 12
+     9.4.  Load on the DNS  . . . . . . . . . . . . . . . . . . . . . 13
    10. References . . . . . . . . . . . . . . . . . . . . . . . . . . 13
      10.1. Normative References . . . . . . . . . . . . . . . . . . . 13
-     10.2. Informative References . . . . . . . . . . . . . . . . . . 13
+     10.2. Informative References . . . . . . . . . . . . . . . . . . 14
    Appendix A.  Example Query and Reply . . . . . . . . . . . . . . . 14
-   Appendix B.  Choice of DNS RR Type . . . . . . . . . . . . . . . . 14
+   Appendix B.  Choice of DNS RR Type . . . . . . . . . . . . . . . . 15
    Appendix C.  Acknowledgements  . . . . . . . . . . . . . . . . . . 15
 
 
@@ -108,7 +108,7 @@ Table of Contents
 
 
 
-Kucherawy                 Expires July 7, 2012                  [Page 2]
+Kucherawy                 Expires July 8, 2012                  [Page 2]
 
 Internet-Draft            DKIM ATPS Experiment              January 2012
 
@@ -164,7 +164,7 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
 
 
 
-Kucherawy                 Expires July 7, 2012                  [Page 3]
+Kucherawy                 Expires July 8, 2012                  [Page 3]
 
 Internet-Draft            DKIM ATPS Experiment              January 2012
 
@@ -209,25 +209,30 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
 
    The author's ADMD will indicate authorization of a third party to
    sign its mail via the presence of a DNS TXT record that contains an
-   encoding of the third party's DNS domain name.  The encoding
-   mechanism is constructed so that any domain name can be added to the
-   DNS in a fixed length, so that longer third-party domain names are
-   not excluded from participation because of the overall length limit
-   on a DNS query.
-
-   Part of the mechanism requires constructing a digest of the third
-   party's DNS domain name.  The author ADMD MUST select a digest
-
+   encoding of the third party's DNS domain name.  There are two
+   supported methods for doing so, one that involves a plain copy of the
+   third party's DNS domain name, and one that involves an encoded
+   version of the name.  The encoding mechanism is provided so that any
+   domain name can be added to the DNS in a fixed length, so that longer
+   third-party domain names are not excluded from participation because
+   of the overall length limit on a DNS query.
 
 
-Kucherawy                 Expires July 7, 2012                  [Page 4]
+
+
+Kucherawy                 Expires July 8, 2012                  [Page 4]
 
 Internet-Draft            DKIM ATPS Experiment              January 2012
 
 
-   ("hash") method currently supported by DKIM (see Section 7.7 of
-   [DKIM]), and this selection needs to be communicated to the ATPS
+   If selected, the encoding mechanism requires constructing a digest of
+   the third party's DNS domain name.  The author ADMD MUST select a
+   digest ("hash") method currently supported by DKIM (see Section 7.7
+   of [DKIM]), and this selection needs to be communicated to the ATPS
    Signer as it is used in generation of its the third party signatures.
+
+   Where the encoding mechanism is not used, the ATPS Signer MUST use a
+   hash name of "none".
 
    The full DNS mechanism is specified in Section 4.3.
 
@@ -249,7 +254,8 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
 
       dkim-atps-tag = %x61.74.70.73 *WSP "=" *WSP domain-name
 
-      dkim-atpsh-tag = %x61.74.70.73.68 *WSP "=" *WSP key-h-tag-alg
+      dkim-atpsh-tag = %x61.74.70.73.68 *WSP "=" *WSP
+                       ( "none" / key-h-tag-alg )
 
    "domain-name" and "key-h-tag-alg" are defined in [DKIM].  Note that
    according to [DKIM], internationalized domain names are to be encoded
@@ -268,18 +274,18 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
 
    If they do not match, the "atps" tag MUST be ignored.
 
+
+
+Kucherawy                 Expires July 8, 2012                  [Page 5]
+
+Internet-Draft            DKIM ATPS Experiment              January 2012
+
+
    If they do match, the Verifier issues a DNS TXT query, as specified
    below, looking for confirmation by the Author ADMD that the ATPS
    Signer is authorized by that ADMD to sign mail on its behalf.  Where
    multiple DKIM signatures are present including valid "atps" tags,
    these queries MAY be done in any order or MAY be done in parallel.
-
-
-
-Kucherawy                 Expires July 7, 2012                  [Page 5]
-
-Internet-Draft            DKIM ATPS Experiment              January 2012
-
 
    Where the RFC5322.From field contains multiple addresses, this
    process SHOULD be applied if the "atps" tag's value matches any of
@@ -293,32 +299,45 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
    1.  Select the hash algorithm from the "atpsh" tag in the signature.
        If the hash algorithm specified does not appear in the list
        registered with IANA as one valid for use with DKIM (see Section
-       7.7 of [DKIM]), abort the query.
+       7.7 of [DKIM]), and is not the reserved name "none" as described
+       above, abort the query.
 
    2.  Extract the value of the "d=" tag from the signature.
 
    3.  Convert any upper-case characters in that string to their lower-
        case equivalents.
 
-   4.  Feed the resulting string to the selected hash algorithm.
+   4.  If the selected hash algorithm is not "none", apply the following
+       additional steps:
 
-   5.  Convert the output of the hash to a string of printable ASCII
-       characters by applying base32 encoding as defined in Section 6 of
-       [BASE32].  The base32 encoding is used because its output is
-       restricted to characters that are legal for use in labels in the
-       DNS, and evaluates the same way in the DNS whether encoded using
-       uppercase or lowercase characters.
+       A.  Feed the resulting string to the selected hash algorithm.
 
-   6.  Append the string "._atps."
+       B.  Convert the output of the hash to a string of printable ASCII
+           characters by applying base32 encoding as defined in Section
+           6 of [BASE32].  The base32 encoding is used because its
+           output is restricted to characters that are legal for use in
+           labels in the DNS, and evaluates the same way in the DNS
+           whether encoded using uppercase or lowercase characters.
 
-   7.  Append the domain name found in the "atps" tag of the validated
+   5.  Append the string "._atps."
+
+   6.  Append the domain name found in the "atps" tag of the validated
        signature.
 
    The query's formal syntax definition, per [ABNF]:
 
-           atps-query = 1*63BASE32 %x2e.5f.61.74.70.73.2e domain-name
+     atps-query = ( 1*63BASE32 / domain-name )
+                  %x2e.5f.61.74.70.73.2e domain-name
 
-           BASE32 = ( ALPHA / %x32-37 )
+
+
+
+Kucherawy                 Expires July 8, 2012                  [Page 6]
+
+Internet-Draft            DKIM ATPS Experiment              January 2012
+
+
+     BASE32 = ( ALPHA / %x32-37 )
 
    The width limit of 63 on the base32 encoding is based on the maximum
    label limit found in Section 2.3.4 of [DNS].
@@ -329,14 +348,6 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
 
    In the descriptions below, the label NOERROR symbolizes DNS response
    code ("rcode") 0, and NXDOMAIN represents rcode 3.  See Section 4.1.1
-
-
-
-Kucherawy                 Expires July 7, 2012                  [Page 6]
-
-Internet-Draft            DKIM ATPS Experiment              January 2012
-
-
    of [DNS] for further details.
 
    At this time, only three possibilities need to be identified in this
@@ -374,7 +385,16 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
       the base32 encoding of this name is not the same as the base32
       portion of the query, or more simply if this name is not the same
       as that found in the "atps" tag, a hash collision could have
-      occurred.  ABNF:
+
+
+
+Kucherawy                 Expires July 8, 2012                  [Page 7]
+
+Internet-Draft            DKIM ATPS Experiment              January 2012
+
+
+      occurred.  Its use where no name hashing has occurred is
+      redundant.  ABNF:
 
       atps-d-tag = %x64 [FWS] "=" [FWS] domain-name
                  ; FWS is defined in [DKIM]
@@ -385,13 +405,6 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
 
       atps-v-tag = %x76 [FWS] "=" [FWS] %x41.54.50.53.31
                  ; FWS is defined in [DKIM]
-
-
-
-Kucherawy                 Expires July 7, 2012                  [Page 7]
-
-Internet-Draft            DKIM ATPS Experiment              January 2012
-
 
 5.  Interpretation
 
@@ -429,6 +442,13 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
    specific history on this question.  Thus, this experiment was
    devised.
 
+
+
+Kucherawy                 Expires July 8, 2012                  [Page 8]
+
+Internet-Draft            DKIM ATPS Experiment              January 2012
+
+
    The experimental protocol described here has been implemented as an
    extension to DKIM in two software products, one of which is open
    source and seeing increasingly wide use.  It is included there to
@@ -442,13 +462,6 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
    observe and report the impact of what is discussed in Section 9.4,
    especially with respect to MTA latency that may be introduced.
 
-
-
-Kucherawy                 Expires July 7, 2012                  [Page 8]
-
-Internet-Draft            DKIM ATPS Experiment              January 2012
-
-
    If the response is substantial and positive, advancement along the
    Standards Track might be warranted.
 
@@ -459,8 +472,8 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
 8.1.  ATPS Tag Registry
 
    IANA is directed to create an Authorized Third Party Signature (ATPS)
-   Tag Registry to enumerate the tags that are valid for use in ATPS
-   records.
+   Tag Registry, under the DomainKeys Identified Mail (DKIM) Parameters
+   group, to enumerate the tags that are valid for use in ATPS records.
 
    New registrations or updates MUST be published in accordance with the
    "Specification Required" guidelines described in [IANA].  Such
@@ -482,6 +495,16 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
        |  v  | [this memo]  | current |
        +-----+--------------+---------+
 
+
+
+
+
+
+Kucherawy                 Expires July 8, 2012                  [Page 9]
+
+Internet-Draft            DKIM ATPS Experiment              January 2012
+
+
 8.2.  Email Authentication Method Name Registry Update
 
    The following is to be added to the Email Authentication Methods
@@ -493,17 +516,6 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
    Defined In:  [THIS MEMO]
 
    ptype:  header
-
-
-
-
-
-
-
-Kucherawy                 Expires July 7, 2012                  [Page 9]
-
-Internet-Draft            DKIM ATPS Experiment              January 2012
-
 
    property:  from
 
@@ -538,6 +550,17 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
    Meaning:  An ATPS evaluation was performed and a valid signature from
       an authorized third-party was found on the message.
 
+
+
+
+
+
+
+Kucherawy                 Expires July 8, 2012                 [Page 10]
+
+Internet-Draft            DKIM ATPS Experiment              January 2012
+
+
    Code:  fail
 
    Existing/New Code:  existing
@@ -550,16 +573,6 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
       not reference a domain name found in the RFC5322.From field, or
       the ATPS test(s) performed failed to confirm a third-party
       authorization.
-
-
-
-
-
-
-Kucherawy                 Expires July 7, 2012                 [Page 10]
-
-Internet-Draft            DKIM ATPS Experiment              January 2012
-
 
    Code:  temperror
 
@@ -591,6 +604,19 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
    Registry (in the DomainKeys Identifie Mail (DKIM) Parameters group)
    established by [DKIM] as per [IANA]:
 
+
+
+
+
+
+
+
+
+Kucherawy                 Expires July 8, 2012                 [Page 11]
+
+Internet-Draft            DKIM ATPS Experiment              January 2012
+
+
       +-------+-------------+---------+
       | TYPE  | REFERENCE   | STATUS  |
       +-------+-------------+---------+
@@ -609,14 +635,6 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
    The selection of the hash algorithm to be used (see Section 4.1) has
    security implications, as weaker algorithms have more risk of
    collision, meaning a second DNS domain name could in theory be
-
-
-
-Kucherawy                 Expires July 7, 2012                 [Page 11]
-
-Internet-Draft            DKIM ATPS Experiment              January 2012
-
-
    constructed to appear to have been authorized by the Author ADMD.
 
    At the time of publication of [DKIM], use of SHA256 was preferred
@@ -646,6 +664,15 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
    developed and deployed.  Thorough vetting and monitoring practices by
    ADMDs of third party signers will likely need to become the norm.
 
+
+
+
+
+Kucherawy                 Expires July 8, 2012                 [Page 12]
+
+Internet-Draft            DKIM ATPS Experiment              January 2012
+
+
 9.4.  Load on the DNS
 
    A Verifier participating in DKIM, ADSP and ATPS will now issue a
@@ -665,14 +692,6 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
    the ADMD to operate a web server (which has its own security
    implications) and the addition of the establishment of a TCP
    connection.  Moreover, the Verifier would be well advised to
-
-
-
-Kucherawy                 Expires July 7, 2012                 [Page 12]
-
-Internet-Draft            DKIM ATPS Experiment              January 2012
-
-
    implement caching of this data to prevent ATPS from being used as a
    denial-of-service vector.
 
@@ -702,6 +721,14 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
    [EMAIL-ARCH]  Crocker, D., "Internet Mail Architecture", RFC 5598,
                  October 2008.
 
+
+
+
+Kucherawy                 Expires July 8, 2012                 [Page 13]
+
+Internet-Draft            DKIM ATPS Experiment              January 2012
+
+
    [KEYWORDS]    Bradner, S., "Key words for use in RFCs to Indicate
                  Requirement Levels", BCP 14, RFC 2119, March 1997.
 
@@ -721,13 +748,6 @@ Internet-Draft            DKIM ATPS Experiment              January 2012
    [IDNA]        Klensin, J., "Internationalized Domain Names for
                  Applications (IDNA): Definitions and Document
                  Framework", RFC 5890, August 2010.
-
-
-
-Kucherawy                 Expires July 7, 2012                 [Page 13]
-
-Internet-Draft            DKIM ATPS Experiment              January 2012
-
 
 Appendix A.  Example Query and Reply
 
@@ -757,6 +777,14 @@ Appendix A.  Example Query and Reply
        to printable form using base32 encoding, resulting in the string
        "ZTZGRRV3F45A4U6HLDKBF3ZCOW4V2AJX".
 
+
+
+
+Kucherawy                 Expires July 8, 2012                 [Page 14]
+
+Internet-Draft            DKIM ATPS Experiment              January 2012
+
+
    5.  A TXT query is issued to
        "ZTZGRRV3F45A4U6HLDKBF3ZCOW4V2AJX._atps.example.com".
 
@@ -777,13 +805,6 @@ Appendix B.  Choice of DNS RR Type
    store key and ADSP data in the DNS using TXT resource records.  To
    enable re-use of existing DKIM code, it was decided to re-use the TXT
    message scheme.
-
-
-
-Kucherawy                 Expires July 7, 2012                 [Page 14]
-
-Internet-Draft            DKIM ATPS Experiment              January 2012
-
 
 Appendix C.  Acknowledgements
 
@@ -815,26 +836,5 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy                 Expires July 7, 2012                 [Page 15]
+Kucherawy                 Expires July 8, 2012                 [Page 15]
 

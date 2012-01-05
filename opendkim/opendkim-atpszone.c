@@ -184,7 +184,8 @@ main(int argc, char **argv)
 
 		  case 'h':
 			if (strcasecmp(optarg, "sha1") != 0 &&
-			    strcasecmp(optarg, "sha256") != 0)
+			    strcasecmp(optarg, "sha256") != 0 &&
+			    strcasecmp(optarg, "none") != 0)
 			{
 				fprintf(stderr, "%s: invalid hash algorithm\n",
 				        progname);
@@ -400,54 +401,68 @@ main(int argc, char **argv)
 		/* convert to lowercase */
 		dkimf_lowercase(domain);
 
-		/* compute SHA1 hash */
+		memset(base32, '\0', sizeof base32);
+
+		if (hash == NULL || strcasecmp(hash, "none") != 0)
+		{
+			/* compute SHA1 hash */
 #ifdef USE_GNUTLS
 # ifdef HAVE_SHA256
-		if (hash == NULL || strcasecmp(hash, "sha256") == 0)
-			(void) gnutls_hash_init(&sha, GNUTLS_DIG_SHA256);
-		else
+			if (hash == NULL || strcasecmp(hash, "sha256") == 0)
+			{
+				(void) gnutls_hash_init(&sha,
+				                        GNUTLS_DIG_SHA256);
+			}
+			else
+			{
+				(void) gnutls_hash_init(&sha, GNUTLS_DIG_SHA1);
+			}
 # else /* HAVE_SHA256 */
 			(void) gnutls_hash_init(&sha, GNUTLS_DIG_SHA1);
 # endif /* HAVE_SHA256 */
-		(void) gnutls_hash(sha, domain, strlen(domain));
-		(void) gnutls_hash_deinit(sha, shaout);
+			(void) gnutls_hash(sha, domain, strlen(domain));
+			(void) gnutls_hash_deinit(sha, shaout);
 #else /* USE_GNUTLS */
 # ifdef HAVE_SHA256
-		if (hash == NULL || strcasecmp(hash, "sha256") == 0)
-		{
-			SHA256_Init(&sha256);
-			SHA256_Update(&sha256, domain, strlen(domain));
-			SHA256_Final(shaout, &sha256);
-		}
-		else
-		{
+			if (hash == NULL || strcasecmp(hash, "sha256") == 0)
+			{
+				SHA256_Init(&sha256);
+				SHA256_Update(&sha256, domain, strlen(domain));
+				SHA256_Final(shaout, &sha256);
+			}
+			else
+			{
+				SHA1_Init(&sha);
+				SHA1_Update(&sha, domain, strlen(domain));
+				SHA1_Final(shaout, &sha);
+			}
+# else /* HAVE_SHA256 */
 			SHA1_Init(&sha);
 			SHA1_Update(&sha, domain, strlen(domain));
 			SHA1_Final(shaout, &sha);
-		}
-# else /* HAVE_SHA256 */
-		SHA1_Init(&sha);
-		SHA1_Update(&sha, domain, strlen(domain));
-		SHA1_Final(shaout, &sha);
 # endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 
-		/* encode with base32 */
-		memset(base32, '\0', sizeof base32);
-		b32len = sizeof base32 - 1;
-		(void) dkim_base32_encode(base32, &b32len, shaout, shalen);
+			/* encode with base32 */
+			memset(base32, '\0', sizeof base32);
+			b32len = sizeof base32 - 1;
+			(void) dkim_base32_encode(base32, &b32len, shaout,
+			                          shalen);
+		}
 
 		/* generate output */
 		if (ttl == -1)
 		{
 			fprintf(out, "%s%s\tIN\tTXT\t\"%s\"\n",
-			        base32, suffix ? ATPSZONE : "",
+			        base32[0] == '\0' ? domain : base32,
+			        suffix ? ATPSZONE : "",
 			        VALIDATPS);
 		}
 		else
 		{
 			fprintf(out, "%s%s\t%d\tIN\tTXT\t\"%s\"\n",
-			        base32, suffix ? ATPSZONE : "", ttl,
+			        base32[0] == '\0' ? domain : base32,
+			        suffix ? ATPSZONE : "", ttl,
 			        VALIDATPS);
 		}
 	}

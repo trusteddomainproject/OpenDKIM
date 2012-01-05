@@ -683,6 +683,7 @@ struct lookup dkimf_atpshash[] =
 	{ "sha256",		1 },
 #endif /* HAVE_SHA256 */
 	{ "sha1",		1 },
+	{ "none",		1 },
 	{ NULL,			-1 },
 };
 
