@@ -96,7 +96,6 @@ end
 
 -- confirm properties
 sig = mt.getheader(conn, "DKIM-Signature", 0)
-mt.echo(sig)
 if string.find(sig, "c=relaxed/simple", 1, true) == nil then
 	error("signature has wrong c= value")
 end
