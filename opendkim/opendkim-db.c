@@ -4323,9 +4323,11 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 #ifdef _FFR_REPUTATION
 	  case DKIMF_DB_TYPE_REPUTE:
 	  {
+		struct dkimf_db_repute *dbr;
 		REPUTE rep;
 
-		rep = (REPUTE) db->db_data;
+		dbr = (struct dkimf_db_repute *) db->db_data;
+		rep = dbr->repute_handle;
 		return strlcpy(err, repute_error(rep), errlen);
 	  }
 #endif /* _FFR_REPUTATION */

@@ -13810,6 +13810,7 @@ mlfi_eom(SMFICTX *ctx)
 				_Bool checked = FALSE;
 				const char *domain = NULL;
 				unsigned char digest[SHA_DIGEST_LENGTH];
+				char errbuf[BUFRSZ + 1];
 
 				SHA1_Final(digest, &dfc->mctx_hash);
 
@@ -13829,7 +13830,9 @@ mlfi_eom(SMFICTX *ctx)
 					                         &limit,
 					                         &ratio,
 					                         &count,
-					                         &spam);
+					                         &spam,
+					                         errbuf,
+					                         sizeof errbuf);
 
 					if (status == 1)
 					{
@@ -13844,9 +13847,9 @@ mlfi_eom(SMFICTX *ctx)
 
 							cd = dkim_sig_getdomain(sigs[c]);
 							syslog(LOG_NOTICE,
-							       "%s: reputation query for \"%s\" failed",
+							       "%s: reputation query for \"%s\" failed: %s",
 							       dfc->mctx_jobid,
-							       cd);
+							       cd, errbuf);
 						}
 
 						return dkimf_miltercode(ctx,
@@ -13865,7 +13868,9 @@ mlfi_eom(SMFICTX *ctx)
 					                         &limit,
 					                         &ratio,
 					                         &count,
-					                         &spam);
+					                         &spam,
+					                         errbuf,
+					                         sizeof errbuf);
 
 					if (status == 1)
 					{
@@ -13876,8 +13881,9 @@ mlfi_eom(SMFICTX *ctx)
 						if (conf->conf_dolog)
 						{
 							syslog(LOG_NOTICE,
-							       "%s: reputation query for NULL domain failed",
-							       dfc->mctx_jobid);
+							       "%s: reputation query for NULL domain failed: %s",
+							       dfc->mctx_jobid,
+							       errbuf);
 						}
 
 						return dkimf_miltercode(ctx,
