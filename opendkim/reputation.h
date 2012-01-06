@@ -36,7 +36,8 @@ extern int dkimf_rep_init __P((DKIMF_REP *, time_t, unsigned int, unsigned int,
                                DKIMF_DB));
 extern int dkimf_rep_check __P((DKIMF_REP, DKIM_SIGINFO *, _Bool,
                                 void *, size_t, unsigned long *, float *,
-                                unsigned long *, unsigned long *));
+                                unsigned long *, unsigned long *,
+                                char *, size_t));
 extern int dkimf_rep_chown_cache __P((DKIMF_REP, uid_t));
 extern void dkimf_rep_close __P((DKIMF_REP));
 

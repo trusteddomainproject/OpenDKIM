@@ -20,6 +20,7 @@ static char reputation_c_id[] = "@(#)$Id: stats.c,v 1.27.2.1 2010/10/27 21:43:09
 #include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 #include <assert.h>
 
@@ -161,10 +162,17 @@ dkimf_rep_close(DKIMF_REP rephandle)
 **  DKIMF_REP_CHECK -- check reputation
 **
 **  Parameters:
-**  	rephandle -- reputation service handle
+**  	rep -- reputation service handle
 **  	sig -- a valid signature on this message
-**  	lowtime -- check low-time domain record (ignoring sig)
 **  	spam -- spammy or not spammy?  That is the question.
+**  	hash -- hash of the message, for counting dups
+**  	hashlen -- number of bytes in the hash
+**  	limit -- limit for this signer (returned)
+**  	ratio -- spam ratio for this signer (returned)
+**  	count -- message count for this signer (returned)
+**  	spamcnt -- spam count for this signer (returned)
+**  	errbuf -- buffer to receive errors
+**  	errlen -- bytes available at errbuf
 **
 **  Return value:
 **  	2 -- no data found for this domain
@@ -179,7 +187,8 @@ dkimf_rep_close(DKIMF_REP rephandle)
 int
 dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
                 void *hash, size_t hashlen, unsigned long *limit,
-                float *ratio, unsigned long *count, unsigned long *spamcnt)
+                float *ratio, unsigned long *count, unsigned long *spamcnt,
+                char *errbuf, size_t errlen)
 {
 	_Bool f;
 	size_t dlen;
@@ -271,6 +280,8 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 	f = FALSE;
 	if (dkimf_db_get(rep->rep_reps, domain, dlen, req, 1, &f) != 0)
 	{
+		if (errbuf != NULL)
+			dkimf_db_strerror(rep->rep_reps, errbuf, errlen);
 		pthread_mutex_unlock(&rep->rep_lock);
 		return -1;
 	}
@@ -296,6 +307,11 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			if (dkimf_db_get(rep->rep_lowtime, domain, dlen, req,
 			                 1, &f) != 0)
 			{
+				if (errbuf != NULL)
+				{
+					dkimf_db_strerror(rep->rep_reps,
+					                  errbuf, errlen);
+				}
 				pthread_mutex_unlock(&rep->rep_lock);
 				return -1;
 			}
@@ -335,6 +351,11 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			if (dkimf_db_get(rep->rep_limits, domain, dlen, req,
 			                 fields, &f) != 0)
 			{
+				if (errbuf != NULL)
+				{
+					dkimf_db_strerror(rep->rep_reps,
+					                  errbuf, errlen);
+				}
 				pthread_mutex_unlock(&rep->rep_lock);
 				return -1;
 			}
@@ -346,6 +367,12 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 				                 strlen(DKIMF_REP_LOWTIME),
 				                 req, fields, &f) != 0)
 				{
+					if (errbuf != NULL)
+					{
+						dkimf_db_strerror(rep->rep_reps,
+						                  errbuf,
+						                  errlen);
+					}
 					pthread_mutex_unlock(&rep->rep_lock);
 					return -1;
 				}
@@ -356,6 +383,12 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 				if (dkimf_db_get(rep->rep_limits, "*", 1, req,
 				                 fields, &f) != 0)
 				{
+					if (errbuf != NULL)
+					{
+						dkimf_db_strerror(rep->rep_reps,
+						                  errbuf,
+						                  errlen);
+					}
 					pthread_mutex_unlock(&rep->rep_lock);
 					return -1;
 				}
@@ -372,6 +405,11 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			reps.reps_limit = (unsigned long) (ceil((double) strtoul(buf, &p, 10) / (double) rep->rep_factor) + 1.);
 			if (p != NULL && *p != '\0')
 			{
+				if (errbuf != NULL)
+				{
+					snprintf(errbuf, errlen,
+					         "failed to parse limit reply");
+				}
 				pthread_mutex_unlock(&rep->rep_lock);
 				return -1;
 			}
@@ -388,6 +426,12 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 				                 domain, dlen,
 				                 req, 1, &f) != 0)
 				{
+					if (errbuf != NULL)
+					{
+						dkimf_db_strerror(rep->rep_reps,
+						                  errbuf,
+						                  errlen);
+					}
 					pthread_mutex_unlock(&rep->rep_lock);
 					return -1;
 				}
@@ -438,6 +482,11 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		if (dkimf_db_get(rep->rep_ratios, domain, dlen, req,
 		                 1, &f) != 0)
 		{
+			if (errbuf != NULL)
+			{
+				dkimf_db_strerror(rep->rep_reps,
+				                  errbuf, errlen);
+			}
 			pthread_mutex_unlock(&rep->rep_lock);
 			return -1;
 		}
@@ -449,6 +498,11 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			                 strlen(DKIMF_REP_LOWTIME),
 			                 req, 1, &f) != 0)
 			{
+				if (errbuf != NULL)
+				{
+					dkimf_db_strerror(rep->rep_reps,
+					                  errbuf, errlen);
+				}
 				pthread_mutex_unlock(&rep->rep_lock);
 				return -1;
 			}
@@ -459,6 +513,11 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			if (dkimf_db_get(rep->rep_ratios, "*", 1, req,
 			                 1, &f) != 0)
 			{
+				if (errbuf != NULL)
+				{
+					dkimf_db_strerror(rep->rep_reps,
+					                  errbuf, errlen);
+				}
 				pthread_mutex_unlock(&rep->rep_lock);
 				return -1;
 			}
@@ -475,6 +534,11 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		reps.reps_ratio = strtof(buf, &p);
 		if (p != NULL && *p != '\0')
 		{
+			if (errbuf != NULL)
+			{
+				snprintf(errbuf, errlen,
+				         "failed to parse ratio reply");
+			}
 			pthread_mutex_unlock(&rep->rep_lock);
 			return -1;
 		}
@@ -488,6 +552,8 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 	if (dkimf_db_get(rep->rep_dups, hash, hashlen, req, 1, &f) != 0)
 	{
+		if (errbuf != NULL)
+			dkimf_db_strerror(rep->rep_reps, errbuf, errlen);
 		pthread_mutex_unlock(&rep->rep_lock);
 		return -1;
 	}
@@ -503,6 +569,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 		if (dkimf_db_put(rep->rep_reps, domain, dlen,
 		                 &reps, sizeof reps) != 0)
 		{
+			dkimf_db_strerror(rep->rep_reps, errbuf, errlen);
 			pthread_mutex_unlock(&rep->rep_lock);
 			return -1;
 		}
