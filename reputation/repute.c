@@ -37,11 +37,13 @@ static char repute_c_id[] = "$Id$";
 /* data types */
 struct repute_io
 {
-	CURL *			repute_curl;
+	CURLcode		repute_errcode;
+	unsigned int		repute_rcode;
 	size_t			repute_alloc;
 	size_t			repute_offset;
 	char *			repute_buf;
 	struct repute_io *	repute_next;
+	CURL *			repute_curl;
 };
 
 struct repute_handle
@@ -515,15 +517,26 @@ repute_doquery(struct repute_io *rio, const char *url)
 
 	cstatus = curl_easy_setopt(rio->repute_curl, CURLOPT_WRITEDATA, rio);
 	if (cstatus != CURLE_OK)
+	{
+		rio->repute_errcode = cstatus;
 		return REPUTE_STAT_INTERNAL;
+	}
 
 	cstatus = curl_easy_setopt(rio->repute_curl, CURLOPT_URL, url);
 	if (cstatus != CURLE_OK)
+	{
+		rio->repute_errcode = cstatus;
 		return REPUTE_STAT_INTERNAL;
+	}
 
+	rio->repute_errcode = 0;
+	rio->repute_rcode = 0;
 	cstatus = curl_easy_perform(rio->repute_curl);
 	if (cstatus != CURLE_OK)
+	{
+		rio->repute_errcode = cstatus;
 		return REPUTE_STAT_QUERY;
+	}
 
 	cstatus = curl_easy_getinfo(rio->repute_curl, CURLINFO_RESPONSE_CODE,
 	                            &rcode);
@@ -531,6 +544,30 @@ repute_doquery(struct repute_io *rio, const char *url)
 		return REPUTE_STAT_QUERY;
 
 	return REPUTE_STAT_OK;
+}
+
+/*
+**  REPUTE_GET_ERROR -- retrieve an error string
+**
+**  Parameters:
+**  	rio -- repute I/O handle where an error occurred
+**  	buf -- buffer to which to write the error string
+**  	buflen -- bytes available at "buf"
+**
+**  Return value:
+**  	None.
+*/
+
+static void
+repute_get_error(struct repute_io *rio, char *buf, size_t buflen)
+{
+	assert(rio != NULL);
+	assert(buf != NULL);
+
+	if (rio->repute_rcode != 0)
+		snprintf(buf, buflen, "HTTP error code %u", rio->repute_rcode);
+	else
+		snprintf(buf, buflen, curl_easy_strerror(rio->repute_errcode));
 }
 
 /*
@@ -587,6 +624,8 @@ repute_get_template(REPUTE rep)
 	cstatus = curl_easy_setopt(rio->repute_curl, CURLOPT_WRITEDATA, rio);
 	if (cstatus != CURLE_OK)
 	{
+		snprintf(rep->rep_error, sizeof rep->rep_error, "%s",
+		         curl_easy_strerror(cstatus));
 		repute_put_io(rep, rio);
 		return REPUTE_STAT_INTERNAL;
 	}
@@ -594,6 +633,8 @@ repute_get_template(REPUTE rep)
 	cstatus = curl_easy_setopt(rio->repute_curl, CURLOPT_URL, url);
 	if (cstatus != CURLE_OK)
 	{
+		snprintf(rep->rep_error, sizeof rep->rep_error, "%s",
+		         curl_easy_strerror(cstatus));
 		repute_put_io(rep, rio);
 		return REPUTE_STAT_INTERNAL;
 	}
@@ -601,6 +642,8 @@ repute_get_template(REPUTE rep)
 	cstatus = curl_easy_perform(rio->repute_curl);
 	if (cstatus != CURLE_OK)
 	{
+		snprintf(rep->rep_error, sizeof rep->rep_error, "%s",
+		         curl_easy_strerror(cstatus));
 		repute_put_io(rep, rio);
 		return REPUTE_STAT_QUERY;
 	}
@@ -609,6 +652,8 @@ repute_get_template(REPUTE rep)
 	                            &rcode);
 	if (rcode != 200)
 	{
+		snprintf(rep->rep_error, sizeof rep->rep_error,
+		         "HTTP response code %u", (unsigned int) rcode);
 		repute_put_io(rep, rio);
 		return REPUTE_STAT_QUERY;
 	}
@@ -755,7 +800,7 @@ void
 repute_useragent(REPUTE rep, const char *ua)
 {
 	if (rep->rep_useragent != NULL)
-		free(rep->rep_useragent);
+		free((void *) rep->rep_useragent);
 
 	rep->rep_useragent = strdup(ua);
 }
@@ -847,6 +892,7 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 	status = repute_doquery(rio, genurl);
 	if (status != REPUTE_STAT_OK)
 	{
+		repute_get_error(rio, rep->rep_error, sizeof rep->rep_error);
 		repute_put_io(rep, rio);
 		return status;
 	}
@@ -855,6 +901,8 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 	                      &reputation, &conf, &samples, &limit, &when);
 	if (status != REPUTE_STAT_OK)
 	{
+		snprintf(rep->rep_error, sizeof rep->rep_error,
+		         "error parsing reply");
 		repute_put_io(rep, rio);
 		return status;
 	}
