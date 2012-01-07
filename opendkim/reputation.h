@@ -2,7 +2,7 @@
 **  Copyright (c) 2007 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2011, 2012, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: reputation.h,v 1.10.2.1 2010/10/27 21:43:09 cm-msk Exp $
 */
