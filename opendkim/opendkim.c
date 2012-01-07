@@ -251,6 +251,9 @@ struct dkimf_config
 	_Bool		conf_vbr_purge;		/* purge X-VBR-* fields */
 	_Bool		conf_vbr_trustedonly;	/* trusted certifiers only */
 #endif /* _FFR_VBR */
+#ifdef _FFR_REPUTATION
+	_Bool		conf_repverbose;	/* verbose reputation logs */
+#endif /* _FFR_REPUTATION */
 	unsigned int	conf_mode;		/* operating mode */
 	unsigned int	conf_refcnt;		/* reference count */
 	unsigned int	conf_dnstimeout;	/* DNS timeout */
@@ -7716,6 +7719,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 #ifdef _FFR_REPUTATION
 	if (data != NULL)
 	{
+		(void) config_get(data, "ReputationVerbose",
+		                  &conf->conf_repverbose,
+		                  sizeof conf->conf_repverbose);
+
 		(void) config_get(data, "ReputationLimits",
 		                  &conf->conf_replimits,
 		                  sizeof conf->conf_replimits);
@@ -13808,6 +13815,7 @@ mlfi_eom(SMFICTX *ctx)
 			{
 				int c;
 				_Bool checked = FALSE;
+				const char *cd;
 				const char *domain = NULL;
 				unsigned char digest[SHA_DIGEST_LENGTH];
 				char errbuf[BUFRSZ + 1];
@@ -13821,6 +13829,8 @@ mlfi_eom(SMFICTX *ctx)
 						continue;
 
 					checked = TRUE;
+
+					cd = dkim_sig_getdomain(sigs[c]);
 
 					status = dkimf_rep_check(conf->conf_rep,
 					                         sigs[c],
@@ -13836,15 +13846,13 @@ mlfi_eom(SMFICTX *ctx)
 
 					if (status == 1)
 					{
-						domain = dkim_sig_getdomain(sigs[c]);
+						domain = cd;
 						break;
 					}
 					else if (status == -1)
 					{
 						if (conf->conf_dolog)
 						{
-							const char *cd;
-
 							cd = dkim_sig_getdomain(sigs[c]);
 							syslog(LOG_NOTICE,
 							       "%s: reputation query for \"%s\" failed: %s",
@@ -13855,6 +13863,26 @@ mlfi_eom(SMFICTX *ctx)
 						return dkimf_miltercode(ctx,
 						                        conf->conf_handling.hndl_reperr,
 						                        NULL);
+					}
+					else if (conf->conf_repverbose &&
+					         conf->conf_dolog)
+					{
+						if (status == 2)
+						{
+							syslog(LOG_NOTICE,
+							       "%s: no reputation data available for \"%s\"",
+							       dfc->mctx_jobid,
+							       cd);
+						}
+						else
+						{
+							syslog(LOG_NOTICE,
+							       "%s allowed by reputation of %s (%f, count %lu, spam %lu, limit %lu)",
+							       dfc->mctx_jobid,
+							       cd, ratio,
+							       count,
+						               spam, limit);
+						}
 					}
 				}
 
@@ -13889,6 +13917,26 @@ mlfi_eom(SMFICTX *ctx)
 						return dkimf_miltercode(ctx,
 						                        conf->conf_handling.hndl_reperr,
 						                        NULL);
+					}
+					else if (conf->conf_repverbose &&
+					         conf->conf_dolog)
+					{
+						if (status == 2)
+						{
+							syslog(LOG_NOTICE,
+							       "%s: no reputation data available for NULL domain",
+							       dfc->mctx_jobid,
+							       cd);
+						}
+						else
+						{
+							syslog(LOG_NOTICE,
+							       "%s allowed by reputation of NULL domain (%f, count %lu, spam %lu, limit %lu)",
+							       dfc->mctx_jobid,
+							       cd, ratio,
+							       count,
+						               spam, limit);
+						}
 					}
 				}
 

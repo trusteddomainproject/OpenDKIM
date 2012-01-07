@@ -178,6 +178,7 @@ struct configdef dkimf_config[] =
 	{ "ReputationRatios",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationSpamCheck",	CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationTimeFactor",	CONFIG_TYPE_INTEGER,	FALSE },
+	{ "ReputationVerbose",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* _FFR_REPUTATION */
 	{ "RequiredHeaders",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "RequireSafeKeys",		CONFIG_TYPE_BOOLEAN,	FALSE },
