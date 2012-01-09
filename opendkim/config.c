@@ -42,7 +42,7 @@ static char config_c_id[] = "@(#)$Id: config.c,v 1.10.10.1 2010/10/27 21:43:09 c
 #endif /* ! TRUE */
 
 /* prototypes */
-static void config_attach __P((struct config *, struct config *));
+static void config_attach __P((struct config *, struct config **));
 
 /* errors */
 #define	CONF_UNKNOWN	(-1)		/* unknown status */
@@ -69,20 +69,26 @@ static int conf_error;			/* configuration error number */
 */
 
 static void
-config_attach(struct config *c1, struct config *c2)
+config_attach(struct config *c1, struct config **c2)
 {
 	struct config *prev;
 	struct config *cur;
 
 	assert(c1 != NULL);
-	assert(c2 != NULL);
 
-	prev = NULL;
+	if (*c2 == NULL)
+	{
+		*c2 = c1;
+	}
+	else
+	{
+		prev = NULL;
 
-	for (cur = c1; cur != NULL; cur = cur->cfg_next)
-		prev = cur;
+		for (cur = c1; cur != NULL; cur = cur->cfg_next)
+			prev = cur;
 
-	prev->cfg_next = c2;
+		prev->cfg_next = *c2;
+	}
 }
 
 /*
@@ -323,7 +329,7 @@ config_load_level(char *file, struct configdef *def,
 				return NULL;
 			}
 
-			config_attach(incl, cur);
+			config_attach(incl, &cur);
 			new = incl;
 
 			break;
