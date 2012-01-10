@@ -999,7 +999,7 @@ for details. @LUA_MANNOTICE@
 .TP
 .I SignatureAlgorithm (string)
 Selects the signing algorithm to use when generating signatures.
-Use 'dkim-filter -V' to see the list of supported algorithms.
+Use 'opendkim -V' to see the list of supported algorithms.
 The default is
 .I rsa-sha256
 if it is available, otherwise it will be
