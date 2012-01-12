@@ -56,9 +56,8 @@ The default is "opendkim".
 Prints a usage message and exits.
 .TP
 .I --output=file
-Writes the HTML report to the specified
+Writes an HTML report to the specified
 .I file.
-The default is "/var/www/docs/opendkim/rates.html".
 .TP
 .I --prediction=pct
 For calculations, constructs a prediction interval described by the
@@ -77,7 +76,7 @@ This man page covers the version of
 that shipped with version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT
-Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2011, 2012, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8),
 .I opendkim-importstats(8)

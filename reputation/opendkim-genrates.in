@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
+# Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.
 #
 # $Id: opendkim-genstats,v 1.26 2010/10/27 06:18:45 cm-msk Exp $
 #
@@ -53,7 +53,6 @@ my $dbport;
 my $dbscheme     = "@SQL_BACKEND@";
 
 # output location (default)
-my $def_output   = "/var/www/docs/opendkim/rates.html";
 my $reportout;
 my $tmpout;
 
@@ -91,7 +90,7 @@ sub usage
 	print STDERR "\t--dbport=port      database port [$def_dbport]\n";
 	print STDERR "\t--dbuser=user      database user [$def_dbuser]\n";
 	print STDERR "\t--help             print help and exit\n";
-	print STDERR "\t--output=file      output file [$def_output]\n";
+	print STDERR "\t--output=file      output file\n";
 	print STDERR "\t--prediction=pct   prediction interval [$def_pi]\n";
 	print STDERR "\t--verbose          verbose output\n";
 	print STDERR "\t--version          print version and exit\n";
@@ -197,10 +196,6 @@ if (!defined($reportout))
 	{
 		$reportout = $ENV{'OPENDKIM_OUTPUT'};
 	}
-	else
-	{
-		$reportout = $def_output;
-	}
 }
 
 if (defined($ENV{'OPENDKIM_MINMSGID'}))
@@ -247,26 +242,29 @@ if ($verbose)
 #
 # start the report
 #
-$tmpout = $reportout . "." . $$;
-open($out, ">", $tmpout) or die "$progname: can't open $tmpout: $!";
-if ($verbose)
+if (defined($reportout))
 {
-	print STDERR "$progname: report started in $tmpout\n";
+	$tmpout = $reportout . "." . $$;
+	open($out, ">", $tmpout) or die "$progname: can't open $tmpout: $!";
+	if ($verbose)
+	{
+		print STDERR "$progname: report started in $tmpout\n";
+	}
+
+	print $out "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" \"http://www.w3.org/TR/REC-html40/loose.dtd\">\n";
+	print $out "<html>\n";
+	print $out "  <head>\n";
+	print $out "    <title>\n";
+	print $out "      OpenDKIM Rate Recommendations\n";
+	print $out "    </title>\n";
+	print $out "  </head>\n";
+	print $out "\n";
+	print $out "  <body>\n";
+
+	print $out "<h1>OpenDKIM Rate Recommendations</h1>\n";
+	print $out "Generated " . strftime("%b %e %Y %H:%M:%S", localtime) . "</h1>\n";
+	print $out "<hr>\n";
 }
-
-print $out "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" \"http://www.w3.org/TR/REC-html40/loose.dtd\">\n";
-print $out "<html>\n";
-print $out "  <head>\n";
-print $out "    <title>\n";
-print $out "      OpenDKIM Rate Recommendations\n";
-print $out "    </title>\n";
-print $out "  </head>\n";
-print $out "\n";
-print $out "  <body>\n";
-
-print $out "<h1>OpenDKIM Rate Recommendations</h1>\n";
-print $out "Generated " . strftime("%b %e %Y %H:%M:%S", localtime) . "</h1>\n";
-print $out "<hr>\n";
 
 #
 # compute the low-time threshold
@@ -276,15 +274,19 @@ if ($verbose)
 	print STDERR "$progname: computing low-time threshold\n";
 }
 
-print $out "Analysis of high spam domain duration (>= " . $spamratio * 100 . "% spam, >= " . $minspamcount . " msg(s))\n";
-print $out "<table border=1 columns=11>\n";
-print $out " <tr>\n";
-print $out "  <td>Domains</td>\n";
-print $out "  <td>Min. Duration</td>\n";
-print $out "  <td>Max. Duration</td>\n";
-print $out "  <td>Mean Duration</td>\n";
-print $out "  <td>Duration Std. Dev.</td>\n";
-print $out " </tr>\n";
+if (defined($reportout))
+{
+	print $out "Analysis of high spam domain duration (>= " . $spamratio * 100 . "% spam, >= " . $minspamcount . " msg(s))\n";
+	print $out "<table border=1 columns=11>\n";
+	print $out " <tr>\n";
+	print $out "  <td>Domains</td>\n";
+	print $out "  <td>Min. Duration</td>\n";
+	print $out "  <td>Max. Duration</td>\n";
+	print $out "  <td>Mean Duration</td>\n";
+	print $out "  <td>Duration Std. Dev.</td>\n";
+	print $out " </tr>\n";
+}
+
 $dbi_s = $dbi_h->prepare("SELECT COUNT(*) AS domains, MIN(l) AS 'min duration', MAX(l) AS 'max duration', AVG(l) AS 'mean duration', STDDEV_POP(l) AS 'duration stddev' FROM (SELECT COUNT(*) AS c, SUM(messages.spam)/COUNT(*) AS r, DATEDIFF(MAX(messages.msgtime), MIN(messages.msgtime)) AS l FROM signatures JOIN messages ON signatures.message = messages.id WHERE messages.id >= $minmsgid AND NOT spam = -1 AND pass = 1 GROUP BY signatures.domain) t1 WHERE r >= $spamratio AND c >= $minspamcount");
 if (!$dbi_s->execute)
 {
@@ -295,31 +297,39 @@ if (!$dbi_s->execute)
 }
 else
 {
-	while ($dbi_a = $dbi_s->fetchrow_arrayref())
+	if (defined($reportout))
 	{
-		print $out " <tr>\n";
-		for ($idx = 0; $idx < 5; $idx++)
+		while ($dbi_a = $dbi_s->fetchrow_arrayref())
 		{
-			if (defined($dbi_a->[$idx]))
+			print $out " <tr>\n";
+			for ($idx = 0; $idx < 5; $idx++)
 			{
-				print $out " <td> " . $dbi_a->[$idx] . " </td>\n";
+				if (defined($dbi_a->[$idx]))
+				{
+					print $out " <td> " . $dbi_a->[$idx] . " </td>\n";
+				}
+				else
+				{
+					print $out " <td> NULL </td>\n";
+				}
 			}
-			else
-			{
-				print $out " <td> NULL </td>\n";
-			}
-		}
-		print $out " </tr>\n";
-
-		if (defined($dbi_a->[3]) && defined($dbi_a->[4]))
-		{
-			$thresh = $dbi_a->[3] + $dbi_a->[4] * $stdscore;
+			print $out " </tr>\n";
 		}
 	}
+
+	if (defined($dbi_a->[3]) && defined($dbi_a->[4]))
+	{
+		$thresh = $dbi_a->[3] + $dbi_a->[4] * $stdscore;
+	}
 }
-print $out "</table>\n";
-print $out "<br>\n";
+
 $dbi_s->finish;
+
+if (defined($reportout))
+{
+	print $out "</table>\n";
+	print $out "<br>\n";
+}
 
 if (!defined($thresh))
 {
@@ -370,7 +380,8 @@ if (!$dbi_s->execute)
 $dbi_s->finish;
 
 #
-# Compute/update per-reporter message counts and spam ratios for all signing domains
+# Compute/update per-reporter message counts and spam ratios for all
+# signing domains
 #
 if ($verbose)
 {
@@ -387,7 +398,6 @@ if (!$dbi_s->execute)
 }
 $dbi_s->finish;
 
-#
 #
 # Compute/update overall message counts and spam ratios for unsigned mail
 #
@@ -527,115 +537,118 @@ $dbi_s->finish;
 #
 # reports
 # 
-if ($verbose)
+if (defined($reportout))
 {
-	print STDERR "$progname: reporting on interesting domains\n";
-}
-
-print $out "$pisize% prediction interval, standard score $stdscore\n";
-print $out "<table border=1 columns=12>\n";
-print $out " <tr>\n";
-print $out "  <td>Domain ID</td>\n";
-print $out "  <td>Domain Name</td>\n";
-print $out "  <td>Reporter ID</td>\n";
-print $out "  <td>Mean Rate</td>\n";
-print $out "  <td>Max Rate</td>\n";
-print $out "  <td>Rate Std. Dev.</td>\n";
-print $out "  <td>Rate High Prediction</td>\n";
-print $out "  <td>Mean Spam Ratio</td>\n";
-print $out "  <td>Max Spam Ratio</td>\n";
-print $out "  <td>Spam Ratio Std. Dev.</td>\n";
-print $out "  <td>Spam Ratio High Prediction</td>\n";
-print $out "  <td>Volume Limit (low)</td>\n";
-print $out "  <td>Volume Limit (high)</td>\n";
-print $out " </tr>\n";
-$dbi_s = $dbi_h->prepare("SELECT domain, name, reporter, rate_avg, rate_max, rate_stddev, rate_high, ratio_avg, ratio_max, ratio_stddev, ratio_high, daily_limit_low, daily_limit_high FROM predictions WHERE domain IN (13, 22, 127, 205, 309, 418, 450, 795, 22199, 313943, 537522, 0, -1)");
-if (!$dbi_s->execute)
-{
-	print STDERR "$progname: report #1 failed: " . $dbi_h->errstr;
-	$dbi_s->finish;
-	$dbi_h->disconnect;
-	exit(1);
-}
-else
-{
-	while ($dbi_a = $dbi_s->fetchrow_arrayref())
+	if ($verbose)
 	{
-		print $out " <tr>\n";
-		for ($idx = 0; $idx < 13; $idx++)
-		{
-			if (defined($dbi_a->[$idx]))
-			{
-				print $out " <td> " . $dbi_a->[$idx] . " </td>\n";
-			}
-			else
-			{
-				print $out " <td> NULL </td>\n";
-			}
-		}
-		print $out " </tr>\n";
+		print STDERR "$progname: reporting on interesting domains\n";
 	}
-}
-print $out "</table>\n";
-print $out "<br>\n";
-$dbi_s->finish;
 
-#
-# low-time behaviour analysis
-# 
-if ($verbose)
-{
-	print STDERR "$progname: reporting on low-time domain behaviour\n";
-}
-
-print $out "Analysis of low-time domain behaviour (<= " . $thresh . " days, >= " . $minmsgs . " msg(s))\n";
-print $out "<table border=1 columns=11>\n";
-print $out " <tr>\n";
-print $out "  <td>Domains</td>\n";
-print $out "  <td>Max Rate</td>\n";
-print $out "  <td>Mean Rate</td>\n";
-print $out "  <td>Rate Std. Dev.</td>\n";
-print $out "  <td>Rate High Prediction</td>\n";
-print $out "  <td>Max Spam Ratio</td>\n";
-print $out "  <td>Mean Spam Ratio</td>\n";
-print $out "  <td>Spam Ratio Std. Dev.</td>\n";
-print $out "  <td>Spam Ratio Low Prediction</td>\n";
-print $out "  <td>Spam Ratio High Prediction</td>\n";
-print $out "  <td>Volume Limit</td>\n";
-print $out " </tr>\n";
-$dbi_s = $dbi_h->prepare("SELECT COUNT(*) AS domains, MAX(counts.c) AS rate_max, AVG(counts.c) AS rate_avg, STDDEV_POP(counts.c) AS rate_stddev, AVG(counts.c) + STDDEV_POP(counts.c) * $stdscore AS rate_high, MAX(counts.r) AS ratio_max, AVG(counts.r) AS ratio_avg, STDDEV_POP(counts.r) AS ratio_stddev, AVG(counts.r) - STDDEV_POP(counts.r) * $stdscore AS ratio_low, AVG(counts.r) + STDDEV_POP(counts.r) * $stdscore AS ratio_high, AVG(counts.c) + STDDEV_POP(counts.c) * $stdscore * (1 - (AVG(counts.r) + STDDEV_POP(counts.r) * $stdscore)) AS daily_limit FROM (SELECT SUM(messages) AS c, SUM(spam)/SUM(messages) AS r FROM aggregate JOIN domains ON aggregate.domain = domains.id WHERE domains.firstseen >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL $thresh DAY) GROUP BY domain HAVING SUM(messages) >= $minmsgs) counts");
-if (!$dbi_s->execute)
-{
-	print STDERR "$progname: report #2 failed: " . $dbi_h->errstr;
-	$dbi_s->finish;
-	$dbi_h->disconnect;
-	exit(1);
-}
-else
-{
-	while ($dbi_a = $dbi_s->fetchrow_arrayref())
+	print $out "$pisize% prediction interval, standard score $stdscore\n";
+	print $out "<table border=1 columns=12>\n";
+	print $out " <tr>\n";
+	print $out "  <td>Domain ID</td>\n";
+	print $out "  <td>Domain Name</td>\n";
+	print $out "  <td>Reporter ID</td>\n";
+	print $out "  <td>Mean Rate</td>\n";
+	print $out "  <td>Max Rate</td>\n";
+	print $out "  <td>Rate Std. Dev.</td>\n";
+	print $out "  <td>Rate High Prediction</td>\n";
+	print $out "  <td>Mean Spam Ratio</td>\n";
+	print $out "  <td>Max Spam Ratio</td>\n";
+	print $out "  <td>Spam Ratio Std. Dev.</td>\n";
+	print $out "  <td>Spam Ratio High Prediction</td>\n";
+	print $out "  <td>Volume Limit (low)</td>\n";
+	print $out "  <td>Volume Limit (high)</td>\n";
+	print $out " </tr>\n";
+	$dbi_s = $dbi_h->prepare("SELECT domain, name, reporter, rate_avg, rate_max, rate_stddev, rate_high, ratio_avg, ratio_max, ratio_stddev, ratio_high, daily_limit_low, daily_limit_high FROM predictions WHERE domain IN (13, 22, 127, 205, 309, 418, 450, 795, 22199, 313943, 537522, 0, -1)");
+	if (!$dbi_s->execute)
 	{
-		print $out " <tr>\n";
-		for ($idx = 0; $idx < 11; $idx++)
-		{
-			if (defined($dbi_a->[$idx]))
-			{
-				print $out " <td> " . $dbi_a->[$idx] . " </td>\n";
-			}
-			else
-			{
-				print $out " <td> NULL </td>\n";
-			}
-		}
-		print $out " </tr>\n";
+		print STDERR "$progname: report #1 failed: " . $dbi_h->errstr;
+		$dbi_s->finish;
+		$dbi_h->disconnect;
+		exit(1);
 	}
-}
-print $out "</table>\n";
-$dbi_s->finish;
+	else
+	{
+		while ($dbi_a = $dbi_s->fetchrow_arrayref())
+		{
+			print $out " <tr>\n";
+			for ($idx = 0; $idx < 13; $idx++)
+			{
+				if (defined($dbi_a->[$idx]))
+				{
+					print $out " <td> " . $dbi_a->[$idx] . " </td>\n";
+				}
+				else
+				{
+					print $out " <td> NULL </td>\n";
+				}
+			}
+			print $out " </tr>\n";
+		}
+	}
+	print $out "</table>\n";
+	print $out "<br>\n";
+	$dbi_s->finish;
 
-# footer
-print $out "  </body>\n";
-print $out "</html>\n";
+	#
+	# low-time behaviour analysis
+	# 
+	if ($verbose)
+	{
+		print STDERR "$progname: reporting on low-time domain behaviour\n";
+	}
+
+	print $out "Analysis of low-time domain behaviour (<= " . $thresh . " days, >= " . $minmsgs . " msg(s))\n";
+	print $out "<table border=1 columns=11>\n";
+	print $out " <tr>\n";
+	print $out "  <td>Domains</td>\n";
+	print $out "  <td>Max Rate</td>\n";
+	print $out "  <td>Mean Rate</td>\n";
+	print $out "  <td>Rate Std. Dev.</td>\n";
+	print $out "  <td>Rate High Prediction</td>\n";
+	print $out "  <td>Max Spam Ratio</td>\n";
+	print $out "  <td>Mean Spam Ratio</td>\n";
+	print $out "  <td>Spam Ratio Std. Dev.</td>\n";
+	print $out "  <td>Spam Ratio Low Prediction</td>\n";
+	print $out "  <td>Spam Ratio High Prediction</td>\n";
+	print $out "  <td>Volume Limit</td>\n";
+	print $out " </tr>\n";
+	$dbi_s = $dbi_h->prepare("SELECT COUNT(*) AS domains, MAX(counts.c) AS rate_max, AVG(counts.c) AS rate_avg, STDDEV_POP(counts.c) AS rate_stddev, AVG(counts.c) + STDDEV_POP(counts.c) * $stdscore AS rate_high, MAX(counts.r) AS ratio_max, AVG(counts.r) AS ratio_avg, STDDEV_POP(counts.r) AS ratio_stddev, AVG(counts.r) - STDDEV_POP(counts.r) * $stdscore AS ratio_low, AVG(counts.r) + STDDEV_POP(counts.r) * $stdscore AS ratio_high, AVG(counts.c) + STDDEV_POP(counts.c) * $stdscore * (1 - (AVG(counts.r) + STDDEV_POP(counts.r) * $stdscore)) AS daily_limit FROM (SELECT SUM(messages) AS c, SUM(spam)/SUM(messages) AS r FROM aggregate JOIN domains ON aggregate.domain = domains.id WHERE domains.firstseen >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL $thresh DAY) GROUP BY domain HAVING SUM(messages) >= $minmsgs) counts");
+	if (!$dbi_s->execute)
+	{
+		print STDERR "$progname: report #2 failed: " . $dbi_h->errstr;
+		$dbi_s->finish;
+		$dbi_h->disconnect;
+		exit(1);
+	}
+	else
+	{
+		while ($dbi_a = $dbi_s->fetchrow_arrayref())
+		{
+			print $out " <tr>\n";
+			for ($idx = 0; $idx < 11; $idx++)
+			{
+				if (defined($dbi_a->[$idx]))
+				{
+					print $out " <td> " . $dbi_a->[$idx] . " </td>\n";
+				}
+				else
+				{
+					print $out " <td> NULL </td>\n";
+				}
+			}
+			print $out " </tr>\n";
+		}
+	}
+	print $out "</table>\n";
+	$dbi_s->finish;
+
+	# footer
+	print $out "  </body>\n";
+	print $out "</html>\n";
+}
 
 # all done!
 if ($verbose)
@@ -644,6 +657,11 @@ if ($verbose)
 }
 
 $dbi_h->disconnect;
-close $out;
-rename($tmpout, $reportout) or die "$progname: rename to $reportout failed; $!";
+
+if (defined($reportout))
+{
+	close $out;
+	rename($tmpout, $reportout) or die "$progname: rename to $reportout failed; $!";
+}
+
 exit(0);
