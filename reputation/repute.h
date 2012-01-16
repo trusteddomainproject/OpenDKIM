@@ -38,7 +38,7 @@ typedef int REPUTE_STAT;
 
 #define	REPUTE_URI_APPLICATION	"email-id"
 #define	REPUTE_URI_SCHEME	"http"
-#define	REPUTE_URI_TEMPLATE	"{scheme}://{service}/.well-known/repute_template"
+#define	REPUTE_URI_TEMPLATE	"{scheme}://{service}/.well-known/repute-template"
 
 #define	REPUTE_XML_CODE_UNKNOWN		(-1)
 #define	REPUTE_XML_CODE_ASSERTION	0
