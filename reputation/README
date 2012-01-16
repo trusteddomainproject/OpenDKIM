@@ -59,20 +59,23 @@ SETUP INSTRUCTIONS
 1) If you intend only to query for reputations, skip to step 11.
 
 2) Follow the steps to get opendkim configured for creating statistics
-   reports.
+   reports.  In addition, install contrib/stats/stats.lua someplace
+   and reference it in a StatisticsPolicyScript line in your configuration
+   file.  Note that only the "SpamAssassin" portion is required.
 
 3) If you intend to submit your data, follow the steps to create
    and register a submission key (GPG required), and then begin sending
    your reports regularly via cron(8).  Skip to step 11.
 
 4) If you intend to do local reputation, create a new SQL database with
-   tables as described in stats/mkdb.mysql and in reputation/mkdb.mysql.
+   tables as described in stats/mkdb.mysql and in reputation/mkdb-rep.mysql.
    (You may need to edit these if you are using a backend other than MySQL.)
 
-5) Rather than sending your stats reports off to a central site, import
-   them periodically using cron(8) and opendkim-importstats(8).
+5) Rather than (or in addition to) sending your stats reports off to
+   a central site, import them periodically to your own database using
+   cron(8) and opendkim-importstats(8).
 
-6) Somewhere after midnight daily, arrange to run opendkim-genrates(8).
+6) Somewhere soon after midnight daily, arrange to run opendkim-genrates(8).
    This takes your statistical reports from SQL and rolls them up into 
    spam and flow predictions, which opendkim can then query.
 
@@ -84,8 +87,8 @@ SETUP INSTRUCTIONS
    This documentation refers to that directory as $REPROOT.
 
 9) Create a REPUTE query template that will be returned from
-   http://<your-URI>/.well-known/repute_template.  This would be in
-   $REPROOT/.well-known/repute_template.  The template describes to a
+   http://<your-URI>/.well-known/repute-template.  This would be in
+   $REPROOT/.well-known/repute-template.  The template describes to a
    REPUTE client how to form the HTTP query that your server will use.  The
    template used for this experimental work is as follows:
 
