@@ -14,7 +14,6 @@ dist_doc_DATA = draft-gregorio-uritemplate-07.txt \
 	draft-kucherawy-dkim-atps-16.txt \
 	report-rfc4871.txt \
 	rfc3447.txt \
-	rfc3462.txt \
 	rfc4686.txt \
 	rfc5016.txt \
 	rfc5322.txt \
@@ -28,4 +27,5 @@ dist_doc_DATA = draft-gregorio-uritemplate-07.txt \
 	rfc6008.txt \
 	rfc6212.txt \
 	rfc6376.txt \
-	rfc6377.txt
+	rfc6377.txt \
+	rfc6522.txt
