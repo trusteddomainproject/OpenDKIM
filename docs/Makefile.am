@@ -13,6 +13,7 @@ dist_doc_DATA = draft-gregorio-uritemplate-07.txt \
 	draft-ietf-repute-query-http-01.txt \
 	draft-kucherawy-dkim-atps-16.txt \
 	report-rfc4871.txt \
+	rfc2254.txt \
 	rfc3447.txt \
 	rfc4686.txt \
 	rfc5016.txt \
