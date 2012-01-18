@@ -775,6 +775,8 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 **  	None.
 **
 **  Notes:
+**  	Expands "$d" and "$D" as defined in opendkim.conf(5).
+** 
 **  	Should report overflows.
 */
 
@@ -836,6 +838,16 @@ dkimf_db_mkldapquery(char *buf, char *query, char *out, size_t outlen)
 			{
 				*q++ = *p;
 			}
+		}
+		else if (*p == 0x2a ||			/* RFC2254 */
+		         *p == 0x28 ||
+		         *p == 0x29 ||
+		         *p == 0x5c ||
+		         *p == 0x00)
+		{
+			*o++ == '\\';
+			if (oend > o)
+				o += snprintf(o, oend - o, "%02x", *p);
 		}
 		else if (*p != '$')
 		{

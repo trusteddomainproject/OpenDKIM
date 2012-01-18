@@ -35,6 +35,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3471520: Don't crash when the first line of a configuration
 		file is an "Include" instruction.  Reported by Dilian
 		Wesselinov Palauzov.
+	Fix bug #SF3475149: Apply RFC2254 encoding to LDAP queries.
+		Problem noted by Yoshiaki Yanagihara.
 	LIBOPENDKIM: Feature request #SF3317160: Per RFC6376, remove
 		granularity checks.
 	LIBOPENDKIM: Feature request #SF3385768: Add dkim_privkey_load(),
