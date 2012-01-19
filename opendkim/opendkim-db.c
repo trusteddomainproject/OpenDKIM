@@ -811,7 +811,27 @@ dkimf_db_mkldapquery(char *buf, char *query, char *out, size_t outlen)
 			if (*p == 'd')
 			{
 				for (q = query; o <= oend && q <= qend; q++)
-					*o++ = *q;
+				{
+					if (*q == 0x2a ||	/* RFC2254 */
+					    *q == 0x28 ||
+					    *q == 0x29 ||
+					    *q == 0x5c ||
+					    *q == 0x00)
+					{
+						*o++ = '\\';
+						if (oend > o)
+						{
+							o += snprintf(o,
+							              oend - o,
+							              "%02x",
+							              *q);
+						}
+					}
+					else
+					{
+						*o++ = *q;
+					}
+				}
 			}
 			else if (*p == 'D')
 			{
