@@ -761,6 +761,23 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 }
 
 #ifdef USE_LDAP
+# define ISRFC2254CHR(q)	((q) == 0x2a ||	\
+				 (q) == 0x28 || \
+				 (q) == 0x29 || \
+				 (q) == 0x5c || \
+				 (q) == 0x00)
+
+# define ADDRFC2254CHR(x, y, z)	{ \
+					*(x)++ = '\\'; \
+					if ((y) > (x)) \
+					{ \
+						(x) += snprintf((x), \
+						                (y) - (x), \
+						                "%02x", \
+						                (z)); \
+					} \
+				}
+
 /*
 **  DKIMF_DB_MKLDAPQUERY -- generate an LDAP query
 **
@@ -812,20 +829,9 @@ dkimf_db_mkldapquery(char *buf, char *query, char *out, size_t outlen)
 			{
 				for (q = query; o <= oend && q <= qend; q++)
 				{
-					if (*q == 0x2a ||	/* RFC2254 */
-					    *q == 0x28 ||
-					    *q == 0x29 ||
-					    *q == 0x5c ||
-					    *q == 0x00)
+					if (ISRFC2254CHR(*q))
 					{
-						*o++ = '\\';
-						if (oend > o)
-						{
-							o += snprintf(o,
-							              oend - o,
-							              "%02x",
-							              *q);
-						}
+						ADDRFC2254CHR(o, oend, *q);
 					}
 					else
 					{
@@ -848,20 +854,9 @@ dkimf_db_mkldapquery(char *buf, char *query, char *out, size_t outlen)
 						o += strlcpy(o, ",dc=",
 						             oend - o);
 					}
-					else if (*q == 0x2a ||	/* RFC2254 */
-					         *q == 0x28 ||
-					         *q == 0x29 ||
-					         *q == 0x5c ||
-					         *q == 0x00)
+					else if (ISRFC2254CHR(*q))
 					{
-						*o++ = '\\';
-						if (oend > o)
-						{
-							o += snprintf(o,
-							              oend - o,
-							              "%02x",
-							              *q);
-						}
+						ADDRFC2254CHR(o, oend, *q);
 					}
 					else
 					{
@@ -874,15 +869,9 @@ dkimf_db_mkldapquery(char *buf, char *query, char *out, size_t outlen)
 				*q++ = *p;
 			}
 		}
-		else if (*p == 0x2a ||			/* RFC2254 */
-		         *p == 0x28 ||
-		         *p == 0x29 ||
-		         *p == 0x5c ||
-		         *p == 0x00)
+		else if (ISRFC2254CHR(*p))
 		{
-			*o++ == '\\';
-			if (oend > o)
-				o += snprintf(o, oend - o, "%02x", *p);
+			ADDRFC2254CHR(o, oend, *p);
 		}
 		else if (*p != '$')
 		{
