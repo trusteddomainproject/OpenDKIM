@@ -847,9 +847,9 @@ dkimf_db_mkldapquery(char *buf, char *query, char *out, size_t outlen)
 					{
 						o += strlcpy(o, "dc=",
 						             oend - o);
-						*o++ = *q;
 					}
-					else if (*q == '.')
+
+					if (*q == '.')
 					{
 						o += strlcpy(o, ",dc=",
 						             oend - o);
