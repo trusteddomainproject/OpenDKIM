@@ -869,10 +869,6 @@ dkimf_db_mkldapquery(char *buf, char *query, char *out, size_t outlen)
 				*q++ = *p;
 			}
 		}
-		else if (ISRFC2254CHR(*p))
-		{
-			ADDRFC2254CHR(o, oend, *p);
-		}
 		else if (*p != '$')
 		{
 			*o++ = *p;
