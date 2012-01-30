@@ -2,13 +2,13 @@
 
 
 MARF Working Group                                            H. Fontana
-Internet-Draft                                           January 4, 2012
+Internet-Draft                                          January 18, 2012
 Intended status: Standards Track
-Expires: July 7, 2012
+Expires: July 21, 2012
 
 
      Authentication Failure Reporting using the Abuse Report Format
-                 draft-ietf-marf-authfailure-report-09
+                 draft-ietf-marf-authfailure-report-10
 
 Abstract
 
@@ -32,7 +32,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on July 7, 2012.
+   This Internet-Draft will expire on July 21, 2012.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Fontana                   Expires July 7, 2012                  [Page 1]
+Fontana                   Expires July 21, 2012                 [Page 1]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -108,7 +108,7 @@ Table of Contents
 
 
 
-Fontana                   Expires July 7, 2012                  [Page 2]
+Fontana                   Expires July 21, 2012                 [Page 2]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -164,7 +164,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-Fontana                   Expires July 7, 2012                  [Page 3]
+Fontana                   Expires July 21, 2012                 [Page 3]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -184,9 +184,9 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 2.3.  Base 64
 
-   base64 is defined in [MIME].
+   base64 is defined in Section 4 of [BASE64].
 
-   The values that are base64 encodings may contain FWS for formatting
+   The values that are base64 encodings MAY contain FWS for formatting
    purposes as per the usual header field wrapping defined in [MAIL].
    During decoding, any characters not in the base64 alphabet are
    ignored so that such line wrapping does not harm the value.  The ABNF
@@ -220,7 +220,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-Fontana                   Expires July 7, 2012                  [Page 4]
+Fontana                   Expires July 21, 2012                 [Page 4]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -276,7 +276,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-Fontana                   Expires July 7, 2012                  [Page 5]
+Fontana                   Expires July 21, 2012                 [Page 5]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -284,7 +284,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
    Delivery-Result:  As specified in Section 3.2.2.  This field is
       OPTIONAL, but MUST NOT appear more than once.  If present, it
       SHOULD indicate the outcome of the message in some meaningful way,
-      but MAY be redacted to "other" for local policy reasons.
+      but MAY be set to "other" for local policy reasons.
 
    The third MIME part of the message is either of type "message/rfc822"
    (as defined in [MIME-TYPES]) or "text/rfc822-headers" (as defined in
@@ -293,10 +293,10 @@ Internet-Draft           Auth Failure Reporting             January 2012
    which makes it optional).
 
    For privacy reasons, report generators might need to redact portions
-   of a reported message such as the end user whose complaint action
-   resulted in the report.  A discussion of relevant issues and a
-   suggested method for doing so can be found in
-   [I-D.IETF-MARF-REDACTION].
+   of a reported message such as an identifier or address associated
+   with the end user whose complaint action resulted in the report.  A
+   discussion of relevant issues and a suggested method for doing so can
+   be found in [I-D.IETF-MARF-REDACTION].
 
 3.2.  New ARF Header Field Names
 
@@ -332,7 +332,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-Fontana                   Expires July 7, 2012                  [Page 6]
+Fontana                   Expires July 21, 2012                 [Page 6]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -388,7 +388,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-Fontana                   Expires July 7, 2012                  [Page 7]
+Fontana                   Expires July 21, 2012                 [Page 7]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -417,7 +417,10 @@ Internet-Draft           Auth Failure Reporting             January 2012
       (see Section 3.2.4).
 
    spf:  The evaluation of the author domain's SPF record produced a
-      "fail", "softfail", "temperror" or "permerror" result.
+      "none", "fail", "softfail", "temperror" or "permerror" result.
+      ("none" is not strictly a failure per [SPF], but a service that
+      demands successful SPF evaluations of clients could treat it like
+      a failure.)
 
    Supplementary data MAY be included in the form of [MAIL]-compliant
    comments.  For example, "Auth-Failure: adsp" could be augmented by a
@@ -441,10 +444,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-
-
-
-Fontana                   Expires July 7, 2012                  [Page 8]
+Fontana                   Expires July 21, 2012                 [Page 8]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -487,8 +487,8 @@ Internet-Draft           Auth Failure Reporting             January 2012
      dkim-selector-dns = "DKIM-Selector-DNS:" [CFWS]
                          quoted-string [CFWS] CRLF
 
-     spf-dns = "SPF-DNS:" : { "txt" / "spf" } [CFWS] ":" [CFWS]
-               domain [CFWS] ":" [CFWS] quoted-string CRLF
+     spf-dns = "SPF-DNS:" [CFWS] ( "txt" / "spf" ) [CFWS] ":" [CFWS]
+               domain [CFWS] ":" [CFWS] quoted-string [CFWS] CRLF
 
 
 
@@ -500,7 +500,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-Fontana                   Expires July 7, 2012                  [Page 9]
+Fontana                   Expires July 21, 2012                 [Page 9]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -556,7 +556,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-Fontana                   Expires July 7, 2012                 [Page 10]
+Fontana                   Expires July 21, 2012                [Page 10]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -612,7 +612,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-Fontana                   Expires July 7, 2012                 [Page 11]
+Fontana                   Expires July 21, 2012                [Page 11]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -668,7 +668,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-Fontana                   Expires July 7, 2012                 [Page 12]
+Fontana                   Expires July 21, 2012                [Page 12]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -685,7 +685,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 6.2.  Forgeries
 
-   These reports may be forged as easily as ordinary Internet electronic
+   These reports can be forged as easily as ordinary Internet electronic
    mail.  User agents and automatic mail handling facilities (such as
    mail distribution list exploders) that wish to make automatic use of
    DSNs of any kind should take appropriate precautions to minimize the
@@ -701,7 +701,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
    Perhaps the simplest means of mitigating this threat is to assert
    that these reports should themselves be signed with something like
    DKIM.  On the other hand, if there's a problem with the DKIM
-   infrastructure at the verifier, signing DKIM failure reports may
+   infrastructure at the verifier, signing DKIM failure reports might
    produce reports that aren't trusted or even accepted by their
    intended recipients.
 
@@ -711,9 +711,9 @@ Internet-Draft           Auth Failure Reporting             January 2012
    denial-of-service attack when a large volume of e-mail is sent that
    causes email authentication failures for whatever reason.
 
-   Limiting the rate of generation of these messages may be appropriate
-   but threatens to inhibit the distribution of important and possibly
-   time-sensitive information.
+   Limiting the rate of generation of these messages might be
+   appropriate but threatens to inhibit the distribution of important
+   and possibly time-sensitive information.
 
    In general ARF feedback loop terms, it is suggested that report
    generators only create these (or any) ARF reports after an out-of-
@@ -724,7 +724,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-Fontana                   Expires July 7, 2012                 [Page 13]
+Fontana                   Expires July 21, 2012                [Page 13]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -759,9 +759,10 @@ Internet-Draft           Auth Failure Reporting             January 2012
    The use of this for "near-identical" incidents in particular causes a
    degradation in reporting quality, however.  If for example a large
    number of pieces of spam arrive from one attacker, a reporting agent
-   may decide only to send a report about a fraction of those messages.
-   While this averts a flood of reports to a system administrator, the
-   precise details of each incident are similarly not sent.
+   might decide only to send a report about a fraction of those
+   messages.  While this averts a flood of reports to a system
+   administrator, the precise details of each incident are similarly not
+   sent.
 
 6.6.  Redaction of Data in DKIM Reports
 
@@ -779,8 +780,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-
-Fontana                   Expires July 7, 2012                 [Page 14]
+Fontana                   Expires July 21, 2012                [Page 14]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -802,6 +802,9 @@ Internet-Draft           Auth Failure Reporting             January 2012
    [AUTH-RESULTS]
               Kucherawy, M., "Message Header Field for Indicating
               Message Authentication Status", RFC 5451, April 2009.
+
+   [BASE64]   Josefsson, S., "The Base16, Base32, and Base64 Data
+              Encodings", RFC 4648, October 2006.
 
    [DKIM]     Crocker, D., Hansen, T., and M. Kucherawy, "DomainKeys
               Identified Mail (DKIM) Signatures", RFC 6376,
@@ -831,16 +834,15 @@ Internet-Draft           Auth Failure Reporting             January 2012
               Extensions (MIME) Part Two: Media Types", RFC 2046,
               November 1996.
 
-   [REPORT]   Vaudreuil, G., "The Multipart/Report Content Type for the
-              Reporting of Mail System Administrative Messages",
 
 
-
-Fontana                   Expires July 7, 2012                 [Page 15]
+Fontana                   Expires July 21, 2012                [Page 15]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
 
+   [REPORT]   Vaudreuil, G., "The Multipart/Report Content Type for the
+              Reporting of Mail System Administrative Messages",
               RFC 3462, January 2003.
 
    [SPF]      Wong, M. and W. Schlitt, "Sender Policy Framework (SPF)
@@ -890,9 +892,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-
-
-Fontana                   Expires July 7, 2012                 [Page 16]
+Fontana                   Expires July 21, 2012                [Page 16]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -948,7 +948,7 @@ Appendix A.  Acknowledgements
 
 
 
-Fontana                   Expires July 7, 2012                 [Page 17]
+Fontana                   Expires July 21, 2012                [Page 17]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -1004,7 +1004,7 @@ B.1.  Example Use of ARF Extension Headers
 
 
 
-Fontana                   Expires July 7, 2012                 [Page 18]
+Fontana                   Expires July 21, 2012                [Page 18]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -1060,7 +1060,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-Fontana                   Expires July 7, 2012                 [Page 19]
+Fontana                   Expires July 21, 2012                [Page 19]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -1116,7 +1116,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-Fontana                   Expires July 7, 2012                 [Page 20]
+Fontana                   Expires July 21, 2012                [Page 20]
 
 Internet-Draft           Auth Failure Reporting             January 2012
 
@@ -1172,5 +1172,5 @@ Author's Address
 
 
 
-Fontana                   Expires July 7, 2012                 [Page 21]
+Fontana                   Expires July 21, 2012                [Page 21]
 
