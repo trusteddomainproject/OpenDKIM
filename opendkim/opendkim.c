@@ -15480,6 +15480,7 @@ main(int argc, char **argv)
 	u_int mvminor;
 	u_int mvrelease;
 #endif /* HAVE_SMFI_VERSION */
+	gid_t gid = (gid_t) -1;
 	sigset_t sigset;
 	uint64_t fixedtime = (uint64_t) -1;
 	time_t maxrestartrate_t = 0;
@@ -15487,6 +15488,8 @@ main(int argc, char **argv)
 	unsigned long tmpl;
 	const char *args = CMDLINEOPTS;
 	FILE *f;
+	struct passwd *pw = NULL;
+	struct group *gr = NULL;
 	char *become = NULL;
 	char *chrootdir = NULL;
 	char *extract = NULL;
@@ -16249,59 +16252,10 @@ main(int argc, char **argv)
 
 	dkimf_setmaxfd();
 
-	/* change root if requested */
-	if (chrootdir != NULL)
-	{
-		/* warn if doing so as root without then giving up root */
-		if (become == NULL && getuid() == 0)
-		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_WARNING,
-				       "using ChangeRootDirectory without Userid not advised");
-			}
-
-			fprintf(stderr,
-			        "%s: use of ChangeRootDirectory without Userid not advised\n",
-			        progname);
-		}
-
-		/* change to the new root first */
-		if (chdir(chrootdir) != 0)
-		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: chdir(): %s",
-				       chrootdir, strerror(errno));
-			}
-
-			fprintf(stderr, "%s: %s: chdir(): %s\n", progname,
-			        chrootdir, strerror(errno));
-			return EX_OSERR;
-		}
-
-		/* now change the root */
-		if (chroot(chrootdir) != 0)
-		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: chroot(): %s",
-				       chrootdir, strerror(errno));
-			}
-
-			fprintf(stderr, "%s: %s: chroot(): %s\n", progname,
-			        chrootdir, strerror(errno));
-			return EX_OSERR;
-		}
-	}
-
-	/* change user if appropriate */
+	/* prepare to change user if appropriate */
 	if (become != NULL)
 	{
-		gid_t gid;
 		char *colon;
-		struct passwd *pw;
-		struct group *gr = NULL;
 
 		/* see if there was a group specified; if so, validate */
 		colon = strchr(become, ':');
@@ -16376,7 +16330,57 @@ main(int argc, char **argv)
 			                             pw->pw_uid);
 		}
 #endif /* _FFR_REPUTATION */
+	}
 
+	/* change root if requested */
+	if (chrootdir != NULL)
+	{
+		/* warn if doing so as root without then giving up root */
+		if (become == NULL && getuid() == 0)
+		{
+			if (curconf->conf_dolog)
+			{
+				syslog(LOG_WARNING,
+				       "using ChangeRootDirectory without Userid not advised");
+			}
+
+			fprintf(stderr,
+			        "%s: use of ChangeRootDirectory without Userid not advised\n",
+			        progname);
+		}
+
+		/* change to the new root first */
+		if (chdir(chrootdir) != 0)
+		{
+			if (curconf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: chdir(): %s",
+				       chrootdir, strerror(errno));
+			}
+
+			fprintf(stderr, "%s: %s: chdir(): %s\n", progname,
+			        chrootdir, strerror(errno));
+			return EX_OSERR;
+		}
+
+		/* now change the root */
+		if (chroot(chrootdir) != 0)
+		{
+			if (curconf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: chroot(): %s",
+				       chrootdir, strerror(errno));
+			}
+
+			fprintf(stderr, "%s: %s: chroot(): %s\n", progname,
+			        chrootdir, strerror(errno));
+			return EX_OSERR;
+		}
+	}
+
+	/* now enact the user change */
+	if (become != NULL)
+	{
 		/* make all the process changes */
 		if (getuid() != pw->pw_uid)
 		{
