@@ -2054,6 +2054,7 @@ AC_OUTPUT([	Makefile
 		docs/Makefile
 		contrib/Makefile
 			contrib/convert/Makefile
+			contrib/docs/Makefile
 			contrib/init/Makefile
 			contrib/init/generic/Makefile
 			contrib/init/redhat/Makefile
@@ -2061,6 +2062,7 @@ AC_OUTPUT([	Makefile
 			contrib/init/solaris/Makefile
 			contrib/ldap/Makefile
 			contrib/lua/Makefile
+			contrib/patches/Makefile
 			contrib/spec/Makefile
 			contrib/spec/opendkim.spec
 			contrib/stats/Makefile
