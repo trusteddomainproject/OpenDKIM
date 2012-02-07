@@ -2642,6 +2642,8 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 		/* if a timeout was specified on the query */
 		if ((query->q_flags & QUERY_INFINIWAIT) == 0)
 		{
+			maintimeout = TRUE;
+
 			if (until.tv_sec == 0 ||
 			    until.tv_sec > query->q_timeout.tv_sec ||
 			    (until.tv_sec == query->q_timeout.tv_sec &&
@@ -2649,7 +2651,6 @@ ar_waitreply(AR_LIB lib, AR_QUERY query, size_t *len, struct timeval *timeout)
 			{
 				until.tv_sec = query->q_timeout.tv_sec;
 				until.tv_nsec = query->q_timeout.tv_usec * 1000;
-				maintimeout = TRUE;
 			}
 		}
 	}
