@@ -297,11 +297,12 @@ if (!$dbi_s->execute)
 }
 else
 {
-	if (defined($reportout))
+	while ($dbi_a = $dbi_s->fetchrow_arrayref())
 	{
-		while ($dbi_a = $dbi_s->fetchrow_arrayref())
+		if (defined($reportout))
 		{
 			print $out " <tr>\n";
+
 			for ($idx = 0; $idx < 5; $idx++)
 			{
 				if (defined($dbi_a->[$idx]))
@@ -315,11 +316,11 @@ else
 			}
 			print $out " </tr>\n";
 		}
-	}
 
-	if (defined($dbi_a->[3]) && defined($dbi_a->[4]))
-	{
-		$thresh = $dbi_a->[3] + $dbi_a->[4] * $stdscore;
+		if (defined($dbi_a->[3]) && defined($dbi_a->[4]))
+		{
+			$thresh = $dbi_a->[3] + $dbi_a->[4] * $stdscore;
+		}
 	}
 }
 
