@@ -34,9 +34,10 @@ MYSQL="$MYSQL_CMD --user=$USER --password=$PASSWORD --database=$DB"
 
 # output a header
 cat > $OUTPUT << EOF
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
   <head>
+   <meta http-equiv="content-type" content="text/html;charset=us-ascii">
    <title>
     OpenDKIM Statistics Report
    </title>
@@ -136,22 +137,22 @@ echo "" >> $OUTPUT
 echo '<a name="use_counts"></a>' >> $OUTPUT
 echo "<p> Signing domain use counts: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT msgcount, COUNT(*) AS domains FROM (SELECT domain, COUNT(*) AS msgcount FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 GROUP BY 1) a GROUP BY 1 ORDER BY 1 ASC LIMIT 10" >> $OUTPUT
-echo "</p>" >> $OUTPUT
+echo "" >> $OUTPUT
 
 echo '<a name="signing_trend_msg"></a>' >> $OUTPUT
 echo "<p> Trend in message signing rates: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT YEAR(msgtime) AS year, MONTHNAME(msgtime) AS month, (100. * SUM(SIGN(sigcount)) / COUNT(*)) AS '% signed' FROM messages JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 GROUP BY year,MONTH(msgtime) ORDER BY year,MONTH(msgtime)" >> $OUTPUT
-echo "</p>" >> $OUTPUT
+echo "" >> $OUTPUT
 
 echo '<a name="signing_trend_domain"></a>' >> $OUTPUT
 echo "<p> Trend in domain signing rates: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(DISTINCT domain) AS domains, YEAR(msgtime) AS year, MONTHNAME(msgtime) AS month FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 GROUP BY year, MONTH(msgtime) ORDER BY year, MONTH(msgtime)" >> $OUTPUT
-echo "</p>" >> $OUTPUT
+echo "" >> $OUTPUT
 
 echo '<a name="atps_use"></a>' >> $OUTPUT
 echo "<p> ATPS use: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(DISTINCT from_domain) AS domains FROM messages JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND NOT atps = -1" >> $OUTPUT
-echo "</p>" >> $OUTPUT
+echo "" >> $OUTPUT
 
 # output a footer
 echo "<p> Report completed `date` </p>" >> $OUTPUT
