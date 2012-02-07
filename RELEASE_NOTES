@@ -51,8 +51,6 @@ release, and a summary of the changes in that release.
 		there is a default.
 	LIBOPENDKIM: Add DKIM_SIG_CHECK() macro.  Suggested by Heikki
 		Gruner.
-	LIBAR: Avoid spinning when an absurd timeout is requested.  Problem
-		noted by Todd Lyons.
 	LIBAR: Fix bug #SF2917856: Rename "ar.h" to "async-resolv.h" since
 		"ar.h" is already in common use.
 	STATS: Feature request #SF3397903: Drop all support for data needed
