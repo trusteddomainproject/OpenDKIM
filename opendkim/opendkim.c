@@ -15913,6 +15913,11 @@ main(int argc, char **argv)
 		if (p != NULL)
 			*p = '\0';
 
+		for (p = dbname; isspace(*p); p++)
+			continue;
+		if (p != dbname)
+			memmove(dbname, p, strlen(p) + 1);
+
 		p = NULL;
 		status = dkimf_db_open(&dbtest, dbname,
 		                       (DKIMF_DB_FLAG_READONLY |
