@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
+# Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.
 #
 # $Id: opendkim-genstats,v 1.26 2010/10/27 06:18:45 cm-msk Exp $
 #
