@@ -15434,6 +15434,7 @@ usage(void)
 	                "\t-k keyfile  \tlocation of secret key file\n"
 	                "\t-l          \tlog activity to system log\n"
 	                "\t-L limit    \tsignature limit requirements\n"
+	                "\t-n          \tcheck configuration and exit\n"
 			"\t-o hdrlist  \tlist of headers to omit from signing\n"
 			"\t-P pidfile  \tfile into which to write process ID\n"
 	                "\t-q          \tquarantine messages that fail to verify\n"
