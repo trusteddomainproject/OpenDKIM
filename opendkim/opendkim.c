@@ -13925,15 +13925,14 @@ mlfi_eom(SMFICTX *ctx)
 						{
 							syslog(LOG_NOTICE,
 							       "%s: no reputation data available for NULL domain",
-							       dfc->mctx_jobid,
-							       cd);
+							       dfc->mctx_jobid);
 						}
 						else
 						{
 							syslog(LOG_NOTICE,
 							       "%s allowed by reputation of NULL domain (%f, count %lu, spam %lu, limit %lu)",
 							       dfc->mctx_jobid,
-							       cd, ratio,
+							       ratio,
 							       count,
 						               spam, limit);
 						}
