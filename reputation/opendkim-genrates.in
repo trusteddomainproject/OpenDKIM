@@ -251,9 +251,10 @@ if (defined($reportout))
 		print STDERR "$progname: report started in $tmpout\n";
 	}
 
-	print $out "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" \"http://www.w3.org/TR/REC-html40/loose.dtd\">\n";
+	print $out "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n";
 	print $out "<html>\n";
 	print $out "  <head>\n";
+	print $out "    <meta http-equiv=\"content-type\" content=\"text/html;charset=us-ascii\">\n";
 	print $out "    <title>\n";
 	print $out "      OpenDKIM Rate Recommendations\n";
 	print $out "    </title>\n";
@@ -262,7 +263,7 @@ if (defined($reportout))
 	print $out "  <body>\n";
 
 	print $out "<h1>OpenDKIM Rate Recommendations</h1>\n";
-	print $out "Generated " . strftime("%b %e %Y %H:%M:%S", localtime) . "</h1>\n";
+	print $out "Generated " . strftime("%b %e %Y %H:%M:%S", localtime) . "\n";
 	print $out "<hr>\n";
 }
 
@@ -277,7 +278,7 @@ if ($verbose)
 if (defined($reportout))
 {
 	print $out "Analysis of high spam domain duration (>= " . $spamratio * 100 . "% spam, >= " . $minspamcount . " msg(s))\n";
-	print $out "<table border=1 columns=11>\n";
+	print $out "<table border=1>\n";
 	print $out " <tr>\n";
 	print $out "  <td>Domains</td>\n";
 	print $out "  <td>Min. Duration</td>\n";
@@ -546,7 +547,7 @@ if (defined($reportout))
 	}
 
 	print $out "$pisize% prediction interval, standard score $stdscore\n";
-	print $out "<table border=1 columns=12>\n";
+	print $out "<table border=1>\n";
 	print $out " <tr>\n";
 	print $out "  <td>Domain ID</td>\n";
 	print $out "  <td>Domain Name</td>\n";
@@ -602,7 +603,7 @@ if (defined($reportout))
 	}
 
 	print $out "Analysis of low-time domain behaviour (<= " . $thresh . " days, >= " . $minmsgs . " msg(s))\n";
-	print $out "<table border=1 columns=11>\n";
+	print $out "<table border=1>\n";
 	print $out " <tr>\n";
 	print $out "  <td>Domains</td>\n";
 	print $out "  <td>Max Rate</td>\n";
