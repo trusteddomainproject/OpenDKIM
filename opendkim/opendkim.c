@@ -5312,7 +5312,7 @@ dkimf_reportaddr(struct dkimf_config *conf)
 		if (status == 0 && user != NULL && domain != NULL)
 		{
 			snprintf(reportcmd, sizeof reportcmd,
-			         "%s -t -f %s@%s", 
+			         "%s -t -f%s@%s",
 			         conf->conf_mtacommand, user, domain);
 
 			return;
@@ -5344,7 +5344,7 @@ dkimf_reportaddr(struct dkimf_config *conf)
 		         "%s@%s", pw->pw_name, myhostname);
 	}
 
-	snprintf(reportcmd, sizeof reportcmd, "%s -t -f %s", 
+	snprintf(reportcmd, sizeof reportcmd, "%s -t -f%s",
 	         conf->conf_mtacommand, reportaddr);
 }
 
