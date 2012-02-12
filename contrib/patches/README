@@ -7,7 +7,7 @@ opendkim-users@lists.opendkim.org or via the trackers on SourceForge.
 
 The patches are:
 
-opendkim-spam-ignore-cmdswitch.patch	Andreas Schulze <sca@andreasschulze.de>
+opendkim-spam-ignore-cmdswitch.patch	Andreas Schulze
 
 	Adds an ignored "-N" switch to opendkim-spam to allow compatibility
 	with some versions of amavisd-new.
