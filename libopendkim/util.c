@@ -858,9 +858,7 @@ dkim_copy_array(char **in)
 void
 dkim_clobber_array(char **in)
 {
-	unsigned int c;
 	unsigned int n;
-	char **out;
 
 	assert(in != NULL);
 

@@ -216,7 +216,10 @@ struct dkimf_config
 	_Bool		conf_blen;		/* use "l=" when signing */
 	_Bool		conf_ztags;		/* use "z=" when signing */
 	_Bool		conf_alwaysaddar;	/* always add Auth-Results:? */
-	_Bool		conf_sendreports;	/* verify failure reports */
+#ifdef _FFR_XTAGS
+	_Bool		conf_reqreports;	/* request reports */
+#endif /* _FFR_XTAGS */
+	_Bool		conf_sendreports;	/* signature failure reports */
 	_Bool		conf_sendadspreports;	/* ADSP failure reports */
 	_Bool		conf_adspnxdomain;	/* reject on ADSP NXDOMAIN? */
 	_Bool		conf_reqhdrs;		/* required header checks */
@@ -547,18 +550,6 @@ struct connctx
 	struct msgctx *	cctx_msg;		/* message context */
 };
 
-#ifdef _FFR_REPORT_INTERVALS
-/*
-**  DKIMF_RIDB_ENTRY -- report interval database entry
-*/
-
-struct dkimf_ridb_entry
-{
-	u_long			ridb_count;
-	time_t			ridb_start;
-};
-#endif /* _FFR_REPORT_INTERVALS */
-
 /*
 **  LOOKUP -- lookup table
 */
@@ -809,10 +800,6 @@ struct dkimf_config *curconf;			/* current configuration */
 #ifdef POPAUTH
 DKIMF_DB popdb;					/* POP auth DB */
 #endif /* POPAUTH */
-#ifdef _FFR_REPORT_INTERVALS
-DKIMF_DB ridb;					/* report intervals DB */
-pthread_mutex_t ridb_lock;			/* ridb lock */
-#endif /* _FFR_REPORT_INTERVALS */
 char reportcmd[BUFRSZ + 1];			/* reporting command */
 char reportaddr[MAXADDRESS + 1];		/* reporting address */
 char myhostname[DKIM_MAXHOSTNAMELEN + 1];	/* hostname */
@@ -4429,92 +4416,6 @@ dkimf_restart_check(int n, time_t t)
 	}
 }
 
-#ifdef _FFR_REPORT_INTERVALS
-/*
-**  DKIMF_RIDB_CHECK -- determine if a report should be sent or not
-**
-**  Parameters:
-**  	domain -- domain to report
-**  	interval -- reporting interval
-**
-**  Return value:
-**  	>1 -- yes, send a report; return value indicates how many incidents
-**  	      that report represents
-**  	0 -- no, don't send a report
-**  	-1 -- error
-*/
-
-static int
-dkimf_ridb_check(char *domain, unsigned int interval)
-{
-	_Bool exists;
-	int status;
-	struct dkimf_ridb_entry ri;
-	struct dkimf_db_data dbd;
-
-	assert(domain != NULL);
-
-	/* an interval of 0 means "send now" */
-	if (interval == 0)
-		return 1;
-
-	/* no RI database means "send now" */
-	if (ridb == NULL)
-		return 1;
-
-	dbd.dbdata_buffer = (char *) &ri;
-	dbd.dbdata_buflen = sizeof ri;
-	dbd.dbdata_flags = 0;
-	status = dkimf_db_get(ridb, domain, 0, &dbd, 1, &exists);
-
-	if (status == 0)
-	{
-		time_t now;
-
-		(void) time(&now);
-
-		if (!exists)					/* new */
-		{
-			ri.ridb_start = now;
-			ri.ridb_count = 1;
-
-			status = dkimf_db_put(ridb, domain, 0,
-			                      &ri, sizeof ri);
-
-			if (status != 0)
-				return -1;
-
-			return 0;
-		}
-		else if (ri.ridb_start + interval > now)	/* update */
-		{
-			ri.ridb_count++;
-
-			status = dkimf_db_put(ridb, domain, 0,
-			                      &ri, sizeof ri);
-
-			if (status != 0)
-				return -1;
-
-			return 0;
-		}
-		else						/* delete */
-		{
-			status = dkimf_db_delete(ridb, domain, 0);
-
-			if (status != 0)
-				return -1;
-
-			return ++ri.ridb_count;
-		}
-	}
-	else
-	{
-		return -1;
-	}
-}
-#endif /* _FFR_REPORT_INTERVALS */
-
 /*
 **  DKIMF_REPTOKEN -- replace a token in an input string with another string
 **
@@ -6069,6 +5970,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "EnableCoredumps",
 		                  &conf->conf_enablecores,
 		                  sizeof conf->conf_enablecores);
+
+#ifdef _FFR_XTAGS
+		(void) config_get(data, "RequestReports",
+		                  &conf->conf_reqreports,
+		                  sizeof conf->conf_reqreports);
+#endif /* _FFR_XTAGS */
 
 		(void) config_get(data, "RequireSafeKeys",
 		                  &conf->conf_safekeys,
@@ -9118,7 +9025,6 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		                              NULL, 0,
 		                              NULL, 0,
 		                              NULL, 0,
-		                              NULL, 0,
 		                              smtpprefix, sizeof smtpprefix,
 		                              NULL);
 
@@ -9746,14 +9652,12 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	int bfd = -1;
 	int hfd = -1;
 	int status;
-#ifdef _FFR_REPORT_INTERVALS
-	int icount = 0;
-#endif /* _FFR_REPORT_INTERVALS */
 	int arftype = ARF_TYPE_UNKNOWN;
 	int arfdkim = ARF_DKIMF_UNKNOWN;
-	u_int interval;
+	u_int pct = 100;
+	u_int rn;
 	time_t now;
-	DKIM_STAT dkstatus;
+	DKIM_STAT repstatus;
 	char *p;
 	char *last;
 	FILE *out;
@@ -9762,8 +9666,8 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	struct Header *hdr;
 	struct tm tm;
 	char ipstr[DKIM_MAXHOSTNAMELEN + 1];
-	char fmt[BUFRSZ];
 	char opts[BUFRSZ];
+	char fmt[BUFRSZ];
 	u_char addr[MAXADDRESS + 1];
 
 	assert(cc != NULL);
@@ -9775,52 +9679,23 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	assert(hostname != NULL);
 
 	memset(addr, '\0', sizeof addr);
-	memset(fmt, '\0', sizeof fmt);
 	memset(opts, '\0', sizeof opts);
 
 	sig = dkim_getsignature(dfc->mctx_dkimv);
 
 	/* if no report is possible, just skip it */
-	dkstatus = dkim_sig_getreportinfo(dfc->mctx_dkimv, sig,
-	                                  &hfd, &bfd,
-	                                  (u_char *) addr, sizeof addr,
-	                                  (u_char *) fmt, sizeof fmt,
-	                                  (u_char *) opts, sizeof opts,
-	                                  NULL, 0,
-	                                  &interval);
-	if (dkstatus != DKIM_STAT_OK || addr[0] == '\0')
+	repstatus = dkim_sig_getreportinfo(dfc->mctx_dkimv, sig,
+	                                   &hfd, &bfd,
+	                                   (u_char *) addr, sizeof addr,
+	                                   (u_char *) opts, sizeof opts,
+	                                   NULL, 0, &pct);
+	if (repstatus != DKIM_STAT_OK || addr[0] == '\0')
 		return;
 
-#ifdef _FFR_REPORT_INTERVALS
-	if (ridb != NULL)
+	if (pct < 100)
 	{
-		icount = dkimf_ridb_check(dkim_sig_getdomain(sig), interval);
-		if (icount <= 0)
-		{
-			if (icount == -1 && conf->conf_dolog)
-			{
-				syslog(LOG_WARNING,
-				       "%s: error checking report interval database",
-				       dfc->mctx_jobid);
-			}
-
-			return;
-		}
-	}
-#endif /* _FFR_REPORT_INTERVALS */
-
-	/* ensure the ARF format is acceptable to the requesting domain */
-	if (fmt[0] != '\0')
-	{
-		for (p = strtok_r(fmt, ":", &last);
-		     p != NULL;
-		     p = strtok_r(NULL, ":", &last))
-		{
-			if (strcasecmp(p, ARF_FORMAT_ARF) == 0)
-				break;
-		}
-
-		if (p == NULL)
+		rn = random() % 100;
+		if (rn > pct)
 			return;
 	}
 
@@ -9892,6 +9767,53 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 			{
 				if (dkim_sig_geterror(sig) == DKIM_SIGERROR_BADSIG ||
 				    dkim_sig_getbh(sig) == DKIM_SIGBH_MISMATCH)
+				{
+					sendreport = TRUE;
+					break;
+				}
+			}
+			else if (strcasecmp(p, ARF_OPTIONS_DKIM_DNS) == 0)
+			{
+				int err;
+
+				err = dkim_sig_geterror(sig);
+
+				if (err == DKIM_SIGERROR_NOKEY ||
+				    err == DKIM_SIGERROR_DNSSYNTAX ||
+				    err == DKIM_SIGERROR_KEYFAIL ||
+				    err == DKIM_SIGERROR_KEYDECODE ||
+				    err == DKIM_SIGERROR_MULTIREPLY)
+				{
+					sendreport = TRUE;
+					break;
+				}
+			}
+			else if (strcasecmp(p, ARF_OPTIONS_DKIM_POLICY) == 0)
+			{
+				int err;
+
+				err = dkim_sig_geterror(sig);
+
+				if (err == DKIM_SIGERROR_MBSFAILED)
+				{
+					sendreport = TRUE;
+					break;
+				}
+			}
+			else if (strcasecmp(p, ARF_OPTIONS_DKIM_OTHER) == 0)
+			{
+				int err;
+
+				err = dkim_sig_geterror(sig);
+
+				if (err == DKIM_SIGERROR_SUBDOMAIN ||
+				    err == DKIM_SIGERROR_KEYVERSION ||
+				    err == DKIM_SIGERROR_KEYUNKNOWNHASH ||
+				    err == DKIM_SIGERROR_KEYHASHMISMATCH ||
+				    err == DKIM_SIGERROR_NOTEMAILKEY ||
+				    err == DKIM_SIGERROR_KEYTYPEMISSING ||
+				    err == DKIM_SIGERROR_KEYTYPEUNKNOWN ||
+				    err == DKIM_SIGERROR_KEYREVOKED)
 				{
 					sendreport = TRUE;
 					break;
@@ -10007,10 +9929,6 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "Arrival-Date: %s\n", fmt);
 	fprintf(out, "Reported-Domain: %s\n", dkim_sig_getdomain(sig));
 	fprintf(out, "Delivery-Result: other\n");
-#ifdef _FFR_REPORT_INTERVALS
-	if (icount > 1)
-		fprintf(out, "Incidents: %d\n", icount);
-#endif /* _FFR_REPORT_INTERVALS */
 	fprintf(out, "Feedback-Type: %s\n", arf_type_string(arftype));
 	if (arftype == ARF_TYPE_AUTHFAIL)
 	{
@@ -10085,7 +10003,7 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	{
 		syslog(LOG_ERR, "%s: pclose(): returned status %d",
 		       dfc->mctx_jobid, status);
-	}
+        }
 }
 
 /*
@@ -10104,15 +10022,12 @@ static void
 dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 {
 	_Bool sendreport = FALSE;
-#ifdef _FFR_REPORT_INTERVALS
-	int icount;
-#endif /* _FFR_REPORT_INTERVALS */
 	int status;
 	int arftype;
 	int arfdkim;
 	int nsigs = 0;
-	u_int interval;
-	DKIM_STAT dkstatus;
+	u_int pct;
+	DKIM_STAT repstatus;
 	char *p;
 	char *last;
 	FILE *out;
@@ -10140,44 +10055,12 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 		(void) dkim_getsiglist(dfc->mctx_dkimv, &sigs, &nsigs);
 
 	/* if no report is possible, just skip it */
-	dkstatus = dkim_policy_getreportinfo(dfc->mctx_dkimv,
-	                                     (u_char *) addr, sizeof addr,
-	                                     (u_char *) fmt, sizeof fmt,
-	                                     (u_char *) opts, sizeof opts,
-	                                     NULL, 0,
-	                                     &interval);
-	if (dkstatus != DKIM_STAT_OK || addr[0] == '\0')
+	repstatus = dkim_policy_getreportinfo(dfc->mctx_dkimv,
+	                                      (u_char *) addr, sizeof addr,
+	                                      (u_char *) opts, sizeof opts,
+	                                      NULL, 0, &pct);
+	if (repstatus != DKIM_STAT_OK || addr[0] == '\0')
 		return;
-
-#ifdef _FFR_REPORT_INTERVALS
-	icount = dkimf_ridb_check(dfc->mctx_domain, interval);
-	if (icount <= 0)
-	{
-		if (icount == -1 && conf->conf_dolog)
-		{
-			syslog(LOG_WARNING,
-			       "%s: error checking report interval database",
-			       dfc->mctx_jobid);
-		}
-
-		return;
-	}
-#endif /* _FFR_REPORT_INTERVALS */
-
-	/* ensure the ARF format is acceptable to the requesting domain */
-	if (fmt[0] != '\0')
-	{
-		for (p = strtok_r(fmt, ":", &last);
-		     p != NULL;
-		     p = strtok_r(NULL, ":", &last))
-		{
-			if (strcasecmp(p, ARF_FORMAT_ARF) == 0)
-				break;
-		}
-
-		if (p == NULL)
-			return;
-	}
 
 	/* ignore any domain name in "r=" */
 	p = strchr(addr, '@');
@@ -10282,10 +10165,6 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "Version: %s\n", ARF_VERSION);
 	fprintf(out, "Original-Envelope-Id: %s\n", dfc->mctx_jobid);
 	fprintf(out, "Reporting-MTA: %s\n", hostname);
-#ifdef _FFR_REPORT_INTERVALS
-	if (icount > 1)
-		fprintf(out, "Incidents: %d\n", icount);
-#endif /* _FFR_REPORT_INTERVALS */
 	fprintf(out, "Feedback-Type: %s\n", arf_type_string(ARF_TYPE_FRAUD));
 
 	fprintf(out, "\n");
@@ -12186,6 +12065,23 @@ mlfi_eoh(SMFICTX *ctx)
 				                       status);
 			}
 
+#ifdef _FFR_XTAGS
+			if (conf->conf_reqreports)
+			{
+				status = dkim_add_xtag(sr->srq_dkim,
+				                       DKIM_REPORTTAG,
+				                       DKIM_REPORTTAGVAL);
+
+				if (status != DKIM_STAT_OK && dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s dkim_add_xtag() for \"%s\" failed",
+					       dfc->mctx_jobid,
+					       DKIM_REPORTTAG);
+				}
+			}
+#endif /* _FFR_XTAGS */
+
 #ifdef _FFR_ATPS
 			if (atps)
 			{
@@ -13607,8 +13503,6 @@ mlfi_eom(SMFICTX *ctx)
 					       sizeof smtpprefix);
 					lastdkim = dfc->mctx_dkimv;
 					(void) dkim_policy_getreportinfo(dfc->mctx_dkimv,
-					                                 NULL,
-					                                 0,
 					                                 NULL,
 					                                 0,
 					                                 NULL,
@@ -15480,6 +15374,7 @@ main(int argc, char **argv)
 	u_int mvminor;
 	u_int mvrelease;
 #endif /* HAVE_SMFI_VERSION */
+	time_t now;
 	gid_t gid = (gid_t) -1;
 	sigset_t sigset;
 	uint64_t fixedtime = (uint64_t) -1;
@@ -15498,9 +15393,6 @@ main(int argc, char **argv)
 #ifdef POPAUTH
 	char *popdbfile = NULL;
 #endif /* POPAUTH */
-#ifdef _FFR_REPORT_INTERVALS
-	char *ridbfile = NULL;
-#endif /* _FFR_REPORT_INTERVALS  */
 	char *testfile = NULL;
 	char *testpubkeys = NULL;
 	struct config *cfg = NULL;
@@ -15518,9 +15410,6 @@ main(int argc, char **argv)
 #ifdef POPAUTH
 	popdb = NULL;
 #endif /* POPAUTH */
-#ifdef _FFR_REPORT_INTERVALS
-	ridb = NULL;
-#endif /* _FFR_REPORT_INTERVALS */
 	no_i_whine = TRUE;
 	quarantine = FALSE;
 	conffile = NULL;
@@ -15529,6 +15418,9 @@ main(int argc, char **argv)
 	(void) gethostname(myhostname, sizeof myhostname);
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
+
+	(void) time(&now);
+	srandom(now);
 
 	curconf = dkimf_config_new();
 	if (curconf == NULL)
@@ -16203,14 +16095,6 @@ main(int argc, char **argv)
 			(void) config_get(cfg, "Userid", &become,
 			                  sizeof become);
 		}
-
-#ifdef _FFR_REPORT_INTERVALS
-		if (ridbfile == NULL)
-		{
-			(void) config_get(cfg, "ReportIntervalDB",
-			                  &ridbfile, sizeof ridbfile);
-		}
-#endif /* _FFR_REPORT_INTERVALS */
 
 #ifdef POPAUTH
 		if (popdbfile == NULL)
@@ -16928,48 +16812,6 @@ main(int argc, char **argv)
 		                    testpubkeys, strlen(testpubkeys));
 	}
 
-#ifdef _FFR_REPORT_INTERVALS
-	if (ridbfile != NULL)
-	{
-		char *err = NULL;
-
-		status = pthread_mutex_init(&ridb_lock, NULL);
-		if (status != 0)
-		{
-			fprintf(stderr,
-			        "%s: can't initialize body length DB mutex: %s\n",
-			        progname, strerror(status));
-			if (dolog)
-			{
-				syslog(LOG_ERR,
-				       "can't initialize body length DB mutex: %s",
-				       strerror(status));
-			}
-		}
-
-		status = dkimf_db_open(&ridb, ridbfile,
-		                       (DKIMF_DB_FLAG_ICASE |
-		                        DKIMF_DB_FLAG_READONLY),
-		                       &ridb_lock, &err);
-		if (status != 0)
-		{
-			fprintf(stderr, "%s: can't open database %s: %s\n",
-			        progname, ridbfile, err);
-			if (dolog)
-			{
-				syslog(LOG_ERR, "can't open database %s: %s",
-				       ridbfile, err);
-			}
-			dkimf_zapkey(curconf);
-
-			if (!autorestart && pidfile != NULL)
-				(void) unlink(pidfile);
-
-			return EX_UNAVAILABLE;
-		}
-	}
-#endif /* _FFR_REPORT_INTERVALS */
-
 	pthread_mutex_init(&conf_lock, NULL);
 
 	/* perform test mode */
@@ -17081,11 +16923,6 @@ main(int argc, char **argv)
 		       "%s v%s terminating with status %d, errno = %d",
 		       DKIMF_PRODUCT, VERSION, status, errno);
 	}
-
-#ifdef _FFR_REPORT_INTERVALS
-	if (ridb != NULL)
-		dkimf_db_close(ridb);
-#endif /* _FFR_REPORT_INTERVALS */
 
 #ifdef POPAUTH
 	if (popdb != NULL)

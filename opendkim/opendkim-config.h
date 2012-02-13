@@ -163,9 +163,6 @@ struct configdef dkimf_config[] =
 #ifdef _FFR_REPLACE_RULES
 	{ "ReplaceRules",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_REPLACE_RULES */
-#ifdef _FFR_REPORT_INTERVALS
-	{ "ReportIntervalDB",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_REPORT_INTERVALS */
 	{ "ReportAddress",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReportBccAddress",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_REPUTATION
@@ -180,6 +177,9 @@ struct configdef dkimf_config[] =
 	{ "ReputationTimeFactor",	CONFIG_TYPE_INTEGER,	FALSE },
 	{ "ReputationVerbose",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* _FFR_REPUTATION */
+#ifdef _FFR_XTAGS
+	{ "RequestReports",		CONFIG_TYPE_BOOLEAN,	FALSE },
+#endif /* _FFR_XTAGS */
 	{ "RequiredHeaders",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "RequireSafeKeys",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_RESIGN

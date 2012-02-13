@@ -25,6 +25,9 @@ if conn == nil then
 	error("mt.connect() failed")
 end
 
+mt.set_timeout(300)
+mt.sleep(15)
+
 -- send connection information
 -- mt.negotiate() is called implicitly
 if mt.conninfo(conn, "localhost", "127.0.0.1") ~= nil then
@@ -55,7 +58,7 @@ end
 
 -- send headers
 -- mt.rcptto() is called implicitly
-if mt.header(conn, "DKIM-Signature", "v=1; a=rsa-sha256; c=relaxed/relaxed;\n\td=example.com; s=report;\n\th=domainkey-signature:mime-version:received:received:in-reply-to:\n\t references:date:message-id:subject:from:to:cc:content-type;\n\tbh=34lkc8Kvp/4C7BZOHlFJr8XlPeQt1pLHo4V8JljV13c=;\n\tb=sF59xX14kHxUUF2NQs1sF7Jla+dfLKwqCkYRFfLAo1n48oRvlcc3W1nwWU/BEk6mp9\n\t 0ZoylqVfErDrxDTeAEDLwaaPSL+4ZMjvp3WZyuFp2gCoQb5U8INu+vdnNvAgr4hi1Ku4\n\t mEQhR5ncoCxOUWq4e7r1CCIH4DM2fLbZa4ywQ=") ~= nil then
+if mt.header(conn, "DKIM-Signature", "v=1; a=rsa-sha256; c=simple/simple; d=example.com; s=test;\n\tt=1329113412; r=y; bh=3VWGQGY+cSNYd1MGM+X6hRXU0stl8JCaQtl4mbX/j2I=;\n\th=From:Date:Subject;\n\tb=J4DYccKlZx8+EFXvnUEZyiQn2JNpQ0JSvTT1PeyGfrYPAux//SHXb/K/Z6jYzqH5z\n\t ZkiQ5UutfDjkkW2WsRCilkvodnp0PGrLK5fDFHBK7vGTLzXyhI/zubkeYVZufd+9U7\n\t kuVE9jz2Vb4YDL8DC9EZJ5SyAY8uNnsrky8gQ948=") ~= nil then
 	error("mt.header(DKIM-Signature) failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
@@ -67,7 +70,7 @@ end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
 	error("mt.header(From) unexpected reply")
 end
-if mt.header(conn, "Date", "Tue, 22 Dec 2009 13:04:12 -0800") ~= nil then
+if mt.header(conn, "Date", "Tue, 22 Dec 2010 13:04:12 -0800") ~= nil then
 	error("mt.header(Date) failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then

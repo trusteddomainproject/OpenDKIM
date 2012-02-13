@@ -86,6 +86,7 @@ static char dkim_c_id[] = "@(#)$Id: dkim.c,v 1.70.2.1 2010/10/27 21:43:08 cm-msk
 #include "dkim-tables.h"
 #include "dkim-keys.h"
 #include "dkim-policy.h"
+#include "dkim-report.h"
 #include "dkim-util.h"
 #include "dkim-canon.h"
 #include "dkim-dns.h"
@@ -470,6 +471,7 @@ dkim_add_plist(DKIM *dkim, DKIM_SET *set, u_char *param, u_char *value,
 **  	udata -- arbitrary user data (not used)
 **  	syntax -- only check syntax and don't add 'set' to dkim handle set
 **  	          list if TRUE
+**  	name -- an optional "name" for this set
 **
 **  Return value:
 **  	A DKIM_STAT constant.
@@ -477,7 +479,7 @@ dkim_add_plist(DKIM *dkim, DKIM_SET *set, u_char *param, u_char *value,
 
 DKIM_STAT
 dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
-                 void *udata, _Bool syntax)
+                 void *udata, _Bool syntax, const char *name)
 {
 	_Bool spaced;
 	int state;
@@ -492,6 +494,7 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 	assert(dkim != NULL);
 	assert(str != NULL);
 	assert(type == DKIM_SETTYPE_SIGNATURE ||
+	       type == DKIM_SETTYPE_SIGREPORT ||
 	       type == DKIM_SETTYPE_KEY ||
 	       type == DKIM_SETTYPE_POLICY);
 
@@ -519,6 +522,7 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 
 	set->set_type = type;
 	settype = dkim_code_to_name(settypes, type);
+	set->set_name = name;
 
 	if (!syntax)
 	{
@@ -722,6 +726,28 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 	/* load up defaults, assert requirements */
 	switch (set->set_type)
 	{
+	  case DKIM_SETTYPE_SIGREPORT:
+		/* check validity of "rp" */
+		value = dkim_param_get(set, (u_char *) "rp");
+		if (value != NULL)
+		{
+			unsigned int tmp = 0;
+
+			tmp = (unsigned int) strtoul(value, (char **) &p, 10);
+			if (tmp > 100 || *p != '\0')
+			{
+				dkim_error(dkim,
+				           "invalid parameter(s) in %s data",
+				           settype);
+				if (syntax)
+					dkim_set_free(dkim, set);
+				else
+					set->set_bad = TRUE;
+				return DKIM_STAT_SYNTAX;
+			}
+		}
+		break;
+		
 	  case DKIM_SETTYPE_SIGNATURE:
 		/* make sure required stuff is here */
 		if (dkim_param_get(set, (u_char *) "s") == NULL ||
@@ -893,7 +919,9 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 DKIM_STAT
 dkim_privkey_load(DKIM *dkim)
 {
+#ifdef USE_GNUTLS
 	int status;
+#endif /* USE_GNUTLS */
 	struct dkim_rsa *rsa;
 
 	assert(dkim != NULL);
@@ -2742,7 +2770,7 @@ dkim_get_policy(DKIM *dkim, u_char *query, _Bool excheck, int *qstatus,
 
 		pstatus = dkim_process_set(dkim, DKIM_SETTYPE_POLICY,
 		                           buf, strlen((char *) buf),
-		                           NULL, FALSE);
+		                           NULL, FALSE, NULL);
 		if (pstatus != DKIM_STAT_OK)
 			return pstatus;
 
@@ -2915,7 +2943,8 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig, _Bool test)
 		}
 
 		status = dkim_process_set(dkim, DKIM_SETTYPE_KEY, buf,
-		                          strlen((char *) buf), NULL, FALSE);
+		                          strlen((char *) buf), NULL, FALSE,
+		                          NULL);
 		if (status != DKIM_STAT_OK)
 			return status;
 
@@ -5443,13 +5472,11 @@ dkim_policy_getdnssec(DKIM *dkim)
 **  	dkim -- DKIM handle
 **  	addr -- address buffer (or NULL)
 **  	addrlen -- size of addr
-**  	fmt -- format buffer (or NULL)
-**  	fmtlen -- size of fmt
 **  	opts -- options buffer (or NULL)
 **  	optslen -- size of opts
 **  	smtp -- SMTP prefix buffer (or NULL)
 **  	smtplen -- size of smtp
-**  	interval -- requested report interval (or NULL)
+**  	pct -- requested report percentage (or NULL)
 **
 **  Return value:
 **  	A DKIM_STAT_* constant.
@@ -5458,10 +5485,9 @@ dkim_policy_getdnssec(DKIM *dkim)
 DKIM_STAT
 dkim_policy_getreportinfo(DKIM *dkim,
                           u_char *addr, size_t addrlen,
-                          u_char *fmt, size_t fmtlen,
                           u_char *opts, size_t optslen,
                           u_char *smtp, size_t smtplen,
-                          u_int *interval)
+                          u_int *pct)
 {
 	u_char *p;
 	DKIM_SET *set;
@@ -5478,7 +5504,7 @@ dkim_policy_getreportinfo(DKIM *dkim,
 
 	if (addr != NULL)
 	{
-		p = dkim_param_get(set, (u_char *) "r");
+		p = dkim_param_get(set, (u_char *) "ra");
 		if (p != NULL)
 		{
 			memset(addr, '\0', addrlen);
@@ -5487,13 +5513,6 @@ dkim_policy_getreportinfo(DKIM *dkim,
 			if (p != NULL)
 				*p = '\0';
 		}
-	}
-
-	if (fmt != NULL)
-	{
-		p = dkim_param_get(set, (u_char *) "rf");
-		if (p != NULL)
-			strlcpy((char *) fmt, (char *) p, fmtlen);
 	}
 
 	if (opts != NULL)
@@ -5513,9 +5532,9 @@ dkim_policy_getreportinfo(DKIM *dkim,
 		}
 	}
 
-	if (interval != NULL)
+	if (pct != NULL)
 	{
-		p = dkim_param_get(set, (u_char *) "ri");
+		p = dkim_param_get(set, (u_char *) "rp");
 		if (p != NULL)
 		{
 			u_int out;
@@ -5523,7 +5542,7 @@ dkim_policy_getreportinfo(DKIM *dkim,
 
 			out = strtoul((char *) p, &q, 10);
 			if (*q == '\0')
-				*interval = out;
+				*pct = out;
 		}
 	}
 
@@ -6391,7 +6410,7 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 			plen = len - (h->hdr_colon - h->hdr_text) - 1;
 			status = dkim_process_set(dkim, DKIM_SETTYPE_SIGNATURE,
 			                          h->hdr_colon + 1, plen, h,
-			                          FALSE);
+			                          FALSE, NULL);
 
 			if (status != DKIM_STAT_OK)
 				return status;
@@ -6792,7 +6811,8 @@ dkim_minbody(DKIM *dkim)
 DKIM_STAT
 dkim_key_syntax(DKIM *dkim, u_char *str, size_t len)
 {
-	return dkim_process_set(dkim, DKIM_SETTYPE_KEY, str, len, NULL, TRUE);
+	return dkim_process_set(dkim, DKIM_SETTYPE_KEY, str, len, NULL, TRUE,
+	                        NULL);
 }
 
 /*
@@ -6812,7 +6832,7 @@ DKIM_STAT
 dkim_policy_syntax(DKIM *dkim, u_char *str, size_t len)
 {
 	return dkim_process_set(dkim, DKIM_SETTYPE_POLICY, str, len,
-	                        NULL, TRUE);
+	                        NULL, TRUE, NULL);
 }
 
 /*
@@ -6831,7 +6851,7 @@ DKIM_STAT
 dkim_sig_syntax(DKIM *dkim, u_char *str, size_t len)
 {
 	return dkim_process_set(dkim, DKIM_SETTYPE_SIGNATURE, str, len,
-	                        NULL, TRUE);
+	                        NULL, TRUE, NULL);
 }
 
 /*
@@ -7315,7 +7335,7 @@ dkim_sig_getdnssec(DKIM_SIGINFO *sig)
 }
 
 /*
-**  DKIM_SIG_GETREPORTINFO -- retrieve reporting information from a key
+**  DKIM_SIG_GETREPORTINFO -- retrieve reporting information for a signature
 **
 **  Parameters:
 **  	dkim -- DKIM handle
@@ -7324,13 +7344,11 @@ dkim_sig_getdnssec(DKIM_SIGINFO *sig)
 **  	bfd -- descriptor to canonicalized body (or NULL) (returned)
 **  	addr -- address buffer (or NULL)
 **  	addrlen -- size of addr
-**  	fmt -- format buffer (or NULL)
-**  	fmtlen -- size of fmt
 **  	opts -- options buffer (or NULL)
 **  	optslen -- size of opts
 **  	smtp -- SMTP reply text buffer (or NULL)
 **  	smtplen -- size of smtp
-**  	interval -- requested reporting interval (or NULL)
+**  	pct -- requested reporting percentage (or NULL)
 **
 **  Return value:
 **  	A DKIM_STAT_* constant.
@@ -7340,13 +7358,16 @@ DKIM_STAT
 dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
                        int *hfd, int *bfd,
                        u_char *addr, size_t addrlen,
-                       u_char *fmt, size_t fmtlen,
                        u_char *opts, size_t optslen,
                        u_char *smtp, size_t smtplen,
-                       u_int *interval)
+                       u_int *pct)
 {
+	DKIM_STAT status;
 	u_char *p;
+	char *sdomain;
 	DKIM_SET *set;
+	struct timeval timeout;
+	unsigned char buf[BUFRSZ];
 
 	assert(dkim != NULL);
 	assert(sig != NULL);
@@ -7355,13 +7376,72 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 	    dkim->dkim_mode != DKIM_MODE_VERIFY)
 		return DKIM_STAT_INVALID;
 
-	set = sig->sig_keytaglist;
+	sdomain = dkim_sig_getdomain(sig);
+
+	/* see if the signature had an "r=y" tag */
+	set = sig->sig_taglist;
 	if (set == NULL)
 		return DKIM_STAT_INTERNAL;
 
+	p = dkim_param_get(set, (u_char *) "r");
+	if (p == NULL || p[0] != 'y' || p[1] != '\0')
+	{
+		if (addr != NULL)
+			addr[0] = '\0';
+		if (opts != NULL)
+			opts[0] = '\0';
+		if (smtp != NULL)
+			smtp[0] = '\0';
+		if (pct != NULL)
+			*pct = (u_int) -1;
+
+		return DKIM_STAT_OK;
+	}
+
+	/* see if we've grabbed this set already */
+	for (set = dkim_set_first(dkim, DKIM_SETTYPE_SIGREPORT);
+	     set != NULL;
+	     set = dkim_set_next(set, DKIM_SETTYPE_SIGREPORT))
+	{
+		if (set->set_name != NULL &&
+		    strcasecmp(set->set_name, sdomain) == 0)
+			break;
+	}
+
+	/* guess not; go to the DNS to get reporting parameters */
+	if (set == NULL)
+	{
+		timeout.tv_sec = dkim->dkim_timeout;
+		timeout.tv_usec = 0;
+
+		memset(buf, '\0', sizeof buf);
+		status = dkim_repinfo(dkim, sig, &timeout, buf, sizeof buf);
+		if (status != DKIM_STAT_OK)
+			return status;
+		if (buf[0] == '\0')
+			return DKIM_STAT_OK;
+
+		status = dkim_process_set(dkim, DKIM_SETTYPE_SIGREPORT,
+		                          buf, strlen(buf), NULL, FALSE,
+		                          sdomain);
+		if (status != DKIM_STAT_OK)
+			return;
+
+		for (set = dkim_set_first(dkim, DKIM_SETTYPE_SIGREPORT);
+		     set != NULL;
+		     set = dkim_set_next(set, DKIM_SETTYPE_SIGREPORT))
+		{
+			if (set->set_name != NULL &&
+			    strcasecmp(set->set_name, sdomain) == 0)
+				break;
+		}
+
+		assert(set != NULL);
+	}
+
 	if (addr != NULL)
 	{
-		p = dkim_param_get(set, (u_char *) "r");
+		p = dkim_param_get(set, (u_char *) "ra");
 		if (p != NULL)
 		{
 			memset(addr, '\0', addrlen);
@@ -7370,13 +7450,6 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 			if (p != NULL)
 				*p = '\0';
 		}
-	}
-
-	if (fmt != NULL)
-	{
-		p = dkim_param_get(set, (u_char *) "rf");
-		if (p != NULL)
-			strlcpy((char *) fmt, (char *) p, fmtlen);
 	}
 
 	if (opts != NULL)
@@ -7396,9 +7469,9 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 		}
 	}
 
-	if (interval != NULL)
+	if (pct != NULL)
 	{
-		p = dkim_param_get(set, (u_char *) "ri");
+		p = dkim_param_get(set, (u_char *) "rp");
 		if (p != NULL)
 		{
 			u_int out;
@@ -7406,7 +7479,7 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 
 			out = strtoul((char *) p, &q, 10);
 			if (*q == '\0')
-				*interval = out;
+				*pct = out;
 		}
 	}
 

@@ -151,6 +151,7 @@ static struct nametable prv_settypes[] =	/* set types */
 	{ "key",	DKIM_SETTYPE_KEY },
 	{ "policy",	DKIM_SETTYPE_POLICY },
 	{ "signature",	DKIM_SETTYPE_SIGNATURE },
+	{ "signature reporting", DKIM_SETTYPE_SIGREPORT },
 	{ NULL,		-1 },
 };
 struct nametable *settypes = prv_settypes;

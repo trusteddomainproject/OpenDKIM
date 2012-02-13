@@ -8,9 +8,11 @@ release, and a summary of the changes in that release.
 2.5.0		2012/02/20
 	Feature request #SF3385816: Discontinue DomainKeys support.
 	Feature request #SF3393282: Update ARF output per
-		draft-ietf-marf-authfailure-report-03.
+		draft-ietf-marf-authfailure-report-03 et seq.
 	Feature request #SF3406814: Add ability to invoke chroot().
 		Requested by Andreas Schulze.
+	Feature request #SF3477908: Update DKIM reporting per
+		draft-ietf-marf-dkim-reporting-10.
 	Add "WeakSyntaxChecks" suppressing some short-circuiting error checks
 		on syntax.  Requested by Todd Nagengast. 
 	Allow a set of test files to be passed via "-t" rather than just one.

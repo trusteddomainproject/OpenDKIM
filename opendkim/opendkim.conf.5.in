@@ -865,12 +865,10 @@ and
 below). If multiple addresses are required, they should be comma separated.
 
 .TP
-.I ReportIntervalDB (dataset)
-Specifies a set of domains that correspond to how often, in seconds, to report 
-DKIM signature failues. See
-.I SendReports
-for more details.
-@REPORT_INTERVALS_MANNOTICE@
+.I RequestReports (boolean)
+When signing, includes a request for signature evaluation failures in the
+signature.  (See draft-ietf-marf-dkim-reporting for details.)
+@XTAGS_MANNOTICE@
 
 .TP
 .I RequiredHeaders (boolean)

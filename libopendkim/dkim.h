@@ -52,6 +52,8 @@ static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.36.2.1 2010/10/27 21:43:08 cm-msk
 #define DKIM_HDRMARGIN		75	/* "standard" header margin */
 #define DKIM_MAXHEADER		4096	/* buffer for caching one header */
 #define	DKIM_MAXHOSTNAMELEN	256	/* max. FQDN we support */
+#define	DKIM_REPORTTAG		"r"	/* DKIM reporting request tag */
+#define	DKIM_REPORTTAGVAL	"y"	/* DKIM reporting request tag value */
 #define	DKIM_SIGNHEADER		"DKIM-Signature"
 					/* DKIM signature header */
 
@@ -771,8 +773,6 @@ extern int dkim_sig_getdnssec __P((DKIM_SIGINFO *sig));
 **  	bfd -- canonicalized body descriptor (or NULL) (returned)
 **  	addr -- address buffer (or NULL)
 **  	addrlen -- size of addr
-**  	fmt -- format buffer (or NULL)
-**  	fmtlen -- size of fmt
 **  	opts -- options buffer (or NULL)
 **  	optslen -- size of opts
 **  	smtp -- SMTP prefix buffer (or NULL)
@@ -786,7 +786,6 @@ extern int dkim_sig_getdnssec __P((DKIM_SIGINFO *sig));
 extern DKIM_STAT dkim_sig_getreportinfo __P((DKIM *dkim, DKIM_SIGINFO *sig,
                                              int *hfd, int *bfd,
                                              u_char *addr, size_t addrlen,
-                                             u_char *fmt, size_t fmtlen,
                                              u_char *opts, size_t optslen,
                                              u_char *smtp, size_t smtplen,
                                              u_int *interval));
@@ -1312,8 +1311,6 @@ extern int dkim_policy_getdnssec __P((DKIM *dkim));
 **  	dkim -- DKIM handle
 **  	addr -- address buffer (or NULL)
 **  	addrlen -- size of addr
-**  	fmt -- format buffer (or NULL)
-**  	fmtlen -- size of fmt
 **  	opts -- options buffer (or NULL)
 **  	optslen -- size of opts
 **  	smtp -- SMTP prefix buffer (or NULL)
@@ -1326,7 +1323,6 @@ extern int dkim_policy_getdnssec __P((DKIM *dkim));
 
 extern DKIM_STAT dkim_policy_getreportinfo __P((DKIM *dkim,
                                                 u_char *addr, size_t addrlen,
-                                                u_char *fmt, size_t fmtlen,
                                                 u_char *opts, size_t optslen,
                                                 u_char *smtp, size_t smtplen,
                                                 u_int *interval));

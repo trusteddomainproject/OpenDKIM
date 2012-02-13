@@ -269,9 +269,6 @@ FFR_FEATURE([rate_limit], [support for DKIM-based rate limiting])
 
 FFR_FEATURE([replace_rules], [support for string substitution when signing])
 
-FFR_FEATURE([report_intervals],
-            [support for requested report intervals when reporting])
-
 FFR_FEATURE([redirect],
             [support for redirecting failed verifications to a mailbox])
 
@@ -1805,7 +1802,6 @@ fi
 AM_CONDITIONAL(USE_DB_OPENDKIM,
                test x"$enable_popauth" = x"yes" -o \
 	            x"$enable_reputation" = x"yes" -o \
-	            x"$enable_report_intervals" = x"yes" -o \
 	            x"$enable_reputation_cache" = x"yes" -o \
                     x"$bdbrequested" = x"yes")
 AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")

@@ -2,7 +2,7 @@
 **  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, 2012, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-arf.h,v 1.3 2009/08/03 19:10:47 cm-msk Exp $
 */
@@ -46,11 +46,17 @@ static char dkim_arf_h_id[] = "@(#)$Id: opendkim-arf.h,v 1.3 2009/08/03 19:10:47
 #define	ARF_FORMAT_ARF		"arf"
 
 #define	ARF_OPTIONS_DKIM_ALL	"all"
+#define	ARF_OPTIONS_DKIM_DNS	"d"
+#define	ARF_OPTIONS_DKIM_OTHER	"o"
+#define	ARF_OPTIONS_DKIM_POLICY	"p"
 #define	ARF_OPTIONS_DKIM_SYNTAX	"s"
 #define	ARF_OPTIONS_DKIM_VERIFY	"v"
 #define	ARF_OPTIONS_DKIM_EXPIRED "x"
 
 #define	ARF_OPTIONS_ADSP_ALL	"all"
+#define	ARF_OPTIONS_ADSP_DNS	"d"
+#define	ARF_OPTIONS_ADSP_OTHER	"o"
+#define	ARF_OPTIONS_ADSP_POLICY	"p"
 #define	ARF_OPTIONS_ADSP_SIGNED	"s"
 #define	ARF_OPTIONS_ADSP_UNSIGNED "u"
 

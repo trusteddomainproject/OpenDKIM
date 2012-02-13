@@ -121,6 +121,7 @@ struct dkim_set
 	_Bool			set_bad;
 	dkim_set_t		set_type;
 	u_char *		set_data;
+	const char *		set_name;
 	void *			set_udata;
 	struct dkim_plist *	set_plist[NPRINTABLE];
 	struct dkim_set *	set_next;
