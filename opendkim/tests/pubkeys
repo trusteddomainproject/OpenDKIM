@@ -1,5 +1,5 @@
 example2.com			foo
-_adsp._domainkey.example2.com	dkim=all; r=adsp-feedback
+_adsp._domainkey.example2.com	dkim=all; ra=adsp-feedback
 revoked._domainkey.example.com	k=rsa; t=y; p=
 _report._domainkey.example.com	ra=dkim-feedbacks
 UN42N5XOV642KXRXRQIYANHCOUPGQL5LT4WTBKYT2IJFLBWODFDQ====._atps.example.net	v=ATPS1
