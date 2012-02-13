@@ -5,7 +5,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.5.0		2012/01/??
+2.5.0		2012/02/20
 	Feature request #SF3385816: Discontinue DomainKeys support.
 	Feature request #SF3393282: Update ARF output per
 		draft-ietf-marf-authfailure-report-03.
