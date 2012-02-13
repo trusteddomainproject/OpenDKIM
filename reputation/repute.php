@@ -1,6 +1,6 @@
 <?php
 ###
-### Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+### Copyright (c) 2011, 2012, The OpenDKIM Project.  All rights reserved.
 ###
 
 #
@@ -15,21 +15,25 @@ require "repute-config.php";
 #
 # extract query values and build the SQL query
 #
+if (!isset($_GET["application"]) ||
+    !isset($_GET["assertion"]) ||
+    !isset($_GET["service"]) ||
+    !isset($_GET["subject"]))
+	die("Malformed query");
+
 $application = $_GET["application"];
 $assertion = $_GET["assertion"];
 $service = $_GET["service"];
 $subject = $_GET["subject"];
-$reporter = $_GET["reporter"];
 
-if (!isset($subject) || !isset($application) || !isset($assertion) ||
-    !isset($service))
-	die("Malformed query");
 if (strtolower($application) != "email-id")
 	die("Unrecognized application");
 if (strtolower($assertion) != "spam")
 	die("Unrecognized assertion");
 
-if (!isset($reporter))
+if (isset($_GET["reporter"]))
+	$reporter = $_GET["reporter"];
+else
 	$reporter = 0;
 
 $query1 = "SELECT	ratio_high,
