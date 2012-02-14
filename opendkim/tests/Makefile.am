@@ -67,6 +67,7 @@ EXTRA_DIST = \
 	t-local-adsp-subdomain t-local-adsp-subdomain.conf \
 		t-local-adsp-subdomain.lua \
 	t-sign-atps t-sign-atps.conf t-sign-atps.lua \
+	t-verify-ss-atps t-verify-ss-atps.conf t-verify-ss-atps.lua \
 	testkey.private pubkeys cp-test testmta
 
 MOSTLYCLEANFILES=
