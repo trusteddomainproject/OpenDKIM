@@ -7425,7 +7425,7 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 		                          buf, strlen(buf), NULL, FALSE,
 		                          sdomain);
 		if (status != DKIM_STAT_OK)
-			return;
+			return status;
 
 		for (set = dkim_set_first(dkim, DKIM_SETTYPE_SIGREPORT);
 		     set != NULL;
