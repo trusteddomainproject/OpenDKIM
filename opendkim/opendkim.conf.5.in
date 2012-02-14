@@ -1158,6 +1158,11 @@ default location, currently
 .I /var/tmp.
 
 .TP
+.I TestDNSData (data set)
+Provides a data set whose keys will be treated as DNS record names and
+values as TXT record contents.  Intended for use during automated testing.
+
+.TP
 .I TestPublicKeys (string)
 Names a file from which public keys should be read.  Intended for use only
 during automated testing.

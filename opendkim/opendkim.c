@@ -327,6 +327,7 @@ struct dkimf_config
 #ifdef _FFR_SENDER_MACRO
 	char *		conf_sendermacro;	/* macro containing sender */
 #endif /* _FFR_SENDER_MACRO */
+	char *		conf_testdnsdata;	/* test DNS data */
 #ifdef _FFR_IDENTITY_HEADER
 	char *		conf_identityhdr;	/* identity header */
 	_Bool		conf_rmidentityhdr;	/* remove identity header */
@@ -393,6 +394,7 @@ struct dkimf_config
 	DKIMF_DB	conf_vbr_trusteddb;	/* trusted certifiers (DB) */
 	u_char **	conf_vbr_trusted;	/* trusted certifiers */
 #endif /* _FFR_VBR */
+	DKIMF_DB	conf_testdnsdb;		/* test TXT records */
 	DKIMF_DB	conf_bldb;		/* l= recipients (DB) */
 	DKIMF_DB	conf_domainsdb;		/* domains to sign (DB) */
 	DKIMF_DB	conf_omithdrdb;		/* headers to omit (DB) */
@@ -5613,6 +5615,9 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_libopendkim != NULL)
 		dkim_close(conf->conf_libopendkim);
 
+	if (conf->conf_testdnsdb != NULL)
+		dkimf_db_close(conf->conf_testdnsdb);
+
 	if (conf->conf_domainsdb != NULL)
 		dkimf_db_close(conf->conf_domainsdb);
 
@@ -5980,6 +5985,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "RequireSafeKeys",
 		                  &conf->conf_safekeys,
 		                  sizeof conf->conf_safekeys);
+
+		(void) config_get(data, "TestDNSData",
+		                  &conf->conf_testdnsdata,
+		                  sizeof conf->conf_testdnsdata);
 
 		(void) config_get(data, "NoHeaderB",
 		                  &conf->conf_noheaderb,
@@ -6704,6 +6713,24 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_peerdb, str,
+		                       (DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, dberr);
+			return -1;
+		}
+	}
+
+	if (conf->conf_testdnsdata != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_testdnsdb,
+		                       conf->conf_testdnsdata,
 		                       (DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
@@ -8034,73 +8061,80 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 	/* set the DNS callback */
 	(void) dkim_set_dns_callback(lib, dkimf_sendprogress, CBINTERVAL);
 
-#ifdef USE_ARLIB
-	conf->conf_arlib = ar_init(NULL, NULL, NULL,
-	                           (curconf->conf_restrace ? AR_FLAG_TRACELOGGING
-	                                                   : 0) |
-	                           (curconf->conf_dnsconnect ? AR_FLAG_USETCP
-	                                                     : 0));
-	if (conf->conf_arlib == NULL)
+	if (conf->conf_testdnsdb != NULL)
 	{
-		if (err != NULL)
-			*err = "failed to initialize libar";
-
-		return FALSE;
+		(void) dkimf_filedns_setup(lib, conf->conf_testdnsdb);
 	}
+	else
+	{
+#ifdef USE_ARLIB
+		conf->conf_arlib = ar_init(NULL, NULL, NULL,
+		                           (curconf->conf_restrace ? AR_FLAG_TRACELOGGING
+		                                                   : 0) |
+		                           (curconf->conf_dnsconnect ? AR_FLAG_USETCP
+		                                                     : 0));
+		if (conf->conf_arlib == NULL)
+		{
+			if (err != NULL)
+				*err = "failed to initialize libar";
 
-	(void) dkimf_arlib_setup(lib, conf->conf_arlib);
+			return FALSE;
+		}
+
+		(void) dkimf_arlib_setup(lib, conf->conf_arlib);
 #endif /* USE_ARLIB */
 
 #ifdef USE_UNBOUND
-	if (dkimf_unbound_init(&conf->conf_unbound) != 0)
-	{
-		if (err != NULL)
-			*err = "failed to initialize libunbound";
-
-		return FALSE;
-	}
-
-	if (conf->conf_trustanchorpath != NULL)
-	{
-		if (access(conf->conf_trustanchorpath, R_OK) != 0)
+		if (dkimf_unbound_init(&conf->conf_unbound) != 0)
 		{
 			if (err != NULL)
-				*err = "can't access unbound trust anchor";
+				*err = "failed to initialize libunbound";
+
 			return FALSE;
 		}
 
-		status = dkimf_unbound_add_trustanchor(conf->conf_unbound,
-		                                       conf->conf_trustanchorpath);
-		if (status != DKIM_STAT_OK)
+		if (conf->conf_trustanchorpath != NULL)
 		{
-			if (err != NULL)
-				*err = "failed to add unbound trust anchor";
-			return FALSE;
-		}
-	}
+			if (access(conf->conf_trustanchorpath, R_OK) != 0)
+			{
+				if (err != NULL)
+					*err = "can't access unbound trust anchor";
+				return FALSE;
+			}
 
-	if (conf->conf_unboundconfig != NULL)
-	{
-		if (access(conf->conf_unboundconfig, R_OK) != 0)
-		{
-			if (err != NULL)
-				*err = "can't access unbound configuration file";
-			return FALSE;
+			status = dkimf_unbound_add_trustanchor(conf->conf_unbound,
+			                                       conf->conf_trustanchorpath);
+			if (status != DKIM_STAT_OK)
+			{
+				if (err != NULL)
+					*err = "failed to add unbound trust anchor";
+				return FALSE;
+			}
 		}
 
-		status = dkimf_unbound_add_conffile(conf->conf_unbound,
-		                                    conf->conf_unboundconfig);
-		if (status != DKIM_STAT_OK)
+		if (conf->conf_unboundconfig != NULL)
 		{
-			if (err != NULL)
-				*err = "failed to add unbound configuration file";
+			if (access(conf->conf_unboundconfig, R_OK) != 0)
+			{
+				if (err != NULL)
+					*err = "can't access unbound configuration file";
+				return FALSE;
+			}
+
+			status = dkimf_unbound_add_conffile(conf->conf_unbound,
+			                                    conf->conf_unboundconfig);
+			if (status != DKIM_STAT_OK)
+			{
+				if (err != NULL)
+					*err = "failed to add unbound configuration file";
 		
-			return FALSE;
+				return FALSE;
+			}
 		}
-	}
 
-	(void) dkimf_unbound_setup(lib, conf->conf_unbound);
+		(void) dkimf_unbound_setup(lib, conf->conf_unbound);
 #endif /* USE_UNBOUND */
+	}
 
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_TIMEOUT,
 	                    &conf->conf_dnstimeout,

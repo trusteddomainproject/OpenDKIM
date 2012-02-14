@@ -18,6 +18,9 @@ static char opendkim_dns_h_id[] = "@(#)$Id: opendkim-dns.h,v 1.2 2010/08/30 22:0
 /* libopendkim includes */
 #include <dkim.h>
 
+/* opendkim includes */
+#include "opendkim-db.h"
+
 #ifdef _FFR_RBL
 /* librbl includes */
 # include <rbl.h>
@@ -27,6 +30,8 @@ static char opendkim_dns_h_id[] = "@(#)$Id: opendkim-dns.h,v 1.2 2010/08/30 22:0
 /* libdkimrep includes */
 # include <dkim-rep.h>
 #endif /* _FFR_DKIM_REPUTATION */
+
+struct dkimf_filedns;
 
 #ifdef USE_UNBOUND
 /* libunbound includes */
@@ -62,5 +67,8 @@ extern int dkimf_rbl_arlib_setup __P((RBL *, AR_LIB));
 extern int dkimf_rep_arlib_setup __P((DKIM_REP, AR_LIB));
 # endif /* _FFR_DKIM_REPUTATION */
 #endif /* USE_ARLIB */
+
+extern int dkimf_filedns_free __P((struct dkimf_filedns *));
+extern int dkimf_filedns_setup __P((DKIM_LIB *, DKIMF_DB));
 
 #endif /* _OPENDKIM_DNS_H_ */

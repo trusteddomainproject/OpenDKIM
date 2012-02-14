@@ -14,11 +14,13 @@ static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.7.10.2 2010/10/28
 /* system includes */
 #include <sys/types.h>
 #include <sys/time.h>
+#include <netinet/in.h>
 #include <arpa/nameser.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <pthread.h>
+#include <resolv.h>
 #include <errno.h>
 
 /* libopendkim includes */
@@ -47,6 +49,7 @@ static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.7.10.2 2010/10/28
 
 /* opendkim includes */
 #include "opendkim-dns.h"
+#include "opendkim-db.h"
 #include "util.h"
 
 /* macros */
@@ -59,6 +62,18 @@ static char opendkim_dns_c_id[] = "@(#)$Id: opendkim-dns.c,v 1.7.10.2 2010/10/28
 #ifndef MIN
 # define MIN(x,y)	((x) < (y) ? (x) : (y))
 #endif /* ! MIN */
+
+#define	BUFRSZ			1024
+#define	MAXPACKET		8192
+
+/* struct dkimf_fquery -- a file-based DNS query */
+struct dkimf_fquery
+{
+	unsigned char *		fq_rbuf;
+	size_t			fq_rbuflen;
+	size_t			fq_qlen;
+	unsigned char		fq_qbuf[MAXPACKET];
+};
 
 #ifdef USE_UNBOUND
 /* struct dkimf_unbound -- unbound context */
@@ -842,3 +857,277 @@ dkimf_arlib_setup(DKIM_LIB *lib, AR_LIB ar)
 	return 0;
 }
 #endif /* USE_ARLIB */
+
+/*
+**  DKIMF_FILEDNS_QUERY -- function passed to libopendkim to handle new
+**                         requests
+**
+**  Parameters:
+**  	srv -- service handle
+**
+**  Return value:
+**  	A DKIM_DNS_* constant.
+*/
+
+static int
+dkimf_filedns_query(void *srv, int type, unsigned char *query,
+                    unsigned char *buf, size_t buflen, void **qh)
+{
+	int status;
+	struct dkimf_fquery *fq;
+	size_t qlen;
+
+	assert(srv != NULL);
+	assert(query != NULL);
+	assert(buf != NULL);
+	assert(qh != NULL);
+
+	if (type != T_TXT)
+		return DKIM_DNS_SUCCESS;
+
+	fq = malloc(sizeof *fq);
+	if (fq == NULL)
+		return DKIM_DNS_ERROR;
+	fq->fq_rbuf = buf;
+	fq->fq_rbuflen = buflen;
+
+	qlen = res_mkquery(QUERY, query, C_IN, type, NULL, 0, NULL,
+	                   fq->fq_qbuf, sizeof fq->fq_qbuf);
+	if (qlen == (size_t) -1)
+	{
+		free(fq);
+		return DKIM_DNS_ERROR;
+	}
+
+	fq->fq_qlen = qlen;
+
+	*qh = fq;
+
+	return DKIM_DNS_SUCCESS;
+}
+
+/*
+**  DKIMF_FILEDNS_CANCEL -- function passed to libopendkim to handle cancel
+**                          requests
+**
+**  Parameters:
+**  	srv -- service handle
+**  	q -- query handle
+**
+**  Return value:
+**  	A DKIM_DNS_* constant.
+*/
+
+static int
+dkimf_filedns_cancel(void *srv, void *q)
+{
+	struct dkimf_fquery *fq;
+
+	assert(srv != NULL);
+	assert(q != NULL);
+
+	fq = q;
+
+	free(fq);
+
+	return DKIM_DNS_SUCCESS;
+}
+
+/*
+**  DKIMF_FILEDNS_WAITREPLY -- function passed to libopendkim to handle
+**                             wait requests
+**
+**  Parameters:
+**  	srv -- service handle
+**  	q -- query handle
+**  	to -- wait timeout
+**  	bytes -- bytes (returned)
+**  	error -- error code (returned)
+**  	dnssec -- DNSSEC status (returned)
+**
+**  Return value:
+**  	A DKIM_DNS_* constant.
+*/
+
+static int
+dkimf_filedns_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
+                        int *error, int *dnssec)
+{
+	_Bool exists = FALSE;
+	int n;
+	int status;
+	int qdcount;
+	char *cp;
+	char *eom;
+	char *qstart;
+	struct dkimf_fquery *fq;
+	char qname[BUFRSZ + 1];
+	char buf[BUFRSZ + 1];
+	HEADER hdr;
+	struct dkimf_db_data dbd;
+
+	assert(srv != NULL);
+	assert(qh != NULL);
+
+	fq = (struct dkimf_fquery *) qh;
+
+	/* recover the query */
+	qstart = fq->fq_rbuf;
+	cp = fq->fq_qbuf;
+	eom = cp + sizeof fq->fq_qbuf;
+	memcpy(&hdr, cp, sizeof hdr);
+	cp += HFIXEDSZ;
+
+	/* skip over the name at the front of the answer */
+	memset(qname, '\0', sizeof qname);
+	for (qdcount = ntohs((unsigned short) hdr.qdcount);
+	     qdcount > 0;
+	     qdcount--)
+	{
+		/* copy it first */
+		(void) dn_expand((unsigned char *) fq->fq_qbuf, eom, cp,
+		                 (char *) qname, sizeof qname);
+ 
+		if ((n = dn_skipname(cp, eom)) < 0)
+			return DKIM_DNS_ERROR;;
+
+		cp += n;
+
+		/* extract the type and class */
+		if (cp + INT16SZ + INT16SZ > eom)
+			return DKIM_DNS_ERROR;
+;
+		cp += (INT16SZ + INT16SZ);
+	}
+
+	/* search the DB */
+	dbd.dbdata_buffer = buf;
+	dbd.dbdata_buflen = sizeof buf;
+	dbd.dbdata_flags = 0;
+
+	memset(buf, '\0', sizeof buf);
+
+	/* see if it's in the DB */
+	status = dkimf_db_get((DKIMF_DB) srv, qname, strlen(qname), &dbd, 1,
+	                      &exists);
+	if (status != 0)
+		return DKIM_DNS_ERROR;
+
+	/* prepare a reply header */
+	hdr.qr = 1;
+
+	if (!exists)
+	{			/* not found; set up an NXDOMAIN reply */
+		hdr.rcode = NXDOMAIN;
+		hdr.ancount = htons(0);
+
+		memcpy(fq->fq_qbuf, &hdr, sizeof hdr);
+
+		*bytes = fq->fq_qlen;
+	}
+	else
+	{			/* found, construct the reply */
+		int elen;
+		int slen;
+		int olen;
+		char *q;
+		unsigned char *len;
+		unsigned char *dnptrs[3];
+		unsigned char **lastdnptr;
+		HEADER newhdr;
+
+		lastdnptr = &dnptrs[2];
+
+		memset(&newhdr, '\0', sizeof newhdr);
+		memset(&dnptrs, '\0', sizeof dnptrs);
+		
+		newhdr.qdcount = htons(1);
+		newhdr.ancount = htons(1);
+		newhdr.rcode = NOERROR;
+		newhdr.opcode = hdr.opcode;
+		newhdr.qr = 1;
+		newhdr.id = hdr.id;
+
+		dnptrs[0] = fq->fq_qbuf;
+
+		/* copy out the new header */
+		memcpy(fq->fq_rbuf, &newhdr, sizeof newhdr);
+
+		cp = fq->fq_rbuf + HFIXEDSZ;
+		eom = fq->fq_rbuf + fq->fq_rbuflen;
+
+		/* question section */
+		elen = dn_comp(qname, cp, eom - cp, dnptrs, lastdnptr);
+		if (elen == -1)
+			return DKIM_DNS_ERROR;
+		cp += elen;
+		PUTSHORT(T_TXT, cp);
+		PUTSHORT(C_IN, cp);
+
+		/* answer section */
+		elen = dn_comp(qname, cp, eom - cp, dnptrs, lastdnptr);
+		if (elen == -1)
+			return DKIM_DNS_ERROR;
+		cp += elen;
+		PUTSHORT(T_TXT, cp);
+		PUTSHORT(C_IN, cp);
+		PUTLONG(0L, cp);
+
+		len = cp;
+		cp += INT16SZ;
+
+		slen = dbd.dbdata_buflen;
+		olen = 0;
+		q = buf;
+
+		while (slen > 0)
+		{
+			elen = MIN(slen, 255);
+			*cp = (char) elen;
+			cp++;
+			olen++;
+			memcpy(cp, q, elen);
+			q += elen;
+			cp += elen;
+			olen += elen;
+			slen -= elen;
+		}
+
+		eom = cp;
+
+		cp = len;
+		PUTSHORT(olen, cp);
+
+		*bytes = eom - qstart;
+	}
+
+	if (dnssec != NULL)
+		*dnssec = DKIM_DNSSEC_UNKNOWN;
+
+	return DKIM_DNS_SUCCESS;
+}
+
+/*
+**  DKIMF_FILEDNS_SETUP -- connect a file DNS to libopendkim
+**
+**  Parameters:
+**  	lib -- libopendkim handle
+**  	db -- data set from which to read
+**
+**  Return value:
+**  	0 on success, -1 on failure
+*/
+
+int
+dkimf_filedns_setup(DKIM_LIB *lib, DKIMF_DB db)
+{
+	assert(lib != NULL);
+	assert(db != NULL);
+
+	(void) dkim_dns_set_query_service(lib, db);
+	(void) dkim_dns_set_query_start(lib, dkimf_filedns_query);
+	(void) dkim_dns_set_query_cancel(lib, dkimf_filedns_cancel);
+	(void) dkim_dns_set_query_waitreply(lib, dkimf_filedns_waitreply);
+
+	return 0;
+}

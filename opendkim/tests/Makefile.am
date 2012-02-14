@@ -9,9 +9,7 @@ check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-verify-syntax t-verify-ss t-verify-ss-bad \
 	t-dontsign t-peer t-local-adsp t-local-adsp-subdomain \
 	t-lua-verify-tests t-sign-atps \
-	t-adsp-report
-
-# Disabled until file-based DNS stub added: t-verify-report, t-verify-ss-atps
+	t-adsp-report t-verify-report t-verify-ss-atps
 
 if LIVE_TESTS
 if RBL

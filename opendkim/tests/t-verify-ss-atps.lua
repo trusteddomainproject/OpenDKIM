@@ -20,9 +20,6 @@ end
 mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-ss-atps.conf",
                "-p", sock)
 
-mt.set_timeout(300)
-mt.sleep(15)
-
 -- try to connect to it
 conn = mt.connect(sock, 40, 0.05)
 if conn == nil then
@@ -111,17 +108,14 @@ passfound = 0
 atpsfound = 0
 while true do
 	ar = mt.getheader(conn, "Authentication-Results", n)
-	mt.echo(ar)
 	if ar == nil then
 		break
 	end
 	if string.find(ar, "dkim=pass", 1, true) ~= nil then
 		passfound = 1
-		break
 	end
 	if string.find(ar, "dkim-atps=pass", 1, true) ~= nil then
 		atpsfound = 1
-		break
 	end
 	n = n + 1
 end

@@ -25,9 +25,6 @@ if conn == nil then
 	error("mt.connect() failed")
 end
 
-mt.set_timeout(300)
-mt.sleep(15)
-
 -- send connection information
 -- mt.negotiate() is called implicitly
 if mt.conninfo(conn, "localhost", "127.0.0.1") ~= nil then
@@ -64,13 +61,13 @@ end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
 	error("mt.header(DKIM-Signature) unexpected reply")
 end
-if mt.header(conn, "From", "user@example.com") ~= nil then
+if mt.header(conn, "From", "user@ex4mple.com") ~= nil then
 	error("mt.header(From) failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
 	error("mt.header(From) unexpected reply")
 end
-if mt.header(conn, "Date", "Tue, 22 Dec 2010 13:04:12 -0800") ~= nil then
+if mt.header(conn, "Date", "Tue, 22 Dec 2009 13:04:12 -0800") ~= nil then
 	error("mt.header(Date) failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then

@@ -11,7 +11,7 @@ fi
 
 export TMPFILE=`mktemp /tmp/opendkim-XXXXXXXXX`
 
-../../miltertest/miltertest -s $srcdir/t-verify-report.lua -v -v -v || exit 1
+../../miltertest/miltertest -s $srcdir/t-verify-report.lua || exit 1
 # ignore version differences in useragent and arrival date
 diff -I ^User-Agent -I ^Arrival-Date \
 	-u $srcdir/t-verify-report.txt ${TMPFILE} || exit 1
