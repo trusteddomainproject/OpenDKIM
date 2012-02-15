@@ -13805,7 +13805,7 @@ mlfi_eom(SMFICTX *ctx)
 						else
 						{
 							syslog(LOG_NOTICE,
-							       "%s allowed by reputation of %s (%f, count %lu, spam %lu, limit %lu)",
+							       "%s: allowed by reputation of %s (%f, count %lu, spam %lu, limit %lu)",
 							       dfc->mctx_jobid,
 							       cd, ratio,
 							       count,
@@ -13858,7 +13858,7 @@ mlfi_eom(SMFICTX *ctx)
 						else
 						{
 							syslog(LOG_NOTICE,
-							       "%s allowed by reputation of NULL domain (%f, count %lu, spam %lu, limit %lu)",
+							       "%s: allowed by reputation of NULL domain (%f, count %lu, spam %lu, limit %lu)",
 							       dfc->mctx_jobid,
 							       ratio,
 							       count,
@@ -13872,7 +13872,7 @@ mlfi_eom(SMFICTX *ctx)
 					if (dolog)
 					{
 						syslog(LOG_NOTICE,
-						       "%s blocked by reputation of %s (%f, count %lu, spam %lu, limit %lu)",
+						       "%s: blocked by reputation of %s (%f, count %lu, spam %lu, limit %lu)",
 						       dfc->mctx_jobid,
 						       domain, ratio, count,
 					               spam, limit);
