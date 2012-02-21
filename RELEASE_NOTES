@@ -6,6 +6,17 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.5.0		2012/02/20
+	#####################################################################
+	###                                                               ###
+	###  This release is dedicated to the memory of J.D. Falk, a      ###
+	###  tireless champion of anti-abuse technology and collaboration ###
+	###  and a founding member of the Board of the Trusted Domain     ###
+	###  Project, a participant in related IETF work, and a long-time ###
+	###  particpant and supporter of MAAWG.  J.D. was taken by cancer ###
+	###  on November 16, 2011.  His enthusiasm and perspective for    ###
+	###  all of this work will be sorely missed.                      ###
+	###                                                               ###
+	#####################################################################
 	Feature request #SF3385816: Discontinue DomainKeys support.
 	Feature request #SF3393282: Update ARF output per
 		draft-ietf-marf-authfailure-report-03 et seq.
