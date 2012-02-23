@@ -268,6 +268,7 @@ FFR_FEATURE([postgresql_reconnect_hack],
 FFR_FEATURE([rate_limit], [support for DKIM-based rate limiting])
 
 FFR_FEATURE([replace_rules], [support for string substitution when signing])
+AM_CONDITIONAL([REPLACE_RULES], [test x"$enable_replace_rules" = x"yes"])
 
 FFR_FEATURE([redirect],
             [support for redirecting failed verifications to a mailbox])

@@ -2,7 +2,7 @@
 
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \
-	t-sign-rs-lua t-sign-ss-all t-sign-ss-replace t-sign-ss-ltag \
+	t-sign-rs-lua t-sign-ss-all t-sign-ss-ltag \
 	t-sign-report \
 	t-verify-revoked t-verify-unspec t-verify-malformed \
 	t-verify-unsigned t-verify-unsigned-silent \
@@ -18,6 +18,9 @@ endif
 endif
 if REPUTE
 check_SCRIPTS += t-verify-ss-rep
+endif
+if REPLACE_RULES
+check_SCRIPTS += t-sign-ss-replace
 endif
 
 TESTS = $(check_SCRIPTS)
