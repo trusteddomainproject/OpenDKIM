@@ -47,6 +47,9 @@ static char opendkim_atpszone_c_id[] = "$Id: opendkim-genzone.c,v 1.12.10.1 2010
 #ifndef SHA_DIGEST_LENGTH
 # define SHA_DIGEST_LENGTH 20
 #endif /* ! SHA_DIGEST_LENGTH */
+#ifndef SHA256_DIGEST_LENGTH
+# define SHA256_DIGEST_LENGTH 32
+#endif /* ! SHA256_DIGEST_LENGTH */
 
 /* libopendkim includes */
 #include <dkim.h>
