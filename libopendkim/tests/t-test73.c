@@ -64,9 +64,8 @@ stub_dns_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 	int n;
 	int status;
 	int qdcount;
-	char *cp;
-	char *eom;
-	char *qstart;
+	unsigned char *cp;
+	unsigned char *eom;
 	char buf[BUFRSZ + 1];
 	int elen;
 	int slen;
@@ -138,7 +137,7 @@ stub_dns_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 	cp = len;
 	PUTSHORT(olen, cp);
 
-	*bytes = eom - qstart;
+	*bytes = eom - abuf;
 
 	if (dnssec != NULL)
 		*dnssec = DKIM_DNSSEC_UNKNOWN;
