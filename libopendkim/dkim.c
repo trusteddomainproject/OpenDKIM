@@ -4344,6 +4344,9 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef HAVE_SHA256
 	FEATURE_ADD(libhandle, DKIM_FEATURE_SHA256);
 #endif /* HAVE_SHA256 */
+#ifdef _FFR_DNSSEC
+	FEATURE_ADD(libhandle, DKIM_FEATURE_DNSSEC);
+#endif /* _FFR_DNSSEC */
 #ifdef _FFR_RESIGN
 	FEATURE_ADD(libhandle, DKIM_FEATURE_RESIGN);
 #endif /* _FFR_RESIGN */
@@ -4353,6 +4356,12 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef _FFR_OVERSIGN
 	FEATURE_ADD(libhandle, DKIM_FEATURE_OVERSIGN);
 #endif /* _FFR_OVERSIGN */
+#ifdef _FFR_XTAGS
+	FEATURE_ADD(libhandle, DKIM_FEATURE_XTAGS);
+#endif /* _FFR_XTAGS */
+#ifdef _FFR_DKIM_REPUTATION
+	FEATURE_ADD(libhandle, DKIM_FEATURE_DKIM_REPUTATION);
+#endif /* _FFR_DKIM_REPUTATION */
 
 	/* initialize the resolver */
 	(void) res_init();
