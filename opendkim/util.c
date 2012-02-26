@@ -146,9 +146,9 @@ static char *optlist[] =
 	"_FFR_OVERSIGN",
 #endif /* _FFR_OVERSIGN */
 
-#if _FFR_PARSE_TIME
-	"_FFR_PARSE_TIME",
-#endif /* _FFR_PARSE_TIME */
+#if _FFR_PARSETIME
+	"_FFR_PARSETIME",
+#endif /* _FFR_PARSETIME */
 
 #if _FFR_POSTGRESQL_RECONNECT_HACK
 	"_FFR_POSTGRESQL_RECONNECT_HACK",

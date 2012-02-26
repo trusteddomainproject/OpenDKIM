@@ -4335,9 +4335,9 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef _FFR_DIFFHEADERS
 	FEATURE_ADD(libhandle, DKIM_FEATURE_DIFFHEADERS);
 #endif /* _FFR_DIFFHEADERS */
-#ifdef _FFR_PARSE_TIME
+#ifdef _FFR_PARSETIME
 	FEATURE_ADD(libhandle, DKIM_FEATURE_PARSE_TIME);
-#endif /* _FFR_PARSE_TIME */
+#endif /* _FFR_PARSETIME */
 #ifdef QUERY_CACHE
 	FEATURE_ADD(libhandle, DKIM_FEATURE_QUERY_CACHE);
 #endif /* QUERY_CACHE */
@@ -6433,13 +6433,13 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 DKIM_STAT
 dkim_eoh(DKIM *dkim)
 {
-#ifdef _FFR_PARSE_TIME
+#ifdef _FFR_PARSETIME
 	struct dkim_header *hdr;
-#endif /* _FFR_PARSE_TIME */
+#endif /* _FFR_PARSETIME */
 
 	assert(dkim != NULL);
 
-#ifdef _FFR_PARSE_TIME
+#ifdef _FFR_PARSETIME
 # define RFC2822DATE	"%a, %d %b %Y %H:%M:%S %z"
 /* # define RFC2822DATE	"%a" */
 	/* store the Date: value for possible later scrutiny */
@@ -6463,7 +6463,7 @@ dkim_eoh(DKIM *dkim)
 				dkim->dkim_msgdate = (uint64_t) mktime(&tm);
 		}
 	}
-#endif /* _FFR_PARSE_TIME */
+#endif /* _FFR_PARSETIME */
 
 	if (dkim->dkim_mode == DKIM_MODE_VERIFY)
 		return dkim_eoh_verify(dkim);
@@ -8094,11 +8094,11 @@ dkim_get_msgdate(DKIM *dkim)
 {
 	assert(dkim != NULL);
 
-#ifdef _FFR_PARSE_TIME
+#ifdef _FFR_PARSETIME
 	return dkim->dkim_msgdate;
-#else /* _FFR_PARSE_TIME */
+#else /* _FFR_PARSETIME */
 	return 0;
-#endif /* _FFR_PARSE_TIME */
+#endif /* _FFR_PARSETIME */
 }
 
 /*
