@@ -29,11 +29,6 @@ static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.23 2010/10/28 02:41:2
 # include <regex.h>
 #endif /* USE_TRE */
 
-/* libar includes */
-#ifdef USE_ARLIB
-# include "ar.h"
-#endif /* USE_ARLIB */
-
 #ifdef USE_GNUTLS
 # include <gnutls/gnutls.h>
 # include <gnutls/crypto.h>
