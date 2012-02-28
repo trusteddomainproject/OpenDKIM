@@ -7,7 +7,7 @@
 dist_doc_DATA = draft-gregorio-uritemplate-08.txt \
 	draft-ietf-marf-as-10.txt \
 	draft-ietf-marf-authfailure-report-10.txt \
-	draft-ietf-marf-dkim-reporting-10.txt \
+	draft-ietf-marf-dkim-reporting-11.txt \
 	draft-ietf-repute-email-identifiers-02.txt \
 	draft-ietf-repute-media-type-01.txt \
 	draft-ietf-repute-model-00.txt \
