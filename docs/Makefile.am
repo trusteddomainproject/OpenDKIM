@@ -12,7 +12,6 @@ dist_doc_DATA = draft-gregorio-uritemplate-08.txt \
 	draft-ietf-repute-media-type-01.txt \
 	draft-ietf-repute-model-00.txt \
 	draft-ietf-repute-query-http-01.txt \
-	draft-kucherawy-dkim-atps-16.txt \
 	report-rfc4871.txt \
 	rfc2254.txt \
 	rfc3447.txt \
@@ -30,4 +29,5 @@ dist_doc_DATA = draft-gregorio-uritemplate-08.txt \
 	rfc6212.txt \
 	rfc6376.txt \
 	rfc6377.txt \
-	rfc6522.txt
+	rfc6522.txt \
+	rfc6541.txt
