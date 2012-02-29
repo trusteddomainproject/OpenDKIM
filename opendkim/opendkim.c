@@ -115,9 +115,7 @@ static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 c
 #include "opendkim.h"
 #include "opendkim-ar.h"
 #include "opendkim-arf.h"
-#if (USE_UNBOUND || USE_ARLIB)
-# include "opendkim-dns.h"
-#endif /* (USE_UNBOUND || USE_ARLIB) */
+#include "opendkim-dns.h"
 #ifdef USE_LUA
 # include "opendkim-lua.h"
 #endif /* USE_LUA */
