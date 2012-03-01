@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, 2012, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -13,9 +13,13 @@ static char t_test73_c_id[] = "@(#)$Id: t-test73.c,v 1.2 2009/12/08 19:14:27 cm-
 
 /* system includes */
 #include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <arpa/nameser.h>
 #include <unistd.h>
 #include <assert.h>
 #include <string.h>
+#include <resolv.h>
 #include <stdio.h>
 
 #ifdef USE_GNUTLS
@@ -30,7 +34,116 @@ static char t_test73_c_id[] = "@(#)$Id: t-test73.c,v 1.2 2009/12/08 19:14:27 cm-
 #define	MAXADDRESS	256
 #define	MAXHEADER	4096
 
-#define SIG2 "v=1;  a=rsa-sha256; c=simple/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=yHBAX+3IwxTZIynBuB/5tlsBInJq9n8qz5fgAycHi80=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID; b=Y3y\r\n\tVeA3WZdCZl1sGuOZNC3BBRhtGCOExkZdw5xQoGPvSX/q6AC1SAJvOUWOri95AZAUGs0\r\n\t/bIDzzt23ei9jc+rptlavrl/5ijMrl6ShmvkACk6It62KPkJcDpoGfi5AZkrfX1Ou/z\r\n\tqGg5xJX86Kqd7FgNolMg7PbfyWliK2Yb84="
+#define SIG2 "v=1;  a=rsa-sha1; c=simple/simple; d=example.com; s=test;\r\n\tt=1172620939; r=y; bh=ll/0h2aWgG+D3ewmE4Y3pY7Ukz8=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=F/cSOK/4qujIeNhKcC1LjAMFS33ORcsRqoEfNO6g1WXMlK5LW/foFePbUyFbbEbhY\r\n\t 8RhU+7C4R914QI6WW+lYMh11p0z1BGu2HJ4HHOlBivi1DDfZgsRZrEJhBeMngNIN9+\r\n\t 8HbGhTSWWpOBn+jYtfvGJBGtbv3AjgVgNropc7DM="
+
+size_t alen;
+unsigned char *abuf;
+unsigned char qbuf[BUFRSZ];
+
+static int
+stub_dns_cancel(void *srv, void *q)
+{
+	return DKIM_DNS_SUCCESS;
+}
+
+static int
+stub_dns_query(void *srv, int type, unsigned char *query,
+               unsigned char *buf, size_t buflen, void **qh)
+{
+	abuf = buf;
+	alen = buflen;
+	dkim_strlcpy(qbuf, query, sizeof qbuf);
+
+	return DKIM_DNS_SUCCESS;
+}
+
+static int
+stub_dns_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
+                   int *error, int *dnssec)
+{
+	int n;
+	int status;
+	int qdcount;
+	unsigned char *cp;
+	unsigned char *eom;
+	char buf[BUFRSZ + 1];
+	int elen;
+	int slen;
+	int olen;
+	char *q;
+	unsigned char *len;
+	unsigned char *dnptrs[3];
+	unsigned char **lastdnptr;
+	HEADER newhdr;
+
+	memset(&newhdr, '\0', sizeof newhdr);
+	memset(&dnptrs, '\0', sizeof dnptrs);
+		
+	newhdr.qdcount = htons(1);
+	newhdr.ancount = htons(1);
+	newhdr.rcode = NOERROR;
+	newhdr.opcode = QUERY;
+	newhdr.qr = 1;
+	newhdr.id = 0;
+
+	lastdnptr = &dnptrs[2];
+	dnptrs[0] = abuf;
+
+	/* copy out the new header */
+	memcpy(abuf, &newhdr, sizeof newhdr);
+
+	cp = &abuf[HFIXEDSZ];
+	eom = &abuf[alen];
+
+	/* question section */
+	elen = dn_comp(qbuf, cp, eom - cp, dnptrs, lastdnptr);
+	if (elen == -1)
+		return DKIM_DNS_ERROR;
+	cp += elen;
+	PUTSHORT(T_TXT, cp);
+	PUTSHORT(C_IN, cp);
+
+	/* answer section */
+	elen = dn_comp(qbuf, cp, eom - cp, dnptrs, lastdnptr);
+	if (elen == -1)
+		return DKIM_DNS_ERROR;
+	cp += elen;
+	PUTSHORT(T_TXT, cp);
+	PUTSHORT(C_IN, cp);
+	PUTLONG(0L, cp);
+
+	len = cp;
+	cp += INT16SZ;
+
+	slen = strlen(REPORTRECORD);
+	q = REPORTRECORD;
+	olen = 0;
+
+	while (slen > 0)
+	{
+		elen = MIN(slen, 255);
+		*cp = (char) elen;
+		cp++;
+		olen++;
+		memcpy(cp, q, elen);
+		q += elen;
+		cp += elen;
+		olen += elen;
+		slen -= elen;
+	}
+
+	eom = cp;
+
+	cp = len;
+	PUTSHORT(olen, cp);
+
+	*bytes = eom - abuf;
+
+	if (dnssec != NULL)
+		*dnssec = DKIM_DNSSEC_UNKNOWN;
+
+	return DKIM_DNS_SUCCESS;
+}
 
 /*
 **  MAIN -- program mainline
@@ -56,7 +169,6 @@ main(int argc, char **argv)
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
 	unsigned char addr[MAXADDRESS + 1];
-	unsigned char fmt[BUFRSZ];
 	unsigned char opts[BUFRSZ];
 	unsigned char smtp[BUFRSZ];
 
@@ -76,6 +188,12 @@ main(int argc, char **argv)
 	}
 
 	printf("*** simple/simple rsa-sha256 verifying with extra signature spaces and reportinfo (failure)\n");
+
+	/* DNS stubs for the reporting data lookup */
+	dkim_dns_set_query_service(lib, NULL);
+	dkim_dns_set_query_start(lib, stub_dns_query);
+	dkim_dns_set_query_cancel(lib, stub_dns_cancel);
+	dkim_dns_set_query_waitreply(lib, stub_dns_waitreply);
 
 	/* set flags */
 	flags = DKIM_LIBFLAGS_TMPFILES;
@@ -184,12 +302,10 @@ main(int argc, char **argv)
 
 	/* request report info, verify valid descriptors and address */
 	memset(addr, '\0', sizeof addr);
-	memset(fmt, '\0', sizeof fmt);
 	memset(opts, '\0', sizeof opts);
 	memset(smtp, '\0', sizeof smtp);
 	status = dkim_sig_getreportinfo(dkim, sig, &hfd, &bfd,
 	                                addr, sizeof addr,
-	                                fmt, sizeof fmt,
 	                                opts, sizeof opts,
 	                                smtp, sizeof smtp, NULL);
 	assert(status == DKIM_STAT_OK);

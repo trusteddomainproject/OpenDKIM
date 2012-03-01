@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef _DKIM_H_
@@ -47,10 +47,13 @@ static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.36.2.1 2010/10/27 21:43:08 cm-msk
 #endif /* __STDC__ */
 
 /* definitions */
-#define	DKIM_ATPSTAG		"atps"	/* special tag name */
+#define	DKIM_ATPSTAG		"atps"	/* ATPS tag name */
+#define	DKIM_ATPSHTAG		"atpsh"	/* ATPS tag name */
 #define DKIM_HDRMARGIN		75	/* "standard" header margin */
 #define DKIM_MAXHEADER		4096	/* buffer for caching one header */
 #define	DKIM_MAXHOSTNAMELEN	256	/* max. FQDN we support */
+#define	DKIM_REPORTTAG		"r"	/* DKIM reporting request tag */
+#define	DKIM_REPORTTAGVAL	"y"	/* DKIM reporting request tag value */
 #define	DKIM_SIGNHEADER		"DKIM-Signature"
 					/* DKIM signature header */
 
@@ -58,6 +61,9 @@ static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.36.2.1 2010/10/27 21:43:08 cm-msk
 #define	DKIM_DNSKEYNAME		"_domainkey"
 					/* reserved DNS sub-zone */
 #define	DKIM_DNSPOLICYNAME	"_adsp"	/* reserved DNS sub-zone */
+
+/* macros */
+#define	DKIM_SIG_CHECK(x)	((dkim_sig_getflags((x)) & DKIM_SIGFLAG_PASSED != 0) && (dkim_sig_getbh((x)) == DKIM_SIGBH_MATCH))
 
 /*
 **  DKIM_STAT -- status code type
@@ -108,7 +114,7 @@ typedef int DKIM_SIGERROR;
 #define DKIM_SIGERROR_EXPIRED		3	/* signature expired */
 #define DKIM_SIGERROR_FUTURE		4	/* signature in the future */
 #define DKIM_SIGERROR_TIMESTAMPS	5	/* x= < t= */
-#define DKIM_SIGERROR_MISSING_C		6	/* c= missing */
+#define DKIM_SIGERROR_UNUSED		6	/* OBSOLETE */
 #define DKIM_SIGERROR_INVALID_HC	7	/* c= invalid (header) */
 #define DKIM_SIGERROR_INVALID_BC	8	/* c= invalid (body) */
 #define DKIM_SIGERROR_MISSING_A		9	/* a= missing */
@@ -141,7 +147,7 @@ typedef int DKIM_SIGERROR;
 #define	DKIM_SIGERROR_KEYUNKNOWNHASH	36	/* unknown key hash */
 #define	DKIM_SIGERROR_KEYHASHMISMATCH	37	/* sig-key hash mismatch */
 #define	DKIM_SIGERROR_NOTEMAILKEY	38	/* not an e-mail key */
-#define	DKIM_SIGERROR_GRANULARITY	39	/* key granularity mismatch */
+#define	DKIM_SIGERROR_UNUSED2		39	/* OBSOLETE */
 #define	DKIM_SIGERROR_KEYTYPEMISSING	40	/* key type missing */
 #define	DKIM_SIGERROR_KEYTYPEUNKNOWN	41	/* key type unknown */
 #define	DKIM_SIGERROR_KEYREVOKED	42	/* key revoked */
@@ -767,8 +773,6 @@ extern int dkim_sig_getdnssec __P((DKIM_SIGINFO *sig));
 **  	bfd -- canonicalized body descriptor (or NULL) (returned)
 **  	addr -- address buffer (or NULL)
 **  	addrlen -- size of addr
-**  	fmt -- format buffer (or NULL)
-**  	fmtlen -- size of fmt
 **  	opts -- options buffer (or NULL)
 **  	optslen -- size of opts
 **  	smtp -- SMTP prefix buffer (or NULL)
@@ -782,7 +786,6 @@ extern int dkim_sig_getdnssec __P((DKIM_SIGINFO *sig));
 extern DKIM_STAT dkim_sig_getreportinfo __P((DKIM *dkim, DKIM_SIGINFO *sig,
                                              int *hfd, int *bfd,
                                              u_char *addr, size_t addrlen,
-                                             u_char *fmt, size_t fmtlen,
                                              u_char *opts, size_t optslen,
                                              u_char *smtp, size_t smtplen,
                                              u_int *interval));
@@ -1308,8 +1311,6 @@ extern int dkim_policy_getdnssec __P((DKIM *dkim));
 **  	dkim -- DKIM handle
 **  	addr -- address buffer (or NULL)
 **  	addrlen -- size of addr
-**  	fmt -- format buffer (or NULL)
-**  	fmtlen -- size of fmt
 **  	opts -- options buffer (or NULL)
 **  	optslen -- size of opts
 **  	smtp -- SMTP prefix buffer (or NULL)
@@ -1322,7 +1323,6 @@ extern int dkim_policy_getdnssec __P((DKIM *dkim));
 
 extern DKIM_STAT dkim_policy_getreportinfo __P((DKIM *dkim,
                                                 u_char *addr, size_t addrlen,
-                                                u_char *fmt, size_t fmtlen,
                                                 u_char *opts, size_t optslen,
                                                 u_char *smtp, size_t smtplen,
                                                 u_int *interval));
@@ -1832,6 +1832,18 @@ extern void dkim_dns_set_query_waitreply __P((DKIM_LIB *,
 extern DKIM_STAT dkim_add_xtag __P((DKIM *, const char *, const char *));
 
 /*
+**  DKIM_PRIVKEY_LOAD -- explicitly try to load the private key
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_privkey_load __P((DKIM *));
+
+/*
 **  DKIM_ATPS_CHECK -- check for Authorized Third Party Signing
 **
 **  Parameters:
@@ -1893,13 +1905,31 @@ extern int dkim_qi_gettype __P((DKIM_QUERYINFO *));
 
 extern int dkim_base32_encode __P((char *, size_t *, const void *, size_t));
 
+/*
+**  DKIM_SIG_GETHASHES -- retrieve hashes
+**
+**  Parameters:
+**  	sig -- signature from which to get completed hashes
+**  	hh -- pointer to header hash buffer (returned)
+**  	hhlen -- bytes used at hh (returned)
+**  	bh -- pointer to body hash buffer (returned)
+**  	bhlen -- bytes used at bh (returned)
+**
+**  Return value:
+**  	DKIM_STAT_OK -- successful completion
+**  	DKIM_STAT_INVALID -- hashing hasn't been completed
+*/
+
+extern DKIM_STAT dkim_sig_gethashes __P((DKIM_SIGINFO *, void **, size_t *,
+                                         void **, size_t *));
+
 /* default list of sender headers */
 extern const u_char *dkim_default_senderhdrs[];
 
-/* list of headers that should be signed, per RFC4871 section 5.5 */
+/* list of headers that should be signed, per RFC6376 Section 5.4 */
 extern const u_char *dkim_should_signhdrs[]; 
 
-/* list of headers that should not be signed, per RFC4871 section 5.5 */
+/* list of headers that should not be signed, per RFC6376 Section 5.4 */
 extern const u_char *dkim_should_not_signhdrs[];
 
 

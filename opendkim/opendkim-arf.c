@@ -74,9 +74,6 @@ arf_dkim_failure_string(int ftype)
 	  case ARF_DKIMF_BODYHASH:
 		return "bodyhash";
 
-	  case ARF_DKIMF_GRANULARITY:
-		return "granularity";
-
 	  case ARF_DKIMF_REVOKED:
 		return "revoked";
 

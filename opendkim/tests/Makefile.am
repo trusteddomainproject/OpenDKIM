@@ -2,17 +2,28 @@
 
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \
-	t-sign-rs-lua t-sign-ss-all t-sign-ss-replace t-sign-ss-ltag \
+	t-sign-rs-lua t-sign-ss-all t-sign-ss-ltag \
+	t-sign-report \
 	t-verify-revoked t-verify-unspec t-verify-malformed \
 	t-verify-unsigned t-verify-unsigned-silent \
-	t-verify-syntax t-verify-ss t-verify-ss-bad t-verify-report \
-	t-dontsign t-peer t-adsp-report t-local-adsp t-local-adsp-subdomain \
-	t-lua-verify-tests t-sign-atps
+	t-verify-syntax t-verify-ss t-verify-ss-bad \
+	t-dontsign t-peer t-local-adsp t-local-adsp-subdomain \
+	t-lua-verify-tests \
+	t-adsp-report t-verify-report
 
 if LIVE_TESTS
 if RBL
 check_SCRIPTS += t-lua-rbl
 endif
+endif
+if REPUTE
+check_SCRIPTS += t-verify-ss-rep
+endif
+if REPLACE_RULES
+check_SCRIPTS += t-sign-ss-replace
+endif
+if ATPS
+check_SCRIPTS += t-sign-atps t-verify-ss-atps
 endif
 
 TESTS = $(check_SCRIPTS)
@@ -37,6 +48,7 @@ EXTRA_DIST = \
 	t-sign-ss-macro t-sign-ss-macro.conf t-sign-ss-macro.lua \
 	t-sign-ss-replace t-sign-ss-replace.conf t-sign-ss-replace.lua \
 		t-sign-ss-replace.txt \
+	t-sign-report t-sign-report.conf t-sign-report.lua \
 	t-verify-revoked t-verify-revoked.conf t-verify-revoked.lua \
 	t-verify-unsigned t-verify-unsigned.conf t-verify-unsigned.lua \
 	t-verify-malformed t-verify-malformed.conf t-verify-malformed.lua \
@@ -45,6 +57,7 @@ EXTRA_DIST = \
 	t-verify-unspec t-verify-unspec.conf t-verify-unspec.lua \
 	t-verify-ss t-verify-ss.conf t-verify-ss.lua \
 	t-verify-ss-bad t-verify-ss-bad.conf t-verify-ss-bad.lua \
+	t-verify-ss-rep t-verify-ss-rep.conf t-verify-ss-rep.lua \
 	t-verify-syntax t-verify-syntax.conf t-verify-syntax.lua \
 	t-dontsign t-dontsign.conf t-dontsign.lua \
 	t-lua-rbl t-lua-rbl.conf t-lua-rbl.lua t-lua-rbl.lua-final \
@@ -60,10 +73,8 @@ EXTRA_DIST = \
 	t-local-adsp-subdomain t-local-adsp-subdomain.conf \
 		t-local-adsp-subdomain.lua \
 	t-sign-atps t-sign-atps.conf t-sign-atps.lua \
+	t-verify-ss-atps t-verify-ss-atps.conf t-verify-ss-atps.lua \
 	testkey.private pubkeys cp-test testmta
-
-
-
 
 MOSTLYCLEANFILES=
 

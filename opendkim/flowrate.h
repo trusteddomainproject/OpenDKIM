@@ -29,7 +29,7 @@ static char flowrate_h_id[] = "@(#)$Id$";
 #endif /* __STDC__ */
 
 /* prototypes */
-extern int dkimf_rate_check __P((const char *, DKIMF_DB, DKIMF_DB, int,
+extern int dkimf_rate_check __P((const char *, DKIMF_DB, DKIMF_DB, int, int,
                                  unsigned int *));
 
 #endif /* _FLOWRATE_H_ */

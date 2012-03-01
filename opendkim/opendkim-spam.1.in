@@ -25,11 +25,12 @@ program.
 This tool is experimental.  If the experiment proves useful, the
 feedback could be used as an input stream to a larger-scale collaborative
 feedback system that can be used to identify sources of signed mail
-that has a good reputation.
+that have good reputations.
 .SH OPTIONS
 .TP
 .I -b backend
-Specifies the style of backend database in use.  The default is "mysql".
+Specifies the style of backend database in use.  The default is
+"@SQL_BACKEND@".
 .TP
 .I -c file
 Names a configuration file from which operating parameters will be read.
@@ -53,6 +54,11 @@ Indicates the name of the database to be accessed.  The default is
 Specifies the host where the database server is running.  The default
 is "localhost".
 .TP
+.I -o file
+Writes an update record to an OpenDKIM statistics file rather than directly
+to a database.  There is no default.  Note that if this option is used,
+all database-specific options are ignored.
+.TP
 .I -p password
 Specifies the password to be used when authenticating to the database.
 The default is "opendkim".
@@ -66,7 +72,7 @@ Names the database column whose value should be set to "1" as a result
 of this user action.  The default is "uspam".
 .TP
 .I -u user
-Identifies the database user to be used when connecting to the dataase.
+Identifies the database user to be used when connecting to the database.
 The default is "opendkim".
 .TP
 .I -v
@@ -111,6 +117,14 @@ are as follows; see above for descriptions:
 .TP
 .I DatabaseUser
 -u
+.TP
+.I StatisticsFile
+-o
+.SH NOTES
+It is possible to compile this application without SQL support, in which
+case only the
+.I StatisticsFile
+setting has any meaning (and, in fact, it is required in that case).
 .SH VERSION
 This man page covers the version of
 .I opendkim-spam
@@ -123,4 +137,4 @@ Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
 .I mutt(1),
 .I opendkim(8)
 .P
-RFC4871 - DomainKeys Identified Mail
+RFC6376 - DomainKeys Identified Mail

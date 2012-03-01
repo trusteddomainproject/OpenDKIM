@@ -1,6 +1,5 @@
 -t
--f
-postmaster@example.org
+-fpostmaster@example.org
 From: "Mail Admin" <postmaster@example.org>
 To: dkim-feedbacks@example.com
 Bcc: postmaster@example.net, tom@example.net, "hary" <hary@example.net>
@@ -30,32 +29,29 @@ Arrival-Date: Mon, 14 Mar 2011 16:41:35 -0700
 Reported-Domain: example.com
 Delivery-Result: other
 Feedback-Type: auth-failure
+Auth-Failure: signature (signature verification failed)
 DKIM-Failure: signature
 DKIM-Domain: example.com
-DKIM-Selector: report
+DKIM-Selector: test
 DKIM-Identity: @example.com
-DKIM-Canonicalized-Header: ZGF0ZTpUdWUsIDIyIERlYyAyMDA5IDEzOjA0OjEyIC0w
-    ODAwDQptZXNzYWdlLWlkOjwxODQ1MTAuYWJjZGVmZ0BleGFtcGxlLmNvbT4NCnN1Ympl
-    Y3Q6U2lnbmluZyB0ZXN0DQpmcm9tOnVzZXJAZXhhbXBsZS5jb20NCmRraW0tc2lnbmF0
-    dXJlOnY9MTsgYT1yc2Etc2hhMjU2OyBjPXJlbGF4ZWQvcmVsYXhlZDsgZD1leGFtcGxl
-    LmNvbTsgcz1yZXBvcnQ7IGg9ZG9tYWlua2V5LXNpZ25hdHVyZTptaW1lLXZlcnNpb246
-    cmVjZWl2ZWQ6cmVjZWl2ZWQ6aW4tcmVwbHktdG86IHJlZmVyZW5jZXM6ZGF0ZTptZXNz
-    YWdlLWlkOnN1YmplY3Q6ZnJvbTp0bzpjYzpjb250ZW50LXR5cGU7IGJoPTM0bGtjOEt2
-    cC80QzdCWk9IbEZKcjhYbFBlUXQxcExIbzRWOEpsalYxM2M9OyBiPQ==
+DKIM-Canonicalized-Header: RnJvbTogdXNlckBleDRtcGxlLmNvbQ0KRGF0ZTogVHVl
+    LCAyMiBEZWMgMjAwOSAxMzowNDoxMiAtMDgwMA0KU3ViamVjdDogU2lnbmluZyB0ZXN0
+    DQpES0lNLVNpZ25hdHVyZTogdj0xOyBhPXJzYS1zaGEyNTY7IGM9c2ltcGxlL3NpbXBs
+    ZTsgZD1leGFtcGxlLmNvbTsgcz10ZXN0Ow0KCXQ9MTMyOTExMzQxMjsgcj15OyBiaD0z
+    VldHUUdZK2NTTllkMU1HTStYNmhSWFUwc3RsOEpDYVF0bDRtYlgvajJJPTsNCgloPUZy
+    b206RGF0ZTpTdWJqZWN0Ow0KCWI9
 DKIM-Canonicalized-Body: VGhpcyBpcyBhIHRlc3QhDQo=
 
 --dkimreport/unknown-host/t-verify-report
 Content-Type: text/rfc822-headers
 
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=example.com; s=report;
-	h=domainkey-signature:mime-version:received:received:in-reply-to:
-	 references:date:message-id:subject:from:to:cc:content-type;
-	bh=34lkc8Kvp/4C7BZOHlFJr8XlPeQt1pLHo4V8JljV13c=;
-	b=sF59xX14kHxUUF2NQs1sF7Jla+dfLKwqCkYRFfLAo1n48oRvlcc3W1nwWU/BEk6mp9
-	 0ZoylqVfErDrxDTeAEDLwaaPSL+4ZMjvp3WZyuFp2gCoQb5U8INu+vdnNvAgr4hi1Ku4
-	 mEQhR5ncoCxOUWq4e7r1CCIH4DM2fLbZa4ywQ=
-From: user@example.com
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=example.com; s=test;
+	t=1329113412; r=y; bh=3VWGQGY+cSNYd1MGM+X6hRXU0stl8JCaQtl4mbX/j2I=;
+	h=From:Date:Subject;
+	b=J4DYccKlZx8+EFXvnUEZyiQn2JNpQ0JSvTT1PeyGfrYPAux//SHXb/K/Z6jYzqH5z
+	 ZkiQ5UutfDjkkW2WsRCilkvodnp0PGrLK5fDFHBK7vGTLzXyhI/zubkeYVZufd+9U7
+	 kuVE9jz2Vb4YDL8DC9EZJ5SyAY8uNnsrky8gQ948=
+From: user@ex4mple.com
 Date: Tue, 22 Dec 2009 13:04:12 -0800
 Subject: Signing test
 Message-ID: <184510.abcdefg@example.com>

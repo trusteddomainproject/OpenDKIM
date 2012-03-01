@@ -56,7 +56,7 @@ start at step (5).
     option in the configuration file, or the domain that would be returned
     from a KeyTable lookup.
   
-    For a translation of the parameters and value pairs, see RFC4871.  Using 
+    For a translation of the parameters and value pairs, see RFC6376.  Using 
     "t=y" is indicates you are in "test mode", advising verifiers that they
     should not take any real action based on success or failure of the use
     of this key after verifing a message.  Remove the "t=y" once you have
@@ -552,9 +552,9 @@ To manually generate a public and private key:
     from the generated rsa.public file.
 
     For a translation of the parameter and value pairs shown here, see
-    the DKIM specification (RFC4871) section 3.6.  The specification
+    the DKIM specification (RFC6376) Section 3.6.  The specification
     is available in a file in the source code package called
-    "rfc4871.txt".  Basically this key record just announces an RSA
+    "rfc6376.txt".  Basically this key record just announces an RSA
     public key and also declares that your site is using this key in
     test mode so nobody should take any real action based on success
     or failure of the use of this key to verify a message.

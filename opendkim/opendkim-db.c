@@ -2,7 +2,7 @@
 **  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-db.c,v 1.101.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -41,6 +41,11 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #include <dkim.h>
 #include <dkim-strl.h>
 
+/* repute includes */
+#ifdef _FFR_REPUTATION
+# include <repute.h>
+#endif /* _FFR_REPUTATION */
+
 /* opendkim includes */
 #include "util.h"
 #ifdef OPENDKIM_DB_ONLY
@@ -53,6 +58,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #ifdef USE_LUA
 # include "opendkim-lua.h"
 #endif /* USE_LUA */
+#include "opendkim.h"
 
 /* various DB library includes */
 #ifdef USE_DB
@@ -185,6 +191,7 @@ struct dkimf_db_dsn
 	char			dsn_port[BUFRSZ];
 	char			dsn_table[BUFRSZ];
 	char			dsn_user[BUFRSZ];
+	const char *		dsn_filter;
 };
 #endif /* USE_ODBX */
 
@@ -231,6 +238,26 @@ struct dkimf_db_lua
 };
 #endif /* USE_LUA */
 
+#ifdef _FFR_REPUTATION
+struct dkimf_db_repute
+{
+	REPUTE			repute_handle;
+# ifdef _FFR_REPUTATION_CACHE
+	DKIMF_DB		repute_cache;
+# endif /* _FFR_REPUTATION_CACHE */
+};
+
+# ifdef _FFR_REPUTATION_CACHE
+struct dkimf_db_repute_cache
+{
+	float			repcache_rep;
+	float			repcache_conf;
+	unsigned long		repcache_samp;
+	unsigned long		repcache_limit;
+	time_t			repcache_when;
+};
+# endif /* _FFR_REPUTATION_CACHE */
+#endif /* _FFR_REPUTATION */
 
 /* globals */
 struct dkimf_db_table dbtypes[] =
@@ -255,6 +282,9 @@ struct dkimf_db_table dbtypes[] =
 #ifdef USE_LIBMEMCACHED
 	{ "memcache",		DKIMF_DB_TYPE_MEMCACHE },
 #endif /* USE_LIBMEMCACHED */
+#ifdef _FFR_REPUTATION
+	{ "repute",		DKIMF_DB_TYPE_REPUTE },
+#endif /* _FFR_REPUTATION */
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
 
@@ -616,6 +646,29 @@ dkimf_db_saslinteract(LDAP *ld, unsigned int flags, void *defaults,
 #endif /* (USE_SASL && USE_LDAP) */
 
 /*
+**  DKIMF_DB_HEXDIGIT -- convert a hex digit to decimal value
+**
+**  Parameters:
+**  	c -- input character
+**
+**  Return value:
+**  	Converted value, or 0 on error.
+*/
+
+static int
+dkimf_db_hexdigit(int c)
+{
+	if (c >= '0' && c <= '9')
+		return c - '0';
+	else if (c >= 'A' && c <= 'F')
+		return c - 'A' + 10;
+	else if (c >= 'a' && c <= 'f')
+		return c - 'f' + 10;
+	else
+		return 0;
+}
+
+/*
 **  DKIMF_DB_DATASPLIT -- split a database value or set of values into a
 **                        request array
 **
@@ -708,6 +761,23 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 }
 
 #ifdef USE_LDAP
+# define ISRFC2254CHR(q)	((q) == 0x2a ||	\
+				 (q) == 0x28 || \
+				 (q) == 0x29 || \
+				 (q) == 0x5c || \
+				 (q) == 0x00)
+
+# define ADDRFC2254CHR(x, y, z)	{ \
+					*(x)++ = '\\'; \
+					if ((y) > (x)) \
+					{ \
+						(x) += snprintf((x), \
+						                (y) - (x), \
+						                "%02x", \
+						                (z)); \
+					} \
+				}
+
 /*
 **  DKIMF_DB_MKLDAPQUERY -- generate an LDAP query
 **
@@ -722,6 +792,8 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 **  	None.
 **
 **  Notes:
+**  	Expands "$d" and "$D" as defined in opendkim.conf(5).
+** 
 **  	Should report overflows.
 */
 
@@ -756,7 +828,16 @@ dkimf_db_mkldapquery(char *buf, char *query, char *out, size_t outlen)
 			if (*p == 'd')
 			{
 				for (q = query; o <= oend && q <= qend; q++)
-					*o++ = *q;
+				{
+					if (ISRFC2254CHR(*q))
+					{
+						ADDRFC2254CHR(o, oend, *q);
+					}
+					else
+					{
+						*o++ = *q;
+					}
+				}
 			}
 			else if (*p == 'D')
 			{
@@ -766,12 +847,16 @@ dkimf_db_mkldapquery(char *buf, char *query, char *out, size_t outlen)
 					{
 						o += strlcpy(o, "dc=",
 						             oend - o);
-						*o++ = *q;
 					}
-					else if (*q == '.')
+
+					if (*q == '.')
 					{
 						o += strlcpy(o, ",dc=",
 						             oend - o);
+					}
+					else if (ISRFC2254CHR(*q))
+					{
+						ADDRFC2254CHR(o, oend, *q);
 					}
 					else
 					{
@@ -1649,7 +1734,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		**  <backend>://[user[:pwd]@][port+]host/dbase[/key=val[?...]]
 		**  
 		**  "table", "keycol" and "datacol" will be set in one of the
-		**  key-value pairs.
+		**  key-value pairs.  "filter" is optional.
 		*/
 
 		tmp = strdup(p);
@@ -1797,6 +1882,44 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			{
 				strlcpy(dsn->dsn_datacol, eq + 1,
 				        sizeof dsn->dsn_datacol);
+			}
+			else if (strcasecmp(p, "filter") == 0)
+			{
+				size_t len;
+
+				len = strlen(eq + 1) + 1;
+
+				dsn->dsn_filter = malloc(len);
+				if (dsn->dsn_filter != NULL)
+				{
+					int c;
+					char *q;
+					char *r;
+
+					memset((void *) dsn->dsn_filter,
+					       '\0', len);
+
+					r = (char *) dsn->dsn_filter;
+
+					for (q = eq + 1;
+					     q < eq + len;
+					     q++)
+					{
+						if (*q == '=' &&
+						    isxdigit(*(q + 1)) &&
+						    isxdigit(*(q + 2)))
+						{
+							c = 16 * dkimf_db_hexdigit(*(q + 1));
+							c += dkimf_db_hexdigit(*(q + 2));
+							*r++ = c;
+							q += 2;
+						}
+						else
+						{
+							*r++ = *q;
+						}
+					}
+				}
 			}
 		}
 
@@ -2244,6 +2367,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		}
 
 		free(tmp);
+		break;
 	  }
 #endif /* USE_LUA */
 
@@ -2313,8 +2437,59 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		new->db_data = key;
 
 		free(tmp);
+		break;
 	  }
 #endif /* USE_LIBMEMCACHED */
+
+#ifdef _FFR_REPUTATION
+	  case DKIMF_DB_TYPE_REPUTE:
+	  {
+		unsigned int reporter = 0;
+		char *q;
+		REPUTE r;
+		struct dkimf_db_repute *dbr;
+		char useragent[BUFRSZ + 1];
+
+		q = strchr(p, ':');
+		if (q != NULL)
+		{
+			char *s;
+
+			*q = '\0';
+			reporter = (unsigned int) strtoul(q + 1, &s, 10);
+			if (*s != '\0')
+			 	return -1;
+		}
+
+		r = repute_new(p, reporter);
+		if (r == NULL)
+			return -1;
+
+		q = (char *) repute_curlversion(r);
+		snprintf(useragent, sizeof useragent, "%s/%s %s%s%s",
+		         DKIMF_PRODUCTNS, VERSION,
+		         "libcurl",
+		         q == NULL ? "" : "/",
+		         q == NULL ? "" : q);
+		repute_useragent(r, useragent);
+
+		dbr = (struct dkimf_db_repute *) malloc(sizeof *dbr);
+		if (dbr == NULL)
+		{
+			repute_close(r);
+			return -1;
+		}
+
+		dbr->repute_handle = r;
+# ifdef _FFR_REPUTATION_CACHE
+		dbr->repute_cache = NULL;
+# endif /* _FFR_REPUTATION_CACHE */
+
+		new->db_data = (void *) dbr;
+
+		break;
+	  }
+#endif /* _FFR_REPUTATION */
 	}
 
 	*db = new;
@@ -2354,6 +2529,7 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 	    db->db_type == DKIMF_DB_TYPE_LDAP || 
 	    db->db_type == DKIMF_DB_TYPE_LUA || 
 	    db->db_type == DKIMF_DB_TYPE_MEMCACHE || 
+	    db->db_type == DKIMF_DB_TYPE_REPUTE || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -2502,6 +2678,7 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	    db->db_type == DKIMF_DB_TYPE_DSN || 
 	    db->db_type == DKIMF_DB_TYPE_LDAP || 
 	    db->db_type == DKIMF_DB_TYPE_LUA || 
+	    db->db_type == DKIMF_DB_TYPE_REPUTE || 
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -3081,10 +3258,12 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		}
 
 		snprintf(query, sizeof query,
-		         "SELECT %s FROM %s WHERE %s = '%s'",
+		         "SELECT %s FROM %s WHERE %s = '%s'%s%s",
 		         dsn->dsn_datacol,
 		         dsn->dsn_table,
-		         dsn->dsn_keycol, escaped);
+		         dsn->dsn_keycol, escaped,
+		         dsn->dsn_filter == NULL ? "" : " AND ",
+		         dsn->dsn_filter == NULL ? "" : dsn->dsn_filter);
 
 		err = odbx_query(odbx, query, 0);
 		if (err < 0)
@@ -3707,6 +3886,202 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 	  }
 #endif /* USE_LIBMEMCACHED */
 
+#ifdef _FFR_REPUTATION
+	  case DKIMF_DB_TYPE_REPUTE:
+	  {
+		_Bool found = FALSE;
+		int c;
+		float rep;
+		float conf;
+		unsigned long samp;
+		unsigned long limit;
+		time_t when;
+		REPUTE_STAT rstat;
+		REPUTE r;
+		struct dkimf_db_repute *dbr;
+
+		dbr = (struct dkimf_db_repute *) db->db_data;
+		r = dbr->repute_handle;
+
+# ifdef _FFR_REPUTATION_CACHE
+		if (dbr->repute_cache != NULL)
+		{
+			int status;
+			time_t now;
+			struct dkimf_db_repute_cache rc;
+			struct dkimf_db_data req;
+
+			memset(&rc, '\0', sizeof rc);
+
+			req.dbdata_buffer = (void *) &rc;
+			req.dbdata_buflen = sizeof rc;
+			req.dbdata_flags = DKIMF_DB_DATA_BINARY;
+
+			status = dkimf_db_get(dbr->repute_cache, buf, buflen,
+			                      &req, 1, &found);
+
+			(void) time(&now);
+
+			if (status == 0 && found)
+			{
+				if (rc.repcache_when + REPUTE_CACHE < now)
+				{
+					found = FALSE;
+				}
+				else
+				{
+					rep = rc.repcache_rep;
+					conf = rc.repcache_conf;
+					samp = rc.repcache_samp;
+					limit = rc.repcache_limit;
+					when = rc.repcache_when;
+
+					if (exists != NULL)
+						*exists = TRUE;
+				}
+			}
+		}
+# endif /* _FFR_REPUTATION_CACHE */
+
+		if (!found)
+		{
+			rstat = repute_query(r, (char *) buf, &rep, &conf,
+			                     &samp, &limit, &when);
+
+			if (rstat == REPUTE_STAT_PARSE)
+				return 0;
+			else if (rstat != REPUTE_STAT_OK)
+				return -1;
+
+			if (exists != NULL)
+			{
+				*exists = TRUE;
+
+# ifdef _FFR_REPUTATION_CACHE
+				if (dbr->repute_cache == NULL)
+				{
+					(void) dkimf_db_open(&dbr->repute_cache,
+					                     "db:",
+					                     DKIMF_DB_FLAG_MAKELOCK,
+					                     NULL,
+					                     NULL);
+				}
+
+				if (dbr->repute_cache != NULL)
+				{
+					struct dkimf_db_repute_cache rc;
+
+					rc.repcache_rep = rep;
+					rc.repcache_conf = conf;
+					rc.repcache_samp = samp;
+					rc.repcache_limit = limit;
+					rc.repcache_when = when;
+
+					(void) dkimf_db_put(dbr->repute_cache,
+					                    buf, buflen,
+					                    &rc, sizeof rc);
+				}
+# endif /* _FFR_REPUTATION_CACHE */
+			}
+		}
+
+		if (reqnum >= 1 && req[0].dbdata_buffer != NULL &&
+		    req[0].dbdata_buflen != 0)
+		{
+			if ((req[0].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
+			{
+				if (req[0].dbdata_buflen != sizeof rep)
+					return -1;
+				memcpy(req[0].dbdata_buffer, &rep, sizeof rep);
+			}
+			else
+			{
+				req[0].dbdata_buflen = snprintf(req[0].dbdata_buffer,
+				                                req[0].dbdata_buflen,
+				                                "%f", rep);
+			}
+		}
+
+		if (reqnum >= 2 && req[1].dbdata_buffer != NULL &&
+		    req[1].dbdata_buflen != 0)
+		{
+			if ((req[1].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
+			{
+				if (req[1].dbdata_buflen != sizeof conf)
+					return -1;
+				memcpy(req[1].dbdata_buffer, &conf,
+				       sizeof conf);
+			}
+			else
+			{
+				req[1].dbdata_buflen = snprintf(req[1].dbdata_buffer,
+				                                req[1].dbdata_buflen,
+				                                "%f", conf);
+			}
+		}
+
+		if (reqnum >= 3 && req[2].dbdata_buffer != NULL &&
+		    req[2].dbdata_buflen != 0)
+		{
+			if ((req[2].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
+			{
+				if (req[2].dbdata_buflen != sizeof samp)
+					return -1;
+				memcpy(req[2].dbdata_buffer, &samp,
+				       sizeof samp);
+			}
+			else
+			{
+				req[2].dbdata_buflen = snprintf(req[2].dbdata_buffer,
+				                                req[2].dbdata_buflen,
+				                                "%lu", samp);
+			}
+		}
+
+		if (reqnum >= 4 && req[3].dbdata_buffer != NULL &&
+		    req[3].dbdata_buflen != 0)
+		{
+			if ((req[3].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
+			{
+				if (req[3].dbdata_buflen != sizeof when)
+					return -1;
+				memcpy(req[3].dbdata_buffer, &when,
+				       sizeof when);
+			}
+			else
+			{
+				req[3].dbdata_buflen = snprintf(req[3].dbdata_buffer,
+				                                req[3].dbdata_buflen,
+				                                "%lu", when);
+			}
+		}
+
+		if (reqnum >= 5 && req[4].dbdata_buffer != NULL &&
+		    req[4].dbdata_buflen != 0)
+		{
+			if ((req[4].dbdata_flags & DKIMF_DB_DATA_BINARY) != 0)
+			{
+				if (req[4].dbdata_buflen != sizeof limit)
+					return -1;
+				memcpy(req[4].dbdata_buffer, &limit,
+				       sizeof limit);
+			}
+			else
+			{
+				req[4].dbdata_buflen = snprintf(req[4].dbdata_buffer,
+				                                req[4].dbdata_buflen,
+				                                "%lu", limit);
+			}
+		}
+
+		/* tag requests that weren't fulfilled */
+		for (c = 5; c < reqnum; c++)
+			req[c].dbdata_buflen = 0;
+
+		return 0;
+	  }
+#endif /* _FFR_REPUTATION */
+
 	  default:
 		assert(0);
 		return 0;		/* to silence the compiler */
@@ -3879,6 +4254,23 @@ dkimf_db_close(DKIMF_DB db)
 	  }
 #endif /* USE_LIBMEMCACHED */
 
+#ifdef _FFR_REPUTATION
+	  case DKIMF_DB_TYPE_REPUTE:
+	  {
+		struct dkimf_db_repute *dbr;
+
+		dbr = db->db_data;
+		repute_close(dbr->repute_handle);
+# ifdef _FFR_REPUTATION_CACHE
+		if (dbr->repute_cache != NULL)
+			dkimf_db_close(dbr->repute_cache);
+# endif /* _FFR_REPUTATION_CACHE */
+		free(db->db_data);
+		free(db);
+		return 0;
+	  }
+#endif /* _FFR_REPUTATION */
+
 	  default:
 		assert(0);
 		return -1;
@@ -3959,6 +4351,18 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 		               memcached_strerror((memcached_st *) db->db_handle,
 		                                  db->db_status), errlen);
 #endif /* USE_LIBMEMCACHED */
+
+#ifdef _FFR_REPUTATION
+	  case DKIMF_DB_TYPE_REPUTE:
+	  {
+		struct dkimf_db_repute *dbr;
+		REPUTE rep;
+
+		dbr = (struct dkimf_db_repute *) db->db_data;
+		rep = dbr->repute_handle;
+		return strlcpy(err, repute_error(rep), errlen);
+	  }
+#endif /* _FFR_REPUTATION */
 
 	  default:
 		assert(0);
@@ -4801,4 +5205,58 @@ dkimf_db_set_ldap_param(int param, char *str)
 	assert(param >= 0 && param <= DKIMF_LDAP_PARAM_MAX);
 
 	dkimf_db_ldap_param[param] = str;
+}
+
+/*
+**  DKIMF_DB_CHOWN -- set ownership and permissions on a DB
+**
+**  Parameters:
+**  	db -- DKIMF_DB handle
+**  	uid -- target uid
+**
+**  Return value:
+**  	1 -- success
+**  	0 -- not a DB that can be chowned
+**  	-1 -- fchown() failed
+*/
+
+int
+dkimf_db_chown(DKIMF_DB db, uid_t uid)
+{
+	int fd = -1;
+	int status;
+#ifdef USE_DB
+	DB *bdb;
+#endif /* USE_DB */
+
+	assert(db != NULL);
+	assert(uid >= 0);
+
+	if (dkimf_db_type(db) != DKIMF_DB_TYPE_BDB ||
+	    (db->db_flags & DKIMF_DB_FLAG_READONLY) != 0 ||
+	    (db->db_flags & DKIMF_DB_FLAG_NOFDLOCK) != 0)
+		return 0;
+
+#ifdef USE_DB
+	bdb = (DB *) db->db_handle;
+
+# if DB_VERSION_CHECK(2,0,0)
+	status = bdb->fd(bdb, &fd);
+# else /* DB_VERSION_CHECK(2,0,0) */
+	fd = bdb->fd(bdb);
+# endif /* DB_VERSION_CHECK(2,0,0) */
+
+	if (fd == -1)
+		return 0;
+
+	if (fchown(fd, uid, -1) != 0)
+		return -1;
+	else
+		return 1;
+
+#else /* USE_DB */
+
+	return 0;
+
+#endif /* USE_DB */
 }

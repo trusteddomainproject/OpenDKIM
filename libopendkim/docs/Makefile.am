@@ -55,6 +55,7 @@ dist_doc_DATA = dkim.html \
 	dkim_policy_syntax.html \
 	dkim_policy_t.html \
 	dkim_presult.html \
+	dkim_privkey_load.html \
 	dkim_pstate.html \
 	dkim_qi_getname.html \
 	dkim_qi_gettype.html \

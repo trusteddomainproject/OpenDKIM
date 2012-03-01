@@ -68,4 +68,4 @@ Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8)
 .P
-RFC4871 - DomainKeys Identified Mail
+RFC6376 - DomainKeys Identified Mail

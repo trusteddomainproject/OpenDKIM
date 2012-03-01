@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
+# Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.
 #
 # $Id: opendkim-genstats,v 1.26 2010/10/27 06:18:45 cm-msk Exp $
 #
@@ -34,9 +34,10 @@ MYSQL="$MYSQL_CMD --user=$USER --password=$PASSWORD --database=$DB"
 
 # output a header
 cat > $OUTPUT << EOF
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
   <head>
+   <meta http-equiv="content-type" content="text/html;charset=us-ascii">
    <title>
     OpenDKIM Statistics Report
    </title>
@@ -51,36 +52,17 @@ echo "<ul>" >> $OUTPUT
 echo '<li> <a href="#total_records">Total messages received</a>' >> $OUTPUT
 echo '<li> <a href="#reporters">Reporting hosts and record counts</a>' >> $OUTPUT
 echo '<li> <a href="#signature_counts">Overall message signature counts</a>' >> $OUTPUT
-echo '<li> <a href="#algorithm_use">Signature algorithm use</a>' >> $OUTPUT
-echo '<li> <a href="#hdr_canon">Header canonicalization use</a>' >> $OUTPUT
-echo '<li> <a href="#body_canon">Body canonicalization use</a>' >> $OUTPUT
-echo '<li> <a href="#sig_props">Signature properties</a>' >> $OUTPUT
-echo '<li> <a href="#l_tag">Use of "l=" tag</a>' >> $OUTPUT
-echo '<li> <a href="#i_tag">Use of "i=" tag</a>' >> $OUTPUT
-echo '<li> <a href="#key_sizes">Distribution of key sizes</a>' >> $OUTPUT
-echo '<li> <a href="#key_props">Key properties</a>' >> $OUTPUT
-echo '<li> <a href="#key_s">Use of "s=" in keys</a>' >> $OUTPUT
 echo '<li> <a href="#dnssec">DNSSEC results</a>' >> $OUTPUT
 echo '<li> <a href="#dnssec_trend">DNSSEC trend</a>' >> $OUTPUT
 echo '<li> <a href="#passfail">Overall pass/fail rates for signed mail</a>' >> $OUTPUT
-echo '<li> <a href="#passfail_nolist">Overall pass/fail rates for signed mail, excluding list traffic</a>' >> $OUTPUT
 echo '<li> <a href="#error_codes">Top ten error codes</a>' >> $OUTPUT
-echo '<li> <a href="#mlm_comparison">MLM/non-MLM signature comparison</a>' >> $OUTPUT
-echo '<li> <a href="#adsp">ADSP policies found and failures</a>' >> $OUTPUT
 echo '<li> <a href="#third_party">Author vs. third-party signatures, non-MLM traffic</a>' >> $OUTPUT
-echo '<li> <a href="#third_party_list">Author vs. third-party signatures, MLM traffic</a>' >> $OUTPUT
-echo '<li> <a href="#signed_fields">Signed header field frequency</a>' >> $OUTPUT
 echo '<li> <a href="#unique_domains">Count of unique signed From: domains in sample</a>' >> $OUTPUT
 echo '<li> <a href="#top_signing_domains">Top 10 signing domains by signature count</a>' >> $OUTPUT
 echo '<li> <a href="#top_passing_domains">Top 10 signing domains by passing signature percentage</a>' >> $OUTPUT
 echo '<li> <a href="#top_failing_domains">Top 10 signing domains by failed signature percentage</a>' >> $OUTPUT
 echo '<li> <a href="#ip_correlation">Correlation of IP addresses to signed From: domains</a>' >> $OUTPUT
-echo '<li> <a href="#received_correlation">Correlation of Received: count to signature successes</a>' >> $OUTPUT
-echo '<li> <a href="#broken_headers">Most frequent header field changes resulting in signature failures</a>' >> $OUTPUT
-echo '<li> <a href="#worst_adsp">Worst ADSP use</a>' >> $OUTPUT
 echo '<li> <a href="#use_counts">Signing domain use counts</a>' >> $OUTPUT
-echo '<li> <a href="#mime_type_correlation">Correlation of outer MIME types with pass/fail counts</a>' >> $OUTPUT
-echo '<li> <a href="#mime_encoding_correlation">Correlation of outer MIME encodings with pass/fail counts</a>' >> $OUTPUT
 echo '<li> <a href="#signing_trend_msg">Trend in message signing rates</a>' >> $OUTPUT
 echo '<li> <a href="#signing_trend_domain">Trend in domain signing rates</a>' >> $OUTPUT
 echo '<li> <a href="#atps_use">ATPS use</a>' >> $OUTPUT
@@ -102,53 +84,6 @@ echo "<p> Overall message signature counts: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT sigcount, COUNT(*) AS messages FROM messages JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 GROUP BY sigcount" >> $OUTPUT
 echo "" >> $OUTPUT
 
-echo '<a name="algorithm_use"></a>' >> $OUTPUT
-echo "<p> Signature algorithm use: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT IF(algorithm = 0, 'rsa-sha1', 'rsa-sha256') AS 'signing algorithm', COUNT(algorithm) AS count FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 GROUP BY algorithm" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="hdr_canon"></a>' >> $OUTPUT
-echo "<p> Header canonicalization use: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT IF(hdr_canon = 0, 'simple', 'relaxed') AS canonicalization, COUNT(hdr_canon) AS count, COUNT(DISTINCT domain) AS domains, SUM(pass) AS passed FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 GROUP BY hdr_canon" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="body_canon"></a>' >> $OUTPUT
-echo "<p> Body canonicalization use: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT IF(body_canon = 0, 'simple', 'relaxed') AS canonicalization, COUNT(body_canon) AS count, COUNT(DISTINCT domain) AS domains, SUM(pass) AS passed FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 GROUP BY body_canon" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="sig_props"></a>' >> $OUTPUT
-echo "<p> Signature properties: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT SUM(sig_t) AS 't=', SUM(sig_x) AS 'x=', SUM(sig_z) AS 'z=' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="l_tag"></a>' >> $OUTPUT
-echo "<p> Use of 'l=' tag: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'l= present', pass FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND NOT siglength = -1 GROUP BY pass" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'l=0', pass FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE siglength = 0 GROUP BY pass" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'l <= msgsize', pass FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE signatures.siglength >= 0 AND signatures.siglength < messages.size GROUP BY pass" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="i_tag"></a>' >> $OUTPUT
-echo "<p> Use of 'i=' tag: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'signatures', CASE sig_i WHEN 0 THEN 'absent' WHEN 1 THEN 'matches d=' WHEN 2 THEN 'subdomain of d=' END AS 'i= domain', CASE sig_i_user WHEN 0 THEN 'absent' WHEN 1 THEN 'empty' WHEN 2 THEN 'matches From' WHEN 3 THEN 'does not match From' END AS 'i= local-part' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND sig_i >= 0 GROUP BY sig_i, sig_i_user" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="key_sizes"></a>' >> $OUTPUT
-echo "<p> Distribution of key sizes: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'count', keysize AS 'bits' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND keysize > 0 GROUP BY keysize ORDER BY keysize" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="key_props"></a>' >> $OUTPUT
-echo "<p> Key properties: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT SUM(key_t) AS 't=', SUM(key_g) AS 'g=', SUM(key_g_name) AS 'g=name', SUM(key_dk_compat) AS 'DK compat' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="key_s"></a>' >> $OUTPUT
-echo "<p> Use of s= in keys: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'keys', CASE key_s WHEN 0 THEN 'absent' WHEN 1 THEN 's=*' WHEN 2 THEN 's=email' WHEN 3 THEN 'other' END AS 's= value' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND key_s >= 0 GROUP BY key_s" >> $OUTPUT
-echo "" >> $OUTPUT
-
 echo '<a name="dnssec"></a>' >> $OUTPUT
 echo "<p> DNSSEC results (see libopendkim/dkim.h): </p>" >> $OUTPUT
 $MYSQL --execute="SELECT dnssec AS 'DNSSEC code', COUNT(*) AS count FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 GROUP BY dnssec ORDER BY dnssec" >> $OUTPUT
@@ -161,12 +96,7 @@ echo "" >> $OUTPUT
 
 echo '<a name="passfail"></a>' >> $OUTPUT
 echo "<p> Overall pass/fail rate for signed mail: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS signatures, SUM(ignored) AS ignored, SUM(pass) AS passed, SUM(fail_body) AS 'failed(body)' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="passfail_nolist"></a>' >> $OUTPUT
-echo "<p> Overall pass/fail rate for signed mail, excluding list traffic: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS signatures, SUM(ignored) AS ignored, SUM(pass) AS passed, SUM(fail_body) AS 'failed(body)' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND mailing_list = 0" >> $OUTPUT
+$MYSQL --execute="SELECT COUNT(*) AS signatures, SUM(pass) AS passed, SUM(fail_body) AS 'failed(body)' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1" >> $OUTPUT
 echo "" >> $OUTPUT
 
 echo '<a name="error_codes"></a>' >> $OUTPUT
@@ -174,32 +104,10 @@ echo "<p> Top ten error codes (see libopendkim/dkim.h): </p>" >> $OUTPUT
 $MYSQL --execute="SELECT sigerrorcodes.name AS error, COUNT(*) AS instances FROM signatures JOIN sigerrorcodes ON sigerrorcodes.id = signatures.sigerror JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND NOT sigerror = 0 AND NOT sigerror = 28 GROUP BY sigerror ORDER BY instances DESC LIMIT 10" >> $OUTPUT
 echo "" >> $OUTPUT
 
-echo '<a name="mlm_comparison"></a>' >> $OUTPUT
-echo "<p> MLM/non-MLM signature comparison: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT mailing_list, COUNT(*) AS signatures, SUM(pass) AS passed, 100*SUM(pass)/COUNT(*) AS '%pass' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 GROUP BY mailing_list" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="adsp"></a>' >> $OUTPUT
-echo "<p> ADSP policies found and failures: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT SUM(adsp_found) AS found, SUM(adsp_unknown) AS 'unknown', SUM(adsp_all) AS 'all', SUM(adsp_discardable) AS 'discardable', SUM(adsp_fail) AS 'failed' FROM messages JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1" >> $OUTPUT
-echo "" >> $OUTPUT
-
 echo '<a name="third_party"></a>' >> $OUTPUT
 echo "<p> Author vs. third-party signatures, non-MLM traffic: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'author sigs', SUM(pass) AS 'passed' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND from_domain = domain and mailing_list = 0" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'third-party sigs', SUM(pass) AS 'passed' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE reporters.enabled = 1 AND NOT messages.from_domain = signatures.domain AND messages.mailing_list = 0" >> $OUTPUT
-
-echo '<a name="third_party_list"></a>' >> $OUTPUT
-echo "<p> Author vs. third-party signatures, MLM traffic: </p>" >> $OUTPUT
-echo "" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'author sigs', SUM(pass) AS 'passed' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND from_domain = domain AND mailing_list = 1" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'third-party sigs', SUM(pass) AS 'passed' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND NOT from_domain = domain AND mailing_list = 1" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="signed_fields"></a>' >> $OUTPUT
-echo "<p> Signed header field frequency (top 20 shown): </p>" >> $OUTPUT
-$MYSQL --execute="SELECT headernames.name, COUNT(signed_headers.id) AS count FROM signed_headers JOIN headernames ON headernames.id = signed_headers.header GROUP BY signed_headers.header ORDER BY COUNT(signed_headers.id) DESC LIMIT 20" >> $OUTPUT
-echo "" >> $OUTPUT
+$MYSQL --execute="SELECT COUNT(*) AS 'author sigs', SUM(pass) AS 'passed' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND from_domain = domain" >> $OUTPUT
+$MYSQL --execute="SELECT COUNT(*) AS 'third-party sigs', SUM(pass) AS 'passed' FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE reporters.enabled = 1 AND NOT messages.from_domain = signatures.domain" >> $OUTPUT
 
 echo '<a name="unique_domains"></a>' >> $OUTPUT
 echo "<p> Count of unique signed From: domains in sample: </p>" >> $OUTPUT
@@ -226,50 +134,25 @@ echo "<p> Correlation of IP addresses to signed From: domains: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT ipaddrs.addr, COUNT(DISTINCT from_domain) AS domains FROM messages JOIN ipaddrs ON messages.ip = ipaddrs.id JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND sigcount > 0 AND anonymized = 0 GROUP BY messages.ip ORDER BY domains DESC LIMIT 10" >> $OUTPUT
 echo "" >> $OUTPUT
 
-echo '<a name="received_correlation"></a>' >> $OUTPUT
-echo "<p> Correlation of Received: count to signature successes: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT received_count, SUM(sigcount) AS 'total sigs', SUM(signatures.pass) AS 'passed', 100*SUM(signatures.pass)/SUM(sigcount) AS '% pass' FROM messages JOIN signatures ON signatures.message = messages.id JOIN reporters ON messages.reporter = reporters.id WHERE enabled = 1 AND received_count > 0 AND sigcount > 0 GROUP BY received_count" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="broken_headers"></a>' >> $OUTPUT
-echo "<p> Most frequent header field changes resulting in signature failures: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT headernames.name, COUNT(headernames.name) AS instances FROM signed_headers JOIN headernames ON headernames.id = signed_headers.header WHERE changed = 1 GROUP BY signed_headers.header ORDER BY instances DESC LIMIT 10" >> $OUTPUT
-echo "" >> $OUTPUT
-
-echo '<a name="worst_adsp"></a>' >> $OUTPUT
-echo "<p> Worst ADSP use: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT domains.name, a.addr, IF(m.adsp_all, 'all', 'discardable') AS type, SUM(IF(s.pass <> NULL, 0, 1)) AS missing, SUM(IF(s.pass, 0, 1)) AS failed, SUM(IFNULL(s.pass,0)) AS good FROM domains, messages AS m JOIN ipaddrs AS a ON m.ip = a.id LEFT JOIN signatures AS s ON m.id = s.message JOIN reporters AS r ON r.id = m.reporter WHERE enabled = 1 AND domains.id = m.from_domain AND (s.domain = m.from_domain OR s.domain IS NULL) AND m.adsp_all + m.adsp_discardable = 1 GROUP BY m.from_domain, m.ip ORDER BY missing DESC LIMIT 10"  >> $OUTPUT
-echo "" >> $OUTPUT
-
 echo '<a name="use_counts"></a>' >> $OUTPUT
 echo "<p> Signing domain use counts: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT msgcount, COUNT(*) AS domains FROM (SELECT domain, COUNT(*) AS msgcount FROM signatures JOIN messages ON messages.id = signatures.message JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 GROUP BY 1) a GROUP BY 1 ORDER BY 1 ASC LIMIT 10" >> $OUTPUT
-echo "</p>" >> $OUTPUT
-
-echo '<a name="mime_type_correlation"></a>' >> $OUTPUT
-echo "<p> Correlation of outer MIME types with pass/fail counts: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'msg count', SUM(signatures.pass) AS passed, messages.content_type FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON reporters.id = messages.reporter GROUP BY messages.content_type" >> $OUTPUT
-echo "</p>" >> $OUTPUT
-
-echo '<a name="mime_encoding_correlation"></a>' >> $OUTPUT
-echo "<p> Correlation of outer MIME encodings with pass/fail counts: </p>" >> $OUTPUT
-$MYSQL --execute="SELECT COUNT(*) AS 'msg count', SUM(signatures.pass) AS passed, messages.content_encoding FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 GROUP BY messages.content_encoding" >> $OUTPUT
-echo "</p>" >> $OUTPUT
+echo "" >> $OUTPUT
 
 echo '<a name="signing_trend_msg"></a>' >> $OUTPUT
 echo "<p> Trend in message signing rates: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT YEAR(msgtime) AS year, MONTHNAME(msgtime) AS month, (100. * SUM(SIGN(sigcount)) / COUNT(*)) AS '% signed' FROM messages JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 GROUP BY year,MONTH(msgtime) ORDER BY year,MONTH(msgtime)" >> $OUTPUT
-echo "</p>" >> $OUTPUT
+echo "" >> $OUTPUT
 
 echo '<a name="signing_trend_domain"></a>' >> $OUTPUT
 echo "<p> Trend in domain signing rates: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(DISTINCT domain) AS domains, YEAR(msgtime) AS year, MONTHNAME(msgtime) AS month FROM signatures JOIN messages ON signatures.message = messages.id JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 GROUP BY year, MONTH(msgtime) ORDER BY year, MONTH(msgtime)" >> $OUTPUT
-echo "</p>" >> $OUTPUT
+echo "" >> $OUTPUT
 
 echo '<a name="atps_use"></a>' >> $OUTPUT
 echo "<p> ATPS use: </p>" >> $OUTPUT
 $MYSQL --execute="SELECT COUNT(DISTINCT from_domain) AS domains FROM messages JOIN reporters ON reporters.id = messages.reporter WHERE enabled = 1 AND NOT atps = -1" >> $OUTPUT
-echo "</p>" >> $OUTPUT
+echo "" >> $OUTPUT
 
 # output a footer
 echo "<p> Report completed `date` </p>" >> $OUTPUT

@@ -45,9 +45,11 @@ main(int argc, char **argv)
 #ifdef TEST_KEEP_FILES
 	u_int flags;
 #endif /* TEST_KEEP_FILES */
+	int nsigs;
 	DKIM_STAT status;
 	DKIM *dkim;
 	DKIM_LIB *lib;
+	DKIM_SIGINFO **sigs;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
 
@@ -153,6 +155,11 @@ main(int argc, char **argv)
 
 	status = dkim_eom(dkim, NULL);
 	assert(status == DKIM_STAT_CANTVRFY);
+
+	status = dkim_getsiglist(dkim, &sigs, &nsigs);
+	assert(status == DKIM_STAT_OK);
+	assert(nsigs == 1);
+	assert(dkim_sig_geterror(sigs[0]) == DKIM_SIGERROR_INVALID_HC);
 
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);

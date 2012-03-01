@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -14,9 +14,6 @@ static char dkim_tables_c_id[] = "@(#)$Id: dkim-tables.c,v 1.7 2010/09/02 05:10:
 #include <string.h>
 #include <assert.h>
 
-/* OpenSSL includes */
-#include <openssl/sha.h>
-
 /* libopendkim includes */
 #include "dkim-tables.h"
 #include "dkim-internal.h"
@@ -25,7 +22,6 @@ static char dkim_tables_c_id[] = "@(#)$Id: dkim-tables.c,v 1.7 2010/09/02 05:10:
 static struct nametable prv_keyparams[] =	/* key parameters */
 {
 	{ "a",		DKIM_KEY_ALGORITHM },
-	{ "g",		DKIM_KEY_GRANULARITY },
 	{ "n",		DKIM_KEY_NOTES },
 	{ "p",		DKIM_KEY_DATA },
 	{ "s",		DKIM_KEY_SERVICE },
@@ -93,9 +89,7 @@ struct nametable *sigparams = prv_sigparams;
 static struct nametable prv_algorithms[] =	/* signing algorithms */
 {
 	{ "rsa-sha1",	DKIM_SIGN_RSASHA1 },
-#ifdef SHA256_DIGEST_LENGTH
 	{ "rsa-sha256",	DKIM_SIGN_RSASHA256 },
-#endif /* SHA256_DIGEST_LENGTH */
 	{ NULL,		-1 },
 };
 struct nametable *algorithms = prv_algorithms;
@@ -111,9 +105,7 @@ struct nametable *canonicalizations = prv_canonicalizations;
 static struct nametable prv_hashes[] =		/* hashes */
 {
 	{ "sha1",	DKIM_HASHTYPE_SHA1 },
-#ifdef SHA256_DIGEST_LENGTH
 	{ "sha256",	DKIM_HASHTYPE_SHA256 },
-#endif /* SHA256_DIGEST_LENGTH */
 	{ NULL,		-1 },
 };
 struct nametable *hashes = prv_hashes;
@@ -159,6 +151,7 @@ static struct nametable prv_settypes[] =	/* set types */
 	{ "key",	DKIM_SETTYPE_KEY },
 	{ "policy",	DKIM_SETTYPE_POLICY },
 	{ "signature",	DKIM_SETTYPE_SIGNATURE },
+	{ "signature reporting", DKIM_SETTYPE_SIGREPORT },
 	{ NULL,		-1 },
 };
 struct nametable *settypes = prv_settypes;
@@ -171,7 +164,6 @@ static struct nametable prv_sigerrors[] =	/* signature parsing errors */
 	{ "signature expired",			DKIM_SIGERROR_EXPIRED },
 	{ "signature timestamp in the future",	DKIM_SIGERROR_FUTURE },
 	{ "signature timestamp order error",	DKIM_SIGERROR_TIMESTAMPS },
-	{ "canonicalization missing",		DKIM_SIGERROR_MISSING_C },
 	{ "invalid header canonicalization",	DKIM_SIGERROR_INVALID_HC },
 	{ "invalid body canonicalization",	DKIM_SIGERROR_INVALID_BC },
 	{ "signature algorithm missing",	DKIM_SIGERROR_MISSING_A },
@@ -204,7 +196,6 @@ static struct nametable prv_sigerrors[] =	/* signature parsing errors */
 	{ "unknown key hash",			DKIM_SIGERROR_KEYUNKNOWNHASH },
 	{ "signature-key hash mismatch",	DKIM_SIGERROR_KEYHASHMISMATCH },
 	{ "not an e-mail key",			DKIM_SIGERROR_NOTEMAILKEY },
-	{ "key granularity mismatch",		DKIM_SIGERROR_GRANULARITY },
 	{ "key type missing",			DKIM_SIGERROR_KEYTYPEMISSING },
 	{ "unknown key type",			DKIM_SIGERROR_KEYTYPEUNKNOWN },
 	{ "key revoked",			DKIM_SIGERROR_KEYREVOKED },

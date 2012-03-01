@@ -1,0 +1,41 @@
+#
+# state of mind ()
+# Patrick Ben Koetter, p@state-of-mind.de
+# 
+# Private Enterprise Number: 29426
+#
+# OID prefix: 1.3.6.1.4.1.29426
+# openDKIM:   1.3.6.1.4.1.29426.2.2
+# attributes: 1.3.6.1.4.1.29426.2.2.1
+# classes:    1.3.6.1.4.1.29426.2.2.2
+#
+attributetype ( 1.3.6.1.4.1.29426.2.2.1.1
+	NAME 'DKIMSelector'
+	DESC 'Selector name associated with DKIM signing key'
+	EQUALITY caseExactIA5Match
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.29426.2.2.1.2
+	NAME 'DKIMKey'
+	DESC 'DKIM signing key'
+	EQUALITY caseExactIA5Match
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.29426.2.2.1.3
+	NAME 'DKIMIdentity'
+	DESC 'The Agent or User Identifier (AUID)'
+	EQUALITY caseExactIA5Match
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.29426.2.2.1.4
+	NAME 'DKIMDomain'
+	DESC 'DKIM sender domain'
+	EQUALITY caseExactIA5Match
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE )
+
+objectclass ( 1.3.6.1.4.1.29426.2.2.2.1
+	NAME 'DKIM' AUXILIARY
+	DESC 'DKIM Selector and Key container'
+	SUP top
+	MAY ( DKIMIdentity $ DKIMDomain ) 
+	MUST ( DKIMSelector $ DKIMKey ))

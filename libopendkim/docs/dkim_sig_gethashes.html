@@ -1,0 +1,95 @@
+<html>
+<head><title>dkim_sig_gethashes()</title></head>
+<body>
+<!--
+$Id: dkim_sig_gethashes.html,v 1.2 2010/07/24 04:52:15 cm-msk Exp $
+-->
+<h1>dkim_sig_gethashes()</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+
+DKIM_STAT dkim_sig_gethashes(
+	<a href="dkim_siginfo.html"><tt>DKIM_SIGINFO</tt></a> *sig,
+	void **hh,
+	size_t *hhlen,
+	void **bh,
+	size_t *bhlen
+);
+</pre>
+Retrieve the hashes associated with a signature.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_sig_gethashes()</tt> can be called after
+    <a href="dkim_eom.html">dkim_eom</a> has completed. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>sig</td>
+	<td>Signature-specific handle.
+	</td></tr>
+    <tr valign="top"><td>hh</td>
+	<td>A void pointer that will be updated to point to the location
+	    in memory of the header hash (in binary form).
+	</td></tr>
+    <tr valign="top"><td>hhlen</td>
+	<td>A pointer to a <tt>size_t</tt> that will be updated to contain
+	    the number of bytes consumed by the header hash.
+	</td></tr>
+    <tr valign="top"><td>bh</td>
+	<td>A void pointer that will be updated to point to the location
+	    in memory of the body hash (in binary form).
+	</td></tr>
+    <tr valign="top"><td>bhlen</td>
+	<td>A pointer to a <tt>size_t</tt> that will be updated to contain
+	    the number of bytes consumed by the body hash.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Value ---------->
+<tr><th valign="top" align=left>RETURN VALUE</th><td>
+<ul>
+ <li> <tt>DKIM_STAT_OK</tt> -- successful completion
+ <li> <tt>DKIM_STAT_INVALID</tt> -- the function was called before
+	<tt>dkim_eom()</tt> was called, meaning the hashes have not yet
+	been finalized
+</ul>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

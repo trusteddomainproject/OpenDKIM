@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef _DKIM_TYPES_H_
@@ -28,11 +28,6 @@ static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.23 2010/10/28 02:41:2
 #else /* USE_TRE */
 # include <regex.h>
 #endif /* USE_TRE */
-
-/* libar includes */
-#ifdef USE_ARLIB
-# include "ar.h"
-#endif /* USE_ARLIB */
 
 #ifdef USE_GNUTLS
 # include <gnutls/gnutls.h>
@@ -121,6 +116,7 @@ struct dkim_set
 	_Bool			set_bad;
 	dkim_set_t		set_type;
 	u_char *		set_data;
+	const char *		set_name;
 	void *			set_udata;
 	struct dkim_plist *	set_plist[NPRINTABLE];
 	struct dkim_set *	set_next;
@@ -218,19 +214,22 @@ struct dkim_rsa
 {
 #ifdef USE_GNUTLS
 	size_t			rsa_rsaoutlen;
-	size_t			rsa_keysize;
+	unsigned int		rsa_keysize;
 	gnutls_x509_privkey_t	rsa_key;
+	gnutls_privkey_t	rsa_privkey;
 	gnutls_pubkey_t		rsa_pubkey;
 	gnutls_datum_t		rsa_sig;
 	gnutls_datum_t		rsa_digest;
 	gnutls_datum_t 		rsa_rsaout;
+	gnutls_datum_t 		rsa_keydata;
 #else /* USE_GNUTLS */
 	u_char			rsa_pad;
-	size_t			rsa_keysize;
+	int			rsa_keysize;
 	size_t			rsa_rsainlen;
 	size_t			rsa_rsaoutlen;
 	EVP_PKEY *		rsa_pkey;
 	RSA *			rsa_rsa;
+	BIO *			rsa_keydata;
 	u_char *		rsa_rsain;
 	u_char *		rsa_rsaout;
 #endif /* USE_GNUTLS */
@@ -296,9 +295,9 @@ struct dkim
 	size_t			dkim_keylen;
 	size_t			dkim_errlen;
 	uint64_t		dkim_timestamp;
-#ifdef _FFR_PARSE_TIME
+#ifdef _FFR_PARSETIME
 	uint64_t		dkim_msgdate;
-#endif /* _FFR_PARSE_TIME */
+#endif /* _FFR_PARSETIME */
 	dkim_query_t		dkim_querymethod;
 	dkim_canon_t		dkim_hdrcanonalg;
 	dkim_canon_t		dkim_bodycanonalg;
@@ -323,6 +322,7 @@ struct dkim
 	u_char *		dkim_zdecode;
 	u_char *		dkim_tmpdir;
 	DKIM_SIGINFO *		dkim_signature;
+	void *			dkim_keydata;
 	void *			dkim_closure;
 	const void *		dkim_user_context;
 #ifdef _FFR_RESIGN

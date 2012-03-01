@@ -1,0 +1,121 @@
+OPENDKIM LDAP NOTES
+==================
+
+$Id: $
+
+Contributed by Patrick Ben Koetter
+
+This is a brief document describing how to store and retrieve (multiple)
+signature keys from an LDAP server. If you are looking for detailed
+information that shows how to setup basic connection settings such as
+LDAPBindUser, LDAPBindPassword or its (additional) SASL equivalents take a
+look at the opendkim.conf(5) man page first.
+
+
+
+How opendkim LDAP queries work
+Retrieving a signature key from an LDAP server is a two step procedure:
+
+1. Identify identity
+   The first step attempts to find an identity that matches the From: header
+   field. It is configured using the SigningTable parameter.
+
+   opendkim will check variations of the From: header field. See the
+   SigningTable description in opendkim.conf(5), which describes query
+   variations and order in detail.
+
+   If an identity matches the query, opendkim attempts to retrieve a selector
+   name associated with the same LDAP object.
+
+   In case opendkim was configured to apply multiple signatures the program
+   will search for all query variations and build a list of all selector names
+   found.
+
+2. Retrieve signing key
+   The second query uses the selector name to search for the associated
+   signing key. It is configured using the KeyTable parameter.
+
+   In case opendkim was configured to apply multiple signatures the program
+   will run a query for every selector name on its list and it will try to
+   retrieve all associated signing keys.
+
+
+
+opendkim LDAP schema and data
+First of all you need to populate your LDAP DIT with attributes useful for
+DKIM signing. Unless you plan to roll your own LDAP schema, you can use the
+opendkim.schema that ships with the opendkim sources.
+
+All attributes and classes in opendkim.schema use registered private
+enterprise numbers. You can safely import them into your LDAP namespace. There
+will be no collisions with other public prefixes.
+
+  Note: All examples in this document refer to attributetypes and classes used
+  in opendkim.schema.
+
+Include the schema in your LDAP server configuration to put it to use. The
+following examples works for openLDAPs slapd.conf:
+
+include         /etc/ldap/schema/opendkim.schema
+
+Once you've included the schema and restarted the LDAP server you can start
+adding DKIM data to control opendkim(8) signing behaviour.
+
+The attributetype descriptions for DKIMSelector, DKIMKey, DKIMIdentity and
+DKIMDomain inside opendkim.schema should be selfexplanatory and tell you which
+attribute should carry which data.
+
+Additionally you can peek at the file example.com.ldif, which also has been
+shipped with opendkim sources. It contains a fully functional DIT for
+identities within example.com and two subdomains.
+
+
+
+Configuring LDAP queries
+As described in "How LDAP queries work" you need to create two queries - one
+to identify the selector (SigningTable) and one to retrieve the signing key
+(KeyTable).
+
+Depending how you configure the queries you can control if opendkim will add a
+single or multiple signatures and if it optionally will add the i= parameter
+to disclose the full signer identity in signatures.
+
+
+Single signature
+In its simpliest form the query retrieves a single signing key. It will be the
+key from the identity that matches opendkims query strategy best.
+
+The following example uses the opendkim.schema to configure such a query in
+opendkim.conf:
+
+SigningTable            ldap://192.0.2.1/ou=people,dc=example,dc=com?DKIMSelector?sub?(DKIMIdentity=$d)
+KeyTable                ldap://192.0.2.1/ou=people,dc=example,dc=com?DKIMDomain,DKIMSelector,DKIMKey,?sub?(DKIMSelector=$d)
+
+Configured that way opendkim will connect to the LDAP server on 192.0.2.1,
+start a subtree query at the search base "ou=people,dc=example,dc=com" and
+check if DKIMIdentity values match the query string. If that's the case it
+retrieves the value from DKIMSelector.
+
+Then, using the query defined in KeyTable, it will search for the
+DKIMSelector value it retrieved in the SigningTable query. If there's a match
+it will try to retrieve all values associated with DKIMDomain, DKIMSelector
+and DKIMKey. Data from these attributes at hand it will sign the message.
+
+
+Multiple Signatures
+If you want to apply all signatures whose identities match, you simply need to
+enable MultipleSignatures (default: no) in opendkim.conf:
+
+SigningTable            ldap://192.0.2.1/ou=people,dc=example,dc=com?DKIMSelector?sub?(DKIMIdentity=$d)
+KeyTable                ldap://192.0.2.1/ou=people,dc=example,dc=com?DKIMDomain,DKIMSelector,DKIMKey,?sub?(DKIMSelector=$d)
+MultipleSignatures      yes
+
+
+Signature + User Identifier
+If you want to disclose a user identifier along with the signature let the
+SigningTable also retrieve the DKIMIdentity as second string:
+
+SigningTable            ldap://192.0.2.1/ou=people,dc=example,dc=com?DKIMSelector,DKIMIdentity?sub?(DKIMIdentity=$d)
+KeyTable                ldap://192.0.2.1/ou=people,dc=example,dc=com?DKIMDomain,DKIMSelector,DKIMKey,?sub?(DKIMSelector=$d)
+MultipleSignatures      yes
+

@@ -1,6 +1,6 @@
 -- stats.lua -- conventional stats extensions
 --
--- Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2011, 2012, The OpenDKIM Project.  All rights reserved.
 --
 -- Referencing this as StatisticsScript from an opendkim that has both "stats"
 -- and "lua" enabled will produce some extended stats lines for each message
@@ -8,6 +8,9 @@
 -- whether or not SpamAssassin thought the message was spam.  This might
 -- be useful for data correlation at the data aggregation point.
 
+--
+-- SpamAssassin
+--
 spam = odkim.get_header(ctx, "X-Spam-Status", 0)
 if spam == nil then
 	odkim.stats(ctx, "spam", "-1")
@@ -19,6 +22,9 @@ else
 	odkim.stats(ctx, "spam", "-1")
 end
 
+--
+-- SPF/Sender-ID
+--
 n = 0
 done = 0
 found = 0

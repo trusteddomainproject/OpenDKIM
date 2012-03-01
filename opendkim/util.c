@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: util.c,v 1.47.2.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -110,10 +110,6 @@ static char *optlist[] =
 	"USE_UNBOUND",
 #endif /* USE_UNBOUND */
 
-#if VERIFY_DOMAINKEYS
-	"VERIFY_DOMAINKEYS",
-#endif /* VERIFY_DOMAINKEYS */
-
 #ifdef _FFR_ADSP_LISTS
 	"_FFR_ADSP_LISTS",
 #endif /* _FFR_ADSP_LISTS */
@@ -150,9 +146,9 @@ static char *optlist[] =
 	"_FFR_OVERSIGN",
 #endif /* _FFR_OVERSIGN */
 
-#if _FFR_PARSE_TIME
-	"_FFR_PARSE_TIME",
-#endif /* _FFR_PARSE_TIME */
+#if _FFR_PARSETIME
+	"_FFR_PARSETIME",
+#endif /* _FFR_PARSETIME */
 
 #if _FFR_POSTGRESQL_RECONNECT_HACK
 	"_FFR_POSTGRESQL_RECONNECT_HACK",
@@ -174,9 +170,13 @@ static char *optlist[] =
 	"_FFR_REPLACE_RULES",
 #endif /* _FFR_REPLACE_RULES */
 
-#if _FFR_REPORT_INTERVALS
-	"_FFR_REPORT_INTERVALS",
-#endif /* _FFR_REPORT_INTERVALS */
+#if _FFR_REPUTATION
+	"_FFR_REPUTATION",
+#endif /* _FFR_REPUTATION */
+
+#if _FFR_REPUTATION_CACHE
+	"_FFR_REPUTATION_CACHE",
+#endif /* _FFR_REPUTATION_CACHE */
 
 #if _FFR_RESIGN
 	"_FFR_RESIGN",

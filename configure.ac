@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 #
-# Copyright (c) 2009-2011  The OpenDKIM Project.  All rights reserved.
+# Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 # 
 # $Id: configure.ac,v 1.185 2010/10/28 04:35:44 cm-msk Exp $
 
@@ -14,8 +14,8 @@ AC_PREREQ(2.61)
 # Package version
 #
 m4_define([VERSION_RELEASE], 2)
-m4_define([VERSION_MAJOR_REV], 4)
-m4_define([VERSION_MINOR_REV], 3)
+m4_define([VERSION_MAJOR_REV], 5)
+m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -23,8 +23,8 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "current" and reset "revision" with API changes
 # 	- bump "revision" with internal source code changes
 #
-m4_define([LIBVERSION_CURRENT], 5)
-m4_define([LIBVERSION_REVISION], 2)
+m4_define([LIBVERSION_CURRENT], 6)
+m4_define([LIBVERSION_REVISION], 0)
 m4_define([LIBVERSION_AGE], 0)
 
 #
@@ -268,12 +268,17 @@ FFR_FEATURE([postgresql_reconnect_hack],
 FFR_FEATURE([rate_limit], [support for DKIM-based rate limiting])
 
 FFR_FEATURE([replace_rules], [support for string substitution when signing])
-
-FFR_FEATURE([report_intervals],
-            [support for requested report intervals when reporting])
+AM_CONDITIONAL([REPLACE_RULES], [test x"$enable_replace_rules" = x"yes"])
 
 FFR_FEATURE([redirect],
             [support for redirecting failed verifications to a mailbox])
+
+FFR_FEATURE([reputation],
+            [support for experimental reputation checks])
+AM_CONDITIONAL([REPUTE], [test x"$enable_reputation" = x"yes"])
+
+FFR_FEATURE([reputation_cache],
+            [support for experimental reputation caching])
 
 FFR_FEATURE([resign],
             [support for one-step re-signing])
@@ -1345,6 +1350,13 @@ then
 	AC_MSG_ERROR([--enable-rbl requires Lua support])
 fi
 
+AC_ARG_WITH([sql-backend],
+            AS_HELP_STRING([--with-sql-backend],
+                           [selection of SQL backend in use]),
+            [SQL_BACKEND="$withval"], [SQL_BACKEND="mysql"])
+AC_SUBST(SQL_BACKEND)
+AC_DEFINE_UNQUOTED(SQL_BACKEND, "$SQL_BACKEND", [default SQL back-end])
+
 #
 # libodbx
 #
@@ -1588,6 +1600,168 @@ AM_CONDITIONAL(USE_SASL, test x"$sasl_found" = x"yes")
 AC_SUBST(SASL_CPPFLAGS)
 
 #
+# libcurl, required by reputation
+#
+AC_ARG_WITH([libcurl],
+            AS_HELP_STRING([--with-libcurl],
+                           [location of CURL includes and library]),
+            [curlpath="$withval"], [curlpath="auto"])
+
+CURL_CPPFLAGS=""
+CURL_LDFLAGS=""
+CURL_LIBS=""
+
+if test x"$enable_reputation" != x"yes" -a \
+        x"$curlpath" = x"auto"
+then
+	curlpath="no"
+fi
+
+curl_found="no"
+if test \( x"$curlpath" = x"auto" -o x"$curlpath" = x"yes" \) -a \
+	x"$PKG_CONFIG" != x""
+then
+        PKG_CHECK_MODULES([CURL], [curl >= 7.16.3],
+	[
+		curl_found="yes"
+		CURL_CPPFLAGS="$CURL_CFLAGS"
+	],
+	[
+	        curl_found="no"
+        	AC_MSG_WARN([pkg-config for curl not found, trying manual
+		            search...])
+        ])
+fi
+
+if test x"$curlpath" != x"no" -a x"$curl_found" = x"no"
+then
+	AC_MSG_CHECKING([for CURL])
+	if test x"$curlpath" != x"auto" -a x"$curlpath" != x"yes"
+	then
+		if test -f $curlpath/include/curl/curl.h
+		then
+			AC_MSG_RESULT($curlpath)
+		        curl_found="yes"
+			CURL_CPPFLAGS="-I$curlpath/include"
+			CURL_LDFLAGS="-L$curlpath/lib"
+			CURL_LIBS="-lcurl"
+		else
+			AC_MSG_ERROR(not found at $curlpath)
+		fi
+	else
+		curldirs="/usr /usr/local"
+		for d in $curldirs
+		do
+			if test -f $d/include/curl/curl.h
+			then
+				curlpath=$d
+				AC_MSG_RESULT($d)
+		        	curl_found="yes"
+				CURL_CPPFLAGS="-I$curlpath/include"
+				CURL_LDFLAGS="-L$curlpath/lib"
+				CURL_LIBS="-lcurl"
+				break
+			fi
+		done
+	fi
+	if test x"$curl_found" != x"yes"
+	then
+		AC_MSG_RESULT([no])
+	fi
+fi
+AC_SUBST(CURL_CPPFLAGS)
+AC_SUBST(CURL_LDFLAGS)
+AC_SUBST(CURL_LIBS)
+
+if test x"$enable_reputation" = x"yes" -a \
+        x"$curl_found" != x"yes"
+then
+	AC_MSG_ERROR([reputation requires curl])
+fi
+
+#
+# libxml2, required by reputation
+#
+AC_ARG_WITH([libxml2],
+            AS_HELP_STRING([--with-libxml2],
+                           [location of XML2 includes and library]),
+            [xml2path="$withval"], [xml2path="auto"])
+
+LIBXML2_CPPFLAGS=""
+LIBXML2_LDFLAGS=""
+LIBXML2_LIBS=""
+
+if test x"$enable_reputation" != x"yes" -a \
+        x"$xml2path" = x"auto"
+then
+	xml2path="no"
+fi
+
+xml2_found="no"
+if test \( x"$xml2path" = x"auto" -o x"$xml2path" = x"yes" \) -a \
+	x"$PKG_CONFIG" != x""
+then
+        PKG_CHECK_MODULES([LIBXML], [libxml-2.0 >= 2.6.16],
+	[
+		xml2_found="yes"
+		LIBXML2_CPPFLAGS="$LIBXML_CFLAGS"
+		LIBXML2_LIBS="$LIBXML_LIBS"
+	],
+	[
+	        xml2_found="no"
+        	AC_MSG_WARN([pkg-config for libxml2 not found, trying manual
+		            search...])
+        ])
+fi
+
+if test x"$xml2path" != x"no" -a x"$xml2_found" = x"no"
+then
+	AC_MSG_CHECKING([for libxml2])
+	if test x"$xml2path" != x"auto" -a x"$xml2path" != x"yes"
+	then
+		if test -f $xml2path/include/libxml/parser.h
+		then
+			AC_MSG_RESULT($xml2path)
+		        xml2_found="yes"
+			LIBXML2_CPPFLAGS="-I$xml2path/include"
+			LIBXML2_LDFLAGS="-I$xml2path/lib"
+			LIBXML2_LIBS="-lxml2"
+		else
+			AC_MSG_ERROR(not found at $xml2path)
+		fi
+	else
+		xml2dirs="/usr /usr/local"
+		for d in $xml2dirs
+		do
+			if test -f $d/include/libxml/parser.h
+			then
+				xml2path=$d
+				AC_MSG_RESULT($d)
+		        	xml2_found="yes"
+				LIBXML2_CPPFLAGS="-I$xml2path/include"
+				LIBXML2_LDFLAGS="-I$xml2path/lib"
+				LIBXML2_LIBS="-lxml2"
+				break
+			fi
+		done
+	fi
+	if test x"$xml2_found" != x"yes"
+	then
+		AC_MSG_RESULT([no])
+	fi
+fi
+AC_SUBST(LIBXML2_CPPFLAGS)
+AC_SUBST(LIBXML2_LDFLAGS)
+AC_SUBST(LIBXML2_LIBS)
+
+if test x"$enable_reputation" = x"yes" -a \
+        x"$xml2_found" != x"yes"
+then
+	AC_MSG_ERROR([reputation requires libxml2])
+fi
+
+
+#
 # libdb
 #
 
@@ -1628,7 +1802,8 @@ fi
 
 AM_CONDITIONAL(USE_DB_OPENDKIM,
                test x"$enable_popauth" = x"yes" -o \
-	            x"$enable_report_intervals" = x"yes" -o \
+	            x"$enable_reputation" = x"yes" -o \
+	            x"$enable_reputation_cache" = x"yes" -o \
                     x"$bdbrequested" = x"yes")
 AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")
 
@@ -1791,66 +1966,6 @@ AC_SUBST(LIBDB_INCDIRS)
 AC_SUBST(LIBDB_LIBDIRS)
 AC_SUBST(LIBDB_LIBS)
 
-#
-# libdk
-#
-AC_ARG_WITH([domainkeys],
-            AS_HELP_STRING([--with-domainkeys],
-                           [location of libdk includes and library]),
-            [dk="$withval"], [dk="no"])
-
-if test x"$dk" = x"yes"
-then
-	AC_MSG_CHECKING([for DomainKeys])
-
-	dkdirs="/usr /usr/local"
-	for d in $dkdirs
-	do
-		if test -f $d/include/dk.h -a -f $d/lib/libdk.a
-		then
-			dk=$d
-			AC_MSG_RESULT([$d])
-			LIBDK_INCDIRS="-I$dk/include"
-			LIBDK_LIBDIRS="-L$dk/lib"
-			LIBDK_LIBS="-ldk"
-			AC_DEFINE([VERIFY_DOMAINKEYS], 1,
-			          [compile with libdk for DomainKeys support])
-			AC_SUBST([DOMAINKEYS_MANNOTICE], "")
-			break
-		fi
-	done
-
-	if test x"$dk" = x"yes"
-	then
-		AC_MSG_ERROR([not found])
-	fi
-elif test x"$dk" = x"no"
-then
-	LIBDK_INCDIRS=""
-	LIBDK_LIBDIRS=""
-	LIBDK_LIBS=""
-	AC_SUBST([DOMAINKEYS_MANNOTICE],
-	         "(Not enabled for this installation.)")
-else
-	AC_MSG_CHECKING([for DomainKeys])
-
-	if test -f $dk/include/dk.h -a -f $dk/lib/libdk.a
-	then
-		AC_MSG_RESULT($dk)
-		LIBDK_INCDIRS="-I$dk/include"
-		LIBDK_LIBDIRS="-L$dk/lib"
-		LIBDK_LIBS="-ldk"
-		AC_DEFINE([VERIFY_DOMAINKEYS], 1,
-		          [compile with libdk for DomainKeys support])
-	else
-		AC_MSG_ERROR([not found at $dk])
-	fi
-fi
-
-AC_SUBST(LIBDK_INCDIRS)
-AC_SUBST(LIBDK_LIBDIRS)
-AC_SUBST(LIBDK_LIBS)
-
 LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBRESOLV"
 # This (below) is just for the pkg-config file opendkim.pc.in
 LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
@@ -1874,8 +1989,6 @@ fi
 AC_SUBST(LIBOPENDKIM_LIBS)
 AC_SUBST(LIBOPENDKIM_LIBS_PKG)
 AC_SUBST(LIBOPENDKIM_INC)
-
-AM_CONDITIONAL(VERIFY_DOMAINKEYS, test x"$dk" != x"no")
 
 AC_DEFINE_UNQUOTED([LIBOPENDKIM_FEATURE_STRING], "$LIBOPENDKIM_FEATURE_STRING",
                    [Feature string for printing])
@@ -1938,12 +2051,15 @@ AC_OUTPUT([	Makefile
 		docs/Makefile
 		contrib/Makefile
 			contrib/convert/Makefile
+			contrib/docs/Makefile
 			contrib/init/Makefile
 			contrib/init/generic/Makefile
 			contrib/init/redhat/Makefile
 			contrib/init/redhat/opendkim
 			contrib/init/solaris/Makefile
+			contrib/ldap/Makefile
 			contrib/lua/Makefile
+			contrib/patches/Makefile
 			contrib/spec/Makefile
 			contrib/spec/opendkim.spec
 			contrib/stats/Makefile
@@ -1955,16 +2071,23 @@ AC_OUTPUT([	Makefile
 		libopendkim/docs/Makefile
 		libopendkim/tests/Makefile
 		librbl/rbl.pc librbl/Makefile
+		libut/ut.pc libut/Makefile
 		libvbr/vbr.pc libvbr/Makefile
 		miltertest/Makefile
 		opendkim/Makefile opendkim/opendkim.8 opendkim/opendkim-genkey
 			opendkim/opendkim-genkey.8 opendkim/opendkim-genzone.8
 			opendkim/opendkim-lua.3 opendkim/opendkim-testadsp.8
 			opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8
-			opendkim/opendkim.conf.5 opendkim/opendkim.conf.simple
+			opendkim/opendkim-testmsg.8 opendkim/opendkim.conf.5
+			opendkim/opendkim.conf.simple
 			opendkim/opendkim.conf.simple-verify
 			opendkim/opendkim-atpszone.8 opendkim/opendkim-spam.1
 		opendkim/tests/Makefile
-		stats/Makefile stats/opendkim-anonstats.8
-			stats/opendkim-importstats.8
+		stats/Makefile stats/opendkim-importstats.8
+		reputation/Makefile
+			reputation/opendkim-genrates
+			reputation/opendkim-genrates.8
+			reputation/opendkim-modtotals
+			reputation/opendkim-modtotals.8
+			reputation/repute.pc
 ])

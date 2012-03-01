@@ -262,6 +262,11 @@ is specified, the string there will be included in the generated signature's
 is specified, the signature will cover that many bytes of the message body.
 The order of these last two parameters is interchangeable.
 .TP
+.B odkim.spam(ctx)
+Tags the message as spam, for use in developing reputation about domains
+that signed the message.  Returns nothing.
+@REPUTATION_MANNOTICE@
+.TP
 .B odkim.use_ltag(ctx)
 Requests that all signatures added to the message represented by
 .I ctx
@@ -297,9 +302,10 @@ descriptions can be found above:
 .B odkim.get_mtasymbol,
 .B odkim.get_rcpt,
 .B odkim.get_rcptarray,
-.B odkim.log
+.B odkim.log,
+.B odkim.rcpt_count,
 and
-.B odkim.rcpt_count.
+.B odkim.spam.
 
 The following additional functions are provided for this script:
 .TP
@@ -371,10 +377,11 @@ descriptions can be found above:
 .B odkim.get_sighandle,
 .B odkim.log,
 .B odkim.parse_field,
+.B odkim.rcpt_count,
 .B odkim.sig_getdomain,
 .B odkim.sig_getidentity,
 and
-.B odkim.rcpt_count.
+.B odkim.spam.
 
 The following functions are also available, defined in the next section:
 .B odkim.get_policy,
@@ -415,6 +422,7 @@ descriptions can be found above:
 .B odkim.set_result,
 .B odkim.sig_getdomain,
 .B odkim.sig_getidentity,
+.B odkim.spam,
 and
 .B odkim.xtags.
 

@@ -1,57 +1,112 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.4.3 released
+Subject: OpenDKIM v2.5.0 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.4.3, now available
+The OpenDKIM project announces availability of OpenDKIM v2.5.0, now available
 for download from SourceForge.
 
-This is a bug fix release including all non-trivial bugs fixed during the
-development of v2.5.0.  Upgrading is recommended.
+This is a major new feature release.  It also includes a few important bug
+fixes and some code updates to keep up with changes in evolving specifications.
+Upgrading is recommended.
 
-The release of v2.5.0 has been delayed to mid-January, 2012 to allow an
-extended Beta cycle.
+There are two major architectural changes in this release:
+
+1) The statistics subsystem was originally added to support the work of the
+DKIM working group at the IETF to produce an interoperability report, needed
+to advance the DKIM standard to the next maturity level.  That has now been
+completed, and we thank those that participated in making this possible.
+As of this release, the statistics reporting subsystem has been repurposed
+into something that reports messages, their passing/failing signatures, and
+an indication of whether or not the message was identified as spam somehow.
+This is being done to support some ongoing research and development of an
+open DKIM-based domain reputation system.  The visible changes are: (a) it
+is no longer possible to submit anonymized data, as such is not useful to the 
+new purpose of this piece of the project; and (b) the set of data being
+submitted is substantially smaller.  This means those of you participating
+may wish to re-evaluate your participation, though obviously we would be
+pleased to have you continue.  Those that do start or continue to submit
+this data will be eligible to participate in the reputation experiments
+as they unfold.
+
+2) DomainKeys, the predecessor to DKIM, is no longer supported as of this
+version.  Sites wishing to continue to do DomainKeys verification will need
+to seek out and install other software.
 
 The full RELEASE_NOTES for this version:
 
-2.4.3		2011/12/26
-	Fix bug #SF3400670: Send ADSP failure reports when rejecting
-		a message.  Reported by Andreas Schulze.
-	Fix bug #SF3419149: Add MaximumSignedBytes to opendkim-config.h.
-		Reported by Adam Bernstein.
-	Fix bug #SF3441240: Appy ReportBccAddress when generating ADSP
-		reports.  Reported by Richard Rognlie.
-	Fix bug #SF3447199: Fix logic preventing the application of the
-		BodyLengthDB.  Problem noted by Richard Rognlie.
-	Fix Authentication-Results generation with "AddAllSignatureResults"
-		enabled.  Reported by Todd Nagengast.
-	Fix a crash bug when trying to handle certain malformed header fields
-		in verify-only mode.  Reported by Todd Lyons.
-	Improve error checking in the callback provided to libunbound to
-		avoid crashes.  Problem noted by Todd Lyons.
-	Cope with versions of Sleepycat DB that crash when asking for a file
-		descriptor for in-memory databases.  Problem reported by
-		Todd Lyons.
-	Don't override "On-NoSignature" when "Quarantine" is set.  Reported
-		by Jarry Jeremy.
-	Ignore header field names that contain semi-colons, as they produce
-		syntactically invalid signatures.  Problem noted by
+2.5.0		2012/02/29
+	#####################################################################
+	###                                                               ###
+	###  This release is dedicated to the memory of J.D. Falk, a      ###
+	###  tireless champion of anti-abuse technology and collaboration ###
+	###  and a founding member of the Board of the Trusted Domain     ###
+	###  Project, a participant in related IETF work, and a long-time ###
+	###  particpant and supporter of MAAWG.  J.D. was taken by cancer ###
+	###  on November 16, 2011.  His enthusiasm and perspective for    ###
+	###  all of this work will be sorely missed.                      ###
+	###                                                               ###
+	#####################################################################
+	Feature request #SF3385816: Discontinue DomainKeys support.
+	Feature request #SF3393282: Update ARF output per
+		draft-ietf-marf-authfailure-report-03 et seq.
+	Feature request #SF3406814: Add ability to invoke chroot().
+		Requested by Andreas Schulze.
+	Feature request #SF3477908: Update DKIM reporting per
+		draft-ietf-marf-dkim-reporting-10.
+	Add "WeakSyntaxChecks" suppressing some short-circuiting error checks
+		on syntax.  Requested by Todd Nagengast. 
+	Allow a set of test files to be passed via "-t" rather than just one.
+	Add _FFR_REPUTATION, and several new support libraries (in the
+		libut/ and reputation/ directories) for doing DKIM-based
+		reputation evaluations of arriving messages.  Full
+		documentation of the algorithms will appear in an upcoming
+		white paper.  This also includes several new configuration
+		options that make use of reputation data pulled from servers:
+			ReputationCache
+			ReputationCacheTTL
+			ReputationLimits
+			ReputationLowTime
+			ReputationMinimum
+			ReputationLimitModifiers
+			ReputationRatios
+			ReputationSpamCheck
+			ReputationTimeFactor
+		For now these are briefly documented in reputation/README.
+		As this subsystem matures, they will be fully documented in
+		opendkim.conf(5).
+	Fix bug #SF3471520: Don't crash when the first line of a configuration
+		file is an "Include" instruction.  Reported by Dilian
+		Wesselinov Palauzov.
+	Fix bug #SF3475149: Apply RFC2254 encoding to LDAP queries.
+		Problem noted by Yoshiaki Yanagihara.
+	LIBOPENDKIM: Feature request #SF3317160: Per RFC6376, remove
+		granularity checks.
+	LIBOPENDKIM: Feature request #SF3385768: Add dkim_privkey_load(),
+		allowing validation of a private key before reaching
+		end-of-message.  Requested by Heikki Gruner.
+	LIBOPENDKIM: Feature request #SF3423226: Copy header field name lists
+		instead of using the caller's copy.  Suggested by
 		Heikki Gruner.
-	LIBOPENDKIM: Fix bug #SF3465400: Don't use "new" as a parameter name
-		in dkim.h since that's an error for C++.  Reported by
-		Amit Schreiber.
-	LIBOPENDKIM: NOERROR is the same as NXDOMAIN for the purposes of
-		the ADSP existence check.  Problem noted by Todd Nagengast.
-	LIBOPENDKIM: Return DKIM_STAT_SYNTAX from dkim_header() if the header
-		field name contained a semi-colon.
-	LIBAR: After computing a timeout, if the fractional seconds portion
-		adds to exactly a second, convert that amount to seconds.
-		Previous versions only converted when the fractional portion
-		exceeded a second.  This led to threads that spin
-		indefinitely.  Problem noted by Todd Lyons and Gary Mills;
-		forensic evidence revealing the problem at long last provided
-		by Todd Lyons.
-	STATS: Fix a crash bug in opendkim-importstats due to improper handling
-		of NULL returns from SQL.  Reported by Andreas Schulze.
+	LIBOPENDKIM: Update list of header fields that should be signed
+		per RFC6376.
+	LIBOPENDKIM: Don't report the absence of "c=" as an error, since
+		there is a default.
+	LIBOPENDKIM: Add DKIM_SIG_CHECK() macro.  Suggested by Heikki
+		Gruner.
+	LIBAR: Fix bug #SF2917856: Rename "ar.h" to "async-resolv.h" since
+		"ar.h" is already in common use.
+	STATS: Feature request #SF3397903: Drop all support for data needed
+		for the DKIM Implementation Report, as it has been completed.
+		Leave stuff that's useful for reputation R&D.
+	STATS: Feature request #SF3402857: Modify opendkim-spam to be able
+		to write update records to statistics files.
+	STATS: Feature request #SF3439384: Make opendkim-importstats more
+		backend-agnostic.  Requested by Andreas Schulze.
+	TOOLS: Add opendkim-testmsg, for signing/verifying messages without
+		all the milter code being invoked.  Requested by
+		Todd Nagengast.
+	CONTRIB: Add LDAP documentation and examples.  Provided by
+		Patrick Ben Koetter.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,

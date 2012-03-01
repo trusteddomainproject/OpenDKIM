@@ -1,6 +1,5 @@
 -t
--f
-postmaster@example.org
+-fpostmaster@example.org
 From: "Mail Admin" <postmaster@example.org>
 To: adsp-feedback@example2.com
 Bcc: postmaster@example.net

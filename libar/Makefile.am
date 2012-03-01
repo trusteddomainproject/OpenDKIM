@@ -12,8 +12,8 @@ libar_la_LIBADD = $(PTHREAD_LIBS) $(LIBRESOLV)
 libar_la_LDFLAGS = -no-undefined $(PTHREAD_CFLAGS) -version-info 2:4:0
 libar_la_CFLAGS = $(PTHREAD_CFLAGS)
 libar_la_CC = $(PTHREAD_CC)
-libarincludedir = $(includedir)/ar
-libarinclude_HEADERS = ar.h
+libarincludedir = $(includedir)
+libarinclude_HEADERS = async-resolv.h
 
 if RPATH
 libar_la_LDFLAGS += -rpath $(libdir)

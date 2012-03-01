@@ -2,7 +2,7 @@
 **  Copyright (c) 2007, 2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -104,14 +104,7 @@ static char t_testdata_h[] = "@(#)$Id: t-testdata.h,v 1.2 2010/07/23 01:54:20 cm
 	"A3WL/wbaHsfOYf9Y+g1NAkAGLhx67Ah+uBNK4Xvfz0YPGINX20m+CMsxAw7FOaNv\n" \
 	"IW2oWFfZCB4APkIis79Ql45AHpavwx5XodBMzZwJUvlL\n" \
 	"-----END RSA PRIVATE KEY-----\n"
-#define	PUBLICKEY	"v=DKIM1; k=rsa; t=y:s; h=sha1:sha256; " \
-	"r=" REPLYADDRESS "; " \
-	"rs=" SMTPTOKENENC "; p=" \
-	"MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC4GUGr+d/6SFNzVLYpphnRd0QP" \
-	"GKz2uWnV65RAxa1Pw352BqizqiKOBjgYGzj8pJQSs8tOvv/2k6jpI809RnESqOFg" \
-	"F0gu3UJbNnu3+cd8k/kiQj+q4cKKRpAT92ccxc7svhCNgN1sBGmROYZuysG3Vu3D" \
-	"yc079gSLtnSrgXb+gQIDAQAB"
-#define	PUBLICKEYG	"v=DKIM1; k=rsa; t=y:s; g=M*K; p=" \
+#define	PUBLICKEY	"v=DKIM1; k=rsa; t=y:s; h=sha1:sha256; p=" \
 	"MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC4GUGr+d/6SFNzVLYpphnRd0QP" \
 	"GKz2uWnV65RAxa1Pw352BqizqiKOBjgYGzj8pJQSs8tOvv/2k6jpI809RnESqOFg" \
 	"F0gu3UJbNnu3+cd8k/kiQj+q4cKKRpAT92ccxc7svhCNgN1sBGmROYZuysG3Vu3D" \
@@ -158,5 +151,6 @@ static char t_testdata_h[] = "@(#)$Id: t-testdata.h,v 1.2 2010/07/23 01:54:20 cm
 	"GKz2uWnV65RAxa1Pw352BqizqiKOBjgYGzj8pJQSs8tOvv/2k6jpI809RnESqOFg" \
 	"F0gu3UJbNnu3+cd8k/kiQj+q4cKKRpAT92ccxc7svhCNgN1sBGmROYZuysG3Vu3D" \
 	"yc079gSLtnSrgXb+gQIDAQ"
+#define	REPORTRECORD	"ra=postmaster; rs=" SMTPTOKENENC
 
 #define	GIBBERISH	"abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 !@#$%^&*()_+|-={}[];':,./<>?`~\r\n"

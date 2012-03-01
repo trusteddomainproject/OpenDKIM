@@ -69,7 +69,7 @@ from nonexistent domains according to the author domain signing practises
 
 .TP
 .I AllowSHA1Only (Boolean)
-Permit verify mode when only SHA1 support is available.  RFC4871 requires
+Permit verify mode when only SHA1 support is available.  RFC6376 requires
 that verifiers implement both SHA1 and SHA256 support.  Setting this
 feature changes the absence of SHA256 support from an error to a warning.
 
@@ -89,31 +89,6 @@ listing an absent header field is to prevent its addition between the signer
 and the verifier, since the verifier would include that header field if it were
 added when performing verification, which would mean the signed message
 and the verified message were different and the verification would fail.
-
-.TP
-.I AnonymousDomains (dataset)
-When
-.I Statistics
-is enabled, this data set is checked against the From: field of an arriving
-message to determine whether or not its data should be anonymized as described
-in
-.I AnonymousStatistics
-below.  When the domain is found, the domain is exempted from that setting.
-That is, if
-.I AnonymousStatistics
-is enabled and the domain is found in this data set, it will not be anonymized;
-if that feature is not enabled and the domain is found, it will be anonymized.
-@STATS_MANNOTICE@
-
-.TP
-.I AnonymousStatistics (Boolean)
-When
-.I Statistics
-is enabled, setting this flag will pass the From: domain, signature domain
-and the client IP address portions of the reported data through a one-way
-hash algorithm to conceal those data while allowing some correlation to take
-place.  This is done for all messages.  The default is "true".
-@STATS_MANNOTICE@
 
 .TP
 .I AuthservID (string)
@@ -236,6 +211,15 @@ slash ("/") character, in which case the first will be applied to the
 header and the second to the body.
 
 .TP
+.I ChangeRootDirectory (string)
+Requests that the operating system change the effective root directory
+of the process to the one specified here prior to beginning execution.
+.BR chroot (2)
+requires superuser access. A warning will be generated if
+.I UserID
+is not also set.
+
+.TP
 .I ClockDrift (integer)
 Sets the tolerance in seconds to be applied when determining whether a
 signature was either expired or generated in the future.  The default
@@ -257,6 +241,38 @@ are not generated.
 .I DisableADSP (Boolean)
 If set, suppresses Author Domain Signing Practices (ADSP) checks, which
 require multiple additional DNS queries.
+
+.TP
+.I DKIMReputationFail (integer)
+If the reputation returned by the DNS reputation service exceeds this
+value then the result "x-dkim-rep" is set to "fail".
+Defaults to 0.
+@DKIM_REPUTATION_MANNOTICE@
+
+.TP
+.I DKIMReputationPass (integer)
+If the reputation returned by the DNS reputation service is less than this
+value then the result "x-dkim-rep" is set to "pass". 
+Defaults to 0. Values in between
+.I DKIMReputationFail
+and
+.I DKIMReputationPass
+result in "x-dkim-rep" being set to "neutral".
+@DKIM_REPUTATION_MANNOTICE@
+
+.TP
+.I DKIMReputationReject (integer)
+If the reputation returned by the DNS reputation service exceeds this value
+then the message is rejected.  The default value here is 1001, a deliberately
+impossible value so that rejections are not enabled by default.
+@DKIM_REPUTATION_MANNOTICE@
+
+.TP
+.I DKIMReputationRoot (string)
+This is the root directory of the DNS reputation service.  Its interface is 
+defined at http://www.dkim-reputation.org. The default value here is 
+"al.dkim-reputation.org".  A value of "none" disables the check.
+@DKIM_REPUTATION_MANNOTICE@
 
 .TP
 .I DNSConnect (Boolean)
@@ -649,7 +665,7 @@ those tags will be applied.
 Specifies a set of header fields that should be omitted when generating
 signatures.  If an entry in the list names any header field that is mandated
 by the DKIM specification, the entry is ignored.  A set of header fields is
-listed in the DKIM specification (RFC4871, Section 5.5) as "SHOULD NOT" be
+listed in the DKIM specification (RFC6376, Section 5.4) as "SHOULD NOT" be
 signed; the default list for this parameter contains those fields
 (Return-Path, Received, Comments, Keywords, Bcc, Resent-Bcc and
 DKIM-Signature).  To omit no headers, simply use the string "." (or any
@@ -849,44 +865,10 @@ and
 below). If multiple addresses are required, they should be comma separated.
 
 .TP
-.I ReportIntervalDB (dataset)
-Specifies a set of domains that correspond to how often, in seconds, to report 
-DKIM signature failues. See
-.I SendReports
-for more details.
-@REPORT_INTERVALS_MANNOTICE@
-
-.TP
-.I ReputationFail (integer)
-If the reputation returned by the DNS reputation service exceeds this
-value then the result "x-dkim-rep" is set to "fail".
-Defaults to 0.
-@DKIM_REPUTATION_MANNOTICE@
-
-.TP
-.I ReputationPass (integer)
-If the reputation returned by the DNS reputation service is less than this
-value then the result "x-dkim-rep" is set to "pass". 
-Defaults to 0. Values in between
-.I ReputationFail
-and
-.I ReputationPass
-result in "x-dkim-rep" being set to "neutral".
-@DKIM_REPUTATION_MANNOTICE@
-
-.TP
-.I ReputationReject (integer)
-If the reputation returned by the DNS reputation service exceeds this value
-then the message is rejected.  The default value here is 1001, a deliberately
-impossible value so that rejections are not enabled by default.
-@DKIM_REPUTATION_MANNOTICE@
-
-.TP
-.I ReputationRoot (string)
-This is the root directory of the DNS reputation service.  Its interface is 
-defined at http://www.dkim-reputation.org. The default value here is 
-"al.dkim-reputation.org".  A value of "none" disables the check.
-@DKIM_REPUTATION_MANNOTICE@
+.I RequestReports (boolean)
+When signing, includes a request for signature evaluation failures in the
+signature.  (See draft-ietf-marf-dkim-reporting for details.)
+@XTAGS_MANNOTICE@
 
 .TP
 .I RequiredHeaders (boolean)
@@ -1015,7 +997,7 @@ for details. @LUA_MANNOTICE@
 .TP
 .I SignatureAlgorithm (string)
 Selects the signing algorithm to use when generating signatures.
-Use 'dkim-filter -V' to see the list of supported algorithms.
+Use 'opendkim -V' to see the list of supported algorithms.
 The default is
 .I rsa-sha256
 if it is available, otherwise it will be
@@ -1031,7 +1013,7 @@ If not set, no expiration time is added to signatures.
 Specifies the set of header fields that should be included when generating
 signatures.  If the list omits any header field that is mandated by the DKIM
 specification, those fields are implicitly added.  By default, those fields
-listed in the DKIM specification as "SHOULD" be signed (RFC4871, Section 5.5)
+listed in the DKIM specification as "SHOULD" be signed (RFC6376, Section 5.4)
 will be signed by the filter.  See the
 .I OmitHeaders
 configuration option for more information about the format and interpretation
@@ -1076,15 +1058,6 @@ and finally
 In any case, only the first match is applied, unless
 .I MultipleSignatures
 is enabled in which case all matches are applied.
-
-.TP
-.I SingleAuthResult (Boolean)
-If set, this feature ensures only a single Authentication-Results header field
-will be added to a message.  In this case, the result of DKIM validation
-will be the only one present, unless it failed and DomainKeys succeeded, in
-which case only the DomainKeys result will be applied.  The default is
-to show both results in different header fields.
-@DOMAINKEYS_MANNOTICE@
 
 .TP
 .I Socket (string)
@@ -1185,6 +1158,11 @@ default location, currently
 .I /var/tmp.
 
 .TP
+.I TestDNSData (data set)
+Provides a data set whose keys will be treated as DNS record names and
+values as TXT record contents.  Intended for use during automated testing.
+
+.TP
 .I TestPublicKeys (string)
 Names a file from which public keys should be read.  Intended for use only
 during automated testing.
@@ -1271,6 +1249,14 @@ This default VBR type if not specified in the X-VBR-Type header field.
 @VBR_MANNOTICE@
 
 .TP
+.I WeakSyntaxChecks (Boolean)
+Requests that the library continue processing messages even if syntax errors
+are discovered early in message analysis.  This means, for example, that
+a signed message with a mangled From: field will still proceed to verification
+even if the author's domain could not be determined, which makes later
+ADSP checks impossible.
+
+.TP
 .I X-Header (Boolean)
 Causes
 .I opendkim
@@ -1311,11 +1297,9 @@ This man page covers version @VERSION@ of
 Copyright (c) 2007, 2008, Sendmail, Inc. and its suppliers.  All rights
 reserved.
 
-Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8), opendkim-lua(3), sendmail(8)
-.P
-RFC4871 - DomainKeys Identified Mail
 .P
 RFC5451 - Message Header Field for Indicating Message Authentication Status
 .P
@@ -1325,3 +1309,5 @@ RFC5965 - An Extensible Format for Email Feedback Reports
 .P
 RFC6008 - Authentication-Results Registration for Differentiating among
 Cryptographic Results
+.P
+RFC6376 - DomainKeys Identified Mail

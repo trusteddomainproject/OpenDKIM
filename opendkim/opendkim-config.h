@@ -2,7 +2,7 @@
 **  Copyright (c) 2006-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-config.h,v 1.32.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -36,12 +36,9 @@ struct configdef dkimf_config[] =
 	{ "AllowSHA1Only",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AlwaysAddARHeader",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AlwaysSignHeaders",		CONFIG_TYPE_STRING,	FALSE },
-#ifdef _FFR_STATS
-	{ "AnonymousDomains",		CONFIG_TYPE_STRING,	FALSE },
-	{ "AnonymousStatistics",	CONFIG_TYPE_BOOLEAN,	FALSE },
-#endif /* _FFR_STATS */
 #ifdef _FFR_ATPS
 	{ "ATPSDomains",		CONFIG_TYPE_STRING,	FALSE },
+	{ "ATPSHashAlgorithm",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_ATPS */
 	{ "AuthservID",			CONFIG_TYPE_STRING,	FALSE },
 	{ "AuthservIDWithJobID",	CONFIG_TYPE_BOOLEAN,	FALSE },
@@ -57,6 +54,7 @@ struct configdef dkimf_config[] =
 #endif /* USE_UNBOUND*/
 	{ "Canonicalization",		CONFIG_TYPE_STRING,	FALSE },
 	{ "CaptureUnknownErrors",	CONFIG_TYPE_BOOLEAN,	FALSE },
+	{ "ChangeRootDirectory",	CONFIG_TYPE_STRING,	FALSE },
 	{ "ClockDrift",			CONFIG_TYPE_INTEGER,	FALSE },
 #ifdef _FFR_DEFAULT_SENDER
 	{ "DefaultSender",		CONFIG_TYPE_STRING,	FALSE },
@@ -64,6 +62,12 @@ struct configdef dkimf_config[] =
 	{ "Diagnostics",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DiagnosticDirectory",	CONFIG_TYPE_STRING,	FALSE },
 	{ "DisableADSP",		CONFIG_TYPE_BOOLEAN,	FALSE },
+#ifdef _FFR_DKIM_REPUTATION
+	{ "DKIMReputationFail",		CONFIG_TYPE_INTEGER,	FALSE },
+	{ "DKIMReputationPass",		CONFIG_TYPE_INTEGER,	FALSE },
+	{ "DKIMReputationReject",	CONFIG_TYPE_INTEGER,	FALSE },
+	{ "DKIMReputationRoot",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_DKIM_REPUTATION */
 	{ "DNSConnect",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DNSTimeout",			CONFIG_TYPE_INTEGER,	FALSE },
 	{ "Domain",			CONFIG_TYPE_STRING,	FALSE },
@@ -79,6 +83,7 @@ struct configdef dkimf_config[] =
 #ifdef _FFR_IDENTITY_HEADER
 #ifdef _FFR_RATE_LIMIT
 	{ "FlowData",			CONFIG_TYPE_STRING,	FALSE },
+	{ "FlowDataFactor",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "FlowDataTTL",		CONFIG_TYPE_INTEGER,	FALSE },
 #endif /* _FFR_RATE_LIMIT */
 	{ "IdentityHeader",		CONFIG_TYPE_STRING,     FALSE },
@@ -128,8 +133,11 @@ struct configdef dkimf_config[] =
 	{ "On-DNSError",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-InternalError",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-KeyNotFound",		CONFIG_TYPE_STRING,	FALSE },
-	{ "On-PolicyError",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-NoSignature",		CONFIG_TYPE_STRING,	FALSE },
+	{ "On-PolicyError",		CONFIG_TYPE_STRING,	FALSE },
+#ifdef _FFR_REPUTATION
+	{ "On-ReputationError",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_REPUTATION */
 	{ "On-Security",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_OVERSIGN
 	{ "OverSignHeaders",		CONFIG_TYPE_STRING,	FALSE },
@@ -155,17 +163,23 @@ struct configdef dkimf_config[] =
 #ifdef _FFR_REPLACE_RULES
 	{ "ReplaceRules",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_REPLACE_RULES */
-#ifdef _FFR_REPORT_INTERVALS
-	{ "ReportIntervalDB",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_REPORT_INTERVALS */
 	{ "ReportAddress",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReportBccAddress",		CONFIG_TYPE_STRING,	FALSE },
-#ifdef _FFR_DKIM_REPUTATION
-	{ "ReputationFail",		CONFIG_TYPE_INTEGER,	FALSE },
-	{ "ReputationPass",		CONFIG_TYPE_INTEGER,	FALSE },
-	{ "ReputationReject",		CONFIG_TYPE_INTEGER,	FALSE },
-	{ "ReputationRoot",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_DKIM_REPUTATION */
+#ifdef _FFR_REPUTATION
+	{ "ReputationCache",		CONFIG_TYPE_STRING,	FALSE },
+	{ "ReputationCacheTTL",		CONFIG_TYPE_INTEGER,	FALSE },
+	{ "ReputationLimits",		CONFIG_TYPE_STRING,	FALSE },
+	{ "ReputationLowTime",		CONFIG_TYPE_STRING,	FALSE },
+	{ "ReputationMinimum",		CONFIG_TYPE_INTEGER,	FALSE },
+	{ "ReputationLimitModifiers",	CONFIG_TYPE_STRING,	FALSE },
+	{ "ReputationRatios",		CONFIG_TYPE_STRING,	FALSE },
+	{ "ReputationSpamCheck",	CONFIG_TYPE_STRING,	FALSE },
+	{ "ReputationTimeFactor",	CONFIG_TYPE_INTEGER,	FALSE },
+	{ "ReputationVerbose",		CONFIG_TYPE_BOOLEAN,	FALSE },
+#endif /* _FFR_REPUTATION */
+#ifdef _FFR_XTAGS
+	{ "RequestReports",		CONFIG_TYPE_BOOLEAN,	FALSE },
+#endif /* _FFR_XTAGS */
 	{ "RequiredHeaders",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "RequireSafeKeys",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_RESIGN
@@ -194,9 +208,6 @@ struct configdef dkimf_config[] =
 	{ "SignatureTTL",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "SignHeaders",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SigningTable",		CONFIG_TYPE_STRING,	FALSE },
-#ifdef VERIFY_DOMAINKEYS
-	{ "SingleAuthResult",		CONFIG_TYPE_BOOLEAN,	FALSE },
-#endif /* VERIFY_DOMAINKEYS */
 	{ "Socket",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_STATS
 	{ "Statistics",			CONFIG_TYPE_STRING,	FALSE },
@@ -215,6 +226,7 @@ struct configdef dkimf_config[] =
 	{ "SyslogFacility",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SyslogSuccess",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "TemporaryDirectory",		CONFIG_TYPE_STRING,	FALSE },
+	{ "TestDNSData",		CONFIG_TYPE_STRING,	FALSE },
 	{ "TestPublicKeys",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef USE_UNBOUND
 	{ "TrustAnchorFile",		CONFIG_TYPE_STRING,	FALSE },
@@ -232,6 +244,7 @@ struct configdef dkimf_config[] =
 	{ "VBR-TrustedCertifiersOnly",	CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "VBR-Type",			CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_VBR */
+	{ "WeakSyntaxChecks",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "X-Header",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ NULL,				(u_int) -1,		FALSE }
 };

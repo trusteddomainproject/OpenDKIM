@@ -36,7 +36,7 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test68 t-test69 t-test70 t-test71 t-test72 t-test73 t-test74 \
 	t-test75 t-test76 t-test77 t-test78 t-test79 t-test80 t-test81 \
 	t-test82 t-test83 t-test84 t-test85 t-test86 t-test87 t-test88 \
-	t-test89 t-test90 t-test91 t-test92 t-test93 t-test94 t-test95 \
+	t-test89 t-test90 t-test91 t-test92 t-test93 t-test94 \
 	t-test96 t-test97 t-test98 t-test99 t-test100 t-test101 t-test102 \
 	t-test103 t-test104 t-test105 t-test106 t-test107 t-test108 \
 	t-test109 t-test110 t-test111 t-test112 t-test114 \
@@ -45,6 +45,7 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test127 t-test128 t-test129 t-test130 t-test131 t-test132 \
 	t-test133 t-test134 t-test135 t-test136 t-test137 t-test138 \
 	t-test139 t-test140 t-test141 t-test142 t-test143 t-test144 \
+	t-test145 t-test146 t-test147 \
 	t-signperf t-verifyperf
 check_SCRIPTS = t-signperf-sha1 t-signperf-relaxed-relaxed \
 	t-signperf-simple-simple
@@ -155,7 +156,7 @@ t_test91_SOURCES = t-test91.c t-testdata.h
 t_test92_SOURCES = t-test92.c t-testdata.h
 t_test93_SOURCES = t-test93.c t-testdata.h
 t_test94_SOURCES = t-test94.c t-testdata.h
-t_test95_SOURCES = t-test95.c t-testdata.h
+#t_test95_SOURCES = t-test95.c t-testdata.h
 t_test96_SOURCES = t-test96.c t-testdata.h
 t_test97_SOURCES = t-test97.c t-testdata.h
 t_test98_SOURCES = t-test98.c t-testdata.h
@@ -208,6 +209,9 @@ t_test141_SOURCES = t-test141.c t-testdata.h
 t_test142_SOURCES = t-test142.c t-testdata.h
 t_test143_SOURCES = t-test143.c t-testdata.h
 t_test144_SOURCES = t-test144.c t-testdata.h
+t_test145_SOURCES = t-test145.c t-testdata.h
+t_test146_SOURCES = t-test146.c t-testdata.h
+t_test147_SOURCES = t-test147.c t-testdata.h
 
 MOSTLYCLEANFILES=
 

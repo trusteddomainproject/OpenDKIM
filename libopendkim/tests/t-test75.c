@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, 2012, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -42,13 +42,9 @@ static char t_test75_c_id[] = "@(#)$Id: t-test75.c,v 1.2 2009/12/08 19:14:27 cm-
 int
 main(int argc, char **argv)
 {
-#ifndef _FFR_PARSE_TIME
-	printf("*** Date: value extraction SKIPPED\n");
-#else /* _FFR_PARSE_TIME */
-
-# ifdef TEST_KEEP_FILES
+#ifdef TEST_KEEP_FILES
 	u_int flags;
-# endif /* TEST_KEEP_FILES */
+#endif /* TEST_KEEP_FILES */
 	DKIM_STAT status;
 	time_t date;
 	DKIM *dkim;
@@ -56,7 +52,15 @@ main(int argc, char **argv)
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
 
-	printf("*** Date: value extraction\n");
+	if (!dkim_libfeature(lib, DKIM_FEATURE_PARSE_TIME))
+	{
+		printf("*** Date: value extraction SKIPPED\n");
+		return 0;
+	}
+	else
+	{
+		printf("*** Date: value extraction\n");
+	}
 
 #ifdef USE_GNUTLS
 	(void) gnutls_global_init();
@@ -66,12 +70,12 @@ main(int argc, char **argv)
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
 
-# ifdef TEST_KEEP_FILES
+#ifdef TEST_KEEP_FILES
 	/* set flags */
 	flags = (DKIM_LIBFLAGS_TMPFILES|DKIM_LIBFLAGS_KEEPFILES);
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FLAGS, &flags,
 	                    sizeof flags);
-# endif /* TEST_KEEP_FILES */
+#endif /* TEST_KEEP_FILES */
 
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYMETHOD,
 	                    &qtype, sizeof qtype);
@@ -122,7 +126,6 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 
 	dkim_close(lib);
-#endif /* _FFR_PARSE_TIME */
 
 	return 0;
 }

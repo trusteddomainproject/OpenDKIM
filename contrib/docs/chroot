@@ -1,0 +1,100 @@
+OPENDKIM CHROOT NOTES
+=====================
+
+Contributed by Andreas Schulze
+
+Running opendkim chroot adds an additional layer of complexity. It is disabled
+by default.  Only advanced users only should try to enable that special
+configuration.  To successfull setup a chroot jail you must configure opendkim
+to run *without* that restriction first!
+
+enabling chroot jail
+====================
+chroot is enabled by adding "ChangeRootDirectory /path/to/chroot" to
+opendkim.conf.  Then you must restart opendkim.
+
+setting up syslog
+=================
+opendkim requieres a syslog socket inside the chroot.  You have to edit your
+syslog daemon configuration.
+
+  for rsyslog:
+  $AddUnixListenSocket /path/to/chroot/dev/log"
+
+  for syslog-ng:
+  unix-dgram("/path/to/chroot/dev/log");
+
+After restarting the syslog daemon you may want to check if the syslog socket
+is really present.
+
+  test -S /path/to/chroot/dev/log || echo "socket missing"
+
+setting up resolving
+====================
+The next point is only required if opendkim is compiled with the optional code
+option "USE_UNBOUND" and you activated "UnboundConfigFile" in opendkim.conf.
+Then you must place the unbound configuration file inside /path/to/chroot. If
+your unbound.conf includes other files such dnssec keys, these file must also
+be placed inside /path/to/chroot.
+
+  opendkim.conf:
+  UnboundConfigFile	/inside_chroot/unbound.conf
+
+setup entropie
+==============
+opendkim needs access to /dev/random or a similiar random generator.
+
+  for linux:
+  install -d /path/to/chroot/dev/
+  mknod --mode 666 /path/to/chroot/dev/random c 1 8
+
+simple signing setup
+====================
+
+  opendkim.conf:
+  Mode		s
+  Domain	example.org
+  Selector	default
+  KeyFile	/real/path/to/keyfile
+
+In this case no further action is required.
+
+more complex signing setup
+==========================
+
+  opendkim.conf:
+  Mode		s
+  SigningTable	refile:/real/path/to/signingtable
+  KeyTable	file:/real/path/to/keytable
+
+  /real/path/to/signingtable:
+  *@example.org	examplekey
+
+  /real/path/to/keytable:
+  examplekey	example.org:default:/inside_chroot/key.private
+
+You have to put your signing keys inside /path/to/chroot.
+
+Validation
+==========
+
+validation requires additional libraries to fetch keys from dns.
+To copy the right libraries into the chroot you may use scripts provided
+by postfix.
+
+download the postfix source tarball from a mirror listed at 
+www.postfix.org/download.html. The directory examples/chroot-setup contain
+scripts to setup a postfixchroot for many platforms.
+
+At least the script LINUX2 is perfect to setup a chroot for opendkim too:
+
+  POSTFIX_DIR=/path/to/dkim-chroot
+  export POSTFIX_DIR
+  sh -x /path/to/postfix-source/examples/chroot-setup/LINUX2
+
+Users of other platforms are invided to share their solution on the
+opendkim-users mailing-list.
+
+==
+
+$Id: $

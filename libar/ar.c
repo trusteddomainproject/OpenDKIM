@@ -2,7 +2,7 @@
 **  Copyright (c) 2004-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -77,7 +77,7 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.12 2010/10/04 21:20:47 cm-msk Exp $";
 #endif /* __RES && __RES >= 19940415 */
 
 /* ar includes */
-#include "ar.h"
+#include "async-resolv.h"
 #include "ar-socket.h"
 #include "ar-strl.h"
 #include "manual.h"

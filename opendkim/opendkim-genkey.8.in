@@ -59,13 +59,6 @@ Defines the number that specifies the interval in which no more that one
 report should be sent. By default interval equates to 0 requesting all reports.
 
 .TP
-.I -g granularity
-Defines the key
-.I granularity,
-i.e. the user(s) who may use the key.  The default is "*" meaning any
-user can use the key.
-
-.TP
 .I -h algorithms
 Specifies a list of hash
 .I algorithms
@@ -115,4 +108,4 @@ Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 .I opendkim(8),
 .I openssl(8)
 .P
-RFC4871 - DomainKeys Identified Mail
+RFC6376 - DomainKeys Identified Mail

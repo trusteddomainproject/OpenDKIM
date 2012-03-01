@@ -51,12 +51,15 @@ Don't skip duplicate message records and their associated signatures.
 .TP
 .I -s scheme
 Specifies the SQL scheme (backend) to be used to access the SQL database
-database.  The default is "mysql".
+database.  The default is "@SQL_BACKEND@".
 .TP
 .I -u user
 Specifies the user that should be used to authenticate to the SQL
 database.  The default is
 .I opendkim.
+.TP
+.I -v
+Increase verbosity of the output.
 .TP
 .I -x
 Apply schema extension records.
@@ -71,4 +74,4 @@ Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 .I opendkim(8),
 .I opendkim.conf(5)
 .P
-RFC4871 - DomainKeys Identified Mail
+RFC6376 - DomainKeys Identified Mail

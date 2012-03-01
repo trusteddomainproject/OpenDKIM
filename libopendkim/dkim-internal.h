@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2012, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef _DKIM_INTERNAL_H_
@@ -119,9 +119,7 @@ typedef int dkim_set_t;
 #define	DKIM_SETTYPE_SIGNATURE	0
 #define	DKIM_SETTYPE_POLICY	1
 #define	DKIM_SETTYPE_KEY	2
-#ifdef _FFR_VBR
-# define DKIM_SETTYPE_VBRINFO	3
-#endif /* _FFR_VBR */
+#define DKIM_SETTYPE_SIGREPORT	3
 
 /*
 **  DKIM_HASHTYPE -- types of hashes
@@ -175,7 +173,7 @@ typedef struct dkim_canon DKIM_CANON;
 
 /* prototypes */
 extern DKIM_STAT dkim_process_set __P((DKIM *, dkim_set_t, u_char *, size_t,
-                                       void *, _Bool));
+                                       void *, _Bool, const char *));
 extern DKIM_STAT dkim_siglist_setup __P((DKIM *));
 
 #endif /* ! _DKIM_INTERNAL_H_ */

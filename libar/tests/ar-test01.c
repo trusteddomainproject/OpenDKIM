@@ -18,7 +18,7 @@ static char ar_test01_c_id[] = "@(#)$Id: ar-test01.c,v 1.2 2010/08/30 22:01:56 c
 #include <string.h>
 
 /* libar includes */
-#include "../ar.h"
+#include "../async-resolv.h"
 
 /* local definitions needed for DNS queries */
 #define MAXPACKET		8192

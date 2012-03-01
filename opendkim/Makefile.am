@@ -6,15 +6,13 @@ if DEBUG
 AM_CFLAGS = -g
 endif
 
-bin_PROGRAMS = opendkim-testkey opendkim-testadsp opendkim-genzone
+bin_PROGRAMS = opendkim-genzone opendkim-testadsp opendkim-testkey \
+	opendkim-testmsg
 if ATPS
 bin_PROGRAMS += opendkim-atpszone
 endif
 if STATS
-bin_PROGRAMS += opendkim-stats
-if USE_ODBX
-bin_PROGRAMS += opendkim-spam
-endif
+bin_PROGRAMS += opendkim-spam opendkim-stats
 endif
 
 dist_bin_SCRIPTS = opendkim-genkey
@@ -23,7 +21,7 @@ dist_doc_DATA = opendkim.conf.sample opendkim.conf.simple \
 
 if BUILD_FILTER
 sbin_PROGRAMS = opendkim
-opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-dns.c opendkim-dns.h opendkim-lua.c opendkim-lua.h config.c config.h flowrate.c flowrate.h stats.c stats.h test.c test.h util.c util.h
+opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-dns.c opendkim-dns.h opendkim-lua.c opendkim-lua.h config.c config.h flowrate.c flowrate.h reputation.c reputation.h stats.c stats.h test.c test.h util.c util.h
 opendkim_CC = $(PTHREAD_CC)
 opendkim_CFLAGS = $(PTHREAD_CFLAGS) $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
@@ -78,10 +76,9 @@ if DKIM_REPUTATION
 opendkim_CPPFLAGS += -I$(srcdir)/../libdkimrep
 opendkim_LDADD += ../libdkimrep/libdkimrep.la
 endif
-if VERIFY_DOMAINKEYS
-opendkim_CPPFLAGS += $(LIBDK_INCDIRS)
-opendkim_LDFLAGS += $(LIBDK_LIBDIRS)
-opendkim_LDADD += $(LIBDK_LIBS)
+if REPUTE
+opendkim_CFLAGS += -I$(srcdir)/../reputation
+opendkim_LDADD += ../reputation/librepute.la
 endif
 
 opendkim_CPPFLAGS += $(LIBMILTER_INCDIRS)
@@ -145,6 +142,10 @@ if RBL
 opendkim_testkey_CPPFLAGS += -I$(srcdir)/../librbl
 opendkim_testkey_LDADD += ../librbl/librbl.la
 endif
+if REPUTE
+opendkim_testkey_CPPFLAGS += -I$(srcdir)/../reputation
+opendkim_testkey_LDADD += ../reputation/librepute.la
+endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
 opendkim_testadsp_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
@@ -155,6 +156,17 @@ if USE_ARLIB
 opendkim_testadsp_CC = $(PTHREAD_CC)
 opendkim_testadsp_CFLAGS += $(PTHREAD_CFLAGS)
 opendkim_testadsp_LDADD += $(PTHREAD_LIBS)
+endif
+
+opendkim_testmsg_SOURCES = opendkim-testmsg.c
+opendkim_testmsg_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
+opendkim_testmsg_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
+opendkim_testmsg_LDFLAGS = $(COV_LDFLAGS)
+opendkim_testmsg_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(LIBRESOLV) $(COV_LIBADD)
+if USE_ARLIB
+opendkim_testmsg_CC = $(PTHREAD_CC)
+opendkim_testmsg_CFLAGS += $(PTHREAD_CFLAGS)
+opendkim_testmsg_LDADD += $(PTHREAD_LIBS)
 endif
 
 opendkim_genzone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-genzone.c opendkim-lua.c util.c util.h
@@ -188,6 +200,10 @@ if LUA
 opendkim_genzone_CPPFLAGS += $(LIBLUA_INCDIRS) $(LIBMILTER_INCDIRS)
 opendkim_genzone_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_genzone_LDADD += $(LIBLUA_LIBS)
+endif
+if REPUTE
+opendkim_genzone_CPPFLAGS += -I$(srcdir)/../reputation
+opendkim_genzone_LDADD += ../reputation/librepute.la
 endif
 
 if ATPS
@@ -223,16 +239,18 @@ opendkim_atpszone_CPPFLAGS += $(LIBLUA_INCDIRS) $(LIBMILTER_INCDIRS)
 opendkim_atpszone_LDFLAGS += $(LIBLUA_LIBDIRS)
 opendkim_atpszone_LDADD += $(LIBLUA_LIBS)
 endif
+if REPUTE
+opendkim_atpszone_CPPFLAGS += -I$(srcdir)/../reputation
+opendkim_atpszone_LDADD += ../reputation/librepute.la
+endif
 endif
 
 if STATS
-if USE_ODBX
 opendkim_spam_SOURCES = config.c config.h opendkim-spam.c
 opendkim_spam_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBODBX_CPPFLAGS)
 opendkim_spam_CFLAGS = $(COV_CFLAGS) $(LIBODBX_CFLAGS)
 opendkim_spam_LDFLAGS = $(COV_LDFLAGS) 
 opendkim_spam_LDADD = ../libopendkim/libopendkim.la $(COV_LIBADD) $(LIBODBX_LIBS)
-endif
 endif
 
 if LUA
@@ -243,7 +261,7 @@ dist_doc_DATA += \
 endif
 
 man_MANS = opendkim-genkey.8 opendkim-genzone.8 opendkim-testadsp.8 \
-	opendkim-testkey.8
+	opendkim-testkey.8 opendkim-testmsg.8
 if BUILD_FILTER
 man_MANS += opendkim.conf.5 opendkim.8
 if LUA

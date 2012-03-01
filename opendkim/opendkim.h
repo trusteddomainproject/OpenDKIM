@@ -52,7 +52,6 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.34.10.1 2010/10/27 21:43:
 #define	BUFRSZ		1024
 #define	CACHESTATSINT	300
 #define	CBINTERVAL	3
-#define CMDLINEOPTS	"Ab:c:d:De:fF:k:lL:no:p:P:qQrs:S:t:T:u:vVWx:?"
 #define	DEFCONFFILE	CONFIG_BASE "/opendkim.conf"
 #define	DEFFLOWDATATTL	86400
 #define	DEFINTERNAL	"csl:127.0.0.1"
@@ -221,6 +220,9 @@ extern int dkimf_xs_setresult __P((lua_State *));
 extern int dkimf_xs_sigbhresult __P((lua_State *));
 extern int dkimf_xs_sigignore __P((lua_State *));
 extern int dkimf_xs_sigresult __P((lua_State *));
+#  ifdef _FFR_REPUTATION
+extern int dkimf_xs_spam __P((lua_State *));
+#  endif /* _FFR_REPUTATION */
 #  ifdef _FFR_STATSEXT
 extern int dkimf_xs_statsext __P((lua_State *));
 #  endif /* _FFR_STATSEXT */

@@ -1,0 +1,16 @@
+This directory contains miscellaneous contributed patches that may be
+of use to sites installing OpenDKIM.  They are maintained by their respective
+authors.
+
+Please submit bug reports and feature requests to
+opendkim-users@lists.opendkim.org or via the trackers on SourceForge.
+
+The patches are:
+
+opendkim-spam-ignore-cmdswitch.patch	Andreas Schulze
+
+	Adds an ignored "-N" switch to opendkim-spam to allow compatibility
+	with some versions of amavisd-new.
+
+--
+Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.

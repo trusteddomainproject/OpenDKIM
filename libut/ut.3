@@ -1,0 +1,82 @@
+.TH libut 3
+.SH NAME
+.B ut_init(), ut_destroy(), ut_keyvalue(), ut_generate()
+-- URI template facility
+.SH SYNOPSIS
+#include
+.I <ut.h>
+
+URITEMP *
+.B ut_init
+(void);
+
+void
+.B ut_destroy
+(URITEMP *ut);
+
+int
+.B ut_keyvalue
+(URITEMP *ut,
+int type,
+const char *name,
+void *value);
+
+size_t
+.B ut_generate
+(URITEMP *ut,
+const char *template,
+char *buf,
+size_t buflen);
+
+.SH DESCRIPTION
+These functions provide a mechanism to generate Universal Resource
+Identifiers (URIs) based on a provided template.
+
+An application first initializes a template using
+.B ut_init(),
+which returns a handle.  Then, via multiple calls to
+.B ut_keyvalue(),
+values are assigned to symbolic names which are then registered with the
+handle.  A name may reference a string, a list of strings, or a set
+of key-value pairs.  After registration is complete,
+.B ut_generate()
+is used to generate a URI based on a provided template.  When the handle
+is no longer needed,
+.B ut_destroy()
+is used to deallocate resources associated with the handle.
+
+The
+.I type
+parameter to
+.B ut_keyvalue()
+must be one of UT_KEYTYPE_STRING, UT_KEYTYPE_LIST or UT_KEYTYPE_KEYVALUE.
+If it is UT_KEYTYPE_LIST, the
+.I value
+parameter should be a NULL-terminated array of terminated strings that
+comprise the list; if it us UT_KEYTYPE_KEYVALUE, the
+.I value
+parameter should be a NULL-terminated array of terminated strings where
+the even-numbered entries are keys and odd-numbered entries are their
+corresponding values.  It returns 0 on success or non-zero on error.
+If the
+.I name
+was already in use, its value(s) are replaced.
+
+The
+.I template
+parameter to
+.B ut_generate()
+is expected to conform to the URI templates draft (see below).  The
+.I buf
+parameter points to a buffer where the result will be written, up to
+.I buflen
+bytes.  The buffer will always remain properly terminated.  The function
+returns the number of bytes that would be needed to expand the template
+completely, or a negative number on error.  Thus, if the return value
+exceeds
+.I buflen,
+the string produced was truncated.
+.SH COPYRIGHT
+Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+draft-gregorio-uritemplate

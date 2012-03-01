@@ -15,11 +15,15 @@ develop		ongoing development
 Experimental Branches (branch name contains owner)
 ~~~~~~~~~~~~~~~~~~~~~
 
-br-msk-db-handle-pools
-		Handle pools for odbx handles (bug #SF3067338)
-
 exp-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
+
+exp-msk-reputation
+		DKIM-based domain reputation R&D
+
+feature-msk-sf3397903
+		Update to stats to drop things needed for interoperability
+		reporting but not for ongoing R&D
 
 
 Closed Branches

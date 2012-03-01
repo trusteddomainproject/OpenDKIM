@@ -1,0 +1,227 @@
+#!/usr/bin/perl
+#
+# Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
+#
+# $Id: opendkim-genstats,v 1.26 2010/10/27 06:18:45 cm-msk Exp $
+#
+# Script to update current daily message and spam counts for each domain.
+# EXPERIMENTAL.
+
+###
+### Setup
+###
+
+use strict;
+use warnings;
+
+use DBI;
+use File::Basename;
+use Getopt::Long;
+use IO::Handle;
+use POSIX;
+
+require DBD::@SQL_BACKEND@;
+
+# general
+my $progname      = basename($0);
+my $version       = "\@VERSION@";
+my $verbose       = 0;
+my $helponly      = 0;
+my $showversion   = 0;
+
+my $out;
+my $idx;
+
+my $dbi_h;
+my $dbi_counts;
+my $dbi_update;
+my $dbi_a;
+
+# DB parameters
+my $def_dbhost    = "localhost";
+my $def_dbname    = "opendkim";
+my $def_dbuser    = "opendkim";
+my $def_dbpasswd  = "opendkim";
+my $def_dbport    = "3306";
+my $dbhost;
+my $dbname;
+my $dbuser;
+my $dbpasswd;
+my $dbport;
+
+my $dbscheme     = "@SQL_BACKEND@";
+
+###
+### NO user-serviceable parts beyond this point
+###
+
+sub usage
+{
+	print STDERR "$progname: usage: $progname [options]\n";
+	print STDERR "\t--dbhost=host      database host [$def_dbhost]\n";
+	print STDERR "\t--dbname=name      database name [$def_dbname]\n";
+	print STDERR "\t--dbpasswd=passwd  database password [$def_dbpasswd]\n";
+	print STDERR "\t--dbport=port      database port [$def_dbport]\n";
+	print STDERR "\t--dbuser=user      database user [$def_dbuser]\n";
+	print STDERR "\t--help             print help and exit\n";
+	print STDERR "\t--verbose          verbose output\n";
+	print STDERR "\t--version          print version and exit\n";
+}
+
+# parse command line arguments
+my $opt_retval = &Getopt::Long::GetOptions ('dbhost=s' => \$dbhost,
+                                            'dbname=s' => \$dbname,
+                                            'dbpasswd=s' => \$dbpasswd,
+                                            'dbport=s' => \$dbport,
+                                            'dbuser=s' => \$dbuser,
+                                            'help!' => \$helponly,
+                                            'verbose!' => \$verbose,
+                                            'version!' => \$showversion,
+                                           );
+
+if (!$opt_retval || $helponly)
+{
+	usage();
+
+	if ($helponly)
+	{
+		exit(0);
+	}
+	else
+	{
+		exit(1);
+	}
+}
+
+if ($showversion)
+{
+	print STDOUT "$progname v$version\n";
+	exit(0);
+}
+
+# apply defaults
+if (!defined($dbhost))
+{
+	if (defined($ENV{'OPENDKIM_DBHOST'}))
+	{
+		$dbhost = $ENV{'OPENDKIM_DBHOST'};
+	}
+	else
+	{
+		$dbhost = $def_dbhost;
+	}
+}
+
+if (!defined($dbname))
+{
+	if (defined($ENV{'OPENDKIM_DB'}))
+	{
+		$dbname = $ENV{'OPENDKIM_DB'};
+	}
+	else
+	{
+		$dbname = $def_dbname;
+	}
+}
+
+if (!defined($dbpasswd))
+{
+	if (defined($ENV{'OPENDKIM_PASSWORD'}))
+	{
+		$dbpasswd = $ENV{'OPENDKIM_PASSWORD'};
+	}
+	else
+	{
+		$dbpasswd = $def_dbpasswd;
+	}
+}
+
+if (!defined($dbport))
+{
+	if (defined($ENV{'OPENDKIM_PORT'}))
+	{
+		$dbport = $ENV{'OPENDKIM_PORT'};
+	}
+	else
+	{
+		$dbport = $def_dbport;
+	}
+}
+
+if (!defined($dbuser))
+{
+	if (defined($ENV{'OPENDKIM_USER'}))
+	{
+		$dbuser = $ENV{'OPENDKIM_USER'};
+	}
+	else
+	{
+		$dbuser = $def_dbuser;
+	}
+}
+
+my $dbi_dsn = "DBI:" . $dbscheme . ":database=" . $dbname .
+              ";host=" . $dbhost . ";port=" . $dbport;
+
+$dbi_h = DBI->connect($dbi_dsn, $dbuser, $dbpasswd, { PrintError => 0 });
+if (!defined($dbi_h))
+{
+	print STDERR "$progname: unable to connect to database: $DBI::errstr\n";
+	exit(1);
+}
+
+if ($verbose)
+{
+	print STDERR "$progname: connected to database\n";
+}
+
+#
+# Compute/update message counts and spam ratios for all signing domains
+#
+if ($verbose)
+{
+	print STDERR "$progname: updating counts and ratios for signers\n";
+}
+
+$dbi_counts = $dbi_h->prepare("SELECT signatures.domain, COUNT(messages.id), SUM(spam) FROM signatures JOIN messages ON signatures.message = messages.id WHERE NOT spam = -1 AND DATE(msgtime) = DATE(NOW()) GROUP BY signatures.domain");
+$dbi_update = $dbi_h->prepare("UPDATE predictions SET today_mail = ?, today_spam = ? WHERE domain = ?");
+
+if (!$dbi_counts->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_counts->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+
+while ($dbi_a = $dbi_counts->fetchrow_arrayref())
+{
+	my $domain = $dbi_a->[0];
+	my $count = $dbi_a->[1];
+	my $ratio = $dbi_a->[2] / $dbi_a->[1];
+
+	if ($verbose)
+	{
+		print STDERR "$progname: domain $domain count $count ratio $ratio\n";
+	}
+
+	if (!$dbi_update->execute("$count", "$ratio", "$domain"))
+	{
+		print STDERR "$progname: UPDATE failed: " . $dbi_h->errstr;
+		$dbi_counts->finish;
+		$dbi_h->disconnect;
+		exit(1);
+	}
+}
+
+# all done!
+if ($verbose)
+{
+	print STDERR "$progname: terminating\n";
+}
+
+$dbi_counts->finish;
+$dbi_update->finish;
+$dbi_h->disconnect;
+
+exit(0);

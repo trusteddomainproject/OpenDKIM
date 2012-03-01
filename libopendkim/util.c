@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -69,63 +69,6 @@ dkim_collapse(u_char *str)
 	*r = '\0';
 }
 
-#if 0
-/*
-**  DKIM_ADDRCMP -- like strcmp(), except for e-mail addresses (i.e. local-part
-**                  is case-sensitive, while the domain part is not)
-**
-**  Parameters:
-**  	s1, s2 -- the strings
-**
-**  Return value:
-**  	Like strcmp().  However, if "s2" contains only a domain name,
-**  	don't bother comparing the local-parts.
-*/
-
-int
-dkim_addrcmp(u_char *s1, u_char *s2)
-{
-	int ret;
-	u_char *at1, *at2;
-
-	assert(s1 != NULL);
-	assert(s2 != NULL);
-
-	at1 = (u_char *) strchr(s1, '@');
-	at2 = (u_char *) strchr(s2, '@');
-
-	/* if one or both contain no "@"s, just be strcmp() */
-	if (at1 == NULL || at2 == NULL)
-		return strcmp(s1, s2);
-
-	/* first check the local-parts */
-	*at1 = '\0';
-	*at2 = '\0';
-
-	/* if "s2" contains only a domain name, skip the local-part check */
-	if (at2 != s2)
-	{
-		/* compare the local-parts, case-sensitive */
-		ret = strcmp(s1, s2);
-		if (ret != 0)
-		{
-			*at1 = '@';
-			*at2 = '@';
-
-			return ret;
-		}
-	}
-
-	/* now compare the domains, case-insensitive */
-	ret = strcasecmp(at1 + 1, at2 + 1);
-
-	*at1 = '@';
-	*at2 = '@';
-
-	return ret;
-}
-#endif /* 0 */
-
 /*
 **  DKIM_HDRLIST -- build up a header list for use in a regexp
 **
@@ -142,6 +85,7 @@ dkim_addrcmp(u_char *s1, u_char *s2)
 _Bool
 dkim_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 {
+	_Bool escape = FALSE;
 	int c;
 	int len;
 	u_char *p;
@@ -177,6 +121,13 @@ dkim_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 			if (q >= end)
 				return FALSE;
 
+			if (escape)
+			{
+				*q = *p;
+				q++;
+				escape = FALSE;
+			}
+
 			switch (*p)
 			{
 			  case '*':
@@ -195,6 +146,10 @@ dkim_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 					return FALSE;
 				*q = '.';
 				q++;
+				break;
+
+			  case '\\':
+				escape = TRUE;
 				break;
 
 			  default:
@@ -846,4 +801,69 @@ dkim_min_timeval(struct timeval *t1, struct timeval *t2, struct timeval *t,
 
 	if (which != NULL)
 		*which = next;
+}
+
+/*
+**  DKIM_COPY_ARRAY -- copy an array of char pointers
+**
+**  Parameters:
+**  	
+**  	in -- input array, must be NULL-terminated
+**
+**  Return value:
+**  	A copy of "in" and its elements, or NULL on failure.
+*/
+
+const char **
+dkim_copy_array(char **in)
+{
+	unsigned int c;
+	unsigned int n;
+	char **out;
+
+	assert(in != NULL);
+
+	for (n = 0; in[n] != NULL; n++)
+		continue;
+
+	out = malloc(sizeof(char *) * (n + 1));
+
+	for (c = 0; c < n; c++)
+	{
+		out[c] = strdup(in[c]);
+		if (out[c] == NULL)
+		{
+			for (n = 0; n < c; n++)
+				free(out[n]);
+			free(out);
+			return NULL;
+		}
+	}
+
+	out[c] = NULL;
+
+	return (const char **) out;
+}
+
+/*
+**  DKIM_CLOBBER_ARRAY -- clobber a cloned array of char pointers
+**
+**  Parameters:
+**  	in -- input array, must be NULL-terminated
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkim_clobber_array(char **in)
+{
+	unsigned int n;
+
+	assert(in != NULL);
+
+	for (n = 0; in[n] != NULL; n++)
+		free(in[n]);
+
+	free(in);
 }

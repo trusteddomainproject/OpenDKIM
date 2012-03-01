@@ -5,6 +5,80 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.5.0		2012/02/29
+	#####################################################################
+	###                                                               ###
+	###  This release is dedicated to the memory of J.D. Falk, a      ###
+	###  tireless champion of anti-abuse technology and collaboration ###
+	###  and a founding member of the Board of the Trusted Domain     ###
+	###  Project, a participant in related IETF work, and a long-time ###
+	###  particpant and supporter of MAAWG.  J.D. was taken by cancer ###
+	###  on November 16, 2011.  His enthusiasm and perspective for    ###
+	###  all of this work will be sorely missed.                      ###
+	###                                                               ###
+	#####################################################################
+	Feature request #SF3385816: Discontinue DomainKeys support.
+	Feature request #SF3393282: Update ARF output per
+		draft-ietf-marf-authfailure-report-03 et seq.
+	Feature request #SF3406814: Add ability to invoke chroot().
+		Requested by Andreas Schulze.
+	Feature request #SF3477908: Update DKIM reporting per
+		draft-ietf-marf-dkim-reporting-10.
+	Add "WeakSyntaxChecks" suppressing some short-circuiting error checks
+		on syntax.  Requested by Todd Nagengast. 
+	Allow a set of test files to be passed via "-t" rather than just one.
+	Add _FFR_REPUTATION, and several new support libraries (in the
+		libut/ and reputation/ directories) for doing DKIM-based
+		reputation evaluations of arriving messages.  Full
+		documentation of the algorithms will appear in an upcoming
+		white paper.  This also includes several new configuration
+		options that make use of reputation data pulled from servers:
+			ReputationCache
+			ReputationCacheTTL
+			ReputationLimits
+			ReputationLowTime
+			ReputationMinimum
+			ReputationLimitModifiers
+			ReputationRatios
+			ReputationSpamCheck
+			ReputationTimeFactor
+		For now these are briefly documented in reputation/README.
+		As this subsystem matures, they will be fully documented in
+		opendkim.conf(5).
+	Fix bug #SF3471520: Don't crash when the first line of a configuration
+		file is an "Include" instruction.  Reported by Dilian
+		Wesselinov Palauzov.
+	Fix bug #SF3475149: Apply RFC2254 encoding to LDAP queries.
+		Problem noted by Yoshiaki Yanagihara.
+	LIBOPENDKIM: Feature request #SF3317160: Per RFC6376, remove
+		granularity checks.
+	LIBOPENDKIM: Feature request #SF3385768: Add dkim_privkey_load(),
+		allowing validation of a private key before reaching
+		end-of-message.  Requested by Heikki Gruner.
+	LIBOPENDKIM: Feature request #SF3423226: Copy header field name lists
+		instead of using the caller's copy.  Suggested by
+		Heikki Gruner.
+	LIBOPENDKIM: Update list of header fields that should be signed
+		per RFC6376.
+	LIBOPENDKIM: Don't report the absence of "c=" as an error, since
+		there is a default.
+	LIBOPENDKIM: Add DKIM_SIG_CHECK() macro.  Suggested by Heikki
+		Gruner.
+	LIBAR: Fix bug #SF2917856: Rename "ar.h" to "async-resolv.h" since
+		"ar.h" is already in common use.
+	STATS: Feature request #SF3397903: Drop all support for data needed
+		for the DKIM Implementation Report, as it has been completed.
+		Leave stuff that's useful for reputation R&D.
+	STATS: Feature request #SF3402857: Modify opendkim-spam to be able
+		to write update records to statistics files.
+	STATS: Feature request #SF3439384: Make opendkim-importstats more
+		backend-agnostic.  Requested by Andreas Schulze.
+	TOOLS: Add opendkim-testmsg, for signing/verifying messages without
+		all the milter code being invoked.  Requested by
+		Todd Nagengast.
+	CONTRIB: Add LDAP documentation and examples.  Provided by
+		Patrick Ben Koetter.
+
 2.4.3		2011/12/26
 	Fix bug #SF3400670: Send ADSP failure reports when rejecting
 		a message.  Reported by Andreas Schulze.

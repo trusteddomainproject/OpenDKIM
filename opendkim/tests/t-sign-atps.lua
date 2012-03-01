@@ -1,6 +1,6 @@
 -- $Id: t-sign-rs.lua,v 1.18 2010/09/24 21:40:31 cm-msk Exp $
 
--- Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 
 -- relaxed/simple signing test with ATPS
 -- 
@@ -45,7 +45,7 @@ end
 
 -- send headers
 -- mt.rcptto() is called implicitly
-if mt.header(conn, "From", "user@example.com") ~= nil then
+if mt.header(conn, "From", "user@example.net") ~= nil then
 	error("mt.header(From) failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
@@ -102,7 +102,7 @@ end
 if string.find(sig, "v=1", 1, true) == nil then
 	error("signature has wrong v= value")
 end
-if string.find(sig, "d=example.net", 1, true) == nil then
+if string.find(sig, "d=example.com", 1, true) == nil then
 	error("signature has wrong d= value")
 end
 if string.find(sig, "s=test", 1, true) == nil then
@@ -114,7 +114,7 @@ end
 if string.find(sig, "h=From:Date:Subject", 1, true) == nil then
 	error("signature has wrong h= value")
 end
-if string.find(sig, "atps=example.com", 1, true) == nil then
+if string.find(sig, "atps=example.net", 1, true) == nil then
 	error("signature has wrong or missing atps= value")
 end
 

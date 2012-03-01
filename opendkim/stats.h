@@ -25,62 +25,35 @@ static char stats_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-m
 /* opendkim includes */
 #include "opendkim.h"
 
+#define DKIMS_VERSION		3
+
 /* column numbers */
 #define	DKIMS_MI_JOBID		0
 #define	DKIMS_MI_REPORTER	1
 #define	DKIMS_MI_FROMDOMAIN	2
 #define	DKIMS_MI_IPADDR		3
-#define	DKIMS_MI_ANONYMIZED	4
-#define	DKIMS_MI_MSGTIME	5
-#define	DKIMS_MI_MSGLEN		6
-#define	DKIMS_MI_SIGCOUNT	7
-#define DKIMS_MI_ADSP_FOUND	8
-#define DKIMS_MI_ADSP_UNKNOWN	9
-#define DKIMS_MI_ADSP_ALL	10
-#define DKIMS_MI_ADSP_DISCARD	11
-#define DKIMS_MI_ADSP_FAIL	12
-#define DKIMS_MI_MAILINGLIST	13
-#define DKIMS_MI_RECEIVEDCNT	14
-#define DKIMS_MI_CONTENTTYPE	15
-#define DKIMS_MI_CONTENTENCODING 16
-#define DKIMS_MI_ATPS		17
-#define DKIMS_MI_MAX		17
+#define	DKIMS_MI_MSGTIME	4
+#define	DKIMS_MI_MSGLEN		5
+#define	DKIMS_MI_SIGCOUNT	6
+#define DKIMS_MI_ATPS		7
+#define DKIMS_MI_SPAM		8
+#define DKIMS_MI_MAX		8
 
 #define	DKIMS_SI_DOMAIN		0
-#define	DKIMS_SI_ALGORITHM	1
-#define	DKIMS_SI_HEADER_CANON	2
-#define	DKIMS_SI_BODY_CANON	3
-#define	DKIMS_SI_IGNORE		4
-#define	DKIMS_SI_PASS		5
-#define	DKIMS_SI_FAIL_BODY	6
-#define	DKIMS_SI_SIGLENGTH	7
-#define	DKIMS_SI_KEY_T		8
-#define	DKIMS_SI_KEY_G		9
-#define	DKIMS_SI_KEY_G_NAME	10
-#define	DKIMS_SI_KEY_DK_COMPAT	11
-#define	DKIMS_SI_SIGERROR	12
-#define	DKIMS_SI_SIG_T		13
-#define	DKIMS_SI_SIG_X		14
-#define	DKIMS_SI_SIG_Z		15
-#define	DKIMS_SI_DNSSEC		16
-#define	DKIMS_SI_SIGNED_FIELDS	17
-#define	DKIMS_SI_CHANGED_FIELDS	18
-#define	DKIMS_SI_SIG_I		19
-#define	DKIMS_SI_SIG_I_USER	20
-#define	DKIMS_SI_KEY_S		21
-#define	DKIMS_SI_KEYSIZE	22
-#define DKIMS_SI_MAX		22
+#define	DKIMS_SI_PASS		1
+#define	DKIMS_SI_FAIL_BODY	2
+#define	DKIMS_SI_SIGLENGTH	3
+#define	DKIMS_SI_SIGERROR	4
+#define	DKIMS_SI_DNSSEC		5
+#define DKIMS_SI_MAX		5
 
 /* PROTOTYPES */
 extern void dkimf_stats_init __P((void));
 extern int dkimf_stats_record __P((char *, u_char *, char *, char *, Header,
-                                   DKIM *, dkim_policy_t, _Bool, _Bool, u_int,
+                                   DKIM *,
 #ifdef _FFR_STATSEXT
                                    struct statsext *,
 #endif /* _FFR_STATSEXT */
-#ifdef _FFR_ATPS
-                                   int,
-#endif /* _FFR_ATPS */
-                                   struct sockaddr *));
+                                   int, int, struct sockaddr *));
 
 #endif /* _STATS_H_ */

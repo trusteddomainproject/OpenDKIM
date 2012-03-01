@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-genzone.c,v 1.12.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -47,6 +47,9 @@ static char opendkim_atpszone_c_id[] = "$Id: opendkim-genzone.c,v 1.12.10.1 2010
 #ifndef SHA_DIGEST_LENGTH
 # define SHA_DIGEST_LENGTH 20
 #endif /* ! SHA_DIGEST_LENGTH */
+#ifndef SHA256_DIGEST_LENGTH
+# define SHA256_DIGEST_LENGTH 32
+#endif /* ! SHA256_DIGEST_LENGTH */
 
 /* libopendkim includes */
 #include <dkim.h>
@@ -61,7 +64,7 @@ static char opendkim_atpszone_c_id[] = "$Id: opendkim-genzone.c,v 1.12.10.1 2010
 #define	ATPSZONE	"._atps"
 #define	BASE32_LENGTH	32
 #define	BUFRSZ		256
-#define	CMDLINEOPTS	"AC:E:o:N:r:R:St:T:v"
+#define	CMDLINEOPTS	"AC:E:h:o:N:r:R:St:T:v"
 #define	DEFEXPIRE	604800
 #define	DEFREFRESH	10800
 #define	DEFRETRY	1800
@@ -90,6 +93,7 @@ usage(void)
 	                "\t-A          \tinclude '._atps' suffix\n"
 	                "\t-C user@host\tcontact address to include in SOA\n"
 	                "\t-E secs     \tuse specified expiration time in SOA\n"
+	                "\t-h hash     \thash algorithm\n"
 	                "\t-o file     \toutput file\n"
 	                "\t-N ns[,...] \tlist NS records\n"
 	                "\t-r secs     \tuse specified refresh time in SOA\n"
@@ -130,9 +134,11 @@ main(int argc, char **argv)
 	time_t now;
 	size_t dlen;
 	size_t b32len;
+	size_t shalen;
 	char *p;
 	char *dataset = NULL;
 	char *outfile = NULL;
+	char *hash = NULL;
 	char *contact = NULL;
 	char *nameservers = NULL;
 	char *nslist[MAXNS];
@@ -142,10 +148,17 @@ main(int argc, char **argv)
 	gnutls_hash_hd_t sha;
 #else /* USE_GNUTLS */
 	SHA_CTX sha;
+# ifdef HAVE_SHA256
+	SHA256_CTX sha256;
+# endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 	char domain[DKIM_MAXHOSTNAMELEN + 1];
 	char hostname[DKIM_MAXHOSTNAMELEN + 1];
+#ifdef HAVE_SHA256
+	char shaout[SHA256_DIGEST_LENGTH];
+#else /* HAVE_SHA256 */
 	char shaout[SHA_DIGEST_LENGTH];
+#endif /* HAVE_SHA256 */
 	char base32[BASE32_LENGTH + 1];
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
@@ -170,6 +183,31 @@ main(int argc, char **argv)
 				        progname);
 				return EX_USAGE;
 			}
+			break;
+
+		  case 'h':
+			if (strcasecmp(optarg, "sha1") != 0 &&
+			    strcasecmp(optarg, "sha256") != 0 &&
+			    strcasecmp(optarg, "none") != 0)
+			{
+				fprintf(stderr, "%s: invalid hash algorithm\n",
+				        progname);
+				return EX_USAGE;
+			}
+#ifndef HAVE_SHA256
+			else if (strcasecmp(optarg, "sha256") == 0)
+			{
+				fprintf(stderr,
+				        "%s: hash algorithm \"%s\" not supported\n",
+				        progname, optarg);
+				return EX_SOFTWARE;
+			}
+#endif /* ! HAVE_SHA256 */
+			hash = optarg;
+			if (strcasecmp(hash, "sha1") == 0)
+				shalen = SHA_DIGEST_LENGTH;
+			else
+				shalen = SHA256_DIGEST_LENGTH;
 			break;
 
 		  case 'N':
@@ -366,34 +404,68 @@ main(int argc, char **argv)
 		/* convert to lowercase */
 		dkimf_lowercase(domain);
 
-		/* compute SHA1 hash */
+		memset(base32, '\0', sizeof base32);
+
+		if (hash == NULL || strcasecmp(hash, "none") != 0)
+		{
+			/* compute SHA1 hash */
 #ifdef USE_GNUTLS
-		(void) gnutls_hash_init(&sha, GNUTLS_DIG_SHA1);
-		(void) gnutls_hash(sha, domain, strlen(domain));
-		(void) gnutls_hash_deinit(sha, shaout);
+# ifdef HAVE_SHA256
+			if (hash == NULL || strcasecmp(hash, "sha256") == 0)
+			{
+				(void) gnutls_hash_init(&sha,
+				                        GNUTLS_DIG_SHA256);
+			}
+			else
+			{
+				(void) gnutls_hash_init(&sha, GNUTLS_DIG_SHA1);
+			}
+# else /* HAVE_SHA256 */
+			(void) gnutls_hash_init(&sha, GNUTLS_DIG_SHA1);
+# endif /* HAVE_SHA256 */
+			(void) gnutls_hash(sha, domain, strlen(domain));
+			(void) gnutls_hash_deinit(sha, shaout);
 #else /* USE_GNUTLS */
-		SHA1_Init(&sha);
-		SHA1_Update(&sha, domain, strlen(domain));
-		SHA1_Final(shaout, &sha);
+# ifdef HAVE_SHA256
+			if (hash == NULL || strcasecmp(hash, "sha256") == 0)
+			{
+				SHA256_Init(&sha256);
+				SHA256_Update(&sha256, domain, strlen(domain));
+				SHA256_Final(shaout, &sha256);
+			}
+			else
+			{
+				SHA1_Init(&sha);
+				SHA1_Update(&sha, domain, strlen(domain));
+				SHA1_Final(shaout, &sha);
+			}
+# else /* HAVE_SHA256 */
+			SHA1_Init(&sha);
+			SHA1_Update(&sha, domain, strlen(domain));
+			SHA1_Final(shaout, &sha);
+# endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 
-		/* encode with base32 */
-		memset(base32, '\0', sizeof base32);
-		b32len = sizeof base32 - 1;
-		(void) dkim_base32_encode(base32, &b32len,
-		                          shaout, SHA_DIGEST_LENGTH);
+			/* encode with base32 */
+			memset(base32, '\0', sizeof base32);
+			b32len = sizeof base32 - 1;
+			(void) dkim_base32_encode(base32, &b32len, shaout,
+			                          shalen);
+		}
 
 		/* generate output */
 		if (ttl == -1)
 		{
 			fprintf(out, "%s%s\tIN\tTXT\t\"%s\"\n",
-			        base32, suffix ? ATPSZONE : "",
+			        base32[0] == '\0' ? domain : base32,
+			        suffix ? ATPSZONE : "",
 			        VALIDATPS);
 		}
 		else
 		{
 			fprintf(out, "%s%s\t%d\tIN\tTXT\t\"%s\"\n",
-			        base32, suffix ? ATPSZONE : "", ttl,
+			        base32[0] == '\0' ? domain : base32,
+			        suffix ? ATPSZONE : "", ttl,
 			        VALIDATPS);
 		}
 	}

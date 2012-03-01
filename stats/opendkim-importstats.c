@@ -22,6 +22,7 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.11 20
 
 /* OpenDKIM includes */
 #include "build-config.h"
+#include "stats.h"
 
 /* libopendkim includes */
 #include <dkim-strl.h>
@@ -35,19 +36,35 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.11 20
 #endif /* USE_ODBX */
 
 /* macros, definitions */
-#define	CMDLINEOPTS	"d:Fh:mP:p:rSs:u:x"
+#define	CMDLINEOPTS	"d:Fh:mP:p:rSs:u:vx"
 
 #define	DEFDBHOST	"localhost"
 #define	DEFDBNAME	"opendkim"
-#define	DEFDBSCHEME	"mysql"
+#define	DEFDBSCHEME	SQL_BACKEND
 #define	DEFDBUSER	"opendkim"
 
 #define	MAXLINE		2048
 #define	MAXREPORTER	256
 
+/* data structures */
+struct table
+{
+	char *		tbl_left;
+	char *		tbl_right;
+};
+
 /* globals */
 char *progname;
 char reporter[MAXREPORTER + 1];
+int verbose;
+
+struct table last_insert_id[] =
+{
+	{ "mysql",	"LAST_INSERT_ID()" },
+	{ "sqlite3",	"LAST_INSERT_ROWID()" },
+	{ "pgsql",	"LASTVAL()" },
+	{ NULL,		NULL }
+};
 
 /*
 **  SANITIZE -- sanitize a string
@@ -146,6 +163,39 @@ findinlist(char *str, char *list)
 }
 
 /*
+**  SQL_MKTIME -- convert a UNIX time_t (as a string) to an SQL time string
+**
+**  Parameters:
+**  	in -- input time
+**  	out -- output buffer
+**  	outlen -- bytes available at "out"
+**
+**  Return value:
+**  	0 -- error
+**  	>0 -- bytes of "out" used
+*/
+
+int
+sql_mktime(const char *in, char *out, size_t outlen)
+{
+	time_t convert;
+	struct tm *local;
+	char *p;
+
+	assert(in != NULL);
+	assert(out != NULL);
+
+	errno = 0;
+	convert = strtoul(in, &p, 10);
+	if (errno != 0 || *p != '\0')
+		return 0;
+
+	local = localtime(&convert);
+
+	return strftime(out, outlen, "%Y-%m-%d %H:%M:%S", local);
+}
+
+/*
 **  SQL_GET_INT -- retrieve a single integer from an SQL query
 **
 **  Parameters:
@@ -167,6 +217,9 @@ sql_get_int(odbx_t *db, char *sql)
 
 	assert(db != NULL);
 	assert(sql != NULL);
+
+	if (verbose > 0)
+		fprintf(stderr, "> %s\n", sql);
 
 	err = odbx_query(db, sql, strlen(sql));
 	if (err < 0)
@@ -249,6 +302,9 @@ sql_do(odbx_t *db, char *sql)
 	assert(db != NULL);
 	assert(sql != NULL);
 
+	if (verbose > 0)
+		fprintf(stderr, "> %s\n", sql);
+
 	err = odbx_query(db, sql, strlen(sql));
 	if (err < 0)
 	{
@@ -297,6 +353,7 @@ usage(void)
 	                "\t-S         \tdon't skip duplicate messages\n"
 	                "\t-s dbscheme\tdatabase scheme (default: \"%s\")\n"
 	                "\t-u dbuser  \tdatabase user (default: \"%s\")\n"
+	                "\t-v         \tincrease verbose output\n"
 #ifdef _FFR_STATSEXT
 	                "\t-x         \timport extension records\n"
 #endif /* _FFR_STATSEXT */
@@ -337,7 +394,9 @@ main(int argc, char **argv)
 	int msgid;
 	int sigid;
 	int hdrid;
+	int inversion = -1;
 	char *p;
+	char *lastrow = NULL;
 	char *dbhost = DEFDBHOST;
 	char *dbname = DEFDBNAME;
 	char *dbscheme = DEFDBSCHEME;
@@ -347,10 +406,13 @@ main(int argc, char **argv)
 	char **fields = NULL;
 	odbx_t *db = NULL;
 	char buf[MAXLINE + 1];
+	char timebuf[MAXLINE + 1];
 	char sql[MAXLINE + 1];
 	char safesql[MAXLINE * 2 + 1];
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
+
+	verbose = 0;
 
 	while ((c = getopt(argc, argv, CMDLINEOPTS)) != -1)
 	{
@@ -396,6 +458,10 @@ main(int argc, char **argv)
 			dbuser = optarg;
 			break;
 
+		  case 'v':
+			verbose++;
+			break;
+
 #ifdef _FFR_STATSEXT
 		  case 'x':
 			extensions = 1;
@@ -405,6 +471,22 @@ main(int argc, char **argv)
 		  default:
 			return usage();
 		}
+	}
+
+	for (c = 0; ; c++)
+	{
+		if (strcasecmp(last_insert_id[c].tbl_left, dbscheme) == 0)
+		{
+			lastrow = last_insert_id[c].tbl_right;
+			break;
+		}
+	}
+
+	if (lastrow == NULL)
+	{
+		fprintf(stderr, "%s: scheme \"%s\" not currently supported\n",
+		        progname, dbscheme);
+		return EX_SOFTWARE;
 	}
 
 	/* try to connect to the database */
@@ -509,9 +591,34 @@ main(int argc, char **argv)
 		{
 			continue;
 		}
+		else if (c == 'V')
+		{
+			if (n != 1)
+			{
+				fprintf(stderr,
+				        "%s: unexpected version field count (%d) at input line %d\n",
+				        progname, n, line);
+
+				if (showfields == 1)
+					dumpfields(stderr, fields, n);
+
+				continue;
+			}
+
+			inversion = atoi(fields[0]);
+		}
 		else if (c == 'M')
 		{
-			if (n != 17 && n != 18)
+			if (inversion != DKIMS_VERSION)
+			{
+				fprintf(stderr,
+				        "%s: ignoring old format at input line %d\n",
+				        progname, line);
+
+				continue;
+			}
+
+			if (n != DKIMS_MI_MAX + 1)
 			{
 				fprintf(stderr,
 				        "%s: unexpected message field count (%d) at input line %d\n",
@@ -567,7 +674,7 @@ main(int argc, char **argv)
 					}
 
 					snprintf(sql, sizeof sql,
-					         "SELECT LAST_INSERT_ID()");
+					         "SELECT %s", lastrow);
 
 					repid = sql_get_int(db, sql);
 					if (repid == -1)
@@ -617,7 +724,7 @@ main(int argc, char **argv)
 				}
 
 				snprintf(sql, sizeof sql,
-				         "SELECT LAST_INSERT_ID()");
+				         "SELECT %s", lastrow);
 
 				domid = sql_get_int(db, sql);
 				if (domid == -1)
@@ -673,7 +780,7 @@ main(int argc, char **argv)
 				else
 				{
 					snprintf(sql, sizeof sql,
-					         "SELECT LAST_INSERT_ID()");
+					         "SELECT %s", lastrow);
 
 					addrid = sql_get_int(db, sql);
 					if (addrid == -1)
@@ -698,17 +805,7 @@ main(int argc, char **argv)
 			    sanitize(db, fields[5], safesql, sizeof safesql) ||
 			    sanitize(db, fields[6], safesql, sizeof safesql) ||
 			    sanitize(db, fields[7], safesql, sizeof safesql) ||
-			    sanitize(db, fields[8], safesql, sizeof safesql) ||
-			    sanitize(db, fields[9], safesql, sizeof safesql) ||
-			    sanitize(db, fields[10], safesql, sizeof safesql) ||
-			    sanitize(db, fields[11], safesql, sizeof safesql) ||
-			    sanitize(db, fields[12], safesql, sizeof safesql) ||
-			    sanitize(db, fields[13], safesql, sizeof safesql) ||
-			    sanitize(db, fields[14], safesql, sizeof safesql) ||
-			    sanitize(db, fields[15], safesql, sizeof safesql) ||
-			    sanitize(db, fields[16], safesql, sizeof safesql) ||
-			    (n >= 18 &&
-			     sanitize(db, fields[17], safesql, sizeof safesql)))
+			    sanitize(db, fields[8], safesql, sizeof safesql))
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
@@ -720,9 +817,10 @@ main(int argc, char **argv)
 			}
 
 			/* see if this is a duplicate */
+			(void) sql_mktime(fields[4], timebuf, sizeof timebuf);
 			snprintf(sql, sizeof sql,
-			         "SELECT id FROM messages WHERE jobid = '%s' and reporter = %d and msgtime = from_unixtime(%s)",
-			         fields[0], repid, fields[5]);
+			         "SELECT id FROM messages WHERE jobid = '%s' AND reporter = %d AND msgtime = '%s'",
+			         fields[0], repid, timebuf);
 
 			msgid = sql_get_int(db, sql);
 			if (msgid == -1)
@@ -743,51 +841,18 @@ main(int argc, char **argv)
 				continue;
 			}
 
-			if (n == 18)
-			{
-				snprintf(sql, sizeof sql,
-				         "INSERT INTO messages (jobid, reporter, from_domain, ip, anonymized, msgtime, size, sigcount, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received_count, content_type, content_encoding, atps) VALUES ('%s', %d, %d, %d, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s', %s)",
-				         fields[0],	/* jobid */
-				         repid,		/* reporter */
-				         domid,		/* from_domain */
-				         addrid,	/* ip */
-				         fields[4],	/* anonymized */
-				         fields[5],	/* msgtime */
-				         fields[6],	/* size */
-				         fields[7],	/* sigcount */
-				         fields[8],	/* adsp_found */
-				         fields[9],	/* adsp_unknown */
-				         fields[10],	/* adsp_all */
-				         fields[11],	/* adsp_discardable */
-				         fields[12],	/* adsp_fail */
-				         fields[13],	/* mailing_list */
-				         fields[14],	/* received_count */
-				         fields[15],	/* content_type */
-				         fields[16],	/* content_encoding */
-				         fields[17]);	/* atps */
-			}
-			else
-			{
-				snprintf(sql, sizeof sql,
-				         "INSERT INTO messages (jobid, reporter, from_domain, ip, anonymized, msgtime, size, sigcount, adsp_found, adsp_unknown, adsp_all, adsp_discardable, adsp_fail, mailing_list, received_count, content_type, content_encoding) VALUES ('%s', %d, %d, %d, %s, from_unixtime(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')",
-				         fields[0],	/* jobid */
-				         repid,		/* reporter */
-				         domid,		/* from_domain */
-				         addrid,	/* ip */
-				         fields[4],	/* anonymized */
-				         fields[5],	/* msgtime */
-				         fields[6],	/* size */
-				         fields[7],	/* sigcount */
-				         fields[8],	/* adsp_found */
-				         fields[9],	/* adsp_unknown */
-				         fields[10],	/* adsp_all */
-				         fields[11],	/* adsp_discardable */
-				         fields[12],	/* adsp_fail */
-				         fields[13],	/* mailing_list */
-				         fields[14],	/* received_count */
-				         fields[15],	/* content_type */
-				         fields[16]);	/* content_encoding */
-			}
+			(void) sql_mktime(fields[4], timebuf, sizeof timebuf);
+			snprintf(sql, sizeof sql,
+			         "INSERT INTO messages (jobid, reporter, from_domain, ip, msgtime, size, sigcount, atps, spam) VALUES ('%s', %d, %d, %d, '%s', %s, %s, %s, %s)",
+			         fields[0],	/* jobid */
+			         repid,		/* reporter */
+			         domid,		/* from_domain */
+			         addrid,	/* ip */
+			         timebuf,	/* msgtime */
+			         fields[5],	/* size */
+			         fields[6],	/* sigcount */
+			         fields[7],	/* atps */
+			         fields[8]);	/* spam */
 
 			msgid = sql_do(db, sql);
 			if (msgid == -1)
@@ -797,7 +862,7 @@ main(int argc, char **argv)
 			}
 
 			/* get back the message ID */
-			snprintf(sql, sizeof sql, "SELECT LAST_INSERT_ID()");
+			snprintf(sql, sizeof sql, "SELECT %s", lastrow);
 
 			msgid = sql_get_int(db, sql);
 			if (msgid == -1)
@@ -820,7 +885,16 @@ main(int argc, char **argv)
 		{
 			int changed;
 
-			if (n != 19 && n != 21 && n != 22 && n != 23)
+			if (inversion != DKIMS_VERSION)
+			{
+				fprintf(stderr,
+				        "%s: ignoring old format at input line %d\n",
+				        progname, line);
+
+				continue;
+			}
+
+			if (n != DKIMS_SI_MAX + 1)
 			{
 				fprintf(stderr,
 				        "%s: unexpected signature field count (%d) at input line %d\n",
@@ -866,8 +940,8 @@ main(int argc, char **argv)
 					return EX_SOFTWARE;
 				}
 
-				snprintf(sql, sizeof sql,
-				         "SELECT LAST_INSERT_ID()");
+				snprintf(sql, sizeof sql, "SELECT %s",
+				         lastrow);
 
 				domid = sql_get_int(db, sql);
 				if (domid == -1)
@@ -889,28 +963,7 @@ main(int argc, char **argv)
 			    sanitize(db, fields[2], safesql, sizeof safesql) ||
 			    sanitize(db, fields[3], safesql, sizeof safesql) ||
 			    sanitize(db, fields[4], safesql, sizeof safesql) ||
-			    sanitize(db, fields[5], safesql, sizeof safesql) ||
-			    sanitize(db, fields[6], safesql, sizeof safesql) ||
-			    sanitize(db, fields[7], safesql, sizeof safesql) ||
-			    sanitize(db, fields[8], safesql, sizeof safesql) ||
-			    sanitize(db, fields[9], safesql, sizeof safesql) ||
-			    sanitize(db, fields[10], safesql, sizeof safesql) ||
-			    sanitize(db, fields[11], safesql, sizeof safesql) ||
-			    sanitize(db, fields[12], safesql, sizeof safesql) ||
-			    sanitize(db, fields[13], safesql, sizeof safesql) ||
-			    sanitize(db, fields[14], safesql, sizeof safesql) ||
-			    sanitize(db, fields[15], safesql, sizeof safesql) ||
-			    sanitize(db, fields[16], safesql, sizeof safesql) ||
-			    sanitize(db, fields[17], safesql, sizeof safesql) ||
-			    sanitize(db, fields[18], safesql, sizeof safesql) ||
-			    (n >= 21 &&
-			     sanitize(db, fields[19], safesql, sizeof safesql)) ||
-			    (n >= 21 &&
-			     sanitize(db, fields[20], safesql, sizeof safesql)) ||
-			    (n >= 23 &&
-			     sanitize(db, fields[21], safesql, sizeof safesql)) ||
-			    (n >= 23 &&
-			     sanitize(db, fields[22], safesql, sizeof safesql)))
+			    sanitize(db, fields[5], safesql, sizeof safesql))
 			{
 				fprintf(stderr,
 				        "%s: unsafe data at input line %d\n",
@@ -918,81 +971,15 @@ main(int argc, char **argv)
 				continue;
 			}
 
-			if (n == 23)
-			{
-				snprintf(sql, sizeof sql,
-				         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, sigerror, sig_t, sig_x, sig_z, dnssec, sig_i, sig_i_user, key_s, keysize) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-				         msgid,		/* message */
-				         domid,		/* domain */
-				         fields[1],	/* algorithm */
-				         fields[2],	/* hdr_canon */
-				         fields[3],	/* body_canon */
-				         fields[4],	/* ignored */
-				         fields[5],	/* pass */
-				         fields[6],	/* fail_body */
-				         fields[7],	/* siglength */
-				         fields[8],	/* key_t */
-				         fields[9],	/* key_g */
-				         fields[10],	/* key_g_name */
-				         fields[11],	/* key_dk_compat */
-				         fields[12],	/* sigerror */
-				         fields[13],	/* sig_t */
-				         fields[14],	/* sig_x */
-				         fields[15],	/* sig_z */
-				         fields[16],	/* dnssec */
-				         fields[19],	/* sig_i */
-				         fields[20],	/* sig_i_user */
-				         fields[21],	/* key_s */
-				         fields[22]);	/* keysize */
-			}
-			else if (n == 21)
-			{
-				snprintf(sql, sizeof sql,
-				         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, sigerror, sig_t, sig_x, sig_z, dnssec, sig_i, sig_i_user) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-				         msgid,		/* message */
-				         domid,		/* domain */
-				         fields[1],	/* algorithm */
-				         fields[2],	/* hdr_canon */
-				         fields[3],	/* body_canon */
-				         fields[4],	/* ignored */
-				         fields[5],	/* pass */
-				         fields[6],	/* fail_body */
-				         fields[7],	/* siglength */
-				         fields[8],	/* key_t */
-				         fields[9],	/* key_g */
-				         fields[10],	/* key_g_name */
-				         fields[11],	/* key_dk_compat */
-				         fields[12],	/* sigerror */
-				         fields[13],	/* sig_t */
-				         fields[14],	/* sig_x */
-				         fields[15],	/* sig_z */
-				         fields[16],	/* dnssec */
-				         fields[19],	/* sig_i */
-				         fields[20]);	/* sig_i_user */
-			}
-			else
-			{
-				snprintf(sql, sizeof sql,
-				         "INSERT INTO signatures (message, domain, algorithm, hdr_canon, body_canon, ignored, pass, fail_body, siglength, key_t, key_g, key_g_name, key_dk_compat, sigerror, sig_t, sig_x, sig_z, dnssec) VALUES (%d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-				         msgid,		/* message */
-				         domid,		/* domain */
-				         fields[1],	/* algorithm */
-				         fields[2],	/* hdr_canon */
-				         fields[3],	/* body_canon */
-				         fields[4],	/* ignored */
-				         fields[5],	/* pass */
-				         fields[6],	/* fail_body */
-				         fields[7],	/* siglength */
-				         fields[8],	/* key_t */
-				         fields[9],	/* key_g */
-				         fields[10],	/* key_g_name */
-				         fields[11],	/* key_dk_compat */
-				         fields[12],	/* sigerror */
-				         fields[13],	/* sig_t */
-				         fields[14],	/* sig_x */
-				         fields[15],	/* sig_z */
-				         fields[16]);	/* dnssec */
-			}
+			snprintf(sql, sizeof sql,
+			         "INSERT INTO signatures (message, domain, pass, fail_body, siglength, sigerror, dnssec) VALUES (%d, %d, %s, %s, %s, %s, %s)",
+			         msgid,		/* message */
+			         domid,		/* domain */
+			         fields[1],	/* pass */
+			         fields[2],	/* fail_body */
+			         fields[3],	/* siglength */
+			         fields[4],	/* sigerror */
+			         fields[5]);	/* dnssec */
 
 			sigid = sql_do(db, sql);
 			if (sigid == -1)
@@ -1002,7 +989,7 @@ main(int argc, char **argv)
 			}
 
 			/* get back the signature ID */
-			snprintf(sql, sizeof sql, "SELECT LAST_INSERT_ID()");
+			snprintf(sql, sizeof sql, "SELECT %s", lastrow);
 
 			sigid = sql_get_int(db, sql);
 			if (sigid == -1)
@@ -1018,69 +1005,107 @@ main(int argc, char **argv)
 				(void) odbx_finish(db);
 				return EX_SOFTWARE;
 			}
+		}
 
-			for (p = strtok(fields[17], ":");
-			     p != NULL;
-			     p = strtok(NULL, ":"))
+		/* processing section for message status updates */
+		else if (c == 'U' && inversion == DKIMS_VERSION)
+		{
+			if (n != 4)
 			{
-				(void) sanitize(db, p, safesql,
+				fprintf(stderr,
+				        "%s: unexpected update field count (%d) at input line %d\n",
+				        progname, n, line);
+
+				if (showfields == 1)
+					dumpfields(stderr, fields, n);
+
+				continue;
+			}
+
+			/* get the reporter ID */
+			if (strcasecmp(reporter, fields[1]) != 0)
+			{
+				(void) sanitize(db, fields[1], safesql,
 				                sizeof safesql);
 
-				/* get, or create, the header ID if needed */
 				snprintf(sql, sizeof sql,
-				         "SELECT id FROM headernames WHERE name = '%s'",
+				         "SELECT id FROM reporters WHERE name = '%s'",
 				         safesql);
 
-				hdrid = sql_get_int(db, sql);
-				if (hdrid == -1)
+				repid = sql_get_int(db, sql);
+				if (repid == -1)
 				{
 					(void) odbx_finish(db);
 					return EX_SOFTWARE;
 				}
-				else if (hdrid == 0)
+				else if (repid == 0)
 				{
-					snprintf(sql, sizeof sql,
-					         "INSERT INTO headernames (name) VALUES ('%s')",
-					         safesql);
-
-					hdrid = sql_do(db, sql);
-					if (hdrid == -1)
-					{
-						(void) odbx_finish(db);
-						return EX_SOFTWARE;
-					}
-
-					snprintf(sql, sizeof sql,
-					         "SELECT LAST_INSERT_ID()");
-
-					hdrid = sql_get_int(db, sql);
-					if (hdrid == -1)
-					{
-						(void) odbx_finish(db);
-						return EX_SOFTWARE;
-					}
-					else if (hdrid == 0)
+					if (norepadd == 1)
 					{
 						fprintf(stderr,
-						        "%s: failed to create header record for '%s'\n",
-						        progname, p);
-						(void) odbx_finish(db);
-						return EX_SOFTWARE;
+						        "%s: no such reporter '%s' at line %d\n",
+						        progname, fields[1],
+						        line);
 					}
+
+					continue;
 				}
 
-				changed = findinlist(p, fields[18]);
+				strlcpy(reporter, fields[1], sizeof reporter);
+			}
 
+			/* verify data safety */
+			if (sanitize(db, fields[0], safesql, sizeof safesql) ||
+			    sanitize(db, fields[2], safesql, sizeof safesql) ||
+			    sanitize(db, fields[3], safesql, sizeof safesql))
+			{
+				fprintf(stderr,
+				        "%s: unsafe data at input line %d\n",
+				        progname, line);
+
+				continue;
+			}
+
+			/* get the message ID */
+			if (strcmp(fields[2], "0") == 0)
+			{
 				snprintf(sql, sizeof sql,
-				         "INSERT INTO signed_headers (signature, header, changed) VALUES (%d, %d, %d)",
-				         sigid, hdrid, changed);
+				         "SELECT MAX(id) FROM messages WHERE jobid = '%s' AND reporter = %d",
+				         fields[0], repid);
+			}
+			else
+			{
+				(void) sql_mktime(fields[2], timebuf,
+				                  sizeof timebuf);
+				snprintf(sql, sizeof sql,
+				         "SELECT id FROM messages WHERE jobid = '%s' AND reporter = %d AND msgtime = '%s'",
+				         fields[0], repid, timebuf);
+			}
 
-				hdrid = sql_do(db, sql);
-				if (hdrid == -1)
-				{
-					(void) odbx_finish(db);
-					return EX_SOFTWARE;
-				}
+			msgid = sql_get_int(db, sql);
+			if (msgid == -1)
+			{
+				(void) odbx_finish(db);
+				return EX_SOFTWARE;
+			}
+			else if (msgid == 0)
+			{
+				fprintf(stderr,
+				        "%s: unknown message for update at line %d\n",
+				        progname, line);
+				continue;
+			}
+
+			snprintf(sql, sizeof sql,
+			         "UPDATE messages SET spam = %s WHERE id = %d",
+			         fields[3],	/* spam */
+			         msgid);	/* message ID */
+
+			msgid = sql_do(db, sql);
+			if (msgid == -1)
+			{
+				(void) odbx_finish(db);
+				return EX_SOFTWARE;
 			}
 		}
 
@@ -1088,6 +1113,15 @@ main(int argc, char **argv)
 		/* processing section for extensions */
 		else if (c == 'X')
 		{
+			if (inversion != DKIMS_VERSION)
+			{
+				fprintf(stderr,
+				        "%s: ignoring old format at input line %d\n",
+				        progname, line);
+
+				continue;
+			}
+
 			if (n != 2)
 			{
 				fprintf(stderr,

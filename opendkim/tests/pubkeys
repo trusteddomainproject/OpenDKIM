@@ -1,5 +1,7 @@
 example2.com			foo
-_adsp._domainkey.example2.com	dkim=all; r=adsp-feedback
+_adsp._domainkey.example2.com	dkim=all; ra=adsp-feedback
 revoked._domainkey.example.com	k=rsa; t=y; p=
+_report._domainkey.example.com	ra=dkim-feedbacks
+UN42N5XOV642KXRXRQIYANHCOUPGQL5LT4WTBKYT2IJFLBWODFDQ====._atps.example.net	v=ATPS1
 report._domainkey.example.com v=DKIM1; k=rsa; r=dkim-feedbacks; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC9p5rp5EjC8cZbnlUpasA5HoUYwSA+HEBsBZnxppmehsiCLY/rSGDxmYaOL2LhGJur4UnXzTRpB/VgPTNOn3bkudEARqu0H2W6afEcI46igMs8fuZlyIi+UMGdUbn5tgbTRS7g6r9bxOcxwTtZcKAhvCWfDiTc2QeEzzxxyL4jewIDAQAB
 test._domainkey.example.com v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC9p5rp5EjC8cZbnlUpasA5HoUYwSA+HEBsBZnxppmehsiCLY/rSGDxmYaOL2LhGJur4UnXzTRpB/VgPTNOn3bkudEARqu0H2W6afEcI46igMs8fuZlyIi+UMGdUbn5tgbTRS7g6r9bxOcxwTtZcKAhvCWfDiTc2QeEzzxxyL4jewIDAQAB

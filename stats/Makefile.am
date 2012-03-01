@@ -4,16 +4,10 @@
 
 if USE_ODBX
 
-bin_PROGRAMS = opendkim-anonstats opendkim-importstats
-
-opendkim_anonstats_SOURCES = opendkim-anonstats.c
-opendkim_anonstats_CPPFLAGS = $(LIBCRYPTO_CPPFLAGS)
-opendkim_anonstats_CFLAGS = $(LIBCRYPTO_CFLAGS)
-opendkim_anonstats_LDFLAGS = $(LIBCRYPTO_LIBDIRS)
-opendkim_anonstats_LDADD = $(LIBCRYPTO_LIBS)
+bin_PROGRAMS = opendkim-importstats
 
 opendkim_importstats_SOURCES = opendkim-importstats.c
-opendkim_importstats_CPPFLAGS = $(LIBODBX_CPPFLAGS) -I$(srcdir)/../libopendkim
+opendkim_importstats_CPPFLAGS = $(LIBODBX_CPPFLAGS) -I$(srcdir)/../libopendkim -I$(srcdir)/../opendkim
 opendkim_importstats_CFLAGS = $(LIBODBX_CFLAGS) $(COV_CFLAGS)
 opendkim_importstats_LDFLAGS = $(COV_LDFLAGS)
 opendkim_importstats_LDADD = $(LIBODBX_LIBS) ../libopendkim/libopendkim.la $(COV_LIBADD)
@@ -24,6 +18,6 @@ dist_example_DATA = mkdb.mysql
 dist_doc_DATA = README
 dist_bin_SCRIPTS = opendkim-gengraphs opendkim-genstats
 
-man_MANS = opendkim-anonstats.8 opendkim-importstats.8
+man_MANS = opendkim-importstats.8
 
 endif

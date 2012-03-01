@@ -41,6 +41,8 @@ codecoverage	Enables generation of profiling code for all libraries,
 		produces a report about code coverage based on the available
 		code coverage tools (gprof, gcov or lcov). (all)
 
+db_handle_pools	Database handle pools.  EXPERIMENTAL  (opendkim)
+
 default_sender	Allow declaration of sender address to use when a message
 		contains no obvious sender.  (opendkim)
 
@@ -75,6 +77,8 @@ parsetime	Adds a utility function reporting the value of the Date:
 poll		Instructs the asynchronous resolver to use poll() instead
 		of select() to wait for I/O on sockets.  (libar)
 
+popauth		POP-before-SMTP support.  (opendkim)
+
 postgres_reconnect_hack
 		libpq (the postgresql client library) fails to identify
 		at least some error conditions as needing a connection
@@ -83,6 +87,9 @@ postgres_reconnect_hack
 		errors in ad different (but unconventional) manner.  It is
 		hoped that this can be removed in the near future.
 		(opendkim)
+
+query_cache	Support for local caching of key and policy queries rather
+		than relying on the DNS to do so.  (libopendkim)
 
 rate_limit	Experimental rate limiting based on confirmed signer domains.
 		(opendkim)
@@ -99,9 +106,8 @@ replace_rules	Allow specification of a "replacement rules" table
 		effects of such things as the "masquerade" and "genericstable"
 		features of the sendmail MTA.  (opendkim)
 
-report_intervals
-		Support for report intervals, part of the DKIM reporting
-		extensions.  (opendkim)
+reputation	Support for a collaborative reputation system.
+		EXPERIMENTAL  (opendkim)
 
 resign		Experimental API features for simultaneous verifying and
 		re-signing of a single message.  (libopendkim, opendkim)
@@ -140,7 +146,7 @@ COPYRIGHT
 Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 	All rights reserved.
 
-Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 
 
 $Revision: 1.25 $, Last updated $Date: 2010/10/25 17:16:00 $

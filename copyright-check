@@ -1,12 +1,12 @@
 #!/bin/sh
 #
-# Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+# Copyright (c) 2011, 2012, The OpenDKIM Project.  All rights reserved.
 #
 
 YEAR=`date +%Y`
 LASTYEAR=$(($YEAR - 1))
 
-for i in `git diff develop --name-only @{$LASTYEAR-12-31} | fgrep -v .jpg | fgrep -v contrib/`
+for i in `git diff develop --name-only @{$LASTYEAR-12-31} | fgrep -v .jpg | fgrep -v contrib/ | fgrep -v docs/`
 do
 	if test -f $i
 	then

@@ -38,6 +38,7 @@ Makefile
 opendkim-testadsp
 opendkim
 opendkim-stats
+opendkim-testmsg
 opendkim-testkey
 opendkim-genzone
 opendkim-genkey

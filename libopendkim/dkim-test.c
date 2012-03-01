@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, 2012, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -314,7 +314,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 	         domain, selector);
 
 	stat = dkim_process_set(dkim, DKIM_SETTYPE_SIGNATURE, (u_char *) buf,
-	                        strlen(buf), NULL, FALSE);
+	                        strlen(buf), NULL, FALSE, NULL);
 	if (stat != DKIM_STAT_OK)
 	{
 		strlcpy(err, "syntax error on input", errlen);

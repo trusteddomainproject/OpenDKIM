@@ -366,9 +366,9 @@ dkimf_test_getsymval(void *ctx, char *sym)
 **  	An EX_* constant (see sysexits.h)
 */
 
-int
-dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
-               bool strict, int verbose)
+static int
+dkimf_testfile(DKIM_LIB *libopendkim, struct test_context *tctx,
+               FILE *f, char *file, _Bool strict, int tverbose)
 {
 	bool inheaders = TRUE;
 	int len = 0;
@@ -380,73 +380,17 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 	struct signreq *srlist = NULL;
 	DKIM *dkim;
 	char *p;
-	FILE *f;
-	struct test_context *tctx;
 	sfsistat ms;
 	struct sockaddr_in sin;
 	char buf[MAXBUFRSZ];
 	char line[MAXBUFRSZ];
 
 	assert(libopendkim != NULL);
-	assert(file != NULL);
-
-	tverbose = verbose;
-
-	/* pass fixed signing time to the library */
-	if (fixedtime != (uint64_t) -1)
-	{
-		(void) dkim_options(libopendkim, DKIM_OP_SETOPT,
-		                    DKIM_OPTS_FIXEDTIME,
-		                    &fixedtime, sizeof fixedtime);
-	}
-
-	/* open the input */
-	if (strcmp(file, "-") == 0)
-	{
-		f = stdin;
-		file = "(stdin)";
-	}
-	else
-	{
-		f = fopen(file, "r");
-		if (f == NULL)
-		{
-			fprintf(stderr, "%s: %s: fopen(): %s\n", progname,
-			        file, strerror(errno));
-			return EX_UNAVAILABLE;
-		}
-	}
+	assert(tctx != NULL);
+	assert(f != NULL);
 
 	memset(buf, '\0', sizeof buf);
 	memset(line, '\0', sizeof buf);
-
-	/* set up a fake SMFICTX */
-	tctx = (struct test_context *) malloc(sizeof(struct test_context));
-	if (tctx == NULL)
-	{
-		fprintf(stderr, "%s: malloc(): %s\n", progname,
-		        strerror(errno));
-		FCLOSE(f);
-		return EX_OSERR;
-	}
-	tctx->tc_priv = NULL;
-
-	(void) memset(&sin, '\0', sizeof sin);
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(time(NULL) % 65536);
-	sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-
-	ms = mlfi_connect((SMFICTX *) tctx, "localhost", (_SOCK_ADDR *) &sin);
-	if (MLFI_OUTPUT(ms, tverbose))
-	{
-		fprintf(stderr, "%s: %s: mlfi_connect() returned %s\n",
-		        progname, file, milter_status[ms]);
-	}
-	if (ms != SMFIS_CONTINUE)
-	{
-		FCLOSE(f);
-		return EX_SOFTWARE;
-	}
 
 	ms = mlfi_envfrom((SMFICTX *) tctx, envfrom);
 	if (MLFI_OUTPUT(ms, tverbose))
@@ -455,10 +399,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 		        progname, file, milter_status[ms]);
 	}
 	if (ms != SMFIS_CONTINUE)
-	{
-		FCLOSE(f);
 		return EX_SOFTWARE;
-	}
 
 	ms = mlfi_envrcpt((SMFICTX *) tctx, envrcpt);
 	if (MLFI_OUTPUT(ms, tverbose))
@@ -467,10 +408,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 		        progname, file, milter_status[ms]);
 	}
 	if (ms != SMFIS_CONTINUE)
-	{
-		FCLOSE(f);
 		return EX_SOFTWARE;
-	}
 
 	while (!feof(f))
 	{
@@ -498,7 +436,6 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 				fprintf(stderr,
 				        "%s: %s: line %d: not CRLF-terminated\n",
 				        progname, file, lineno);
-				FCLOSE(f);
 				return EX_DATAERR;
 			}
 		}
@@ -522,7 +459,6 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 						        "%s: %s: line %d: header malformed\n",
 						        progname, file,
 						        lineno);
-						FCLOSE(f);
 						return EX_DATAERR;
 					}
 
@@ -542,10 +478,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 					}
 
 					if (ms != SMFIS_CONTINUE)
-					{
-						FCLOSE(f);
 						return EX_SOFTWARE;
-					}
 				}
 
 				inheaders = FALSE;
@@ -561,10 +494,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 					         milter_status[ms]);
 				}
 				if (ms != SMFIS_CONTINUE)
-				{
-					FCLOSE(f);
 					return EX_SOFTWARE;
-				}
 
 				continue;
 			}
@@ -580,7 +510,6 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 					        "%s: %s: line %d: header '%*s...' too large\n",
 					        progname, file, lineno,
 					        20, buf);
-					FCLOSE(f);
 					return EX_DATAERR;
 				}
 			}
@@ -597,7 +526,6 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 						        "%s: %s: line %d: header malformed\n",
 						        progname, file,
 						        lineno);
-						FCLOSE(f);
 						return EX_DATAERR;
 					}
 
@@ -616,10 +544,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 						        milter_status[ms]);
 					}
 					if (ms != SMFIS_CONTINUE)
-					{
-						FCLOSE(f);
 						return EX_SOFTWARE;
-					}
 					hslineno = 0;
 				}
 
@@ -646,10 +571,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 					        milter_status[ms]);
 				}
 				if (ms != SMFIS_CONTINUE)
-				{
-					FCLOSE(f);
 					return EX_SOFTWARE;
-				}
 
 				memset(buf, '\0', sizeof buf);
 				buflen = 0;
@@ -662,8 +584,6 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 		}
 	}
 
-	FCLOSE(f);
-
 	/* unprocessed partial header? */
 	if (inheaders && buf[0] != '\0')
 	{
@@ -675,7 +595,6 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 			fprintf(stderr,
 			        "%s: %s: line %d: header malformed\n",
 			        progname, file, lineno);
-			FCLOSE(f);
 			return EX_DATAERR;
 		}
 
@@ -691,10 +610,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 			        progname, file, lineno, milter_status[ms]);
 		}
 		if (ms != SMFIS_CONTINUE)
-		{
-			FCLOSE(f);
 			return EX_SOFTWARE;
-		}
 
 		ms = mlfi_eoh((SMFICTX *) tctx);
 		if (MLFI_OUTPUT(ms, tverbose))
@@ -704,10 +620,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 			         progname, file, milter_status[ms]);
 		}
 		if (ms != SMFIS_CONTINUE)
-		{
-			FCLOSE(f);
 			return EX_SOFTWARE;
-		}
 
 		inheaders = FALSE;
 		memset(buf, '\0', sizeof buf);
@@ -726,10 +639,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 			        progname, file, milter_status[ms]);
 		}
 		if (ms != SMFIS_CONTINUE)
-		{
-			FCLOSE(f);
 			return EX_SOFTWARE;
-		}
 	}
 
 	/* some body left */
@@ -903,11 +813,108 @@ dkimf_testfile(DKIM_LIB *libopendkim, char *file, uint64_t fixedtime,
 		}
 	}
 
+	return EX_OK;
+}
+
+/*
+**  DKIMF_TESTFILES -- test one or more input messages
+**
+**  Parameters:
+**  	libopendkim -- DKIM_LIB handle
+**  	flist -- input file list
+**  	fixedtime -- time to use on signatures (or -1)
+**  	strict -- strict CRLF mode?
+**  	verbose -- verbose level
+**
+**  Return value:
+**  	An EX_* constant (see sysexits.h)
+*/
+
+int
+dkimf_testfiles(DKIM_LIB *libopendkim, char *flist, uint64_t fixedtime,
+                bool strict, int verbose)
+{
+	char *file;
+	char *ctx;
+	FILE *f;
+	int status;
+	sfsistat ms;
+	struct test_context *tctx;
+	struct sockaddr_in sin;
+
+	assert(libopendkim != NULL);
+	assert(flist != NULL);
+
+	tverbose = verbose;
+
+	/* pass fixed signing time to the library */
+	if (fixedtime != (uint64_t) -1)
+	{
+		(void) dkim_options(libopendkim, DKIM_OP_SETOPT,
+		                    DKIM_OPTS_FIXEDTIME,
+		                    &fixedtime, sizeof fixedtime);
+	}
+
+	/* set up a fake SMFICTX */
+	tctx = (struct test_context *) malloc(sizeof(struct test_context));
+	if (tctx == NULL)
+	{
+		fprintf(stderr, "%s: malloc(): %s\n", progname,
+		        strerror(errno));
+		return EX_OSERR;
+	}
+	tctx->tc_priv = NULL;
+
+	(void) memset(&sin, '\0', sizeof sin);
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(time(NULL) % 65536);
+	sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+
+	ms = mlfi_connect((SMFICTX *) tctx, "localhost", (_SOCK_ADDR *) &sin);
+	if (MLFI_OUTPUT(ms, tverbose))
+	{
+		fprintf(stderr, "%s: mlfi_connect() returned %s\n",
+		        progname, milter_status[ms]);
+	}
+	if (ms != SMFIS_CONTINUE)
+		return EX_SOFTWARE;
+
+	/* loop through inputs */
+	for (file = strtok_r(flist, ",", &ctx);
+	     file != NULL;
+	     file = strtok_r(NULL, ",", &ctx))
+	{
+		/* open the input */
+		if (strcmp(file, "-") == 0)
+		{
+			f = stdin;
+			file = "(stdin)";
+		}
+		else
+		{
+			f = fopen(file, "r");
+			if (f == NULL)
+			{
+				fprintf(stderr, "%s: %s: fopen(): %s\n",
+				        progname, file, strerror(errno));
+				return EX_UNAVAILABLE;
+			}
+		}
+
+		status = dkimf_testfile(libopendkim, tctx, f, file, strict,
+		                        tverbose);
+
+		FCLOSE(f);
+
+		if (status != EX_OK)
+			return status;
+	}
+
 	ms = mlfi_close((SMFICTX *) tctx);
 	if (MLFI_OUTPUT(ms, tverbose))
 	{
-		fprintf(stderr, "%s: %s: mlfi_close() returned %s\n",
-		        progname, file, milter_status[ms]);
+		fprintf(stderr, "%s: mlfi_close() returned %s\n",
+		        progname, milter_status[ms]);
 	}
 
 	return EX_OK;
