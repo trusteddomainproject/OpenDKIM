@@ -52,6 +52,14 @@ main(int argc, char **argv)
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
 
+#ifdef USE_GNUTLS
+	(void) gnutls_global_init();
+#endif /* USE_GNUTLS */
+
+	/* instantiate the library */
+	lib = dkim_init(NULL, NULL);
+	assert(lib != NULL);
+
 	if (!dkim_libfeature(lib, DKIM_FEATURE_PARSE_TIME))
 	{
 		printf("*** Date: value extraction SKIPPED\n");
@@ -61,14 +69,6 @@ main(int argc, char **argv)
 	{
 		printf("*** Date: value extraction\n");
 	}
-
-#ifdef USE_GNUTLS
-	(void) gnutls_global_init();
-#endif /* USE_GNUTLS */
-
-	/* instantiate the library */
-	lib = dkim_init(NULL, NULL);
-	assert(lib != NULL);
 
 #ifdef TEST_KEEP_FILES
 	/* set flags */
