@@ -75,6 +75,10 @@ br-msk-single-auth-result
 		Feature request #SF2981598: Add "SingleAuthResult" and
 		"NoHeaderB" settings.
 
+br-msk-solaris-cleanup
+		Extensive reworking of various things so a build on Solaris
+		with the native compiler is clean (bug #SF2903325)
+
 br-msk-stats-update
 		Update to statistics code to support required reporting
 		features missed in the 2.1.x line.
