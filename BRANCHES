@@ -18,13 +18,6 @@ Experimental Branches (branch name contains owner)
 exp-msk-doxygen	Experimenting with doxygen (automatic libopendkim doc
 		generation)
 
-exp-msk-reputation
-		DKIM-based domain reputation R&D
-
-feature-msk-sf3397903
-		Update to stats to drop things needed for interoperability
-		reporting but not for ongoing R&D
-
 
 Closed Branches
 ~~~~~~~~~~~~~~~
@@ -94,3 +87,6 @@ br-msk-yahoo-fixes
 
 br-sm-resign-features
 		Resign-related features (see SourceForge)
+
+exp-msk-reputation
+		DKIM-based domain reputation R&D
