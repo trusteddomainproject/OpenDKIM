@@ -1680,82 +1680,6 @@ then
 fi
 
 #
-# libxml2
-#
-
-AC_ARG_WITH([libxml2],
-            AS_HELP_STRING([--with-libxml2],
-                           [location of XML2 includes and library]),
-            [xml2path="$withval"], [xml2path="auto"])
-
-LIBXML2_CPPFLAGS=""
-LIBXML2_LDFLAGS=""
-LIBXML2_LIBS=""
-
-if test x"$enable_reputation" != x"yes" -a \
-        x"$xml2path" = x"auto"
-then
-	xml2path="no"
-fi
-
-xml2_found="no"
-if test \( x"$xml2path" = x"auto" -o x"$xml2path" = x"yes" \) -a \
-	x"$PKG_CONFIG" != x""
-then
-        PKG_CHECK_MODULES([LIBXML], [libxml-2.0 >= 2.6.16],
-	[
-		xml2_found="yes"
-		LIBXML2_CPPFLAGS="$LIBXML_CFLAGS"
-		LIBXML2_LIBS="$LIBXML_LIBS"
-	],
-	[
-	        xml2_found="no"
-        	AC_MSG_WARN([pkg-config for libxml2 not found, trying manual
-		            search...])
-        ])
-fi
-
-if test x"$xml2path" != x"no" -a x"$xml2_found" = x"no"
-then
-	AC_MSG_CHECKING([for libxml2])
-	if test x"$xml2path" != x"auto" -a x"$xml2path" != x"yes"
-	then
-		if test -f $xml2path/include/libxml/parser.h
-		then
-			AC_MSG_RESULT($xml2path)
-		        xml2_found="yes"
-			LIBXML2_CPPFLAGS="-I$xml2path/include"
-			LIBXML2_LDFLAGS="-I$xml2path/lib"
-			LIBXML2_LIBS="-lxml2"
-		else
-			AC_MSG_ERROR(not found at $xml2path)
-		fi
-	else
-		xml2dirs="/usr /usr/local"
-		for d in $xml2dirs
-		do
-			if test -f $d/include/libxml/parser.h
-			then
-				xml2path=$d
-				AC_MSG_RESULT($d)
-		        	xml2_found="yes"
-				LIBXML2_CPPFLAGS="-I$xml2path/include"
-				LIBXML2_LDFLAGS="-I$xml2path/lib"
-				LIBXML2_LIBS="-lxml2"
-				break
-			fi
-		done
-	fi
-	if test x"$xml2_found" != x"yes"
-	then
-		AC_MSG_RESULT([no])
-	fi
-fi
-AC_SUBST(LIBXML2_CPPFLAGS)
-AC_SUBST(LIBXML2_LDFLAGS)
-AC_SUBST(LIBXML2_LIBS)
-
-#
 # libjansson, required by reputation
 #
 
@@ -1801,7 +1725,7 @@ then
 			AC_MSG_RESULT($janssonpath)
 		        jansson_found="yes"
 			LIBJANSSON_CPPFLAGS="-I$janssonpath/include"
-			LIBJANSSON_LDFLAGS="-I$janssonpath/lib"
+			LIBJANSSON_LDFLAGS="-L$janssonpath/lib"
 			LIBJANSSON_LIBS="-ljansson"
 		else
 			AC_MSG_ERROR(not found at $janssonpath)
@@ -1816,7 +1740,7 @@ then
 				AC_MSG_RESULT($d)
 		        	jansson_found="yes"
 				LIBJANSSON_CPPFLAGS="-I$janssonpath/include"
-				LIBJANSSON_LDFLAGS="-I$janssonpath/lib"
+				LIBJANSSON_LDFLAGS="-L$janssonpath/lib"
 				LIBJANSSON_LIBS="-ljansson"
 				break
 			fi
@@ -1831,11 +1755,97 @@ AC_SUBST(LIBJANSSON_CPPFLAGS)
 AC_SUBST(LIBJANSSON_LDFLAGS)
 AC_SUBST(LIBJANSSON_LIBS)
 
+#
+# libxml2
+#
+
+AC_ARG_WITH([libxml2],
+            AS_HELP_STRING([--with-libxml2],
+                           [location of XML2 includes and library]),
+            [xml2path="$withval"], [xml2path="auto"])
+
+LIBXML2_CPPFLAGS=""
+LIBXML2_LDFLAGS=""
+LIBXML2_LIBS=""
+
+if test x"$enable_reputation" != x"yes" -a \
+        x"$xml2path" = x"auto"
+then
+	xml2path="no"
+fi
+
+if test x"$enable_reputation" = x"yes" -a x"$jansson_found" = x"yes"
+then
+	xml2path="no"
+fi
+
+xml2_found="no"
+if test \( x"$xml2path" = x"auto" -o x"$xml2path" = x"yes" \) -a \
+	x"$PKG_CONFIG" != x""
+then
+        PKG_CHECK_MODULES([LIBXML], [libxml-2.0 >= 2.6.16],
+	[
+		xml2_found="yes"
+		LIBXML2_CPPFLAGS="$LIBXML_CFLAGS"
+		LIBXML2_LIBS="$LIBXML_LIBS"
+	],
+	[
+	        xml2_found="no"
+        	AC_MSG_WARN([pkg-config for libxml2 not found, trying manual
+		            search...])
+        ])
+fi
+
+if test x"$xml2path" != x"no" -a x"$xml2_found" = x"no"
+then
+	AC_MSG_CHECKING([for libxml2])
+	if test x"$xml2path" != x"auto" -a x"$xml2path" != x"yes"
+	then
+		if test -f $xml2path/include/libxml/parser.h
+		then
+			AC_MSG_RESULT($xml2path)
+		        xml2_found="yes"
+			LIBXML2_CPPFLAGS="-I$xml2path/include"
+			LIBXML2_LDFLAGS="-L$xml2path/lib"
+			LIBXML2_LIBS="-lxml2"
+		else
+			AC_MSG_ERROR(not found at $xml2path)
+		fi
+	else
+		xml2dirs="/usr /usr/local"
+		for d in $xml2dirs
+		do
+			if test -f $d/include/libxml/parser.h
+			then
+				xml2path=$d
+				AC_MSG_RESULT($d)
+		        	xml2_found="yes"
+				LIBXML2_CPPFLAGS="-I$xml2path/include"
+				LIBXML2_LDFLAGS="-L$xml2path/lib"
+				LIBXML2_LIBS="-lxml2"
+				break
+			fi
+		done
+	fi
+	if test x"$xml2_found" != x"yes"
+	then
+		AC_MSG_RESULT([no])
+	fi
+fi
+AC_SUBST(LIBXML2_CPPFLAGS)
+AC_SUBST(LIBXML2_LDFLAGS)
+AC_SUBST(LIBXML2_LIBS)
+
 if test x"$enable_reputation" = x"yes" -a \
-        ( x"$xml2_found" != x"yes" -o \
-          x"$jansson_found" != x"yes" )
+        \( x"$xml2_found" != x"yes" -a \
+           x"$jansson_found" != x"yes" \)
 then
 	AC_MSG_ERROR([reputation requires libxml2 or libjansson])
+fi
+
+if test  x"$xml2_found" == x"yes" -a x"$jansson_found" == x"yes"
+then
+	AC_MSG_ERROR([cannot use both libxml2 and libjansson])
 fi
 
 #
