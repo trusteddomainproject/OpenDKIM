@@ -88,8 +88,16 @@ if (!$row)
 $rate = $row[0];
 
 #
-# construct the reputon
+# MIME header
 #
+
+printf("Content-Type: application/reputon\n");
+printf("\n");
+
+#
+# Construct the reputon
+#
+
 if (isset($use_json) && $use_json == 1)
 {
 	printf("{\n");
@@ -108,8 +116,6 @@ if (isset($use_json) && $use_json == 1)
 }
 else
 {
-	printf("Content-Type: application/reputon; format=xml\n");
-	printf("\n");
 	printf("<reputation>\n");
 	printf(" <reputon>\n");
 	printf("  <rater>$service</rater>\n");
