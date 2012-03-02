@@ -1848,6 +1848,16 @@ then
 	AC_MSG_ERROR([cannot use both libxml2 and libjansson])
 fi
 
+if test x"$xml2_found" == yes
+then
+	AC_DEFINE(USE_XML2, 1, [use libxml2 to parse REPUTE replies])
+fi
+if test x"$jansson_found" == yes
+then
+	AC_DEFINE(USE_JANSSON, 1, [use libjansson to parse REPUTE replies])
+fi
+
+
 #
 # libdb
 #
