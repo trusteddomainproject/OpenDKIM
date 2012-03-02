@@ -301,6 +301,7 @@ FFR_FEATURE([vbr], [Vouch-By-Reference support])
 AM_CONDITIONAL([VBR], [test x"$enable_vbr" = x"yes"])
 
 LIB_FFR_FEATURE([xtags], [extension signature tags])
+AM_CONDITIONAL([XTAGS], [test x"$enable_xtags" = x"yes"])
 
 if test x"$enable_statsext" = x"yes" -a x"$enable_stats" != x"yes"
 then
