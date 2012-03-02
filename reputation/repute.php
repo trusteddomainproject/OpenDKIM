@@ -102,7 +102,7 @@ if (isset($use_json) && $use_json == 1)
 {
 	printf("{\n");
 	printf("\t\"rater\": \"$service\",\n");
-	printf("\t\"rater-authenticity\": 1,\n");
+	printf("\t\"rater-authenticity\": 1.0,\n");
 	printf("\t\"assertion\": \"SPAM\",\n");
 	printf("\t\"extension\": {\n");
 	printf("\t\t\"IDENTITY\": \"DKIM\",\n");
