@@ -94,7 +94,7 @@ if (isset($use_json) && $use_json == 1)
 {
 	printf("{\n");
 	printf("\t\"rater\": \"$service\",\n");
-	printf("\t\"rater-authenticity\": 1\n");
+	printf("\t\"rater-authenticity\": 1,\n");
 	printf("\t\"assertion\": \"SPAM\",\n");
 	printf("\t\"extension\": {\n");
 	printf("\t\t\"IDENTITY\": \"DKIM\",\n");
@@ -113,7 +113,7 @@ else
 	printf("<reputation>\n");
 	printf(" <reputon>\n");
 	printf("  <rater>$service</rater>\n");
-	printf("  <rater-authenticity>1</rater-authenticity>,\n");
+	printf("  <rater-authenticity>1</rater-authenticity>\n");
 	printf("  <assertion>SPAM</assertion>\n");
 	printf("  <extension>IDENTITY: DKIM</extension>\n");
 	printf("  <extension>RATE: $rate</extension>\n");
