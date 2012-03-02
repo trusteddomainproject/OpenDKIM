@@ -1680,8 +1680,9 @@ then
 fi
 
 #
-# libxml2, required by reputation
+# libxml2
 #
+
 AC_ARG_WITH([libxml2],
             AS_HELP_STRING([--with-libxml2],
                            [location of XML2 includes and library]),
@@ -1754,12 +1755,88 @@ AC_SUBST(LIBXML2_CPPFLAGS)
 AC_SUBST(LIBXML2_LDFLAGS)
 AC_SUBST(LIBXML2_LIBS)
 
-if test x"$enable_reputation" = x"yes" -a \
-        x"$xml2_found" != x"yes"
+#
+# libjansson, required by reputation
+#
+
+AC_ARG_WITH([libjansson],
+            AS_HELP_STRING([--with-libjansson],
+                           [location of jansson includes and library]),
+            [janssonpath="$withval"], [janssonpath="auto"])
+
+LIBJANSSON_CPPFLAGS=""
+LIBJANSSON_LDFLAGS=""
+LIBJANSSON_LIBS=""
+
+if test x"$enable_reputation" != x"yes" -a \
+        x"$janssonpath" = x"auto"
 then
-	AC_MSG_ERROR([reputation requires libxml2])
+	janssonpath="no"
 fi
 
+jansson_found="no"
+if test \( x"$janssonpath" = x"auto" -o x"$janssonpath" = x"yes" \) -a \
+	x"$PKG_CONFIG" != x""
+then
+        PKG_CHECK_MODULES([LIBJANSSON], [libjansson >= 2.2.1],
+	[
+		jansson_found="yes"
+		LIBJANSSON_CPPFLAGS="$LIBJANSSON_CFLAGS"
+		LIBJANSSON_LIBS="$LIBJANSSON_LIBS"
+	],
+	[
+	        jansson_found="no"
+        	AC_MSG_WARN([pkg-config for libjansson not found, trying manual
+		            search...])
+        ])
+fi
+
+if test x"$janssonpath" != x"no" -a x"$jansson_found" = x"no"
+then
+	AC_MSG_CHECKING([for libjansson])
+	if test x"$janssonpath" != x"auto" -a x"$janssonpath" != x"yes"
+	then
+		if test -f $janssonpath/include/jansson.h
+		then
+			AC_MSG_RESULT($janssonpath)
+		        jansson_found="yes"
+			LIBJANSSON_CPPFLAGS="-I$janssonpath/include"
+			LIBJANSSON_LDFLAGS="-I$janssonpath/lib"
+			LIBJANSSON_LIBS="-ljansson"
+		else
+			AC_MSG_ERROR(not found at $janssonpath)
+		fi
+	else
+		janssondirs="/usr /usr/local"
+		for d in $janssondirs
+		do
+			if test -f $d/include/jansson.h
+			then
+				janssonpath=$d
+				AC_MSG_RESULT($d)
+		        	jansson_found="yes"
+				LIBJANSSON_CPPFLAGS="-I$janssonpath/include"
+				LIBJANSSON_LDFLAGS="-I$janssonpath/lib"
+				LIBJANSSON_LIBS="-ljansson"
+				break
+			fi
+		done
+	fi
+	if test x"$jansson_found" != x"yes"
+	then
+		AC_MSG_RESULT([no])
+	fi
+fi
+AC_SUBST(LIBJANSSON_CPPFLAGS)
+AC_SUBST(LIBJANSSON_LDFLAGS)
+AC_SUBST(LIBJANSSON_LIBS)
+
+if test x"$enable_reputation" = x"yes" -a \
+        ( x"$xml2_found" != x"yes" -o \
+          x"$jansson_found" != x"yes" )
+then
+	AC_MSG_ERROR([reputation requires libxml2 or libjansson])
+fi
 
 #
 # libdb
