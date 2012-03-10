@@ -72,7 +72,7 @@ dkim_repinfo(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	int n;
 	unsigned int c;
 #ifdef QUERY_CACHE
-	unsigned long ttl;
+	uint32_t ttl;
 #endif /* QUERY_CACHE */
 	size_t anslen;
 	DKIM_LIB *lib;
