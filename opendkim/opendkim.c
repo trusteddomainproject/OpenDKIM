@@ -9884,7 +9884,12 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	if (conf->conf_reportaddrbcc != NULL)
 		fprintf(out, "Bcc: %s\n", conf->conf_reportaddrbcc);
 
-	/* we presume sendmail will add Date: */
+	/* Date: */
+	memset(fmt, '\0', sizeof fmt);
+	(void) time(&now);
+	(void) localtime_r(&now, &tm);
+	(void) strftime(fmt, sizeof fmt, "%a, %e %b %Y %H:%M:%S %z (%Z)", &tm);
+	fprintf(out, "Date: %s\n", fmt);
 
 	/* Subject: */
 	fprintf(out, "Subject: DKIM failure report for %s\n",
@@ -9940,11 +9945,6 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	}
 
 	hdr = dkimf_findheader(dfc, (char *) "Message-ID", 0);
-
-	memset(fmt, '\0', sizeof fmt);
-	(void) time(&now);
-	(void) localtime_r(&now, &tm);
-	(void) strftime(fmt, sizeof fmt, "%a, %e %b %Y %H:%M:%S %z", &tm);
 
 	fprintf(out, "--dkimreport/%s/%s\n", hostname, dfc->mctx_jobid);
 	fprintf(out, "Content-Type: message/feedback-report\n");
@@ -10059,6 +10059,7 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	int arfdkim;
 	int nsigs = 0;
 	u_int pct;
+	time_t now;
 	DKIM_STAT repstatus;
 	char *p;
 	char *last;
@@ -10066,6 +10067,8 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	msgctx dfc;
 	DKIM_SIGINFO **sigs;
 	struct Header *hdr;
+	struct tm tm;
+	char ipstr[DKIM_MAXHOSTNAMELEN + 1];
 	char fmt[BUFRSZ];
 	char opts[BUFRSZ];
 	char addr[MAXADDRESS + 1];
@@ -10154,8 +10157,6 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	if (arftype == ARF_TYPE_AUTHFAIL)
 		arfdkim = dkimf_arfdkim(dfc);
 
-	/* we presume the MTA will add Date: ... */
-
 	/* From: */
 	fprintf(out, "From: %s\n", reportaddr);
 
@@ -10165,6 +10166,13 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	/* Bcc: */
 	if (conf->conf_reportaddrbcc != NULL)
 		fprintf(out, "Bcc: %s\n", conf->conf_reportaddrbcc);
+
+	/* Date: */
+	memset(fmt, '\0', sizeof fmt);
+	(void) time(&now);
+	(void) localtime_r(&now, &tm);
+	(void) strftime(fmt, sizeof fmt, "%a, %e %b %Y %H:%M:%S %z (%Z)", &tm);
+	fprintf(out, "Date: %s\n", fmt);
 
 	/* Subject: */
 	fprintf(out, "Subject: ADSP failure report for %s\n",
@@ -10190,14 +10198,53 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "\n");
 
 	/* second part: formatted gunk */
+	memset(ipstr, '\0', sizeof ipstr);
+
+	switch (cc->cctx_ip.ss_family)
+	{
+	  case AF_INET:
+	  {
+		struct sockaddr_in sin4;
+
+		memcpy(&sin4, &cc->cctx_ip, sizeof sin4);
+
+		(void) inet_ntop(AF_INET, &sin4.sin_addr, ipstr, sizeof ipstr);
+
+		break;
+	  }
+
+#ifdef AF_INET6
+	  case AF_INET6:
+	  {
+		struct sockaddr_in6 sin6;
+
+		memcpy(&sin6, &cc->cctx_ip, sizeof sin6);
+
+		(void) inet_ntop(AF_INET6, &sin6.sin6_addr, ipstr, sizeof ipstr);
+
+		break;
+	  }
+#endif /* AF_INET6 */
+	}
+
+	hdr = dkimf_findheader(dfc, (char *) "Message-ID", 0);
+
 	fprintf(out, "--dkimreport/%s/%s\n", hostname, dfc->mctx_jobid);
 	fprintf(out, "Content-Type: message/feedback-report\n");
 	fprintf(out, "\n");
 	fprintf(out, "User-Agent: %s/%s\n", DKIMF_PRODUCTNS, VERSION);
 	fprintf(out, "Version: %s\n", ARF_VERSION);
 	fprintf(out, "Original-Envelope-Id: %s\n", dfc->mctx_jobid);
+	fprintf(out, "Original-Mail-From: %s\n", dfc->mctx_envfrom);
 	fprintf(out, "Reporting-MTA: %s\n", hostname);
-	fprintf(out, "Feedback-Type: %s\n", arf_type_string(ARF_TYPE_FRAUD));
+	fprintf(out, "Source-IP: %s\n", ipstr);
+	fprintf(out, "Message-ID:%s%s\n",
+	        cc->cctx_noleadspc ? "" : " ",
+	        hdr == NULL ? "(none)" : hdr->hdr_val);
+	fprintf(out, "Arrival-Date: %s\n", fmt);
+	fprintf(out, "Reported-Domain: %s\n", dkim_getdomain(dfc->mctx_dkimv));
+	fprintf(out, "Delivery-Result: other\n");
+	fprintf(out, "Feedback-Type: %s\n", arf_type_string(arftype));
 
 	fprintf(out, "\n");
 

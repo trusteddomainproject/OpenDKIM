@@ -20,7 +20,13 @@ Content-Type: message/feedback-report
 User-Agent: OpenDKIM-Filter/2.2.0
 Version: 0.1
 Original-Envelope-Id: t-adsp-report
+Original-Mail-From: user@example2.com
 Reporting-MTA: unknown-host
+Source-IP: 127.0.0.1
+Message-ID:(none)
+Arrival-Date: Sun, 11 Mar 2012 22:56:32 -0700 (PDT)
+Reported-Domain: example2.com
+Delivery-Result: other
 Feedback-Type: fraud
 
 --dkimreport/unknown-host/t-adsp-report

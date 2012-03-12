@@ -5,9 +5,11 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.5.1		2012/??/??
+2.5.1		2012/03/15
 	Fix bug #SF3496131: Fix query cache build problem.  Reported by
 		Dilian Wesselinov Palauzov.
+	Fix bug #SF3500660: Add Date: header field to generated reports.
+		Reported by Andreas Schulze.
 
 2.5.0		2012/02/29
 	#####################################################################
