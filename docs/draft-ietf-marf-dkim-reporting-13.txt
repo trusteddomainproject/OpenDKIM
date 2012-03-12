@@ -3,12 +3,12 @@
 
 MARF Working Group                                          M. Kucherawy
 Internet-Draft                                                 Cloudmark
-Intended status: Standards Track                       February 28, 2012
-Expires: August 31, 2012
+Intended status: Standards Track                          March 12, 2012
+Expires: September 13, 2012
 
 
                 Extensions to DKIM for Failure Reporting
-                   draft-ietf-marf-dkim-reporting-11
+                   draft-ietf-marf-dkim-reporting-13
 
 Abstract
 
@@ -31,7 +31,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on August 31, 2012.
+   This Internet-Draft will expire on September 13, 2012.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Kucherawy                Expires August 31, 2012                [Page 1]
+Kucherawy              Expires September 13, 2012               [Page 1]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 Table of Contents
@@ -63,7 +63,8 @@ Table of Contents
    2.  Definitions  . . . . . . . . . . . . . . . . . . . . . . . . .  4
      2.1.  Keywords . . . . . . . . . . . . . . . . . . . . . . . . .  4
      2.2.  Imported Definitions . . . . . . . . . . . . . . . . . . .  4
-     2.3.  Other Definitions  . . . . . . . . . . . . . . . . . . . .  4
+     2.3.  Notation . . . . . . . . . . . . . . . . . . . . . . . . .  4
+     2.4.  Other Definitions  . . . . . . . . . . . . . . . . . . . .  4
    3.  Optional Reporting for DKIM  . . . . . . . . . . . . . . . . .  5
      3.1.  Extension DKIM Signature Tag . . . . . . . . . . . . . . .  5
      3.2.  DKIM Reporting TXT Record  . . . . . . . . . . . . . . . .  5
@@ -81,16 +82,18 @@ Table of Contents
      7.3.  DKIM Reporting Tag Registry  . . . . . . . . . . . . . . . 14
    8.  Security Considerations  . . . . . . . . . . . . . . . . . . . 16
      8.1.  Inherited Considerations . . . . . . . . . . . . . . . . . 16
-     8.2.  Deliberate Misuse  . . . . . . . . . . . . . . . . . . . . 16
-   9.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 17
-     9.1.  Normative References . . . . . . . . . . . . . . . . . . . 17
-     9.2.  Informative References . . . . . . . . . . . . . . . . . . 18
-   Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 19
-   Appendix B.  Examples  . . . . . . . . . . . . . . . . . . . . . . 20
-     B.1.  Example Use of DKIM Signature Extension Tag  . . . . . . . 20
-     B.2.  Example DKIM Reporting TXT Record  . . . . . . . . . . . . 20
-     B.3.  Example Use of DKIM ADSP Extension Tags  . . . . . . . . . 21
-   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 22
+     8.2.  Report Volume  . . . . . . . . . . . . . . . . . . . . . . 16
+     8.3.  Deliberate Misuse  . . . . . . . . . . . . . . . . . . . . 16
+     8.4.  Unreported Fraud . . . . . . . . . . . . . . . . . . . . . 17
+   9.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+     9.1.  Normative References . . . . . . . . . . . . . . . . . . . 18
+     9.2.  Informative References . . . . . . . . . . . . . . . . . . 19
+   Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 20
+   Appendix B.  Examples  . . . . . . . . . . . . . . . . . . . . . . 21
+     B.1.  Example Use of DKIM Signature Extension Tag  . . . . . . . 21
+     B.2.  Example DKIM Reporting TXT Record  . . . . . . . . . . . . 21
+     B.3.  Example Use of DKIM ADSP Extension Tags  . . . . . . . . . 22
+   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 23
 
 
 
@@ -105,27 +108,25 @@ Table of Contents
 
 
 
-
-
-
-Kucherawy                Expires August 31, 2012                [Page 2]
+Kucherawy              Expires September 13, 2012               [Page 2]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 1.  Introduction
 
    [DKIM] introduced a mechanism for message signing and authentication.
    It uses digital signing to associate a domain name with a message in
-   a reliable (i.e. not forgeable) manner.  The output is a verified
+   a reliable (i.e. not easily forged) manner.  The output is a verified
    domain name that can then be subjected to some sort of evaluation
    process (e.g., advertised sender policy, comparison to a known-good
    list, submission to a reputation service, etc.).
 
    Deployers of message authentication technologies are increasingly
    seeking visibility into DKIM verification failures and conformance
-   failures involving the published signing practices (e.g., [ADSP]) of
-   an Administrative Management Domain (ADMD; see [EMAIL-ARCH]).
+   failures involving the published signing practices (e.g., Author
+   Domain Signing Practices, [ADSP]) of an Administrative Management
+   Domain (ADMD; see [EMAIL-ARCH]).
 
    This document extends [DKIM] and [ADSP] to add an optional reporting
    address and some reporting parameters.  Reports are generated using
@@ -163,10 +164,9 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 
 
 
-
-Kucherawy                Expires August 31, 2012                [Page 3]
+Kucherawy              Expires September 13, 2012               [Page 3]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 2.  Definitions
@@ -184,7 +184,13 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
    Numerous DKIM-specific terms used here are defined in [DKIM].  The
    definition of the ABNF token "domain-name" can also be found there.
 
-2.3.  Other Definitions
+2.3.  Notation
+
+   Certain properties of email messages described in this document are
+   referenced using notation found in [EMAIL-ARCH] (e.g.,
+   "RFC5322.From").
+
+2.4.  Other Definitions
 
    report generator:  A report generator is an entitiy that generates
       and sends reports.  For the scope of this memo, the term refers to
@@ -214,23 +220,17 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 
 
 
-
-
-
-
-
-
-Kucherawy                Expires August 31, 2012                [Page 4]
+Kucherawy              Expires September 13, 2012               [Page 4]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 3.  Optional Reporting for DKIM
 
    A domain name owner employing [DKIM] for email signing and
-   authentication might want to know when signatures in use by specific
-   keys are not successfully verifying.  Currently there is no such
-   mechanism defined.
+   authentication might want to know when signatures that ought to be
+   verifiable with specific public keys are not successfully verifying.
+   Currently there is no such mechanism defined.
 
    This document adds optional "tags" (as defined in [DKIM]) to the
    DKIM-Signature header field and the DKIM key record in the DNS, using
@@ -257,11 +257,11 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 3.2.  DKIM Reporting TXT Record
 
    When a Signer wishes to advertise that it wants to receive failed
-   verification reports, it also places in the DNS a TXT resource record
+   verification reports, it places in the DNS a TXT resource record
    (RR).  The RR is made up of a sequence of tag-value objects (much
    like DKIM key records, as defined in Section 3.6.1 of [DKIM]), but it
    is entirely independent of those key records and is found at a
-   different name.  In the case a record advertising the desire for
+   different name.  In the case of a record advertising the desire for
    authentication failure reports, the tags and values comprise the
    parameters to be used when generating the reports.  A report
    generator will request the content of this record when it sees an
@@ -276,12 +276,13 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 
 
 
-Kucherawy                Expires August 31, 2012                [Page 5]
+Kucherawy              Expires September 13, 2012               [Page 5]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
-   with IANA as described in Section 7.3 MUST be ignored.
+   with IANA as described in Section 7.3 SHOULD be ignored, unless it is
+   being used as an experimental extension to this specification.
 
    The initial list of tags supported for the reporting TXT record is as
    follows:
@@ -316,7 +317,7 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
       conditions under which a report is desired.  See Section 5.1 for a
       list of valid tags.  ABNF:
 
-       rep-rr-type = ( "all" / "d" / "o" / "p"/ "s" / "v" / "x" )
+       rep-rr-type = ( "all" / "d" / "o" / "p"/ "s" / "u" / "v" / "x" )
        rep-rr-tag = %x72.72 *WSP "=" *WSP rep-rr-type
                     *WSP 0* ( ":" *WSP rep-rr-type )
 
@@ -328,14 +329,15 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
        rep-rs-tag = %x72.73 *WSP "=" qp-section
 
    In the absence of an "ra=" tag, the "rp=" and "rr=" tags MUST be
-   ignored, and the report generator MUST NOT issue a report.
 
 
 
-Kucherawy                Expires August 31, 2012                [Page 6]
+Kucherawy              Expires September 13, 2012               [Page 6]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
+
+   ignored, and the report generator MUST NOT issue a report.
 
 3.3.  DKIM Reporting Algorithm
 
@@ -383,20 +385,30 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
    10.  If the [SMTP] session during which the DKIM signautre was
         evaluated is still active and the SMTP server has not already
         given its response to the DATA command that relayed the message,
+
+
+
+Kucherawy              Expires September 13, 2012               [Page 7]
+
+Internet-Draft          DKIM Reporting Extensions             March 2012
+
+
         and an "rs=" tag was present in the TXT record, the SMTP server
         SHOULD include the decoded string found in the "rs=" tag in its
-
-
-
-Kucherawy                Expires August 31, 2012                [Page 7]
-
-Internet-Draft          DKIM Reporting Extensions          February 2012
-
-
         SMTP reply to the DATA command.
 
+   In order to thwart attacks that seek to convert report generators
+   into unwitting denial-of-service attack participants, a report
+   generator SHOULD NOT issue more than one report to any given domain
+   as a result of a single message.  Further, a report generator SHOULD
+   establish an upper bound on the number of reports a single message
+   can generate overall.  For example, a message with three invalid
+   signatures, two from example.com and one from example.net, would
+   generate at most one report to each of those domains.
+
    This algorithm has the following advantages over previous pre-
-   standardization implementations:
+   standardization implementations, such as early versions of
+   [OPENDKIM]:
 
    a.  If the DKIM signature fails to verify, no additional DNS check is
        made to see if reporting is requested; the request is active in
@@ -419,18 +431,8 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
        address outside of its own domain, preventing distributed email-
        based denial-of-service attacks.
 
-   The above procedure does not permit the detection and reporting of
-   messages including a fraudulent DKIM-Signature header field, where
-   such signature did not include an "r=" tag.  It might be useful to
-   some Signers to receive such reports, but the mechanism does not
-   support it.  To offer such support, a Verifier would have to violate
-   the first step above and continue even in the absence of an "r=" tag.
-   Although that would enable the desired report, it would also create a
-   possible denial-of-service attack: such Verifiers would always look
-   for the reporting TXT record, so a generator of fraudulent messages
-   could simply send a large volume of messages without an "r=" tag to a
-   number of destinations.  To avoid that outcome, reports of fraudulent
-   DKIM-Signature header fields are not possible using this mechanism.
+   See Section 8.4 for some considerations regardin limitations of this
+   mechanism.
 
 
 
@@ -442,11 +444,9 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 
 
 
-
-
-Kucherawy                Expires August 31, 2012                [Page 8]
+Kucherawy              Expires September 13, 2012               [Page 8]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 4.  Optional Reporting Address for DKIM-ADSP
@@ -470,11 +470,10 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
       only.  To construct the actual address to which the report is
       sent, the Verifier simply appends to this value an "@" followed by
       the domain whose policy was queried in order to evaluate the
-      sender's ADSP, i.e., the one taken from the RFC5322.From domain of
-      the message under evaluation.  Therefore, a signer making use of
-      this extension tag MUST ensure that an email address thus
-      constructed can receive reports generated as described in
-      Section 6.  ABNF:
+      sender's ADSP, i.e., the RFC5322.From domain of the message under
+      evaluation.  Therefore, a signer making use of this extension tag
+      MUST ensure that an email address thus constructed can receive
+      reports generated as described in Section 6.  ABNF:
 
        adsp-ra-tag = %x72.61 *WSP "=" qp-section
 
@@ -496,17 +495,16 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
       conditions under which a report is desired.  See Section 5.2 for a
       list of valid tags.  ABNF:
 
-
-
-
-
-Kucherawy                Expires August 31, 2012                [Page 9]
-
-Internet-Draft          DKIM Reporting Extensions          February 2012
-
-
-       adsp-rr-type = ( "all" / "d" / "o" / "p" / "s" / "u" )
+       adsp-rr-type = ( "all" / "o" / "p" / "s" / "u" )
        adsp-rr-tag = %x72.72 *WSP "=" *WSP adsp-rr-type
+
+
+
+Kucherawy              Expires September 13, 2012               [Page 9]
+
+Internet-Draft          DKIM Reporting Extensions             March 2012
+
+
                      *WSP 0* ( ":" *WSP adsp-rr-type )
 
    rs=  Requested SMTP Error String (plain-text; OPTIONAL; no default).
@@ -556,14 +554,16 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 
 
 
-Kucherawy                Expires August 31, 2012               [Page 10]
+
+
+Kucherawy              Expires September 13, 2012              [Page 10]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 5.  Requested Reports
 
-   This memo also includes, as the "ro" tags defined above, the means by
+   This memo also includes, as the "rr" tags defined above, the means by
    which the signer can request reports for specific circumstances of
    interest.  Verifiers MUST NOT generate reports for incidents that do
    not match a requested report, and MUST ignore requests for reports
@@ -587,6 +587,9 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 
    s  Reports are requested for signature or key syntax errors.
 
+   u  Reports are requested for signatures that include unknown tags in
+      the signature field.
+
    v  Reports are requested for signature verification failures or body
       hash mismatches.
 
@@ -599,9 +602,6 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 
    all  All reports are requested.
 
-   d  Reports are requested for messages that could not have [ADSP]
-      evaluated due to DNS (policy retrieval) issues.
-
    o  Reports are requested for any [ADSP]-related failure reason not
       covered by other report requests listed here.
 
@@ -612,9 +612,9 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 
 
 
-Kucherawy                Expires August 31, 2012               [Page 11]
+Kucherawy              Expires September 13, 2012              [Page 11]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
    s  Reports are requested for messages that have a valid [DKIM]
@@ -668,9 +668,9 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 
 
 
-Kucherawy                Expires August 31, 2012               [Page 12]
+Kucherawy              Expires September 13, 2012              [Page 12]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 6.  Report Generation
@@ -724,9 +724,9 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 
 
 
-Kucherawy                Expires August 31, 2012               [Page 13]
+Kucherawy              Expires September 13, 2012              [Page 13]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 7.  IANA Considerations
@@ -780,9 +780,9 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 
 
 
-Kucherawy                Expires August 31, 2012               [Page 14]
+Kucherawy              Expires September 13, 2012              [Page 14]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
                  +------+-----------------+--------+
@@ -836,9 +836,9 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 
 
 
-Kucherawy                Expires August 31, 2012               [Page 15]
+Kucherawy              Expires September 13, 2012              [Page 15]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 8.  Security Considerations
@@ -853,56 +853,113 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
    [I-D.IETF-MARF-AUTHFAILURE-REPORT].  Many security issues related to
    this draft are already covered in those documents.
 
-8.2.  Deliberate Misuse
+8.2.  Report Volume
+
+   It is impossible to predict the volume of reports this facility will
+   generate when enabled by a report receiver.  An implementer ought to
+   anticipate substantial volume, since the amount of abuse occurring at
+   receivers cannot be known ahead of time, and may vary rapidly and
+   unpredictably.
+
+8.3.  Deliberate Misuse
 
    Some threats caused by deliberate misuse of this mechanism are
-   discussed in Section 3.3.
+   discussed in Section 3.3, but they warrant further discussion here.
 
    Negative caching offers some protection against this pattern of
    abuse, although it will work only as long as the negative time-to-
    live on the relevant SOA record in the DNS.
 
+   The presence of the DNS record that indicates willingness to accept
+   reports opens the recipient to abuse.  In particular, it is possible
+   for an attacker to attempt to cause a flood of reports toward the
+   domain identified in a signature's "d=" tag in one of these ways:
+
+   1.  Alter existing DKIM-Signature header fields by adding an "r=y"
+       tag (and possibly altering the "d=" tag to point at the target
+       domain);
+
+   2.  Add a new but bogus signature bearing an "r=y" tag and a "d=" tag
+       pointing at the target domain;
+
+   3.  Generate a completely new message bearing an "r=y" tag and a "d="
+       tag pointing at the target domain.
+
+   Consider, for example, the situation where an an attacker sends out a
+   multi-million-message spam run, and includes in the messages a fake
+   DKIM signature containing "d=example.com; r=y".  It won't matter that
+   those signatures couldn't possibly be real: each will fail
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kucherawy                Expires August 31, 2012               [Page 16]
+Kucherawy              Expires September 13, 2012              [Page 16]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
+
+
+   verification, and any implementations that support this specification
+   will report those failures, in the millions and in short order, to
+   example.com.
+
+   Implementers are therefore strongly advised not to advertise that DNS
+   record except when reports desired, including the risk of receiving
+   this kind of attack.
+
+   Positive caching of this DNS reply also means turning off the flow of
+   reports by removing the record is not likely to have immediate
+   effect.  A low time-to-live on the record needs to be considered.
+
+8.4.  Unreported Fraud
+
+   An attacker can craft fraudulent DKIM-Signature fields on messages,
+   without using "r=" tags, and avoid having these reported.  The
+   procedure described in Section 3.3 does not permit the detection and
+   reporting of such cases.
+
+   It might be useful to some Signers to receive such reports, but the
+   mechanism does not support it.  To offer such support, a Verifier
+   would have to violate the first step in the procedure and continue
+   even in the absence of an "r=" tag.  Although that would enable the
+   desired report, it would also create a possible denial-of-service
+   attack: such Verifiers would always look for the reporting TXT
+   record, so a generator of fraudulent messages could simply send a
+   large volume of messages without an "r=" tag to a number of
+   destinations.  To avoid that outcome, reports of fraudulent DKIM-
+   Signature header fields are not possible using the published
+   mechanism.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kucherawy              Expires September 13, 2012              [Page 17]
+
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 9.  References
 
 9.1.  Normative References
 
-   [ADSP]     Allman, E., Delany, M., Fenton, J., and J. Levine, "DKIM
-              Sender Signing Practises", RFC 5617, August 2009.
+   [ADSP]     Allman, E., Delany, M., Fenton, J., and J. Levine,
+              "DomainKeys Identified Mail (DKIM) Author Domain Signing
+              Practices (ADSP)", RFC 5617, August 2009.
 
    [ARF]      Shafranovich, Y., Levine, J., and M. Kucherawy, "An
               Extensible Format for Email Feedback Reports", RFC 5965,
@@ -922,13 +979,13 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
    [I-D.IETF-MARF-AS]
               Falk, J. and M. Kucherawy, Ed., "Creation and Use of Email
               Feedback Reports: An Applicability Statement for the Abuse
-              Reporting Format (ARF)", I-D draft-ietf-marf-as,
-              January 2012.
+              Reporting Format (ARF)", draft-ietf-marf-as (work in
+              progress), January 2012.
 
    [I-D.IETF-MARF-AUTHFAILURE-REPORT]
               Fontana, H., "Authentication Failure Reporting using the
-              Abuse Report Format",
-              I-D draft-ietf-marf-authfailure-report, January 2012.
+              Abuse Report Format", draft-ietf-marf-authfailure-report
+              (work in progress), January 2012.
 
    [IANA-CONSIDERATIONS]
               Alvestrand, H. and T. Narten, "Guidelines for Writing an
@@ -947,10 +1004,9 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 
 
 
-
-Kucherawy                Expires August 31, 2012               [Page 17]
+Kucherawy              Expires September 13, 2012              [Page 18]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 9.2.  Informative References
@@ -959,6 +1015,9 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
               for Delivery Status Notifications", RFC 3464,
               January 2003.
 
+   [OPENDKIM]
+              Kucherawy, M., "OpenDKIM -- Open Source DKIM Library and
+              Filter", August 2009, <http://www.opendkim.org>.
 
 
 
@@ -1001,12 +1060,9 @@ Internet-Draft          DKIM Reporting Extensions          February 2012
 
 
 
-
-
-
-Kucherawy                Expires August 31, 2012               [Page 18]
+Kucherawy              Expires September 13, 2012              [Page 19]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 Appendix A.  Acknowledgements
@@ -1060,9 +1116,9 @@ Appendix A.  Acknowledgements
 
 
 
-Kucherawy                Expires August 31, 2012               [Page 19]
+Kucherawy              Expires September 13, 2012              [Page 20]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 Appendix B.  Examples
@@ -1088,9 +1144,11 @@ B.1.  Example Use of DKIM Signature Extension Tag
    This example DKIM-Signature field contains the "r=" tag that
    indicates reports are requested on verification failure.
 
-   If this signature fails to verify, a TXT query will be sent to
-   "_report._domainkey.example.com" to retrieve a reporting address and
-   other report parameters.
+   Assuming the public key retrieved from the DNS and processed
+   according to [DKIM] would determine that the signature is invalid, a
+   TXT query will be sent to "_report._domainkey.example.com" to
+   retrieve a reporting address and other report parameters as described
+   in Section 3.3.
 
 B.2.  Example DKIM Reporting TXT Record
 
@@ -1114,11 +1172,9 @@ B.2.  Example DKIM Reporting TXT Record
 
 
 
-
-
-Kucherawy                Expires August 31, 2012               [Page 20]
+Kucherawy              Expires September 13, 2012              [Page 21]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 B.3.  Example Use of DKIM ADSP Extension Tags
@@ -1172,9 +1228,9 @@ B.3.  Example Use of DKIM ADSP Extension Tags
 
 
 
-Kucherawy                Expires August 31, 2012               [Page 21]
+Kucherawy              Expires September 13, 2012              [Page 22]
 
-Internet-Draft          DKIM Reporting Extensions          February 2012
+Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 Author's Address
@@ -1228,5 +1284,5 @@ Author's Address
 
 
 
-Kucherawy                Expires August 31, 2012               [Page 22]
+Kucherawy              Expires September 13, 2012              [Page 23]
 
