@@ -23,6 +23,10 @@ Specifies the name of the SQL database into which records should be
 imported.  The default is
 .I opendkim.
 .TP
+.I -E
+Abort on certain errors, such as unknown input record types, improper field
+counts, etc., rather than continuing.
+.TP
 .I -F
 When a malformed line is detected in the input, write the parsed data to
 standard error.
@@ -69,7 +73,7 @@ This man page covers the version of
 that shipped with version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT
-Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8),
 .I opendkim.conf(5)
