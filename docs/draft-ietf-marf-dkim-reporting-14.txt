@@ -3,12 +3,12 @@
 
 MARF Working Group                                          M. Kucherawy
 Internet-Draft                                                 Cloudmark
-Intended status: Standards Track                          March 12, 2012
-Expires: September 13, 2012
+Intended status: Standards Track                          March 13, 2012
+Expires: September 14, 2012
 
 
                 Extensions to DKIM for Failure Reporting
-                   draft-ietf-marf-dkim-reporting-13
+                   draft-ietf-marf-dkim-reporting-14
 
 Abstract
 
@@ -31,7 +31,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on September 13, 2012.
+   This Internet-Draft will expire on September 14, 2012.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Kucherawy              Expires September 13, 2012               [Page 1]
+Kucherawy              Expires September 14, 2012               [Page 1]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -108,19 +108,20 @@ Table of Contents
 
 
 
-Kucherawy              Expires September 13, 2012               [Page 2]
+Kucherawy              Expires September 14, 2012               [Page 2]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 1.  Introduction
 
-   [DKIM] introduced a mechanism for message signing and authentication.
-   It uses digital signing to associate a domain name with a message in
-   a reliable (i.e. not easily forged) manner.  The output is a verified
-   domain name that can then be subjected to some sort of evaluation
-   process (e.g., advertised sender policy, comparison to a known-good
-   list, submission to a reputation service, etc.).
+   DomainKeys Identified Mail [DKIM] introduced a mechanism for message
+   signing and authentication.  It uses digital signing to associate a
+   domain name with a message in a reliable (i.e. not easily forged)
+   manner.  The output is a verified domain name that can then be
+   subjected to some sort of evaluation process (e.g., advertised sender
+   policy, comparison to a known-good list, submission to a reputation
+   service, etc.).
 
    Deployers of message authentication technologies are increasingly
    seeking visibility into DKIM verification failures and conformance
@@ -163,8 +164,7 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 
-
-Kucherawy              Expires September 13, 2012               [Page 3]
+Kucherawy              Expires September 14, 2012               [Page 3]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -179,7 +179,7 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
 2.2.  Imported Definitions
 
-   The ABNF token "qp-section" is imported from [MIME].
+   The [ABNF] token "qp-section" is imported from [MIME].
 
    Numerous DKIM-specific terms used here are defined in [DKIM].  The
    definition of the ABNF token "domain-name" can also be found there.
@@ -220,7 +220,7 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 
-Kucherawy              Expires September 13, 2012               [Page 4]
+Kucherawy              Expires September 14, 2012               [Page 4]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -272,17 +272,18 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
    strings" in the parlance of [DNS]).  The same process MUST be applied
    here.
 
-   Any tag found in the content of this record that is not registered
+   Implementations MUST support all tags defined in this document, and
 
 
 
-Kucherawy              Expires September 13, 2012               [Page 5]
+Kucherawy              Expires September 14, 2012               [Page 5]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
-   with IANA as described in Section 7.3 SHOULD be ignored, unless it is
-   being used as an experimental extension to this specification.
+   any other tag found in the content of the record that is not
+   recognized by an implementation MUST be ignored.  See Section 7.3 for
+   details about finding or registering extension tags.
 
    The initial list of tags supported for the reporting TXT record is as
    follows:
@@ -328,15 +329,15 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
        rep-rs-tag = %x72.73 *WSP "=" qp-section
 
-   In the absence of an "ra=" tag, the "rp=" and "rr=" tags MUST be
 
 
 
-Kucherawy              Expires September 13, 2012               [Page 6]
+Kucherawy              Expires September 14, 2012               [Page 6]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
+   In the absence of an "ra=" tag, the "rp=" and "rr=" tags MUST be
    ignored, and the report generator MUST NOT issue a report.
 
 3.3.  DKIM Reporting Algorithm
@@ -362,7 +363,8 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
    4.   If the resultant TXT is in several string fragments, concatenate
         them as described in Section 3.6.2.2 of [DKIM].
 
-   5.   If the TXT content is syntactically invalid, terminate.
+   5.   If the TXT content is syntactically invalid (see Section 3.2),
+        terminate.
 
    6.   If the reason for the signature evaluation failure does not
         match one of the report requests found in the "rr=" tag (or its
@@ -382,17 +384,18 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
         memo that includes as its intended recipient the address
         constructed in the previous step.
 
-   10.  If the [SMTP] session during which the DKIM signautre was
-        evaluated is still active and the SMTP server has not already
-        given its response to the DATA command that relayed the message,
 
 
 
-Kucherawy              Expires September 13, 2012               [Page 7]
+
+Kucherawy              Expires September 14, 2012               [Page 7]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
+   10.  If the [SMTP] session during which the DKIM signautre was
+        evaluated is still active and the SMTP server has not already
+        given its response to the DATA command that relayed the message,
         and an "rs=" tag was present in the TXT record, the SMTP server
         SHOULD include the decoded string found in the "rs=" tag in its
         SMTP reply to the DATA command.
@@ -441,10 +444,7 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 
-
-
-
-Kucherawy              Expires September 13, 2012               [Page 8]
+Kucherawy              Expires September 14, 2012               [Page 8]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -500,7 +500,7 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 
-Kucherawy              Expires September 13, 2012               [Page 9]
+Kucherawy              Expires September 14, 2012               [Page 9]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -556,7 +556,7 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 
-Kucherawy              Expires September 13, 2012              [Page 10]
+Kucherawy              Expires September 14, 2012              [Page 10]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -612,7 +612,7 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 
-Kucherawy              Expires September 13, 2012              [Page 11]
+Kucherawy              Expires September 14, 2012              [Page 11]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -668,7 +668,7 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 
-Kucherawy              Expires September 13, 2012              [Page 12]
+Kucherawy              Expires September 14, 2012              [Page 12]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -724,7 +724,7 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 
-Kucherawy              Expires September 13, 2012              [Page 13]
+Kucherawy              Expires September 14, 2012              [Page 13]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -780,7 +780,7 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 
-Kucherawy              Expires September 13, 2012              [Page 14]
+Kucherawy              Expires September 14, 2012              [Page 14]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -836,7 +836,7 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 
-Kucherawy              Expires September 13, 2012              [Page 15]
+Kucherawy              Expires September 14, 2012              [Page 15]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -892,7 +892,7 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 
-Kucherawy              Expires September 13, 2012              [Page 16]
+Kucherawy              Expires September 14, 2012              [Page 16]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -948,7 +948,7 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 
-Kucherawy              Expires September 13, 2012              [Page 17]
+Kucherawy              Expires September 14, 2012              [Page 17]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -956,6 +956,9 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 9.  References
 
 9.1.  Normative References
+
+   [ABNF]     Crocker, D. and P. Overell, "Augmented BNF for Syntax
+              Specifications: ABNF", RFC 5234, January 2008.
 
    [ADSP]     Allman, E., Delany, M., Fenton, J., and J. Levine,
               "DomainKeys Identified Mail (DKIM) Author Domain Signing
@@ -999,15 +1002,15 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
               Extensions (MIME) Part One: Format of Internet Message
               Bodies", RFC 2045, November 1996.
 
-   [SMTP]     Klensin, J., "Simple Mail Transfer Protocol", RFC 5321,
-              October 2008.
 
 
-
-Kucherawy              Expires September 13, 2012              [Page 18]
+Kucherawy              Expires September 14, 2012              [Page 18]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
+
+   [SMTP]     Klensin, J., "Simple Mail Transfer Protocol", RFC 5321,
+              October 2008.
 
 9.2.  Informative References
 
@@ -1057,10 +1060,7 @@ Internet-Draft          DKIM Reporting Extensions             March 2012
 
 
 
-
-
-
-Kucherawy              Expires September 13, 2012              [Page 19]
+Kucherawy              Expires September 14, 2012              [Page 19]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -1116,7 +1116,7 @@ Appendix A.  Acknowledgements
 
 
 
-Kucherawy              Expires September 13, 2012              [Page 20]
+Kucherawy              Expires September 14, 2012              [Page 20]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -1172,7 +1172,7 @@ B.2.  Example DKIM Reporting TXT Record
 
 
 
-Kucherawy              Expires September 13, 2012              [Page 21]
+Kucherawy              Expires September 14, 2012              [Page 21]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -1228,7 +1228,7 @@ B.3.  Example Use of DKIM ADSP Extension Tags
 
 
 
-Kucherawy              Expires September 13, 2012              [Page 22]
+Kucherawy              Expires September 14, 2012              [Page 22]
 
 Internet-Draft          DKIM Reporting Extensions             March 2012
 
@@ -1284,5 +1284,5 @@ Author's Address
 
 
 
-Kucherawy              Expires September 13, 2012              [Page 23]
+Kucherawy              Expires September 14, 2012              [Page 23]
 
