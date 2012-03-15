@@ -4,7 +4,7 @@
 
 lib_LTLIBRARIES = libvbr.la
 libvbr_la_SOURCES = vbr.c
-libvbr_la_LDFLAGS = -version-info 2:0:0
+libvbr_la_LDFLAGS = -version-info 2:0:0 $(LIBRESOLV)
 libvbrincludedir = $(includedir)/vbr
 libvbrinclude_HEADERS = vbr.h
 

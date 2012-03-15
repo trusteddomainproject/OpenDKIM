@@ -113,11 +113,11 @@ dn_comp (0, 0, 0, 0, 0);
 return 0;
 }'
 AC_MSG_CHECKING([whether the resolver works without -lresolv])
+LIBRESOLV=
 AC_LINK_IFELSE([AC_LANG_SOURCE([
 $dnscheck
 ])] , [
 	AC_MSG_RESULT(yes)
-	LIBRESOLV=
 ] , [
 	AC_MSG_RESULT(no)
 	AC_MSG_CHECKING([whether the resolver works with -lresolv])

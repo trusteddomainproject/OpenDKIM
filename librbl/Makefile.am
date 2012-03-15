@@ -4,7 +4,7 @@
 
 lib_LTLIBRARIES = librbl.la
 librbl_la_SOURCES = rbl.c
-librbl_la_LDFLAGS = -version-info 1:0:0
+librbl_la_LDFLAGS = -version-info 1:0:0 $(LIBRESOLV)
 librblincludedir = $(includedir)/rbl
 librblinclude_HEADERS = rbl.h
 
