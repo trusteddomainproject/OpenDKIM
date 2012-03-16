@@ -5,12 +5,12 @@ MARF Working Group                                               J. Falk
 Internet-Draft                                               Return Path
 Updates: 5965 (if approved)                            M. Kucherawy, Ed.
 Intended status: Standards Track                               Cloudmark
-Expires: August 26, 2012                               February 23, 2012
+Expires: September 3, 2012                                 March 2, 2012
 
 
  Creation and Use of Email Feedback Reports: An Applicability Statement
                   for the Abuse Reporting Format (ARF)
-                         draft-ietf-marf-as-10
+                         draft-ietf-marf-as-11
 
 Abstract
 
@@ -38,7 +38,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on August 26, 2012.
+   This Internet-Draft will expire on September 3, 2012.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Falk & Kucherawy         Expires August 26, 2012                [Page 1]
+Falk & Kucherawy        Expires September 3, 2012               [Page 1]
 
-Internet-Draft                   ARF AS                    February 2012
+Internet-Draft                   ARF AS                       March 2012
 
 
    carefully, as they describe your rights and restrictions with respect
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Falk & Kucherawy         Expires August 26, 2012                [Page 2]
+Falk & Kucherawy        Expires September 3, 2012               [Page 2]
 
-Internet-Draft                   ARF AS                    February 2012
+Internet-Draft                   ARF AS                       March 2012
 
 
 1.  Introduction
@@ -164,9 +164,9 @@ Internet-Draft                   ARF AS                    February 2012
 
 
 
-Falk & Kucherawy         Expires August 26, 2012                [Page 3]
+Falk & Kucherawy        Expires September 3, 2012               [Page 3]
 
-Internet-Draft                   ARF AS                    February 2012
+Internet-Draft                   ARF AS                       March 2012
 
 
    of [RFC2026].
@@ -189,14 +189,14 @@ Internet-Draft                   ARF AS                    February 2012
    abuse reports, usually reports due to recipients manually reporting
    messages as spam.  We refer to these as solicited reports.
 
-   Other uses for ARF involve reports sent between parties that don't
-   know each other.  These unsolicited reports are sent without prior
-   arrangement between the parties as to the context and meaning of the
-   reports, so the constraints on how these unsolicited reports need to
-   be structured such that the reports generated are likely to be useful
-   to the recipient, to what address(es) they can usefully be sent, what
-   issues the can be used to report, and how they can be handled by the
-   receiver of the report are very different.
+   Other uses for ARF involve such reports sent between parties that
+   don't know each other.  These unsolicited reports are sent without
+   prior arrangement between the parties as to the context and meaning
+   of the reports, so the constraints on how these unsolicited reports
+   need to be structured such that the reports generated are likely to
+   be useful to the recipient, to what address(es) they can usefully be
+   sent, what issues the can be used to report, and how they can be
+   handled by the receiver of the report are very different.
 
 
 4.  Creating and Sending Complaint-Based Solicited Abuse Reports
@@ -220,9 +220,9 @@ Internet-Draft                   ARF AS                    February 2012
 
 
 
-Falk & Kucherawy         Expires August 26, 2012                [Page 4]
+Falk & Kucherawy        Expires September 3, 2012               [Page 4]
 
-Internet-Draft                   ARF AS                    February 2012
+Internet-Draft                   ARF AS                       March 2012
 
 
        standards document, but is discussed further in Section 3.2 of
@@ -276,9 +276,9 @@ Internet-Draft                   ARF AS                    February 2012
 
 
 
-Falk & Kucherawy         Expires August 26, 2012                [Page 5]
+Falk & Kucherawy        Expires September 3, 2012               [Page 5]
 
-Internet-Draft                   ARF AS                    February 2012
+Internet-Draft                   ARF AS                       March 2012
 
 
    2.  Mail operators MUST be prepared to receive reports formatted per
@@ -332,10 +332,17 @@ Internet-Draft                   ARF AS                    February 2012
 
 
 
-Falk & Kucherawy         Expires August 26, 2012                [Page 6]
+Falk & Kucherawy        Expires September 3, 2012               [Page 6]
 
-Internet-Draft                   ARF AS                    February 2012
+Internet-Draft                   ARF AS                       March 2012
 
+
+   2.  Message authentication is generally a good idea, but it is
+       especially important to encourage credibility of and thus
+       response to unsolicited reports.  Therefore, as with any other
+       message, report generators sending unsolicited reports SHOULD
+       arrange to send reports for which SPF and/or DKIM checks will
+       pass.
 
 6.2.  When To Generate Reports
 
@@ -370,12 +377,6 @@ Internet-Draft                   ARF AS                    February 2012
        for that domain under those circumstances (for example, a message
        that is also DKIM-signed by the same domain, and that signature
        validates).
-   5.  Message authentication is generally a good idea, but it is
-       especially important to encourage credibility of and thus
-       response to unsolicited reports.  Therefore, as with any other
-       message, report generators sending unsolicited reports SHOULD
-       arrange to send reports for which SPF and/or DKIM checks will
-       pass.
 
 6.3.  Where To Send Reports
 
@@ -387,10 +388,9 @@ Internet-Draft                   ARF AS                    February 2012
 
 
 
-
-Falk & Kucherawy         Expires August 26, 2012                [Page 7]
+Falk & Kucherawy        Expires September 3, 2012               [Page 7]
 
-Internet-Draft                   ARF AS                    February 2012
+Internet-Draft                   ARF AS                       March 2012
 
 
    2.  Report generators SHOULD send reports to recipients that are both
@@ -411,7 +411,7 @@ Internet-Draft                   ARF AS                    February 2012
        include those found in WHOIS records or on a web site that either
        are explicitly described as an abuse contact, or are of the form
        "abuse@domain".
-   4.  Where an abusive message is signed using a domain-level
+   4.  Where an abusive message is authenticated using a domain-level
        authentication technology such as DKIM ([RFC6376]) or SPF
        ([RFC4408]), the domain that has been verified by the
        authentication mechanism is often a reasonable candidate for
@@ -444,9 +444,9 @@ Internet-Draft                   ARF AS                    February 2012
 
 
 
-Falk & Kucherawy         Expires August 26, 2012                [Page 8]
+Falk & Kucherawy        Expires September 3, 2012               [Page 8]
 
-Internet-Draft                   ARF AS                    February 2012
+Internet-Draft                   ARF AS                       March 2012
 
 
    3.  Experience suggests use of ARF is advisable in most contexts.
@@ -484,25 +484,25 @@ Internet-Draft                   ARF AS                    February 2012
        be unavailable or not applicable.
    4.  Although [RFC6449] suggests that replying to feedback is not
        useful, in the case of receipt of ARF reports where no feedback
-       arrangement has been established, a reply might be desirable to
-       indicate that the complaint will result in action, heading off
-       more severe filtering by the report generator.  In addition,
-       using an address that cannot receive replies precludes any
-       requests for additional information, and increases the likelihood
-       that further reports will be discarded or blocked.  Thus, a
-       report generator sending unsolicited reports SHOULD ensure that a
-       reply to such a report can be received.  Where an unsolicited
-       report results in the establishment of contact with a responsible
-       and responsive party, this can be saved for future complaint
-       handling and possible establishment of a formal (solicited)
-       feedback arrangement.  See Section 3.5 of [RFC6449] for a
-       discussion of establishment of feedback arrangements.
+       arrangement has been established, a non-automated reply might be
+       desirable to indicate what action resulted from the complaint,
+       heading off more severe filtering by the report generator.  In
+       addition, using an address that cannot receive replies precludes
+       any requests for additional information, and increases the
+       likelihood that further reports will be discarded or blocked.
+       Thus, a report generator sending unsolicited reports SHOULD
+       ensure that a reply to such a report can be received.  Where an
+       unsolicited report results in the establishment of contact with a
+       responsible and responsive party, this can be saved for future
+       complaint handling and possible establishment of a formal
+       (solicited) feedback arrangement.  See Section 3.5 of [RFC6449]
+       for a discussion of establishment of feedback arrangements.
 
 
 
-Falk & Kucherawy         Expires August 26, 2012                [Page 9]
+Falk & Kucherawy        Expires September 3, 2012               [Page 9]
 
-Internet-Draft                   ARF AS                    February 2012
+Internet-Draft                   ARF AS                       March 2012
 
 
 7.  Generating Automatic Authentication Failure Reports
@@ -556,9 +556,9 @@ Internet-Draft                   ARF AS                    February 2012
 
 
 
-Falk & Kucherawy         Expires August 26, 2012               [Page 10]
+Falk & Kucherawy        Expires September 3, 2012              [Page 10]
 
-Internet-Draft                   ARF AS                    February 2012
+Internet-Draft                   ARF AS                       March 2012
 
 
 8.  IANA Considerations
@@ -612,9 +612,9 @@ Internet-Draft                   ARF AS                    February 2012
 
 
 
-Falk & Kucherawy         Expires August 26, 2012               [Page 11]
+Falk & Kucherawy        Expires September 3, 2012              [Page 11]
 
-Internet-Draft                   ARF AS                    February 2012
+Internet-Draft                   ARF AS                       March 2012
 
 
    "Report Abuse" button in a mail reader.  In contrast, the mechanisms
@@ -668,9 +668,9 @@ Internet-Draft                   ARF AS                    February 2012
 
 
 
-Falk & Kucherawy         Expires August 26, 2012               [Page 12]
+Falk & Kucherawy        Expires September 3, 2012              [Page 12]
 
-Internet-Draft                   ARF AS                    February 2012
+Internet-Draft                   ARF AS                       March 2012
 
 
    form of mitigation.  The host generating reports can elect to send
@@ -724,9 +724,9 @@ Internet-Draft                   ARF AS                    February 2012
 
 
 
-Falk & Kucherawy         Expires August 26, 2012               [Page 13]
+Falk & Kucherawy        Expires September 3, 2012              [Page 13]
 
-Internet-Draft                   ARF AS                    February 2012
+Internet-Draft                   ARF AS                       March 2012
 
 
    [RFC5322]  Resnick, P., Ed., "Internet Message Format", RFC 5322,
@@ -743,17 +743,18 @@ Internet-Draft                   ARF AS                    February 2012
 
    [I-D.IETF-MARF-DKIM-REPORTING]
               Kucherawy, M., "Extensions to DKIM for Failure Reporting",
-              I-D draft-ietf-marf-dkim-reporting, January 2012.
+              draft-ietf-marf-dkim-reporting (work in progress),
+              January 2012.
 
    [I-D.IETF-MARF-REDACTION]
               Falk, JD. and M. Kucherawy, Ed., "Redaction of Potentially
               Sensitive Data from Mail Abuse Reports",
-              I-D draft-ietf-marf-redaction, March 2011.
+              draft-ietf-marf-redaction (work in progress), March 2011.
 
    [I-D.IETF-MARF-SPF-REPORTING]
               Kitterman, S., "SPF Authentication Failure Reporting using
-              the Abuse Report Format",
-              I-D draft-ietf-marf-spf-reporting, January 2012.
+              the Abuse Report Format", draft-ietf-marf-spf-reporting
+              (work in progress), January 2012.
 
    [RFC1939]  Myers, J. and M. Rose, "Post Office Protocol - Version 3",
               STD 53, RFC 1939, May 1996.
@@ -776,14 +777,15 @@ Internet-Draft                   ARF AS                    February 2012
               4rev1", RFC 3501, March 2003.
 
    [RFC3912]  Daigle, L., "WHOIS Protocol Specification", RFC 3912,
-              September 2004.
 
 
 
-Falk & Kucherawy         Expires August 26, 2012               [Page 14]
+Falk & Kucherawy        Expires September 3, 2012              [Page 14]
 
-Internet-Draft                   ARF AS                    February 2012
+Internet-Draft                   ARF AS                       March 2012
 
+
+              September 2004.
 
    [RFC4408]  Wong, M. and W. Schlitt, "Sender Policy Framework (SPF)
               for Authorizing Use of Domains in E-Mail, Version 1",
@@ -834,7 +836,5 @@ Authors' Addresses
 
 
 
-
-
-Falk & Kucherawy         Expires August 26, 2012               [Page 15]
+Falk & Kucherawy        Expires September 3, 2012              [Page 15]
 

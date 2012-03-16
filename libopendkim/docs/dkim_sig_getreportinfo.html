@@ -19,8 +19,6 @@ $Id: dkim_sig_getreportinfo.html,v 1.4 2010/07/24 04:52:15 cm-msk Exp $
         int *bfd,
         char *addrbuf,
         size_t addrlen,
-        char *fmtbuf,
-        size_t fmtlen,
         char *optsbuf,
         size_t optslen,
         char *smtpbuf,
@@ -79,15 +77,6 @@ of interoperability problems between implementations.
 	</td></tr>
     <tr valign="top"><td>addrlen</td>
 	<td>Number of bytes available at <tt>addrbuf</tt>.
-	</td></tr>
-    <tr valign="top"><td>fmtbuf</td>
-	<td>A buffer into which a colon-separated list of report formats
-	acceptable to the requesting domain will be written.  This is copied
-        exactly as extracted from the domain's key record.
-        Can be NULL if this information is not needed by the caller.
-	</td></tr>
-    <tr valign="top"><td>fmtlen</td>
-	<td>Number of bytes available at <tt>fmtbuf</tt>.
 	</td></tr>
     <tr valign="top"><td>optsbuf</td>
 	<td>A buffer into which a colon-separated list of report options

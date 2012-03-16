@@ -2,7 +2,7 @@
 **  Copyright (c) 2007, 2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -556,8 +556,8 @@ vbr_res_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 static _Bool
 vbr_txt_decode(u_char *ansbuf, size_t anslen, u_char *buf, size_t buflen)
 {
-	int type;
-	int class;
+	int type = -1;
+	int class = -1;
 	int qdcount;
 	int ancount;
 	int n;

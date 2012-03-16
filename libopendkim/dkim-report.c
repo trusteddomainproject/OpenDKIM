@@ -71,6 +71,9 @@ dkim_repinfo(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	int error;
 	int n;
 	unsigned int c;
+#ifdef QUERY_CACHE
+	uint32_t ttl;
+#endif /* QUERY_CACHE */
 	size_t anslen;
 	DKIM_LIB *lib;
 	u_char *sdomain;

@@ -1,10 +1,10 @@
-# Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+# Copyright (c) 2010, 2012, The OpenDKIM Project.  All rights reserved.
 #
 # $Id: Makefile.am,v 1.6 2010/10/25 17:18:33 cm-msk Exp $
 
 lib_LTLIBRARIES = libvbr.la
 libvbr_la_SOURCES = vbr.c
-libvbr_la_LDFLAGS = -version-info 2:0:0
+libvbr_la_LDFLAGS = -version-info 2:0:0 $(LIBRESOLV)
 libvbrincludedir = $(includedir)/vbr
 libvbrinclude_HEADERS = vbr.h
 

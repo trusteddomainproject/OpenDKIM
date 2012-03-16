@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-importstats.c,v 1.11 2010/10/25 17:16:00 cm-msk Exp $
 */
@@ -36,7 +36,7 @@ static char opendkim_importstats_c_id[] = "$Id: opendkim-importstats.c,v 1.11 20
 #endif /* USE_ODBX */
 
 /* macros, definitions */
-#define	CMDLINEOPTS	"d:Fh:mP:p:rSs:u:vx"
+#define	CMDLINEOPTS	"d:EFh:mP:p:rSs:u:vx"
 
 #define	DEFDBHOST	"localhost"
 #define	DEFDBNAME	"opendkim"
@@ -344,6 +344,7 @@ usage(void)
 {
 	fprintf(stderr, "%s: usage: %s [options]\n"
 	                "\t-d dbname  \tdatabase name (default: \"%s\")\n"
+	                "\t-E         \tinput errors are fatal\n"
 	                "\t-F         \tdump parsed fields on errors\n"
 	                "\t-h dbhost  \tdatabase host/address (default: \"%s\")\n"
 	                "\t-m         \tinput is in email format\n"
@@ -385,6 +386,7 @@ main(int argc, char **argv)
 	int err;
 	int mail = 0;
 	int dontskip = 0;
+	int fatalerrors = 0;
 	int showfields = 0;
 	int skipsigs = 0;
 	int norepadd = 0;
@@ -420,6 +422,10 @@ main(int argc, char **argv)
 		{
 		  case 'd':
 			dbname = optarg;
+			break;
+
+		  case 'E':
+			fatalerrors = 1;
 			break;
 
 		  case 'F':
@@ -602,6 +608,12 @@ main(int argc, char **argv)
 				if (showfields == 1)
 					dumpfields(stderr, fields, n);
 
+				if (fatalerrors == 1)
+				{
+					(void) odbx_finish(db);
+					return EX_DATAERR;
+				}
+
 				continue;
 			}
 
@@ -626,6 +638,12 @@ main(int argc, char **argv)
 
 				if (showfields == 1)
 					dumpfields(stderr, fields, n);
+
+				if (fatalerrors == 1)
+				{
+					(void) odbx_finish(db);
+					return EX_DATAERR;
+				}
 
 				continue;
 			}
@@ -1173,6 +1191,12 @@ main(int argc, char **argv)
 			fprintf(stderr,
 			        "%s: unknown record type '%c' at input line %d\n",
 			        progname, c, line);
+
+			if (fatalerrors == 1)
+			{
+				(void) odbx_finish(db);
+				return EX_DATAERR;
+			}
 		}
 	}
 

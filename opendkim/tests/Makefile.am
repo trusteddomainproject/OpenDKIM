@@ -3,7 +3,6 @@
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \
 	t-sign-rs-lua t-sign-ss-all t-sign-ss-ltag \
-	t-sign-report \
 	t-verify-revoked t-verify-unspec t-verify-malformed \
 	t-verify-unsigned t-verify-unsigned-silent \
 	t-verify-syntax t-verify-ss t-verify-ss-bad \
@@ -24,6 +23,9 @@ check_SCRIPTS += t-sign-ss-replace
 endif
 if ATPS
 check_SCRIPTS += t-sign-atps t-verify-ss-atps
+endif
+if XTAGS
+check_SCRIPTS += t-sign-report
 endif
 
 TESTS = $(check_SCRIPTS)

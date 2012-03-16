@@ -15,7 +15,7 @@ AC_PREREQ(2.61)
 #
 m4_define([VERSION_RELEASE], 2)
 m4_define([VERSION_MAJOR_REV], 5)
-m4_define([VERSION_MINOR_REV], 0)
+m4_define([VERSION_MINOR_REV], 1)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -113,11 +113,11 @@ dn_comp (0, 0, 0, 0, 0);
 return 0;
 }'
 AC_MSG_CHECKING([whether the resolver works without -lresolv])
+LIBRESOLV=
 AC_LINK_IFELSE([AC_LANG_SOURCE([
 $dnscheck
 ])] , [
 	AC_MSG_RESULT(yes)
-	LIBRESOLV=
 ] , [
 	AC_MSG_RESULT(no)
 	AC_MSG_CHECKING([whether the resolver works with -lresolv])
@@ -301,6 +301,7 @@ FFR_FEATURE([vbr], [Vouch-By-Reference support])
 AM_CONDITIONAL([VBR], [test x"$enable_vbr" = x"yes"])
 
 LIB_FFR_FEATURE([xtags], [extension signature tags])
+AM_CONDITIONAL([XTAGS], [test x"$enable_xtags" = x"yes"])
 
 if test x"$enable_statsext" = x"yes" -a x"$enable_stats" != x"yes"
 then

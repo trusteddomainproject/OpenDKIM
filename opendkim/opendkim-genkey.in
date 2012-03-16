@@ -5,7 +5,7 @@
 ## Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 ## All rights reserved.
 ##
-## Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+## Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 ##
 ## opendkim-genkey -- generate a key and/or TXT record for DKIM service
 ##
@@ -13,10 +13,6 @@
 ## 	-b bits		key size (default = 1024)
 ##  	-d domain	signing domain (default = "@DOMAIN@")
 ## 	-D dir		output directory (default = ".")
-##      -f user		request ARF feedback be given to the user@domain in
-##      		in the case of DKIM signature failure
-##      -ff format	Format of feedback. "arf" or "smtp"
-##      -fi interval	Interval of report formats.
 ## 	-h algs		list of allowed hash algorithms (default = unspecified)
 ## 	-n text		include "text" as a note in the output key record
 ## 	-r		restrict this key to e-mail use only
@@ -44,9 +40,6 @@ nosubdomains=0
 hashalgs=""
 note=""
 flags=""
-feedback="postmaster"
-feedbackinterval=""
-feedbackformat=""
 selector="default"
 restrict=0
 testmode=0
@@ -86,51 +79,6 @@ do
 
 		shift
 		outdir=$1
-		;;
-
-	-f)	if [ $# -eq 1 ]
-		then
-			echo $progname: -f requires a value
-			exit 1
-		fi
-
-		shift
-		feedback=$1
-		;;
-
-	-ff)	if [ $# -eq 1 ]
-		then
-			echo $progname: -ff requires a value
-			exit 1
-		fi
-		shift
-		case $1 in
-		arf|smtp) 
-			feedbackformat=" rf=$1;"
-			;;
-		*)
-			echo $progname: -ff takes a format of arf or smtp only
-			exit 1
-			;;
-		esac
-		;;
-
-	-fi)	if [ $# -eq 1 ]
-		then
-			echo $progname: -fi requires a value
-			exit 1
-		fi
-
-		shift
-		case $1 in
-		[0-9]*)
-			feedbackinterval=" ri=$1;"
-			;;
-		*)
-			echo $progname: -fi takes only a numeric value
-			exit 1
-			;;
-		esac
 		;;
 
 	-h)	if [ $# -eq 1 ]
@@ -226,11 +174,6 @@ then
 	fi
 fi
 
-if [ $feedback  != "" ]
-then
-	feedbackout=" r=$feedback;";
-fi
-
 flagsout=""
 if [ "$flags" != "" ]
 then
@@ -256,7 +199,7 @@ else
 	comment=""
 fi
 
-echo ${selector}._domainkey   IN   TXT  '"'v=DKIM1\;$noteout$hashout$feedbackout$feedbackinterval$feedbackformat k=rsa\;$flagsout p=$pubkey'"' $comment > ${selector}.txt
+echo ${selector}._domainkey   IN   TXT  '"'v=DKIM1\;$noteout$hashoutk=rsa\;$flagsout p=$pubkey'"' $comment > ${selector}.txt
 
 if [ $verbose -eq 1 ]
 then
