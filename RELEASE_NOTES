@@ -5,6 +5,10 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.5.2		2012/??/??
+	Fix bug #SF3496208: Replace stats/opendkim-genstats with a perl
+		script so it's far more efficient.
+
 2.5.1		2012/03/15
 	Fix bug #SF3496131: Fix query cache build problem.  Reported by
 		Dilian Wesselinov Palauzov.
