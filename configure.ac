@@ -2085,6 +2085,7 @@ AC_OUTPUT([	Makefile
 			opendkim/opendkim-atpszone.8 opendkim/opendkim-spam.1
 		opendkim/tests/Makefile
 		stats/Makefile stats/opendkim-importstats.8
+			stats/opendkim-genstats
 		reputation/Makefile
 			reputation/opendkim-genrates
 			reputation/opendkim-genrates.8
