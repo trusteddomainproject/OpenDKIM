@@ -632,7 +632,10 @@ dkimf_db_saslinteract(LDAP *ld, unsigned int flags, void *defaults,
 
 	  case SASL_CB_USER:
 		interact->result = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_AUTHUSER];
-		interact->len = strlen(interact->result);
+		if (interact->result == NULL)
+			interact->len = 0;
+		else
+			interact->len = strlen(interact->result);
 		break;
 
 	  default:
