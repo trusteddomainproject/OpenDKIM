@@ -10,6 +10,8 @@ release, and a summary of the changes in that release.
 		script so it's far more efficient.
 	Fix a crash bug when using LDAP with authentication when LDAPAuthUser
 		is not defined.  Problem noted by Christian Roessner.
+	STATS: Fix bug #SF3510729: Convert stats/opendkim-gengraphs to a perl
+		script.
 
 2.5.1		2012/03/15
 	Fix bug #SF3496131: Fix query cache build problem.  Reported by
