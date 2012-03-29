@@ -269,7 +269,7 @@ if ($verbose)
 	print STDERR "$progname: constructing temporary table\n";
 }
 
-$dbi_s = $dbi_h->prepare("CREATE TABLE t1 (
+$dbi_s = $dbi_h->prepare("CREATE TEMPORARY TABLE t1 (
 	id INT UNSIGNED NOT NULL AUTO_INCREMENT,
 	ddate DATE,
 	msgcount INT UNSIGNED NOT NULL,
