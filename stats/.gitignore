@@ -29,3 +29,4 @@ opendkim-anonstats
 opendkim-importstats
 opendkim-modtotals.pl
 opendkim-genstats
+opendkim-gengraphs
