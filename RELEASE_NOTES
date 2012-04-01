@@ -8,6 +8,8 @@ release, and a summary of the changes in that release.
 2.5.2		2012/??/??
 	Fix bug #SF3496208: Replace stats/opendkim-genstats with a perl
 		script so it's far more efficient.
+	Fix a crash bug when using LocalADSP with a message with no
+		parseable From: field.  Problem noted by John Merriam.
 	Fix a crash bug when using LDAP with authentication when LDAPAuthUser
 		is not defined.  Problem noted by Christian Roessner.
 	STATS: Fix bug #SF3510729: Convert stats/opendkim-gengraphs to a perl
