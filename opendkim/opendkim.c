@@ -12291,8 +12291,8 @@ mlfi_eoh(SMFICTX *ctx)
 			hdr = dkimf_findheader(dfc, conf->conf_identityhdr, 0);
 			if (hdr != NULL)
 			{
-				char *user;
-				char *domain;
+				u_char *user;
+				u_char *domain;
 
 				status = dkim_mail_parse(hdr->hdr_val,
 				                         &user, &domain);
@@ -12301,7 +12301,8 @@ mlfi_eoh(SMFICTX *ctx)
 					snprintf((char *) identity,
 					         sizeof identity,
 						 "%s@%s",
-						 user == NULL ? "" : user,
+						 user == NULL ? ""
+					                      : (char *) user,
 						 domain);
 					idset = TRUE;
 				}
