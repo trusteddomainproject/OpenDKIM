@@ -13448,14 +13448,15 @@ mlfi_eom(SMFICTX *ctx)
 			dkim_atps_t atps = DKIM_ATPS_UNKNOWN;
 			DKIM_SIGINFO **sigs;
 #endif /* _FFR_ATPS */
-			u_char *domain;
 
-			domain = dkim_getdomain(dfc->mctx_dkimv);
-
-			if (conf->conf_localadsp_db != NULL &&
-			    domain != NULL)
+			if (conf->conf_localadsp_db != NULL)
 			{
-				if (dkimf_local_adsp(conf, (char *) domain,
+				u_char *domain;
+
+				domain = dkim_getdomain(dfc->mctx_dkimv);
+
+				if (domain != NULL &&
+				    dkimf_local_adsp(conf, (char *) domain,
 				                     &dfc->mctx_pcode))
 				{
 					pstatus = DKIM_STAT_OK;
