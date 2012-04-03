@@ -36,6 +36,18 @@ if (isset($_GET["reporter"]))
 else
 	$reporter = 0;
 
+if (isset($_GET["format"]))
+{
+	$format = $_GET["format"];
+	if (strtolower($format) != "xml" &&
+	    strtolower($format) != "json")
+		die("Unrecognized format");
+	else if (strtolower($format) == "xml")
+		$use_json = 0;
+	else
+		$use_json = 1;
+}
+
 $query1 = "SELECT	ratio_high,
 			UNIX_TIMESTAMP(updated),
 			rate_samples
