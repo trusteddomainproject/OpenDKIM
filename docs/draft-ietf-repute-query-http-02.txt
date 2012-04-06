@@ -4,17 +4,17 @@
 REPUTE Working Group                                       N. Borenstein
 Internet-Draft                                                  Mimecast
 Intended status: Standards Track                            M. Kucherawy
-Expires: July 16, 2012                                         Cloudmark
-                                                        January 13, 2012
+Expires: October 8, 2012                                       Cloudmark
+                                                           April 6, 2012
 
 
-             Reputation Data Interchange using HTTP and XML
-                    draft-ietf-repute-query-http-01
+            Reputation Data Interchange using HTTP and JSON
+                    draft-ietf-repute-query-http-02
 
 Abstract
 
    This document defines a mechanism to conduct queries for reputation
-   information using the Domain Name System.
+   information using the Hypertext Transfer Protocol.
 
 Status of this Memo
 
@@ -31,7 +31,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on July 16, 2012.
+   This Internet-Draft will expire on October 8, 2012.
 
 Copyright Notice
 
@@ -52,16 +52,16 @@ Copyright Notice
 
 
 
-Borenstein & Kucherawy    Expires July 16, 2012                 [Page 1]
+Borenstein & Kucherawy   Expires October 8, 2012                [Page 1]
 
-Internet-Draft    Reputation Queries with HTTP and XML      January 2012
+Internet-Draft    Reputation Queries with HTTP and JSON       April 2012
 
 
 Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . . . 3
    2.  Terminology and Definitions . . . . . . . . . . . . . . . . . . 3
-     2.1.  Keywords  . . . . . . . . . . . . . . . . . . . . . . . . . 3
+     2.1.  Key Words . . . . . . . . . . . . . . . . . . . . . . . . . 3
      2.2.  Other Definitions . . . . . . . . . . . . . . . . . . . . . 3
    3.  Description . . . . . . . . . . . . . . . . . . . . . . . . . . 3
      3.1.  Query . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
@@ -108,26 +108,23 @@ Table of Contents
 
 
 
-Borenstein & Kucherawy    Expires July 16, 2012                 [Page 2]
+Borenstein & Kucherawy   Expires October 8, 2012                [Page 2]
 
-Internet-Draft    Reputation Queries with HTTP and XML      January 2012
+Internet-Draft    Reputation Queries with HTTP and JSON       April 2012
 
 
 1.  Introduction
 
-   This memo defines a method to query a reputation data service for
+   This document defines a method to query a reputation data service for
    information about an entity, using the HyperText Transfer Protocol
-   (HTTP) as the transport mechanism and XML as the payload format.  It
-   is part of a series defining the overall reputation query/response
-   structure as well as the concept of reputation "vocabularies" for
-   particular applications.
+   (HTTP) as the transport mechanism and JSON as the payload format.
 
 
 2.  Terminology and Definitions
 
    This section defines terms used in the rest of the document.
 
-2.1.  Keywords
+2.1.  Key Words
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
@@ -135,8 +132,8 @@ Internet-Draft    Reputation Queries with HTTP and XML      January 2012
 
 2.2.  Other Definitions
 
-   Other terms of importance in this memo are defined in
-   [I-D.REPUTE-MODEL].
+   Other terms of importance in this document are defined in
+   [I-D.REPUTE-MODEL] and [I-D.REPUTE-MEDIA-TYPE].
 
 
 3.  Description
@@ -144,8 +141,7 @@ Internet-Draft    Reputation Queries with HTTP and XML      January 2012
 3.1.  Query
 
    A reputation query made via [HTTP] encodes the question being asked
-   partly in the [URI] and partly within the GET instruction of the
-   protocol.
+   in the GET instruction of the protocol.
 
    The components to the question being asked comprise the following:
 
@@ -160,19 +156,19 @@ Internet-Draft    Reputation Queries with HTTP and XML      January 2012
    o  Optionally, name(s) of the specific reputation assertions or
       attributies that are being requested.
 
-   The name of the application MUST be one registered with IANA.  A
+   The name of the application, if given, MUST be one registered with
+   IANA.  A server receiving a query about an unregistered application
+   or one it does not explicitly support MUST return a 404 error code.
+
+   The syntax for the [URI] portion of the query is constructed using a
 
 
 
-Borenstein & Kucherawy    Expires July 16, 2012                 [Page 3]
+Borenstein & Kucherawy   Expires October 8, 2012                [Page 3]
 
-Internet-Draft    Reputation Queries with HTTP and XML      January 2012
+Internet-Draft    Reputation Queries with HTTP and JSON       April 2012
 
 
-   server receiving a query about an unregistered application or one it
-   does not explicitly support MUST return a 404 error code.
-
-   The syntax for the URI portion of the query is constructed using a
    template as per [URI-TEMPLATE].  The following variables MUST be
    available during template expansion:
 
@@ -183,12 +179,14 @@ Internet-Draft    Reputation Queries with HTTP and XML      January 2012
 
    service:  The hostname or IP address being queried.
 
+   subject:  The subject of the query.
+
    Which scheme(s) can be used depends on how the reputation service
    provider offers its services.  Thus, the template could include a
-   specific schema as a fixed string in the template, or it might offer
+   specific scheme as a fixed string in the template, or it might offer
    it as a variable in the template.  If it is a variable, it is up to
    the client and server to negotiate out-of-band which schemes are
-   supported for client queries.  Implementers should be aware that the
+   supported for client queries.  Implementers need to be aware that the
    template could include a fixed scheme not supported by the client.
 
    The following variables are OPTIONAL, but might be required by the
@@ -198,12 +196,15 @@ Internet-Draft    Reputation Queries with HTTP and XML      January 2012
       the client.  If absent, the server MUST infer that all available
       assertion information is being requested.
 
-   passwd:  The "password" portion of a client credential.
-
-   user:  The "user" portion of a client credential.
-
    Other required or optional query parameters might be defined by
-   documents that register new vocabularies with IANA.
+   documents that register new response sets with IANA.  Further, other
+   required or optional query parameters might be defined by specific
+   reputation service providers, though these are private arrangements
+   between client and server and will not be registered with IANA.
+
+   Authentication between reputation client and server MAY be
+   accomplished using query extensions, or MAY rely on the capabilities
+   of the transport associated with the selected URI scheme.
 
    The template is retrieved by requesting the [WELL-KNOWN-URI] "repute-
    template" from the host providing reputation service using HTTP.  The
@@ -214,56 +215,56 @@ Internet-Draft    Reputation Queries with HTTP and XML      January 2012
    duration for which the template should be considered valid by clients
    and not re-queried.  Clients SHOULD adhere to the expiration time
    thus provided or, if none is provided, assume that the template is
-   valid for no less than one day and not repeat the query.
+   valid for no less than one day and SHOULD NOT repeat the query.
+
+
+
+
+Borenstein & Kucherawy   Expires October 8, 2012                [Page 4]
+
+Internet-Draft    Reputation Queries with HTTP and JSON       April 2012
+
 
    For example, given the following template:
-
-
-
-Borenstein & Kucherawy    Expires July 16, 2012                 [Page 4]
-
-Internet-Draft    Reputation Queries with HTTP and XML      January 2012
-
 
    {scheme}://{service}/{application}/{subject}/{assertion}
 
    A query about the use of the domain "example.org" in the "email-id"
    application context to a service run at "example.com", where that
    application declares a required "subject" parameter, requesting the
-   "SENDS-SPAM" reputation assertion using HTTP to conduct the query
-   with no specific client authentication information would be formed as
+   "SPAM" reputation assertion using HTTP to conduct the query with no
+   specific client authentication information would be formed as
    follows:
 
-   http://example.com/email-id/example.org/sends-spam
+   http://example.com/email-id/example.org/spam
 
    Matching of the attribute name(s) MUST be case-insensitive.
 
 3.2.  Response
 
-   The response is expected to be an XML document, contained within a
-   "application/reputon" media type object as defined in
-   [I-D.REPUTE-MEDIA-TYPE].  The XML schema for the document is also
-   specified in that memo.
+   The response is expected to be contained in a media type designed to
+   deliver reputons.  An media type designed for this purpose,
+   "application/reputon+json", is defined in [I-D.REPUTE-MEDIA-TYPE].
 
 
 4.  IANA Considerations
 
-   This memo registers the "repute-template" well-known URI in the Well-
-   Known URI registry as defined by [WELL-KNOWN-URI], as follows:
+   This document registers the "repute-template" well-known URI in the
+   Well-Known URI registry as defined by [WELL-KNOWN-URI], as follows:
 
    URI suffix:  repute-template
 
    Change controller:  IETF
 
-   Specification document(s):  [this memo]
+   Specification document(s):  [this document]
 
    Related information:  none
 
 
 5.  Security Considerations
 
-   This memo describes security considerations introduced by the query
-   mechanism defined here.
+   This section describes security considerations introduced by the
+   query mechanism defined here.
 
    [TBD]
 
@@ -272,23 +273,25 @@ Internet-Draft    Reputation Queries with HTTP and XML      January 2012
 
    [HTTP]     Fielding, R., Gettys, J., Mogul, J., Frystyk, H.,
               Masinter, L., Leach, P., and T. Berners-Lee, "Hypertext
-              Transfer Protocol -- HTTP/1.1", RFC 2616, June 1999.
 
 
 
-Borenstein & Kucherawy    Expires July 16, 2012                 [Page 5]
+Borenstein & Kucherawy   Expires October 8, 2012                [Page 5]
 
-Internet-Draft    Reputation Queries with HTTP and XML      January 2012
+Internet-Draft    Reputation Queries with HTTP and JSON       April 2012
 
+
+              Transfer Protocol -- HTTP/1.1", RFC 2616, June 1999.
 
    [I-D.REPUTE-MEDIA-TYPE]
               Borenstein, N. and M. Kucherawy, "A Media Type for
-              Reputation Interchange", I-D draft-ietf-repute-media-type,
-              June 2011.
+              Reputation Interchange", draft-ietf-repute-media-type
+              (work in progress), June 2011.
 
    [I-D.REPUTE-MODEL]
               Borenstein, N. and M. Kucherawy, "A Model for Reputation
-              Interchange", I-D draft-iet-repute-model, June 2011.
+              Interchange", draft-iet-repute-model (work in progress),
+              June 2011.
 
    [KEYWORDS]
               Bradner, S., "Key words for use in RFCs to Indicate
@@ -300,8 +303,8 @@ Internet-Draft    Reputation Queries with HTTP and XML      January 2012
 
    [URI-TEMPLATE]
               Gregorio, J., Fielding, R., Hadley, M., Nottingham, M.,
-              and D. Orchard, "URI Template",
-              I-D draft-gregorio-uritemplate, September 2011.
+              and D. Orchard, "URI Template", draft-gregorio-uritemplate
+              (work in progress), September 2011.
 
    [WELL-KNOWN-URI]
               Nottingham, M. and E. Hammer-Lahav, "Defining Well-Known
@@ -318,7 +321,7 @@ Appendix A.  Acknowledgements
 
 Appendix B.  Public Discussion
 
-   Public discussion of this suite of memos takes place on the
+   Public discussion of this set of documents takes place on the
    domainrep@ietf.org mailing list.  See
    https://www.ietf.org/mailman/listinfo/domainrep.
 
@@ -329,12 +332,9 @@ Appendix B.  Public Discussion
 
 
 
-
-
-
-Borenstein & Kucherawy    Expires July 16, 2012                 [Page 6]
+Borenstein & Kucherawy   Expires October 8, 2012                [Page 6]
 
-Internet-Draft    Reputation Queries with HTTP and XML      January 2012
+Internet-Draft    Reputation Queries with HTTP and JSON       April 2012
 
 
 Authors' Addresses
@@ -388,5 +388,5 @@ Authors' Addresses
 
 
 
-Borenstein & Kucherawy    Expires July 16, 2012                 [Page 7]
+Borenstein & Kucherawy   Expires October 8, 2012                [Page 7]
 
