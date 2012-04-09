@@ -2245,9 +2245,10 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		{
 #    if DB_VERSION_CHECK(4,1,25)
  			lderr = newdb->open(newdb, NULL, NULL, NULL,
-			                    DB_HASH, 0, 0);
+			                    DB_HASH, DB_CREATE, 0);
 #    else /* DB_VERSION_CHECK(4,1,25) */
-			lderr = newdb->open(newdb, NULL, NULL, DB_HASH, 0, 0);
+			lderr = newdb->open(newdb, NULL, NULL, DB_HASH,
+			                    DB_CREATE, 0);
 #    endif /* DB_VERSION_CHECK(4,1,25) */
 		}
 #   elif DB_VERSION_CHECK(2,0,0)
