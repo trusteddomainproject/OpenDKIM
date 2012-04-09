@@ -5,6 +5,18 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.5.2		2012/04/09
+	Fix bug #SF3496208: Replace stats/opendkim-genstats with a perl
+		script so it's far more efficient.
+	Fix bug #SF3514793: Pass proper flags to libdb when creating
+		temporary LDAP caches.  Problem noted by Sergey Romanov.
+	Fix a crash bug when using LocalADSP with a message with no
+		parseable From: field.  Problem noted by John Merriam.
+	Fix a crash bug when using LDAP with authentication when LDAPAuthUser
+		is not defined.  Problem noted by Christian Roessner.
+	STATS: Fix bug #SF3510729: Convert stats/opendkim-gengraphs to a perl
+		script.
+
 2.5.1		2012/03/15
 	Fix bug #SF3496131: Fix query cache build problem.  Reported by
 		Dilian Wesselinov Palauzov.

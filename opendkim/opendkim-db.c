@@ -632,7 +632,10 @@ dkimf_db_saslinteract(LDAP *ld, unsigned int flags, void *defaults,
 
 	  case SASL_CB_USER:
 		interact->result = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_AUTHUSER];
-		interact->len = strlen(interact->result);
+		if (interact->result == NULL)
+			interact->len = 0;
+		else
+			interact->len = strlen(interact->result);
 		break;
 
 	  default:
@@ -2242,9 +2245,10 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		{
 #    if DB_VERSION_CHECK(4,1,25)
  			lderr = newdb->open(newdb, NULL, NULL, NULL,
-			                    DB_HASH, 0, 0);
+			                    DB_HASH, DB_CREATE, 0);
 #    else /* DB_VERSION_CHECK(4,1,25) */
-			lderr = newdb->open(newdb, NULL, NULL, DB_HASH, 0, 0);
+			lderr = newdb->open(newdb, NULL, NULL, DB_HASH,
+			                    DB_CREATE, 0);
 #    endif /* DB_VERSION_CHECK(4,1,25) */
 		}
 #   elif DB_VERSION_CHECK(2,0,0)

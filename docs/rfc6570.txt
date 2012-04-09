@@ -1,21 +1,23 @@
 
 
 
-Network Working Group                                        J. Gregorio
-Internet-Draft                                                    Google
-Intended status: Standards Track                             R. Fielding
-Expires: July 29, 2012                                             Adobe
+
+
+
+Internet Engineering Task Force (IETF)                       J. Gregorio
+Request for Comments: 6570                                        Google
+Category: Standards Track                                    R. Fielding
+ISSN: 2070-1721                                                    Adobe
                                                                M. Hadley
                                                                    MITRE
                                                            M. Nottingham
                                                                Rackspace
                                                               D. Orchard
                                                           Salesforce.com
-                                                            Jan 26, 2012
+                                                              March 2012
 
 
                               URI Template
-                     draft-gregorio-uritemplate-08
 
 Abstract
 
@@ -25,22 +27,19 @@ Abstract
    for expanding a URI Template into a URI reference, along with
    guidelines for the use of URI Templates on the Internet.
 
-Status of this Memo
+Status of This Memo
 
-   This Internet-Draft is submitted in full conformance with the
-   provisions of BCP 78 and BCP 79.
+   This is an Internet Standards Track document.
 
-   Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF).  Note that other groups may also distribute
-   working documents as Internet-Drafts.  The list of current Internet-
-   Drafts is at http://datatracker.ietf.org/drafts/current/.
+   This document is a product of the Internet Engineering Task Force
+   (IETF).  It represents the consensus of the IETF community.  It has
+   received public review and has been approved for publication by the
+   Internet Engineering Steering Group (IESG).  Further information on
+   Internet Standards is available in Section 2 of RFC 5741.
 
-   Internet-Drafts are draft documents valid for a maximum of six months
-   and may be updated, replaced, or obsoleted by other documents at any
-   time.  It is inappropriate to use Internet-Drafts as reference
-   material or to cite them other than as "work in progress."
-
-   This Internet-Draft will expire on July 29, 2012.
+   Information about the current status of this document, any errata,
+   and how to provide feedback on it may be obtained at
+   http://www.rfc-editor.org/info/rfc6570.
 
 Copyright Notice
 
@@ -49,68 +48,72 @@ Copyright Notice
 
    This document is subject to BCP 78 and the IETF Trust's Legal
    Provisions Relating to IETF Documents
-
-
-
-Gregorio, et al.          Expires July 29, 2012                 [Page 1]
-
-Internet-Draft                URI Template                      Jan 2012
-
-
    (http://trustee.ietf.org/license-info) in effect on the date of
    publication of this document.  Please review these documents
    carefully, as they describe your rights and restrictions with respect
    to this document.  Code Components extracted from this document must
+
+
+
+Gregorio, et al.             Standards Track                    [Page 1]
+
+RFC 6570                      URI Template                    March 2012
+
+
    include Simplified BSD License text as described in Section 4.e of
    the Trust Legal Provisions and are provided without warranty as
    described in the Simplified BSD License.
 
-
 Table of Contents
 
-   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
-     1.1.  Overview . . . . . . . . . . . . . . . . . . . . . . . . .  3
-     1.2.  Levels and Expression Types  . . . . . . . . . . . . . . .  5
-     1.3.  Design Considerations  . . . . . . . . . . . . . . . . . .  9
-     1.4.  Limitations  . . . . . . . . . . . . . . . . . . . . . . . 10
-     1.5.  Notational Conventions . . . . . . . . . . . . . . . . . . 11
-     1.6.  Character Encoding and Unicode Normalization . . . . . . . 12
-   2.  Syntax . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
-     2.1.  Literals . . . . . . . . . . . . . . . . . . . . . . . . . 13
-     2.2.  Expressions  . . . . . . . . . . . . . . . . . . . . . . . 13
-     2.3.  Variables  . . . . . . . . . . . . . . . . . . . . . . . . 14
-     2.4.  Value Modifiers  . . . . . . . . . . . . . . . . . . . . . 15
-       2.4.1.  Prefix Values  . . . . . . . . . . . . . . . . . . . . 15
-       2.4.2.  Composite Values . . . . . . . . . . . . . . . . . . . 16
-   3.  Expansion  . . . . . . . . . . . . . . . . . . . . . . . . . . 17
-     3.1.  Literal Expansion  . . . . . . . . . . . . . . . . . . . . 18
-     3.2.  Expression Expansion . . . . . . . . . . . . . . . . . . . 18
-       3.2.1.  Variable Expansion . . . . . . . . . . . . . . . . . . 19
-       3.2.2.  Simple String Expansion: {var} . . . . . . . . . . . . 21
-       3.2.3.  Reserved expansion: {+var} . . . . . . . . . . . . . . 22
-       3.2.4.  Fragment expansion: {#var} . . . . . . . . . . . . . . 23
-       3.2.5.  Label expansion with dot-prefix: {.var}  . . . . . . . 24
-       3.2.6.  Path segment expansion: {/var} . . . . . . . . . . . . 24
-       3.2.7.  Path-style parameter expansion: {;var} . . . . . . . . 25
-       3.2.8.  Form-style query expansion: {?var} . . . . . . . . . . 26
-       3.2.9.  Form-style query continuation: {&var}  . . . . . . . . 26
-   4.  Security Considerations  . . . . . . . . . . . . . . . . . . . 27
-   5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 28
-   6.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . . 28
-   7.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 28
-     7.1.  Normative References . . . . . . . . . . . . . . . . . . . 28
-     7.2.  Informative References . . . . . . . . . . . . . . . . . . 29
-   Appendix A.  Implementation Hints  . . . . . . . . . . . . . . . . 29
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 32
+   1. Introduction ....................................................3
+      1.1. Overview ...................................................3
+      1.2. Levels and Expression Types ................................5
+      1.3. Design Considerations ......................................9
+      1.4. Limitations ...............................................10
+      1.5. Notational Conventions ....................................11
+      1.6. Character Encoding and Unicode Normalization ..............12
+   2. Syntax .........................................................13
+      2.1. Literals ..................................................13
+      2.2. Expressions ...............................................13
+      2.3. Variables .................................................14
+      2.4. Value Modifiers ...........................................15
+           2.4.1. Prefix Values ......................................15
+           2.4.2. Composite Values ...................................16
+   3. Expansion ......................................................18
+      3.1. Literal Expansion .........................................18
+      3.2. Expression Expansion ......................................18
+           3.2.1. Variable Expansion .................................19
+           3.2.2. Simple String Expansion: {var} .....................21
+           3.2.3. Reserved Expansion: {+var} .........................22
+           3.2.4. Fragment Expansion: {#var} .........................23
+           3.2.5. Label Expansion with Dot-Prefix: {.var} ............24
+           3.2.6. Path Segment Expansion: {/var} .....................24
+           3.2.7. Path-Style Parameter Expansion: {;var} .............25
+           3.2.8. Form-Style Query Expansion: {?var} .................26
+           3.2.9. Form-Style Query Continuation: {&var} ..............27
+   4. Security Considerations ........................................27
+   5. Acknowledgments ................................................28
+   6. References .....................................................28
+      6.1. Normative References ......................................28
+      6.2. Informative References ....................................29
+   Appendix A. Implementation Hints ..................................30
 
 
 
 
 
 
-Gregorio, et al.          Expires July 29, 2012                 [Page 2]
+
+
+
+
+
+
+
+Gregorio, et al.             Standards Track                    [Page 2]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
 1.  Introduction
@@ -142,40 +145,42 @@ Internet-Draft                URI Template                      Jan 2012
 
    URI Templates provide a mechanism for abstracting a space of resource
    identifiers such that the variable parts can be easily identified and
-   described.  URI templates can have many uses, including discovery of
-   available services, configuring resource mappings, defining computed
-   links, specifying interfaces, and other forms of programmatic
-   interaction with resources.  For example, the above resources could
-   be described by the following URI templates:
+   described.  URI Templates can have many uses, including the discovery
+   of available services, configuring resource mappings, defining
+   computed links, specifying interfaces, and other forms of
+   programmatic interaction with resources.  For example, the above
+   resources could be described by the following URI Templates:
 
      http://example.com/~{username}/
      http://example.com/dictionary/{term:1}/{term}
      http://example.com/search{?q,lang}
 
    We define the following terms:
-   o  expression - The text between '{' and '}', including the enclosing
+
+   expression:  The text between '{' and '}', including the enclosing
       braces, as defined in Section 2.
-   o  expansion - The string result obtained from a template expression
+
+   expansion:  The string result obtained from a template expression
       after processing it according to its expression type, list of
       variable names, and value modifiers, as defined in Section 3.
-   o  template processor - A program or library that, given a URI
-      Template and a set of variables with values, transforms the
-      template string into a URI-reference by parsing the template for
 
 
 
-Gregorio, et al.          Expires July 29, 2012                 [Page 3]
+
+Gregorio, et al.             Standards Track                    [Page 3]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
-      expressions and substituting each one with its corresponding
-      expansion.
+   template processor:  A program or library that, given a URI Template
+      and a set of variables with values, transforms the template string
+      into a URI reference by parsing the template for expressions and
+      substituting each one with its corresponding expansion.
 
    A URI Template provides both a structural description of a URI space
    and, when variable values are provided, machine-readable instructions
    on how to construct a URI corresponding to those values.  A URI
-   Template is transformed into a URI-reference by replacing each
+   Template is transformed into a URI reference by replacing each
    delimited expression with its value as defined by the expression type
    and the values of variables named within the expression.  The
    expression types range from simple string expansion to multiple
@@ -216,14 +221,14 @@ Internet-Draft                URI Template                      Jan 2012
 
      http://www.example.com/foo?number=100
 
-   or if both variables are undefined, then it would be
 
 
-
-Gregorio, et al.          Expires July 29, 2012                 [Page 4]
+Gregorio, et al.             Standards Track                    [Page 4]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
+
+   or if both variables are undefined, then it would be
 
      http://www.example.com/foo
 
@@ -233,9 +238,10 @@ Internet-Draft                URI Template                      Jan 2012
 
    Although the URI syntax is used for the result, the template string
    is allowed to contain the broader set of characters that can be found
-   in IRI references [RFC3987].  A URI Template is therefore also an IRI
-   template, and the result of template processing can be transformed to
-   an IRI by following the process defined in Section 3.2 of [RFC3987].
+   in Internationalized Resource Identifier (IRI) references [RFC3987].
+   Therefore, a URI Template is also an IRI template, and the result of
+   template processing can be transformed to an IRI by following the
+   process defined in Section 3.2 of [RFC3987].
 
 1.2.  Levels and Expression Types
 
@@ -273,12 +279,9 @@ Internet-Draft                URI Template                      Jan 2012
 
 
 
-
-
-
-Gregorio, et al.          Expires July 29, 2012                 [Page 5]
+Gregorio, et al.             Standards Track                    [Page 5]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
    .-----------------------------------------------------------------.
@@ -307,7 +310,7 @@ Internet-Draft                URI Template                      Jan 2012
    Level 3 templates allow multiple variables per expression, each
    separated by a comma, and add more complex operators for dot-prefixed
    labels, slash-prefixed path segments, semicolon-prefixed path
-   parameters, and the forms-style construction of a query syntax
+   parameters, and the form-style construction of a query syntax
    consisting of name=value pairs that are separated by an ampersand
    character.
 
@@ -332,9 +335,9 @@ Internet-Draft                URI Template                      Jan 2012
 
 
 
-Gregorio, et al.          Expires July 29, 2012                 [Page 6]
+Gregorio, et al.             Standards Track                    [Page 6]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
    |-----+-----------------------------------------------------------|
@@ -388,9 +391,9 @@ Internet-Draft                URI Template                      Jan 2012
 
 
 
-Gregorio, et al.          Expires July 29, 2012                 [Page 7]
+Gregorio, et al.             Standards Track                    [Page 7]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
    indicates that the variable is to be treated as a composite value,
@@ -444,9 +447,9 @@ Internet-Draft                URI Template                      Jan 2012
 
 
 
-Gregorio, et al.          Expires July 29, 2012                 [Page 8]
+Gregorio, et al.             Standards Track                    [Page 8]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
    |     |    X{.list*}             X.red.green.blue                 |
@@ -495,14 +498,14 @@ Internet-Draft                URI Template                      Jan 2012
 1.3.  Design Considerations
 
    Mechanisms similar to URI Templates have been defined within several
-   specifications, including WSDL [WSDL], WADL [WADL] and OpenSearch
+   specifications, including WSDL [WSDL], WADL [WADL], and OpenSearch
    [OpenSearch].  This specification extends and formally defines the
 
 
 
-Gregorio, et al.          Expires July 29, 2012                 [Page 9]
+Gregorio, et al.             Standards Track                    [Page 9]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
    syntax so that URI Templates can be used consistently across multiple
@@ -536,7 +539,7 @@ Internet-Draft                URI Template                      Jan 2012
    expansion, since more complex forms could be generated by changing
    the variable values.  However, URI Templates have the additional goal
    of describing the layout of identifiers in terms of preexisting data
-   values.  The template syntax therefore includes operators that
+   values.  Therefore, the template syntax includes operators that
    reflect how resource identifiers are commonly allocated.  Likewise,
    since prefix substrings are often used to partition large spaces of
    resources, modifiers on variable values provide a way to specify both
@@ -552,17 +555,18 @@ Internet-Draft                URI Template                      Jan 2012
    the variables being substituted, or at least a means of validating
    user data-entry for those values.
 
-   URI Templates are not URIs: they do not identify an abstract or
 
 
 
-Gregorio, et al.          Expires July 29, 2012                [Page 10]
+
+Gregorio, et al.             Standards Track                   [Page 10]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
-   physical resource, they are not parsed as URIs, and should not be
-   used in places where a URI would be expected unless the template
+   URI Templates are not URIs: they do not identify an abstract or
+   physical resource, they are not parsed as URIs, and they should not
+   be used in places where a URI would be expected unless the template
    expressions will be expanded by a template processor prior to use.
    Distinct field, element, or attribute names should be used to
    differentiate protocol elements that carry a URI Template from those
@@ -611,10 +615,9 @@ Internet-Draft                URI Template                      Jan 2012
 
 
 
-
-Gregorio, et al.          Expires July 29, 2012                [Page 11]
+Gregorio, et al.             Standards Track                   [Page 11]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
 1.6.  Character Encoding and Unicode Normalization
@@ -668,9 +671,9 @@ Internet-Draft                URI Template                      Jan 2012
 
 
 
-Gregorio, et al.          Expires July 29, 2012                [Page 12]
+Gregorio, et al.             Standards Track                   [Page 12]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
 2.  Syntax
@@ -684,7 +687,7 @@ Internet-Draft                URI Template                      Jan 2012
    Although templates (and template processor implementations) are
    described above in terms of four gradual levels, we define the URI-
    Template syntax in terms of the ABNF for Level 4.  A template
-   processor limited to lower level templates MAY exclude the ABNF rules
+   processor limited to lower-level templates MAY exclude the ABNF rules
    applicable only to higher levels.  However, it is RECOMMENDED that
    all parsers implement the full syntax such that unsupported levels
    can be properly identified as such to the end user.
@@ -692,9 +695,9 @@ Internet-Draft                URI Template                      Jan 2012
 2.1.  Literals
 
    The characters outside of expressions in a URI Template string are
-   intended to be copied literally to the URI-reference if the character
+   intended to be copied literally to the URI reference if the character
    is allowed in a URI (reserved / unreserved / pct-encoded) or, if not
-   allowed, copied to the URI-reference as the sequence of pct-encoded
+   allowed, copied to the URI reference as the sequence of pct-encoded
    triplets corresponding to that character's encoding in UTF-8
    [RFC3629].
 
@@ -724,9 +727,9 @@ Internet-Draft                URI Template                      Jan 2012
 
 
 
-Gregorio, et al.          Expires July 29, 2012                [Page 13]
+Gregorio, et al.             Standards Track                   [Page 13]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
    The operator characters have been chosen to reflect each of their
@@ -750,7 +753,7 @@ Internet-Draft                URI Template                      Jan 2012
           a literal query component.
 
    The operator characters equals ("="), comma (","), exclamation ("!"),
-   at-sign ("@"), and pipe ("|") are reserved for future extensions.
+   at sign ("@"), and pipe ("|") are reserved for future extensions.
 
    The expression syntax specifically excludes use of the dollar ("$")
    and parentheses ["(" and ")"] characters so that they remain
@@ -775,16 +778,18 @@ Internet-Draft                URI Template                      Jan 2012
      varname       =  varchar *( ["."] varchar )
      varchar       =  ALPHA / DIGIT / "_" / pct-encoded
 
+
+
+
+
+
+Gregorio, et al.             Standards Track                   [Page 14]
+
+RFC 6570                      URI Template                    March 2012
+
+
    A varname MAY contain one or more pct-encoded triplets.  These
    triplets are considered an essential part of the variable name and
-
-
-
-Gregorio, et al.          Expires July 29, 2012                [Page 14]
-
-Internet-Draft                URI Template                      Jan 2012
-
-
    are not decoded during processing.  A varname containing pct-encoded
    characters is not the same variable as a varname with those same
    characters decoded.  Applications that provide URI Templates are
@@ -802,7 +807,7 @@ Internet-Draft                URI Template                      Jan 2012
    In Level 4 templates, a variable may have a composite value in the
    form of a list of values or an associative array of (name, value)
    pairs.  Such value types are not directly indicated by the template
-   syntax, but do have an impact on the expansion process
+   syntax, but they do have an impact on the expansion process
    (Section 3.2.1).
 
    A variable defined as a list value is considered undefined if the
@@ -830,21 +835,22 @@ Internet-Draft                URI Template                      Jan 2012
    the expanded value to a maximum number of characters.  Prefix
    modifiers are not applicable to variables that have composite values.
 
+
+
+
+
+Gregorio, et al.             Standards Track                   [Page 15]
+
+RFC 6570                      URI Template                    March 2012
+
+
      prefix        =  ":" max-length
      max-length    =  %x31-39 0*3DIGIT   ; positive integer < 10000
-
-
-
-
-Gregorio, et al.          Expires July 29, 2012                [Page 15]
-
-Internet-Draft                URI Template                      Jan 2012
-
 
    The max-length is a positive integer that refers to a maximum number
    of characters from the beginning of the variable's value as a Unicode
    string.  Note that this numbering is in characters, not octets, in
-   order to avoid splitting between the octets of a multi-octet encoded
+   order to avoid splitting between the octets of a multi-octet-encoded
    character or within a pct-encoded triplet.  If the max-length is
    greater than the length of the variable's value, then the entire
    value string is used.
@@ -882,21 +888,22 @@ Internet-Draft                URI Template                      Jan 2012
    context.  For example, the processor might be supplied values in a
    form that differentiates values as strings, lists, or associative
    arrays.  Likewise, the context in which the template is used (script,
-   mark-up language, IDL, etc.) might define rules for associating
-   variable names with types, structures, or schema.
+   mark-up language, Interface Definition Language, etc.) might define
+   rules for associating variable names with types, structures, or
+   schema.
+
+
+
+
+Gregorio, et al.             Standards Track                   [Page 16]
+
+RFC 6570                      URI Template                    March 2012
+
 
    Explode modifiers improve brevity in the URI Template syntax.  For
    example, a resource that provides a geographic map for a given street
    address might accept a hundred permutations on fields for address
    input, including partial addresses (e.g., just the city or postal
-
-
-
-Gregorio, et al.          Expires July 29, 2012                [Page 16]
-
-Internet-Draft                URI Template                      Jan 2012
-
-
    code).  Such a resource could be described as a template with each
    and every address component listed in order, or with a far more
    simple template that makes use of an explode modifier, as in
@@ -939,20 +946,22 @@ Internet-Draft                URI Template                      Jan 2012
        www{.dom*}         www.example.com
 
 
+
+
+
+
+
+Gregorio, et al.             Standards Track                   [Page 17]
+
+RFC 6570                      URI Template                    March 2012
+
+
 3.  Expansion
 
    The process of URI Template expansion is to scan the template string
    from beginning to end, copying literal characters and replacing each
    expression with the result of applying the expression's operator to
    the value of each variable named in the expression.  Each variable's
-
-
-
-Gregorio, et al.          Expires July 29, 2012                [Page 17]
-
-Internet-Draft                URI Template                      Jan 2012
-
-
    value MUST be formed prior to template expansion.
 
    The requirements on expansion for each aspect of the URI Template
@@ -961,7 +970,7 @@ Internet-Draft                URI Template                      Jan 2012
 
    If a template processor encounters a character sequence outside an
    expression that does not match the <URI-Template> grammar, then
-   processing of the template SHOULD cease, the URI-reference result
+   processing of the template SHOULD cease, the URI reference result
    SHOULD contain the expanded part of the template followed by the
    remainder unexpanded, and the location and type of error SHOULD be
    indicated to the invoking application.
@@ -993,6 +1002,16 @@ Internet-Draft                URI Template                      Jan 2012
    continues until the next closing brace ("}").  Expressions cannot be
    nested.
 
+
+
+
+
+
+Gregorio, et al.             Standards Track                   [Page 18]
+
+RFC 6570                      URI Template                    March 2012
+
+
    An expression is expanded by determining its expression type and then
    following that type's expansion process for each comma-separated
    varspec in the expression.  Level 1 templates are limited to the
@@ -1001,14 +1020,6 @@ Internet-Draft                URI Template                      Jan 2012
    varspec per expression.
 
    The expression type is determined by looking at the first character
-
-
-
-Gregorio, et al.          Expires July 29, 2012                [Page 18]
-
-Internet-Draft                URI Template                      Jan 2012
-
-
    after the opening brace.  If the character is an operator, then
    remember the expression type associated with that operator for later
    expansion decisions and skip to the next character for the variable-
@@ -1018,7 +1029,6 @@ Internet-Draft                URI Template                      Jan 2012
 
    The examples in the subsections below use the following definitions
    for variable values:
-
 
          count := ("one", "two", "three")
          dom   := ("example", "com")
@@ -1050,6 +1060,14 @@ Internet-Draft                URI Template                      Jan 2012
    the expansion process is defined in terms of Unicode code points in
    order to ensure that non-ASCII characters are consistently pct-
    encoded in the resulting URI reference.  One way for a template
+
+
+
+Gregorio, et al.             Standards Track                   [Page 19]
+
+RFC 6570                      URI Template                    March 2012
+
+
    processor to obtain a consistent expansion is to transcode the value
    string to UTF-8 (if it is not already in UTF-8) and then transform
    each octet that is not in the allowed set into the corresponding pct-
@@ -1057,14 +1075,6 @@ Internet-Draft                URI Template                      Jan 2012
    character encoding to the set of allowed URI characters, with any
    remaining disallowed characters mapping to the sequence of pct-
    encoded triplets that correspond to the octet(s) of that character
-
-
-
-Gregorio, et al.          Expires July 29, 2012                [Page 19]
-
-Internet-Draft                URI Template                      Jan 2012
-
-
    when encoded as UTF-8 [RFC3629].
 
    The allowed set for a given expansion depends on the expression type:
@@ -1109,16 +1119,9 @@ Internet-Draft                URI Template                      Jan 2012
 
 
 
-
-
-
-
-
-
-
-Gregorio, et al.          Expires July 29, 2012                [Page 20]
+Gregorio, et al.             Standards Track                   [Page 20]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
       Type    Separator
@@ -1172,9 +1175,9 @@ Internet-Draft                URI Template                      Jan 2012
 
 
 
-Gregorio, et al.          Expires July 29, 2012                [Page 21]
+Gregorio, et al.             Standards Track                   [Page 21]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
      Example Template     Expansion
@@ -1196,7 +1199,7 @@ Internet-Draft                URI Template                      Jan 2012
        {keys}             semi,%3B,dot,.,comma,%2C
        {keys*}            semi=%3B,dot=.,comma=%2C
 
-3.2.3.  Reserved expansion: {+var}
+3.2.3.  Reserved Expansion: {+var}
 
    Reserved expansion, as indicated by the plus ("+") operator for Level
    2 and above templates, is identical to simple string expansion except
@@ -1228,9 +1231,9 @@ Internet-Draft                URI Template                      Jan 2012
 
 
 
-Gregorio, et al.          Expires July 29, 2012                [Page 22]
+Gregorio, et al.             Standards Track                   [Page 22]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
      Example Template        Expansion
@@ -1256,7 +1259,7 @@ Internet-Draft                URI Template                      Jan 2012
        {+keys}               semi,;,dot,.,comma,,
        {+keys*}              semi=;,dot=.,comma=,
 
-3.2.4.  Fragment expansion: {#var}
+3.2.4.  Fragment Expansion: {#var}
 
    Fragment expansion, as indicated by the crosshatch ("#") operator for
    Level 2 and above templates, is identical to reserved expansion
@@ -1284,12 +1287,12 @@ Internet-Draft                URI Template                      Jan 2012
 
 
 
-Gregorio, et al.          Expires July 29, 2012                [Page 23]
+Gregorio, et al.             Standards Track                   [Page 23]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
-3.2.5.  Label expansion with dot-prefix: {.var}
+3.2.5.  Label Expansion with Dot-Prefix: {.var}
 
    Label expansion, as indicated by the dot (".") operator for Level 3
    and above templates, is useful for describing URI spaces with varying
@@ -1320,7 +1323,7 @@ Internet-Draft                URI Template                      Jan 2012
        X{.empty_keys}     X
        X{.empty_keys*}    X
 
-3.2.6.  Path segment expansion: {/var}
+3.2.6.  Path Segment Expansion: {/var}
 
    Path segment expansion, as indicated by the slash ("/") operator in
    Level 3 and above templates, is useful for describing URI path
@@ -1340,9 +1343,9 @@ Internet-Draft                URI Template                      Jan 2012
 
 
 
-Gregorio, et al.          Expires July 29, 2012                [Page 24]
+Gregorio, et al.             Standards Track                   [Page 24]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
      Example Template     Expansion
@@ -1362,22 +1365,44 @@ Internet-Draft                URI Template                      Jan 2012
        {/keys}            /semi,%3B,dot,.,comma,%2C
        {/keys*}           /semi=%3B/dot=./comma=%2C
 
-3.2.7.  Path-style parameter expansion: {;var}
+3.2.7.  Path-Style Parameter Expansion: {;var}
 
    Path-style parameter expansion, as indicated by the semicolon (";")
    operator in Level 3 and above templates, is useful for describing URI
    path parameters, such as "path;property" or "path;name=value".
 
    For each defined variable in the variable-list:
+
    o  append ";" to the result string;
+
    o  if the variable has a simple string value or no explode modifier
       is given, then:
+
       *  append the variable name (encoded as if it were a literal
          string) to the result string;
+
       *  if the variable's value is not empty, append "=" to the result
          string;
+
    o  perform variable expansion, as defined in Section 3.2.1, with the
       allowed characters being those in the unreserved set.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gregorio, et al.             Standards Track                   [Page 25]
+
+RFC 6570                      URI Template                    March 2012
+
 
      Example Template     Expansion
 
@@ -1393,31 +1418,27 @@ Internet-Draft                URI Template                      Jan 2012
        {;list}            ;list=red,green,blue
        {;list*}           ;list=red;list=green;list=blue
        {;keys}            ;keys=semi,%3B,dot,.,comma,%2C
-
-
-
-Gregorio, et al.          Expires July 29, 2012                [Page 25]
-
-Internet-Draft                URI Template                      Jan 2012
-
-
        {;keys*}           ;semi=%3B;dot=.;comma=%2C
 
-3.2.8.  Form-style query expansion: {?var}
+3.2.8.  Form-Style Query Expansion: {?var}
 
    Form-style query expansion, as indicated by the question-mark ("?")
    operator in Level 3 and above templates, is useful for describing an
    entire optional query component.
 
    For each defined variable in the variable-list:
+
    o  append "?" to the result string if this is the first defined value
       or append "&" thereafter;
+
    o  if the variable has a simple string value or no explode modifier
       is given, append the variable name (encoded as if it were a
       literal string) and an equals character ("=") to the result
       string; and,
+
    o  perform variable expansion, as defined in Section 3.2.1, with the
       allowed characters being those in the unreserved set.
+
 
      Example Template     Expansion
 
@@ -1432,7 +1453,14 @@ Internet-Draft                URI Template                      Jan 2012
        {?keys}            ?keys=semi,%3B,dot,.,comma,%2C
        {?keys*}           ?semi=%3B&dot=.&comma=%2C
 
-3.2.9.  Form-style query continuation: {&var}
+
+
+Gregorio, et al.             Standards Track                   [Page 26]
+
+RFC 6570                      URI Template                    March 2012
+
+
+3.2.9.  Form-Style Query Continuation: {&var}
 
    Form-style query continuation, as indicated by the ampersand ("&")
    operator in Level 3 and above templates, is useful for describing
@@ -1440,21 +1468,16 @@ Internet-Draft                URI Template                      Jan 2012
    literal query component with fixed parameters.
 
    For each defined variable in the variable-list:
+
    o  append "&" to the result string;
+
    o  if the variable has a simple string value or no explode modifier
       is given, append the variable name (encoded as if it were a
       literal string) and an equals character ("=") to the result
       string; and,
+
    o  perform variable expansion, as defined in Section 3.2.1, with the
       allowed characters being those in the unreserved set.
-
-
-
-
-
-Gregorio, et al.          Expires July 29, 2012                [Page 26]
-
-Internet-Draft                URI Template                      Jan 2012
 
 
      Example Template     Expansion
@@ -1471,7 +1494,6 @@ Internet-Draft                URI Template                      Jan 2012
        {&keys}            &keys=semi,%3B,dot,.,comma,%2C
        {&keys*}           &semi=%3B&dot=.&comma=%2C
 
-
 4.  Security Considerations
 
    A URI Template does not contain active or executable content.
@@ -1484,6 +1506,16 @@ Internet-Draft                URI Template                      Jan 2012
    expansion occurs (client or server), and where the resulting URIs are
    used.
 
+
+
+
+
+
+Gregorio, et al.             Standards Track                   [Page 27]
+
+RFC 6570                      URI Template                    March 2012
+
+
    This specification does not limit where URI Templates might be used.
    Current implementations exist within server-side development
    frameworks and within client-side javascript for computed links or
@@ -1495,7 +1527,7 @@ Internet-Draft                URI Template                      Jan 2012
    rather in how the server extracts and processes the user-provided
    data within a normal Web request.
 
-   Within client-side implementations, a URI template has many of the
+   Within client-side implementations, a URI Template has many of the
    same properties as HTML forms, except limited to URI characters and
    possibly included in HTTP header field values instead of just message
    body content.  Care ought to be taken to ensure that potentially
@@ -1504,21 +1536,9 @@ Internet-Draft                URI Template                      Jan 2012
    template and the values are provided by a trusted source.
 
    Other security considerations are the same as those for URIs, as
-   described in section 7 of [RFC3986].
+   described in Section 7 of [RFC3986].
 
-
-
-Gregorio, et al.          Expires July 29, 2012                [Page 27]
-
-Internet-Draft                URI Template                      Jan 2012
-
-
-5.  IANA Considerations
-
-   No IANA actions are required by this document.
-
-
-6.  Acknowledgments
+5.  Acknowledgments
 
    The following people made contributions to this specification: Mike
    Burrows, Michaeljohn Clement, DeWitt Clinton, John Cowan, Stephen
@@ -1526,72 +1546,86 @@ Internet-Draft                URI Template                      Jan 2012
    Kucherawy, James H. Manger, Tom Petch, Marc Portier, Pete Resnick,
    James Snell, and Jiankang Yao.
 
+6.  References
 
-7.  References
+6.1.  Normative References
 
-7.1.  Normative References
+   [ASCII]       American National Standards Institute, "Coded Character
+                 Set - 7-bit American Standard Code for Information
+                 Interchange", ANSI X3.4, 1986.
 
-   [ASCII]    American National Standards Institute, "Coded Character
-              Set - 7-bit American Standard Code for Information
-              Interchange", ANSI X3.4, 1986.
+   [RFC2119]     Bradner, S., "Key words for use in RFCs to Indicate
+                 Requirement Levels", BCP 14, RFC 2119, March 1997.
 
-   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
-              Requirement Levels", BCP 14, RFC 2119, March 1997.
+   [RFC3629]     Yergeau, F., "UTF-8, a transformation format of ISO
+                 10646", STD 63, RFC 3629, November 2003.
 
-   [RFC3629]  Yergeau, F., "UTF-8, a transformation format of ISO
-              10646", STD 63, RFC 3629, November 2003.
-
-   [RFC3986]  Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
-              Resource Identifier (URI): Generic Syntax", STD 66,
-              RFC 3986, January 2005.
-
-   [RFC3987]  Duerst, M. and M. Suignard, "Internationalized Resource
-              Identifiers (IRIs)", RFC 3987, January 2005.
-
-   [RFC5234]  Crocker, D. and P. Overell, "Augmented BNF for Syntax
-              Specifications: ABNF", STD 68, RFC 5234, January 2008.
-
-   [RFC6365]  Hoffman, P. and J. Klensin, "Terminology Used in
-              Internationalization in the IETF", BCP 166, RFC 6365,
-              September 2011.
-
-   [UNIV6]    The Unicode Consortium, "The Unicode Standard, Version
-              6.0.0", ISBN 978-1-936213-01-6, October 2011,
-              <http://www.unicode.org/versions/Unicode6.0.0/>.
-
-   [UTR15]    Davis, M. and M. Duerst, "Unicode Normalization Forms",
-              Unicode Standard Annex # 15, April 2003,
+   [RFC3986]     Berners-Lee, T., Fielding, R., and L. Masinter,
+                 "Uniform Resource Identifier (URI): Generic Syntax",
+                 STD 66, RFC 3986, January 2005.
 
 
 
-Gregorio, et al.          Expires July 29, 2012                [Page 28]
+
+Gregorio, et al.             Standards Track                   [Page 28]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
-              <http://www.unicode.org/unicode/reports/tr15/
-              tr15-23.html>.
+   [RFC3987]     Duerst, M. and M. Suignard, "Internationalized Resource
+                 Identifiers (IRIs)", RFC 3987, January 2005.
 
-7.2.  Informative References
+   [RFC5234]     Crocker, D. and P. Overell, "Augmented BNF for Syntax
+                 Specifications: ABNF", STD 68, RFC 5234, January 2008.
 
-   [OpenSearch]
-              Clinton, D., "OpenSearch 1.1", Draft 5, December 2011,
-              <http://www.opensearch.org/Specifications/OpenSearch>.
+   [RFC6365]     Hoffman, P. and J. Klensin, "Terminology Used in
+                 Internationalization in the IETF", BCP 166, RFC 6365,
+                 September 2011.
 
-   [UPU-S42]  Universal Postal Union, "International Postal Address
-              Components and Templates", UPU S42-1, November 2002, <http
-              ://www.upu.int/en/activities/addressing/standards.html>.
+   [UNIV6]       The Unicode Consortium, "The Unicode Standard, Version
+                 6.0.0", (Mountain View, CA: The Unicode Consortium,
+                 2011.  ISBN 978-1-936213-01-6),
+                 <http://www.unicode.org/versions/Unicode6.0.0/>.
 
-   [WADL]     Hadley, M., "Web Application Description Language", World
-              Wide Web Consortium Member Submission SUBM-wadl-20090831,
-              August 2009,
-              <http://www.w3.org/Submission/2009/SUBM-wadl-20090831/>.
+   [UTR15]       Davis, M. and M. Duerst, "Unicode Normalization Forms",
+                 Unicode Standard Annex # 15, April 2003,
+                 <http://www.unicode.org/unicode/reports/tr15/
+                 tr15-23.html>.
 
-   [WSDL]     Weerawarana, S., Moreau, J., Ryman, A., and R. Chinnici,
-              "Web Services Description Language (WSDL) Version 2.0 Part
-              1: Core Language", World Wide Web Consortium
-              Recommendation REC-wsdl20-20070626, June 2007,
-              <http://www.w3.org/TR/2007/REC-wsdl20-20070626>.
+6.2.  Informative References
+
+   [OpenSearch]  Clinton, D., "OpenSearch 1.1", Draft 5, December 2011,
+                 <http://www.opensearch.org/Specifications/OpenSearch>.
+
+   [UPU-S42]     Universal Postal Union, "International Postal Address
+                 Components and Templates", UPU S42-1, November 2002,
+                 <http://www.upu.int/en/activities/addressing/
+                 standards.html>.
+
+   [WADL]        Hadley, M., "Web Application Description Language",
+                 World Wide Web Consortium Member Submission
+                 SUBM-wadl-20090831, August 2009,
+                 <http://www.w3.org/Submission/2009/
+                 SUBM-wadl-20090831/>.
+
+   [WSDL]        Weerawarana, S., Moreau, J., Ryman, A., and R.
+                 Chinnici, "Web Services Description Language (WSDL)
+                 Version 2.0 Part 1: Core Language", World Wide Web
+                 Consortium Recommendation REC-wsdl20-20070626,
+                 June 2007, <http://www.w3.org/TR/2007/
+                 REC-wsdl20-20070626>.
+
+
+
+
+
+
+
+
+
+Gregorio, et al.             Standards Track                   [Page 29]
+
+RFC 6570                      URI Template                    March 2012
 
 
 Appendix A.  Implementation Hints
@@ -1610,30 +1644,27 @@ Appendix A.  Implementation Hints
    indicated by the presence of a non-literals character other than "{",
    or the template ends.  When it ends, return the result string and its
    current error or non-error state.
+
    o  If an expression is found, scan the template to the next "}" and
       extract the characters in between the braces.
+
    o  If the template ends before a "}", then append the "{" and
       extracted characters to the result string and return with an error
       status indicating the expression is malformed.
 
    Examine the first character of the extracted expression for an
-
-
-
-Gregorio, et al.          Expires July 29, 2012                [Page 29]
-
-Internet-Draft                URI Template                      Jan 2012
-
-
    operator.
+
    o  If the expression ended (i.e., is "{}"), an operator is found that
       is unknown or unimplemented, or the character is not in the
       varchar set (Section 2.3), then append "{", the extracted
       expression, and "}" to the result string, remember that the result
       is in an error state, and then go back to scan the remainder of
       the template.
+
    o  If a known and implemented operator is found, store the operator
       and skip to the next character to begin the varspec-list.
+
    o  Otherwise, store the operator as NUL (simple string expansion).
 
    Use the following value table to determine the processing behavior by
@@ -1645,6 +1676,14 @@ Internet-Draft                URI Template                      Jan 2012
    includes the variable or key name when no explode modifier is given.
    The entry for "ifemp" is a string to append to the name if its
    corresponding value is empty.  The entry for "allow" indicates what
+
+
+
+Gregorio, et al.             Standards Track                   [Page 30]
+
+RFC 6570                      URI Template                    March 2012
+
+
    characters to allow unencoded within the value expansion: (U) means
    any character not in the unreserved set will be encoded; (U+R) means
    any character not in the union of (unreserved / reserved / pct-
@@ -1667,42 +1706,55 @@ Internet-Draft                URI Template                      Jan 2012
    For each varspec, extract a variable name and optional modifier from
    the expression by scanning the variable-list until a character not in
    the varname set is found or the end of the expression is reached.
+
    o  If it is the end of the expression and the varname is empty, go
       back to scan the remainder of the template.
+
    o  If it is not the end of the expression and the last character
       found indicates a modifier ("*" or ":"), remember that modifier.
       If it is an explode ("*"), scan the next character.  If it is a
       prefix (":"), continue scanning the next one to four characters
-
-
-
-Gregorio, et al.          Expires July 29, 2012                [Page 30]
-
-Internet-Draft                URI Template                      Jan 2012
-
-
       for the max-length represented as a decimal integer and then, if
       it is still not the end of the expression, scan the next
       character.
+
    o  If it is not the end of the expression and the last character
       found is not a comma (","), append "{", the stored operator (if
       any), the scanned varname and modifier, the remaining expression,
       and "}" to the result string, remember that the result is in an
       error state, and then go back to scan the remainder of the
       template.
+
    Lookup the value for the scanned variable name, and then
+
    o  If the varname is unknown or corresponds to a variable with an
       undefined value (Section 2.3), then skip to the next varspec.
+
+
+
+
+
+
+Gregorio, et al.             Standards Track                   [Page 31]
+
+RFC 6570                      URI Template                    March 2012
+
+
    o  If this is the first defined variable for this expression, append
       the first string for this expression type to the result string and
       remember that it has been done.  Otherwise, append the sep string
       to the result string.
+
    o  If this variable's value is a string, then
+
       *  if named is true, append the varname to the result string using
          the same encoding process as for literals, and
+
          +  if the value is empty, append the ifemp string to the result
             string and skip to the next varspec;
+
          +  otherwise, append "=" to the result string.
+
       *  if a prefix modifier is present and the prefix length is less
          than the value string length in number of Unicode characters,
          append that number of characters from the beginning of the
@@ -1710,18 +1762,25 @@ Internet-Draft                URI Template                      Jan 2012
          characters that are not in the allow set, while taking care not
          to split multi-octet or pct-encoded triplet characters that
          represent a single Unicode code point;
+
       *  otherwise, append the value to the result string after pct-
          encoding any characters that are not in the allow set.
+
    o  else if no explode modifier is given, then
+
       *  if named is true, append the varname to the result string using
          the same encoding process as for literals, and
+
          +  if the value is empty, append the ifemp string to the result
             string and skip to the next varspec;
+
          +  otherwise, append "=" to the result string; and
+
       *  if this variable's value is a list, append each defined list
          member to the result string, after pct-encoding any characters
          that are not in the allow set, with a comma (",") appended to
          the result between each defined list member;
+
       *  if this variable's value is an associative array or any other
          form of paired (name, value) structure, append each pair with a
          defined value to the result string as "name,value", after pct-
@@ -1732,36 +1791,65 @@ Internet-Draft                URI Template                      Jan 2012
 
 
 
-Gregorio, et al.          Expires July 29, 2012                [Page 31]
+Gregorio, et al.             Standards Track                   [Page 32]
 
-Internet-Draft                URI Template                      Jan 2012
+RFC 6570                      URI Template                    March 2012
 
 
    o  else if an explode modifier is given, then
+
       *  if named is true, then for each defined list member or array
          (name, value) pair with a defined value, do:
+
          +  if this is not the first defined member/value, append the
             sep string to the result string;
+
          +  if this is a list, append the varname to the result string
             using the same encoding process as for literals;
+
          +  if this is a pair, append the name to the result string
             using the same encoding process as for literals;
+
          +  if the member/value is empty, append the ifemp string to the
             result string; otherwise, append "=" and the member/value to
             the result string, after pct-encoding any member/value
             characters that are not in the allow set.
+
       *  else if named is false, then
+
          +  if this is a list, append each defined list member to the
             result string, after pct-encoding any characters that are
             not in the allow set, with the sep string appended to the
             result between each defined list member.
+
          +  if this is an array of (name, value) pairs, append each pair
             with a defined value to the result string as "name=value",
             after pct-encoding any characters that are not in the allow
             set, with the sep string appended to the result between each
             defined pair.
+
    When the variable-list for this expression is exhausted, go back to
    scan the remainder of the template.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gregorio, et al.             Standards Track                   [Page 33]
+
+RFC 6570                      URI Template                    March 2012
 
 
 Authors' Addresses
@@ -1769,48 +1857,35 @@ Authors' Addresses
    Joe Gregorio
    Google
 
-   Email: joe@bitworking.org
+   EMail: joe@bitworking.org
    URI:   http://bitworking.org/
 
 
    Roy T. Fielding
    Adobe Systems Incorporated
 
-   Email: fielding@gbiv.com
+   EMail: fielding@gbiv.com
    URI:   http://roy.gbiv.com/
-
-
-
-
-
-
-
-
-
-
-Gregorio, et al.          Expires July 29, 2012                [Page 32]
-
-Internet-Draft                URI Template                      Jan 2012
 
 
    Marc Hadley
    The MITRE Corporation
 
-   Email: mhadley@mitre.org
+   EMail: mhadley@mitre.org
    URI:   http://mitre.org/
 
 
    Mark Nottingham
    Rackspace
 
-   Email: mnot@mnot.net
+   EMail: mnot@mnot.net
    URI:   http://www.mnot.net/
 
 
    David Orchard
    Salesforce.com
 
-   Email: orchard@pacificspirit.com
+   EMail: orchard@pacificspirit.com
    URI:   http://www.pacificspirit.com/
 
 
@@ -1828,21 +1903,5 @@ Internet-Draft                URI Template                      Jan 2012
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Gregorio, et al.          Expires July 29, 2012                [Page 33]
+Gregorio, et al.             Standards Track                   [Page 34]
 

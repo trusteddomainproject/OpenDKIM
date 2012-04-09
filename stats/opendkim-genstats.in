@@ -1,0 +1,870 @@
+#!/usr/bin/perl
+#
+# Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.
+#
+# $Id: opendkim-genstats,v 1.26 2010/10/27 06:18:45 cm-msk Exp $
+#
+# Script to generate some HTML-ized statistics for OpenDKIM
+
+###
+### Setup
+###
+
+use strict;
+use warnings;
+
+use DBI;
+use File::Basename;
+use Getopt::Long;
+use IO::Handle;
+use POSIX;
+
+require DBD::mysql;
+
+# general
+my $progname      = basename($0);
+my $version       = "@VERSION@";
+my $verbose       = 0;
+my $helponly      = 0;
+my $showversion   = 0;
+
+my $out;
+my $idx;
+
+my $dbi_s;
+my $dbi_h;
+my $dbi_a;
+
+my $thresh;
+
+# DB parameters
+my $def_dbhost    = "localhost";
+my $def_dbname    = "opendkim";
+my $def_dbuser    = "opendkim";
+my $def_dbpasswd  = "opendkim";
+my $def_dbport    = "3306";
+my $dbhost;
+my $dbname;
+my $dbuser;
+my $dbpasswd;
+my $dbport;
+
+my $dbscheme     = "mysql";
+
+# output location (default)
+my $reportout;
+my $tmpout;
+
+###
+### NO user-serviceable parts beyond this point
+###
+
+sub usage
+{
+	print STDERR "$progname: usage: $progname [options]\n";
+	print STDERR "\t--dbhost=host      database host [$def_dbhost]\n";
+	print STDERR "\t--dbname=name      database name [$def_dbname]\n";
+	print STDERR "\t--dbpasswd=passwd  database password [$def_dbpasswd]\n";
+	print STDERR "\t--dbport=port      database port [$def_dbport]\n";
+	print STDERR "\t--dbuser=user      database user [$def_dbuser]\n";
+	print STDERR "\t--help             print help and exit\n";
+	print STDERR "\t--output=file      output file\n";
+	print STDERR "\t--verbose          verbose output\n";
+	print STDERR "\t--version          print version and exit\n";
+}
+
+# parse command line arguments
+my $opt_retval = &Getopt::Long::GetOptions ('dbhost=s' => \$dbhost,
+                                            'dbname=s' => \$dbname,
+                                            'dbpasswd=s' => \$dbpasswd,
+                                            'dbport=s' => \$dbport,
+                                            'dbuser=s' => \$dbuser,
+                                            'help!' => \$helponly,
+                                            'output=s' => \$reportout,
+                                            'verbose!' => \$verbose,
+                                            'version!' => \$showversion,
+                                           );
+
+if (!$opt_retval || $helponly)
+{
+	usage();
+
+	if ($helponly)
+	{
+		exit(0);
+	}
+	else
+	{
+		exit(1);
+	}
+}
+
+if ($showversion)
+{
+	print STDOUT "$progname v$version\n";
+	exit(0);
+}
+
+# apply defaults
+if (!defined($dbhost))
+{
+	if (defined($ENV{'OPENDKIM_DBHOST'}))
+	{
+		$dbhost = $ENV{'OPENDKIM_DBHOST'};
+	}
+	else
+	{
+		$dbhost = $def_dbhost;
+	}
+}
+
+if (!defined($dbname))
+{
+	if (defined($ENV{'OPENDKIM_DB'}))
+	{
+		$dbname = $ENV{'OPENDKIM_DB'};
+	}
+	else
+	{
+		$dbname = $def_dbname;
+	}
+}
+
+if (!defined($dbpasswd))
+{
+	if (defined($ENV{'OPENDKIM_PASSWORD'}))
+	{
+		$dbpasswd = $ENV{'OPENDKIM_PASSWORD'};
+	}
+	else
+	{
+		$dbpasswd = $def_dbpasswd;
+	}
+}
+
+if (!defined($dbport))
+{
+	if (defined($ENV{'OPENDKIM_PORT'}))
+	{
+		$dbport = $ENV{'OPENDKIM_PORT'};
+	}
+	else
+	{
+		$dbport = $def_dbport;
+	}
+}
+
+if (!defined($dbuser))
+{
+	if (defined($ENV{'OPENDKIM_USER'}))
+	{
+		$dbuser = $ENV{'OPENDKIM_USER'};
+	}
+	else
+	{
+		$dbuser = $def_dbuser;
+	}
+}
+
+if (!defined($reportout))
+{
+	if (defined($ENV{'OPENDKIM_OUTPUT'}))
+	{
+		$reportout = $ENV{'OPENDKIM_OUTPUT'};
+	}
+}
+
+if ($verbose)
+{
+	print STDERR "$progname: started at " . localtime() . "\n";
+}
+
+my $dbi_dsn = "DBI:" . $dbscheme . ":database=" . $dbname .
+              ";host=" . $dbhost . ";port=" . $dbport;
+
+$dbi_h = DBI->connect($dbi_dsn, $dbuser, $dbpasswd, { PrintError => 0 });
+if (!defined($dbi_h))
+{
+	print STDERR "$progname: unable to connect to database: $DBI::errstr\n";
+	exit(1);
+}
+
+if ($verbose)
+{
+	print STDERR "$progname: connected to database\n";
+}
+
+#
+# start the report
+#
+if (!defined($reportout))
+{
+	print STDERR "$progname: no output selected\n";
+	exit(1);
+}
+
+$tmpout = $reportout . "." . $$;
+open($out, ">", $tmpout) or die "$progname: can't open $tmpout: $!";
+if ($verbose)
+{
+	print STDERR "$progname: report started in $tmpout\n";
+}
+
+print $out "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n";
+print $out "<html>\n";
+print $out "  <head>\n";
+print $out "    <meta http-equiv=\"content-type\" content=\"text/html;charset=us-ascii\">\n";
+print $out "    <title>\n";
+print $out "      OpenDKIM Statistics Report\n";
+print $out "    </title>\n";
+print $out "  </head>\n";
+print $out "\n";
+print $out "  <body>\n";
+
+print $out "<h1>OpenDKIM Statistics Report</h1>\n";
+print $out "Generated " . strftime("%b %e %Y %H:%M:%S", localtime) . "\n";
+print $out "<hr>\n";
+print $out "<ul>\n";
+print $out " <li> <a href=\"#total_records\">Total messages received</a>\n";
+print $out " <li> <a href=\"#reporters\">Reporting hosts and record counts</a>\n";
+print $out " <li> <a href=\"#signature_counts\">Overall message signature counts</a>\n";
+print $out " <li> <a href=\"#dnssec\">DNSSEC results</a>\n";
+print $out " <li> <a href=\"#dnssec_trend\">DNSSEC trend</a>\n";
+print $out " <li> <a href=\"#passfail\">Overall pass/fail rates for signed mail</a>\n";
+print $out " <li> <a href=\"#error_codes\">Top ten error codes</a>\n";
+print $out " <li> <a href=\"#third_party\">Author vs. third-party signatures, non-MLM traffic</a>\n";
+print $out " <li> <a href=\"#unique_domains\">Count of unique signed From: domains in sample</a>\n";
+print $out " <li> <a href=\"#top_signing_domains\">Top 10 signing domains by signature count</a>\n";
+print $out " <li> <a href=\"#top_passing_domains\">Top 10 signing domains by passing signature percentage</a>\n";
+print $out " <li> <a href=\"#top_failing_domains\">Top 10 signing domains by failed signature percentage</a>\n";
+print $out " <li> <a href=\"#ip_correlation\">Correlation of IP addresses to signed From: domains</a>\n";
+print $out " <li> <a href=\"#use_counts\">Signing domain use counts</a>\n";
+print $out " <li> <a href=\"#signing_trend_msg\">Trend in message signing rates</a>\n";
+print $out " <li> <a href=\"#signing_trend_domain\">Trend in domain signing rates</a>\n";
+print $out " <li> <a href=\"#atps_use\">ATPS use</a>\n";
+print $out "</ul>\n";
+print $out "<hr>\n";
+
+#
+# build a temporary table
+#
+if ($verbose)
+{
+	print STDERR "$progname: constructing temporary table\n";
+}
+
+$dbi_s = $dbi_h->prepare("CREATE TEMPORARY TABLE t1 (
+	id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+	messages_id INT UNSIGNED NOT NULL,
+	messages_date TIMESTAMP NOT NULL,
+	messages_from_domain INT UNSIGNED NOT NULL,
+	messages_atps TINYINT UNSIGNED NOT NULL,
+	messages_sigcount SMALLINT UNSIGNED NOT NULL,
+	signatures_id INT UNSIGNED NOT NULL,
+	signatures_domain INT UNSIGNED NOT NULL,
+	signatures_pass TINYINT UNSIGNED NOT NULL,
+	signatures_fail_body TINYINT UNSIGNED NOT NULL,
+	signatures_sigerror SMALLINT UNSIGNED NOT NULL,
+	signatures_dnssec SMALLINT NOT NULL,
+	reporters_id INT UNSIGNED NOT NULL,
+	reporters_name VARCHAR(255) NOT NULL,
+	reporters_firstseen TIMESTAMP NOT NULL,
+	PRIMARY KEY(id),
+	KEY(messages_from_domain),
+	KEY(messages_sigcount),
+	KEY(messages_atps),
+	KEY(signatures_domain),
+	KEY(signatures_dnssec),
+	KEY(reporters_id)
+) DATA DIRECTORY = '/fsys4/mysql'
+  INDEX DIRECTORY = '/fsys4/mysql'");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: CREATE TEMPORARY TABLE failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+$dbi_s->finish;
+
+if ($verbose)
+{
+	print STDERR "$progname: populating temporary table\n";
+}
+
+$dbi_s = $dbi_h->prepare("INSERT INTO t1 ( 
+	messages_id,
+	messages_date,
+	messages_from_domain,
+	messages_atps,
+	messages_sigcount,
+	signatures_id,
+	signatures_domain,
+	signatures_pass,
+	signatures_fail_body,
+	signatures_sigerror,
+	signatures_dnssec,
+	reporters_id,
+	reporters_name,
+	reporters_firstseen)
+	SELECT
+	messages.id,
+	messages.msgtime,
+	messages.from_domain,
+	messages.atps,
+	messages.sigcount,
+	signatures.id,
+	signatures.domain,
+	signatures.pass,
+	signatures.fail_body,
+	signatures.sigerror,
+	signatures.dnssec,
+	reporters.id,
+	reporters.name,
+	reporters.firstseen
+	FROM messages
+	JOIN reporters  ON messages.reporter = reporters.id
+	LEFT OUTER JOIN signatures ON signatures.message = messages.id
+	WHERE reporters.enabled = 1");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: INSERT INTO TEMPORARY TABLE failed: " . $dbi_h->errstr . "\n";
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+$dbi_s->finish;
+
+if ($verbose)
+{
+	print STDERR "$progname: generating reports\n";
+}
+
+#
+# Total record count
+#
+
+print $out "<a name=\"total_records\"></a>\n";
+print $out "<p> Total records (messages) received: </p>\n";
+print $out "<table border=\"1\" columns=\"2\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Messages </b> </td>\n";
+print $out "  <td> <b> Signed </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT COUNT(DISTINCT messages_id), SUM(SIGN(messages_sigcount)) FROM t1");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# Reporting hosts
+# 
+print $out "<a name=\"reporters\"></a>\n";
+print $out "<p> Reporting hosts and record counts: </p>\n";
+print $out "<table border=\"1\" columns=\"4\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Reporter </b> </td>\n";
+print $out "  <td> <b> Messages </b> </td>\n";
+print $out "  <td> <b> Since </b> </td>\n";
+print $out "  <td> <b> Last </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT reporters_name, COUNT(DISTINCT messages_id), reporters_firstseen, MAX(messages_date) FROM t1 GROUP BY 1 ORDER BY 2");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[2] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[3] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# Overall message signature counts
+#
+print $out "<a name=\"signature_counts\"></a>\n";
+print $out "<p> Overall message signature counts: </p>\n";
+print $out "<table border=\"1\" columns=\"2\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Signatures </b> </td>\n";
+print $out "  <td> <b> Messages </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT messages_sigcount, COUNT(DISTINCT messages_id) FROM t1 GROUP BY 1");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# DNSSEC results
+#
+
+print $out "<a name=\"dnssec\"></a>\n";
+print $out "<p> DNSSEC results (see libopendkim/dkim.h): </p>\n";
+print $out "<table border=\"1\" columns=\"2\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> DNSSEC code </b> </td>\n";
+print $out "  <td> <b> Signature Count </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT signatures_dnssec, COUNT(id) FROM t1 GROUP BY 1 ORDER BY 1");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# DNSSEC trend
+#
+
+print $out "<a name=\"dnssec_trend\"></a>\n";
+print $out "<p> DNSSEC trend: </p>\n";
+print $out "<table border=\"1\" columns=\"3\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Domains </b> </td>\n";
+print $out "  <td> <b> Year </b> </td>\n";
+print $out "  <td> <b> Month </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT COUNT(DISTINCT signatures_domain), YEAR(messages_date), MONTHNAME(messages_date) FROM t1 WHERE (signatures_dnssec = 0 OR signatures_dnssec = 2) GROUP BY 2, 3");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[2] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# Pass/fail rates
+#
+
+print $out "<a name=\"passfail\"></a>\n";
+print $out "<p> Overall pass/fail rate for signed mail: </p>\n";
+print $out "<table border=\"1\" columns=\"3\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Signatures </b> </td>\n";
+print $out "  <td> <b> Passed </b> </td>\n";
+print $out "  <td> <b> Failed (body) </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT COUNT(DISTINCT signatures_id), SUM(signatures_pass), SUM(signatures_fail_body) FROM t1 WHERE signatures_id IS NOT NULL");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[2] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# Top error codes
+#
+
+print $out "<a name=\"error_codes\"></a>\n";
+print $out "<p> Top ten error codes (see libopendkim/dkim.h): </p>\n";
+print $out "<table border=\"1\" columns=\"2\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Error </b> </td>\n";
+print $out "  <td> <b> Instances </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT sigerrorcodes.name, COUNT(t1.id) FROM t1 JOIN sigerrorcodes ON sigerrorcodes.id = signatures_sigerror WHERE NOT signatures_sigerror IN (0, 28) GROUP BY signatures_sigerror ORDER BY 2 DESC LIMIT 10");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# Author vs. third-party, non-MLM
+#
+
+print $out "<a name=\"third_party\"></a>\n";
+print $out "<p> Author vs. third-party signatures, non-MLM traffic: </p>\n";
+print $out "<table border=\"1\" columns=\"2\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Author Signatures </b> </td>\n";
+print $out "  <td> <b> Passed </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT COUNT(DISTINCT signatures_id), SUM(signatures_pass) FROM t1 WHERE messages_from_domain = signatures_domain");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<table border=\"1\" columns=\"2\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Third-Party Signatures </b> </td>\n";
+print $out "  <td> <b> Passed </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT COUNT(DISTINCT signatures_id), SUM(signatures_pass) FROM t1 WHERE NOT messages_from_domain = signatures_domain");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# Unique signed From: domains
+#
+
+print $out "<a name=\"unique_domains\"></a>\n";
+print $out "<p> Count of unique signed From: domains in sample: </p>\n";
+print $out "<table border=\"1\" columns=\"1\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Domains </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT COUNT(DISTINCT messages_from_domain) FROM t1 WHERE messages_sigcount > 0");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# Top 10 signing domains by signature count
+#
+
+print $out "<a name=\"top_signing_domains\"></a>\n";
+print $out "<p> Top 10 signing domains by signature count: </p>\n";
+print $out "<table border=\"1\" columns=\"2\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Domain </b> </td>\n";
+print $out "  <td> <b> Signatures </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT domains.name, SUM(messages_sigcount) FROM t1 JOIN domains ON t1.signatures_domain = domains.id GROUP BY t1.signatures_domain ORDER BY 2 DESC LIMIT 10");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# Top 10 passing domains
+#
+
+print $out "<a name=\"top_passing_domains\"></a>\n";
+print $out "<p> Top 10 signing domains by passing signature percentage: </p>\n";
+print $out "<table border=\"1\" columns=\"3\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Domain </b> </td>\n";
+print $out "  <td> <b> Signatures </b> </td>\n";
+print $out "  <td> <b> % Passed </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT domains.name, COUNT(t1.id), 100*SUM(t1.signatures_pass)/COUNT(t1.id) FROM t1 JOIN domains ON t1.signatures_domain = domains.id GROUP BY t1.signatures_domain ORDER BY 3 DESC, 2 LIMIT 10");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[2] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# Top 10 failing domains
+#
+
+print $out "<a name=\"top_failing_domains\"></a>\n";
+print $out "<p> Top 10 signing domains by failing signature percentage: </p>\n";
+print $out "<table border=\"1\" columns=\"3\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Domain </b> </td>\n";
+print $out "  <td> <b> Signatures </b> </td>\n";
+print $out "  <td> <b> % Passed </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT domains.name, COUNT(t1.id), 100-100*SUM(signatures_pass)/COUNT(t1.id) FROM t1 JOIN domains ON t1.signatures_domain = domains.id GROUP BY t1.signatures_domain ORDER BY 3 DESC, 2 LIMIT 10");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[2] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# Domain use counts
+#
+
+print $out "<a name=\"use_counts\"></a>\n";
+print $out "<p> Signing domain use counts: </p>\n";
+print $out "<table border=\"1\" columns=\"2\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Messages </b> </td>\n";
+print $out "  <td> <b> Domains </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT msgcount, COUNT(signatures_domain) FROM (SELECT signatures_domain, COUNT(id) AS msgcount FROM t1 GROUP BY 1) a GROUP BY 1 ORDER BY 1 ASC LIMIT 10");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# Signing trend (messages)
+#
+
+print $out "<a name=\"signing_trend_msg\"></a>\n";
+print $out "<p> Trend in message signing rates: </p>\n";
+print $out "<table border=\"1\" columns=\"3\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Year </b> </td>\n";
+print $out "  <td> <b> Month </b> </td>\n";
+print $out "  <td> <b> % Signed </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT YEAR(messages_date), MONTHNAME(messages_date), (100. * SUM(SIGN(messages_sigcount)) / COUNT(DISTINCT messages_id)) FROM t1 GROUP BY 1, MONTH(messages_date) ORDER BY 1, MONTH(messages_date)");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[2] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# Signing trend (domains)
+#
+
+print $out "<a name=\"signing_trend_domain\"></a>\n";
+print $out "<p> Trend in message signing rates: </p>\n";
+print $out "<table border=\"1\" columns=\"3\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Year </b> </td>\n";
+print $out "  <td> <b> Month </b> </td>\n";
+print $out "  <td> <b> Domains </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT YEAR(messages_date), MONTHNAME(messages_date), COUNT(DISTINCT signatures_domain) FROM t1 GROUP BY 1, MONTH(messages_date) ORDER BY 1, MONTH(messages_date)");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[1] . " </td>\n";
+	print $out "  <td> " . $dbi_a->[2] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# ATPS use
+#
+
+print $out "<a name=\"atps_use\"></a>\n";
+print $out "<p> ATPS use: </p>\n";
+print $out "<table border=\"1\" columns=\"1\">\n";
+print $out " <tr>\n";
+print $out "  <td> <b> Domains </b> </td>\n";
+print $out " </tr>\n";
+$dbi_s = $dbi_h->prepare("SELECT COUNT(DISTINCT messages_from_domain) FROM t1 WHERE messages_atps = 1");
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	print $out " <tr>\n";
+	print $out "  <td> " . $dbi_a->[0] . " </td>\n";
+	print $out " </tr>\n";
+}
+print $out "</table>\n";
+print $out "<br>\n";
+$dbi_s->finish;
+
+#
+# all done!
+if ($verbose)
+{
+	print STDERR "$progname: terminating at " . localtime() . "\n";
+}
+
+$dbi_h->disconnect;
+
+if (defined($reportout))
+{
+	close $out;
+	rename($tmpout, $reportout) or die "$progname: rename to $reportout failed; $!";
+}
+
+exit(0);
+

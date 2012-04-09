@@ -99,6 +99,9 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	int ghash;
 #endif /* USE_GNUTLS */
 	unsigned int c;
+#ifdef QUERY_CACHE
+	uint32_t ttl;
+#endif /* QUERY_CACHE */
 	size_t buflen;
 	size_t anslen;
 	DKIM_LIB *lib;
