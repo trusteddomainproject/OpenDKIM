@@ -34,6 +34,10 @@ static char t_test73_c_id[] = "@(#)$Id: t-test73.c,v 1.2 2009/12/08 19:14:27 cm-
 #define	MAXADDRESS	256
 #define	MAXHEADER	4096
 
+#ifndef MIN
+# define MIN(x,y)	((x) < (y) ? (x) : (y))
+#endif /* ! MIN */
+
 #define SIG2 "v=1;  a=rsa-sha1; c=simple/simple; d=example.com; s=test;\r\n\tt=1172620939; r=y; bh=ll/0h2aWgG+D3ewmE4Y3pY7Ukz8=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=F/cSOK/4qujIeNhKcC1LjAMFS33ORcsRqoEfNO6g1WXMlK5LW/foFePbUyFbbEbhY\r\n\t 8RhU+7C4R914QI6WW+lYMh11p0z1BGu2HJ4HHOlBivi1DDfZgsRZrEJhBeMngNIN9+\r\n\t 8HbGhTSWWpOBn+jYtfvGJBGtbv3AjgVgNropc7DM="
 
 size_t alen;
