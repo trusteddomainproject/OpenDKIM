@@ -5,6 +5,11 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.?.?		2012/06/01
+	LIBAR: Fix bug #SF3444318: Do proper buffer size calculations to
+		avoid valgrind warnings about references to unaddressable
+		space.  Reported by Todd Lyons.
+
 2.5.2		2012/04/09
 	Fix bug #SF3496208: Replace stats/opendkim-genstats with a perl
 		script so it's far more efficient.

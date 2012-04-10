@@ -1348,7 +1348,7 @@ ar_dispatcher(void *tp)
 			}
 			else if (lib->ar_tcpmsglen == 0)
 			{
-				u_short len;
+				uint16_t len;
 				_Bool err = FALSE;
 
 				/* get the length */
@@ -1388,7 +1388,7 @@ ar_dispatcher(void *tp)
 
 				/* allocate a buffer */
 				if (lib->ar_tcpbuf == NULL ||
-				    lib->ar_tcpbuflen < len)
+				    lib->ar_tcpbuflen < ntohs(len))
 				{
 					if (lib->ar_tcpbuf != NULL)
 					{
@@ -1396,8 +1396,9 @@ ar_dispatcher(void *tp)
 						lib->ar_tcpbuf = NULL;
 					}
 
-					lib->ar_tcpbuf = ar_malloc(lib, len);
-					lib->ar_tcpbuflen = len;
+					lib->ar_tcpbuf = ar_malloc(lib,
+					                           ntohs(len));
+					lib->ar_tcpbuflen = ntohs(len);
 				}
 			}
 			else
