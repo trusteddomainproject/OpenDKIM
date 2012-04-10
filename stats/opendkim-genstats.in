@@ -276,8 +276,7 @@ $dbi_s = $dbi_h->prepare("CREATE TEMPORARY TABLE t1 (
 	KEY(signatures_domain),
 	KEY(signatures_dnssec),
 	KEY(reporters_id)
-) DATA DIRECTORY = '/fsys4/mysql'
-  INDEX DIRECTORY = '/fsys4/mysql'");
+)");
 if (!$dbi_s->execute)
 {
 	print STDERR "$progname: CREATE TEMPORARY TABLE failed: " . $dbi_h->errstr;
