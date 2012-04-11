@@ -43,6 +43,9 @@ See the
 .I opendkim(8)
 man page for a description of such parameters.
 
+Unless otherwise stated, Boolean values default to "false", integer values
+default to 0, and string and dataset values default to being undefined.
+
 .SH PARAMETERS
 .TP
 .I AddAllSignatureResults (Boolean)
