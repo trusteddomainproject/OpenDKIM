@@ -14,8 +14,8 @@ AC_PREREQ(2.61)
 # Package version
 #
 m4_define([VERSION_RELEASE], 2)
-m4_define([VERSION_MAJOR_REV], 5)
-m4_define([VERSION_MINOR_REV], 2)
+m4_define([VERSION_MAJOR_REV], 6)
+m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -23,7 +23,7 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "current" and reset "revision" with API changes
 # 	- bump "revision" with internal source code changes
 #
-m4_define([LIBVERSION_CURRENT], 6)
+m4_define([LIBVERSION_CURRENT], 7)
 m4_define([LIBVERSION_REVISION], 0)
 m4_define([LIBVERSION_AGE], 0)
 
