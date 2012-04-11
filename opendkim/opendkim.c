@@ -245,9 +245,6 @@ struct dkimf_config
 #ifdef USE_LDAP
 	_Bool		conf_ldap_usetls;	/* LDAP TLS */
 #endif /* USE_LDAP */
-#ifdef _FFR_STATS
-	_Bool		conf_anonstats;		/* anonymize stats? */
-#endif /* _FFR_STATS */
 #ifdef _FFR_VBR
 	_Bool		conf_vbr_purge;		/* purge X-VBR-* fields */
 	_Bool		conf_vbr_trustedonly;	/* trusted certifiers only */
@@ -5576,7 +5573,6 @@ dkimf_config_new(void)
 	new->conf_adspaction = SMFIS_CONTINUE;
 #ifdef _FFR_STATS
 	new->conf_reporthost = myhostname;
-	new->conf_anonstats = TRUE;
 #endif /* _FFR_STATS */
 #ifdef _FFR_RATE_LIMIT
 	new->conf_flowdatattl = DEFFLOWDATATTL;
