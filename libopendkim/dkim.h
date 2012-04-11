@@ -976,19 +976,6 @@ extern DKIM_STAT dkim_set_user_context __P((DKIM *dkim, void *ctx));
 extern void *dkim_get_user_context __P((DKIM *dkim));
 
 /*
-**  DKIM_GET_MSGDATE -- retrieve value extracted from the Date: header
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**
-**  Return value:
-**  	time_t representing the value in the Date: header of the message,
-**  	or 0 if no such header was found or the value in it was unusable
-*/
-
-extern uint64_t dkim_get_msgdate __P((DKIM *dkim));
-
-/*
 **  DKIM_GETMODE -- return the mode (signing, verifying, etc.) of a handle
 **
 **  Parameters:

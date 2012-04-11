@@ -475,8 +475,6 @@ AM_CONDITIONAL([BUILD_FILTER], [test x"$enable_filter" != x"no"])
 #
 LIB_FEATURE([query_cache], [local key/policy caching])
 
-LIB_FFR_FEATURE([parsetime], [parse From: headers for sending times])
-
 #
 # Conditional stuff
 #

@@ -9,6 +9,7 @@ release, and a summary of the changes in that release.
 	LIBAR: Fix bug #SF3444318: Do proper buffer size calculations to
 		avoid valgrind warnings about references to unaddressable
 		space.  Reported by Todd Lyons.
+	LIBOPENDKIM: Fix bug #SF3496041: Remove _FFR_PARSETIME.
 
 2.5.2		2012/04/09
 	Fix bug #SF3496208: Replace stats/opendkim-genstats with a perl

@@ -295,9 +295,6 @@ struct dkim
 	size_t			dkim_keylen;
 	size_t			dkim_errlen;
 	uint64_t		dkim_timestamp;
-#ifdef _FFR_PARSETIME
-	uint64_t		dkim_msgdate;
-#endif /* _FFR_PARSETIME */
 	dkim_query_t		dkim_querymethod;
 	dkim_canon_t		dkim_hdrcanonalg;
 	dkim_canon_t		dkim_bodycanonalg;

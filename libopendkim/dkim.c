@@ -4335,9 +4335,6 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef _FFR_DIFFHEADERS
 	FEATURE_ADD(libhandle, DKIM_FEATURE_DIFFHEADERS);
 #endif /* _FFR_DIFFHEADERS */
-#ifdef _FFR_PARSETIME
-	FEATURE_ADD(libhandle, DKIM_FEATURE_PARSE_TIME);
-#endif /* _FFR_PARSETIME */
 #ifdef QUERY_CACHE
 	FEATURE_ADD(libhandle, DKIM_FEATURE_QUERY_CACHE);
 #endif /* QUERY_CACHE */
@@ -6442,37 +6439,7 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 DKIM_STAT
 dkim_eoh(DKIM *dkim)
 {
-#ifdef _FFR_PARSETIME
-	struct dkim_header *hdr;
-#endif /* _FFR_PARSETIME */
-
 	assert(dkim != NULL);
-
-#ifdef _FFR_PARSETIME
-# define RFC2822DATE	"%a, %d %b %Y %H:%M:%S %z"
-/* # define RFC2822DATE	"%a" */
-	/* store the Date: value for possible later scrutiny */
-	hdr = dkim_get_header(dkim, DKIM_DATEHEADER, DKIM_DATEHEADER_LEN, 0);
-	if (hdr != NULL)
-	{
-		char *colon;
-
-		colon = hdr->hdr_colon;
-		if (colon != NULL)
-		{
-			char *p;
-			struct tm tm;
-
-			colon++;
-			while (isascii(*colon) && isspace(*colon))
-				colon++;
-
-			p = strptime(colon, RFC2822DATE, &tm);
-			if (p != NULL)
-				dkim->dkim_msgdate = (uint64_t) mktime(&tm);
-		}
-	}
-#endif /* _FFR_PARSETIME */
 
 	if (dkim->dkim_mode == DKIM_MODE_VERIFY)
 		return dkim_eoh_verify(dkim);
@@ -8084,30 +8051,6 @@ dkim_get_user_context(DKIM *dkim)
 	assert(dkim != NULL);
 
 	return (void *) dkim->dkim_user_context;
-}
-
-/*
-**  DKIM_GET_MSGDATE -- retrieve value extracted from the Date: header
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**
-**  Return value:
-**  	time_t representing the value in the Date: header of the message,
-**  	returned as an unsigned 64-bit quantity, or 0 if no such header
-**  	was found or the value in it was unusable.
-*/
-
-uint64_t
-dkim_get_msgdate(DKIM *dkim)
-{
-	assert(dkim != NULL);
-
-#ifdef _FFR_PARSETIME
-	return dkim->dkim_msgdate;
-#else /* _FFR_PARSETIME */
-	return 0;
-#endif /* _FFR_PARSETIME */
 }
 
 /*
