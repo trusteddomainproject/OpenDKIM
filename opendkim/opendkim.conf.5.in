@@ -142,10 +142,10 @@ is no default, meaning restart rate is not limited.
 
 .TP
 .I Background (Boolean)
-Normally
+Causes
 .I opendkim
-forks and exits immediately, leaving the service running in the background.
-This flag suppresses that behaviour so that it runs in the foreground.
+to fork and exits immediately, leaving the service running in the background.
+The default is "true".
 
 .TP
 .I BaseDirectory (string)
