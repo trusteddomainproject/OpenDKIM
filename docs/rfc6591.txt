@@ -1,38 +1,37 @@
 
 
 
-MARF Working Group                                            H. Fontana
-Internet-Draft                                          January 18, 2012
-Intended status: Standards Track
-Expires: July 21, 2012
 
 
-     Authentication Failure Reporting using the Abuse Report Format
-                 draft-ietf-marf-authfailure-report-10
+
+Internet Engineering Task Force (IETF)                        H. Fontana
+Request for Comments: 6591                                    April 2012
+Category: Standards Track
+ISSN: 2070-1721
+
+
+   Authentication Failure Reporting Using the Abuse Reporting Format
 
 Abstract
 
-   This memo registers an extension report type to the Abuse Reporting
+   This memo registers an extension report type for the Abuse Reporting
    Format (ARF), affecting multiple registries, for use in generating
    receipt-time reports about messages that fail one or more email
    message authentication checks.
 
-Status of this Memo
+Status of This Memo
 
-   This Internet-Draft is submitted in full conformance with the
-   provisions of BCP 78 and BCP 79.
+   This is an Internet Standards Track document.
 
-   Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF).  Note that other groups may also distribute
-   working documents as Internet-Drafts.  The list of current Internet-
-   Drafts is at http://datatracker.ietf.org/drafts/current/.
+   This document is a product of the Internet Engineering Task Force
+   (IETF).  It represents the consensus of the IETF community.  It has
+   received public review and has been approved for publication by the
+   Internet Engineering Steering Group (IESG).  Further information on
+   Internet Standards is available in Section 2 of RFC 5741.
 
-   Internet-Drafts are draft documents valid for a maximum of six months
-   and may be updated, replaced, or obsoleted by other documents at any
-   time.  It is inappropriate to use Internet-Drafts as reference
-   material or to cite them other than as "work in progress."
-
-   This Internet-Draft will expire on July 21, 2012.
+   Information about the current status of this document, any errata,
+   and how to provide feedback on it may be obtained at
+   http://www.rfc-editor.org/info/rfc6591.
 
 Copyright Notice
 
@@ -52,126 +51,78 @@ Copyright Notice
 
 
 
-Fontana                   Expires July 21, 2012                 [Page 1]
+
+
+
+
+Fontana                      Standards Track                    [Page 1]
 
-Internet-Draft           Auth Failure Reporting             January 2012
+RFC 6591                 Auth Failure Reporting               April 2012
 
 
 Table of Contents
 
-   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
-   2.  Definitions  . . . . . . . . . . . . . . . . . . . . . . . . .  4
-     2.1.  Keywords . . . . . . . . . . . . . . . . . . . . . . . . .  4
-     2.2.  Email Architecture . . . . . . . . . . . . . . . . . . . .  4
-     2.3.  Base 64  . . . . . . . . . . . . . . . . . . . . . . . . .  4
-     2.4.  Technologies . . . . . . . . . . . . . . . . . . . . . . .  4
-   3.  ARF Extension for Authentication Failure Reporting . . . . . .  5
-     3.1.  New ARF Feedback Type  . . . . . . . . . . . . . . . . . .  5
-     3.2.  New ARF Header Field Names . . . . . . . . . . . . . . . .  6
-       3.2.1.  Required For All Reports . . . . . . . . . . . . . . .  6
-       3.2.2.  Optional For All Reports . . . . . . . . . . . . . . .  6
-       3.2.3.  Required For DKIM Reports  . . . . . . . . . . . . . .  7
-       3.2.4.  Optional For DKIM Reports  . . . . . . . . . . . . . .  7
-       3.2.5.  Required For ADSP Reports  . . . . . . . . . . . . . .  7
-       3.2.6.  Required For SPF Reports . . . . . . . . . . . . . . .  7
-     3.3.  Authentication Failure Types . . . . . . . . . . . . . . .  8
-   4.  Syntax For Added ARF Header Fields . . . . . . . . . . . . . .  9
-   5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 10
-     5.1.  Updates to ARF Feedback Types  . . . . . . . . . . . . . . 10
-     5.2.  Updates to ARF Header Field Names  . . . . . . . . . . . . 10
-   6.  Security Considerations  . . . . . . . . . . . . . . . . . . . 13
-     6.1.  Inherited Considerations . . . . . . . . . . . . . . . . . 13
-     6.2.  Forgeries  . . . . . . . . . . . . . . . . . . . . . . . . 13
-     6.3.  Automatic Generation . . . . . . . . . . . . . . . . . . . 13
-     6.4.  Envelope Sender Selection  . . . . . . . . . . . . . . . . 14
-     6.5.  Reporting Multiple Incidents . . . . . . . . . . . . . . . 14
-     6.6.  Redaction of Data in DKIM Reports  . . . . . . . . . . . . 14
-   7.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 15
-     7.1.  Normative References . . . . . . . . . . . . . . . . . . . 15
-     7.2.  Informative References . . . . . . . . . . . . . . . . . . 16
-   Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 17
-   Appendix B.  Example . . . . . . . . . . . . . . . . . . . . . . . 18
-     B.1.  Example Use of ARF Extension Headers . . . . . . . . . . . 18
-   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 21
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Fontana                   Expires July 21, 2012                 [Page 2]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
+   1. Introduction ....................................................2
+   2. Definitions .....................................................3
+      2.1. Key Words ..................................................3
+      2.2. Email Architecture .........................................3
+      2.3. Base64 .....................................................3
+      2.4. Technologies ...............................................3
+   3. ARF Extension for Authentication Failure Reporting ..............3
+      3.1. New ARF Feedback Type ......................................4
+      3.2. New ARF Header Field Names .................................5
+           3.2.1. Required for All Reports ............................5
+           3.2.2. Optional for All Reports ............................5
+           3.2.3. Required for DKIM Reports ...........................5
+           3.2.4. Optional for DKIM Reports ...........................6
+           3.2.5. Required for ADSP Reports ...........................6
+           3.2.6. Required for SPF Reports ............................6
+      3.3. Authentication Failure Types ...............................6
+   4. Syntax for Added ARF Header Fields ..............................7
+   5. IANA Considerations .............................................8
+      5.1. Updates to ARF Feedback Types ..............................8
+      5.2. Updates to ARF Header Field Names ..........................8
+   6. Security Considerations ........................................10
+      6.1. Inherited Considerations ..................................10
+      6.2. Forgeries .................................................10
+      6.3. Automatic Generation ......................................11
+      6.4. Envelope Sender Selection .................................11
+      6.5. Reporting Multiple Incidents ..............................11
+      6.6. Redaction of Data in DKIM Reports .........................12
+   7. References .....................................................12
+      7.1. Normative References ......................................12
+      7.2. Informative References ....................................13
+   Appendix A. Acknowledgements ......................................14
+   Appendix B. Example ...............................................14
+     B.1. Example Use of ARF Extension Headers .......................14
 
 1.  Introduction
 
-   The Abuse Reporting Format ([ARF]) defines a message format for
-   sending reports of abuse in the messaging infrastructure, with an eye
-   towards automating both the generation and consumption of those
-   reports.  There is now also a desire to extend the ARF format to
-   include reporting of messages that fail to authenticate using known
-   message authentication methods, such as DomainKeys Identified Mail
-   ([DKIM]) and Sender Policy Framework ([SPF]), as these are sometimes
-   evidence of abuse that can be detected and reported through automated
-   means.  The same mechanism can be used to convey forensic information
-   about the specific reason the authentication method failed.  Thus,
-   this memo presents such extensions to ARF that allow for detailed
-   reporting of message authentication method failures.
+   The Abuse Reporting Format [ARF] defines a message format for sending
+   reports of abuse in the messaging infrastructure, with an eye towards
+   automating both the generation and consumption of those reports.
+   There is now also a desire to extend the ARF to include the reporting
+   of messages that fail to authenticate using known message
+   authentication methods, such as DomainKeys Identified Mail [DKIM] and
+   Sender Policy Framework [SPF], as these are sometimes evidence of
+   abuse that can be detected and reported through automated means.  The
+   same mechanism can be used to convey forensic information about the
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Fontana                   Expires July 21, 2012                 [Page 3]
+Fontana                      Standards Track                    [Page 2]
 
-Internet-Draft           Auth Failure Reporting             January 2012
+RFC 6591                 Auth Failure Reporting               April 2012
 
+
+   specific reason the authentication method failed.  Thus, this memo
+   presents such extensions to ARF that allow for detailed reporting of
+   message authentication method failures.
 
 2.  Definitions
 
-2.1.  Keywords
+2.1.  Key Words
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
@@ -182,48 +133,23 @@ Internet-Draft           Auth Failure Reporting             January 2012
    This memo uses some terms whose definitions and descriptions can be
    found in [EMAIL-ARCH].
 
-2.3.  Base 64
+2.3.  Base64
 
-   base64 is defined in Section 4 of [BASE64].
+   Base64 is defined in Section 4 of [BASE64].
 
-   The values that are base64 encodings MAY contain FWS for formatting
-   purposes as per the usual header field wrapping defined in [MAIL].
-   During decoding, any characters not in the base64 alphabet are
-   ignored so that such line wrapping does not harm the value.  The ABNF
-   token "FWS" is defined in [DKIM].  No other extensions to the valid
-   base64 character set are permitted.
+   The values that are base64 encodings MAY contain folding whitespace
+   (FWS) for formatting purposes as per the usual header field wrapping
+   defined in [MAIL].  During decoding, any characters not in the base64
+   alphabet are ignored so that such line wrapping does not harm the
+   value.  The ABNF token "FWS" is defined in [DKIM].  No other
+   extensions to the valid base64 character set are permitted.
 
 2.4.  Technologies
 
    There are technologies in email security that provide authentication
    services and some that do authorization.  These are often conflated.
-   A discussion of this that is useful for establishing context can be
-   found in Section 1.5.2 in [AUTH-RESULTS].
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Fontana                   Expires July 21, 2012                 [Page 4]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
+   A discussion that is useful for establishing context can be found in
+   Section 1.5.2 of [AUTH-RESULTS].
 
 3.  ARF Extension for Authentication Failure Reporting
 
@@ -236,10 +162,20 @@ Internet-Draft           Auth Failure Reporting             January 2012
    Multiple reports MAY be used to report multiple failures for a single
    message.
 
+
+
+
+
+
+Fontana                      Standards Track                    [Page 3]
+
+RFC 6591                 Auth Failure Reporting               April 2012
+
+
 3.1.  New ARF Feedback Type
 
-   A new feedback type of "auth-failure" is defined as an extension per
-   Section 7.3 of [ARF].
+   A new feedback type, "auth-failure", is defined in this document as
+   an extension, per Section 7.3 of [ARF].
 
    A message that uses this feedback type has the following modified
    header field requirements for the second (machine-parseable) [MIME]
@@ -247,25 +183,25 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
    Authentication-Results:  Syntax as specified in [AUTH-RESULTS].
       Furthermore, [ARF] specifies this field is OPTIONAL and appears at
-      most once; for this extension, this field MUST be present, but
+      most once; for this extension, this field MUST be present, but it
       MUST reflect only a single authentication method's result.
 
    Original-Envelope-Id:  Syntax as specified in [ARF].  Furthermore,
       [ARF] specifies this field is OPTIONAL and appears at most once;
       for this extension, this field's inclusion is RECOMMENDED, where
-      that value is available, to aid in diagnosing of the
-      authentication failure.
+      that value is available, to aid in diagnosing the authentication
+      failure.
 
    Original-Mail-From:  Syntax as specified in [ARF].  Furthermore,
       [ARF] specifies this field is OPTIONAL and appears at most once;
       for this extension, this field's inclusion is RECOMMENDED, where
-      that value is available, to aid in diagnosing of the
-      authentication failure.
+      that value is available, to aid in diagnosing the authentication
+      failure.
 
    Source-IP:  Syntax as specified in [ARF].  Furthermore, [ARF]
       specifies this field is OPTIONAL and appears at most once; for
       this extension, this field's inclusion is RECOMMENDED, where that
-      value is available, to aid in diagnosing of the authentication
+      value is available, to aid in diagnosing the authentication
       failure.
 
    Reported-Domain:  Syntax as specified in [ARF].  Furthermore, [ARF]
@@ -273,47 +209,48 @@ Internet-Draft           Auth Failure Reporting             January 2012
       this extension, this field MUST be present if such a value is
       available.
 
-
-
-
-Fontana                   Expires July 21, 2012                 [Page 5]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
-
    Delivery-Result:  As specified in Section 3.2.2.  This field is
-      OPTIONAL, but MUST NOT appear more than once.  If present, it
+      OPTIONAL, but it MUST NOT appear more than once.  If present, it
       SHOULD indicate the outcome of the message in some meaningful way,
-      but MAY be set to "other" for local policy reasons.
+      but it MAY be set to "other" for local policy reasons.
 
    The third MIME part of the message is either of type "message/rfc822"
-   (as defined in [MIME-TYPES]) or "text/rfc822-headers" (as defined in
-   [REPORT]) and contains a copy of the entire header block from the
-   original message.  This part MUST be included (contrary to [REPORT],
-   which makes it optional).
+   (as defined in [MIME-TYPES]) or of type "text/rfc822-headers" (as
+   defined in [REPORT]) and contains a copy of the entire header block
+   from the original message.  This part MUST be included (contrary to
+   [REPORT], which makes it optional).
+
+
+
+
+Fontana                      Standards Track                    [Page 4]
+
+RFC 6591                 Auth Failure Reporting               April 2012
+
 
    For privacy reasons, report generators might need to redact portions
-   of a reported message such as an identifier or address associated
+   of a reported message, such as an identifier or address associated
    with the end user whose complaint action resulted in the report.  A
    discussion of relevant issues and a suggested method for doing so can
-   be found in [I-D.IETF-MARF-REDACTION].
+   be found in [RFC6590].
 
 3.2.  New ARF Header Field Names
 
    The following new ARF field names are defined as extensions to
    Section 3.1 of [ARF].
 
-3.2.1.  Required For All Reports
+3.2.1.  Required for All Reports
 
    Auth-Failure:  Indicates the failure from an email authentication
       method that is being reported.  The list of valid values is
       enumerated in Section 3.3.
 
-3.2.2.  Optional For All Reports
+3.2.2.  Optional for All Reports
 
    Delivery-Result:  The final message disposition that was enacted by
-      the Administrative Management Domain (ADMD) generating the report
-      and MUST NOT appear more than once.  Possible values are:
+      the ADministrative Management Domain (ADMD) generating the report.
+      It MUST NOT appear more than once.  Possible values are as
+      follows:
 
       delivered:  The message was delivered (not specific as to where).
 
@@ -326,21 +263,10 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
       reject:  The message was rejected.
 
-
-
-
-
-
-
-Fontana                   Expires July 21, 2012                 [Page 6]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
-
       other:  The message had a final disposition not covered by one of
          the above values.
 
-3.2.3.  Required For DKIM Reports
+3.2.3.  Required for DKIM Reports
 
    DKIM-Domain:  The domain that signed the message, taken from the "d="
       tag of the signature.
@@ -351,7 +277,14 @@ Internet-Draft           Auth Failure Reporting             January 2012
    DKIM-Selector:  The selector of the signature that failed
       verification, taken from the "s=" tag of the signature.
 
-3.2.4.  Optional For DKIM Reports
+
+
+Fontana                      Standards Track                    [Page 5]
+
+RFC 6591                 Auth Failure Reporting               April 2012
+
+
+3.2.4.  Optional for DKIM Reports
 
    DKIM-Canonicalized-Header:  A base64 encoding of the canonicalized
       header of the message as generated by the verifier.
@@ -368,30 +301,20 @@ Internet-Draft           Auth Failure Reporting             January 2012
    the verifier.  This is because these fields are intended to aid in
    identifying message alterations that invalidate DKIM signatures in
    transit.  Including redacted data in them renders the data unusable.
-   (See also Section 3.1 and Section 6.6 for further discussion.)
+   (See also Sections 3.1 and 6.6 for further discussion.)
 
-3.2.5.  Required For ADSP Reports
+3.2.5.  Required for ADSP Reports
 
    DKIM-ADSP-DNS:  Includes the Author Domain Signing Practices (ADSP)
       policy used to obtain the verifier's ADSP result.  This MUST be
       formatted per Section 4.2.1 of [ADSP].
 
-3.2.6.  Required For SPF Reports
+3.2.6.  Required for SPF Reports
 
-   SPF-DNS:  This field MUST appear once for every Sender Policy
-      Framework ([SPF]) SPF record used to obtain the SPF result.  It
-      MUST include the DNS RRTYPE used, the DNS domain from which the
-      record was retrieved, and the content of that record.  The syntax
-      is defined in Section 4.
-
-
-
-
-
-Fontana                   Expires July 21, 2012                 [Page 7]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
+   SPF-DNS:  This field MUST appear once for every SPF record [SPF] used
+      to obtain the SPF result.  It MUST include the DNS RRTYPE used,
+      the DNS domain from which the record was retrieved, and the
+      content of that record.  The syntax is defined in Section 4.
 
 3.3.  Authentication Failure Types
 
@@ -399,7 +322,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
    "Auth-Failure:" header field (defined above), is as follows:
 
    adsp:  The message did not conform to the author domain's published
-      [ADSP] signing practises.  The DKIM-ADSP-DNS field MUST be
+      [ADSP] signing practices.  The DKIM-ADSP-DNS field MUST be
       included in the report.
 
    bodyhash:  The body hash in the signature and the body hash computed
@@ -410,6 +333,13 @@ Internet-Draft           Auth Failure Reporting             January 2012
       been revoked.  The DKIM-Domain and DKIM-Selector fields MUST be
       included in the report.
 
+
+
+Fontana                      Standards Track                    [Page 6]
+
+RFC 6591                 Auth Failure Reporting               April 2012
+
+
    signature:  The DKIM signature on the message did not successfully
       verify against the header hash and public key.  The DKIM-Domain
       and DKIM-Selector fields MUST be included in the report, and the
@@ -417,39 +347,18 @@ Internet-Draft           Auth Failure Reporting             January 2012
       (see Section 3.2.4).
 
    spf:  The evaluation of the author domain's SPF record produced a
-      "none", "fail", "softfail", "temperror" or "permerror" result.
+      "none", "fail", "softfail", "temperror", or "permerror" result.
       ("none" is not strictly a failure per [SPF], but a service that
       demands successful SPF evaluations of clients could treat it like
       a failure.)
 
-   Supplementary data MAY be included in the form of [MAIL]-compliant
-   comments.  For example, "Auth-Failure: adsp" could be augmented by a
-   comment to indicate that the failed message was rejected because it
+   Supplementary data MAY be included in the form of comments compliant
+   with [MAIL].  For example, "Auth-Failure: adsp" could be augmented by
+   a comment to indicate that the failed message was rejected because it
    was not signed when it should have been.  See Appendix B for an
    example.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Fontana                   Expires July 21, 2012                 [Page 8]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
-
-4.  Syntax For Added ARF Header Fields
+4.  Syntax for Added ARF Header Fields
 
    The [ABNF] definitions for the new fields are as follows:
 
@@ -459,16 +368,16 @@ Internet-Draft           Auth Failure Reporting             January 2012
                   ; "CFWS" is defined in [MAIL]
 
      delivery-result = "Delivery-Result:" [CFWS]
-                       ( "delivered" / "spam" /"policy" /
+                       ( "delivered" / "spam" / "policy" /
                          "reject" / "other" ) [CFWS] CRLF
 
      dkim-header = "DKIM-Canonicalized-Header:" [CFWS]
                    base64string CRLF
                  ; "base64string" is defined in [DKIM]
 
-     dkim-sig-domain = "DKIM-Domain:" [CFWS] dkim-domain [CFWS]
+     dkim-sig-domain = "DKIM-Domain:" [CFWS] domain-name [CFWS]
                        CRLF
-                     ; "dkim-domain" is defined in [DKIM]
+                     ; "domain-name" is defined in [DKIM]
 
      dkim-identity = "DKIM-Identity:" [CFWS] [ local-part ] "@"
                      domain-name [CFWS] CRLF
@@ -476,6 +385,16 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
      dkim-selector = "DKIM-Selector:" [CFWS] selector [CFWS] CRLF
                    ; "selector" is defined in [DKIM]
+
+
+
+
+
+
+Fontana                      Standards Track                    [Page 7]
+
+RFC 6591                 Auth Failure Reporting               April 2012
+
 
      dkim-adsp-dns = "DKIM-ADSP-DNS:" [CFWS]
                      quoted-string [CFWS] CRLF
@@ -490,21 +409,6 @@ Internet-Draft           Auth Failure Reporting             January 2012
      spf-dns = "SPF-DNS:" [CFWS] ( "txt" / "spf" ) [CFWS] ":" [CFWS]
                domain [CFWS] ":" [CFWS] quoted-string [CFWS] CRLF
 
-
-
-
-
-
-
-
-
-
-
-Fontana                   Expires July 21, 2012                 [Page 9]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
-
 5.  IANA Considerations
 
    As required by [IANA], this section contains registry information for
@@ -512,12 +416,12 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 5.1.  Updates to ARF Feedback Types
 
-   The following feedback type is added to the Feedback Report Type
-   Values registry:
+   The following feedback type has been added to the Feedback Report
+   Type Values registry:
 
        Feedback Type: auth-failure
        Description: email authentication failure report
-       Published in: [this memo]
+       Published in: [RFC6591]
        Status: current
 
 5.2.  Updates to ARF Header Field Names
@@ -529,149 +433,87 @@ Internet-Draft           Auth Failure Reporting             January 2012
        Description: Type of email authentication method failure
        Multiple Appearances: No
        Related "Feedback-Type": auth-failure
-       Published in: [this memo]
+       Published in: [RFC6591]
        Status: current
-
 
        Field Name: Delivery-Result
        Description: Final disposition of the subject message
        Multiple Appearances: No
        Related "Feedback-Type": auth-failure
-       Published in: [this memo]
+       Published in: [RFC6591]
        Status: current
+
+
+
+
+
+Fontana                      Standards Track                    [Page 8]
+
+RFC 6591                 Auth Failure Reporting               April 2012
 
 
        Field Name: DKIM-ADSP-DNS
        Description: Retrieved DKIM ADSP record
        Multiple Appearances: No
        Related "Feedback-Type": auth-failure
-       Published in: [this memo]
+       Published in: [RFC6591]
        Status: current
-
-
-
-
-
-
-
-
-
-Fontana                   Expires July 21, 2012                [Page 10]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
 
        Field Name: DKIM-Canonicalized-Body
        Description: Canonicalized body, per DKIM
        Multiple Appearances: No
        Related "Feedback-Type": auth-failure
-       Published in: [this memo]
+       Published in: [RFC6591]
        Status: current
-
 
        Field Name: DKIM-Canonicalized-Header
        Description: Canonicalized header, per DKIM
        Multiple Appearances: No
        Related "Feedback-Type": auth-failure
-       Published in: [this memo]
+       Published in: [RFC6591]
        Status: current
-
 
        Field Name: DKIM-Domain
        Description: DKIM signing domain from "d=" tag
        Multiple Appearances: No
        Related "Feedback-Type": auth-failure
-       Published in: [this memo]
+       Published in: [RFC6591]
        Status: current
-
 
        Field Name: DKIM-Identity
        Description: Identity from DKIM signature
        Multiple Appearances: No
        Related "Feedback-Type": auth-failure
-       Published in: [this memo]
+       Published in: [RFC6591]
        Status: current
-
 
        Field Name: DKIM-Selector
        Description: Selector from DKIM signature
        Multiple Appearances: No
        Related "Feedback-Type": auth-failure
-       Published in: [this memo]
+       Published in: [RFC6591]
        Status: current
-
 
        Field Name: DKIM-Selector-DNS
        Description: Retrieved DKIM key record
        Multiple Appearances: No
        Related "Feedback-Type": auth-failure
-       Published in: [this memo]
+       Published in: [RFC6591]
        Status: current
 
 
 
-
-
-Fontana                   Expires July 21, 2012                [Page 11]
+Fontana                      Standards Track                    [Page 9]
 
-Internet-Draft           Auth Failure Reporting             January 2012
+RFC 6591                 Auth Failure Reporting               April 2012
 
 
        Field Name: SPF-DNS
        Description: Retrieved SPF record
        Multiple Appearances: No
        Related "Feedback-Type": auth-failure
-       Published in: [this memo]
+       Published in: [RFC6591]
        Status: current
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Fontana                   Expires July 21, 2012                [Page 12]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
 
 6.  Security Considerations
 
@@ -681,17 +523,18 @@ Internet-Draft           Auth Failure Reporting             January 2012
 6.1.  Inherited Considerations
 
    Implementers are advised to consider the Security Considerations
-   sections of [DKIM], [ADSP] [SPF] and [ARF].
+   sections of [DKIM], [ADSP], [SPF], and [ARF].
 
 6.2.  Forgeries
 
    These reports can be forged as easily as ordinary Internet electronic
-   mail.  User agents and automatic mail handling facilities (such as
+   mail.  User agents and automatic mail-handling facilities (such as
    mail distribution list exploders) that wish to make automatic use of
-   DSNs of any kind should take appropriate precautions to minimize the
-   potential damage from denial-of-service attacks.
+   Delivery Status Notifications (DSNs) of any kind should take
+   appropriate precautions to minimize the potential damage from denial-
+   of-service attacks.
 
-   Security threats related to forged DSNs include the sending of:
+   Security threats related to forged DSNs include the sending of
 
    a.  A falsified email authentication method failure notification when
        the message was in fact delivered to the indicated recipient;
@@ -705,10 +548,26 @@ Internet-Draft           Auth Failure Reporting             January 2012
    produce reports that aren't trusted or even accepted by their
    intended recipients.
 
+
+
+
+
+
+
+
+
+
+
+
+Fontana                      Standards Track                   [Page 10]
+
+RFC 6591                 Auth Failure Reporting               April 2012
+
+
 6.3.  Automatic Generation
 
    Automatic generation of these reports by verifying agents can cause a
-   denial-of-service attack when a large volume of e-mail is sent that
+   denial-of-service attack when a large volume of email is sent that
    causes email authentication failures for whatever reason.
 
    Limiting the rate of generation of these messages might be
@@ -721,14 +580,6 @@ Internet-Draft           Auth Failure Reporting             January 2012
    then becomes a way to adjust parameters of an authorized abuse report
    feedback loop that is configured and activated by private agreement
    rather than starting to send them automatically based solely on
-
-
-
-Fontana                   Expires July 21, 2012                [Page 13]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
-
    discovered data in the DNS.
 
 6.4.  Envelope Sender Selection
@@ -743,7 +594,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
    If it is known that a particular host generates abuse reports upon
    certain incidents, an attacker could forge a high volume of messages
    that will trigger such a report.  The recipient of the report could
-   then be innundated with reports.  This could easily be extended to a
+   then be inundated with reports.  This could easily be extended to a
    distributed denial-of-service attack by finding a number of report-
    generating servers.
 
@@ -753,47 +604,50 @@ Internet-Draft           Auth Failure Reporting             January 2012
    identical or near-identical incidents.  One might even do something
    inverse-exponentially, sending reports for each of the first ten
    incidents, then every tenth incident up to 100, then every 100th
-   incident up to 1000, etc. until some period of relative quiet after
+   incident up to 1000, etc., until some period of relative quiet after
    which the limitation resets.
 
-   The use of this for "near-identical" incidents in particular causes a
-   degradation in reporting quality, however.  If for example a large
-   number of pieces of spam arrive from one attacker, a reporting agent
-   might decide only to send a report about a fraction of those
-   messages.  While this averts a flood of reports to a system
-   administrator, the precise details of each incident are similarly not
-   sent.
+   The use of this technique for "near-identical" incidents in
+   particular causes a degradation in reporting quality, however.  If,
+   for example, a large number of pieces of spam arrive from one
+   attacker, a reporting agent might decide only to send a report about
+
+
+
+
+Fontana                      Standards Track                   [Page 11]
+
+RFC 6591                 Auth Failure Reporting               April 2012
+
+
+   a fraction of those messages.  While this averts a flood of reports
+   to a system administrator, the precise details of each incident are
+   similarly not sent.
 
 6.6.  Redaction of Data in DKIM Reports
 
    This memo requires that the canonicalized header and body be returned
    without being subject to redaction when a DKIM failure is being
    reported.  This is necessary to ensure that the returned
-   canonicalized forms are useful for debugging as they must be compared
-   to the equivalent form at the signer.  If a message is altered in
-   transit, and the returned data are also redacted, the redacted
-   portion and the altered portion may overlap, rendering the comparison
-   results meaningless.  However, unredacted data can leak information
-   the reporting entity considers to be private.  It is for this reason
-   the return of the canonicalized forms is not required.
-
-
-
-
-Fontana                   Expires July 21, 2012                [Page 14]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
+   canonicalized forms are useful for debugging, as they must be
+   compared to the equivalent form at the signer.  If a message is
+   altered in transit, and the returned data are also redacted, the
+   redacted portion and the altered portion may overlap, rendering the
+   comparison results meaningless.  However, unredacted data can leak
+   information the reporting entity considers to be private.  It is for
+   this reason the return of the canonicalized forms is not required.
 
 7.  References
 
 7.1.  Normative References
 
-   [ABNF]     Crocker, D. and P. Overell, "Augmented BNF for Syntax
-              Specifications: ABNF", RFC 5234, January 2008.
+   [ABNF]     Crocker, D., Ed., and P. Overell, "Augmented BNF for
+              Syntax Specifications: ABNF", STD 68, RFC 5234,
+              January 2008.
 
-   [ADSP]     Allman, E., Delany, M., Fenton, J., and J. Levine, "DKIM
-              Sender Signing Practises", RFC 5617, August 2009.
+   [ADSP]     Allman, E., Fenton, J., Delany, M., and J. Levine,
+              "DomainKeys Identified Mail (DKIM) Author Domain Signing
+              Practices (ADSP)", RFC 5617, August 2009.
 
    [ARF]      Shafranovich, Y., Levine, J., and M. Kucherawy, "An
               Extensible Format for Email Feedback Reports", RFC 5965,
@@ -806,23 +660,26 @@ Internet-Draft           Auth Failure Reporting             January 2012
    [BASE64]   Josefsson, S., "The Base16, Base32, and Base64 Data
               Encodings", RFC 4648, October 2006.
 
-   [DKIM]     Crocker, D., Hansen, T., and M. Kucherawy, "DomainKeys
-              Identified Mail (DKIM) Signatures", RFC 6376,
+   [DKIM]     Crocker, D., Ed., Hansen, T., Ed., and M. Kucherawy, Ed.,
+              "DomainKeys Identified Mail (DKIM) Signatures", RFC 6376,
               September 2011.
 
-   [I-D.IETF-MARF-REDACTION]
-              Falk, JD., "Redaction of Potentially Sensitive Data from
-              Mail Abuse Reports", I-D draft-ietf-marf-redaction,
-              March 2011.
+   [IANA]     Narten, T. and H. Alvestrand, "Guidelines for Writing an
+              IANA Considerations Section in RFCs", BCP 26, RFC 5226,
+              May 2008.
 
-   [IANA]     Alvestrand, H. and T. Narten, "Guidelines for Writing an
-              IANA Considerations Section in RFCs", RFC 5226, May 2008.
 
-   [KEYWORDS]
-              Bradner, S., "Key words for use in RFCs to Indicate
-              Requirement Levels", RFC 2119, March 1997.
 
-   [MAIL]     Resnick, P., "Internet Message Format", RFC 5322,
+
+Fontana                      Standards Track                   [Page 12]
+
+RFC 6591                 Auth Failure Reporting               April 2012
+
+
+   [KEYWORDS] Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [MAIL]     Resnick, P., Ed., "Internet Message Format", RFC 5322,
               October 2008.
 
    [MIME]     Freed, N. and N. Borenstein, "Multipurpose Internet Mail
@@ -834,16 +691,13 @@ Internet-Draft           Auth Failure Reporting             January 2012
               Extensions (MIME) Part Two: Media Types", RFC 2046,
               November 1996.
 
+   [REPORT]   Kucherawy, M., Ed., "The Multipart/Report Media Type for
+              the Reporting of Mail System Administrative Messages",
+              STD 73, RFC 6522, January 2012.
 
-
-Fontana                   Expires July 21, 2012                [Page 15]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
-
-   [REPORT]   Vaudreuil, G., "The Multipart/Report Content Type for the
-              Reporting of Mail System Administrative Messages",
-              RFC 3462, January 2003.
+   [RFC6590]  Falk, J., Ed., and M. Kucherawy, Ed., "Redaction of
+              Potentially Sensitive Data from Mail Abuse Reports",
+              RFC 6590, April 2012.
 
    [SPF]      Wong, M. and W. Schlitt, "Sender Policy Framework (SPF)
               for Authorizing Use of Domains in E-Mail, Version 1",
@@ -857,7 +711,7 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
    [EMAIL-ARCH]
               Crocker, D., "Internet Mail Architecture", RFC 5598,
-              October 2008.
+              July 2009.
 
 
 
@@ -873,85 +727,17 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Fontana                   Expires July 21, 2012                [Page 16]
+Fontana                      Standards Track                   [Page 13]
 
-Internet-Draft           Auth Failure Reporting             January 2012
+RFC 6591                 Auth Failure Reporting               April 2012
 
 
 Appendix A.  Acknowledgements
 
-   The authors wish to acknowledge the following for their review and
-   constructive criticism of this proposal: Frank Ellerman, J.D. Falk,
+   The author wishes to acknowledge the following for their review and
+   constructive criticism of this proposal: Frank Ellermann, J.D. Falk,
    Scott Kitterman, John Levine, Mike Markley, Kelly Wanser, Murray
-   Kucherawy and Alessandro Vesely.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Fontana                   Expires July 21, 2012                [Page 17]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
+   Kucherawy, and Alessandro Vesely.
 
 Appendix B.  Example
 
@@ -980,7 +766,7 @@ B.1.  Example Use of ARF Extension Headers
 
    This is an authentication failure report for an email message
    received from a.sender.example on 8 Oct 2011 20:15:58 +0000 (GMT).
-   For more information about this format please see [this memo].
+   For more information about this format, please see [RFC6591].
 
    --------------Boundary-00=_3BCR4Y7kX93yP9uUPRhg
    Content-Type: message/feedback-report
@@ -994,6 +780,14 @@ B.1.  Example Use of ARF Extension Headers
    Authentication-Results: mta1011.mail.tp2.receiver.example;
     dkim=fail (bodyhash) header.d=sender.example
    Auth-Failure: bodyhash
+
+
+
+Fontana                      Standards Track                   [Page 14]
+
+RFC 6591                 Auth Failure Reporting               April 2012
+
+
    DKIM-Canonicalized-Body: VGhpcyBpcyBhIG1lc3NhZ2UgYm9keSB0
      aGF0IGdvdCBtb2RpZmllZCBpbiB0cmFuc2l0LgoKQXQgdGhlIHNhbWU
      gdGltZSB0aGF0IHRoZSBib2R5aGFzaCBmYWlscyB0byB2ZXJpZnksIH
@@ -1001,14 +795,6 @@ B.1.  Example Use of ARF Extension Headers
      HBoaXNoeSwgYXMgdGhlClN1YmplY3QgYWxyZWFkeSBoaW50cy4gIElu
      ZGVlZCwgdGhpcyBib2R5IGFsc28gY29udGFpbnMKdGhlIGZvbGxvd2l
      uZyB0ZXh0OgoKICAgUGxlYXNlIGVudGVyIHlvdXIgZnVsbCBiYW5rIG
-
-
-
-Fontana                   Expires July 21, 2012                [Page 18]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
-
      NyZWRlbnRpYWxzIGF0CiAgIGh0dHA6Ly93d3cuc2VuZGVyLmV4YW1wb
      GUvCgpXZSBhcmUgaW1wbHlpbmcgdGhhdCwgYWx0aG91Z2ggbXVsdGlw
      bGUgZmFpbHVyZXMKcmVxdWlyZSBtdWx0aXBsZSByZXBvcnRzLCBhIHN
@@ -1050,6 +836,14 @@ Internet-Draft           Auth Failure Reporting             January 2012
     Sat, 08 Oct 2011 13:15:24 -0700 (PDT)
    Date: Sat, 8 Oct 2011 16:15:24 -0400 (EDT)
    Reply-To: anexample.reply@a.sender.example
+
+
+
+Fontana                      Standards Track                   [Page 15]
+
+RFC 6591                 Auth Failure Reporting               April 2012
+
+
    From: anexample@a.sender.example
    To: someuser@receiver.example
    Subject: You have a new bill from your bank
@@ -1057,79 +851,26 @@ Internet-Draft           Auth Failure Reporting             January 2012
 
    --------------Boundary-00=_3BCR4Y7kX93yP9uUPRhg--
 
-
-
-
-Fontana                   Expires July 21, 2012                [Page 19]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
-
-   Example 1: Example ARF report using these extensions
+   Example 1: Example ARF Report Using These Extensions
 
    This example ARF message is making the following assertion:
 
-   o  DKIM verification of the signature added within "example.com"
-      failed
+   o  DKIM verification of the signature added within "sender.example"
+      failed.
 
-   o  The cause for the verification failure was a mismatch between the
+   o  The cause of the verification failure was a mismatch between the
       body contents observed at the verifier and the body hash contained
       in the signature.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Fontana                   Expires July 21, 2012                [Page 20]
-
-Internet-Draft           Auth Failure Reporting             January 2012
-
 
 Author's Address
 
    Hilda L. Fontana
-   3579 E. Foothill Blvd., suite 282
+   3579 E. Foothill Blvd., Suite 282
    Pasadena, CA  91107
    US
 
    Phone: +1 626 676 8852
-   Email: hilda@hfontana.com
+   EMail: hilda@hfontana.com
 
 
 
@@ -1154,23 +895,5 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Fontana                   Expires July 21, 2012                [Page 21]
+Fontana                      Standards Track                   [Page 16]
 
