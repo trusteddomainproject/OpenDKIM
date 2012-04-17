@@ -1,7 +1,7 @@
 .TH opendkim-genkey 8 "The OpenDKIM Project"
 .SH NAME
 .B opendkim-genkey
-- DKIM filter key generation tool
+\- DKIM filter key generation tool
 .SH SYNOPSIS
 .B opendkim-genkey
 [options]

@@ -1,7 +1,7 @@
 .TH opendkim-importstats 8 "The OpenDKIM Project"
 .SH NAME
 .B opendkim-importstats
-- OpenDKIM statistics import tool
+\- OpenDKIM statistics import tool
 .SH SYNOPSIS
 .B opendkim-importstats
 [options]

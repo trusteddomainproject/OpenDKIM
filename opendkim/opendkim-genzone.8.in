@@ -1,7 +1,7 @@
 .TH opendkim-genzone 8 "The OpenDKIM Project"
 .SH NAME
 .B opendkim-genzone
-- DKIM public key zone file generation tool
+\- DKIM public key zone file generation tool
 .SH SYNOPSIS
 .B opendkim-genzone
 [-C address]

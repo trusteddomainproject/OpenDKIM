@@ -1,7 +1,7 @@
 .TH opendkim-spam 1 "The OpenDKIM Project"
 .SH NAME
 .B opendkim-spam
-- DKIM filter spam correlation tool
+\- DKIM filter spam correlation tool
 .SH SYNOPSIS
 .B opendkim-spam
 [options]

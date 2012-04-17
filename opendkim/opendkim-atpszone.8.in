@@ -1,7 +1,7 @@
 .TH opendkim-atpszone 8 "The OpenDKIM Project"
 .SH NAME
 .B opendkim-atpszone
-- DKIM ATPS zone file generation tool
+\- DKIM ATPS zone file generation tool
 .SH SYNOPSIS
 .B opendkim-atpszone
 [-A]

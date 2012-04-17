@@ -1,7 +1,7 @@
 .TH opendkim-testmsg 8 "The OpenDKIM Project"
 .SH NAME
 .B opendkim-testmsg
-- DKIM message tst
+\- DKIM message tst
 .SH SYNOPSIS
 .B opendkim-testmsg
 [-C] [-d domain] [-s selector] [-k keypath]

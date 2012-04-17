@@ -1,7 +1,7 @@
 .TH opendkim-lua 3 "The OpenDKIM Project"
 .SH NAME
-.B OpenDKIM Lua programming
-- programming the OpenDKIM filter using Lua scripts
+.B opendkim-lua
+\- Programming the OpenDKIM filter using Lua scripts
 .SH DESCRIPTION
 The OpenDKIM filter has hooks to run user-provided scripts for making policy
 decisions regarding signatures to add on outbound messages or verification and

@@ -2,7 +2,7 @@
 
 .SH NAME
 .B opendkim.conf
-- Configuration file for opendkim
+\- Configuration file for opendkim
 
 .SH LOCATION
 .I @SYSCONFDIR@/opendkim.conf

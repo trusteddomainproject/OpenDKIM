@@ -1,7 +1,7 @@
 .TH opendkim-modtotals 8 "The OpenDKIM Project"
 .SH NAME
 .B opendkim-modtotals
-- OpenDKIM statistics update tool
+\- OpenDKIM statistics update tool
 .SH SYNOPSIS
 .B opendkim-modtotals.pl
 [options]

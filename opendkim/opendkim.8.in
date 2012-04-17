@@ -1,7 +1,7 @@
 .TH opendkim 8 "The OpenDKIM Project"
 .SH NAME
 .B opendkim
-- DKIM signing and verifying filter for MTAs
+\- DKIM signing and verifying filter for MTAs
 .SH SYNOPSIS
 .B opendkim
 -p socketspec

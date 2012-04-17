@@ -1,7 +1,7 @@
 .TH opendkim-testkey 8 "The OpenDKIM Project"
 .SH NAME
 .B opendkim-testkey
-- DKIM filter installation test
+\- DKIM filter installation test
 .SH SYNOPSIS
 .B opendkim-testkey
 [-d domain] [-s selector] [-k keypath] [-v] [-x configfile]
