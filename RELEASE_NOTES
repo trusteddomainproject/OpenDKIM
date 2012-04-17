@@ -6,6 +6,8 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.6.0		2012/06/01
+	Fix bug #SF3518877: Separate variable expansion from literal text in
+		opendkim-genkey.
 	LIBAR: Fix bug #SF3444318: Do proper buffer size calculations to
 		avoid valgrind warnings about references to unaddressable
 		space.  Reported by Todd Lyons.
