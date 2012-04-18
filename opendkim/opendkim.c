@@ -10348,7 +10348,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 				if (err != NULL)
 				{
 					snprintf(comment, sizeof comment,
-					         " (%s)", err);
+					         " reason=\"%s\"", err);
 				}
 			}
 			else if (sigerror != DKIM_SIGERROR_UNKNOWN &&
@@ -14193,11 +14193,11 @@ mlfi_eom(SMFICTX *ctx)
 				{
 					strlcat((char *) header, DELIMITER,
 						        sizeof header);
-					strlcat((char *) header, "(",
+					strlcat((char *) header, "reason=\"",
 					        sizeof header);
 					strlcat((char *) header, comment,
 					        sizeof header);
-					strlcat((char *) header, ")",
+					strlcat((char *) header, "\"",
 					        sizeof header);
 				}
 
@@ -14273,11 +14273,12 @@ mlfi_eom(SMFICTX *ctx)
 					err = dkim_geterror(dfc->mctx_dkimv);
 					if (err != NULL)
 					{
-						strlcat((char *) header, " (",
+						strlcat((char *) header,
+						        " reason=\"",
 						        sizeof header);
 						strlcat((char *) header, err,
 						        sizeof header);
-						strlcat((char *) header, ")",
+						strlcat((char *) header, "\"",
 						        sizeof header);
 					}
 				}
@@ -14335,11 +14336,12 @@ mlfi_eom(SMFICTX *ctx)
 					err = dkim_geterror(dfc->mctx_dkimv);
 					if (err != NULL)
 					{
-						strlcat((char *) header, " (",
+						strlcat((char *) header,
+						        " reason=\"",
 						        sizeof header);
 						strlcat((char *) header, err,
 						        sizeof header);
-						strlcat((char *) header, ")",
+						strlcat((char *) header, "\"",
 						        sizeof header);
 					}
 				}
