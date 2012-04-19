@@ -20,7 +20,6 @@ dist_doc_DATA = draft-ietf-marf-as-13.txt \
 	rfc5518.txt \
 	rfc5585.txt \
 	rfc5617.txt \
-	rfc5672.txt \
 	rfc5863.txt \
 	rfc5965.txt \
 	rfc6008.txt \
@@ -31,3 +30,7 @@ dist_doc_DATA = draft-ietf-marf-as-13.txt \
 	rfc6541.txt \
 	rfc6570.txt \
 	rfc6591.txt
+
+gpl:
+	rm -f *.txt
+
