@@ -5,12 +5,12 @@ MARF Working Group                                               J. Falk
 Internet-Draft                                               Return Path
 Updates: 5965 (if approved)                            M. Kucherawy, Ed.
 Intended status: Standards Track                               Cloudmark
-Expires: September 3, 2012                                 March 2, 2012
+Expires: October 10, 2012                                  April 8, 2012
 
 
  Creation and Use of Email Feedback Reports: An Applicability Statement
                   for the Abuse Reporting Format (ARF)
-                         draft-ietf-marf-as-11
+                         draft-ietf-marf-as-13
 
 Abstract
 
@@ -38,7 +38,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on September 3, 2012.
+   This Internet-Draft will expire on October 10, 2012.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Falk & Kucherawy        Expires September 3, 2012               [Page 1]
+Falk & Kucherawy        Expires October 10, 2012                [Page 1]
 
-Internet-Draft                   ARF AS                       March 2012
+Internet-Draft                   ARF AS                       April 2012
 
 
    carefully, as they describe your rights and restrictions with respect
@@ -86,8 +86,8 @@ Table of Contents
      6.3.  Where To Send Reports  . . . . . . . . . . . . . . . . . .  7
      6.4.  What To Put In Reports . . . . . . . . . . . . . . . . . .  8
      6.5.  What To Do With Reports  . . . . . . . . . . . . . . . . .  9
-   7.  Generating Automatic Authentication Failure Reports  . . . . . 10
-   8.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 11
+   7.  Generating Automatic Authentication Failure Reports  . . . . .  9
+   8.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 10
    9.  Security Considerations  . . . . . . . . . . . . . . . . . . . 11
      9.1.  In Other Documents . . . . . . . . . . . . . . . . . . . . 11
      9.2.  Forgeries  . . . . . . . . . . . . . . . . . . . . . . . . 11
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Falk & Kucherawy        Expires September 3, 2012               [Page 2]
+Falk & Kucherawy        Expires October 10, 2012                [Page 2]
 
-Internet-Draft                   ARF AS                       March 2012
+Internet-Draft                   ARF AS                       April 2012
 
 
 1.  Introduction
@@ -164,9 +164,9 @@ Internet-Draft                   ARF AS                       March 2012
 
 
 
-Falk & Kucherawy        Expires September 3, 2012               [Page 3]
+Falk & Kucherawy        Expires October 10, 2012                [Page 3]
 
-Internet-Draft                   ARF AS                       March 2012
+Internet-Draft                   ARF AS                       April 2012
 
 
    of [RFC2026].
@@ -206,10 +206,6 @@ Internet-Draft                   ARF AS                       March 2012
    to make it easier to identify the items for discussion, and will be
    removed before publication.]
 
-   The following subsections include statements applicable when
-   establishing an abuse report relationship and generating reports in
-   that context.
-
 4.1.  General Considerations
 
    1.  A Mailbox Provider receives reports of abusive or unwanted mail
@@ -217,42 +213,45 @@ Internet-Draft                   ARF AS                       March 2012
        (or similar nomenclature) in the MUA.  The method of transferring
        this message and any associated metadata from the MUA to the
        Mailbox Provider's ARF processing system is not defined by any
-
-
-
-Falk & Kucherawy        Expires September 3, 2012               [Page 4]
-
-Internet-Draft                   ARF AS                       March 2012
-
-
        standards document, but is discussed further in Section 3.2 of
        [RFC6449].  Policy concerns related to the collection of this
        data are discussed in Section 3.4 of [RFC6449].
-   2.  To implement the recommendations of this memo, the reports MUST
-       be formatted per [RFC5965], and transmitted as an email message
+
+
+
+
+Falk & Kucherawy        Expires October 10, 2012                [Page 4]
+
+Internet-Draft                   ARF AS                       April 2012
+
+
+   2.  To implement the recommendations of this memo, the reports are
+       formatted per [RFC5965], and transmitted as an email message
        ([RFC5322]), typically using SMTP ([RFC5321]).
    3.  Ongoing maintenance of an ARF processing system is discussed in
        Section 3.6 of [RFC6449].
 
 4.2.  Where To Send Reports
 
-   1.  The Mailbox Provider SHOULD send reports to relevant parties who
-       have requested to receive such reports.  The process whereby such
+   1.  The Mailbox Provider SHOULD NOT send reports to addresses that
+       have not explicitly requested them.  The process whereby such
        parties may request the reports is discussed in Section 3.5 of
        [RFC6449].
 
 4.3.  What To Put In Reports
 
-   1.  The reports SHOULD use "Feedback-Type: abuse", but MAY use other
-       types as appropriate.  However, the Mailbox Provider generating
-       the reports SHOULD NOT assume that the operator receiving the
-       reports will treat different Feedback-Types differently.
-   2.  The reports SHOULD include the following optional fields whenever
-       practical: Original-Mail-From, Arrival-Date, Source-IP, Original-
-       Rcpt-To.  Other optional fields MAY be included, as the
+   1.  The reports SHOULD use "Feedback-Type: abuse", for its type.
+       Although a Mailbox Provider generating the reports can use other
+       types appropriate to the nature of the abuse being reported, the
+       operator receiving the reports might not treat different feedback
+       types differently.
+   2.  The following fields are optional in [RFC5965], but SHOULD be
+       used in this context when their corresponding values are
+       available: Original-Mail-From, Arrival-Date, Source-IP, Original-
+       Rcpt-To.  Other optional fields can be included, as the
        implementer feels is appropriate.
-   3.  Reports MAY be subjected to redaction of user-identifiable data
-       as described in [I-D.IETF-MARF-REDACTION].
+   3.  User-identifiable data MAY be obscured as described in
+       [I-D.IETF-MARF-REDACTION].
 
 
 5.  Receiving and Processing Complaint-Based Solicited Abuse Reports
@@ -262,52 +261,48 @@ Internet-Draft                   ARF AS                       March 2012
    to make it easier to identify the items for discussion, and will be
    removed before publication.]
 
-   The following subsections include statements applicable when
-   receiving abuse reports in the context of an established abuse report
-   feedback relationship.
-
 5.1.  General Considerations
 
-   1.  At the time this document is being written, for the use cases
-       described here, mail operators need to proactively request a
-       stream of ARF reports from Mailbox Providers.  Recommendations
-       for preparing to make that request are discussed in Section 4.1
+   1.  ARF report streams are established proactively between Feedback
+       Providers and Feedback Consumers.  Recommendations for preparing
+       to make that request are discussed in Section 4.1 of [RFC6449].
+   2.  Operators MUST be able to accept ARF [RFC5965] reports as email
+       messages [RFC5322] over SMTP [RFC5321].  These and other types of
+       email messages that can be received are discussed in Section 4.2
        of [RFC6449].
+   3.  Recipients of feedback reports that are part of formal feedback
+       arrangements have to be capable of handling large volumes of
+       reports.  This could require automation of report processing.
 
 
 
-Falk & Kucherawy        Expires September 3, 2012               [Page 5]
+Falk & Kucherawy        Expires October 10, 2012                [Page 5]
 
-Internet-Draft                   ARF AS                       March 2012
+Internet-Draft                   ARF AS                       April 2012
 
 
-   2.  Mail operators MUST be prepared to receive reports formatted per
-       [RFC5965] as email messages ([RFC5322]) over SMTP ([RFC5321]).
-       These and other types of email messages that may be received are
-       discussed in Section 4.2 of [RFC6449].
-   3.  Mail operators need to consider the idea of automating report
-       processing.  Discussion of this can be found in Section 4.4 of
-       [RFC6449].
+       Discussion of this can be found in Section 4.4 of [RFC6449].
 
 5.2.  What To Expect
 
    1.  An automated report processing system MUST accept all Feedback-
-       Types defined in [RFC5965] or extensions to it, but implementers
-       SHOULD NOT assume that Mailbox Providers will make use of any
-       Feedback-Type other than "abuse".  Additional logic may be
-       required to separate different types of abuse reports after
-       receipt.
-   2.  Implementers SHOULD NOT expect all Mailbox Providers to include
-       the same optional fields.
-   3.  Reports MAY be subjected to redaction of user-identifiable data
-       as described in [I-D.IETF-MARF-REDACTION].  That document also
-       discusses the handling of such reports.  This technique is also
-       discussed in Section 4.4 of [RFC6449].
+       Types defined in [RFC5965] or extensions to it.  However, Mailbox
+       Providers might only make use of the "abuse" Feedback-Type.
+       Therefore, report receivers might be required to do additional
+       analysis to separate different types of abuse reports after
+       receipt if they do not have prior specific knowledge of the
+       sender of the report.
+   2.  Implementers MUST accept different combinations of optional
+       fields since Mailbox Providers might not include the same ones.
+   3.  Reports receivers MUST accept reports that have obscured their
+       user-identifiable data as described in [I-D.IETF-MARF-REDACTION].
+       That document also discusses the handling of such reports.  This
+       technique is also discussed in Section 4.4 of [RFC6449].
 
 5.3.  What To Do
 
-   1.  Actions that mail operators might take upon receiving a report
-       (or multiple reports) are discussed in Section 4.3 of [RFC6449].
+   1.  Section 4.3 of [RFC6449] discusses actions that mail operators
+       might take upon receiving a report (or multiple reports).
 
 
 6.  Generating and Handling Unsolicited Abuse Reports
@@ -317,58 +312,51 @@ Internet-Draft                   ARF AS                       March 2012
    to make it easier to identify the items for discussion, and will be
    removed before publication.]
 
-   The following subsections include statements applicable when sending
-   or receiving reports outside of the context of an established abuse
-   report feedback relationship.
-
 6.1.  General Considerations
 
-   1.  A report generator MUST provide a way for a report recipient to
-       request no further reports be sent to that address and MAY
-       provide a way for recipients to change the address(es) to which
-       reports about them are sent.
-
-
-
-
-
-Falk & Kucherawy        Expires September 3, 2012               [Page 6]
-
-Internet-Draft                   ARF AS                       March 2012
-
-
+   1.  It is essential for report recipients to be capable of throttling
+       reports being sent to avoid damage to their own installations.
+       Therefore, Feedback Providers MUST provide a way for report
+       recipients to request that no further reports be sent.
+       Unfortunately, no standardized mechanism for such requests exists
+       to date, and all existing mechanisms for meeting this requirement
+       are out-of-band.
    2.  Message authentication is generally a good idea, but it is
        especially important to encourage credibility of and thus
        response to unsolicited reports.  Therefore, as with any other
-       message, report generators sending unsolicited reports SHOULD
-       arrange to send reports for which SPF and/or DKIM checks will
-       pass.
+       message, Feedback Providers sending unsolicited reports SHOULD
+       send reports that will pass SPF and/or DKIM checks.
+
+
+
+
+
+
+Falk & Kucherawy        Expires October 10, 2012                [Page 6]
+
+Internet-Draft                   ARF AS                       April 2012
+
 
 6.2.  When To Generate Reports
 
    1.  Handling of unsolicited reports has a significant cost to the
        receiver.  Senders of unsolicited reports, especially those
-       sending large volumes of them automatically, need to be aware of
-       this and do all they reasonably can to avoid sending reports that
-       cannot be used as a basis for action by the recipient, whether
-       this is due to the report being sent about an incident that is
-       not abuse-related, the report being sent to an email address that
-       won't result in action, or the content or format of the report
-       being hard for the recipient to read or use.
-   2.  Systems that generate unsolicited reports SHOULD ensure that the
-       criteria used to decide what messages to report accurately
-       identify messages that the reporting entity believes in good
-       faith are abusive.  Such criteria might include direct complaint
-       submissions from MUAs, reports triggered by mail sent to "spam
-       trap" or "honeypot" addresses, and virus reports.  (These
-       applications might be described in future IETF documents.)
-   3.  Systems SHOULD NOT report all mail sent from a particular sender
+       sending large volumes of them automatically SHOULD NOT send
+       reports that cannot be used as a basis for action by the
+       recipient, whether this is due to the report being sent about an
+       incident that is not abuse-related, the report being sent to an
+       email address that won't result in action, or the content or
+       format of the report being hard for the recipient to read or use.
+   2.  Systems SHOULD NOT report all mail sent from a particular sender
        merely because some of it is determined to be abusive.
-       Mechanical reports of mail that "looks like" spam, based solely
+   3.  Mechanical reports of mail that "looks like" spam, based solely
        on the results of inline content analysis tools, SHOULD NOT be
        sent since, because of their subjective nature, they are unlikely
-       to provide a basis for the recipient to take action.
-   4.  If a report generator applies SPF to arriving messages, a report
+       to provide a basis for the recipient to take action.  Complaints
+       generated by end users about mail that is determined by them to
+       be abusive, or mail delivered to "spam trap" or "honeypot"
+       addresses, are far more likely to be accurate.
+   4.  If a Feedback Provider applies SPF to arriving messages, a report
        SHOULD NOT be generated to the RFC5321.MailFrom domain if the SPF
        evaluation produced a "Fail", "SoftFail", "TempError" or
        "PermError" report, as no reliable assertion or assumption can be
@@ -380,37 +368,42 @@ Internet-Draft                   ARF AS                       March 2012
 
 6.3.  Where To Send Reports
 
-   1.  MUAs SHOULD NOT generate abuse reports directly to entities found
-       in the message or by queries to WHOIS ([RFC3912]) or other
-       heuristic means.  Rather, the MUA needs to signal, by some means,
-       the mailbox provider to which it connects to trigger generation
-       of such a report.
-
-
-
-Falk & Kucherawy        Expires September 3, 2012               [Page 7]
-
-Internet-Draft                   ARF AS                       March 2012
-
-
-   2.  Report generators SHOULD send reports to recipients that are both
-       responsible for the messages and are able to do something about
-       them, and SHOULD NOT send reports to recipients that are
+   1.  Rather than generating feedback reports themselves, MUAs SHOULD
+       make abuse reports back to their mailbox providers so that they
+       can generate and send ARF messages on behalf of end users (see
+       Section 3.2 of [RFC6449]).  This allows centralized processing
+       and tracking of reports, and provides training input to filtering
+       systems.  There is, however, no standard mechanism for this
+       signaling between MUAs and mailbox providers to trigger abuse
+       reports.
+   2.  Feedback Providers SHOULD NOT send reports to recipients that are
        uninvolved or only peripherally involved.  For example, they
        SHOULD NOT send reports to the operator of every Autonomous
        System in the path between the apparent originating system and
-       the operator generating the report.
+       the operator generating the report.  Instead, they need to send
+       reports to recipients that are both responsible for the messages
+       and are able to do something about them.
+
+
+
+
+
+Falk & Kucherawy        Expires October 10, 2012                [Page 7]
+
+Internet-Draft                   ARF AS                       April 2012
+
+
    3.  Deciding where to send an unsolicited report will typically rely
-       on heuristics.  Abuse addresses in WHOIS records of the IP
-       address relaying the subject message and/or of the domain name
-       found in the results of a PTR ("reverse lookup") query on that
-       address are likely reasonable candidates, as is the abuse@domain
-       role address (see [RFC2142]) of related domains.  Unsolicited
-       reports SHOULD NOT be sent to email addresses that are not
-       clearly intended to handle abuse reports.  Legitimate candidates
-       include those found in WHOIS records or on a web site that either
-       are explicitly described as an abuse contact, or are of the form
-       "abuse@domain".
+       on heuristics.  Abuse addresses in WHOIS ([RFC3912]) records of
+       the IP address relaying the subject message and/or of the domain
+       name found in the results of a PTR ("reverse lookup") query on
+       that address are likely reasonable candidates, as is the
+       abuse@domain role address (see [RFC2142]) of related domains.
+       Unsolicited reports SHOULD NOT be sent to email addresses that
+       are not clearly intended to handle abuse reports.  Legitimate
+       candidates include those found in WHOIS records or on a web site
+       that either are explicitly described as an abuse contact, or are
+       of the form "abuse@domain".
    4.  Where an abusive message is authenticated using a domain-level
        authentication technology such as DKIM ([RFC6376]) or SPF
        ([RFC4408]), the domain that has been verified by the
@@ -431,24 +424,15 @@ Internet-Draft                   ARF AS                       March 2012
 
 6.4.  What To Put In Reports
 
-   1.  Reports SHOULD use "Feedback-Type: abuse", but MAY use other
+   1.  Reports SHOULD use "Feedback-Type: abuse", but can use other
        types as appropriate.  However, the Mailbox Provider generating
-       the reports SHOULD NOT assume that the operator receiving the
-       reports will treat different Feedback-Types differently.
+       the reports cannot assume that the operator receiving the reports
+       will treat different Feedback-Types differently.
    2.  Reports SHOULD include the following optional fields whenever
-       practical: Original-Mail-From, Arrival-Date, Source-IP, Original-
-       Rcpt-To.  Other optional fields MAY be included, as the
+       their corresponding values are available and applicable to the
+       report: Original-Mail-From, Arrival-Date, Source-IP, Original-
+       Rcpt-To.  Other optional fields can be included, as the
        implementer feels is appropriate.
-
-
-
-
-
-Falk & Kucherawy        Expires September 3, 2012               [Page 8]
-
-Internet-Draft                   ARF AS                       March 2012
-
-
    3.  Experience suggests use of ARF is advisable in most contexts.
        Automated recipient systems can handle abuse reports sent in ARF
        format at least as well as any other format such as plain text,
@@ -457,21 +441,28 @@ Internet-Draft                   ARF AS                       March 2012
        that reports are generated with use by recipients not using
        automated ARF parsing in mind.  Anyone sending unsolicited
        reports in ARF format can legitimately presume that some
+
+
+
+Falk & Kucherawy        Expires October 10, 2012                [Page 8]
+
+Internet-Draft                   ARF AS                       April 2012
+
+
        recipients will only be able to access the human readable (first,
        text/plain) part of it, and SHOULD include all information needed
        also in this part.  Further, they SHOULD ensure that the report
        is readable when viewed as plain text, to give low-end ticketing
-       systems as much assistance as possible.  Finally, they need to be
-       aware that the report could be discarded or ignored due to
-       failure to take these steps in the most extreme cases.
+       systems as much assistance as possible.  In extreme cases,
+       failure to take these steps may result in the report being
+       discarded or ignored.
 
 6.5.  What To Do With Reports
 
-   1.  Recipients of unsolicited ARF reports SHOULD, in general, handle
-       them the same way as any other abuse reports.  However, they MAY
-       take advantage of the standardized parts of the ARF format to
-       automate processing.  Lacking knowledge about the sender of the
-       report, they SHOULD separate valid from invalid reports by, for
+   1.  Receivers of unsolicited reports can take advantage of the
+       standardized parts of the ARF format to automate processing.
+       Independent of the sender of the report, they can improve
+       processing by separating valid from invalid reports by, for
        example, looking for references to IP address ranges, domains,
        and mailboxes for which the recipient organization is responsible
        in the copy of the reported message, and by correlating multiple
@@ -486,23 +477,17 @@ Internet-Draft                   ARF AS                       March 2012
        useful, in the case of receipt of ARF reports where no feedback
        arrangement has been established, a non-automated reply might be
        desirable to indicate what action resulted from the complaint,
-       heading off more severe filtering by the report generator.  In
+       heading off more severe filtering by the Feedback Provider.  In
        addition, using an address that cannot receive replies precludes
        any requests for additional information, and increases the
        likelihood that further reports will be discarded or blocked.
-       Thus, a report generator sending unsolicited reports SHOULD
-       ensure that a reply to such a report can be received.  Where an
+       Thus, a Feedback Provider sending unsolicited reports SHOULD NOT
+       generate reports for which a reply cannot be received.  Where an
        unsolicited report results in the establishment of contact with a
        responsible and responsive party, this can be saved for future
        complaint handling and possible establishment of a formal
        (solicited) feedback arrangement.  See Section 3.5 of [RFC6449]
        for a discussion of establishment of feedback arrangements.
-
-
-
-Falk & Kucherawy        Expires September 3, 2012               [Page 9]
-
-Internet-Draft                   ARF AS                       March 2012
 
 
 7.  Generating Automatic Authentication Failure Reports
@@ -511,6 +496,14 @@ Internet-Draft                   ARF AS                       March 2012
    The numbers are here during document development to make it easier to
    identify the items for discussion, and will be removed before
    publication.]
+
+
+
+
+Falk & Kucherawy        Expires October 10, 2012                [Page 9]
+
+Internet-Draft                   ARF AS                       April 2012
+
 
    There are some cases where report generation is caused by automation
    rather than user request.  A specific example of this is reporting,
@@ -523,42 +516,34 @@ Internet-Draft                   ARF AS                       March 2012
    many of the issues associated with abuse reports are not relevant to
    reports about authentication failures.
 
-   1.  Selection of the recipient(s) for reports that are automatically
-       generated MUST be done based on data provided by the report
-       recipient, and MUST NOT be done heuristically.  Therefore these
-       reports are always solicited, such as the mechanisms defined in
-       the examples listed above.
+   1.  Automatic feedback generators MUST select recipients based on
+       data provided by the report recipient.  In particular, recipients
+       MUST NOT be selected using heuristics.
    2.  If the message under evaluation by the Verifier is an ARF
        ([RFC5965]) message, a report MUST NOT be automatically
        generated.
-   3.  When sending a new report via SMTP, it is necessary to construct
-       the message so as to avoid amplification attacks, deliberate or
-       otherwise.  The envelope sender address of the report needs to be
-       chosen so that these reports will not generate mail loops.
-       Similar to Section 2 of [RFC3464], the envelope sender address of
-       the report SHOULD be chosen to ensure that no feedback reports
-       will be issued in response to the report itself.  Therefore, when
-       an SMTP transaction is used to send a report, the MAIL FROM
-       command SHOULD use the NULL reverse-path, i.e., "MAIL FROM:<>".
+   3.  The message for a new report sent via SMTP MUST be constructed so
+       as to avoid amplification attacks, deliberate or otherwise.  The
+       envelope sender address of the report MUST be chosen so that
+       these reports will not generate mail loops.  Similar to Section 2
+       of [RFC3464], the envelope sender address of the report MUST be
+       chosen to ensure that no feedback reports will be issued in
+       response to the report itself.  Therefore, when an SMTP
+       transaction is used to send a report, the MAIL FROM command
+       SHOULD use the NULL reverse-path, i.e., "MAIL FROM:<>".  An
+       exception to this would be the use of a reverse-path selected
+       such that SPF checks on the report will pass; in such cases, the
+       operator will need to make provisions to avoid the amplification
+       attack or mail loop via other means.
    4.  Reports SHOULD use "Feedback-Type: auth-failure", but MAY use
        other types as appropriate.  However, the Mailbox Provider
-       generating the reports SHOULD NOT assume that the operator
-       receiving the reports will treat different Feedback-Types
-       differently.
-   5.  Reports SHOULD include the following optional fields whenever
-       practical: Original-Mail-From, Arrival-Date, Source-IP, Original-
-       Rcpt-To.  Other optional fields MAY be included, as the
-       implementer feels is appropriate.
-
-
-
-
-
-
-
-Falk & Kucherawy        Expires September 3, 2012              [Page 10]
-
-Internet-Draft                   ARF AS                       March 2012
+       generating the reports cannot assume that the operator receiving
+       the reports will treat different Feedback-Types differently.
+   5.  These reports SHOULD include the following optional fields,
+       although they are optional in [RFC5965], whenever their
+       corresponding values are available: Original-Mail-From, Arrival-
+       Date, Source-IP, Original-Rcpt-To.  Other optional fields can be
+       included, as the implementer feels is appropriate.
 
 
 8.  IANA Considerations
@@ -566,6 +551,14 @@ Internet-Draft                   ARF AS                       March 2012
    [RFC Editor: please remove this section prior to publication.]
 
    This document has no IANA actions.
+
+
+
+
+
+Falk & Kucherawy        Expires October 10, 2012               [Page 10]
+
+Internet-Draft                   ARF AS                       April 2012
 
 
 9.  Security Considerations
@@ -577,11 +570,11 @@ Internet-Draft                   ARF AS                       March 2012
 
 9.2.  Forgeries
 
-   Report generators that relay user complaints directly, rather than by
-   reference to a stored message (e.g., IMAP or POP), could be duped
+   Feedback Providers that relay user complaints directly, rather than
+   by reference to a stored message (e.g., IMAP or POP), could be duped
    into sending a complaint about a message that the complaining user
    never actually received, as an attack on the purported originator of
-   the falsified message.  Report generators need to be resilient to
+   the falsified message.  Feedback Providers need to be resilient to
    such attack methods.
 
    Also, these reports may be forged as easily as ordinary Internet
@@ -609,21 +602,20 @@ Internet-Draft                   ARF AS                       March 2012
 
    ARF ([RFC5965]) reports have historically been generated individually
    as a result of some kind of human request, such as someone clicking a
-
-
-
-Falk & Kucherawy        Expires September 3, 2012              [Page 11]
-
-Internet-Draft                   ARF AS                       March 2012
-
-
    "Report Abuse" button in a mail reader.  In contrast, the mechanisms
    described in some extension documents (i.e.,
    [I-D.IETF-MARF-DKIM-REPORTING] and [I-D.IETF-MARF-SPF-REPORTING]) are
    focused around automated reporting.  This obviously implies the
    potential for much larger volumes or frequency of messages, and thus
-   greater mail system load (both for report generators and report
+   greater mail system load (both for Feedback Providers and report
    receivers).
+
+
+
+Falk & Kucherawy        Expires October 10, 2012               [Page 11]
+
+Internet-Draft                   ARF AS                       April 2012
+
 
    Those mechanisms are primarily intended for use in generating reports
    to aid implementers of DKIM ([RFC6376]), ADSP ([RFC5617]), and SPF
@@ -632,12 +624,12 @@ Internet-Draft                   ARF AS                       March 2012
    use, specifically because of these load concerns.  However, extended
    use is possible by ADMDs that want to keep a close watch for fraud or
    infrastructure problems.  It is important to consider the impact of
-   doing so on both report generators and the requesting ADMDs.
+   doing so on both Feedback Providers and the requesting ADMDs.
 
    A sender requesting these reports can cause its mail servers to be
    overwhelmed if it sends out signed messages whose signatures fail to
    verify for some reason, provoking a large number of reports from
-   report generators.  Similarly, a report generator could be
+   Feedback Providers.  Similarly, a Feedback Provider could be
    overwhelmed by a large volume of messages requesting reports whose
    signatures fail to validate, as those now need to send reports back
    to the signer.
@@ -646,14 +638,14 @@ Internet-Draft                   ARF AS                       March 2012
    but threatens to inhibit the distribution of important and possibly
    time-sensitive information.
 
-   In general ARF feedback loop terms, it is often suggested that report
-   generators only create these (or any) ARF reports after an out-of-
-   band arrangement has been made between two parties.  These extension
-   mechanisms then become ways to adjust parameters of an authorized
-   abuse report feedback loop that is configured and activated by
-   private agreement rather than starting to send them automatically
-   based solely on data found in the messages, which may have unintended
-   consequences.
+   In general ARF feedback loop terms, it is often suggested that
+   Feedback Providers only create these (or any) ARF reports after an
+   out-of-band arrangement has been made between two parties.  These
+   extension mechanisms then become ways to adjust parameters of an
+   authorized abuse report feedback loop that is configured and
+   activated by private agreement rather than starting to send them
+   automatically based solely on data found in the messages, which may
+   have unintended consequences.
 
 9.5.  Reporting Multiple Incidents
 
@@ -665,14 +657,6 @@ Internet-Draft                   ARF AS                       March 2012
    generating servers.
 
    The incident count referenced in ARF ([RFC5965]) provides a limited
-
-
-
-Falk & Kucherawy        Expires September 3, 2012              [Page 12]
-
-Internet-Draft                   ARF AS                       March 2012
-
-
    form of mitigation.  The host generating reports can elect to send
    reports only periodically, with each report representing a number of
    identical or nearly-identical incidents.  One might even do something
@@ -680,6 +664,14 @@ Internet-Draft                   ARF AS                       March 2012
    incidents, then every tenth incident up to 100, then every 100th
    incident up to 1000, etc., until some period of relative quiet after
    which the limitation resets.
+
+
+
+
+Falk & Kucherawy        Expires October 10, 2012               [Page 12]
+
+Internet-Draft                   ARF AS                       April 2012
+
 
    The use of this for "nearly-identical" incidents in particular causes
    a degradation in reporting quality, however.  If for example a large
@@ -721,14 +713,6 @@ Internet-Draft                   ARF AS                       March 2012
    [RFC5321]  Klensin, J., "Simple Mail Transfer Protocol", RFC 5321,
               October 2008.
 
-
-
-
-Falk & Kucherawy        Expires September 3, 2012              [Page 13]
-
-Internet-Draft                   ARF AS                       March 2012
-
-
    [RFC5322]  Resnick, P., Ed., "Internet Message Format", RFC 5322,
               October 2008.
 
@@ -737,6 +721,14 @@ Internet-Draft                   ARF AS                       March 2012
 
    [RFC5965]  Shafranovich, Y., Levine, J., and M. Kucherawy, "An
               Extensible Format for Email Feedback Reports", RFC 5965,
+
+
+
+Falk & Kucherawy        Expires October 10, 2012               [Page 13]
+
+Internet-Draft                   ARF AS                       April 2012
+
+
               August 2010.
 
 11.2.  Informative References
@@ -777,14 +769,6 @@ Internet-Draft                   ARF AS                       March 2012
               4rev1", RFC 3501, March 2003.
 
    [RFC3912]  Daigle, L., "WHOIS Protocol Specification", RFC 3912,
-
-
-
-Falk & Kucherawy        Expires September 3, 2012              [Page 14]
-
-Internet-Draft                   ARF AS                       March 2012
-
-
               September 2004.
 
    [RFC4408]  Wong, M. and W. Schlitt, "Sender Policy Framework (SPF)
@@ -793,6 +777,14 @@ Internet-Draft                   ARF AS                       March 2012
 
    [RFC5617]  Allman, E., Fenton, J., Delany, M., and J. Levine,
               "DomainKeys Identified Mail (DKIM) Author Domain Signing
+
+
+
+Falk & Kucherawy        Expires October 10, 2012               [Page 14]
+
+Internet-Draft                   ARF AS                       April 2012
+
+
               Practices (ADSP)", RFC 5617, August 2009.
 
    [RFC6376]  Crocker, D., Hansen, T., and M. Kucherawy, "DomainKeys
@@ -836,5 +828,13 @@ Authors' Addresses
 
 
 
-Falk & Kucherawy        Expires September 3, 2012              [Page 15]
+
+
+
+
+
+
+
+
+Falk & Kucherawy        Expires October 10, 2012               [Page 15]
 

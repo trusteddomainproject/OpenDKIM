@@ -4,7 +4,7 @@
 
 #AUTOMAKE_OPTIONS = foreign
 
-dist_doc_DATA = draft-ietf-marf-as-11.txt \
+dist_doc_DATA = draft-ietf-marf-as-13.txt \
 	draft-ietf-marf-dkim-reporting-16.txt \
 	draft-ietf-repute-email-identifiers-03.txt \
 	draft-ietf-repute-media-type-02.txt \
