@@ -4,7 +4,7 @@
 \- DKIM message tst
 .SH SYNOPSIS
 .B opendkim-testmsg
-[-C] [-d domain] [-s selector] [-k keypath]
+[\-C] [\-d domain] [\-s selector] [\-k keypath]
 .SH DESCRIPTION
 .B opendkim-testmsg
 signs or verifies an input message.  This is similar to the test mode for 
@@ -17,7 +17,7 @@ The message is read from standard input.  In signing mode, the complete
 signed message will then be written to standard output.  When verifying,
 there will be no output unless an error occurred.
 
-To sign a message, the -d, -k and -s settings in the SYNOPSIS above
+To sign a message, the \-d, \-k and \-s settings in the SYNOPSIS above
 must be provided.  If all of them are absent, the input message will be
 verified.  If some but not all are present, an error is returned.
 

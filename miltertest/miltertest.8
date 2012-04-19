@@ -4,7 +4,7 @@
 \- milter unit test utility
 .SH SYNOPSIS
 .B miltertest
-[-D name[=value]] [-s script] [-u] [-v] [-V] [-w]
+[\-D name[=value]] [\-s script] [\-u] [\-v] [\-V] [\-w]
 .SH DESCRIPTION
 .B miltertest
 simulates the MTA side of an MTA-milter interaction for testing a milter-aware
@@ -354,7 +354,7 @@ mt.echo("*** begin test")
 .PP
 -- start the filter
 .PP
-mt.startfilter("../myfilter", "-p", "inet:12345@localhost")
+mt.startfilter("../myfilter", "\-p", "inet:12345@localhost")
 .PP
 mt.sleep(2)
 
@@ -421,7 +421,7 @@ if mt.getreply(conn) ~= SMFIR_CONTINUE then
 .PP
 end
 .PP
-if mt.header(conn, "Date", "Tue, 22 Dec 2009 13:04:12 -0800") ~= nil then
+if mt.header(conn, "Date", "Tue, 22 Dec 2009 13:04:12 \-0800") ~= nil then
 .PP
 	error "mt.header(Date) failed"
 .PP

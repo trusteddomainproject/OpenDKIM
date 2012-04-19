@@ -158,7 +158,7 @@ field.  Negative values of
 count backwards from the end of the set
 of header fields, so:
 
-rcvd = odkim.get_header(ctx, "Received", -2)
+rcvd = odkim.get_header(ctx, "Received", \-2)
 
 will retrieve the second-last Received: header field on the message.
 .TP
@@ -285,7 +285,7 @@ include the named extension
 .I tag
 and
 .I value.
-Returns the number of signatures successfully modified, or -1 on error.
+Returns the number of signatures successfully modified, or \-1 on error.
 An error can occur if the named tag is one already explicitly supported by
 the DKIM library, or if there is a syntax error in the tag or value.
 @XTAGS_MANNOTICE@

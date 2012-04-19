@@ -95,31 +95,31 @@ list of configuration file parameters and their command line equivalents
 are as follows; see above for descriptions:
 .TP
 .I Background
--f (opposite meaning)
+\-f (opposite meaning)
 .TP
 .I DatabaseBackend
--b
+\-b
 .TP
 .I DatabaseName
--d
+\-d
 .TP
 .I DatabaseHost
--h
+\-h
 .TP
 .I DatabasePassword
--p
+\-p
 .TP
 .I DatabasePort
--P
+\-P
 .TP
 .I DatabaseSpamColumn
--s
+\-s
 .TP
 .I DatabaseUser
--u
+\-u
 .TP
 .I StatisticsFile
--o
+\-o
 .SH NOTES
 It is possible to compile this application without SQL support, in which
 case only the

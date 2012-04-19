@@ -4,19 +4,19 @@
 \- DKIM public key zone file generation tool
 .SH SYNOPSIS
 .B opendkim-genzone
-[-C address]
-[-d domain]
-[-D]
-[-E secs]
-[-N ns[,...]]
-[-o file]
-[-r secs]
-[-R secs]
-[-S]
-[-t secs]
-[-T secs]
-[-v]
-[-x conffile]
+[\-C address]
+[\-d domain]
+[\-D]
+[\-E secs]
+[\-N ns[,...]]
+[\-o file]
+[\-r secs]
+[\-R secs]
+[\-S]
+[\-t secs]
+[\-T secs]
+[\-v]
+[\-x conffile]
 [dataset]
 .SH DESCRIPTION
 .B opendkim-genzone

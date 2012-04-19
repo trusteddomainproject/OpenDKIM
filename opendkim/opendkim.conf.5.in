@@ -640,7 +640,7 @@ and
 .I SendReports.
 The default is @SENDMAIL_PATH@.  The executable should accept typical
 .B sendmail(8)
-command line options "-t" (take addresses from message body) and "-f"
+command line options "\-t" (take addresses from message body) and "\-f"
 (set envelope sender), accept the new message on its standard input, and
 return a non-zero exit status on any error.
 
@@ -1000,7 +1000,7 @@ for details. @LUA_MANNOTICE@
 .TP
 .I SignatureAlgorithm (string)
 Selects the signing algorithm to use when generating signatures.
-Use 'opendkim -V' to see the list of supported algorithms.
+Use 'opendkim \-V' to see the list of supported algorithms.
 The default is
 .I rsa-sha256
 if it is available, otherwise it will be

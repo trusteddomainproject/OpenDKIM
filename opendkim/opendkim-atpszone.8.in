@@ -4,18 +4,18 @@
 \- DKIM ATPS zone file generation tool
 .SH SYNOPSIS
 .B opendkim-atpszone
-[-A]
-[-C address]
-[-E secs]
-[-h hash]
-[-N ns[,...]]
-[-o file]
-[-r secs]
-[-R secs]
-[-S]
-[-t secs]
-[-T secs]
-[-v]
+[\-A]
+[\-C address]
+[\-E secs]
+[\-h hash]
+[\-N ns[,...]]
+[\-o file]
+[\-r secs]
+[\-R secs]
+[\-S]
+[\-t secs]
+[\-T secs]
+[\-v]
 [dataset]
 .SH DESCRIPTION
 .B opendkim-atpszone
