@@ -1107,6 +1107,60 @@ fi
 AC_SUBST(LIBLDNS_LIBDIRS)
 AC_SUBST(LIBLDNS_LIBS)
 
+# unbound may also need libevent
+AC_ARG_WITH([libevent],
+            AS_HELP_STRING([--with-libevent],
+                           [location of libevent includes and library]),
+            [libeventpath="$withval"], [libeventpath="no"])
+
+LIBEVENT_LIBS=""
+LIBEVENT_LIBDIRS=""
+
+if test x"$libevent" = x"yes"
+then
+	libevent_found="no"
+
+	libeventdirs="/usr /usr/local"
+	for d in $libeventdirs
+	do
+		unset ac_cv_search_libevent_rr_new
+		saved_LDFLAGS="$LDFLAGS"
+		LDFLAGS="-L$d/lib $LDFLAGS"
+		AC_SEARCH_LIBS([event_enable_debug_mode], [event], libevent_found="yes")
+		LDFLAGS="$saved_LDFLAGS"
+
+		if test x"$libevent_found" = x"yes"
+		then
+			LIBEVENT_LIBDIRS="-L$d/lib"
+			LIBEVENT_LIBS="-levent"
+			break
+		fi
+	done
+	if test x"$LIBEVENT_LIBS" = x""
+	then
+		AC_MSG_ERROR([libevent not found])
+	fi
+elif test x"$libeventpath" != x"no"
+then
+	libevent_found="no"
+	saved_LDFLAGS="$LDFLAGS"
+	LDFLAGS="-L$d/lib $LDFLAGS"
+	AC_SEARCH_LIBS([event_enable_debug_mode], [event], libevent_found="yes")
+	LDFLAGS="$saved_LDFLAGS"
+
+	if test x"$libevent_found" = x"yes"
+	then
+		LIBEVENT_LIBDIRS="-L$d/lib"
+		LIBEVENT_LIBS="-levent"
+		break
+	else
+		AC_MSG_ERROR(libevent not found in $d)
+	fi
+fi
+
+AC_SUBST(LIBEVENT_LIBDIRS)
+AC_SUBST(LIBEVENT_LIBS)
+
 #
 # libtre
 #

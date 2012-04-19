@@ -18,7 +18,10 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Fix bug #SF3516653: By default, treat a syntax error
 		in an ADSP record as an NXDOMAIN.  Add new library flag
 		DKIM_LIBFLAGS_REPORTBADADSP to restore the original
-		behaviour.
+		behaviour.  Suggested by Scott Kitterman.
+	BUILD: Fix bug #SF3425384: Add missing support for compiling
+		against libevent2, which is an option for unbound.
+		Noted by Andreas Schulze.
 
 2.5.2		2012/04/09
 	Fix bug #SF3496208: Replace stats/opendkim-genstats with a perl

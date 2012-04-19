@@ -61,8 +61,8 @@ opendkim_LDADD += ../libar/libar.la
 endif
 if USE_UNBOUND
 opendkim_CPPFLAGS += $(LIBUNBOUND_INCDIRS)
-opendkim_LDFLAGS += $(LIBUNBOUND_LIBDIRS) $(LIBLDNS_LIBDIRS)
-opendkim_LDADD += $(LIBUNBOUND_LIBS) $(LIBLDNS_LIBS)
+opendkim_LDFLAGS += $(LIBUNBOUND_LIBDIRS) $(LIBLDNS_LIBDIRS) $(LIBEVENT_LIBDIRS)
+opendkim_LDADD += $(LIBUNBOUND_LIBS) $(LIBLDNS_LIBS) $(LIBEVENT_LIBS)
 endif
 if VBR
 opendkim_CPPFLAGS += -I$(srcdir)/../libvbr
