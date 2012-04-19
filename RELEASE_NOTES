@@ -15,6 +15,10 @@ release, and a summary of the changes in that release.
 		avoid valgrind warnings about references to unaddressable
 		space.  Reported by Todd Lyons.
 	LIBOPENDKIM: Fix bug #SF3496041: Remove _FFR_PARSETIME.
+	LIBOPENDKIM: Fix bug #SF3516653: By default, treat a syntax error
+		in an ADSP record as an NXDOMAIN.  Add new library flag
+		DKIM_LIBFLAGS_REPORTBADADSP to restore the original
+		behaviour.
 
 2.5.2		2012/04/09
 	Fix bug #SF3496208: Replace stats/opendkim-genstats with a perl

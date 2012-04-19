@@ -2678,7 +2678,7 @@ dkim_getsender(DKIM *dkim, u_char **hdrs)
 **  	excheck -- existence check rather than TXT query
 **  	qstatus -- query status (returned)
 **  	policy -- policy found (returned)
-**  	pflags -- policy flags (returned)
+**  	pflags -- policy flags (returned) (unused)
 **
 **  Return value:
 **  	A DKIM_STAT_* constant.
@@ -2771,8 +2771,17 @@ dkim_get_policy(DKIM *dkim, u_char *query, _Bool excheck, int *qstatus,
 		pstatus = dkim_process_set(dkim, DKIM_SETTYPE_POLICY,
 		                           buf, strlen((char *) buf),
 		                           NULL, FALSE, NULL);
-		if (pstatus != DKIM_STAT_OK)
+		if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_REPORTBADADSP) == 0 &&
+		    pstatus == DKIM_STAT_SYNTAX)
+		{
+			*policy = DKIM_POLICY_DEFAULT;
+			*qstatus = NXDOMAIN;
+			*pflags = 0;
+		}
+		else if (pstatus != DKIM_STAT_OK)
+		{
 			return pstatus;
+		}
 
 		lpolicy = DKIM_POLICY_DEFAULT;
 		lpflags = 0;
