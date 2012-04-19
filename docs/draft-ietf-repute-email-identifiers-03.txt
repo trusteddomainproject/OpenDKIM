@@ -4,18 +4,18 @@
 REPUTE Working Group                                       N. Borenstein
 Internet-Draft                                                  Mimecast
 Intended status: Standards Track                            M. Kucherawy
-Expires: July 16, 2012                                         Cloudmark
-                                                        January 13, 2012
+Expires: October 8, 2012                                       Cloudmark
+                                                           April 6, 2012
 
 
-             A Reputation Vocabulary for Email Identifiers
-                 draft-ietf-repute-email-identifiers-02
+            A Reputation Response Set for Email Identifiers
+                 draft-ietf-repute-email-identifiers-03
 
 Abstract
 
-   This document defines a vocabulary for describing assertions a
+   This document defines a response set for describing assertions a
    reputation service provider can make about email identifers, for use
-   with the application/reputon media type.
+   in generating reputons.
 
 Status of this Memo
 
@@ -32,7 +32,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on July 16, 2012.
+   This Internet-Draft will expire on October 8, 2012.
 
 Copyright Notice
 
@@ -52,29 +52,30 @@ Copyright Notice
 
 
 
-Borenstein & Kucherawy    Expires July 16, 2012                 [Page 1]
+Borenstein & Kucherawy   Expires October 8, 2012                [Page 1]
 
-Internet-Draft   Email Identifiers Reputation Vocabulary    January 2012
+Internet-Draft  Email Identifiers Reputation Response Set     April 2012
 
 
 Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . . . 3
    2.  Terminology and Definitions . . . . . . . . . . . . . . . . . . 3
-     2.1.  Keywords  . . . . . . . . . . . . . . . . . . . . . . . . . 3
+     2.1.  Key Words . . . . . . . . . . . . . . . . . . . . . . . . . 3
      2.2.  Email Definitions . . . . . . . . . . . . . . . . . . . . . 3
      2.3.  Other Definitions . . . . . . . . . . . . . . . . . . . . . 3
    3.  Discussion  . . . . . . . . . . . . . . . . . . . . . . . . . . 3
      3.1.  Assertions  . . . . . . . . . . . . . . . . . . . . . . . . 3
-     3.2.  Vocabulary Extensions . . . . . . . . . . . . . . . . . . . 4
+     3.2.  Response Set Extensions . . . . . . . . . . . . . . . . . . 4
+     3.3.  Query Extensions  . . . . . . . . . . . . . . . . . . . . . 5
    4.  IANA Considerations . . . . . . . . . . . . . . . . . . . . . . 5
      4.1.  Registration of 'email-id' Reputation Application . . . . . 5
-   5.  Security Considerations . . . . . . . . . . . . . . . . . . . . 5
+   5.  Security Considerations . . . . . . . . . . . . . . . . . . . . 6
    6.  References  . . . . . . . . . . . . . . . . . . . . . . . . . . 6
      6.1.  Normative References  . . . . . . . . . . . . . . . . . . . 6
      6.2.  Informative References  . . . . . . . . . . . . . . . . . . 6
-   Appendix A.  Acknowledgments  . . . . . . . . . . . . . . . . . . . 6
-   Appendix B.  Public Discussion  . . . . . . . . . . . . . . . . . . 6
+   Appendix A.  Acknowledgments  . . . . . . . . . . . . . . . . . . . 7
+   Appendix B.  Public Discussion  . . . . . . . . . . . . . . . . . . 7
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . . . 7
 
 
@@ -107,27 +108,29 @@ Table of Contents
 
 
 
-
-Borenstein & Kucherawy    Expires July 16, 2012                 [Page 2]
+Borenstein & Kucherawy   Expires October 8, 2012                [Page 2]
 
-Internet-Draft   Email Identifiers Reputation Vocabulary    January 2012
+Internet-Draft  Email Identifiers Reputation Response Set     April 2012
 
 
 1.  Introduction
 
-   This memo specifies a vocabulary for describing reputation of an
-   email identifier.  A "vocabulary" in this context is defined in
+   This document specifies a response set for describing reputation of
+   an email identifier.  A "response set" in this context is defined in
    [I-D.REPUTE-MODEL] and is used to describe assertions a reputation
    service provider can make about email identifiers as well as meta-
    data that can be included in such a reply beyond the base set
    specified there.
+
+   An atomic reputation response is called a "reputon", also defined in
+   that document.
 
 
 2.  Terminology and Definitions
 
    This section defines terms used in the rest of the document.
 
-2.1.  Keywords
+2.1.  Key Words
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
@@ -140,34 +143,35 @@ Internet-Draft   Email Identifiers Reputation Vocabulary    January 2012
 
 2.3.  Other Definitions
 
-   Other terms of importance in this memo are defined in
-   [I-D.REPUTE-MODEL], the base memo in this document series.
+   Other terms of importance in this document are defined in
+   [I-D.REPUTE-MODEL], the base document for the reputation services
+   work.
 
 
 3.  Discussion
 
    The expression of reputation about an email identifier requires
-   extensions of the base set defined in [I-D.REPUTE-MODEL].  This memo
-   defines and registers some common assertions about an entity found in
-   a piece of [MAIL].
+   extensions of the base set defined in [I-D.REPUTE-MODEL].  This
+   document defines and registers some common assertions about an entity
+   found in a piece of [MAIL].
 
 3.1.  Assertions
 
    The "email-id" reputation application recognizes the following
    assertions:
 
+
+
+
+
+Borenstein & Kucherawy   Expires October 8, 2012                [Page 3]
+
+Internet-Draft  Email Identifiers Reputation Response Set     April 2012
+
+
    FRAUD:  The subject identifier is associated with sending or handling
       of fraudulent email, such as "phishing" (some good discussion on
       this topic can be found in [IODEF-PHISHING])
-
-
-
-
-
-Borenstein & Kucherawy    Expires July 16, 2012                 [Page 3]
-
-Internet-Draft   Email Identifiers Reputation Vocabulary    January 2012
-
 
    MALWARE:  The subject identifier is associated with the sending or
       handling of malware via email
@@ -184,10 +188,10 @@ Internet-Draft   Email Identifiers Reputation Vocabulary    January 2012
    have a linear relationship (i.e., a score of "x" is twice as strong
    of an assertion as a value of "x/2").
 
-3.2.  Vocabulary Extensions
+3.2.  Response Set Extensions
 
    The "email-id" reputation application recognizes the following
-   OPTIONAL extensions to the basic vocabulary defined in
+   OPTIONAL extensions to the basic response set defined in
    [I-D.REPUTE-MODEL]:
 
    IDENTITY:  A token indicating the source of the identifier; that is,
@@ -201,6 +205,9 @@ Internet-Draft   Email Identifiers Reputation Vocabulary    January 2012
 
       IPV6:  The IPv6 address of the client
 
+      RFC5321.HELO:  The RFC5321.Helo value used by the (see [SMTP])
+         client
+
       RFC5321.MAILFROM:  The RFC5321.MailFrom value of the envelope of a
          message of the message (see [SMTP])
 
@@ -209,20 +216,13 @@ Internet-Draft   Email Identifiers Reputation Vocabulary    January 2012
       SPF:  The domain name portion of the identifier (RFC5321.MailFrom
          or RFC5321.Helo) verified by [SPF])
 
-   RATE:  A token that recommends an overall message acceptance rate for
-      the subject domain.  This is expected to be a value tailored to
-      the requesting agent; for example, the reputation service would
-      use this to indicate that, based on the data reported by the
-      requesting agent, the service recommends a particular message
-      limit for that agent.  The value is an unsigned decimal value.
 
 
 
 
-
-Borenstein & Kucherawy    Expires July 16, 2012                 [Page 4]
+Borenstein & Kucherawy   Expires October 8, 2012                [Page 4]
 
-Internet-Draft   Email Identifiers Reputation Vocabulary    January 2012
+Internet-Draft  Email Identifiers Reputation Response Set     April 2012
 
 
    SOURCES:  A token relating a count of the number of sources of data
@@ -232,8 +232,15 @@ Internet-Draft   Email Identifiers Reputation Vocabulary    January 2012
 
    A reply that does not contain the IDENTITY or SOURCES extensions is
    making a non-specific statement about how the reputation returned was
-   developed.  A client may use or ignore such a reply at its
+   developed.  A client can use or ignore such a reply at its
    discretion.
+
+3.3.  Query Extensions
+
+   A query within this application can include the OPTIONAL query
+   parameter "identity" to indicate which specific identity is of
+   interest to the query.  Legal values are the same as those listed in
+   Section 3.2.
 
 
 4.  IANA Considerations
@@ -252,34 +259,40 @@ Internet-Draft   Email Identifiers Reputation Vocabulary    January 2012
    o  Short description: Evaluates DNS domain names found in email
       identifiers
 
-   o  Defining document: [this memo]
+   o  Defining document: [this document]
 
    o  Status: current
 
+   o  Subject: A string appropriate to the identifier of interest (see
+      Section 3.2 of this document)
+
    o  Application-specific query parameters:
 
-      subject:  (current) specifies the subject of the reputation query;
-         in this case, it is the email identifier whose reputation is
-         requested
+      identity:  (current) as defined in Section 3.3 of this document
+
+   o  Application-specific extensions:
+
+
+
+
+
+Borenstein & Kucherawy   Expires October 8, 2012                [Page 5]
+
+Internet-Draft  Email Identifiers Reputation Response Set     April 2012
+
+
+      identity:  (current) as defined in Section 3.2 of this document
 
 
 5.  Security Considerations
 
-   This memo describes security considerations introduced by the
-   reputation application and vocabulary defined here.
+   This section describes security considerations introduced by the
+   reputation application and response set extensions defined here.
 
    [TBD]
 
 
 6.  References
-
-
-
-
-Borenstein & Kucherawy    Expires July 16, 2012                 [Page 5]
-
-Internet-Draft   Email Identifiers Reputation Vocabulary    January 2012
-
 
 6.1.  Normative References
 
@@ -293,7 +306,8 @@ Internet-Draft   Email Identifiers Reputation Vocabulary    January 2012
 
    [I-D.REPUTE-MODEL]
               Borenstein, N. and M. Kucherawy, "A Model for Reputation
-              Interchange", I-D draft-ietf-repute-model, November 2011.
+              Interchange", draft-ietf-repute-model (work in progress),
+              November 2011.
 
    [KEYWORDS]
               Bradner, S., "Key words for use in RFCs to Indicate
@@ -316,6 +330,13 @@ Internet-Draft   Email Identifiers Reputation Vocabulary    January 2012
               October 2008.
 
 
+
+
+Borenstein & Kucherawy   Expires October 8, 2012                [Page 6]
+
+Internet-Draft  Email Identifiers Reputation Response Set     April 2012
+
+
 Appendix A.  Acknowledgments
 
    The authors wish to acknowledge the contributions of the following to
@@ -328,13 +349,6 @@ Appendix B.  Public Discussion
    Public discussion of this suite of memos takes place on the
    domainrep@ietf.org mailing list.  See
    https://www.ietf.org/mailman/listinfo/domainrep.
-
-
-
-
-Borenstein & Kucherawy    Expires July 16, 2012                 [Page 6]
-
-Internet-Draft   Email Identifiers Reputation Vocabulary    January 2012
 
 
 Authors' Addresses
@@ -374,19 +388,5 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Borenstein & Kucherawy    Expires July 16, 2012                 [Page 7]
+Borenstein & Kucherawy   Expires October 8, 2012                [Page 7]
 

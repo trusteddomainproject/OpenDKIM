@@ -6,10 +6,10 @@
 
 dist_doc_DATA = draft-ietf-marf-as-11.txt \
 	draft-ietf-marf-dkim-reporting-16.txt \
-	draft-ietf-repute-email-identifiers-02.txt \
-	draft-ietf-repute-media-type-01.txt \
+	draft-ietf-repute-email-identifiers-03.txt \
+	draft-ietf-repute-media-type-02.txt \
 	draft-ietf-repute-model-01.txt \
-	draft-ietf-repute-query-http-01.txt \
+	draft-ietf-repute-query-http-02.txt \
 	report-rfc4871.txt \
 	rfc2254.txt \
 	rfc3447.txt \
