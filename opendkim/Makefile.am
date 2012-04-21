@@ -1,4 +1,4 @@
-# Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
+# Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.
 #
 # $Id: Makefile.am,v 1.85 2010/10/28 04:12:55 cm-msk Exp $
 
