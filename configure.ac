@@ -1917,63 +1917,76 @@ then
 		AC_MSG_RESULT([$bdb_incdir])
 	fi
 
-	# look for libdb.a
-	AC_MSG_CHECKING([for BerkeleyDB library lib$bdb_lib.a])
+	# See if we can find a library by looking for db_create(), then
+	# db_open(), then dbopen().
+	#
+	# This can cause compilation problems if for example a db.h
+	# and a libdb are found that aren't the same version, but it's
+	# worth a shot in general.
 	if test x"$bdb_libdir" = x""
 	then
 		for d in $bdbdirs
 		do
-			if test -f $d/lib/lib$bdb_lib.a
+			saved_LDFLAGS="$LDFLAGS"
+			saved_CFLAGS="$CFLAGS"
+			saved_LIBS="$LIBS"
+			LDFLAGS="$LDFLAGS -L$d/lib"
+			CFLAGS="$CFLAGS -I$bdb_incdir"
+			LIBS=""
+			if test x"$libdbfound" = x"no"
 			then
+				AC_SEARCH_LIBS([db_create], $bdb_lib,
+				               [libdbfound="yes"])
 				bdb_libdir=$d/lib
-				AC_MSG_RESULT($bdb_libdir)
-				libdbfound="yes"
-				break
 			fi
-		done
+			if test x"$libdbfound" = x"no"
+			then
+				AC_SEARCH_LIBS([db_open], $bdb_lib,
+				               [libdbfound="yes"])
+				bdb_libdir=$d/lib
+			fi
+			if test x"$libdbfound" = x"no"
+			then
+				AC_SEARCH_LIBS([dbopen], $bdb_lib,
+				               [libdbfound="yes"])
+				bdb_libdir=$d/lib
+			fi
 
-		if test x"$bdb_libdir" = x""
-		then
-			AC_MSG_RESULT([not found])
-		fi
-	elif ! test -f $bdb_libdir/lib$bdb_lib.a
-	then
-		AC_MSG_ERROR([not found in $bdb_libdir])
+			LDFLAGS="$saved_LDFLAGS"
+			CFLAGS="$saved_CFLAGS"
+			LIBS="$saved_LIBS"
+		done
 	else
-		AC_MSG_RESULT([$bdb_libdir/lib$bdb_lib.a])
-		libdbfound="yes"
-	fi
+		saved_LDFLAGS="$LDFLAGS"
+		saved_CFLAGS="$CFLAGS"
+		saved_LIBS="$LIBS"
+		LDFLAGS="$LDFLAGS -L$bdb_libdir"
+		CFLAGS="$CFLAGS -I$bdb_incdir"
+		LIBS=""
+		if test x"$libdbfound" = x"no"
+		then
+			AC_SEARCH_LIBS([db_create], $bdb_lib,
+			               [libdbfound="yes"])
+		fi
+		if test x"$libdbfound" = x"no"
+		then
+			AC_SEARCH_LIBS([db_open], $bdb_lib,
+			               [libdbfound="yes"])
+		fi
+		if test x"$libdbfound" = x"no"
+		then
+			AC_SEARCH_LIBS([dbopen], $bdb_lib,
+			               [libdbfound="yes"])
+		fi
 
-	# If no matching library, see if we can find one.  Note that
-	# this can cause compilation problems if for example a db.h
-	# and a libdb are found that aren't the same version, but it's
-	# worth a shot in general.
-	if test x"$libdbfound" = x"no"
-	then
-		AC_SEARCH_LIBS([db_create], [db], [libdbfound="yes"])
-	fi
-	if test x"$libdbfound" = x"no"
-	then
-		AC_SEARCH_LIBS([dbopen], [db], [libdbfound="yes"])
-	fi
-	if test x"$libdbfound" = x"no"
-	then
-		AC_MSG_CHECKING([for libdb])
-		for d in $bdbdirs
-		do
-			if test -f $d/lib/lib$bdb_lib.a
-			then
-				bdb_libdir=$d/lib
-				AC_MSG_RESULT($bdb_libdir)
-				libdbfound="yes"
-				break
-			fi
-		done
+		LDFLAGS="$saved_LDFLAGS"
+		CFLAGS="$saved_CFLAGS"
+		LIBS="$saved_LIBS"
 	fi
 
 	if test x"$libdbfound" = x"no"
 	then
-		AC_MSG_ERROR([cannot find db_create or dbopen])
+		AC_MSG_ERROR([cannot find db_create, db_open or dbopen])
 	fi
 
 	if test x"$bdb_incdir" != x""
@@ -2007,8 +2020,8 @@ then
 	saved_CFLAGS="$CFLAGS"
 	LDFLAGS="$LDFLAGS $LIBDB_LIBDIRS $LIBUNBOUND_LIBDIRS"
 	CFLAGS="$CFLAGS $LIBDB_INCDIRS $LIBUNBOUND_INCDIRS"
-	AC_CHECK_LIB([db],[log_file],
-		AC_CHECK_LIB([unbound],[log_file],
+	AC_CHECK_LIB([db], [log_file],
+		AC_CHECK_LIB([unbound], [log_file],
 			AC_MSG_ERROR([Cannot enable feature requiring BerkeleyDB with libunbound - both have log_file defined.  Please use newer BerkeleyDB version])
 		)
 	)
