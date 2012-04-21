@@ -6,6 +6,8 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.6.0		2012/06/01
+	Feature request #SF3495969: Add support for Lua v5.2.0.  Requested
+		by Rolf Sonneveld.
 	Feature request #SF3519002: Put reason information inside a "reason"
 		tag in Authentication-Results header fields rather than in
 		comments.
