@@ -11,6 +11,9 @@ release, and a summary of the changes in that release.
 	Feature request #SF3519002: Put reason information inside a "reason"
 		tag in Authentication-Results header fields rather than in
 		comments.
+	Feature request #SF3521000: Log hostname and daemon name (taken from
+		macros) when logging "no MTA name match".  Requested by
+		Andreas Schulze.
 	Fix bug #SF3518877: Separate variable expansion from literal text in
 		opendkim-genkey.
 	LIBAR: Fix bug #SF3444318: Do proper buffer size calculations to

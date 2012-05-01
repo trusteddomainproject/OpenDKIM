@@ -11588,8 +11588,10 @@ mlfi_eoh(SMFICTX *ctx)
 	if (conf->conf_mtasdb != NULL)
 	{
 		char *mtaname;
+		char *host;
 
 		mtaname = dkimf_getsymval(ctx, "{daemon_name}");
+		host = dkimf_getsymval(ctx, "j");
 
 		if (mtaname != NULL)
 		{
@@ -11601,8 +11603,10 @@ mlfi_eoh(SMFICTX *ctx)
 
 		if (!originok && !status && conf->conf_logwhy)
 		{
-			syslog(LOG_INFO, "%s: no MTA name match",
-			       dfc->mctx_jobid);
+			syslog(LOG_INFO,
+			       "%s: no MTA name match (host=%s, MTA=%s)",
+			       dfc->mctx_jobid, host,
+			       mtaname == NULL ? "?" : mtaname);
 		}
 	}
 
