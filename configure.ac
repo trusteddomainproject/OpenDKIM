@@ -1772,11 +1772,11 @@ then
 	AC_MSG_CHECKING([for libxml2])
 	if test x"$xml2path" != x"auto" -a x"$xml2path" != x"yes"
 	then
-		if test -f $xml2path/include/libxml/parser.h
+		if test -f $xml2path/include/libxml2/libxml/parser.h
 		then
 			AC_MSG_RESULT($xml2path)
 		        xml2_found="yes"
-			LIBXML2_CPPFLAGS="-I$xml2path/include"
+			LIBXML2_CPPFLAGS="-I$xml2path/include/libxml2"
 			LIBXML2_LDFLAGS="-I$xml2path/lib"
 			LIBXML2_LIBS="-lxml2"
 		else
@@ -1786,12 +1786,12 @@ then
 		xml2dirs="/usr /usr/local"
 		for d in $xml2dirs
 		do
-			if test -f $d/include/libxml/parser.h
+			if test -f $d/include/libxml2/libxml/parser.h
 			then
 				xml2path=$d
 				AC_MSG_RESULT($d)
 		        	xml2_found="yes"
-				LIBXML2_CPPFLAGS="-I$xml2path/include"
+				LIBXML2_CPPFLAGS="-I$xml2path/include/libxml2"
 				LIBXML2_LDFLAGS="-I$xml2path/lib"
 				LIBXML2_LIBS="-lxml2"
 				break
