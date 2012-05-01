@@ -1,7 +1,7 @@
 <?php
 
 ###
-### Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+### Copyright (c) 2012, The OpenDKIM Project.  All rights reserved.
 ###
 
 # Database configuration for REPUTE queries
@@ -17,5 +17,8 @@ $repute_pwd = "opendkim";
 
 # database name
 $repute_dbname = "opendkim";
+
+# use JSON?  if yes, set this to 1
+$use_json = 0;
 
 ?>

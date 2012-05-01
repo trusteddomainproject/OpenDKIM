@@ -36,6 +36,18 @@ if (isset($_GET["reporter"]))
 else
 	$reporter = 0;
 
+if (isset($_GET["format"]))
+{
+	$format = $_GET["format"];
+	if (strtolower($format) != "xml" &&
+	    strtolower($format) != "json")
+		die("Unrecognized format");
+	else if (strtolower($format) == "xml")
+		$use_json = 0;
+	else
+		$use_json = 1;
+}
+
 $query1 = "SELECT	ratio_high,
 			UNIX_TIMESTAMP(updated),
 			rate_samples
@@ -88,23 +100,46 @@ if (!$row)
 $rate = $row[0];
 
 #
-# construct the reputon
+# MIME header
 #
-printf("Content-Type: application/reputon; format=xml\n");
+
+printf("Content-Type: application/reputon\n");
 printf("\n");
-printf("<reputation>\n");
-printf(" <reputon>\n");
-printf("  <rater>$service</rater>\n");
-printf("  <rater-authenticity>1</rater-authenticity>\n");
-printf("  <assertion>SPAM</assertion>\n");
-printf("  <identity>DKIM</identity>\n");
-printf("  <rate>$rate</rate>\n");
-printf("  <rated>$subject</rated>\n");
-printf("  <rating>$rating</rating>\n");
-printf("  <sample-size>$samples</sample-size>\n");
-printf("  <updated>$updated</updated>\n");
-printf(" </reputon>\n");
-printf("</reputation>\n");
+
+#
+# Construct the reputon
+#
+
+if (isset($use_json) && $use_json == 1)
+{
+	printf("{\n");
+	printf("\t\"rater\": \"$service\",\n");
+	printf("\t\"rater-authenticity\": 1.0,\n");
+	printf("\t\"assertion\": \"SPAM\",\n");
+	printf("\t\"identity\": \"DKIM\",\n");
+	printf("\t\"rate\": $rate\n");
+	printf("\t\"rated\": \"$subject\",\n");
+	printf("\t\"rating\": $rating,\n");
+	printf("\t\"sample-size\": $samples,\n");
+	printf("\t\"updated\": $updated\n");
+	printf("}\n");
+}
+else
+{
+	printf("<reputation>\n");
+	printf(" <reputon>\n");
+	printf("  <rater>$service</rater>\n");
+	printf("  <rater-authenticity>1</rater-authenticity>\n");
+	printf("  <assertion>SPAM</assertion>\n");
+	printf("  <identity>DKIM</identity>\n");
+	printf("  <rate>$rate</rate>\n");
+	printf("  <rated>$subject</rated>\n");
+	printf("  <rating>$rating</rating>\n");
+	printf("  <sample-size>$samples</sample-size>\n");
+	printf("  <updated>$updated</updated>\n");
+	printf(" </reputon>\n");
+	printf("</reputation>\n");
+}
 
 # all done!
 ?>
