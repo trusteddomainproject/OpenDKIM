@@ -506,6 +506,14 @@ of policies to enforce for domains that either don't publish ADSP or publish
 weaker policies than the verifier would like to enforce.
 
 .TP
+.I LogResults (boolean)
+If logging is enabled (see
+.I Syslog
+below), requests that the results of evaluation of all signatures that were
+at least partly intact (i.e., the "d=", "s=", and "b=" tags could be
+extracted).
+
+.TP
 .I LogWhy (boolean)
 If logging is enabled (see
 .I Syslog

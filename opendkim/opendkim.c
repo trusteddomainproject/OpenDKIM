@@ -205,6 +205,7 @@ struct dkimf_config
 {
 	_Bool		conf_weaksyntax;	/* do weaker syntax checking */
 	_Bool		conf_noadsp;		/* suppress ADSP */
+	_Bool		conf_logresults;	/* log all results */
 	_Bool		conf_allsigs;		/* report on all signatures */
 	_Bool		conf_dnsconnect;	/* request TCP mode from DNS */
 	_Bool		conf_capture;		/* capture unknown errors */
@@ -6192,6 +6193,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			(void) config_get(data, "LogWhy", &conf->conf_logwhy,
 			                  sizeof conf->conf_logwhy);
 		}
+
+		(void) config_get(data, "LogResults", &conf->conf_logresults,
+		                  sizeof conf->conf_logresults);
 
 		(void) config_get(data, "MultipleSignatures",
 		                  &conf->conf_multisig,
@@ -13202,6 +13206,88 @@ mlfi_eom(SMFICTX *ctx)
 
 		status = dkim_eom(dfc->mctx_dkimv, &testkey);
 		lastdkim = dfc->mctx_dkimv;
+
+		if (conf->conf_logresults && conf->conf_dolog)
+		{
+			int c;
+			int nsigs;
+			DKIM_SIGINFO **sigs;
+
+			if (dfc->mctx_tmpstr == NULL)
+			{
+				dfc->mctx_tmpstr = dkimf_dstring_new(BUFRSZ,
+				                                     0);
+
+				if (dfc->mctx_tmpstr == NULL)
+				{
+					syslog(LOG_WARNING,
+					       "%s: dkimf_dstring_new() failed",
+					       dfc->mctx_jobid);
+
+					return SMFIS_TEMPFAIL;
+				}
+			}
+			else
+			{
+				dkimf_dstring_blank(dfc->mctx_tmpstr);
+			}
+
+			status = dkim_getsiglist(dfc->mctx_dkimv,
+			                         &sigs, &nsigs);
+
+			if (status == DKIM_STAT_OK)
+			{
+				DKIM_SIGERROR err;
+				size_t len;
+				const char *domain;
+				const char *selector;
+				const char *errstr;
+				char substr[BUFRSZ];
+
+				for (c = 0; c < nsigs; c++)
+				{
+					domain = dkim_sig_getdomain(sigs[c]);
+					selector = dkim_sig_getdomain(sigs[c]);
+					err = dkim_sig_geterror(sigs[c]);
+					errstr = dkim_sig_geterrorstr(err);
+
+					memset(substr, '\0', sizeof substr);
+					len = sizeof substr;
+
+					status = dkim_get_sigsubstring(dfc->mctx_dkimv,
+					                               sigs[c],
+					                               substr,
+					                               &len);
+
+					if (status == DKIM_STAT_OK &&
+					    domain != NULL &&
+					    selector != NULL &&
+					    errstr != NULL)
+					{
+						if (dkimf_dstring_len(dfc->mctx_tmpstr) > 0)
+						{
+							dkimf_dstring_catn(dfc->mctx_tmpstr,
+							                   "; ",
+							                   2);
+						}
+
+						dkimf_dstring_printf(dfc->mctx_tmpstr,
+						                     "signature=%s domain=%s selector=%s result=\"%s\"",
+						                     substr,
+						                     domain,
+						                     selector,
+						                     errstr);
+					}
+				}
+
+				if (dkimf_dstring_len(dfc->mctx_tmpstr) > 0)
+				{
+					syslog(LOG_INFO, "%s: %s",
+					       dfc->mctx_jobid,
+					       dkimf_dstring_get(dfc->mctx_tmpstr));
+				}
+			}
+		}
 
 		switch (status)
 		{

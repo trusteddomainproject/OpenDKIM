@@ -111,6 +111,7 @@ struct configdef dkimf_config[] =
 	{ "LDAPUseTLS",			CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* USE_LDAP */
 	{ "LocalADSP",			CONFIG_TYPE_STRING,	FALSE },
+	{ "LogResults",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "LogWhy",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "MaximumHeaders",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "MaximumSignedBytes",		CONFIG_TYPE_INTEGER,	FALSE },
