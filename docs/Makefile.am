@@ -4,34 +4,4 @@
 
 #AUTOMAKE_OPTIONS = foreign
 
-<<<<<<< HEAD
 dist_doc_DATA = README.specs.html
-=======
-dist_doc_DATA = draft-gregorio-uritemplate-08.txt \
-	draft-ietf-marf-as-10.txt \
-	draft-ietf-marf-authfailure-report-10.txt \
-	draft-ietf-marf-dkim-reporting-11.txt \
-	draft-ietf-repute-email-identifiers-03.txt \
-	draft-ietf-repute-media-type-02.txt \
-	draft-ietf-repute-model-01.txt \
-	draft-ietf-repute-query-http-02.txt \
-	report-rfc4871.txt \
-	rfc2254.txt \
-	rfc3447.txt \
-	rfc4686.txt \
-	rfc5016.txt \
-	rfc5322.txt \
-	rfc5451.txt \
-	rfc5518.txt \
-	rfc5585.txt \
-	rfc5617.txt \
-	rfc5672.txt \
-	rfc5863.txt \
-	rfc5965.txt \
-	rfc6008.txt \
-	rfc6212.txt \
-	rfc6376.txt \
-	rfc6377.txt \
-	rfc6522.txt \
-	rfc6541.txt
->>>>>>> exp-msk-json
