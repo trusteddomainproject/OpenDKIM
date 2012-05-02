@@ -25,6 +25,8 @@ release, and a summary of the changes in that release.
 		opendkim-genkey.
 	Fix bug #SF3522883: Allow TLS for ldapi URIs.  Problem noted by
 		Quanah Gibson-Mount.
+	Patch #SF3522895: Add contrib/ldap/opendkim.ldif.  Contributed
+		by Quanah Gibson-Mount.
 	LIBAR: Fix bug #SF3444318: Do proper buffer size calculations to
 		avoid valgrind warnings about references to unaddressable
 		space.  Reported by Todd Lyons.

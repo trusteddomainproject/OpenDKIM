@@ -4,4 +4,4 @@
 
 #AUTOMAKE_OPTIONS = foreign
 
-dist_doc_DATA = example.com.ldif opendkim.schema README.LDAP
+dist_doc_DATA = example.com.ldif opendkim.ldif opendkim.schema README.LDAP
