@@ -80,6 +80,7 @@ extern void dkimf_dstring_chop __P((struct dkimf_dstring *, int));
 extern u_char *dkimf_dstring_get __P((struct dkimf_dstring *));
 extern int dkimf_dstring_len __P((struct dkimf_dstring *));
 extern void dkimf_dstring_blank __P((struct dkimf_dstring *));
+extern size_t dkimf_dstring_printf __P((struct dkimf_dstring *, char *, ...));
 
 #ifdef USE_UNBOUND
 extern _Bool dkimf_timespec_past __P((struct timespec *tv));
