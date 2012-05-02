@@ -2147,10 +2147,9 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			return -1;
 		}
 
-		/* attempt TLS if requested, except for ldaps and ldapi */
+		/* attempt TLS if requested, except for ldaps */
 		q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_USETLS];
 		if (q != NULL && (*q == 'y' || *q == 'Y') &&
-		    strcasecmp(ldap->ldap_descr->lud_scheme, "ldapi") != 0 &&
 		    strcasecmp(ldap->ldap_descr->lud_scheme, "ldaps") != 0)
 		{
 			lderr = ldap_start_tls_s(ld, NULL, NULL);

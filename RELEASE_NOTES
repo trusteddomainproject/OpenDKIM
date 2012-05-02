@@ -23,6 +23,8 @@ release, and a summary of the changes in that release.
 		Andreas Schulze.
 	Fix bug #SF3518877: Separate variable expansion from literal text in
 		opendkim-genkey.
+	Fix bug #SF3522883: Allow TLS for ldapi URIs.  Problem noted by
+		Quanah Gibson-Mount.
 	LIBAR: Fix bug #SF3444318: Do proper buffer size calculations to
 		avoid valgrind warnings about references to unaddressable
 		space.  Reported by Todd Lyons.
