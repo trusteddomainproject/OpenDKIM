@@ -20,6 +20,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 
 /* system includes */
 #include <sys/types.h>
+#include <sys/uio.h>
 #include <sys/stat.h>
 #include <sys/file.h>
 #ifdef HAVE_STDBOOL_H
@@ -53,6 +54,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 # undef USE_SASL
 # undef USE_ODBX
 # undef USE_LUA
+# undef _FFR_SOCKETDB
 #endif /* OPENDKIM_DB_ONLY */
 #include "opendkim-db.h"
 #ifdef USE_LUA
@@ -61,6 +63,12 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #include "opendkim.h"
 
 /* various DB library includes */
+#ifdef _FFR_SOCKETDB
+# include <sys/socket.h>
+# include <sys/un.h>
+# include <netinet/in.h>
+# include <arpa/inet.h>
+#endif /* _FFR_SOCKETDB */
 #ifdef USE_DB
 # include <db.h>
 #endif /* USE_DB */
@@ -93,6 +101,9 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #ifdef _FFR_LDAP_CACHING
 # define DKIMF_LDAP_TTL		600
 #endif /* _FFR_LDAP_CACHING */
+#ifdef _FFR_SOCKETDB
+# define DKIMF_SOCKET_TIMEOUT	5
+#endif /* _FFR_SOCKETDB */
 
 #define	DKIMF_DB_IFLAG_FREEARRAY 0x01
 #define	DKIMF_DB_IFLAG_RECONNECT 0x02
@@ -259,6 +270,14 @@ struct dkimf_db_repute_cache
 # endif /* _FFR_REPUTATION_CACHE */
 #endif /* _FFR_REPUTATION */
 
+#ifdef _FFR_SOCKETDB
+struct dkimf_db_socket
+{
+	int			sockdb_fd;
+	struct dkimf_dstring *	sockdb_buf;
+};
+#endif /* _FFR_SOCKETDB */
+
 /* globals */
 struct dkimf_db_table dbtypes[] =
 {
@@ -285,6 +304,9 @@ struct dkimf_db_table dbtypes[] =
 #ifdef _FFR_REPUTATION
 	{ "repute",		DKIMF_DB_TYPE_REPUTE },
 #endif /* _FFR_REPUTATION */
+#ifdef _FFR_SOCKETDB
+	{ "socket",		DKIMF_DB_TYPE_SOCKET },
+#endif /* _FFR_SOCKETDB */
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
 
@@ -1102,7 +1124,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 	}
 
 	/* force DB accesses to be mutex-protected */
-	if (new->db_type == DKIMF_DB_TYPE_DSN)
+	if (new->db_type == DKIMF_DB_TYPE_DSN ||
+	    new->db_type == DKIMF_DB_TYPE_SOCKET)
 		new->db_flags |= DKIMF_DB_FLAG_MAKELOCK;
 
 	/* use provided lock, or create a new one if needed */
@@ -2493,6 +2516,359 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		break;
 	  }
 #endif /* _FFR_REPUTATION */
+
+#ifdef _FFR_SOCKETDB
+	  case DKIMF_DB_TYPE_SOCKET:
+	  {
+		int fd;
+		int status;
+		char *colon;
+		struct dkimf_db_socket *sdb;
+
+		sdb = (struct dkimf_db_socket *) malloc(sizeof *sdb);
+		if (sdb == NULL)
+		{
+			if (err != NULL)
+				*err = strerror(errno);
+			free(new);
+			return 2;
+		}
+
+		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
+		{
+			if (err != NULL)
+				*err = strerror(EINVAL);
+			free(new);
+			errno = EINVAL;
+			return 2;
+		}
+
+		if (*p == '/')
+		{					/* UNIX domain */
+			struct sockaddr_un sun;
+
+			fd = socket(AF_UNIX, SOCK_STREAM, 0);
+			if (fd < 0)
+			{
+				if (err != NULL)
+					*err = strerror(errno);
+				free(new);
+				return 2;
+			}
+
+			memset(&sun, '\0', sizeof sun);
+			sun.sun_family = AF_UNIX;
+			sun.sun_len = sizeof(sun);
+			dkim_strlcpy(sun.sun_path, p, sizeof(sun.sun_path));
+
+			status = connect(fd, (struct sockaddr *) &sun,
+			                 sizeof sun);
+			if (status < 0)
+			{
+				if (err != NULL)
+					*err = strerror(errno);
+				free(new);
+				return 2;
+			}
+		}
+		else
+		{					/* port@host */
+			int af;
+			char *at;
+			char *q;
+			uint16_t port;
+			struct sockaddr_storage ss;
+			struct in_addr ip4;
+# ifdef AF_INET6
+			struct in6_addr ip6;
+# endif /* AF_INET6 */
+
+			at = strchr(p, '@');
+			if (at == NULL)
+			{
+				if (err != NULL)
+					*err = strerror(EINVAL);
+				free(new);
+				errno = EINVAL;
+				return 2;
+			}
+
+			*at = '\0';
+
+			port = (uint16_t) strtoul(p, &q, 10);
+			if (*q != '\0')
+			{
+				struct servent *srv;
+
+				srv = getservbyname(p, "tcp");
+				if (srv == NULL)
+				{
+					if (err != NULL)
+						*err = strerror(EINVAL);
+					free(new);
+					errno = EINVAL;
+					return 2;
+				}
+
+				port = srv->s_port;
+			}
+			else
+			{
+				port = htons(port);
+			}
+
+			fd = -1;
+
+			if (inet_pton(AF_INET, at + 1, &ip4) == 1)
+			{
+				af = AF_INET;
+			}
+# ifdef AF_INET6
+			else if (inet_pton(AF_INET6, at + 1, &ip6) == 1)
+			{
+				af = AF_INET6;
+			}
+# endif /* AF_INET6 */
+			else
+			{
+# ifdef HAVE_GETADDRINFO
+				int save_errno;
+				struct addrinfo hint;
+				struct addrinfo *aitop;
+				struct addrinfo *aicur;
+				struct protoent *proto;
+
+				proto = getprotobyname("tcp");
+				if (proto == NULL)
+				{
+					if (err != NULL)
+						*err = strerror(EPROTONOSUPPORT);
+					free(new);
+					errno = EPROTONOSUPPORT;
+					return 2;
+				}
+
+				memset(&hint, '\0', sizeof hint);
+				hint.ai_protocol = proto->p_proto;
+
+				status = getaddrinfo(at + 1, p, &hint, &aitop);
+				if (status != 0)
+				{
+					if (err != NULL)
+						*err = (char *) gai_strerror(status);
+					free(new);
+					errno = EINVAL;
+					return 2;
+				}
+
+				for (aicur = aitop;
+				     aicur != NULL;
+				     aicur = aicur->ai_next)
+				{
+					fd = socket(aicur->ai_family,
+					            aicur->ai_socktype,
+					            aicur->ai_protocol);
+					if (fd == -1)
+					{
+						save_errno = errno;
+						continue;
+					}
+
+					status = connect(fd, aicur->ai_addr,
+					                 aicur->ai_addrlen);
+					if (status == 0)
+						break;
+
+					save_errno = errno;
+					close(fd);
+					fd = -1;
+				}
+
+				freeaddrinfo(aitop);
+
+				if (fd == -1)
+				{
+					if (err != NULL)
+						*err = strerror(save_errno);
+					free(new);
+					errno = save_errno;
+					return 2;
+				}
+# else /* HAVE_GETADDRINFO */
+				struct hostent *h;
+				struct sockaddr_in sin4;
+#  ifdef HAVE_GETHOSTBYNAME2
+				struct sockaddr_in6 sin6;
+
+				h = gethostbyname2(at + 1, AF_INET6);
+				if (h != NULL)
+				{
+					af = AF_INET6;
+
+					fd = socket(AF_INET6, SOCK_STREAM, 0);
+					if (fd < 0)
+					{
+						if (err != NULL)
+							*err = strerror(errno);
+						free(new);
+						return 2;
+					}
+
+					for (c = 0;
+					     h->h_addr_list[c] != NULL;
+					     c++)
+					{
+						memset(&sin6, '\0',
+						       sizeof sin6);
+
+						sin6.sin6_family = AF_INET6;
+						sin6.sin6_port = port;
+						memcpy(&sin6.sin6_addr,
+						       h->h_addr_list[c],
+						       sizeof sin6.sin6_addr);
+
+						status = connect(fd,
+						                 (struct sockaddr *) &sin6,
+						                 sizeof sin6);
+						if (status == 0)
+							break;
+
+						save_errno = errno;
+					}
+
+					close(fd);
+					fd = -1;
+				}
+#  endif /* HAVE_GETHOSTBYNAME2 */
+
+				h = gethostbyname(at + 1);
+				if (h != NULL)
+				{
+					af = AF_INET;
+
+					fd = socket(AF_INET, SOCK_STREAM, 0);
+					if (fd < 0)
+					{
+						if (err != NULL)
+							*err = strerror(errno);
+						free(new);
+						return 2;
+					}
+
+					for (c = 0;
+					     h->h_addr_list[c] != NULL;
+					     c++)
+					{
+						memset(&sin4, '\0',
+						       sizeof sin4);
+
+						sin.sin_family = AF_INET;
+						sin.sin_port = port;
+						memcpy(&sin.sin_addr,
+						       h->h_addr_list[c],
+						       sizeof sin.sin_addr);
+
+						status = connect(fd,
+						                 (struct sockaddr *) &sin4,
+						                 sizeof sin4);
+						if (status == 0)
+							break;
+
+						save_errno = errno;
+					}
+
+					close(fd);
+					fd = -1;
+				}
+
+				if (fd == -1)
+				{
+					if (err != NULL)
+						*err = strerror(save_errno);
+					free(new);
+					errno = save_errno;
+					return 2;
+				}
+# endif /* HAVE_GETADDRINFO */
+			}
+
+			if (fd == -1)
+			{
+				int save_errno;
+
+				fd = socket(af, SOCK_STREAM, 0);
+				if (fd < 0)
+				{
+					if (err != NULL)
+						*err = strerror(errno);
+					free(new);
+					return 2;
+				}
+
+# ifdef AF_INET6
+				if (af == AF_INET6)
+				{
+					struct sockaddr_in6 sin6;
+
+					memset(&sin6, '\0', sizeof sin6);
+
+					sin6.sin6_family = AF_INET6;
+					sin6.sin6_port = port;
+					memcpy(&sin6.sin6_addr, &ip6,
+					       sizeof sin6.sin6_addr);
+
+					status = connect(fd,
+					                 (struct sockaddr *) &sin6,
+					                 sizeof sin6);
+
+					if (status != 0)
+					{
+						save_errno = errno;
+						close(fd);
+						if (err != NULL)
+							*err = strerror(save_errno);
+						free(new);
+						return 2;
+					}
+				}
+# endif /* AF_INET6 */
+
+				if (af == AF_INET)
+				{
+					struct sockaddr_in sin4;
+
+					memset(&sin4, '\0', sizeof sin4);
+
+					sin4.sin_family = AF_INET;
+					sin4.sin_port = port;
+					memcpy(&sin4.sin_addr, &ip4,
+					       sizeof sin4.sin_addr);
+
+					status = connect(fd,
+					                 (struct sockaddr *) &sin4,
+					                 sizeof sin4);
+
+					if (status != 0)
+					{
+						save_errno = errno;
+						close(fd);
+						if (err != NULL)
+							*err = strerror(save_errno);
+						free(new);
+						return 2;
+					}
+				}
+			}
+		}
+
+		sdb->sockdb_fd = fd;
+		sdb->sockdb_buf = dkimf_dstring_new(BUFRSZ, 0);
+
+		new->db_handle = sdb;
+
+		break;
+	  }
+#endif /* _FFR_SOCKETDB */
 	}
 
 	*db = new;
@@ -4085,6 +4461,99 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 	  }
 #endif /* _FFR_REPUTATION */
 
+#ifdef _FFR_SOCKETDB
+	  case DKIMF_DB_TYPE_SOCKET:
+	  {
+		int status;
+		size_t len;
+		size_t wlen;
+		fd_set rfds;
+		struct timeval timeout;
+		struct iovec iov[2];
+		struct dkimf_db_socket *sdb;
+		char *tmp;
+		char inbuf[BUFRSZ];
+
+		sdb = (struct dkimf_db_socket *) db->db_handle;
+
+		timeout.tv_sec = DKIMF_SOCKET_TIMEOUT;
+		timeout.tv_usec = 0;
+
+		iov[0].iov_base = buf;
+		iov[0].iov_len = buflen;
+
+		iov[1].iov_base = "\n";
+		iov[1].iov_len = 1;
+
+		/* single-thread readers */
+		if (db->db_lock != NULL)
+			(void) pthread_mutex_lock(db->db_lock);
+
+		wlen = writev(sdb->sockdb_fd, iov, 2);
+		if (wlen < buflen + 1)
+		{
+			db->db_status = errno;
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
+			return -1;
+		}
+
+		FD_ZERO(&rfds);
+		FD_SET(sdb->sockdb_fd, &rfds);
+
+		dkimf_dstring_blank(sdb->sockdb_buf);
+
+		for (;;)
+		{
+			status = select(sdb->sockdb_fd + 1, &rfds, NULL, NULL,
+			                &timeout);
+			if (status != 1)
+			{
+				db->db_status = errno;
+				if (db->db_lock != NULL)
+					(void) pthread_mutex_unlock(db->db_lock);
+				return -1;
+			}
+
+			wlen = read(sdb->sockdb_fd, inbuf, sizeof inbuf);
+			if (wlen == (size_t) -1)
+			{
+				db->db_status = errno;
+				if (db->db_lock != NULL)
+					(void) pthread_mutex_unlock(db->db_lock);
+				return -1;
+			}
+
+			if (wlen == 0)
+				break;
+
+			dkimf_dstring_catn(sdb->sockdb_buf, inbuf, wlen);
+
+			tmp = dkimf_dstring_get(sdb->sockdb_buf);
+			len = dkimf_dstring_len(sdb->sockdb_buf);
+
+			if (tmp[len - 1] == '\n')
+				break;
+		}
+
+		if (len > 0 && exists != NULL)
+			*exists = TRUE;
+
+		if (dkimf_db_datasplit(tmp, len - 1, req, reqnum) != 0)
+		{
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
+			return -1;
+		}
+		else
+		{
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
+			return 0;
+		}
+	  }
+#endif /* _FFR_SOCKETDB */
+
 	  default:
 		assert(0);
 		return 0;		/* to silence the compiler */
@@ -4274,6 +4743,19 @@ dkimf_db_close(DKIMF_DB db)
 	  }
 #endif /* _FFR_REPUTATION */
 
+#ifdef _FFR_SOCKETDB
+	  case DKIMF_DB_TYPE_SOCKET:
+		if (db->db_handle != NULL)
+		{
+			struct dkimf_db_socket *sdb;
+
+			sdb = (struct dkimf_db_socket *) db->db_handle;
+			close(sdb->sockdb_fd);
+		}
+		free(db);
+		return 0;
+#endif /* _FFR_SOCKETDB */
+
 	  default:
 		assert(0);
 		return -1;
@@ -4302,6 +4784,7 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 	{
 	  case DKIMF_DB_TYPE_FILE:
 	  case DKIMF_DB_TYPE_CSL:
+	  case DKIMF_DB_TYPE_SOCKET:
 		return strlcpy(err, strerror(db->db_status), errlen);
 
 	  case DKIMF_DB_TYPE_REFILE:
@@ -4403,6 +4886,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		return -1;
 
 	if (db->db_type == DKIMF_DB_TYPE_REFILE ||
+	    db->db_type == DKIMF_DB_TYPE_SOCKET ||
 	    db->db_type == DKIMF_DB_TYPE_LUA)
 		return -1;
 
@@ -4963,6 +5447,7 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a, const char **base)
 	assert(a != NULL);
 
 	if (db->db_type == DKIMF_DB_TYPE_REFILE ||
+	    db->db_type == DKIMF_DB_TYPE_SOCKET ||
 	    db->db_type == DKIMF_DB_TYPE_LUA)
 		return -1;
 

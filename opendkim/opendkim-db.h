@@ -38,6 +38,7 @@ static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.15 2010/09/16 04:47
 #define DKIMF_DB_TYPE_LUA	6
 #define DKIMF_DB_TYPE_MEMCACHE	7
 #define DKIMF_DB_TYPE_REPUTE	8
+#define DKIMF_DB_TYPE_SOCKET	9
 
 #define	DKIMF_LDAP_PARAM_BINDUSER	0
 #define	DKIMF_LDAP_PARAM_BINDPW		1
