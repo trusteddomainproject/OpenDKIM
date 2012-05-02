@@ -1822,6 +1822,7 @@ LIBXML2_LDFLAGS=""
 LIBXML2_LIBS=""
 
 if test x"$enable_reputation" != x"yes" -a \
+	x"$jansson_found" != x"yes" -a \
         x"$xml2path" = x"auto"
 then
 	xml2path="no"
