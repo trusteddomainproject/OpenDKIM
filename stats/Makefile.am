@@ -16,7 +16,7 @@ exampledir = @docdir@
 dist_example_DATA = mkdb.mysql
 
 dist_doc_DATA = README
-dist_bin_SCRIPTS = opendkim-gengraphs opendkim-genstats
+dist_bin_SCRIPTS = opendkim-gengraphs opendkim-genstats opendkim-reportstats
 
 man_MANS = opendkim-importstats.8
 
