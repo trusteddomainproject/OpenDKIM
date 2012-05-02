@@ -62,7 +62,7 @@ doesn't find it, you will need to specify the location with
 		"miltertest" test tool.
 
 --with-milter	Sendmail's "milter" include file and library.  Required
-		unless compilation fo the filter is disabled (see below).
+		unless compilation of the filter is disabled (see below).
 		Enabled by default.
 
 --with-odbx	Location of the OpenDBX installation on your system.
