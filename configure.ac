@@ -2198,6 +2198,59 @@ AC_ARG_WITH([domain],
 
 AC_SUBST([DOMAIN])
 
+AC_ARG_WITH(erlang,
+            AS_HELP_STRING([--with-erlang],
+                           [location of Erlang includes and library]),
+            [erlpath="$withval"], [erlpath="no"])
+
+LIBERL_INCDIRS=""
+LIBERL_LIBDIRS=""
+LIBERL_LIBS=""
+erl_found="no"
+
+if test \( x"$erlpath" = x"yes" -o x"$erlpath" = x"auto" \)
+then
+	AC_MSG_CHECKING([for Erlang])
+	b=`erl -noshell -eval 'io:format("~s~n", [[code:lib_dir()]]).' -s erlang halt`
+	erlbase=`ls -d $b/erl_interface-* | tail -n1`
+	AC_MSG_RESULT($erlbase)
+	LIBERL_INCDIRS="-I$erlbase/include"
+	LIBERL_LIBDIRS="-L$erlbase/lib"
+	LIBERL_LIBS="-pthread -lerl_interface -lei"
+	AC_DEFINE([USE_ERLANG], 1, [support for erlang access])
+	erl_found="yes"
+fi
+
+if test x"$erlpath" != x"yes" -a x"$erlpath" != x"auto" -a x"$erlpath" != x"no"
+then
+	AC_MSG_CHECKING([for Erlang])
+	if test -f $erlpath/include/ei.h
+	then
+		AC_MSG_RESULT($erlpath)
+		LIBERL_INCDIRS="-I$erlpath/include"
+		LIBERL_LIBDIRS="-L$erlpath/lib"
+		LIBERL_LIBS="-pthread -lerl_interface -lei"
+		erl_found="yes"
+	else
+		AC_MSG_ERROR(not found at $erlpath)
+	fi
+fi
+
+if test x"$erl_found" = x"yes"
+then
+	saved_CPPFLAGS="$CPPFLAGS"
+	CPPFLAGS="$LIBERL_INCDIRS"
+	AC_DEFINE([USE_ERLANG], 1, [support for Erlang access])
+	AC_SUBST([LIBERL_MANNOTICE], "")
+else
+	AC_SUBST([LIBERL_MANNOTICE], "(Not enabled for this installation.)")
+fi
+
+AM_CONDITIONAL(ERLANG, test x"$erl_found" = x"yes")
+AC_SUBST(LIBERL_INCDIRS)
+AC_SUBST(LIBERL_LIBDIRS)
+AC_SUBST(LIBERL_LIBS)
+
 #
 # final command line tweaks
 #

@@ -13,6 +13,8 @@ release, and a summary of the changes in that release.
 	Feature request #SF3502777: Log all authentication results rather than
 		relying on logging of Authentication-Results header fields.
 		Requested by Andreas Schulze.
+	Feature request #SF3514982: Add Erlang data set support.  Patch
+		provided by Andre Nathan.
 	Feature request #SF3516253: Update to newest "repute" working group
 		documents, which mainly means adding JSON support and
 		promoting application-specific extensions to the top level

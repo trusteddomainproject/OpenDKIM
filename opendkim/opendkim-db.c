@@ -79,6 +79,11 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #ifdef USE_LIBMEMCACHED
 # include <libmemcached/memcached.h>
 #endif /* USE_LIBMEMCACHED */
+#ifdef USE_ERLANG
+# include <sys/time.h>
+# include <erl_interface.h>
+# include <ei.h>
+#endif /* USE_ERLANG */
 
 /* macros */
 #define	BUFRSZ			1024
@@ -259,6 +264,16 @@ struct dkimf_db_repute_cache
 # endif /* _FFR_REPUTATION_CACHE */
 #endif /* _FFR_REPUTATION */
 
+#ifdef USE_ERLANG
+struct dkimf_db_erlang
+{
+	char *			erlang_nodes;
+	char *			erlang_module;
+	char *			erlang_function;
+	char *			erlang_cookie;
+};
+#endif /* USE_ERLANG */
+
 /* globals */
 struct dkimf_db_table dbtypes[] =
 {
@@ -285,6 +300,9 @@ struct dkimf_db_table dbtypes[] =
 #ifdef _FFR_REPUTATION
 	{ "repute",		DKIMF_DB_TYPE_REPUTE },
 #endif /* _FFR_REPUTATION */
+#ifdef USE_ERLANG
+	{ "erlang",		DKIMF_DB_TYPE_ERLANG },
+#endif /* USE_ERLANG */
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
 
@@ -988,6 +1006,460 @@ dkimf_db_type(DKIMF_DB db)
 	return db->db_type;
 }
 
+#ifdef USE_ERLANG
+/*
+**  DKIMF_DB_ERL_CONNECT -- connect to a distributed Erlang node
+**
+**  Parameters:
+**	db -- DKIMF_DB handle
+**	ecp -- Pointer to ei_cnode
+**
+**  Return value:
+**	File descriptor or -1 on error.
+*/
+
+static int
+dkimf_db_erl_connect(DKIMF_DB db, ei_cnode *ecp)
+{
+	int fd;
+	int ret;
+	int instance;
+	unsigned int seed;
+	char node_name[12];
+	struct timeval tv;
+	char *q;
+	char *last;
+	struct dkimf_db_erlang *e;
+
+	gettimeofday(&tv, NULL);
+	seed = tv.tv_sec * tv.tv_usec;
+	instance = rand_r(&seed) % 999;
+
+	e = (struct dkimf_db_erlang *) db->db_data;
+
+	snprintf(node_name, sizeof node_name, "opendkim%d", instance);
+
+	ret = ei_connect_init(ecp, node_name, e->erlang_cookie, instance);
+	if (ret != 0)
+		return -1;
+
+	fd = -1;
+	for (q = strtok_r(e->erlang_nodes, ",", &last);
+	     q != NULL;
+	     q = strtok_r(NULL, ",", &last))
+	{
+		fd = ei_connect(ecp, q);
+		if (fd >= 0)
+			break;
+	}
+	if (fd < 0)
+		return -1;
+
+	return fd;
+}
+
+/*
+**  DKIMF_DB_ERL_FREE -- free allocated memory for Erlang configuration
+**
+**  Parameters:
+**	ep -- Pointer to struct dkimf_db_erlang
+**
+**  Return value:
+**	None.
+*/
+
+static void
+dkimf_db_erl_free(struct dkimf_db_erlang *ep)
+{
+	if (ep == NULL)
+		return;
+	if (ep->erlang_nodes != NULL)
+		free(ep->erlang_nodes);
+	if (ep->erlang_module != NULL)
+		free(ep->erlang_module);
+	if (ep->erlang_function != NULL)
+		free(ep->erlang_function);
+	if (ep->erlang_cookie != NULL)
+		free(ep->erlang_cookie);
+	free(ep);
+}
+
+/*
+**  DKIMF_DB_ERL_ALLOC_BUFFER -- allocate memory for a char* buffer
+**                               depending on erlang response size
+**
+**  Parameters:
+**	eip -- pointer to response ei_x_buff
+**	index -- pointer to current response index
+**	sizep -- size of response (returned)
+**
+** Return value:
+**	Pointer to allocated buffer or NULL on error.
+*/
+
+static char *
+dkimf_db_erl_alloc_buffer(ei_x_buff *eip, int *index, int *sizep)
+{
+	int err;
+	int type, size;
+
+	err = ei_get_type(eip->buff, index, &type, &size);
+	if (err < 0)
+		return NULL;
+	*sizep = size + 1;
+	return malloc(*sizep);
+}
+
+/*
+**  DKIMF_DB_ERL_DECODE_ATOM -- decode an Erlang atom and check it
+**                              against its desired value
+**
+**  Parameters:
+**	eip -- pointer to response ei_x_buff
+**	index -- pointer to current response index
+**	cmp -- desired atom value
+**
+**  Return value:
+**	0 if the atom value matches de desired value, != 0 otherwise.
+*/
+
+static int
+dkimf_db_erl_decode_atom(ei_x_buff *eip, int *index, const char *cmp)
+{
+	int err;
+	int size;
+	int ret;
+	char *buf;
+
+	buf = dkimf_db_erl_alloc_buffer(eip, index, &size);
+	err = ei_decode_atom(eip->buff, index, buf);
+	if (err != 0)
+		return err;
+	buf[size - 1] = '\0';
+
+	ret = strcmp(buf, cmp);
+
+	free(buf);
+	return ret;
+}
+
+/*
+**  DKIMF_DB_ERL_DECODE_TUPLE -- decode an Erlang tuple, optionally
+**                               checking its arity
+**
+**  Parameters:
+**	eip -- pointer to response ei_x_buff
+**	index -- pointer to current response index
+**	num_elements -- pointer desired tuple arity (returned)
+**
+**  Return value:
+**	0 -- success
+**	-1 -- error.
+**
+**  Notes:
+**	If num_elements points to a positive number, the decoded tuple
+**	arity is checked against it, and if the values differ, the function
+**      will return an error.  Otherwise, num_elements is set to the decoded
+**      tuple arity.
+*/
+
+static int
+dkimf_db_erl_decode_tuple(ei_x_buff *eip, int *index, int *num_elements)
+{
+	int err;
+	int arity;
+
+	err = ei_decode_tuple_header(eip->buff, index, &arity);
+	if (err < 0)
+		return err;
+	if (*num_elements > 0 && *num_elements != arity)
+		return -1;
+	*num_elements = arity;
+	return 0;
+}
+
+/*
+**  DKIMF_DB_ERL_DECODE_BITSTRING -- decode an Erlang bitstring
+**
+**  Parameters:
+**	eip -- pointer to response ei_x_buff
+**	index -- pointer to current response index
+**
+**  Return value:
+**	Pointer to allocated buffer used to store the bitstring value
+**      or NULL on error.
+**
+**  Notes:
+**	The caller is responsible for freeing the buffer.
+*/
+
+static char *
+dkimf_db_erl_decode_bitstring(ei_x_buff *eip, int *index)
+{
+	int err;
+	int size;
+	long len;
+	char *buf;
+
+	buf = dkimf_db_erl_alloc_buffer(eip, index, &size);
+	err = ei_decode_binary(eip->buff, index, buf, &len);
+	if (err < 0)
+		return NULL;
+	buf[size - 1] = '\0';
+	return buf;
+}
+
+/*
+**  DKIMF_DB_ERL_DECODE_INTEGER -- decode an Erlang integer
+**
+**  Parameters:
+**	eip -- pointer to response ei_x_buff
+**	index -- pointer to current response index
+**      val -- pointer to decoded integer (returned)
+**
+**  Return value:
+**	0: success
+**      < 0: error
+*/
+
+static int
+dkimf_db_erl_decode_int(ei_x_buff *eip, int *index, long *val)
+{
+	int err;
+
+	err = ei_decode_long(eip->buff, index, val);
+	if (err < 0)
+		return err;
+	return 0;
+}
+
+/*
+**  DKIMF_DB_ERL_DECODE_RESPONSE -- decode an Erlang RPC response
+**
+**  Parameters:
+**	resp -- pointer to response ei_x_buff
+**      notfound -- string containing the atom to be returned in case
+**                  of a record not found
+**	req -- list of data requests
+**	reqnum -- number of data requests
+**  	key -- buffer to receive the key (may be NULL)
+**  	keylen -- bytes available at "key" (updated)
+**
+**  Return value:
+**	-1: error
+**      1: record not found
+**	0: success
+**
+**  Notes:
+**	Assumes keys returned from Erlang are either integers or
+**      bitstrings.
+*/
+
+static int
+dkimf_db_erl_decode_response(ei_x_buff *resp, const char *notfound,
+                             DKIMF_DBDATA req, unsigned int reqnum,
+                             char *key, size_t *keylen)
+{
+	int ret;
+	int res_index, res_type, res_size;
+
+	res_index = 0;
+	ret = ei_get_type(resp->buff, &res_index, &res_type, &res_size);
+	if (ret != 0)
+		return -1;
+
+	switch (res_type)
+	{
+	  case ERL_ATOM_EXT:
+	  {
+		/*
+		**  If we got an atom then it must signal record not found or
+		**  no more records in the table.
+		*/
+
+		ret = dkimf_db_erl_decode_atom(resp, &res_index, notfound);
+		if (ret != 0)
+			return -1;
+		return 1;
+	  }
+
+	  case ERL_SMALL_TUPLE_EXT:
+	  case ERL_LARGE_TUPLE_EXT:
+	  {
+		/* got a tuple {ok, something} */
+		int nres;
+		int arity;
+
+		arity = 2;
+		ret = dkimf_db_erl_decode_tuple(resp, &res_index, &arity);
+		if (ret == -1)
+			return -1;
+		ret = dkimf_db_erl_decode_atom(resp, &res_index, "ok");
+		if (ret != 0)
+			return -1;
+
+		ret = ei_get_type(resp->buff, &res_index, &res_type,
+		                  &res_size);
+		if (ret < 0)
+			return -1;
+
+		switch (res_type)
+		{
+		  case ERL_SMALL_INTEGER_EXT:
+		  case ERL_INTEGER_EXT:
+		  {
+			/*
+			**  The tuple is {ok, IntegerDomainId}
+			**  (we were called from SigningTable)
+			*/
+
+			int c;
+			int n;
+			long val;
+
+			if (reqnum == 0)
+				return 0;
+			ret = dkimf_db_erl_decode_int(resp, &res_index, &val);
+			if (ret != 0)
+				return -1;
+			n = snprintf(req[0].dbdata_buffer,
+			             req[0].dbdata_buflen, "%ld", val);
+			req[0].dbdata_buflen = n + 1;
+			for (c = 1; c < reqnum; c++)
+				req[c].dbdata_buflen = 0;
+			return 0;
+		  }
+
+		  case ERL_BINARY_EXT:
+		  {
+			/*
+			**  The tuple is {ok, BitstringDomainId}
+			**  (we were called from SigningTable)
+			*/
+
+			int c;
+			char *val;
+
+			if (reqnum == 0)
+				return 0;
+			val = dkimf_db_erl_decode_bitstring(resp, &res_index);
+			if (val == NULL)
+				return -1;
+			req[0].dbdata_buflen = strlcpy(req[0].dbdata_buffer,
+			                               val,
+			                               req[0].dbdata_buflen);
+			free(val);
+			for (c = 1; c < reqnum; c++)
+				req[c].dbdata_buflen = 0;
+			return 0;
+		  }
+
+		  case ERL_SMALL_TUPLE_EXT:
+		  case ERL_LARGE_TUPLE_EXT:
+		  {
+			/*
+			**  The tuple is either
+			**   {ok, {Cursor, Domain, Selector, PrivKey}}
+			**  (we were called from dkimf_db_walk()); or
+			**   {ok, {Domain, Selector, PrivKey}
+			**  (we were called from dkimf_db_get()).
+			*/
+
+			int c;
+			arity = 0;
+
+			ret = dkimf_db_erl_decode_tuple(resp, &res_index,
+			                                &arity);
+			if (ret == -1)
+				return -1;
+
+			if (key != NULL && keylen != NULL)
+			{
+				ret = ei_get_type(resp->buff, &res_index,
+				                  &res_type, &res_size);
+				if (ret != 0)
+					return -1;
+
+				switch (res_type)
+				{
+				  case ERL_SMALL_INTEGER_EXT:
+				  case ERL_INTEGER_EXT:
+				  {
+					int n;
+					long val;
+					ret = dkimf_db_erl_decode_int(resp,
+					                              &res_index,
+					                              &val);
+					if (ret != 0)
+						return -1;
+					n = snprintf(key, *keylen, "%ld", val);
+					*keylen = n + 1;
+					break;
+				  }
+
+				  case ERL_BINARY_EXT:
+				  {
+					char *val;
+					val = dkimf_db_erl_decode_bitstring(resp,
+					                                    &res_index);
+					if (val == NULL)
+						return -1;
+
+					*keylen = dkim_strlcpy(key, val,
+					                       *keylen);
+					free(val);
+					break;
+				  }
+
+				  default:
+					return -1;
+				}
+			}
+
+			if (reqnum == 0)
+				return 0;
+
+			ret = ei_get_type(resp->buff, &res_index, &res_type,
+			                  &res_size);
+			if (ret != 0)
+				return -1;
+
+			nres = (key != NULL && keylen != NULL) ? arity - 1
+			                                       : arity;
+			for (c = 0; c < reqnum; c++)
+			{
+				if (c >= nres)
+				{
+					req[c].dbdata_buflen = 0;
+				}
+				else
+				{
+					char *val;
+					val = dkimf_db_erl_decode_bitstring(resp,
+					                                    &res_index);
+					if (val == NULL)
+						return -1;
+					req[c].dbdata_buflen = dkim_strlcpy(req[c].dbdata_buffer,
+					                       val,
+					                       req[c].dbdata_buflen);
+					free(val);
+				}
+			}
+
+			return 0;
+		  }
+
+		  default:
+			  return -1;
+		}
+	  }
+
+	  default:
+		return -1;
+	}
+}
+#endif /* USE_ERLANG */
+
 /*
 **  DKIMF_DB_OPEN -- open a database
 **
@@ -1025,6 +1497,7 @@ dkimf_db_type(DKIMF_DB db)
 **  	       with interface provided by OpenDBX
 **  	ldap -- an LDAP server, interace provide by OpenLDAP
 **  	lua -- a Lua script; the returned value is the result
+**  	erlang -- an erlang function to be called in a distributed erlang node
 */
 
 int
@@ -2493,6 +2966,84 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		break;
 	  }
 #endif /* _FFR_REPUTATION */
+
+#ifdef USE_ERLANG
+	  case DKIMF_DB_TYPE_ERLANG:
+	  {
+		_Bool err = FALSE;
+		int c;
+		char *q;
+		char *last;
+		char *r;
+		char *tmp;
+		struct dkimf_db_erlang *e;
+
+		/*
+		**  Erlang dataset configuration format:
+		**   erlang:node1,node2,...:cookie:module:function
+		*/
+
+		tmp = strdup(p);
+		if (tmp == NULL)
+			return -1;
+
+		e = calloc(1, sizeof *e);
+		if (e == NULL)
+		{
+			free(tmp);
+			return -1;
+		}
+
+		c = 0;
+
+		for (q = strtok_r(tmp, ":", &last);
+		     !err && q != NULL;
+		     q = strtok_r(NULL, ":", &last))
+		{
+			switch (c)
+			{
+			  case 0:
+				e->erlang_nodes = strdup(q);
+				if (e->erlang_nodes == NULL)
+					err = TRUE;
+				break;
+
+			  case 1:
+				e->erlang_cookie = strdup(q);
+				if (e->erlang_cookie == NULL)
+					err = TRUE;
+				break;
+
+			  case 2:
+				e->erlang_module = strdup(q);
+				if (e->erlang_module == NULL)
+					err = TRUE;
+				break;
+
+			  case 3:
+				e->erlang_function = strdup(q);
+				if (e->erlang_function == NULL)
+					err = TRUE;
+				break;
+
+			  case 4:
+				err = TRUE;
+				break;
+			}
+		}
+
+		if (err || c < 3)
+		{
+			free(tmp);
+			dkimf_db_erl_free(e);
+			return -1;
+		}
+
+		new->db_data = e;
+		free(tmp);
+		break;
+	  }
+#endif /* USE_ERLANG */
 	}
 
 	*db = new;
@@ -2533,7 +3084,8 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 	    db->db_type == DKIMF_DB_TYPE_LUA || 
 	    db->db_type == DKIMF_DB_TYPE_MEMCACHE || 
 	    db->db_type == DKIMF_DB_TYPE_REPUTE || 
-	    db->db_type == DKIMF_DB_TYPE_REFILE)
+	    db->db_type == DKIMF_DB_TYPE_REFILE ||
+	    db->db_type == DKIMF_DB_TYPE_ERLANG)
 		return EINVAL;
 
 #ifdef USE_DB
@@ -4085,6 +4637,54 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 	  }
 #endif /* _FFR_REPUTATION */
 
+#ifdef USE_ERLANG
+	  case DKIMF_DB_TYPE_ERLANG:
+	  {
+		int fd;
+		int ret;
+		int res_size;
+		int res_index;
+		int res_type;
+		struct dkimf_db_erlang *e;
+		ei_cnode ec;
+		ei_x_buff args;
+		ei_x_buff resp;
+
+		e = (struct dkimf_db_erlang *) db->db_data;
+
+		ei_x_new(&args);
+		ei_x_new(&resp);
+
+		ei_x_encode_list_header(&args, 1);
+		ei_x_encode_binary(&args, buf, strlen(buf));
+		ei_x_encode_empty_list(&args);
+
+		fd = dkimf_db_erl_connect(db, &ec);
+		if (fd < 0)
+			goto cleanup;
+
+		ret = ei_rpc(&ec, fd, e->erlang_module, e->erlang_function,
+			     args.buff, args.index, &resp);
+		close(fd);
+		if (ret == -1)
+			goto cleanup;
+
+		ret = dkimf_db_erl_decode_response(&resp, "not_found", req,
+	 	                                   reqnum, NULL, NULL);
+
+		if (*exists != NULL)
+			*exists = (ret == 1 ? FALSE : TRUE);
+
+		ei_x_free(&args);
+		ei_x_free(&resp);
+
+		if (ret == -1)
+			db->db_status = erl_errno;
+
+		return ret;
+	  }
+#endif /* USE_ERLANG */
+
 	  default:
 		assert(0);
 		return 0;		/* to silence the compiler */
@@ -4274,6 +4874,17 @@ dkimf_db_close(DKIMF_DB db)
 	  }
 #endif /* _FFR_REPUTATION */
 
+#ifdef USE_ERLANG
+	  case DKIMF_DB_TYPE_ERLANG:
+	  {
+		struct dkimf_db_erlang *e;
+
+		e = (struct dkimf_db_erlang *) db->db_data;
+		dkimf_db_erl_free(e);
+		return 0;
+	  }
+#endif /* USE_ERLANG */
+
 	  default:
 		assert(0);
 		return -1;
@@ -4366,6 +4977,11 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 		return strlcpy(err, repute_error(rep), errlen);
 	  }
 #endif /* _FFR_REPUTATION */
+
+#ifdef USE_ERLANG
+	  case DKIMF_DB_TYPE_ERLANG:
+		return strlcpy(err, strerror(db->db_status), errlen);
+#endif /* USE_ERLANG */
 
 	  default:
 		assert(0);
@@ -4784,6 +5400,93 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		return 0;
 	  }
 #endif /* USE_LDAP */
+
+#ifdef USE_ERLANG
+	  case DKIMF_DB_TYPE_ERLANG:
+	  {
+		int ret, fd;
+		char *cursor;
+		struct dkimf_db_erlang *e;
+		ei_cnode ec;
+		ei_x_buff args;
+		ei_x_buff resp;
+
+		e = (struct dkimf_db_erlang *) db->db_data;
+		cursor = (char *) db->db_cursor;
+
+		ei_x_new(&args);
+		ei_x_new(&resp);
+
+		if (!first && cursor == NULL)
+			assert(0);
+
+		if (first && cursor != NULL)
+		{
+			free(cursor);
+			cursor = NULL;
+		}
+
+		ei_x_encode_list_header(&args, 1);
+		if (first)
+		{
+			ei_x_encode_atom(&args, "first");
+		}
+		else
+		{
+			ei_x_encode_tuple_header(&args, 2);
+			ei_x_encode_atom(&args, "next");
+			ei_x_encode_binary(&args, cursor, strlen(cursor));
+		}
+		ei_x_encode_empty_list(&args);
+
+		fd = dkimf_db_erl_connect(db, &ec);
+		if (fd < 0)
+			return -1;
+
+		ret = ei_rpc(&ec, fd, e->erlang_module, e->erlang_function,
+			     args.buff, args.index, &resp);
+		close(fd);
+		if (ret == -1)
+			return -1;
+
+		ret = dkimf_db_erl_decode_response(&resp, "$end_of_table",
+		                                   req, reqnum, key, keylen);
+		switch (ret)
+		{
+		  case -1:
+		  {
+			  if (cursor != NULL)
+				  free(cursor);
+			  return -1;
+		  }
+
+		  case 1:
+		  {
+			  free(cursor);
+			  db->db_cursor = NULL;
+			  return 1;
+		  }
+
+		  case 0:
+		  {
+			  if (key != NULL && keylen != NULL)
+			  {
+				  size_t cursize;
+				  cursize = *keylen + 1;
+				  cursor = malloc(cursize);
+				  if (cursor == NULL)
+					  return -1;
+				  strlcpy(cursor, key, cursize);
+				  db->db_cursor = cursor;
+			  }
+
+			  return 0;
+		  }
+		}
+
+		assert(cursor != NULL);
+	  }
+#endif /* USE_ERLANG */
 
 	  default:
 		assert(0);

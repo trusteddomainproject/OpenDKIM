@@ -1,0 +1,142 @@
+OPENDKIM ERLANG NOTES
+=====================
+
+This document explains how to use Erlang datasets in the OpenDKIM
+configuration.
+
+There are two lookups for which an Erlang dataset may be used.
+
+The SigningTable lookup uses a signing pattern based on the message sender
+to perform a lookup, returning an arbitrary "label" which is an unique
+identifier (a string or number) associated to the pattern.
+
+The KeyTable lookup uses this label in its search, expecting the three fields
+of data below to be returned, in order:
+
+  domain name, selector, private key (in ASCII armor, or a filename)
+
+An OpenDKIM configuration that makes use of distributed Erlang can be specified
+in the following manner.
+
+SigningTable erlang:NODE@HOST:COOKIE:MODULE:KEY_LOOKUP_FUNCTION
+KeyTable     erlang:NODE@HOST:COOKIE:MODULE:DATA_LOOKUP_FUNCTION
+
+The strings NODE, HOST, COOKIE, MODULE are used to set up a connection to
+a distributed Erlang node. Multiple nodes must be specified, separated by
+commas. In that case, OpenDKIM will try to connect to each of them in order,
+stopping when a successful connection is established or when no more nodes
+are available. Note that the cookie may not contain the colon (':') character.
+
+Once the connection is established, it will call the function
+MODULE:KEY_LOOKUP_FUNCTION/1, giving it the signing pattern mentioned above
+as an argument. The result from this call will be used as an argument to
+MODULE:DATA_LOOKUP_FUNCTION/1, which is supposed to return the three pieces
+of data previously described.
+
+The erlang datasets are walkable, and therefore the function given as the
+KeyTable must be able to return the "next" entry for the database. OpenDKIM
+signals this to the function by passing the atom 'first' as its argument when
+the first entry of the database is expected to be returned, or the tuple
+{'next', PreviousKey} when the next entry is supposed to be returned.
+
+A complete example is given below. It assumes that the OpenDKIM dataset
+will be stored in a Mnesia database. Mnesia database and table creation is
+not covered by these notes.
+
+-module(dkim).
+-export([find_id/1, find_domain/1).
+
+%
+% This module implements the OpenDKIM Erlang dataset API. A Mnesia database
+% storing DKIM information for domains is assumed.
+%
+
+-include_lib("stdlib/include/qlc.hrl").
+
+% This example uses the domain itself as the domain ID. This is simpler, and as
+% OpenDKIM will always send the ID as a bitstring, it avoids the need for type
+% conversions on the Erlang side.
+-record(dkim, {
+  domain      :: binary(),
+  selector    :: binary(),
+  public_key  :: binary(),
+  private_key :: binary()
+}).
+
+%
+% SigningTable function: this function will be called on pattern lookups,
+% and must respect the type specification given below (i.e., it must return
+% the tuple {ok, ID} on success or the atom 'not_found' otherwise. The lookup
+% pattern is always given as a bitstring. In this example, the function just
+% checks if the domain is in the database, returning the domain name itself
+% as the domain ID.
+%
+-spec find_id(binary()) -> {ok, binary()} | not_found.
+
+find_id(Domain) when is_binary(Domain) ->
+  mnesia:transaction(fun() ->
+    TH = mnesia:table(dkim, [{lock, read}]),
+    case qlc:e(qlc:q([DKIM || DKIM <- TH, DKIM#dkim.domain =:= Domain])) of
+      [] -> not_found;
+      _  -> {ok, Domain}  % Return the domain ID (here, the domain itself).
+    end
+  end).
+
+%
+% KeyTable function: this function will be called on ID lookups, where an ID
+% is the unique domain identifier returned by dkim:find_id/1. The type
+% specification is given below. IDs are always given as bitstrings, even if
+% they're stored in the database as integers. Therefore, if you use integer
+% IDs you must convert the argument to the correct type by yourself.
+%
+% The function must support "walking" the database, returning the next
+% record on each call. When database walking is initiated the atom 'first'
+% will be given as an argument. Further records will be retrieved by passing
+% a {next, PreviousKey} tuple as the argument to the function.
+%
+-type dkim_data() :: {binary(), binary(), binary()}.
+-type dkim_data_with_id() :: {binary(), binary(), binary(), binary()}.
+
+-spec find_domain
+   (first | {next, binary()}) -> {ok, dkim_data_with_id()} | '$end_of_table'
+ ; (binary()) -> {ok, dkim_data()} | not_found.
+
+find_domain(first) ->
+  mnesia:transaction(fun() ->
+    case mnesia:first(dkim) of
+      '$end_of_table' ->
+        '$end_of_table';
+      Domain ->
+        {ok, {Domain, Selector, PrivKey}} = find_domain(Domain),
+        % OpenDKIM expects the domain ID, domain name, selector and private
+        % key, in this order. Since the domain name is also its ID in this
+        % example, it is returned both in the first and second tuple fields
+        % below.
+        {ok, {Domain, Domain, Selector, PrivKey}}
+    end
+  end);
+
+find_domain({next, Domain}) when is_binary(Domain) ->
+  mnesia:transaction(fun() ->
+    case mnesia:next(dkim, DomainId) of
+      '$end_of_table' ->
+        '$end_of_table';
+      NextDomain ->
+        {ok, {NextDomain, Selector, PrivKey}} = find_domain(NextDomain),
+        % Return the next domain ID in the database, and the three required
+        % dataset fields. As above, the domain name is used as its ID.
+        {ok, {NextDomain, NextDomain, Selector, PrivKey}}
+    end
+  end);
+
+find_domain(Domain) when is_binary(Domain) ->
+  mnesia:transaction(fun() ->
+    TH = mnesia:table(quota, [{lock, read}]),
+    case qlc:e(qlc:q([D || D <- TH, D#dkim.domain =:= Domain])) of
+      [] ->
+        not_found;
+      [#dkim{domain = Domain, selector = Selector, private_key = PrivKey}] ->
+        % Return the three required dataset fields.
+        {ok, {Domain, Selector, PrivKey}}
+    end
+  end).
