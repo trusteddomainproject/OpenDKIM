@@ -969,7 +969,134 @@ dkimf_db_relist_free(struct dkimf_db_relist *list)
 		list = next;
 	}
 }
-		
+
+#ifdef USE_LDAP
+/*
+**  DKIMF_DB_OPEN_LDAP -- attempt to contact an LDAP server
+**
+**  Parameters:
+**  	ld -- LDAP handle (updated on success)
+**  	ldap -- local LDAP data
+**
+**  Return value:
+**  	An LDAP_* constant.
+*/
+
+int
+dkimf_db_open_ldap(LDAP **ld, struct dkimf_db_ldap *ldap, char **err)
+{
+	int v = LDAP_VERSION3;
+	int lderr;
+	char *q;
+	char *r;
+	char *u;
+
+	assert(ld != NULL);
+	assert(ldap != NULL);
+
+	/* create LDAP handle */
+	lderr = ldap_initialize(ld, ldap->ldap_urilist);
+	if (lderr != LDAP_SUCCESS)
+	{
+		if (err != NULL)
+			*err = ldap_err2string(lderr);
+		return lderr;
+	}
+
+	/* set LDAP version */
+	lderr = ldap_set_option(*ld, LDAP_OPT_PROTOCOL_VERSION, &v);
+	if (lderr != LDAP_OPT_SUCCESS)
+	{
+		if (err != NULL)
+			*err = ldap_err2string(lderr);
+		ldap_unbind_ext(*ld, NULL, NULL);
+		*ld = NULL;
+		return lderr;
+	}
+
+	/* attempt TLS if requested, except for ldaps */
+	q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_USETLS];
+	if (q != NULL && (*q == 'y' || *q == 'Y') &&
+	    strcasecmp(ldap->ldap_descr->lud_scheme, "ldaps") != 0)
+	{
+		lderr = ldap_start_tls_s(*ld, NULL, NULL);
+		if (lderr != LDAP_SUCCESS)
+		{
+			if (err != NULL)
+				*err = ldap_err2string(lderr);
+			ldap_unbind_ext(*ld, NULL, NULL);
+			*ld = NULL;
+			return lderr;
+		}
+	}
+
+	/* attempt binding */
+	q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_AUTHMECH];
+	u = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_BINDUSER];
+	if (q == NULL || strcasecmp(q, "none") == 0 ||
+	    strcasecmp(q, "simple") == 0)
+	{
+		struct berval passwd;
+
+		r = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_BINDPW];
+		if (r != NULL)
+		{
+			passwd.bv_val = r;
+			passwd.bv_len = strlen(r);
+		}
+		else
+		{
+			passwd.bv_val = NULL;
+			passwd.bv_len = 0;
+		}
+
+		lderr = ldap_sasl_bind_s(*ld, u, q, &passwd,
+		                         NULL, NULL, NULL);
+		if (lderr != LDAP_SUCCESS)
+		{
+			if (err != NULL)
+				*err = ldap_err2string(lderr);
+			ldap_unbind_ext(*ld, NULL, NULL);
+			*ld = NULL;
+			return lderr;
+		}
+	}
+	else
+	{
+# ifdef USE_SASL
+		lderr = ldap_sasl_interactive_bind_s(*ld,
+		                                     u,	/* bind user */
+		                                     q,	/* SASL mech */
+		                                     NULL, /* controls */
+		                                     NULL, /* controls */
+		                                     LDAP_SASL_QUIET, /* flags */
+		                                     dkimf_db_saslinteract, /* callback */
+		                                     NULL);
+		if (lderr != LDAP_SUCCESS)
+		{
+			if (err != NULL)
+				*err = ldap_err2string(lderr);
+			ldap_unbind_ext(*ld, NULL, NULL);
+			*ld = NULL;
+			return lderr;
+		}
+
+# else /* USE_SASL */
+
+		/* unknown auth mechanism */
+		if (err != NULL)
+			*err = "Unknown auth mechanism";
+		ldap_unbind_ext(*ld, NULL, NULL);
+		*ld = NULL;
+		return LDAP_AUTH_METHOD_NOT_SUPPORTED;
+
+# endif /* USE_SASL */
+	}
+
+	return LDAP_SUCCESS;
+}
+#endif /* USE_LDAP */
+
 /*
 **  DKIMF_DB_TYPE -- return database type
 **
@@ -2122,9 +2249,9 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			ldap_free_urldesc(descr);
 		}
 
-		/* create LDAP handle */
-		lderr = ldap_initialize(&ld, ldap->ldap_urilist);
-		if (lderr != LDAP_SUCCESS)
+		lderr = dkimf_db_open_ldap(&ld, ldap, err);
+		if (lderr != LDAP_SUCCESS &&
+		    (flags & DKIMF_DB_FLAG_SOFTSTART) == 0)
 		{
 			if (err != NULL)
 				*err = ldap_err2string(lderr);
@@ -2132,103 +2259,10 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			free(p);
 			free(new);
 			return -1;
-		}
-
-		/* set LDAP version */
-		lderr = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &v);
-		if (lderr != LDAP_OPT_SUCCESS)
-		{
-			if (err != NULL)
-				*err = ldap_err2string(lderr);
-			ldap_unbind_ext(ld, NULL, NULL);
-			free(ldap);
-			free(p);
-			free(new);
-			return -1;
-		}
-
-		/* attempt TLS if requested, except for ldaps */
-		q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_USETLS];
-		if (q != NULL && (*q == 'y' || *q == 'Y') &&
-		    strcasecmp(ldap->ldap_descr->lud_scheme, "ldaps") != 0)
-		{
-			lderr = ldap_start_tls_s(ld, NULL, NULL);
-			if (lderr != LDAP_SUCCESS)
-			{
-				if (err != NULL)
-					*err = ldap_err2string(lderr);
-				ldap_unbind_ext(ld, NULL, NULL);
-				free(ldap);
-				free(p);
-				free(new);
-				return -1;
-			}
-		}
-
-		/* attempt binding */
-		q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_AUTHMECH];
-		u = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_BINDUSER];
-		if (q == NULL || strcasecmp(q, "none") == 0 ||
-		    strcasecmp(q, "simple") == 0)
-		{
-			struct berval passwd;
-
-			r = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_BINDPW];
-			if (r != NULL)
-			{
-				passwd.bv_val = r;
-				passwd.bv_len = strlen(r);
-			}
-			else
-			{
-				passwd.bv_val = NULL;
-				passwd.bv_len = 0;
-			}
-
-			lderr = ldap_sasl_bind_s(ld, u, q, &passwd,
-			                         NULL, NULL, NULL);
-			if (lderr != LDAP_SUCCESS)
-			{
-				if (err != NULL)
-					*err = ldap_err2string(lderr);
-				ldap_unbind_ext(ld, NULL, NULL);
-				free(ldap);
-				free(p);
-				free(new);
-				return -1;
-			}
 		}
 		else
 		{
-# ifdef USE_SASL
-			lderr = ldap_sasl_interactive_bind_s(ld,
-			                                     u,	/* bind user */
-			                                     q,	/* SASL mech */
-			                                     NULL, /* controls */
-			                                     NULL, /* controls */
-			                                     LDAP_SASL_QUIET, /* flags */
-			                                     dkimf_db_saslinteract, /* callback */
-			                                     NULL);
-			if (lderr != LDAP_SUCCESS)
-			{
-				if (err != NULL)
-					*err = ldap_err2string(lderr);
-				ldap_unbind_ext(ld, NULL, NULL);
-				free(ldap);
-				free(p);
-				free(new);
-				return -1;
-			}
-# else /* USE_SASL */
-			/* unknown auth mechanism */
-			if (err != NULL)
-				*err = "Unknown auth mechanism";
-			ldap_unbind_ext(ld, NULL, NULL);
-			free(ldap);
-			free(p);
-			free(new);
-			return -1;
-# endif /* USE_SASL */
+			ld = NULL;
 		}
 
 		pthread_mutex_init(&ldap->ldap_lock, NULL);
@@ -3511,6 +3545,17 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		ldap = (struct dkimf_db_ldap *) db->db_data;
 
 		pthread_mutex_lock(&ldap->ldap_lock);
+
+		if (ld == NULL)
+		{
+			int lderr;
+
+			lderr = dkimf_db_open_ldap(&ld, ldap, NULL);
+			if (lderr == LDAP_SUCCESS)
+				db->db_handle = ld;
+			else
+				return lderr;
+		}
 
 #ifdef _FFR_LDAP_CACHING
 # ifdef USE_DB
