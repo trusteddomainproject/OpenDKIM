@@ -861,6 +861,10 @@ $dbi_h->disconnect;
 
 if (defined($reportout))
 {
+	print $out "<hr>\n";
+	print $out "<font size='-1'>Report completed at " . localtime() . "</font>\n";
+	print $out "</body>\n";
+	print $out "</html>\n";
 	close $out;
 	rename($tmpout, $reportout) or die "$progname: rename to $reportout failed; $!";
 }
