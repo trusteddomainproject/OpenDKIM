@@ -16004,6 +16004,9 @@ main(int argc, char **argv)
 #ifdef USE_MDB
 			                "\tmdb:path\n"
 #endif /* USE_MDB */
+#ifdef USE_ERLANG
+					"\terlang:node@host[,...]:cookie:module:function\n"
+#endif /* USE_ERLANG */
 			                "> ");
 		}
 

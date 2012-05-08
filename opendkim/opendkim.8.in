@@ -174,9 +174,35 @@ character, it is presumed to be a flat file as described above.
 .TP
 .I j)
 If the string begins with "csl:", the string is treated as a comma-separated
-list as described in k) below.
+list as described in l) below.
 .TP
 .I k)
+If the string begins with "erlang:", it is presumed to refer to a function
+called to be made to the specified distributed Erlang node(s). The
+specification is of the form
+
+erlang:node@host[,...]:cookie:module:function
+
+where
+.I node[,...]
+is a list of comma-separated erlang nodes,
+.I cookie
+is the cookie for the known nodes of the distributed Erlang setup,
+.I module
+is the name of the Erlang module where the function to be called resides,
+.I function
+is the name of the Erlang function to be called. For example, (all in one
+line):
+
+erlang:mynode@myhost,myothernode@myotherhost:
+.br
+       chocolate:dkim:lookup
+
+will join the distributed Erlang setup connecting to either "mynode@myhost"
+or "myothernode@myotherhost" (connections to nodes are tried in order) using
+"chocolate" as the cookie, and use the function "dkim:lookup/1" for lookups.
+.TP
+.I l)
 In any other case, the string is presumed to be a comma-separated list.
 Elements in the list are either simple data elements that are part of the
 set or, in the case of an entry of the form "x=y", are stored as key-value
