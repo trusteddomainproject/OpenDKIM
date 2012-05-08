@@ -164,7 +164,7 @@ AC_FUNC_MALLOC
 AC_FUNC_MKTIME
 AC_FUNC_REALLOC
 
-AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname  gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strstr strtol strtoul strtoull strlcpy strlcat])
+AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname getaddrinfo gethostbyname2 gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strstr strtol strtoul strtoull strlcpy strlcat])
 
 #
 # Checks for structure members
@@ -289,6 +289,8 @@ FFR_FEATURE([select_canonicalization],
 FFR_FEATURE([selector_header], [special header to choose signing key])
 
 FFR_FEATURE([sender_macro], [macro to determine sender])
+
+FFR_FEATURE([socketdb], [arbitrary socket data sets])
 
 FFR_FEATURE([stats], [stats recording and reporting])
 AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])

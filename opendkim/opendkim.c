@@ -15998,6 +15998,9 @@ main(int argc, char **argv)
 #ifdef _FFR_REPUTATION
 			                "\trepute:server[:reporter]\n"
 #endif /* _FFR_REPUTATION */
+#ifdef _FFR_SOCKETDB
+			                "\tsocket:{ port@host | path}\n"
+#endif /* _FFR_SOCKETDB */
 			                "> ");
 		}
 

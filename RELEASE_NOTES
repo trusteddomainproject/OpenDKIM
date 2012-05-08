@@ -15,6 +15,8 @@ release, and a summary of the changes in that release.
 		Requested by Andreas Schulze.
 	Feature request #SF3512286: Add "LDAPSoftStart" flag so the filter
 		doesn't abort on startup when LDAP is not available.
+	Feature request #SF3512836: Add _FFR_SOCKETDB, which enables support
+		for a generic socket data set.
 	Feature request #SF3516253: Update to newest "repute" working group
 		documents, which mainly means adding JSON support and
 		promoting application-specific extensions to the top level

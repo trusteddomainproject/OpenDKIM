@@ -191,6 +191,10 @@ static char *optlist[] =
 	"_FFR_SENDER_MACRO",
 #endif /* _FFR_SENDER_MACRO */
 
+#ifdef _FFR_SOCKETDB
+	"_FFR_SOCKETDB",
+#endif /* _FFR_SOCKETDB */
+
 #if _FFR_STATS
 	"_FFR_STATS",
 #endif /* _FFR_STATS */
