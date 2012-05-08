@@ -16001,6 +16001,9 @@ main(int argc, char **argv)
 #ifdef _FFR_SOCKETDB
 			                "\tsocket:{ port@host | path}\n"
 #endif /* _FFR_SOCKETDB */
+#ifdef USE_MDB
+			                "\tmdb:path\n"
+#endif /* USE_MDB */
 			                "> ");
 		}
 

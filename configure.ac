@@ -1472,7 +1472,7 @@ then
 					LIBODBX_LIBS="-L$odbxpath/lib -lopendbx"
 					break
 				],[
-					AC_MSG_ERROR([opendbx not at least v1.3.7 at $odbxpath])
+					AC_MSG_ERROR([opendbx not at least v1.3.7 at $d])
 				]
 				)
 			fi
@@ -1654,6 +1654,78 @@ fi
 AM_CONDITIONAL(USE_SASL, test x"$sasl_found" = x"yes")
 AC_SUBST(SASL_CPPFLAGS)
 
+#
+# libmdb
+#
+AC_ARG_WITH([mdb],
+            AS_HELP_STRING([--with-mdb],
+                           [location of OpenLDAP MDB includes and library]),
+            [mdbpath="$withval"], [mdbpath="no"])
+
+mdb_found="no"
+LIBMDB_CPPFLAGS=""
+LIBMDB_CFLAGS=""
+LIBMDB_LIBS=""
+
+if test x"$mdbpath" != x"no" -a x"$mdb_found" = x"no"
+then
+	saved_ldflags="$LDFLAGS"
+	saved_cflags="$LDFLAGS"
+	CFLAGS="-pthread"
+	if test x"$mdbpath" != x"auto" -a x"$mdbpath" != x"yes"
+	then
+		if test -f $mdbpath/include/mdb.h
+		then
+			LDFLAGS="-L$mdbpath/lib"
+			AC_CHECK_LIB(mdb, mdb_env_open,
+			[
+			        mdb_found="yes"
+				LIBMDB_CPPFLAGS="-I$mdbpath/include"
+				LIBMDB_LIBS="-L$mdbpath/lib -lmdb"
+			],
+			[
+				AC_MSG_ERROR([mdb not valid at $mdbpath])
+			]
+			)
+		else
+			AC_MSG_ERROR([mdb not found at $mdbpath])
+		fi
+	else
+		mdbdirs="/usr /usr/local"
+		for d in $mdbdirs
+		do
+			if test -f $d/include/mdb.h
+			then
+				LDFLAGS="-L$d/lib"
+				AC_CHECK_LIB(mdb, mdb_env_open,
+				[
+					mdbpath=$d
+			        	mdb_found="yes"
+					LIBMDB_CPPFLAGS="-I$mdbpath/include"
+					LIBMDB_LIBS="-L$mdbpath/lib -lmdb"
+					break
+				]
+				)
+			fi
+		done
+		if test x"$mdb_found" != x"yes"
+		then
+			AC_MSG_ERROR([mdb not found])
+		fi
+	fi
+	LDFLAGS="$saved_ldflags"
+	CFLAGS="$saved_cflags"
+fi
+if test x"$mdb_found" = x"yes"
+then
+	AC_DEFINE([USE_MDB], 1, [OpenLDAP MDB support for datasets enabled])
+fi
+AM_CONDITIONAL(USE_MDB, test x"$mdb_found" = x"yes")
+AC_SUBST(LIBMDB_CPPFLAGS)
+AC_SUBST(LIBMDB_CFLAGS)
+AC_SUBST(LIBMDB_LIBS)
+
+#
 #
 # libcurl, required by reputation
 #
