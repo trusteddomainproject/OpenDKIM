@@ -33,6 +33,9 @@ allsymbols	By default, the build will attempt to create a libopendkim
 		exports those as well.  This is intended only for running
 		library unit tests.  (libopendkim)
 
+arlib		Compile and use the asynchronous resolver library included
+		in the package.  (libar, opendkim)
+
 atps		Support for experimental Authorized Third-Party Signatures
 		mechanism.  (opendkim, libopendkim)
 
@@ -42,6 +45,9 @@ codecoverage	Enables generation of profiling code for all libraries,
 		code coverage tools (gprof, gcov or lcov). (all)
 
 db_handle_pools	Database handle pools.  EXPERIMENTAL  (opendkim)
+
+debug		Compile all binaries and libraries with debugging enabled
+		and optimization disabled.  (all)
 
 default_sender	Allow declaration of sender address to use when a message
 		contains no obvious sender.  (opendkim)
@@ -56,11 +62,20 @@ dkim_reputation	Add experimental support for querying an open DKIM reputation
 		service.  The service's URL is http://www.dkim-reputation.org.
 		(opendkim, libdkimrep, libopendkim)
 
+filter		Compile opendkim, the mail filter program.  Enabled by
+		default. (opendkim)
+
 identity_header	Enable selection of an identity for signing based on the
 		value found in a particular header. (opendkim)
 
 ldap_caching	Adds code that ensures duplicate LDAP queries aren't sent
-		and local caching of LDAP replies is done.  (opendkim)
+		and local caching of LDAP replies is done.  Note that this
+		means changes made to LDAP data won't be recognized by
+		the filter right away. (opendkim)
+
+live-testing	Enables "live" unit tests, which may go to the public
+		Internet and thus cannot be run without Internet access.
+		Enabled by default.  (libopendkim, opendkim)
 
 lua_globals	Optional mechanism for passing variables between Lua
 		scripts.  (opendkim)
@@ -68,11 +83,6 @@ lua_globals	Optional mechanism for passing variables between Lua
 oversign	Optional specification of header fields to "oversign" to
 		prevent malicious addition of malicious extra instances.
 		(opendkim, libopendkim)
-
-parsetime	Adds a utility function reporting the value of the Date:
-		header for easy comparison to signature timestamps in order
-		to detect messages in which those values wildly differ.
-		INCOMPLETE.  (libopendkim)
 
 poll		Instructs the asynchronous resolver to use poll() instead
 		of select() to wait for I/O on sockets.  (libar)
@@ -109,8 +119,14 @@ replace_rules	Allow specification of a "replacement rules" table
 reputation	Support for a collaborative reputation system.
 		EXPERIMENTAL  (opendkim)
 
+reputation_cache
+		Temporary caching of reputation replies to reduce round
+		trips to the reputation server.  EXPERIMENTAL (opendkim)
+
 resign		Experimental API features for simultaneous verifying and
 		re-signing of a single message.  (libopendkim, opendkim)
+
+rpath		Include library paths in generated binaries.  (all executables)
 
 select_canonicalization
 		Optionally override the value of the "-c" command line flag
