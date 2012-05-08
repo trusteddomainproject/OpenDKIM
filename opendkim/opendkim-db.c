@@ -79,6 +79,9 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #ifdef USE_LIBMEMCACHED
 # include <libmemcached/memcached.h>
 #endif /* USE_LIBMEMCACHED */
+#ifdef USE_MDB
+# include <mdb.h>
+#endif /* USE_MDB */
 
 /* macros */
 #define	BUFRSZ			1024
@@ -259,6 +262,15 @@ struct dkimf_db_repute_cache
 # endif /* _FFR_REPUTATION_CACHE */
 #endif /* _FFR_REPUTATION */
 
+#ifdef USE_MDB
+struct dkimf_db_mdb
+{
+	MDB_env *		mdb_env;
+	MDB_dbi *		mdb_dbi;
+	MDB_txn *		mdb_txn;
+};
+#endif /* USE_MDB */
+
 /* globals */
 struct dkimf_db_table dbtypes[] =
 {
@@ -285,6 +297,9 @@ struct dkimf_db_table dbtypes[] =
 #ifdef _FFR_REPUTATION
 	{ "repute",		DKIMF_DB_TYPE_REPUTE },
 #endif /* _FFR_REPUTATION */
+#ifdef USE_MDB
+	{ "mdb",		DKIMF_DB_TYPE_MDB },
+#endif /* USE_MDB */
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
 
@@ -2493,6 +2508,62 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		break;
 	  }
 #endif /* _FFR_REPUTATION */
+
+#ifdef USE_MDB
+	  case DKIMF_DB_TYPE_MDB:
+	  {
+		int status;
+		struct dkimf_db_mdb *mdb;
+
+		mdb = (struct dkimf_db_mdb *) malloc(sizeof *mdb);
+		if (mdb == NULL)
+			return -1;
+
+		status = mdb_env_create(&mdb->mdb_env);
+		if (status != 0)
+		{
+			if (err != NULL)
+				*err = mdb_strerror(status);
+			free(mdb);
+			return -1;
+		}
+
+		status = mdb_env_open(mdb->mdb_env, p, 0, 0);
+		if (status != 0)
+		{
+			if (err != NULL)
+				*err = mdb_strerror(status);
+			mdb_env_close(mdb->mdb_env);
+			free(mdb);
+			return -1;
+		}
+
+		status = mdb_txn_begin(mdb->mdb_env, NULL, 0, &mdb->mdb_txn);
+		if (status != 0)
+		{
+			if (err != NULL)
+				*err = mdb_strerror(status);
+			mdb_env_close(mdb->mdb_env);
+			free(mdb);
+			return -1;
+		}
+
+		status = mdb_open(mdb->mdb_txn, NULL, 0, &mdb->mdb_dbi);
+		if (status != 0)
+		{
+			if (err != NULL)
+				*err = mdb_strerror(status);
+			mdb_txn_abort(mdb->mdb_txn);
+			mdb_env_close(mdb->mdb_env);
+			free(mdb);
+			return -1;
+		}
+
+		new->db_data = (void *) mdb;
+
+		break;
+	  }
+#endif /* USE_MDB */
 	}
 
 	*db = new;
@@ -4085,6 +4156,44 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 	  }
 #endif /* _FFR_REPUTATION */
 
+#ifdef USE_MDB
+	  case DKIMF_DB_TYPE_MDB:
+	  {
+		int status;
+		struct dkimf_db_mdb *mdb;
+		MDB_val key;
+		MDB_val data;
+
+		mdb = (struct dkimf_db_mdb *) db->db_handle;
+
+		key.mv_size = buflen;
+		key.mv_data = buf;
+
+		status = mdb_get(mdb->mdb_txn, mdb->mdb_dbi, &key, &data);
+		if (status == MDB_NOTFOUND)
+		{
+			if (exists != NULL)
+				*exists = FALSE;
+		}
+		else if (status == 0)
+		{
+			if (exists != NULL)
+				*exists = TRUE;
+
+			if (dkimf_db_datasplit(data.mv_data, data.mv_size,
+			                       req, reqnum) != 0)
+				return -1;
+		}
+		else
+		{
+			db->db_status = status;
+			return -1;
+		}
+
+		return 0;
+	  }
+#endif /* USE_MDB */
+
 	  default:
 		assert(0);
 		return 0;		/* to silence the compiler */
@@ -4274,6 +4383,24 @@ dkimf_db_close(DKIMF_DB db)
 	  }
 #endif /* _FFR_REPUTATION */
 
+#ifdef USE_MDB
+	  case DKIMF_DB_TYPE_MDB:
+	  {
+		struct dkimf_db_mdb *mdb;
+
+		mdb = db->db_data;
+
+		if (db->db_cursor != NULL)
+			mdb_cursor_close(db->db_cursor);
+
+		mdb_txn_abort(mdb->mdb_txn);
+		mdb_env_close(mdb->mdb_env);
+		free(db->db_data);
+		free(db);
+	  	return 0;
+	  }
+#endif /* USE_MDB */
+
 	  default:
 		assert(0);
 		return -1;
@@ -4366,6 +4493,11 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 		return strlcpy(err, repute_error(rep), errlen);
 	  }
 #endif /* _FFR_REPUTATION */
+
+#ifdef USE_MDB
+	  case DKIMF_DB_TYPE_MDB:
+		return strlcpy(err, mdb_strerror(db->db_status), errlen);
+#endif /* USE_MDB */
 
 	  default:
 		assert(0);
@@ -4784,6 +4916,63 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		return 0;
 	  }
 #endif /* USE_LDAP */
+
+#ifdef USE_MDB
+	  case DKIMF_DB_TYPE_MDB:
+	  {
+		int status = 0;
+		MDB_val k;
+		MDB_val d;
+		MDB_cursor *dbc;
+		struct dkimf_db_mdb *mdb;
+		char databuf[BUFRSZ + 1];
+
+		mdb = (struct dkimf_db_mdb *) db->db_handle;
+
+		dbc = db->db_cursor;
+		if (dbc == NULL)
+		{
+			status = mdb_cursor_open(mdb->mdb_txn, mdb->mdb_dbi,
+			                         &dbc);
+			if (status != 0)
+			{
+				db->db_status = status;
+				return -1;
+			}
+
+			db->db_cursor = dbc;
+		}
+
+		memset(&k, '\0', sizeof k);
+		memset(&d, '\0', sizeof d);
+
+		status = mdb_cursor_get(dbc, &k, &d,
+		                        first ? MDB_FIRST : MDB_NEXT);
+		if (status == MDB_NOTFOUND)
+		{
+			return 1;
+		}
+		else if (status != 0)
+		{
+			db->db_status = status;
+			return -1;
+		}
+		else
+		{
+			memcpy(key, k.mv_data, MIN(k.mv_size, *keylen));
+			*keylen = MIN(k.mv_size, *keylen);
+
+			if (reqnum != 0)
+			{
+				if (dkimf_db_datasplit(d.mv_data, d.mv_size,
+				                       req, reqnum) != 0)
+                                        return -1;
+			}
+
+			return 0;
+		}
+	  }
+#endif /* USE_MDB */
 
 	  default:
 		assert(0);

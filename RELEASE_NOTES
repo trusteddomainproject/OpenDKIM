@@ -17,6 +17,8 @@ release, and a summary of the changes in that release.
 		documents, which mainly means adding JSON support and
 		promoting application-specific extensions to the top level
 		in the reputon structure.
+	Feature request #SF3518593: Add support for OpenLDAP's MDB as a
+		data set backend.  Requested by Quanah Gibson-Mount.
 	Feature request #SF3519002: Put reason information inside a "reason"
 		tag in Authentication-Results header fields rather than in
 		comments.

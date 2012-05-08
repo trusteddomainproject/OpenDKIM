@@ -15959,6 +15959,9 @@ main(int argc, char **argv)
 #ifdef _FFR_REPUTATION
 			                "\trepute:server[:reporter]\n"
 #endif /* _FFR_REPUTATION */
+#ifdef USE_MDB
+			                "\tmdb:path\n"
+#endif /* USE_MDB */
 			                "> ");
 		}
 

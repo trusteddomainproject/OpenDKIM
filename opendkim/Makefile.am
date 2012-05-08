@@ -80,6 +80,11 @@ if REPUTE
 opendkim_CFLAGS += -I$(srcdir)/../reputation
 opendkim_LDADD += ../reputation/librepute.la
 endif
+if USE_MDB
+opendkim_CPPFLAGS += $(LIBMDB_CPPFLAGS)
+opendkim_CFLAGS += $(LIBMDB_CFLAGS)
+opendkim_LDADD += $(LIBMDB_LIBS)
+endif
 
 opendkim_CPPFLAGS += $(LIBMILTER_INCDIRS)
 endif
@@ -146,6 +151,12 @@ if REPUTE
 opendkim_testkey_CPPFLAGS += -I$(srcdir)/../reputation
 opendkim_testkey_LDADD += ../reputation/librepute.la
 endif
+if USE_MDB
+opendkim_testkey_CPPFLAGS += $(LIBMDB_CPPFLAGS)
+opendkim_testkey_CFLAGS += $(LIBMDB_CFLAGS)
+opendkim_testkey_LDADD += $(LIBMDB_LIBS)
+endif
+
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
 opendkim_testadsp_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
@@ -205,6 +216,11 @@ if REPUTE
 opendkim_genzone_CPPFLAGS += -I$(srcdir)/../reputation
 opendkim_genzone_LDADD += ../reputation/librepute.la
 endif
+if USE_MDB
+opendkim_genzone_CPPFLAGS += $(LIBMDB_CPPFLAGS)
+opendkim_genzone_CFLAGS += $(LIBMDB_CFLAGS)
+opendkim_genzone_LDADD += $(LIBMDB_LIBS)
+endif
 
 if ATPS
 opendkim_atpszone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-atpszone.c opendkim-lua.c util.c util.h
@@ -242,6 +258,11 @@ endif
 if REPUTE
 opendkim_atpszone_CPPFLAGS += -I$(srcdir)/../reputation
 opendkim_atpszone_LDADD += ../reputation/librepute.la
+endif
+if USE_MDB
+opendkim_atpszone_CPPFLAGS += $(LIBMDB_CPPFLAGS)
+opendkim_atpszone_CFLAGS += $(LIBMDB_CFLAGS)
+opendkim_atpszone_LDADD += $(LIBMDB_LIBS)
 endif
 endif
 
