@@ -4755,7 +4755,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		{
 			ldap_unbind_ext(ld, NULL, NULL);
 			db->db_handle = NULL;
-			if (db->db_flags = DKIMF_DB_IFLAG_RECONNECT) != 0)
+			if ((db->db_flags & DKIMF_DB_IFLAG_RECONNECT) != 0)
 			{
 				db->db_status = status;
 				pthread_mutex_unlock(&ldap->ldap_lock);
