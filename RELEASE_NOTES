@@ -6,8 +6,6 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.6.0		2012/06/01
-	Feature request #SF3110059: Move opendkim-reportstats from
-		contrib/stats to stats, making it fully supported.
 	Feature request #SF3495969: Add support for Lua v5.2.0.  Requested
 		by Rolf Sonneveld.
 	Feature request #SF3502777: Log all authentication results rather than
@@ -54,6 +52,8 @@ release, and a summary of the changes in that release.
 		directory with a single HTML page that includes links to
 		all the things we used to include here.  Requested by
 		Scott Kitterman.
+	STATS: Feature request #SF3110059: Move opendkim-reportstats from
+		contrib/stats to stats, making it fully supported.
 
 2.5.2		2012/04/09
 	Fix bug #SF3496208: Replace stats/opendkim-genstats with a perl
