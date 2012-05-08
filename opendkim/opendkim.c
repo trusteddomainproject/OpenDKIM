@@ -203,6 +203,9 @@ struct lua_global
 
 struct dkimf_config
 {
+#ifdef USE_LDAP
+	_Bool		conf_softstart;		/* do LDAP soft starts */
+#endif /* USE_LDAP */
 	_Bool		conf_weaksyntax;	/* do weaker syntax checking */
 	_Bool		conf_noadsp;		/* suppress ADSP */
 	_Bool		conf_logresults;	/* log all results */
@@ -5876,6 +5879,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
                   char *err, size_t errlen)
 {
 	int maxsign;
+	int dbflags = 0;
 	char *str;
 	char confstr[BUFRSZ + 1];
 	char basedir[MAXPATHLEN + 1];
@@ -5888,6 +5892,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 	if (data != NULL)
 	{
+#ifdef USE_LDAP
+		(void) config_get(data, "LDAPSoftStart",
+		                  &conf->conf_softstart,
+		                  sizeof conf->conf_softstart);
+#endif /* USE_LDAP */
+
 		(void) config_get(data, "AddAllSignatureResults",
 		                  &conf->conf_allsigs,
 		                  sizeof conf->conf_allsigs);
@@ -6686,6 +6696,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 #endif /* USE_LUA */
 	}
 
+	if (conf->conf_softstart)
+		dbflags |= DKIMF_DB_FLAG_SOFTSTART;
+
 	if (basedir[0] != '\0')
 	{
 		if (chdir(basedir) != 0)
@@ -6711,7 +6724,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_peerdb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | 
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -6729,7 +6743,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 		status = dkimf_db_open(&conf->conf_testdnsdb,
 		                       conf->conf_testdnsdata,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | 
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -6756,7 +6771,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_internal, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | 
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -6772,7 +6788,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_internal, DEFINTERNAL,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | 
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -6791,7 +6808,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	}
 	else if (data != NULL)
 	{
-		(void) config_get(data, "ExternalIgnoreList", &str, sizeof str);
+		(void) config_get(data, "ExternalIgnoreList", &str,
+		                  sizeof str);
 	}
 	if (str != NULL && !testmode)
 	{
@@ -6799,7 +6817,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_exignore, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | 
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -6826,7 +6845,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_exemptdb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | 
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -6847,7 +6867,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_bldb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | 
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -6867,7 +6888,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_signhdrsdb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | 
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -6887,7 +6909,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_remardb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | 
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -6911,7 +6934,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_nodiscardto, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | 
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -6947,7 +6971,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_atpsdb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | 
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -6968,7 +6993,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_dontsigntodb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | 
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -6988,7 +7014,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_mbsdb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags |
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -7014,7 +7041,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_omithdrdb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags |
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -7036,7 +7064,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_mtasdb, str,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (dbflags | DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -7059,7 +7088,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_alwayshdrsdb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags |
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -7080,7 +7110,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_oversigndb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags |
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -7101,7 +7132,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_senderhdrsdb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags |
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -7144,7 +7176,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		int status;
 
 		status = dkimf_db_open(&conf->conf_vbr_trusteddb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags |
+		                        DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -7183,7 +7216,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			status = dkimf_db_open(&conf->conf_signtabledb,
 			                       conf->conf_signtable,
-			                       (DKIMF_DB_FLAG_ICASE |
+			                       (dbflags |
+			                        DKIMF_DB_FLAG_ICASE |
 			                        DKIMF_DB_FLAG_ASCIIONLY |
 			                        DKIMF_DB_FLAG_READONLY),
 			                       NULL, &dberr);
@@ -7214,7 +7248,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			status = dkimf_db_open(&conf->conf_keytabledb,
 			                       conf->conf_keytable,
-			                       DKIMF_DB_FLAG_READONLY, NULL,
+			                       (dbflags |
+			                        DKIMF_DB_FLAG_READONLY), NULL,
 			                       &dberr);
 			if (status != 0)
 			{
@@ -7249,7 +7284,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_localadsp_db, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -7272,7 +7307,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_thirdpartydb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -7299,7 +7334,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_resigndb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -7323,7 +7358,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_ratelimitdb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_READONLY),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -7353,7 +7388,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_flowdatadb, str,
-		                       (DKIMF_DB_FLAG_ICASE |
+		                       (dbflags | DKIMF_DB_FLAG_ICASE |
 		                        DKIMF_DB_FLAG_MAKELOCK),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -7389,7 +7424,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_domainsdb, str,
-		                       (DKIMF_DB_FLAG_READONLY |
+		                       (dbflags | DKIMF_DB_FLAG_READONLY |
 		                        DKIMF_DB_FLAG_ICASE),
 		                       NULL, &dberr);
 		if (status != 0)
@@ -7412,7 +7447,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_macrosdb, str,
-		                       (DKIMF_DB_FLAG_READONLY |
+		                       (dbflags | DKIMF_DB_FLAG_READONLY |
 		                        DKIMF_DB_FLAG_VALLIST |
 		                        DKIMF_DB_FLAG_MATCHBOTH), NULL,
 		                       &dberr);
@@ -7610,7 +7645,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		char *dberr = NULL;
 
 		status = dkimf_db_open(&conf->conf_rephdrsdb, str,
-		                       (DKIMF_DB_FLAG_READONLY |
+		                       (dbflags | DKIMF_DB_FLAG_READONLY |
 		                        DKIMF_DB_FLAG_ICASE), NULL,
 		                       &dberr);
 		if (status != 0)
@@ -7725,7 +7760,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 		status = dkimf_db_open(&conf->conf_replowtimedb,
 		                       conf->conf_replowtime,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (dbflags | DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
@@ -7743,7 +7779,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			status = dkimf_db_open(&conf->conf_replimitsdb,
 			                       conf->conf_replimits,
-			                       DKIMF_DB_FLAG_READONLY, NULL,
+			                       (dbflags |
+			                        DKIMF_DB_FLAG_READONLY), NULL,
 			                       &dberr);
 			if (status != 0)
 			{
@@ -7758,7 +7795,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			status = dkimf_db_open(&conf->conf_replimitmodsdb,
 			                       conf->conf_replimitmods,
-			                       DKIMF_DB_FLAG_READONLY, NULL,
+			                       (dbflags |
+			                        DKIMF_DB_FLAG_READONLY), NULL,
 			                       &dberr);
 			if (status != 0)
 			{
@@ -7771,7 +7809,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 		status = dkimf_db_open(&conf->conf_repratiosdb,
 		                       conf->conf_repratios,
-		                       DKIMF_DB_FLAG_READONLY, NULL, &dberr);
+		                       (dbflags | DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
 		if (status != 0)
 		{
 			snprintf(err, errlen, "%s: dkimf_db_open(): %s",

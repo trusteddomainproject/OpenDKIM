@@ -486,6 +486,12 @@ Specifies the user ID to use when conducting an LDAP "bind" operation.
 There is no default.
 
 .TP 
+.I LDAPSoftStart (Boolean)
+If set, the inability to bind and authenticate to an LDAP server will not
+prevent the filter from starting, and reconnections will be attempted for
+each query.  The default is "False".
+
+.TP 
 .I LDAPUseTLS (Boolean)
 Indicates whether or not a TLS connection should be established when
 contacting an LDAP server.  The default is "False".
