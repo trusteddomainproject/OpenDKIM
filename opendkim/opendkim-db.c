@@ -4551,9 +4551,15 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 			lderr = dkimf_db_open_ldap(&ld, ldap, NULL);
 			if (lderr == LDAP_SUCCESS)
+			{
 				db->db_handle = ld;
+			}
 			else
+			{
+				db->db_status = lderr;
+				pthread_mutex_unlock(&ldap->ldap_lock);
 				return lderr;
+			}
 		}
 
 #ifdef _FFR_LDAP_CACHING
@@ -4730,7 +4736,42 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		                           ldap->ldap_descr->lud_attrs,
 		                           0, NULL, NULL,
 		                           &timeout, 0, &result);
-		if (status != LDAP_SUCCESS)
+		if (LDAP_NAME_ERROR(status))
+		{
+			if (exists != NULL)
+				*exists = FALSE;
+#ifdef _FFR_LDAP_CACHING
+# ifdef USE_DB
+			ldc->ldc_absent = TRUE;
+			ldc->ldc_state = DKIMF_DB_CACHE_DATA;
+			pthread_cond_broadcast(&ldc->ldc_cond);
+# endif /* USE_DB */
+#endif /* _FFR_LDAP_CACHING */
+			pthread_mutex_unlock(&ldap->ldap_lock);
+			return 0;
+		}
+		else if (status == LDAP_SERVER_DOWN ||
+		         status == LDAP_TIMEOUT)
+		{
+			ldap_unbind_ext(ld, NULL, NULL);
+			db->db_handle = NULL;
+			if (db->db_flags = DKIMF_DB_IFLAG_RECONNECT) != 0)
+			{
+				db->db_status = status;
+				pthread_mutex_unlock(&ldap->ldap_lock);
+				return -1;
+			}
+
+			status = dkimf_db_get(db, buf, buflen, req, reqnum,
+			                      exists);
+
+			db->db_flags &= ~DKIMF_DB_IFLAG_RECONNECT;
+
+			pthread_mutex_unlock(&ldap->ldap_lock);
+
+			return status;
+		}
+		else if (status != LDAP_SUCCESS)
 		{
 			db->db_status = status;
 #ifdef _FFR_LDAP_CACHING
