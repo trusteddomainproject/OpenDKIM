@@ -43,6 +43,9 @@ release, and a summary of the changes in that release.
 		in an ADSP record as an NXDOMAIN.  Add new library flag
 		DKIM_LIBFLAGS_REPORTBADADSP to restore the original
 		behaviour.  Suggested by Scott Kitterman.
+	LIBOPENDKIM: Fix bug #SF3524865: Disallow generation of signatures
+		where signer and signing domain don't match per the DKIM
+		specification.
 	BUILD: Fix bug #SF3425384: Add missing support for compiling
 		against libevent2, which is an option for unbound.
 		Noted by Andreas Schulze.

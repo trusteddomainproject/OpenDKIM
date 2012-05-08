@@ -2255,7 +2255,7 @@ dkim_siglist_setup(DKIM *dkim)
 **  	delim -- delimiter
 **
 **  Return value:
-**  	Number of bytes written to "dstr".
+**  	Number of bytes written to "dstr", or 0 on error.
 */
 
 static size_t
@@ -2289,6 +2289,42 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		if (always == NULL)
 			return (size_t) -1;
 		memset(always, '\0', n);
+	}
+
+	/* bail if we were asked to generate an invalid signature */
+	if (dkim->dkim_signer != NULL)
+	{
+		_Bool match = FALSE;
+		u_char *sd;
+
+		sd = strchr(dkim->dkim_signer, '@');
+		if (sd == NULL)
+		{
+			dkim_error(dkim, "syntax error in signer value");
+			return 0;
+		}
+
+		if (strcasecmp(sd + 1, sig->sig_domain) == 0)
+		{
+			match = TRUE;
+		}
+		else
+		{
+			for (sd = strchr(sd + 1, '.');
+			     sd != NULL && !match;
+			     sd = strchr(sd + 1, '.'))
+			{
+				if (strcasecmp(sd + 1, sig->sig_domain) == 0)
+					match = TRUE;
+			}
+		}
+
+		if (!match)
+		{
+			dkim_error(dkim,
+			           "d=/i= mismatch on signature generation");
+			return 0;
+		}
 	}
 
 	/*
@@ -6975,6 +7011,8 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 
 	/* compute and extract the signature header */
 	len = dkim_gensighdr(dkim, sig, tmpbuf, DELIMITER);
+	if (len == 0)
+		return DKIM_STAT_INVALID;
 
 	if (dkim->dkim_b64sig != NULL)
 		dkim_dstring_cat(tmpbuf, dkim->dkim_b64sig);
