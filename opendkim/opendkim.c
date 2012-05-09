@@ -6728,8 +6728,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 #endif /* USE_LUA */
 	}
 
+#ifdef USE_LDAP
 	if (conf->conf_softstart)
 		dbflags |= DKIMF_DB_FLAG_SOFTSTART;
+#endif /* USE_LDAP */
 
 	if (basedir[0] != '\0')
 	{
