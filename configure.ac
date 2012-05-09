@@ -2028,6 +2028,7 @@ fi
 AM_CONDITIONAL(USE_DB_OPENDKIM,
                test x"$enable_popauth" = x"yes" -o \
 	            x"$enable_reputation" = x"yes" -o \
+	            x"$enable_ldap_caching" = x"yes" -o \
 	            x"$enable_reputation_cache" = x"yes" -o \
                     x"$bdbrequested" = x"yes")
 AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")
