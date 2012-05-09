@@ -1084,22 +1084,24 @@ dkimf_db_open_ldap(LDAP **ld, struct dkimf_db_ldap *ldap, char **err)
 
 	/* request timeouts */
 	q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_TIMEOUT];
+	timeout.tv_sec = DKIMF_LDAP_DEFTIMEOUT;
+	timeout.tv_usec = 0;
 	if (q != NULL)
 	{
 		errno = 0;
 		timeout.tv_sec = strtoul(q, &r, 10);
 		if (errno == ERANGE)
 			timeout.tv_sec = DKIMF_LDAP_DEFTIMEOUT;
-		timeout.tv_usec = 0;
-		lderr = ldap_set_option(*ld, LDAP_OPT_TIMEOUT, &timeout);
-		if (lderr != LDAP_OPT_SUCCESS)
-		{
-			if (err != NULL)
-				*err = ldap_err2string(lderr);
-			ldap_unbind_ext(*ld, NULL, NULL);
-			*ld = NULL;
-			return lderr;
-		}
+	}
+
+	lderr = ldap_set_option(*ld, LDAP_OPT_TIMEOUT, &timeout);
+	if (lderr != LDAP_OPT_SUCCESS)
+	{
+		if (err != NULL)
+			*err = ldap_err2string(lderr);
+		ldap_unbind_ext(*ld, NULL, NULL);
+		*ld = NULL;
+		return lderr;
 	}
 
 	/* request keepalive */
