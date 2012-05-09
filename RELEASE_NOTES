@@ -29,6 +29,9 @@ release, and a summary of the changes in that release.
 	Feature request #SF3521000: Log hostname and daemon name (taken from
 		macros) when logging "no MTA name match".  Requested by
 		Andreas Schulze.
+	Feature request #SF3524756: Add ability to request TCP keepalive
+		features via the OpenLDAP client library.  Requested by
+		Quanah Gibson-Mount.
 	Fix bug #SF3518877: Separate variable expansion from literal text in
 		opendkim-genkey.
 	Fix bug #SF3522883: Allow TLS for ldapi URIs.  Problem noted by

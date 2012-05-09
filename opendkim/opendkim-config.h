@@ -108,7 +108,11 @@ struct configdef dkimf_config[] =
 # endif /* USE_SASL */
 	{ "LDAPBindPassword",		CONFIG_TYPE_STRING,	FALSE },
 	{ "LDAPBindUser",		CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPKeepaliveIdle",		CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPKeepaliveInterval",	CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPKeepaliveProbes",	CONFIG_TYPE_STRING,	FALSE },
 	{ "LDAPSoftStart",		CONFIG_TYPE_BOOLEAN,	FALSE },
+	{ "LDAPTimeout",		CONFIG_TYPE_STRING,	FALSE },
 	{ "LDAPUseTLS",			CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* USE_LDAP */
 	{ "LocalADSP",			CONFIG_TYPE_STRING,	FALSE },

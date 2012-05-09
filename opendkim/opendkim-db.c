@@ -105,7 +105,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #define DKIMF_DB_DEFASIZE	8
 #define DKIMF_DB_MODE		0644
 #define DKIMF_LDAP_MAXURIS	8
-#define DKIMF_LDAP_TIMEOUT	5
+#define DKIMF_LDAP_DEFTIMEOUT	5
 #ifdef _FFR_LDAP_CACHING
 # define DKIMF_LDAP_TTL		600
 #endif /* _FFR_LDAP_CACHING */
@@ -1041,7 +1041,7 @@ int
 dkimf_db_open_ldap(LDAP **ld, struct dkimf_db_ldap *ldap, char **err)
 {
 	int v = LDAP_VERSION3;
-	int on = LDAP_OPT_ON;
+	int n;
 	int lderr;
 	char *q;
 	char *r;
@@ -1072,7 +1072,7 @@ dkimf_db_open_ldap(LDAP **ld, struct dkimf_db_ldap *ldap, char **err)
 	}
 
 	/* enable auto-restarts */
-	lderr = ldap_set_option(*ld, LDAP_OPT_RESTART, &on);
+	lderr = ldap_set_option(*ld, LDAP_OPT_RESTART, LDAP_OPT_ON);
 	if (lderr != LDAP_OPT_SUCCESS)
 	{
 		if (err != NULL)
@@ -1083,7 +1083,11 @@ dkimf_db_open_ldap(LDAP **ld, struct dkimf_db_ldap *ldap, char **err)
 	}
 
 	/* request timeouts */
-	timeout.tv_sec = ldap->ldap_timeout;
+	q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_TIMEOUT];
+	errno = 0;
+	timeout.tv_sec = strtoul(q, &r, 10);
+	if (errno == ERANGE)
+		timeout.tv_sec = DKIMF_LDAP_DEFTIMEOUT;
 	timeout.tv_usec = 0;
 	lderr = ldap_set_option(*ld, LDAP_OPT_TIMEOUT, &timeout);
 	if (lderr != LDAP_OPT_SUCCESS)
@@ -1093,6 +1097,69 @@ dkimf_db_open_ldap(LDAP **ld, struct dkimf_db_ldap *ldap, char **err)
 		ldap_unbind_ext(*ld, NULL, NULL);
 		*ld = NULL;
 		return lderr;
+	}
+
+	/* request keepalive */
+	q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_KA_IDLE];
+	if (q != NULL)
+	{
+		errno = 0;
+		n = strtoul(q, &r, 10);
+		if (errno != ERANGE)
+		{
+			lderr = ldap_set_option(*ld, LDAP_OPT_X_KEEPALIVE_IDLE,
+			                        &n);
+			if (lderr != LDAP_OPT_SUCCESS)
+			{
+				if (err != NULL)
+					*err = ldap_err2string(lderr);
+				ldap_unbind_ext(*ld, NULL, NULL);
+				*ld = NULL;
+				return lderr;
+			}
+		}
+	}
+
+	q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_KA_PROBES];
+	if (q != NULL)
+	{
+		errno = 0;
+		n = strtoul(q, &r, 10);
+		if (errno != ERANGE)
+		{
+			lderr = ldap_set_option(*ld,
+			                        LDAP_OPT_X_KEEPALIVE_PROBES,
+			                        &n);
+			if (lderr != LDAP_OPT_SUCCESS)
+			{
+				if (err != NULL)
+					*err = ldap_err2string(lderr);
+				ldap_unbind_ext(*ld, NULL, NULL);
+				*ld = NULL;
+				return lderr;
+			}
+		}
+	}
+
+	q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_KA_INTERVAL];
+	if (q != NULL)
+	{
+		errno = 0;
+		n = strtoul(q, &r, 10);
+		if (errno != ERANGE)
+		{
+			lderr = ldap_set_option(*ld,
+			                        LDAP_OPT_X_KEEPALIVE_INTERVAL,
+			                        &n);
+			if (lderr != LDAP_OPT_SUCCESS)
+			{
+				if (err != NULL)
+					*err = ldap_err2string(lderr);
+				ldap_unbind_ext(*ld, NULL, NULL);
+				*ld = NULL;
+				return lderr;
+			}
+		}
 	}
 
 	/* attempt TLS if requested, except for ldaps */
@@ -2723,7 +2790,11 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		}
 
 		memset(ldap, '\0', sizeof *ldap);
-		ldap->ldap_timeout = DKIMF_LDAP_TIMEOUT;
+		q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_TIMEOUT];
+		errno = 0;
+		ldap->ldap_timeout = strtoul(q, &r, 10);
+		if (errno == ERANGE)
+			ldap->ldap_timeout = DKIMF_LDAP_DEFTIMEOUT;
 
 		/*
 		**  General format of an LDAP specification:

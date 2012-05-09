@@ -352,6 +352,10 @@ struct dkimf_config
 	char *		conf_redirect;		/* redirect failures to */
 #endif /* _FFR_REDIRECT */
 #ifdef USE_LDAP
+	char *		conf_ldap_timeout;	/* LDAP timeout */
+	char *		conf_ldap_kaidle;	/* LDAP keepalive idle */
+	char *		conf_ldap_kaprobes;	/* LDAP keepalive probes */
+	char *		conf_ldap_kainterval;	/* LDAP keepalive interval */
 	char *		conf_ldap_binduser;	/* LDAP bind user */
 	char *          conf_ldap_bindpw;	/* LDAP bind password */
 	char *          conf_ldap_authmech;	/* LDAP auth mechanism */
@@ -6272,6 +6276,34 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_USETLS, "y");
 		else
 			dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_USETLS, "n");
+
+		(void) config_get(data, "LDAPTimeout",
+		                  &conf->conf_ldap_timeout,
+		                  sizeof conf->conf_ldap_timeout);
+
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_TIMEOUT,
+		                        conf->conf_ldap_timeout);
+
+		(void) config_get(data, "LDAPKeepaliveIdle",
+		                  &conf->conf_ldap_kaidle,
+		                  sizeof conf->conf_ldap_kaidle);
+
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_KA_IDLE,
+		                        conf->conf_ldap_kaidle);
+
+		(void) config_get(data, "LDAPKeepaliveProbes",
+		                  &conf->conf_ldap_kaprobes,
+		                  sizeof conf->conf_ldap_kaprobes);
+
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_KA_PROBES,
+		                        conf->conf_ldap_kaprobes);
+
+		(void) config_get(data, "LDAPKeepaliveInterval",
+		                  &conf->conf_ldap_kainterval,
+		                  sizeof conf->conf_ldap_kainterval);
+
+		dkimf_db_set_ldap_param(DKIMF_LDAP_PARAM_KA_INTERVAL,
+		                        conf->conf_ldap_kainterval);
 
 		(void) config_get(data, "LDAPAuthMechanism",
 		                  &conf->conf_ldap_authmech,

@@ -485,11 +485,32 @@ There is no default.
 Specifies the user ID to use when conducting an LDAP "bind" operation.
 There is no default.
 
+.TP
+.I LDAPKeepaliveIdle (integer)
+Sets the number of seconds a connection to an LDAP server needs to remain
+idle before TCP starts sending keepalive probes.  If not specified, the
+LDAP library default is used.
+
+.TP
+.I LDAPKeepaliveInterval (integer)
+Sets the interval in seconds between TCP keepalive probes.  If not specified,
+the LDAP library default is used.
+
+.TP
+.I LDAPKeepaliveProbes (integer)
+Sets the maximum number of keepalive probes TCP should send before abandoning
+the connection.  If not specified, the LDAP library default is used.
+
 .TP 
 .I LDAPSoftStart (Boolean)
 If set, the inability to bind and authenticate to an LDAP server will not
 prevent the filter from starting, and reconnections will be attempted for
 each query.  The default is "False".
+
+.TP
+.I LDAPTimeout (integer)
+Sets the time in seconds after which an LDAP operation should be abandoned.
+The default is 5.
 
 .TP 
 .I LDAPUseTLS (Boolean)
