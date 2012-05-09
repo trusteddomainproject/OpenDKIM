@@ -1041,10 +1041,12 @@ int
 dkimf_db_open_ldap(LDAP **ld, struct dkimf_db_ldap *ldap, char **err)
 {
 	int v = LDAP_VERSION3;
+	int on = LDAP_OPT_ON;
 	int lderr;
 	char *q;
 	char *r;
 	char *u;
+	struct timeval timeout;
 
 	assert(ld != NULL);
 	assert(ldap != NULL);
@@ -1060,6 +1062,30 @@ dkimf_db_open_ldap(LDAP **ld, struct dkimf_db_ldap *ldap, char **err)
 
 	/* set LDAP version */
 	lderr = ldap_set_option(*ld, LDAP_OPT_PROTOCOL_VERSION, &v);
+	if (lderr != LDAP_OPT_SUCCESS)
+	{
+		if (err != NULL)
+			*err = ldap_err2string(lderr);
+		ldap_unbind_ext(*ld, NULL, NULL);
+		*ld = NULL;
+		return lderr;
+	}
+
+	/* enable auto-restarts */
+	lderr = ldap_set_option(*ld, LDAP_OPT_RESTART, &on);
+	if (lderr != LDAP_OPT_SUCCESS)
+	{
+		if (err != NULL)
+			*err = ldap_err2string(lderr);
+		ldap_unbind_ext(*ld, NULL, NULL);
+		*ld = NULL;
+		return lderr;
+	}
+
+	/* request timeouts */
+	timeout.tv_sec = ldap->ldap_timeout;
+	timeout.tv_usec = 0;
+	lderr = ldap_set_option(*ld, LDAP_OPT_TIMEOUT, &timeout);
 	if (lderr != LDAP_OPT_SUCCESS)
 	{
 		if (err != NULL)
