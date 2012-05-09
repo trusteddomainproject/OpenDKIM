@@ -243,6 +243,17 @@ are:
       is defined). </td>
  </tr>
  <tr>
+  <td><tt>DKIM_LIBFLAGS_DROPSIGNER</tt></td>
+  <td>If a caller attempts to generate a signature for which a specific
+      signer address is requested and the domain of the signer is not the
+      same as or a subdomain of the signing domain, the default behaviour
+      is to return an error from
+      <a href="dkim_gensighdr.html"><tt>dkim_gensighdr()</tt></a> since a
+      signature thus generated would violate the DKIM specification.  If
+      this flag is set, the signature will still be generated but the "i="
+      tag will be omitted so the signatuer is still compliant. </t>
+ </tr>
+ <tr>
   <td><tt>DKIM_LIBFLAGS_EOHCHECK</tt></td>
   <td>Perform a signature check at the end of
       <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a>.

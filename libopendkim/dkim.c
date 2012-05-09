@@ -2263,6 +2263,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
                char *delim)
 {
 	_Bool firsthdr;
+	_Bool nosigner = FALSE;
 	int n;
 	int status;
 	int delimlen;
@@ -2321,9 +2322,16 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 
 		if (!match)
 		{
-			dkim_error(dkim,
-			           "d=/i= mismatch on signature generation");
-			return 0;
+			if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_DROPSIGNER) == 0)
+			{
+				dkim_error(dkim,
+				           "d=/i= mismatch on signature generation");
+				return 0;
+			}
+			else
+			{
+				nosigner = TRUE;
+			}
 		}
 	}
 
@@ -2367,7 +2375,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 			dkim_dstring_printf(dstr, ";%sx=%u", delim, expire);
 	}
 
-	if (dkim->dkim_signer != NULL)
+	if (dkim->dkim_signer != NULL && !nosigner)
 	{
 		dkim_dstring_printf(dstr, ";%si=%s", delim,
 		                    dkim->dkim_signer);

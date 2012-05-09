@@ -8116,7 +8116,7 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 
 	(void) dkim_options(lib, DKIM_OP_GETOPT, DKIM_OPTS_FLAGS,
 	                    &opts, sizeof opts);
-	opts |= DKIM_LIBFLAGS_ACCEPTV05;
+	opts |= (DKIM_LIBFLAGS_ACCEPTV05 | DKIM_LIBFLAGS_DROPSIGNER);
 	if (conf->conf_weaksyntax)
 		opts |= DKIM_LIBFLAGS_BADSIGHANDLES;
 #ifdef QUERY_CACHE

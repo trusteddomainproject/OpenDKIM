@@ -48,7 +48,9 @@ release, and a summary of the changes in that release.
 		behaviour.  Suggested by Scott Kitterman.
 	LIBOPENDKIM: Fix bug #SF3524865: Disallow generation of signatures
 		where signer and signing domain don't match per the DKIM
-		specification.
+		specification.  Add DKIM_LIBFLAGS_DROPSIGNER which, if set,
+		will still generate signatures in that case, but with the
+		signer omitted so the signature is still compliant.
 	BUILD: Fix bug #SF3425384: Add missing support for compiling
 		against libevent2, which is an option for unbound.
 		Noted by Andreas Schulze.
