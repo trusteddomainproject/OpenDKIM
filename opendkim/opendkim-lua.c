@@ -44,9 +44,9 @@ struct dkimf_lua_io
 };
 
 #if LUA_VERSION_NUM == 502
-# define ODKIM_PREFIX	""
-#else /* LUA_VERSION_NUM == 502 */
 # define ODKIM_PREFIX	"odkim."
+#else /* LUA_VERSION_NUM == 502 */
+# define ODKIM_PREFIX	""
 #endif /* LUA_VERSION_NUM == 502 */
 
 #ifdef DKIMF_LUA_CONTEXT_HOOKS
