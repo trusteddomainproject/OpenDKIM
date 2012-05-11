@@ -31,3 +31,4 @@ opendkim-modtotals.pl
 opendkim-genstats
 opendkim-gengraphs
 opendkim-reportstats
+opendkim-expire
