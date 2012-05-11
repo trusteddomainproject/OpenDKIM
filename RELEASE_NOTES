@@ -64,6 +64,8 @@ release, and a summary of the changes in that release.
 		Scott Kitterman.
 	STATS: Feature request #SF3110059: Move opendkim-reportstats from
 		contrib/stats to stats, making it fully supported.
+	STATS: Feature request #SF3525786: Add opendkim-expire script.
+		Requested by Andreas Schulze.
 
 2.5.2		2012/04/09
 	Fix bug #SF3496208: Replace stats/opendkim-genstats with a perl
