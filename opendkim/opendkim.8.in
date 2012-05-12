@@ -59,6 +59,10 @@ Some data sets require that the value contain more than one entry.  How this
 is done depends on which data set type is used.
 
 Which type is used depends on the format of the specification string.
+Note that not all of these are necessarily supported for all installations;
+most of them depend on the availability of a particular third-party library
+at compile time.
+
 In particular:
 .TP
 .I a)
@@ -203,6 +207,10 @@ or "myothernode@myotherhost" (connections to nodes are tried in order) using
 "chocolate" as the cookie, and use the function "dkim:lookup/1" for lookups.
 .TP
 .I l)
+If the string begins with "mdb:", it refers to a directory that contains
+a memory database, as provided by libmdb from OpenLDAP.
+.TP
+.I m)
 In any other case, the string is presumed to be a comma-separated list.
 Elements in the list are either simple data elements that are part of the
 set or, in the case of an entry of the form "x=y", are stored as key-value
