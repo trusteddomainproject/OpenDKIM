@@ -174,6 +174,7 @@ struct configdef dkimf_config[] =
 #ifdef _FFR_REPUTATION
 	{ "ReputationCache",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationCacheTTL",		CONFIG_TYPE_INTEGER,	FALSE },
+	{ "ReputationDuplicates",	CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationLimits",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationLowTime",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationMinimum",		CONFIG_TYPE_INTEGER,	FALSE },

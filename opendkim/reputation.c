@@ -33,7 +33,7 @@ static char reputation_c_id[] = "@(#)$Id: stats.c,v 1.27.2.1 2010/10/27 21:43:09
 #include "opendkim-db.h"
 
 /* macros */
-#define	DKIMF_REP_DEFCACHE	"db:"
+#define DKIMF_REP_DEFCACHE	"db:"
 #define	DKIMF_REP_MAXHASHES	64
 #define	DKIMF_REP_NULLDOMAIN	"UNSIGNED"
 #define	DKIMF_REP_LOWTIME	"LOW-TIME"
@@ -72,8 +72,9 @@ struct reps
 **  	rep -- reputation DB query handle (returned)
 **  	factor -- number of slices in a reputation limit
 **  	minimum -- always accept at least this many messages
-**  	cache -- data set to which to cache
 **  	cachettl -- TTL for cache entries
+**  	cache -- data set to which to cache
+**  	dups -- data set to which to record duplicates
 **  	limits -- DB from which to get per-domain limits
 **  	limitmods -- DB from which to get per-domain limit modifiers
 **  	ratios -- DB from which to get per-domain ratios
@@ -85,7 +86,7 @@ struct reps
 
 int
 dkimf_rep_init(DKIMF_REP *rep, time_t factor, unsigned int minimum,
-               unsigned int cachettl, char *cache, DKIMF_DB limits,
+               unsigned int cachettl, char *cache, char *dups, DKIMF_DB limits,
                DKIMF_DB limitmods, DKIMF_DB ratios, DKIMF_DB lowtime)
 {
 	int status;
@@ -99,8 +100,16 @@ dkimf_rep_init(DKIMF_REP *rep, time_t factor, unsigned int minimum,
 	if (new == NULL)
 		return -1;
 
+#ifdef USE_MDB
+	if (cache == NULL ||
+	    dups == NULL)
+		return -1;
+#else /* USE_MDB */
 	if (cache == NULL)
 		cache = DKIMF_REP_DEFCACHE;
+	if (dups == NULL)
+		cache = DKIMF_REP_DEFCACHE;
+#endif /* USE_MDB */
 
 	new->rep_lastflush = time(NULL);
 	new->rep_ttl = cachettl;
@@ -124,7 +133,7 @@ dkimf_rep_init(DKIMF_REP *rep, time_t factor, unsigned int minimum,
 		return -1;
 	}
 
-	status = dkimf_db_open(&new->rep_dups, "db:", 0, NULL, NULL);
+	status = dkimf_db_open(&new->rep_dups, dups, 0, NULL, NULL);
 	if (status != 0)
 	{
 		dkimf_db_close(new->rep_reps);

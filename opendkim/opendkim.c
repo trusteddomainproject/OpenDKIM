@@ -458,6 +458,7 @@ struct dkimf_config
 	DKIMF_DB	conf_replowtimedb;	/* reputed low timers DB */
 	DKIMF_REP	conf_rep;		/* reputation subsystem */
 	char *		conf_repcache;		/* reputation cache DB */
+	char *		conf_repdups;		/* reputation duplicates DB */
 	char *		conf_repspamcheck;	/* reputation spam RE string */
 	regex_t		conf_repspamre;		/* reputation spam RE */
 #endif /* _FFR_REPUTATION */
@@ -7740,6 +7741,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_repcachettl,
 		                  sizeof conf->conf_repcachettl);
 
+		(void) config_get(data, "ReputationDuplicates",
+		                  &conf->conf_repdups,
+		                  sizeof conf->conf_repdups);
+
 		(void) config_get(data, "ReputationRatios",
 		                  &conf->conf_repratios,
 		                  sizeof conf->conf_repratios);
@@ -7856,6 +7861,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	                           conf->conf_repminimum,
 	                           conf->conf_repcachettl,
 	                           conf->conf_repcache,
+	                           conf->conf_repdups,
 	                           conf->conf_replimitsdb,
 	                           conf->conf_replimitmodsdb,
 	                           conf->conf_repratiosdb,
