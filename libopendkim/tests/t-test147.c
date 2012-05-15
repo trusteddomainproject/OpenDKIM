@@ -52,27 +52,22 @@ main(int argc, char **argv)
 	dkim_sigkey_t key;
 	unsigned char hdr[MAXHEADER + 1];
 
-#ifndef _FFR_XTAGS
-	printf("*** simple/simple rsa-sha1 signing with report request SKIPPED\n");
-
-#else /* _FFR_XTAGS */
-
 	printf("*** simple/simple rsa-sha1 signing with report request\n");
 
-# ifdef USE_GNUTLS
+#ifdef USE_GNUTLS
 	(void) gnutls_global_init();
-# endif /* USE_GNUTLS */
+#endif /* USE_GNUTLS */
 
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
 
-# ifdef TEST_KEEP_FILES
+#ifdef TEST_KEEP_FILES
 	/* set flags */
 	flags = (DKIM_LIBFLAGS_TMPFILES|DKIM_LIBFLAGS_KEEPFILES);
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FLAGS, &flags,
 	                    sizeof flags);
-# endif /* TEST_KEEP_FILES */
+#endif /* TEST_KEEP_FILES */
 
 	key = KEY;
 
@@ -171,7 +166,6 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 
 	dkim_close(lib);
-#endif /* ! _FFR_XTAGS */
 
 	return 0;
 }

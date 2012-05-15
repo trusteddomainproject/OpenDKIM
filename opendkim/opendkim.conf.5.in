@@ -906,7 +906,6 @@ below). If multiple addresses are required, they should be comma separated.
 .I RequestReports (boolean)
 When signing, includes a request for signature evaluation failures in the
 signature.  (See draft-ietf-marf-dkim-reporting for details.)
-@XTAGS_MANNOTICE@
 
 .TP
 .I RequiredHeaders (boolean)

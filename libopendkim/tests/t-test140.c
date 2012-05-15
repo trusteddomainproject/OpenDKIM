@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, 2012, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef lint
@@ -59,13 +59,6 @@ main(int argc, char **argv)
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
-
-	if (!dkim_libfeature(lib, DKIM_FEATURE_XTAGS))
-	{
-		printf("*** relaxed/relaxed rsa-sha1 signing with extension tags SKIPPED\n");
-		dkim_close(lib);
-		return 0;
-	}
 
 	printf("*** relaxed/relaxed rsa-sha1 signing with extension tags\n");
 

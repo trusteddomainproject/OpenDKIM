@@ -302,17 +302,9 @@ AM_CONDITIONAL([RBL], [test x"$enable_rbl" = x"yes"])
 FFR_FEATURE([vbr], [Vouch-By-Reference support])
 AM_CONDITIONAL([VBR], [test x"$enable_vbr" = x"yes"])
 
-LIB_FFR_FEATURE([xtags], [extension signature tags])
-AM_CONDITIONAL([XTAGS], [test x"$enable_xtags" = x"yes"])
-
 if test x"$enable_statsext" = x"yes" -a x"$enable_stats" != x"yes"
 then
 	AC_MSG_ERROR([--enable-statsext requires --enable-stats])
-fi
-
-if test x"$enable_atps" = x"yes" -a x"$enable_xtags" != x"yes"
-then
-	AC_MSG_ERROR([--enable-atps requires --enable-xtags])
 fi
 
 FFR_FEATURE([default_sender], [default sender address])

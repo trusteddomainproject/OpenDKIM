@@ -227,9 +227,7 @@ extern int dkimf_xs_spam __P((lua_State *));
 extern int dkimf_xs_statsext __P((lua_State *));
 #  endif /* _FFR_STATSEXT */
 extern int dkimf_xs_verify __P((lua_State *));
-#  ifdef _FFR_XTAGS
 extern int dkimf_xs_xtag __P((lua_State *));
-#  endif /* _FFR_XTAGS */
 # endif /* DKIMF_LUA_PROTOTYPES */
 #endif /* USE_LUA */
 

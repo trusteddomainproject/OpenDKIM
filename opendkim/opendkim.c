@@ -218,9 +218,7 @@ struct dkimf_config
 	_Bool		conf_blen;		/* use "l=" when signing */
 	_Bool		conf_ztags;		/* use "z=" when signing */
 	_Bool		conf_alwaysaddar;	/* always add Auth-Results:? */
-#ifdef _FFR_XTAGS
 	_Bool		conf_reqreports;	/* request reports */
-#endif /* _FFR_XTAGS */
 	_Bool		conf_sendreports;	/* signature failure reports */
 	_Bool		conf_sendadspreports;	/* ADSP failure reports */
 	_Bool		conf_adspnxdomain;	/* reject on ADSP NXDOMAIN? */
@@ -1441,7 +1439,6 @@ dkimf_xs_rblcheck(lua_State *l)
 }
 # endif /* _FFR_RBL */
 
-# ifdef _FFR_XTAGS
 /*
 **  DKIMF_XS_XTAG -- add an extension tag
 **
@@ -1511,7 +1508,6 @@ dkimf_xs_xtag(lua_State *l)
 		return 1;
 	}
 }
-# endif /* _FFR_XTAGS */
 
 /*
 **  DKIMF_XS_PARSEFIELD -- parse an address field into its components
@@ -5986,11 +5982,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_enablecores,
 		                  sizeof conf->conf_enablecores);
 
-#ifdef _FFR_XTAGS
 		(void) config_get(data, "RequestReports",
 		                  &conf->conf_reqreports,
 		                  sizeof conf->conf_reqreports);
-#endif /* _FFR_XTAGS */
 
 		(void) config_get(data, "RequireSafeKeys",
 		                  &conf->conf_safekeys,
@@ -12227,7 +12221,6 @@ mlfi_eoh(SMFICTX *ctx)
 				                       status);
 			}
 
-#ifdef _FFR_XTAGS
 			if (conf->conf_reqreports)
 			{
 				status = dkim_add_xtag(sr->srq_dkim,
@@ -12242,7 +12235,6 @@ mlfi_eoh(SMFICTX *ctx)
 					       DKIM_REPORTTAG);
 				}
 			}
-#endif /* _FFR_XTAGS */
 
 #ifdef _FFR_ATPS
 			if (atps)

@@ -152,9 +152,6 @@ statsext	Support for localized stats extensions.  See stats/README
 vbr		Enable VBR (Vouch By Reference) header field addition
 		(outbound) and processing (inbound).  (opendkim)
 
-xtags		DKIM library extensions for adding arbitrary experimental
-		signature tags and values.  (libopendkim)
-
 
 COPYRIGHT
 =========

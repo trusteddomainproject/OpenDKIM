@@ -38,6 +38,7 @@ release, and a summary of the changes in that release.
 		Quanah Gibson-Mount.
 	Patch #SF3522895: Add contrib/ldap/opendkim.ldif.  Contributed
 		by Quanah Gibson-Mount.
+	Activate _FFR_XTAGS.
 	LIBAR: Fix bug #SF3444318: Do proper buffer size calculations to
 		avoid valgrind warnings about references to unaddressable
 		space.  Reported by Todd Lyons.

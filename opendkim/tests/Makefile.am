@@ -8,7 +8,7 @@ check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-verify-syntax t-verify-ss t-verify-ss-bad \
 	t-dontsign t-peer t-local-adsp t-local-adsp-subdomain \
 	t-lua-verify-tests \
-	t-adsp-report t-verify-report
+	t-adsp-report t-verify-report t-sign-report
 
 if LIVE_TESTS
 if RBL
@@ -23,9 +23,6 @@ check_SCRIPTS += t-sign-ss-replace
 endif
 if ATPS
 check_SCRIPTS += t-sign-atps t-verify-ss-atps
-endif
-if XTAGS
-check_SCRIPTS += t-sign-report
 endif
 
 TESTS = $(check_SCRIPTS)

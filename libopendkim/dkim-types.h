@@ -51,7 +51,6 @@ static char dkim_types_h_id[] = "@(#)$Id: dkim-types.h,v 1.23 2010/10/28 02:41:2
 #include "dkim.h"
 #include "dkim-internal.h"
 
-#ifdef _FFR_XTAGS
 /* struct dkim_xtag -- signature extension tag */
 struct dkim_xtag
 {
@@ -59,7 +58,6 @@ struct dkim_xtag
 	const char *		xt_value;
 	struct dkim_xtag *	xt_next;
 };
-#endif /* _FFR_XTAGS */
 
 /* struct dkim_queryinfo -- DNS query information */
 struct dkim_queryinfo
@@ -325,9 +323,7 @@ struct dkim
 #ifdef _FFR_RESIGN
 	DKIM *			dkim_resign;
 #endif /* _FFR_RESIGN */
-#ifdef _FFR_XTAGS
 	struct dkim_xtag *	dkim_xtags;
-#endif /* _FFR_XTAGS */
 	struct dkim_siginfo **	dkim_siglist;
 	struct dkim_set *	dkim_sethead;
 	struct dkim_set *	dkim_settail;

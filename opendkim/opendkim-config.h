@@ -184,9 +184,7 @@ struct configdef dkimf_config[] =
 	{ "ReputationTimeFactor",	CONFIG_TYPE_INTEGER,	FALSE },
 	{ "ReputationVerbose",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* _FFR_REPUTATION */
-#ifdef _FFR_XTAGS
 	{ "RequestReports",		CONFIG_TYPE_BOOLEAN,	FALSE },
-#endif /* _FFR_XTAGS */
 	{ "RequiredHeaders",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "RequireSafeKeys",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_RESIGN

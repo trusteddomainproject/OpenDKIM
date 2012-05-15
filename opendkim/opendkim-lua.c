@@ -80,9 +80,7 @@ static const luaL_Reg dkimf_lua_lib_setup[] =
 #endif /* _FFR_REPUTATION */
 	{ ODKIM_PREFIX "use_ltag",		dkimf_xs_setpartial	},
 	{ ODKIM_PREFIX "verify",		dkimf_xs_verify		},
-# ifdef _FFR_XTAGS
 	{ ODKIM_PREFIX "xtag",			dkimf_xs_xtag		},
-# endif /* _FFR_XTAGS */
 	{ NULL,					NULL			}
 };
 
@@ -188,9 +186,7 @@ static const luaL_Reg dkimf_lua_lib_final[] =
 # ifdef _FFR_REPUTATION
 	{ ODKIM_PREFIX "spam",			dkimf_xs_spam		},
 # endif /* _FFR_REPUTATION */
-# ifdef _FFR_XTAGS
 	{ ODKIM_PREFIX "xtag",			dkimf_xs_xtag		},
-# endif /* _FFR_XTAGS */
 	{ NULL,					NULL			}
 };
 #endif /* DKIMF_LUA_CONTEXT_HOOKS */

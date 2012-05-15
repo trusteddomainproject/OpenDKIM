@@ -2381,7 +2381,6 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		                    dkim->dkim_signer);
 	}
 
-#ifdef _FFR_XTAGS
 	if (dkim->dkim_xtags != NULL)
 	{
 		struct dkim_xtag *x;
@@ -2392,7 +2391,6 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 			                    x->xt_tag, x->xt_value);
 		}
 	}
-#endif /* _FFR_XTAGS */
 
 	memset(b64hash, '\0', sizeof b64hash);
 
@@ -4406,9 +4404,7 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef _FFR_OVERSIGN
 	FEATURE_ADD(libhandle, DKIM_FEATURE_OVERSIGN);
 #endif /* _FFR_OVERSIGN */
-#ifdef _FFR_XTAGS
 	FEATURE_ADD(libhandle, DKIM_FEATURE_XTAGS);
-#endif /* _FFR_XTAGS */
 #ifdef _FFR_DKIM_REPUTATION
 	FEATURE_ADD(libhandle, DKIM_FEATURE_DKIM_REPUTATION);
 #endif /* _FFR_DKIM_REPUTATION */
@@ -5028,7 +5024,6 @@ dkim_free(DKIM *dkim)
 		CLOBBER(dkim->dkim_siglist);
 	}
 
-#ifdef _FFR_XTAGS
 	if (dkim->dkim_xtags != NULL)
 	{
 		struct dkim_xtag *cur;
@@ -5042,7 +5037,6 @@ dkim_free(DKIM *dkim)
 			cur = next;
 		}
 	}
-#endif /* _FFR_XTAGS */
 
 	/* destroy canonicalizations */
 	dkim_canon_cleanup(dkim);
@@ -8912,7 +8906,6 @@ dkim_dns_set_query_waitreply(DKIM_LIB *lib, int (*func)(void *, void *,
 DKIM_STAT
 dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
 {
-#ifdef _FFR_XTAGS
 	u_char last = '\0';
 	dkim_param_t pcode;
 	u_char *p;
@@ -8992,9 +8985,6 @@ dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
 	dkim->dkim_xtags = x;
 
 	return DKIM_STAT_OK;
-#else /* _FFR_XTAGS */
-	return DKIM_STAT_NOTIMPLEMENT;
-#endif /* _FFR_XTAGS */
 }
 
 /*
