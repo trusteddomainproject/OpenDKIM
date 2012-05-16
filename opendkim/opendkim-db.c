@@ -5431,6 +5431,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		if (fd < 0)
 		{
 			db->db_status = erl_errno;
+			ei_x_free(&args);
+			ei_x_free(&resp);
 			return ret;
 		}
 
@@ -5440,6 +5442,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		if (ret == -1)
 		{
 			db->db_status = erl_errno;
+			ei_x_free(&args);
+			ei_x_free(&resp);
 			return ret;
 		}
 
