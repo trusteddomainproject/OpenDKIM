@@ -5429,18 +5429,24 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		fd = dkimf_db_erl_connect(db, &ec);
 		if (fd < 0)
-			goto cleanup;
+		{
+			db->db_status = erl_errno;
+			return ret;
+		}
 
 		ret = ei_rpc(&ec, fd, e->erlang_module, e->erlang_function,
 			     args.buff, args.index, &resp);
 		close(fd);
 		if (ret == -1)
-			goto cleanup;
+		{
+			db->db_status = erl_errno;
+			return ret;
+		}
 
 		ret = dkimf_db_erl_decode_response(&resp, "not_found", req,
 	 	                                   reqnum, NULL, NULL);
 
-		if (*exists != NULL)
+		if (exists != NULL)
 			*exists = (ret == 1 ? FALSE : TRUE);
 
 		ei_x_free(&args);
