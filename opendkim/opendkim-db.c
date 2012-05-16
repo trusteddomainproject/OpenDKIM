@@ -3613,6 +3613,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 				err = TRUE;
 				break;
 			}
+
+			c++;
 		}
 
 		if (err || c < 3)
@@ -5433,7 +5435,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			db->db_status = erl_errno;
 			ei_x_free(&args);
 			ei_x_free(&resp);
-			return ret;
+			return -1;
 		}
 
 		ret = ei_rpc(&ec, fd, e->erlang_module, e->erlang_function,
