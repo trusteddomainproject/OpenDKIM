@@ -2853,7 +2853,6 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			                descr->lud_host,
 			                descr->lud_port);
 
-
 			if (plen >= rem)
 			{
 				if (err != NULL)
@@ -2864,6 +2863,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 				return -1;
 			}
 
+			q += plen;
 			rem -= plen;
 
 			ldap_free_urldesc(descr);
