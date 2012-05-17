@@ -56,7 +56,7 @@ opendkim_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
 opendkim_LDADD += $(OPENLDAP_LIBS)
 endif
 if USE_ARLIB
-opendkim_CFLAGS += -I$(srcdir)/../libar
+opendkim_CPPFLAGS += -I$(srcdir)/../libar
 opendkim_LDADD += ../libar/libar.la
 endif
 if USE_UNBOUND
@@ -77,7 +77,7 @@ opendkim_CPPFLAGS += -I$(srcdir)/../libdkimrep
 opendkim_LDADD += ../libdkimrep/libdkimrep.la
 endif
 if REPUTE
-opendkim_CFLAGS += -I$(srcdir)/../reputation
+opendkim_CPPFLAGS += -I$(srcdir)/../reputation
 opendkim_LDADD += ../reputation/librepute.la
 endif
 if USE_MDB
@@ -141,7 +141,7 @@ opendkim_testkey_LDFLAGS += $(LIBUNBOUND_LIBDIRS) $(LIBLDNS_LIBDIRS)
 opendkim_testkey_LDADD += $(LIBUNBOUND_LIBS) $(LIBLDNS_LIBS)
 endif
 if USE_ARLIB
-opendkim_testkey_CFLAGS += -I$(srcdir)/../libar
+opendkim_testkey_CPPFLAGS += -I$(srcdir)/../libar
 opendkim_testkey_LDADD += ../libar/libar.la
 endif
 if DKIM_REPUTATION
