@@ -2796,10 +2796,17 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 
 		memset(ldap, '\0', sizeof *ldap);
 		q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_TIMEOUT];
-		errno = 0;
-		ldap->ldap_timeout = strtoul(q, &r, 10);
-		if (errno == ERANGE)
+		if (q == NULL)
+		{
 			ldap->ldap_timeout = DKIMF_LDAP_DEFTIMEOUT;
+		}
+		else
+		{
+			errno = 0;
+			ldap->ldap_timeout = strtoul(q, &r, 10);
+			if (errno == ERANGE)
+				ldap->ldap_timeout = DKIMF_LDAP_DEFTIMEOUT;
+		}
 
 		/*
 		**  General format of an LDAP specification:
