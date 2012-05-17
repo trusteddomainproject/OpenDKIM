@@ -1199,7 +1199,7 @@ then
                 then
 			tre_found="yes"
                         AC_MSG_RESULT($trepath)
-                        LIBTRE_CFLAGS="-I$trepath/include"
+                        LIBTRE_CPPFLAGS="-I$trepath/include"
                         LIBTRE_LIBS="-L$trepath/lib -ltre"
 		elif test -f "$trepath/include/tre/regex.h"
 		then
@@ -1207,7 +1207,7 @@ then
                         AC_MSG_RESULT([$trepath (old version)])
 			AC_DEFINE([TRE_PRE_080], 1,
 			          [version of libtre is older than 0.8.0])
-                        LIBTRE_CFLAGS="-I$trepath/include"
+                        LIBTRE_CPPFLAGS="-I$trepath/include"
                         LIBTRE_LIBS="-L$trepath/lib -ltre"
                 else
                         AC_MSG_ERROR("not found at $trepath")
@@ -1221,7 +1221,7 @@ then
 				trepath=$d
 				tre_found="yes"
 				AC_MSG_RESULT($d)
-				LIBTRE_CFLAGS="-I$trepath/include"
+				LIBTRE_CPPFLAGS="-I$trepath/include"
 				LIBTRE_LIBS="-L$trepath/lib -ltre"
 				break
 			elif test -f $d/include/tre/regex.h
@@ -1231,7 +1231,7 @@ then
 				AC_MSG_RESULT([$d (old version)])
 				AC_DEFINE([TRE_PRE_080], 1,
 				          [version of libtre is older than 0.8.0])
-				LIBTRE_CFLAGS="-I$trepath/include"
+				LIBTRE_CPPFLAGS="-I$trepath/include"
 				LIBTRE_LIBS="-L$trepath/lib -ltre"
 				break
 			fi
@@ -1251,7 +1251,7 @@ then
 fi
 
 AM_CONDITIONAL([USE_TRE], [test x"$tre_found" != x"no"])
-AC_SUBST([LIBTRE_CFLAGS])
+AC_SUBST([LIBTRE_CPPFLAGS])
 AC_SUBST([LIBTRE_LIBS])
 
 #
