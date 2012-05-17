@@ -1164,7 +1164,7 @@ AC_ARG_WITH([tre],
             [trepath="$withval"], [trepath="auto"])
 
 tre_found="no"
-LIBTRE_CFLAGS=""
+LIBTRE_CPPFLAGS=""
 LIBTRE_LIBS=""
 
 if test x"$enable_diffheaders" != x"yes"
@@ -1656,13 +1656,12 @@ AC_ARG_WITH([mdb],
 
 mdb_found="no"
 LIBMDB_CPPFLAGS=""
-LIBMDB_CFLAGS=""
 LIBMDB_LIBS=""
 
 if test x"$mdbpath" != x"no" -a x"$mdb_found" = x"no"
 then
 	saved_ldflags="$LDFLAGS"
-	saved_cflags="$LDFLAGS"
+	saved_cflags="$CFLAGS"
 	CFLAGS="-pthread"
 	if test x"$mdbpath" != x"auto" -a x"$mdbpath" != x"yes"
 	then
@@ -1714,7 +1713,6 @@ then
 fi
 AM_CONDITIONAL(USE_MDB, test x"$mdb_found" = x"yes")
 AC_SUBST(LIBMDB_CPPFLAGS)
-AC_SUBST(LIBMDB_CFLAGS)
 AC_SUBST(LIBMDB_LIBS)
 
 #
@@ -2093,10 +2091,10 @@ then
 		for d in $bdbdirs
 		do
 			saved_LDFLAGS="$LDFLAGS"
-			saved_CFLAGS="$CFLAGS"
+			saved_CPPFLAGS="$CPPFLAGS"
 			saved_LIBS="$LIBS"
 			LDFLAGS="$LDFLAGS -L$d/lib"
-			CFLAGS="$CFLAGS -I$bdb_incdir"
+			CPPFLAGS="$CPPFLAGS -I$bdb_incdir"
 			LIBS=""
 			if test x"$libdbfound" = x"no"
 			then
@@ -2118,15 +2116,15 @@ then
 			fi
 
 			LDFLAGS="$saved_LDFLAGS"
-			CFLAGS="$saved_CFLAGS"
+			CPPFLAGS="$saved_CPPFLAGS"
 			LIBS="$saved_LIBS"
 		done
 	else
 		saved_LDFLAGS="$LDFLAGS"
-		saved_CFLAGS="$CFLAGS"
+		saved_CPPFLAGS="$CPPFLAGS"
 		saved_LIBS="$LIBS"
 		LDFLAGS="$LDFLAGS -L$bdb_libdir"
-		CFLAGS="$CFLAGS -I$bdb_incdir"
+		CPPFLAGS="$CPPFLAGS -I$bdb_incdir"
 		LIBS=""
 		if test x"$libdbfound" = x"no"
 		then
@@ -2145,7 +2143,7 @@ then
 		fi
 
 		LDFLAGS="$saved_LDFLAGS"
-		CFLAGS="$saved_CFLAGS"
+		CPPFLAGS="$saved_CPPFLAGS"
 		LIBS="$saved_LIBS"
 	fi
 
@@ -2182,16 +2180,16 @@ fi
 if test x"$unboundpath" != x"no" -a x"$bdbrequired" = x"yes"
 then
 	saved_LDFLAGS="$LDFLAGS"
-	saved_CFLAGS="$CFLAGS"
+	saved_CPPFLAGS="$CPPFLAGS"
 	LDFLAGS="$LDFLAGS $LIBDB_LIBDIRS $LIBUNBOUND_LIBDIRS"
-	CFLAGS="$CFLAGS $LIBDB_INCDIRS $LIBUNBOUND_INCDIRS"
+	CPPFLAGS="$CPPFLAGS $LIBDB_INCDIRS $LIBUNBOUND_INCDIRS"
 	AC_CHECK_LIB([db], [log_file],
 		AC_CHECK_LIB([unbound], [log_file],
 			AC_MSG_ERROR([Cannot enable feature requiring BerkeleyDB with libunbound - both have log_file defined.  Please use newer BerkeleyDB version])
 		)
 	)
 	LDFLAGS="$saved_LDFLAGS"
-	CFLAGS="$saved_CFLAGS"
+	CPPFLAGS="$saved_CPPFLAGS"
 fi
 AC_SUBST(LIBDB_INCDIRS)
 AC_SUBST(LIBDB_LIBDIRS)
