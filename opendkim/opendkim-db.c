@@ -4875,12 +4875,12 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 			db->db_iflags |= DKIMF_DB_IFLAG_RECONNECT;
 
+			pthread_mutex_unlock(&ldap->ldap_lock);
+
 			status = dkimf_db_get(db, buf, buflen, req, reqnum,
 			                      exists);
 
 			db->db_iflags &= ~DKIMF_DB_IFLAG_RECONNECT;
-
-			pthread_mutex_unlock(&ldap->ldap_lock);
 
 			return status;
 		}
