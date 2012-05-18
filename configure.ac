@@ -495,7 +495,7 @@ AC_ARG_ENABLE([debug],
               AS_IF([test "x$enable_debug" = x"yes"],
 		[
 			LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING debug"
-			[[CFLAGS=`echo $CFLAGS | sed 's/ -O[0-9s]*//g'`]]
+			[[CFLAGS=`echo $CFLAGS | sed 's/ -O[1-9s]*//g'`]]
 		])
 )
 
