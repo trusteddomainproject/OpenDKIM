@@ -108,7 +108,7 @@ dkimf_rep_init(DKIMF_REP *rep, time_t factor, unsigned int minimum,
 	if (cache == NULL)
 		cache = DKIMF_REP_DEFCACHE;
 	if (dups == NULL)
-		cache = DKIMF_REP_DEFCACHE;
+		dups = DKIMF_REP_DEFCACHE;
 #endif /* USE_MDB */
 
 	new->rep_lastflush = time(NULL);
