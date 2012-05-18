@@ -37,8 +37,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3522883: Allow TLS for ldapi URIs.  Problem noted by
 		Quanah Gibson-Mount.
 	Fix bug #SF3527428: Construct the LDAP URI list properly, rather than
-		only keeping the last one.  Problem noted by Quanah
-		Gibson-Mount.
+		only keeping the last one, and add failover code.  Problems
+		noted by Quanah Gibson-Mount.
 	Patch #SF3522895: Add contrib/ldap/opendkim.ldif.  Contributed
 		by Quanah Gibson-Mount.
 	Activate _FFR_XTAGS.
