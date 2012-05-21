@@ -6333,6 +6333,10 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 
 		ret = dkimf_db_erl_decode_response(&resp, "$end_of_table",
 		                                   req, reqnum, key, keylen);
+
+		ei_x_free(&args);
+		ei_x_free(&resp);
+
 		switch (ret)
 		{
 		  case -1:
