@@ -50,6 +50,9 @@ my $dbscheme      = "mysql";
 
 my $def_maxage    = 180;
 
+my $rows;
+my $maxage;
+
 ###
 ### NO user-serviceable parts beyond this point
 ###
