@@ -42,6 +42,7 @@ my $dbi_a;
 my $unsigned      = 1;
 
 my $idx;
+my $tmpin;
 
 my @domains;
 my @xdata;
@@ -210,6 +211,46 @@ if (!defined($dbi_h))
 if ($verbose)
 {
 	print STDERR "$progname: connected to database\n";
+}
+
+#
+# If any of the domains started with "/" or "./", convert them into
+# whatever's in the files they reference.
+#
+
+if (scalar @domains > 0)
+{
+	foreach $idx (0 .. $#domains)
+	{
+		if (substr($domains[$idx], 0, 1) eq "/" ||
+		    substr($domains[$idx], 0, 2) eq "./")
+		{
+			if (!open($tmpin, "<", $domains[$idx]))
+			{
+				print STDERR "$progname: cannot open $domains[$idx]: $!\n";
+				$dbi_s->finish;
+				$dbi_h->disconnect;
+				exit(1);
+			}
+
+			while (<$tmpin>)
+			{
+				# ignore comments
+				s/#.*//;
+
+				# ignore blank lines
+				next if /^(\s)*$/;
+
+				chomp;
+
+				push @domains, $_;
+			}
+
+			close($tmpin);
+
+			delete $domains[$idx];
+		}
+	}
 }
 
 #

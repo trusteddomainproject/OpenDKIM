@@ -72,6 +72,9 @@ release, and a summary of the changes in that release.
 		contrib/stats to stats, making it fully supported.
 	STATS: Feature request #SF3525786: Add opendkim-expire script.
 		Requested by Andreas Schulze.
+	STATS: Feature request #SF3528652: Allow a specific list of domains,
+		possibly read from a file, for opendkim-gengraphs and
+		opendkim-genrates.  Requested by Andreas Schulze.
 
 2.5.2		2012/04/09
 	Fix bug #SF3496208: Replace stats/opendkim-genstats with a perl
