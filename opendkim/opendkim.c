@@ -2108,6 +2108,59 @@ dkimf_xs_replaceheader(lua_State *l)
 }
 
 /*
+**  DKIMF_XS_GETENVFROM -- request envelope sender
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_getenvfrom(lua_State *l)
+{
+	int idx;
+	const char *hdrname;
+	SMFICTX *ctx;
+	struct connctx *cc;
+	struct msgctx *dfc;
+	struct dkimf_config *conf;
+	Header hdr;
+
+	assert(l != NULL);
+
+	if (lua_gettop(l) != 1)
+	{
+		lua_pushstring(l,
+		               "odkim.get_envfrom(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_islightuserdata(l, 1))
+	{
+		lua_pushstring(l,
+		               "odkim.get_envfrom(): incorrect argument type");
+		lua_error(l);
+	}
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+
+	if (ctx != NULL)
+	{
+		cc = (struct connctx *) dkimf_getpriv(ctx);
+		dfc = cc->cctx_msg;
+	}
+
+	lua_pop(l, 1);
+
+	if (ctx == NULL)
+		lua_pushstring(l, "dkimf_xs_getenvfrom");
+	else
+		lua_pushstring(l, dfc->mctx_envfrom);
+	return 1;
+}
+
+/*
 **  DKIMF_XS_GETHEADER -- request a header value
 **
 **  Parameters:
@@ -10868,8 +10921,29 @@ mlfi_envfrom(SMFICTX *ctx, char **envfrom)
 
 	if (envfrom[0] != NULL)
 	{
+		size_t len;
+		unsigned char *p;
+		unsigned char *q;
+
 		strlcpy(dfc->mctx_envfrom, envfrom[0],
 		        sizeof dfc->mctx_envfrom);
+
+		len = strlen(dfc->mctx_envfrom);
+		p = dfc->mctx_envfrom;
+		q = dfc->mctx_envfrom + len - 1;
+
+		while (len >= 2 && *p == '<' && *q == '>')
+		{
+			p++;
+			q--;
+			len -= 2;
+		}
+
+		if (p != dfc->mctx_envfrom)
+		{
+			*(q + 1) = '\0';
+			memmove(dfc->mctx_envfrom, p, len + 1);
+		}
 	}
 
 	/*

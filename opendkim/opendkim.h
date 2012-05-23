@@ -193,6 +193,7 @@ extern int dkimf_xs_delrcpt __P((lua_State *));
 extern int dkimf_xs_export __P((lua_State *));
 #  endif /* _FFR_LUA_GLOBALS */
 extern int dkimf_xs_fromdomain __P((lua_State *));
+extern int dkimf_xs_getenvfrom __P((lua_State *));
 extern int dkimf_xs_getheader __P((lua_State *));
 extern int dkimf_xs_getpolicy __P((lua_State *));
 extern int dkimf_xs_getreputation __P((lua_State *));

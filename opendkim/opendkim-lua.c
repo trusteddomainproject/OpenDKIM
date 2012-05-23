@@ -63,6 +63,7 @@ static const luaL_Reg dkimf_lua_lib_setup[] =
 	{ ODKIM_PREFIX "get_clienthost",	dkimf_xs_clienthost	},
 	{ ODKIM_PREFIX "get_clientip",		dkimf_xs_clientip	},
 	{ ODKIM_PREFIX "get_dbhandle",		dkimf_xs_dbhandle	},
+	{ ODKIM_PREFIX "get_envfrom",		dkimf_xs_getenvfrom	},
 	{ ODKIM_PREFIX "get_fromdomain",	dkimf_xs_fromdomain	},
 	{ ODKIM_PREFIX "get_header",		dkimf_xs_getheader	},
 	{ ODKIM_PREFIX "get_mtasymbol",		dkimf_xs_getsymval	},
@@ -93,6 +94,7 @@ static const luaL_Reg dkimf_lua_lib_screen[] =
 	{ ODKIM_PREFIX "export",		dkimf_xs_export		},
 # endif /* _FFR_LUA_GLOBALS */
 	{ ODKIM_PREFIX "get_dbhandle",		dkimf_xs_dbhandle	},
+	{ ODKIM_PREFIX "get_envfrom",		dkimf_xs_getenvfrom	},
 	{ ODKIM_PREFIX "get_fromdomain",	dkimf_xs_fromdomain	},
 	{ ODKIM_PREFIX "get_header",		dkimf_xs_getheader	},
 	{ ODKIM_PREFIX "get_mtasymbol",		dkimf_xs_getsymval	},
@@ -119,6 +121,7 @@ static const luaL_Reg dkimf_lua_lib_stats[] =
 #  ifdef _FFR_LUA_GLOBALS
 	{ ODKIM_PREFIX "export",		dkimf_xs_export		},
 #  endif /* _FFR_LUA_GLOBALS */
+	{ ODKIM_PREFIX "get_envfrom",		dkimf_xs_getenvfrom	},
 	{ ODKIM_PREFIX "get_header",		dkimf_xs_getheader	},
 	{ ODKIM_PREFIX "get_mtasymbol",		dkimf_xs_getsymval	},
 	{ ODKIM_PREFIX "get_policy",		dkimf_xs_getpolicy	},
@@ -158,6 +161,7 @@ static const luaL_Reg dkimf_lua_lib_final[] =
 	{ ODKIM_PREFIX "del_rcpt",		dkimf_xs_delrcpt	},
 	{ ODKIM_PREFIX "get_clienthost",	dkimf_xs_clienthost	},
 	{ ODKIM_PREFIX "get_clientip",		dkimf_xs_clientip	},
+	{ ODKIM_PREFIX "get_envfrom",		dkimf_xs_getenvfrom	},
 	{ ODKIM_PREFIX "get_fromdomain",	dkimf_xs_fromdomain	},
 	{ ODKIM_PREFIX "get_header",		dkimf_xs_getheader	},
 	{ ODKIM_PREFIX "get_mtasymbol",		dkimf_xs_getsymval	},
