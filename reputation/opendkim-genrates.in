@@ -663,8 +663,6 @@ if (defined($reportout))
 	}
 	$tmpsql = $tmpsql . ", 0, -1)";
 
-print STDERR $tmpsql . "\n";
-
 	$dbi_s = $dbi_h->prepare($tmpsql);
 	if (!$dbi_s->execute)
 	{
