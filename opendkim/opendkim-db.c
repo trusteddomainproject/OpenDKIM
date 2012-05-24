@@ -3815,6 +3815,13 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	int status;
 	DB *bdb;
 #endif /* USE_DB */
+#ifdef USE_MDB
+	MDB_VAL key;
+	MDB_VAL data;
+	MDB_DBI dbi;
+	MDB_TXN *txn;
+	struct dkimf_db_mdb *mdb;
+#endif /* USE_MDB */
 
 	assert(db != NULL);
 	assert(buf != NULL);
@@ -3963,6 +3970,31 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	if (db->db_lock != NULL)
 		(void) pthread_mutex_unlock(db->db_lock);
 #endif /* USE_DB */
+
+#ifdef USE_MDB
+	mdb = new->db_data;
+
+	if (db->db_lock != NULL)
+		(void) pthread_mutex_lock(db->db_lock);
+
+	key.mv_data = outbuf;
+	key.mv_size = outbuflen;
+	data.mv_data = (char *) buf;
+	data.mv_size = (buflen == 0 ? strlen(q.data) : buflen);
+
+	if (mdb_txn_begin(mdb->mdb_env, NULL, 0, &txn) == 0 &&
+	    mdb_open(txn, NULL, 0, &dbi) == 0 &&
+	    mdb_put(txn, dbi, &key, &data, 0) == 0)
+		ret = 0;
+	else
+		ret = -1;
+
+	if (txn != NULL)
+		mdb_txn_commit(txn);
+
+	if (db->db_lock != NULL)
+		(void) pthread_mutex_unlock(db->db_lock);
+#endif /* USE_MDB */
 
 	return ret;
 }
