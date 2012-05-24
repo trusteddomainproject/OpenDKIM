@@ -3990,7 +3990,12 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 		ret = -1;
 
 	if (txn != NULL)
-		mdb_txn_commit(txn);
+	{
+		if (ret == 0)
+			mdb_txn_commit(txn);
+		else
+			mdb_txn_abort(txn);
+	}
 
 	if (db->db_lock != NULL)
 		(void) pthread_mutex_unlock(db->db_lock);
