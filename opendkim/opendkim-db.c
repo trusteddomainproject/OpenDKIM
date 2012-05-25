@@ -6360,13 +6360,21 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 
 		fd = dkimf_db_erl_connect(db, &ec);
 		if (fd < 0)
+		{
+			ei_x_free(&args);
+			ei_x_free(&resp);
 			return -1;
+		}
 
 		ret = ei_rpc(&ec, fd, e->erlang_module, e->erlang_function,
 			     args.buff, args.index, &resp);
 		close(fd);
 		if (ret == -1)
+		{
+			ei_x_free(&args);
+			ei_x_free(&resp);
 			return -1;
+		}
 
 		ret = dkimf_db_erl_decode_response(&resp, "$end_of_table",
 		                                   req, reqnum, key, keylen);
