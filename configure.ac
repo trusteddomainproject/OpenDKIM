@@ -2366,6 +2366,7 @@ AC_OUTPUT([	Makefile
 			stats/opendkim-expire
 			stats/opendkim-gengraphs
 			stats/opendkim-genstats
+			stats/opendkim-genstats.8
 			stats/opendkim-reportstats
 		reputation/Makefile
 			reputation/opendkim-genrates

@@ -19,6 +19,6 @@ dist_doc_DATA = README
 dist_bin_SCRIPTS = opendkim-expire opendkim-gengraphs opendkim-genstats \
 	opendkim-reportstats
 
-man_MANS = opendkim-importstats.8
+man_MANS = opendkim-importstats.8 opendkim-genstats.8
 
 endif
