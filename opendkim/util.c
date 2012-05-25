@@ -103,6 +103,10 @@ static char *optlist[] =
 	"USE_LUA",
 #endif /* USE_LUA */
 
+#if USE_MDB
+	"USE_MDB",
+#endif /* USE_MDB */
+
 #if USE_ODBX
 	"USE_ODBX",
 #endif /* USE_ODBX */
@@ -178,10 +182,6 @@ static char *optlist[] =
 #if _FFR_RESIGN
 	"_FFR_RESIGN",
 #endif /* _FFR_RESIGN */
-
-#if _FFR_SELECT_CANONICALIZATION
-	"_FFR_SELECT_CANONICALIZATION",
-#endif /* _FFR_SELECT_CANONICALIZATION */
 
 #if _FFR_SELECTOR_HEADER
 	"_FFR_SELECTOR_HEADER",

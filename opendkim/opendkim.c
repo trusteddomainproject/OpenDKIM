@@ -11337,37 +11337,6 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 
 	dfc->mctx_hqtail = newhdr;
 
-#ifdef _FFR_SELECT_CANONICALIZATION
-	if (strcasecmp(headerf, XSELECTCANONHDR) == 0)
-	{
-		int c;
-		char *slash;
-
-		slash = strchr(headerv, '/');
-		if (slash != NULL)
-		{
-			*slash = '\0';
-
-			c = dkimf_configlookup(headerv, dkimf_canon);
-			if (c != -1)
-				dfc->mctx_hdrcanon = (dkim_canon_t) c;
-			c = dkimf_configlookup(slash + 1, dkimf_canon);
-			if (c != -1)
-				dfc->mctx_bodycanon = (dkim_canon_t) c;
-
-			*slash = '/';
-		}
-		else
-		{
-			c = dkimf_configlookup(headerv, dkimf_canon);
-			if (c != -1)
-				dfc->mctx_hdrcanon = (dkim_canon_t) c;
-		}
-
-		/* XXX -- eat this header? */
-	}
-#endif /* _FFR_SELECT_CANONICALIZATION */
-
 	return SMFIS_CONTINUE;
 }
 
