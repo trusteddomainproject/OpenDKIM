@@ -99,6 +99,10 @@ static char *optlist[] =
 	"USE_DB",
 #endif /* USE_DB */
 
+#if USE_ERLANG
+	"USE_ERLANG",
+#endif /* USE_ERLANG */
+
 #if USE_LUA
 	"USE_LUA",
 #endif /* USE_LUA */
