@@ -1,0 +1,78 @@
+.TH opendkim-gengraphs 8 "The OpenDKIM Project"
+.SH NAME
+.B opendkim-gengraphs
+\- OpenDKIM statistics graph generation tool
+.SH SYNOPSIS
+.B opendkim-gengraphs
+[options]
+.SH DESCRIPTION
+.B opendkim-gengraphs collates data accumulated by the OpenDKIM statistics
+feature into an HTML report including graphs about the daily behaviour of
+specific domains of interest.
+
+Requires access to
+.B gnuplot(1).
+.SH OPTIONS
+.TP
+.I --dbhost=host
+Attempts to connect to the database server on the named
+.I host.
+The default is "localhost".
+.TP
+.I --dbname=name
+Requests a connection to the database called
+.I name.
+The default is "opendkim".
+.TP
+.I --dbpasswd=password
+Attempts to authenticate to the database server using the specified
+.I password.
+The default is "opendkim".
+.TP
+.I --dbport=port
+Tries to connect to the database at the specified TCP
+.I port.
+The default is 3306.
+.TP
+.I --dbuser=user
+Attempts to authenticate to the database server as the specified
+.I user.
+The default is "opendkim".
+.TP
+.I --domain={ domain | file }
+Adds the named
+.I domain,
+or domains extracted from the named
+.I file,
+to the set of domains for which a graph should be generated.  Strings that
+start with "/" or "./" are assumed to be files from which domain naems
+should be read.
+.TP
+.I --help
+Prints a usage message and exits.
+.TP
+.I --nounsigned
+Suppresses generation of a graph for unsigned mail.
+.TP
+.I --output=file
+Writes an HTML report to the specified
+.I file.
+Graphs will be generated in the same directory.
+.TP
+.I --verbose
+Requests verbose output.
+.TP
+.I --version
+Prints version number and exits.
+.SH VERSION
+This man page covers the version of
+.I opendkim-gengraphs
+that shipped with version @VERSION@ of
+.I OpenDKIM.
+.SH COPYRIGHT
+Copyright (c) 2011, 2012, The OpenDKIM Project.  All rights reserved.
+.SH SEE ALSO
+.I opendkim(8),
+.I opendkim-importstats(8)
+.P
+RFC6376 - DomainKeys Identified Mail
