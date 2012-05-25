@@ -706,7 +706,7 @@ print $out "<table border=\"1\" columns=\"3\">\n";
 print $out " <tr>\n";
 print $out "  <td> <b> Domain </b> </td>\n";
 print $out "  <td> <b> Signatures </b> </td>\n";
-print $out "  <td> <b> % Passed </b> </td>\n";
+print $out "  <td> <b> % Failed </b> </td>\n";
 print $out " </tr>\n";
 $dbi_s = $dbi_h->prepare("SELECT domains.name, COUNT(t1.id), 100-100*SUM(signatures_pass)/COUNT(t1.id) FROM t1 JOIN domains ON t1.signatures_domain = domains.id GROUP BY t1.signatures_domain ORDER BY 3 DESC, 2 LIMIT 10");
 if (!$dbi_s->execute)
