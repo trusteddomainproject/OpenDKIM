@@ -293,13 +293,20 @@ if ($verbose)
 if (scalar @domains > 0)
 {
 	$tmpsql = "SELECT id FROM domains WHERE name IN (";
+	$id = 0;
 	foreach $idx (0 .. $#domains)
 	{
-		if ($idx != 0)
+		if (!defined($domains[$idx]))
+		{
+			next;
+		}
+
+		if ($id != 0)
 		{
 			$tmpsql = $tmpsql . ", ";
 		}
 		$tmpsql = $tmpsql . "'" . $domains[$idx] . "'";
+		$id++;
 	}
 	$tmpsql = $tmpsql . ")";
 
