@@ -682,6 +682,12 @@ repute_get_template(REPUTE rep)
 	                "scheme", REPUTE_URI_SCHEME) != 0 ||
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
 	                "service", (void *) rep->rep_server) != 0 ||
+#ifdef USE_JANSSON
+	    ut_keyvalue(ut, UT_KEYTYPE_STRING, "format", "json") != 0 ||
+#endif /* USE_JANSSON */
+#ifdef USE_XML2
+	    ut_keyvalue(ut, UT_KEYTYPE_STRING, "format", "xml") != 0 ||
+#endif /* USE_XML2 */
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
 	                "application", REPUTE_URI_APPLICATION) != 0)
 	{
