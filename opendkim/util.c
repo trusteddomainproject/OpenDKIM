@@ -103,6 +103,14 @@ static char *optlist[] =
 	"USE_ERLANG",
 #endif /* USE_ERLANG */
 
+#if USE_JANSSON
+	"USE_JANSSON",
+#endif /* USE_JANSSON */
+
+#if USE_LDAP
+	"USE_LDAP",
+#endif /* USE_LDAP */
+
 #if USE_LUA
 	"USE_LUA",
 #endif /* USE_LUA */
@@ -118,6 +126,10 @@ static char *optlist[] =
 #if USE_UNBOUND
 	"USE_UNBOUND",
 #endif /* USE_UNBOUND */
+
+#if USE_XML2
+	"USE_XML2",
+#endif /* USE_XML2 */
 
 #ifdef _FFR_ADSP_LISTS
 	"_FFR_ADSP_LISTS",
