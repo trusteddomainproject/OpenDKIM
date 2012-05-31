@@ -611,6 +611,8 @@ repute_doquery(struct repute_io *rio, const char *url)
 
 	rio->repute_errcode = 0;
 	rio->repute_rcode = 0;
+	memset(rio->repute_buf, '\0', rio->repute_alloc);
+
 	cstatus = curl_easy_perform(rio->repute_curl);
 	if (cstatus != CURLE_OK)
 	{
