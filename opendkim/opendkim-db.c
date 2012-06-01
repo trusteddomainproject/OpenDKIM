@@ -5497,7 +5497,12 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 	 	                                   reqnum, NULL, NULL);
 
 		if (exists != NULL)
-			*exists = (ret == 1 ? FALSE : TRUE);
+		{
+			if (ret == 1)
+				*exists = FALSE;
+			else if (ret == 0)
+				*exists = TRUE;
+		}
 
 		ei_x_free(&args);
 		ei_x_free(&resp);
@@ -5505,7 +5510,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		if (ret == -1)
 			db->db_status = erl_errno;
 
-		return ret;
+		return 0;
 	  }
 #endif /* USE_ERLANG */
 
