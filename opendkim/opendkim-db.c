@@ -290,8 +290,8 @@ struct dkimf_db_socket
 struct dkimf_db_mdb
 {
 	MDB_env *		mdb_env;
-	MDB_dbi *		mdb_dbi;
 	MDB_txn *		mdb_txn;
+	MDB_dbi			mdb_dbi;
 };
 #endif /* USE_MDB */
 
@@ -3816,10 +3816,10 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	DB *bdb;
 #endif /* USE_DB */
 #ifdef USE_MDB
-	MDB_VAL key;
-	MDB_VAL data;
-	MDB_DBI dbi;
-	MDB_TXN *txn;
+	MDB_val key;
+	MDB_val data;
+	MDB_dbi dbi;
+	MDB_txn *txn;
 	struct dkimf_db_mdb *mdb;
 #endif /* USE_MDB */
 
@@ -3972,7 +3972,7 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 #endif /* USE_DB */
 
 #ifdef USE_MDB
-	mdb = new->db_data;
+	mdb = db->db_data;
 
 	if (db->db_lock != NULL)
 		(void) pthread_mutex_lock(db->db_lock);
@@ -3980,7 +3980,7 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	key.mv_data = outbuf;
 	key.mv_size = outbuflen;
 	data.mv_data = (char *) buf;
-	data.mv_size = (buflen == 0 ? strlen(q.data) : buflen);
+	data.mv_size = (buflen == 0 ? strlen(buf) : buflen);
 
 	if (mdb_txn_begin(mdb->mdb_env, NULL, 0, &txn) == 0 &&
 	    mdb_open(txn, NULL, 0, &dbi) == 0 &&
