@@ -2012,17 +2012,16 @@ then
 	bdbrequested="yes"
 fi
 
-rep_cache_needs_bdb="no"
-if test x"$enable_reputation_cache" = x"yes" -a x"$mdb_found" != x"yes"
+rep_needs_bdb="no"
+if test x"$enable_reputation" = x"yes" -a x"$mdb_found" = x"no"
 then
-	rep_cache_needs_bdb="yes"
+	rep_needs_bdb="yes"
 fi
 
 AM_CONDITIONAL(USE_DB_OPENDKIM,
                test x"$enable_popauth" = x"yes" -o \
-	            x"$enable_reputation" = x"yes" -o \
+	            x"$rep_needs_bdb" = x"yes" -o \
 	            x"$enable_ldap_caching" = x"yes" -o \
-	            x"$rep_cache_needs_bdb" = x"yes" -o \
                     x"$bdbrequested" = x"yes")
 AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")
 
