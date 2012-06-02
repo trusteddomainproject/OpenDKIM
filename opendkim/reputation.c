@@ -101,8 +101,7 @@ dkimf_rep_init(DKIMF_REP *rep, time_t factor, unsigned int minimum,
 		return -1;
 
 #ifdef USE_MDB
-	if (cache == NULL ||
-	    dups == NULL)
+	if (cache == NULL || dups == NULL)
 		return -1;
 #else /* USE_MDB */
 	if (cache == NULL)
