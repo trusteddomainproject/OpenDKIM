@@ -11339,7 +11339,6 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 
 	dfc->mctx_hqtail = newhdr;
 
-#ifdef _FFR_SELECT_CANONICALIZATION
 	if (strcasecmp(headerf, conf->conf_selectcanonhdr) == 0)
 	{
 		int c;
@@ -11368,7 +11367,6 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 
 		/* XXX -- eat this header? */
 	}
-#endif /* _FFR_SELECT_CANONICALIZATION */
 
 	return SMFIS_CONTINUE;
 }
