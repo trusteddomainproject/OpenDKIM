@@ -435,8 +435,8 @@ The default is to read a configuration file from
 if one exists, or otherwise to apply defaults to all values.
 .SH OPERATION
 A message will be verified unless it conforms to the signing criteria,
-which are: (1) the domain on the From: address or Sender: address (if present)
-must be listed by the
+which are: (1) the domain on the From: address (if present) must be listed
+by the
 .I \-d
 command line switch or the
 .I Domain
@@ -457,6 +457,11 @@ and contains any non-empty value.  This means the MTA must pass the value of
 that macro to the filter before or during the end-of-header (EOH) phase
 in order for its value to be tested.  Check your MTA's configuration
 documentation for details.
+
+For (1) above, other header fields may be selected using the SenderHeaders
+configuration file setting.  See
+.I opendkim.conf(5)
+for more information.
 
 When signing a message, a
 .I DKIM-Signature:
