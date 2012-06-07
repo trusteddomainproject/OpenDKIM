@@ -314,6 +314,7 @@ struct dkimf_config
 	char *		conf_canonstr;		/* canonicalization(s) string */
 	char *		conf_siglimit;		/* signing limits */
 	char *		conf_chroot;		/* chroot(2) directory */
+	char *		conf_selectcanonhdr;	/* canon select header name */
 	u_char *	conf_selector;		/* key selector */
 #ifdef _FFR_DEFAULT_SENDER
 	char *		conf_defsender;		/* default sender address */
@@ -5640,6 +5641,7 @@ dkimf_config_new(void)
 #ifdef _FFR_ATPS
 	new->conf_atpshash = dkimf_atpshash[0].str;
 #endif /* _FFR_ATPS */
+	new->conf_selectcanonhdr = XSELECTCANONHDR;
 
 	memcpy(&new->conf_handling, &defaults, sizeof new->conf_handling);
 
@@ -11338,7 +11340,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 	dfc->mctx_hqtail = newhdr;
 
 #ifdef _FFR_SELECT_CANONICALIZATION
-	if (strcasecmp(headerf, XSELECTCANONHDR) == 0)
+	if (strcasecmp(headerf, conf->conf_selectcanonhdr) == 0)
 	{
 		int c;
 		char *slash;

@@ -196,10 +196,8 @@ struct configdef dkimf_config[] =
 	{ "ScreenPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* USE_LUA */
 	{ "Selector",			CONFIG_TYPE_STRING,	FALSE },
-#ifdef USE_LUA
-	{ "SetupPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* USE_LUA */
 #ifdef _FFR_SELECTOR_HEADER
+	{ "SelectCanonicalizationHeader", CONFIG_TYPE_STRING,	FALSE },
 	{ "SelectorHeader",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SelectorHeaderRemove",	CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* _FFR_SELECTOR_HEADER */
@@ -209,6 +207,9 @@ struct configdef dkimf_config[] =
 	{ "SenderMacro",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_SENDER_MACRO */
 	{ "SendReports",		CONFIG_TYPE_BOOLEAN,	FALSE },
+#ifdef USE_LUA
+	{ "SetupPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* USE_LUA */
 	{ "SignatureAlgorithm",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SignatureTTL",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "SignHeaders",		CONFIG_TYPE_STRING,	FALSE },
