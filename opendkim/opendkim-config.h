@@ -108,9 +108,15 @@ struct configdef dkimf_config[] =
 # endif /* USE_SASL */
 	{ "LDAPBindPassword",		CONFIG_TYPE_STRING,	FALSE },
 	{ "LDAPBindUser",		CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPKeepaliveIdle",		CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPKeepaliveInterval",	CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPKeepaliveProbes",	CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPSoftStart",		CONFIG_TYPE_BOOLEAN,	FALSE },
+	{ "LDAPTimeout",		CONFIG_TYPE_STRING,	FALSE },
 	{ "LDAPUseTLS",			CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* USE_LDAP */
 	{ "LocalADSP",			CONFIG_TYPE_STRING,	FALSE },
+	{ "LogResults",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "LogWhy",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "MaximumHeaders",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "MaximumSignedBytes",		CONFIG_TYPE_INTEGER,	FALSE },
@@ -168,6 +174,7 @@ struct configdef dkimf_config[] =
 #ifdef _FFR_REPUTATION
 	{ "ReputationCache",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationCacheTTL",		CONFIG_TYPE_INTEGER,	FALSE },
+	{ "ReputationDuplicates",	CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationLimits",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationLowTime",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationMinimum",		CONFIG_TYPE_INTEGER,	FALSE },
@@ -177,9 +184,7 @@ struct configdef dkimf_config[] =
 	{ "ReputationTimeFactor",	CONFIG_TYPE_INTEGER,	FALSE },
 	{ "ReputationVerbose",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* _FFR_REPUTATION */
-#ifdef _FFR_XTAGS
 	{ "RequestReports",		CONFIG_TYPE_BOOLEAN,	FALSE },
-#endif /* _FFR_XTAGS */
 	{ "RequiredHeaders",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "RequireSafeKeys",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_RESIGN

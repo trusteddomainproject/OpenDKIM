@@ -6,6 +6,8 @@
 static char repute_c_id[] = "$Id$";
 #endif /* ! lint */
 
+#include "build-config.h"
+
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
@@ -17,9 +19,16 @@ static char repute_c_id[] = "$Id$";
 #include <stdio.h>
 #include <string.h>
 
-/* libxml includes */
-#include <libxml/parser.h>
-#include <libxml/tree.h>
+#ifdef USE_XML2
+/* libxml2 includes */
+# include <libxml/parser.h>
+# include <libxml/tree.h>
+#endif /* USE_XML2 */
+
+#ifdef USE_JANSSON
+/* libjansson includes */
+# include <jansson.h>
+#endif /* USE_JANSSON */
 
 /* libcurl includes */
 #include <curl/curl.h>
@@ -78,6 +87,7 @@ struct repute_lookup repute_lookup_elements[] =
 	{ REPUTE_XML_CODE_UNKNOWN,	NULL }
 };
 
+#ifdef USE_XML2
 /*
 **  REPUTE_LIBXML2_ERRHANDLER -- error handler function provided to libxml2
 **
@@ -101,6 +111,7 @@ repute_libxml2_errhandler(void *ctx, const char *fmt, ...)
 {
 	return;
 }
+#endif /* USE_XML2 */
 
 /*
 **  REPUTE_CURL_WRITEDATA -- callback for libcurl to deliver data
@@ -219,14 +230,24 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 	time_t whentmp;
 	char *p;
 	const char *start;
+#ifdef USE_XML2
 	xmlDocPtr doc = NULL;
 	xmlNode *node = NULL;
 	xmlNode *reputon = NULL;
+#endif /* USE_XML2 */
+#ifdef USE_JANSSON
+	json_t *root = NULL;
+	json_t *exts = NULL;
+	json_t *obj = NULL;
+	json_error_t error;
+#endif /* USE_JANSSON */
 
 	assert(buf != NULL);
 	assert(rep != NULL);
 
+#ifdef USE_XML2
 	xmlSetGenericErrorFunc(NULL, repute_libxml2_errhandler);
+#endif /* USE_XML2 */
 
 	/* skip any header found */
 	/* XXX -- this should verify a desirable Content-Type */
@@ -249,6 +270,63 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 		}
 	}
 
+#ifdef USE_JANSSON
+	root = json_loads(buf, 0, &error);
+	if (root == NULL)
+		return REPUTE_STAT_PARSE;
+
+	exts = json_object_get(root, REPUTE_XML_EXTENSION);
+	if (exts != NULL && !json_is_object(exts))
+	{
+		json_decref(root);
+		return REPUTE_STAT_PARSE;
+	}
+
+	obj = json_object_get(root, REPUTE_XML_ASSERTION);
+	if (obj != NULL && json_is_string(obj) &&
+	    strcasecmp(json_string_value(obj), REPUTE_ASSERT_SPAM) == 0)
+		found_spam = TRUE;
+
+	obj = json_object_get(exts, REPUTE_EXT_ID);
+	if (obj != NULL && json_is_string(obj) &&
+	    strcasecmp(json_string_value(obj), REPUTE_EXT_ID_DKIM) == 0)
+		found_dkim = TRUE;
+
+	obj = json_object_get(exts, REPUTE_EXT_RATE);
+	if (obj != NULL && json_is_number(obj))
+		limittmp = (unsigned long) json_integer_value(obj);
+
+	obj = json_object_get(root, REPUTE_XML_RATER_AUTH);
+	if (obj != NULL && json_is_number(obj))
+		conftmp = (float) json_real_value(obj);
+
+	obj = json_object_get(root, REPUTE_XML_RATING);
+	if (obj != NULL && json_is_number(obj))
+		reptmp = (float) json_real_value(obj);
+
+	obj = json_object_get(root, REPUTE_XML_SAMPLE_SIZE);
+	if (obj != NULL && json_is_number(obj))
+		sampletmp = (unsigned long) json_integer_value(obj);
+
+	obj = json_object_get(root, REPUTE_XML_UPDATED);
+	if (obj != NULL && json_is_number(obj))
+		whentmp = (time_t) json_integer_value(obj);
+
+	if (found_dkim && found_spam)
+	{
+		*rep = reptmp;
+		if (conf != NULL)
+			*conf = conftmp;
+		if (sample != NULL)
+			*sample = sampletmp;
+		if (when != NULL)
+			*when = whentmp;
+		if (limit != NULL)
+			*limit = limittmp;
+	}
+#endif /* USE_JANSSON */
+
+#ifdef USE_XML2
 	doc = xmlParseMemory(buf, buflen);
 	if (doc == NULL)
 		return REPUTE_STAT_PARSE;
@@ -328,16 +406,16 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 
 			  case REPUTE_XML_CODE_EXTENSION:
 				if (strcasecmp(reputon->children->content,
-				               REPUTE_EXT_ID_DKIM) == 0)
+				               REPUTE_EXT_ID_BOTH) == 0)
 				{
 					found_dkim = TRUE;
 				}
 				else if (strncasecmp(reputon->children->content,
-				                     REPUTE_EXT_RATE,
-				                     sizeof REPUTE_EXT_RATE - 1) == 0)
+				                     REPUTE_EXT_RATE_COLON,
+				                     sizeof REPUTE_EXT_RATE_COLON - 1) == 0)
 				{
 					errno = 0;
-					limittmp = strtoul(reputon->children->content + sizeof REPUTE_EXT_RATE,
+					limittmp = strtoul(reputon->children->content + sizeof REPUTE_EXT_RATE_COLON,
 				                           &p, 10);
 					if (errno != 0)
 						continue;
@@ -397,6 +475,8 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 	}
 
 	xmlFreeDoc(doc);
+#endif /* USE_XML2 */
+
 	return REPUTE_STAT_OK;
 }
 
@@ -531,6 +611,8 @@ repute_doquery(struct repute_io *rio, const char *url)
 
 	rio->repute_errcode = 0;
 	rio->repute_rcode = 0;
+	memset(rio->repute_buf, '\0', rio->repute_alloc);
+
 	cstatus = curl_easy_perform(rio->repute_curl);
 	if (cstatus != CURLE_OK)
 	{
@@ -681,7 +763,9 @@ repute_get_template(REPUTE rep)
 void
 repute_init(void)
 {
+#ifdef USE_XML2
 	xmlInitParser();
+#endif /* USE_XML2 */
 
 	curl_global_init(CURL_GLOBAL_ALL);
 }
@@ -864,6 +948,12 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 
 	if (ut_keyvalue(ut, UT_KEYTYPE_STRING,
 	                "subject", (void *) domain) != 0 ||
+#ifdef USE_JANSSON
+	    ut_keyvalue(ut, UT_KEYTYPE_STRING, "format", "json") != 0 ||
+#endif /* USE_JANSSON */
+#ifdef USE_XML2
+	    ut_keyvalue(ut, UT_KEYTYPE_STRING, "format", "xml") != 0 ||
+#endif /* USE_XML2 */
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
 	                "scheme", REPUTE_URI_SCHEME) != 0 ||
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,

@@ -2,7 +2,7 @@
 **  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 **      All rights reserved.
 **
-**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-db.h,v 1.15 2010/09/16 04:47:39 cm-msk Exp $
 */
@@ -19,14 +19,15 @@ static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.15 2010/09/16 04:47
 #include <pthread.h>
 
 /* macros */
-#define	DKIMF_DB_FLAG_READONLY	0x01
-#define	DKIMF_DB_FLAG_ICASE	0x02
-#define	DKIMF_DB_FLAG_MATCHBOTH	0x04
-#define	DKIMF_DB_FLAG_VALLIST	0x08
-#define	DKIMF_DB_FLAG_USETLS	0x10
-#define	DKIMF_DB_FLAG_MAKELOCK	0x20
-#define	DKIMF_DB_FLAG_ASCIIONLY	0x40
-#define	DKIMF_DB_FLAG_NOFDLOCK	0x80
+#define	DKIMF_DB_FLAG_READONLY	0x0001
+#define	DKIMF_DB_FLAG_ICASE	0x0002
+#define	DKIMF_DB_FLAG_MATCHBOTH	0x0004
+#define	DKIMF_DB_FLAG_VALLIST	0x0008
+#define	DKIMF_DB_FLAG_USETLS	0x0010
+#define	DKIMF_DB_FLAG_MAKELOCK	0x0020
+#define	DKIMF_DB_FLAG_ASCIIONLY	0x0040
+#define	DKIMF_DB_FLAG_NOFDLOCK	0x0080
+#define	DKIMF_DB_FLAG_SOFTSTART	0x0100
 
 #define	DKIMF_DB_TYPE_UNKNOWN	(-1)
 #define	DKIMF_DB_TYPE_FILE	0
@@ -38,6 +39,9 @@ static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.15 2010/09/16 04:47
 #define DKIMF_DB_TYPE_LUA	6
 #define DKIMF_DB_TYPE_MEMCACHE	7
 #define DKIMF_DB_TYPE_REPUTE	8
+#define DKIMF_DB_TYPE_SOCKET	9
+#define DKIMF_DB_TYPE_MDB	10
+#define DKIMF_DB_TYPE_ERLANG	11
 
 #define	DKIMF_LDAP_PARAM_BINDUSER	0
 #define	DKIMF_LDAP_PARAM_BINDPW		1
@@ -46,8 +50,12 @@ static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.15 2010/09/16 04:47
 #define	DKIMF_LDAP_PARAM_AUTHREALM	4
 #define	DKIMF_LDAP_PARAM_AUTHUSER	5
 #define	DKIMF_LDAP_PARAM_AUTHNAME	6
+#define	DKIMF_LDAP_PARAM_TIMEOUT	7
+#define	DKIMF_LDAP_PARAM_KA_IDLE	8
+#define	DKIMF_LDAP_PARAM_KA_PROBES	9
+#define	DKIMF_LDAP_PARAM_KA_INTERVAL	10
 
-#define DKIMF_LDAP_PARAM_MAX		6
+#define DKIMF_LDAP_PARAM_MAX		10
 
 #ifdef __STDC__
 # ifndef __P

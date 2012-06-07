@@ -1,7 +1,7 @@
 .TH opendkim-testadsp 8 "The OpenDKIM Project"
 .SH NAME
 .B opendkim-testadsp
-- DKIM filter ADSP evaluation tool
+\- DKIM filter ADSP evaluation tool
 .SH SYNOPSIS
 .B opendkim-testadsp
 domain [...]

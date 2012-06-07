@@ -1,9 +1,9 @@
 .TH opendkim-genrates 8 "The OpenDKIM Project"
 .SH NAME
 .B opendkim-genrates
-- OpenDKIM recommended rate computation tool
+\- OpenDKIM recommended rate computation tool
 .SH SYNOPSIS
-.B opendkim-genrates.pl
+.B opendkim-genrates
 [options]
 .SH DESCRIPTION
 .B opendkim-genrates

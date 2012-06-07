@@ -1,24 +1,17 @@
-.TH opendkim-modtotals 8 "The OpenDKIM Project"
+.TH opendkim-gengraphs 8 "The OpenDKIM Project"
 .SH NAME
-.B opendkim-modtotals
-\- OpenDKIM statistics update tool
+.B opendkim-gengraphs
+\- OpenDKIM statistics graph generation tool
 .SH SYNOPSIS
-.B opendkim-modtotals.pl
+.B opendkim-gengraphs
 [options]
 .SH DESCRIPTION
-.B opendkim-modtotals
-collates data accumulated by the OpenDKIM statistics feature about
-today's flow of mail, updating stored values about data observed so far
-in the current day.  The OpenDKIM filter can then use this information and
-the output of the
-.I opendkim-genrates
-script to apply reputation-based filtering of signing domains.
+.B opendkim-gengraphs collates data accumulated by the OpenDKIM statistics
+feature into an HTML report including graphs about the daily behaviour of
+specific domains of interest.
 
-For a detailed description of the algorithms, see the white paper
-"Enforcing Rate Limits Based on Authenticated Sender Reputation."
-
-This work is experimental.
-
+Requires access to
+.B gnuplot(1).
 .SH OPTIONS
 .TP
 .I --dbhost=host
@@ -46,8 +39,25 @@ Attempts to authenticate to the database server as the specified
 .I user.
 The default is "opendkim".
 .TP
+.I --domain={ domain | file }
+Adds the named
+.I domain,
+or domains extracted from the named
+.I file,
+to the set of domains for which a graph should be generated.  Strings that
+start with "/" or "./" are assumed to be files from which domain naems
+should be read.
+.TP
 .I --help
 Prints a usage message and exits.
+.TP
+.I --nounsigned
+Suppresses generation of a graph for unsigned mail.
+.TP
+.I --output=file
+Writes an HTML report to the specified
+.I file.
+Graphs will be generated in the same directory.
 .TP
 .I --verbose
 Requests verbose output.
@@ -56,14 +66,13 @@ Requests verbose output.
 Prints version number and exits.
 .SH VERSION
 This man page covers the version of
-.I opendkim-modtotals
+.I opendkim-gengraphs
 that shipped with version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT
 Copyright (c) 2011, 2012, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8),
-.I opendkim-genrates(8),
 .I opendkim-importstats(8)
 .P
 RFC6376 - DomainKeys Identified Mail

@@ -61,8 +61,12 @@ typedef int REPUTE_STAT;
 
 #define	REPUTE_ASSERT_SPAM	"spam"
 
-#define	REPUTE_EXT_ID_DKIM	"IDENTITY: DKIM"
-#define	REPUTE_EXT_RATE		"RATE:"
+#define	REPUTE_EXT_ID_BOTH	"IDENTITY: DKIM"
+#define	REPUTE_EXT_RATE_COLON	"RATE:"
+
+#define	REPUTE_EXT_ID		"IDENTITY"
+#define	REPUTE_EXT_ID_DKIM	"DKIM"
+#define	REPUTE_EXT_RATE		"RATE"
 
 /* other types */
 struct repute_handle;

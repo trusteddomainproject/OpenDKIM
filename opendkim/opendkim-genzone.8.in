@@ -1,22 +1,22 @@
 .TH opendkim-genzone 8 "The OpenDKIM Project"
 .SH NAME
 .B opendkim-genzone
-- DKIM public key zone file generation tool
+\- DKIM public key zone file generation tool
 .SH SYNOPSIS
 .B opendkim-genzone
-[-C address]
-[-d domain]
-[-D]
-[-E secs]
-[-N ns[,...]]
-[-o file]
-[-r secs]
-[-R secs]
-[-S]
-[-t secs]
-[-T secs]
-[-v]
-[-x conffile]
+[\-C address]
+[\-d domain]
+[\-D]
+[\-E secs]
+[\-N ns[,...]]
+[\-o file]
+[\-r secs]
+[\-R secs]
+[\-S]
+[\-t secs]
+[\-T secs]
+[\-v]
+[\-x conffile]
 [dataset]
 .SH DESCRIPTION
 .B opendkim-genzone
@@ -133,7 +133,7 @@ This man page covers the version of
 that shipped with version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT
-Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2010, 2012, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8),
 .I opendkim.conf(5)

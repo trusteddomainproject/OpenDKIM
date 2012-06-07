@@ -2,7 +2,7 @@
 **  Copyright (c) 2004, 2005, 2007-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, 2012, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: util.h,v 1.11.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -75,10 +75,12 @@ extern void dkimf_dstring_free __P((struct dkimf_dstring *));
 extern _Bool dkimf_dstring_copy __P((struct dkimf_dstring *, u_char *));
 extern _Bool dkimf_dstring_cat __P((struct dkimf_dstring *, u_char *));
 extern _Bool dkimf_dstring_cat1 __P((struct dkimf_dstring *, int));
+extern _Bool dkimf_dstring_catn __P((struct dkimf_dstring *, u_char *, size_t));
 extern void dkimf_dstring_chop __P((struct dkimf_dstring *, int));
 extern u_char *dkimf_dstring_get __P((struct dkimf_dstring *));
 extern int dkimf_dstring_len __P((struct dkimf_dstring *));
 extern void dkimf_dstring_blank __P((struct dkimf_dstring *));
+extern size_t dkimf_dstring_printf __P((struct dkimf_dstring *, char *, ...));
 
 #ifdef USE_UNBOUND
 extern _Bool dkimf_timespec_past __P((struct timespec *tv));

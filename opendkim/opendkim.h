@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim.h,v 1.34.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -90,7 +90,6 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.34.10.1 2010/10/27 21:43:
 #define ORCPTHEADER	"X-Original-Recipient"
 
 #define	XHEADERNAME	"X-DKIM"
-#define	XSELECTCANONHDR	"X-Canonicalization"
 
 #ifdef _FFR_VBR
 # define XVBRTYPEHEADER	"X-VBR-Type"
@@ -193,6 +192,7 @@ extern int dkimf_xs_delrcpt __P((lua_State *));
 extern int dkimf_xs_export __P((lua_State *));
 #  endif /* _FFR_LUA_GLOBALS */
 extern int dkimf_xs_fromdomain __P((lua_State *));
+extern int dkimf_xs_getenvfrom __P((lua_State *));
 extern int dkimf_xs_getheader __P((lua_State *));
 extern int dkimf_xs_getpolicy __P((lua_State *));
 extern int dkimf_xs_getreputation __P((lua_State *));
@@ -227,9 +227,7 @@ extern int dkimf_xs_spam __P((lua_State *));
 extern int dkimf_xs_statsext __P((lua_State *));
 #  endif /* _FFR_STATSEXT */
 extern int dkimf_xs_verify __P((lua_State *));
-#  ifdef _FFR_XTAGS
 extern int dkimf_xs_xtag __P((lua_State *));
-#  endif /* _FFR_XTAGS */
 # endif /* DKIMF_LUA_PROTOTYPES */
 #endif /* USE_LUA */
 

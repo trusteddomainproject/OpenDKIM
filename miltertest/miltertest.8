@@ -1,10 +1,10 @@
 .TH miltertest 8 "The OpenDKIM Project"
 .SH NAME
 .B miltertest
--- milter unit test utility
+\- milter unit test utility
 .SH SYNOPSIS
 .B miltertest
-[-D name[=value]] [-s script] [-u] [-v] [-V] [-w]
+[\-D name[=value]] [\-s script] [\-u] [\-v] [\-V] [\-w]
 .SH DESCRIPTION
 .B miltertest
 simulates the MTA side of an MTA-milter interaction for testing a milter-aware
@@ -354,7 +354,7 @@ mt.echo("*** begin test")
 .PP
 -- start the filter
 .PP
-mt.startfilter("../myfilter", "-p", "inet:12345@localhost")
+mt.startfilter("../myfilter", "\-p", "inet:12345@localhost")
 .PP
 mt.sleep(2)
 
@@ -421,7 +421,7 @@ if mt.getreply(conn) ~= SMFIR_CONTINUE then
 .PP
 end
 .PP
-if mt.header(conn, "Date", "Tue, 22 Dec 2009 13:04:12 -0800") ~= nil then
+if mt.header(conn, "Date", "Tue, 22 Dec 2009 13:04:12 \-0800") ~= nil then
 .PP
 	error "mt.header(Date) failed"
 .PP
@@ -532,7 +532,7 @@ elsewhere, and could change without notice.  Caveat emptor.
 This man page covers version 1.4.0 of
 .I miltertest.
 .SH COPYRIGHT
-Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 Milter -- http://www.milter.org
 .P

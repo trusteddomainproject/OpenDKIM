@@ -53,16 +53,53 @@ doesn't find it, you will need to specify the location with
 		include, library path and libary name where the default 
 		locations of --with-db are not enough.
 
---with-libgcrypt
-		Location of GNU's libgcrypt includes and library.
+--with-domain	Specifies the local domain name in use.  Used only for
+		generation of sample configuration files, etc.
+
+--with-gcov
+		Compile with GNU code coverage enabled; the value provides the
+		location of the gprof libraries if not in the default location.
+
+--with-gprof
+		Compile with GNU profiling enabled; the value provides the
+		location of the gprof libraries if not in the default location.
+
+--with-lcov
+		Compile with Linux code coverage enabled; the value provides
+		the location of the gprof libraries if not in the default
+		location.
+
+--with-ldns
+		Location of the "ldns" library, required for unbound.
+
+--with-libcurl
+		Location of the curl library.  Required for reputation
+		query support.
+
+--with-libevent
+		Location of the event library.  Optional with unbound.
+
+--with-libgnutls
+		Location of GNU's TLS includes and library.
 		If not specified, "--with-openssl" is assumed.
+
+--with-libjansson
+		Location of the jansson JSON library.  Required for reputation
+		query support, unless "--with-libxml2" is also specified.
+
+--with-libmemcached
+		Location of the memcache library.  Enables the "memcache"
+		data set type.
+
+--with-libxml2	Location of the XML parser library.  Optional for use
+		with reputation query support.
 
 --with-lua	Lua interpreter library.  Enables fine-grained policy control
 		via Lua script hooks, and also enables building of the
 		"miltertest" test tool.
 
 --with-milter	Sendmail's "milter" include file and library.  Required
-		unless compilation fo the filter is disabled (see below).
+		unless compilation of the filter is disabled (see below).
 		Enabled by default.
 
 --with-odbx	Location of the OpenDBX installation on your system.
@@ -80,6 +117,11 @@ doesn't find it, you will need to specify the location with
 
 --with-sasl	Location of the Cyrus SASL include file definitions. This is
 		used for authenticating against LDAP servers.
+
+--with-sql-backend
+		Names the SQL backend in use on your system.  The default
+		is "mysql".  See OpenDBX documentation for the list of
+		valid values.
 
 --with-tre	Location of the TRE installation on your system.  This
 		is required if you are using the "diffheaders" feature.
@@ -123,8 +165,6 @@ query_cache	Cache DNS replies in a local database.  Requires the
 
 stats		Produce a filter and tools used for statistics collection,
 		analysis and submission.
-
-xtags		Support for signature extension tags.
 
 
 COMPILING

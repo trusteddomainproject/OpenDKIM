@@ -1,7 +1,7 @@
 .TH opendkim-spam 1 "The OpenDKIM Project"
 .SH NAME
 .B opendkim-spam
-- DKIM filter spam correlation tool
+\- DKIM filter spam correlation tool
 .SH SYNOPSIS
 .B opendkim-spam
 [options]
@@ -95,31 +95,31 @@ list of configuration file parameters and their command line equivalents
 are as follows; see above for descriptions:
 .TP
 .I Background
--f (opposite meaning)
+\-f (opposite meaning)
 .TP
 .I DatabaseBackend
--b
+\-b
 .TP
 .I DatabaseName
--d
+\-d
 .TP
 .I DatabaseHost
--h
+\-h
 .TP
 .I DatabasePassword
--p
+\-p
 .TP
 .I DatabasePort
--P
+\-P
 .TP
 .I DatabaseSpamColumn
--s
+\-s
 .TP
 .I DatabaseUser
--u
+\-u
 .TP
 .I StatisticsFile
--o
+\-o
 .SH NOTES
 It is possible to compile this application without SQL support, in which
 case only the
@@ -131,7 +131,7 @@ This man page covers the version of
 that shipped with version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT
-Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2011, 2012, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I alpine(1),
 .I mutt(1),

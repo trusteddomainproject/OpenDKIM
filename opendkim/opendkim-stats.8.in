@@ -1,6 +1,7 @@
 .TH OPENDKIM-STATS 8 "The OpenDKIM Project"
 .SH NAME
-opendkim-stats - output opendkim statistics
+.B opendkim-stats
+\- output opendkim statistics
 .SH SYNOPSIS
 .B opendkim-stats
 .I file

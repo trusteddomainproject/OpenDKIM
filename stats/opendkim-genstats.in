@@ -276,8 +276,7 @@ $dbi_s = $dbi_h->prepare("CREATE TEMPORARY TABLE t1 (
 	KEY(signatures_domain),
 	KEY(signatures_dnssec),
 	KEY(reporters_id)
-) DATA DIRECTORY = '/fsys4/mysql'
-  INDEX DIRECTORY = '/fsys4/mysql'");
+)");
 if (!$dbi_s->execute)
 {
 	print STDERR "$progname: CREATE TEMPORARY TABLE failed: " . $dbi_h->errstr;
@@ -707,7 +706,7 @@ print $out "<table border=\"1\" columns=\"3\">\n";
 print $out " <tr>\n";
 print $out "  <td> <b> Domain </b> </td>\n";
 print $out "  <td> <b> Signatures </b> </td>\n";
-print $out "  <td> <b> % Passed </b> </td>\n";
+print $out "  <td> <b> % Failed </b> </td>\n";
 print $out " </tr>\n";
 $dbi_s = $dbi_h->prepare("SELECT domains.name, COUNT(t1.id), 100-100*SUM(signatures_pass)/COUNT(t1.id) FROM t1 JOIN domains ON t1.signatures_domain = domains.id GROUP BY t1.signatures_domain ORDER BY 3 DESC, 2 LIMIT 10");
 if (!$dbi_s->execute)
@@ -862,6 +861,10 @@ $dbi_h->disconnect;
 
 if (defined($reportout))
 {
+	print $out "<hr>\n";
+	print $out "<font size='-1'>Report completed at " . localtime() . "</font>\n";
+	print $out "</body>\n";
+	print $out "</html>\n";
 	close $out;
 	rename($tmpout, $reportout) or die "$progname: rename to $reportout failed; $!";
 }

@@ -20,6 +20,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 
 /* system includes */
 #include <sys/types.h>
+#include <sys/uio.h>
 #include <sys/stat.h>
 #include <sys/file.h>
 #ifdef HAVE_STDBOOL_H
@@ -53,6 +54,7 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 # undef USE_SASL
 # undef USE_ODBX
 # undef USE_LUA
+# undef _FFR_SOCKETDB
 #endif /* OPENDKIM_DB_ONLY */
 #include "opendkim-db.h"
 #ifdef USE_LUA
@@ -61,6 +63,12 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #include "opendkim.h"
 
 /* various DB library includes */
+#ifdef _FFR_SOCKETDB
+# include <sys/socket.h>
+# include <sys/un.h>
+# include <netinet/in.h>
+# include <arpa/inet.h>
+#endif /* _FFR_SOCKETDB */
 #ifdef USE_DB
 # include <db.h>
 #endif /* USE_DB */
@@ -79,6 +87,14 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #ifdef USE_LIBMEMCACHED
 # include <libmemcached/memcached.h>
 #endif /* USE_LIBMEMCACHED */
+#ifdef USE_MDB
+# include <mdb.h>
+#endif /* USE_MDB */
+#ifdef USE_ERLANG
+# include <sys/time.h>
+# include <erl_interface.h>
+# include <ei.h>
+#endif /* USE_ERLANG */
 
 /* macros */
 #define	BUFRSZ			1024
@@ -89,10 +105,13 @@ static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27
 #define DKIMF_DB_DEFASIZE	8
 #define DKIMF_DB_MODE		0644
 #define DKIMF_LDAP_MAXURIS	8
-#define DKIMF_LDAP_TIMEOUT	5
+#define DKIMF_LDAP_DEFTIMEOUT	5
 #ifdef _FFR_LDAP_CACHING
 # define DKIMF_LDAP_TTL		600
 #endif /* _FFR_LDAP_CACHING */
+#ifdef _FFR_SOCKETDB
+# define DKIMF_SOCKET_TIMEOUT	5
+#endif /* _FFR_SOCKETDB */
 
 #define	DKIMF_DB_IFLAG_FREEARRAY 0x01
 #define	DKIMF_DB_IFLAG_RECONNECT 0x02
@@ -259,6 +278,33 @@ struct dkimf_db_repute_cache
 # endif /* _FFR_REPUTATION_CACHE */
 #endif /* _FFR_REPUTATION */
 
+#ifdef _FFR_SOCKETDB
+struct dkimf_db_socket
+{
+	int			sockdb_fd;
+	struct dkimf_dstring *	sockdb_buf;
+};
+#endif /* _FFR_SOCKETDB */
+
+#ifdef USE_MDB
+struct dkimf_db_mdb
+{
+	MDB_env *		mdb_env;
+	MDB_txn *		mdb_txn;
+	MDB_dbi			mdb_dbi;
+};
+#endif /* USE_MDB */
+
+#ifdef USE_ERLANG
+struct dkimf_db_erlang
+{
+	char *			erlang_nodes;
+	char *			erlang_module;
+	char *			erlang_function;
+	char *			erlang_cookie;
+};
+#endif /* USE_ERLANG */
+
 /* globals */
 struct dkimf_db_table dbtypes[] =
 {
@@ -285,6 +331,15 @@ struct dkimf_db_table dbtypes[] =
 #ifdef _FFR_REPUTATION
 	{ "repute",		DKIMF_DB_TYPE_REPUTE },
 #endif /* _FFR_REPUTATION */
+#ifdef _FFR_SOCKETDB
+	{ "socket",		DKIMF_DB_TYPE_SOCKET },
+#endif /* _FFR_SOCKETDB */
+#ifdef USE_MDB
+	{ "mdb",		DKIMF_DB_TYPE_MDB },
+#endif /* USE_MDB */
+#ifdef USE_ERLANG
+	{ "erlang",		DKIMF_DB_TYPE_ERLANG },
+#endif /* USE_ERLANG */
 	{ NULL,			DKIMF_DB_TYPE_UNKNOWN },
 };
 
@@ -969,7 +1024,232 @@ dkimf_db_relist_free(struct dkimf_db_relist *list)
 		list = next;
 	}
 }
-		
+
+#ifdef USE_LDAP
+/*
+**  DKIMF_DB_OPEN_LDAP -- attempt to contact an LDAP server
+**
+**  Parameters:
+**  	ld -- LDAP handle (updated on success)
+**  	ldap -- local LDAP data
+**
+**  Return value:
+**  	An LDAP_* constant.
+*/
+
+int
+dkimf_db_open_ldap(LDAP **ld, struct dkimf_db_ldap *ldap, char **err)
+{
+	int v = LDAP_VERSION3;
+	int n;
+	int lderr;
+	char *q;
+	char *r;
+	char *u;
+	struct timeval timeout;
+
+	assert(ld != NULL);
+	assert(ldap != NULL);
+
+	/* create LDAP handle */
+	lderr = ldap_initialize(ld, ldap->ldap_urilist);
+	if (lderr != LDAP_SUCCESS)
+	{
+		if (err != NULL)
+			*err = ldap_err2string(lderr);
+		return lderr;
+	}
+
+	/* set LDAP version */
+	lderr = ldap_set_option(*ld, LDAP_OPT_PROTOCOL_VERSION, &v);
+	if (lderr != LDAP_OPT_SUCCESS)
+	{
+		if (err != NULL)
+			*err = ldap_err2string(lderr);
+		ldap_unbind_ext(*ld, NULL, NULL);
+		*ld = NULL;
+		return lderr;
+	}
+
+	/* enable auto-restarts */
+	lderr = ldap_set_option(*ld, LDAP_OPT_RESTART, LDAP_OPT_ON);
+	if (lderr != LDAP_OPT_SUCCESS)
+	{
+		if (err != NULL)
+			*err = ldap_err2string(lderr);
+		ldap_unbind_ext(*ld, NULL, NULL);
+		*ld = NULL;
+		return lderr;
+	}
+
+	/* request timeouts */
+	q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_TIMEOUT];
+	timeout.tv_sec = DKIMF_LDAP_DEFTIMEOUT;
+	timeout.tv_usec = 0;
+	if (q != NULL)
+	{
+		errno = 0;
+		timeout.tv_sec = strtoul(q, &r, 10);
+		if (errno == ERANGE)
+			timeout.tv_sec = DKIMF_LDAP_DEFTIMEOUT;
+	}
+
+	lderr = ldap_set_option(*ld, LDAP_OPT_TIMEOUT, &timeout);
+	if (lderr != LDAP_OPT_SUCCESS)
+	{
+		if (err != NULL)
+			*err = ldap_err2string(lderr);
+		ldap_unbind_ext(*ld, NULL, NULL);
+		*ld = NULL;
+		return lderr;
+	}
+
+	/* request keepalive */
+	q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_KA_IDLE];
+	if (q != NULL)
+	{
+		errno = 0;
+		n = strtoul(q, &r, 10);
+		if (errno != ERANGE)
+		{
+			lderr = ldap_set_option(*ld, LDAP_OPT_X_KEEPALIVE_IDLE,
+			                        &n);
+			if (lderr != LDAP_OPT_SUCCESS)
+			{
+				if (err != NULL)
+					*err = ldap_err2string(lderr);
+				ldap_unbind_ext(*ld, NULL, NULL);
+				*ld = NULL;
+				return lderr;
+			}
+		}
+	}
+
+	q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_KA_PROBES];
+	if (q != NULL)
+	{
+		errno = 0;
+		n = strtoul(q, &r, 10);
+		if (errno != ERANGE)
+		{
+			lderr = ldap_set_option(*ld,
+			                        LDAP_OPT_X_KEEPALIVE_PROBES,
+			                        &n);
+			if (lderr != LDAP_OPT_SUCCESS)
+			{
+				if (err != NULL)
+					*err = ldap_err2string(lderr);
+				ldap_unbind_ext(*ld, NULL, NULL);
+				*ld = NULL;
+				return lderr;
+			}
+		}
+	}
+
+	q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_KA_INTERVAL];
+	if (q != NULL)
+	{
+		errno = 0;
+		n = strtoul(q, &r, 10);
+		if (errno != ERANGE)
+		{
+			lderr = ldap_set_option(*ld,
+			                        LDAP_OPT_X_KEEPALIVE_INTERVAL,
+			                        &n);
+			if (lderr != LDAP_OPT_SUCCESS)
+			{
+				if (err != NULL)
+					*err = ldap_err2string(lderr);
+				ldap_unbind_ext(*ld, NULL, NULL);
+				*ld = NULL;
+				return lderr;
+			}
+		}
+	}
+
+	/* attempt TLS if requested, except for ldaps */
+	q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_USETLS];
+	if (q != NULL && (*q == 'y' || *q == 'Y') &&
+	    strcasecmp(ldap->ldap_descr->lud_scheme, "ldaps") != 0)
+	{
+		lderr = ldap_start_tls_s(*ld, NULL, NULL);
+		if (lderr != LDAP_SUCCESS)
+		{
+			if (err != NULL)
+				*err = ldap_err2string(lderr);
+			ldap_unbind_ext(*ld, NULL, NULL);
+			*ld = NULL;
+			return lderr;
+		}
+	}
+
+	/* attempt binding */
+	q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_AUTHMECH];
+	u = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_BINDUSER];
+	if (q == NULL || strcasecmp(q, "none") == 0 ||
+	    strcasecmp(q, "simple") == 0)
+	{
+		struct berval passwd;
+
+		r = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_BINDPW];
+		if (r != NULL)
+		{
+			passwd.bv_val = r;
+			passwd.bv_len = strlen(r);
+		}
+		else
+		{
+			passwd.bv_val = NULL;
+			passwd.bv_len = 0;
+		}
+
+		lderr = ldap_sasl_bind_s(*ld, u, q, &passwd,
+		                         NULL, NULL, NULL);
+		if (lderr != LDAP_SUCCESS)
+		{
+			if (err != NULL)
+				*err = ldap_err2string(lderr);
+			ldap_unbind_ext(*ld, NULL, NULL);
+			*ld = NULL;
+			return lderr;
+		}
+	}
+	else
+	{
+# ifdef USE_SASL
+		lderr = ldap_sasl_interactive_bind_s(*ld,
+		                                     u,	/* bind user */
+		                                     q,	/* SASL mech */
+		                                     NULL, /* controls */
+		                                     NULL, /* controls */
+		                                     LDAP_SASL_QUIET, /* flags */
+		                                     dkimf_db_saslinteract, /* callback */
+		                                     NULL);
+		if (lderr != LDAP_SUCCESS)
+		{
+			if (err != NULL)
+				*err = ldap_err2string(lderr);
+			ldap_unbind_ext(*ld, NULL, NULL);
+			*ld = NULL;
+			return lderr;
+		}
+
+# else /* USE_SASL */
+
+		/* unknown auth mechanism */
+		if (err != NULL)
+			*err = "Unknown auth mechanism";
+		ldap_unbind_ext(*ld, NULL, NULL);
+		*ld = NULL;
+		return LDAP_AUTH_METHOD_NOT_SUPPORTED;
+
+# endif /* USE_SASL */
+	}
+
+	return LDAP_SUCCESS;
+}
+#endif /* USE_LDAP */
+
 /*
 **  DKIMF_DB_TYPE -- return database type
 **
@@ -987,6 +1267,460 @@ dkimf_db_type(DKIMF_DB db)
 
 	return db->db_type;
 }
+
+#ifdef USE_ERLANG
+/*
+**  DKIMF_DB_ERL_CONNECT -- connect to a distributed Erlang node
+**
+**  Parameters:
+**	db -- DKIMF_DB handle
+**	ecp -- Pointer to ei_cnode
+**
+**  Return value:
+**	File descriptor or -1 on error.
+*/
+
+static int
+dkimf_db_erl_connect(DKIMF_DB db, ei_cnode *ecp)
+{
+	int fd;
+	int ret;
+	int instance;
+	unsigned int seed;
+	char node_name[12];
+	struct timeval tv;
+	char *q;
+	char *last;
+	struct dkimf_db_erlang *e;
+
+	gettimeofday(&tv, NULL);
+	seed = tv.tv_sec * tv.tv_usec;
+	instance = rand_r(&seed) % 999;
+
+	e = (struct dkimf_db_erlang *) db->db_data;
+
+	snprintf(node_name, sizeof node_name, "opendkim%d", instance);
+
+	ret = ei_connect_init(ecp, node_name, e->erlang_cookie, instance);
+	if (ret != 0)
+		return -1;
+
+	fd = -1;
+	for (q = strtok_r(e->erlang_nodes, ",", &last);
+	     q != NULL;
+	     q = strtok_r(NULL, ",", &last))
+	{
+		fd = ei_connect(ecp, q);
+		if (fd >= 0)
+			break;
+	}
+	if (fd < 0)
+		return -1;
+
+	return fd;
+}
+
+/*
+**  DKIMF_DB_ERL_FREE -- free allocated memory for Erlang configuration
+**
+**  Parameters:
+**	ep -- Pointer to struct dkimf_db_erlang
+**
+**  Return value:
+**	None.
+*/
+
+static void
+dkimf_db_erl_free(struct dkimf_db_erlang *ep)
+{
+	if (ep == NULL)
+		return;
+	if (ep->erlang_nodes != NULL)
+		free(ep->erlang_nodes);
+	if (ep->erlang_module != NULL)
+		free(ep->erlang_module);
+	if (ep->erlang_function != NULL)
+		free(ep->erlang_function);
+	if (ep->erlang_cookie != NULL)
+		free(ep->erlang_cookie);
+	free(ep);
+}
+
+/*
+**  DKIMF_DB_ERL_ALLOC_BUFFER -- allocate memory for a char* buffer
+**                               depending on erlang response size
+**
+**  Parameters:
+**	eip -- pointer to response ei_x_buff
+**	index -- pointer to current response index
+**	sizep -- size of response (returned)
+**
+** Return value:
+**	Pointer to allocated buffer or NULL on error.
+*/
+
+static char *
+dkimf_db_erl_alloc_buffer(ei_x_buff *eip, int *index, int *sizep)
+{
+	int err;
+	int type, size;
+
+	err = ei_get_type(eip->buff, index, &type, &size);
+	if (err < 0)
+		return NULL;
+	*sizep = size + 1;
+	return malloc(*sizep);
+}
+
+/*
+**  DKIMF_DB_ERL_DECODE_ATOM -- decode an Erlang atom and check it
+**                              against its desired value
+**
+**  Parameters:
+**	eip -- pointer to response ei_x_buff
+**	index -- pointer to current response index
+**	cmp -- desired atom value
+**
+**  Return value:
+**	0 if the atom value matches de desired value, != 0 otherwise.
+*/
+
+static int
+dkimf_db_erl_decode_atom(ei_x_buff *eip, int *index, const char *cmp)
+{
+	int err;
+	int size;
+	int ret;
+	char *buf;
+
+	buf = dkimf_db_erl_alloc_buffer(eip, index, &size);
+	err = ei_decode_atom(eip->buff, index, buf);
+	if (err != 0)
+		return err;
+	buf[size - 1] = '\0';
+
+	ret = strcmp(buf, cmp);
+
+	free(buf);
+	return ret;
+}
+
+/*
+**  DKIMF_DB_ERL_DECODE_TUPLE -- decode an Erlang tuple, optionally
+**                               checking its arity
+**
+**  Parameters:
+**	eip -- pointer to response ei_x_buff
+**	index -- pointer to current response index
+**	num_elements -- pointer desired tuple arity (returned)
+**
+**  Return value:
+**	0 -- success
+**	-1 -- error.
+**
+**  Notes:
+**	If num_elements points to a positive number, the decoded tuple
+**	arity is checked against it, and if the values differ, the function
+**      will return an error.  Otherwise, num_elements is set to the decoded
+**      tuple arity.
+*/
+
+static int
+dkimf_db_erl_decode_tuple(ei_x_buff *eip, int *index, int *num_elements)
+{
+	int err;
+	int arity;
+
+	err = ei_decode_tuple_header(eip->buff, index, &arity);
+	if (err < 0)
+		return err;
+	if (*num_elements > 0 && *num_elements != arity)
+		return -1;
+	*num_elements = arity;
+	return 0;
+}
+
+/*
+**  DKIMF_DB_ERL_DECODE_BITSTRING -- decode an Erlang bitstring
+**
+**  Parameters:
+**	eip -- pointer to response ei_x_buff
+**	index -- pointer to current response index
+**
+**  Return value:
+**	Pointer to allocated buffer used to store the bitstring value
+**      or NULL on error.
+**
+**  Notes:
+**	The caller is responsible for freeing the buffer.
+*/
+
+static char *
+dkimf_db_erl_decode_bitstring(ei_x_buff *eip, int *index)
+{
+	int err;
+	int size;
+	long len;
+	char *buf;
+
+	buf = dkimf_db_erl_alloc_buffer(eip, index, &size);
+	err = ei_decode_binary(eip->buff, index, buf, &len);
+	if (err < 0)
+		return NULL;
+	buf[size - 1] = '\0';
+	return buf;
+}
+
+/*
+**  DKIMF_DB_ERL_DECODE_INTEGER -- decode an Erlang integer
+**
+**  Parameters:
+**	eip -- pointer to response ei_x_buff
+**	index -- pointer to current response index
+**      val -- pointer to decoded integer (returned)
+**
+**  Return value:
+**	0: success
+**      < 0: error
+*/
+
+static int
+dkimf_db_erl_decode_int(ei_x_buff *eip, int *index, long *val)
+{
+	int err;
+
+	err = ei_decode_long(eip->buff, index, val);
+	if (err < 0)
+		return err;
+	return 0;
+}
+
+/*
+**  DKIMF_DB_ERL_DECODE_RESPONSE -- decode an Erlang RPC response
+**
+**  Parameters:
+**	resp -- pointer to response ei_x_buff
+**      notfound -- string containing the atom to be returned in case
+**                  of a record not found
+**	req -- list of data requests
+**	reqnum -- number of data requests
+**  	key -- buffer to receive the key (may be NULL)
+**  	keylen -- bytes available at "key" (updated)
+**
+**  Return value:
+**	-1: error
+**      1: record not found
+**	0: success
+**
+**  Notes:
+**	Assumes keys returned from Erlang are either integers or
+**      bitstrings.
+*/
+
+static int
+dkimf_db_erl_decode_response(ei_x_buff *resp, const char *notfound,
+                             DKIMF_DBDATA req, unsigned int reqnum,
+                             char *key, size_t *keylen)
+{
+	int ret;
+	int res_index, res_type, res_size;
+
+	res_index = 0;
+	ret = ei_get_type(resp->buff, &res_index, &res_type, &res_size);
+	if (ret != 0)
+		return -1;
+
+	switch (res_type)
+	{
+	  case ERL_ATOM_EXT:
+	  {
+		/*
+		**  If we got an atom then it must signal record not found or
+		**  no more records in the table.
+		*/
+
+		ret = dkimf_db_erl_decode_atom(resp, &res_index, notfound);
+		if (ret != 0)
+			return -1;
+		return 1;
+	  }
+
+	  case ERL_SMALL_TUPLE_EXT:
+	  case ERL_LARGE_TUPLE_EXT:
+	  {
+		/* got a tuple {ok, something} */
+		int nres;
+		int arity;
+
+		arity = 2;
+		ret = dkimf_db_erl_decode_tuple(resp, &res_index, &arity);
+		if (ret == -1)
+			return -1;
+		ret = dkimf_db_erl_decode_atom(resp, &res_index, "ok");
+		if (ret != 0)
+			return -1;
+
+		ret = ei_get_type(resp->buff, &res_index, &res_type,
+		                  &res_size);
+		if (ret < 0)
+			return -1;
+
+		switch (res_type)
+		{
+		  case ERL_SMALL_INTEGER_EXT:
+		  case ERL_INTEGER_EXT:
+		  {
+			/*
+			**  The tuple is {ok, IntegerDomainId}
+			**  (we were called from SigningTable)
+			*/
+
+			int c;
+			int n;
+			long val;
+
+			if (reqnum == 0)
+				return 0;
+			ret = dkimf_db_erl_decode_int(resp, &res_index, &val);
+			if (ret != 0)
+				return -1;
+			n = snprintf(req[0].dbdata_buffer,
+			             req[0].dbdata_buflen, "%ld", val);
+			req[0].dbdata_buflen = n + 1;
+			for (c = 1; c < reqnum; c++)
+				req[c].dbdata_buflen = 0;
+			return 0;
+		  }
+
+		  case ERL_BINARY_EXT:
+		  {
+			/*
+			**  The tuple is {ok, BitstringDomainId}
+			**  (we were called from SigningTable)
+			*/
+
+			int c;
+			char *val;
+
+			if (reqnum == 0)
+				return 0;
+			val = dkimf_db_erl_decode_bitstring(resp, &res_index);
+			if (val == NULL)
+				return -1;
+			req[0].dbdata_buflen = strlcpy(req[0].dbdata_buffer,
+			                               val,
+			                               req[0].dbdata_buflen);
+			free(val);
+			for (c = 1; c < reqnum; c++)
+				req[c].dbdata_buflen = 0;
+			return 0;
+		  }
+
+		  case ERL_SMALL_TUPLE_EXT:
+		  case ERL_LARGE_TUPLE_EXT:
+		  {
+			/*
+			**  The tuple is either
+			**   {ok, {Cursor, Domain, Selector, PrivKey}}
+			**  (we were called from dkimf_db_walk()); or
+			**   {ok, {Domain, Selector, PrivKey}
+			**  (we were called from dkimf_db_get()).
+			*/
+
+			int c;
+			arity = 0;
+
+			ret = dkimf_db_erl_decode_tuple(resp, &res_index,
+			                                &arity);
+			if (ret == -1)
+				return -1;
+
+			if (key != NULL && keylen != NULL)
+			{
+				ret = ei_get_type(resp->buff, &res_index,
+				                  &res_type, &res_size);
+				if (ret != 0)
+					return -1;
+
+				switch (res_type)
+				{
+				  case ERL_SMALL_INTEGER_EXT:
+				  case ERL_INTEGER_EXT:
+				  {
+					int n;
+					long val;
+					ret = dkimf_db_erl_decode_int(resp,
+					                              &res_index,
+					                              &val);
+					if (ret != 0)
+						return -1;
+					n = snprintf(key, *keylen, "%ld", val);
+					*keylen = n + 1;
+					break;
+				  }
+
+				  case ERL_BINARY_EXT:
+				  {
+					char *val;
+					val = dkimf_db_erl_decode_bitstring(resp,
+					                                    &res_index);
+					if (val == NULL)
+						return -1;
+
+					*keylen = dkim_strlcpy(key, val,
+					                       *keylen);
+					free(val);
+					break;
+				  }
+
+				  default:
+					return -1;
+				}
+			}
+
+			if (reqnum == 0)
+				return 0;
+
+			ret = ei_get_type(resp->buff, &res_index, &res_type,
+			                  &res_size);
+			if (ret != 0)
+				return -1;
+
+			nres = (key != NULL && keylen != NULL) ? arity - 1
+			                                       : arity;
+			for (c = 0; c < reqnum; c++)
+			{
+				if (c >= nres)
+				{
+					req[c].dbdata_buflen = 0;
+				}
+				else
+				{
+					char *val;
+					val = dkimf_db_erl_decode_bitstring(resp,
+					                                    &res_index);
+					if (val == NULL)
+						return -1;
+					req[c].dbdata_buflen = dkim_strlcpy(req[c].dbdata_buffer,
+					                       val,
+					                       req[c].dbdata_buflen);
+					free(val);
+				}
+			}
+
+			return 0;
+		  }
+
+		  default:
+			  return -1;
+		}
+	  }
+
+	  default:
+		return -1;
+	}
+}
+#endif /* USE_ERLANG */
 
 /*
 **  DKIMF_DB_OPEN -- open a database
@@ -1025,6 +1759,7 @@ dkimf_db_type(DKIMF_DB db)
 **  	       with interface provided by OpenDBX
 **  	ldap -- an LDAP server, interace provide by OpenLDAP
 **  	lua -- a Lua script; the returned value is the result
+**  	erlang -- an erlang function to be called in a distributed erlang node
 */
 
 int
@@ -1102,7 +1837,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 	}
 
 	/* force DB accesses to be mutex-protected */
-	if (new->db_type == DKIMF_DB_TYPE_DSN)
+	if (new->db_type == DKIMF_DB_TYPE_DSN ||
+	    new->db_type == DKIMF_DB_TYPE_SOCKET)
 		new->db_flags |= DKIMF_DB_FLAG_MAKELOCK;
 
 	/* use provided lock, or create a new one if needed */
@@ -2059,7 +2795,18 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		}
 
 		memset(ldap, '\0', sizeof *ldap);
-		ldap->ldap_timeout = DKIMF_LDAP_TIMEOUT;
+		q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_TIMEOUT];
+		if (q == NULL)
+		{
+			ldap->ldap_timeout = DKIMF_LDAP_DEFTIMEOUT;
+		}
+		else
+		{
+			errno = 0;
+			ldap->ldap_timeout = strtoul(q, &r, 10);
+			if (errno == ERANGE)
+				ldap->ldap_timeout = DKIMF_LDAP_DEFTIMEOUT;
+		}
 
 		/*
 		**  General format of an LDAP specification:
@@ -2106,7 +2853,6 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			                descr->lud_host,
 			                descr->lud_port);
 
-
 			if (plen >= rem)
 			{
 				if (err != NULL)
@@ -2117,14 +2863,15 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 				return -1;
 			}
 
+			q += plen;
 			rem -= plen;
 
 			ldap_free_urldesc(descr);
 		}
 
-		/* create LDAP handle */
-		lderr = ldap_initialize(&ld, ldap->ldap_urilist);
-		if (lderr != LDAP_SUCCESS)
+		lderr = dkimf_db_open_ldap(&ld, ldap, err);
+		if (lderr != LDAP_SUCCESS &&
+		    (flags & DKIMF_DB_FLAG_SOFTSTART) == 0)
 		{
 			if (err != NULL)
 				*err = ldap_err2string(lderr);
@@ -2132,104 +2879,10 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			free(p);
 			free(new);
 			return -1;
-		}
-
-		/* set LDAP version */
-		lderr = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &v);
-		if (lderr != LDAP_OPT_SUCCESS)
-		{
-			if (err != NULL)
-				*err = ldap_err2string(lderr);
-			ldap_unbind_ext(ld, NULL, NULL);
-			free(ldap);
-			free(p);
-			free(new);
-			return -1;
-		}
-
-		/* attempt TLS if requested, except for ldaps and ldapi */
-		q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_USETLS];
-		if (q != NULL && (*q == 'y' || *q == 'Y') &&
-		    strcasecmp(ldap->ldap_descr->lud_scheme, "ldapi") != 0 &&
-		    strcasecmp(ldap->ldap_descr->lud_scheme, "ldaps") != 0)
-		{
-			lderr = ldap_start_tls_s(ld, NULL, NULL);
-			if (lderr != LDAP_SUCCESS)
-			{
-				if (err != NULL)
-					*err = ldap_err2string(lderr);
-				ldap_unbind_ext(ld, NULL, NULL);
-				free(ldap);
-				free(p);
-				free(new);
-				return -1;
-			}
-		}
-
-		/* attempt binding */
-		q = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_AUTHMECH];
-		u = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_BINDUSER];
-		if (q == NULL || strcasecmp(q, "none") == 0 ||
-		    strcasecmp(q, "simple") == 0)
-		{
-			struct berval passwd;
-
-			r = dkimf_db_ldap_param[DKIMF_LDAP_PARAM_BINDPW];
-			if (r != NULL)
-			{
-				passwd.bv_val = r;
-				passwd.bv_len = strlen(r);
-			}
-			else
-			{
-				passwd.bv_val = NULL;
-				passwd.bv_len = 0;
-			}
-
-			lderr = ldap_sasl_bind_s(ld, u, q, &passwd,
-			                         NULL, NULL, NULL);
-			if (lderr != LDAP_SUCCESS)
-			{
-				if (err != NULL)
-					*err = ldap_err2string(lderr);
-				ldap_unbind_ext(ld, NULL, NULL);
-				free(ldap);
-				free(p);
-				free(new);
-				return -1;
-			}
 		}
 		else
 		{
-# ifdef USE_SASL
-			lderr = ldap_sasl_interactive_bind_s(ld,
-			                                     u,	/* bind user */
-			                                     q,	/* SASL mech */
-			                                     NULL, /* controls */
-			                                     NULL, /* controls */
-			                                     LDAP_SASL_QUIET, /* flags */
-			                                     dkimf_db_saslinteract, /* callback */
-			                                     NULL);
-			if (lderr != LDAP_SUCCESS)
-			{
-				if (err != NULL)
-					*err = ldap_err2string(lderr);
-				ldap_unbind_ext(ld, NULL, NULL);
-				free(ldap);
-				free(p);
-				free(new);
-				return -1;
-			}
-# else /* USE_SASL */
-			/* unknown auth mechanism */
-			if (err != NULL)
-				*err = "Unknown auth mechanism";
-			ldap_unbind_ext(ld, NULL, NULL);
-			free(ldap);
-			free(p);
-			free(new);
-			return -1;
-# endif /* USE_SASL */
+			ld = NULL;
 		}
 
 		pthread_mutex_init(&ldap->ldap_lock, NULL);
@@ -2494,6 +3147,495 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		break;
 	  }
 #endif /* _FFR_REPUTATION */
+
+#ifdef _FFR_SOCKETDB
+	  case DKIMF_DB_TYPE_SOCKET:
+	  {
+		int fd;
+		int status;
+		char *colon;
+		struct dkimf_db_socket *sdb;
+
+		sdb = (struct dkimf_db_socket *) malloc(sizeof *sdb);
+		if (sdb == NULL)
+		{
+			if (err != NULL)
+				*err = strerror(errno);
+			free(new);
+			return 2;
+		}
+
+		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
+		{
+			if (err != NULL)
+				*err = strerror(EINVAL);
+			free(new);
+			errno = EINVAL;
+			return 2;
+		}
+
+		if (*p == '/')
+		{					/* UNIX domain */
+			struct sockaddr_un sun;
+
+			fd = socket(AF_UNIX, SOCK_STREAM, 0);
+			if (fd < 0)
+			{
+				if (err != NULL)
+					*err = strerror(errno);
+				free(new);
+				return 2;
+			}
+
+			memset(&sun, '\0', sizeof sun);
+			sun.sun_family = AF_UNIX;
+			sun.sun_len = sizeof(sun);
+			dkim_strlcpy(sun.sun_path, p, sizeof(sun.sun_path));
+
+			status = connect(fd, (struct sockaddr *) &sun,
+			                 sizeof sun);
+			if (status < 0)
+			{
+				if (err != NULL)
+					*err = strerror(errno);
+				free(new);
+				return 2;
+			}
+		}
+		else
+		{					/* port@host */
+			int af;
+			char *at;
+			char *q;
+			uint16_t port;
+			struct sockaddr_storage ss;
+			struct in_addr ip4;
+# ifdef AF_INET6
+			struct in6_addr ip6;
+# endif /* AF_INET6 */
+
+			at = strchr(p, '@');
+			if (at == NULL)
+			{
+				if (err != NULL)
+					*err = strerror(EINVAL);
+				free(new);
+				errno = EINVAL;
+				return 2;
+			}
+
+			*at = '\0';
+
+			port = (uint16_t) strtoul(p, &q, 10);
+			if (*q != '\0')
+			{
+				struct servent *srv;
+
+				srv = getservbyname(p, "tcp");
+				if (srv == NULL)
+				{
+					if (err != NULL)
+						*err = strerror(EINVAL);
+					free(new);
+					errno = EINVAL;
+					return 2;
+				}
+
+				port = srv->s_port;
+			}
+			else
+			{
+				port = htons(port);
+			}
+
+			fd = -1;
+
+			if (inet_pton(AF_INET, at + 1, &ip4) == 1)
+			{
+				af = AF_INET;
+			}
+# ifdef AF_INET6
+			else if (inet_pton(AF_INET6, at + 1, &ip6) == 1)
+			{
+				af = AF_INET6;
+			}
+# endif /* AF_INET6 */
+			else
+			{
+# ifdef HAVE_GETADDRINFO
+				int save_errno;
+				struct addrinfo hint;
+				struct addrinfo *aitop;
+				struct addrinfo *aicur;
+				struct protoent *proto;
+
+				proto = getprotobyname("tcp");
+				if (proto == NULL)
+				{
+					if (err != NULL)
+						*err = strerror(EPROTONOSUPPORT);
+					free(new);
+					errno = EPROTONOSUPPORT;
+					return 2;
+				}
+
+				memset(&hint, '\0', sizeof hint);
+				hint.ai_protocol = proto->p_proto;
+
+				status = getaddrinfo(at + 1, p, &hint, &aitop);
+				if (status != 0)
+				{
+					if (err != NULL)
+						*err = (char *) gai_strerror(status);
+					free(new);
+					errno = EINVAL;
+					return 2;
+				}
+
+				for (aicur = aitop;
+				     aicur != NULL;
+				     aicur = aicur->ai_next)
+				{
+					fd = socket(aicur->ai_family,
+					            aicur->ai_socktype,
+					            aicur->ai_protocol);
+					if (fd == -1)
+					{
+						save_errno = errno;
+						continue;
+					}
+
+					status = connect(fd, aicur->ai_addr,
+					                 aicur->ai_addrlen);
+					if (status == 0)
+						break;
+
+					save_errno = errno;
+					close(fd);
+					fd = -1;
+				}
+
+				freeaddrinfo(aitop);
+
+				if (fd == -1)
+				{
+					if (err != NULL)
+						*err = strerror(save_errno);
+					free(new);
+					errno = save_errno;
+					return 2;
+				}
+# else /* HAVE_GETADDRINFO */
+				struct hostent *h;
+				struct sockaddr_in sin4;
+#  ifdef HAVE_GETHOSTBYNAME2
+				struct sockaddr_in6 sin6;
+
+				h = gethostbyname2(at + 1, AF_INET6);
+				if (h != NULL)
+				{
+					af = AF_INET6;
+
+					fd = socket(AF_INET6, SOCK_STREAM, 0);
+					if (fd < 0)
+					{
+						if (err != NULL)
+							*err = strerror(errno);
+						free(new);
+						return 2;
+					}
+
+					for (c = 0;
+					     h->h_addr_list[c] != NULL;
+					     c++)
+					{
+						memset(&sin6, '\0',
+						       sizeof sin6);
+
+						sin6.sin6_family = AF_INET6;
+						sin6.sin6_port = port;
+						memcpy(&sin6.sin6_addr,
+						       h->h_addr_list[c],
+						       sizeof sin6.sin6_addr);
+
+						status = connect(fd,
+						                 (struct sockaddr *) &sin6,
+						                 sizeof sin6);
+						if (status == 0)
+							break;
+
+						save_errno = errno;
+					}
+
+					close(fd);
+					fd = -1;
+				}
+#  endif /* HAVE_GETHOSTBYNAME2 */
+
+				h = gethostbyname(at + 1);
+				if (h != NULL)
+				{
+					af = AF_INET;
+
+					fd = socket(AF_INET, SOCK_STREAM, 0);
+					if (fd < 0)
+					{
+						if (err != NULL)
+							*err = strerror(errno);
+						free(new);
+						return 2;
+					}
+
+					for (c = 0;
+					     h->h_addr_list[c] != NULL;
+					     c++)
+					{
+						memset(&sin4, '\0',
+						       sizeof sin4);
+
+						sin.sin_family = AF_INET;
+						sin.sin_port = port;
+						memcpy(&sin.sin_addr,
+						       h->h_addr_list[c],
+						       sizeof sin.sin_addr);
+
+						status = connect(fd,
+						                 (struct sockaddr *) &sin4,
+						                 sizeof sin4);
+						if (status == 0)
+							break;
+
+						save_errno = errno;
+					}
+
+					close(fd);
+					fd = -1;
+				}
+
+				if (fd == -1)
+				{
+					if (err != NULL)
+						*err = strerror(save_errno);
+					free(new);
+					errno = save_errno;
+					return 2;
+				}
+# endif /* HAVE_GETADDRINFO */
+			}
+
+			if (fd == -1)
+			{
+				int save_errno;
+
+				fd = socket(af, SOCK_STREAM, 0);
+				if (fd < 0)
+				{
+					if (err != NULL)
+						*err = strerror(errno);
+					free(new);
+					return 2;
+				}
+
+# ifdef AF_INET6
+				if (af == AF_INET6)
+				{
+					struct sockaddr_in6 sin6;
+
+					memset(&sin6, '\0', sizeof sin6);
+
+					sin6.sin6_family = AF_INET6;
+					sin6.sin6_port = port;
+					memcpy(&sin6.sin6_addr, &ip6,
+					       sizeof sin6.sin6_addr);
+
+					status = connect(fd,
+					                 (struct sockaddr *) &sin6,
+					                 sizeof sin6);
+
+					if (status != 0)
+					{
+						save_errno = errno;
+						close(fd);
+						if (err != NULL)
+							*err = strerror(save_errno);
+						free(new);
+						return 2;
+					}
+				}
+# endif /* AF_INET6 */
+
+				if (af == AF_INET)
+				{
+					struct sockaddr_in sin4;
+
+					memset(&sin4, '\0', sizeof sin4);
+
+					sin4.sin_family = AF_INET;
+					sin4.sin_port = port;
+					memcpy(&sin4.sin_addr, &ip4,
+					       sizeof sin4.sin_addr);
+
+					status = connect(fd,
+					                 (struct sockaddr *) &sin4,
+					                 sizeof sin4);
+
+					if (status != 0)
+					{
+						save_errno = errno;
+						close(fd);
+						if (err != NULL)
+							*err = strerror(save_errno);
+						free(new);
+						return 2;
+					}
+				}
+			}
+		}
+
+		sdb->sockdb_fd = fd;
+		sdb->sockdb_buf = dkimf_dstring_new(BUFRSZ, 0);
+
+		new->db_handle = sdb;
+
+		break;
+	  }
+#endif /* _FFR_SOCKETDB */
+
+#ifdef USE_MDB
+	  case DKIMF_DB_TYPE_MDB:
+	  {
+		int status;
+		struct dkimf_db_mdb *mdb;
+
+		mdb = (struct dkimf_db_mdb *) malloc(sizeof *mdb);
+		if (mdb == NULL)
+			return -1;
+
+		status = mdb_env_create(&mdb->mdb_env);
+		if (status != 0)
+		{
+			if (err != NULL)
+				*err = mdb_strerror(status);
+			free(mdb);
+			return -1;
+		}
+
+		status = mdb_env_open(mdb->mdb_env, p, 0, 0);
+		if (status != 0)
+		{
+			if (err != NULL)
+				*err = mdb_strerror(status);
+			mdb_env_close(mdb->mdb_env);
+			free(mdb);
+			return -1;
+		}
+
+		status = mdb_txn_begin(mdb->mdb_env, NULL, 0, &mdb->mdb_txn);
+		if (status != 0)
+		{
+			if (err != NULL)
+				*err = mdb_strerror(status);
+			mdb_env_close(mdb->mdb_env);
+			free(mdb);
+			return -1;
+		}
+
+		status = mdb_open(mdb->mdb_txn, NULL, 0, &mdb->mdb_dbi);
+		if (status != 0)
+		{
+			if (err != NULL)
+				*err = mdb_strerror(status);
+			mdb_txn_abort(mdb->mdb_txn);
+			mdb_env_close(mdb->mdb_env);
+			free(mdb);
+			return -1;
+		}
+
+		new->db_data = (void *) mdb;
+
+		break;
+	  }
+#endif /* USE_MDB */
+
+#ifdef USE_ERLANG
+	  case DKIMF_DB_TYPE_ERLANG:
+	  {
+		_Bool err = FALSE;
+		int c;
+		char *q;
+		char *last;
+		char *r;
+		char *tmp;
+		struct dkimf_db_erlang *e;
+
+		/*
+		**  Erlang dataset configuration format:
+		**   erlang:node1,node2,...:cookie:module:function
+		*/
+
+		tmp = strdup(p);
+		if (tmp == NULL)
+			return -1;
+
+		e = calloc(1, sizeof *e);
+		if (e == NULL)
+		{
+			free(tmp);
+			return -1;
+		}
+
+		c = 0;
+
+		for (q = strtok_r(tmp, ":", &last);
+		     !err && q != NULL;
+		     q = strtok_r(NULL, ":", &last))
+		{
+			switch (c)
+			{
+			  case 0:
+				e->erlang_nodes = strdup(q);
+				if (e->erlang_nodes == NULL)
+					err = TRUE;
+				break;
+
+			  case 1:
+				e->erlang_cookie = strdup(q);
+				if (e->erlang_cookie == NULL)
+					err = TRUE;
+				break;
+
+			  case 2:
+				e->erlang_module = strdup(q);
+				if (e->erlang_module == NULL)
+					err = TRUE;
+				break;
+
+			  case 3:
+				e->erlang_function = strdup(q);
+				if (e->erlang_function == NULL)
+					err = TRUE;
+				break;
+
+			  case 4:
+				err = TRUE;
+				break;
+			}
+
+			c++;
+		}
+
+		if (err || c < 3)
+		{
+			free(tmp);
+			dkimf_db_erl_free(e);
+			return -1;
+		}
+
+		new->db_data = e;
+		free(tmp);
+		break;
+	  }
+#endif /* USE_ERLANG */
 	}
 
 	*db = new;
@@ -2534,7 +3676,8 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 	    db->db_type == DKIMF_DB_TYPE_LUA || 
 	    db->db_type == DKIMF_DB_TYPE_MEMCACHE || 
 	    db->db_type == DKIMF_DB_TYPE_REPUTE || 
-	    db->db_type == DKIMF_DB_TYPE_REFILE)
+	    db->db_type == DKIMF_DB_TYPE_REFILE ||
+	    db->db_type == DKIMF_DB_TYPE_ERLANG)
 		return EINVAL;
 
 #ifdef USE_DB
@@ -2672,6 +3815,13 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	int status;
 	DB *bdb;
 #endif /* USE_DB */
+#ifdef USE_MDB
+	MDB_val key;
+	MDB_val data;
+	MDB_dbi dbi;
+	MDB_txn *txn;
+	struct dkimf_db_mdb *mdb;
+#endif /* USE_MDB */
 
 	assert(db != NULL);
 	assert(buf != NULL);
@@ -2820,6 +3970,36 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	if (db->db_lock != NULL)
 		(void) pthread_mutex_unlock(db->db_lock);
 #endif /* USE_DB */
+
+#ifdef USE_MDB
+	mdb = db->db_data;
+
+	if (db->db_lock != NULL)
+		(void) pthread_mutex_lock(db->db_lock);
+
+	key.mv_data = outbuf;
+	key.mv_size = outbuflen;
+	data.mv_data = (char *) buf;
+	data.mv_size = (buflen == 0 ? strlen(buf) : buflen);
+
+	if (mdb_txn_begin(mdb->mdb_env, NULL, 0, &txn) == 0 &&
+	    mdb_open(txn, NULL, 0, &dbi) == 0 &&
+	    mdb_put(txn, dbi, &key, &data, 0) == 0)
+		ret = 0;
+	else
+		ret = -1;
+
+	if (txn != NULL)
+	{
+		if (ret == 0)
+			mdb_txn_commit(txn);
+		else
+			mdb_txn_abort(txn);
+	}
+
+	if (db->db_lock != NULL)
+		(void) pthread_mutex_unlock(db->db_lock);
+#endif /* USE_MDB */
 
 	return ret;
 }
@@ -3513,6 +4693,23 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 		pthread_mutex_lock(&ldap->ldap_lock);
 
+		if (ld == NULL)
+		{
+			int lderr;
+
+			lderr = dkimf_db_open_ldap(&ld, ldap, NULL);
+			if (lderr == LDAP_SUCCESS)
+			{
+				db->db_handle = ld;
+			}
+			else
+			{
+				db->db_status = lderr;
+				pthread_mutex_unlock(&ldap->ldap_lock);
+				return lderr;
+			}
+		}
+
 #ifdef _FFR_LDAP_CACHING
 # ifdef USE_DB
 		if (ldap->ldap_cache != NULL)
@@ -3687,7 +4884,44 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		                           ldap->ldap_descr->lud_attrs,
 		                           0, NULL, NULL,
 		                           &timeout, 0, &result);
-		if (status != LDAP_SUCCESS)
+		if (LDAP_NAME_ERROR(status))
+		{
+			if (exists != NULL)
+				*exists = FALSE;
+#ifdef _FFR_LDAP_CACHING
+# ifdef USE_DB
+			ldc->ldc_absent = TRUE;
+			ldc->ldc_state = DKIMF_DB_CACHE_DATA;
+			pthread_cond_broadcast(&ldc->ldc_cond);
+# endif /* USE_DB */
+#endif /* _FFR_LDAP_CACHING */
+			pthread_mutex_unlock(&ldap->ldap_lock);
+			return 0;
+		}
+		else if (status == LDAP_SERVER_DOWN ||
+		         status == LDAP_TIMEOUT)
+		{
+			ldap_unbind_ext(ld, NULL, NULL);
+			db->db_handle = NULL;
+			if ((db->db_iflags & DKIMF_DB_IFLAG_RECONNECT) != 0)
+			{
+				db->db_status = status;
+				pthread_mutex_unlock(&ldap->ldap_lock);
+				return -1;
+			}
+
+			db->db_iflags |= DKIMF_DB_IFLAG_RECONNECT;
+
+			pthread_mutex_unlock(&ldap->ldap_lock);
+
+			status = dkimf_db_get(db, buf, buflen, req, reqnum,
+			                      exists);
+
+			db->db_iflags &= ~DKIMF_DB_IFLAG_RECONNECT;
+
+			return status;
+		}
+		else if (status != LDAP_SUCCESS)
 		{
 			db->db_status = status;
 #ifdef _FFR_LDAP_CACHING
@@ -4086,6 +5320,200 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 	  }
 #endif /* _FFR_REPUTATION */
 
+#ifdef _FFR_SOCKETDB
+	  case DKIMF_DB_TYPE_SOCKET:
+	  {
+		int status;
+		size_t len;
+		size_t wlen;
+		fd_set rfds;
+		struct timeval timeout;
+		struct iovec iov[2];
+		struct dkimf_db_socket *sdb;
+		char *tmp;
+		char inbuf[BUFRSZ];
+
+		sdb = (struct dkimf_db_socket *) db->db_handle;
+
+		timeout.tv_sec = DKIMF_SOCKET_TIMEOUT;
+		timeout.tv_usec = 0;
+
+		iov[0].iov_base = buf;
+		iov[0].iov_len = buflen;
+
+		iov[1].iov_base = "\n";
+		iov[1].iov_len = 1;
+
+		/* single-thread readers */
+		if (db->db_lock != NULL)
+			(void) pthread_mutex_lock(db->db_lock);
+
+		wlen = writev(sdb->sockdb_fd, iov, 2);
+		if (wlen < buflen + 1)
+		{
+			db->db_status = errno;
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
+			return -1;
+		}
+
+		FD_ZERO(&rfds);
+		FD_SET(sdb->sockdb_fd, &rfds);
+
+		dkimf_dstring_blank(sdb->sockdb_buf);
+
+		for (;;)
+		{
+			status = select(sdb->sockdb_fd + 1, &rfds, NULL, NULL,
+			                &timeout);
+			if (status != 1)
+			{
+				db->db_status = errno;
+				if (db->db_lock != NULL)
+					(void) pthread_mutex_unlock(db->db_lock);
+				return -1;
+			}
+
+			wlen = read(sdb->sockdb_fd, inbuf, sizeof inbuf);
+			if (wlen == (size_t) -1)
+			{
+				db->db_status = errno;
+				if (db->db_lock != NULL)
+					(void) pthread_mutex_unlock(db->db_lock);
+				return -1;
+			}
+
+			if (wlen == 0)
+				break;
+
+			dkimf_dstring_catn(sdb->sockdb_buf, inbuf, wlen);
+
+			tmp = dkimf_dstring_get(sdb->sockdb_buf);
+			len = dkimf_dstring_len(sdb->sockdb_buf);
+
+			if (tmp[len - 1] == '\n')
+				break;
+		}
+
+		if (len > 0 && exists != NULL)
+			*exists = TRUE;
+
+		if (dkimf_db_datasplit(tmp, len - 1, req, reqnum) != 0)
+		{
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
+			return -1;
+		}
+		else
+		{
+			if (db->db_lock != NULL)
+				(void) pthread_mutex_unlock(db->db_lock);
+			return 0;
+		}
+	  }
+#endif /* _FFR_SOCKETDB */
+
+#ifdef USE_MDB
+	  case DKIMF_DB_TYPE_MDB:
+	  {
+		int status;
+		struct dkimf_db_mdb *mdb;
+		MDB_val key;
+		MDB_val data;
+
+		mdb = (struct dkimf_db_mdb *) db->db_handle;
+
+		key.mv_size = buflen;
+		key.mv_data = buf;
+
+		status = mdb_get(mdb->mdb_txn, mdb->mdb_dbi, &key, &data);
+		if (status == MDB_NOTFOUND)
+		{
+			if (exists != NULL)
+				*exists = FALSE;
+		}
+		else if (status == 0)
+		{
+			if (exists != NULL)
+				*exists = TRUE;
+
+			if (dkimf_db_datasplit(data.mv_data, data.mv_size,
+			                       req, reqnum) != 0)
+				return -1;
+		}
+		else
+		{
+			db->db_status = status;
+			return -1;
+		}
+
+		return 0;
+	  }
+#endif /* USE_MDB */
+
+#ifdef USE_ERLANG
+	  case DKIMF_DB_TYPE_ERLANG:
+	  {
+		int fd;
+		int ret;
+		int res_size;
+		int res_index;
+		int res_type;
+		struct dkimf_db_erlang *e;
+		ei_cnode ec;
+		ei_x_buff args;
+		ei_x_buff resp;
+
+		e = (struct dkimf_db_erlang *) db->db_data;
+
+		ei_x_new(&args);
+		ei_x_new(&resp);
+
+		ei_x_encode_list_header(&args, 1);
+		ei_x_encode_binary(&args, buf, strlen(buf));
+		ei_x_encode_empty_list(&args);
+
+		fd = dkimf_db_erl_connect(db, &ec);
+		if (fd < 0)
+		{
+			db->db_status = erl_errno;
+			ei_x_free(&args);
+			ei_x_free(&resp);
+			return -1;
+		}
+
+		ret = ei_rpc(&ec, fd, e->erlang_module, e->erlang_function,
+			     args.buff, args.index, &resp);
+		close(fd);
+		if (ret == -1)
+		{
+			db->db_status = erl_errno;
+			ei_x_free(&args);
+			ei_x_free(&resp);
+			return ret;
+		}
+
+		ret = dkimf_db_erl_decode_response(&resp, "not_found", req,
+	 	                                   reqnum, NULL, NULL);
+
+		if (exists != NULL)
+		{
+			if (ret == 1)
+				*exists = FALSE;
+			else if (ret == 0)
+				*exists = TRUE;
+		}
+
+		ei_x_free(&args);
+		ei_x_free(&resp);
+
+		if (ret == -1)
+			db->db_status = erl_errno;
+
+		return 0;
+	  }
+#endif /* USE_ERLANG */
+
 	  default:
 		assert(0);
 		return 0;		/* to silence the compiler */
@@ -4275,6 +5703,48 @@ dkimf_db_close(DKIMF_DB db)
 	  }
 #endif /* _FFR_REPUTATION */
 
+#ifdef _FFR_SOCKETDB
+	  case DKIMF_DB_TYPE_SOCKET:
+		if (db->db_handle != NULL)
+		{
+			struct dkimf_db_socket *sdb;
+
+			sdb = (struct dkimf_db_socket *) db->db_handle;
+			close(sdb->sockdb_fd);
+		}
+		free(db);
+		return 0;
+#endif /* _FFR_SOCKETDB */
+
+#ifdef USE_MDB
+	  case DKIMF_DB_TYPE_MDB:
+	  {
+		struct dkimf_db_mdb *mdb;
+
+		mdb = db->db_data;
+
+		if (db->db_cursor != NULL)
+			mdb_cursor_close(db->db_cursor);
+
+		mdb_txn_abort(mdb->mdb_txn);
+		mdb_env_close(mdb->mdb_env);
+		free(db->db_data);
+		free(db);
+	  	return 0;
+	  }
+#endif /* USE_MDB */
+
+#ifdef USE_ERLANG
+	  case DKIMF_DB_TYPE_ERLANG:
+	  {
+		struct dkimf_db_erlang *e;
+
+		e = (struct dkimf_db_erlang *) db->db_data;
+		dkimf_db_erl_free(e);
+		return 0;
+	  }
+#endif /* USE_ERLANG */
+
 	  default:
 		assert(0);
 		return -1;
@@ -4303,6 +5773,7 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 	{
 	  case DKIMF_DB_TYPE_FILE:
 	  case DKIMF_DB_TYPE_CSL:
+	  case DKIMF_DB_TYPE_SOCKET:
 		return strlcpy(err, strerror(db->db_status), errlen);
 
 	  case DKIMF_DB_TYPE_REFILE:
@@ -4368,6 +5839,16 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 	  }
 #endif /* _FFR_REPUTATION */
 
+#ifdef USE_MDB
+	  case DKIMF_DB_TYPE_MDB:
+		return strlcpy(err, mdb_strerror(db->db_status), errlen);
+#endif /* USE_MDB */
+
+#ifdef USE_ERLANG
+	  case DKIMF_DB_TYPE_ERLANG:
+		return strlcpy(err, strerror(db->db_status), errlen);
+#endif /* USE_ERLANG */
+
 	  default:
 		assert(0);
 		return -1;		/* to silence the compiler */
@@ -4404,6 +5885,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		return -1;
 
 	if (db->db_type == DKIMF_DB_TYPE_REFILE ||
+	    db->db_type == DKIMF_DB_TYPE_SOCKET ||
 	    db->db_type == DKIMF_DB_TYPE_LUA)
 		return -1;
 
@@ -4786,6 +6268,162 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 	  }
 #endif /* USE_LDAP */
 
+#ifdef USE_MDB
+	  case DKIMF_DB_TYPE_MDB:
+	  {
+		int status = 0;
+		MDB_val k;
+		MDB_val d;
+		MDB_cursor *dbc;
+		struct dkimf_db_mdb *mdb;
+		char databuf[BUFRSZ + 1];
+
+		mdb = (struct dkimf_db_mdb *) db->db_handle;
+
+		dbc = db->db_cursor;
+		if (dbc == NULL)
+		{
+			status = mdb_cursor_open(mdb->mdb_txn, mdb->mdb_dbi,
+			                         &dbc);
+			if (status != 0)
+			{
+				db->db_status = status;
+				return -1;
+			}
+
+			db->db_cursor = dbc;
+		}
+
+		memset(&k, '\0', sizeof k);
+		memset(&d, '\0', sizeof d);
+
+		status = mdb_cursor_get(dbc, &k, &d,
+		                        first ? MDB_FIRST : MDB_NEXT);
+		if (status == MDB_NOTFOUND)
+		{
+			return 1;
+		}
+		else if (status != 0)
+		{
+			db->db_status = status;
+			return -1;
+		}
+		else
+		{
+			memcpy(key, k.mv_data, MIN(k.mv_size, *keylen));
+			*keylen = MIN(k.mv_size, *keylen);
+
+			if (reqnum != 0)
+			{
+				if (dkimf_db_datasplit(d.mv_data, d.mv_size,
+				                       req, reqnum) != 0)
+                                        return -1;
+			}
+
+			return 0;
+		}
+	  }
+#endif /* USE_MDB */
+
+#ifdef USE_ERLANG
+	  case DKIMF_DB_TYPE_ERLANG:
+	  {
+		int ret, fd;
+		char *cursor;
+		struct dkimf_db_erlang *e;
+		ei_cnode ec;
+		ei_x_buff args;
+		ei_x_buff resp;
+
+		e = (struct dkimf_db_erlang *) db->db_data;
+		cursor = (char *) db->db_cursor;
+
+		ei_x_new(&args);
+		ei_x_new(&resp);
+
+		if (!first && cursor == NULL)
+			assert(0);
+
+		if (first && cursor != NULL)
+		{
+			free(cursor);
+			cursor = NULL;
+		}
+
+		ei_x_encode_list_header(&args, 1);
+		if (first)
+		{
+			ei_x_encode_atom(&args, "first");
+		}
+		else
+		{
+			ei_x_encode_tuple_header(&args, 2);
+			ei_x_encode_atom(&args, "next");
+			ei_x_encode_binary(&args, cursor, strlen(cursor));
+		}
+		ei_x_encode_empty_list(&args);
+
+		fd = dkimf_db_erl_connect(db, &ec);
+		if (fd < 0)
+		{
+			ei_x_free(&args);
+			ei_x_free(&resp);
+			return -1;
+		}
+
+		ret = ei_rpc(&ec, fd, e->erlang_module, e->erlang_function,
+			     args.buff, args.index, &resp);
+		close(fd);
+		if (ret == -1)
+		{
+			ei_x_free(&args);
+			ei_x_free(&resp);
+			return -1;
+		}
+
+		ret = dkimf_db_erl_decode_response(&resp, "$end_of_table",
+		                                   req, reqnum, key, keylen);
+
+		ei_x_free(&args);
+		ei_x_free(&resp);
+
+		switch (ret)
+		{
+		  case -1:
+		  {
+			  if (cursor != NULL)
+				  free(cursor);
+			  return -1;
+		  }
+
+		  case 1:
+		  {
+			  free(cursor);
+			  db->db_cursor = NULL;
+			  return 1;
+		  }
+
+		  case 0:
+		  {
+			  if (key != NULL && keylen != NULL)
+			  {
+				  size_t cursize;
+				  cursize = *keylen + 1;
+				  cursor = malloc(cursize);
+				  if (cursor == NULL)
+					  return -1;
+				  strlcpy(cursor, key, cursize);
+				  db->db_cursor = cursor;
+			  }
+
+			  return 0;
+		  }
+		}
+
+		assert(cursor != NULL);
+	  }
+#endif /* USE_ERLANG */
+
 	  default:
 		assert(0);
 		return -1;		/* to silence compiler warnings */
@@ -4964,6 +6602,7 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a, const char **base)
 	assert(a != NULL);
 
 	if (db->db_type == DKIMF_DB_TYPE_REFILE ||
+	    db->db_type == DKIMF_DB_TYPE_SOCKET ||
 	    db->db_type == DKIMF_DB_TYPE_LUA)
 		return -1;
 

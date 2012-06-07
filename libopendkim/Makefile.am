@@ -29,13 +29,13 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = opendkim.pc
 
 if USE_DB_LIBOPENDKIM
-libopendkim_la_CFLAGS += -I$(LIBDB_INCDIRS)
+libopendkim_la_CPPFLAGS += -I$(LIBDB_INCDIRS)
 libopendkim_la_LDFLAGS += $(LIBDB_LIBDIRS)
 libopendkim_la_LIBADD += $(LIBDB_LIBS)
 endif
 
 if USE_TRE
-libopendkim_la_CFLAGS += $(LIBTRE_CFLAGS)
+libopendkim_la_CFLAGS += $(LIBTRE_CPPFLAGS)
 libopendkim_la_LIBADD += $(LIBTRE_LIBS)
 endif
 

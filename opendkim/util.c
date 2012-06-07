@@ -25,6 +25,7 @@ static char util_c_id[] = "@(#)$Id: util.c,v 1.47.2.1 2010/10/27 21:43:09 cm-msk
 #include <arpa/inet.h>
 #include <assert.h>
 #include <syslog.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
@@ -98,9 +99,25 @@ static char *optlist[] =
 	"USE_DB",
 #endif /* USE_DB */
 
+#if USE_ERLANG
+	"USE_ERLANG",
+#endif /* USE_ERLANG */
+
+#if USE_JANSSON
+	"USE_JANSSON",
+#endif /* USE_JANSSON */
+
+#if USE_LDAP
+	"USE_LDAP",
+#endif /* USE_LDAP */
+
 #if USE_LUA
 	"USE_LUA",
 #endif /* USE_LUA */
+
+#if USE_MDB
+	"USE_MDB",
+#endif /* USE_MDB */
 
 #if USE_ODBX
 	"USE_ODBX",
@@ -109,6 +126,10 @@ static char *optlist[] =
 #if USE_UNBOUND
 	"USE_UNBOUND",
 #endif /* USE_UNBOUND */
+
+#if USE_XML2
+	"USE_XML2",
+#endif /* USE_XML2 */
 
 #ifdef _FFR_ADSP_LISTS
 	"_FFR_ADSP_LISTS",
@@ -146,10 +167,6 @@ static char *optlist[] =
 	"_FFR_OVERSIGN",
 #endif /* _FFR_OVERSIGN */
 
-#if _FFR_PARSETIME
-	"_FFR_PARSETIME",
-#endif /* _FFR_PARSETIME */
-
 #if _FFR_POSTGRESQL_RECONNECT_HACK
 	"_FFR_POSTGRESQL_RECONNECT_HACK",
 #endif /* _FFR_POSTGRESQL_RECONNECT_HACK */
@@ -182,10 +199,6 @@ static char *optlist[] =
 	"_FFR_RESIGN",
 #endif /* _FFR_RESIGN */
 
-#if _FFR_SELECT_CANONICALIZATION
-	"_FFR_SELECT_CANONICALIZATION",
-#endif /* _FFR_SELECT_CANONICALIZATION */
-
 #if _FFR_SELECTOR_HEADER
 	"_FFR_SELECTOR_HEADER",
 #endif /* _FFR_SELECTOR_HEADER */
@@ -193,6 +206,10 @@ static char *optlist[] =
 #if _FFR_SENDER_MACRO
 	"_FFR_SENDER_MACRO",
 #endif /* _FFR_SENDER_MACRO */
+
+#ifdef _FFR_SOCKETDB
+	"_FFR_SOCKETDB",
+#endif /* _FFR_SOCKETDB */
 
 #if _FFR_STATS
 	"_FFR_STATS",
@@ -1245,6 +1262,52 @@ dkimf_dstring_cat1(struct dkimf_dstring *dstr, int c)
 }
 
 /*
+**  DKIMF_DSTRING_CATN -- append 'n' bytes onto a dstring
+**
+**  Parameters:
+**  	dstr -- DKIMF_DSTRING handle to update
+**  	str -- input string
+**  	nbytes -- number of bytes to append
+**
+**  Return value:
+**  	TRUE iff the update succeeded.
+**
+**  Side effects:
+**  	The dstring may be resized.
+*/
+
+_Bool
+dkimf_dstring_catn(struct dkimf_dstring *dstr, unsigned char *str,
+                   size_t nbytes)
+{
+	size_t needed;
+
+	assert(dstr != NULL);
+	assert(str != NULL);
+
+	needed = dstr->ds_len + nbytes;
+
+	/* too big? */
+	if (dstr->ds_max > 0 && needed >= dstr->ds_max)
+		return FALSE;
+
+	/* fits now? */
+	if (dstr->ds_alloc <= needed)
+	{
+		/* nope; try to resize */
+		if (!dkimf_dstring_resize(dstr, needed + 1))
+			return FALSE;
+	}
+
+	/* append */
+	memcpy(dstr->ds_buf + dstr->ds_len, str, nbytes);
+	dstr->ds_len += nbytes;
+	dstr->ds_buf[dstr->ds_len] = '\0';
+
+	return TRUE;
+}
+
+/*
 **  DKIMF_DSTRING_GET -- retrieve data in a dstring
 **
 **  Parameters:
@@ -1320,6 +1383,53 @@ dkimf_dstring_chop(struct dkimf_dstring *dstr, int len)
 		dstr->ds_len = len;
 		dstr->ds_buf[len] = '\0';
 	}
+}
+
+/*
+**  DKIMF_DSTRING_PRINTF -- write variable length formatted output to a dstring
+**
+**  Parameters:
+**  	dstr -- DKIMF_STRING handle to be updated
+**  	fmt -- format
+**  	... -- variable arguments
+**
+**  Return value:
+**  	New size, or -1 on error.
+*/
+
+size_t
+dkimf_dstring_printf(struct dkimf_dstring *dstr, char *fmt, ...)
+{
+	size_t len;
+	va_list ap;
+	va_list ap2;
+
+	assert(dstr != NULL);
+	assert(fmt != NULL);
+
+	va_start(ap, fmt);
+	va_copy(ap2, ap);
+	len = vsnprintf((char *) dstr->ds_buf + dstr->ds_len, dstr->ds_alloc,
+	                fmt, ap);
+	va_end(ap);
+
+	if (len > dstr->ds_len)
+	{
+		if (!dkimf_dstring_resize(dstr, len + 1))
+		{
+			va_end(ap2);
+			return (size_t) -1;
+		}
+
+		len = vsnprintf((char *) dstr->ds_buf + dstr->ds_len,
+		                dstr->ds_alloc, fmt, ap2);
+	}
+
+	va_end(ap2);
+
+	dstr->ds_len += len;
+
+	return dstr->ds_len;
 }
 
 /*

@@ -199,7 +199,7 @@ else
 	comment=""
 fi
 
-echo ${selector}._domainkey   IN   TXT  '"'v=DKIM1\;$noteout$hashoutk=rsa\;$flagsout p=$pubkey'"' $comment > ${selector}.txt
+echo ${selector}._domainkey   IN   TXT  '"'v=DKIM1\;$noteout$hashout k=rsa\;$flagsout p=$pubkey'"' $comment > ${selector}.txt
 
 if [ $verbose -eq 1 ]
 then

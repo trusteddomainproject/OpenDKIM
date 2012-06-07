@@ -1,4 +1,4 @@
-# Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
+# Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.
 #
 # $Id: Makefile.am,v 1.85 2010/10/28 04:12:55 cm-msk Exp $
 
@@ -56,13 +56,13 @@ opendkim_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
 opendkim_LDADD += $(OPENLDAP_LIBS)
 endif
 if USE_ARLIB
-opendkim_CFLAGS += -I$(srcdir)/../libar
+opendkim_CPPFLAGS += -I$(srcdir)/../libar
 opendkim_LDADD += ../libar/libar.la
 endif
 if USE_UNBOUND
 opendkim_CPPFLAGS += $(LIBUNBOUND_INCDIRS)
-opendkim_LDFLAGS += $(LIBUNBOUND_LIBDIRS) $(LIBLDNS_LIBDIRS)
-opendkim_LDADD += $(LIBUNBOUND_LIBS) $(LIBLDNS_LIBS)
+opendkim_LDFLAGS += $(LIBUNBOUND_LIBDIRS) $(LIBLDNS_LIBDIRS) $(LIBEVENT_LIBDIRS)
+opendkim_LDADD += $(LIBUNBOUND_LIBS) $(LIBLDNS_LIBS) $(LIBEVENT_LIBS)
 endif
 if VBR
 opendkim_CPPFLAGS += -I$(srcdir)/../libvbr
@@ -77,8 +77,18 @@ opendkim_CPPFLAGS += -I$(srcdir)/../libdkimrep
 opendkim_LDADD += ../libdkimrep/libdkimrep.la
 endif
 if REPUTE
-opendkim_CFLAGS += -I$(srcdir)/../reputation
+opendkim_CPPFLAGS += -I$(srcdir)/../reputation
 opendkim_LDADD += ../reputation/librepute.la
+endif
+if USE_MDB
+opendkim_CPPFLAGS += $(LIBMDB_CPPFLAGS)
+opendkim_CFLAGS += $(LIBMDB_CFLAGS)
+opendkim_LDADD += $(LIBMDB_LIBS)
+endif
+if ERLANG
+opendkim_CPPFLAGS += $(LIBERL_INCDIRS)
+opendkim_LDFLAGS += $(LIBERL_LIBDIRS)
+opendkim_LDADD += $(LIBERL_LIBS)
 endif
 
 opendkim_CPPFLAGS += $(LIBMILTER_INCDIRS)
@@ -131,7 +141,7 @@ opendkim_testkey_LDFLAGS += $(LIBUNBOUND_LIBDIRS) $(LIBLDNS_LIBDIRS)
 opendkim_testkey_LDADD += $(LIBUNBOUND_LIBS) $(LIBLDNS_LIBS)
 endif
 if USE_ARLIB
-opendkim_testkey_CFLAGS += -I$(srcdir)/../libar
+opendkim_testkey_CPPFLAGS += -I$(srcdir)/../libar
 opendkim_testkey_LDADD += ../libar/libar.la
 endif
 if DKIM_REPUTATION
@@ -145,6 +155,16 @@ endif
 if REPUTE
 opendkim_testkey_CPPFLAGS += -I$(srcdir)/../reputation
 opendkim_testkey_LDADD += ../reputation/librepute.la
+endif
+if USE_MDB
+opendkim_testkey_CPPFLAGS += $(LIBMDB_CPPFLAGS)
+opendkim_testkey_CFLAGS += $(LIBMDB_CFLAGS)
+opendkim_testkey_LDADD += $(LIBMDB_LIBS)
+endif
+if ERLANG
+opendkim_testkey_CPPFLAGS += $(LIBERL_INCDIRS)
+opendkim_testkey_LDFLAGS += $(LIBERL_LIBDIRS)
+opendkim_testkey_LDADD += $(LIBERL_LIBS)
 endif
 
 opendkim_testadsp_SOURCES = opendkim-testadsp.c
@@ -205,6 +225,16 @@ if REPUTE
 opendkim_genzone_CPPFLAGS += -I$(srcdir)/../reputation
 opendkim_genzone_LDADD += ../reputation/librepute.la
 endif
+if USE_MDB
+opendkim_genzone_CPPFLAGS += $(LIBMDB_CPPFLAGS)
+opendkim_genzone_CFLAGS += $(LIBMDB_CFLAGS)
+opendkim_genzone_LDADD += $(LIBMDB_LIBS)
+endif
+if ERLANG
+opendkim_genzone_CPPFLAGS += $(LIBERL_INCDIRS)
+opendkim_genzone_LDFLAGS += $(LIBERL_LIBDIRS)
+opendkim_genzone_LDADD += $(LIBERL_LIBS)
+endif
 
 if ATPS
 opendkim_atpszone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-atpszone.c opendkim-lua.c util.c util.h
@@ -242,6 +272,16 @@ endif
 if REPUTE
 opendkim_atpszone_CPPFLAGS += -I$(srcdir)/../reputation
 opendkim_atpszone_LDADD += ../reputation/librepute.la
+endif
+if USE_MDB
+opendkim_atpszone_CPPFLAGS += $(LIBMDB_CPPFLAGS)
+opendkim_atpszone_CFLAGS += $(LIBMDB_CFLAGS)
+opendkim_atpszone_LDADD += $(LIBMDB_LIBS)
+endif
+if ERLANG
+opendkim_atpszone_CPPFLAGS += $(LIBERL_INCDIRS)
+opendkim_atpszone_LDFLAGS += $(LIBERL_LIBDIRS)
+opendkim_atpszone_LDADD += $(LIBERL_LIBS)
 endif
 endif
 

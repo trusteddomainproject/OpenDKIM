@@ -6,7 +6,7 @@
 .B vbr_setdnscallback(), vbr_dns_set_query_service(),
 .B vbr_dns_set_query_start(), vbr_dns_set_query_cancel(),
 .B vbr_dns_set_query_waitreply()
--- Vouch By Reference service facility
+\- Vouch By Reference service facility
 .SH SYNOPSIS
 #include
 .I <vbr.h>
@@ -272,7 +272,7 @@ call that callback function.  Each of these takes the corresponding VBR
 library handle as its first argument, and the obvious parameter for its second.
 
 By default, the library will use the stock system resolver to conduct DNS
-queries.  If alternates should be used, these can be specifed using the
+queries.  If alternates should be used, these can be specified using the
 following functions:
 
 .B vbr_dns_set_query_service()
@@ -375,6 +375,6 @@ resolvers set an overall timeout for the query at start time in addition to
 one for each single wait request; this code indicates the former timeout
 expired.
 .SH COPYRIGHT
-Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2010, 2012, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I intro(2)

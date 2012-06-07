@@ -2255,7 +2255,7 @@ dkim_siglist_setup(DKIM *dkim)
 **  	delim -- delimiter
 **
 **  Return value:
-**  	Number of bytes written to "dstr".
+**  	Number of bytes written to "dstr", or 0 on error.
 */
 
 static size_t
@@ -2263,6 +2263,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
                char *delim)
 {
 	_Bool firsthdr;
+	_Bool nosigner = FALSE;
 	int n;
 	int status;
 	int delimlen;
@@ -2289,6 +2290,49 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		if (always == NULL)
 			return (size_t) -1;
 		memset(always, '\0', n);
+	}
+
+	/* bail if we were asked to generate an invalid signature */
+	if (dkim->dkim_signer != NULL)
+	{
+		_Bool match = FALSE;
+		u_char *sd;
+
+		sd = strchr(dkim->dkim_signer, '@');
+		if (sd == NULL)
+		{
+			dkim_error(dkim, "syntax error in signer value");
+			return 0;
+		}
+
+		if (strcasecmp(sd + 1, sig->sig_domain) == 0)
+		{
+			match = TRUE;
+		}
+		else
+		{
+			for (sd = strchr(sd + 1, '.');
+			     sd != NULL && !match;
+			     sd = strchr(sd + 1, '.'))
+			{
+				if (strcasecmp(sd + 1, sig->sig_domain) == 0)
+					match = TRUE;
+			}
+		}
+
+		if (!match)
+		{
+			if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_DROPSIGNER) == 0)
+			{
+				dkim_error(dkim,
+				           "d=/i= mismatch on signature generation");
+				return 0;
+			}
+			else
+			{
+				nosigner = TRUE;
+			}
+		}
 	}
 
 	/*
@@ -2331,13 +2375,12 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 			dkim_dstring_printf(dstr, ";%sx=%u", delim, expire);
 	}
 
-	if (dkim->dkim_signer != NULL)
+	if (dkim->dkim_signer != NULL && !nosigner)
 	{
 		dkim_dstring_printf(dstr, ";%si=%s", delim,
 		                    dkim->dkim_signer);
 	}
 
-#ifdef _FFR_XTAGS
 	if (dkim->dkim_xtags != NULL)
 	{
 		struct dkim_xtag *x;
@@ -2348,7 +2391,6 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 			                    x->xt_tag, x->xt_value);
 		}
 	}
-#endif /* _FFR_XTAGS */
 
 	memset(b64hash, '\0', sizeof b64hash);
 
@@ -2678,7 +2720,7 @@ dkim_getsender(DKIM *dkim, u_char **hdrs)
 **  	excheck -- existence check rather than TXT query
 **  	qstatus -- query status (returned)
 **  	policy -- policy found (returned)
-**  	pflags -- policy flags (returned)
+**  	pflags -- policy flags (returned) (unused)
 **
 **  Return value:
 **  	A DKIM_STAT_* constant.
@@ -2771,8 +2813,17 @@ dkim_get_policy(DKIM *dkim, u_char *query, _Bool excheck, int *qstatus,
 		pstatus = dkim_process_set(dkim, DKIM_SETTYPE_POLICY,
 		                           buf, strlen((char *) buf),
 		                           NULL, FALSE, NULL);
-		if (pstatus != DKIM_STAT_OK)
+		if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_REPORTBADADSP) == 0 &&
+		    pstatus == DKIM_STAT_SYNTAX)
+		{
+			*policy = DKIM_POLICY_DEFAULT;
+			*qstatus = NXDOMAIN;
+			*pflags = 0;
+		}
+		else if (pstatus != DKIM_STAT_OK)
+		{
 			return pstatus;
+		}
 
 		lpolicy = DKIM_POLICY_DEFAULT;
 		lpflags = 0;
@@ -4335,9 +4386,6 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef _FFR_DIFFHEADERS
 	FEATURE_ADD(libhandle, DKIM_FEATURE_DIFFHEADERS);
 #endif /* _FFR_DIFFHEADERS */
-#ifdef _FFR_PARSETIME
-	FEATURE_ADD(libhandle, DKIM_FEATURE_PARSE_TIME);
-#endif /* _FFR_PARSETIME */
 #ifdef QUERY_CACHE
 	FEATURE_ADD(libhandle, DKIM_FEATURE_QUERY_CACHE);
 #endif /* QUERY_CACHE */
@@ -4356,9 +4404,7 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef _FFR_OVERSIGN
 	FEATURE_ADD(libhandle, DKIM_FEATURE_OVERSIGN);
 #endif /* _FFR_OVERSIGN */
-#ifdef _FFR_XTAGS
 	FEATURE_ADD(libhandle, DKIM_FEATURE_XTAGS);
-#endif /* _FFR_XTAGS */
 #ifdef _FFR_DKIM_REPUTATION
 	FEATURE_ADD(libhandle, DKIM_FEATURE_DKIM_REPUTATION);
 #endif /* _FFR_DKIM_REPUTATION */
@@ -4978,7 +5024,6 @@ dkim_free(DKIM *dkim)
 		CLOBBER(dkim->dkim_siglist);
 	}
 
-#ifdef _FFR_XTAGS
 	if (dkim->dkim_xtags != NULL)
 	{
 		struct dkim_xtag *cur;
@@ -4992,7 +5037,6 @@ dkim_free(DKIM *dkim)
 			cur = next;
 		}
 	}
-#endif /* _FFR_XTAGS */
 
 	/* destroy canonicalizations */
 	dkim_canon_cleanup(dkim);
@@ -6442,37 +6486,7 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 DKIM_STAT
 dkim_eoh(DKIM *dkim)
 {
-#ifdef _FFR_PARSETIME
-	struct dkim_header *hdr;
-#endif /* _FFR_PARSETIME */
-
 	assert(dkim != NULL);
-
-#ifdef _FFR_PARSETIME
-# define RFC2822DATE	"%a, %d %b %Y %H:%M:%S %z"
-/* # define RFC2822DATE	"%a" */
-	/* store the Date: value for possible later scrutiny */
-	hdr = dkim_get_header(dkim, DKIM_DATEHEADER, DKIM_DATEHEADER_LEN, 0);
-	if (hdr != NULL)
-	{
-		char *colon;
-
-		colon = hdr->hdr_colon;
-		if (colon != NULL)
-		{
-			char *p;
-			struct tm tm;
-
-			colon++;
-			while (isascii(*colon) && isspace(*colon))
-				colon++;
-
-			p = strptime(colon, RFC2822DATE, &tm);
-			if (p != NULL)
-				dkim->dkim_msgdate = (uint64_t) mktime(&tm);
-		}
-	}
-#endif /* _FFR_PARSETIME */
 
 	if (dkim->dkim_mode == DKIM_MODE_VERIFY)
 		return dkim_eoh_verify(dkim);
@@ -6999,6 +7013,8 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 
 	/* compute and extract the signature header */
 	len = dkim_gensighdr(dkim, sig, tmpbuf, DELIMITER);
+	if (len == 0)
+		return DKIM_STAT_INVALID;
 
 	if (dkim->dkim_b64sig != NULL)
 		dkim_dstring_cat(tmpbuf, dkim->dkim_b64sig);
@@ -8087,30 +8103,6 @@ dkim_get_user_context(DKIM *dkim)
 }
 
 /*
-**  DKIM_GET_MSGDATE -- retrieve value extracted from the Date: header
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**
-**  Return value:
-**  	time_t representing the value in the Date: header of the message,
-**  	returned as an unsigned 64-bit quantity, or 0 if no such header
-**  	was found or the value in it was unusable.
-*/
-
-uint64_t
-dkim_get_msgdate(DKIM *dkim)
-{
-	assert(dkim != NULL);
-
-#ifdef _FFR_PARSETIME
-	return dkim->dkim_msgdate;
-#else /* _FFR_PARSETIME */
-	return 0;
-#endif /* _FFR_PARSETIME */
-}
-
-/*
 **  DKIM_GETMODE -- return the mode (signing, verifying, etc.) of a handle
 **
 **  Parameters:
@@ -8914,7 +8906,6 @@ dkim_dns_set_query_waitreply(DKIM_LIB *lib, int (*func)(void *, void *,
 DKIM_STAT
 dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
 {
-#ifdef _FFR_XTAGS
 	u_char last = '\0';
 	dkim_param_t pcode;
 	u_char *p;
@@ -8994,9 +8985,6 @@ dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
 	dkim->dkim_xtags = x;
 
 	return DKIM_STAT_OK;
-#else /* _FFR_XTAGS */
-	return DKIM_STAT_NOTIMPLEMENT;
-#endif /* _FFR_XTAGS */
 }
 
 /*

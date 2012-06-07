@@ -1,24 +1,14 @@
-.TH opendkim-modtotals 8 "The OpenDKIM Project"
+.TH opendkim-genstats 8 "The OpenDKIM Project"
 .SH NAME
-.B opendkim-modtotals
-\- OpenDKIM statistics update tool
+.B opendkim-genstats
+\- OpenDKIM statistics report generation tool
 .SH SYNOPSIS
-.B opendkim-modtotals.pl
+.B opendkim-genstats
 [options]
 .SH DESCRIPTION
-.B opendkim-modtotals
-collates data accumulated by the OpenDKIM statistics feature about
-today's flow of mail, updating stored values about data observed so far
-in the current day.  The OpenDKIM filter can then use this information and
-the output of the
-.I opendkim-genrates
-script to apply reputation-based filtering of signing domains.
-
-For a detailed description of the algorithms, see the white paper
-"Enforcing Rate Limits Based on Authenticated Sender Reputation."
-
-This work is experimental.
-
+.B opendkim-genstats
+collates data accumulated by the OpenDKIM statistics feature into an HTML
+report.
 .SH OPTIONS
 .TP
 .I --dbhost=host
@@ -49,6 +39,10 @@ The default is "opendkim".
 .I --help
 Prints a usage message and exits.
 .TP
+.I --output=file
+Writes an HTML report to the specified
+.I file.
+.TP
 .I --verbose
 Requests verbose output.
 .TP
@@ -56,14 +50,13 @@ Requests verbose output.
 Prints version number and exits.
 .SH VERSION
 This man page covers the version of
-.I opendkim-modtotals
+.I opendkim-genstats
 that shipped with version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT
 Copyright (c) 2011, 2012, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8),
-.I opendkim-genrates(8),
 .I opendkim-importstats(8)
 .P
 RFC6376 - DomainKeys Identified Mail

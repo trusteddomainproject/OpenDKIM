@@ -6,5 +6,4 @@
 
 dist_doc_DATA = README.opendkim-reportstats \
 	opendkim-fixipaddrs.pl \
-	opendkim-reportstats \
 	stats.lua

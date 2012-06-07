@@ -14,8 +14,8 @@ AC_PREREQ(2.61)
 # Package version
 #
 m4_define([VERSION_RELEASE], 2)
-m4_define([VERSION_MAJOR_REV], 5)
-m4_define([VERSION_MINOR_REV], 2)
+m4_define([VERSION_MAJOR_REV], 6)
+m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -23,7 +23,7 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "current" and reset "revision" with API changes
 # 	- bump "revision" with internal source code changes
 #
-m4_define([LIBVERSION_CURRENT], 6)
+m4_define([LIBVERSION_CURRENT], 7)
 m4_define([LIBVERSION_REVISION], 0)
 m4_define([LIBVERSION_AGE], 0)
 
@@ -164,7 +164,7 @@ AC_FUNC_MALLOC
 AC_FUNC_MKTIME
 AC_FUNC_REALLOC
 
-AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname  gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strstr strtol strtoul strtoull strlcpy strlcat])
+AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname getaddrinfo gethostbyname2 gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strstr strtol strtoul strtoull strlcpy strlcat])
 
 #
 # Checks for structure members
@@ -283,12 +283,11 @@ FFR_FEATURE([reputation_cache],
 FFR_FEATURE([resign],
             [support for one-step re-signing])
 
-FFR_FEATURE([select_canonicalization],
-            [allow sender to select canonicalization])
-
 FFR_FEATURE([selector_header], [special header to choose signing key])
 
 FFR_FEATURE([sender_macro], [macro to determine sender])
+
+FFR_FEATURE([socketdb], [arbitrary socket data sets])
 
 FFR_FEATURE([stats], [stats recording and reporting])
 AM_CONDITIONAL([STATS], [test x"$enable_stats" = x"yes"])
@@ -300,17 +299,9 @@ AM_CONDITIONAL([RBL], [test x"$enable_rbl" = x"yes"])
 FFR_FEATURE([vbr], [Vouch-By-Reference support])
 AM_CONDITIONAL([VBR], [test x"$enable_vbr" = x"yes"])
 
-LIB_FFR_FEATURE([xtags], [extension signature tags])
-AM_CONDITIONAL([XTAGS], [test x"$enable_xtags" = x"yes"])
-
 if test x"$enable_statsext" = x"yes" -a x"$enable_stats" != x"yes"
 then
 	AC_MSG_ERROR([--enable-statsext requires --enable-stats])
-fi
-
-if test x"$enable_atps" = x"yes" -a x"$enable_xtags" != x"yes"
-then
-	AC_MSG_ERROR([--enable-atps requires --enable-xtags])
 fi
 
 FFR_FEATURE([default_sender], [default sender address])
@@ -475,8 +466,6 @@ AM_CONDITIONAL([BUILD_FILTER], [test x"$enable_filter" != x"no"])
 #
 LIB_FEATURE([query_cache], [local key/policy caching])
 
-LIB_FFR_FEATURE([parsetime], [parse From: headers for sending times])
-
 #
 # Conditional stuff
 #
@@ -503,7 +492,7 @@ AC_ARG_ENABLE([debug],
               AS_IF([test "x$enable_debug" = x"yes"],
 		[
 			LIBOPENDKIM_FEATURE_STRING="$LIBOPENDKIM_FEATURE_STRING debug"
-			[[CFLAGS=`echo $CFLAGS | sed 's/ -O[0-9s]*//g'`]]
+			[[CFLAGS=`echo $CFLAGS | sed 's/ -O[1-9s]*//g'`]]
 		])
 )
 
@@ -1109,6 +1098,60 @@ fi
 AC_SUBST(LIBLDNS_LIBDIRS)
 AC_SUBST(LIBLDNS_LIBS)
 
+# unbound may also need libevent
+AC_ARG_WITH([libevent],
+            AS_HELP_STRING([--with-libevent],
+                           [location of libevent includes and library]),
+            [libeventpath="$withval"], [libeventpath="no"])
+
+LIBEVENT_LIBS=""
+LIBEVENT_LIBDIRS=""
+
+if test x"$libevent" = x"yes"
+then
+	libevent_found="no"
+
+	libeventdirs="/usr /usr/local"
+	for d in $libeventdirs
+	do
+		unset ac_cv_search_libevent_rr_new
+		saved_LDFLAGS="$LDFLAGS"
+		LDFLAGS="-L$d/lib $LDFLAGS"
+		AC_SEARCH_LIBS([event_enable_debug_mode], [event], libevent_found="yes")
+		LDFLAGS="$saved_LDFLAGS"
+
+		if test x"$libevent_found" = x"yes"
+		then
+			LIBEVENT_LIBDIRS="-L$d/lib"
+			LIBEVENT_LIBS="-levent"
+			break
+		fi
+	done
+	if test x"$LIBEVENT_LIBS" = x""
+	then
+		AC_MSG_ERROR([libevent not found])
+	fi
+elif test x"$libeventpath" != x"no"
+then
+	libevent_found="no"
+	saved_LDFLAGS="$LDFLAGS"
+	LDFLAGS="-L$d/lib $LDFLAGS"
+	AC_SEARCH_LIBS([event_enable_debug_mode], [event], libevent_found="yes")
+	LDFLAGS="$saved_LDFLAGS"
+
+	if test x"$libevent_found" = x"yes"
+	then
+		LIBEVENT_LIBDIRS="-L$d/lib"
+		LIBEVENT_LIBS="-levent"
+		break
+	else
+		AC_MSG_ERROR(libevent not found in $d)
+	fi
+fi
+
+AC_SUBST(LIBEVENT_LIBDIRS)
+AC_SUBST(LIBEVENT_LIBS)
+
 #
 # libtre
 #
@@ -1118,7 +1161,7 @@ AC_ARG_WITH([tre],
             [trepath="$withval"], [trepath="auto"])
 
 tre_found="no"
-LIBTRE_CFLAGS=""
+LIBTRE_CPPFLAGS=""
 LIBTRE_LIBS=""
 
 if test x"$enable_diffheaders" != x"yes"
@@ -1153,7 +1196,7 @@ then
                 then
 			tre_found="yes"
                         AC_MSG_RESULT($trepath)
-                        LIBTRE_CFLAGS="-I$trepath/include"
+                        LIBTRE_CPPFLAGS="-I$trepath/include"
                         LIBTRE_LIBS="-L$trepath/lib -ltre"
 		elif test -f "$trepath/include/tre/regex.h"
 		then
@@ -1161,7 +1204,7 @@ then
                         AC_MSG_RESULT([$trepath (old version)])
 			AC_DEFINE([TRE_PRE_080], 1,
 			          [version of libtre is older than 0.8.0])
-                        LIBTRE_CFLAGS="-I$trepath/include"
+                        LIBTRE_CPPFLAGS="-I$trepath/include"
                         LIBTRE_LIBS="-L$trepath/lib -ltre"
                 else
                         AC_MSG_ERROR("not found at $trepath")
@@ -1175,7 +1218,7 @@ then
 				trepath=$d
 				tre_found="yes"
 				AC_MSG_RESULT($d)
-				LIBTRE_CFLAGS="-I$trepath/include"
+				LIBTRE_CPPFLAGS="-I$trepath/include"
 				LIBTRE_LIBS="-L$trepath/lib -ltre"
 				break
 			elif test -f $d/include/tre/regex.h
@@ -1185,7 +1228,7 @@ then
 				AC_MSG_RESULT([$d (old version)])
 				AC_DEFINE([TRE_PRE_080], 1,
 				          [version of libtre is older than 0.8.0])
-				LIBTRE_CFLAGS="-I$trepath/include"
+				LIBTRE_CPPFLAGS="-I$trepath/include"
 				LIBTRE_LIBS="-L$trepath/lib -ltre"
 				break
 			fi
@@ -1205,7 +1248,7 @@ then
 fi
 
 AM_CONDITIONAL([USE_TRE], [test x"$tre_found" != x"no"])
-AC_SUBST([LIBTRE_CFLAGS])
+AC_SUBST([LIBTRE_CPPFLAGS])
 AC_SUBST([LIBTRE_LIBS])
 
 #
@@ -1418,7 +1461,7 @@ then
 					LIBODBX_LIBS="-L$odbxpath/lib -lopendbx"
 					break
 				],[
-					AC_MSG_ERROR([opendbx not at least v1.3.7 at $odbxpath])
+					AC_MSG_ERROR([opendbx not at least v1.3.7 at $d])
 				]
 				)
 			fi
@@ -1601,6 +1644,76 @@ AM_CONDITIONAL(USE_SASL, test x"$sasl_found" = x"yes")
 AC_SUBST(SASL_CPPFLAGS)
 
 #
+# libmdb
+#
+AC_ARG_WITH([mdb],
+            AS_HELP_STRING([--with-mdb],
+                           [location of OpenLDAP MDB includes and library]),
+            [mdbpath="$withval"], [mdbpath="no"])
+
+mdb_found="no"
+LIBMDB_CPPFLAGS=""
+LIBMDB_LIBS=""
+
+if test x"$mdbpath" != x"no" -a x"$mdb_found" = x"no"
+then
+	saved_ldflags="$LDFLAGS"
+	saved_cflags="$CFLAGS"
+	CFLAGS="-pthread"
+	if test x"$mdbpath" != x"auto" -a x"$mdbpath" != x"yes"
+	then
+		if test -f $mdbpath/include/mdb.h
+		then
+			LDFLAGS="-L$mdbpath/lib"
+			AC_CHECK_LIB(mdb, mdb_env_open,
+			[
+			        mdb_found="yes"
+				LIBMDB_CPPFLAGS="-I$mdbpath/include"
+				LIBMDB_LIBS="-L$mdbpath/lib -lmdb"
+			],
+			[
+				AC_MSG_ERROR([mdb not valid at $mdbpath])
+			]
+			)
+		else
+			AC_MSG_ERROR([mdb not found at $mdbpath])
+		fi
+	else
+		mdbdirs="/usr /usr/local"
+		for d in $mdbdirs
+		do
+			if test -f $d/include/mdb.h
+			then
+				LDFLAGS="-L$d/lib"
+				AC_CHECK_LIB(mdb, mdb_env_open,
+				[
+					mdbpath=$d
+			        	mdb_found="yes"
+					LIBMDB_CPPFLAGS="-I$mdbpath/include"
+					LIBMDB_LIBS="-L$mdbpath/lib -lmdb"
+					break
+				]
+				)
+			fi
+		done
+		if test x"$mdb_found" != x"yes"
+		then
+			AC_MSG_ERROR([mdb not found])
+		fi
+	fi
+	LDFLAGS="$saved_ldflags"
+	CFLAGS="$saved_cflags"
+fi
+if test x"$mdb_found" = x"yes"
+then
+	AC_DEFINE([USE_MDB], 1, [OpenLDAP MDB support for datasets enabled])
+fi
+AM_CONDITIONAL(USE_MDB, test x"$mdb_found" = x"yes")
+AC_SUBST(LIBMDB_CPPFLAGS)
+AC_SUBST(LIBMDB_LIBS)
+
+#
+#
 # libcurl, required by reputation
 #
 AC_ARG_WITH([libcurl],
@@ -1681,8 +1794,85 @@ then
 fi
 
 #
-# libxml2, required by reputation
+# libjansson, required by reputation
 #
+
+AC_ARG_WITH([libjansson],
+            AS_HELP_STRING([--with-libjansson],
+                           [location of jansson includes and library]),
+            [janssonpath="$withval"], [janssonpath="auto"])
+
+LIBJANSSON_CPPFLAGS=""
+LIBJANSSON_LDFLAGS=""
+LIBJANSSON_LIBS=""
+
+if test x"$enable_reputation" != x"yes" -a \
+        x"$janssonpath" = x"auto"
+then
+	janssonpath="no"
+fi
+
+jansson_found="no"
+if test \( x"$janssonpath" = x"auto" -o x"$janssonpath" = x"yes" \) -a \
+	x"$PKG_CONFIG" != x""
+then
+        PKG_CHECK_MODULES([LIBJANSSON], [libjansson >= 2.2.1],
+	[
+		jansson_found="yes"
+		LIBJANSSON_CPPFLAGS="$LIBJANSSON_CFLAGS"
+		LIBJANSSON_LIBS="$LIBJANSSON_LIBS"
+	],
+	[
+	        jansson_found="no"
+        	AC_MSG_WARN([pkg-config for libjansson not found, trying manual
+		            search...])
+        ])
+fi
+
+if test x"$janssonpath" != x"no" -a x"$jansson_found" = x"no"
+then
+	AC_MSG_CHECKING([for libjansson])
+	if test x"$janssonpath" != x"auto" -a x"$janssonpath" != x"yes"
+	then
+		if test -f $janssonpath/include/jansson.h
+		then
+			AC_MSG_RESULT($janssonpath)
+		        jansson_found="yes"
+			LIBJANSSON_CPPFLAGS="-I$janssonpath/include"
+			LIBJANSSON_LDFLAGS="-L$janssonpath/lib"
+			LIBJANSSON_LIBS="-ljansson"
+		else
+			AC_MSG_ERROR(not found at $janssonpath)
+		fi
+	else
+		janssondirs="/usr /usr/local"
+		for d in $janssondirs
+		do
+			if test -f $d/include/jansson.h
+			then
+				janssonpath=$d
+				AC_MSG_RESULT($d)
+		        	jansson_found="yes"
+				LIBJANSSON_CPPFLAGS="-I$janssonpath/include"
+				LIBJANSSON_LDFLAGS="-L$janssonpath/lib"
+				LIBJANSSON_LIBS="-ljansson"
+				break
+			fi
+		done
+	fi
+	if test x"$jansson_found" != x"yes"
+	then
+		AC_MSG_RESULT([no])
+	fi
+fi
+AC_SUBST(LIBJANSSON_CPPFLAGS)
+AC_SUBST(LIBJANSSON_LDFLAGS)
+AC_SUBST(LIBJANSSON_LIBS)
+
+#
+# libxml2
+#
+
 AC_ARG_WITH([libxml2],
             AS_HELP_STRING([--with-libxml2],
                            [location of XML2 includes and library]),
@@ -1693,7 +1883,13 @@ LIBXML2_LDFLAGS=""
 LIBXML2_LIBS=""
 
 if test x"$enable_reputation" != x"yes" -a \
+	x"$jansson_found" != x"yes" -a \
         x"$xml2path" = x"auto"
+then
+	xml2path="no"
+fi
+
+if test x"$enable_reputation" = x"yes" -a x"$jansson_found" = x"yes"
 then
 	xml2path="no"
 fi
@@ -1720,11 +1916,11 @@ then
 	AC_MSG_CHECKING([for libxml2])
 	if test x"$xml2path" != x"auto" -a x"$xml2path" != x"yes"
 	then
-		if test -f $xml2path/include/libxml/parser.h
+		if test -f $xml2path/include/libxml2/libxml/parser.h
 		then
 			AC_MSG_RESULT($xml2path)
 		        xml2_found="yes"
-			LIBXML2_CPPFLAGS="-I$xml2path/include"
+			LIBXML2_CPPFLAGS="-I$xml2path/include/libxml2"
 			LIBXML2_LDFLAGS="-I$xml2path/lib"
 			LIBXML2_LIBS="-lxml2"
 		else
@@ -1734,12 +1930,12 @@ then
 		xml2dirs="/usr /usr/local"
 		for d in $xml2dirs
 		do
-			if test -f $d/include/libxml/parser.h
+			if test -f $d/include/libxml2/libxml/parser.h
 			then
 				xml2path=$d
 				AC_MSG_RESULT($d)
 		        	xml2_found="yes"
-				LIBXML2_CPPFLAGS="-I$xml2path/include"
+				LIBXML2_CPPFLAGS="-I$xml2path/include/libxml2"
 				LIBXML2_LDFLAGS="-I$xml2path/lib"
 				LIBXML2_LIBS="-lxml2"
 				break
@@ -1756,9 +1952,24 @@ AC_SUBST(LIBXML2_LDFLAGS)
 AC_SUBST(LIBXML2_LIBS)
 
 if test x"$enable_reputation" = x"yes" -a \
-        x"$xml2_found" != x"yes"
+        \( x"$xml2_found" != x"yes" -a \
+           x"$jansson_found" != x"yes" \)
 then
-	AC_MSG_ERROR([reputation requires libxml2])
+	AC_MSG_ERROR([reputation requires libxml2 or libjansson])
+fi
+
+if test  x"$xml2_found" == x"yes" -a x"$jansson_found" == x"yes"
+then
+	AC_MSG_ERROR([cannot use both libxml2 and libjansson])
+fi
+
+if test x"$xml2_found" == x"yes"
+then
+	AC_DEFINE(USE_XML2, 1, [use libxml2 to parse REPUTE replies])
+fi
+if test x"$jansson_found" == x"yes"
+then
+	AC_DEFINE(USE_JANSSON, 1, [use libjansson to parse REPUTE replies])
 fi
 
 
@@ -1801,10 +2012,16 @@ then
 	bdbrequested="yes"
 fi
 
+rep_needs_bdb="no"
+if test x"$enable_reputation" = x"yes" -a x"$mdb_found" = x"no"
+then
+	rep_needs_bdb="yes"
+fi
+
 AM_CONDITIONAL(USE_DB_OPENDKIM,
                test x"$enable_popauth" = x"yes" -o \
-	            x"$enable_reputation" = x"yes" -o \
-	            x"$enable_reputation_cache" = x"yes" -o \
+	            x"$rep_needs_bdb" = x"yes" -o \
+	            x"$enable_ldap_caching" = x"yes" -o \
                     x"$bdbrequested" = x"yes")
 AM_CONDITIONAL(USE_DB_LIBOPENDKIM, test x"$enable_query_cache" = x"yes")
 
@@ -1865,63 +2082,76 @@ then
 		AC_MSG_RESULT([$bdb_incdir])
 	fi
 
-	# look for libdb.a
-	AC_MSG_CHECKING([for BerkeleyDB library lib$bdb_lib.a])
+	# See if we can find a library by looking for db_create(), then
+	# db_open(), then dbopen().
+	#
+	# This can cause compilation problems if for example a db.h
+	# and a libdb are found that aren't the same version, but it's
+	# worth a shot in general.
 	if test x"$bdb_libdir" = x""
 	then
 		for d in $bdbdirs
 		do
-			if test -f $d/lib/lib$bdb_lib.a
+			saved_LDFLAGS="$LDFLAGS"
+			saved_CPPFLAGS="$CPPFLAGS"
+			saved_LIBS="$LIBS"
+			LDFLAGS="$LDFLAGS -L$d/lib"
+			CPPFLAGS="$CPPFLAGS -I$bdb_incdir"
+			LIBS=""
+			if test x"$libdbfound" = x"no"
 			then
+				AC_SEARCH_LIBS([db_create], $bdb_lib,
+				               [libdbfound="yes"])
 				bdb_libdir=$d/lib
-				AC_MSG_RESULT($bdb_libdir)
-				libdbfound="yes"
-				break
 			fi
-		done
+			if test x"$libdbfound" = x"no"
+			then
+				AC_SEARCH_LIBS([db_open], $bdb_lib,
+				               [libdbfound="yes"])
+				bdb_libdir=$d/lib
+			fi
+			if test x"$libdbfound" = x"no"
+			then
+				AC_SEARCH_LIBS([dbopen], $bdb_lib,
+				               [libdbfound="yes"])
+				bdb_libdir=$d/lib
+			fi
 
-		if test x"$bdb_libdir" = x""
-		then
-			AC_MSG_RESULT([not found])
-		fi
-	elif ! test -f $bdb_libdir/lib$bdb_lib.a
-	then
-		AC_MSG_ERROR([not found in $bdb_libdir])
+			LDFLAGS="$saved_LDFLAGS"
+			CPPFLAGS="$saved_CPPFLAGS"
+			LIBS="$saved_LIBS"
+		done
 	else
-		AC_MSG_RESULT([$bdb_libdir/lib$bdb_lib.a])
-		libdbfound="yes"
-	fi
+		saved_LDFLAGS="$LDFLAGS"
+		saved_CPPFLAGS="$CPPFLAGS"
+		saved_LIBS="$LIBS"
+		LDFLAGS="$LDFLAGS -L$bdb_libdir"
+		CPPFLAGS="$CPPFLAGS -I$bdb_incdir"
+		LIBS=""
+		if test x"$libdbfound" = x"no"
+		then
+			AC_SEARCH_LIBS([db_create], $bdb_lib,
+			               [libdbfound="yes"])
+		fi
+		if test x"$libdbfound" = x"no"
+		then
+			AC_SEARCH_LIBS([db_open], $bdb_lib,
+			               [libdbfound="yes"])
+		fi
+		if test x"$libdbfound" = x"no"
+		then
+			AC_SEARCH_LIBS([dbopen], $bdb_lib,
+			               [libdbfound="yes"])
+		fi
 
-	# If no matching library, see if we can find one.  Note that
-	# this can cause compilation problems if for example a db.h
-	# and a libdb are found that aren't the same version, but it's
-	# worth a shot in general.
-	if test x"$libdbfound" = x"no"
-	then
-		AC_SEARCH_LIBS([db_create], [db], [libdbfound="yes"])
-	fi
-	if test x"$libdbfound" = x"no"
-	then
-		AC_SEARCH_LIBS([dbopen], [db], [libdbfound="yes"])
-	fi
-	if test x"$libdbfound" = x"no"
-	then
-		AC_MSG_CHECKING([for libdb])
-		for d in $bdbdirs
-		do
-			if test -f $d/lib/lib$bdb_lib.a
-			then
-				bdb_libdir=$d/lib
-				AC_MSG_RESULT($bdb_libdir)
-				libdbfound="yes"
-				break
-			fi
-		done
+		LDFLAGS="$saved_LDFLAGS"
+		CPPFLAGS="$saved_CPPFLAGS"
+		LIBS="$saved_LIBS"
 	fi
 
 	if test x"$libdbfound" = x"no"
 	then
-		AC_MSG_ERROR([cannot find db_create or dbopen])
+		AC_MSG_ERROR([cannot find db_create, db_open or dbopen])
 	fi
 
 	if test x"$bdb_incdir" != x""
@@ -1952,16 +2182,16 @@ fi
 if test x"$unboundpath" != x"no" -a x"$bdbrequired" = x"yes"
 then
 	saved_LDFLAGS="$LDFLAGS"
-	saved_CFLAGS="$CFLAGS"
+	saved_CPPFLAGS="$CPPFLAGS"
 	LDFLAGS="$LDFLAGS $LIBDB_LIBDIRS $LIBUNBOUND_LIBDIRS"
-	CFLAGS="$CFLAGS $LIBDB_INCDIRS $LIBUNBOUND_INCDIRS"
-	AC_CHECK_LIB([db],[log_file],
-		AC_CHECK_LIB([unbound],[log_file],
+	CPPFLAGS="$CPPFLAGS $LIBDB_INCDIRS $LIBUNBOUND_INCDIRS"
+	AC_CHECK_LIB([db], [log_file],
+		AC_CHECK_LIB([unbound], [log_file],
 			AC_MSG_ERROR([Cannot enable feature requiring BerkeleyDB with libunbound - both have log_file defined.  Please use newer BerkeleyDB version])
 		)
 	)
 	LDFLAGS="$saved_LDFLAGS"
-	CFLAGS="$saved_CFLAGS"
+	CPPFLAGS="$saved_CPPFLAGS"
 fi
 AC_SUBST(LIBDB_INCDIRS)
 AC_SUBST(LIBDB_LIBDIRS)
@@ -1970,7 +2200,7 @@ AC_SUBST(LIBDB_LIBS)
 LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBRESOLV"
 # This (below) is just for the pkg-config file opendkim.pc.in
 LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
-LIBOPENDKIM_INC="$LIBCRYPTO_CPPFLAGS $LIBCRYPTO_CFLAGS $LIBTRE_CFLAGS"
+LIBOPENDKIM_INC="$LIBCRYPTO_CPPFLAGS $LIBCRYPTO_CFLAGS $LIBTRE_CPPFLAGS"
 
 if test x"$enable_arlib" = x"yes"
 then
@@ -2035,6 +2265,59 @@ AC_ARG_WITH([domain],
 
 AC_SUBST([DOMAIN])
 
+AC_ARG_WITH(erlang,
+            AS_HELP_STRING([--with-erlang],
+                           [location of Erlang includes and library]),
+            [erlpath="$withval"], [erlpath="no"])
+
+LIBERL_INCDIRS=""
+LIBERL_LIBDIRS=""
+LIBERL_LIBS=""
+erl_found="no"
+
+if test \( x"$erlpath" = x"yes" -o x"$erlpath" = x"auto" \)
+then
+	AC_MSG_CHECKING([for Erlang])
+	b=`erl -noshell -eval 'io:format("~s~n", [[code:lib_dir()]]).' -s erlang halt`
+	erlbase=`ls -d $b/erl_interface-* | tail -n1`
+	AC_MSG_RESULT($erlbase)
+	LIBERL_INCDIRS="-I$erlbase/include"
+	LIBERL_LIBDIRS="-L$erlbase/lib"
+	LIBERL_LIBS="-pthread -lerl_interface -lei"
+	AC_DEFINE([USE_ERLANG], 1, [support for erlang access])
+	erl_found="yes"
+fi
+
+if test x"$erlpath" != x"yes" -a x"$erlpath" != x"auto" -a x"$erlpath" != x"no"
+then
+	AC_MSG_CHECKING([for Erlang])
+	if test -f $erlpath/include/ei.h
+	then
+		AC_MSG_RESULT($erlpath)
+		LIBERL_INCDIRS="-I$erlpath/include"
+		LIBERL_LIBDIRS="-L$erlpath/lib"
+		LIBERL_LIBS="-pthread -lerl_interface -lei"
+		erl_found="yes"
+	else
+		AC_MSG_ERROR(not found at $erlpath)
+	fi
+fi
+
+if test x"$erl_found" = x"yes"
+then
+	saved_CPPFLAGS="$CPPFLAGS"
+	CPPFLAGS="$LIBERL_INCDIRS"
+	AC_DEFINE([USE_ERLANG], 1, [support for Erlang access])
+	AC_SUBST([LIBERL_MANNOTICE], "")
+else
+	AC_SUBST([LIBERL_MANNOTICE], "(Not enabled for this installation.)")
+fi
+
+AM_CONDITIONAL(ERLANG, test x"$erl_found" = x"yes")
+AC_SUBST(LIBERL_INCDIRS)
+AC_SUBST(LIBERL_LIBDIRS)
+AC_SUBST(LIBERL_LIBS)
+
 #
 # final command line tweaks
 #
@@ -2085,8 +2368,13 @@ AC_OUTPUT([	Makefile
 			opendkim/opendkim-atpszone.8 opendkim/opendkim-spam.1
 		opendkim/tests/Makefile
 		stats/Makefile stats/opendkim-importstats.8
+			stats/opendkim-expire
+			stats/opendkim-expire.8
 			stats/opendkim-gengraphs
+			stats/opendkim-gengraphs.8
 			stats/opendkim-genstats
+			stats/opendkim-genstats.8
+			stats/opendkim-reportstats
 		reputation/Makefile
 			reputation/opendkim-genrates
 			reputation/opendkim-genrates.8

@@ -2,7 +2,7 @@
 
 .SH NAME
 .B opendkim.conf
-- Configuration file for opendkim
+\- Configuration file for opendkim
 
 .SH LOCATION
 .I @SYSCONFDIR@/opendkim.conf
@@ -42,6 +42,9 @@ Some of these parameters are listed as having a type of "dataset".
 See the
 .I opendkim(8)
 man page for a description of such parameters.
+
+Unless otherwise stated, Boolean values default to "false", integer values
+default to 0, and string and dataset values default to being undefined.
 
 .SH PARAMETERS
 .TP
@@ -139,10 +142,10 @@ is no default, meaning restart rate is not limited.
 
 .TP
 .I Background (Boolean)
-Normally
+Causes
 .I opendkim
-forks and exits immediately, leaving the service running in the background.
-This flag suppresses that behaviour so that it runs in the foreground.
+to fork and exits immediately, leaving the service running in the background.
+The default is "true".
 
 .TP
 .I BaseDirectory (string)
@@ -482,6 +485,33 @@ There is no default.
 Specifies the user ID to use when conducting an LDAP "bind" operation.
 There is no default.
 
+.TP
+.I LDAPKeepaliveIdle (integer)
+Sets the number of seconds a connection to an LDAP server needs to remain
+idle before TCP starts sending keepalive probes.  If not specified, the
+LDAP library default is used.
+
+.TP
+.I LDAPKeepaliveInterval (integer)
+Sets the interval in seconds between TCP keepalive probes.  If not specified,
+the LDAP library default is used.
+
+.TP
+.I LDAPKeepaliveProbes (integer)
+Sets the maximum number of keepalive probes TCP should send before abandoning
+the connection.  If not specified, the LDAP library default is used.
+
+.TP 
+.I LDAPSoftStart (Boolean)
+If set, the inability to bind and authenticate to an LDAP server will not
+prevent the filter from starting, and reconnections will be attempted for
+each query.  The default is "False".
+
+.TP
+.I LDAPTimeout (integer)
+Sets the time in seconds after which an LDAP operation should be abandoned.
+The default is 5.
+
 .TP 
 .I LDAPUseTLS (Boolean)
 Indicates whether or not a TLS connection should be established when
@@ -501,6 +531,14 @@ or
 as per the ADSP specification (RFC5617).  This allows local overrides
 of policies to enforce for domains that either don't publish ADSP or publish
 weaker policies than the verifier would like to enforce.
+
+.TP
+.I LogResults (boolean)
+If logging is enabled (see
+.I Syslog
+below), requests that the results of evaluation of all signatures that were
+at least partly intact (i.e., the "d=", "s=", and "b=" tags could be
+extracted).
 
 .TP
 .I LogWhy (boolean)
@@ -637,7 +675,7 @@ and
 .I SendReports.
 The default is @SENDMAIL_PATH@.  The executable should accept typical
 .B sendmail(8)
-command line options "-t" (take addresses from message body) and "-f"
+command line options "\-t" (take addresses from message body) and "\-f"
 (set envelope sender), accept the new message on its standard input, and
 return a non-zero exit status on any error.
 
@@ -837,7 +875,7 @@ setting.  By default, all header fields are included.
 Specifies a file containing a list of text replacement rules that are
 applied to the message header fields to replace certain content expected to be
 changed as the message passes through local MTAs.  This can be used to
-accomodate expected changes such as are made to From: fields by MTA
+accommodate expected changes such as are made to From: fields by MTA
 "masquerade" features.  Each entry in the file consists of a POSIX regular
 expression, followed by a tab (ASCII 9), followed by the text that should
 be used to replace the text matching the expression.  The '#' character
@@ -868,7 +906,6 @@ below). If multiple addresses are required, they should be comma separated.
 .I RequestReports (boolean)
 When signing, includes a request for signature evaluation failures in the
 signature.  (See draft-ietf-marf-dkim-reporting for details.)
-@XTAGS_MANNOTICE@
 
 .TP
 .I RequiredHeaders (boolean)
@@ -997,7 +1034,7 @@ for details. @LUA_MANNOTICE@
 .TP
 .I SignatureAlgorithm (string)
 Selects the signing algorithm to use when generating signatures.
-Use 'opendkim -V' to see the list of supported algorithms.
+Use 'opendkim \-V' to see the list of supported algorithms.
 The default is
 .I rsa-sha256
 if it is available, otherwise it will be
@@ -1028,7 +1065,9 @@ include one field that contains a name found in the
 .I KeyTable
 (see above) that identifies which key should be used in generating
 the signature, and an optional second field naming the signer of the message
-that will be included in the "i=" tag in the generated signature.
+that will be included in the "i=" tag in the generated signature.  Note
+that the "i=" value will not be included in the signature if it conflicts
+with the signing domain (the "d=" value).
 
 If the first field contains only a "%" character, it will be replaced by the
 domain found in the From: header field.  Similarly, within the optional

@@ -1,36 +1,36 @@
 .TH opendkim 8 "The OpenDKIM Project"
 .SH NAME
 .B opendkim
-- DKIM signing and verifying filter for MTAs
+\- DKIM signing and verifying filter for MTAs
 .SH SYNOPSIS
 .B opendkim
--p socketspec
-[-A]
-[-b modes]
-[-c canon]
-[-d domain[,...]]
-[-D]
-[-e name]
-[-f]
-[-F time]
-[-k keyfile]
-[-l]
-[-L min]
-[-n]
-[-o hdrlist]
-[-P pidfile]
-[-q]
-[-Q]
-[-r]
-[-s selector]
-[-S signalg]
-[-t testfiles]
-[-T secs]
-[-u userid[:group]]
-[-v]
-[-V]
-[-W]
-[-x configfile]
+\-p socketspec
+[\-A]
+[\-b modes]
+[\-c canon]
+[\-d domain[,...]]
+[\-D]
+[\-e name]
+[\-f]
+[\-F time]
+[\-k keyfile]
+[\-l]
+[\-L min]
+[\-n]
+[\-o hdrlist]
+[\-P pidfile]
+[\-q]
+[\-Q]
+[\-r]
+[\-s selector]
+[\-S signalg]
+[\-t testfiles]
+[\-T secs]
+[\-u userid[:group]]
+[\-v]
+[\-V]
+[\-W]
+[\-x configfile]
 .SH DESCRIPTION
 .B opendkim
 implements the 
@@ -47,7 +47,7 @@ a milter-aware MTA.
 
 Most, if not all, of the command line options listed below can also be set
 using a configuration file.  See the
-.I -x
+.I \-x
 option for details.
 .SH DATA SETS
 Many of the command line and configuration file parameters will refer to
@@ -59,6 +59,10 @@ Some data sets require that the value contain more than one entry.  How this
 is done depends on which data set type is used.
 
 Which type is used depends on the format of the specification string.
+Note that not all of these are necessarily supported for all installations;
+most of them depend on the availability of a particular third-party library
+at compile time.
+
 In particular:
 .TP
 .I a)
@@ -174,16 +178,46 @@ character, it is presumed to be a flat file as described above.
 .TP
 .I j)
 If the string begins with "csl:", the string is treated as a comma-separated
-list as described in k) below.
+list as described in l) below.
 .TP
 .I k)
+If the string begins with "erlang:", it is presumed to refer to a function
+called to be made to the specified distributed Erlang node(s). The
+specification is of the form
+
+erlang:node@host[,...]:cookie:module:function
+
+where
+.I node[,...]
+is a list of comma-separated erlang nodes,
+.I cookie
+is the cookie for the known nodes of the distributed Erlang setup,
+.I module
+is the name of the Erlang module where the function to be called resides,
+.I function
+is the name of the Erlang function to be called. For example, (all in one
+line):
+
+erlang:mynode@myhost,myothernode@myotherhost:
+.br
+       chocolate:dkim:lookup
+
+will join the distributed Erlang setup connecting to either "mynode@myhost"
+or "myothernode@myotherhost" (connections to nodes are tried in order) using
+"chocolate" as the cookie, and use the function "dkim:lookup/1" for lookups.
+.TP
+.I l)
+If the string begins with "mdb:", it refers to a directory that contains
+a memory database, as provided by libmdb from OpenLDAP.
+.TP
+.I m)
 In any other case, the string is presumed to be a comma-separated list.
 Elements in the list are either simple data elements that are part of the
 set or, in the case of an entry of the form "x=y", are stored as key-value
 pairs as described above.
 .SH OPTIONS
 .TP
-.I -A
+.I \-A
 Automatically re-start on failures.  Use with caution; if the filter
 fails instantly after it starts, this can cause a tight
 .I fork(2)
@@ -191,7 +225,7 @@ loop.  This can be mitigated using some values in the configuration file
 to limit restarting.  See
 .I opendkim.conf(5).
 .TP
-.I -b modes
+.I \-b modes
 Selects operating modes.
 .I modes
 is a concatenation of characters that indicate which mode(s) of operation
@@ -202,11 +236,11 @@ are desired.  Valid modes are
 (verifier).  The default is
 .I sv
 except in test mode (see
-.I -t
+.I \-t
 below) in which case the default is
 .I v.
 .TP
-.I -c canon
+.I \-c canon
 Selects the canonicalization method(s) to be used when signing messages.
 When verifying, the message's DKIM-Signature: header specifies
 the canonicalization method.  The recognized values are
@@ -219,45 +253,45 @@ The value may include two different canonicalizations separated by a
 slash ("/") character, in which case the first will be applied to the
 headers and the second to the body.
 .TP
-.I -d dataset
+.I \-d dataset
 A set of domains whose mail should be signed by this filter.  Mail from
 other domains will be verified rather than being signed.
 .TP
-.I -D
+.I \-D
 Sign subdomains of those listed by the
-.I -d
+.I \-d
 option as well as the actual domains.
 .TP
-.I -e name
+.I \-e name
 Extracts the value of
 .I name
 from the configuration file (if any).
 .TP
-.I -f
+.I \-f
 Normally
 .I opendkim
 forks and exits immediately, leaving the service running in the background.
 This flag suppresses that behaviour so that it runs in the foreground.
 .TP
-.I -F time
+.I \-F time
 Specifies a fixed time to use when generating signatures.  Ignored unless
 also used in conjunction with
-.I -t
+.I \-t
 (see below).  The time must be expressed in the usual UNIX
 .I time_t
 (seconds since epoch) format.
 .TP
-.I -k keyfile
+.I \-k keyfile
 Gives the location of a PEM-formatted private key to be used for signing
 all messages.  Ignored if a configuration file is referenced that defines
 a KeyTable.
 .TP
-.I -l
+.I \-l
 Log via calls to
 .I syslog(3)
 any interesting activity.
 .TP
-.I -L min[%+]
+.I \-L min[%+]
 Instructs the verification code to fail messages for which a partial
 signature was received.  There are three possible formats:
 .I min
@@ -276,12 +310,12 @@ meaning there may be no more than
 bytes of unsigned data appended to the message for it to be considered
 valid.
 .TP
-.I -n
+.I \-n
 Parse the configuration file and command line arguments, reporting any
 errors found, and then exit.  The exit value will be 0 if the filter would
 start up without complaint, or non-zero otherwise.
 .TP
-.I -o dataset
+.I \-o dataset
 Specifies a list of headers that should be omitted when generating
 signatures.
 If an entry in the list names any header which is mandated by the DKIM
@@ -291,7 +325,7 @@ contains those headers (Return-Path, Received, Comments, Keywords, Bcc,
 Resent-Bcc and DKIM-Signature).  To omit no headers, simply use the string
 "-" (or any string that will match no headers).
 .TP
-.I -p socketspec
+.I \-p socketspec
 Specifies the socket that should be established by the filter to receive
 connections from
 .I sendmail(8)
@@ -313,30 +347,30 @@ listening on all interfaces.  If neither socket type is specified,
 is assumed, meaning the parameter is interpreted as a path at which
 the socket should be created.  This parameter is mandatory.
 .TP
-.I -P pidfile
+.I \-P pidfile
 Specifies a file into which the filter should write its process ID at startup.
 .TP
-.I -q
+.I \-q
 Requests that messages which fail verification be quarantined by the
 MTA.  (Requires a sufficiently recent version of the milter library.)
 .TP
-.I -Q
+.I \-Q
 Query test mode.  The filter will read two lines from standard input, one
 containing a database description to be opened and one containing a string
 of the form "q/n" where "q" is the query to be performed and "n" is the
 number of fields to be retrieved.
 .TP
-.I -r
+.I \-r
 Checks all messages for compliance with RFC5322 header count requirements.
 Non-compliant messages are rejected.
 .TP
-.I -s selector
+.I \-s selector
 Defines the name of the selector to be used when signing messages.
 See the
 .B DKIM
 specification for details.
 .TP
-.I -S signalg
+.I \-S signalg
 Selects the signing algorithm to use when generating signatures.
 Use 'opendkim -V' to see the list of supported algorithms.
 The default is
@@ -345,7 +379,7 @@ if it is available, otherwise it will be
 .I rsa-sha1.
 
 .TP
-.I -t testfiles
+.I \-t testfiles
 Evaluates (verifies) one or more RFC5322-formatted message found in
 .I testfiles
 and exits.  The value of
@@ -353,12 +387,12 @@ and exits.  The value of
 should be a comma-separated list of one or more filenames, one of which
 may be "-" if the message should be read from standard input.
 .TP
-.I -T secs
+.I \-T secs
 Sets the DNS timeout in seconds.  A value of 0 causes an infinite wait.
 The default is 5.  Ignored if not using an asynchronous resolver package.
 See also the NOTES section below.
 .TP
-.I -u userid[:group]
+.I \-u userid[:group]
 Attempts to be come the specified
 .I userid
 before starting operations.  The process will be assigned all of the groups
@@ -368,19 +402,19 @@ unless an alternate
 .I group
 is specified.  See the FILE PERMISSIONS section for more information.
 .TP
-.I -v
+.I \-v
 Increase verbose output during test mode (see
-.I -t
+.I \-t
 above).  May be specified more than once to request increasing amounts of
 output.
 .TP
-.I -V
+.I \-V
 Print the version number and supported canonicalization and signature
 algorithms, and then exit without doing anything else.
 .TP
-.I -W
+.I \-W
 If logging is enabled (see
-.I -l
+.I \-l
 above), issues very detailed logging about the logic behind the filter's
 decision to either sign a message or verify it.  The "W" stands for "Why?!"
 since the logic behind the decision is non-trivial and can be confusing to
@@ -390,7 +424,7 @@ document.  This causes a large increase in the amount of log data generated
 for each message, so it should be limited to debugging use and not enabled
 for general operation.
 .TP
-.I -x configfile
+.I \-x configfile
 Read the named configuration file.  See the
 .I opendkim.conf(5)
 man page for details.  Values in the configuration file are overridden
@@ -401,9 +435,9 @@ The default is to read a configuration file from
 if one exists, or otherwise to apply defaults to all values.
 .SH OPERATION
 A message will be verified unless it conforms to the signing criteria,
-which are: (1) the domain on the From: address or Sender: address (if present)
-must be listed by the
-.I -d
+which are: (1) the domain on the From: address (if present) must be listed
+by the
+.I \-d
 command line switch or the
 .I Domain
 configuration file setting, and (2) (a) the client connecting to the MTA must
@@ -423,6 +457,11 @@ and contains any non-empty value.  This means the MTA must pass the value of
 that macro to the filter before or during the end-of-header (EOH) phase
 in order for its value to be tested.  Check your MTA's configuration
 documentation for details.
+
+For (1) above, other header fields may be selected using the SenderHeaders
+configuration file setting.  See
+.I opendkim.conf(5)
+for more information.
 
 When signing a message, a
 .I DKIM-Signature:
@@ -497,7 +536,7 @@ The directory to use when creating temporary files.  The default is
 .I /var/tmp.
 .SH NOTES
 When using DNS timeouts (see the
-.I -T
+.I \-T
 option above), be sure not to use a timeout that is larger than the timeout
 being used for interaction between
 .I sendmail
@@ -532,7 +571,7 @@ This man page covers version @VERSION@ of
 Copyright (c) 2005-2008, Sendmail, Inc. and its suppliers.  All rights
 reserved.
 
-Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim.conf(5), sendmail(8)
 .P

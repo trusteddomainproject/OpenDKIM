@@ -6,7 +6,7 @@
 */
 
 #ifndef lint
-static char t_test140_c_id[] = "@(#)$Id: t-test00.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
+static char t_test148_c_id[] = "@(#)$Id: t-test83.c,v 1.2 2009/12/08 19:14:27 cm-msk Exp $";
 #endif /* !lint */
 
 #include "build-config.h"
@@ -14,8 +14,8 @@ static char t_test140_c_id[] = "@(#)$Id: t-test00.c,v 1.2 2009/12/08 19:14:27 cm
 /* system includes */
 #include <sys/types.h>
 #include <assert.h>
-#include <stdio.h>
 #include <string.h>
+#include <stdio.h>
 
 #ifdef USE_GNUTLS
 # include <gnutls/gnutls.h>
@@ -26,8 +26,6 @@ static char t_test140_c_id[] = "@(#)$Id: t-test00.c,v 1.2 2009/12/08 19:14:27 cm
 #include "t-testdata.h"
 
 #define	MAXHEADER	4096
-
-#define SIG2 "v=1; a=rsa-sha1; c=relaxed/relaxed; d=example.com; s=test;\r\n\tt=1172620939; foo=bar; bh=Z9ONHHsBrKN0pbfrOu025VfbdR4=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=EVdrR7ZmtS41Max1cC19k6sUZx2QUpn/SmcJ4xJjcsvYYJzabx8yAbo30fWPHYuXZ\r\n\t eev7e/9wRwbCTzejwag9CkDaNxqLIEHnheby73XbA2pzAtY5EMFk5WZuWilDCwH3f2\r\n\t BJ0liJoaw1mDrlUH7SvxsStcqm1npWv4yEQkKkGY="
 
 /*
 **  MAIN -- program mainline
@@ -60,7 +58,14 @@ main(int argc, char **argv)
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
 
-	printf("*** relaxed/relaxed rsa-sha1 signing with extension tags\n");
+	if (!dkim_libfeature(lib, DKIM_FEATURE_SHA256))
+	{
+		printf("*** relaxed/simple rsa-sha256 signing subdomain with invalid i= SKIPPED\n");
+		dkim_close(lib);
+		return 0;
+	}
+
+	printf("*** relaxed/simple rsa-sha256 signing subdomain with invalid i=\n");
 
 #ifdef TEST_KEEP_FILES
 	/* set flags */
@@ -71,19 +76,15 @@ main(int argc, char **argv)
 
 	key = KEY;
 
-	dkim = dkim_sign(lib, JOBID, NULL, key, SELECTOR, DOMAIN,
-	                 DKIM_CANON_RELAXED, DKIM_CANON_RELAXED,
-	                 DKIM_SIGN_RSASHA1, -1L, &status);
+	dkim = dkim_sign(lib, JOBID, NULL, key, SELECTOR, DOMAIN2,
+	                 DKIM_CANON_RELAXED, DKIM_CANON_SIMPLE,
+	                 DKIM_SIGN_RSASHA256, -1L, &status);
 	assert(dkim != NULL);
 
 	/* fix signing time */
 	fixed_time = 1172620939;
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FIXEDTIME,
 	                    &fixed_time, sizeof fixed_time);
-
-	/* add an "extension tag" */
-	status = dkim_add_xtag(dkim, "foo", "bar");
-	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER02, strlen(HEADER02));
 	assert(status == DKIM_STAT_OK);
@@ -94,8 +95,11 @@ main(int argc, char **argv)
 	status = dkim_header(dkim, HEADER04, strlen(HEADER04));
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_header(dkim, HEADER05, strlen(HEADER05));
+#define	XHEADER05	"From: Murray S. Kucherawy <msk@eng.sendmail.com>"
+	status = dkim_header(dkim, XHEADER05, strlen(XHEADER05));
 	assert(status == DKIM_STAT_OK);
+
+	(void) dkim_set_signer(dkim, "@" DOMAIN);
 
 	status = dkim_header(dkim, HEADER06, strlen(HEADER06));
 	assert(status == DKIM_STAT_OK);
@@ -154,13 +158,12 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_eom(dkim, NULL);
-	assert(status == DKIM_STAT_OK);
+	assert(status == DKIM_STAT_INVALID);
 
 	memset(hdr, '\0', sizeof hdr);
 	status = dkim_getsighdr(dkim, hdr, sizeof hdr,
 	                        strlen(DKIM_SIGNHEADER) + 2);
-	assert(status == DKIM_STAT_OK);
-	assert(strcmp(SIG2, hdr) == 0);
+	assert(status == DKIM_STAT_INVALID);
 
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);

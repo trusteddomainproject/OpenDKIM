@@ -34,6 +34,8 @@ my $datafile;
 my $pngfile;
 
 my $anchor;
+my $domain;
+my $tmpdom;
 
 my $dbi_s;
 my $dbi_h;
@@ -42,6 +44,7 @@ my $dbi_a;
 my $unsigned      = 1;
 
 my $idx;
+my $tmpin;
 
 my @domains;
 my @xdata;
@@ -72,6 +75,29 @@ my $tmpout;
 ###
 ### NO user-serviceable parts beyond this point
 ###
+
+sub make_temporary_table
+{
+	$dbi_s = $dbi_h->prepare("CREATE TEMPORARY TABLE t1 (
+		id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+		ddate DATE,
+		msgcount INT UNSIGNED NOT NULL,
+		spamcount INT UNSIGNED NOT NULL,
+		domain VARCHAR(255) NOT NULL,
+		PRIMARY KEY(id),
+		KEY(domain)
+	)");
+
+	if (!$dbi_s->execute)
+	{
+		print STDERR "$progname: CREATE TEMPORARY TABLE failed: " . $dbi_h->errstr;
+		$dbi_s->finish;
+		$dbi_h->disconnect;
+		exit(1);
+	}
+
+	$dbi_s->finish;
+}
 
 sub usage
 {
@@ -213,6 +239,46 @@ if ($verbose)
 }
 
 #
+# If any of the domains started with "/" or "./", convert them into
+# whatever's in the files they reference.
+#
+
+if (scalar @domains > 0)
+{
+	foreach $idx (0 .. $#domains)
+	{
+		if (substr($domains[$idx], 0, 1) eq "/" ||
+		    substr($domains[$idx], 0, 2) eq "./")
+		{
+			if (!open($tmpin, "<", $domains[$idx]))
+			{
+				print STDERR "$progname: cannot open $domains[$idx]: $!\n";
+				$dbi_s->finish;
+				$dbi_h->disconnect;
+				exit(1);
+			}
+
+			while (<$tmpin>)
+			{
+				# ignore comments
+				s/#.*//;
+
+				# ignore blank lines
+				next if /^(\s)*$/;
+
+				chomp;
+
+				push @domains, $_;
+			}
+
+			close($tmpin);
+
+			delete $domains[$idx];
+		}
+	}
+}
+
+#
 # start the report
 #
 if (!defined($reportout))
@@ -247,11 +313,16 @@ print $out "<hr>\n";
 print $out "<ul>\n";
 if (scalar @domains > 0)
 {
-	foreach (@domains)
+	foreach $domain (@domains)
 	{
-		$anchor = $_;
-		$anchor =~ s/\./_/;
-		print $out " <li> <a href=\"#" . $anchor . "\">" . $_ . "</a>\n";
+		if (!defined($domain))
+		{
+			next;
+		}
+
+		$tmpdom = $domain;
+		$tmpdom =~ s/\./_/;
+		print $out " <li> <a href=\"#" . $tmpdom . "\">" . $domain . "</a>\n";
 	}
 }
 if ($unsigned)
@@ -269,24 +340,7 @@ if ($verbose)
 	print STDERR "$progname: constructing temporary table\n";
 }
 
-$dbi_s = $dbi_h->prepare("CREATE TEMPORARY TABLE t1 (
-	id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-	ddate DATE,
-	msgcount INT UNSIGNED NOT NULL,
-	spamcount INT UNSIGNED NOT NULL,
-	domain VARCHAR(255) NOT NULL,
-	PRIMARY KEY(id),
-	KEY(domain)
-) DATA DIRECTORY = '/fsys4/mysql'
-  INDEX DIRECTORY = '/fsys4/mysql'");
-if (!$dbi_s->execute)
-{
-	print STDERR "$progname: CREATE TEMPORARY TABLE failed: " . $dbi_h->errstr;
-	$dbi_s->finish;
-	$dbi_h->disconnect;
-	exit(1);
-}
-$dbi_s->finish;
+make_temporary_table();
 
 if ($verbose)
 {
@@ -327,27 +381,33 @@ $pngfile = $reportdir . "/ogg.png." . $$;
 
 if (scalar @domains > 0)
 {
-	foreach (@domains)
+	foreach $domain (@domains)
 	{
-		if ($verbose)
+		if (!defined($domain))
 		{
-			print STDERR "$progname: reporting for $_\n";
+			next;
 		}
 
-		$anchor = $_;
-		$anchor =~ s/\./_/;
-		print $out "<a name=\"" . $anchor . "\">" . $_ . ":</a>\n";
+		if ($verbose)
+		{
+			print STDERR "$progname: reporting for $domain\n";
+		}
+
+		$tmpdom = $domain;
+		$tmpdom =~ s/\./_/;
+		print $out "<a name=\"" . $tmpdom . "\">" . $domain . ":</a>\n";
 		print $out "<br>\n";
 
-		if (!$dbi_s->execute($_))
+		if (!$dbi_s->execute($domain))
 		{
-			print STDERR "$progname: domain report for " . $_ . " failed: " . $dbi_h->errstr . "\n";
+			print STDERR "$progname: domain report for " . $domain . " failed: " . $dbi_h->errstr . "\n";
 			$dbi_s->finish;
 			$dbi_h->disconnect;
 			exit(1);
 		}
 
-		open(GNUDATA, ">" . $datafile) or die $progname . ": can't create temporary file $datafile\n";
+		open(GNUDATA, ">" . $datafile)
+			or die $progname . ": can't create temporary file $datafile\n";
 		while ($dbi_a = $dbi_s->fetchrow_arrayref())
 		{
 			print GNUDATA $dbi_a->[0] . " " . $dbi_a->[1] . " " . $dbi_a->[2] . "\n";
@@ -365,22 +425,22 @@ if (scalar @domains > 0)
 		print GNUPLOT "set xlabel 'received'\n";
 		print GNUPLOT "set ylabel 'spam'\n";
 		print GNUPLOT "set terminal png size 800,600\n";
-		print GNUPLOT "set title '" . $_ . " received-spam scatter plot'\n";
+		print GNUPLOT "set title '" . $domain . " received-spam scatter plot'\n";
 		print GNUPLOT "set output '$pngfile'\n";
 		print GNUPLOT "plot '$datafile' using 1:2:3 notitle with circles\n";
 		close(GNUPLOT);
 
-		rename($pngfile, $reportdir . "/" . $_ . ".png");
+		rename($pngfile, $reportdir . "/" . $domain . ".png");
 		unlink($datafile);
 
-		print $out "<img src=\"" . $_ . ".png\">\n";
+		print $out "<img src=\"" . $domain . ".png\">\n";
 		print $out "<br>\n";
 	}
 }
 
 if ($unsigned)
 {
-	$dbi_s = $dbi_h->prepare("TRUNCATE TABLE t1\n");
+	$dbi_s = $dbi_h->prepare("DROP TABLE t1\n");
 	if (!$dbi_s->execute)
 	{
 		print STDERR "$progname: TRUNCATE TABLE failed: " . $dbi_h->errstr . "\n";
@@ -389,6 +449,8 @@ if ($unsigned)
 		exit(1);
 	}
 	$dbi_s->finish;
+
+	make_temporary_table();
 
 	if ($verbose)
 	{
@@ -431,7 +493,7 @@ if ($unsigned)
 	$dbi_s = $dbi_h->prepare("SELECT msgcount, spamcount, 1+LOG10(COUNT(id)) FROM t1 GROUP BY 1, 2");
 	if (!$dbi_s->execute)
 	{
-		print STDERR "$progname: domain report for " . $_ . " failed: " . $dbi_h->errstr . "\n";
+		print STDERR "$progname: domain report for unsigned mail failed: " . $dbi_h->errstr . "\n";
 		$dbi_s->finish;
 		$dbi_h->disconnect;
 		exit(1);
