@@ -1,30 +1,90 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.5.2 released
+Subject: OpenDKIM v2.6.0 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.5.2, now available
+The OpenDKIM project announces availability of OpenDKIM v2.6.0, now available
 for download from SourceForge.
 
-This is a minor bug fix release.  Most of the fixes have to do with the
-build system or compile-time issues and not run-time ones.  So if you have
-already packaged or installed 2.5.0.1, you don't need this release.
+This is a major feature release.  There are also some bug fixes, though none
+of them are critical to operation.  Thus, updating is not mandatory unless
+access to the new features is desired.
 
 The full RELEASE_NOTES for this version:
 
-2.5.2		2012/04/09
-	Fix bug #SF3496208: Replace stats/opendkim-genstats with a perl
-		script so it's far more efficient.
-	Fix bug #SF3514793: Pass proper flags to libdb when creating
-		temporary LDAP caches.  Problem noted by Sergey Romanov.
-	Fix a crash bug when using LocalADSP with a message with no
-		parseable From: field.  Problem noted by John Merriam.
-	Fix a crash bug when using LDAP with authentication when LDAPAuthUser
-		is not defined.  Problem noted by Christian Roessner.
-	STATS: Fix bug #SF3510729: Convert stats/opendkim-gengraphs to a perl
-		script.
+2.6.0		2012/06/01
+	Feature request #SF3495969: Add support for Lua v5.2.0.  Requested
+		by Rolf Sonneveld.
+	Feature request #SF3502777: Log all authentication results rather than
+		relying on logging of Authentication-Results header fields.
+		Requested by Andreas Schulze.
+	Feature request #SF3512286: Add "LDAPSoftStart" flag so the filter
+		doesn't abort on startup when LDAP is not available.
+	Feature request #SF3512836: Add _FFR_SOCKETDB, which enables support
+		for a generic socket data set.
+	Feature request #SF3514982: Add Erlang data set support.  Patch
+		provided by Andre Nathan.
+	Feature request #SF3516253: Update to newest "repute" working group
+		documents, which mainly means adding JSON support and
+		promoting application-specific extensions to the top level
+		in the reputon structure.
+	Feature request #SF3518593: Add support for OpenLDAP's MDB as a
+		data set backend.  Requested by Quanah Gibson-Mount.
+	Feature request #SF3519002: Put reason information inside a "reason"
+		tag in Authentication-Results header fields rather than in
+		comments.
+	Feature request #SF3521000: Log hostname and daemon name (taken from
+		macros) when logging "no MTA name match".  Requested by
+		Andreas Schulze.
+	Feature request #SF3524756: Add ability to request TCP keepalive
+		features via the OpenLDAP client library.  Requested by
+		Quanah Gibson-Mount.
+	Feature request #SF3529233: Add odkim.get_envfrom() to all Lua scripts.
+		Requested by Charles Cazabon.
+	Fix bug #SF3518877: Separate variable expansion from literal text in
+		opendkim-genkey.
+	Fix bug #SF3522883: Allow TLS for ldapi URIs.  Problem noted by
+		Quanah Gibson-Mount.
+	Fix bug #SF3527428: Construct the LDAP URI list properly, rather than
+		only keeping the last one, and add failover code.  Problems
+		noted by Quanah Gibson-Mount.
+	Patch #SF3522895: Add contrib/ldap/opendkim.ldif.  Contributed
+		by Quanah Gibson-Mount.
+	Activate _FFR_XTAGS.
+	Remove _FFR_SELECT_CANONICALIZATION.
+	LIBAR: Fix bug #SF3444318: Do proper buffer size calculations to
+		avoid valgrind warnings about references to unaddressable
+		space.  Reported by Todd Lyons.
+	LIBOPENDKIM: Fix bug #SF3496041: Remove _FFR_PARSETIME.
+	LIBOPENDKIM: Fix bug #SF3516653: By default, treat a syntax error
+		in an ADSP record as an NXDOMAIN.  Add new library flag
+		DKIM_LIBFLAGS_REPORTBADADSP to restore the original
+		behaviour.  Suggested by Scott Kitterman.
+	LIBOPENDKIM: Fix bug #SF3524865: Disallow generation of signatures
+		where signer and signing domain don't match per the DKIM
+		specification.  Add DKIM_LIBFLAGS_DROPSIGNER which, if set,
+		will still generate signatures in that case, but with the
+		signer omitted so the signature is still compliant.
+	BUILD: Fix bug #SF3425384: Add missing support for compiling
+		against libevent2, which is an option for unbound.
+		Noted by Andreas Schulze.
+	BUILD: Fix bug #SF3475799: Don't do a manual check for libdb.a.
+		Use the AC_CHECK_* macros instead.
+	DOCS: Fix bug #SF3518864: The license for IETF documents is not
+		compatible with free software licensing, which makes packaging
+		a bit of a chore.  Replace all the text files in the "docs"
+		directory with a single HTML page that includes links to
+		all the things we used to include here.  Requested by
+		Scott Kitterman.
+	STATS: Feature request #SF3110059: Move opendkim-reportstats from
+		contrib/stats to stats, making it fully supported.
+	STATS: Feature request #SF3525786: Add opendkim-expire script.
+		Requested by Andreas Schulze.
+	STATS: Feature request #SF3528652: Allow a specific list of domains,
+		possibly read from a file, for opendkim-gengraphs and
+		opendkim-genrates.  Requested by Andreas Schulze.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
 which can be found via http://www.opendkim.org.
 
-The OpenDKIM Project
+The Trusted Domain Project
