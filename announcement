@@ -11,7 +11,7 @@ access to the new features is desired.
 
 The full RELEASE_NOTES for this version:
 
-2.6.0		2012/06/01
+2.6.0		2012/06/07
 	Feature request #SF3495969: Add support for Lua v5.2.0.  Requested
 		by Rolf Sonneveld.
 	Feature request #SF3502777: Log all authentication results rather than
