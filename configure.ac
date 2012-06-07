@@ -283,6 +283,9 @@ FFR_FEATURE([reputation_cache],
 FFR_FEATURE([resign],
             [support for one-step re-signing])
 
+FFR_FEATURE([select_canonicalization],
+            [allow sender to select canonicalization])
+
 FFR_FEATURE([selector_header], [special header to choose signing key])
 
 FFR_FEATURE([sender_macro], [macro to determine sender])
