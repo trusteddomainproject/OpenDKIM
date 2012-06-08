@@ -8,6 +8,7 @@ release, and a summary of the changes in that release.
 2.6.1		2012/06/??
 	Restore and activate _FFR_SELECT_CANONICALIZATION.  Also adds a
 		SelectCanonicalizationHeader configuration option.
+	Remove _FFR_SELECTOR_HEADER.
 
 2.6.0		2012/06/07
 	Feature request #SF3495969: Add support for Lua v5.2.0.  Requested
