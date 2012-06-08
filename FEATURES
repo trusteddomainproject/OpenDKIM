@@ -128,16 +128,6 @@ resign		Experimental API features for simultaneous verifying and
 
 rpath		Include library paths in generated binaries.  (all executables)
 
-select_canonicalization
-		Optionally override the value of the "-c" command line flag
-		by specifying a preferred canonicalization in a special
-		header field.  Intended mostly for testing, not production
-		use.  (opendkim)
-
-selector_header	Enable selection of which selector (and thus which key)
-		to use when signing based on the contents of an arbitrary
-		header field.  (opendkim)
-
 sender_macro	Enable control over an MTA macro from which the address
 		of the sender is taken, rather than from header fields.
 		(opendkim)
