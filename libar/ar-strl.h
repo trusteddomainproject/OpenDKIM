@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2012, The OpenDKIM Project.  All rights reserved.
 */
 
 #ifndef _AR_STRL_H_
