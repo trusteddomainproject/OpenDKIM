@@ -33,21 +33,10 @@ allsymbols	By default, the build will attempt to create a libopendkim
 		exports those as well.  This is intended only for running
 		library unit tests.  (libopendkim)
 
-arlib		Compile and use the asynchronous resolver library included
-		in the package.  (libar, opendkim)
-
 atps		Support for experimental Authorized Third-Party Signatures
 		mechanism.  (opendkim, libopendkim)
 
-codecoverage	Enables generation of profiling code for all libraries,
-		programs and tests.  When running the library tests,
-		produces a report about code coverage based on the available
-		code coverage tools (gprof, gcov or lcov). (all)
-
 db_handle_pools	Database handle pools.  EXPERIMENTAL  (opendkim)
-
-debug		Compile all binaries and libraries with debugging enabled
-		and optimization disabled.  (all)
 
 default_sender	Allow declaration of sender address to use when a message
 		contains no obvious sender.  (opendkim)
@@ -73,21 +62,12 @@ ldap_caching	Adds code that ensures duplicate LDAP queries aren't sent
 		means changes made to LDAP data won't be recognized by
 		the filter right away. (opendkim)
 
-live-testing	Enables "live" unit tests, which may go to the public
-		Internet and thus cannot be run without Internet access.
-		Enabled by default.  (libopendkim, opendkim)
-
 lua_globals	Optional mechanism for passing variables between Lua
 		scripts.  (opendkim)
 
 oversign	Optional specification of header fields to "oversign" to
 		prevent malicious addition of malicious extra instances.
 		(opendkim, libopendkim)
-
-poll		Instructs the asynchronous resolver to use poll() instead
-		of select() to wait for I/O on sockets.  (libar)
-
-popauth		POP-before-SMTP support.  (opendkim)
 
 postgres_reconnect_hack
 		libpq (the postgresql client library) fails to identify
@@ -97,9 +77,6 @@ postgres_reconnect_hack
 		errors in ad different (but unconventional) manner.  It is
 		hoped that this can be removed in the near future.
 		(opendkim)
-
-query_cache	Support for local caching of key and policy queries rather
-		than relying on the DNS to do so.  (libopendkim)
 
 rate_limit	Experimental rate limiting based on confirmed signer domains.
 		(opendkim)
@@ -126,11 +103,11 @@ reputation_cache
 resign		Experimental API features for simultaneous verifying and
 		re-signing of a single message.  (libopendkim, opendkim)
 
-rpath		Include library paths in generated binaries.  (all executables)
-
 sender_macro	Enable control over an MTA macro from which the address
 		of the sender is taken, rather than from header fields.
 		(opendkim)
+
+socketdb	Adds support for arbitrary socket-based data sets.  (opendkim)
 
 stats		Optional generation of per-message and per-signature
 		statistics of interest to the evolution of DKIM.
