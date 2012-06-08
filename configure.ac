@@ -1252,7 +1252,7 @@ AC_SUBST([LIBTRE_LIBS])
 #
 # liblua
 #
-AC_ARG_WITH(lua,
+AC_ARG_WITH([lua],
             AS_HELP_STRING([--with-lua],
                            [location of Lua includes and library]),
             [luapath="$withval"], [luapath="no"])
@@ -2263,7 +2263,7 @@ AC_ARG_WITH([domain],
 
 AC_SUBST([DOMAIN])
 
-AC_ARG_WITH(erlang,
+AC_ARG_WITH([erlang],
             AS_HELP_STRING([--with-erlang],
                            [location of Erlang includes and library]),
             [erlpath="$withval"], [erlpath="no"])
