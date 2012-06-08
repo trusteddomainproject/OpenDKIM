@@ -196,11 +196,7 @@ struct configdef dkimf_config[] =
 	{ "ScreenPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* USE_LUA */
 	{ "Selector",			CONFIG_TYPE_STRING,	FALSE },
-#ifdef _FFR_SELECTOR_HEADER
 	{ "SelectCanonicalizationHeader", CONFIG_TYPE_STRING,	FALSE },
-	{ "SelectorHeader",		CONFIG_TYPE_STRING,	FALSE },
-	{ "SelectorHeaderRemove",	CONFIG_TYPE_BOOLEAN,	FALSE },
-#endif /* _FFR_SELECTOR_HEADER */
 	{ "SendADSPReports",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "SenderHeaders",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_SENDER_MACRO

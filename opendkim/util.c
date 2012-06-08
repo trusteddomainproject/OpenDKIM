@@ -199,10 +199,6 @@ static char *optlist[] =
 	"_FFR_RESIGN",
 #endif /* _FFR_RESIGN */
 
-#if _FFR_SELECTOR_HEADER
-	"_FFR_SELECTOR_HEADER",
-#endif /* _FFR_SELECTOR_HEADER */
-
 #if _FFR_SENDER_MACRO
 	"_FFR_SENDER_MACRO",
 #endif /* _FFR_SENDER_MACRO */

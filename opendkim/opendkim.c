@@ -330,10 +330,6 @@ struct dkimf_config
 	char *		conf_identityhdr;	/* identity header */
 	_Bool		conf_rmidentityhdr;	/* remove identity header */
 #endif /* _FFR_IDENTITY_HEADER */
-#ifdef _FFR_SELECTOR_HEADER
-	char *		conf_selectorhdr;	/* selector header */
-	_Bool           conf_rmselectorhdr;     /* remove selector header */
-#endif /* _FFR_SELECTOR_HEADER */
 	char *		conf_diagdir;		/* diagnostics directory */
 #ifdef _FFR_STATS
 	char *		conf_statspath;		/* path for stats file */
@@ -6183,16 +6179,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 #endif /* _FFR_SENDER_MACRO */
 
-#ifdef _FFR_SELECTOR_HEADER
-		(void) config_get(data, "SelectorHeader",
-		                  &conf->conf_selectorhdr,
-		                  sizeof conf->conf_selectorhdr);
-
-		(void) config_get(data, "SelectorHeaderRemove",
-				&conf->conf_rmselectorhdr,
-				sizeof conf->conf_rmselectorhdr);
-#endif /* _FFR_SELECTOR_HEADER */
-
 		if (!conf->conf_sendreports)
 		{
 			(void) config_get(data, "SendReports",
@@ -10630,9 +10616,6 @@ mlfi_negotiate(SMFICTX *ctx,
 # ifdef _FFR_IDENTITY_HEADER
 	    conf->conf_rmidentityhdr ||
 # endif /* _FFR_IDENTITY_HEADER */
-# ifdef _FFR_SELECTOR_HEADER
-	    conf->conf_rmselectorhdr ||
-# endif /* _FFR_SELECTOR_HEADER */
 # ifdef _FFR_VBR
 	    conf->conf_vbr_purge ||
 # endif /* _FFR_VBR */
@@ -11955,36 +11938,6 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 	}
 
-#ifdef _FFR_SELECTOR_HEADER
-	/* was there a header naming the selector to use? */
-	if (domainok && conf->conf_selectorhdr != NULL &&
-	    conf->conf_keytabledb != NULL)
-	{
-		/* find the header */
-		hdr = dkimf_findheader(dfc, conf->conf_selectorhdr, 0);
-
-		/* did it match a key in the KeyTable? */
-		if (hdr != NULL)
-		{
-			status = dkimf_add_signrequest(dfc,
-			                               conf->conf_keytabledb,
-			                               hdr->hdr_val, NULL,
-			                               (ssize_t) -1);
-			if (status != 0)
-			{
-				if (dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: failed to add signature for key '%s'",
-					       dfc->mctx_jobid, hdr->hdr_val);
-				}
-
-				return SMFIS_TEMPFAIL;
-			}
-		}
-	}
-#endif /* _FFR_SELECTOR_HEADER */
-
 	/* still no key selected; check the signing table (if any) */
 	if (originok && dfc->mctx_srhead == NULL &&
 	    (user != NULL && dfc->mctx_domain[0] != '\0') && 
@@ -12675,14 +12628,6 @@ mlfi_eoh(SMFICTX *ctx)
 			continue;
 #endif /* _FFR_IDENTITY_HEADER */
 
-#ifdef _FFR_SELECTOR_HEADER
-		if (conf->conf_selectorhdr != NULL &&
-		    conf->conf_rmselectorhdr && 
-		    dfc->mctx_srhead != NULL &&
-		    strcasecmp(conf->conf_selectorhdr, hdr->hdr_hdr) == 0)
-			continue;
-#endif /* _FFR_SELECTOR_HEADER */
-
 		dkimf_dstring_copy(dfc->mctx_tmpstr, (u_char *) hdr->hdr_hdr);
 		dkimf_dstring_cat1(dfc->mctx_tmpstr, ':');
 		if (!cc->cctx_noleadspc)
@@ -13151,30 +13096,6 @@ mlfi_eom(SMFICTX *ctx)
 	}
 #endif /* _FFR_IDENTITY_HEADER */
 					
-#ifdef _FFR_SELECTOR_HEADER
-	/* remove selector header if such was requested when signing */
-	if (conf->conf_rmselectorhdr && conf->conf_selectorhdr != NULL &&
-	    dfc->mctx_srhead != NULL)
-	{
-		struct Header *hdr;
-		
-		hdr = dkimf_findheader(dfc, conf->conf_selectorhdr, 0);
-		if (hdr != NULL)
-		{
-			if (dkimf_chgheader(ctx, conf->conf_selectorhdr,
-			                    0, NULL) != MI_SUCCESS)
-			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_WARNING,
-					       "failed to remove %s: header",
-					       conf->conf_selectorhdr);
-				}
-			}
-		}
-	}
-#endif /* _FFR_SELECTOR_HEADER */
-
 	/* log something if the message was multiply signed */
 	if (dfc->mctx_dkimv != NULL && conf->conf_dolog)
 	{
@@ -16955,9 +16876,6 @@ main(int argc, char **argv)
 #ifdef _FFR_IDENTITY_HEADER
 		    curconf->conf_rmidentityhdr ||
 #endif /* _FFR_IDENTITY_HEADER */
-#ifdef _FFR_SELECTOR_HEADER
-		    curconf->conf_rmselectorhdr ||
-#endif /* _FFR_SELECTOR_HEADER */
 #ifdef _FFR_VBR
 		    curconf->conf_vbr_purge ||
 #endif /* _FFR_VBR */
