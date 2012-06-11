@@ -2,7 +2,7 @@
 **  Copyright (c) 2007-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2011, 2012, The OpenDKIM Project.  All rights reserved.
 **
 **  $Id: opendkim-ar.c,v 1.5.58.1 2010/10/27 21:43:09 cm-msk Exp $
 */
@@ -52,6 +52,7 @@ struct lookup methods[] =
 	{ "auth",		ARES_METHOD_AUTH },
 	{ "dkim",		ARES_METHOD_DKIM },
 	{ "dkim-adsp",		ARES_METHOD_DKIMADSP },
+	{ "dkim-atps",		ARES_METHOD_DKIMATPS },
 	{ "domainkeys",		ARES_METHOD_DOMAINKEYS },
 	{ "iprev",		ARES_METHOD_IPREV },
 	{ "sender-id",		ARES_METHOD_SENDERID },
@@ -72,7 +73,6 @@ struct lookup aresults[] =
 	{ "signed",		ARES_RESULT_SIGNED },
 	{ "unknown",		ARES_RESULT_UNKNOWN },
 	{ "discard",		ARES_RESULT_DISCARD },
-	{ "hardfail",		ARES_RESULT_HARDFAIL },
 	{ "softfail",		ARES_RESULT_SOFTFAIL },
 	{ NULL,			ARES_RESULT_UNKNOWN }
 };

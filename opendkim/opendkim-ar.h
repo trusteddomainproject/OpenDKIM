@@ -36,13 +36,14 @@ typedef int ares_method_t;
 #define	ARES_METHOD_SPF		4
 #define	ARES_METHOD_DKIMADSP	5
 #define	ARES_METHOD_IPREV	6
+#define	ARES_METHOD_DKIMATPS	7
 
 /* ARES_RESULT_T -- type for specifying an authentication result */
 typedef int ares_result_t;
 
 #define	ARES_RESULT_UNDEFINED	(-1)
 #define	ARES_RESULT_PASS	0
-#define	ARES_RESULT_HARDFAIL	1
+#define	ARES_RESULT_UNASSIGNED	1	/* UNASSIGNED */
 #define	ARES_RESULT_SOFTFAIL	2
 #define	ARES_RESULT_NEUTRAL	3
 #define	ARES_RESULT_TEMPERROR	4
