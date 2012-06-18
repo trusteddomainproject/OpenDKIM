@@ -759,6 +759,10 @@ sfsistat mlfi_envrcpt __P((SMFICTX *, char **));
 sfsistat mlfi_eoh __P((SMFICTX *));
 sfsistat mlfi_eom __P((SMFICTX *));
 sfsistat mlfi_header __P((SMFICTX *, char *, char *));
+sfsistat mlfi_negotiate __P((SMFICTX *, unsigned long, unsigned long,
+                                        unsigned long, unsigned long,
+                                        unsigned long, unsigned long,
+                                        unsigned long, unsigned long));
 
 static int dkimf_add_signrequest __P((struct msgctx *, DKIMF_DB,
                                       char *, char *, ssize_t));
