@@ -761,8 +761,8 @@ sfsistat mlfi_eom __P((SMFICTX *));
 sfsistat mlfi_header __P((SMFICTX *, char *, char *));
 sfsistat mlfi_negotiate __P((SMFICTX *, unsigned long, unsigned long,
                                         unsigned long, unsigned long,
-                                        unsigned long, unsigned long,
-                                        unsigned long, unsigned long));
+                                        unsigned long *, unsigned long *,
+                                        unsigned long *, unsigned long *));
 
 static int dkimf_add_signrequest __P((struct msgctx *, DKIMF_DB,
                                       char *, char *, ssize_t));
@@ -10569,7 +10569,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 **  	An SMFIS_* constant.
 */
 
-static sfsistat
+sfsistat
 mlfi_negotiate(SMFICTX *ctx,
 	unsigned long f0, unsigned long f1,
 	unsigned long f2, unsigned long f3,
