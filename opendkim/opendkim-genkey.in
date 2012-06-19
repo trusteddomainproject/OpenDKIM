@@ -10,6 +10,7 @@
 ## opendkim-genkey -- generate a key and/or TXT record for DKIM service
 ##
 ## Usage: opendkim-genkey [options]
+## 	-a		append domain name to label
 ## 	-b bits		key size (default = 1024)
 ##  	-d domain	signing domain (default = "@DOMAIN@")
 ## 	-D dir		output directory (default = ".")
@@ -44,6 +45,7 @@ selector="default"
 restrict=0
 testmode=0
 verbose=0
+append=0
 
 progname=`basename $0`
 
@@ -51,6 +53,9 @@ progname=`basename $0`
 while [ $# -gt 0 ]
 do
 	case $1 in
+	-a)	append=1
+		;;
+
 	-b)	if [ $# -eq 1 ]
 		then
 			echo $progname: -b requires a value
@@ -192,14 +197,20 @@ then
 	noteout=" n=\\\"$note\\\";"
 fi
 
+domstr=""
+if [ $append -eq 1 ]
+then
+	domstr=".$domain."
+fi
+
 if [ "$domain" != "" ]
 then
-	comment=" ; ----- DKIM $selector for $domain"
+	comment=" ; ----- DKIM key $selector for $domain"
 else
 	comment=""
 fi
 
-echo ${selector}._domainkey   IN   TXT  '"'v=DKIM1\;$noteout$hashout k=rsa\;$flagsout p=$pubkey'"' $comment > ${selector}.txt
+echo ${selector}._domainkey${domstr}   IN   TXT  '"'v=DKIM1\;$noteout$hashout k=rsa\;$flagsout p=$pubkey'"' $comment > ${selector}.txt
 
 if [ $verbose -eq 1 ]
 then

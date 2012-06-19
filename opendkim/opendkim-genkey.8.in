@@ -17,55 +17,62 @@ key will have a suffix of ".private" and the TXT record will have a suffix
 of ".txt".
 .SH OPTIONS
 .TP
-.I -b bits
+.I \-a
+Appends the domain name (see \-d below) to the label in the generated
+TXT record, followed by a trailing period.  By default it is assumed the
+domain name is implicit from the context of the zone file, and is therefore
+not included in the output.
+
+.TP
+.I \-b bits
 Specifies the size of the key, in
 .I bits,
 to be generated.  The default is 1024 which is the value recommended by
 the DKIM specification.
 
 .TP
-.I -d domain
+.I \-d domain
 Names the
 .I domain
 which will use this key for signing.  Currently only used in a comment in
 the TXT record file.  The default is "@DOMAIN@".
 
 .TP
-.I -D directory
+.I \-D directory
 Instructs the tool to change to the named
 .I directory
 prior to creating files.  By default the current directory is used.
 
 .TP
-.I -h algorithms
+.I \-h algorithms
 Specifies a list of hash
 .I algorithms
 which can be used with this key.  By default all hash algorithms are allowed.
 
 .TP
-.I -n note
+.I \-n note
 Includes arbitrary
 .I note
 text in the key record.  By default, no such text is included.
 
 .TP
-.I -r
+.I \-r
 Restricts the key for use in e-mail signing only.  The default is to allow
 the key to be used for any service.
 
 .TP
-.I -s selector
+.I \-s selector
 Specifies the
 .I selector,
 or name, of the key pair generated.  The default is "default".
 
 .TP
-.I -S
+.I \-S
 Disallows subdomain signing by this key.  By default the key record will be
 generated such that verifiers are told subdomain signing is permitted.
 
 .TP
-.I -t
+.I \-t
 Indicates the generated key record should be tagged such that verifiers are
 aware DKIM is in test at the signing domain.
 .SH NOTES
