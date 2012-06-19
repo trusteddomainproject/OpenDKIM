@@ -372,7 +372,7 @@ specification for details.
 .TP
 .I \-S signalg
 Selects the signing algorithm to use when generating signatures.
-Use 'opendkim -V' to see the list of supported algorithms.
+Use 'opendkim \-V' to see the list of supported algorithms.
 The default is
 .I rsa-sha256
 if it is available, otherwise it will be
@@ -483,16 +483,16 @@ file, it will be re-read and the new values used.  Note that any
 command line overrides provided at startup time will be lost when this is
 done.  Also, the following configuration file values (and their corresponding
 command line items, if any) are not reloaded through this process:
-AutoRestart (-A),
+AutoRestart (\-A),
 AutoRestartCount,
 AutoRestartRate,
 Background,
 MilterDebug,
-PidFile (-P),
+PidFile (\-P),
 POPDBFile,
-Quarantine (-q),
+Quarantine (\-q),
 QueryCache,
-Socket (-p),
+Socket (\-p),
 StrictTestMode,
 TestPublicKeys,
 UMask,
@@ -512,10 +512,10 @@ then it is not able to apply their corresponding tests or do useful logging.
 Consult your MTA documentation to determine how to adjust your its
 configuration if some or all of these are not available.
 .SH FILE PERMISSIONS
-When the filter is started as the superuser and the UserID (-u) setting is
+When the filter is started as the superuser and the UserID (\-u) setting is
 used, the filter gives up its root privileges by changing to the specified
 user after the following steps are taken: (1) the configuration file (if any)
-is loaded; (2) if the KeyFile (-k) setting is used, that key is loaded into
+is loaded; (2) if the KeyFile (\-k) setting is used, that key is loaded into
 memory; (3) all data sets in the configuration file are opened, and those
 that are based on flat files are also read into memory; and (4) if
 ChangeRootDirectory is set, the process root is changed to that directory.
