@@ -1323,8 +1323,6 @@ ar_dispatcher(void *tp)
 			}
 		}
 
-		pthread_mutex_lock(&lib->ar_lock);
-
 		buf = NULL;
 
 		/* read what's available from the nameserver for dispatch */
@@ -1342,7 +1340,10 @@ ar_dispatcher(void *tp)
 				             NULL);
 
 				if (r == (size_t) -1)
+				{
+					pthread_mutex_lock(&lib->ar_lock);
 					continue;
+				}
 
 				buf = lib->ar_querybuf;
 			}
@@ -1359,9 +1360,14 @@ ar_dispatcher(void *tp)
 				if (r == (size_t) -1)
 				{
 					if (errno == EINTR)
+					{
+						pthread_mutex_lock(&lib->ar_lock);
 						continue;
+					}
 					else
+					{
 						err = TRUE;
+					}
 				}
 				else if (r == 0)
 				{
@@ -1369,11 +1375,14 @@ ar_dispatcher(void *tp)
 				}
 				else if (r < sizeof len)
 				{
+					pthread_mutex_lock(&lib->ar_lock);
 					continue;
 				}
 
 				if (err)
 				{
+					pthread_mutex_lock(&lib->ar_lock);
+
 					/* request a reconnect */
 		     			lib->ar_flags |= AR_FLAG_RECONNECT;
 
@@ -1437,6 +1446,8 @@ ar_dispatcher(void *tp)
 
 				if (err)
 				{
+					pthread_mutex_lock(&lib->ar_lock);
+
 					/* request a reconnect */
 		     			lib->ar_flags |= AR_FLAG_RECONNECT;
 
@@ -1453,6 +1464,8 @@ ar_dispatcher(void *tp)
 				}
 			}
 		}
+
+		pthread_mutex_lock(&lib->ar_lock);
 
 		if (buf != NULL)		/* something to parse */
 		{

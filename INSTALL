@@ -147,24 +147,28 @@ below), where "xxx" is the name of the feature.
 
 arlib		Use the provided asynchronous resolver library.
 
+codecoverage	Compile the code such that executing it produces code
+		coverage and profiling output, used for code analysis.
+		Not intended for production use.
+
 debug		Produce debug-enabled libraries and executables.
 
 filter		Compile the opendkim filter.  Requires libmilter (see
 		"--with-milter" above).  This is on by default; if you
 		don't want the filter, specify "--disable-filter".
 
-maxverify	Allow limitation of the number of signatures verified per
-		message.
+live-testing	Enables unit tests that require live access to the Internet
+		to succeed.
 
-oversign	Enable optional header field over-signing.
+poll		Compile to use poll() instead of select() for asynchronous
+		I/O.
 
-popauth		Enable POP-before-SMTP support.
+popauth		Enables support for POP-before-SMTP checks.
 
-query_cache	Cache DNS replies in a local database.  Requires the
-		BerkeleyDB database.  (See "--with-db" above.)
+query_cache	Compile the opendkim library to support local caching of
+		replies.  (Requires libdb)
 
-stats		Produce a filter and tools used for statistics collection,
-		analysis and submission.
+rpath		Include library paths in generated binaries.
 
 
 COMPILING

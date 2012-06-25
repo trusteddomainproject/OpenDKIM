@@ -807,7 +807,6 @@ dkim_min_timeval(struct timeval *t1, struct timeval *t2, struct timeval *t,
 **  DKIM_COPY_ARRAY -- copy an array of char pointers
 **
 **  Parameters:
-**  	
 **  	in -- input array, must be NULL-terminated
 **
 **  Return value:

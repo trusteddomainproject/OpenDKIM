@@ -4,7 +4,7 @@
 \- DKIM filter installation test
 .SH SYNOPSIS
 .B opendkim-testkey
-[-d domain] [-s selector] [-k keypath] [-v] [-x configfile]
+[\-d domain] [\-s selector] [\-k keypath] [\-v] [\-x configfile]
 .SH DESCRIPTION
 .B opendkim-testkey
 verifies the setup of signing and verifying (private and public) keys for use

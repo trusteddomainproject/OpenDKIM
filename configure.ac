@@ -15,7 +15,7 @@ AC_PREREQ(2.61)
 #
 m4_define([VERSION_RELEASE], 2)
 m4_define([VERSION_MAJOR_REV], 6)
-m4_define([VERSION_MINOR_REV], 0)
+m4_define([VERSION_MINOR_REV], 1)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -282,8 +282,6 @@ FFR_FEATURE([reputation_cache],
 
 FFR_FEATURE([resign],
             [support for one-step re-signing])
-
-FFR_FEATURE([selector_header], [special header to choose signing key])
 
 FFR_FEATURE([sender_macro], [macro to determine sender])
 
@@ -1254,7 +1252,7 @@ AC_SUBST([LIBTRE_LIBS])
 #
 # liblua
 #
-AC_ARG_WITH(lua,
+AC_ARG_WITH([lua],
             AS_HELP_STRING([--with-lua],
                            [location of Lua includes and library]),
             [luapath="$withval"], [luapath="no"])
@@ -2265,7 +2263,7 @@ AC_ARG_WITH([domain],
 
 AC_SUBST([DOMAIN])
 
-AC_ARG_WITH(erlang,
+AC_ARG_WITH([erlang],
             AS_HELP_STRING([--with-erlang],
                            [location of Erlang includes and library]),
             [erlpath="$withval"], [erlpath="no"])

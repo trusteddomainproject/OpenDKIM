@@ -5,7 +5,21 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.6.0		2012/06/01
+2.6.1		2012/06/25
+	Restore and activate _FFR_SELECT_CANONICALIZATION.  Also adds a
+		SelectCanonicalizationHeader configuration option.
+	Remove _FFR_SELECTOR_HEADER.
+	Update Authentication-Results parsing to understand "dkim-atps"
+		(RFC6541) and no longer understand "hardfail" (RFC6577).
+	LIBAR: Fix bug #SF3309946: Ensure the dispatcher doesn't hold the
+		master lock when it might enter a read wait.
+	STATS: Add a database index on messages.msgtime to aid with
+		expiration performance.
+	TOOLS: Feature request #SF3536385: Add "-a" to opendkim-genkey to
+		include a domain name in the generated TXT record.
+		Requested by Quanah Gibson-Mount.
+
+2.6.0		2012/06/07
 	Feature request #SF3495969: Add support for Lua v5.2.0.  Requested
 		by Rolf Sonneveld.
 	Feature request #SF3502777: Log all authentication results rather than

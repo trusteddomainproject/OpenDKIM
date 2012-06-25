@@ -960,6 +960,13 @@ information.  See
 for details. @LUA_MANNOTICE@
 
 .TP
+.I SelectCanonicalizationHeader (string)
+Defines a header field name which, if present, adjusts which canonicalization
+will be used to generate an outgoing signature.  Overrides the
+.I Canonicalization
+setting if the header field is present.  The default is "X-Canonicalization".
+
+.TP
 .I Selector (string)
 Defines the name of the selector to be used when signing messages.
 See the

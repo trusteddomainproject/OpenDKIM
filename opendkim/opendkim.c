@@ -314,6 +314,7 @@ struct dkimf_config
 	char *		conf_canonstr;		/* canonicalization(s) string */
 	char *		conf_siglimit;		/* signing limits */
 	char *		conf_chroot;		/* chroot(2) directory */
+	char *		conf_selectcanonhdr;	/* canon select header name */
 	u_char *	conf_selector;		/* key selector */
 #ifdef _FFR_DEFAULT_SENDER
 	char *		conf_defsender;		/* default sender address */
@@ -329,10 +330,6 @@ struct dkimf_config
 	char *		conf_identityhdr;	/* identity header */
 	_Bool		conf_rmidentityhdr;	/* remove identity header */
 #endif /* _FFR_IDENTITY_HEADER */
-#ifdef _FFR_SELECTOR_HEADER
-	char *		conf_selectorhdr;	/* selector header */
-	_Bool           conf_rmselectorhdr;     /* remove selector header */
-#endif /* _FFR_SELECTOR_HEADER */
 	char *		conf_diagdir;		/* diagnostics directory */
 #ifdef _FFR_STATS
 	char *		conf_statspath;		/* path for stats file */
@@ -762,6 +759,10 @@ sfsistat mlfi_envrcpt __P((SMFICTX *, char **));
 sfsistat mlfi_eoh __P((SMFICTX *));
 sfsistat mlfi_eom __P((SMFICTX *));
 sfsistat mlfi_header __P((SMFICTX *, char *, char *));
+sfsistat mlfi_negotiate __P((SMFICTX *, unsigned long, unsigned long,
+                                        unsigned long, unsigned long,
+                                        unsigned long *, unsigned long *,
+                                        unsigned long *, unsigned long *));
 
 static int dkimf_add_signrequest __P((struct msgctx *, DKIMF_DB,
                                       char *, char *, ssize_t));
@@ -5640,6 +5641,7 @@ dkimf_config_new(void)
 #ifdef _FFR_ATPS
 	new->conf_atpshash = dkimf_atpshash[0].str;
 #endif /* _FFR_ATPS */
+	new->conf_selectcanonhdr = XSELECTCANONHDR;
 
 	memcpy(&new->conf_handling, &defaults, sizeof new->conf_handling);
 
@@ -6180,16 +6182,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                  sizeof conf->conf_sendermacro);
 		}
 #endif /* _FFR_SENDER_MACRO */
-
-#ifdef _FFR_SELECTOR_HEADER
-		(void) config_get(data, "SelectorHeader",
-		                  &conf->conf_selectorhdr,
-		                  sizeof conf->conf_selectorhdr);
-
-		(void) config_get(data, "SelectorHeaderRemove",
-				&conf->conf_rmselectorhdr,
-				sizeof conf->conf_rmselectorhdr);
-#endif /* _FFR_SELECTOR_HEADER */
 
 		if (!conf->conf_sendreports)
 		{
@@ -10577,7 +10569,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 **  	An SMFIS_* constant.
 */
 
-static sfsistat
+sfsistat
 mlfi_negotiate(SMFICTX *ctx,
 	unsigned long f0, unsigned long f1,
 	unsigned long f2, unsigned long f3,
@@ -10628,9 +10620,6 @@ mlfi_negotiate(SMFICTX *ctx,
 # ifdef _FFR_IDENTITY_HEADER
 	    conf->conf_rmidentityhdr ||
 # endif /* _FFR_IDENTITY_HEADER */
-# ifdef _FFR_SELECTOR_HEADER
-	    conf->conf_rmselectorhdr ||
-# endif /* _FFR_SELECTOR_HEADER */
 # ifdef _FFR_VBR
 	    conf->conf_vbr_purge ||
 # endif /* _FFR_VBR */
@@ -11337,6 +11326,35 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 
 	dfc->mctx_hqtail = newhdr;
 
+	if (strcasecmp(headerf, conf->conf_selectcanonhdr) == 0)
+	{
+		int c;
+		char *slash;
+
+		slash = strchr(headerv, '/');
+		if (slash != NULL)
+		{
+			*slash = '\0';
+
+			c = dkimf_configlookup(headerv, dkimf_canon);
+			if (c != -1)
+				dfc->mctx_hdrcanon = (dkim_canon_t) c;
+			c = dkimf_configlookup(slash + 1, dkimf_canon);
+			if (c != -1)
+				dfc->mctx_bodycanon = (dkim_canon_t) c;
+
+			*slash = '/';
+		}
+		else
+		{
+			c = dkimf_configlookup(headerv, dkimf_canon);
+			if (c != -1)
+				dfc->mctx_hdrcanon = (dkim_canon_t) c;
+		}
+
+		/* XXX -- eat this header? */
+	}
+
 	return SMFIS_CONTINUE;
 }
 
@@ -11923,36 +11941,6 @@ mlfi_eoh(SMFICTX *ctx)
 			       dfc->mctx_domain);
 		}
 	}
-
-#ifdef _FFR_SELECTOR_HEADER
-	/* was there a header naming the selector to use? */
-	if (domainok && conf->conf_selectorhdr != NULL &&
-	    conf->conf_keytabledb != NULL)
-	{
-		/* find the header */
-		hdr = dkimf_findheader(dfc, conf->conf_selectorhdr, 0);
-
-		/* did it match a key in the KeyTable? */
-		if (hdr != NULL)
-		{
-			status = dkimf_add_signrequest(dfc,
-			                               conf->conf_keytabledb,
-			                               hdr->hdr_val, NULL,
-			                               (ssize_t) -1);
-			if (status != 0)
-			{
-				if (dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: failed to add signature for key '%s'",
-					       dfc->mctx_jobid, hdr->hdr_val);
-				}
-
-				return SMFIS_TEMPFAIL;
-			}
-		}
-	}
-#endif /* _FFR_SELECTOR_HEADER */
 
 	/* still no key selected; check the signing table (if any) */
 	if (originok && dfc->mctx_srhead == NULL &&
@@ -12644,14 +12632,6 @@ mlfi_eoh(SMFICTX *ctx)
 			continue;
 #endif /* _FFR_IDENTITY_HEADER */
 
-#ifdef _FFR_SELECTOR_HEADER
-		if (conf->conf_selectorhdr != NULL &&
-		    conf->conf_rmselectorhdr && 
-		    dfc->mctx_srhead != NULL &&
-		    strcasecmp(conf->conf_selectorhdr, hdr->hdr_hdr) == 0)
-			continue;
-#endif /* _FFR_SELECTOR_HEADER */
-
 		dkimf_dstring_copy(dfc->mctx_tmpstr, (u_char *) hdr->hdr_hdr);
 		dkimf_dstring_cat1(dfc->mctx_tmpstr, ':');
 		if (!cc->cctx_noleadspc)
@@ -13120,30 +13100,6 @@ mlfi_eom(SMFICTX *ctx)
 	}
 #endif /* _FFR_IDENTITY_HEADER */
 					
-#ifdef _FFR_SELECTOR_HEADER
-	/* remove selector header if such was requested when signing */
-	if (conf->conf_rmselectorhdr && conf->conf_selectorhdr != NULL &&
-	    dfc->mctx_srhead != NULL)
-	{
-		struct Header *hdr;
-		
-		hdr = dkimf_findheader(dfc, conf->conf_selectorhdr, 0);
-		if (hdr != NULL)
-		{
-			if (dkimf_chgheader(ctx, conf->conf_selectorhdr,
-			                    0, NULL) != MI_SUCCESS)
-			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_WARNING,
-					       "failed to remove %s: header",
-					       conf->conf_selectorhdr);
-				}
-			}
-		}
-	}
-#endif /* _FFR_SELECTOR_HEADER */
-
 	/* log something if the message was multiply signed */
 	if (dfc->mctx_dkimv != NULL && conf->conf_dolog)
 	{
@@ -16924,9 +16880,6 @@ main(int argc, char **argv)
 #ifdef _FFR_IDENTITY_HEADER
 		    curconf->conf_rmidentityhdr ||
 #endif /* _FFR_IDENTITY_HEADER */
-#ifdef _FFR_SELECTOR_HEADER
-		    curconf->conf_rmselectorhdr ||
-#endif /* _FFR_SELECTOR_HEADER */
 #ifdef _FFR_VBR
 		    curconf->conf_vbr_purge ||
 #endif /* _FFR_VBR */
