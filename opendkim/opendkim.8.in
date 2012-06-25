@@ -496,7 +496,7 @@ Socket (\-p),
 StrictTestMode,
 TestPublicKeys,
 UMask,
-UserID (-u).  The filter does not automatically check the configuration
+UserID (\-u).  The filter does not automatically check the configuration
 file for changes and reload.
 .SH MTA MACROS
 .B opendkim
