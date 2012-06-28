@@ -5,6 +5,10 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.?.?		2012/??/??
+	Fix bug #SF3538639: Fix error when --domain is not provided to
+		opendkim-genrates.  Problem noted by Andreas Schulze.
+
 2.6.1		2012/06/25
 	Restore and activate _FFR_SELECT_CANONICALIZATION.  Also adds a
 		SelectCanonicalizationHeader configuration option.
