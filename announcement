@@ -1,8 +1,8 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.6.1 released
+Subject: OpenDKIM v2.6.2 released
 
-The OpenDKIM project announces availability of OpenDKIM v2.6.1, now available
+The OpenDKIM project announces availability of OpenDKIM v2.6.2, now available
 for download from SourceForge.
 
 This is a minor bug fix release.  Upgrade is not required unless something
@@ -10,19 +10,16 @@ shown below is something of interest to you.
 
 The full RELEASE_NOTES for this version:
 
-2.6.1		2012/06/25
-	Restore and activate _FFR_SELECT_CANONICALIZATION.  Also adds a
-		SelectCanonicalizationHeader configuration option.
-	Remove _FFR_SELECTOR_HEADER.
-	Update Authentication-Results parsing to understand "dkim-atps"
-		(RFC6541) and no longer understand "hardfail" (RFC6577).
-	LIBAR: Fix bug #SF3309946: Ensure the dispatcher doesn't hold the
-		master lock when it might enter a read wait.
-	STATS: Add a database index on messages.msgtime to aid with
-		expiration performance.
-	TOOLS: Feature request #SF3536385: Add "-a" to opendkim-genkey to
-		include a domain name in the generated TXT record.
-		Requested by Quanah Gibson-Mount.
+2.6.2		2012/07/02
+	Fix build confusion between _FFR_RATE_LIMIT and _FFR_RESIGN.
+		Problem noted by Rolf Sonneveld.
+	Fix bug #SF3538639: Fix error when --domain is not provided to
+		opendkim-genrates.  Problem noted by Andreas Schulze.
+	Fix bug #SF3539449: Clarify legal "Socket" values.  Requested
+		by Scott Kitterman.
+	Fix bug #SF3539493: Handle certain cases of data set names that
+		appear to be comma-separated lists which include IPv6
+		addresses.  Reported by Scott Kitterman.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,

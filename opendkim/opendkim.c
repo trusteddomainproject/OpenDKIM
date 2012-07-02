@@ -5768,12 +5768,12 @@ dkimf_config_free(struct dkimf_config *conf)
 		dkimf_db_close(conf->conf_resigndb);
 #endif /* _FFR_RESIGN */
 
-#ifdef _FFR_RESIGN
+#ifdef _FFR_RATE_LIMIT
 	if (conf->conf_ratelimitdb != NULL)
 		dkimf_db_close(conf->conf_ratelimitdb);
 	if (conf->conf_flowdatadb != NULL)
 		dkimf_db_close(conf->conf_flowdatadb);
-#endif /* _FFR_RESIGN */
+#endif /* _FFR_RATE_LIMIT */
 
 #ifdef _FFR_REPUTATION
 	if (conf->conf_repratiosdb != NULL)

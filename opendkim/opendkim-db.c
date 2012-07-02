@@ -1767,6 +1767,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
               char **err)
 {
 	DKIMF_DB new;
+	char *comma;
 	char *p;
 
 	assert(db != NULL);
@@ -1786,6 +1787,12 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 	new->db_type = DKIMF_DB_TYPE_UNKNOWN;
 
 	p = strchr(name, ':');
+	comma = strchr(name, ',');
+
+	/* catch a CSL that contains colons not in the first entry */
+	if (comma != NULL && p != NULL && comma < p)
+		p = NULL;
+
 	if (p == NULL)
 	{
 # ifdef USE_DB

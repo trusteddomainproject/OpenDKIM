@@ -647,9 +647,8 @@ if (defined($reportout))
 	print $out "  <td>Volume Limit (high)</td>\n";
 	print $out " </tr>\n";
 
-	$tmpsql = "SELECT domain, name, reporter, rate_avg, rate_max, rate_stddev, rate_high, ratio_avg, ratio_max, ratio_stddev, ratio_high, daily_limit_low, daily_limit_high FROM predictions WHERE domain IN (";
+	$tmpsql = "SELECT domain, name, reporter, rate_avg, rate_max, rate_stddev, rate_high, ratio_avg, ratio_max, ratio_stddev, ratio_high, daily_limit_low, daily_limit_high FROM predictions WHERE domain IN (0, -1";
 
-	$idx = 0;
 	foreach (@$tmpin)
 	{
 		$id = $_->[0];
@@ -659,16 +658,10 @@ if (defined($reportout))
 			next;
 		}
 
-		if ($idx != 0)
-		{
-			$tmpsql = $tmpsql . ", ";
-		}
-
-		$tmpsql = $tmpsql . $id;
-
-		$idx++;
+		$tmpsql = $tmpsql . ", ". $id;
 	}
-	$tmpsql = $tmpsql . ", 0, -1)";
+
+	$tmpsql = $tmpsql . ")";
 
 	$dbi_s = $dbi_h->prepare($tmpsql);
 	if (!$dbi_s->execute)

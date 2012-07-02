@@ -4,7 +4,6 @@
 \- DKIM signing and verifying filter for MTAs
 .SH SYNOPSIS
 .B opendkim
-\-p socketspec
 [\-A]
 [\-b modes]
 [\-c canon]
@@ -18,6 +17,7 @@
 [\-L min]
 [\-n]
 [\-o hdrlist]
+[\-p socketspec]
 [\-P pidfile]
 [\-q]
 [\-Q]
@@ -337,15 +337,19 @@ which creates a UNIX domain socket at the specified
 .I path,
 or
 .I inet:port[@host]
+or
+.I inet6:port[@host]
 which creates a TCP socket on the specified
-.I port.
-If the
+.I port
+using the requested protocol family.  If the
 .I host
 is not given as either a hostname or an IP address, the socket will be
-listening on all interfaces.  If neither socket type is specified,
+listening on all interfaces.  A literal IP address must be enclosed in
+square brackets.  If neither socket type is specified,
 .I local
 is assumed, meaning the parameter is interpreted as a path at which
-the socket should be created.  This parameter is mandatory.
+the socket should be created.  This parameter is mandatory either here or
+in the configuration file.
 .TP
 .I \-P pidfile
 Specifies a file into which the filter should write its process ID at startup.
@@ -496,7 +500,7 @@ Socket (\-p),
 StrictTestMode,
 TestPublicKeys,
 UMask,
-UserID (-u).  The filter does not automatically check the configuration
+UserID (\-u).  The filter does not automatically check the configuration
 file for changes and reload.
 .SH MTA MACROS
 .B opendkim
