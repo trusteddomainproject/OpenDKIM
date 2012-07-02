@@ -10,6 +10,9 @@ release, and a summary of the changes in that release.
 		opendkim-genrates.  Problem noted by Andreas Schulze.
 	Fix bug #SF3539449: Clarify legal "Socket" values.  Requested
 		by Scott Kitterman.
+	Fix bug #SF3539493: Handle certain cases of data set names that
+		appear to be comma-separated lists which include IPv6
+		addresses.  Reported by Scott Kitterman.
 
 2.6.1		2012/06/25
 	Restore and activate _FFR_SELECT_CANONICALIZATION.  Also adds a
