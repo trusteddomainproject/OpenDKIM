@@ -381,6 +381,7 @@ struct dkimf_config
 #ifdef USE_UNBOUND
 	char *		conf_trustanchorpath;	/* unbound trust anchor file */
 	char *		conf_unboundconfig;	/* unbound config file */
+	char *		conf_resolvconf;	/* resolv.conf file */
 	struct dkimf_unbound * conf_unbound;	/* libunbound handle */
 #endif /* USE_UNBOUND */
 #ifdef USE_ARLIB
@@ -6415,6 +6416,18 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			return -1;
 		}
 
+		(void) config_get(data, "ResolvConf",
+		                  &conf->conf_resolvconf,
+		                  sizeof conf->conf_resolvconf);
+
+		if (conf->conf_resolvconf != NULL &&
+		    access(conf->conf_resolvconf, R_OK) != 0)
+		{
+			snprintf(err, errlen, "%s: %s",
+			         conf->conf_resolvconf, strerror(errno));
+			return -1;
+		}
+
 		str = NULL;
 		(void) config_get(data, "BogusKey", &str, sizeof str);
 		if (str != NULL)
@@ -8243,6 +8256,26 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 			{
 				if (err != NULL)
 					*err = "failed to add unbound configuration file";
+		
+				return FALSE;
+			}
+		}
+
+		if (conf->conf_resolvconf != NULL)
+		{
+			if (access(conf->conf_resolvconf, R_OK) != 0)
+			{
+				if (err != NULL)
+					*err = "can't access unbound resolver configuration file";
+				return FALSE;
+			}
+
+			status = dkimf_unbound_add_resolvconf(conf->conf_unbound,
+			                                      conf->conf_resolvconf);
+			if (status != DKIM_STAT_OK)
+			{
+				if (err != NULL)
+					*err = "failed to add unbound resolver configuration file";
 		
 				return FALSE;
 			}

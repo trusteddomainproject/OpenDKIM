@@ -42,6 +42,7 @@ struct dkimf_unbound;
 
 /* prototypes */
 extern int dkimf_unbound_add_conffile __P((struct dkimf_unbound *, char *));
+extern int dkimf_unbound_add_resolvconf __P((struct dkimf_unbound *, char *));
 extern int dkimf_unbound_add_trustanchor __P((struct dkimf_unbound *, char *));
 extern int dkimf_unbound_close __P((struct dkimf_unbound *));
 extern int dkimf_unbound_init __P((struct dkimf_unbound **));

@@ -657,6 +657,31 @@ dkimf_unbound_add_conffile(struct dkimf_unbound *ub, char *file)
 
 	return (status == 0 ? 0 : -1);
 }
+
+/*
+**  DKIMF_UNBOUND_ADD_RESOLVCONF -- tell libunbound to read a resolv.conf file
+**
+**  Parameters:
+**  	ub -- libunbound context
+**  	file -- path to read
+**
+**  Return value:
+**  	0 -- success
+**  	-1 -- error
+*/
+
+int
+dkimf_unbound_add_resolvconf(struct dkimf_unbound *ub, char *file)
+{
+	int status;
+
+	assert(ub != NULL);
+	assert(file != NULL);
+
+	status = ub_ctx_resolvconf(ub->ub_ub, file);
+
+	return (status == 0 ? 0 : -1);
+}
 #endif /* USE_UNBOUND */
 
 #ifdef USE_ARLIB

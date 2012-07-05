@@ -5,6 +5,11 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.?.?		2012/??/??
+	Add "ResolvConf" setting, allowing the ability to pass a
+		resolv.conf-like file to unbound to allow specific nameservers
+		to be used instead of the default.
+
 2.6.2		2012/07/02
 	Fix build confusion between _FFR_RATE_LIMIT and _FFR_RESIGN.
 		Problem noted by Rolf Sonneveld.
