@@ -9,6 +9,7 @@ release, and a summary of the changes in that release.
 	Add "ResolvConf" setting, allowing the ability to pass a
 		resolv.conf-like file to unbound to allow specific nameservers
 		to be used instead of the default.
+	LIBAR: Add ar_resolvconf().
 
 2.6.2		2012/07/02
 	Fix build confusion between _FFR_RATE_LIMIT and _FFR_RESIGN.
