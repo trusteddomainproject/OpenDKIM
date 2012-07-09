@@ -17183,12 +17183,12 @@ main(int argc, char **argv)
 		{
 			syslog(LOG_ERR, "pthread_create(): %s",
 			       strerror(status));
-
-			if (!autorestart && pidfile != NULL)
-				(void) unlink(pidfile);
-
-			return EX_OSERR;
 		}
+
+		if (!autorestart && pidfile != NULL)
+			(void) unlink(pidfile);
+
+		return EX_OSERR;
 	}
 
 	/* call the milter mainline */
