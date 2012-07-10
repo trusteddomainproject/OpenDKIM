@@ -10,6 +10,8 @@ release, and a summary of the changes in that release.
 		resolv.conf-like file to unbound to allow specific nameservers
 		to be used instead of the default.
 	LIBAR: Add ar_resolvconf().
+	BUILD: Fix bug #SF3538676: Build with -DDARWIN on MacOSX.  Patch from
+		Daniel J. Duke.
 
 2.6.2		2012/07/02
 	Fix build confusion between _FFR_RATE_LIMIT and _FFR_RESIGN.

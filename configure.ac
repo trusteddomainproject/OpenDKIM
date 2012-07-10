@@ -2238,7 +2238,7 @@ AM_CONDITIONAL(LIVE_TESTS, test x"$live_tests" = x"yes")
 AC_CANONICAL_HOST
 case "$host" in
 	*-darwin*)
-		CPPFLAGS="$CPPFLAGS -DBIND_8_COMPAT"
+		CPPFLAGS="$CPPFLAGS -DBIND_8_COMPAT -DDARWIN"
 		;;
 esac
 
