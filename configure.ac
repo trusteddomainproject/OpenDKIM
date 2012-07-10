@@ -2239,6 +2239,10 @@ AC_CANONICAL_HOST
 case "$host" in
 	*-darwin*)
 		CPPFLAGS="$CPPFLAGS -DBIND_8_COMPAT -DDARWIN"
+		if test x"$unboundpath" = x"no"
+		then
+			enable_arlib="yes"
+		fi
 		;;
 esac
 
