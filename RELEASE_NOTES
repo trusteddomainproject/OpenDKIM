@@ -5,7 +5,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.?.?		2012/??/??
+2.6.3		2012/07/??
 	Add "ResolvConf" setting, allowing the ability to pass a
 		resolv.conf-like file to unbound to allow specific nameservers
 		to be used instead of the default.
