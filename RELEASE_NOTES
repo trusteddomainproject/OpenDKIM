@@ -5,7 +5,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.6.4		2012/07/1?
+2.6.4		2012/07/12
 	Include "header.d" in all Authentication-Results fields, not just
 		"header.i".  This makes life easier for users of OpenDMARC.
 	BUILD: Fix SHA256 test on some systems.
