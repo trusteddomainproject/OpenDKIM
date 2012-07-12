@@ -10460,6 +10460,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 		size_t ssl;
 		char *result;
 		char *dnssec;
+		char *domain;
 		char ss[BUFRSZ + 1];
 		char tmp[BUFRSZ + 1];
 		char val[MAXADDRESS + 1];
@@ -10560,14 +10561,16 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 			(void) dkim_sig_getidentity(dkim, sigs[c],
 			                            val, sizeof val - 1);
 
+			domain = dkim_sig_getdomain(sigs[c]);
+
 			snprintf(tmp, sizeof tmp,
-			         "%s%sdkim=%s%s (%u-bit key%s%s) header.i=%s%s%s",
+			         "%s%sdkim=%s%s (%u-bit key%s%s) header.d=%s header.i=%s%s%s",
 			         c == 0 ? "" : ";",
 			         DELIMITER, result, comment,
 			         keybits,
 			         dnssec == NULL ? "" : "; ",
 			         dnssec == NULL ? "" : dnssec,
-			         val,
+			         val, domain,
 			         ts == DKIM_STAT_OK ? " header.b=" : "",
 			         ts == DKIM_STAT_OK ? ss : "");
 
@@ -14396,42 +14399,53 @@ mlfi_eom(SMFICTX *ctx)
 
 				if (dfc->mctx_status != DKIMF_STATUS_NOSIGNATURE)
 				{
-					char ss[BUFRSZ + 1];
 					DKIM_STAT ts;
+					size_t ssl;
+					char *domain;
+					char ss[BUFRSZ + 1];
 
 					memset(ss, '\0', sizeof ss);
-
-					strlcat((char *) header, DELIMITER,
-					        sizeof header);
-					strlcat((char *) header,
-					        "header.i=", sizeof header);
-					strlcat((char *) header, (char *) val,
-					        sizeof header);
 
 					sig = dkim_getsignature(dfc->mctx_dkimv);
 					if (sig != NULL)
 					{
-						size_t ssl;
+						domain = dkim_sig_getdomain(sig);
+
+						strlcat((char *) header,
+						        DELIMITER,
+						        sizeof header);
+						strlcat((char *) header,
+						        "header.d=",
+						        sizeof header);
+						strlcat((char *) header,
+						        domain,
+						        sizeof header);
+						strlcat((char *) header,
+						        " header.i=",
+						        sizeof header);
+						strlcat((char *) header,
+						        (char *) val,
+						        sizeof header);
 
 						ssl = sizeof ss - 1;
 						ts = dkim_get_sigsubstring(dfc->mctx_dkimv,
 					                                   sig,
 						                           ss,
 						                           &ssl);
-					}
 
-					if (sig != NULL &&
-					    ts == DKIM_STAT_OK &&
-					    !conf->conf_noheaderb)
-					{
-						strlcat((char *) header,
-						        DELIMITER,
-						        sizeof header);
-						strlcat((char *) header,
-						        "header.b=",
-						        sizeof header);
-						strlcat((char *) header, ss,
-						        sizeof header);
+						if (ts == DKIM_STAT_OK &&
+						    !conf->conf_noheaderb)
+						{
+							strlcat((char *) header,
+							        DELIMITER,
+							        sizeof header);
+							strlcat((char *) header,
+							        "header.b=",
+							        sizeof header);
+							strlcat((char *) header,
+							        ss,
+							        sizeof header);
+						}
 					}
 				}
 			}
