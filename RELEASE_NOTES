@@ -5,10 +5,13 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.6.3		2012/07/??
+2.6.3		2012/07/11
 	Add "ResolvConf" setting, allowing the ability to pass a
 		resolv.conf-like file to unbound to allow specific nameservers
 		to be used instead of the default.
+	LIBOPENDKIM: Return the correct error code when a SHA1-only library
+		encounters a SHA1 signature that references a SHA256-only key.
+		Problem noted by Andrew Birchall.
 	LIBAR: Add ar_resolvconf().
 	BUILD: Fix bug #SF3538676: Build with -DDARWIN on MacOSX, and default
 		to arlib if unbound isn't selected.  Patch from Daniel J. Duke.
