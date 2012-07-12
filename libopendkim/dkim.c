@@ -1277,10 +1277,12 @@ dkim_key_hashok(DKIM_SIGINFO *sig, u_char *hashlist)
 */
 
 static _Bool
-dkim_key_hashesok(u_char *hashlist)
+dkim_key_hashesok(DKIM_LIB *lib, u_char *hashlist)
 {
 	u_char *x, *y;
 	u_char tmp[BUFRSZ + 1];
+
+	assert(lib != NULL);
 
 	if (hashlist == NULL)
 		return TRUE;
@@ -1295,10 +1297,17 @@ dkim_key_hashesok(u_char *hashlist)
 		{
 			if (x != NULL)
 			{
+				int hashcode;
+
 				strlcpy((char *) tmp, (char *) x, sizeof tmp);
 				tmp[y - x] = '\0';
-				if (dkim_name_to_code(hashes,
-				                      (char *) tmp) != -1)
+
+				hashcode = dkim_name_to_code(hashes,
+				                             (char *) tmp);
+
+				if (hashcode != -1 &&
+				    (hashcode != DKIM_HASHTYPE_SHA256 ||
+				     dkim_libfeature(lib, DKIM_FEATURE_SHA256)))
 					return TRUE;
 			}
 
@@ -3025,7 +3034,7 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig, _Bool test)
 
 	/* then make sure the hash type is something we can handle */
 	p = dkim_param_get(set, (u_char *) "h");
-	if (!dkim_key_hashesok(p))
+	if (!dkim_key_hashesok(dkim->dkim_libhandle, p))
 	{
 		dkim_error(dkim, "unknown hash '%s'", p);
 		sig->sig_error = DKIM_SIGERROR_KEYUNKNOWNHASH;
