@@ -15,7 +15,7 @@ AC_PREREQ(2.61)
 #
 m4_define([VERSION_RELEASE], 2)
 m4_define([VERSION_MAJOR_REV], 6)
-m4_define([VERSION_MINOR_REV], 2)
+m4_define([VERSION_MINOR_REV], 3)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -24,7 +24,7 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "revision" with internal source code changes
 #
 m4_define([LIBVERSION_CURRENT], 7)
-m4_define([LIBVERSION_REVISION], 0)
+m4_define([LIBVERSION_REVISION], 1)
 m4_define([LIBVERSION_AGE], 0)
 
 #
@@ -2238,7 +2238,11 @@ AM_CONDITIONAL(LIVE_TESTS, test x"$live_tests" = x"yes")
 AC_CANONICAL_HOST
 case "$host" in
 	*-darwin*)
-		CPPFLAGS="$CPPFLAGS -DBIND_8_COMPAT"
+		CPPFLAGS="$CPPFLAGS -DBIND_8_COMPAT -DDARWIN"
+		if test x"$unboundpath" = x"no"
+		then
+			enable_arlib="yes"
+		fi
 		;;
 esac
 

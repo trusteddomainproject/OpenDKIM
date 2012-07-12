@@ -43,14 +43,14 @@ static char ar_c_id[] = "@(#)$Id: ar.c,v 1.12 2010/10/04 21:20:47 cm-msk Exp $";
 #include <signal.h>
 #include <string.h>
 #include <syslog.h>
-#ifdef ARDEBUG
-# include <stdio.h>
-#endif /* ARDEBUG */
+#include <stdio.h>
 
 /* important macros */
 #define AR_MAXHOSTNAMELEN	256
 
 #define	ARDEBUGOUT	"/var/tmp/ardebug.out"
+
+#define	BUFRSZ		1024
 
 #ifndef MAXPACKET
 # define MAXPACKET	8192
@@ -2793,4 +2793,119 @@ ar_strerror(int err)
 	  default:
 		return strerror(errno);
 	}
+}
+
+/*
+**  AR_RESOLVCONF -- parse a resolv.conf file for nameservers to use
+**
+**  Parameters:
+**  	ar -- AR_LIB handle to update
+**  	file -- path to access
+**
+**  Return value:
+**  	0 -- success
+**  	!0 -- an error occurred; check errno
+**
+**  Notes:
+**  	Parse errors are not reported.
+**
+**  	The default set is not modified if no "nameserver" lines are found.
+*/
+
+int
+ar_resolvconf(AR_LIB ar, char *file)
+{
+	int af;
+	int n = 0;
+	FILE *f;
+	char *p;
+	char *sp;
+	SOCKADDR *news;
+	struct sockaddr_in s4;
+#ifdef AF_INET6
+	struct sockaddr_in6 s6;
+#endif /* AF_INET6 */
+	char buf[BUFRSZ];
+
+	assert(ar != NULL);
+	assert(file != NULL);
+
+	f = fopen(file, "r");
+	if (f == NULL)
+		return -1;
+
+	memset(buf, '\0', sizeof buf);
+
+	while (fgets(buf, sizeof buf - 1, f) != NULL)
+	{
+		sp = NULL;
+
+		for (p = buf; *p != '\0'; p++)
+		{
+			if (sp == NULL && isspace(*p))
+				sp = p;
+
+			if (*p == '#' || *p == '\n')
+			{
+				*p = '\0';
+				break;
+			}
+		}
+
+		if (sp != NULL)
+			*sp = '\0';
+
+		if (strcasecmp(buf, "nameserver") != 0)
+			continue;
+
+		af = -1;
+		if (inet_pton(AF_INET, sp + 1, &s4.sin_addr.s_addr) == 0)
+			af = AF_INET;
+#ifdef AF_INET6
+		else if (inet_pton(AF_INET6, sp + 1,
+		         &s6.sin6_addr.s6_addr) == 0)
+			af = AF_INET6;
+#endif /* AF_INET6 */
+
+		if (af == -1)
+			continue;
+
+		if (n == 0)
+		{
+			news = (SOCKADDR *) malloc(MAXNS * sizeof(SOCKADDR));
+			if (news == NULL)
+			{
+				fclose(f);
+				return -1;
+			}
+
+			free(ar->ar_nsaddrs);
+			ar->ar_nsaddrs = news;
+		}
+
+		if (af == AF_INET)
+		{
+			s4.sin_family = AF_INET;
+			s4.sin_len = sizeof s4;
+			memcpy(&news[n], &s4, sizeof s4);
+		}
+#ifdef AF_INET6
+		else if (af == AF_INET6)
+		{
+			s6.sin6_family = AF_INET6;
+			s6.sin6_len = sizeof s6;
+			memcpy(&news[n], &s6, sizeof s6);
+		}
+#endif /* AF_INET6 */
+
+		n++;
+		if (n == MAXNS)
+			break;
+	}
+
+	ar->ar_nscount = n;
+
+	fclose(f);
+
+	return 0;
 }

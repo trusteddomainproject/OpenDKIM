@@ -943,6 +943,14 @@ the default key is applied.
 @RESIGN_MANNOTICE@
 
 .TP
+.I ResolvConf (string)
+Specifies a file from which a list of nameservers should be read when doing
+DNS queries and applying the DNSSEC protocol.  The file should be formatted
+as described in
+.I resolv.conf(5).  See the documentation at http://unbound.net for details.
+@UNBOUND_MANNOTICE@
+
+.TP
 .I ResolverTracing (Boolean)
 Requests resolver tracing features be enabled, if available.  The effect
 of this depends on how debugging features of the resolver might be implemented.

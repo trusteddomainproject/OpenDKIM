@@ -19,7 +19,7 @@ o Test your filter
 COMPILING AND INSTALLING
 ========================
 
-The INSTALL document in the root of the build director covers the compilation
+The INSTALL document in the root of the build directory covers the compilation
 and software installation of opendkim and its prerequisites.  You should
 complete that process before continuing with the next section.
 

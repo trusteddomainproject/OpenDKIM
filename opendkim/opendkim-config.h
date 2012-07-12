@@ -191,6 +191,9 @@ struct configdef dkimf_config[] =
 	{ "ResignAll",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ResignMailTo",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_RESIGN */
+#ifdef USE_UNBOUND
+	{ "ResolvConf",			CONFIG_TYPE_STRING,	FALSE },
+#endif /* USE_UNBOUND */
 	{ "ResolverTracing",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef USE_LUA
 	{ "ScreenPolicyScript",		CONFIG_TYPE_STRING,	FALSE },

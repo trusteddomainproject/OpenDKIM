@@ -1,7 +1,7 @@
 .TH libar 3
 .SH NAME
-.B ar_init(), ar_addquery(), ar_waitreply(), ar_cancelquery(), ar_resend(),
-.B ar_recycle(), ar_shutdown()
+.B ar_init(), ar_resolvconf(), ar_addquery(), ar_waitreply(), ar_cancelquery(),
+.B ar_resend(), ar_recycle(), ar_shutdown()
 \- asynchronous DNS resolver facility
 .SH SYNOPSIS
 #include
@@ -25,6 +25,14 @@ void *
 .B memclosure,
 int
 .B flags
+);
+
+int
+.B ar_resolvconf
+(AR_LIB
+.B ar,
+char *
+.B path
 );
 
 int
@@ -159,6 +167,14 @@ reply (by default, truncation of any kind causes an upgrade to the connection
 channel and retransmission of all pending queries).  The handle returned by
 .B ar_init()
 is passed to later functions in order to share resources among transactions.
+
+Upon initialization, all nameservers listed in
+.I resolv.conf(5)
+will be loaded and tried in order for query resolution.  If some other set
+of nameservers should be used, the
+.B ar_resolvconf()
+function can be passed a filename that will be read for "nameserver"
+entries, and those will be used instead.
 
 By default the package will not retransmit queries for which no reply
 has arrived until requested to do so with
@@ -375,5 +391,5 @@ Copyright (c) 2009, 2011, 2012, The OpenDKIM Project.  All rights reserved.
 .SH SEE ALSO
 gethostbyaddr(3),
 gethostbyname(3),
-resolv.conf(4),
+resolv.conf(5),
 resolver(3)
