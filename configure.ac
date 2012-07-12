@@ -15,7 +15,7 @@ AC_PREREQ(2.61)
 #
 m4_define([VERSION_RELEASE], 2)
 m4_define([VERSION_MAJOR_REV], 6)
-m4_define([VERSION_MINOR_REV], 3)
+m4_define([VERSION_MINOR_REV], 4)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -764,7 +764,9 @@ then
  	                        [Define to 1 if your crypto library has SHA256 support]),
 	              AC_MSG_WARN([SHA256 is required for DKIM but is not
 	                           supported with your version of OpenSSL]),
-	              [#include <openssl/sha.h>])
+	              [
+#include <sys/types.h>
+#include <openssl/sha.h>])
 
 	CFLAGS="$saved_CFLAGS"
 	CPPFLAGS="$saved_CPPFLAGS"
