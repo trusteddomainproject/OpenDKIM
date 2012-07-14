@@ -5,6 +5,10 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.6.5		2012/07/??
+	BUILD: Fix bug #SF3543282: Corrections to Darwin/libar build adjustment
+		made in 2.6.3.  Problem noted by Daniel J. Luke.
+	
 2.6.4		2012/07/12
 	Include "header.d" in all Authentication-Results fields, not just
 		"header.i".  This makes life easier for users of OpenDMARC.
