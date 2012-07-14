@@ -1,8 +1,8 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.6.4 released
+Subject: OpenDKIM v2.6.5 released
 
-The Trusted Domain Project announces availability of OpenDKIM v2.6.4, now
+The Trusted Domain Project announces availability of OpenDKIM v2.6.5, now
 available for download from SourceForge.
 
 This is a minor bug fix release.  Upgrade is not required unless something
@@ -10,11 +10,11 @@ shown below is something of interest to you.
 
 The full RELEASE_NOTES for this version:
 
-2.6.4		2012/07/12
-	Include "header.d" in all Authentication-Results fields, not just
-		"header.i".  This makes life easier for users of OpenDMARC.
-	BUILD: Fix SHA256 test on some systems.  Problem noted by James
-		Erickson.
+2.6.5		2012/07/14
+	Swap order of "header.d" and "header.i" values in
+		Authentication-Results fields.
+	BUILD: Fix bug #SF3543282: Corrections to Darwin/libar build adjustment
+		made in 2.6.3.  Problem noted by Daniel J. Luke.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
