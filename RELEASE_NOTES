@@ -5,7 +5,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.6.5		2012/07/??
+2.6.5		2012/07/1?
 	Swap order of "header.d" and "header.i" values in
 		Authentication-Results fields.
 	BUILD: Fix bug #SF3543282: Corrections to Darwin/libar build adjustment
