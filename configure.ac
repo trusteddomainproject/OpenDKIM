@@ -15,7 +15,7 @@ AC_PREREQ(2.61)
 #
 m4_define([VERSION_RELEASE], 2)
 m4_define([VERSION_MAJOR_REV], 6)
-m4_define([VERSION_MINOR_REV], 4)
+m4_define([VERSION_MINOR_REV], 5)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -474,15 +474,10 @@ AM_CONDITIONAL(ALL_SYMBOLS, [test x"$enable_allsymbols" = x"yes"])
 
 AC_ARG_ENABLE([arlib],
               AS_HELP_STRING([--enable-arlib],
-                             [enable provided asynchronous resolver library]),
-              AS_IF([test "x$enable_arlib" = "xyes"],
-              [
-		AC_DEFINE(USE_ARLIB, 1,
-		          [enable provided asynchronous resolver library])
-              ])
-)
+                             [enable provided asynchronous resolver library]))
 
-AM_CONDITIONAL([USE_ARLIB], [test x"$enable_arlib" = x"yes"])
+# the AM_CONDITIONAL and AC_DEFINE for USE_ARLIB are farther below,
+# after the Darwin checks
 
 AC_ARG_ENABLE([debug],
               AS_HELP_STRING([--enable-debug],
@@ -2247,6 +2242,12 @@ case "$host" in
 		fi
 		;;
 esac
+
+AM_CONDITIONAL([USE_ARLIB], [test x"$enable_arlib" = x"yes"])
+if test "x$enable_arlib" = "xyes"
+then
+	AC_DEFINE(USE_ARLIB, 1, [enable provided asynchronous resolver library])
+fi
 
 #
 # Determine domainname for sample configs

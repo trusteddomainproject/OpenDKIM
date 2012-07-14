@@ -775,7 +775,7 @@ static void dkimf_config_reload __P((void));
 sfsistat dkimf_delrcpt __P((SMFICTX *, char *));
 static Header dkimf_findheader __P((msgctx, char *, int));
 void *dkimf_getpriv __P((SMFICTX *));
-char * dkimf_getsymval __P((SMFICTX *, char *));
+char *dkimf_getsymval __P((SMFICTX *, char *));
 sfsistat dkimf_insheader __P((SMFICTX *, int, char *, char *));
 static void dkimf_policyreport __P((connctx, struct dkimf_config *, char *));
 sfsistat dkimf_quarantine __P((SMFICTX *, char *));
@@ -10570,7 +10570,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 			         keybits,
 			         dnssec == NULL ? "" : "; ",
 			         dnssec == NULL ? "" : dnssec,
-			         val, domain,
+			         domain, val,
 			         ts == DKIM_STAT_OK ? " header.b=" : "",
 			         ts == DKIM_STAT_OK ? ss : "");
 
