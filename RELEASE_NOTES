@@ -5,6 +5,10 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.6.6		2012/07/15
+	LIBAR: Fix bug #SF3544522: Not all systems define a "_len" member for
+		the sockaddr structures.  Reported by Stevan Bajic.
+
 2.6.5		2012/07/14
 	Swap order of "header.d" and "header.i" values in
 		Authentication-Results fields.

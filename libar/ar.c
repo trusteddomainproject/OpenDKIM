@@ -2886,14 +2886,18 @@ ar_resolvconf(AR_LIB ar, char *file)
 		if (af == AF_INET)
 		{
 			s4.sin_family = AF_INET;
+#ifdef HAVE_SIN_LEN
 			s4.sin_len = sizeof s4;
+#endif /* HAVE_SIN_LEN */
 			memcpy(&news[n], &s4, sizeof s4);
 		}
 #ifdef AF_INET6
 		else if (af == AF_INET6)
 		{
 			s6.sin6_family = AF_INET6;
+# ifdef HAVE_SIN6_LEN
 			s6.sin6_len = sizeof s6;
+# endif /* HAVE_SIN6_LEN */
 			memcpy(&news[n], &s6, sizeof s6);
 		}
 #endif /* AF_INET6 */

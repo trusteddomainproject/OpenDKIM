@@ -15,7 +15,7 @@ AC_PREREQ(2.61)
 #
 m4_define([VERSION_RELEASE], 2)
 m4_define([VERSION_MAJOR_REV], 6)
-m4_define([VERSION_MINOR_REV], 5)
+m4_define([VERSION_MINOR_REV], 6)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -175,6 +175,20 @@ AC_CHECK_MEMBER([struct sockaddr_un.sun_len],
                           [Define if sockaddr_un has a sun_len member]),
                 [],
                 [[#include <sys/un.h>]])
+
+AC_CHECK_MEMBER([struct sockaddr_in.sin_len],
+                AC_DEFINE([HAVE_SIN_LEN],
+                          [1],
+                          [Define if sockaddr_in has a sin_len member]),
+                [],
+                [[#include <netinet/in.h>]])
+
+AC_CHECK_MEMBER([struct sockaddr_in6.sin6_len],
+                AC_DEFINE([HAVE_SIN6_LEN],
+                          [1],
+                          [Define if sockaddr_in6 has a sin6_len member]),
+                [],
+                [[#include <netinet6/in6.h>]])
 
 #
 # Library feature string and macros
