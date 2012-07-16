@@ -20,8 +20,9 @@ release, and a summary of the changes in that release.
 		made in 2.6.3.  Problem noted by Daniel J. Luke.
 	
 2.6.4		2012/07/12
-	Include "header.d" in all Authentication-Results fields, not just
-		"header.i".  This makes life easier for users of OpenDMARC.
+	Feature request #SF3542099: Include "header.d" in all
+		Authentication-Results fields, not just "header.i".  This
+		makes life easier for users of OpenDMARC.
 	BUILD: Fix SHA256 test on some systems.  Problem noted by James
 		Erickson.
 
