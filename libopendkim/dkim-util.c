@@ -133,6 +133,7 @@ DKIM_STAT
 dkim_tmpfile(DKIM *dkim, int *fp, _Bool keep)
 {
 	int fd;
+	char *p;
 	char path[MAXPATHLEN + 1];
 
 	assert(dkim != NULL);
@@ -147,6 +148,14 @@ dkim_tmpfile(DKIM *dkim, int *fp, _Bool keep)
 	{
 		snprintf(path, MAXPATHLEN, "%s/dkim.XXXXXX",
 		         dkim->dkim_libhandle->dkiml_tmpdir);
+	}
+
+	for (p = path + strlen(dkim->dkim_libhandle->dkiml_tmpdir) + 1;
+	     *p != '\0';
+	     p++)
+	{
+		if (*p == '/')
+			*p = '.';
 	}
 
 	fd = mkstemp(path);

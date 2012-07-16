@@ -8,6 +8,10 @@ release, and a summary of the changes in that release.
 2.6.6		2012/07/15
 	LIBAR: Fix bug #SF3544522: Not all systems define a "_len" member for
 		the sockaddr structures.  Reported by Stevan Bajic.
+	LIBOPENDKIM: If the job ID passed in during handle creation includes
+		slashes and temporary file creation is enabled, convert the
+		slashes to dots in the temporary file template.  Problem
+		noted by James Erickson.
 
 2.6.5		2012/07/14
 	Swap order of "header.d" and "header.i" values in
