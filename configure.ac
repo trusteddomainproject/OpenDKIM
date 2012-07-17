@@ -188,7 +188,7 @@ AC_CHECK_MEMBER([struct sockaddr_in6.sin6_len],
                           [1],
                           [Define if sockaddr_in6 has a sin6_len member]),
                 [],
-                [[#include <netinet6/in6.h>]])
+                [[#include <netinet/in.h>]])
 
 #
 # Library feature string and macros
