@@ -900,11 +900,9 @@ dkim_add_canon(DKIM *dkim, _Bool hdr, dkim_canon_t canon, int hashtype,
 	new->canon_hdrlist = hdrlist;
 	new->canon_buf = NULL;
 	new->canon_next = NULL;
-	new->canon_done = FALSE;
 	new->canon_blankline = TRUE;
 	new->canon_blanks = 0;
 	new->canon_bodystate = 0;
-	new->canon_wrote = 0;
 	new->canon_hashbuflen = 0;
 	new->canon_hashbufsize = 0;
 	new->canon_hashbuf = NULL;
@@ -1923,6 +1921,23 @@ dkim_canon_closebody(DKIM *dkim)
 		/* skip done hashes or header canonicalizations */
 		if (cur->canon_done || cur->canon_hdr)
 			continue;
+
+		/* handle unprocessed content */
+		if (dkim_dstring_len(cur->canon_buf) > 0)
+		{
+			if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_FIXCRLF) != 0)
+			{
+				dkim_canon_buffer(cur,
+				                  dkim_dstring_get(cur->canon_buf),
+				                  dkim_dstring_len(cur->canon_buf));
+				dkim_canon_buffer(cur, CRLF, 2);
+			}
+			else
+			{
+				dkim_error(dkim, "CRLF at end of body missing");
+				return DKIM_STAT_SYNTAX;
+			}
+		}
 
 		/* "simple" canonicalization must include at least a CRLF */
 		if (cur->canon_canon == DKIM_CANON_SIMPLE &&

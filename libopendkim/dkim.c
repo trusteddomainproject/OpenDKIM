@@ -2264,7 +2264,7 @@ dkim_siglist_setup(DKIM *dkim)
 **  	delim -- delimiter
 **
 **  Return value:
-**  	Number of bytes written to "dstr", or 0 on error.
+**  	Number of bytes written to "dstr", or <= 0 on error.
 */
 
 static size_t
@@ -2297,7 +2297,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	{
 		always = DKIM_MALLOC(dkim, n);
 		if (always == NULL)
-			return (size_t) -1;
+			return 0;
 		memset(always, '\0', n);
 	}
 
@@ -2403,7 +2403,14 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 
 	memset(b64hash, '\0', sizeof b64hash);
 
-	(void) dkim_canon_closebody(dkim);
+	status = dkim_canon_closebody(dkim);
+	if (status != DKIM_STAT_OK)
+	{
+		if (always != NULL)
+			(void) DKIM_FREE(dkim, always);
+		return 0;
+	}
+
 	status = dkim_canon_getfinal(sig->sig_bodycanon, &hash, &hashlen);
 	if (status != DKIM_STAT_OK)
 	{
@@ -3709,7 +3716,9 @@ dkim_eom_sign(DKIM *dkim)
 #endif /* _FFR_RESIGN */
 
 	/* finalize body canonicalizations */
-	(void) dkim_canon_closebody(dkim);
+	status = dkim_canon_closebody(dkim);
+	if (status != DKIM_STAT_OK)
+		return status;
 
 	dkim->dkim_bodydone = TRUE;
 
@@ -3973,7 +3982,9 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 		return DKIM_STAT_INVALID;
 
 	/* finalize body canonicalizations */
-	(void) dkim_canon_closebody(dkim);
+	ret = dkim_canon_closebody(dkim);
+	if (ret != DKIM_STAT_OK)
+		return ret;
 
 	dkim->dkim_bodydone = TRUE;
 

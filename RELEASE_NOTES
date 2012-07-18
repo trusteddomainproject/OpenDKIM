@@ -8,6 +8,12 @@ release, and a summary of the changes in that release.
 2.6.6		2012/07/18
 	LIBAR: Fix bug #SF3544522: Not all systems define a "_len" member for
 		the sockaddr structures.  Reported by Stevan Bajic.
+	LIBOPENDKIM: Fix bug #SF3545490: If the body handed to the library was
+		missing a trailing line terminator, then dkim_canon_closebody()
+		would end the hashes with some data not included.  Now, if
+		DKIM_LIBFLAGS_FIXCRLF is set, it will detect this condition
+		and correct it; if not, an error is returned.  Problem noted
+		by James Erickson.
 	LIBOPENDKIM: If the job ID passed in during handle creation includes
 		slashes and temporary file creation is enabled, convert the
 		slashes to dots in the temporary file template.  Problem
