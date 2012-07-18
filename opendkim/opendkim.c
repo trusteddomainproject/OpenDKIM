@@ -14177,7 +14177,6 @@ mlfi_eom(SMFICTX *ctx)
 			}
 			else if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN)
 			{
-				_Bool test;
 				u_int keybits;
 				char *authresult;
 				char *failstatus;
@@ -14186,7 +14185,6 @@ mlfi_eom(SMFICTX *ctx)
 
 				memset(comment, '\0', sizeof comment);
 
-				test = FALSE;
 				failstatus = (testkey ? "neutral" : "fail");
 
 #ifdef USE_UNBOUND
@@ -14360,7 +14358,7 @@ mlfi_eom(SMFICTX *ctx)
 					break;
 				}
 
-				if (test)
+				if (testkey)
 				{
 					if (comment[0] == '\0')
 					{
