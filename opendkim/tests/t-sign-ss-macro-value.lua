@@ -7,7 +7,7 @@
 -- Confirms that a signature is added with the correct contents when the
 -- origin is validated via macro
 
-mt.echo("*** simple/simple signing test using macros to validate origin")
+mt.echo("*** simple/simple signing test using macros to validate origin (value)")
 
 -- setup
 sock = "unix:" .. mt.getcwd() .. "/t-sign-ss-macro-value.sock"
