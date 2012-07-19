@@ -45,6 +45,8 @@ EXTRA_DIST = \
 	t-sign-ss-all t-sign-ss-all.conf t-sign-ss-all.lua \
 	t-sign-ss-ltag t-sign-ss-ltag.conf t-sign-ss-ltag.lua \
 	t-sign-ss-macro t-sign-ss-macro.conf t-sign-ss-macro.lua \
+	t-sign-ss-macro-value t-sign-ss-macro-value.conf \
+		t-sign-ss-macro-value.lua \
 	t-sign-ss-replace t-sign-ss-replace.conf t-sign-ss-replace.lua \
 		t-sign-ss-replace.txt \
 	t-sign-report t-sign-report.conf t-sign-report.lua \
