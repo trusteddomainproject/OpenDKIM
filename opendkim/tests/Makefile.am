@@ -7,7 +7,7 @@ check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-verify-unsigned t-verify-unsigned-silent \
 	t-verify-syntax t-verify-ss t-verify-ss-bad \
 	t-dontsign t-peer t-local-adsp t-local-adsp-subdomain \
-	t-lua-verify-tests \
+	t-lua-verify-tests t-sign-ss-macro t-sign-ss-macro-value \
 	t-adsp-report t-verify-report t-sign-report
 
 if LIVE_TESTS
