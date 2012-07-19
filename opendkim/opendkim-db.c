@@ -2140,7 +2140,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 						return -1;
 					}
 
-					newl->db_list_key = strdup(p);
+					newl->db_list_key = strdup(key);
 					if (newl->db_list_key == NULL)
 					{
 						if (err != NULL)

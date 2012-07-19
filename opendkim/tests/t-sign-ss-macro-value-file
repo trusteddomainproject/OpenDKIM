@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# $Id: t-sign-ss-macro,v 1.1 2010/09/03 07:38:49 cm-msk Exp $
+# 
+# simple/simple signing test using macro-based origin selection with value test
+# configured with a file
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest -s $srcdir/t-sign-ss-macro-value-file.lua
