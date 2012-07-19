@@ -11823,7 +11823,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 			memset(&dbd, '\0', sizeof dbd);
 			dbd.dbdata_buffer = val;
-			dbd.dbdata_buflen = strlen(val);
+			dbd.dbdata_buflen = strlen(val) + 1;
 			dbd.dbdata_flags = 0;
 
 			status = dkimf_db_get(conf->conf_macrosdb,
