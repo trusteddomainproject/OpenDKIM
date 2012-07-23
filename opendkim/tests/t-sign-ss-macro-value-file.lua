@@ -1,6 +1,6 @@
 -- $Id: t-sign-ss-macro-value-file.lua,v 1.7 2010/09/24 21:40:31 cm-msk Exp $
 
--- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2009, 2010, 2012, The OpenDKIM Project.  All rights reserved.
 
 -- simple/simple signing test using macros to validate origin
 -- 
