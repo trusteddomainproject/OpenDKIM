@@ -27,7 +27,7 @@ OPENDKIMDATOWNER="mailnull:mailnull"
 
 PROGNAME=`basename $0`
 
-OPENDKIMSTATS=`awk '$1 == "Statistics" { print $2 }'`
+OPENDKIMSTATS=`awk '$1 == "Statistics" { print $2 }' $OPENDKIMCONFIG`
 if [ x"$OPENDKIMSTATS" = x"" ]
 then
 	echo "${PROGNAME}: can't determine statistics file location from ${OPENDKIMCONFIG}"

@@ -9,6 +9,8 @@ release, and a summary of the changes in that release.
 	Fix input handling for file data sets for the macro case.  Problem
 		noted by Allan Wind.
 	Ensure NULL-termination of macro value tests.
+	STATS: Fix hang bug in opendkim-reportstats.  Problem noted by
+		Todd Lyons.
 
 2.6.6		2012/07/18
 	LIBAR: Fix bug #SF3544522: Not all systems define a "_len" member for
