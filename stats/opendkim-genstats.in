@@ -473,7 +473,7 @@ print $out "  <td> <b> Domains </b> </td>\n";
 print $out "  <td> <b> Year </b> </td>\n";
 print $out "  <td> <b> Month </b> </td>\n";
 print $out " </tr>\n";
-$dbi_s = $dbi_h->prepare("SELECT COUNT(DISTINCT signatures_domain), YEAR(messages_date), MONTHNAME(messages_date) FROM t1 WHERE (signatures_dnssec = 0 OR signatures_dnssec = 2) GROUP BY 2, 3");
+$dbi_s = $dbi_h->prepare("SELECT COUNT(DISTINCT signatures_domain), YEAR(messages_date), MONTHNAME(messages_date) FROM t1 WHERE (signatures_dnssec = 0 OR signatures_dnssec = 2) GROUP BY 2, 3 ORDER BY 2, MONTH(messages_date)");
 if (!$dbi_s->execute)
 {
 	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
@@ -676,7 +676,7 @@ print $out "  <td> <b> Domain </b> </td>\n";
 print $out "  <td> <b> Signatures </b> </td>\n";
 print $out "  <td> <b> % Passed </b> </td>\n";
 print $out " </tr>\n";
-$dbi_s = $dbi_h->prepare("SELECT domains.name, COUNT(t1.id), 100*SUM(t1.signatures_pass)/COUNT(t1.id) FROM t1 JOIN domains ON t1.signatures_domain = domains.id GROUP BY t1.signatures_domain ORDER BY 3 DESC, 2 LIMIT 10");
+$dbi_s = $dbi_h->prepare("SELECT domains.name, COUNT(t1.id), 100*SUM(t1.signatures_pass)/COUNT(t1.id) FROM t1 JOIN domains ON t1.signatures_domain = domains.id GROUP BY t1.signatures_domain ORDER BY 3 DESC, 2 DESC LIMIT 10");
 if (!$dbi_s->execute)
 {
 	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
@@ -708,7 +708,7 @@ print $out "  <td> <b> Domain </b> </td>\n";
 print $out "  <td> <b> Signatures </b> </td>\n";
 print $out "  <td> <b> % Failed </b> </td>\n";
 print $out " </tr>\n";
-$dbi_s = $dbi_h->prepare("SELECT domains.name, COUNT(t1.id), 100-100*SUM(signatures_pass)/COUNT(t1.id) FROM t1 JOIN domains ON t1.signatures_domain = domains.id GROUP BY t1.signatures_domain ORDER BY 3 DESC, 2 LIMIT 10");
+$dbi_s = $dbi_h->prepare("SELECT domains.name, COUNT(t1.id), 100-100*SUM(signatures_pass)/COUNT(t1.id) FROM t1 JOIN domains ON t1.signatures_domain = domains.id GROUP BY t1.signatures_domain ORDER BY 3 DESC, 2 DESC LIMIT 10");
 if (!$dbi_s->execute)
 {
 	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;

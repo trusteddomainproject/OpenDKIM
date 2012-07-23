@@ -11,6 +11,8 @@ release, and a summary of the changes in that release.
 	Ensure NULL-termination of macro value tests.
 	STATS: Fix hang bug in opendkim-reportstats.  Problem noted by
 		Todd Lyons.
+	STATS: Fix bug #SF3547363: Fix "Top 10" and DNSSEC trend reports.
+		Problem noted by Andreas Schulze.
 
 2.6.6		2012/07/18
 	LIBAR: Fix bug #SF3544522: Not all systems define a "_len" member for
