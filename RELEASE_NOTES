@@ -5,7 +5,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.6.7		2012/07/24
+2.6.7		2012/07/23
 	Fix input handling for file data sets for the macro case.  Problem
 		noted by Allan Wind.
 	Ensure NULL-termination of macro value tests.
