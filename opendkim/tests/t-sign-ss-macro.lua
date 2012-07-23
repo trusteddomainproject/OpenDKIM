@@ -35,14 +35,6 @@ if mt.getreply(conn) ~= SMFIR_CONTINUE then
 	error("mt.conninfo() unexpected reply")
 end
 
--- send HELO
-if mt.helo(conn, "localhost") ~= nil then
-	error("mt.helo() failed")
-end
-if mt.getreply(conn) ~= SMFIR_CONTINUE then
-	error("mt.helo() unexpected reply")
-end
-
 -- send envelope macros and sender data
 mt.macro(conn, SMFIC_MAIL, "i", "t-sign-ss-macro", "{testmacro}", "foobar")
 if mt.mailfrom(conn, "user@example.com") ~= nil then
