@@ -42,6 +42,7 @@ static char repute_c_id[] = "$Id$";
 /* limits */
 #define	REPUTE_BUFBASE	1024
 #define	REPUTE_URL	1024
+#define	REPUTE_TIMEOUT	10
 
 /* data types */
 struct repute_io
@@ -527,6 +528,7 @@ repute_get_io(REPUTE rep)
 			else
 			{
 				int status;
+				long longtmp;
 
 				status = curl_easy_setopt(rio->repute_curl,
 				                          CURLOPT_WRITEFUNCTION,
@@ -543,6 +545,16 @@ repute_get_io(REPUTE rep)
 					                        CURLOPT_USERAGENT,
 					                        rep->rep_useragent);
 				}
+
+				longtmp = 1;
+				(void) curl_easy_setopt(rio->repute_curl,
+				                        CURLOPT_NOSIGNAL,
+				                        &longtmp);
+
+				longtmp = REPUTE_TIMEOUT;
+				(void) curl_easy_setopt(rio->repute_curl,
+				                        CURLOPT_TIMEOUT,
+				                        &longtmp);
 			}
 		}
 	}
