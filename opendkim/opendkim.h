@@ -87,14 +87,14 @@ static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.34.10.1 2010/10/27 21:43:
 #define DKIMF_POLICY_NXDOMAIN	3		/* domain does not exist */
 
 #define AUTHRESULTSHDR	"Authentication-Results"
-#define ORCPTHEADER	"X-Original-Recipient"
+#define ORCPTHEADER	"Original-Recipient"
 
-#define	XHEADERNAME	"X-DKIM"
-#define	XSELECTCANONHDR	"X-Canonicalization"
+#define	SWHEADERNAME	"DKIM-Filter"
+#define	SELECTCANONHDR	"Canonicalization"
 
 #ifdef _FFR_VBR
-# define XVBRTYPEHEADER	"X-VBR-Type"
-# define XVBRCERTHEADER	"X-VBR-Certifiers"
+# define VBRTYPEHEADER	"VBR-Type"
+# define VBRCERTHEADER	"VBR-Certifiers"
 #endif /* _FFR_VBR */
 
 #ifdef _FFR_ADSP_LISTS

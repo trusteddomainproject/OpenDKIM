@@ -215,6 +215,7 @@ struct configdef dkimf_config[] =
 	{ "SignHeaders",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SigningTable",		CONFIG_TYPE_STRING,	FALSE },
 	{ "Socket",			CONFIG_TYPE_STRING,	FALSE },
+	{ "SoftwareHeader",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_STATS
 	{ "Statistics",			CONFIG_TYPE_STRING,	FALSE },
 	{ "StatisticsName",		CONFIG_TYPE_STRING,	FALSE },
@@ -251,7 +252,6 @@ struct configdef dkimf_config[] =
 	{ "VBR-Type",			CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_VBR */
 	{ "WeakSyntaxChecks",		CONFIG_TYPE_BOOLEAN,	FALSE },
-	{ "X-Header",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ NULL,				(u_int) -1,		FALSE }
 };
 

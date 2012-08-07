@@ -627,6 +627,14 @@ Selector		my-selector-name
 
 Socket			inet:port@localhost
 
+##  SoftwareHeader { yes | no }
+##  	default "no"
+##
+##  Add a DKIM-Filter header field to messages passing through this filter
+##  to identify messages it has processed.
+
+# SoftwareHeader	no
+
 ##  StrictHeaders { yes | no }
 ##  	default "no"
 ##
@@ -730,11 +738,3 @@ Socket			inet:port@localhost
 ##  a group ID as well, separated from the userid by a colon.
 
 # UserID		userid
-
-##  X-Header { yes | no }
-##  	default "no"
-##
-##  Add an X- header to messages passing through this filter to identify
-##  messages it has processed.
-
-# X-Header		No

@@ -214,7 +214,7 @@ struct dkimf_config
 	_Bool		conf_capture;		/* capture unknown errors */
 	_Bool		conf_restrace;		/* resolver tracing? */
 	_Bool		conf_acceptdk;		/* accept DK keys? */
-	_Bool		conf_addxhdr;		/* add identifying header? */
+	_Bool		conf_addswhdr;		/* add identifying header? */
 	_Bool		conf_blen;		/* use "l=" when signing */
 	_Bool		conf_ztags;		/* use "z=" when signing */
 	_Bool		conf_alwaysaddar;	/* always add Auth-Results:? */
@@ -5643,7 +5643,7 @@ dkimf_config_new(void)
 #ifdef _FFR_ATPS
 	new->conf_atpshash = dkimf_atpshash[0].str;
 #endif /* _FFR_ATPS */
-	new->conf_selectcanonhdr = XSELECTCANONHDR;
+	new->conf_selectcanonhdr = SELECTCANONHDR;
 
 	memcpy(&new->conf_handling, &defaults, sizeof new->conf_handling);
 
@@ -6290,11 +6290,11 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			conf->conf_adspaction = c;
 		}
 
-		if (!conf->conf_addxhdr)
+		if (!conf->conf_addswhdr)
 		{
-			(void) config_get(data, "X-Header",
-			                  &conf->conf_addxhdr,
-			                  sizeof conf->conf_addxhdr);
+			(void) config_get(data, "SoftwareHeader",
+			                  &conf->conf_addswhdr,
+			                  sizeof conf->conf_addswhdr);
 		}
 
 		(void) config_get(data, "DomainKeysCompat",
@@ -12525,7 +12525,7 @@ mlfi_eoh(SMFICTX *ctx)
 		vbr_setdomain(dfc->mctx_vbr, dfc->mctx_domain);
 
 		/* VBR-Type; get value from headers or use default */
-		hdr = dkimf_findheader(dfc, XVBRTYPEHEADER, 0);
+		hdr = dkimf_findheader(dfc, VBRTYPEHEADER, 0);
 		if (hdr != NULL)
 		{
 			dfc->mctx_vbrpurge = TRUE;
@@ -12537,7 +12537,7 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 
 		/* X-VBR-Certifiers; get value from headers or use default */
-		hdr = dkimf_findheader(dfc, XVBRCERTHEADER, 0);
+		hdr = dkimf_findheader(dfc, VBRCERTHEADER, 0);
 		if (hdr != NULL)
 		{
 			dfc->mctx_vbrpurge = TRUE;
@@ -15362,20 +15362,20 @@ mlfi_eom(SMFICTX *ctx)
 
 		if (conf->conf_vbr_purge && dfc->mctx_vbrpurge)
 		{
-			if (dkimf_chgheader(ctx, XVBRTYPEHEADER,
+			if (dkimf_chgheader(ctx, VBRTYPEHEADER,
 			                    0, NULL) != MI_SUCCESS ||
 			     conf->conf_dolog)
 			{
 				syslog(LOG_ERR, "%s: %s header remove failed",
-				       dfc->mctx_jobid, XVBRTYPEHEADER);
+				       dfc->mctx_jobid, VBRTYPEHEADER);
 			}
 
-			if (dkimf_chgheader(ctx, XVBRCERTHEADER,
+			if (dkimf_chgheader(ctx, VBRCERTHEADER,
 			                    0, NULL) != MI_SUCCESS ||
 			     conf->conf_dolog)
 			{
 				syslog(LOG_ERR, "%s: %s header remove failed",
-				       dfc->mctx_jobid, XVBRCERTHEADER);
+				       dfc->mctx_jobid, VBRCERTHEADER);
 			}
 		}
 #endif /* _FFR_VBR */
@@ -15385,7 +15385,7 @@ mlfi_eom(SMFICTX *ctx)
 	**  Identify the filter, if requested.
 	*/
 
-	if (conf->conf_addxhdr)
+	if (conf->conf_addswhdr)
 	{
 		char xfhdr[DKIM_MAXHEADER + 1];
 
@@ -15397,12 +15397,12 @@ mlfi_eom(SMFICTX *ctx)
 		         dfc->mctx_jobid != NULL ? dfc->mctx_jobid
 		                                 : (u_char *) JOBIDUNKNOWN);
 
-		if (dkimf_insheader(ctx, 1, XHEADERNAME, xfhdr) != MI_SUCCESS)
+		if (dkimf_insheader(ctx, 1, SWHEADERNAME, xfhdr) != MI_SUCCESS)
 		{
 			if (conf->conf_dolog)
 			{
 				syslog(LOG_ERR, "%s: %s header add failed",
-				       dfc->mctx_jobid, XHEADERNAME);
+				       dfc->mctx_jobid, SWHEADERNAME);
 			}
 
 			dkimf_cleanup(ctx);
