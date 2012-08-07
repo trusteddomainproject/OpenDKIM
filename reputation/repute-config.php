@@ -1,7 +1,7 @@
 <?php
 
 ###
-### Copyright (c) 2012, The OpenDKIM Project.  All rights reserved.
+### Copyright (c) 2012, The Trusted Domain Project.  All rights reserved.
 ###
 
 # Database configuration for REPUTE queries

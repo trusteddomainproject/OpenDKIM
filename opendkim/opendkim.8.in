@@ -1,4 +1,4 @@
-.TH opendkim 8 "The OpenDKIM Project"
+.TH opendkim 8 "The Trusted Domain Project"
 .SH NAME
 .B opendkim
 \- DKIM signing and verifying filter for MTAs
@@ -575,7 +575,7 @@ This man page covers version @VERSION@ of
 Copyright (c) 2005-2008, Sendmail, Inc. and its suppliers.  All rights
 reserved.
 
-Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim.conf(5), sendmail(8)
 .P

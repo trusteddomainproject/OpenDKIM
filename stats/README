@@ -19,7 +19,7 @@ message arrival times, From domains, signing domains, sending IP addresses,
 and whether or not the message was reported as spam.
 
 You are invited, but certainly not required, to provide this
-information to The OpenDKIM Project.  The code that does the reporting is
+information to The Trusted Domain Project.  The code that does the reporting is
 open source and included in this package, so you can easily verify that
 nothing other than the above is being revealed in the data thus submitted.
 Participants that submit data will be invited to be part of an experimental
@@ -88,7 +88,7 @@ scripts and documentation presume MySQL.
 	useful reports from the accumulated data.  Contribution of other
 	reports you find useful would be welcome.
 
-7c.	To participate in The OpenDKIM Project's data collection work,
+7c.	To participate in The Trusted Domain Project's data collection work,
 	ask for the submission address you should use and then create this
 	script and add it to your crontab:
 

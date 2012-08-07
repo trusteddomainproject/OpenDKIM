@@ -2,7 +2,7 @@
 **  Copyright (c) 2007, 2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
 */
 
 /* for Solaris */
@@ -117,7 +117,7 @@ static void vbr_error __P((VBR *, const char *, ...));
 **  forth in the LICENSE file which can be found at the top level of
 **  the sendmail distribution.
 **
-**  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, The Trusted Domain Project.  All rights reserved.
 */
 
 /*

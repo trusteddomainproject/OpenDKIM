@@ -13,4 +13,4 @@ opendkim-spam-ignore-cmdswitch.patch	Andreas Schulze
 	with some versions of amavisd-new.
 
 --
-Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2010-2012, The Trusted Domain Project.  All rights reserved.

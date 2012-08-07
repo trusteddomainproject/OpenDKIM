@@ -4,7 +4,7 @@
 ## Copyright (c) 2004, 2005 Sendmail, Inc. and its suppliers.
 ## All rights reserved.
 ##
-## Copyright (c) 2009, 2012, The OpenDKIM Project.  All rights reserved.
+## Copyright (c) 2009, 2012, The Trusted Domain Project.  All rights reserved.
 ##
 ## autorespond.csh -- accept a message and reply to it to test signing and
 ## verifying of opendkim

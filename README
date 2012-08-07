@@ -12,7 +12,7 @@ updates.
 | INTRODUCTION |
 +--------------+
 
-The OpenDKIM Project is a community effort to develop and maintain an open
+The Trusted Domain Project is a community effort to develop and maintain an open
 source library for producing DKIM-aware applications, and a "milter"-based
 filter for providing DKIM service.
 
@@ -309,4 +309,4 @@ re-generate your configuration and restart the filter:
 	FEATURE(`nocanonify')
 
 --
-Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2010-2012, The Trusted Domain Project.  All rights reserved.

@@ -1,4 +1,4 @@
-.TH opendkim-importstats 8 "The OpenDKIM Project"
+.TH opendkim-importstats 8 "The Trusted Domain Project"
 .SH NAME
 .B opendkim-importstats
 \- OpenDKIM statistics import tool
@@ -73,7 +73,7 @@ This man page covers the version of
 that shipped with version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT
-Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.
+Copyright (c) 2010-2012, The Trusted Domain Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8),
 .I opendkim.conf(5)

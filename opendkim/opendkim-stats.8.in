@@ -1,4 +1,4 @@
-.TH OPENDKIM-STATS 8 "The OpenDKIM Project"
+.TH OPENDKIM-STATS 8 "The Trusted Domain Project"
 .SH NAME
 .B opendkim-stats
 \- output opendkim statistics

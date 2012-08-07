@@ -1,4 +1,4 @@
-# Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
+# Copyright (c) 2010, 2011, The Trusted Domain Project.  All rights reserved.
 #
 
 Summary: An open source library and milter for providing DKIM service
@@ -14,7 +14,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Prefix: %{_prefix}
 
 %description
-The OpenDKIM Project is a community effort to develop and maintain a C library
+The Trusted Domain Project is a community effort to develop and maintain a C library
 for producing DKIM-aware applications and an open source milter for providing
 DKIM service through milter-enabled MTAs.
 
