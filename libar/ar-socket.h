@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2011, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2011, 2012, The Trusted Domain Project.  All rights reserved.
 */
 
 #ifndef _AR_SOCKET_H_

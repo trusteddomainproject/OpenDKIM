@@ -15,7 +15,7 @@
 ** ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 ** OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 **
-** Portions Copyright (c) 2010, 2011, The Trusted Domain Project.
+** Portions Copyright (c) 2010-2012, The Trusted Domain Project.
 ** All rights reserved.
 */
 
