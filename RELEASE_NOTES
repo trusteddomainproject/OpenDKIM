@@ -8,6 +8,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3536655: Rename "X-Header" to "SoftwareHeader", and rename
 		all header fields added that start "X-" to remove that prefix,
 		per RFC6648.
+	Fix bug #SF3538896: Remove antiquated CVS Id: tags, which cleans up
+		some (harmless) build warnings.  Requested by Andreas Schulze.
 	Fix bug #SF3548741: Add "ReputationTimeout" for use inside
 		_FFR_REPUTATION, rather than using the built-in default
 		or a hard-coded one.
