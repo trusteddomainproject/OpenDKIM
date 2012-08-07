@@ -21,7 +21,6 @@
 
 /* libopendkim includes */
 #include <dkim-strl.h>
-#include <dkim.h>
 
 /* libodbx includes */
 #ifdef USE_ODBX
