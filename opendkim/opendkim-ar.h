@@ -10,10 +10,6 @@
 #ifndef _OPENDKIM_AR_H_
 #define _OPENDKIM_AR_H_
 
-#ifndef lint
-static char opendkim_ar_h_id[] = "@(#)$Id: opendkim-ar.h,v 1.1 2009/07/16 20:59:11 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 

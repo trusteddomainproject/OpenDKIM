@@ -10,10 +10,6 @@
 #ifndef _REPUTATION_H_
 #define _REPUTATION_H_
 
-#ifndef lint
-static char reputaton_h_id[] = "@(#)$Id: stats.h,v 1.10.2.1 2010/10/27 21:43:09 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>

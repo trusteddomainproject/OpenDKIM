@@ -7,10 +7,6 @@
 **  $Id: opendkim-testkey.c,v 1.10.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
-#ifndef lint
-static char opendkim_testkey_c_id[] = "@(#)$Id: opendkim-testkey.c,v 1.10.10.1 2010/10/27 21:43:09 cm-msk Exp $";
-#endif /* !lint */
-
 #include "build-config.h"
 
 /* for Solaris */

@@ -4,10 +4,6 @@
 **  $Id: dkim-dns.c,v 1.6.4.1 2010/10/27 21:43:08 cm-msk Exp $
 */
 
-#ifndef lint
-static char dkim_dns_c_id[] = "@(#)$Id: dkim-dns.c,v 1.6.4.1 2010/10/27 21:43:08 cm-msk Exp $";
-#endif /* !lint */
-
 /* for Solaris */
 #ifndef _REENTRANT
 # define _REENTRANT

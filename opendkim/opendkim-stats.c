@@ -4,10 +4,6 @@
 **  $Id: opendkim-stats.c,v 1.19.2.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
-#ifndef lint
-static char opendkim_stats_c_id[] = "$Id: opendkim-stats.c,v 1.19.2.1 2010/10/27 21:43:09 cm-msk Exp $";
-#endif /* ! lint */
-
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>

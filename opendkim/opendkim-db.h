@@ -10,10 +10,6 @@
 #ifndef _OPENDKIM_DB_H_
 #define _OPENDKIM_DB_H_
 
-#ifndef lint
-static char opendkim_db_h_id[] = "@(#)$Id: opendkim-db.h,v 1.15 2010/09/16 04:47:39 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 #include <pthread.h>

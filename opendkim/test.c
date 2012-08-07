@@ -7,10 +7,6 @@
 **  $Id: test.c,v 1.15 2010/09/02 04:04:20 cm-msk Exp $
 */
 
-#ifndef lint
-static char test_c_id[] = "@(#)$Id: test.c,v 1.15 2010/09/02 04:04:20 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>

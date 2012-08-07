@@ -7,10 +7,6 @@
 **  $Id: opendkim-ar.c,v 1.5.58.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
-#ifndef lint
-static char opendkim_ar_c_id[] = "@(#)$Id: opendkim-ar.c,v 1.5.58.1 2010/10/27 21:43:09 cm-msk Exp $";
-#endif /* !lint */
-
 #include "build-config.h"
 
 /* system includes */

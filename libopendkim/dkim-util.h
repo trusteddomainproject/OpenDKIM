@@ -8,10 +8,6 @@
 #ifndef _DKIM_UTIL_H_
 #define _DKIM_UTIL_H_
 
-#ifndef lint
-static char dkim_util_h_id[] = "@(#)$Id: dkim-util.h,v 1.5.58.1 2010/10/27 21:43:08 cm-msk Exp $";
-#endif /* !lint */
-
 #include "build-config.h"
 
 /* system includes */

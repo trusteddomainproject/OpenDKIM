@@ -10,10 +10,6 @@
 #ifndef _DKIM_CONFIG_H_
 #define _DKIM_CONFIG_H_
 
-#ifndef lint
-static char dkim_config_h_id[] = "@(#)$Id: opendkim-config.h,v 1.32.10.1 2010/10/27 21:43:09 cm-msk Exp $";
-#endif /* !lint */
-
 #include "build-config.h"
 
 /* system includes */

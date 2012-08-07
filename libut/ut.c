@@ -2,10 +2,6 @@
 **  Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char ut_c_id[] = "$Id$";
-#endif /* ! lint */
-
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>

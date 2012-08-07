@@ -10,10 +10,6 @@
 #ifndef _TEST_H_
 #define _TEST_H_
 
-#ifndef lint
-static char test_h_id[] = "@(#)$Id: test.h,v 1.8 2010/09/02 04:04:20 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>

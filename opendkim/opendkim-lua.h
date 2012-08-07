@@ -7,10 +7,6 @@
 #ifndef _OPENDKIM_LUA_H_
 #define _OPENDKIM_LUA_H_
 
-#ifndef lint
-static char opendkim_lua_h_id[] = "@(#)$Id: opendkim-lua.h,v 1.5 2010/09/14 18:23:38 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 

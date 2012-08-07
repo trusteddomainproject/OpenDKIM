@@ -5,10 +5,6 @@
 #ifndef _MANUAL_H_
 #define _MANUAL_H_
 
-#ifndef lint
-static char manual_h_id[] = "@(#)$Id: manual.h,v 1.4 2009/12/10 22:17:30 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 #include <sys/socket.h>

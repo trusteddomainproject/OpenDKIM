@@ -5,10 +5,6 @@
 **  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char t_testdata_h[] = "@(#)$Id: t-testdata.h,v 1.2 2010/07/23 01:54:20 cm-msk Exp $";
-#endif /* !lint */
-
 
 #define	CRLF		"\r\n"
 #define	SP		" "

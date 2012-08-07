@@ -5,10 +5,6 @@
 **  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char t_cleanup_c_id[] = "@(#)$Id: t-cleanup.c,v 1.3 2010/09/02 05:10:57 cm-msk Exp $";
-#endif /* !lint */
-
 #include "build-config.h"
 
 /* system includes */

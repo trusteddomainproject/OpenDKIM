@@ -8,10 +8,6 @@
 #ifndef _VBR_H_
 #define _VBR_H_
 
-#ifndef lint
-static char vbr_h_id[] = "@(#)$Id: vbr.h,v 1.2.48.1 2010/10/27 21:43:09 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 

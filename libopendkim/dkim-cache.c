@@ -9,10 +9,6 @@
 
 #ifdef QUERY_CACHE
 
-#ifndef lint
-static char dkim_cache_c_id[] = "@(#)$Id: dkim-cache.c,v 1.7 2009/11/22 08:15:50 grooverdan Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>

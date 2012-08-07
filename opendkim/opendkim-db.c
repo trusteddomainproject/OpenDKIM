@@ -7,10 +7,6 @@
 **  $Id: opendkim-db.c,v 1.101.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
-#ifndef lint
-static char opendkim_db_c_id[] = "@(#)$Id: opendkim-db.c,v 1.101.10.1 2010/10/27 21:43:09 cm-msk Exp $";
-#endif /* !lint */
-
 #include "build-config.h"
 
 /* for Solaris */

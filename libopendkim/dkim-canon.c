@@ -5,10 +5,6 @@
 **  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char dkim_canon_c_id[] = "@(#)$Id: dkim-canon.c,v 1.21.10.1 2010/10/27 21:43:08 cm-msk Exp $";
-#endif /* !lint */
-
 #include "build-config.h"
 
 /* for Solaris */

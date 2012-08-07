@@ -10,10 +10,6 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
-#ifndef lint
-static char util_h_id[] = "@(#)$Id: util.h,v 1.11.10.1 2010/10/27 21:43:09 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 #include <sys/socket.h>

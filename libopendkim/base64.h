@@ -8,10 +8,6 @@
 #ifndef _BASE64_H_
 #define _BASE64_H_
 
-#ifndef lint
-static char base64_h_id[] = "@(#)$Id: base64.h,v 1.1 2009/07/16 19:12:03 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 

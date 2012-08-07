@@ -8,10 +8,6 @@
 #ifndef _DKIM_MAILPARSE_H_
 #define _DKIM_MAILPARSE_H_
 
-#ifndef lint
-static char dkim_mailparse_h_id[] = "@(#)$Id: dkim-mailparse.h,v 1.3.34.1 2010/10/27 21:43:08 cm-msk Exp $";
-#endif /* !lint */
-
 #ifdef __STDC__
 # ifndef __P
 #  define __P(x)  x

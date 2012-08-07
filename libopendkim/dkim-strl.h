@@ -5,10 +5,6 @@
 #ifndef _DKIM_STRL_H_
 #define _DKIM_STRL_H_
 
-#ifndef lint
-static char dkim_strl_h_id[] = "@(#)$Id: dkim-strl.h,v 1.3 2009/11/06 22:30:13 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 

@@ -2,10 +2,6 @@
 **  Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char rbl_c_id[] = "$Id$";
-#endif /* !lint */
-
 #include "build-config.h"
 
 /* system includes */

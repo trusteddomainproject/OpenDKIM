@@ -5,10 +5,6 @@
 **  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char t_test139_c_id[] = "@(#)$Id: t-test139.c,v 1.1.2.1 2010/10/09 04:55:27 cm-msk Exp $";
-#endif /* !lint */
-
 #include "build-config.h"
 
 /* system includes */

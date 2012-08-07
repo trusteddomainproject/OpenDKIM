@@ -10,10 +10,6 @@
 #ifndef _DKIM_CRYPTO_H_
 #define _DKIM_CRYPTO_H_
 
-#ifndef lint
-static char opendkim_crypto_h_id[] = "@(#)$Id: opendkim-crypto.h,v 1.2 2009/08/03 19:14:12 cm-msk Exp $";
-#endif /* !lint */
-
 #ifdef __STDC__
 # ifndef __P
 #  define __P(x)  x

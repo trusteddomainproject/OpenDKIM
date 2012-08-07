@@ -7,10 +7,6 @@
 **  $Id: util.c,v 1.47.2.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
-#ifndef lint
-static char util_c_id[] = "@(#)$Id: util.c,v 1.47.2.1 2010/10/27 21:43:09 cm-msk Exp $";
-#endif /* !lint */
-
 #include "build-config.h"
 
 /* system includes */

@@ -8,10 +8,6 @@
 #ifndef _OPENDKIM_DNS_H_
 #define _OPENDKIM_DNS_H_
 
-#ifndef lint
-static char opendkim_dns_h_id[] = "@(#)$Id: opendkim-dns.h,v 1.2 2010/08/30 22:01:56 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 

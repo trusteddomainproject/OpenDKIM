@@ -5,10 +5,6 @@
 **  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char vbr_c_id[] = "@(#)$Id: vbr.c,v 1.5.2.1 2010/10/27 21:43:09 cm-msk Exp $";
-#endif /* !lint */
-
 /* for Solaris */
 #ifndef _REENTRANT
 # define _REENTRANT

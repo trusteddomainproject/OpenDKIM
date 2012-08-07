@@ -5,10 +5,6 @@
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char base64_c_id[] = "@(#)$Id: base64.c,v 1.2 2009/07/23 17:40:23 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 #include <assert.h>

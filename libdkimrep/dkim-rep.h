@@ -8,10 +8,6 @@
 #ifndef _DKIM_REP_H_
 #define _DKIM_REP_H_
 
-#ifndef lint
-static char dkim_rep_h_id[] = "@(#)$Id: dkim-rep.h,v 1.2 2009/07/23 17:40:23 cm-msk Exp $";
-#endif /* !lint */
-
 /* data types */
 typedef int DKIM_REP_STAT;
 

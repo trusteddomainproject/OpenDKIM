@@ -4,10 +4,6 @@
 **  $Id: miltertest.c,v 1.42 2010/09/23 18:37:32 cm-msk Exp $
 */
 
-#ifndef lint
-static char miltertest_c_id[] = "$Id: miltertest.c,v 1.42 2010/09/23 18:37:32 cm-msk Exp $";
-#endif /* ! lint */
-
 #include "build-config.h"
 
 /* system includes */

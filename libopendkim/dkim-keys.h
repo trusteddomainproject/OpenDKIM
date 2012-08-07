@@ -8,10 +8,6 @@
 #ifndef _DKIM_KEYS_H_
 #define _DKIM_KEYS_H_
 
-#ifndef lint
-static char dkim_keys_h_id[] = "@(#)$Id: dkim-keys.h,v 1.2 2009/07/23 17:40:23 cm-msk Exp $";
-#endif /* !lint */
-
 /* libopendkim includes */
 #include "dkim.h"
 

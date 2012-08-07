@@ -5,10 +5,6 @@
 **  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char dkim_tables_c_id[] = "@(#)$Id: dkim-tables.c,v 1.7 2010/09/02 05:10:57 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 #include <string.h>

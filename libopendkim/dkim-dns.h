@@ -7,10 +7,6 @@
 #ifndef _DKIM_DNS_H_
 #define _DKIM_DNS_H_
 
-#ifndef lint
-static char dkim_dns_h_id[] = "@(#)$Id: dkim-dns.h,v 1.2.10.1 2010/10/27 21:43:08 cm-msk Exp $";
-#endif /* !lint */
-
 /* libopendkim includes */
 #include "dkim.h"
 

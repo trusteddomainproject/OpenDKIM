@@ -2,10 +2,6 @@
 **  Copyright (c) 2011, 2012, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char repute_h_id[] = "$Id$";
-#endif /* ! lint */
-
 #ifndef _REPUTE_H_
 #define _REPUTE_H_
 

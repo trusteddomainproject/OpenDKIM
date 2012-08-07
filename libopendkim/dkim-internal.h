@@ -5,10 +5,6 @@
 #ifndef _DKIM_INTERNAL_H_
 #define _DKIM_INTERNAL_H_
 
-#ifndef lint
-static char dkim_internal_h_id[] = "@(#)$Id: dkim-internal.h,v 1.4 2009/12/24 07:54:47 cm-msk Exp $";
-#endif /* !lint */
-
 /* libopendkim includes */
 #include "dkim.h"
 

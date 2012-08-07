@@ -8,10 +8,6 @@
 #ifndef _ASYNC_RESOLV_H_
 #define _ASYNC_RESOLV_H_
 
-#ifndef lint
-static char async_resolv_h_id[] = "@(#)$Id: ar.h,v 1.4 2010/09/02 05:10:57 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 #include <sys/time.h>

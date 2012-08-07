@@ -5,10 +5,6 @@
 **  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char dkim_mailparse_c_id[] = "@(#)$Id: dkim-mailparse.c,v 1.5.34.1 2010/10/27 21:43:08 cm-msk Exp $";
-#endif /* !lint */
-
 /* system inludes */
 #include <sys/types.h>
 #include <ctype.h>

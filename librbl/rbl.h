@@ -5,10 +5,6 @@
 #ifndef _RBL_H_
 #define _RBL_H_
 
-#ifndef lint
-static char rbl_h_id[] = "$Id$";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 #include <sys/time.h>

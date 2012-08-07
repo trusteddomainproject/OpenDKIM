@@ -10,10 +10,6 @@
 #ifndef _DKIM_ARF_H_
 #define _DKIM_ARF_H_
 
-#ifndef lint
-static char dkim_arf_h_id[] = "@(#)$Id: opendkim-arf.h,v 1.3 2009/08/03 19:10:47 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 

@@ -7,10 +7,6 @@
 **  $Id: config.c,v 1.10.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
-#ifndef lint
-static char config_c_id[] = "@(#)$Id: config.c,v 1.10.10.1 2010/10/27 21:43:09 cm-msk Exp $";
-#endif /* !lint */
-
 /* for Solaris */
 #ifndef _REENTRANT
 # define _REENTRANT

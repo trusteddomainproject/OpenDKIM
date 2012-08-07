@@ -8,10 +8,6 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
-#ifndef lint
-static char util_h_id[] = "@(#)$Id: util.h,v 1.5.10.1 2010/10/27 21:43:08 cm-msk Exp $";
-#endif /* !lint */
-
 #include "build-config.h"
 
 /* system includes */

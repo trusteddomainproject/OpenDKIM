@@ -10,10 +10,6 @@
 #ifndef _OPENDKIM_H_
 #define _OPENDKIM_H_
 
-#ifndef lint
-static char opendkim_h_id[] = "@(#)$Id: opendkim.h,v 1.34.10.1 2010/10/27 21:43:09 cm-msk Exp $";
-#endif /* !lint */
-
 #define	DKIMF_PRODUCT	"OpenDKIM Filter"
 #define	DKIMF_PRODUCTNS	"OpenDKIM-Filter"
 

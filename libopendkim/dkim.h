@@ -12,10 +12,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#ifndef lint
-static char dkim_h_id[] = "@(#)$Id: dkim.h,v 1.36.2.1 2010/10/27 21:43:08 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 #include <sys/param.h>

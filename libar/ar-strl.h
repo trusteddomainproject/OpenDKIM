@@ -5,10 +5,6 @@
 #ifndef _AR_STRL_H_
 #define _AR_STRL_H_
 
-#ifndef lint
-static char ar_strl_h_id[] = "@(#)$Id: ar-strl.h,v 1.1 2009/07/23 17:58:49 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 

@@ -5,10 +5,6 @@
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char manual_c_id[] = "@(#)$Id: manual.c,v 1.4 2009/12/10 22:17:30 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 #include <sys/socket.h>

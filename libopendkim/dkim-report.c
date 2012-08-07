@@ -2,10 +2,6 @@
 **  Copyright (c) 2012, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char dkim_report_c_id[] = "@(#)$Id$";
-#endif /* !lint */
-
 #include "build-config.h"
 
 /* system includes */

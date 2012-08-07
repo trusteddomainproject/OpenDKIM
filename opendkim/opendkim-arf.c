@@ -7,10 +7,6 @@
 **  $Id: opendkim-arf.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $
 */
 
-#ifndef lint
-static char opendkim_arf_c_id[] = "@(#)$Id: opendkim-arf.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $";
-#endif /* !lint */
-
 /* system includes */
 #include <sys/types.h>
 #include <sys/param.h>

@@ -2,10 +2,6 @@
 **  Copyright (c) 2011, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char flowrate_h_id[] = "@(#)$Id$";
-#endif /* !lint */
-
 #ifndef _FLOWRATE_H_
 #define _FLOWRATE_H_
 

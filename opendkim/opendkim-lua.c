@@ -4,10 +4,6 @@
 **  $Id: opendkim-lua.c,v 1.20 2010/09/14 18:23:38 cm-msk Exp $
 */
 
-#ifndef lint
-static char opendkim_lua_c_id[] = "@(#)$Id: opendkim-lua.c,v 1.20 2010/09/14 18:23:38 cm-msk Exp $";
-#endif /* !lint */
-
 #include "build-config.h"
 
 #ifdef USE_LUA

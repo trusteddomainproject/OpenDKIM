@@ -7,10 +7,6 @@
 **  $Id: opendkim.c,v 1.230 2010/10/28 06:10:07 cm-msk Exp $
 */
 
-#ifndef lint
-static char opendkim_c_id[] = "@(#)$Id: opendkim.c,v 1.230 2010/10/28 06:10:07 cm-msk Exp $";
-#endif /* !lint */
-
 #include "build-config.h"
 
 #ifndef _POSIX_PTHREAD_SEMANTICS

@@ -8,10 +8,6 @@
 #ifndef _DKIM_TABLES_H_
 #define _DKIM_TABLES_H_
 
-#ifndef lint
-static char dkim_tables_h_id[] = "@(#)$Id: dkim-tables.h,v 1.4 2010/02/25 20:11:21 cm-msk Exp $";
-#endif /* !lint */
-
 #ifdef __STDC__
 # ifndef __P
 #  define __P(x)  x

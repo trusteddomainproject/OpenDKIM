@@ -14,10 +14,6 @@
 
 #ifdef QUERY_CACHE
 
-#ifndef lint
-static char dkim_cache_h_id[] = "@(#)$Id: dkim-cache.h,v 1.2 2009/11/22 08:15:50 grooverdan Exp $";
-#endif /* !lint */
-
 /* libdb includes */
 #include <db.h>
 

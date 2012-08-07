@@ -5,10 +5,6 @@
 **  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 */
 
-#ifndef lint
-static char ar_c_id[] = "@(#)$Id: ar.c,v 1.12 2010/10/04 21:20:47 cm-msk Exp $";
-#endif /* !lint */
-
 /* OS stuff */
 #if HPUX11
 # define _XOPEN_SOURCE_EXTENDED
