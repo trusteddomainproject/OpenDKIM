@@ -2,7 +2,6 @@
 #
 # Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim.init,v 1.6 2010/10/25 17:13:47 cm-msk Exp $
 #
 ### BEGIN INIT INFO
 # Provides:          opendkim

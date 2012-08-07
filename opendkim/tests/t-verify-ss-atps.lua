@@ -1,4 +1,3 @@
--- $Id: t-verify-ss-atps.lua,v 1.4 2010/09/24 21:40:31 cm-msk Exp $
 
 -- Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 

@@ -4,7 +4,6 @@
 **
 **  Copyright (c) 2009, 2011, 2012, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-arf.h,v 1.3 2009/08/03 19:10:47 cm-msk Exp $
 */
 
 #ifndef _DKIM_ARF_H_

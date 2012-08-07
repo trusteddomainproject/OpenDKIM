@@ -1,7 +1,6 @@
 OPENDKIM SQL NOTES
 ==================
 
-$Id: README.SQL,v 1.1 2010/09/29 17:28:42 cm-msk Exp $
 
 Contributed by Todd Lyons
 

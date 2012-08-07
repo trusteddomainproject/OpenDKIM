@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id: t-sign-rs-tables-bad,v 1.2 2010/06/25 05:50:20 cm-msk Exp $
 # 
 # relaxed/simple signing test using invalid KeyTable
 

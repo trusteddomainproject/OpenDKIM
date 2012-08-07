@@ -4,7 +4,6 @@
 **
 **  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-crypto.c,v 1.9.22.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #include "build-config.h"

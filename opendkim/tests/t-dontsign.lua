@@ -1,4 +1,3 @@
--- $Id: t-dontsign.lua,v 1.10 2010/09/24 21:40:31 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 

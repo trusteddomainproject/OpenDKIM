@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id: t-sign-ss,v 1.3 2010/05/18 02:00:54 cm-msk Exp $
 # 
 # simple/simple signing test
 

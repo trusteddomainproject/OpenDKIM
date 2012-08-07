@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id: t-sign-rs-lua,v 1.2 2010/05/18 02:00:53 cm-msk Exp $
 # 
 # relaxed/simple verifying test using Lua's RBL feature
 

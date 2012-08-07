@@ -4,7 +4,6 @@
 **
 **  Copyright (c) 2009, 2010, 2012, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: util.h,v 1.11.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #ifndef _UTIL_H_

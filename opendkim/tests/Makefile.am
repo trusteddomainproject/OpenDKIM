@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.30 2010/09/13 05:32:21 cm-msk Exp $
 
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \

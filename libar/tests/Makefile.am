@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.3 2010/09/06 22:35:17 grooverdan Exp $
 
 AM_CFLAGS = $(COV_CFLAGS)
 AM_LDFLAGS = $(COV_LDFLAGS)

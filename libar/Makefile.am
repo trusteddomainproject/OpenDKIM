@@ -1,6 +1,5 @@
 # Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: Makefile.am,v 1.13 2010/10/25 17:13:17 cm-msk Exp $
 
 if LIVE_TESTS
 SUBDIRS = tests

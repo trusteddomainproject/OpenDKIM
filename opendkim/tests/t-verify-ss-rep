@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id: t-verify-ss,v 1.1 2010/09/08 00:55:15 cm-msk Exp $
 # 
 # simple/simple verifying test with reputation checks
 

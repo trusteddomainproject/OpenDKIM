@@ -2,7 +2,6 @@
 #
 # Copyright (c) 2010-2012, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim-gengraphs,v 1.26 2010/10/27 06:18:45 cm-msk Exp $
 #
 # Script to generate some graphs showing DKIM stats for some domains
 

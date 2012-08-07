@@ -5,7 +5,6 @@
 # Script to upload OpenDKIM statistics data.  Original contributed
 # by John Wood.
 #
-# $Id: opendkim-reportstats,v 1.5 2010/10/27 05:12:02 cm-msk Exp $
 #
 
 ##

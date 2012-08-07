@@ -1,7 +1,6 @@
 /*
 **  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.c,v 1.20 2010/09/14 18:23:38 cm-msk Exp $
 */
 
 #include "build-config.h"

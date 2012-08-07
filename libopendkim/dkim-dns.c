@@ -1,7 +1,6 @@
 /*
 **  Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: dkim-dns.c,v 1.6.4.1 2010/10/27 21:43:08 cm-msk Exp $
 */
 
 /* for Solaris */

@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id: t-lua-speed,v 1.1 2010/07/06 23:43:20 cm-msk Exp $
 # 
 # simple/simple signing speed test with and without Lua
 

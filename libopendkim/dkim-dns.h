@@ -1,7 +1,6 @@
 /*
 **  Copyright (c) 2010, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: dkim-dns.h,v 1.2.10.1 2010/10/27 21:43:08 cm-msk Exp $
 */
 
 #ifndef _DKIM_DNS_H_

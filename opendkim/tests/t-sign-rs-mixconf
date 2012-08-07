@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id: t-sign-rs-mixconf,v 1.1 2010/06/15 06:48:24 cm-msk Exp $
 # 
 # relaxed/simple signing test using KeyTable and SetupPolicyScript
 

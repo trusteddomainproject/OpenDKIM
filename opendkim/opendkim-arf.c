@@ -4,7 +4,6 @@
 **
 **  Copyright (c) 2009, 2011, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-arf.c,v 1.1 2009/07/16 20:59:11 cm-msk Exp $
 */
 
 /* system includes */

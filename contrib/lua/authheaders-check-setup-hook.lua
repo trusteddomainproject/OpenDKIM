@@ -1,4 +1,3 @@
--- $Id: authheaders-check-setup-hook.lua,v 1.2 2010/06/17 00:21:03 grooverdan Exp $
 -- Copyright (c) 2010 Jozsef Kovacs and Alex Beregszaszi
 --
 -- Development kindly sponsored by Datira (www.datira.com),

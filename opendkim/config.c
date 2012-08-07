@@ -4,7 +4,6 @@
 **
 **  Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: config.c,v 1.10.10.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 /* for Solaris */

@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.6 2010/08/30 22:01:56 cm-msk Exp $
 
 #AUTOMAKE_OPTIONS = foreign
 

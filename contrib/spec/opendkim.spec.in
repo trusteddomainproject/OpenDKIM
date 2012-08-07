@@ -1,6 +1,5 @@
 # Copyright (c) 2010, 2011, The OpenDKIM Project.  All rights reserved.
 #
-# $Id: opendkim.spec.in,v 1.2 2010/10/25 17:13:47 cm-msk Exp $
 
 Summary: An open source library and milter for providing DKIM service
 Name: opendkim

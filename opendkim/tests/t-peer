@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id: t-peer,v 1.1 2010/09/11 12:50:09 grooverdan Exp $
 # 
 # Test of peer IP calculations
 

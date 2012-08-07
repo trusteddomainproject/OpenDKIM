@@ -1,4 +1,3 @@
--- $Id: t-verify-malformed.lua,v 1.15 2010/09/24 21:40:31 cm-msk Exp $
 
 -- Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 

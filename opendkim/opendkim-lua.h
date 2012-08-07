@@ -1,7 +1,6 @@
 /*
 **  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-lua.h,v 1.5 2010/09/14 18:23:38 cm-msk Exp $
 */
 
 #ifndef _OPENDKIM_LUA_H_

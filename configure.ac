@@ -3,7 +3,6 @@
 #
 # Copyright (c) 2009-2012, The OpenDKIM Project.  All rights reserved.
 # 
-# $Id: configure.ac,v 1.185 2010/10/28 04:35:44 cm-msk Exp $
 
 #
 # Setup

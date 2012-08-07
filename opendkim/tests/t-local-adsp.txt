@@ -1,3 +1,2 @@
-# $Id: $
 example2.com	discardable
 .example.com	discardable

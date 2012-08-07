@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id: t-verify-syntax,v 1.1 2010/09/06 06:41:05 grooverdan Exp $
 # 
 # unspecified protocol family test
 

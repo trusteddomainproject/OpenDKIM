@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id: t-verify-unsigned-silent,v 1.1 2010/09/09 22:39:23 cm-msk Exp $
 # 
 # silent unsigned message test
 

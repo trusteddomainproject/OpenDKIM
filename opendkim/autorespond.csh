@@ -1,6 +1,5 @@
 #!/bin/csh -f
 ##
-## $Id: autorespond.csh,v 1.1 2009/07/16 20:59:11 cm-msk Exp $
 ##
 ## Copyright (c) 2004, 2005 Sendmail, Inc. and its suppliers.
 ## All rights reserved.

@@ -4,7 +4,6 @@
 **
 **  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-testadsp.c,v 1.8 2010/06/19 15:29:12 cm-msk Exp $
 */
 
 /* system includes */

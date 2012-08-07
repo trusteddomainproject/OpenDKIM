@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# $Id: cp-test,v 1.5 2010/09/11 11:22:23 grooverdan Exp $
 # small tool to copy a test case
 
 # XXX TODO arg 3 should be a description approprately inserted to the files

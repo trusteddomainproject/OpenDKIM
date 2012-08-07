@@ -4,7 +4,6 @@
 **
 **  Copyright (c) 2009, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: opendkim-crypto.h,v 1.2 2009/08/03 19:14:12 cm-msk Exp $
 */
 
 #ifndef _DKIM_CRYPTO_H_

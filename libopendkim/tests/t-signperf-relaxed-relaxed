@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id: t-signperf-relaxed-relaxed,v 1.3 2010/08/31 13:50:12 grooverdan Exp $
 #
 # Speed signing test using relaxed/relaxed canonicalization
 

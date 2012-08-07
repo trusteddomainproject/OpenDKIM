@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id: convert_keylist.sh,v 1.2 2010/03/05 03:19:11 mmarkley Exp $
 #
 # (c)2010 Mike Markley <mike@markley.org>. Licensed under the same terms as the
 # OpenDKIM distribution (see ../LICENSE).

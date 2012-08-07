@@ -1,4 +1,3 @@
--- $Id: t-sign-rs-tables-token.lua,v 1.8 2010/09/24 21:40:31 cm-msk Exp $
 
 -- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
 

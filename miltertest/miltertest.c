@@ -1,7 +1,6 @@
 /*
 **  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: miltertest.c,v 1.42 2010/09/23 18:37:32 cm-msk Exp $
 */
 
 #include "build-config.h"

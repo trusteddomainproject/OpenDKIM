@@ -4,7 +4,6 @@
 **
 **  Copyright (c) 2011, 2012, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: reputation.c,v 1.27.2.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #include "build-config.h"

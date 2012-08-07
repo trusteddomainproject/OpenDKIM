@@ -4,7 +4,6 @@
 **
 **  Copyright (c) 2009-2011, The OpenDKIM Project.  All rights reserved.
 **
-**  $Id: config.h,v 1.3.34.1 2010/10/27 21:43:09 cm-msk Exp $
 */
 
 #ifndef _CONFIG_H_

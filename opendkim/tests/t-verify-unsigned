@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id: t-verify-unsigned,v 1.2 2010/05/18 02:00:54 cm-msk Exp $
 # 
 # unsigned message test
 

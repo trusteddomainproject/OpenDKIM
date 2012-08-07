@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id: t-verify-report,v 1.3 2010/09/13 04:34:18 cm-msk Exp $
 # 
 # verify reporting of failed signatures
 
