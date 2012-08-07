@@ -2,7 +2,7 @@
 **  Copyright (c) 2008, 2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010 The OpenDKIM Project.  All rights reserved.
+**  Copyright (c) 2009, 2010, 2012, The OpenDKIM Project.  All rights reserved.
 **
 */
 

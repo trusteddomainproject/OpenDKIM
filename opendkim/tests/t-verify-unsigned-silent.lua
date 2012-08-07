@@ -1,5 +1,5 @@
 
--- Copyright (c) 2009, 2010, The OpenDKIM Project.  All rights reserved.
+-- Copyright (c) 2009, 2010, 2012, The OpenDKIM Project.  All rights reserved.
 
 -- unsigned message test (silent)
 -- 
