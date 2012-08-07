@@ -252,27 +252,6 @@ struct dkimf_db_lua
 };
 #endif /* USE_LUA */
 
-#ifdef _FFR_REPUTATION
-struct dkimf_db_repute
-{
-	REPUTE			repute_handle;
-# ifdef _FFR_REPUTATION_CACHE
-	DKIMF_DB		repute_cache;
-# endif /* _FFR_REPUTATION_CACHE */
-};
-
-# ifdef _FFR_REPUTATION_CACHE
-struct dkimf_db_repute_cache
-{
-	float			repcache_rep;
-	float			repcache_conf;
-	unsigned long		repcache_samp;
-	unsigned long		repcache_limit;
-	time_t			repcache_when;
-};
-# endif /* _FFR_REPUTATION_CACHE */
-#endif /* _FFR_REPUTATION */
-
 #ifdef _FFR_SOCKETDB
 struct dkimf_db_socket
 {
@@ -3106,7 +3085,6 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		unsigned int reporter = 0;
 		char *q;
 		REPUTE r;
-		struct dkimf_db_repute *dbr;
 		char useragent[BUFRSZ + 1];
 
 		q = strchr(p, ':');
@@ -3132,19 +3110,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		         q == NULL ? "" : q);
 		repute_useragent(r, useragent);
 
-		dbr = (struct dkimf_db_repute *) malloc(sizeof *dbr);
-		if (dbr == NULL)
-		{
-			repute_close(r);
-			return -1;
-		}
-
-		dbr->repute_handle = r;
-# ifdef _FFR_REPUTATION_CACHE
-		dbr->repute_cache = NULL;
-# endif /* _FFR_REPUTATION_CACHE */
-
-		new->db_data = (void *) dbr;
+		new->db_data = (void *) r;
 
 		break;
 	  }
@@ -5138,50 +5104,8 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		time_t when;
 		REPUTE_STAT rstat;
 		REPUTE r;
-		struct dkimf_db_repute *dbr;
 
-		dbr = (struct dkimf_db_repute *) db->db_data;
-		r = dbr->repute_handle;
-
-# ifdef _FFR_REPUTATION_CACHE
-		if (dbr->repute_cache != NULL)
-		{
-			int status;
-			time_t now;
-			struct dkimf_db_repute_cache rc;
-			struct dkimf_db_data req;
-
-			memset(&rc, '\0', sizeof rc);
-
-			req.dbdata_buffer = (void *) &rc;
-			req.dbdata_buflen = sizeof rc;
-			req.dbdata_flags = DKIMF_DB_DATA_BINARY;
-
-			status = dkimf_db_get(dbr->repute_cache, buf, buflen,
-			                      &req, 1, &found);
-
-			(void) time(&now);
-
-			if (status == 0 && found)
-			{
-				if (rc.repcache_when + REPUTE_CACHE < now)
-				{
-					found = FALSE;
-				}
-				else
-				{
-					rep = rc.repcache_rep;
-					conf = rc.repcache_conf;
-					samp = rc.repcache_samp;
-					limit = rc.repcache_limit;
-					when = rc.repcache_when;
-
-					if (exists != NULL)
-						*exists = TRUE;
-				}
-			}
-		}
-# endif /* _FFR_REPUTATION_CACHE */
+		r = (REPUTE) db->db_data;
 
 		if (!found)
 		{
@@ -5194,35 +5118,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 				return -1;
 
 			if (exists != NULL)
-			{
 				*exists = TRUE;
-
-# ifdef _FFR_REPUTATION_CACHE
-				if (dbr->repute_cache == NULL)
-				{
-					(void) dkimf_db_open(&dbr->repute_cache,
-					                     "db:",
-					                     DKIMF_DB_FLAG_MAKELOCK,
-					                     NULL,
-					                     NULL);
-				}
-
-				if (dbr->repute_cache != NULL)
-				{
-					struct dkimf_db_repute_cache rc;
-
-					rc.repcache_rep = rep;
-					rc.repcache_conf = conf;
-					rc.repcache_samp = samp;
-					rc.repcache_limit = limit;
-					rc.repcache_when = when;
-
-					(void) dkimf_db_put(dbr->repute_cache,
-					                    buf, buflen,
-					                    &rc, sizeof rc);
-				}
-# endif /* _FFR_REPUTATION_CACHE */
-			}
 		}
 
 		if (reqnum >= 1 && req[0].dbdata_buffer != NULL &&
@@ -5691,14 +5587,7 @@ dkimf_db_close(DKIMF_DB db)
 #ifdef _FFR_REPUTATION
 	  case DKIMF_DB_TYPE_REPUTE:
 	  {
-		struct dkimf_db_repute *dbr;
-
-		dbr = db->db_data;
-		repute_close(dbr->repute_handle);
-# ifdef _FFR_REPUTATION_CACHE
-		if (dbr->repute_cache != NULL)
-			dkimf_db_close(dbr->repute_cache);
-# endif /* _FFR_REPUTATION_CACHE */
+		repute_close(db->db_data);
 		free(db->db_data);
 		free(db);
 		return 0;
@@ -5832,11 +5721,9 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 #ifdef _FFR_REPUTATION
 	  case DKIMF_DB_TYPE_REPUTE:
 	  {
-		struct dkimf_db_repute *dbr;
 		REPUTE rep;
 
-		dbr = (struct dkimf_db_repute *) db->db_data;
-		rep = dbr->repute_handle;
+		rep = (REPUTE) db->db_data;
 		return strlcpy(err, repute_error(rep), errlen);
 	  }
 #endif /* _FFR_REPUTATION */

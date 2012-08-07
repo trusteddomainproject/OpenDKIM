@@ -290,9 +290,6 @@ FFR_FEATURE([reputation],
             [support for experimental reputation checks])
 AM_CONDITIONAL([REPUTE], [test x"$enable_reputation" = x"yes"])
 
-FFR_FEATURE([reputation_cache],
-            [support for experimental reputation caching])
-
 FFR_FEATURE([resign],
             [support for one-step re-signing])
 
