@@ -5,6 +5,11 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.y.z		2012/09/??
+	Fix bug #SF3548741: Add "ReputationTimeout" for use inside
+		_FFR_REPUTATION, rather than using the built-in default
+		or a hard-coded one.
+
 2.6.7		2012/07/23
 	Fix input handling for file data sets for the macro case.  Problem
 		noted by Allan Wind.

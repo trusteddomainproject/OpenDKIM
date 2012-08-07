@@ -263,6 +263,7 @@ struct dkimf_config
 	unsigned int	conf_repfactor;		/* reputation factor */
 	unsigned int	conf_repminimum;	/* reputation minimum */
 	unsigned int	conf_repcachettl;	/* reputation cache TTL */
+	unsigned int	conf_reptimeout;	/* reputation query timeout */
 #endif /* _FFR_REPUTATION */
 #ifdef USE_UNBOUND
 	unsigned int	conf_boguskey;		/* bogus key action */
@@ -7808,6 +7809,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "ReputationTimeFactor",
 		                  &conf->conf_repfactor,
 		                  sizeof conf->conf_repfactor);
+
+		(void) config_get(data, "ReputationTimeout",
+		                  &conf->conf_reptimeout,
+		                  sizeof conf->conf_reptimeout);
 
 		(void) config_get(data, "ReputationSpamCheck",
 		                  &conf->conf_repspamcheck,
@@ -16041,6 +16046,14 @@ main(int argc, char **argv)
 	dolog = curconf->conf_dolog;
 	curconf->conf_data = cfg;
 
+#ifdef _FFR_REPUTATION
+	/* power up the reputation code */
+	repute_init();
+
+	if (curconf->conf_reptimeout != 0L)
+		repute_set_timeout(curconf->conf_reptimeout);
+#endif /* _FFR_REPUTATION */
+
 	if (querytest)
 	{
 		_Bool exists = FALSE;
@@ -17176,10 +17189,6 @@ main(int argc, char **argv)
 #ifdef _FFR_STATS
 	dkimf_stats_init();
 #endif /* _FFR_STATS */
-
-#ifdef _FFR_REPUTATION
-	repute_init();
-#endif /* _FFR_REPUTATION */
 
 	if (curconf->conf_dolog)
 	{

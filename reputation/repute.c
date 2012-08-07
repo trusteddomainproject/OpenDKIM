@@ -88,6 +88,9 @@ struct repute_lookup repute_lookup_elements[] =
 	{ REPUTE_XML_CODE_UNKNOWN,	NULL }
 };
 
+/* globals */
+static long timeout = REPUTE_TIMEOUT;
+
 #ifdef USE_XML2
 /*
 **  REPUTE_LIBXML2_ERRHANDLER -- error handler function provided to libxml2
@@ -551,10 +554,9 @@ repute_get_io(REPUTE rep)
 				                        CURLOPT_NOSIGNAL,
 				                        longtmp);
 
-				longtmp = REPUTE_TIMEOUT;
 				(void) curl_easy_setopt(rio->repute_curl,
 				                        CURLOPT_TIMEOUT,
-				                        longtmp);
+				                        timeout);
 			}
 		}
 	}
@@ -1040,4 +1042,20 @@ repute_error(REPUTE rep)
 	assert(rep != NULL);
 
 	return rep->rep_error;
+}
+
+/*
+**  REPUTE_SET_TIMEOUT -- set REPUTE query timeout
+**
+**  Parameters:
+**  	t -- timeout, in seconds
+**
+**  Return value:
+**  	None.
+*/
+
+void
+repute_set_timeout(long t)
+{
+	timeout = t;
 }

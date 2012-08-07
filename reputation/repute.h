@@ -81,6 +81,7 @@ extern REPUTE repute_new(const char *, unsigned int);
 extern REPUTE_STAT repute_query(REPUTE, const char *, float *,
                                 float *, unsigned long *, unsigned long *,
                                 time_t *);
+extern void repute_set_timeout(long);
 extern void repute_useragent(REPUTE, const char *);
 
 #endif /* ! _REPUTE_H_ */
