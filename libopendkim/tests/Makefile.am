@@ -213,6 +213,35 @@ t_test147_SOURCES = t-test147.c t-testdata.h
 t_test148_SOURCES = t-test148.c t-testdata.h
 t_test149_SOURCES = t-test149.c t-testdata.h
 
+if STRL
+t_test42_CPPFLAGS = -I../libstrl
+t_test42_LDADD = ../libstrl/libstrl.la
+t_test55_CPPFLAGS = -I../libstrl
+t_test55_LDADD = ../libstrl/libstrl.la
+t_test56_CPPFLAGS = -I../libstrl
+t_test56_LDADD = ../libstrl/libstrl.la
+t_test57_CPPFLAGS = -I../libstrl
+t_test57_LDADD = ../libstrl/libstrl.la
+t_test84_CPPFLAGS = -I../libstrl
+t_test84_LDADD = ../libstrl/libstrl.la
+t_test86_CPPFLAGS = -I../libstrl
+t_test86_LDADD = ../libstrl/libstrl.la
+t_test88_CPPFLAGS = -I../libstrl
+t_test88_LDADD = ../libstrl/libstrl.la
+t_test122_CPPFLAGS = -I../libstrl
+t_test122_LDADD = ../libstrl/libstrl.la
+t_test123_CPPFLAGS = -I../libstrl
+t_test123_LDADD = ../libstrl/libstrl.la
+t_test127_CPPFLAGS = -I../libstrl
+t_test127_LDADD = ../libstrl/libstrl.la
+t_test131_CPPFLAGS = -I../libstrl
+t_test131_LDADD = ../libstrl/libstrl.la
+t_test136_CPPFLAGS = -I../libstrl
+t_test136_LDADD = ../libstrl/libstrl.la
+t_test142_CPPFLAGS = -I../libstrl
+t_test142_LDADD = ../libstrl/libstrl.la
+endif
+
 MOSTLYCLEANFILES=
 
 if GCOV_ONLY
