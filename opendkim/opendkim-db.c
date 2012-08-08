@@ -35,7 +35,11 @@
 
 /* libopendkim includes */
 #include <dkim.h>
-#include <dkim-strl.h>
+
+/* libstrl if needed */
+#ifndef HAVE_STRL
+# include <strl.h>
+#endif /* ! HAVE_STRL */
 
 /* repute includes */
 #ifdef _FFR_REPUTATION

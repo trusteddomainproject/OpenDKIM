@@ -5,6 +5,9 @@ AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = 
+if STRL
+SUBDIRS += libstrl
+endif
 if USE_ARLIB
 SUBDIRS += libar
 endif

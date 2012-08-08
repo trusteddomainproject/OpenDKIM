@@ -26,7 +26,11 @@
 /* libopendkim includes */
 #include "dkim-internal.h"
 #include "dkim-cache.h"
-#include "dkim-strl.h"
+
+/* libstrl if needed */
+#ifndef HAVE_STRL
+# include <strl.h>
+#endif /* ! HAVE_STRL */
 
 /* limits, macros, etc. */
 #define	BUFRSZ			1024

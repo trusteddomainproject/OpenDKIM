@@ -36,8 +36,12 @@
 #endif /* ! SMFI_PROT_VERSION */
 
 /* libopendkim includes */
-#include <dkim-strl.h>
 #include <dkim.h>
+
+/* libstrl if needed */
+#ifndef HAVE_STRL
+# include <strl.h>
+#endif /* ! HAVE_STRL */
 
 /* Lua includes */
 #include <lua.h>

@@ -43,8 +43,12 @@
 #include "dkim-types.h"
 #include "dkim-canon.h"
 #include "dkim-util.h"
-#include "dkim-strl.h"
 #include "util.h"
+
+/* libstrl if needed */
+#ifndef HAVE_STRL
+# include <strl.h>
+#endif /* ! HAVE_STRL */
 
 /* definitions */
 #define	CRLF	(u_char *) "\r\n"

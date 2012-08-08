@@ -21,7 +21,11 @@
 /* libopendkim includes */
 #include "build-config.h"
 #include <dkim.h>
-#include <dkim-strl.h>
+
+/* libstrl if needed */
+#ifndef HAVE_STRL
+# include <strl.h>
+#endif /* ! HAVE_STRL */
 
 /* libmilter includes */
 #include <libmilter/mfapi.h>

@@ -1666,38 +1666,6 @@ extern DKIM_STAT dkim_sig_getsignedhdrs __P((DKIM *, DKIM_SIGINFO *,
                                              u_char *, size_t, u_int *));
 
 /*
-**  DKIM_STRLCPY -- size-bounded strcpy()
-**
-**  Parameters:
-**  	dst -- destination string
-** 	src -- source string
-**  	len -- total length of buffer at "dst"
-**
-**  Return value:
-**  	Number of bytes needed to complete the copy, including the terminating
-**  	NULL.  If this is greater than or equal to "len", truncation occurred
-**  	as this function guarantees "dst" will always be NULL-terminated.
-*/
-
-extern size_t dkim_strlcpy __P((char *, const char *, ssize_t));
-
-/*
-**  DKIM_STRLCAT -- size-bounded strcat()
-**
-**  Parameters:
-**  	dst -- destination string
-** 	src -- source string
-**  	len -- total length of buffer at "dst"
-**
-**  Return value:
-**  	Total length of the string the caller tried to create, including
-**  	leaving a trailng NULL.  If this is greater than or equal to "len",
-**  	truncation occurred.
-*/
-
-extern size_t dkim_strlcat __P((char *, const char *, ssize_t));
-
-/*
 **  DKIM_QP_DECODE -- decode a quoted-printable string
 **
 **  Parameters:

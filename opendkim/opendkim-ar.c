@@ -22,8 +22,10 @@
 # include <sysexits.h>
 #endif /* ARTEST */
 
-/* libopendkim includes */
-#include <dkim-strl.h>
+/* libstrl if needed */
+#ifndef HAVE_STRL
+# include <strl.h>
+#endif /* ! HAVE_STRL */
 
 /* opendkim includes */
 #include "opendkim-ar.h"

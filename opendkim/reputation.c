@@ -273,9 +273,9 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 	req[0].dbdata_flags = DKIMF_DB_DATA_BINARY;
 
 	if (sig == NULL)
-		dkim_strlcpy(domain, DKIMF_REP_NULLDOMAIN, sizeof domain);
+		strlcpy(domain, DKIMF_REP_NULLDOMAIN, sizeof domain);
 	else
-		dkim_strlcpy(domain, dkim_sig_getdomain(sig), sizeof domain);
+		strlcpy(domain, dkim_sig_getdomain(sig), sizeof domain);
 
 	dlen = strlen(domain);
 
@@ -331,7 +331,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 
 		if (lowtime)
 		{
-			dkim_strlcpy(domain, DKIMF_REP_LOWTIME, sizeof domain);
+			strlcpy(domain, DKIMF_REP_LOWTIME, sizeof domain);
 			dlen = strlen(domain);
 		}
 		

@@ -24,8 +24,10 @@
 # include <odbx.h>
 #endif /* USE_ODBX */
 
-/* libopendkim includes */
-#include <dkim-strl.h>
+/* libstrl if needed */
+#ifndef HAVE_STRL
+# include <strl.h>
+#endif /* ! HAVE_STRL */
 
 /* opendkim includes */
 #include "config.h"

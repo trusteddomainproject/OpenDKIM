@@ -92,7 +92,11 @@
 #ifdef _FFR_VBR
 # include "vbr.h"
 #endif /* _FFR_VBR */
-#include "dkim-strl.h"
+
+/* libstrl if needed */
+#ifndef HAVE_STRL
+# include <strl.h>
+#endif /* ! HAVE_STRL */
 
 #ifdef _FFR_REPUTATION
 /* reputation includes */
@@ -1537,7 +1541,7 @@ dkimf_xs_parsefield(lua_State *l)
 		lua_error(l);
 	}
 
-	dkim_strlcpy(field, lua_tostring(l, 1), sizeof field);
+	strlcpy(field, lua_tostring(l, 1), sizeof field);
 	lua_pop(l, 1);
 
 	if (field == NULL)
@@ -9523,7 +9527,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 				break;
 
 			if (keyname[0] == '%' && keyname[1] == '\0')
-				dkim_strlcpy(keyname, domain, sizeof keyname);
+				strlcpy(keyname, domain, sizeof keyname);
 
 			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
 			status = dkimf_add_signrequest(dfc, keydb, keyname,
@@ -9577,7 +9581,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		else if (found)
 		{
 			if (keyname[0] == '%' && keyname[1] == '\0')
-				dkim_strlcpy(keyname, domain, sizeof keyname);
+				strlcpy(keyname, domain, sizeof keyname);
 
 			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
 
@@ -9616,7 +9620,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		else if (found)
 		{
 			if (keyname[0] == '%' && keyname[1] == '\0')
-				dkim_strlcpy(keyname, domain, sizeof keyname);
+				strlcpy(keyname, domain, sizeof keyname);
 
 			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
 
@@ -9663,8 +9667,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			{
 				if (keyname[0] == '%' && keyname[1] == '\0')
 				{
-					dkim_strlcpy(keyname, domain,
-					             sizeof keyname);
+					strlcpy(keyname, domain,
+					        sizeof keyname);
 				}
 
 				dkimf_reptoken(tmp, sizeof tmp, signer,
@@ -9707,8 +9711,8 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 			{
 				if (keyname[0] == '%' && keyname[1] == '\0')
 				{
-					dkim_strlcpy(keyname, domain,
-					             sizeof keyname);
+					strlcpy(keyname, domain,
+					        sizeof keyname);
 				}
 
 				dkimf_reptoken(tmp, sizeof tmp, signer,
@@ -9754,7 +9758,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		else if (found)
 		{
 			if (keyname[0] == '%' && keyname[1] == '\0')
-				dkim_strlcpy(keyname, domain, sizeof keyname);
+				strlcpy(keyname, domain, sizeof keyname);
 
 			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
 
@@ -9792,7 +9796,7 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 		else if (found)
 		{
 			if (keyname[0] == '%' && keyname[1] == '\0')
-				dkim_strlcpy(keyname, domain, sizeof keyname);
+				strlcpy(keyname, domain, sizeof keyname);
 
 			dkimf_reptoken(tmp, sizeof tmp, signer, domain);
 
@@ -10724,7 +10728,7 @@ mlfi_negotiate(SMFICTX *ctx,
 				strlcat(macrolist, " ", sizeof macrolist);
 
 			if (strlcat(macrolist, conf->conf_macros[c],
-			               sizeof macrolist) >= sizeof macrolist)
+			            sizeof macrolist) >= sizeof macrolist)
 			{
 				if (conf->conf_dolog)
 				{
@@ -14386,7 +14390,7 @@ mlfi_eom(SMFICTX *ctx)
 				if (comment[0] != '\0')
 				{
 					strlcat((char *) header, DELIMITER,
-						        sizeof header);
+					        sizeof header);
 					strlcat((char *) header, "reason=\"",
 					        sizeof header);
 					strlcat((char *) header, comment,
@@ -14466,7 +14470,7 @@ mlfi_eom(SMFICTX *ctx)
 				if (authorsig)
 				{				/* pass */
 					strlcat((char *) header, "pass",
-						        sizeof header);
+					        sizeof header);
 				}
 				else if (!policydone)
 				{				/* temperror */
@@ -14579,28 +14583,28 @@ mlfi_eom(SMFICTX *ctx)
 			}
 
 #ifdef _FFR_ATPS
-			dkim_strlcat((char *) header, ";", sizeof header);
-			dkim_strlcat((char *) header, DELIMITER,
-			             sizeof header);
+			strlcat((char *) header, ";", sizeof header);
+			strlcat((char *) header, DELIMITER,
+			        sizeof header);
 
-			dkim_strlcat((char *) header, "dkim-atps=",
-			             sizeof header);
+			strlcat((char *) header, "dkim-atps=",
+			        sizeof header);
 
 			switch (dfc->mctx_atps)
 			{
 			  case DKIM_ATPS_UNKNOWN:
-				dkim_strlcat((char *) header, "neutral",
-				             sizeof header);
+				strlcat((char *) header, "neutral",
+				        sizeof header);
 				break;
 
 			  case DKIM_ATPS_NOTFOUND:
-				dkim_strlcat((char *) header, "fail",
-				             sizeof header);
+				strlcat((char *) header, "fail",
+				        sizeof header);
 				break;
 
 			  case DKIM_ATPS_FOUND:
-				dkim_strlcat((char *) header, "pass",
-				             sizeof header);
+				strlcat((char *) header, "pass",
+				        sizeof header);
 				break;
 
 			  default:
@@ -14962,12 +14966,12 @@ mlfi_eom(SMFICTX *ctx)
 
 					if (vbr_certifier != NULL)
 					{
-						dkim_strlcat(header,
-						             " header.mv=",
-						             sizeof header);
-						dkim_strlcat(header,
-						             vbr_certifier,
-						             sizeof header);
+						strlcat(header,
+						        " header.mv=",
+						        sizeof header);
+						strlcat(header,
+						        vbr_certifier,
+						        sizeof header);
 					}
 		
 					if (dkimf_insheader(ctx, 1,

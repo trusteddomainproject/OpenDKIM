@@ -22,7 +22,11 @@
 /* libopendkim includes */
 #include "../dkim.h"
 #include "t-testdata.h"
-#include "../dkim-strl.h"
+
+/* libstrl if needed */
+#ifndef HAVE_STRL
+# include <strl.h>
+#endif /* ! HAVE_STRL */
 
 #define	MAXHEADER	4096
 

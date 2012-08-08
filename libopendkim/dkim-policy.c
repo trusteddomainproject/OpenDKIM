@@ -33,7 +33,11 @@
 #endif /* QUERY_CACHE */
 #include "dkim-test.h"
 #include "util.h"
-#include "dkim-strl.h"
+
+/* libstrl if needed */
+#ifndef HAVE_STRL
+# include <strl.h>
+#endif /* ! HAVE_STRL */
 
 /* prototypes */
 extern void dkim_error __P((DKIM *, const char *, ...));

@@ -35,7 +35,11 @@
 #include "dkim-keys.h"
 #include "dkim-util.h"
 #include "dkim-test.h"
-#include "dkim-strl.h"
+
+/* libstrl if needed */
+#ifndef HAVE_STRL
+# include <strl.h>
+#endif /* ! HAVE_STRL */
 
 /* definitions */
 #define	TESTTTL			300

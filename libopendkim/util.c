@@ -26,7 +26,11 @@
 /* libopendkim includes */
 #include "dkim-internal.h"
 #include "util.h"
-#include "dkim-strl.h"
+
+/* libstrl if needed */
+#ifndef HAVE_STRL
+# include <strl.h>
+#endif /* ! HAVE_STRL */
 
 #if defined(__RES) && (__RES >= 19940415)
 # define RES_UNC_T		char *
