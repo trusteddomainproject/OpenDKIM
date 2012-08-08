@@ -8,8 +8,6 @@
 
 #include "build-config.h"
 
-#include "build-config.h"
-
 /* system includes */
 #include <sys/types.h>
 #include <arpa/nameser.h>
