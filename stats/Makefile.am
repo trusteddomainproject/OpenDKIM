@@ -19,6 +19,10 @@ opendkim_importstats_CPPFLAGS = $(LIBODBX_CPPFLAGS) -I$(srcdir)/../libopendkim -
 opendkim_importstats_CFLAGS = $(LIBODBX_CFLAGS) $(COV_CFLAGS)
 opendkim_importstats_LDFLAGS = $(COV_LDFLAGS)
 opendkim_importstats_LDADD = $(LIBODBX_LIBS) $(COV_LIBADD)
+if STRL
+opendkim_importstats_CFLAGS += -I../libstrl
+opendkim_importstats_LDADD += ../libstrl/libstrl.la
+endif
 
 man_MANS += opendkim-importstats.8
 
