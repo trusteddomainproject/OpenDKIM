@@ -372,9 +372,6 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 		rsa = DKIM_MALLOC(dkim, sizeof(struct dkim_rsa));
 		if (rsa == NULL)
 		{
-#ifndef USE_GNUTLS
-			BIO_free(keybuf);
-#endif /* ! USE_GNUTLS */
 			(void) dkim_free(dkim);
 			if (err != NULL)
 			{
