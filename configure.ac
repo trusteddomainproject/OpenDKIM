@@ -70,7 +70,20 @@ AX_PTHREAD
 #
 # Checks for libraries
 #
+saved_LIBS="$LIBS"
+LIBS=""
 AC_SEARCH_LIBS(inet_addr, nsl)
+LIBNSL_LIBS="$LIBS"
+LIBS="$saved_LIBS"
+AC_SUBST([LIBNSL_LIBS])
+
+saved_LIBS="$LIBS"
+LIBS=""
+AC_SEARCH_LIBS(dlopen, dl)
+LIBDL_LIBS="$LIBS"
+LIBS="$saved_LIBS"
+AC_SUBST([LIBDL_LIBS])
+
 AC_SEARCH_LIBS(socket, socket)
 AC_SEARCH_LIBS(inet_aton, resolv)
 AC_SEARCH_LIBS(inet_pton, resolv,
@@ -1077,9 +1090,12 @@ then
 	do
 		unset ac_cv_search_ldns_rr_new
 		saved_LDFLAGS="$LDFLAGS"
+		saved_LIBS="$LIBS"
 		LDFLAGS="-L$d/lib $LDFLAGS"
+		LIBS=""
 		AC_SEARCH_LIBS([ldns_rr_new], [ldns], ldns_found="yes")
 		LDFLAGS="$saved_LDFLAGS"
+		LIBS="$saved_LIBS"
 
 		if test x"$ldns_found" = x"yes"
 		then
@@ -1096,9 +1112,12 @@ elif test x"$ldnspath" != x"no"
 then
 	ldns_found="no"
 	saved_LDFLAGS="$LDFLAGS"
+	saved_LIBS="$LIBS"
 	LDFLAGS="-L$d/lib $LDFLAGS"
+	LIBS=""
 	AC_SEARCH_LIBS([ldns_rr_new], [ldns], ldns_found="yes")
 	LDFLAGS="$saved_LDFLAGS"
+	LIBS="$saved_LIBS"
 
 	if test x"$ldns_found" = x"yes"
 	then
@@ -1131,9 +1150,12 @@ then
 	do
 		unset ac_cv_search_libevent_rr_new
 		saved_LDFLAGS="$LDFLAGS"
+		saved_LIBS="$LIBS"
 		LDFLAGS="-L$d/lib $LDFLAGS"
+		LIBS=""
 		AC_SEARCH_LIBS([event_enable_debug_mode], [event], libevent_found="yes")
 		LDFLAGS="$saved_LDFLAGS"
+		LIBS="$saved_LIBS"
 
 		if test x"$libevent_found" = x"yes"
 		then
@@ -1150,9 +1172,12 @@ elif test x"$libeventpath" != x"no"
 then
 	libevent_found="no"
 	saved_LDFLAGS="$LDFLAGS"
+	saved_LIBS="$LIBS"
 	LDFLAGS="-L$d/lib $LDFLAGS"
+	LIBS=""
 	AC_SEARCH_LIBS([event_enable_debug_mode], [event], libevent_found="yes")
 	LDFLAGS="$saved_LDFLAGS"
+	LIBS="$saved_LIBS"
 
 	if test x"$libevent_found" = x"yes"
 	then
@@ -1427,6 +1452,7 @@ AC_ARG_WITH([odbx],
 odbx_found="no"
 LIBODBX_CPPFLAGS=""
 LIBODBX_CFLAGS=""
+LIBODBX_LDFLAGS=""
 LIBODBX_LIBS=""
 
 if test \( x"$odbxpath" = x"auto" -o x"$odbxpath" = x"yes" \) -a \
@@ -1442,22 +1468,25 @@ fi
 
 if test x"$odbxpath" != x"no" -a x"$odbx_found" = x"no"
 then
-	saved_ldflags="$LDFLAGS"
+	saved_LDFLAGS="$LDFLAGS"
+	saved_LIBS="$LIBS"
 	if test x"$odbxpath" != x"auto" -a x"$odbxpath" != x"yes"
 	then
 		if test -f $odbxpath/include/odbx.h
 		then
 			LDFLAGS="-L$odbxpath/lib"
-			AC_CHECK_LIB(opendbx, odbx_result_finish,
+			LIBS=""
+			AC_SEARCH_LIBS(odbx_result_finish, opendbx,
 			[
 			        odbx_found="yes"
 				LIBODBX_CPPFLAGS="-I$odbxpath/include"
-				LIBODBX_LIBS="-L$odbxpath/lib -lopendbx"
+				LIBODBX_LDFLAGS="-L$odbxpath/lib"
+				LIBODBX_LIBS="$LIBS"
 			],
 			[
 				AC_MSG_ERROR([opendbx not at least v1.3.7 at $odbxpath])
-			]
-			)
+			],
+			[-ldl])
 		else
 			AC_MSG_ERROR([opendbx not found at $odbxpath])
 		fi
@@ -1468,16 +1497,19 @@ then
 			if test -f $d/include/odbx.h
 			then
 				LDFLAGS="-L$d/lib"
-				AC_CHECK_LIB(opendbx, odbx_result_finish,
+				LIBS=""
+				AC_SEARCH_LIBS(odbx_result_finish, opendbx,
 				[
 					odbxpath=$d
 			        	odbx_found="yes"
-					LIBODBX_CPPFLAGS="-I$odbxpath/include"
-					LIBODBX_LIBS="-L$odbxpath/lib -lopendbx"
+					LIBODBX_CPPFLAGS="-I$d/include"
+					LIBODBX_LDFLAGS="-L$d/lib"
+					LIBODBX_LIBS="$LIBS"
 					break
 				],[
 					AC_MSG_ERROR([opendbx not at least v1.3.7 at $d])
-				]
+				],
+				[-ldl]
 				)
 			fi
 		done
@@ -1486,7 +1518,8 @@ then
 			AC_MSG_ERROR([opendbx not found])
 		fi
 	fi
-	LDFLAGS="$saved_ldflags"
+	LDFLAGS="$saved_LDFLAGS"
+	LIBS="$saved_LIBS"
 fi
 if test x"$odbx_found" = x"yes"
 then
@@ -1494,12 +1527,13 @@ then
 else
 	if test x"$enable_stats" = x"yes"
 	then
-		AC_MSG_WARN([opendbx is needed to import statistics into a SQL database - disabling opendkim-importstats])
+		AC_MSG_WARN([opendbx is needed to import statistics into a SQL database - disabling opendkim-importstats and opendkim-spam])
 	fi
 fi
 AM_CONDITIONAL(USE_ODBX, test x"$odbx_found" = x"yes")
 AC_SUBST(LIBODBX_CPPFLAGS)
 AC_SUBST(LIBODBX_CFLAGS)
+AC_SUBST(LIBODBX_LDFLAGS)
 AC_SUBST(LIBODBX_LIBS)
 
 #

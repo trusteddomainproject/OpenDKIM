@@ -7,7 +7,8 @@ release, and a summary of the changes in that release.
 2.7.0		2012/09/??
 	Fix bug #SF3536655: Rename "X-Header" to "SoftwareHeader", and rename
 		all header fields added that start "X-" to remove that prefix,
-		per RFC6648.
+		per RFC6648.  The old name will be accepted through the end
+		of the 2.7.x line.
 	Fix bug #SF3538896: Remove antiquated CVS Id: tags, which cleans up
 		some (harmless) build warnings.  Requested by Andreas Schulze.
 	Fix bug #SF3548741: Add "ReputationTimeout" for use inside
@@ -18,7 +19,9 @@ release, and a summary of the changes in that release.
 	BUILD: Fix bug #SF3531658: Move the strlcat() and strlcpy()
 		implementations to their own library so that programs don't
 		drag in crypto and other dependencies they don't need.
-		Suggested by Andreas Schulze.
+		Also clean up several other unnecessary dependencies imposed
+		by imprecise use of autoconf.  Problem noted by Andreas
+		Schulze.
 
 2.6.7		2012/07/23
 	Fix input handling for file data sets for the macro case.  Problem

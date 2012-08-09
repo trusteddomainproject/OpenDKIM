@@ -11,7 +11,10 @@ if ATPS
 bin_PROGRAMS += opendkim-atpszone
 endif
 if STATS
-bin_PROGRAMS += opendkim-spam opendkim-stats
+if USE_ODBX
+bin_PROGRAMS += opendkim-spam
+endif
+bin_PROGRAMS += opendkim-stats
 endif
 
 dist_bin_SCRIPTS = opendkim-genkey
@@ -37,8 +40,9 @@ opendkim_LDADD += $(LIBDB_LIBS)
 endif
 if USE_ODBX
 opendkim_CPPFLAGS += $(LIBODBX_CPPFLAGS)
+opendkim_LDFLAGS += $(LIBODBX_LDFLAGS)
 opendkim_CFLAGS += $(LIBODBX_CFLAGS)
-opendkim_LDADD += $(LIBODBX_LIBS)
+opendkim_LDADD += $(LIBODBX_LIBS) $(LIBDL_LIBS)
 endif
 if USE_LIBMEMCACHED
 opendkim_CPPFLAGS += $(LIBMEMCACHED_INCDIRS)
@@ -127,8 +131,9 @@ opendkim_testkey_LDADD += $(LIBDB_LIBS)
 endif
 if USE_ODBX
 opendkim_testkey_CPPFLAGS += $(LIBODBX_CPPFLAGS)
+opendkim_testkey_LDFLAGS += $(LIBODBX_LDFLAGS)
 opendkim_testkey_CFLAGS += $(LIBODBX_CFLAGS)
-opendkim_testkey_LDADD += $(LIBODBX_LIBS)
+opendkim_testkey_LDADD += $(LIBODBX_LIBS) $(LIBDL_LIBS)
 endif
 if USE_LIBMEMCACHED
 opendkim_testkey_CPPFLAGS += $(LIBMEMCACHED_INCDIRS)
@@ -220,8 +225,9 @@ opendkim_genzone_LDADD += $(LIBDB_LIBS)
 endif
 if USE_ODBX
 opendkim_genzone_CPPFLAGS += $(LIBODBX_CPPFLAGS)
+opendkim_genzone_LDFLAGS += $(LIBODBX_LDFLAGS)
 opendkim_genzone_CFLAGS += $(LIBODBX_CFLAGS)
-opendkim_genzone_LDADD += $(LIBODBX_LIBS)
+opendkim_genzone_LDADD += $(LIBODBX_LIBS) $(LIBDL_LIBS)
 endif
 if USE_LIBMEMCACHED
 opendkim_genzone_CPPFLAGS += $(LIBMEMCACHED_INCDIRS)
@@ -272,8 +278,9 @@ opendkim_atpszone_LDADD += $(LIBDB_LIBS)
 endif
 if USE_ODBX
 opendkim_atpszone_CPPFLAGS += $(LIBODBX_CPPFLAGS)
+opendkim_atpszone_LDFLAGS += $(LIBODBX_LDFLAGS)
 opendkim_atpszone_CFLAGS += $(LIBODBX_CFLAGS)
-opendkim_atpszone_LDADD += $(LIBODBX_LIBS)
+opendkim_atpszone_LDADD += $(LIBODBX_LIBS) $(LIBDL_LIBS)
 endif
 if USE_LIBMEMCACHED
 opendkim_atpszone_CPPFLAGS += $(LIBMEMCACHED_INCDIRS)
@@ -313,8 +320,8 @@ if USE_ODBX
 opendkim_spam_SOURCES = config.c config.h opendkim-spam.c
 opendkim_spam_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBODBX_CPPFLAGS)
 opendkim_spam_CFLAGS = $(COV_CFLAGS) $(LIBODBX_CFLAGS)
-opendkim_spam_LDFLAGS = $(COV_LDFLAGS) 
-opendkim_spam_LDADD = $(COV_LIBADD) $(LIBODBX_LIBS)
+opendkim_spam_LDFLAGS = $(COV_LDFLAGS) $(LIBODBX_LDFLAGS)
+opendkim_spam_LDADD = $(COV_LIBADD) $(LIBODBX_LIBS) $(LIBDL_LIBS)
 if STRL
 opendkim_spam_CFLAGS += -I../libstrl
 opendkim_spam_LDADD += ../libstrl/libstrl.la

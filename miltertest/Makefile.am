@@ -12,7 +12,12 @@ bin_PROGRAMS = miltertest
 miltertest_SOURCES = miltertest.c
 miltertest_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBMILTER_INCDIRS) $(LIBLUA_INCDIRS)
 miltertest_LDFLAGS = ../libopendkim/libopendkim.la $(LIBLUA_LIBDIRS)
-miltertest_LDADD = $(LIBLUA_LIBS)
+miltertest_LDADD = $(LIBLUA_LIBS) $(LIBNSL_LIBS)
+
+if STRL
+miltertest_CPPFLAGS += -I../libstrl
+miltertest_LDADD += ../libstrl/libstrl.la
+endif
 
 man_MANS = miltertest.8
 endif
