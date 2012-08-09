@@ -501,7 +501,7 @@ dkimf_lua_setup_hook(void *ctx, const char *script, size_t scriptlen,
 	*/
 
 # if LUA_VERSION_NUM == 502
-	luaL_setfunc(l, dkimf_lua_lib_setup, 0);
+	luaL_setfuncs(l, dkimf_lua_lib_setup, 0);
 # else /* LUA_VERSION_NUM == 502 */
 	luaL_register(l, "odkim", dkimf_lua_lib_setup);
 # endif /* LUA_VERSION_NUM == 502 */
@@ -1291,7 +1291,11 @@ dkimf_lua_db_hook(const char *script, size_t scriptlen, const char *query,
 		lua_pushstring(l, query);
 	lua_setglobal(l, "query");
 
+# if LUA_VERSION_NUM == 502
+	switch (lua_load(l, dkimf_lua_reader, (void *) &io, script, NULL))
+# else /* LUA_VERSION_NUM == 502 */
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, script))
+# endif /* LUA_VERSION_NUM == 502 */
 	{
 	  case 0:
 		break;
