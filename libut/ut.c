@@ -368,7 +368,7 @@ ut_keyvalue(URITEMP ut, int type, const char *key, void *value)
 	       type == UT_KEYTYPE_KEYVALUE);
 
 	/* see if we have it already */
-	prev = kv;
+	prev = NULL;
 	kv = ut->ut_params;
 	while (kv != NULL)
 	{
