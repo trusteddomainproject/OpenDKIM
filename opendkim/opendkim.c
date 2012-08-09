@@ -1,4 +1,4 @@
-e*
+/*
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
