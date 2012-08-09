@@ -6291,9 +6291,24 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 		if (!conf->conf_addswhdr)
 		{
-			(void) config_get(data, "SoftwareHeader",
+			(void) config_get(data, "X-Header",
 			                  &conf->conf_addswhdr,
 			                  sizeof conf->conf_addswhdr);
+
+			if (conf->conf_addswhdr)
+			{
+				if (conf->conf_dolog)
+				{
+					syslog(LOG_WARNING,
+					       "\"X-Header\" deprecated; use \"SoftwareHeader\" instead");
+				}
+			}
+			else
+			{
+				(void) config_get(data, "SoftwareHeader",
+				                  &conf->conf_addswhdr,
+				                  sizeof conf->conf_addswhdr);
+			}
 		}
 
 		(void) config_get(data, "DomainKeysCompat",
