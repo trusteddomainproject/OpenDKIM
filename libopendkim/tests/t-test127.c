@@ -119,12 +119,12 @@ main(int argc, char **argv)
 
 	memset(buf, '\0', sizeof buf);
 
-	dkim_strlcpy(buf, CRLFBODY00, sizeof buf);
+	strlcpy(buf, CRLFBODY00, sizeof buf);
 
 	while (strlen(buf) < BOUNDARY)
-		dkim_strlcat(buf, CRLF, sizeof buf);
+		strlcat(buf, CRLF, sizeof buf);
 
-	dkim_strlcat(buf, CRLFBODY00, sizeof buf);
+	strlcat(buf, CRLFBODY00, sizeof buf);
 
 	assert(strlen(buf) > BOUNDARY);
 

@@ -27,6 +27,11 @@
 #include "../dkim.h"
 #include "t-testdata.h"
 
+/* libstrl if needed */
+#ifndef HAVE_STRL
+# include <strl.h>
+#endif /* ! HAVE_STRL */
+
 #define	BUFRSZ		1024
 #define	MAXADDRESS	256
 #define	MAXHEADER	4096
@@ -53,7 +58,7 @@ stub_dns_query(void *srv, int type, unsigned char *query,
 {
 	abuf = buf;
 	alen = buflen;
-	dkim_strlcpy(qbuf, query, sizeof qbuf);
+	strlcpy(qbuf, query, sizeof qbuf);
 
 	return DKIM_DNS_SUCCESS;
 }
