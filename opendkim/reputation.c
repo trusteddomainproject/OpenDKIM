@@ -22,6 +22,11 @@
 /* libopendkim includes */
 #include <dkim.h>
 
+/* libstrl if needed */
+#ifndef HAVE_STRL
+# include <strl.h>
+#endif /* ! HAVE_STRL */
+
 /* opendkim includes */
 #include "reputation.h"
 #include "opendkim.h"

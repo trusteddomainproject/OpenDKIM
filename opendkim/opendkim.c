@@ -1,4 +1,4 @@
-/*
+e*
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
@@ -599,9 +599,9 @@ struct lookup
 #define	ADSPNXDOMAINTEXT	"sender domain does not exist"
 
 #ifdef _FFR_DKIM_REPUTATION
-# define REPDENYSMTP		"550"
-# define REPDENYESC		"5.7.1"
-# define REPDENYTXT		"rejected due to DKIM reputation evaluation"
+# define DKIMREPDENYSMTP	"550"
+# define DKIMREPDENYESC		"5.7.1"
+# define DKIMREPDENYTXT		"rejected due to DKIM reputation evaluation"
 #endif /* _FFR_DKIM_REPUTATION */
 
 #ifdef _FFR_REPUTATION
@@ -15069,9 +15069,9 @@ mlfi_eom(SMFICTX *ctx)
 						    rep > conf->conf_repreject)
 						{
 							if (dkimf_setreply(ctx,
-							                   REPDENYSMTP,
-							                   REPDENYESC,
-							                   REPDENYTXT) != MI_SUCCESS &&
+							                   DKIMREPDENYSMTP,
+							                   DKIMREPDENYESC,
+							                   DKIMREPDENYTXT) != MI_SUCCESS &&
 							    conf->conf_dolog)
 							{
 								syslog(LOG_NOTICE,
@@ -15082,7 +15082,7 @@ mlfi_eom(SMFICTX *ctx)
 							if (conf->conf_dolog)
 							{
 								syslog(LOG_INFO,
-								       "%s: DKIM reputation: %d (max %d); rejecting",
+								       "%s: DKIM reputation: %d (max %ld); rejecting",
 								       dfc->mctx_jobid, rep,
 								       conf->conf_repreject);
 							}

@@ -229,7 +229,7 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 		                            &canonlen, &signlen);
 	}
 
-	fprintf(out, "\t%lu", canonlen);
+	fprintf(out, "\t%lu", (unsigned long) canonlen);
 
 	fprintf(out, "\t%d", nsigs);
 
