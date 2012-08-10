@@ -79,7 +79,7 @@ struct table last_insert_id[] =
 int
 sanitize(odbx_t *db, char *in, char *out, size_t len)
 {
-	size_t outlen;
+	unsigned long outlen;
 
 	assert(db != NULL);
 	assert(in != NULL);
@@ -91,7 +91,7 @@ sanitize(odbx_t *db, char *in, char *out, size_t len)
 
 	(void) odbx_escape(db, in, strlen(in), out, &outlen);
 
-	return (strncmp(in, out, outlen) != 0);
+	return (strncmp(in, out, (size_t) outlen) != 0);
 }
 
 /*
