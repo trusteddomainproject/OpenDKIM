@@ -205,8 +205,9 @@ main(int argc, char **argv)
 		else if (rlen < s.st_size)
 		{
 			fprintf(stderr,
-			        "%s: %s: read() truncated (got %ud, expected %ud)\n",
-			        progname, keyfile, rlen, s.st_size);
+			        "%s: %s: read() truncated (got %ud, expected %lu)\n",
+			        progname, keyfile, rlen,
+			        (unsigned long) s.st_size);
 			close(fd);
 			free(keydata);
 			return EX_DATAERR;
