@@ -35,7 +35,6 @@ AC_INIT([OpenDKIM],
 
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE
-AC_CONFIG_SRCDIR([libar/ar.c])
 AC_CONFIG_HEADERS([build-config.h])
 
 AC_CONFIG_MACRO_DIR([m4])
@@ -505,10 +504,6 @@ AC_ARG_ENABLE([allsymbols],
                              [export internal-use symbols for better test coverage]))
 AM_CONDITIONAL(ALL_SYMBOLS, [test x"$enable_allsymbols" = x"yes"])
 
-AC_ARG_ENABLE([arlib],
-              AS_HELP_STRING([--enable-arlib],
-                             [enable provided asynchronous resolver library]))
-
 # the AM_CONDITIONAL and AC_DEFINE for USE_ARLIB are farther below,
 # after the Darwin checks
 
@@ -760,7 +755,7 @@ then
 	AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
                  	AC_MSG_ERROR([required OpenSSL header not found]))
 
-	# -ldl is needed to assist with compilation of static openssl libaries.
+	# -ldl is needed to assist with compilation of static openssl libraries.
 	# It appears to need dl for opening engine plugins. It fails at load
 	# time It also fails to build on FreeBSD if enabled by default.
 	AC_SEARCH_LIBS([ERR_peek_error], [crypto], ,
@@ -771,10 +766,10 @@ then
 			if test x"$enable_shared" = x"yes"
 			then
 				AC_MSG_ERROR([Cannot build shared opendkim
-				              against static openssl libaries.
+				              against static openssl libraries.
 				              Configure with --disable-shared
 				              to get this working or obtain a
-				              shared libssl libary for
+				              shared libssl library for
 				              opendkim to use.])
 			fi
 
@@ -1014,11 +1009,6 @@ AC_ARG_WITH([unbound],
                            [location of Unbound includes and library]),
             [unboundpath="$withval"], [unboundpath="no"])
 
-if test x"$unboundpath" != x"no" -a x"$enable_arlib" = x"yes"
-then
-	AC_MSG_ERROR([cannot use both arlib and unbound])
-fi
-
 if test x"$unboundpath" = x"yes"
 then
 	AC_MSG_CHECKING([for libunbound])
@@ -1063,7 +1053,7 @@ then
 	AC_SUBST([UNBOUND_MANNOTICE], "(Not enabled for this installation.)" )
 else
 	AC_DEFINE([USE_UNBOUND], 1,
-	          [use unbound DNSSEC libary for DNS])
+	          [use unbound DNSSEC library for DNS])
 	AC_SUBST([UNBOUND_MANNOTICE], "" )
 fi
 
@@ -2251,14 +2241,6 @@ LIBOPENDKIM_LIBS="$LIBCRYPTO_LIBS $LIBTRE_LIBS $LIBRESOLV"
 LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS"
 LIBOPENDKIM_INC="$LIBCRYPTO_CPPFLAGS $LIBCRYPTO_CFLAGS $LIBTRE_CPPFLAGS"
 
-if test x"$enable_arlib" = x"yes"
-then
-        # note this is just for PKG-CONFIG.
-	LIBOPENDKIM_LIBS_PKG="$LIBOPENDKIM_LIBS_PKG -lar"
-	# for Makefile
-	LIBOPENDKIM_LIBS="$LIBOPENDKIM_LIBS ../libar/libar.la"
-fi
-
 if test x"$USE_DB_LIBOPENDKIM_TRUE" = x""
 then
 	LIBOPENDKIM_INC="$LIBOPENDKIM_INC $LIBDB_INCDIRS"
@@ -2292,16 +2274,10 @@ case "$host" in
 		CPPFLAGS="$CPPFLAGS -DBIND_8_COMPAT -DDARWIN"
 		if test x"$unboundpath" = x"no"
 		then
-			enable_arlib="yes"
+			AC_MSG_ERROR("unbound required on Darwin")
 		fi
 		;;
 esac
-
-AM_CONDITIONAL([USE_ARLIB], [test x"$enable_arlib" = x"yes"])
-if test "x$enable_arlib" = "xyes"
-then
-	AC_DEFINE(USE_ARLIB, 1, [enable provided asynchronous resolver library])
-fi
 
 #
 # Determine domainname for sample configs
@@ -2406,8 +2382,6 @@ AC_OUTPUT([	Makefile
 			contrib/spec/Makefile
 			contrib/spec/opendkim.spec
 			contrib/stats/Makefile
-		libar/ar.pc libar/Makefile
-		libar/tests/Makefile
 		libdkimrep/dkim-rep.pc libdkimrep/Makefile
 		libdkimrep/tests/Makefile
 		libopendkim/opendkim.pc libopendkim/Makefile

@@ -51,20 +51,6 @@ extern int dkimf_rep_unbound_setup __P((DKIM_REP, struct dkimf_unbound *));
 # endif /* _FFR_DKIM_REPUTATION */
 #endif /* USE_UNBOUND */
 
-#ifdef USE_ARLIB
-/* libar includes */
-#include <async-resolv.h>
-
-/* prototypes */
-extern int dkimf_arlib_setup __P((DKIM_LIB *, AR_LIB));
-# ifdef _FFR_RBL
-extern int dkimf_rbl_arlib_setup __P((RBL *, AR_LIB));
-# endif /* _FFR_RBL */
-# ifdef _FFR_DKIM_REPUTATION
-extern int dkimf_rep_arlib_setup __P((DKIM_REP, AR_LIB));
-# endif /* _FFR_DKIM_REPUTATION */
-#endif /* USE_ARLIB */
-
 extern int dkimf_filedns_free __P((struct dkimf_filedns *));
 extern int dkimf_filedns_setup __P((DKIM_LIB *, DKIMF_DB));
 

@@ -384,9 +384,6 @@ struct dkimf_config
 	char *		conf_resolvconf;	/* resolv.conf file */
 	struct dkimf_unbound * conf_unbound;	/* libunbound handle */
 #endif /* USE_UNBOUND */
-#ifdef USE_ARLIB
-	AR_LIB		conf_arlib;		/* libar handle */
-#endif /* USE_ARLIB */
 #ifdef _FFR_VBR
 	char *		conf_vbr_deftype;	/* default VBR type */
 	char *		conf_vbr_defcert;	/* default VBR certifiers */
@@ -1369,11 +1366,6 @@ dkimf_xs_rblcheck(lua_State *l)
 		timeout = lua_tonumber(l, 4);
 	lua_pop(l, lua_gettop(l));
 
-#  ifdef USE_ARLIB
-	if (cc == NULL || cc->cctx_config->conf_arlib == NULL)
-		return 0;
-#  endif /* USE_ARLIB */
-
 #  ifdef USE_UNBOUND
 	if (cc == NULL || cc->cctx_config->conf_unbound == NULL)
 		return 0;
@@ -1386,10 +1378,6 @@ dkimf_xs_rblcheck(lua_State *l)
 		               "odkim.rbl_check(): can't create RBL handle");
 		lua_error(l);
 	}
-
-#  ifdef USE_ARLIB
-	dkimf_rbl_arlib_setup(rbl, cc->cctx_config->conf_arlib);
-#  endif /* USE_ARLIB */
 
 #  ifdef USE_UNBOUND
 	dkimf_rbl_unbound_setup(rbl, cc->cctx_config->conf_unbound);
@@ -4129,9 +4117,6 @@ dkimf_xs_getreputation(lua_State *l)
 		{
 			void *qh;
 
-#  ifdef USE_ARLIB
-			dkimf_rep_arlib_setup(dr, conf->conf_arlib);
-#  endif /* USE_ARLIB */
 #  ifdef USE_UNBOUND
 			dkimf_rep_unbound_setup(dr, conf->conf_unbound);
 #  endif /* USE_UNBOUND */
@@ -5814,11 +5799,6 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_unbound != NULL)
 		dkimf_unbound_close(conf->conf_unbound);
 #endif /* USE_UNBOUND */
-
-#ifdef USE_ARLIB
-	if (conf->conf_arlib != NULL)
-		ar_shutdown(conf->conf_arlib);
-#endif /* USE_ARLIB */
 
 	if (conf->conf_data != NULL)
 		config_free(conf->conf_data);
@@ -8271,23 +8251,6 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 	}
 	else
 	{
-#ifdef USE_ARLIB
-		conf->conf_arlib = ar_init(NULL, NULL, NULL,
-		                           (curconf->conf_restrace ? AR_FLAG_TRACELOGGING
-		                                                   : 0) |
-		                           (curconf->conf_dnsconnect ? AR_FLAG_USETCP
-		                                                     : 0));
-		if (conf->conf_arlib == NULL)
-		{
-			if (err != NULL)
-				*err = "failed to initialize libar";
-
-			return FALSE;
-		}
-
-		(void) dkimf_arlib_setup(lib, conf->conf_arlib);
-#endif /* USE_ARLIB */
-
 #ifdef USE_UNBOUND
 		if (dkimf_unbound_init(&conf->conf_unbound) != 0)
 		{
@@ -15089,10 +15052,6 @@ mlfi_eom(SMFICTX *ctx)
 				{
 					void *qh;
 
-# ifdef USE_ARLIB
-					dkimf_rep_arlib_setup(dr,
-					                      conf->conf_arlib);
-# endif /* USE_ARLIB */
 # ifdef USE_UNBOUND
 					dkimf_rep_unbound_setup(dr,
 					                        conf->conf_unbound);

@@ -7,11 +7,6 @@ if DEBUG
 AM_CFLAGS += -g
 endif
 
-if USE_ARLIB
-AM_CFLAGS += $(PTHREAD_CFLAGS)
-AM_LDFLAGS += $(PTHREAD_CFLAGS)
-endif
-
 LDADD = ../libdkimrep.la $(COV_LIBADD) $(LIBRESOLV) $(LIBCRYPTO_LIBS)
 AM_CPPFLAGS += -I..
 

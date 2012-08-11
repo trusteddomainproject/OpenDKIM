@@ -88,10 +88,6 @@ static char *optlist[] =
 	"QUERY_CACHE",
 #endif /* QUERY_CACHE */
 
-#if USE_ARLIB
-	"USE_ARLIB",
-#endif /* USE_ARLIB */
-
 #if USE_DB
 	"USE_DB",
 #endif /* USE_DB */

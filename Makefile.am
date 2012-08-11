@@ -8,9 +8,6 @@ SUBDIRS =
 if STRL
 SUBDIRS += libstrl
 endif
-if USE_ARLIB
-SUBDIRS += libar
-endif
 SUBDIRS += libopendkim contrib docs
 if VBR
 SUBDIRS += libvbr

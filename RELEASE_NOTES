@@ -8,6 +8,9 @@ release, and a summary of the changes in that release.
 	Feature request #SF2964375: Reject configuration files that have
 		a SigningTable referencing a missing or malformed KeyTable
 		entry.
+	Feature request #SF3544764: Support for libar has been discontinued.
+		For asynchronous and/or thread-safe resolver service,
+		use libunbound or a suitable version of BIND.
 	Feature request #SF3547124: Skip reputation checks on passing
 		signatures whose keys had a "t=y" value.
 	Fix bug #SF3536655: Rename "X-Header" to "SoftwareHeader", and rename

@@ -62,10 +62,6 @@ if USE_LDAP
 opendkim_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
 opendkim_LDADD += $(OPENLDAP_LIBS)
 endif
-if USE_ARLIB
-opendkim_CPPFLAGS += -I$(srcdir)/../libar
-opendkim_LDADD += ../libar/libar.la
-endif
 if USE_UNBOUND
 opendkim_CPPFLAGS += $(LIBUNBOUND_INCDIRS)
 opendkim_LDFLAGS += $(LIBUNBOUND_LIBDIRS) $(LIBLDNS_LIBDIRS) $(LIBEVENT_LIBDIRS)
@@ -152,10 +148,6 @@ opendkim_testkey_CPPFLAGS += $(LIBUNBOUND_INCDIRS)
 opendkim_testkey_LDFLAGS += $(LIBUNBOUND_LIBDIRS) $(LIBLDNS_LIBDIRS)
 opendkim_testkey_LDADD += $(LIBUNBOUND_LIBS) $(LIBLDNS_LIBS)
 endif
-if USE_ARLIB
-opendkim_testkey_CPPFLAGS += -I$(srcdir)/../libar
-opendkim_testkey_LDADD += ../libar/libar.la
-endif
 if DKIM_REPUTATION
 opendkim_testkey_CPPFLAGS += -I$(srcdir)/../libdkimrep
 opendkim_testkey_LDADD += ../libdkimrep/libdkimrep.la
@@ -188,11 +180,6 @@ if STRL
 opendkim_testadsp_CFLAGS += -I../libstrl
 opendkim_testadsp_LDADD += ../libstrl/libstrl.la
 endif
-if USE_ARLIB
-opendkim_testadsp_CC = $(PTHREAD_CC)
-opendkim_testadsp_CFLAGS += $(PTHREAD_CFLAGS)
-opendkim_testadsp_LDADD += $(PTHREAD_LIBS)
-endif
 
 opendkim_testmsg_SOURCES = opendkim-testmsg.c
 opendkim_testmsg_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
@@ -202,11 +189,6 @@ opendkim_testmsg_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(LIBRE
 if STRL
 opendkim_testmsg_CFLAGS += -I../libstrl
 opendkim_testmsg_LDADD += ../libstrl/libstrl.la
-endif
-if USE_ARLIB
-opendkim_testmsg_CC = $(PTHREAD_CC)
-opendkim_testmsg_CFLAGS += $(PTHREAD_CFLAGS)
-opendkim_testmsg_LDADD += $(PTHREAD_LIBS)
 endif
 
 opendkim_genzone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-genzone.c opendkim-lua.c util.c util.h
