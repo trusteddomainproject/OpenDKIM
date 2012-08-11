@@ -1,0 +1,26 @@
+#!/bin/sh
+# 
+# Copyright (c) 2012, The Trusted Domain Project.  All rights reserved.
+# 
+# Configuration validity check
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+if ../../miltertest/miltertest -s $srcdir/t-conf-check.lua > /dev/null 2>&1
+then
+	echo ERROR: opendkim started with a faulty configuration
+	exit 1
+else
+	exit 0
+fi
+
+if ../../miltertest/miltertest -s $srcdir/t-conf-check2.lua > /dev/null 2>&1
+then
+	echo ERROR: opendkim started with a faulty configuration
+	exit 1
+else
+	exit 0
+fi

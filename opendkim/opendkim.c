@@ -8139,6 +8139,62 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			return -1;
 		}
 #endif /* USE_LUA */
+
+		/*
+		**  Verify that the SingingTable doesn't reference any
+		**  missing KeyTable entries.
+		*/
+
+		if (conf->conf_signtabledb != NULL)
+		{
+			_Bool first = TRUE;
+			_Bool found;
+			struct dkimf_db_data dbd[3];
+			char keyname[BUFRSZ + 1];
+			char domain[BUFRSZ + 1];
+			char selector[BUFRSZ + 1];
+			char keydata[BUFRSZ + 1];
+
+			dbd[0].dbdata_flags = 0;
+			
+			memset(keyname, '\0', sizeof keyname);
+
+			dbd[0].dbdata_buffer = keyname;
+			dbd[0].dbdata_buflen = sizeof keyname - 1;
+			dbd[0].dbdata_flags = 0;
+
+			while (dkimf_db_walk(conf->conf_signtabledb, first,
+			                     NULL, NULL, dbd, 1) == 0)
+			{
+				first = FALSE;
+				found = FALSE;
+				dbd[0].dbdata_buffer = domain;
+				dbd[0].dbdata_buflen = sizeof domain - 1;
+				dbd[0].dbdata_flags = 0;
+				dbd[1].dbdata_buffer = selector;
+				dbd[1].dbdata_buflen = sizeof selector - 1;
+				dbd[1].dbdata_flags = 0;
+				dbd[2].dbdata_buffer = keydata;
+				dbd[2].dbdata_buflen = sizeof keydata - 1;
+				dbd[2].dbdata_flags = DKIMF_DB_DATA_BINARY;
+				if (dkimf_db_get(conf->conf_keytabledb,	
+				                 keyname, strlen(keyname),
+				                 dbd, 3, &found) != 0 ||
+				    !found)
+				{
+					snprintf(err, errlen,
+					         "could not find valid key \"%s\" in KeyTable",
+					         keyname);
+					return -1;
+				}
+
+				memset(keyname, '\0', sizeof keyname);
+
+				dbd[0].dbdata_buffer = keyname;
+				dbd[0].dbdata_buflen = sizeof keyname - 1;
+				dbd[0].dbdata_flags = 0;
+			}
+		}
 	}
 
 	/* activate logging if requested */
