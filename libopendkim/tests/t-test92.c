@@ -24,7 +24,7 @@
 
 #define	MAXHEADER	4096
 
-#define SIG2 "v=1; a=rsa-sha1; c=relaxed/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=ll/0h2aWgG+D3ewmE4Y3pY7Ukz8=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID:Cc:\r\n\t Bcc;\r\n\tb=fwObrRc4efovdRHljQwzrtT4erq1vCcBW84CtiivmzzaXnCIXBtDSEKhqXMsxkkhZ\r\n\t CRz2bs3uyibivcg5KQrjM2zcxSiloZJpu9aQtRNjZ6vLBlvOCKCUx1TJD5Lpk2j+dt\r\n\t oQn6dabtSiEqY3KBgMZ4sbpAkYOvAd30YurglD64="
+#define SIG2 "v=1; a=rsa-sha1; c=relaxed/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=ll/0h2aWgG+D3ewmE4Y3pY7Ukz8=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID:\r\n\t Subject:Cc:Bcc;\r\n\tb=nQiEx5HFKJYNlMuy0TOjxOol/P19rPjPr/wluVkvYfW9NoUp+uz1fsReg0AIEvlkc\r\n\t glXxG+VY4WqDj7nd9sB+PtJWj7RsTiAXhAVkAG1Y6vULjokbyQMA7Sb/OHFn30573g\r\n\t x1MNi2OnPZKtLHqxhk3KyrvjazmUQKWttbjalc+c="
 
 char *extra_hdrs[] =
 {
@@ -76,7 +76,7 @@ main(int argc, char **argv)
 
 	key = KEY;
 
-	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_ALWAYSHDRS,
+	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_OVERSIGNHDRS,
 	                    &extra_hdrs, sizeof (char **));
 
 	dkim = dkim_sign(lib, JOBID, NULL, key, SELECTOR, DOMAIN,

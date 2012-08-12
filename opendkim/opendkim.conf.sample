@@ -51,14 +51,6 @@
 
 # AlwaysAddARHeader	no
 
-##  AlwaysSignHeaders dataset
-##  	default (none)
-##
-##  Specifies a list of headers whose names should appear in signatures
-##  whether or not they were signed, preventing their later addition.
-
-# AlwaysSignHeaders	header1,header2,...
-
 ##  AuthservID string
 ##  	default (local host name)
 ##
@@ -396,6 +388,16 @@ KeyFile			/var/db/dkim/example.private
 # On-InternalError
 # On-NoSignature
 # On-Security
+
+##  OversignHeaders dataset
+##  	default (none)
+##
+##  Specifies a set of header fields that should be included in all signature
+##  header lists (the "h=" tag) once more than the number of times they were
+##  actually present in the signed message.  See opendkim.conf(5) for more
+##  information.
+
+# OverSignHeaders	header1,header2,...
 
 ##  PeerList dataset
 ##  	default (none)

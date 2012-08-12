@@ -24,7 +24,7 @@
 
 #define	MAXHEADER	4096
 
-char *always_sign[] = 
+char *over_sign[] = 
 {
 	"Cc",
 	NULL
@@ -91,8 +91,8 @@ main(int argc, char **argv)
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FIXEDTIME,
 	                    &fixed_time, sizeof fixed_time);
 
-	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_ALWAYSHDRS,
-	                    &always_sign, sizeof (char **));
+	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_OVERSIGNHDRS,
+	                    &over_sign, sizeof (char **));
 
 	status = dkim_header(dkim, HEADER02, strlen(HEADER02));
 	assert(status == DKIM_STAT_OK);

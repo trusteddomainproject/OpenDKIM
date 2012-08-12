@@ -17,6 +17,8 @@ release, and a summary of the changes in that release.
 		opendkim-genzone enabling them to produce output suitable for
 		use as input to nsupdate(8).
 	Feature request #SF3556439: Update opendkim-atpszone per RFC6541.
+	Fix bug #SF3536414: Activate _FFR_OVERSIGN, and remove
+		DKIM_OPTS_ALWAYSHDRS.
 	Fix bug #SF3536655: Rename "X-Header" to "SoftwareHeader", and rename
 		all header fields added that start "X-" to remove that prefix,
 		per RFC6648.  The old name will be accepted through the end

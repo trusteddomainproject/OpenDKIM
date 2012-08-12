@@ -1,4 +1,3 @@
-
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \
 	t-sign-rs-lua t-sign-ss-all t-sign-ss-ltag \
@@ -8,7 +7,7 @@ check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-dontsign t-peer t-local-adsp t-local-adsp-subdomain \
 	t-lua-verify-tests t-sign-ss-macro t-sign-ss-macro-value \
 	t-sign-ss-macro-value-file t-adsp-report t-verify-report \
-	t-sign-report t-conf-check t-conf-check2
+	t-sign-report t-conf-check 
 
 if LIVE_TESTS
 if RBL
@@ -79,9 +78,9 @@ EXTRA_DIST = \
 	t-sign-atps t-sign-atps.conf t-sign-atps.lua \
 	t-verify-ss-atps t-verify-ss-atps.conf t-verify-ss-atps.lua \
 	t-conf-check t-conf-check.conf t-conf-check.keytable t-conf-check.lua \
-		t-conf-check.signtable \
-	t-conf-check2 t-conf-check2.conf t-conf-check2.keytable \
-		t-conf-check2.lua t-conf-check2.signtable \
+		t-conf-check.signtable t-conf-check2.conf \
+		t-conf-check2.keytable t-conf-check2.lua \
+		t-conf-check2.signtable \
 	testkey.private pubkeys cp-test testmta
 
 MOSTLYCLEANFILES=

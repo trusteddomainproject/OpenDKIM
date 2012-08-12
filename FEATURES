@@ -62,10 +62,6 @@ ldap_caching	Adds code that ensures duplicate LDAP queries aren't sent
 lua_globals	Optional mechanism for passing variables between Lua
 		scripts.  (opendkim)
 
-oversign	Optional specification of header fields to "oversign" to
-		prevent malicious addition of malicious extra instances.
-		(opendkim, libopendkim)
-
 postgres_reconnect_hack
 		libpq (the postgresql client library) fails to identify
 		at least some error conditions as needing a connection

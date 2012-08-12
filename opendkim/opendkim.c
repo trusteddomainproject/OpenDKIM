@@ -397,8 +397,6 @@ struct dkimf_config
 	char **		conf_omithdrs;		/* headers to omit (array) */
 	DKIMF_DB	conf_signhdrsdb;	/* headers to sign (DB) */
 	char **		conf_signhdrs;		/* headers to sign (array) */
-	DKIMF_DB	conf_alwayshdrsdb;	/* always incl. hdrs (DB) */
-	char **		conf_alwayshdrs;	/* always incl. hdrs (array) */
 	DKIMF_DB	conf_senderhdrsdb;	/* sender headers (DB) */
 	char **		conf_senderhdrs;	/* sender headers (array) */
 	DKIMF_DB	conf_mtasdb;		/* MTA ports to sign (DB) */
@@ -407,10 +405,8 @@ struct dkimf_config
 	char **		conf_remar;		/* A-R removal list (array) */
 	DKIMF_DB	conf_mbsdb;		/* must-be-signed hdrs (DB) */
 	char **		conf_mbs;		/* must-be-signed (array) */
-#ifdef _FFR_OVERSIGN
 	DKIMF_DB	conf_oversigndb;	/* fields to over-sign (DB) */
 	char **		conf_oversignhdrs;	/*   "    "     "    (array) */
-#endif /* _FFR_OVERSIGN */
 	DKIMF_DB	conf_dontsigntodb;	/* don't-sign-to addrs (DB) */
 #ifdef _FFR_ATPS
 	DKIMF_DB	conf_atpsdb;		/* ATPS domains */
@@ -5676,16 +5672,11 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_signhdrsdb != NULL)
 		dkimf_db_close(conf->conf_signhdrsdb);
 
-	if (conf->conf_alwayshdrsdb != NULL)
-		dkimf_db_close(conf->conf_alwayshdrsdb);
-
 	if (conf->conf_senderhdrsdb != NULL)
 		dkimf_db_close(conf->conf_senderhdrsdb);
 
-#ifdef _FFR_OVERSIGN
 	if (conf->conf_oversigndb != NULL)
 		dkimf_db_close(conf->conf_oversigndb);
-#endif /* _FFR_OVERSIGN */
 
 	if (conf->conf_mtasdb != NULL)
 		dkimf_db_close(conf->conf_mtasdb);
@@ -7163,28 +7154,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 	str = NULL;
 	if (data != NULL)
-		(void) config_get(data, "AlwaysSignHeaders", &str, sizeof str);
-	if (str != NULL)
-	{
-		int status;
-		char *dberr = NULL;
-
-		status = dkimf_db_open(&conf->conf_alwayshdrsdb, str,
-		                       (dbflags |
-		                        DKIMF_DB_FLAG_ICASE |
-		                        DKIMF_DB_FLAG_READONLY),
-		                       NULL, &dberr);
-		if (status != 0)
-		{
-			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, dberr);
-			return -1;
-		}
-	}
-
-#ifdef _FFR_OVERSIGN
-	str = NULL;
-	if (data != NULL)
 		(void) config_get(data, "OverSignHeaders", &str, sizeof str);
 	if (str != NULL)
 	{
@@ -7203,7 +7172,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			return -1;
 		}
 	}
-#endif /* _FFR_OVERSIGN */
 
 	str = NULL;
 	if (data != NULL)
@@ -8134,6 +8102,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			char domain[BUFRSZ + 1];
 			char selector[BUFRSZ + 1];
 			char keydata[BUFRSZ + 1];
+			char signer[BUFRSZ + 1];
 
 			dbd[0].dbdata_flags = 0;
 			
@@ -8142,9 +8111,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			dbd[0].dbdata_buffer = keyname;
 			dbd[0].dbdata_buflen = sizeof keyname - 1;
 			dbd[0].dbdata_flags = 0;
+			dbd[1].dbdata_buffer = signer;
+			dbd[1].dbdata_buflen = sizeof signer - 1;
+			dbd[1].dbdata_flags = 0;
 
 			while (dkimf_db_walk(conf->conf_signtabledb, first,
-			                     NULL, NULL, dbd, 1) == 0)
+			                     NULL, NULL, dbd, 2) == 0)
 			{
 				first = FALSE;
 				found = FALSE;
@@ -8401,31 +8373,6 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 		}
 	}
 
-	if (conf->conf_alwayshdrsdb != NULL)
-	{
-		status = dkimf_db_mkarray(conf->conf_alwayshdrsdb,
-		                          &conf->conf_alwayshdrs, NULL);
-		if (status == -1)
-		{
-			if (err != NULL)
-				*err = "failed to generate DB array";
-			return FALSE;
-		}
-
-		status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
-		                      DKIM_OPTS_ALWAYSHDRS,
-		                      conf->conf_alwayshdrs,
-		                      sizeof conf->conf_alwayshdrs);
-
-		if (status != DKIM_STAT_OK)
-		{
-			if (err != NULL)
-				*err = "failed to set DKIM library options";
-			return FALSE;
-		}
-	}
-
-#ifdef _FFR_OVERSIGN
 	if (conf->conf_oversigndb != NULL)
 	{
 		status = dkimf_db_mkarray(conf->conf_oversigndb,
@@ -8449,7 +8396,6 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 			return FALSE;
 		}
 	}
-#endif /* _FFR_OVERSIGN */
 
 	if (conf->conf_mbsdb != NULL)
 	{

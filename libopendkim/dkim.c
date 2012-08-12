@@ -2281,7 +2281,6 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	char *format;
 	u_char *hash;
 	struct dkim_header *hdr;
-	_Bool *always = NULL;
 	u_char tmp[DKIM_MAXHEADER + 1];
 	u_char b64hash[DKIM_MAXHEADER + 1];
 
@@ -2291,15 +2290,6 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	assert(delim != NULL);
 
 	delimlen = strlen(delim);
-
-	n = dkim->dkim_libhandle->dkiml_nalwayshdrs * sizeof(_Bool);
-	if (n > 0)
-	{
-		always = DKIM_MALLOC(dkim, n);
-		if (always == NULL)
-			return 0;
-		memset(always, '\0', n);
-	}
 
 	/* bail if we were asked to generate an invalid signature */
 	if (dkim->dkim_signer != NULL)
@@ -2405,18 +2395,12 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 
 	status = dkim_canon_closebody(dkim);
 	if (status != DKIM_STAT_OK)
-	{
-		if (always != NULL)
-			(void) DKIM_FREE(dkim, always);
 		return 0;
-	}
 
 	status = dkim_canon_getfinal(sig->sig_bodycanon, &hash, &hashlen);
 	if (status != DKIM_STAT_OK)
 	{
 		dkim_error(dkim, "dkim_canon_getfinal() failed");
-		if (always != NULL)
-			(void) DKIM_FREE(dkim, always);
 		return (size_t) -1;
 	}
 
@@ -2433,11 +2417,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	}
 
 	/* h= */
-	for (n = 0; n < dkim->dkim_libhandle->dkiml_nalwayshdrs; n++)
-		always[n] = TRUE;
-
 	firsthdr = TRUE;
-
 	for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
 	{
 		if ((hdr->hdr_flags & DKIM_HDR_SIGNED) == 0)
@@ -2457,55 +2437,8 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		firsthdr = FALSE;
 
 		dkim_dstring_catn(dstr, hdr->hdr_text, hdr->hdr_namelen);
-
-		if (dkim->dkim_libhandle->dkiml_alwayshdrs != NULL)
-		{
-			u_char **ah = dkim->dkim_libhandle->dkiml_alwayshdrs;
-
-			for (n = 0; ah[n] != NULL; n++)
-			{
-				if (strncasecmp((char *) hdr->hdr_text,
-				                (char *) ah[n],
-				                hdr->hdr_namelen) == 0)
-				{
-					always[n] = FALSE;
-					break;
-				}
-			}
-		}
 	}
 
-	/* apply any "always sign" list */
-	if (dkim->dkim_libhandle->dkiml_alwayshdrs != NULL)
-	{
-		u_char **ah = dkim->dkim_libhandle->dkiml_alwayshdrs;
-
-		for (n = 0; ah[n] != NULL; n++)
-		{
-			if (always[n])
-			{
-				if (!firsthdr)
-				{
-					dkim_dstring_cat1(dstr, ':');
-				}
-				else
-				{
-					dkim_dstring_cat1(dstr, ';');
-					dkim_dstring_catn(dstr,
-					                  (u_char *) delim,
-					                  delimlen);
-					dkim_dstring_catn(dstr,
-					                  (u_char *) "h=", 2);
-				}
-
-				firsthdr = FALSE;
-
-				dkim_dstring_cat(dstr, ah[n]);
-			}
-		}
-	}
-
-#ifdef _FFR_OVERSIGN
 	if (dkim->dkim_libhandle->dkiml_oversignhdrs != NULL)
 	{
 		if (firsthdr)
@@ -2530,7 +2463,6 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 			                 dkim->dkim_libhandle->dkiml_oversignhdrs[n]);
 		}
 	}
-#endif /* _FFR_OVERSIGN */
 
 	/* if diagnostic headers were requested, include 'em */
 	if (dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_ZTAGS)
@@ -2636,9 +2568,6 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	dkim_dstring_cat1(dstr, ';');
 	dkim_dstring_catn(dstr, (u_char *) delim, delimlen);
 	dkim_dstring_catn(dstr, (u_char *) "b=", 2);
-
-	if (always != NULL)
-		DKIM_FREE(dkim, always);
 
 	return dkim_dstring_len(dstr);
 }
@@ -4361,11 +4290,7 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	libhandle->dkiml_flags = DKIM_LIBFLAGS_DEFAULT;
 	libhandle->dkiml_timeout = DEFTIMEOUT;
 	libhandle->dkiml_senderhdrs = (u_char **) dkim_default_senderhdrs;
-	libhandle->dkiml_alwayshdrs = NULL;
-#ifdef _FFR_OVERSIGN
 	libhandle->dkiml_oversignhdrs = NULL;
-#endif /* _FFR_OVERSIGN */
-	libhandle->dkiml_nalwayshdrs = 0;
 	libhandle->dkiml_mbs = NULL;
 	libhandle->dkiml_querymethod = DKIM_QUERY_UNKNOWN;
 	memset(libhandle->dkiml_queryinfo, '\0',
@@ -4421,9 +4346,7 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #ifdef _FFR_ATPS
 	FEATURE_ADD(libhandle, DKIM_FEATURE_ATPS);
 #endif /* _FFR_ATPS */
-#ifdef _FFR_OVERSIGN
 	FEATURE_ADD(libhandle, DKIM_FEATURE_OVERSIGN);
-#endif /* _FFR_OVERSIGN */
 	FEATURE_ADD(libhandle, DKIM_FEATURE_XTAGS);
 #ifdef _FFR_DKIM_REPUTATION
 	FEATURE_ADD(libhandle, DKIM_FEATURE_DKIM_REPUTATION);
@@ -4462,16 +4385,11 @@ dkim_close(DKIM_LIB *lib)
 		(void) regfree(&lib->dkiml_hdrre);
 
 
-#ifdef _FFR_OVERSIGN
 	if (lib->dkiml_oversignhdrs != NULL)
 		dkim_clobber_array((char **) lib->dkiml_oversignhdrs);
-#endif /* _FFR_OVERSIGN */
 
 	if (lib->dkiml_senderhdrs != (u_char **) dkim_default_senderhdrs)
 		dkim_clobber_array((char **) lib->dkiml_senderhdrs);
-
-	if (lib->dkiml_alwayshdrs != NULL)
-		dkim_clobber_array((char **) lib->dkiml_alwayshdrs);
 
 	if (lib->dkiml_mbs != NULL)
 		dkim_clobber_array((char **) lib->dkiml_mbs);
@@ -4709,7 +4627,6 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		}
 		return DKIM_STAT_OK;
 
-#ifdef _FFR_OVERSIGN
 	  case DKIM_OPTS_OVERSIGNHDRS:
 		if (len != sizeof lib->dkiml_oversignhdrs)
 			return DKIM_STAT_INVALID;
@@ -4730,42 +4647,6 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 				dkim_clobber_array((char **) lib->dkiml_oversignhdrs);
 
 			lib->dkiml_oversignhdrs = (u_char **) tmp;
-		}
-		return DKIM_STAT_OK;
-#endif /* _FFR_OVERSIGN */
-
-	  case DKIM_OPTS_ALWAYSHDRS:
-		if (len != sizeof lib->dkiml_alwayshdrs)
-			return DKIM_STAT_INVALID;
-
-		if (op == DKIM_OP_GETOPT)
-		{
-			memcpy(ptr, &lib->dkiml_alwayshdrs, len);
-		}
-		else if (ptr == NULL)
-		{
-			if (lib->dkiml_alwayshdrs != NULL)
-				dkim_clobber_array((char **) lib->dkiml_alwayshdrs);
-
-			lib->dkiml_alwayshdrs = NULL;
-			lib->dkiml_nalwayshdrs = 0;
-		}
-		else
-		{
-			u_int n;
-			const char **tmp;
-
-			tmp = dkim_copy_array(ptr);
-			if (tmp == NULL)
-				return DKIM_STAT_NORESOURCE;
-
-			if (lib->dkiml_alwayshdrs != NULL)
-				dkim_clobber_array((char **) lib->dkiml_alwayshdrs);
-
-			lib->dkiml_alwayshdrs = (u_char **) tmp;
-			for (n = 0; lib->dkiml_alwayshdrs[n] != NULL; n++)
-				continue;
-			lib->dkiml_nalwayshdrs = n;
 		}
 		return DKIM_STAT_OK;
 

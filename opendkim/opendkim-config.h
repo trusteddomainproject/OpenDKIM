@@ -30,7 +30,6 @@ struct configdef dkimf_config[] =
 	{ "ADSPNoSuchDomain",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AllowSHA1Only",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AlwaysAddARHeader",		CONFIG_TYPE_BOOLEAN,	FALSE },
-	{ "AlwaysSignHeaders",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_ATPS
 	{ "ATPSDomains",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ATPSHashAlgorithm",		CONFIG_TYPE_STRING,	FALSE },
@@ -140,9 +139,7 @@ struct configdef dkimf_config[] =
 	{ "On-ReputationError",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_REPUTATION */
 	{ "On-Security",		CONFIG_TYPE_STRING,	FALSE },
-#ifdef _FFR_OVERSIGN
 	{ "OverSignHeaders",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_OVERSIGN */
 	{ "PeerList",			CONFIG_TYPE_STRING,	FALSE },
 	{ "PidFile",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef POPAUTH

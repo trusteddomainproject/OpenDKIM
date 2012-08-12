@@ -346,7 +346,6 @@ struct dkim_lib
 	u_int			dkiml_version;
 	u_int			dkiml_callback_int;
 	u_int			dkiml_flsize;
-	u_int			dkiml_nalwayshdrs;
 	uint64_t		dkiml_fixedtime;
 	uint64_t		dkiml_sigttl;
 	uint64_t		dkiml_clockdrift;
@@ -355,7 +354,6 @@ struct dkim_lib
 	void *			(*dkiml_malloc) (void *closure, size_t nbytes);
 	void			(*dkiml_free) (void *closure, void *p);
 	u_char **		dkiml_senderhdrs;
-	u_char **		dkiml_alwayshdrs;
 	u_char **		dkiml_oversignhdrs;
 	u_char **		dkiml_mbs;
 #ifdef QUERY_CACHE

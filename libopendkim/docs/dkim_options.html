@@ -52,13 +52,6 @@ of the library's operation.
         option should be retrieved or changed.  Possible values:
         <table border="1" cellspacing=0>
            <tr bgcolor="#dddddd"><th>Option Name</th><th>Description</th></tr>
-           <tr valign="top"><td><tt>DKIM_OPTS_ALWAYSHDRS</tt></td>
-                            <td><tt>data</tt> refers to a NULL-terminated
-				array of pointers to strings which name
-				headers that should be included in the header
-				lists of signatures even if they were not
-				present for signing.  This list is empty by
-				default.</td></tr>
            <tr valign="top"><td><tt>DKIM_OPTS_CLOCKDRIFT</tt></td>
                             <td><tt>data</tt> refers to a <tt>uint64_t</tt>
                                 that contains the number of seconds of clock
@@ -86,6 +79,17 @@ of the library's operation.
 				no such assertion.  If <tt>data</tt>
                                 refers to a NULL pointer, the default is
                                 restored. </td></tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_OVERSIGNHDRS</tt></td>
+                            <td><tt>data</tt> refers to an unordered,
+				NULL-terminated array of pointers to
+				NULL-terminated strings that name
+				header fields which should be included in the
+				header lists ("h=" tags) of signatures once
+				more than the number of occurrences
+				that were signed.  This prevents later handlers
+				from adding instances of those header fields
+				without invalidating the signature.  This list
+				is empty by default.</td></tr>
            <tr valign="top"><td><tt>DKIM_OPTS_QUERYINFO</tt></td>
                             <td><tt>data</tt> refers to a string
                                 in which query information is stored.  See

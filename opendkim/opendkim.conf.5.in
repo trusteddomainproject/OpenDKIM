@@ -84,16 +84,6 @@ will be "none" in such cases.  Normally unsigned mail from non-strict
 domains does not cause the results header field to be added.
 
 .TP
-.I AlwaysSignHeaders (dataset)
-Specifies a set of header fields that should be included in all signature
-header lists (the "h=" tag) even if they were not present at the time
-the signature was generated.  The set is empty by default.  The purpose of
-listing an absent header field is to prevent its addition between the signer
-and the verifier, since the verifier would include that header field if it were
-added when performing verification, which would mean the signed message
-and the verified message were different and the verification would fail.
-
-.TP
 .I AuthservID (string)
 Sets the "authserv-id" to use when generating the Authentication-Results:
 header field after verifying a message.  The default is to use the name of
@@ -792,20 +782,16 @@ The default is
 .TP
 .I OversignHeaders (dataset)
 Specifies a set of header fields that should be included in all signature
-header lists (the "h=" tag) even if they were present at the time
-the signature was generated.  The set is empty by default.  The purpose of
-listing an absent header field is to prevent its addition between the signer
-and the verifier, since the verifier would include that header field if it were
-added when performing verification, which would mean the signed message
-and the verified message were different and the verification would fail.
-Unlike
-.I AlwaysSignHeaders,
-the names in this data set are always added to signatures even if they did
-appear in the original header field set.  Note that the fields in this list
-must also be present in the
+header lists (the "h=" tag) once more than the number of times they were
+actually present in the signed message.  The set is empty by default.  The
+purpose of this, and especially of listing an absent header field, is to
+prevent the addition of important fields between the signer and the verifier.
+Since the verifier would include that header field when performing verification
+if it had been added by an intermediary, the signed message and the verified
+message were different and the verification would fail.  Note that listing
+a field name here and not listing it in the
 .I SignHeaders
-list, or any signature produced will be impossible to validate.
-@OVERSIGN_MANNOTICE@
+list is likely to generate invalid signatures.
 
 .TP
 .I PeerList (dataset)

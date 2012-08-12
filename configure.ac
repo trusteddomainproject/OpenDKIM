@@ -295,8 +295,6 @@ FFR_FEATURE([ldap_caching], [LDAP query piggybacking and caching])
 
 FFR_FEATURE([lua_globals], [passing of global variabls between Lua scripts])
 
-FFR_FEATURE([oversign], [enable header field over-signing])
-
 FFR_FEATURE([postgresql_reconnect_hack],
             [hack to overcome PostgreSQL connection error detection bug])
 
