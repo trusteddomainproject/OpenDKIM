@@ -44,13 +44,13 @@ generation.</td>
 	<td>A pointer to a null-terminated string that specifies the
 	tag name to be added to the signature.  This must not be a tag
 	that is already supported by the library, as those are generated
-	automatically.  It must also meet the syntax rules of RFC4871
+	automatically.  It must also meet the syntax rules of RFC6376
 	Section 3.2.
 	</td></tr>
     <tr valign="top"><td>value</td>
 	<td>A pointer to a null-terminated string that specifies the
 	tag value to be added to the signature.  It must meet the syntax
-	rules of RFC4871 Section 3.2.
+	rules of RFC6376 Section 3.2.
 	</td></tr>
     </table>
 </td></tr>
@@ -76,7 +76,7 @@ generation.</td>
 <th valign="top" align=left>NOTES</th> 
 <td>
 <ul>
-<li>It is legal to include whitespace in values according to RFC4871 Section
+<li>It is legal to include whitespace in values according to RFC6376 Section
     3.2.  However, this will interefere with the automatic wrapping and
     formatting of the signature performed by the library.  A mechanism to
     indicate valid line break points will be included in a future release.
