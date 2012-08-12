@@ -848,7 +848,10 @@ main(int argc, char **argv)
 
 		fprintf(out, "%s", tmpbuf);
 
-		olen = strflen(tmpbuf);
+		if (nsupdate)
+			olen = 0;
+		else
+			olen = strflen(tmpbuf);
 
 		seenlf = FALSE;
 
@@ -906,14 +909,19 @@ main(int argc, char **argv)
 			}
 			else if (isascii(*p) && !isspace(*p))
 			{
+				if (olen >= MARGIN && !nsupdate)
+				{
+					fprintf(out, "\"\n\t\"");
+					olen = 9;
+				}
+				else if (olen >= 255 && nsupdate)
+				{
+					fprintf(out, "\" \"");
+					olen = 0;
+				}
+
 				(void) fputc(*p, out);
 				olen++;
-			}
-
-			if (olen >= MARGIN && !nsupdate)
-			{
-				fprintf(out, "\"\n\t\"");
-				olen = 9;
 			}
 		}
 
