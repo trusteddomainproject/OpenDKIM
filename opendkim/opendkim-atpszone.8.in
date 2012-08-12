@@ -15,7 +15,7 @@
 [\-S]
 [\-t secs]
 [\-T secs]
-[\-u]
+[\-u domain]
 [\-v]
 [dataset]
 .SH DESCRIPTION
@@ -108,9 +108,11 @@ below), use
 .I secs
 as the default record TTL time.  The default is 86400.
 .TP
-.I \-u
+.I \-u domain
 Produce output suitable for use as input to
-.B nsupdate(8).
+.B nsupdate(8)
+to add ATPS records to the named 
+.I domain.
 .TP
 .I \-v
 Increases the verbosity of debugging output written to standard error.

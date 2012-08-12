@@ -59,7 +59,7 @@
 #define	ATPSZONE	"._atps"
 #define	BASE32_LENGTH	32
 #define	BUFRSZ		256
-#define	CMDLINEOPTS	"AC:E:h:o:N:r:R:St:T:uv"
+#define	CMDLINEOPTS	"AC:E:h:o:N:r:R:St:T:u:v"
 #define	DEFEXPIRE	604800
 #define	DEFREFRESH	10800
 #define	DEFRETRY	1800
@@ -96,6 +96,7 @@ usage(void)
 	                "\t-S          \twrite an SOA record\n"
 	                "\t-t secs     \tuse specified per-record TTL\n"
 	                "\t-T secs     \tuse specified default TTL in SOA\n"
+	                "\t-u domain   \tproduce nsupdate(8) script\n"
 	                "\t-v          \tverbose output\n",
 		progname, progname);
 
@@ -133,6 +134,7 @@ main(int argc, char **argv)
 	size_t shalen;
 	char *p;
 	char *dataset = NULL;
+	char *udomain = NULL;
 	char *outfile = NULL;
 	char *hash = NULL;
 	char *contact = NULL;
@@ -262,6 +264,7 @@ main(int argc, char **argv)
 
 		  case 'u':
 			nsupdate = TRUE;
+			udomain = optarg;
 			break;
 
 		  case 'v':
@@ -382,6 +385,12 @@ main(int argc, char **argv)
 			fprintf(out, "\tIN\tNS\t%s\n", nslist[c]);
 
 		fprintf(out, "\n");
+	}
+
+	if (nsupdate)
+	{
+		fprintf(out, "server %s\n", nslist[0]);
+		fprintf(out, "zone %s\n", udomain);
 	}
 
 #ifdef USE_GNUTLS

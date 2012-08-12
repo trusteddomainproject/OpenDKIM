@@ -593,6 +593,9 @@ main(int argc, char **argv)
 		fprintf(out, "\n");
 	}
 
+	if (nsupdate)
+		fprintf(out, "server %s\n", nslist[0]);
+
 	dbd[0].dbdata_buffer = domain;
 	dbd[1].dbdata_buffer = selector;
 	dbd[2].dbdata_buffer = keydata;
@@ -825,6 +828,8 @@ main(int argc, char **argv)
 		/* write the record */
 		if (nsupdate)
 		{
+			fprintf(out, "zone %s\n", domain);
+
 			snprintf(tmpbuf, sizeof tmpbuf,
 			         "update add %s%s %d TXT \"",
 			         selector, suffix ? DKIMZONE : "",
