@@ -38,6 +38,8 @@ release, and a summary of the changes in that release.
 		Also clean up several other unnecessary dependencies imposed
 		by imprecise use of autoconf.  Problem noted by Andreas
 		Schulze.
+	STATS: Patch #SF3555841: Temporary table SQL correction.  Patch from
+		Andreas Schulze.
 
 2.6.7		2012/07/23
 	Fix input handling for file data sets for the macro case.  Problem

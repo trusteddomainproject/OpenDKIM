@@ -439,10 +439,10 @@ if (scalar @domains > 0)
 
 if ($unsigned)
 {
-	$dbi_s = $dbi_h->prepare("DROP TABLE t1\n");
+	$dbi_s = $dbi_h->prepare("DROP TEMPORARY TABLE t1\n");
 	if (!$dbi_s->execute)
 	{
-		print STDERR "$progname: TRUNCATE TABLE failed: " . $dbi_h->errstr . "\n";
+		print STDERR "$progname: DROP TEMPORARY TABLE failed: " . $dbi_h->errstr . "\n";
 		$dbi_s->finish;
 		$dbi_h->disconnect;
 		exit(1);
