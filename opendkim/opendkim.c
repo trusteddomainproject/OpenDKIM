@@ -251,6 +251,7 @@ struct dkimf_config
 	_Bool		conf_vbr_trustedonly;	/* trusted certifiers only */
 #endif /* _FFR_VBR */
 #ifdef _FFR_REPUTATION
+	_Bool		conf_reptest;		/* reputation test mode */
 	_Bool		conf_repverbose;	/* verbose reputation logs */
 #endif /* _FFR_REPUTATION */
 	unsigned int	conf_mode;		/* operating mode */
@@ -7736,6 +7737,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 #ifdef _FFR_REPUTATION
 	if (data != NULL)
 	{
+		(void) config_get(data, "ReputationTest",
+		                  &conf->conf_reptest,
+		                  sizeof conf->conf_reptest);
+
 		(void) config_get(data, "ReputationVerbose",
 		                  &conf->conf_repverbose,
 		                  sizeof conf->conf_repverbose);
@@ -14096,25 +14101,29 @@ mlfi_eom(SMFICTX *ctx)
 					if (dolog)
 					{
 						syslog(LOG_NOTICE,
-						       "%s: blocked by reputation of %s (%f, count %lu, spam %lu, limit %lu)",
+						       "%s: %sblocked by reputation of %s (%f, count %lu, spam %lu, limit %lu)",
 						       dfc->mctx_jobid,
+						       conf->conf_reptest ? "would be " : "",
 						       domain, ratio, count,
 					               spam, limit);
 					}
 
-					if (dkimf_setreply(ctx,
-					                   REPDENYSMTP,
-					                   REPDENYESC,
-					                   REPDENYTXT) != MI_SUCCESS &&
-					    conf->conf_dolog)
+					if (!conf->conf_reptest)
 					{
-						syslog(LOG_NOTICE,
-						       "%s: smfi_setreply() failed",
-						       dfc->mctx_jobid);
-					}
+						if (dkimf_setreply(ctx,
+						                   REPDENYSMTP,
+						                   REPDENYESC,
+						                   REPDENYTXT) != MI_SUCCESS &&
+						    conf->conf_dolog)
+						{
+							syslog(LOG_NOTICE,
+							       "%s: smfi_setreply() failed",
+							       dfc->mctx_jobid);
+						}
 
-					dkimf_cleanup(ctx);
-					return SMFIS_TEMPFAIL;
+						dkimf_cleanup(ctx);
+						return SMFIS_TEMPFAIL;
+					}
 				}
 			}
 		}

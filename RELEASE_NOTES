@@ -16,6 +16,8 @@ release, and a summary of the changes in that release.
 	Feature request #SF3553918: Add "-u" flag to opendkim-atpszone and
 		opendkim-genzone enabling them to produce output suitable for
 		use as input to nsupdate(8).
+	Feature request #SF3555842: Add "ReputationTest" setting.  Requested
+		by Andreas Schulze.
 	Feature request #SF3556439: Update opendkim-atpszone per RFC6541.
 	Fix bug #SF3536414: Activate _FFR_OVERSIGN, and remove
 		DKIM_OPTS_ALWAYSHDRS.
