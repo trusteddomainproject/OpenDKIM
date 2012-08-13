@@ -40,6 +40,8 @@ release, and a summary of the changes in that release.
 		Also clean up several other unnecessary dependencies imposed
 		by imprecise use of autoconf.  Problem noted by Andreas
 		Schulze.
+	BUILD: Patch #SF3555845: Add support for older versions of libcurl.
+		Based on a patch by Andreas Schulze.
 	STATS: Patch #SF3555841: Temporary table SQL correction.  Patch from
 		Andreas Schulze.
 

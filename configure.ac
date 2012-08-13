@@ -1772,7 +1772,7 @@ curl_found="no"
 if test \( x"$curlpath" = x"auto" -o x"$curlpath" = x"yes" \) -a \
 	x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([CURL], [curl >= 7.16.3],
+        PKG_CHECK_MODULES([CURL], [curl >= 7.12.0],
 	[
 		curl_found="yes"
 		CURL_CPPFLAGS="$CURL_CFLAGS"
@@ -1820,6 +1820,23 @@ then
 		AC_MSG_RESULT([no])
 	fi
 fi
+
+if test x"$curl_found" = x"yes"
+then
+	saved_CPPFLAGS="$CPPFLAGS"
+	saved_LDFLAGS="$LDFLAGS"
+	saved_LIBS="$LIBS"
+	CPPFLAGS="$LDFLAGS $CURL_CPPFLAGS"
+	LDFLAGS="$LDFLAGS $CURL_LDFLAGS"
+	LIBS="$LIBS $CURL_LIBS"
+	AC_CHECK_FUNC([curl_easy_strerror],
+		      AC_DEFINE([HAVE_CURL_EASY_STRERROR], 1,
+				[Define if libcurl has curl_easy_strerror()]))
+	CPPFLAGS="$saved_CPPFLAGS"
+	LDFLAGS="$saved_LDFLAGS"
+	LIBS="$saved_LIBS"
+fi
+
 AC_SUBST(CURL_CPPFLAGS)
 AC_SUBST(CURL_LDFLAGS)
 AC_SUBST(CURL_LIBS)

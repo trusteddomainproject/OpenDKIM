@@ -659,7 +659,14 @@ repute_get_error(struct repute_io *rio, char *buf, size_t buflen)
 	if (rio->repute_rcode != 0)
 		snprintf(buf, buflen, "HTTP error code %u", rio->repute_rcode);
 	else
+#ifdef HAVE_CURL_EASY_STRERROR
 		snprintf(buf, buflen, curl_easy_strerror(rio->repute_errcode));
+#else /* HAVE_CURL_EASY_STRERROR */
+	{
+		snprintf(buf, buflen, "CURL error code %u",
+		         rio->repute_errcode);
+	}
+#endif /* HAVE_CURL_EASY_STRERROR */
 }
 
 /*
@@ -716,8 +723,13 @@ repute_get_template(REPUTE rep)
 	cstatus = curl_easy_setopt(rio->repute_curl, CURLOPT_WRITEDATA, rio);
 	if (cstatus != CURLE_OK)
 	{
+#ifdef HAVE_CURL_EASY_STRERROR
 		snprintf(rep->rep_error, sizeof rep->rep_error, "%s",
 		         curl_easy_strerror(cstatus));
+#else /* HAVE_CURL_EASY_STRERROR */
+		snprintf(rep->rep_error, sizeof rep->rep_error,
+		         "CURL error code %d", cstatus);
+#endif /* HAVE_CURL_EASY_STRERROR */
 		repute_put_io(rep, rio);
 		return REPUTE_STAT_INTERNAL;
 	}
@@ -725,8 +737,13 @@ repute_get_template(REPUTE rep)
 	cstatus = curl_easy_setopt(rio->repute_curl, CURLOPT_URL, url);
 	if (cstatus != CURLE_OK)
 	{
+#ifdef HAVE_CURL_EASY_STRERROR
 		snprintf(rep->rep_error, sizeof rep->rep_error, "%s",
 		         curl_easy_strerror(cstatus));
+#else /* HAVE_CURL_EASY_STRERROR */
+		snprintf(rep->rep_error, sizeof rep->rep_error,
+		         "CURL error code %d", cstatus);
+#endif /* HAVE_CURL_EASY_STRERROR */
 		repute_put_io(rep, rio);
 		return REPUTE_STAT_INTERNAL;
 	}
@@ -734,8 +751,13 @@ repute_get_template(REPUTE rep)
 	cstatus = curl_easy_perform(rio->repute_curl);
 	if (cstatus != CURLE_OK)
 	{
+#ifdef HAVE_CURL_EASY_STRERROR
 		snprintf(rep->rep_error, sizeof rep->rep_error, "%s",
 		         curl_easy_strerror(cstatus));
+#else /* HAVE_CURL_EASY_STRERROR */
+		snprintf(rep->rep_error, sizeof rep->rep_error,
+		         "CURL error code %d", cstatus);
+#endif /* HAVE_CURL_EASY_STRERROR */
 		repute_put_io(rep, rio);
 		return REPUTE_STAT_QUERY;
 	}
