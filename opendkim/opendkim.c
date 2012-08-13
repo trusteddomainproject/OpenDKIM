@@ -15949,7 +15949,14 @@ main(int argc, char **argv)
 
 	/* if there's a default config file readable, use it */
 	if (conffile == NULL && access(DEFCONFFILE, R_OK) == 0)
+	{
 		conffile = DEFCONFFILE;
+		if (verbose > 1)
+		{
+			fprintf(stderr, "%s: using default configfile %s\n",
+				progname, DEFCONFFILE);
+		}
+	}
 
 	if (conffile != NULL)
 	{
