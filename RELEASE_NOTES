@@ -15,7 +15,8 @@ release, and a summary of the changes in that release.
 		signatures whose keys had a "t=y" value.
 	Feature request #SF3553918: Add "-u" flag to opendkim-atpszone and
 		opendkim-genzone enabling them to produce output suitable for
-		use as input to nsupdate(8).
+		use as input to nsupdate(8).  Based on a suggestion by
+		Dave Crocker.
 	Feature request #SF3555842: Add "ReputationTest" setting.  Requested
 		by Andreas Schulze.
 	Feature request #SF3556439: Update opendkim-atpszone per RFC6541.
@@ -26,7 +27,7 @@ release, and a summary of the changes in that release.
 		per RFC6648.  The old name will be accepted through the end
 		of the 2.7.x line.
 	Fix bug #SF3538896: Remove antiquated CVS Id: tags, which cleans up
-		some (harmless) build warnings.  Requested by Andreas Schulze.
+		some (harmless) build warnings.  Suggested by Andreas Schulze.
 	Fix bug #SF3548741: Add "ReputationTimeout" for use inside
 		_FFR_REPUTATION, rather than using the built-in default
 		or a hard-coded one.
@@ -44,6 +45,9 @@ release, and a summary of the changes in that release.
 		Based on a patch by Andreas Schulze.
 	STATS: Patch #SF3555841: Temporary table SQL correction.  Patch from
 		Andreas Schulze.
+	TOOLS: Feature request #SF3558818: Teach opendkim-testkey about the new
+		"ResolvConf" setting.  Based on a problem report from
+		Patrick Ben Koetter.
 
 2.6.7		2012/07/23
 	Fix input handling for file data sets for the macro case.  Problem

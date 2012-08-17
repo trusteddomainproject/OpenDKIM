@@ -228,6 +228,7 @@ main(int argc, char **argv)
 #ifdef USE_UNBOUND
 	char *trustanchor = NULL;
 	char *ubconfig = NULL;
+	char *resolvconf = NULL;
 #endif /* USE_UNBOUND */
 	struct stat s;
 	char err[BUFRSZ];
@@ -393,6 +394,9 @@ main(int argc, char **argv)
 
 		(void) config_get(cfg, "UnboundConfigFile",
 		                  &ubconfig, sizeof ubconfig);
+
+		(void) config_get(cfg, "ResolvConf",
+		                  &resolvconf, sizeof resolvconf);
 #endif /* USE_UNBOUND */
 	}
 
@@ -403,6 +407,26 @@ main(int argc, char **argv)
 		        progname);
 		(void) free(key);
 		return EX_SOFTWARE;
+	}
+
+	if (resolvconf != NULL)
+	{
+		if (access(resolvconf, R_OK) != 0)
+		{
+			fprintf(stderr, "%s: %s: access(): %s\n",
+			        progname, resolvconf, strerror(errno));
+			(void) free(key);
+			return EX_NOPERM;
+		}
+
+		status = dkimf_unbound_add_resolvconf(unbound, resolvconf);
+		if (status != DKIM_STAT_OK)
+		{
+			fprintf(stderr, "%s: failed to process %s\n",
+			        progname, resolvconf);
+			(void) free(key);
+			return EX_SOFTWARE;
+		}
 	}
 #endif /* USE_UNBOUND */
 
