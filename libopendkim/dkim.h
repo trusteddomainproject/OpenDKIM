@@ -1876,6 +1876,30 @@ extern int dkim_base32_encode __P((char *, size_t *, const void *, size_t));
 extern DKIM_STAT dkim_sig_gethashes __P((DKIM_SIGINFO *, void **, size_t *,
                                          void **, size_t *));
 
+/*
+**  DKIM_GETSSLBUF -- get the SSL error buffer, if any, from a DKIM handle
+**
+**  Parameters:
+**  	dkim -- DKIM handle from which to get SSL error
+**
+**  Return value:
+**  	Pointer to the string, if defined, or NULL otherwise.
+*/
+
+extern const char *dkim_getsslbuf __P((DKIM *dkim));
+
+/*
+**  DKIM_SIG_GETSSLBUF -- get the SSL error buffer, if any, from a signature
+**
+**  Parameters:
+**  	sig -- signature handle from which to get SSL error
+**
+**  Return value:
+**  	Pointer to the string, if defined, or NULL otherwise.
+*/
+
+extern const char *dkim_sig_getsslbuf __P((DKIM_SIGINFO *sig));
+
 /* default list of sender headers */
 extern const u_char *dkim_default_senderhdrs[];
 

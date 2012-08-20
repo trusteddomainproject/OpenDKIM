@@ -8856,21 +8856,37 @@ dkimf_initcontext(struct dkimf_config *conf)
 **  DKIMF_LOG_SSL_ERRORS -- log any queued SSL library errors
 **
 **  Parameters:
+**  	dkim -- DKIM handle
+**  	sig -- signature handle
 **  	jobid -- job ID to include in log messages
-**  	selector -- selector to include in log messages (may be NULL)
-**  	domain -- domain to use in log messsages (may be NULL)
 **
 **  Return value:
 **  	None.
 */
 
 static void
-dkimf_log_ssl_errors(char *jobid, char *selector, char *domain)
+dkimf_log_ssl_errors(DKIM *dkim, DKIM_SIGINFO *sig, char *jobid)
 {
-#ifdef USE_GNUTLS
+	char *selector;
+	char *domain;
 	const char *errbuf;
 
-	errbuf = dkimf_crypto_geterror();
+	assert(dkim != NULL);
+	assert(jobid != NULL);
+
+	if (sig != NULL)
+	{
+		domain = dkim_sig_getdomain(sig);
+		selector = dkim_sig_getselector(sig);
+		errbuf = dkim_sig_getsslbuf(sig);
+	}
+	else
+	{
+		domain = NULL;
+		selector = NULL;
+		errbuf = dkim_getsslbuf(dkim);
+	}
+
 	if (errbuf != NULL)
 	{
 		if (selector != NULL && domain != NULL)
@@ -8883,48 +8899,6 @@ dkimf_log_ssl_errors(char *jobid, char *selector, char *domain)
 			syslog(LOG_INFO, "%s: SSL %s", jobid, errbuf);
 		}
 	}
-#else /* USE_GNUTLS */
-	assert(jobid != NULL);
-
-	/* log any queued SSL error messages */
-	if (ERR_peek_error() != 0)
-	{
-		int n;
-		int saveerr;
-		u_long e;
-		char errbuf[BUFRSZ + 1];
-		char tmp[BUFRSZ + 1];
-
-		saveerr = errno;
-
-		memset(errbuf, '\0', sizeof errbuf);
-
-		for (n = 0; ; n++)
-		{
-			e = ERR_get_error();
-			if (e == 0)
-				break;
-
-			memset(tmp, '\0', sizeof tmp);
-			(void) ERR_error_string_n(e, tmp, sizeof tmp);
-			if (n != 0)
-				strlcat(errbuf, "; ", sizeof errbuf);
-			strlcat(errbuf, tmp, sizeof errbuf);
-		}
-
-		if (selector != NULL && domain != NULL)
-		{
-			syslog(LOG_INFO, "%s: s=%s d=%s SSL %s", jobid,
-			       selector, domain, errbuf);
-		}
-		else
-		{
-			syslog(LOG_INFO, "%s: SSL %s", jobid, errbuf);
-		}
-
-		errno = saveerr;
-	}
-#endif /* USE_GNUTLS */
 }
 
 /*
@@ -13434,17 +13408,8 @@ mlfi_eom(SMFICTX *ctx)
 			{
 				lastdkim = dfc->mctx_dkimv;
 				sig = dkim_getsignature(dfc->mctx_dkimv);
-				if (sig != NULL)
-				{
-					dkimf_log_ssl_errors((char *) dfc->mctx_jobid,
-					                     (char *) dkim_sig_getselector(sig),
-					                     (char *) dkim_sig_getdomain(sig));
-				}
-				else
-				{
-					dkimf_log_ssl_errors((char *) dfc->mctx_jobid,
-					                     NULL, NULL);
-				}
+				dkimf_log_ssl_errors(lastdkim, sig,
+				                     (char *) dfc->mctx_jobid);
 			}
 
 			status = dkimf_libstatus(ctx, dfc->mctx_dkimv,
@@ -15395,16 +15360,7 @@ mlfi_eom(SMFICTX *ctx)
 		}
 	}
 
-	if (sig == NULL)
-	{
-		dkimf_log_ssl_errors((char *) dfc->mctx_jobid, NULL, NULL);
-	}
-	else
-	{
-		dkimf_log_ssl_errors((char *) dfc->mctx_jobid,
-		                     (char *) dkim_sig_getselector(sig),
-		                     (char *) dkim_sig_getdomain(sig));
-	}
+	dkimf_log_ssl_errors(lastdkim, sig, (char *) dfc->mctx_jobid);
 
 	/*
 	**  If we got this far, we're ready to complete.

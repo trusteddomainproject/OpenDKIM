@@ -146,6 +146,7 @@ struct dkim_siginfo
 	struct dkim_canon *	sig_bodycanon;
 	struct dkim_set *	sig_taglist;
 	struct dkim_set *	sig_keytaglist;
+	struct dkim_dstring *	sig_sslerrbuf;
 };
 
 #ifdef USE_GNUTLS
@@ -331,6 +332,7 @@ struct dkim
 	struct dkim_canon *	dkim_canontail;
 	struct dkim_dstring *	dkim_hdrbuf;
 	struct dkim_dstring *	dkim_canonbuf;
+	struct dkim_dstring *	dkim_sslerrbuf;
 	struct dkim_test_dns_data * dkim_dnstesth;
 	struct dkim_test_dns_data * dkim_dnstestt;
 	DKIM_LIB *		dkim_libhandle;
