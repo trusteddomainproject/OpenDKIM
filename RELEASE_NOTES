@@ -43,6 +43,9 @@ release, and a summary of the changes in that release.
 		Schulze.
 	BUILD: Patch #SF3555845: Add support for older versions of libcurl.
 		Based on a patch by Andreas Schulze.
+	LIBOPENDKIM: Feature request #SF3559744: Add library option
+		DKIM_OPTS_MINKEYBITS allowing one to specify a minimum
+		number of key bits for acceptable signatures.
 	LIBOPENDKIM: Fix bug #SF3559080: Log correct domains and selectors
 		with SSL errors.
 	STATS: Patch #SF3555841: Temporary table SQL correction.  Patch from
