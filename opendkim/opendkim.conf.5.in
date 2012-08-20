@@ -629,6 +629,12 @@ bytes of unsigned data appended to the message for it to be considered
 valid.
 
 .TP
+.I MinimumKeyBits (integer)
+Establishes a minimum key size for acceptable signatures.  Signatures with
+smaller key sizes, even if they otherwise pass DKIM validation, will me marked
+as invalid.  The default is 1024, which accepts all signatures.
+
+.TP
 .I Mode (string)
 Selects operating modes.  The string is a concatenation of characters that
 indicate which mode(s) of operation are desired.  Valid modes are

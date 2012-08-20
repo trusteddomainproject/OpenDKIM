@@ -118,6 +118,7 @@ struct configdef dkimf_config[] =
 	{ "MacroList",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MilterDebug",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "Minimum",			CONFIG_TYPE_STRING,	FALSE },
+	{ "MinimumKeyBits",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "MultipleSignatures",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "Mode",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MTA",			CONFIG_TYPE_STRING,	FALSE },
