@@ -4048,19 +4048,6 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 			sig->sig_error = DKIM_SIGERROR_TOOLARGE_L;
 	}
 
-	/*
-	**  If a signature has fewer than the minimum number of key bits
-	**  required by configuration, the signature is invalid.
-	*/
-
-	for (c = 0; c < dkim->dkim_sigcount; c++)
-	{
-		sig = dkim->dkim_siglist[c];
-
-		if (sig->sig_keybits < lib->dkiml_minkeybits)
-			sig->sig_error = DKIM_SIGERROR_KEYTOOSMALL;
-	}
-
 	/* invoke the final callback if defined */
 	if (lib->dkiml_final != NULL)
 	{
@@ -4118,6 +4105,19 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 				{
 					sig = NULL;
 					continue;
+				}
+
+				/*
+				**  If the signature has fewer than the
+				**  minimum number of key bits required by
+				**  configuration, the signature is invalid.
+				*/
+
+				if (sig->sig_error == 0 &&
+				    sig->sig_keybits < lib->dkiml_minkeybits)
+				{
+					sig->sig_error = DKIM_SIGERROR_KEYTOOSMALL;
+					sig->sig_flags &= ~DKIM_SIGFLAG_PASSED;
 				}
 
 				/* pass and bh match? */
