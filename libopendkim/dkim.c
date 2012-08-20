@@ -132,6 +132,7 @@ void dkim_error __P((DKIM *, const char *, ...));
 #define	SP			" "
 
 #define	DEFCLOCKDRIFT		300
+#define	DEFMINKEYBITS		1024
 #define	DEFTIMEOUT		10
 #define	MINSIGLEN		8
 
@@ -4388,6 +4389,7 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	libhandle->dkiml_fixedtime = 0;
 	libhandle->dkiml_sigttl = 0;
 	libhandle->dkiml_clockdrift = DEFCLOCKDRIFT;
+	libhandle->dkiml_minkeybits = DEFMINKEYBITS;
 
 	libhandle->dkiml_key_lookup = NULL;
 	libhandle->dkiml_policy_lookup = NULL;
