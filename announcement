@@ -10,6 +10,11 @@ of the fixes or features are critical, so upgrading is not mandatory.
 
 Among the major changes in this release:
 
+o The library will now decline to pass even a valid signature if the matching
+  public key is compirsed of too few bits, thus being insecure.  The default
+  is 1024.  This can be controlled through the API, and the settinv can also
+  be adjusted in the filter via the new "MinimumKeyBits" setting.
+
 o Per RFC6648, "X-" header fields are now discouraged.  Accordingly,
   we no longer generate (or expect) any.  This also means the "X-Header"
   configuration file item has been renamed to "SoftwareHeader".  Configuration
