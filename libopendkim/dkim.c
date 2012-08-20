@@ -4121,6 +4121,19 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 			sig->sig_error = DKIM_SIGERROR_TOOLARGE_L;
 	}
 
+	/*
+	**  If a signature has fewer than the minimum number of key bits
+	**  required by configuration, the signature is invalid.
+	*/
+
+	for (c = 0; c < dkim->dkim_sigcount; c++)
+	{
+		sig = dkim->dkim_siglist[c];
+
+		if (sig->sig_keybits < lib->dkiml_minkeybits)
+			sig->sig_error = DKIM_SIGERROR_KEYTOOSMALL;
+	}
+
 	/* invoke the final callback if defined */
 	if (lib->dkiml_final != NULL)
 	{
@@ -4201,8 +4214,7 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 	}
 
 	/*
-	**  If still none, we're going to fail so just use the
-	**  first one.
+	**  If still none, we're going to fail so just use the first one.
 	*/
 
 	if (sig == NULL)
@@ -4665,13 +4677,24 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 			return DKIM_STAT_INVALID;
 
 		if (op == DKIM_OP_GETOPT)
-		{
 			memcpy(ptr, &lib->dkiml_fixedtime, len);
-		}
 		else
-		{
 			memcpy(&lib->dkiml_fixedtime, ptr, len);
-		}
+
+		return DKIM_STAT_OK;
+
+	  case DKIM_OPTS_MINKEYBITS:
+		if (ptr == NULL)
+			return DKIM_STAT_INVALID;
+
+		if (len != sizeof lib->dkiml_minkeybits)
+			return DKIM_STAT_INVALID;
+
+		if (op == DKIM_OP_GETOPT)
+			memcpy(ptr, &lib->dkiml_minkeybits, len);
+		else
+			memcpy(&lib->dkiml_minkeybits, ptr, len);
+
 		return DKIM_STAT_OK;
 
 	  case DKIM_OPTS_SIGNATURETTL:
@@ -4682,13 +4705,10 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 			return DKIM_STAT_INVALID;
 
 		if (op == DKIM_OP_GETOPT)
-		{
 			memcpy(ptr, &lib->dkiml_sigttl, len);
-		}
 		else
-		{
 			memcpy(&lib->dkiml_sigttl, ptr, len);
-		}
+
 		return DKIM_STAT_OK;
 
 	  case DKIM_OPTS_CLOCKDRIFT:
@@ -4699,13 +4719,10 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 			return DKIM_STAT_INVALID;
 
 		if (op == DKIM_OP_GETOPT)
-		{
 			memcpy(ptr, &lib->dkiml_clockdrift, len);
-		}
 		else
-		{
 			memcpy(&lib->dkiml_clockdrift, ptr, len);
-		}
+
 		return DKIM_STAT_OK;
 
 	  case DKIM_OPTS_FLAGS:
@@ -4716,13 +4733,10 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 			return DKIM_STAT_INVALID;
 
 		if (op == DKIM_OP_GETOPT)
-		{
 			memcpy(ptr, &lib->dkiml_flags, len);
-		}
 		else
-		{
 			memcpy(&lib->dkiml_flags, ptr, len);
-		}
+
 		return DKIM_STAT_OK;
 
 	  case DKIM_OPTS_TIMEOUT:
@@ -4733,13 +4747,10 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 			return DKIM_STAT_INVALID;
 
 		if (op == DKIM_OP_GETOPT)
-		{
 			memcpy(ptr, &lib->dkiml_timeout, len);
-		}
 		else
-		{
 			memcpy(&lib->dkiml_timeout, ptr, len);
-		}
+
 		return DKIM_STAT_OK;
 
 	  case DKIM_OPTS_SENDERHDRS:
@@ -4927,13 +4938,10 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 			return DKIM_STAT_INVALID;
 
 		if (op == DKIM_OP_GETOPT)
-		{
 			memcpy(ptr, &lib->dkiml_querymethod, len);
-		}
 		else
-		{
 			memcpy(&lib->dkiml_querymethod, ptr, len);
-		}
+
 		return DKIM_STAT_OK;
 
 	  case DKIM_OPTS_QUERYINFO:

@@ -348,6 +348,7 @@ struct dkim_lib
 	u_int			dkiml_version;
 	u_int			dkiml_callback_int;
 	u_int			dkiml_flsize;
+	u_int			dkiml_minkeybits;
 	uint64_t		dkiml_fixedtime;
 	uint64_t		dkiml_sigttl;
 	uint64_t		dkiml_clockdrift;
