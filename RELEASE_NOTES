@@ -13,10 +13,6 @@ release, and a summary of the changes in that release.
 		use libunbound or a suitable version of BIND.
 	Feature request #SF3547124: Skip reputation checks on passing
 		signatures whose keys had a "t=y" value.
-	Feature request #SF3553918: Add "-u" flag to opendkim-atpszone and
-		opendkim-genzone enabling them to produce output suitable for
-		use as input to nsupdate(8).  Based on a suggestion by
-		Dave Crocker.
 	Feature request #SF3555842: Add "ReputationTest" setting.  Requested
 		by Andreas Schulze.
 	Feature request #SF3556439: Update opendkim-atpszone per RFC6541.
@@ -55,6 +51,10 @@ release, and a summary of the changes in that release.
 		with SSL errors.
 	STATS: Patch #SF3555841: Temporary table SQL correction.  Patch from
 		Andreas Schulze.
+	TOOLS: Feature request #SF3553918: Add "-u" flag to opendkim-atpszone
+		and opendkim-genzone enabling them to produce output suitable
+		for use as input to nsupdate(8).  Based on a suggestion by
+		Dave Crocker.
 	TOOLS: Feature request #SF3558818: Teach opendkim-testkey about the new
 		"ResolvConf" setting.  Based on a problem report from
 		Patrick Ben Koetter.
