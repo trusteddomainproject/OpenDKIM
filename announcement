@@ -6,13 +6,18 @@ The Trusted Domain Project announces availability of OpenDKIM v2.7.0, now
 available for download from SourceForge.
 
 This is a major release, with some new features and some bug fixes.  None
-of the fixes or features are critical, so upgrading is not mandatory.
+of the fixes or features are critical, so upgrading is not mandatory unless
+one of these changes resolves a current issue.
 
 Among the major changes in this release:
 
+o Support for libar (the provided asynchronous resolver library) has been
+  discontinued.  Instead, use either libunbound or a thread-safe version
+  of the BIND resolver.
+
 o The library will now decline to pass even a valid signature if the matching
   public key is compirsed of too few bits, thus being insecure.  The default
-  is 1024.  This can be controlled through the API, and the settinv can also
+  is 1024.  This can be controlled through the API, and the setting can also
   be adjusted in the filter via the new "MinimumKeyBits" setting.
 
 o Per RFC6648, "X-" header fields are now discouraged.  Accordingly,
