@@ -5,14 +5,14 @@ exampledir = @docdir@
 dist_example_DATA = mkdb.mysql
 
 dist_doc_DATA = README
-dist_bin_SCRIPTS = opendkim-expire opendkim-gengraphs opendkim-genstats \
+dist_sbin_SCRIPTS = opendkim-expire opendkim-gengraphs opendkim-genstats \
 	opendkim-reportstats
 
 man_MANS = opendkim-expire.8 opendkim-gengraphs.8 opendkim-genstats.8
 
 if USE_ODBX
 
-bin_PROGRAMS = opendkim-importstats
+sbin_PROGRAMS = opendkim-importstats
 
 opendkim_importstats_SOURCES = opendkim-importstats.c
 opendkim_importstats_CPPFLAGS = $(LIBODBX_CPPFLAGS) -I$(srcdir)/../libopendkim -I$(srcdir)/../opendkim
