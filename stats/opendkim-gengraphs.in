@@ -41,6 +41,7 @@ my $dbi_h;
 my $dbi_a;
 
 my $unsigned      = 1;
+my $circles       = 0;
 
 my $idx;
 my $tmpin;
@@ -115,7 +116,8 @@ sub usage
 }
 
 # parse command line arguments
-my $opt_retval = &Getopt::Long::GetOptions ('dbhost=s' => \$dbhost,
+my $opt_retval = &Getopt::Long::GetOptions ('circles! => \$circles,
+                                            'dbhost=s' => \$dbhost,
                                             'dbname=s' => \$dbname,
                                             'dbpasswd=s' => \$dbpasswd,
                                             'dbport=s' => \$dbport,
@@ -149,6 +151,15 @@ if ($showversion)
 }
 
 # apply defaults
+if ($circles)
+{
+	$circlestr = "with circles";
+}
+else
+{
+	$circlestr = "";
+}
+
 if (!defined($dbhost))
 {
 	if (defined($ENV{'OPENDKIM_DBHOST'}))
@@ -426,7 +437,7 @@ if (scalar @domains > 0)
 		print GNUPLOT "set terminal png size 800,600\n";
 		print GNUPLOT "set title '" . $domain . " received-spam scatter plot'\n";
 		print GNUPLOT "set output '$pngfile'\n";
-		print GNUPLOT "plot '$datafile' using 1:2:3 notitle with circles\n";
+		print GNUPLOT "plot '$datafile' using 1:2:3 notitle $circlestr\n";
 		close(GNUPLOT);
 
 		rename($pngfile, $reportdir . "/" . $domain . ".png");
@@ -521,7 +532,7 @@ if ($unsigned)
 	print GNUPLOT "set terminal png size 800,600\n";
 	print GNUPLOT "set title 'unsigned received-spam scatter plot'\n";
 	print GNUPLOT "set output '$pngfile'\n";
-	print GNUPLOT "plot '$datafile' using 1:2:3 notitle with circles\n";
+	print GNUPLOT "plot '$datafile' using 1:2:3 notitle $circlestr\n";
 	close(GNUPLOT);
 
 	rename($pngfile, $reportdir . "/unsigned.png");
