@@ -583,7 +583,7 @@ dkim_dstring_printf(struct dkim_dstring *dstr, char *fmt, ...)
 
 	va_start(ap, fmt);
 	va_copy(ap2, ap);
-	rem = dstr->ds_alloc - dstr-ds_len;
+	rem = dstr->ds_alloc - dstr->ds_len;
 	len = vsnprintf((char *) dstr->ds_buf + dstr->ds_len, rem, fmt, ap);
 	va_end(ap);
 
@@ -595,7 +595,7 @@ dkim_dstring_printf(struct dkim_dstring *dstr, char *fmt, ...)
 			return (size_t) -1;
 		}
 
-		rem = dstr->ds_alloc - dstr-ds_len;
+		rem = dstr->ds_alloc - dstr->ds_len;
 		len = vsnprintf((char *) dstr->ds_buf + dstr->ds_len, rem,
 		                fmt, ap2);
 	}
