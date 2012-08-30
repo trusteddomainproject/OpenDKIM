@@ -61,6 +61,9 @@ release, and a summary of the changes in that release.
 		dkim_dns_nslist(), dkim_dns_set_init(), dkim_dns_set_close(),
 		dkim_dns_set_nslist(), dkim_dns_set_config(),
 		dkim_dns_set_trustanchor(), dkim_dns_trustanchor().
+	LIBOPENDKIM: Patch #SF3562496: Add DKIM_OPTS_REQUIREDHDRS to allow
+		alteration of the mandatory header field set.  Patch from
+		Ken Murchison.
 	STATS: Fix bug #SF3555847: Add "--nocircles" to opendkim-gengraphs
 		to allow operation with versions of gnuplot that don't know
 		what "with circles" means.  Problem noted by Andreas

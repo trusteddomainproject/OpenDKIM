@@ -106,6 +106,16 @@ of the library's operation.
                                 containing a value which should override
                                 any <tt>q=</tt> value in signatures during
                                 verifications. </td></tr>
+           <tr valign="top"><td><tt>DKIM_OPTS_REQUIREDHDRS</tt></td>
+                            <td><tt>data</tt> refers to an ordered,
+                                NULL-terminated array of header field names
+				that should be considered mandatory when
+				determining the validity of an input message
+				for signing.  The default is to require a
+				<tt>From</tt> field only.  The caller's list
+				completely replaces this list.  If
+				<tt>data</tt> refers to a NULL pointer, the
+				default is restored. </td></tr>
            <tr valign="top"><td><tt>DKIM_OPTS_SENDERHDRS</tt></td>
                             <td><tt>data</tt> refers to an ordered,
                                 NULL-terminated array of header names which

@@ -258,7 +258,7 @@ const u_char *dkim_should_not_signhdrs[] =
 };
 
 /* required list of headers to sign */
-const u_char *required_signhdrs[] =
+const u_char *dkim_required_signhdrs[] =
 {
 	"from",
 	NULL
@@ -1220,9 +1220,11 @@ dkim_check_requiredhdrs(DKIM *dkim)
 	int c;
 	size_t len;
 	struct dkim_header *hdr;
+	u_char **required_signhdrs;
 
 	assert(dkim != NULL);
 
+	required_signhdrs = dkim->dkim_libhandle->dkiml_requiredhdrs;
 	for (c = 0; required_signhdrs[c] != NULL; c++)
 	{
 		found = FALSE;
@@ -1492,6 +1494,7 @@ dkim_sig_hdrlistok(DKIM *dkim, u_char *hdrlist)
 	int nh;
 	u_char *p;
 	u_char **ptrs;
+	u_char **required_signhdrs;;
 	u_char tmp[DKIM_MAXHEADER + 1];
 
 	assert(dkim != NULL);
@@ -1543,6 +1546,7 @@ dkim_sig_hdrlistok(DKIM *dkim, u_char *hdrlist)
 	}
 
 	/* verify that each required header was represented */
+	required_signhdrs = dkim->dkim_libhandle->dkiml_requiredhdrs;
 	for (d = 0; ; d++)
 	{
 		if (required_signhdrs[d] == NULL)
@@ -4356,6 +4360,7 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	libhandle->dkiml_flags = DKIM_LIBFLAGS_DEFAULT;
 	libhandle->dkiml_timeout = DEFTIMEOUT;
 	libhandle->dkiml_senderhdrs = (u_char **) dkim_default_senderhdrs;
+	libhandle->dkiml_requiredhdrs = (u_char **) dkim_required_signhdrs;
 	libhandle->dkiml_oversignhdrs = NULL;
 	libhandle->dkiml_mbs = NULL;
 	libhandle->dkiml_querymethod = DKIM_QUERY_UNKNOWN;
@@ -4459,6 +4464,9 @@ dkim_close(DKIM_LIB *lib)
 
 	if (lib->dkiml_senderhdrs != (u_char **) dkim_default_senderhdrs)
 		dkim_clobber_array((char **) lib->dkiml_senderhdrs);
+
+	if (lib->dkiml_requiredhdrs != (u_char **) dkim_required_signhdrs)
+		dkim_clobber_array((char **) lib->dkiml_requiredhdrs);
 
 	if (lib->dkiml_mbs != NULL)
 		dkim_clobber_array((char **) lib->dkiml_mbs);
@@ -4697,6 +4705,36 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		}
 		return DKIM_STAT_OK;
 
+	  case DKIM_OPTS_REQUIREDHDRS:
+		if (len != sizeof lib->dkiml_requiredhdrs)
+			return DKIM_STAT_INVALID;
+
+		if (op == DKIM_OP_GETOPT)
+		{
+			memcpy(ptr, &lib->dkiml_requiredhdrs, len);
+		}
+		else if (ptr == NULL)
+		{
+			if (lib->dkiml_requiredhdrs != (u_char **) dkim_required_signhdrs)
+				dkim_clobber_array((char **) lib->dkiml_requiredhdrs);
+
+			lib->dkiml_requiredhdrs = (u_char **) dkim_required_signhdrs;
+		}
+		else
+		{
+			const char **tmp;
+
+			tmp = dkim_copy_array(ptr);
+			if (tmp == NULL)
+				return DKIM_STAT_NORESOURCE;
+
+			if (lib->dkiml_requiredhdrs != (u_char **) dkim_required_signhdrs)
+				dkim_clobber_array((char **) lib->dkiml_requiredhdrs);
+
+			lib->dkiml_requiredhdrs = (u_char **) tmp;
+		}
+		return DKIM_STAT_OK;
+
 	  case DKIM_OPTS_OVERSIGNHDRS:
 		if (len != sizeof lib->dkiml_oversignhdrs)
 			return DKIM_STAT_INVALID;
@@ -4764,6 +4802,7 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		{
 			int status;
 			u_char **hdrs;
+			u_char **required_signhdrs;
 			char buf[BUFRSZ + 1];
 
 			if (lib->dkiml_signre)
@@ -4778,6 +4817,7 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 
 			(void) strlcpy(buf, "^(", sizeof buf);
 
+			required_signhdrs = lib->dkiml_requiredhdrs;
 			if (!dkim_hdrlist((u_char *) buf, sizeof buf,
 			                  (u_char **) required_signhdrs, TRUE))
 				return DKIM_STAT_INVALID;
