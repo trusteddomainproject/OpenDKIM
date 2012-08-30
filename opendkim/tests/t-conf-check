@@ -4,6 +4,8 @@
 # 
 # Configuration validity check
 
+echo "*** configuration validity checks"
+
 if [ x"$srcdir" = x"" ]
 then
 	srcdir=`pwd`
