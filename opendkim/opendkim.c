@@ -383,9 +383,6 @@ struct dkimf_config
 	char *		conf_nslist;		/* replacement NS list */
 	char *		conf_trustanchorpath;	/* trust anchor file */
 	char *		conf_resolverconfig;	/* resolver config file */
-#ifdef USE_UNBOUND
-	struct dkimf_unbound * conf_unbound;	/* libunbound handle */
-#endif /* USE_UNBOUND */
 #ifdef _FFR_VBR
 	char *		conf_vbr_deftype;	/* default VBR type */
 	char *		conf_vbr_defcert;	/* default VBR certifiers */
@@ -1364,10 +1361,8 @@ dkimf_xs_rblcheck(lua_State *l)
 		timeout = lua_tonumber(l, 4);
 	lua_pop(l, lua_gettop(l));
 
-#  ifdef USE_UNBOUND
-	if (cc == NULL || cc->cctx_config->conf_unbound == NULL)
+	if (cc == NULL)
 		return 0;
-#  endif /* USE_UNBOUND */
 
 	rbl = rbl_init(NULL, NULL, NULL);
 	if (rbl == NULL)
