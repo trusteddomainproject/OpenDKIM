@@ -117,7 +117,7 @@ if (isset($use_json) && $use_json == 1)
 	printf("\t\"rater-authenticity\": 1.0,\n");
 	printf("\t\"assertion\": \"SPAM\",\n");
 	printf("\t\"identity\": \"DKIM\",\n");
-	printf("\t\"rate\": $rate\n");
+	printf("\t\"rate\": $rate,\n");
 	printf("\t\"rated\": \"$subject\",\n");
 	printf("\t\"rating\": $rating,\n");
 	printf("\t\"sample-size\": $samples,\n");
