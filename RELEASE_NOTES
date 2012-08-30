@@ -11,6 +11,11 @@ release, and a summary of the changes in that release.
 	Feature request #SF3544764: Support for libar has been discontinued.
 		For asynchronous and/or thread-safe resolver service,
 		use libunbound or a suitable version of BIND.
+	Feature request #SF3545658: Replace "ResolvConf" with "Nameservers"
+		and add support for NS list overrides for versions of bind
+		that have res_setservers().  Also rename "UnboundConfigFile"
+		to "ResolverConfigFile", and make "TrustAnchorFile" generally
+		available.
 	Feature request #SF3547124: Skip reputation checks on passing
 		signatures whose keys had a "t=y" value.
 	Feature request #SF3555842: Add "ReputationTest" setting.  Requested
@@ -21,11 +26,6 @@ release, and a summary of the changes in that release.
 		acceptable signatures.  This is exposed through new
 		configuration file option "MinimumKeyBits".  The default
 		is 1024.
-	Feature request #SF3545658: Replace "ResolvConf" with "Nameservers"
-		and add support for NS list overrides for versions of bind
-		that have res_setservers().  Also rename "UnboundConfigFile"
-		to "ResolverConfigFile", and make "TrustAnchorFile" generally
-		available.
 	Fix bug #SF3536414: Activate _FFR_OVERSIGN, and remove
 		DKIM_OPTS_ALWAYSHDRS.
 	Fix bug #SF3536655: Rename "X-Header" to "SoftwareHeader", and rename
