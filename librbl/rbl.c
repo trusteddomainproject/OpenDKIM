@@ -842,6 +842,11 @@ rbl_query_start(RBL *rbl, u_char *query, void **qh)
 
 	memset(rq, '\0', sizeof *rq);
 
+	if (rbl->rbl_dns_service == NULL &&
+	    rbl->rbl_dns_init != NULL &&
+	    rbl->rbl_dns_init(&rbl->rbl_dns_service) != 0)
+		return RBL_STAT_DNSERROR;
+
 	status = rbl->rbl_dns_start(rbl->rbl_dns_service, T_A, rblquery,
 	                            rq->rq_buf, sizeof rq->rq_buf, &rq->rq_qh);
 
