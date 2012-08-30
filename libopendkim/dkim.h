@@ -1773,6 +1773,163 @@ extern void dkim_dns_set_query_waitreply __P((DKIM_LIB *,
                                                       int *)));
 
 /*
+**  DKIM_DNS_SET_INIT -- initializes the resolver
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to initialize the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void **srv -- DNS service handle (updated)
+*/
+
+extern void dkim_dns_set_init __P((DKIM_LIB *,
+                                   int (*)(void **)));
+
+/*
+**  DKIM_DNS_SET_CLOSE -- shuts down the resolver
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to shut down the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns void
+**  		void *srv -- DNS service handle
+*/
+
+extern void dkim_dns_set_close __P((DKIM_LIB *,
+                                    void (*)(void *)));
+
+/*
+**  DKIM_DNS_SET_NSLIST -- set function that updates resolver nameserver list
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to update the nameserver list
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int
+**  		void *srv -- DNS service handle
+**  		const char *nslist -- nameserver list, as a comma-separated
+**  			string
+*/
+
+extern void dkim_dns_set_nslist __P((DKIM_LIB *,
+                                     int (*)(void *, const char *)));
+
+/*
+**  DKIM_DNS_SET_CONFIG -- set function that passes configuration data to
+**                         the active resolver
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to configure the active resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int
+**  		void *srv -- DNS service handle
+**  		const char *config -- arbitrary configuration data
+*/
+
+extern void dkim_dns_set_config __P((DKIM_LIB *,
+                                     int (*)(void *, const char *)));
+
+/*
+**  DKIM_DNS_SET_TRUSTANCHOR -- set function that passes trust anchor data to
+**                              the active resolver
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to pass trust anchor data to the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int
+**  		void *srv -- DNS service handle
+**  		const char *trustanchor -- arbitrary trust anchor data
+*/
+
+extern void dkim_dns_set_trustanchor __P((DKIM_LIB *,
+                                          int (*)(void *, const char *)));
+
+/*
+**  DKIM_DNS_NSLIST -- update resolver nameserver list
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	nslist -- comma-separated nameserver list, as IP addresses
+**
+**  Return value:
+**  	A DKIM_DNS_* constant.
+**
+**  Notes:
+**  	The underlying API may not return a failure status, in which case
+**  	this always returns DKIM_DNS_SUCCESS.  The underlying API might also
+**  	not use all of the nameservers provided.
+*/
+
+extern int dkim_dns_nslist __P((DKIM_LIB *, const char *));
+
+/*
+**  DKIM_DNS_INIT -- force resolver (re)initialization
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**
+**  Return value:
+**  	A DKIM_DNS_* constant.
+*/
+
+extern int dkim_dns_init __P((DKIM_LIB *));
+
+/*
+**  DKIM_DNS_CONFIG -- requests a change to resolver configuration
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	config -- opaque configuration string
+**
+**  Return value:
+**  	A DKIM_DNS_* constant.
+*/
+
+extern int dkim_dns_config __P((DKIM_LIB *, const char *));
+
+/*
+**  DKIM_DNS_TRUSTANCHOR -- requests a change to trust anchor configuration
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	trust -- opaque trust anchor string
+**
+**  Return value:
+**  	A DKIM_DNS_* constant.
+*/
+
+extern int dkim_dns_trustanchor __P((DKIM_LIB *, const char *));
+
+/*
 **  DKIM_ADD_XTAG -- add an extension tag/value
 **
 **  Parameters:

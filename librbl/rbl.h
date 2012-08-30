@@ -289,4 +289,103 @@ extern void rbl_dns_set_query_waitreply __P((RBL *,
                                                      size_t *, int *,
                                                      int *)));
 
+/*
+**  RBL_DNS_SET_NSLIST -- set function that updates resolver nameserver list
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**  	func -- function to use to update the nameserver list
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int
+**  		void *srv -- DNS service handle
+**  		const char *nslist -- nameserver list, as a comma-separated
+**  			string
+*/
+
+extern void rbl_dns_set_nslist __P((RBL *,
+                                    int (*)(void *, const char *)));
+
+/*
+**  RBL_DNS_SET_CLOSE -- shuts down the resolver
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**  	func -- function to use to shut down the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns void
+**  		void *srv -- DNS service handle
+*/
+
+extern void rbl_dns_set_close __P((RBL *,
+                                   void (*)(void *)));
+
+/*
+**  RBL_DNS_SET_INIT -- initializes the resolver
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**  	func -- function to use to initialize the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void **srv -- DNS service handle (updated)
+*/
+
+extern void rbl_dns_set_init __P((RBL *,
+                                  int (*)(void **)));
+
+/*
+**  RBL_DNS_SET_CONFIG -- configures the resolver
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**  	func -- function to use to configure the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *srv -- DNS service handle
+**  		const char *config -- arbitrary resolver configuration data
+*/
+
+extern void rbl_dns_set_config __P((RBL *,
+                                    int (*)(void *, const char *)));
+
+/*
+**  RBL_DNS_SET_TRUSTANCHOR -- provides trust anchor data to the resolver
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**  	func -- function to use to pass trust anchor data to the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *srv -- DNS service handle
+**  		const char *trust -- arbitrary trust anchor data
+*/
+
+extern void rbl_dns_set_trustanchor __P((RBL *,
+                                         int (*)(void *, const char *)));
+
 #endif /* _RBL_H_ */

@@ -197,6 +197,15 @@ dkim_get_policy_dns_excheck(DKIM *dkim, unsigned char *query, int *qstatus)
 	timeout.tv_sec = dkim->dkim_timeout;
 	timeout.tv_usec = 0;
 
+	if (lib->dkiml_dns_service == NULL &&
+	    lib->dkiml_dns_init != NULL &&
+	    lib->dkiml_dns_init(&lib->dkiml_dns_service) != 0)
+	{
+		dkim_error(dkim, "resolver initialization failed for '%s'",
+		           query);
+		return -1;
+	}
+
 	anslen_a = sizeof ansbuf_a;
 	status = lib->dkiml_dns_start(lib->dkiml_dns_service, T_A, query,
 	                              ansbuf_a, anslen_a, &q_a);
@@ -439,6 +448,16 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 		timeout.tv_usec = 0;
 
 		anslen = sizeof ansbuf;
+
+		if (lib->dkiml_dns_service == NULL &&
+		    lib->dkiml_dns_init != NULL &&
+		    lib->dkiml_dns_init(&lib->dkiml_dns_service) != 0)
+		{
+			dkim_error(dkim,
+			           "resolver initialization failed for '%s'",
+			           query);
+			return -1;
+		}
 
 		status = lib->dkiml_dns_start(lib->dkiml_dns_service,
 		                              T_TXT, query,

@@ -33,25 +33,21 @@ struct dkimf_filedns;
 /* libunbound includes */
 # include <unbound.h>
 
-/* data types */
-struct dkimf_unbound;
-
 /* prototypes */
-extern int dkimf_unbound_add_conffile __P((struct dkimf_unbound *, char *));
-extern int dkimf_unbound_add_resolvconf __P((struct dkimf_unbound *, char *));
-extern int dkimf_unbound_add_trustanchor __P((struct dkimf_unbound *, char *));
-extern int dkimf_unbound_close __P((struct dkimf_unbound *));
-extern int dkimf_unbound_init __P((struct dkimf_unbound **));
-extern int dkimf_unbound_setup __P((DKIM_LIB *, struct dkimf_unbound *));
+extern int dkimf_unbound_setup __P((DKIM_LIB *));
 # ifdef _FFR_RBL
-extern int dkimf_rbl_unbound_setup __P((RBL *, struct dkimf_unbound *));
+extern int dkimf_rbl_unbound_setup __P((RBL *));
 # endif /* _FFR_RBL */
 # ifdef _FFR_DKIM_REPUTATION
-extern int dkimf_rep_unbound_setup __P((DKIM_REP, struct dkimf_unbound *));
+extern int dkimf_rep_unbound_setup __P((DKIM_REP));
 # endif /* _FFR_DKIM_REPUTATION */
 #endif /* USE_UNBOUND */
 
 extern int dkimf_filedns_free __P((struct dkimf_filedns *));
 extern int dkimf_filedns_setup __P((DKIM_LIB *, DKIMF_DB));
+
+extern int dkimf_dns_config __P((DKIM_LIB *, const char *));
+extern int dkimf_dns_setnameservers __P((DKIM_LIB *, const char *));
+extern int dkimf_dns_trustanchor __P((DKIM_LIB *, const char *));
 
 #endif /* _OPENDKIM_DNS_H_ */

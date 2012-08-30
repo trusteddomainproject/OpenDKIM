@@ -124,6 +124,7 @@ struct configdef dkimf_config[] =
 	{ "MTA",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MTACommand",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MustBeSigned",		CONFIG_TYPE_STRING,	FALSE },
+	{ "Nameservers",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_ADSP_LISTS
 	{ "NoDiscardableMailTo",	CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_ADSP_LISTS */
@@ -186,9 +187,7 @@ struct configdef dkimf_config[] =
 	{ "ResignAll",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ResignMailTo",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_RESIGN */
-#ifdef USE_UNBOUND
-	{ "ResolvConf",			CONFIG_TYPE_STRING,	FALSE },
-#endif /* USE_UNBOUND */
+	{ "ResolverConfigFile",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ResolverTracing",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef USE_LUA
 	{ "ScreenPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
@@ -229,14 +228,9 @@ struct configdef dkimf_config[] =
 	{ "TemporaryDirectory",		CONFIG_TYPE_STRING,	FALSE },
 	{ "TestDNSData",		CONFIG_TYPE_STRING,	FALSE },
 	{ "TestPublicKeys",		CONFIG_TYPE_STRING,	FALSE },
-#ifdef USE_UNBOUND
 	{ "TrustAnchorFile",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* USE_UNBOUND */
 	{ "TrustSignaturesFrom",	CONFIG_TYPE_STRING,	FALSE },
 	{ "UMask",			CONFIG_TYPE_INTEGER,	FALSE },
-#ifdef USE_UNBOUND
-	{ "UnboundConfigFile",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* USE_UNBOUND */
 	{ "UserID",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_VBR
 	{ "VBR-Certifiers",		CONFIG_TYPE_STRING,	FALSE },

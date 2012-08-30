@@ -689,6 +689,15 @@ present in the message and is not signed, the filter will treat even
 an otherwise valid signature as invalid.  The default is an empty list.
 
 .TP
+.I Nameservers (string)
+Provides a comma-separated list of IP addresses that are to be used when
+doing DNS queries to retrieve DKIM keys, ADSP policies, VBR records, etc.
+These override any local defaults built in to the resolver in use, which
+may be defined in
+.I /etc/resolv.conf
+or hard-coded into the software.
+
+.TP
 .I NoHeaderB (Boolean)
 If set, this feature suppresses the use of "header.b" tags in added
 Authentication-Results header fields.  The default is "false", which means
@@ -938,12 +947,11 @@ the default key is applied.
 @RESIGN_MANNOTICE@
 
 .TP
-.I ResolvConf (string)
-Specifies a file from which a list of nameservers should be read when doing
-DNS queries and applying the DNSSEC protocol.  The file should be formatted
-as described in
-.I resolv.conf(5).  See the documentation at http://unbound.net for details.
-@UNBOUND_MANNOTICE@
+.I ResolverConfig (string)
+Provides the given string as configuration information to the underlying
+resolver.  For the standard UNIX resolver, this is unused; for Unbound,
+the string contains a filename that is considered to be a configuration file.
+There is no default.
 
 .TP
 .I ResolverTracing (Boolean)
@@ -1236,9 +1244,9 @@ during automated testing.
 .TP
 .I TrustAnchorFile (string)
 Specifies a file from which trust anchor data should be read when doing
-DNS queries and applying the DNSSEC protocol.  See the Unbound documentation
+DNS queries and applying the DNSSEC protocol.  This is currently ignored unless
+the underlying library is compiled to use Unbound; see the documentation at
 at http://unbound.net for the expected format of this file.
-@UNBOUND_MANNOTICE@
 
 .TP
 .I TrustSignaturesFrom (dataset)

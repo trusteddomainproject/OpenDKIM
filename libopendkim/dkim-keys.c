@@ -136,6 +136,14 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		timeout.tv_sec = dkim->dkim_timeout;
 		timeout.tv_usec = 0;
 
+		if (lib->dkiml_dns_service == NULL &&
+		    lib->dkiml_dns_init != NULL &&
+		    lib->dkiml_dns_init(&lib->dkiml_dns_service) != 0)
+		{
+			dkim_error(dkim, "cannot initialize resolver");
+			return DKIM_STAT_KEYFAIL;
+		}
+
 		status = lib->dkiml_dns_start(lib->dkiml_dns_service, T_TXT,
 		                              qname, ansbuf, anslen, &q);
 

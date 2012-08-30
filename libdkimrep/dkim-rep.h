@@ -210,6 +210,79 @@ extern void dkim_rep_setdnscallback __P((DKIM_REP, void (*)(const void *)));
 extern void *dkim_rep_dns_set_query_service __P((DKIM_REP, void *));
 
 /*
+**  DKIM_REP_DNS_SET_INIT -- stores a function used to initialize a resolver
+**                           and return an instance handle
+**
+**  Parameters:
+**  	dkim_rep -- DKIM_REP library handle
+**  	func -- function to be used
+**
+**  Return value:
+**  	None.
+*/
+
+extern void dkim_rep_dns_set_init __P((DKIM_REP, int (*)(void **)));
+
+/*
+**  DKIM_REP_DNS_SET_CLOSE -- stores a function used to shut down a resolver
+**
+**  Parameters:
+**  	dkim_rep -- DKIM_REP library handle
+**  	func -- function to be used
+**
+**  Return value:
+**  	None.
+*/
+
+extern void dkim_rep_dns_set_close __P((DKIM_REP, void (*)(void *)));
+
+/*
+**  DKIM_REP_DNS_SET_NSLIST -- stores a function used to provide a new set
+**                             of nameservers to a running resolver
+**
+**  Parameters:
+**  	dkim_rep -- DKIM_REP library handle
+**  	func -- function to be used
+**
+**  Return value:
+**  	None.
+*/
+
+extern void dkim_rep_dns_set_nslist __P((DKIM_REP,
+                                         int (*)(void *, const char *)));
+
+/*
+**  DKIM_REP_DNS_SET_CONFIG -- stores a function used to provide arbitrary
+**                             configuration information to a running resolver
+**
+**  Parameters:
+**  	dkim_rep -- DKIM_REP library handle
+**  	func -- function to be used
+**
+**  Return value:
+**  	None.
+*/
+
+extern void dkim_rep_dns_set_config __P((DKIM_REP,
+                                         int (*)(void *, const char *)));
+
+/*
+**  DKIM_REP_DNS_SET_TRUSTANCHOR -- stores a function used to provide arbitrary
+**                                  trust anchor information to a running
+**                                  resolver
+**
+**  Parameters:
+**  	dkim_rep -- DKIM_REP library handle
+**  	func -- function to be used
+**
+**  Return value:
+**  	None.
+*/
+
+extern void dkim_rep_dns_set_trustanchor __P((DKIM_REP,
+                                              int (*)(void *, const char *)));
+
+/*
 **  DKIM_REP_DNS_SET_QUERY_START -- stores a pointer to a query start function
 **
 **  Parameters:

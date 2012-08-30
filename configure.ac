@@ -97,6 +97,9 @@ AC_SEARCH_LIBS(getaddrinfo, resolv,
 AC_SEARCH_LIBS(res_ninit, resolv,
                AC_DEFINE(HAVE_RES_NINIT, 1,
                          [Define to 1 if you have the `res_ninit()' function.]))
+AC_SEARCH_LIBS(res_sertservers, resolv bind,
+               AC_DEFINE(HAVE_RES_SETSERVERS, 1,
+                         [Define to 1 if you have the `res_setservers()' function.]))
 
 
 AC_HEADER_RESOLV

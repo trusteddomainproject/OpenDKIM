@@ -389,12 +389,19 @@ struct dkim_lib
 				                int nsigs);
 	void			(*dkiml_dns_callback) (const void *context);
 	void			*dkiml_dns_service;
+	int			(*dkiml_dns_init) (void **srv);
+	void			(*dkiml_dns_close) (void *srv);
 	int			(*dkiml_dns_start) (void *srv, int type,
 				                    unsigned char *query,
 				                    unsigned char *buf,
 				                    size_t buflen,
 				                    void **qh);
 	int			(*dkiml_dns_cancel) (void *srv, void *qh);
+	int			(*dkiml_dns_setns) (void *srv, const char *ns);
+	int			(*dkiml_dns_config) (void *srv,
+				                     const char *conf);
+	int			(*dkiml_dns_trustanchor) (void *srv,
+				                          const char *ta);
 	int			(*dkiml_dns_waitreply) (void *srv,
 				                        void *qh,
 				                        struct timeval *to,

@@ -21,6 +21,11 @@ release, and a summary of the changes in that release.
 		acceptable signatures.  This is exposed through new
 		configuration file option "MinimumKeyBits".  The default
 		is 1024.
+	Feature request #SF3545658: Replace "ResolvConf" with "Nameservers"
+		and add support for NS list overrides for versions of bind
+		that have res_setservers().  Also rename "UnboundConfigFile"
+		to "ResolverConfigFile", and make "TrustAnchorFile" generally
+		available.
 	Fix bug #SF3536414: Activate _FFR_OVERSIGN, and remove
 		DKIM_OPTS_ALWAYSHDRS.
 	Fix bug #SF3536655: Rename "X-Header" to "SoftwareHeader", and rename
@@ -49,6 +54,14 @@ release, and a summary of the changes in that release.
 		by Andreas Schulze.
 	LIBOPENDKIM: Fix bug #SF3559080: Log correct domains and selectors
 		with SSL errors.
+	LIBOPENDKIM: Add DNS functions dkim_dns_config(), dkim_dns_init(),
+		dkim_dns_nslist(), dkim_dns_set_init(), dkim_dns_set_close(),
+		dkim_dns_set_nslist(), dkim_dns_set_config(),
+		dkim_dns_set_trustanchor(), dkim_dns_trustanchor().
+	STATS: Fix bug #SF3555847: Add "--nocircles" to opendkim-gengraphs
+		to allow operation with versions of gnuplot that don't know
+		what "with circles" means.  Problem noted by Andreas
+		Schulze.
 	STATS: Patch #SF3555841: Temporary table SQL correction.  Patch from
 		Andreas Schulze.
 	TOOLS: Feature request #SF3553918: Add "-u" flag to opendkim-atpszone

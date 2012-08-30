@@ -85,6 +85,12 @@ struct dkim_rep_handle
 			                  size_t buflen,
 			                  void **qh);
 	int		(*dkim_rep_dns_cancel) (void *srv, void *qh);
+	int		(*dkim_rep_dns_init) (void **srv);
+	int		(*dkim_rep_dns_close) (void *srv);
+	int		(*dkim_rep_dns_config) (void *srv, const char *config);
+	int		(*dkim_rep_dns_setns) (void *srv, const char *nslist);
+	int		(*dkim_rep_dns_trustanchor) (void *srv,
+			                             const char *trust);
 	int		(*dkim_rep_dns_waitreply) (void *srv,
 			                      void *qh,
 			                      struct timeval *to,
@@ -567,6 +573,15 @@ dkim_rep_query_start(DKIM_REP dr, u_char *user, u_char *domain,
 
 	anslen = sizeof ansbuf;
 
+	if (dr->dkim_rep_dns_service == NULL &&
+	    dr->dkim_rep_dns_init != NULL &&
+	    dr->dkim_rep_dns_init(&dr->dkim_rep_dns_service) != 0)
+	{
+		snprintf(dr->dkim_rep_error, sizeof dr->dkim_rep_error,
+		         "failed to initialize resolver");
+		return DKIM_REP_STAT_ERROR;
+	}
+
 	status = dr->dkim_rep_dns_start(dr->dkim_rep_dns_service, T_TXT,
 	                                query, q->drq_buf, sizeof q->drq_buf,
 	                                &rq);
@@ -966,6 +981,131 @@ dkim_rep_setdnscallback(DKIM_REP dr, void (*func)(const void *))
 	assert(dr != NULL);
 
 	dr->dkim_rep_dns_callback = func;
+}
+
+/*
+**  DKIM_REP_DNS_SET_INIT -- stores a pointer to a resolver init function
+**
+**  Parameters:
+**  	dr -- DKIM_REP library handle
+**  	func -- function to use to initialize the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void **srv -- DNS service handle (updated)
+*/
+
+void
+dkim_rep_dns_set_init(DKIM_REP dr, int (*func)(void **))
+{
+	assert(dr != NULL);
+
+	dr->dkim_rep_dns_init = func;
+}
+
+/*
+**  DKIM_REP_DNS_SET_CLOSE -- stores a pointer to a resolver shutdown function
+**
+**  Parameters:
+**  	dr -- DKIM_REP library handle
+**  	func -- function to use to close the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns void
+**  		void *srv -- DNS service handle
+*/
+
+void
+dkim_rep_dns_set_close(DKIM_REP dr, void (*func)(void *))
+{
+	assert(dr != NULL);
+
+	dr->dkim_rep_dns_close = func;
+}
+
+/*
+**  DKIM_REP_DNS_SET_NSLIST -- stores a pointer to a NS list update function
+**
+**  Parameters:
+**  	dr -- DKIM_REP library handle
+**  	func -- function to use to update NS list
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int
+**  		void *dns -- DNS service handle
+**  		const char *nslist -- comma-separated list of nameservers
+*/
+
+void
+dkim_rep_dns_set_nslist(DKIM_REP dr, int (*func)(void *, const char *))
+{
+	assert(dr != NULL);
+
+	dr->dkim_rep_dns_setns = func;
+}
+
+/*
+**  DKIM_REP_DNS_SET_CONFIG -- stores a pointer to a resolver configuration
+**                             update function
+**
+**  Parameters:
+**  	dr -- DKIM_REP library handle
+**  	func -- function to use to update resolver configuration
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int
+**  		void *dns -- DNS service handle
+**  		const char *config -- arbitrary resolver configuration data
+*/
+
+void
+dkim_rep_dns_set_config(DKIM_REP dr, int (*func)(void *, const char *))
+{
+	assert(dr != NULL);
+
+	dr->dkim_rep_dns_config = func;
+}
+
+/*
+**  DKIM_REP_DNS_SET_TRUSTANCHOR -- stores a pointer to a trust anchor update
+**                                  function
+**
+**  Parameters:
+**  	dr -- DKIM_REP library handle
+**  	func -- function to use to update trust anchor data
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int
+**  		void *dns -- DNS service handle
+**  		const char *trust -- arbitrary trust anchor data
+*/
+
+void
+dkim_rep_dns_set_trustanchor(DKIM_REP dr, int (*func)(void *, const char *))
+{
+	assert(dr != NULL);
+
+	dr->dkim_rep_dns_trustanchor = func;
 }
 
 /*

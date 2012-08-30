@@ -222,14 +222,12 @@ main(int argc, char **argv)
 	int dnssec;
 	char *key = NULL;
 	char *dataset = NULL;
+	char *nslist = NULL;
 	char *conffile = NULL;
 	char *p;
 	DKIM_LIB *lib;
-#ifdef USE_UNBOUND
 	char *trustanchor = NULL;
-	char *ubconfig = NULL;
-	char *resolvconf = NULL;
-#endif /* USE_UNBOUND */
+	char *nsconfig = NULL;
 	struct stat s;
 	char err[BUFRSZ];
 	char domain[BUFRSZ];
@@ -388,47 +386,15 @@ main(int argc, char **argv)
 		                        ldap_binduser);
 #endif /* USE_LDAP */
 
-#ifdef USE_UNBOUND
 		(void) config_get(cfg, "TrustAnchorFile",
 		                  &trustanchor, sizeof trustanchor);
 
-		(void) config_get(cfg, "UnboundConfigFile",
-		                  &ubconfig, sizeof ubconfig);
+		(void) config_get(cfg, "ResolverConfigFile",
+		                  &nsconfig, sizeof nsconfig);
 
-		(void) config_get(cfg, "ResolvConf",
-		                  &resolvconf, sizeof resolvconf);
-#endif /* USE_UNBOUND */
+		(void) config_get(cfg, "Nameservers",
+		                  &nslist, sizeof nslist);
 	}
-
-#ifdef USE_UNBOUND
-	if (dkimf_unbound_init(&unbound) != 0)
-	{
-		fprintf(stderr, "%s: failed to initialize libunbound\n",
-		        progname);
-		(void) free(key);
-		return EX_SOFTWARE;
-	}
-
-	if (resolvconf != NULL)
-	{
-		if (access(resolvconf, R_OK) != 0)
-		{
-			fprintf(stderr, "%s: %s: access(): %s\n",
-			        progname, resolvconf, strerror(errno));
-			(void) free(key);
-			return EX_NOPERM;
-		}
-
-		status = dkimf_unbound_add_resolvconf(unbound, resolvconf);
-		if (status != DKIM_STAT_OK)
-		{
-			fprintf(stderr, "%s: failed to process %s\n",
-			        progname, resolvconf);
-			(void) free(key);
-			return EX_SOFTWARE;
-		}
-	}
-#endif /* USE_UNBOUND */
 
 	lib = dkim_init(NULL, NULL);
 	if (lib == NULL)
@@ -438,42 +404,47 @@ main(int argc, char **argv)
 		return EX_OSERR;
 	}
 
-#ifdef USE_UNBOUND
-	if (unbound != NULL)
+	if (dkim_dns_init(lib) != DKIM_STAT_OK)
 	{
- 		if (trustanchor != NULL)
-		{
-			status = dkimf_unbound_add_trustanchor(unbound,
-			                                       trustanchor);
-			if (status != DKIM_STAT_OK)
-			{
-				fprintf(stderr,
-				        "%s: failed to set trust anchor\n",
-				        progname);
-
-				(void) free(key);
-				return EX_OSERR;
-			}
-		}
-
- 		if (ubconfig != NULL)
-		{
-			status = dkimf_unbound_add_conffile(unbound,
-			                                    ubconfig);
-			if (status != DKIM_STAT_OK)
-			{
-				fprintf(stderr,
-				        "%s: failed to set unbound configuration file\n",
-				        progname);
-
-				(void) free(key);
-				return EX_OSERR;
-			}
-		}
-
-		(void) dkimf_unbound_setup(lib, unbound);
+		fprintf(stderr, "%s: dkim_dns_init() failed\n", progname);
+		(void) free(key);
+		return EX_SOFTWARE;
 	}
+
+#ifdef USE_UNBOUND
+	(void) dkimf_unbound_setup(lib);
 #endif /* USE_UNBOUND */
+
+	if (nslist != NULL)
+		status = dkimf_dns_setnameservers(lib, nslist);
+
+	if (trustanchor != NULL)
+	{
+		status = dkimf_dns_trustanchor(lib, trustanchor);
+		if (status != DKIM_STAT_OK)
+		{
+			fprintf(stderr,
+			        "%s: failed to set trust anchor\n",
+			        progname);
+
+			(void) free(key);
+			return EX_OSERR;
+		}
+	}
+
+	if (nsconfig != NULL)
+	{
+		status = dkimf_dns_config(lib, nsconfig);
+		if (status != DKIM_STAT_OK)
+		{
+			fprintf(stderr,
+			        "%s: failed to set unbound configuration file\n",
+			        progname);
+
+			(void) free(key);
+			return EX_OSERR;
+		}
+	}
 
 	memset(err, '\0', sizeof err);
 

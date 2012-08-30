@@ -380,10 +380,10 @@ struct dkimf_config
 	DKIMF_DB	conf_rephdrsdb;		/* replacement headers (DB) */
 #endif /* _FFR_REPLACE_RULES */
 	dkim_sigkey_t	conf_seckey;		/* secret key data */
+	char *		conf_nslist;		/* replacement NS list */
+	char *		conf_trustanchorpath;	/* trust anchor file */
+	char *		conf_resolverconfig;	/* resolver config file */
 #ifdef USE_UNBOUND
-	char *		conf_trustanchorpath;	/* unbound trust anchor file */
-	char *		conf_unboundconfig;	/* unbound config file */
-	char *		conf_resolvconf;	/* resolv.conf file */
 	struct dkimf_unbound * conf_unbound;	/* libunbound handle */
 #endif /* USE_UNBOUND */
 #ifdef _FFR_VBR
@@ -1378,7 +1378,7 @@ dkimf_xs_rblcheck(lua_State *l)
 	}
 
 #  ifdef USE_UNBOUND
-	dkimf_rbl_unbound_setup(rbl, cc->cctx_config->conf_unbound);
+	dkimf_rbl_unbound_setup(rbl);
 #  endif /* USE_UNBOUND */
 
 	rbl_setdomain(rbl, (u_char *) qroot);
@@ -4116,7 +4116,7 @@ dkimf_xs_getreputation(lua_State *l)
 			void *qh;
 
 #  ifdef USE_UNBOUND
-			dkimf_rep_unbound_setup(dr, conf->conf_unbound);
+			dkimf_rep_unbound_setup(dr);
 #  endif /* USE_UNBOUND */
 
 			if (strlen(qroot) != 0)
@@ -5788,11 +5788,6 @@ dkimf_config_free(struct dkimf_config *conf)
 		free(conf->conf_finalfunc);
 #endif /* USE_LUA */
 
-#ifdef USE_UNBOUND
-	if (conf->conf_unbound != NULL)
-		dkimf_unbound_close(conf->conf_unbound);
-#endif /* USE_UNBOUND */
-
 	if (conf->conf_data != NULL)
 		config_free(conf->conf_data);
 
@@ -6383,7 +6378,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                        conf->conf_ldap_binduser);
 #endif /* USE_LDAP */
 
-#ifdef USE_UNBOUND
+		(void) config_get(data, "Nameservers",
+		                  &conf->conf_nslist,
+		                  sizeof conf->conf_nslist);
+
 		(void) config_get(data, "TrustAnchorFile",
 		                  &conf->conf_trustanchorpath,
 		                  sizeof conf->conf_trustanchorpath);
@@ -6396,30 +6394,19 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			return -1;
 		}
 
-		(void) config_get(data, "UnboundConfigFile",
-		                  &conf->conf_unboundconfig,
-		                  sizeof conf->conf_unboundconfig);
+		(void) config_get(data, "ResolverConfigFile",
+		                  &conf->conf_resolverconfig,
+		                  sizeof conf->conf_resolverconfig);
 
-		if (conf->conf_unboundconfig != NULL &&
-		    access(conf->conf_unboundconfig, R_OK) != 0)
+		if (conf->conf_resolverconfig != NULL &&
+		    access(conf->conf_resolverconfig, R_OK) != 0)
 		{
 			snprintf(err, errlen, "%s: %s",
-			         conf->conf_unboundconfig, strerror(errno));
+			         conf->conf_resolverconfig, strerror(errno));
 			return -1;
 		}
 
-		(void) config_get(data, "ResolvConf",
-		                  &conf->conf_resolvconf,
-		                  sizeof conf->conf_resolvconf);
-
-		if (conf->conf_resolvconf != NULL &&
-		    access(conf->conf_resolvconf, R_OK) != 0)
-		{
-			snprintf(err, errlen, "%s: %s",
-			         conf->conf_resolvconf, strerror(errno));
-			return -1;
-		}
-
+#ifdef USE_UNBOUND
 		str = NULL;
 		(void) config_get(data, "BogusKey", &str, sizeof str);
 		if (str != NULL)
@@ -8241,12 +8228,27 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 	else
 	{
 #ifdef USE_UNBOUND
-		if (dkimf_unbound_init(&conf->conf_unbound) != 0)
+		(void) dkimf_unbound_setup(lib);
+#endif /* USE_UNBOUND */
+
+		if (dkim_dns_init(lib) != 0)
 		{
 			if (err != NULL)
-				*err = "failed to initialize libunbound";
+				*err = "failed to initialize resolver";
 
 			return FALSE;
+		}
+
+		if (conf->conf_nslist != NULL)
+		{
+			status = dkimf_dns_setnameservers(lib,
+			                                  conf->conf_nslist);
+			if (status != DKIM_STAT_OK)
+			{
+				if (err != NULL)
+					*err = "failed to set nameserver list";
+				return FALSE;
+			}
 		}
 
 		if (conf->conf_trustanchorpath != NULL)
@@ -8258,58 +8260,35 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 				return FALSE;
 			}
 
-			status = dkimf_unbound_add_trustanchor(conf->conf_unbound,
-			                                       conf->conf_trustanchorpath);
+			status = dkimf_dns_trustanchor(lib,
+			                               conf->conf_trustanchorpath);
 			if (status != DKIM_STAT_OK)
 			{
 				if (err != NULL)
-					*err = "failed to add unbound trust anchor";
+					*err = "failed to add trust anchor";
 				return FALSE;
 			}
 		}
 
-		if (conf->conf_unboundconfig != NULL)
+		if (conf->conf_resolverconfig != NULL)
 		{
-			if (access(conf->conf_unboundconfig, R_OK) != 0)
+			if (access(conf->conf_resolverconfig, R_OK) != 0)
 			{
 				if (err != NULL)
-					*err = "can't access unbound configuration file";
+					*err = "can't access resolver configuration file";
 				return FALSE;
 			}
 
-			status = dkimf_unbound_add_conffile(conf->conf_unbound,
-			                                    conf->conf_unboundconfig);
-			if (status != DKIM_STAT_OK)
+			status = dkimf_dns_config(lib,
+			                          conf->conf_resolverconfig);
+			if (status != DKIM_DNS_SUCCESS)
 			{
 				if (err != NULL)
-					*err = "failed to add unbound configuration file";
+					*err = "failed to add resolver configuration file";
 		
 				return FALSE;
 			}
 		}
-
-		if (conf->conf_resolvconf != NULL)
-		{
-			if (access(conf->conf_resolvconf, R_OK) != 0)
-			{
-				if (err != NULL)
-					*err = "can't access unbound resolver configuration file";
-				return FALSE;
-			}
-
-			status = dkimf_unbound_add_resolvconf(conf->conf_unbound,
-			                                      conf->conf_resolvconf);
-			if (status != DKIM_STAT_OK)
-			{
-				if (err != NULL)
-					*err = "failed to add unbound resolver configuration file";
-		
-				return FALSE;
-			}
-		}
-
-		(void) dkimf_unbound_setup(lib, conf->conf_unbound);
-#endif /* USE_UNBOUND */
 	}
 
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_TIMEOUT,
@@ -14985,8 +14964,7 @@ mlfi_eom(SMFICTX *ctx)
 					void *qh;
 
 # ifdef USE_UNBOUND
-					dkimf_rep_unbound_setup(dr,
-					                        conf->conf_unbound);
+					dkimf_rep_unbound_setup(dr);
 # endif /* USE_UNBOUND */
 
 					if (conf->conf_reproot != NULL)

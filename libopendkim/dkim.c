@@ -4469,6 +4469,8 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	libhandle->dkiml_prescreen = NULL;
 	libhandle->dkiml_final = NULL;
 	libhandle->dkiml_dns_callback = NULL;
+	libhandle->dkiml_dns_init = dkim_res_init;
+	libhandle->dkiml_dns_close = dkim_res_close;
 	libhandle->dkiml_dns_start = dkim_res_query;
 	libhandle->dkiml_dns_cancel = dkim_res_cancel;
 	libhandle->dkiml_dns_waitreply = dkim_res_waitreply;
@@ -4554,6 +4556,8 @@ dkim_close(DKIM_LIB *lib)
 		dkim_clobber_array((char **) lib->dkiml_mbs);
 
 	free(lib->dkiml_flist);
+
+	lib->dkiml_dns_close(lib->dkiml_dns_service);
 	
 	free((void *) lib);
 
@@ -8924,6 +8928,137 @@ dkim_dns_set_query_cancel(DKIM_LIB *lib, int (*func)(void *, void *))
 }
 
 /*
+**  DKIM_DNS_SET_INIT -- stores a pointer to a resolver init function
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to initialize the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void **srv -- DNS service handle (updated)
+*/
+
+void
+dkim_dns_set_init(DKIM_LIB *lib, int (*func)(void **))
+{
+	assert(lib != NULL);
+
+	lib->dkiml_dns_init = func;
+}
+
+/*
+**  DKIM_DNS_SET_CLOSE -- stores a pointer to a resolver shutdown function
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to initialize the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns void
+**  		void *srv -- DNS service handle
+*/
+
+void
+dkim_dns_set_close(DKIM_LIB *lib, void (*func)(void *))
+{
+	assert(lib != NULL);
+
+	if (func != NULL)
+		lib->dkiml_dns_close = func;
+	else
+		lib->dkiml_dns_close = dkim_res_close;
+}
+
+/*
+**  DKIM_DNS_SET_NSLIST -- stores a pointer to a NS list update function
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to update NS list
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int
+**  		void *dns -- DNS service handle
+**  		const char *nslist -- comma-separated list of nameservers
+*/
+
+void
+dkim_dns_set_nslist(DKIM_LIB *lib, int (*func)(void *, const char *))
+{
+	assert(lib != NULL);
+
+	if (func != NULL)
+		lib->dkiml_dns_setns = func;
+	else
+		lib->dkiml_dns_setns = dkim_res_nslist;
+}
+
+/*
+**  DKIM_DNS_SET_CONFIG -- stores a pointer to a resolver configuration
+**                         function
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to update resolver configuration
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int
+**  		void *dns -- DNS service handle
+**  		const char *config -- opaque configuration string
+*/
+
+void
+dkim_dns_set_config(DKIM_LIB *lib, int (*func)(void *, const char *))
+{
+	assert(lib != NULL);
+
+	lib->dkiml_dns_config = func;
+}
+
+/*
+**  DKIM_DNS_SET_TRUSTANCHOR -- stores a pointer to a trust anchor
+**                              configuration function
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	func -- function to use to update trust anchor configuration
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int
+**  		void *dns -- DNS service handle
+**  		const char *trustanchor -- opaque trust anchor string
+*/
+
+void
+dkim_dns_set_trustanchor(DKIM_LIB *lib, int (*func)(void *, const char *))
+{
+	assert(lib != NULL);
+
+	lib->dkiml_dns_trustanchor = func;
+}
+
+/*
 **  DKIM_DNS_SET_QUERY_WAITREPLY -- stores a pointer to wait for a DNS reply
 **
 **  Parameters:
@@ -8956,6 +9091,123 @@ dkim_dns_set_query_waitreply(DKIM_LIB *lib, int (*func)(void *, void *,
 		lib->dkiml_dns_waitreply = func;
 	else
 		lib->dkiml_dns_waitreply = dkim_res_waitreply;
+}
+
+/*
+**  DKIM_DNS_NSLIST -- requests update to a nameserver list
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	nslist -- comma-separated list of nameservers to use
+**
+**  Return value:
+**  	A DKIM_DNS_* constant.
+*/
+
+int
+dkim_dns_nslist(DKIM_LIB *lib, const char *nslist)
+{
+	int status;
+
+	assert(lib != NULL);
+	assert(nslist != NULL);
+
+	if (lib->dkiml_dns_setns != NULL)
+	{
+		status = lib->dkiml_dns_setns(lib->dkiml_dns_service, nslist);
+		if (status != 0)
+			return DKIM_DNS_ERROR;
+	}
+
+	return DKIM_DNS_SUCCESS;
+}
+
+/*
+**  DKIM_DNS_INIT -- force nameserver (re)initialization
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**
+**  Return value:
+**  	A DKIM_DNS_* constant.
+*/
+
+int
+dkim_dns_init(DKIM_LIB *lib)
+{
+	int status;
+
+	assert(lib != NULL);
+
+	if (lib->dkiml_dns_service != NULL &&
+	    lib->dkiml_dns_close != NULL)
+		lib->dkiml_dns_close(lib->dkiml_dns_service);
+
+	lib->dkiml_dns_service = NULL;
+
+	if (lib->dkiml_dns_init != NULL)
+		return lib->dkiml_dns_init(&lib->dkiml_dns_service);
+	else
+		return DKIM_DNS_SUCCESS;
+}
+
+/*
+**  DKIM_DNS_CONFIG -- requests a change to resolver configuration
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	config -- opaque configuration string
+**
+**  Return value:
+**  	A DKIM_DNS_* constant.
+*/
+
+int
+dkim_dns_config(DKIM_LIB *lib, const char *config)
+{
+	int status;
+
+	assert(lib != NULL);
+	assert(config != NULL);
+
+	if (lib->dkiml_dns_config != NULL)
+	{
+		status = lib->dkiml_dns_config(lib->dkiml_dns_service, config);
+		if (status != 0)
+			return DKIM_DNS_ERROR;
+	}
+
+	return DKIM_DNS_SUCCESS;
+}
+
+/*
+**  DKIM_DNS_TRUSTANCHOR -- requests a change to resolver trust anchor data
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	trust -- opaque trust anchor string
+**
+**  Return value:
+**  	A DKIM_DNS_* constant.
+*/
+
+int
+dkim_dns_trustanchor(DKIM_LIB *lib, const char *trust)
+{
+	int status;
+
+	assert(lib != NULL);
+	assert(trust != NULL);
+
+	if (lib->dkiml_dns_trustanchor != NULL)
+	{
+		status = lib->dkiml_dns_trustanchor(lib->dkiml_dns_service,
+		                                    trust);
+		if (status != 0)
+			return DKIM_DNS_ERROR;
+	}
+
+	return DKIM_DNS_SUCCESS;
 }
 
 /*

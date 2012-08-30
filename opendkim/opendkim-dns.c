@@ -88,7 +88,69 @@ struct dkimf_unbound_cb_data
 	u_char *		ubd_buf;
 	const char *		ubd_strerror;
 };
+#endif /* USE_UNBOUND */
 
+/*
+**  DKIMF_DNS_TRUSTANCHOR -- advise the DKIM library of new trust anchor data
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	trust -- trust anchor data
+**
+**  Return value:
+**  	DKIM_DNS_SUCCESS or DKIM_DNS_ERROR
+*/
+
+int
+dkimf_dns_trustanchor(DKIM_LIB *lib, const char *trust)
+{
+	assert(lib != NULL);
+	assert(trust != NULL);
+
+	return dkim_dns_trustanchor(lib, trust);
+}
+
+/*
+**  DKIMF_DNS_SETNAMESERVERS -- advise the DKIM library of new nameservers
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	nslist -- nameserver list
+**
+**  Return value:
+**  	DKIM_DNS_SUCCESS or DKIM_DNS_ERROR
+*/
+
+int
+dkimf_dns_setnameservers(DKIM_LIB *lib, const char *nslist)
+{
+	assert(lib != NULL);
+	assert(nslist != NULL);
+
+	return dkim_dns_nslist(lib, nslist);
+}
+
+/*
+**  DKIMF_DNS_CONFIG -- pass arbitrary configuration to the resolver
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	config -- resolver configuration data
+**
+**  Return value:
+**  	DKIM_DNS_SUCCESS or DKIM_DNS_ERROR
+*/
+
+int
+dkimf_dns_config(DKIM_LIB *lib, const char *config)
+{
+	assert(lib != NULL);
+	assert(config != NULL);
+
+	return dkim_dns_config(lib, config);
+}
+
+#ifdef USE_UNBOUND
 /*
 **  DKIMF_UNBOUND_CB -- callback to handle result of DNS query
 **
@@ -327,6 +389,63 @@ dkimf_unbound_queue(struct dkimf_unbound *ub, char *name, int type,
 }
 
 /*
+**  DKIMF_UB_TRUSTANCHOR -- add a trust anchor file to a libunbound context
+**
+**  Parameters:
+**  	srv -- service handle
+**  	file -- path to add
+**
+**  Return value:
+**  	0 -- success
+**  	-1 -- error
+*/
+
+int
+dkimf_ub_trustanchor(void *srv, const char *file)
+{
+	int status;
+	struct dkimf_unbound *ub;
+
+	assert(srv != NULL);
+	assert(file != NULL);
+
+	ub = srv;
+
+	status = ub_ctx_add_ta_file(ub->ub_ub, (char *) file);
+
+	return (status == 0 ? 0 : -1);
+}
+
+
+/*
+**  DKIMF_UB_CONFIG -- add a configuration file to a libunbound context
+**
+**  Parameters:
+**  	srv -- void service handle
+**  	file -- path to add
+**
+**  Return value:
+**  	0 -- success
+**  	-1 -- error
+*/
+
+int
+dkimf_ub_config(void *srv, const char *file)
+{
+	int status;
+	struct dkimf_unbound *ub;
+
+	assert(srv != NULL);
+	assert(file != NULL);
+
+	ub = srv;
+
+	status = ub_ctx_config(ub->ub_ub, (char *) file);
+
+	return (status == 0 ? 0 : -1);
+}
+
+/*
 **  DKIMF_UB_CANCEL -- function passed to libopendkim to handle cancel requests
 **
 **  Parameters:
@@ -451,18 +570,18 @@ dkimf_ub_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 /* =========================== PUBLIC FUNCTIONS =========================== */
 
 /*
-**  DKIMF_UNBOUND_INIT -- set up a libunbound context and other data
+**  DKIMF_UB_INIT -- set up a libunbound context and other data
 **
 **  Parameters:
 **  	ub -- unbound context (returned)
 **
 **  Return value:
-**  	0 -- success
-**  	-1 -- failure
+**  	DKIM_DNS_SUCCESS -- success
+**  	DKIM_DNS_ERROR -- failure
 */
 
 int
-dkimf_unbound_init(struct dkimf_unbound **ub)
+dkimf_ub_init(void **ub)
 {
 	struct dkimf_unbound *out;
 
@@ -470,13 +589,13 @@ dkimf_unbound_init(struct dkimf_unbound **ub)
 
 	out = (struct dkimf_unbound *) malloc(sizeof *out);
 	if (out == NULL)
-		return -1;
+		return DKIM_DNS_ERROR;
 
 	out->ub_ub = ub_ctx_create();
 	if (out->ub_ub == NULL)
 	{
 		free(out);
-		return -1;
+		return DKIM_DNS_ERROR;
 	}
 
 	/* suppress debug output */
@@ -492,11 +611,11 @@ dkimf_unbound_init(struct dkimf_unbound **ub)
 
 	*ub = out;
 
-	return 0;
+	return DKIM_DNS_SUCCESS;
 }
 
 /*
-**  DKIMF_UNBOUND_CLOSE -- shut down a libunbound context
+**  DKIMF_UB_CLOSE -- shut down a libunbound context
 **
 **  Parameters:
 **  	ub -- unbound context
@@ -506,16 +625,61 @@ dkimf_unbound_init(struct dkimf_unbound **ub)
 **  	-1 -- failure
 */
 
-int
-dkimf_unbound_close(struct dkimf_unbound *ub)
+void
+dkimf_ub_close(void *srv)
 {
-	assert(ub != NULL);
+	struct dkimf_unbound *ub;
+
+	assert(srv != NULL);
+
+	ub = srv;
 
 	ub_ctx_delete(ub->ub_ub);
 	pthread_mutex_destroy(&ub->ub_lock);
 	pthread_cond_destroy(&ub->ub_ready);
+}
 
-	return 0;
+/*
+**  DKIMF_UB_NSLIST -- set nameserver list
+**
+**  Parameters:
+**  	srv -- unbound service handle (as a void *)
+**  	nslist -- nameserver list
+**
+**  Return value:
+**  	DKIM_DNS_SUCCESS or DKIM_DNS_ERROR
+*/
+
+int
+dkimf_ub_nslist(void *srv, const char *nslist)
+{
+	char *cp;
+	char *p;
+	char *last = NULL;
+	struct dkimf_unbound *ub;
+
+	assert(srv != NULL);
+	assert(nslist != NULL);
+
+	ub = srv;
+
+	cp = strdup(nslist);
+	if (cp == NULL)
+		return DKIM_DNS_ERROR;
+
+	for (p = strtok_r(cp, ",", &last);
+	     p != NULL;
+	     p = strtok_r(NULL, ",", &last))
+	{
+		if (ub_ctx_set_fwd(ub->ub_ub, p) != 0)
+		{
+			free(cp);
+			return DKIM_DNS_ERROR;
+		}
+	}
+
+	free(cp);
+	return DKIM_DNS_SUCCESS;
 }
 
 # ifdef _FFR_RBL
@@ -531,15 +695,18 @@ dkimf_unbound_close(struct dkimf_unbound *ub)
 */
 
 int
-dkimf_rbl_unbound_setup(RBL *rbl, struct dkimf_unbound *ub)
+dkimf_rbl_unbound_setup(RBL *rbl)
 {
 	assert(rbl != NULL);
-	assert(ub != NULL);
 
-	(void) rbl_dns_set_query_service(rbl, ub);
 	(void) rbl_dns_set_query_start(rbl, dkimf_ub_query);
 	(void) rbl_dns_set_query_cancel(rbl, dkimf_ub_cancel);
 	(void) rbl_dns_set_query_waitreply(rbl, dkimf_ub_waitreply);
+	(void) rbl_dns_set_init(rbl, dkimf_ub_init);
+	(void) rbl_dns_set_close(rbl, dkimf_ub_close);
+	(void) rbl_dns_set_nslist(rbl, dkimf_ub_nslist);
+	(void) rbl_dns_set_config(rbl, dkimf_ub_config);
+	(void) rbl_dns_set_trustanchor(rbl, dkimf_ub_trustanchor);
 
 	return 0;
 }
@@ -558,15 +725,18 @@ dkimf_rbl_unbound_setup(RBL *rbl, struct dkimf_unbound *ub)
 */
 
 int
-dkimf_rep_unbound_setup(DKIM_REP dr, struct dkimf_unbound *ub)
+dkimf_rep_unbound_setup(DKIM_REP dr)
 {
 	assert(dr != NULL);
-	assert(ub != NULL);
 
-	(void) dkim_rep_dns_set_query_service(dr, ub);
 	(void) dkim_rep_dns_set_query_start(dr, dkimf_ub_query);
 	(void) dkim_rep_dns_set_query_cancel(dr, dkimf_ub_cancel);
 	(void) dkim_rep_dns_set_query_waitreply(dr, dkimf_ub_waitreply);
+	(void) dkim_rep_dns_set_init(dr, dkimf_ub_init);
+	(void) dkim_rep_dns_set_close(dr, dkimf_ub_close);
+	(void) dkim_rep_dns_set_nslist(dr, dkimf_ub_nslist);
+	(void) dkim_rep_dns_set_config(dr, dkimf_ub_config);
+	(void) dkim_rep_dns_set_trustanchor(dr, dkimf_ub_trustanchor);
 
 	return 0;
 }
@@ -584,93 +754,20 @@ dkimf_rep_unbound_setup(DKIM_REP dr, struct dkimf_unbound *ub)
 */
 
 int
-dkimf_unbound_setup(DKIM_LIB *lib, struct dkimf_unbound *ub)
+dkimf_unbound_setup(DKIM_LIB *lib)
 {
 	assert(lib != NULL);
-	assert(ub != NULL);
 
-	(void) dkim_dns_set_query_service(lib, ub);
 	(void) dkim_dns_set_query_start(lib, dkimf_ub_query);
 	(void) dkim_dns_set_query_cancel(lib, dkimf_ub_cancel);
 	(void) dkim_dns_set_query_waitreply(lib, dkimf_ub_waitreply);
+	(void) dkim_dns_set_init(lib, dkimf_ub_init);
+	(void) dkim_dns_set_close(lib, dkimf_ub_close);
+	(void) dkim_dns_set_nslist(lib, dkimf_ub_nslist);
+	(void) dkim_dns_set_config(lib, dkimf_ub_config);
+	(void) dkim_dns_set_trustanchor(lib, dkimf_ub_trustanchor);
 
 	return 0;
-}
-
-/*
-**  DKIMF_UNBOUND_ADD_TRUSTANCHOR -- add a trust anchor file to a
-**                                   libunbound context
-**
-**  Parameters:
-**  	ub -- libunbound context
-**  	file -- path to add
-**
-**  Return value:
-**  	0 -- success
-**  	-1 -- error
-*/
-
-int
-dkimf_unbound_add_trustanchor(struct dkimf_unbound *ub, char *file)
-{
-	int status;
-
-	assert(ub != NULL);
-	assert(file != NULL);
-	status = ub_ctx_add_ta_file(ub->ub_ub, file);
-
-	return (status == 0 ? 0 : -1);
-}
-
-/*
-**  DKIMF_UNBOUND_ADD_CONFFILE -- add a configuration file to a libunbound
-**                                context
-**
-**  Parameters:
-**  	ub -- libunbound context
-**  	file -- path to add
-**
-**  Return value:
-**  	0 -- success
-**  	-1 -- error
-*/
-
-int
-dkimf_unbound_add_conffile(struct dkimf_unbound *ub, char *file)
-{
-	int status;
-
-	assert(ub != NULL);
-	assert(file != NULL);
-
-	status = ub_ctx_config(ub->ub_ub, file);
-
-	return (status == 0 ? 0 : -1);
-}
-
-/*
-**  DKIMF_UNBOUND_ADD_RESOLVCONF -- tell libunbound to read a resolv.conf file
-**
-**  Parameters:
-**  	ub -- libunbound context
-**  	file -- path to read
-**
-**  Return value:
-**  	0 -- success
-**  	-1 -- error
-*/
-
-int
-dkimf_unbound_add_resolvconf(struct dkimf_unbound *ub, char *file)
-{
-	int status;
-
-	assert(ub != NULL);
-	assert(file != NULL);
-
-	status = ub_ctx_resolvconf(ub->ub_ub, file);
-
-	return (status == 0 ? 0 : -1);
 }
 #endif /* USE_UNBOUND */
 
@@ -944,6 +1041,11 @@ dkimf_filedns_setup(DKIM_LIB *lib, DKIMF_DB db)
 	(void) dkim_dns_set_query_start(lib, dkimf_filedns_query);
 	(void) dkim_dns_set_query_cancel(lib, dkimf_filedns_cancel);
 	(void) dkim_dns_set_query_waitreply(lib, dkimf_filedns_waitreply);
+	(void) dkim_dns_set_init(lib, NULL);
+	(void) dkim_dns_set_close(lib, NULL);
+	(void) dkim_dns_set_nslist(lib, NULL);
+	(void) dkim_dns_set_config(lib, NULL);
+	(void) dkim_dns_set_trustanchor(lib, NULL);
 
 	return 0;
 }

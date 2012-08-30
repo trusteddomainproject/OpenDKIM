@@ -369,6 +369,16 @@ KeyFile			/var/db/dkim/example.private
 
 # MustBeSigned		header1,header2,...
 
+##  Nameserver addr1[,addr2[,...]]
+##  	default (none)
+##
+##  Provides a comma-separated list of IP addresses that are to be used when
+##  doing DNS queries to retrieve DKIM keys, ADSP policies, VBR records, etc.
+##  These override any local defaults built in to the resolver in use, which
+##  may be defined in /etc/resolv.conf or hard-coded into the software.
+
+# Nameserver addr1,addr2,...
+
 ##  NoHeaderB { yes | no }
 ##  	default "no"
 ##

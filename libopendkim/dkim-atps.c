@@ -235,6 +235,14 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 
 	/* XXX -- add QUERY_CACHE support here */
 
+	if (lib->dkiml_dns_service == NULL &&
+	    lib->dkiml_dns_init != NULL &&
+	    lib->dkiml_dns_init(&lib->dkiml_dns_service) != 0)
+	{
+		*res = DKIM_ATPS_UNKNOWN;
+		return DKIM_STAT_CANTVRFY;
+	}
+
 	/* send it */
 	anslen = sizeof ansbuf;
 	status = lib->dkiml_dns_start(lib->dkiml_dns_service, T_TXT,

@@ -44,6 +44,72 @@ struct dkim_res_qh
 };
 
 /*
+**  DKIM_RES_INIT -- initialize the resolver
+**
+**  Parameters:
+**  	srv -- service handle (returned)
+**
+**  Return value
+**  	0 on success, !0 on failure
+*/
+
+int
+dkim_res_init(void **srv)
+{
+#ifdef HAVE_RES_NINIT
+	struct state *res;
+
+	res = malloc(sizeof(struct state));
+	if (res == NULL)
+		return -1;
+
+	if (res_ninit(res) != 0)
+	{
+		free(res);
+		return -1;
+	}
+
+	*srv = res;
+
+	return 0;
+#else /* HAVE_RES_NINIT */
+	if (res_init() == 0)
+	{
+		*srv = (void *) 0x01;
+		return 0;
+	}
+	else
+	{
+		return -1;
+	}
+#endif /* HAVE_RES_NINIT */
+}
+
+/*
+**  DKIM_RES_CLOSE -- shut down the resolver
+**
+**  Parameters:
+**  	srv -- service handle
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkim_res_close(void *srv)
+{
+#ifdef HAVE_RES_NINIT
+	struct state *res;
+
+	res = srv;
+
+	res_nclose(res);
+
+	free(res);
+#endif /* HAVE_RES_NINIT */
+}
+
+/*
 **  DKIM_RES_CANCEL -- cancel a pending resolver query
 **
 **  Parameters:
@@ -98,45 +164,27 @@ dkim_res_query(void *srv, int type, unsigned char *query, unsigned char *buf,
 	struct dkim_res_qh *rq;
 	unsigned char qbuf[HFIXEDSZ + MAXPACKET];
 #ifdef HAVE_RES_NINIT
-	struct __res_state statp;
+	struct __res_state *statp;
 #endif /* HAVE_RES_NINIT */
 
 #ifdef HAVE_RES_NINIT
-	memset(&statp, '\0', sizeof statp);
-	res_ninit(&statp);
-#endif /* HAVE_RES_NINIT */
-
-#ifdef HAVE_RES_NINIT
-	n = res_nmkquery(&statp, QUERY, (char *) query, C_IN, type, NULL, 0,
+	statp = srv;
+	n = res_nmkquery(statp, QUERY, (char *) query, C_IN, type, NULL, 0,
 	                 NULL, qbuf, sizeof qbuf);
 #else /* HAVE_RES_NINIT */
 	n = res_mkquery(QUERY, (char *) query, C_IN, type, NULL, 0, NULL, qbuf,
 	                sizeof qbuf);
 #endif /* HAVE_RES_NINIT */
 	if (n == (size_t) -1)
-	{
-#ifdef HAVE_RES_NINIT
-		res_nclose(&statp);
-#endif /* HAVE_RES_NINIT */
 		return DKIM_DNS_ERROR;
-	}
 
 #ifdef HAVE_RES_NINIT
-	ret = res_nsend(&statp, qbuf, n, buf, buflen);
+	ret = res_nsend(statp, qbuf, n, buf, buflen);
 #else /* HAVE_RES_NINIT */
 	ret = res_send(qbuf, n, buf, buflen);
 #endif /* HAVE_RES_NINIT */
 	if (ret == -1)
-	{
-#ifdef HAVE_RES_NINIT
-		res_nclose(&statp);
-#endif /* HAVE_RES_NINIT */
 		return DKIM_DNS_ERROR;
-	}
-
-#ifdef HAVE_RES_NINIT
-	res_nclose(&statp);
-#endif /* HAVE_RES_NINIT */
 
 	rq = (struct dkim_res_qh *) malloc(sizeof *rq);
 	if (rq == NULL)
@@ -193,6 +241,88 @@ dkim_res_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 		*error = rq->rq_error;
 	if (dnssec != NULL)
 		*dnssec = rq->rq_dnssec;
+
+	return DKIM_DNS_SUCCESS;
+}
+
+/*
+**  DKIM_RES_SETNS -- set nameserver list
+**
+**  Parameters:
+**  	srv -- service handle
+**  	nslist -- nameserver list, as a string
+**
+**  Return value:
+**  	DKIM_DNS_SUCCESS -- success
+**  	DKIM_DNS_ERROR -- error
+*/
+
+int
+dkim_res_nslist(void *srv, const char *nslist)
+{
+#ifdef HAVE_RES_SETSERVERS
+	int nscount = 0;
+	char *tmp;
+	char *ns;
+	char *last = NULL;
+	struct sockaddr_in in;
+# ifdef AF_INET6
+	struct sockaddr_in6 in6;
+# endif /* AF_INET6 */
+	struct state *res;
+	res_sockaddr_union nses[MAXNS];
+
+	assert(srv != NULL);
+	assert(nslist != NULL);
+
+	memset(nses, '\0', sizeof nses);
+
+	tmp = strdup(nslist);
+	if (tmp == NULL)
+		return DKIM_DNS_ERROR;
+
+	for (ns = strtok_r(tmp, ",", &last);
+	     ns != NULL && nscount < MAXNS;
+	     ns = strtok_r(NULL, ",", &last)
+	{
+		memset(&in, '\0', sizeof in);
+# ifdef AF_INET6
+		memset(&in6, '\0', sizeof in6);
+# endif /* AF_INET6 */
+
+		if (inet_pton(AF_INET, ns, (struct in_addr *) &in.sin_addr,
+		              sizeof in.sin_addr) == 1)
+		{
+			in.sin_family= AF_INET;
+			in.sin_port = htons(DNSPORT);
+			memcpy(&nses[nscount].sin, &in,
+			       sizeof nses[nscount].sin);
+			nscount++;
+		}
+# ifdef AF_INET6
+		else if (inet_pton(AF_INET6, ns,
+		                   (struct in6_addr *) &in6.sin6_addr,
+		                   sizeof in6.sin6_addr) == 1)
+		{
+			in6.sin6_family= AF_INET6;
+			in6.sin6_port = htons(DNSPORT);
+			memcpy(&nses[nscount].sin6, &in6,
+			       sizeof nses[nscount].sin6);
+			nscount++;
+		}
+# endif /* AF_INET6 */
+		else
+		{
+			free(tmp);
+			return DKIM_DNS_ERROR;
+		}
+	}
+
+	res = srv;
+	res_setservers(res, nses, nscount);
+
+	free(tmp);
+#endif /* HAVE_RES_SETSERVERS */
 
 	return DKIM_DNS_SUCCESS;
 }

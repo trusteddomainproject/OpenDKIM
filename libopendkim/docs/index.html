@@ -633,6 +633,48 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
+  <td> <a href="dkim_dns_config.html"> <tt>dkim_dns_config()</tt> </a> </td>
+  <td> Provide the active DNS resolver with arbitrary configuration information
+       to be used. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_dns_nslist.html"> <tt>dkim_dns_nslist()</tt> </a> </td>
+  <td> Provide the active DNS resolver with a new set of nameservers to be
+       used. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_dns_trustanchor.html"> <tt>dkim_dns_trustanchor()</tt> </a> </td>
+  <td> Provide the active DNS resolver with trust anchor configuration
+       information to be used. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_dns_set_close.html"> <tt>dkim_dns_set_close()</tt> </a> </td>
+  <td> Set the function to be used by the library to terminate a DNS
+       resolver. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_dns_set_config.html"> <tt>dkim_dns_set_config()</tt> </a> </td>
+  <td> Set the function to be used by the library to pass arbitrary
+       configuration data to the underlying resolver. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_dns_set_init.html"> <tt>dkim_dns_set_init()</tt> </a> </td>
+  <td> Set the function to be used by the library to initialize a DNS
+       resolver. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_dns_set_nslist.html"> <tt>dkim_dns_set_nslist()</tt> </a> </td>
+  <td> Set the function to be used by the library to change the set of
+       nameservers in use by a DNS resolver. </td>
+ </tr>
+
+ <tr>
   <td> <a href="dkim_dns_set_query_cancel.html"> <tt>dkim_dns_set_query_cancel()</tt> </a> </td>
   <td> Set the function to be used by the library to cancel a pending DNS
        query whose result is no longer needed. </td>
@@ -652,6 +694,12 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
   <td> <a href="dkim_dns_set_query_waitreply.html"> <tt>dkim_dns_set_query_waitreply()</tt> </a> </td>
   <td> Set the function to be used by the library to wait for a
        reply to a pending DNS query. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_dns_set_trustanchor.html"> <tt>dkim_dns_set_trustanchor()</tt> </a> </td>
+  <td> Set the function to be used by the library to pass arbitrary
+       trust anchor data to the underlying resolver. </td>
  </tr>
 
  <tr>
