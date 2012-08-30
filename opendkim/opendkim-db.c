@@ -5592,7 +5592,6 @@ dkimf_db_close(DKIMF_DB db)
 	  case DKIMF_DB_TYPE_REPUTE:
 	  {
 		repute_close(db->db_data);
-		free(db->db_data);
 		free(db);
 		return 0;
 	  }
