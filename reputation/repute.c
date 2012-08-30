@@ -73,14 +73,16 @@ struct repute_lookup
 /* lookup tables */
 struct repute_lookup repute_lookup_elements[] =
 {
-	{ REPUTE_XML_CODE_ASSERTION,	REPUTE_XML_ASSERTION },
-	{ REPUTE_XML_CODE_EXTENSION,	REPUTE_XML_EXTENSION },
-	{ REPUTE_XML_CODE_RATED,	REPUTE_XML_RATED },
 	{ REPUTE_XML_CODE_RATER,	REPUTE_XML_RATER },
-	{ REPUTE_XML_CODE_RATER_AUTH,	REPUTE_XML_RATER_AUTH },
+	{ REPUTE_XML_CODE_ASSERTION,	REPUTE_XML_ASSERTION },
+	{ REPUTE_XML_CODE_RATED,	REPUTE_XML_RATED },
 	{ REPUTE_XML_CODE_RATING,	REPUTE_XML_RATING },
+	{ REPUTE_XML_CODE_CONFIDENCE,	REPUTE_XML_CONFIDENCE },
+	{ REPUTE_XML_CODE_RATER_AUTH,	REPUTE_XML_RATER_AUTH },
 	{ REPUTE_XML_CODE_SAMPLE_SIZE,	REPUTE_XML_SAMPLE_SIZE },
 	{ REPUTE_XML_CODE_UPDATED,	REPUTE_XML_UPDATED },
+	{ REPUTE_XML_CODE_IDENTITY,	REPUTE_XML_EXT_IDENTITY },
+	{ REPUTE_XML_CODE_SOURCES,	REPUTE_XML_EXT_SOURCES },
 	{ REPUTE_XML_CODE_UNKNOWN,	NULL }
 };
 
@@ -237,7 +239,6 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 #endif /* USE_XML2 */
 #ifdef USE_JANSSON
 	json_t *root = NULL;
-	json_t *exts = NULL;
 	json_t *obj = NULL;
 	json_error_t error;
 #endif /* USE_JANSSON */
@@ -275,24 +276,17 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 	if (root == NULL)
 		return REPUTE_STAT_PARSE;
 
-	exts = json_object_get(root, REPUTE_XML_EXTENSION);
-	if (exts != NULL && !json_is_object(exts))
-	{
-		json_decref(root);
-		return REPUTE_STAT_PARSE;
-	}
-
 	obj = json_object_get(root, REPUTE_XML_ASSERTION);
 	if (obj != NULL && json_is_string(obj) &&
 	    strcasecmp(json_string_value(obj), REPUTE_ASSERT_SPAM) == 0)
 		found_spam = TRUE;
 
-	obj = json_object_get(exts, REPUTE_EXT_ID);
+	obj = json_object_get(root, REPUTE_XML_EXT_IDENTITY);
 	if (obj != NULL && json_is_string(obj) &&
-	    strcasecmp(json_string_value(obj), REPUTE_EXT_ID_DKIM) == 0)
+	    strcasecmp(json_string_value(obj), REPUTE_ID_DKIM) == 0)
 		found_dkim = TRUE;
 
-	obj = json_object_get(exts, REPUTE_EXT_RATE);
+	obj = json_object_get(root, REPUTE_XML_EXT_RATE);
 	if (obj != NULL && json_is_number(obj))
 		limittmp = (unsigned long) json_integer_value(obj);
 
@@ -404,22 +398,18 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 					found_spam = TRUE;
 				break;
 
-			  case REPUTE_XML_CODE_EXTENSION:
+			  case REPUTE_XML_CODE_IDENTITY:
 				if (strcasecmp(reputon->children->content,
-				               REPUTE_EXT_ID_BOTH) == 0)
-				{
+				               REPUTE_EXT_ID_DKIM) == 0)
 					found_dkim = TRUE;
-				}
-				else if (strncasecmp(reputon->children->content,
-				                     REPUTE_EXT_RATE_COLON,
-				                     sizeof REPUTE_EXT_RATE_COLON - 1) == 0)
-				{
-					errno = 0;
-					limittmp = strtoul(reputon->children->content + sizeof REPUTE_EXT_RATE_COLON,
-				                           &p, 10);
-					if (errno != 0)
-						continue;
-				}
+				break;
+
+			  case REPUTE_XML_CODE_RATE:
+				errno = 0;
+				limittmp = strtoul(reputon->children->content,
+			                           &p, 10);
+				if (errno != 0)
+					continue;
 				break;
 
 			  case REPUTE_XML_CODE_RATED:

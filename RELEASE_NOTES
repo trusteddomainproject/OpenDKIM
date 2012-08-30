@@ -39,9 +39,12 @@ release, and a summary of the changes in that release.
 		or a hard-coded one.
 	Fix bug #SF3549307: Remove _FFR_REPUTATION_CACHE, as it is redundant
 		to caching code that's part of _FFR_REPUTATION already.
+	Fix bug #SF3555844: Get repute client code in sync with repute.php
+		(and the current REPUTE WG drafts).  Problem noted by
+		Andreas Schulze.
+	Fix bounds checking in the dstring printf functions.
 	Patch #SF3555843: With sufficient verbosity, report the default
 		configuration file path.  Patch from Andreas Schulze.
-	Fix bounds checking in the dstring printf functions.
 	BUILD: Fix bug #SF3531658: Move the strlcat() and strlcpy()
 		implementations to their own library so that programs don't
 		drag in crypto and other dependencies they don't need.

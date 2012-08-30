@@ -37,32 +37,32 @@ typedef int REPUTE_STAT;
 #define	REPUTE_URI_TEMPLATE	"{scheme}://{service}/.well-known/repute-template"
 
 #define	REPUTE_XML_CODE_UNKNOWN		(-1)
-#define	REPUTE_XML_CODE_ASSERTION	0
-#define	REPUTE_XML_CODE_EXTENSION	1
+#define	REPUTE_XML_CODE_RATER		0
+#define	REPUTE_XML_CODE_ASSERTION	1
 #define	REPUTE_XML_CODE_RATED		2
-#define	REPUTE_XML_CODE_RATER		3
-#define	REPUTE_XML_CODE_RATER_AUTH	4
-#define	REPUTE_XML_CODE_RATING		5
+#define	REPUTE_XML_CODE_RATING		3
+#define	REPUTE_XML_CODE_CONFIDENCE	4
+#define	REPUTE_XML_CODE_RATER_AUTH	5
 #define	REPUTE_XML_CODE_SAMPLE_SIZE	6
 #define	REPUTE_XML_CODE_UPDATED		7
+#define	REPUTE_XML_CODE_IDENTITY	8
+#define	REPUTE_XML_CODE_SOURCES		9
 
-#define	REPUTE_XML_ASSERTION	"assertion"
-#define	REPUTE_XML_EXTENSION	"extension"
-#define	REPUTE_XML_RATED	"rated"
-#define	REPUTE_XML_RATER	"rater"
-#define	REPUTE_XML_RATER_AUTH	"rater-authenticity"
-#define	REPUTE_XML_RATING	"rating"
-#define	REPUTE_XML_SAMPLE_SIZE	"sample-size"
-#define	REPUTE_XML_UPDATED	"updated"
+#define	REPUTE_XML_RATER		"rater"
+#define	REPUTE_XML_ASSERTION		"assertion"
+#define	REPUTE_XML_RATED		"rated"
+#define	REPUTE_XML_RATING		"rating"
+#define	REPUTE_XML_CONFIDENCE		"confidence"
+#define	REPUTE_XML_RATER_AUTH		"rater-authenticity"
+#define	REPUTE_XML_SAMPLE_SIZE		"sample-size"
+#define	REPUTE_XML_UPDATED		"updated"
+#define	REPUTE_XML_EXT_IDENTITY		"identity"
+#define	REPUTE_XML_EXT_SOURCES		"sources"
+#define	REPUTE_XML_EXT_RATE		"rate"
 
-#define	REPUTE_ASSERT_SPAM	"spam"
+#define	REPUTE_ID_DKIM			"dkim"
+#define	REPUTE_ASSERT_SPAM		"spam"
 
-#define	REPUTE_EXT_ID_BOTH	"IDENTITY: DKIM"
-#define	REPUTE_EXT_RATE_COLON	"RATE:"
-
-#define	REPUTE_EXT_ID		"IDENTITY"
-#define	REPUTE_EXT_ID_DKIM	"DKIM"
-#define	REPUTE_EXT_RATE		"RATE"
 
 /* other types */
 struct repute_handle;
