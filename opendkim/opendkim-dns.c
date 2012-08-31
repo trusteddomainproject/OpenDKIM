@@ -1049,3 +1049,33 @@ dkimf_filedns_setup(DKIM_LIB *lib, DKIMF_DB db)
 
 	return 0;
 }
+
+#ifdef USE_VBR
+/*
+**  DKIMF_VBR_UNBOUND_SETUP -- connect libunbound to libvbr
+**
+**  Parameters:
+**  	vbr -- libvbr handle
+**  	ub -- dkimf_unbound handle to use
+**
+**  Return value:
+**  	0 on success, -1 on failure
+*/
+
+int
+dkimf_vbr_unbound_setup(VBR *vbr)
+{
+	assert(vbr != NULL);
+
+	(void) vbr_dns_set_query_start(vbr, dkimf_ub_query);
+	(void) vbr_dns_set_query_cancel(vbr, dkimf_ub_cancel);
+	(void) vbr_dns_set_query_waitreply(vbr, dkimf_ub_waitreply);
+	(void) vbr_dns_set_init(vbr, dkimf_ub_init);
+	(void) vbr_dns_set_close(vbr, dkimf_ub_close);
+	(void) vbr_dns_set_nslist(vbr, dkimf_ub_nslist);
+	(void) vbr_dns_set_config(vbr, dkimf_ub_config);
+	(void) vbr_dns_set_trustanchor(vbr, dkimf_ub_trustanchor);
+
+	return 0;
+}
+#endif /* USE_VBR */
