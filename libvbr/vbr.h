@@ -327,4 +327,154 @@ extern void vbr_dns_set_query_waitreply __P((VBR *, int (*)(void *, void *,
                                                             size_t *, int *,
                                                             int *)));
 
+/*
+**  VBR_DNS_SET_NSLIST -- set function that updates resolver nameserver list
+**
+**  Parameters:
+**  	lib -- VBR library handle
+**  	func -- function to use to update the nameserver list
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int
+**  		void *srv -- DNS service handle
+**  		const char *nslist -- nameserver list, as a comma-separated
+**  			string
+*/
+
+extern void vbr_dns_set_nslist __P((VBR *,
+                                    int (*)(void *, const char *)));
+
+/*
+**  VBR_DNS_SET_CLOSE -- shuts down the resolver
+**
+**  Parameters:
+**  	lib -- VBR library handle
+**  	func -- function to use to shut down the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns void
+**  		void *srv -- DNS service handle
+*/
+
+extern void vbr_dns_set_close __P((VBR *,
+                                   void (*)(void *)));
+
+/*
+**  VBR_DNS_SET_INIT -- initializes the resolver
+**
+**  Parameters:
+**  	lib -- VBR library handle
+**  	func -- function to use to initialize the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void **srv -- DNS service handle (updated)
+*/
+
+extern void vbr_dns_set_init __P((VBR *,
+                                  int (*)(void **)));
+
+/*
+**  VBR_DNS_SET_CONFIG -- configures the resolver
+**
+**  Parameters:
+**  	lib -- VBR library handle
+**  	func -- function to use to configure the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *srv -- DNS service handle
+**  		const char *config -- arbitrary resolver configuration data
+*/
+
+extern void vbr_dns_set_config __P((VBR *,
+                                    int (*)(void *, const char *)));
+
+/*
+**  VBR_DNS_SET_TRUSTANCHOR -- provides trust anchor data to the resolver
+**
+**  Parameters:
+**  	lib -- VBR library handle
+**  	func -- function to use to pass trust anchor data to the resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *srv -- DNS service handle
+**  		const char *trust -- arbitrary trust anchor data
+*/
+
+extern void vbr_dns_set_trustanchor __P((VBR *,
+                                         int (*)(void *, const char *)));
+
+/*
+**  VBR_DNS_NSLIST -- requests update to a nameserver list
+**
+**  Parameters:
+**  	lib -- VBR library handle
+**  	nslist -- comma-separated list of nameservers to use
+**
+**  Return value:
+**  	An VBR_STAT_* constant.
+*/
+
+extern VBR_STAT vbr_dns_nslist __P((VBR *, const char *));
+
+/*
+**  VBR_DNS_CONFIG -- requests a change to resolver configuration
+**
+**  Parameters:
+**  	lib -- VBR library handle
+**  	config -- opaque configuration string
+**
+**  Return value:
+**  	An VBR_STAT_* constant.
+*/
+
+extern VBR_STAT vbr_dns_config __P((VBR *, const char *));
+
+/*
+**  VBR_DNS_TRUSTANCHOR -- requests a change to resolver trust anchor data
+**
+**  Parameters:
+**  	lib -- VBR library handle
+**  	trust -- opaque trust anchor string
+**
+**  Return value:
+**  	An VBR_STAT_* constant.
+*/
+
+extern VBR_STAT vbr_dns_trustanchor __P((VBR *, const char *));
+
+/*
+**  VBR_DNS_INIT -- force nameserver (re)initialization
+**
+**  Parameters:
+**  	lib -- VBR library handle
+**
+**  Return value:
+**  	An VBR_STAT_* constant.
+*/
+
+extern VBR_STAT vbr_dns_init __P((VBR *));
+
 #endif /* _VBR_H_ */

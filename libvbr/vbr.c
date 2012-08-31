@@ -95,7 +95,7 @@ struct vbr_handle
 			                  void **);
 	int		(*vbr_dns_cancel) (void *, void *);
 	int		(*vbr_dns_init) (void **);
-	int		(*vbr_dns_close) (void *);
+	void		(*vbr_dns_close) (void *);
 	int		(*vbr_dns_setns) (void *, const char *);
 	int		(*vbr_dns_config) (void *, const char *);
 	int		(*vbr_dns_trustanchor) (void *, const char *);
@@ -1362,12 +1362,12 @@ vbr_dns_set_init(VBR *vbr, int (*func)(void **))
 **
 **  Notes:
 **  	"func" should match the following prototype:
-**  		returns int (status)
+**  		returns void
 **  		void *dns -- DNS service handle
 */
 
 void
-vbr_dns_set_close(VBR *vbr, int (*func)(void *))
+vbr_dns_set_close(VBR *vbr, void (*func)(void *))
 {
 	assert(vbr != NULL);
 
@@ -1451,3 +1451,120 @@ vbr_dns_set_trustanchor(VBR *vbr, int (*func)(void *, const char *))
 
 	vbr->vbr_dns_trustanchor = func;
 }
+
+/*
+**  VBR_DNS_NSLIST -- requests update to a nameserver list
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**  	nslist -- comma-separated list of nameservers to use
+**
+**  Return value:
+**  	An VBR_STAT_* constant.
+*/
+
+VBR_STAT
+vbr_dns_nslist(VBR *lib, const char *nslist)
+{
+	int status;
+
+	assert(lib != NULL);
+	assert(nslist != NULL);
+
+	if (lib->vbr_dns_setns != NULL)
+	{
+		status = lib->vbr_dns_setns(lib->vbr_dns_service, nslist);
+		if (status != 0)
+			return VBR_STAT_DNSERROR;
+	}
+
+	return VBR_STAT_OK;
+}
+
+/*
+**  VBR_DNS_CONFIG -- requests a change to resolver configuration
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**  	config -- opaque configuration string
+**
+**  Return value:
+**  	An VBR_STAT_* constant.
+*/
+
+VBR_STAT
+vbr_dns_config(VBR *lib, const char *config)
+{
+	int status;
+
+	assert(lib != NULL);
+	assert(config != NULL);
+
+	if (lib->vbr_dns_config != NULL)
+	{
+		status = lib->vbr_dns_config(lib->vbr_dns_service, config);
+		if (status != 0)
+			return VBR_STAT_DNSERROR;
+	}
+
+	return VBR_STAT_OK;
+}
+
+/*
+**  VBR_DNS_TRUSTANCHOR -- requests a change to resolver trust anchor data
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**  	trust -- opaque trust anchor string
+**
+**  Return value:
+**  	An VBR_STAT_* constant.
+*/
+
+VBR_STAT
+vbr_dns_trustanchor(VBR *lib, const char *trust)
+{
+	int status;
+
+	assert(lib != NULL);
+	assert(trust != NULL);
+
+	if (lib->vbr_dns_trustanchor != NULL)
+	{
+		status = lib->vbr_dns_trustanchor(lib->vbr_dns_service, trust);
+		if (status != 0)
+			return VBR_STAT_DNSERROR;
+	}
+
+	return VBR_STAT_OK;
+}
+
+/*
+**  VBR_DNS_INIT -- force nameserver (re)initialization
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**
+**  Return value:
+**  	An VBR_STAT_* constant.
+*/
+
+VBR_STAT
+vbr_dns_init(VBR *lib)
+{
+	int status;
+
+	assert(lib != NULL);
+
+	if (lib->vbr_dns_service != NULL &&
+	    lib->vbr_dns_close != NULL)
+		lib->vbr_dns_close(lib->vbr_dns_service);
+
+	lib->vbr_dns_service = NULL;
+
+	if (lib->vbr_dns_init != NULL)
+		return lib->vbr_dns_init(&lib->vbr_dns_service);
+	else
+		return VBR_STAT_OK;
+}
+
