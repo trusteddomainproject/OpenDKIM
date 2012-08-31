@@ -6,7 +6,7 @@
 .B rbl_setdnscallback(), rbl_dns_set_query_service(),
 .B rbl_dns_set_query_start(), rbl_dns_set_query_cancel(),
 .B rbl_dns_set_query_waitreply(), rbl_dns_set_init(), rbl_dns_set_close(),
-.B rbl_dns_set_nslist(), rbl_dns_set_config(), rbl_dns_set_trust()
+.B rbl_dns_set_nslist(), rbl_dns_set_config(), rbl_dns_set_trustanchor()
 \- Realtime Blacklist (RBL) service facility
 .SH SYNOPSIS
 #include
@@ -324,7 +324,7 @@ The function will receive a handle referencing the active resolver and a
 string containing the configuration.  It should return zero on success and
 non-zero on failure.
 
-.B rbl_dns_set_trust()
+.B rbl_dns_set_trustanchor()
 sets a pointer to the function that should be called when it is necessary
 to provide trust anchor information (supporting DNSSEC) to the resolver.
 The function will receive a handle referencing the active resolver and a
