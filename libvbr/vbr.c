@@ -94,6 +94,11 @@ struct vbr_handle
 			                  size_t,
 			                  void **);
 	int		(*vbr_dns_cancel) (void *, void *);
+	int		(*vbr_dns_init) (void **);
+	int		(*vbr_dns_close) (void *);
+	int		(*vbr_dns_setns) (void *, const char *);
+	int		(*vbr_dns_config) (void *, const char *);
+	int		(*vbr_dns_trustanchor) (void *, const char *);
 	int		(*vbr_dns_waitreply) (void *,
 			                      void *,
 			                      struct timeval *,
@@ -750,6 +755,9 @@ vbr_close(VBR *vbr)
 {
 	assert(vbr != NULL);
 
+	if (vbr->vbr_dns_close != NULL && vbr->vbr_dns_service != NULL)
+		(void) vbr->vbr_dns_close(vbr->vbr_dns_service);
+
 	CLOBBER(vbr->vbr_error);
 
 	CLOBBER(vbr);
@@ -1048,6 +1056,16 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 
 		qh = NULL;
 
+		if (vbr->vbr_dns_init != NULL &&
+		    vbr->vbr_dns_service == NULL &&
+		    vbr->vbr_dns_init(&vbr->vbr_dns_service) != 0)
+		{
+			snprintf(vbr->vbr_error, sizeof vbr->vbr_error,
+			         "unable to start resolver for '%s'",
+			         query);
+			return VBR_STAT_DNSERROR;
+		}
+
 		status = vbr->vbr_dns_start(vbr->vbr_dns_service, T_TXT, query,
 		                            vq->vq_buf, sizeof vq->vq_buf,
 		                            &vq->vq_qh);
@@ -1304,4 +1322,132 @@ vbr_dns_set_query_waitreply(VBR *vbr, int (*func)(void *, void *,
 	assert(vbr != NULL);
 
 	vbr->vbr_dns_waitreply = func;
+}
+
+/*
+**  VBR_DNS_SET_INIT -- stores a pointer to a function that initializes
+**                      a resolver
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	func -- function to use to initialize a resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void **dns -- DNS service handle (returned)
+*/
+
+void
+vbr_dns_set_init(VBR *vbr, int (*func)(void **))
+{
+	assert(vbr != NULL);
+
+	vbr->vbr_dns_init = func;
+}
+
+/*
+**  VBR_DNS_SET_CLOSE -- stores a pointer to a function that terminates
+**                       a resolver
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	func -- function to use to terminate a resolver
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- DNS service handle
+*/
+
+void
+vbr_dns_set_close(VBR *vbr, int (*func)(void *))
+{
+	assert(vbr != NULL);
+
+	vbr->vbr_dns_close = func;
+}
+
+/*
+**  VBR_DNS_SET_NSLIST -- stores a pointer to a function that updates
+**                        the active nameserver list
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	func -- function to use to update the active nameserver list
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- DNS service handle
+**  		const char *nslist -- nameserver list
+*/
+
+void
+vbr_dns_set_nslist(VBR *vbr, int (*func)(void *, const char *))
+{
+	assert(vbr != NULL);
+
+	vbr->vbr_dns_setns = func;
+}
+
+/*
+**  VBR_DNS_SET_CONFIG -- stores a pointer to a function that provides
+**                        resolver configuration
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	func -- function to use to pass resolver configuration data
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- DNS service handle
+**  		const char *config -- resolver configuration data
+*/
+
+void
+vbr_dns_set_config(VBR *vbr, int (*func)(void *, const char *))
+{
+	assert(vbr != NULL);
+
+	vbr->vbr_dns_config = func;
+}
+
+/*
+**  VBR_DNS_SET_TRUSTANCHOR -- stores a pointer to a function that provides
+**                             trust anchor data
+**
+**  Parameters:
+**  	vbr -- VBR library handle
+**  	func -- function to use to pass trust anchor data
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	"func" should match the following prototype:
+**  		returns int (status)
+**  		void *dns -- DNS service handle
+**  		const char *trust -- trust anchor data
+*/
+
+void
+vbr_dns_set_trustanchor(VBR *vbr, int (*func)(void *, const char *))
+{
+	assert(vbr != NULL);
+
+	vbr->vbr_dns_trustanchor = func;
 }
