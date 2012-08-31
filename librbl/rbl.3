@@ -5,7 +5,8 @@
 .B rbl_settimeout(), rbl_setcallbackint(), rbl_setcallbackctx(),
 .B rbl_setdnscallback(), rbl_dns_set_query_service(),
 .B rbl_dns_set_query_start(), rbl_dns_set_query_cancel(),
-.B rbl_dns_set_query_waitreply()
+.B rbl_dns_set_query_waitreply(), rbl_dns_set_init(), rbl_dns_set_close(),
+.B rbl_dns_set_nslist(), rbl_dns_set_config(), rbl_dns_set_trust()
 \- Realtime Blacklist (RBL) service facility
 .SH SYNOPSIS
 #include
@@ -108,6 +109,46 @@ void
 int (*
 .B func
 )(void *, void *, struct timeval *, size_t *, int *, int *));
+
+void
+.B rbl_dns_set_init
+(RBL *
+.B rbl,
+int (*
+.B func
+)(void **);
+
+void
+.B rbl_dns_set_close
+(RBL *
+.B rbl,
+int (*
+.B func
+)(void *);
+
+void
+.B rbl_dns_set_config
+(RBL *
+.B rbl,
+int (*
+.B func
+)(void *, const char *);
+
+void
+.B rbl_dns_set_nslist
+(RBL *
+.B rbl,
+int (*
+.B func
+)(void *, const char *);
+
+void
+.B rbl_dns_set_trust
+(RBL *
+.B rbl,
+int (*
+.B func
+)(void *, const char *);
 
 void
 .B rbl_close
@@ -256,6 +297,39 @@ the caller), and a pointer to an integer that will contain a DNSSEC
 status indication (can be NULL if that information is not interesting to
 the caller).  The function should return one of the DNS result codes
 described below.
+
+.B rbl_dns_set_init()
+sets a pointer to the function that should be called when it is necessary
+to initialize a resolver.  The function should store a handle to the
+initialized resolver and return zero, or return non-zero if initialization
+could not be completed.
+
+.B rbl_dns_set_close()
+sets a pointer to the function that should be called when it is necessary
+to terminate a resolver.  The function will receive a handle referencing
+the resolver to be terminated, and should return zero on success or non-zero
+on failure.
+
+.B rbl_dns_set_nslist()
+sets a pointer to the function that should be called when it is necessary
+to change the set of nameservers that are to be used to resolve RBL queries.
+The function will receive a handle referencing the active resolver and a
+string containing a comma-separated list of nameservers to use.  It should
+return zero on success and non-zero on failure.
+
+.B rbl_dns_set_config()
+sets a pointer to the function that should be called when it is necessary
+to provide arbitrary configuration information to the resolver.
+The function will receive a handle referencing the active resolver and a
+string containing the configuration.  It should return zero on success and
+non-zero on failure.
+
+.B rbl_dns_set_trust()
+sets a pointer to the function that should be called when it is necessary
+to provide trust anchor information (supporting DNSSEC) to the resolver.
+The function will receive a handle referencing the active resolver and a
+string containing the trust anchor data.  It should return zero on success and
+non-zero on failure.
 
 When the library handle is no longer needed, it should be passed to
 .B rbl_close().
