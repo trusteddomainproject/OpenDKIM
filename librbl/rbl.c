@@ -399,6 +399,10 @@ rbl_close(RBL *rbl)
 {
 	assert(rbl != NULL);
 
+	if (rbl->rbl_dns_service != NULL &&
+	    rbl->rbl_dns_close != NULL)
+		(void) rbl->rbl_dns_close(rbl->rbl_dns_service);
+
 	if (rbl->rbl_free != NULL)
 		rbl->rbl_free(rbl->rbl_closure, rbl);
 	else
