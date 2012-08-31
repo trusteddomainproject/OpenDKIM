@@ -5,7 +5,9 @@
 .B vbr_query(), vbr_settimeout(), vbr_setcallbackint(), vbr_setcallbackctx(),
 .B vbr_setdnscallback(), vbr_dns_set_query_service(),
 .B vbr_dns_set_query_start(), vbr_dns_set_query_cancel(),
-.B vbr_dns_set_query_waitreply()
+.B vbr_dns_set_query_waitreply(), vbr_dns_set_query_waitreply(),
+.B vbr_dns_set_init(), vbr_dns_set_close(), vbr_dns_set_nslist(),
+.B vbr_dns_set_config(), vbr_dns_set_trustanchor()
 \- Vouch By Reference service facility
 .SH SYNOPSIS
 #include
@@ -150,6 +152,46 @@ void
 int (*
 .B func
 )(void *, void *, struct timeval *, size_t *, int *, int *));
+
+void
+.B vbr_dns_set_init
+(VBR *
+.B vbr,
+int (*
+.B func
+)(void **);
+
+void
+.B vbr_dns_set_close
+(VBR *
+.B vbr,
+int (*
+.B func
+)(void *);
+
+void
+.B vbr_dns_set_config
+(VBR *
+.B vbr,
+int (*
+.B func
+)(void *, const char *);
+
+void
+.B vbr_dns_set_nslist
+(VBR *
+.B vbr,
+int (*
+.B func
+)(void *, const char *);
+
+void
+.B vbr_dns_set_trustanchor
+(VBR *
+.B vbr,
+int (*
+.B func
+)(void *, const char *);
 
 void
 .B vbr_close
@@ -312,6 +354,39 @@ the caller), and a pointer to an integer that will contain a DNSSEC
 status indication (can be NULL if that information is not interesting to
 the caller).  The function should return one of the DNS result codes
 described below.
+
+.B vbr_dns_set_init()
+sets a pointer to the function that should be called when it is necessary
+to initialize a resolver.  The function should store a handle to the
+initialized resolver and return zero, or return non-zero if initialization
+could not be completed.
+
+.B vbr_dns_set_close()
+sets a pointer to the function that should be called when it is necessary
+to terminate a resolver.  The function will receive a handle referencing
+the resolver to be terminated, and should return zero on success or non-zero
+on failure.
+
+.B vbr_dns_set_nslist()
+sets a pointer to the function that should be called when it is necessary
+to change the set of nameservers that are to be used to resolve RBL queries.
+The function will receive a handle referencing the active resolver and a
+string containing a comma-separated list of nameservers to use.  It should
+return zero on success and non-zero on failure.
+
+.B vbr_dns_set_config()
+sets a pointer to the function that should be called when it is necessary
+to provide arbitrary configuration information to the resolver.
+The function will receive a handle referencing the active resolver and a
+string containing the configuration.  It should return zero on success and
+non-zero on failure.
+
+.B vbr_dns_set_trustanchor()
+sets a pointer to the function that should be called when it is necessary
+to provide trust anchor information (supporting DNSSEC) to the resolver.
+The function will receive a handle referencing the active resolver and a
+string containing the trust anchor data.  It should return zero on success and
+non-zero on failure.
 
 When the library handle is no longer needed, it should be passed to
 .B vbr_close().
