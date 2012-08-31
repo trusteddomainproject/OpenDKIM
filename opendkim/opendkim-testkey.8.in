@@ -50,7 +50,7 @@ multiple times for increased output.
 Names a configuration file to be parsed.  See the
 .I opendkim.conf(5)
 man page for details.  The only values used are Domain, Selector, KeyFile,
-KeyTable, TrustAnchorFile and UnboundConfigFile.  The default is
+KeyTable, TrustAnchorFile and ResolverConfig.  The default is
 .I @SYSCONFDIR@/opendkim.conf.
 .SH NOTES
 The test program will also complain if a private key file is readable

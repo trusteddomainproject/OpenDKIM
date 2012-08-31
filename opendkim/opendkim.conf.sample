@@ -541,6 +541,14 @@ KeyFile			/var/db/dkim/example.private
 
 # ResignMailTo		dataset
 
+##  ResolverConfiguration string
+##
+##  Passes arbitrary configuration data to the resolver.  For the stock UNIX
+##  resolver, this is ignored; for Unbound, it names a resolv.conf(5)-style
+##  file that should be read for configuration information.
+
+# ResolverConfiguration	string
+
 ##  ResolverTracing { yes | no }
 ##
 ##  Requests enabling of resolver trace features, if available.  The effect

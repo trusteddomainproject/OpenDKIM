@@ -389,7 +389,7 @@ main(int argc, char **argv)
 		(void) config_get(cfg, "TrustAnchorFile",
 		                  &trustanchor, sizeof trustanchor);
 
-		(void) config_get(cfg, "ResolverConfigFile",
+		(void) config_get(cfg, "ResolverConfiguration",
 		                  &nsconfig, sizeof nsconfig);
 
 		(void) config_get(cfg, "Nameservers",

@@ -947,7 +947,7 @@ the default key is applied.
 @RESIGN_MANNOTICE@
 
 .TP
-.I ResolverConfig (string)
+.I ResolverConfiguration (string)
 Provides the given string as configuration information to the underlying
 resolver.  For the standard UNIX resolver, this is unused; for Unbound,
 the string contains a filename that is considered to be a configuration file.

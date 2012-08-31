@@ -6389,7 +6389,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			return -1;
 		}
 
-		(void) config_get(data, "ResolverConfigFile",
+		(void) config_get(data, "ResolverConfiguration",
 		                  &conf->conf_resolverconfig,
 		                  sizeof conf->conf_resolverconfig);
 
