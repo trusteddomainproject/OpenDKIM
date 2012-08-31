@@ -774,6 +774,122 @@ rbl_dns_set_init(RBL *lib, int (*func)(void **))
 }
 
 /*
+**  RBL_DNS_NSLIST -- requests update to a nameserver list
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**  	nslist -- comma-separated list of nameservers to use
+**
+**  Return value:
+**  	An RBL_STAT_* constant.
+*/
+
+RBL_STAT
+rbl_dns_nslist(RBL *lib, const char *nslist)
+{
+	int status;
+
+	assert(lib != NULL);
+	assert(nslist != NULL);
+
+	if (lib->rbl_dns_setns != NULL)
+	{
+		status = lib->rbl_dns_setns(lib->rbl_dns_service, nslist);
+		if (status != 0)
+			return RBL_STAT_ERROR;
+	}
+
+	return RBL_STAT_OK;
+}
+
+/*
+**  RBL_DNS_CONFIG -- requests a change to resolver configuration
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**  	config -- opaque configuration string
+**
+**  Return value:
+**  	An RBL_STAT_* constant.
+*/
+
+RBL_STAT
+rbl_dns_config(RBL *lib, const char *config)
+{
+	int status;
+
+	assert(lib != NULL);
+	assert(config != NULL);
+
+	if (lib->rbl_dns_config != NULL)
+	{
+		status = lib->rbl_dns_config(lib->rbl_dns_service, config);
+		if (status != 0)
+			return RBL_STAT_ERROR;
+	}
+
+	return RBL_STAT_OK;
+}
+
+/*
+**  RBL_DNS_TRUSTANCHOR -- requests a change to resolver trust anchor data
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**  	trust -- opaque trust anchor string
+**
+**  Return value:
+**  	An RBL_STAT_* constant.
+*/
+
+RBL_STAT
+rbl_dns_trustanchor(RBL *lib, const char *trust)
+{
+	int status;
+
+	assert(lib != NULL);
+	assert(trust != NULL);
+
+	if (lib->rbl_dns_trustanchor != NULL)
+	{
+		status = lib->rbl_dns_trustanchor(lib->rbl_dns_service, trust);
+		if (status != 0)
+			return RBL_STAT_ERROR;
+	}
+
+	return RBL_STAT_OK;
+}
+
+/*
+**  RBL_DNS_INIT -- force nameserver (re)initialization
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**
+**  Return value:
+**  	An RBL_STAT_* constant.
+*/
+
+RBL_STAT
+rbl_dns_init(RBL *lib)
+{
+	int status;
+
+	assert(lib != NULL);
+
+	if (lib->rbl_dns_service != NULL &&
+	    lib->rbl_dns_close != NULL)
+		lib->rbl_dns_close(lib->rbl_dns_service);
+
+	lib->rbl_dns_service = NULL;
+
+	if (lib->rbl_dns_init != NULL)
+		return lib->rbl_dns_init(&lib->rbl_dns_service);
+	else
+		return RBL_STAT_OK;
+}
+
+/*
 **  RBL_QUERY_CANCEL -- cancel an open query to the RBL
 **
 **  Parameters:

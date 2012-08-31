@@ -388,4 +388,55 @@ extern void rbl_dns_set_config __P((RBL *,
 extern void rbl_dns_set_trustanchor __P((RBL *,
                                          int (*)(void *, const char *)));
 
+/*
+**  RBL_DNS_NSLIST -- requests update to a nameserver list
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**  	nslist -- comma-separated list of nameservers to use
+**
+**  Return value:
+**  	An RBL_STAT_* constant.
+*/
+
+extern RBL_STAT rbl_dns_nslist __P((RBL *, const char *));
+
+/*
+**  RBL_DNS_CONFIG -- requests a change to resolver configuration
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**  	config -- opaque configuration string
+**
+**  Return value:
+**  	An RBL_STAT_* constant.
+*/
+
+extern RBL_STAT rbl_dns_config __P((RBL *, const char *));
+
+/*
+**  RBL_DNS_TRUSTANCHOR -- requests a change to resolver trust anchor data
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**  	trust -- opaque trust anchor string
+**
+**  Return value:
+**  	An RBL_STAT_* constant.
+*/
+
+extern RBL_STAT rbl_dns_trustanchor __P((RBL *, const char *));
+
+/*
+**  RBL_DNS_INIT -- force nameserver (re)initialization
+**
+**  Parameters:
+**  	lib -- RBL library handle
+**
+**  Return value:
+**  	An RBL_STAT_* constant.
+*/
+
+extern RBL_STAT rbl_dns_init __P((RBL *));
+
 #endif /* _RBL_H_ */
