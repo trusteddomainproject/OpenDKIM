@@ -1334,6 +1334,7 @@ dkimf_xs_rblcheck(lua_State *l)
 	RBL *rbl;
 	SMFICTX *ctx;
 	struct connctx *cc = NULL;
+	struct dkimf_config *conf;
 	struct timeval to;
 
 	if (lua_gettop(l) < 3 || lua_gettop(l) > 4)
@@ -1355,6 +1356,7 @@ dkimf_xs_rblcheck(lua_State *l)
 	ctx = (SMFICTX *) lua_touserdata(l, 1);
 	if (ctx != NULL)
 		cc = (struct connctx *) dkimf_getpriv(ctx);
+		
 	query = lua_tostring(l, 2);
 	qroot = lua_tostring(l, 3);
 	if (lua_gettop(l) == 4)
@@ -1363,6 +1365,8 @@ dkimf_xs_rblcheck(lua_State *l)
 
 	if (cc == NULL)
 		return 0;
+
+	conf = cc->cctx_config;
 
 	rbl = rbl_init(NULL, NULL, NULL);
 	if (rbl == NULL)
@@ -1375,6 +1379,49 @@ dkimf_xs_rblcheck(lua_State *l)
 #  ifdef USE_UNBOUND
 	dkimf_rbl_unbound_setup(rbl);
 #  endif /* USE_UNBOUND */
+
+
+	if (conf->conf_nslist != NULL)
+	{
+		status = rbl_dns_nslist(rbl, conf->conf_nslist);
+		if (status != DKIM_STAT_OK)
+		{
+			lua_pushstring(l,
+			               "odkim.rbl_check(): can't set nameserver list");
+			lua_error(l);
+		}
+	}
+
+	if (conf->conf_trustanchorpath != NULL)
+	{
+		if (access(conf->conf_trustanchorpath, R_OK) != 0)
+		{
+			lua_pushfstring(l,
+			                "odkim.rbl_check(): %s: access(): %s",
+			                conf->conf_trustanchorpath,
+			                strerror(errno));
+			lua_error(l);
+		}
+
+		status = rbl_dns_trustanchor(rbl, conf->conf_trustanchorpath);
+		if (status != DKIM_STAT_OK)
+		{
+			lua_pushstring(l,
+			               "odkim.rbl_check(): can't set trust anchor");
+			lua_error(l);
+		}
+	}
+
+	if (conf->conf_resolverconfig != NULL)
+	{
+		status = rbl_dns_config(rbl, conf->conf_resolverconfig);
+		if (status != DKIM_DNS_SUCCESS)
+		{
+			lua_pushstring(l,
+			               "odkim.rbl_check(): can't configure resolver");
+			lua_error(l);
+		}
+	}
 
 	rbl_setdomain(rbl, (u_char *) qroot);
 
@@ -6393,14 +6440,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_resolverconfig,
 		                  sizeof conf->conf_resolverconfig);
 
-		if (conf->conf_resolverconfig != NULL &&
-		    access(conf->conf_resolverconfig, R_OK) != 0)
-		{
-			snprintf(err, errlen, "%s: %s",
-			         conf->conf_resolverconfig, strerror(errno));
-			return -1;
-		}
-
 #ifdef USE_UNBOUND
 		str = NULL;
 		(void) config_get(data, "BogusKey", &str, sizeof str);
@@ -8267,13 +8306,6 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 
 		if (conf->conf_resolverconfig != NULL)
 		{
-			if (access(conf->conf_resolverconfig, R_OK) != 0)
-			{
-				if (err != NULL)
-					*err = "can't access resolver configuration file";
-				return FALSE;
-			}
-
 			status = dkimf_dns_config(lib,
 			                          conf->conf_resolverconfig);
 			if (status != DKIM_DNS_SUCCESS)
@@ -12399,7 +12431,7 @@ mlfi_eoh(SMFICTX *ctx)
 				}
 			}
 		
-			if (!idset)
+			if (!idset && conf->conf_dolog)
 			{
 				syslog(LOG_INFO,
 				       "%s: cannot find identity header %s",
@@ -12447,11 +12479,18 @@ mlfi_eoh(SMFICTX *ctx)
 	dfc->mctx_vbr = vbr_init(NULL, NULL, NULL);
 	if (dfc->mctx_vbr == NULL)
 	{
-		syslog(LOG_ERR, "%s: can't create VBR context",
-		       dfc->mctx_jobid);
+		if (conf->conf_dolog)
+		{
+			syslog(LOG_ERR, "%s: can't create VBR context",
+			       dfc->mctx_jobid);
+		}
 		dkimf_cleanup(ctx);
 		return SMFIS_TEMPFAIL;
 	}
+
+# ifdef USE_UNBOUND
+	dkimf_vbr_unbound_setup(dfc->mctx_vbr);
+# endif /* USE_UNBOUND */
 
 	if (conf->conf_vbr_trustedonly)
 		vbr_options(dfc->mctx_vbr, VBR_OPT_TRUSTEDONLY);
@@ -12459,6 +12498,82 @@ mlfi_eoh(SMFICTX *ctx)
 	/* store the trusted certifiers */
 	if (conf->conf_vbr_trusted != NULL)
 		vbr_trustedcerts(dfc->mctx_vbr, conf->conf_vbr_trusted);
+
+	if (vbr_dns_init(dfc->mctx_vbr) != 0)
+	{
+		if (conf->conf_dolog)
+		{
+			syslog(LOG_ERR, "%s: can't initialize VBR resolver",
+			       dfc->mctx_jobid);
+		}
+		dkimf_cleanup(ctx);
+		return SMFIS_TEMPFAIL;
+	}
+
+	if (conf->conf_nslist != NULL)
+	{
+		status = vbr_dns_nslist(dfc->mctx_vbr, conf->conf_nslist);
+		if (status != VBR_STAT_OK)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR,
+				       "%s: can't set VBR resolver list",
+				       dfc->mctx_jobid);
+			}
+			dkimf_cleanup(ctx);
+			return SMFIS_TEMPFAIL;
+		}
+	}
+
+	if (conf->conf_trustanchorpath != NULL)
+	{
+		if (access(conf->conf_trustanchorpath, R_OK) != 0)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR,
+				       "%s: %s: access(): %s",
+				       dfc->mctx_jobid,
+				       conf->conf_trustanchorpath,
+				       strerror(errno));
+			}
+			dkimf_cleanup(ctx);
+			return SMFIS_TEMPFAIL;
+		}
+
+		status = vbr_dns_trustanchor(dfc->mctx_vbr,
+		                             conf->conf_trustanchorpath);
+		if (status != DKIM_STAT_OK)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR,
+				       "%s: can't set VBR trust anchor from %s",
+				       dfc->mctx_jobid,
+				       conf->conf_trustanchorpath);
+			}
+			dkimf_cleanup(ctx);
+			return SMFIS_TEMPFAIL;
+		}
+	}
+
+	if (conf->conf_resolverconfig != NULL)
+	{
+		status = vbr_dns_config(dfc->mctx_vbr,
+		                        conf->conf_resolverconfig);
+		if (status != DKIM_STAT_OK)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR,
+				       "%s: can't set VBR resolver configuration",
+				       dfc->mctx_jobid);
+			}
+			dkimf_cleanup(ctx);
+			return SMFIS_TEMPFAIL;
+		}
+	}
 
 	if (dfc->mctx_srhead != NULL)
 	{
