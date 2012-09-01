@@ -156,6 +156,10 @@ if RBL
 opendkim_testkey_CPPFLAGS += -I$(srcdir)/../librbl
 opendkim_testkey_LDADD += ../librbl/librbl.la
 endif
+if VBR
+opendkim_testkey_CPPFLAGS += -I$(srcdir)/../libvbr
+opendkim_testkey_LDADD += ../libvbr/libvbr.la
+endif
 if REPUTE
 opendkim_testkey_CPPFLAGS += -I$(srcdir)/../reputation
 opendkim_testkey_LDADD += ../reputation/librepute.la
