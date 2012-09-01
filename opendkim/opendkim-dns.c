@@ -37,6 +37,11 @@
 # include <rbl.h>
 #endif /* _FFR_RBL */
 
+#ifdef _FFR_VBR
+/* libvbr includes */
+# include <vbr.h>
+#endif /* _FFR_VBR */
+
 /* opendkim includes */
 #include "opendkim-dns.h"
 #include "opendkim-db.h"
@@ -1050,7 +1055,7 @@ dkimf_filedns_setup(DKIM_LIB *lib, DKIMF_DB db)
 	return 0;
 }
 
-#ifdef USE_VBR
+#ifdef _FFR_VBR
 /*
 **  DKIMF_VBR_UNBOUND_SETUP -- connect libunbound to libvbr
 **
@@ -1078,4 +1083,4 @@ dkimf_vbr_unbound_setup(VBR *vbr)
 
 	return 0;
 }
-#endif /* USE_VBR */
+#endif /* _FFR_VBR */

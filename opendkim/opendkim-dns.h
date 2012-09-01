@@ -22,6 +22,11 @@
 # include <rbl.h>
 #endif /* _FFR_RBL */
 
+#ifdef _FFR_VBR
+/* libvbr includes */
+# include <vbr.h>
+#endif /* _FFR_VBR */
+
 #ifdef _FFR_DKIM_REPUTATION
 /* libdkimrep includes */
 # include <dkim-rep.h>
@@ -38,6 +43,9 @@ extern int dkimf_unbound_setup __P((DKIM_LIB *));
 # ifdef _FFR_RBL
 extern int dkimf_rbl_unbound_setup __P((RBL *));
 # endif /* _FFR_RBL */
+# ifdef _FFR_VBR
+extern int dkimf_vbr_unbound_setup __P((VBR *));
+# endif /* _FFR_VBR */
 # ifdef _FFR_DKIM_REPUTATION
 extern int dkimf_rep_unbound_setup __P((DKIM_REP));
 # endif /* _FFR_DKIM_REPUTATION */
