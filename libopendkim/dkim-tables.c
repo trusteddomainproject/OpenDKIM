@@ -202,6 +202,7 @@ static struct nametable prv_sigerrors[] =	/* signature parsing errors */
 	{ "unable to apply public key",		DKIM_SIGERROR_KEYDECODE },
 	{ "version missing",			DKIM_SIGERROR_MISSING_V },
 	{ "version empty",			DKIM_SIGERROR_EMPTY_V },
+	{ "signing key too small",		DKIM_SIGERROR_KEYTOOSMALL },
 	{ NULL,					-1 },
 };
 struct nametable *sigerrors = prv_sigerrors;
