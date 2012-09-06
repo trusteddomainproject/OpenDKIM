@@ -64,6 +64,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Patch #SF3562496: Add DKIM_OPTS_REQUIREDHDRS to allow
 		alteration of the mandatory header field set.  Patch from
 		Ken Murchison.
+	LIBOPENDKIM: If "q=" is present and method "dns" is specified, it
+		must be followed by "/txt", per RFC6376.
 	STATS: Fix bug #SF3555847: Add "--nocircles" to opendkim-gengraphs
 		to allow operation with versions of gnuplot that don't know
 		what "with circles" means.  Problem noted by Andreas

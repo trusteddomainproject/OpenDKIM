@@ -2143,8 +2143,8 @@ dkim_siglist_setup(DKIM *dkim)
 
 				if (q == DKIM_QUERY_DNS)
 				{
-					/* "txt" option required (also default) */
-					if (opts != NULL &&
+					/* "txt" option required */
+					if (opts == NULL ||
 					    strcmp((char *) opts, "txt") != 0)
 					{
 						bad_qo = TRUE;
