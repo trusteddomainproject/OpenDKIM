@@ -1,5 +1,4 @@
-#!/bin/sh
-##
+#!/usr/bin/perl
 ##
 ## Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 ## All rights reserved.
@@ -31,191 +30,271 @@
 ## 				in order to publish the public key
 ## 				for retrieval by verifiers
 
+use strict;
+use warnings;
 
+use File::Basename;
+use Getopt::Long;
+
+##
 ## Set up defaults
-bits="1024"
-domain="@DOMAIN@"
-outdir="."
-nosubdomains=0
-hashalgs=""
-note=""
-flags=""
-selector="default"
-restrict=0
-testmode=0
-verbose=0
-append=0
+##
 
-progname=`basename $0`
+my $bits = 1024;
+my $domain = "@DOMAIN@";
+my $version = "@DOMAIN@";
+my $outdir = ".";
+my $subdomains = 0;
+my $hashalgs;
+my $note;
+my $flags = "";
+my $selector = "default";
+my $restricted = 0;
+my $testmode = 0;
+my $verbose = 0;
+my $append = 0;
+my $showversion = 0;
+my $keyin;
+my $status;
+my $txtout;
+my $keydata;
+my $helponly;
+my $hashout;
+my $noteout;
+my $comment;
+my $len;
+my $cur;
+my $domstr;
 
+my $progname = basename($0);
+
+##
+##  Usage message
+##
+
+sub usage
+{
+	print STDERR "$progname: usage: $progname [options]\n";
+	print STDERR "\t--append-domain        include domain name in zone file stub\n";
+	print STDERR "\t--bits=n               use n bits to generate the key\n";
+	print STDERR "\t--directory=path       leave output in the named directory\n";
+	print STDERR "\t--domain=name          generate data for the named domain [$domain]\n";
+	print STDERR "\t--hash-algorithms=list limit to use of the named algorithm(s)\n";
+	print STDERR "\t--help                 print help and exit\n";
+	print STDERR "\t--note=string          include specified note in zone data\n";
+	print STDERR "\t--restrict             restrict key to email use only\n";
+	print STDERR "\t--selector=name        selector name [$selector]\n";
+	print STDERR "\t--subdomains           allow signing of subdomains\n";
+	print STDERR "\t--testmode             indicate key is in test mode\n";
+	print STDERR "\t--verbose              increased output\n";
+	print STDERR "\t--version              print version and exit\n";
+}
+
+##
 ## Argument processing
-while [ $# -gt 0 ]
-do
-	case $1 in
-	-a)	append=1
-		;;
+##
 
-	-b)	if [ $# -eq 1 ]
-		then
-			echo $progname: -b requires a value
-			exit 1
-		fi
+# parse command line arguments
+my $opt_retval = &Getopt::Long::GetOptions ('a|append-domain!' => \$append,
+                                            'b|bits=i' => \$bits,
+                                            'D|directory=s' => \$outdir,
+                                            'd|domain=s' => \$domain,
+                                            'h|hash-algorithms=s' => \$hashalgs,
+                                            'help!' => \$helponly,
+                                            'n|note=s' => \$note,
+                                            'r|restrict!' => \$restricted,
+                                            's|selector=s' => \$selector,
+                                            'S|subdomains!' => \$subdomains,
+                                            't|testmode!' => \$testmode,
+                                            'v|verbose+' => \$verbose,
+                                            'V|version!' => \$showversion,
+                                           );
 
-		shift
-		bits=$1
-		;;
+if (!$opt_retval || $helponly)
+{
+	usage();
 
-	-d)	if [ $# -eq 1 ]
-		then
-			echo $progname: -d requires a value
-			exit 1
-		fi
+	if ($helponly)
+	{
+		exit(0);
+	}
+	else                                
+	{
+		exit(1);
+	}
+}
 
-		shift
-		domain=$1
-		;;
-
-	-D)	if [ $# -eq 1 ]
-		then
-			echo $progname: -D requires a value
-			exit 1
-		fi
-
-		shift
-		outdir=$1
-		;;
-
-	-h)	if [ $# -eq 1 ]
-		then
-			echo $progname: -h requires a value
-			exit 1
-		fi
-
-		shift
-		hashalgs=$1
-		;;
-
-	-n)	if [ $# -eq 1 ]
-		then
-			echo $progname: -h requires a value
-			exit 1
-		fi
-
-		shift
-		note=$1
-		;;
-
-	-r)	restrict=1
-		;;
-
-	-s)	if [ $# -eq 1 ]
-		then
-			echo $progname: -h requires a value
-			exit 1
-		fi
-
-		shift
-		selector=$1
-		;;
-
-	-S)	nosubdomains=1
-		;;
-
-	-t)	testmode=1
-		;;
-
-	-v)	verbose=1
-		;;
-
-	*)	echo $progname: unknown flag $1
-		exit 1
-		;;
-	esac
-
-	shift
-done
+if ($showversion)
+{
+	print STDOUT "$progname v@VERSION@\n";
+	exit 0;
+}
 
 ## do this securely and in the right place
-cd $outdir
-umask 077
+chdir($outdir);
+umask(077);
 
 ## generate a private key
-if [ $verbose -eq 1 ]
-then
-	echo $progname: generating private key
-fi
+if ($verbose >= 1)
+{
+	print STDERR "$progname: generating private key\n";
+}
 
-openssl genrsa -out ${selector}.private $bits > /dev/null 2>&1
+$status = system("openssl genrsa -out " . $selector . ".private " . $bits . " > /dev/null 2>&1");
+if ($status != 0)
+{
+	if ($? & 127)
+	{
+		print STDERR "$progname: openssl died with signal %d\n",
+		      ($? & 127);
+		exit(1);
+	}
+	else
+	{
+		print STDERR "$progname: openssl exited with status %d\n",
+		      ($? >> 8);
+		exit(1);
+	}
+}
 
-if [ $verbose -eq 1 ]
-then
-	echo $progname: private key written to ${selector}.private
-fi
+if ($verbose)
+{
+	print STDERR "$progname: private key written to " . $selector . ".private\n";
+}
 
 ## generate a public key based on the private key
-if [ $verbose -eq 1 ]
-then
-	echo $progname: extracting public key
-fi
+if ($verbose)
+{
+	print STDERR "$progname: extracting public key\n";
+}
 
-openssl rsa -in ${selector}.private -pubout -out ${selector}.public -outform PEM > /dev/null 2>&1
+$status = system("openssl rsa -in " . $selector . ".private -pubout -out " . $selector . ".public -outform PEM > /dev/null 2>&1");
+if ($status != 0)
+{
+	if ($? & 127)
+	{
+		print STDERR "$progname: openssl died with signal %d\n",
+		      ($? & 127);
+		exit(1);
+	}
+	else
+	{
+		print STDERR "$progname: openssl exited with status %d\n",
+		      ($? >> 8);
+		exit(1);
+	}
+}
 
-keydata=`grep -v '^-' ${selector}.public`
-pubkey=`echo $keydata | sed 's/ //g'`
+if (!open($keyin, "<", $selector . ".public"))
+{
+	print STDERR "$progname: unable to read from " . $selector . ".public: $!\n";
+	exit(1);
+}
+
+while (<$keyin>)
+{
+	chomp;
+	if ($_ =~ /^-/)
+	{
+		next;
+	}
+
+	$keydata .= $_;
+}
+
+close($keyin);
 
 ## output the record
-if [ $testmode -eq 1 ]
-then
-	flags=" t=y"
-fi
-if [ $nosubdomains -eq 1 ]
-then
-	if [ "$flags" != "" ]
-	then
-		flags=${flags}:s
+if ($testmode)
+{
+	$flags = "t=y;";
+}
+
+if (!$subdomains)
+{
+	if ($flags eq "t=y;")
+	{
+		$flags = "t=y:s;";
+	}
 	else
-		flags=" t=s"
-	fi
-fi
+	{
+		$flags = "t=s;";
+	}
+}
 
-flagsout=""
-if [ "$flags" != "" ]
-then
-	flagsout="$flags;"
-fi
+if ($restricted)
+{
+	$flags .= " s=email;";
+}
 
-hashout=""
-if [ "$hashalgs" != "" ]
-then
-	hashout=" h=$hashalgs;"
-fi
+if ($flags ne "")
+{
+	$flags = " " . $flags . " ";
+}
 
-noteout=""
-if [ "$note" != "" ]
-then
-	noteout=" n=\\\"$note\\\";"
-fi
+$hashout = "";
+if (defined($hashalgs))
+{
+	$hashout = "h=$hashalgs;";
+}
 
-domstr=""
-if [ $append -eq 1 ]
-then
-	domstr=".$domain."
-fi
+$noteout = "";
+if (defined($note))
+{
+	$noteout = " n=\\\"$note\\\";";
+}
 
-if [ "$domain" != "" ]
-then
-	comment=" ; ----- DKIM key $selector for $domain"
+$domstr = "";
+if ($append)
+{
+	$domstr = "." . $domain . ".";
+}
+
+if ($domain eq "")
+{
+	$comment = " ; ----- DKIM key $selector for $domain"
+}
 else
-	comment=""
-fi
+{
+	$comment = "";
+}
 
-echo ${selector}._domainkey${domstr}   IN   TXT  '"'v=DKIM1\;$noteout$hashout k=rsa\;$flagsout p=$pubkey'"' $comment > ${selector}.txt
+if (!open($txtout, ">", $selector . ".txt"))
+{
+	print STDERR "$progname: unable to write from " . $selector . ".txt: $!\n";
+	exit(1);
+}
 
-if [ $verbose -eq 1 ]
-then
-	echo $progname: DNS TXT record written to ${selector}.txt
-fi
+print $txtout $selector . "._domainkey" . ${domstr} . "\tIN\tTXT\t( \"v=DKIM1;" . $noteout . " " . $hashout . " k=rsa;" . $flags . "\"\n\t  \"p=";
+
+$len = length($keydata);
+$cur = 0;
+
+while ($len > 0)
+{
+	if ($len < 250)
+	{
+		print $txtout substr($keydata, $cur);
+		$len = 0;
+	}
+	else
+	{
+		print $txtout substr($keydata, $cur, 250);
+		print $txtout "\"\n\t  \"";
+		$cur += 250;
+		$len -= 250;
+	}
+}
+
+print $txtout "\" ) " . $comment . "\n";
+
+close($txtout);
+
+if ($verbose)
+{
+	print STDERR "$progname: DNS TXT record written to " . $selector . ".txt\n";
+}
 
 ## all done!
-rm -f ${selector}.public
-exit 0
+unlink($selector . ".public");
+exit(0);

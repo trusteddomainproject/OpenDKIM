@@ -77,6 +77,9 @@ release, and a summary of the changes in that release.
 	TOOLS: Feature request #SF3558818: Teach opendkim-testkey about the new
 		"ResolverConfiguration" setting.  Based on a problem report
 		from Patrick Ben Koetter.
+	TOOLS: Fix bug #SF3565013: Replace opendkim-genkey with a perl script
+		that knows how to do splitting of character-strings in DNS
+		TXT records.  Problem reported by Todd Lyons.
 
 2.6.7		2012/07/23
 	Fix input handling for file data sets for the macro case.  Problem
