@@ -15460,7 +15460,8 @@ mlfi_eom(SMFICTX *ctx)
 		}
 	}
 
-	dkimf_log_ssl_errors(lastdkim, sig, (char *) dfc->mctx_jobid);
+	if (lastdkim != NULL)
+		dkimf_log_ssl_errors(lastdkim, sig, (char *) dfc->mctx_jobid);
 
 	/*
 	**  If we got this far, we're ready to complete.
