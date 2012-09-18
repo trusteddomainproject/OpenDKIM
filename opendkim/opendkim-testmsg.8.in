@@ -4,7 +4,7 @@
 \- DKIM message tst
 .SH SYNOPSIS
 .B opendkim-testmsg
-[\-C] [\-d domain] [\-s selector] [\-k keypath]
+[\-C] [\-d domain] [\-s selector] [\-k keypath] [\-t path]
 .SH DESCRIPTION
 .B opendkim-testmsg
 signs or verifies an input message.  This is similar to the test mode for 
@@ -39,6 +39,11 @@ the input message.
 .I -s selector
 Names the selector within the specified domain that should be included in
 the signature.
+.TP
+.I -t path
+Specifies the directory in which temporary files are to be created.  The
+default is
+.I /tmp.
 .SH VERSION
 This man page covers the version of
 .I opendkim-testmsg

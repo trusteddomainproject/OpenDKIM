@@ -26,9 +26,10 @@
 #endif /* ! TRUE */
 
 #define	BUFRSZ		1024
-#define	CMDLINEOPTS	"Cd:k:s:"
+#define	DEFTMPDIR	"/tmp"
+#define	CMDLINEOPTS	"Cd:k:s:t:"
 #define STRORNULL(x)	((x) == NULL ? "(null)" : (x))
-#define	TMPTEMPLATE	"/var/tmp/dkimXXXXXX"
+#define	TMPTEMPLATE	"dkimXXXXXX"
 
 /* prototypes */
 int usage(void);
@@ -55,6 +56,7 @@ usage(void)
 	        "\t-d domain  \tset signing domain\n"
 	        "\t-k keyfile \tprivate key file\n"
 	        "\t-s selector\tset signing selector\n",
+	        "\t-t path    \tdirectory for temporary files\n",
 	        progname, progname);
 
 	return EX_CONFIG;
@@ -123,13 +125,11 @@ main(int argc, char **argv)
 	const char *selector = NULL;
 	const char *keyfile = NULL;
 	char *keydata = NULL;
+	char *tmpdir = DEFTMPDIR;
 	char buf[BUFRSZ];
 	char fn[BUFRSZ];
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
-
-	memset(fn, '\0', sizeof fn);
-	strncpy(fn, TMPTEMPLATE, sizeof fn);
 
 	while ((c = getopt(argc, argv, CMDLINEOPTS)) != -1)
 	{
@@ -154,6 +154,10 @@ main(int argc, char **argv)
 			n++;
 			break;
 
+		  case 't':
+			tmpdir = optarg;
+			break;
+
 		  default:
 			return usage();
 		}
@@ -161,6 +165,9 @@ main(int argc, char **argv)
 
 	if (n != 0 && n != 3)
 		return usage();
+
+	memset(fn, '\0', sizeof fn);
+	snprintf(fn, sizeof fn, "%s/%s", tmpdir, TMPTEMPLATE);
 
 	if (n == 3)
 	{
@@ -264,6 +271,8 @@ main(int argc, char **argv)
 		dkim_close(lib);
 		return EX_SOFTWARE;
 	}
+
+	(void) unlink(fn);
 
 	for (;;)
 	{
