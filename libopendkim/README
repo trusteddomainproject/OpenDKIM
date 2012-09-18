@@ -6,7 +6,7 @@ The following environment variables are checked and have some impact on
 what libdkim does:
 
 DKIM_TMPDIR	directory in which temporary files are created; default is
-		/var/tmp
+		/tmp
 
 
 SELF-TEST

@@ -10,8 +10,8 @@
 ## verifying of opendkim
 
 ## Setup
-set infile=/var/tmp/ari.$$
-set tmpfile=/var/tmp/aro.$$
+set infile=/tmp/ari.$$
+set tmpfile=/tmp/aro.$$
 set hostname=`hostname`
 
 ## Capture the incoming message

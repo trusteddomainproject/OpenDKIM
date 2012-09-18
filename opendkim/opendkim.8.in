@@ -537,7 +537,7 @@ of this filter:
 .TP
 .I DKIM_TMPDIR
 The directory to use when creating temporary files.  The default is
-.I /var/tmp.
+.I /tmp.
 .SH NOTES
 When using DNS timeouts (see the
 .I \-T

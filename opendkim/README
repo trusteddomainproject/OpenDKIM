@@ -345,7 +345,7 @@ after a failed verification to determine how the signed data and verified
 data differ.
 
 "TemporaryDirectory" simply selects the directory to be used to create
-these files, if other than the default (/var/tmp) is desired.
+these files, if other than the default (/tmp) is desired.
 
 These debug features are useful when using a remote verifier that is equipped
 to send back replies which contain the canonicalization output at the remote

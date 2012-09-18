@@ -1229,7 +1229,7 @@ Specifies the directory in which temporary canonicalization files should
 be written.  The default is to use the
 .I libdkim
 default location, currently
-.I /var/tmp.
+.I /tmp.
 
 .TP
 .I TestDNSData (data set)

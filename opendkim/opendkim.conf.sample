@@ -715,12 +715,12 @@ Socket			inet:port@localhost
 # SyslogSuccess		No
 
 ##  TemporaryDirectory path
-##  	default /var/tmp
+##  	default /tmp
 ##
 ##  Specifies which directory will be used for creating temporary files
 ##  during message processing.
 
-# TemporaryDirectory	/var/tmp
+# TemporaryDirectory	/tmp
 
 ##  TestPublicKeys filename
 ##  	default (none)

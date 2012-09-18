@@ -43,6 +43,7 @@ release, and a summary of the changes in that release.
 		(and the current REPUTE WG drafts).  Problem noted by
 		Andreas Schulze.
 	Fix bounds checking in the dstring printf functions.
+	Change all temporary directory defaults from /var/tmp to /tmp.
 	Patch #SF3555843: With sufficient verbosity, report the default
 		configuration file path.  Patch from Andreas Schulze.
 	BUILD: Fix bug #SF3531658: Move the strlcat() and strlcpy()

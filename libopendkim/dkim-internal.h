@@ -65,8 +65,7 @@
 
 /* defaults */
 #define	DEFERRLEN		64	/* default error string length */
-#define	DEFTMPDIR		"/var/tmp"
-					/* default temporary directory */
+#define	DEFTMPDIR		"/tmp"	/* default temporary directory */
 
 /* version */
 #define	DKIM_VERSION_KEY	"DKIM1"	/* current version token for keys */

@@ -461,16 +461,16 @@ send_registration()
 {
 	echo "${PROGNAME}: preparing signing key submission"
 	gpg --batch -a --export --homedir="$GNUPGDIR" \
-		--out="/var/tmp/$HOSTNAME.public.key"
+		--out="/tmp/$HOSTNAME.public.key"
 	if [ $? != 0 ]
 	then
 		echo "${PROGNAME}: unable to export public key"
 		exit 1 
 	fi
 
-	if [ -f /var/tmp/$HOSTNAME.public.key ]
+	if [ -f /tmp/$HOSTNAME.public.key ]
 	then
-		mv /var/tmp/$HOSTNAME.public.key "${GNUPGDIR}"/
+		mv /tmp/$HOSTNAME.public.key "${GNUPGDIR}"/
 	fi 
 
 	# encrypt public key and prep for sending to OpenDKIM
@@ -480,7 +480,7 @@ send_registration()
 	if [ ! -f "${GNUPGDIR}/${HOSTNAME}.${UNIXDATE}.gpg" ]
 	then
 		echo "${PROGNAME}: encrypted key generation failed"
-   		rm /var/tmp/"{$HOSTNAME}".public.key
+   		rm /tmp/"{$HOSTNAME}".public.key
 		exit 1
 	fi
 

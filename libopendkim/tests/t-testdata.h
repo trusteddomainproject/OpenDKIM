@@ -12,7 +12,7 @@
 #define	LARGEBODYSIZE	65536
 #define	LARGELINESIZE	4100
 
-#define	KEYFILE		"/var/tmp/testkeys"
+#define	KEYFILE		"/tmp/testkeys"
 
 #define	JOBID		"testing"
 #define	SELECTOR	"test"
