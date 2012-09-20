@@ -332,7 +332,7 @@ release, and a summary of the changes in that release.
 		a message.  Reported by Andreas Schulze.
 	Fix bug #SF3419149: Add MaximumSignedBytes to opendkim-config.h.
 		Reported by Adam Bernstein.
-	Fix bug #SF3441240: Appy ReportBccAddress when generating ADSP
+	Fix bug #SF3441240: Apply ReportBccAddress when generating ADSP
 		reports.  Reported by Richard Rognlie.
 	Fix bug #SF3447199: Fix logic preventing the application of the
 		BodyLengthDB.  Problem noted by Richard Rognlie.
