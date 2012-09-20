@@ -772,6 +772,7 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Improved re-entrancy of dkim_eoh_verify(), requested
 		by Frederik Deweerdt.
 	LIBOPENDKIM: Undefine DKIM_FEATURE_ASYNC_DNS (obsolete).
+	LIBOPENDKIM: Rework logic implementing "AlwaysSignHeaders".
 	MILTERTEST: Feature request #SF3005002: Enable testing of
 		"unspecified" protocol family connections.
 	MILTERTEST: Add "-u" option to report resource usage statistics on
