@@ -37,6 +37,9 @@ Attempts to authenticate to the database server as the specified
 .I user.
 The default is "opendkim".
 .TP
+.I --expire=days
+Indicates the number of days of data to keep.  The default is 180.
+.TP
 .I --help
 Prints a usage message and exits.
 .TP

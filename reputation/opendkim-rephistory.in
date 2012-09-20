@@ -28,9 +28,12 @@ my $helponly      = 0;
 my $showversion   = 0;
 
 my $rows;
+my $maxage;
 
 my $dbi_h;
-my $dbi_counts;
+my $dbi_s;
+
+my $def_maxage    = 180;
 
 # DB parameters
 my $def_dbhost    = "localhost";
@@ -58,6 +61,7 @@ sub usage
 	print STDERR "\t--dbpasswd=passwd  database password [$def_dbpasswd]\n";
 	print STDERR "\t--dbport=port      database port [$def_dbport]\n";
 	print STDERR "\t--dbuser=user      database user [$def_dbuser]\n";
+	print STDERR "\t--expire=days      expiration time, in days [$def_maxage]\n";
 	print STDERR "\t--help             print help and exit\n";
 	print STDERR "\t--verbose          verbose output\n";
 	print STDERR "\t--version          print version and exit\n";
@@ -69,6 +73,7 @@ my $opt_retval = &Getopt::Long::GetOptions ('dbhost=s' => \$dbhost,
                                             'dbpasswd=s' => \$dbpasswd,
                                             'dbport=s' => \$dbport,
                                             'dbuser=s' => \$dbuser,
+                                            'expire=i' => \$maxage,
                                             'help!' => \$helponly,
                                             'verbose!' => \$verbose,
                                             'version!' => \$showversion,
@@ -155,6 +160,25 @@ if (!defined($dbuser))
 	}
 }
 
+if (!defined($maxage))
+{
+	if (defined($ENV{'OPENDKIM_MAXAGE'}))
+	{
+		$maxage = $ENV{'OPENDKIM_MAXAGE'};
+	}
+	else
+	{
+		$maxage = $def_maxage;
+	}
+}
+
+# sanity check
+if ($maxage <= 0)
+{
+	print STDERR "$progname: invalid expiration time\n";
+	exit(1);
+}
+
 my $dbi_dsn = "DBI:" . $dbscheme . ":database=" . $dbname .
               ";host=" . $dbhost . ";port=" . $dbport;
 
@@ -178,13 +202,13 @@ if ($verbose)
 	print STDERR "$progname: recording current reputation data for all domains\n";
 }
 
-$dbi_counts = $dbi_h->prepare("INSERT INTO history (date, domain, ratio, msglimit) SELECT DATE(NOW()), domain, ratio_high, daily_limit_low FROM predictions WHERE DATE(updated) = DATE(NOW()) AND reporter = 0");
+$dbi_s = $dbi_h->prepare("INSERT INTO history (date, domain, ratio, msglimit) SELECT DATE(NOW()), domain, ratio_high, daily_limit_low FROM predictions WHERE DATE(updated) = DATE(NOW()) AND reporter = 0");
 
-$rows = $dbi_counts->execute();
+$rows = $dbi_s->execute();
 if (!$rows)
 {
 	print STDERR "$progname: INSERT/SELECT failed: " . $dbi_h->errstr;
-	$dbi_counts->finish;
+	$dbi_s->finish;
 	$dbi_h->disconnect;
 	exit(1);
 }
@@ -203,6 +227,38 @@ else
 	}
 }
 
+$dbi_s->finish;
+
+#
+# Expire messages
+#
+
+if ($verbose)
+{
+	print STDERR "$progname: expiring records older than $maxage day(s)\n";
+}
+
+$dbi_s = $dbi_h->prepare("DELETE FROM history WHERE date <= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL ? DAY)");
+$rows = $dbi_s->execute($maxage);
+if (!$rows)
+{
+	print STDERR "$progname: DELETE failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
+elsif ($verbose)
+{
+	if ($rows eq "0E0")
+	{
+		print STDOUT "$progname: no rows deleted\n";
+	}
+	else
+	{
+		print STDOUT "$progname: $rows row(s) deleted\n";
+	}
+}
+
 
 # all done!
 if ($verbose)
@@ -210,7 +266,7 @@ if ($verbose)
 	print STDERR "$progname: terminating\n";
 }
 
-$dbi_counts->finish;
+$dbi_s->finish;
 $dbi_h->disconnect;
 
 exit(0);
