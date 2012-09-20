@@ -45,5 +45,17 @@ create table if not exists predictions (
 	unique key (domain, reporter)
 ) engine=innodb default charset=latin1;
 
+-- table containing reputation history
+create table if not exists history (
+	id int not null auto_increment,
+	date timestamp not null,
+	domain int not null,
+	ratio float,
+	msglimit int,
+
+	primary key(id),
+	unique key(domain, date)
+) engine=innodb default charset=latin1;
+
 -- alter domains table to contain "low time" flag
 alter table domains add column low_time tinyint unsigned not null default 0;

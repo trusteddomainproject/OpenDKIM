@@ -86,6 +86,7 @@ release, and a summary of the changes in that release.
 	TOOLS: Fix bug #SF3568846: Add "-t" to opendkim-testmsg to allow
 		override of the directory where temporary files go.  Also,
 		clean up temporary files after creating them.
+	TOOLS: Add opendkim-rephistory.
 
 2.6.7		2012/07/23
 	Fix input handling for file data sets for the macro case.  Problem

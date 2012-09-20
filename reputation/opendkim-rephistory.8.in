@@ -1,0 +1,60 @@
+.TH opendkim-rephistory 8 "The Trusted Domain Project"
+.SH NAME
+.B opendkim-rephistory
+\- OpenDKIM reputation history recording tool
+.SH SYNOPSIS
+.B opendkim-rephistory.pl
+[options]
+.SH DESCRIPTION
+.B opendkim-rephistory
+copies the current reputation data for all domains into a history table
+to enable observation of the evolution of the reputations of domains over
+time.
+.SH OPTIONS
+.TP
+.I --dbhost=host
+Attempts to connect to the database server on the named
+.I host.
+The default is "localhost".
+.TP
+.I --dbname=name
+Requests a connection to the database called
+.I name.
+The default is "opendkim".
+.TP
+.I --dbpasswd=password
+Attempts to authenticate to the database server using the specified
+.I password.
+The default is "opendkim".
+.TP
+.I --dbport=port
+Tries to connect to the database at the specified TCP
+.I port.
+The default is 3306.
+.TP
+.I --dbuser=user
+Attempts to authenticate to the database server as the specified
+.I user.
+The default is "opendkim".
+.TP
+.I --help
+Prints a usage message and exits.
+.TP
+.I --verbose
+Requests verbose output.
+.TP
+.I --version
+Prints version number and exits.
+.SH VERSION
+This man page covers the version of
+.I opendkim-rephistory
+that shipped with version @VERSION@ of
+.I OpenDKIM.
+.SH COPYRIGHT
+Copyright (c) 2011, 2012, The Trusted Domain Project.  All rights reserved.
+.SH SEE ALSO
+.I opendkim(8),
+.I opendkim-genrates(8),
+.I opendkim-importstats(8)
+.P
+RFC6376 - DomainKeys Identified Mail
