@@ -2415,6 +2415,30 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	                             sig->sig_selector, delim,
 	                             sig->sig_timestamp);
 
+	if (dkim->dkim_querymethods != NULL)
+	{
+		_Bool firstq = TRUE;
+		struct dkim_qmethod *q;
+
+		for (q = dkim->dkim_querymethods; q != NULL; q = q->qm_next)
+		{
+			if (firstq)
+			{
+				dkim_dstring_printf(dstr, ";%sq=%s", delim,
+						    q->qm_type);
+			}
+			else
+			{
+				dkim_dstring_printf(dstr, ":%s", q->qm_type);
+			}
+
+			if (q->qm_options)
+				dkim_dstring_printf(dstr, "/%s", q->qm_options);
+
+			firstq = FALSE;
+		}
+	}
+
 	if (dkim->dkim_libhandle->dkiml_sigttl != 0)
 	{
 		uint64_t expire;
@@ -4234,7 +4258,7 @@ dkim_new(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 	                                            : hdrcanon_alg);
 	new->dkim_bodycanonalg = (bodycanon_alg == -1 ? DKIM_CANON_DEFAULT
 	                                              : bodycanon_alg);
-	new->dkim_querymethod = DKIM_QUERY_DEFAULT;
+	new->dkim_querymethods = NULL;
 	new->dkim_mode = DKIM_MODE_UNKNOWN;
 	new->dkim_chunkcrlf = DKIM_CRLF_UNKNOWN;
 	new->dkim_state = DKIM_STATE_INIT;
@@ -5033,6 +5057,20 @@ dkim_free(DKIM *dkim)
 		}
 
 		CLOBBER(dkim->dkim_siglist);
+	}
+
+	if (dkim->dkim_querymethods != NULL)
+	{
+		struct dkim_qmethod *cur;
+		struct dkim_qmethod *next;
+
+		cur = dkim->dkim_querymethods;
+		while (cur != NULL)
+		{
+			next = cur->qm_next;
+			free(cur);
+			cur = next;
+		}
 	}
 
 	if (dkim->dkim_xtags != NULL)
@@ -9156,6 +9194,69 @@ dkim_dns_trustanchor(DKIM_LIB *lib, const char *trust)
 	}
 
 	return DKIM_DNS_SUCCESS;
+}
+
+/*
+**  DKIM_ADD_QUERYMETHOD -- add a query method
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle to extend
+**  	type -- type of query to add
+**  	options -- options to include
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+DKIM_STAT
+dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
+{
+	u_char *p;
+	struct dkim_qmethod *q
+	struct dkim_method *lastq;
+
+	assert(dkim != NULL);
+	assert(type != NULL);
+
+	if (dkim->dkim_mode != DKIM_MODE_SIGN)
+		return DKIM_STAT_INVALID;
+
+	/* confirm valid syntax, per RFC6376 */
+	for (p = (u_char *) type; *p != '\0'; p++)
+	{
+		if (!(isascii(*p) && (isalnum(*p) || *p == '_')))
+			return DKIM_STAT_INVALID;
+	}
+
+	/* XXX -- encode any options as dkim-qp */
+
+	/* check for duplicates */
+	lastq = NULL;
+	for (q = dkim->dkim_querymethods; q != NULL; q = q->qm_next)
+	{
+		lastq = q;
+		if (strcmp(q->qm_type, type) == 0)
+			return DKIM_STAT_INVALID;
+	}
+
+	q = (struct dkim_qmethod *) DKIM_MALLOC(dkim,
+	                                        sizeof(struct dkim_qmethod));
+	if (q == NULL)
+	{
+		dkim_error(dkim, "unable to allocate %d byte(s)",
+		           sizeof(struct dkim_qmethod));
+		return DKIM_STAT_NORESOURCE;
+	}
+
+	q->qm_type = type;
+	q->qm_options = options;
+	q->qm_next = NULL;
+	if (lastq == NULL)
+		dkim->dkim_querymethods = q;
+	else
+		lastq->qm_next = q;
+
+	return DKIM_STAT_OK;
 }
 
 /*

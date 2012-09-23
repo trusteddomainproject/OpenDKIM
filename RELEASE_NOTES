@@ -56,6 +56,8 @@ release, and a summary of the changes in that release.
 		Based on a patch by Andreas Schulze.
 	BUILD: Install non-user things in sbin instead of bin.  Suggested
 		by Andreas Schulze.
+	LIBOPENDKIM: Feature request #SF3565006: Add dkim_add_querymethod().
+		Patch from Ken Murchison.
 	LIBOPENDKIM: Fix bug #SF3559080: Log correct domains and selectors
 		with SSL errors.
 	LIBOPENDKIM: Add DNS functions dkim_dns_config(), dkim_dns_init(),

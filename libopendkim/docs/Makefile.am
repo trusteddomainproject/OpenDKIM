@@ -2,6 +2,7 @@
 #AUTOMAKE_OPTIONS = foreign
 
 dist_doc_DATA = dkim.html \
+	dkim_add_querymethod.html \
 	dkim_add_xtag.html \
 	dkim_alg_t.html \
 	dkim_body.html \

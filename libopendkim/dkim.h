@@ -1931,6 +1931,21 @@ extern int dkim_dns_config __P((DKIM_LIB *, const char *));
 extern int dkim_dns_trustanchor __P((DKIM_LIB *, const char *));
 
 /*
+**  DKIM_ADD_QUERYMETHOD -- add a query method
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle to extend
+**  	type -- type of query to add
+**  	options -- options to include
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_add_querymethod __P((DKIM *, const char *,
+                                           const char *));
+
+/*
 **  DKIM_ADD_XTAG -- add an extension tag/value
 **
 **  Parameters:

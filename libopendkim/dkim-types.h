@@ -47,6 +47,14 @@
 #include "dkim.h"
 #include "dkim-internal.h"
 
+/* struct dkim_qmethod -- signature query method */
+struct dkim_qmethod
+{
+	const char *		qm_type;
+	const char *		qm_options;
+	struct dkim_qmethod *	qm_next;
+};
+
 /* struct dkim_xtag -- signature extension tag */
 struct dkim_xtag
 {
@@ -290,7 +298,7 @@ struct dkim
 	size_t			dkim_keylen;
 	size_t			dkim_errlen;
 	uint64_t		dkim_timestamp;
-	dkim_query_t		dkim_querymethod;
+  	struct dkim_qmethod *	dkim_querymethods;
 	dkim_canon_t		dkim_hdrcanonalg;
 	dkim_canon_t		dkim_bodycanonalg;
 	dkim_alg_t		dkim_signalg;
