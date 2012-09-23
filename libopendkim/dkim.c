@@ -5068,7 +5068,10 @@ dkim_free(DKIM *dkim)
 		while (cur != NULL)
 		{
 			next = cur->qm_next;
-			free(cur);
+			DKIM_FREE(dkim, q->qm_type);
+			if (q->qm_options != NULL)
+				DKIM_FREE(dkim, q->qm_options);
+			DKIM_FREE(dkim, cur);
 			cur = next;
 		}
 	}
