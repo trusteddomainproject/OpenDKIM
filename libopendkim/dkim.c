@@ -9228,6 +9228,11 @@ dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
 			return DKIM_STAT_INVALID;
 	}
 
+	/* if the method is "dns", the option has to be NULL or "txt" */
+	if (strcasecmp(type, "dns") == 0 &&
+	    options != NULL && strcasecmp(options, "txt") != 0)
+		return DKIM_STAT_INVALID;
+
 	/* XXX -- encode any options as dkim-qp */
 
 	/* check for duplicates */
@@ -9235,7 +9240,9 @@ dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
 	for (q = dkim->dkim_querymethods; q != NULL; q = q->qm_next)
 	{
 		lastq = q;
-		if (strcmp(q->qm_type, type) == 0)
+		if (strcasecmp(q->qm_type, type) == 0 &&
+		    ((q->qm_options == NULL && options == NULL) ||
+		     strcasecmp(q->qm_options, options) == 0))
 			return DKIM_STAT_INVALID;
 	}
 
@@ -9248,9 +9255,30 @@ dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
 		return DKIM_STAT_NORESOURCE;
 	}
 
-	q->qm_type = type;
-	q->qm_options = options;
+	q->qm_type = dkim_strdup(dkim, type, 0);
+	if (q->qm_type == NULL)
+	{
+		DKIM_FREE(dkim, q);
+		dkim_error(dkim, "unable to allocate %d byte(s)",
+		           strlen(type) + 1);
+		return DKIM_STAT_NORESOURCE;
+	}
+		
+	if (options != NULL)
+	{
+		q->qm_options = dkim_strdup(dkim, options, 0);
+		if (q->qm_options == NULL)
+		{
+			DKIM_FREE(dkim, q->qm_type);
+			DKIM_FREE(dkim, q);
+			dkim_error(dkim, "unable to allocate %d byte(s)",
+			           strlen(options) + 1);
+			return DKIM_STAT_NORESOURCE;
+		}
+	}
+
 	q->qm_next = NULL;
+
 	if (lastq == NULL)
 		dkim->dkim_querymethods = q;
 	else
