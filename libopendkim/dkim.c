@@ -5044,6 +5044,8 @@ dkim_free(DKIM *dkim)
 		while (cur != NULL)
 		{
 			next = cur->xt_next;
+			CLOBBER(cur->xt_tag);
+			CLOBBER(cur->xt_value);
 			free(cur);
 			cur = next;
 		}
@@ -9250,8 +9252,8 @@ dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
 		return DKIM_STAT_NORESOURCE;
 	}
 
-	x->xt_tag = tag;
-	x->xt_value = value;
+	x->xt_tag = dkim_strdup(dkim, tag, 0);
+	x->xt_value = dkim_strdup(dkim, value, 0);
 	x->xt_next = dkim->dkim_xtags;
 	dkim->dkim_xtags = x;
 

@@ -67,6 +67,8 @@ release, and a summary of the changes in that release.
 		Ken Murchison.
 	LIBOPENDKIM: If "q=" is present and method "dns" is specified, it
 		must be followed by "/txt", per RFC6376.
+	LIBOPENDKIM: For dkim_add_xtag(), copy the provided values so the
+		caller doesn't have to keep them around.
 	STATS: Fix bug #SF3555847: Add "--nocircles" to opendkim-gengraphs
 		to allow operation with versions of gnuplot that don't know
 		what "with circles" means.  Problem noted by Andreas
