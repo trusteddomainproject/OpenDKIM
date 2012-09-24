@@ -23,7 +23,7 @@ release, and a summary of the changes in that release.
 	Feature request #SF3556439: Update opendkim-atpszone per RFC6541.
 	Feature request #SF3559744: Add library option DKIM_OPTS_MINKEYBITS
 		allowing one to specify a minimum number of key bits for
-		acceptable signatures.  This is exposed through new
+		acceptable keys and signatures.  This is exposed through new
 		configuration file option "MinimumKeyBits".  The default
 		is 1024.
 	Fix bug #SF3536414: Activate _FFR_OVERSIGN, and remove

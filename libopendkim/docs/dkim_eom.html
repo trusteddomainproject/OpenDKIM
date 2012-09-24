@@ -60,6 +60,9 @@ order; when signing, compute all signatures.
     passed to <a href="dkim_chunk.html"><tt>dkim_chunk()</tt></a> for
     message chunk processing but the end of message was never signaled via
     that interface.
+<li><tt>DKIM_STAT_INVALID</tt> returned when signing may indicate that hte
+    key provided for signing did not meet the minimum key size requirement
+    (see <tt><a href="dkim_options.html">dkim_options()</a></tt>).
 <li>Other possible return values include all the
     <a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> values.
 </ul>

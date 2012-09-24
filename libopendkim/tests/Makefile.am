@@ -39,7 +39,7 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test127 t-test128 t-test129 t-test130 t-test131 t-test132 \
 	t-test133 t-test134 t-test135 t-test136 t-test137 t-test138 \
 	t-test139 t-test140 t-test141 t-test142 t-test143 t-test144 \
-	t-test145 t-test146 t-test147 t-test148 t-test149 \
+	t-test145 t-test146 t-test147 t-test148 t-test149 t-test150 \
 	t-signperf t-verifyperf
 check_SCRIPTS = t-signperf-sha1 t-signperf-relaxed-relaxed \
 	t-signperf-simple-simple
@@ -207,6 +207,7 @@ t_test146_SOURCES = t-test146.c t-testdata.h
 t_test147_SOURCES = t-test147.c t-testdata.h
 t_test148_SOURCES = t-test148.c t-testdata.h
 t_test149_SOURCES = t-test149.c t-testdata.h
+t_test150_SOURCES = t-test150.c t-testdata.h
 
 if STRL
 t_test42_CPPFLAGS = -I../../libstrl
