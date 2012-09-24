@@ -50,8 +50,8 @@
 /* struct dkim_xtag -- signature extension tag */
 struct dkim_xtag
 {
-	const char *		xt_tag;
-	const char *		xt_value;
+	char *			xt_tag;
+	char *			xt_value;
 	struct dkim_xtag *	xt_next;
 };
 
