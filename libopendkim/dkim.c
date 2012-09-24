@@ -9231,11 +9231,6 @@ dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
 			return DKIM_STAT_INVALID;
 	}
 
-	/* if the method is "dns", the option has to be NULL or "txt" */
-	if (strcasecmp(type, "dns") == 0 &&
-	    options != NULL && strcasecmp(options, "txt") != 0)
-		return DKIM_STAT_INVALID;
-
 	/* XXX -- encode any options as dkim-qp */
 
 	/* check for duplicates */
