@@ -241,6 +241,61 @@ dkim_hexchar(int c)
 }
 
 /*
+**  DKIM_QP_ENCODE -- encode a string as quoted-printable
+**
+**  Parameters:
+**  	in -- input
+**  	out -- output
+**  	outlen -- bytes available at "out"
+**
+**  Return value:
+**  	>= 0 -- number of bytes in output
+**  	-1 -- failure (not enough space)
+**
+**  Notes:
+**  	The function does not guarantee string termination.
+*/
+
+int
+dkim_qp_encode(unsigned char *in, unsigned char *out, int outlen)
+{
+	unsigned char const *p;
+	unsigned char *q;
+	unsigned char *end;
+	size_t len;
+
+	assert(in != NULL);
+	assert(out != NULL);
+
+	end = out + outlen;
+	len = 0;
+
+	for (p = in, q = out; *p != '\0'; p++)
+	{
+		if (q >= end)
+			return -1;
+
+		if ((*p >= 0x21 && *p <= 0x3a) ||
+		    *p == 0x3c ||
+		    (*p >= 0x3e && *p <= 0x7e))
+		{
+			*q = *p;
+			q++;
+			len++;
+		}
+		else if (q < end - 4)
+		{
+			snprintf((char *) q, 4,
+				 "=%02X", *p);
+			q += 3;
+			len += 3;
+		}
+	}
+
+	return len;
+}
+
+/*
 **  DKIM_QP_DECODE -- decode a quoted-printable string
 **
 **  Parameters:

@@ -2551,9 +2551,6 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		_Bool first;
 		int status;
 		size_t len;
-		u_char *p;
-		u_char *q;
-		u_char *end;
 		u_char *hend;
 		u_char *colon;
 		unsigned char name[DKIM_MAXHEADER + 1];
@@ -2563,7 +2560,6 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		dkim_dstring_catn(dstr, (u_char *) "z=", 2);
 
 		first = TRUE;
-		end = tmp + sizeof tmp - 1;
 
 		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
 		{
@@ -2607,39 +2603,14 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 					assert(status == 0);
 			}
 
-			q = tmp;
-			len = 0;
-
 			if (!first)
 			{
-				*q = '|';
-				q++;
-				len++;
+				dkim_dstring_cat1(dstr, '|');
 			}
 
 			first = FALSE;
 
-			for (p = hdr->hdr_text; *p != '\0'; p++)
-			{
-				if (q >= end)
-					break;
-
-				if ((*p >= 0x21 && *p <= 0x3a) ||
-				    *p == 0x3c ||
-				    (*p >= 0x3e && *p <= 0x7e))
-				{
-					*q = *p;
-					q++;
-					len++;
-				}
-				else if (q < end - 4)
-				{
-					snprintf((char *) q, 4,
-					         "=%02X", *p);
-					q += 3;
-					len += 3;
-				}
-			}
+			len = dkim_qp_encode(hdr->hdr_text, tmp, sizeof tmp);
 
 			dkim_dstring_catn(dstr, tmp, len);
 		}
@@ -9127,8 +9098,6 @@ dkim_dns_nslist(DKIM_LIB *lib, const char *nslist)
 int
 dkim_dns_init(DKIM_LIB *lib)
 {
-	int status;
-
 	assert(lib != NULL);
 
 	if (lib->dkiml_dns_service != NULL &&
@@ -9217,9 +9186,11 @@ dkim_dns_trustanchor(DKIM_LIB *lib, const char *trust)
 DKIM_STAT
 dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
 {
+	int len;
 	u_char *p;
 	struct dkim_qmethod *q;
 	struct dkim_qmethod *lastq;
+	char tmp[BUFRSZ + 1];
 
 	assert(dkim != NULL);
 	assert(type != NULL);
@@ -9230,11 +9201,20 @@ dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
 	/* confirm valid syntax, per RFC6376 */
 	for (p = (u_char *) type; *p != '\0'; p++)
 	{
-		if (!(isascii(*p) && (isalnum(*p) || *p == '_')))
+		if (!(isascii(*p) && (isalpha(*p) ||
+				      (p != (u_char *) type &&
+				       (isalnum(*p) ||
+					(*(p+1) != '\0' && *p == '-'))))))
 			return DKIM_STAT_INVALID;
 	}
 
-	/* XXX -- encode any options as dkim-qp */
+	/* do dkim-qp-encode step */
+	if (options != NULL)
+	{
+		memset(tmp, '\0', sizeof tmp);
+
+		len = dkim_qp_encode((u_char *) options, tmp, sizeof tmp);
+	}
 
 	/* check for duplicates */
 	lastq = NULL;
@@ -9243,7 +9223,7 @@ dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
 		lastq = q;
 		if (strcasecmp(q->qm_type, type) == 0 &&
 		    ((q->qm_options == NULL && options == NULL) ||
-		     strcasecmp(q->qm_options, options) == 0))
+		     strcasecmp(q->qm_options, tmp) == 0))
 			return DKIM_STAT_INVALID;
 	}
 
@@ -9267,7 +9247,7 @@ dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
 		
 	if (options != NULL)
 	{
-		q->qm_options = dkim_strdup(dkim, options, 0);
+		q->qm_options = dkim_strdup(dkim, tmp, 0);
 		if (q->qm_options == NULL)
 		{
 			DKIM_FREE(dkim, q->qm_type);
