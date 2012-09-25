@@ -33,6 +33,7 @@ extern void dkim_lowerhdr __P((u_char *));
 extern void dkim_min_timeval __P((struct timeval *, struct timeval *,
                                   struct timeval *, struct timeval **));
 extern int dkim_qp_decode __P((u_char *, u_char *, int));
+extern int dkim_qp_encode __P((u_char *, u_char *, int));
 
 #ifdef NEED_FAST_STRTOUL
 extern unsigned long dkim_strtoul __P((const char *str, char **endptr,

@@ -96,6 +96,7 @@ typedef int DKIM_CBSTAT;
 #define	DKIM_CBSTAT_TRYAGAIN	2	/* try again later */
 #define	DKIM_CBSTAT_NOTFOUND	3	/* requested record not found */
 #define	DKIM_CBSTAT_ERROR	4	/* error requesting record */
+#define	DKIM_CBSTAT_DEFAULT	5	/* bypass; use default handling */
 
 /*
 **  DKIM_SIGERROR -- signature errors
@@ -1198,6 +1199,19 @@ extern void *dkim_sig_getcontext __P((DKIM_SIGINFO *siginfo));
 extern int dkim_sig_geterror __P((DKIM_SIGINFO *siginfo));
 
 /*
+**  DKIM_SIG_SETERROR -- set error code in a DKIM_SIGINFO
+**
+**  Parameters:
+**  	siginfo -- a pointer to a DKIM_SIGINFO
+** 	err -- error code
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_sig_seterror __P((DKIM_SIGINFO *siginfo, int err));
+
+/*
 **  DKIM_SIG_GETERRORSTR -- translate a DKIM_SIGERROR into a string
 **
 **  Parameters:
@@ -1929,6 +1943,21 @@ extern int dkim_dns_config __P((DKIM_LIB *, const char *));
 */
 
 extern int dkim_dns_trustanchor __P((DKIM_LIB *, const char *));
+
+/*
+**  DKIM_ADD_QUERYMETHOD -- add a query method
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle to extend
+**  	type -- type of query to add
+**  	options -- options to include
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_add_querymethod __P((DKIM *, const char *,
+                                           const char *));
 
 /*
 **  DKIM_ADD_XTAG -- add an extension tag/value

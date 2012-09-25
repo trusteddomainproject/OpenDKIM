@@ -25,6 +25,8 @@
 <li> <tt>DKIM_CBSTAT_REJECT</tt> -- request message rejection
 <li> <tt>DKIM_CBSTAT_TRYAGAIN</tt> -- the callback isn't ready to complete at
      this time
+<li> <tt>DKIM_CBSTAT_DEFAULT</tt> -- bypass the callback and apply default
+     handling
 </ul>
 </tr>
 </table>
@@ -51,6 +53,9 @@
 <li><tt>DKIM_CBSTAT_ERROR</tt> should be returned by the callback if
     the attempt to retrieve the requested record returned in some kind
     of error
+<li><tt>DKIM_CBSTAT_DEFAULT</tt> should be returned by the callback if it does
+    not wish to return a result and instead wants the library to proceed
+    as if the callback were not configured
 </ul>
 </td>
 </tr>
