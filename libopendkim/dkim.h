@@ -1199,6 +1199,19 @@ extern void *dkim_sig_getcontext __P((DKIM_SIGINFO *siginfo));
 extern int dkim_sig_geterror __P((DKIM_SIGINFO *siginfo));
 
 /*
+**  DKIM_SIG_SETERROR -- set error code in a DKIM_SIGINFO
+**
+**  Parameters:
+**  	siginfo -- a pointer to a DKIM_SIGINFO
+** 	err -- error code
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_sig_seterror __P((DKIM_SIGINFO *siginfo, int err));
+
+/*
 **  DKIM_SIG_GETERRORSTR -- translate a DKIM_SIGERROR into a string
 **
 **  Parameters:

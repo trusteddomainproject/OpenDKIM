@@ -2155,15 +2155,18 @@ dkim_siglist_setup(DKIM *dkim)
 				break;
 			}
 
-			if (q == (dkim_query_t) -1)
+		    	if (dkim->dkim_libhandle->dkiml_key_lookup == NULL)
 			{
-				dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_INVALID_Q;
-				continue;
-			}
-			else if (bad_qo)
-			{
-				dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_INVALID_QO;
-				continue;
+				if (q == (dkim_query_t) -1)
+				{
+					dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_INVALID_Q;
+					continue;
+				}
+				else if (bad_qo)
+				{
+					dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_INVALID_QO;
+					continue;
+				}
 			}
 
 			dkim->dkim_siglist[c]->sig_query = q;
@@ -8416,6 +8419,30 @@ dkim_sig_getdomain(DKIM_SIGINFO *siginfo)
 	assert(siginfo != NULL);
 
 	return siginfo->sig_domain;
+}
+
+/*
+**  DKIM_SIG_SETERROR -- set an error code in a DKIM_SIGINFO
+**
+**  Parameters:
+**  	siginfo -- pointer to a DKIM_SIGINFO from which to extract context
+**  	err -- error code to store
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+DKIM_STAT
+dkim_sig_seterror(DKIM_SIGINFO *siginfo, int err)
+{
+	assert(siginfo != NULL);
+
+	if (siginfo->sig_error != DKIM_SIGERROR_UNKNOWN)
+		return DKIM_STAT_INVALID;
+
+	siginfo->sig_error = err;
+
+	return DKIM_STAT_OK;
 }
 
 /*

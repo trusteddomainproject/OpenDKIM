@@ -57,10 +57,10 @@ release, and a summary of the changes in that release.
 	BUILD: Install non-user things in sbin instead of bin.  Suggested
 		by Andreas Schulze.
 	LIBOPENDKIM: Feature request #SF3565006: Add dkim_add_querymethod()
-		define DKIM_CBSTAT_DEFAULT, and remove an assertion in
-		dkim_get_key_dns(), which allow for applications to develop
-		non-standard key retrieval mechanisms.  Suggestion and patches
-		from Ken Murchison.
+		and dkim_sig_seterror(), define DKIM_CBSTAT_DEFAULT, and
+		remove an assertion in dkim_get_key_dns(), which together
+		allow for applications to develop non-standard key retrieval
+		mechanisms.  Suggestion and patches from Ken Murchison.
 	LIBOPENDKIM: Fix bug #SF3559080: Log correct domains and selectors
 		with SSL errors.
 	LIBOPENDKIM: Add DNS functions dkim_dns_config(), dkim_dns_init(),
