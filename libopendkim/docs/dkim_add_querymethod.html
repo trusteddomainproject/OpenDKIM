@@ -51,8 +51,7 @@ query methods can be listed by making multiple calls to this function.
     <tr valign="top"><td>options</td>
 	<td>A pointer to a null-terminated string that specifies the
 	query options to be used by the verifier, or NULL if no options should
-	be shown in the signature.  If the <tt>method</tt> is <tt>"dns"</tt>
-	then this value must be NULL or the string <tt>"txt"</tt>.
+	be shown in the signature.
 	</td></tr>
     </table>
 </td></tr>
@@ -65,8 +64,7 @@ query methods can be listed by making multiple calls to this function.
 <li>DKIM_STAT_OK -- success
 <li>DKIM_STAT_INVALID -- <tt>dkim</tt> referred to a verifying header rather
     than a signing header, or one of the provided values contained a syntax
-    error, or method was "dns" and the option was not NULL and not "txt", or
-    a request was made to add a method or method-option pair that was
+    error, or a request was made to add a method or method-option pair that was
     already requested for the same signature
 <li>DKIM_STAT_NORESOURCE -- out of memory
 </ul>
