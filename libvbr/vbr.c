@@ -711,6 +711,11 @@ vbr_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	new->vbr_dns_start = vbr_res_query;
 	new->vbr_dns_waitreply = vbr_res_waitreply;
 	new->vbr_dns_cancel = vbr_res_cancel;
+	new->vbr_dns_init = NULL;
+	new->vbr_dns_close = NULL;
+	new->vbr_dns_setns = NULL;
+	new->vbr_dns_config = NULL;
+	new->vbr_dns_trustanchor = NULL;
 
 	return new;
 }
