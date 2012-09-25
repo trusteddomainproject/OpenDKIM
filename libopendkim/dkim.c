@@ -2769,11 +2769,15 @@ dkim_get_policy(DKIM *dkim, u_char *query, _Bool excheck, int *qstatus,
 		  case DKIM_CBSTAT_ERROR:
 			return DKIM_STAT_CBERROR;
 
+		  case DKIM_CBSTAT_DEFAULT:
+			break;
+
 		  default:
 			return DKIM_STAT_CBINVALID;
 		}
 	}
-	else
+
+	if (status == 0)
 	{
 		switch (dkim->dkim_libhandle->dkiml_querymethod)
 		{
@@ -2950,6 +2954,9 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig, _Bool test)
 
 		  case DKIM_CBSTAT_ERROR:
 			return DKIM_STAT_CBERROR;
+
+		  case DKIM_CBSTAT_DEFAULT:
+			break;
 
 		  default:
 			return DKIM_STAT_CBINVALID;
@@ -3489,6 +3496,7 @@ dkim_eoh_verify(DKIM *dkim)
 		switch (status)
 		{
 		  case DKIM_CBSTAT_CONTINUE:
+		  case DKIM_CBSTAT_DEFAULT:
 			break;
 
 		  case DKIM_CBSTAT_REJECT:
@@ -4040,6 +4048,7 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 		switch (status)
 		{
 		  case DKIM_CBSTAT_CONTINUE:
+		  case DKIM_CBSTAT_DEFAULT:
 			break;
 
 		  case DKIM_CBSTAT_REJECT:

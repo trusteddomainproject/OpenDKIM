@@ -96,6 +96,7 @@ typedef int DKIM_CBSTAT;
 #define	DKIM_CBSTAT_TRYAGAIN	2	/* try again later */
 #define	DKIM_CBSTAT_NOTFOUND	3	/* requested record not found */
 #define	DKIM_CBSTAT_ERROR	4	/* error requesting record */
+#define	DKIM_CBSTAT_DEFAULT	5	/* bypass; use default handling */
 
 /*
 **  DKIM_SIGERROR -- signature errors
