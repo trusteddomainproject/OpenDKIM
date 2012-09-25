@@ -2433,7 +2433,10 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 			}
 
 			if (q->qm_options)
-				dkim_dstring_printf(dstr, "/%s", q->qm_options);
+			{
+				dkim_dstring_printf(dstr, "/%s",
+				                    q->qm_options);
+			}
 
 			firstq = FALSE;
 		}
@@ -5068,9 +5071,9 @@ dkim_free(DKIM *dkim)
 		while (cur != NULL)
 		{
 			next = cur->qm_next;
-			DKIM_FREE(dkim, q->qm_type);
-			if (q->qm_options != NULL)
-				DKIM_FREE(dkim, q->qm_options);
+			DKIM_FREE(dkim, cur->qm_type);
+			if (cur->qm_options != NULL)
+				DKIM_FREE(dkim, cur->qm_options);
 			DKIM_FREE(dkim, cur);
 			cur = next;
 		}
@@ -9215,8 +9218,8 @@ DKIM_STAT
 dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
 {
 	u_char *p;
-	struct dkim_qmethod *q
-	struct dkim_method *lastq;
+	struct dkim_qmethod *q;
+	struct dkim_qmethod *lastq;
 
 	assert(dkim != NULL);
 	assert(type != NULL);
@@ -9273,6 +9276,10 @@ dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
 			           strlen(options) + 1);
 			return DKIM_STAT_NORESOURCE;
 		}
+	}
+	else
+	{
+		q->qm_options = NULL;
 	}
 
 	q->qm_next = NULL;

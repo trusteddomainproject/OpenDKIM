@@ -50,8 +50,8 @@
 /* struct dkim_qmethod -- signature query method */
 struct dkim_qmethod
 {
-	const char *		qm_type;
-	const char *		qm_options;
+	char *			qm_type;
+	char *			qm_options;
 	struct dkim_qmethod *	qm_next;
 };
 
