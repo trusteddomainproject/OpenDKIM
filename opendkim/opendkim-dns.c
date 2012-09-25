@@ -1056,6 +1056,7 @@ dkimf_filedns_setup(DKIM_LIB *lib, DKIMF_DB db)
 }
 
 #ifdef _FFR_VBR
+# ifdef USE_UNBOUND
 /*
 **  DKIMF_VBR_UNBOUND_SETUP -- connect libunbound to libvbr
 **
@@ -1083,4 +1084,5 @@ dkimf_vbr_unbound_setup(VBR *vbr)
 
 	return 0;
 }
+# endif /* USE_UNBOUND */
 #endif /* _FFR_VBR */
