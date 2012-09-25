@@ -95,7 +95,6 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	assert(sig != NULL);
 	assert(sig->sig_selector != NULL);
 	assert(sig->sig_domain != NULL);
-	assert(sig->sig_query == DKIM_QUERY_DNS);
 
 	lib = dkim->dkim_libhandle;
 
