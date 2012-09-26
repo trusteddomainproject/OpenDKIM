@@ -81,6 +81,7 @@ struct repute_lookup repute_lookup_elements[] =
 	{ REPUTE_XML_CODE_RATER_AUTH,	REPUTE_XML_RATER_AUTH },
 	{ REPUTE_XML_CODE_SAMPLE_SIZE,	REPUTE_XML_SAMPLE_SIZE },
 	{ REPUTE_XML_CODE_UPDATED,	REPUTE_XML_UPDATED },
+	{ REPUTE_XML_CODE_RATE,		REPUTE_XML_EXT_RATE },
 	{ REPUTE_XML_CODE_IDENTITY,	REPUTE_XML_EXT_IDENTITY },
 	{ REPUTE_XML_CODE_SOURCES,	REPUTE_XML_EXT_SOURCES },
 	{ REPUTE_XML_CODE_UNKNOWN,	NULL }
@@ -400,7 +401,7 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 
 			  case REPUTE_XML_CODE_IDENTITY:
 				if (strcasecmp(reputon->children->content,
-				               REPUTE_EXT_ID_DKIM) == 0)
+				               REPUTE_ID_DKIM) == 0)
 					found_dkim = TRUE;
 				break;
 
@@ -674,7 +675,6 @@ repute_get_error(struct repute_io *rio, char *buf, size_t buflen)
 static int
 repute_get_template(REPUTE rep)
 {
-	int out;
 	int cstatus;
 	long rcode;
 	struct repute_io *rio;
@@ -941,7 +941,6 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 	struct repute_io *rio;
 	URITEMP ut;
 	char genurl[REPUTE_URL];
-	char template[REPUTE_URL];
 
 	assert(rep != NULL);
 	assert(domain != NULL);

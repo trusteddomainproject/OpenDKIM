@@ -47,6 +47,7 @@ typedef int REPUTE_STAT;
 #define	REPUTE_XML_CODE_UPDATED		7
 #define	REPUTE_XML_CODE_IDENTITY	8
 #define	REPUTE_XML_CODE_SOURCES		9
+#define	REPUTE_XML_CODE_RATE		10
 
 #define	REPUTE_XML_RATER		"rater"
 #define	REPUTE_XML_ASSERTION		"assertion"
