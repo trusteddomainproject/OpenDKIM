@@ -191,12 +191,12 @@ main(int argc, char **argv)
 		else if (c == 'M')
 		{
 			time_t rtime;
-			char *adsp;
-			char *adsppf;
-			char *ct;
-			char *cte;
+#ifdef _FFR_ATPS
 			char *atps;
+#endif /* _FFR_ATPS */
+#ifdef _FFR_REPUTATION
 			char *spam;
+#endif /* _FFR_REPUTATION */
 
 			if (n != DKIMS_MI_MAX + 1)
 			{
@@ -209,16 +209,18 @@ main(int argc, char **argv)
 			/* format the data */
 			rtime = (time_t) atoi(fields[DKIMS_MI_MSGTIME]);
 
-			atps = "not checked";
 #ifdef _FFR_ATPS
+			atps = "not checked";
+
 			if (fields[DKIMS_MI_ATPS][0] == '0')
 				atps = "no match";
 			else if (fields[DKIMS_MI_ATPS][0] == '1')
 				atps = "match";
 #endif /* _FFR_ATPS */
 
-			spam = "unknown";
 #ifdef _FFR_REPUTATION
+			spam = "unknown";
+
 			if (fields[DKIMS_MI_SPAM][0] == '0')
 				spam = "not spam";
 			else if (fields[DKIMS_MI_SPAM][0] == '1')
