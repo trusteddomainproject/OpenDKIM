@@ -386,7 +386,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	int qdcount;
 	int ancount;
 	int status;
-	int rdlength;
+	int rdlength = 0;
 	int n;
 	int c;
 	int type = -1;
