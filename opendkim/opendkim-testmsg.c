@@ -108,8 +108,6 @@ main(int argc, char **argv)
 	int c;
 	int n = 0;
 	int tfd;
-	dkim_policy_t pcode;
-	int presult;
 	u_int flags;
 	DKIM_STAT status;
 	ssize_t rlen;
