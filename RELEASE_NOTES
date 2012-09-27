@@ -45,6 +45,8 @@ release, and a summary of the changes in that release.
 	Fix bounds checking in the dstring printf functions.
 	Change all temporary directory defaults from /var/tmp to /tmp.
 	Activate _FFR_LUA_GLOBALS.
+	Request the milter permissions required to get _FFR_REDIRECT working.
+		Patch from Andreas Schulze.
 	Patch #SF3555843: With sufficient verbosity, report the default
 		configuration file path.  Patch from Andreas Schulze.
 	BUILD: Fix bug #SF3531658: Move the strlcat() and strlcpy()
