@@ -22,5 +22,5 @@ endif
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = repute.pc
 
-dist_man_MANS = opendkim-genrates.8 opendkim-modtotals.8
+dist_man_MANS = opendkim-genrates.8 opendkim-modtotals.8 opendkim-rephistory.8
 #dist_man_MANS = repute.3
