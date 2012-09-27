@@ -6764,6 +6764,7 @@ dkimf_db_chown(DKIMF_DB db, uid_t uid)
 {
 #ifdef USE_DB
 	int fd = -1;
+	int status;
 	DB *bdb;
 #endif /* USE_DB */
 
