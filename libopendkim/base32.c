@@ -138,7 +138,7 @@ dkim_base32_encode(char *buf, size_t *buflen, const void *data, size_t size)
 		padding = 4;
 	else if (lastbits == 24)
 		padding = 3;
-	else if (lastbits == 32)
+	else /* (lastbits == 32) */
 		padding = 1;
 
 	while (padding > 0 && iout < *buflen)
