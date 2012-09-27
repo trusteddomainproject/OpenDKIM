@@ -2334,7 +2334,6 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	int status;
 	int delimlen;
 	size_t hashlen;
-	size_t tmplen;
 	char *format;
 	u_char *hash;
 	struct dkim_header *hdr;
@@ -2404,19 +2403,19 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	else 
 		format = "v=%s;%sa=%s;%sc=%s/%s;%sd=%s;%ss=%s;%st=%u";
 
-	tmplen = dkim_dstring_printf(dstr, format,
-	                             DKIM_VERSION_SIG, delim,
-	                             dkim_code_to_name(algorithms,
-	                                               sig->sig_signalg),
-	                             delim,
-	                             dkim_code_to_name(canonicalizations,
-	                                               sig->sig_hdrcanonalg),
-	                             dkim_code_to_name(canonicalizations,
-	                                               sig->sig_bodycanonalg),
-	                             delim,
-	                             sig->sig_domain, delim,
-	                             sig->sig_selector, delim,
-	                             sig->sig_timestamp);
+	(void) dkim_dstring_printf(dstr, format,
+	                           DKIM_VERSION_SIG, delim,
+	                           dkim_code_to_name(algorithms,
+	                                             sig->sig_signalg),
+	                           delim,
+	                           dkim_code_to_name(canonicalizations,
+	                                             sig->sig_hdrcanonalg),
+	                           dkim_code_to_name(canonicalizations,
+	                                             sig->sig_bodycanonalg),
+	                           delim,
+	                           sig->sig_domain, delim,
+	                           sig->sig_selector, delim,
+	                           sig->sig_timestamp);
 
 	if (dkim->dkim_querymethods != NULL)
 	{
