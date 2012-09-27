@@ -380,7 +380,6 @@ dkimf_testfile(DKIM_LIB *libopendkim, struct test_context *tctx,
 	DKIM *dkim;
 	char *p;
 	sfsistat ms;
-	struct sockaddr_in sin;
 	char buf[MAXBUFRSZ];
 	char line[MAXBUFRSZ];
 

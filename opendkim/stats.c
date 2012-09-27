@@ -102,7 +102,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
                    int spam,
                    struct sockaddr *sa)
 {
-	_Bool validauthorsig = FALSE;
 	int status = 0;
 	int nsigs = 0;
 #ifdef _FFR_DIFFHEADERS
@@ -111,18 +110,12 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 #endif /* _FFR_DIFFHEADERS */
 	int err;
 	int c;
-	u_int keybits;
-	dkim_alg_t alg;
-	dkim_canon_t bc;
-	dkim_canon_t hc;
 	ssize_t canonlen;
 	ssize_t signlen;
 	ssize_t msglen;
-	struct Header *hdr;
 	FILE *out;
 	unsigned char *from;
 	char *p;
-	char *q;
 #ifdef _FFR_DIFFHEADERS
 	struct dkim_hdrdiff *diffs;
 	unsigned char *ohdrs[MAXHDRCNT];

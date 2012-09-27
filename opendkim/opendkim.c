@@ -8692,7 +8692,6 @@ dkimf_checkbldb(DKIMF_DB db, char *to, char *jobid)
 	int c;
 	_Bool exists = FALSE;
 	DKIM_STAT status;
-	size_t out;
 	char *domain;
 	char *user;
 	char *p;
@@ -10427,7 +10426,6 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 	{
 		int c;
 		int sigerror;
-		int sec;
 		DKIM_STAT ts;
 		u_int keybits;
 		size_t ssl;
@@ -11389,7 +11387,9 @@ mlfi_eoh(SMFICTX *ctx)
 	_Bool domainok;
 	_Bool originok;
 	_Bool didfrom = FALSE;
+#ifdef _FFR_RESIGN
 	_Bool msgsigned = FALSE;
+#endif /* _FFR_RESIGN */
 	int c;
 	DKIM_STAT status;
 	sfsistat ms = SMFIS_CONTINUE;
@@ -11589,9 +11589,10 @@ mlfi_eoh(SMFICTX *ctx)
 	dfc->mctx_signalg = DKIM_SIGN_UNKNOWN;
 	domainok = FALSE;
 	originok = FALSE;
-	msgsigned = (dkimf_findheader(dfc, DKIM_SIGNHEADER, 0) != NULL);
 
 #ifdef _FFR_RESIGN
+	msgsigned = (dkimf_findheader(dfc, DKIM_SIGNHEADER, 0) != NULL);
+
 	/* check to see if it's a destination for which we resign */
 	if (conf->conf_resigndb != NULL)
 	{
@@ -13009,14 +13010,12 @@ mlfi_body(SMFICTX *ctx, u_char *bodyp, size_t bodylen)
 	DKIM *last;
 	msgctx dfc;
 	connctx cc;
-	struct dkimf_config *conf;
 
 	assert(ctx != NULL);
 	assert(bodyp != NULL);
 
 	cc = (connctx) dkimf_getpriv(ctx);
 	assert(cc != NULL);
-	conf = cc->cctx_config;
 	dfc = cc->cctx_msg;
 	assert(dfc != NULL);
 
@@ -13925,8 +13924,6 @@ mlfi_eom(SMFICTX *ctx)
 #ifdef _FFR_STATS
 		if (conf->conf_statspath != NULL && dfc->mctx_dkimv != NULL)
 		{
-			struct Header *hdr;
-
 # ifdef USE_LUA
 #  ifdef _FFR_STATSEXT
 			if (conf->conf_statsscript != NULL)
