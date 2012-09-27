@@ -9233,7 +9233,6 @@ dkim_dns_trustanchor(DKIM_LIB *lib, const char *trust)
 DKIM_STAT
 dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
 {
-	int len;
 	u_char *p;
 	struct dkim_qmethod *q;
 	struct dkim_qmethod *lastq;
@@ -9261,6 +9260,12 @@ dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
 		memset(tmp, '\0', sizeof tmp);
 
 		len = dkim_qp_encode((u_char *) options, tmp, sizeof tmp);
+		if (len == -1)
+		{
+			dkim_error(dkim, "can't encode query options",
+			           sizeof(struct dkim_qmethod));
+			return DKIM_STAT_NORESOURCE;
+		}
 	}
 
 	/* check for duplicates */
