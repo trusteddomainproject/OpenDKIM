@@ -8665,7 +8665,7 @@ dkim_get_sigsubstring(DKIM *dkim, DKIM_SIGINFO *sig, char *buf, size_t *buflen)
 
 				b2len = strlen(b2);
 
-				minlen = MIN(strlen(b1), strlen(b2));
+				minlen = MIN(b1len, b2len);
 
 				for (x = dkim->dkim_minsiglen; x < minlen; x++)
 				{
