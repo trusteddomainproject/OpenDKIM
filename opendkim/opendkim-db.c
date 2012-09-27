@@ -681,6 +681,7 @@ dkimf_db_saslinteract(LDAP *ld, unsigned int flags, void *defaults,
 }
 #endif /* (USE_SASL && USE_LDAP) */
 
+#ifdef USE_ODBX
 /*
 **  DKIMF_DB_HEXDIGIT -- convert a hex digit to decimal value
 **
@@ -703,6 +704,7 @@ dkimf_db_hexdigit(int c)
 	else
 		return 0;
 }
+#endif /* USE_ODBX */
 
 /*
 **  DKIMF_DB_DATASPLIT -- split a database value or set of values into a
@@ -916,6 +918,7 @@ dkimf_db_mkldapquery(char *buf, char *query, char *out, size_t outlen)
 }
 #endif /* USE_LDAP */
 
+#ifdef USE_ODBX
 /*
 **  DKIMF_DB_NEXTPUNCT -- find next punctuation
 **
@@ -946,6 +949,7 @@ dkimf_db_nextpunct(char *str)
 
 	return NULL;
 }
+#endif /* USE_ODBX */
 
 /*
 **  DKIMF_DB_LIST_FREE -- destroy a linked list
