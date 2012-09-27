@@ -791,7 +791,6 @@ static int
 dkimf_filedns_query(void *srv, int type, unsigned char *query,
                     unsigned char *buf, size_t buflen, void **qh)
 {
-	int status;
 	struct dkimf_fquery *fq;
 	size_t qlen;
 
