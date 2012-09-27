@@ -59,9 +59,6 @@ ldap_caching	Adds code that ensures duplicate LDAP queries aren't sent
 		means changes made to LDAP data won't be recognized by
 		the filter right away. (opendkim)
 
-lua_globals	Optional mechanism for passing variables between Lua
-		scripts.  (opendkim)
-
 postgres_reconnect_hack
 		libpq (the postgresql client library) fails to identify
 		at least some error conditions as needing a connection

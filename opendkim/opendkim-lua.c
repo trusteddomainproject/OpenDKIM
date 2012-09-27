@@ -52,9 +52,7 @@ static const luaL_Reg dkimf_lua_lib_setup[] =
 	{ ODKIM_PREFIX "db_check",		dkimf_xs_dbquery	},
 	{ ODKIM_PREFIX "db_close",		dkimf_xs_dbclose	},
 	{ ODKIM_PREFIX "db_open",		dkimf_xs_dbopen		},
-# ifdef _FFR_LUA_GLOBALS
 	{ ODKIM_PREFIX "export",		dkimf_xs_export		},
-# endif /* _FFR_LUA_GLOBALS */
 	{ ODKIM_PREFIX "get_clienthost",	dkimf_xs_clienthost	},
 	{ ODKIM_PREFIX "get_clientip",		dkimf_xs_clientip	},
 	{ ODKIM_PREFIX "get_dbhandle",		dkimf_xs_dbhandle	},
@@ -85,9 +83,7 @@ static const luaL_Reg dkimf_lua_lib_screen[] =
 	{ ODKIM_PREFIX "db_check",		dkimf_xs_dbquery	},
 	{ ODKIM_PREFIX "db_close",		dkimf_xs_dbclose	},
 	{ ODKIM_PREFIX "db_open",		dkimf_xs_dbopen		},
-# ifdef _FFR_LUA_GLOBALS
 	{ ODKIM_PREFIX "export",		dkimf_xs_export		},
-# endif /* _FFR_LUA_GLOBALS */
 	{ ODKIM_PREFIX "get_dbhandle",		dkimf_xs_dbhandle	},
 	{ ODKIM_PREFIX "get_envfrom",		dkimf_xs_getenvfrom	},
 	{ ODKIM_PREFIX "get_fromdomain",	dkimf_xs_fromdomain	},
@@ -113,9 +109,7 @@ static const luaL_Reg dkimf_lua_lib_screen[] =
 # ifdef _FFR_STATSEXT
 static const luaL_Reg dkimf_lua_lib_stats[] =
 {
-#  ifdef _FFR_LUA_GLOBALS
 	{ ODKIM_PREFIX "export",		dkimf_xs_export		},
-#  endif /* _FFR_LUA_GLOBALS */
 	{ ODKIM_PREFIX "get_envfrom",		dkimf_xs_getenvfrom	},
 	{ ODKIM_PREFIX "get_header",		dkimf_xs_getheader	},
 	{ ODKIM_PREFIX "get_mtasymbol",		dkimf_xs_getsymval	},
@@ -128,11 +122,9 @@ static const luaL_Reg dkimf_lua_lib_stats[] =
 	{ ODKIM_PREFIX "get_sighandle",		dkimf_xs_getsighandle	},
 	{ ODKIM_PREFIX "log",			dkimf_xs_log		},
 	{ ODKIM_PREFIX "parse_field",		dkimf_xs_parsefield	},
-#  ifdef _FFR_LUA_GLOBALS
-#   ifdef _FFR_RBL
+#  ifdef _FFR_RBL
 	{ ODKIM_PREFIX "rbl_check",		dkimf_xs_rblcheck	},
-#   endif /* _FFR_RBL */
-#  endif /* _FFR_LUA_GLOBALS */
+#  endif /* _FFR_RBL */
 	{ ODKIM_PREFIX "rcpt_count",		dkimf_xs_rcptcount	},
 	{ ODKIM_PREFIX "sig_bhresult",		dkimf_xs_sigbhresult	},
 	{ ODKIM_PREFIX "sig_bodylength",	dkimf_xs_bodylength	},
@@ -541,10 +533,8 @@ dkimf_lua_setup_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
 
-# ifdef _FFR_LUA_GLOBALS
 	/* import other globals */
 	dkimf_import_globals(ctx, l);
-# endif /* _FFR_LUA_GLOBALS */
 
 # if LUA_VERSION_NUM == 502
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name, NULL))
@@ -685,10 +675,8 @@ dkimf_lua_screen_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
 
-# ifdef _FFR_LUA_GLOBALS
 	/* import other globals */
 	dkimf_import_globals(ctx, l);
-# endif /* _FFR_LUA_GLOBALS */
 
 # if LUA_VERSION_NUM == 502
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name, NULL))
@@ -935,10 +923,8 @@ dkimf_lua_stats_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
 
-# ifdef _FFR_LUA_GLOBALS
 	/* import other globals */
 	dkimf_import_globals(ctx, l);
-# endif /* _FFR_LUA_GLOBALS */
 
 # if LUA_VERSION_NUM == 502
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name, NULL))
@@ -1185,10 +1171,8 @@ dkimf_lua_final_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_pushlightuserdata(l, ctx);
 	lua_setglobal(l, "ctx");
 
-# ifdef _FFR_LUA_GLOBALS
 	/* import other globals */
 	dkimf_import_globals(ctx, l);
-# endif /* _FFR_LUA_GLOBALS */
 
 # if LUA_VERSION_NUM == 502
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name, NULL))

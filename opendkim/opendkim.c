@@ -182,7 +182,6 @@ struct handling defaults =
 	DKIMF_MILTER_TEMPFAIL			/* security */
 };
 
-#ifdef _FFR_LUA_GLOBALS
 /*
 **  LUA_GLOBAL -- linked list of Lua globals
 */
@@ -194,7 +193,6 @@ struct lua_global
 	void *		lg_value;
 	struct lua_global * lg_next;
 };
-#endif /* _FFR_LUA_GLOBALS */
 
 /*
 **  CONFIG -- configuration data
@@ -513,10 +511,8 @@ struct msgctx
 #ifdef _FFR_STATSEXT
 	struct statsext * mctx_statsext;	/* extension stats list */
 #endif /* _FFR_STATSEXT */
-#ifdef _FFR_LUA_GLOBALS
 	struct lua_global * mctx_luaglobalh;	/* Lua global list */
 	struct lua_global * mctx_luaglobalt;	/* Lua global list */
-#endif /* _FFR_LUA_GLOBALS */
 #ifdef _FFR_REPUTATION
 	SHA_CTX		mctx_hash;		/* hash, for dup detection */
 #endif /* _FFR_REPUTATION */
@@ -1123,7 +1119,6 @@ dkimf_getsymval(SMFICTX *ctx, char *sym)
 **  	the function such that the rest of the test will complete.
 */
 
-# ifdef _FFR_LUA_GLOBALS
 /*
 **  DKIMF_IMPORT_GLOBALS -- add globals to a Lua state
 **
@@ -1307,7 +1302,6 @@ dkimf_xs_export(lua_State *l)
 
 	return 0;
 }
-# endif /* _FFR_LUA_GLOBALS */
 
 # ifdef _FFR_RBL
 /*
@@ -9038,7 +9032,6 @@ dkimf_cleanup(SMFICTX *ctx)
 		}
 #endif /* _FFR_STATSEXT */
 
-#ifdef _FFR_LUA_GLOBALS
 		if (dfc->mctx_luaglobalh != NULL)
 		{
 			struct lua_global *cur;
@@ -9058,7 +9051,6 @@ dkimf_cleanup(SMFICTX *ctx)
 				cur = next;
 			}
 		}
-#endif /* _FFR_LUA_GLOBALS */
 
 		free(dfc);
 		cc->cctx_msg = NULL;

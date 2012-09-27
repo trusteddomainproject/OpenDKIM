@@ -296,8 +296,6 @@ FFR_FEATURE([identity_header], [special header to set identity])
 
 FFR_FEATURE([ldap_caching], [LDAP query piggybacking and caching])
 
-FFR_FEATURE([lua_globals], [passing of global variabls between Lua scripts])
-
 FFR_FEATURE([postgresql_reconnect_hack],
             [hack to overcome PostgreSQL connection error detection bug])
 
