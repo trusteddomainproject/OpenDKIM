@@ -6758,9 +6758,8 @@ dkimf_db_set_ldap_param(int param, char *str)
 int
 dkimf_db_chown(DKIMF_DB db, uid_t uid)
 {
-	int fd = -1;
-	int status;
 #ifdef USE_DB
+	int fd = -1;
 	DB *bdb;
 #endif /* USE_DB */
 
