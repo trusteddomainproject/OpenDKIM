@@ -758,8 +758,8 @@ dkim_check_dns_reply(unsigned char *ansbuf, size_t anslen,
 			return 2;
 
 		GETSHORT(type, cp);
-		GETSHORT(class, cp);
-		GETLONG(ttl, cp);
+		cp += INT16SZ; /* class */
+		cp += INT32SZ; /* ttl */
 
 		/* skip CNAME if found; assume it was resolved */
 		if (type == T_CNAME)
