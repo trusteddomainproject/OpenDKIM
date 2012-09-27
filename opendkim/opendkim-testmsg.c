@@ -55,7 +55,7 @@ usage(void)
 	        "\t-C         \tpreserve CRLFs\n"
 	        "\t-d domain  \tset signing domain\n"
 	        "\t-k keyfile \tprivate key file\n"
-	        "\t-s selector\tset signing selector\n",
+	        "\t-s selector\tset signing selector\n"
 	        "\t-t path    \tdirectory for temporary files\n",
 	        progname, progname);
 
