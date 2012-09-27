@@ -10638,6 +10638,10 @@ mlfi_negotiate(SMFICTX *ctx,
 	if (quarantine || conf->conf_capture)
 		reqactions |= SMFIF_QUARANTINE;
 # endif /* SMFIF_QUARANTINE */
+# ifdef _FFR_REDIRECT
+	reqactions |= SMFIF_ADDRCPT;
+	reqactions |= SMFIF_DELRCPT;
+# endif /* _FFR_REDIRECT */
 	if ((f0 & reqactions) != reqactions)
 	{
 		if (conf->conf_dolog)
@@ -16971,6 +16975,10 @@ main(int argc, char **argv)
 		}
 
 		smfilter.xxfi_flags = SMFIF_ADDHDRS;
+#ifdef _FFR_REDIRECT
+		smfilter.xxfi_flags |= SMFIF_ADDRCPT;
+		smfilter.xxfi_flags |= SMFIF_DELRCPT;
+#endif /* _FFR_REDIRECT */
 #ifdef SMFIF_SETSYMLIST
 		smfilter.xxfi_flags |= SMFIF_SETSYMLIST;
 #endif /* SMFIF_SETSYMLIST */
