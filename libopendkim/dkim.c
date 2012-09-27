@@ -5290,11 +5290,11 @@ dkim_resign(DKIM *new, DKIM *old, _Bool hdrbind)
 	assert(old != NULL);
 
 	if (new->dkim_mode != DKIM_MODE_SIGN ||
-	    new->dkim_state != DKIM_STATE_INIT)
+	    (hdrbind && new->dkim_state != DKIM_STATE_INIT) ||
+	    (!hdrbind && new->dkim_state >= DKIM_STATE_EOH1))
 		return DKIM_STAT_INVALID;
 
-	if (old->dkim_mode != DKIM_MODE_VERIFY ||
-	    old->dkim_state >= DKIM_STATE_EOH1 ||
+	if (old->dkim_state >= DKIM_STATE_EOH1 ||
 	    old->dkim_resign != NULL)
 		return DKIM_STAT_INVALID;
 
