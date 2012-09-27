@@ -74,12 +74,12 @@ struct configdef dkimf_config[] =
 	{ "FinalPolicyScript",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* USE_LUA */
 	{ "FixCRLF",			CONFIG_TYPE_BOOLEAN,	FALSE },
-#ifdef _FFR_IDENTITY_HEADER
 #ifdef _FFR_RATE_LIMIT
 	{ "FlowData",			CONFIG_TYPE_STRING,	FALSE },
 	{ "FlowDataFactor",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "FlowDataTTL",		CONFIG_TYPE_INTEGER,	FALSE },
 #endif /* _FFR_RATE_LIMIT */
+#ifdef _FFR_IDENTITY_HEADER
 	{ "IdentityHeader",		CONFIG_TYPE_STRING,     FALSE },
 	{ "IdentityHeaderRemove",	CONFIG_TYPE_BOOLEAN,    FALSE },
 #endif /* _FFR_IDENTITY_HEADER */
