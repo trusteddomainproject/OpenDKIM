@@ -9031,6 +9031,7 @@ dkimf_cleanup(SMFICTX *ctx)
 		}
 #endif /* _FFR_STATSEXT */
 
+#ifdef USE_LUA
 		if (dfc->mctx_luaglobalh != NULL)
 		{
 			struct lua_global *cur;
@@ -9050,6 +9051,7 @@ dkimf_cleanup(SMFICTX *ctx)
 				cur = next;
 			}
 		}
+#endif /* USE_LUA */
 
 		free(dfc);
 		cc->cctx_msg = NULL;

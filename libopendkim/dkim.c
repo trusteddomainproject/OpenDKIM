@@ -9257,6 +9257,8 @@ dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
 	/* do dkim-qp-encode step */
 	if (options != NULL)
 	{
+		int len;
+
 		memset(tmp, '\0', sizeof tmp);
 
 		len = dkim_qp_encode((u_char *) options, tmp, sizeof tmp);
