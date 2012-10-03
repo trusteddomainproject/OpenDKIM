@@ -24,6 +24,10 @@
 
 #define	MAXHEADER	4096
 
+#define	TEST_KEEP_FILES 1
+
+#define	JOBID2		"testing2"
+
 #ifndef FALSE
 # define FALSE		0
 #endif /* ! FALSE */
@@ -103,72 +107,37 @@ main(int argc, char **argv)
 	                 DKIM_SIGN_RSASHA1, -1L, &status);
 	assert(dkim != NULL);
 
-	resign = dkim_sign(lib, JOBID, NULL, key, SELECTOR, DOMAIN,
+	resign = dkim_sign(lib, JOBID2, NULL, key, SELECTOR, DOMAIN,
 	                   DKIM_CANON_RELAXED, DKIM_CANON_SIMPLE,
 	                   DKIM_SIGN_RSASHA1, -1L, &status);
 	assert(resign != NULL);
 
 	status = dkim_header(dkim, HEADER01, strlen(HEADER01));
 	assert(status == DKIM_STAT_OK);
-/*
-	status = dkim_header(resign, HEADER01, strlen(HEADER01));
-	assert(status == DKIM_STAT_OK);
-*/
 
 	status = dkim_header(dkim, HEADER02, strlen(HEADER02));
 	assert(status == DKIM_STAT_OK);
-/*
-	status = dkim_header(resign, HEADER02, strlen(HEADER02));
-	assert(status == DKIM_STAT_OK);
-*/
 
 	status = dkim_header(dkim, HEADER03, strlen(HEADER03));
 	assert(status == DKIM_STAT_OK);
-/*
-	status = dkim_header(resign, HEADER03, strlen(HEADER03));
-	assert(status == DKIM_STAT_OK);
-*/
 
 	status = dkim_header(dkim, HEADER04, strlen(HEADER04));
 	assert(status == DKIM_STAT_OK);
-/*
-	status = dkim_header(resign, HEADER04, strlen(HEADER04));
-	assert(status == DKIM_STAT_OK);
-*/
 
 	status = dkim_header(dkim, HEADER05, strlen(HEADER05));
-	assert(status == DKIM_STAT_OK);
-/*
-	status = dkim_header(resign, HEADER05, strlen(HEADER05));
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER06, strlen(HEADER06));
 	assert(status == DKIM_STAT_OK);
-/*
-	status = dkim_header(resign, HEADER06, strlen(HEADER06));
-	assert(status == DKIM_STAT_OK);
-*/
 
 	status = dkim_header(dkim, HEADER07, strlen(HEADER07));
 	assert(status == DKIM_STAT_OK);
-/*
-	status = dkim_header(resign, HEADER07, strlen(HEADER07));
-	assert(status == DKIM_STAT_OK);
-*/
 
 	status = dkim_header(dkim, HEADER08, strlen(HEADER08));
 	assert(status == DKIM_STAT_OK);
-/*
-	status = dkim_header(resign, HEADER08, strlen(HEADER08));
-	assert(status == DKIM_STAT_OK);
-*/
 
 	status = dkim_header(dkim, HEADER09, strlen(HEADER09));
 	assert(status == DKIM_STAT_OK);
-/*
-	status = dkim_header(resign, HEADER09, strlen(HEADER09));
-	assert(status == DKIM_STAT_OK);
-*/
 
 	status = dkim_resign(dkim, resign, TRUE);
 	assert(status == DKIM_STAT_INVALID);
@@ -178,11 +147,6 @@ main(int argc, char **argv)
 
 	status = dkim_eoh(dkim);
 	assert(status == DKIM_STAT_OK);
-
-/*
-	status = dkim_eoh(resign);
-	assert(status == DKIM_STAT_OK);
-*/
 
 	status = dkim_body(dkim, BODY00, strlen(BODY00));
 	assert(status == DKIM_STAT_OK);
