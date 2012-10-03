@@ -34,8 +34,7 @@ signature, or multiple signatures.
     (signing or verifying) handle is acquired with
     <tt>dkim_sign()</tt> or
     <a href="dkim_verify.html"><tt>dkim_verify()</tt></a>, but before
-    <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a> has been called on
-    either one. </td>
+    any message data has been passed to either one. </td>
 </tr>
 </table>
 
@@ -45,10 +44,9 @@ signature, or multiple signatures.
     <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
     <tr valign="top"><td>sh</td>
 	<td>Message-specific handle, returned by
-        <a href="dkim_sign.html"><tt>dkim_sign()</tt></a>.  If
-	<tt>hdrbind</tt> (see below) is set, it must not
-	have been used to process any message data, otherwise it must not have
-	been passed to
+        <a href="dkim_sign.html"><tt>dkim_sign()</tt></a>.  It must not
+	have been used to process any message data (i.e., no prior calls to
+	<a href="dkim_header.html"><tt>dkim_header()</tt></a> or
 	<a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a>.
 	</td></tr>
     <tr valign="top"><td>eh</td>
@@ -80,14 +78,10 @@ signature, or multiple signatures.
 	One or more of the following:
 	<ul>
 	 <li> <tt>sh</tt> is not a signing handle
-	 <li> Header binding is in effect and <tt>sh</tt> has already received
-	      some message data (header or body)
-	 <li> Header binding is not in effect and <tt>sh</tt> has already
-	      been passed to
-	      <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a>
-	 <li> <tt>sh</tt> is already bound to another handle
 	 <li> <tt>eh</tt> has already been passed to
 	      <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a>
+	 <li> <tt>eh</tt> is already bound to another handle by a previous
+	      call to this function
 	</ul>
 	</td></tr>
     </table>
@@ -98,14 +92,14 @@ signature, or multiple signatures.
 <th valign="top" align=left>NOTES</th> 
 <td>
 <ul>
-<li>Once the binding is made, passing <tt>vh</tt> to
+<li>Once the binding is made, passing <tt>eh</tt> to
     <a href="dkim_free.html"><tt>dkim_free()</tt> will fail until <tt>sh</tt>
     has been freed
 <li>Multiple signing handles may be bound to a common verifying handle
-<li><tt>vh</tt> should be passed to
+<li><tt>eh</tt> should be passed to
     <a href="dkim_eom.html"><tt>dkim_eom()</tt> before <tt>sh</tt> is, after
     which the new signature can be extracted from <tt>sh</tt>; passing
-    <tt>sh</tt> to <tt>dkim_eom()</tt> before doing so with <tt>vh</tt>
+    <tt>sh</tt> to <tt>dkim_eom()</tt> before doing so with <tt>eh</tt>
     will cause that function to return a status of <tt>DKIM_STAT_INVALID</tt>
 </ul>
 </td>
@@ -114,7 +108,8 @@ signature, or multiple signatures.
 
 <hr size="1">
 <font size="-1">
-Copyright (c) 2009, 2010, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2009, 2010, 2012, The Trusted Domain Project.
+All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set
