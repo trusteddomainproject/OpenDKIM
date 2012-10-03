@@ -24,8 +24,6 @@
 
 #define	MAXHEADER	4096
 
-#define	TEST_KEEP_FILES 1
-
 #define	JOBID2		"testing2"
 
 #ifndef FALSE
