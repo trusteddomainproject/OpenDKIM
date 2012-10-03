@@ -208,13 +208,11 @@ main(int argc, char **argv)
 	status = dkim_getsighdr(dkim, hdr, sizeof hdr,
 	                        strlen(DKIM_SIGNHEADER) + 2);
 	assert(status == DKIM_STAT_OK);
-	printf("%s\n", hdr);
 
 	memset(hdr, '\0', sizeof hdr);
 	status = dkim_getsighdr(resign, hdr, sizeof hdr,
 	                        strlen(DKIM_SIGNHEADER) + 2);
 	assert(status == DKIM_STAT_OK);
-	printf("%s\n", hdr);
 
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_INVALID);
