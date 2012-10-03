@@ -137,10 +137,10 @@ main(int argc, char **argv)
 	status = dkim_header(dkim, HEADER09, strlen(HEADER09));
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_resign(dkim, resign, TRUE);
+	status = dkim_resign(dkim, resign, NULL, TRUE);
 	assert(status == DKIM_STAT_INVALID);
 
-	status = dkim_resign(resign, dkim, TRUE);
+	status = dkim_resign(resign, dkim, NULL, TRUE);
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_eoh(dkim);

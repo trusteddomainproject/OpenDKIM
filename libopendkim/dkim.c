@@ -5255,6 +5255,7 @@ dkim_verify(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 **  Parameters:
 **  	new -- new signing handle
 **  	old -- old signing/verifying handle
+**  	sig -- optional signature handle from which to copy the header hash
 **  	hdrbind -- bind "new"'s header canonicalization to "old" as well
 **  	           as the body
 **
@@ -5268,7 +5269,7 @@ dkim_verify(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 */
 
 DKIM_STAT
-dkim_resign(DKIM *new, DKIM *old, _Bool hdrbind)
+dkim_resign(DKIM *new, DKIM *old, DKIM_SIGINFO *sig, _Bool hdrbind)
 {
 #ifdef _FFR_RESIGN
 	_Bool keep;
@@ -5286,20 +5287,22 @@ dkim_resign(DKIM *new, DKIM *old, _Bool hdrbind)
 	    new->dkim_state != DKIM_STATE_INIT)
 		return DKIM_STAT_INVALID;
 
-	if (old->dkim_state >= DKIM_STATE_EOH1 ||
+	if (old->dkim_state < DKIM_STATE_EOH2 ||
 	    old->dkim_resign != NULL)
 		return DKIM_STAT_INVALID;
+
+	if (old->dkim_mode == DKIM_MODE_VERIFY &&
+	    old->dkim_sigcount > 1 &&
+	    sig == NULL)
+		return DKIM_STAT_INVALID;
+
+	if (sig == NULL)
+		sig = old->dkim_siglist[0];
 
 	new->dkim_resign = old;
 	new->dkim_hdrbind = hdrbind;
 	/* XXX -- should be mutex-protected? */
 	old->dkim_refcnt++;
-
-	if (new->dkim_hdrbind)
-	{
-		new->dkim_hhead = old->dkim_hhead;
-		new->dkim_hdrcnt = old->dkim_hdrcnt;
-	}
 
 	lib = old->dkim_libhandle;
 	assert(lib != NULL);
@@ -5349,10 +5352,19 @@ dkim_resign(DKIM *new, DKIM *old, _Bool hdrbind)
 	new->dkim_siglist[0]->sig_hashtype = hashtype;
 	new->dkim_siglist[0]->sig_signalg = new->dkim_signalg;
 
-	status = dkim_add_canon(new, TRUE, new->dkim_hdrcanonalg, hashtype,
-	                        NULL, NULL, 0, &hc);
-	if (status != DKIM_STAT_OK)
-		return status;
+	if (new->dkim_hdrbind)
+	{
+		status = dkim_canon_clone(new, sig->sig_hdrcanon, &hc);
+		if (status != DKIM_STAT_OK)
+			return status;
+	}
+	else
+	{
+		status = dkim_add_canon(new, TRUE, new->dkim_hdrcanonalg,
+		                        hashtype, NULL, NULL, 0, &hc);
+		if (status != DKIM_STAT_OK)
+			return status;
+	}
 
 	status = dkim_add_canon(old, FALSE, new->dkim_bodycanonalg,
 	                        hashtype, NULL, NULL, new->dkim_signlen, &bc);
@@ -5378,21 +5390,7 @@ dkim_resign(DKIM *new, DKIM *old, _Bool hdrbind)
 	}
 
 	if (new->dkim_hdrbind)
-	{
-		_Bool keep;
-
-		keep = ((lib->dkiml_flags & DKIM_LIBFLAGS_KEEPFILES) != 0);
-
-		/* initialize all canonicalizations */
-		status = dkim_canon_init(new, tmp, keep);
-		if (status != DKIM_STAT_OK)
-			return status;
-
-		/* run the headers */
-		status = dkim_canon_runheaders(new);
-		if (status != DKIM_STAT_OK)
-			return status;
-	}
+		new->dkim_hhead = old->dkim_hhead;
 
 	return DKIM_STAT_OK;
 #else /* _FFR_RESIGN */

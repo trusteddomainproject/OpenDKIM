@@ -926,6 +926,200 @@ dkim_add_canon(DKIM *dkim, _Bool hdr, dkim_canon_t canon, int hashtype,
 }
 
 /*
+**  DKIM_CANON_CLONE -- clone an existing canonicalization state onto a new one
+**
+**  Parameters:
+**  	dkim -- verification handle
+**  	old -- existing canonicalization
+**  	cout -- DKIM_CANON handle (returned)
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+DKIM_STAT
+dkim_canon_clone(DKIM *dkim, DKIM_CANON *old, DKIM_CANON **cout)
+{
+	_Bool keep;
+	DKIM_CANON *new;
+	DKIM_LIB *lib;
+
+	assert(dkim != NULL);
+	assert(old != NULL);
+	assert(cout != NULL);
+
+	lib = dkim->dkim_libhandle;
+	keep = ((lib->dkiml_flags & DKIM_LIBFLAGS_KEEPFILES) != 0);
+
+	new = (DKIM_CANON *) dkim_malloc(dkim->dkim_libhandle,
+	                                 dkim->dkim_closure, sizeof *new);
+	if (new == NULL)
+	{
+		dkim_error(dkim, "unable to allocate %d byte(s)", sizeof *new);
+		return DKIM_STAT_NORESOURCE;
+	}
+
+	memcpy(new, old, sizeof *new);
+	new->canon_sigheader = NULL;
+	new->canon_next = NULL;
+
+	switch (old->canon_hashtype)
+	{
+#ifdef USE_GNUTLS
+	  case DKIM_HASHTYPE_SHA1:
+	  case DKIM_HASHTYPE_SHA256:
+	  {
+		struct dkim_sha *shaold;
+		struct dkim_sha *sha;
+
+		sha = (struct dkim_sha *) DKIM_MALLOC(dkim,
+		                                      sizeof(struct dkim_sha));
+		if (sha == NULL)
+		{
+			dkim_error(dkim, "unable to allocate %d byte(s)",
+			           sizeof(struct dkim_sha));
+			return DKIM_STAT_NORESOURCE;
+		}
+
+		shaold = old->canon_hash;
+
+		memset(sha, '\0', sizeof(struct dkim_sha));
+		memcpy(&sha->sha_hd, &old->sha_hd, sizeof sha->sha_hd);
+
+		sha->sha_tmpfd = -1;
+
+		if (shaold->tmpfd != -1)
+		{
+			int fd;
+			DKIM_STAT status;
+
+			status = dkim_tmpfile(dkim, &fd, keep);
+			if (status != DKIM_STAT_OK)
+			{
+				DKIM_FREE(dkim, sha);
+				return status;
+			}
+
+			sha->sha_tmpfd = fd;
+		}
+
+		new->canon_hash = sha;
+
+	  	break;
+	  }
+#else /* USE_GNUTLS */
+	  case DKIM_HASHTYPE_SHA1:
+	  {
+		struct dkim_sha1 *sha1;
+		struct dkim_sha1 *sha1old;
+
+		sha1 = (struct dkim_sha1 *) DKIM_MALLOC(dkim,
+		                                        sizeof(struct dkim_sha1));
+		if (sha1 == NULL)
+		{
+			dkim_error(dkim,
+			           "unable to allocate %d byte(s)",
+			           sizeof(struct dkim_sha1));
+			return DKIM_STAT_NORESOURCE;
+		}
+
+		sha1old = old->canon_hash;
+
+		memset(sha1, '\0', sizeof(struct dkim_sha1));
+		memcpy(&sha1->sha1_ctx, &sha1old->sha1_ctx,
+		       sizeof sha1->sha1_ctx);
+
+		sha1->sha1_tmpfd = -1;
+
+		if (sha1old->sha1_tmpfd != -1)
+		{
+			int fd;
+			DKIM_STAT status;
+
+			status = dkim_tmpfile(dkim, &fd, keep);
+			if (status != DKIM_STAT_OK)
+			{
+				DKIM_FREE(dkim, sha1);
+				return status;
+			}
+
+			sha1->sha1_tmpfd = fd;
+			sha1->sha1_tmpbio = BIO_new_fd(fd, 1);
+		}
+
+		new->canon_hash = sha1;
+
+	  	break;
+	  }
+
+# ifdef HAVE_SHA256
+	  case DKIM_HASHTYPE_SHA256:
+	  {
+		struct dkim_sha256 *sha256;
+		struct dkim_sha256 *sha256old;
+
+		sha256 = (struct dkim_sha256 *) DKIM_MALLOC(dkim,
+		                                            sizeof(struct dkim_sha256));
+		if (sha256 == NULL)
+		{
+			dkim_error(dkim,
+			           "unable to allocate %d byte(s)",
+			           sizeof(struct dkim_sha256));
+			return DKIM_STAT_NORESOURCE;
+		}
+
+		sha256old = old->canon_hash;
+
+		memset(sha256, '\0', sizeof(struct dkim_sha256));
+		memcpy(&sha256->sha256_ctx, &sha256old->sha256_ctx,
+		       sizeof sha256->sha256_ctx);
+
+		sha256->sha256_tmpfd = -1;
+
+		if (sha256old->sha256_tmpfd != -1)
+		{
+			int fd;
+			DKIM_STAT status;
+
+			status = dkim_tmpfile(dkim, &fd, keep);
+			if (status != DKIM_STAT_OK)
+			{
+				DKIM_FREE(dkim, sha256);
+				return status;
+			}
+
+			sha256->sha256_tmpfd = fd;
+			sha256->sha256_tmpbio = BIO_new_fd(fd, 1);
+		}
+
+		new->canon_hash = sha256;
+
+	  	break;
+	  }
+# endif /* HAVE_SHA256 */
+#endif /* USE_GNUTLS */
+
+	  default:
+		assert(0);
+	}
+
+	if (dkim->dkim_canonhead == NULL)
+	{
+		dkim->dkim_canontail = new;
+		dkim->dkim_canonhead = new;
+	}
+	else
+	{
+		dkim->dkim_canontail->canon_next = new;
+		dkim->dkim_canontail = new;
+	}
+
+	*cout = new;
+
+	return DKIM_STAT_OK;
+}
+
+/*
 **  DKIM_CANON_SELECTHDRS -- choose headers to be included in canonicalization
 **
 **  Parameters:

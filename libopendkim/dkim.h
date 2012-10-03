@@ -470,6 +470,7 @@ extern DKIM *dkim_verify __P((DKIM_LIB *libhandle, const unsigned char *id,
 **  Parameters:
 **  	new -- new signing handle
 **  	old -- old signing/verifying handle
+**  	sig -- optional signature handle from which to copy the header hash
 **  	hdrbind -- bind headers as well as body
 **
 **  Return value:
@@ -483,7 +484,8 @@ extern DKIM *dkim_verify __P((DKIM_LIB *libhandle, const unsigned char *id,
 **  	its reference count reaches zero.  See documentation for details.
 */
 
-extern DKIM_STAT dkim_resign __P((DKIM *news, DKIM *olds, _Bool hdrbind));
+extern DKIM_STAT dkim_resign __P((DKIM *news, DKIM *olds, DKIM_SIGINFO *sig,
+                                  _Bool hdrbind));
 
 /*
 **  DKIM_HEADER -- process a header

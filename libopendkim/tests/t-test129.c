@@ -181,13 +181,13 @@ main(int argc, char **argv)
 	                   DKIM_SIGN_RSASHA1, -1L, &status);
 	assert(resign != NULL);
 
-	status = dkim_resign(dkim, resign, TRUE);
-	assert(status == DKIM_STAT_INVALID);
-
-	status = dkim_resign(resign, dkim, FALSE);
+	status = dkim_eoh(dkim);
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_eoh(dkim);
+	status = dkim_resign(dkim, resign, NULL, TRUE);
+	assert(status == DKIM_STAT_INVALID);
+
+	status = dkim_resign(resign, dkim, NULL, FALSE);
 	assert(status == DKIM_STAT_OK);
 
 	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG2);

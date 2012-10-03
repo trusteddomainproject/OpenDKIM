@@ -25,9 +25,10 @@
 /* prototypes */
 extern DKIM_STAT dkim_add_canon __P((DKIM *, _Bool, dkim_canon_t, int,
                                      u_char *, struct dkim_header *,
-                                     ssize_t length, DKIM_CANON **));
+                                     ssize_t, DKIM_CANON **));
 extern DKIM_STAT dkim_canon_bodychunk __P((DKIM *, u_char *, size_t));
 extern void dkim_canon_cleanup __P((DKIM *));
+extern DKIM_STAT dkim_canon_clone __P((DKIM *, DKIM_CANON *, DKIM_CANON **));
 extern DKIM_STAT dkim_canon_closebody __P((DKIM *));
 extern DKIM_STAT dkim_canon_getfinal __P((DKIM_CANON *, u_char **, size_t *));
 extern DKIM_STAT dkim_canon_gethashes __P((DKIM_SIGINFO *, void **, size_t *,

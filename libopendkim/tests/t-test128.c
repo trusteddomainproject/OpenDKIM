@@ -24,6 +24,11 @@
 
 #define	MAXHEADER	4096
 
+#define	JOBID2		"testing2"
+#define	JOBID3		"testing3"
+
+#define	TEST_KEEP_FILES	1
+
 #ifndef TRUE
 # define TRUE		1
 #endif /* ! TRUE */
@@ -131,18 +136,18 @@ main(int argc, char **argv)
 	status = dkim_header(dkim, HEADER09, strlen(HEADER09));
 	assert(status == DKIM_STAT_OK);
 
-	resign = dkim_sign(lib, JOBID, NULL, key, SELECTOR, DOMAIN,
+	resign = dkim_sign(lib, JOBID2, NULL, key, SELECTOR, DOMAIN,
 	                   DKIM_CANON_RELAXED, DKIM_CANON_SIMPLE,
 	                   DKIM_SIGN_RSASHA1, -1L, &status);
 	assert(resign != NULL);
 
-	status = dkim_resign(dkim, resign, TRUE);
-	assert(status == DKIM_STAT_INVALID);
-
-	status = dkim_resign(resign, dkim, TRUE);
+	status = dkim_eoh(dkim);
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_eoh(dkim);
+	status = dkim_resign(dkim, resign, NULL, TRUE);
+	assert(status == DKIM_STAT_INVALID);
+
+	status = dkim_resign(resign, dkim, NULL, TRUE);
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_eoh(resign);
@@ -216,7 +221,7 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 
 	/* now see if that one was valid */
-	dkim = dkim_verify(lib, JOBID, NULL, &status);
+	dkim = dkim_verify(lib, JOBID3, NULL, &status);
 	assert(dkim != NULL);
 
 	snprintf(hdr2, sizeof hdr2, "%s: %s", DKIM_SIGNHEADER, hdr);
