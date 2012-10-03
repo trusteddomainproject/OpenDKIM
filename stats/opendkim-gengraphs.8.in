@@ -51,6 +51,12 @@ should be read.
 .I --help
 Prints a usage message and exits.
 .TP
+.I --nocircles
+Prevents the script from requesting circles in graphs to show point magnitude
+(also known as a bubble graph) for installations that have versions of
+.B gnuplot(1)
+that don't support it.
+.TP
 .I --nounsigned
 Suppresses generation of a graph for unsigned mail.
 .TP

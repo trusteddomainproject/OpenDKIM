@@ -41,7 +41,7 @@ my $dbi_h;
 my $dbi_a;
 
 my $unsigned      = 1;
-my $circles       = 0;
+my $circles       = 1;
 
 my $idx;
 my $tmpin;
@@ -109,6 +109,7 @@ sub usage
 	print STDERR "\t--dbuser=user      database user [$def_dbuser]\n";
 	print STDERR "\t--domain=name      domain(s) on which to report\n";
 	print STDERR "\t--help             print help and exit\n";
+	print STDERR "\t--nocircles        don't tell gnuplot to use circles\n";
 	print STDERR "\t--output=file      output file\n";
 	print STDERR "\t--unsigned         report about unsigned mail\n";
 	print STDERR "\t--verbose          verbose output\n";
