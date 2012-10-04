@@ -51,7 +51,8 @@ Set the error value stored for a specific signature.
 <th valign="top" align=left>NOTES</th> 
 <td>
 <ul>
-<li>None.
+<li>Returns <tt>DKIM_STAT_INVALID</tt> if the signature already has an error
+    code assigned to it other than <tt>DKIM_SIGERROR_UNKNOWN</tt>.
 </ul>
 </td>
 </tr>
