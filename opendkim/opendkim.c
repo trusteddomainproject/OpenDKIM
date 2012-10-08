@@ -9149,17 +9149,21 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		if (conf->conf_dolog)
 		{
 			const char *err = NULL;
+			const char *sslerr = NULL;
 
 			if (dkim != NULL)
 				err = dkim_geterror(dkim);
 			if (err == NULL)
 				err = strerror(errno);
+			sslerr = dkim_getsslbuf(dkim);
 
 			syslog(LOG_ERR,
-			       "%s: %s%sinternal error from libopendkim: %s",
+			       "%s: %s%sinternal error from libopendkim: %s%s%s",
 			       JOBID(dfc->mctx_jobid),
 			       where == NULL ? "" : where,
-			       where == NULL ? "" : ": ", err);
+			       where == NULL ? "" : ": ", err,
+			       sslerr == NULL ? "" : " ",
+			       sslerr == NULL ? "" : sslerr);
 		}
 		replytxt = "internal DKIM error";
 		break;
