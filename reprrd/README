@@ -1,0 +1,5 @@
+This is the development area for the experimental DKIM-based reputation
+system that uses time series evaluation methods, as opposed to the contents
+of ../reputation which uses predictive inference.
+
+This work is in progress and is not even ready for experimental use.
