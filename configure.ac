@@ -307,6 +307,10 @@ AM_CONDITIONAL([REPLACE_RULES], [test x"$enable_replace_rules" = x"yes"])
 FFR_FEATURE([redirect],
             [support for redirecting failed verifications to a mailbox])
 
+FFR_FEATURE([reprrd],
+            [support for experimental reputation checks using RRD])
+AM_CONDITIONAL([REPRRD], [test x"$enable_reprrd" = x"yes"])
+
 FFR_FEATURE([reputation],
             [support for experimental reputation checks])
 AM_CONDITIONAL([REPUTE], [test x"$enable_reputation" = x"yes"])
@@ -2425,6 +2429,9 @@ AC_OUTPUT([	Makefile
 			stats/opendkim-genstats
 			stats/opendkim-genstats.8
 			stats/opendkim-reportstats
+		reprrd/Makefile
+			reputation/opendkim-reprrdimport
+			reputation/opendkim-reprrdimport.8
 		reputation/Makefile
 			reputation/opendkim-genrates
 			reputation/opendkim-genrates.8

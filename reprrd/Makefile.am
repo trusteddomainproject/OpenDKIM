@@ -3,3 +3,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 dist_doc_DATA = README
+
+dist_bin_SCRIPTS = opendkim-reprrdimport
+
+dist_man_MANS = opendkim-reprrdreport.8 

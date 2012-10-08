@@ -1,0 +1,289 @@
+#!/usr/bin/perl
+#
+# Copyright (c) 2010-2012, The Trusted Domain Project.  All rights reserved.
+#
+# Script to import rate and spam counts from the stats tables into rrdtables.
+# EXPERIMENTAL.
+
+###
+### Setup
+###
+
+use strict;
+use warnings;
+
+use DBI;
+use File::Basename;
+use Getopt::Long;
+use IO::Handle;
+use POSIX;
+
+use RRDs;
+
+require DBD::@SQL_BACKEND@;
+
+# general
+my $progname      = basename($0);
+my $version       = "@VERSION@";
+my $verbose       = 0;
+my $helponly      = 0;
+my $showversion   = 0;
+
+my @domains;
+
+my $dbi_s;
+my $dbi_h;
+my $dbi_a;
+
+# DB parameters
+my $def_dbhost    = "localhost";
+my $def_dbname    = "opendkim";
+my $def_dbuser    = "opendkim";
+my $def_dbpasswd  = "opendkim";
+my $def_dbport    = "3306";
+my $dbhost;
+my $dbname;
+my $dbuser;
+my $dbpasswd;
+my $dbport;
+my $def_rrdroot   = "/var/db/reprrd";
+
+my $rrdroot;
+
+my $dbscheme     = "@SQL_BACKEND@";
+
+# Minimum messages.id value; used to mark the start of useful data
+my $minmsgid     = 0;
+
+###
+### NO user-serviceable parts beyond this point
+###
+
+sub usage
+{
+	print STDERR "$progname: usage: $progname [options]\n";
+	print STDERR "\t--dbhost=host      database host [$def_dbhost]\n";
+	print STDERR "\t--dbname=name      database name [$def_dbname]\n";
+	print STDERR "\t--dbpasswd=passwd  database password [$def_dbpasswd]\n";
+	print STDERR "\t--dbport=port      database port [$def_dbport]\n";
+	print STDERR "\t--dbuser=user      database user [$def_dbuser]\n";
+	print STDERR "\t--domains=list     list of domains to process\n";
+	print STDERR "\t--help             print help and exit\n";
+	print STDERR "\t--output=file      output file\n";
+	print STDERR "\t--rrdroot=path     root of RRD database tree [$def_rrdroot]\n";
+	print STDERR "\t--verbose          verbose output\n";
+	print STDERR "\t--version          print version and exit\n";
+}
+
+#
+# parse command line arguments
+#
+
+my $opt_retval = &Getopt::Long::GetOptions ('dbhost=s' => \$dbhost,
+                                            'dbname=s' => \$dbname,
+                                            'dbpasswd=s' => \$dbpasswd,
+                                            'dbport=s' => \$dbport,
+                                            'dbuser=s' => \$dbuser,
+                                            'domain=s@' => \@domains,
+                                            'help!' => \$helponly,
+                                            'output=s' => \$reportout,
+                                            'rrdroot=s' => \$rrdroot,
+                                            'verbose!' => \$verbose,
+                                            'version!' => \$showversion,
+                                           );
+
+if (!$opt_retval || $helponly)
+{
+	usage();
+
+	if ($helponly)
+	{
+		exit(0);
+	}
+	else
+	{
+		exit(1);
+	}
+}
+
+if ($showversion)
+{
+	print STDOUT "$progname v$version\n";
+	exit(0);
+}
+
+#
+# apply defaults
+#
+
+if (!defined($dbhost))
+{
+	if (defined($ENV{'OPENDKIM_DBHOST'}))
+	{
+		$dbhost = $ENV{'OPENDKIM_DBHOST'};
+	}
+	else
+	{
+		$dbhost = $def_dbhost;
+	}
+}
+
+if (!defined($dbname))
+{
+	if (defined($ENV{'OPENDKIM_DB'}))
+	{
+		$dbname = $ENV{'OPENDKIM_DB'};
+	}
+	else
+	{
+		$dbname = $def_dbname;
+	}
+}
+
+if (!defined($dbpasswd))
+{
+	if (defined($ENV{'OPENDKIM_PASSWORD'}))
+	{
+		$dbpasswd = $ENV{'OPENDKIM_PASSWORD'};
+	}
+	else
+	{
+		$dbpasswd = $def_dbpasswd;
+	}
+}
+
+if (!defined($dbport))
+{
+	if (defined($ENV{'OPENDKIM_PORT'}))
+	{
+		$dbport = $ENV{'OPENDKIM_PORT'};
+	}
+	else
+	{
+		$dbport = $def_dbport;
+	}
+}
+
+if (!defined($dbuser))
+{
+	if (defined($ENV{'OPENDKIM_USER'}))
+	{
+		$dbuser = $ENV{'OPENDKIM_USER'};
+	}
+	else
+	{
+		$dbuser = $def_dbuser;
+	}
+}
+
+if (!defined($reportout))
+{
+	if (defined($ENV{'OPENDKIM_OUTPUT'}))
+	{
+		$reportout = $ENV{'OPENDKIM_OUTPUT'};
+	}
+}
+
+if (defined($ENV{'OPENDKIM_MINMSGID'}))
+{
+	$minmsgid = $ENV{'OPENDKIM_MINMSGID'};
+}
+
+if (!defined($rrdroot))
+{
+	if (defined($ENV{'OPENDKIM_RRDROOT'}))
+	{
+		$rrdroot = $ENV{'OPENDKIM_RRDROOT'};
+	}
+	else
+	{
+		$rrdroot = $def_rrdroot;
+	}
+}
+
+#
+# If any of the domains started with "/" or "./", convert them into
+# whatever's in the files they reference.
+#
+
+if (scalar @domains > 0)
+{
+	foreach $idx (0 .. $#domains)
+	{
+		if (substr($domains[$idx], 0, 1) eq "/" ||
+		    substr($domains[$idx], 0, 2) eq "./")
+		{
+			if (!open($tmpin, "<", $domains[$idx]))
+			{
+				print STDERR "$progname: cannot open $domains[$idx]: $!\n";
+				$dbi_s->finish;
+				$dbi_h->disconnect;
+				exit(1);
+			}
+
+			while (<$tmpin>)
+			{
+				# ignore comments
+				s/#.*//;
+
+				# ignore blank lines
+				next if /^(\s)*$/;
+
+				chomp;
+
+				push @domains, $_;
+			}
+
+			close($tmpin);
+
+			delete $domains[$idx];
+		}
+	}
+}
+
+if ($verbose)
+{
+	print STDERR "$progname: started at " . localtime() . "\n";
+}
+
+#
+# open the SQL database
+#
+
+my $dbi_dsn = "DBI:" . $dbscheme . ":database=" . $dbname .
+              ";host=" . $dbhost . ";port=" . $dbport;
+
+$dbi_h = DBI->connect($dbi_dsn, $dbuser, $dbpasswd, { PrintError => 0 });
+if (!defined($dbi_h))
+{
+	print STDERR "$progname: unable to connect to database: $DBI::errstr\n";
+	exit(1);
+}
+
+if ($verbose)
+{
+	print STDERR "$progname: connected to database\n";
+}
+
+#
+# Pull data per domain per hour
+#
+
+#
+# For each domain with data
+#   - create the RRD if it isn't there
+#   - insert/update values
+# 
+
+#
+# all done!
+#
+
+if ($verbose)
+{
+	print STDERR "$progname: terminating at " . localtime() . "\n";
+}
+
+$dbi_h->disconnect;
+
+exit(0);
