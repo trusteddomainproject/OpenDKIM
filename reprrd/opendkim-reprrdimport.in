@@ -80,6 +80,11 @@ sub rrd_path
 	for ($c = 0; $c < $levels; $c++)
 	{
 		$path = $path . "/" . substr($name, $c, 1);
+		if (! -d $path)
+		{
+			mkdir $path
+			or die "$progname: cannot create directory $path: $!\n";
+		}
 	}
 
 	$path = $path . "/" . $name;
@@ -105,13 +110,20 @@ sub make_rrd
 	}
 	else
 	{
+		if ($verbose)
+		{
+			print STDOUT "$progname: creating RRD table $path\n";
+		}
+
+		$timestamp--;
+
 		RRDs::create($path,
 		             "--start",
 		             "$timestamp",
 		             "DS:messages:ABSOLUTE:3600:U:U",
 		             "DS:spam:ABSOLUTE:3600:U:U",
 		             "RRA:HWPREDICT:168:0.5:0.5:24")
-		or die "$progname: unable to create RRD table at $path\n";
+		or die "$progname: failed to create RRD table $path: " . RRDs::error . "\n";
 	}
 }
 
@@ -127,11 +139,16 @@ sub update_rrd
 
 	$path = rrd_path($domain);
 
+	if ($verbose)
+	{
+		print STDOUT "$progname: updating RRD table $path for timestamp $timestamp\n";
+	}
+
 	RRDs::update($path,
 	             "--template",
 	             "messages:spam",
-	             "$timestamp@$count:$ratio")
-	or die "$progname: failed to update $path\n";
+	             ${timestamp} . "@" . ${count} . ":" . ${ratio})
+	or die "$progname: failed to update RRD table $path: " . RRDs::error . "\n";
 }
 
 sub usage
@@ -360,10 +377,12 @@ if ($interval == 0)
 	                                 UNIX_TIMESTAMP(TIMESTAMPADD(HOUR,
 	                                                             HOUR(msgtime),
 	                                                             DATE(msgtime))),
-	                                 COUNT(id),
+	                                 COUNT(messages.id),
 	                                 SUM(SIGN(spam))
 	                          FROM messages
 	                          JOIN signatures
+	                               ON signatures.message = messages.id
+	                          JOIN domains
 	                               ON signatures.domain = domains.id
 	                          WHERE NOT spam = -1
 	                          GROUP BY 1, 2
@@ -375,21 +394,23 @@ else
 	                                 UNIX_TIMESTAMP(TIMESTAMPADD(HOUR,
 	                                                             HOUR(msgtime),
 	                                                             DATE(msgtime))),
-	                                 COUNT(id),
+	                                 COUNT(messages.id),
 	                                 SUM(SIGN(spam))
 	                          FROM messages
 	                          JOIN signatures
+	                               ON signatures.message = messages.id
+	                          JOIN domains
 	                               ON signatures.domain = domains.id
 	                          WHERE NOT spam = -1
 	                                AND DATE(msgtime) = DATE(DATE_SUB(NOW(),
-	                                                         INTERVAL $interval DAY)
+	                                                         INTERVAL $interval DAY))
 	                          GROUP BY 1, 2
 	                          ORDER BY 1, 2");
 }
 
 if (!$dbi_s->execute)
 {
-	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr . "\n";
 	$dbi_s->finish;
 	$dbi_h->disconnect;
 	exit(1);
@@ -411,6 +432,11 @@ while ($dbi_a = $dbi_s->fetchrow_arrayref())
 	if (!defined($spam))
 	{
 		next;
+	}
+
+	if ($domain eq "(null)")
+	{
+		$domain = "NULL";
 	}
 
 	$ratio = $spam / $count;
