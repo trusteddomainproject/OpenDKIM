@@ -19,7 +19,7 @@ Unless otherwise noted, all functions described below return a single result;
 on success they return the requested data, and on error they return the Lua
 constant "nil".
 
-Three scripting hooks are provided.  They are as follows:
+Four scripting hooks are provided.  They are as follows:
 .TP
 .I setup
 The setup script is run after all headers for the message have been received
