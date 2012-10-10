@@ -54,6 +54,9 @@ my $rrdroot;
 my $interval;
 my $levels;
 
+my $tmpin;
+my $idx;
+
 my $dbscheme     = "@SQL_BACKEND@";
 
 # Minimum messages.id value; used to mark the start of useful data
@@ -62,6 +65,74 @@ my $minmsgid     = 0;
 ###
 ### NO user-serviceable parts beyond this point
 ###
+
+sub rrd_path
+{
+	my $name = shift;
+	my $path = $rrdroot;
+	my $c;
+
+	if (!defined($name))
+	{
+		die "$progname: rrd_path() called without a domain name\n";
+	}
+
+	for ($c = 0; $c < $levels; $c++)
+	{
+		$path = $path . "/" . substr($name, $c, 1);
+	}
+
+	$path = $path . "/" . $name;
+
+	return $path;
+}
+
+sub make_rrd
+{
+	my $name = shift;
+	my $timestamp = shift;
+	my $path = $rrdroot;
+	my $c;
+
+	$path = rrd_path($name);
+
+	if (-e $path)
+	{
+		if (! -f $path)
+		{
+			die "$progname: $path is not a regular file\n";
+		}
+	}
+	else
+	{
+		RRDs::create($path,
+		             "--start",
+		             "$timestamp",
+		             "DS:messages:ABSOLUTE:3600:U:U",
+		             "DS:spam:ABSOLUTE:3600:U:U",
+		             "RRA:HWPREDICT:168:0.5:0.5:24")
+		or die "$progname: unable to create RRD table at $path\n";
+	}
+}
+
+sub update_rrd
+{
+	my $domain;
+	my $timestamp;
+	my $count;
+	my $ratio;
+	my $path;
+
+	($domain, $timestamp, $count, $ratio) = @_;
+
+	$path = rrd_path($domain);
+
+	RRDs::update($path,
+	             "--template",
+	             "messages:spam",
+	             "$timestamp@$count:$ratio")
+	or die "$progname: failed to update $path\n";
+}
 
 sub usage
 {
@@ -180,14 +251,6 @@ if (!defined($dbuser))
 	else
 	{
 		$dbuser = $def_dbuser;
-	}
-}
-
-if (!defined($reportout))
-{
-	if (defined($ENV{'OPENDKIM_OUTPUT'}))
-	{
-		$reportout = $ENV{'OPENDKIM_OUTPUT'};
 	}
 }
 
@@ -332,13 +395,6 @@ if (!$dbi_s->execute)
 	exit(1);
 }
 
-#
-# For each domain with data
-#   - create the RRD if it isn't there
-#   - insert/update values
-#   - produce graphs
-#
-
 while ($dbi_a = $dbi_s->fetchrow_arrayref())
 {
 	my $domain;
@@ -359,7 +415,7 @@ while ($dbi_a = $dbi_s->fetchrow_arrayref())
 
 	$ratio = $spam / $count;
 
-	make_rrd($domain);
+	make_rrd($domain, $timestamp);
 	update_rrd($domain, $timestamp, $count, $ratio);
 }
 
