@@ -37,7 +37,7 @@ end
 author = odkim.get_mtasymbol(ctx, "{auth_author}")
 
 --  If it's not from an internal source or authenticated, just verify it
-if odkim.internal_ip(tx) == 0 and author == nil then
+if odkim.internal_ip(ctx) == 0 and author == nil then
 	odkim.verify(ctx)
 	return nil
 end
