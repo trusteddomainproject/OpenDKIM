@@ -48,11 +48,11 @@ my $dbpasswd;
 my $dbport;
 my $def_rrdroot   = "/var/db/reprrd";
 my $def_interval  = 1;
-my $def_nesting   = 2;
+my $def_levels    = 2;
 
 my $rrdroot;
 my $interval;
-my $nesting;
+my $levels;
 
 my $dbscheme     = "@SQL_BACKEND@";
 
@@ -73,7 +73,7 @@ sub usage
 	print STDERR "\t--dbuser=user      database user [$def_dbuser]\n";
 	print STDERR "\t--domains=list     list of domains to process\n";
 	print STDERR "\t--interval=days    pull the last n days of data [$def_interval]\n";
-	print STDERR "\t--nesting=n        nesting depth [$def_nesting]\n";
+	print STDERR "\t--levels=n         hashing depth [$def_levels]\n";
 	print STDERR "\t--help             print help and exit\n";
 	print STDERR "\t--output=file      output file\n";
 	print STDERR "\t--rrdroot=path     root of RRD database tree [$def_rrdroot]\n";
@@ -93,7 +93,7 @@ my $opt_retval = &Getopt::Long::GetOptions ('dbhost=s' => \$dbhost,
                                             'domain=s@' => \@domains,
                                             'help!' => \$helponly,
                                             'interval=i' => \$interval,
-                                            'nesting=i' => \$nesting,
+                                            'levels=i' => \$levels,
                                             'rrdroot=s' => \$rrdroot,
                                             'verbose!' => \$verbose,
                                             'version!' => \$showversion,
@@ -208,9 +208,9 @@ if (!defined($rrdroot))
 	}
 }
 
-if (!defined($nesting))
+if (!defined($levels))
 {
-	$nesting = $def_nesting;
+	$levels = $def_levels;
 }
 
 if (!defined($interval))
