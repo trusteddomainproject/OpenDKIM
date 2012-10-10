@@ -47,8 +47,12 @@ my $dbuser;
 my $dbpasswd;
 my $dbport;
 my $def_rrdroot   = "/var/db/reprrd";
+my $def_interval  = 1;
+my $def_nesting   = 2;
 
 my $rrdroot;
+my $interval;
+my $nesting;
 
 my $dbscheme     = "@SQL_BACKEND@";
 
@@ -68,6 +72,8 @@ sub usage
 	print STDERR "\t--dbport=port      database port [$def_dbport]\n";
 	print STDERR "\t--dbuser=user      database user [$def_dbuser]\n";
 	print STDERR "\t--domains=list     list of domains to process\n";
+	print STDERR "\t--interval=days    pull the last n days of data [$def_interval]\n";
+	print STDERR "\t--nesting=n        nesting depth [$def_nesting]\n";
 	print STDERR "\t--help             print help and exit\n";
 	print STDERR "\t--output=file      output file\n";
 	print STDERR "\t--rrdroot=path     root of RRD database tree [$def_rrdroot]\n";
@@ -86,7 +92,8 @@ my $opt_retval = &Getopt::Long::GetOptions ('dbhost=s' => \$dbhost,
                                             'dbuser=s' => \$dbuser,
                                             'domain=s@' => \@domains,
                                             'help!' => \$helponly,
-                                            'output=s' => \$reportout,
+                                            'interval=i' => \$interval,
+                                            'nesting=i' => \$nesting,
                                             'rrdroot=s' => \$rrdroot,
                                             'verbose!' => \$verbose,
                                             'version!' => \$showversion,
@@ -201,6 +208,16 @@ if (!defined($rrdroot))
 	}
 }
 
+if (!defined($nesting))
+{
+	$nesting = $def_nesting;
+}
+
+if (!defined($interval))
+{
+	$interval = $def_interval;
+}
+
 #
 # If any of the domains started with "/" or "./", convert them into
 # whatever's in the files they reference.
@@ -266,14 +283,85 @@ if ($verbose)
 }
 
 #
-# Pull data per domain per hour
+# Pull data per domain per hour within the interval (0 = epoch)
 #
+
+if ($verbose)
+{
+	print STDERR "$progname: requesting hourly flow data\n";
+}
+
+if ($interval == 0)
+{
+	$dbi_s = $dbi_h->prepare("SELECT domains.name,
+	                                 UNIX_TIMESTAMP(TIMESTAMPADD(HOUR,
+	                                                             HOUR(msgtime),
+	                                                             DATE(msgtime))),
+	                                 COUNT(id),
+	                                 SUM(SIGN(spam))
+	                          FROM messages
+	                          JOIN signatures
+	                               ON signatures.domain = domains.id
+	                          WHERE NOT spam = -1
+	                          GROUP BY 1, 2
+	                          ORDER BY 1, 2");
+}
+else
+{
+	$dbi_s = $dbi_h->prepare("SELECT domains.name,
+	                                 UNIX_TIMESTAMP(TIMESTAMPADD(HOUR,
+	                                                             HOUR(msgtime),
+	                                                             DATE(msgtime))),
+	                                 COUNT(id),
+	                                 SUM(SIGN(spam))
+	                          FROM messages
+	                          JOIN signatures
+	                               ON signatures.domain = domains.id
+	                          WHERE NOT spam = -1
+	                                AND DATE(msgtime) = DATE(DATE_SUB(NOW(),
+	                                                         INTERVAL $interval DAY)
+	                          GROUP BY 1, 2
+	                          ORDER BY 1, 2");
+}
+
+if (!$dbi_s->execute)
+{
+	print STDERR "$progname: SELECT failed: " . $dbi_h->errstr;
+	$dbi_s->finish;
+	$dbi_h->disconnect;
+	exit(1);
+}
 
 #
 # For each domain with data
 #   - create the RRD if it isn't there
 #   - insert/update values
-# 
+#   - produce graphs
+#
+
+while ($dbi_a = $dbi_s->fetchrow_arrayref())
+{
+	my $domain;
+	my $timestamp;
+	my $count;
+	my $spam;
+	my $ratio;
+
+	$domain = $dbi_a->[0];
+	$timestamp = $dbi_a->[1];
+	$count = $dbi_a->[2];
+	$spam = $dbi_a->[3];
+
+	if (!defined($spam))
+	{
+		next;
+	}
+
+	$ratio = $spam / $count;
+
+	make_rrd($domain);
+	update_rrd($domain, $timestamp, $count, $ratio);
+}
 
 #
 # all done!
