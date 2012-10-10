@@ -77,6 +77,8 @@ sub rrd_path
 		die "$progname: rrd_path() called without a domain name\n";
 	}
 
+	$name = lc($name);
+
 	for ($c = 0; $c < $levels; $c++)
 	{
 		$path = $path . "/" . substr($name, $c, 1);
