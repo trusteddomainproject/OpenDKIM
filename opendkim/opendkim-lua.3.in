@@ -244,7 +244,9 @@ must be one of
 and
 .I SMFIS_REJECT
 (permanent failure/rejection).  Returns 1 on success or the Lua constant
-"nil" on failure.
+"nil" on failure.  Note that returning any of these codes indicates a final
+message disposition; the MTA will be told immediately to take the specified
+action, and no further filter processing will occur.
 .TP
 .B odkim.sign(ctx[, keyname[, signer[, signlen]]])
 Requests that the filter sign the message represented by
