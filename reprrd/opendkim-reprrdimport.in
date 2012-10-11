@@ -69,13 +69,16 @@ my $minmsgid     = 0;
 sub rrd_path
 {
 	my $name = shift;
-	my $path = $rrdroot;
+	my $type = shift;
+	my $path;
 	my $c;
 
 	if (!defined($name))
 	{
 		die "$progname: rrd_path() called without a domain name\n";
 	}
+
+	$path = $rrdroot . "/" . $type;
 
 	for ($c = 0; $c < $levels; $c++)
 	{
@@ -95,11 +98,12 @@ sub rrd_path
 sub make_rrd
 {
 	my $name = shift;
+	my $type = shift;
 	my $timestamp = shift;
 	my $path = $rrdroot;
 	my $c;
 
-	$path = rrd_path($name);
+	$path = rrd_path($name, $type);
 
 	if (-e $path)
 	{
@@ -120,9 +124,10 @@ sub make_rrd
 		RRDs::create($path,
 		             "--start",
 		             "$timestamp",
-		             "DS:messages:ABSOLUTE:3600:U:U",
-		             "DS:spam:ABSOLUTE:3600:U:U",
-		             "RRA:LAST:0.5:1:1",
+		             "--step",
+		             "3600",
+		             "DS:$type:ABSOLUTE:3600:0:U",
+		             "RRA:LAST:0.5:1:168",
 		             "RRA:HWPREDICT:168:0.5:0.5:24")
 		or die "$progname: failed to create RRD table $path: " . RRDs::error . "\n";
 	}
@@ -131,32 +136,29 @@ sub make_rrd
 sub update_rrd
 {
 	my $domain;
+	my $type;
 	my $timestamp;
-	my $count;
-	my $ratio;
+	my $value;
 	my $path;
 	my $data;
 
-	($domain, $timestamp, $count, $ratio) = @_;
+	($domain, $type, $timestamp, $value) = @_;
 
-	$path = rrd_path($domain);
+	$path = rrd_path($domain, $type);
 
 	if ($verbose)
 	{
 		print STDOUT "$progname: updating RRD table $path for timestamp $timestamp\n";
 	}
 
-	$data = ${timestamp} . "@" . ${count} . ":" . ${ratio};
+	$data = ${timestamp} . "@" . ${value};
 
 	if ($verbose > 1)
 	{
 		print STDOUT "\t$data\n";
 	}
 
-	RRDs::update($path,
-	             "--template",
-	             "messages:spam",
-	             $data)
+	RRDs::update($path, $data)
 	or die "$progname: failed to update RRD table $path: " . RRDs::error . "\n";
 }
 
@@ -460,8 +462,11 @@ while ($dbi_a = $dbi_s->fetchrow_arrayref())
 		next;
 	}
 
-	make_rrd($domain, $timestamp);
-	update_rrd($domain, $timestamp, $count, $ratio);
+	make_rrd($domain, "messages", $timestamp);
+	update_rrd($domain, "messages", $timestamp, $count);
+
+	make_rrd($domain, "spam", $timestamp);
+	update_rrd($domain, "spam", $timestamp, $ratio);
 }
 
 #
