@@ -2715,10 +2715,12 @@ dkimf_xs_rcpt(lua_State *l)
 	cc = (struct connctx *) dkimf_getpriv(ctx);
 	dfc = cc->cctx_msg;
 
-	for (addr = dfc->mctx_rcptlist;
-	     addr != NULL && rcnt >= 0;
-	     addr = addr->a_next)
+	addr = dfc->mctx_rcptlist;
+	while (rcnt > 0 && addr != NULL)
+	{
+		addr = addr->a_next;
 		rcnt--;
+	}
 
 	if (addr == NULL)
 		lua_pushnil(l);
