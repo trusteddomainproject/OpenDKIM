@@ -40,6 +40,12 @@ Attempts to authenticate to the database server as the specified
 .I user.
 The default is "opendkim".
 .TP
+.I --domain=name
+Only create/update RRD tables for the named domain.  Can be specified
+multiple times, and
+.I name
+can also refer to a file from which domain names should be read.
+.TP
 .I --help
 Prints a usage message and exits.
 .TP
