@@ -77,8 +77,6 @@ sub rrd_path
 		die "$progname: rrd_path() called without a domain name\n";
 	}
 
-	$name = lc($name);
-
 	for ($c = 0; $c < $levels; $c++)
 	{
 		$path = $path . "/" . substr($name, $c, 1);
@@ -124,6 +122,7 @@ sub make_rrd
 		             "$timestamp",
 		             "DS:messages:ABSOLUTE:3600:U:U",
 		             "DS:spam:ABSOLUTE:3600:U:U",
+		             "RRA:LAST:0.5:1:1",
 		             "RRA:HWPREDICT:168:0.5:0.5:24")
 		or die "$progname: failed to create RRD table $path: " . RRDs::error . "\n";
 	}
@@ -136,6 +135,7 @@ sub update_rrd
 	my $count;
 	my $ratio;
 	my $path;
+	my $data;
 
 	($domain, $timestamp, $count, $ratio) = @_;
 
@@ -146,10 +146,17 @@ sub update_rrd
 		print STDOUT "$progname: updating RRD table $path for timestamp $timestamp\n";
 	}
 
+	$data = ${timestamp} . "@" . ${count} . ":" . ${ratio};
+
+	if ($verbose > 1)
+	{
+		print STDOUT "\t$data\n";
+	}
+
 	RRDs::update($path,
 	             "--template",
 	             "messages:spam",
-	             ${timestamp} . "@" . ${count} . ":" . ${ratio})
+	             $data)
 	or die "$progname: failed to update RRD table $path: " . RRDs::error . "\n";
 }
 
@@ -185,7 +192,7 @@ my $opt_retval = &Getopt::Long::GetOptions ('dbhost=s' => \$dbhost,
                                             'interval=i' => \$interval,
                                             'levels=i' => \$levels,
                                             'rrdroot=s' => \$rrdroot,
-                                            'verbose!' => \$verbose,
+                                            'verbose+' => \$verbose,
                                             'version!' => \$showversion,
                                            );
 
@@ -330,12 +337,16 @@ if (scalar @domains > 0)
 
 				chomp;
 
-				push @domains, $_;
+				push @domains, lc($_);
 			}
 
 			close($tmpin);
 
 			delete $domains[$idx];
+		}
+		else
+		{
+			$domains[$idx] = lc($domains[$idx]);
 		}
 	}
 }
@@ -442,6 +453,12 @@ while ($dbi_a = $dbi_s->fetchrow_arrayref())
 	}
 
 	$ratio = $spam / $count;
+	$domain = lc($domain);
+
+	if (@domains && grep({$_ eq $domain} @domains) == 0)
+	{
+		next;
+	}
 
 	make_rrd($domain, $timestamp);
 	update_rrd($domain, $timestamp, $count, $ratio);
