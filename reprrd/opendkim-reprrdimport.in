@@ -53,6 +53,7 @@ my $def_levels    = 2;
 my $rrdroot;
 my $interval;
 my $levels;
+my $donull;
 
 my $tmpin;
 my $idx;
@@ -174,6 +175,7 @@ sub usage
 	print STDERR "\t--interval=days    pull the last n days of data [$def_interval]\n";
 	print STDERR "\t--levels=n         hashing depth [$def_levels]\n";
 	print STDERR "\t--help             print help and exit\n";
+	print STDERR "\t--null             include the null sender\n";
 	print STDERR "\t--output=file      output file\n";
 	print STDERR "\t--rrdroot=path     root of RRD database tree [$def_rrdroot]\n";
 	print STDERR "\t--verbose          verbose output\n";
@@ -193,6 +195,7 @@ my $opt_retval = &Getopt::Long::GetOptions ('dbhost=s' => \$dbhost,
                                             'help!' => \$helponly,
                                             'interval=i' => \$interval,
                                             'levels=i' => \$levels,
+                                            'null!' => \$donull,
                                             'rrdroot=s' => \$rrdroot,
                                             'verbose+' => \$verbose,
                                             'version!' => \$showversion,
@@ -386,6 +389,79 @@ if ($verbose)
 	print STDERR "$progname: requesting hourly flow data\n";
 }
 
+if ($donull)
+{
+	if ($interval == 0)
+	{
+		$dbi_s = $dbi_h->prepare("SELECT UNIX_TIMESTAMP(TIMESTAMPADD(HOUR,
+									     HOUR(msgtime),
+									     DATE(msgtime))),
+						 COUNT(messages.id),
+						 SUM(SIGN(spam))
+					  FROM messages
+		                          WHERE (sigcount = 0 OR
+		                                 messages.id NOT IN
+		                                     (SELECT DISTINCT message
+		                                      FROM signatures
+		                                      WHERE pass = 1)) 
+					  AND NOT spam = -1
+					  GROUP BY 1
+					  ORDER BY 1");
+	}
+	else
+	{
+		$dbi_s = $dbi_h->prepare("SELECT UNIX_TIMESTAMP(TIMESTAMPADD(HOUR,
+									     HOUR(msgtime),
+									     DATE(msgtime))),
+						 COUNT(messages.id),
+						 SUM(SIGN(spam))
+					  FROM messages
+		                          WHERE (sigcount = 0 OR
+		                                 messages.id NOT IN
+		                                     (SELECT DISTINCT message
+		                                      FROM signatures
+		                                      WHERE pass = 1)) 
+					  AND NOT spam = -1
+		                          AND DATE(msgtime) = DATE(DATE_SUB(NOW(),
+		                                                   INTERVAL $interval DAY))
+					  GROUP BY 1
+					  ORDER BY 1");
+	}
+
+	if (!$dbi_s->execute)
+	{
+		print STDERR "$progname: SELECT failed: " . $dbi_h->errstr . "\n";
+		$dbi_s->finish;
+		$dbi_h->disconnect;
+		exit(1);
+	}
+
+	while ($dbi_a = $dbi_s->fetchrow_arrayref())
+	{
+		my $timestamp;
+		my $count;
+		my $spam;
+		my $ratio;
+
+		$timestamp = $dbi_a->[0];
+		$count = $dbi_a->[1];
+		$spam = $dbi_a->[2];
+
+		if (!defined($spam))
+		{
+			next;
+		}
+
+		$ratio = $spam / $count;
+
+		make_rrd("unsigned", "messages", $timestamp);
+		update_rrd("unsigned", "messages", $timestamp, $count);
+
+		make_rrd("unsigned", "spam", $timestamp);
+		update_rrd("unsigned", "spam", $timestamp, $ratio);
+	}
+}
+
 if ($interval == 0)
 {
 	$dbi_s = $dbi_h->prepare("SELECT domains.name,
@@ -451,7 +527,7 @@ while ($dbi_a = $dbi_s->fetchrow_arrayref())
 
 	if ($domain eq "(null)")
 	{
-		$domain = "NULL";
+		$domain = "null";
 	}
 
 	$ratio = $spam / $count;
