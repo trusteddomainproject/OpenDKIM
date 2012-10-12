@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-dist_doc_DATA = README
+dist_doc_DATA = README reprrd.php reprrd-config.php
 
 dist_bin_SCRIPTS = opendkim-reprrdimport
 
