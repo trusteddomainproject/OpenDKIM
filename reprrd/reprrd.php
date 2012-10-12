@@ -90,11 +90,9 @@ $options = array (
 	"DEF:c=" . $rrdpath . ":" . $type . ":DEVPREDICT",
 	"DEF:d=" . $rrdpath . ":" . $type . ":FAILURES",
 	"CDEF:upper=b,c,2,*,+",
-	"CDEF:lower=b,c,2,*,-",
 	"TICK:d#ccbb00:1.0:Failures",
 	"LINE2:a#ff0000:Message Rate",
-	"LINE1:upper#0000ff:Upper/Lower Bounds",
-	"LINE1:lower#0000ff"
+	"LINE1:upper#0000ff:Upper Bounds"
 );
 
 printf("DEF:a=" . $rrdpath . ":messages:AVERAGE\n");
