@@ -1,8 +1,4 @@
-- ensure the NULL RRD is being properly generated
-
 - ensure FAILURES are firing
 
 - equip opendkim with the ability to query FAILURES for a given domain, for
   both categories, to see if it's fired
-
-- increase frequency to hourly
