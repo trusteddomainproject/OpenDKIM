@@ -172,7 +172,7 @@ sub usage
 	print STDERR "\t--dbport=port      database port [$def_dbport]\n";
 	print STDERR "\t--dbuser=user      database user [$def_dbuser]\n";
 	print STDERR "\t--domains=list     list of domains to process\n";
-	print STDERR "\t--interval=days    pull the last n days of data [$def_interval]\n";
+	print STDERR "\t--interval=hour    pull the previous n hours of data [$def_interval]\n";
 	print STDERR "\t--levels=n         hashing depth [$def_levels]\n";
 	print STDERR "\t--help             print help and exit\n";
 	print STDERR "\t--null             include the null sender\n";
@@ -423,7 +423,9 @@ if ($donull)
 		                                      WHERE pass = 1)) 
 					  AND NOT spam = -1
 		                          AND DATE(msgtime) = DATE(DATE_SUB(NOW(),
-		                                                   INTERVAL $interval DAY))
+		                                                   INTERVAL $interval HOUR))
+		                          AND HOUR(msgtime) = HOUR(DATE_SUB(NOW(),
+		                                                   INTERVAL $interval HOUR))
 					  GROUP BY 1
 					  ORDER BY 1");
 	}
@@ -494,7 +496,9 @@ else
 	                               ON signatures.domain = domains.id
 	                          WHERE NOT spam = -1
 	                                AND DATE(msgtime) = DATE(DATE_SUB(NOW(),
-	                                                         INTERVAL $interval DAY))
+	                                                         INTERVAL $interval HOUR))
+	                                AND HOUR(msgtime) = HOUR(DATE_SUB(NOW(),
+	                                                         INTERVAL $interval HOUR))
 	                          GROUP BY 1, 2
 	                          ORDER BY 1, 2");
 }
