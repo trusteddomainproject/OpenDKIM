@@ -93,6 +93,10 @@ opendkim_CPPFLAGS += $(LIBERL_INCDIRS)
 opendkim_LDFLAGS += $(LIBERL_LIBDIRS)
 opendkim_LDADD += $(LIBERL_LIBS)
 endif
+if REPRRD
+opendkim_CPPFLAGS += -I$(srcdir)/../reprrd
+opendkim_LDADD += ../reprrd/libreprrd.la
+endif
 
 opendkim_CPPFLAGS += $(LIBMILTER_INCDIRS)
 endif
