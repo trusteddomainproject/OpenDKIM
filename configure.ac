@@ -928,6 +928,82 @@ AC_SUBST(LIBMILTER_LIBDIRS)
 AC_SUBST(LIBMILTER_LIBS)
 
 #
+# librrd
+# 
+AC_ARG_WITH([librrd],
+            AS_HELP_STRING([--with-librrd],
+                           [location of librrd includes and library]),
+            [librrdpath="$withval"], [librrdpath="no"])
+
+librrd_found="no"
+if test x"$enable_reprrd" = x"yes" -a x"$librrdpath" = x"no"
+then
+	librrdpath="auto"
+fi
+
+if test \( x"$librrdpath" = x"auto" -o x"$librrdpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
+then
+	PKG_CHECK_MODULES([RRDTOOL], [librrd], 
+	                  [
+                          	librrd_found="yes"
+	                  ],
+	                  [
+	                  	AC_MSG_WARN([pkg-config for rrdtool not found, trying manual search...])
+	                  ])
+fi
+
+if test \( x"$librrdpath" = x"auto" -o x"$librrdpath" = x"yes" \) -a x"$librrd_found" = x"no"
+then
+	AC_MSG_CHECKING([for librrd])
+
+	librrddirs="/usr /usr/local"
+	for d in $librrddirs
+	do
+		if test -f $d/include/rrd.h
+		then
+			librrdpath=$d
+			AC_MSG_RESULT($d)
+			RRDTOOL_CFLAGS="-I$librrdpath/include"
+			RRDTOOL_LIBS="-L$librrdpath/lib -lrrd"
+			librrd_found="yes"
+			break
+		fi
+	done
+	if test x"$RRDTOOL_LIBS" = x""
+	then
+		AC_MSG_ERROR([not found])
+	fi
+elif test x"$librrdpath" != x"no" -a x"$librrd_found" = x"no"
+then
+	AC_MSG_CHECKING([for librrd])
+	if test -f $librrdpath/include/rrd.h
+	then
+		AC_MSG_RESULT([$librrdpath])
+		RRDTOOL_CFLAGS="-I$librrdpath/include"
+		RRDTOOL_LIBS="-L$librrdpath/lib -lrrd"
+		librrd_found="yes"
+	else
+		AC_MSG_ERROR([not found at $librrdpath])
+	fi
+fi
+
+if test x"$librrdpath" = x"no" -o x"$librrd_found" = x"no"
+then
+	RRDTOOL_CFLAGS=""
+	RRDTOOL_LIBS=""
+	AC_SUBST([LIBRRD_MANNOTICE],
+	         "(Not enabled for this installation.)" )
+else
+	AC_DEFINE([USE_RRD], 1,
+	          [use RRD library])
+	AC_SUBST([LIBRRD_MANNOTICE], "" )
+fi
+
+AM_CONDITIONAL(USE_RRD, test x"$librrdpath" != x"no")
+AC_SUBST(RRDTOOL_CFLAGS)
+AC_SUBST(RRDTOOL_LIBS)
+
+#
 # libmemcached
 # 
 AC_ARG_WITH([libmemcached],
@@ -2432,6 +2508,7 @@ AC_OUTPUT([	Makefile
 		reprrd/Makefile
 			reprrd/opendkim-reprrdimport
 			reprrd/opendkim-reprrdimport.8
+			reprrd/reprrd.pc
 		reputation/Makefile
 			reputation/opendkim-genrates
 			reputation/opendkim-genrates.8
