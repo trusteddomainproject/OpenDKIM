@@ -178,7 +178,7 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 	{
 		for (c = 0; c < ds_cnt; c++)
 		{
-			if (data[di++] != (rrd_value_t) 0)
+			if (data[di++] == (rrd_value_t) 1.0)
 				*value = 1;
 		}
 	}
