@@ -171,7 +171,6 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 	if (status != 0)
 		return REPRRD_STAT_QUERY;
 
-	*value = 0;
 	di = 0;
 
 	for (ti = start + step; ti <= end; ti += step)
