@@ -1,4 +1,4 @@
-- ensure FAILURES are firing
+- ensure FAILURES are firing only for high bound violations
 
 - equip opendkim with the ability to query FAILURES for a given domain, for
   both categories, to see if it's fired
