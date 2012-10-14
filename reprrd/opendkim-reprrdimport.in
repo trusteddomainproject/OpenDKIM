@@ -131,6 +131,11 @@ sub make_rrd
 		             "RRA:AVERAGE:0.5:1:336",
 		             "RRA:HWPREDICT:336:0.1:0.0035:24")
 		or die "$progname: failed to create RRD table $path: " . RRDs::error . "\n";
+
+		RRDs::tune($path,
+		           "--failure-threshold", "1",
+		           "--window-length", "2")
+		or die "$progname: failed to tune RRD table $path: " . RRDs::error . "\n";
 	}
 }
 
