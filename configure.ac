@@ -310,6 +310,11 @@ FFR_FEATURE([redirect],
 FFR_FEATURE([reprrd],
             [support for experimental reputation checks using RRD])
 AM_CONDITIONAL([REPRRD], [test x"$enable_reprrd" = x"yes"])
+AC_CHECK_PROG([hasrrdtool], [rrdtool], [yes])
+if test x"$enable_reprrd" = x"yes" -a x"$hasrrdtool" != x"yes"
+then
+	AC_MSG_ERROR([--enable-reprrd requires rrdtool binary, not found])
+fi
 
 FFR_FEATURE([reputation],
             [support for experimental reputation checks])
