@@ -30,6 +30,9 @@ typedef int REPRRD_STAT;
 #define	REPRRD_TYPE_MESSAGES	0
 #define	REPRRD_TYPE_SPAM	1
 
+#define	REPRRD_CF		"AVERAGE"
+#define	REPRRD_STEP		3600
+
 /* other types */
 struct reprrd_handle;
 typedef struct reprrd_handle * REPRRD;

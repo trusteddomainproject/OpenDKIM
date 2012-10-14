@@ -127,13 +127,18 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
              char *err, size_t errlen)
 {
 	int c;
+	int di;
 	int status;
 	size_t len;
-	time_t last_update;
-	u_long ds_count;
+	time_t start;
+	time_t end;
+	time_t step;
+	time_t ti;
+	u_long ds_cnt;
 	char *p;
 	char **ds_names;
 	char **last_ds;
+	rrd_value_t *data;
 	char path[MAXPATHLEN + 1];
 
 	assert(r != NULL);
@@ -155,23 +160,33 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 	if (len >= sizeof path)
 		return REPRRD_STAT_INTERNAL;
 
-	status = rrd_lastupdate_r(path, &last_update, &ds_count, &ds_names,
-	                          &last_ds);
-	if (status != 0 || ds_count != 1)
+	(void) time(&start);
+
+	end = start;
+	start -= 3600;
+	step = REPRRD_STEP;
+	
+	status = rrd_fetch_r(path, REPRRD_CF, &start, &end, &step, &ds_cnt,
+	                     &ds_names, &data);
+	if (status != 0)
 		return REPRRD_STAT_QUERY;
-	if (last_ds == NULL)
-		return REPRRD_STAT_INTERNAL;
 
-	*value = atoi(last_ds[0]);
+	*value = 0;
+	di = 0;
 
-	for (c = 0; c < ds_count; c++)
+	for (ti = start + step; ti <= end; ti += step)
 	{
-		free(last_ds[c]);
-		free(ds_names[c]);
+		for (c = 0; c < ds_cnt; c++)
+		{
+			if (data[di++] != (rrd_value_t) 0)
+				*value = 1;
+		}
 	}
 
-	free(last_ds);
+        for (c = 0; c < ds_cnt; c++)
+		free(ds_names[c]);
 	free(ds_names);
+	free(data);
 
 	return REPRRD_STAT_OK;
 }
