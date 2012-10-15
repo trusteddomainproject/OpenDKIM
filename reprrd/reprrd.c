@@ -163,7 +163,7 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 	(void) time(&start);
 
 	end = start;
-	start -= 3600;
+	start -= REPRRD_STEP * REPRRD_BACKSTEPS;
 	step = REPRRD_STEP;
 	
 	status = rrd_fetch_r(path, REPRRD_CF, &start, &end, &step, &ds_cnt,
