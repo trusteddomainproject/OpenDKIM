@@ -1,4 +1,4 @@
-- ensure FAILURES are firing only for high bound violations
+- fill zeroes for time slots when no data were recorded
 
 - equip opendkim with the ability to query FAILURES for a given domain, for
   both categories, to see if it's fired
