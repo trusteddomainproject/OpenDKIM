@@ -133,6 +133,7 @@ sub make_rrd
 		or die "$progname: failed to create RRD table $path: " . RRDs::error . "\n";
 
 		RRDs::tune($path,
+		           "--deltaneg", "100",
 		           "--failure-threshold", "1",
 		           "--window-length", "2")
 		or die "$progname: failed to tune RRD table $path: " . RRDs::error . "\n";
