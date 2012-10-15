@@ -148,6 +148,8 @@ sub update_rrd
 	my $value;
 	my $path;
 	my $data;
+	my $cur;
+	my $last;
 
 	($domain, $type, $timestamp, $value) = @_;
 
@@ -156,6 +158,30 @@ sub update_rrd
 	if ($verbose)
 	{
 		print STDOUT "$progname: updating RRD table $path for timestamp $timestamp\n";
+	}
+
+	$last = RRDs::last($path)
+	or die "$progname: failed to query RRD table $path: " . RRDs::error . "\n";
+
+	my ($start, $step, $columns, $values) = RRDs::fetch($path, "AVERAGE")
+	or die "$progname: failed to fetch RRD table $path: " . RRDs::error . "\n";
+
+	if ($verbose > 1)
+	{
+		print STDOUT "$path start $start step $step count $#$values\n";
+	}
+
+	for ($cur = $last + $step; $cur < $timestamp; $cur = $cur + $step)
+	{
+		$data = ${cur} . "\@0";
+
+		if ($verbose > 1)
+		{
+			print STDOUT "\t$data (FILL)\n";
+		}
+
+		RRDs::update($path, $data)
+		or die "$progname: failed to update RRD table $path: " . RRDs::error . "\n";
 	}
 
 	$data = ${timestamp} . "@" . ${value};
