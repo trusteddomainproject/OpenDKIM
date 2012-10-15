@@ -54,6 +54,7 @@ my $rrdroot;
 my $interval;
 my $levels;
 my $donull;
+my $dateclause;
 
 my $tmpin;
 my $idx;
@@ -163,13 +164,18 @@ sub update_rrd
 	$last = RRDs::last($path)
 	or die "$progname: failed to query RRD table $path: " . RRDs::error . "\n";
 
+	if ($last >= $timestamp)
+	{
+		if ($verbose > 0)
+		{
+			print STDOUT "$progname: skipping update to $path for timestamp $timestamp\n";
+		}
+
+		return;
+	}
+
 	my ($start, $step, $columns, $values) = RRDs::fetch($path, "AVERAGE")
 	or die "$progname: failed to fetch RRD table $path: " . RRDs::error . "\n";
-
-	if ($verbose > 1)
-	{
-		print STDOUT "$path start $start step $step count $#$values\n";
-	}
 
 	for ($cur = $last + $step; $cur < $timestamp; $cur = $cur + $step)
 	{
@@ -421,46 +427,32 @@ if ($verbose)
 	print STDERR "$progname: requesting hourly flow data\n";
 }
 
+if ($interval == 0)
+{
+	$dateclause = "";
+}
+else
+{
+	$dateclause = "AND msgtime >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL $interval HOUR)";
+}
+
 if ($donull)
 {
-	if ($interval == 0)
-	{
-		$dbi_s = $dbi_h->prepare("SELECT UNIX_TIMESTAMP(TIMESTAMPADD(HOUR,
-									     HOUR(msgtime),
-									     DATE(msgtime))),
-						 COUNT(messages.id),
-						 SUM(SIGN(spam))
-					  FROM messages
-		                          WHERE (sigcount = 0 OR
-		                                 messages.id NOT IN
-		                                     (SELECT DISTINCT message
-		                                      FROM signatures
-		                                      WHERE pass = 1)) 
-					  AND NOT spam = -1
-					  GROUP BY 1
-					  ORDER BY 1");
-	}
-	else
-	{
-		$dbi_s = $dbi_h->prepare("SELECT UNIX_TIMESTAMP(TIMESTAMPADD(HOUR,
-									     HOUR(msgtime),
-									     DATE(msgtime))),
-						 COUNT(messages.id),
-						 SUM(SIGN(spam))
-					  FROM messages
-		                          WHERE (sigcount = 0 OR
-		                                 messages.id NOT IN
-		                                     (SELECT DISTINCT message
-		                                      FROM signatures
-		                                      WHERE pass = 1)) 
-					  AND NOT spam = -1
-		                          AND DATE(msgtime) = DATE(DATE_SUB(NOW(),
-		                                                   INTERVAL $interval HOUR))
-		                          AND HOUR(msgtime) = HOUR(DATE_SUB(NOW(),
-		                                                   INTERVAL $interval HOUR))
-					  GROUP BY 1
-					  ORDER BY 1");
-	}
+	$dbi_s = $dbi_h->prepare("SELECT UNIX_TIMESTAMP(TIMESTAMPADD(HOUR,
+								     HOUR(msgtime),
+								     DATE(msgtime))),
+					 COUNT(messages.id),
+					 SUM(SIGN(spam))
+				  FROM messages
+	                          WHERE (sigcount = 0 OR
+	                                 messages.id NOT IN
+	                                     (SELECT DISTINCT message
+	                                      FROM signatures
+	                                      WHERE pass = 1)) 
+				  AND NOT spam = -1
+	                          $dateclause
+				  GROUP BY 1
+				  ORDER BY 1");
 
 	if (!$dbi_s->execute)
 	{
@@ -496,44 +488,23 @@ if ($donull)
 	}
 }
 
-if ($interval == 0)
-{
-	$dbi_s = $dbi_h->prepare("SELECT domains.name,
-	                                 UNIX_TIMESTAMP(TIMESTAMPADD(HOUR,
-	                                                             HOUR(msgtime),
-	                                                             DATE(msgtime))),
-	                                 COUNT(messages.id),
-	                                 SUM(SIGN(spam))
-	                          FROM messages
-	                          JOIN signatures
-	                               ON signatures.message = messages.id
-	                          JOIN domains
-	                               ON signatures.domain = domains.id
-	                          WHERE NOT spam = -1
-	                          GROUP BY 1, 2
+$dbi_s->finish;
+
+$dbi_s = $dbi_h->prepare("SELECT domains.name,
+                                 UNIX_TIMESTAMP(TIMESTAMPADD(HOUR,
+                                                             HOUR(msgtime),
+                                                             DATE(msgtime))),
+                                 COUNT(messages.id),
+                                 SUM(SIGN(spam))
+                          FROM messages
+                          JOIN signatures
+                               ON signatures.message = messages.id
+                          JOIN domains
+                               ON signatures.domain = domains.id
+                          WHERE NOT spam = -1
+                          $dateclause
+                          GROUP BY 1, 2
 	                          ORDER BY 1, 2");
-}
-else
-{
-	$dbi_s = $dbi_h->prepare("SELECT domains.name,
-	                                 UNIX_TIMESTAMP(TIMESTAMPADD(HOUR,
-	                                                             HOUR(msgtime),
-	                                                             DATE(msgtime))),
-	                                 COUNT(messages.id),
-	                                 SUM(SIGN(spam))
-	                          FROM messages
-	                          JOIN signatures
-	                               ON signatures.message = messages.id
-	                          JOIN domains
-	                               ON signatures.domain = domains.id
-	                          WHERE NOT spam = -1
-	                                AND DATE(msgtime) = DATE(DATE_SUB(NOW(),
-	                                                         INTERVAL $interval HOUR))
-	                                AND HOUR(msgtime) = HOUR(DATE_SUB(NOW(),
-	                                                         INTERVAL $interval HOUR))
-	                          GROUP BY 1, 2
-	                          ORDER BY 1, 2");
-}
 
 if (!$dbi_s->execute)
 {
@@ -580,6 +551,8 @@ while ($dbi_a = $dbi_s->fetchrow_arrayref())
 	make_rrd($domain, "spam", $timestamp);
 	update_rrd($domain, "spam", $timestamp, $ratio);
 }
+
+$dbi_s->finish;
 
 #
 # all done!
