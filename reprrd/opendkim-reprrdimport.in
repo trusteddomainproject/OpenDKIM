@@ -450,6 +450,9 @@ if ($donull)
 	                                      FROM signatures
 	                                      WHERE pass = 1)) 
 				  AND NOT spam = -1
+	                          AND msgtime < TIMESTAMPADD(HOUR,
+	                                                     HOUR(CURRENT_TIMESTAMP()),
+	                                                     DATE(CURRENT_TIMESTAMP()))
 	                          $dateclause
 				  GROUP BY 1
 				  ORDER BY 1");
@@ -503,8 +506,11 @@ $dbi_s = $dbi_h->prepare("SELECT domains.name,
                                ON signatures.domain = domains.id
                           WHERE NOT spam = -1
                           $dateclause
+                          AND msgtime < TIMESTAMPADD(HOUR,
+                                                     HOUR(CURRENT_TIMESTAMP()),
+                                                     DATE(CURRENT_TIMESTAMP()))
                           GROUP BY 1, 2
-	                          ORDER BY 1, 2");
+                          ORDER BY 1, 2");
 
 if (!$dbi_s->execute)
 {
