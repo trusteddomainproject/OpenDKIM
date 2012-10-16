@@ -489,9 +489,9 @@ if ($donull)
 		make_rrd("unsigned", "spam", $timestamp);
 		update_rrd("unsigned", "spam", $timestamp, $ratio);
 	}
-}
 
-$dbi_s->finish;
+	$dbi_s->finish;
+}
 
 $dbi_s = $dbi_h->prepare("SELECT domains.name,
                                  UNIX_TIMESTAMP(TIMESTAMPADD(HOUR,
