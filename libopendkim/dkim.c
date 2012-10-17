@@ -935,7 +935,7 @@ dkim_load_ssl_errors(DKIM *dkim, int status)
 	if (dkim->dkim_sslerrbuf != NULL)
 	{
 		if (dkim_dstring_len(dkim->dkim_sslerrbuf) > 0)
-			dkim_dsring_cat(dkim->dkim_sslerrbuf, "; ");
+			dkim_dstring_cat(dkim->dkim_sslerrbuf, "; ");
 
 		dkim_dstring_cat(dkim->dkim_sslerrbuf,
 		                 gnutls_strerror(status));
@@ -1001,7 +1001,7 @@ dkim_sig_load_ssl_errors(DKIM *dkim, DKIM_SIGINFO *sig, int status)
 	if (sig->sig_sslerrbuf != NULL)
 	{
 		if (dkim_dstring_len(sig->sig_sslerrbuf) > 0)
-			dkim_dsring_cat(sig->sig_sslerrbuf, "; ");
+			dkim_dstring_cat(sig->sig_sslerrbuf, "; ");
 
 		dkim_dstring_cat(sig->sig_sslerrbuf,
 		                 gnutls_strerror(status));
