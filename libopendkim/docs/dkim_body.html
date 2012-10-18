@@ -72,6 +72,9 @@ normal CRLF line termination.
 <ul>
 <li><tt>bodyp</tt> points to a sequence of bytes.  It is <em>not</em> expected
 to be a C string (a sequence of characters that is terminated by '\0').
+<li>Dot stuffing and the terminating dot in the message body are expected to
+be removed by the caller.  If they appear within <tt>bodyp</tt>, they are
+assumed to be part of the message body and will be included in the hashed data.
 </ul>
 </td>
 </tr>
