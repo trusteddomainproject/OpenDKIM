@@ -42,6 +42,7 @@ my $dbi_a;
 
 my $unsigned      = 1;
 my $circles       = 1;
+my $circlestr;
 
 my $idx;
 my $tmpin;
@@ -117,7 +118,7 @@ sub usage
 }
 
 # parse command line arguments
-my $opt_retval = &Getopt::Long::GetOptions ('circles! => \$circles,
+my $opt_retval = &Getopt::Long::GetOptions ('circles!' => \$circles,
                                             'dbhost=s' => \$dbhost,
                                             'dbname=s' => \$dbname,
                                             'dbpasswd=s' => \$dbpasswd,
