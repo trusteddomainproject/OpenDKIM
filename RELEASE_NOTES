@@ -49,6 +49,10 @@ release, and a summary of the changes in that release.
 	Activate _FFR_LUA_GLOBALS.
 	Request the milter permissions required to get _FFR_REDIRECT working.
 		Patch from Andreas Schulze.
+	Add _FFR_REPRRD, which is a second approach to DKIM-based reputation
+		using round robin databases and Holt-Winters foreacasting
+		using rrdtool (see http://oss.oetiker.ch/rrdtool/).  Still
+		experimental.
 	Patch #SF3555843: With sufficient verbosity, report the default
 		configuration file path.  Patch from Andreas Schulze.
 	BUILD: Fix bug #SF3531658: Move the strlcat() and strlcpy()

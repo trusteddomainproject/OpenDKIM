@@ -1,0 +1,25 @@
+This is the development area for the experimental DKIM-based reputation
+system that uses time series evaluation methods, as opposed to the contents
+of ../reputation which uses predictive inference.
+
+As with the other reputation system, this method uses the data collected
+by the statistics system as input.  It also uses the concept of the NULL
+domain, defined in that system.  Finally, it uses rrdtool[1] to maintain a
+sliding window of history about each source (messages and spam ratios).
+The tool applies time series forecasting to develop a notion of what is
+typical behaviour for the source over the course of a day (peaks and troughs)
+and then develops a range of values it considers to be expected.
+Deviations from that range are considered abnormal and can be dealt with.
+
+As of the time of this writing, the system produces the RRD tables for each
+domain whose mail has been signed (and soon for the NULL domain), and a PHP
+script is provided that can generate graphs on-demand for a given domain
+and data type, i.e., "messages" or "spam".  What remains is to connect the
+opendkim filter to it to detect if a given signer is currently outside of
+expected norms and take appropriate action when that condition is true.
+
+More complete documentation will be provided when the above work is complete.
+Users are welcome to experiment with what's been built so far and comment
+or improve on what's there.
+
+[1] http://oss.oetiker.ch/rrdtool/

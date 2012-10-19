@@ -174,6 +174,14 @@ struct configdef dkimf_config[] =
 	{ "ReputationMinimum",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "ReputationLimitModifiers",	CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationRatios",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_REPUTATION */
+#ifdef _FFR_REPRRD
+	{ "ReputationRRDHashDepth",	CONFIG_TYPE_INTEGER,	FALSE },
+	{ "ReputationRRDRoot",		CONFIG_TYPE_STRING,	FALSE },
+	{ "ReputationTest", /* DUP */	CONFIG_TYPE_BOOLEAN,	FALSE },
+	{ "ReputationVerbose", /* DUP */ CONFIG_TYPE_BOOLEAN,	FALSE },
+#endif /* _FFR_REPRRD */
+#ifdef _FFR_REPUTATION
 	{ "ReputationSpamCheck",	CONFIG_TYPE_STRING,	FALSE },
 	{ "ReputationTest",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ReputationTimeFactor",	CONFIG_TYPE_INTEGER,	FALSE },

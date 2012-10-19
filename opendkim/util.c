@@ -172,6 +172,10 @@ static char *optlist[] =
 	"_FFR_REPLACE_RULES",
 #endif /* _FFR_REPLACE_RULES */
 
+#if _FFR_REPRRD
+	"_FFR_REPRRD",
+#endif /* _FFR_REPRRD */
+
 #if _FFR_REPUTATION
 	"_FFR_REPUTATION",
 #endif /* _FFR_REPUTATION */

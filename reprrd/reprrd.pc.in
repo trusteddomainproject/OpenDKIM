@@ -1,0 +1,15 @@
+# Process this file with autoconf to produce a pkg-config metadata file.
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: OpenDKIM RRD query library
+Description: Library for performing reputation queries for spammy domains using RRD tables
+URL: http://opendkim.org
+Version: @VERSION@
+Libs: -L${libdir} @PTHREAD_CFLAGS@ -lreprrd
+Libs.private: @LIBRESOLV@ @PTHREAD_LIBS@
+Cflags: -I${includedir} @PTHREAD_CFLAGS@
+

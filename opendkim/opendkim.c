@@ -103,6 +103,10 @@
 # include <repute.h>
 #endif /* _FFR_REPUTATION */
 
+#ifdef _FFR_REPRRD
+# include <reprrd.h>
+#endif /* _FFR_REPRRD */
+
 /* opendkim includes */
 #include "config.h"
 #ifdef _FFR_RATE_LIMIT
@@ -162,9 +166,9 @@ struct handling
 	int		hndl_dnserr;		/* DNS error */
 	int		hndl_policyerr;		/* policy retrieval error */
 	int		hndl_internal;		/* internal error */
-#ifdef _FFR_REPUTATION
+#if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
 	int		hndl_reperr;		/* reputation error */
-#endif /* _FFR_REPUTATION */
+#endif /* _FFR_REPUTATION || _FFR_REPRRD */
 	int		hndl_security;		/* security concerns */
 };
 
@@ -248,10 +252,10 @@ struct dkimf_config
 	_Bool		conf_vbr_purge;		/* purge X-VBR-* fields */
 	_Bool		conf_vbr_trustedonly;	/* trusted certifiers only */
 #endif /* _FFR_VBR */
-#ifdef _FFR_REPUTATION
+#if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
 	_Bool		conf_reptest;		/* reputation test mode */
 	_Bool		conf_repverbose;	/* verbose reputation logs */
-#endif /* _FFR_REPUTATION */
+#endif /* _FFR_REPUTATION || _FFR_REPRRD */
 	unsigned int	conf_mode;		/* operating mode */
 	unsigned int	conf_refcnt;		/* reference count */
 	unsigned int	conf_dnstimeout;	/* DNS timeout */
@@ -448,6 +452,9 @@ struct dkimf_config
 	char *		conf_repspamcheck;	/* reputation spam RE string */
 	regex_t		conf_repspamre;		/* reputation spam RE */
 #endif /* _FFR_REPUTATION */
+#ifdef _FFR_REPRRD
+	REPRRD		conf_reprrd;		/* reputation RRD handle */
+#endif /* _FFR_REPRRD */
 	DKIM_LIB *	conf_libopendkim;	/* DKIM library handle */
 	struct handling	conf_handling;		/* message handling */
 };
@@ -592,11 +599,11 @@ struct lookup
 # define DKIMREPDENYTXT		"rejected due to DKIM reputation evaluation"
 #endif /* _FFR_DKIM_REPUTATION */
 
-#ifdef _FFR_REPUTATION
+#if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
 # define REPDENYSMTP		"450"
 # define REPDENYESC		"4.7.1"
 # define REPDENYTXT		"Message deferred for policy reasons"
-#endif /* _FFR_REPUTATION */
+#endif /* _FFR_REPUTATION || _FFR_REPRRD */
 
 #define	DELIMITER		"\001"
 
@@ -5805,6 +5812,11 @@ dkimf_config_free(struct dkimf_config *conf)
 		dkimf_rep_close(conf->conf_rep);
 #endif /* _FFR_REPUTATION */
 
+#ifdef _FFR_REPRRD
+	if (conf->conf_reprrd != NULL)
+		reprrd_close(conf->conf_reprrd);
+#endif /* _FFR_REPRRD */
+
 #ifdef USE_LUA
 	if (conf->conf_setupscript != NULL)
 		free(conf->conf_setupscript);
@@ -5874,9 +5886,9 @@ dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl)
 				hndl->hndl_security = action;
 				hndl->hndl_nokey = action;
 				hndl->hndl_policyerr = action;
-#ifdef _FFR_REPUTATION
+#if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
 				hndl->hndl_reperr = action;
-#endif /* _FFR_REPUTATION */
+#endif /* _FFR_REPUTATION || defined(_FFR_REPRRD) */
 				break;
 
 			  case HNDL_NOSIGNATURE:
@@ -5907,11 +5919,11 @@ dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl)
 				hndl->hndl_policyerr = action;
 				break;
 
-#ifdef _FFR_REPUTATION
+#if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
 			  case HNDL_REPERROR:
 				hndl->hndl_reperr = action;
 				break;
-#endif /* _FFR_REPUTATION */
+#endif /* _FFR_REPUTATION || defined(_FFR_REPRRD) */
 
 			  default:
 				break;
@@ -7919,6 +7931,37 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 	}
 #endif /* _FFR_REPUTATION */
+
+#ifdef _FFR_REPRRD
+	if (data != NULL)
+	{
+		int hashdepth = REPRRD_DEFHASHDEPTH;
+		char *root = NULL;
+
+		(void) config_get(data, "ReputationTest",
+		                  &conf->conf_reptest,
+		                  sizeof conf->conf_reptest);
+		(void) config_get(data, "ReputationVerbose",
+		                  &conf->conf_repverbose,
+		                  sizeof conf->conf_repverbose);
+
+		(void) config_get(data, "ReputationRRDHashDepth",
+		                  &hashdepth, sizeof hashdepth);
+		(void) config_get(data, "ReputationRRDRoot",
+		                  &root, sizeof root);
+
+		if (hashdepth >= 0 && root != NULL)
+		{
+			conf->conf_reprrd = reprrd_init(root, hashdepth);
+			if (conf->conf_reprrd == NULL)
+			{
+				snprintf(err, errlen,
+				         "can't initialize reputation subsystem");
+				return -1;
+			}
+		}
+	}
+#endif /* _FFR_REPRRD */
 
 	dkimf_reportaddr(conf);
 
@@ -14020,6 +14063,142 @@ mlfi_eom(SMFICTX *ctx)
 			}
 		}
 #endif /* _FFR_STATS */
+
+#ifdef _FFR_REPRRD
+		if (dfc->mctx_dkimv != NULL && conf->conf_reprrd != NULL)
+		{
+			DKIM_SIGINFO **sigs;
+			int nsigs;
+
+			status = dkim_getsiglist(dfc->mctx_dkimv,
+			                         &sigs, &nsigs);
+
+			if (status == DKIM_STAT_OK)
+			{
+				int c;
+				int ret;
+				_Bool checked = FALSE;
+				const char *cd;
+				const char *domain = NULL;
+
+				for (c = 0; c < nsigs; c++)
+				{
+					if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 ||
+					    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_TESTKEY) != 0 &&
+					    dkim_sig_getbh(sigs[c]) != DKIM_SIGBH_MATCH)
+						continue;
+
+					checked = TRUE;
+
+					cd = dkim_sig_getdomain(sigs[c]);
+
+					ret = 0;
+
+					status = reprrd_query(conf->conf_reprrd,
+					                      cd,
+					                      REPRRD_TYPE_MESSAGES,
+					                      &ret, NULL, 0);
+					if (status == 0 && ret == 0)
+					{
+						status = reprrd_query(conf->conf_reprrd,
+						                      cd,
+						                      REPRRD_TYPE_SPAM,
+						                      &ret,
+						                      NULL, 0);
+					}
+
+					if (status == 0)
+					{
+						if (ret == 1)
+						{
+							domain = cd;
+							break;
+						}
+					}
+					else
+					{
+						if (conf->conf_dolog)
+						{
+							syslog(LOG_NOTICE,
+							       "%s: reputation query for \"%s\" failed (%d)",
+							       dfc->mctx_jobid,
+							       cd, status);
+						}
+
+						return dkimf_miltercode(ctx,
+						                        conf->conf_handling.hndl_reperr,
+						                        NULL);
+					}
+				}
+
+				if (domain == NULL && !checked)
+				{
+					cd = "unsigned";
+
+					status = reprrd_query(conf->conf_reprrd,
+					                      cd,
+					                      REPRRD_TYPE_MESSAGES,
+					                      &ret, NULL, 0);
+					if (status == 0 && ret == 0)
+					{
+						status = reprrd_query(conf->conf_reprrd,
+						                      cd,
+						                      REPRRD_TYPE_SPAM,
+						                      &ret,
+						                      NULL, 0);
+					}
+
+					if (status == 1)
+					{
+						domain = "NULL domain";
+					}
+					else if (status == -1)
+					{
+						if (conf->conf_dolog)
+						{
+							syslog(LOG_NOTICE,
+							       "%s: reputation query for NULL domain failed (%d)",
+							       dfc->mctx_jobid,
+							       status);
+						}
+
+						return dkimf_miltercode(ctx,
+						                        conf->conf_handling.hndl_reperr,
+						                        NULL);
+					}
+				}
+
+				if (domain != NULL)
+				{
+					if (dolog)
+					{
+						syslog(LOG_NOTICE,
+						       "%s: %sblocked by reputation of %s",
+						       dfc->mctx_jobid,
+						       conf->conf_reptest ? "would be " : "",
+						       domain);
+					}
+
+					if (!conf->conf_reptest)
+					{
+						if (dkimf_setreply(ctx,
+						                   REPDENYSMTP,
+						                   REPDENYESC,
+						                   REPDENYTXT) != MI_SUCCESS &&
+						    conf->conf_dolog)
+						{
+							syslog(LOG_NOTICE,
+							       "%s: smfi_setreply() failed",
+							       dfc->mctx_jobid);
+						}
+
+						dkimf_cleanup(ctx);
+						return SMFIS_TEMPFAIL;
+					}
+				}
+			}
+		}
+#endif /* _FFR_REPRRD */
 
 #ifdef _FFR_REPUTATION
 		if (dfc->mctx_dkimv != NULL && conf->conf_rep != NULL)

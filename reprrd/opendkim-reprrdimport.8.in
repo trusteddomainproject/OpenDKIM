@@ -1,0 +1,85 @@
+.TH opendkim-reprrdimport 8 "The Trusted Domain Project"
+.SH NAME
+.B opendkim-reprrdimport
+\- OpenDKIM RRD statistics data import tool
+.SH SYNOPSIS
+.B opendkim-reprrdimport
+[options]
+.SH DESCRIPTION
+.B opendkim-reprrdimport
+collates data accumulated by the OpenDKIM statistics feature and stores them
+into RRD tables for forecasting analysis.
+
+See 
+.B rrdtool(1)
+for information about RRD tables.
+.SH OPTIONS
+.TP
+.I --dbhost=host
+Attempts to connect to the database server on the named
+.I host.
+The default is "localhost".
+.TP
+.I --dbname=name
+Requests a connection to the database called
+.I name.
+The default is "opendkim".
+.TP
+.I --dbpasswd=password
+Attempts to authenticate to the database server using the specified
+.I password.
+The default is "opendkim".
+.TP
+.I --dbport=port
+Tries to connect to the database at the specified TCP
+.I port.
+The default is 3306.
+.TP
+.I --dbuser=user
+Attempts to authenticate to the database server as the specified
+.I user.
+The default is "opendkim".
+.TP
+.I --domain=name
+Only create/update RRD tables for the named domain.  Can be specified
+multiple times, and
+.I name
+can also refer to a file from which domain names should be read.
+.TP
+.I --help
+Prints a usage message and exits.
+.TP
+.I --interval=n
+Retrieves records for the previous 
+.I n
+days.  The default is 1.  A value of 0 retrieves data for all dates.
+.TP
+.I --levels=n
+Sets the depth of directory hashing levels to be used.  The default is 2.
+.I n
+days.  The default is 1.  A value of 0 retrieves data for all dates.
+.TP
+.I --null
+Process the "null sender" as well (messages with no valid DKIM signature).
+.TP
+.I --rrdroot=path
+Defines the root directory for the RRD file hash tree.  The default is
+.I /var/db/reprrd.
+.TP
+.I --verbose
+Requests verbose output.
+.TP
+.I --version
+Prints version number and exits.
+.SH VERSION
+This man page covers the version of
+.I opendkim-reprrdimport
+that shipped with version @VERSION@ of
+.I OpenDKIM.
+.SH COPYRIGHT
+Copyright (c) 2011, 2012, The Trusted Domain Project.  All rights reserved.
+.SH SEE ALSO
+.I opendkim(8),
+.I opendkim-importstats(8)
+.P
+RFC6376 - DomainKeys Identified Mail

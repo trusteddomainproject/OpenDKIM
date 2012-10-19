@@ -83,6 +83,9 @@ replace_rules	Allow specification of a "replacement rules" table
 		effects of such things as the "masquerade" and "genericstable"
 		features of the sendmail MTA.  (opendkim)
 
+reprrd		Support for collaborative reputation that uses rrdtool.
+		EXPERIMENTAL  (opendkim)
+
 reputation	Support for a collaborative reputation system.
 		EXPERIMENTAL  (opendkim)
 
