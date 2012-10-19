@@ -32,6 +32,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <regex.h>
+#include <netdb.h>
 
 /* libopendkim includes */
 #include <dkim.h>
@@ -1649,7 +1650,7 @@ dkimf_db_erl_decode_response(ei_x_buff *resp, const char *notfound,
 					if (val == NULL)
 						return -1;
 
-					*keylen = dkim_strlcpy(key, val,
+					*keylen = strlcpy(key, val,
 					                       *keylen);
 					free(val);
 					break;
@@ -1683,7 +1684,7 @@ dkimf_db_erl_decode_response(ei_x_buff *resp, const char *notfound,
 					                                    &res_index);
 					if (val == NULL)
 						return -1;
-					req[c].dbdata_buflen = dkim_strlcpy(req[c].dbdata_buffer,
+					req[c].dbdata_buflen = strlcpy(req[c].dbdata_buffer,
 					                       val,
 					                       req[c].dbdata_buflen);
 					free(val);
@@ -3166,7 +3167,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			memset(&sun, '\0', sizeof sun);
 			sun.sun_family = AF_UNIX;
 			sun.sun_len = sizeof(sun);
-			dkim_strlcpy(sun.sun_path, p, sizeof(sun.sun_path));
+			strlcpy(sun.sun_path, p, sizeof(sun.sun_path));
 
 			status = connect(fd, (struct sockaddr *) &sun,
 			                 sizeof sun);

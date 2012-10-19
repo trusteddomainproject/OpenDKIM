@@ -86,7 +86,7 @@ struct dkim_rep_handle
 			                  void **qh);
 	int		(*dkim_rep_dns_cancel) (void *srv, void *qh);
 	int		(*dkim_rep_dns_init) (void **srv);
-	int		(*dkim_rep_dns_close) (void *srv);
+	void		(*dkim_rep_dns_close) (void *srv);
 	int		(*dkim_rep_dns_config) (void *srv, const char *config);
 	int		(*dkim_rep_dns_setns) (void *srv, const char *nslist);
 	int		(*dkim_rep_dns_trustanchor) (void *srv,
@@ -307,7 +307,7 @@ dkim_rep_md5_to_string(void *md5, unsigned char *str, size_t len)
 		return -1;
 
 #ifdef USE_GNUTLS
-	(void) gnutls_hash_deinit(md5, digest);
+	(void) gnutls_hash_deinit(*(gnutls_hash_hd_t *)md5, digest);
 #else /* USE_GNUTLS */
 	MD5_Final(digest, md5);
 #endif /* USE_GNUTLS */

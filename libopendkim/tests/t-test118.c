@@ -166,7 +166,7 @@ main(int argc, char **argv)
 	status = dkim_eom(dkim, NULL);
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_policy(dkim, &pcode, NULL);
+	status = dkim_policy(dkim, &pcode, NULL, NULL);
 	assert(status == DKIM_STAT_OK);
 
 	presult = dkim_getpresult(dkim);

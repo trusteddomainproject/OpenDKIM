@@ -57,10 +57,15 @@
 
 #ifdef USE_GNUTLS
 # include <gnutls/gnutls.h>
+# include <gnutls/crypto.h>
 #else /* USE_GNUTLS */
 # include <openssl/sha.h>
 # include <openssl/err.h>
 #endif /* USE_GNUTLS */
+
+#ifndef SHA_DIGEST_LENGTH
+# define SHA_DIGEST_LENGTH 20
+#endif /* ! SHA_DIGEST_LENGTH */
 
 #ifdef HAVE_PATHS_H
 # include <paths.h>
@@ -521,7 +526,11 @@ struct msgctx
 	struct lua_global * mctx_luaglobalh;	/* Lua global list */
 	struct lua_global * mctx_luaglobalt;	/* Lua global list */
 #ifdef _FFR_REPUTATION
+# ifdef USE_GNUTLS
+	gnutls_hash_hd_t mctx_hash;			/* hash, for dup detection */
+# else /* USE_GNUTLS */
 	SHA_CTX		mctx_hash;		/* hash, for dup detection */
+# endif /* USE_GNUTLS */
 #endif /* _FFR_REPUTATION */
 	unsigned char	mctx_envfrom[MAXADDRESS + 1];
 						/* envelope sender */
@@ -8902,7 +8911,11 @@ dkimf_initcontext(struct dkimf_config *conf)
 	ctx->mctx_atps = DKIM_ATPS_UNKNOWN;
 #endif /* _FFR_ATPS */
 #ifdef _FFR_REPUTATION
+# ifdef USE_GNUTLS
+	(void) gnutls_hash_init(&ctx->mctx_hash, GNUTLS_DIG_SHA1);
+# else /* USE_GNUTLS */
 	SHA1_Init(&ctx->mctx_hash);
+# endif /* USE_GNUTLS */
 #endif /* _FFR_REPUTATION */
 
 	return ctx;
@@ -11198,8 +11211,13 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 	}
 
 #ifdef _FFR_REPUTATION
+# ifdef USE_GNUTLS
+	(void) gnutls_hash(dfc->mctx_hash, headerf, strlen(headerf));
+	(void) gnutls_hash(dfc->mctx_hash, headerv, strlen(headerv));
+# else /* USE_GNUTLS */
 	SHA1_Update(&dfc->mctx_hash, headerf, strlen(headerf));
 	SHA1_Update(&dfc->mctx_hash, headerv, strlen(headerv));
+# endif /* USE_GNUTLS */
 #endif /* _FFR_REPUTATION */
 
 	(void) memset(newhdr, '\0', sizeof(struct Header));
@@ -13078,7 +13096,11 @@ mlfi_body(SMFICTX *ctx, u_char *bodyp, size_t bodylen)
 		return SMFIS_CONTINUE;
 
 #ifdef _FFR_REPUTATION
+# ifdef USE_GNUTLS
+	(void) gnutls_hash(dfc->mctx_hash, bodyp, bodylen);
+# else /* USE_GNUTLS */
 	SHA1_Update(&dfc->mctx_hash, bodyp, bodylen);
+# endif /* USE_GNUTLS */
 #endif /* _FFR_REPUTATION */
 
 	/*
@@ -14222,7 +14244,11 @@ mlfi_eom(SMFICTX *ctx)
 				unsigned char digest[SHA_DIGEST_LENGTH];
 				char errbuf[BUFRSZ + 1];
 
+# ifdef USE_GNUTLS
+				(void) gnutls_hash_deinit(dfc->mctx_hash, digest);
+# else /* USE_GNUTLS */
 				SHA1_Final(digest, &dfc->mctx_hash);
+# endif /* USE_GNUTLS */
 
 				for (c = 0; c < nsigs; c++)
 				{

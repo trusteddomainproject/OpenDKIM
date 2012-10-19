@@ -171,6 +171,7 @@ extern char *dkimf_get_ldap_param __P((int));
 
 #ifdef USE_LUA
 # ifdef DKIMF_LUA_PROTOTYPES
+extern void dkimf_import_globals __P((void *, lua_State *));
 extern int dkimf_xs_addheader __P((lua_State *));
 extern int dkimf_xs_addrcpt __P((lua_State *));
 extern int dkimf_xs_bodylength __P((lua_State *));
