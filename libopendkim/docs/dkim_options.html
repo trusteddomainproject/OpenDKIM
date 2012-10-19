@@ -144,10 +144,10 @@ of the library's operation.
                                 thus implicitly added to any list provided
                                 by the caller.
 
-                                The constant <tt>should_signhdrs</tt> may be
-                                specified as the <tt>data</tt>, which contains
-				all of the header fields RFC6376 Section 5.4
-				says should be signed.
+                                The constant <tt>dkim_should_signhdrs</tt> may
+				be specified as the <tt>data</tt>, which
+				contains all of the header fields RFC6376
+				Section 5.4 says should be signed.
 
                                 The default is to sign all header fields.
 
@@ -165,10 +165,10 @@ of the library's operation.
                                 processing a message for signing.  The default
 				is to skip no headers.
 
-                                The constant <tt>should_not_signhdrs</tt> may be
-                                specified as the <tt>data</tt>, whicn contains
-				all of the headers RFC6376 Section 5.4 says
-				should not be signed.
+                                The constant <tt>dkim_should_not_signhdrs</tt>
+				may be specified as the <tt>data</tt>, which
+				contains all of the headers RFC6376 Section
+				5.4 says should not be signed.
 
                                 Wildcarding using the asterisk ("*")
                                 character, meaning "match zero or more
