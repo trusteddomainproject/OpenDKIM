@@ -81,6 +81,11 @@ sub rrd_path
 	}
 
 	$path = $rrdroot . "/" . $type;
+	if (! -d $path)
+	{
+		mkdir $path
+		or die "$progname: cannot create directory $path: $!\n";
+	}
 
 	for ($c = 0; $c < $levels; $c++)
 	{
