@@ -13,6 +13,10 @@
 #include <string.h>
 #include <stdio.h>
 
+#ifdef USE_GNUTLS
+# include <gnutls/gnutls.h>
+#endif
+
 /* libopendkim includes */
 #include "../dkim.h"
 #include "t-testdata.h"
