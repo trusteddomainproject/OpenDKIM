@@ -96,8 +96,29 @@ if not mt.eom_check(conn, MT_HDRINSERT, "Authentication-Results") and
    not mt.eom_check(conn, MT_HDRADD, "Authentication-Results") then
 	error("no Authentication-Results added")
 end
-ar = mt.getheader(conn, "Authentication-Results", 0)
-if string.find(ar, "dkim=pass", 1, true) == nil then
+c = 0
+found = false
+foundpass = false
+while found == false do
+	ar = mt.getheader(conn, "Authentication-Results", c)
+	if ar == nil then
+		break
+	end
+
+	if string.find(ar, "dkim=", 1, true) ~= nil then
+		found = true
+		if string.find(ar, "dkim=pass", 1, true) ~= nil then
+			foundpass = true
+			break
+		end
+	end
+
+	c = c + 1
+end
+
+if not found then
+	error("DKIM result not found")
+elseif found and not foundpass then
 	error("incorrect DKIM result")
 end
 
