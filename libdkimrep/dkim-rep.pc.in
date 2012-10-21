@@ -9,7 +9,7 @@ Name: dkim-rep (dkim-reputation.org query library)
 Description: Library for assisting in dkim-reputation.org query functions
 URL: http://www.dkim-reputation.org
 Version: @VERSION@
-Libs: -L${libdir} -ldkim-rep
+Libs: -L${libdir} -ldkimrep
 Libs.private: @LIBRESOLV@
 Cflags: -I${includedir}
 
