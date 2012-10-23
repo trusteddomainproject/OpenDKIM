@@ -414,6 +414,10 @@ dkim_rep_close(DKIM_REP dr)
 {
 	assert(dr != NULL);
 
+	if (dr->dkim_rep_dns_close != NULL &&
+	    dr->dkim_rep_dns_service != NULL)
+		dr->dkim_rep_dns_close(dr->dkim_rep_dns_service);
+
 	if (dr->dkim_rep_free != NULL)
 		dr->dkim_rep_free(dr->dkim_rep_closure, dr);
 	else
