@@ -4485,7 +4485,8 @@ dkim_close(DKIM_LIB *lib)
 
 	free(lib->dkiml_flist);
 
-	lib->dkiml_dns_close(lib->dkiml_dns_service);
+	if (lib->dkiml_dns_close != NULL)
+		lib->dkiml_dns_close(lib->dkiml_dns_service);
 	
 	free((void *) lib);
 
