@@ -1390,7 +1390,6 @@ dkimf_xs_rblcheck(lua_State *l)
 	dkimf_rbl_unbound_setup(rbl);
 #  endif /* USE_UNBOUND */
 
-
 	if (conf->conf_nslist != NULL)
 	{
 		status = rbl_dns_nslist(rbl, conf->conf_nslist);
