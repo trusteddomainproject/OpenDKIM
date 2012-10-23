@@ -8266,7 +8266,12 @@ dkimf_dns_init(DKIM_LIB *lib, struct dkimf_config *conf, char **err)
 	assert(conf != NULL);
 	assert(err != NULL);
 
-	if (dkim_dns_init(lib) != 0)
+	status = dkim_dns_init(lib);
+	if (status == DKIM_DNS_INVALID)
+	{
+		return TRUE;
+	}
+	else if (status == DKIM_DNS_ERROR)
 	{
 		if (err != NULL)
 			*err = "failed to initialize resolver";

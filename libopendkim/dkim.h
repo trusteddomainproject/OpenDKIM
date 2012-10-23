@@ -158,6 +158,7 @@ typedef int DKIM_SIGERROR;
 #define	DKIM_DNS_SUCCESS	0		/* reply available */
 #define	DKIM_DNS_NOREPLY	1		/* reply not available (yet) */
 #define	DKIM_DNS_EXPIRED	2		/* no reply, query expired */
+#define	DKIM_DNS_INVALID	3		/* invalid request */
 
 /*
 **  DKIM_CANON -- canonicalization method

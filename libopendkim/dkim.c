@@ -9165,7 +9165,7 @@ dkim_dns_init(DKIM_LIB *lib)
 	assert(lib != NULL);
 
 	if (lib->dkiml_dnsinit_done)
-		return DKIM_DNS_SUCCESS;
+		return DKIM_DNS_INVALID;
 
 	if (lib->dkiml_dnsinit_done &&
 	    lib->dkiml_dns_close != NULL)
