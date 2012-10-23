@@ -351,6 +351,7 @@ struct dkim_lib
 {
 	_Bool			dkiml_signre;
 	_Bool			dkiml_skipre;
+	_Bool			dkiml_dnsinit_done;
 	u_int			dkiml_flags;
 	u_int			dkiml_timeout;
 	u_int			dkiml_version;

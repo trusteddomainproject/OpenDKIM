@@ -9160,18 +9160,52 @@ dkim_dns_nslist(DKIM_LIB *lib, const char *nslist)
 int
 dkim_dns_init(DKIM_LIB *lib)
 {
+	int status;
+
 	assert(lib != NULL);
 
-	if (lib->dkiml_dns_service != NULL &&
+	if (lib->dkiml_dnsinit_done)
+		return DKIM_DNS_SUCCESS;
+
+	if (lib->dkiml_dnsinit_done &&
 	    lib->dkiml_dns_close != NULL)
 		lib->dkiml_dns_close(lib->dkiml_dns_service);
 
-	lib->dkiml_dns_service = NULL;
+	lib->dkiml_dnsinit_done = FALSE;
 
 	if (lib->dkiml_dns_init != NULL)
-		return lib->dkiml_dns_init(&lib->dkiml_dns_service);
+		status = lib->dkiml_dns_init(&lib->dkiml_dns_service);
 	else
-		return DKIM_DNS_SUCCESS;
+		status = DKIM_DNS_SUCCESS;
+
+	if (status == DKIM_DNS_SUCCESS)
+		lib->dkiml_dnsinit_done = TRUE;
+
+	return status;
+}
+
+/*
+**  DKIM_DNS_CLOSE -- force nameserver shutdown
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**
+**  Return value:
+**  	A DKIM_DNS_* constant.
+*/
+
+int
+dkim_dns_close(DKIM_LIB *lib)
+{
+	assert(lib != NULL);
+
+	if (lib->dkiml_dnsinit_done &&
+	    lib->dkiml_dns_close != NULL)
+		lib->dkiml_dns_close(lib->dkiml_dns_service);
+
+	lib->dkiml_dnsinit_done = FALSE;
+
+	return DKIM_DNS_SUCCESS;
 }
 
 /*

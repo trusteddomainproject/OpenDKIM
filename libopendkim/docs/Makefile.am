@@ -10,7 +10,9 @@ dist_doc_DATA = dkim.html \
 	dkim_cbstat.html \
 	dkim_chunk.html \
 	dkim_close.html \
+	dkim_dns_close.html \
 	dkim_dns_config.html \
+	dkim_dns_init.html \
 	dkim_dns_nslist.html \
 	dkim_dns_set_close.html \
 	dkim_dns_set_config.html \

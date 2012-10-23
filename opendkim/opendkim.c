@@ -8245,6 +8245,82 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 }
 
 /*
+**  DKIMF_DNS_INIT -- initialize and configure the DNS service in the
+**                    DKIM library
+**
+**  Parameters:
+**  	lib -- DKIM library
+**  	conf -- configuration handle
+**  	err -- error string (returned)
+**
+**  Return value:
+**  	TRUE on success, FALSE otherwise
+*/
+
+static _Bool
+dkimf_dns_init(DKIM_LIB *lib, struct dkimf_config *conf, char **err)
+{
+	int status;
+
+	assert(lib != NULL);
+	assert(conf != NULL);
+	assert(err != NULL);
+
+	if (dkim_dns_init(lib) != 0)
+	{
+		if (err != NULL)
+			*err = "failed to initialize resolver";
+
+		return FALSE;
+	}
+
+	if (conf->conf_nslist != NULL)
+	{
+		status = dkimf_dns_setnameservers(lib,
+						  conf->conf_nslist);
+		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set nameserver list";
+			return FALSE;
+		}
+	}
+
+	if (conf->conf_trustanchorpath != NULL)
+	{
+		if (access(conf->conf_trustanchorpath, R_OK) != 0)
+		{
+			if (err != NULL)
+				*err = "can't access unbound trust anchor";
+			return FALSE;
+		}
+
+		status = dkimf_dns_trustanchor(lib,
+					       conf->conf_trustanchorpath);
+		if (status != DKIM_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to add trust anchor";
+			return FALSE;
+		}
+	}
+
+	if (conf->conf_resolverconfig != NULL)
+	{
+		status = dkimf_dns_config(lib, conf->conf_resolverconfig);
+		if (status != DKIM_DNS_SUCCESS)
+		{
+			if (err != NULL)
+				*err = "failed to add resolver configuration file";
+	
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+/*
 **  DKIMF_CONFIG_SETLIB -- set library options based on configuration file
 **
 **  Parameters:
@@ -8312,57 +8388,10 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 		(void) dkimf_unbound_setup(lib);
 #endif /* USE_UNBOUND */
 
-		if (dkim_dns_init(lib) != 0)
-		{
-			if (err != NULL)
-				*err = "failed to initialize resolver";
-
+		if (!dkimf_dns_init(lib, conf, err))
 			return FALSE;
-		}
-
-		if (conf->conf_nslist != NULL)
-		{
-			status = dkimf_dns_setnameservers(lib,
-			                                  conf->conf_nslist);
-			if (status != DKIM_STAT_OK)
-			{
-				if (err != NULL)
-					*err = "failed to set nameserver list";
-				return FALSE;
-			}
-		}
-
-		if (conf->conf_trustanchorpath != NULL)
-		{
-			if (access(conf->conf_trustanchorpath, R_OK) != 0)
-			{
-				if (err != NULL)
-					*err = "can't access unbound trust anchor";
-				return FALSE;
-			}
-
-			status = dkimf_dns_trustanchor(lib,
-			                               conf->conf_trustanchorpath);
-			if (status != DKIM_STAT_OK)
-			{
-				if (err != NULL)
-					*err = "failed to add trust anchor";
-				return FALSE;
-			}
-		}
-
-		if (conf->conf_resolverconfig != NULL)
-		{
-			status = dkimf_dns_config(lib,
-			                          conf->conf_resolverconfig);
-			if (status != DKIM_DNS_SUCCESS)
-			{
-				if (err != NULL)
-					*err = "failed to add resolver configuration file";
-		
-				return FALSE;
-			}
-		}
+		else
+			dkim_dns_close(lib);
 	}
 
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_TIMEOUT,
@@ -10821,10 +10850,19 @@ mlfi_negotiate(SMFICTX *ctx,
 sfsistat
 mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
 {
+	char *err = NULL;
 	connctx cc;
 	struct dkimf_config *conf;
 
 	dkimf_config_reload();
+
+	if (!dkimf_dns_init(curconf->conf_libopendkim, curconf, &err))
+	{
+		if (conf->conf_dolog)
+			syslog(LOG_ERR, "can't initialize resolver: %s", err);
+
+		return SMFIS_TEMPFAIL;
+	}
 
 	/* copy hostname and IP information to a connection context */
 	cc = dkimf_getpriv(ctx);

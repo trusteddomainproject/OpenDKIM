@@ -1919,6 +1919,18 @@ extern int dkim_dns_nslist __P((DKIM_LIB *, const char *));
 extern int dkim_dns_init __P((DKIM_LIB *));
 
 /*
+**  DKIM_DNS_CLOSE -- force resolver shutdown
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**
+**  Return value:
+**  	A DKIM_DNS_* constant.
+*/
+
+extern int dkim_dns_close __P((DKIM_LIB *));
+
+/*
 **  DKIM_DNS_CONFIG -- requests a change to resolver configuration
 **
 **  Parameters:

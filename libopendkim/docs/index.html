@@ -644,21 +644,26 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
+  <td> <a href="dkim_dns_close.html"> <tt>dkim_dns_close()</tt> </a> </td>
+  <td> Force shutdown of the DNS resolver in use by the library. </td>
+ </tr>
+
+ <tr>
   <td> <a href="dkim_dns_config.html"> <tt>dkim_dns_config()</tt> </a> </td>
   <td> Provide the active DNS resolver with arbitrary configuration information
        to be used. </td>
  </tr>
 
  <tr>
-  <td> <a href="dkim_dns_nslist.html"> <tt>dkim_dns_nslist()</tt> </a> </td>
-  <td> Provide the active DNS resolver with a new set of nameservers to be
-       used. </td>
+  <td> <a href="dkim_dns_init.html"> <tt>dkim_dns_init()</tt> </a> </td>
+  <td> Force initialization of the DNS resolver to be used by the
+       library. </td>
  </tr>
 
  <tr>
-  <td> <a href="dkim_dns_trustanchor.html"> <tt>dkim_dns_trustanchor()</tt> </a> </td>
-  <td> Provide the active DNS resolver with trust anchor configuration
-       information to be used. </td>
+  <td> <a href="dkim_dns_nslist.html"> <tt>dkim_dns_nslist()</tt> </a> </td>
+  <td> Provide the active DNS resolver with a new set of nameservers to be
+       used. </td>
  </tr>
 
  <tr>
@@ -711,6 +716,12 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
   <td> <a href="dkim_dns_set_trustanchor.html"> <tt>dkim_dns_set_trustanchor()</tt> </a> </td>
   <td> Set the function to be used by the library to pass arbitrary
        trust anchor data to the underlying resolver. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_dns_trustanchor.html"> <tt>dkim_dns_trustanchor()</tt> </a> </td>
+  <td> Provide the active DNS resolver with trust anchor configuration
+       information to be used. </td>
  </tr>
 
  <tr>
