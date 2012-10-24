@@ -5,6 +5,12 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.6.8		2012/10/24
+	Add "MinimumKeyBits" configuration file item.
+	LIBOPENDKIM: Feature request #SF3559744: Add library option
+		DKIM_OPTS_MINKEYBITS allowing one to specify a minimum
+		number of key bits for acceptable signatures.
+
 2.6.7		2012/07/23
 	Fix input handling for file data sets for the macro case.  Problem
 		noted by Allan Wind.
