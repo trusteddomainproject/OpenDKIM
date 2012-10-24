@@ -4394,6 +4394,7 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	libhandle->dkiml_prescreen = NULL;
 	libhandle->dkiml_final = NULL;
 	libhandle->dkiml_dns_callback = NULL;
+	libhandle->dkiml_dnsinit_done = FALSE;
 	libhandle->dkiml_dns_init = dkim_res_init;
 	libhandle->dkiml_dns_close = dkim_res_close;
 	libhandle->dkiml_dns_start = dkim_res_query;
