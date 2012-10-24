@@ -3767,6 +3767,16 @@ dkim_eom_sign(DKIM *dkim)
 	sig->sig_signature = dkim->dkim_keydata;
 	sig->sig_flags |= DKIM_SIGFLAG_KEYLOADED;
 
+	if (sig->sig_keybits < dkim->dkim_libhandle->dkiml_minkeybits)
+	{
+		sig->sig_error = DKIM_SIGERROR_KEYTOOSMALL;
+		dkim_error(dkim,
+		           "private key too small (%d bits, need at least %d)",
+		           sig->sig_keybits,
+		           dkim->dkim_libhandle->dkiml_minkeybits);
+		return DKIM_STAT_INVALID;
+	}
+
 	switch (sig->sig_signalg)
 	{
 	  case DKIM_SIGN_RSASHA1:
