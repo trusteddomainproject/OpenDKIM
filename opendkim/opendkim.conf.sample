@@ -333,6 +333,15 @@ KeyFile			/var/db/dkim/example.private
 
 # Minimum		n
 
+##  MinimumKeyBits n
+##  	default 1024
+##
+##  Causes the library not to accept signatures matching keys made of fewer
+##  than the specified number of bits, even if they would otherwise pass
+##  DKIM signing.
+
+# MinimumKeyBits	1024
+
 ##  Mode [sv]
 ##  	default sv
 ##

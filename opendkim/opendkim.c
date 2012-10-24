@@ -259,6 +259,7 @@ struct dkimf_config
 	unsigned int	conf_dnstimeout;	/* DNS timeout */
 	unsigned int	conf_maxhdrsz;		/* max header bytes */
 	unsigned int	conf_maxverify;		/* max sigs to verify */
+	unsigned int	conf_minkeybits;	/* min key size (bits) */
 #ifdef _FFR_REPUTATION
 	unsigned int	conf_repfactor;		/* reputation factor */
 	unsigned int	conf_repminimum;	/* reputation minimum */
@@ -6038,6 +6039,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_enablecores,
 		                  sizeof conf->conf_enablecores);
 
+		(void) config_get(data, "MinimumKeyBits",
+		                  &conf->conf_minkeybits,
+		                  sizeof conf->conf_minkeybits);
+
 		(void) config_get(data, "RequestReports",
 		                  &conf->conf_reqreports,
 		                  sizeof conf->conf_reqreports);
@@ -8189,6 +8194,13 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 
 	/* set the DNS callback */
 	(void) dkim_set_dns_callback(lib, dkimf_sendprogress, CBINTERVAL);
+
+	if (conf->conf_minkeybits != 0)
+	{
+		(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_MINKEYBITS,
+		                    &conf->conf_minkeybits,
+		                    sizeof conf->conf_minkeybits);
+	}
 
 	if (conf->conf_testdnsdb != NULL)
 	{
