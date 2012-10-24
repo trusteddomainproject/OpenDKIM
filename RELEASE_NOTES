@@ -4,7 +4,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.7.0		2012/10/21
+2.7.0		2012/10/24
 	Feature request #SF2964375: Reject configuration files that have
 		a SigningTable referencing a missing or malformed KeyTable
 		entry.
