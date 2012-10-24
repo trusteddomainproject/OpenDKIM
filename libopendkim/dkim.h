@@ -154,6 +154,7 @@ typedef int DKIM_SIGERROR;
 #define	DKIM_SIGERROR_KEYDECODE		43	/* key couldn't be decoded */
 #define	DKIM_SIGERROR_MISSING_V		44	/* v= tag missing */
 #define	DKIM_SIGERROR_EMPTY_V		45	/* v= tag empty */
+#define	DKIM_SIGERROR_KEYTOOSMALL	46	/* too few key bits */
 
 /* generic DNS error codes */
 #define	DKIM_DNS_ERROR		(-1)		/* error in transit */
@@ -273,6 +274,7 @@ typedef int dkim_opts_t;
 #define	DKIM_OPTS_SIGNATURETTL	11
 #define	DKIM_OPTS_CLOCKDRIFT	12
 #define	DKIM_OPTS_MUSTBESIGNED	13
+#define	DKIM_OPTS_MINKEYBITS	14
 
 #define	DKIM_LIBFLAGS_NONE		0x0000
 #define	DKIM_LIBFLAGS_TMPFILES		0x0001
