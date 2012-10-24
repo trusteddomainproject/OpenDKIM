@@ -11,14 +11,15 @@ one of these changes resolves a current issue.
 
 Among the major changes in this release:
 
+o SECURITY: The library will now decline to generate a signature, or pass even
+  a valid signature, if the signing key is compirsed of too few bits, thus
+  being insecure.  The default is 1024.  This can be controlled through the
+  API, and the setting can also be adjusted in the filter via the new
+  "MinimumKeyBits" setting.
+
 o Support for libar (the provided asynchronous resolver library) has been
   discontinued.  Instead, use either libunbound or a thread-safe version
   of the BIND resolver.
-
-o The library will now decline to pass even a valid signature if the matching
-  public key is compirsed of too few bits, thus being insecure.  The default
-  is 1024.  This can be controlled through the API, and the setting can also
-  be adjusted in the filter via the new "MinimumKeyBits" setting.
 
 o Per RFC6648, "X-" header fields are now discouraged.  Accordingly,
   we no longer generate (or expect) any.  This also means the "X-Header"
@@ -29,9 +30,112 @@ o All copyrights have been updated to reflect that The Trusted Domain Project
   is the copyright holder.  The OpenDKIM Project is now an initiative of that
   organization.
 
+o A third experimental domain reputation system has been added.  Look in the
+  new reprrd/ directory for more information.
+
 The full RELEASE_NOTES for this version:
 
-[INSERT]
+2.7.0		2012/10/24
+	Feature request #SF2964375: Reject configuration files that have
+		a SigningTable referencing a missing or malformed KeyTable
+		entry.
+	Feature request #SF3544764: Support for libar has been discontinued.
+		For asynchronous and/or thread-safe resolver service,
+		use libunbound or a suitable version of BIND.
+	Feature request #SF3545658: Replace "ResolvConf" with "Nameservers"
+		and add support for NS list overrides for versions of bind
+		that have res_setservers().  Also rename "UnboundConfigFile"
+		to "ResolverConfiguration", and make "TrustAnchorFile"
+		generally available.
+	Feature request #SF3547124: Skip reputation checks on passing
+		signatures whose keys had a "t=y" value.
+	Feature request #SF3555842: Add "ReputationTest" setting.  Requested
+		by Andreas Schulze.
+	Feature request #SF3556439: Update opendkim-atpszone per RFC6541.
+	Feature request #SF3559744: Add library option DKIM_OPTS_MINKEYBITS
+		allowing one to specify a minimum number of key bits for
+		acceptable keys and signatures.  This is exposed through new
+		configuration file option "MinimumKeyBits".  The default
+		is 1024.
+	Fix bug #SF3536414: Activate _FFR_OVERSIGN, and remove
+		DKIM_OPTS_ALWAYSHDRS.
+	Fix bug #SF3536655: Rename "X-Header" to "SoftwareHeader", and rename
+		all header fields added that start "X-" to remove that prefix,
+		per RFC6648.  The old name will be accepted through the end
+		of the 2.7.x line.
+	Fix bug #SF3538896: Remove antiquated CVS Id: tags, which cleans up
+		some (harmless) build warnings.  Suggested by Andreas Schulze.
+	Fix bug #SF3548741: Add "ReputationTimeout" for use inside
+		_FFR_REPUTATION, rather than using the built-in default
+		or a hard-coded one.
+	Fix bug #SF3549307: Remove _FFR_REPUTATION_CACHE, as it is redundant
+		to caching code that's part of _FFR_REPUTATION already.
+	Fix bug #SF3555844: Get repute client code in sync with repute.php
+		(and the current REPUTE WG drafts).  Problem noted by
+		Andreas Schulze.
+	Fix bounds checking in the dstring printf functions.
+	Fix loop structure in the C side of odkim.get_rcpt().  Problem
+		noted by Todd Lyons.
+	Change all temporary directory defaults from /var/tmp to /tmp.
+	Activate _FFR_LUA_GLOBALS.
+	Request the milter permissions required to get _FFR_REDIRECT working.
+		Patch from Andreas Schulze.
+	Add _FFR_REPRRD, which is a second approach to DKIM-based reputation
+		using round robin databases and Holt-Winters foreacasting
+		using rrdtool (see http://oss.oetiker.ch/rrdtool/).  Still
+		experimental.
+	Patch #SF3555843: With sufficient verbosity, report the default
+		configuration file path.  Patch from Andreas Schulze.
+	BUILD: Fix bug #SF3531658: Move the strlcat() and strlcpy()
+		implementations to their own library so that programs don't
+		drag in crypto and other dependencies they don't need.
+		Also clean up several other unnecessary dependencies imposed
+		by imprecise use of autoconf.  Problem noted by Andreas
+		Schulze.
+	BUILD: Patch #SF3555845: Add support for older versions of libcurl.
+		Based on a patch by Andreas Schulze.
+	BUILD: Install non-user things in sbin instead of bin.  Suggested
+		by Andreas Schulze.
+	LIBOPENDKIM: Feature request #SF3565006: Add dkim_add_querymethod()
+		and dkim_sig_seterror(), define DKIM_CBSTAT_DEFAULT, and
+		remove an assertion in dkim_get_key_dns(), which together
+		allow for applications to develop non-standard key retrieval
+		mechanisms.  Suggestion and patches from Ken Murchison.
+	LIBOPENDKIM: Fix bug #SF3559080: Log correct domains and selectors
+		with SSL errors.
+	LIBOPENDKIM: Add DNS functions dkim_dns_config(), dkim_dns_init(),
+		dkim_dns_nslist(), dkim_dns_set_init(), dkim_dns_set_close(),
+		dkim_dns_set_nslist(), dkim_dns_set_config(),
+		dkim_dns_set_trustanchor(), dkim_dns_trustanchor().
+	LIBOPENDKIM: Patch #SF3562496: Add DKIM_OPTS_REQUIREDHDRS to allow
+		alteration of the mandatory header field set.  Patch from
+		Ken Murchison.
+	LIBOPENDKIM: If "q=" is present and method "dns" is specified, it
+		must be followed by "/txt", per RFC6376.
+	LIBOPENDKIM: For dkim_add_xtag(), copy the provided values so the
+		caller doesn't have to keep them around.
+	LIBOPENDKIM: Allow dual signing of a single body with dkim_resign().
+		Suggested by Ken Murchison.
+	STATS: Fix bug #SF3555847: Add "--nocircles" to opendkim-gengraphs
+		to allow operation with versions of gnuplot that don't know
+		what "with circles" means.  Problem noted by Andreas
+		Schulze.
+	STATS: Patch #SF3555841: Temporary table SQL correction.  Patch from
+		Andreas Schulze.
+	TOOLS: Feature request #SF3553918: Add "-u" flag to opendkim-atpszone
+		and opendkim-genzone enabling them to produce output suitable
+		for use as input to nsupdate(8).  Based on a suggestion by
+		Dave Crocker.
+	TOOLS: Feature request #SF3558818: Teach opendkim-testkey about the new
+		"ResolverConfiguration" setting.  Based on a problem report
+		from Patrick Ben Koetter.
+	TOOLS: Fix bug #SF3565013: Replace opendkim-genkey with a perl script
+		that knows how to do splitting of character-strings in DNS
+		TXT records.  Problem reported by Todd Lyons.
+	TOOLS: Fix bug #SF3568846: Add "-t" to opendkim-testmsg to allow
+		override of the directory where temporary files go.  Also,
+		clean up temporary files after creating them.
+	TOOLS: Add opendkim-rephistory.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
