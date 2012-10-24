@@ -8,6 +8,10 @@ available for download from SourceForge.
 This is a security release.  It places restrictions on the use of keys that
 are small enough that they can be compromised within a small period of time.
 
+This release is being done in parallel with 2.7.0.  It pulls the minimum key
+size limit from 2.7.0 onto the 2.6.x release branch.  There are no other
+changes.
+
 The full RELEASE_NOTES for this version:
 
 2.6.8		2012/10/24
