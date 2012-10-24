@@ -1,23 +1,20 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.6.7 released
+Subject: OpenDKIM v2.6.8 released
 
-The Trusted Domain Project announces availability of OpenDKIM v2.6.7, now
+The Trusted Domain Project announces availability of OpenDKIM v2.6.8, now
 available for download from SourceForge.
 
-This is a minor bug fix release.  Upgrade is not required unless something
-shown below is something of interest to you. 
+This is a security release.  It places restrictions on the use of keys that
+are small enough that they can be compromised within a small period of time.
 
 The full RELEASE_NOTES for this version:
 
-2.6.7		2012/07/23
-	Fix input handling for file data sets for the macro case.  Problem
-		noted by Allan Wind.
-	Ensure NULL-termination of macro value tests.
-	STATS: Fix hang bug in opendkim-reportstats.  Problem noted by
-		Todd Lyons.
-	STATS: Fix bug #SF3547363: Fix "Top 10" and DNSSEC trend reports.
-		Problem noted by Andreas Schulze.
+2.6.8		2012/10/24
+	Add "MinimumKeyBits" configuration file item.
+	LIBOPENDKIM: Feature request #SF3559744: Add library option
+		DKIM_OPTS_MINKEYBITS allowing one to specify a minimum
+		number of key bits for acceptable signatures.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
