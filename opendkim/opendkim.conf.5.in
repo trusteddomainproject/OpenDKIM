@@ -735,9 +735,11 @@ Possible values (with abbreviated forms in parentheses):
 (t) temp-fail the message.
 The default is
 .I accept.
-Note that the "t" (testing) flag in a DKIM key does not alter this behaviour;
-even keys marked as test keys whose signatures fail will still be subjected
-to the selected action.
+Note that the "t" (testing) flag in a DKIM key bypasses this behaviour;
+a bad signature that references a testing flag will still be delivered,
+though the added Authentication-Results field will indicate both the failed
+result and the test mode so that consumers of the message can take appropriate
+action.
 
 .TP
 .I On-Default (string)
