@@ -6003,9 +6003,16 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 					val = (char *) odbx_field_value(result,
 					                                c + 1);
 
-					req[c].dbdata_buflen = strlcpy(req[c].dbdata_buffer,
-					                               val,
-					                               req[c].dbdata_buflen);
+					if (val == NULL)
+					{
+						req[c].dbdata_buflen = 0;
+					}
+					else
+					{
+						req[c].dbdata_buflen = strlcpy(req[c].dbdata_buffer,
+						                               val,
+						                               req[c].dbdata_buflen);
+					}
 				}
 			}
 		}

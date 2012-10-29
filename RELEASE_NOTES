@@ -4,6 +4,10 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.7.1		2012/??/??
+	Fix bug #SFxxxxxxx: Properly handle NULLs returned from OpenDBX
+		queries.  Problem noted by Adam M. Jacques.
+
 2.7.0		2012/10/24
 	Feature request #SF2964375: Reject configuration files that have
 		a SigningTable referencing a missing or malformed KeyTable

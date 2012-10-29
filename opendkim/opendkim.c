@@ -8207,13 +8207,17 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				dbd[2].dbdata_buffer = keydata;
 				dbd[2].dbdata_buflen = sizeof keydata - 1;
 				dbd[2].dbdata_flags = DKIMF_DB_DATA_BINARY;
+
 				if (dkimf_db_get(conf->conf_keytabledb,	
 				                 keyname, strlen(keyname),
 				                 dbd, 3, &found) != 0 ||
-				    !found)
+				    !found ||
+				    dbd[0].dbdata_buflen == 0 ||
+				    dbd[1].dbdata_buflen == 0 ||
+				    dbd[2].dbdata_buflen == 0)
 				{
 					snprintf(err, errlen,
-					         "could not find valid key \"%s\" in KeyTable",
+					         "could not find valid key record \"%s\" in KeyTable",
 					         keyname);
 					return -1;
 				}
