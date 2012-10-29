@@ -319,6 +319,8 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 		if (limit != NULL)
 			*limit = limittmp;
 	}
+
+	json_decref(root);
 #endif /* USE_JANSSON */
 
 #ifdef USE_XML2
