@@ -2860,19 +2860,21 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		}
 
 		lderr = dkimf_db_open_ldap(&ld, ldap, err);
-		if (lderr != LDAP_SUCCESS &&
-		    (flags & DKIMF_DB_FLAG_SOFTSTART) == 0)
+		if (lderr != LDAP_SUCCESS)
 		{
-			if (err != NULL)
-				*err = ldap_err2string(lderr);
-			free(ldap);
-			free(p);
-			free(new);
-			return -1;
-		}
-		else
-		{
-			ld = NULL;
+			if ((flags & DKIMF_DB_FLAG_SOFTSTART) == 0)
+			{
+				if (err != NULL)
+					*err = ldap_err2string(lderr);
+				free(ldap);
+				free(p);
+				free(new);
+				return -1;
+			}
+			else
+			{
+				ld = NULL;
+			}
 		}
 
 		pthread_mutex_init(&ldap->ldap_lock, NULL);
