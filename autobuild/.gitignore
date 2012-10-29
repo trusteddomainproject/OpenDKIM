@@ -1,0 +1,14 @@
+*.o
+*.lo
+*.la
+*.a
+*~
+*.pc
+*.gcda
+*.gcno
+.deps/
+.libs/
+autom4te.cache/
+core
+*.core
+autobuild

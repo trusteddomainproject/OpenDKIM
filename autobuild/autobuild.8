@@ -1,0 +1,63 @@
+.TH autobuild 8 "The Trusted Domain Project"
+.SH NAME
+.B autobuild
+\- multiple configuration build tool
+.SH SYNOPSIS
+.B autobuild
+[\-t] [\-v] descr-file
+.SH DESCRIPTION
+.B autobuild
+configures, builds, and tests a source code package whose configuration is
+provided by GNU's
+.I autoconf
+mechanism.
+.I descr-file
+contains a set of parameters to be passed to
+.I configure
+in various combinations, followed by
+.I "make"
+and
+.I "make distcheck",
+to confirm that the current source code tree has not had any build or runtime
+regressions checked into it.
+
+If any of the three steps fails, the output of the command is dumped
+to standard output and execution terminates.
+.SH OPTIONS
+.TP
+.I \-t
+Print timestamps to stdout as each step is executed.
+.TP
+.I \-v
+Prints configuration combinations as their commands are executed.
+.SH DESCRIPTION FILE
+The description file contains a JSON object.  It is expected to contain
+two keys, both optional, which refer to arrays, as follows:
+.TP
+.I always
+Contains an array of strings each of which is an argument that should be passed
+to
+.I configure
+for every test configuration.
+.TP
+.I combine
+Contains an array of objects each of which is to be tested in various
+combinations with all of the others in the array.  This means every entry
+added to this array doubles the number of test configurations that will
+be tried (i.e., the presence and absence cases).  An object in this array
+must either be a string, or an array of strings; in the latter case, 
+the set of strings is applied as a group whenever the array is selected for
+testing.
+.SH EXAMPLE
+{ "always": [ "--foo", "--bar" ], "combine": [ "--a", "--b", [ "--c", "--d"]] }
+.PP
+This will run eight tests; all of them will include "--foo" and "--bar",
+and they will include the various possible combinationks of "--a", "--b",
+and the pair "--c" and "--d".
+.SH VERSION
+This man page covers version 1.0.0 of
+.I autobuild.
+.SH COPYRIGHT
+Copyright (c) 2012, The Trusted Domain Project.  All rights reserved.
+.SH SEE ALSO
+.B make(1)

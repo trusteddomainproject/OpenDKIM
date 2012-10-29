@@ -2008,6 +2008,7 @@ fi
 AC_SUBST(LIBJANSSON_CPPFLAGS)
 AC_SUBST(LIBJANSSON_LDFLAGS)
 AC_SUBST(LIBJANSSON_LIBS)
+AM_CONDITIONAL(JANSSON, test x"$LIBJANSSON_LIBS" != x"")
 
 #
 # libxml2
@@ -2469,6 +2470,7 @@ AC_SUBST([SYSCONFDIR])
 #
 AC_OUTPUT([	Makefile
 		docs/Makefile
+		autobuild/Makefile
 		contrib/Makefile
 			contrib/convert/Makefile
 			contrib/docs/Makefile
