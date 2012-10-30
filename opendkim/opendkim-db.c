@@ -5994,7 +5994,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 
 			for (c = 0; c < reqnum; c++)
 			{
-				if (c >= fields)
+				if (c >= fields - 1)
 				{
 					req[c].dbdata_buflen = 0;
 				}
