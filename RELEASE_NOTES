@@ -12,7 +12,7 @@ release, and a summary of the changes in that release.
 		noted by Adam M. Jacques.
 	In the _FFR_REPUTATION code, free JSON objects when done with them.
 	TOOLS: Fix argument parsing in new version of opendkim-genkey.
-		Problem noted by Todd Lyons.
+		Problem noted by Steve Jenkins.
 
 2.7.0		2012/10/24
 	Feature request #SF2964375: Reject configuration files that have
