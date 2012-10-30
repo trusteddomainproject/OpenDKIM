@@ -17,8 +17,8 @@
 #		that can plug in to any milter-aware MTA.
 ### END INIT INFO
 
-# OpenDKIM startup script v1.7 for RHEL/CentOS/Fedora
-# by Steve Jenkins (SteveJenkins.com) - 09-22-2011
+# OpenDKIM startup script v1.8 for RHEL/CentOS/Fedora
+# by Steve Jenkins (SteveJenkins.com) - 10-29-2012
 # Based on a script by Andrew Colin Kissa (TopDog) for dkim-milter - 05-28-2009
 # - Additional functionality to prevent multiple instances and a reload
 #   handler by Chris LaJoie - 01-11-2011
@@ -30,6 +30,7 @@
 # - Changed default stop priority - 09-19-2011
 # - Updated success and warning outputs for default key generation - 09-20-2011
 # - Changed default key directory ownership and permissions - 09-22-2011
+# - Updated opendkim-genkey location to /usr/sbin - 10-29-2012
 
 . /etc/rc.d/init.d/functions
 
