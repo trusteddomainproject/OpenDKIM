@@ -11,6 +11,8 @@ release, and a summary of the changes in that release.
 		queries and low field counts in dkimf_db_walk().  Problem
 		noted by Adam M. Jacques.
 	Free JSON objects when done with them.
+	TOOLS: Fix argument parsing in new version of opendkim-genkey.
+		Problem noted by Todd Lyons.
 
 2.7.0		2012/10/24
 	Feature request #SF2964375: Reject configuration files that have
