@@ -1,5 +1,6 @@
 /*
-**  Copyright (c) 2012-present, Facebook, Inc.  All rights reserved.
+**  Copyright (c) 2012-present, The Trusted Domain Project.
+**  	All rights reserved.
 */
 
 #include <sys/param.h>
