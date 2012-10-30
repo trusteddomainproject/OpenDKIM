@@ -4,7 +4,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.7.1		2012/10/??
+2.7.1		2012/10/30
 	Fix bug #SF3581657: Fix faulty logic in LDAP open code.  Problem noted
 		by Quanah Gibson-Mount.
 	Fix bug #SF3581743: Properly handle NULLs returned from OpenDBX
