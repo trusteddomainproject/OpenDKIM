@@ -13,7 +13,7 @@ unfortunately not detected during the beta period for 2.7.0.
 
 The full RELEASE_NOTES for this version:
 
-2.7.1		2012/10/??
+2.7.1		2012/10/30
 	Fix bug #SF3581657: Fix faulty logic in LDAP open code.  Problem noted
 		by Quanah Gibson-Mount.
 	Fix bug #SF3581743: Properly handle NULLs returned from OpenDBX
