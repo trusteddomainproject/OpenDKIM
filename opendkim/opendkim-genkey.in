@@ -132,7 +132,7 @@ if ($showversion)
 }
 
 ## do this securely and in the right place
-chdir($outdir);
+chdir($outdir) or die "$progname: $outdir: chdir(): $!";;
 umask(077);
 
 ## generate a private key
