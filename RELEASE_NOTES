@@ -10,7 +10,7 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3581743: Properly handle NULLs returned from OpenDBX
 		queries and low field counts in dkimf_db_walk().  Problem
 		noted by Adam M. Jacques.
-	Free JSON objects when done with them.
+	In the _FFR_REPUTATION code, free JSON objects when done with them.
 	TOOLS: Fix argument parsing in new version of opendkim-genkey.
 		Problem noted by Todd Lyons.
 
