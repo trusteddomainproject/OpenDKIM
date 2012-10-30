@@ -8,7 +8,8 @@ release, and a summary of the changes in that release.
 	Fix bug #SF3581657: Fix faulty logic in LDAP open code.  Problem noted
 		by Quanah Gibson-Mount.
 	Fix bug #SF3581743: Properly handle NULLs returned from OpenDBX
-		queries.  Problem noted by Adam M. Jacques.
+		queries and low field counts in dkimf_db_walk().  Problem
+		noted by Adam M. Jacques.
 	Free JSON objects when done with them.
 
 2.7.0		2012/10/24
