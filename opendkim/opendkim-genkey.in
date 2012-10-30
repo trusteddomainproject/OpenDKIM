@@ -95,20 +95,21 @@ sub usage
 ##
 
 # parse command line arguments
-my $opt_retval = &Getopt::Long::GetOptions ('a|append-domain!' => \$append,
-                                            'b|bits=i' => \$bits,
-                                            'D|directory=s' => \$outdir,
-                                            'd|domain=s' => \$domain,
-                                            'h|hash-algorithms=s' => \$hashalgs,
-                                            'help!' => \$helponly,
-                                            'n|note=s' => \$note,
-                                            'r|restrict!' => \$restricted,
-                                            's|selector=s' => \$selector,
-                                            'S|subdomains!' => \$subdomains,
-                                            't|testmode!' => \$testmode,
-                                            'v|verbose+' => \$verbose,
-                                            'V|version!' => \$showversion,
-                                           );
+Getopt::Long::Configure("bundling");
+my $opt_retval = &Getopt::Long::GetOptions('a|append-domain!' => \$append,
+                                           'b|bits=i' => \$bits,
+                                           'D|directory=s' => \$outdir,
+                                           'd|domain=s' => \$domain,
+                                           'h|hash-algorithms=s' => \$hashalgs,
+                                           'help!' => \$helponly,
+                                           'n|note=s' => \$note,
+                                           'r|restrict!' => \$restricted,
+                                           's|selector=s' => \$selector,
+                                           'S|subdomains!' => \$subdomains,
+                                           't|testmode!' => \$testmode,
+                                           'v|verbose+' => \$verbose,
+                                           'V|version!' => \$showversion,
+                                          );
 
 if (!$opt_retval || $helponly)
 {
