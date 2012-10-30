@@ -251,7 +251,7 @@ if ($append)
 	$domstr = "." . $domain . ".";
 }
 
-if ($domain eq "")
+if ($domain ne "")
 {
 	$comment = " ; ----- DKIM key $selector for $domain"
 }
