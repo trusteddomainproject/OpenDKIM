@@ -19,7 +19,7 @@ libopendkim_la_DEPENDENCIES = symbols.map
 libopendkim_la_LDFLAGS += -export-symbols symbols.map
 endif
 if STRL
-libopendkim_la_CFLAGS += -I../libstrl
+libopendkim_la_CFLAGS += -I$(top_srcdir)/libstrl
 libopendkim_la_LIBADD += ../libstrl/libstrl.la
 endif
 if RPATH
