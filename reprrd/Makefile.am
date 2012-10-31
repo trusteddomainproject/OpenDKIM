@@ -11,7 +11,7 @@ libreprrd_la_CC = $(PTHREAD_CC)
 libreprrdincludedir = $(includedir)/reprrd
 libreprrdinclude_HEADERS = reprrd.h
 if STRL
-libreprrd_la_CFLAGS += -I../libstrl
+libreprrd_la_CFLAGS += -I$(top_srcdir)/libstrl
 libreprrd_la_LIBADD += ../libstrl/libstrl.la
 endif
 
