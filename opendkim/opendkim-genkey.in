@@ -7,18 +7,6 @@
 ##
 ## opendkim-genkey -- generate a key and/or TXT record for DKIM service
 ##
-## Usage: opendkim-genkey [options]
-## 	-a		append domain name to label
-## 	-b bits		key size (default = 1024)
-##  	-d domain	signing domain (default = "@DOMAIN@")
-## 	-D dir		output directory (default = ".")
-## 	-h algs		list of allowed hash algorithms (default = unspecified)
-## 	-n text		include "text" as a note in the output key record
-## 	-r		restrict this key to e-mail use only
-## 	-s name		selector name (default = "default")
-## 	-S		disallow subdomain signing with this key
-##  	-t		set the "test mode" bit in the TXT record
-##
 ## The output of this script includes two files based on the
 ## selector name:
 ##
