@@ -129,6 +129,11 @@ if ($verbose >= 1)
 	print STDERR "$progname: generating private key\n";
 }
 
+if ($bits < 1024)
+{
+	print STDERR "$progname: WARNING: RFC6376 advises minimum 1024-bit keys\n";
+}
+
 $status = system("openssl genrsa -out " . $selector . ".private " . $bits . " > /dev/null 2>&1");
 if ($status != 0)
 {
