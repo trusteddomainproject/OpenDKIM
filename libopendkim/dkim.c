@@ -3515,8 +3515,6 @@ dkim_eoh_verify(DKIM *dkim)
 		}
 	}
 
-	dkim->dkim_state = DKIM_STATE_EOH2;
-
 	/* if set to ignore everything, treat message as unsigned */
 	set = NULL;
 	for (c = 0; c < dkim->dkim_sigcount; c++)
@@ -3531,6 +3529,7 @@ dkim_eoh_verify(DKIM *dkim)
 	if (set == NULL)
 	{
 		dkim->dkim_skipbody = TRUE;
+		dkim->dkim_state = DKIM_STATE_EOH2;
 		return DKIM_STAT_NOSIG;
 	}
 
@@ -3563,6 +3562,9 @@ dkim_eoh_verify(DKIM *dkim)
 			}
 		}
 	}
+
+	/* no re-entries beyond this point */
+	dkim->dkim_state = DKIM_STATE_EOH2;
 
 	/*
 	**  Possible short-circuit here if all signatures are:

@@ -4,6 +4,10 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.7.2		2012/11/??
+	LIBOPENDKIM: Improve re-entrancy of dkim_eoh() when verifying.
+		Requested by Alec Peterson.
+
 2.7.1		2012/10/30
 	Fix bug #SF3581657: Fix faulty logic in LDAP open code.  Problem noted
 		by Quanah Gibson-Mount.
