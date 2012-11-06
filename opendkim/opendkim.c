@@ -15562,6 +15562,8 @@ mlfi_eom(SMFICTX *ctx)
 		status = dkimf_msr_eom(dfc->mctx_srhead, &lastdkim);
 		if (status != DKIM_STAT_OK)
 		{
+			dkimf_log_ssl_errors(lastdkim, NULL,
+			                     (char *) dfc->mctx_jobid);
 			return dkimf_libstatus(ctx, lastdkim, "dkim_eom()",
 			                       status);
 		}
