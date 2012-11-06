@@ -18,3 +18,14 @@ test will be provided before its result.  If the description is followed by
 the word SKIPPED, it means support for the function (e.g. an external
 library) to be tested was not available at compile-time and the test was
 not run.
+
+
+CRYPTO LIBRARIES
+================
+
+Cryptography libraries, such as openssl and gnutls, that can be used with
+libopendkim may have initialization requirements.  libopendkim will not
+initialize these libraries for you, as doing so may interfere with other
+aspects of the application calling this library.  It is therefore the
+responsibility of the calling application to initailize the crypto library
+before attempting DKIM signing or validation, or unexpected errors can occur.
