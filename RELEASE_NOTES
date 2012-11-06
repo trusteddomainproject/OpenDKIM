@@ -7,6 +7,8 @@ release, and a summary of the changes in that release.
 2.7.2		2012/11/??
 	LIBOPENDKIM: Improve re-entrancy of dkim_eoh() when verifying.
 		Requested by Alec Peterson.
+	STATS: Add long option support for opendkim-importstats.  Based on
+		a patch from Christian Roessner.
 	TOOLS: Fix subdomains default.  Problem noted by Quanah Gibson-Mount.
 
 2.7.1		2012/10/30

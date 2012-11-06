@@ -100,7 +100,9 @@ AC_SEARCH_LIBS(res_ninit, resolv,
 AC_SEARCH_LIBS(res_sertservers, resolv bind,
                AC_DEFINE(HAVE_RES_SETSERVERS, 1,
                          [Define to 1 if you have the `res_setservers()' function.]))
-
+AC_SEARCH_LIBS(getopt_long, iberty,
+               AC_DEFINE(HAVE_GETOPT_LONG, 1,
+                         [Define to 1 if you have the `getopt_long()' function.]))
 
 AC_HEADER_RESOLV
 
