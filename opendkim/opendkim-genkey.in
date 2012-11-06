@@ -32,7 +32,7 @@ my $bits = 1024;
 my $domain = "@DOMAIN@";
 my $version = "@DOMAIN@";
 my $outdir = ".";
-my $subdomains = 0;
+my $subdomains = 1;
 my $hashalgs;
 my $note;
 my $flags = "";
@@ -218,12 +218,17 @@ if (!$subdomains)
 
 if ($restricted)
 {
-	$flags .= " s=email;";
+	if ($flags ne "")
+	{
+		$flags .= " ";
+	}
+
+	$flags .= "s=email;";
 }
 
 if ($flags ne "")
 {
-	$flags = " " . $flags . " ";
+	$flags .= " ";
 }
 
 $hashout = "";
@@ -259,7 +264,7 @@ if (!open($txtout, ">", $selector . ".txt"))
 	exit(1);
 }
 
-print $txtout $selector . "._domainkey" . ${domstr} . "\tIN\tTXT\t( \"v=DKIM1;" . $noteout . $hashout . " k=rsa;" . $flags . "\"\n\t  \"p=";
+print $txtout $selector . "._domainkey" . ${domstr} . "\tIN\tTXT\t( \"v=DKIM1;" . $noteout . $hashout . " k=rsa; " . $flags . "\"\n\t  \"p=";
 
 $len = length($keydata);
 $cur = 0;
