@@ -938,7 +938,7 @@ dkim_load_ssl_errors(DKIM *dkim, int status)
 			dkim_dstring_cat(dkim->dkim_sslerrbuf, "; ");
 
 		dkim_dstring_cat(dkim->dkim_sslerrbuf,
-		                 gnutls_strerror(status));
+		                 (char *) gnutls_strerror(status));
 	}
 
 #else /* USE_GNUTLS */
@@ -1004,7 +1004,7 @@ dkim_sig_load_ssl_errors(DKIM *dkim, DKIM_SIGINFO *sig, int status)
 			dkim_dstring_cat(sig->sig_sslerrbuf, "; ");
 
 		dkim_dstring_cat(sig->sig_sslerrbuf,
-		                 gnutls_strerror(status));
+		                 (char *) gnutls_strerror(status));
 	}
 
 #else /* USE_GNUTLS */
@@ -1108,9 +1108,13 @@ dkim_privkey_load(DKIM *dkim)
 		return DKIM_STAT_NORESOURCE;
 	}
 
-	status = gnutls_x509_privkey_import(rsa->rsa_key, &rsa->rsa_keydata,
-	                                    GNUTLS_X509_FMT_PEM);
-	if (status != GNUTLS_E_SUCCESS)
+	if (strncmp((char *) dkim->dkim_key, "-----", 5) == 0)
+	{						/* PEM */
+		status = gnutls_x509_privkey_import(rsa->rsa_key,
+		                                    &rsa->rsa_keydata,
+	                                            GNUTLS_X509_FMT_PEM);
+	}
+	else
 	{
 		status = gnutls_x509_privkey_import(rsa->rsa_key,
 		                                    &rsa->rsa_keydata,
