@@ -94,8 +94,8 @@ hash ("#") character are ignored.  All other lines should consist of a
 parameter name followed by one or more whitespace characters, then followed
 by its intended value.
 
-Parameters match command line options (specified above), but when present
-the command line options override the configuration file options.  The
+Parameters generally match command line options (specified above), but when
+present the command line options override the configuration file options.  The
 list of configuration file parameters and their command line equivalents
 are as follows; see above for descriptions:
 .TP
@@ -125,6 +125,12 @@ are as follows; see above for descriptions:
 .TP
 .I ReporterID
 \-r
+.TP
+.I SkipReceived
+An integer that defines a number of Received fields that should be skipped
+while searching for the one that was also seen by
+.B opendkim(8)
+so that this command refers to the same Received field.  Defaults to 0.
 .TP
 .I StatisticsFile
 \-o

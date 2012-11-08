@@ -17,6 +17,8 @@ release, and a summary of the changes in that release.
 		by Alec Peterson.
 	TOOLS: Add ability to assert a reporter ID to opendkim-spam.  Based
 		on a patch from Christian Roessner.
+	TOOLS: Add ability to skip a fixed number of Received: fields.
+		Problem noted by Christian Roessner.
 	BUILD: Portability fixes for Solaris 10 from Leena Heino.
 
 2.7.1		2012/10/30

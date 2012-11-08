@@ -69,6 +69,7 @@ struct configdef spam_config[] =
 	{ "DatabaseSpamColumn",		CONFIG_TYPE_STRING,	FALSE },
 	{ "DatabaseUser",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReporterID",			CONFIG_TYPE_STRING,	FALSE },
+	{ "SkipReceived",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "StatisticsFile",		CONFIG_TYPE_STRING,	FALSE },
 	{ NULL,				(u_int) -1,		FALSE }
 };
@@ -132,6 +133,7 @@ main(int argc, char **argv)
 	int dberr;
 	int repid;
 	int msgid;
+	u_int skipcount = 0;
 	char *p;
 	char *prev;
 	char *dbbackend = NULL;
@@ -244,6 +246,9 @@ main(int argc, char **argv)
 		}
 
 		/* extract values */
+		(void) config_get(conf, "SkipReceived",
+		                  &skipcount, sizeof skipcount);
+
 		if (dbbackend == NULL)
 		{
 			(void) config_get(conf, "DatabaseBackend",
@@ -289,7 +294,7 @@ main(int argc, char **argv)
 		if (reporter == NULL)
 		{
 			(void) config_get(conf, "ReporterID",
-			                  &reporterid, sizeof reporterid);
+			                  &reporter, sizeof reporter);
 		}
 
 		if (statsfile == NULL)
@@ -388,19 +393,27 @@ main(int argc, char **argv)
 			}
 		}
 
-		if (rcvd[0] == '\0')
+		if (strncasecmp(buf, "Received:", 9) == 0)
 		{
-			if (strncasecmp(buf, "Received:", 9) == 0)
-				strlcat(rcvd, buf, sizeof rcvd);
+			if (skipcount > 0)
+			{
+				skipcount--;
+				continue;
+			}
+			else
+			{
+				strlcpy(rcvd, buf, sizeof rcvd);
+			}
 		}
-		else if (buf[0] == '\0' ||
-		         (isascii(buf[0]) && !isspace(buf[0])))
-		{
-			break;
-		}
-		else
+		else if (isascii(buf[0]) && isspace(buf[0]) &&
+		         rcvd[0] != '\0')
 		{
 			strlcat(rcvd, buf, sizeof rcvd);
+		}
+		else if (isascii(buf[0]) && !isspace(buf[0]) &&
+		         rcvd[0] != '\0')
+		{
+			break;
 		}
 	}
 
