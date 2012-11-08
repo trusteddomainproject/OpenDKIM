@@ -57,11 +57,13 @@ int
 dkim_res_init(void **srv)
 {
 #ifdef HAVE_RES_NINIT
-	struct state *res;
+	struct __res_state *res;
 
-	res = malloc(sizeof(struct state));
+	res = malloc(sizeof(struct __res_state));
 	if (res == NULL)
 		return -1;
+
+	memset(res, '\0', sizeof(struct __res_state));
 
 	if (res_ninit(res) != 0)
 	{
@@ -99,13 +101,15 @@ void
 dkim_res_close(void *srv)
 {
 #ifdef HAVE_RES_NINIT
-	struct state *res;
+	struct __res_state *res;
 
 	res = srv;
 
-	res_nclose(res);
-
-	free(res);
+	if (res != NULL)
+	{
+		res_nclose(res);
+		free(res);
+	}
 #endif /* HAVE_RES_NINIT */
 }
 
