@@ -8,7 +8,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Improve re-entrancy of dkim_eoh() when verifying.
 		Requested by Alec Peterson.
 	LIBOPENDKIM: Only do a single read attempt of a private key under
-		GNUTLS to avoid hiding a useful error code.
+		GNUTLS to avoid hiding a useful error code.  Problem noted
+		by Alec Peterson.
 	STATS: Add long option support for opendkim-importstats.  Based on
 		a patch from Christian Roessner.
 	TOOLS: Fix opendkim-genkey subdomains default.  Problem noted by
