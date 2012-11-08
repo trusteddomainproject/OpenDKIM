@@ -183,14 +183,16 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname getaddrinfo gethostbyname2 gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strstr strtol strtoul strtoull])
 
 strl_found="no"
-AC_CHECK_FUNCS([strlcat strlcpy], [strl_found="yes"], [strl_found="no"])
-AM_CONDITIONAL([STRL], [test x"$strl_found" != x"yes"])
+libstrl_found="no"
+AC_CHECK_FUNCS([strlcat], [strl_found="yes"],
+               [AC_SEARCH_LIBS([strlcat], [strl], [libstrl_found="yes"], [strl_found="no"])])
+AM_CONDITIONAL([STRL],
+               [test x"$strl_found" != x"yes" -a x"$libstrl_found" != x"yes"])
 if test x"$strl_found" = x"yes"
 then
 	AC_DEFINE([HAVE_STRL], 1,
 	          [Define to 1 if you have the `strlcat()' and `strlcpy()' functions.])
 fi
-
 
 #
 # Checks for structure members
