@@ -67,6 +67,11 @@ The default is "opendkim".
 Specifies the port number where the database server is listening.  The
 default depends on which backend is in use.
 .TP
+.I -r reporter
+Provides the name of the site reporting the spam.  If not provided, an attempt
+will be made to extract this information from the topmost Received header
+field from the input message.
+.TP
 .I -s column
 Names the database column whose value should be set to "1" as a result
 of this user action.  The default is "uspam".
@@ -117,6 +122,9 @@ are as follows; see above for descriptions:
 .TP
 .I DatabaseUser
 \-u
+.TP
+.I ReporterID
+\-r
 .TP
 .I StatisticsFile
 \-o

@@ -15,6 +15,8 @@ release, and a summary of the changes in that release.
 		Quanah Gibson-Mount.
 	TOOLS: Fix opendkim-testmsg GNUTLS initialization.  Problem noted
 		by Alec Peterson.
+	TOOLS: Add ability to assert a reporter ID to opendkim-spam.  Based
+		on a patch from Christian Roessner.
 
 2.7.1		2012/10/30
 	Fix bug #SF3581657: Fix faulty logic in LDAP open code.  Problem noted

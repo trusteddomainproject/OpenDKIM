@@ -35,7 +35,7 @@
 
 /* definitions, macros, etc. */
 #define	BUFRSZ		1024
-#define	CMDLINEOPTS	"b:c:d:fh:o:p:P:s:u:vV"
+#define	CMDLINEOPTS	"b:c:d:fh:o:p:P:r:s:u:vV"
 #define	DEFDBBACKEND	SQL_BACKEND
 #undef	DEFCONFFILE
 #define	DEFCONFFILE	CONFIG_BASE "/opendkim-spam.conf"
@@ -68,6 +68,7 @@ struct configdef spam_config[] =
 	{ "DatabasePassword",		CONFIG_TYPE_STRING,	FALSE },
 	{ "DatabaseSpamColumn",		CONFIG_TYPE_STRING,	FALSE },
 	{ "DatabaseUser",		CONFIG_TYPE_STRING,	FALSE },
+	{ "ReporterID",			CONFIG_TYPE_STRING,	FALSE },
 	{ "StatisticsFile",		CONFIG_TYPE_STRING,	FALSE },
 	{ NULL,				(u_int) -1,		FALSE }
 };
@@ -96,6 +97,7 @@ usage(void)
 	        "\t-P dbport   \tdatabase port [%s]\n"
 	        "\t-s dbspamcol\tdatabase spam column name [%s]\n"
 	        "\t-u dbuser   \tdatabase user [%s]\n"
+		"\t-r reporter \treporter id (reporting host name)\n"
 	        "\t-v          \tbe more verbose\n"
 	        "\t-V          \tprint version number and exit\n",
 	        progname, progname,
@@ -198,6 +200,10 @@ main(int argc, char **argv)
 			dbuser = optarg;
 			break;
 
+		  case 'r':
+			reporter = optarg;
+			break;
+
 		  case 'v':
 			verbose++;
 			break;
@@ -278,6 +284,12 @@ main(int argc, char **argv)
 		{
 			(void) config_get(conf, "DatabaseUser",
 			                  &dbuser, sizeof dbuser);
+		}
+
+		if (reporter == NULL)
+		{
+			(void) config_get(conf, "ReporterID",
+			                  &reporterid, sizeof reporterid);
 		}
 
 		if (statsfile == NULL)
@@ -427,7 +439,8 @@ main(int argc, char **argv)
 		{
 			if (strcasecmp(prev, "id") == 0)
 				job = p;
-			else if (strcasecmp(prev, "by") == 0)
+			else if (reporter == NULL &&
+			         strcasecmp(prev, "by") == 0)
 				reporter = p;
 		}
 
