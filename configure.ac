@@ -184,14 +184,31 @@ AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname getaddrinfo getho
 
 strl_found="no"
 libstrl_found="no"
-AC_CHECK_FUNCS([strlcat], [strl_found="yes"],
-               [AC_SEARCH_LIBS([strlcat], [strl], [libstrl_found="yes"], [strl_found="no"])])
+AC_CHECK_FUNCS([strlcat strlcpy], [strl_found="yes"],
+               [
+		saved_LIBS="$LIBS"
+		LIBS=""
+		AC_SEARCH_LIBS([strlcat],
+		               [strl],
+		               [libstrl_found="yes"],
+		               [strl_found="no"])
+		AC_SEARCH_LIBS([strlcpy],
+		               [strl],
+		               [libstrl_found="yes"],
+		               [strl_found="no"])
+		STRL_LIBS="$LIBS"
+		LIBS="$saved_LIBS"
+               ])
 AM_CONDITIONAL([STRL],
                [test x"$strl_found" != x"yes" -a x"$libstrl_found" != x"yes"])
-if test x"$strl_found" = x"yes"
+if test x"$libstrl_found" = x"yes"
 then
-	AC_DEFINE([HAVE_STRL], 1,
-	          [Define to 1 if you have the `strlcat()' and `strlcpy()' functions.])
+	LIBS="$LIBS $STRL_LIBS"
+fi
+if test x"$strl_found" != x"yes"
+then
+	AC_DEFINE([HAVE_STRL_H], 1,
+	          [Define to 1 if you need to include <strl.h> to get the `strlcat()' and `strlcpy()' functions.])
 fi
 
 #
