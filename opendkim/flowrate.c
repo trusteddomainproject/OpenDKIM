@@ -17,9 +17,9 @@
 #include <stdlib.h>
 
 /* libstrl if needed */
-#ifndef HAVE_STRL
+#ifdef HAVE_STRL_H
 # include <strl.h>
-#endif /* ! HAVE_STRL */
+#endif /* HAVE_STRL_H */
 
 /* opendkim includes */
 #include "flowrate.h"
