@@ -12,6 +12,8 @@ release, and a summary of the changes in that release.
 		by Alec Peterson.
 	STATS: Add long option support for opendkim-importstats.  Based on
 		a patch from Christian Roessner.
+	STATS: Fix overly-strict domain name rules in opendkim-reportstats.
+		Reported by Christian Roessner.
 	TOOLS: Fix opendkim-genkey subdomains default.  Problem noted by
 		Quanah Gibson-Mount.
 	TOOLS: Fix opendkim-testmsg GNUTLS initialization.  Problem noted
@@ -20,8 +22,12 @@ release, and a summary of the changes in that release.
 		on a patch from Christian Roessner.
 	TOOLS: Add ability to skip a fixed number of Received: fields.
 		Problem noted by Christian Roessner.
-	BUILD: Use a provided libstrl if detected.  Patch from Eray Aslan.
-	BUILD: Portability fixes for Solaris 10 from Leena Heino.
+	TOOLS: Print a warning when asked to generate a key smaller than
+		the recommended minimum.
+	BUILD: Use a provided libstrl if detected.  Based on a patch from
+		Eray Aslan.
+	BUILD: Portability fixes for Solaris 10 from Claus Assmann and
+		Leena Heino.
 
 2.7.1		2012/10/30
 	Fix bug #SF3581657: Fix faulty logic in LDAP open code.  Problem noted
