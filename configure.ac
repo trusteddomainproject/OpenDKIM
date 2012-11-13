@@ -88,7 +88,7 @@ AC_SEARCH_LIBS(inet_aton, resolv)
 AC_SEARCH_LIBS(inet_pton, resolv,
                AC_DEFINE(HAVE_INET_PTON, 1,
                          [Define to 1 if you have the `inet_pton()' function.]))
-AC_SEARCH_LIBS(inet_ntop, resolv,
+AC_SEARCH_LIBS(inet_ntop, resolv nsl,
                AC_DEFINE(HAVE_INET_NTOP, 1,
                         [Define to 1 if you have the `inet_ntop()' function.]))
 AC_SEARCH_LIBS(getaddrinfo, resolv,
@@ -339,6 +339,10 @@ fi
 
 FFR_FEATURE([reputation],
             [support for experimental reputation checks])
+if test x"$enable_reputation" = x"yes"
+then
+	AC_SEARCH_LIBS([ceil], [m])
+fi
 AM_CONDITIONAL([REPUTE], [test x"$enable_reputation" = x"yes"])
 
 FFR_FEATURE([resign],
