@@ -4,7 +4,8 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.7.2		2012/11/??
+2.7.2		2012/11/14
+	Log the author domain name when rejecting or discarding due to ADSP.
 	LIBOPENDKIM: Improve re-entrancy of dkim_eoh() when verifying.
 		Requested by Alec Peterson.
 	LIBOPENDKIM: Only do a single read attempt of a private key under
