@@ -25,8 +25,8 @@ release, and a summary of the changes in that release.
 		Problem noted by Christian Roessner.
 	TOOLS: Print a warning when asked to generate a key smaller than
 		the recommended minimum.
-	BUILD: Use a provided libstrl if detected.  Based on a patch from
-		Eray Aslan.
+	BUILD: Fix bug #SF3585163: Use a provided libstrl if detected.
+		Based on a patch from Eray Aslan.
 	BUILD: Portability fixes for Solaris 10 from Claus Assmann and
 		Leena Heino.
 
