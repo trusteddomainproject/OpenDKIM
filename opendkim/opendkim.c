@@ -13922,8 +13922,9 @@ mlfi_eom(SMFICTX *ctx)
 					if (conf->conf_dolog)
 					{
 						syslog(LOG_NOTICE,
-						       "%s: %sed per sender domain policy",
-						       dfc->mctx_jobid, act);
+						       "%s: %sed per %s author domain policy",
+						       dfc->mctx_jobid,
+						       dfc->mctx_domain, act);
 					}
 					
 					if (smtpprefix[0] == '\0')
