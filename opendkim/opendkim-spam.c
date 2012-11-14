@@ -25,9 +25,9 @@
 #endif /* USE_ODBX */
 
 /* libstrl if needed */
-#ifndef HAVE_STRL
+#ifdef HAVE_STRL_H
 # include <strl.h>
-#endif /* ! HAVE_STRL */
+#endif /* HAVE_STRL_H */
 
 /* opendkim includes */
 #include "config.h"
@@ -35,7 +35,7 @@
 
 /* definitions, macros, etc. */
 #define	BUFRSZ		1024
-#define	CMDLINEOPTS	"b:c:d:fh:o:p:P:s:u:vV"
+#define	CMDLINEOPTS	"b:c:d:fh:o:p:P:r:s:u:vV"
 #define	DEFDBBACKEND	SQL_BACKEND
 #undef	DEFCONFFILE
 #define	DEFCONFFILE	CONFIG_BASE "/opendkim-spam.conf"
@@ -68,6 +68,8 @@ struct configdef spam_config[] =
 	{ "DatabasePassword",		CONFIG_TYPE_STRING,	FALSE },
 	{ "DatabaseSpamColumn",		CONFIG_TYPE_STRING,	FALSE },
 	{ "DatabaseUser",		CONFIG_TYPE_STRING,	FALSE },
+	{ "ReporterID",			CONFIG_TYPE_STRING,	FALSE },
+	{ "SkipReceived",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "StatisticsFile",		CONFIG_TYPE_STRING,	FALSE },
 	{ NULL,				(u_int) -1,		FALSE }
 };
@@ -96,6 +98,7 @@ usage(void)
 	        "\t-P dbport   \tdatabase port [%s]\n"
 	        "\t-s dbspamcol\tdatabase spam column name [%s]\n"
 	        "\t-u dbuser   \tdatabase user [%s]\n"
+		"\t-r reporter \treporter id (reporting host name)\n"
 	        "\t-v          \tbe more verbose\n"
 	        "\t-V          \tprint version number and exit\n",
 	        progname, progname,
@@ -130,6 +133,7 @@ main(int argc, char **argv)
 	int dberr;
 	int repid;
 	int msgid;
+	u_int skipcount = 0;
 	char *p;
 	char *prev;
 	char *dbbackend = NULL;
@@ -198,6 +202,10 @@ main(int argc, char **argv)
 			dbuser = optarg;
 			break;
 
+		  case 'r':
+			reporter = optarg;
+			break;
+
 		  case 'v':
 			verbose++;
 			break;
@@ -238,6 +246,9 @@ main(int argc, char **argv)
 		}
 
 		/* extract values */
+		(void) config_get(conf, "SkipReceived",
+		                  &skipcount, sizeof skipcount);
+
 		if (dbbackend == NULL)
 		{
 			(void) config_get(conf, "DatabaseBackend",
@@ -278,6 +289,12 @@ main(int argc, char **argv)
 		{
 			(void) config_get(conf, "DatabaseUser",
 			                  &dbuser, sizeof dbuser);
+		}
+
+		if (reporter == NULL)
+		{
+			(void) config_get(conf, "ReporterID",
+			                  &reporter, sizeof reporter);
 		}
 
 		if (statsfile == NULL)
@@ -376,19 +393,27 @@ main(int argc, char **argv)
 			}
 		}
 
-		if (rcvd[0] == '\0')
+		if (strncasecmp(buf, "Received:", 9) == 0)
 		{
-			if (strncasecmp(buf, "Received:", 9) == 0)
-				strlcat(rcvd, buf, sizeof rcvd);
+			if (skipcount > 0)
+			{
+				skipcount--;
+				continue;
+			}
+			else
+			{
+				strlcpy(rcvd, buf, sizeof rcvd);
+			}
 		}
-		else if (buf[0] == '\0' ||
-		         (isascii(buf[0]) && !isspace(buf[0])))
-		{
-			break;
-		}
-		else
+		else if (isascii(buf[0]) && isspace(buf[0]) &&
+		         rcvd[0] != '\0')
 		{
 			strlcat(rcvd, buf, sizeof rcvd);
+		}
+		else if (isascii(buf[0]) && !isspace(buf[0]) &&
+		         rcvd[0] != '\0')
+		{
+			break;
 		}
 	}
 
@@ -427,7 +452,8 @@ main(int argc, char **argv)
 		{
 			if (strcasecmp(prev, "id") == 0)
 				job = p;
-			else if (strcasecmp(prev, "by") == 0)
+			else if (reporter == NULL &&
+			         strcasecmp(prev, "by") == 0)
 				reporter = p;
 		}
 

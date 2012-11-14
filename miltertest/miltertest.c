@@ -39,9 +39,9 @@
 #include <dkim.h>
 
 /* libstrl if needed */
-#ifndef HAVE_STRL
+#ifdef HAVE_STRL_H
 # include <strl.h>
-#endif /* ! HAVE_STRL */
+#endif /* HAVE_STRL_H */
 
 /* Lua includes */
 #include <lua.h>

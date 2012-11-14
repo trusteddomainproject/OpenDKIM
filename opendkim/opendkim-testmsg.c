@@ -3,6 +3,8 @@
 **
 */
 
+#include "build-config.h"
+
 /* system includes */
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -220,6 +222,10 @@ main(int argc, char **argv)
 
 		close(fd);
 	}
+
+#ifdef USE_GNUTLS
+	(void) gnutls_global_init();
+#endif /* USE_GNUTLS */
 
 	lib = dkim_init(NULL, NULL);
 	if (lib == NULL)

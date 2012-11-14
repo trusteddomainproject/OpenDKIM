@@ -67,6 +67,11 @@ The default is "opendkim".
 Specifies the port number where the database server is listening.  The
 default depends on which backend is in use.
 .TP
+.I -r reporter
+Provides the name of the site reporting the spam.  If not provided, an attempt
+will be made to extract this information from the topmost Received header
+field from the input message.
+.TP
 .I -s column
 Names the database column whose value should be set to "1" as a result
 of this user action.  The default is "uspam".
@@ -89,8 +94,8 @@ hash ("#") character are ignored.  All other lines should consist of a
 parameter name followed by one or more whitespace characters, then followed
 by its intended value.
 
-Parameters match command line options (specified above), but when present
-the command line options override the configuration file options.  The
+Parameters generally match command line options (specified above), but when
+present the command line options override the configuration file options.  The
 list of configuration file parameters and their command line equivalents
 are as follows; see above for descriptions:
 .TP
@@ -117,6 +122,15 @@ are as follows; see above for descriptions:
 .TP
 .I DatabaseUser
 \-u
+.TP
+.I ReporterID
+\-r
+.TP
+.I SkipReceived
+An integer that defines a number of Received fields that should be skipped
+while searching for the one that was also seen by
+.B opendkim(8)
+so that this command refers to the same Received field.  Defaults to 0.
 .TP
 .I StatisticsFile
 \-o

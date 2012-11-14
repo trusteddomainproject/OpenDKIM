@@ -93,9 +93,9 @@
 #include "base64.h"
 
 /* libstrl if needed */
-#ifndef HAVE_STRL
+#ifdef HAVE_STRL_H
 # include <strl.h>
-#endif /* ! HAVE_STRL */
+#endif /* HAVE_STRL_H */
 
 /* prototypes */
 void dkim_error __P((DKIM *, const char *, ...));
@@ -938,7 +938,7 @@ dkim_load_ssl_errors(DKIM *dkim, int status)
 			dkim_dstring_cat(dkim->dkim_sslerrbuf, "; ");
 
 		dkim_dstring_cat(dkim->dkim_sslerrbuf,
-		                 gnutls_strerror(status));
+		                 (char *) gnutls_strerror(status));
 	}
 
 #else /* USE_GNUTLS */
@@ -1004,7 +1004,7 @@ dkim_sig_load_ssl_errors(DKIM *dkim, DKIM_SIGINFO *sig, int status)
 			dkim_dstring_cat(sig->sig_sslerrbuf, "; ");
 
 		dkim_dstring_cat(sig->sig_sslerrbuf,
-		                 gnutls_strerror(status));
+		                 (char *) gnutls_strerror(status));
 	}
 
 #else /* USE_GNUTLS */
@@ -1108,9 +1108,13 @@ dkim_privkey_load(DKIM *dkim)
 		return DKIM_STAT_NORESOURCE;
 	}
 
-	status = gnutls_x509_privkey_import(rsa->rsa_key, &rsa->rsa_keydata,
-	                                    GNUTLS_X509_FMT_PEM);
-	if (status != GNUTLS_E_SUCCESS)
+	if (strncmp((char *) dkim->dkim_key, "-----", 5) == 0)
+	{						/* PEM */
+		status = gnutls_x509_privkey_import(rsa->rsa_key,
+		                                    &rsa->rsa_keydata,
+	                                            GNUTLS_X509_FMT_PEM);
+	}
+	else
 	{
 		status = gnutls_x509_privkey_import(rsa->rsa_key,
 		                                    &rsa->rsa_keydata,
@@ -3515,8 +3519,6 @@ dkim_eoh_verify(DKIM *dkim)
 		}
 	}
 
-	dkim->dkim_state = DKIM_STATE_EOH2;
-
 	/* if set to ignore everything, treat message as unsigned */
 	set = NULL;
 	for (c = 0; c < dkim->dkim_sigcount; c++)
@@ -3531,6 +3533,7 @@ dkim_eoh_verify(DKIM *dkim)
 	if (set == NULL)
 	{
 		dkim->dkim_skipbody = TRUE;
+		dkim->dkim_state = DKIM_STATE_EOH2;
 		return DKIM_STAT_NOSIG;
 	}
 
@@ -3563,6 +3566,9 @@ dkim_eoh_verify(DKIM *dkim)
 			}
 		}
 	}
+
+	/* no re-entries beyond this point */
+	dkim->dkim_state = DKIM_STATE_EOH2;
 
 	/*
 	**  Possible short-circuit here if all signatures are:

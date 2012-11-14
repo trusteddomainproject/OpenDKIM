@@ -4,7 +4,33 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.7.1		2012/10/??
+2.7.2		2012/11/14
+	Log the author domain name when rejecting or discarding due to ADSP.
+	LIBOPENDKIM: Improve re-entrancy of dkim_eoh() when verifying.
+		Requested by Alec Peterson.
+	LIBOPENDKIM: Only do a single read attempt of a private key under
+		GNUTLS to avoid hiding a useful error code.  Problem noted
+		by Alec Peterson.
+	STATS: Add long option support for opendkim-importstats.  Based on
+		a patch from Christian Roessner.
+	STATS: Fix overly-strict domain name rules in opendkim-reportstats.
+		Reported by Christian Roessner.
+	TOOLS: Fix opendkim-genkey subdomains default.  Problem noted by
+		Quanah Gibson-Mount.
+	TOOLS: Fix opendkim-testmsg GNUTLS initialization.  Problem noted
+		by Alec Peterson.
+	TOOLS: Add ability to assert a reporter ID to opendkim-spam.  Based
+		on a patch from Christian Roessner.
+	TOOLS: Add ability to skip a fixed number of Received: fields.
+		Problem noted by Christian Roessner.
+	TOOLS: Print a warning when asked to generate a key smaller than
+		the recommended minimum.
+	BUILD: Use a provided libstrl if detected.  Based on a patch from
+		Eray Aslan.
+	BUILD: Portability fixes for Solaris 10 from Claus Assmann and
+		Leena Heino.
+
+2.7.1		2012/10/30
 	Fix bug #SF3581657: Fix faulty logic in LDAP open code.  Problem noted
 		by Quanah Gibson-Mount.
 	Fix bug #SF3581743: Properly handle NULLs returned from OpenDBX

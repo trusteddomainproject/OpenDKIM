@@ -315,7 +315,7 @@ main(int argc, char **argv)
 		  case 0:
 			(void) dup2(fd, 1);
 			(void) dup2(fd, 2);
-			return execvp(args[0], args);
+			return execvp(args[0], (char * const *) args);
 
 		  default:
 			n = wait(&status);
@@ -388,7 +388,7 @@ main(int argc, char **argv)
 		  case 0:
 			(void) dup2(fd, 1);
 			(void) dup2(fd, 2);
-			return execvp(args[0], args);
+			return execvp(args[0], (char * const *) args);
 
 		  default:
 			n = wait(&status);
@@ -462,7 +462,7 @@ main(int argc, char **argv)
 		  case 0:
 			(void) dup2(fd, 1);
 			(void) dup2(fd, 2);
-			return execvp(args[0], args);
+			return execvp(args[0], (char * const *) args);
 
 		  default:
 			n = wait(&status);

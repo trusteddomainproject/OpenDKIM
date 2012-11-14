@@ -30,7 +30,7 @@ opendkim_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_LDFLAGS = $(LIBCRYPTO_LIBDIRS) $(LIBMILTER_LIBDIRS) $(PTHREAD_CFLAGS) $(COV_LDFLAGS)
 opendkim_LDADD = ../libopendkim/libopendkim.la $(LIBMILTER_LIBS) $(LIBCRYPTO_LIBS) $(PTHREAD_LIBS) $(COV_LIBADD)
 if STRL
-opendkim_CFLAGS += -I../libstrl
+opendkim_CFLAGS += -I$(top_srcdir)/libstrl
 opendkim_LDADD += ../libstrl/libstrl.la
 endif
 if USE_DB_OPENDKIM
@@ -116,7 +116,7 @@ opendkim_testkey_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS) $(PTHREAD_CFLAGS)
 opendkim_testkey_LDFLAGS = $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS)
 opendkim_testkey_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(LIBRESOLV) $(COV_LIBADD) $(PTHREAD_LIBS)
 if STRL
-opendkim_testkey_CFLAGS += -I../libstrl
+opendkim_testkey_CFLAGS += -I$(top_srcdir)/libstrl
 opendkim_testkey_LDADD += ../libstrl/libstrl.la
 endif
 if LUA
@@ -185,7 +185,7 @@ opendkim_testadsp_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_testadsp_LDFLAGS = $(COV_LDFLAGS)
 opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(LIBRESOLV) $(COV_LIBADD)
 if STRL
-opendkim_testadsp_CFLAGS += -I../libstrl
+opendkim_testadsp_CFLAGS += -I$(top_srcdir)/libstrl
 opendkim_testadsp_LDADD += ../libstrl/libstrl.la
 endif
 
@@ -195,7 +195,7 @@ opendkim_testmsg_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_testmsg_LDFLAGS = $(COV_LDFLAGS)
 opendkim_testmsg_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(LIBRESOLV) $(COV_LIBADD)
 if STRL
-opendkim_testmsg_CFLAGS += -I../libstrl
+opendkim_testmsg_CFLAGS += -I$(top_srcdir)/libstrl
 opendkim_testmsg_LDADD += ../libstrl/libstrl.la
 endif
 
@@ -205,7 +205,7 @@ opendkim_genzone_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_genzone_LDFLAGS = $(COV_LDFLAGS) $(LIBCRYPTO_LIBDIRS)
 opendkim_genzone_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(COV_LIBADD)
 if STRL
-opendkim_genzone_CFLAGS += -I../libstrl
+opendkim_genzone_CFLAGS += -I$(top_srcdir)/libstrl
 opendkim_genzone_LDADD += ../libstrl/libstrl.la
 endif
 if USE_DB_OPENDKIM
@@ -258,7 +258,7 @@ opendkim_atpszone_CFLAGS = $(COV_CFLAGS) $(LIBCRYPTO_CFLAGS)
 opendkim_atpszone_LDFLAGS = $(COV_LDFLAGS) $(LIBCRYPTO_LIBDIRS)
 opendkim_atpszone_LDADD = ../libopendkim/libopendkim.la $(COV_LIBADD) $(LIBCRYPTO_LIBS)
 if STRL
-opendkim_atpszone_CFLAGS += -I../libstrl
+opendkim_atpszone_CFLAGS += -I$(top_srcdir)/libstrl
 opendkim_atpszone_LDADD += ../libstrl/libstrl.la
 endif
 if USE_DB_OPENDKIM
@@ -313,7 +313,7 @@ opendkim_spam_CFLAGS = $(COV_CFLAGS) $(LIBODBX_CFLAGS)
 opendkim_spam_LDFLAGS = $(COV_LDFLAGS) $(LIBODBX_LDFLAGS)
 opendkim_spam_LDADD = $(COV_LIBADD) $(LIBODBX_LIBS) $(LIBDL_LIBS)
 if STRL
-opendkim_spam_CFLAGS += -I../libstrl
+opendkim_spam_CFLAGS += -I$(top_srcdir)/libstrl
 opendkim_spam_LDADD += ../libstrl/libstrl.la
 endif
 endif

@@ -28,9 +28,9 @@
 #include "util.h"
 
 /* libstrl if needed */
-#ifndef HAVE_STRL
+#ifdef HAVE_STRL_H
 # include <strl.h>
-#endif /* ! HAVE_STRL */
+#endif /* HAVE_STRL_H */
 
 #if defined(__RES) && (__RES >= 19940415)
 # define RES_UNC_T		char *

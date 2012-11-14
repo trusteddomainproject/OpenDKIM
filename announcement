@@ -1,27 +1,40 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.7.1 released
+Subject: OpenDKIM v2.7.2 released
 
-The Trusted Domain Project announces availability of OpenDKIM v2.7.1, now
+The Trusted Domain Project announces availability of OpenDKIM v2.7.2, now
 available for download from SourceForge.
 
-This is a bug fix release, patching a few minor crash conditions that can
-be triggered by certain database operations.  It also fixes up command line
-argument processing for opendkim-genkey, and plugs a memory leak in the
-reputation code discovered in a code review.  These issues were
-unfortunately not detected during the beta period for 2.7.0.
+This is a collection of minor bug fixes.  Upgrade is required only if there
+is something in the release that fixes a pain point you're having at your site.
 
 The full RELEASE_NOTES for this version:
 
-2.7.1		2012/10/30
-	Fix bug #SF3581657: Fix faulty logic in LDAP open code.  Problem noted
-		by Quanah Gibson-Mount.
-	Fix bug #SF3581743: Properly handle NULLs returned from OpenDBX
-		queries and low field counts in dkimf_db_walk().  Problem
-		noted by Adam M. Jacques.
-	In the _FFR_REPUTATION code, free JSON objects when done with them.
-	TOOLS: Fix argument parsing in new version of opendkim-genkey.
-		Problem noted by Steve Jenkins.
+2.7.2		2012/11/14
+	Log the author domain name when rejecting or discarding due to ADSP.
+	LIBOPENDKIM: Improve re-entrancy of dkim_eoh() when verifying.
+		Requested by Alec Peterson.
+	LIBOPENDKIM: Only do a single read attempt of a private key under
+		GNUTLS to avoid hiding a useful error code.  Problem noted
+		by Alec Peterson.
+	STATS: Add long option support for opendkim-importstats.  Based on
+		a patch from Christian Roessner.
+	STATS: Fix overly-strict domain name rules in opendkim-reportstats.
+		Reported by Christian Roessner.
+	TOOLS: Fix opendkim-genkey subdomains default.  Problem noted by
+		Quanah Gibson-Mount.
+	TOOLS: Fix opendkim-testmsg GNUTLS initialization.  Problem noted
+		by Alec Peterson.
+	TOOLS: Add ability to assert a reporter ID to opendkim-spam.  Based
+		on a patch from Christian Roessner.
+	TOOLS: Add ability to skip a fixed number of Received: fields.
+		Problem noted by Christian Roessner.
+	TOOLS: Print a warning when asked to generate a key smaller than
+		the recommended minimum.
+	BUILD: Use a provided libstrl if detected.  Based on a patch from
+		Eray Aslan.
+	BUILD: Portability fixes for Solaris 10 from Claus Assmann and
+		Leena Heino.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,

@@ -7,18 +7,6 @@
 ##
 ## opendkim-genkey -- generate a key and/or TXT record for DKIM service
 ##
-## Usage: opendkim-genkey [options]
-## 	-a		append domain name to label
-## 	-b bits		key size (default = 1024)
-##  	-d domain	signing domain (default = "@DOMAIN@")
-## 	-D dir		output directory (default = ".")
-## 	-h algs		list of allowed hash algorithms (default = unspecified)
-## 	-n text		include "text" as a note in the output key record
-## 	-r		restrict this key to e-mail use only
-## 	-s name		selector name (default = "default")
-## 	-S		disallow subdomain signing with this key
-##  	-t		set the "test mode" bit in the TXT record
-##
 ## The output of this script includes two files based on the
 ## selector name:
 ##
@@ -44,7 +32,7 @@ my $bits = 1024;
 my $domain = "@DOMAIN@";
 my $version = "@DOMAIN@";
 my $outdir = ".";
-my $subdomains = 0;
+my $subdomains = 1;
 my $hashalgs;
 my $note;
 my $flags = "";
@@ -141,6 +129,11 @@ if ($verbose >= 1)
 	print STDERR "$progname: generating private key\n";
 }
 
+if ($bits < 1024)
+{
+	print STDERR "$progname: WARNING: RFC6376 advises minimum 1024-bit keys\n";
+}
+
 $status = system("openssl genrsa -out " . $selector . ".private " . $bits . " > /dev/null 2>&1");
 if ($status != 0)
 {
@@ -225,12 +218,17 @@ if (!$subdomains)
 
 if ($restricted)
 {
-	$flags .= " s=email;";
+	if ($flags ne "")
+	{
+		$flags .= " ";
+	}
+
+	$flags .= "s=email;";
 }
 
 if ($flags ne "")
 {
-	$flags = " " . $flags . " ";
+	$flags .= " ";
 }
 
 $hashout = "";
@@ -266,7 +264,7 @@ if (!open($txtout, ">", $selector . ".txt"))
 	exit(1);
 }
 
-print $txtout $selector . "._domainkey" . ${domstr} . "\tIN\tTXT\t( \"v=DKIM1;" . $noteout . $hashout . " k=rsa;" . $flags . "\"\n\t  \"p=";
+print $txtout $selector . "._domainkey" . ${domstr} . "\tIN\tTXT\t( \"v=DKIM1;" . $noteout . $hashout . " k=rsa; " . $flags . "\"\n\t  \"p=";
 
 $len = length($keydata);
 $cur = 0;

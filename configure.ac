@@ -14,7 +14,7 @@ AC_PREREQ(2.61)
 #
 m4_define([VERSION_RELEASE], 2)
 m4_define([VERSION_MAJOR_REV], 7)
-m4_define([VERSION_MINOR_REV], 1)
+m4_define([VERSION_MINOR_REV], 2)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -23,7 +23,7 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "revision" with internal source code changes
 #
 m4_define([LIBVERSION_CURRENT], 8)
-m4_define([LIBVERSION_REVISION], 0)
+m4_define([LIBVERSION_REVISION], 1)
 m4_define([LIBVERSION_AGE], 0)
 
 #
@@ -88,7 +88,7 @@ AC_SEARCH_LIBS(inet_aton, resolv)
 AC_SEARCH_LIBS(inet_pton, resolv,
                AC_DEFINE(HAVE_INET_PTON, 1,
                          [Define to 1 if you have the `inet_pton()' function.]))
-AC_SEARCH_LIBS(inet_ntop, resolv,
+AC_SEARCH_LIBS(inet_ntop, resolv nsl,
                AC_DEFINE(HAVE_INET_NTOP, 1,
                         [Define to 1 if you have the `inet_ntop()' function.]))
 AC_SEARCH_LIBS(getaddrinfo, resolv,
@@ -100,7 +100,9 @@ AC_SEARCH_LIBS(res_ninit, resolv,
 AC_SEARCH_LIBS(res_sertservers, resolv bind,
                AC_DEFINE(HAVE_RES_SETSERVERS, 1,
                          [Define to 1 if you have the `res_setservers()' function.]))
-
+AC_SEARCH_LIBS(getopt_long, iberty,
+               AC_DEFINE(HAVE_GETOPT_LONG, 1,
+                         [Define to 1 if you have the `getopt_long()' function.]))
 
 AC_HEADER_RESOLV
 
@@ -181,14 +183,33 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname getaddrinfo gethostbyname2 gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strstr strtol strtoul strtoull])
 
 strl_found="no"
-AC_CHECK_FUNCS([strlcat strlcpy], [strl_found="yes"], [strl_found="no"])
-AM_CONDITIONAL([STRL], [test x"$strl_found" != x"yes"])
-if test x"$strl_found" = x"yes"
+libstrl_found="no"
+AC_CHECK_FUNCS([strlcat strlcpy], [strl_found="yes"],
+               [
+		saved_LIBS="$LIBS"
+		LIBS=""
+		AC_SEARCH_LIBS([strlcat],
+		               [strl],
+		               [libstrl_found="yes"],
+		               [strl_found="no"])
+		AC_SEARCH_LIBS([strlcpy],
+		               [strl],
+		               [libstrl_found="yes"],
+		               [strl_found="no"])
+		STRL_LIBS="$LIBS"
+		LIBS="$saved_LIBS"
+               ])
+AM_CONDITIONAL([STRL],
+               [test x"$strl_found" != x"yes" -a x"$libstrl_found" != x"yes"])
+if test x"$libstrl_found" = x"yes"
 then
-	AC_DEFINE([HAVE_STRL], 1,
-	          [Define to 1 if you have the `strlcat()' and `strlcpy()' functions.])
+	LIBS="$LIBS $STRL_LIBS"
 fi
-
+if test x"$strl_found" != x"yes"
+then
+	AC_DEFINE([HAVE_STRL_H], 1,
+	          [Define to 1 if you need to include <strl.h> to get the `strlcat()' and `strlcpy()' functions.])
+fi
 
 #
 # Checks for structure members
@@ -318,6 +339,10 @@ fi
 
 FFR_FEATURE([reputation],
             [support for experimental reputation checks])
+if test x"$enable_reputation" = x"yes"
+then
+	AC_SEARCH_LIBS([ceil], [m])
+fi
 AM_CONDITIONAL([REPUTE], [test x"$enable_reputation" = x"yes"])
 
 FFR_FEATURE([resign],

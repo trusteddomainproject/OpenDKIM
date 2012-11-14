@@ -99,9 +99,9 @@
 #endif /* _FFR_VBR */
 
 /* libstrl if needed */
-#ifndef HAVE_STRL
+#ifdef HAVE_STRL_H
 # include <strl.h>
-#endif /* ! HAVE_STRL */
+#endif /* HAVE_STRL_H */
 
 #ifdef _FFR_REPUTATION
 /* reputation includes */
@@ -13922,8 +13922,9 @@ mlfi_eom(SMFICTX *ctx)
 					if (conf->conf_dolog)
 					{
 						syslog(LOG_NOTICE,
-						       "%s: %sed per sender domain policy",
-						       dfc->mctx_jobid, act);
+						       "%s: %sed per %s author domain policy",
+						       dfc->mctx_jobid,
+						       dfc->mctx_domain, act);
 					}
 					
 					if (smtpprefix[0] == '\0')
@@ -15562,6 +15563,8 @@ mlfi_eom(SMFICTX *ctx)
 		status = dkimf_msr_eom(dfc->mctx_srhead, &lastdkim);
 		if (status != DKIM_STAT_OK)
 		{
+			dkimf_log_ssl_errors(lastdkim, NULL,
+			                     (char *) dfc->mctx_jobid);
 			return dkimf_libstatus(ctx, lastdkim, "dkim_eom()",
 			                       status);
 		}

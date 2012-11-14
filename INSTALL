@@ -145,8 +145,6 @@ The supported features are as follows.  The can be turned on at compile
 time by adding "--enable-xxx" to the "configure" command line (described
 below), where "xxx" is the name of the feature.
 
-arlib		Use the provided asynchronous resolver library.
-
 codecoverage	Compile the code such that executing it produces code
 		coverage and profiling output, used for code analysis.
 		Not intended for production use.

@@ -20,7 +20,7 @@ opendkim_importstats_CFLAGS = $(LIBODBX_CFLAGS) $(COV_CFLAGS)
 opendkim_importstats_LDFLAGS = $(LIBODBX_LDFLAGS) $(COV_LDFLAGS)
 opendkim_importstats_LDADD = $(LIBODBX_LIBS) $(LIBDL_LIBS) $(COV_LIBADD)
 if STRL
-opendkim_importstats_CFLAGS += -I../libstrl
+opendkim_importstats_CFLAGS += -I$(top_srcdir)/libstrl
 opendkim_importstats_LDADD += ../libstrl/libstrl.la
 endif
 

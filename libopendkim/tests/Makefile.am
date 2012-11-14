@@ -9,6 +9,10 @@ endif
 LDADD = ../libopendkim.la $(COV_LIBADD) $(LIBCRYPTO_LIBS)
 AM_CPPFLAGS = -I..
 
+if STRL
+AM_CPPFLAGS += -I$(top_srcdir)/libstrl
+endif
+
 if USE_GNUTLS
 AM_CFLAGS += $(LIBCRYPTO_CFLAGS)
 AM_CPPFLAGS += $(LIBCRYPTO_CPPFLAGS)

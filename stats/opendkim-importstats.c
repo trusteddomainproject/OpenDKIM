@@ -1,7 +1,8 @@
 /*
 **  Copyright (c) 2010-2012, The Trusted Domain Project.  All rights reserved.
-**
 */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/param.h>
@@ -14,15 +15,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#ifdef HAVE_GETOPT_LONG
+# define _GNU_SOURCE
+# include <getopt.h>
+#endif /* HAVE_GETOPT_LONG */
 
 /* OpenDKIM includes */
-#include "build-config.h"
 #include "stats.h"
 
 /* libstrl if needed */
-#ifndef HAVE_STRL
+#ifdef HAVE_STRL_H
 # include <strl.h>
-#endif /* ! HAVE_STRL */
+#endif /* HAVE_STRL_H */
 
 /* libodbx includes */
 #ifdef USE_ODBX
@@ -61,6 +65,21 @@ struct table last_insert_id[] =
 	{ "pgsql",	"LASTVAL()" },
 	{ NULL,		NULL }
 };
+
+#ifdef HAVE_GETOPT_LONG
+/* getopt long option names */
+struct option long_option[] =
+{
+	{ "dbhost",	required_argument,	NULL,	'h' },
+	{ "dbname",	required_argument,	NULL,	'd' },
+	{ "dbpasswd",	required_argument,	NULL,	'p' },
+	{ "dbport",	required_argument,	NULL,	'P' },
+	{ "dbscheme",	required_argument,	NULL,	's' },
+	{ "dbuser",	required_argument,	NULL,	'u' },
+	{ "verbose",	required_argument,	NULL,	'v' },
+	{ NULL,		0,			NULL,	'\0' }
+};
+#endif /* HAVE_GETOPT_LONG */
 
 /*
 **  SANITIZE -- sanitize a string
@@ -339,21 +358,41 @@ int
 usage(void)
 {
 	fprintf(stderr, "%s: usage: %s [options]\n"
-	                "\t-d dbname  \tdatabase name (default: \"%s\")\n"
-	                "\t-E         \tinput errors are fatal\n"
-	                "\t-F         \tdump parsed fields on errors\n"
-	                "\t-h dbhost  \tdatabase host/address (default: \"%s\")\n"
-	                "\t-m         \tinput is in email format\n"
-	                "\t-P dbport  \tdatabase port\n"
-	                "\t-p dbpasswd\tdatabase password\n"
-	                "\t-r         \tdon't add unknown reporters\n"
-	                "\t-S         \tdon't skip duplicate messages\n"
-	                "\t-s dbscheme\tdatabase scheme (default: \"%s\")\n"
-	                "\t-u dbuser  \tdatabase user (default: \"%s\")\n"
-	                "\t-v         \tincrease verbose output\n"
-#ifdef _FFR_STATSEXT
-	                "\t-x         \timport extension records\n"
-#endif /* _FFR_STATSEXT */
+#ifdef HAVE_GETOPT_LONG
+	                "\t-d, --dbname=name    \tdatabase name (default: \"%s\")\n"
+	                "\t-E                   \tinput errors are fatal\n"
+	                "\t-F                   \tdump parsed fields on errors\n"
+	                "\t-h, --dbhost=host    \tdatabase host/address (default: \"%s\")\n"
+	                "\t-m                   \tinput is in email format\n"
+	                "\t-P, --dbport=port    \tdatabase port\n"
+	                "\t-p, --dbpasswd=passwd\tdatabase password\n"
+	                "\t-r                   \tdon't add unknown reporters\n"
+	                "\t-S                   \tdon't skip duplicate messages\n"
+	                "\t-s, --dbscheme=scheme\tdatabase scheme (default: \"%s\")\n"
+	                "\t-u, --dbuser=user    \tdatabase user (default: \"%s\")\n"
+	                "\t-v, --verbose        \tincrease verbose output\n"
+# ifdef _FFR_STATSEXT
+	                "\t-x                   \timport extension records\n"
+# endif /* _FFR_STATSEXT */
+
+#else /* HAVE_GETOPT_LONG */
+
+	                "\t-d name  \tdatabase name (default: \"%s\")\n"
+	                "\t-E       \tinput errors are fatal\n"
+	                "\t-F       \tdump parsed fields on errors\n"
+	                "\t-h host  \tdatabase host/address (default: \"%s\")\n"
+	                "\t-m       \tinput is in email format\n"
+	                "\t-P port  \tdatabase port\n"
+	                "\t-p passwd\tdatabase password\n"
+	                "\t-r       \tdon't add unknown reporters\n"
+	                "\t-S       \tdon't skip duplicate messages\n"
+	                "\t-s scheme\tdatabase scheme (default: \"%s\")\n"
+	                "\t-u user  \tdatabase user (default: \"%s\")\n"
+	                "\t-v       \tincrease verbose output\n"
+# ifdef _FFR_STATSEXT
+	                "\t-x       \timport extension records\n"
+# endif /* _FFR_STATSEXT */
+#endif /* HAVE_GETOPT_LONG */
 	        ,
 	        progname, progname, DEFDBNAME, DEFDBHOST, DEFDBSCHEME,
 	        DEFDBUSER);
@@ -393,6 +432,9 @@ main(int argc, char **argv)
 	int sigid;
 	int hdrid;
 	int inversion = -1;
+#ifdef HAVE_GETOPT_LONG
+	int long_opt_index = 0;
+#endif /* HAVE_GETOPT_LONG */
 	char *p;
 	char *lastrow = NULL;
 	char *dbhost = DEFDBHOST;
@@ -412,7 +454,12 @@ main(int argc, char **argv)
 
 	verbose = 0;
 
+#ifdef HAVE_GETOPT_LONG
 	while ((c = getopt(argc, argv, CMDLINEOPTS)) != -1)
+#else /* HAVE_GETOPT_LONG */
+	while ((c = getopt_long(argc, argv, CMDLINEOPTS,
+	                        long_option, &long_opt_index)) != -1)
+#endif /* HAVE_GETOPT_LONG */
 	{
 		switch (c)
 		{
