@@ -5689,6 +5689,7 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 	  case DKIMF_DB_TYPE_DSN:
 	  {
 		char *p;
+		size_t len;
 
 		strlcpy(err, odbx_error((odbx_t *) db->db_handle,
 		                        db->db_status), errlen);
@@ -5699,8 +5700,9 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 			else
 				break;
 		}
-	  }
 
+		return strlen(err) + 1;
+	  }
 #endif /* USE_ODBX */
 
 #ifdef USE_LDAP
