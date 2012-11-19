@@ -4,6 +4,13 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.7.3		2012/1?/??
+	Log DB error string in dkimf_add_signrequest(), and fix a DSN handling
+		error in dkimf_db_strerror().  Problem noted by
+		Simone Caruso.
+	REPUTATION: Use lowercase for keywords in REPUTE query generation
+		and handling.
+
 2.7.2		2012/11/14
 	Log the author domain name when rejecting or discarding due to ADSP.
 	LIBOPENDKIM: Improve re-entrancy of dkim_eoh() when verifying.
