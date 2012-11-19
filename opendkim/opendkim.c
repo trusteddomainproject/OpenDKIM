@@ -4745,7 +4745,30 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 
 		if (dkimf_db_get(keytable, keyname, strlen(keyname),
 		                 dbd, 3, &found) != 0)
+		{
+			char err[BUFRSZ];
+
+			memset(err, '\0', sizeof err);
+			(void) dkimf_db_strerror(keytable, err, sizeof err);
+
+			if (dolog)
+			{
+				if (err[0] != '\0')
+				{
+					syslog(LOG_ERR,
+					       "key '%s': dkimf_db_get(): %s",
+					       keyname, err);
+				}
+				else
+				{
+					syslog(LOG_ERR,
+					       "key '%s': dkimf_db_get() failed",
+					       keyname);
+				}
+			}
+
 			return -1;
+		}
 
 		if (!found)
 			return 1;
