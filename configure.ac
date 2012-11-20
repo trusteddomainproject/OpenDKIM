@@ -184,6 +184,8 @@ AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname getaddrinfo getho
 
 strl_found="no"
 libstrl_found="no"
+strl_h_found="no"
+AC_CHECK_HEADER([strl.h], [strl_h_found="yes"])
 AC_CHECK_FUNCS([strlcat strlcpy], [strl_found="yes"],
                [
 		saved_LIBS="$LIBS"
@@ -205,7 +207,10 @@ if test x"$libstrl_found" = x"yes"
 then
 	LIBS="$LIBS $STRL_LIBS"
 fi
-if test x"$strl_found" != x"yes"
+# we need to include <strl.h> if:
+# (a) strlcat and strlcpy weren't found, since we'll be rolling our own; OR
+# (b) an installed strl.h was found
+if test x"$strl_h_found" = x"yes" -o \( x"$strl_found" = x"no" -a x"$libstrl_found" = x"no" \)
 then
 	AC_DEFINE([HAVE_STRL_H], 1,
 	          [Define to 1 if you need to include <strl.h> to get the `strlcat()' and `strlcpy()' functions.])
