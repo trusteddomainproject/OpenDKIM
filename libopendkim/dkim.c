@@ -2526,8 +2526,11 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		dkim_dstring_catn(dstr, hdr->hdr_text, hdr->hdr_namelen);
 	}
 
-	if (dkim->dkim_libhandle->dkiml_oversignhdrs != NULL)
+	if (dkim->dkim_libhandle->dkiml_oversignhdrs != NULL &&
+	    dkim->dkim_libhandle->dkiml_oversignhdrs[0] != NULL)
 	{
+		_Bool wrote = FALSE;
+
 		if (firsthdr)
 		{
 			dkim_dstring_cat1(dstr, ';');
@@ -2543,11 +2546,16 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		     dkim->dkim_libhandle->dkiml_oversignhdrs[n] != NULL;
 		     n++)
 		{
-			if (n != 0)
+			if (dkim->dkim_libhandle->dkiml_oversignhdrs[n][0] == '\0')
+				continue;
+
+			if (wrote)
 				dkim_dstring_cat1(dstr, ':');
 
 			dkim_dstring_cat(dstr,
 			                 dkim->dkim_libhandle->dkiml_oversignhdrs[n]);
+
+			wrote = TRUE;
 		}
 	}
 

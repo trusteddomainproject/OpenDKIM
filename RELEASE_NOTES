@@ -8,6 +8,9 @@ release, and a summary of the changes in that release.
 	Log DB error string in dkimf_add_signrequest(), and fix a DSN handling
 		error in dkimf_db_strerror().  Problem noted by
 		Simone Caruso.
+	LIBOPENDKIM: Ignore entries in the oversign header field name list
+		that are empty, and an oversign header field name list that
+		is present but empty.  Problem noted by Alec Peterson.
 	BUILD: Improve tests for including <strl.h>.  Based on a patch from
 		Eray Aslan.
 	REPUTATION: Use lowercase for keywords in REPUTE query generation
