@@ -4771,6 +4771,12 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		{
 			memcpy(ptr, &lib->dkiml_oversignhdrs, len);
 		}
+		else if (ptr == NULL)
+		{
+			if (lib->dkiml_oversignhdrs != NULL)
+				dkim_clobber_array((char **) lib->dkiml_oversignhdrs);
+			lib->dkiml_oversignhdrs = NULL;
+		}
 		else
 		{
 			const char **tmp;
@@ -4796,6 +4802,9 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		}
 		else if (ptr == NULL)
 		{
+			if (lib->dkiml_mbs != NULL)
+				dkim_clobber_array((char **) lib->dkiml_mbs);
+
 			lib->dkiml_mbs = NULL;
 		}
 		else

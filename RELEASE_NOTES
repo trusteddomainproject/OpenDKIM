@@ -11,6 +11,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Ignore entries in the oversign header field name list
 		that are empty, and an oversign header field name list that
 		is present but empty.  Problem noted by Alec Peterson.
+	LIBOPENDKIM: Allow header field lists to be empty, flushing any that
+		were previously defined.  Problem noted by Alec Peterson.
 	BUILD: Improve tests for including <strl.h>.  Based on a patch from
 		Eray Aslan.
 	REPUTATION: Use lowercase for keywords in REPUTE query generation
