@@ -24,9 +24,9 @@
 #include <dkim.h>
 
 /* libstrl if needed */
-#ifdef HAVE_STRL_H
+#ifdef USE_STRL_H
 # include <strl.h>
-#endif /* HAVE_STRL_H */
+#endif /* USE_STRL_H */
 
 /* opendkim includes */
 #include "config.h"

@@ -99,9 +99,9 @@
 #endif /* _FFR_VBR */
 
 /* libstrl if needed */
-#ifdef HAVE_STRL_H
+#ifdef USE_STRL_H
 # include <strl.h>
-#endif /* HAVE_STRL_H */
+#endif /* USE_STRL_H */
 
 #ifdef _FFR_REPUTATION
 /* reputation includes */

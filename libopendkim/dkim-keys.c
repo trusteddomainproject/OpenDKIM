@@ -30,9 +30,9 @@
 #include "util.h"
 
 /* libstrl if needed */
-#ifdef HAVE_STRL_H
+#ifdef USE_STRL_H
 # include <strl.h>
-#endif /* HAVE_STRL_H */
+#endif /* USE_STRL_H */
 
 /* prototypes */
 extern void dkim_error __P((DKIM *, const char *, ...));

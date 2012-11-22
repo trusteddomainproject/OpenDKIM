@@ -23,9 +23,9 @@
 #include "t-testdata.h"
 
 /* libstrl if needed */
-#ifdef HAVE_STRL_H
+#ifdef USE_STRL_H
 # include <strl.h>
-#endif /* HAVE_STRL_H */
+#endif /* USE_STRL_H */
 
 #define	MAXHEADER	4096
 #define	MAXMSGSIZE	16384
