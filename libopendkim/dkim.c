@@ -4485,7 +4485,6 @@ dkim_close(DKIM_LIB *lib)
 	if (lib->dkiml_signre)
 		(void) regfree(&lib->dkiml_hdrre);
 
-
 	if (lib->dkiml_oversignhdrs != NULL)
 		dkim_clobber_array((char **) lib->dkiml_oversignhdrs);
 
