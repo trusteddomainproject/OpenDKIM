@@ -4,7 +4,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.7.3		2012/1?/??
+2.7.3		2012/11/30
 	Log DB error string in dkimf_add_signrequest(), and fix a DSN handling
 		error in dkimf_db_strerror().  Problem noted by
 		Simone Caruso.
