@@ -17,6 +17,8 @@ release, and a summary of the changes in that release.
 		Eray Aslan.
 	REPUTATION: Use lowercase for keywords in REPUTE query generation
 		and handling.
+	STATS: Clean up a dead link in opendkim-genstats.  Patch from Andreas
+		Schulze.
 
 2.7.2		2012/11/14
 	Log the author domain name when rejecting or discarding due to ADSP.

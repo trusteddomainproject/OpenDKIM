@@ -235,7 +235,6 @@ print $out " <li> <a href=\"#unique_domains\">Count of unique signed From: domai
 print $out " <li> <a href=\"#top_signing_domains\">Top 10 signing domains by signature count</a>\n";
 print $out " <li> <a href=\"#top_passing_domains\">Top 10 signing domains by passing signature percentage</a>\n";
 print $out " <li> <a href=\"#top_failing_domains\">Top 10 signing domains by failed signature percentage</a>\n";
-print $out " <li> <a href=\"#ip_correlation\">Correlation of IP addresses to signed From: domains</a>\n";
 print $out " <li> <a href=\"#use_counts\">Signing domain use counts</a>\n";
 print $out " <li> <a href=\"#signing_trend_msg\">Trend in message signing rates</a>\n";
 print $out " <li> <a href=\"#signing_trend_domain\">Trend in domain signing rates</a>\n";
