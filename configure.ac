@@ -14,7 +14,7 @@ AC_PREREQ(2.61)
 #
 m4_define([VERSION_RELEASE], 2)
 m4_define([VERSION_MAJOR_REV], 7)
-m4_define([VERSION_MINOR_REV], 2)
+m4_define([VERSION_MINOR_REV], 3)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -23,7 +23,7 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "revision" with internal source code changes
 #
 m4_define([LIBVERSION_CURRENT], 8)
-m4_define([LIBVERSION_REVISION], 1)
+m4_define([LIBVERSION_REVISION], 2)
 m4_define([LIBVERSION_AGE], 0)
 
 #
@@ -184,6 +184,35 @@ AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname getaddrinfo getho
 
 strl_found="no"
 libstrl_found="no"
+strl_h_found="no"
+AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
+if test x"$strl_h_found" != x"yes"
+then
+	strldirs="/usr/local/include /usr/include"
+
+	for d in $strldirs
+	do
+		AC_MSG_CHECKING([for strl.h in $d/strl])
+		if test -f $d/strl/strl.h
+		then
+			unset ac_cv_header_strl_h
+			saved_CPPFLAGS="$CPPFLAGS"
+			CPPFLAGS="$CPPFLAGS -I$d/strl"
+			AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
+			if test x"$strl_h_found" = x"yes"
+			then
+				AC_MSG_RESULT(yes)
+				break
+			fi
+			CPPFLAGS="$saved_CPPFLAGS"
+		fi
+	done
+
+	if test x"$strl_h_found" != x"yes"
+	then
+		AC_MSG_RESULT(no)
+	fi
+fi
 AC_CHECK_FUNCS([strlcat strlcpy], [strl_found="yes"],
                [
 		saved_LIBS="$LIBS"
@@ -205,9 +234,12 @@ if test x"$libstrl_found" = x"yes"
 then
 	LIBS="$LIBS $STRL_LIBS"
 fi
-if test x"$strl_found" != x"yes"
+# we need to include <strl.h> if:
+# (a) strlcat and strlcpy weren't found, since we'll be rolling our own; OR
+# (b) an installed strl.h was found
+if test x"$strl_h_found" = x"yes" -o \( x"$strl_found" = x"no" -a x"$libstrl_found" = x"no" \)
 then
-	AC_DEFINE([HAVE_STRL_H], 1,
+	AC_DEFINE([USE_STRL_H], 1,
 	          [Define to 1 if you need to include <strl.h> to get the `strlcat()' and `strlcpy()' functions.])
 fi
 

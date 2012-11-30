@@ -99,9 +99,9 @@
 #endif /* _FFR_VBR */
 
 /* libstrl if needed */
-#ifdef HAVE_STRL_H
+#ifdef USE_STRL_H
 # include <strl.h>
-#endif /* HAVE_STRL_H */
+#endif /* USE_STRL_H */
 
 #ifdef _FFR_REPUTATION
 /* reputation includes */
@@ -4745,7 +4745,30 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 
 		if (dkimf_db_get(keytable, keyname, strlen(keyname),
 		                 dbd, 3, &found) != 0)
+		{
+			char err[BUFRSZ];
+
+			memset(err, '\0', sizeof err);
+			(void) dkimf_db_strerror(keytable, err, sizeof err);
+
+			if (dolog)
+			{
+				if (err[0] != '\0')
+				{
+					syslog(LOG_ERR,
+					       "key '%s': dkimf_db_get(): %s",
+					       keyname, err);
+				}
+				else
+				{
+					syslog(LOG_ERR,
+					       "key '%s': dkimf_db_get() failed",
+					       keyname);
+				}
+			}
+
 			return -1;
+		}
 
 		if (!found)
 			return 1;

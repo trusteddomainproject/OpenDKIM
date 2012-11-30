@@ -112,7 +112,7 @@ static void vbr_error __P((VBR *, const char *, ...));
 
 /* ========================= PRIVATE SECTION ========================= */
 
-#if HAVE_STRL_HCPY == 0
+#if USE_STRL_HCPY == 0
 
 /*
 **  Copyright (c) 1999-2002, Sendmail Inc. and its suppliers.
@@ -181,7 +181,7 @@ vbr_strlcpy(dst, src, size)
 	else
 		return i + strlen(src + i);
 }
-#endif /* HAVE_STRL_HCPY == 0 */
+#endif /* USE_STRL_HCPY == 0 */
 
 /*
 **  VBR_MALLOC -- allocate memory

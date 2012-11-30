@@ -93,9 +93,9 @@
 #include "base64.h"
 
 /* libstrl if needed */
-#ifdef HAVE_STRL_H
+#ifdef USE_STRL_H
 # include <strl.h>
-#endif /* HAVE_STRL_H */
+#endif /* USE_STRL_H */
 
 /* prototypes */
 void dkim_error __P((DKIM *, const char *, ...));
@@ -2526,8 +2526,11 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		dkim_dstring_catn(dstr, hdr->hdr_text, hdr->hdr_namelen);
 	}
 
-	if (dkim->dkim_libhandle->dkiml_oversignhdrs != NULL)
+	if (dkim->dkim_libhandle->dkiml_oversignhdrs != NULL &&
+	    dkim->dkim_libhandle->dkiml_oversignhdrs[0] != NULL)
 	{
+		_Bool wrote = FALSE;
+
 		if (firsthdr)
 		{
 			dkim_dstring_cat1(dstr, ';');
@@ -2543,11 +2546,16 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		     dkim->dkim_libhandle->dkiml_oversignhdrs[n] != NULL;
 		     n++)
 		{
-			if (n != 0)
+			if (dkim->dkim_libhandle->dkiml_oversignhdrs[n][0] == '\0')
+				continue;
+
+			if (wrote)
 				dkim_dstring_cat1(dstr, ':');
 
 			dkim_dstring_cat(dstr,
 			                 dkim->dkim_libhandle->dkiml_oversignhdrs[n]);
+
+			wrote = TRUE;
 		}
 	}
 
@@ -4477,7 +4485,6 @@ dkim_close(DKIM_LIB *lib)
 	if (lib->dkiml_signre)
 		(void) regfree(&lib->dkiml_hdrre);
 
-
 	if (lib->dkiml_oversignhdrs != NULL)
 		dkim_clobber_array((char **) lib->dkiml_oversignhdrs);
 
@@ -4763,6 +4770,12 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		{
 			memcpy(ptr, &lib->dkiml_oversignhdrs, len);
 		}
+		else if (ptr == NULL)
+		{
+			if (lib->dkiml_oversignhdrs != NULL)
+				dkim_clobber_array((char **) lib->dkiml_oversignhdrs);
+			lib->dkiml_oversignhdrs = NULL;
+		}
 		else
 		{
 			const char **tmp;
@@ -4788,6 +4801,9 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		}
 		else if (ptr == NULL)
 		{
+			if (lib->dkiml_mbs != NULL)
+				dkim_clobber_array((char **) lib->dkiml_mbs);
+
 			lib->dkiml_mbs = NULL;
 		}
 		else

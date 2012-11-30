@@ -25,9 +25,13 @@ Shut down an instantiation of the <b>DKIM</b> service.
 <th width="80">Called When</th>
 <td><tt>dkim_close()</tt> is called shutting down the application.  It
     deallocates all allocated resources having to do with the DKIM library.
+    <p>
     It does <i>not</i> deallocate resources associated with any existing
-    <a href="dkim.html"><tt>DKIM</tt></a> handles; those should be cleaned
+    <a href="dkim.html"><tt>DKIM</tt></a> handles.  Those must be cleaned
     up first with calls to <a href="dkim_free.html"><tt>dkim_free()</tt></a>.
+    Failure to do so will almost certainly cause application failure when
+    those handles are used later, even if only to pass them to
+    <tt>dkim_free()</tt>.
     </td>
 </tr>
 </table>
@@ -61,7 +65,8 @@ Shut down an instantiation of the <b>DKIM</b> service.
 Copyright (c) 2007 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, 2010, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2009, 2010, 2012, The Trusted Domain Project.
+All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set
