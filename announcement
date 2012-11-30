@@ -1,8 +1,8 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.7.2 released
+Subject: OpenDKIM v2.7.3 released
 
-The Trusted Domain Project announces availability of OpenDKIM v2.7.2, now
+The Trusted Domain Project announces availability of OpenDKIM v2.7.3, now
 available for download from SourceForge.
 
 This is a collection of minor bug fixes.  Upgrade is required only if there
@@ -10,31 +10,21 @@ is something in the release that fixes a pain point you're having at your site.
 
 The full RELEASE_NOTES for this version:
 
-2.7.2		2012/11/14
-	Log the author domain name when rejecting or discarding due to ADSP.
-	LIBOPENDKIM: Improve re-entrancy of dkim_eoh() when verifying.
-		Requested by Alec Peterson.
-	LIBOPENDKIM: Only do a single read attempt of a private key under
-		GNUTLS to avoid hiding a useful error code.  Problem noted
-		by Alec Peterson.
-	STATS: Add long option support for opendkim-importstats.  Based on
-		a patch from Christian Roessner.
-	STATS: Fix overly-strict domain name rules in opendkim-reportstats.
-		Reported by Christian Roessner.
-	TOOLS: Fix opendkim-genkey subdomains default.  Problem noted by
-		Quanah Gibson-Mount.
-	TOOLS: Fix opendkim-testmsg GNUTLS initialization.  Problem noted
-		by Alec Peterson.
-	TOOLS: Add ability to assert a reporter ID to opendkim-spam.  Based
-		on a patch from Christian Roessner.
-	TOOLS: Add ability to skip a fixed number of Received: fields.
-		Problem noted by Christian Roessner.
-	TOOLS: Print a warning when asked to generate a key smaller than
-		the recommended minimum.
-	BUILD: Use a provided libstrl if detected.  Based on a patch from
+2.7.3		2012/11/29
+	Log DB error string in dkimf_add_signrequest(), and fix a DSN handling
+		error in dkimf_db_strerror().  Problem noted by
+		Simone Caruso.
+	LIBOPENDKIM: Ignore entries in the oversign header field name list
+		that are empty, and an oversign header field name list that
+		is present but empty.  Problem noted by Alec Peterson.
+	LIBOPENDKIM: Allow header field lists to be empty, flushing any that
+		were previously defined.  Problem noted by Alec Peterson.
+	BUILD: Improve tests for including <strl.h>.  Based on a patch from
 		Eray Aslan.
-	BUILD: Portability fixes for Solaris 10 from Claus Assmann and
-		Leena Heino.
+	REPUTATION: Use lowercase for keywords in REPUTE query generation
+		and handling.
+	STATS: Clean up a dead link in opendkim-genstats.  Patch from Andreas
+		Schulze.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
