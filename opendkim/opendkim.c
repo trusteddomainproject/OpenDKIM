@@ -13936,7 +13936,6 @@ mlfi_eom(SMFICTX *ctx)
 					char replybuf[BUFRSZ];
 					char smtpprefix[BUFRSZ];
 
-					act = "reject";
 					if (conf->conf_adspaction == SMFIS_DISCARD)
 						act = "discard";
 					else
@@ -13946,8 +13945,8 @@ mlfi_eom(SMFICTX *ctx)
 					{
 						syslog(LOG_NOTICE,
 						       "%s: %sed per %s author domain policy",
-						       dfc->mctx_jobid,
-						       dfc->mctx_domain, act);
+						       dfc->mctx_jobid, act,
+						       dfc->mctx_domain);
 					}
 					
 					if (smtpprefix[0] == '\0')
