@@ -13518,6 +13518,7 @@ mlfi_eom(SMFICTX *ctx)
 		{
 			int c;
 			int nsigs;
+			DKIM_STAT lstatus;
 			DKIM_SIGINFO **sigs;
 
 			if (dfc->mctx_tmpstr == NULL)
@@ -13539,10 +13540,10 @@ mlfi_eom(SMFICTX *ctx)
 				dkimf_dstring_blank(dfc->mctx_tmpstr);
 			}
 
-			status = dkim_getsiglist(dfc->mctx_dkimv,
-			                         &sigs, &nsigs);
+			lstatus = dkim_getsiglist(dfc->mctx_dkimv,
+			                          &sigs, &nsigs);
 
-			if (status == DKIM_STAT_OK)
+			if (lstatus == DKIM_STAT_OK)
 			{
 				DKIM_SIGERROR err;
 				size_t len;
@@ -13561,12 +13562,12 @@ mlfi_eom(SMFICTX *ctx)
 					memset(substr, '\0', sizeof substr);
 					len = sizeof substr;
 
-					status = dkim_get_sigsubstring(dfc->mctx_dkimv,
-					                               sigs[c],
-					                               substr,
-					                               &len);
+					lstatus = dkim_get_sigsubstring(dfc->mctx_dkimv,
+					                                sigs[c],
+					                                substr,
+					                                &len);
 
-					if (status == DKIM_STAT_OK &&
+					if (lstatus == DKIM_STAT_OK &&
 					    domain != NULL &&
 					    selector != NULL &&
 					    errstr != NULL)
