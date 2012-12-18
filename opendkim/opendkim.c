@@ -13555,7 +13555,7 @@ mlfi_eom(SMFICTX *ctx)
 				for (c = 0; c < nsigs; c++)
 				{
 					domain = dkim_sig_getdomain(sigs[c]);
-					selector = dkim_sig_getdomain(sigs[c]);
+					selector = dkim_sig_getselector(sigs[c]);
 					err = dkim_sig_geterror(sigs[c]);
 					errstr = dkim_sig_geterrorstr(err);
 
