@@ -59,6 +59,72 @@ static void config_attach __P((struct config *, struct config **));
 static int conf_error;			/* configuration error number */
 
 /*
+**  CONFIG_GETLINE -- read a line of arbitary length from a stream
+**
+**  Parameters:
+**  	in -- input stream
+**
+**  Return value:
+**  	NULL on EOF, otherwise a newly-allocated string containing the next
+**  	line from "in".
+*/
+
+static char *
+config_getline(FILE *in)
+{
+	int c;
+	size_t asize = BUFRSZ;
+	size_t len = 0;
+	char *new = NULL;
+
+	assert(in != NULL);
+
+	new = malloc(asize);
+	if (new == NULL)
+		return NULL;
+	new[0] = '\0';
+
+	for (;;)
+	{
+		c = fgetc(in);
+		if (c == '\n')
+		{
+			break;
+		}
+		else if (c == EOF)
+		{
+			if (len == 0)
+			{
+				free(new);
+				new = NULL;
+			}
+			break;
+		}
+
+		if (len == asize - 1)
+		{
+			char *newnew;
+
+			asize += BUFRSZ;
+
+			newnew = realloc(new, asize);
+			if (newnew == NULL)
+			{
+				free(new);
+				return NULL;
+			}
+
+			new = newnew;
+		}
+
+		new[len++] = c;
+		new[len] = '\0';
+	}
+
+	return new;
+}
+
+/*
 **  CONFIG_ATTACH -- attach one config to another
 **
 **  Parameters:
@@ -126,9 +192,9 @@ config_load_level(char *file, struct configdef *def,
 	char *p;
 	char *s;
 	char *str = NULL;
+	char *buf;
 	struct config *new = NULL;
 	struct config *cur = NULL;
-	char buf[BUFRSZ + 1];
 
 	assert(def != NULL);
 
@@ -137,8 +203,6 @@ config_load_level(char *file, struct configdef *def,
 		conf_error = CONF_NESTING;
 		return NULL;
 	}
-
-	memset(buf, '\0', sizeof buf);
 
 	if (file == NULL || (file[0] == '-' && file[1] == '\0'))
 	{
@@ -159,7 +223,7 @@ config_load_level(char *file, struct configdef *def,
 		}
 	}
 
-	while (fgets(buf, sizeof buf - 1, in) != NULL)
+	while ((buf = config_getline(in)) != NULL)
 	{
 		myline++;
 		str = NULL;
@@ -167,7 +231,7 @@ config_load_level(char *file, struct configdef *def,
 		/* read a line; truncate at newline or "#" */
 		for (p = buf; *p != '\0'; p++)
 		{
-			if (*p == '#' || *p == '\n')
+			if (*p == '#')
 			{
 				*p = '\0';
 				break;
@@ -270,6 +334,7 @@ config_load_level(char *file, struct configdef *def,
 		}
 		else
 		{
+			free(buf);
 			continue;			/* blank line */
 		}
 
@@ -353,6 +418,8 @@ config_load_level(char *file, struct configdef *def,
 		}
 
 		cur = new;
+
+		free(buf);
 	}
 
 	conf_error = CONF_SUCCESS;

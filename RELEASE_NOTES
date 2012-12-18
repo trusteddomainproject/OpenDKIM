@@ -5,6 +5,8 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.7.4		2012/12/??
+	Fix bug #SF3596147: Allow arbitrarily long configuration file lines.
+		Based on a patch from Daniel Black.
 	Fix bug #SF3596229: Fix logging of signature errors, which logged
 		the domain name twice instead of the domain name and the
 		selector.  Patch from Daniel Black.

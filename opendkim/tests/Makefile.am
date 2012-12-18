@@ -80,7 +80,7 @@ EXTRA_DIST = \
 	t-conf-check t-conf-check.conf t-conf-check.keytable t-conf-check.lua \
 		t-conf-check.signtable t-conf-check2.conf \
 		t-conf-check2.keytable t-conf-check2.lua \
-		t-conf-check2.signtable \
+		t-conf-check2.signtable t-largecomment.conf \
 	testkey.private pubkeys cp-test testmta
 
 MOSTLYCLEANFILES=
