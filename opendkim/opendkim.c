@@ -14199,6 +14199,15 @@ mlfi_eom(SMFICTX *ctx)
 						                      NULL, 0);
 					}
 
+					if (status == 0 && ret == 0)
+					{
+						status = reprrd_query(conf->conf_reprrd,
+						                      cd,
+						                      REPRRD_TYPE_LIMIT,
+						                      &ret,
+						                      NULL, 0);
+					}
+
 					if (status == 0)
 					{
 						if (ret == 1)
@@ -14236,6 +14245,15 @@ mlfi_eom(SMFICTX *ctx)
 						status = reprrd_query(conf->conf_reprrd,
 						                      cd,
 						                      REPRRD_TYPE_SPAM,
+						                      &ret,
+						                      NULL, 0);
+					}
+
+					if (status == 0 && ret == 0)
+					{
+						status = reprrd_query(conf->conf_reprrd,
+						                      cd,
+						                      REPRRD_TYPE_LIMIT,
 						                      &ret,
 						                      NULL, 0);
 					}

@@ -108,6 +108,47 @@ reprrd_close(REPRRD r)
 }
 
 /*
+**  REPRRD_MKPATH -- generate path to an RRD table
+**
+**  Parameters:
+**  	path -- path buffer
+**  	pathlen -- size of path buffer
+**  	r -- REPRRD context
+**  	type -- table type
+**
+**  Return value:
+**  	A REPRRD_STAT_* constant.
+*/
+
+static REPRRD_STAT
+reprrd_mkpath(char *path, size_t pathlen, REPRRD r, int type)
+{
+	int c;
+	size_t len;
+
+	assert(path != NULL);
+	assert(pathlen > 0);
+	assert(r != NULL);
+	assert(type == REPRRD_TYPE_MESSAGES || type == REPRRD_TYPE_SPAM);
+
+	snprintf(path, pathlen, "%s/%s", r->rep_root, reprrd_type(type));
+	for (c = 0; c < r->rep_hashdepth; c++)
+	{
+		len = strlcat(path, "/", sizeof path - 1);
+		if (len >= sizeof path - 1)
+			return REPRRD_STAT_INTERNAL;
+		path[len] = domain[c];
+	}
+
+	(void) strlcat(path, "/", sizeof path);
+	len = strlcat(path, domain, sizeof path);
+	if (len >= sizeof path)
+		return REPRRD_STAT_INTERNAL;
+	else
+		return REPRRD_STAT_OK;
+}
+
+/*
 **  REPRRD_QUERY -- query a reputaton parameter for a domain
 **
 **  Parameters:
@@ -134,58 +175,157 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 	time_t end;
 	time_t step;
 	time_t ti;
+	time_t now;
 	u_long ds_cnt;
 	char *p;
 	char **ds_names;
 	char **last_ds;
 	rrd_value_t *data;
+	rrd_value_t p_flow;			/* predicted */
+	rrd_value_t p_spam;			/* predicted */
+	rrd_value_t a_flow;			/* actual */
+	rrd_value_t r_flow;			/* restricted */
 	char path[MAXPATHLEN + 1];
 
 	assert(r != NULL);
 	assert(domain != NULL);
 	assert(value != NULL);
-	assert(type == REPRRD_TYPE_MESSAGES || type == REPRRD_TYPE_SPAM);
+	assert(type == REPRRD_TYPE_MESSAGES || type == REPRRD_TYPE_SPAM ||
+	       type == REPRRD_TYPE_LIMIT);
 
-	snprintf(path, sizeof path, "%s/%s", r->rep_root, reprrd_type(type));
-	for (c = 0; c < r->rep_hashdepth; c++)
+	(void) time(&now);
+
+	if (type == REPRRD_TYPE_LIMIT)
 	{
-		len = strlcat(path, "/", sizeof path - 1);
-		if (len >= sizeof path - 1)
-			return REPRRD_STAT_INTERNAL;
-		path[len] = domain[c];
-	}
+		time_t lastupdate;
 
-	(void) strlcat(path, "/", sizeof path);
-	len = strlcat(path, domain, sizeof path);
-	if (len >= sizeof path)
-		return REPRRD_STAT_INTERNAL;
-
-	(void) time(&start);
-
-	end = start;
-	start -= REPRRD_STEP * REPRRD_BACKSTEPS;
-	step = REPRRD_STEP;
+		/* retrieve the predicted flow */
+		end = now;
+		start - now - REPRRD_STEP * REPRRD_BACKSTEPS;
+		step = REPRRD_STEP;
 	
-	status = rrd_fetch_r(path, REPRRD_CF, &start, &end, &step, &ds_cnt,
-	                     &ds_names, &data);
-	if (status != 0)
-		return REPRRD_STAT_QUERY;
+		reprrd_mkpath(path, sizeof path, r, REPRRD_TYPE_MESSAGES);
 
-	di = 0;
+		status = rrd_fetch_r(path, REPRRD_CF_HWPREDICT, &start, &end,
+		                     &step, &ds_cnt, &ds_names, &data);
+		if (status != 0)
+			return REPRRD_STAT_QUERY;
 
-	for (ti = start + step; ti <= end; ti += step)
-	{
-		for (c = 0; c < ds_cnt; c++)
+		di = 0;
+
+		p_flow = NAN;
+		for (ti = start + step; ti <= end; ti += step)
 		{
-			if (data[di++] == (rrd_value_t) 1.0)
-				*value = 1;
+			for (c = 0; c < ds_cnt; c++)
+			{
+				if (data[di] != (rrd_value_t) NAN)
+					p_flow = data[di];
+				di++;
+			}
 		}
-	}
 
-        for (c = 0; c < ds_cnt; c++)
-		free(ds_names[c]);
-	free(ds_names);
-	free(data);
+		for (c = 0; c < ds_cnt; c++)
+			free(ds_names[c]);
+		free(ds_names);
+		free(data);
+
+		if (p_flow == NAN)
+			return REPRRD_STAT_QUERY;
+
+		/* retrieve the predicted spam ratio */
+		end = now;
+		start - now - REPRRD_STEP * REPRRD_BACKSTEPS;
+		step = REPRRD_STEP;
+	
+		reprrd_mkpath(path, sizeof path, r, REPRRD_TYPE_SPAM);
+
+		status = rrd_fetch_r(path, REPRRD_CF_HWPREDICT, &start, &end,
+		                     &step, &ds_cnt, &ds_names, &data);
+		if (status != 0)
+			return REPRRD_STAT_QUERY;
+
+		di = 0;
+
+		p_spam = NAN;
+		for (ti = start + step; ti <= end; ti += step)
+		{
+			for (c = 0; c < ds_cnt; c++)
+			{
+				if (data[di] != (rrd_value_t) NAN)
+					p_spam = data[di];
+				di++;
+			}
+		}
+
+		for (c = 0; c < ds_cnt; c++)
+			free(ds_names[c]);
+		free(ds_names);
+		free(data);
+
+		if (p_spam == NAN)
+			return REPRRD_STAT_QUERY;
+
+		/* multiply them */
+		r_flow = p_flow * (1. - p_spam);
+
+		/* retrieve the most recent flow data */
+		end = now;
+		start - now - REPRRD_STEP * REPRRD_BACKSTEPS;
+		step = REPRRD_STEP;
+	
+		reprrd_mkpath(path, sizeof path, r, REPRRD_TYPE_MESSAGES);
+
+		status = rrd_lastupdate_r(path, &last_update, &ds_count,
+		                          &ds_names, &data);
+		if (status != 0)
+			return REPRRD_STAT_QUERY;
+
+		di = 0;
+
+		a_flow = NAN;
+		for (c = 0; c < ds_cnt; c++)
+			a_flow = data[di++];
+
+		for (c = 0; c < ds_cnt; c++)
+			free(ds_names[c]);
+		free(ds_names);
+		free(data);
+
+		if (a_flow == NAN)
+			return REPRRD_STAT_QUERY;
+
+		/* see if it's higher than expected */
+		*value = (a_flow >= r_flow);
+	}
+	else
+	{
+		reprrd_mkpath(path, sizeof path, r, type);
+
+		end = now;
+		start = now - REPRRD_STEP * REPRRD_BACKSTEPS;
+		step = REPRRD_STEP;
+	
+		status = rrd_fetch_r(path, REPRRD_CF_FAILURES, &start, &end,
+		                     &step, &ds_cnt, &ds_names, &data);
+		if (status != 0)
+			return REPRRD_STAT_QUERY;
+
+		di = 0;
+
+		for (ti = start + step; ti <= end; ti += step)
+		{
+			for (c = 0; c < ds_cnt; c++)
+			{
+				if (data[di++] == (rrd_value_t) 1.0)
+					*value = 1;
+			}
+		}
+
+		for (c = 0; c < ds_cnt; c++)
+			free(ds_names[c]);
+		free(ds_names);
+		free(data);
+	}
 
 	return REPRRD_STAT_OK;
 }
