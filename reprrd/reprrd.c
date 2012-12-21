@@ -14,6 +14,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 /* librrd includes */
 #include <rrd.h>
@@ -114,6 +115,7 @@ reprrd_close(REPRRD r)
 **  	path -- path buffer
 **  	pathlen -- size of path buffer
 **  	r -- REPRRD context
+**  	domain -- domain to query
 **  	type -- table type
 **
 **  Return value:
@@ -121,7 +123,8 @@ reprrd_close(REPRRD r)
 */
 
 static REPRRD_STAT
-reprrd_mkpath(char *path, size_t pathlen, REPRRD r, int type)
+reprrd_mkpath(char *path, size_t pathlen, REPRRD r, const char *domain,
+              int type)
 {
 	int c;
 	size_t len;
@@ -129,6 +132,7 @@ reprrd_mkpath(char *path, size_t pathlen, REPRRD r, int type)
 	assert(path != NULL);
 	assert(pathlen > 0);
 	assert(r != NULL);
+	assert(domain != NULL);
 	assert(type == REPRRD_TYPE_MESSAGES || type == REPRRD_TYPE_SPAM);
 
 	snprintf(path, pathlen, "%s/%s", r->rep_root, reprrd_type(type));
@@ -180,6 +184,7 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 	char *p;
 	char **ds_names;
 	char **last_ds;
+	char **cdata;
 	rrd_value_t *data;
 	rrd_value_t p_flow;			/* predicted */
 	rrd_value_t p_spam;			/* predicted */
@@ -197,14 +202,15 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 
 	if (type == REPRRD_TYPE_LIMIT)
 	{
-		time_t lastupdate;
+		time_t last_update;
 
 		/* retrieve the predicted flow */
 		end = now;
 		start - now - REPRRD_STEP * REPRRD_BACKSTEPS;
 		step = REPRRD_STEP;
 	
-		reprrd_mkpath(path, sizeof path, r, REPRRD_TYPE_MESSAGES);
+		reprrd_mkpath(path, sizeof path, r, domain,
+		              REPRRD_TYPE_MESSAGES);
 
 		status = rrd_fetch_r(path, REPRRD_CF_HWPREDICT, &start, &end,
 		                     &step, &ds_cnt, &ds_names, &data);
@@ -237,7 +243,7 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 		start - now - REPRRD_STEP * REPRRD_BACKSTEPS;
 		step = REPRRD_STEP;
 	
-		reprrd_mkpath(path, sizeof path, r, REPRRD_TYPE_SPAM);
+		reprrd_mkpath(path, sizeof path, r, domain, REPRRD_TYPE_SPAM);
 
 		status = rrd_fetch_r(path, REPRRD_CF_HWPREDICT, &start, &end,
 		                     &step, &ds_cnt, &ds_names, &data);
@@ -273,10 +279,11 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 		start - now - REPRRD_STEP * REPRRD_BACKSTEPS;
 		step = REPRRD_STEP;
 	
-		reprrd_mkpath(path, sizeof path, r, REPRRD_TYPE_MESSAGES);
+		reprrd_mkpath(path, sizeof path, r, domain,
+		              REPRRD_TYPE_MESSAGES);
 
-		status = rrd_lastupdate_r(path, &last_update, &ds_count,
-		                          &ds_names, &data);
+		status = rrd_lastupdate_r(path, &last_update, &ds_cnt,
+		                          &ds_names, &cdata);
 		if (status != 0)
 			return REPRRD_STAT_QUERY;
 
@@ -284,7 +291,10 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 
 		a_flow = NAN;
 		for (c = 0; c < ds_cnt; c++)
-			a_flow = data[di++];
+		{
+			a_flow = atof(cdata[di]);
+			free(cdata[di++]);
+		}
 
 		for (c = 0; c < ds_cnt; c++)
 			free(ds_names[c]);
@@ -299,7 +309,7 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 	}
 	else
 	{
-		reprrd_mkpath(path, sizeof path, r, type);
+		reprrd_mkpath(path, sizeof path, r, domain, type);
 
 		end = now;
 		start = now - REPRRD_STEP * REPRRD_BACKSTEPS;
