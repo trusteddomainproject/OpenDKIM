@@ -4,6 +4,10 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.8.0		2013/??/??
+	Feature request #SF3598991: Add odkim.signfor() function to the Lua
+		setup script.  Requested by Marcin Owsiany.
+
 2.7.4		2013/12/??
 	Fix bug #SF3596147: Allow arbitrarily long configuration file lines.
 		Based on a patch from Daniel Black.

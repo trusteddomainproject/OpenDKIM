@@ -773,6 +773,9 @@ static int dkimf_add_signrequest __P((struct msgctx *, DKIMF_DB,
                                       char *, char *, ssize_t));
 sfsistat dkimf_addheader __P((SMFICTX *, char *, char *));
 sfsistat dkimf_addrcpt __P((SMFICTX *, char *));
+static int dkimf_apply_signtable __P((struct msgctx *, DKIMF_DB, DKIMF_DB,
+                                      unsigned char *, unsigned char *, char *,
+                                      size_t, _Bool));
 sfsistat dkimf_chgheader __P((SMFICTX *, char *, int, char *));
 static void dkimf_cleanup __P((SMFICTX *));
 static void dkimf_config_reload __P((void));
@@ -1196,6 +1199,101 @@ dkimf_import_globals(void *p, lua_State *l)
 		}
 
 		lg = lg->lg_next;
+	}
+}
+
+/*
+**  DKIMF_XS_SIGNFOR -- sign as if the mail came from a specified user
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_signfor(lua_State *l)
+{
+	_Bool multi = FALSE;
+	int top;
+	int status;
+	struct lua_global *lg;
+	SMFICTX *ctx;
+	unsigned char *user = NULL;
+	unsigned char *domain = NULL;
+	struct connctx *cc;
+	struct msgctx *msg;
+	struct dkimf_config *conf;
+	char addr[MAXADDRESS + 1];
+	char errkey[BUFRSZ + 1];
+
+	if (top != 2 && top != 3)
+	{
+		lua_pushstring(l,
+		               "odkim.signfor(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_isuserdata(l, 1) ||
+	         !lua_isstring(l, 2) ||
+	         (top == 3 && !lua_isboolean(l, 3)))
+	{
+		lua_pushstring(l, "odkim.signfor(): invalid argument");
+		lua_error(l);
+	}
+
+	lua_pop(l, top);
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	if (ctx == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	strlcpy(addr, lua_tostring(l, 2), sizeof addr);
+
+	if (top == 3)
+		multi = lua_toboolean(l, 3);
+
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	msg = cc->cctx_msg;
+	conf = cc->cctx_config;
+
+	if (conf->conf_signtabledb == NULL ||
+	    conf->conf_keytabledb == NULL)
+	{
+		free(addr);
+		lua_pushnil(l);
+		return 1;
+	}
+
+	status = dkim_mail_parse(addr, &user, &domain);
+	if (status != 0 || user == NULL || domain == NULL)
+	{
+		lua_pushstring(l, "odkim.signfor(): can't parse address");
+		lua_error(l);
+	}
+
+	status = dkimf_apply_signtable(msg, conf->conf_keytabledb,
+	                               conf->conf_signtabledb,
+	                               user, domain, errkey, sizeof errkey,
+	                               multi);
+	if (status == -2 || status == -3)
+	{
+		lua_pushfstring(l, "odkim.signfor(): error processing key '%s'",
+		                errkey);
+		lua_error(l);
+	}
+	else if (status == -1)
+	{
+		lua_pushstring(l, "odkim.signfor(): can't read signing table");
+		lua_error(l);
+	}
+	else
+	{
+		lua_pushnumber(l, status);
+		return 1;
 	}
 }
 

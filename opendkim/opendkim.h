@@ -213,6 +213,7 @@ extern int dkimf_xs_setreply __P((lua_State *));
 extern int dkimf_xs_setresult __P((lua_State *));
 extern int dkimf_xs_sigbhresult __P((lua_State *));
 extern int dkimf_xs_sigignore __P((lua_State *));
+extern int dkimf_xs_signfor __P((lua_State *));
 extern int dkimf_xs_sigresult __P((lua_State *));
 #  ifdef _FFR_REPUTATION
 extern int dkimf_xs_spam __P((lua_State *));
