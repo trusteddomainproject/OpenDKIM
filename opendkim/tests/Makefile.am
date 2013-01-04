@@ -3,7 +3,7 @@ check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-lua t-sign-ss-all t-sign-ss-ltag \
 	t-verify-revoked t-verify-unspec t-verify-malformed \
 	t-verify-unsigned t-verify-unsigned-silent \
-	t-verify-syntax t-verify-ss t-verify-ss-bad \
+	t-verify-syntax t-verify-ss t-verify-ss-bad t-verify-ss-ar-bad \
 	t-dontsign t-peer t-local-adsp t-local-adsp-subdomain \
 	t-lua-verify-tests t-sign-ss-macro t-sign-ss-macro-value \
 	t-sign-ss-macro-value-file t-adsp-report t-verify-report \
@@ -60,6 +60,7 @@ EXTRA_DIST = \
 	t-verify-unspec t-verify-unspec.conf t-verify-unspec.lua \
 	t-verify-ss t-verify-ss.conf t-verify-ss.lua \
 	t-verify-ss-bad t-verify-ss-bad.conf t-verify-ss-bad.lua \
+	t-verify-ss-ar-bad t-verify-ss-ar-bad.conf t-verify-ss-ar-bad.lua \
 	t-verify-ss-rep t-verify-ss-rep.conf t-verify-ss-rep.lua \
 	t-verify-syntax t-verify-syntax.conf t-verify-syntax.lua \
 	t-dontsign t-dontsign.conf t-dontsign.lua \

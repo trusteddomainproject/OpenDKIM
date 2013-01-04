@@ -437,6 +437,9 @@ ares_parse(u_char *hdr, struct authres *ar)
 
 		  case 3:				/* method */
 			n++;
+			if (n >= MAXARESULTS)
+				return 0;
+
 			r = 0;
 
 			ar->ares_result[n - 1].result_method = ares_convert(methods,
@@ -542,7 +545,8 @@ ares_parse(u_char *hdr, struct authres *ar)
 				if (x == ARES_PTYPE_UNKNOWN)
 					return -1;
 
-				ar->ares_result[n - 1].result_ptype[r] = x;
+				if (r < MAXPROPS)
+					ar->ares_result[n - 1].result_ptype[r] = x;
 
 				prevstate = state;
 				state = 10;
@@ -561,9 +565,12 @@ ares_parse(u_char *hdr, struct authres *ar)
 			break;
 
 		  case 11:				/* property */
-			strlcpy((char *) ar->ares_result[n - 1].result_property[r],
-			        (char *) tokens[c],
-			        sizeof ar->ares_result[n - 1].result_property[r]);
+			if (r < MAXPROPS)
+			{
+				strlcpy((char *) ar->ares_result[n - 1].result_property[r],
+				        (char *) tokens[c],
+				        sizeof ar->ares_result[n - 1].result_property[r]);
+			}
 
 			prevstate = state;
 			state = 12;
@@ -581,11 +588,14 @@ ares_parse(u_char *hdr, struct authres *ar)
 			break;
 
 		  case 13:				/* value */
-			strlcat((char *) ar->ares_result[n - 1].result_value[r],
-			        (char *) tokens[c],
-			        sizeof ar->ares_result[n - 1].result_value[r]);
-			r++;
-			ar->ares_result[n - 1].result_props = r;
+			if (r < MAXPROPS)
+			{
+				strlcat((char *) ar->ares_result[n - 1].result_value[r],
+				        (char *) tokens[c],
+				        sizeof ar->ares_result[n - 1].result_value[r]);
+				r++;
+				ar->ares_result[n - 1].result_props = r;
+			}
 
 			prevstate = state;
 			state = 9;

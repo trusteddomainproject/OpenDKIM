@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+# simple/simple verifying test with oversized Authentication-Results (should
+# not crash)
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest -s $srcdir/t-verify-ss-ar-bad.lua -v -v -v
