@@ -23,7 +23,7 @@ then
 	exit 1
 fi
 
-if ! $srcdir/../opendkim -n -x t-largecomment.conf > /dev/null 2>&1
+if ! ../opendkim -n -x $srcdir/t-largecomment.conf > /dev/null 2>&1
 then 
 	echo ERROR: opendkim failed using a configuration file with a large comment
 	exit 1
