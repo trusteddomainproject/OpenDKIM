@@ -4,7 +4,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.7.4		2013/01/04
+2.7.4		2013/01/06
 	Fix bug #SF3596147: Allow arbitrarily long configuration file lines.
 		Based on a patch from Daniel Black.
 	Fix bug #SF3596229: Fix logging of signature errors, which logged
@@ -12,6 +12,9 @@ release, and a summary of the changes in that release.
 		selector.  Patch from Daniel Black.
 	Safely handle incoming Authentication-Results fields with large number
 		of tokens.  Problem noted by Motohiro Ishiyama and John Wood.
+	Avoid mixing up status codes when processing conf_logresults, leading
+		to confusing log entries.  Problem reported by John Wood.
+	Fix ADSP logging.  Problem noted by Claus Assmann.
 
 2.7.3		2012/11/29
 	Log DB error string in dkimf_add_signrequest(), and fix a DSN handling
