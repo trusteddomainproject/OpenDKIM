@@ -8,4 +8,4 @@ then
 	srcdir=`pwd`
 fi
 
-../../miltertest/miltertest -s $srcdir/t-verify-ss-ar-bad.lua -v -v -v
+../../miltertest/miltertest -s $srcdir/t-verify-ss-ar-bad.lua
