@@ -1,8 +1,8 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.7.3 released
+Subject: OpenDKIM v2.7.4 released
 
-The Trusted Domain Project announces availability of OpenDKIM v2.7.3, now
+The Trusted Domain Project announces availability of OpenDKIM v2.7.4, now
 available for download from SourceForge.
 
 This is a collection of minor bug fixes.  Upgrade is required only if there
@@ -10,21 +10,17 @@ is something in the release that fixes a pain point you're having at your site.
 
 The full RELEASE_NOTES for this version:
 
-2.7.3		2012/11/29
-	Log DB error string in dkimf_add_signrequest(), and fix a DSN handling
-		error in dkimf_db_strerror().  Problem noted by
-		Simone Caruso.
-	LIBOPENDKIM: Ignore entries in the oversign header field name list
-		that are empty, and an oversign header field name list that
-		is present but empty.  Problem noted by Alec Peterson.
-	LIBOPENDKIM: Allow header field lists to be empty, flushing any that
-		were previously defined.  Problem noted by Alec Peterson.
-	BUILD: Improve tests for including <strl.h>.  Based on a patch from
-		Eray Aslan.
-	REPUTATION: Use lowercase for keywords in REPUTE query generation
-		and handling.
-	STATS: Clean up a dead link in opendkim-genstats.  Patch from Andreas
-		Schulze.
+2.7.4		2013/01/06
+	Fix bug #SF3596147: Allow arbitrarily long configuration file lines.
+		Based on a patch from Daniel Black.
+	Fix bug #SF3596229: Fix logging of signature errors, which logged
+		the domain name twice instead of the domain name and the
+		selector.  Patch from Daniel Black.
+	Safely handle incoming Authentication-Results fields with large number
+		of tokens.  Problem noted by Motohiro Ishiyama and John Wood.
+	Avoid mixing up status codes when processing conf_logresults, leading
+		to confusing log entries.  Problem reported by John Wood.
+	Fix ADSP logging.  Problem noted by Claus Assmann.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
