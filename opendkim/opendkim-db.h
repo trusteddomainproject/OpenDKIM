@@ -23,6 +23,7 @@
 #define	DKIMF_DB_FLAG_ASCIIONLY	0x0040
 #define	DKIMF_DB_FLAG_NOFDLOCK	0x0080
 #define	DKIMF_DB_FLAG_SOFTSTART	0x0100
+#define	DKIMF_DB_FLAG_NOCACHE	0x0200
 
 #define	DKIMF_DB_TYPE_UNKNOWN	(-1)
 #define	DKIMF_DB_TYPE_FILE	0
@@ -81,6 +82,7 @@ typedef struct dkimf_db_data * DKIMF_DBDATA;
 extern int dkimf_db_chown __P((DKIMF_DB, uid_t uid));
 extern int dkimf_db_close __P((DKIMF_DB));
 extern int dkimf_db_delete __P((DKIMF_DB, void *, size_t));
+extern void dkimf_db_flags __P((unsigned int));
 extern int dkimf_db_get __P((DKIMF_DB, void *, size_t,
                              DKIMF_DBDATA, unsigned int, _Bool *));
 extern int dkimf_db_mkarray __P((DKIMF_DB, char ***, const char **));

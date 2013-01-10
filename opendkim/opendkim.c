@@ -6073,6 +6073,7 @@ static int
 dkimf_config_load(struct config *data, struct dkimf_config *conf,
                   char *err, size_t errlen)
 {
+	_Bool btmp;
 	int maxsign;
 	int dbflags = 0;
 	char *str;
@@ -6470,6 +6471,13 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  sizeof conf->conf_allowsha1only);
 
 #ifdef USE_LDAP
+		btmp = FALSE;
+		(void) config_get(data, "NoLDAPCache", &btmp, sizeof btmp);
+		if (btmp)
+			dkimf_db_flags(DKIMF_DB_FLAG_NOCACHE);
+		else
+			dkimf_db_flags(0);
+
 		(void) config_get(data, "LDAPUseTLS",
 		                  &conf->conf_ldap_usetls,
 		                  sizeof conf->conf_ldap_usetls);

@@ -126,6 +126,7 @@ struct configdef dkimf_config[] =
 	{ "NoDiscardableMailTo",	CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_ADSP_LISTS */
 	{ "NoHeaderB",			CONFIG_TYPE_BOOLEAN,	FALSE },
+	{ "NoLDAPCache",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "OmitHeaders",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-BadSignature",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-Default",			CONFIG_TYPE_STRING,	FALSE },

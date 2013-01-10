@@ -339,6 +339,9 @@ struct handle_pool
 };
 #endif /* _FFR_DB_HANDLE_POOLS */
 
+/* globals */
+static unsigned int gflags = 0;
+
 #ifdef _FFR_DB_HANDLE_POOLS
 /*
 **  DKIMF_DB_HP_NEW -- create a handle pool
@@ -614,6 +617,22 @@ dkimf_db_hp_put(struct handle_pool *pool, void *handle)
 }
 
 #endif /* _FFR_DB_HANDLE_POOLS */
+
+/*
+**  DKIMF_DB_FLAGS -- set global flags
+**
+**  Parameters:
+**  	flags -- new global flag mask
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkimf_db_flags(unsigned int flags)
+{
+	gflags = flags;
+}
 
 #if (USE_SASL && USE_LDAP)
 /*
@@ -1766,7 +1785,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 
 	memset(new, '\0', sizeof(struct dkimf_db));
 
-	new->db_flags = flags;
+	new->db_flags = (flags | gflags);
 	new->db_type = DKIMF_DB_TYPE_UNKNOWN;
 
 	p = strchr(name, ':');
@@ -1863,7 +1882,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		struct dkimf_db_list *next = NULL;
 		struct dkimf_db_list *newl;
 
-		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
+		if ((new->db_flags & DKIMF_DB_FLAG_READONLY) == 0)
 		{
 			free(new);
 			errno = EINVAL;
@@ -2033,7 +2052,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		struct dkimf_db_list *newl;
 		char line[BUFRSZ + 1];
 
-		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
+		if ((new->db_flags & DKIMF_DB_FLAG_READONLY) == 0)
 		{
 			if (err != NULL)
 				*err = strerror(EINVAL);
@@ -2232,7 +2251,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		char line[BUFRSZ + 1];
 		char patbuf[BUFRSZ + 1];
 
-		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
+		if ((new->db_flags & DKIMF_DB_FLAG_READONLY) == 0)
 		{
 			if (err != NULL)
 				*err = strerror(EINVAL);
@@ -2376,7 +2395,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		DB *newdb;
 
 # if DB_VERSION_CHECK(2,0,0)
-		if (flags & DKIMF_DB_FLAG_READONLY)
+		if ((new->db_flags & DKIMF_DB_FLAG_READONLY) != 0)
 		{
 			dbflags |= DB_RDONLY;
 			bdbtype = DB_UNKNOWN;
@@ -2414,8 +2433,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		                 NULL, NULL, &newdb);
 # else /* DB_VERSION_CHECK(2,0,0) */
 		newdb = dbopen(p,
-		               (flags & DKIMF_DB_FLAG_READONLY ? O_RDONLY
-		                                                : (O_CREAT|O_RDWR)),
+		               (new->db_flags & DKIMF_DB_FLAG_READONLY ? O_RDONLY
+		                                                       : (O_CREAT|O_RDWR)),
 		               DKIMF_DB_MODE, bdbtype, NULL);
 		if (newdb == NULL)
 			status = errno;
@@ -2862,7 +2881,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		lderr = dkimf_db_open_ldap(&ld, ldap, err);
 		if (lderr != LDAP_SUCCESS)
 		{
-			if ((flags & DKIMF_DB_FLAG_SOFTSTART) == 0)
+			if ((new->db_flags & DKIMF_DB_FLAG_SOFTSTART) == 0)
 			{
 				if (err != NULL)
 					*err = ldap_err2string(lderr);
@@ -2881,48 +2900,51 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 
 # ifdef _FFR_LDAP_CACHING
 #  ifdef USE_DB
-		/* establish LDAP cache DB */
-		lderr = 0;
+		if ((new->db_flags & DKIMF_DB_FLAG_NOCACHE) == 0)
+		{
+			/* establish LDAP cache DB */
+			lderr = 0;
 
 #   if DB_VERSION_CHECK(3,0,0)
-		lderr = db_create(&newdb, NULL, 0);
-		if (lderr == 0)
-		{
+			lderr = db_create(&newdb, NULL, 0);
+			if (lderr == 0)
+			{
 #    if DB_VERSION_CHECK(4,1,25)
- 			lderr = newdb->open(newdb, NULL, NULL, NULL,
-			                    DB_HASH, DB_CREATE, 0);
+	 			lderr = newdb->open(newdb, NULL, NULL, NULL,
+				                    DB_HASH, DB_CREATE, 0);
 #    else /* DB_VERSION_CHECK(4,1,25) */
-			lderr = newdb->open(newdb, NULL, NULL, DB_HASH,
-			                    DB_CREATE, 0);
+				lderr = newdb->open(newdb, NULL, NULL, DB_HASH,
+				                    DB_CREATE, 0);
 #    endif /* DB_VERSION_CHECK(4,1,25) */
-		}
+			}
 #   elif DB_VERSION_CHECK(2,0,0)
-		lderr = db_open(NULL, DB_HASH, 0, DKIMF_DB_MODE,
-		                NULL, NULL, &newdb);
+			lderr = db_open(NULL, DB_HASH, 0, DKIMF_DB_MODE,
+			                NULL, NULL, &newdb);
 #   else /* DB_VERSION_CHECK(2,0,0) */
-		newdb = dbopen(NULL, (O_CREAT|O_RDWR),
-		               DKIMF_DB_MODE, DB_HASH, NULL);
-		if (newdb == NULL)
-			lderr = errno;
+			newdb = dbopen(NULL, (O_CREAT|O_RDWR),
+			               DKIMF_DB_MODE, DB_HASH, NULL);
+			if (newdb == NULL)
+				lderr = errno;
 #   endif /* DB_VERSION_CHECK */
 
-		if (lderr == 0)
-		{
-			DKIMF_DB cachedb;
-
-			cachedb = malloc(sizeof *cachedb);
-			if (cachedb != NULL)
+			if (lderr == 0)
 			{
-				memset(cachedb, '\0', sizeof *cachedb);
+				DKIMF_DB cachedb;
 
-				cachedb->db_type = DKIMF_DB_TYPE_BDB;
-				cachedb->db_handle = newdb;
+				cachedb = malloc(sizeof *cachedb);
+				if (cachedb != NULL)
+				{
+					memset(cachedb, '\0', sizeof *cachedb);
 
-				ldap->ldap_cache = cachedb;
-			}
-			else
-			{
-				DKIMF_DBCLOSE(newdb);
+					cachedb->db_type = DKIMF_DB_TYPE_BDB;
+					cachedb->db_handle = newdb;
+
+					ldap->ldap_cache = cachedb;
+				}
+				else
+				{
+					DKIMF_DBCLOSE(newdb);
+				}
 			}
 		}
 #  endif /* USE_DB */
@@ -3144,7 +3166,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			return 2;
 		}
 
-		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
+		if ((new->db_flags & DKIMF_DB_FLAG_READONLY) == 0)
 		{
 			if (err != NULL)
 				*err = strerror(EINVAL);
