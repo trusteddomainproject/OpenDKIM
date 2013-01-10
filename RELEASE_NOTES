@@ -12,6 +12,8 @@ release, and a summary of the changes in that release.
 		other reputation code.
 	Feature request #SF3598991: Add odkim.signfor() function to the Lua
 		setup script.  Requested by Marcin Owsiany.
+	Patch #SF3593422: Update for MDB 0.9.5 support.  Patch from
+		Quanah Gibson-Mount.
 
 2.7.4		2013/01/06
 	Fix bug #SF3596147: Allow arbitrarily long configuration file lines.

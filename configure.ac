@@ -1842,14 +1842,14 @@ then
 	CFLAGS="-pthread"
 	if test x"$mdbpath" != x"auto" -a x"$mdbpath" != x"yes"
 	then
-		if test -f $mdbpath/include/mdb.h
+		if test -f $mdbpath/include/lmdb.h
 		then
 			LDFLAGS="-L$mdbpath/lib"
-			AC_CHECK_LIB(mdb, mdb_env_open,
+			AC_CHECK_LIB(lmdb, mdb_env_open,
 			[
 			        mdb_found="yes"
 				LIBMDB_CPPFLAGS="-I$mdbpath/include"
-				LIBMDB_LIBS="-L$mdbpath/lib -lmdb"
+				LIBMDB_LIBS="-L$mdbpath/lib -llmdb"
 			],
 			[
 				AC_MSG_ERROR([mdb not valid at $mdbpath])
@@ -1862,15 +1862,15 @@ then
 		mdbdirs="/usr /usr/local"
 		for d in $mdbdirs
 		do
-			if test -f $d/include/mdb.h
+			if test -f $d/include/lmdb.h
 			then
 				LDFLAGS="-L$d/lib"
-				AC_CHECK_LIB(mdb, mdb_env_open,
+				AC_CHECK_LIB(lmdb, mdb_env_open,
 				[
 					mdbpath=$d
 			        	mdb_found="yes"
 					LIBMDB_CPPFLAGS="-I$mdbpath/include"
-					LIBMDB_LIBS="-L$mdbpath/lib -lmdb"
+					LIBMDB_LIBS="-L$mdbpath/lib -llmdb"
 					break
 				]
 				)

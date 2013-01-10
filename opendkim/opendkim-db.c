@@ -88,7 +88,7 @@
 # include <libmemcached/memcached.h>
 #endif /* USE_LIBMEMCACHED */
 #ifdef USE_MDB
-# include <mdb.h>
+# include <lmdb.h>
 #endif /* USE_MDB */
 #ifdef USE_ERLANG
 # include <sys/time.h>
@@ -3519,7 +3519,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			return -1;
 		}
 
-		status = mdb_open(mdb->mdb_txn, NULL, 0, &mdb->mdb_dbi);
+		status = mdb_dbi_open(mdb->mdb_txn, NULL, 0, &mdb->mdb_dbi);
 		if (status != 0)
 		{
 			if (err != NULL)
@@ -3962,7 +3962,7 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	data.mv_size = (buflen == 0 ? strlen(buf) : buflen);
 
 	if (mdb_txn_begin(mdb->mdb_env, NULL, 0, &txn) == 0 &&
-	    mdb_open(txn, NULL, 0, &dbi) == 0 &&
+	    mdb_dbi_open(txn, NULL, 0, &dbi) == 0 &&
 	    mdb_put(txn, dbi, &key, &data, 0) == 0)
 		ret = 0;
 	else
