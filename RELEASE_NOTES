@@ -8,6 +8,8 @@ release, and a summary of the changes in that release.
 	Feature request #SF3590860: Combine collected reputation values into
 		an overall allowed rate under _FFR_REPRRD, as is done for the
 		other reputation code.
+	Feature request #SF3598991: Add odkim.signfor() function to the Lua
+		setup script.  Requested by Marcin Owsiany.
 
 2.7.4		2013/01/06
 	Fix bug #SF3596147: Allow arbitrarily long configuration file lines.

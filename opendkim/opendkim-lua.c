@@ -69,6 +69,7 @@ static const luaL_Reg dkimf_lua_lib_setup[] =
 	{ ODKIM_PREFIX "resign",		dkimf_xs_resign		},
 	{ ODKIM_PREFIX "set_result",		dkimf_xs_setresult	},
 	{ ODKIM_PREFIX "sign",			dkimf_xs_requestsig	},
+	{ ODKIM_PREFIX "signfor",		dkimf_xs_signfor	},
 #ifdef _FFR_REPUTATION
 	{ ODKIM_PREFIX "spam",			dkimf_xs_spam		},
 #endif /* _FFR_REPUTATION */
