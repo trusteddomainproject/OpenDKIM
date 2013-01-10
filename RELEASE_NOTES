@@ -16,6 +16,10 @@ release, and a summary of the changes in that release.
 		the IP address part of every query with square brackets, which
 		is a common way to do IP address literals in email contexts.
 		Requested by Quanah Gibson-Mount.
+	Fix bug #SF3531477: Add (hopefully temporary) configuration option
+		"DisableCryptoInit" so that opendkim's initialization of the
+		crypto library doesn't conflict with the same work done by
+		other libraries.  Reported by Quanah Gibson-Mount.
 	Fix bug #SF3599901: Rename "InsecureKey" to "UnprotectedKey" and
 		"InsecurePolicy" to "UnprotectedPolicy", as the term "insecure"
 		in reference to a key is sometimes interpreted to mean "not

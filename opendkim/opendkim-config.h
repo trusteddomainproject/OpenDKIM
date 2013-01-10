@@ -56,6 +56,7 @@ struct configdef dkimf_config[] =
 	{ "Diagnostics",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DiagnosticDirectory",	CONFIG_TYPE_STRING,	FALSE },
 	{ "DisableADSP",		CONFIG_TYPE_BOOLEAN,	FALSE },
+	{ "DisableCryptoInit",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_DKIM_REPUTATION
 	{ "DKIMReputationFail",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "DKIMReputationPass",		CONFIG_TYPE_INTEGER,	FALSE },

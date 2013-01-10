@@ -209,6 +209,7 @@ struct lua_global
 
 struct dkimf_config
 {
+	_Bool		conf_disablecryptoinit;	/* initialize SSL libs? */
 #ifdef USE_LDAP
 	_Bool		conf_softstart;		/* do LDAP soft starts */
 #endif /* USE_LDAP */
@@ -6413,6 +6414,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "DisableADSP",
 		                  &conf->conf_noadsp,
 		                  sizeof conf->conf_noadsp);
+
+		(void) config_get(data, "DisableCryptoInit",
+		                  &conf->conf_disablecryptoinit,
+		                  sizeof conf->conf_disablecryptoinit);
 
 		str = NULL;
 		(void) config_get(data, "ADSPAction", &str, sizeof str);
@@ -17503,11 +17508,15 @@ main(int argc, char **argv)
 	}
 
 	/* initialize libcrypto mutexes */
-	status = dkimf_crypto_init();
-	if (status != 0)
+	if (!curconf->conf_disablecryptoinit)
 	{
-		fprintf(stderr, "%s: error initializing crypto library: %s\n",
-		        progname, strerror(status));
+		status = dkimf_crypto_init();
+		if (status != 0)
+		{
+			fprintf(stderr,
+			        "%s: error initializing crypto library: %s\n",
+			        progname, strerror(status));
+		}
 	}
 
 	if ((curconf->conf_mode & DKIMF_MODE_VERIFIER) != 0 &&

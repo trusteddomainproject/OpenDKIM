@@ -236,6 +236,12 @@ If set, suppresses Author Domain Signing Practices (ADSP) checks, which
 require multiple additional DNS queries.
 
 .TP
+.I DisableCryptoInit (Boolean)
+If set, skips initialization of the SSL library initialization steps, which
+are normaly required in multi-threaded environments.  This assumes some other
+library opendkim is using will do the required initialization and shutdown.
+
+.TP
 .I DKIMReputationFail (integer)
 If the reputation returned by the DNS reputation service exceeds this
 value then the result "x-dkim-rep" is set to "fail".
