@@ -756,7 +756,7 @@ then
 elif test "$sslpath" != "auto" -a x"$sslpath" != x"yes"
 then
 	AC_MSG_CHECKING([for OpenSSL includes])
-	if test -f $sslpath/include/openssl/opensslconf.h
+	if test -f $sslpath/include/openssl/opensslv.h
 	then
 		LIBCRYPTO_CPPFLAGS="-I$sslpath/include"
 		LIBCRYPTO_CFLAGS=""
@@ -777,7 +777,7 @@ then
 	then
 		for d in $ssldirs
 		do
-			if test -f $d/include/openssl/opensslconf.h
+			if test -f $d/include/openssl/opensslv.h
 			then
 				sslpath=$d
 				openssl_found=yes

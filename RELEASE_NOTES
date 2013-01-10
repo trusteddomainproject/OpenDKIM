@@ -29,6 +29,8 @@ release, and a summary of the changes in that release.
 		modified.  Suggested by Scott Kitterman.
 	Patch #SF3593422: Update for MDB 0.9.5 support.  Patch from
 		Quanah Gibson-Mount.
+	BUILD: Feature request #SF3599902: Change OpenSSL existence test
+		to help with Debian packaging.  Requested by Scott Kitterman.
 
 2.7.4		2013/01/06
 	Fix bug #SF3596147: Allow arbitrarily long configuration file lines.
