@@ -445,6 +445,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 		int status;
 		int bits;
 		size_t dst_len;
+		size_t iplen;
 		char *dst;
 		struct sockaddr_in6 sin6;
 		struct in6_addr addr;
@@ -461,8 +462,27 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 
 		inet_ntop(AF_INET6, &addr, dst, dst_len);
 		dkimf_lowercase((u_char *) dst);
+		iplen = strlen(dst);
 
 		exists = FALSE;
+
+		status = dkimf_db_get(db, ipbuf, 0, NULL, 0, &exists);
+		if (status != 0)
+			return FALSE;
+		if (exists)
+			return FALSE;
+
+		status = dkimf_db_get(db, &ipbuf[1], 0, NULL, 0,
+		                      &exists);
+		if (status != 0)
+			return FALSE;
+		if (exists)
+			return TRUE;
+
+		/* try it with square brackets */
+		memmove(&ipbuf[2], &ipbuf[1], iplen + 1);
+		ipbuf[1] = '[';
+		ipbuf[iplen + 2] = ']';
 
 		status = dkimf_db_get(db, ipbuf, 0, NULL, 0, &exists);
 		if (status != 0)
@@ -491,6 +511,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 
 			inet_ntop(AF_INET6, &addr, dst, dst_len);
 			dkimf_lowercase((u_char *) dst);
+			iplen = strlen(dst);
 
 			sz = strlcat(ipbuf, "/", sizeof ipbuf);
 			if (sz >= sizeof ipbuf)
@@ -518,6 +539,38 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 			else if (exists)
 				return TRUE;
 
+			/* try it with square brackets */
+			memmove(&ipbuf[2], &ipbuf[1], iplen + 1);
+			ipbuf[1] = '[';
+			ipbuf[iplen + 2] = ']';
+			ipbuf[iplen + 3] = '\0';
+
+			sz = strlcat(ipbuf, "/", sizeof ipbuf);
+			if (sz >= sizeof ipbuf)
+				return FALSE;
+
+			dst = &ipbuf[sz];
+			dst_len = sizeof ipbuf - sz;
+
+			sz = snprintf(dst, dst_len, "%d", 128 - bits);
+			if (sz >= sizeof ipbuf)
+				return FALSE;
+
+			exists = FALSE;
+
+			status = dkimf_db_get(db, ipbuf, 0, NULL, 0, &exists);
+			if (status != 0)
+				return FALSE;
+			if (exists)
+				return FALSE;
+
+			status = dkimf_db_get(db, &ipbuf[1], 0, NULL, 0,
+			                      &exists);
+			if (status != 0)
+				return FALSE;
+			if (exists)
+				return TRUE;
+
 			/* flip off a bit */
 			if (bits != 128)
 			{
@@ -538,6 +591,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 		int c;
 		int status;
 		int bits;
+		size_t iplen;
 		struct in_addr addr;
 		struct in_addr mask;
 		struct sockaddr_in sin;
@@ -557,6 +611,24 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 			return FALSE;
 
 		status = dkimf_db_get(db, &ipbuf[1], 0, NULL, 0, &exists);
+		if (status != 0)
+			return FALSE;
+		if (exists)
+			return TRUE;
+
+		/* try it with square brackets */
+		memmove(&ipbuf[2], &ipbuf[1], strlen(&ipbuf[1]) + 1);
+		ipbuf[1] = '[';
+		ipbuf[strlen(ipbuf)] = ']';
+
+		status = dkimf_db_get(db, ipbuf, 0, NULL, 0, &exists);
+		if (status != 0)
+			return FALSE;
+		if (exists)
+			return FALSE;
+
+		status = dkimf_db_get(db, &ipbuf[1], 0, NULL, 0,
+		                      &exists);
 		if (status != 0)
 			return FALSE;
 		if (exists)
@@ -582,6 +654,7 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 			ipbuf[0] = '!';
 			(void) dkimf_inet_ntoa(addr, &ipbuf[1],
 			                       sizeof ipbuf - 1);
+			iplen = strlen(&ipbuf[1]);
 			c = strlen(ipbuf);
 			ipbuf[c] = '/';
 			c++;
@@ -602,12 +675,16 @@ dkimf_checkip(DKIMF_DB db, struct sockaddr *ip)
 			if (exists)
 				return TRUE;
 
-			(void) dkimf_inet_ntoa(mask, &ipbuf[c],
-			                       sizeof ipbuf - c);
-		
+			/* try it with square brackets */
+			memmove(&ipbuf[2], &ipbuf[1], strlen(&ipbuf[1]) + 1);
+			ipbuf[1] = '[';
+			ipbuf[iplen + 2] = ']';
+			ipbuf[iplen + 3] = '/';
+			snprintf(&ipbuf[iplen + 4], sizeof ipbuf - iplen - 4,
+			         "%d", bits);
+
 			exists = FALSE;
-			status = dkimf_db_get(db, ipbuf, 0, NULL, 0,
-			                      &exists);
+			status = dkimf_db_get(db, ipbuf, 0, NULL, 0, &exists);
 			if (status != 0)
 				return FALSE;
 			if (exists)

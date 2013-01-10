@@ -7002,7 +7002,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	{
 		(void) config_get(data, "InternalHosts", &str, sizeof str);
 	}
-	if (str != NULL && !testmode)
+	if (str != NULL)
 	{
 		int status;
 		char *dberr = NULL;
