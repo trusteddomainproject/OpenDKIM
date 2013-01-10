@@ -1203,8 +1203,14 @@ dkim_canon_runheaders(DKIM *dkim)
 		else
 		{
 			DKIM_LIB *lib;
+			regex_t *hdrtest;
 
 			lib = dkim->dkim_libhandle;
+
+			if (dkim->dkim_hdrre != NULL)
+				hdrtest = dkim->dkim_hdrre;
+			else
+				hdrtest = &lib->dkiml_hdrre;
 
 			memset(hdrset, '\0', sizeof hdrset);
 			nhdrs = 0;
@@ -1214,7 +1220,8 @@ dkim_canon_runheaders(DKIM *dkim)
 			     hdr != NULL;
 			     hdr = hdr->hdr_next)
 			{
-				if (!lib->dkiml_signre)
+				if (hdrtest == &lib->dkiml_hdrre &&
+				    !lib->dkiml_signre)
 				{
 					tmp = dkim_dstring_get(dkim->dkim_hdrbuf);
 
@@ -1235,7 +1242,7 @@ dkim_canon_runheaders(DKIM *dkim)
 
 				/* terminate the header field name and test */
 				hdr->hdr_text[hdr->hdr_namelen] = '\0';
-				status = regexec(&lib->dkiml_hdrre,
+				status = regexec(hdrtest,
 				                 (char *) hdr->hdr_text,
 				                 0, NULL, 0);
 

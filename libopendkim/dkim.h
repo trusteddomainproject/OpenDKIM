@@ -2079,6 +2079,23 @@ extern DKIM_STAT dkim_sig_gethashes __P((DKIM_SIGINFO *, void **, size_t *,
                                          void **, size_t *));
 
 /*
+**  DKIM_SIGNHDRS -- set the list of header fields to sign for a signature,
+**                   overriding the library default
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle to be affected
+**  	hdrlist -- array of names of header fields that should be signed
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+**
+**  Notes:
+**  	"hdrlist" can be NULL if the library's default is to be used.
+*/
+
+extern DKIM_STAT dkim_signhdrs __P((DKIM *, const char **));
+
+/*
 **  DKIM_GETSSLBUF -- get the SSL error buffer, if any, from a DKIM handle
 **
 **  Parameters:

@@ -5104,6 +5104,12 @@ dkim_free(DKIM *dkim)
 		}
 	}
 
+	if (dkim->dkim_hdrre != NULL)
+	{
+		regfree(dkim->dkim_hdrre);
+		free(dkim->dkim_hdrre);
+	}
+
 	/* destroy canonicalizations */
 	dkim_canon_cleanup(dkim);
 
@@ -9700,6 +9706,72 @@ dkim_sig_gethashes(DKIM_SIGINFO *sig, void **hh, size_t *hhlen,
                    void **bh, size_t *bhlen)
 {
 	return dkim_canon_gethashes(sig, hh, hhlen, bh, bhlen);
+}
+
+/*
+**  DKIM_SIGNHDRS -- set the list of header fields to sign for a signature,
+**                   overriding the library default
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle to be affected
+**  	hdrlist -- array of names of header fields that should be signed
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+**
+**  Notes:
+**  	"hdrlist" can be NULL if the library's default is to be used.
+*/
+
+DKIM_STAT
+dkim_signhdrs(DKIM *dkim, const char **hdrlist)
+{
+	assert(dkim != NULL);
+
+	if (dkim->dkim_hdrre != NULL)
+		regfree(dkim->dkim_hdrre);
+
+	if (hdrlist != NULL)
+	{
+		int c;
+		int status;
+		u_char **required_signhdrs;
+		char buf[BUFRSZ + 1];
+
+		if (dkim->dkim_hdrre == NULL)
+		{
+			dkim->dkim_hdrre = malloc(sizeof(regex_t));
+
+			if (dkim->dkim_hdrre == NULL)
+			{
+				dkim_error(dkim, "could not allocate %d bytes",
+				           sizeof(regex_t));
+				return DKIM_STAT_INTERNAL;
+			}
+		}
+
+		memset(buf, '\0', sizeof buf);
+
+		(void) strlcpy(buf, "^(", sizeof buf);
+
+		if (!dkim_hdrlist((u_char *) buf, sizeof buf,
+		                  (u_char **) dkim->dkim_libhandle->dkiml_requiredhdrs,
+		                  TRUE))
+			return DKIM_STAT_INVALID;
+		if (!dkim_hdrlist((u_char *) buf, sizeof buf, hdrlist, FALSE))
+			return DKIM_STAT_INVALID;
+
+		if (strlcat(buf, ")$", sizeof buf) >= sizeof buf)
+			return DKIM_STAT_INVALID;
+
+		status = regcomp(dkim->dkim_hdrre, buf,
+		                 (REG_EXTENDED|REG_ICASE));
+
+		if (status != 0)
+			return DKIM_STAT_INTERNAL;
+	}
+
+	return DKIM_STAT_OK;
 }
 
 /*

@@ -343,6 +343,7 @@ struct dkim
 	struct dkim_dstring *	dkim_sslerrbuf;
 	struct dkim_test_dns_data * dkim_dnstesth;
 	struct dkim_test_dns_data * dkim_dnstestt;
+	regex_t *		dkim_hdrre;
 	DKIM_LIB *		dkim_libhandle;
 };
 
