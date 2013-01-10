@@ -84,10 +84,6 @@ struct configdef dkimf_config[] =
 	{ "IdentityHeaderRemove",	CONFIG_TYPE_BOOLEAN,    FALSE },
 #endif /* _FFR_IDENTITY_HEADER */
 	{ "Include",			CONFIG_TYPE_INCLUDE,	FALSE },
-#ifdef USE_UNBOUND
-	{ "InsecureKey",		CONFIG_TYPE_STRING,	FALSE },
-	{ "InsecurePolicy",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* USE_UNBOUND */
 	{ "InternalHosts",		CONFIG_TYPE_STRING,	FALSE },
 	{ "KeepAuthResults",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "KeepTemporaryFiles",		CONFIG_TYPE_BOOLEAN,	FALSE },
@@ -239,6 +235,10 @@ struct configdef dkimf_config[] =
 	{ "TrustAnchorFile",		CONFIG_TYPE_STRING,	FALSE },
 	{ "TrustSignaturesFrom",	CONFIG_TYPE_STRING,	FALSE },
 	{ "UMask",			CONFIG_TYPE_INTEGER,	FALSE },
+#ifdef USE_UNBOUND
+	{ "UnprotectedKey",		CONFIG_TYPE_STRING,	FALSE },
+	{ "UnprotectedPolicy",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* USE_UNBOUND */
 	{ "UserID",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_VBR
 	{ "VBR-Certifiers",		CONFIG_TYPE_STRING,	FALSE },

@@ -275,9 +275,9 @@ struct dkimf_config
 #endif /* _FFR_REPUTATION */
 #ifdef USE_UNBOUND
 	unsigned int	conf_boguskey;		/* bogus key action */
-	unsigned int	conf_insecurekey;	/* insecure key action */
+	unsigned int	conf_unprotectedkey;	/* unprotected key action */
 	unsigned int	conf_boguspolicy;	/* bogus policy action */
-	unsigned int	conf_insecurepolicy;	/* insecure policy action */
+	unsigned int	conf_unprotectedpolicy;	/* unprotected policy action */
 #endif /* USE_UNBOUND */
 #ifdef _FFR_RATE_LIMIT
 	unsigned int	conf_flowdatattl;	/* flow data TTL */
@@ -712,18 +712,9 @@ struct lookup log_facilities[] =
 };
 
 #ifdef USE_UNBOUND
-struct lookup dkimf_dnssec[] =
-{
-	{ "unknown",		DKIM_DNSSEC_UNKNOWN },
-	{ "bogus",		DKIM_DNSSEC_BOGUS },
-	{ "insecure",		DKIM_DNSSEC_INSECURE },
-	{ "secure",		DKIM_DNSSEC_SECURE },
-	{ NULL,			-1 },
-};
-
-#define	DKIMF_KEYACTIONS_NONE	0
-#define	DKIMF_KEYACTIONS_NEUTRAL 1
-#define	DKIMF_KEYACTIONS_FAIL	2
+# define DKIMF_KEYACTIONS_NONE	0
+# define DKIMF_KEYACTIONS_NEUTRAL 1
+# define DKIMF_KEYACTIONS_FAIL	2
 
 struct lookup dkimf_keyactions[] =
 {
@@ -6600,7 +6591,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 
 		str = NULL;
-		(void) config_get(data, "InsecureKey", &str, sizeof str);
+		(void) config_get(data, "UnprotectedKey", &str, sizeof str);
 		if (str != NULL)
 		{
 			int c;
@@ -6613,11 +6604,11 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				return -1;
 			}
 
-			conf->conf_insecurekey = c;
+			conf->conf_unprotectedkey = c;
 		}
 		else
 		{
-			conf->conf_boguskey = DKIMF_KEYACTIONS_NONE;
+			conf->conf_unprotectedkey = DKIMF_KEYACTIONS_NONE;
 		}
 
 		str = NULL;
@@ -6642,7 +6633,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 
 		str = NULL;
-		(void) config_get(data, "InsecurePolicy", &str, sizeof str);
+		(void) config_get(data, "UnprotectedPolicy", &str, sizeof str);
 		if (str != NULL)
 		{
 			int c;
@@ -6655,11 +6646,11 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				return -1;
 			}
 
-			conf->conf_insecurepolicy = c;
+			conf->conf_unprotectedpolicy = c;
 		}
 		else
 		{
-			conf->conf_insecurepolicy = DKIM_POLICYACTIONS_APPLY;
+			conf->conf_unprotectedpolicy = DKIM_POLICYACTIONS_APPLY;
 		}
 #endif /* USE_UNBOUND */
 
@@ -10719,12 +10710,12 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 				break;
 
 			  case DKIM_DNSSEC_INSECURE:
-				dnssec = "insecure";
-				if (conf->conf_insecurekey == DKIMF_KEYACTIONS_FAIL)
+				dnssec = "unprotected";
+				if (conf->conf_unprotectedkey == DKIMF_KEYACTIONS_FAIL)
 				{
 					*status = DKIMF_STATUS_BAD;
 				}
-				else if (conf->conf_insecurekey == DKIMF_KEYACTIONS_NEUTRAL)
+				else if (conf->conf_unprotectedkey == DKIMF_KEYACTIONS_NEUTRAL)
 				{
 					*status = DKIMF_STATUS_VERIFYERR;
 					result = "neutral";
@@ -13977,7 +13968,7 @@ mlfi_eom(SMFICTX *ctx)
 					dfc->mctx_presult = DKIM_PRESULT_NONE;
 
 				if (dfc->mctx_dnssec_policy == DKIM_DNSSEC_INSECURE &&
-				    conf->conf_insecurepolicy == DKIM_POLICYACTIONS_IGNORE)
+				    conf->conf_unprotectedpolicy == DKIM_POLICYACTIONS_IGNORE)
 					dfc->mctx_presult = DKIM_PRESULT_NONE;
 #endif /* USE_UNBOUND */
 
@@ -14655,11 +14646,11 @@ mlfi_eom(SMFICTX *ctx)
 
 				if (dfc->mctx_dnssec_key == DKIM_DNSSEC_INSECURE)
 				{
-					if (conf->conf_insecurekey == DKIMF_KEYACTIONS_FAIL)
+					if (conf->conf_unprotectedkey == DKIMF_KEYACTIONS_FAIL)
 					{
 						dfc->mctx_status = DKIMF_STATUS_BAD;
 					}
-					else if (conf->conf_insecurekey == DKIMF_KEYACTIONS_NEUTRAL)
+					else if (conf->conf_unprotectedkey == DKIMF_KEYACTIONS_NEUTRAL)
 					{
 						dfc->mctx_status = DKIMF_STATUS_VERIFYERR;
 						failstatus = "neutral";
@@ -14688,7 +14679,7 @@ mlfi_eom(SMFICTX *ctx)
 
 					  case DKIM_DNSSEC_INSECURE:
 						strlcat(comment,
-						        "; insecure key",
+						        "; unprotected key",
 						        sizeof comment);
 						break;
 
@@ -14773,7 +14764,7 @@ mlfi_eom(SMFICTX *ctx)
 
 					  case DKIM_DNSSEC_INSECURE:
 						strlcat(comment,
-						        "; insecure key",
+						        "; unprotected key",
 						        sizeof comment);
 						break;
 
@@ -15014,7 +15005,7 @@ mlfi_eom(SMFICTX *ctx)
 
 				  case DKIM_DNSSEC_INSECURE:
 					strlcat((char *) header,
-					        " (insecure policy)",
+					        " (unprotected policy)",
 					        sizeof header);
 					break;
 

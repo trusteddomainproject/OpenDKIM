@@ -16,6 +16,12 @@ release, and a summary of the changes in that release.
 		the IP address part of every query with square brackets, which
 		is a common way to do IP address literals in email contexts.
 		Requested by Quanah Gibson-Mount.
+	Fix bug #SF3599901: Rename "InsecureKey" to "UnprotectedKey" and
+		"InsecurePolicy" to "UnprotectedPolicy", as the term "insecure"
+		in reference to a key is sometimes interpreted to mean "not
+		enough random bits" rather than as a keyword describing the
+		presence or absence of DNSSEC protection.  Suggested by
+		Scott Kitterman.
 	Patch #SF3593422: Update for MDB 0.9.5 support.  Patch from
 		Quanah Gibson-Mount.
 
