@@ -36,6 +36,8 @@ release, and a summary of the changes in that release.
 		in use on Debian.  Requested by Scott Kitterman.
 	BUILD: Feature request #SF3599902: Change OpenSSL existence test
 		to help with Debian packaging.  Requested by Scott Kitterman.
+	CONTRIB: Fix bug #SF3575666: Pass pid file path to killproc.
+		Suggested by Christophe Wolfhugel.
 
 2.7.4		2013/01/06
 	Fix bug #SF3596147: Allow arbitrarily long configuration file lines.
