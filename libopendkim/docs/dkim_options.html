@@ -306,6 +306,12 @@ are:
       also be enforced in the future. </td>
  </tr>
  <tr>
+  <td><tt>DKIM_LIBFLAGS_STRICTRESIGN</tt></td>
+  <td>Refuse to generate a signature from a signing handle bound to a
+      verifying handle (see <a href="dkim_resign.html"><tt>dkim_resign()</tt></a>)
+      if the verifying handle yielded no valid signatures. </td>
+ </tr>
+ <tr>
   <td><tt>DKIM_LIBFLAGS_TMPFILES</tt></td>
   <td>Make temporary files for debugging purposes.  See
       <a href="dkim_sig_reportinfo.html"><tt>dkim_sig_reportinfo()</tt></a>

@@ -3697,14 +3697,16 @@ dkim_eom_sign(DKIM *dkim)
   		dkim->dkim_state = DKIM_STATE_EOM2;
 
 #ifdef _FFR_RESIGN
-	/*
-	**  Verify that all the required headers are present and
-	**  marked for signing.
-	*/
-
 	if (dkim->dkim_resign != NULL)
 	{
+		_Bool found = FALSE;
+		int c;
 		char *hn;
+
+		/*
+		**  Verify that all the required headers are present and
+		**  marked for signing.
+		*/
 
 		hn = (u_char *) dkim_check_requiredhdrs(dkim);
 		if (hn != NULL)
@@ -3713,6 +3715,29 @@ dkim_eom_sign(DKIM *dkim)
 			           hn);
 			dkim->dkim_state = DKIM_STATE_UNUSABLE;
 			return DKIM_STAT_SYNTAX;
+		}
+
+		/*
+		**  Fail if the verification handle didn't work.  For a
+		**  multiply-signed message, we only require one passing
+		**  signature (for now).
+		*/
+
+		if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_STRICTRESIGN) != 0)
+		{
+			for (c = 0; c < dkim->dkim_resign->dkim_sigcount; c++)
+			{
+				sig = dkim->dkim_resign->dkim_siglist[c];
+				if ((sig->sig_flags & DKIM_SIGFLAG_PASSED) != 0 &&
+				    sig->sig_bh == DKIM_SIGBH_MATCH)
+				{
+					found = TRUE;
+					break;
+				}
+			}
+
+			if (!found)
+				return DKIM_STAT_CANTVRFY;
 		}
 	}
 #endif /* _FFR_RESIGN */

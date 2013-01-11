@@ -60,9 +60,12 @@ order; when signing, compute all signatures.
     passed to <a href="dkim_chunk.html"><tt>dkim_chunk()</tt></a> for
     message chunk processing but the end of message was never signaled via
     that interface.
-<li><tt>DKIM_STAT_INVALID</tt> returned when signing may indicate that hte
+<li><tt>DKIM_STAT_INVALID</tt> returned when signing may indicate that the
     key provided for signing did not meet the minimum key size requirement
     (see <tt><a href="dkim_options.html">dkim_options()</a></tt>).
+<li><tt>DKIM_STAT_CANTVRFY</tt> is returned when passed a signing handle
+    bound via <a href="dkim_resign.html"><tt>dkim_resign()</tt></a> to a
+    verifying handle if the latter yielded no valid signatures.
 <li>Other possible return values include all the
     <a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> values.
 </ul>

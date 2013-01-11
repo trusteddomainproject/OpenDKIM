@@ -291,6 +291,7 @@ typedef int dkim_opts_t;
 #define DKIM_LIBFLAGS_STRICTHDRS	0x1000
 #define DKIM_LIBFLAGS_REPORTBADADSP	0x2000
 #define DKIM_LIBFLAGS_DROPSIGNER	0x4000
+#define DKIM_LIBFLAGS_STRICTRESIGN	0x8000
 
 #define	DKIM_LIBFLAGS_DEFAULT		DKIM_LIBFLAGS_NONE
 
@@ -466,7 +467,7 @@ extern DKIM *dkim_verify __P((DKIM_LIB *libhandle, const unsigned char *id,
                               void *memclosure, DKIM_STAT *statp));
 
 /*
-**  DKIM_RESIGN -- bind a new signing handle to a completed handle
+**  DKIM_RESIGN -- bind a new signing handle to a verifying handle
 **
 **  Parameters:
 **  	new -- new signing handle
