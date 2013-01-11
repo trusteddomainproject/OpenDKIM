@@ -267,7 +267,7 @@ are:
       <a href="dkim_gensighdr.html"><tt>dkim_gensighdr()</tt></a> since a
       signature thus generated would violate the DKIM specification.  If
       this flag is set, the signature will still be generated but the "i="
-      tag will be omitted so the signatuer is still compliant. </t>
+      tag will be omitted so the signature is still compliant. </t>
  </tr>
  <tr>
   <td><tt>DKIM_LIBFLAGS_EOHCHECK</tt></td>
@@ -285,6 +285,13 @@ are:
   <td><tt>DKIM_LIBFLAGS_KEEPFILES</tt></td>
   <td>Keep temporary files for manual debugging purposes.  (Also requires that
       <tt>DKIM_LIBFLAGS_TMPFILES</tt> be set.)</td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_REPORTBADADSP</tt></td>
+  <td>When doing the ADSP query, a response that is a syntax error will by
+      default be ignored.  Setting this flag causes an error to be returned.
+      This can be common when, for example, wildcard TXT records are used to
+      publish other data. </td>
  </tr>
  <tr>
   <td><tt>DKIM_LIBFLAGS_SIGNLEN</tt></td>
