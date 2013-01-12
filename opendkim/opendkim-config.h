@@ -213,6 +213,9 @@ struct configdef dkimf_config[] =
 	{ "SignatureTTL",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "SignHeaders",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SigningTable",		CONFIG_TYPE_STRING,	FALSE },
+#ifdef HAVE_CURL_EASY_STRERROR
+	{ "SMTPURI",			CONFIG_TYPE_STRING,	FALSE },
+#endif /* HAVE_CURL_EASY_STRERROR */
 	{ "Socket",			CONFIG_TYPE_STRING,	FALSE },
 	{ "SoftwareHeader",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_STATS

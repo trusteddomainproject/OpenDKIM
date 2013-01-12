@@ -1437,7 +1437,7 @@ lua_found="no"
 
 if test \(  x"$luapath" = x"auto" -o x"$luapath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([LIBLUA], [lua >= 5.1.0 lua5.1 lua5.2],
+        PKG_CHECK_MODULES([LIBLUA], [lua5.1 lua5.2],
 	                  [
 				lua_found="yes"
 				LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
@@ -1978,6 +1978,10 @@ then
 	CPPFLAGS="$saved_CPPFLAGS"
 	LDFLAGS="$saved_LDFLAGS"
 	LIBS="$saved_LIBS"
+	AC_SUBST([LIBCURL_MANNOTICE], "")
+else
+	AC_SUBST([LIBCURL_MANNOTICE],
+	         "(Not enabled for this installation.)" )
 fi
 
 AC_SUBST(CURL_CPPFLAGS)

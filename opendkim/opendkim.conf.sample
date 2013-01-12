@@ -644,6 +644,13 @@ Selector		my-selector-name
 
 # SingleAuthResult	no
 
+##  SMTPURI uri
+##
+##  Specifies a URI (e.g., "smtp://localhost") to which mail should be sent
+##  via SMTP when notifications are generated.
+
+# Socket smtp://localhost
+
 ##  Socket socketspec
 ##
 ##  Names the socket where this filter should listen for milter connections

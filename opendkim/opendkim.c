@@ -307,6 +307,9 @@ struct dkimf_config
 	unsigned long	conf_sigttl;		/* signature TTLs */
 	dkim_alg_t	conf_signalg;		/* signing algorithm */
 	struct config *	conf_data;		/* configuration data */
+#ifdef HAVE_CURL_EASY_STRERROR
+	char *		conf_smtpuri;		/* outgoing mail URI */
+#endif /* HAVE_CURL_EASY_STRERROR */
 	char *		conf_authservid;	/* authserv-id */
 	char *		conf_keyfile;		/* key file for single key */
 	char *		conf_keytable;		/* key table */
@@ -6124,6 +6127,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_authservidwithjobid,
 		                  sizeof conf->conf_authservidwithjobid);
 
+		(void) config_get(data, "SMTPURI", &conf->conf_smtpuri,
+		                  sizeof conf->conf_smtpuri);
+
 		str = NULL;
 		(void) config_get(data, "BaseDirectory", &str, sizeof str);
 		if (str != NULL)
@@ -10205,6 +10211,57 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	if (!sendreport)
 		return;
 
+#ifdef HAVE_CURL_EASY_STRERROR
+	if (conf->conf_smtpuri != NULL)
+	{
+		int fd;
+		char path[MAXPATHLEN + 1];
+
+		snprintf(path, sizeof path, "%s/%s.XXXXXX", conf->conf_tmpdir,
+		         progname);
+
+		fd = mkstemp(path);
+		if (fd < 0)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: mkstemp(): %s",
+				       dfc->mctx_jobid, strerror(errno));
+			}
+
+			return;
+		}
+
+		unlink(path);
+
+		out = fdopen(fd, "w");
+		if (out == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: fdopen(): %s",
+				       dfc->mctx_jobid, strerror(errno));
+			}
+	
+			close(fd);
+			return;
+		}
+	}
+	else
+	{
+		out = popen(reportcmd, "w");
+		if (out == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: popen(): %s",
+				       dfc->mctx_jobid, strerror(errno));
+			}
+	
+			return;
+		}
+	}
+#else /* HAVE_CURL_EASY_STRERROR */
 	out = popen(reportcmd, "w");
 	if (out == NULL)
 	{
@@ -10216,6 +10273,7 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 
 		return;
 	}
+#endif /* HAVE_CURL_EASY_STRERROR */
 
 	/* determine the type of ARF failure and, if needed, a DKIM fail code */
 	arftype = dkimf_arftype(dfc);
@@ -10378,12 +10436,94 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "\n--dkimreport/%s/%s--\n", hostname, dfc->mctx_jobid);
 
 	/* send it */
+#ifdef HAVE_CURL_EASY_SETOPT
+	if (conf->conf_smtpuri != NULL)
+	{
+		CURLcode cc;
+		CURL *curl;
+		struct curl_slist *rcpts = NULL;
+		char dest[MAXADDRESS + 1];
+
+		(void) fseek(out, SEEK_SET, 0);
+
+		curl = curl_easy_init();
+		if (curl == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: curl_easy_init() failed",
+				       dfc->mctx_jobid);
+			}
+		}
+		else
+		{
+			cc = curl_easy_setopt(curl, CURLOPT_URL,
+			                      conf->conf_smtpuri);
+
+			if (cc == CURLE_OK)
+			{
+				cc = curl_easy_setopt(curl, CURLOPT_READDATA,
+				                      out);
+			}
+
+			if (cc == CURLE_OK)
+			{
+				cc = curl_easy_setopt(curl, CURLOPT_MAIL_FROM,
+				                      reportaddr);
+			}
+
+			if (cc == CURLE_OK)
+			{
+				snprintf(dest, sizeof dest, "%s@%s", addr,
+				         dkim_sig_getdomain(sig));
+				rcpts = curl_slist_append(rcpts, dest);
+				cc = curl_easy_setopt(curl, CURLOPT_MAIL_RCPT,
+				                      rcpts);
+			}
+
+			if (cc != CURLE_OK)
+			{
+				if (conf->conf_dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s: curl_easy_setopt() failed",
+					       dfc->mctx_jobid);
+				}
+			}
+			else
+			{
+				cc = curl_easy_perform(curl);
+				if (cc != CURLE_OK && conf->conf_dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s: curl_easy_perform() to %s failed: %s",
+					       dfc->mctx_jobid, dest,
+					       curl_easy_strerror(cc));
+				}
+			}
+
+			curl_slist_free_all(rcpts);
+
+			curl_easy_cleanup(curl);
+		}
+	}
+	else
+	{
+		status = pclose(out);
+		if (status != 0 && conf->conf_dolog)
+		{
+			syslog(LOG_ERR, "%s: pclose(): returned status %d",
+			       dfc->mctx_jobid, status);
+		}
+	}
+#else /* HAVE_CURL_EASY_SETOPT */
 	status = pclose(out);
 	if (status != 0 && conf->conf_dolog)
 	{
 		syslog(LOG_ERR, "%s: pclose(): returned status %d",
 		       dfc->mctx_jobid, status);
-        }
+	}
+#endif /* HAVE_CURL_EASY_SETOPT */
 }
 
 /*
@@ -10488,6 +10628,57 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	if (!sendreport)
 		return;
 
+#ifdef HAVE_CURL_EASY_STRERROR
+	if (conf->conf_smtpuri != NULL)
+	{
+		int fd;
+		char path[MAXPATHLEN + 1];
+
+		snprintf(path, sizeof path, "%s/%s.XXXXXX", conf->conf_tmpdir,
+		         progname);
+
+		fd = mkstemp(path);
+		if (fd < 0)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: mkstemp(): %s",
+				       dfc->mctx_jobid, strerror(errno));
+			}
+
+			return;
+		}
+
+		unlink(path);
+
+		out = fdopen(fd, "w");
+		if (out == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: fdopen(): %s",
+				       dfc->mctx_jobid, strerror(errno));
+			}
+	
+			close(fd);
+			return;
+		}
+	}
+	else
+	{
+		out = popen(reportcmd, "w");
+		if (out == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: popen(): %s",
+				       dfc->mctx_jobid, strerror(errno));
+			}
+	
+			return;
+		}
+	}
+#else /* HAVE_CURL_EASY_STRERROR */
 	out = popen(reportcmd, "w");
 	if (out == NULL)
 	{
@@ -10499,6 +10690,7 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 
 		return;
 	}
+#endif /* HAVE_CURL_EASY_STRERROR */
 
 	/* determine the type of ARF failure and, if needed, a DKIM fail code */
 	arftype = dkimf_arftype(dfc);
@@ -10611,12 +10803,94 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "\n--dkimreport/%s/%s--\n", hostname, dfc->mctx_jobid);
 
 	/* send it */
+#ifdef HAVE_CURL_EASY_SETOPT
+	if (conf->conf_smtpuri != NULL)
+	{
+		CURLcode cc;
+		CURL *curl;
+		struct curl_slist *rcpts = NULL;
+		char dest[MAXADDRESS + 1];
+
+		(void) fseek(out, SEEK_SET, 0);
+
+		curl = curl_easy_init();
+		if (curl == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: curl_easy_init() failed",
+				       dfc->mctx_jobid);
+			}
+		}
+		else
+		{
+			cc = curl_easy_setopt(curl, CURLOPT_URL,
+			                      conf->conf_smtpuri);
+
+			if (cc == CURLE_OK)
+			{
+				cc = curl_easy_setopt(curl, CURLOPT_READDATA,
+				                      out);
+			}
+
+			if (cc == CURLE_OK)
+			{
+				cc = curl_easy_setopt(curl, CURLOPT_MAIL_FROM,
+				                      reportaddr);
+			}
+
+			if (cc == CURLE_OK)
+			{
+				snprintf(dest, sizeof dest, "%s@%s", addr,
+				         dfc->mctx_domain);
+				rcpts = curl_slist_append(rcpts, dest);
+				cc = curl_easy_setopt(curl, CURLOPT_MAIL_RCPT,
+				                      rcpts);
+			}
+
+			if (cc != CURLE_OK)
+			{
+				if (conf->conf_dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s: curl_easy_setopt() failed",
+					       dfc->mctx_jobid);
+				}
+			}
+			else
+			{
+				cc = curl_easy_perform(curl);
+				if (cc != CURLE_OK && conf->conf_dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s: curl_easy_perform() to %s failed: %s",
+					       dfc->mctx_jobid, dest,
+					       curl_easy_strerror(cc));
+				}
+			}
+
+			curl_slist_free_all(rcpts);
+
+			curl_easy_cleanup(curl);
+		}
+	}
+	else
+	{
+		status = pclose(out);
+		if (status != 0 && conf->conf_dolog)
+		{
+			syslog(LOG_ERR, "%s: pclose(): returned status %d",
+			       dfc->mctx_jobid, status);
+		}
+	}
+#else /* HAVE_CURL_EASY_SETOPT */
 	status = pclose(out);
 	if (status != 0 && conf->conf_dolog)
 	{
 		syslog(LOG_ERR, "%s: pclose(): returned status %d",
 		       dfc->mctx_jobid, status);
 	}
+#endif /* HAVE_CURL_EASY_SETOPT */
 }
 
 /*

@@ -1108,6 +1108,12 @@ In any case, only the first match is applied, unless
 is enabled in which case all matches are applied.
 
 .TP
+.I SMTPURI (string)
+Specifies a URI (e.g., "smtp://localhost") to which mail should be sent
+via SMTP when notifications are generated.
+@LIBCURL_MANNOTICE@
+
+.TP
 .I Socket (string)
 Specifies the socket that should be established by the filter to receive
 connections from

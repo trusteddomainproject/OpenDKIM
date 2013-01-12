@@ -11,6 +11,9 @@ release, and a summary of the changes in that release.
 	Feature request #SF3530734: Add "NoLDAPCache", which suppresses the
 		creation of a local cache in front of LDAP queries.
 		Requested by Quanah Gibson-Mount.
+	Feature request #SF3547359: If compiled with libcurl, add "SMTPURI"
+		configuration option that allows direct SMTP transmission
+		failure reports.  Requested by Andreas Schulze.
 	Feature request #SF3578197: Allow per-message override of the list of
 		header fields to be signed.  Requested by Alec Peterson.
 	Feature request #SF3590860: Combine collected reputation values into
