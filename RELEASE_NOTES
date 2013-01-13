@@ -21,6 +21,9 @@ release, and a summary of the changes in that release.
 	Feature request #SF3590860: Combine collected reputation values into
 		an overall allowed rate under _FFR_REPRRD, as is done for the
 		other reputation code.
+	Feature request #SF3597087: For data sets that are file-based,
+		remember their paths and do periodic reload-on-change checks.
+		Requested by Daniel Black.
 	Feature request #SF3598991: Add odkim.signfor() function to the Lua
 		setup script.  Requested by Marcin Owsiany.
 	Feature request #SF3599409: Modify dkimf_checkip() to try surrounding

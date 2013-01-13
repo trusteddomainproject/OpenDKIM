@@ -104,6 +104,7 @@
 #endif /* _FFR_DB_HANDLE_POOLS */
 #define DKIMF_DB_DEFASIZE	8
 #define DKIMF_DB_MODE		0644
+#define DKIMF_DB_RELOADINT	30
 #define DKIMF_LDAP_MAXURIS	8
 #define DKIMF_LDAP_DEFTIMEOUT	5
 #ifdef _FFR_LDAP_CACHING
@@ -170,12 +171,15 @@ struct dkimf_db
 	u_int			db_type;
 	int			db_status;
 	int			db_nrecs;
+	time_t			db_mtime;	/* last modified */
+	time_t			db_lastchk;	/* last checked */
 	pthread_mutex_t *	db_lock;
 	void *			db_handle;	/* handler handle */
 	void *			db_data;	/* dkimf_db handle */
 	void *			db_cursor;	/* cursor */
 	void *			db_entry;	/* entry (context) */
 	char **			db_array;
+	char *			db_path;	/* original path */
 };
 
 struct dkimf_db_table
@@ -1253,6 +1257,51 @@ dkimf_db_open_ldap(LDAP **ld, struct dkimf_db_ldap *ldap, char **err)
 #endif /* USE_LDAP */
 
 /*
+**  DKIMF_DB_REOPEN -- reopen a database
+**
+**  Parameters:
+**  	db -- DKIMF_DB handle
+**
+**  Return value:
+**  	TRUE iff reopen succeeded.
+**
+**  Notes:
+**  	For data sets that are flat-file backed (FILE and REFILE), this function
+**  	reopens an already-opened database by opening it into a second handle,
+**  	stealing the data structure of the new one, and finally tossing the old
+**  	one.
+*/
+
+static _Bool
+dkimf_db_reopen(DKIMF_DB db)
+{
+	int status;
+	DKIMF_DB new;
+	void *tmph;
+	char buf[BUFRSZ + 1];
+
+	assert(db != NULL);
+	assert(db->db_type == DKIMF_DB_TYPE_FILE ||
+	       db->db_type == DKIMF_DB_TYPE_REFILE);
+	
+	snprintf(buf, sizeof buf, "%s:%s",
+	         db->db_type == DKIMF_DB_TYPE_FILE ? "file" : "refile",
+	         db->db_path);
+
+	status = dkimf_db_open(&new, db->db_path, db->db_flags, NULL, NULL);
+	if (status != 0)
+		return FALSE;
+
+	tmph = db->db_handle;
+	db->db_handle = new->db_handle;
+	new->db_handle = tmph;
+
+	(void) dkimf_db_close(new);
+
+	return TRUE;
+}
+
+/*
 **  DKIMF_DB_TYPE -- return database type
 **
 **  Parameters:
@@ -2050,6 +2099,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		struct dkimf_db_list *list = NULL;
 		struct dkimf_db_list *next = NULL;
 		struct dkimf_db_list *newl;
+		struct stat s;
 		char line[BUFRSZ + 1];
 
 		if ((new->db_flags & DKIMF_DB_FLAG_READONLY) == 0)
@@ -2068,6 +2118,14 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 				*err = strerror(errno);
 			free(new);
 			return -1;
+		}
+
+		new->db_path = strdup(p);
+
+		if (fstat(fileno(f), &s) == 0)
+		{
+			new->db_mtime = s.st_mtime;
+			(void) time(&new->db_lastchk);
 		}
 
 		memset(line, '\0', sizeof line);
@@ -2248,6 +2306,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		struct dkimf_db_relist *head = NULL;
 		struct dkimf_db_relist *tail = NULL;
 		struct dkimf_db_relist *newl;
+		struct stat s;
 		char line[BUFRSZ + 1];
 		char patbuf[BUFRSZ + 1];
 
@@ -2267,6 +2326,14 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 				*err = strerror(errno);
 			free(new);
 			return -1;
+		}
+
+		new->db_path = strdup(p);
+
+		if (fstat(fileno(f), &s) == 0)
+		{
+			new->db_mtime = s.st_mtime;
+			(void) time(&new->db_lastchk);
 		}
 
 		reflags = REG_EXTENDED;
@@ -2388,7 +2455,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 	  case DKIMF_DB_TYPE_BDB:
 	  {
 # if DB_VERSION_CHECK(2,0,0)
-		int dbflags = 0;
+		int dbflags = DB_THREAD;
 # endif /* DB_VERSION_CHECK(2,0,0) */
 		int status = 0;
 		DBTYPE bdbtype;
@@ -4087,6 +4154,28 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 	  {
 		struct dkimf_db_list *list;
 
+		if (db->db_type == DKIMF_DB_TYPE_FILE)
+		{
+			time_t now;
+
+			(void) time(&now);
+
+			if (db->db_path != NULL &&
+			    db->db_lastchk + DKIMF_DB_RELOADINT < now)
+			{
+				struct stat s;
+
+				if (stat(db->db_path, &s) == 0 &&
+				    s.st_mtime != db->db_mtime)
+				{
+					if (dkimf_db_reopen(db))
+						db->db_mtime = s.st_mtime;
+				}
+
+				db->db_lastchk = now;
+			}
+		}
+
 		for (list = (struct dkimf_db_list *) db->db_handle;
 		     list != NULL;
 		     list = list->db_list_next)
@@ -4156,7 +4245,25 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 
 	  case DKIMF_DB_TYPE_REFILE:
 	  {
+		time_t now;
 		struct dkimf_db_relist *list;
+
+		(void) time(&now);
+
+		if (db->db_path != NULL &&
+		    db->db_lastchk + DKIMF_DB_RELOADINT < now)
+		{
+			struct stat s;
+
+			if (stat(db->db_path, &s) == 0 &&
+			    s.st_mtime != db->db_mtime)
+			{
+				if (dkimf_db_reopen(db))
+					db->db_mtime = s.st_mtime;
+			}
+
+			db->db_lastchk = now;
+		}
 
 		list = (struct dkimf_db_relist *) db->db_handle;
 
