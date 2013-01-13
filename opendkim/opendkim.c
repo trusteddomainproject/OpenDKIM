@@ -4656,50 +4656,269 @@ dkimf_reptoken(u_char *out, size_t outlen, u_char *in, u_char *sub)
 }
 
 /*
-**  DKIMF_INSECURE -- see if an open file is safe to use
+**  DKIMF_CHECKFSNODE -- check a filesystem node for safety
 **
 **  Parameters:
-**  	mode -- mode of an open file
-**  	grp -- group ID of an open file
+**  	path -- path of the node to check
+**  	myuid -- executing user's effective uid
+**  	myname -- executing user's login
+**  	ino -- evaluated inode (returned)
 **
 **  Return value:
-**  	FALSE iff the file is safe to use.
+**  	1 -- node is safe to use
+**  	0 -- node is not safe to use
+**  	-1 -- error (check errno)
+**
+**  Notes:
+**  	"Safe" here means the target file cannot be read or written by anyone
+**  	other than the executing user and the superuser.  The entire directory
+**  	tree is checked from the root down after resolution of symlinks and
+**  	references to "." and ".." looking for errant "write" bits on
+**   	directories and the file itself.
+**
+**  	To prevent attacks through symbolic links, this function also returns
+**  	the inode of the object it evaluated if that object was a file.  Thus,
+**  	if the caller first opens the file but doesn't read from it, then the
+**  	returned inode can be compared to the inode of the opened descriptor
+**  	to ensure that what was opened was safe at the time open() was called.
+**  	An inode of -1 is reported if some directory above the target was
+**  	sufficiently locked down that the inode comparison isn't necessary.
+**
+**  	This still isn't bulletproof; there's a race between the time of the
+**  	open() call and the result returned by this function.  I'm not sure if
+**	that can be improved.
 */
 
-_Bool
-dkimf_insecure(mode_t mode, gid_t grp)
+static int
+dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 {
-	/* read/write by others is always bad */
-	if ((mode & (S_IROTH|S_IWOTH)) != 0)
-		return TRUE;
+	int status;
+	struct passwd *pw;
+	struct group *gr;
+	struct stat s;
 
-	/* read/write by group is bad if it's not a group we're in */
-	if ((mode & (S_IRGRP|S_IWGRP)) != 0)
+	assert(path != NULL);
+	assert(myname != NULL);
+	assert(ino != NULL);
+
+	status = stat(path, &s);
+	if (status != 0)
+		return -1;
+
+	if ((s.st_mode & S_IFMT) == S_IFREG)
 	{
-		int c;
-		int ngroups;
-		gid_t gid;
-		gid_t egid;
-		gid_t gids[NGROUPS_MAX];
+		/* owned by root or by me */
+		if (s.st_uid != 0 && s.st_uid != myuid)
+			return 0;
 
-		gid = getgid();
-		egid = getegid();
-		ngroups = getgroups(NGROUPS_MAX, gids);
-
-		if (grp == gid || grp == egid)
-			return FALSE;
-
-		for (c = 0; c < ngroups; c++)
+		/* if group read/write, the group is only me and/or root */
+		if ((s.st_mode & (S_IRGRP|S_IWGRP)) != 0)
 		{
-			if (grp == gids[c])
-				return FALSE;
+			int c;
+
+			/* check if anyone else has this file's gid */
+			setpwent();
+			for (pw = getpwent(); pw != NULL; pw = getpwent())
+			{
+				if (pw->pw_uid != myuid &&
+				    pw->pw_uid != 0 &&
+				    s.st_gid == pw->pw_gid)
+					return 0;
+			}
+
+			/* check if this group contains anyone else */
+			gr = getgrgid(s.st_gid);
+			if (gr == NULL)
+				return -1;
+			for (c = 0; gr->gr_mem[c] != NULL; c++)
+			{
+				if (strcmp(gr->gr_mem[c], myname) != 0 &&
+				    strcmp(gr->gr_mem[c], SUPERUSER) != 0)
+					return 0;
+			}
 		}
 
-		return TRUE;
+		/* not read/write by others */
+		if ((s.st_mode & (S_IROTH|S_IWOTH)) != 0)
+			return 0;
+
+		*ino = s.st_ino;
+	}
+	else if ((s.st_mode & S_IFMT) == S_IFDIR)
+	{
+		/* other write needs to be off */
+		if ((s.st_mode & S_IWOTH) != 0)
+			return 0;
+
+		/* group write needs to be super-user or me only */
+		if ((s.st_mode & S_IWGRP) != 0)
+		{
+			int c;
+
+			/* check if anyone else has this file's gid */
+			setpwent();
+			for (pw = getpwent(); pw != NULL; pw = getpwent())
+			{
+				if (pw->pw_uid != myuid &&
+				    pw->pw_uid != 0 &&
+				    s.st_gid == pw->pw_gid)
+					return 0;
+			}
+
+			/* check if this group contains anyone else */
+			gr = getgrgid(s.st_gid);
+			if (gr == NULL)
+				return -1;
+			for (c = 0; gr->gr_mem[c] != NULL; c++)
+			{
+				if (strcmp(gr->gr_mem[c], myname) != 0 &&
+				    strcmp(gr->gr_mem[c], SUPERUSER) != 0)
+					return 0;
+			}
+		}
+
+		/* owner write needs to be super-user or me only */
+		if ((s.st_mode & S_IWUSR) != 0 &&
+		    (s.st_uid != 0 && s.st_uid != myuid))
+			return 0;
+
+		/* if nobody else can execute below here, that's good enough */
+		if ((s.st_mode & (S_IXGRP|S_IXOTH)) == 0)
+		{
+			*ino = (ino_t) -1;
+			return 1;
+		}
 	}
 
-	/* anything that gets here is safe */
-	return FALSE;
+	return 1;
+}
+
+/*
+**  DKIMF_SECUREFILE -- determine whether a file at a specific path is "safe"
+**
+**  Parameters:
+**  	path -- path to evaluate
+**  	ino -- inode of evaluated object
+**
+**  Return value:
+**  	As for dkimf_checkfsnode().
+**
+**  Notes:
+**  	If realpath() is available, this function checks the entire resolved
+**  	filesystem tree from the root to the target file to ensure there are no
+**  	permissions that would allow someone else on the system to either read
+**  	or replace the file being evaluated.  (It's designed to check private
+**  	key files.)  Without realpath(), only the target filename is checked.
+*/
+
+int
+dkimf_securefile(const char *path, ino_t *ino)
+{
+#ifdef HAVE_REALPATH
+	int status;
+	uid_t myuid;
+	struct passwd *me;
+	char *p;
+	char *q;
+	char real[MAXPATHLEN + 1];
+	char partial[MAXPATHLEN + 1];
+	char myname[BUFRSZ + 1];
+
+	assert(path != NULL);
+	assert(ino != NULL);
+
+	/* figure out who I am */
+	me = getpwuid(geteuid());
+	if (me == NULL)
+		return -1;
+	myuid = me->pw_uid;
+	strlcpy(myname, me->pw_name, sizeof myname);
+
+	p = realpath(path, real);
+	if (p == NULL)
+		return -1;
+
+	/*
+	**  Check each node in the tree to ensure that:
+	**  1) The file itself is read-write only by the executing user and the
+	**  	super-user;
+	**  2) No directory above the file is writeable by anyone other than the
+	**  	executing user and the super-user.
+	*/
+
+	partial[0] = '/';
+	partial[1] = '\0';
+
+	status = dkimf_checkfsnode((const char *) partial, myuid, myname, ino);
+	if (status != 1)
+		return status;
+
+	q = real;
+	while ((p = strsep(&q, "/")) != NULL)
+	{
+		strlcat(partial, p, sizeof partial);
+		status = dkimf_checkfsnode((const char *) partial,
+		                           myuid, myname, ino);
+		if (status != 1)
+			return status;
+
+		strlcat(partial, "/", sizeof partial); 
+	}
+
+	return 1;
+#else /* HAVE_REALPATH */
+	int status;
+	struct stat s;
+
+	status = stat(path, &s);
+	if (status != 0)
+		return -1;
+
+	/* we don't own it and neither does the super-user; bad */
+	if (s.st_uid != geteuid() && s.st_uid != 0)
+		return 0;
+
+	/* world readable/writeable; bad */
+	if ((s.st_node & (S_IROTH|S_IWOTH)) != 0)
+		return 0;
+
+	/* group read/write is bad if others are in that group */
+	if ((s.st_mode & (S_IRGRP|S_IWGRP)) != 0)
+	{
+		int c;
+		uid_t myuid;
+		struct group *gr;
+		struct passwd *pw;
+
+		/* get my password file entry */
+		pw = getpwuid(geteuid());
+		if (pw == NULL)
+			return -1;
+
+		/* get the file's group entry */
+		gr = getgrgid(s.st_gid);
+		if (gr == NULL)
+			return -1;
+
+		for (c = 0; gr->gr_mem[c] != NULL; c++)
+		{
+			if (strcmp(gr->gr_mem[c], pw->pw_name) != 0)
+				return 0;
+		}
+
+		myuid = pw->pw_uid;
+		setpwent();
+		while (pw = getpwent(); pw != NULL; pw = getpwent())
+		{
+			if (pw->pw_uid != myuid && pw->pw_gid == s.st_gid)
+				return 0;
+		}
+	}
+		
+	/* guess we're okay... */
+	*ino = s.st_ino;
+	return 1;
+#endif /* HAVE_REALPATH */
 }
 
 /*
@@ -4712,12 +4931,18 @@ dkimf_insecure(mode_t mode, gid_t grp)
 **  	error -- string returned on error
 **
 **  Return value:
-**  	TRUE on successful load, false otherwise
+**  	TRUE on successful load, false otherwise.
+**
+**  Notes:
+**  	The caller might pass a key or a filename in "buf".  If we think it's a
+**  	filename, replace the contents of "buf" with what we find in that file.
 */
 
 static _Bool
 dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure, char **error)
 {
+	ino_t ino;
+
 	assert(buf != NULL);
 	assert(buflen != NULL);
 
@@ -4751,13 +4976,11 @@ dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure, char **error)
 			return FALSE;
 		}
 
-		/*
-		**  XXX -- really should check ancestor directories too,
-		**  like sendmail's safefile()
-		*/
-
-		if (insecure != NULL)
-			*insecure = dkimf_insecure(s.st_mode, s.st_gid);
+		if (!dkimf_securefile(buf, &ino) ||
+		    (ino != (ino_t) -1 && ino != s.st_ino))
+			*insecure = TRUE;
+		else
+			*insecure = FALSE;
 
 		*buflen = MIN(s.st_size, *buflen);
 		rlen = read(fd, buf, *buflen);
@@ -8109,10 +8332,33 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		int status;
 		int fd;
 		ssize_t rlen;
+		ino_t ino;
 		u_char *s33krit;
 		struct stat s;
 
-		status = stat(conf->conf_keyfile, &s);
+		fd = open(conf->conf_keyfile, O_RDONLY, 0);
+		if (fd < 0)
+		{
+			if (conf->conf_dolog)
+			{
+				int saveerrno;
+
+				saveerrno = errno;
+
+				syslog(LOG_ERR, "%s: open(): %s",
+				       conf->conf_keyfile,
+				       strerror(errno));
+
+				errno = saveerrno;
+			}
+
+			snprintf(err, errlen, "%s: open(): %s",
+			         conf->conf_keyfile, strerror(errno));
+			free(s33krit);
+			return -1;
+		}
+
+		status = fstat(fd, &s);
 		if (status != 0)
 		{
 			if (conf->conf_dolog)
@@ -8130,10 +8376,21 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			snprintf(err, errlen, "%s: stat(): %s",
 			         conf->conf_keyfile, strerror(errno));
+			close(fd);
+			return -1;
+		}
+		else if (!S_ISREG(s.st_mode))
+		{
+			snprintf(err, errlen, "%s: open(): Not a regular file",
+			         conf->conf_keyfile);
+			close(fd);
+			free(s33krit);
 			return -1;
 		}
 
-		if (dkimf_insecure(s.st_mode, s.st_gid))
+
+		if (!dkimf_securefile(conf->conf_keyfile, &ino) ||
+		    (ino != (ino_t) -1 && ino != s.st_ino))
 		{
 			if (conf->conf_dolog)
 			{
@@ -8173,37 +8430,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			snprintf(err, errlen, "malloc(): %s", strerror(errno));
 			return -1;
 		}
+
 		conf->conf_keylen = s.st_size + 1;
-
-		fd = open(conf->conf_keyfile, O_RDONLY, 0);
-		if (fd < 0)
-		{
-			if (conf->conf_dolog)
-			{
-				int saveerrno;
-
-				saveerrno = errno;
-
-				syslog(LOG_ERR, "%s: open(): %s",
-				       conf->conf_keyfile,
-				       strerror(errno));
-
-				errno = saveerrno;
-			}
-
-			snprintf(err, errlen, "%s: open(): %s",
-			         conf->conf_keyfile, strerror(errno));
-			free(s33krit);
-			return -1;
-		}
-		else if (!S_ISREG(s.st_mode))
-		{
-			snprintf(err, errlen, "%s: open(): Not a regular file",
-			         conf->conf_keyfile);
-			close(fd);
-			free(s33krit);
-			return -1;
-		}
 
 		rlen = read(fd, s33krit, s.st_size + 1);
 		if (rlen == (ssize_t) -1)

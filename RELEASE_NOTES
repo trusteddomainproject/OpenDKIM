@@ -8,6 +8,8 @@ release, and a summary of the changes in that release.
 	Feature request #SF2964383: Add DKIM_LIBFLAGS_STRICTRESIGN, which
 		inhibits signing of a handle tagged for resigning when the
 		attached verifying handle had no valid signatures in it.
+	Feature request #SF3155117: Do a more thorough check for writeable
+		key files, checking more of the filesystem permission tree.
 	Feature request #SF3530734: Add "NoLDAPCache", which suppresses the
 		creation of a local cache in front of LDAP queries.
 		Requested by Quanah Gibson-Mount.

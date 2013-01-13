@@ -63,6 +63,7 @@
 #define	MAXSIGNATURE	1024
 #define	MTAMARGIN	78
 #define	NULLDOMAIN	"(invalid)"
+#define	SUPERUSER	"root"
 #define	UNKNOWN		"unknown"
 
 #define	DB_DOMAINS	1
