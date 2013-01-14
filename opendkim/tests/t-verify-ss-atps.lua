@@ -1,5 +1,4 @@
-
--- Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+-- Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 
 -- simple/simple verify test with ATPS
 -- 

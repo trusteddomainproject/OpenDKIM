@@ -1,7 +1,5 @@
+-- Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 
--- Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
-
--- 
 -- verify config option LocalADSP works
 
 mt.echo("*** test config option LocalADSP with subdomain checking")
