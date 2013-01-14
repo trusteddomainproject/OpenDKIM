@@ -9,7 +9,11 @@
 mt.echo("*** relaxed/simple signing test using tables")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-sign-rs-tables.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-sign-rs-tables.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))

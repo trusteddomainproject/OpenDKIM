@@ -9,7 +9,11 @@
 mt.echo("*** simple/simple verify revoked key")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-verify-revoked.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-verify-revoked.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))

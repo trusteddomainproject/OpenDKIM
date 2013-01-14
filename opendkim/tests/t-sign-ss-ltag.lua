@@ -8,7 +8,11 @@
 mt.echo("*** simple/simple signing test with l= tag")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-sign-ss-ltag.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-sign-ss-ltag.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))

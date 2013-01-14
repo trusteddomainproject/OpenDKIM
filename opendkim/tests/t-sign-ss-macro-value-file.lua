@@ -10,7 +10,11 @@
 mt.echo("*** simple/simple signing test using macros to validate origin (file)")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-sign-ss-macro-value-file.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-sign-ss-macro-value-file.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))

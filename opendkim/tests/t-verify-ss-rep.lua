@@ -8,7 +8,11 @@
 mt.echo("*** simple/simple verifying test with reputation checks")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-verify-ss-rep.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-verify-ss-rep.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))

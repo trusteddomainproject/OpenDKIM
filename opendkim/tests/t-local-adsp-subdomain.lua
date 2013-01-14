@@ -7,7 +7,11 @@
 mt.echo("*** test config option LocalADSP with subdomain checking")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-local-adsp-subdomain.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-local-adsp-subdomain.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))

@@ -9,7 +9,11 @@
 mt.echo("*** relaxed/simple signing test using KeyTable and domain token")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-sign-rs-tables-token.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-sign-rs-tables-token.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))

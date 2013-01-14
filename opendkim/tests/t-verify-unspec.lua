@@ -9,7 +9,11 @@
 mt.echo("*** unspecified protocol family test")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-verify-unspec.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-verify-unspec.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
