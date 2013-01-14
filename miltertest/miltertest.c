@@ -1371,7 +1371,10 @@ mt_connect(lua_State *l)
 #ifdef HAVE_SUN_LEN
 		sa.sun_len = sizeof sa;
 #endif /* HAVE_SUN_LEN */
-		strlcpy(sa.sun_path, p + 1, sizeof sa.sun_path);
+		if (p == NULL)
+			strlcpy(sa.sun_path, sockinfo, sizeof sa.sun_path);
+		else
+			strlcpy(sa.sun_path, p + 1, sizeof sa.sun_path);
 
 		fd = socket(PF_UNIX, SOCK_STREAM, 0);
 		if (fd < 0)
