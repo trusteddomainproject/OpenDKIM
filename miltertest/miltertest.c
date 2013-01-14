@@ -1169,7 +1169,14 @@ mt_startfilter(lua_State *l)
 	}
 
 	for (c = 1; c <= args; c++)
+	{
 		argv[c - 1] = lua_tostring(l, c);
+		if (verbose > 2)
+		{
+			fprintf(stderr, "%s: argv[%d] = `%s'\n", progname, c - 1,
+			        argv[c - 1]);
+		}
+	}
 	argv[c - 1] = NULL;
 	lua_pop(l, c);
 
@@ -1376,16 +1383,16 @@ mt_connect(lua_State *l)
 		else
 			strlcpy(sa.sun_path, p + 1, sizeof sa.sun_path);
 
-		fd = socket(PF_UNIX, SOCK_STREAM, 0);
-		if (fd < 0)
-		{
-			lua_pushfstring(l, "mt.connect(): socket(): %s",
-			                strerror(errno));
-			lua_error(l);
-		}
-
 		while (count > 0)
 		{
+			fd = socket(PF_UNIX, SOCK_STREAM, 0);
+			if (fd < 0)
+			{
+				lua_pushfstring(l, "mt.connect(): socket(): %s",
+				                strerror(errno));
+				lua_error(l);
+			}
+
 			saverr = 0;
 
 			if (connect(fd, (struct sockaddr *) &sa,
@@ -1401,6 +1408,8 @@ mt_connect(lua_State *l)
 				        progname, strerror(errno), count - 1,
 				        count == 2 ? "y" : "ies");
 			}
+
+			close(fd);
 
 			usleep(interval);
 
@@ -1474,16 +1483,16 @@ mt_connect(lua_State *l)
 		if (at != NULL)
 			*at = '@';
 
-		fd = socket(PF_INET, SOCK_STREAM, 0);
-		if (fd < 0)
-		{
-			lua_pushfstring(l, "mt.connect(): socket(): %s",
-			                strerror(errno));
-			lua_error(l);
-		}
-
 		while (count > 0)
 		{
+			fd = socket(PF_INET, SOCK_STREAM, 0);
+			if (fd < 0)
+			{
+				lua_pushfstring(l, "mt.connect(): socket(): %s",
+				                strerror(errno));
+				lua_error(l);
+			}
+
 			saverr = 0;
 
 			if (connect(fd, (struct sockaddr *) &sa,
@@ -1499,6 +1508,8 @@ mt_connect(lua_State *l)
 				        progname, strerror(errno), count - 1,
 				        count == 2 ? "y" : "ies");
 			}
+
+			close(fd);
 
 			usleep(interval);
 
