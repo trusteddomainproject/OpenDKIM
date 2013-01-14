@@ -23,6 +23,9 @@ endif
 if ATPS
 check_SCRIPTS += t-sign-atps t-verify-ss-atps
 endif
+if TEST_SOCKET
+TESTS_ENVIRONMENT = MILTERTESTFLAGS=-DTESTSOCKET=$(TESTSOCKET); export MILTERTESTFLAGS;
+endif
 
 TESTS = $(check_SCRIPTS)
 

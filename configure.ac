@@ -2429,6 +2429,21 @@ AC_ARG_ENABLE([live-testing],
 AM_CONDITIONAL(LIVE_TESTS, test x"$live_tests" = x"yes")
 
 #
+# specify test socket
+# 
+
+AC_ARG_WITH([test-socket],
+            AS_HELP_STRING([--with-test-socket],
+                           [specify socket to use for all tests]),
+            [testsocket="$withval"], [testsocket=""])
+AM_CONDITIONAL(TEST_SOCKET, test x"$testsocket" != x"")
+if test x"$testsocket" != x""
+then
+	TESTSOCKET=$testsocket
+	AC_SUBST(TESTSOCKET)
+fi
+
+#
 # Platform Specific Configuration
 #
 AC_CANONICAL_HOST
