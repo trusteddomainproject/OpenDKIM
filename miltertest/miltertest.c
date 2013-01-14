@@ -80,7 +80,7 @@ typedef unsigned int useconds_t;
 #endif /* SMFIP_NR_CONN */
 
 #define	MT_PRODUCT		"OpenDKIM milter test facility"
-#define	MT_VERSION		"1.4.0"
+#define	MT_VERSION		"1.4.1"
 
 #define	BUFRSZ			1024
 #define	CHUNKSZ			65536
