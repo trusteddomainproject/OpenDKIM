@@ -48,6 +48,9 @@ release, and a summary of the changes in that release.
 		Suggested by Christophe Wolfhugel.
 	MILTERTEST: Don't crash in mt_connect() if the socketspec doesn't
 		contain a colon.
+	MILTERTEST: When connect() fails for an AF_INET socket, it apparently
+		leaves the socket unusable.  Discard the socket when that happens
+		and get a new one.
 
 2.7.4		2013/01/06
 	Fix bug #SF3596147: Allow arbitrarily long configuration file lines.
