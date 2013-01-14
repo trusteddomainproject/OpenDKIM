@@ -6350,8 +6350,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_authservidwithjobid,
 		                  sizeof conf->conf_authservidwithjobid);
 
+#ifdef HAVE_CURL_EASY_STRERROR
 		(void) config_get(data, "SMTPURI", &conf->conf_smtpuri,
 		                  sizeof conf->conf_smtpuri);
+#endif /* HAVE_CURL_EASY_STRERROR */
 
 		str = NULL;
 		(void) config_get(data, "BaseDirectory", &str, sizeof str);
