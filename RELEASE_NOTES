@@ -44,6 +44,9 @@ release, and a summary of the changes in that release.
 		in use on Debian.  Requested by Scott Kitterman.
 	BUILD: Feature request #SF3599902: Change OpenSSL existence test
 		to help with Debian packaging.  Requested by Scott Kitterman.
+	BUILD: Add "--with-test-socket" to force all of the filter unit tests
+		to use a specific socket.  Based on a bug report from
+		Scott Kitterman.
 	CONTRIB: Fix bug #SF3575666: Pass pid file path to killproc.
 		Suggested by Christophe Wolfhugel.
 	MILTERTEST: Don't crash in mt_connect() if the socketspec doesn't

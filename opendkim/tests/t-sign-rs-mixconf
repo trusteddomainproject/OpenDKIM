@@ -8,4 +8,4 @@ then
 	srcdir=`pwd`
 fi
 
-../../miltertest/miltertest -s $srcdir/t-sign-rs-mixconf.lua
+../../miltertest/miltertest $MILTERTESTFLAGS -s $srcdir/t-sign-rs-mixconf.lua
