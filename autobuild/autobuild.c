@@ -19,6 +19,7 @@
 #define	JSON_ALWAYS	"always"
 #define	JSON_COMBINE	"combine"
 
+#define	AUTORECONF	"autoreconf"
 #define	CONFIGURE	"./configure"
 #define	MAKE		"make"
 #define	DISTCHECK	"distcheck"
@@ -26,6 +27,10 @@
 
 #define	BUFRSZ		2048
 #define	TEMPLATE	"/tmp/abXXXXXX"
+
+#ifndef MIN
+# define MIN(a,b)	((a) < (b) ? (a) : (b))
+#endif /* ! MIN */
 
 char *progname;
 
@@ -230,7 +235,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	asz = sizeof(char *) * (nopts + 2);
+	asz = MIN(4, sizeof(char *) * (nargs + nopts + 2));
 	args = (const char **) malloc(asz);
 	if (args == NULL)
 	{
@@ -241,6 +246,85 @@ main(int argc, char **argv)
 
 	combos = (size_t) pow(2, nopts);
 
+	/* autoreconf */
+	args[0] = AUTORECONF;
+	args[1] = "-v";
+	args[2] = "-i";
+	args[3] = NULL;
+
+	strncpy(fn, TEMPLATE, sizeof fn);
+	fd = mkstemp(fn);
+	if (fd < 0)
+	{
+		fprintf(stderr, "%s: mkstemp(): %s\n", progname,
+		        strerror(errno));
+		return EX_OSERR;
+	}
+
+	child = fork();
+	switch (child)
+	{
+	  case -1:
+		fprintf(stderr, "%s: fork(): %s\n", progname,
+		        strerror(errno));
+		return EX_OSERR;
+
+	  case 0:
+		(void) dup2(fd, 1);
+		(void) dup2(fd, 2);
+		(void) execvp(args[0], (char * const *) args);
+		fprintf(stderr, "%s: execvp(): %s\n", progname,
+		        strerror(errno));
+		return EX_OSERR;
+
+	  default:
+		n = wait(&status);
+		if (n == -1)
+		{
+			fprintf(stderr, "%s: wait(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+		}
+		else if (WIFSIGNALED(status) ||
+		         WEXITSTATUS(status) != 0)
+		{
+			if (WIFSIGNALED(status))
+			{
+				fprintf(stderr,
+				        "%s: clean died with signal %d\n",
+				        progname, WTERMSIG(status));
+			}
+			else
+			{
+				fprintf(stderr,
+				        "%s: clean exited with status %d\n",
+				        progname, WEXITSTATUS(status));
+			}
+
+			(void) lseek(fd, 0, SEEK_SET);
+
+			dumpargs(stdout, args);
+
+			for (;;)
+			{
+				n = read(fd, buf, sizeof buf);
+				(void) fwrite(buf, 1, n, stdout);
+				if (n < sizeof buf)
+					break;
+			}
+
+			close(fd);
+			free(args);
+			json_decref(j);
+			return 1;
+		}
+
+		break;
+	}
+
+	/* clean up */
+	close(fd);
+
 	for (c = 0; c < combos; c++)
 	{
 		memset(args, '\0', asz);
@@ -249,15 +333,17 @@ main(int argc, char **argv)
 		args[0] = CONFIGURE;
 		n = 1;
 
+		/* add the "always" arguments */
 		for (d = 0; d < json_array_size(always); d++)
 		{
 			node = json_array_get(always, d);
 			args[n++] = json_string_value(node);
 		}
 
+		/* add the new combination of options */
 		for (d = 0; d < nopts; d++)
 		{
-			if ((1 << d) & c)
+			if (c & (1 << d))
 			{
 				node = json_array_get(j, d);
 
@@ -392,7 +478,10 @@ main(int argc, char **argv)
 		  case 0:
 			(void) dup2(fd, 1);
 			(void) dup2(fd, 2);
-			return execvp(args[0], (char * const *) args);
+			(void) execvp(args[0], (char * const *) args);
+			fprintf(stderr, "%s: execvp(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
 
 		  default:
 			n = wait(&status);
@@ -466,7 +555,10 @@ main(int argc, char **argv)
 		  case 0:
 			(void) dup2(fd, 1);
 			(void) dup2(fd, 2);
-			return execvp(args[0], (char * const *) args);
+			(void) execvp(args[0], (char * const *) args);
+			fprintf(stderr, "%s: execvp(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
 
 		  default:
 			n = wait(&status);
@@ -541,7 +633,10 @@ main(int argc, char **argv)
 		  case 0:
 			(void) dup2(fd, 1);
 			(void) dup2(fd, 2);
-			return execvp(args[0], (char * const *) args);
+			(void) execvp(args[0], (char * const *) args);
+			fprintf(stderr, "%s: execvp(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
 
 		  default:
 			n = wait(&status);
