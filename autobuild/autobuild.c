@@ -22,6 +22,7 @@
 #define	CONFIGURE	"./configure"
 #define	MAKE		"make"
 #define	DISTCHECK	"distcheck"
+#define	CLEAN		"clean"
 
 #define	BUFRSZ		2048
 #define	TEMPLATE	"/tmp/abXXXXXX"
@@ -488,6 +489,81 @@ main(int argc, char **argv)
 				{
 					fprintf(stderr,
 					        "%s: distcheck exited with status %d\n",
+					        progname, WEXITSTATUS(status));
+				}
+
+				(void) lseek(fd, 0, SEEK_SET);
+
+				dumpargs(stdout, args);
+
+				for (;;)
+				{
+					n = read(fd, buf, sizeof buf);
+					(void) fwrite(buf, 1, n, stdout);
+					if (n < sizeof buf)
+						break;
+				}
+
+				close(fd);
+				free(args);
+				json_decref(j);
+				return 1;
+			}
+
+			break;
+		}
+
+		/* clean up */
+		close(fd);
+
+		/* make clean */
+		args[0] = MAKE;
+		args[1] = CLEAN;
+		args[2] = NULL;
+
+		strncpy(fn, TEMPLATE, sizeof fn);
+		fd = mkstemp(fn);
+		if (fd < 0)
+		{
+			fprintf(stderr, "%s: mkstemp(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+		}
+
+		child = fork();
+		switch (child)
+		{
+		  case -1:
+			fprintf(stderr, "%s: fork(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+
+		  case 0:
+			(void) dup2(fd, 1);
+			(void) dup2(fd, 2);
+			return execvp(args[0], (char * const *) args);
+
+		  default:
+			n = wait(&status);
+			if (n == -1)
+			{
+				fprintf(stderr, "%s: wait(): %s\n", progname,
+				        strerror(errno));
+				return EX_OSERR;
+			}
+			else if (WIFSIGNALED(status) ||
+			         WEXITSTATUS(status) != 0)
+			{
+				if (WIFSIGNALED(status))
+				{
+					fprintf(stderr,
+					        "%s: clean died with signal %d\n",
+					        progname, WTERMSIG(status));
+				}
+				else
+				{
+					fprintf(stderr,
+					        "%s: clean exited with status %d\n",
 					        progname, WEXITSTATUS(status));
 				}
 
