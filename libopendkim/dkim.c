@@ -9783,7 +9783,8 @@ dkim_signhdrs(DKIM *dkim, const char **hdrlist)
 		                  (u_char **) dkim->dkim_libhandle->dkiml_requiredhdrs,
 		                  TRUE))
 			return DKIM_STAT_INVALID;
-		if (!dkim_hdrlist((u_char *) buf, sizeof buf, hdrlist, FALSE))
+		if (!dkim_hdrlist((u_char *) buf, sizeof buf,
+		                  (u_char **) hdrlist, FALSE))
 			return DKIM_STAT_INVALID;
 
 		if (strlcat(buf, ")$", sizeof buf) >= sizeof buf)
