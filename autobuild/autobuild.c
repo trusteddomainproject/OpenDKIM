@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2012-present, The Trusted Domain Project.
+**  Copyright (c) 2012, 2013, The Trusted Domain Project.
 **  	All rights reserved.
 */
 
