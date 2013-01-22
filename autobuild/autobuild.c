@@ -315,7 +315,10 @@ main(int argc, char **argv)
 		  case 0:
 			(void) dup2(fd, 1);
 			(void) dup2(fd, 2);
-			return execvp(args[0], (char * const *) args);
+			(void) execvp(args[0], (char * const *) args);
+			fprintf(stderr, "%s: execvp(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
 
 		  default:
 			n = wait(&status);
