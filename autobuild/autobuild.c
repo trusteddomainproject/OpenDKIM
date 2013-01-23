@@ -235,7 +235,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	asz = MIN(4, sizeof(char *) * (nargs + nopts + 2));
+	asz = sizeof(char *) * (nargs + nopts + 2);
 	args = (const char **) malloc(asz);
 	if (args == NULL)
 	{
@@ -345,7 +345,7 @@ main(int argc, char **argv)
 		{
 			if (c & (1 << d))
 			{
-				node = json_array_get(j, d);
+				node = json_array_get(combine, d);
 
 				if (json_is_string(node))
 				{
@@ -360,7 +360,7 @@ main(int argc, char **argv)
 					     m++)
 					{
 						sub = json_array_get(node, m);
-						args[n++] = json_string_value(sub);(node);
+						args[n++] = json_string_value(sub);
 					}
 				}
 			}
