@@ -4,7 +4,7 @@
 \- multiple configuration build tool
 .SH SYNOPSIS
 .B autobuild
-[\-t] [\-v] descr-file
+[\-n] [\-t] [\-v] descr-file
 .SH DESCRIPTION
 .B autobuild
 configures, builds, and tests a source code package whose configuration is
@@ -24,6 +24,9 @@ regressions checked into it.
 If any of the three steps fails, the output of the command is dumped
 to standard output and execution terminates.
 .SH OPTIONS
+.TP
+.I \-n
+Parse configuration file and exit without doing anything else.
 .TP
 .I \-t
 Print timestamps to stdout as each step is executed.
@@ -58,6 +61,6 @@ and the pair "--c" and "--d".
 This man page covers version 1.0.0 of
 .I autobuild.
 .SH COPYRIGHT
-Copyright (c) 2012, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2012, 2013, The Trusted Domain Project.  All rights reserved.
 .SH SEE ALSO
 .B make(1)

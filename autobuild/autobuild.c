@@ -68,6 +68,7 @@ int
 usage(void)
 {
 	fprintf(stderr, "%s: usage: %s [options] descr-file\n"
+	                "\t-n\tparse descr-file and exit\n"
 	                "\t-t\tshow timestamps\n"
 	                "\t-v\tverbose mode\n", progname, progname);
 
@@ -93,6 +94,7 @@ main(int argc, char **argv)
 	int fd;
 	int verbose = 0;
 	int timestamps = 0;
+	int confonly = 0;
 	pid_t child;
 	size_t combos;
 	size_t asz;
@@ -117,10 +119,14 @@ main(int argc, char **argv)
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 
-	while ((c = getopt(argc, argv, "tv")) != -1)
+	while ((c = getopt(argc, argv, "ntv")) != -1)
 	{
 		switch (c)
 		{
+		  case 'n':
+			confonly++;
+			break;
+
 		  case 't':
 			timestamps++;
 			break;
@@ -157,6 +163,7 @@ main(int argc, char **argv)
 	{
 		fprintf(stderr, "%s: %s: root object is not an object\n",
 		        progname, descr);
+		json_decref(j);
 		return EX_DATAERR;
 	}
 
@@ -174,6 +181,7 @@ main(int argc, char **argv)
 			fprintf(stderr,
 			        "%s: %s: unexpected root object \"%s\"\n",
 			        progname, descr, key);
+			json_decref(j);
 			return EX_DATAERR;
 		}
 		else if (!json_is_array(node))
@@ -181,6 +189,7 @@ main(int argc, char **argv)
 			fprintf(stderr,
 			        "%s: %s: root object \"%s\" is not an array\n",
 			        progname, descr, key);
+			json_decref(j);
 			return EX_DATAERR;
 		}
 		else if (strcasecmp(key, JSON_ALWAYS) == 0)
@@ -191,6 +200,12 @@ main(int argc, char **argv)
 		{
 			combine = node;
 		}
+	}
+
+	if (confonly > 0)
+	{
+		json_decref(j);
+		return EX_OK;
 	}
 
 	nargs = 2;
@@ -245,6 +260,12 @@ main(int argc, char **argv)
 	}
 
 	combos = (size_t) pow(2, nopts);
+
+	if (verbose > 1)
+	{
+		fprintf(stdout, "%s: max %d arguments, %d combinations\n",
+		        progname, nargs + nopts, combos);
+	}
 
 	/* autoreconf */
 	args[0] = AUTORECONF;
