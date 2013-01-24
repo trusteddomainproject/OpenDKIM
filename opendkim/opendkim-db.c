@@ -5091,7 +5091,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		mcs = (memcached_st *) db->db_handle;
 		key = (char *) db->db_data;
 
-		snprintf(query, sizeof query, "%s:%s", key, buf);
+		snprintf(query, sizeof query, "%s:%s", key, (char *) buf);
 		
 		out = memcached_get(mcs, query, strlen(query), &vlen,
 		                    &flags, &ret);
