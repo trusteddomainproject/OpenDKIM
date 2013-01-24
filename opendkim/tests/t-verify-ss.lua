@@ -49,7 +49,6 @@ end
 -- send headers
 -- mt.rcptto() is called implicitly
 if mt.header(conn, "DKIM-Signature", "v=1; a=rsa-sha256; c=simple/simple; d=example.com; s=test;\r\n\tt=1296710324; bh=3VWGQGY+cSNYd1MGM+X6hRXU0stl8JCaQtl4mbX/j2I=;\r\n\th=From:Date:Subject;\r\n\tb=RNAhx6cV5AeZWJDEJG1hROdvCukhJnokhI9oABHwAyUAzC6MDntoH4PrS2jS7HGw2\r\n\t D7pU4yLGrlNsGlK8JvqizYNHl+v9+B6OnWAgzkgTimWTqBCYwo8X01N6hqoXDAm8hC\r\n\t RUpmeJvC84K5/nHHLASCb4W1PC2R4VkxUoyVnlYE=") ~=nil then
-
 	error("mt.header(DKIM-Signature) failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
