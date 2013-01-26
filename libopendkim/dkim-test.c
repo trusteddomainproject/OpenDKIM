@@ -36,6 +36,11 @@
 #include "dkim-util.h"
 #include "dkim-test.h"
 
+/* libbsd if found */
+#ifdef USE_BSD_H
+# include <bsd/string.h>
+#endif /* USE_BSD_H */
+
 /* libstrl if needed */
 #ifdef USE_STRL_H
 # include <strl.h>

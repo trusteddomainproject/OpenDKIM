@@ -182,6 +182,9 @@ AC_FUNC_REALLOC
 
 AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname getaddrinfo gethostbyname2 gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strstr strtol strtoul strtoull realpath])
 
+bsdstrl_h_found="no"
+AC_CHECK_HEADERS([bsd/string.h], [bsdstrl_h_found="yes"])
+
 strl_found="no"
 libstrl_found="no"
 strl_h_found="no"
@@ -218,11 +221,11 @@ AC_CHECK_FUNCS([strlcat strlcpy], [strl_found="yes"],
 		saved_LIBS="$LIBS"
 		LIBS=""
 		AC_SEARCH_LIBS([strlcat],
-		               [strl],
+		               [bsd strl],
 		               [libstrl_found="yes"],
 		               [strl_found="no"])
 		AC_SEARCH_LIBS([strlcpy],
-		               [strl],
+		               [bsd strl],
 		               [libstrl_found="yes"],
 		               [strl_found="no"])
 		STRL_LIBS="$LIBS"
@@ -236,11 +239,17 @@ then
 fi
 # we need to include <strl.h> if:
 # (a) strlcat and strlcpy weren't found, since we'll be rolling our own; OR
-# (b) an installed strl.h was found
-if test x"$strl_h_found" = x"yes" -o \( x"$strl_found" = x"no" -a x"$libstrl_found" = x"no" \)
+# (b) an installed strl.h was found and no bsd/string.h was found
+if test x"$strl_h_found" = x"yes" -o \( x"$strl_found" = x"no" -a x"$libstrl_found" = x"no" \) -a x"$bsdstrl_h_found" = x"no"
 then
 	AC_DEFINE([USE_STRL_H], 1,
 	          [Define to 1 if you need to include <strl.h> to get the `strlcat()' and `strlcpy()' functions.])
+fi
+
+if test x"$bsdstrl_h_found" = x"yes"
+then
+	AC_DEFINE([USE_BSD_H], 1,
+	          [Define to 1 if you need to include <bsd/string.h> to get the `strlcat()' and `strlcpy()' functions.])
 fi
 
 #
