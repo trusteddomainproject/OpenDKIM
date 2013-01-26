@@ -14439,11 +14439,6 @@ mlfi_eom(SMFICTX *ctx)
 			DKIM_STAT pstatus;
 			_Bool localadsp = FALSE;
 			int localresult = DKIM_PRESULT_NONE;
-#ifdef _FFR_ATPS
-			int nsigs;
-			dkim_atps_t atps = DKIM_ATPS_UNKNOWN;
-			DKIM_SIGINFO **sigs;
-#endif /* _FFR_ATPS */
 
 			if (conf->conf_localadsp_db != NULL)
 			{
@@ -14644,10 +14639,16 @@ mlfi_eom(SMFICTX *ctx)
 					                        NULL);
 				}
 			}
+		}
 
 #ifdef _FFR_ATPS
-			status = dkim_getsiglist(dfc->mctx_dkimv,
-			                         &sigs, &nsigs);
+		if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN && !authorsig)
+		{
+			int nsigs;
+			dkim_atps_t atps = DKIM_ATPS_UNKNOWN;
+			DKIM_SIGINFO **sigs;
+
+			status = dkim_getsiglist(dfc->mctx_dkimv, &sigs, &nsigs);
 			if (status == DKIM_STAT_OK)
 			{
 				for (c = 0;
@@ -14671,8 +14672,8 @@ mlfi_eom(SMFICTX *ctx)
 
 				dfc->mctx_atps = atps;
 			}
-#endif /* _FFR_ATPS */
 		}
+#endif /* _FFR_ATPS */
 
 #ifdef _FFR_STATS
 		if (conf->conf_statspath != NULL && dfc->mctx_dkimv != NULL)

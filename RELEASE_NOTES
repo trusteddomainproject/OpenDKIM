@@ -38,6 +38,7 @@ release, and a summary of the changes in that release.
 		presence or absence of DNSSEC protection.  What's logged in
 		Authentication-Results header fields has been similarly
 		modified.  Suggested by Scott Kitterman.
+	Do ATPS checks when enabled even if ADSP is disabled.
 	Patch #SF3593422: Update for MDB 0.9.5 support.  Patch from
 		Quanah Gibson-Mount.
 	BUILD: Feature request #SF3547151: Check for Lua package name variants
