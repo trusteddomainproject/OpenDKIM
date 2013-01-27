@@ -2832,7 +2832,7 @@ mt_bodystring(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: %lu byte(s) of body sent on fd %d, reply '%c'\n",
+		        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
 		        progname, strlen(str), ctx->ctx_fd, rcmd);
 	}
 
@@ -2923,7 +2923,7 @@ mt_bodyrandom(lua_State *l)
 		if (verbose > 0)
 		{
 			fprintf(stdout,
-			        "%s: %lu byte(s) of body sent on fd %d, reply '%c'\n",
+			        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
 			        progname, strlen(buf), ctx->ctx_fd, rcmd);
 		}
 
@@ -3024,7 +3024,7 @@ mt_bodyfile(lua_State *l)
 			if (verbose > 0)
 			{
 				fprintf(stdout,
-				        "%s: %lu byte(s) of body sent on fd %d, reply '%c'\n",
+				        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
 				        progname, rlen, ctx->ctx_fd, rcmd);
 			}
 		}
@@ -3977,8 +3977,8 @@ main(int argc, char **argv)
 		if (rlen != s.st_size)
 		{
 			fprintf(stderr,
-			        "%s: %s: read() returned %lu (expecting %ld)\n",
-			        progname, script, rlen, s.st_size);
+			        "%s: %s: read() returned %zu (expecting %ld)\n",
+			        progname, script, rlen, (long) s.st_size);
 			free((void *) io.lua_io_script);
 			close(fd);
 			lua_close(l);
