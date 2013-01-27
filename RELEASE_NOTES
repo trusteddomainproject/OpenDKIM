@@ -48,13 +48,15 @@ release, and a summary of the changes in that release.
 	BUILD: Add "--with-test-socket" to force all of the filter unit tests
 		to use a specific socket.  Based on a bug report from
 		Scott Kitterman.
+	BUILD: Add checks for strlcat()/strlcpy() in libbsd.  Patch from
+		Scott Kitterman.
 	CONTRIB: Fix bug #SF3575666: Pass pid file path to killproc.
 		Suggested by Christophe Wolfhugel.
 	MILTERTEST: Don't crash in mt_connect() if the socketspec doesn't
 		contain a colon.
 	MILTERTEST: When connect() fails for an AF_INET socket, it apparently
-		leaves the socket unusable.  Discard the socket when that happens
-		and get a new one.
+		leaves the socket unusable.  Discard the socket when that
+		happens and get a new one.
 
 2.7.4		2013/01/06
 	Fix bug #SF3596147: Allow arbitrarily long configuration file lines.
