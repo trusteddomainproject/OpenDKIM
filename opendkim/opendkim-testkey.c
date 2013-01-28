@@ -408,16 +408,16 @@ main(int argc, char **argv)
 		return EX_OSERR;
 	}
 
+#ifdef USE_UNBOUND
+	(void) dkimf_unbound_setup(lib);
+#endif /* USE_UNBOUND */
+
 	if (dkim_dns_init(lib) != DKIM_STAT_OK)
 	{
 		fprintf(stderr, "%s: dkim_dns_init() failed\n", progname);
 		(void) free(key);
 		return EX_SOFTWARE;
 	}
-
-#ifdef USE_UNBOUND
-	(void) dkimf_unbound_setup(lib);
-#endif /* USE_UNBOUND */
 
 	if (nslist != NULL)
 		status = dkimf_dns_setnameservers(lib, nslist);
