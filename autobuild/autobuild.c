@@ -281,6 +281,7 @@ main(int argc, char **argv)
 		        strerror(errno));
 		return EX_OSERR;
 	}
+	(void) unlink(fn);
 
 	child = fork();
 	switch (child)
@@ -411,6 +412,7 @@ main(int argc, char **argv)
 			        strerror(errno));
 			return EX_OSERR;
 		}
+		(void) unlink(fn);
 
 		child = fork();
 		switch (child)
@@ -487,6 +489,7 @@ main(int argc, char **argv)
 			        strerror(errno));
 			return EX_OSERR;
 		}
+		(void) unlink(fn);
 
 		child = fork();
 		switch (child)
@@ -564,6 +567,7 @@ main(int argc, char **argv)
 			        strerror(errno));
 			return EX_OSERR;
 		}
+		(void) unlink(fn);
 
 		child = fork();
 		switch (child)
@@ -642,6 +646,7 @@ main(int argc, char **argv)
 			        strerror(errno));
 			return EX_OSERR;
 		}
+		(void) unlink(fn);
 
 		child = fork();
 		switch (child)
