@@ -138,15 +138,15 @@ reprrd_mkpath(char *path, size_t pathlen, REPRRD r, const char *domain,
 	snprintf(path, pathlen, "%s/%s", r->rep_root, reprrd_type(type));
 	for (c = 0; c < r->rep_hashdepth; c++)
 	{
-		len = strlcat(path, "/", sizeof path - 1);
-		if (len >= sizeof path - 1)
+		len = strlcat(path, "/", pathlen);
+		if (len >= pathlen)
 			return REPRRD_STAT_INTERNAL;
 		path[len] = domain[c];
 	}
 
-	(void) strlcat(path, "/", sizeof path);
-	len = strlcat(path, domain, sizeof path);
-	if (len >= sizeof path)
+	(void) strlcat(path, "/", pathlen);
+	len = strlcat(path, domain, pathlen);
+	if (len >= pathlen)
 		return REPRRD_STAT_INTERNAL;
 	else
 		return REPRRD_STAT_OK;
@@ -212,6 +212,7 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 		reprrd_mkpath(path, sizeof path, r, domain,
 		              REPRRD_TYPE_MESSAGES);
 
+		rrd_error_clear();
 		status = rrd_fetch_r(path, REPRRD_CF_HWPREDICT, &start, &end,
 		                     &step, &ds_cnt, &ds_names, &data);
 		if (status != 0)
@@ -245,6 +246,7 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 	
 		reprrd_mkpath(path, sizeof path, r, domain, REPRRD_TYPE_SPAM);
 
+		rrd_error_clear();
 		status = rrd_fetch_r(path, REPRRD_CF_HWPREDICT, &start, &end,
 		                     &step, &ds_cnt, &ds_names, &data);
 		if (status != 0)
@@ -282,6 +284,7 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 		reprrd_mkpath(path, sizeof path, r, domain,
 		              REPRRD_TYPE_MESSAGES);
 
+		rrd_error_clear();
 		status = rrd_lastupdate_r(path, &last_update, &ds_cnt,
 		                          &ds_names, &cdata);
 		if (status != 0)
@@ -315,6 +318,7 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 		start = now - REPRRD_STEP * REPRRD_BACKSTEPS;
 		step = REPRRD_STEP;
 	
+		rrd_error_clear();
 		status = rrd_fetch_r(path, REPRRD_CF_FAILURES, &start, &end,
 		                     &step, &ds_cnt, &ds_names, &data);
 		if (status != 0)
