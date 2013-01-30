@@ -10,8 +10,8 @@ release, and a summary of the changes in that release.
 		attached verifying handle had no valid signatures in it.
 	Feature request #SF3155117: Do a more thorough check for writeable
 		key files, checking more of the filesystem permission tree.
-	Feature request #SF3530734: Add "NoLDAPCache", which suppresses the
-		creation of a local cache in front of LDAP queries.
+	Feature request #SF3530734: Add "LDAPDisableCache", which suppresses
+		the creation of a local cache in front of LDAP queries.
 		Requested by Quanah Gibson-Mount.
 	Feature request #SF3547359: If compiled with libcurl, add "SMTPURI"
 		configuration option that allows direct SMTP transmission

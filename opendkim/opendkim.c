@@ -6708,7 +6708,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 #ifdef USE_LDAP
 		btmp = FALSE;
-		(void) config_get(data, "NoLDAPCache", &btmp, sizeof btmp);
+		(void) config_get(data, "LDAPDisableCache", &btmp, sizeof btmp);
 		if (btmp)
 			dkimf_db_flags(DKIMF_DB_FLAG_NOCACHE);
 		else
