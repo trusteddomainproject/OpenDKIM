@@ -24,7 +24,7 @@ mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-ss-rep.conf",
 --- CONNECTION #1, MESSAGE #1
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end
@@ -105,7 +105,7 @@ mt.disconnect(conn)
 --- CONNECTION #2, MESSAGE #2
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end
@@ -192,7 +192,7 @@ mt.disconnect(conn)
 --- CONNECTION #3, MESSAGE #3
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end
@@ -280,7 +280,7 @@ mt.disconnect(conn)
 --- CONNECTION #4, MESSAGE #4
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end

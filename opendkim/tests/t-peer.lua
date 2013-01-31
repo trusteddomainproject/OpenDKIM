@@ -52,7 +52,7 @@ test = {
 for index = 1, table.getn(test)
 do
 	-- try to connect to it
-	conn = mt.connect(sock, 40, 0.05)
+	conn = mt.connect(sock, 40, 0.25)
 	if conn == nil then
 		error("mt.connect() failed")
 	end

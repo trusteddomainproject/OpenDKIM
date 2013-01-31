@@ -23,7 +23,7 @@ end
 mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-ss.conf", "-p", sock)
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end
