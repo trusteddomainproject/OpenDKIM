@@ -84,7 +84,7 @@ typedef unsigned int useconds_t;
 #endif /* SMFIP_NR_CONN */
 
 #define	MT_PRODUCT		"OpenDKIM milter test facility"
-#define	MT_VERSION		"1.4.1"
+#define	MT_VERSION		"1.5.0"
 
 #define	BUFRSZ			1024
 #define	CHUNKSZ			65536
@@ -1343,8 +1343,20 @@ mt_connect(lua_State *l)
 	sockinfo = lua_tostring(l, 1);
 	if (top == 3)
 	{
+		char *f;
+
 		count = (u_int) lua_tonumber(l, 2);
 		interval = (useconds_t) (1000000. * lua_tonumber(l, 3));
+
+		f = getenv("MILTERTEST_RETRY_SPEED_FACTOR");
+		if (f != NULL)
+		{
+			unsigned int factor;
+
+			factor = strtoul(f, &p, 10);
+			if (*p != '\0')
+				interval *= factor;
+		}
 	}
 	lua_pop(l, top);
 

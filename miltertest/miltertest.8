@@ -102,7 +102,12 @@ and
 .I interval
 are included, they specify the number of times to try to connect to the filter
 and the delay between each connection in seconds (with floating point values
-permitted).
+permitted).  If the environment variable MILTERTEST_RETRY_SPEED_FACTOR is
+set and appears to contain an integer, the value of
+.I interval
+(if set) will be multiplied by the value found in that environment variable.
+This is included to allow tests in a large test suite to be easily adjusted
+on slow systems without reconfiguring the entire test suite.
 .TP
 .B mt.conninfo(conn, host, ip)
 Sends information about a new SMTP connection to the MTA, represented by
@@ -529,10 +534,10 @@ formally documented, there are myriad other subtleties of the milter protocol
 and implementation that are not documented here and may not be documented
 elsewhere, and could change without notice.  Caveat emptor.
 .SH VERSION
-This man page covers version 1.4.0 of
+This man page covers version 1.5.0 of
 .I miltertest.
 .SH COPYRIGHT
-Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 .SH SEE ALSO
 Milter -- http://www.milter.org
 .P

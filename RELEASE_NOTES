@@ -57,6 +57,9 @@ release, and a summary of the changes in that release.
 	MILTERTEST: When connect() fails for an AF_INET socket, it apparently
 		leaves the socket unusable.  Discard the socket when that
 		happens and get a new one.
+	MILTERTEST: Add a way to extend the mt.connect() retry interval via
+		environment variables so a large test suite can be easily
+		extended on slow systems.  Problem noted by Scott Kitterman.
 	TOOLS: Register DNS functions before calling dkim_dns_init() in
 		opendkim-testkey.  Problem noted by Jeff Anton.
 
