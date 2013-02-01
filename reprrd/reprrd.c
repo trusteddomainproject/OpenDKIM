@@ -142,6 +142,7 @@ reprrd_mkpath(char *path, size_t pathlen, REPRRD r, const char *domain,
 		if (len >= pathlen)
 			return REPRRD_STAT_INTERNAL;
 		path[len] = domain[c];
+		path[len + 1] = '\0';
 	}
 
 	(void) strlcat(path, "/", pathlen);
@@ -206,17 +207,20 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 
 		/* retrieve the predicted flow */
 		end = now;
-		start - now - REPRRD_STEP * REPRRD_BACKSTEPS;
+		start = now - REPRRD_STEP * REPRRD_BACKSTEPS;
 		step = REPRRD_STEP;
 	
 		reprrd_mkpath(path, sizeof path, r, domain,
 		              REPRRD_TYPE_MESSAGES);
 
-		rrd_error_clear();
+		rrd_clear_error();
 		status = rrd_fetch_r(path, REPRRD_CF_HWPREDICT, &start, &end,
 		                     &step, &ds_cnt, &ds_names, &data);
 		if (status != 0)
-			return REPRRD_STAT_QUERY;
+		{
+			return (errno == ENOENT ? REPRRD_STAT_NODATA
+			                        : REPRRD_STAT_QUERY);
+		}
 
 		di = 0;
 
@@ -241,16 +245,19 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 
 		/* retrieve the predicted spam ratio */
 		end = now;
-		start - now - REPRRD_STEP * REPRRD_BACKSTEPS;
+		start = now - REPRRD_STEP * REPRRD_BACKSTEPS;
 		step = REPRRD_STEP;
 	
 		reprrd_mkpath(path, sizeof path, r, domain, REPRRD_TYPE_SPAM);
 
-		rrd_error_clear();
+		rrd_clear_error();
 		status = rrd_fetch_r(path, REPRRD_CF_HWPREDICT, &start, &end,
 		                     &step, &ds_cnt, &ds_names, &data);
 		if (status != 0)
-			return REPRRD_STAT_QUERY;
+		{
+			return (errno == ENOENT ? REPRRD_STAT_NODATA
+			                        : REPRRD_STAT_QUERY);
+		}
 
 		di = 0;
 
@@ -284,11 +291,14 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 		reprrd_mkpath(path, sizeof path, r, domain,
 		              REPRRD_TYPE_MESSAGES);
 
-		rrd_error_clear();
+		rrd_clear_error();
 		status = rrd_lastupdate_r(path, &last_update, &ds_cnt,
 		                          &ds_names, &cdata);
 		if (status != 0)
-			return REPRRD_STAT_QUERY;
+		{
+			return (errno == ENOENT ? REPRRD_STAT_NODATA
+			                        : REPRRD_STAT_QUERY);
+		}
 
 		di = 0;
 
@@ -318,11 +328,14 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 		start = now - REPRRD_STEP * REPRRD_BACKSTEPS;
 		step = REPRRD_STEP;
 	
-		rrd_error_clear();
+		rrd_clear_error();
 		status = rrd_fetch_r(path, REPRRD_CF_FAILURES, &start, &end,
 		                     &step, &ds_cnt, &ds_names, &data);
 		if (status != 0)
-			return REPRRD_STAT_QUERY;
+		{
+			return (errno == ENOENT ? REPRRD_STAT_NODATA
+			                        : REPRRD_STAT_QUERY);
+		}
 
 		di = 0;
 

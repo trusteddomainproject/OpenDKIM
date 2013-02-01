@@ -22,6 +22,7 @@
 #define	REPRRD_STAT_OK		0	/* successful completion */
 #define	REPRRD_STAT_INTERNAL	1	/* internal error */
 #define	REPRRD_STAT_QUERY	2	/* query failure */
+#define	REPRRD_STAT_NODATA	3	/* no data for specified domain */
 
 typedef int REPRRD_STAT;
 

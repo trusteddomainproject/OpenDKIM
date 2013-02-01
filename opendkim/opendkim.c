@@ -14780,7 +14780,6 @@ mlfi_eom(SMFICTX *ctx)
 			{
 				int c;
 				int ret;
-				_Bool checked = FALSE;
 				const char *cd;
 				const char *domain = NULL;
 
@@ -14790,8 +14789,6 @@ mlfi_eom(SMFICTX *ctx)
 					    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_TESTKEY) != 0 &&
 					    dkim_sig_getbh(sigs[c]) != DKIM_SIGBH_MATCH)
 						continue;
-
-					checked = TRUE;
 
 					cd = dkim_sig_getdomain(sigs[c]);
 
@@ -14827,7 +14824,7 @@ mlfi_eom(SMFICTX *ctx)
 							break;
 						}
 					}
-					else
+					else if (status != REPRRD_STAT_NODATA)
 					{
 						if (conf->conf_dolog)
 						{
@@ -14841,9 +14838,15 @@ mlfi_eom(SMFICTX *ctx)
 						                        conf->conf_handling.hndl_reperr,
 						                        NULL);
 					}
+					else if (conf->conf_dolog)
+					{
+						syslog(LOG_NOTICE,
+						       "%s: no reputation data available for \"%s\"",
+						       dfc->mctx_jobid, cd);
+					}
 				}
 
-				if (domain == NULL && !checked)
+				if (domain == NULL)
 				{
 					cd = "unsigned";
 
