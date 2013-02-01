@@ -1354,7 +1354,7 @@ mt_connect(lua_State *l)
 			unsigned int factor;
 
 			factor = strtoul(f, &p, 10);
-			if (*p != '\0')
+			if (*p == '\0')
 				interval *= factor;
 		}
 	}
