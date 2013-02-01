@@ -1262,7 +1262,6 @@ dkimf_xs_signfor(lua_State *l)
 	if (conf->conf_signtabledb == NULL ||
 	    conf->conf_keytabledb == NULL)
 	{
-		free(addr);
 		lua_pushnil(l);
 		return 1;
 	}
