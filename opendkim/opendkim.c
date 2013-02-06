@@ -15375,6 +15375,8 @@ mlfi_eom(SMFICTX *ctx)
 					if (sig != NULL)
 					{
 						domain = dkim_sig_getdomain(sig);
+						if (domain == NULL)
+							domain = "\"\"";
 
 						strlcat((char *) header,
 						        DELIMITER,
