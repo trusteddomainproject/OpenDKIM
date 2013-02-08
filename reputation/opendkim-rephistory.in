@@ -202,7 +202,7 @@ if ($verbose)
 	print STDERR "$progname: recording current reputation data for all domains\n";
 }
 
-$dbi_s = $dbi_h->prepare("INSERT INTO history (date, domain, ratio, msglimit) SELECT DATE(NOW()), domain, ratio_high, daily_limit_low FROM predictions WHERE DATE(updated) = DATE(NOW()) AND reporter = 0");
+$dbi_s = $dbi_h->prepare("INSERT INTO history (date, domain, maxmsgs, maxspam, msglimit) SELECT DATE(NOW()), domain, rate_high, ratio_high, daily_limit_low FROM predictions WHERE DATE(updated) = DATE(NOW()) AND reporter = 0");
 
 $rows = $dbi_s->execute();
 if (!$rows)
