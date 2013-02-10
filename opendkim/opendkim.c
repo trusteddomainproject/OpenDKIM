@@ -816,6 +816,7 @@ char reportcmd[BUFRSZ + 1];			/* reporting command */
 char reportaddr[MAXADDRESS + 1];		/* reporting address */
 char myhostname[DKIM_MAXHOSTNAMELEN + 1];	/* hostname */
 pthread_mutex_t conf_lock;			/* config lock */
+pthread_mutex_t pwdb_lock;			/* passwd/group lock */
 
 /* Other useful definitions */
 #define CRLF			"\r\n"		/* CRLF */
@@ -4721,25 +4722,39 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 			int c;
 
 			/* check if anyone else has this file's gid */
+			pthread_mutex_lock(&pwdb_lock);
 			setpwent();
 			for (pw = getpwent(); pw != NULL; pw = getpwent())
 			{
 				if (pw->pw_uid != myuid &&
 				    pw->pw_uid != 0 &&
 				    s.st_gid == pw->pw_gid)
+				{
+					pthread_mutex_unlock(&pwdb_lock);
 					return 0;
+				}
 			}
+			endpwent();
 
 			/* check if this group contains anyone else */
 			gr = getgrgid(s.st_gid);
 			if (gr == NULL)
+			{
+				pthread_mutex_unlock(&pwdb_lock);
 				return -1;
+			}
+
 			for (c = 0; gr->gr_mem[c] != NULL; c++)
 			{
 				if (strcmp(gr->gr_mem[c], myname) != 0 &&
 				    strcmp(gr->gr_mem[c], SUPERUSER) != 0)
+				{
+					pthread_mutex_unlock(&pwdb_lock);
 					return 0;
+				}
 			}
+
+			pthread_mutex_unlock(&pwdb_lock);
 		}
 
 		/* not read/write by others */
@@ -4760,25 +4775,38 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 			int c;
 
 			/* check if anyone else has this file's gid */
+			pthread_mutex_lock(&pwdb_lock);
 			setpwent();
 			for (pw = getpwent(); pw != NULL; pw = getpwent())
 			{
 				if (pw->pw_uid != myuid &&
 				    pw->pw_uid != 0 &&
 				    s.st_gid == pw->pw_gid)
+				{
+					pthread_mutex_unlock(&pwdb_lock);
 					return 0;
+				}
 			}
 
 			/* check if this group contains anyone else */
 			gr = getgrgid(s.st_gid);
 			if (gr == NULL)
+			{
+				pthread_mutex_unlock(&pwdb_lock);
 				return -1;
+			}
+
 			for (c = 0; gr->gr_mem[c] != NULL; c++)
 			{
 				if (strcmp(gr->gr_mem[c], myname) != 0 &&
 				    strcmp(gr->gr_mem[c], SUPERUSER) != 0)
+				{
+					pthread_mutex_unlock(&pwdb_lock);
 					return 0;
+				}
 			}
+
+			pthread_mutex_unlock(&pwdb_lock);
 		}
 
 		/* owner write needs to be super-user or me only */
@@ -4803,6 +4831,7 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 **  Parameters:
 **  	path -- path to evaluate
 **  	ino -- inode of evaluated object
+** 	myuid -- user to impersonate (-1 means "me")
 **
 **  Return value:
 **  	As for dkimf_checkfsnode().
@@ -4816,27 +4845,42 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 */
 
 int
-dkimf_securefile(const char *path, ino_t *ino)
+dkimf_securefile(const char *path, ino_t *ino, uid_t myuid)
 {
-#ifdef HAVE_REALPATH
 	int status;
-	uid_t myuid;
-	struct passwd *me;
+	struct passwd *pw;
+#ifdef HAVE_REALPATH
 	char *p;
 	char *q;
 	char real[MAXPATHLEN + 1];
 	char partial[MAXPATHLEN + 1];
 	char myname[BUFRSZ + 1];
+#endif /* HAVE_REALPATH */
 
 	assert(path != NULL);
 	assert(ino != NULL);
 
 	/* figure out who I am */
-	me = getpwuid(geteuid());
-	if (me == NULL)
+	pthread_mutex_lock(&pwdb_lock);
+
+	if (myuid == (uid_t) -1)
+		pw = getpwuid(geteuid());
+	else
+		pw = getpwuid(myuid);
+
+	if (pw == NULL)
+	{
+		pthread_mutex_unlock(&pwdb_lock);
 		return -1;
-	myuid = me->pw_uid;
-	strlcpy(myname, me->pw_name, sizeof myname);
+	}
+
+	if (myuid == (uid_t) -1)
+		myuid = pw->pw_uid;
+
+	pthread_mutex_unlock(&pwdb_lock);
+
+#ifdef HAVE_REALPATH
+	strlcpy(myname, pw->pw_name, sizeof myname);
 
 	p = realpath(path, real);
 	if (p == NULL)
@@ -4853,10 +4897,6 @@ dkimf_securefile(const char *path, ino_t *ino)
 	partial[0] = '/';
 	partial[1] = '\0';
 
-	status = dkimf_checkfsnode((const char *) partial, myuid, myname, ino);
-	if (status != 1)
-		return status;
-
 	q = real;
 	while ((p = strsep(&q, "/")) != NULL)
 	{
@@ -4866,12 +4906,12 @@ dkimf_securefile(const char *path, ino_t *ino)
 		if (status != 1)
 			return status;
 
-		strlcat(partial, "/", sizeof partial); 
+		if (partial[1] != '\0')
+			strlcat(partial, "/", sizeof partial); 
 	}
 
 	return 1;
 #else /* HAVE_REALPATH */
-	int status;
 	struct stat s;
 
 	status = stat(path, &s);
@@ -4879,7 +4919,7 @@ dkimf_securefile(const char *path, ino_t *ino)
 		return -1;
 
 	/* we don't own it and neither does the super-user; bad */
-	if (s.st_uid != geteuid() && s.st_uid != 0)
+	if (s.st_uid != myuid && s.st_uid != 0)
 		return 0;
 
 	/* world readable/writeable; bad */
@@ -4890,33 +4930,38 @@ dkimf_securefile(const char *path, ino_t *ino)
 	if ((s.st_mode & (S_IRGRP|S_IWGRP)) != 0)
 	{
 		int c;
-		uid_t myuid;
 		struct group *gr;
-		struct passwd *pw;
-
-		/* get my password file entry */
-		pw = getpwuid(geteuid());
-		if (pw == NULL)
-			return -1;
 
 		/* get the file's group entry */
+		pthread_mutex_lock(&pwdb_lock);
 		gr = getgrgid(s.st_gid);
 		if (gr == NULL)
+		{
+			pthread_mutex_unlock(&pwdb_lock);
 			return -1;
+		}
 
 		for (c = 0; gr->gr_mem[c] != NULL; c++)
 		{
 			if (strcmp(gr->gr_mem[c], pw->pw_name) != 0)
+			{
+				pthread_mutex_unlock(&pwdb_lock);
 				return 0;
+			}
 		}
 
-		myuid = pw->pw_uid;
 		setpwent();
 		while (pw = getpwent(); pw != NULL; pw = getpwent())
 		{
 			if (pw->pw_uid != myuid && pw->pw_gid == s.st_gid)
+			{
+				pthread_mutex_unlock(&pwdb_lock);
 				return 0;
+			}
 		}
+		endpwent();
+
+		pthread_mutex_unlock(&pwdb_lock);
 	}
 		
 	/* guess we're okay... */
@@ -4980,7 +5025,7 @@ dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure, char **error)
 			return FALSE;
 		}
 
-		if (!dkimf_securefile(buf, &ino) ||
+		if (!dkimf_securefile(buf, &ino, (uid_t) -1) ||
 		    (ino != (ino_t) -1 && ino != s.st_ino))
 			*insecure = TRUE;
 		else
@@ -6307,6 +6352,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	int maxsign;
 	int dbflags = 0;
 	char *str;
+	char *become = NULL;
 	char confstr[BUFRSZ + 1];
 	char basedir[MAXPATHLEN + 1];
 
@@ -7167,6 +7213,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			}
 		}
 #endif /* USE_LUA */
+
+		(void) config_get(data, "Userid", &become, sizeof become);
 	}
 
 #ifdef USE_LDAP
@@ -8339,6 +8387,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		int fd;
 		ssize_t rlen;
 		ino_t ino;
+		uid_t asuser = (uid_t) -1;
 		u_char *s33krit;
 		struct stat s;
 
@@ -8394,8 +8443,31 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			return -1;
 		}
 
+		if (become != NULL)
+		{
+			struct passwd *pw;
+			char *p;
+			char tmp[BUFRSZ + 1];
 
-		if (!dkimf_securefile(conf->conf_keyfile, &ino) ||
+			strlcpy(tmp, become, sizeof tmp);
+
+			p = strchr(tmp, ':');
+			if (p != NULL)
+				*p = '\0';
+
+			pw = getpwnam(tmp);
+			if (pw == NULL)
+			{
+				snprintf(err, errlen, "%s: no such user", tmp);
+				close(fd);
+				free(s33krit);
+				return -1;
+			}
+
+			asuser = pw->pw_uid;
+		}
+
+		if (!dkimf_securefile(conf->conf_keyfile, &ino, asuser) ||
 		    (ino != (ino_t) -1 && ino != s.st_ino))
 		{
 			if (conf->conf_dolog)
@@ -18084,6 +18156,7 @@ main(int argc, char **argv)
 	}
 
 	pthread_mutex_init(&conf_lock, NULL);
+	pthread_mutex_init(&pwdb_lock, NULL);
 
 	/* perform test mode */
 	if (testfile != NULL)
