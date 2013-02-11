@@ -50,8 +50,9 @@ create table if not exists history (
 	id int not null auto_increment,
 	date timestamp not null,
 	domain int not null,
-	ratio float,
-	msglimit int,
+	maxmsgs int,
+	maxspam float,
+	maxlimit int,
 
 	primary key(id),
 	unique key(domain, date)
