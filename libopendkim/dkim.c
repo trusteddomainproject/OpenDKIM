@@ -6517,6 +6517,7 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 	{
 		u_char prev = '\0';
 		u_char *p;
+		u_char *q;
 		struct dkim_dstring *tmphdr;
 
 		tmphdr = dkim_dstring_new(dkim, BUFRSZ, MAXBUFRSZ);
@@ -6526,7 +6527,9 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 			return DKIM_STAT_NORESOURCE;
 		}
 
-		for (p = hdr; *p != '\0'; p++)
+		q = hdr + len;
+
+		for (p = hdr; p < q && *p != '\0'; p++)
 		{
 			if (*p == '\n' && prev != '\r')		/* bare LF */
 			{
