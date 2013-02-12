@@ -65,6 +65,7 @@ release, and a summary of the changes in that release.
 		extended on slow systems.  Problem noted by Scott Kitterman.
 	TOOLS: Register DNS functions before calling dkim_dns_init() in
 		opendkim-testkey.  Problem noted by Jeff Anton.
+	TOOLS: Add "-K" (keep temporary files) flag for opendkim-testmsg.
 
 2.7.4		2013/01/06
 	Fix bug #SF3596147: Allow arbitrarily long configuration file lines.

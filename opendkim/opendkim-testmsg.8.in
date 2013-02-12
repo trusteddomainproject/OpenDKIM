@@ -4,7 +4,7 @@
 \- DKIM message tst
 .SH SYNOPSIS
 .B opendkim-testmsg
-[\-C] [\-d domain] [\-s selector] [\-k keypath] [\-t path]
+[\-C] [\-d domain] [\-K] [\-k keypath] [\-s selector] [\-t path]
 .SH DESCRIPTION
 .B opendkim-testmsg
 signs or verifies an input message.  This is similar to the test mode for 
@@ -31,6 +31,10 @@ be line-terminated with carriage-return line-feed, instead of just line-feed.
 Names the domain in which signing is to be done.  More specifically,
 names the domain in which the public key matching the provided private key
 would be found in a live test.
+.TP
+.I -K
+Arranges to keep temporary files generated during message canonicalization
+for debugging purposes.
 .TP
 .I -k keypath
 Specifies the path to the private key file which should be used to sign

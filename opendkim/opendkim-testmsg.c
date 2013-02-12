@@ -29,7 +29,7 @@
 
 #define	BUFRSZ		1024
 #define	DEFTMPDIR	"/tmp"
-#define	CMDLINEOPTS	"Cd:k:s:t:"
+#define	CMDLINEOPTS	"Cd:Kk:s:t:"
 #define STRORNULL(x)	((x) == NULL ? "(null)" : (x))
 #define	TMPTEMPLATE	"dkimXXXXXX"
 
@@ -56,6 +56,7 @@ usage(void)
 	        "%s: usage: %s [options]\nValid options:\n"
 	        "\t-C         \tpreserve CRLFs\n"
 	        "\t-d domain  \tset signing domain\n"
+	        "\t-K         \tkeep temporary files\n"
 	        "\t-k keyfile \tprivate key file\n"
 	        "\t-s selector\tset signing selector\n"
 	        "\t-t path    \tdirectory for temporary files\n",
@@ -106,6 +107,7 @@ int
 main(int argc, char **argv)
 {
 	_Bool keepcrlf = FALSE;
+	_Bool keepfiles = FALSE;
 	_Bool testkey = FALSE;
 	int c;
 	int n = 0;
@@ -142,6 +144,10 @@ main(int argc, char **argv)
 		  case 'd':
 			domain = optarg;
 			n++;
+			break;
+
+		  case 'K':
+			keepfiles = TRUE;
 			break;
 
 		  case 'k':
@@ -262,6 +268,8 @@ main(int argc, char **argv)
 
 	/* set flags */
 	flags = DKIM_LIBFLAGS_FIXCRLF;
+	if (keepfiles)
+		flags |= (DKIM_LIBFLAGS_TMPFILES|DKIM_LIBFLAGS_KEEPFILES);
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FLAGS, &flags,
 	                    sizeof flags);
 
