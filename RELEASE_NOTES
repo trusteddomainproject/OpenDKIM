@@ -38,6 +38,8 @@ release, and a summary of the changes in that release.
 		presence or absence of DNSSEC protection.  What's logged in
 		Authentication-Results header fields has been similarly
 		modified.  Suggested by Scott Kitterman.
+	Fix bug #SF3604525: Don't divide by zero when the query cache hasn't
+		been used.  Reported by Denis Klimov.
 	Protect against handling of signatures with empty domains, which could
 		cause a NULL dereference and a crash.  Problem noted by
 		Motohiro Ishiyama and John Wood.
