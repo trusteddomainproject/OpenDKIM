@@ -16564,17 +16564,22 @@ mlfi_close(SMFICTX *ctx)
 			u_int c_hits;
 			u_int c_queries;
 			u_int c_expired;
+			u_int c_pct;
 
 			dkim_getcachestats(&c_queries, &c_hits, &c_expired);
 
 			cache_lastlog = now;
 
+			if (c_queries == 0)
+				c_pct = 0;
+			else
+				c_pct = (c_hits * 100) / c_queries;
+
 			syslog(LOG_INFO,
 			       "cache: %u quer%s, %u hit%s (%d%%), %u expired",
 			       c_queries, c_queries == 1 ? "y" : "ies",
 			       c_hits, c_hits == 1 ? "" : "s",
-			       (c_hits * 100) / c_queries,
-			       c_expired);
+			       c_pct, c_expired);
 		}
 	}
 #endif /* QUERY_CACHE */
