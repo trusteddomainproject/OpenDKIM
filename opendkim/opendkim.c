@@ -16565,8 +16565,11 @@ mlfi_close(SMFICTX *ctx)
 			u_int c_queries;
 			u_int c_expired;
 			u_int c_pct;
+			u_int c_keys;
 
-			dkim_getcachestats(&c_queries, &c_hits, &c_expired);
+			dkim_getcachestats(cc->cctx_config->conf_libopendkim,
+			                   &c_queries, &c_hits, &c_expired,
+			                   &c_keys, FALSE);
 
 			cache_lastlog = now;
 
@@ -16576,10 +16579,10 @@ mlfi_close(SMFICTX *ctx)
 				c_pct = (c_hits * 100) / c_queries;
 
 			syslog(LOG_INFO,
-			       "cache: %u quer%s, %u hit%s (%d%%), %u expired",
+			       "cache: %u quer%s, %u hit%s (%d%%), %u expired, %u keys",
 			       c_queries, c_queries == 1 ? "y" : "ies",
 			       c_hits, c_hits == 1 ? "" : "s",
-			       c_pct, c_expired);
+			       c_pct, c_expired, c_keys);
 		}
 	}
 #endif /* QUERY_CACHE */

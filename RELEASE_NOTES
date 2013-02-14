@@ -49,6 +49,9 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Fix header canonicalization when DKIM_LIBFLAG_FIXCRLF is
 		used in combination with dkim_chunk().  Problem noted by
 		Dave Kelly and Heather Lord.
+	LIBOPENDKIM: Enable dkim_getcachestats() and the underlying function to
+		extract the current number of keys in the cache, and also provide
+		a counter reset mechanism.
 	BUILD: Feature request #SF3547151: Check for Lua package name variants
 		in use on Debian.  Requested by Scott Kitterman.
 	BUILD: Feature request #SF3599902: Change OpenSSL existence test

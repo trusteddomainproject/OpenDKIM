@@ -488,7 +488,8 @@ dkim_cache_close(DB *db)
 */
 
 void
-dkim_cache_stats(u_int *queries, u_int *hits, u_int *expired)
+dkim_cache_stats(DB *db, u_int *queries, u_int *hits, u_int *expired,
+                 u_int *keys, _Bool reset)
 {
 	pthread_mutex_lock(&cache_stats_lock);
 
@@ -500,6 +501,36 @@ dkim_cache_stats(u_int *queries, u_int *hits, u_int *expired)
 
 	if (expired != NULL)
 		*expired = c_expired;
+
+	if (keys != NULL)
+	{
+#if DB_VERSION_CHECK(2,0,0)
+		DB_HASH_STAT *sp;
+
+		if (db->stat(db, NULL, (void *) &sp, 0) != 0)
+		{
+			*keys = (u_int) -1;
+		}
+		else
+		{
+# if DB_VERSION_CHECK(3,0,0)
+			*keys = sp->hash_nkeys;
+# else /* DB_VERSION_CHECK(3,0,0) */
+			*keys = sp->hash_nrecs;
+# endif /* DB_VERSION_CHECK(3,0,0) */
+			free(sp);
+		}
+#else /* DB_VERSION_CHECK(2,0,0) */
+		*keys = (u_int) -1;
+#endif /* DB_VERSION_CHECK(2,0,0) */
+	}
+
+	if (reset)
+	{
+		c_queries = 0;
+		c_hits = 0;
+		c_expired = 0;
+	}
 
 	pthread_mutex_unlock(&cache_stats_lock);
 }

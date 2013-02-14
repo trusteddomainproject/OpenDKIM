@@ -619,12 +619,15 @@ extern const char *dkim_getid __P((DKIM *dkim));
 **  DKIM_GETCACHESTATS -- retrieve cache statistics
 **
 **  Parameters:
+**  	lib -- DKIM library handle
 **  	queries -- number of queries handled (returned)
 **  	hits -- number of cache hits (returned)
 **  	expired -- number of expired hits (returned)
+**  	reset -- if true, reset the queries, hits, and expired counters
 **
 **  Return value:
 **  	DKIM_STAT_OK -- statistics returned
+**  	DKIM_STAT_INVALID -- cache not initialized
 **  	DKIM_STAT_NOTIMPLEMENT -- function not implemented
 **
 **  Notes:
@@ -632,8 +635,9 @@ extern const char *dkim_getid __P((DKIM *dkim));
 **  	is not of interest.
 */
 
-extern DKIM_STAT dkim_getcachestats __P((u_int *queries, u_int *hits,
-                                         u_int *expired));
+extern DKIM_STAT dkim_getcachestats __P((DKIM_LIB *, u_int *queries, u_int *hits,
+                                         u_int *expired, u_int *keys,
+                                         _Bool reset));
 
 /*
 **  DKIM_FLUSH_CACHE -- purge expired records from the database, reclaiming

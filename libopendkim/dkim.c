@@ -8642,12 +8642,16 @@ dkim_flush_cache(DKIM_LIB *lib)
 **  DKIM_GETCACHESTATS -- retrieve cache statistics
 **
 **  Parameters:
+**  	lib -- DKIM library handle, returned by dkim_init()
 **  	queries -- number of queries handled (returned)
 **  	hits -- number of cache hits (returned)
 **  	expired -- number of expired hits (returned)
+**  	keys -- number of keys in the cache (returned)
+**  	reset -- if TRUE, resets the queries, hits, and expired counters
 **
 **  Return value:
 **  	DKIM_STAT_OK -- request completed
+**  	DKIM_STAT_INVALID -- cache not initialized
 **  	DKIM_STAT_NOTIMPLEMENT -- function not implemented
 **
 **  Notes:
@@ -8656,10 +8660,17 @@ dkim_flush_cache(DKIM_LIB *lib)
 */
 
 DKIM_STAT
-dkim_getcachestats(u_int *queries, u_int *hits, u_int *expired)
+dkim_getcachestats(DKIM_LIB *lib, u_int *queries, u_int *hits, u_int *expired,
+                   u_int *keys, _Bool reset)
 {
 #ifdef QUERY_CACHE
-	dkim_cache_stats(queries, hits, expired);
+	assert(lib != NULL);
+
+	if (lib->dkiml_cache == NULL)
+		return DKIM_STAT_INVALID;
+
+	dkim_cache_stats(lib->dkiml_cache, queries, hits, expired, keys, reset);
+
 	return DKIM_STAT_OK;
 #else /* QUERY_CACHE */
 	return DKIM_STAT_NOTIMPLEMENT;
