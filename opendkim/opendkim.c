@@ -16579,10 +16579,11 @@ mlfi_close(SMFICTX *ctx)
 				c_pct = (c_hits * 100) / c_queries;
 
 			syslog(LOG_INFO,
-			       "cache: %u quer%s, %u hit%s (%d%%), %u expired, %u keys",
+			       "cache: %u quer%s, %u hit%s (%d%%), %u expired, %u key%s",
 			       c_queries, c_queries == 1 ? "y" : "ies",
 			       c_hits, c_hits == 1 ? "" : "s",
-			       c_pct, c_expired, c_keys);
+			       c_pct, c_expired,
+			       c_keys, c_keys == 1 ? "" : "s");
 		}
 	}
 #endif /* QUERY_CACHE */
