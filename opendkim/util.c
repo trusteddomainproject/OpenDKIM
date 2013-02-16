@@ -1013,8 +1013,13 @@ dkimf_mkpath(char *path, size_t pathlen, char *root, char *file)
 	}
 	else if (root[0] == '\0')			/* no root, use cwd */
 	{
-		(void) getcwd(path, pathlen);
-		strlcat(path, "/", pathlen);
+		char *p;
+
+		p = getcwd(path, pathlen);
+		if (p == NULL)
+			strlcpy(path, "./", pathlen);
+		else
+			strlcat(path, "/", pathlen);
 		strlcat(path, file, pathlen);
 	}
 	else						/* use root */

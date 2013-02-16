@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include <string.h>
+#include <stdlib.h>
 
 /* libdb includes */
 #include <db.h>
