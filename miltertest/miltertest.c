@@ -1089,7 +1089,7 @@ mt_getcwd(lua_State *l)
 
 	if (getcwd(dir, MAXPATHLEN) == NULL)
 	{
-		lua_pushstring(l, "mt.getcwd(): getcwd returned error");
+		lua_pushstring(l, "mt.getcwd(): getcwd() returned error");
 		lua_error(l);
 	}
 
