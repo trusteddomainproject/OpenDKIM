@@ -18,6 +18,11 @@
 # include <gnutls/gnutls.h>
 #endif /* USE_GNUTLS */
 
+/* libstrl if needed */
+#ifdef USE_STRL_H
+# include <strl.h>
+#endif /* USE_STRL_H */
+
 /* libopendkim includes */
 #include "../dkim.h"
 #include "t-testdata.h"
