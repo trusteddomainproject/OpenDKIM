@@ -6,7 +6,7 @@ if DEBUG
 AM_CFLAGS += -g
 endif
 
-LDADD = ../libopendkim.la $(COV_LIBADD) $(LIBCRYPTO_LIBS)
+LDADD = ../libopendkim.la $(COV_LIBADD) $(LIBCRYPTO_LIBS) $(LIBRESOLV)
 AM_CPPFLAGS = -I..
 
 if STRL

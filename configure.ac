@@ -1713,7 +1713,7 @@ then
 			AC_MSG_RESULT($ldappath)
 		        ldap_found="yes"
 			OPENLDAP_CPPFLAGS="-I$ldappath/include"
-			OPENLDAP_LIBS="-L$ldappath/lib -lldap"
+			OPENLDAP_LIBS="-L$ldappath/lib -lldap -llber"
 		else
 			AC_MSG_ERROR(not found at $ldappath)
 		fi
@@ -1727,7 +1727,7 @@ then
 				AC_MSG_RESULT($d)
 		        	ldap_found="yes"
 				OPENLDAP_CPPFLAGS="-I$ldappath/include"
-				OPENLDAP_LIBS="-L$ldappath/lib -lldap"
+				OPENLDAP_LIBS="-L$ldappath/lib -lldap -llber"
 				break
 			fi
 		done
