@@ -59,3 +59,8 @@ create table if not exists history (
 
 -- alter domains table to contain "low time" flag
 alter table domains add column low_time tinyint unsigned not null default 0;
+
+-- For upgrading from pre-2.8.0 releases:
+--
+-- alter table history add column maxmsgs int after domain, change
+-- column ratio maxspam float, change column msglimit maxlimit int;        
