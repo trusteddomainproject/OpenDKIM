@@ -14854,7 +14854,7 @@ mlfi_eom(SMFICTX *ctx)
 				const char *cd;
 				const char *domain = NULL;
 
-				for (c = 0; c < nsigs; c++)
+				for (c = 0; c < nsigs && domain == NULL; c++)
 				{
 					if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 ||
 					    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_TESTKEY) != 0 &&
@@ -14893,6 +14893,13 @@ mlfi_eom(SMFICTX *ctx)
 						{
 							domain = cd;
 							break;
+						}
+						else if (conf->conf_dolog)
+						{
+							syslog(LOG_NOTICE,
+							       "%s: allowed by reputation of %s",
+							       dfc->mctx_jobid,
+							       cd);
 						}
 					}
 					else if (status != REPRRD_STAT_NODATA)
@@ -15078,7 +15085,7 @@ mlfi_eom(SMFICTX *ctx)
 						}
 						else
 						{
-							syslog(LOG_NOTICE,
+							syslog(LOG_INFO,
 							       "%s: allowed by reputation of %s (%f, count %lu, spam %lu, limit %lu)",
 							       dfc->mctx_jobid,
 							       cd, ratio,
@@ -15131,7 +15138,7 @@ mlfi_eom(SMFICTX *ctx)
 						}
 						else
 						{
-							syslog(LOG_NOTICE,
+							syslog(LOG_INFO,
 							       "%s: allowed by reputation of NULL domain (%f, count %lu, spam %lu, limit %lu)",
 							       dfc->mctx_jobid,
 							       ratio,
