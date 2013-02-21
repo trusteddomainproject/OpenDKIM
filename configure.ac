@@ -1446,12 +1446,17 @@ lua_found="no"
 
 if test \(  x"$luapath" = x"auto" -o x"$luapath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([LIBLUA], [lua5.1 lua5.2],
+        PKG_CHECK_MODULES([LIBLUA], [lua5.1],
 	                  [
 				lua_found="yes"
 				LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
 	                  ],
-	                  [AC_MSG_WARN([pkg-config for Lua not found, trying manual search...])])
+			  [PKG_CHECK_MODULES([LIBLUA], [lua5.2],
+					    [
+						lua_found="yes"
+						LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
+					    ],
+					    [AC_MSG_WARN([pkg-config for Lua not found, trying manual search...])])])
 fi
 
 if test \( x"$luapath" = x"yes" -o x"$luapath" = x"auto" \) -a x"$lua_found" = x"no"
@@ -1924,7 +1929,7 @@ curl_found="no"
 if test \( x"$curlpath" = x"auto" -o x"$curlpath" = x"yes" \) -a \
 	x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([CURL], [curl >= 7.12.0],
+        PKG_CHECK_MODULES([CURL], [libcurl >= 7.12.0],
 	[
 		curl_found="yes"
 		CURL_CPPFLAGS="$CURL_CFLAGS"
@@ -2026,7 +2031,7 @@ jansson_found="no"
 if test \( x"$janssonpath" = x"auto" -o x"$janssonpath" = x"yes" \) -a \
 	x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([LIBJANSSON], [libjansson >= 2.2.1],
+        PKG_CHECK_MODULES([LIBJANSSON], [jansson >= 2.2.1],
 	[
 		jansson_found="yes"
 		LIBJANSSON_CPPFLAGS="$LIBJANSSON_CFLAGS"
