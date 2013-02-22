@@ -1203,7 +1203,7 @@ parameter as well as the actual domains.
 .I Syslog (Boolean)
 Log via calls to
 .I syslog(3)
-any interesting activity.
+any interesting activity.  The default is "true".
 
 .TP
 .I SyslogFacility (string)

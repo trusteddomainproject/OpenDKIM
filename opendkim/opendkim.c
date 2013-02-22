@@ -6066,6 +6066,7 @@ dkimf_config_new(void)
 	new->conf_atpshash = dkimf_atpshash[0].str;
 #endif /* _FFR_ATPS */
 	new->conf_selectcanonhdr = SELECTCANONHDR;
+	new->conf_dolog = TRUE;
 
 	memcpy(&new->conf_handling, &defaults, sizeof new->conf_handling);
 
@@ -6661,11 +6662,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                  sizeof conf->conf_subdomains);
 		}
 
-		if (!conf->conf_dolog)
-		{
-			(void) config_get(data, "Syslog", &conf->conf_dolog,
-			                  sizeof conf->conf_dolog);
-		}
+		(void) config_get(data, "Syslog", &conf->conf_dolog,
+		                  sizeof conf->conf_dolog);
 
 		if (!conf->conf_logwhy)
 		{
@@ -8674,8 +8672,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 		if (data != NULL)
 		{
-			(void) config_get(data, "SyslogFacility", &log_facility,
-			                  sizeof log_facility);
+			(void) config_get(data, "SyslogFacility",
+			                  &log_facility, sizeof log_facility);
 		}
 
 		dkimf_init_syslog(log_facility);
@@ -16837,7 +16835,7 @@ main(int argc, char **argv)
 			break;
 
 		  case 'l':
-			curconf->conf_dolog = TRUE;
+			curconf->conf_dolog = FALSE;
 			break;
 
 		  case 'L':

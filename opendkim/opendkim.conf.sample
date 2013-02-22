@@ -696,11 +696,11 @@ Socket			inet:port@localhost
 # SubDomains		No
 
 ##  Syslog { yes | no }
-##  	default "no"
+##  	default "yes"
 ##
 ##  Log informational and error activity to syslog?
 
-# Syslog		No
+# Syslog		Yes
 
 ##  SyslogFacility      facility
 ##  	default "mail"

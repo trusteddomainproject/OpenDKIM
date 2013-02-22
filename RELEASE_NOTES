@@ -4,7 +4,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.8.0		2013/02/??
+2.8.0		2013/02/22
 	Feature request #SF2964383: Add DKIM_LIBFLAGS_STRICTRESIGN, which
 		inhibits signing of a handle tagged for resigning when the
 		attached verifying handle had no valid signatures in it.
@@ -40,6 +40,8 @@ release, and a summary of the changes in that release.
 		modified.  Suggested by Scott Kitterman.
 	Fix bug #SF3604525: Don't divide by zero when the query cache hasn't
 		been used.  Reported by Denis Klimov.
+	The default for "Syslog" is now "true", and the meaning of the
+		command line flag "-l" has been inverted.
 	Protect against handling of signatures with empty domains, which could
 		cause a NULL dereference and a crash.  Problem noted by
 		Motohiro Ishiyama and John Wood.

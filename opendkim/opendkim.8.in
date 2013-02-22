@@ -287,9 +287,9 @@ all messages.  Ignored if a configuration file is referenced that defines
 a KeyTable.
 .TP
 .I \-l
-Log via calls to
-.I syslog(3)
-any interesting activity.
+By default, the filter will log any interesting activity via calls to
+.I syslog(3).
+This option suppresses logging.
 .TP
 .I \-L min[%+]
 Instructs the verification code to fail messages for which a partial
@@ -389,7 +389,8 @@ Evaluates (verifies) one or more RFC5322-formatted message found in
 and exits.  The value of
 .I testfiles
 should be a comma-separated list of one or more filenames, one of which
-may be "-" if the message should be read from standard input.
+may be "-" if the message should be read from standard input.  Suppresses
+logging (see "\-l" above).
 .TP
 .I \-T secs
 Sets the DNS timeout in seconds.  A value of 0 causes an infinite wait.
