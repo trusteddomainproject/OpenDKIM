@@ -2568,6 +2568,7 @@ AC_OUTPUT([	Makefile
 			contrib/init/generic/Makefile
 			contrib/init/redhat/Makefile
 			contrib/init/redhat/opendkim
+			contrib/init/redhat/opendkim-default-keygen
 			contrib/init/solaris/Makefile
 			contrib/ldap/Makefile
 			contrib/lua/Makefile
