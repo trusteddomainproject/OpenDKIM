@@ -1,0 +1,8 @@
+This directory includes files meant to be incorporated into Linux distributions
+for use with systemd.  They are supported by their respective authors.
+
+Please submit bug reports and feature requests to
+opendkim-users@lists.opendkim.org or via the trackers on SourceForge.
+
+--
+Copyright (c) 2013, The Trusted Domain Project.  All rights reserved.

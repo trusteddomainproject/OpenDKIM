@@ -2575,6 +2575,8 @@ AC_OUTPUT([	Makefile
 			contrib/spec/Makefile
 			contrib/spec/opendkim.spec
 			contrib/stats/Makefile
+			contrib/systemd/Makefile
+			contrib/systemd/opendkim.service
 		libdkimrep/dkim-rep.pc libdkimrep/Makefile
 		libdkimrep/tests/Makefile
 		libopendkim/opendkim.pc libopendkim/Makefile
