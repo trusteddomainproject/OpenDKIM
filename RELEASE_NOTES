@@ -67,6 +67,8 @@ release, and a summary of the changes in that release.
 	CONTRIB: Fix bug #SF3575666: Pass pid file path to killproc.
 		Suggested by Christophe Wolfhugel.
 	CONTRIB: Add systemd directory.  Contributed by Steve Jenkins.
+	CONTRIB: Split out initial key generation function from
+		contrib/init/redhat/opendkim.  Contributed by Steve Jenkins.
 	MILTERTEST: Don't crash in mt_connect() if the socketspec doesn't
 		contain a colon.
 	MILTERTEST: When connect() fails for an AF_INET socket, it apparently
