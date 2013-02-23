@@ -700,7 +700,7 @@ Socket			inet:port@localhost
 ##
 ##  Log informational and error activity to syslog?
 
-# Syslog		Yes
+Syslog			Yes
 
 ##  SyslogFacility      facility
 ##  	default "mail"
