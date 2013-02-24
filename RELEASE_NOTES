@@ -39,8 +39,6 @@ release, and a summary of the changes in that release.
 		modified.  Suggested by Scott Kitterman.
 	Fix bug #SF3604525: Don't divide by zero when the query cache hasn't
 		been used.  Reported by Denis Klimov.
-	The default for "Syslog" is now "true", and the meaning of the
-		command line flag "-l" has been inverted.
 	Protect against handling of signatures with empty domains, which could
 		cause a NULL dereference and a crash.  Problem noted by
 		Motohiro Ishiyama and John Wood.
