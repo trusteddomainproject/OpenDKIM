@@ -2,7 +2,7 @@
 **  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 **
 */
 
@@ -36,6 +36,11 @@
 
 /* libopendkim includes */
 #include <dkim.h>
+
+/* libbsd if found */
+#ifdef USE_BSD_H
+# include <bsd/string.h>
+#endif /* USE_BSD_H */
 
 /* libstrl if needed */
 #ifdef USE_STRL_H
@@ -88,7 +93,7 @@
 # include <libmemcached/memcached.h>
 #endif /* USE_LIBMEMCACHED */
 #ifdef USE_MDB
-# include <mdb.h>
+# include <lmdb.h>
 #endif /* USE_MDB */
 #ifdef USE_ERLANG
 # include <sys/time.h>
@@ -338,6 +343,9 @@ struct handle_pool
 	pthread_cond_t	hp_signal;
 };
 #endif /* _FFR_DB_HANDLE_POOLS */
+
+/* globals */
+static unsigned int gflags = 0;
 
 #ifdef _FFR_DB_HANDLE_POOLS
 /*
@@ -614,6 +622,22 @@ dkimf_db_hp_put(struct handle_pool *pool, void *handle)
 }
 
 #endif /* _FFR_DB_HANDLE_POOLS */
+
+/*
+**  DKIMF_DB_FLAGS -- set global flags
+**
+**  Parameters:
+**  	flags -- new global flag mask
+**
+**  Return value:
+**  	None.
+*/
+
+void
+dkimf_db_flags(unsigned int flags)
+{
+	gflags = flags;
+}
 
 #if (USE_SASL && USE_LDAP)
 /*
@@ -1766,7 +1790,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 
 	memset(new, '\0', sizeof(struct dkimf_db));
 
-	new->db_flags = flags;
+	new->db_flags = (flags | gflags);
 	new->db_type = DKIMF_DB_TYPE_UNKNOWN;
 
 	p = strchr(name, ':');
@@ -1863,7 +1887,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		struct dkimf_db_list *next = NULL;
 		struct dkimf_db_list *newl;
 
-		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
+		if ((new->db_flags & DKIMF_DB_FLAG_READONLY) == 0)
 		{
 			free(new);
 			errno = EINVAL;
@@ -2033,7 +2057,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		struct dkimf_db_list *newl;
 		char line[BUFRSZ + 1];
 
-		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
+		if ((new->db_flags & DKIMF_DB_FLAG_READONLY) == 0)
 		{
 			if (err != NULL)
 				*err = strerror(EINVAL);
@@ -2232,7 +2256,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		char line[BUFRSZ + 1];
 		char patbuf[BUFRSZ + 1];
 
-		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
+		if ((new->db_flags & DKIMF_DB_FLAG_READONLY) == 0)
 		{
 			if (err != NULL)
 				*err = strerror(EINVAL);
@@ -2376,7 +2400,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		DB *newdb;
 
 # if DB_VERSION_CHECK(2,0,0)
-		if (flags & DKIMF_DB_FLAG_READONLY)
+		if ((new->db_flags & DKIMF_DB_FLAG_READONLY) != 0)
 		{
 			dbflags |= DB_RDONLY;
 			bdbtype = DB_UNKNOWN;
@@ -2414,8 +2438,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		                 NULL, NULL, &newdb);
 # else /* DB_VERSION_CHECK(2,0,0) */
 		newdb = dbopen(p,
-		               (flags & DKIMF_DB_FLAG_READONLY ? O_RDONLY
-		                                                : (O_CREAT|O_RDWR)),
+		               (new->db_flags & DKIMF_DB_FLAG_READONLY ? O_RDONLY
+		                                                       : (O_CREAT|O_RDWR)),
 		               DKIMF_DB_MODE, bdbtype, NULL);
 		if (newdb == NULL)
 			status = errno;
@@ -2862,7 +2886,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		lderr = dkimf_db_open_ldap(&ld, ldap, err);
 		if (lderr != LDAP_SUCCESS)
 		{
-			if ((flags & DKIMF_DB_FLAG_SOFTSTART) == 0)
+			if ((new->db_flags & DKIMF_DB_FLAG_SOFTSTART) == 0)
 			{
 				if (err != NULL)
 					*err = ldap_err2string(lderr);
@@ -2881,48 +2905,51 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 
 # ifdef _FFR_LDAP_CACHING
 #  ifdef USE_DB
-		/* establish LDAP cache DB */
-		lderr = 0;
+		if ((new->db_flags & DKIMF_DB_FLAG_NOCACHE) == 0)
+		{
+			/* establish LDAP cache DB */
+			lderr = 0;
 
 #   if DB_VERSION_CHECK(3,0,0)
-		lderr = db_create(&newdb, NULL, 0);
-		if (lderr == 0)
-		{
+			lderr = db_create(&newdb, NULL, 0);
+			if (lderr == 0)
+			{
 #    if DB_VERSION_CHECK(4,1,25)
- 			lderr = newdb->open(newdb, NULL, NULL, NULL,
-			                    DB_HASH, DB_CREATE, 0);
+	 			lderr = newdb->open(newdb, NULL, NULL, NULL,
+				                    DB_HASH, DB_CREATE, 0);
 #    else /* DB_VERSION_CHECK(4,1,25) */
-			lderr = newdb->open(newdb, NULL, NULL, DB_HASH,
-			                    DB_CREATE, 0);
+				lderr = newdb->open(newdb, NULL, NULL, DB_HASH,
+				                    DB_CREATE, 0);
 #    endif /* DB_VERSION_CHECK(4,1,25) */
-		}
+			}
 #   elif DB_VERSION_CHECK(2,0,0)
-		lderr = db_open(NULL, DB_HASH, 0, DKIMF_DB_MODE,
-		                NULL, NULL, &newdb);
+			lderr = db_open(NULL, DB_HASH, 0, DKIMF_DB_MODE,
+			                NULL, NULL, &newdb);
 #   else /* DB_VERSION_CHECK(2,0,0) */
-		newdb = dbopen(NULL, (O_CREAT|O_RDWR),
-		               DKIMF_DB_MODE, DB_HASH, NULL);
-		if (newdb == NULL)
-			lderr = errno;
+			newdb = dbopen(NULL, (O_CREAT|O_RDWR),
+			               DKIMF_DB_MODE, DB_HASH, NULL);
+			if (newdb == NULL)
+				lderr = errno;
 #   endif /* DB_VERSION_CHECK */
 
-		if (lderr == 0)
-		{
-			DKIMF_DB cachedb;
-
-			cachedb = malloc(sizeof *cachedb);
-			if (cachedb != NULL)
+			if (lderr == 0)
 			{
-				memset(cachedb, '\0', sizeof *cachedb);
+				DKIMF_DB cachedb;
 
-				cachedb->db_type = DKIMF_DB_TYPE_BDB;
-				cachedb->db_handle = newdb;
+				cachedb = malloc(sizeof *cachedb);
+				if (cachedb != NULL)
+				{
+					memset(cachedb, '\0', sizeof *cachedb);
 
-				ldap->ldap_cache = cachedb;
-			}
-			else
-			{
-				DKIMF_DBCLOSE(newdb);
+					cachedb->db_type = DKIMF_DB_TYPE_BDB;
+					cachedb->db_handle = newdb;
+
+					ldap->ldap_cache = cachedb;
+				}
+				else
+				{
+					DKIMF_DBCLOSE(newdb);
+				}
 			}
 		}
 #  endif /* USE_DB */
@@ -3144,7 +3171,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			return 2;
 		}
 
-		if ((flags & DKIMF_DB_FLAG_READONLY) == 0)
+		if ((new->db_flags & DKIMF_DB_FLAG_READONLY) == 0)
 		{
 			if (err != NULL)
 				*err = strerror(EINVAL);
@@ -3519,7 +3546,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			return -1;
 		}
 
-		status = mdb_open(mdb->mdb_txn, NULL, 0, &mdb->mdb_dbi);
+		status = mdb_dbi_open(mdb->mdb_txn, NULL, 0, &mdb->mdb_dbi);
 		if (status != 0)
 		{
 			if (err != NULL)
@@ -3962,7 +3989,7 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	data.mv_size = (buflen == 0 ? strlen(buf) : buflen);
 
 	if (mdb_txn_begin(mdb->mdb_env, NULL, 0, &txn) == 0 &&
-	    mdb_open(txn, NULL, 0, &dbi) == 0 &&
+	    mdb_dbi_open(txn, NULL, 0, &dbi) == 0 &&
 	    mdb_put(txn, dbi, &key, &data, 0) == 0)
 		ret = 0;
 	else
@@ -5069,7 +5096,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		mcs = (memcached_st *) db->db_handle;
 		key = (char *) db->db_data;
 
-		snprintf(query, sizeof query, "%s:%s", key, buf);
+		snprintf(query, sizeof query, "%s:%s", key, (char *) buf);
 		
 		out = memcached_get(mcs, query, strlen(query), &vlen,
 		                    &flags, &ret);

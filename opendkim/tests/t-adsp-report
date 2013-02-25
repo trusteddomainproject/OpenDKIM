@@ -10,7 +10,7 @@ fi
 
 export TMPFILE=`mktemp /tmp/opendkim-XXXXXXXXX`
 
-../../miltertest/miltertest -s $srcdir/t-adsp-report.lua || exit 1
+../../miltertest/miltertest $MILTERTESTFLAGS -s $srcdir/t-adsp-report.lua || exit 1
 
 # ignore version differences in useragent
 diff -I ^User-Agent -I^Arrival-Date -I^Date \

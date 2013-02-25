@@ -60,9 +60,12 @@ order; when signing, compute all signatures.
     passed to <a href="dkim_chunk.html"><tt>dkim_chunk()</tt></a> for
     message chunk processing but the end of message was never signaled via
     that interface.
-<li><tt>DKIM_STAT_INVALID</tt> returned when signing may indicate that hte
+<li><tt>DKIM_STAT_INVALID</tt> returned when signing may indicate that the
     key provided for signing did not meet the minimum key size requirement
     (see <tt><a href="dkim_options.html">dkim_options()</a></tt>).
+<li><tt>DKIM_STAT_CANTVRFY</tt> is returned when passed a signing handle
+    bound via <a href="dkim_resign.html"><tt>dkim_resign()</tt></a> to a
+    verifying handle if the latter yielded no valid signatures.
 <li>Other possible return values include all the
     <a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> values.
 </ul>
@@ -96,7 +99,7 @@ none are valid.
 Copyright (c) 2005, 2007, 2008 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, 2010, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2009, 2010, 2013, The Trusted Domain Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set

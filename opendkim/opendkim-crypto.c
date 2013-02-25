@@ -2,7 +2,7 @@
 **  Copyright (c) 2008, 2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010, 2012, The Trusted Domain Project.
+**  Copyright (c) 2009, 2010, 2012, 2013, The Trusted Domain Project.
 **    All rights reserved.
 **
 */
@@ -121,9 +121,12 @@ dkimf_crypto_init(void)
 void
 dkimf_crypto_free(void)
 {
-	(void) gnutls_global_deinit();
+	if (crypto_init_done)
+	{
+		(void) gnutls_global_deinit();
 
-	(void) pthread_key_delete(logkey);
+		(void) pthread_key_delete(logkey);
+	}
 
 	return;
 }

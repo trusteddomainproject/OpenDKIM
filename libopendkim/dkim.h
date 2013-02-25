@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 */
 
 #ifndef _DKIM_H_
@@ -291,6 +291,7 @@ typedef int dkim_opts_t;
 #define DKIM_LIBFLAGS_STRICTHDRS	0x1000
 #define DKIM_LIBFLAGS_REPORTBADADSP	0x2000
 #define DKIM_LIBFLAGS_DROPSIGNER	0x4000
+#define DKIM_LIBFLAGS_STRICTRESIGN	0x8000
 
 #define	DKIM_LIBFLAGS_DEFAULT		DKIM_LIBFLAGS_NONE
 
@@ -466,7 +467,7 @@ extern DKIM *dkim_verify __P((DKIM_LIB *libhandle, const unsigned char *id,
                               void *memclosure, DKIM_STAT *statp));
 
 /*
-**  DKIM_RESIGN -- bind a new signing handle to a completed handle
+**  DKIM_RESIGN -- bind a new signing handle to a verifying handle
 **
 **  Parameters:
 **  	new -- new signing handle
@@ -618,12 +619,15 @@ extern const char *dkim_getid __P((DKIM *dkim));
 **  DKIM_GETCACHESTATS -- retrieve cache statistics
 **
 **  Parameters:
+**  	lib -- DKIM library handle
 **  	queries -- number of queries handled (returned)
 **  	hits -- number of cache hits (returned)
 **  	expired -- number of expired hits (returned)
+**  	reset -- if true, reset the queries, hits, and expired counters
 **
 **  Return value:
 **  	DKIM_STAT_OK -- statistics returned
+**  	DKIM_STAT_INVALID -- cache not initialized
 **  	DKIM_STAT_NOTIMPLEMENT -- function not implemented
 **
 **  Notes:
@@ -631,8 +635,9 @@ extern const char *dkim_getid __P((DKIM *dkim));
 **  	is not of interest.
 */
 
-extern DKIM_STAT dkim_getcachestats __P((u_int *queries, u_int *hits,
-                                         u_int *expired));
+extern DKIM_STAT dkim_getcachestats __P((DKIM_LIB *, u_int *queries, u_int *hits,
+                                         u_int *expired, u_int *keys,
+                                         _Bool reset));
 
 /*
 **  DKIM_FLUSH_CACHE -- purge expired records from the database, reclaiming
@@ -2077,6 +2082,23 @@ extern int dkim_base32_encode __P((char *, size_t *, const void *, size_t));
 
 extern DKIM_STAT dkim_sig_gethashes __P((DKIM_SIGINFO *, void **, size_t *,
                                          void **, size_t *));
+
+/*
+**  DKIM_SIGNHDRS -- set the list of header fields to sign for a signature,
+**                   overriding the library default
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle to be affected
+**  	hdrlist -- array of names of header fields that should be signed
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+**
+**  Notes:
+**  	"hdrlist" can be NULL if the library's default is to be used.
+*/
+
+extern DKIM_STAT dkim_signhdrs __P((DKIM *, const char **));
 
 /*
 **  DKIM_GETSSLBUF -- get the SSL error buffer, if any, from a DKIM handle

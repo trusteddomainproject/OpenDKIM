@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2011, 2012, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2011-2013, The Trusted Domain Project.  All rights reserved.
 */
 
 #include "build-config.h"
@@ -23,6 +23,11 @@
 /* opendbx includes */
 # include <odbx.h>
 #endif /* USE_ODBX */
+
+/* libbsd if found */
+#ifdef USE_BSD_H
+# include <bsd/string.h>
+#endif /* USE_BSD_H */
 
 /* libstrl if needed */
 #ifdef USE_STRL_H

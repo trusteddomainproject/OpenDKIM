@@ -1,5 +1,4 @@
-
--- Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+-- Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 
 -- simple/simple verify test (should fail)
 -- 
@@ -8,7 +7,11 @@
 mt.echo("*** simple/simple verifying test (bad)")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-verify-ss-bad.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-verify-ss-bad.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
@@ -19,7 +22,7 @@ mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-ss-bad.conf",
                "-p", sock)
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end

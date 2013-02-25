@@ -2,8 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
-**
+**  Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 */
 
 #include "build-config.h"
@@ -97,6 +96,11 @@
 #ifdef _FFR_VBR
 # include "vbr.h"
 #endif /* _FFR_VBR */
+
+/* libbsd if found */
+#ifdef USE_BSD_H
+# include <bsd/string.h>
+#endif /* USE_BSD_H */
 
 /* libstrl if needed */
 #ifdef USE_STRL_H
@@ -209,6 +213,7 @@ struct lua_global
 
 struct dkimf_config
 {
+	_Bool		conf_disablecryptoinit;	/* initialize SSL libs? */
 #ifdef USE_LDAP
 	_Bool		conf_softstart;		/* do LDAP soft starts */
 #endif /* USE_LDAP */
@@ -275,9 +280,9 @@ struct dkimf_config
 #endif /* _FFR_REPUTATION */
 #ifdef USE_UNBOUND
 	unsigned int	conf_boguskey;		/* bogus key action */
-	unsigned int	conf_insecurekey;	/* insecure key action */
+	unsigned int	conf_unprotectedkey;	/* unprotected key action */
 	unsigned int	conf_boguspolicy;	/* bogus policy action */
-	unsigned int	conf_insecurepolicy;	/* insecure policy action */
+	unsigned int	conf_unprotectedpolicy;	/* unprotected policy action */
 #endif /* USE_UNBOUND */
 #ifdef _FFR_RATE_LIMIT
 	unsigned int	conf_flowdatattl;	/* flow data TTL */
@@ -307,6 +312,9 @@ struct dkimf_config
 	unsigned long	conf_sigttl;		/* signature TTLs */
 	dkim_alg_t	conf_signalg;		/* signing algorithm */
 	struct config *	conf_data;		/* configuration data */
+#ifdef HAVE_CURL_EASY_STRERROR
+	char *		conf_smtpuri;		/* outgoing mail URI */
+#endif /* HAVE_CURL_EASY_STRERROR */
 	char *		conf_authservid;	/* authserv-id */
 	char *		conf_keyfile;		/* key file for single key */
 	char *		conf_keytable;		/* key table */
@@ -712,18 +720,9 @@ struct lookup log_facilities[] =
 };
 
 #ifdef USE_UNBOUND
-struct lookup dkimf_dnssec[] =
-{
-	{ "unknown",		DKIM_DNSSEC_UNKNOWN },
-	{ "bogus",		DKIM_DNSSEC_BOGUS },
-	{ "insecure",		DKIM_DNSSEC_INSECURE },
-	{ "secure",		DKIM_DNSSEC_SECURE },
-	{ NULL,			-1 },
-};
-
-#define	DKIMF_KEYACTIONS_NONE	0
-#define	DKIMF_KEYACTIONS_NEUTRAL 1
-#define	DKIMF_KEYACTIONS_FAIL	2
+# define DKIMF_KEYACTIONS_NONE	0
+# define DKIMF_KEYACTIONS_NEUTRAL 1
+# define DKIMF_KEYACTIONS_FAIL	2
 
 struct lookup dkimf_keyactions[] =
 {
@@ -773,6 +772,9 @@ static int dkimf_add_signrequest __P((struct msgctx *, DKIMF_DB,
                                       char *, char *, ssize_t));
 sfsistat dkimf_addheader __P((SMFICTX *, char *, char *));
 sfsistat dkimf_addrcpt __P((SMFICTX *, char *));
+static int dkimf_apply_signtable __P((struct msgctx *, DKIMF_DB, DKIMF_DB,
+                                      unsigned char *, unsigned char *, char *,
+                                      size_t, _Bool));
 sfsistat dkimf_chgheader __P((SMFICTX *, char *, int, char *));
 static void dkimf_cleanup __P((SMFICTX *));
 static void dkimf_config_reload __P((void));
@@ -814,6 +816,7 @@ char reportcmd[BUFRSZ + 1];			/* reporting command */
 char reportaddr[MAXADDRESS + 1];		/* reporting address */
 char myhostname[DKIM_MAXHOSTNAMELEN + 1];	/* hostname */
 pthread_mutex_t conf_lock;			/* config lock */
+pthread_mutex_t pwdb_lock;			/* passwd/group lock */
 
 /* Other useful definitions */
 #define CRLF			"\r\n"		/* CRLF */
@@ -1196,6 +1199,100 @@ dkimf_import_globals(void *p, lua_State *l)
 		}
 
 		lg = lg->lg_next;
+	}
+}
+
+/*
+**  DKIMF_XS_SIGNFOR -- sign as if the mail came from a specified user
+**
+**  Parameters:
+**  	l -- Lua state
+**
+**  Return value:
+**  	Number of stack items pushed.
+*/
+
+int
+dkimf_xs_signfor(lua_State *l)
+{
+	_Bool multi = FALSE;
+	int top;
+	int status;
+	struct lua_global *lg;
+	SMFICTX *ctx;
+	unsigned char *user = NULL;
+	unsigned char *domain = NULL;
+	struct connctx *cc;
+	struct msgctx *msg;
+	struct dkimf_config *conf;
+	char addr[MAXADDRESS + 1];
+	char errkey[BUFRSZ + 1];
+
+	if (top != 2 && top != 3)
+	{
+		lua_pushstring(l,
+		               "odkim.signfor(): incorrect argument count");
+		lua_error(l);
+	}
+	else if (!lua_isuserdata(l, 1) ||
+	         !lua_isstring(l, 2) ||
+	         (top == 3 && !lua_isboolean(l, 3)))
+	{
+		lua_pushstring(l, "odkim.signfor(): invalid argument");
+		lua_error(l);
+	}
+
+	lua_pop(l, top);
+
+	ctx = (SMFICTX *) lua_touserdata(l, 1);
+	if (ctx == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	strlcpy(addr, lua_tostring(l, 2), sizeof addr);
+
+	if (top == 3)
+		multi = lua_toboolean(l, 3);
+
+	cc = (struct connctx *) dkimf_getpriv(ctx);
+	msg = cc->cctx_msg;
+	conf = cc->cctx_config;
+
+	if (conf->conf_signtabledb == NULL ||
+	    conf->conf_keytabledb == NULL)
+	{
+		lua_pushnil(l);
+		return 1;
+	}
+
+	status = dkim_mail_parse(addr, &user, &domain);
+	if (status != 0 || user == NULL || domain == NULL)
+	{
+		lua_pushstring(l, "odkim.signfor(): can't parse address");
+		lua_error(l);
+	}
+
+	status = dkimf_apply_signtable(msg, conf->conf_keytabledb,
+	                               conf->conf_signtabledb,
+	                               user, domain, errkey, sizeof errkey,
+	                               multi);
+	if (status == -2 || status == -3)
+	{
+		lua_pushfstring(l, "odkim.signfor(): error processing key '%s'",
+		                errkey);
+		lua_error(l);
+	}
+	else if (status == -1)
+	{
+		lua_pushstring(l, "odkim.signfor(): can't read signing table");
+		lua_error(l);
+	}
+	else
+	{
+		lua_pushnumber(l, status);
+		return 1;
 	}
 }
 
@@ -4564,50 +4661,313 @@ dkimf_reptoken(u_char *out, size_t outlen, u_char *in, u_char *sub)
 }
 
 /*
-**  DKIMF_INSECURE -- see if an open file is safe to use
+**  DKIMF_CHECKFSNODE -- check a filesystem node for safety
 **
 **  Parameters:
-**  	mode -- mode of an open file
-**  	grp -- group ID of an open file
+**  	path -- path of the node to check
+**  	myuid -- executing user's effective uid
+**  	myname -- executing user's login
+**  	ino -- evaluated inode (returned)
 **
 **  Return value:
-**  	FALSE iff the file is safe to use.
+**  	1 -- node is safe to use
+**  	0 -- node is not safe to use
+**  	-1 -- error (check errno)
+**
+**  Notes:
+**  	"Safe" here means the target file cannot be read or written by anyone
+**  	other than the executing user and the superuser.  The entire directory
+**  	tree is checked from the root down after resolution of symlinks and
+**  	references to "." and ".." looking for errant "write" bits on
+**   	directories and the file itself.
+**
+**  	To prevent attacks through symbolic links, this function also returns
+**  	the inode of the object it evaluated if that object was a file.  Thus,
+**  	if the caller first opens the file but doesn't read from it, then the
+**  	returned inode can be compared to the inode of the opened descriptor
+**  	to ensure that what was opened was safe at the time open() was called.
+**  	An inode of -1 is reported if some directory above the target was
+**  	sufficiently locked down that the inode comparison isn't necessary.
+**
+**  	This still isn't bulletproof; there's a race between the time of the
+**  	open() call and the result returned by this function.  I'm not sure if
+**	that can be improved.
 */
 
-_Bool
-dkimf_insecure(mode_t mode, gid_t grp)
+static int
+dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 {
-	/* read/write by others is always bad */
-	if ((mode & (S_IROTH|S_IWOTH)) != 0)
-		return TRUE;
+	int status;
+	struct passwd *pw;
+	struct group *gr;
+	struct stat s;
 
-	/* read/write by group is bad if it's not a group we're in */
-	if ((mode & (S_IRGRP|S_IWGRP)) != 0)
+	assert(path != NULL);
+	assert(myname != NULL);
+	assert(ino != NULL);
+
+	status = stat(path, &s);
+	if (status != 0)
+		return -1;
+
+	if ((s.st_mode & S_IFMT) == S_IFREG)
 	{
-		int c;
-		int ngroups;
-		gid_t gid;
-		gid_t egid;
-		gid_t gids[NGROUPS_MAX];
+		/* owned by root or by me */
+		if (s.st_uid != 0 && s.st_uid != myuid)
+			return 0;
 
-		gid = getgid();
-		egid = getegid();
-		ngroups = getgroups(NGROUPS_MAX, gids);
-
-		if (grp == gid || grp == egid)
-			return FALSE;
-
-		for (c = 0; c < ngroups; c++)
+		/* if group read/write, the group is only me and/or root */
+		if ((s.st_mode & (S_IRGRP|S_IWGRP)) != 0)
 		{
-			if (grp == gids[c])
-				return FALSE;
+			int c;
+
+			/* check if anyone else has this file's gid */
+			pthread_mutex_lock(&pwdb_lock);
+			setpwent();
+			for (pw = getpwent(); pw != NULL; pw = getpwent())
+			{
+				if (pw->pw_uid != myuid &&
+				    pw->pw_uid != 0 &&
+				    s.st_gid == pw->pw_gid)
+				{
+					pthread_mutex_unlock(&pwdb_lock);
+					return 0;
+				}
+			}
+			endpwent();
+
+			/* check if this group contains anyone else */
+			gr = getgrgid(s.st_gid);
+			if (gr == NULL)
+			{
+				pthread_mutex_unlock(&pwdb_lock);
+				return -1;
+			}
+
+			for (c = 0; gr->gr_mem[c] != NULL; c++)
+			{
+				if (strcmp(gr->gr_mem[c], myname) != 0 &&
+				    strcmp(gr->gr_mem[c], SUPERUSER) != 0)
+				{
+					pthread_mutex_unlock(&pwdb_lock);
+					return 0;
+				}
+			}
+
+			pthread_mutex_unlock(&pwdb_lock);
 		}
 
-		return TRUE;
+		/* not read/write by others */
+		if ((s.st_mode & (S_IROTH|S_IWOTH)) != 0)
+			return 0;
+
+		*ino = s.st_ino;
+	}
+	else if ((s.st_mode & S_IFMT) == S_IFDIR)
+	{
+		/* other write needs to be off */
+		if ((s.st_mode & S_IWOTH) != 0)
+			return 0;
+
+		/* group write needs to be super-user or me only */
+		if ((s.st_mode & S_IWGRP) != 0)
+		{
+			int c;
+
+			/* check if anyone else has this file's gid */
+			pthread_mutex_lock(&pwdb_lock);
+			setpwent();
+			for (pw = getpwent(); pw != NULL; pw = getpwent())
+			{
+				if (pw->pw_uid != myuid &&
+				    pw->pw_uid != 0 &&
+				    s.st_gid == pw->pw_gid)
+				{
+					pthread_mutex_unlock(&pwdb_lock);
+					return 0;
+				}
+			}
+
+			/* check if this group contains anyone else */
+			gr = getgrgid(s.st_gid);
+			if (gr == NULL)
+			{
+				pthread_mutex_unlock(&pwdb_lock);
+				return -1;
+			}
+
+			for (c = 0; gr->gr_mem[c] != NULL; c++)
+			{
+				if (strcmp(gr->gr_mem[c], myname) != 0 &&
+				    strcmp(gr->gr_mem[c], SUPERUSER) != 0)
+				{
+					pthread_mutex_unlock(&pwdb_lock);
+					return 0;
+				}
+			}
+
+			pthread_mutex_unlock(&pwdb_lock);
+		}
+
+		/* owner write needs to be super-user or me only */
+		if ((s.st_mode & S_IWUSR) != 0 &&
+		    (s.st_uid != 0 && s.st_uid != myuid))
+			return 0;
+
+		/* if nobody else can execute below here, that's good enough */
+		if ((s.st_mode & (S_IXGRP|S_IXOTH)) == 0)
+		{
+			*ino = (ino_t) -1;
+			return 1;
+		}
 	}
 
-	/* anything that gets here is safe */
-	return FALSE;
+	return 1;
+}
+
+/*
+**  DKIMF_SECUREFILE -- determine whether a file at a specific path is "safe"
+**
+**  Parameters:
+**  	path -- path to evaluate
+**  	ino -- inode of evaluated object
+** 	myuid -- user to impersonate (-1 means "me")
+**
+**  Return value:
+**  	As for dkimf_checkfsnode().
+**
+**  Notes:
+**  	If realpath() is available, this function checks the entire resolved
+**  	filesystem tree from the root to the target file to ensure there are no
+**  	permissions that would allow someone else on the system to either read
+**  	or replace the file being evaluated.  (It's designed to check private
+**  	key files.)  Without realpath(), only the target filename is checked.
+*/
+
+int
+dkimf_securefile(const char *path, ino_t *ino, uid_t myuid)
+{
+	int status;
+	struct passwd *pw;
+#ifdef HAVE_REALPATH
+	char *p;
+	char *q;
+	char real[MAXPATHLEN + 1];
+	char partial[MAXPATHLEN + 1];
+	char myname[BUFRSZ + 1];
+#endif /* HAVE_REALPATH */
+
+	assert(path != NULL);
+	assert(ino != NULL);
+
+	/* figure out who I am */
+	pthread_mutex_lock(&pwdb_lock);
+
+	if (myuid == (uid_t) -1)
+		pw = getpwuid(geteuid());
+	else
+		pw = getpwuid(myuid);
+
+	if (pw == NULL)
+	{
+		pthread_mutex_unlock(&pwdb_lock);
+		return -1;
+	}
+
+	if (myuid == (uid_t) -1)
+		myuid = pw->pw_uid;
+
+	pthread_mutex_unlock(&pwdb_lock);
+
+#ifdef HAVE_REALPATH
+	strlcpy(myname, pw->pw_name, sizeof myname);
+
+	p = realpath(path, real);
+	if (p == NULL)
+		return -1;
+
+	/*
+	**  Check each node in the tree to ensure that:
+	**  1) The file itself is read-write only by the executing user and the
+	**  	super-user;
+	**  2) No directory above the file is writeable by anyone other than the
+	**  	executing user and the super-user.
+	*/
+
+	partial[0] = '/';
+	partial[1] = '\0';
+
+	q = real;
+	while ((p = strsep(&q, "/")) != NULL)
+	{
+		strlcat(partial, p, sizeof partial);
+		status = dkimf_checkfsnode((const char *) partial,
+		                           myuid, myname, ino);
+		if (status != 1)
+			return status;
+
+		if (partial[1] != '\0')
+			strlcat(partial, "/", sizeof partial); 
+	}
+
+	return 1;
+#else /* HAVE_REALPATH */
+	struct stat s;
+
+	status = stat(path, &s);
+	if (status != 0)
+		return -1;
+
+	/* we don't own it and neither does the super-user; bad */
+	if (s.st_uid != myuid && s.st_uid != 0)
+		return 0;
+
+	/* world readable/writeable; bad */
+	if ((s.st_node & (S_IROTH|S_IWOTH)) != 0)
+		return 0;
+
+	/* group read/write is bad if others are in that group */
+	if ((s.st_mode & (S_IRGRP|S_IWGRP)) != 0)
+	{
+		int c;
+		struct group *gr;
+
+		/* get the file's group entry */
+		pthread_mutex_lock(&pwdb_lock);
+		gr = getgrgid(s.st_gid);
+		if (gr == NULL)
+		{
+			pthread_mutex_unlock(&pwdb_lock);
+			return -1;
+		}
+
+		for (c = 0; gr->gr_mem[c] != NULL; c++)
+		{
+			if (strcmp(gr->gr_mem[c], pw->pw_name) != 0)
+			{
+				pthread_mutex_unlock(&pwdb_lock);
+				return 0;
+			}
+		}
+
+		setpwent();
+		while (pw = getpwent(); pw != NULL; pw = getpwent())
+		{
+			if (pw->pw_uid != myuid && pw->pw_gid == s.st_gid)
+			{
+				pthread_mutex_unlock(&pwdb_lock);
+				return 0;
+			}
+		}
+		endpwent();
+
+		pthread_mutex_unlock(&pwdb_lock);
+	}
+		
+	/* guess we're okay... */
+	*ino = s.st_ino;
+	return 1;
+#endif /* HAVE_REALPATH */
 }
 
 /*
@@ -4620,12 +4980,18 @@ dkimf_insecure(mode_t mode, gid_t grp)
 **  	error -- string returned on error
 **
 **  Return value:
-**  	TRUE on successful load, false otherwise
+**  	TRUE on successful load, false otherwise.
+**
+**  Notes:
+**  	The caller might pass a key or a filename in "buf".  If we think it's a
+**  	filename, replace the contents of "buf" with what we find in that file.
 */
 
 static _Bool
 dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure, char **error)
 {
+	ino_t ino;
+
 	assert(buf != NULL);
 	assert(buflen != NULL);
 
@@ -4659,13 +5025,11 @@ dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure, char **error)
 			return FALSE;
 		}
 
-		/*
-		**  XXX -- really should check ancestor directories too,
-		**  like sendmail's safefile()
-		*/
-
-		if (insecure != NULL)
-			*insecure = dkimf_insecure(s.st_mode, s.st_gid);
+		if (!dkimf_securefile(buf, &ino, (uid_t) -1) ||
+		    (ino != (ino_t) -1 && ino != s.st_ino))
+			*insecure = TRUE;
+		else
+			*insecure = FALSE;
 
 		*buflen = MIN(s.st_size, *buflen);
 		rlen = read(fd, buf, *buflen);
@@ -5984,9 +6348,11 @@ static int
 dkimf_config_load(struct config *data, struct dkimf_config *conf,
                   char *err, size_t errlen)
 {
+	_Bool btmp;
 	int maxsign;
 	int dbflags = 0;
 	char *str;
+	char *become = NULL;
 	char confstr[BUFRSZ + 1];
 	char basedir[MAXPATHLEN + 1];
 
@@ -6033,6 +6399,11 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "AuthservIDWithJobID",
 		                  &conf->conf_authservidwithjobid,
 		                  sizeof conf->conf_authservidwithjobid);
+
+#ifdef HAVE_CURL_EASY_STRERROR
+		(void) config_get(data, "SMTPURI", &conf->conf_smtpuri,
+		                  sizeof conf->conf_smtpuri);
+#endif /* HAVE_CURL_EASY_STRERROR */
 
 		str = NULL;
 		(void) config_get(data, "BaseDirectory", &str, sizeof str);
@@ -6325,6 +6696,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_noadsp,
 		                  sizeof conf->conf_noadsp);
 
+		(void) config_get(data, "DisableCryptoInit",
+		                  &conf->conf_disablecryptoinit,
+		                  sizeof conf->conf_disablecryptoinit);
+
 		str = NULL;
 		(void) config_get(data, "ADSPAction", &str, sizeof str);
 		if (str != NULL)
@@ -6377,6 +6752,13 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  sizeof conf->conf_allowsha1only);
 
 #ifdef USE_LDAP
+		btmp = FALSE;
+		(void) config_get(data, "LDAPDisableCache", &btmp, sizeof btmp);
+		if (btmp)
+			dkimf_db_flags(DKIMF_DB_FLAG_NOCACHE);
+		else
+			dkimf_db_flags(0);
+
 		(void) config_get(data, "LDAPUseTLS",
 		                  &conf->conf_ldap_usetls,
 		                  sizeof conf->conf_ldap_usetls);
@@ -6502,7 +6884,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 
 		str = NULL;
-		(void) config_get(data, "InsecureKey", &str, sizeof str);
+		(void) config_get(data, "UnprotectedKey", &str, sizeof str);
 		if (str != NULL)
 		{
 			int c;
@@ -6515,11 +6897,11 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				return -1;
 			}
 
-			conf->conf_insecurekey = c;
+			conf->conf_unprotectedkey = c;
 		}
 		else
 		{
-			conf->conf_boguskey = DKIMF_KEYACTIONS_NONE;
+			conf->conf_unprotectedkey = DKIMF_KEYACTIONS_NONE;
 		}
 
 		str = NULL;
@@ -6544,7 +6926,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 
 		str = NULL;
-		(void) config_get(data, "InsecurePolicy", &str, sizeof str);
+		(void) config_get(data, "UnprotectedPolicy", &str, sizeof str);
 		if (str != NULL)
 		{
 			int c;
@@ -6557,11 +6939,11 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				return -1;
 			}
 
-			conf->conf_insecurepolicy = c;
+			conf->conf_unprotectedpolicy = c;
 		}
 		else
 		{
-			conf->conf_insecurepolicy = DKIM_POLICYACTIONS_APPLY;
+			conf->conf_unprotectedpolicy = DKIM_POLICYACTIONS_APPLY;
 		}
 #endif /* USE_UNBOUND */
 
@@ -6831,6 +7213,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			}
 		}
 #endif /* USE_LUA */
+
+		(void) config_get(data, "Userid", &become, sizeof become);
 	}
 
 #ifdef USE_LDAP
@@ -6904,7 +7288,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	{
 		(void) config_get(data, "InternalHosts", &str, sizeof str);
 	}
-	if (str != NULL && !testmode)
+	if (str != NULL)
 	{
 		int status;
 		char *dberr = NULL;
@@ -8002,10 +8386,34 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		int status;
 		int fd;
 		ssize_t rlen;
+		ino_t ino;
+		uid_t asuser = (uid_t) -1;
 		u_char *s33krit;
 		struct stat s;
 
-		status = stat(conf->conf_keyfile, &s);
+		fd = open(conf->conf_keyfile, O_RDONLY, 0);
+		if (fd < 0)
+		{
+			if (conf->conf_dolog)
+			{
+				int saveerrno;
+
+				saveerrno = errno;
+
+				syslog(LOG_ERR, "%s: open(): %s",
+				       conf->conf_keyfile,
+				       strerror(errno));
+
+				errno = saveerrno;
+			}
+
+			snprintf(err, errlen, "%s: open(): %s",
+			         conf->conf_keyfile, strerror(errno));
+			free(s33krit);
+			return -1;
+		}
+
+		status = fstat(fd, &s);
 		if (status != 0)
 		{
 			if (conf->conf_dolog)
@@ -8023,10 +8431,44 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			snprintf(err, errlen, "%s: stat(): %s",
 			         conf->conf_keyfile, strerror(errno));
+			close(fd);
+			return -1;
+		}
+		else if (!S_ISREG(s.st_mode))
+		{
+			snprintf(err, errlen, "%s: open(): Not a regular file",
+			         conf->conf_keyfile);
+			close(fd);
+			free(s33krit);
 			return -1;
 		}
 
-		if (dkimf_insecure(s.st_mode, s.st_gid))
+		if (become != NULL)
+		{
+			struct passwd *pw;
+			char *p;
+			char tmp[BUFRSZ + 1];
+
+			strlcpy(tmp, become, sizeof tmp);
+
+			p = strchr(tmp, ':');
+			if (p != NULL)
+				*p = '\0';
+
+			pw = getpwnam(tmp);
+			if (pw == NULL)
+			{
+				snprintf(err, errlen, "%s: no such user", tmp);
+				close(fd);
+				free(s33krit);
+				return -1;
+			}
+
+			asuser = pw->pw_uid;
+		}
+
+		if (!dkimf_securefile(conf->conf_keyfile, &ino, asuser) ||
+		    (ino != (ino_t) -1 && ino != s.st_ino))
 		{
 			if (conf->conf_dolog)
 			{
@@ -8066,37 +8508,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			snprintf(err, errlen, "malloc(): %s", strerror(errno));
 			return -1;
 		}
+
 		conf->conf_keylen = s.st_size + 1;
-
-		fd = open(conf->conf_keyfile, O_RDONLY, 0);
-		if (fd < 0)
-		{
-			if (conf->conf_dolog)
-			{
-				int saveerrno;
-
-				saveerrno = errno;
-
-				syslog(LOG_ERR, "%s: open(): %s",
-				       conf->conf_keyfile,
-				       strerror(errno));
-
-				errno = saveerrno;
-			}
-
-			snprintf(err, errlen, "%s: open(): %s",
-			         conf->conf_keyfile, strerror(errno));
-			free(s33krit);
-			return -1;
-		}
-		else if (!S_ISREG(s.st_mode))
-		{
-			snprintf(err, errlen, "%s: open(): Not a regular file",
-			         conf->conf_keyfile);
-			close(fd);
-			free(s33krit);
-			return -1;
-		}
 
 		rlen = read(fd, s33krit, s.st_size + 1);
 		if (rlen == (ssize_t) -1)
@@ -10104,6 +10517,57 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	if (!sendreport)
 		return;
 
+#ifdef HAVE_CURL_EASY_STRERROR
+	if (conf->conf_smtpuri != NULL)
+	{
+		int fd;
+		char path[MAXPATHLEN + 1];
+
+		snprintf(path, sizeof path, "%s/%s.XXXXXX", conf->conf_tmpdir,
+		         progname);
+
+		fd = mkstemp(path);
+		if (fd < 0)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: mkstemp(): %s",
+				       dfc->mctx_jobid, strerror(errno));
+			}
+
+			return;
+		}
+
+		unlink(path);
+
+		out = fdopen(fd, "w");
+		if (out == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: fdopen(): %s",
+				       dfc->mctx_jobid, strerror(errno));
+			}
+	
+			close(fd);
+			return;
+		}
+	}
+	else
+	{
+		out = popen(reportcmd, "w");
+		if (out == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: popen(): %s",
+				       dfc->mctx_jobid, strerror(errno));
+			}
+	
+			return;
+		}
+	}
+#else /* HAVE_CURL_EASY_STRERROR */
 	out = popen(reportcmd, "w");
 	if (out == NULL)
 	{
@@ -10115,6 +10579,7 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 
 		return;
 	}
+#endif /* HAVE_CURL_EASY_STRERROR */
 
 	/* determine the type of ARF failure and, if needed, a DKIM fail code */
 	arftype = dkimf_arftype(dfc);
@@ -10277,12 +10742,94 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "\n--dkimreport/%s/%s--\n", hostname, dfc->mctx_jobid);
 
 	/* send it */
+#ifdef HAVE_CURL_EASY_SETOPT
+	if (conf->conf_smtpuri != NULL)
+	{
+		CURLcode cc;
+		CURL *curl;
+		struct curl_slist *rcpts = NULL;
+		char dest[MAXADDRESS + 1];
+
+		(void) fseek(out, SEEK_SET, 0);
+
+		curl = curl_easy_init();
+		if (curl == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: curl_easy_init() failed",
+				       dfc->mctx_jobid);
+			}
+		}
+		else
+		{
+			cc = curl_easy_setopt(curl, CURLOPT_URL,
+			                      conf->conf_smtpuri);
+
+			if (cc == CURLE_OK)
+			{
+				cc = curl_easy_setopt(curl, CURLOPT_READDATA,
+				                      out);
+			}
+
+			if (cc == CURLE_OK)
+			{
+				cc = curl_easy_setopt(curl, CURLOPT_MAIL_FROM,
+				                      reportaddr);
+			}
+
+			if (cc == CURLE_OK)
+			{
+				snprintf(dest, sizeof dest, "%s@%s", addr,
+				         dkim_sig_getdomain(sig));
+				rcpts = curl_slist_append(rcpts, dest);
+				cc = curl_easy_setopt(curl, CURLOPT_MAIL_RCPT,
+				                      rcpts);
+			}
+
+			if (cc != CURLE_OK)
+			{
+				if (conf->conf_dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s: curl_easy_setopt() failed",
+					       dfc->mctx_jobid);
+				}
+			}
+			else
+			{
+				cc = curl_easy_perform(curl);
+				if (cc != CURLE_OK && conf->conf_dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s: curl_easy_perform() to %s failed: %s",
+					       dfc->mctx_jobid, dest,
+					       curl_easy_strerror(cc));
+				}
+			}
+
+			curl_slist_free_all(rcpts);
+
+			curl_easy_cleanup(curl);
+		}
+	}
+	else
+	{
+		status = pclose(out);
+		if (status != 0 && conf->conf_dolog)
+		{
+			syslog(LOG_ERR, "%s: pclose(): returned status %d",
+			       dfc->mctx_jobid, status);
+		}
+	}
+#else /* HAVE_CURL_EASY_SETOPT */
 	status = pclose(out);
 	if (status != 0 && conf->conf_dolog)
 	{
 		syslog(LOG_ERR, "%s: pclose(): returned status %d",
 		       dfc->mctx_jobid, status);
-        }
+	}
+#endif /* HAVE_CURL_EASY_SETOPT */
 }
 
 /*
@@ -10387,6 +10934,57 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	if (!sendreport)
 		return;
 
+#ifdef HAVE_CURL_EASY_STRERROR
+	if (conf->conf_smtpuri != NULL)
+	{
+		int fd;
+		char path[MAXPATHLEN + 1];
+
+		snprintf(path, sizeof path, "%s/%s.XXXXXX", conf->conf_tmpdir,
+		         progname);
+
+		fd = mkstemp(path);
+		if (fd < 0)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: mkstemp(): %s",
+				       dfc->mctx_jobid, strerror(errno));
+			}
+
+			return;
+		}
+
+		unlink(path);
+
+		out = fdopen(fd, "w");
+		if (out == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: fdopen(): %s",
+				       dfc->mctx_jobid, strerror(errno));
+			}
+	
+			close(fd);
+			return;
+		}
+	}
+	else
+	{
+		out = popen(reportcmd, "w");
+		if (out == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: popen(): %s",
+				       dfc->mctx_jobid, strerror(errno));
+			}
+	
+			return;
+		}
+	}
+#else /* HAVE_CURL_EASY_STRERROR */
 	out = popen(reportcmd, "w");
 	if (out == NULL)
 	{
@@ -10398,6 +10996,7 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 
 		return;
 	}
+#endif /* HAVE_CURL_EASY_STRERROR */
 
 	/* determine the type of ARF failure and, if needed, a DKIM fail code */
 	arftype = dkimf_arftype(dfc);
@@ -10510,12 +11109,94 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "\n--dkimreport/%s/%s--\n", hostname, dfc->mctx_jobid);
 
 	/* send it */
+#ifdef HAVE_CURL_EASY_SETOPT
+	if (conf->conf_smtpuri != NULL)
+	{
+		CURLcode cc;
+		CURL *curl;
+		struct curl_slist *rcpts = NULL;
+		char dest[MAXADDRESS + 1];
+
+		(void) fseek(out, SEEK_SET, 0);
+
+		curl = curl_easy_init();
+		if (curl == NULL)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR, "%s: curl_easy_init() failed",
+				       dfc->mctx_jobid);
+			}
+		}
+		else
+		{
+			cc = curl_easy_setopt(curl, CURLOPT_URL,
+			                      conf->conf_smtpuri);
+
+			if (cc == CURLE_OK)
+			{
+				cc = curl_easy_setopt(curl, CURLOPT_READDATA,
+				                      out);
+			}
+
+			if (cc == CURLE_OK)
+			{
+				cc = curl_easy_setopt(curl, CURLOPT_MAIL_FROM,
+				                      reportaddr);
+			}
+
+			if (cc == CURLE_OK)
+			{
+				snprintf(dest, sizeof dest, "%s@%s", addr,
+				         dfc->mctx_domain);
+				rcpts = curl_slist_append(rcpts, dest);
+				cc = curl_easy_setopt(curl, CURLOPT_MAIL_RCPT,
+				                      rcpts);
+			}
+
+			if (cc != CURLE_OK)
+			{
+				if (conf->conf_dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s: curl_easy_setopt() failed",
+					       dfc->mctx_jobid);
+				}
+			}
+			else
+			{
+				cc = curl_easy_perform(curl);
+				if (cc != CURLE_OK && conf->conf_dolog)
+				{
+					syslog(LOG_ERR,
+					       "%s: curl_easy_perform() to %s failed: %s",
+					       dfc->mctx_jobid, dest,
+					       curl_easy_strerror(cc));
+				}
+			}
+
+			curl_slist_free_all(rcpts);
+
+			curl_easy_cleanup(curl);
+		}
+	}
+	else
+	{
+		status = pclose(out);
+		if (status != 0 && conf->conf_dolog)
+		{
+			syslog(LOG_ERR, "%s: pclose(): returned status %d",
+			       dfc->mctx_jobid, status);
+		}
+	}
+#else /* HAVE_CURL_EASY_SETOPT */
 	status = pclose(out);
 	if (status != 0 && conf->conf_dolog)
 	{
 		syslog(LOG_ERR, "%s: pclose(): returned status %d",
 		       dfc->mctx_jobid, status);
 	}
+#endif /* HAVE_CURL_EASY_SETOPT */
 }
 
 /*
@@ -10621,12 +11302,12 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 				break;
 
 			  case DKIM_DNSSEC_INSECURE:
-				dnssec = "insecure";
-				if (conf->conf_insecurekey == DKIMF_KEYACTIONS_FAIL)
+				dnssec = "unprotected";
+				if (conf->conf_unprotectedkey == DKIMF_KEYACTIONS_FAIL)
 				{
 					*status = DKIMF_STATUS_BAD;
 				}
-				else if (conf->conf_insecurekey == DKIMF_KEYACTIONS_NEUTRAL)
+				else if (conf->conf_unprotectedkey == DKIMF_KEYACTIONS_NEUTRAL)
 				{
 					*status = DKIMF_STATUS_VERIFYERR;
 					result = "neutral";
@@ -13829,11 +14510,6 @@ mlfi_eom(SMFICTX *ctx)
 			DKIM_STAT pstatus;
 			_Bool localadsp = FALSE;
 			int localresult = DKIM_PRESULT_NONE;
-#ifdef _FFR_ATPS
-			int nsigs;
-			dkim_atps_t atps = DKIM_ATPS_UNKNOWN;
-			DKIM_SIGINFO **sigs;
-#endif /* _FFR_ATPS */
 
 			if (conf->conf_localadsp_db != NULL)
 			{
@@ -13879,7 +14555,7 @@ mlfi_eom(SMFICTX *ctx)
 					dfc->mctx_presult = DKIM_PRESULT_NONE;
 
 				if (dfc->mctx_dnssec_policy == DKIM_DNSSEC_INSECURE &&
-				    conf->conf_insecurepolicy == DKIM_POLICYACTIONS_IGNORE)
+				    conf->conf_unprotectedpolicy == DKIM_POLICYACTIONS_IGNORE)
 					dfc->mctx_presult = DKIM_PRESULT_NONE;
 #endif /* USE_UNBOUND */
 
@@ -14034,10 +14710,16 @@ mlfi_eom(SMFICTX *ctx)
 					                        NULL);
 				}
 			}
+		}
 
 #ifdef _FFR_ATPS
-			status = dkim_getsiglist(dfc->mctx_dkimv,
-			                         &sigs, &nsigs);
+		if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN && !authorsig)
+		{
+			int nsigs;
+			dkim_atps_t atps = DKIM_ATPS_UNKNOWN;
+			DKIM_SIGINFO **sigs;
+
+			status = dkim_getsiglist(dfc->mctx_dkimv, &sigs, &nsigs);
 			if (status == DKIM_STAT_OK)
 			{
 				for (c = 0;
@@ -14061,8 +14743,8 @@ mlfi_eom(SMFICTX *ctx)
 
 				dfc->mctx_atps = atps;
 			}
-#endif /* _FFR_ATPS */
 		}
+#endif /* _FFR_ATPS */
 
 #ifdef _FFR_STATS
 		if (conf->conf_statspath != NULL && dfc->mctx_dkimv != NULL)
@@ -14169,18 +14851,15 @@ mlfi_eom(SMFICTX *ctx)
 			{
 				int c;
 				int ret;
-				_Bool checked = FALSE;
 				const char *cd;
 				const char *domain = NULL;
 
-				for (c = 0; c < nsigs; c++)
+				for (c = 0; c < nsigs && domain == NULL; c++)
 				{
 					if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 ||
 					    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_TESTKEY) != 0 &&
 					    dkim_sig_getbh(sigs[c]) != DKIM_SIGBH_MATCH)
 						continue;
-
-					checked = TRUE;
 
 					cd = dkim_sig_getdomain(sigs[c]);
 
@@ -14199,6 +14878,15 @@ mlfi_eom(SMFICTX *ctx)
 						                      NULL, 0);
 					}
 
+					if (status == 0 && ret == 0)
+					{
+						status = reprrd_query(conf->conf_reprrd,
+						                      cd,
+						                      REPRRD_TYPE_LIMIT,
+						                      &ret,
+						                      NULL, 0);
+					}
+
 					if (status == 0)
 					{
 						if (ret == 1)
@@ -14206,8 +14894,15 @@ mlfi_eom(SMFICTX *ctx)
 							domain = cd;
 							break;
 						}
+						else if (conf->conf_dolog)
+						{
+							syslog(LOG_NOTICE,
+							       "%s: allowed by reputation of %s",
+							       dfc->mctx_jobid,
+							       cd);
+						}
 					}
-					else
+					else if (status != REPRRD_STAT_NODATA)
 					{
 						if (conf->conf_dolog)
 						{
@@ -14221,9 +14916,15 @@ mlfi_eom(SMFICTX *ctx)
 						                        conf->conf_handling.hndl_reperr,
 						                        NULL);
 					}
+					else if (conf->conf_dolog)
+					{
+						syslog(LOG_NOTICE,
+						       "%s: no reputation data available for \"%s\"",
+						       dfc->mctx_jobid, cd);
+					}
 				}
 
-				if (domain == NULL && !checked)
+				if (domain == NULL)
 				{
 					cd = "unsigned";
 
@@ -14236,6 +14937,15 @@ mlfi_eom(SMFICTX *ctx)
 						status = reprrd_query(conf->conf_reprrd,
 						                      cd,
 						                      REPRRD_TYPE_SPAM,
+						                      &ret,
+						                      NULL, 0);
+					}
+
+					if (status == 0 && ret == 0)
+					{
+						status = reprrd_query(conf->conf_reprrd,
+						                      cd,
+						                      REPRRD_TYPE_LIMIT,
 						                      &ret,
 						                      NULL, 0);
 					}
@@ -14375,7 +15085,7 @@ mlfi_eom(SMFICTX *ctx)
 						}
 						else
 						{
-							syslog(LOG_NOTICE,
+							syslog(LOG_INFO,
 							       "%s: allowed by reputation of %s (%f, count %lu, spam %lu, limit %lu)",
 							       dfc->mctx_jobid,
 							       cd, ratio,
@@ -14428,7 +15138,7 @@ mlfi_eom(SMFICTX *ctx)
 						}
 						else
 						{
-							syslog(LOG_NOTICE,
+							syslog(LOG_INFO,
 							       "%s: allowed by reputation of NULL domain (%f, count %lu, spam %lu, limit %lu)",
 							       dfc->mctx_jobid,
 							       ratio,
@@ -14539,11 +15249,11 @@ mlfi_eom(SMFICTX *ctx)
 
 				if (dfc->mctx_dnssec_key == DKIM_DNSSEC_INSECURE)
 				{
-					if (conf->conf_insecurekey == DKIMF_KEYACTIONS_FAIL)
+					if (conf->conf_unprotectedkey == DKIMF_KEYACTIONS_FAIL)
 					{
 						dfc->mctx_status = DKIMF_STATUS_BAD;
 					}
-					else if (conf->conf_insecurekey == DKIMF_KEYACTIONS_NEUTRAL)
+					else if (conf->conf_unprotectedkey == DKIMF_KEYACTIONS_NEUTRAL)
 					{
 						dfc->mctx_status = DKIMF_STATUS_VERIFYERR;
 						failstatus = "neutral";
@@ -14572,7 +15282,7 @@ mlfi_eom(SMFICTX *ctx)
 
 					  case DKIM_DNSSEC_INSECURE:
 						strlcat(comment,
-						        "; insecure key",
+						        "; unprotected key",
 						        sizeof comment);
 						break;
 
@@ -14657,7 +15367,7 @@ mlfi_eom(SMFICTX *ctx)
 
 					  case DKIM_DNSSEC_INSECURE:
 						strlcat(comment,
-						        "; insecure key",
+						        "; unprotected key",
 						        sizeof comment);
 						break;
 
@@ -14744,6 +15454,8 @@ mlfi_eom(SMFICTX *ctx)
 					if (sig != NULL)
 					{
 						domain = dkim_sig_getdomain(sig);
+						if (domain == NULL)
+							domain = "\"\"";
 
 						strlcat((char *) header,
 						        DELIMITER,
@@ -14898,7 +15610,7 @@ mlfi_eom(SMFICTX *ctx)
 
 				  case DKIM_DNSSEC_INSECURE:
 					strlcat((char *) header,
-					        " (insecure policy)",
+					        " (unprotected policy)",
 					        sizeof header);
 					break;
 
@@ -15859,17 +16571,26 @@ mlfi_close(SMFICTX *ctx)
 			u_int c_hits;
 			u_int c_queries;
 			u_int c_expired;
+			u_int c_pct;
+			u_int c_keys;
 
-			dkim_getcachestats(&c_queries, &c_hits, &c_expired);
+			dkim_getcachestats(cc->cctx_config->conf_libopendkim,
+			                   &c_queries, &c_hits, &c_expired,
+			                   &c_keys, FALSE);
 
 			cache_lastlog = now;
 
+			if (c_queries == 0)
+				c_pct = 0;
+			else
+				c_pct = (c_hits * 100) / c_queries;
+
 			syslog(LOG_INFO,
-			       "cache: %u quer%s, %u hit%s (%d%%), %u expired",
+			       "cache: %u quer%s, %u hit%s (%d%%), %u expired, %u key%s",
 			       c_queries, c_queries == 1 ? "y" : "ies",
 			       c_hits, c_hits == 1 ? "" : "s",
-			       (c_hits * 100) / c_queries,
-			       c_expired);
+			       c_pct, c_expired,
+			       c_keys, c_keys == 1 ? "" : "s");
 		}
 	}
 #endif /* QUERY_CACHE */
@@ -17396,11 +18117,15 @@ main(int argc, char **argv)
 	}
 
 	/* initialize libcrypto mutexes */
-	status = dkimf_crypto_init();
-	if (status != 0)
+	if (!curconf->conf_disablecryptoinit)
 	{
-		fprintf(stderr, "%s: error initializing crypto library: %s\n",
-		        progname, strerror(status));
+		status = dkimf_crypto_init();
+		if (status != 0)
+		{
+			fprintf(stderr,
+			        "%s: error initializing crypto library: %s\n",
+			        progname, strerror(status));
+		}
 	}
 
 	if ((curconf->conf_mode & DKIMF_MODE_VERIFIER) != 0 &&
@@ -17447,6 +18172,7 @@ main(int argc, char **argv)
 	}
 
 	pthread_mutex_init(&conf_lock, NULL);
+	pthread_mutex_init(&pwdb_lock, NULL);
 
 	/* perform test mode */
 	if (testfile != NULL)

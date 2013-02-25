@@ -1,6 +1,5 @@
 /*
-**  Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
-**
+**  Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 */
 
 #include "build-config.h"
@@ -37,6 +36,11 @@
 
 /* libopendkim includes */
 #include <dkim.h>
+
+/* libbsd if found */
+#ifdef USE_BSD_H
+# include <bsd/string.h>
+#endif /* USE_BSD_H */
 
 /* libstrl if needed */
 #ifdef USE_STRL_H
@@ -80,7 +84,7 @@ typedef unsigned int useconds_t;
 #endif /* SMFIP_NR_CONN */
 
 #define	MT_PRODUCT		"OpenDKIM milter test facility"
-#define	MT_VERSION		"1.4.0"
+#define	MT_VERSION		"1.5.0"
 
 #define	BUFRSZ			1024
 #define	CHUNKSZ			65536
@@ -1085,7 +1089,7 @@ mt_getcwd(lua_State *l)
 
 	if (getcwd(dir, MAXPATHLEN) == NULL)
 	{
-		lua_pushstring(l, "mt.getcwd(): getcwd returned error");
+		lua_pushstring(l, "mt.getcwd(): getcwd() returned error");
 		lua_error(l);
 	}
 
@@ -1169,7 +1173,14 @@ mt_startfilter(lua_State *l)
 	}
 
 	for (c = 1; c <= args; c++)
+	{
 		argv[c - 1] = lua_tostring(l, c);
+		if (verbose > 2)
+		{
+			fprintf(stderr, "%s: argv[%d] = `%s'\n", progname, c - 1,
+			        argv[c - 1]);
+		}
+	}
 	argv[c - 1] = NULL;
 	lua_pop(l, c);
 
@@ -1332,8 +1343,20 @@ mt_connect(lua_State *l)
 	sockinfo = lua_tostring(l, 1);
 	if (top == 3)
 	{
+		char *f;
+
 		count = (u_int) lua_tonumber(l, 2);
 		interval = (useconds_t) (1000000. * lua_tonumber(l, 3));
+
+		f = getenv("MILTERTEST_RETRY_SPEED_FACTOR");
+		if (f != NULL)
+		{
+			unsigned int factor;
+
+			factor = strtoul(f, &p, 10);
+			if (*p == '\0')
+				interval *= factor;
+		}
 	}
 	lua_pop(l, top);
 
@@ -1371,18 +1394,21 @@ mt_connect(lua_State *l)
 #ifdef HAVE_SUN_LEN
 		sa.sun_len = sizeof sa;
 #endif /* HAVE_SUN_LEN */
-		strlcpy(sa.sun_path, p + 1, sizeof sa.sun_path);
-
-		fd = socket(PF_UNIX, SOCK_STREAM, 0);
-		if (fd < 0)
-		{
-			lua_pushfstring(l, "mt.connect(): socket(): %s",
-			                strerror(errno));
-			lua_error(l);
-		}
+		if (p == NULL)
+			strlcpy(sa.sun_path, sockinfo, sizeof sa.sun_path);
+		else
+			strlcpy(sa.sun_path, p + 1, sizeof sa.sun_path);
 
 		while (count > 0)
 		{
+			fd = socket(PF_UNIX, SOCK_STREAM, 0);
+			if (fd < 0)
+			{
+				lua_pushfstring(l, "mt.connect(): socket(): %s",
+				                strerror(errno));
+				lua_error(l);
+			}
+
 			saverr = 0;
 
 			if (connect(fd, (struct sockaddr *) &sa,
@@ -1398,6 +1424,8 @@ mt_connect(lua_State *l)
 				        progname, strerror(errno), count - 1,
 				        count == 2 ? "y" : "ies");
 			}
+
+			close(fd);
 
 			usleep(interval);
 
@@ -1471,16 +1499,16 @@ mt_connect(lua_State *l)
 		if (at != NULL)
 			*at = '@';
 
-		fd = socket(PF_INET, SOCK_STREAM, 0);
-		if (fd < 0)
-		{
-			lua_pushfstring(l, "mt.connect(): socket(): %s",
-			                strerror(errno));
-			lua_error(l);
-		}
-
 		while (count > 0)
 		{
+			fd = socket(PF_INET, SOCK_STREAM, 0);
+			if (fd < 0)
+			{
+				lua_pushfstring(l, "mt.connect(): socket(): %s",
+				                strerror(errno));
+				lua_error(l);
+			}
+
 			saverr = 0;
 
 			if (connect(fd, (struct sockaddr *) &sa,
@@ -1496,6 +1524,8 @@ mt_connect(lua_State *l)
 				        progname, strerror(errno), count - 1,
 				        count == 2 ? "y" : "ies");
 			}
+
+			close(fd);
 
 			usleep(interval);
 
@@ -2814,7 +2844,7 @@ mt_bodystring(lua_State *l)
 	if (verbose > 0)
 	{
 		fprintf(stdout,
-		        "%s: %lu byte(s) of body sent on fd %d, reply '%c'\n",
+		        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
 		        progname, strlen(str), ctx->ctx_fd, rcmd);
 	}
 
@@ -2905,7 +2935,7 @@ mt_bodyrandom(lua_State *l)
 		if (verbose > 0)
 		{
 			fprintf(stdout,
-			        "%s: %lu byte(s) of body sent on fd %d, reply '%c'\n",
+			        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
 			        progname, strlen(buf), ctx->ctx_fd, rcmd);
 		}
 
@@ -3006,7 +3036,7 @@ mt_bodyfile(lua_State *l)
 			if (verbose > 0)
 			{
 				fprintf(stdout,
-				        "%s: %lu byte(s) of body sent on fd %d, reply '%c'\n",
+				        "%s: %zu byte(s) of body sent on fd %d, reply '%c'\n",
 				        progname, rlen, ctx->ctx_fd, rcmd);
 			}
 		}
@@ -3959,8 +3989,8 @@ main(int argc, char **argv)
 		if (rlen != s.st_size)
 		{
 			fprintf(stderr,
-			        "%s: %s: read() returned %lu (expecting %ld)\n",
-			        progname, script, rlen, s.st_size);
+			        "%s: %s: read() returned %zu (expecting %ld)\n",
+			        progname, script, rlen, (long) s.st_size);
 			free((void *) io.lua_io_script);
 			close(fd);
 			lua_close(l);

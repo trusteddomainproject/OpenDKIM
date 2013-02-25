@@ -236,6 +236,12 @@ If set, suppresses Author Domain Signing Practices (ADSP) checks, which
 require multiple additional DNS queries.
 
 .TP
+.I DisableCryptoInit (Boolean)
+If set, skips initialization of the SSL library initialization steps, which
+are normaly required in multi-threaded environments.  This assumes some other
+library opendkim is using will do the required initialization and shutdown.
+
+.TP
 .I DKIMReputationFail (integer)
 If the reputation returned by the DNS reputation service exceeds this
 value then the result "x-dkim-rep" is set to "fail".
@@ -325,9 +331,10 @@ identity of the SMTP client sending the message.
 .TP
 .I ExternalIgnoreList (dataset)
 Identifies a set of "external" hosts that may send mail through the server
-as one of the signing domains without credentials as such.  Basically
-suppresses the "external host (hostname) tried to send mail as (domain)"
-log messages.  Entries in the data set should be of the same form as those of
+as one of the signing domains without credentials as such.  This has the
+effect of suppressing the "external host (hostname) tried to send mail
+as (domain)" log messages.  Entries in the data set should be of the same
+form as those of
 the
 .I PeerList
 option below.  The set is empty by default.
@@ -364,29 +371,6 @@ after signing.
 .I Include (string)
 Names a file to be opened and read as an additional configuration file.
 Nesting is allowed to a maximum of five levels.
-
-.TP
-.I InsecureKey (string)
-Instructs the filter to treat a passing signature associated with a
-key found in an insecure (i.e. not protected by DNSSEC) DNS record in
-a special way.  Possible values are
-.I neutral
-(return a "neutral" result),
-.I none
-(take no special action; this is the default) and
-.I fail
-(return a "fail" result).
-@UNBOUND_MANNOTICE@
-
-.TP
-.I InsecurePolicy (string)
-Instructs the filter to treat an ADSP policy found in an insecure (i.e.
-not protected by DNSSEC) DNS record in a special way.  Possible values are
-.I apply
-(apply the policy; this is the default) and
-.I ignore
-(ignore the policy).
-@UNBOUND_MANNOTICE@
 
 .TP
 .I InternalHosts (dataset)
@@ -704,6 +688,10 @@ Authentication-Results header fields.  The default is "false", which means
 those tags will be applied.
 
 .TP
+.I NoLDAPCache (Boolean)
+Suppresses creation of a local cache in front of LDAP queries.
+
+.TP
 .I OmitHeaders (dataset)
 Specifies a set of header fields that should be omitted when generating
 signatures.  If an entry in the list names any header field that is mandated
@@ -820,10 +808,12 @@ CIDR-style IP specification (e.g. "192.168.1.0/24").  An entry beginning
 with a bang ("!") character means "not", allowing exclusions of specific
 hosts that are otherwise members of larger sets.  Host and domain names are 
 matched first, then the IP or IPv6 address depending on the connection 
-type. More precise entries are preferred over less precise ones, i.e. 
+type.  More precise entries are preferred over less precise ones, i.e. 
 "192.168.1.1" will match before "!192.168.1.0/24".  The text form of IPv6 
 addresses will be forced to lowercase when queried (RFC5952), so the contents
-of this data set should also use lowercase.
+of this data set should also use lowercase.  The IP address portion of an
+entry may optionally contain square brackets; both forms (with and without)
+will be checked.
 
 .TP
 .I PidFile (string)
@@ -1119,6 +1109,12 @@ In any case, only the first match is applied, unless
 is enabled in which case all matches are applied.
 
 .TP
+.I SMTPURI (string)
+Specifies a URI (e.g., "smtp://localhost") to which mail should be sent
+via SMTP when notifications are generated.
+@LIBCURL_MANNOTICE@
+
+.TP
 .I Socket (string)
 Specifies the socket that should be established by the filter to receive
 connections from
@@ -1273,6 +1269,29 @@ of the process umask.  See
 for more information.
 
 .TP
+.I UnprotectedKey (string)
+Instructs the filter to treat a passing signature associated with a
+key found in an insecure (i.e. not protected by DNSSEC) DNS record in
+a special way.  Possible values are
+.I neutral
+(return a "neutral" result),
+.I none
+(take no special action; this is the default) and
+.I fail
+(return a "fail" result).
+@UNBOUND_MANNOTICE@
+
+.TP
+.I UnprotectedPolicy (string)
+Instructs the filter to treat an ADSP policy found in an insecure (i.e.
+not protected by DNSSEC) DNS record in a special way.  Possible values are
+.I apply
+(apply the policy; this is the default) and
+.I ignore
+(ignore the policy).
+@UNBOUND_MANNOTICE@
+
+.TP
 .I UserID (string)
 Attempts to become the specified userid before starting operations.
 The value is of the form
@@ -1349,7 +1368,7 @@ This man page covers version @VERSION@ of
 Copyright (c) 2007, 2008, Sendmail, Inc. and its suppliers.  All rights
 reserved.
 
-Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8), opendkim-lua(3), sendmail(8)
 .P

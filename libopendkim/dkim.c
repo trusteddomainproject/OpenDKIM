@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 */
 
 #include "build-config.h"
@@ -91,6 +91,11 @@
 #endif /* QUERY_CACHE */
 #include "util.h"
 #include "base64.h"
+
+/* libbsd if found */
+#ifdef USE_BSD_H
+# include <bsd/string.h>
+#endif /* USE_BSD_H */
 
 /* libstrl if needed */
 #ifdef USE_STRL_H
@@ -3697,14 +3702,16 @@ dkim_eom_sign(DKIM *dkim)
   		dkim->dkim_state = DKIM_STATE_EOM2;
 
 #ifdef _FFR_RESIGN
-	/*
-	**  Verify that all the required headers are present and
-	**  marked for signing.
-	*/
-
 	if (dkim->dkim_resign != NULL)
 	{
+		_Bool found = FALSE;
+		int c;
 		char *hn;
+
+		/*
+		**  Verify that all the required headers are present and
+		**  marked for signing.
+		*/
 
 		hn = (u_char *) dkim_check_requiredhdrs(dkim);
 		if (hn != NULL)
@@ -3713,6 +3720,29 @@ dkim_eom_sign(DKIM *dkim)
 			           hn);
 			dkim->dkim_state = DKIM_STATE_UNUSABLE;
 			return DKIM_STAT_SYNTAX;
+		}
+
+		/*
+		**  Fail if the verification handle didn't work.  For a
+		**  multiply-signed message, we only require one passing
+		**  signature (for now).
+		*/
+
+		if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_STRICTRESIGN) != 0)
+		{
+			for (c = 0; c < dkim->dkim_resign->dkim_sigcount; c++)
+			{
+				sig = dkim->dkim_resign->dkim_siglist[c];
+				if ((sig->sig_flags & DKIM_SIGFLAG_PASSED) != 0 &&
+				    sig->sig_bh == DKIM_SIGBH_MATCH)
+				{
+					found = TRUE;
+					break;
+				}
+			}
+
+			if (!found)
+				return DKIM_STAT_CANTVRFY;
 		}
 	}
 #endif /* _FFR_RESIGN */
@@ -5104,6 +5134,12 @@ dkim_free(DKIM *dkim)
 		}
 	}
 
+	if (dkim->dkim_hdrre != NULL)
+	{
+		regfree(dkim->dkim_hdrre);
+		free(dkim->dkim_hdrre);
+	}
+
 	/* destroy canonicalizations */
 	dkim_canon_cleanup(dkim);
 
@@ -6481,6 +6517,7 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 	{
 		u_char prev = '\0';
 		u_char *p;
+		u_char *q;
 		struct dkim_dstring *tmphdr;
 
 		tmphdr = dkim_dstring_new(dkim, BUFRSZ, MAXBUFRSZ);
@@ -6490,7 +6527,9 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 			return DKIM_STAT_NORESOURCE;
 		}
 
-		for (p = hdr; *p != '\0'; p++)
+		q = hdr + len;
+
+		for (p = hdr; p < q && *p != '\0'; p++)
 		{
 			if (*p == '\n' && prev != '\r')		/* bare LF */
 			{
@@ -8603,12 +8642,16 @@ dkim_flush_cache(DKIM_LIB *lib)
 **  DKIM_GETCACHESTATS -- retrieve cache statistics
 **
 **  Parameters:
+**  	lib -- DKIM library handle, returned by dkim_init()
 **  	queries -- number of queries handled (returned)
 **  	hits -- number of cache hits (returned)
 **  	expired -- number of expired hits (returned)
+**  	keys -- number of keys in the cache (returned)
+**  	reset -- if TRUE, resets the queries, hits, and expired counters
 **
 **  Return value:
 **  	DKIM_STAT_OK -- request completed
+**  	DKIM_STAT_INVALID -- cache not initialized
 **  	DKIM_STAT_NOTIMPLEMENT -- function not implemented
 **
 **  Notes:
@@ -8617,10 +8660,17 @@ dkim_flush_cache(DKIM_LIB *lib)
 */
 
 DKIM_STAT
-dkim_getcachestats(u_int *queries, u_int *hits, u_int *expired)
+dkim_getcachestats(DKIM_LIB *lib, u_int *queries, u_int *hits, u_int *expired,
+                   u_int *keys, _Bool reset)
 {
 #ifdef QUERY_CACHE
-	dkim_cache_stats(queries, hits, expired);
+	assert(lib != NULL);
+
+	if (lib->dkiml_cache == NULL)
+		return DKIM_STAT_INVALID;
+
+	dkim_cache_stats(lib->dkiml_cache, queries, hits, expired, keys, reset);
+
 	return DKIM_STAT_OK;
 #else /* QUERY_CACHE */
 	return DKIM_STAT_NOTIMPLEMENT;
@@ -9700,6 +9750,73 @@ dkim_sig_gethashes(DKIM_SIGINFO *sig, void **hh, size_t *hhlen,
                    void **bh, size_t *bhlen)
 {
 	return dkim_canon_gethashes(sig, hh, hhlen, bh, bhlen);
+}
+
+/*
+**  DKIM_SIGNHDRS -- set the list of header fields to sign for a signature,
+**                   overriding the library default
+**
+**  Parameters:
+**  	dkim -- DKIM signing handle to be affected
+**  	hdrlist -- array of names of header fields that should be signed
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+**
+**  Notes:
+**  	"hdrlist" can be NULL if the library's default is to be used.
+*/
+
+DKIM_STAT
+dkim_signhdrs(DKIM *dkim, const char **hdrlist)
+{
+	assert(dkim != NULL);
+
+	if (dkim->dkim_hdrre != NULL)
+		regfree(dkim->dkim_hdrre);
+
+	if (hdrlist != NULL)
+	{
+		int c;
+		int status;
+		u_char **required_signhdrs;
+		char buf[BUFRSZ + 1];
+
+		if (dkim->dkim_hdrre == NULL)
+		{
+			dkim->dkim_hdrre = malloc(sizeof(regex_t));
+
+			if (dkim->dkim_hdrre == NULL)
+			{
+				dkim_error(dkim, "could not allocate %d bytes",
+				           sizeof(regex_t));
+				return DKIM_STAT_INTERNAL;
+			}
+		}
+
+		memset(buf, '\0', sizeof buf);
+
+		(void) strlcpy(buf, "^(", sizeof buf);
+
+		if (!dkim_hdrlist((u_char *) buf, sizeof buf,
+		                  (u_char **) dkim->dkim_libhandle->dkiml_requiredhdrs,
+		                  TRUE))
+			return DKIM_STAT_INVALID;
+		if (!dkim_hdrlist((u_char *) buf, sizeof buf,
+		                  (u_char **) hdrlist, FALSE))
+			return DKIM_STAT_INVALID;
+
+		if (strlcat(buf, ")$", sizeof buf) >= sizeof buf)
+			return DKIM_STAT_INVALID;
+
+		status = regcomp(dkim->dkim_hdrre, buf,
+		                 (REG_EXTENDED|REG_ICASE));
+
+		if (status != 0)
+			return DKIM_STAT_INTERNAL;
+	}
+
+	return DKIM_STAT_OK;
 }
 
 /*

@@ -2,8 +2,7 @@
 **  Copyright (c) 2007, 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
-**
+**  Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 */
 
 #include "build-config.h"
@@ -38,6 +37,11 @@
 /* libopendkim includes */
 #include <dkim.h>
 #include <dkim-test.h>
+
+/* libbsd if found */
+#ifdef USE_BSD_H
+# include <bsd/string.h>
+#endif /* USE_BSD_H */
 
 /* libstrl if needed */
 #ifdef USE_STRL_H
@@ -404,16 +408,16 @@ main(int argc, char **argv)
 		return EX_OSERR;
 	}
 
+#ifdef USE_UNBOUND
+	(void) dkimf_unbound_setup(lib);
+#endif /* USE_UNBOUND */
+
 	if (dkim_dns_init(lib) != DKIM_STAT_OK)
 	{
 		fprintf(stderr, "%s: dkim_dns_init() failed\n", progname);
 		(void) free(key);
 		return EX_SOFTWARE;
 	}
-
-#ifdef USE_UNBOUND
-	(void) dkimf_unbound_setup(lib);
-#endif /* USE_UNBOUND */
 
 	if (nslist != NULL)
 		status = dkimf_dns_setnameservers(lib, nslist);

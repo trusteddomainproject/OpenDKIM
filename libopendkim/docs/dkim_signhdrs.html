@@ -1,0 +1,75 @@
+<html>
+<head><title>dkim_signhdrs()</title></head>
+<body>
+<!--
+-->
+<h1>dkim_signhdrs()</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+
+void dkim_signhdrs(
+	<a href="dkim.html"><tt>DKIM</tt></a> *dkim,
+        const char **hdrlist
+);
+</pre>
+Select header fields to be signed for this message, overriding the library
+default.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_signhdrs()</tt> can be called after a signing handle is created
+    with <a href="dkim_sign.html"><tt>dkim_sign()</tt></a>. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>dkim</td>
+	<td>A message signing handle.
+	</td></tr>
+    <tr valign="top"><td>hdrlist</td>
+	<td>A NULL-terminated array of strings containing the names of header
+	fields to be included in the hashes that generate this signature.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>This overides the list of header field names previously selected as the
+library default by a call to
+<a href="dkim_options.html"><tt>dkim_options()</tt></a>.  It affects only the
+handle passed to the function.  If not called, the default set configured for
+this library instance is used.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2013, The Trusted Domain Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

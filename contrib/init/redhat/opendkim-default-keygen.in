@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Create the default keys for the OpenDKIM Milter.
+#
+# The creation is controlled by the $AUTOCREATE_DKIM_KEYS environment
+# variable.
+
+# source function library
+#. /etc/rc.d/init.d/functions
+
+# Some functions to make the below more readable
+prog=opendkim
+KEYGEN=@sbindir@/$prog-genkey
+DKIM_SELECTOR=default
+DKIM_KEYDIR=@sysconfdir@/$prog/keys
+
+# Pull in sysconfig settings (will override previously set functions)
+[ -f @sysconfdir@/sysconfig/$prog ] && . @sysconfdir@/sysconfig/$prog
+
+do_dkim_keygen() {
+        if [ ! -s $DKIM_KEYDIR/$DKIM_SELECTOR.private ]; then
+                echo -n $"Generating default DKIM keys: "
+                if [ "x`hostname --domain`" = "x" ]; then
+#                       echo_warning
+                        echo
+                        echo $"Cannot determine host's domain name, so skipping default key generation."
+                else
+                        mkdir -p $DKIM_KEYDIR
+                        $KEYGEN -D $DKIM_KEYDIR -s $DKIM_SELECTOR -d `hostname --domain`
+                        chown root:$prog $DKIM_KEYDIR
+                        chown $prog:$prog $DKIM_KEYDIR/$DKIM_SELECTOR.{private,txt}
+                        chmod 600 $DKIM_KEYDIR/$DKIM_SELECTOR.private
+                        chmod 644 $DKIM_KEYDIR/$DKIM_SELECTOR.txt
+#                       echo_success
+                        echo
+                        echo Default DKIM keys for `hostname --domain` created in $DKIM_KEYDIR.
+                fi
+        fi
+}
+
+# Create keys if necessary
+if [ "x${AUTOCREATE_DKIM_KEYS}" != xNO ]; then
+	do_dkim_keygen
+fi

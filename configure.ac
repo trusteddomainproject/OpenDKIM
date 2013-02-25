@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 #
-# Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+# Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 # 
 
 #
@@ -13,8 +13,8 @@ AC_PREREQ(2.61)
 # Package version
 #
 m4_define([VERSION_RELEASE], 2)
-m4_define([VERSION_MAJOR_REV], 7)
-m4_define([VERSION_MINOR_REV], 4)
+m4_define([VERSION_MAJOR_REV], 8)
+m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -22,8 +22,8 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "current" and reset "revision" with API changes
 # 	- bump "revision" with internal source code changes
 #
-m4_define([LIBVERSION_CURRENT], 8)
-m4_define([LIBVERSION_REVISION], 2)
+m4_define([LIBVERSION_CURRENT], 9)
+m4_define([LIBVERSION_REVISION], 0)
 m4_define([LIBVERSION_AGE], 0)
 
 #
@@ -180,7 +180,10 @@ AC_FUNC_MALLOC
 AC_FUNC_MKTIME
 AC_FUNC_REALLOC
 
-AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname getaddrinfo gethostbyname2 gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strstr strtol strtoul strtoull])
+AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname getaddrinfo gethostbyname2 gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strstr strtol strtoul strtoull realpath])
+
+bsdstrl_h_found="no"
+AC_CHECK_HEADERS([bsd/string.h], [bsdstrl_h_found="yes"])
 
 strl_found="no"
 libstrl_found="no"
@@ -218,11 +221,11 @@ AC_CHECK_FUNCS([strlcat strlcpy], [strl_found="yes"],
 		saved_LIBS="$LIBS"
 		LIBS=""
 		AC_SEARCH_LIBS([strlcat],
-		               [strl],
+		               [bsd strl],
 		               [libstrl_found="yes"],
 		               [strl_found="no"])
 		AC_SEARCH_LIBS([strlcpy],
-		               [strl],
+		               [bsd strl],
 		               [libstrl_found="yes"],
 		               [strl_found="no"])
 		STRL_LIBS="$LIBS"
@@ -236,11 +239,17 @@ then
 fi
 # we need to include <strl.h> if:
 # (a) strlcat and strlcpy weren't found, since we'll be rolling our own; OR
-# (b) an installed strl.h was found
-if test x"$strl_h_found" = x"yes" -o \( x"$strl_found" = x"no" -a x"$libstrl_found" = x"no" \)
+# (b) an installed strl.h was found and no bsd/string.h was found
+if test x"$strl_h_found" = x"yes" -o \( x"$strl_found" = x"no" -a x"$libstrl_found" = x"no" \) -a x"$bsdstrl_h_found" = x"no"
 then
 	AC_DEFINE([USE_STRL_H], 1,
 	          [Define to 1 if you need to include <strl.h> to get the `strlcat()' and `strlcpy()' functions.])
+fi
+
+if test x"$bsdstrl_h_found" = x"yes"
+then
+	AC_DEFINE([USE_BSD_H], 1,
+	          [Define to 1 if you need to include <bsd/string.h> to get the `strlcat()' and `strlcpy()' functions.])
 fi
 
 #
@@ -756,7 +765,7 @@ then
 elif test "$sslpath" != "auto" -a x"$sslpath" != x"yes"
 then
 	AC_MSG_CHECKING([for OpenSSL includes])
-	if test -f $sslpath/include/openssl/opensslconf.h
+	if test -f $sslpath/include/openssl/opensslv.h
 	then
 		LIBCRYPTO_CPPFLAGS="-I$sslpath/include"
 		LIBCRYPTO_CFLAGS=""
@@ -777,7 +786,7 @@ then
 	then
 		for d in $ssldirs
 		do
-			if test -f $d/include/openssl/opensslconf.h
+			if test -f $d/include/openssl/opensslv.h
 			then
 				sslpath=$d
 				openssl_found=yes
@@ -1437,12 +1446,17 @@ lua_found="no"
 
 if test \(  x"$luapath" = x"auto" -o x"$luapath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([LIBLUA], [lua >= 5.1.0],
+        PKG_CHECK_MODULES([LIBLUA], [lua5.1],
 	                  [
 				lua_found="yes"
 				LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
 	                  ],
-	                  [AC_MSG_WARN([pkg-config for Lua not found, trying manual search...])])
+			  [PKG_CHECK_MODULES([LIBLUA], [lua5.2],
+					    [
+						lua_found="yes"
+						LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
+					    ],
+					    [AC_MSG_WARN([pkg-config for Lua not found, trying manual search...])])])
 fi
 
 if test \( x"$luapath" = x"yes" -o x"$luapath" = x"auto" \) -a x"$lua_found" = x"no"
@@ -1704,7 +1718,7 @@ then
 			AC_MSG_RESULT($ldappath)
 		        ldap_found="yes"
 			OPENLDAP_CPPFLAGS="-I$ldappath/include"
-			OPENLDAP_LIBS="-L$ldappath/lib -lldap"
+			OPENLDAP_LIBS="-L$ldappath/lib -lldap -llber"
 		else
 			AC_MSG_ERROR(not found at $ldappath)
 		fi
@@ -1718,7 +1732,7 @@ then
 				AC_MSG_RESULT($d)
 		        	ldap_found="yes"
 				OPENLDAP_CPPFLAGS="-I$ldappath/include"
-				OPENLDAP_LIBS="-L$ldappath/lib -lldap"
+				OPENLDAP_LIBS="-L$ldappath/lib -lldap -llber"
 				break
 			fi
 		done
@@ -1842,14 +1856,14 @@ then
 	CFLAGS="-pthread"
 	if test x"$mdbpath" != x"auto" -a x"$mdbpath" != x"yes"
 	then
-		if test -f $mdbpath/include/mdb.h
+		if test -f $mdbpath/include/lmdb.h
 		then
 			LDFLAGS="-L$mdbpath/lib"
-			AC_CHECK_LIB(mdb, mdb_env_open,
+			AC_CHECK_LIB(lmdb, mdb_env_open,
 			[
 			        mdb_found="yes"
 				LIBMDB_CPPFLAGS="-I$mdbpath/include"
-				LIBMDB_LIBS="-L$mdbpath/lib -lmdb"
+				LIBMDB_LIBS="-L$mdbpath/lib -llmdb"
 			],
 			[
 				AC_MSG_ERROR([mdb not valid at $mdbpath])
@@ -1862,15 +1876,15 @@ then
 		mdbdirs="/usr /usr/local"
 		for d in $mdbdirs
 		do
-			if test -f $d/include/mdb.h
+			if test -f $d/include/lmdb.h
 			then
 				LDFLAGS="-L$d/lib"
-				AC_CHECK_LIB(mdb, mdb_env_open,
+				AC_CHECK_LIB(lmdb, mdb_env_open,
 				[
 					mdbpath=$d
 			        	mdb_found="yes"
 					LIBMDB_CPPFLAGS="-I$mdbpath/include"
-					LIBMDB_LIBS="-L$mdbpath/lib -lmdb"
+					LIBMDB_LIBS="-L$mdbpath/lib -llmdb"
 					break
 				]
 				)
@@ -1915,7 +1929,7 @@ curl_found="no"
 if test \( x"$curlpath" = x"auto" -o x"$curlpath" = x"yes" \) -a \
 	x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([CURL], [curl >= 7.12.0],
+        PKG_CHECK_MODULES([CURL], [libcurl >= 7.12.0],
 	[
 		curl_found="yes"
 		CURL_CPPFLAGS="$CURL_CFLAGS"
@@ -1978,6 +1992,10 @@ then
 	CPPFLAGS="$saved_CPPFLAGS"
 	LDFLAGS="$saved_LDFLAGS"
 	LIBS="$saved_LIBS"
+	AC_SUBST([LIBCURL_MANNOTICE], "")
+else
+	AC_SUBST([LIBCURL_MANNOTICE],
+	         "(Not enabled for this installation.)" )
 fi
 
 AC_SUBST(CURL_CPPFLAGS)
@@ -2013,7 +2031,7 @@ jansson_found="no"
 if test \( x"$janssonpath" = x"auto" -o x"$janssonpath" = x"yes" \) -a \
 	x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([LIBJANSSON], [libjansson >= 2.2.1],
+        PKG_CHECK_MODULES([LIBJANSSON], [jansson >= 2.2.1],
 	[
 		jansson_found="yes"
 		LIBJANSSON_CPPFLAGS="$LIBJANSSON_CFLAGS"
@@ -2425,6 +2443,21 @@ AC_ARG_ENABLE([live-testing],
 AM_CONDITIONAL(LIVE_TESTS, test x"$live_tests" = x"yes")
 
 #
+# specify test socket
+# 
+
+AC_ARG_WITH([test-socket],
+            AS_HELP_STRING([--with-test-socket],
+                           [specify socket to use for all tests]),
+            [testsocket="$withval"], [testsocket=""])
+AM_CONDITIONAL(TEST_SOCKET, test x"$testsocket" != x"")
+if test x"$testsocket" != x""
+then
+	TESTSOCKET=$testsocket
+	AC_SUBST(TESTSOCKET)
+fi
+
+#
 # Platform Specific Configuration
 #
 AC_CANONICAL_HOST
@@ -2535,6 +2568,7 @@ AC_OUTPUT([	Makefile
 			contrib/init/generic/Makefile
 			contrib/init/redhat/Makefile
 			contrib/init/redhat/opendkim
+			contrib/init/redhat/opendkim-default-keygen
 			contrib/init/solaris/Makefile
 			contrib/ldap/Makefile
 			contrib/lua/Makefile
@@ -2542,6 +2576,8 @@ AC_OUTPUT([	Makefile
 			contrib/spec/Makefile
 			contrib/spec/opendkim.spec
 			contrib/stats/Makefile
+			contrib/systemd/Makefile
+			contrib/systemd/opendkim.service
 		libdkimrep/dkim-rep.pc libdkimrep/Makefile
 		libdkimrep/tests/Makefile
 		libopendkim/opendkim.pc libopendkim/Makefile

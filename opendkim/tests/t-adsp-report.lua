@@ -1,5 +1,5 @@
 
--- Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+-- Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 
 -- reporting ADSP failures
 -- 
@@ -8,7 +8,11 @@
 mt.echo("*** test reporting of failure/missing signature via ADSP")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-adsp-report.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-adsp-report.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
@@ -19,7 +23,7 @@ mt.startfilter(binpath .. "/opendkim", "-x", "t-adsp-report.conf",
                "-p", sock)
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end

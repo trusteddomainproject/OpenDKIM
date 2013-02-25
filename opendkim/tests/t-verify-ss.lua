@@ -1,5 +1,4 @@
-
--- Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+-- Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 
 -- simple/simple verify test (should pass)
 -- 
@@ -8,7 +7,11 @@
 mt.echo("*** simple/simple verifying test (good)")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-verify-ss.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-verify-ss.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
@@ -19,7 +22,7 @@ mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-ss.conf",
                "-p", sock)
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end
@@ -46,7 +49,6 @@ end
 -- send headers
 -- mt.rcptto() is called implicitly
 if mt.header(conn, "DKIM-Signature", "v=1; a=rsa-sha256; c=simple/simple; d=example.com; s=test;\r\n\tt=1296710324; bh=3VWGQGY+cSNYd1MGM+X6hRXU0stl8JCaQtl4mbX/j2I=;\r\n\th=From:Date:Subject;\r\n\tb=RNAhx6cV5AeZWJDEJG1hROdvCukhJnokhI9oABHwAyUAzC6MDntoH4PrS2jS7HGw2\r\n\t D7pU4yLGrlNsGlK8JvqizYNHl+v9+B6OnWAgzkgTimWTqBCYwo8X01N6hqoXDAm8hC\r\n\t RUpmeJvC84K5/nHHLASCb4W1PC2R4VkxUoyVnlYE=") ~=nil then
-
 	error("mt.header(DKIM-Signature) failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then

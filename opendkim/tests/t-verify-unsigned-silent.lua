@@ -1,5 +1,4 @@
-
--- Copyright (c) 2009, 2010, 2012, The Trusted Domain Project.
+-- Copyright (c) 2009, 2010, 2012, 2013, The Trusted Domain Project.
 --   All rights reserved.
 
 -- unsigned message test (silent)
@@ -9,7 +8,11 @@
 mt.echo("*** unsigned message (silent)")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-ver-unsigned-silent.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-ver-unsigned-silent.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
@@ -20,7 +23,7 @@ mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-unsigned-silent.conf",
                "-p", sock)
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end

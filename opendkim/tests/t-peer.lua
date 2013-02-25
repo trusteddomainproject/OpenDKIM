@@ -1,12 +1,15 @@
-
--- Copyright (c) 2010-2012, The Trusted Domain Project.  All rights reserved.
+-- Copyright (c) 2010-2013, The Trusted Domain Project.  All rights reserved.
 
 -- PeerList calculation test
 
 mt.echo("*** PeerList calculation test")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-peer.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-peer.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
@@ -49,7 +52,7 @@ test = {
 for index = 1, table.getn(test)
 do
 	-- try to connect to it
-	conn = mt.connect(sock, 40, 0.05)
+	conn = mt.connect(sock, 40, 0.25)
 	if conn == nil then
 		error("mt.connect() failed")
 	end

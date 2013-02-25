@@ -2,7 +2,7 @@
 **  Copyright (c) 2007-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 */
 
 #include "build-config.h"
@@ -44,6 +44,11 @@
 #include "dkim-canon.h"
 #include "dkim-util.h"
 #include "util.h"
+
+/* libbsd if found */
+#ifdef USE_BSD_H
+# include <bsd/string.h>
+#endif /* USE_BSD_H */
 
 /* libstrl if needed */
 #ifdef USE_STRL_H
@@ -1203,8 +1208,14 @@ dkim_canon_runheaders(DKIM *dkim)
 		else
 		{
 			DKIM_LIB *lib;
+			regex_t *hdrtest;
 
 			lib = dkim->dkim_libhandle;
+
+			if (dkim->dkim_hdrre != NULL)
+				hdrtest = dkim->dkim_hdrre;
+			else
+				hdrtest = &lib->dkiml_hdrre;
 
 			memset(hdrset, '\0', sizeof hdrset);
 			nhdrs = 0;
@@ -1214,7 +1225,8 @@ dkim_canon_runheaders(DKIM *dkim)
 			     hdr != NULL;
 			     hdr = hdr->hdr_next)
 			{
-				if (!lib->dkiml_signre)
+				if (hdrtest == &lib->dkiml_hdrre &&
+				    !lib->dkiml_signre)
 				{
 					tmp = dkim_dstring_get(dkim->dkim_hdrbuf);
 
@@ -1235,7 +1247,7 @@ dkim_canon_runheaders(DKIM *dkim)
 
 				/* terminate the header field name and test */
 				hdr->hdr_text[hdr->hdr_namelen] = '\0';
-				status = regexec(&lib->dkiml_hdrre,
+				status = regexec(hdrtest,
 				                 (char *) hdr->hdr_text,
 				                 0, NULL, 0);
 

@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 */
 
 #ifndef _DKIM_TYPES_H_
@@ -343,6 +343,7 @@ struct dkim
 	struct dkim_dstring *	dkim_sslerrbuf;
 	struct dkim_test_dns_data * dkim_dnstesth;
 	struct dkim_test_dns_data * dkim_dnstestt;
+	regex_t *		dkim_hdrre;
 	DKIM_LIB *		dkim_libhandle;
 };
 

@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2011, 2012, The Trusted Domain Project.
+**  Copyright (c) 2009, 2011-2013, The Trusted Domain Project.
 **    All rights reserved.
 */
 
@@ -25,6 +25,11 @@
 /* libopendkim includes */
 #include "../dkim.h"
 #include "t-testdata.h"
+
+/* libbsd if found */
+#ifdef USE_BSD_H
+# include <bsd/string.h>
+#endif /* USE_BSD_H */
 
 /* libstrl if needed */
 #ifdef USE_STRL_H

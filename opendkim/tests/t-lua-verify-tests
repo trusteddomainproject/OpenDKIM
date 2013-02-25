@@ -8,4 +8,4 @@ then
 	srcdir=`pwd`
 fi
 
-../../miltertest/miltertest -s $srcdir/t-lua-verify-tests.lua
+../../miltertest/miltertest $MILTERTESTFLAGS -s $srcdir/t-lua-verify-tests.lua

@@ -2,7 +2,7 @@
 **  Copyright (c) 2006-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 **
 */
 
@@ -56,6 +56,7 @@ struct configdef dkimf_config[] =
 	{ "Diagnostics",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DiagnosticDirectory",	CONFIG_TYPE_STRING,	FALSE },
 	{ "DisableADSP",		CONFIG_TYPE_BOOLEAN,	FALSE },
+	{ "DisableCryptoInit",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_DKIM_REPUTATION
 	{ "DKIMReputationFail",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "DKIMReputationPass",		CONFIG_TYPE_INTEGER,	FALSE },
@@ -84,10 +85,6 @@ struct configdef dkimf_config[] =
 	{ "IdentityHeaderRemove",	CONFIG_TYPE_BOOLEAN,    FALSE },
 #endif /* _FFR_IDENTITY_HEADER */
 	{ "Include",			CONFIG_TYPE_INCLUDE,	FALSE },
-#ifdef USE_UNBOUND
-	{ "InsecureKey",		CONFIG_TYPE_STRING,	FALSE },
-	{ "InsecurePolicy",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* USE_UNBOUND */
 	{ "InternalHosts",		CONFIG_TYPE_STRING,	FALSE },
 	{ "KeepAuthResults",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "KeepTemporaryFiles",		CONFIG_TYPE_BOOLEAN,	FALSE },
@@ -102,6 +99,7 @@ struct configdef dkimf_config[] =
 # endif /* USE_SASL */
 	{ "LDAPBindPassword",		CONFIG_TYPE_STRING,	FALSE },
 	{ "LDAPBindUser",		CONFIG_TYPE_STRING,	FALSE },
+	{ "LDAPDisableCache",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "LDAPKeepaliveIdle",		CONFIG_TYPE_STRING,	FALSE },
 	{ "LDAPKeepaliveInterval",	CONFIG_TYPE_STRING,	FALSE },
 	{ "LDAPKeepaliveProbes",	CONFIG_TYPE_STRING,	FALSE },
@@ -215,6 +213,9 @@ struct configdef dkimf_config[] =
 	{ "SignatureTTL",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "SignHeaders",		CONFIG_TYPE_STRING,	FALSE },
 	{ "SigningTable",		CONFIG_TYPE_STRING,	FALSE },
+#ifdef HAVE_CURL_EASY_STRERROR
+	{ "SMTPURI",			CONFIG_TYPE_STRING,	FALSE },
+#endif /* HAVE_CURL_EASY_STRERROR */
 	{ "Socket",			CONFIG_TYPE_STRING,	FALSE },
 	{ "SoftwareHeader",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_STATS
@@ -239,6 +240,10 @@ struct configdef dkimf_config[] =
 	{ "TrustAnchorFile",		CONFIG_TYPE_STRING,	FALSE },
 	{ "TrustSignaturesFrom",	CONFIG_TYPE_STRING,	FALSE },
 	{ "UMask",			CONFIG_TYPE_INTEGER,	FALSE },
+#ifdef USE_UNBOUND
+	{ "UnprotectedKey",		CONFIG_TYPE_STRING,	FALSE },
+	{ "UnprotectedPolicy",		CONFIG_TYPE_STRING,	FALSE },
+#endif /* USE_UNBOUND */
 	{ "UserID",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_VBR
 	{ "VBR-Certifiers",		CONFIG_TYPE_STRING,	FALSE },

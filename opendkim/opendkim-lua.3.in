@@ -268,6 +268,15 @@ is specified, the string there will be included in the generated signature's
 is specified, the signature will cover that many bytes of the message body.
 The order of these last two parameters is interchangeable.
 .TP
+.B odkim.signfor(ctx, address[, multi])
+Applies whatever signatures would be applied by default if the candidate
+message had the specified
+.I address
+in the message's From: field.  The
+.I multi
+parameter, if "true" (default is "false"), allows the application of multiple
+signatures.  Returns the number of signatures applied, which may be zero.
+.TP
 .B odkim.spam(ctx)
 Tags the message as spam, for use in developing reputation about domains
 that signed the message.  Returns nothing.
@@ -581,7 +590,7 @@ header file
 This man page covers version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT
-Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8),
 .I opendkim.conf(5)

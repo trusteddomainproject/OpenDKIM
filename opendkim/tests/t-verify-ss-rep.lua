@@ -1,5 +1,4 @@
-
--- Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+-- Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 
 -- simple/simple verify test with reputation checks
 -- 
@@ -8,7 +7,11 @@
 mt.echo("*** simple/simple verifying test with reputation checks")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-verify-ss-rep.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-verify-ss-rep.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
@@ -21,7 +24,7 @@ mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-ss-rep.conf",
 --- CONNECTION #1, MESSAGE #1
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end
@@ -102,7 +105,7 @@ mt.disconnect(conn)
 --- CONNECTION #2, MESSAGE #2
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end
@@ -189,7 +192,7 @@ mt.disconnect(conn)
 --- CONNECTION #3, MESSAGE #3
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end
@@ -277,7 +280,7 @@ mt.disconnect(conn)
 --- CONNECTION #4, MESSAGE #4
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end

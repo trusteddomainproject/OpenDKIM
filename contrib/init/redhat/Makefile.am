@@ -1,6 +1,4 @@
-# Copyright (c) 2010, 2011, The Trusted Domain Project.  All rights reserved.
-#
+# Copyright (c) 2010, 2011, 2013, The Trusted Domain Project.
+#   All rights reserved.
 
-#AUTOMAKE_OPTIONS = foreign
-
-dist_doc_DATA = opendkim
+dist_doc_DATA = opendkim opendkim-default-keygen

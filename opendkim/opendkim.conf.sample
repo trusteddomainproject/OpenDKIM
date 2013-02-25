@@ -1,8 +1,7 @@
 ##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
-## Copyright (c) 2010-2012, The Trusted Domain Project.  All rights reserved.
-##
+## Copyright (c) 2010-2013, The Trusted Domain Project.  All rights reserved.
 ##
 
 ##
@@ -644,6 +643,13 @@ Selector		my-selector-name
 
 # SingleAuthResult	no
 
+##  SMTPURI uri
+##
+##  Specifies a URI (e.g., "smtp://localhost") to which mail should be sent
+##  via SMTP when notifications are generated.
+
+# Socket smtp://localhost
+
 ##  Socket socketspec
 ##
 ##  Names the socket where this filter should listen for milter connections
@@ -690,11 +696,11 @@ Socket			inet:port@localhost
 # SubDomains		No
 
 ##  Syslog { yes | no }
-##  	default "no"
+##  	default "yes"
 ##
 ##  Log informational and error activity to syslog?
 
-# Syslog		No
+Syslog			Yes
 
 ##  SyslogFacility      facility
 ##  	default "mail"

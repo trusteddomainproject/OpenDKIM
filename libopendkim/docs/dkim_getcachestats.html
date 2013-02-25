@@ -13,9 +13,12 @@
 #include &lt;dkim.h&gt;
 
 <a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_getcachestats(
+                        DKIM_LIB *lib,
 			u_int *queries,
 			u_int *hits,
-			u_int *expired);
+			u_int *expired,
+			u_int *keys,
+			_Bool reset
 );
 </pre>
 Retrieve libopendkim caching statistics.
@@ -26,7 +29,7 @@ Retrieve libopendkim caching statistics.
 <table border="1" cellspacing=1 cellpadding=4>
 <tr align="left" valign=top>
 <th width="80">Called When</th>
-<td><tt>dkim_getcachestats()</tt> can be called at any time. </td>
+<td><tt>dkim_getcachestats()</tt> can be called at any time.</td>
 </tr>
 </table>
 
@@ -34,6 +37,10 @@ Retrieve libopendkim caching statistics.
 <tr><th valign="top" align=left>ARGUMENTS</th><td>
     <table border="1" cellspacing=0>
     <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>lib</td>
+	<td>A DKIM library handle as previously returned by a call to
+	    <a href="dkim_init.html"><tt>dkim_init()</tt></a>.
+	</td></tr>
     <tr valign="top"><td>queries</td>
 	<td>Pointer to an unsigned integer which will receive the number
 	    of queries libopendkim has processed.  This can be NULL if that
@@ -51,6 +58,17 @@ Retrieve libopendkim caching statistics.
 	    value had expired and thus a re-query was required.  This can
 	    be NULL if that datum is not of interest to the caller.
 	</td></tr>
+    <tr valign="top"><td>keys</td>
+	<td>Pointer to an unsigned integer which will receive the number
+	    of records present in the cache.  Note that this includes
+	    records that have passed their time-to-live limits but have not
+	    yet been purged.  This can be NULL if that datum is not of interest
+	    to the caller.
+	</td></tr>
+    <tr valign="top"><td>reset</td>
+	<td>If TRUE, the <tt>queries</tt>, <tt>hits</tt> and <tt>expired</tt>
+	    counters will be reset to 0.  No change is made to cached data.
+	</td></tr>
     </table>
 </td></tr>
 
@@ -60,6 +78,7 @@ Retrieve libopendkim caching statistics.
 <td>
 <ul>
 <li>DKIM_STAT_OK -- requested values returned
+<li>DKIM_STAT_INVALID -- the cache has not yet been initialized
 <li>DKIM_STAT_NOTIMPLEMENT -- library was not compiled with caching enabled
 </ul>
 </td>
@@ -70,9 +89,6 @@ Retrieve libopendkim caching statistics.
 <th valign="top" align=left>NOTES</th> 
 <td>
 <ul>
-<li>All values can be zero even if caching is not enabled.  Use
-    <a href="dkim_flush_cache.html"><tt>dkim_flush_cache()</tt></a> to see
-    if caching is in effect.
 <li>Caching is enabled via the setting of the <tt>DKIM_LIBFLAGS_CACHE</tt>
     library option using the
     <a href="dkim_options.html"><tt>dkim_options()</tt></a> function.
@@ -88,7 +104,7 @@ Retrieve libopendkim caching statistics.
 Copyright (c) 2007 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009-2011, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2009-2011, 2013, The Trusted Domain Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set

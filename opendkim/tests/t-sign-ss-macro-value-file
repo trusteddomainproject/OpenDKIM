@@ -9,4 +9,4 @@ then
 	srcdir=`pwd`
 fi
 
-../../miltertest/miltertest -s $srcdir/t-sign-ss-macro-value-file.lua
+../../miltertest/miltertest $MILTERTESTFLAGS -s $srcdir/t-sign-ss-macro-value-file.lua

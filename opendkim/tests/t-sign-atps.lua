@@ -1,5 +1,4 @@
-
--- Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+-- Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 
 -- relaxed/simple signing test with ATPS
 -- 
@@ -8,7 +7,11 @@
 mt.echo("*** relaxed/simple signing test with ATPS")
 
 -- setup
-sock = "unix:" .. mt.getcwd() .. "/t-sign-atps.lua.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-sign-atps.lua.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
@@ -18,7 +21,7 @@ end
 mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-atps.conf", "-p", sock)
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end

@@ -2,8 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
-**
+**  Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 */
 
 #ifndef _OPENDKIM_H_
@@ -64,6 +63,7 @@
 #define	MAXSIGNATURE	1024
 #define	MTAMARGIN	78
 #define	NULLDOMAIN	"(invalid)"
+#define	SUPERUSER	"root"
 #define	UNKNOWN		"unknown"
 
 #define	DB_DOMAINS	1
@@ -213,6 +213,7 @@ extern int dkimf_xs_setreply __P((lua_State *));
 extern int dkimf_xs_setresult __P((lua_State *));
 extern int dkimf_xs_sigbhresult __P((lua_State *));
 extern int dkimf_xs_sigignore __P((lua_State *));
+extern int dkimf_xs_signfor __P((lua_State *));
 extern int dkimf_xs_sigresult __P((lua_State *));
 #  ifdef _FFR_REPUTATION
 extern int dkimf_xs_spam __P((lua_State *));

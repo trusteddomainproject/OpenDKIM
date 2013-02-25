@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2012-present, The Trusted Domain Project.
+**  Copyright (c) 2012, 2013, The Trusted Domain Project.
 **  	All rights reserved.
 */
 
@@ -19,12 +19,18 @@
 #define	JSON_ALWAYS	"always"
 #define	JSON_COMBINE	"combine"
 
+#define	AUTORECONF	"autoreconf"
 #define	CONFIGURE	"./configure"
 #define	MAKE		"make"
 #define	DISTCHECK	"distcheck"
+#define	CLEAN		"clean"
 
 #define	BUFRSZ		2048
 #define	TEMPLATE	"/tmp/abXXXXXX"
+
+#ifndef MIN
+# define MIN(a,b)	((a) < (b) ? (a) : (b))
+#endif /* ! MIN */
 
 char *progname;
 
@@ -62,6 +68,7 @@ int
 usage(void)
 {
 	fprintf(stderr, "%s: usage: %s [options] descr-file\n"
+	                "\t-n\tparse descr-file and exit\n"
 	                "\t-t\tshow timestamps\n"
 	                "\t-v\tverbose mode\n", progname, progname);
 
@@ -87,6 +94,7 @@ main(int argc, char **argv)
 	int fd;
 	int verbose = 0;
 	int timestamps = 0;
+	int confonly = 0;
 	pid_t child;
 	size_t combos;
 	size_t asz;
@@ -111,10 +119,14 @@ main(int argc, char **argv)
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 
-	while ((c = getopt(argc, argv, "tv")) != -1)
+	while ((c = getopt(argc, argv, "ntv")) != -1)
 	{
 		switch (c)
 		{
+		  case 'n':
+			confonly++;
+			break;
+
 		  case 't':
 			timestamps++;
 			break;
@@ -151,6 +163,7 @@ main(int argc, char **argv)
 	{
 		fprintf(stderr, "%s: %s: root object is not an object\n",
 		        progname, descr);
+		json_decref(j);
 		return EX_DATAERR;
 	}
 
@@ -168,6 +181,7 @@ main(int argc, char **argv)
 			fprintf(stderr,
 			        "%s: %s: unexpected root object \"%s\"\n",
 			        progname, descr, key);
+			json_decref(j);
 			return EX_DATAERR;
 		}
 		else if (!json_is_array(node))
@@ -175,6 +189,7 @@ main(int argc, char **argv)
 			fprintf(stderr,
 			        "%s: %s: root object \"%s\" is not an array\n",
 			        progname, descr, key);
+			json_decref(j);
 			return EX_DATAERR;
 		}
 		else if (strcasecmp(key, JSON_ALWAYS) == 0)
@@ -185,6 +200,12 @@ main(int argc, char **argv)
 		{
 			combine = node;
 		}
+	}
+
+	if (confonly > 0)
+	{
+		json_decref(j);
+		return EX_OK;
 	}
 
 	nargs = 2;
@@ -229,7 +250,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	asz = sizeof(char *) * (nopts + 2);
+	asz = sizeof(char *) * (nargs + nopts + 2);
 	args = (const char **) malloc(asz);
 	if (args == NULL)
 	{
@@ -240,6 +261,92 @@ main(int argc, char **argv)
 
 	combos = (size_t) pow(2, nopts);
 
+	if (verbose > 1)
+	{
+		fprintf(stdout, "%s: max %d arguments, %d combinations\n",
+		        progname, nargs + nopts, combos);
+	}
+
+	/* autoreconf */
+	args[0] = AUTORECONF;
+	args[1] = "-v";
+	args[2] = "-i";
+	args[3] = NULL;
+
+	strncpy(fn, TEMPLATE, sizeof fn);
+	fd = mkstemp(fn);
+	if (fd < 0)
+	{
+		fprintf(stderr, "%s: mkstemp(): %s\n", progname,
+		        strerror(errno));
+		return EX_OSERR;
+	}
+	(void) unlink(fn);
+
+	child = fork();
+	switch (child)
+	{
+	  case -1:
+		fprintf(stderr, "%s: fork(): %s\n", progname,
+		        strerror(errno));
+		return EX_OSERR;
+
+	  case 0:
+		(void) dup2(fd, 1);
+		(void) dup2(fd, 2);
+		(void) execvp(args[0], (char * const *) args);
+		fprintf(stderr, "%s: execvp(): %s\n", progname,
+		        strerror(errno));
+		return EX_OSERR;
+
+	  default:
+		n = wait(&status);
+		if (n == -1)
+		{
+			fprintf(stderr, "%s: wait(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+		}
+		else if (WIFSIGNALED(status) ||
+		         WEXITSTATUS(status) != 0)
+		{
+			if (WIFSIGNALED(status))
+			{
+				fprintf(stderr,
+				        "%s: clean died with signal %d\n",
+				        progname, WTERMSIG(status));
+			}
+			else
+			{
+				fprintf(stderr,
+				        "%s: clean exited with status %d\n",
+				        progname, WEXITSTATUS(status));
+			}
+
+			(void) lseek(fd, 0, SEEK_SET);
+
+			dumpargs(stdout, args);
+
+			for (;;)
+			{
+				n = read(fd, buf, sizeof buf);
+				(void) fwrite(buf, 1, n, stdout);
+				if (n < sizeof buf)
+					break;
+			}
+
+			close(fd);
+			free(args);
+			json_decref(j);
+			return 1;
+		}
+
+		break;
+	}
+
+	/* clean up */
+	close(fd);
+
 	for (c = 0; c < combos; c++)
 	{
 		memset(args, '\0', asz);
@@ -248,17 +355,19 @@ main(int argc, char **argv)
 		args[0] = CONFIGURE;
 		n = 1;
 
+		/* add the "always" arguments */
 		for (d = 0; d < json_array_size(always); d++)
 		{
 			node = json_array_get(always, d);
 			args[n++] = json_string_value(node);
 		}
 
+		/* add the new combination of options */
 		for (d = 0; d < nopts; d++)
 		{
-			if ((1 << d) & c)
+			if (c & (1 << d))
 			{
-				node = json_array_get(j, d);
+				node = json_array_get(combine, d);
 
 				if (json_is_string(node))
 				{
@@ -273,7 +382,7 @@ main(int argc, char **argv)
 					     m++)
 					{
 						sub = json_array_get(node, m);
-						args[n++] = json_string_value(sub);(node);
+						args[n++] = json_string_value(sub);
 					}
 				}
 			}
@@ -303,6 +412,7 @@ main(int argc, char **argv)
 			        strerror(errno));
 			return EX_OSERR;
 		}
+		(void) unlink(fn);
 
 		child = fork();
 		switch (child)
@@ -315,7 +425,10 @@ main(int argc, char **argv)
 		  case 0:
 			(void) dup2(fd, 1);
 			(void) dup2(fd, 2);
-			return execvp(args[0], (char * const *) args);
+			(void) execvp(args[0], (char * const *) args);
+			fprintf(stderr, "%s: execvp(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
 
 		  default:
 			n = wait(&status);
@@ -376,6 +489,7 @@ main(int argc, char **argv)
 			        strerror(errno));
 			return EX_OSERR;
 		}
+		(void) unlink(fn);
 
 		child = fork();
 		switch (child)
@@ -388,7 +502,10 @@ main(int argc, char **argv)
 		  case 0:
 			(void) dup2(fd, 1);
 			(void) dup2(fd, 2);
-			return execvp(args[0], (char * const *) args);
+			(void) execvp(args[0], (char * const *) args);
+			fprintf(stderr, "%s: execvp(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
 
 		  default:
 			n = wait(&status);
@@ -450,6 +567,7 @@ main(int argc, char **argv)
 			        strerror(errno));
 			return EX_OSERR;
 		}
+		(void) unlink(fn);
 
 		child = fork();
 		switch (child)
@@ -462,7 +580,10 @@ main(int argc, char **argv)
 		  case 0:
 			(void) dup2(fd, 1);
 			(void) dup2(fd, 2);
-			return execvp(args[0], (char * const *) args);
+			(void) execvp(args[0], (char * const *) args);
+			fprintf(stderr, "%s: execvp(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
 
 		  default:
 			n = wait(&status);
@@ -485,6 +606,85 @@ main(int argc, char **argv)
 				{
 					fprintf(stderr,
 					        "%s: distcheck exited with status %d\n",
+					        progname, WEXITSTATUS(status));
+				}
+
+				(void) lseek(fd, 0, SEEK_SET);
+
+				dumpargs(stdout, args);
+
+				for (;;)
+				{
+					n = read(fd, buf, sizeof buf);
+					(void) fwrite(buf, 1, n, stdout);
+					if (n < sizeof buf)
+						break;
+				}
+
+				close(fd);
+				free(args);
+				json_decref(j);
+				return 1;
+			}
+
+			break;
+		}
+
+		/* clean up */
+		close(fd);
+
+		/* make clean */
+		args[0] = MAKE;
+		args[1] = CLEAN;
+		args[2] = NULL;
+
+		strncpy(fn, TEMPLATE, sizeof fn);
+		fd = mkstemp(fn);
+		if (fd < 0)
+		{
+			fprintf(stderr, "%s: mkstemp(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+		}
+		(void) unlink(fn);
+
+		child = fork();
+		switch (child)
+		{
+		  case -1:
+			fprintf(stderr, "%s: fork(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+
+		  case 0:
+			(void) dup2(fd, 1);
+			(void) dup2(fd, 2);
+			(void) execvp(args[0], (char * const *) args);
+			fprintf(stderr, "%s: execvp(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+
+		  default:
+			n = wait(&status);
+			if (n == -1)
+			{
+				fprintf(stderr, "%s: wait(): %s\n", progname,
+				        strerror(errno));
+				return EX_OSERR;
+			}
+			else if (WIFSIGNALED(status) ||
+			         WEXITSTATUS(status) != 0)
+			{
+				if (WIFSIGNALED(status))
+				{
+					fprintf(stderr,
+					        "%s: clean died with signal %d\n",
+					        progname, WTERMSIG(status));
+				}
+				else
+				{
+					fprintf(stderr,
+					        "%s: clean exited with status %d\n",
 					        progname, WEXITSTATUS(status));
 				}
 

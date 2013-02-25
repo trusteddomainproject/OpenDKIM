@@ -9,6 +9,6 @@ then
 fi
 
 echo ===== signing without Lua
-../../miltertest/miltertest -u -s $srcdir/t-lua-speed-nolua.lua
+../../miltertest/miltertest $MILTERTESTFLAGS -u -s $srcdir/t-lua-speed-nolua.lua
 echo ===== signing with Lua
-../../miltertest/miltertest -u -s $srcdir/t-lua-speed-lua.lua
+../../miltertest/miltertest $MILTERTESTFLAGS -u -s $srcdir/t-lua-speed-lua.lua

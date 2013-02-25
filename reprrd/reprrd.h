@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2012, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2012, 2013, The Trusted Domain Project.  All rights reserved.
 */
 
 #ifndef _REPRRD_H_
@@ -22,6 +22,7 @@
 #define	REPRRD_STAT_OK		0	/* successful completion */
 #define	REPRRD_STAT_INTERNAL	1	/* internal error */
 #define	REPRRD_STAT_QUERY	2	/* query failure */
+#define	REPRRD_STAT_NODATA	3	/* no data for specified domain */
 
 typedef int REPRRD_STAT;
 
@@ -29,9 +30,12 @@ typedef int REPRRD_STAT;
 #define	REPRRD_TYPE_UNKNOWN	(-1)
 #define	REPRRD_TYPE_MESSAGES	0
 #define	REPRRD_TYPE_SPAM	1
+#define	REPRRD_TYPE_LIMIT	2
 
 #define	REPRRD_BACKSTEPS	2
-#define	REPRRD_CF		"FAILURES"
+#define	REPRRD_CF_AVERAGE	"AVERAGE"
+#define	REPRRD_CF_FAILURES	"FAILURES"
+#define	REPRRD_CF_HWPREDICT	"HWPREDICT"
 #define	REPRRD_DEFHASHDEPTH	2
 #define	REPRRD_STEP		3600
 

@@ -1,5 +1,4 @@
-
--- Copyright (c) 2010-2012, The Trusted Domain Project.  All rights reserved.
+-- Copyright (c) 2010-2013, The Trusted Domain Project.  All rights reserved.
 
 -- Syntax error proccessing test
 -- 
@@ -8,7 +7,11 @@
 mt.echo("*** syntax error in DKIM signature")
 
 -- try to start the filter
-sock = "unix:" .. mt.getcwd() .. "/t-verify-syntax.sock"
+if TESTSOCKET ~= nil then
+	sock = TESTSOCKET
+else
+	sock = "unix:" .. mt.getcwd() .. "/t-verify-syntax.sock"
+end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
 	mt.chdir(os.getenv("srcdir"))
@@ -16,7 +19,7 @@ end
 mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-syntax.conf", "-p", sock)
 
 -- try to connect to it
-conn = mt.connect(sock, 40, 0.05)
+conn = mt.connect(sock, 40, 0.25)
 if conn == nil then
 	error("mt.connect() failed")
 end

@@ -267,7 +267,7 @@ are:
       <a href="dkim_gensighdr.html"><tt>dkim_gensighdr()</tt></a> since a
       signature thus generated would violate the DKIM specification.  If
       this flag is set, the signature will still be generated but the "i="
-      tag will be omitted so the signatuer is still compliant. </t>
+      tag will be omitted so the signature is still compliant. </t>
  </tr>
  <tr>
   <td><tt>DKIM_LIBFLAGS_EOHCHECK</tt></td>
@@ -287,6 +287,13 @@ are:
       <tt>DKIM_LIBFLAGS_TMPFILES</tt> be set.)</td>
  </tr>
  <tr>
+  <td><tt>DKIM_LIBFLAGS_REPORTBADADSP</tt></td>
+  <td>When doing the ADSP query, a response that is a syntax error will by
+      default be ignored.  Setting this flag causes an error to be returned.
+      This can be common when, for example, wildcard TXT records are used to
+      publish other data. </td>
+ </tr>
+ <tr>
   <td><tt>DKIM_LIBFLAGS_SIGNLEN</tt></td>
   <td>When signing messages, include in the signature the number of bytes
       that were canonicalized even when a length limit wasn't specified
@@ -297,6 +304,12 @@ are:
   <td>Refuse to sign or verify a message that doesn't conform to the header
       field count rules specified in RFC5322 Section 3.6.  Other checks may
       also be enforced in the future. </td>
+ </tr>
+ <tr>
+  <td><tt>DKIM_LIBFLAGS_STRICTRESIGN</tt></td>
+  <td>Refuse to generate a signature from a signing handle bound to a
+      verifying handle (see <a href="dkim_resign.html"><tt>dkim_resign()</tt></a>)
+      if the verifying handle yielded no valid signatures. </td>
  </tr>
  <tr>
   <td><tt>DKIM_LIBFLAGS_TMPFILES</tt></td>
@@ -334,7 +347,7 @@ are:
 Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009-2011, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set

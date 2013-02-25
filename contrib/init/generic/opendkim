@@ -156,7 +156,15 @@ od_start() {
 
 od_stop() {
 	echo -n "Stopping OpenDKIM Milter: "
-	od_killproc $DAEMON
+	CPIDFILE=""
+	if [ -f $CONFIG ]; then
+		CPIDFILE=$(grep -i '^pidfile' $CONFIG | head -n 1 | awk '{print $2}')
+	fi
+	if [ x"$CPIDFILE" != x"" ]; then
+		PIDFILE=$CPIDFILE
+	fi
+
+	od_killproc -p $CPIDFILE $DAEMON
 	if [ $? -eq 0 ]; then
 		log_success_msg $NAME
 		if [ -d /var/lock/subsys ]; then
@@ -170,7 +178,7 @@ od_stop() {
 
 od_reload() {
 	echo -n "Reloading OpenDKIM Milter configuration: "
-	od_killproc $DAEMON SIGUSR1
+	od_killproc $DAEMON USR1
 	if [ $? -eq 0 ]; then
 		log_success_msg $NAME
 	else
