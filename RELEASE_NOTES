@@ -3,6 +3,10 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.8.1		2013/0?/??
+	BUILD: Fix build for versions of libdb between 3.1 and 4.6.
+		Problem noted by John Wood.
+
 2.8.0		2013/02/25
 	Feature request #SF2964383: Add DKIM_LIBFLAGS_STRICTRESIGN, which
 		inhibits signing of a handle tagged for resigning when the
