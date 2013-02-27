@@ -508,7 +508,7 @@ dkim_cache_stats(DB *db, u_int *queries, u_int *hits, u_int *expired,
 #if DB_VERSION_CHECK(2,0,0)
 		DB_HASH_STAT *sp;
 
-# if DB_VERSION_CHECK(4,4,0)
+# if DB_VERSION_CHECK(4,3,0)
 		if (db->stat(db, NULL, (void *) &sp, 0) != 0)
 # elif DB_VERSION_CHECK(4,0,0)
 		if (db->stat(db, (void *) &sp, 0) != 0)
