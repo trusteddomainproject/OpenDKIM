@@ -356,6 +356,7 @@ config_load_level(char *file, struct configdef *def,
 			if (in != stdin)
 				fclose(in);
 
+			free(buf);
 			return NULL;
 		}
 
@@ -376,6 +377,7 @@ config_load_level(char *file, struct configdef *def,
 				if (in != stdin)
 					fclose(in);
 
+				free(buf);
 				return NULL;
 			}
 
@@ -397,6 +399,7 @@ config_load_level(char *file, struct configdef *def,
 				if (in != stdin)
 					fclose(in);
 
+				free(buf);
 				return NULL;
 			}
 
