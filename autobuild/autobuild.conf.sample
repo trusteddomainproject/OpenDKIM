@@ -1,21 +1,23 @@
 {
 	"always": [
 		"--with-openssl=/usr/local",
-		"--with-milter=/home/msk/auth/milter"
+		"--with-milter=/usr/local"
 	],
 
 	"combine": [
 		"--enable-debug",
 		"--disable-shared",
 		"--with-odbx",
-		"--enable-stats",
- 		"--enable-statsext",
+		[
+			"--enable-rbl",
+			"--enable-stats",
+ 			"--enable-statsext",
+			"--with-lua"
+		],
 		"--enable-diffheaders",
 		"--enable-vbr",
-		"--with-lua",
 		"--enable-atps",
 		"--enable-poll",
-		"--enable-rbl",
 		"--with-unbound",
 		"--enable-replace_rules",
 		"--with-libmemcached",
