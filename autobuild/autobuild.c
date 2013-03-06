@@ -18,6 +18,7 @@
 
 #define	JSON_ALWAYS	"always"
 #define	JSON_COMBINE	"combine"
+#define	JSON_EACH	"each"
 
 #define	AUTORECONF	"autoreconf"
 #define	CONFIGURE	"./configure"
@@ -31,6 +32,9 @@
 #ifndef MIN
 # define MIN(a,b)	((a) < (b) ? (a) : (b))
 #endif /* ! MIN */
+#ifndef MAX
+# define MAX(a,b)	((a) > (b) ? (a) : (b))
+#endif /* ! MAX */
 
 char *progname;
 
@@ -102,12 +106,16 @@ main(int argc, char **argv)
 	size_t d;
 	size_t bits;
 	size_t nopts;
+	size_t neach = 1;
 	size_t nargs;
 	size_t maxopts;
+	size_t meach;
+	size_t xeach;
 	json_t *j;
 	json_t *node;
 	json_t *always = NULL;
 	json_t *combine = NULL;
+	json_t *each = NULL;
 	json_error_t err;
 	void *iter;
 	char *p;
@@ -176,6 +184,7 @@ main(int argc, char **argv)
 		node = json_object_iter_value(iter);
 
 		if (strcasecmp(key, JSON_ALWAYS) != 0 &&
+		    strcasecmp(key, JSON_EACH) != 0 &&
 		    strcasecmp(key, JSON_COMBINE) != 0)
 		{
 			fprintf(stderr,
@@ -196,6 +205,10 @@ main(int argc, char **argv)
 		{
 			always = node;
 		}
+		else if (strcasecmp(key, JSON_EACH) == 0)
+		{
+			each = node;
+		}
 		else
 		{
 			combine = node;
@@ -215,6 +228,21 @@ main(int argc, char **argv)
 		nopts = 0;
 	else
 		nopts = json_array_size(combine);
+	if (each == NULL)
+	{
+		neach = 1;
+		meach = 0;
+	}
+	else
+	{
+		neach = json_array_size(each);
+		for (n = 0; n < neach; n++)
+		{
+			node = json_array_get(each, n);
+			if (json_is_array(node))
+				meach = MAX(json_array_size(node), meach);
+		}
+	}
 
 	for (n = 0; n < nopts; n++)
 	{
@@ -250,7 +278,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	asz = sizeof(char *) * (nargs + nopts + 2);
+	asz = sizeof(char *) * (nargs + nopts + meach + 2);
 	args = (const char **) malloc(asz);
 	if (args == NULL)
 	{
@@ -259,7 +287,7 @@ main(int argc, char **argv)
 		return EX_OSERR;
 	}
 
-	combos = (size_t) pow(2, nopts);
+	combos = (size_t) pow(2, nopts) * neach;
 
 	if (verbose > 1)
 	{
@@ -349,6 +377,8 @@ main(int argc, char **argv)
 
 	for (c = 0; c < combos; c++)
 	{
+		xeach = c % neach;
+
 		memset(args, '\0', asz);
 		bits = c;
 
@@ -362,10 +392,32 @@ main(int argc, char **argv)
 			args[n++] = json_string_value(node);
 		}
 
+		/* select the "each" argument */
+		if (each != NULL)
+		{
+			node = json_array_get(each, xeach);
+			if (json_is_string(node))
+			{
+				args[n++] = json_string_value(node);
+			}
+			else
+			{
+				json_t *sub;
+
+				for (m = 0;
+				     m < json_array_size(node);
+				     m++)
+				{
+					sub = json_array_get(node, m);
+					args[n++] = json_string_value(sub);
+				}
+			}
+		}
+
 		/* add the new combination of options */
 		for (d = 0; d < nopts; d++)
 		{
-			if (c & (1 << d))
+			if ((c / neach) & (1 << d))
 			{
 				node = json_array_get(combine, d);
 

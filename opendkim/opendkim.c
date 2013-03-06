@@ -4668,6 +4668,8 @@ dkimf_reptoken(u_char *out, size_t outlen, u_char *in, u_char *sub)
 **  	myuid -- executing user's effective uid
 **  	myname -- executing user's login
 **  	ino -- evaluated inode (returned)
+**  	err -- error buffer
+**  	errlen -- error buffer length
 **
 **  Return value:
 **  	1 -- node is safe to use
@@ -4695,7 +4697,8 @@ dkimf_reptoken(u_char *out, size_t outlen, u_char *in, u_char *sub)
 */
 
 static int
-dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
+dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino,
+                  char *err, size_t errlen)
 {
 	int status;
 	struct passwd *pw;
@@ -4710,11 +4713,22 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 	if (status != 0)
 		return -1;
 
-	if ((s.st_mode & S_IFMT) == S_IFREG)
+	if (S_ISREG(s.st_mode))
 	{
+
 		/* owned by root or by me */
 		if (s.st_uid != 0 && s.st_uid != myuid)
+		{
+			if (err != NULL)
+			{
+				snprintf(err, errlen,
+				         "%s is not owned by the executing uid (%d)%s",
+				         path, myuid,
+				         myuid != 0 ? " or the superuser"
+				                    : "");
+			}
 			return 0;
+		}
 
 		/* if group read/write, the group is only me and/or root */
 		if ((s.st_mode & (S_IRGRP|S_IWGRP)) != 0)
@@ -4730,6 +4744,13 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 				    pw->pw_uid != 0 &&
 				    s.st_gid == pw->pw_gid)
 				{
+					if (err != NULL)
+					{
+						snprintf(err, errlen,
+						         "%s is in group %u which has multiple users (e.g. \"%s\")",
+						         path, s.st_gid,
+						         pw->pw_name);
+					}
 					pthread_mutex_unlock(&pwdb_lock);
 					return 0;
 				}
@@ -4749,6 +4770,13 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 				if (strcmp(gr->gr_mem[c], myname) != 0 &&
 				    strcmp(gr->gr_mem[c], SUPERUSER) != 0)
 				{
+					if (err != NULL)
+					{
+						snprintf(err, errlen,
+						         "%s is in group %u which has multiple users (e.g., \"%s\")",
+						         path, s.st_gid,
+						         gr->gr_mem[c]);
+					}
 					pthread_mutex_unlock(&pwdb_lock);
 					return 0;
 				}
@@ -4759,15 +4787,32 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 
 		/* not read/write by others */
 		if ((s.st_mode & (S_IROTH|S_IWOTH)) != 0)
+		{
+			if (err != NULL)
+			{
+				snprintf(err, errlen,
+				         "%s can be read or written by other users",
+				         path);
+			}
+
 			return 0;
+		}
 
 		*ino = s.st_ino;
 	}
-	else if ((s.st_mode & S_IFMT) == S_IFDIR)
+	else if (S_ISDIR(s.st_mode))
 	{
 		/* other write needs to be off */
 		if ((s.st_mode & S_IWOTH) != 0)
+		{
+			if (err != NULL)
+			{
+				snprintf(err, errlen,
+				         "%s can be read or written by other users",
+				         path);
+			}
 			return 0;
+		}
 
 		/* group write needs to be super-user or me only */
 		if ((s.st_mode & S_IWGRP) != 0)
@@ -4783,6 +4828,14 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 				    pw->pw_uid != 0 &&
 				    s.st_gid == pw->pw_gid)
 				{
+					if (err != NULL)
+					{
+						snprintf(err, errlen,
+						         "%s is in group %u which has multiple users (e.g., \"%s\")",
+						         s.st_gid,
+						         pw->pw_name);
+					}
+
 					pthread_mutex_unlock(&pwdb_lock);
 					return 0;
 				}
@@ -4801,6 +4854,14 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 				if (strcmp(gr->gr_mem[c], myname) != 0 &&
 				    strcmp(gr->gr_mem[c], SUPERUSER) != 0)
 				{
+					if (err != NULL)
+					{
+						snprintf(err, errlen,
+						         "%s is in group %u which has multiple users (e.g., \"%s\")",
+						         s.st_gid,
+						         gr->gr_mem[c]);
+					}
+
 					pthread_mutex_unlock(&pwdb_lock);
 					return 0;
 				}
@@ -4812,7 +4873,18 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 		/* owner write needs to be super-user or me only */
 		if ((s.st_mode & S_IWUSR) != 0 &&
 		    (s.st_uid != 0 && s.st_uid != myuid))
+		{
+			if (err != NULL)
+			{
+				snprintf(err, errlen,
+				         "%s is writeable and owned by uid %u which is not the executing uid (%u)%s",
+				         path, s.st_uid, myuid,
+				         myuid != 0 ? " or the superuser"
+				                    : "");
+			}
+
 			return 0;
+		}
 
 		/* if nobody else can execute below here, that's good enough */
 		if ((s.st_mode & (S_IXGRP|S_IXOTH)) == 0)
@@ -4832,6 +4904,8 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 **  	path -- path to evaluate
 **  	ino -- inode of evaluated object
 ** 	myuid -- user to impersonate (-1 means "me")
+**  	err -- error buffer
+**  	errlen -- bytes available at "err"
 **
 **  Return value:
 **  	As for dkimf_checkfsnode().
@@ -4845,7 +4919,8 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino)
 */
 
 int
-dkimf_securefile(const char *path, ino_t *ino, uid_t myuid)
+dkimf_securefile(const char *path, ino_t *ino, uid_t myuid, char *err,
+                 size_t errlen)
 {
 	int status;
 	struct passwd *pw;
@@ -4902,7 +4977,7 @@ dkimf_securefile(const char *path, ino_t *ino, uid_t myuid)
 	{
 		strlcat(partial, p, sizeof partial);
 		status = dkimf_checkfsnode((const char *) partial,
-		                           myuid, myname, ino);
+		                           myuid, myname, ino, err, errlen);
 		if (status != 1)
 			return status;
 
@@ -4977,7 +5052,8 @@ dkimf_securefile(const char *path, ino_t *ino, uid_t myuid)
 **  	buf -- key buffer
 **  	buflen -- pointer to key buffer's length (updated)
 **  	insecure -- key is insecure (returned)
-**  	error -- string returned on error
+**  	error -- buffer to receive error string
+**  	errlen -- bytes available at "error"
 **
 **  Return value:
 **  	TRUE on successful load, false otherwise.
@@ -4988,7 +5064,8 @@ dkimf_securefile(const char *path, ino_t *ino, uid_t myuid)
 */
 
 static _Bool
-dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure, char **error)
+dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure, char *error,
+              size_t errlen)
 {
 	ino_t ino;
 
@@ -5007,7 +5084,7 @@ dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure, char **error)
 		if (fd < 0)
 		{
 			if (error != NULL)
-				*error = strerror(errno);
+				strlcpy(error, strerror(errno), errlen);
 			return FALSE;
 		}
 
@@ -5017,15 +5094,21 @@ dkimf_loadkey(char *buf, size_t *buflen, _Bool *insecure, char **error)
 			if (error != NULL)
 			{
 				if (!S_ISREG(s.st_mode))
-					*error = "Not a regular file";
+				{
+					strlcpy(error, "Not a regular file",
+					        errlen);
+				}
 				else
-					*error = strerror(errno);
+				{
+					strlcpy(error, strerror(errno),
+					        errlen);
+				}
 			}
 			close(fd);
 			return FALSE;
 		}
 
-		if (!dkimf_securefile(buf, &ino, (uid_t) -1) ||
+		if (!dkimf_securefile(buf, &ino, (uid_t) -1, error, errlen) ||
 		    (ino != (ino_t) -1 && ino != s.st_ino))
 			*insecure = TRUE;
 		else
@@ -5071,6 +5154,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 	char keydata[MAXBUFRSZ + 1];
 	char domain[DKIM_MAXHOSTNAMELEN + 1];
 	char selector[BUFRSZ + 1];
+	char err[BUFRSZ + 1];
 
 	assert(dfc != NULL);
 
@@ -5089,7 +5173,6 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 	if (keytable != NULL)
 	{
 		_Bool insecure;
-		char *errstr;
 
 		assert(keyname != NULL);
 
@@ -5110,8 +5193,6 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 		if (dkimf_db_get(keytable, keyname, strlen(keyname),
 		                 dbd, 3, &found) != 0)
 		{
-			char err[BUFRSZ];
-
 			memset(err, '\0', sizeof err);
 			(void) dkimf_db_strerror(keytable, err, sizeof err);
 
@@ -5187,12 +5268,12 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 		keydatasz = sizeof keydata - 1;
 		insecure = FALSE;
 		if (!dkimf_loadkey(dbd[2].dbdata_buffer, &keydatasz,
-		                   &insecure, &errstr))
+		                   &insecure, err, sizeof err))
 		{
 			if (dolog)
 			{
 				syslog(LOG_ERR, "can't load key from %s: %s",
-				       dbd[2].dbdata_buffer, errstr);
+				       dbd[2].dbdata_buffer, err);
 			}
 
 			return 2;
@@ -5207,8 +5288,8 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 				sev = (curconf->conf_safekeys ? LOG_ERR
 				                              : LOG_WARNING);
 
-				syslog(sev, "%s: key data is not secure",
-				       keyname);
+				syslog(sev, "%s: key data is not secure: %s",
+				       keyname, err);
 			}
 
  			if (curconf->conf_safekeys)
@@ -6335,6 +6416,7 @@ dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl)
 **  	conf -- configuration structure to load
 **  	err -- where to write errors
 **  	errlen -- bytes available at "err"
+**  	become -- pretend we're the named user (can be NULL)
 **
 **  Return value:
 **  	0 -- success
@@ -6346,13 +6428,12 @@ dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl)
 
 static int
 dkimf_config_load(struct config *data, struct dkimf_config *conf,
-                  char *err, size_t errlen)
+                  char *err, size_t errlen, char *become)
 {
 	_Bool btmp;
 	int maxsign;
 	int dbflags = 0;
 	char *str;
-	char *become = NULL;
 	char confstr[BUFRSZ + 1];
 	char basedir[MAXPATHLEN + 1];
 
@@ -7214,7 +7295,11 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 #endif /* USE_LUA */
 
-		(void) config_get(data, "Userid", &become, sizeof become);
+		if (become == NULL)
+		{
+			(void) config_get(data, "Userid", &become,
+			                  sizeof become);
+		}
 	}
 
 #ifdef USE_LDAP
@@ -8467,7 +8552,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			asuser = pw->pw_uid;
 		}
 
-		if (!dkimf_securefile(conf->conf_keyfile, &ino, asuser) ||
+		if (!dkimf_securefile(conf->conf_keyfile, &ino, asuser,
+		                      err, errlen) ||
 		    (ino != (ino_t) -1 && ino != s.st_ino))
 		{
 			if (conf->conf_dolog)
@@ -8477,17 +8563,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				sev = (conf->conf_safekeys ? LOG_ERR
 				                           : LOG_WARNING);
 
-				syslog(sev, "%s: key data is not secure",
-				       conf->conf_keyfile);
+				syslog(sev, "%s: key data is not secure: %s",
+				       conf->conf_keyfile, err);
 			}
 
 			if (conf->conf_safekeys)
-			{
-				snprintf(err, errlen,
-				         "%s: key data is not secure",
-				         conf->conf_keyfile);
 				return -1;
-			}
 		}
 
 		s33krit = malloc(s.st_size + 1);
@@ -9153,7 +9234,7 @@ dkimf_config_reload(void)
 		}
 
 		if (!err && dkimf_config_load(cfg, new, errbuf,
-		                              sizeof errbuf) != 0)
+		                              sizeof errbuf, NULL) != 0)
 		{
 			if (curconf->conf_dolog)
 				syslog(LOG_ERR, "%s: %s", conffile, errbuf);
@@ -17058,7 +17139,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (dkimf_config_load(cfg, curconf, err, sizeof err) != 0)
+	if (dkimf_config_load(cfg, curconf, err, sizeof err, become) != 0)
 	{
 		if (conffile == NULL)
 			conffile = "(stdin)";
