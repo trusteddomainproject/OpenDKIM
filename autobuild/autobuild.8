@@ -35,7 +35,7 @@ Print timestamps to stdout as each step is executed.
 Prints configuration combinations as their commands are executed.
 .SH DESCRIPTION FILE
 The description file contains a JSON object.  It is expected to contain
-two keys, both optional, which refer to arrays, as follows:
+optional keys, which refer to arrays, as follows:
 .TP
 .I always
 Contains an array of strings each of which is an argument that should be passed
@@ -51,14 +51,20 @@ be tried (i.e., the presence and absence cases).  An object in this array
 must either be a string, or an array of strings; in the latter case, 
 the set of strings is applied as a group whenever the array is selected for
 testing.
+.TP
+.I each
+Contains an array of objects each of which is to be tested in a mutually
+exclusive way (that is, in sequence, but never together).  Exactly one 
+will always be chosen and included.  To cause an iteration that chooses
+none of the objects, include an empty object.
 .SH EXAMPLE
 { "always": [ "--foo", "--bar" ], "combine": [ "--a", "--b", [ "--c", "--d"]] }
 .PP
 This will run eight tests; all of them will include "--foo" and "--bar",
-and they will include the various possible combinationks of "--a", "--b",
+and they will include all of the various possible combinationks of "--a", "--b",
 and the pair "--c" and "--d".
 .SH VERSION
-This man page covers version 1.0.0 of
+This man page covers version 1.1.0 of
 .I autobuild.
 .SH COPYRIGHT
 Copyright (c) 2012, 2013, The Trusted Domain Project.  All rights reserved.
