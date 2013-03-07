@@ -237,10 +237,6 @@ main(int argc, char **argv)
 	if (each == NULL)
 	{
 		neach = 1;
-<<<<<<< HEAD
-=======
-		meach = 0;
->>>>>>> 2409b120b5b863479827ed16aade83763372af11
 	}
 	else
 	{
