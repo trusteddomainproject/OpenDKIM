@@ -4,7 +4,7 @@
 \- multiple configuration build tool
 .SH SYNOPSIS
 .B autobuild
-[\-n] [\-t] [\-v] descr-file
+[\-c] [\-n] [\-t] [\-v] descr-file
 .SH DESCRIPTION
 .B autobuild
 configures, builds, and tests a source code package whose configuration is
@@ -24,6 +24,9 @@ regressions checked into it.
 If any of the three steps fails, the output of the command is dumped
 to standard output and execution terminates.
 .SH OPTIONS
+.TP
+.I \-c
+Print the configuration combinations, but do not execute them.
 .TP
 .I \-n
 Parse configuration file and exit without doing anything else.

@@ -72,6 +72,7 @@ int
 usage(void)
 {
 	fprintf(stderr, "%s: usage: %s [options] descr-file\n"
+	                "\t-c\tshow combinations and exit\n"
 	                "\t-n\tparse descr-file and exit\n"
 	                "\t-t\tshow timestamps\n"
 	                "\t-v\tverbose mode\n", progname, progname);
@@ -96,6 +97,7 @@ main(int argc, char **argv)
 	int m;
 	int n;
 	int fd;
+	int showcombos = 0;
 	int verbose = 0;
 	int timestamps = 0;
 	int confonly = 0;
@@ -109,7 +111,7 @@ main(int argc, char **argv)
 	size_t neach = 1;
 	size_t nargs;
 	size_t maxopts;
-	size_t meach;
+	size_t meach = 0;
 	size_t xeach;
 	json_t *j;
 	json_t *node;
@@ -127,10 +129,14 @@ main(int argc, char **argv)
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 
-	while ((c = getopt(argc, argv, "ntv")) != -1)
+	while ((c = getopt(argc, argv, "cntv")) != -1)
 	{
 		switch (c)
 		{
+		  case 'c':
+			showcombos++;
+			break;
+
 		  case 'n':
 			confonly++;
 			break;
@@ -231,7 +237,6 @@ main(int argc, char **argv)
 	if (each == NULL)
 	{
 		neach = 1;
-		meach = 0;
 	}
 	else
 	{
@@ -301,79 +306,82 @@ main(int argc, char **argv)
 	args[2] = "-i";
 	args[3] = NULL;
 
-	strncpy(fn, TEMPLATE, sizeof fn);
-	fd = mkstemp(fn);
-	if (fd < 0)
+	if (!showcombos)
 	{
-		fprintf(stderr, "%s: mkstemp(): %s\n", progname,
-		        strerror(errno));
-		return EX_OSERR;
-	}
-	(void) unlink(fn);
-
-	child = fork();
-	switch (child)
-	{
-	  case -1:
-		fprintf(stderr, "%s: fork(): %s\n", progname,
-		        strerror(errno));
-		return EX_OSERR;
-
-	  case 0:
-		(void) dup2(fd, 1);
-		(void) dup2(fd, 2);
-		(void) execvp(args[0], (char * const *) args);
-		fprintf(stderr, "%s: execvp(): %s\n", progname,
-		        strerror(errno));
-		return EX_OSERR;
-
-	  default:
-		n = wait(&status);
-		if (n == -1)
+		strncpy(fn, TEMPLATE, sizeof fn);
+		fd = mkstemp(fn);
+		if (fd < 0)
 		{
-			fprintf(stderr, "%s: wait(): %s\n", progname,
-			        strerror(errno));
+			fprintf(stderr, "%s: mkstemp(): %s\n", progname,
+		        	strerror(errno));
 			return EX_OSERR;
 		}
-		else if (WIFSIGNALED(status) ||
-		         WEXITSTATUS(status) != 0)
+		(void) unlink(fn);
+
+		child = fork();
+		switch (child)
 		{
-			if (WIFSIGNALED(status))
+		  case -1:
+			fprintf(stderr, "%s: fork(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+
+		  case 0:
+			(void) dup2(fd, 1);
+			(void) dup2(fd, 2);
+			(void) execvp(args[0], (char * const *) args);
+			fprintf(stderr, "%s: execvp(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+
+		  default:
+			n = wait(&status);
+			if (n == -1)
 			{
-				fprintf(stderr,
-				        "%s: clean died with signal %d\n",
-				        progname, WTERMSIG(status));
+				fprintf(stderr, "%s: wait(): %s\n", progname,
+				        strerror(errno));
+				return EX_OSERR;
 			}
-			else
+			else if (WIFSIGNALED(status) ||
+			         WEXITSTATUS(status) != 0)
 			{
-				fprintf(stderr,
-				        "%s: clean exited with status %d\n",
-				        progname, WEXITSTATUS(status));
+				if (WIFSIGNALED(status))
+				{
+					fprintf(stderr,
+					        "%s: clean died with signal %d\n",
+					        progname, WTERMSIG(status));
+				}
+				else
+				{
+					fprintf(stderr,
+					        "%s: clean exited with status %d\n",
+					        progname, WEXITSTATUS(status));
+				}
+
+				(void) lseek(fd, 0, SEEK_SET);
+
+				dumpargs(stdout, args);
+
+				for (;;)
+				{
+					n = read(fd, buf, sizeof buf);
+					(void) fwrite(buf, 1, n, stdout);
+					if (n < sizeof buf)
+						break;
+				}
+
+				close(fd);
+				free(args);
+				json_decref(j);
+				return 1;
 			}
 
-			(void) lseek(fd, 0, SEEK_SET);
-
-			dumpargs(stdout, args);
-
-			for (;;)
-			{
-				n = read(fd, buf, sizeof buf);
-				(void) fwrite(buf, 1, n, stdout);
-				if (n < sizeof buf)
-					break;
-			}
-
-			close(fd);
-			free(args);
-			json_decref(j);
-			return 1;
+			break;
 		}
 
-		break;
+		/* clean up */
+		close(fd);
 	}
-
-	/* clean up */
-	close(fd);
 
 	for (c = 0; c < combos; c++)
 	{
@@ -438,6 +446,12 @@ main(int argc, char **argv)
 					}
 				}
 			}
+		}
+
+		if (showcombos)
+		{
+			dumpargs(stdout, args);
+			continue;
 		}
 
 		if (verbose)
