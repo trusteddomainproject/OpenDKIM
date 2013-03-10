@@ -616,7 +616,8 @@ valid.
 .I MinimumKeyBits (integer)
 Establishes a minimum key size for acceptable signatures.  Signatures with
 smaller key sizes, even if they otherwise pass DKIM validation, will me marked
-as invalid.  The default is 1024, which accepts all signatures.
+as invalid.  The default is 1024, which accepts all signatures.  A value of
+0 causes the default to be used.
 
 .TP
 .I Mode (string)
