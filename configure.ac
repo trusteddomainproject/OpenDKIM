@@ -180,7 +180,7 @@ AC_FUNC_MALLOC
 AC_FUNC_MKTIME
 AC_FUNC_REALLOC
 
-AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname getaddrinfo gethostbyname2 gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strstr strtol strtoul strtoull realpath])
+AC_CHECK_FUNCS([dup2 endpwent getcwd gethostname gethostbyname getaddrinfo gethostbyname2 gettimeofday isascii memchr memmove memset regcomp select socket strcasecmp strchr strdup strerror strncasecmp strrchr strstr strtol strtoul strtoull realpath strsep])
 
 bsdstrl_h_found="no"
 AC_CHECK_HEADERS([bsd/string.h], [bsdstrl_h_found="yes"])
