@@ -3,7 +3,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.8.1		2013/03/??
+2.8.1		2013/03/19
 	Fix bug #SF3607071: Report the reason why a key file is determined
 		to be unsafe.  Problem noted by Doug Barton.
 	Fix bug #SF3607072: When checking for key file safety, take any
