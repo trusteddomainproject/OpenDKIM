@@ -4973,13 +4973,13 @@ dkimf_securefile(const char *path, ino_t *ino, uid_t myuid, char *err,
 	partial[1] = '\0';
 
 # ifdef HAVE_STRSEP
+	q = real;
+	while ((p = strsep(&q, "/")) != NULL)
+# else /* HAVE_STRSEP */
 	q = NULL;
 	for (p = strtok_r(real, "/", &q);
 	     p != NULL;
 	     p = strtok_r(NULL, "/", &q))
-# else /* HAVE_STRSEP */
-	q = real;
-	while ((p = strsep(&q, "/")) != NULL)
 # endif /* HAVE_STRSEP */
 	{
 		strlcat(partial, p, sizeof partial);
