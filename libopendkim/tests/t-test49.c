@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2011, 2012, The Trusted Domain Project.
+**  Copyright (c) 2009, 2011-2013, The Trusted Domain Project.
 **    All rights reserved.
 */
 
@@ -53,7 +53,7 @@ main(int argc, char **argv)
 
 	int status;
 	int err;
-	u_int s1, s2, s3;
+	u_int s1, s2, s3, s4;
 	size_t buflen;
 	DB *cache;
 	char buf[BUFRSZ + 1];
@@ -99,10 +99,11 @@ main(int argc, char **argv)
 	assert(status == 1);
 
 	printf("--- retrieve cache stats\n");
-	dkim_cache_stats(&s1, &s2, &s3);
+	dkim_cache_stats(cache, &s1, &s2, &s3, &s4, FALSE);
 	assert(s1 == 3);
 	assert(s2 == 1);
 	assert(s3 == 1);
+	assert(s4 == 0);
 
 	dkim_cache_close(cache);
 #endif /* ! QUERY_CACHE */

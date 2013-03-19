@@ -2569,7 +2569,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	{
 		_Bool first;
 		int status;
-		size_t len;
+		int len;
 		u_char *hend;
 		u_char *colon;
 		unsigned char name[DKIM_MAXHEADER + 1];
@@ -2631,7 +2631,8 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 
 			len = dkim_qp_encode(hdr->hdr_text, tmp, sizeof tmp);
 
-			dkim_dstring_catn(dstr, tmp, len);
+			if (len > 0)
+				dkim_dstring_catn(dstr, tmp, (size_t) len);
 		}
 	}
 
@@ -7152,7 +7153,10 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 	/* compute and extract the signature header */
 	len = dkim_gensighdr(dkim, sig, tmpbuf, DELIMITER);
 	if (len == 0)
+	{
+		dkim_dstring_free(tmpbuf);
 		return DKIM_STAT_INVALID;
+	}
 
 	if (dkim->dkim_b64sig != NULL)
 		dkim_dstring_cat(tmpbuf, dkim->dkim_b64sig);
@@ -9399,7 +9403,8 @@ dkim_add_querymethod(DKIM *dkim, const char *type, const char *options)
 		lastq = q;
 		if (strcasecmp(q->qm_type, type) == 0 &&
 		    ((q->qm_options == NULL && options == NULL) ||
-		     strcasecmp(q->qm_options, tmp) == 0))
+		     (q->qm_options != NULL && options != NULL &&
+		      strcasecmp(q->qm_options, tmp) == 0)))
 			return DKIM_STAT_INVALID;
 	}
 

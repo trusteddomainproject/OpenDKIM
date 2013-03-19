@@ -18,6 +18,7 @@
 
 #define	JSON_ALWAYS	"always"
 #define	JSON_COMBINE	"combine"
+#define	JSON_EACH	"each"
 
 #define	AUTORECONF	"autoreconf"
 #define	CONFIGURE	"./configure"
@@ -31,6 +32,9 @@
 #ifndef MIN
 # define MIN(a,b)	((a) < (b) ? (a) : (b))
 #endif /* ! MIN */
+#ifndef MAX
+# define MAX(a,b)	((a) > (b) ? (a) : (b))
+#endif /* ! MAX */
 
 char *progname;
 
@@ -68,6 +72,7 @@ int
 usage(void)
 {
 	fprintf(stderr, "%s: usage: %s [options] descr-file\n"
+	                "\t-c\tshow combinations and exit\n"
 	                "\t-n\tparse descr-file and exit\n"
 	                "\t-t\tshow timestamps\n"
 	                "\t-v\tverbose mode\n", progname, progname);
@@ -92,6 +97,7 @@ main(int argc, char **argv)
 	int m;
 	int n;
 	int fd;
+	int showcombos = 0;
 	int verbose = 0;
 	int timestamps = 0;
 	int confonly = 0;
@@ -102,12 +108,16 @@ main(int argc, char **argv)
 	size_t d;
 	size_t bits;
 	size_t nopts;
+	size_t neach = 1;
 	size_t nargs;
 	size_t maxopts;
+	size_t meach = 0;
+	size_t xeach;
 	json_t *j;
 	json_t *node;
 	json_t *always = NULL;
 	json_t *combine = NULL;
+	json_t *each = NULL;
 	json_error_t err;
 	void *iter;
 	char *p;
@@ -119,10 +129,14 @@ main(int argc, char **argv)
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 
-	while ((c = getopt(argc, argv, "ntv")) != -1)
+	while ((c = getopt(argc, argv, "cntv")) != -1)
 	{
 		switch (c)
 		{
+		  case 'c':
+			showcombos++;
+			break;
+
 		  case 'n':
 			confonly++;
 			break;
@@ -176,6 +190,7 @@ main(int argc, char **argv)
 		node = json_object_iter_value(iter);
 
 		if (strcasecmp(key, JSON_ALWAYS) != 0 &&
+		    strcasecmp(key, JSON_EACH) != 0 &&
 		    strcasecmp(key, JSON_COMBINE) != 0)
 		{
 			fprintf(stderr,
@@ -196,6 +211,10 @@ main(int argc, char **argv)
 		{
 			always = node;
 		}
+		else if (strcasecmp(key, JSON_EACH) == 0)
+		{
+			each = node;
+		}
 		else
 		{
 			combine = node;
@@ -215,6 +234,20 @@ main(int argc, char **argv)
 		nopts = 0;
 	else
 		nopts = json_array_size(combine);
+	if (each == NULL)
+	{
+		neach = 1;
+	}
+	else
+	{
+		neach = json_array_size(each);
+		for (n = 0; n < neach; n++)
+		{
+			node = json_array_get(each, n);
+			if (json_is_array(node))
+				meach = MAX(json_array_size(node), meach);
+		}
+	}
 
 	for (n = 0; n < nopts; n++)
 	{
@@ -250,7 +283,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	asz = sizeof(char *) * (nargs + nopts + 2);
+	asz = sizeof(char *) * (nargs + nopts + meach + 2);
 	args = (const char **) malloc(asz);
 	if (args == NULL)
 	{
@@ -259,7 +292,7 @@ main(int argc, char **argv)
 		return EX_OSERR;
 	}
 
-	combos = (size_t) pow(2, nopts);
+	combos = (size_t) pow(2, nopts) * neach;
 
 	if (verbose > 1)
 	{
@@ -273,82 +306,87 @@ main(int argc, char **argv)
 	args[2] = "-i";
 	args[3] = NULL;
 
-	strncpy(fn, TEMPLATE, sizeof fn);
-	fd = mkstemp(fn);
-	if (fd < 0)
+	if (!showcombos)
 	{
-		fprintf(stderr, "%s: mkstemp(): %s\n", progname,
-		        strerror(errno));
-		return EX_OSERR;
-	}
-	(void) unlink(fn);
-
-	child = fork();
-	switch (child)
-	{
-	  case -1:
-		fprintf(stderr, "%s: fork(): %s\n", progname,
-		        strerror(errno));
-		return EX_OSERR;
-
-	  case 0:
-		(void) dup2(fd, 1);
-		(void) dup2(fd, 2);
-		(void) execvp(args[0], (char * const *) args);
-		fprintf(stderr, "%s: execvp(): %s\n", progname,
-		        strerror(errno));
-		return EX_OSERR;
-
-	  default:
-		n = wait(&status);
-		if (n == -1)
+		strncpy(fn, TEMPLATE, sizeof fn);
+		fd = mkstemp(fn);
+		if (fd < 0)
 		{
-			fprintf(stderr, "%s: wait(): %s\n", progname,
-			        strerror(errno));
+			fprintf(stderr, "%s: mkstemp(): %s\n", progname,
+		        	strerror(errno));
 			return EX_OSERR;
 		}
-		else if (WIFSIGNALED(status) ||
-		         WEXITSTATUS(status) != 0)
+		(void) unlink(fn);
+
+		child = fork();
+		switch (child)
 		{
-			if (WIFSIGNALED(status))
+		  case -1:
+			fprintf(stderr, "%s: fork(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+
+		  case 0:
+			(void) dup2(fd, 1);
+			(void) dup2(fd, 2);
+			(void) execvp(args[0], (char * const *) args);
+			fprintf(stderr, "%s: execvp(): %s\n", progname,
+			        strerror(errno));
+			return EX_OSERR;
+
+		  default:
+			n = wait(&status);
+			if (n == -1)
 			{
-				fprintf(stderr,
-				        "%s: clean died with signal %d\n",
-				        progname, WTERMSIG(status));
+				fprintf(stderr, "%s: wait(): %s\n", progname,
+				        strerror(errno));
+				return EX_OSERR;
 			}
-			else
+			else if (WIFSIGNALED(status) ||
+			         WEXITSTATUS(status) != 0)
 			{
-				fprintf(stderr,
-				        "%s: clean exited with status %d\n",
-				        progname, WEXITSTATUS(status));
+				if (WIFSIGNALED(status))
+				{
+					fprintf(stderr,
+					        "%s: clean died with signal %d\n",
+					        progname, WTERMSIG(status));
+				}
+				else
+				{
+					fprintf(stderr,
+					        "%s: clean exited with status %d\n",
+					        progname, WEXITSTATUS(status));
+				}
+
+				(void) lseek(fd, 0, SEEK_SET);
+
+				dumpargs(stdout, args);
+
+				for (;;)
+				{
+					n = read(fd, buf, sizeof buf);
+					(void) fwrite(buf, 1, n, stdout);
+					if (n < sizeof buf)
+						break;
+				}
+
+				close(fd);
+				free(args);
+				json_decref(j);
+				return 1;
 			}
 
-			(void) lseek(fd, 0, SEEK_SET);
-
-			dumpargs(stdout, args);
-
-			for (;;)
-			{
-				n = read(fd, buf, sizeof buf);
-				(void) fwrite(buf, 1, n, stdout);
-				if (n < sizeof buf)
-					break;
-			}
-
-			close(fd);
-			free(args);
-			json_decref(j);
-			return 1;
+			break;
 		}
 
-		break;
+		/* clean up */
+		close(fd);
 	}
-
-	/* clean up */
-	close(fd);
 
 	for (c = 0; c < combos; c++)
 	{
+		xeach = c % neach;
+
 		memset(args, '\0', asz);
 		bits = c;
 
@@ -362,10 +400,32 @@ main(int argc, char **argv)
 			args[n++] = json_string_value(node);
 		}
 
+		/* select the "each" argument */
+		if (each != NULL)
+		{
+			node = json_array_get(each, xeach);
+			if (json_is_string(node))
+			{
+				args[n++] = json_string_value(node);
+			}
+			else
+			{
+				json_t *sub;
+
+				for (m = 0;
+				     m < json_array_size(node);
+				     m++)
+				{
+					sub = json_array_get(node, m);
+					args[n++] = json_string_value(sub);
+				}
+			}
+		}
+
 		/* add the new combination of options */
 		for (d = 0; d < nopts; d++)
 		{
-			if (c & (1 << d))
+			if ((c / neach) & (1 << d))
 			{
 				node = json_array_get(combine, d);
 
@@ -386,6 +446,12 @@ main(int argc, char **argv)
 					}
 				}
 			}
+		}
+
+		if (showcombos)
+		{
+			dumpargs(stdout, args);
+			continue;
 		}
 
 		if (verbose)

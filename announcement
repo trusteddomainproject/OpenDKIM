@@ -1,104 +1,25 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.8.0 released
+Subject: OpenDKIM v2.8.1 released
 
-The Trusted Domain Project announces availability of OpenDKIM v2.8.0, now
+The Trusted Domain Project announces availability of OpenDKIM v2.8.1, now
 available for download from SourceForge.
 
-This release includes several bug fixes and some new features.  Most notable
-among these are:
-
-(1) a fix to canonicalization that could invalidate certain uncommon but
-    valid signatures when the library is used in certain modes
-
-(2) further development of the RRD reputation module
-
-(3) few extensions that allow experimental use of the library in non-email
-    contexts
-
-(4) support for sending reports via SMTP 
-
-(5) more seamless integration with postfix configuration files
-
-Because of the library fixes, upgrading is recommended.
+This is a minor bug fix release.  If the issues identified below aren't 
+affecting you now, upgrade is not required.
 
 The full RELEASE_NOTES for this version:
 
-2.8.0		2013/02/25
-	Feature request #SF2964383: Add DKIM_LIBFLAGS_STRICTRESIGN, which
-		inhibits signing of a handle tagged for resigning when the
-		attached verifying handle had no valid signatures in it.
-	Feature request #SF3155117: Do a more thorough check for writeable
-		key files, checking more of the filesystem permission tree.
-	Feature request #SF3530734: Add "LDAPDisableCache", which suppresses
-		the creation of a local cache in front of LDAP queries.
-		Requested by Quanah Gibson-Mount.
-	Feature request #SF3547359: If compiled with libcurl, add "SMTPURI"
-		configuration option that allows direct SMTP transmission
-		failure reports.  Requested by Andreas Schulze.
-	Feature request #SF3578197: Allow per-message override of the list of
-		header fields to be signed.  Requested by Alec Peterson.
-	Feature request #SF3590860: Combine collected reputation values into
-		an overall allowed rate under _FFR_REPRRD, as is done for the
-		other reputation code.
-	Feature request #SF3598991: Add odkim.signfor() function to the Lua
-		setup script.  Requested by Marcin Owsiany.
-	Feature request #SF3599409: Modify dkimf_checkip() to try surrounding
-		the IP address part of every query with square brackets, which
-		is a common way to do IP address literals in email contexts.
-		Requested by Quanah Gibson-Mount.
-	Fix bug #SF3531477: Add (hopefully temporary) configuration option
-		"DisableCryptoInit" so that opendkim's initialization of the
-		crypto library doesn't conflict with the same work done by
-		other libraries.  Reported by Quanah Gibson-Mount.
-	Fix bug #SF3599901: Rename "InsecureKey" to "UnprotectedKey" and
-		"InsecurePolicy" to "UnprotectedPolicy", as the term "insecure"
-		in reference to a key is sometimes interpreted to mean "not
-		enough random bits" rather than as a keyword describing the
-		presence or absence of DNSSEC protection.  What's logged in
-		Authentication-Results header fields has been similarly
-		modified.  Suggested by Scott Kitterman.
-	Fix bug #SF3604525: Don't divide by zero when the query cache hasn't
-		been used.  Reported by Denis Klimov.
-	Protect against handling of signatures with empty domains, which could
-		cause a NULL dereference and a crash.  Problem noted by
-		Motohiro Ishiyama and John Wood.
-	Do ATPS checks when enabled even if ADSP is disabled.
- 	Don't fail to start on empty or null configuration files.  Problem
- 		noted by Steve Jenkins.
-	Patch #SF3593422: Update for MDB 0.9.5 support.  Patch from
-		Quanah Gibson-Mount.
-	LIBOPENDKIM: Fix header canonicalization when DKIM_LIBFLAG_FIXCRLF is
-		used in combination with dkim_chunk().  Problem noted by
-		Dave Kelly and Heather Lord.
-	LIBOPENDKIM: Enable dkim_getcachestats() and the underlying function
-		to extract the current number of keys in the cache, and also
-		provide a counter reset mechanism.
-	BUILD: Feature request #SF3547151: Check for Lua package name variants
-		in use on Debian.  Requested by Scott Kitterman.
-	BUILD: Feature request #SF3599902: Change OpenSSL existence test
-		to help with Debian packaging.  Requested by Scott Kitterman.
-	BUILD: Add "--with-test-socket" to force all of the filter unit tests
-		to use a specific socket.  Based on a bug report from
-		Scott Kitterman.
-	BUILD: Add checks for strlcat()/strlcpy() in libbsd.  Patch from
-		Scott Kitterman.
-	CONTRIB: Fix bug #SF3575666: Pass pid file path to killproc.
-		Suggested by Christophe Wolfhugel.
-	CONTRIB: Add systemd directory.  Contributed by Steve Jenkins.
-	CONTRIB: Split out initial key generation function from
-		contrib/init/redhat/opendkim.  Contributed by Steve Jenkins.
-	MILTERTEST: Don't crash in mt_connect() if the socketspec doesn't
-		contain a colon.
-	MILTERTEST: When connect() fails for an AF_INET socket, it apparently
-		leaves the socket unusable.  Discard the socket when that
-		happens and get a new one.
-	MILTERTEST: Add a way to extend the mt.connect() retry interval via
-		environment variables so a large test suite can be easily
-		extended on slow systems.  Problem noted by Scott Kitterman.
-	TOOLS: Register DNS functions before calling dkim_dns_init() in
-		opendkim-testkey.  Problem noted by Jeff Anton.
-	TOOLS: Add "-K" (keep temporary files) flag for opendkim-testmsg.
+2.8.1		2013/03/19
+	Fix bug #SF3607071: Report the reason why a key file is determined
+		to be unsafe.  Problem noted by Doug Barton.
+	Fix bug #SF3607072: When checking for key file safety, take any
+		"-u" value provided on the command line into account.
+		Problem noted by Doug Barton.
+	Fix bug #SF3608401: Solaris 10 doesn't have strsep().  Problem noted
+		by Bryan Costales.
+	BUILD: Fix build for versions of libdb between 3.1 and 4.6.
+		Problem noted by John Wood.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
