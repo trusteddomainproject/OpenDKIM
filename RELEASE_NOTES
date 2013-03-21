@@ -6,6 +6,8 @@ release, and a summary of the changes in that release.
 2.8.2		2013/03/??
 	Fix snprintf() arguments in dkimf_checkfsnode().  Problem noted by
 		Scott Kitterman.
+	CONTRIB: Patch #SF3608716: Fixes to spec/opendkim.spec.in from
+		Kouhei Sutou.
 
 2.8.1		2013/03/19
 	Fix bug #SF3607071: Report the reason why a key file is determined
