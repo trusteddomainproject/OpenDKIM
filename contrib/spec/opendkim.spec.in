@@ -43,7 +43,7 @@ required for developing applications against libopendkim.
 if [ -d /usr/include/kerberos ]; then
 	INCLUDES="$INCLUDES -I/usr/include/kerberos"
 fi
-./configure --prefix=%{_prefix} --sysconfdir=%{_sysconfdir} --libdir=%{_libdir} --mandir=%{_mandir} CPPFLAGS="$INCLUDES"
+./configure --prefix=%{_prefix} --sysconfdir=%{_sysconfdir} --libdir=%{_libdir} --mandir=%{_mandir} @SPECCONFIGURE@ CPPFLAGS="$INCLUDES"
 
 make
 

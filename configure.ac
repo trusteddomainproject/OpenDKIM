@@ -2560,23 +2560,27 @@ AC_SUBST([SYSCONFDIR])
 #
 
 installbin="no"
+specconfig=""
 
 # autobuild
 if test x"$jansson_found" = x"yes"
 then
 	installbin="yes"
+	specconfig="$specconfig --with-jansson=$janssonpath"
 fi
 
 # opendkim-spam
 if test x"$enable_stats" = x"yes" -a x"$odbx_found" = x"yes"
 then
 	installbin="yes"
+	specconfig="$specconfig --enable-stats --with-odbx=$odbxpath"
 fi
 
 # miltertest
 if test x"$lua_found" = x"yes"
 then
 	installbin="yes"
+	specconfig="$specconfig --with-lua=$luapath"
 fi
 
 SPECBINDIR=""
@@ -2584,7 +2588,11 @@ if test x"$installbin" = x"yes"
 then
 	SPECBINDIR="%{_bindir}/*"
 fi
+
+SPECCONFIGURE="$specconfig"
+
 AC_SUBST(SPECBINDIR)
+AC_SUBST(SPECCONFIGURE)
 
 #
 # Finish up
