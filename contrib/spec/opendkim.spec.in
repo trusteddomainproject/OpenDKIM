@@ -123,9 +123,9 @@ fi
 %doc opendkim/opendkim.conf.simple-verify opendkim/opendkim.conf.simple
 %config(noreplace) %{_sysconfdir}/opendkim.conf
 %config %{_initrddir}/%{name}
-%{_sbindir}/*
-%{_bindir}/*
 %{_mandir}/*/*
+%{_sbindir}/*
+@SPECBINDIR@
 
 %files -n libopendkim
 %defattr(-,root,root)

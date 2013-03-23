@@ -2556,6 +2556,37 @@ SYSCONFDIR=`eval echo "$sysconfdir"`
 AC_SUBST([SYSCONFDIR])
 
 #
+# for contrib/spec/opendkim.spec.in
+#
+
+installbin="no"
+
+# autobuild
+if test x"$jansson_found" = x"yes"
+then
+	installbin="yes"
+fi
+
+# opendkim-spam
+if test x"$enable_stats" = x"yes" -a x"$odbx_found" = x"yes"
+then
+	installbin="yes"
+fi
+
+# miltertest
+if test x"$lua_found" = x"yes"
+then
+	installbin="yes"
+fi
+
+SPECBINDIR=""
+if test x"$installbin" = x"yes"
+then
+	SPECBINDIR="%{_bindir}/*"
+fi
+AC_SUBST(SPECBINDIR)
+
+#
 # Finish up
 #
 AC_OUTPUT([	Makefile
