@@ -2561,6 +2561,36 @@ AC_SUBST([SYSCONFDIR])
 
 installbin="no"
 specconfig=""
+specrequires=""
+specbuildrequires=""
+
+if test x"$enable_reputation" = x"yes"
+then
+	specconfig="$specconfig --enable-reputation"
+	specrequires="$specrequires libcurl"
+	specbuildrequires="$specbuildrequires libcurl-devel"
+	if test x"$xml2_found" = x"yes"
+	then
+		specrequires="$specrequires libxml2"
+		specbuildrequires="$specbuildrequires libxml2-devel"
+	else
+		specrequires="$specrequires libjansson"
+		specbuildrequires="$specbuildrequires libjansson-devel"
+	fi
+fi
+
+if test x"$enable_stats" = x"yes"
+then
+	specconfig="$specconfig --enable-stats --with-odbx"
+	specrequires="$specrequires libdb opendbx"
+	specbuildrequires="$specbuildrequires libdb-devel opendbx-devel"
+fi
+
+if test x"$xml2_found" = x"yes"
+then
+	installbin="yes"
+	specconfig="$specconfig --with-libxml2=$xml2path"
+fi
 
 # autobuild
 if test x"$jansson_found" = x"yes"
@@ -2581,6 +2611,8 @@ if test x"$lua_found" = x"yes"
 then
 	installbin="yes"
 	specconfig="$specconfig --with-lua=$luapath"
+	specrequries="$specrequires lua"
+	specbuildrequries="$specbuildrequires lua-devel"
 fi
 
 SPECBINDIR=""
@@ -2591,8 +2623,24 @@ fi
 
 SPECCONFIGURE="$specconfig"
 
+if test x"$specrequires" = x""
+then
+	SPECREQUIRES=""
+else
+	SPECREQUIRES="Requires: $specrequires"
+fi
+
+if test x"$specbuildrequires" = x""
+then
+	SPECBUILDREQUIRES=""
+else
+	SPECBUILDREQUIRES="BuildRequires: $specbuildrequires"
+fi
+
 AC_SUBST(SPECBINDIR)
 AC_SUBST(SPECCONFIGURE)
+AC_SUBST(SPECREQUIRES)
+AC_SUBST(SPECBUILDREQUIRES)
 
 #
 # Finish up
