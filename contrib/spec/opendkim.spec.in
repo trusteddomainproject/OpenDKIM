@@ -136,8 +136,7 @@ fi
 %files -n libopendkim-devel
 %defattr(-,root,root)
 %doc libopendkim/docs/*.html
-%{_includedir}/opendkim
-%{_includedir}/strl
+%{_includedir}/*
 %{_libdir}/*.a
 %{_libdir}/*.la
 %{_libdir}/*.so

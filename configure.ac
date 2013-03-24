@@ -2574,8 +2574,8 @@ then
 		specrequires="$specrequires libxml2"
 		specbuildrequires="$specbuildrequires libxml2-devel"
 	else
-		specrequires="$specrequires libjansson"
-		specbuildrequires="$specbuildrequires libjansson-devel"
+		specrequires="$specrequires jansson"
+		specbuildrequires="$specbuildrequires jansson-devel"
 	fi
 fi
 
@@ -2627,14 +2627,14 @@ if test x"$specrequires" = x""
 then
 	SPECREQUIRES=""
 else
-	SPECREQUIRES="Requires: $specrequires"
+	SPECREQUIRES="Requires:$specrequires"
 fi
 
 if test x"$specbuildrequires" = x""
 then
 	SPECBUILDREQUIRES=""
 else
-	SPECBUILDREQUIRES="BuildRequires: $specbuildrequires"
+	SPECBUILDREQUIRES="BuildRequires:$specbuildrequires"
 fi
 
 AC_SUBST(SPECBINDIR)
