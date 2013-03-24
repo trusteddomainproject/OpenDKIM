@@ -2009,20 +2009,44 @@ then
 fi
 
 #
-# libjansson, required by reputation
-#
+# reputation requires libjansson or libxml2; prefer the former
+# 
 
 AC_ARG_WITH([libjansson],
             AS_HELP_STRING([--with-libjansson],
                            [location of jansson includes and library]),
             [janssonpath="$withval"], [janssonpath="auto"])
 
+AC_ARG_WITH([libxml2],
+            AS_HELP_STRING([--with-libxml2],
+                           [location of XML2 includes and library]),
+            [xml2path="$withval"], [xml2path="auto"])
+
+if test x"$janssonpath" != x"no" -a x"$xml2path" != x"no" -a \
+	x"$janssonpath" != x"auto" -a x"$xml2path" != x"auto"
+then
+	AC_MSG_ERROR([cannot use both libxml2 and libjansson])
+fi
+
+#
+# libjansson
+#
+
 LIBJANSSON_CPPFLAGS=""
 LIBJANSSON_LDFLAGS=""
 LIBJANSSON_LIBS=""
 
+# if reputation is disabled, we don't need it
 if test x"$enable_reputation" != x"yes" -a \
         x"$janssonpath" = x"auto"
+then
+	janssonpath="no"
+fi
+
+# if libxml2 is specifically requested and libjansson was not, don't
+# try libjansson
+if test x"$xml2path" != x"auto" -a x"$xml2path" != x"no" -a \
+	x"$janssonpath" = x"auto"
 then
 	janssonpath="no"
 fi
@@ -2088,11 +2112,6 @@ AM_CONDITIONAL(JANSSON, test x"$LIBJANSSON_LIBS" != x"")
 #
 # libxml2
 #
-
-AC_ARG_WITH([libxml2],
-            AS_HELP_STRING([--with-libxml2],
-                           [location of XML2 includes and library]),
-            [xml2path="$withval"], [xml2path="auto"])
 
 LIBXML2_CPPFLAGS=""
 LIBXML2_LDFLAGS=""
