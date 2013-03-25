@@ -24,7 +24,11 @@ the boundary between header fields and the body of the message and process
 it accordingly. <p>
 
 Lines in the data chunk are expected to be CRLF-terminated in the
-standard way. <p>
+standard way.  For input that is not, consider setting the
+<tt>DKIM_LIBFLAGS_FIXCRLF</tt> (see
+<a href="dkim_options.html"><tt>dkim_options()</tt></a>), which will
+cause this function to attempt to auto-detect based on the first line
+whether the input is CRLF-terminated or not, and adapt accordingly. <p>
 
 <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a> will be called implicitly
 by this function upon encountering the end of the message's header block,
