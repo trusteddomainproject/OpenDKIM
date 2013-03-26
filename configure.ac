@@ -2607,14 +2607,14 @@ fi
 
 if test x"$xml2_found" = x"yes"
 then
-	specconfig="$specconfig --with-libxml2=$xml2path"
+	specconfig="$specconfig --with-libxml2=$xml2path --without-libjansson"
 fi
 
-# autobuild
 if test x"$jansson_found" = x"yes"
 then
+	# autobuild
 	installbin="yes"
-	specconfig="$specconfig --with-libjansson=$janssonpath"
+	specconfig="$specconfig --with-libjansson=$janssonpath --without-libxml2"
 fi
 
 # opendkim-spam
