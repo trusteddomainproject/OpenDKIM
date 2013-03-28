@@ -1,25 +1,22 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.8.1 released
+Subject: OpenDKIM v2.8.2 released
 
 The Trusted Domain Project announces availability of OpenDKIM v2.8.1, now
 available for download from SourceForge.
 
-This is a minor bug fix release.  If the issues identified below aren't 
-affecting you now, upgrade is not required.
+This is a bug fix release.  If you have upgraded to the 2.8.x line,
+installing this version is recommended.
 
 The full RELEASE_NOTES for this version:
 
-2.8.1		2013/03/19
-	Fix bug #SF3607071: Report the reason why a key file is determined
-		to be unsafe.  Problem noted by Doug Barton.
-	Fix bug #SF3607072: When checking for key file safety, take any
-		"-u" value provided on the command line into account.
-		Problem noted by Doug Barton.
-	Fix bug #SF3608401: Solaris 10 doesn't have strsep().  Problem noted
-		by Bryan Costales.
-	BUILD: Fix build for versions of libdb between 3.1 and 4.6.
-		Problem noted by John Wood.
+2.8.2		2013/03/27
+	Authentication-Results tokens should be checked without case
+		sensitivity.  Problem noted by Chris Meidinger.
+	Fix snprintf() arguments in dkimf_checkfsnode().  Problem noted by
+		Scott Kitterman.
+	CONTRIB: Patch #SF3608716: Fixes to spec/opendkim.spec.in from
+		Kouhei Sutou.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
