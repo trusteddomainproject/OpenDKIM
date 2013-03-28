@@ -3,7 +3,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.8.2		2013/03/??
+2.8.2		2013/03/27
 	Authentication-Results tokens should be checked without case
 		sensitivity.  Problem noted by Chris Meidinger.
 	Fix snprintf() arguments in dkimf_checkfsnode().  Problem noted by
