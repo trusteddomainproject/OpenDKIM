@@ -5,6 +5,8 @@ dist_doc_DATA = dkim.html \
 	dkim_add_querymethod.html \
 	dkim_add_xtag.html \
 	dkim_alg_t.html \
+	dkim_atps_check.html \
+	dkim_atps_t.html \
 	dkim_body.html \
 	dkim_canon_t.html \
 	dkim_cbstat.html \
@@ -45,6 +47,7 @@ dist_doc_DATA = dkim.html \
 	dkim_getsighdr_d.html \
 	dkim_getsiglist.html \
 	dkim_getsignature.html \
+	dkim_getsslbuf.html \
 	dkim_getuser.html \
 	dkim_header.html \
 	dkim_init.html \
@@ -82,6 +85,7 @@ dist_doc_DATA = dkim.html \
 	dkim_set_signature_handle_free.html \
 	dkim_set_signature_tagvalues.html \
 	dkim_set_signer.html \
+	dkim_set_trust_anchor.html \
 	dkim_set_user_context.html \
 	dkim_sig_getbh.html \
 	dkim_sig_getcanonlen.html \
@@ -91,6 +95,7 @@ dist_doc_DATA = dkim.html \
 	dkim_sig_geterror.html \
 	dkim_sig_geterrorstr.html \
 	dkim_sig_getflags.html \
+	dkim_sig_gethashes.html \
 	dkim_sig_getkeysize.html \
 	dkim_sig_getqueries.html \
 	dkim_sig_getreportinfo.html \
@@ -98,15 +103,18 @@ dist_doc_DATA = dkim.html \
 	dkim_sig_getsignalg.html \
 	dkim_sig_getsignedhdrs.html \
 	dkim_sig_getsigntime.html \
+	dkim_sig_getsslbuf.html \
 	dkim_sig_gettagvalue.html \
 	dkim_sig_hdrsigned.html \
 	dkim_sig_ignore.html \
 	dkim_sig_process.html \
+	dkim_sig_seterror.html \
 	dkim_sig_syntax.html \
 	dkim_sigerror.html \
 	dkim_siginfo.html \
 	dkim_sigkey_t.html \
 	dkim_sign.html \
+	dkim_signhdrs.html \
 	dkim_ssl_version.html \
 	dkim_stat.html \
 	dkim_verify.html \

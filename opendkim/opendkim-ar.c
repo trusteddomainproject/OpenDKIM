@@ -299,7 +299,7 @@ ares_convert(struct lookup *table, char *str)
 	for (c = 0; ; c++)
 	{
 		if (table[c].str == NULL ||
-		    strcmp(table[c].str, str) == 0)
+		    strcasecmp(table[c].str, str) == 0)
 			return table[c].code;
 	}
 

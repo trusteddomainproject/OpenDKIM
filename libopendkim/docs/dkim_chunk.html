@@ -24,7 +24,11 @@ the boundary between header fields and the body of the message and process
 it accordingly. <p>
 
 Lines in the data chunk are expected to be CRLF-terminated in the
-standard way. <p>
+standard way.  For input that is not, consider setting the
+<tt>DKIM_LIBFLAGS_FIXCRLF</tt> (see
+<a href="dkim_options.html"><tt>dkim_options()</tt></a>), which will
+cause this function to attempt to auto-detect based on the first line
+whether the input is CRLF-terminated or not, and adapt accordingly. <p>
 
 <a href="dkim_eoh.html"><tt>dkim_eoh()</tt></a> will be called implicitly
 by this function upon encountering the end of the message's header block,
@@ -107,7 +111,8 @@ to be a C string (a sequence of characters that is terminated by '\0').
 Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, 2010, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2009, 2010, 2013, The Trusted Domain Project.  All rights
+reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set
