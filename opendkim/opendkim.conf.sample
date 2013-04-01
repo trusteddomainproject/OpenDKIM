@@ -191,6 +191,14 @@ Domain			example.com
 
 # EnableCoredumps	no
 
+##  ExemptDomains dataset
+##  	default (none)
+##
+##  A data set of domain names that are checked against the message sender's
+##  domain.  If a match is found, the message is ignored by the filter.
+
+# ExemptDomains		domain1,domain2,...
+
 ##  ExternalIgnoreList filename
 ##
 ##  Names a file from which a list of externally-trusted hosts is read.
