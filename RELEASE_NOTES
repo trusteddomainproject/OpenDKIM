@@ -3,6 +3,10 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.8.3		2013/04/??
+	Feature request #SF3609496: Don't apply reputation checks to internal
+		clients.
+
 2.8.2		2013/03/27
 	Authentication-Results tokens should be checked without case
 		sensitivity.  Problem noted by Chris Meidinger.
