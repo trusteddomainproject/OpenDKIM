@@ -479,6 +479,7 @@ struct dkimf_config
 typedef struct msgctx * msgctx;
 struct msgctx
 {
+	_Bool		mctx_internal;		/* internal source? */
 	_Bool		mctx_bldbdone;		/* BodyLengthDB applied? */
 	_Bool		mctx_eom;		/* in EOM? (enables progress) */
 	_Bool		mctx_addheader;		/* Authentication-Results: */
@@ -12929,6 +12930,9 @@ mlfi_eoh(SMFICTX *ctx)
 		dfc->mctx_addheader = TRUE;
 	}
 
+	/* remember internal state */
+	dfc->mctx_internal = originok;
+
 #ifdef USE_LUA
 	/* invoke the setup script if defined */
 	if (conf->conf_setupscript != NULL)
@@ -15091,7 +15095,8 @@ mlfi_eom(SMFICTX *ctx)
 #endif /* _FFR_REPRRD */
 
 #ifdef _FFR_REPUTATION
-		if (dfc->mctx_dkimv != NULL && conf->conf_rep != NULL)
+		if (dfc->mctx_dkimv != NULL && conf->conf_rep != NULL &&
+		    !dfc->mctx_internal)
 		{
 			float ratio;
 			unsigned long count;
