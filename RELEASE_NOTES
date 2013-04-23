@@ -4,6 +4,8 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.8.3		2013/04/??
+	Fix application of "On-InternalError" setting.  Problem noted by
+		Claus Assmann.
 	Feature request #SF3609496: Don't apply reputation checks to internal
 		clients.
 

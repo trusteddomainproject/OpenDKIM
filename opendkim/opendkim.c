@@ -638,7 +638,7 @@ struct lookup dkimf_params[] =
 	{ "badsignature",	HNDL_BADSIGNATURE },
 	{ "default",		HNDL_DEFAULT },
 	{ "dnserror",		HNDL_DNSERROR },
-	{ "internal",		HNDL_INTERNAL },
+	{ "internalerror",	HNDL_INTERNAL },
 	{ "keynotfound",	HNDL_NOKEY },
 	{ "nosignature",	HNDL_NOSIGNATURE },
 	{ "policyerror",	HNDL_POLICYERROR },
