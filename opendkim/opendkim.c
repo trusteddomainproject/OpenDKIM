@@ -16504,7 +16504,7 @@ mlfi_eom(SMFICTX *ctx)
 					s = conf->conf_selector;
 
 				syslog(LOG_INFO,
-				       "%s: %s header added (s=%s, d=%s)",
+				       "%s: %s field added (s=%s, d=%s)",
 				       dfc->mctx_jobid, DKIM_SIGNHEADER, s, d);
 			}
 		}
