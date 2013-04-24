@@ -414,6 +414,7 @@ KeyFile			/var/db/dkim/example.private
 # On-InternalError
 # On-NoSignature
 # On-Security
+# On-SignatureError
 
 ##  OversignHeaders dataset
 ##  	default (none)

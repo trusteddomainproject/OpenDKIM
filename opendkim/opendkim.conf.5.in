@@ -786,6 +786,15 @@ The default is
 .I tempfail.
 
 .TP
+.I On-SignatureError (string)
+Selects the action to be taken when a message cannot be signed because of
+issues with the message or the key provided for signing.  Possible values are
+the same as those for
+.I On-BadSignature.
+The default is
+.I tempfail.
+
+.TP
 .I OversignHeaders (dataset)
 Specifies a set of header fields that should be included in all signature
 header lists (the "h=" tag) once more than the number of times they were

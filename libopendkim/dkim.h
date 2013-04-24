@@ -84,6 +84,7 @@ typedef int DKIM_STAT;
 #define	DKIM_STAT_CBTRYAGAIN	14	/* callback says try again later */
 #define	DKIM_STAT_CBERROR	15	/* callback error */
 #define	DKIM_STAT_MULTIDNSREPLY	16	/* multiple DNS replies */
+#define	DKIM_STAT_SIGGEN	17	/* signature generation failed */
 
 /*
 **  DKIM_CBSTAT -- callback status code type

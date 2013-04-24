@@ -179,6 +179,7 @@ struct handling
 	int		hndl_reperr;		/* reputation error */
 #endif /* _FFR_REPUTATION || _FFR_REPRRD */
 	int		hndl_security;		/* security concerns */
+	int		hndl_siggen;		/* sig generation errors */
 };
 
 struct handling defaults =
@@ -192,7 +193,8 @@ struct handling defaults =
 #ifdef _FFR_REPUTATION
 	DKIMF_MILTER_ACCEPT,			/* reperror */
 #endif /* _FFR_REPUTATION */
-	DKIMF_MILTER_TEMPFAIL			/* security */
+	DKIMF_MILTER_TEMPFAIL,			/* security */
+	DKIMF_MILTER_TEMPFAIL			/* siggen */
 };
 
 /*
@@ -584,6 +586,7 @@ struct lookup
 #define	HNDL_NOKEY		6
 #define	HNDL_POLICYERROR	7
 #define	HNDL_REPERROR		8
+#define	HNDL_SIGGEN		9
 
 #define	DKIMF_MODE_SIGNER	0x01
 #define	DKIMF_MODE_VERIFIER	0x02
@@ -646,6 +649,7 @@ struct lookup dkimf_params[] =
 	{ "reputationerror",	HNDL_REPERROR },
 #endif /* _FFR_REPUTATION */
 	{ "security",		HNDL_SECURITY },
+	{ "signatureerror",	HNDL_SIGGEN },
 	{ NULL,			-1 },
 };
 
@@ -6373,6 +6377,7 @@ dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl)
 #if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
 				hndl->hndl_reperr = action;
 #endif /* _FFR_REPUTATION || defined(_FFR_REPRRD) */
+				hndl->hndl_siggen = action;
 				break;
 
 			  case HNDL_NOSIGNATURE:
@@ -6408,6 +6413,10 @@ dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl)
 				hndl->hndl_reperr = action;
 				break;
 #endif /* _FFR_REPUTATION || defined(_FFR_REPRRD) */
+
+			  case HNDL_SIGGEN:
+				hndl->hndl_siggen = action;
+				break;
 
 			  default:
 				break;
@@ -6663,6 +6672,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                   &conf->conf_handling);
 #endif /* _FFR_REPUTATION */
 		dkimf_parsehandler(data, "On-Security", &conf->conf_handling);
+		dkimf_parsehandler(data, "On-SignatureError",
+		                   &conf->conf_handling);
 
 		(void) config_get(data, "RemoveARAll", &conf->conf_remarall,
 		                  sizeof conf->conf_remarall);
@@ -9964,6 +9975,27 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 			       JOBID(dfc->mctx_jobid), err);
 		}
 		replytxt = "DKIM signature syntax error";
+		break;
+
+	  case DKIM_STAT_SIGGEN:
+		retcode = dkimf_miltercode(ctx,
+		                           conf->conf_handling.hndl_siggen,
+		                           NULL);
+
+		if (conf->conf_dolog)
+		{
+			const char *err = NULL;
+
+			if (dkim != NULL)
+				err = dkim_geterror(dkim);
+			if (err == NULL)
+				err = "unspecified";
+
+			syslog(LOG_ERR, "%s: signature generation error: %s",
+			       JOBID(dfc->mctx_jobid), err);
+		}
+
+		replytxt = "DKIM signing error";
 		break;
 	}
 

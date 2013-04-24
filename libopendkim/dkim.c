@@ -3806,7 +3806,7 @@ dkim_eom_sign(DKIM *dkim)
 		           "private key too small (%d bits, need at least %d)",
 		           sig->sig_keybits,
 		           dkim->dkim_libhandle->dkiml_minkeybits);
-		return DKIM_STAT_INVALID;
+		return DKIM_STAT_SIGGEN;
 	}
 
 	switch (sig->sig_signalg)
