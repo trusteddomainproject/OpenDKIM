@@ -194,7 +194,7 @@ struct handling defaults =
 	DKIMF_MILTER_ACCEPT,			/* reperror */
 #endif /* _FFR_REPUTATION */
 	DKIMF_MILTER_TEMPFAIL,			/* security */
-	DKIMF_MILTER_TEMPFAIL			/* siggen */
+	DKIMF_MILTER_REJECT			/* siggen */
 };
 
 /*

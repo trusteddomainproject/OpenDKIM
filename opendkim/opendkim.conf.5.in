@@ -792,7 +792,7 @@ issues with the message or the key provided for signing.  Possible values are
 the same as those for
 .I On-BadSignature.
 The default is
-.I tempfail.
+.I reject.
 
 .TP
 .I OversignHeaders (dataset)
