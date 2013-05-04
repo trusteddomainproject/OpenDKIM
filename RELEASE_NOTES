@@ -3,7 +3,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.8.3		2013/04/??
+2.8.3		2013/05/04
 	Log something when refusing to sign because the private key was too
 		small.  This also adds a new "On-SignatureError" handler
 		setting, and a new status code DKIM_STAT_SIGGEN.  Problem
