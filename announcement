@@ -2,7 +2,7 @@ From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
 Subject: OpenDKIM v2.8.3 released
 
-The Trusted Domain Project announces availability of OpenDKIM v2.8.1, now
+The Trusted Domain Project announces availability of OpenDKIM v2.8.3, now
 available for download from SourceForge.
 
 This is a minor bug fix release.  Upgrade is only necessary if it fixes a
