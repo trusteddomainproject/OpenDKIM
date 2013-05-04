@@ -1,22 +1,24 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.8.2 released
+Subject: OpenDKIM v2.8.3 released
 
 The Trusted Domain Project announces availability of OpenDKIM v2.8.1, now
 available for download from SourceForge.
 
-This is a bug fix release.  If you have upgraded to the 2.8.x line,
-installing this version is recommended.
+This is a minor bug fix release.  Upgrade is only necessary if it fixes a
+problem you're having.
 
 The full RELEASE_NOTES for this version:
 
-2.8.2		2013/03/27
-	Authentication-Results tokens should be checked without case
-		sensitivity.  Problem noted by Chris Meidinger.
-	Fix snprintf() arguments in dkimf_checkfsnode().  Problem noted by
-		Scott Kitterman.
-	CONTRIB: Patch #SF3608716: Fixes to spec/opendkim.spec.in from
-		Kouhei Sutou.
+2.8.3		2013/05/04
+	Log something when refusing to sign because the private key was too
+		small.  This also adds a new "On-SignatureError" handler
+		setting, and a new status code DKIM_STAT_SIGGEN.  Problem
+		noted by Jim Fenton.
+	Fix application of "On-InternalError" setting.  Problem noted by
+		Claus Assmann.
+	Feature request #SF3609496: Don't apply reputation checks to internal
+		clients.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
