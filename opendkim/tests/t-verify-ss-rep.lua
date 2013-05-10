@@ -31,7 +31,7 @@ end
 
 -- send connection information
 -- mt.negotiate() is called implicitly
-if mt.conninfo(conn, "localhost", "127.0.0.1") ~= nil then
+if mt.conninfo(conn, "localhost", "127.0.0.2") ~= nil then
 	error("mt.conninfo() failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
@@ -112,7 +112,7 @@ end
 
 -- send connection information
 -- mt.negotiate() is called implicitly
-if mt.conninfo(conn, "localhost", "127.0.0.1") ~= nil then
+if mt.conninfo(conn, "localhost", "127.0.0.2") ~= nil then
 	error("mt.conninfo() failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
@@ -199,7 +199,7 @@ end
 
 -- send connection information
 -- mt.negotiate() is called implicitly
-if mt.conninfo(conn, "localhost", "127.0.0.1") ~= nil then
+if mt.conninfo(conn, "localhost", "127.0.0.2") ~= nil then
 	error("mt.conninfo() failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
@@ -287,7 +287,7 @@ end
 
 -- send connection information
 -- mt.negotiate() is called implicitly
-if mt.conninfo(conn, "localhost", "127.0.0.1") ~= nil then
+if mt.conninfo(conn, "localhost", "127.0.0.2") ~= nil then
 	error("mt.conninfo() failed")
 end
 if mt.getreply(conn) ~= SMFIR_CONTINUE then
