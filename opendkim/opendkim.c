@@ -9828,8 +9828,7 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		                           NULL);
 		if (conf->conf_dolog)
 		{
-			if (conf->conf_logwhy ||
-			    retcode != SMFIS_ACCEPT)
+			if (conf->conf_logwhy || retcode != SMFIS_ACCEPT)
 			{
 				syslog(retcode == SMFIS_ACCEPT ? LOG_DEBUG
 				                               : LOG_NOTICE,
