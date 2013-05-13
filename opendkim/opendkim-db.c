@@ -3050,7 +3050,6 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 #ifdef USE_LIBMEMCACHED
 	  case DKIMF_DB_TYPE_MEMCACHE:
 	  {
-		int ns = 0;
 		in_port_t port;
 		char *colon;
 		char *q;
