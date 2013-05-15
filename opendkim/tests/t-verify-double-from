@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# test a message with two From: fields
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest $MILTERTESTFLAGS -s $srcdir/t-verify-double-from.lua -v -v -v

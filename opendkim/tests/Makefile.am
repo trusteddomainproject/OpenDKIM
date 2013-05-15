@@ -7,7 +7,7 @@ check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-dontsign t-peer t-local-adsp t-local-adsp-subdomain \
 	t-lua-verify-tests t-sign-ss-macro t-sign-ss-macro-value \
 	t-sign-ss-macro-value-file t-adsp-report t-verify-report \
-	t-sign-report t-conf-check 
+	t-sign-report t-conf-check t-verify-double-from
 
 if LIVE_TESTS
 if RBL
@@ -66,6 +66,8 @@ EXTRA_DIST = \
 	t-verify-ss-ar-bad t-verify-ss-ar-bad.conf t-verify-ss-ar-bad.lua \
 	t-verify-ss-rep t-verify-ss-rep.conf t-verify-ss-rep.lua \
 	t-verify-syntax t-verify-syntax.conf t-verify-syntax.lua \
+	t-verify-double-from t-verify-double-from.conf \
+		t-verify-double-from.lua \
 	t-dontsign t-dontsign.conf t-dontsign.lua \
 	t-lua-rbl t-lua-rbl.conf t-lua-rbl.lua t-lua-rbl.lua-final \
 	t-lua-verify-tests t-lua-verify-tests.lua t-lua-verify-tests.conf \
