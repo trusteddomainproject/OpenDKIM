@@ -178,7 +178,7 @@ character, it is presumed to be a flat file as described above.
 .TP
 .I j)
 If the string begins with "csl:", the string is treated as a comma-separated
-list as described in l) below.
+list as described in m) below.
 .TP
 .I k)
 If the string begins with "erlang:", it is presumed to refer to a function
