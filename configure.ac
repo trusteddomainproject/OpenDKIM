@@ -1451,12 +1451,7 @@ then
 				lua_found="yes"
 				LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
 	                  ],
-			  [PKG_CHECK_MODULES([LIBLUA], [lua5.2],
-					    [
-						lua_found="yes"
-						LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
-					    ],
-					    [AC_MSG_WARN([pkg-config for Lua not found, trying manual search...])])])
+			  [AC_MSG_WARN([pkg-config for Lua not found, trying manual search...])])
 fi
 
 if test \( x"$luapath" = x"yes" -o x"$luapath" = x"auto" \) -a x"$lua_found" = x"no"
@@ -1476,12 +1471,34 @@ then
 			AC_SUBST([LUA_MANNOTICE], "")
 			lua_found="yes"
 			break
+		elif test -f $d/include/lua52/lua.h
+		then
+			AC_MSG_RESULT($d)
+			LIBLUA_INCDIRS="-I$d/include/lua52"
+			LIBLUA_LIBDIRS="-L$d/lib/lua52"
+			LIBLUA_LIBS="-llua -lm"
+			AC_DEFINE([USE_LUA], 1,
+			          [support for Lua scripting])
+			AC_SUBST([LUA_MANNOTICE], "")
+			lua_found="yes"
+			break
 		elif test -f $d/include/lua5.1/lua.h
 		then
 			AC_MSG_RESULT($d)
 			LIBLUA_INCDIRS="-I$d/include/lua5.1"
 			LIBLUA_LIBDIRS="-L$d/lib"
 			LIBLUA_LIBS="-llua5.1 -lm"
+			AC_DEFINE([USE_LUA], 1,
+			          [support for Lua scripting])
+			AC_SUBST([LUA_MANNOTICE], "")
+			lua_found="yes"
+			break
+		elif test -f $d/include/lua5.2/lua.h
+		then
+			AC_MSG_RESULT($d)
+			LIBLUA_INCDIRS="-I$d/include/lua5.2"
+			LIBLUA_LIBDIRS="-L$d/lib"
+			LIBLUA_LIBS="-llua5.2 -lm"
 			AC_DEFINE([USE_LUA], 1,
 			          [support for Lua scripting])
 			AC_SUBST([LUA_MANNOTICE], "")
@@ -1518,12 +1535,26 @@ then
 		LIBLUA_LIBDIRS="-L$luapath/lib/lua51"
 		LIBLUA_LIBS="-llua -lm"
 		lua_found="yes"
+	elif test -f $luapath/include/lua52/lua.h
+	then
+		AC_MSG_RESULT($luapath)
+		LIBLUA_INCDIRS="-I$luapath/include/lua52"
+		LIBLUA_LIBDIRS="-L$luapath/lib/lua52"
+		LIBLUA_LIBS="-llua -lm"
+		lua_found="yes"
 	elif test -f $luapath/include/lua5.1/lua.h
 	then
 		AC_MSG_RESULT($luapath)
 		LIBLUA_INCDIRS="-I$luapath/include/lua5.1"
 		LIBLUA_LIBDIRS="-L$luapath/lib"
 		LIBLUA_LIBS="-llua5.1 -lm"
+		lua_found="yes"
+	elif test -f $luapath/include/lua5.2/lua.h
+	then
+		AC_MSG_RESULT($luapath)
+		LIBLUA_INCDIRS="-I$luapath/include/lua5.2"
+		LIBLUA_LIBDIRS="-L$luapath/lib"
+		LIBLUA_LIBS="-llua5.2 -lm"
 		lua_found="yes"
 	elif test -f $luapath/include/lua.h
 	then

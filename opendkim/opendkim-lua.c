@@ -37,148 +37,142 @@ struct dkimf_lua_io
 	size_t		lua_io_alloc;
 };
 
-#if LUA_VERSION_NUM == 502
-# define ODKIM_PREFIX	"odkim."
-#else /* LUA_VERSION_NUM == 502 */
-# define ODKIM_PREFIX	""
-#endif /* LUA_VERSION_NUM == 502 */
-
 #ifdef DKIMF_LUA_CONTEXT_HOOKS
 /* libraries */
 static const luaL_Reg dkimf_lua_lib_setup[] =
 {
-	{ ODKIM_PREFIX "check_popauth",		dkimf_xs_popauth	},
-	{ ODKIM_PREFIX "db_check",		dkimf_xs_dbquery	},
-	{ ODKIM_PREFIX "db_close",		dkimf_xs_dbclose	},
-	{ ODKIM_PREFIX "db_open",		dkimf_xs_dbopen		},
-	{ ODKIM_PREFIX "export",		dkimf_xs_export		},
-	{ ODKIM_PREFIX "get_clienthost",	dkimf_xs_clienthost	},
-	{ ODKIM_PREFIX "get_clientip",		dkimf_xs_clientip	},
-	{ ODKIM_PREFIX "get_dbhandle",		dkimf_xs_dbhandle	},
-	{ ODKIM_PREFIX "get_envfrom",		dkimf_xs_getenvfrom	},
-	{ ODKIM_PREFIX "get_fromdomain",	dkimf_xs_fromdomain	},
-	{ ODKIM_PREFIX "get_header",		dkimf_xs_getheader	},
-	{ ODKIM_PREFIX "get_mtasymbol",		dkimf_xs_getsymval	},
-	{ ODKIM_PREFIX "get_rcpt",		dkimf_xs_rcpt		},
-	{ ODKIM_PREFIX "get_rcptarray",		dkimf_xs_rcptarray	},
-	{ ODKIM_PREFIX "internal_ip",		dkimf_xs_internalip	},
-	{ ODKIM_PREFIX "log",			dkimf_xs_log		},
-	{ ODKIM_PREFIX "rcpt_count",		dkimf_xs_rcptcount	},
-	{ ODKIM_PREFIX "replace_header",	dkimf_xs_replaceheader	},
-	{ ODKIM_PREFIX "resign",		dkimf_xs_resign		},
-	{ ODKIM_PREFIX "set_result",		dkimf_xs_setresult	},
-	{ ODKIM_PREFIX "sign",			dkimf_xs_requestsig	},
-	{ ODKIM_PREFIX "signfor",		dkimf_xs_signfor	},
+	{ "check_popauth",	dkimf_xs_popauth	},
+	{ "db_check",		dkimf_xs_dbquery	},
+	{ "db_close",		dkimf_xs_dbclose	},
+	{ "db_open",		dkimf_xs_dbopen		},
+	{ "export",		dkimf_xs_export		},
+	{ "get_clienthost",	dkimf_xs_clienthost	},
+	{ "get_clientip",	dkimf_xs_clientip	},
+	{ "get_dbhandle",	dkimf_xs_dbhandle	},
+	{ "get_envfrom",	dkimf_xs_getenvfrom	},
+	{ "get_fromdomain",	dkimf_xs_fromdomain	},
+	{ "get_header",		dkimf_xs_getheader	},
+	{ "get_mtasymbol",	dkimf_xs_getsymval	},
+	{ "get_rcpt",		dkimf_xs_rcpt		},
+	{ "get_rcptarray",	dkimf_xs_rcptarray	},
+	{ "internal_ip",	dkimf_xs_internalip	},
+	{ "log",		dkimf_xs_log		},
+	{ "rcpt_count",		dkimf_xs_rcptcount	},
+	{ "replace_header",	dkimf_xs_replaceheader	},
+	{ "resign",		dkimf_xs_resign		},
+	{ "set_result",		dkimf_xs_setresult	},
+	{ "sign",		dkimf_xs_requestsig	},
+	{ "signfor",		dkimf_xs_signfor	},
 #ifdef _FFR_REPUTATION
-	{ ODKIM_PREFIX "spam",			dkimf_xs_spam		},
+	{ "spam",		dkimf_xs_spam		},
 #endif /* _FFR_REPUTATION */
-	{ ODKIM_PREFIX "use_ltag",		dkimf_xs_setpartial	},
-	{ ODKIM_PREFIX "verify",		dkimf_xs_verify		},
-	{ ODKIM_PREFIX "xtag",			dkimf_xs_xtag		},
-	{ NULL,					NULL			}
+	{ "use_ltag",		dkimf_xs_setpartial	},
+	{ "verify",		dkimf_xs_verify		},
+	{ "xtag",		dkimf_xs_xtag		},
+	{ NULL,			NULL			}
 };
 
 static const luaL_Reg dkimf_lua_lib_screen[] =
 {
-	{ ODKIM_PREFIX "db_check",		dkimf_xs_dbquery	},
-	{ ODKIM_PREFIX "db_close",		dkimf_xs_dbclose	},
-	{ ODKIM_PREFIX "db_open",		dkimf_xs_dbopen		},
-	{ ODKIM_PREFIX "export",		dkimf_xs_export		},
-	{ ODKIM_PREFIX "get_dbhandle",		dkimf_xs_dbhandle	},
-	{ ODKIM_PREFIX "get_envfrom",		dkimf_xs_getenvfrom	},
-	{ ODKIM_PREFIX "get_fromdomain",	dkimf_xs_fromdomain	},
-	{ ODKIM_PREFIX "get_header",		dkimf_xs_getheader	},
-	{ ODKIM_PREFIX "get_mtasymbol",		dkimf_xs_getsymval	},
-	{ ODKIM_PREFIX "get_rcpt",		dkimf_xs_rcpt		},
-	{ ODKIM_PREFIX "get_rcptarray",		dkimf_xs_rcptarray	},
-	{ ODKIM_PREFIX "get_sigarray",		dkimf_xs_getsigarray	},
-	{ ODKIM_PREFIX "get_sigcount",		dkimf_xs_getsigcount	},
-	{ ODKIM_PREFIX "get_sighandle",		dkimf_xs_getsighandle	},
-	{ ODKIM_PREFIX "log",			dkimf_xs_log		},
-	{ ODKIM_PREFIX "parse_field",		dkimf_xs_parsefield	},
-	{ ODKIM_PREFIX "rcpt_count",		dkimf_xs_rcptcount	},
-	{ ODKIM_PREFIX "sig_getdomain",		dkimf_xs_getsigdomain	},
-	{ ODKIM_PREFIX "sig_getidentity",	dkimf_xs_getsigidentity	},
-	{ ODKIM_PREFIX "sig_ignore",		dkimf_xs_sigignore	},
+	{ "db_check",		dkimf_xs_dbquery	},
+	{ "db_close",		dkimf_xs_dbclose	},
+	{ "db_open",		dkimf_xs_dbopen		},
+	{ "export",		dkimf_xs_export		},
+	{ "get_dbhandle",	dkimf_xs_dbhandle	},
+	{ "get_envfrom",	dkimf_xs_getenvfrom	},
+	{ "get_fromdomain",	dkimf_xs_fromdomain	},
+	{ "get_header",		dkimf_xs_getheader	},
+	{ "get_mtasymbol",	dkimf_xs_getsymval	},
+	{ "get_rcpt",		dkimf_xs_rcpt		},
+	{ "get_rcptarray",	dkimf_xs_rcptarray	},
+	{ "get_sigarray",	dkimf_xs_getsigarray	},
+	{ "get_sigcount",	dkimf_xs_getsigcount	},
+	{ "get_sighandle",	dkimf_xs_getsighandle	},
+	{ "log",		dkimf_xs_log		},
+	{ "parse_field",	dkimf_xs_parsefield	},
+	{ "rcpt_count",		dkimf_xs_rcptcount	},
+	{ "sig_getdomain",	dkimf_xs_getsigdomain	},
+	{ "sig_getidentity",	dkimf_xs_getsigidentity	},
+	{ "sig_ignore",		dkimf_xs_sigignore	},
 #ifdef _FFR_REPUTATION
-	{ ODKIM_PREFIX "spam",			dkimf_xs_spam		},
+	{ "spam",		dkimf_xs_spam		},
 #endif /* _FFR_REPUTATION */
-	{ NULL,					NULL			}
+	{ NULL,			NULL			}
 };
 
 # ifdef _FFR_STATSEXT
 static const luaL_Reg dkimf_lua_lib_stats[] =
 {
-	{ ODKIM_PREFIX "export",		dkimf_xs_export		},
-	{ ODKIM_PREFIX "get_envfrom",		dkimf_xs_getenvfrom	},
-	{ ODKIM_PREFIX "get_header",		dkimf_xs_getheader	},
-	{ ODKIM_PREFIX "get_mtasymbol",		dkimf_xs_getsymval	},
-	{ ODKIM_PREFIX "get_policy",		dkimf_xs_getpolicy	},
-	{ ODKIM_PREFIX "get_rcpt",		dkimf_xs_rcpt		},
-	{ ODKIM_PREFIX "get_rcptarray",		dkimf_xs_rcptarray	},
-	{ ODKIM_PREFIX "get_reputation",	dkimf_xs_getreputation	},
-	{ ODKIM_PREFIX "get_sigarray",		dkimf_xs_getsigarray	},
-	{ ODKIM_PREFIX "get_sigcount",		dkimf_xs_getsigcount	},
-	{ ODKIM_PREFIX "get_sighandle",		dkimf_xs_getsighandle	},
-	{ ODKIM_PREFIX "log",			dkimf_xs_log		},
-	{ ODKIM_PREFIX "parse_field",		dkimf_xs_parsefield	},
+	{ "export",		dkimf_xs_export		},
+	{ "get_envfrom",	dkimf_xs_getenvfrom	},
+	{ "get_header",		dkimf_xs_getheader	},
+	{ "get_mtasymbol",	dkimf_xs_getsymval	},
+	{ "get_policy",		dkimf_xs_getpolicy	},
+	{ "get_rcpt",		dkimf_xs_rcpt		},
+	{ "get_rcptarray",	dkimf_xs_rcptarray	},
+	{ "get_reputation",	dkimf_xs_getreputation	},
+	{ "get_sigarray",	dkimf_xs_getsigarray	},
+	{ "get_sigcount",	dkimf_xs_getsigcount	},
+	{ "get_sighandle",	dkimf_xs_getsighandle	},
+	{ "log",		dkimf_xs_log		},
+	{ "parse_field",	dkimf_xs_parsefield	},
 #  ifdef _FFR_RBL
-	{ ODKIM_PREFIX "rbl_check",		dkimf_xs_rblcheck	},
+	{ "rbl_check",		dkimf_xs_rblcheck	},
 #  endif /* _FFR_RBL */
-	{ ODKIM_PREFIX "rcpt_count",		dkimf_xs_rcptcount	},
-	{ ODKIM_PREFIX "sig_bhresult",		dkimf_xs_sigbhresult	},
-	{ ODKIM_PREFIX "sig_bodylength",	dkimf_xs_bodylength	},
-	{ ODKIM_PREFIX "sig_canonlength",	dkimf_xs_canonlength	},
-	{ ODKIM_PREFIX "sig_getdomain",		dkimf_xs_getsigdomain	},
-	{ ODKIM_PREFIX "sig_getidentity",	dkimf_xs_getsigidentity	},
-	{ ODKIM_PREFIX "sig_result",		dkimf_xs_sigresult	},
-	{ ODKIM_PREFIX "stats",			dkimf_xs_statsext	},
+	{ "rcpt_count",		dkimf_xs_rcptcount	},
+	{ "sig_bhresult",	dkimf_xs_sigbhresult	},
+	{ "sig_bodylength",	dkimf_xs_bodylength	},
+	{ "sig_canonlength",	dkimf_xs_canonlength	},
+	{ "sig_getdomain",	dkimf_xs_getsigdomain	},
+	{ "sig_getidentity",	dkimf_xs_getsigidentity	},
+	{ "sig_result",		dkimf_xs_sigresult	},
+	{ "stats",		dkimf_xs_statsext	},
 #ifdef _FFR_REPUTATION
-	{ ODKIM_PREFIX "spam",			dkimf_xs_spam		},
+	{ "spam",		dkimf_xs_spam		},
 #endif /* _FFR_REPUTATION */
-	{ NULL,					NULL			}
+	{ NULL,			NULL			}
 };
 # endif /* _FFR_STATSEXT */
 
 static const luaL_Reg dkimf_lua_lib_final[] =
 {
-	{ ODKIM_PREFIX "add_header",		dkimf_xs_addheader	},
-	{ ODKIM_PREFIX "add_rcpt",		dkimf_xs_addrcpt	},
-	{ ODKIM_PREFIX "del_header",		dkimf_xs_delheader	},
-	{ ODKIM_PREFIX "del_rcpt",		dkimf_xs_delrcpt	},
-	{ ODKIM_PREFIX "get_clienthost",	dkimf_xs_clienthost	},
-	{ ODKIM_PREFIX "get_clientip",		dkimf_xs_clientip	},
-	{ ODKIM_PREFIX "get_envfrom",		dkimf_xs_getenvfrom	},
-	{ ODKIM_PREFIX "get_fromdomain",	dkimf_xs_fromdomain	},
-	{ ODKIM_PREFIX "get_header",		dkimf_xs_getheader	},
-	{ ODKIM_PREFIX "get_mtasymbol",		dkimf_xs_getsymval	},
-	{ ODKIM_PREFIX "get_policy",		dkimf_xs_getpolicy	},
-	{ ODKIM_PREFIX "get_rcpt",		dkimf_xs_rcpt		},
-	{ ODKIM_PREFIX "get_rcptarray",		dkimf_xs_rcptarray	},
-	{ ODKIM_PREFIX "get_reputation",	dkimf_xs_getreputation	},
-	{ ODKIM_PREFIX "get_sigarray",		dkimf_xs_getsigarray	},
-	{ ODKIM_PREFIX "get_sigcount",		dkimf_xs_getsigcount	},
-	{ ODKIM_PREFIX "get_sighandle",		dkimf_xs_getsighandle	},
-	{ ODKIM_PREFIX "log",			dkimf_xs_log		},
-	{ ODKIM_PREFIX "quarantine",		dkimf_xs_quarantine	},
-	{ ODKIM_PREFIX "parse_field",		dkimf_xs_parsefield	},
+	{ "add_header",		dkimf_xs_addheader	},
+	{ "add_rcpt",		dkimf_xs_addrcpt	},
+	{ "del_header",		dkimf_xs_delheader	},
+	{ "del_rcpt",		dkimf_xs_delrcpt	},
+	{ "get_clienthost",	dkimf_xs_clienthost	},
+	{ "get_clientip",	dkimf_xs_clientip	},
+	{ "get_envfrom",	dkimf_xs_getenvfrom	},
+	{ "get_fromdomain",	dkimf_xs_fromdomain	},
+	{ "get_header",		dkimf_xs_getheader	},
+	{ "get_mtasymbol",	dkimf_xs_getsymval	},
+	{ "get_policy",		dkimf_xs_getpolicy	},
+	{ "get_rcpt",		dkimf_xs_rcpt		},
+	{ "get_rcptarray",	dkimf_xs_rcptarray	},
+	{ "get_reputation",	dkimf_xs_getreputation	},
+	{ "get_sigarray",	dkimf_xs_getsigarray	},
+	{ "get_sigcount",	dkimf_xs_getsigcount	},
+	{ "get_sighandle",	dkimf_xs_getsighandle	},
+	{ "log",		dkimf_xs_log		},
+	{ "quarantine",		dkimf_xs_quarantine	},
+	{ "parse_field",	dkimf_xs_parsefield	},
 # ifdef _FFR_RBL
-	{ ODKIM_PREFIX "rbl_check",		dkimf_xs_rblcheck	},
+	{ "rbl_check",		dkimf_xs_rblcheck	},
 # endif /* _FFR_RBL */
-	{ ODKIM_PREFIX "rcpt_count",		dkimf_xs_rcptcount	},
-	{ ODKIM_PREFIX "set_reply",		dkimf_xs_setreply	},
-	{ ODKIM_PREFIX "set_result",		dkimf_xs_setresult	},
-	{ ODKIM_PREFIX "sig_bhresult",		dkimf_xs_sigbhresult	},
-	{ ODKIM_PREFIX "sig_bodylength",	dkimf_xs_bodylength	},
-	{ ODKIM_PREFIX "sig_canonlength",	dkimf_xs_canonlength	},
-	{ ODKIM_PREFIX "sig_getdomain",		dkimf_xs_getsigdomain	},
-	{ ODKIM_PREFIX "sig_getidentity",	dkimf_xs_getsigidentity	},
-	{ ODKIM_PREFIX "sig_result",		dkimf_xs_sigresult	},
+	{ "rcpt_count",		dkimf_xs_rcptcount	},
+	{ "set_reply",		dkimf_xs_setreply	},
+	{ "set_result",		dkimf_xs_setresult	},
+	{ "sig_bhresult",	dkimf_xs_sigbhresult	},
+	{ "sig_bodylength",	dkimf_xs_bodylength	},
+	{ "sig_canonlength",	dkimf_xs_canonlength	},
+	{ "sig_getdomain",	dkimf_xs_getsigdomain	},
+	{ "sig_getidentity",	dkimf_xs_getsigidentity	},
+	{ "sig_result",		dkimf_xs_sigresult	},
 # ifdef _FFR_REPUTATION
-	{ ODKIM_PREFIX "spam",			dkimf_xs_spam		},
+	{ "spam",		dkimf_xs_spam		},
 # endif /* _FFR_REPUTATION */
-	{ ODKIM_PREFIX "xtag",			dkimf_xs_xtag		},
-	{ NULL,					NULL			}
+	{ "xtag",		dkimf_xs_xtag		},
+	{ NULL,			NULL			}
 };
 #endif /* DKIMF_LUA_CONTEXT_HOOKS */
 
@@ -493,7 +487,8 @@ dkimf_lua_setup_hook(void *ctx, const char *script, size_t scriptlen,
 	*/
 
 # if LUA_VERSION_NUM == 502
-	luaL_setfuncs(l, dkimf_lua_lib_setup, 0);
+	luaL_newlib(l, dkimf_lua_lib_setup);
+	lua_setglobal(l, "odkim");
 # else /* LUA_VERSION_NUM == 502 */
 	luaL_register(l, "odkim", dkimf_lua_lib_setup);
 # endif /* LUA_VERSION_NUM == 502 */
@@ -645,7 +640,8 @@ dkimf_lua_screen_hook(void *ctx, const char *script, size_t scriptlen,
 	*/
 
 # if LUA_VERSION_NUM == 502
-	luaL_setfuncs(l, dkimf_lua_lib_screen, 0);
+	luaL_newlib(l, dkimf_lua_lib_screen);
+	lua_setglobal(l, "odkim");
 # else /* LUA_VERSION_NUM == 502 */
 	luaL_register(l, "odkim", dkimf_lua_lib_screen);
 # endif /* LUA_VERSION_NUM == 502 */
@@ -787,7 +783,8 @@ dkimf_lua_stats_hook(void *ctx, const char *script, size_t scriptlen,
 	*/
 
 # if LUA_VERSION_NUM == 502
-	luaL_setfuncs(l, dkimf_lua_lib_stats, 0);
+	luaL_newlib(l, dkimf_lua_lib_stats);
+	lua_setglobal(l, "odkim");
 # else /* LUA_VERSION_NUM == 502 */
 	luaL_register(l, "odkim", dkimf_lua_lib_stats);
 # endif /* LUA_VERSION_NUM == 502 */
@@ -1035,7 +1032,8 @@ dkimf_lua_final_hook(void *ctx, const char *script, size_t scriptlen,
 	*/
 
 # if LUA_VERSION_NUM == 502
-	luaL_setfuncs(l, dkimf_lua_lib_final, 0);
+	luaL_newlib(l, dkimf_lua_lib_final);
+	lua_setglobal(l, "odkim");
 # else /* LUA_VERSION_NUM == 502 */
 	luaL_register(l, "odkim", dkimf_lua_lib_final);
 # endif /* LUA_VERSION_NUM == 502 */

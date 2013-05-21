@@ -49,7 +49,7 @@ test = {
 	{ "localhost", "2001:db8::fff4", SMFIR_ACCEPT }
 	}
 
-for index = 1, table.getn(test)
+for index = 1, #test
 do
 	-- try to connect to it
 	conn = mt.connect(sock, 40, 0.25)

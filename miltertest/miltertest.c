@@ -181,44 +181,38 @@ struct mt_lua_io
 	const char *	lua_io_script;
 };
 
-#if LUA_VERSION_NUM == 502
-# define MT_PREFIX	"mt."
-#else /* LUA_VERSION_NUM == 502 */
-# define MT_PREFIX	""
-#endif /* LUA_VERSION_NUM == 502 */
-
 static const luaL_Reg mt_library[] =
 {
-	{ MT_PREFIX "abort",		mt_abort	},
-	{ MT_PREFIX "bodyfile",		mt_bodyfile	},
-	{ MT_PREFIX "bodyrandom",	mt_bodyrandom	},
-	{ MT_PREFIX "bodystring",	mt_bodystring	},
-	{ MT_PREFIX "chdir",		mt_chdir	},
-	{ MT_PREFIX "connect",		mt_connect	},
-	{ MT_PREFIX "conninfo",		mt_conninfo	},
-	{ MT_PREFIX "data",		mt_data		},
-	{ MT_PREFIX "disconnect",	mt_disconnect	},
-	{ MT_PREFIX "echo",		mt_echo		},
-	{ MT_PREFIX "eoh",		mt_eoh		},
-	{ MT_PREFIX "eom",		mt_eom		},
-	{ MT_PREFIX "eom_check",	mt_eom_check	},
-	{ MT_PREFIX "getcwd",		mt_getcwd	},
-	{ MT_PREFIX "getheader",	mt_getheader	},
-	{ MT_PREFIX "getreply",		mt_getreply	},
-	{ MT_PREFIX "header",		mt_header	},
-	{ MT_PREFIX "helo",		mt_helo		},
-	{ MT_PREFIX "macro",		mt_macro	},
-	{ MT_PREFIX "mailfrom",		mt_mailfrom	},
-	{ MT_PREFIX "negotiate",	mt_negotiate	},
-	{ MT_PREFIX "rcptto",		mt_rcptto	},
-	{ MT_PREFIX "set_timeout",	mt_set_timeout	},
-	{ MT_PREFIX "signal",		mt_signal	},
-	{ MT_PREFIX "sleep",		mt_sleep	},
-	{ MT_PREFIX "startfilter",	mt_startfilter	},
-	{ MT_PREFIX "test_action",	mt_test_action	},
-	{ MT_PREFIX "test_option",	mt_test_option	},
-	{ MT_PREFIX "unknown",		mt_unknown	},
-	{ NULL,				NULL 		}
+	{ "abort",		mt_abort	},
+	{ "bodyfile",		mt_bodyfile	},
+	{ "bodyrandom",		mt_bodyrandom	},
+	{ "bodystring",		mt_bodystring	},
+	{ "chdir",		mt_chdir	},
+	{ "connect",		mt_connect	},
+	{ "conninfo",		mt_conninfo	},
+	{ "data",		mt_data		},
+	{ "disconnect",		mt_disconnect	},
+	{ "echo",		mt_echo		},
+	{ "eoh",		mt_eoh		},
+	{ "eom",		mt_eom		},
+	{ "eom_check",		mt_eom_check	},
+	{ "getcwd",		mt_getcwd	},
+	{ "getheader",		mt_getheader	},
+	{ "getreply",		mt_getreply	},
+	{ "header",		mt_header	},
+	{ "helo",		mt_helo		},
+	{ "macro",		mt_macro	},
+	{ "mailfrom",		mt_mailfrom	},
+	{ "negotiate",		mt_negotiate	},
+	{ "rcptto",		mt_rcptto	},
+	{ "set_timeout",	mt_set_timeout	},
+	{ "signal",		mt_signal	},
+	{ "sleep",		mt_sleep	},
+	{ "startfilter",	mt_startfilter	},
+	{ "test_action",	mt_test_action	},
+	{ "test_option",	mt_test_option	},
+	{ "unknown",		mt_unknown	},
+	{ NULL,			NULL 		}
 };
 
 /* globals */
@@ -4008,7 +4002,8 @@ main(int argc, char **argv)
 
 	/* register functions */
 #if LUA_VERSION_NUM == 502
-        luaL_setfuncs(l, mt_library, 0);
+        luaL_newlib(l, mt_library);
+	lua_setglobal(l, "mt");
 #else /* LUA_VERSION_NUM == 502 */
 	luaL_register(l, "mt", mt_library);
 #endif /* LUA_VERSION_NUM == 502 */
