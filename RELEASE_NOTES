@@ -4,6 +4,8 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.8.4		2013/06/??
+	Fix bug #SF3603525: Discard duplicate results from non-DKIM methods.
+		Problem noted by John Wood.
 	TOOLS: Fix bug #SF3609716: Fix meaning of "-S" in opendkim-genkey.
 		Problem noted by Quanah Gibson-Mount.
 	BUILD: Fix bug #SF3612816: Build compatibility with Lua 5.2.  Patch

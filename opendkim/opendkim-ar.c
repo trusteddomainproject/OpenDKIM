@@ -4,7 +4,6 @@
 **
 **  Copyright (c) 2009, 2011-2013, The Trusted Domain Project.
 **    All rights reserved.
-**
 */
 
 #include "build-config.h"
@@ -336,8 +335,41 @@ ares_xconvert(struct lookup *table, int code)
 #endif /* ARTEST */
 
 /*
-**  AUTHRES_PARSE -- parse an Authentication-Results: header, return a
-**                   structure containing a parsed result
+**  ARES_DEDUP -- if we've gotten multiple results of the same method,
+**                discard the older one
+**
+**  Parameters:
+**  	ar -- pointer to a (struct authres)
+**  	n -- the last one that was loaded
+**
+**  Return value:
+**  	TRUE iff a de-duplication happened, leaving the result referenced by
+** 	"n" open.
+*/
+
+_Bool
+ares_dedup(struct authres *ar, int n)
+{
+	_Bool duplicate = FALSE;
+	int c;
+
+	for (c = 0; c < n; c++)
+	{
+		if (ar->ares_result[c].result_method == ar->ares_result[n].result_method &&
+		    ar->ares_result[c].result_method != ARES_METHOD_DKIM)
+		{
+			memcpy(&ar->ares_result[c], &ar->ares_result[n],
+			       sizeof(ar->ares_result[c]));
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+/*
+**  ARES_PARSE -- parse an Authentication-Results: header, return a
+**                structure containing a parsed result
 **
 **  Parameters:
 **  	hdr -- NULL-terminated contents of an Authentication-Results:
@@ -441,7 +473,9 @@ ares_parse(u_char *hdr, struct authres *ar)
 			break;
 
 		  case 3:				/* method */
-			n++;
+			if (n == 0 || !ares_dedup(ar, n))
+				n++;
+
 			if (n >= MAXARESULTS)
 				return 0;
 
@@ -613,6 +647,12 @@ ares_parse(u_char *hdr, struct authres *ar)
 	if (state == 4 || state == 7 || state == 10 ||
 	    state == 11 || state == 12)
 		return -1;
+
+	if (n > 1)
+	{
+		if (ares_dedup(ar, n - 1))
+			n--;
+	}
 
 	ar->ares_count = n;
 
