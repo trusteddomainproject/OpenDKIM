@@ -3,6 +3,10 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.8.4		2013/06/??
+	Fix bug #SF3612816: Build compatibility with Lua 5.2.  Patch from
+		Hirohisa Yamaguchi.
+
 2.8.3		2013/05/04
 	Log something when refusing to sign because the private key was too
 		small.  This also adds a new "On-SignatureError" handler
