@@ -19,7 +19,6 @@
 [\-o hdrlist]
 [\-p socketspec]
 [\-P pidfile]
-[\-q]
 [\-Q]
 [\-r]
 [\-s selector]
@@ -353,10 +352,6 @@ in the configuration file.
 .TP
 .I \-P pidfile
 Specifies a file into which the filter should write its process ID at startup.
-.TP
-.I \-q
-Requests that messages which fail verification be quarantined by the
-MTA.  (Requires a sufficiently recent version of the milter library.)
 .TP
 .I \-Q
 Query test mode.  The filter will read two lines from standard input, one

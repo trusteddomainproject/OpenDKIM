@@ -141,7 +141,7 @@
 #endif /* _FFR_REPUTATION */
 
 /* macros */
-#define CMDLINEOPTS	"Ab:c:d:De:fF:k:lL:no:p:P:qQrs:S:t:T:u:vVWx:?"
+#define CMDLINEOPTS	"Ab:c:d:De:fF:k:lL:no:p:P:Qrs:S:t:T:u:vVWx:?"
 
 #ifndef MIN
 # define MIN(x,y)	((x) < (y) ? (x) : (y))
@@ -659,8 +659,10 @@ struct lookup dkimf_values[] =
 	{ "accept",		DKIMF_MILTER_ACCEPT },
 	{ "d",			DKIMF_MILTER_DISCARD },
 	{ "discard",		DKIMF_MILTER_DISCARD },
+#ifdef SMFIF_QUARANTINE
 	{ "q",			DKIMF_MILTER_QUARANTINE },
 	{ "quarantine",		DKIMF_MILTER_QUARANTINE },
+#endif /* SMFIF_QUARANTINE */
 	{ "r",			DKIMF_MILTER_REJECT },
 	{ "reject",		DKIMF_MILTER_REJECT },
 	{ "t",			DKIMF_MILTER_TEMPFAIL },
@@ -799,7 +801,6 @@ static void dkimf_sigreport __P((connctx, struct dkimf_config *, char *));
 _Bool dolog;					/* logging? (exported) */
 _Bool reload;					/* reload requested */
 _Bool no_i_whine;				/* noted ${i} is undefined */
-_Bool quarantine;				/* quarantine failures? */
 _Bool testmode;					/* test mode */
 #ifdef QUERY_CACHE
 _Bool querycache;				/* local query cache */
@@ -6339,13 +6340,16 @@ dkimf_config_free(struct dkimf_config *conf)
 **  	cfg -- configuration data structure to check
 **  	name -- handler name
 **  	hndl -- handler structure to update
+**  	err -- error buffer
+**  	errlen -- bytes available at "err"
 **
 **  Return value:
-**  	None.
+**  	TRUE if no error, FALSE if error.
 */
 
-static void
-dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl)
+static _Bool
+dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl,
+                   char *err, size_t errlen)
 {
 	int action;
 	char *val = NULL;
@@ -6353,74 +6357,80 @@ dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl)
 	assert(name != NULL);
 	assert(strncasecmp(name, "on-", 3) == 0);
 	assert(hndl != NULL);
+	assert(err != NULL);
 
 	if (cfg == NULL)
-		return;
+		return TRUE;
 
 	(void) config_get(cfg, name, &val, sizeof val);
 
 	if (val != NULL)
 	{
 		action = dkimf_configlookup(val, dkimf_values);
-		if (action != -1)
+		if (action == -1) {
+			snprintf(err, errlen, "invalid handling value \"%s\"",
+			         val);
+			return -1;
+		}
+
+		switch (dkimf_configlookup(name + 3, dkimf_params))
 		{
-			switch (dkimf_configlookup(name + 3, dkimf_params))
-			{
-			  case HNDL_DEFAULT:
-				hndl->hndl_nosig = action;
-				hndl->hndl_badsig = action;
-				hndl->hndl_dnserr = action;
-				hndl->hndl_internal = action;
-				hndl->hndl_security = action;
-				hndl->hndl_nokey = action;
-				hndl->hndl_policyerr = action;
+		  case HNDL_DEFAULT:
+			hndl->hndl_nosig = action;
+			hndl->hndl_badsig = action;
+			hndl->hndl_dnserr = action;
+			hndl->hndl_internal = action;
+			hndl->hndl_security = action;
+			hndl->hndl_nokey = action;
+			hndl->hndl_policyerr = action;
 #if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
-				hndl->hndl_reperr = action;
+			hndl->hndl_reperr = action;
 #endif /* _FFR_REPUTATION || defined(_FFR_REPRRD) */
-				hndl->hndl_siggen = action;
-				break;
+			hndl->hndl_siggen = action;
+			return TRUE;
 
-			  case HNDL_NOSIGNATURE:
-				hndl->hndl_nosig = action;
-				break;
+		  case HNDL_NOSIGNATURE:
+			hndl->hndl_nosig = action;
+			return TRUE;
 
-			  case HNDL_BADSIGNATURE:
-				hndl->hndl_badsig = action;
-				break;
+		  case HNDL_BADSIGNATURE:
+			hndl->hndl_badsig = action;
+			return TRUE;
 
-			  case HNDL_DNSERROR:
-				hndl->hndl_dnserr = action;
-				break;
+		  case HNDL_DNSERROR:
+			hndl->hndl_dnserr = action;
+			return TRUE;
 
-			  case HNDL_INTERNAL:
-				hndl->hndl_internal = action;
-				break;
+		  case HNDL_INTERNAL:
+			hndl->hndl_internal = action;
+			return TRUE;
 
-			  case HNDL_SECURITY:
-				hndl->hndl_security = action;
-				break;
+		  case HNDL_SECURITY:
+			hndl->hndl_security = action;
+			return TRUE;
 
-			  case HNDL_NOKEY:
-				hndl->hndl_nokey = action;
-				break;
+		  case HNDL_NOKEY:
+			hndl->hndl_nokey = action;
+			return TRUE;
 
-			  case HNDL_POLICYERROR:
-				hndl->hndl_policyerr = action;
-				break;
+		  case HNDL_POLICYERROR:
+			hndl->hndl_policyerr = action;
+			return TRUE;
 
 #if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
-			  case HNDL_REPERROR:
-				hndl->hndl_reperr = action;
-				break;
+		  case HNDL_REPERROR:
+			hndl->hndl_reperr = action;
+			return TRUE;
 #endif /* _FFR_REPUTATION || defined(_FFR_REPRRD) */
 
-			  case HNDL_SIGGEN:
-				hndl->hndl_siggen = action;
-				break;
+		  case HNDL_SIGGEN:
+			hndl->hndl_siggen = action;
+			return TRUE;
 
-			  default:
-				break;
-			}
+		  default:
+			snprintf(err, errlen,
+			         "unknown handling key \"%s\"", name);
+			return FALSE;
 		}
 	}
 }
@@ -6655,25 +6665,29 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                  sizeof conf->conf_modestr);
 		}
 
-		dkimf_parsehandler(data, "On-Default", &conf->conf_handling);
-		dkimf_parsehandler(data, "On-BadSignature",
-		                   &conf->conf_handling);
-		dkimf_parsehandler(data, "On-DNSError", &conf->conf_handling);
-		dkimf_parsehandler(data, "On-KeyNotFound",
-		                   &conf->conf_handling);
-		dkimf_parsehandler(data, "On-InternalError",
-		                   &conf->conf_handling);
-		dkimf_parsehandler(data, "On-NoSignature",
-		                   &conf->conf_handling);
-		dkimf_parsehandler(data, "On-PolicyError",
-		                   &conf->conf_handling);
+		if (!dkimf_parsehandler(data, "On-Default",
+		                        &conf->conf_handling, err, errlen) ||
+		    !dkimf_parsehandler(data, "On-BadSignature",
+		                        &conf->conf_handling, err, errlen) ||
+		    !dkimf_parsehandler(data, "On-DNSError",
+		                        &conf->conf_handling, err, errlen) ||
+		    !dkimf_parsehandler(data, "On-KeyNotFound",
+		                        &conf->conf_handling, err, errlen) ||
+		    !dkimf_parsehandler(data, "On-InternalError",
+		                        &conf->conf_handling, err, errlen) ||
+		    !dkimf_parsehandler(data, "On-NoSignature",
+		                        &conf->conf_handling, err, errlen) ||
+		    !dkimf_parsehandler(data, "On-PolicyError",
+		                        &conf->conf_handling, err, errlen) ||
 #ifdef _FFR_REPUTATION
-		dkimf_parsehandler(data, "On-ReptuationError",
-		                   &conf->conf_handling);
+		    !dkimf_parsehandler(data, "On-ReptuationError",
+		                        &conf->conf_handling, err, errlen) ||
 #endif /* _FFR_REPUTATION */
-		dkimf_parsehandler(data, "On-Security", &conf->conf_handling);
-		dkimf_parsehandler(data, "On-SignatureError",
-		                   &conf->conf_handling);
+		    !dkimf_parsehandler(data, "On-Security",
+		                        &conf->conf_handling, err, errlen) ||
+		    !dkimf_parsehandler(data, "On-SignatureError",
+		                        &conf->conf_handling, err, errlen))
+			return -1;
 
 		(void) config_get(data, "RemoveARAll", &conf->conf_remarall,
 		                  sizeof conf->conf_remarall);
@@ -6846,6 +6860,17 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "CaptureUnknownErrors",
 		                  &conf->conf_capture,
 		                  sizeof conf->conf_capture);
+
+#ifndef SMFIF_QUARANTINE
+		if (conf->conf_capture)
+		{
+			strlcpy(err,
+			        "quarantining not supported (required for CaptureUnknownErrors",
+			        errlen);
+
+			return -1;
+		}
+#endif /* SMFIF_QUARANTINE */
 
 		(void) config_get(data, "AllowSHA1Only",
 		                  &conf->conf_allowsha1only,
@@ -11558,7 +11583,7 @@ mlfi_negotiate(SMFICTX *ctx,
 	    conf->conf_remsigs)
 		reqactions |= SMFIF_CHGHDRS;
 # ifdef SMFIF_QUARANTINE
-	if (quarantine || conf->conf_capture)
+	if (conf->conf_capture)
 		reqactions |= SMFIF_QUARANTINE;
 # endif /* SMFIF_QUARANTINE */
 # ifdef _FFR_REDIRECT
@@ -16866,7 +16891,6 @@ main(int argc, char **argv)
 	popdb = NULL;
 #endif /* POPAUTH */
 	no_i_whine = TRUE;
-	quarantine = FALSE;
 	conffile = NULL;
 
 	memset(myhostname, '\0', sizeof myhostname);
@@ -16993,10 +17017,6 @@ main(int argc, char **argv)
 			if (optarg == NULL || *optarg == '\0')
 				return usage();
 			pidfile = optarg;
-			break;
-
-		  case 'q':
-			quarantine = TRUE;
 			break;
 
 		  case 'Q':
@@ -17539,12 +17559,6 @@ main(int argc, char **argv)
 		                  sizeof stricttest);
 
 		(void) config_get(cfg, "MilterDebug", &mdebug, sizeof mdebug);
-
-		if (!quarantine)
-		{
-			(void) config_get(cfg, "Quarantine", &quarantine,
-			                  sizeof quarantine);
-		}
 
 		if (!gotp)
 		{
@@ -18121,7 +18135,7 @@ main(int argc, char **argv)
 		    curconf->conf_remsigs)
 			smfilter.xxfi_flags |= SMFIF_CHGHDRS;
 #ifdef SMFIF_QUARANTINE
-		if (quarantine || curconf->conf_capture)
+		if (curconf->conf_capture)
 			smfilter.xxfi_flags |= SMFIF_QUARANTINE;
 #endif /* SMFIF_QUARANTINE */
 
