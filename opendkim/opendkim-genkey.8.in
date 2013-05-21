@@ -84,7 +84,11 @@ or name, of the key pair generated.  The default is "default".
 .I \-S
 (\-\-[no]subdomains)
 Disallows subdomain signing by this key.  By default the key record will be
-generated such that verifiers are told subdomain signing is permitted.
+generated such that verifiers are told subdomain signing is permitted.  Note
+that for backward compatibility reasons,
+.I \-S
+means the same as
+.I \-\-nosubdomains.
 
 .TP
 .I \-t

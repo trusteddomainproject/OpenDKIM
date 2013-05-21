@@ -32,6 +32,7 @@ my $bits = 1024;
 my $domain = "@DOMAIN@";
 my $version = "@DOMAIN@";
 my $outdir = ".";
+my $nosubdomains = 0;
 my $subdomains = 1;
 my $hashalgs;
 my $note;
@@ -93,7 +94,8 @@ my $opt_retval = &Getopt::Long::GetOptions('a|append-domain!' => \$append,
                                            'n|note=s' => \$note,
                                            'r|restrict!' => \$restricted,
                                            's|selector=s' => \$selector,
-                                           'S|subdomains!' => \$subdomains,
+                                           'S!' => \$nosubdomains,
+                                           'subdomains!' => \$subdomains,
                                            't|testmode!' => \$testmode,
                                            'v|verbose+' => \$verbose,
                                            'V|version!' => \$showversion,
@@ -202,6 +204,11 @@ close($keyin);
 if ($testmode)
 {
 	$flags = "t=y;";
+}
+
+if ($nosubdomains)
+{
+	$subdomains = 0;
 }
 
 if (!$subdomains)
