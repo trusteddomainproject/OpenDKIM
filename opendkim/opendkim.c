@@ -6364,74 +6364,72 @@ dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl,
 
 	(void) config_get(cfg, name, &val, sizeof val);
 
-	if (val != NULL)
+	if (val == NULL)
+		return TRUE;
+
+	action = dkimf_configlookup(val, dkimf_values);
+	if (action == -1) {
+		snprintf(err, errlen, "invalid handling value \"%s\"", val);
+		return -1;
+	}
+
+	switch (dkimf_configlookup(name + 3, dkimf_params))
 	{
-		action = dkimf_configlookup(val, dkimf_values);
-		if (action == -1) {
-			snprintf(err, errlen, "invalid handling value \"%s\"",
-			         val);
-			return -1;
-		}
-
-		switch (dkimf_configlookup(name + 3, dkimf_params))
-		{
-		  case HNDL_DEFAULT:
-			hndl->hndl_nosig = action;
-			hndl->hndl_badsig = action;
-			hndl->hndl_dnserr = action;
-			hndl->hndl_internal = action;
-			hndl->hndl_security = action;
-			hndl->hndl_nokey = action;
-			hndl->hndl_policyerr = action;
+	  case HNDL_DEFAULT:
+		hndl->hndl_nosig = action;
+		hndl->hndl_badsig = action;
+		hndl->hndl_dnserr = action;
+		hndl->hndl_internal = action;
+		hndl->hndl_security = action;
+		hndl->hndl_nokey = action;
+		hndl->hndl_policyerr = action;
 #if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
-			hndl->hndl_reperr = action;
+		hndl->hndl_reperr = action;
 #endif /* _FFR_REPUTATION || defined(_FFR_REPRRD) */
-			hndl->hndl_siggen = action;
-			return TRUE;
+		hndl->hndl_siggen = action;
+		return TRUE;
 
-		  case HNDL_NOSIGNATURE:
-			hndl->hndl_nosig = action;
-			return TRUE;
+	  case HNDL_NOSIGNATURE:
+		hndl->hndl_nosig = action;
+		return TRUE;
 
-		  case HNDL_BADSIGNATURE:
-			hndl->hndl_badsig = action;
-			return TRUE;
+	  case HNDL_BADSIGNATURE:
+		hndl->hndl_badsig = action;
+		return TRUE;
 
-		  case HNDL_DNSERROR:
-			hndl->hndl_dnserr = action;
-			return TRUE;
+	  case HNDL_DNSERROR:
+		hndl->hndl_dnserr = action;
+		return TRUE;
 
-		  case HNDL_INTERNAL:
-			hndl->hndl_internal = action;
-			return TRUE;
+	  case HNDL_INTERNAL:
+		hndl->hndl_internal = action;
+		return TRUE;
 
-		  case HNDL_SECURITY:
-			hndl->hndl_security = action;
-			return TRUE;
+	  case HNDL_SECURITY:
+		hndl->hndl_security = action;
+		return TRUE;
 
-		  case HNDL_NOKEY:
-			hndl->hndl_nokey = action;
-			return TRUE;
+	  case HNDL_NOKEY:
+		hndl->hndl_nokey = action;
+		return TRUE;
 
-		  case HNDL_POLICYERROR:
-			hndl->hndl_policyerr = action;
-			return TRUE;
+	  case HNDL_POLICYERROR:
+		hndl->hndl_policyerr = action;
+		return TRUE;
 
 #if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
-		  case HNDL_REPERROR:
-			hndl->hndl_reperr = action;
-			return TRUE;
+	  case HNDL_REPERROR:
+		hndl->hndl_reperr = action;
+		return TRUE;
 #endif /* _FFR_REPUTATION || defined(_FFR_REPRRD) */
 
-		  case HNDL_SIGGEN:
-			hndl->hndl_siggen = action;
-			return TRUE;
+	  case HNDL_SIGGEN:
+		hndl->hndl_siggen = action;
+		return TRUE;
 
-		  default:
-			snprintf(err, errlen,
-			         "unknown handling key \"%s\"", name);
-			return FALSE;
-		}
+	  default:
+		snprintf(err, errlen, "unknown handling key \"%s\"", name);
+		return FALSE;
 	}
 }
 
