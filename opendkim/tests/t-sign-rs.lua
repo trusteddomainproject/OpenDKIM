@@ -11,7 +11,7 @@ mt.echo("*** relaxed/simple signing test")
 if TESTSOCKET ~= nil then
 	sock = TESTSOCKET
 else
-	sock = "unix:" .. mt.getcwd() .. "/t-sign-rs.lua.sock"
+	sock = "unix:" .. mt.getcwd() .. "/t-sign-rs.sock"
 end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then

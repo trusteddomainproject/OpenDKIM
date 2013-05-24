@@ -10,7 +10,7 @@ mt.echo("*** relaxed/simple signing test with ATPS")
 if TESTSOCKET ~= nil then
 	sock = TESTSOCKET
 else
-	sock = "unix:" .. mt.getcwd() .. "/t-sign-atps.lua.sock"
+	sock = "unix:" .. mt.getcwd() .. "/t-sign-atps.sock"
 end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
