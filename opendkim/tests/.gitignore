@@ -10,6 +10,8 @@
 *.prof
 *.info
 *.gcov
+*.trs
+*.log
 t-*[0-9]
 t-verifyperf
 t-signperf
