@@ -17147,7 +17147,7 @@ main(int argc, char **argv)
 		        "%s: incompatible SSL versions (library = 0x%09lx, filter = %09lx)\n",
 		        progname, dkim_ssl_version(),
 #ifdef USE_GNUTLS
-		        GNUTLS_VERSION_NUMBER * 256);
+		        (unsigned long) GNUTLS_VERSION_NUMBER * 256);
 #else /* USE_GNUTLS */
 		        (unsigned long) OPENSSL_VERSION_NUMBER);
 #endif /* USE_GNUTLS */
