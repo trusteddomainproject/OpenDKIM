@@ -12476,7 +12476,7 @@ mlfi_eoh(SMFICTX *ctx)
 			{
 				syslog(LOG_INFO,
 				       "%s: can't parse default sender value '%s'",
-				       dfc->mctx_jobid, from);
+				       dfc->mctx_jobid, conf->conf_defsender);
 			}
 #endif /* _FFR_DEFAULT_SENDER */
 		}

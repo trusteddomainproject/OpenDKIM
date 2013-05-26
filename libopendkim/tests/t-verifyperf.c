@@ -288,7 +288,7 @@ main(int argc, char **argv)
 	fprintf(stdout,
 	        "*** VERIFYING SPEED TEST: %s/%s with %s, size %u for %lds\n",
 	        canon_name(hcanon), canon_name(bcanon), alg_name(signalg),
-	        msgsize, (long) testint);
+	        (unsigned int) msgsize, (long) testint);
 
 	key = KEY;
 
