@@ -7,4 +7,4 @@ then
 	srcdir=`pwd`
 fi
 
-../../miltertest/miltertest $MILTERTESTFLAGS -s $srcdir/t-verify-double-from.lua -v -v -v
+../../miltertest/miltertest $MILTERTESTFLAGS -s $srcdir/t-verify-double-from.lua
