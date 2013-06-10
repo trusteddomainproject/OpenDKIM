@@ -13,10 +13,13 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifdef USE_GNUTLS
 # include <gnutls/gnutls.h>
 #endif /* USE_GNUTLS */
+
+struct dkim_dstring;
 
 /* libopendkim includes */
 #include "../dkim-internal.h"
