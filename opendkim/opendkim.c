@@ -10995,7 +10995,6 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	_Bool sendreport = FALSE;
 	int status;
 	int arftype;
-	int arfdkim;
 	int nsigs = 0;
 	u_int pct;
 	time_t now;
@@ -11145,8 +11144,6 @@ dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
 
 	/* determine the type of ARF failure and, if needed, a DKIM fail code */
 	arftype = dkimf_arftype(dfc);
-	if (arftype == ARF_TYPE_AUTHFAIL)
-		arfdkim = dkimf_arfdkim(dfc);
 
 	/* From: */
 	fprintf(out, "From: %s\n", reportaddr);
