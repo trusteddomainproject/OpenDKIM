@@ -146,7 +146,7 @@ dkim_tmpfile(DKIM *dkim, int *fp, _Bool keep)
 		         dkim->dkim_libhandle->dkiml_tmpdir);
 	}
 
-	for (p = path + strlen(dkim->dkim_libhandle->dkiml_tmpdir) + 1;
+	for (p = path + strlen((char *) dkim->dkim_libhandle->dkiml_tmpdir) + 1;
 	     *p != '\0';
 	     p++)
 	{

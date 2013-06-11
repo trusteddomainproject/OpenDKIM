@@ -62,8 +62,8 @@ dkim_repinfo(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	int status;
 	int qdcount;
 	int ancount;
-	int class;
-	int type;
+	int class = -1;
+	int type = -1;
 	int error;
 	int n;
 	unsigned int c;
@@ -93,7 +93,8 @@ dkim_repinfo(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	if (sdomain == NULL)
 		return DKIM_STAT_INVALID;
 
-	snprintf(query, sizeof query, "%s.%s", DKIM_REPORT_PREFIX, sdomain);
+	snprintf(query, sizeof query, "%s.%s", DKIM_REPORT_PREFIX,
+	         (char *) sdomain);
 
 	/* XXX -- add QUERY_CACHE support here */
 
