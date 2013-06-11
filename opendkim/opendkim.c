@@ -5161,7 +5161,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
                       char *signer, ssize_t signlen)
 {
 	_Bool found = FALSE;
-	size_t keydatasz;
+	size_t keydatasz = 0;
 	struct signreq *new;
 	struct dkimf_db_data dbd[3];
 	char keydata[MAXBUFRSZ + 1];
@@ -8538,7 +8538,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			snprintf(err, errlen, "%s: open(): %s",
 			         conf->conf_keyfile, strerror(errno));
-			free(s33krit);
 			return -1;
 		}
 
