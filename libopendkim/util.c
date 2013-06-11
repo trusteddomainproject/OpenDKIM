@@ -693,7 +693,6 @@ dkim_check_dns_reply(unsigned char *ansbuf, size_t anslen,
 	int n;
 	uint16_t type = (uint16_t) -1;
 	uint16_t class = (uint16_t) -1;
-	uint32_t ttl;
 	unsigned char *cp;
 	unsigned char *eom;
 	HEADER hdr;
