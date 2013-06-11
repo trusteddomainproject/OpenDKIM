@@ -11712,7 +11712,7 @@ mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
 
 	if (!dkimf_dns_init(curconf->conf_libopendkim, curconf, &err))
 	{
-		if (conf->conf_dolog)
+		if (curconf->conf_dolog)
 			syslog(LOG_ERR, "can't initialize resolver: %s", err);
 
 		return SMFIS_TEMPFAIL;
