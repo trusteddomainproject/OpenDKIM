@@ -22,6 +22,11 @@
 /* libreprrd includes */
 #include "reprrd.h"
 
+/* libstrl if needed */
+#ifdef USE_STRL_H
+# include <strl.h>
+#endif /* USE_STRL_H */
+
 /* data types */
 struct reprrd_handle
 {
@@ -175,16 +180,13 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 	int c;
 	int di;
 	int status;
-	size_t len;
 	time_t start;
 	time_t end;
-	time_t step;
+	unsigned long step;
 	time_t ti;
 	time_t now;
 	u_long ds_cnt;
-	char *p;
 	char **ds_names;
-	char **last_ds;
 	char **cdata;
 	rrd_value_t *data;
 	rrd_value_t d_flow;			/* expected flow deviation */
