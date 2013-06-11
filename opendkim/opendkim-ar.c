@@ -350,7 +350,6 @@ ares_xconvert(struct lookup *table, int code)
 _Bool
 ares_dedup(struct authres *ar, int n)
 {
-	_Bool duplicate = FALSE;
 	int c;
 
 	for (c = 0; c < n; c++)
