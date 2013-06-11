@@ -6530,7 +6530,7 @@ dkimf_db_mkarray(DKIMF_DB db, char ***a, const char **base)
 {
 	_Bool found;
 	int status;
-	char **out;
+	char **out = NULL;
 
 	assert(db != NULL);
 	assert(a != NULL);
