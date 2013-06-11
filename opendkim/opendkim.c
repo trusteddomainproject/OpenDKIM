@@ -6455,7 +6455,9 @@ static int
 dkimf_config_load(struct config *data, struct dkimf_config *conf,
                   char *err, size_t errlen, char *become)
 {
+#ifdef USE_LDAP
 	_Bool btmp;
+#endif /* USE_LDAP */
 	int maxsign;
 	int dbflags = 0;
 	char *str;
