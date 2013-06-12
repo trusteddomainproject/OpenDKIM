@@ -4,6 +4,8 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.8.4		2013/06/??
+	Fix bug #169: Add "::1" to the default InternalHosts list.  Suggested
+		by Norbert Aschendorff.
 	Fix bug #SF3603525: Discard duplicate results from non-DKIM methods.
 		Problem noted by John Wood.
 	Fix bug #SF3611976: Fix up quarantine option handling.  Problem noted
