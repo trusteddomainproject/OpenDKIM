@@ -57,11 +57,9 @@ main(int argc, char **argv)
 	u_int flags;
 #endif /* TEST_KEEP_FILES */
 	DKIM_STAT status;
-	uint64_t fixed_time;
 	DKIM *dkim;
 	DKIM_LIB *lib;
 	dkim_sigkey_t key;
-	unsigned char hdr[MAXHEADER + 1];
 
 	printf("*** invalid key preload test\n");
 

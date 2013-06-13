@@ -420,7 +420,9 @@ main(int argc, char **argv)
 {
 	int c;
 	int n;
+#ifdef _FFR_STATSEXT
 	int extensions = 0;
+#endif /* _FFR_STATSEXT */
 	int nfields = 0;
 	int line;
 	int err;
@@ -435,7 +437,6 @@ main(int argc, char **argv)
 	int addrid;
 	int msgid;
 	int sigid;
-	int hdrid;
 	int inversion = -1;
 #ifdef HAVE_GETOPT_LONG
 	int long_opt_index = 0;
@@ -460,10 +461,10 @@ main(int argc, char **argv)
 	verbose = 0;
 
 #ifdef HAVE_GETOPT_LONG
-	while ((c = getopt(argc, argv, CMDLINEOPTS)) != -1)
-#else /* HAVE_GETOPT_LONG */
 	while ((c = getopt_long(argc, argv, CMDLINEOPTS,
 	                        long_option, &long_opt_index)) != -1)
+#else /* HAVE_GETOPT_LONG */
+	while ((c = getopt(argc, argv, CMDLINEOPTS)) != -1)
 #endif /* HAVE_GETOPT_LONG */
 	{
 		switch (c)
@@ -638,7 +639,6 @@ main(int argc, char **argv)
 		}
 
 		sigid = 0;
-		hdrid = 0;
 
 		/* processing section for messages */
 		if (c == '\0')
@@ -949,8 +949,6 @@ main(int argc, char **argv)
 		/* processing section for signatures */
 		else if (c == 'S')
 		{
-			int changed;
-
 			if (inversion != DKIMS_VERSION)
 			{
 				fprintf(stderr,

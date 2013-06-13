@@ -5715,7 +5715,6 @@ dkimf_db_strerror(DKIMF_DB db, char *err, size_t errlen)
 	  case DKIMF_DB_TYPE_DSN:
 	  {
 		char *p;
-		size_t len;
 
 		strlcpy(err, odbx_error((odbx_t *) db->db_handle,
 		                        db->db_status), errlen);
@@ -6802,6 +6801,7 @@ dkimf_db_chown(DKIMF_DB db, uid_t uid)
 {
 #ifdef USE_DB
 	int fd = -1;
+	int status = 0;
 	DB *bdb;
 #endif /* USE_DB */
 
@@ -6822,7 +6822,7 @@ dkimf_db_chown(DKIMF_DB db, uid_t uid)
 	fd = bdb->fd(bdb);
 # endif /* DB_VERSION_CHECK(2,0,0) */
 
-	if (fd == -1)
+	if (status != 0 || fd == -1)
 		return 0;
 
 	if (fchown(fd, uid, -1) != 0)

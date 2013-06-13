@@ -78,8 +78,6 @@ eatws(char *str)
 int
 main(int argc, char **argv)
 {
-	size_t llen = 0;
-	size_t wlen = LARGEBODYSIZE;
 #ifdef TEST_KEEP_FILES
 	u_int flags;
 #endif /* TEST_KEEP_FILES */

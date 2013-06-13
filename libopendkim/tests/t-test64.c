@@ -163,7 +163,8 @@ debug_dump(FILE *out)
 		mt = mtstack;
 		while (mt != NULL)
 		{
-			fprintf(out, "\t%p %lu\n", mt->mt_ptr, mt->mt_size);
+			fprintf(out, "\t%p %lu\n", mt->mt_ptr,
+			        (unsigned long) mt->mt_size);
 			mt = mt->mt_next;
 		}
 	}

@@ -43,7 +43,6 @@ main(int argc, char **argv)
 	DKIM *dkim;
 	DKIM_LIB *lib;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
-	unsigned char hdr[MAXHEADER + 1];
 
 	printf("*** relaxed/simple rsa-sha1 verifying using chunking API (leading CRLF)\n");
 

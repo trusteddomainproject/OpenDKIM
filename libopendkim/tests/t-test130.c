@@ -47,7 +47,6 @@ main(int argc, char **argv)
 	DKIM *dkim;
 	DKIM_LIB *lib;
 	DKIM_SIGINFO **sigs;
-	dkim_canon_t bcanon;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
 

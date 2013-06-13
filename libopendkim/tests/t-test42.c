@@ -131,8 +131,6 @@ main(int argc, char **argv)
 #ifdef TEST_KEEP_FILES
 	u_int flags;
 #endif /* TEST_KEEP_FILES */
-	int testpolicy;
-	int suspicious;
 	DKIM_STAT status;
 	dkim_policy_t pcode;
 	DKIM *dkim;
@@ -250,8 +248,6 @@ main(int argc, char **argv)
 	status = dkim_eom(dkim, NULL);
 	assert(status == DKIM_STAT_OK);
 
-	testpolicy = 0;
-	suspicious = 0;
 	status = dkim_policy(dkim, &pcode, NULL, NULL);
 	assert(status == DKIM_STAT_OK);
 	assert(pcode == DKIM_POLICY_UNKNOWN);

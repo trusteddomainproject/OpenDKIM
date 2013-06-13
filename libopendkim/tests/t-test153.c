@@ -55,7 +55,6 @@ main(int argc, char **argv)
 	DKIM *dkim;
 	DKIM_LIB *lib;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
-	unsigned char hdr[MAXHEADER + 1];
 	unsigned char buf[10240];
 
 	printf("*** simple/simple rsa-sha1 verifying with chunking, FIXCRLF, and \"b=...;\"\n");

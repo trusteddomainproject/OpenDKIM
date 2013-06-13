@@ -39,7 +39,9 @@
 int
 main(int argc, char **argv)
 {
+#ifdef TEST_KEEP_FILES
 	u_int flags;
+#endif /* TEST_KEEP_FILES */
 	DKIM_STAT status;
 	uint64_t fixed_time;
 	dkim_query_t qtype = DKIM_QUERY_FILE;

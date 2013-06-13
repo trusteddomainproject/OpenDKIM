@@ -72,12 +72,8 @@ static int
 stub_dns_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
                    int *error, int *dnssec)
 {
-	int n;
-	int status;
-	int qdcount;
 	unsigned char *cp;
 	unsigned char *eom;
-	char buf[BUFRSZ + 1];
 	int elen;
 	int slen;
 	int olen;

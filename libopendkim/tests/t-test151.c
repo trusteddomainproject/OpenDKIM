@@ -57,7 +57,6 @@ main(int argc, char **argv)
 	DKIM_LIB *lib;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
-	unsigned char hdr2[MAXHEADER + 1];
 
 	key = KEY;
 

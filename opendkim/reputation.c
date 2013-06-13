@@ -207,8 +207,6 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 	size_t hlen;
 	time_t when;
 	time_t now;
-	void *hh;
-	void *bh;
 	struct dkimf_db_data req[5];
 	struct reps reps;
 	char buf[BUFRSZ + 1];

@@ -15002,8 +15002,8 @@ mlfi_eom(SMFICTX *ctx)
 				for (c = 0; c < nsigs && domain == NULL; c++)
 				{
 					if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 ||
-					    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_TESTKEY) != 0 &&
-					    dkim_sig_getbh(sigs[c]) != DKIM_SIGBH_MATCH)
+					    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_TESTKEY) != 0 ||
+					     dkim_sig_getbh(sigs[c]) != DKIM_SIGBH_MATCH)
 						continue;
 
 					cd = dkim_sig_getdomain(sigs[c]);
@@ -15179,7 +15179,7 @@ mlfi_eom(SMFICTX *ctx)
 				for (c = 0; c < nsigs; c++)
 				{
 					if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 ||
-					    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_TESTKEY) != 0 &&
+					    (dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_TESTKEY) != 0 ||
 					    dkim_sig_getbh(sigs[c]) != DKIM_SIGBH_MATCH)
 						continue;
 

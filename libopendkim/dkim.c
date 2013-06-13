@@ -9782,9 +9782,7 @@ dkim_signhdrs(DKIM *dkim, const char **hdrlist)
 
 	if (hdrlist != NULL)
 	{
-		int c;
 		int status;
-		u_char **required_signhdrs;
 		char buf[BUFRSZ + 1];
 
 		if (dkim->dkim_hdrre == NULL)
