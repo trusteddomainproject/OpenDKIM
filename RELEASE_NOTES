@@ -14,6 +14,8 @@ release, and the older ones likely can't be found by the numbers shown anymore.
 		by Norbert Aschendorff.
 	Fix bug #171: Escape "+" character in regex generation.  Reported
 		by Scott Kitterman.
+	Fix bug #172: Repair broken AutoRestartRate logic.  Patch from
+		Sho Kubata.
 	Fix bug #SF3603525: Discard duplicate results from non-DKIM methods.
 		Problem noted by John Wood.
 	Fix bug #SF3611976: Fix up quarantine option handling.  Problem noted

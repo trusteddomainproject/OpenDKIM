@@ -4605,7 +4605,7 @@ dkimf_restart_check(int n, time_t t)
 		    list[which] + t > now)
 			return FALSE;
 
-		list[which] = t;
+		list[which] = now;
 		idx++;
 
 		return TRUE;
