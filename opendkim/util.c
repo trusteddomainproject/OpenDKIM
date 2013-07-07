@@ -1634,6 +1634,13 @@ dkimf_mkregexp(char *src, char *dst, size_t dstlen)
 			q++;
 			break;
 
+		  case '+':
+			*q = '\\';
+			q++;
+			*q = '+';
+			q++;
+			break;
+
 		  case '.':
 			*q = '\\';
 			q++;
