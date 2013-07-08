@@ -8567,7 +8567,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			snprintf(err, errlen, "%s: open(): Not a regular file",
 			         conf->conf_keyfile);
 			close(fd);
-			free(s33krit);
 			return -1;
 		}
 
@@ -8588,7 +8587,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			{
 				snprintf(err, errlen, "%s: no such user", tmp);
 				close(fd);
-				free(s33krit);
 				return -1;
 			}
 
