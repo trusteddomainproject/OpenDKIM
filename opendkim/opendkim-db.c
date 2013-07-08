@@ -2748,18 +2748,14 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 #ifdef USE_LDAP
 	  case DKIMF_DB_TYPE_LDAP:
 	  {
-		_Bool found;
-		_Bool usetls = FALSE;
 		int c;
 		int lderr;
-		int v = LDAP_VERSION3;
 		size_t rem;
 		size_t plen;
 		struct dkimf_db_ldap *ldap;
 		LDAP *ld;
 		char *q;
 		char *r;
-		char *u;
 		LDAPURLDesc *descr;
 #ifdef _FFR_LDAP_CACHING
 # ifdef USE_DB
