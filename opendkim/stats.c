@@ -108,10 +108,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 {
 	int status = 0;
 	int nsigs = 0;
-#ifdef _FFR_DIFFHEADERS
-	int nhdrs;
-	int ndiffs;
-#endif /* _FFR_DIFFHEADERS */
 	int err;
 	int c;
 	ssize_t canonlen;
@@ -120,10 +116,6 @@ dkimf_stats_record(char *path, u_char *jobid, char *name, char *prefix,
 	FILE *out;
 	unsigned char *from;
 	char *p;
-#ifdef _FFR_DIFFHEADERS
-	struct dkim_hdrdiff *diffs;
-	unsigned char *ohdrs[MAXHDRCNT];
-#endif /* _FFR_DIFFHEADERS */
 	DKIM_SIGINFO **sigs;
 	char tmp[BUFRSZ + 1];
 
