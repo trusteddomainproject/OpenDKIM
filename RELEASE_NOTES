@@ -9,7 +9,7 @@ globally shared sequence while the newer ones are not.  The numbers are
 recorded here as they were at the time the bugs were formally added to the
 release, and the older ones likely can't be found by the numbers shown anymore.
 
-2.8.4		2013/07/??
+2.8.4		2013/07/15
 	Fix bug #169: Add "::1" to the default InternalHosts list.  Suggested
 		by Norbert Aschendorff.
 	Fix bug #171: Escape "+" character in regex generation.  Reported
