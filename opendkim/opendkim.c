@@ -12903,7 +12903,7 @@ mlfi_eoh(SMFICTX *ctx)
 	/* warn if the domain was OK but didn't come from a safe source */
 	if (domainok && !originok)
 	{
-		if (domainok && conf->conf_dolog &&
+		if (conf->conf_dolog &&
 		    !dkimf_checkhost(conf->conf_exignore, cc->cctx_host) &&
 		    !dkimf_checkip(conf->conf_exignore,
 		                   (struct sockaddr *) &cc->cctx_ip))
