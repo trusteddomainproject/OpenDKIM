@@ -16271,7 +16271,7 @@ mlfi_eom(SMFICTX *ctx)
 								result = "neutral";
 
 							snprintf(header, sizeof header,
-							         "%s%s%s%s; x-dkim-rep=%s (%d) header.d=%s",
+							         "%s%s%s%s; dkim-rep=%s (%d) header.d=%s",
 							         cc->cctx_noleadspc ? " " : "",
 							         authservid,
 							         conf->conf_authservidwithjobid ? "/"
