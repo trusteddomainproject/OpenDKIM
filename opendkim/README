@@ -23,6 +23,34 @@ and software installation of opendkim and its prerequisites.  You should
 complete that process before continuing with the next section.
 
 
+SOCKET SELECTION
+================
+
+Your MTA and your opendkim filter will communicate over a socket connection.
+You can choose to use a TCP (network) socket or a UNIX domain (filesystem)
+socket.  They each have advantages: A UNIX domain socket can be secured
+using the filesystem (i.e., with user or group permissions), but cannot be
+reached from other machines that might want to share the service.
+
+For a UNIX domain socket, you must pick a location within your filesystem
+that the opendkim filter will be able to access in which the socket will be
+created for MTAs to connect, and set file permissions accordingly.
+
+For a TCP socket, you must select a port number not in use by other
+applications, and the name or IP address of the interface on which opendkim
+should listen for connections.  The IP address can be simply "ANY"
+if all connections should be accepted.  You will also need to ensure that
+any packet filters in effect on the local machine permit traffic to and
+from that port, and that any other kernel-level policy mechanisms (e.g.,
+selinux) will permit traffic on that port.  For selinux, the following command
+will need to be executed as the superuser, which declares the chosen port to
+be a milter application port:
+
+	semanage port -a -t milter_port_t -p tcp <port>
+
+Consult your documentation for other packet filter and policy systems.
+
+
 CONFIGURING OPENDKIM
 ====================
 
@@ -105,7 +133,7 @@ start at step (5).
 
 	-l -p SOCKETSPEC -d DOMAIN -k KEYPATH -s SELECTOR
 
-    ...where SOCKETSPEC is the socket you told your MTA to use above,
+    ...where SOCKETSPEC is the socket you told your MTA to use,
     DOMAIN is the domain or set of domains for which you want to sign
     mail, KEYPATH is the path to the private key file you generated, and
     SELECTOR is the selector name you picked.  You can tack "-f" on there
