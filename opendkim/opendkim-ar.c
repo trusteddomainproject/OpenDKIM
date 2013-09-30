@@ -55,6 +55,7 @@ struct lookup methods[] =
 	{ "dkim",		ARES_METHOD_DKIM },
 	{ "dkim-adsp",		ARES_METHOD_DKIMADSP },
 	{ "dkim-atps",		ARES_METHOD_DKIMATPS },
+	{ "dmarc",		ARES_METHOD_DMARC },
 	{ "domainkeys",		ARES_METHOD_DOMAINKEYS },
 	{ "iprev",		ARES_METHOD_IPREV },
 	{ "sender-id",		ARES_METHOD_SENDERID },
@@ -417,11 +418,20 @@ ares_parse(u_char *hdr, struct authres *ar)
 			    !isalnum(tokens[c][0]))
 				return -1;
 
-			strlcat((char *) ar->ares_host, (char *) tokens[c],
-			        sizeof ar->ares_host);
+			if (tokens[c][0] == ';')
+			{
+				prevstate = state;
+				state = 3;
+			}
+			else
+			{
+				strlcat((char *) ar->ares_host,
+				        (char *) tokens[c],
+				        sizeof ar->ares_host);
 
-			prevstate = state;
-			state = 1;
+				prevstate = state;
+				state = 1;
+			}
 
 			break;
 
