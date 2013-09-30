@@ -663,7 +663,7 @@ dkim_get_policy_dns(DKIM *dkim, unsigned char *query, _Bool excheck,
 	if (txtfound == NULL)
 	{
 		dkim_error(dkim, "'%s' reply was unresolved CNAME", query);
-		return -1;
+		return 0;
 	}
 
 	cp = txtfound;

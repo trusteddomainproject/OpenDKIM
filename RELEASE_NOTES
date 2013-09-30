@@ -13,6 +13,8 @@ release, and a summary of the changes in that release.
 		(though it hasn't been formally registered yet) and fix
 		a minor Authentication-Results parsing problem.  Problem
 		noted by Martin Kauchler.
+	LIBOPENDKIM: Fix bug #168: Report an unresolved CNAME for ADSP records
+		as simply absent.  Suggested by Eugene Crosser.
 
 2.8.4		2013/07/15
 	Fix bug #169: Add "::1" to the default InternalHosts list.  Suggested
