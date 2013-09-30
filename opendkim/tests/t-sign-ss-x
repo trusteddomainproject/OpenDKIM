@@ -1,0 +1,10 @@
+#!/bin/sh
+# 
+# simple/simple signing test requesting an "x=" tag
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest $MILTERTESTFLAGS -s $srcdir/t-sign-ss-x.lua

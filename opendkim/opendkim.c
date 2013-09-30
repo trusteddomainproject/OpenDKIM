@@ -6472,6 +6472,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 	if (data != NULL)
 	{
+		int tmpint;
+
 #ifdef USE_LDAP
 		(void) config_get(data, "LDAPSoftStart",
 		                  &conf->conf_softstart,
@@ -6751,8 +6753,11 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                  sizeof conf->conf_signalgstr);
 		}
 
-		(void) config_get(data, "SignatureTTL", &conf->conf_sigttl,
-		                  sizeof conf->conf_sigttl);
+		tmpint = 0;
+		(void) config_get(data, "SignatureTTL", &tmpint,
+		                  sizeof tmpint);
+		if (tmpint != 0)
+			conf->conf_sigttl = (unsigned long) tmpint;
 
 #ifdef _FFR_STATS
 		(void) config_get(data, "Statistics", &conf->conf_statspath,

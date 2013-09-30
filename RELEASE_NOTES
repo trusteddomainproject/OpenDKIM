@@ -13,6 +13,8 @@ release, and a summary of the changes in that release.
 		(though it hasn't been formally registered yet) and fix
 		a minor Authentication-Results parsing problem.  Problem
 		noted by Martin Kauchler.
+	Fix bug #179: Correct handling of SignatureTTL.  Problem noted by
+		Kyle Cummings.
 	LIBOPENDKIM: Fix bug #168: Report an unresolved CNAME for ADSP records
 		as simply absent.  Suggested by Eugene Crosser.
 	DOCS: Feature request #172: Describe socket selection procedure in

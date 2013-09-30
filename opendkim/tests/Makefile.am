@@ -1,6 +1,6 @@
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \
-	t-sign-rs-lua t-sign-ss-all t-sign-ss-ltag \
+	t-sign-rs-lua t-sign-ss-all t-sign-ss-ltag t-sign-ss-x \
 	t-verify-revoked t-verify-unspec t-verify-malformed \
 	t-verify-unsigned t-verify-unsigned-silent \
 	t-verify-syntax t-verify-ss t-verify-ss-bad t-verify-ss-ar-bad \
@@ -44,6 +44,7 @@ EXTRA_DIST = \
 	t-sign-rs-tables-token t-sign-rs-tables-token.conf \
 		t-sign-rs-tables-token.keys t-sign-rs-tables-token.lua \
 	t-sign-ss t-sign-ss.conf t-sign-ss.lua \
+	t-sign-ss-x t-sign-ss-x.conf t-sign-ss-x.lua \
 	t-sign-ss-all t-sign-ss-all.conf t-sign-ss-all.lua \
 	t-sign-ss-ltag t-sign-ss-ltag.conf t-sign-ss-ltag.lua \
 	t-sign-ss-macro t-sign-ss-macro.conf t-sign-ss-macro.lua \
