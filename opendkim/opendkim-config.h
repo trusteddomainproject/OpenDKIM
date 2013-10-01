@@ -57,12 +57,6 @@ struct configdef dkimf_config[] =
 	{ "DiagnosticDirectory",	CONFIG_TYPE_STRING,	FALSE },
 	{ "DisableADSP",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DisableCryptoInit",		CONFIG_TYPE_BOOLEAN,	FALSE },
-#ifdef _FFR_DKIM_REPUTATION
-	{ "DKIMReputationFail",		CONFIG_TYPE_INTEGER,	FALSE },
-	{ "DKIMReputationPass",		CONFIG_TYPE_INTEGER,	FALSE },
-	{ "DKIMReputationReject",	CONFIG_TYPE_INTEGER,	FALSE },
-	{ "DKIMReputationRoot",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_DKIM_REPUTATION */
 	{ "DNSConnect",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DNSTimeout",			CONFIG_TYPE_INTEGER,	FALSE },
 	{ "Domain",			CONFIG_TYPE_STRING,	FALSE },

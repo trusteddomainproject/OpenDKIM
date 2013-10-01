@@ -22,11 +22,6 @@
 /* libopendkim includes */
 #include <dkim.h>
 
-#ifdef _FFR_DKIM_REPUTATION
-/* libdkimrep includes */
-# include <dkim-rep.h>
-#endif /* _FFR_DKIM_REPUTATION */
-
 #ifdef USE_UNBOUND
 /* libunbound includes */
 # include <unbound.h>
@@ -716,36 +711,6 @@ dkimf_rbl_unbound_setup(RBL *rbl)
 	return 0;
 }
 # endif /* _FFR_RBL */
-
-# ifdef _FFR_DKIM_REPUTATION
-/*
-**  DKIMF_RBL_UNBOUND_SETUP -- connect libunbound to librbl
-**
-**  Parameters:
-**  	dr -- DKIM_REP handle
-**  	ub -- dkimf_unbound handle to use
-**
-**  Return value:
-**  	0 on success, -1 on failure
-*/
-
-int
-dkimf_rep_unbound_setup(DKIM_REP dr)
-{
-	assert(dr != NULL);
-
-	(void) dkim_rep_dns_set_query_start(dr, dkimf_ub_query);
-	(void) dkim_rep_dns_set_query_cancel(dr, dkimf_ub_cancel);
-	(void) dkim_rep_dns_set_query_waitreply(dr, dkimf_ub_waitreply);
-	(void) dkim_rep_dns_set_init(dr, dkimf_ub_init);
-	(void) dkim_rep_dns_set_close(dr, dkimf_ub_close);
-	(void) dkim_rep_dns_set_nslist(dr, dkimf_ub_nslist);
-	(void) dkim_rep_dns_set_config(dr, dkimf_ub_config);
-	(void) dkim_rep_dns_set_trustanchor(dr, dkimf_ub_trustanchor);
-
-	return 0;
-}
-# endif /* _FFR_DKIM_REPUTATION */
 
 /*
 **  DKIMF_UNBOUND_SETUP -- connect libunbound to libopendkim

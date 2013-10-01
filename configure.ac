@@ -358,10 +358,6 @@ FFR_FEATURE([diffheaders], [compare signed and verified headers when possible])
 LIB_FFR_FEATURE([diffheaders],
                 [compare signed and verified headers when possible])
 
-FFR_FEATURE([dkim_reputation], [experimental DKIM reputation checks])
-LIB_FFR_FEATURE([dkim_reputation], [experimental DKIM reputation checks])
-AM_CONDITIONAL([DKIM_REPUTATION], [test x"$enable_dkim_reputation" = x"yes"])
-
 FFR_FEATURE([identity_header], [special header to set identity])
 
 FFR_FEATURE([ldap_caching], [LDAP query piggybacking and caching])
@@ -2126,7 +2122,7 @@ AC_SUBST(LIBJANSSON_LIBS)
 AM_CONDITIONAL(JANSSON, test x"$LIBJANSSON_LIBS" != x"")
 
 if test x"$enable_reputation" = x"yes" -a \
-           x"$jansson_found" != x"yes" \)
+           x"$jansson_found" != x"yes"
 then
 	AC_MSG_ERROR([reputation requires libjansson])
 fi
@@ -2611,9 +2607,6 @@ AC_OUTPUT([	Makefile
 			contrib/stats/Makefile
 			contrib/systemd/Makefile
 			contrib/systemd/opendkim.service
-		libdkimrep/dkim-rep.pc libdkimrep/Makefile
-		libdkimrep/tests/Makefile
-		libopendkim/opendkim.pc libopendkim/Makefile
 		libopendkim/docs/Makefile
 		libopendkim/tests/Makefile
 		librbl/rbl.pc librbl/Makefile

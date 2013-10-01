@@ -75,10 +75,6 @@ if RBL
 opendkim_CPPFLAGS += -I$(srcdir)/../librbl
 opendkim_LDADD += ../librbl/librbl.la
 endif
-if DKIM_REPUTATION
-opendkim_CPPFLAGS += -I$(srcdir)/../libdkimrep
-opendkim_LDADD += ../libdkimrep/libdkimrep.la
-endif
 if REPUTE
 opendkim_CPPFLAGS += -I$(srcdir)/../reputation
 opendkim_LDADD += ../reputation/librepute.la
@@ -151,10 +147,6 @@ if USE_UNBOUND
 opendkim_testkey_CPPFLAGS += $(LIBUNBOUND_INCDIRS)
 opendkim_testkey_LDFLAGS += $(LIBUNBOUND_LIBDIRS) $(LIBLDNS_LIBDIRS)
 opendkim_testkey_LDADD += $(LIBUNBOUND_LIBS) $(LIBLDNS_LIBS)
-endif
-if DKIM_REPUTATION
-opendkim_testkey_CPPFLAGS += -I$(srcdir)/../libdkimrep
-opendkim_testkey_LDADD += ../libdkimrep/libdkimrep.la
 endif
 if RBL
 opendkim_testkey_CPPFLAGS += -I$(srcdir)/../librbl

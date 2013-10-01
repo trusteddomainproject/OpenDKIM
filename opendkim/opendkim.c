@@ -86,11 +86,6 @@
 # include <rbl.h>
 #endif /* _FFR_RBL */
 
-#ifdef _FFR_DKIM_REPUTATION
-/* libdkimrep includes */
-# include <dkim-rep.h>
-#endif /* _FFR_DKIM_REPUTATION */
-
 /* libopendkim includes */
 #include "dkim.h"
 #ifdef _FFR_VBR
@@ -303,11 +298,6 @@ struct dkimf_config
 # endif /* _FFR_STATS */
 	size_t		conf_finalfuncsz;	/* final function size */
 #endif /* USE_LUA */
-#ifdef _FFR_DKIM_REPUTATION
-	long		conf_repfail;		/* reputation "fail" limit */
-	long		conf_reppass;		/* reputation "pass" limit */
-	long		conf_repreject;		/* reputation "reject" limit */
-#endif /* _FFR_DKIM_REPUTATION */
 	ssize_t		conf_signbytes;		/* bytes to sign */
 	dkim_canon_t 	conf_hdrcanon;		/* canon. method for headers */
 	dkim_canon_t 	conf_bodycanon;		/* canon. method for body */
@@ -355,9 +345,6 @@ struct dkimf_config
 	char *		conf_reporthost;	/* reporter name */
 	char *		conf_reportprefix;	/* stats data prefix */
 #endif /* _FFR_STATS */
-#ifdef _FFR_DKIM_REPUTATION
-	char *		conf_reproot;		/* root of reputation queries */
-#endif /* _FFR_DKIM_REPUTATION */
 	char *		conf_reportaddr;	/* report sender address */
 	char *		conf_reportaddrbcc;	/* report repcipient address as bcc */
 	char *		conf_mtacommand;	/* MTA command (reports) */
@@ -613,12 +600,6 @@ struct lookup
 #define	ADSPNXDOMAINSMTP	"550"
 #define	ADSPNXDOMAINESC		"5.7.1"
 #define	ADSPNXDOMAINTEXT	"sender domain does not exist"
-
-#ifdef _FFR_DKIM_REPUTATION
-# define DKIMREPDENYSMTP	"550"
-# define DKIMREPDENYESC		"5.7.1"
-# define DKIMREPDENYTXT		"rejected due to DKIM reputation evaluation"
-#endif /* _FFR_DKIM_REPUTATION */
 
 #if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
 # define REPDENYSMTP		"450"
@@ -4203,118 +4184,6 @@ dkimf_xs_setresult(lua_State *l)
 	return 1;
 }
 
-/*
-**  DKIMF_XS_GETREPUTATION -- perform reputation query
-**
-**  Parameters:
-**  	l -- Lua state
-**
-**  Return value:
-**  	Number of stack items pushed.
-*/
-
-int
-dkimf_xs_getreputation(lua_State *l)
-{
-	DKIM_STAT status;
-	int rep;
-	SMFICTX *ctx;
-	char *qroot;
-	DKIM_SIGINFO *sig;
-	struct connctx *cc;
-	struct dkimf_config *conf;
-	struct msgctx *dfc;
-
-	assert(l != NULL);
-
-	if (lua_gettop(l) != 3)
-	{
-		lua_pushstring(l,
-		               "odkim.get_reputation(): incorrect argument count");
-		lua_error(l);
-	}
-	else if (!lua_islightuserdata(l, 1) ||
-	         !lua_islightuserdata(l, 2) ||
-	         !lua_isstring(l, 3))
-	{
-		lua_pushstring(l,
-		               "odkim.get_reputation(): incorrect argument type");
-		lua_error(l);
-	}
-
-	ctx = (SMFICTX *) lua_touserdata(l, 1);
-	sig = (DKIM_SIGINFO *) lua_touserdata(l, 2);
-	qroot = (char *) lua_tostring(l, 3);
-	lua_pop(l, 3);
-
-	if (ctx == NULL)
-	{
-		lua_pushnumber(l, 50);
-		return 1;
-	}
-
-	cc = (struct connctx *) dkimf_getpriv(ctx);
-	dfc = cc->cctx_msg;
-	conf = cc->cctx_config;
-
-	if (dfc->mctx_dkimv == NULL)
-	{
-		lua_pushnil(l);
-	}
-	else
-	{
-# ifdef _FFR_DKIM_REPUTATION
-		DKIM_REP dr;
-
-		dr = dkim_rep_init(NULL, NULL, NULL);
-		if (dr != NULL)
-		{
-			void *qh;
-
-#  ifdef USE_UNBOUND
-			dkimf_rep_unbound_setup(dr);
-#  endif /* USE_UNBOUND */
-
-			if (strlen(qroot) != 0)
-				dkim_rep_setdomain(dr, qroot);
-
-			status = dkim_rep_query_start(dr,
-			                              dkim_getuser(dfc->mctx_dkimv),
-			                              dkim_getdomain(dfc->mctx_dkimv),
-			                              dkim_sig_getdomain(sig),
-			                              &qh);
-			if (status == DKIM_REP_STAT_OK && qh != NULL)
-			{
-				int rep = 0;
-				struct timeval timeout;
-
-				timeout.tv_sec = conf->conf_dnstimeout;
-				timeout.tv_usec = 0;
-
-				status = dkim_rep_query_check(dr, qh,
-				                              &timeout, &rep);
-				if (status == DKIM_REP_STAT_FOUND)
-					lua_pushnumber(l, rep);
-				else
-					lua_pushnil(l);
-			}
-			else
-			{
-				lua_pushnil(l);
-			}
-
-			dkim_rep_close(dr);
-		}
-
-		lua_pushnil(l);
-# else /* _FFR_DKIM_REPUTATION */
-		lua_pushnil(l);
-# endif /* _FFR_DKIM_REPUTATION */
-	}
-
-	return 1;
-}
-
 # ifdef _FFR_STATSEXT
 /*
 **  DKIMF_XS_STATSEXT -- record extended statistics
@@ -6139,9 +6008,6 @@ dkimf_config_new(void)
 	new->conf_maxhdrsz = DEFMAXHDRSZ;
 	new->conf_signbytes = -1L;
 	new->conf_sigmintype = SIGMIN_BYTES;
-#ifdef _FFR_DKIM_REPUTATION
-	new->conf_repreject = DKIM_REP_DEFREJECT;
-#endif /* _FFR_DKIM_REPUTATION */
 #ifdef _FFR_REPUTATION
 	new->conf_repfactor = DKIMF_REP_DEFFACTOR;
 	new->conf_repcachettl = DKIMF_REP_DEFCACHETTL;
@@ -6230,11 +6096,6 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_atpsdb != NULL)
 		dkimf_db_close(conf->conf_atpsdb);
 #endif /* _FFR_ATPS */
-
-#ifdef _FFR_DKIM_REPUTATION
-	if (conf->conf_reproot != NULL)
-		free(conf->conf_reproot);
-#endif /* _FFR_DKIM_REPUTATION */
 
 	if (conf->conf_authservid != NULL)
 		free(conf->conf_authservid);
@@ -6620,39 +6481,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_rmidentityhdr,
 		                  sizeof conf->conf_rmidentityhdr);
 #endif /* _FFR_IDENTITY_HEADER */
-#ifdef _FFR_DKIM_REPUTATION
-		(void) config_get(data, "DKIMReputationFail",
-		                  &conf->conf_repfail,
-		                  sizeof conf->conf_repfail);
-
-		(void) config_get(data, "DKIMReputationPass",
-		                  &conf->conf_reppass,
-		                  sizeof conf->conf_reppass);
-
-		(void) config_get(data, "DKIMReputationReject",
-		                  &conf->conf_repreject,
-		                  sizeof conf->conf_repreject);
-
-		str = NULL;
-		(void) config_get(data, "DKIMReputationRoot",
-		                  &str, sizeof str);
-		if (str != NULL)
-			conf->conf_reproot = strdup(str);
-
-		if (conf->conf_repfail < conf->conf_reppass)
-		{
-			snprintf(err, errlen,
-			         "invalid reputation thresholds (DKIMReputationFail < DKIMReputationPass)");
-			return -1;
-		}
-
-		if (conf->conf_repreject < conf->conf_repfail)
-		{
-			snprintf(err, errlen,
-			         "invalid reputation thresholds (DKIMReputationReject < DKIMReputationFail)");
-			return -1;
-		}
-#endif /* _FFR_DKIM_REPUTATION */
 
 		if (conf->conf_siglimit == NULL)
 		{
@@ -16185,134 +16013,6 @@ mlfi_eom(SMFICTX *ctx)
 			}
 		}
 #endif /* _FFR_VBR */
-
-#ifdef _FFR_DKIM_REPUTATION
-		if (dfc->mctx_status == DKIMF_STATUS_GOOD &&
-		    (conf->conf_reproot == NULL ||
-		     strcasecmp(conf->conf_reproot, "none") != 0))
-		{
-			int rep = 0;
-
-			sig = dkim_getsignature(dfc->mctx_dkimv);
-
-			if (sig != NULL)
-			{
-				DKIM_REP dr;
-
-				dr = dkim_rep_init(NULL, NULL, NULL);
-				if (dr == NULL)
-				{
-					syslog(LOG_INFO,
-					       "%s: can't initialize reputation query",
-					       dfc->mctx_jobid);
-				}
-				else
-				{
-					void *qh;
-
-# ifdef USE_UNBOUND
-					dkimf_rep_unbound_setup(dr);
-# endif /* USE_UNBOUND */
-
-					if (conf->conf_reproot != NULL)
-					{
-						dkim_rep_setdomain(dr,
-						                   conf->conf_reproot);
-					}
-
-					status = dkim_rep_query_start(dr,
-					                              dkim_getuser(dfc->mctx_dkimv),
-					                              dkim_getdomain(dfc->mctx_dkimv),
-					                              dkim_sig_getdomain(sig),
-					                              &qh);
-					if (status == DKIM_REP_STAT_OK &&
-					    qh != NULL)
-					{
-						int rep = 0;
-						struct timeval timeout;
-
-						timeout.tv_sec = conf->conf_dnstimeout;
-						timeout.tv_usec = 0;
-
-						status = dkim_rep_query_check(dr,
-						                              qh,
-						                              &timeout,
-						                              &rep);
-						if (status == DKIM_REP_STAT_FOUND &&
-						    rep > conf->conf_repreject)
-						{
-							if (dkimf_setreply(ctx,
-							                   DKIMREPDENYSMTP,
-							                   DKIMREPDENYESC,
-							                   DKIMREPDENYTXT) != MI_SUCCESS &&
-							    conf->conf_dolog)
-							{
-								syslog(LOG_NOTICE,
-								       "%s: smfi_setreply() failed",
-								       dfc->mctx_jobid);
-							}
-
-							if (conf->conf_dolog)
-							{
-								syslog(LOG_INFO,
-								       "%s: DKIM reputation: %d (max %ld); rejecting",
-								       dfc->mctx_jobid, rep,
-								       conf->conf_repreject);
-							}
-
-							dkim_rep_close(dr);
-							dkimf_cleanup(ctx);
-							return SMFIS_REJECT;
-						}
-						else
-						{
-							char *result;
-
-							if (rep > conf->conf_repfail)
-								result = "fail";
-							else if (rep < conf->conf_reppass)
-								result = "pass";
-							else
-								result = "neutral";
-
-							snprintf(header, sizeof header,
-							         "%s%s%s%s; dkim-rep=%s (%d) header.d=%s",
-							         cc->cctx_noleadspc ? " " : "",
-							         authservid,
-							         conf->conf_authservidwithjobid ? "/"
-							                                        : "",
-							         conf->conf_authservidwithjobid ? (char *) dfc->mctx_jobid
-							                                        : "",
-							         result, rep,
-							         dkim_sig_getdomain(sig));
-
-							if (conf->conf_dolog_success)
-							{
-								syslog(LOG_INFO,
-								       "%s: DKIM reputation: %d",
-								       dfc->mctx_jobid, rep);
-							}
-
-							if (dkimf_insheader(ctx, 1,
-							                    AUTHRESULTSHDR,
-							                    header) == MI_FAILURE)
-							{
-								if (conf->conf_dolog)
-								{
-									syslog(LOG_ERR,
-									       "%s: %s header add failed",
-									       dfc->mctx_jobid,
-									       AUTHRESULTSHDR);
-								}
-							}
-						}
-					}
-
-					dkim_rep_close(dr);
-				}
-			}
-		}
-#endif /* _FFR_DKIM_REPUTATION */
 
 #ifdef _FFR_REDIRECT
 		if (conf->conf_redirect != NULL &&

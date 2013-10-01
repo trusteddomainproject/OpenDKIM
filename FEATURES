@@ -47,10 +47,6 @@ diffheaders	When verification fails for a message for which a "z="
 		library, available at http://laurikari.net/tre.
 		(opendkim, libopendkim)
 
-dkim_reputation	Add experimental support for querying an open DKIM reputation
-		service.  The service's URL is http://www.dkim-reputation.org.
-		(opendkim, libdkimrep, libopendkim)
-
 identity_header	Enable selection of an identity for signing based on the
 		value found in a particular header. (opendkim)
 

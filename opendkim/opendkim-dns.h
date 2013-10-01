@@ -27,11 +27,6 @@
 # include <vbr.h>
 #endif /* _FFR_VBR */
 
-#ifdef _FFR_DKIM_REPUTATION
-/* libdkimrep includes */
-# include <dkim-rep.h>
-#endif /* _FFR_DKIM_REPUTATION */
-
 struct dkimf_filedns;
 
 #ifdef USE_UNBOUND
@@ -46,9 +41,6 @@ extern int dkimf_rbl_unbound_setup __P((RBL *));
 # ifdef _FFR_VBR
 extern int dkimf_vbr_unbound_setup __P((VBR *));
 # endif /* _FFR_VBR */
-# ifdef _FFR_DKIM_REPUTATION
-extern int dkimf_rep_unbound_setup __P((DKIM_REP));
-# endif /* _FFR_DKIM_REPUTATION */
 #endif /* USE_UNBOUND */
 
 extern int dkimf_filedns_free __P((struct dkimf_filedns *));

@@ -1507,23 +1507,6 @@ extern DKIM_STAT dkim_setpartial __P((DKIM *dkim, _Bool value));
 extern DKIM_STAT dkim_set_margin __P((DKIM *dkim, int value));
 
 /*
-**  DKIM_GET_REPUTATION -- query reputation service about a signature
-**                         (OBSOLETE; moved to libdkimrep)
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	sig -- DKIM_SIGINFO handle
-**  	qroot -- query root
-**  	rep -- integer reputation (returned)
-**
-**  Return value:
-**  	DKIM_STAT_NOTIMPLEMENT -- not implemented
-*/
-
-extern DKIM_STAT dkim_get_reputation __P((DKIM *dkim, DKIM_SIGINFO *sig,
-                                          char *qroot, int *rep));
-
-/*
 **  DKIM_MAIL_PARSE -- extract the local-part and domain-name from a structured
 **                     header field
 **
@@ -1563,7 +1546,7 @@ extern unsigned long dkim_ssl_version __P((void));
 */
 
 #define DKIM_FEATURE_DIFFHEADERS	0
-#define DKIM_FEATURE_DKIM_REPUTATION	1
+#define DKIM_FEATURE_UNUSED		1
 #define DKIM_FEATURE_PARSE_TIME		2
 #define DKIM_FEATURE_QUERY_CACHE	3
 #define DKIM_FEATURE_SHA256		4

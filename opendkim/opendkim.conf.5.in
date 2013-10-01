@@ -242,38 +242,6 @@ are normaly required in multi-threaded environments.  This assumes some other
 library opendkim is using will do the required initialization and shutdown.
 
 .TP
-.I DKIMReputationFail (integer)
-If the reputation returned by the DNS reputation service exceeds this
-value then the result "x-dkim-rep" is set to "fail".
-Defaults to 0.
-@DKIM_REPUTATION_MANNOTICE@
-
-.TP
-.I DKIMReputationPass (integer)
-If the reputation returned by the DNS reputation service is less than this
-value then the result "x-dkim-rep" is set to "pass". 
-Defaults to 0. Values in between
-.I DKIMReputationFail
-and
-.I DKIMReputationPass
-result in "x-dkim-rep" being set to "neutral".
-@DKIM_REPUTATION_MANNOTICE@
-
-.TP
-.I DKIMReputationReject (integer)
-If the reputation returned by the DNS reputation service exceeds this value
-then the message is rejected.  The default value here is 1001, a deliberately
-impossible value so that rejections are not enabled by default.
-@DKIM_REPUTATION_MANNOTICE@
-
-.TP
-.I DKIMReputationRoot (string)
-This is the root directory of the DNS reputation service.  Its interface is 
-defined at http://www.dkim-reputation.org. The default value here is 
-"al.dkim-reputation.org".  A value of "none" disables the check.
-@DKIM_REPUTATION_MANNOTICE@
-
-.TP
 .I DNSConnect (Boolean)
 Requests that the asynchronous resolver start using TCP immediately
 rather than using UDP until TCP is actually needed.  Does not work with

@@ -15,9 +15,6 @@ endif
 if RBL
 SUBDIRS += librbl
 endif
-if DKIM_REPUTATION
-SUBDIRS += libdkimrep
-endif
 if LUA
 SUBDIRS += miltertest
 endif

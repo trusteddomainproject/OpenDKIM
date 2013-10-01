@@ -4484,9 +4484,6 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #endif /* _FFR_ATPS */
 	FEATURE_ADD(libhandle, DKIM_FEATURE_OVERSIGN);
 	FEATURE_ADD(libhandle, DKIM_FEATURE_XTAGS);
-#ifdef _FFR_DKIM_REPUTATION
-	FEATURE_ADD(libhandle, DKIM_FEATURE_DKIM_REPUTATION);
-#endif /* _FFR_DKIM_REPUTATION */
 
 	/* initialize the resolver */
 	(void) res_init();
@@ -8683,26 +8680,6 @@ dkim_getcachestats(DKIM_LIB *lib, u_int *queries, u_int *hits, u_int *expired,
 #else /* QUERY_CACHE */
 	return DKIM_STAT_NOTIMPLEMENT;
 #endif /* QUERY_CACHE */
-}
-
-/*
-**  DKIM_GET_REPUTATION -- query reputation service about a signature
-**                         (OBSOLETE; moved to libdkimrep)
-**  
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	sig -- DKIM_SIGINFO handle
-**  	qroot -- query root
-**  	rep -- integer reputation (returned)
-**
-**  Return value:
-**  	DKIM_STAT_NOTIMPLEMENT -- not implemented
-*/
-
-DKIM_STAT
-dkim_get_reputation(DKIM *dkim, DKIM_SIGINFO *sig, char *qroot, int *rep)
-{
-	return DKIM_STAT_NOTIMPLEMENT;
 }
 
 /*
