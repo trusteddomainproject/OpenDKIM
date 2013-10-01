@@ -294,6 +294,13 @@ are:
       publish other data. </td>
  </tr>
  <tr>
+  <td><tt>DKIM_LIBFLAGS_REQUESTREPORTS</tt></td>
+  <td>Includes an "r=y" tag in generated signatures, requesting participating
+      verifiers send back forensic information about the verified message
+      when validation fails.  Useful for debugging signature validation
+      issues. </td>
+ </tr>
+ <tr>
   <td><tt>DKIM_LIBFLAGS_SIGNLEN</tt></td>
   <td>When signing messages, include in the signature the number of bytes
       that were canonicalized even when a length limit wasn't specified

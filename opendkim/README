@@ -361,6 +361,8 @@ recname	IN	TXT	( "v=DKIM1; g=*; k=rsa; "
 DEBUG FEATURES
 ==============
 
+(a) The Canonicalized Content
+
 Two configuration file entries are provided to enable detailed debugging
 and forensics when tracking down failed verifications.  These are
 "KeepTemporaryFiles" and "TemporaryDirectory".
@@ -375,16 +377,39 @@ data differ.
 "TemporaryDirectory" simply selects the directory to be used to create
 these files, if other than the default (/tmp) is desired.
 
-These debug features are useful when using a remote verifier that is equipped
-to send back replies which contain the canonicalization output at the remote
-end.  Such a verifier, when a signature verification fails, will ask the
-sending domain for its sender policy.  If that policy exists and contains
-an "r=" tag, then the verifier will send a message to the address
-contained in that tag which contains the canonicalized forms of the failing
-message as generated at the verifier.  Comparing these forms to the local
-copies of the same (generated as described above) using a utility such as
-"diff" will show how a message was modified between the signing and verifying
-operations.  This will usually reveal the cause of the failed verification.
+Recent extensions to DKIM formalized a mechanism by which a signer can ask
+a verifier to send back copies of these files when verification fails.
+Specifically, if the failing signature contains an "r=y" tag, then the
+signer is requesting such feedback.  If the verifier is willing to provide it,
+it makes a second DNS query to find the report destination and packages up
+the canonicalized forms into a message, which it sends to the named address.
+
+The second query goes to the domain named in the signature's "d=" tag, with
+"_report._domainkey." prepended to it.  For example, a failed signature from
+"example.com" that also had an "r=y" tag would result in a query for a TXT
+record at "_report._domainkey.example.com".  If the reply contains an
+"ra=" tag, it identifies the requested destination of the report within that
+same domain (e.g., "ra=foobar" means "send reports to foobar@example.com").
+(See RFC 6651 for details.)
+
+The signer, on receiving this, can unpack the two files and compare them to
+the two files it generated for the same message.  This comparison usually
+reveals the change made in transit that invalidated the signature.
+
+(b) Diagnostics
+
+There are two other features available that are less involved, but also less
+likely to yield a result.  Signers can configure their systems using the
+"Diagnostics" setting which, if enabled, produces signatures that contain
+the original header set that was signed.  These will be stored in a "z="
+tag in the signature.  A verifier can extract this information from the
+signature and, on failed signatures, compare it to the header set that was
+received and look for discrepancies.  If a verifier sets the
+"DiagnosticDirectory" to name a directory, a file will be generated there
+whenever a signature bearing a "z=" tag fails to verify, and present the
+two header sets for visual comparison.  Additional detail is provided if
+the package is compiled with libtre support, as it can identify reordered
+header fields that differ slightly, and present them alongside each other.
 
 
 REUSING DOMAINKEYS RECORDS

@@ -2564,6 +2564,10 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		}
 	}
 
+	/* if reports were requested, stick that in too */
+	if (dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_REQUESTREPORTS)
+		dkim_dstring_printf(dstr, ";%sr=y", delim);
+
 	/* if diagnostic headers were requested, include 'em */
 	if (dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_ZTAGS)
 	{

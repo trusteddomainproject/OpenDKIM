@@ -353,12 +353,12 @@ struct dkim_lib
 	_Bool			dkiml_signre;
 	_Bool			dkiml_skipre;
 	_Bool			dkiml_dnsinit_done;
-	u_int			dkiml_flags;
 	u_int			dkiml_timeout;
 	u_int			dkiml_version;
 	u_int			dkiml_callback_int;
 	u_int			dkiml_flsize;
 	u_int			dkiml_minkeybits;
+	uint32_t		dkiml_flags;
 	uint64_t		dkiml_fixedtime;
 	uint64_t		dkiml_sigttl;
 	uint64_t		dkiml_clockdrift;
