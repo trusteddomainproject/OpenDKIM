@@ -15,12 +15,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef USE_XML2
-/* libxml2 includes */
-# include <libxml/parser.h>
-# include <libxml/tree.h>
-#endif /* USE_XML2 */
-
 #ifdef USE_JANSSON
 /* libjansson includes */
 # include <jansson.h>
@@ -89,32 +83,6 @@ struct repute_lookup repute_lookup_elements[] =
 
 /* globals */
 static long timeout = REPUTE_TIMEOUT;
-
-#ifdef USE_XML2
-/*
-**  REPUTE_LIBXML2_ERRHANDLER -- error handler function provided to libxml2
-**
-**  Parameters:
-**  	ctx -- a "parsing" context (generally a FILE *)
-**  	fmt -- message format
-**  	... -- variable arguments
-**
-**  Return value:
-** 	None.
-**
-**  Notes:
-**  	Oddly, libxml2 writes errors to stderr by default without a provided
-**  	handler function.  We check for errors in other ways and this
-**  	program typically runs as a daemon, so we'll suppress that by
-**  	providing an error handler that does nothing.
-*/
-
-static void
-repute_libxml2_errhandler(void *ctx, const char *fmt, ...)
-{
-	return;
-}
-#endif /* USE_XML2 */
 
 /*
 **  REPUTE_CURL_WRITEDATA -- callback for libcurl to deliver data
@@ -233,11 +201,6 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 	time_t whentmp;
 	char *p;
 	const char *start;
-#ifdef USE_XML2
-	xmlDocPtr doc = NULL;
-	xmlNode *node = NULL;
-	xmlNode *reputon = NULL;
-#endif /* USE_XML2 */
 #ifdef USE_JANSSON
 	json_t *root = NULL;
 	json_t *obj = NULL;
@@ -246,10 +209,6 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 
 	assert(buf != NULL);
 	assert(rep != NULL);
-
-#ifdef USE_XML2
-	xmlSetGenericErrorFunc(NULL, repute_libxml2_errhandler);
-#endif /* USE_XML2 */
 
 	/* skip any header found */
 	/* XXX -- this should verify a desirable Content-Type */
@@ -322,153 +281,6 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 
 	json_decref(root);
 #endif /* USE_JANSSON */
-
-#ifdef USE_XML2
-	doc = xmlParseMemory(buf, buflen);
-	if (doc == NULL)
-		return REPUTE_STAT_PARSE;
-
-	node = xmlDocGetRootElement(doc);
-	if (node == NULL)
-	{
-		xmlFreeDoc(doc);
-		return REPUTE_STAT_PARSE;
-	}
-
-	/* confirm root's name */
-	if (node->name == NULL ||
-	    strcasecmp(node->name, REPUTE_NAME_REPUTATION) != 0 ||
-	    node->children == NULL)
-	{
-		xmlFreeDoc(doc);
-		return REPUTE_STAT_PARSE;
-	}
-
-	/* iterate through nodes looking for a reputon */
-	for (node = node->children; node != NULL; node = node->next)
-	{
-		/* skip unnamed things or things that aren't reputons */
-		if (node->name == NULL ||
-		    node->type != XML_ELEMENT_NODE ||
-		    strcasecmp(node->name, REPUTE_NAME_REPUTON) != 0 ||
-		    node->children == NULL)
-			continue;
-
-		found_dkim = FALSE;
-		found_spam = FALSE;
-		conftmp = 0.;
-		reptmp = 0.;
-		sampletmp = 0L;
-		limittmp = ULONG_MAX;
-		whentmp = 0;
-
-		for (reputon = node->children;
-		     reputon != NULL;
-		     reputon = reputon->next)
-		{
-			/* look for the reputon */
-			if (reputon->name == NULL ||
-			    reputon->type != XML_ELEMENT_NODE ||
-			    reputon->children == NULL ||
-			    reputon->children->content == NULL)
-				continue;
-
-			/* skip unknown names */
-			code = repute_name_to_code(repute_lookup_elements,
-			                           reputon->name);
-			if (code == -1)
-				continue;
-
-			switch (code)
-			{
-			  case REPUTE_XML_CODE_RATER:
-				/*
-				**  We assume for now that we got an answer
-				**  from the same place we asked.
-				*/
-
-				break;
-
-			  case REPUTE_XML_CODE_RATER_AUTH:
-				conftmp = strtof(reputon->children->content,
-				                 &p);
-				if (*p != '\0' || conftmp < 0 || conftmp > 1)
-					continue;
-
-			  case REPUTE_XML_CODE_ASSERTION:
-				if (strcasecmp(reputon->children->content,
-				               REPUTE_ASSERT_SPAM) == 0)
-					found_spam = TRUE;
-				break;
-
-			  case REPUTE_XML_CODE_IDENTITY:
-				if (strcasecmp(reputon->children->content,
-				               REPUTE_ID_DKIM) == 0)
-					found_dkim = TRUE;
-				break;
-
-			  case REPUTE_XML_CODE_RATE:
-				errno = 0;
-				limittmp = strtoul(reputon->children->content,
-			                           &p, 10);
-				if (errno != 0)
-					continue;
-				break;
-
-			  case REPUTE_XML_CODE_RATED:
-				/*
-				**  We assume for now that we got an answer
-				**  to the right question.
-				*/
-
-				break;
-
-			  case REPUTE_XML_CODE_RATING:
-				reptmp = strtof(reputon->children->content,
-				                &p);
-				if (*p != '\0' || reptmp < -1 || reptmp > 1)
-					continue;
-				break;
-
-			  case REPUTE_XML_CODE_SAMPLE_SIZE:
-				errno = 0;
-				sampletmp = strtoul(reputon->children->content,
-				                    &p, 10);
-				if (errno != 0)
-					continue;
-				break;
-
-			  case REPUTE_XML_CODE_UPDATED:
-				errno = 0;
-				whentmp = strtoul(reputon->children->content,
-				                  &p, 10);
-				if (errno != 0)
-					continue;
-				break;
-
-			  default:
-				break;
-			}
-		}
-
-		if (found_dkim && found_spam)
-		{
-			*rep = reptmp;
-			if (conf != NULL)
-				*conf = conftmp;
-			if (sample != NULL)
-				*sample = sampletmp;
-			if (when != NULL)
-				*when = whentmp;
-			if (limit != NULL)
-				*limit = limittmp;
-
-			break;
-		}
-	}
-
-	xmlFreeDoc(doc);
-#endif /* USE_XML2 */
 
 	return REPUTE_STAT_OK;
 }
@@ -787,10 +599,6 @@ repute_get_template(REPUTE rep)
 void
 repute_init(void)
 {
-#ifdef USE_XML2
-	xmlInitParser();
-#endif /* USE_XML2 */
-
 	curl_global_init(CURL_GLOBAL_ALL);
 }
 
@@ -974,9 +782,6 @@ repute_query(REPUTE rep, const char *domain, float *repout,
 #ifdef USE_JANSSON
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING, "format", "json") != 0 ||
 #endif /* USE_JANSSON */
-#ifdef USE_XML2
-	    ut_keyvalue(ut, UT_KEYTYPE_STRING, "format", "xml") != 0 ||
-#endif /* USE_XML2 */
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,
 	                "scheme", REPUTE_URI_SCHEME) != 0 ||
 	    ut_keyvalue(ut, UT_KEYTYPE_STRING,

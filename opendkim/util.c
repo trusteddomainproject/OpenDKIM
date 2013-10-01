@@ -124,10 +124,6 @@ static char *optlist[] =
 	"USE_UNBOUND",
 #endif /* USE_UNBOUND */
 
-#if USE_XML2
-	"USE_XML2",
-#endif /* USE_XML2 */
-
 #ifdef _FFR_ADSP_LISTS
 	"_FFR_ADSP_LISTS",
 #endif /* _FFR_ADSP_LISTS */
