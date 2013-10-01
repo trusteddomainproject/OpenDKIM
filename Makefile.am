@@ -4,9 +4,6 @@ AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = 
-if STRL
-SUBDIRS += libstrl
-endif
 SUBDIRS += libopendkim contrib docs
 if VBR
 SUBDIRS += libvbr

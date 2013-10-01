@@ -204,8 +204,7 @@ AC_CHECK_FUNCS([strlcat strlcpy], [strl_found="yes"],
 		STRL_LIBS="$LIBS"
 		LIBS="$saved_LIBS"
                ])
-AM_CONDITIONAL([STRL],
-               [test x"$strl_found" != x"yes" -a x"$libstrl_found" != x"yes"])
+
 if test x"$libstrl_found" = x"yes"
 then
 	LIBS="$LIBS $STRL_LIBS"

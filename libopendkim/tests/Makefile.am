@@ -9,10 +9,6 @@ endif
 LDADD = ../libopendkim.la $(COV_LIBADD) $(LIBCRYPTO_LIBS) $(LIBRESOLV)
 AM_CPPFLAGS = -I..
 
-if STRL
-AM_CPPFLAGS += -I$(top_srcdir)/libstrl
-endif
-
 if USE_GNUTLS
 AM_CFLAGS += $(LIBCRYPTO_CFLAGS)
 AM_CPPFLAGS += $(LIBCRYPTO_CPPFLAGS)
@@ -216,38 +212,6 @@ t_test150_SOURCES = t-test150.c t-testdata.h
 t_test151_SOURCES = t-test151.c t-testdata.h
 t_test152_SOURCES = t-test152.c t-testdata.h
 t_test153_SOURCES = t-test153.c t-testdata.h
-
-if STRL
-t_test42_CPPFLAGS = -I../../libstrl $(AM_CPPFLAGS)
-t_test55_CPPFLAGS = -I../../libstrl $(AM_CPPFLAGS)
-t_test56_CPPFLAGS = -I../../libstrl $(AM_CPPFLAGS)
-t_test57_CPPFLAGS = -I../../libstrl $(AM_CPPFLAGS)
-t_test73_CPPFLAGS = -I../../libstrl $(AM_CPPFLAGS)
-t_test84_CPPFLAGS = -I../../libstrl $(AM_CPPFLAGS)
-t_test86_CPPFLAGS = -I../../libstrl $(AM_CPPFLAGS)
-t_test88_CPPFLAGS = -I../../libstrl $(AM_CPPFLAGS)
-t_test122_CPPFLAGS = -I../../libstrl $(AM_CPPFLAGS)
-t_test123_CPPFLAGS = -I../../libstrl $(AM_CPPFLAGS)
-t_test127_CPPFLAGS = -I../../libstrl $(AM_CPPFLAGS)
-t_test131_CPPFLAGS = -I../../libstrl $(AM_CPPFLAGS)
-t_test136_CPPFLAGS = -I../../libstrl $(AM_CPPFLAGS)
-t_test142_CPPFLAGS = -I../../libstrl $(AM_CPPFLAGS)
-else
-t_test42_CPPFLAGS = $(AM_CPPFLAGS)
-t_test55_CPPFLAGS = $(AM_CPPFLAGS)
-t_test56_CPPFLAGS = $(AM_CPPFLAGS)
-t_test57_CPPFLAGS = $(AM_CPPFLAGS)
-t_test73_CPPFLAGS = $(AM_CPPFLAGS)
-t_test84_CPPFLAGS = $(AM_CPPFLAGS)
-t_test86_CPPFLAGS = $(AM_CPPFLAGS)
-t_test88_CPPFLAGS = $(AM_CPPFLAGS)
-t_test122_CPPFLAGS = $(AM_CPPFLAGS)
-t_test123_CPPFLAGS = $(AM_CPPFLAGS)
-t_test127_CPPFLAGS = $(AM_CPPFLAGS)
-t_test131_CPPFLAGS = $(AM_CPPFLAGS)
-t_test136_CPPFLAGS = $(AM_CPPFLAGS)
-t_test142_CPPFLAGS = $(AM_CPPFLAGS)
-endif
 
 MOSTLYCLEANFILES=
 
