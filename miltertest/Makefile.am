@@ -1,5 +1,5 @@
-# Copyright (c) 2010, 2012, The Trusted Domain Project.  All rights reserved.
-#
+# Copyright (c) 2010, 2012, 2013, The Trusted Domain Project.
+#   All rights reserved.
 
 # what flags you want to pass to the C compiler & linker
 #AM_CFLAGS = --pedantic -Wall -O2

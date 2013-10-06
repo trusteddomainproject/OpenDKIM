@@ -401,7 +401,6 @@ and
 
 The following functions are also available, defined in the next section:
 .B odkim.get_policy,
-.B odkim.get_reputation,
 .B odkim.rbl_check,
 .B odkim.rcpt_count,
 .B odkim.sig_bhresult,
@@ -494,19 +493,6 @@ to exist, or
 .I DKIMF_POLICY_NONE
 if no query was done because a valid author domain signature was found on
 the message, or the Lua constant "nil" in case of some other error.
-.TP
-.B odkim.get_reputation(ctx, sig, qroot)
-Performs a reputation query about the message represented by
-.I ctx
-and the signature indicated by
-.I sig,
-the latter returned by a previous call to
-.B odkim.get_sighandle().
-The
-.I qroot
-parameter is a string naming the DNS root of the published reputation
-query data, or can be the empty string to use the built-in default.
-The integer result is returned on success, or "nil" on error.
 .TP
 .B odkim.quarantine(ctx, reason)
 Asks the MTA to quarantine the message represented by

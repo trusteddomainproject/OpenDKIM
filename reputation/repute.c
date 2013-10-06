@@ -58,29 +58,6 @@ struct repute_handle
 	char			rep_error[REPUTE_BUFBASE + 1];
 };
 
-struct repute_lookup
-{
-	int			rt_code;
-	const char *		rt_name;
-};
-
-/* lookup tables */
-struct repute_lookup repute_lookup_elements[] =
-{
-	{ REPUTE_XML_CODE_RATER,	REPUTE_XML_RATER },
-	{ REPUTE_XML_CODE_ASSERTION,	REPUTE_XML_ASSERTION },
-	{ REPUTE_XML_CODE_RATED,	REPUTE_XML_RATED },
-	{ REPUTE_XML_CODE_RATING,	REPUTE_XML_RATING },
-	{ REPUTE_XML_CODE_CONFIDENCE,	REPUTE_XML_CONFIDENCE },
-	{ REPUTE_XML_CODE_RATER_AUTH,	REPUTE_XML_RATER_AUTH },
-	{ REPUTE_XML_CODE_SAMPLE_SIZE,	REPUTE_XML_SAMPLE_SIZE },
-	{ REPUTE_XML_CODE_UPDATED,	REPUTE_XML_UPDATED },
-	{ REPUTE_XML_CODE_RATE,		REPUTE_XML_EXT_RATE },
-	{ REPUTE_XML_CODE_IDENTITY,	REPUTE_XML_EXT_IDENTITY },
-	{ REPUTE_XML_CODE_SOURCES,	REPUTE_XML_EXT_SOURCES },
-	{ REPUTE_XML_CODE_UNKNOWN,	NULL }
-};
-
 /* globals */
 static long timeout = REPUTE_TIMEOUT;
 
@@ -144,35 +121,6 @@ repute_curl_writedata(char *ptr, size_t size, size_t nmemb, void *userdata)
 }
 
 /*
-**  REPUTE_NAME_TO_CODE -- look up a name in a table
-**
-**  Parameters:
-**  	tbl -- table to search
-**  	name -- name to find
-**
-**  Return value:
-**  	Matching code.
-*/
-
-static int
-repute_name_to_code(struct repute_lookup *tbl, const char *name)
-{
-	int c;
-
-	assert(tbl != NULL);
-	assert(name != NULL);
-
-	for (c = 0; ; c++)
-	{
-		if (tbl[c].rt_name == NULL ||
-		    strcasecmp(name, tbl[c].rt_name) == 0)
-			return tbl[c].rt_code;
-	}
-
-	return -1;
-}
-
-/*
 **  REPUTE_PARSE -- parse a REPUTE message
 **
 **  Parameters:
@@ -193,6 +141,7 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 {
 	_Bool found_dkim = FALSE;
 	_Bool found_spam = FALSE;
+	_Bool found_appl = FALSE;
 	int code;
 	float conftmp;
 	float reptmp;
@@ -204,6 +153,7 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 #ifdef USE_JANSSON
 	json_t *root = NULL;
 	json_t *obj = NULL;
+	json_t *reps = NULL;
 	json_error_t error;
 #endif /* USE_JANSSON */
 
@@ -236,37 +186,54 @@ repute_parse(const char *buf, size_t buflen, float *rep, float *conf,
 	if (root == NULL)
 		return REPUTE_STAT_PARSE;
 
-	obj = json_object_get(root, REPUTE_XML_ASSERTION);
+	obj = json_object_get(root, REPUTE_APPLICATION);
 	if (obj != NULL && json_is_string(obj) &&
-	    strcasecmp(json_string_value(obj), REPUTE_ASSERT_SPAM) == 0)
-		found_spam = TRUE;
+	    strcasecmp(json_string_value(obj), REPUTE_APPLICATION_VAL) == 0)
+		found_appl = TRUE;
 
-	obj = json_object_get(root, REPUTE_XML_EXT_IDENTITY);
-	if (obj != NULL && json_is_string(obj) &&
-	    strcasecmp(json_string_value(obj), REPUTE_ID_DKIM) == 0)
-		found_dkim = TRUE;
+	reps = json_object_get(root, REPUTE_REPUTONS);
+	if (reps != NULL && json_is_array(reps)) {
+		int n;
+		json_t *rep;
 
-	obj = json_object_get(root, REPUTE_XML_EXT_RATE);
-	if (obj != NULL && json_is_number(obj))
-		limittmp = (unsigned long) json_integer_value(obj);
+		for (n = 0; n < json_array_size(reps); n++) {
+			rep = json_array_get(reps, n);
 
-	obj = json_object_get(root, REPUTE_XML_RATER_AUTH);
-	if (obj != NULL && json_is_number(obj))
-		conftmp = (float) json_real_value(obj);
+			obj = json_object_get(rep, REPUTE_ASSERTION);
+			if (obj != NULL && json_is_string(obj) &&
+			    strcasecmp(json_string_value(obj),
+			               REPUTE_ASSERT_SPAM) == 0)
+				found_spam = TRUE;
 
-	obj = json_object_get(root, REPUTE_XML_RATING);
-	if (obj != NULL && json_is_number(obj))
-		reptmp = (float) json_real_value(obj);
+			obj = json_object_get(rep, REPUTE_EXT_IDENTITY);
+			if (obj != NULL && json_is_string(obj) &&
+			    strcasecmp(json_string_value(obj),
+			               REPUTE_ID_DKIM) == 0)
+				found_dkim = TRUE;
 
-	obj = json_object_get(root, REPUTE_XML_SAMPLE_SIZE);
-	if (obj != NULL && json_is_number(obj))
-		sampletmp = (unsigned long) json_integer_value(obj);
+			obj = json_object_get(rep, REPUTE_EXT_RATE);
+			if (obj != NULL && json_is_number(obj))
+				limittmp = (unsigned long) json_integer_value(obj);
 
-	obj = json_object_get(root, REPUTE_XML_UPDATED);
-	if (obj != NULL && json_is_number(obj))
-		whentmp = (time_t) json_integer_value(obj);
+			obj = json_object_get(rep, REPUTE_CONFIDENCE);
+			if (obj != NULL && json_is_number(obj))
+				conftmp = (float) json_real_value(obj);
 
-	if (found_dkim && found_spam)
+			obj = json_object_get(rep, REPUTE_RATING);
+			if (obj != NULL && json_is_number(obj))
+				reptmp = (float) json_real_value(obj);
+
+			obj = json_object_get(rep, REPUTE_SAMPLE_SIZE);
+			if (obj != NULL && json_is_number(obj))
+				sampletmp = (unsigned long) json_integer_value(obj);
+
+			obj = json_object_get(rep, REPUTE_GENERATED);
+			if (obj != NULL && json_is_number(obj))
+				whentmp = (time_t) json_integer_value(obj);
+		}
+	}
+
+	if (found_appl && found_dkim && found_spam)
 	{
 		*rep = reptmp;
 		if (conf != NULL)

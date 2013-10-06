@@ -2606,10 +2606,10 @@ AC_OUTPUT([	Makefile
 			contrib/stats/Makefile
 			contrib/systemd/Makefile
 			contrib/systemd/opendkim.service
+		libopendkim/opendkim.pc libopendkim/Makefile
 		libopendkim/docs/Makefile
 		libopendkim/tests/Makefile
 		librbl/rbl.pc librbl/Makefile
-		libstrl/strl.pc libstrl/Makefile
 		libut/ut.pc libut/Makefile
 		libvbr/vbr.pc libvbr/Makefile
 		miltertest/Makefile

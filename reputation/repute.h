@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2011, 2012, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2011-2013, The Trusted Domain Project.  All rights reserved.
 */
 
 #ifndef _REPUTE_H_
@@ -36,34 +36,21 @@ typedef int REPUTE_STAT;
 #define	REPUTE_URI_SCHEME	"http"
 #define	REPUTE_URI_TEMPLATE	"{scheme}://{service}/.well-known/repute-template"
 
-#define	REPUTE_XML_CODE_UNKNOWN		(-1)
-#define	REPUTE_XML_CODE_RATER		0
-#define	REPUTE_XML_CODE_ASSERTION	1
-#define	REPUTE_XML_CODE_RATED		2
-#define	REPUTE_XML_CODE_RATING		3
-#define	REPUTE_XML_CODE_CONFIDENCE	4
-#define	REPUTE_XML_CODE_RATER_AUTH	5
-#define	REPUTE_XML_CODE_SAMPLE_SIZE	6
-#define	REPUTE_XML_CODE_UPDATED		7
-#define	REPUTE_XML_CODE_IDENTITY	8
-#define	REPUTE_XML_CODE_SOURCES		9
-#define	REPUTE_XML_CODE_RATE		10
+#define	REPUTE_APPLICATION	"application"
+#define	REPUTE_REPUTONS		"reputons"
+#define	REPUTE_RATER		"rater"
+#define	REPUTE_ASSERTION	"assertion"
+#define	REPUTE_RATED		"rated"
+#define	REPUTE_RATING		"rating"
+#define	REPUTE_CONFIDENCE	"confidence"
+#define	REPUTE_SAMPLE_SIZE	"sample-size"
+#define	REPUTE_GENERATED	"generated"
+#define	REPUTE_EXT_IDENTITY	"identity"
+#define	REPUTE_EXT_RATE		"rate"
 
-#define	REPUTE_XML_RATER		"rater"
-#define	REPUTE_XML_ASSERTION		"assertion"
-#define	REPUTE_XML_RATED		"rated"
-#define	REPUTE_XML_RATING		"rating"
-#define	REPUTE_XML_CONFIDENCE		"confidence"
-#define	REPUTE_XML_RATER_AUTH		"rater-authenticity"
-#define	REPUTE_XML_SAMPLE_SIZE		"sample-size"
-#define	REPUTE_XML_UPDATED		"updated"
-#define	REPUTE_XML_EXT_IDENTITY		"identity"
-#define	REPUTE_XML_EXT_SOURCES		"sources"
-#define	REPUTE_XML_EXT_RATE		"rate"
-
-#define	REPUTE_ID_DKIM			"dkim"
-#define	REPUTE_ASSERT_SPAM		"spam"
-
+#define	REPUTE_APPLICATION_VAL	"email-id"
+#define	REPUTE_ID_DKIM		"dkim"
+#define	REPUTE_ASSERT_SPAM	"spam"
 
 /* other types */
 struct repute_handle;

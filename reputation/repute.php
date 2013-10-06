@@ -1,6 +1,6 @@
 <?php
 ###
-### Copyright (c) 2011, 2012, The Trusted Domain Project.  All rights reserved.
+### Copyright (c) 2011-2013, The Trusted Domain Project.  All rights reserved.
 ###
 
 #
@@ -39,13 +39,8 @@ else
 if (isset($_GET["format"]))
 {
 	$format = $_GET["format"];
-	if (strtolower($format) != "xml" &&
-	    strtolower($format) != "json")
+	if (strtolower($format) != "json")
 		die("Unrecognized format");
-	else if (strtolower($format) == "xml")
-		$use_json = 0;
-	else
-		$use_json = 1;
 }
 
 $query1 = "SELECT	ratio_high,
@@ -103,43 +98,28 @@ $rate = $row[0];
 # MIME header
 #
 
-printf("Content-Type: application/reputon\n");
+printf("Content-Type: application/reputon+json\n");
 printf("\n");
 
 #
 # Construct the reputon
 #
 
-if (isset($use_json) && $use_json == 1)
-{
-	printf("{\n");
-	printf("\t\"rater\": \"$service\",\n");
-	printf("\t\"rater-authenticity\": 1.0,\n");
-	printf("\t\"assertion\": \"spam\",\n");
-	printf("\t\"identity\": \"dkim\",\n");
-	printf("\t\"rate\": $rate,\n");
-	printf("\t\"rated\": \"$subject\",\n");
-	printf("\t\"rating\": $rating,\n");
-	printf("\t\"sample-size\": $samples,\n");
-	printf("\t\"updated\": $updated\n");
-	printf("}\n");
-}
-else
-{
-	printf("<reputation>\n");
-	printf(" <reputon>\n");
-	printf("  <rater>$service</rater>\n");
-	printf("  <rater-authenticity>1</rater-authenticity>\n");
-	printf("  <assertion>spam</assertion>\n");
-	printf("  <identity>dkim</identity>\n");
-	printf("  <rate>$rate</rate>\n");
-	printf("  <rated>$subject</rated>\n");
-	printf("  <rating>$rating</rating>\n");
-	printf("  <sample-size>$samples</sample-size>\n");
-	printf("  <updated>$updated</updated>\n");
-	printf(" </reputon>\n");
-	printf("</reputation>\n");
-}
+printf("{\n");
+printf("  \"application\": \"email-id\",\n");
+printf("  \"reputons\": [\n");
+printf("    {\n");
+printf("\t\"rater\": \"$service\",\n");
+printf("\t\"assertion\": \"spam\",\n");
+printf("\t\"rated\": \"$subject\",\n");
+printf("\t\"rating\": $rating,\n");
+printf("\t\"identity\": \"dkim\",\n");
+printf("\t\"rate\": $rate,\n");
+printf("\t\"sample-size\": $samples,\n");
+printf("\t\"generated\": $updated\n");
+printf("    }\n");
+printf("  ]\n");
+printf("}\n");
 
 # all done!
 ?>
