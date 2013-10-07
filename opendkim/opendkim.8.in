@@ -139,7 +139,7 @@ of servers to be queried.  The first one should be a full RFC4516 LDAP URL
 indicating a base DN template and optional scope, filter and attribute
 names to use in queries.  When constructing a DN template or filter, the
 special tokens "$d" and "$D" are replaced with the key being queried and
-they key broken into components, separated at "." characters, each
+the key broken into components, separated at "." characters, each
 component preceded by "dc=" and followed by "," (so "example.com" would
 become "dc=example,dc=com").  If a data set requires multiple values to
 be returned, the appropriate attribute names should be given in the correct
