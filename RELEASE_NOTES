@@ -14,6 +14,8 @@ release, and a summary of the changes in that release.
 	Feature request #174: Drop internal libstrl implementation.
 	Feature request #175: Discontinue support for libdkimrep.
 	Feature request #176: Update to the final REPUTE RFCs.
+	Teach dkimf_db_walk() about LDAP soft starting.  Problem noted by
+		Andreas Schulze.
 	Fix bug #178: Add support for "dmarc" as an authentication method
 		(though it hasn't been formally registered yet) and fix
 		a minor Authentication-Results parsing problem.  Problem

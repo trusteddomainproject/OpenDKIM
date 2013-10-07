@@ -6067,6 +6067,23 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 
 		pthread_mutex_lock(&ldap->ldap_lock);
 
+		if (ld == NULL)
+		{
+			int lderr;
+
+			lderr = dkimf_db_open_ldap(&ld, ldap, NULL);
+			if (lderr == LDAP_SUCCESS)
+			{
+				db->db_handle = ld;
+			}
+			else
+			{
+				db->db_status = lderr;
+				pthread_mutex_unlock(&ldap->ldap_lock);
+				return lderr;
+			}
+		}
+
 		if (first)
 		{
 			if (result != NULL)
