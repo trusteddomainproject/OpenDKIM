@@ -1,6 +1,5 @@
 /*
-**  Copyright (c) 2010-2012, The Trusted Domain Project.  All rights reserved.
-**
+**  Copyright (c) 2010-2013, The Trusted Domain Project.  All rights reserved.
 */
 
 #include "build-config.h"
