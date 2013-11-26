@@ -846,7 +846,6 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 **
 **  Parameters:
 **  	buf -- parameter (the actual query)
-**  	buflen -- length of data in "buf"
 **  	query -- query string (a domain name?)
 **  	out -- outbut buffer
 **  	outlen -- size of "out"
@@ -861,7 +860,8 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 */
 
 static void
-dkimf_db_mkldapquery(char *buf, char *query, char *out, size_t outlen)
+dkimf_db_mkldapquery(char *buf, char *query, _Bool raw,
+                     char *out, size_t outlen)
 {
 	char last = '\0';
 	char *p;
@@ -892,7 +892,7 @@ dkimf_db_mkldapquery(char *buf, char *query, char *out, size_t outlen)
 			{
 				for (q = query; o <= oend && q <= qend; q++)
 				{
-					if (ISRFC2254CHR(*q))
+					if (ISRFC2254CHR(*q) && !raw)
 					{
 						ADDRFC2254CHR(o, oend, *q);
 					}
@@ -4868,12 +4868,12 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		memset(query, '\0', sizeof query);
 		memset(filter, '\0', sizeof filter);
 
-		dkimf_db_mkldapquery(ldap->ldap_descr->lud_dn, buf, query,
-		                     sizeof query);
+		dkimf_db_mkldapquery(ldap->ldap_descr->lud_dn, buf, FALSE,
+		                     query, sizeof query);
 		if (ldap->ldap_descr->lud_filter != NULL)
 		{
 			dkimf_db_mkldapquery(ldap->ldap_descr->lud_filter, buf,
-			                     filter, sizeof filter);
+			                     FALSE, filter, sizeof filter);
 		}
 
 		timeout.tv_sec = ldap->ldap_timeout;
@@ -6097,9 +6097,9 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 			memset(filter, '\0', sizeof filter);
 
 			dkimf_db_mkldapquery(ldap->ldap_descr->lud_dn, "",
-			                     query, sizeof query);
+			                     FALSE, query, sizeof query);
 			dkimf_db_mkldapquery(ldap->ldap_descr->lud_filter, "*",
-			                     filter, sizeof filter);
+			                     TRUE, filter, sizeof filter);
 
 			timeout.tv_sec = ldap->ldap_timeout;
 			timeout.tv_usec = 0;

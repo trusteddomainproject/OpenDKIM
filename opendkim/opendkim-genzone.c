@@ -247,6 +247,7 @@ main(int argc, char **argv)
 	char *contact = NULL;
 	char *nameservers = NULL;
 	char *configfile = NULL;
+	char *err = NULL;
 	char *nslist[MAXNS];
 	FILE *out;
 #ifdef USE_GNUTLS
@@ -475,10 +476,10 @@ main(int argc, char **argv)
 #endif /* USE_GNUTLS */
 
 	status = dkimf_db_open(&db, dataset, DKIMF_DB_FLAG_READONLY,
-	                       NULL, NULL);
+	                       NULL, &err);
 	if (status != 0)
 	{
-		fprintf(stderr, "%s: dkimf_db_open() failed\n", progname);
+		fprintf(stderr, "%s: dkimf_db_open(): %s\n", progname, err);
 #ifndef USE_GNUTLS
 		(void) BIO_free(outbio);
 #endif /* ! USE_GNUTLS */
@@ -616,8 +617,11 @@ main(int argc, char **argv)
 		status = dkimf_db_walk(db, c == 0, keyname, &keylen, dbd, 3);
 		if (status == -1)
 		{
-			fprintf(stderr, "%s: dkimf_db_walk(%d) failed\n",
-			        progname, c);
+			char err[BUFRSZ];
+
+			dkimf_db_strerror(db, err, sizeof err);
+			fprintf(stderr, "%s: dkimf_db_walk(%d) failed: %s\n",
+			        progname, c, err);
 			(void) dkimf_db_close(db);
 #ifndef USE_GNUTLS
 			(void) BIO_free(outbio);
