@@ -6049,6 +6049,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 #ifdef USE_LDAP
 	  case DKIMF_DB_TYPE_LDAP:
 	  {
+		bool noattrs;
 		int c;
 		int status;
 		char *p;
@@ -6185,8 +6186,21 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 			ldap_memfree(p);
 		}
 
+		noattrs = FALSE;
+		status = 0;
 		for (c = 0; c < reqnum; c++)
 		{
+			if (ldap->ldap_descr->lud_attrs[c] == NULL)
+				noattrs = TRUE;
+
+			if (noattrs) 
+			{
+				if ((req[c].dbdata_flags & DKIMF_DB_DATA_OPTIONAL) == 0)
+					status = -1;
+				req[c].dbdata_buflen = (size_t) -1;
+				continue;
+			}
+
 			vals = ldap_get_values_len(ld, e,
 			                           ldap->ldap_descr->lud_attrs[c]);
 			if (vals != NULL && vals[0]->bv_len != 0)
@@ -6210,7 +6224,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 
 		pthread_mutex_unlock(&ldap->ldap_lock);
 
-		return 0;
+		return status;
 	  }
 #endif /* USE_LDAP */
 
