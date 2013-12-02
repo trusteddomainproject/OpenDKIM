@@ -5951,6 +5951,13 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 		/* purge old results cursor if known */
 		if (result != NULL && first)
 		{
+			for (;;)
+			{
+				err = odbx_row_fetch(result);
+				if (err == ODBX_ROW_DONE)
+					break;
+			}
+
 			(void) odbx_result_finish(result);
 			result = NULL;
 		}
@@ -5992,8 +5999,20 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 			return -1;
 		}
 
-		if (err == ODBX_RES_DONE)
+		if (err == ODBX_ROW_DONE)
+		{
+			(void) odbx_result_finish(result);
+			for (;;)
+			{
+				err = odbx_result((odbx_t *) db->db_handle,
+				                  &result, NULL, 0);
+				if (err == 0)
+					break;
+				(void) odbx_result_finish(result);
+			}
+			db->db_cursor = NULL;
 			return 1;
+		}
 
 		fields = odbx_column_count(result);
 		if (fields == 0)

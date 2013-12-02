@@ -4840,8 +4840,8 @@ dkimf_securefile(const char *path, ino_t *ino, uid_t myuid, char *err,
 	**  Check each node in the tree to ensure that:
 	**  1) The file itself is read-write only by the executing user and the
 	**  	super-user;
-	**  2) No directory above the file is writeable by anyone other than the
-	**  	executing user and the super-user.
+	**  2) No directory above the file is writeable by anyone other than
+	**  	the executing user and the super-user.
 	*/
 
 	partial[0] = '/';
