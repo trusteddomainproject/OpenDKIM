@@ -92,11 +92,11 @@ if mt.getreply(conn) ~= SMFIR_ACCEPT then
 	error("mt.eom() unexpected reply")
 end
 
--- verify that no Authentication-Results header field got added
+-- verify that the right Authentication-Results header field got added
 if mt.eom_check(conn, MT_HDRINSERT, "Authentication-Results") or
    mt.eom_check(conn, MT_HDRADD, "Authentication-Results") then
 	ar = mt.getheader(conn, "Authentication-Results", 0)
-	if string.find(ar, "can't determine sender", 1, true) == nil then
+	if string.find(ar, "format", 1, true) == nil then
 		error("incorrect Authentication-Results field")
 	end
 else

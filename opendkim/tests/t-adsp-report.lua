@@ -108,7 +108,6 @@ if not mt.eom_check(conn, MT_HDRINSERT, "Authentication-Results") and
 end
 ar = mt.getheader(conn, "Authentication-Results", 0)
 if string.find(ar, "dkim-adsp=fail", 1, true) == nil then
-	print(ar)
 	error("incorrect DKIM result")
 end
 

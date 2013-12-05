@@ -10,4 +10,4 @@ fi
 
 export TMPFILE=`mktemp /tmp/opendkim-XXXXXXXXX`
 
-../../miltertest/miltertest $MILTERTESTFLAGS -s $srcdir/t-local-adsp.lua || exit 1
+../../miltertest/miltertest $MILTERTESTFLAGS -s $srcdir/t-local-adsp.lua

@@ -22,6 +22,9 @@ release, and a summary of the changes in that release.
 		Kyle Cummings.
 	Fix bug #180: Drain results object when doing a DB walk of a postgresql
 		table.  Problem noted by Szucs Adam.
+	Fix bug #182: Add an Authentication-Results header field even for
+		messages with no valid From: field or a fatal structural
+		violation.  Reported by John Wood.
 	Teach dkimf_db_walk() about LDAP soft starting, and don't escape the
 		forced "*" when walking.  Also handle incorrect attribute
 		counts without causing an assertion failure.  Problem noted

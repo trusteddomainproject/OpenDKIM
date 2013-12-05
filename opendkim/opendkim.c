@@ -731,6 +731,20 @@ struct lookup dkimf_policyactions[] =
 };
 #endif /* USE_UNBOUND */
 
+struct lookup dkimf_statusstrings[] =
+{
+	{ "no error",				DKIMF_STATUS_GOOD },
+	{ "bad signature",			DKIMF_STATUS_BAD },
+	{ "key retrieval failed",		DKIMF_STATUS_NOKEY },
+	{ "key revoked",			DKIMF_STATUS_REVOKED },
+	{ "no signature",			DKIMF_STATUS_NOSIGNATURE },
+	{ "bad message/signature format",	DKIMF_STATUS_BADFORMAT },
+	{ "invalid partial signature",		DKIMF_STATUS_PARTIAL },
+	{ "verification error",			DKIMF_STATUS_VERIFYERR },
+	{ "unknown error",			DKIMF_STATUS_UNKNOWN },
+	{ NULL,					-1 }
+};
+
 /* PROTOTYPES */
 #ifdef LEAK_TRACKING
 void dkimf_debug_free __P((void *, char *, int));
@@ -5693,7 +5707,8 @@ dkimf_reportaddr(struct dkimf_config *conf)
 }
 
 /*
-**  DKIMF_CONFIGLOOKUP -- look up the integer code for a config option or value
+**  DKIMF_LOOKUP_STRTOINT -- look up the integer code for a config option
+**                           or value
 **
 **  Parameters:
 **  	opt -- option to look up
@@ -5704,7 +5719,7 @@ dkimf_reportaddr(struct dkimf_config *conf)
 */
 
 static int
-dkimf_configlookup(char *opt, struct lookup *table)
+dkimf_lookup_strtoint(char *opt, struct lookup *table)
 {
 	int c;
 
@@ -5714,6 +5729,32 @@ dkimf_configlookup(char *opt, struct lookup *table)
 		    strcasecmp(opt, table[c].str) == 0)
 			return table[c].code;
 	}
+}
+
+/*
+**  DKIMF_LOOKUP_INTTOSTR -- look up the string matching an internal code
+**
+**  Parameters:
+**  	code -- code to look up
+**  	table -- lookup table to use
+**
+**  Return value:
+**  	String version of the option, or NULL on error.
+*/
+
+static const char *
+dkimf_lookup_inttostr(int code, struct lookup *table)
+{
+	int c;
+
+	for (c = 0; ; c++)
+	{
+		if (table[c].code == -1 || table[c].code == code)
+			return table[c].str;
+	}
+
+	assert(0);
+	/* NOTREACHED */
 }
 
 /*
@@ -5776,7 +5817,7 @@ dkimf_local_adsp(struct dkimf_config *conf, char *domain, dkim_policy_t *pcode)
 		{
 			dkim_policy_t tmpp;
 
-			tmpp = dkimf_configlookup(policy, dkimf_policy);
+			tmpp = dkimf_lookup_strtoint(policy, dkimf_policy);
 			if (tmpp != -1)
 			{
 				*pcode = tmpp;
@@ -6228,13 +6269,13 @@ dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl,
 	if (val == NULL)
 		return TRUE;
 
-	action = dkimf_configlookup(val, dkimf_values);
+	action = dkimf_lookup_strtoint(val, dkimf_values);
 	if (action == -1) {
 		snprintf(err, errlen, "invalid handling value \"%s\"", val);
 		return -1;
 	}
 
-	switch (dkimf_configlookup(name + 3, dkimf_params))
+	switch (dkimf_lookup_strtoint(name + 3, dkimf_params))
 	{
 	  case HNDL_DEFAULT:
 		hndl->hndl_nosig = action;
@@ -6653,7 +6694,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			int c;
 
-			c = dkimf_configlookup(str, dkimf_adspactions);
+			c = dkimf_lookup_strtoint(str, dkimf_adspactions);
 			if (c == -1)
 			{
 				snprintf(err, errlen,
@@ -6826,7 +6867,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			int c;
 
-			c = dkimf_configlookup(str, dkimf_keyactions);
+			c = dkimf_lookup_strtoint(str, dkimf_keyactions);
 			if (c == -1)
 			{
 				snprintf(err, errlen,
@@ -6847,7 +6888,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			int c;
 
-			c = dkimf_configlookup(str, dkimf_keyactions);
+			c = dkimf_lookup_strtoint(str, dkimf_keyactions);
 			if (c == -1)
 			{
 				snprintf(err, errlen,
@@ -6868,7 +6909,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			int c;
 
-			c = dkimf_configlookup(str, dkimf_policyactions);
+			c = dkimf_lookup_strtoint(str, dkimf_policyactions);
 			if (c == -1)
 			{
 				snprintf(err, errlen,
@@ -6889,7 +6930,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			int c;
 
-			c = dkimf_configlookup(str, dkimf_policyactions);
+			c = dkimf_lookup_strtoint(str, dkimf_policyactions);
 			if (c == -1)
 			{
 				snprintf(err, errlen,
@@ -7443,7 +7484,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "ATPSDomains", &str, sizeof str);
 	}
 
-	if (dkimf_configlookup(conf->conf_atpshash, dkimf_atpshash) != 1)
+	if (dkimf_lookup_strtoint(conf->conf_atpshash, dkimf_atpshash) != 1)
 	{
 		snprintf(err, errlen, "unknown ATPS hash \"%s\"",
 		         conf->conf_atpshash);
@@ -7936,8 +7977,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 	if (conf->conf_signalgstr != NULL)
 	{
-		conf->conf_signalg = dkimf_configlookup(conf->conf_signalgstr,
-		                                        dkimf_sign);
+		conf->conf_signalg = dkimf_lookup_strtoint(conf->conf_signalgstr,
+		                                           dkimf_sign);
 		if (conf->conf_signalg == -1)
 		{
 			snprintf(err, errlen,
@@ -7958,8 +7999,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		p = strchr(conf->conf_canonstr, '/');
 		if (p == NULL)
 		{
-			conf->conf_hdrcanon = dkimf_configlookup(conf->conf_canonstr,
-			                                         dkimf_canon);
+			conf->conf_hdrcanon = dkimf_lookup_strtoint(conf->conf_canonstr,
+			                                            dkimf_canon);
 			if (conf->conf_hdrcanon == -1)
 			{
 				snprintf(err, errlen,
@@ -7974,8 +8015,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			*p = '\0';
 
-			conf->conf_hdrcanon = dkimf_configlookup(conf->conf_canonstr,
-			                                         dkimf_canon);
+			conf->conf_hdrcanon = dkimf_lookup_strtoint(conf->conf_canonstr,
+			                                            dkimf_canon);
 			if (conf->conf_hdrcanon == -1)
 			{
 				snprintf(err, errlen,
@@ -7984,8 +8025,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				return -1;
 			}
 
-			conf->conf_bodycanon = dkimf_configlookup(p + 1,
-			                                          dkimf_canon);
+			conf->conf_bodycanon = dkimf_lookup_strtoint(p + 1,
+			                                             dkimf_canon);
 			if (conf->conf_bodycanon == -1)
 			{
 				snprintf(err, errlen,
@@ -12138,10 +12179,10 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 		{
 			*slash = '\0';
 
-			c = dkimf_configlookup(headerv, dkimf_canon);
+			c = dkimf_lookup_strtoint(headerv, dkimf_canon);
 			if (c != -1)
 				dfc->mctx_hdrcanon = (dkim_canon_t) c;
-			c = dkimf_configlookup(slash + 1, dkimf_canon);
+			c = dkimf_lookup_strtoint(slash + 1, dkimf_canon);
 			if (c != -1)
 				dfc->mctx_bodycanon = (dkim_canon_t) c;
 
@@ -12149,7 +12190,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 		}
 		else
 		{
-			c = dkimf_configlookup(headerv, dkimf_canon);
+			c = dkimf_lookup_strtoint(headerv, dkimf_canon);
 			if (c != -1)
 				dfc->mctx_hdrcanon = (dkim_canon_t) c;
 		}
@@ -13742,28 +13783,22 @@ mlfi_eoh(SMFICTX *ctx)
 	  case DKIM_STAT_REVOKED:
 		dfc->mctx_status = DKIMF_STATUS_REVOKED;
 		dfc->mctx_addheader = TRUE;
-		dfc->mctx_headeronly = TRUE;
 		return SMFIS_CONTINUE;
 
 	  case DKIM_STAT_BADSIG:
 		dfc->mctx_status = DKIMF_STATUS_BAD;
 		dfc->mctx_addheader = TRUE;
-		dfc->mctx_headeronly = TRUE;
 		return SMFIS_CONTINUE;
 
 	  case DKIM_STAT_NOSIG:
 		dfc->mctx_status = DKIMF_STATUS_NOSIGNATURE;
 		if (conf->conf_alwaysaddar)
-		{
 			dfc->mctx_addheader = TRUE;
-			dfc->mctx_headeronly = TRUE;
-		}
 		return SMFIS_CONTINUE;
 
 	  case DKIM_STAT_NOKEY:
 		dfc->mctx_status = DKIMF_STATUS_NOKEY;
 		dfc->mctx_addheader = TRUE;
-		dfc->mctx_headeronly = TRUE;
 		return SMFIS_CONTINUE;
 
 	  case DKIM_STAT_SYNTAX:
@@ -13948,6 +13983,58 @@ mlfi_eom(SMFICTX *ctx)
 	authservid = conf->conf_authservid;
 	if (authservid == NULL)
 		authservid = hostname;
+
+	/* if this was totally malformed, add a header field and stop */
+	if (dfc->mctx_headeronly)
+	{
+		const char *ar;
+
+		switch (dfc->mctx_status)
+		{
+		  case DKIMF_STATUS_BAD:
+			ar = "fail";
+			break;
+
+		  case DKIMF_STATUS_NOKEY:
+		  case DKIMF_STATUS_BADFORMAT:
+			ar = "permerror";
+			break;
+
+		  case DKIMF_STATUS_NOSIGNATURE:
+			ar = "none";
+			break;
+
+		  case DKIMF_STATUS_GOOD:
+		  case DKIMF_STATUS_REVOKED:
+		  case DKIMF_STATUS_PARTIAL:
+		  case DKIMF_STATUS_VERIFYERR:
+		  case DKIMF_STATUS_UNKNOWN:
+		  default:
+			assert(0);
+			/* NOTREACHED */
+		}
+
+		snprintf(header, sizeof header, "%s; dkim=%s (%s)",
+		         authservid, ar,
+		         dkimf_lookup_inttostr(dfc->mctx_status,
+		                               dkimf_statusstrings));
+
+		if (dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
+		                    (char *) header) == MI_FAILURE)
+		{
+			if (conf->conf_dolog)
+			{
+				syslog(LOG_ERR,
+				       "%s: %s header add failed",
+				       dfc->mctx_jobid,
+				       AUTHRESULTSHDR);
+			}
+
+			return SMFIS_TEMPFAIL;
+		}
+
+		return SMFIS_ACCEPT;
+	}
 
 	/* remove old signatures when signing */
 	if (conf->conf_remsigs && dfc->mctx_srhead != NULL)
