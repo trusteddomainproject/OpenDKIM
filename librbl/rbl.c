@@ -312,6 +312,7 @@ rbl_res_nslist(void *srv, const char *nslist)
 
 	free(tmp);
 #endif /* HAVE_RES_SETSERVERS */
+	return 0;
 }
 
 /*
