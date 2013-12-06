@@ -18226,5 +18226,7 @@ main(int argc, char **argv)
 
 	dkimf_crypto_free();
 
+	dkimf_config_free(curconf);
+
 	return status;
 }
