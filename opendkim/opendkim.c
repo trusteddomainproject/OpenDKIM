@@ -6229,6 +6229,11 @@ dkimf_config_free(struct dkimf_config *conf)
 		free(conf->conf_finalfunc);
 #endif /* USE_LUA */
 
+	if (conf->conf_keytabledb != NULL)
+		dkimf_db_close(conf->conf_keytabledb);
+	if (conf->conf_signtabledb != NULL)
+		dkimf_db_close(conf->conf_signtabledb);
+
 	if (conf->conf_data != NULL)
 		config_free(conf->conf_data);
 
