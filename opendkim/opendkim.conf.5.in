@@ -428,6 +428,10 @@ Specifies the user ID to use when conducting an LDAP "bind" operation.
 There is no default.
 
 .TP
+.I LDAPDisableCache (Boolean)
+Suppresses creation of a local cache in front of LDAP queries.
+
+.TP
 .I LDAPKeepaliveIdle (integer)
 Sets the number of seconds a connection to an LDAP server needs to remain
 idle before TCP starts sending keepalive probes.  If not specified, the
@@ -655,10 +659,6 @@ or hard-coded into the software.
 If set, this feature suppresses the use of "header.b" tags in added
 Authentication-Results header fields.  The default is "false", which means
 those tags will be applied.
-
-.TP
-.I NoLDAPCache (Boolean)
-Suppresses creation of a local cache in front of LDAP queries.
 
 .TP
 .I OmitHeaders (dataset)
