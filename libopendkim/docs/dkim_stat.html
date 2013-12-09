@@ -20,11 +20,11 @@
 <td>
 <ul>
 <li> <tt>DKIM_STAT_OK</tt> -- successful completion
-<li> <tt>DKIM_STAT_BADSIG</tt> -- signature did not match header and body
+<li> <tt>DKIM_STAT_BADSIG</tt> -- at least one signature was present, but no signature successfully verified
 <li> <tt>DKIM_STAT_NOSIG</tt> -- no signature present
 <li> <tt>DKIM_STAT_NOKEY</tt> -- no key available for verifying
-<li> <tt>DKIM_STAT_CANTVRFY</tt> -- can't get key for verifying
-<li> <tt>DKIM_STAT_SYNTAX</tt> -- message is not in valid syntax
+<li> <tt>DKIM_STAT_CANTVRFY</tt> -- can't get key for verifying (e.g., DNS error)
+<li> <tt>DKIM_STAT_SYNTAX</tt> -- syntax error in message or signature
 <li> <tt>DKIM_STAT_NORESOURCE</tt> -- resource unavailable
 <li> <tt>DKIM_STAT_INTERNAL</tt> -- internal error
 <li> <tt>DKIM_STAT_REVOKED</tt> -- signing key revoked
