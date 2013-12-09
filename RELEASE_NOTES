@@ -36,6 +36,8 @@ release, and a summary of the changes in that release.
 		as simply absent.  Suggested by Eugene Crosser.
 	LIBOPENDKIM: Add DKIM_LIBFLAGS_REQUESTREPORTS to request that an
 		"r=y" tag be added to signatures, per RFC6651.
+	TOOLS: Fix boundary condition in opendkim-testmsg.  Reported by
+		Wez Furlong.
 	DOCS: Feature request #168: Improve documentation of signature
 		verification failure debugging features.
 	DOCS: Feature request #172: Describe socket selection procedure in

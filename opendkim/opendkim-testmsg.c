@@ -292,6 +292,7 @@ main(int argc, char **argv)
 	for (;;)
 	{
 		rlen = fread(buf, 1, sizeof buf, stdin);
+
 		if (ferror(stdin))
 		{
 			fprintf(stderr, "%s: fread(): %s\n",
@@ -304,30 +305,33 @@ main(int argc, char **argv)
 			return EX_SOFTWARE;
 		}
 
-		wlen = write(tfd, buf, rlen);
-		if (wlen == -1)
+		if (rlen > 0)
 		{
-			fprintf(stderr, "%s: %s: write(): %s\n",
-			        progname, fn, strerror(errno));
-			dkim_free(dkim);
-			dkim_close(lib);
-			close(tfd);
-			if (keydata != NULL)
-				free(keydata);
-			return EX_SOFTWARE;
-		}
+			wlen = write(tfd, buf, rlen);
+			if (wlen == -1)
+			{
+				fprintf(stderr, "%s: %s: write(): %s\n",
+				        progname, fn, strerror(errno));
+				dkim_free(dkim);
+				dkim_close(lib);
+				close(tfd);
+				if (keydata != NULL)
+					free(keydata);
+				return EX_SOFTWARE;
+			}
 
-		status = dkim_chunk(dkim, buf, rlen);
-		if (status != DKIM_STAT_OK)
-		{
-			fprintf(stderr, "%s: dkim_chunk(): %s\n",
-			        progname, dkim_getresultstr(status));
-			dkim_free(dkim);
-			dkim_close(lib);
-			close(tfd);
-			if (keydata != NULL)
-				free(keydata);
-			return EX_SOFTWARE;
+			status = dkim_chunk(dkim, buf, rlen);
+			if (status != DKIM_STAT_OK)
+			{
+				fprintf(stderr, "%s: dkim_chunk(): %s\n",
+				        progname, dkim_getresultstr(status));
+				dkim_free(dkim);
+				dkim_close(lib);
+				close(tfd);
+				if (keydata != NULL)
+					free(keydata);
+				return EX_SOFTWARE;
+			}
 		}
 
 		if (feof(stdin))
