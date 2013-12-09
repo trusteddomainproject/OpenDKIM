@@ -349,9 +349,7 @@ struct dkimf_config
 	char *		conf_reportaddrbcc;	/* report repcipient address as bcc */
 	char *		conf_mtacommand;	/* MTA command (reports) */
 	char *		conf_localadsp_file;	/* local ADSP file */
-#ifdef _FFR_REDIRECT
 	char *		conf_redirect;		/* redirect failures to */
-#endif /* _FFR_REDIRECT */
 #ifdef USE_LDAP
 	char *		conf_ldap_timeout;	/* LDAP timeout */
 	char *		conf_ldap_kaidle;	/* LDAP keepalive idle */
@@ -6449,11 +6447,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_diagdir,
 		                  sizeof conf->conf_diagdir);
 
-#ifdef _FFR_REDIRECT
 		(void) config_get(data, "RedirectFailuresTo",
 		                  &conf->conf_redirect,
 		                  sizeof conf->conf_redirect);
-#endif /* _FFR_REDIRECT */
 
 #ifdef _FFR_RESIGN
 		(void) config_get(data, "ResignMailTo",
@@ -11455,14 +11451,18 @@ mlfi_negotiate(SMFICTX *ctx,
 # endif /* _FFR_VBR */
 	    conf->conf_remsigs)
 		reqactions |= SMFIF_CHGHDRS;
+
 # ifdef SMFIF_QUARANTINE
 	if (conf->conf_capture)
 		reqactions |= SMFIF_QUARANTINE;
 # endif /* SMFIF_QUARANTINE */
-# ifdef _FFR_REDIRECT
-	reqactions |= SMFIF_ADDRCPT;
-	reqactions |= SMFIF_DELRCPT;
-# endif /* _FFR_REDIRECT */
+
+	if (conf->conf_redirect != NULL)
+	{
+		reqactions |= SMFIF_ADDRCPT;
+		reqactions |= SMFIF_DELRCPT;
+	}
+
 	if ((f0 & reqactions) != reqactions)
 	{
 		if (conf->conf_dolog)
@@ -11825,9 +11825,7 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 	    || conf->conf_nodiscardto != NULL
 #endif /* _FFR_ADSP_LISTS */
 	    || conf->conf_bldb != NULL
-#ifdef _FFR_REDIRECT
 	    || conf->conf_redirect != NULL
-#endif /* _FFR_REDIRECT */
 #ifdef _FFR_RESIGN
 	    || conf->conf_resigndb != NULL
 #endif /* _FFR_RESIGN */
@@ -11850,9 +11848,7 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 	    || conf->conf_nodiscardto != NULL
 #endif /* _FFR_ADSP_LISTS */
 	    || conf->conf_bldb != NULL
-#ifdef _FFR_REDIRECT
 	    || conf->conf_redirect != NULL
-#endif /* _FFR_REDIRECT */
 #ifdef _FFR_RESIGN
 	    || conf->conf_resigndb != NULL
 #endif /* _FFR_RESIGN */
@@ -16106,7 +16102,6 @@ mlfi_eom(SMFICTX *ctx)
 		}
 #endif /* _FFR_VBR */
 
-#ifdef _FFR_REDIRECT
 		if (conf->conf_redirect != NULL &&
 		    dfc->mctx_status == DKIMF_STATUS_BAD)
 		{
@@ -16160,7 +16155,6 @@ mlfi_eom(SMFICTX *ctx)
 				return SMFIS_TEMPFAIL;
 			}
 		}
-#endif /* _FFR_REDIRECT */
 	}
 
 #ifdef USE_LUA
@@ -17908,13 +17902,17 @@ main(int argc, char **argv)
 		}
 
 		smfilter.xxfi_flags = SMFIF_ADDHDRS;
-#ifdef _FFR_REDIRECT
-		smfilter.xxfi_flags |= SMFIF_ADDRCPT;
-		smfilter.xxfi_flags |= SMFIF_DELRCPT;
-#endif /* _FFR_REDIRECT */
+
+		if (curconf->conf_redirect != NULL)
+		{
+			smfilter.xxfi_flags |= SMFIF_ADDRCPT;
+			smfilter.xxfi_flags |= SMFIF_DELRCPT;
+		}
+
 #ifdef SMFIF_SETSYMLIST
 		smfilter.xxfi_flags |= SMFIF_SETSYMLIST;
 #endif /* SMFIF_SETSYMLIST */
+
 		if (curconf->conf_remarall ||
 		    !curconf->conf_keepar ||
 #ifdef _FFR_IDENTITY_HEADER

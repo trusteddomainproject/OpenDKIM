@@ -472,6 +472,14 @@ KeyFile			/var/db/dkim/example.private
 
 # QueryCache		No
 
+##  RedirectFailuresTo address
+##  	default (none)
+##
+##  Redirects signed messages to the specified address if none of the
+##  signatures present failed to verify.
+
+# RedirectFailuresTo	postmaster@example.com
+
 ##  RemoveARAll { yes | no }
 ##  	default "no"
 ##

@@ -369,9 +369,6 @@ FFR_FEATURE([rate_limit], [support for DKIM-based rate limiting])
 FFR_FEATURE([replace_rules], [support for string substitution when signing])
 AM_CONDITIONAL([REPLACE_RULES], [test x"$enable_replace_rules" = x"yes"])
 
-FFR_FEATURE([redirect],
-            [support for redirecting failed verifications to a mailbox])
-
 FFR_FEATURE([reprrd],
             [support for experimental reputation checks using RRD])
 AM_CONDITIONAL([REPRRD], [test x"$enable_reprrd" = x"yes"])

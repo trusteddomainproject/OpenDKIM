@@ -160,10 +160,6 @@ static char *optlist[] =
 	"_FFR_RBL",
 #endif /* _FFR_RBL */
 
-#if _FFR_REDIRECT
-	"_FFR_REDIRECT",
-#endif /* _FFR_REDIRECT */
-
 #if _FFR_REPLACE_RULES
 	"_FFR_REPLACE_RULES",
 #endif /* _FFR_REPLACE_RULES */

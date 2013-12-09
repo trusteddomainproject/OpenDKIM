@@ -818,6 +818,12 @@ not local.
 @QUERY_CACHE_MANNOTICE@
 
 .TP
+.I RedirectFailuresTo (address)
+Messages bearing signatures that failed to verify are redirected to the
+specified address.  The original envelope recipient set is recorded in
+the header before redirection occurs.  By default, no redirection is done.
+
+.TP
 .I RemoveARAll (Boolean)
 Removes all Authentication-Results: header fields that also satisfy the
 requirements of

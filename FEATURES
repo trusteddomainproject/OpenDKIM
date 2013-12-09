@@ -70,9 +70,6 @@ rate_limit	Experimental rate limiting based on confirmed signer domains.
 rbl		Option to query realtime blacklists from within Lua scripts.
 		Requires Lua.  (opendkim)
 
-redirect	Option to redirect messages to a specific address on
-		verification or ADSP failure.  (opendkim)
-
 replace_rules	Allow specification of a "replacement rules" table
 		for use when signing, replacing certain patterns in
 		address headers with specific strings to anticipate the

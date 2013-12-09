@@ -147,9 +147,7 @@ struct configdef dkimf_config[] =
 #ifdef _FFR_RATE_LIMIT
 	{ "RateLimits",			CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_RATE_LIMIT */
-#ifdef _FFR_REDIRECT
 	{ "RedirectFailuresTo",		CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_REDIRECT */
 	{ "RemoveARAll",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "RemoveARFrom",		CONFIG_TYPE_STRING,	FALSE },
 	{ "RemoveOldSignatures",	CONFIG_TYPE_BOOLEAN,	FALSE },
