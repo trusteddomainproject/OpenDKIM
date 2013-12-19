@@ -242,12 +242,9 @@ then
 	fi
 fi
 
-# we need to include <strl.h> if:
-# (a) strlcat and strlcpy weren't found, since we'll be rolling our own; OR
-# (b) an installed strl.h was found and no bsd/string.h was found
-if test x"$strl_h_found" = x"yes" -o \
-	\( x"$strl_found" = x"no" -a x"$libstrl_found" = x"no" \) -a \
-	x"$bsdstrl_h_found" = x"no"
+# we need to include <strl.h> if an installed strl.h was found and no
+# bsd/string.h was found
+if test x"$strl_h_found" = x"yes" -a x"$bsdstrl_h_found" = x"no"
 then
 	AC_DEFINE([USE_STRL_H], 1,
 	          [Define to 1 if you need to include <strl.h> to get the `strlcat()' and `strlcpy()' functions.])
