@@ -48,7 +48,7 @@
 #define	DEFDBNAME	"opendkim"
 #define	DEFDBPASS	"opendkim"
 #define	DEFDBPORT	""
-#define	DEFDBSPAMCOL	"uspam"
+#define	DEFDBSPAMCOL	"spam"
 #define	DEFDBUSER	"opendkim"
 #define	MAXHEADER	16384
 #define SPACES		"\r\n\t "

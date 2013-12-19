@@ -73,8 +73,8 @@ will be made to extract this information from the topmost Received header
 field from the input message.
 .TP
 .I -s column
-Names the database column whose value should be set to "1" as a result
-of this user action.  The default is "uspam".
+Names the database column whose value should be incremented as a result
+of this user action.  The default is "spam".
 .TP
 .I -u user
 Identifies the database user to be used when connecting to the database.
