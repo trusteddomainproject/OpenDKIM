@@ -10,6 +10,8 @@ EnvironmentFile=-@sysconfdir@/sysconfig/opendkim
 ExecStartPre=@sbindir@/opendkim-default-keygen
 ExecStart=@sbindir@/opendkim $OPTIONS
 ExecReload=/bin/kill -USR1 $MAINPID
+User=opendkim
+Group=opendkim
 
 [Install]
 WantedBy=multi-user.target
