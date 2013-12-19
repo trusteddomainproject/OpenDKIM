@@ -3,6 +3,12 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.9.1		201?/??/??
+	BUILD: Clean up last remnants of libstrl.
+	CONTRIB: Update to contrib/systemd/opendkim.service from Steve Jenkins.
+	TOOLS: Fix opendkim-spam to match the schema found in stats/mkdb.mysql.
+		Problem noted by Benny Pedersen.
+
 2.9.0		2013/12/09
 	NOTE: During the development cycle for this release, SourceForge
 		changed their bug numbering system.  Bug numbers are recorded
