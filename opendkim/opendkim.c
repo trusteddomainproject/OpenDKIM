@@ -14178,7 +14178,7 @@ mlfi_eom(SMFICTX *ctx)
 					if (conf->conf_dolog)
 					{
 						syslog(LOG_WARNING,
-						       "%s: failed to parse %s: header",
+						       "%s: failed to parse %s: header field",
 						       dfc->mctx_jobid,
 						       hdr->hdr_hdr);
 					}
