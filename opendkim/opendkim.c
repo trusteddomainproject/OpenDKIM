@@ -1227,6 +1227,7 @@ dkimf_xs_signfor(lua_State *l)
 	char addr[MAXADDRESS + 1];
 	char errkey[BUFRSZ + 1];
 
+	top = lua_gettop(l);
 	if (top != 2 && top != 3)
 	{
 		lua_pushstring(l,
