@@ -1599,6 +1599,11 @@ AC_SUBST(LIBLUA_INCDIRS)
 AC_SUBST(LIBLUA_LIBDIRS)
 AC_SUBST(LIBLUA_LIBS)
 
+if test x"$enable_lua_only_signing" = x"yes" -a x"$lua_found" != x"yes"
+then
+	AC_MSG_ERROR([--enable-lua_only_signing requires Lua support])
+fi
+
 if test x"$enable_statsext" = x"yes" -a x"$lua_found" != x"yes"
 then
 	AC_MSG_ERROR([--enable-statsext requires Lua support])
