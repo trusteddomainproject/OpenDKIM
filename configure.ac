@@ -407,6 +407,8 @@ fi
 
 FFR_FEATURE([default_sender], [default sender address])
 
+FFR_FEATURE([lua_only_signing], [Lua setup script exclusive signing control])
+
 # sendmail command
 
 AC_PATH_PROG([SENDMAIL_PATH], [sendmail], [/usr/sbin/sendmail],
