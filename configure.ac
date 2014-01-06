@@ -407,6 +407,8 @@ fi
 
 FFR_FEATURE([default_sender], [default sender address])
 
+FFR_FEATURE([lua_only_signing], [Lua setup script exclusive signing control])
+
 # sendmail command
 
 AC_PATH_PROG([SENDMAIL_PATH], [sendmail], [/usr/sbin/sendmail],
@@ -1596,6 +1598,11 @@ AM_CONDITIONAL(LUA, test x"$lua_found" = x"yes")
 AC_SUBST(LIBLUA_INCDIRS)
 AC_SUBST(LIBLUA_LIBDIRS)
 AC_SUBST(LIBLUA_LIBS)
+
+if test x"$enable_lua_only_signing" = x"yes" -a x"$lua_found" != x"yes"
+then
+	AC_MSG_ERROR([--enable-lua_only_signing requires Lua support])
+fi
 
 if test x"$enable_statsext" = x"yes" -a x"$lua_found" != x"yes"
 then

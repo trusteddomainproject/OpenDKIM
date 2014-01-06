@@ -4,6 +4,10 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.9.1		2014/01/??
+	Feature request #177: Add "LuaOnlySigning" so that only the Lua setup
+		script makes signing requests; suppresses automatic application
+		of the signing table.  Requested by Daniele Orlandi.
+		### MAY MOVE TO 2.10.0 ###
 	Fix bug #185: odkim.signfor() wasn't processing its arguments
 		properly.  Reported by Daniele Orlandi.
 	BUILD: Clean up last remnants of libstrl.
