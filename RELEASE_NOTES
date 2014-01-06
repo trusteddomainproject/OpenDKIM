@@ -8,6 +8,8 @@ release, and a summary of the changes in that release.
 		properly.  Reported by Daniele Orlandi.
 	BUILD: Clean up last remnants of libstrl.
 	CONTRIB: Update to contrib/systemd/opendkim.service from Steve Jenkins.
+	TOOLS: Fix bug #187: Increase buffer size for the private key in
+		opendkim-testkey.  Problem noted by Andreas Schulze.
 	TOOLS: Fix opendkim-spam to match the schema found in stats/mkdb.mysql.
 		Problem noted by Benny Pedersen.
 

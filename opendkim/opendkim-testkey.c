@@ -58,6 +58,7 @@
 /* macros */
 #define	CMDLINEOPTS	"d:k:s:vx:"
 #define	DEFCONFFILE	CONFIG_BASE "/opendkim.conf"
+#define	MAXBUFRSZ	65536
 #define	BUFRSZ		2048
 
 #ifndef MIN
@@ -236,7 +237,7 @@ main(int argc, char **argv)
 	char err[BUFRSZ];
 	char domain[BUFRSZ];
 	char selector[BUFRSZ];
-	char keypath[BUFRSZ];
+	char keypath[MAXBUFRSZ];
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 
