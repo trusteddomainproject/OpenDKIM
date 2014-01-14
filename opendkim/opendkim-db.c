@@ -3190,7 +3190,9 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 
 			memset(&sun, '\0', sizeof sun);
 			sun.sun_family = AF_UNIX;
+#ifdef HAVE_SUN_LEN
 			sun.sun_len = sizeof(sun);
+#endif /* HAVE_SUN_LEN */
 			strlcpy(sun.sun_path, p, sizeof(sun.sun_path));
 
 			status = connect(fd, (struct sockaddr *) &sun,

@@ -11,6 +11,8 @@ release, and a summary of the changes in that release.
 	Fix bug #185: odkim.signfor() wasn't processing its arguments
 		properly.  Reported by Daniele Orlandi.
 	BUILD: Clean up last remnants of libstrl.
+	BUILD: Check for HAVE_SUN_LEN in opendkim-db.c.  Problem noted by
+		Patrick Ben Koetter.
 	CONTRIB: Update to contrib/systemd/opendkim.service from Steve Jenkins.
 	TOOLS: Fix bug #187: Increase buffer size for the private key in
 		opendkim-testkey.  Problem noted by Andreas Schulze.
