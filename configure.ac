@@ -1893,7 +1893,7 @@ then
 	then
 		if test -f $mdbpath/include/lmdb.h
 		then
-			LDFLAGS="-L$mdbpath/lib"
+			LDFLAGS="-L$mdbpath/lib $STRL_LIBS"
 			AC_CHECK_LIB(lmdb, mdb_env_open,
 			[
 			        mdb_found="yes"
@@ -1913,7 +1913,7 @@ then
 		do
 			if test -f $d/include/lmdb.h
 			then
-				LDFLAGS="-L$d/lib"
+				LDFLAGS="-L$d/lib $STRL_LIBS"
 				AC_CHECK_LIB(lmdb, mdb_env_open,
 				[
 					mdbpath=$d

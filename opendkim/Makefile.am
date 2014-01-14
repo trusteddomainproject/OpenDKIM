@@ -77,7 +77,6 @@ opendkim_LDADD += ../reputation/librepute.la
 endif
 if USE_MDB
 opendkim_CPPFLAGS += $(LIBMDB_CPPFLAGS)
-opendkim_CFLAGS += $(LIBMDB_CFLAGS)
 opendkim_LDADD += $(LIBMDB_LIBS)
 endif
 if ERLANG

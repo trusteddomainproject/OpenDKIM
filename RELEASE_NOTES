@@ -9,6 +9,8 @@ release, and a summary of the changes in that release.
 		of the signing table.  Requested by Daniele Orlandi.
 	Fix bug #185: odkim.signfor() wasn't processing its arguments
 		properly.  Reported by Daniele Orlandi.
+	BUILD: Fix bug #193: Fix up libmdb build.  Problem noted by Quanah
+		Gibson-Mount.
 	BUILD: Clean up last remnants of libstrl.
 	BUILD: Check for HAVE_SUN_LEN in opendkim-db.c.  Problem noted by
 		Patrick Laimbock.
