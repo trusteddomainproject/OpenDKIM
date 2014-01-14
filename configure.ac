@@ -1085,7 +1085,7 @@ libmemcache_found="no"
 
 if test \( x"$libmcdpath" = x"auto" -o x"$libmcdpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-	PKG_CHECK_MODULES([LIBMEMCACHED], [libmemcached], 
+	PKG_CHECK_MODULES([LIBMEMCACHED], [libmemcached >= 0.36], 
 	                  [
                           	libmemcache_found="yes"
 	                  	LIBMEMCACHED_INCDIRS="$LIBMEMCACHED_CFLAGS"
@@ -1131,6 +1131,24 @@ then
 		AC_MSG_ERROR([not found at $libmcdpath])
 	fi
 fi
+
+# confirm memcached_return_t is defined
+saved_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS $LIBMEMCACHED_INCDIRS"
+AC_MSG_CHECKING([for memcached_return_t])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+#include <libmemcached/memcached.h>
+
+int
+main()
+{
+	memcached_return_t x;
+
+	return 0;
+}
+	])],
+	AC_MSG_RESULT([ok]), 
+	AC_MSG_ERROR([libmemcached version 0.36 or later required]))
 
 if test x"$libmcdpath" = x"no" -o x"$libmemcache_found" = x"no"
 then
