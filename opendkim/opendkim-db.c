@@ -3154,7 +3154,6 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 	  {
 		int fd;
 		int status;
-		char *colon;
 		struct dkimf_db_socket *sdb;
 
 		sdb = (struct dkimf_db_socket *) malloc(sizeof *sdb);
@@ -3211,7 +3210,6 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			char *at;
 			char *q;
 			uint16_t port;
-			struct sockaddr_storage ss;
 			struct in_addr ip4;
 # ifdef AF_INET6
 			struct in6_addr ip6;
@@ -4730,7 +4728,6 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 			if (cex)
 			{
 				struct timeval now;
-				struct dkimf_db_ldap_cache_result *r;
 
 				(void) gettimeofday(&now, NULL);
 
