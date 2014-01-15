@@ -210,8 +210,11 @@ then
 	LIBS="$LIBS $STRL_LIBS"
 fi
 
+# we need something above to have worked
 if test x"$strl_found" != x"yes"
 then
+	AC_MSG_ERROR(no strlcpy/strlcat found)
+else
 	AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
 	if test x"$strl_h_found" != x"yes"
 	then
@@ -1133,10 +1136,12 @@ then
 fi
 
 # confirm memcached_return_t is defined
-saved_CPPFLAGS=$CPPFLAGS
-CPPFLAGS="$CPPFLAGS $LIBMEMCACHED_INCDIRS"
-AC_MSG_CHECKING([for memcached_return_t])
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+if test x"$libmemcache_found" = x"yes"
+then
+	saved_CPPFLAGS=$CPPFLAGS
+	CPPFLAGS="$CPPFLAGS $LIBMEMCACHED_INCDIRS"
+	AC_MSG_CHECKING([for memcached_return_t])
+	AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <libmemcached/memcached.h>
 
 int
@@ -1146,9 +1151,10 @@ main()
 
 	return 0;
 }
-	])],
-	AC_MSG_RESULT([ok]), 
-	AC_MSG_ERROR([libmemcached version 0.36 or later required]))
+		])],
+		AC_MSG_RESULT([ok]), 
+		AC_MSG_ERROR([libmemcached version 0.36 or later required]))
+fi
 
 if test x"$libmcdpath" = x"no" -o x"$libmemcache_found" = x"no"
 then
