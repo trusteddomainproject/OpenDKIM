@@ -1,4 +1,4 @@
-# Copyright (c) 2010-2013, The Trusted Domain Project.  All rights reserved.
+# Copyright (c) 2010-2014, The Trusted Domain Project.  All rights reserved.
 #
 
 if DEBUG
