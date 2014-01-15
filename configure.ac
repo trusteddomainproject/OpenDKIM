@@ -1310,7 +1310,7 @@ then
 		saved_LIBS="$LIBS"
 		LDFLAGS="-L$d/lib $LDFLAGS"
 		LIBS=""
-		AC_SEARCH_LIBS([event_enable_debug_mode], [event], libevent_found="yes")
+		AC_SEARCH_LIBS([evutil_vsnprintf], [event], libevent_found="yes")
 		LDFLAGS="$saved_LDFLAGS"
 		LIBS="$saved_LIBS"
 
@@ -1332,7 +1332,7 @@ then
 	saved_LIBS="$LIBS"
 	LDFLAGS="-L$d/lib $LDFLAGS"
 	LIBS=""
-	AC_SEARCH_LIBS([event_enable_debug_mode], [event], libevent_found="yes")
+	AC_SEARCH_LIBS([evutil_vsnprintf], [event], libevent_found="yes")
 	LDFLAGS="$saved_LDFLAGS"
 	LIBS="$saved_LIBS"
 

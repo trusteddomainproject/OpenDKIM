@@ -11,6 +11,8 @@ release, and a summary of the changes in that release.
 		properly.  Reported by Daniele Orlandi.
 	BUILD: Fix bug #191: Better minimum version checks for libmemcached.
 		Problem noted by Patrick Laimbock.
+	BUILD: Fix bug #192: Different test for libevent, from Patrick
+		Laimbock.
 	BUILD: Fix bug #193: Fix up libmdb build.  Problem noted by Quanah
 		Gibson-Mount.
 	BUILD: Clean up last remnants of libstrl.
