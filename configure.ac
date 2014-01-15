@@ -2535,15 +2535,7 @@ if test x"$enable_reputation" = x"yes"
 then
 	specconfig="$specconfig --enable-reputation"
 	specrequires="$specrequires libcurl"
-	specbuildrequires="$specbuildrequires libcurl-devel"
-	if test x"$xml2_found" = x"yes"
-	then
-		specrequires="$specrequires libxml2"
-		specbuildrequires="$specbuildrequires libxml2-devel"
-	else
-		specrequires="$specrequires jansson"
-		specbuildrequires="$specbuildrequires jansson-devel"
-	fi
+	specbuildrequires="$specbuildrequires libcurl-devel jansson-devel"
 fi
 
 if test x"$enable_stats" = x"yes"
@@ -2553,16 +2545,11 @@ then
 	specbuildrequires="$specbuildrequires libdb-devel opendbx-devel"
 fi
 
-if test x"$xml2_found" = x"yes"
-then
-	specconfig="$specconfig --with-libxml2=$xml2path --without-libjansson"
-fi
-
 if test x"$jansson_found" = x"yes"
 then
 	# autobuild
 	installbin="yes"
-	specconfig="$specconfig --with-libjansson=$janssonpath --without-libxml2"
+	specconfig="$specconfig --with-libjansson=$janssonpath"
 fi
 
 # opendkim-spam
