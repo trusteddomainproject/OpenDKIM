@@ -59,6 +59,9 @@ o sendmail v8.13.0 (or later), or Postfix 2.3, (or later) and libmilter.
 
 o Access to a working nameserver (required only for signature verification).
 
+o On Linux systems, either libbsd (BSD compatibility library) or some other
+  library that provides strlcat() and strlcpy().
+
 o If you wish to interface the filter with SQL databases, or store statistical
   information in a database, OpenDBX v1.3.7 or later is required.
 
