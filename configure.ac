@@ -67,6 +67,14 @@ PKG_PROG_PKG_CONFIG
 AX_PTHREAD
 
 #
+# save outer values
+#
+outer_CFLAGS="$CFLAGS"
+outer_CPPFLAGS="$CPPFLAGS"
+outer_LDFLAGS="$LDFLAGS"
+outer_LIBS="$LIBS"
+
+#
 # Checks for libraries
 #
 saved_LIBS="$LIBS"
@@ -138,7 +146,7 @@ $dnscheck
 	AC_MSG_RESULT(no)
 	AC_MSG_CHECKING([whether the resolver works with -lresolv])
 	saved_LIBS="$LIBS"
-	LIBS=-lresolv
+	LIBS="$outer_LIBS -lresolv"
 	AC_LINK_IFELSE([AC_LANG_SOURCE([
 $dnscheck
 	])] , [
@@ -192,7 +200,7 @@ AC_CHECK_HEADERS([bsd/string.h], [bsdstrl_h_found="yes"])
 AC_CHECK_FUNCS([strlcat strlcpy], [strl_found="yes"],
                [
 		saved_LIBS="$LIBS"
-		LIBS=""
+		LIBS="$outer_LIBS"
 		AC_SEARCH_LIBS([strlcat],
 		               [bsd strl],
 		               [libstrl_found="yes"],
@@ -211,37 +219,37 @@ then
 fi
 
 # we need something above to have worked
-if test x"$strl_found" != x"yes"
+if test x"$strl_found" != x"yes" -a x"$libstrl_found" != x"yes"
 then
 	AC_MSG_ERROR(no strlcpy/strlcat found)
-else
-	AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
+fi
+
+AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
+if test x"$strl_h_found" != x"yes"
+then
+	strldirs="/usr/local/include /usr/include"
+
+	for d in $strldirs
+	do
+		AC_MSG_CHECKING([for strl.h in $d/strl])
+		if test -f $d/strl/strl.h
+		then
+			unset ac_cv_header_strl_h
+			saved_CPPFLAGS="$CPPFLAGS"
+			CPPFLAGS="$CPPFLAGS -I$d/strl"
+			AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
+			if test x"$strl_h_found" = x"yes"
+			then
+				AC_MSG_RESULT(yes)
+				break
+			fi
+			CPPFLAGS="$saved_CPPFLAGS"
+		fi
+	done
+
 	if test x"$strl_h_found" != x"yes"
 	then
-		strldirs="/usr/local/include /usr/include"
-
-		for d in $strldirs
-		do
-			AC_MSG_CHECKING([for strl.h in $d/strl])
-			if test -f $d/strl/strl.h
-			then
-				unset ac_cv_header_strl_h
-				saved_CPPFLAGS="$CPPFLAGS"
-				CPPFLAGS="$CPPFLAGS -I$d/strl"
-				AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
-				if test x"$strl_h_found" = x"yes"
-				then
-					AC_MSG_RESULT(yes)
-					break
-				fi
-				CPPFLAGS="$saved_CPPFLAGS"
-			fi
-		done
-
-		if test x"$strl_h_found" != x"yes"
-		then
-			AC_MSG_RESULT(no)
-		fi
+		AC_MSG_RESULT(no)
 	fi
 fi
 
@@ -477,7 +485,7 @@ then
 	if test x"$hasgcov" = x"yes" -a x"$haslcov" != x"yes"
 	then
 		saved_LIBS="$LIBS"
-		LIBS=""
+		LIBS="$outer_LIBS"
 		AC_SEARCH_LIBS([__gcov_init], [gcov])
 		GCOV_LIBS="$LIBS"
 		LIBS="$saved_LIBS"
@@ -622,7 +630,7 @@ then
 	saved_LDFLAGS="$LDFLAGS"
 	saved_LIBS="$LIBS"
 
-	LIBS="-lgnutls $saved_LIBS"
+	LIBS="$outer_LIBS -lgnutls $saved_LIBS"
 	CPPFLAGS="-I$gtpath/include $saved_CPPFLAGS"
 	CFLAGS="$saved_CFLAGS"
 	LDFLAGS="-L$gtpath/lib $saved_LDFLAGS"
@@ -659,10 +667,10 @@ then
 		saved_LDFLAGS="$LDFLAGS"
 		saved_LIBS="$LIBS"
 
-		LIBS="-lgnutls $saved_LIBS"
+		LIBS="$outer_LIBS -lgnutls $saved_LIBS"
 		CPPFLAGS="-I$d/include $saved_CPPFLAGS"
 		CFLAGS="$saved_CFLAGS"
-		LDFLAGS="-L$d/lib $saved_LDFLAGS"
+		LDFLAGS="$outer_LDFLAGS -L$d/lib $saved_LDFLAGS"
 
 		gnutls_h_found="no"
 		gnutls_lib_found="no"
@@ -823,10 +831,10 @@ then
 	saved_LDFLAGS="$LDFLAGS"
 	saved_LIBS="$LIBS"
 
-	LIBS="$LIBCRYPTO_LIBS $saved_LIBS"
+	LIBS="$outer_LIBS $LIBCRYPTO_LIBS $saved_LIBS"
 	CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
 	CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
-	LDFLAGS="$LIBCRYPTO_LIBDIRS $saved_LDFLAGS"
+	LDFLAGS="$outer_LDFLAGS $LIBCRYPTO_LIBDIRS $saved_LDFLAGS"
 
 	AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
                  	AC_MSG_ERROR([required OpenSSL header not found]))
@@ -942,16 +950,16 @@ then
 	saved_LIBS="$LIBS"
 
 	CC="$PTHREAD_CC"
-	LIBS="$PTHREAD_LIBS $saved_LIBS"
+	LIBS="$outer_LIBS $PTHREAD_LIBS $saved_LIBS"
 	CPPFLAGS="$LIBMILTER_INCDIRS $saved_CPPFLAGS"
 	CFLAGS="$PTHREAD_CFLAGS $saved_CFLAGS"
-	LDFLAGS="$PTHREAD_CFLAGS $saved_LDFLAGS"
+	LDFLAGS="$outer_LDFLAGS $PTHREAD_CFLAGS $saved_LDFLAGS"
 
 	breakloop="no"
 	for d in lib lib/libmilter
 	do
 		unset ac_cv_search_smfi_register
-		LDFLAGS="$PTHREAD_CFLAGS -L$milterpath/$d $saved_LDFLAGS"
+		LDFLAGS="$outer_LDFLAGS $PTHREAD_CFLAGS -L$milterpath/$d $saved_LDFLAGS"
 		AC_SEARCH_LIBS([smfi_register], [milter],
 		               [
 		               	LIBMILTER_LIBDIRS="-L$milterpath/$d"
@@ -1254,8 +1262,8 @@ then
 		unset ac_cv_search_ldns_rr_new
 		saved_LDFLAGS="$LDFLAGS"
 		saved_LIBS="$LIBS"
-		LDFLAGS="-L$d/lib $LDFLAGS"
-		LIBS=""
+		LDFLAGS="$outer_LDFLAGS -L$d/lib $LDFLAGS"
+		LIBS="$outer_LIBS"
 		AC_SEARCH_LIBS([ldns_rr_new], [ldns], ldns_found="yes")
 		LDFLAGS="$saved_LDFLAGS"
 		LIBS="$saved_LIBS"
@@ -1276,8 +1284,8 @@ then
 	ldns_found="no"
 	saved_LDFLAGS="$LDFLAGS"
 	saved_LIBS="$LIBS"
-	LDFLAGS="-L$d/lib $LDFLAGS"
-	LIBS=""
+	LDFLAGS="$outer_LDFLAGS -L$d/lib $LDFLAGS"
+	LIBS="$outer_LIBS"
 	AC_SEARCH_LIBS([ldns_rr_new], [ldns], ldns_found="yes")
 	LDFLAGS="$saved_LDFLAGS"
 	LIBS="$saved_LIBS"
@@ -1314,8 +1322,8 @@ then
 		unset ac_cv_search_libevent_rr_new
 		saved_LDFLAGS="$LDFLAGS"
 		saved_LIBS="$LIBS"
-		LDFLAGS="-L$d/lib $LDFLAGS"
-		LIBS=""
+		LDFLAGS="$outer_LDFLAGS -L$d/lib $LDFLAGS"
+		LIBS="$outer_LIBS"
 		AC_SEARCH_LIBS([evutil_vsnprintf], [event], libevent_found="yes")
 		LDFLAGS="$saved_LDFLAGS"
 		LIBS="$saved_LIBS"
@@ -1336,8 +1344,8 @@ then
 	libevent_found="no"
 	saved_LDFLAGS="$LDFLAGS"
 	saved_LIBS="$LIBS"
-	LDFLAGS="-L$d/lib $LDFLAGS"
-	LIBS=""
+	LDFLAGS="$outer_LDFLAGS -L$d/lib $LDFLAGS"
+	LIBS="$outer_LIBS"
 	AC_SEARCH_LIBS([evutil_vsnprintf], [event], libevent_found="yes")
 	LDFLAGS="$saved_LDFLAGS"
 	LIBS="$saved_LIBS"
@@ -1594,7 +1602,7 @@ fi
 if test x"$lua_found" = x"yes"
 then
 	saved_CPPFLAGS="$CPPFLAGS"
-	CPPFLAGS="$LIBLUA_INCDIRS"
+	CPPFLAGS="$outer_CPPFLAGS $LIBLUA_INCDIRS"
 	AC_MSG_CHECKING([Lua version])
 	AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <lua.h>
@@ -1678,8 +1686,8 @@ then
 	then
 		if test -f $odbxpath/include/odbx.h
 		then
-			LDFLAGS="-L$odbxpath/lib"
-			LIBS=""
+			LDFLAGS="$outer_LDFLAGS -L$odbxpath/lib"
+			LIBS="$outer_LIBS"
 			AC_SEARCH_LIBS(odbx_result_finish, opendbx,
 			[
 			        odbx_found="yes"
@@ -1700,8 +1708,8 @@ then
 		do
 			if test -f $d/include/odbx.h
 			then
-				LDFLAGS="-L$d/lib"
-				LIBS=""
+				LDFLAGS="$outer_LDFLAGS -L$d/lib"
+				LIBS="$outer_LIBS"
 				AC_SEARCH_LIBS(odbx_result_finish, opendbx,
 				[
 					odbxpath=$d
@@ -1804,7 +1812,7 @@ fi
 if test x"$ldap_found" = x"yes"
 then
 	saved_CPPFLAGS="$CPPFLAGS"
-	CPPFLAGS="$OPENLDAP_CPPFLAGS"
+	CPPFLAGS="$outer_CPPFLAGS $OPENLDAP_CPPFLAGS"
 	AC_MSG_CHECKING([OpenLDAP version])
 	AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <ldap.h>
@@ -1899,8 +1907,8 @@ AC_SUBST(SASL_CPPFLAGS)
 #
 # libmdb
 #
-AC_ARG_WITH([mdb],
-            AS_HELP_STRING([--with-mdb],
+AC_ARG_WITH([lmdb],
+            AS_HELP_STRING([--with-lmdb],
                            [location of OpenLDAP MDB includes and library]),
             [mdbpath="$withval"], [mdbpath="no"])
 
@@ -1912,12 +1920,12 @@ if test x"$mdbpath" != x"no" -a x"$mdb_found" = x"no"
 then
 	saved_ldflags="$LDFLAGS"
 	saved_cflags="$CFLAGS"
-	CFLAGS="-pthread"
+	CFLAGS="$outer_CFLAGS -pthread"
 	if test x"$mdbpath" != x"auto" -a x"$mdbpath" != x"yes"
 	then
 		if test -f $mdbpath/include/lmdb.h
 		then
-			LDFLAGS="-L$mdbpath/lib $STRL_LIBS"
+			LDFLAGS="$outer_LDFLAGS -L$mdbpath/lib $STRL_LIBS"
 			AC_CHECK_LIB(lmdb, mdb_env_open,
 			[
 			        mdb_found="yes"
@@ -1925,11 +1933,11 @@ then
 				LIBMDB_LIBS="-L$mdbpath/lib -llmdb"
 			],
 			[
-				AC_MSG_ERROR([mdb not valid at $mdbpath])
+				AC_MSG_ERROR([lmdb not valid at $mdbpath])
 			]
 			)
 		else
-			AC_MSG_ERROR([mdb not found at $mdbpath])
+			AC_MSG_ERROR([lmdb not found at $mdbpath])
 		fi
 	else
 		mdbdirs="/usr /usr/local"
@@ -1937,7 +1945,7 @@ then
 		do
 			if test -f $d/include/lmdb.h
 			then
-				LDFLAGS="-L$d/lib $STRL_LIBS"
+				LDFLAGS="$outer_LDFLAGS -L$d/lib $STRL_LIBS"
 				AC_CHECK_LIB(lmdb, mdb_env_open,
 				[
 					mdbpath=$d
@@ -1951,7 +1959,7 @@ then
 		done
 		if test x"$mdb_found" != x"yes"
 		then
-			AC_MSG_ERROR([mdb not found])
+			AC_MSG_ERROR([lmdb not found])
 		fi
 	fi
 	LDFLAGS="$saved_ldflags"
@@ -2010,7 +2018,7 @@ then
 			AC_MSG_RESULT($curlpath)
 		        curl_found="yes"
 			CURL_CPPFLAGS="-I$curlpath/include"
-			CURL_LDFLAGS="-L$curlpath/lib"
+			CURL_LDFLAGS="$outer_LDFLAGS -L$curlpath/lib"
 			CURL_LIBS="-lcurl"
 		else
 			AC_MSG_ERROR(not found at $curlpath)
@@ -2025,7 +2033,7 @@ then
 				AC_MSG_RESULT($d)
 		        	curl_found="yes"
 				CURL_CPPFLAGS="-I$curlpath/include"
-				CURL_LDFLAGS="-L$curlpath/lib"
+				CURL_LDFLAGS="$outer_LDFLAGS -L$curlpath/lib"
 				CURL_LIBS="-lcurl"
 				break
 			fi
@@ -2042,7 +2050,7 @@ then
 	saved_CPPFLAGS="$CPPFLAGS"
 	saved_LDFLAGS="$LDFLAGS"
 	saved_LIBS="$LIBS"
-	CPPFLAGS="$LDFLAGS $CURL_CPPFLAGS"
+	CPPFLAGS="$CPPFLAGS $CURL_CPPFLAGS"
 	LDFLAGS="$LDFLAGS $CURL_LDFLAGS"
 	LIBS="$LIBS $CURL_LIBS"
 	AC_CHECK_FUNC([curl_easy_strerror],
@@ -2280,7 +2288,7 @@ then
 			saved_LIBS="$LIBS"
 			LDFLAGS="$LDFLAGS -L$d/lib"
 			CPPFLAGS="$CPPFLAGS -I$bdb_incdir"
-			LIBS=""
+			LIBS="$outer_LIBS"
 			if test x"$libdbfound" = x"no"
 			then
 				AC_SEARCH_LIBS([db_create], $bdb_lib,
@@ -2310,7 +2318,7 @@ then
 		saved_LIBS="$LIBS"
 		LDFLAGS="$LDFLAGS -L$bdb_libdir"
 		CPPFLAGS="$CPPFLAGS -I$bdb_incdir"
-		LIBS=""
+		LIBS="$outer_LIBS"
 		if test x"$libdbfound" = x"no"
 		then
 			AC_SEARCH_LIBS([db_create], $bdb_lib,
@@ -2500,7 +2508,7 @@ fi
 if test x"$erl_found" = x"yes"
 then
 	saved_CPPFLAGS="$CPPFLAGS"
-	CPPFLAGS="$LIBERL_INCDIRS"
+	CPPFLAGS="$outer_CPPFLAGS $LIBERL_INCDIRS"
 	AC_DEFINE([USE_ERLANG], 1, [support for Erlang access])
 	AC_SUBST([LIBERL_MANNOTICE], "")
 else
