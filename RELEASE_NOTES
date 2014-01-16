@@ -9,16 +9,19 @@ release, and a summary of the changes in that release.
 		of the signing table.  Requested by Daniele Orlandi.
 	Fix bug #185: odkim.signfor() wasn't processing its arguments
 		properly.  Reported by Daniele Orlandi.
+	BUILD: Fix bug #188: Clean up last remnants of libstrl.
+	BUILD: Fix bug #190: Check for HAVE_SUN_LEN in opendkim-db.c.
+		Problem noted by Patrick Laimbock.
 	BUILD: Fix bug #191: Better minimum version checks for libmemcached.
 		Problem noted by Patrick Laimbock.
 	BUILD: Fix bug #192: Different test for libevent, from Patrick
 		Laimbock.
-	BUILD: Fix bug #193: Fix up libmdb build.  Problem noted by Quanah
-		Gibson-Mount.
-	BUILD: Clean up last remnants of libstrl.
-	BUILD: Check for HAVE_SUN_LEN in opendkim-db.c.  Problem noted by
-		Patrick Laimbock.
-	CONTRIB: Update to contrib/systemd/opendkim.service from Steve Jenkins.
+	BUILD: Fix bug #193: Don't throw away user-provided compilation
+		variables.  Problem noted by Quanah Gibson-Mount.
+	BUILD: Don't throw away user-provided compilation variables.
+		Problem noted by Quanah Gibson-Mount.
+	CONTRIB: Fix bug #184: Update to contrib/systemd/opendkim.service
+		from Steve Jenkins.
 	TOOLS: Fix bug #187: Increase buffer size for the private key in
 		opendkim-testkey.  Problem noted by Andreas Schulze.
 	TOOLS: Fix opendkim-spam to match the schema found in stats/mkdb.mysql.
