@@ -20,6 +20,8 @@ release, and a summary of the changes in that release.
 		variables.  Problem noted by Quanah Gibson-Mount.
 	BUILD: Don't throw away user-provided compilation variables.
 		Problem noted by Quanah Gibson-Mount.
+	BUILD: Rename "--with-mdb" to "--with-lmdb" for consistency
+		with that package's naming conventions.
 	CONTRIB: Fix bug #184: Update to contrib/systemd/opendkim.service
 		from Steve Jenkins.
 	TOOLS: Fix bug #187: Increase buffer size for the private key in
