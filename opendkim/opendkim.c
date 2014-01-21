@@ -8842,8 +8842,6 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 
 		if (!dkimf_dns_init(lib, conf, err))
 			return FALSE;
-		else
-			dkim_dns_close(lib);
 	}
 
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_TIMEOUT,
