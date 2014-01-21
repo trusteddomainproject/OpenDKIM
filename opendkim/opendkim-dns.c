@@ -635,8 +635,11 @@ dkimf_ub_close(void *srv)
 	ub = srv;
 
 	ub_ctx_delete(ub->ub_ub);
+
 	pthread_mutex_destroy(&ub->ub_lock);
 	pthread_cond_destroy(&ub->ub_ready);
+
+	free(srv);
 }
 
 /*
