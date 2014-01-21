@@ -4532,7 +4532,7 @@ dkim_close(DKIM_LIB *lib)
 
 	free(lib->dkiml_flist);
 
-	if (lib->dkiml_dns_close != NULL)
+	if (lib->dkiml_dns_close != NULL && lib->dkiml_dns_service != NULL)
 		lib->dkiml_dns_close(lib->dkiml_dns_service);
 	
 	free((void *) lib);
@@ -9226,11 +9226,11 @@ dkim_dns_init(DKIM_LIB *lib)
 	if (lib->dkiml_dnsinit_done)
 		return DKIM_DNS_INVALID;
 
-	if (lib->dkiml_dnsinit_done &&
-	    lib->dkiml_dns_close != NULL)
+	if (lib->dkiml_dns_close != NULL && lib->dkiml_dns_service != NULL)
+	{
 		lib->dkiml_dns_close(lib->dkiml_dns_service);
-
-	lib->dkiml_dnsinit_done = FALSE;
+		lib->dkiml_dns_service = NULL;
+	}
 
 	if (lib->dkiml_dns_init != NULL)
 		status = lib->dkiml_dns_init(&lib->dkiml_dns_service);
@@ -9259,8 +9259,12 @@ dkim_dns_close(DKIM_LIB *lib)
 	assert(lib != NULL);
 
 	if (lib->dkiml_dnsinit_done &&
-	    lib->dkiml_dns_close != NULL)
+	    lib->dkiml_dns_close != NULL &&
+	    lib->dkiml_dns_service != NULL)
+	{
 		lib->dkiml_dns_close(lib->dkiml_dns_service);
+		lib->dkiml_dns_service = NULL;
+	}
 
 	lib->dkiml_dnsinit_done = FALSE;
 
