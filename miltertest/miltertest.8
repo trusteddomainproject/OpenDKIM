@@ -133,11 +133,15 @@ a connection came in from an unknown protocol family.
 Announces the DATA command on the specified connection, which occurs between
 the last RCPT TO command and the beginning of the header block.
 .TP
-.B mt.disconnect(conn)
+.B mt.disconnect(conn[, polite]))
 Sends a "quit" message to the specified connection and then closes that
 connection.  The specified
 .I conn
-handle should no longer be used.
+handle should no longer be used.  If
+.I polite
+is defined, it must be a Boolean indicating whether a normal disconnect
+should be done (true) or an abrupt disconnect should be done (false).  An
+abrupt disconnect skips standard protocol shutdown steps.
 .TP
 .B mt.echo(string)
 Prints the specified

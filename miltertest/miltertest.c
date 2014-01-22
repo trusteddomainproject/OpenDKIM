@@ -84,7 +84,7 @@ typedef unsigned int useconds_t;
 #endif /* SMFIP_NR_CONN */
 
 #define	MT_PRODUCT		"OpenDKIM milter test facility"
-#define	MT_VERSION		"1.5.0"
+#define	MT_VERSION		"1.6.0"
 
 #define	BUFRSZ			1024
 #define	CHUNKSZ			65536
@@ -1621,21 +1621,29 @@ mt_sleep(lua_State *l)
 int
 mt_disconnect(lua_State *l)
 {
+	_Bool polite = TRUE;
+	int top;
+	
 	struct mt_context *ctx;
 
 	assert(l != NULL);
 
-	if (lua_gettop(l) != 1 ||
-	    !lua_islightuserdata(l, 1))
+	top = lua_gettop(l);
+	if ((top != 1 && top != 2) ||
+	    !lua_islightuserdata(l, 1) ||
+	    (top == 2 && !lua_isboolean(l, 2)))
 	{
 		lua_pushstring(l, "mt.disconnect(): Invalid argument");
 		lua_error(l);
 	}
 
 	ctx = (struct mt_context *) lua_touserdata(l, 1);
-	lua_pop(l, 1);
+	if (top == 2)
+		polite = lua_toboolean(l, 2);
+	lua_pop(l, top);
 
-	(void) mt_milter_write(ctx->ctx_fd, SMFIC_QUIT, NULL, 0);
+	if (polite)
+		(void) mt_milter_write(ctx->ctx_fd, SMFIC_QUIT, NULL, 0);
 
 	(void) close(ctx->ctx_fd);
 
