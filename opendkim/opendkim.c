@@ -5897,7 +5897,7 @@ dkimf_sighandler(int sig)
 		diesig = sig;
 		die = TRUE;
 	}
-	else if (sig == SIGUSR1)
+	else if (sig == SIGUSR1 && !die)
 	{
 		if (conffile != NULL)
 			reload = TRUE;
