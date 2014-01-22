@@ -24,6 +24,7 @@ release, and a summary of the changes in that release.
 		with that package's naming conventions.
 	CONTRIB: Fix bug #184: Update to contrib/systemd/opendkim.service
 		from Steve Jenkins.
+	MILTERTEST: Add "polite" flag to mt_disconnect().
 	TOOLS: Fix bug #187: Increase buffer size for the private key in
 		opendkim-testkey.  Problem noted by Andreas Schulze.
 	TOOLS: Fix opendkim-spam to match the schema found in stats/mkdb.mysql.
