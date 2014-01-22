@@ -8977,10 +8977,7 @@ dkim_dns_set_query_start(DKIM_LIB *lib, int (*func)(void *, int,
 {
 	assert(lib != NULL);
 
-	if (func != NULL)
-		lib->dkiml_dns_start = func;
-	else
-		lib->dkiml_dns_start = dkim_res_query;
+	lib->dkiml_dns_start = func;
 }
 
 /*
@@ -9005,10 +9002,7 @@ dkim_dns_set_query_cancel(DKIM_LIB *lib, int (*func)(void *, void *))
 {
 	assert(lib != NULL);
 
-	if (func != NULL)
-		lib->dkiml_dns_cancel = func;
-	else
-		lib->dkiml_dns_cancel = dkim_res_cancel;
+	lib->dkiml_dns_cancel = func;
 }
 
 /*
@@ -9056,10 +9050,7 @@ dkim_dns_set_close(DKIM_LIB *lib, void (*func)(void *))
 {
 	assert(lib != NULL);
 
-	if (func != NULL)
-		lib->dkiml_dns_close = func;
-	else
-		lib->dkiml_dns_close = dkim_res_close;
+	lib->dkiml_dns_close = func;
 }
 
 /*
@@ -9084,10 +9075,7 @@ dkim_dns_set_nslist(DKIM_LIB *lib, int (*func)(void *, const char *))
 {
 	assert(lib != NULL);
 
-	if (func != NULL)
-		lib->dkiml_dns_setns = func;
-	else
-		lib->dkiml_dns_setns = dkim_res_nslist;
+	lib->dkiml_dns_setns = func;
 }
 
 /*
@@ -9171,10 +9159,7 @@ dkim_dns_set_query_waitreply(DKIM_LIB *lib, int (*func)(void *, void *,
 {
 	assert(lib != NULL);
 
-	if (func != NULL)
-		lib->dkiml_dns_waitreply = func;
-	else
-		lib->dkiml_dns_waitreply = dkim_res_waitreply;
+	lib->dkiml_dns_waitreply = func;
 }
 
 /*
