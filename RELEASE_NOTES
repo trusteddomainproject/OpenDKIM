@@ -9,6 +9,9 @@ release, and a summary of the changes in that release.
 		of the signing table.  Requested by Daniele Orlandi.
 	Fix bug #185: odkim.signfor() wasn't processing its arguments
 		properly.  Reported by Daniele Orlandi.
+	LIBOPENDKIM: Only call dkiml_dns_close() if there was a
+		dkiml_dns_service handle set by dkiml_dns_init().  Also,
+		when closing, reset that handle to NULL.
 	BUILD: Fix bug #188: Clean up last remnants of libstrl.
 	BUILD: Fix bug #190: Check for HAVE_SUN_LEN in opendkim-db.c.
 		Problem noted by Patrick Laimbock.
