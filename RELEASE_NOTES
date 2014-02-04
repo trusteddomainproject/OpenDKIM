@@ -16,6 +16,9 @@ release, and a summary of the changes in that release.
 		NULL function pointer, merely store it, making the
 		corresponding function a no-op.  Previously, doing
 		so restored the default.
+	LIBOPENDKIM: Have dkim_sig_getreportinfo() return descriptors
+		(if available) regardless of the signer's reporting parameters.
+		Problem noted by Wez Furlong.
 	BUILD: Fix bug #188: Clean up last remnants of libstrl.
 	BUILD: Fix bug #190: Check for HAVE_SUN_LEN in opendkim-db.c.
 		Problem noted by Patrick Laimbock.

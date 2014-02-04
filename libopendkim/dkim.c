@@ -7547,6 +7547,72 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 
 	sdomain = dkim_sig_getdomain(sig);
 
+	/* report descriptors regardless of reporting parameters */
+	if (sig->sig_hdrcanon != NULL)
+	{
+		switch (sig->sig_hashtype)
+		{
+#ifdef USE_GNUTLS
+		  case DKIM_HASHTYPE_SHA1:
+		  case DKIM_HASHTYPE_SHA256:
+		  {
+			struct dkim_sha *sha;
+
+			sha = (struct dkim_sha *) sig->sig_hdrcanon->canon_hash;
+			if (hfd != NULL)
+				*hfd = sha->sha_tmpfd;
+
+			if (bfd != NULL)
+			{
+				sha = (struct dkim_sha *) sig->sig_bodycanon->canon_hash;
+				*bfd = sha->sha_tmpfd;
+			}
+
+			break;
+		  }
+#else /* USE_GNUTLS */
+		  case DKIM_HASHTYPE_SHA1:
+		  {
+			struct dkim_sha1 *sha1;
+
+			sha1 = (struct dkim_sha1 *) sig->sig_hdrcanon->canon_hash;
+			if (hfd != NULL)
+				*hfd = sha1->sha1_tmpfd;
+
+			if (bfd != NULL)
+			{
+				sha1 = (struct dkim_sha1 *) sig->sig_bodycanon->canon_hash;
+				*bfd = sha1->sha1_tmpfd;
+			}
+
+			break;
+		  }
+
+# ifdef HAVE_SHA256
+		  case DKIM_HASHTYPE_SHA256:
+		  {
+			struct dkim_sha256 *sha256;
+
+			sha256 = (struct dkim_sha256 *) sig->sig_hdrcanon->canon_hash;
+			if (hfd != NULL)
+				*hfd = sha256->sha256_tmpfd;
+
+			if (bfd != NULL)
+			{
+				sha256 = (struct dkim_sha256 *) sig->sig_bodycanon->canon_hash;
+				*bfd = sha256->sha256_tmpfd;
+			}
+
+			break;
+		  }
+# endif /* HAVE_SHA256 */
+#endif /* USE_GNUTLS */
+
+		  default:
+			assert(0);
+		}
+	}
+
 	/* see if the signature had an "r=y" tag */
 	set = sig->sig_taglist;
 	if (set == NULL)
@@ -7649,71 +7715,6 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 			out = strtoul((char *) p, &q, 10);
 			if (*q == '\0')
 				*pct = out;
-		}
-	}
-
-	if (sig->sig_hdrcanon != NULL)
-	{
-		switch (sig->sig_hashtype)
-		{
-#ifdef USE_GNUTLS
-		  case DKIM_HASHTYPE_SHA1:
-		  case DKIM_HASHTYPE_SHA256:
-		  {
-			struct dkim_sha *sha;
-
-			sha = (struct dkim_sha *) sig->sig_hdrcanon->canon_hash;
-			if (hfd != NULL)
-				*hfd = sha->sha_tmpfd;
-
-			if (bfd != NULL)
-			{
-				sha = (struct dkim_sha *) sig->sig_bodycanon->canon_hash;
-				*bfd = sha->sha_tmpfd;
-			}
-
-			break;
-		  }
-#else /* USE_GNUTLS */
-		  case DKIM_HASHTYPE_SHA1:
-		  {
-			struct dkim_sha1 *sha1;
-
-			sha1 = (struct dkim_sha1 *) sig->sig_hdrcanon->canon_hash;
-			if (hfd != NULL)
-				*hfd = sha1->sha1_tmpfd;
-
-			if (bfd != NULL)
-			{
-				sha1 = (struct dkim_sha1 *) sig->sig_bodycanon->canon_hash;
-				*bfd = sha1->sha1_tmpfd;
-			}
-
-			break;
-		  }
-
-# ifdef HAVE_SHA256
-		  case DKIM_HASHTYPE_SHA256:
-		  {
-			struct dkim_sha256 *sha256;
-
-			sha256 = (struct dkim_sha256 *) sig->sig_hdrcanon->canon_hash;
-			if (hfd != NULL)
-				*hfd = sha256->sha256_tmpfd;
-
-			if (bfd != NULL)
-			{
-				sha256 = (struct dkim_sha256 *) sig->sig_bodycanon->canon_hash;
-				*bfd = sha256->sha256_tmpfd;
-			}
-
-			break;
-		  }
-# endif /* HAVE_SHA256 */
-#endif /* USE_GNUTLS */
-
-		  default:
-			assert(0);
 		}
 	}
 
