@@ -442,7 +442,6 @@ AM_CONDITIONAL([RPATH], [test x"$enable_rpath" = x"yes"])
 if test x"$enable_rpath" != x"yes"
 then
 	AC_MSG_RESULT([Suppressing -rpath use by libtool])
-	pwd
 	sed < libtool > libtool-2 's/^hardcode_libdir_flag_spec.*$'/'hardcode_libdir_flag_spec=" -D__LIBTOOL_NO_RPATH__ "/'
 	mv libtool-2 libtool
 	chmod 0755 libtool
