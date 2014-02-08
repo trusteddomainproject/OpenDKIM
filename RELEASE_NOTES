@@ -9,6 +9,9 @@ release, and a summary of the changes in that release.
 		of the signing table.  Requested by Daniele Orlandi.
 	Fix bug #185: odkim.signfor() wasn't processing its arguments
 		properly.  Reported by Daniele Orlandi.
+	Fix bug #199: Fix use of uninitialized buffer when generating
+		SMTP response strings due to ADSP rejections.  Problem
+		noted by Ache.
 	LIBOPENDKIM: Only call dkiml_dns_close() if there was a
 		dkiml_dns_service handle set by dkiml_dns_init().  Also,
 		when closing, reset that handle to NULL.

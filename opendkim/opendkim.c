@@ -14703,6 +14703,18 @@ mlfi_eom(SMFICTX *ctx)
 						       dfc->mctx_domain);
 					}
 					
+					memset(smtpprefix, '\0',
+					       sizeof smtpprefix);
+					lastdkim = dfc->mctx_dkimv;
+					(void) dkim_policy_getreportinfo(dfc->mctx_dkimv,
+					                                 NULL,
+					                                 0,
+					                                 NULL,
+					                                 0,
+					                                 (u_char *) smtpprefix,
+					                                 sizeof smtpprefix,
+					                                 NULL);
+
 					if (smtpprefix[0] == '\0')
 					{
 						strlcpy(replybuf,
@@ -14717,18 +14729,6 @@ mlfi_eom(SMFICTX *ctx)
 						         smtpprefix,
 						         ADSPDENYTEXT);
 					}
-
-					memset(smtpprefix, '\0',
-					       sizeof smtpprefix);
-					lastdkim = dfc->mctx_dkimv;
-					(void) dkim_policy_getreportinfo(dfc->mctx_dkimv,
-					                                 NULL,
-					                                 0,
-					                                 NULL,
-					                                 0,
-					                                 (u_char *) smtpprefix,
-					                                 sizeof smtpprefix,
-					                                 NULL);
 
 					/* send an ARF message for ADSP? */
 					if (conf->conf_sendadspreports)
