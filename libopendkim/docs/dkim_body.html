@@ -75,6 +75,7 @@ to be a C string (a sequence of characters that is terminated by '\0').
 <li>Dot stuffing and the terminating dot in the message body are expected to
 be removed by the caller.  If they appear within <tt>bodyp</tt>, they are
 assumed to be part of the message body and will be included in the hashed data.
+This is true of any content modification that might be done by the MTA.
 </ul>
 </td>
 </tr>
@@ -86,7 +87,8 @@ assumed to be part of the message body and will be included in the hashed data.
 Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, 2010, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2009, 2010, 2014, The Trusted Domain Project.
+All rights reserved.
 
 <br>
 By using this file, you agree to the terms and conditions set
