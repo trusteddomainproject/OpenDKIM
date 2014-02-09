@@ -23,6 +23,9 @@ in one buffer using this function.  The API will determine automatically
 the boundary between header fields and the body of the message and process
 it accordingly. <p>
 
+Message body content should be in canonical form (e.g., with
+dot-stuffing removed, if any). <p>
+
 Lines in the data chunk are expected to be CRLF-terminated in the
 standard way.  For input that is not, consider setting the
 <tt>DKIM_LIBFLAGS_FIXCRLF</tt> (see
