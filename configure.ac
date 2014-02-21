@@ -1506,7 +1506,7 @@ then
 			AC_MSG_RESULT($d)
 			LIBLUA_INCDIRS="-I$d/include/lua51"
 			LIBLUA_LIBDIRS="-L$d/lib/lua51"
-			LIBLUA_LIBS="-llua -lm"
+			LIBLUA_LIBS="-llua -lm -ldl"
 			AC_DEFINE([USE_LUA], 1,
 			          [support for Lua scripting])
 			AC_SUBST([LUA_MANNOTICE], "")
@@ -1517,7 +1517,7 @@ then
 			AC_MSG_RESULT($d)
 			LIBLUA_INCDIRS="-I$d/include/lua52"
 			LIBLUA_LIBDIRS="-L$d/lib/lua52"
-			LIBLUA_LIBS="-llua -lm"
+			LIBLUA_LIBS="-llua -lm -ldl"
 			AC_DEFINE([USE_LUA], 1,
 			          [support for Lua scripting])
 			AC_SUBST([LUA_MANNOTICE], "")
@@ -1528,7 +1528,7 @@ then
 			AC_MSG_RESULT($d)
 			LIBLUA_INCDIRS="-I$d/include/lua5.1"
 			LIBLUA_LIBDIRS="-L$d/lib"
-			LIBLUA_LIBS="-llua5.1 -lm"
+			LIBLUA_LIBS="-llua5.1 -lm -ldl"
 			AC_DEFINE([USE_LUA], 1,
 			          [support for Lua scripting])
 			AC_SUBST([LUA_MANNOTICE], "")
@@ -1539,7 +1539,7 @@ then
 			AC_MSG_RESULT($d)
 			LIBLUA_INCDIRS="-I$d/include/lua5.2"
 			LIBLUA_LIBDIRS="-L$d/lib"
-			LIBLUA_LIBS="-llua5.2 -lm"
+			LIBLUA_LIBS="-llua5.2 -lm -ldl"
 			AC_DEFINE([USE_LUA], 1,
 			          [support for Lua scripting])
 			AC_SUBST([LUA_MANNOTICE], "")
@@ -1550,7 +1550,7 @@ then
 			AC_MSG_RESULT($d)
 			LIBLUA_INCDIRS="-I$d/include"
 			LIBLUA_LIBDIRS="-L$d/lib"
-			LIBLUA_LIBS="-llua -lm"
+			LIBLUA_LIBS="-llua -lm -ldl"
 			lua_found="yes"
 			break
 		fi
