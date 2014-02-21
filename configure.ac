@@ -966,7 +966,7 @@ then
 	LDFLAGS="$outer_LDFLAGS $PTHREAD_CFLAGS $saved_LDFLAGS"
 
 	breakloop="no"
-	for d in lib lib/libmilter
+	for d in lib lib64 lib/libmilter
 	do
 		unset ac_cv_search_smfi_register
 		LDFLAGS="$outer_LDFLAGS $PTHREAD_CFLAGS -L$milterpath/$d $saved_LDFLAGS"

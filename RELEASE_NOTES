@@ -31,6 +31,8 @@ release, and a summary of the changes in that release.
 		Laimbock.
 	BUILD: Fix bug #193: Don't throw away user-provided compilation
 		variables.  Problem noted by Quanah Gibson-Mount.
+	BUILD: Patch #29: Look for libmilter in lib64.  Patch from
+		Dilian Wesselinov Palauzov.
 	BUILD: Don't throw away user-provided compilation variables.
 		Problem noted by Quanah Gibson-Mount.
 	BUILD: Rename "--with-mdb" to "--with-lmdb" for consistency
