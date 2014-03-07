@@ -626,7 +626,7 @@ gnutls_found="no"
 
 if test \( x"$gtpath" = x"auto" -o x"$gtpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-	PKG_CHECK_MODULES([GNUTLS], [libgnutls >= 2.11.7],
+	PKG_CHECK_MODULES([GNUTLS], [gnutls >= 2.11.7],
 	                  [gnutls_found="yes"],
 	                  [gnutls_found="auto"
 	                   AC_MSG_WARN([pkg-config for GnuTLS not found, trying manual search...])

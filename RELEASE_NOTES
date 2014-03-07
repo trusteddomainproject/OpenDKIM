@@ -33,6 +33,8 @@ release, and a summary of the changes in that release.
 		Laimbock.
 	BUILD: Fix bug #193: Don't throw away user-provided compilation
 		variables.  Problem noted by Quanah Gibson-Mount.
+	BUILD: Fix bug #202: Fix pkg-config check for GNUTLS.  Reported by
+		Dilian Wesselinov Palauzov.
 	BUILD: Fix bug #203: opendkim-genzone requires pthreads.
 	BUILD: Patch #29: Look for libmilter in lib64.  Patch from
 		Dilian Wesselinov Palauzov.
