@@ -12,6 +12,8 @@ release, and a summary of the changes in that release.
 	Fix bug #199: Fix use of uninitialized buffer when generating
 		SMTP response strings due to ADSP rejections.  Problem
 		noted by Ache.
+	Fix loading of refiles when trailing spaces are present in the value.
+		Problem noted by Amal Francis.
 	LIBOPENDKIM: Only call dkiml_dns_close() if there was a
 		dkiml_dns_service handle set by dkiml_dns_init().  Also,
 		when closing, reset that handle to NULL.

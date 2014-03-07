@@ -2290,7 +2290,8 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 					*p = '\0';
 					break;
 				}
-				else if (isascii(*p) && isspace(*p))
+				else if (end == NULL &&
+				         isascii(*p) && isspace(*p))
 				{
 					end = p;
 				}
