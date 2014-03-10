@@ -3,7 +3,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.9.1		2014/01/??
+2.9.1		2014/03/??
 	Feature request #177: Add "LuaOnlySigning" so that only the Lua setup
 		script makes signing requests; suppresses automatic application
 		of the signing table.  Requested by Daniele Orlandi.
@@ -12,6 +12,8 @@ release, and a summary of the changes in that release.
 	Fix bug #199: Fix use of uninitialized buffer when generating
 		SMTP response strings due to ADSP rejections.  Problem
 		noted by Ache.
+	Fix infinite loop when mlfi_connect() is called with a hostname starting
+		with a "." character.  Reported by Philip Guenther.
 	Fix loading of refiles when trailing spaces are present in the value.
 		Problem noted by Amal Francis.
 	LIBOPENDKIM: Only call dkiml_dns_close() if there was a

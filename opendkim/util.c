@@ -381,14 +381,12 @@ dkimf_checkhost(DKIMF_DB db, char *host)
 
 	assert(host != NULL);
 
-	/* short circuit */
-	if (db == NULL)
+	/* short circuits */
+	if (db == NULL || host[0] == '\0')
 		return FALSE;
 
 	/* iterate over the possibilities */
-	for (p = host;
-	     p != NULL;
-	     p = (p == host ? strchr(host, '.') : strchr(p + 1, '.')))
+	for (p = host; p != NULL; p = strchr(p + 1, '.'))
 	{
 		/* try the negative case */
 		snprintf(buf, sizeof buf, "!%s", p);
