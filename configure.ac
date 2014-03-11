@@ -627,7 +627,7 @@ gnutls_found="no"
 if test \( x"$gtpath" = x"auto" -o x"$gtpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
 	PKG_CHECK_MODULES([GNUTLS], [gnutls >= 2.11.7],
-	                  [gnutls_found="yes"],
+	                  [gnutls_found="pkg-config"],
 	                  [gnutls_found="auto"
 	                   AC_MSG_WARN([pkg-config for GnuTLS not found, trying manual search...])
 	                  ])
@@ -661,6 +661,14 @@ then
 	LDFLAGS="$saved_LDFLAGS"
 	LIBS="$saved_LIBS"
 
+	gnutls_found="yes"
+fi
+
+if test x"$gnutls_found" = x"pkg-config"
+then
+	LIBCRYPTO_CPPFLAGS="$GNUTLS_CFLAGS"
+	LIBCRYPTO_LDFLAGS=""
+	LIBCRYPTO_LIBS="$GNUTLS_LIBS"
 	gnutls_found="yes"
 fi
 
