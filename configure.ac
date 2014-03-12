@@ -238,19 +238,15 @@ then
 			saved_CPPFLAGS="$CPPFLAGS"
 			CPPFLAGS="$CPPFLAGS -I$d/strl"
 			AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
-			if test x"$strl_h_found" = x"yes"
-			then
-				AC_MSG_RESULT(yes)
-				break
-			fi
 			CPPFLAGS="$saved_CPPFLAGS"
 		fi
-	done
 
-	if test x"$strl_h_found" != x"yes"
-	then
-		AC_MSG_RESULT(no)
-	fi
+		if test x"$strl_h_found" = x"yes"
+		then
+			CPPFLAGS="$CPPFLAGS -I$d/strl"
+			break
+		fi
+	done
 fi
 
 # we need to include <strl.h> if an installed strl.h was found and no
