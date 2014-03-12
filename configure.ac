@@ -34,7 +34,13 @@ AC_INIT([OpenDKIM],
         [bugs@opendkim.org])
 
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([serial-tests])
+AM_INIT_AUTOMAKE(
+  1.11.1
+  dnl Automake version before 1.13 (when the serial-tests option was
+  dnl still the default) still defined the badly obsolete macro
+  dnl 'AM_PROG_INSTALL'.
+  m4_ifndef([AM_PROG_INSTALL], [serial-tests])
+)
 AC_CONFIG_HEADERS([build-config.h])
 
 AC_CONFIG_MACRO_DIR([m4])
