@@ -1,4 +1,5 @@
-# Copyright (c) 2010, 2012, The Trusted Domain Project.  All rights reserved.
+# Copyright (c) 2010, 2012, 2014, The Trusted Domain Project.
+#   All rights reserved.
 
 # what flags you want to pass to the C compiler & linker
 #AM_CFLAGS = --pedantic -Wall -O2
@@ -14,6 +15,5 @@ autobuild_LDFLAGS = $(LIBJANSSON_LDFLAGS)
 autobuild_LDADD = $(LIBJANSSON_LIBS) -lm
 
 man_MANS = autobuild.8
-endif
-
 EXTRA_DIST = autobuild.8 autobuild.conf.sample
+endif
