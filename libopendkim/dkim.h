@@ -20,6 +20,9 @@ extern "C" {
 # include <stdbool.h>
 #endif /* HAVE_STDBOOL_H */
 #include <inttypes.h>
+#ifdef HAVE_LIMITS_H
+# include <limits.h>
+#endif /* HAVE_LIMITS_H */
 
 /*
 **  version -- 0xrrMMmmpp
