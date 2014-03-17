@@ -14,7 +14,7 @@ AC_PREREQ(2.61)
 #
 m4_define([VERSION_RELEASE], 2)
 m4_define([VERSION_MAJOR_REV], 9)
-m4_define([VERSION_MINOR_REV], 1)
+m4_define([VERSION_MINOR_REV], 2)
 m4_define([VERSION_PATCH], 0)
 
 #
