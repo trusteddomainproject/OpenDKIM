@@ -420,8 +420,6 @@ fi
 
 FFR_FEATURE([default_sender], [default sender address])
 
-FFR_FEATURE([lua_only_signing], [Lua setup script exclusive signing control])
-
 # sendmail command
 
 AC_PATH_PROG([SENDMAIL_PATH], [sendmail], [/usr/sbin/sendmail],
@@ -2548,6 +2546,12 @@ AM_CONDITIONAL(ERLANG, test x"$erl_found" = x"yes")
 AC_SUBST(LIBERL_INCDIRS)
 AC_SUBST(LIBERL_LIBDIRS)
 AC_SUBST(LIBERL_LIBS)
+
+#
+# binaries need pthreads if GNUTLS or query-cache are enabled
+#
+AM_CONDITIONAL(LIBOPENDKIM_NEEDS_PTHREADS,
+	test x"$gnutls_found" = x"yes" -o x"$enable_query_cache" = x"yes")
 
 #
 # final command line tweaks
