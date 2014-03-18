@@ -16,5 +16,3 @@ miltertest_LDADD = $(LIBLUA_LIBS) $(LIBNSL_LIBS)
 
 man_MANS = miltertest.8
 endif
-
-EXTRA_DIST = miltertest.8
