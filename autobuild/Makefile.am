@@ -15,5 +15,7 @@ autobuild_LDFLAGS = $(LIBJANSSON_LDFLAGS)
 autobuild_LDADD = $(LIBJANSSON_LIBS) -lm
 
 man_MANS = autobuild.8
-EXTRA_DIST = autobuild.conf.sample
+dist_doc_DATA = autobuild.conf.sample
 endif
+
+EXTRA_DIST = autobuild.8 autobuild.conf.sample
