@@ -9,7 +9,7 @@ mt.echo("*** simple/simple verifying with oversized Authentication-Results")
 if TESTSOCKET ~= nil then
 	sock = TESTSOCKET
 else
-	sock = "unix:" .. mt.getcwd() .. "/t-verify-ss.sock"
+	sock = "unix:" .. mt.getcwd() .. "/t-verify-ss-ar-bad.sock"
 end
 binpath = mt.getcwd() .. "/.."
 if os.getenv("srcdir") ~= nil then
@@ -17,7 +17,7 @@ if os.getenv("srcdir") ~= nil then
 end
 
 -- try to start the filter
-mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-ss.conf",
+mt.startfilter(binpath .. "/opendkim", "-x", "t-verify-ss-ar-bad.conf",
                "-p", sock)
 
 -- try to connect to it
@@ -37,7 +37,7 @@ end
 
 -- send envelope macros and sender data
 -- mt.helo() is called implicitly
-mt.macro(conn, SMFIC_MAIL, "i", "t-verify-ss")
+mt.macro(conn, SMFIC_MAIL, "i", "t-verify-ss-ar-bad")
 if mt.mailfrom(conn, "user@example.com") ~= nil then
 	error("mt.mailfrom() failed")
 end
