@@ -2548,12 +2548,6 @@ AC_SUBST(LIBERL_LIBDIRS)
 AC_SUBST(LIBERL_LIBS)
 
 #
-# binaries need pthreads if GNUTLS or query-cache are enabled
-#
-AM_CONDITIONAL(LIBOPENDKIM_NEEDS_PTHREADS,
-	test x"$gnutls_found" = x"yes" -o x"$enable_query_cache" = x"yes")
-
-#
 # final command line tweaks
 #
 
