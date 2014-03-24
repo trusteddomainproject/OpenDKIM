@@ -4,9 +4,12 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.9.2		2014/03/??
+	Fix some conflicting unit tests.  Reported by Eray Aslan.
 	BUILD: Fix bug #195 part II: Compile all binaries with pthreads
-		support if needed by libopendkim features.  Reported by
+		support as needed by libopendkim features.  Reported by
 		Walter Haidinger.
+	BUILD: Fix packaging damage with autobuild.  Reported by Andreas
+		Schulze.
 
 2.9.1		2014/03/15
 	Feature request #177: Add "LuaOnlySigning" so that only the Lua setup
