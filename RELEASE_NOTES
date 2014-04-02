@@ -3,7 +3,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.9.2		2014/03/??
+2.9.2		2014/04/02
 	Fix some conflicting unit tests.  Reported by Eray Aslan.
 	BUILD: Fix bug #195 part II: Compile all binaries with pthreads
 		support as needed by libopendkim features.  Reported by
