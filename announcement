@@ -1,66 +1,22 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.9.1 released
+Subject: OpenDKIM v2.9.2 released
 
-The Trusted Domain Project announces availability of OpenDKIM v2.9.1, now
+The Trusted Domain Project announces availability of OpenDKIM v2.9.2, now
 available for download from SourceForge.
 
-This is a bug fix and general cleanup release, much of it around packaging
-and building for various environments.  Upgrade is not required if there
-are no bug fixes in here that look familiar to you.
+This release is entirely packaging and build fixes.  If the previous version
+is working fine for you already, you don't need to upgrade.
 
 The full RELEASE_NOTES for this version:
 
-2.9.1		2014/03/15
-	Feature request #177: Add "LuaOnlySigning" so that only the Lua setup
-		script makes signing requests; suppresses automatic application
-		of the signing table.  Requested by Daniele Orlandi.
-	Fix bug #185: odkim.signfor() wasn't processing its arguments
-		properly.  Reported by Daniele Orlandi.
-	Fix bug #199: Fix use of uninitialized buffer when generating
-		SMTP response strings due to ADSP rejections.  Problem
-		noted by Ache.
-	Fix infinite loop when mlfi_connect() is called with a hostname
-		starting with a "." character.  Reported by Philip Guenther.
-	Fix loading of refiles when trailing spaces are present in the value.
-		Problem noted by Amal Francis.
-	LIBOPENDKIM: Only call dkiml_dns_close() if there was a
-		dkiml_dns_service handle set by dkiml_dns_init().  Also,
-		when closing, reset that handle to NULL.
-	LIBOPENDKIM: The various dkim_dns_set_*() functions, when passed a
-		NULL function pointer, merely store it, making the
-		corresponding function a no-op.  Previously, doing
-		so restored the default.
-	LIBOPENDKIM: Have dkim_sig_getreportinfo() return descriptors
-		(if available) regardless of the signer's reporting parameters.
-		Problem noted by Wez Furlong.
-	BUILD: Fix bug #188: Clean up last remnants of libstrl.
-	BUILD: Fix bug #190: Check for HAVE_SUN_LEN in opendkim-db.c.
-		Problem noted by Patrick Laimbock.
-	BUILD: Fix bug #191: Better minimum version checks for libmemcached.
-		Problem noted by Patrick Laimbock.
-	BUILD: Fix bug #192: Different test for libevent, from Patrick
-		Laimbock.
-	BUILD: Fix bug #193: Don't throw away user-provided compilation
-		variables.  Problem noted by Quanah Gibson-Mount.
-	BUILD: Fix bug #202: Fix pkg-config check for GNUTLS.  Reported by
-		Dilian Wesselinov Palauzov.
-	BUILD: Fix bug #203: opendkim-genzone requires pthreads.
-	BUILD: Patch #29: Look for libmilter in lib64.  Patch from
-		Dilian Wesselinov Palauzov.
-	BUILD: Patch #30: Include libdl when linking in Lua.  Patch from
-		Dilian Wesselinov Palauzov.
-	BUILD: Don't throw away user-provided compilation variables.
-		Problem noted by Quanah Gibson-Mount.
-	BUILD: Rename "--with-mdb" to "--with-lmdb" for consistency
-		with that package's naming conventions.
-	CONTRIB: Fix bug #184: Update to contrib/systemd/opendkim.service
-		from Steve Jenkins.
-	MILTERTEST: Add "polite" flag to mt_disconnect().
-	TOOLS: Fix bug #187: Increase buffer size for the private key in
-		opendkim-testkey.  Problem noted by Andreas Schulze.
-	TOOLS: Fix opendkim-spam to match the schema found in stats/mkdb.mysql.
-		Problem noted by Benny Pedersen.
+2.9.2		2014/04/02
+	Fix some conflicting unit tests.  Reported by Eray Aslan.
+	BUILD: Fix bug #195 part II: Compile all binaries with pthreads
+		support as needed by libopendkim features.  Reported by
+		Walter Haidinger.
+	BUILD: Fix packaging damage with autobuild.  Reported by Andreas
+		Schulze.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
