@@ -494,7 +494,7 @@ dkim_get_key_file(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 
 		if (strcasecmp((char *) name, (char *) buf) == 0 && p2 != NULL)
 		{
-			strlcpy((char *) buf, (char *) p2, buflen);
+			memmove(buf, p2, strlen(p2) + 1);
 			fclose(f);
 			return DKIM_STAT_OK;
 		}
