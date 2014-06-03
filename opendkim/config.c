@@ -233,10 +233,10 @@ config_load_level(char *file, struct configdef *def,
 		myline++;
 		str = NULL;
 
-		/* read a line; truncate at newline or "#" */
+		/* read a line; truncate at carriage return, newline, or "#" */
 		for (p = buf; *p != '\0'; p++)
 		{
-			if (*p == '#')
+			if (*p == '#' || *p == 0x0D)
 			{
 				*p = '\0';
 				break;
