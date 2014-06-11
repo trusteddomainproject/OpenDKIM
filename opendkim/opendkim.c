@@ -218,6 +218,7 @@ struct dkimf_config
 	_Bool		conf_luasigning;	/* signing via Lua only */
 #endif /* _FFR_LUA_ONLY_SIGNING */
 	_Bool		conf_weaksyntax;	/* do weaker syntax checking */
+	_Bool		conf_passmalformed;	/* pass malformed messages */
 	_Bool		conf_noadsp;		/* suppress ADSP */
 	_Bool		conf_logresults;	/* log all results */
 	_Bool		conf_allsigs;		/* report on all signatures */
@@ -6690,6 +6691,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		(void) config_get(data, "ADSPNoSuchDomain",
 		                  &conf->conf_adspnxdomain,
 		                  sizeof conf->conf_adspnxdomain);
+
+		(void) config_get(data, "IgnoreMalformedMail",
+		                  &conf->conf_passmalformed,
+		                  sizeof conf->conf_passmalformed);
 
 		(void) config_get(data, "DisableADSP",
 		                  &conf->conf_noadsp,
@@ -14001,6 +14006,10 @@ mlfi_eom(SMFICTX *ctx)
 	/* if this was totally malformed, add a header field and stop */
 	if (dfc->mctx_headeronly)
 	{
+		/* allow for override */
+		if (conf->conf_passmalformed)
+			return SMFIS_ACCEPT;
+
 		const char *ar;
 
 		switch (dfc->mctx_status)

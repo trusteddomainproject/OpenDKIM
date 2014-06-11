@@ -77,6 +77,7 @@ struct configdef dkimf_config[] =
 	{ "IdentityHeader",		CONFIG_TYPE_STRING,     FALSE },
 	{ "IdentityHeaderRemove",	CONFIG_TYPE_BOOLEAN,    FALSE },
 #endif /* _FFR_IDENTITY_HEADER */
+	{ "IgnoreMalformedMail",	CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "Include",			CONFIG_TYPE_INCLUDE,	FALSE },
 	{ "InternalHosts",		CONFIG_TYPE_STRING,	FALSE },
 	{ "KeepAuthResults",		CONFIG_TYPE_BOOLEAN,	FALSE },

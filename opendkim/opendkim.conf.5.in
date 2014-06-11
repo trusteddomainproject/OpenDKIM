@@ -336,6 +336,14 @@ after signing.
 @IDENTITY_HEADER_MANNOTICE@
 
 .TP
+.I IgnoreMalformedMail (boolean)
+Silently passes malformed messages without alteration.  This includes
+messages that fail the
+.I RequiredHeaders
+check, if enabled.  The default is to pass those messages but add an
+Authentication-Results field indicating that they were malformed.
+
+.TP
 .I Include (string)
 Names a file to be opened and read as an additional configuration file.
 Nesting is allowed to a maximum of five levels.

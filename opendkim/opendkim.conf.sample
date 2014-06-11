@@ -225,6 +225,16 @@ Domain			example.com
 
 # FixCRLF 		no
 
+##  IgnoreMalformedMail { yes | no }
+##  	default "no"
+##
+##  Silently passes malformed messages without alteration.  This includes 
+##  messages that fail the RequiredHeaders check, if enabled.  The default is
+##  to pass those messages but add an Authentication-Results field indicating
+##  that they were malformed.
+
+# IgnoreMalformedMail	no
+
 ##  InternalHosts dataset
 ##  	default "127.0.0.1"
 ##
