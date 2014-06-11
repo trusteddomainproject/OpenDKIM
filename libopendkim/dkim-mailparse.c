@@ -12,6 +12,7 @@
 #include <string.h>
 #include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /* libopendkim includes */
 #include "dkim-mailparse.h"
@@ -34,6 +35,13 @@ typedef unsigned long cmap_elem_type;
 #define	CMAP_SET(ar, c)    	((ar)[CMAP_INDEX(c)] |= CMAP_BIT(c))
 
 static unsigned char const SPECIALS[] = "<>@,;:\\\"/[]?=";
+
+#ifndef FALSE
+# define FALSE	0
+#endif /* ! FALSE */
+#ifndef TRUE
+# define TRUE	1
+#endif /* ! TRUE */
 
 #ifdef DKIM_MAILPARSE_TEST
 /*
@@ -466,12 +474,164 @@ dkim_mail_parse(unsigned char *line, unsigned char **user_out,
 	}
 }
 
+/*
+**  DKIM_MAIL_PARSE_MULTI -- extract the local-part and hostname from a mail
+**                           header field that might contain multiple
+**                           values, e.g. "To:", "Cc:"
+**
+**  Parameters:
+**  	line -- input line
+**  	users_out -- array of pointers to "local-part" (returned)
+**  	domains_out -- array of pointers to hostname (returned)
+**
+**  Return value:
+**  	0 on success, or an DKIM_MAILPARSE_ERR_* on failure.
+**
+**  Notes:
+**  	Input string is modified.
+*/
+
+int
+dkim_mail_parse_multi(unsigned char *line, unsigned char ***users_out,
+                      unsigned char ***domains_out)
+{
+	_Bool escaped = FALSE;
+	_Bool quoted = FALSE;
+	_Bool done = FALSE;
+	int a = 0;
+	int n = 0;
+	int status;
+	int parens = 0;
+	char *p;
+	char *addr;
+	unsigned char **uout = NULL;
+	unsigned char **dout = NULL;
+	unsigned char *u;
+	unsigned char *d;
+
+	/* walk the input string looking for unenclosed commas */
+	addr = line;
+	for (p = line; !done; p++)
+	{
+		if (escaped)
+		{
+			escaped = FALSE;
+			continue;
+		}
+
+		switch (*p)
+		{
+		  case '\\':
+			escaped = TRUE;
+			continue;
+
+		  case ':':
+			quoted = !quoted;
+			continue;
+
+		  case '(':
+			parens++;
+			continue;
+
+		  case ')':
+			parens--;
+			continue;
+
+		  case ',':
+		  case '\0':
+			if (parens != 0)
+				continue;
+
+			if (*p == '\0')
+				done = TRUE;
+			else
+				*p = '\0';
+
+			status = dkim_mail_parse(addr, &u, &d);
+			if (status != 0)
+			{
+				if (uout != NULL)
+				{
+					free(uout);
+					free(dout);
+				}
+
+				return status;
+			}
+
+			if (n == 0)
+			{
+				size_t newsize = 2 * sizeof(unsigned char *);
+
+				uout = (unsigned char **) malloc(newsize);
+				if (uout == NULL)
+					return -1;
+
+				dout = (unsigned char **) malloc(newsize);
+				if (dout == NULL)
+				{
+					free(uout);
+					return -1;
+				}
+
+				a = 2;
+			}
+			else if (n + 1 == a)
+			{
+				unsigned char **new;
+
+				size_t newsize = a * 2 * sizeof(unsigned char *);
+
+				new = (unsigned char **) realloc(uout, newsize);
+				if (new == NULL)
+				{
+					free(uout);
+					free(dout);
+					return -1;
+				}
+
+				uout = new;
+
+				new = (unsigned char **) realloc(dout, newsize);
+				if (new == NULL)
+				{
+					free(uout);
+					free(dout);
+					return -1;
+				}
+
+				dout = new;
+
+				a *= 2;
+			}
+
+			uout[n] = u;
+			dout[n++] = d;
+
+			uout[n] = '\0';
+			dout[n] = '\0';
+
+			addr = p + 1;
+
+			break;
+
+		  default:
+			break;
+		}
+	}
+
+	*users_out = uout;
+	*domains_out = dout;
+
+	return 0;
+}
+
 #ifdef DKIM_MAILPARSE_TEST
 int
 main(int argc, char **argv)
 {
 	int err;
-	char *domain, *user;
+	unsigned char **domains, **users;
 
 	if (argc != 2)
 	{
@@ -479,17 +639,23 @@ main(int argc, char **argv)
 		exit(64);
 	}
 
-	err = dkim_mail_parse(argv[1], &user, &domain);
+	err = dkim_mail_parse_multi(argv[1], &users, &domains);
 
-	if (err)
+	if (err != 0)
 	{
 		printf("error %d\n", err);
 	}
 	else
 	{
-		printf("user: '%s'\ndomain: '%s'\n", 
-			user ? dkim_mail_unescape(user) : "null",
-			domain ? dkim_mail_unescape(domain) : "null");
+		int n;
+
+		for (n = 0; users[n] != NULL || domains[n] != NULL; n++)
+		{
+			printf("user: '%s'\ndomain: '%s'\n", 
+				users[n] ? dkim_mail_unescape(users[n]) : "null",
+				domains[n] ? dkim_mail_unescape(domains[n])
+			                   : "null");
+		}
 	}
 
 	return 0;

@@ -22,5 +22,7 @@
 /* prototypes */
 extern int dkim_mail_parse __P((unsigned char *line, unsigned char **user_out,
                                 unsigned char **domain_out));
-
+extern int dkim_mail_parse_multi __P((unsigned char *line,
+                                      unsigned char ***users_out,
+                                      unsigned char ***domains_out));
 #endif /* ! _DKIM_MAILPARSE_H_ */
