@@ -13,8 +13,8 @@ AC_PREREQ(2.61)
 # Package version
 #
 m4_define([VERSION_RELEASE], 2)
-m4_define([VERSION_MAJOR_REV], 9)
-m4_define([VERSION_MINOR_REV], 3)
+m4_define([VERSION_MAJOR_REV], 10)
+m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PATCH], 0)
 
 #
