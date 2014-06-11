@@ -211,9 +211,9 @@ struct lua_global
 struct dkimf_config
 {
 	_Bool		conf_disablecryptoinit;	/* initialize SSL libs? */
-#ifdef USE_LDAP
-	_Bool		conf_softstart;		/* do LDAP soft starts */
-#endif /* USE_LDAP */
+#if defined(USE_LDAP) || defined(USE_ODBX)
+	_Bool		conf_softstart;		/* do LDAP/SQL soft starts */
+#endif /* defined(USE_LDAP) || defined(USE_ODBX) */
 #ifdef _FFR_LUA_ONLY_SIGNING
 	_Bool		conf_luasigning;	/* signing via Lua only */
 #endif /* _FFR_LUA_ONLY_SIGNING */
@@ -7236,10 +7236,10 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 	}
 
-#ifdef USE_LDAP
+#if defined(USE_LDAP) || defined(USE_ODBX)
 	if (conf->conf_softstart)
 		dbflags |= DKIMF_DB_FLAG_SOFTSTART;
-#endif /* USE_LDAP */
+#endif /* defined(USE_LDAP) || defined(USE_ODBX) */
 
 	if (basedir[0] != '\0')
 	{
@@ -7490,7 +7490,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 #endif /* _FFR_ADSP_LISTS */
 
 #ifdef _FFR_ATPS
-
 	str = NULL;
 	if (data != NULL)
 	{

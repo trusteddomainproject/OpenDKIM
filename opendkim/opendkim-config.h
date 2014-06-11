@@ -97,7 +97,6 @@ struct configdef dkimf_config[] =
 	{ "LDAPKeepaliveIdle",		CONFIG_TYPE_STRING,	FALSE },
 	{ "LDAPKeepaliveInterval",	CONFIG_TYPE_STRING,	FALSE },
 	{ "LDAPKeepaliveProbes",	CONFIG_TYPE_STRING,	FALSE },
-	{ "LDAPSoftStart",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "LDAPTimeout",		CONFIG_TYPE_STRING,	FALSE },
 	{ "LDAPUseTLS",			CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* USE_LDAP */
@@ -214,6 +213,9 @@ struct configdef dkimf_config[] =
 #endif /* HAVE_CURL_EASY_STRERROR */
 	{ "Socket",			CONFIG_TYPE_STRING,	FALSE },
 	{ "SoftwareHeader",		CONFIG_TYPE_BOOLEAN,	FALSE },
+#if defined(USE_ODBX) || defined(USE_LDAP)
+	{ "SoftStart",			CONFIG_TYPE_BOOLEAN,	FALSE },
+#endif /* defined(USE_ODBX) || defined(USE_LDAP) */
 #ifdef _FFR_STATS
 	{ "Statistics",			CONFIG_TYPE_STRING,	FALSE },
 	{ "StatisticsName",		CONFIG_TYPE_STRING,	FALSE },

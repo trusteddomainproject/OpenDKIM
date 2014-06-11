@@ -1256,6 +1256,57 @@ dkimf_db_open_ldap(LDAP **ld, struct dkimf_db_ldap *ldap, char **err)
 }
 #endif /* USE_LDAP */
 
+#ifdef USE_ODBX
+/*
+**  DKIMF_DB_OPEN_SQL -- attempt to contact an SQL server
+**
+**  Parameters:
+**  	dsn -- connection description
+**  	odbx -- ODBX handle (updated on success)
+**  	err -- pointer to error string (updated on failure)
+**
+**  Return value:
+**  	Status from odbx_init().
+*/
+
+int
+dkimf_db_open_sql(struct dkimf_db_dsn *dsn, odbx_t **odbx, char **err)
+{
+	int dberr;
+
+	assert(dsn != NULL);
+	assert(odbx != NULL);
+
+	/* create odbx handle */
+	dberr = odbx_init(odbx,
+	                  STRORNULL(dsn->dsn_backend),
+	                  STRORNULL(dsn->dsn_host),
+	                  STRORNULL(dsn->dsn_port));
+
+	if (dberr < 0)
+	{
+		if (err != NULL)
+			*err = (char *) odbx_error(NULL, dberr);
+		return dberr;
+	}
+
+	/* create bindings */
+	dberr = odbx_bind(*odbx, STRORNULL(dsn->dsn_dbase),
+	                         STRORNULL(dsn->dsn_user),
+	                         STRORNULL(dsn->dsn_password),
+	                         ODBX_BIND_SIMPLE);
+	if (dberr < 0)
+	{
+		if (err != NULL)
+			*err = (char *) odbx_error(*odbx, dberr);
+		(void) odbx_finish(*odbx);
+		return dberr;
+	}
+
+	return 0;
+}
+#endif /* USE_ODBX */
+
 /*
 **  DKIMF_DB_TYPE -- return database type
 **
@@ -2703,33 +2754,18 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		}
 # else /* _FFR_DB_HANDLE_POOLS */
 		/* create odbx handle */
-		dberr = odbx_init(&odbx,
-		                  STRORNULL(dsn->dsn_backend),
-		                  STRORNULL(dsn->dsn_host),
-		                  STRORNULL(dsn->dsn_port));
-		if (dberr < 0)
+		if (dkimf_db_open_sql(dsn, &odbx, err) < 0)
 		{
-			if (err != NULL)
-				*err = (char *) odbx_error(NULL, dberr);
-			free(dsn);
-			free(tmp);
-			return -1;
-		}
-
-		/* create bindings */
-		dberr = odbx_bind(odbx, STRORNULL(dsn->dsn_dbase),
-		                        STRORNULL(dsn->dsn_user),
-		                        STRORNULL(dsn->dsn_password),
-		                        ODBX_BIND_SIMPLE);
-		if (dberr < 0)
-		{
-			if (err != NULL)
-				*err = (char *) odbx_error(odbx, dberr);
-			(void) odbx_finish(odbx);
-			free(dsn);
-			free(tmp);
-			free(new);
-			return -1;
+			if ((new->db_flags & DKIMF_DB_FLAG_SOFTSTART) == 0)
+			{
+				free(dsn);
+				free(tmp);
+				free(new);
+				return -1;
+			}
+	
+			new->db_iflags |= DKIMF_DB_IFLAG_RECONNECT;
+			odbx = NULL;
 		}
 
 		/* store handle */
@@ -4393,24 +4429,10 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		/* see if we need to reopen */
 		if ((db->db_iflags & DKIMF_DB_IFLAG_RECONNECT) != 0)
 		{
-			err = odbx_init((odbx_t **) &db->db_handle,
-			                STRORNULL(dsn->dsn_backend),
-			                STRORNULL(dsn->dsn_host),
-			                STRORNULL(dsn->dsn_port));
+			err = dkimf_db_open_sql(dsn, (odbx_t **) &db->db_handle,
+			                        NULL);
 			if (err < 0)
 			{
-				db->db_status = err;
-				return -1;
-			}
-
-			err = odbx_bind((odbx_t *) db->db_handle,
-			                STRORNULL(dsn->dsn_dbase),
-		                        STRORNULL(dsn->dsn_user),
-		                        STRORNULL(dsn->dsn_password),
-		                        ODBX_BIND_SIMPLE);
-			if (err < 0)
-			{
-				(void) odbx_finish((odbx_t *) db->db_handle);
 				db->db_status = err;
 				return -1;
 			}

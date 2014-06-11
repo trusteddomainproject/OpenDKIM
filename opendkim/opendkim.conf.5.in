@@ -455,12 +455,6 @@ the LDAP library default is used.
 Sets the maximum number of keepalive probes TCP should send before abandoning
 the connection.  If not specified, the LDAP library default is used.
 
-.TP 
-.I LDAPSoftStart (Boolean)
-If set, the inability to bind and authenticate to an LDAP server will not
-prevent the filter from starting, and reconnections will be attempted for
-each query.  The default is "False".
-
 .TP
 .I LDAPTimeout (integer)
 Sets the time in seconds after which an LDAP operation should be abandoned.
@@ -1129,6 +1123,12 @@ is not given as either a hostname or an IP address, the socket will be
 listening on all interfaces.  A literal IP address must be enclosed in
 square brackets.  This option is mandatory either in the configuration file or
 on the command line.
+
+.TP 
+.I SoftStart (Boolean)
+If set, the inability to connect and authenticate to an LDAP or SQL server will
+not prevent the filter from starting, and reconnections will be attempted for
+each query.  The default is "False".
 
 .TP
 .I SoftwareHeader (Boolean)
