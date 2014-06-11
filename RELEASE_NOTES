@@ -3,10 +3,11 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.9.3		2014/??/??
+2.10.0		2014/??/??
 	Truncate configuration file lines at carriage return.
 	Replace overlapping strlcpy() with memmove() in dkim_get_key_file().
 		Reported by Daniel J. Luke.
+	LIBOPENDKIM: Add dkim_mail_parse_multi().
 
 2.9.2		2014/04/02
 	Fix some conflicting unit tests.  Reported by Eray Aslan.
