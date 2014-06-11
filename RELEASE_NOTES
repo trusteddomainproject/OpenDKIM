@@ -4,7 +4,7 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.10.0		2014/??/??
-	Feature request #205: Rename "LDAPSoftStart" to "SoftStart" and apply
+	Feature request #180: Rename "LDAPSoftStart" to "SoftStart" and apply
 		it to SQL connections as well.  Requested by Daniel Kauffman.
 	Feature request #179: Add "IgnoreMalformedMail" option.
 	Truncate configuration file lines at carriage return.
