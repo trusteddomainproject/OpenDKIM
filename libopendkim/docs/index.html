@@ -605,8 +605,14 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
 
  <tr>
   <td> <a href="dkim_mail_parse.html"> <tt>dkim_mail_parse()</tt> </a> </td>
-  <td> Parse an message header field, e.g. <tt>From:</tt>, to get user and
+  <td> Parse a message header field, e.g. <tt>From:</tt>, to get user and
        domain. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_mail_parse_multi.html"> <tt>dkim_mail_parse_multi()</tt> </a> </td>
+  <td> Parse a message header field, e.g. <tt>To:</tt> or <tt>Cc:</tt>, to get
+       users and domains. </td>
  </tr>
 
  <tr>

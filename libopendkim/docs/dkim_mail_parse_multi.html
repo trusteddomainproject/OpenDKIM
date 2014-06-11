@@ -1,0 +1,85 @@
+<html>
+<head><title>dkim_mail_parse()</title></head>
+<body>
+<!--
+-->
+<h1>dkim_mail_parse()</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+int dkim_mail_parse_multi(
+	char *line,
+	char **users_out,
+	char **domains_out
+);
+</pre>
+Parse an RFC2822 header for a set of users and hostnames.  Intended for use on
+header fields that might contain multiple addresses, such as To: and Cc:.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td>At any time. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>line</td>
+	<td>Input line, not including the name of the header.
+	</td></tr>
+    <tr valign="top"><td>users_out</td>
+	<td> Pointer to a variable of type <tt>(unsigned char **)</tt> that
+	     will be set to point to an array of "local-part"s (user ID) found
+	     in the input.
+	</td></tr>
+    <tr valign="top"><td>domains_out</td>
+	<td> Pointer to a variable of type <tt>(unsigned char **)</tt> which
+	     will be set to point to an array of domains found in the input.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Value ---------->
+<tr><th valign="top" align=left>RETURN VALUE</th><td>
+0 on success, other on failure.  The failure codes are internal to the library
+for now.
+</td></tr>
+
+<!----------- Notes ---------->
+<tr><th valign="top" align=left>NOTES</th><td>
+<ul>
+<li><tt>line</tt> is modified.
+<li>The arrays returned will be of the same size and entries are correspondent,
+    so the first element from each refer to the first address found, etc.
+<li>The caller is responsible for deallocating the returned arrays once they
+    are no longer needed.
+<li>This function is not part of the DKIM specification.  It
+    is provided as a facility to implementors to reduce code duplication.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2004, 2005, 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009, 2010, 2014, The Trusted Domain Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>
