@@ -8,6 +8,7 @@
 [\-d domain]
 [\-D]
 [\-E secs]
+[\-F]
 [\-N ns[,...]]
 [\-o file]
 [\-r secs]
@@ -69,6 +70,9 @@ When generating an SOA record (see
 below), use
 .I secs
 as the default record expiration time.  The default is 604800.
+.TP
+.I \-F
+Adds a "._domainkey" suffix and the domainname to selector names in the zone file.
 .TP
 .I \-N nslist
 Specifies a comma-separated list of nameservers, which will be output in
