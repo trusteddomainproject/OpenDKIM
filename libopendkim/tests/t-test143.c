@@ -125,27 +125,6 @@ main(int argc, char **argv)
 	free(qi[0]);
 	free(qi);
 
-	status = dkim_policy_getqueries(dkim, &qi, &nqi);
-	assert(status == DKIM_STAT_OK);
-	assert(nqi == 4);
-	assert(strcmp(dkim_qi_getname(qi[0]),
-	              "sendmail.com") == 0);
-	assert(strcmp(dkim_qi_getname(qi[1]),
-	              "sendmail.com") == 0);
-	assert(strcmp(dkim_qi_getname(qi[2]),
-	              "sendmail.com") == 0);
-	assert(strcmp(dkim_qi_getname(qi[3]),
-	              "_adsp._domainkey.sendmail.com") == 0);
-	assert(dkim_qi_gettype(qi[0]) == 1);
-	assert(dkim_qi_gettype(qi[1]) == 28);
-	assert(dkim_qi_gettype(qi[2]) == 15);
-	assert(dkim_qi_gettype(qi[3]) == 16);
-	free(qi[0]);
-	free(qi[1]);
-	free(qi[2]);
-	free(qi[3]);
-	free(qi);
-
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);
 

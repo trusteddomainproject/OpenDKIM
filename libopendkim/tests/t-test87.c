@@ -44,8 +44,6 @@ main(int argc, char **argv)
 #endif /* TEST_KEEP_FILES */
 	int len;
 	time_t now;
-	int presult;
-	dkim_policy_t pcode;
 	DKIM_STAT status;
 	DKIM *dkim;
 	DKIM_LIB *lib;
@@ -156,13 +154,6 @@ main(int argc, char **argv)
 
 	status = dkim_eom(dkim, NULL);
 	assert(status == DKIM_STAT_CANTVRFY);
-
-	status = dkim_policy(dkim, &pcode, NULL, NULL);
-	assert(status == DKIM_STAT_OK);
-
-	presult = dkim_getpresult(dkim);
-	assert(pcode == DKIM_POLICY_ALL);
-	assert(presult == DKIM_PRESULT_FOUND);
 
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);

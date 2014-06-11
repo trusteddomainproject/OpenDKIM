@@ -130,7 +130,6 @@ main(int argc, char **argv)
 	}
 	fprintf(f, "\n");
 
-	fprintf(f, "%s.%s.%s ", DKIM_DNSPOLICYNAME, DKIM_DNSKEYNAME, DOMAIN2);
 	fprintf(f, "dkim=all; t=s; r=%s\n", REPLYADDRESS);
 
 	fprintf(f, "%s exists\n", DOMAIN2);

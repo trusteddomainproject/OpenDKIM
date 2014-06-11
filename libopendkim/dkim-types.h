@@ -70,16 +70,6 @@ struct dkim_queryinfo
 	const char		dq_name[DKIM_MAXHOSTNAMELEN + 1];
 };
 
-/* struct dkim_pstate -- policy query state */
-struct dkim_pstate
-{
-	unsigned int		ps_pflags;
-	int			ps_qstatus;
-	int			ps_state;
-	dkim_policy_t		ps_policy;
-	DKIM *			ps_dkim;
-};
-
 /* struct dkim_dstring -- a dynamically-sized string */
 struct dkim_dstring
 {
@@ -292,7 +282,6 @@ struct dkim
 #endif /* QUERY_CACHE */
 	u_int			dkim_version;
 	u_int			dkim_sigcount;
-	int			dkim_dnssec_policy;
 	size_t			dkim_margin;
 	size_t			dkim_b64siglen;
 	size_t			dkim_keylen;
@@ -379,12 +368,6 @@ struct dkim_lib
 				                     DKIM_SIGINFO *sig,
 				                     u_char *buf,
 				                     size_t buflen);
-	DKIM_CBSTAT		(*dkiml_policy_lookup) (DKIM *dkim,
-				                        u_char *query,
-				                        _Bool excheck,
-				                        u_char *buf,
-				                        size_t buflen,
-				                        int *qstat);
 	void *			(*dkiml_sig_handle) (void *closure);
 	void			(*dkiml_sig_handle_free) (void *closure,
 				                          void *user);

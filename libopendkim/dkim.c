@@ -81,7 +81,6 @@
 #include "dkim-types.h"
 #include "dkim-tables.h"
 #include "dkim-keys.h"
-#include "dkim-policy.h"
 #include "dkim-report.h"
 #include "dkim-util.h"
 #include "dkim-canon.h"
@@ -501,8 +500,7 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 	assert(str != NULL);
 	assert(type == DKIM_SETTYPE_SIGNATURE ||
 	       type == DKIM_SETTYPE_SIGREPORT ||
-	       type == DKIM_SETTYPE_KEY ||
-	       type == DKIM_SETTYPE_POLICY);
+	       type == DKIM_SETTYPE_KEY);
 
 	param = NULL;
 	value = NULL;
@@ -873,20 +871,6 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 		}
 
   		break;
-
-	  case DKIM_SETTYPE_POLICY:
-		if (dkim_param_get(set, (u_char *) "dkim") == NULL)
-		{
-			dkim_error(dkim, "missing parameter(s) in %s data",
-			           settype);
-			if (syntax)
-				dkim_set_free(dkim, set);
-			else
-				set->set_bad = TRUE;
-			return DKIM_STAT_SYNTAX;
-		}
-
-		break;
 
 	  case DKIM_SETTYPE_KEY:
 		if (syntax)
@@ -2733,140 +2717,6 @@ dkim_getsender(DKIM *dkim, u_char **hdrs)
 }
 
 /*
-**  DKIM_GET_POLICY -- request and parse a domain's policy record
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	query -- string to query
-**  	excheck -- existence check rather than TXT query
-**  	qstatus -- query status (returned)
-**  	policy -- policy found (returned)
-**  	pflags -- policy flags (returned) (unused)
-**
-**  Return value:
-**  	A DKIM_STAT_* constant.
-*/
-
-static DKIM_STAT
-dkim_get_policy(DKIM *dkim, u_char *query, _Bool excheck, int *qstatus,
-                dkim_policy_t *policy, u_int *pflags)
-{
-	int status = 0;
-	int qstat = NOERROR;
-	unsigned int lpflags;
-	dkim_policy_t lpolicy;
-	DKIM_STAT pstatus;
-	unsigned char buf[BUFRSZ + 1];
-
-	assert(dkim != NULL);
-	assert(query != NULL);
-	assert(qstatus != NULL);
-	assert(policy != NULL);
-	assert(pflags != NULL);
-
-	if (dkim->dkim_libhandle->dkiml_policy_lookup != NULL)
-	{
-		DKIM_CBSTAT cbstatus;
-
-		cbstatus = dkim->dkim_libhandle->dkiml_policy_lookup(dkim,
-		                                                     query,
-		                                                     excheck,
-		                                                     buf,
-		                                                     sizeof buf,
-		                                                     &qstat);
-
-		switch (cbstatus)
-		{
-		  case DKIM_CBSTAT_CONTINUE:
-			status = 1;
-			break;
-
-		  case DKIM_CBSTAT_REJECT:
-			return DKIM_STAT_CBREJECT;
-
-		  case DKIM_CBSTAT_TRYAGAIN:
-			return DKIM_STAT_CBTRYAGAIN;
-
-		  case DKIM_CBSTAT_NOTFOUND:
-			break;
-
-		  case DKIM_CBSTAT_ERROR:
-			return DKIM_STAT_CBERROR;
-
-		  case DKIM_CBSTAT_DEFAULT:
-			break;
-
-		  default:
-			return DKIM_STAT_CBINVALID;
-		}
-	}
-
-	if (status == 0)
-	{
-		switch (dkim->dkim_libhandle->dkiml_querymethod)
-		{
-		  case DKIM_QUERY_UNKNOWN:
-		  case DKIM_QUERY_DNS:
-			status = dkim_get_policy_dns(dkim, query, excheck,
-			                             buf, sizeof buf, &qstat);
-			break;
-
-		  case DKIM_QUERY_FILE:
-			status = dkim_get_policy_file(dkim, query, buf,
-			                              sizeof buf, &qstat);
-			break;
-
-		  default:
-			assert(0);
-			/* just to silence -Wall */
-			return -1;
-		}
-	}
-
-	if (status == -1)
-		return DKIM_STAT_CANTVRFY;
-	else if (status == 0)
-		qstat = NXDOMAIN;
-
-	*qstatus = qstat;
-
-	if (!excheck && qstat == NOERROR && status == 1)
-	{
-		u_char *p;
-		struct dkim_set *set;
-
-		pstatus = dkim_process_set(dkim, DKIM_SETTYPE_POLICY,
-		                           buf, strlen((char *) buf),
-		                           NULL, FALSE, NULL);
-		if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_REPORTBADADSP) == 0 &&
-		    pstatus == DKIM_STAT_SYNTAX)
-		{
-			*policy = DKIM_POLICY_DEFAULT;
-			*qstatus = NXDOMAIN;
-			*pflags = 0;
-		}
-		else if (pstatus != DKIM_STAT_OK)
-		{
-			return pstatus;
-		}
-
-		lpolicy = DKIM_POLICY_DEFAULT;
-		lpflags = 0;
-
-		set = dkim_set_first(dkim, DKIM_SETTYPE_POLICY);
-
-		p = dkim_param_get(set, (u_char *) "dkim");
-		if (p != NULL)
-			lpolicy = dkim_name_to_code(policies, (char *) p);
-
-		*policy = lpolicy;
-		*pflags = lpflags;
-	}
-
-	return DKIM_STAT_OK;
-}
-
-/*
 **  DKIM_GET_KEY -- acquire a public key used for verification
 **
 **  Parameters:
@@ -4299,8 +4149,6 @@ dkim_new(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 	new->dkim_mode = DKIM_MODE_UNKNOWN;
 	new->dkim_chunkcrlf = DKIM_CRLF_UNKNOWN;
 	new->dkim_state = DKIM_STATE_INIT;
-	new->dkim_presult = DKIM_PRESULT_NONE;
-	new->dkim_dnssec_policy = DKIM_DNSSEC_UNKNOWN;
 	new->dkim_margin = (size_t) DKIM_HDRMARGIN;
 	new->dkim_closure = memclosure;
 	new->dkim_libhandle = libhandle;
@@ -4436,7 +4284,6 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	libhandle->dkiml_minkeybits = DEFMINKEYBITS;
 
 	libhandle->dkiml_key_lookup = NULL;
-	libhandle->dkiml_policy_lookup = NULL;
 	libhandle->dkiml_sig_handle = NULL;
 	libhandle->dkiml_sig_handle_free = NULL;
 	libhandle->dkiml_sig_tagvalues = NULL;
@@ -5461,272 +5308,6 @@ dkim_resign(DKIM *new, DKIM *old, _Bool hdrbind)
 #else /* _FFR_RESIGN */
 	return DKIM_STAT_NOTIMPLEMENT;
 #endif /* _FFR_RESIGN */
-}
-
-/*
-**  DKIM_POLICY_STATE_NEW -- initialize and return a DKIM policy state handle
-**
-**  Parameters:
-**  	dkim -- DKIM handle from which to do an allocation
-**
-**  Return value:
-**  	A DKIM_PSTATE handle, or NULL on failure.
-*/
-
-DKIM_PSTATE *
-dkim_policy_state_new(DKIM *dkim)
-{
-	DKIM_PSTATE *ret;
-
-	assert(dkim != NULL);
-
-	ret = DKIM_MALLOC(dkim, sizeof(DKIM_PSTATE));
-
-	if (ret != NULL)
-	{
-		memset(ret, '\0', sizeof(DKIM_PSTATE));
-		ret->ps_dkim = dkim;
-	}
-
-	return ret;
-}
-
-/*
-**  DKIM_POLICY_STATE_FREE -- destroy a DKIM policy state handle
-**
-**  Parameters:
-**  	pstate -- previously allocated policy state handle
-**
-**  Return value:
-**  	None.
-*/
-
-void
-dkim_policy_state_free(DKIM_PSTATE *pstate)
-{
-	assert(pstate != NULL);
-
-	DKIM_FREE(pstate->ps_dkim, pstate);
-}
-
-/*
-**  DKIM_POLICY -- parse policy associated with the sender's domain
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	pcode -- discovered policy (returned)
-**  	pflags -- discovered policy flags (returned)
-**  	pstate -- state, for re-entrancy (updated; can be NULL)
-**
-**  Return value:
-**  	A DKIM_STAT_* constant.
-*/
-
-DKIM_STAT
-dkim_policy(DKIM *dkim, dkim_policy_t *pcode, u_int *pflags,
-            DKIM_PSTATE *pstate)
-{
-	int wlen;
-	int qstatus = NOERROR;
-	unsigned int lpflags;
-	DKIM_STAT status;
-	dkim_policy_t policy = DKIM_POLICY_NONE;
-	unsigned char query[DKIM_MAXHOSTNAMELEN + 1];
-
-	assert(dkim != NULL);
-
-	/* fail for signing handles */
-	if (dkim->dkim_mode == DKIM_MODE_SIGN)
-		return DKIM_STAT_INVALID;
-
-	/* fail if no domain could be determined */
-	if (dkim->dkim_domain == NULL)
-		return DKIM_STAT_SYNTAX;
-
-	/* initialize */
-	dkim->dkim_presult = DKIM_PRESULT_NONE;
-	if (pstate != NULL)
-	{
-		qstatus = pstate->ps_qstatus;
-		policy = pstate->ps_policy;
-		lpflags = pstate->ps_pflags;
-	}
-
-	/*
-	**  Apply RFC5617: Verify domain existence.
-	*/
-
-	if (pstate == NULL || pstate->ps_state < 1)
-	{
-		status = dkim_get_policy(dkim, dkim->dkim_domain, TRUE,
-		                         &qstatus, &policy, &lpflags);
-		if (status != DKIM_STAT_OK)
-		{
-			if (status == DKIM_STAT_CBTRYAGAIN && pstate != NULL)
-			{
-				pstate->ps_qstatus = qstatus;
-				pstate->ps_policy = policy;
-				pstate->ps_pflags = lpflags;
-			}
-
-			return status;
-		}
-
-		if (pstate != NULL)
-			pstate->ps_state = 1;
-	}
-
-	if (qstatus == NXDOMAIN)
-	{
-		dkim->dkim_presult = DKIM_PRESULT_NXDOMAIN;
-		if (pcode != NULL)
-			*pcode = policy;
-		return DKIM_STAT_OK;
-	}
-
-	/*
-	**  Apply RFC5617: Retrieve policy.
-	*/
-
-	if (pstate == NULL || pstate->ps_state < 2)
-	{
-		wlen = snprintf((char *) query, sizeof query, "%s.%s.%s",
-		                DKIM_DNSPOLICYNAME, DKIM_DNSKEYNAME,
-		                dkim->dkim_domain);
-		if (wlen >= sizeof query)
-		{
-			dkim_error(dkim, "policy query name overflow");
-			return DKIM_STAT_NORESOURCE;
-		}
-
-		status = dkim_get_policy(dkim, query, FALSE,
-		                         &qstatus, &policy, &lpflags);
-		if (status != DKIM_STAT_OK)
-		{
-			if (status == DKIM_STAT_CBTRYAGAIN && pstate != NULL)
-			{
-				pstate->ps_qstatus = qstatus;
-				pstate->ps_policy = policy;
-				pstate->ps_pflags = lpflags;
-			}
-
-			return status;
-		}
-
-		if (pstate != NULL)
-			pstate->ps_state = 2;
-	}
-
-	if (qstatus == NOERROR)
-		dkim->dkim_presult = DKIM_PRESULT_FOUND;
-	if (pcode != NULL)
-		*pcode = policy;
-	if (pflags != NULL)
-		*pflags = lpflags;
-
-	return DKIM_STAT_OK;
-}
-
-/*
-**  DKIM_POLICY_GETDNSSEC -- retrieve DNSSEC results for a policy
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**
-**  Return value:
-**  	A DKIM_DNSSEC_* constant.
-*/
-
-int
-dkim_policy_getdnssec(DKIM *dkim)
-{
-	assert(dkim != NULL);
-
-	return dkim->dkim_dnssec_policy;
-}
-
-/*
-**  DKIM_POLICY_GETREPORTINFO -- retrieve reporting information from policy
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	addr -- address buffer (or NULL)
-**  	addrlen -- size of addr
-**  	opts -- options buffer (or NULL)
-**  	optslen -- size of opts
-**  	smtp -- SMTP prefix buffer (or NULL)
-**  	smtplen -- size of smtp
-**  	pct -- requested report percentage (or NULL)
-**
-**  Return value:
-**  	A DKIM_STAT_* constant.
-*/
-
-DKIM_STAT
-dkim_policy_getreportinfo(DKIM *dkim,
-                          u_char *addr, size_t addrlen,
-                          u_char *opts, size_t optslen,
-                          u_char *smtp, size_t smtplen,
-                          u_int *pct)
-{
-	u_char *p;
-	DKIM_SET *set;
-
-	assert(dkim != NULL);
-
-	if (dkim->dkim_state != DKIM_STATE_EOM2 ||
-	    dkim->dkim_mode != DKIM_MODE_VERIFY)
-		return DKIM_STAT_INVALID;
-
-	set = dkim_set_first(dkim, DKIM_SETTYPE_POLICY);
-	if (set == NULL)
-		return DKIM_STAT_CANTVRFY;
-
-	if (addr != NULL)
-	{
-		p = dkim_param_get(set, (u_char *) "ra");
-		if (p != NULL)
-		{
-			memset(addr, '\0', addrlen);
-			(void) dkim_qp_decode(p, addr, addrlen - 1);
-			p = (u_char *) strchr((char *) addr, '@');
-			if (p != NULL)
-				*p = '\0';
-		}
-	}
-
-	if (opts != NULL)
-	{
-		p = dkim_param_get(set, (u_char *) "ro");
-		if (p != NULL)
-			strlcpy((char *) opts, (char *) p, optslen);
-	}
-
-	if (smtp != NULL)
-	{
-		p = dkim_param_get(set, (u_char *) "rs");
-		if (p != NULL)
-		{
-			memset(smtp, '\0', smtplen);
-			(void) dkim_qp_decode(p, smtp, smtplen - 1);
-		}
-	}
-
-	if (pct != NULL)
-	{
-		p = dkim_param_get(set, (u_char *) "rp");
-		if (p != NULL)
-		{
-			u_int out;
-			char *q;
-
-			out = strtoul((char *) p, &q, 10);
-			if (*q == '\0')
-				*pct = out;
-		}
-	}
-
-	return DKIM_STAT_OK;
 }
 
 /*
@@ -6980,26 +6561,6 @@ dkim_key_syntax(DKIM *dkim, u_char *str, size_t len)
 }
 
 /*
-**  DKIM_POLICY_SYNTAX -- process a policy record parameter set
-**                        for valid syntax
-**
-**  Parameters:
-**  	dkim -- DKIM context in which this is performed
-**  	str -- string to be scanned
-**  	len -- number of bytes available at "str"
-**
-**  Return value:
-**  	A DKIM_STAT constant.
-*/
-
-DKIM_STAT
-dkim_policy_syntax(DKIM *dkim, u_char *str, size_t len)
-{
-	return dkim_process_set(dkim, DKIM_SETTYPE_POLICY, str, len,
-	                        NULL, TRUE, NULL);
-}
-
-/*
 **  DKIM_SIG_SYNTAX -- process a signature parameter set for valid syntax
 **
 **  Parameters:
@@ -8130,56 +7691,6 @@ dkim_getresultstr(DKIM_STAT result)
 }
 
 /*
-**  DKIM_GETPRESULT -- retrieve policy result
-**
-**  Parameters:
-**  	dkim -- DKIM handle from which to get policy result
-**
-**  Return value:
-**  	DKIM policy check result.
-*/
-
-int
-dkim_getpresult(DKIM *dkim)
-{
-	assert(dkim != NULL);
-
-	return dkim->dkim_presult;
-}
-
-/*
-**  DKIM_GETPRESULTSTR -- retrieve policy result string
-**
-**  Parameters:
-**  	presult -- policy result code to translate
-**
-**  Return value:
-**  	Pointer to text that describes "presult".
-*/
-
-const char *
-dkim_getpresultstr(int presult)
-{
-	return dkim_code_to_name(policyresults, presult);
-}
-
-/*
-**  DKIM_GETPOLICYSTR -- retrieve policy string
-**
-**  Parameters:
-**  	policy -- policy code to translate
-**
-**  Return value:
-**  	Pointer to text that describes "policy".
-*/
-
-const char *
-dkim_getpolicystr(int policy)
-{
-	return dkim_code_to_name(policies, policy);
-}
-
-/*
 **  DKIM_SET_DNS_CALLBACK -- set the DNS wait callback
 **
 **  Parameters:
@@ -8321,29 +7832,6 @@ dkim_set_key_lookup(DKIM_LIB *libopendkim,
 	assert(libopendkim != NULL);
 
 	libopendkim->dkiml_key_lookup = func;
-
-	return DKIM_STAT_OK;
-}
-
-/*
-**  DKIM_SET_POLICY_LOOKUP -- set the policy lookup function
-**
-**  Parameters:
-**  	libopendkim -- DKIM library handle
-**  	func -- function to call
-**
-**  Return value:
-**  	DKIM_STAT_OK
-*/
-
-DKIM_STAT
-dkim_set_policy_lookup(DKIM_LIB *libopendkim,
-                       int (*func)(DKIM *dkim, u_char *query, _Bool excheck,
-                                   u_char *buf, size_t buflen, int *qstat))
-{
-	assert(libopendkim != NULL);
-
-	libopendkim->dkiml_policy_lookup = func;
 
 	return DKIM_STAT_OK;
 }
@@ -9612,97 +9100,6 @@ dkim_sig_getqueries(DKIM *dkim, DKIM_SIGINFO *sig,
 
 	*qi = new;
 	*nqi = 1;
-
-	return DKIM_STAT_OK;
-}
-
-/*
-**  DKIM_POLICY_GETQUERIES -- retrieve the queries needed to conduct ADSP
-**                            checks
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	qi -- DKIM_QUERYINFO handle array (returned)
-**  	nqi -- number of entries in the "qi" array
-**
-**  Return value:
-**  	A DKIM_STAT_* constant.
-*/
-
-DKIM_STAT
-dkim_policy_getqueries(DKIM *dkim,
-                       DKIM_QUERYINFO ***qi, unsigned int *nqi)
-{
-	int c;
-	DKIM_QUERYINFO **new;
-
-	assert(dkim != NULL);
-	assert(qi != NULL);
-	assert(nqi != NULL);
-
-	new = DKIM_MALLOC(dkim, 4 * sizeof(struct dkim_queryinfo *));
-	if (new == NULL)
-		return DKIM_STAT_NORESOURCE;
-
-	memset(new, '\0', 4 * sizeof(struct dkim_queryinfo *));
-
-	for (c = 0; c < 4; c++)
-	{
-		new[c] = DKIM_MALLOC(dkim, sizeof(struct dkim_queryinfo));
-		if (new[c] == NULL)
-		{
-			int d;
-
-			for (d = 0; d < c; d++)
-				free(new[d]);
-
-			free(new);
-
-			return DKIM_STAT_NORESOURCE;
-		}
-
-		memset(new[c], '\0', sizeof(struct dkim_queryinfo));
-
-		switch (c)
-		{
-		  case 0:
-			new[c]->dq_type = T_A;
-			break;
-
-		  case 1:
-			new[c]->dq_type = T_AAAA;
-			break;
-
-		  case 2:
-			new[c]->dq_type = T_MX;
-			break;
-
-		  case 3:
-			new[c]->dq_type = T_TXT;
-			break;
-		}
-
-		if (dkim->dkim_domain != NULL)
-		{
-			if (c != 3)
-			{
-				strlcpy((char *) new[c]->dq_name,
-				        dkim->dkim_domain,
-			                sizeof new[c]->dq_name);
-			}
-			else
-			{
-				snprintf((char *) new[c]->dq_name,
-				         sizeof new[c]->dq_name,
-				         "%s.%s.%s",
-				         DKIM_DNSPOLICYNAME, DKIM_DNSKEYNAME,
-				         dkim->dkim_domain);
-			}
-		}
-	}
-
-	*qi = new;
-	*nqi = 4;
 
 	return DKIM_STAT_OK;
 }

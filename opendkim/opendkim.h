@@ -71,14 +71,7 @@
 #define	DB_DONTSIGNTO	3
 #define	DB_MTAS		4
 #define	DB_MACROS	5
-#define	DB_LOCALADSP	6
-#define	DB_SIGNINGTABLE	7
-
-#define DKIMF_POLICY_NONE	(-1)		/* none/undefined */
-#define DKIMF_POLICY_UNKNOWN	0		/* unknown */
-#define DKIMF_POLICY_ALL	1		/* all */
-#define DKIMF_POLICY_DISCARDABLE 2		/* discardable */
-#define DKIMF_POLICY_NXDOMAIN	3		/* domain does not exist */
+#define	DB_SIGNINGTABLE	6
 
 #define AUTHRESULTSHDR	"Authentication-Results"
 #define ORCPTHEADER	"Original-Recipient"
@@ -188,7 +181,6 @@ extern int dkimf_xs_export __P((lua_State *));
 extern int dkimf_xs_fromdomain __P((lua_State *));
 extern int dkimf_xs_getenvfrom __P((lua_State *));
 extern int dkimf_xs_getheader __P((lua_State *));
-extern int dkimf_xs_getpolicy __P((lua_State *));
 extern int dkimf_xs_getreputation __P((lua_State *));
 extern int dkimf_xs_getsigarray __P((lua_State *));
 extern int dkimf_xs_getsigcount __P((lua_State *));

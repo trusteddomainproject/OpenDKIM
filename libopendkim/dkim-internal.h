@@ -55,7 +55,6 @@
 #define MAXCNAMEDEPTH		3	/* max. CNAME recursion we allow */
 #define MAXHEADERS		32768	/* buffer for caching headers */
 #define MAXLABELS		16	/* max. labels we allow */
-#define MAXPOLICYDEPTH		1	/* policy recursion we allow */
 #define MAXTAGNAME		8	/* biggest tag name */
 
 #define	NPRINTABLE		95	/* number of printable characters */
@@ -94,17 +93,6 @@ typedef int dkim_key_t;
 #define	DKIM_KEY_FLAGS		6	/* t */
 
 /*
-**  DKIM_PPARAM -- policy parameters
-*/
-
-typedef int dkim_pparam_t;
-
-#define DKIM_PPARAM_POLICY	0	/* dkim */
-#define DKIM_PPARAM_FLAGS	1	/* t */
-#define DKIM_PPARAM_REPORTADDR	2	/* r */
-#define DKIM_PPARAM_ATPS	3	/* atps */
-
-/*
 **  DKIM_SETTYPE -- types of sets
 */
 
@@ -112,9 +100,8 @@ typedef int dkim_set_t;
 
 #define	DKIM_SETTYPE_ANY	(-1)
 #define	DKIM_SETTYPE_SIGNATURE	0
-#define	DKIM_SETTYPE_POLICY	1
-#define	DKIM_SETTYPE_KEY	2
-#define DKIM_SETTYPE_SIGREPORT	3
+#define	DKIM_SETTYPE_KEY	1
+#define DKIM_SETTYPE_SIGREPORT	2
 
 /*
 **  DKIM_HASHTYPE -- types of hashes
@@ -151,13 +138,6 @@ typedef struct dkim_plist DKIM_PLIST;
 
 struct dkim_key;
 typedef struct dkim_key DKIM_KEY;
-
-/*
-**  DKIM_POLICY -- contents of a published policy record
-*/
-
-struct dkim_policy;
-typedef struct dkim_policy DKIM_POLICY;
 
 /*
 **  DKIM_CANON -- canonicalization

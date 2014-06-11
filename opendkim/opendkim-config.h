@@ -25,8 +25,6 @@
 struct configdef dkimf_config[] =
 {
 	{ "AddAllSignatureResults",	CONFIG_TYPE_BOOLEAN,	FALSE },
-	{ "ADSPAction",			CONFIG_TYPE_STRING,	FALSE },
-	{ "ADSPNoSuchDomain",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AllowSHA1Only",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AlwaysAddARHeader",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_ATPS
@@ -43,7 +41,6 @@ struct configdef dkimf_config[] =
 	{ "BodyLengthDB",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef USE_UNBOUND
 	{ "BogusKey",			CONFIG_TYPE_STRING,	FALSE },
-	{ "BogusPolicy",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* USE_UNBOUND*/
 	{ "Canonicalization",		CONFIG_TYPE_STRING,	FALSE },
 	{ "CaptureUnknownErrors",	CONFIG_TYPE_BOOLEAN,	FALSE },
@@ -54,7 +51,6 @@ struct configdef dkimf_config[] =
 #endif /* _FFR_DEFAULT_SENDER */
 	{ "Diagnostics",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DiagnosticDirectory",	CONFIG_TYPE_STRING,	FALSE },
-	{ "DisableADSP",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DisableCryptoInit",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DNSConnect",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "DNSTimeout",			CONFIG_TYPE_INTEGER,	FALSE },
@@ -100,7 +96,6 @@ struct configdef dkimf_config[] =
 	{ "LDAPTimeout",		CONFIG_TYPE_STRING,	FALSE },
 	{ "LDAPUseTLS",			CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* USE_LDAP */
-	{ "LocalADSP",			CONFIG_TYPE_STRING,	FALSE },
 	{ "LogResults",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "LogWhy",			CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_LUA_ONLY_SIGNING
@@ -119,9 +114,6 @@ struct configdef dkimf_config[] =
 	{ "MTACommand",			CONFIG_TYPE_STRING,	FALSE },
 	{ "MustBeSigned",		CONFIG_TYPE_STRING,	FALSE },
 	{ "Nameservers",		CONFIG_TYPE_STRING,	FALSE },
-#ifdef _FFR_ADSP_LISTS
-	{ "NoDiscardableMailTo",	CONFIG_TYPE_STRING,	FALSE },
-#endif /* _FFR_ADSP_LISTS */
 	{ "NoHeaderB",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "OmitHeaders",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-BadSignature",		CONFIG_TYPE_STRING,	FALSE },
@@ -130,7 +122,6 @@ struct configdef dkimf_config[] =
 	{ "On-InternalError",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-KeyNotFound",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-NoSignature",		CONFIG_TYPE_STRING,	FALSE },
-	{ "On-PolicyError",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_REPUTATION
 	{ "On-ReputationError",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_REPUTATION */
@@ -176,10 +167,10 @@ struct configdef dkimf_config[] =
 #endif /* _FFR_REPRRD */
 #ifdef _FFR_REPUTATION
 	{ "ReputationSpamCheck",	CONFIG_TYPE_STRING,	FALSE },
-	{ "ReputationTest",		CONFIG_TYPE_BOOLEAN,	FALSE },
+	{ "ReputationTest", /* DUP */	CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ReputationTimeFactor",	CONFIG_TYPE_INTEGER,	FALSE },
 	{ "ReputationTimeout",		CONFIG_TYPE_INTEGER,	FALSE },
-	{ "ReputationVerbose",		CONFIG_TYPE_BOOLEAN,	FALSE },
+	{ "ReputationVerbose", /* DUP */ CONFIG_TYPE_BOOLEAN,	FALSE },
 #endif /* _FFR_REPUTATION */
 	{ "RequestReports",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "RequiredHeaders",		CONFIG_TYPE_BOOLEAN,	FALSE },
@@ -195,7 +186,6 @@ struct configdef dkimf_config[] =
 #endif /* USE_LUA */
 	{ "Selector",			CONFIG_TYPE_STRING,	FALSE },
 	{ "SelectCanonicalizationHeader", CONFIG_TYPE_STRING,	FALSE },
-	{ "SendADSPReports",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "SenderHeaders",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_SENDER_MACRO
 	{ "SenderMacro",		CONFIG_TYPE_STRING,	FALSE },
@@ -240,7 +230,6 @@ struct configdef dkimf_config[] =
 	{ "UMask",			CONFIG_TYPE_INTEGER,	FALSE },
 #ifdef USE_UNBOUND
 	{ "UnprotectedKey",		CONFIG_TYPE_STRING,	FALSE },
-	{ "UnprotectedPolicy",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* USE_UNBOUND */
 	{ "UserID",			CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_VBR

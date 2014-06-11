@@ -107,7 +107,6 @@ static const luaL_Reg dkimf_lua_lib_stats[] =
 	{ "get_envfrom",	dkimf_xs_getenvfrom	},
 	{ "get_header",		dkimf_xs_getheader	},
 	{ "get_mtasymbol",	dkimf_xs_getsymval	},
-	{ "get_policy",		dkimf_xs_getpolicy	},
 	{ "get_rcpt",		dkimf_xs_rcpt		},
 	{ "get_rcptarray",	dkimf_xs_rcptarray	},
 	{ "get_sigarray",	dkimf_xs_getsigarray	},
@@ -145,7 +144,6 @@ static const luaL_Reg dkimf_lua_lib_final[] =
 	{ "get_fromdomain",	dkimf_xs_fromdomain	},
 	{ "get_header",		dkimf_xs_getheader	},
 	{ "get_mtasymbol",	dkimf_xs_getsymval	},
-	{ "get_policy",		dkimf_xs_getpolicy	},
 	{ "get_rcpt",		dkimf_xs_rcpt		},
 	{ "get_rcptarray",	dkimf_xs_rcptarray	},
 	{ "get_sigarray",	dkimf_xs_getsigarray	},
@@ -796,18 +794,6 @@ dkimf_lua_stats_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_pushlightuserdata(l, &gc);
 	lua_setglobal(l, DKIMF_GC);
 
-	/* policy codes */
-	lua_pushnumber(l, DKIMF_POLICY_UNKNOWN);
-	lua_setglobal(l, "DKIMF_POLICY_UNKNOWN");
-	lua_pushnumber(l, DKIMF_POLICY_ALL);
-	lua_setglobal(l, "DKIMF_POLICY_ALL");
-	lua_pushnumber(l, DKIMF_POLICY_DISCARDABLE);
-	lua_setglobal(l, "DKIMF_POLICY_DISCARDABLE");
-	lua_pushnumber(l, DKIMF_POLICY_NONE);
-	lua_setglobal(l, "DKIMF_POLICY_NONE");
-	lua_pushnumber(l, DKIMF_POLICY_NXDOMAIN);
-	lua_setglobal(l, "DKIMF_POLICY_NXDOMAIN");
-
 	/* milter result codes */
 	lua_pushnumber(l, SMFIS_TEMPFAIL);
 	lua_setglobal(l, "SMFIS_TEMPFAIL");
@@ -1044,18 +1030,6 @@ dkimf_lua_final_hook(void *ctx, const char *script, size_t scriptlen,
 	/* garbage collection handle */
 	lua_pushlightuserdata(l, &gc);
 	lua_setglobal(l, DKIMF_GC);
-
-	/* policy codes */
-	lua_pushnumber(l, DKIMF_POLICY_UNKNOWN);
-	lua_setglobal(l, "DKIMF_POLICY_UNKNOWN");
-	lua_pushnumber(l, DKIMF_POLICY_ALL);
-	lua_setglobal(l, "DKIMF_POLICY_ALL");
-	lua_pushnumber(l, DKIMF_POLICY_DISCARDABLE);
-	lua_setglobal(l, "DKIMF_POLICY_DISCARDABLE");
-	lua_pushnumber(l, DKIMF_POLICY_NONE);
-	lua_setglobal(l, "DKIMF_POLICY_NONE");
-	lua_pushnumber(l, DKIMF_POLICY_NXDOMAIN);
-	lua_setglobal(l, "DKIMF_POLICY_NXDOMAIN");
 
 	/* milter result codes */
 	lua_pushnumber(l, SMFIS_TEMPFAIL);

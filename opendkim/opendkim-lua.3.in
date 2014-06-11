@@ -124,8 +124,6 @@ should be one of
 (database of MTA macro checks to be done when determining signing),
 .I DB_DOMAINS
 (database of domains to be signed),
-.I DB_LOCALADSP
-(database of local ADSP overrides),
 .I DB_SIGNINGTABLE
 (database of signing table entries),
 .I DB_THIRDPARTY
@@ -400,7 +398,6 @@ and
 .B odkim.spam.
 
 The following functions are also available, defined in the next section:
-.B odkim.get_policy,
 .B odkim.rbl_check,
 .B odkim.rcpt_count,
 .B odkim.sig_bhresult,
@@ -476,23 +473,6 @@ from the list of envelope recipients on the message represented by
 .I ctx,
 and adds a new X-Original-Recipient: header field containing the deleted
 address.  Returns 1 on success, or the Lua constant "nil" on failure.
-.TP
-.B odkim.get_policy(ctx)
-Returns the discovered Author Domain Signing Practices (ADSP) policy, if one
-was published and could be retrieved, or a code indicating what other
-result was observed.  The value will be one of
-.I DKIMF_POLICY_UNKNOWN,
-.I DKIMF_POLICY_ALL
-and
-.I DKIMF_POLICY_DISCARDABLE,
-representing the corresponding ADSP result when a query was made and a result
-returned, or
-.I DKIMF_POLICY_NXDOMAIN
-if the author domain (based on the "From:" header field) does not appear
-to exist, or
-.I DKIMF_POLICY_NONE
-if no query was done because a valid author domain signature was found on
-the message, or the Lua constant "nil" in case of some other error.
 .TP
 .B odkim.quarantine(ctx, reason)
 Asks the MTA to quarantine the message represented by

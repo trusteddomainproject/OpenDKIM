@@ -39,9 +39,6 @@ dist_doc_DATA = dkim.html \
 	dkim_geterror.html \
 	dkim_getid.html \
 	dkim_getmode.html \
-	dkim_getpolicystr.html \
-	dkim_getpresult.html \
-	dkim_getpresultstr.html \
 	dkim_getresultstr.html \
 	dkim_getsighdr.html \
 	dkim_getsighdr_d.html \
@@ -59,17 +56,7 @@ dist_doc_DATA = dkim.html \
 	dkim_ohdrs.html \
 	dkim_options.html \
 	dkim_param_t.html \
-	dkim_policy.html \
-	dkim_policy_getdnssec.html \
-	dkim_policy_getqueries.html \
-	dkim_policy_getreportinfo.html \
-	dkim_policy_state_free.html \
-	dkim_policy_state_new.html \
-	dkim_policy_syntax.html \
-	dkim_policy_t.html \
-	dkim_presult.html \
 	dkim_privkey_load.html \
-	dkim_pstate.html \
 	dkim_qi_getname.html \
 	dkim_qi_gettype.html \
 	dkim_query_t.html \
@@ -79,7 +66,6 @@ dist_doc_DATA = dkim.html \
 	dkim_set_final.html \
 	dkim_set_key_lookup.html \
 	dkim_set_margin.html \
-	dkim_set_policy_lookup.html \
 	dkim_set_prescreen.html \
 	dkim_set_signature_handle.html \
 	dkim_set_signature_handle_free.html \

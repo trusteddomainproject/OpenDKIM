@@ -59,7 +59,6 @@ extern "C" {
 /* special DNS tokens */
 #define	DKIM_DNSKEYNAME		"_domainkey"
 					/* reserved DNS sub-zone */
-#define	DKIM_DNSPOLICYNAME	"_adsp"	/* reserved DNS sub-zone */
 
 /* macros */
 #define	DKIM_SIG_CHECK(x)	((dkim_sig_getflags((x)) & DKIM_SIGFLAG_PASSED != 0) && (dkim_sig_getbh((x)) == DKIM_SIGBH_MATCH))
@@ -222,28 +221,6 @@ typedef int dkim_param_t;
 #define DKIM_PARAM_BODYLENGTH	13	/* l */
 
 /*
-**  DKIM_POLICY -- policies
-*/
-
-typedef int dkim_policy_t;
-
-#define DKIM_POLICY_NONE	(-1)	/* none/undefined */
-#define DKIM_POLICY_UNKNOWN	0	/* unknown */
-#define DKIM_POLICY_ALL		1	/* all */
-#define DKIM_POLICY_DISCARDABLE	2	/* discardable */
-
-#define DKIM_POLICY_DEFAULT	DKIM_POLICY_UNKNOWN
-#define DKIM_POLICY_DEFAULTTXT	"dkim=unknown"
-
-/*
-**  DKIM_PRESULT -- policy results
-*/
-
-#define DKIM_PRESULT_NONE		(-1)	/* none/undefined */
-#define DKIM_PRESULT_NXDOMAIN		0	/* domain does not exist */
-#define DKIM_PRESULT_FOUND		1	/* ADSP query succeeded */
-
-/*
 **  DKIM_MODE -- mode of a handle
 */
 
@@ -299,13 +276,6 @@ typedef int dkim_opts_t;
 #define DKIM_LIBFLAGS_REQUESTREPORTS	0x00010000
 
 #define	DKIM_LIBFLAGS_DEFAULT		DKIM_LIBFLAGS_NONE
-
-/*
-**  DKIM_PFLAG -- policy flags
-*/
-
-#define	DKIM_PFLAG_UNUSED1	0x01	/* no longer used */
-#define	DKIM_PFLAG_UNUSED2	0x02	/* no longer used */
 
 /*
 **  DKIM_DNSSEC -- results of DNSSEC queries
@@ -370,13 +340,6 @@ typedef struct dkim_siginfo DKIM_SIGINFO;
 
 struct dkim_queryinfo;
 typedef struct dkim_queryinfo DKIM_QUERYINFO;
-
-/*
-**  DKIM_PSTATE -- policy query state
-*/
-
-struct dkim_pstate;
-typedef struct dkim_pstate DKIM_PSTATE;
 
 /*
 **  DKIM_HDRDIFF -- header differences
@@ -578,21 +541,6 @@ extern DKIM_STAT dkim_eom __P((DKIM *dkim, _Bool *testkey));
 */
 
 extern DKIM_STAT dkim_key_syntax __P((DKIM *dkim, u_char *str, size_t len));
-
-/*
-**  DKIM_POLICY_SYNTAX -- process a policy record parameter set
-**                        for valid syntax
-**
-**  Parameters:
-**  	dkim -- DKIM context in which this is performed
-**  	str -- string to be scanned
-**  	len -- number of bytes available at "str"
-**
-**  Return value:
-**  	A DKIM_STAT constant.
-*/
-
-extern DKIM_STAT dkim_policy_syntax __P((DKIM *dkim, u_char *str, size_t len));
 
 /*
 **  DKIM_SIG_SYNTAX -- process a signature parameter set for valid syntax
@@ -1087,25 +1035,6 @@ extern DKIM_STAT dkim_set_key_lookup __P((DKIM_LIB *libopendkim,
                                                               size_t buflen)));
 
 /*
-**  DKIM_SET_POLICY_LOOKUP -- set the policy lookup function
-**
-**  Parameters:
-**  	libopendkim -- DKIM library handle
-**  	func -- function to call
-**
-**  Return value:
-**  	DKIM_STAT_OK
-*/
-
-extern DKIM_STAT dkim_set_policy_lookup __P((DKIM_LIB *libopendkim,
-                                             DKIM_CBSTAT (*func)(DKIM *dkim,
-                                                                 u_char *query,
-                                                                 _Bool excheck,
-                                                                 u_char *buf,
-                                                                 size_t buflen,
-                                                                 int *qstat)));
-
-/*
 **  DKIM_SET_SIGNATURE_HANDLE -- set the signature handle creator function
 **
 **  Parameters:
@@ -1249,98 +1178,6 @@ extern const char *dkim_sig_geterrorstr __P((DKIM_SIGERROR sigerr));
 extern void dkim_sig_ignore __P((DKIM_SIGINFO *siginfo));
 
 /*
-**  DKIM_POLICY_GETQUERIES -- retrieve the queries needed to conduct an ADSP
-**                            evaluation
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	qi -- DKIM_QUERYINFO handle array (returned)
-**  	nqi -- number of entries in the "qi" array
-**
-**  Return value:
-**  	A DKIM_STAT_* constant.
-*/
-
-extern DKIM_STAT dkim_policy_getqueries __P((DKIM *dkim,
-                                             DKIM_QUERYINFO ***qi,
-                                             unsigned int *nqi));
-
-/*
-**  DKIM_POLICY_STATE_NEW -- initialize and return a DKIM policy state handle
-**
-**  Parameters:
-**  	dkim -- DKIM handle from which to do an allocation
-**
-**  Return value:
-**  	A DKIM_PSTATE handle, or NULL on failure.
-*/
-
-extern DKIM_PSTATE *dkim_policy_state_new __P((DKIM *dkim));
-
-/*
-**  DKIM_POLICY_STATE_FREE -- destroy a DKIM policy state handle
-**
-**  Parameters:
-**  	pstate -- previously allocated policy state handle
-**
-**  Return value:
-**  	None.
-*/
-
-extern void dkim_policy_state_free __P((DKIM_PSTATE *pstate));
-
-/*
-**  DKIM_POLICY -- parse policy associated with the sender's domain
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	pcode -- discovered policy (returned)
-**  	pflags -- discovered policy flags (returned)
-**  	pstate -- state, for re-entrancy (updated; can be NULL)
-**
-**  Return value:
-**  	A DKIM_STAT_* constant.
-*/
-
-extern DKIM_STAT dkim_policy __P((DKIM *dkim, dkim_policy_t *pcode,
-                                  u_int *pflags, DKIM_PSTATE *pstate));
-
-/*
-**  DKIM_POLICY_GETDNSSEC -- retrieve DNSSEC results for a policy
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**
-**  Return value:
-**  	A DKIM_DNSSEC_* constant.
-*/
-
-extern int dkim_policy_getdnssec __P((DKIM *dkim));
-
-/*
-**  DKIM_POLICY_GETREPORTINFO -- retrieve reporting information from policy
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	addr -- address buffer (or NULL)
-**  	addrlen -- size of addr
-**  	opts -- options buffer (or NULL)
-**  	optslen -- size of opts
-**  	smtp -- SMTP prefix buffer (or NULL)
-**  	smtplen -- size of smtp
-**  	interval -- requested report interval (or NULL)
-**
-**  Return value:
-**  	A DKIM_STAT_* constant.
-*/
-
-extern DKIM_STAT dkim_policy_getreportinfo __P((DKIM *dkim,
-                                                u_char *addr, size_t addrlen,
-                                                u_char *opts, size_t optslen,
-                                                u_char *smtp, size_t smtplen,
-                                                u_int *interval));
-
-/*
 **  DKIM_SIG_PROCESS -- process a signature
 **
 **  Parameters:
@@ -1390,42 +1227,6 @@ extern const char *dkim_geterror __P((DKIM *dkim));
 */
 
 extern const char *dkim_getresultstr __P((DKIM_STAT result));
-
-/*
-**  DKIM_GETPRESULT -- retrieve policy result
-**
-**  Parameters:
-**  	dkim -- DKIM handle from which to get policy result
-**
-**  Return value:
-**  	DKIM policy check result.
-*/
-
-extern int dkim_getpresult __P((DKIM *dkim));
-
-/*
-**  DKIM_GETPRESULTSTR -- retrieve policy result string
-**
-**  Parameters:
-**  	presult -- policy result code to translate
-**
-**  Return value:
-**  	Pointer to text that describes "presult".
-*/
-
-extern const char *dkim_getpresultstr __P((int presult));
-
-/*
-**  DKIM_GETPOLICYSTR -- retrieve sender policy string
-**
-**  Parameters:
-**  	policy -- policy code to translate
-**
-**  Return value:
-**  	Pointer to text that describes "policy".
-*/
-
-extern const char *dkim_getpolicystr __P((int policy));
 
 /*
 **  DKIM_OHDRS -- extract and decode original headers
@@ -1592,26 +1393,6 @@ extern uint32_t dkim_libversion __P((void));
 
 extern DKIM_STAT dkim_get_sigsubstring __P((DKIM *, DKIM_SIGINFO *,
                                             char *, size_t *));
-
-/*
-**  DKIM_TEST_ADSP -- verify that a valid author domain signing policy exists
-**                    in DNS
-**
-**  Parameters:
-**  	lib -- DKIM library handle
-**  	domain -- domain name
-**  	presult -- policy discovered (returned)
-**  	presult2 -- policy stage at which result was decided (returned)
-**  	err -- error buffer
-**  	errlen -- bytes available at "err"
-**
-**  Return value:
-**  	0 -- some kind of result was made available
-**  	-1 -- error
-*/
-
-extern int dkim_test_adsp __P((DKIM_LIB *, const char *, dkim_policy_t *,
-                               int *, char *, size_t));
 
 /*
 **  DKIM_TEST_KEY -- retrieve a public key and verify it against a provided

@@ -359,8 +359,6 @@ FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
 LIB_FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
 AM_CONDITIONAL([ATPS], [test x"$enable_atps" = x"yes"])
 
-FFR_FEATURE([adsp_lists], [support for ADSP filtering for lists])
-
 FFR_FEATURE([db_handle_pools], [experimental database handle pools])
 
 FFR_FEATURE([diffheaders], [compare signed and verified headers when possible])
@@ -587,7 +585,7 @@ AM_CONDITIONAL([BUILD_FILTER], [test x"$enable_filter" != x"no"])
 #
 # libopendkim
 #
-LIB_FEATURE([query_cache], [local key/policy caching])
+LIB_FEATURE([query_cache], [local key caching])
 
 #
 # Conditional stuff
@@ -2662,7 +2660,7 @@ AC_OUTPUT([	Makefile
 		miltertest/Makefile
 		opendkim/Makefile opendkim/opendkim.8 opendkim/opendkim-genkey
 			opendkim/opendkim-genkey.8 opendkim/opendkim-genzone.8
-			opendkim/opendkim-lua.3 opendkim/opendkim-testadsp.8
+			opendkim/opendkim-lua.3 
 			opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8
 			opendkim/opendkim-testmsg.8 opendkim/opendkim.conf.5
 			opendkim/opendkim.conf.simple

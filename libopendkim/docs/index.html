@@ -65,7 +65,7 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
 
  <tr>
   <td> <a href="dkim_dnssec.html"> <tt>DKIM_DNSSEC</tt> </a> </td>
-  <td> Key and policy record security evaluation codes. </td>
+  <td> Key record security evaluation codes. </td>
  </tr>
 
  <tr>
@@ -76,21 +76,6 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  <tr>
   <td> <a href="dkim_param_t.html"> <tt>dkim_param_t</tt> </a> </td>
   <td> A signature parameter. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_policy_t.html"> <tt>dkim_policy_t</tt> </a> </td>
-  <td> A sender signing policy. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_presult.html"> <tt>DKIM_PRESULT</tt> </a> </td>
-  <td> A policy evaluation result. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_pstate.html"> <tt>DKIM_PSTATE</tt> </a> </td>
-  <td> Policy lookup state information. </td>
  </tr>
 
  <tr>
@@ -144,7 +129,7 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
 
  <tr>
   <td> <a href="dkim_flush_cache.html"> <tt>dkim_flush_cache()</tt> </a> </td>
-  <td> Flush the key/policy cache. </td>
+  <td> Flush the key cache. </td>
  </tr>
 
  <tr>
@@ -200,12 +185,6 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  <tr>
   <td> <a href="dkim_set_key_lookup.html"> <tt>dkim_set_key_lookup()</tt> </a> </td>
   <td> Provide a function to perform key lookups, replacing the internal
-       implementation. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_set_policy_lookup.html"> <tt>dkim_set_policy_lookup()</tt> </a> </td>
-  <td> Provide a function to perform policy lookups, replacing the internal
        implementation. </td>
  </tr>
 
@@ -344,22 +323,6 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
-  <td> <a href="dkim_getpolicystr.html"> <tt>dkim_getpolicystr()</tt> </a> </td>
-  <td> Translate a policy code into a user-friendly string. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_getpresult.html"> <tt>dkim_getpresult()</tt> </a> </td>
-  <td> Retrieve detail about the sender's policy evaluation with respect
-       to the message associated with a DKIM handle. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_getpresultstr.html"> <tt>dkim_getpresultstr()</tt> </a> </td>
-  <td> Translate a policy result code into a user-friendly string. </td>
- </tr>
-
- <tr>
   <td> <a href="dkim_getresultstr.html"> <tt>dkim_getresultstr()</tt> </a> </td>
   <td> Translate a DKIM_STAT constant into a string. </td>
  </tr>
@@ -396,40 +359,6 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
   <td> <a href="dkim_ohdrs.html"> <tt>dkim_ohdrs()</tt> </a> </td>
   <td> Retrieve the original header set from a signature if such were
        present. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_policy.html"> <tt>dkim_policy()</tt> </a> </td>
-  <td> Evaluate sender signing policy information. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_policy_getqueries.html">
-       <tt>dkim_policy_getqueries()</tt> </a> </td>
-  <td> Get the set of DNS queries needed to do a policy evaluaton. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_policy_state_free.html">
-       <tt>dkim_policy_state_free()</tt> </a> </td>
-  <td> Free a policy state handle. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_policy_state_new.html">
-       <tt>dkim_policy_state_new()</tt> </a> </td>
-  <td> Initialize a policy state handle. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_policy_getdnssec.html"> <tt>dkim_policy_getdnssec()</tt> </a> </td>
-  <td> Retrieve DNSSEC evaluation of a sending domain's policy record. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_policy_getreportinfo.html"> <tt>dkim_policy_getreportinfo()</tt> </a> </td>
-  <td> Retrieve information required to generate a policy failure
-       report. </td>
  </tr>
 
  <tr>
@@ -618,11 +547,6 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  <tr>
   <td> <a href="dkim_options.html"> <tt>dkim_options()</tt> </a> </td>
   <td> Get or set library options. </td>
- </tr>
-
- <tr>
-  <td> <a href="dkim_policy_syntax.html"> <tt>dkim_policy_syntax()</tt> </a> </td>
-  <td> Check the syntax of a policy record. </td>
  </tr>
 
  <tr>

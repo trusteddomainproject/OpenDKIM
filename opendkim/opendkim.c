@@ -168,7 +168,6 @@ struct handling
 	int		hndl_badsig;		/* bad signature */
 	int		hndl_nokey;		/* no key in DNS */
 	int		hndl_dnserr;		/* DNS error */
-	int		hndl_policyerr;		/* policy retrieval error */
 	int		hndl_internal;		/* internal error */
 #if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
 	int		hndl_reperr;		/* reputation error */
@@ -183,7 +182,6 @@ struct handling defaults =
 	DKIMF_MILTER_ACCEPT,			/* badsig */
 	DKIMF_MILTER_ACCEPT,			/* nokey */
 	DKIMF_MILTER_TEMPFAIL,			/* dnserr */
-	DKIMF_MILTER_ACCEPT,			/* policyerr */
 	DKIMF_MILTER_TEMPFAIL,			/* internal */
 #ifdef _FFR_REPUTATION
 	DKIMF_MILTER_ACCEPT,			/* reperror */
@@ -219,7 +217,6 @@ struct dkimf_config
 #endif /* _FFR_LUA_ONLY_SIGNING */
 	_Bool		conf_weaksyntax;	/* do weaker syntax checking */
 	_Bool		conf_passmalformed;	/* pass malformed messages */
-	_Bool		conf_noadsp;		/* suppress ADSP */
 	_Bool		conf_logresults;	/* log all results */
 	_Bool		conf_allsigs;		/* report on all signatures */
 	_Bool		conf_dnsconnect;	/* request TCP mode from DNS */
@@ -232,8 +229,6 @@ struct dkimf_config
 	_Bool		conf_alwaysaddar;	/* always add Auth-Results:? */
 	_Bool		conf_reqreports;	/* request reports */
 	_Bool		conf_sendreports;	/* signature failure reports */
-	_Bool		conf_sendadspreports;	/* ADSP failure reports */
-	_Bool		conf_adspnxdomain;	/* reject on ADSP NXDOMAIN? */
 	_Bool		conf_reqhdrs;		/* required header checks */
 	_Bool		conf_authservidwithjobid; /* use jobids in A-R headers */
 	_Bool		conf_subdomains;	/* sign subdomains */
@@ -282,8 +277,6 @@ struct dkimf_config
 #ifdef USE_UNBOUND
 	unsigned int	conf_boguskey;		/* bogus key action */
 	unsigned int	conf_unprotectedkey;	/* unprotected key action */
-	unsigned int	conf_boguspolicy;	/* bogus policy action */
-	unsigned int	conf_unprotectedpolicy;	/* unprotected policy action */
 #endif /* USE_UNBOUND */
 #ifdef _FFR_RATE_LIMIT
 	unsigned int	conf_flowdatattl;	/* flow data TTL */
@@ -291,7 +284,6 @@ struct dkimf_config
 #endif /* _FFR_RATE_LIMIT */
 	int		conf_clockdrift;	/* tolerable clock drift */
 	int		conf_sigmintype;	/* signature minimum type */
-	int		conf_adspaction;	/* apply ADSP "discardable"? */
 	size_t		conf_sigmin;		/* signature minimum */
 	size_t		conf_keylen;		/* size of secret key */
 #ifdef USE_LUA
@@ -352,7 +344,6 @@ struct dkimf_config
 	char *		conf_reportaddr;	/* report sender address */
 	char *		conf_reportaddrbcc;	/* report repcipient address as bcc */
 	char *		conf_mtacommand;	/* MTA command (reports) */
-	char *		conf_localadsp_file;	/* local ADSP file */
 	char *		conf_redirect;		/* redirect failures to */
 #ifdef USE_LDAP
 	char *		conf_ldap_timeout;	/* LDAP timeout */
@@ -421,7 +412,6 @@ struct dkimf_config
 	DKIMF_DB	conf_nodiscardto;	/* no discardable to (DB) */
 #endif /* _FFR_ADSP_LISTS */
 	DKIMF_DB	conf_thirdpartydb;	/* trustsigsfrom DB */
-	DKIMF_DB	conf_localadsp_db;	/* local ADSP DB */
 	DKIMF_DB	conf_macrosdb;		/* macros/values (DB) */
 	char **		conf_macros;		/* macros/values to check */
 	regex_t **	conf_nosignpats;	/* do-not-sign patterns */
@@ -487,22 +477,18 @@ struct msgctx
 #ifdef _FFR_REPUTATION
 	_Bool		mctx_spam;		/* is spam? */
 #endif /* _FFR_REPUTATION */
-	dkim_policy_t	mctx_pcode;		/* policy result code */
 #ifdef _FFR_ATPS
 	int		mctx_atps;		/* ATPS */
 #endif /* _FFR_ATPS */
 #ifdef USE_LUA
 	int		mctx_mresult;		/* SMFI status code */
 #endif /* USE_LUA */
-	int		mctx_presult;		/* policy result */
 	int		mctx_status;		/* status to report back */
-	unsigned int	mctx_pflags;		/* policy flags */
 	dkim_canon_t	mctx_hdrcanon;		/* header canonicalization */
 	dkim_canon_t	mctx_bodycanon;		/* body canonicalization */
 	dkim_alg_t	mctx_signalg;		/* signature algorithm */
 #ifdef USE_UNBOUND
 	int		mctx_dnssec_key;	/* DNSSEC results for key */
-	int		mctx_dnssec_policy;	/* DNSSEC results for policy */
 #endif /* USE_UNBOUND */
 	int		mctx_queryalg;		/* query algorithm */
 	int		mctx_hdrbytes;		/* header space allocated */
@@ -519,7 +505,6 @@ struct msgctx
 	struct signreq * mctx_srhead;		/* signature request head */
 	struct signreq * mctx_srtail;		/* signature request tail */
 	struct addrlist * mctx_rcptlist;	/* recipient list */
-	DKIM_PSTATE	* mctx_pstate;		/* policy state handle */
 #ifdef _FFR_STATSEXT
 	struct statsext * mctx_statsext;	/* extension stats list */
 #endif /* _FFR_STATSEXT */
@@ -627,7 +612,6 @@ struct lookup dkimf_params[] =
 	{ "internalerror",	HNDL_INTERNAL },
 	{ "keynotfound",	HNDL_NOKEY },
 	{ "nosignature",	HNDL_NOSIGNATURE },
-	{ "policyerror",	HNDL_POLICYERROR },
 #ifdef _FFR_REPUTATION
 	{ "reputationerror",	HNDL_REPERROR },
 #endif /* _FFR_REPUTATION */
@@ -657,14 +641,6 @@ struct lookup dkimf_canon[] =
 {
 	{ "relaxed",		DKIM_CANON_RELAXED },
 	{ "simple",		DKIM_CANON_SIMPLE },
-	{ NULL,			-1 },
-};
-
-struct lookup dkimf_policy[] =
-{
-	{ "unknown",		DKIM_POLICY_UNKNOWN },
-	{ "all",		DKIM_POLICY_ALL },
-	{ "discardable",	DKIM_POLICY_DISCARDABLE },
 	{ NULL,			-1 },
 };
 
@@ -719,16 +695,6 @@ struct lookup dkimf_keyactions[] =
 	{ "none",		DKIMF_KEYACTIONS_NONE },
 	{ "neutral",		DKIMF_KEYACTIONS_NEUTRAL },
 	{ "fail",		DKIMF_KEYACTIONS_FAIL },
-	{ NULL,			-1 },
-};
-
-#define	DKIM_POLICYACTIONS_IGNORE	0
-#define DKIM_POLICYACTIONS_APPLY	1
-
-struct lookup dkimf_policyactions[] =
-{
-	{ "ignore",		DKIM_POLICYACTIONS_IGNORE },
-	{ "apply",		DKIM_POLICYACTIONS_APPLY },
 	{ NULL,			-1 },
 };
 #endif /* USE_UNBOUND */
@@ -787,7 +753,6 @@ static Header dkimf_findheader __P((msgctx, char *, int));
 void *dkimf_getpriv __P((SMFICTX *));
 char *dkimf_getsymval __P((SMFICTX *, char *));
 sfsistat dkimf_insheader __P((SMFICTX *, int, char *, char *));
-static void dkimf_policyreport __P((connctx, struct dkimf_config *, char *));
 sfsistat dkimf_quarantine __P((SMFICTX *, char *));
 void dkimf_sendprogress __P((const void *));
 sfsistat dkimf_setpriv __P((SMFICTX *, void *));
@@ -2705,13 +2670,6 @@ dkimf_xs_dbhandle(lua_State *l)
 			lua_pushlightuserdata(l, conf->conf_macrosdb);
 		break;
 
-	  case DB_LOCALADSP:
-		if (conf->conf_localadsp_db == NULL)
-			lua_pushnil(l);
-		else
-			lua_pushlightuserdata(l, conf->conf_localadsp_db);
-		break;
-
 	  case DB_SIGNINGTABLE:
 		if (conf->conf_signtabledb == NULL)
 			lua_pushnil(l);
@@ -3971,65 +3929,6 @@ dkimf_xs_resign(lua_State *l)
 # else /* _FFR_RESIGN */
 	lua_pushnil(l);
 # endif /* _FFR_RESIGN */
-
-	return 1;
-}
-
-/*
-**  DKIMF_XS_GETPOLICY -- retrieve sender policy
-**
-**  Parameters:
-**  	l -- Lua state
-**
-**  Return value:
-**  	Number of stack items pushed.
-*/
-
-int
-dkimf_xs_getpolicy(lua_State *l)
-{
-	SMFICTX *ctx;
-	struct connctx *cc;
-	struct msgctx *dfc;
-
-	assert(l != NULL);
-
-	if (lua_gettop(l) != 1)
-	{
-		lua_pushstring(l, "odkim.get_policy(): incorrect argument count");
-		lua_error(l);
-	}
-	else if (!lua_islightuserdata(l, 1))
-	{
-		lua_pushstring(l, "odkim.get_policy(): incorrect argument type");
-		lua_error(l);
-	}
-
-	ctx = (SMFICTX *) lua_touserdata(l, 1);
-	lua_pop(l, 1);
-
-	if (ctx == NULL)
-	{
-		lua_pushlightuserdata(l, NULL);
-		return 1;
-	}
-
-	cc = (struct connctx *) dkimf_getpriv(ctx);
-	dfc = cc->cctx_msg;
-
-	if (dfc->mctx_presult == DKIM_PRESULT_NONE ||
-	    dfc->mctx_pcode == DKIM_POLICY_NONE)
-		lua_pushnumber(l, DKIMF_POLICY_NONE);
-	else if (dfc->mctx_presult == DKIM_PRESULT_NXDOMAIN)
-		lua_pushnumber(l, DKIMF_POLICY_NXDOMAIN);
-	else if (dfc->mctx_pcode == DKIM_POLICY_UNKNOWN)
-		lua_pushnumber(l, DKIMF_POLICY_UNKNOWN);
-	else if (dfc->mctx_pcode == DKIM_POLICY_ALL)
-		lua_pushnumber(l, DKIMF_POLICY_ALL);
-	else if (dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE)
-		lua_pushnumber(l, DKIMF_POLICY_DISCARDABLE);
-	else
-		lua_pushnil(l);
 
 	return 1;
 }
@@ -5761,78 +5660,6 @@ dkimf_lookup_inttostr(int code, struct lookup *table)
 }
 
 /*
-**  DKIMF_LOCAL_ADSP -- check for a local ADSP assertion
-**
-**  Parameters:
-**  	conf -- configuration handle to check
-**  	domain -- domain to evaluate
-**  	pcode -- policy code (returned)
-**
-**  Return value:
-**  	1 -- match, "pcode" updated
-**  	0 -- no match, "pcode" unchanged
-*/
-
-static int
-dkimf_local_adsp(struct dkimf_config *conf, char *domain, dkim_policy_t *pcode)
-{
-	assert(conf != NULL);
-	assert(domain != NULL);
-	assert(pcode != NULL);
-
-	if (conf->conf_localadsp_db != NULL)
-	{
-		_Bool found;
-		size_t plen;
-		char *p;
-		char policy[BUFRSZ];
-		struct dkimf_db_data dbd;
-
-		memset(policy, '\0', sizeof policy);
-		plen = sizeof policy;
-
-		dbd.dbdata_buffer = policy;
-		dbd.dbdata_buflen = plen;
-		dbd.dbdata_flags = 0;
-
-		if (dkimf_db_get(conf->conf_localadsp_db, domain, 0, 
-		                      &dbd, 1, &found) != 0)
-			return 0;
-
-		if (policy[0] == '\0')
-			found = FALSE;
-
-		for (p = strchr(domain, '.');
-		     p != NULL && !found;
-		     p = strchr(p + 1, '.'))
-		{
-			dbd.dbdata_buflen = plen;
-
-			if (dkimf_db_get(conf->conf_localadsp_db, p, 0,
-			                      &dbd, 1, &found) != 0)
-				return 0;
-
-			if (policy[0] == '\0')
-				found = FALSE;
-		}
-
-		if (found)
-		{
-			dkim_policy_t tmpp;
-
-			tmpp = dkimf_lookup_strtoint(policy, dkimf_policy);
-			if (tmpp != -1)
-			{
-				*pcode = tmpp;
-				return 1;
-			}
-		}
-	}
-
-	return 0;
-}
-
-/*
 **  DKIMF_GETDKIM -- retrieve DKIM handle in use
 **
 **  Parameters:
@@ -6057,7 +5884,6 @@ dkimf_config_new(void)
 	new->conf_repcachettl = DKIMF_REP_DEFCACHETTL;
 #endif /* _FFR_REPUTATION */
 	new->conf_safekeys = TRUE;
-	new->conf_adspaction = SMFIS_CONTINUE;
 #ifdef _FFR_STATS
 	new->conf_reporthost = myhostname;
 #endif /* _FFR_STATS */
@@ -6178,9 +6004,6 @@ dkimf_config_free(struct dkimf_config *conf)
 		free(conf->conf_nosignpats);
 	}
 
-	if (conf->conf_localadsp_db != NULL)
-		dkimf_db_close(conf->conf_localadsp_db);
-
 #ifdef _FFR_RESIGN
 	if (conf->conf_resigndb != NULL)
 		dkimf_db_close(conf->conf_resigndb);
@@ -6292,7 +6115,6 @@ dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl,
 		hndl->hndl_internal = action;
 		hndl->hndl_security = action;
 		hndl->hndl_nokey = action;
-		hndl->hndl_policyerr = action;
 #if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
 		hndl->hndl_reperr = action;
 #endif /* _FFR_REPUTATION || defined(_FFR_REPRRD) */
@@ -6321,10 +6143,6 @@ dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl,
 
 	  case HNDL_NOKEY:
 		hndl->hndl_nokey = action;
-		return TRUE;
-
-	  case HNDL_POLICYERROR:
-		hndl->hndl_policyerr = action;
 		return TRUE;
 
 #if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
@@ -6609,10 +6427,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_mtacommand,
 		                  sizeof conf->conf_mtacommand);
 
-		(void) config_get(data, "SendADSPReports",
-		                  &conf->conf_sendadspreports,
-		                  sizeof conf->conf_sendadspreports);
-
 		(void) config_get(data, "ReportAddress",
 		                  &conf->conf_reportaddr,
 		                  sizeof conf->conf_reportaddr);
@@ -6688,38 +6502,13 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  sizeof conf->conf_luasigning);
 #endif /* _FFR_LUA_ONLY_SIGNING */
 
-		(void) config_get(data, "ADSPNoSuchDomain",
-		                  &conf->conf_adspnxdomain,
-		                  sizeof conf->conf_adspnxdomain);
-
 		(void) config_get(data, "IgnoreMalformedMail",
 		                  &conf->conf_passmalformed,
 		                  sizeof conf->conf_passmalformed);
 
-		(void) config_get(data, "DisableADSP",
-		                  &conf->conf_noadsp,
-		                  sizeof conf->conf_noadsp);
-
 		(void) config_get(data, "DisableCryptoInit",
 		                  &conf->conf_disablecryptoinit,
 		                  sizeof conf->conf_disablecryptoinit);
-
-		str = NULL;
-		(void) config_get(data, "ADSPAction", &str, sizeof str);
-		if (str != NULL)
-		{
-			int c;
-
-			c = dkimf_lookup_strtoint(str, dkimf_adspactions);
-			if (c == -1)
-			{
-				snprintf(err, errlen,
-				         "unknown ADSP action '%s'", str);
-				return -1;
-			}
-
-			conf->conf_adspaction = c;
-		}
 
 		if (!conf->conf_addswhdr)
 		{
@@ -6917,48 +6706,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		else
 		{
 			conf->conf_unprotectedkey = DKIMF_KEYACTIONS_NONE;
-		}
-
-		str = NULL;
-		(void) config_get(data, "BogusPolicy", &str, sizeof str);
-		if (str != NULL)
-		{
-			int c;
-
-			c = dkimf_lookup_strtoint(str, dkimf_policyactions);
-			if (c == -1)
-			{
-				snprintf(err, errlen,
-				         "unknown policy action '%s'", str);
-				return -1;
-			}
-
-			conf->conf_boguspolicy = c;
-		}
-		else
-		{
-			conf->conf_boguspolicy = DKIM_POLICYACTIONS_IGNORE;
-		}
-
-		str = NULL;
-		(void) config_get(data, "UnprotectedPolicy", &str, sizeof str);
-		if (str != NULL)
-		{
-			int c;
-
-			c = dkimf_lookup_strtoint(str, dkimf_policyactions);
-			if (c == -1)
-			{
-				snprintf(err, errlen,
-				         "unknown policy action '%s'", str);
-				return -1;
-			}
-
-			conf->conf_unprotectedpolicy = c;
-		}
-		else
-		{
-			conf->conf_unprotectedpolicy = DKIM_POLICYACTIONS_APPLY;
 		}
 #endif /* USE_UNBOUND */
 
@@ -7785,32 +7532,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	{
 		snprintf(err, errlen, "use of SigningTable requires KeyTable");
 		return -1;
-	}
-
-	str = NULL;
-	if (conf->conf_localadsp_file != NULL)
-	{
-		str = conf->conf_localadsp_file;
-	}
-	else if (data != NULL)
-	{
-		(void) config_get(data, "LocalADSP", &str, sizeof str);
-	}
-	if (str != NULL)
-	{
-		int status;
-		char *dberr = NULL;
-
-		status = dkimf_db_open(&conf->conf_localadsp_db, str,
-		                       (dbflags | DKIMF_DB_FLAG_ICASE |
-		                        DKIMF_DB_FLAG_READONLY),
-		                       NULL, &dberr);
-		if (status != 0)
-		{
-			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, dberr);
-			return -1;
-		}
 	}
 
 	str = NULL;
@@ -9387,10 +9108,7 @@ dkimf_initcontext(struct dkimf_config *conf)
 	ctx->mctx_queryalg = DKIM_QUERY_DEFAULT;
 #ifdef USE_UNBOUND
 	ctx->mctx_dnssec_key = DKIM_DNSSEC_UNKNOWN;
-	ctx->mctx_dnssec_policy = DKIM_DNSSEC_UNKNOWN;
 #endif /* USE_UNBOUND */
-	ctx->mctx_pcode = DKIM_POLICY_NONE;
-	ctx->mctx_presult = DKIM_PRESULT_NONE;
 #ifdef _FFR_ATPS
 	ctx->mctx_atps = DKIM_ATPS_UNKNOWN;
 #endif /* _FFR_ATPS */
@@ -9536,11 +9254,6 @@ dkimf_cleanup(SMFICTX *ctx)
 				sr = next;
 			}
 		}
-
-#ifdef _FFR_ADSP_LISTS
-		if (dfc->mctx_pstate != NULL)
-			dkim_policy_state_free(dfc->mctx_pstate);
-#endif /* _FFR_ADSP_LISTS */
 
 		if (dfc->mctx_dkimv != NULL)
 			dkim_free(dfc->mctx_dkimv);
@@ -10813,370 +10526,6 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 			{
 				snprintf(dest, sizeof dest, "%s@%s", addr,
 				         dkim_sig_getdomain(sig));
-				rcpts = curl_slist_append(rcpts, dest);
-				cc = curl_easy_setopt(curl, CURLOPT_MAIL_RCPT,
-				                      rcpts);
-			}
-
-			if (cc != CURLE_OK)
-			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: curl_easy_setopt() failed",
-					       dfc->mctx_jobid);
-				}
-			}
-			else
-			{
-				cc = curl_easy_perform(curl);
-				if (cc != CURLE_OK && conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: curl_easy_perform() to %s failed: %s",
-					       dfc->mctx_jobid, dest,
-					       curl_easy_strerror(cc));
-				}
-			}
-
-			curl_slist_free_all(rcpts);
-
-			curl_easy_cleanup(curl);
-		}
-	}
-	else
-	{
-		status = pclose(out);
-		if (status != 0 && conf->conf_dolog)
-		{
-			syslog(LOG_ERR, "%s: pclose(): returned status %d",
-			       dfc->mctx_jobid, status);
-		}
-	}
-#else /* HAVE_CURL_EASY_SETOPT */
-	status = pclose(out);
-	if (status != 0 && conf->conf_dolog)
-	{
-		syslog(LOG_ERR, "%s: pclose(): returned status %d",
-		       dfc->mctx_jobid, status);
-	}
-#endif /* HAVE_CURL_EASY_SETOPT */
-}
-
-/*
-**  DKIMF_POLICYREPORT -- generate a report on policy failure (if possible)
-**
-**  Parameters:
-**   	cc -- connection context
-**  	conf -- current configuration object
-**  	hostname -- hostname to use as reporting MTA
-**
-**  Return value:
-**  	None.
-*/
-
-static void
-dkimf_policyreport(connctx cc, struct dkimf_config *conf, char *hostname)
-{
-	_Bool sendreport = FALSE;
-	int status;
-	int arftype;
-	int nsigs = 0;
-	u_int pct;
-	time_t now;
-	DKIM_STAT repstatus;
-	char *p;
-	char *last;
-	FILE *out;
-	msgctx dfc;
-	DKIM_SIGINFO **sigs;
-	struct Header *hdr;
-	struct tm tm;
-	char ipstr[DKIM_MAXHOSTNAMELEN + 1];
-	char fmt[BUFRSZ];
-	char opts[BUFRSZ];
-	char addr[MAXADDRESS + 1];
-
-	assert(cc != NULL);
-
-	dfc = cc->cctx_msg;
-
-	assert(dfc != NULL);
-	assert(dfc->mctx_dkimv != NULL);
-	assert(conf != NULL);
-	assert(hostname != NULL);
-
-	memset(addr, '\0', sizeof addr);
-	memset(fmt, '\0', sizeof fmt);
-	memset(opts, '\0', sizeof opts);
-
-	if (dfc->mctx_dkimv != NULL)
-		(void) dkim_getsiglist(dfc->mctx_dkimv, &sigs, &nsigs);
-
-	/* if no report is possible, just skip it */
-	repstatus = dkim_policy_getreportinfo(dfc->mctx_dkimv,
-	                                      (u_char *) addr, sizeof addr,
-	                                      (u_char *) opts, sizeof opts,
-	                                      NULL, 0, &pct);
-	if (repstatus != DKIM_STAT_OK || addr[0] == '\0')
-		return;
-
-	/* ignore any domain name in "r=" */
-	p = strchr(addr, '@');
-	if (p != NULL)
-		*p = '\0';
-
-	/* ensure the event being reported was requested */
-	if (opts[0] == '\0')
-	{
-		sendreport = TRUE;
-	}
-	else
-	{
-		for (p = strtok_r(opts, ":", &last);
-		     p != NULL;
-		     p = strtok_r(NULL, ":", &last))
-		{
-			if (strcasecmp(p, ARF_OPTIONS_ADSP_ALL) == 0)
-			{
-				sendreport = TRUE;
-				break;
-			}
-			else if (strcasecmp(p, ARF_OPTIONS_ADSP_SIGNED) == 0)
-			{
-				if (nsigs != 0)
-				{
-					sendreport = TRUE;
-					break;
-				}
-			}
-			else if (strcasecmp(p, ARF_OPTIONS_ADSP_UNSIGNED) == 0)
-			{
-				if (nsigs == 0)
-				{
-					sendreport = TRUE;
-					break;
-				}
-			}
-		}
-	}
-
-	if (!sendreport)
-		return;
-
-#ifdef HAVE_CURL_EASY_STRERROR
-	if (conf->conf_smtpuri != NULL)
-	{
-		int fd;
-		char path[MAXPATHLEN + 1];
-
-		snprintf(path, sizeof path, "%s/%s.XXXXXX", conf->conf_tmpdir,
-		         progname);
-
-		fd = mkstemp(path);
-		if (fd < 0)
-		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: mkstemp(): %s",
-				       dfc->mctx_jobid, strerror(errno));
-			}
-
-			return;
-		}
-
-		unlink(path);
-
-		out = fdopen(fd, "w");
-		if (out == NULL)
-		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: fdopen(): %s",
-				       dfc->mctx_jobid, strerror(errno));
-			}
-	
-			close(fd);
-			return;
-		}
-	}
-	else
-	{
-		out = popen(reportcmd, "w");
-		if (out == NULL)
-		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: popen(): %s",
-				       dfc->mctx_jobid, strerror(errno));
-			}
-	
-			return;
-		}
-	}
-#else /* HAVE_CURL_EASY_STRERROR */
-	out = popen(reportcmd, "w");
-	if (out == NULL)
-	{
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_ERR, "%s: popen(): %s",
-			       dfc->mctx_jobid, strerror(errno));
-		}
-
-		return;
-	}
-#endif /* HAVE_CURL_EASY_STRERROR */
-
-	/* determine the type of ARF failure and, if needed, a DKIM fail code */
-	arftype = dkimf_arftype(dfc);
-
-	/* From: */
-	fprintf(out, "From: %s\n", reportaddr);
-
-	/* To: */
-	fprintf(out, "To: %s@%s\n", addr, dfc->mctx_domain);
-
-	/* Bcc: */
-	if (conf->conf_reportaddrbcc != NULL)
-		fprintf(out, "Bcc: %s\n", conf->conf_reportaddrbcc);
-
-	/* Date: */
-	memset(fmt, '\0', sizeof fmt);
-	(void) time(&now);
-	(void) localtime_r(&now, &tm);
-	(void) strftime(fmt, sizeof fmt, "%a, %e %b %Y %H:%M:%S %z (%Z)", &tm);
-	fprintf(out, "Date: %s\n", fmt);
-
-	/* Subject: */
-	fprintf(out, "Subject: ADSP failure report for %s\n",
-	        dfc->mctx_jobid);
-
-	/* MIME stuff */
-	fprintf(out, "MIME-Version: 1.0\n");
-	fprintf(out,
-	        "Content-Type: multipart/report; report-type=feedback-report;\n\tboundary=\"dkimreport/%s/%s\"",
-	        hostname, dfc->mctx_jobid);
-
-	/* ok, now then... */
-	fprintf(out, "\n");
-
-	/* first part: a text blob explaining what this is */
-	fprintf(out, "--dkimreport/%s/%s\n", hostname, dfc->mctx_jobid);
-	fprintf(out, "Content-Type: text/plain\n");
-	fprintf(out, "\n");
-	fprintf(out, "DKIM failure report for job %s on %s\n\n",
-	        dfc->mctx_jobid, hostname);
-	fprintf(out,
-	        "The failed message's header is attached.\n");
-	fprintf(out, "\n");
-
-	/* second part: formatted gunk */
-	memset(ipstr, '\0', sizeof ipstr);
-
-	switch (cc->cctx_ip.ss_family)
-	{
-	  case AF_INET:
-	  {
-		struct sockaddr_in sin4;
-
-		memcpy(&sin4, &cc->cctx_ip, sizeof sin4);
-
-		(void) inet_ntop(AF_INET, &sin4.sin_addr, ipstr, sizeof ipstr);
-
-		break;
-	  }
-
-#ifdef AF_INET6
-	  case AF_INET6:
-	  {
-		struct sockaddr_in6 sin6;
-
-		memcpy(&sin6, &cc->cctx_ip, sizeof sin6);
-
-		(void) inet_ntop(AF_INET6, &sin6.sin6_addr, ipstr, sizeof ipstr);
-
-		break;
-	  }
-#endif /* AF_INET6 */
-	}
-
-	hdr = dkimf_findheader(dfc, (char *) "Message-ID", 0);
-
-	fprintf(out, "--dkimreport/%s/%s\n", hostname, dfc->mctx_jobid);
-	fprintf(out, "Content-Type: message/feedback-report\n");
-	fprintf(out, "\n");
-	fprintf(out, "User-Agent: %s/%s\n", DKIMF_PRODUCTNS, VERSION);
-	fprintf(out, "Version: %s\n", ARF_VERSION);
-	fprintf(out, "Original-Envelope-Id: %s\n", dfc->mctx_jobid);
-	fprintf(out, "Original-Mail-From: %s\n", dfc->mctx_envfrom);
-	fprintf(out, "Reporting-MTA: %s\n", hostname);
-	fprintf(out, "Source-IP: %s\n", ipstr);
-	fprintf(out, "Message-ID:%s%s\n",
-	        cc->cctx_noleadspc ? "" : " ",
-	        hdr == NULL ? "(none)" : hdr->hdr_val);
-	fprintf(out, "Arrival-Date: %s\n", fmt);
-	fprintf(out, "Reported-Domain: %s\n", dkim_getdomain(dfc->mctx_dkimv));
-	fprintf(out, "Delivery-Result: other\n");
-	fprintf(out, "Feedback-Type: %s\n", arf_type_string(arftype));
-
-	fprintf(out, "\n");
-
-	/* third part: header block */
-	fprintf(out, "--dkimreport/%s/%s\n", hostname, dfc->mctx_jobid);
-	fprintf(out, "Content-Type: text/rfc822-headers\n");
-	fprintf(out, "\n");
-
-	for (hdr = dfc->mctx_hqhead; hdr != NULL; hdr = hdr->hdr_next)
-	{
-		fprintf(out, "%s:%s%s\n", hdr->hdr_hdr,
-		        cc->cctx_noleadspc ? "" : " ", hdr->hdr_val);
-	}
-
-	/* end */
-	fprintf(out, "\n--dkimreport/%s/%s--\n", hostname, dfc->mctx_jobid);
-
-	/* send it */
-#ifdef HAVE_CURL_EASY_SETOPT
-	if (conf->conf_smtpuri != NULL)
-	{
-		CURLcode cc;
-		CURL *curl;
-		struct curl_slist *rcpts = NULL;
-		char dest[MAXADDRESS + 1];
-
-		(void) fseek(out, SEEK_SET, 0);
-
-		curl = curl_easy_init();
-		if (curl == NULL)
-		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: curl_easy_init() failed",
-				       dfc->mctx_jobid);
-			}
-		}
-		else
-		{
-			cc = curl_easy_setopt(curl, CURLOPT_URL,
-			                      conf->conf_smtpuri);
-
-			if (cc == CURLE_OK)
-			{
-				cc = curl_easy_setopt(curl, CURLOPT_READDATA,
-				                      out);
-			}
-
-			if (cc == CURLE_OK)
-			{
-				cc = curl_easy_setopt(curl, CURLOPT_MAIL_FROM,
-				                      reportaddr);
-			}
-
-			if (cc == CURLE_OK)
-			{
-				snprintf(dest, sizeof dest, "%s@%s", addr,
-				         dfc->mctx_domain);
 				rcpts = curl_slist_append(rcpts, dest);
 				cc = curl_easy_setopt(curl, CURLOPT_MAIL_RCPT,
 				                      rcpts);
@@ -13659,89 +13008,6 @@ mlfi_eoh(SMFICTX *ctx)
 		status = dkim_eoh(dfc->mctx_dkimv);
 	}
 
-#ifdef _FFR_ADSP_LISTS
-	if (conf->conf_nodiscardto != NULL)
-	{
-		bool match = FALSE;
-		int status;
-		dkim_policy_t policy = DKIM_POLICY_NONE;
-		struct addrlist *a;
-
-		dfc->mctx_pstate = dkim_policy_state_new(dfc->mctx_dkimv);
-		if (dfc->mctx_pstate == NULL)
-		{
-			syslog(LOG_WARNING,
-			       "%s: malloc(): %s", dfc->mctx_jobid,
-			       strerror(errno));
-
-			return SMFIS_TEMPFAIL;
-		}
-
-		status = dkim_policy(dfc->mctx_dkimv, &policy,
-		                     &dfc->mctx_pflags, dfc->mctx_pstate);
-		if (status != DKIM_STAT_OK && status != DKIM_STAT_SYNTAX)
-		{
-			const char *err;
-
-			err = dkim_geterror(dfc->mctx_dkimv);
-			if (err != NULL)
-			{
-				syslog(LOG_ERR, "%s: ADSP query: %s",
-				       dfc->mctx_jobid, err);
-			}
-
-			if (conf->conf_handling.hndl_policyerr != DKIMF_MILTER_ACCEPT)
-			{
-				dkimf_cleanup(ctx);
-				return dkimf_miltercode(ctx,
-				                        conf->conf_handling.hndl_policyerr,
-				                        NULL);
-			}
-		}
-		else if (policy == DKIM_POLICY_DISCARDABLE)
-		{
-			for (a = dfc->mctx_rcptlist;
-			     a != NULL;
-			     a = a->a_next)
-			{
-				status = dkimf_db_get(conf->conf_nodiscardto,
-				                      a->a_addr, 0, NULL, 0,
-				                      &match);
-				if (status != 0)
-				{
-					if (dolog)
-					{
-						dkimf_db_error(conf->conf_nodiscardto,
-						               a->a_addr);
-					}
-
-					return SMFIS_TEMPFAIL;
-				}
-
-				if (match)
-				{
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_INFO,
-						       "%s: %s may not receive discardable mail",
-						       dfc->mctx_jobid,
-						       a->a_addr);
-					}
-				}
-	
-				dkimf_cleanup(ctx);
-
-				(void) dkimf_setreply(ctx,
-				                      ADSP_DISCARDABLE_SMTP,
-				                      ADSP_DISCARDABLE_ESC,
-				                      ADSP_DISCARDABLE_TEXT);
-
-				return SMFIS_REJECT;
-			}
-		}
-	}
-#endif /* _FFR_ADSP_LISTS */
-
 #ifdef USE_LUA
 	if (conf->conf_screenscript != NULL)
 	{
@@ -14271,8 +13537,6 @@ mlfi_eom(SMFICTX *ctx)
 	/* complete verification if started */
 	if (dfc->mctx_dkimv != NULL)
 	{
-		_Bool policydone = FALSE;
-
 		/*
 		**  Signal end-of-message to DKIM
 		*/
@@ -14583,219 +13847,6 @@ mlfi_eom(SMFICTX *ctx)
 		if (sig != NULL)
 			dfc->mctx_dnssec_key = dkim_sig_getdnssec(sig);
 #endif /* USE_UNBOUND */
-
-		/*
-		**  Evaluate sender signing policy for failed or unsigned
-		**  messages.
-		*/
-
-		if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN && !authorsig &&
-		    !conf->conf_noadsp)
-		{
-			DKIM_STAT pstatus;
-			_Bool localadsp = FALSE;
-			int localresult = DKIM_PRESULT_NONE;
-
-			if (conf->conf_localadsp_db != NULL)
-			{
-				u_char *domain;
-
-				domain = dkim_getdomain(dfc->mctx_dkimv);
-
-				if (domain != NULL &&
-				    dkimf_local_adsp(conf, (char *) domain,
-				                     &dfc->mctx_pcode))
-				{
-					pstatus = DKIM_STAT_OK;
-					policydone = TRUE;
-					localadsp = TRUE;
-					localresult = DKIM_PRESULT_FOUND;
-				}
-			}
-
-			if (!policydone)
-			{
-				pstatus = dkim_policy(dfc->mctx_dkimv,
-				                      &dfc->mctx_pcode,
-				                      &dfc->mctx_pflags,
-				                      dfc->mctx_pstate);
-#ifdef USE_UNBOUND
-				dfc->mctx_dnssec_policy = dkim_policy_getdnssec(dfc->mctx_dkimv);
-#endif /* USE_UNBOUND */
-			}
-
-			if (pstatus == DKIM_STAT_OK)
-			{
-				policydone = TRUE;
-
-				if (localadsp)
-					dfc->mctx_presult = localresult;
-				else
-					dfc->mctx_presult = dkim_getpresult(dfc->mctx_dkimv);
-
-#ifdef USE_UNBOUND
-				/* special handling for sketchy answers */
-				if (dfc->mctx_dnssec_policy == DKIM_DNSSEC_BOGUS &&
-				    conf->conf_boguspolicy == DKIM_POLICYACTIONS_IGNORE)
-					dfc->mctx_presult = DKIM_PRESULT_NONE;
-
-				if (dfc->mctx_dnssec_policy == DKIM_DNSSEC_INSECURE &&
-				    conf->conf_unprotectedpolicy == DKIM_POLICYACTIONS_IGNORE)
-					dfc->mctx_presult = DKIM_PRESULT_NONE;
-#endif /* USE_UNBOUND */
-
-				/*
-				**  Reject the message if the policy check
-				**  reported NXDOMAIN and "ADSPNoSuchDomain"
-				**  was enabled.
-				*/
-
-				if (dfc->mctx_presult == DKIM_PRESULT_NXDOMAIN &&
-				    conf->conf_adspnxdomain)
-				{
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_NOTICE,
-						       "%s: sender domain does not exist",
-						       dfc->mctx_jobid);
-					}
-
-					if (dkimf_setreply(ctx,
-					                   ADSPNXDOMAINSMTP,
-					                   ADSPNXDOMAINESC,
-					                   ADSPNXDOMAINTEXT) != MI_SUCCESS &&
-					    conf->conf_dolog)
-					{
-						syslog(LOG_NOTICE,
-						       "%s: smfi_setreply() failed",
-						       dfc->mctx_jobid);
-					}
-
-					dkimf_cleanup(ctx);
-					return SMFIS_REJECT;
-				}
-
-				/*
-				**  Reject the message if the policy check
-				**  returned an "all" or "discardable"
-				**  policy, there was no valid author
-				**  signature, and "ADSPDiscard" was enabled.
-				*/
-
-				if ((dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE ||
-				     dfc->mctx_pcode == DKIM_POLICY_ALL) &&
-				    dfc->mctx_presult == DKIM_PRESULT_FOUND)
-				{
-					dfc->mctx_susp = TRUE;
-					dfc->mctx_addheader = TRUE;
-				}
-
-				if (dfc->mctx_susp &&
-				    conf->conf_adspaction != SMFIS_CONTINUE &&
-				    dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE)
-				{
-					char *act;
-					char replybuf[BUFRSZ];
-					char smtpprefix[BUFRSZ];
-
-					if (conf->conf_adspaction == SMFIS_DISCARD)
-						act = "discard";
-					else
-						act = "reject";
-
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_NOTICE,
-						       "%s: %sed per %s author domain policy",
-						       dfc->mctx_jobid, act,
-						       dfc->mctx_domain);
-					}
-					
-					memset(smtpprefix, '\0',
-					       sizeof smtpprefix);
-					lastdkim = dfc->mctx_dkimv;
-					(void) dkim_policy_getreportinfo(dfc->mctx_dkimv,
-					                                 NULL,
-					                                 0,
-					                                 NULL,
-					                                 0,
-					                                 (u_char *) smtpprefix,
-					                                 sizeof smtpprefix,
-					                                 NULL);
-
-					if (smtpprefix[0] == '\0')
-					{
-						strlcpy(replybuf,
-						        ADSPDENYTEXT,
-						        sizeof replybuf);
-					}
-					else
-					{
-						snprintf(replybuf,
-						         sizeof replybuf,
-						         "%s: %s",
-						         smtpprefix,
-						         ADSPDENYTEXT);
-					}
-
-					/* send an ARF message for ADSP? */
-					if (conf->conf_sendadspreports)
-					{
-						dkimf_policyreport(cc, conf,
-						                   hostname);
-					}
-
-					if (conf->conf_adspaction == SMFIS_DISCARD)
-					{
-						dkimf_cleanup(ctx);
-						return SMFIS_DISCARD;
-					}
-
-					if (dkimf_setreply(ctx,
-					                   ADSPDENYSMTP,
-					                   ADSPDENYESC,
-					                   replybuf) != MI_SUCCESS &&
-					    conf->conf_dolog)
-					{
-						syslog(LOG_NOTICE,
-						       "%s: smfi_setreply() failed",
-						       dfc->mctx_jobid);
-					}
-
-					dkimf_cleanup(ctx);
-					return SMFIS_REJECT;
-				}
-			}
-			else if (pstatus != DKIM_STAT_SYNTAX)
-			{
-				if (conf->conf_dolog)
-				{
-					const char *err;
-
-					err = dkim_geterror(dfc->mctx_dkimv);
-					if (err != NULL)
-					{
-						syslog(LOG_ERR,
-						       "%s: ADSP query: %s",
-						       dfc->mctx_jobid, err);
-					}
-					else
-					{
-						syslog(LOG_ERR,
-						       "%s: ADSP query failed",
-						       dfc->mctx_jobid);
-					}
-				}
-
-				if (conf->conf_handling.hndl_policyerr != DKIMF_MILTER_ACCEPT)
-				{
-					dkimf_cleanup(ctx);
-					return dkimf_miltercode(ctx,
-					                        conf->conf_handling.hndl_policyerr,
-					                        NULL);
-				}
-			}
-		}
 
 #ifdef _FFR_ATPS
 		if (dfc->mctx_status != DKIMF_STATUS_UNKNOWN && !authorsig)
@@ -15582,136 +14633,6 @@ mlfi_eom(SMFICTX *ctx)
 				}
 			}
 
-			/* now the ADSP bit */
-			if (dfc->mctx_status != DKIMF_STATUS_BADFORMAT &&
-			    !conf->conf_noadsp)
-			{
-				if (header[0] != '\0')
-				{
-					strlcat((char *) header, ";",
-					        sizeof header);
-					strlcat((char *) header, DELIMITER,
-					        sizeof header);
-				}
-
-				strlcat((char *) header, "dkim-adsp=",
-				        sizeof header);
-
-				if (authorsig)
-				{				/* pass */
-					strlcat((char *) header, "pass",
-					        sizeof header);
-				}
-				else if (!policydone)
-				{				/* temperror */
-					const char *err;
-
-					strlcat((char *) header, "temperror",
-					        sizeof header);
-
-					err = dkim_geterror(dfc->mctx_dkimv);
-					if (err != NULL)
-					{
-						strlcat((char *) header,
-						        " reason=\"",
-						        sizeof header);
-						strlcat((char *) header, err,
-						        sizeof header);
-						strlcat((char *) header, "\"",
-						        sizeof header);
-					}
-				}
-#ifdef USE_UNBOUND
-				else if (dfc->mctx_dnssec_policy == DKIM_DNSSEC_BOGUS)
-				{				/* bogus */
-					strlcat((char *) header, "unknown",
-					        sizeof header);
-				}
-#endif /* USE_UNBOUND */
-				else if (dfc->mctx_presult == DKIM_PRESULT_NXDOMAIN)
-				{				/* nxdomain */
-					strlcat((char *) header, "nxdomain",
-					        sizeof header);
-				}
-				else if (dfc->mctx_pcode == DKIM_POLICY_NONE)
-				{				/* none */
-					strlcat((char *) header, "none",
-					        sizeof header);
-				}
-				else if (dfc->mctx_pcode == DKIM_POLICY_UNKNOWN)
-				{
-					if (!authorsig)
-					{			/* unknown */
-						strlcat((char *) header,
-						        "unknown",
-						        sizeof header);
-					}
-					else
-					{			/* signed */
-						strlcat((char *) header,
-						        "signed",
-						        sizeof header);
-					}
-				}
-				else if (dfc->mctx_pcode == DKIM_POLICY_ALL &&
-				         !authorsig)
-				{				/* fail */
-					strlcat((char *) header, "fail",
-					        sizeof header);
-				}
-				else if (dfc->mctx_pcode == DKIM_POLICY_DISCARDABLE &&
-				         !authorsig)
-				{				/* discard */
-					strlcat((char *) header, "discard",
-					        sizeof header);
-				}
-				else
-				{
-					const char *err;
-
-					strlcat((char *) header, "permerror",
-					        sizeof header);
-
-					err = dkim_geterror(dfc->mctx_dkimv);
-					if (err != NULL)
-					{
-						strlcat((char *) header,
-						        " reason=\"",
-						        sizeof header);
-						strlcat((char *) header, err,
-						        sizeof header);
-						strlcat((char *) header, "\"",
-						        sizeof header);
-					}
-				}
-
-#ifdef USE_UNBOUND
-				switch (dfc->mctx_dnssec_policy)
-				{
-				  case DKIM_DNSSEC_BOGUS:
-					strlcat((char *) header,
-					        "(bogus policy)",
-					        sizeof header);
-					break;
-
-				  case DKIM_DNSSEC_INSECURE:
-					strlcat((char *) header,
-					        " (unprotected policy)",
-					        sizeof header);
-					break;
-
-				  case DKIM_DNSSEC_SECURE:
-					strlcat((char *) header,
-					        " (secure policy)",
-					        sizeof header);
-					break;
-
-				  default:
-					break;
-				}
-#endif /* USE_UNBOUND */
-			}
-
 #ifdef _FFR_ATPS
 			strlcat((char *) header, ";", sizeof header);
 			strlcat((char *) header, DELIMITER,
@@ -15900,10 +14821,6 @@ mlfi_eom(SMFICTX *ctx)
 		if (dfc->mctx_status == DKIMF_STATUS_BAD &&
 		    conf->conf_sendreports)
 			dkimf_sigreport(cc, conf, hostname);
-
-		/* send an ARF message for ADSP? */
-		if (dfc->mctx_susp && conf->conf_sendadspreports)
-			dkimf_policyreport(cc, conf, hostname);
 
 #ifdef _FFR_VBR
 	    	if (dkimf_valid_vbr(dfc))
@@ -17430,7 +16347,6 @@ main(int argc, char **argv)
 	{
 		curconf->conf_dolog = FALSE;
 		curconf->conf_sendreports = FALSE;
-		curconf->conf_sendadspreports = FALSE;
 		autorestart = FALSE;
 		dofork = FALSE;
 		become = NULL;

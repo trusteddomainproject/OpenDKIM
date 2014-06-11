@@ -27,9 +27,7 @@
 
 #define SIG2 "v=1; a=rsa-sha1; c=relaxed/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=ll/0h2aWgG+D3ewmE4Y3pY7Ukz8=; h=Received:Received:\r\n\t Received:From:To:Date:Subject:Message-ID; b=bj9kVUbnBYfe9sVzH9lT45\r\n\tTFKO3eQnDbXLfgmgu/b5QgxcnhT9ojnV2IAM4KUO8+hOo5sDEu5Co/0GASH0vHpSV4P\r\n\t377Iwew3FxvLpHsVbVKgXzoKD4QSbHRpWNxyL6LypaaqFa96YqjXuYXr0vpb88hticn\r\n\t6I16//WThMz8fMU="
 
-#define	ADSPNAME	"_adsp._domainkey.example.com"
 #define	KEYNAME		"test._domainkey.example.com"
-#define	POLICY		"dkim=all; t=s"
 
 /*
 **  MAIN -- program mainline
@@ -48,8 +46,6 @@ main(int argc, char **argv)
 	u_int flags;
 #endif /* TEST_KEEP_FILES */
 	DKIM_STAT status;
-	int presult;
-	dkim_policy_t pcode;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	DKIM *dkim;
 	DKIM_LIB *lib;
@@ -115,10 +111,6 @@ main(int argc, char **argv)
 	status = dkim_test_dns_put(dkim, C_IN, T_TXT, 0, KEYNAME, PUBLICKEY);
 	assert(status == 0);
 
-	/* queue up a DNS reply for the policy */
-	status = dkim_test_dns_put(dkim, C_IN, T_TXT, 0, ADSPNAME, POLICY);
-	assert(status == 0);
-
 	status = dkim_eoh(dkim);
 	assert(status == DKIM_STAT_OK);
 
@@ -165,13 +157,6 @@ main(int argc, char **argv)
 
 	status = dkim_eom(dkim, NULL);
 	assert(status == DKIM_STAT_OK);
-
-	status = dkim_policy(dkim, &pcode, NULL, NULL);
-	assert(status == DKIM_STAT_OK);
-
-	presult = dkim_getpresult(dkim);
-	assert(pcode == DKIM_POLICY_ALL);
-	assert(presult == DKIM_PRESULT_FOUND);
 
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);

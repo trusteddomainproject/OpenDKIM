@@ -167,7 +167,6 @@ main(int argc, char **argv)
 {
 	int hfd;
 	int bfd;
-	dkim_policy_t pcode = DKIM_POLICY_NONE;
 	u_int flags;
 	DKIM_STAT status;
 	DKIM *dkim;
@@ -301,11 +300,6 @@ main(int argc, char **argv)
 	bfd = -1;
 	sig = dkim_getsignature(dkim);
 	assert(sig != NULL);
-
-	/* policy query, verify correct result */
-	status = dkim_policy(dkim, &pcode, NULL, NULL);
-	assert(status == DKIM_STAT_OK);
-	assert(pcode == DKIM_POLICY_ALL);
 
 	/* request report info, verify valid descriptors and address */
 	memset(addr, '\0', sizeof addr);

@@ -27,40 +27,13 @@ static struct nametable prv_keyparams[] =	/* key parameters */
 };
 struct nametable *keyparams = prv_keyparams;
 
-static struct nametable prv_keyflags[] =	/* policy flags */
+static struct nametable prv_keyflags[] =	/* key flags */
 {
 	{ "y",		DKIM_SIGFLAG_TESTKEY },
 	{ "s",		DKIM_SIGFLAG_NOSUBDOMAIN },
 	{ NULL,		-1 }
 };
 struct nametable *keyflags = prv_keyflags;
-
-static struct nametable prv_policyparams[] =	/* policy parameters */
-{
-	{ "atps",	DKIM_PPARAM_ATPS },
-	{ "dkim",	DKIM_PPARAM_POLICY },
-	{ "r",		DKIM_PPARAM_REPORTADDR },
-	{ NULL,		-1 }
-};
-struct nametable *policyparams = prv_policyparams;
-
-static struct nametable prv_policies[] =	/* policies */
-{
-	{ "unknown",	DKIM_POLICY_UNKNOWN },
-	{ "all",	DKIM_POLICY_ALL },
-	{ "discardable", DKIM_POLICY_DISCARDABLE },
-	{ NULL,		-1 }
-};
-struct nametable *policies = prv_policies;
-
-static struct nametable prv_policyresults[] =	/* policy results */
-{
-	{ "none",				DKIM_PRESULT_NONE },
-	{ "author domain policy found",		DKIM_PRESULT_FOUND },
-	{ "domain does not exist",		DKIM_PRESULT_NXDOMAIN },
-	{ NULL,					-1 }
-};
-struct nametable *policyresults = prv_policyresults;
 
 static struct nametable prv_sigparams[] =	/* signature parameters */
 {
@@ -144,10 +117,9 @@ struct nametable *results = prv_results;
 
 static struct nametable prv_settypes[] =	/* set types */
 {
-	{ "key",	DKIM_SETTYPE_KEY },
-	{ "policy",	DKIM_SETTYPE_POLICY },
-	{ "signature",	DKIM_SETTYPE_SIGNATURE },
-	{ "signature reporting", DKIM_SETTYPE_SIGREPORT },
+	{ "key",			DKIM_SETTYPE_KEY },
+	{ "signature",			DKIM_SETTYPE_SIGNATURE },
+	{ "signature reporting", 	DKIM_SETTYPE_SIGREPORT },
 	{ NULL,		-1 },
 };
 struct nametable *settypes = prv_settypes;

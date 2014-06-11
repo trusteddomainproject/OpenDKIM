@@ -40,41 +40,7 @@
 
 #define SIG2 "v=1; a=rsa-sha256; c=simple/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=yHBAX+3IwxTZIynBuB/5tlsBInJq9n8qz5fgAycHi80=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID; b=Y3y\r\n\tVeA3WZdCZl1sGuOZNC3BBRhtGCOExkZdw5xQoGPvSX/q6AC1SAJvOUWOri95AZAUGs0\r\n\t/bIDzzt23ei9jc+rptlavrl/5ijMrl6ShmvkACk6It62KPkJcDpoGfi5AZkrfX1Ou/z\r\n\tqGg5xJX86Kqd7FgNolMg7PbfyWliK2Yb84="
 
-int pl;
 int kl;
-
-/*
-**  POLICY_LOOKUP -- policy lookup
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	query -- string to query
-**  	excheck -- existence check?
-**  	buf -- where to write the result
-**  	buflen -- how much space is available at "buf"
-**  	qstatus -- query status (returned)
-**
-**  Return value:
-**  	0 -- operation completed
-**  	-1 -- error
-*/
-
-int
-policy_lookup(DKIM *dkim, unsigned char *query, _Bool excheck,
-              unsigned char *buf, size_t buflen, int *qstatus)
-{
-	assert(dkim != NULL);
-	assert(query != NULL);
-	assert(buf != NULL);
-	assert(qstatus != NULL);
-
-	pl = 1;
-
-	strlcpy(buf, DKIM_POLICY_DEFAULTTXT, buflen);
-	*qstatus = NOERROR;
-
-	return 0;
-}
 
 /*
 **  KEY_LOOKUP -- key lookup
@@ -132,12 +98,10 @@ main(int argc, char **argv)
 	u_int flags;
 #endif /* TEST_KEEP_FILES */
 	DKIM_STAT status;
-	dkim_policy_t pcode;
 	DKIM *dkim;
 	DKIM_LIB *lib;
 	unsigned char hdr[MAXHEADER + 1];
 
-	pl = 0;
 	kl = 0;
 
 #ifdef USE_GNUTLS
@@ -150,12 +114,12 @@ main(int argc, char **argv)
 
 	if (!dkim_libfeature(lib, DKIM_FEATURE_SHA256))
 	{
-		printf("*** simple/simple rsa-sha256 verifying with key/policy callbacks SKIPPED\n");
+		printf("*** simple/simple rsa-sha256 verifying with key callback SKIPPED\n");
 		dkim_close(lib);
 		return 0;
 	}
 
-	printf("*** simple/simple rsa-sha256 verifying with key/policy callbacks\n");
+	printf("*** simple/simple rsa-sha256 verifying with key callback\n");
 
 #ifdef TEST_KEEP_FILES
 	/* set flags */
@@ -168,7 +132,6 @@ main(int argc, char **argv)
 	assert(dkim != NULL);
 
 	(void) dkim_set_key_lookup(lib, key_lookup);
-	(void) dkim_set_policy_lookup(lib, policy_lookup);
 
 	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG2);
 	status = dkim_header(dkim, hdr, strlen(hdr));
@@ -248,14 +211,9 @@ main(int argc, char **argv)
 	status = dkim_eom(dkim, NULL);
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_policy(dkim, &pcode, NULL, NULL);
-	assert(status == DKIM_STAT_OK);
-	assert(pcode == DKIM_POLICY_UNKNOWN);
-
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);
 
-	assert(pl == 1);
 	assert(kl == 1);
 
 	dkim_close(lib);

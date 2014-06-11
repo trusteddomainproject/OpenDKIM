@@ -5,8 +5,7 @@ if DEBUG
 AM_CFLAGS = -g
 endif
 
-sbin_PROGRAMS = opendkim-genzone opendkim-testadsp opendkim-testkey \
-	opendkim-testmsg
+sbin_PROGRAMS = opendkim-genzone opendkim-testkey opendkim-testmsg
 if ATPS
 sbin_PROGRAMS += opendkim-atpszone
 endif
@@ -164,13 +163,6 @@ opendkim_testkey_LDFLAGS += $(LIBERL_LIBDIRS)
 opendkim_testkey_LDADD += $(LIBERL_LIBS)
 endif
 
-opendkim_testadsp_CC = $(PTHREAD_CC)
-opendkim_testadsp_SOURCES = opendkim-testadsp.c
-opendkim_testadsp_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
-opendkim_testadsp_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS) $(PTHREAD_CFLAGS)
-opendkim_testadsp_LDFLAGS = $(COV_LDFLAGS) $(PTHREAD_CFLAGS)
-opendkim_testadsp_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(LIBRESOLV) $(COV_LIBADD) $(PTHREAD_LIBS)
-
 opendkim_testmsg_CC = $(PTHREAD_CC)
 opendkim_testmsg_SOURCES = opendkim-testmsg.c
 opendkim_testmsg_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
@@ -295,8 +287,8 @@ dist_doc_DATA += \
 	final.lua.sample
 endif
 
-man_MANS = opendkim-genkey.8 opendkim-genzone.8 opendkim-testadsp.8 \
-	opendkim-testkey.8 opendkim-testmsg.8
+man_MANS = opendkim-genkey.8 opendkim-genzone.8 opendkim-testkey.8 \
+	opendkim-testmsg.8
 if BUILD_FILTER
 man_MANS += opendkim.conf.5 opendkim.8
 if LUA

@@ -4,9 +4,9 @@ check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-verify-revoked t-verify-unspec t-verify-malformed \
 	t-verify-unsigned t-verify-unsigned-silent \
 	t-verify-syntax t-verify-ss t-verify-ss-bad t-verify-ss-ar-bad \
-	t-dontsign t-peer t-local-adsp t-local-adsp-subdomain \
+	t-dontsign t-peer \
 	t-lua-verify-tests t-sign-ss-macro t-sign-ss-macro-value \
-	t-sign-ss-macro-value-file t-adsp-report t-verify-report \
+	t-sign-ss-macro-value-file t-verify-report \
 	t-sign-report t-conf-check t-verify-double-from
 
 if LIVE_TESTS
@@ -76,12 +76,6 @@ EXTRA_DIST = \
 	t-peer t-peer.conf t-peer.list t-peer.lua \
 	t-verify-report t-verify-report.conf t-verify-report.txt \
 		t-verify-report.lua \
-	t-adsp-report t-adsp-report.conf t-adsp-report.txt \
-		t-adsp-report.lua \
-	t-local-adsp t-local-adsp.conf t-local-adsp.txt \
-		t-local-adsp.lua \
-	t-local-adsp-subdomain t-local-adsp-subdomain.conf \
-		t-local-adsp-subdomain.lua \
 	t-sign-atps t-sign-atps.conf t-sign-atps.lua \
 	t-verify-ss-atps t-verify-ss-atps.conf t-verify-ss-atps.lua \
 	t-conf-check t-conf-check.conf t-conf-check.keytable t-conf-check.lua \

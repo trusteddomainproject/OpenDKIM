@@ -49,13 +49,6 @@
 #define	ARF_OPTIONS_DKIM_VERIFY	"v"
 #define	ARF_OPTIONS_DKIM_EXPIRED "x"
 
-#define	ARF_OPTIONS_ADSP_ALL	"all"
-#define	ARF_OPTIONS_ADSP_DNS	"d"
-#define	ARF_OPTIONS_ADSP_OTHER	"o"
-#define	ARF_OPTIONS_ADSP_POLICY	"p"
-#define	ARF_OPTIONS_ADSP_SIGNED	"s"
-#define	ARF_OPTIONS_ADSP_UNSIGNED "u"
-
 /* prototypes */
 extern char *arf_dkim_failure_string __P((int));
 extern char *arf_type_string __P((int));

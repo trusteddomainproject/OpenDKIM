@@ -41,44 +41,6 @@
 #define	SIG1 "v=1; a=rsa-sha256; c=relaxed/simple; d=sendmail.com; s=test; t=1172620939; i=@eng.sendmail.com; bh=yHBAX+3IwxTZIynBuB/5tlsBInJq9n8qz5fgAycHi80=; h=Received:Received:Received:From:To:Date:Subject:Message-ID; b=r5DyHh4oxZcCBcIzpKTnEk6yvWDI9g9DI+UUIwl2ZAcZ6P0BbsOQ8MEjmUdwlZitqoFLa25/Re8/rC5kHasOb3vs0T37vkasoTb1rGR7y/bcMnY4hRkPAyC7NoLoTjneJMTQ/WQYnZe3DJ8lVuDRYvY9BeV2EjH8kiGsa9QttiA="
 #define SIG2 "v=1; a=rsa-sha256; c=relaxed/simple; d=sendmail.com; s=test;\r\n\tt=1172620939; i=@eng.sendmail.com; bh=yHBAX+3IwxTZIynBuB/5tlsBInJq9\r\n\tn8qz5fgAycHi80=; h=Received:Received:Received:From:To:Date:Subject:\r\n\t Message-ID; b=r5DyHh4oxZcCBcIzpKTnEk6yvWDI9g9DI+UUIwl2ZAcZ6P0BbsOQ\r\n\t8MEjmUdwlZitqoFLa25/Re8/rC5kHasOb3vs0T37vkasoTb1rGR7y/bcMnY4hRkPAyC\r\n\t7NoLoTjneJMTQ/WQYnZe3DJ8lVuDRYvY9BeV2EjH8kiGsa9QttiA="
 
-#define	DKIM_TEST_POLICY	"dkim=discardable"
-
-/*
-**  POLICY_LOOKUP -- policy lookup
-**
-**  Parameters:
-**  	dkim -- DKIM handle
-**  	query -- string to query
-**  	excheck -- existence check?
-**  	buf -- where to write the result
-**  	buflen -- how much space is available at "buf"
-**  	qstatus -- query status (returned)
-**
-**  Return value:
-**  	0 -- operation completed
-**  	-1 -- error
-*/
-
-int
-policy_lookup(DKIM *dkim, unsigned char *query, _Bool excheck,
-              unsigned char *buf, size_t buflen, int *qstatus)
-{
-	assert(dkim != NULL);
-	assert(query != NULL);
-	assert(buf != NULL);
-	assert(qstatus != NULL);
-
-#define	GOODQUERY	"_adsp._domainkey.sendmail.com"
-	if (excheck)
-		*qstatus = NOERROR;
-	else if (strcmp(query, GOODQUERY) != 0)
-		*qstatus = NXDOMAIN;
-	else
-		strlcpy(buf, DKIM_TEST_POLICY, buflen);
-
-	return 0;
-}
-
 /*
 **  MAIN -- program mainline
 **
@@ -96,7 +58,6 @@ main(int argc, char **argv)
 	u_int flags;
 #endif /* TEST_KEEP_FILES */
 	int presult;
-	dkim_policy_t pcode;
 	DKIM_STAT status;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	DKIM *dkim;
@@ -134,8 +95,6 @@ main(int argc, char **argv)
 
 	dkim = dkim_verify(lib, JOBID, NULL, &status);
 	assert(dkim != NULL);
-
-	(void) dkim_set_policy_lookup(lib, policy_lookup);
 
 	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG2);
 	status = dkim_header(dkim, hdr, strlen(hdr));
@@ -215,12 +174,6 @@ main(int argc, char **argv)
 
 	status = dkim_eom(dkim, NULL);
 	assert(status == DKIM_STAT_OK);
-
-	status = dkim_policy(dkim, &pcode, NULL, NULL);
-	assert(status == DKIM_STAT_OK);
-
-	presult = dkim_getpresult(dkim);
-	assert(presult == DKIM_PRESULT_NONE);
 
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);
