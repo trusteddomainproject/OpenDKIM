@@ -52,7 +52,7 @@
 
 /* definitions */
 #define	BUFRSZ		1024
-#define	CMDLINEOPTS	"C:d:DE:o:N:r:R:St:T:uvx:"
+#define	CMDLINEOPTS	"C:d:DE:Fo:N:r:R:St:T:uvx:"
 #define	DEFCONFFILE	CONFIG_BASE "/opendkim.conf"
 #define	DEFEXPIRE	604800
 #define	DEFREFRESH	10800
@@ -194,6 +194,7 @@ usage(void)
 	                "\t-d domain   \twrite keys for named domain only\n"
 	                "\t-D          \tinclude '._domainkey' suffix\n"
 	                "\t-E secs     \tuse specified expiration time in SOA\n"
+	                "\t-F          \tinclude '._domainkey' suffix and domainname\n"
 	                "\t-o file     \toutput file\n"
 	                "\t-N ns[,...] \tlist NS records\n"
 	                "\t-r secs     \tuse specified refresh time in SOA\n"
@@ -225,6 +226,7 @@ main(int argc, char **argv)
 	_Bool seenlf;
 	_Bool nsupdate = FALSE;
 	_Bool suffix = FALSE;
+	_Bool fqdnsuffix = FALSE;
 	_Bool writesoa = FALSE;
 	int c;
 	int status;
@@ -296,6 +298,11 @@ main(int argc, char **argv)
 				        progname);
 				return EX_USAGE;
 			}
+			break;
+
+		  case 'F':
+			suffix = TRUE;
+			fqdnsuffix = TRUE;
 			break;
 
 		  case 'N':
@@ -834,8 +841,11 @@ main(int argc, char **argv)
 			fprintf(out, "zone %s\n", domain);
 
 			snprintf(tmpbuf, sizeof tmpbuf,
-			         "update add %s%s %d TXT \"",
+			         "update add %s%s%s%s%s %d TXT \"",
 			         selector, suffix ? DKIMZONE : "",
+			         fqdnsuffix ? "." : "",
+			         fqdnsuffix ? domain : "",
+			         fqdnsuffix ? "." : "",
 			         ttl == -1 ? defttl : ttl);
 		}
 		else
@@ -843,14 +853,21 @@ main(int argc, char **argv)
 			if (ttl == -1)
 			{
 				snprintf(tmpbuf, sizeof tmpbuf,
-				         "%s%s\tIN\tTXT\t( \"v=DKIM1; k=rsa; p=",
-				         selector, suffix ? DKIMZONE : "");
+				         "%s%s%s%s%s\tIN\tTXT\t( \"v=DKIM1; k=rsa; p=",
+				         selector, suffix ? DKIMZONE : "",
+				         fqdnsuffix ? "." : "",
+				         fqdnsuffix ? domain : "",
+				         fqdnsuffix ? "." : "");
 			}
 			else
 			{
 				snprintf(tmpbuf, sizeof tmpbuf,
-				         "%s%s\t%d\tIN\tTXT\t( \"v=DKIM1; k=rsa; p=",
-				         selector, suffix ? DKIMZONE : "", ttl);
+				         "%s%s%s%s%s\t%d\tIN\tTXT\t( \"v=DKIM1; k=rsa; p=",
+				         selector, suffix ? DKIMZONE : "",
+				         fqdnsuffix ? "." : "",
+				         fqdnsuffix ? domain : "",
+				         fqdnsuffix ? "." : "",
+				         ttl);
 			}
 		}
 

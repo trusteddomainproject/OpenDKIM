@@ -10,6 +10,8 @@ release, and a summary of the changes in that release.
 		Reported by Daniel J. Luke.
 	LIBOPENDKIM: Tighten relaxed modes to break on only DKIM-defined
 		whitespace characters.  Problem noted by Elizabeth Zwicky.
+	TOOLS: Feature request #178: Add "-F" flag to opendkim-genzone so
+		records are created with the FQDN.  Patch from Andreas Schulze.
 
 2.9.2		2014/04/02
 	Fix some conflicting unit tests.  Reported by Eray Aslan.
