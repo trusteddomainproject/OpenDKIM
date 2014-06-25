@@ -8,6 +8,7 @@ release, and a summary of the changes in that release.
 		it to SQL connections as well.  Requested by Daniel Kauffman.
 	Feature request #179: Add "IgnoreMalformedMail" option.
 	Fix bug #183: Discontinue support for ADSP.
+	Make "smime" a recognized Authentication-Results method.
 	Truncate configuration file lines at carriage return.
 	Replace overlapping strlcpy() with memmove() in dkim_get_key_file().
 		Reported by Daniel J. Luke.
