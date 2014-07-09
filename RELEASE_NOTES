@@ -7,6 +7,8 @@ release, and a summary of the changes in that release.
 	Feature request #180: Rename "LDAPSoftStart" to "SoftStart" and apply
 		it to SQL connections as well.  Requested by Daniel Kauffman.
 	Feature request #179: Add "IgnoreMalformedMail" option.
+	Fix bug #177: Plug leaking "result" structures when OpenLDAP is in
+		use.  Problem reported by Quanah Gibson-Mount.
 	Fix bug #183: Discontinue support for ADSP.
 	Make "smime" a recognized Authentication-Results method.
 	Truncate configuration file lines at carriage return.
