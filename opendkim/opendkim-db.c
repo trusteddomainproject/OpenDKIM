@@ -4951,6 +4951,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 # endif /* USE_DB */
 #endif /* _FFR_LDAP_CACHING */
 			pthread_mutex_unlock(&ldap->ldap_lock);
+			ldap_msgfree(result);
 			return 0;
 		}
 

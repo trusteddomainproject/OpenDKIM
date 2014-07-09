@@ -4,6 +4,7 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.9.3		2014/??/??
+        Fix bug #177: Plug leaking "result" structures when OpenLDAP is in use.
 	Truncate configuration file lines at carriage return.
 	Replace overlapping strlcpy() with memmove() in dkim_get_key_file().
 		Reported by Daniel J. Luke.
