@@ -35,6 +35,7 @@ typedef int ares_method_t;
 #define	ARES_METHOD_DKIMATPS	7
 #define	ARES_METHOD_DMARC	8
 #define	ARES_METHOD_SMIME	9
+#define	ARES_METHOD_RRVS	10
 
 /* ARES_RESULT_T -- type for specifying an authentication result */
 typedef int ares_result_t;

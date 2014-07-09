@@ -10,7 +10,7 @@ release, and a summary of the changes in that release.
 	Fix bug #177: Plug leaking "result" structures when OpenLDAP is in
 		use.  Problem reported by Quanah Gibson-Mount.
 	Fix bug #183: Discontinue support for ADSP.
-	Make "smime" a recognized Authentication-Results method.
+	Make "rrvs" and "smime" recognized Authentication-Results methods.
 	Truncate configuration file lines at carriage return.
 	Replace overlapping strlcpy() with memmove() in dkim_get_key_file().
 		Reported by Daniel J. Luke.
