@@ -354,7 +354,7 @@ dkim_canon_header_string(struct dkim_dstring *dstr, dkim_canon_t canon,
 			if (isascii(*p))
 			{
 				/* discard spaces */
-				if (DKIM_ISLWSP(*p))
+				if (DKIM_ISWSP(*p))
 					continue;
 
 				/* convert to lowercase */
