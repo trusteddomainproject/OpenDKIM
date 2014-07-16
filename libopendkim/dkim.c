@@ -6458,6 +6458,7 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 	u_char *colon;
 	u_char *semicolon;
 	u_char *end = NULL;
+	size_t c;
 	struct dkim_header *h;
 
 	assert(dkim != NULL);
@@ -6473,14 +6474,42 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 		return DKIM_STAT_INVALID;
 	dkim->dkim_state = DKIM_STATE_HEADER;
 
-	colon = memchr(hdr, ':', len);
-	if (colon != NULL)
+	/* enforce RFC 5322, Section 2.2 */
+	colon = NULL;
+	for (c = 0; c < len; c++)
 	{
-		end = colon;
+		if (colon == NULL)
+		{
+			/*
+			**  Field names are printable ASCII; also tolerate
+			**  plain whitespace.
+			*/
 
-		while (end > hdr && isascii(*(end - 1)) && isspace(*(end - 1)))
-			end--;
+			if (hdr[c] < 32 || hdr[c] > 126)
+				return DKIM_STAT_SYNTAX;
+
+			/* the colon is special */
+			if (hdr[c] == ':')
+				colon = &hdr[c];
+		}
+		else
+		{
+			/* field bodies are printable ASCII, SP, HT, CR, LF */
+			if (!(hdr[c] != 9 ||  /* HT */
+			      hdr[c] != 10 || /* LF */
+			      hdr[c] != 13 || /* CR */
+			      (hdr[c] >= 32 && hdr[c] <= 126) /* SP, print */ ))
+				return DKIM_STAT_SYNTAX;
+		}
 	}
+
+	if (colon == NULL)
+		return DKIM_STAT_SYNTAX;
+
+	end = colon;
+
+	while (end > hdr && isascii(*(end - 1)) && isspace(*(end - 1)))
+		end--;
 
 	/* don't allow a field name containing a semicolon */
 	semicolon = memchr(hdr, ';', len);

@@ -8,6 +8,8 @@ release, and a summary of the changes in that release.
 	Truncate configuration file lines at carriage return.
 	Replace overlapping strlcpy() with memmove() in dkim_get_key_file().
 		Reported by Daniel J. Luke.
+	LIBOPENDKIM: dkim_header() is now a lot more strict about the input
+		it will accept (see RFC5322 Section 2.2).
 	LIBOPENDKIM: Tighten relaxed modes to break on only DKIM-defined
 		whitespace characters.  Problem noted by Elizabeth Zwicky.
 	TOOLS: Feature request #178: Add "-F" flag to opendkim-genzone so
