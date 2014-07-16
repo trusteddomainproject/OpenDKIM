@@ -60,7 +60,8 @@
 #define	SP	(u_char *) " "
 
 /* macros */
-#define	DKIM_ISLWSP(x)	((x) == 011 || (x) == 013 || (x) == 014 || (x) == 040)
+#define	DKIM_ISWSP(x)	((x) == 011 || (x) == 040)
+#define	DKIM_ISLWSP(x)	((x) == 011 || (x) == 012 || (x) == 015 || (x) == 040)
 
 /* prototypes */
 extern void dkim_error __P((DKIM *, const char *, ...));
@@ -353,7 +354,7 @@ dkim_canon_header_string(struct dkim_dstring *dstr, dkim_canon_t canon,
 			if (isascii(*p))
 			{
 				/* discard spaces */
-				if (isspace(*p))
+				if (DKIM_ISLWSP(*p))
 					continue;
 
 				/* convert to lowercase */
@@ -387,7 +388,7 @@ dkim_canon_header_string(struct dkim_dstring *dstr, dkim_canon_t canon,
 		}
 
 		/* skip all spaces before first word */
-		while (*p != '\0' && isascii(*p) && isspace(*p))
+		while (*p != '\0' && DKIM_ISWSP(*p))
 			p++;
 
 		space = FALSE;				/* just saw a space */
@@ -1052,8 +1053,7 @@ dkim_canon_selecthdrs(DKIM *dkim, u_char *hdrlist, struct dkim_header **ptrs,
 
 		len = MIN(DKIM_MAXHEADER, strlen((char *) hdrs[c]));
 		while (len > 0 &&
-		       isascii(hdrs[c][len - 1]) &&
-		       isspace(hdrs[c][len - 1]))
+		       DKIM_ISWSP(hdrs[c][len - 1]))
 			len--;
 
 		for (hdr = dkim->dkim_hhead; hdr != NULL; hdr = hdr->hdr_next)
@@ -1769,7 +1769,7 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 				switch (cur->canon_bodystate)
 				{
 				  case 0:
-					if (DKIM_ISLWSP(*p))
+					if (DKIM_ISWSP(*p))
 					{
 						cur->canon_bodystate = 1;
 					}
@@ -1787,7 +1787,7 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 					break;
 
 				  case 1:
-					if (DKIM_ISLWSP(*p))
+					if (DKIM_ISWSP(*p))
 					{
 						break;
 					}
@@ -1836,7 +1836,7 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 							}
 							else
 							{
-								if (DKIM_ISLWSP(*p))
+								if (DKIM_ISWSP(*p))
 								{
 									cur->canon_bodystate = 1;
 								}
@@ -1855,7 +1855,7 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 						dkim_dstring_cat1(cur->canon_buf,
 						                  *p);
 					}
-					else if (DKIM_ISLWSP(*p))
+					else if (DKIM_ISWSP(*p))
 					{
 						dkim_canon_flushblanks(cur);
 						dkim_canon_buffer(cur,
@@ -1874,7 +1874,7 @@ dkim_canon_bodychunk(DKIM *dkim, u_char *buf, size_t buflen)
 					break;
 
 				  case 3:
-					if (DKIM_ISLWSP(*p))
+					if (DKIM_ISWSP(*p))
 					{
 						dkim_canon_flushblanks(cur);
 						dkim_canon_buffer(cur,
