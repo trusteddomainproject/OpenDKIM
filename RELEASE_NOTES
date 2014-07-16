@@ -8,6 +8,8 @@ release, and a summary of the changes in that release.
 	Truncate configuration file lines at carriage return.
 	Replace overlapping strlcpy() with memmove() in dkim_get_key_file().
 		Reported by Daniel J. Luke.
+	LIBOPENDKIM: Tighten relaxed modes to break on only DKIM-defined
+		whitespace characters.  Problem noted by Elizabeth Zwicky.
 
 2.9.2		2014/04/02
 	Fix some conflicting unit tests.  Reported by Eray Aslan.
