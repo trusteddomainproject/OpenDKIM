@@ -3,7 +3,7 @@
 exampledir = @docdir@
 dist_example_DATA = mkdb.mysql
 
-dist_doc_DATA = README
+dist_doc_DATA = README README.opendkim-reportstats
 dist_sbin_SCRIPTS = opendkim-expire opendkim-gengraphs opendkim-genstats \
 	opendkim-reportstats
 

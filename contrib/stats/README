@@ -1,0 +1,8 @@
+This directory contains two files:
+
+stats.lua -- sample Lua script for processing local enhancements to the
+statistics reporting system (see the "stats" directory of the main package)
+
+opendkim-fixipaddrs.pl -- perl script for removing duplicate entries from the
+ipaddr table; if you were doing stats back when such a bug existed, you might
+find this useful

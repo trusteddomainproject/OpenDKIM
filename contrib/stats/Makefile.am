@@ -3,6 +3,5 @@
 
 #AUTOMAKE_OPTIONS = foreign
 
-dist_doc_DATA = README.opendkim-reportstats \
-	opendkim-fixipaddrs.pl \
+dist_doc_DATA = opendkim-fixipaddrs.pl \
 	stats.lua
