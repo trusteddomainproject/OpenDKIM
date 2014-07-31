@@ -23,7 +23,7 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "revision" with internal source code changes
 #
 m4_define([LIBVERSION_CURRENT], 9)
-m4_define([LIBVERSION_REVISION], 3)
+m4_define([LIBVERSION_REVISION], 4)
 m4_define([LIBVERSION_AGE], 0)
 
 #
