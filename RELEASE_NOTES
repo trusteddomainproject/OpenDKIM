@@ -19,8 +19,8 @@ release, and a summary of the changes in that release.
 		it will accept (see RFC5322 Section 2.2).
 	LIBOPENDKIM: Tighten relaxed modes to break on only DKIM-defined
 		whitespace characters.  Problem noted by Elizabeth Zwicky.
-	LIBOPENDKIM: If a signature fails to verify for either reason
-		(header hash mismatched or body hash mismatched), set
+	LIBOPENDKIM: Fix bug #208: If a signature fails to verify for either
+		reason (header hash mismatched or body hash mismatched), set
 		DKIM_SIGERROR_BADSIG so that Authentication-Results doesn't
 		report a failure with "no signature error".
 	TOOLS: Feature request #178: Add "-F" flag to opendkim-genzone so

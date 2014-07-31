@@ -58,25 +58,19 @@ $query2 = "SELECT	daily_limit_low
 #
 # connect to the DB
 #
-if (!($connection = mysql_connect($repute_db, $repute_user, $repute_pwd)))
+if (!($connection = new mysqli($repute_db, $repute_user, $repute_pwd, $repute_dbname)))
 	die("Unable to connect to database server");
-
-# 
-# select the DB
-# 
-if (!mysql_select_db($repute_dbname, $connection))
-	die("Unable to connect to database");
 
 #
 # run the first query
 #
-if (!($result = mysql_query($query1, $connection)))
+if (!($result = $connection->query($query1)))
 	die("Query failed");
 
 #
 # extract results
 #
-$row = mysql_fetch_array($result, MYSQL_NUM);
+$row = $result->fetch_array(MYSQL_NUM);
 if (!$row)
 	die("No data available");
 $rating = $row[0];
@@ -86,10 +80,10 @@ $samples = $row[2];
 #
 # run the second query
 #
-if (!($result = mysql_query($query2, $connection)))
+if (!($result = $connection->query($query2)))
 	die("Query failed");
 
-$row = mysql_fetch_array($result, MYSQL_NUM);
+$row = $result->fetch_array(MYSQL_NUM);
 if (!$row)
 	die("No data available");
 $rate = $row[0];
