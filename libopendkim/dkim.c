@@ -5563,9 +5563,14 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		dkim_base64_encode(digest, diglen, b64buf, sizeof b64buf);
 
 		if (strcmp((char *) bhash, (char *) b64buf) == 0)
+		{
 			sig->sig_bh = DKIM_SIGBH_MATCH;
+		}
 		else
+		{
+			sig->sig_error = DKIM_SIGERROR_BADSIG;
 			sig->sig_bh = DKIM_SIGBH_MISMATCH;
+		}
 	}
 
 	/*
