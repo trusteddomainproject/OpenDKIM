@@ -18,6 +18,8 @@ release, and a summary of the changes in that release.
 		report a failure with "no signature error".
 	TOOLS: Feature request #178: Add "-F" flag to opendkim-genzone so
 		records are created with the FQDN.  Patch from Andreas Schulze.
+	REPUTATION: Handle parameters safely in repute.php.  Reported by
+		Daniel Black.
 
 2.9.2		2014/04/02
 	Fix some conflicting unit tests.  Reported by Eray Aslan.
