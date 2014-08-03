@@ -24,7 +24,7 @@ if (!isset($_GET["application"]) ||
 $application = $_GET["application"];
 $assertion = $_GET["assertion"];
 $service = $_GET["service"];
-$subject = $_GET["subject"];
+$subject = mysql_real_escape_string($_GET["subject"]);
 
 if (strtolower($application) != "email-id")
 	die("Unrecognized application");
@@ -32,7 +32,7 @@ if (strtolower($assertion) != "spam")
 	die("Unrecognized assertion");
 
 if (isset($_GET["reporter"]))
-	$reporter = $_GET["reporter"];
+	$reporter = mysql_real_escape_string($_GET["reporter"]);
 else
 	$reporter = 0;
 
