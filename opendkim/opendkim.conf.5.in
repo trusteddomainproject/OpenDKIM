@@ -48,15 +48,6 @@ default to 0, and string and dataset values default to being undefined.
 
 .SH PARAMETERS
 .TP
-.I AddAllSignatureResults (Boolean)
-If "true", results for all signatures will be reported by an added
-Authentication-Results header field.  Otherwise, only one signature will
-be reported, and which one depends on the
-.I TrustSignaturesFrom
-setting or, in its absence, which one(s) passed first or, if none passed,
-which one was found first during message processing.
-
-.TP
 .I ADSPAction (string)
 Selects the action to be taken when an ADSP check against a message with
 no valid author signature results in the message being deemed suspicious and

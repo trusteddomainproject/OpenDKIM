@@ -8,17 +8,6 @@
 ##  For settings that refer to a "dataset", see the opendkim(8) man page.
 ##
 
-##  AddAllSignatureResults { yes | no }
-##  	default "no"
-##
-##  If enabled, results for all signatures will be reported by an added
-##  Authentication-Results header field.  Otherwise, only one signature will
-##  be reported, and which one depends on the TrustSignaturesFrom
-##  setting or, in its absence, which one(s) passed first or, if none passed,
-##  which one was found first during message processing.
-
-# AddAllSignatureResults	no
-
 ##  ADSPAction { continue | discard | reject }
 ##  	default "continue"
 ##
