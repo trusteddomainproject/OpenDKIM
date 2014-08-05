@@ -23,6 +23,7 @@ release, and a summary of the changes in that release.
 		reason (header hash mismatched or body hash mismatched), set
 		DKIM_SIGERROR_BADSIG so that Authentication-Results doesn't
 		report a failure with "no signature error".
+	CONTRIB: Fix bug #207: Clean up the "stats" directory.
 	TOOLS: Feature request #178: Add "-F" flag to opendkim-genzone so
 		records are created with the FQDN.  Patch from Andreas Schulze.
 	REPUTATION: Handle parameters safely in repute.php.  Reported by
