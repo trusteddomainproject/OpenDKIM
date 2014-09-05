@@ -961,20 +961,6 @@ This parameter is ignored if a
 is defined.
 
 .TP
-.I SelectorHeader (string)
-Names a header field whose contents name the key to use when signing.
-The referenced key must appear in the
-.I KeyTable.
-@SELECTOR_HEADER_MANNOTICE@
-
-.TP
-.I SelectorHeaderRemove (Boolean)
-Remove the
-.I SelectorHeader
-before signing.
-@SELECTOR_HEADER_MANNOTICE@
-
-.TP
 .I SendADSPReports (Boolean)
 If true, when a policy evaluation fails and the signing site advertises a
 reporting address (i.e.
