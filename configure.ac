@@ -2646,6 +2646,7 @@ AC_OUTPUT([	Makefile
 			contrib/ldap/Makefile
 			contrib/lua/Makefile
 			contrib/patches/Makefile
+			contrib/repute/Makefile
 			contrib/spec/Makefile
 			contrib/spec/opendkim.spec
 			contrib/stats/Makefile
