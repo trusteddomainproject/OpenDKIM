@@ -28,6 +28,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Tighten relaxed modes to break on only DKIM-defined
 		whitespace characters.  Problem noted by Elizabeth Zwicky.
 	CONTRIB: Fix bug #207: Clean up the "stats" directory.
+	CONTRIB: Add "repute" directory which could eventually replace the
+		PHP implementation.  Submitted by Daniel Black.
 	TOOLS: Feature request #178: Add "-F" flag to opendkim-genzone so
 		records are created with the FQDN.  Patch from Andreas Schulze.
 	REPUTATION: Handle parameters safely in repute.php.  Reported by
