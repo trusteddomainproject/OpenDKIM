@@ -11615,7 +11615,7 @@ mlfi_eoh(SMFICTX *ctx)
 	*/
 
 	dfc->mctx_jobid = (u_char *) dkimf_getsymval(ctx, "i");
-	if (dfc->mctx_jobid == NULL)
+	if (dfc->mctx_jobid == NULL || dfc->mctx_jobid[0] == '\0')
 		dfc->mctx_jobid = (u_char *) JOBIDUNKNOWN;
 
 	/* find the Sender: or From: header */
@@ -13241,7 +13241,7 @@ mlfi_eom(SMFICTX *ctx)
 	if (strcmp((char *) dfc->mctx_jobid, JOBIDUNKNOWN) == 0)
 	{
 		dfc->mctx_jobid = (u_char *) dkimf_getsymval(ctx, "i");
-		if (dfc->mctx_jobid == NULL)
+		if (dfc->mctx_jobid == NULL || dfc->mctx_jobid[0] == '\0')
 		{
 			if (no_i_whine && conf->conf_dolog)
 			{
