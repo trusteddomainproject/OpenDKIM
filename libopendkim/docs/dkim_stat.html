@@ -31,6 +31,7 @@
 <li> <tt>DKIM_STAT_INVALID</tt> -- invalid parameter(s)
 <li> <tt>DKIM_STAT_NOTIMPLEMENT</tt> -- function not implemented
 <li> <tt>DKIM_STAT_KEYFAIL</tt> -- key retrieval failed (try again later)
+<li> <tt>DKIM_STAT_CBINVALID</tt> -- callback reported invalid input
 <li> <tt>DKIM_STAT_CBREJECT</tt> -- callback requested message rejection
 <li> <tt>DKIM_STAT_CBTRYAGAIN</tt> -- callback can't complete (try again later)
 <li> <tt>DKIM_STAT_CBERROR</tt> -- unspecified callback error
@@ -72,6 +73,9 @@
     to use a feature that is not yet implemented.
 <li><tt>DKIM_STAT_KEYFAIL</tt> is returned when a key retrieval operation
     failed for some transient reason; the caller should try again later
+<li><tt>DKIM_STAT_CBINVALID</tt> is returned when a library function used
+    a user-provided callback function which returned
+    <tt>DKIM_CBSTAT_INVALID</tt>, indicating invalid input
 <li><tt>DKIM_STAT_CBREJECT</tt> is returned when a library function used
     a user-provided callback function which returned
     <tt>DKIM_CBSTAT_REJECT</tt>, explicitly requesting message rejection
@@ -92,7 +96,7 @@
 Copyright (c) 2005-2007 Sendmail, Inc. and its suppliers.
 All rights reserved.
 <br>
-Copyright (c) 2009, 2010, 2013, The Trusted Domain Project.
+Copyright (c) 2009, 2010, 2013, 2014, The Trusted Domain Project.
 All rights reserved.
 
 <br>
