@@ -17502,6 +17502,8 @@ main(int argc, char **argv)
 		else
 			gid = gr->gr_gid;
 
+		(void) endpwent();
+
 #ifdef _FFR_REPUTATION
 		/* chown things that need chowning */
 		if (curconf->conf_rep != NULL)
@@ -17558,56 +17560,6 @@ main(int argc, char **argv)
 		}
 	}
 
-	/* now enact the user change */
-	if (become != NULL)
-	{
-		/* make all the process changes */
-		if (getuid() != pw->pw_uid)
-		{
-			if (initgroups(pw->pw_name, gid) != 0)
-			{
-				if (curconf->conf_dolog)
-				{
-					syslog(LOG_ERR, "initgroups(): %s",
-					       strerror(errno));
-				}
-
-				fprintf(stderr, "%s: initgroups(): %s\n",
-				        progname, strerror(errno));
-
-				return EX_NOPERM;
-			}
-			else if (setgid(gid) != 0)
-			{
-				if (curconf->conf_dolog)
-				{
-					syslog(LOG_ERR, "setgid(): %s",
-					       strerror(errno));
-				}
-
-				fprintf(stderr, "%s: setgid(): %s\n", progname,
-				        strerror(errno));
-
-				return EX_NOPERM;
-			}
-			else if (setuid(pw->pw_uid) != 0)
-			{
-				if (curconf->conf_dolog)
-				{
-					syslog(LOG_ERR, "setuid(): %s",
-					       strerror(errno));
-				}
-
-				fprintf(stderr, "%s: setuid(): %s\n", progname,
-				        strerror(errno));
-
-				return EX_NOPERM;
-			}
-		}
-
-		(void) endpwent();
-	}
-
 	if (curconf->conf_enablecores)
 	{
 		_Bool enabled = FALSE;
@@ -17645,14 +17597,6 @@ main(int argc, char **argv)
 	}
 
 	die = FALSE;
-
-	/* initialize DKIM library */
-	if (!dkimf_config_setlib(curconf, &p))
-	{
-		fprintf(stderr, "%s: can't configure DKIM library: %s\n",
-		        progname, p);
-		return EX_SOFTWARE;
-	}
 
 	if (autorestart)
 	{
@@ -17734,6 +17678,36 @@ main(int argc, char **argv)
 			{
 				syslog(LOG_ERR, "[parent] sigaction(): %s",
 				       strerror(errno));
+			}
+		}
+
+		/* now enact the user change */
+		if (become != NULL)
+		{
+			/* make all the process changes */
+			if (getuid() != pw->pw_uid)
+			{
+				if (initgroups(pw->pw_name, gid) != 0)
+				{
+					if (curconf->conf_dolog)
+						syslog(LOG_ERR, "initgroups(): %s", strerror(errno));
+					fprintf(stderr, "%s: initgroups(): %s", progname, strerror(errno));
+					return EX_NOPERM;
+				}
+				else if (setgid(gid) != 0)
+				{
+					if (curconf->conf_dolog)
+						syslog(LOG_ERR, "setgid(): %s", strerror(errno));
+					fprintf(stderr, "%s: setgid(): %s", progname, strerror(errno));
+					return EX_NOPERM;
+				}
+				else if (setuid(pw->pw_uid) != 0)
+				{
+					if (curconf->conf_dolog)
+						syslog(LOG_ERR, "setuid(): %s", strerror(errno));
+					fprintf(stderr, "%s: setuid(): %s", progname, strerror(errno));
+					return EX_NOPERM;
+				}
 			}
 		}
 
@@ -17885,6 +17859,127 @@ main(int argc, char **argv)
 		}
 	}
 
+	if (!autorestart && dofork)
+	{
+		pid_t pid;
+
+		pid = fork();
+		switch (pid)
+		{
+		  case -1:
+			if (curconf->conf_dolog)
+			{
+				int saveerrno;
+
+				saveerrno = errno;
+
+				syslog(LOG_ERR, "fork(): %s", strerror(errno));
+
+				errno = saveerrno;
+			}
+
+			fprintf(stderr, "%s: fork(): %s\n", progname,
+			        strerror(errno));
+
+			dkimf_zapkey(curconf);
+
+			return EX_OSERR;
+
+		  case 0:
+			dkimf_stdio();
+			break;
+
+		  default:
+			dkimf_zapkey(curconf);
+			return EX_OK;
+		}
+	}
+
+	/* write out the pid */
+	if (!autorestart && pidfile != NULL)
+	{
+		f = fopen(pidfile, "w");
+		if (f != NULL)
+		{
+			fprintf(f, "%ld\n", (long) getpid());
+			(void) fclose(f);
+		}
+		else
+		{
+			if (curconf->conf_dolog)
+			{
+				syslog(LOG_ERR, "can't write pid to %s: %s",
+				       pidfile, strerror(errno));
+			}
+		}
+	}
+
+	/*
+	**  Block SIGUSR1 for use of our reload thread, and SIGHUP, SIGINT
+	**  and SIGTERM for use of libmilter's signal handling thread.
+	*/
+
+	sigemptyset(&sigset);
+	sigaddset(&sigset, SIGUSR1);
+	sigaddset(&sigset, SIGHUP);
+	sigaddset(&sigset, SIGTERM);
+	sigaddset(&sigset, SIGINT);
+	status = pthread_sigmask(SIG_BLOCK, &sigset, NULL);
+	if (status != 0)
+	{
+		if (curconf->conf_dolog)
+		{
+			syslog(LOG_ERR, "pthread_sigprocmask(): %s",
+			       strerror(status));
+		}
+
+		fprintf(stderr, "%s: pthread_sigprocmask(): %s\n", progname,
+		        strerror(status));
+
+		dkimf_zapkey(curconf);
+
+		return EX_OSERR;
+	}
+
+	/* now enact the user change */
+	if (!autorestart && become != NULL)
+	{
+		/* make all the process changes */
+		if (getuid() != pw->pw_uid)
+		{
+			if (initgroups(pw->pw_name, gid) != 0)
+			{
+				if (curconf->conf_dolog)
+					syslog(LOG_ERR, "initgroups(): %s", strerror(errno));
+				fprintf(stderr, "%s: initgroups(): %s", progname, strerror(errno));
+				return EX_NOPERM;
+			}
+			else if (setgid(gid) != 0)
+			{
+				if (curconf->conf_dolog)
+					syslog(LOG_ERR, "setgid(): %s", strerror(errno));
+				fprintf(stderr, "%s: setgid(): %s", progname, strerror(errno));
+				return EX_NOPERM;
+			}
+			else if (setuid(pw->pw_uid) != 0)
+			{
+				if (curconf->conf_dolog)
+					syslog(LOG_ERR, "setuid(): %s", strerror(errno));
+				fprintf(stderr, "%s: setuid(): %s", progname, strerror(errno));
+				return EX_NOPERM;
+			}
+		}
+	}
+
+	/* initialize DKIM library */
+	if (!dkimf_config_setlib(curconf, &p))
+	{
+		if (curconf->conf_dolog)
+			syslog(LOG_ERR, "can't configure DKIM library: %s", p);
+			fprintf(stderr, "%s: can't configure DKIM library: %s", progname, p);
+		return EX_SOFTWARE;
+	}
+
 	if (filemask != -1)
 		(void) umask((mode_t) filemask);
 
@@ -17973,88 +18068,6 @@ main(int argc, char **argv)
 			return EX_UNAVAILABLE;
 		}
 #endif /* HAVE_SMFI_OPENSOCKET */
-	}
-
-	if (!autorestart && dofork)
-	{
-		pid_t pid;
-
-		pid = fork();
-		switch (pid)
-		{
-		  case -1:
-			if (curconf->conf_dolog)
-			{
-				int saveerrno;
-
-				saveerrno = errno;
-
-				syslog(LOG_ERR, "fork(): %s", strerror(errno));
-
-				errno = saveerrno;
-			}
-
-			fprintf(stderr, "%s: fork(): %s\n", progname,
-			        strerror(errno));
-
-			dkimf_zapkey(curconf);
-
-			return EX_OSERR;
-
-		  case 0:
-			dkimf_stdio();
-			break;
-
-		  default:
-			dkimf_zapkey(curconf);
-			return EX_OK;
-		}
-	}
-
-	/* write out the pid */
-	if (!autorestart && pidfile != NULL)
-	{
-		f = fopen(pidfile, "w");
-		if (f != NULL)
-		{
-			fprintf(f, "%ld\n", (long) getpid());
-			(void) fclose(f);
-		}
-		else
-		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_ERR, "can't write pid to %s: %s",
-				       pidfile, strerror(errno));
-			}
-		}
-	}
-
-	/*
-	**  Block SIGUSR1 for use of our reload thread, and SIGHUP, SIGINT
-	**  and SIGTERM for use of libmilter's signal handling thread.
-	*/
-
-	sigemptyset(&sigset);
-	sigaddset(&sigset, SIGUSR1);
-	sigaddset(&sigset, SIGHUP);
-	sigaddset(&sigset, SIGTERM);
-	sigaddset(&sigset, SIGINT);
-	status = pthread_sigmask(SIG_BLOCK, &sigset, NULL);
-	if (status != 0)
-	{
-		if (curconf->conf_dolog)
-		{
-			syslog(LOG_ERR, "pthread_sigprocmask(): %s",
-			       strerror(status));
-		}
-
-		fprintf(stderr, "%s: pthread_sigprocmask(): %s\n", progname,
-		        strerror(status));
-
-		dkimf_zapkey(curconf);
-
-		return EX_OSERR;
 	}
 
 	/* initialize libcrypto mutexes */
