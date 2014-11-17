@@ -17,6 +17,8 @@ release, and a summary of the changes in that release.
 	Truncate configuration file lines at carriage return.
 	Replace overlapping strlcpy() with memmove() in dkim_get_key_file().
 		Reported by Daniel J. Luke.
+	Patch #32: Re-arrange the execution logic to drop privileges in
+		proper order.
 	LIBOPENDKIM: Feature request #157: Add dkim_mail_parse_multi().
 		Suggested by Alessandro Vesely.
 	LIBOPENDKIM: Fix bug #208: If a signature fails to verify for either
