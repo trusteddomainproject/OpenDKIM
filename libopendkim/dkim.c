@@ -7099,6 +7099,35 @@ dkim_sig_getdnssec(DKIM_SIGINFO *sig)
 }
 
 /*
+**  DKIM_SIG_SETDNSSEC -- set DNSSEC results for a signature
+**
+**  Parameters:
+**  	sig -- DKIM_SIGINFO handle
+**      dnssec_status -- A DKIM_DNSSEC_* constant
+**
+*/
+
+void
+dkim_sig_setdnssec(DKIM_SIGINFO *sig, int dnssec_status)
+{
+	assert(sig != NULL);
+
+	switch (dnssec_status) 
+	{
+	  case DKIM_DNSSEC_BOGUS:
+	  case DKIM_DNSSEC_INSECURE:
+	  case DKIM_DNSSEC_SECURE:
+		sig->sig_dnssec_key = dnssec_status;
+		break;
+
+	  default:
+		/* just use the unknown value */
+		sig->sig_dnssec_key = DKIM_DNSSEC_UNKNOWN;
+		break;
+	}
+}
+
+/*
 **  DKIM_SIG_GETREPORTINFO -- retrieve reporting information for a signature
 **
 **  Parameters:

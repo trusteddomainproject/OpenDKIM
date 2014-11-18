@@ -725,6 +725,16 @@ extern DKIM_STAT dkim_sig_getqueries __P((DKIM *dkim, DKIM_SIGINFO *sig,
 extern int dkim_sig_getdnssec __P((DKIM_SIGINFO *sig));
 
 /*
+**  DKIM_SIG_SETDNSSEC -- set DNSSEC results for a signature
+**
+**  Parameters:
+**      sig -- DKIM_SIGINFO handle
+**      dnssec_status -- A DKIM_DNSSEC_* constant
+*/
+
+extern void dkim_sig_setdnssec __P((DKIM_SIGINFO *sig, int dnssec_status));
+
+/*
 **  DKIM_SIG_GETREPORTINFO -- retrieve reporting information from a key
 **
 **  Parameters:

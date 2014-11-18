@@ -1,0 +1,72 @@
+<html>
+<head><title>dkim_sig_setdnssec()</title></head>
+<body>
+<!--
+-->
+<h1>dkim_sig_setdnssec()</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+
+void dkim_sig_setdnssec(
+	<a href="dkim_dnssec.html"><tt>DKIM_SIGINFO</tt></a> *sig,
+	int dnssec_status
+);
+</pre>
+Store the DNSSEC result for a specified signature.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_sig_setdnssec()</tt> can be called by any caller-provided
+    DNS function to indicate the result of DNSSEC evaluation of a key
+    record. </td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>sig</td>
+	<td>Signature-specific handle.
+	</td></tr>
+    <tr valign="top"><td>dnssec_status</td>
+	<td>A valid DNSSEC <a href="dkim_dnssec.html">result code</a>.
+	any unrecognized value will be treated as
+	<tt>DKIM_DNSSEC_UNKNOWN</tt>.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th> 
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2014, The Trusted Domain Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

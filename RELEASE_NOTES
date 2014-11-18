@@ -21,6 +21,8 @@ release, and a summary of the changes in that release.
 		proper order.
 	LIBOPENDKIM: Feature request #157: Add dkim_mail_parse_multi().
 		Suggested by Alessandro Vesely.
+	LIBOPENDKIM: Feature request #185: Add dkim_set_dnssec().  Patch
+		from Alec Peterson.
 	LIBOPENDKIM: Fix bug #208: If a signature fails to verify for either
 		reason (header hash mismatched or body hash mismatched), set
 		DKIM_SIGERROR_BADSIG so that Authentication-Results doesn't
