@@ -556,7 +556,7 @@ header file
 This man page covers version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT
-Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2009-2014, The Trusted Domain Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8),
 .I opendkim.conf(5)

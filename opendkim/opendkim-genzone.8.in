@@ -142,7 +142,8 @@ This man page covers the version of
 that shipped with version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT
-Copyright (c) 2010, 2012, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2010, 2012, 2014, The Trusted Domain Project.
+All rights reserved.
 .SH SEE ALSO
 .I nsupdate(8),
 .I opendkim(8),

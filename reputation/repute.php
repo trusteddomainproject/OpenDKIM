@@ -1,6 +1,6 @@
 <?php
 ###
-### Copyright (c) 2011-2013, The Trusted Domain Project.  All rights reserved.
+### Copyright (c) 2011-2014, The Trusted Domain Project.  All rights reserved.
 ###
 
 #

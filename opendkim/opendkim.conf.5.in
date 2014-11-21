@@ -1337,7 +1337,7 @@ This man page covers version @VERSION@ of
 Copyright (c) 2007, 2008, Sendmail, Inc. and its suppliers.  All rights
 reserved.
 
-Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2009-2014, The Trusted Domain Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8), opendkim-lua(3), sendmail(8)
 .P

@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2009-2014, The Trusted Domain Project.  All rights reserved.
 */
 
 #ifndef _DKIM_TYPES_H_
