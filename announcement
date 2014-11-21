@@ -5,7 +5,9 @@ Subject: OpenDKIM v2.10.0 released
 The Trusted Domain Project announces availability of OpenDKIM v2.10.0, now
 available for download from SourceForge.
 
-This is a major release.  Upgrade is recommended.
+This is a major release.  Upgrade is recommended.  Of particular note:
+Author Domain Signing Practices (RFC5617) is now officially a "Historic"
+protocol, and support for it has been removed.
 
 The full RELEASE_NOTES for this version:
 
