@@ -242,7 +242,7 @@ typedef int dkim_opts_t;
 #define	DKIM_OPTS_FLAGS		0
 #define	DKIM_OPTS_TMPDIR	1
 #define	DKIM_OPTS_TIMEOUT	2
-#define	DKIM_OPTS_SENDERHDRS	3
+#define	DKIM_OPTS_SENDERHDRS	3	/* obsolete */
 #define	DKIM_OPTS_SIGNHDRS	4
 #define	DKIM_OPTS_OVERSIGNHDRS	5
 #define	DKIM_OPTS_QUERYMETHOD	6

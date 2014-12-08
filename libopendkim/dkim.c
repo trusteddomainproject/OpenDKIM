@@ -218,13 +218,6 @@ void dkim_error __P((DKIM *, const char *, ...));
 /* macros */
 #define DKIM_ISLWSP(x)  ((x) == 011 || (x) == 013 || (x) == 014 || (x) == 040)
 
-/* list of headers which may contain the sender */
-const u_char *dkim_default_senderhdrs[] =
-{
-	"from",
-	NULL
-};
-
 /* recommended list of headers to sign, from RFC6376 Section 5.4 */
 const u_char *dkim_should_signhdrs[] =
 {
@@ -2637,14 +2630,13 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 **
 **  Parameters:
 **  	dkim -- DKIM handle
-**  	hdrs -- list of header names to find
 **
 **  Return value:
 **  	A DKIM_STAT_* constant.
 */
 
 static DKIM_STAT
-dkim_getsender(DKIM *dkim, u_char **hdrs)
+dkim_getsender(DKIM *dkim)
 {
 	int c;
 	size_t hlen;
@@ -2655,31 +2647,23 @@ dkim_getsender(DKIM *dkim, u_char **hdrs)
 	struct dkim_header *cur;
 
 	assert(dkim != NULL);
-	assert(hdrs != NULL);
 
 	if (dkim->dkim_sender != NULL)
 		return DKIM_STAT_OK;
 
-	for (c = 0; hdrs[c] != NULL; c++)
+	for (cur = dkim->dkim_hhead; cur != NULL; cur = cur->hdr_next)
 	{
-		hlen = strlen((char *) hdrs[c]);
-
-		for (cur = dkim->dkim_hhead; cur != NULL; cur = cur->hdr_next)
+		if (cur->hdr_namelen == 4 &&
+		    strncasecmp("from", (char *) cur->hdr_text, 4) == 0)
 		{
-			if (hlen == cur->hdr_namelen &&
-			    strncasecmp((char *) hdrs[c],
-			                (char *) cur->hdr_text,
-			                hlen) == 0)
-			{
-				sender = cur;
-				break;
-			}
+			sender = cur;
+			break;
 		}
 	}
 
 	if (sender == NULL)
 	{
-		dkim_error(dkim, "no sender headers detected");
+		dkim_error(dkim, "no from header field detected");
 		return DKIM_STAT_SYNTAX;
 	}
 	dkim->dkim_senderhdr = sender;
@@ -3318,7 +3302,7 @@ dkim_eoh_verify(DKIM *dkim)
 	keep = ((lib->dkiml_flags & DKIM_LIBFLAGS_KEEPFILES) != 0);
 
 	/* populate some stuff like dkim_sender, dkim_domain, dkim_user */
-	status = dkim_getsender(dkim, dkim->dkim_libhandle->dkiml_senderhdrs);
+	status = dkim_getsender(dkim);
 	if (status != DKIM_STAT_OK && !bsh)
 	{
 		dkim->dkim_state = DKIM_STATE_UNUSABLE;
@@ -4268,7 +4252,6 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 	        sizeof libhandle->dkiml_tmpdir);
 	libhandle->dkiml_flags = DKIM_LIBFLAGS_DEFAULT;
 	libhandle->dkiml_timeout = DEFTIMEOUT;
-	libhandle->dkiml_senderhdrs = (u_char **) dkim_default_senderhdrs;
 	libhandle->dkiml_requiredhdrs = (u_char **) dkim_required_signhdrs;
 	libhandle->dkiml_oversignhdrs = NULL;
 	libhandle->dkiml_mbs = NULL;
@@ -4367,9 +4350,6 @@ dkim_close(DKIM_LIB *lib)
 
 	if (lib->dkiml_oversignhdrs != NULL)
 		dkim_clobber_array((char **) lib->dkiml_oversignhdrs);
-
-	if (lib->dkiml_senderhdrs != (u_char **) dkim_default_senderhdrs)
-		dkim_clobber_array((char **) lib->dkiml_senderhdrs);
 
 	if (lib->dkiml_requiredhdrs != (u_char **) dkim_required_signhdrs)
 		dkim_clobber_array((char **) lib->dkiml_requiredhdrs);
@@ -4580,36 +4560,6 @@ dkim_options(DKIM_LIB *lib, int op, dkim_opts_t opt, void *ptr, size_t len)
 		else
 			memcpy(&lib->dkiml_timeout, ptr, len);
 
-		return DKIM_STAT_OK;
-
-	  case DKIM_OPTS_SENDERHDRS:
-		if (len != sizeof lib->dkiml_senderhdrs)
-			return DKIM_STAT_INVALID;
-
-		if (op == DKIM_OP_GETOPT)
-		{
-			memcpy(ptr, &lib->dkiml_senderhdrs, len);
-		}
-		else if (ptr == NULL)
-		{
-			if (lib->dkiml_senderhdrs != (u_char **) dkim_default_senderhdrs)
-				dkim_clobber_array((char **) lib->dkiml_senderhdrs);
-
-			lib->dkiml_senderhdrs = (u_char **) dkim_default_senderhdrs;
-		}
-		else
-		{
-			const char **tmp;
-
-			tmp = dkim_copy_array(ptr);
-			if (tmp == NULL)
-				return DKIM_STAT_NORESOURCE;
-
-			if (lib->dkiml_senderhdrs != (u_char **) dkim_default_senderhdrs)
-				dkim_clobber_array((char **) lib->dkiml_senderhdrs);
-
-			lib->dkiml_senderhdrs = (u_char **) tmp;
-		}
 		return DKIM_STAT_OK;
 
 	  case DKIM_OPTS_REQUIREDHDRS:
