@@ -392,8 +392,6 @@ struct dkimf_config
 	char **		conf_omithdrs;		/* headers to omit (array) */
 	DKIMF_DB	conf_signhdrsdb;	/* headers to sign (DB) */
 	char **		conf_signhdrs;		/* headers to sign (array) */
-	DKIMF_DB	conf_senderhdrsdb;	/* sender headers (DB) */
-	char **		conf_senderhdrs;	/* sender headers (array) */
 	DKIMF_DB	conf_mtasdb;		/* MTA ports to sign (DB) */
 	char **		conf_mtas;		/* MTA ports to sign (array) */
 	DKIMF_DB	conf_remardb;		/* A-R removal list (DB) */
@@ -407,9 +405,6 @@ struct dkimf_config
 	DKIMF_DB	conf_atpsdb;		/* ATPS domains */
 	char *		conf_atpshash;		/* ATPS hash algorithm */
 #endif /* _FFR_ATPS */
-#ifdef _FFR_ADSP_LISTS
-	DKIMF_DB	conf_nodiscardto;	/* no discardable to (DB) */
-#endif /* _FFR_ADSP_LISTS */
 	DKIMF_DB	conf_thirdpartydb;	/* trustsigsfrom DB */
 	DKIMF_DB	conf_macrosdb;		/* macros/values (DB) */
 	char **		conf_macros;		/* macros/values to check */
@@ -579,14 +574,6 @@ struct lookup
 #define SIGMIN_PERCENT		1
 #define SIGMIN_MAXADD		2
 
-#define	ADSPDENYSMTP		"550"
-#define	ADSPDENYESC		"5.7.1"
-#define	ADSPDENYTEXT		"rejected due to DKIM ADSP evaluation"
-
-#define	ADSPNXDOMAINSMTP	"550"
-#define	ADSPNXDOMAINESC		"5.7.1"
-#define	ADSPNXDOMAINTEXT	"sender domain does not exist"
-
 #if defined(_FFR_REPUTATION) || defined(_FFR_REPRRD)
 # define REPDENYSMTP		"450"
 # define REPDENYESC		"4.7.1"
@@ -594,14 +581,6 @@ struct lookup
 #endif /* _FFR_REPUTATION || _FFR_REPRRD */
 
 #define	DELIMITER		"\001"
-
-struct lookup dkimf_adspactions[] =
-{
-	{ "continue",		SMFIS_CONTINUE },
-	{ "discard",		SMFIS_DISCARD },
-	{ "reject",		SMFIS_REJECT },
-	{ NULL,			-1 },
-};
 
 struct lookup dkimf_params[] =
 {
@@ -5943,9 +5922,6 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_signhdrsdb != NULL)
 		dkimf_db_close(conf->conf_signhdrsdb);
 
-	if (conf->conf_senderhdrsdb != NULL)
-		dkimf_db_close(conf->conf_senderhdrsdb);
-
 	if (conf->conf_oversigndb != NULL)
 		dkimf_db_close(conf->conf_oversigndb);
 
@@ -7205,32 +7181,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 	}
 
-#ifdef _FFR_ADSP_LISTS
-	str = NULL;
-	if (data != NULL)
-	{
-		(void) config_get(data, "NoDiscardableMailTo", &str,
-		                  sizeof str);
-	}
-	if (str != NULL)
-	{
-		int status;
-		char *dberr = NULL;
-
-		status = dkimf_db_open(&conf->conf_nodiscardto, str,
-		                       (dbflags | 
-		                        DKIMF_DB_FLAG_ICASE |
-		                        DKIMF_DB_FLAG_READONLY),
-		                       NULL, &dberr);
-		if (status != 0)
-		{
-			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, dberr);
-			return -1;
-		}
-	}
-#endif /* _FFR_ADSP_LISTS */
-
 #ifdef _FFR_ATPS
 	str = NULL;
 	if (data != NULL)
@@ -7381,37 +7331,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			         str, dberr);
 			return -1;
 		}
-	}
-
-	str = NULL;
-	if (data != NULL)
-		(void) config_get(data, "SenderHeaders", &str, sizeof str);
-	if (str != NULL)
-	{
-		int status;
-		char *dberr = NULL;
-
-		status = dkimf_db_open(&conf->conf_senderhdrsdb, str,
-		                       (dbflags |
-		                        DKIMF_DB_FLAG_ICASE |
-		                        DKIMF_DB_FLAG_READONLY),
-		                       NULL, &dberr);
-		if (status != 0)
-		{
-			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
-			         str, dberr);
-			return -1;
-		}
-
-		status = dkimf_db_mkarray(conf->conf_senderhdrsdb,
-		                          &conf->conf_senderhdrs,
-		                          (const char **) dkim_default_senderhdrs);
-		if (status == -1)
-			return -1;
-	}
-	else
-	{
-		conf->conf_senderhdrs = (char **) dkim_default_senderhdrs;
 	}
 
 #ifdef _FFR_VBR
@@ -11179,9 +11098,6 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 	conf = cc->cctx_config;
 
 	if (conf->conf_dontsigntodb != NULL
-#ifdef _FFR_ADSP_LISTS
-	    || conf->conf_nodiscardto != NULL
-#endif /* _FFR_ADSP_LISTS */
 	    || conf->conf_bldb != NULL
 	    || conf->conf_redirect != NULL
 #ifdef _FFR_RESIGN
@@ -11202,9 +11118,6 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 	}
 
 	if (conf->conf_dontsigntodb != NULL
-#ifdef _FFR_ADSP_LISTS
-	    || conf->conf_nodiscardto != NULL
-#endif /* _FFR_ADSP_LISTS */
 	    || conf->conf_bldb != NULL
 	    || conf->conf_redirect != NULL
 #ifdef _FFR_RESIGN
@@ -11631,21 +11544,7 @@ mlfi_eoh(SMFICTX *ctx)
 #endif /* _FFR_SENDER_MACRO */
 
 	if (addr[0] == '\0')
-	{
-		for (c = 0; conf->conf_senderhdrs[c] != NULL; c++)
-		{
-			if (strcasecmp("from", conf->conf_senderhdrs[c]) == 0)
-				didfrom = TRUE;
-
-			from = dkimf_findheader(dfc, conf->conf_senderhdrs[c],
-			                        0);
-			if (from != NULL)
-				break;
-		}
-
-		if (from == NULL && !didfrom)
-			from = dkimf_findheader(dfc, "from", 0);
-	}
+		from = dkimf_findheader(dfc, "from", 0);
 
 	if (from != NULL)
 		strlcpy((char *) addr, from->hdr_val, sizeof addr);

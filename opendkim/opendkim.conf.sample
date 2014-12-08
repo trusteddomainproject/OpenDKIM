@@ -8,24 +8,6 @@
 ##  For settings that refer to a "dataset", see the opendkim(8) man page.
 ##
 
-##  ADSPAction { continue | discard | reject }
-##  	default "continue"
-##
-##  Defines the action to be taken when a message is passed through the
-##  ADSP algorithm and found to be discardable.  By default, no action is
-##  taken, though the failure will be noted by the addition of an
-##  Authentication-Results report.
-
-# ADSPAction		continue
-
-##  ADSPNoSuchDomain { yes | no }
-##  	default "no"
-##
-##  Reject messages which are determined to be from nonexistent domains during
-##  the Author Domain Signing Practises (ADSP) check.
-
-# ADSPNoSuchDomain	No
-
 ##  AllowSHA1Only { yes | no }
 ##  	default "no"
 ##
@@ -142,14 +124,6 @@
 
 # Diagnostics		No
 
-##  DisableADSP { yes | no }
-##  	default "no"
-##
-##  Suppresses Author Domain Signing Practices (ADSP) checks, which conduct
-##  additional DNS queries.
-
-# DisableADSP		No
-
 ##  DNSTimeout n
 ##  	default 10
 ##
@@ -261,21 +235,6 @@ KeyFile			/var/db/dkim/example.private
 ##  one of those.
 
 # KeyTable		dataset
-
-##  LocalADSP dataset
-##  	default (none)
-##
-##  Allows specification of local ADSP overrides for domains.  This should be
-##  a path to a file containing entries, one per line, with comments and
-##  blank lines allowed.  An entry is of the form "domain:policy" where
-##  "domain" is either a fully-qualified domain name (e.g. "foo.example.com")
-##  or a subdomain name preceded by a period (e.g. ".example.com"), and
-##  "policy" is either "unknown", "all", or "discardable", as per the current
-##  ADSP draft specification.  This allows local overrides of policies to
-##  enforce for domains which either don't publish ADSP or publish weaker
-##  policies than the verifier would like to enforce.
-
-# LocalADSP		/etc/mail/local-adsp-rules
 
 ##  LogWhy { yes | no }
 ##  	default "no"
@@ -390,7 +349,7 @@ KeyFile			/var/db/dkim/example.private
 ##  	default (none)
 ##
 ##  Provides a comma-separated list of IP addresses that are to be used when
-##  doing DNS queries to retrieve DKIM keys, ADSP policies, VBR records, etc.
+##  doing DNS queries to retrieve DKIM keys, VBR records, etc.
 ##  These override any local defaults built in to the resolver in use, which
 ##  may be defined in /etc/resolv.conf or hard-coded into the software.
 
@@ -591,24 +550,6 @@ KeyFile			/var/db/dkim/example.private
 
 Selector		my-selector-name
 
-##  SendADSPReports { yes | no }
-##  	default "no"
-##
-##  Specifies whether or not the filter should generate report mail back
-##  to senders when the ADSP (Author Domain Signing Practises) check fails for
-##  a message.  See opendkim.conf(5) for details.
-
-# SendADSPReports	No
-
-##  SenderHeaders 	dataset
-##  	default (none)
-##
-##  Overrides the default list of headers that will be used to determine
-##  the sending domain for use when evaluating ADSP.  See opendkim.conf(5)
-##  for details.
-
-# SenderHeaders		From
-
 ##  SendReports { yes | no }
 ##  	default "no"
 ##
@@ -649,14 +590,13 @@ Selector		my-selector-name
 ##
 ##  Defines a dataset that will be queried for the message sender's address
 ##  to determine which private key(s) (if any) should be used to sign the
-##  message.  The sender is determined from the value of the sender
-##  header fields as described with SenderHeaders above.  The key for this
-##  lookup should be an address or address pattern that matches senders;
-##  see the opendkim.conf(5) man page for more information.  The value
-##  of the lookup should return the name of a key found in the KeyTable
-##  that should be used to sign the message.  If MultipleSignatures
-##  is set, all possible lookup keys will be attempted which may result
-##  in multiple signatures being applied.
+##  message.  The sender is determined from the value of the From:
+##  header field.  The key for this lookup should be an address or address
+##  pattern that matches senders; see the opendkim.conf(5) man page for
+##  more information.  The value of the lookup should return the name of a
+##  key found in the KeyTable that should be used to sign the message.  If
+##  MultipleSignatures is set, all possible lookup keys will be attempted
+##  which may result in multiple signatures being applied.
 
 # SigningTable		filename
 
