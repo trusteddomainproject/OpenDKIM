@@ -116,15 +116,6 @@ of the library's operation.
 				completely replaces this list.  If
 				<tt>data</tt> refers to a NULL pointer, the
 				default is restored. </td></tr>
-           <tr valign="top"><td><tt>DKIM_OPTS_SENDERHDRS</tt></td>
-                            <td><tt>data</tt> refers to an ordered,
-                                NULL-terminated array of header names which
-                                should be searched when trying to determine
-                                the ultimate sender of the message.  The
-                                default is to check <tt>From</tt> only.
-                                The caller's list completely replaces this
-				list.  If <tt>data</tt> refers to a NULL
-				pointer, the default is restored. </td></tr>
            <tr valign="top"><td><tt>DKIM_OPTS_SIGNATURETTL</tt></td>
                             <td><tt>data</tt> refers to a <tt>uint64_t</tt>
                                 that contains the time-to-live, in seconds,

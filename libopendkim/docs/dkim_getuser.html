@@ -62,10 +62,8 @@ Retrieve the sending user associated with a message.
 <th valign="top" align=left>NOTES</th> 
 <td>
 <ul>
-<li> This user is selected by finding the first header field matching the
-     sender header field name list as set by the
-     <tt>DKIM_OPTS_SENDERHDRS</tt> option or its default (see
-     <a href="dkim_options.html"><tt>dkim_options</tt>).  Note that it is
+<li> This user is selected by finding the first "From" header field.
+     Note that it is
      not guaranteed that this field was included in the set of fields fed
      to the DKIM signature hashes (assuming it was signed), and in any
      case its value may or may not have been valid at the time the message
