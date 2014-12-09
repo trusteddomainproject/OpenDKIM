@@ -56,6 +56,7 @@ release, and a summary of the changes in that release.
 	CONTRIB: Fix bug #207: Clean up the "stats" directory.
 	CONTRIB: Add "repute" directory which could eventually replace the
 		PHP implementation.  Submitted by Daniel Black.
+	CONTRIB: Patches to systemd and init/redhat from Steve Jenkins.
 	TOOLS: Feature request #178: Add "-F" flag to opendkim-genzone so
 		records are created with the FQDN.  Patch from Andreas Schulze.
 	REPUTATION: Handle parameters safely in repute.php.  Reported by
