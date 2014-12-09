@@ -34,6 +34,21 @@ release, and a summary of the changes in that release.
 		reason (header hash mismatched or body hash mismatched), set
 		DKIM_SIGERROR_BADSIG so that Authentication-Results doesn't
 		report a failure with "no signature error".
+	LIBOPENDKIM: Fix bug #183: Discontinue support for ADSP.  This
+		means all of the following:
+		- the dkim_policy_t type has been removed
+		- the DKIM_POLICY_* constants have been removed
+		- the DKIM_PRESULT_* constants have been removed
+		- passing DKIM_OPTS_SENDERHDRS to dkim_options() now
+		  results in an error
+		- the DKIM_PSTATE structure has been removed
+		- all of the following functions have been removed:
+		  dkim_policy(), dkim_policy_dnssec(),
+		  dkim_policy_getqueries(), dkim_policy_getreportinfo(),
+		  dkim_policy_state_free(), dkim_policy_state_new(),
+		  dkim_policy_syntax(), dkim_getpolicystr(),
+		  dkim_getpresult(), dkim_getpresultstr(),
+		  dkim_set_policy_lookup(), dkim_test_adsp()
 	LIBOPENDKIM: dkim_header() is now a lot more strict about the input
 		it will accept (see RFC5322 Section 2.2).
 	LIBOPENDKIM: Tighten relaxed modes to break on only DKIM-defined
