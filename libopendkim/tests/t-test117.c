@@ -129,16 +129,6 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 	assert(test_uint == timeout);
 
-	status = dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_SENDERHDRS,
-	                      senderhdrs, sizeof (char **));
-	assert(status == DKIM_STAT_OK);
-	status = dkim_options(lib, DKIM_OP_GETOPT, DKIM_OPTS_SENDERHDRS,
-	                      &testarray, sizeof (char **));
-	assert(status == DKIM_STAT_OK);
-	assert(strcmp(testarray[0], senderhdrs[0]) == 0);
-	assert(strcmp(testarray[1], senderhdrs[1]) == 0);
-	assert(testarray[2] == NULL);
-
 	dkim = dkim_verify(lib, JOBID, NULL, &status);
 	assert(dkim != NULL);
 
