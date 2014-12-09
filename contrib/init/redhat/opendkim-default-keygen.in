@@ -1,9 +1,6 @@
 #!/bin/bash
 
-# Create the default keys for the OpenDKIM Milter.
-#
-# The creation is controlled by the $AUTOCREATE_DKIM_KEYS environment
-# variable.
+# Create default keys for the OpenDKIM Milter.
 
 # source function library
 #. /etc/rc.d/init.d/functions
@@ -38,7 +35,7 @@ do_dkim_keygen() {
         fi
 }
 
-# Create keys if necessary
-if [ "x${AUTOCREATE_DKIM_KEYS}" != xNO ]; then
-	do_dkim_keygen
-fi
+# Create keys
+
+do_dkim_keygen
+
