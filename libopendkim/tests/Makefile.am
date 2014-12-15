@@ -29,7 +29,7 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test61 t-test62 t-test63 t-test64 t-test65 t-test66 t-test67 \
 	t-test68 t-test69 t-test70 t-test71 t-test72 t-test73 t-test74 \
 	t-test76 t-test77 t-test78 t-test79 t-test80 t-test81 \
-	t-test82 t-test83 t-test84 t-test85 t-test87 t-test88 \
+	t-test82 t-test83 t-test84 t-test85 t-test86 t-test87 t-test88 \
 	t-test89 t-test90 t-test91 t-test92 t-test93 t-test94 \
 	t-test96 t-test97 t-test98 t-test99 t-test100 t-test101 t-test102 \
 	t-test103 t-test104 t-test105 t-test106 t-test107 t-test108 \
@@ -141,7 +141,7 @@ t_test82_SOURCES = t-test82.c t-testdata.h
 t_test83_SOURCES = t-test83.c t-testdata.h
 t_test84_SOURCES = t-test84.c t-testdata.h
 t_test85_SOURCES = t-test85.c t-testdata.h
-#t_test86_SOURCES = t-test86.c t-testdata.h
+t_test86_SOURCES = t-test86.c t-testdata.h
 t_test87_SOURCES = t-test87.c t-testdata.h
 t_test88_SOURCES = t-test88.c t-testdata.h
 t_test89_SOURCES = t-test89.c t-testdata.h

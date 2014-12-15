@@ -49,6 +49,9 @@ release, and a summary of the changes in that release.
 		  dkim_policy_syntax(), dkim_getpolicystr(),
 		  dkim_getpresult(), dkim_getpresultstr(),
 		  dkim_set_policy_lookup(), dkim_test_adsp()
+	LIBOPENDKIM: DKIM_LIBFLAGS_STRICTHEADER now also confirms syntactical
+		validity of the From field before proceeding with a signing or
+		verifying operation.  Suggested by Wez Furlong.
 	LIBOPENDKIM: dkim_header() is now a lot more strict about the input
 		it will accept (see RFC5322 Section 2.2).
 	LIBOPENDKIM: Tighten relaxed modes to break on only DKIM-defined

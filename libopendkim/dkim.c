@@ -3001,6 +3001,10 @@ dkim_headercheck(DKIM *dkim)
 
 	if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_STRICTHDRS) != 0)
 	{
+		int status;
+		char *user;
+		char *domain;
+
 		/* Date (must be exactly one) */
 		hdr = dkim_get_header(dkim, "Date", 4, 0);
 		if (hdr == NULL)
@@ -3018,6 +3022,14 @@ dkim_headercheck(DKIM *dkim)
 		}
 
 		/* From (must be exactly one) */
+		hdr = dkim_get_header(dkim, "From", 4, 1);
+		if (hdr != NULL)
+		{
+			dkim_error(dkim,
+			           "multiple From: header fields present");
+			return FALSE;
+		}
+
 		hdr = dkim_get_header(dkim, "From", 4, 0);
 		if (hdr == NULL)
 		{
@@ -3025,11 +3037,13 @@ dkim_headercheck(DKIM *dkim)
 			return FALSE;
 		}
 
-		hdr = dkim_get_header(dkim, "From", 4, 1);
-		if (hdr != NULL)
+		/* confirm it's parsable */
+		status = dkim_mail_parse(hdr->hdr_colon + 1, &user, &domain);
+		if (status != 0 ||
+		    user == NULL || user[0] == '\0' ||
+		    domain == NULL || domain[0] == '\0')
 		{
-			dkim_error(dkim,
-			           "multiple From: header fields present");
+			dkim_error(dkim, "From: header field cannot be parsed");
 			return FALSE;
 		}
 
