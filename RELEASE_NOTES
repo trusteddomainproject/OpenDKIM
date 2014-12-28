@@ -3,15 +3,13 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.10.0		2014/??/??
+2.10.0		2014/12/27
 	Feature request #182: Remove "AddAllSignatureResults".  All signature
 		results will now be added via Authentication-Results header
 		fields.  Requested by Tomki Camp.
 	Feature request #180: Rename "LDAPSoftStart" to "SoftStart" and apply
 		it to SQL connections as well.  Requested by Daniel Kauffman.
 	Feature request #179: Add "IgnoreMalformedMail" option.
-	Fix bug #177: Plug leaking "result" structures when OpenLDAP is in
-		use.  Problem reported by Quanah Gibson-Mount.
 	Fix bug #183: Discontinue support for ADSP.  This removes the
 		following configuration file items:
 		AddAllSignatureResults	LocalADSP
@@ -21,19 +19,10 @@ release, and a summary of the changes in that release.
 		DisableADSP		SenderHeaders
 		LDAPSoftStart		UnprotectedPolicy
 	Make "rrvs" and "smime" recognized Authentication-Results methods.
-	Truncate configuration file lines at carriage return.
-	Replace overlapping strlcpy() with memmove() in dkim_get_key_file().
-		Reported by Daniel J. Luke.
-	Patch #32: Re-arrange the execution logic to drop privileges in
-		proper order.
 	LIBOPENDKIM: Feature request #157: Add dkim_mail_parse_multi().
 		Suggested by Alessandro Vesely.
 	LIBOPENDKIM: Feature request #185: Add dkim_set_dnssec().  Patch
 		from Alec Peterson.
-	LIBOPENDKIM: Fix bug #208: If a signature fails to verify for either
-		reason (header hash mismatched or body hash mismatched), set
-		DKIM_SIGERROR_BADSIG so that Authentication-Results doesn't
-		report a failure with "no signature error".
 	LIBOPENDKIM: Fix bug #183: Discontinue support for ADSP.  This
 		means all of the following:
 		- the dkim_policy_t type has been removed
@@ -52,14 +41,26 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: DKIM_LIBFLAGS_STRICTHDRS now also confirms syntactical
 		validity of the From field before proceeding with a signing or
 		verifying operation.  Suggested by Wez Furlong.
-	LIBOPENDKIM: dkim_header() is now a lot more strict about the input
-		it will accept (see RFC5322 Section 2.2).
-	LIBOPENDKIM: Tighten relaxed modes to break on only DKIM-defined
-		whitespace characters.  Problem noted by Elizabeth Zwicky.
 	CONTRIB: Fix bug #207: Clean up the "stats" directory.
 	CONTRIB: Add "repute" directory which could eventually replace the
 		PHP implementation.  Submitted by Daniel Black.
 	CONTRIB: Patches to systemd and init/redhat from Steve Jenkins.
+
+2.9.3		2014/12/27
+        Fix bug #177: Plug leaking "result" structures when OpenLDAP is in use.
+	Truncate configuration file lines at carriage return.
+	Replace overlapping strlcpy() with memmove() in dkim_get_key_file().
+		Reported by Daniel J. Luke.
+	Patch #32: Re-arrange the execution logic to drop privileges in
+		proper order.
+	LIBOPENDKIM: dkim_header() is now a lot more strict about the input
+		it will accept (see RFC5322 Section 2.2).
+	LIBOPENDKIM: Tighten relaxed modes to break on only DKIM-defined
+		whitespace characters.  Problem noted by Elizabeth Zwicky.
+	LIBOPENDKIM: Fix bug #208: If a signature fails to verify for either
+		reason (header hash mismatched or body hash mismatched), set
+		DKIM_SIGERROR_BADSIG so that Authentication-Results doesn't
+		report a failure with "no signature error".
 	TOOLS: Feature request #178: Add "-F" flag to opendkim-genzone so
 		records are created with the FQDN.  Patch from Andreas Schulze.
 	REPUTATION: Handle parameters safely in repute.php.  Reported by
