@@ -11511,9 +11511,9 @@ mlfi_eoh(SMFICTX *ctx)
 	char *vbr_type = NULL;
 #endif /* _FFR_VBR */
 	struct dkimf_config *conf;
+	struct dkimf_dstr *addr;
 	Header from = NULL;
 	Header hdr;
-	u_char addr[MAXADDRESS + 1];
 
 	assert(ctx != NULL);
 
@@ -11532,24 +11532,25 @@ mlfi_eoh(SMFICTX *ctx)
 		dfc->mctx_jobid = (u_char *) JOBIDUNKNOWN;
 
 	/* find the Sender: or From: header */
-	memset(addr, '\0', sizeof addr);
+	addr = dkimf_dstring_new(BUFRSZ, 0);
 
 #ifdef _FFR_SENDER_MACRO
 	if (conf->conf_sendermacro != NULL)
 	{
 		macrosender = dkimf_getsymval(ctx, conf->conf_sendermacro);
 		if (macrosender != NULL)
-			strlcpy((char *) addr, macrosender, sizeof addr);
+			dkimf_dstring_copy(addr, macrosender);
 	}
 #endif /* _FFR_SENDER_MACRO */
 
-	if (addr[0] == '\0')
+	if (dkimf_dstring_len(addr) == 0)
+	{
 		from = dkimf_findheader(dfc, "from", 0);
+		if (from != NULL)
+			dkimf_dstring_copy(addr, from->hdr_val);
+	}
 
-	if (from != NULL)
-		strlcpy((char *) addr, from->hdr_val, sizeof addr);
-
-	if (addr[0] == '\0')
+	if (dkimf_dstring_len(addr) == 0)
 	{
 		if (conf->conf_dolog)
 		{
@@ -11561,10 +11562,11 @@ mlfi_eoh(SMFICTX *ctx)
 		dfc->mctx_addheader = TRUE;
 		dfc->mctx_headeronly = TRUE;
 		dfc->mctx_status = DKIMF_STATUS_BADFORMAT;
+		dkimf_dstring_free(addr);
 		return SMFIS_CONTINUE;
 	}
 
-	status = dkim_mail_parse(addr, &user, &domain);
+	status = dkim_mail_parse(dkimf_dstring_get(addr), &user, &domain);
 
 #ifdef _FFR_DEFAULT_SENDER
 	if (conf->conf_defsender != NULL &&
@@ -11612,6 +11614,7 @@ mlfi_eoh(SMFICTX *ctx)
 		dfc->mctx_addheader = TRUE;
 		dfc->mctx_headeronly = TRUE;
 		dfc->mctx_status = DKIMF_STATUS_BADFORMAT;
+		dkimf_dstring_free(addr);
 		return SMFIS_CONTINUE;
 	}
 
@@ -11639,6 +11642,7 @@ mlfi_eoh(SMFICTX *ctx)
 				               (char *) dfc->mctx_domain);
 			}
 
+			dkimf_dstring_free(addr);
 			return SMFIS_TEMPFAIL;
 		}
 
@@ -11652,6 +11656,7 @@ mlfi_eoh(SMFICTX *ctx)
 			}
 
 			dkimf_cleanup(ctx);
+			dkimf_dstring_free(addr);
 			return SMFIS_ACCEPT;
 		}
 	}
@@ -11798,6 +11803,7 @@ mlfi_eoh(SMFICTX *ctx)
 						       dfc->mctx_jobid);
 					}
 
+					dkimf_dstring_free(addr);
 					return SMFIS_TEMPFAIL;
 				}
 			}
@@ -11819,6 +11825,7 @@ mlfi_eoh(SMFICTX *ctx)
 						       resignkey);
 					}
 
+					dkimf_dstring_free(addr);
 					return SMFIS_TEMPFAIL;
 				}
 			}
@@ -11875,6 +11882,7 @@ mlfi_eoh(SMFICTX *ctx)
 				}
 
 				dkimf_cleanup(ctx);
+				dkimf_dstring_free(addr);
 				return SMFIS_TEMPFAIL;
 			}
 		}
@@ -12094,6 +12102,7 @@ mlfi_eoh(SMFICTX *ctx)
 				}
 			}
 
+			dkimf_dstring_free(addr);
 			return SMFIS_TEMPFAIL;
 		}
 		else if (found > 0)
@@ -12108,6 +12117,9 @@ mlfi_eoh(SMFICTX *ctx)
 			       dfc->mctx_jobid, user, dfc->mctx_domain);
 		}
 	}
+
+	/* don't need the sender field anymore */
+	dkimf_dstring_free(addr);
 
 	/* set signing mode if the tests passed */
 	if (domainok && originok)
@@ -12505,22 +12517,22 @@ mlfi_eoh(SMFICTX *ctx)
 		if (conf->conf_identityhdr != NULL)
 		{
 			struct Header *hdr;
+			u_char *iuser = NULL;
+			u_char *idomain = NULL;
+
 			hdr = dkimf_findheader(dfc, conf->conf_identityhdr, 0);
 			if (hdr != NULL)
 			{
-				u_char *user;
-				u_char *domain;
-
 				status = dkim_mail_parse(hdr->hdr_val,
-				                         &user, &domain);
-				if (status == 0 && domain != NULL)
+				                         &iuser, &idomain);
+				if (status == 0 && idomain != NULL)
 				{
 					snprintf((char *) identity,
 					         sizeof identity,
 						 "%s@%s",
-						 user == NULL ? ""
-					                      : (char *) user,
-						 domain);
+						 iuser == NULL ? ""
+					                       : (char *) iuser,
+						 idomain);
 					idset = TRUE;
 				}
 			}

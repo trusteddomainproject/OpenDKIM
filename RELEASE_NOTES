@@ -4,6 +4,8 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.10.1		2015/??/??
+	Fix bug #214: Handle arbitrarily large From: fields.  Reported by
+		Tomohiko Sasaki.
 	LIBOPENDKIM: Fix bug #213: Remove "dkim_default_senderhdrs" from
 		dkim.h.  Problem noted by Daniel J. Luke.
 
