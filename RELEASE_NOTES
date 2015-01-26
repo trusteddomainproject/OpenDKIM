@@ -4,7 +4,8 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.10.1		2015/??/??
-	LIBOPENDKIM: Remove "dkim_default_senderhdrs" from dkim.h.
+	LIBOPENDKIM: Fix bug #213: Remove "dkim_default_senderhdrs" from
+		dkim.h.  Problem noted by Daniel J. Luke.
 
 2.10.0		2014/12/27
 	Feature request #182: Remove "AddAllSignatureResults".  All signature
