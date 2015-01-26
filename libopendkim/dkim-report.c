@@ -270,7 +270,8 @@ dkim_repinfo(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	if (txtfound == NULL)
 	{
 		dkim_error(dkim, "'%s' reply was unresolved CNAME", query);
-		return DKIM_STAT_CANTVRFY;
+		buf[0] = '\0';
+		return DKIM_STAT_OK;
 	}
 
 	/* come back to the one we found */

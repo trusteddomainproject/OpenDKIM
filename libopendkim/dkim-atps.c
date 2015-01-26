@@ -426,8 +426,8 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	if (txtfound == NULL)
 	{
 		dkim_error(dkim, "'%s' reply was unresolved CNAME", query);
-		*res = DKIM_ATPS_UNKNOWN;
-		return DKIM_STAT_CANTVRFY;
+		*res = DKIM_ATPS_NOTFOUND;
+		return DKIM_STAT_OK;
 	}
 
 	/* come back to the one we found */

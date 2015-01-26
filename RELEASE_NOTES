@@ -6,6 +6,9 @@ release, and a summary of the changes in that release.
 2.10.1		2015/??/??
 	Fix bug #214: Handle arbitrarily large From: fields.  Reported by
 		Tomohiko Sasaki.
+	LIBOPENDKIM: Fix bug #219: Unresolved CNAMEs are not failures,
+		according to the DNS (see RFC6604), so report them as
+		NXDOMAIN or similar.  Reported by Alessandro Vesely.
 	LIBOPENDKIM: Fix bug #213: Remove "dkim_default_senderhdrs" from
 		dkim.h.  Problem noted by Daniel J. Luke.
 

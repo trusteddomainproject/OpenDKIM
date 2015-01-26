@@ -355,7 +355,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	if (txtfound == NULL)
 	{
 		dkim_error(dkim, "'%s' reply was unresolved CNAME", qname);
-		return DKIM_STAT_KEYFAIL;
+		return DKIM_STAT_NOKEY;
 	}
 
 	/* come back to the one we found */
