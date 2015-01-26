@@ -1903,9 +1903,6 @@ extern const char *dkim_getsslbuf __P((DKIM *dkim));
 
 extern const char *dkim_sig_getsslbuf __P((DKIM_SIGINFO *sig));
 
-/* default list of sender headers */
-extern const u_char *dkim_default_senderhdrs[];
-
 /* list of headers that should be signed, per RFC6376 Section 5.4 */
 extern const u_char *dkim_should_signhdrs[]; 
 
