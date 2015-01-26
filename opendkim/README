@@ -265,7 +265,6 @@ domain to one or more of these auto-responders:
 	sa-test@sendmail.net
         check-auth@verifier.port25.com
 	autorespond+dkim@dk.elandsys.com
-        test@dkimtest.jason.long.name
 	dktest@exhalus.net
 	dkim-test@altn.com
 	dktest@blackops.org
