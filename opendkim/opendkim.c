@@ -2654,6 +2654,7 @@ dkimf_xs_dbhandle(lua_State *l)
 		else
 			lua_pushlightuserdata(l, conf->conf_signtabledb);
 		break;
+
 	  default:
 		lua_pushnil(l);
 		break;

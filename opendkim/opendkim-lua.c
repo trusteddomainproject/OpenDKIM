@@ -509,6 +509,8 @@ dkimf_lua_setup_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_setglobal(l, "DB_MTAS");
 	lua_pushnumber(l, DB_MACROS);
 	lua_setglobal(l, "DB_MACROS");
+	lua_pushnumber(l, DB_SIGNTABLE);
+	lua_setglobal(l, "DB_SIGNTABLE");
 
 	/* set result code */
 	lua_pushnumber(l, SMFIS_TEMPFAIL);
@@ -662,6 +664,8 @@ dkimf_lua_screen_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_setglobal(l, "DB_MTAS");
 	lua_pushnumber(l, DB_MACROS);
 	lua_setglobal(l, "DB_MACROS");
+	lua_pushnumber(l, DB_SIGNTABLE);
+	lua_setglobal(l, "DB_SIGNTABLE");
 
 	/* milter context */
 	lua_pushlightuserdata(l, ctx);
