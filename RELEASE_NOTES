@@ -4,7 +4,7 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.10.1		2015/??/??
-	Make DB_SIGNTABLE symbol available in Lua scripts.  Problem noted
+	Make DB_SIGNINGTABLE symbol available in Lua scripts.  Problem noted
 		by Klaus Heinrich.
 	Fix bug #214: Handle arbitrarily large From: fields.  Reported by
 		Tomohiko Sasaki.
