@@ -3002,8 +3002,8 @@ dkim_headercheck(DKIM *dkim)
 	if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_STRICTHDRS) != 0)
 	{
 		int status;
-		char *user;
-		char *domain;
+		unsigned char *user;
+		unsigned char *domain;
 
 		/* Date (must be exactly one) */
 		hdr = dkim_get_header(dkim, "Date", 4, 0);

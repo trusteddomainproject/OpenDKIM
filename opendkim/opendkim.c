@@ -11512,7 +11512,7 @@ mlfi_eoh(SMFICTX *ctx)
 	char *vbr_type = NULL;
 #endif /* _FFR_VBR */
 	struct dkimf_config *conf;
-	struct dkimf_dstr *addr;
+	struct dkimf_dstring *addr;
 	Header from = NULL;
 	Header hdr;
 
