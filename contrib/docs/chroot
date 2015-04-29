@@ -32,13 +32,13 @@ is really present.
 setting up resolving
 ====================
 The next point is only required if opendkim is compiled with the optional code
-option "USE_UNBOUND" and you activated "UnboundConfigFile" in opendkim.conf.
+option "USE_UNBOUND" and you activated "ResolverConfiguration" in opendkim.conf.
 Then you must place the unbound configuration file inside /path/to/chroot. If
 your unbound.conf includes other files such dnssec keys, these file must also
 be placed inside /path/to/chroot.
 
   opendkim.conf:
-  UnboundConfigFile	/inside_chroot/unbound.conf
+  ResolverConfiguration	/inside_chroot/unbound.conf
 
 setup entropie
 ==============
