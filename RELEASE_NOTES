@@ -4,6 +4,9 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.10.2		2015/??/??
+	Fix bug #221: Report a DKIM result of "policy" if MinimumKeyBits
+		or UnprotectedKey cause the signature to result in a "pass"
+		override.  Reported by Kurt Roeckx.
 	LIBOPENDKIM: Fix bug #226: Deal with header fields that are
 		wrpaped before there's any content.  Reported by
 		Alessandro Vesely.

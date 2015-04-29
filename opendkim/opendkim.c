@@ -10560,6 +10560,19 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 			{
 				result = "temperror";
 			}
+			else if (sigerror == DKIM_SIGERROR_KEYTOOSMALL)
+			{
+				const char *err;
+
+				result = "policy";
+
+				err = dkim_sig_geterrorstr(dkim_sig_geterror(sigs[c]));
+				if (err != NULL)
+				{
+					snprintf(comment, sizeof comment,
+					         " reason=\"%s\"", err);
+				}
+			}
 			else if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PROCESSED) != 0 &&
 			         ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) == 0 ||
 			          dkim_sig_getbh(sigs[c]) != DKIM_SIGBH_MATCH))
@@ -10598,6 +10611,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 				if (conf->conf_unprotectedkey == DKIMF_KEYACTIONS_FAIL)
 				{
 					*status = DKIMF_STATUS_BAD;
+					result = "policy";
 				}
 				else if (conf->conf_unprotectedkey == DKIMF_KEYACTIONS_NEUTRAL)
 				{
