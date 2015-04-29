@@ -5,8 +5,29 @@
 ##
 
 ##
-##  For settings that refer to a "dataset", see the opendkim(8) man page.
+## For settings that refer to a "dataset", see the opendkim(8) man page.
 ##
+
+## DEPRECATED CONFIGURATION OPTIONS
+## 
+## The following configuration options are no longer valid.  They should be
+## removed from your existing configuration file to prevent potential issues.
+## Failure to do so may result in opendkim being unable to start.
+## 
+## Removed in 2.10.0:
+##   AddAllSignatureResults
+##   ADSPAction
+##   ADSPNoSuchDomain
+##   BogusPolicy
+##   DisableADSP
+##   LDAPSoftStart
+##   LocalADSP
+##   NoDiscardableMailTo
+##   On-PolicyError
+##   SendADSPReports
+##   UnprotectedPolicy
+
+## CONFIGURATION OPTIONS
 
 ##  AllowSHA1Only { yes | no }
 ##  	default "no"
