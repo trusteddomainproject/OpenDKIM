@@ -7,6 +7,8 @@ release, and a summary of the changes in that release.
 	Fix bug #221: Report a DKIM result of "policy" if MinimumKeyBits
 		or UnprotectedKey cause the signature to result in a "pass"
 		override.  Reported by Kurt Roeckx.
+	Fix bug #227: Revert removal of SenderHeaders configuration setting.
+		Document that it is now limited to signature selection.
 	LIBOPENDKIM: Fix bug #226: Deal with header fields that are
 		wrpaped before there's any content.  Reported by
 		Alessandro Vesely.

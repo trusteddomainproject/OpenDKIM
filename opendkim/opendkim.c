@@ -392,6 +392,8 @@ struct dkimf_config
 	char **		conf_omithdrs;		/* headers to omit (array) */
 	DKIMF_DB	conf_signhdrsdb;	/* headers to sign (DB) */
 	char **		conf_signhdrs;		/* headers to sign (array) */
+	DKIMF_DB	conf_senderhdrsdb;	/* sender headers (DB) */
+	char **		conf_senderhdrs;	/* sender headers (array) */
 	DKIMF_DB	conf_mtasdb;		/* MTA ports to sign (DB) */
 	char **		conf_mtas;		/* MTA ports to sign (array) */
 	DKIMF_DB	conf_remardb;		/* A-R removal list (DB) */
@@ -5923,6 +5925,9 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_signhdrsdb != NULL)
 		dkimf_db_close(conf->conf_signhdrsdb);
 
+	if (conf->conf_senderhdrsdb != NULL)
+		dkimf_db_close(conf->conf_senderhdrsdb);
+
 	if (conf->conf_oversigndb != NULL)
 		dkimf_db_close(conf->conf_oversigndb);
 
@@ -7332,6 +7337,33 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			         str, dberr);
 			return -1;
 		}
+	}
+
+	str = NULL;
+	if (data != NULL)
+		(void) config_get(data, "SenderHeaders", &str, sizeof str);
+	if (str != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_senderhdrsdb, str,
+		                       (dbflags |
+		                        DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, dberr);
+			return -1;
+		}
+
+		status = dkimf_db_mkarray(conf->conf_senderhdrsdb,
+		                          &conf->conf_senderhdrs,
+		                          NULL);
+		if (status == -1)
+			return -1;
 	}
 
 #ifdef _FFR_VBR
@@ -11558,12 +11590,26 @@ mlfi_eoh(SMFICTX *ctx)
 	}
 #endif /* _FFR_SENDER_MACRO */
 
-	if (dkimf_dstring_len(addr) == 0)
+  	if (dkimf_dstring_len(addr) == 0)
 	{
-		from = dkimf_findheader(dfc, "from", 0);
-		if (from != NULL)
-			dkimf_dstring_copy(addr, from->hdr_val);
+		for (c = 0; conf->conf_senderhdrs != NULL &&
+                            conf->conf_senderhdrs[c] != NULL; c++)
+		{
+			if (strcasecmp("from", conf->conf_senderhdrs[c]) == 0)
+				didfrom = TRUE;
+
+			from = dkimf_findheader(dfc, conf->conf_senderhdrs[c],
+			                        0);
+			if (from != NULL)
+				break;
+		}
+
+		if (from == NULL && !didfrom)
+			from = dkimf_findheader(dfc, "from", 0);
 	}
+  
+  	if (from != NULL)
+		dkimf_dstring_copy(addr, from->hdr_val);
 
 	if (dkimf_dstring_len(addr) == 0)
 	{

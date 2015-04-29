@@ -898,6 +898,16 @@ This parameter is ignored if a
 is defined.
 
 .TP
+.I SenderHeaders (dataset)
+Specifies an ordered list of header fields that should be searched to
+determine the sender of a message.  The first header field found is the
+one whose value is used.  This is mainly used when signing
+for deciding which signing request(s) to make.  By default, the "From"
+header field is the only one checked.  See the
+.I OmitHeaders
+setting for a description of possible values.
+
+.TP
 .I SenderMacro (string)
 Use the milter macro string to determine the sender of the message.
 @SENDER_MACRO_MANNOTICE@

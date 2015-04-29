@@ -185,6 +185,7 @@ struct configdef dkimf_config[] =
 #endif /* USE_LUA */
 	{ "Selector",			CONFIG_TYPE_STRING,	FALSE },
 	{ "SelectCanonicalizationHeader", CONFIG_TYPE_STRING,	FALSE },
+	{ "SenderHeaders",		CONFIG_TYPE_STRING,	FALSE },
 #ifdef _FFR_SENDER_MACRO
 	{ "SenderMacro",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_SENDER_MACRO */

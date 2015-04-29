@@ -550,6 +550,15 @@ KeyFile			/var/db/dkim/example.private
 
 Selector		my-selector-name
 
+##  SenderHeaders 	dataset
+##  	default (none)
+##
+##  Overrides the default list of headers that will be used to determine
+##  the sending domain when deciding whether to sign the message and with
+##  with which key(s).  See opendkim.conf(5) for details.
+
+# SenderHeaders		From
+
 ##  SendReports { yes | no }
 ##  	default "no"
 ##
@@ -590,13 +599,14 @@ Selector		my-selector-name
 ##
 ##  Defines a dataset that will be queried for the message sender's address
 ##  to determine which private key(s) (if any) should be used to sign the
-##  message.  The sender is determined from the value of the From:
-##  header field.  The key for this lookup should be an address or address
-##  pattern that matches senders; see the opendkim.conf(5) man page for
-##  more information.  The value of the lookup should return the name of a
-##  key found in the KeyTable that should be used to sign the message.  If
-##  MultipleSignatures is set, all possible lookup keys will be attempted
-##  which may result in multiple signatures being applied.
+##  message.  The sender is determined from the value of the sender
+##  header fields as described with SenderHeaders above.  The key for this
+##  lookup should be an address or address pattern that matches senders;
+##  see the opendkim.conf(5) man page for more information.  The value
+##  of the lookup should return the name of a key found in the KeyTable
+##  that should be used to sign the message.  If MultipleSignatures
+##  is set, all possible lookup keys will be attempted which may result
+##  in multiple signatures being applied.
 
 # SigningTable		filename
 
