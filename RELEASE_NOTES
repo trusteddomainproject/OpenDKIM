@@ -12,6 +12,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Fix bug #226: Deal with header fields that are
 		wrpaped before there's any content.  Reported by
 		Alessandro Vesely.
+	CONTRIB: Update to contrib/systemd/opendkim.service.in from
+		Steve Jenkins.
 
 2.10.1		2015/02/03
 	Fix bug #214: Handle arbitrarily large From: fields.  Reported by
