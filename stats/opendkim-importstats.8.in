@@ -22,7 +22,7 @@ for the tool.
 
 .TP
 .I \-d name
-(or --dbname=name)
+(or \-\-dbname=name)
 Specifies the name of the SQL database into which records should be
 imported.  The default is
 .I opendkim.
@@ -36,7 +36,7 @@ When a malformed line is detected in the input, write the parsed data to
 standard error.
 .TP
 .I \-h host
-(or --dbhost=host)
+(or \-\-dbhost=host)
 Names the host to which an SQL connection should be made.  The default is
 "localhost".
 .TP
@@ -45,12 +45,12 @@ Input is in the form of an email message, so do not start processing input
 until a blank line is encountered.
 .TP
 .I \-P port
-(or --dbport=port)
+(or \-\-dbport=port)
 Names the port to which an SQL connection should be made.  The default is
 determined by the scheme in use (see below).
 .TP
 .I \-p password
-(or --dbpasswd=password)
+(or \-\-dbpasswd=password)
 Specifies the password that should be used to authenticate to the SQL
 database.  The default is no password.
 .TP
@@ -61,12 +61,12 @@ Don't automatically add unknown reporters to the database.
 Don't skip duplicate message records and their associated signatures.
 .TP
 .I \-s scheme
-(or --dbscheme=scheme)
+(or \-\-dbscheme=scheme)
 Specifies the SQL scheme (backend) to be used to access the SQL database
 database.  The default is "@SQL_BACKEND@".
 .TP
 .I \-u user
-(or --dbuser=user)
+(or \-\-dbuser=user)
 Specifies the user that should be used to authenticate to the SQL
 database.  The default is
 .I opendkim.
