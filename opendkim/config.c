@@ -173,6 +173,7 @@ config_attach(struct config *c1, struct config **c2)
 **  	outpath -- configuration file in which error occurred (updated)
 **  	outpathlen -- bytes available at "outpath"
 **  	level -- nesting level
+**  	deprecated -- string containing list of deprecated items (updated)
 **
 **  Return value:
 **  	Pointer to a (struct config) which is the head of a list of
@@ -186,7 +187,7 @@ config_attach(struct config *c1, struct config **c2)
 static struct config *
 config_load_level(char *file, struct configdef *def,
                   unsigned int *line, char *outpath, size_t outpathlen,
-                  int level)
+                  int level, char **deprecated)
 {
 	int n = -1;
 	int err = 0;
@@ -287,6 +288,38 @@ config_load_level(char *file, struct configdef *def,
 
 				switch (def[n].cd_type)
 				{
+				  case CONFIG_TYPE_DEPRECATED:
+					if (deprecated == NULL)
+					{
+						break;
+					}
+					else if (*deprecated == NULL)
+					{
+						*deprecated = strdup(def[n].cd_name);
+					}
+					else
+					{
+						char *new;
+						size_t oldlen;
+						size_t newlen;
+
+						oldlen = strlen(*deprecated);
+						newlen = oldlen + 2 + 
+						         strlen(def[n].cd_name);
+						new = realloc(*deprecated,
+						              newlen);
+						if (new != NULL)
+						{
+							new[oldlen] = ',';
+							new[oldlen + 1] = '\0';
+							strlcat(*deprecated,
+							        def[n].cd_name,
+							        newlen);
+							*deprecated = new;
+						}
+					}
+					break;
+
 				  case CONFIG_TYPE_STRING:
 				  case CONFIG_TYPE_INCLUDE:
 					str = p;
@@ -359,7 +392,8 @@ config_load_level(char *file, struct configdef *def,
 			return NULL;
 		}
 
-		if (def[n].cd_type != CONFIG_TYPE_INCLUDE)
+		if (def[n].cd_type != CONFIG_TYPE_INCLUDE &&
+		    def[n].cd_type != CONFIG_TYPE_DEPRECATED)
 		{
 			new = (struct config *) malloc(sizeof(struct config));
 			if (new == NULL)
@@ -392,7 +426,7 @@ config_load_level(char *file, struct configdef *def,
 			struct config *incl;
 
 			incl = config_load_level(str, def, line, outpath,
-			                         outpathlen, level + 1);
+			                         outpathlen, level + 1, deprecated);
 			if (incl == NULL)
 			{
 				if (in != stdin)
@@ -418,6 +452,9 @@ config_load_level(char *file, struct configdef *def,
 
 		  case CONFIG_TYPE_INTEGER:
 			new->cfg_int = value;
+			break;
+
+		  case CONFIG_TYPE_DEPRECATED:
 			break;
 
 		  default:
@@ -560,11 +597,11 @@ config_free(struct config *head)
 
 struct config *
 config_load(char *file, struct configdef *def, unsigned int *line,
-            char *path, size_t pathlen)
+            char *path, size_t pathlen, char **deprecated)
 {
 	conf_error = CONF_UNKNOWN;
 
-	return config_load_level(file, def, line, path, pathlen, 0);
+	return config_load_level(file, def, line, path, pathlen, 0, deprecated);
 }
 
 /*
@@ -721,7 +758,8 @@ config_validname(struct configdef *def, const char *name)
 		if (def[n].cd_name == NULL)
 			return FALSE;
 
-		if (strcasecmp(name, def[n].cd_name) == 0)
+		if (strcasecmp(name, def[n].cd_name) == 0 &&
+		    def[n].cd_type != CONFIG_TYPE_DEPRECATED)
 			return TRUE;
 	}
 

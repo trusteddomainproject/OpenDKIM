@@ -30,6 +30,7 @@
 [\-V]
 [\-W]
 [\-x configfile]
+[\-X]
 .SH DESCRIPTION
 .B opendkim
 implements the 
@@ -432,6 +433,17 @@ reload occurs.  The OPERATION section describes how reloads are triggered.
 The default is to read a configuration file from
 .I @SYSCONFDIR@/opendkim.conf
 if one exists, or otherwise to apply defaults to all values.
+.TP
+.I \-X
+Tolerates configuration file items that have been internally marked as "deprecated".
+Normally when a configuration file item is removed from the package, it is flagged
+in this way for at least one full release cycle.  The presence of a deprecated
+configuration file item typically causes the filter to return an error and refuse to
+start.  Setting this flag will allow the filter to start and a warning is logged.
+In some future release when the item is removed completely, a different error
+results, and it will not be possible to start the filter.  Use of this flag is
+NOT RECOMMENDED; it could effectively hide a major configuration change with serious
+security implications.
 .SH OPERATION
 A message will be verified unless it conforms to the signing criteria,
 which are: (1) the domain on the From: address (if present) must be listed

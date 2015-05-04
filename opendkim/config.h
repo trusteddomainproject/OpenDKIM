@@ -2,7 +2,7 @@
 **  Copyright (c) 2006-2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2009-2012, 2015, The Trusted Domain Project.  All rights reserved.
 **
 */
 
@@ -23,6 +23,7 @@
 #define	CONFIG_TYPE_INTEGER	1
 #define	CONFIG_TYPE_BOOLEAN	2
 #define	CONFIG_TYPE_INCLUDE	3
+#define	CONFIG_TYPE_DEPRECATED	4
 
 struct config
 {
@@ -48,7 +49,7 @@ extern char *config_error __P((void));
 extern void config_free __P((struct config *));
 extern int config_get __P((struct config *, const char *, void *, size_t));
 extern struct config *config_load __P((char *, struct configdef *,
-                                       unsigned int *, char *, size_t));
+                                       unsigned int *, char *, size_t, char **));
 extern _Bool config_validname __P((struct configdef *, const char *));
 
 #endif /* _CONFIG_H_ */

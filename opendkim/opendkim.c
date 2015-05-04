@@ -136,7 +136,7 @@
 #endif /* _FFR_REPUTATION */
 
 /* macros */
-#define CMDLINEOPTS	"Ab:c:d:De:fF:k:lL:no:p:P:Qrs:S:t:T:u:vVWx:?"
+#define CMDLINEOPTS	"Ab:c:d:De:fF:k:lL:no:p:P:Qrs:S:t:T:u:vVWx:X?"
 
 #ifndef MIN
 # define MIN(x,y)	((x) < (y) ? (x) : (y))
@@ -744,6 +744,7 @@ _Bool dolog;					/* logging? (exported) */
 _Bool reload;					/* reload requested */
 _Bool no_i_whine;				/* noted ${i} is undefined */
 _Bool testmode;					/* test mode */
+_Bool allowdeprecated;				/* allow deprecated config values */
 #ifdef QUERY_CACHE
 _Bool querycache;				/* local query cache */
 #endif /* QUERY_CACHE */
@@ -6489,24 +6490,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 		if (!conf->conf_addswhdr)
 		{
-			(void) config_get(data, "X-Header",
+			(void) config_get(data, "SoftwareHeader",
 			                  &conf->conf_addswhdr,
 			                  sizeof conf->conf_addswhdr);
-
-			if (conf->conf_addswhdr)
-			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_WARNING,
-					       "\"X-Header\" deprecated; use \"SoftwareHeader\" instead");
-				}
-			}
-			else
-			{
-				(void) config_get(data, "SoftwareHeader",
-				                  &conf->conf_addswhdr,
-				                  sizeof conf->conf_addswhdr);
-			}
 		}
 
 		(void) config_get(data, "DomainKeysCompat",
@@ -8795,12 +8781,13 @@ dkimf_config_reload(void)
 		struct config *cfg;
 		char *missing;
 		char *errstr = NULL;
+		char *deprecated = NULL;
 		char path[MAXPATHLEN + 1];
 
 		strlcpy(path, conffile, sizeof path);
 
 		cfg = config_load(conffile, dkimf_config, &line,
-		                  path, sizeof path);
+		                  path, sizeof path, &deprecated);
 
 		if (cfg == NULL)
 		{
@@ -8812,6 +8799,26 @@ dkimf_config_reload(void)
 			}
 			dkimf_config_free(new);
 			err = TRUE;
+		}
+
+		if (deprecated != NULL)
+		{
+			char *action = "aborting";
+			if (allowdeprecated)
+				action = "continuing";
+
+			if (curconf->conf_dolog)
+			{
+				syslog(LOG_WARNING,
+				       "%s: settings found for deprecated value(s): %s; %s",
+				        path, deprecated, action);
+			}
+
+			if (!allowdeprecated)
+			{
+				dkimf_config_free(new);
+				err = TRUE;
+			}
 		}
 
 		if (!err)
@@ -15551,6 +15558,10 @@ main(int argc, char **argv)
 				conffile = optarg;
 			break;
 
+		  case 'X':
+			allowdeprecated = TRUE;
+			break;
+
 		  default:
 			return usage();
 		}
@@ -15592,10 +15603,11 @@ main(int argc, char **argv)
 	{
 		u_int line = 0;
 		char *missing;
+		char *deprecated = NULL;
 		char path[MAXPATHLEN + 1];
 
 		cfg = config_load(conffile, dkimf_config,
-		                  &line, path, sizeof path);
+		                  &line, path, sizeof path, &deprecated);
 
 		if (cfg == NULL)
 		{
@@ -15620,6 +15632,24 @@ main(int argc, char **argv)
 			config_free(cfg);
 			dkimf_config_free(curconf);
 			return EX_CONFIG;
+		}
+
+		if (deprecated != NULL)
+		{
+			char *action = "aborting";
+			if (allowdeprecated)
+				action = "continuing";
+
+			fprintf(stderr,
+			        "%s: %s: settings found for deprecated value(s): %s; %s\n",
+			        progname, conffile, deprecated, action);
+
+			if (!allowdeprecated)
+			{
+				config_free(cfg);
+				dkimf_config_free(curconf);
+				return EX_CONFIG;
+			}
 		}
 	}
 

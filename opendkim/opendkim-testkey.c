@@ -308,7 +308,7 @@ main(int argc, char **argv)
 		char path[MAXPATHLEN + 1];
 
 		cfg = config_load(conffile, dkimf_config, &line,
-		                  path, sizeof path);
+		                  path, sizeof path, NULL);
 
 		if (cfg == NULL)
 		{

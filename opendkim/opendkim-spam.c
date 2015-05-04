@@ -239,7 +239,7 @@ main(int argc, char **argv)
 
 		memset(path, '\0', sizeof path);
 		conf = config_load(conffile, spam_config, &line,
-		                   path, sizeof path);
+		                   path, sizeof path, NULL);
 
 		if (conf == NULL)
 		{
