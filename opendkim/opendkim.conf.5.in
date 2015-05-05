@@ -815,7 +815,7 @@ below). If multiple addresses are required, they should be comma separated.
 .TP
 .I RequestReports (boolean)
 When signing, includes a request for signature evaluation failures in the
-signature.  (See draft-ietf-marf-dkim-reporting for details.)
+signature.  (See RFC6651 for details.)
 
 .TP
 .I RequiredHeaders (boolean)
