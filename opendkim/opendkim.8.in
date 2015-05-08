@@ -69,7 +69,7 @@ In particular:
 If the string begins with "file:", then the remainder of the string is
 presumed to refer to a flat file that contains elements of the data set,
 one per line.  If a line contains whitespace-separated values, then the
-line is preusmed to define a key and its corresponding value.  Blank lines
+line is presumed to define a key and its corresponding value.  Blank lines
 are ignored, and the hash ("#") character denotes the start of a comment.
 If a value contains multiple entries, the entries should be separated by
 colons.
