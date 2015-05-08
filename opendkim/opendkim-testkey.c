@@ -12,8 +12,6 @@
 # define _REENTRANT
 #endif /* _REENTRANT */
 
-#include "build-config.h"
-
 /* system includes */
 #include <sys/types.h>
 #include <sys/stat.h>

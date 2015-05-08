@@ -914,12 +914,13 @@ Use the milter macro string to determine the sender of the message.
 
 .TP
 .I SendReports (Boolean)
-If true, when a signature verification fails and the signing site advertises a
+If true, when a signature verification fails and the signature included
+a reporting request ("r=y") and the signing domain advertises a
 reporting address (i.e.
-.I r=user
-in its policy record) and a request for reports of such failures, the filter
-will send a structured report to that address containing details needed to
-reproduce the problem.
+.I ra=user)
+in a reporting record in the DNS, the filter will send a structured report
+to that address containing details needed to reproduce the problem.  See
+RFC6651 for a complete description of this mechanism.
 
 .TP
 .I SetupPolicyScript (string)
@@ -1252,7 +1253,7 @@ This man page covers version @VERSION@ of
 Copyright (c) 2007, 2008, Sendmail, Inc. and its suppliers.  All rights
 reserved.
 
-Copyright (c) 2009-2014, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2009-2015, The Trusted Domain Project.  All rights reserved.
 .SH SEE ALSO
 .I opendkim(8), opendkim-lua(3), sendmail(8)
 .P
@@ -1266,3 +1267,5 @@ RFC6008 - Authentication-Results Registration for Differentiating among
 Cryptographic Results
 .P
 RFC6376 - DomainKeys Identified Mail
+.P
+RFC6651 - Extensions to DomainKeys Identified Mail (DKIM) for Failure Reporting
