@@ -106,6 +106,9 @@ struct dkim_plist
 struct dkim_set
 {
 	_Bool			set_bad;
+#ifdef _FFR_CONDITIONAL
+	u_int			set_minv;
+#endif /* _FFR_CONDITIONAL */
 	dkim_set_t		set_type;
 	u_char *		set_data;
 	const char *		set_name;

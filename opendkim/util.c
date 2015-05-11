@@ -132,6 +132,10 @@ static char *optlist[] =
 	"_FFR_ATPS",
 #endif /* _FFR_ATPS */
 
+#ifdef _FFR_CONDITIONAL
+	"_FFR_CONDITIONAL",
+#endif /* _FFR_CONDITIONAL */
+
 #ifdef _FFR_DEFAULT_SENDER
 	"_FFR_DEFAULT_SENDER",
 #endif /* _FFR_DEFAULT_SENDER */

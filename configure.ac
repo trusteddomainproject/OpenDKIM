@@ -13,8 +13,8 @@ AC_PREREQ(2.61)
 # Package version
 #
 m4_define([VERSION_RELEASE], 2)
-m4_define([VERSION_MAJOR_REV], 10)
-m4_define([VERSION_MINOR_REV], 2)
+m4_define([VERSION_MAJOR_REV], 11)
+m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -358,6 +358,9 @@ FEATURE([poll], [use poll() instead of select()])
 FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
 LIB_FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
 AM_CONDITIONAL([ATPS], [test x"$enable_atps" = x"yes"])
+
+FFR_FEATURE([conditional], [experimental conditional signatures])
+LIB_FFR_FEATURE([conditional], [experimental conditional signatures])
 
 FFR_FEATURE([db_handle_pools], [experimental database handle pools])
 

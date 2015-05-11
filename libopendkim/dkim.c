@@ -520,6 +520,9 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 	set->set_type = type;
 	settype = dkim_code_to_name(settypes, type);
 	set->set_name = name;
+#ifdef _FFR_CONDITIONAL
+	set->set_minv = 1;
+#endif /* _FFR_CONDITIONAL */
 
 	if (!syntax)
 	{
@@ -558,8 +561,16 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 			{
 				continue;
 			}
+#ifdef _FFR_CONDITIONAL
+			else if (isalnum(*p) || *p == '!')
+#else /* _FFR_CONDITIONAL */
 			else if (isalnum(*p))
+#endif /* _FFR_CONDITIONAL */
 			{
+#ifdef _FFR_CONDITIONAL
+				if (*p == '!')
+					set->set_minv = 2;
+#endif /* _FFR_CONDITIONAL */
 				param = p;
 				state = 1;
 			}
@@ -763,6 +774,44 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 			return DKIM_STAT_SYNTAX;
 		}
 
+#ifdef _FFR_CONDITIONAL
+		/* confirm we have the right signature version */
+		if (set->set_minv > 1)
+		{
+			uint64_t tmp = 0;
+			char *end;
+
+			value = dkim_param_get(set, (u_char *) "v");
+			errno = 0;
+
+			tmp = strtoull((char *) value, &end, 10);
+
+			if (tmp == 0 || errno != 0 || *end != '\0')
+			{
+				dkim_error(dkim,
+				           "invalid \"v\" value in %s data",
+				           settype);
+				if (syntax)
+					dkim_set_free(dkim, set);
+				else
+					set->set_bad = TRUE;
+				return DKIM_STAT_SYNTAX;
+			}
+
+			if (tmp < set->set_minv)
+			{
+				dkim_error(dkim,
+				           "version %s %s too low for parameters used",
+				           value, settype);
+				if (syntax)
+					dkim_set_free(dkim, set);
+				else
+					set->set_bad = TRUE;
+				return DKIM_STAT_SYNTAX;
+			}
+		}
+#endif /* _FFR_CONDITIONAL */
+		
 		/* test validity of "t" and "x" */
 		value = dkim_param_get(set, (u_char *) "t");
 		if (value != NULL)
@@ -5588,9 +5637,64 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		}
 	}
 
+#ifdef _FFR_CONDITIONAL
+	/* so far so good... */
+	if (sig->sig_error == DKIM_SIGERROR_UNKNOWN &&
+	    sig->sig_bh != DKIM_SIGBH_UNTESTED)
+	{
+		/* recurse if this was a conditional signature */
+		if (sig->sig_bh == DKIM_SIGBH_MATCH)
+		{
+			char *fs;
+
+			fs = (char *) dkim_param_get(sig->sig_taglist,
+			                             (u_char *) "!fs");
+			if (fs != NULL)
+			{
+				_Bool found;
+				int c;
+				DKIM_SIGINFO *fsig;
+
+				/* find every match */ 
+				found = FALSE;
+
+				for (c = 0; c < dkim->dkim_sigcount; c++)
+				{
+					fsig = dkim->dkim_siglist[c];
+
+					if (strcasecmp(dkim_sig_getdomain(fsig),
+					               fs) == 0 &&
+					    (fsig->sig_flags & DKIM_SIGFLAG_PROCESSED) == 0)
+					{
+						status = dkim_sig_process(dkim,
+						                          fsig);
+						if (status != DKIM_STAT_OK)
+							return status;
+
+						if ((fsig->sig_flags & DKIM_SIGFLAG_PASSED) != 0 &&
+						    fsig->sig_bh == DKIM_SIGBH_MATCH &&
+						    dkim_param_get(fsig->sig_taglist,
+						                   (u_char *) "!fs") == NULL)
+						{
+							found = TRUE;
+							break;
+						}
+					}
+				}
+
+				if (!found)
+					sig->sig_error = DKIM_SIGERROR_CONDITIONAL;
+			}
+		}
+
+		if (sig->sig_error == DKIM_SIGERROR_UNKNOWN)
+			sig->sig_error = DKIM_SIGERROR_OK;
+	}
+#else /* _FFR_CONDITIONAL */
 	if (sig->sig_error == DKIM_SIGERROR_UNKNOWN &&
 	    sig->sig_bh != DKIM_SIGBH_UNTESTED)
 		sig->sig_error = DKIM_SIGERROR_OK;
+#endif /* _FFR_CONDITIONAL */
 
 	return DKIM_STAT_OK;
 }
