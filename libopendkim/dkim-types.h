@@ -309,6 +309,9 @@ struct dkim
 	u_char *		dkim_reportaddr;
 	u_char *		dkim_sender;
 	u_char *		dkim_signer;
+#ifdef _FFR_CONDITIONAL
+	u_char *		dkim_conditional;
+#endif /* _FFR_CONDITIONAL */
 	u_char *		dkim_error;
 	u_char *		dkim_hdrlist;
 	u_char *		dkim_zdecode;

@@ -1835,6 +1835,10 @@ dkim_sig_versionok(DKIM *dkim, DKIM_SET *set)
 	/* check for DKIM_VERSION_SIG */
 	if (strcmp(v, DKIM_VERSION_SIG) == 0)
 		return TRUE;
+#ifdef _FFR_CONDITIONAL
+	if (strcmp(v, DKIM_VERSION_SIG2) == 0)
+		return TRUE;
+#endif /* _FFR_CONDITIONAL */
 
 	/* check for DKIM_VERSION_SIGOLD if allowed */
 	if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_ACCEPTV05) &&
@@ -1923,6 +1927,7 @@ dkim_siglist_setup(DKIM *dkim)
 			continue;
 		}
 
+		/* defaults */
 		dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_UNKNOWN;
 		dkim->dkim_siglist[c]->sig_dnssec_key = DKIM_DNSSEC_UNKNOWN;
 
@@ -2113,6 +2118,7 @@ dkim_siglist_setup(DKIM *dkim)
 		hdrlist = param;
 
 		/* determine signing length */
+		signlen = (ssize_t) -1;
 		param = dkim_param_get(set, (u_char *) "l");
 		if (param != NULL)
 		{
@@ -2371,6 +2377,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	size_t hashlen;
 	char *format;
 	u_char *hash;
+	u_char *v;
 	struct dkim_header *hdr;
 	u_char tmp[DKIM_MAXHEADER + 1];
 	u_char b64hash[DKIM_MAXHEADER + 1];
@@ -2438,8 +2445,12 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	else 
 		format = "v=%s;%sa=%s;%sc=%s/%s;%sd=%s;%ss=%s;%st=%u";
 
+	v = DKIM_VERSION_SIG;
+	if (dkim->dkim_conditional != NULL)
+		v = DKIM_VERSION_SIG2;
+
 	(void) dkim_dstring_printf(dstr, format,
-	                           DKIM_VERSION_SIG, delim,
+	                           v, delim,
 	                           dkim_code_to_name(algorithms,
 	                                             sig->sig_signalg),
 	                           delim,
@@ -2497,6 +2508,15 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		dkim_dstring_printf(dstr, ";%si=%s", delim,
 		                    dkim->dkim_signer);
 	}
+
+#ifdef _FFR_CONDITIONAL
+	if (dkim->dkim_conditional != NULL)
+	{
+		dkim_dstring_printf(dstr, ";%s!fs=%s", delim,
+		                    dkim->dkim_conditional);
+	}
+
+#endif /* _FFR_CONDITIONAL */
 
 	if (dkim->dkim_xtags != NULL)
 	{
@@ -5133,9 +5153,14 @@ dkim_sign(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 		new->dkim_selector = dkim_strdup(new, selector, 0);
 		new->dkim_domain = dkim_strdup(new, domain, 0);
 		if (length == (ssize_t) -1)
+		{
 			new->dkim_signlen = ULONG_MAX;
+		}
 		else
+		{
 			new->dkim_signlen = length;
+			new->dkim_partial = TRUE;
+		}
 	}
 
 	return new;
@@ -5663,22 +5688,24 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 					fsig = dkim->dkim_siglist[c];
 
 					if (strcasecmp(dkim_sig_getdomain(fsig),
-					               fs) == 0 &&
-					    (fsig->sig_flags & DKIM_SIGFLAG_PROCESSED) == 0)
+					               fs) != 0)
+						continue;
+
+					if ((fsig->sig_flags & DKIM_SIGFLAG_PROCESSED) == 0 ||
+					     fsig->sig_bh == DKIM_SIGBH_UNTESTED)
 					{
 						status = dkim_sig_process(dkim,
 						                          fsig);
 						if (status != DKIM_STAT_OK)
 							return status;
+					}
 
-						if ((fsig->sig_flags & DKIM_SIGFLAG_PASSED) != 0 &&
-						    fsig->sig_bh == DKIM_SIGBH_MATCH &&
-						    dkim_param_get(fsig->sig_taglist,
-						                   (u_char *) "!fs") == NULL)
-						{
-							found = TRUE;
-							break;
-						}
+					if (DKIM_SIG_CHECK(fsig) &&
+					    dkim_param_get(fsig->sig_taglist,
+					                   (u_char *) "!fs") == NULL)
+					{
+						found = TRUE;
+						break;
 					}
 				}
 
@@ -8303,6 +8330,30 @@ dkim_getcachestats(DKIM_LIB *lib, u_int *queries, u_int *hits, u_int *expired,
 #endif /* QUERY_CACHE */
 }
 
+/*
+**  DKIM_CONDITIONAL -- set conditional domain on a signature
+**
+**  Parameters:
+**  	dkim -- signing handle
+**  	domain -- domain name upon which this signature shall depend
+**
+**  Return value:
+**  	DKIM_STAT_OK -- request completed
+**  	DKIM_STAT_NOTIMPLEMENT -- function not implemented
+*/
+
+DKIM_STAT
+dkim_conditional(DKIM *dkim, u_char *domain)
+{
+#ifdef _FFR_CONDITIONAL
+	dkim->dkim_conditional = domain;
+	return DKIM_STAT_OK;
+#else /* _FFR_CONDITIONAL */
+	return DKIM_STAT_NOTIMPLEMENT;
+#endif /* _FFR_CONDITIONAL */
+}
+
+/*
 /*
 **  DKIM_GET_SIGSUBSTRING -- retrieve a minimal signature substring for
 **                           disambiguation

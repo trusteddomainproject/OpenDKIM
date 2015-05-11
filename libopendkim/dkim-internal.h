@@ -70,6 +70,9 @@
 /* version */
 #define	DKIM_VERSION_KEY	"DKIM1"	/* current version token for keys */
 #define	DKIM_VERSION_SIG	"1"	/* current version token for sigs */
+#ifdef _FFR_CONDITIONAL
+# define DKIM_VERSION_SIG2	"2"	/* new version token for sigs */
+#endif /* _FFR_CONDITIONAL */
 #define	DKIM_VERSION_SIGOLD	"0.5"	/* old version token for sigs */
 
 /* headers */

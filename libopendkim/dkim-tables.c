@@ -6,6 +6,8 @@
 **  	All rights reserved.
 */
 
+#include "build-config.h"
+
 /* system includes */
 #include <sys/types.h>
 #include <string.h>
