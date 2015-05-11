@@ -276,6 +276,9 @@ struct dkim
 	int			dkim_presult;
 	int			dkim_hdrcnt;
 	int			dkim_minsiglen;
+#ifdef _FFR_CONDITIONAL
+	int			dkim_cddepth;
+#endif /* _FFR_CONDITIONAL */
 #ifdef _FFR_RESIGN
 	u_int			dkim_refcnt;
 #endif /* _FFR_RESIGN */

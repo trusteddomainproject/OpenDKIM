@@ -5424,6 +5424,17 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 	if (sig->sig_error != DKIM_SIGERROR_UNKNOWN)
 		return DKIM_STAT_OK;
 
+#ifdef _FFR_CONDITIONAL
+	/* error out if we're recursing into conditional signatures too much */
+	if (dkim->dkim_cddepth >= DKIM_MAXCDDEPTH)
+	{
+		dkim_error(dkim,
+		           "too many levels of conditional signature indirection");
+		sig->sig_error = DKIM_SIGERROR_CONDLOOP;
+		return DKIM_STAT_CANTVRFY;
+	}
+#endif /* _FFR_CONDITIONAL */
+
 	/* skip the DNS part if we've already done it */
 	if ((sig->sig_flags & DKIM_SIGFLAG_PROCESSED) == 0)
 	{
@@ -5733,7 +5744,9 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 					if ((csig->sig_flags & DKIM_SIGFLAG_PROCESSED) == 0 ||
 					     csig->sig_bh == DKIM_SIGBH_UNTESTED)
 					{
+						dkim->dkim_cddepth++;
 						status = dkim_sig_process(dkim, csig);
+						dkim->dkim_cddepth--;
 						if (status != DKIM_STAT_OK)
 							return status;
 					}

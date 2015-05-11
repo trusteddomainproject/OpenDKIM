@@ -60,6 +60,7 @@
 
 #define	NPRINTABLE		95	/* number of printable characters */
 
+#define DKIM_MAXCDDEPTH		5	/* maximum !cd recursion */
 #define DKIM_MAXHEADER		4096	/* buffer for caching one header */
 #define	DKIM_MAXHOSTNAMELEN	256	/* max. FQDN we support */
 

@@ -176,6 +176,7 @@ static struct nametable prv_sigerrors[] =	/* signature parsing errors */
 	{ "signing key too small",		DKIM_SIGERROR_KEYTOOSMALL },
 #ifdef _FFR_CONDITIONAL
 	{ "conditional signature not satisfied", DKIM_SIGERROR_CONDITIONAL },
+	{ "too many signature indirections",	DKIM_SIGERROR_CONDLOOP },
 #endif /* _FFR_CONDITIONAL */
 	{ NULL,					-1 },
 };

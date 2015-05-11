@@ -157,6 +157,7 @@ typedef int DKIM_SIGERROR;
 #define	DKIM_SIGERROR_KEYTOOSMALL	46	/* too few key bits */
 #ifdef _FFR_CONDITIONAL
 # define DKIM_SIGERROR_CONDITIONAL	47	/* conditional sig error */
+# define DKIM_SIGERROR_CONDLOOP		48	/* conditional sig loop */
 #endif /* _FFR_CONDITIONAL */
 
 /* generic DNS error codes */
