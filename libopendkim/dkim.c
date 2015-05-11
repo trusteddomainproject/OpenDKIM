@@ -780,6 +780,7 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 		{
 			uint64_t tmp = 0;
 			char *end;
+			DKIM_PLIST *plist;
 
 			value = dkim_param_get(set, (u_char *) "v");
 			errno = 0;
@@ -803,6 +804,44 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 				dkim_error(dkim,
 				           "version %s %s too low for parameters used",
 				           value, settype);
+				if (syntax)
+					dkim_set_free(dkim, set);
+				else
+					set->set_bad = TRUE;
+				return DKIM_STAT_SYNTAX;
+			}
+
+			/* ensure all mandatory tags are supported */
+			for (plist = set->set_plist[DKIM_PHASH('!')];
+			     plist != NULL;
+			     plist = plist->plist_next)
+			{
+				if (dkim_name_to_code(mandatory,
+				                      plist->plist_param) == -1)
+				{
+					dkim_error(dkim,
+					           "unsupported mandatory tag %s",
+					           plist->plist_param);
+					if (syntax)
+						dkim_set_free(dkim, set);
+					else
+						set->set_bad = TRUE;
+					return DKIM_STAT_CANTVRFY;
+				}
+			}
+		}
+
+		value = dkim_param_get(set, (u_char *) "!cd");
+		if (value != NULL)
+		{
+			char *d;
+		
+			d = dkim_param_get(set, (u_char *) "d");
+
+			if (strcasecmp(value, d) == 0)
+			{
+				dkim_error(dkim,
+				           "conditional signature is self-referencing");
 				if (syntax)
 					dkim_set_free(dkim, set);
 				else
@@ -2512,7 +2551,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 #ifdef _FFR_CONDITIONAL
 	if (dkim->dkim_conditional != NULL)
 	{
-		dkim_dstring_printf(dstr, ";%s!fs=%s", delim,
+		dkim_dstring_printf(dstr, ";%s!cd=%s", delim,
 		                    dkim->dkim_conditional);
 	}
 
@@ -5670,39 +5709,36 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		/* recurse if this was a conditional signature */
 		if (sig->sig_bh == DKIM_SIGBH_MATCH)
 		{
-			char *fs;
+			char *cd;
 
-			fs = (char *) dkim_param_get(sig->sig_taglist,
-			                             (u_char *) "!fs");
-			if (fs != NULL)
+			cd = (char *) dkim_param_get(sig->sig_taglist,
+			                             (u_char *) "!cd");
+			if (cd != NULL)
 			{
 				_Bool found;
 				int c;
-				DKIM_SIGINFO *fsig;
+				DKIM_SIGINFO *csig;
 
 				/* find every match */ 
 				found = FALSE;
 
 				for (c = 0; c < dkim->dkim_sigcount; c++)
 				{
-					fsig = dkim->dkim_siglist[c];
+					csig = dkim->dkim_siglist[c];
 
-					if (strcasecmp(dkim_sig_getdomain(fsig),
-					               fs) != 0)
+					if (strcasecmp(dkim_sig_getdomain(csig),
+					               cd) != 0)
 						continue;
 
-					if ((fsig->sig_flags & DKIM_SIGFLAG_PROCESSED) == 0 ||
-					     fsig->sig_bh == DKIM_SIGBH_UNTESTED)
+					if ((csig->sig_flags & DKIM_SIGFLAG_PROCESSED) == 0 ||
+					     csig->sig_bh == DKIM_SIGBH_UNTESTED)
 					{
-						status = dkim_sig_process(dkim,
-						                          fsig);
+						status = dkim_sig_process(dkim, csig);
 						if (status != DKIM_STAT_OK)
 							return status;
 					}
 
-					if (DKIM_SIG_CHECK(fsig) &&
-					    dkim_param_get(fsig->sig_taglist,
-					                   (u_char *) "!fs") == NULL)
+					if (DKIM_SIG_CHECK(csig))
 					{
 						found = TRUE;
 						break;

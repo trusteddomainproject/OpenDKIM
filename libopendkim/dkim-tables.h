@@ -38,6 +38,9 @@ extern struct nametable *results;
 extern struct nametable *settypes;
 extern struct nametable *sigerrors;
 extern struct nametable *sigparams;
+#ifdef _FFR_CONDITIONAL
+extern struct nametable *mandatory;
+#endif /* _FFR_CONDITIONAL */
 
 /* prototypes */
 extern const char *dkim_code_to_name __P((struct nametable *tbl,

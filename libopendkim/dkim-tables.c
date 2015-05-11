@@ -181,6 +181,15 @@ static struct nametable prv_sigerrors[] =	/* signature parsing errors */
 };
 struct nametable *sigerrors = prv_sigerrors;
 
+#ifdef _FFR_CONDITIONAL
+static struct nametable prv_mandatory[] =	/* mandatory DKIM tags */
+{
+	{ "!cd",	0 },
+	{ NULL,		-1 },
+};
+struct nametable *mandatory = prv_mandatory;
+#endif /* _FFR_CONDITIONAL */
+
 /* ===================================================================== */
 
 /*
