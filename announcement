@@ -1,26 +1,29 @@
 From: Murray S. Kucherawy <msk@opendkim.org>
 To: opendkim-announce@lists.opendkim.org, opendkim-users@lists.opendkim.org
-Subject: OpenDKIM v2.10.1 released
+Subject: OpenDKIM v2.10.2 released
 
-The Trusted Domain Project announces availability of OpenDKIM v2.10.1,
+The Trusted Domain Project announces availability of OpenDKIM v2.10.2,
 now available for download from SourceForge.
 
-This is a minor bug fix release.  Upgrade is recommended if you're having
-problems with anything identified in the release notes, but is not necessary
+This release reverts the errant removal of a configuration setting during the
+2.10.0 release when ADSP support was discontinued.  A couple of other minor
+fixes are also included.  Upgrade is recommended if you're having problems
+with anything identified in the release notes, but is not necessary
 otherwise.
 
 The full RELEASE_NOTES for this version:
 
-2.10.1		2015/02/03
-	Make DB_SIGNINGTABLE symbol available in Lua scripts.  Problem noted
-		by Klaus Heinrich.
-	Fix bug #214: Handle arbitrarily large From: fields.  Reported by
-		Tomohiko Sasaki.
-	LIBOPENDKIM: Fix bug #213: Remove "dkim_default_senderhdrs" from
-		dkim.h.  Problem noted by Daniel J. Luke.
-	LIBOPENDKIM: Fix bug #219: Unresolved CNAMEs are not failures,
-		according to the DNS (see RFC6604), so report them as
-		NXDOMAIN or similar.  Reported by Alessandro Vesely.
+2.10.2		2015/05/10
+	Fix bug #221: Report a DKIM result of "policy" if MinimumKeyBits
+		or UnprotectedKey cause the signature to result in a "pass"
+		override.  Reported by Kurt Roeckx.
+	Fix bug #227: Revert removal of SenderHeaders configuration setting.
+		Document that it is now limited to signature selection.
+	LIBOPENDKIM: Fix bug #226: Deal with header fields that are
+		wrapped before there's any content.  Reported by
+		Alessandro Vesely.
+	CONTRIB: Update to contrib/systemd/opendkim.service.in from
+		Steve Jenkins.
 
 Please use the mailing lists at http://lists.opendkim.org/ to report problems.
 Bug reports and feature requests can be made through the project trackers,
