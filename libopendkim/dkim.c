@@ -2487,6 +2487,19 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 	v = DKIM_VERSION_SIG;
 	if (dkim->dkim_conditional != NULL)
 		v = DKIM_VERSION_SIG2;
+	if (dkim->dkim_xtags != NULL)
+	{
+		struct dkim_xtag *xt;
+
+		for (xt = dkim->dkim_xtags; xt != NULL; xt = xt->xt_next)
+		{
+			if (xt->xt_tag[0] == '!')
+			{
+				v = DKIM_VERSION_SIG2;
+				break;
+			}
+		}
+	}
 
 	(void) dkim_dstring_printf(dstr, format,
 	                           v, delim,
