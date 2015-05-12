@@ -270,7 +270,7 @@ main(int argc, char **argv)
 	}
 
 	/* set flags */
-	flags = DKIM_LIBFLAGS_FIXCRLF;
+	flags = (DKIM_LIBFLAGS_FIXCRLF|DKIM_LIBFLAGS_STRICTHDRS);
 	if (keepfiles)
 		flags |= (DKIM_LIBFLAGS_TMPFILES|DKIM_LIBFLAGS_KEEPFILES);
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FLAGS, &flags,

@@ -3004,6 +3004,7 @@ dkim_headercheck(DKIM *dkim)
 		int status;
 		unsigned char *user;
 		unsigned char *domain;
+		unsigned char *tmp;
 
 		/* Date (must be exactly one) */
 		hdr = dkim_get_header(dkim, "Date", 4, 0);
@@ -3038,13 +3039,19 @@ dkim_headercheck(DKIM *dkim)
 		}
 
 		/* confirm it's parsable */
-		status = dkim_mail_parse(hdr->hdr_colon + 1, &user, &domain);
-		if (status != 0 ||
-		    user == NULL || user[0] == '\0' ||
-		    domain == NULL || domain[0] == '\0')
+		tmp = strdup(hdr->hdr_colon + 1);
+		if (tmp != NULL)
 		{
-			dkim_error(dkim, "From: header field cannot be parsed");
-			return FALSE;
+			status = dkim_mail_parse(tmp, &user, &domain);
+			if (status != 0 ||
+			    user == NULL || user[0] == '\0' ||
+			    domain == NULL || domain[0] == '\0')
+			{
+				dkim_error(dkim, "From: header field cannot be parsed");
+				return FALSE;
+			}
+
+			free(tmp);
 		}
 
 		/* Sender (no more than one) */
