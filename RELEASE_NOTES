@@ -6,6 +6,7 @@ release, and a summary of the changes in that release.
 2.11.0		2015/10/30
 	Make odkim.internal_ip() available to all Lua hooks.  Problem noted
 		by Iosif Fettich.
+	Fix bug #237: Fix processing of "SoftStart".
 
 2.10.3		2015/05/12
 	LIBOPENDKIM: Make strict header checking non-destructive.  The last

@@ -6184,11 +6184,11 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	{
 		int tmpint;
 
-#ifdef USE_LDAP
-		(void) config_get(data, "LDAPSoftStart",
+#if (USE_LDAP || USE_ODBX)
+		(void) config_get(data, "SoftStart",
 		                  &conf->conf_softstart,
 		                  sizeof conf->conf_softstart);
-#endif /* USE_LDAP */
+#endif /* (USE_LDAP || USE_ODBX) */
 
 		(void) config_get(data, "DNSConnect",
 		                  &conf->conf_dnsconnect,
