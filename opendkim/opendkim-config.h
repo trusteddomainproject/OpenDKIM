@@ -45,6 +45,9 @@ struct configdef dkimf_config[] =
 	{ "CaptureUnknownErrors",	CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ChangeRootDirectory",	CONFIG_TYPE_STRING,	FALSE },
 	{ "ClockDrift",			CONFIG_TYPE_INTEGER,	FALSE },
+#ifdef _FFR_CONDITIONAL
+	{ "ConditionalSignatures",	CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_CONDITIONAL */
 #ifdef _FFR_DEFAULT_SENDER
 	{ "DefaultSender",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_DEFAULT_SENDER */
