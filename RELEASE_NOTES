@@ -4,9 +4,9 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.10.3		2015/05/12
-	LIBOPENDKIM: Make strict header checking non-destructive.  The last
-		change to this code resulted in failing signatures.  Reported
-		by Pedro Morales and Wez Furlong.
+	LIBOPENDKIM: Make strict header checking non-destructive.  The last change
+		to this code resulted in failing signatures.  Reported by Pedro
+		Morales and Wez Furlong.
 
 2.10.2		2015/05/10
 	Fix bug #221: Report a DKIM result of "policy" if MinimumKeyBits
