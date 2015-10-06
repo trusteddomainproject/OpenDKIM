@@ -88,6 +88,7 @@ static const luaL_Reg dkimf_lua_lib_screen[] =
 	{ "get_sigarray",	dkimf_xs_getsigarray	},
 	{ "get_sigcount",	dkimf_xs_getsigcount	},
 	{ "get_sighandle",	dkimf_xs_getsighandle	},
+	{ "internal_ip",	dkimf_xs_internalip	},
 	{ "log",		dkimf_xs_log		},
 	{ "parse_field",	dkimf_xs_parsefield	},
 	{ "rcpt_count",		dkimf_xs_rcptcount	},
@@ -112,6 +113,7 @@ static const luaL_Reg dkimf_lua_lib_stats[] =
 	{ "get_sigarray",	dkimf_xs_getsigarray	},
 	{ "get_sigcount",	dkimf_xs_getsigcount	},
 	{ "get_sighandle",	dkimf_xs_getsighandle	},
+	{ "internal_ip",	dkimf_xs_internalip	},
 	{ "log",		dkimf_xs_log		},
 	{ "parse_field",	dkimf_xs_parsefield	},
 #  ifdef _FFR_RBL
@@ -149,6 +151,7 @@ static const luaL_Reg dkimf_lua_lib_final[] =
 	{ "get_sigarray",	dkimf_xs_getsigarray	},
 	{ "get_sigcount",	dkimf_xs_getsigcount	},
 	{ "get_sighandle",	dkimf_xs_getsighandle	},
+	{ "internal_ip",	dkimf_xs_internalip	},
 	{ "log",		dkimf_xs_log		},
 	{ "quarantine",		dkimf_xs_quarantine	},
 	{ "parse_field",	dkimf_xs_parsefield	},
