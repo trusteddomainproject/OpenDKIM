@@ -315,6 +315,7 @@ descriptions can be found above:
 .B odkim.get_mtasymbol,
 .B odkim.get_rcpt,
 .B odkim.get_rcptarray,
+.B odkim.internal_ip,
 .B odkim.log,
 .B odkim.rcpt_count,
 and
@@ -389,6 +390,7 @@ descriptions can be found above:
 .B odkim.get_sigarray,
 .B odkim.get_sigcount,
 .B odkim.get_sighandle,
+.B odkim.internal_ip,
 .B odkim.log,
 .B odkim.parse_field,
 .B odkim.rcpt_count,
@@ -429,6 +431,7 @@ descriptions can be found above:
 .B odkim.get_sigarray,
 .B odkim.get_sigcount,
 .B odkim.get_sighandle,
+.B odkim.internal_ip,
 .B odkim.log,
 .B odkim.parse_field,
 .B odkim.rcpt_count,
