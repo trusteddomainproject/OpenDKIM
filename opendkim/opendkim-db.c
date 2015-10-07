@@ -966,8 +966,12 @@ dkimf_db_nextpunct(char *str)
 		    *p == '/' ||
 		    *p == '@' ||
 		    *p == '+' ||
-		    *p == '=' ||
 		    *p == '?')
+			return p;
+
+		if (*p == '=' &&
+		    (!isxdigit(*(p + 1)) ||
+		     !isxdigit(*(p + 2))))
 			return p;
 	}
 
