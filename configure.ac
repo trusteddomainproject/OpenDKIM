@@ -359,6 +359,9 @@ FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
 LIB_FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
 AM_CONDITIONAL([ATPS], [test x"$enable_atps" = x"yes"])
 
+FFR_FEATURE([conditional], [experimental conditional signatures])
+LIB_FFR_FEATURE([conditional], [experimental conditional signatures])
+
 FFR_FEATURE([db_handle_pools], [experimental database handle pools])
 
 FFR_FEATURE([diffheaders], [compare signed and verified headers when possible])

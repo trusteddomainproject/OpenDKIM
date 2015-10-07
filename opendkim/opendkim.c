@@ -320,6 +320,9 @@ struct dkimf_config
 	char *		conf_chroot;		/* chroot(2) directory */
 	char *		conf_selectcanonhdr;	/* canon select header name */
 	u_char *	conf_selector;		/* key selector */
+#ifdef _FFR_CONDITIONAL
+	char *		conf_conditional;	/* conditional signing */
+#endif /* _FFR_CONDITIONAL */
 #ifdef _FFR_DEFAULT_SENDER
 	char *		conf_defsender;		/* default sender address */
 #endif /* _FFR_DEFAULT_SENDER */
@@ -427,6 +430,9 @@ struct dkimf_config
 	DKIMF_DB	conf_ratelimitdb;	/* domain rate limits */
 	DKIMF_DB	conf_flowdatadb;	/* domain flow data */
 #endif /* _FFR_RATE_LIMIT */
+#ifdef _FFR_CONDITIONAL
+	DKIMF_DB	conf_conditionaldb;	/* conditional signatures DB */
+#endif /* _FFR_CONDITIONAL */
 #ifdef _FFR_REPUTATION
 	char *		conf_repratios;		/* reputed ratios */
 	DKIMF_DB	conf_repratiosdb;	/* reputed ratios DB */
@@ -5991,6 +5997,11 @@ dkimf_config_free(struct dkimf_config *conf)
 		dkimf_db_close(conf->conf_resigndb);
 #endif /* _FFR_RESIGN */
 
+#ifdef _FFR_CONDITIONAL
+	if (conf->conf_conditionaldb != NULL)
+		dkimf_db_close(conf->conf_conditionaldb);
+#endif /* _FFR_CONDITIONAL */
+
 #ifdef _FFR_RATE_LIMIT
 	if (conf->conf_ratelimitdb != NULL)
 		dkimf_db_close(conf->conf_ratelimitdb);
@@ -7532,6 +7543,35 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 	}
 #endif /* _FFR_RESIGN */
+
+#ifdef _FFR_CONDITIONAL
+	str = NULL;
+	if (conf->conf_conditional != NULL)
+	{
+		str = conf->conf_conditional;
+	}
+	else if (data != NULL)
+	{
+		(void) config_get(data, "ConditionalSignatures",
+		                  &str, sizeof str);
+	}
+	if (str != NULL)
+	{
+		int status;
+		char *dberr = NULL;
+
+		status = dkimf_db_open(&conf->conf_conditionaldb, str,
+		                       (dbflags | DKIMF_DB_FLAG_ICASE |
+		                        DKIMF_DB_FLAG_READONLY),
+		                       NULL, &dberr);
+		if (status != 0)
+		{
+			snprintf(err, errlen, "%s: dkimf_db_open(): %s",
+			         str, dberr);
+			return -1;
+		}
+	}
+#endif /* _FFR_CONDITIONAL */
 
 #ifdef _FFR_RATE_LIMIT
 	str = NULL;
@@ -10724,6 +10764,71 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 	}
 }
 
+#ifdef _FFR_CONDITIONAL
+/*
+**  DKIMF_CHECK_CONDITIONAL -- apply any conditional signature needed
+**
+**  Parameters:
+**  	dfc -- message context
+**  	conf -- configuration
+**  	sr -- a signing request
+**
+**  Return value:
+**  	Status from dkim_conditional, if any.
+*/
+
+static int
+dkimf_check_conditional(struct msgctx *dfc, struct dkimf_config *conf,
+                        struct signreq *sr)
+{
+	_Bool found;
+	size_t len;
+	struct dkimf_dstring *dstr = NULL;
+	struct addrlist *a;
+	char *at;
+
+	dstr = dkimf_dstring_new(BUFRSZ, 0);
+	dkimf_dstring_cat(dstr, dfc->mctx_domain);
+	dkimf_dstring_cat1(dstr, ':');
+	len = dkimf_dstring_len(dstr);
+
+	for (a = dfc->mctx_rcptlist; a != NULL; a = a->a_next)
+	{
+		dkimf_dstring_chop(dstr, len);
+
+		at = strchr(a->a_addr, '@');
+		if (at == NULL)
+			continue;
+
+		dkimf_dstring_cat(dstr, at + 1);
+
+		found = FALSE;
+		if (dkimf_db_get(conf->conf_conditionaldb,
+		                 dkimf_dstring_get(dstr),
+		                 0, NULL, 0, &found) != 0)
+		{
+			if (conf->conf_dolog)
+				syslog(LOG_ERR, "dkimf_db_get() failed");
+
+			return DKIM_STAT_INTERNAL;
+		}
+
+		if (found)
+		{
+			int status;
+
+			status = dkim_conditional(sr->srq_dkim, at + 1);
+			if (status != DKIM_STAT_OK)
+				return status;
+		}
+	}
+
+	dkimf_dstring_free(dstr);
+
+	return DKIM_STAT_OK;
+}
+#endif /* _FFR_CONDITIONAL */
+
 /*
 **  END private section
 **  ==================================================================
@@ -12466,6 +12571,19 @@ mlfi_eoh(SMFICTX *ctx)
 				                       "dkim_sign()",
 				                       status);
 			}
+
+#ifdef _FFR_CONDITIONAL
+			if (conf->conf_conditionaldb)
+			{
+				status = dkimf_check_conditional(dfc, conf, sr);
+				if (status != DKIM_STAT_OK)
+				{
+					return dkimf_libstatus(ctx, NULL,
+					                       "dkim_conditional()",
+					                       status);
+				}
+			}
+#endif /* _FFR_CONDITIONAL */
 
 			if (conf->conf_reqreports)
 			{

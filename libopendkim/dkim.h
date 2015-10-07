@@ -61,7 +61,7 @@ extern "C" {
 					/* reserved DNS sub-zone */
 
 /* macros */
-#define	DKIM_SIG_CHECK(x)	((dkim_sig_getflags((x)) & DKIM_SIGFLAG_PASSED != 0) && (dkim_sig_getbh((x)) == DKIM_SIGBH_MATCH))
+#define	DKIM_SIG_CHECK(x)	((dkim_sig_getflags((x)) & DKIM_SIGFLAG_PASSED) != 0 && dkim_sig_getbh((x)) == DKIM_SIGBH_MATCH)
 
 /*
 **  DKIM_STAT -- status code type
@@ -155,6 +155,10 @@ typedef int DKIM_SIGERROR;
 #define	DKIM_SIGERROR_MISSING_V		44	/* v= tag missing */
 #define	DKIM_SIGERROR_EMPTY_V		45	/* v= tag empty */
 #define	DKIM_SIGERROR_KEYTOOSMALL	46	/* too few key bits */
+#ifdef _FFR_CONDITIONAL
+# define DKIM_SIGERROR_CONDITIONAL	47	/* conditional sig error */
+# define DKIM_SIGERROR_CONDLOOP		48	/* conditional sig loop */
+#endif /* _FFR_CONDITIONAL */
 
 /* generic DNS error codes */
 #define	DKIM_DNS_ERROR		(-1)		/* error in transit */
@@ -1797,6 +1801,19 @@ extern DKIM_STAT dkim_privkey_load __P((DKIM *));
 
 extern DKIM_STAT dkim_atps_check __P((DKIM *, DKIM_SIGINFO *,
                                       struct timeval *, dkim_atps_t *res));
+
+/*
+**  DKIM_CONDITIONAL -- set conditional domain for a signature
+**
+**  Parameters:
+**  	dkim -- a DKIM signing handle
+**  	domain -- domain upon which this signature shall depend
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_conditional __P((DKIM *, u_char *));
 
 /*
 **  DKIM_QI_GETNAME -- retrieve the DNS name from a DKIM_QUERYINFO object

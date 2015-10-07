@@ -11,8 +11,8 @@
 /* system includes */
 #include <sys/types.h>
 #include <assert.h>
-#include <stdio.h>
 #include <string.h>
+#include <stdio.h>
 
 #ifdef USE_GNUTLS
 # include <gnutls/gnutls.h>
@@ -40,15 +40,16 @@
 int
 main(int argc, char **argv)
 {
+	int nsigs;
+	int c;
 #ifdef TEST_KEEP_FILES
 	u_int flags;
 #endif /* TEST_KEEP_FILES */
 	DKIM_STAT status;
-	uint64_t fixed_time;
 	DKIM *dkim;
-	DKIM *dkim2;
 	DKIM_LIB *lib;
-	dkim_sigkey_t key;
+	DKIM_SIGINFO **sigs;
+	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
 
 #ifdef USE_GNUTLS
@@ -66,86 +67,67 @@ main(int argc, char **argv)
 	                    sizeof flags);
 #endif /* TEST_KEEP_FILES */
 
-	key = KEY;
+	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYMETHOD,
+	                    &qtype, sizeof qtype);
+	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYINFO,
+	                    KEYFILE, strlen(KEYFILE));
 
-	dkim = dkim_sign(lib, JOBID, NULL, key, SELECTOR, DOMAIN,
-	                 DKIM_CANON_RELAXED, DKIM_CANON_RELAXED,
-	                 DKIM_SIGN_RSASHA1, -1L, &status);
-	dkim2 = dkim_sign(lib, JOBID, NULL, key, SELECTOR, DOMAIN2,
-	                 DKIM_CANON_RELAXED, DKIM_CANON_RELAXED,
-	                 DKIM_SIGN_RSASHA1, 0L, &status);
+	dkim = dkim_verify(lib, JOBID, NULL, &status);
 	assert(dkim != NULL);
 
-	status = dkim_conditional(dkim2, DOMAIN);
-	if (status == DKIM_STAT_NOTIMPLEMENT)
+
+	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG);
+	status = dkim_header(dkim, hdr, strlen(hdr));
+	if (status == DKIM_STAT_SYNTAX)
 	{
-		printf("*** conditional signature generation SKIPPED\n");
-		(void) dkim_free(dkim);
-		(void) dkim_free(dkim2);
+		printf("*** conditional signature verifying (bad) SKIPPED\n");
+		dkim_free(dkim);
 		dkim_close(lib);
 		return 0;
 	}
 
-	printf("*** conditional signature generation\n");
+	printf("*** conditional signature verifying (bad)\n");
 
-	/* fix signing time */
-	fixed_time = 1172620939;
-	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_FIXEDTIME,
-	                    &fixed_time, sizeof fixed_time);
+	/*
+	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG2);
+	status = dkim_header(dkim, hdr, strlen(hdr));
+	assert(status == DKIM_STAT_OK);
+	*/
+
+	status = dkim_header(dkim, HEADER01, strlen(HEADER01));
+	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER02, strlen(HEADER02));
-	assert(status == DKIM_STAT_OK);
-	status = dkim_header(dkim2, HEADER02, strlen(HEADER02));
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER03, strlen(HEADER03));
 	assert(status == DKIM_STAT_OK);
-	status = dkim_header(dkim2, HEADER03, strlen(HEADER03));
-	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER04, strlen(HEADER04));
-	assert(status == DKIM_STAT_OK);
-	status = dkim_header(dkim2, HEADER04, strlen(HEADER04));
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER05, strlen(HEADER05));
 	assert(status == DKIM_STAT_OK);
-	status = dkim_header(dkim2, HEADER05, strlen(HEADER05));
-	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER06, strlen(HEADER06));
-	assert(status == DKIM_STAT_OK);
-	status = dkim_header(dkim2, HEADER06, strlen(HEADER06));
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER07, strlen(HEADER07));
 	assert(status == DKIM_STAT_OK);
-	status = dkim_header(dkim2, HEADER07, strlen(HEADER07));
-	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER08, strlen(HEADER08));
-	assert(status == DKIM_STAT_OK);
-	status = dkim_header(dkim2, HEADER08, strlen(HEADER08));
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER09, strlen(HEADER09));
 	assert(status == DKIM_STAT_OK);
-	status = dkim_header(dkim2, HEADER09, strlen(HEADER09));
-	assert(status == DKIM_STAT_OK);
 
 	status = dkim_eoh(dkim);
-	assert(status == DKIM_STAT_OK);
-	status = dkim_eoh(dkim2);
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_body(dkim, BODY00, strlen(BODY00));
 	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY00, strlen(BODY00));
-	assert(status == DKIM_STAT_OK);
 
 	status = dkim_body(dkim, BODY01, strlen(BODY01));
-	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY01, strlen(BODY01));
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_body(dkim, BODY01A, strlen(BODY01A));
@@ -158,77 +140,43 @@ main(int argc, char **argv)
 	assert(status == DKIM_STAT_OK);
 	status = dkim_body(dkim, BODY01E, strlen(BODY01E));
 	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY01A, strlen(BODY01A));
-	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY01B, strlen(BODY01B));
-	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY01C, strlen(BODY01C));
-	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY01D, strlen(BODY01D));
-	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY01E, strlen(BODY01E));
-	assert(status == DKIM_STAT_OK);
 
 	status = dkim_body(dkim, BODY02, strlen(BODY02));
 	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY02, strlen(BODY02));
-	assert(status == DKIM_STAT_OK);
 
 	status = dkim_body(dkim, BODY03, strlen(BODY03));
-	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY03, strlen(BODY03));
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_body(dkim, BODY04, strlen(BODY04));
 	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY04, strlen(BODY04));
-	assert(status == DKIM_STAT_OK);
 
 	status = dkim_body(dkim, BODY03, strlen(BODY03));
 	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY03, strlen(BODY03));
-	assert(status == DKIM_STAT_OK);
 
 	status = dkim_body(dkim, BODY03, strlen(BODY03));
-	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY03, strlen(BODY03));
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_body(dkim, BODY05, strlen(BODY05));
 	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY05, strlen(BODY05));
-	assert(status == DKIM_STAT_OK);
 
 	status = dkim_body(dkim, BODY03, strlen(BODY03));
 	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY03, strlen(BODY03));
-	assert(status == DKIM_STAT_OK);
 
 	status = dkim_body(dkim, BODY03, strlen(BODY03));
-	assert(status == DKIM_STAT_OK);
-	status = dkim_body(dkim2, BODY03, strlen(BODY03));
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_eom(dkim, NULL);
-	assert(status == DKIM_STAT_OK);
-	status = dkim_eom(dkim2, NULL);
-	assert(status == DKIM_STAT_OK);
+	assert(status == DKIM_STAT_CANTVRFY);
 
-	memset(hdr, '\0', sizeof hdr);
-	status = dkim_getsighdr(dkim, hdr, sizeof hdr,
-	                        strlen(DKIM_SIGNHEADER) + 2);
-	assert(status == DKIM_STAT_OK);
-	assert(strcmp(SIG2, hdr) == 0);
-
-	memset(hdr, '\0', sizeof hdr);
-	status = dkim_getsighdr(dkim2, hdr, sizeof hdr,
-	                        strlen(DKIM_SIGNHEADER) + 2);
-	assert(status == DKIM_STAT_OK);
-	assert(strcmp(SIG, hdr) == 0);
+	status = dkim_getsiglist(dkim, &sigs, &nsigs);
+	for (c = 0; c < nsigs; c++)
+	{
+		assert((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0);
+		assert(dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH);
+		assert(dkim_sig_geterror(sigs[c]) == DKIM_SIGERROR_CONDITIONAL);
+	}
 
 	status = dkim_free(dkim);
-	assert(status == DKIM_STAT_OK);
-	status = dkim_free(dkim2);
 	assert(status == DKIM_STAT_OK);
 
 	dkim_close(lib);

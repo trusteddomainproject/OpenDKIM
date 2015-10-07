@@ -6,6 +6,8 @@
 **  	All rights reserved.
 */
 
+#include "build-config.h"
+
 /* system includes */
 #include <sys/types.h>
 #include <string.h>
@@ -172,9 +174,22 @@ static struct nametable prv_sigerrors[] =	/* signature parsing errors */
 	{ "version missing",			DKIM_SIGERROR_MISSING_V },
 	{ "version empty",			DKIM_SIGERROR_EMPTY_V },
 	{ "signing key too small",		DKIM_SIGERROR_KEYTOOSMALL },
+#ifdef _FFR_CONDITIONAL
+	{ "conditional signature not satisfied", DKIM_SIGERROR_CONDITIONAL },
+	{ "too many signature indirections",	DKIM_SIGERROR_CONDLOOP },
+#endif /* _FFR_CONDITIONAL */
 	{ NULL,					-1 },
 };
 struct nametable *sigerrors = prv_sigerrors;
+
+#ifdef _FFR_CONDITIONAL
+static struct nametable prv_mandatory[] =	/* mandatory DKIM tags */
+{
+	{ "!cd",	0 },
+	{ NULL,		-1 },
+};
+struct nametable *mandatory = prv_mandatory;
+#endif /* _FFR_CONDITIONAL */
 
 /* ===================================================================== */
 

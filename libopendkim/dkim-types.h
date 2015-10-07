@@ -106,6 +106,9 @@ struct dkim_plist
 struct dkim_set
 {
 	_Bool			set_bad;
+#ifdef _FFR_CONDITIONAL
+	u_int			set_minv;
+#endif /* _FFR_CONDITIONAL */
 	dkim_set_t		set_type;
 	u_char *		set_data;
 	const char *		set_name;
@@ -273,6 +276,9 @@ struct dkim
 	int			dkim_presult;
 	int			dkim_hdrcnt;
 	int			dkim_minsiglen;
+#ifdef _FFR_CONDITIONAL
+	int			dkim_cddepth;
+#endif /* _FFR_CONDITIONAL */
 #ifdef _FFR_RESIGN
 	u_int			dkim_refcnt;
 #endif /* _FFR_RESIGN */
@@ -306,6 +312,9 @@ struct dkim
 	u_char *		dkim_reportaddr;
 	u_char *		dkim_sender;
 	u_char *		dkim_signer;
+#ifdef _FFR_CONDITIONAL
+	u_char *		dkim_conditional;
+#endif /* _FFR_CONDITIONAL */
 	u_char *		dkim_error;
 	u_char *		dkim_hdrlist;
 	u_char *		dkim_zdecode;
