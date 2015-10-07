@@ -4457,6 +4457,9 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 #endif /* _FFR_ATPS */
 	FEATURE_ADD(libhandle, DKIM_FEATURE_OVERSIGN);
 	FEATURE_ADD(libhandle, DKIM_FEATURE_XTAGS);
+#ifdef _FFR_CONDITIONAL
+	FEATURE_ADD(libhandle, DKIM_FEATURE_CONDITIONAL);
+#endif /* _FFR_CONDITIONAL */
 
 	/* initialize the resolver */
 	(void) res_init();

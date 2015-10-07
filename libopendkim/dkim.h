@@ -1373,8 +1373,9 @@ extern unsigned long dkim_ssl_version __P((void));
 #define DKIM_FEATURE_RESIGN		7
 #define DKIM_FEATURE_ATPS		8
 #define DKIM_FEATURE_XTAGS		9
+#define DKIM_FEATURE_CONDITIONAL	10
 
-#define	DKIM_FEATURE_MAX		9
+#define	DKIM_FEATURE_MAX		10
 
 extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
 
