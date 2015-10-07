@@ -10717,8 +10717,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 			         domain, val,
 			         ts == DKIM_STAT_OK ? " header.b=\"" : "",
 			         ts == DKIM_STAT_OK ? ss : "",
-			         ts == DKIM_STAT_OK ? "\"");
-);
+			         ts == DKIM_STAT_OK ? "\"" : "");
 
 			strlcat(hdr, tmp, hdrlen);
 		}
