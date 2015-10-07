@@ -10600,8 +10600,16 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 			                        &keybits) != DKIM_STAT_OK)
 				keybits = 0;
 
-			ssl = sizeof ss - 1;
-			ts = dkim_get_sigsubstring(dkim, sigs[c], ss, &ssl);
+			if (conf->conf_noheaderb)
+			{
+				ts = -1;
+			}
+			else
+			{
+				ssl = sizeof ss - 1;
+				ts = dkim_get_sigsubstring(dkim, sigs[c], ss,
+				                           &ssl);
+			}
 
 			if ((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0 &&
 			    dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH)
@@ -10700,15 +10708,17 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 			domain = dkim_sig_getdomain(sigs[c]);
 
 			snprintf(tmp, sizeof tmp,
-			         "%s%sdkim=%s%s (%u-bit key%s%s) header.d=%s header.i=%s%s%s",
+			         "%s%sdkim=%s%s (%u-bit key%s%s) header.d=%s header.i=%s%s%s%s",
 			         c == 0 ? "" : ";",
 			         DELIMITER, result, comment,
 			         keybits,
 			         dnssec == NULL ? "" : "; ",
 			         dnssec == NULL ? "" : dnssec,
 			         domain, val,
-			         ts == DKIM_STAT_OK ? " header.b=" : "",
-			         ts == DKIM_STAT_OK ? ss : "");
+			         ts == DKIM_STAT_OK ? " header.b=\"" : "",
+			         ts == DKIM_STAT_OK ? ss : "",
+			         ts == DKIM_STAT_OK ? "\"");
+);
 
 			strlcat(hdr, tmp, hdrlen);
 		}

@@ -8,6 +8,8 @@ release, and a summary of the changes in that release.
 		by Iosif Fettich.
 	dkimf_db_nextpunct() could incorrectly identify an encoded hex digit
 		as a value delimiter.
+	Fix bug #235: Quote "header.b" values in case they contain a slash
+		(which must be quoted).
 	Fix bug #237: Fix processing of "SoftStart".
 
 2.10.3		2015/05/12
