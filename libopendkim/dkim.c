@@ -5011,6 +5011,7 @@ dkim_sign(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 	  dkim_canon_t bodycanonalg, dkim_alg_t signalg,
           ssize_t length, DKIM_STAT *statp)
 {
+	unsigned char *p;
 	DKIM *new;
 
 	assert(libhandle != NULL);
@@ -5040,6 +5041,13 @@ dkim_sign(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 
 		if (signalg == DKIM_SIGN_DEFAULT)
 			signalg = DKIM_SIGN_RSASHA1;
+	}
+
+	if (!dkim_strisprint((u_char *) domain) ||
+	    !dkim_strisprint((u_char *) selector))
+	{
+		*statp = DKIM_STAT_INVALID;
+		return NULL;
 	}
 
 	new = dkim_new(libhandle, id, memclosure, hdrcanonalg, bodycanonalg,

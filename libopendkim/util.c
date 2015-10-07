@@ -925,3 +925,29 @@ dkim_clobber_array(char **in)
 
 	free(in);
 }
+
+/*
+**  DKIM_STRISPRINT -- return TRUE iff a string contains only isprint() characters
+**
+**  Parameters:
+**  	str -- string to evaluate
+**
+**  Return value:
+**  	TRUE unless a non-isprint was found
+*/
+
+_Bool
+dkim_strisprint(unsigned char *str)
+{
+	unsigned char *p;
+
+	assert(str != NULL);
+
+	for (p = str; *p != '\0'; p++)
+	{
+		if (!isprint(p))
+			return FALSE;
+	}
+
+	return TRUE;
+}

@@ -8,6 +8,9 @@ release, and a summary of the changes in that release.
 		by Iosif Fettich.
 	dkimf_db_nextpunct() could incorrectly identify an encoded hex digit
 		as a value delimiter.
+	LIBOPENDKIM: Feature request #190: Reject signature object requests where
+		the domain name or selector includes non-printable characters.
+		Suggested by Franck Martin.
 	LIBOPENDKIM: Re-fix bug #226: Deal with header fields that are
 		wrapped before there's any content.  Somehow the wrong fix
 		was committed.  Originally reported by Alessandro Vesely;
