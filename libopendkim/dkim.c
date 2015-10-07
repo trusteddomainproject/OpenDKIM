@@ -8257,6 +8257,9 @@ dkim_get_sigsubstring(DKIM *dkim, DKIM_SIGINFO *sig, char *buf, size_t *buflen)
 				if (b2 == NULL)
 					continue;
 
+				if (strcmp(b1, b2) == 0)
+					break;
+
 				if (strncmp(b1, b2, dkim->dkim_minsiglen) != 0)
 					continue;
 

@@ -8,6 +8,9 @@ release, and a summary of the changes in that release.
 		by Iosif Fettich.
 	dkimf_db_nextpunct() could incorrectly identify an encoded hex digit
 		as a value delimiter.
+	LIBOPENDKIM: Fix bug #233: In the weird case of duplicate signatures,
+		constrain the size of the resulting "header.b" value.  Problem
+		noted by Joseph Coffland.
 	Fix bug #234: Make "NoHeaderB" do something.  Reported by Joseph
 		Coffland.
 	Fix bug #235: Quote "header.b" values in case they contain a slash
