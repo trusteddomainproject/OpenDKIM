@@ -10817,6 +10817,9 @@ dkimf_check_conditional(struct msgctx *dfc, struct dkimf_config *conf,
 		{
 			int status;
 
+FINISH ME: This should make a new conditional signature rather than altering
+an existing one.
+
 			status = dkim_conditional(sr->srq_dkim, at + 1);
 			if (status != DKIM_STAT_OK)
 				return status;
