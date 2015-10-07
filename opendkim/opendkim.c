@@ -10777,14 +10777,17 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 **  	Status from dkim_conditional, if any.
 */
 
-static int
+static DKIM_STAT
 dkimf_check_conditional(struct msgctx *dfc, struct dkimf_config *conf,
                         struct signreq *sr)
 {
 	_Bool found;
 	size_t len;
+	DKIM_STAT status;
 	struct dkimf_dstring *dstr = NULL;
 	struct addrlist *a;
+	struct signreq *newsr_head = NULL;
+	struct signreq *newsr_tail = NULL;
 	char *at;
 
 	dstr = dkimf_dstring_new(BUFRSZ, 0);
@@ -10802,6 +10805,12 @@ dkimf_check_conditional(struct msgctx *dfc, struct dkimf_config *conf,
 
 		dkimf_dstring_cat(dstr, at + 1);
 
+		/*
+		**  Look for from/to pair in conditional DB; if found,
+		**  request a conditional signature with d= from-domain
+		**  and !cd= recipient domain, for now with l=0
+		*/
+
 		found = FALSE;
 		if (dkimf_db_get(conf->conf_conditionaldb,
 		                 dkimf_dstring_get(dstr),
@@ -10817,13 +10826,62 @@ dkimf_check_conditional(struct msgctx *dfc, struct dkimf_config *conf,
 		{
 			int status;
 
-FINISH ME: This should make a new conditional signature rather than altering
-an existing one.
+			struct signreq *newsr;
 
-			status = dkim_conditional(sr->srq_dkim, at + 1);
+			newsr = (struct signreq *) malloc(sizeof(struct signreq));
+			if (newsr == NULL)
+			{
+				if (conf->conf_dolog)
+					syslog(LOG_ERR, "malloc() failed");
+
+				return DKIM_STAT_NORESOURCE;
+			}
+
+			memset(newsr, '\0', sizeof(*newsr));
+
+			newsr->srq_dkim = dkim_sign(conf->conf_libopendkim,
+			                            dfc->mctx_jobid,
+			                            NULL,
+			                            sr->srq_keydata,
+			                            sr->srq_selector,
+			                            sr->srq_domain,
+			                            dfc->mctx_hdrcanon,
+			                            dfc->mctx_bodycanon,
+			                            dfc->mctx_signalg,
+			                            0, &status);
 			if (status != DKIM_STAT_OK)
+			{
+				if (conf->conf_dolog)
+					syslog(LOG_ERR, "dkim_sign() failed");
+
+				free(newsr);
+				return DKIM_STAT_INTERNAL;
+			}
+
+			status = dkim_conditional(newsr->srq_dkim, at + 1);
+			if (status != DKIM_STAT_OK)
+			{
+				free(newsr);
 				return status;
+			}
+
+			if (newsr_head == NULL)
+			{
+				newsr_head = newsr;
+				newsr_tail = newsr;
+			}
+			else
+			{
+				newsr_tail->srq_next = newsr;
+				newsr_tail = newsr;
+			}
 		}
+	}
+
+	if (dfc->mctx_srtail != NULL && newsr_head != NULL)
+	{
+		dfc->mctx_srtail->srq_next = newsr_head;
+		dfc->mctx_srtail = newsr_tail;
 	}
 
 	dkimf_dstring_free(dstr);
