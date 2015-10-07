@@ -256,6 +256,23 @@ You could put "file:" in front of the filename for the KeyTable just to be
 precise, but "file:" is assumed if the value starts with a "/".
 
 
+HANDLING 8-BIT MESSAGES
+=======================
+
+SMTP was not designed for handling of other than 7-bit ASCII, and the mechanisms
+to do so were added later.  There is considerable flexibility in how this is done,
+and as a result each agent does it slightly differently.  Because of this
+disparity, OpenDKIM can't reliably sign 8-bit data because it will be
+downgraded in an unpredictable way somewhere after signing, rendering the
+signature invalid.
+
+Instead, the MTA that will handle the 8-bit message has to downgrade it before
+presenting it for signing.  To do this with sendmail, for example, add this to
+your sendmail.mc file:
+
+	define(`confSEVEN_BIT_INPUT',true)dnl
+
+
 TESTING
 =======
 
