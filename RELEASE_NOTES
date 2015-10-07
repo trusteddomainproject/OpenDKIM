@@ -8,6 +8,10 @@ release, and a summary of the changes in that release.
 		by Iosif Fettich.
 	dkimf_db_nextpunct() could incorrectly identify an encoded hex digit
 		as a value delimiter.
+	LIBOPENDKIM: Re-fix bug #226: Deal with header fields that are
+		wrapped before there's any content.  Somehow the wrong fix
+		was committed.  Originally reported by Alessandro Vesely;
+		re-reported by David Stevenson.
 	LIBOPENDKIM: Fix bug #233: In the weird case of duplicate signatures,
 		constrain the size of the resulting "header.b" value.  Problem
 		noted by Joseph Coffland.
