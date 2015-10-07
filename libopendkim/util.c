@@ -945,7 +945,7 @@ dkim_strisprint(unsigned char *str)
 
 	for (p = str; *p != '\0'; p++)
 	{
-		if (!isprint(p))
+		if (!isprint(*p))
 			return FALSE;
 	}
 
