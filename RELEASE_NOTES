@@ -4,10 +4,12 @@ This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
 2.11.0		2015/10/30
+	Add _FFR_CONDITIONAL, experimental support for conditional DKIM
+		signatures.
 	Make odkim.internal_ip() available to all Lua hooks.  Problem noted
 		by Iosif Fettich.
-	dkimf_db_nextpunct() could incorrectly identify an encoded hex digit
-		as a value delimiter.
+	Fix dkimf_db_nextpunct() so it doesn't incorrectly identify an encoded
+		hex digit as a value delimiter.
 	LIBOPENDKIM: Feature request #190: Reject signature object requests where
 		the domain name or selector includes non-printable characters.
 		Suggested by Franck Martin.
