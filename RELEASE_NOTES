@@ -25,6 +25,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Fix bug #233: In the weird case of duplicate signatures,
 		constrain the size of the resulting "header.b" value.  Problem
 		noted by Joseph Coffland.
+	TOOLS: Feature requrest #187: Add option to match subdomains when
+		generating zone files.  Patch from Andreas Schulze.
 
 2.10.3		2015/05/12
 	LIBOPENDKIM: Make strict header checking non-destructive.  The last

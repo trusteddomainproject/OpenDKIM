@@ -52,7 +52,7 @@
 
 /* definitions */
 #define	BUFRSZ		1024
-#define	CMDLINEOPTS	"C:d:DE:Fo:N:r:R:St:T:uvx:"
+#define	CMDLINEOPTS	"C:d:DE:Fo:N:r:R:sSt:T:uvx:"
 #define	DEFCONFFILE	CONFIG_BASE "/opendkim.conf"
 #define	DEFEXPIRE	604800
 #define	DEFREFRESH	10800
@@ -199,6 +199,7 @@ usage(void)
 	                "\t-N ns[,...] \tlist NS records\n"
 	                "\t-r secs     \tuse specified refresh time in SOA\n"
 	                "\t-R secs     \tuse specified retry time in SOA\n"
+	                "\t-s          \twith -d, also match subdomains\n"
 	                "\t-S          \twrite an SOA record\n"
 	                "\t-t secs     \tuse specified per-record TTL\n"
 	                "\t-T secs     \tuse specified default TTL in SOA\n"
@@ -227,6 +228,7 @@ main(int argc, char **argv)
 	_Bool nsupdate = FALSE;
 	_Bool suffix = FALSE;
 	_Bool fqdnsuffix = FALSE;
+	_Bool subdomains = FALSE;
 	_Bool writesoa = FALSE;
 	int c;
 	int status;
@@ -241,6 +243,8 @@ main(int argc, char **argv)
 	long len;
 	time_t now;
 	size_t keylen;
+	size_t domain_len;
+	size_t onlydomain_len;
 	char *p;
 	char *dataset = NULL;
 	char *outfile = NULL;
@@ -333,6 +337,10 @@ main(int argc, char **argv)
 			}
 			break;
 
+		  case 's':
+			subdomains = TRUE;
+			break;
+
 		  case 'S':
 			writesoa = TRUE;
 			break;
@@ -373,6 +381,13 @@ main(int argc, char **argv)
 		  default:
 			return usage();
 		}
+	}
+
+	/* sanity check */
+	if (subdomains && onlydomain == NULL) {
+		fprintf(stderr, "%s: subdomain matching requires a domain\n",
+		        progname);
+		return EX_USAGE;
 	}
 
 	if (optind != argc)
@@ -639,12 +654,29 @@ main(int argc, char **argv)
 			break;
 		}
 
-		if (onlydomain != NULL && strcasecmp(domain, onlydomain) != 0)
-		{
-			fprintf(stderr, "%s: record %d for '%s' skipped\n",
-			        progname, c, keyname);
+		if (subdomains) {
+			domain_len = strlen(domain);
+			onlydomain_len = strlen(onlydomain);
 
-			continue;
+			if ((domain_len == onlydomain_len &&
+			     strcasecmp(domain, onlydomain) == 0) ||
+			    (domain_len > onlydomain_len &&
+			     domain[domain_len - onlydomain_len - 1] == '.' &&
+			     strcasecmp(domain + domain_len - onlydomain_len,
+			                onlydomain) == 0)) {
+				fprintf(stderr, "%s: record %d for '%s' skipped\n",
+					progname, c, keyname);
+				continue;
+			}
+		} else {
+			if (onlydomain != NULL &&
+			    strcasecmp(domain, onlydomain) != 0)
+			{
+				fprintf(stderr, "%s: record %d for '%s' skipped\n",
+				        progname, c, keyname);
+
+				continue;
+			}
 		}
 
 		if (verbose > 1)
