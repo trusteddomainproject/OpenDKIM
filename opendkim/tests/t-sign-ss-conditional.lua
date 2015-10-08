@@ -21,8 +21,6 @@ end
 
 -- try to start the filter
 mt.startfilter(binpath .. "/opendkim", "-x", "t-sign-ss-conditional.conf", "-p", sock)
--- mt.sleep(30)
--- mt.set_timeout(300)
 
 -- try to connect to it
 conn = mt.connect(sock, 40, 0.25)
