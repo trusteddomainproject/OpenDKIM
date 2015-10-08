@@ -361,6 +361,7 @@ AM_CONDITIONAL([ATPS], [test x"$enable_atps" = x"yes"])
 
 FFR_FEATURE([conditional], [experimental conditional signatures])
 LIB_FFR_FEATURE([conditional], [experimental conditional signatures])
+AM_CONDITIONAL([CONDITIONAL], [test x"$enable_conditional" = x"yes"])
 
 FFR_FEATURE([db_handle_pools], [experimental database handle pools])
 

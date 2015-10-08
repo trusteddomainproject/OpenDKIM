@@ -10825,8 +10825,10 @@ dkimf_check_conditional(struct msgctx *dfc, struct dkimf_config *conf,
 		if (found)
 		{
 			int status;
-
 			struct signreq *newsr;
+			void *keydata;
+			unsigned char *sdomain;
+			unsigned char *selector;
 
 			newsr = (struct signreq *) malloc(sizeof(struct signreq));
 			if (newsr == NULL)
@@ -10839,12 +10841,25 @@ dkimf_check_conditional(struct msgctx *dfc, struct dkimf_config *conf,
 
 			memset(newsr, '\0', sizeof(*newsr));
 
+			if (sr->srq_keydata == NULL)
+			{
+				keydata = (dkim_sigkey_t) conf->conf_seckey;
+				sdomain = dfc->mctx_domain;
+				selector = conf->conf_selector;
+			}
+			else
+			{
+				keydata = sr->srq_keydata;
+				sdomain = sr->srq_domain;
+				selector = sr->srq_selector;
+			}
+
 			newsr->srq_dkim = dkim_sign(conf->conf_libopendkim,
 			                            dfc->mctx_jobid,
 			                            NULL,
-			                            sr->srq_keydata,
-			                            sr->srq_selector,
-			                            sr->srq_domain,
+			                            keydata,
+			                            selector,
+			                            sdomain,
 			                            dfc->mctx_hdrcanon,
 			                            dfc->mctx_bodycanon,
 			                            dfc->mctx_signalg,
@@ -11326,11 +11341,9 @@ mlfi_envfrom(SMFICTX *ctx, char **envfrom)
 sfsistat
 mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 {
-	char *copy;
 	connctx cc;
 	msgctx dfc;
 	struct dkimf_config *conf;
-	char addr[MAXADDRESS + 1];
 
 	assert(ctx != NULL);
 	assert(envrcpt != NULL);
@@ -11347,6 +11360,9 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 #ifdef _FFR_RESIGN
 	    || conf->conf_resigndb != NULL
 #endif /* _FFR_RESIGN */
+#ifdef _FFR_CONDITIONAL
+	    || conf->conf_conditionaldb != NULL
+#endif /* _FFR_CONDITIONAL */
 #ifdef USE_LUA
 	    || conf->conf_setupscript != NULL
 	    || conf->conf_screenscript != NULL
@@ -11357,27 +11373,12 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 #endif /* USE_LUA */
 	   )
 	{
+		char *copy;
+		struct addrlist *a;
+		char addr[MAXADDRESS + 1];
+
 		strlcpy(addr, envrcpt[0], sizeof addr);
 		dkimf_stripbrackets(addr);
-	}
-
-	if (conf->conf_dontsigntodb != NULL
-	    || conf->conf_bldb != NULL
-	    || conf->conf_redirect != NULL
-#ifdef _FFR_RESIGN
-	    || conf->conf_resigndb != NULL
-#endif /* _FFR_RESIGN */
-#ifdef USE_LUA
-	    || conf->conf_setupscript != NULL
-	    || conf->conf_screenscript != NULL
-	    || conf->conf_finalscript != NULL
-# ifdef _FFR_STATSEXT
-	    || conf->conf_statsscript != NULL
-# endif /* _FFR_STATSEXT */
-#endif /* USE_LUA */
-	   )
-	{
-		struct addrlist *a;
 
 		copy = strdup(addr);
 		if (copy == NULL)
@@ -12596,6 +12597,11 @@ mlfi_eoh(SMFICTX *ctx)
 
 		for (sr = dfc->mctx_srhead; sr != NULL; sr = sr->srq_next)
 		{
+#ifdef _FFR_CONDITIONAL
+			if (sr->srq_dkim != NULL)
+				continue;
+#endif /* _FFR_CONDITIONAL */
+
 			if (sr->srq_signlen == (ssize_t) -1)
 				signlen = conf->conf_signbytes;
 			else
@@ -12632,19 +12638,6 @@ mlfi_eoh(SMFICTX *ctx)
 				                       "dkim_sign()",
 				                       status);
 			}
-
-#ifdef _FFR_CONDITIONAL
-			if (conf->conf_conditionaldb)
-			{
-				status = dkimf_check_conditional(dfc, conf, sr);
-				if (status != DKIM_STAT_OK)
-				{
-					return dkimf_libstatus(ctx, NULL,
-					                       "dkim_conditional()",
-					                       status);
-				}
-			}
-#endif /* _FFR_CONDITIONAL */
 
 			if (conf->conf_reqreports)
 			{
@@ -12708,6 +12701,19 @@ mlfi_eoh(SMFICTX *ctx)
 				}
 			}
 #endif /* _FFR_RESIGN */
+
+#ifdef _FFR_CONDITIONAL
+			if (conf->conf_conditionaldb)
+			{
+				status = dkimf_check_conditional(dfc, conf, sr);
+				if (status != DKIM_STAT_OK)
+				{
+					return dkimf_libstatus(ctx, NULL,
+					                       "dkim_conditional()",
+					                       status);
+				}
+			}
+#endif /* _FFR_CONDITIONAL */
 		}
 	}
 

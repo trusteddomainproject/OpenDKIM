@@ -23,6 +23,9 @@ endif
 if ATPS
 check_SCRIPTS += t-sign-atps t-verify-ss-atps
 endif
+if CONDITIONAL
+check_SCRIPTS += t-sign-ss-conditional
+endif
 if TEST_SOCKET
 TESTS_ENVIRONMENT = MILTERTESTFLAGS=-DTESTSOCKET=$(TESTSOCKET); export MILTERTESTFLAGS;
 endif
@@ -56,6 +59,8 @@ EXTRA_DIST = \
 	t-sign-ss-replace t-sign-ss-replace.conf t-sign-ss-replace.lua \
 		t-sign-ss-replace.txt \
 	t-sign-report t-sign-report.conf t-sign-report.lua \
+	t-sign-ss-conditional t-sign-ss-conditional.conf \
+		t-sign-ss-conditional.lua \
 	t-verify-revoked t-verify-revoked.conf t-verify-revoked.lua \
 	t-verify-unsigned t-verify-unsigned.conf t-verify-unsigned.lua \
 	t-verify-malformed t-verify-malformed.conf t-verify-malformed.lua \
