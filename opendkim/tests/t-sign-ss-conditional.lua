@@ -1,4 +1,4 @@
--- Copyright (c) 2009, 2010, 2013, The Trusted Domain Project.
+-- Copyright (c) 2009, 2010, 2013, 2015, The Trusted Domain Project.
 --   All rights reserved.
 
 -- simple/simple signing test
