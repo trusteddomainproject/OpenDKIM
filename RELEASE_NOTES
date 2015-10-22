@@ -15,9 +15,9 @@ release, and a summary of the changes in that release.
 	Fix bug #235: Quote "header.b" values in case they contain a slash
 		(which must be quoted).
 	Fix bug #237: Fix processing of "SoftStart".
-	LIBOPENDKIM: Feature request #190: Reject signature object requests where
-		the domain name or selector includes non-printable characters.
-		Suggested by Franck Martin.
+	LIBOPENDKIM: Feature request #190: Reject signature object requests
+		where the domain name or selector includes non-printable
+		characters.  Suggested by Franck Martin.
 	LIBOPENDKIM: Re-fix bug #226: Deal with header fields that are
 		wrapped before there's any content.  Somehow the wrong fix
 		was committed.  Originally reported by Alessandro Vesely;
