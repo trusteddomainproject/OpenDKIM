@@ -60,6 +60,15 @@ main(int argc, char **argv)
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
 
+	if (!dkim_libfeature(lib, DKIM_FEATURE_CONDITIONAL))
+	{
+		printf("*** conditional signature verifying (altered) SKIPPED\n");
+		dkim_close(lib);
+		return 0;
+	}
+
+	printf("*** conditional signature verifying (altered)\n");
+
 #ifdef TEST_KEEP_FILES
 	/* set flags */
 	flags = (DKIM_LIBFLAGS_TMPFILES|DKIM_LIBFLAGS_KEEPFILES);
@@ -75,18 +84,9 @@ main(int argc, char **argv)
 	dkim = dkim_verify(lib, JOBID, NULL, &status);
 	assert(dkim != NULL);
 
-
 	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG);
 	status = dkim_header(dkim, hdr, strlen(hdr));
-	if (status == DKIM_STAT_SYNTAX)
-	{
-		printf("*** conditional signature verifying (altered) SKIPPED\n");
-		dkim_free(dkim);
-		dkim_close(lib);
-		return 0;
-	}
-
-	printf("*** conditional signature verifying (altered)\n");
+	assert(status == DKIM_STAT_OK);
 
 	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG2);
 	status = dkim_header(dkim, hdr, strlen(hdr));

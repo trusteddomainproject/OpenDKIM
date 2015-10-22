@@ -59,6 +59,15 @@ main(int argc, char **argv)
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
 
+	if (!dkim_libfeature(lib, DKIM_FEATURE_CONDITIONAL))
+	{
+		printf("*** conditional signature generation SKIPPED\n");
+		dkim_close(lib);
+		return 0;
+	}
+
+	printf("*** conditional signature generation\n");
+
 #ifdef TEST_KEEP_FILES
 	/* set flags */
 	flags = (DKIM_LIBFLAGS_TMPFILES|DKIM_LIBFLAGS_KEEPFILES);
@@ -77,16 +86,7 @@ main(int argc, char **argv)
 	assert(dkim != NULL);
 
 	status = dkim_conditional(dkim2, DOMAIN);
-	if (status == DKIM_STAT_NOTIMPLEMENT)
-	{
-		printf("*** conditional signature generation SKIPPED\n");
-		(void) dkim_free(dkim);
-		(void) dkim_free(dkim2);
-		dkim_close(lib);
-		return 0;
-	}
-
-	printf("*** conditional signature generation\n");
+	assert(status == DKIM_STAT_OK);
 
 	/* fix signing time */
 	fixed_time = 1172620939;
