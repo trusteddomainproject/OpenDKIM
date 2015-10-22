@@ -86,7 +86,7 @@ main(int argc, char **argv)
 
 	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG);
 	status = dkim_header(dkim, hdr, strlen(hdr));
-	assert(status == DKIM_STAT_OK);)
+	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER01, strlen(HEADER01));
 	assert(status == DKIM_STAT_OK);
