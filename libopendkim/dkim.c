@@ -2485,6 +2485,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 		format = "v=%s;%sa=%s;%sc=%s/%s;%sd=%s;%ss=%s;%st=%u";
 
 	v = DKIM_VERSION_SIG;
+#ifdef _FFR_CONDITIONAL
 	if (dkim->dkim_conditional != NULL)
 		v = DKIM_VERSION_SIG2;
 	if (dkim->dkim_xtags != NULL)
@@ -2500,6 +2501,7 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 			}
 		}
 	}
+#endif /* _FFR_CONDITIONAL */
 
 	(void) dkim_dstring_printf(dstr, format,
 	                           v, delim,
