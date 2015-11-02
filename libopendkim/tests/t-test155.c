@@ -24,7 +24,7 @@
 
 #define	MAXHEADER	4096
 
-#define SIG "v=2; a=rsa-sha1; c=relaxed/relaxed; d=sendmail.com; s=test;\r\n\tt=1172620939; !fs=example.com; bh=2jmj7l5rSw0yVb/vlWAYkK/YBwk=; l=0;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=JZL7260x6zZT2D9FOsODnB1tRcSennUhCOL/Rw1+lrvB2JdsjetlDdO/1yKI1T2Zo\r\n\t i2jH9NzrFu9b4307TzYJgF3X6NFLYqZDuENFJH1QKlYsDIULqQFsKViLvpgc7M/X7k\r\n\t YLWl1PaKyqrg6J09LAlQm7sMQzJyUeLGp21vSCxI="
+#define SIG "v=2; a=rsa-sha1; c=relaxed/relaxed; d=sendmail.com; s=test;\r\n\tt=1172620939; !cd=example.com; bh=2jmj7l5rSw0yVb/vlWAYkK/YBwk=; l=0;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=FEK+lJkwviA+DkORcv/clDh7NMmLyGzGHCzuOPsbaoTLqepslXlzc71a2FzEZJ4KF\r\n\t 1m209ORGDUozr9BZvaZeXD/HqoIiDBSbR30XgWG+IU1fGKCfVBzOYKTOzgmS0PaE3S\r\n\t Tvknxdxp63DBprMF5QAEJkiMvfr8ZCsCUKI0oyNY="
 #define SIG2 "v=1; a=rsa-sha1; c=relaxed/relaxed; d=example.com; s=test;\r\n\tt=1172620939; bh=Z9ONHHsBrKN0pbfrOu025VfbdR4=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=Jf+j2RDZRkpIF1KaL5ByhHFPWj5RMeX5764IVlwIc11equjQND51K9FfL5pyjXvwj\r\n\t FoFPW0PGJb3liej6iDDEHgYpXR4p5qqlGx/C1Q9gf/MQN/Xlkv6ZXgR38QnWAfZxh5\r\n\t N1f5xUg+SJb5yBDoXklG62IRdia1Hq9MuiGumrGM="
 
 /*
