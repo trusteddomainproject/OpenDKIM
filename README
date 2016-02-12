@@ -2,17 +2,20 @@ OPENDKIM README
 ===============
 
 This directory has the latest open source DKIM filter software from The
-OpenDKIM Project.
+Trusted Domain Project.
 
-There is a web site at http://www.opendkim.org that is home for the latest
-updates.
+There is a web site at http://www.trusteddomain.org that is home for the
+latest updates.
 
 
 +--------------+
 | INTRODUCTION |
 +--------------+
 
-The Trusted Domain Project is a community effort to develop and maintain an open
+The Trusted Domain Project (TDP) is a non-profit corporation dedicated to
+research and development of techologies that promote trust in the use of
+domain names in on the Internet.  The OpenDKIM Project is an initiative of
+TDP, and is primarily community effort to develop and maintain an open
 source library for producing DKIM-aware applications, and a "milter"-based
 filter for providing DKIM service.
 
