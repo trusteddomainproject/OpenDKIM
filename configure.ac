@@ -233,23 +233,23 @@ fi
 AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
 if test x"$strl_h_found" != x"yes"
 then
-	strldirs="/usr/local/include /usr/include"
+	strldirs="/usr/local/include/strl /usr/local/include /usr/include/strl"
 
 	for d in $strldirs
 	do
-		AC_MSG_CHECKING([for strl.h in $d/strl])
-		if test -f $d/strl/strl.h
+		AC_MSG_CHECKING([for strl.h in $d])
+		if test -f $d/strl.h
 		then
 			unset ac_cv_header_strl_h
 			saved_CPPFLAGS="$CPPFLAGS"
-			CPPFLAGS="$CPPFLAGS -I$d/strl"
+			CPPFLAGS="$CPPFLAGS -I$d"
 			AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
 			CPPFLAGS="$saved_CPPFLAGS"
 		fi
 
 		if test x"$strl_h_found" = x"yes"
 		then
-			CPPFLAGS="$CPPFLAGS -I$d/strl"
+			CPPFLAGS="$CPPFLAGS -I$d"
 			break
 		fi
 	done
