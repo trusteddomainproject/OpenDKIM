@@ -148,7 +148,7 @@ main(int argc, char **argv)
 	status = dkim_body(dkim, BODY03, strlen(BODY03));
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_body(dkim, BODY06, strlen(BODY05));
+	status = dkim_body(dkim, BODY06, strlen(BODY06));
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_eom(dkim, NULL);
