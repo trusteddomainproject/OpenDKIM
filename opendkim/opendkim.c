@@ -273,10 +273,8 @@ struct dkimf_config
 	unsigned int	conf_repcachettl;	/* reputation cache TTL */
 	unsigned int	conf_reptimeout;	/* reputation query timeout */
 #endif /* _FFR_REPUTATION */
-#ifdef USE_UNBOUND
 	unsigned int	conf_boguskey;		/* bogus key action */
 	unsigned int	conf_unprotectedkey;	/* unprotected key action */
-#endif /* USE_UNBOUND */
 #ifdef _FFR_RATE_LIMIT
 	unsigned int	conf_flowdatattl;	/* flow data TTL */
 	unsigned int	conf_flowfactor;	/* flow factor */
@@ -665,7 +663,6 @@ struct lookup log_facilities[] =
 	{ NULL,			-1 }
 };
 
-#ifdef USE_UNBOUND
 # define DKIMF_KEYACTIONS_NONE	0
 # define DKIMF_KEYACTIONS_NEUTRAL 1
 # define DKIMF_KEYACTIONS_FAIL	2
@@ -677,7 +674,6 @@ struct lookup dkimf_keyactions[] =
 	{ "fail",		DKIMF_KEYACTIONS_FAIL },
 	{ NULL,			-1 },
 };
-#endif /* USE_UNBOUND */
 
 struct lookup dkimf_statusstrings[] =
 {
@@ -6643,7 +6639,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_resolverconfig,
 		                  sizeof conf->conf_resolverconfig);
 
-#ifdef USE_UNBOUND
 		str = NULL;
 		(void) config_get(data, "BogusKey", &str, sizeof str);
 		if (str != NULL)
@@ -6685,7 +6680,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			conf->conf_unprotectedkey = DKIMF_KEYACTIONS_NONE;
 		}
-#endif /* USE_UNBOUND */
 
 #ifdef USE_LUA
 		str = NULL;
@@ -10654,7 +10648,6 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 
 			dnssec = NULL;
 
-#ifdef USE_UNBOUND
 			switch (dkim_sig_getdnssec(sigs[c]))
 			{
 			  case DKIM_DNSSEC_UNKNOWN:
@@ -10690,7 +10683,6 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 				dnssec = "secure";
 				break;
 			}
-#endif /* USE_UNBOUND */
 
 			memset(val, '\0', sizeof val);
 
