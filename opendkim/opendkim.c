@@ -10623,7 +10623,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 		char *result;
 		char *dnssec;
 		char *domain;
-		char *sel;
+		char *selector;
 		char ss[BUFRSZ + 1];
 		char tmp[BUFRSZ + 1];
 		char val[MAXADDRESS + 1];
@@ -10747,7 +10747,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 			                            val, sizeof val - 1);
 
 			domain = dkim_sig_getdomain(sigs[c]);
-			sel = dkim_sig_getselector(sigs[c]);
+			selector = dkim_sig_getselector(sigs[c]);
 
 			snprintf(tmp, sizeof tmp,
 			         "%s%sdkim=%s%s (%u-bit key%s%s) header.d=%s header.s=%s header.i=%s%s%s%s",
@@ -10756,7 +10756,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 			         keybits,
 			         dnssec == NULL ? "" : "; ",
 			         dnssec == NULL ? "" : dnssec,
-			         domain, sel, val,
+			         domain, selector, val,
 			         ts == DKIM_STAT_OK ? " header.b=\"" : "",
 			         ts == DKIM_STAT_OK ? ss : "",
 			         ts == DKIM_STAT_OK ? "\"" : "");
