@@ -124,7 +124,7 @@ AC_SEARCH_LIBS(res_ninit, resolv,
                AC_DEFINE(HAVE_RES_NINIT, 1,
                          [Define to 1 if you have the `res_ninit()' function.]))
 m4_rename_force([saved_AC_LANG_CALL], [AC_LANG_CALL])
-AC_SEARCH_LIBS(res_sertservers, resolv bind,
+AC_SEARCH_LIBS(res_setservers, resolv bind,
                AC_DEFINE(HAVE_RES_SETSERVERS, 1,
                          [Define to 1 if you have the `res_setservers()' function.]))
 AC_SEARCH_LIBS(getopt_long, iberty,
