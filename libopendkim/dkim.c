@@ -8444,7 +8444,8 @@ dkim_sig_getalgorithm(DKIM_SIGINFO *siginfo)
 {
 	assert(siginfo != NULL);
 
-	return dkim_code_to_name(algorithms, siginfo->sig_signalg);
+	return (unsigned char *) dkim_code_to_name(algorithms,
+	                                           siginfo->sig_signalg);
 }
 
 /*
