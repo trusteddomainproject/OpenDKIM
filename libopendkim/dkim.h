@@ -912,6 +912,19 @@ extern unsigned char *dkim_sig_getselector __P((DKIM_SIGINFO *sig));
 extern unsigned char *dkim_sig_getdomain __P((DKIM_SIGINFO *sig));
 
 /*
+**  DKIM_SIG_GETALGORITHM -- retrieve algorithm from a DKIM_SIGINFO
+**
+**  Parameters:
+**  	siginfo -- pointer to a DKIM_SIGINFO from which to extract the
+**  	           algorithm
+**
+**  Return value:
+**  	Pointer to the algorithm associated with the DKIM_SIGINFO.
+*/
+
+extern unsigned char *dkim_sig_getalgorithm __P((DKIM_SIGINFO *sig));
+
+/*
 **  DKIM_SIG_GETCANONS -- retrieve canonicaliztions after verifying
 **
 **  Parameters:

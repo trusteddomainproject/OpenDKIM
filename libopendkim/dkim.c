@@ -8429,6 +8429,25 @@ dkim_sig_getdomain(DKIM_SIGINFO *siginfo)
 }
 
 /*
+**  DKIM_SIG_GETALGORITHM -- retrieve algorithm from a DKIM_SIGINFO
+**
+**  Parameters:
+**  	siginfo -- pointer to a DKIM_SIGINFO from which to extract the
+**  	           algorithm
+**
+**  Return value:
+**  	Pointer to the algorithm associated with the DKIM_SIGINFO.
+*/
+
+unsigned char *
+dkim_sig_getalgorithm(DKIM_SIGINFO *siginfo)
+{
+	assert(siginfo != NULL);
+
+	return dkim_code_to_name(algorithms, siginfo->sig_signalg);
+}
+
+/*
 **  DKIM_SIG_SETERROR -- set an error code in a DKIM_SIGINFO
 **
 **  Parameters:

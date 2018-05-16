@@ -9150,6 +9150,7 @@ dkimf_log_ssl_errors(DKIM *dkim, DKIM_SIGINFO *sig, char *jobid)
 {
 	char *selector;
 	char *domain;
+	char *algorithm;
 	const char *errbuf;
 
 	assert(dkim != NULL);
@@ -9159,21 +9160,23 @@ dkimf_log_ssl_errors(DKIM *dkim, DKIM_SIGINFO *sig, char *jobid)
 	{
 		domain = dkim_sig_getdomain(sig);
 		selector = dkim_sig_getselector(sig);
+		algorithm = dkim_sig_getalgorithm(sig);
 		errbuf = dkim_sig_getsslbuf(sig);
 	}
 	else
 	{
 		domain = NULL;
 		selector = NULL;
+		algorithm = NULL;
 		errbuf = dkim_getsslbuf(dkim);
 	}
 
 	if (errbuf != NULL)
 	{
-		if (selector != NULL && domain != NULL)
+		if (selector != NULL && domain != NULL && algorithm != NULL)
 		{
-			syslog(LOG_INFO, "%s: s=%s d=%s SSL %s", jobid,
-			       selector, domain, errbuf);
+			syslog(LOG_INFO, "%s: s=%s d=%s a=%s SSL %s", jobid,
+			       selector, domain, algorithm, errbuf);
 		}
 		else
 		{
@@ -9521,6 +9524,7 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		{
 			u_char *selector = NULL;
 			u_char *domain = NULL;
+			u_char *algorithm = NULL;
 			DKIM_SIGINFO *sig;
 
 			sig = dkim_getsignature(dkim);
@@ -9528,14 +9532,15 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 			{
 				selector = dkim_sig_getselector(sig);
 				domain = dkim_sig_getdomain(sig);
+				algorithm = dkim_sig_getalgorithm(sig);
 			}
 
 			if (selector != NULL && domain != NULL)
 			{
 				syslog(LOG_NOTICE,
-				       "%s: key revoked (s=%s, d=%s)",
+				       "%s: key revoked (s=%s, d=%s, a=%s)",
 				       JOBID(dfc->mctx_jobid), selector,
-				       domain);
+				       domain, algorithm);
 			}
 		}
 		break;
@@ -10592,6 +10597,7 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 **  Parameters:
 **  	hdr -- header buffer
 ** 	hdrlen -- size of header buffer
+**  	tmpstr -- a dstring to construct the result
 **  	dkim -- DKIM verification handle
 **  	conf -- config object
 **  	status -- message context status (may be updated)
@@ -10601,14 +10607,15 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 */
 
 void
-dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
-                  struct dkimf_config *conf, int *status)
+dkimf_ar_all_sigs(char *hdr, size_t hdrlen, struct dkimf_dstring *tmpstr,
+                  DKIM *dkim, struct dkimf_config *conf, int *status)
 {
 	int nsigs;
 	DKIM_STAT dstatus;
 	DKIM_SIGINFO **sigs;
 
 	assert(hdr != NULL);
+	assert(tmpstr != NULL);
 	assert(dkim != NULL);
 	assert(conf != NULL);
 	assert(status != NULL);
@@ -10625,6 +10632,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 		char *dnssec;
 		char *domain;
 		char *selector;
+		char *algorithm;
 		char ss[BUFRSZ + 1];
 		char tmp[BUFRSZ + 1];
 		char val[MAXADDRESS + 1];
@@ -10749,21 +10757,34 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, DKIM *dkim,
 
 			domain = dkim_sig_getdomain(sigs[c]);
 			selector = dkim_sig_getselector(sigs[c]);
+			algorithm = dkim_sig_getalgorithm(sigs[c]);
 
-			snprintf(tmp, sizeof tmp,
-			         "%s%sdkim=%s%s (%u-bit key%s%s) header.d=%s header.s=%s header.i=%s%s%s%s",
-			         c == 0 ? "" : ";",
-			         DELIMITER, result, comment,
-			         keybits,
-			         dnssec == NULL ? "" : "; ",
-			         dnssec == NULL ? "" : dnssec,
-			         domain, selector, val,
-			         ts == DKIM_STAT_OK ? " header.b=\"" : "",
-			         ts == DKIM_STAT_OK ? ss : "",
-			         ts == DKIM_STAT_OK ? "\"" : "");
-
-			strlcat(hdr, tmp, hdrlen);
-		}
+ 			dkimf_dstring_blank(tmpstr);
+ 			dkimf_dstring_printf(tmpstr, "%s%s",
+ 			                     c == 0 ? "" : ";", DELIMITER);
+ 			dkimf_dstring_printf(tmpstr, "dkim=%s", result);
+ 			dkimf_dstring_printf(tmpstr, comment);
+ 			if (keybits > 0)
+ 			{
+ 				dkimf_dstring_printf(tmpstr,
+ 				                     " (%u-bit key%s%s)",
+ 				                     keybits,
+ 				                     dnssec == NULL ? ""
+ 				                                    : "; ",
+ 				                     dnssec == NULL ? ""
+ 				                                    : dnssec);
+ 			}
+ 			dkimf_dstring_printf(tmpstr,
+ 			                     " header.d=%s header.i=%s header.a=%s header.s=%s",
+ 			                     domain, val, algorithm, selector);
+ 			if (ts == DKIM_STAT_OK)
+ 			{
+ 				dkimf_dstring_printf(tmpstr, " header.b=%s",
+ 				                     ss);
+ 			}
+ 
+ 			strlcat(hdr, dkimf_dstring_get(tmpstr), hdrlen);
+ 		}
 	}
 }
 
@@ -14540,6 +14561,7 @@ mlfi_eom(SMFICTX *ctx)
 			    dfc->mctx_status == DKIMF_STATUS_VERIFYERR)
 			{
 				dkimf_ar_all_sigs(header, sizeof header,
+				                  dfc->mctx_tmpstr,
 				                  dfc->mctx_dkimv,
 				                  conf, &dfc->mctx_status);
 			}
