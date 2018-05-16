@@ -60,8 +60,9 @@ struct nametable *sigparams = prv_sigparams;
 
 static struct nametable prv_algorithms[] =	/* signing algorithms */
 {
-	{ "rsa-sha1",	DKIM_SIGN_RSASHA1 },
-	{ "rsa-sha256",	DKIM_SIGN_RSASHA256 },
+	{ "rsa-sha1",		DKIM_SIGN_RSASHA1 },
+	{ "rsa-sha256",		DKIM_SIGN_RSASHA256 },
+	{ "ed25519-sha256",	DKIM_SIGN_ED25519SHA256 },
 	{ NULL,		-1 },
 };
 struct nametable *algorithms = prv_algorithms;
@@ -85,6 +86,7 @@ struct nametable *hashes = prv_hashes;
 static struct nametable prv_keytypes[] =	/* key types */
 {
 	{ "rsa",	DKIM_KEYTYPE_RSA },
+	{ "ed25519",	DKIM_KEYTYPE_ED25519 },
 	{ NULL,		-1 },
 };
 struct nametable *keytypes = prv_keytypes;

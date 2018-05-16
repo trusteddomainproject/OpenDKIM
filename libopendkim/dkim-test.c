@@ -301,7 +301,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 	BIO *outkey;
 #endif /* USE_GNUTLS */
 	void *ptr;
-	struct dkim_rsa *rsa;
+	struct dkim_crypto *crypto;
 	char buf[BUFRSZ];
 
 	assert(lib != NULL);
@@ -374,19 +374,19 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 
 	if (key != NULL)
 	{
-		rsa = DKIM_MALLOC(dkim, sizeof(struct dkim_rsa));
-		if (rsa == NULL)
+		crypto = DKIM_MALLOC(dkim, sizeof(struct dkim_crypto));
+		if (crypto == NULL)
 		{
 			(void) dkim_free(dkim);
 			if (err != NULL)
 			{
 				snprintf(err, errlen,
 				         "unable to allocate %zu byte(s)",
-				         sizeof(struct dkim_rsa));
+				         sizeof(struct dkim_crypto));
 			}
 			return -1;
 		}
-		memset(rsa, '\0', sizeof(struct dkim_rsa));
+		memset(crypto, '\0', sizeof(struct dkim_crypto));
 
 #ifdef USE_GNUTLS
 		keybuf.data = key;
@@ -406,7 +406,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 		}
 #endif /* USE_GNUTLS */
 
-		sig->sig_signature = (void *) rsa;
+		sig->sig_signature = (void *) crypto;
 		sig->sig_keytype = DKIM_KEYTYPE_RSA;
 
 #ifdef USE_GNUTLS
@@ -416,9 +416,9 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 		(void) dkim_free(dkim);
 		return -1;
 #else /* USE_GNUTLS */
-		rsa->rsa_pkey = PEM_read_bio_PrivateKey(keybuf, NULL,
-		                                        NULL, NULL);
-		if (rsa->rsa_pkey == NULL)
+		crypto->crypto_pkey = PEM_read_bio_PrivateKey(keybuf, NULL,
+		                                              NULL, NULL);
+		if (crypto->crypto_pkey == NULL)
 		{
 			BIO_free(keybuf);
 			(void) dkim_free(dkim);
@@ -431,8 +431,8 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			return -1;
 		}
 
-		rsa->rsa_rsa = EVP_PKEY_get1_RSA(rsa->rsa_pkey);
-		if (rsa->rsa_rsa == NULL)
+		crypto->crypto_key = EVP_PKEY_get1_RSA(crypto->crypto_pkey);
+		if (crypto->crypto_key == NULL)
 		{
 			BIO_free(keybuf);
 			(void) dkim_free(dkim);
@@ -444,8 +444,8 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			return -1;
 		}
 	
-		rsa->rsa_keysize = RSA_size(rsa->rsa_rsa);
-		rsa->rsa_pad = RSA_PKCS1_PADDING;
+		crypto->crypto_keysize = RSA_size(crypto->crypto_key);
+		crypto->crypto_pad = RSA_PKCS1_PADDING;
 
 		outkey = BIO_new(BIO_s_mem());
 		if (outkey == NULL)
@@ -457,7 +457,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			return -1;
 		}
 
-		status = i2d_RSA_PUBKEY_bio(outkey, rsa->rsa_rsa);
+		status = i2d_RSA_PUBKEY_bio(outkey, crypto->crypto_key);
 		if (status == 0)
 		{
 			BIO_free(keybuf);
@@ -466,7 +466,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			if (err != NULL)
 			{
 				strlcpy(err, "i2d_RSA_PUBKEY_bio() failed",
-				           errlen);
+				        errlen);
 			}
 			return -1;
 		}

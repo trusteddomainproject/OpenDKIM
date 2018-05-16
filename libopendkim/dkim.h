@@ -187,6 +187,7 @@ typedef int dkim_alg_t;
 #define DKIM_SIGN_DEFAULT	(-1)	/* use internal default */
 #define DKIM_SIGN_RSASHA1	0	/* an RSA-signed SHA1 digest */
 #define DKIM_SIGN_RSASHA256	1	/* an RSA-signed SHA256 digest */
+#define DKIM_SIGN_ED25519SHA256	2	/* an ED25519-signed SHA256 digest */
 
 /*
 **  DKIM_QUERY -- query method
@@ -1372,6 +1373,7 @@ extern unsigned long dkim_ssl_version __P((void));
 #define DKIM_FEATURE_ATPS		8
 #define DKIM_FEATURE_XTAGS		9
 #define DKIM_FEATURE_CONDITIONAL	10
+#define DKIM_FEATURE_ED25519		11
 
 #define	DKIM_FEATURE_MAX		10
 

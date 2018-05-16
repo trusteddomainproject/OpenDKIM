@@ -3,7 +3,7 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.11.0		2017/??/??
+2.11.0		2018/05/11
 	Add _FFR_CONDITIONAL, experimental support for conditional DKIM
 		signatures.
 	Make odkim.internal_ip() available to all Lua hooks.  Problem noted

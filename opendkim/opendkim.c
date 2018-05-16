@@ -634,6 +634,7 @@ struct lookup dkimf_sign[] =
 {
 	{ "rsa-sha1",		DKIM_SIGN_RSASHA1 },
 	{ "rsa-sha256",		DKIM_SIGN_RSASHA256 },
+	{ "ed25519-sha256",	DKIM_SIGN_ED25519SHA256 },
 	{ NULL,			-1 },
 };
 

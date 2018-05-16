@@ -56,6 +56,7 @@ o OpenSSL (http://www.openssl.org, or ask your software vendor for a package).
   Any version will get you started, however v0.9.8 or later is required if
   you want to be able to sign or verify messages using the SHA256 message
   digest algorithm which is generally required for current DKIM applications.
+  OpenSSL 1.1.1 is required for ED25519 support.
 
 o sendmail v8.13.0 (or later), or Postfix 2.3, (or later) and libmilter.
   (These are only required if you are building the filter.)

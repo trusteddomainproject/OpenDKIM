@@ -362,7 +362,11 @@ dkimf_crypto_init(void)
 		return status;
 
 	SSL_load_error_strings();
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	SSL_library_init();
+#else /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+	OPENSSL_init_ssl(0, NULL);
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
 	ERR_load_crypto_strings();
 
 	CRYPTO_set_id_callback(&dkimf_crypto_get_id);

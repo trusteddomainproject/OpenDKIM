@@ -887,6 +887,13 @@ then
 		               AC_MSG_ERROR([libssl not found]), [-ldl])
 	fi
 
+	AC_CHECK_DECL([EVP_PKEY_ED25519],
+                      AC_DEFINE([HAVE_ED25519], 1,
+ 	                        [Define to 1 if your crypto library has ED25519 support]), ,
+	              [
+#include <sys/types.h>
+#include <openssl/evp.h>])
+
 	AC_CHECK_DECL([SHA256_DIGEST_LENGTH],
                       AC_DEFINE([HAVE_SHA256], 1,
  	                        [Define to 1 if your crypto library has SHA256 support]),

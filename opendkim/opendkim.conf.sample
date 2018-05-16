@@ -592,8 +592,8 @@ Selector		my-selector-name
 ##  SignatureAlgorithm signalg
 ##  	default "rsa-sha256"
 ##
-##  Signature algorithm to use when generating signatures.  Must be either
-##  "rsa-sha1" or "rsa-sha256".
+##  Signature algorithm to use when generating signatures.  Must be one of
+##  "rsa-sha1", "rsa-sha256", or "ed25519-sha256".
 
 # SignatureAlgorithm	rsa-sha256
 

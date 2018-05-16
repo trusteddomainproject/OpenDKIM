@@ -205,29 +205,29 @@ struct dkim_canon
 	struct dkim_canon *	canon_next;
 };
 
-/* struct dkim_rsa -- stuff needed to do RSA sign/verify */
-struct dkim_rsa
+/* struct dkim_crypto -- stuff needed to do RSA sign/verify */
+struct dkim_crypto
 {
 #ifdef USE_GNUTLS
-	size_t			rsa_rsaoutlen;
-	unsigned int		rsa_keysize;
-	gnutls_x509_privkey_t	rsa_key;
-	gnutls_privkey_t	rsa_privkey;
-	gnutls_pubkey_t		rsa_pubkey;
-	gnutls_datum_t		rsa_sig;
-	gnutls_datum_t		rsa_digest;
-	gnutls_datum_t 		rsa_rsaout;
-	gnutls_datum_t 		rsa_keydata;
+	size_t			crypto_rsaoutlen;
+	unsigned int		crypto_keysize;
+	gnutls_x509_privkey_t	crypto_key;
+	gnutls_privkey_t	crypto_privkey;
+	gnutls_pubkey_t		crypto_pubkey;
+	gnutls_datum_t		crypto_sig;
+	gnutls_datum_t		crypto_digest;
+	gnutls_datum_t 		crypto_rsaout;
+	gnutls_datum_t 		crypto_keydata;
 #else /* USE_GNUTLS */
-	u_char			rsa_pad;
-	int			rsa_keysize;
-	size_t			rsa_rsainlen;
-	size_t			rsa_rsaoutlen;
-	EVP_PKEY *		rsa_pkey;
-	RSA *			rsa_rsa;
-	BIO *			rsa_keydata;
-	u_char *		rsa_rsain;
-	u_char *		rsa_rsaout;
+	u_char			crypto_pad;
+	int			crypto_keysize;
+	size_t			crypto_inlen;
+	size_t			crypto_outlen;
+	EVP_PKEY *		crypto_pkey;
+	void *			crypto_key;
+	BIO *			crypto_keydata;
+	u_char *		crypto_in;
+	u_char *		crypto_out;
 #endif /* USE_GNUTLS */
 };
 
