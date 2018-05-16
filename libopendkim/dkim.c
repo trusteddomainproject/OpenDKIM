@@ -3966,6 +3966,7 @@ dkim_eom_sign(DKIM *dkim)
 		break;
 	  }
 
+# ifdef HAVE_ED25519
 	  case DKIM_SIGN_ED25519SHA256:
 	  {
 		EVP_MD_CTX *md_ctx = NULL;
@@ -4017,6 +4018,7 @@ dkim_eom_sign(DKIM *dkim)
 
 		break;
 	  }
+# endif /* HAVE_ED25519 */
 #endif /* USE_GNUTLS */
 
 	  default:
@@ -5694,6 +5696,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 
 		sig->sig_keybits = crypto->crypto_keysize;
 #else /* USE_GNUTLS */
+# ifdef HAVE_ED25519
 		if (sig->sig_signalg == DKIM_SIGN_ED25519SHA256)
 		{
 			char *keydata;
@@ -5706,6 +5709,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 			                                                  keylen);
 		}
 		else
+# endif /* HAVE_ED25519 */
 		{
 			crypto->crypto_pkey = d2i_PUBKEY_bio(key, NULL);
 		}
@@ -5726,6 +5730,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		}
 
 		/* set up the key object */
+# ifdef HAVE_ED25519
 	    	if (sig->sig_signalg == DKIM_SIGN_ED25519SHA256)
 		{
 			EVP_MD_CTX *md_ctx;
@@ -5787,6 +5792,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 			crypto->crypto_keysize = EVP_PKEY_size(crypto->crypto_pkey);
 		}
 		else
+# endif /* HAVE_ED25519 */
 		{
 			crypto->crypto_key = EVP_PKEY_get1_RSA(crypto->crypto_pkey);
 			if (crypto->crypto_key == NULL)
