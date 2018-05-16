@@ -2,9 +2,8 @@
 **  Copyright (c) 2008, 2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009, 2010, 2012, 2013, The Trusted Domain Project.
+**  Copyright (c) 2009, 2010, 2012, 2013, 2018, The Trusted Domain Project.
 **    All rights reserved.
-**
 */
 
 #include "build-config.h"
