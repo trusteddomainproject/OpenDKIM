@@ -200,7 +200,7 @@ are not generated.
 .TP
 .I DisableCryptoInit (Boolean)
 If set, skips initialization of the SSL library initialization steps, which
-are normaly required in multi-threaded environments.  This assumes some other
+are normally required in multi-threaded environments.  This assumes some other
 library opendkim is using will do the required initialization and shutdown.
 
 .TP
