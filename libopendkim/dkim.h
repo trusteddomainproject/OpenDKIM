@@ -1389,7 +1389,7 @@ extern unsigned long dkim_ssl_version __P((void));
 #define DKIM_FEATURE_CONDITIONAL	10
 #define DKIM_FEATURE_ED25519		11
 
-#define	DKIM_FEATURE_MAX		10
+#define	DKIM_FEATURE_MAX		11
 
 extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
 
