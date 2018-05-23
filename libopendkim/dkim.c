@@ -1233,7 +1233,7 @@ dkim_privkey_load(DKIM *dkim)
 		{
 			dkim_load_ssl_errors(dkim, 0);
 			dkim_error(dkim, "PEM_read_bio_PrivateKey() failed");
-			BIO_free(crypto->crypto_keydata);
+			BIO_CLOBBER(crypto->crypto_keydata);
 			return DKIM_STAT_NORESOURCE;
 		}
 	}
@@ -1246,7 +1246,7 @@ dkim_privkey_load(DKIM *dkim)
 		{
 			dkim_load_ssl_errors(dkim, 0);
 			dkim_error(dkim, "d2i_PrivateKey_bio() failed");
-			BIO_free(crypto->crypto_keydata);
+			BIO_CLOBBER(crypto->crypto_keydata);
 			return DKIM_STAT_NORESOURCE;
 		}
 	}
@@ -1262,7 +1262,7 @@ dkim_privkey_load(DKIM *dkim)
 		{
 			dkim_load_ssl_errors(dkim, 0);
 			dkim_error(dkim, "EVP_PKEY_get1_RSA() failed");
-			BIO_free(crypto->crypto_keydata);
+			BIO_CLOBBER(crypto->crypto_keydata);
 			return DKIM_STAT_NORESOURCE;
 		}
 
@@ -1277,7 +1277,7 @@ dkim_privkey_load(DKIM *dkim)
 		dkim_error(dkim, "unable to allocate %d byte(s)",
 		           crypto->crypto_keysize / 8);
 		RSA_free(crypto->crypto_key);
-		BIO_free(crypto->crypto_keydata);
+		BIO_CLOBBER(crypto->crypto_keydata);
 		return DKIM_STAT_NORESOURCE;
 	}
 #endif /* USE_GNUTLS */
@@ -3953,7 +3953,7 @@ dkim_eom_sign(DKIM *dkim)
 			           status, l);
 
 			RSA_free(crypto->crypto_key);
-			BIO_free(crypto->crypto_keydata);
+			BIO_CLOBBER(crypto->crypto_keydata);
 
 			return DKIM_STAT_INTERNAL;
 		}
@@ -3982,7 +3982,7 @@ dkim_eom_sign(DKIM *dkim)
 			           "failed to initialize digest context");
 
 			RSA_free(crypto->crypto_key);
-			BIO_free(crypto->crypto_keydata);
+			BIO_CLOBBER(crypto->crypto_keydata);
 
 			return DKIM_STAT_INTERNAL;
 		}
@@ -4004,7 +4004,7 @@ dkim_eom_sign(DKIM *dkim)
 			           status, l, ERR_error_string(ERR_get_error(), NULL));
 
 			RSA_free(crypto->crypto_key);
-			BIO_free(crypto->crypto_keydata);
+			BIO_CLOBBER(crypto->crypto_keydata);
 
 			return DKIM_STAT_INTERNAL;
 		}
@@ -4034,7 +4034,7 @@ dkim_eom_sign(DKIM *dkim)
 		dkim_error(dkim, "unable to allocate %d byte(s)",
 		           dkim->dkim_b64siglen);
 #ifndef USE_GNUTLS
-		BIO_free(crypto->crypto_keydata);
+		BIO_CLOBBER(crypto->crypto_keydata);
 #endif /* ! USE_GNUTLS */
 		return DKIM_STAT_NORESOURCE;
 	}
@@ -4044,7 +4044,7 @@ dkim_eom_sign(DKIM *dkim)
 	                            dkim->dkim_b64siglen);
 
 #ifndef USE_GNUTLS
-	BIO_free(crypto->crypto_keydata);
+	BIO_CLOBBER(crypto->crypto_keydata);
 #endif /* ! USE_GNUTLS */
 
 	if (status == -1)
@@ -5636,7 +5636,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 				           "unable to allocate %d byte(s)",
 				           sizeof(struct dkim_crypto));
 #ifndef USE_GNUTLS
-				BIO_free(key);
+				BIO_CLOBBER(key);
 #endif /* ! USE_GNUTLS */
 				return DKIM_STAT_NORESOURCE;
 			}
@@ -5722,7 +5722,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 			           dkim_sig_getselector(sig),
 			           dkim_sig_getdomain(sig));
 
-			BIO_free(key);
+			BIO_CLOBBER(key);
 
 			sig->sig_error = DKIM_SIGERROR_KEYDECODE;
 
@@ -5742,7 +5742,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 				           dkim_sig_getselector(sig),
 				           dkim_sig_getdomain(sig));
 
-				BIO_free(key);
+				BIO_CLOBBER(key);
 
 				sig->sig_error = DKIM_SIGERROR_KEYDECODE;
 
@@ -5759,7 +5759,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 				dkim_error(dkim,
 				           "failed to initialize digest context");
 
-				BIO_free(key);
+				BIO_CLOBBER(key);
 
 				sig->sig_error = DKIM_SIGERROR_KEYDECODE;
 
@@ -5774,7 +5774,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 				dkim_error(dkim,
 				           "failed to initialize digest context");
 
-				BIO_free(key);
+				BIO_CLOBBER(key);
 				EVP_MD_CTX_free(md_ctx);
 
 				sig->sig_error = DKIM_SIGERROR_KEYDECODE;
@@ -5803,7 +5803,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 				           dkim_sig_getselector(sig),
 				           dkim_sig_getdomain(sig));
 
-				BIO_free(key);
+				BIO_CLOBBER(key);
 
 				sig->sig_error = DKIM_SIGERROR_KEYDECODE;
 
@@ -5833,7 +5833,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 
 		dkim_sig_load_ssl_errors(dkim, sig, 0);
 
-		BIO_free(key);
+		BIO_CLOBBER(key);
 		EVP_PKEY_free(crypto->crypto_pkey);
 		crypto->crypto_pkey = NULL;
 		if (crypto->crypto_key != NULL)
