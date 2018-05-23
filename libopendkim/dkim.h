@@ -34,7 +34,7 @@ extern "C" {
 **  	pp == patch number
 */
 
-#define	OPENDKIM_LIB_VERSION	0x01020000
+#define	OPENDKIM_LIB_VERSION	0x020B0000
 
 #ifdef __STDC__
 # ifndef __P

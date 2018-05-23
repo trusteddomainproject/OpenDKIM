@@ -21,7 +21,6 @@ build-config.h.in
 compile
 config.guess
 config.sub
-configure
 configure.scan
 configure.lineno
 aclocal.m4
