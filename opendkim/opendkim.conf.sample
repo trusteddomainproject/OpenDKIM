@@ -712,6 +712,13 @@ Syslog			Yes
 
 # SyslogFacility	mail
 
+##  SyslogName          ident
+##      default "opendkim"
+##
+##  syslog ident to be used
+
+# SyslogName		opendkim-foo
+
 ##  SyslogSuccess { yes | no }
 ##  	default "no"
 ##
