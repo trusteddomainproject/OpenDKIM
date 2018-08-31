@@ -41,7 +41,7 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test139 t-test140 t-test141 t-test142 t-test143 t-test144 \
 	t-test145 t-test146 t-test147 t-test148 t-test149 t-test150 \
 	t-test151 t-test152 t-test153 t-test154 t-test155 t-test156 \
-	t-test157 \
+	t-test157 t-test158 \
 	t-signperf t-verifyperf
 check_SCRIPTS = t-signperf-sha1 t-signperf-relaxed-relaxed \
 	t-signperf-simple-simple

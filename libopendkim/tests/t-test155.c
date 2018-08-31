@@ -37,8 +37,6 @@
 **  	Exit status.
 */
 
-#define TEST_KEEP_FILES 1
-
 int
 main(int argc, char **argv)
 {

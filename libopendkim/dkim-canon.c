@@ -639,7 +639,7 @@ dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 		}
 		cur->canon_hashbufsize = DKIM_HASHBUFSIZE;
 		cur->canon_hashbuflen = 0;
-		cur->canon_buf = dkim_dstring_new(dkim, BUFRSZ, BUFRSZ);
+		cur->canon_buf = dkim_dstring_new(dkim, BUFRSZ, 0);
 		if (cur->canon_buf == NULL)
 			return DKIM_STAT_NORESOURCE;
 
