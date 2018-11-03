@@ -4299,7 +4299,7 @@ dkimf_db_error(DKIMF_DB db, const char *key)
 */
 
 static void
-dkimf_init_syslog(char *facility)
+dkimf_init_syslog(char *name, char *facility)
 {
 #ifdef LOG_MAIL
 	int code;
@@ -4320,11 +4320,11 @@ dkimf_init_syslog(char *facility)
 		}
 	}
 
-	openlog(progname, LOG_PID, code);
+	openlog(name != NULL ? name : progname, LOG_PID, code);
 #else /* LOG_MAIL */
 	closelog();
 
-	openlog(progname, LOG_PID);
+	openlog(name != NULL ? name : progname, LOG_PID);
 #endif /* LOG_MAIL */
 }
 
@@ -8392,15 +8392,18 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 	/* activate logging if requested */
 	if (conf->conf_dolog)
 	{
+		char *log_name = NULL;
 		char *log_facility = NULL;
 
 		if (data != NULL)
 		{
+			(void) config_get(data, "SyslogName", &log_name,
+			                  sizeof log_name);
 			(void) config_get(data, "SyslogFacility", &log_facility,
 			                  sizeof log_facility);
 		}
 
-		dkimf_init_syslog(log_facility);
+		dkimf_init_syslog(log_name, log_facility);
 	}
 
 	return 0;

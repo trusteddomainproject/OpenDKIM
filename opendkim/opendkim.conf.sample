@@ -712,6 +712,13 @@ Syslog			Yes
 
 # SyslogFacility	mail
 
+##  SyslogName          ident
+##      default "opendkim" (or the name of the executable)
+##
+##  Identifier to be prepended to all generated log entries.
+
+# SyslogName		opendkim
+
 ##  SyslogSuccess { yes | no }
 ##  	default "no"
 ##

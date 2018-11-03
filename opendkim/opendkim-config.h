@@ -223,6 +223,7 @@ struct configdef dkimf_config[] =
 	{ "SubDomains",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "Syslog",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "SyslogFacility",		CONFIG_TYPE_STRING,	FALSE },
+	{ "SyslogName",			CONFIG_TYPE_STRING,	FALSE },
 	{ "SyslogSuccess",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "TemporaryDirectory",		CONFIG_TYPE_STRING,	FALSE },
 	{ "TestDNSData",		CONFIG_TYPE_STRING,	FALSE },
