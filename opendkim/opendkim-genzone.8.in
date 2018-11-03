@@ -6,7 +6,6 @@
 .B opendkim-genzone
 [\-C address]
 [\-d domain]
-[\-s]
 [\-D]
 [\-E secs]
 [\-F]
@@ -101,10 +100,6 @@ When generating an SOA record (see
 .I \-S
 below), use
 .I secs
-as the zone retry time.  The default is 1800.
-.TP
-.I \-s
-Extends the logic of "-d" to include subdomains.
 .TP
 .I \-S
 Asks for an SOA record to be generated at the top of the output.  The
