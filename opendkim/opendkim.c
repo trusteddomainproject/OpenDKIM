@@ -4302,9 +4302,6 @@ dkimf_db_error(DKIMF_DB db, const char *key)
 static void
 dkimf_init_syslog(char *name, char *facility)
 {
-	char *syslogident;
-	syslogident = name != NULL ? name : progname;
-
 #ifdef LOG_MAIL
 	int code;
 	struct lookup *p = NULL;
@@ -4324,11 +4321,11 @@ dkimf_init_syslog(char *name, char *facility)
 		}
 	}
 
-	openlog(syslogident, LOG_PID, code);
+	openlog(name != NULL ? name : progname, LOG_PID, code);
 #else /* LOG_MAIL */
 	closelog();
 
-	openlog(syslogident, LOG_PID);
+	openlog(name != NULL ? name : progname, LOG_PID);
 #endif /* LOG_MAIL */
 }
 
