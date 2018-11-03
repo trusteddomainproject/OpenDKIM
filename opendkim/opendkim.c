@@ -758,7 +758,6 @@ _Bool querycache;				/* local query cache */
 #endif /* QUERY_CACHE */
 _Bool die;					/* global "die" flag */
 int diesig;					/* signal to distribute */
-int thread_count;				/* thread count */
 #ifdef QUERY_CACHE
 time_t cache_lastlog;				/* last cache stats logged */
 #endif /* QUERY_CACHE */
@@ -5241,7 +5240,7 @@ dkimf_msr_body(struct signreq *sr, DKIM **last, u_char *body, size_t bodylen)
 
 /*
 **  DKIMF_MSR_MINBODY -- determine minimum body required to satisfy all
-**                       all open canonicalizations
+**                       open canonicalizations
 **
 **  Parameters:
 **  	srh -- head of the signature request list
@@ -11414,7 +11413,6 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 				       "message requeueing (internal error)");
 			}
 
-			free(copy);
 			dkimf_cleanup(ctx);
 			return SMFIS_TEMPFAIL;
 		}
@@ -16815,11 +16813,11 @@ main(int argc, char **argv)
 	{
 		if (curconf->conf_dolog)
 		{
-			syslog(LOG_ERR, "pthread_sigprocmask(): %s",
+			syslog(LOG_ERR, "pthread_sigmask(): %s",
 			       strerror(status));
 		}
 
-		fprintf(stderr, "%s: pthread_sigprocmask(): %s\n", progname,
+		fprintf(stderr, "%s: pthread_sigmask(): %s\n", progname,
 		        strerror(status));
 
 		dkimf_zapkey(curconf);

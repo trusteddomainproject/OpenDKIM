@@ -21,7 +21,6 @@
 #ifdef HAVE_STDBOOL_H
 # include <stdbool.h>
 #endif /* HAVE_STDBOOL_H */
-#include <syslog.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
