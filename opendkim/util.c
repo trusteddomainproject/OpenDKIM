@@ -80,10 +80,6 @@ static char *optlist[] =
 	"DEBUG",
 #endif /* DEBUG */
 
-#if POLL
-	"POLL",
-#endif /* POLL */
-
 #if POPAUTH
 	"POPAUTH",
 #endif /* POPAUTH */
