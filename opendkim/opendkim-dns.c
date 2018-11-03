@@ -72,6 +72,7 @@ struct dkimf_unbound
 	_Bool			ub_poller;
 	struct ub_ctx *		ub_ub;
 	pthread_mutex_t		ub_lock;
+	pthread_mutex_t		ub_config_lock;
 	pthread_cond_t		ub_ready;
 };
 
@@ -440,7 +441,9 @@ dkimf_ub_config(void *srv, const char *file)
 
 	ub = srv;
 
+	pthread_mutex_lock(&ub->ub_config_lock);
 	status = ub_ctx_config(ub->ub_ub, (char *) file);
+	pthread_mutex_unlock(&ub->ub_config_lock);
 
 	return (status == 0 ? 0 : -1);
 }
@@ -607,6 +610,7 @@ dkimf_ub_init(void **ub)
 	out->ub_poller = FALSE;
 
 	pthread_mutex_init(&out->ub_lock, NULL);
+	pthread_mutex_init(&out->ub_config_lock, NULL);
 	pthread_cond_init(&out->ub_ready, NULL);
 
 	*ub = out;
@@ -637,6 +641,7 @@ dkimf_ub_close(void *srv)
 	ub_ctx_delete(ub->ub_ub);
 
 	pthread_mutex_destroy(&ub->ub_lock);
+	pthread_mutex_destroy(&ub->ub_config_lock);
 	pthread_cond_destroy(&ub->ub_ready);
 
 	free(srv);
