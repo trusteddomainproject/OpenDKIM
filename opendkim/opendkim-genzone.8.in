@@ -13,6 +13,7 @@
 [\-o file]
 [\-r secs]
 [\-R secs]
+[\-s]
 [\-S]
 [\-t secs]
 [\-T secs]

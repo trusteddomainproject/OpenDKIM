@@ -1116,6 +1116,13 @@ allowed in
 The default is "mail".
 
 .TP
+.I SyslogName (string)
+Log via calls to
+.I syslog(3)
+using that name. That way one could distinguish multiple instances.
+The default is the name of the executable, normally "opendkim".
+
+.TP
 .I SyslogSuccess (Boolean)
 Log via calls to
 .I syslog(3)
