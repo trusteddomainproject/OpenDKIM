@@ -1172,7 +1172,7 @@ dkim_privkey_load(DKIM *dkim)
 #endif /* USE_GNUTLS */
 
 #ifdef USE_GNUTLS 
-	status = gnutls_x509_privkey_init(&crypto->rsa_key);
+	status = gnutls_x509_privkey_init(&crypto->crypto_key);
 	if (status != GNUTLS_E_SUCCESS)
 	{
 		dkim_load_ssl_errors(dkim, status);
@@ -1182,14 +1182,14 @@ dkim_privkey_load(DKIM *dkim)
 
 	if (strncmp((char *) dkim->dkim_key, "-----", 5) == 0)
 	{						/* PEM */
-		status = gnutls_x509_privkey_import(crypto->rsa_key,
-		                                    &crypto->rsa_keydata,
+		status = gnutls_x509_privkey_import(crypto->crypto_key,
+		                                    &crypto->crypto_keydata,
 	                                            GNUTLS_X509_FMT_PEM);
 	}
 	else
 	{
-		status = gnutls_x509_privkey_import(crypto->rsa_key,
-		                                    &crypto->rsa_keydata,
+		status = gnutls_x509_privkey_import(crypto->crypto_key,
+		                                    &crypto->crypto_keydata,
 	                                            GNUTLS_X509_FMT_DER);
 	}
 
@@ -1200,7 +1200,7 @@ dkim_privkey_load(DKIM *dkim)
 		return DKIM_STAT_NORESOURCE;
 	}
 
-	status = gnutls_privkey_init(&crypto->rsa_privkey);
+	status = gnutls_privkey_init(&crypto->crypto_privkey);
 	if (status != GNUTLS_E_SUCCESS)
 	{
 		dkim_load_ssl_errors(dkim, status);
@@ -1208,18 +1208,18 @@ dkim_privkey_load(DKIM *dkim)
 		return DKIM_STAT_NORESOURCE;
 	}
 
-	status = gnutls_privkey_import_x509(crypto->rsa_privkey,
-	                                    crypto->rsa_key, 0);
+	status = gnutls_privkey_import_x509(crypto->crypto_privkey,
+	                                    crypto->crypto_key, 0);
 	if (status != GNUTLS_E_SUCCESS)
 	{
 		dkim_load_ssl_errors(dkim, status);
 		dkim_error(dkim, "gnutls_privkey_import_x509() failed");
-		(void) gnutls_privkey_deinit(rsa->rsa_privkey);
+		(void) gnutls_privkey_deinit(crypto->crypto_privkey);
 		return DKIM_STAT_NORESOURCE;
 	}
 
-	(void) gnutls_privkey_get_pk_algorithm(rsa->rsa_privkey,
-	                                       &rsa->rsa_keysize);
+	(void) gnutls_privkey_get_pk_algorithm(crypto->crypto_privkey,
+	                                       &crypto->crypto_keysize);
 
 #else /* USE_GNUTLS */
 
@@ -5533,6 +5533,10 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 	size_t diglen = 0;
 #ifdef USE_GNUTLS
 	gnutls_datum_t key;
+# if GNUTLS_VERSION_MAJOR == 3
+	gnutls_digest_algorithm_t hash;
+	gnutls_sign_algorithm_t signalg;
+# endif /* GNUTLS_VERSION_MAJOR == 3 */
 #else /* USE_GNUTLS */
 	BIO *key;
 #endif /* USE_GNUTLS */
@@ -5685,11 +5689,29 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 			return DKIM_STAT_OK;
 		}
 
+# if GNUTLS_VERSION_MAJOR == 2
 		vstat = gnutls_pubkey_verify_hash(crypto->crypto_pubkey, 0,
 		                                  &crypto->crypto_digest,
 		                                  &crypto->crypto_sig);
 		if (vstat < 0)
 			dkim_sig_load_ssl_errors(dkim, sig, rsastat);
+# else /* GNUTLS_VERSION_MAJOR == 2 */
+		hash = dkim_libfeature(dkim->dkim_libhandle,
+		                       DKIM_FEATURE_SHA256);
+		hash = (hash && sig->sig_hashtype == DKIM_HASHTYPE_SHA256)
+		       ? GNUTLS_DIG_SHA256
+		       : GNUTLS_DIG_SHA1);
+
+		signalg = gnutls_pk_to_sign(GNUTLS_PK_RSA, hash);
+		assert(sign_algo != GNUTLS_SIGN_UNKNOWN);
+
+		vstat = gnutls_pubkey_verify_hash2(crypto->crypto_pubkey,
+		                                   signalg, 0,
+		                                   &crypto->crypto_digest,
+		                                   &crypto->crypto_sig);
+		if (vstat < 0)
+			dkim_sig_load_ssl_errors(dkim, sig, rsastat);
+# endif /* GNUTLS_VERSION_MAJOR == 2 */
 
 		(void) gnutls_pubkey_get_pk_algorithm(crypto->crypto_pubkey,
 		                                      &crypto->crypto_keysize);

@@ -3,8 +3,9 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
-2.11.0		2018/05/31
-	Add support for ED25519 keys.
+2.11.0		2018/11/??
+	Add support for ED25519 keys.  GNUTLS support provided by
+		Dilyan Palauzov.
 	Add "header.s" and "header.a" in generated Authentication-Results
 		header fields.
 	Add _FFR_CONDITIONAL, experimental support for conditional DKIM
