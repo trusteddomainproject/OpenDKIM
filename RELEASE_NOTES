@@ -21,6 +21,8 @@ release, and a summary of the changes in that release.
 	Fix bug #237: Fix processing of "SoftStart".
 	CONFIG: Add compatibility with openssl-1.1.0.  Patch from
 		Scott Kitterman.
+	CONTRIB: Simplfy some logic in contrib/repute.  Patch from
+		Dilyan Palauzov.
 	LIBOPENDKIM: Feature request #190: Reject signature object requests
 		where the domain name or selector includes non-printable
 		characters.  Suggested by Franck Martin.
