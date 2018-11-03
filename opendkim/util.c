@@ -813,7 +813,10 @@ dkimf_load_replist(FILE *in, struct replace **list)
 
 		p = strrchr(rule, '\t');
 		if (p == NULL)
+		{
+			free(newrep);
 			return FALSE;
+		}
 
 		*p = '\0';
 
@@ -821,6 +824,7 @@ dkimf_load_replist(FILE *in, struct replace **list)
 		if (status != 0)
 		{
 			fprintf(stderr, "%s: regcomp() failed\n", progname);
+			free(newrep);
 			return FALSE;
 		}
 
@@ -829,6 +833,7 @@ dkimf_load_replist(FILE *in, struct replace **list)
 		{
 			fprintf(stderr, "%s: strdup(): %s\n", progname,
 			        strerror(errno));
+			free(newrep);
 			return FALSE;
 		}
 

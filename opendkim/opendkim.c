@@ -11606,6 +11606,9 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 			if (conf->conf_dolog)
 				syslog(LOG_ERR, "dkimf_db_get() failed");
 
+			TRYFREE(newhdr->hdr_hdr);
+			free(newhdr);
+
 			return SMFIS_TEMPFAIL;
 		}
 

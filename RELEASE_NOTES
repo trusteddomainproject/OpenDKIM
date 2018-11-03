@@ -16,6 +16,8 @@ release, and a summary of the changes in that release.
 		hex digit as a value delimiter.
 	Fix issue #8: The password file critical section isn't big enough.
 		Patch from Dilyan Palauzov.
+	Fix issue #9: Plug a few failure mode memory leaks.  Patch from
+		Dilyan Palauzov.
 	Fix bug #234: Make "NoHeaderB" do something.  Reported by Joseph
 		Coffland.
 	Fix bug #235: Quote "header.b" values in case they contain a slash
