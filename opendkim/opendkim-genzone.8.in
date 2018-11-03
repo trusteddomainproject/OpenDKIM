@@ -6,7 +6,6 @@
 .B opendkim-genzone
 [\-C address]
 [\-d domain]
-[\-s]
 [\-D]
 [\-E secs]
 [\-F]
@@ -14,6 +13,7 @@
 [\-o file]
 [\-r secs]
 [\-R secs]
+[\-s]
 [\-S]
 [\-t secs]
 [\-T secs]
@@ -60,9 +60,6 @@ hostname will be used; if the executing user can't be determined,
 .I \-d domain
 Restricts output to those records for which the domain field is the specified
 .I domain.
-.TP
-.I \-s
-with -d, also match subdomains
 .TP
 .I \-D
 Adds a "._domainkey" suffix to selector names in the zone file.
