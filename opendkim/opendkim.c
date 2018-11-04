@@ -13399,13 +13399,12 @@ mlfi_body(SMFICTX *ctx, u_char *bodyp, size_t bodylen)
 		return dkimf_libstatus(ctx, last, "dkim_body()", status);
 
 #ifdef SMFIS_SKIP
-	if (dfc->mctx_srhead != NULL && cc->cctx_milterv2 &&
-	    dkimf_msr_minbody(dfc->mctx_srhead) == 0)
-			return SMFIS_SKIP;
-
-	if (dfc->mctx_dkimv != NULL && cc->cctx_milterv2 &&
-	    dkim_minbody(dfc->mctx_dkimv) == 0)
-			return SMFIS_SKIP;
+	/* skip the body if neither signing mode nor verify mode need it */
+	if (cc->cctx_milterv2 &&
+	    (dfc->mctx_srhead == NULL ||
+	     dkimf_msr_minbody(dfc->mctx_srhead) == 0) &&
+	    (dfc->mctx_dkimv == NULL || dkim_minbody(dfc->mctx_dkimv) == 0))
+		return SMFIS_SKIP;
 #endif /* SMFIS_SKIP */
 
 	return SMFIS_CONTINUE;
