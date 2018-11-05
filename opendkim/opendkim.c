@@ -12742,63 +12742,69 @@ mlfi_eoh(SMFICTX *ctx)
 	/* if requested, verify RFC5322-required headers (RFC5322 3.6) */
 	if (conf->conf_reqhdrs)
 	{
-		_Bool ok = TRUE;
+		char *msg = NULL;
 
 		/* exactly one From: */
 		if (dkimf_findheader(dfc, "From", 0) == NULL ||
 		    dkimf_findheader(dfc, "From", 1) != NULL)
-			ok = FALSE;
+			msg = "message does not have exactly one From field";
 
 		/* exactly one Date: */
 		if (dkimf_findheader(dfc, "Date", 0) == NULL ||
 		    dkimf_findheader(dfc, "Date", 1) != NULL)
-			ok = FALSE;
+			msg = "message does not have exactly one Date field";
 
 		/* no more than one Reply-To: */
 		if (dkimf_findheader(dfc, "Reply-To", 1) != NULL)
-			ok = FALSE;
+			msg = "message has multiple Reply-To fields";
 
 		/* no more than one To: */
 		if (dkimf_findheader(dfc, "To", 1) != NULL)
-			ok = FALSE;
+			msg = "message has multiple To fields";
 
 		/* no more than one Cc: */
 		if (dkimf_findheader(dfc, "Cc", 1) != NULL)
-			ok = FALSE;
+			msg = "message has multiple Cc fields";
 
 		/* no more than one Bcc: */
 		if (dkimf_findheader(dfc, "Bcc", 1) != NULL)
-			ok = FALSE;
+			msg = "message has multiple Bcc fields";
 
 		/* no more than one Message-Id: */
 		if (dkimf_findheader(dfc, "Message-Id", 1) != NULL)
-			ok = FALSE;
+			msg = "message has multiple Message-Id fields";
 
 		/* no more than one In-Reply-To: */
 		if (dkimf_findheader(dfc, "In-Reply-To", 1) != NULL)
-			ok = FALSE;
+			msg = "message has multiple In-Reply-To fields";
 
 		/* no more than one References: */
 		if (dkimf_findheader(dfc, "References", 1) != NULL)
-			ok = FALSE;
+			msg = "message has multiple References fields";
 
 		/* no more than one Subject: */
 		if (dkimf_findheader(dfc, "Subject", 1) != NULL)
-			ok = FALSE;
+			msg = "message has multiple Subject fields";
 
-		if (!ok)
+		if (msg != NULL)
 		{
 			if (conf->conf_dolog)
 			{
 				syslog(LOG_INFO,
-				       "%s: RFC5322 header requirement error",
-				       dfc->mctx_jobid);
+				       "%s: RFC5322 header requirement error: %s",
+				       dfc->mctx_jobid, msg);
 			}
 
-			dfc->mctx_addheader = TRUE;
-			dfc->mctx_headeronly = TRUE;
-			dfc->mctx_status = DKIMF_STATUS_BADFORMAT;
-			return SMFIS_CONTINUE;
+			if (dkimf_setreply(ctx, "550", "5.7.1",
+			                   msg) != MI_SUCCESS &&
+			    conf->conf_dolog)
+			{
+				syslog(LOG_NOTICE,
+				       "%s: smfi_setreply() failed",
+				       dfc->mctx_jobid);
+			}
+			dkimf_cleanup(ctx);
+			return SMFIS_REJECT;
 		}
 	}
 

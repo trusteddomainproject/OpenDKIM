@@ -22,6 +22,9 @@ release, and a summary of the changes in that release.
 	Fix issue #15: Don't automatically skip the body when one mode (sign
 		or verify) doesn't need it, because the other one might.
 		Patch from Dilyan Palauzov.
+	Fix issue #28: RequiredHeaders should report and log the specific
+		error and reject the message, as documented.  Patch from
+		Dilyan Palauzov.
 	Fix bug #234: Make "NoHeaderB" do something.  Reported by Joseph
 		Coffland.
 	Fix bug #235: Quote "header.b" values in case they contain a slash
