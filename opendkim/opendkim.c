@@ -12795,7 +12795,7 @@ mlfi_eoh(SMFICTX *ctx)
 				       dfc->mctx_jobid, msg);
 			}
 
-			if (dkimf_setreply(ctx, "550", "5.7.1",
+			if (dkimf_setreply(ctx, "550", "5.0.0",
 			                   msg) != MI_SUCCESS &&
 			    conf->conf_dolog)
 			{
