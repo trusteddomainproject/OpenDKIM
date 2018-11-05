@@ -5700,10 +5700,10 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		                       DKIM_FEATURE_SHA256);
 		hash = (hash && sig->sig_hashtype == DKIM_HASHTYPE_SHA256)
 		       ? GNUTLS_DIG_SHA256
-		       : GNUTLS_DIG_SHA1);
+		       : GNUTLS_DIG_SHA1;
 
 		signalg = gnutls_pk_to_sign(GNUTLS_PK_RSA, hash);
-		assert(sign_algo != GNUTLS_SIGN_UNKNOWN);
+		assert(signalg != GNUTLS_SIGN_UNKNOWN);
 
 		vstat = gnutls_pubkey_verify_hash2(crypto->crypto_pubkey,
 		                                   signalg, 0,
