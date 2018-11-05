@@ -195,6 +195,58 @@ start at step (5).
 	/etc/init.d/postfix restart
 
 
+ISSUES USING SENDMAIL TO SIGN AND VERIFY
+========================================
+
+When using the sendmail MTA in both signing and verifying mode, there are
+a few issues of which to be aware that might cause operational problems
+and deserve consideration.
+
+(a) When the MTA will be used for relaying emails, e.g. delivering to other
+    hosts using the aliases mechanism, it is important not to break
+    signatures inserted by the original sender.  This is particularly sensitive
+    particular when the sending domain has published a "reject" DMARC policy.
+
+    By default, sendmail quotes to address header fields when there are no
+    quotes and the display part of the address contains a period or an
+    apostrophe.  However, opendkim only sees the raw, unmodified form of
+    the header field, and so the content that gets verified and what gets
+    signed will not be the same, guaranteeing the attached signature is not
+    valid.
+
+    To direct sendmail not to modify the headers, add this to your sendmail.mc:
+
+    	conf(`confMUST_QUOTE_CHARS', `')
+
+(b) As stated in sendmail's KNOWNBUGS file, sendmail truncates header field
+    values longer than 256 characters, which could mean truncating the domain
+    of a long From: header field value and invalidating the signature.
+    You may wish to consider increasing MAXNAME in sendmail/conf.h to mitigate
+    changing the messages and invalidating their signatures.  This change
+    requires recompiling sendmail.
+
+(c) Similar to (a) above, sendmail may wrap very long single-line recipient
+    fields for presentation purposes; for example:
+
+    To: very long name <a@example.org>,anotherloo...ong name b <b@example.org>
+
+    ...might be rewritten as:
+
+    To: very long name <a@example.org>,
+    	anotherloo...ong name b <b@example.org>
+
+    This rewrite is also done after opendkim has seen the message, meaning
+    the signature opendkim attaches to the message does not match the
+    content it signed.  There is not a known configuration change to
+    mitigate this mutation.
+
+    The only known mechanism for dealing with this is to have distinct
+    instances of opendkim do the verifying (inbound) and signing (outbound)
+    so that the version that arrives at the signing instance is already
+    in the rewritten form, guaranteeing the input and output are the same
+    and thus the signature matches the payload.
+
+
 COMPLEX SIGNING CONFIGURATIONS
 ==============================
 
@@ -299,12 +351,12 @@ is passed through unchanged regardless of the content of mailbox display names,
 comments, etc.
 
 However, there are no guarantees for out-of-spec email and for some obsolete
-orms.  For example, Postfix will fold lines over 998 characters long (not
+forms.  For example, Postfix will fold lines over 998 characters long (not
 including the <CR><LF>) by inserting <CR><LF><SPACE> to minimize damage to
 MIME-formatted messages, will truncate (multiline) headers that contain
->102400 bytes or >10240 tokens, and will replace the obsolete form
-"headername :" with the normal form "headername:" because many things in
-Postfix expect the normal form.
+more than 102400 bytes or more than 10240 tokens, and will replace the
+obsolete form "headername :" with the normal form "headername:" because many
+things in Postfix expect the normal form.
 
 
 TESTING
