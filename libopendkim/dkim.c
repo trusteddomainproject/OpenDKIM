@@ -5693,8 +5693,6 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		vstat = gnutls_pubkey_verify_hash(crypto->crypto_pubkey, 0,
 		                                  &crypto->crypto_digest,
 		                                  &crypto->crypto_sig);
-		if (vstat < 0)
-			dkim_sig_load_ssl_errors(dkim, sig, vstat);
 # else /* GNUTLS_VERSION_MAJOR == 2 */
 		hash = dkim_libfeature(dkim->dkim_libhandle,
 		                       DKIM_FEATURE_SHA256);
@@ -5709,9 +5707,12 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		                                   signalg, 0,
 		                                   &crypto->crypto_digest,
 		                                   &crypto->crypto_sig);
+# endif /* GNUTLS_VERSION_MAJOR == 2 */
 		if (vstat < 0)
 			dkim_sig_load_ssl_errors(dkim, sig, vstat);
-# endif /* GNUTLS_VERSION_MAJOR == 2 */
+		else
+			/* RSA_verify() returns 1 on success */
+			vstat = 1;
 
 		(void) gnutls_pubkey_get_pk_algorithm(crypto->crypto_pubkey,
 		                                      &crypto->crypto_keysize);
