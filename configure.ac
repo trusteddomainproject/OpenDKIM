@@ -2184,7 +2184,7 @@ then
 	AC_MSG_ERROR([reputation requires libjansson])
 fi
 
-if test x"$jansson_found" == x"yes"
+if test x"$jansson_found" = x"yes"
 then
 	AC_DEFINE(USE_JANSSON, 1, [use libjansson to parse REPUTE replies])
 fi
