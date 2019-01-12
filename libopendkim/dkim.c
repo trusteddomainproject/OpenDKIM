@@ -5442,9 +5442,48 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 			return DKIM_STAT_OK;
 		}
 
-		rsastat = gnutls_pubkey_verify_hash(rsa->rsa_pubkey, 0,
-		                                    &rsa->rsa_digest,
-		                                    &rsa->rsa_sig);
+                gnutls_digest_algorithm_t hash_alg;
+                switch (sig->sig_signalg) {
+                case DKIM_SIGN_UNKNOWN:
+                case DKIM_SIGN_RSASHA1:
+                     hash_alg = GNUTLS_DIG_SHA1;
+                     break;
+                case DKIM_SIGN_DEFAULT:
+                case DKIM_SIGN_RSASHA256:
+                     hash_alg = GNUTLS_DIG_SHA256;
+                     break;
+                default:
+                     dkim_error(dkim,
+                                "s=%s d=%s: unknown hash algorithm: %d",
+                                dkim_sig_getselector(sig),
+                                dkim_sig_getdomain(sig),
+                                dkim->dkim_signalg);
+
+                     sig->sig_error = DKIM_SIGERROR_KEYDECODE;
+
+                     return DKIM_STAT_OK;
+                }
+                
+                gnutls_pk_algorithm_t pk;
+                pk = gnutls_pubkey_get_pk_algorithm(rsa->rsa_pubkey, NULL);
+                gnutls_sign_algorithm_t sign_algo;
+                sign_algo = gnutls_pk_to_sign(pk, hash_alg);
+                if (GNUTLS_SIGN_UNKNOWN == sign_algo)
+                {
+                     dkim_error(dkim,
+                                "s=%s d=%s: gnutls_pk_to_sign() failed",
+                                dkim_sig_getselector(sig),
+                                dkim_sig_getdomain(sig));
+
+                     sig->sig_error = DKIM_SIGERROR_KEYDECODE;
+
+                     return DKIM_STAT_OK;
+                }
+		rsastat = gnutls_pubkey_verify_hash2(rsa->rsa_pubkey,
+                                                     sign_algo,
+                                                     0,
+                                                     &rsa->rsa_digest,
+                                                     &rsa->rsa_sig);
 		if (rsastat < 0)
 			dkim_sig_load_ssl_errors(dkim, sig, rsastat);
 

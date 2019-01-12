@@ -36,6 +36,8 @@ ltmain.sh
 libtool
 Makefile.in
 Makefile
+*.log
+*.trs
 *.tar.gz
 *.tar.gz.md5
 *.tar.gz.sha1
