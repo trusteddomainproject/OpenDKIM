@@ -2628,6 +2628,11 @@ AC_SUBST(SPECCONFIGURE)
 AC_SUBST(SPECREQUIRES)
 AC_SUBST(SPECBUILDREQUIRES)
 
+# Autoconf 2.70 will support this, and many distros patch it in,
+# but Autoconf 2.70 hasn't actually been released yet.
+AS_IF([test -z "${runstatedir}"], [runstatedir='${localstatedir}/run'])
+AC_SUBST([runstatedir])
+
 #
 # Finish up
 #
