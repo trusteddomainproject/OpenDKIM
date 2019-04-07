@@ -65,6 +65,9 @@ AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_LIBTOOL
 
+# Used by the OpenRC service script, at least.
+AC_PROG_GREP
+
 PKG_PROG_PKG_CONFIG
 
 #
@@ -2644,6 +2647,8 @@ AC_OUTPUT([	Makefile
 			contrib/docs/Makefile
 			contrib/init/Makefile
 			contrib/init/generic/Makefile
+			contrib/OpenRC/Makefile
+			contrib/OpenRC/opendkim.openrc.in
 			contrib/init/redhat/Makefile
 			contrib/init/redhat/opendkim
 			contrib/init/redhat/opendkim-default-keygen
