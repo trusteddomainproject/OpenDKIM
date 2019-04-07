@@ -9,7 +9,7 @@ After=network.target nss-lookup.target syslog.target
 
 [Service]
 Type=forking
-PIDFile=@localstatedir@/run/opendkim/opendkim.pid
+PIDFile=@runstatedir@/opendkim/opendkim.pid
 EnvironmentFile=-@sysconfdir@/sysconfig/opendkim
 ExecStart=@sbindir@/opendkim $OPTIONS
 ExecReload=/bin/kill -USR1 $MAINPID
