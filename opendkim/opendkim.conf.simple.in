@@ -12,6 +12,12 @@ KeyFile			/var/db/dkim/@DOMAIN@.private
 
 Socket                  inet:8891@localhost
 
+# To use a local socket instead, specify a path here. The "standard"
+# location is under @runstatedir@/opendkim, and it's best to agree
+# on that directory so that various init systems can configure its
+# permissions and ownership automatically.
+#Socket                 local:@runstatedir@/opendkim/opendkim.sock
+
 ReportAddress           postmaster@@DOMAIN@
 SendReports             yes
 
