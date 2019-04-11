@@ -17,5 +17,4 @@ Mode			v
 
 # ADSPDiscard	no
 
-# PidFile		/var/run/opendkim/opendkim.pid
-
+# PidFile		@runstatedir@/opendkim.pid

@@ -31,4 +31,4 @@ SendReports             yes
 #
 # PeerList		X.X.X.X
 
-# PidFile		/var/run/opendkim/opendkim.pid
+# PidFile		@runstatedir@/opendkim.pid
