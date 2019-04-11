@@ -2,4 +2,4 @@
 # contains a local socket, then (for example) your MTA will want to
 # look in there. Permissions on the socket itself are controlled
 # by the "UserID" and "UMask" directives in the daemon's configuration.
-d @runstatedir@/opendkim 0755 opendkim opendkim
+d @RUNSTATEDIR@/opendkim 0755 opendkim opendkim
