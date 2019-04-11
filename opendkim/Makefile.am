@@ -16,9 +16,35 @@ endif
 sbin_PROGRAMS += opendkim-stats
 endif
 
+
 dist_sbin_SCRIPTS = opendkim-genkey
-dist_doc_DATA = opendkim.conf.sample opendkim.conf.simple \
-	opendkim.conf.simple-verify README.SQL
+
+# We want to *build and install* these...
+nodist_doc_DATA = opendkim.conf.simple opendkim.conf.simple-verify
+
+# But *ship* these.
+EXTRA_DIST = opendkim.conf.simple.in opendkim.conf.simple-verify.in
+
+dist_doc_DATA = opendkim.conf.sample README.SQL
+
+# The next rule allow us to replace @RUNSTATEDIR@ within our service
+# script. The example is taken from the autoconf documentation and can
+# be found in the "Installation Directory Variables" section.
+edit = sed -e 's|@DOMAIN[@]|$(DOMAIN)|g' \
+           -e 's|@RUNSTATEDIR[@]|$(runstatedir)|g'
+
+# This rule includes EVERY input file as a dependency of EVERY
+# output file, which is clearly wrong, but it may be the best we can
+# do without duplication. At least it's the right kind of wrong, and
+# rebuilds too often rather than not often enough.
+$(nodist_doc_DATA): $(EXTRA_DIST) Makefile
+	rm -f $@ $@.tmp
+	srcdir=''; \
+	  test -f ./$@.in || srcdir=$(srcdir)/; \
+	  $(edit) $${srcdir}$@.in > $@.tmp
+	mv $@.tmp $@
+
+
 
 if BUILD_FILTER
 sbin_PROGRAMS += opendkim

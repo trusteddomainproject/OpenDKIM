@@ -2673,8 +2673,6 @@ AC_OUTPUT([	Makefile
 			opendkim/opendkim-lua.3 
 			opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8
 			opendkim/opendkim-testmsg.8 opendkim/opendkim.conf.5
-			opendkim/opendkim.conf.simple
-			opendkim/opendkim.conf.simple-verify
 			opendkim/opendkim-atpszone.8 opendkim/opendkim-spam.1
 		opendkim/tests/Makefile
 		stats/Makefile stats/opendkim-importstats.8
