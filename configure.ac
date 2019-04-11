@@ -2647,7 +2647,6 @@ AC_OUTPUT([	Makefile
 			contrib/docs/Makefile
 			contrib/init/Makefile
 			contrib/init/generic/Makefile
-			contrib/OpenRC/Makefile
 			contrib/OpenRC/opendkim.openrc.in
 			contrib/init/redhat/Makefile
 			contrib/init/redhat/opendkim
@@ -2660,7 +2659,6 @@ AC_OUTPUT([	Makefile
 			contrib/spec/Makefile
 			contrib/spec/opendkim.spec
 			contrib/stats/Makefile
-			contrib/systemd/Makefile
 		libopendkim/opendkim.pc libopendkim/Makefile
 		libopendkim/docs/Makefile
 		libopendkim/tests/Makefile
