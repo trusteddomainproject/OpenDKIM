@@ -40,7 +40,7 @@ AM_INIT_AUTOMAKE(
   dnl Automake version before 1.13 (when the serial-tests option was
   dnl still the default) still defined the badly obsolete macro
   dnl 'AM_PROG_INSTALL'.
-  m4_ifndef([AM_PROG_INSTALL], [serial-tests])
+  m4_ifndef([AM_PROG_INSTALL], [serial-tests], [subdir-objects])
 )
 AC_CONFIG_HEADERS([build-config.h])
 
@@ -203,7 +203,6 @@ AC_TYPE_UINT64_T
 # Checks for library functions.
 #
 AC_FUNC_FORK
-AC_FUNC_GETGROUPS
 AC_FUNC_MALLOC
 AC_FUNC_MKTIME
 AC_FUNC_REALLOC
@@ -215,73 +214,89 @@ strl_found="no"
 libstrl_found="no"
 strl_h_found="no"
 
-AC_CHECK_HEADERS([bsd/string.h], [bsdstrl_h_found="yes"])
+AH_TEMPLATE([USE_BUNDLED_STRL],
+	[Define to 1 if you want to use strn* string functions instead of strl* functions.])
 
-AC_CHECK_FUNCS([strlcat strlcpy], [strl_found="yes"],
-               [
-		saved_LIBS="$LIBS"
-		LIBS="$outer_LIBS"
-		AC_SEARCH_LIBS([strlcat],
-		               [bsd strl],
-		               [libstrl_found="yes"],
-		               [strl_found="no"])
-		AC_SEARCH_LIBS([strlcpy],
-		               [bsd strl],
-		               [libstrl_found="yes"],
-		               [strl_found="no"])
-		STRL_LIBS="$LIBS"
-		LIBS="$saved_LIBS"
-               ])
+# Check for enable-bundled-strl argument
+AC_ARG_ENABLE([bundled-strl], AS_HELP_STRING([--enable-bundled-strl], [Use bundled strl* functions]))
 
-if test x"$libstrl_found" = x"yes"
+if test "x$enable_bundled_strl" != "xyes"
 then
-	LIBS="$LIBS $STRL_LIBS"
+	AC_CHECK_HEADERS([bsd/string.h], [bsdstrl_h_found="yes"])
+
+	AC_CHECK_FUNCS([strlcat strlcpy], [strl_found="yes"],
+				[
+			saved_LIBS="$LIBS"
+			LIBS="$outer_LIBS"
+			AC_SEARCH_LIBS([strlcat],
+						[bsd strl],
+						[libstrl_found="yes"],
+						[strl_found="no"])
+			AC_SEARCH_LIBS([strlcpy],
+						[bsd strl],
+						[libstrl_found="yes"],
+						[strl_found="no"])
+			STRL_LIBS="$LIBS"
+			LIBS="$saved_LIBS"
+				])
+
+	if test x"$libstrl_found" = x"yes"
+	then
+		LIBS="$LIBS $STRL_LIBS"
+	fi
+
+	# we need something above to have worked
+	if test x"$strl_found" != x"yes" -a x"$libstrl_found" != x"yes"
+	then
+		AC_MSG_ERROR(no strlcpy/strlcat found)
+	fi
+
+	AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
+	if test x"$strl_h_found" != x"yes"
+	then
+		strldirs="/usr/local/include/strl /usr/local/include /usr/include/strl"
+
+		for d in $strldirs
+		do
+			AC_MSG_CHECKING([for strl.h in $d])
+			if test -f $d/strl.h
+			then
+				unset ac_cv_header_strl_h
+				saved_CPPFLAGS="$CPPFLAGS"
+				CPPFLAGS="$CPPFLAGS -I$d"
+				AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
+				CPPFLAGS="$saved_CPPFLAGS"
+			fi
+
+			if test x"$strl_h_found" = x"yes"
+			then
+				CPPFLAGS="$CPPFLAGS -I$d"
+				break
+			fi
+		done
+	fi
+	# we need to include <strl.h> if an installed strl.h was found and no
+	# bsd/string.h was found
+	if test x"$strl_h_found" = x"yes" -a x"$bsdstrl_h_found" = x"no"
+	then
+		AC_DEFINE([USE_STRL_H], 1,
+				[Define to 1 if you need to include <strl.h> to get the `strlcat()' and `strlcpy()' functions.])
+	fi
+
+	if test x"$bsdstrl_h_found" = x"yes"
+	then
+		AC_DEFINE([USE_BSD_H], 1,
+				[Define to 1 if you need to include <bsd/string.h> to get the `strlcat()' and `strlcpy()' functions.])
+	fi
 fi
 
-# we need something above to have worked
-if test x"$strl_found" != x"yes" -a x"$libstrl_found" != x"yes"
+if test "x$enable_bundled_strl" == "xyes"
 then
-	AC_MSG_ERROR(no strlcpy/strlcat found)
+	AC_DEFINE([USE_BUNDLED_STRL], 1,
+			[Define to 1 if you want to use strn* string functions instead of strl* functions.])
 fi
 
-AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
-if test x"$strl_h_found" != x"yes"
-then
-	strldirs="/usr/local/include/strl /usr/local/include /usr/include/strl"
-
-	for d in $strldirs
-	do
-		AC_MSG_CHECKING([for strl.h in $d])
-		if test -f $d/strl.h
-		then
-			unset ac_cv_header_strl_h
-			saved_CPPFLAGS="$CPPFLAGS"
-			CPPFLAGS="$CPPFLAGS -I$d"
-			AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
-			CPPFLAGS="$saved_CPPFLAGS"
-		fi
-
-		if test x"$strl_h_found" = x"yes"
-		then
-			CPPFLAGS="$CPPFLAGS -I$d"
-			break
-		fi
-	done
-fi
-
-# we need to include <strl.h> if an installed strl.h was found and no
-# bsd/string.h was found
-if test x"$strl_h_found" = x"yes" -a x"$bsdstrl_h_found" = x"no"
-then
-	AC_DEFINE([USE_STRL_H], 1,
-	          [Define to 1 if you need to include <strl.h> to get the `strlcat()' and `strlcpy()' functions.])
-fi
-
-if test x"$bsdstrl_h_found" = x"yes"
-then
-	AC_DEFINE([USE_BSD_H], 1,
-	          [Define to 1 if you need to include <bsd/string.h> to get the `strlcat()' and `strlcpy()' functions.])
-fi
+AM_CONDITIONAL([USE_BUNDLED_STRL], [test x"$enable_bundled_strl" = x"yes"])
 
 #
 # Checks for structure members

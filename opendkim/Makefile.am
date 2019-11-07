@@ -23,6 +23,9 @@ dist_doc_DATA = opendkim.conf.sample opendkim.conf.simple \
 if BUILD_FILTER
 sbin_PROGRAMS += opendkim
 opendkim_SOURCES = opendkim.c opendkim.h opendkim-ar.c opendkim-ar.h opendkim-arf.c opendkim-arf.h opendkim-config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-dns.c opendkim-dns.h opendkim-lua.c opendkim-lua.h config.c config.h flowrate.c flowrate.h reputation.c reputation.h stats.c stats.h test.c test.h util.c util.h
+if USE_BUNDLED_STRL
+opendkim_SOURCES += $(srcdir)/../linux_string/linux_string.h $(srcdir)/../linux_string/strlcpy.c $(srcdir)/../linux_string/strlcat.c
+endif
 opendkim_CC = $(PTHREAD_CC)
 opendkim_CFLAGS = $(PTHREAD_CFLAGS) $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
@@ -103,6 +106,9 @@ endif
 
 opendkim_testkey_CC = $(PTHREAD_CC)
 opendkim_testkey_SOURCES = config.c config.h opendkim-crypto.c opendkim-crypto.h opendkim-db.c opendkim-db.h opendkim-dns.c opendkim-dns.h opendkim-lua.c opendkim-lua.h opendkim-testkey.c util.c util.h $(srcdir)/../libopendkim/dkim.h $(srcdir)/../libopendkim/dkim-test.h
+if USE_BUNDLED_STRL
+opendkim_testkey_SOURCES += $(srcdir)/../linux_string/linux_string.h $(srcdir)/../linux_string/strlcpy.c $(srcdir)/../linux_string/strlcat.c
+endif
 opendkim_testkey_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_testkey_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS) $(PTHREAD_CFLAGS)
 opendkim_testkey_LDFLAGS = $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS) $(PTHREAD_CFLAGS)
@@ -172,6 +178,9 @@ opendkim_testmsg_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(LIBRE
 
 opendkim_genzone_CC = $(PTHREAD_CC)
 opendkim_genzone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-genzone.c opendkim-lua.c util.c util.h
+if USE_BUNDLED_STRL
+opendkim_genzone_SOURCES += $(srcdir)/../linux_string/linux_string.h $(srcdir)/../linux_string/strlcpy.c $(srcdir)/../linux_string/strlcat.c
+endif
 opendkim_genzone_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_genzone_CFLAGS = $(PTHREAD_CFLAGS) $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS)
 opendkim_genzone_LDFLAGS = $(COV_LDFLAGS) $(LIBCRYPTO_LIBDIRS) $(PTHREAD_CFLAGS)
@@ -222,6 +231,9 @@ endif
 if ATPS
 opendkim_atpszone_CC = $(PTHREAD_CC)
 opendkim_atpszone_SOURCES = config.c config.h opendkim-db.c opendkim-db.h opendkim-atpszone.c opendkim-lua.c util.c util.h
+if USE_BUNDLED_STRL
+opendkim_atpszone_SOURCES += $(srcdir)/../linux_string/linux_string.h $(srcdir)/../linux_string/strlcpy.c $(srcdir)/../linux_string/strlcat.c
+endif
 opendkim_atpszone_CPPFLAGS = -I$(srcdir)/../libopendkim $(LIBCRYPTO_CPPFLAGS)
 opendkim_atpszone_CFLAGS = $(COV_CFLAGS) $(LIBCRYPTO_CFLAGS) $(PTHREAD_CFLAGS)
 opendkim_atpszone_LDFLAGS = $(COV_LDFLAGS) $(LIBCRYPTO_LIBDIRS) $(PTHREAD_CFLAGS)

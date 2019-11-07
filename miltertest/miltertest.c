@@ -42,6 +42,11 @@
 # include <bsd/string.h>
 #endif /* USE_BSD_H */
 
+/* if you do not want to use strl* functions */
+#ifdef USE_BUNDLED_STRL
+# include "linux_string/linux_string.h"
+#endif /* USE_BUNDLED_STRL */
+
 /* libstrl if needed */
 #ifdef USE_STRL_H
 # include <strl.h>
