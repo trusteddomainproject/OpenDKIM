@@ -5734,7 +5734,35 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		else
 # endif /* HAVE_ED25519 */
 		{
-			crypto->crypto_pkey = d2i_PUBKEY_bio(key, NULL);
+			if (NULL == (crypto->crypto_pkey = d2i_PUBKEY_bio(key, NULL))) {
+				const unsigned char *keydata;
+				long keylen;
+				RSA *rsa = NULL;
+				EVP_PKEY *pkey = NULL;
+
+				/* reset mem buffer to initial state after d2i_PUBKEY_bio messed with it */
+				BIO_reset(key);
+				keylen = BIO_get_mem_data(key, &keydata);
+
+				/* RFC6376 explicitly specifies RSAPublicKey (RFC3447, section 3.1)
+				 * as the valid format for 'k=rsa'; even though the whole world seems
+				 * to be using SubjectPublicKeyInfo it seems be prudent to support what
+				 * the RFC currently actually mandates */
+				if (NULL == (rsa = d2i_RSAPublicKey(&rsa, &keydata, keylen))) {
+				} else if (NULL == (pkey = EVP_PKEY_new())) {
+				} else if (1 != EVP_PKEY_assign_RSA(pkey, rsa)) {
+				} else {
+					/* if assignment was successful, RSA is managed by pkey,
+					 * which in turn is passed to the crypto struct */
+					rsa = NULL;
+					pkey = NULL;
+					crypto->crypto_pkey = pkey;
+				}
+
+				/* clean up if some step failed */
+				RSA_free(rsa);
+				EVP_PKEY_free(pkey);
+			}
 		}
 
 		if (crypto->crypto_pkey == NULL)
