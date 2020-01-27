@@ -1517,12 +1517,20 @@ lua_found="no"
 
 if test \(  x"$luapath" = x"auto" -o x"$luapath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([LIBLUA], [lua5.1],
-	                  [
-				lua_found="yes"
-				LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
-	                  ],
-			  [AC_MSG_WARN([pkg-config for Lua not found, trying manual search...])])
+  PKG_CHECK_MODULES([LIBLUA], [lua5.1], [
+      LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
+      lua_found="yes"
+    ],
+    [
+      AC_MSG_WARN([pkg-config for lua5.1 not found, trying lua...])
+      PKG_CHECK_MODULES([LIBLUA], [lua], [
+          LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
+          lua_found="yes"
+        ],
+	[AC_MSG_WARN([pkg-config for lua not found, trying manual search...])]
+      )
+    ]
+  )
 fi
 
 if test \( x"$luapath" = x"yes" -o x"$luapath" = x"auto" \) -a x"$lua_found" = x"no"
@@ -1537,10 +1545,6 @@ then
 			LIBLUA_INCDIRS="-I$d/include/lua51"
 			LIBLUA_LIBDIRS="-L$d/lib/lua51"
 			LIBLUA_LIBS="-llua -lm"
-			AC_SEARCH_LIBS([dlopen], [dl])
-			AC_DEFINE([USE_LUA], 1,
-			          [support for Lua scripting])
-			AC_SUBST([LUA_MANNOTICE], "")
 			lua_found="yes"
 			break
 		elif test -f $d/include/lua52/lua.h
@@ -1549,10 +1553,6 @@ then
 			LIBLUA_INCDIRS="-I$d/include/lua52"
 			LIBLUA_LIBDIRS="-L$d/lib/lua52"
 			LIBLUA_LIBS="-llua -lm"
-			AC_SEARCH_LIBS([dlopen], [dl])
-			AC_DEFINE([USE_LUA], 1,
-			          [support for Lua scripting])
-			AC_SUBST([LUA_MANNOTICE], "")
 			lua_found="yes"
 			break
 		elif test -f $d/include/lua5.1/lua.h
@@ -1561,10 +1561,6 @@ then
 			LIBLUA_INCDIRS="-I$d/include/lua5.1"
 			LIBLUA_LIBDIRS="-L$d/lib"
 			LIBLUA_LIBS="-llua5.1 -lm"
-			AC_SEARCH_LIBS([dlopen], [dl])
-			AC_DEFINE([USE_LUA], 1,
-			          [support for Lua scripting])
-			AC_SUBST([LUA_MANNOTICE], "")
 			lua_found="yes"
 			break
 		elif test -f $d/include/lua5.2/lua.h
@@ -1573,10 +1569,6 @@ then
 			LIBLUA_INCDIRS="-I$d/include/lua5.2"
 			LIBLUA_LIBDIRS="-L$d/lib"
 			LIBLUA_LIBS="-llua5.2 -lm"
-			AC_SEARCH_LIBS([dlopen], [dl])
-			AC_DEFINE([USE_LUA], 1,
-			          [support for Lua scripting])
-			AC_SUBST([LUA_MANNOTICE], "")
 			lua_found="yes"
 			break
 		elif test -f $d/include/lua.h
@@ -1585,7 +1577,6 @@ then
 			LIBLUA_INCDIRS="-I$d/include"
 			LIBLUA_LIBDIRS="-L$d/lib"
 			LIBLUA_LIBS="-llua -lm"
-			AC_SEARCH_LIBS([dlopen], [dl])
 			lua_found="yes"
 			break
 		fi
@@ -1610,7 +1601,6 @@ then
 		LIBLUA_INCDIRS="-I$luapath/include/lua51"
 		LIBLUA_LIBDIRS="-L$luapath/lib/lua51"
 		LIBLUA_LIBS="-llua -lm"
-		AC_SEARCH_LIBS([dlopen], [dl])
 		lua_found="yes"
 	elif test -f $luapath/include/lua52/lua.h
 	then
@@ -1618,7 +1608,6 @@ then
 		LIBLUA_INCDIRS="-I$luapath/include/lua52"
 		LIBLUA_LIBDIRS="-L$luapath/lib/lua52"
 		LIBLUA_LIBS="-llua -lm"
-		AC_SEARCH_LIBS([dlopen], [dl])
 		lua_found="yes"
 	elif test -f $luapath/include/lua5.1/lua.h
 	then
@@ -1626,7 +1615,6 @@ then
 		LIBLUA_INCDIRS="-I$luapath/include/lua5.1"
 		LIBLUA_LIBDIRS="-L$luapath/lib"
 		LIBLUA_LIBS="-llua5.1 -lm"
-		AC_SEARCH_LIBS([dlopen], [dl])
 		lua_found="yes"
 	elif test -f $luapath/include/lua5.2/lua.h
 	then
@@ -1634,7 +1622,6 @@ then
 		LIBLUA_INCDIRS="-I$luapath/include/lua5.2"
 		LIBLUA_LIBDIRS="-L$luapath/lib"
 		LIBLUA_LIBS="-llua5.2 -lm"
-		AC_SEARCH_LIBS([dlopen], [dl])
 		lua_found="yes"
 	elif test -f $luapath/include/lua.h
 	then
@@ -1642,7 +1629,6 @@ then
 		LIBLUA_INCDIRS="-I$luapath/include"
 		LIBLUA_LIBDIRS="-L$luapath/lib"
 		LIBLUA_LIBS="-llua -lm"
-		AC_SEARCH_LIBS([dlopen], [dl])
 		lua_found="yes"
 	else
 		AC_MSG_ERROR(not found at $luapath)
@@ -1651,6 +1637,9 @@ fi
 
 if test x"$lua_found" = x"yes"
 then
+	AC_SUBST([LUA_MANNOTICE], "")
+	AC_DEFINE([USE_LUA], 1, [support for Lua scripting])
+	AC_SEARCH_LIBS([dlopen], [dl])
 	saved_CPPFLAGS="$CPPFLAGS"
 	CPPFLAGS="$outer_CPPFLAGS $LIBLUA_INCDIRS"
 	AC_MSG_CHECKING([Lua version])
