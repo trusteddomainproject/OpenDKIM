@@ -654,29 +654,28 @@ main(int argc, char **argv)
 			break;
 		}
 
-		if (subdomains) {
+		if (subdomains && strcasecmp(domain, onlydomain) != 0)
+		{
 			domain_len = strlen(domain);
 			onlydomain_len = strlen(onlydomain);
 
-			if ((domain_len == onlydomain_len &&
-			     strcasecmp(domain, onlydomain) == 0) ||
-			    (domain_len > onlydomain_len &&
-			     domain[domain_len - onlydomain_len - 1] == '.' &&
-			     strcasecmp(domain + domain_len - onlydomain_len,
-			                onlydomain) == 0)) {
+			if (!(domain_len > onlydomain_len &&
+			      domain[domain_len - onlydomain_len - 1] == '.' &&
+			      strcasecmp(domain + domain_len - onlydomain_len,
+			                 onlydomain) == 0))
+			{
 				fprintf(stderr, "%s: record %d for '%s' skipped\n",
 					progname, c, keyname);
 				continue;
 			}
-		} else {
-			if (onlydomain != NULL &&
-			    strcasecmp(domain, onlydomain) != 0)
-			{
-				fprintf(stderr, "%s: record %d for '%s' skipped\n",
-				        progname, c, keyname);
+		}
+		else if (onlydomain != NULL &&
+			 strcasecmp(domain, onlydomain) != 0)
+		{
+			fprintf(stderr, "%s: record %d for '%s' skipped\n",
+			        progname, c, keyname);
 
-				continue;
-			}
+			continue;
 		}
 
 		if (verbose > 1)
