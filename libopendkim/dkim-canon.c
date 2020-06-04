@@ -2131,6 +2131,10 @@ dkim_canon_gethashes(DKIM_SIGINFO *sig, void **hh, size_t *hhlen,
 	hdc = sig->sig_hdrcanon;
 	bdc = sig->sig_bodycanon;
 
+	if (hdc == NULL || bdc == NULL) {
+		return DKIM_STAT_INVALID;
+	}
+
 	status = dkim_canon_getfinal(hdc, &hd, &hdlen);
 	if (status != DKIM_STAT_OK)
 		return status;
