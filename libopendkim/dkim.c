@@ -5839,8 +5839,6 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 			crypto->crypto_in = sig->sig_sig;
 			crypto->crypto_inlen = sig->sig_siglen;
 
-			sig->sig_keybits = 8 * crypto->crypto_keysize;
-
 			nid = NID_sha1;
 
 			if (dkim_libfeature(dkim->dkim_libhandle,
@@ -5855,6 +5853,8 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		}
 
 		dkim_sig_load_ssl_errors(dkim, sig, 0);
+
+		sig->sig_keybits = 8 * crypto->crypto_keysize;
 
 		BIO_CLOBBER(key);
 		EVP_PKEY_free(crypto->crypto_pkey);
