@@ -714,16 +714,23 @@ Identifies a set of "peers" that identifies clients whose connections
 should be accepted without processing by this filter.  The set
 should contain on each line a hostname, domain name (e.g. ".example.com"),
 IP address, an IPv6 address (including an IPv4 mapped address), or a
-CIDR-style IP specification (e.g. "192.168.1.0/24").  An entry beginning
-with a bang ("!") character means "not", allowing exclusions of specific
-hosts that are otherwise members of larger sets.  Host and domain names are 
-matched first, then the IP or IPv6 address depending on the connection 
-type.  More precise entries are preferred over less precise ones, i.e. 
-"192.168.1.1" will match before "!192.168.1.0/24".  The text form of IPv6 
-addresses will be forced to lowercase when queried (RFC5952), so the contents
-of this data set should also use lowercase.  The IP address portion of an
-entry may optionally contain square brackets; both forms (with and without)
-will be checked.
+CIDR-style IP specification (e.g. "192.168.1.0/24").
+
+An entry beginning with a bang ("!") character means "not", allowing
+exclusions of specific hosts that are otherwise members of larger sets.  Host
+and domain names are matched first, then the IP or IPv6 address depending on
+the connection type.  More precise entries are preferred over less precise
+ones, i.e.  "192.168.1.1" will match before "!192.168.1.0/24".
+
+The text form of IPv6 addresses will be forced to lowercase when queried
+(RFC5952), so the contents of this data set should also use lowercase.  CIDR
+notation must use 0 for all unmasked bits (e.g. "10.0.0.1/8" will never
+match).  IPv6 addresses, whether single or in CIDR notation, must appear in
+the form produced by
+.I inet_ntop(3)
+which replaces consecutive zeros with "::" (e.g.  "0:0:0:0:0:0:0:1" will
+never match).  The IP address portion of an entry may optionally contain
+square brackets; both forms (with and without) will be checked.
 
 .TP
 .I PidFile (string)
