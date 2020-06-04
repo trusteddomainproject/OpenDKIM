@@ -285,11 +285,11 @@ dkimf_lua_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
 		free(ptr);
 		return NULL;
 	}
-# if LUA_VERSION_NUM == 502
+# if LUA_VERSION_NUM >= 502
 	else if (nsize != 0 && ptr == NULL)
-# else /* LUA_VERSION_NUM == 502 */
+# else /* LUA_VERSION_NUM >= 502 */
 	else if (nsize != 0 && osize == 0)
-# endif /* LUA_VERSION_NUM == 502 */
+# endif /* LUA_VERSION_NUM >= 502 */
 	{
 		return malloc(nsize);
 	}
@@ -485,12 +485,12 @@ dkimf_lua_setup_hook(void *ctx, const char *script, size_t scriptlen,
 	**  Register functions.
 	*/
 
-# if LUA_VERSION_NUM == 502
+# if LUA_VERSION_NUM >= 502
 	luaL_newlib(l, dkimf_lua_lib_setup);
 	lua_setglobal(l, "odkim");
-# else /* LUA_VERSION_NUM == 502 */
+# else /* LUA_VERSION_NUM >= 502 */
 	luaL_register(l, "odkim", dkimf_lua_lib_setup);
-# endif /* LUA_VERSION_NUM == 502 */
+# endif /* LUA_VERSION_NUM >= 502 */
 	lua_pop(l, 1);
 
 	/*
@@ -532,11 +532,11 @@ dkimf_lua_setup_hook(void *ctx, const char *script, size_t scriptlen,
 	/* import other globals */
 	dkimf_import_globals(ctx, l);
 
-# if LUA_VERSION_NUM == 502
+# if LUA_VERSION_NUM >= 502
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name, NULL))
-# else /* LUA_VERSION_NUM == 502 */
+# else /* LUA_VERSION_NUM >= 502 */
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name))
-# endif /* LUA_VERSION_NUM == 502 */
+# endif /* LUA_VERSION_NUM >= 502 */
 	{
 	  case 0:
 		break;
@@ -564,8 +564,12 @@ dkimf_lua_setup_hook(void *ctx, const char *script, size_t scriptlen,
 		io.lua_io_len = 0;
 		io.lua_io_alloc = 0;
 
+#if LUA_VERSION_NUM >= 503
+		if (lua_dump(l, dkimf_lua_writer, &io, 0) == 0)
+#else
 		if (lua_dump(l, dkimf_lua_writer, &io) == 0)
-		{
+#endif
+	        {
 			*keep = (void *) io.lua_io_script;
 			*funclen = io.lua_io_len;
 		}
@@ -640,12 +644,12 @@ dkimf_lua_screen_hook(void *ctx, const char *script, size_t scriptlen,
 	**  Register functions.
 	*/
 
-# if LUA_VERSION_NUM == 502
+# if LUA_VERSION_NUM >= 502
 	luaL_newlib(l, dkimf_lua_lib_screen);
 	lua_setglobal(l, "odkim");
-# else /* LUA_VERSION_NUM == 502 */
+# else /* LUA_VERSION_NUM >= 502 */
 	luaL_register(l, "odkim", dkimf_lua_lib_screen);
-# endif /* LUA_VERSION_NUM == 502 */
+# endif /* LUA_VERSION_NUM >= 502 */
 	lua_pop(l, 1);
 
 	/*
@@ -677,11 +681,11 @@ dkimf_lua_screen_hook(void *ctx, const char *script, size_t scriptlen,
 	/* import other globals */
 	dkimf_import_globals(ctx, l);
 
-# if LUA_VERSION_NUM == 502
+# if LUA_VERSION_NUM >= 502
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name, NULL))
-# else /* LUA_VERSION_NUM == 502 */
+# else /* LUA_VERSION_NUM >= 502 */
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name))
-# endif /* LUA_VERSION_NUM == 502 */
+# endif /* LUA_VERSION_NUM >= 502 */
 	{
 	  case 0:
 		break;
@@ -709,7 +713,11 @@ dkimf_lua_screen_hook(void *ctx, const char *script, size_t scriptlen,
 		io.lua_io_len = 0;
 		io.lua_io_alloc = 0;
 
+#if LUA_VERSION_NUM >= 503
+		if (lua_dump(l, dkimf_lua_writer, &io, 0) == 0)
+#else		  
 		if (lua_dump(l, dkimf_lua_writer, &io) == 0)
+#endif
 		{
 			*keep = (void *) io.lua_io_script;
 			*funclen = io.lua_io_len;
@@ -785,12 +793,12 @@ dkimf_lua_stats_hook(void *ctx, const char *script, size_t scriptlen,
 	**  Register functions.
 	*/
 
-# if LUA_VERSION_NUM == 502
+# if LUA_VERSION_NUM >= 502
 	luaL_newlib(l, dkimf_lua_lib_stats);
 	lua_setglobal(l, "odkim");
-# else /* LUA_VERSION_NUM == 502 */
+# else /* LUA_VERSION_NUM >= 502 */
 	luaL_register(l, "odkim", dkimf_lua_lib_stats);
-# endif /* LUA_VERSION_NUM == 502 */
+# endif /* LUA_VERSION_NUM >= 502 */
 	lua_pop(l, 1);
 
 	/*
@@ -914,11 +922,11 @@ dkimf_lua_stats_hook(void *ctx, const char *script, size_t scriptlen,
 	/* import other globals */
 	dkimf_import_globals(ctx, l);
 
-# if LUA_VERSION_NUM == 502
+# if LUA_VERSION_NUM >= 502
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name, NULL))
-# else /* LUA_VERSION_NUM == 502 */
+# else /* LUA_VERSION_NUM >= 502 */
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name))
-# endif /* LUA_VERSION_NUM == 502 */
+# endif /* LUA_VERSION_NUM >= 502 */
 	{
 	  case 0:
 		break;
@@ -946,7 +954,11 @@ dkimf_lua_stats_hook(void *ctx, const char *script, size_t scriptlen,
 		io.lua_io_len = 0;
 		io.lua_io_alloc = 0;
 
+#if LUA_VERSION_NUM >= 503
+		if (lua_dump(l, dkimf_lua_writer, &io, 0) == 0)
+#else
 		if (lua_dump(l, dkimf_lua_writer, &io) == 0)
+#endif
 		{
 			*keep = (void *) io.lua_io_script;
 			*funclen = io.lua_io_len;
@@ -1022,12 +1034,12 @@ dkimf_lua_final_hook(void *ctx, const char *script, size_t scriptlen,
 	**  Register functions.
 	*/
 
-# if LUA_VERSION_NUM == 502
+# if LUA_VERSION_NUM >= 502
 	luaL_newlib(l, dkimf_lua_lib_final);
 	lua_setglobal(l, "odkim");
-# else /* LUA_VERSION_NUM == 502 */
+# else /* LUA_VERSION_NUM >= 502 */
 	luaL_register(l, "odkim", dkimf_lua_lib_final);
-# endif /* LUA_VERSION_NUM == 502 */
+# endif /* LUA_VERSION_NUM >= 502 */
 	lua_pop(l, 1);
 
 	/*
@@ -1151,11 +1163,11 @@ dkimf_lua_final_hook(void *ctx, const char *script, size_t scriptlen,
 	/* import other globals */
 	dkimf_import_globals(ctx, l);
 
-# if LUA_VERSION_NUM == 502
+# if LUA_VERSION_NUM >= 502
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name, NULL))
-# else /* LUA_VERSION_NUM == 502 */
+# else /* LUA_VERSION_NUM >= 502 */
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, name))
-# endif /* LUA_VERSION_NUM == 502 */
+# endif /* LUA_VERSION_NUM >= 502 */
 	{
 	  case 0:
 		break;
@@ -1183,7 +1195,11 @@ dkimf_lua_final_hook(void *ctx, const char *script, size_t scriptlen,
 		io.lua_io_len = 0;
 		io.lua_io_alloc = 0;
 
+#if LUA_VERSION_NUM >= 503
+		if (lua_dump(l, dkimf_lua_writer, &io, 0) == 0)
+#else
 		if (lua_dump(l, dkimf_lua_writer, &io) == 0)
+#endif		
 		{
 			*keep = (void *) io.lua_io_script;
 			*funclen = io.lua_io_len;
@@ -1252,11 +1268,11 @@ dkimf_lua_db_hook(const char *script, size_t scriptlen, const char *query,
 		lua_pushstring(l, query);
 	lua_setglobal(l, "query");
 
-# if LUA_VERSION_NUM == 502
+# if LUA_VERSION_NUM >= 502
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, script, NULL))
-# else /* LUA_VERSION_NUM == 502 */
+# else /* LUA_VERSION_NUM >= 502 */
 	switch (lua_load(l, dkimf_lua_reader, (void *) &io, script))
-# endif /* LUA_VERSION_NUM == 502 */
+# endif /* LUA_VERSION_NUM >= 502 */
 	{
 	  case 0:
 		break;
@@ -1284,7 +1300,11 @@ dkimf_lua_db_hook(const char *script, size_t scriptlen, const char *query,
 		io.lua_io_len = 0;
 		io.lua_io_alloc = 0;
 
+#if LUA_VERSION_NUM >= 503
+		if (lua_dump(l, dkimf_lua_writer, &io, 0) == 0)
+#else
 		if (lua_dump(l, dkimf_lua_writer, &io) == 0)
+#endif
 		{
 			*keep = (void *) io.lua_io_script;
 			*funclen = io.lua_io_len;
