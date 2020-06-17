@@ -11,8 +11,8 @@ olcAttributeTypes: {2}( 1.3.6.1.4.1.29426.2.2.1.3 NAME 'DKIMIdentity' DESC 'Th
  e Agent or User Identifier (AUID)' EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.
  4.1.1466.115.121.1.26 SINGLE-VALUE )
 olcAttributeTypes: {3}( 1.3.6.1.4.1.29426.2.2.1.4 NAME 'DKIMDomain' DESC 'DKIM
-  sender domain' EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.
- 26 SINGLE-VALUE )
+  sender domain' EQUALITY caseExactIA5Match SUBSTR caseIgnoreIA5SubstringsMatc
+ h SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE )
 olcObjectClasses: {0}( 1.3.6.1.4.1.29426.2.2.2.1 NAME 'DKIM' DESC 'DKIM Select
- or and Key container' SUP top AUXILIARY MUST ( DKIMSelector $ DKIMKey ) MAY (
+ or and Key container' SUP top STRUCTURAL MUST ( DKIMSelector $ DKIMKey ) MAY (
   DKIMIdentity $ DKIMDomain ) )

@@ -31,11 +31,18 @@ attributetype ( 1.3.6.1.4.1.29426.2.2.1.4
 	NAME 'DKIMDomain'
 	DESC 'DKIM sender domain'
 	EQUALITY caseExactIA5Match
+	SUBSTR caseIgnoreIA5SubstringsMatch
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE )
 
+attributetype ( 1.3.6.1.4.1.29426.2.2.1.5
+	NAME 'DKIMActive'
+	DESC 'Enable or disable DKIM usage'
+	EQUALITY booleanMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE )
+
 objectclass ( 1.3.6.1.4.1.29426.2.2.2.1
-	NAME 'DKIM' AUXILIARY
+	NAME 'DKIM' STRUCTURAL
 	DESC 'DKIM Selector and Key container'
 	SUP top
-	MAY ( DKIMIdentity $ DKIMDomain ) 
-	MUST ( DKIMSelector $ DKIMKey ))
+	MAY ( DKIMIdentity $ DKIMActive )
+	MUST ( DKIMDomain $ DKIMSelector $ DKIMKey ))
