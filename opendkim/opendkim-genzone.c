@@ -664,8 +664,8 @@ main(int argc, char **argv)
 			     domain[domain_len - onlydomain_len - 1] == '.' &&
 			     strcasecmp(domain + domain_len - onlydomain_len,
 			                onlydomain) == 0))) {
-				fprintf(stderr, "%s: record %d for '%s' skipped\n",
-					progname, c, keyname);
+				fprintf(stderr, "%s: record %d for '%s' skipped, (%s don't match %s nor it's a subdomain)\n",
+					progname, c, keyname, domain, onlydomain);
 				continue;
 			}
 		} else {
