@@ -658,12 +658,12 @@ main(int argc, char **argv)
 			domain_len = strlen(domain);
 			onlydomain_len = strlen(onlydomain);
 
-			if ((domain_len == onlydomain_len &&
+			if (!((domain_len == onlydomain_len &&
 			     strcasecmp(domain, onlydomain) == 0) ||
 			    (domain_len > onlydomain_len &&
 			     domain[domain_len - onlydomain_len - 1] == '.' &&
 			     strcasecmp(domain + domain_len - onlydomain_len,
-			                onlydomain) == 0)) {
+			                onlydomain) == 0))) {
 				fprintf(stderr, "%s: record %d for '%s' skipped\n",
 					progname, c, keyname);
 				continue;
