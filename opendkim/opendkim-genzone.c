@@ -885,7 +885,7 @@ main(int argc, char **argv)
 			if (ttl == -1)
 			{
 				snprintf(tmpbuf, sizeof tmpbuf,
-				         "%s%s%s%s%s\tIN\tTXT\t( \"v=DKIM1; k=rsa; p=",
+				         "%s%s%s%s%s\tIN\tTXT\t( \"v=DKIM1; k=rsa; h=sha256; p=",
 				         selector, suffix ? DKIMZONE : "",
 				         fqdnsuffix ? "." : "",
 				         fqdnsuffix ? domain : "",
@@ -894,7 +894,7 @@ main(int argc, char **argv)
 			else
 			{
 				snprintf(tmpbuf, sizeof tmpbuf,
-				         "%s%s%s%s%s\t%d\tIN\tTXT\t( \"v=DKIM1; k=rsa; p=",
+				         "%s%s%s%s%s\t%d\tIN\tTXT\t( \"v=DKIM1; k=rsa; h=sha256; p=",
 				         selector, suffix ? DKIMZONE : "",
 				         fqdnsuffix ? "." : "",
 				         fqdnsuffix ? domain : "",
