@@ -49,6 +49,8 @@ release, and a summary of the changes in that release.
 		oversized input lines.  Reported by Mars Peng.
 	LIBOPENDKIM: Fix parsing bug in dkim_mail_parse_multi(), where quotes
 		were not being properly handled.
+	LIBOPENDKIM: Delete no-op dkim_res_nslist() function.
+	LIBRBL: Delete no-op rbl_res_nslist() function.
 	TOOLS: Feature requrest #187: Add option to match subdomains when
 		generating zone files.  Patch from Andreas Schulze.
 
