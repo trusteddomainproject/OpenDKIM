@@ -13512,7 +13512,8 @@ mlfi_eom(SMFICTX *ctx)
 			/* NOTREACHED */
 		}
 
-		snprintf(header, sizeof header, "%s; dkim=%s (%s)",
+		snprintf((char *) header, sizeof header, "%s%s; dkim=%s (%s)",
+		         cc->cctx_noleadspc ? " " : "",
 		         authservid, ar,
 		         dkimf_lookup_inttostr(dfc->mctx_status,
 		                               dkimf_statusstrings));

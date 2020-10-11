@@ -12,6 +12,16 @@
 /* system includes */
 #include <sys/types.h>
 
+#ifdef __STDC__
+# ifndef __P
+#  define __P(x)  x
+# endif /* ! __P */
+#else /* __STDC__ */
+# ifndef __P
+#  define __P(x)  ()
+# endif /* ! __P */
+#endif /* __STDC__ */
+
 /* strings */
 #define	VBR_ALL			"all"
 #define	VBR_INFOHEADER		"VBR-Info"
