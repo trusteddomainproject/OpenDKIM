@@ -28,6 +28,7 @@ use Getopt::Long;
 ## Set up defaults
 ##
 
+my $ed25519;
 my $bits = 1024;
 my $domain = "@DOMAIN@";
 my $version = "@DOMAIN@";
@@ -68,6 +69,7 @@ sub usage
 	print STDERR "\t--bits=n               use n bits to generate the key\n";
 	print STDERR "\t--directory=path       leave output in the named directory\n";
 	print STDERR "\t--domain=name          generate data for the named domain [$domain]\n";
+	print STDERR "\t--ed25519              generate a ed25519 key\n";
 	print STDERR "\t--hash-algorithms=list limit to use of the named algorithm(s)\n";
 	print STDERR "\t--help                 print help and exit\n";
 	print STDERR "\t--note=string          include specified note in zone data\n";
@@ -89,6 +91,7 @@ my $opt_retval = &Getopt::Long::GetOptions('a|append-domain!' => \$append,
                                            'b|bits=i' => \$bits,
                                            'D|directory=s' => \$outdir,
                                            'd|domain=s' => \$domain,
+                                           'ed25519' => \$ed25519,
                                            'h|hash-algorithms=s' => \$hashalgs,
                                            'help!' => \$helponly,
                                            'n|note=s' => \$note,
@@ -125,18 +128,35 @@ if ($showversion)
 chdir($outdir) or die "$progname: $outdir: chdir(): $!";;
 umask(077);
 
+if ($ed25519)
+{
+	$status = system("openssl version 2>/dev/null | grep --silent --ignore-case '^openssl 1.1.1'");
+	if ($status != 0)
+	{
+		print STDERR "$progname: OpenSSL 1.1.1 is required for ED25519 support\n";
+		exit(1);
+	}
+}
+
 ## generate a private key
 if ($verbose >= 1)
 {
 	print STDERR "$progname: generating private key\n";
 }
 
-if ($bits < 1024)
+if ((!$ed25519) and ($bits < 1024))
 {
 	print STDERR "$progname: WARNING: RFC6376 advises minimum 1024-bit keys\n";
 }
 
-$status = system("openssl genrsa -out " . $selector . ".private " . $bits . " > /dev/null 2>&1");
+if ($ed25519)
+{
+	$status = system("openssl genpkey -algorithm ed25519 -outform PEM -out " . $selector . ".private > /dev/null 2>&1");
+}
+else
+{
+	$status = system("openssl genrsa -out " . $selector . ".private " . $bits . " > /dev/null 2>&1");
+}
 if ($status != 0)
 {
 	if ($? & 127)
@@ -164,7 +184,14 @@ if ($verbose)
 	print STDERR "$progname: extracting public key\n";
 }
 
-$status = system("openssl rsa -in " . $selector . ".private -pubout -out " . $selector . ".public -outform PEM > /dev/null 2>&1");
+if ($ed25519)
+{
+	$status = system("openssl pkey -in ". $selector . ".private -inform PEM -outform DER -pubout 2>/dev/null | tail -c +13 | openssl base64 > " . $selector . ".public 2>/dev/null");
+}
+else
+{
+	$status = system("openssl rsa -in " . $selector . ".private -pubout -out " . $selector . ".public -outform PEM > /dev/null 2>&1");
+}
 if ($status != 0)
 {
 	if ($? & 127)
@@ -271,7 +298,14 @@ if (!open($txtout, ">", $selector . ".txt"))
 	exit(1);
 }
 
-print $txtout $selector . "._domainkey" . ${domstr} . "\tIN\tTXT\t( \"v=DKIM1;" . $noteout . $hashout . " k=rsa; " . $flags . "\"\n\t  \"p=";
+if ($ed25519)
+{
+	print $txtout $selector . "._domainkey" . ${domstr} . "\tIN\tTXT\t( \"v=DKIM1;" . $noteout . $hashout . " k=ed25519; " . $flags . "\"\n\t  \"p=";
+}
+else
+{
+	print $txtout $selector . "._domainkey" . ${domstr} . "\tIN\tTXT\t( \"v=DKIM1;" . $noteout . $hashout . " k=rsa; " . $flags . "\"\n\t  \"p=";
+}
 
 $len = length($keydata);
 $cur = 0;
