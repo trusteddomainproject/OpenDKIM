@@ -199,6 +199,7 @@ dkimf_unbound_cb(void *mydata, int err, struct ub_result *result)
 	{
 		/* result was bogus */
 		ubdata->ubd_result = DKIM_DNSSEC_BOGUS;
+		ub_resolve_free(result);
 		return;
 	}
 	else
