@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+# 
+# simple/simple signing test
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest -v -v -v $MILTERTESTFLAGS -s $srcdir/t-sign-ss-conditional.lua

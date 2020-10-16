@@ -966,7 +966,14 @@ rbl_query_start(RBL *rbl, u_char *query, void **qh)
 	if (rbl->rbl_dns_service == NULL &&
 	    rbl->rbl_dns_init != NULL &&
 	    rbl->rbl_dns_init(&rbl->rbl_dns_service) != 0)
+	{
+		if (rbl->rbl_free != NULL)
+			rbl->rbl_free(rbl->rbl_closure, rq);
+		else
+			free(rq);
+
 		return RBL_STAT_DNSERROR;
+	}
 
 	status = rbl->rbl_dns_start(rbl->rbl_dns_service, T_A, rblquery,
 	                            rq->rq_buf, sizeof rq->rq_buf, &rq->rq_qh);

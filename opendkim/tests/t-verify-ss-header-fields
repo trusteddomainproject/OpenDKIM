@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+#
+# simple/simple test verifying header.x fields are present (should pass)
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest $MILTERTESTFLAGS -s $srcdir/t-verify-ss-header-fields.lua

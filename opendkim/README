@@ -195,6 +195,58 @@ start at step (5).
 	/etc/init.d/postfix restart
 
 
+ISSUES USING SENDMAIL TO SIGN AND VERIFY
+========================================
+
+When using the sendmail MTA in both signing and verifying mode, there are
+a few issues of which to be aware that might cause operational problems
+and deserve consideration.
+
+(a) When the MTA will be used for relaying emails, e.g. delivering to other
+    hosts using the aliases mechanism, it is important not to break
+    signatures inserted by the original sender.  This is particularly sensitive
+    particular when the sending domain has published a "reject" DMARC policy.
+
+    By default, sendmail quotes to address header fields when there are no
+    quotes and the display part of the address contains a period or an
+    apostrophe.  However, opendkim only sees the raw, unmodified form of
+    the header field, and so the content that gets verified and what gets
+    signed will not be the same, guaranteeing the attached signature is not
+    valid.
+
+    To direct sendmail not to modify the headers, add this to your sendmail.mc:
+
+    	conf(`confMUST_QUOTE_CHARS', `')
+
+(b) As stated in sendmail's KNOWNBUGS file, sendmail truncates header field
+    values longer than 256 characters, which could mean truncating the domain
+    of a long From: header field value and invalidating the signature.
+    You may wish to consider increasing MAXNAME in sendmail/conf.h to mitigate
+    changing the messages and invalidating their signatures.  This change
+    requires recompiling sendmail.
+
+(c) Similar to (a) above, sendmail may wrap very long single-line recipient
+    fields for presentation purposes; for example:
+
+    To: very long name <a@example.org>,anotherloo...ong name b <b@example.org>
+
+    ...might be rewritten as:
+
+    To: very long name <a@example.org>,
+    	anotherloo...ong name b <b@example.org>
+
+    This rewrite is also done after opendkim has seen the message, meaning
+    the signature opendkim attaches to the message does not match the
+    content it signed.  There is not a known configuration change to
+    mitigate this mutation.
+
+    The only known mechanism for dealing with this is to have distinct
+    instances of opendkim do the verifying (inbound) and signing (outbound)
+    so that the version that arrives at the signing instance is already
+    in the rewritten form, guaranteeing the input and output are the same
+    and thus the signature matches the payload.
+
+
 COMPLEX SIGNING CONFIGURATIONS
 ==============================
 
@@ -254,6 +306,57 @@ your configuration file:
 
 You could put "file:" in front of the filename for the KeyTable just to be
 precise, but "file:" is assumed if the value starts with a "/".
+
+
+HANDLING 8-BIT MESSAGES (sendmail)
+===================================
+
+SMTP was not designed for handling of other than 7-bit ASCII, and the
+mechanisms to do so were added later.  There is considerable flexibility in
+how this is done, and as a result each agent does it slightly differently.
+Because of this disparity, OpenDKIM can't reliably sign 8-bit data because it
+will be downgraded in an unpredictable way somewhere after signing, rendering
+the signature invalid.
+
+Instead, the MTA that will handle the 8-bit message has to downgrade it before
+presenting it for signing.  To do this with sendmail, for example, add this to
+your sendmail.mc file:
+
+	define(`confSEVEN_BIT_INPUT',true)dnl
+
+
+NOTES ON POSTFIX REWRITING OF MESSAGES
+======================================
+
+Like other MIME-aware MTAs, Postfix downgrades 8bit body content to 7bit when
+a remote SMTP server does not announce 8BITMIME support.  If DKIM signatures
+must survive transmission to servers that don't announce 8BITMIME, it is
+recommented to downgrade before signing (for example, specify
+"-o smtp_discard_ehlo_keywords=8bitmime,silent-discard" for an SMTP client
+that delivers to a null filter or to amavisd).
+
+It's possible to specify "disable_mime_output_conversion = no" locally, but
+that won't prevent remote MTAs from doing the 8bit to 7bit downgrade and
+breaking DKIM signatures.
+
+It's also possible to prevent Postfix from adding From/Date/Message-ID
+header field, and from rewriting addresses in headers, by setting the "-G" flag
+for the sendmail command, and by setting "local_header_rewrite_clients"
+to empty.  (By default, these modifications are enabled only for submissions
+by local processes and from clients in local networks.)
+
+Otherwise, Postfix should not modify a well-formed email message.  For example,
+if the address in a From/To/etc. header field is not modified, then the field
+is passed through unchanged regardless of the content of mailbox display names,
+comments, etc.
+
+However, there are no guarantees for out-of-spec email and for some obsolete
+forms.  For example, Postfix will fold lines over 998 characters long (not
+including the <CR><LF>) by inserting <CR><LF><SPACE> to minimize damage to
+MIME-formatted messages, will truncate (multiline) headers that contain
+more than 102400 bytes or more than 10240 tokens, and will replace the
+obsolete form "headername :" with the normal form "headername:" because many
+things in Postfix expect the normal form.
 
 
 TESTING

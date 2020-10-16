@@ -3,7 +3,8 @@ check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-lua t-sign-ss-all t-sign-ss-ltag t-sign-ss-x \
 	t-verify-revoked t-verify-unspec t-verify-malformed \
 	t-verify-unsigned t-verify-unsigned-silent \
-	t-verify-syntax t-verify-ss t-verify-ss-bad t-verify-ss-ar-bad \
+	t-verify-syntax t-verify-ss t-verify-ss-header-fields t-verify-ss-bad \
+	t-verify-ss-ar-bad \
 	t-dontsign t-peer \
 	t-lua-verify-tests t-sign-ss-macro t-sign-ss-macro-value \
 	t-sign-ss-macro-value-file t-verify-report \
@@ -22,6 +23,9 @@ check_SCRIPTS += t-sign-ss-replace
 endif
 if ATPS
 check_SCRIPTS += t-sign-atps t-verify-ss-atps
+endif
+if CONDITIONAL
+check_SCRIPTS += t-sign-ss-conditional
 endif
 if TEST_SOCKET
 TESTS_ENVIRONMENT = MILTERTESTFLAGS=-DTESTSOCKET=$(TESTSOCKET); export MILTERTESTFLAGS;
@@ -56,6 +60,8 @@ EXTRA_DIST = \
 	t-sign-ss-replace t-sign-ss-replace.conf t-sign-ss-replace.lua \
 		t-sign-ss-replace.txt \
 	t-sign-report t-sign-report.conf t-sign-report.lua \
+	t-sign-ss-conditional t-sign-ss-conditional.conf \
+		t-sign-ss-conditional.lua \
 	t-verify-revoked t-verify-revoked.conf t-verify-revoked.lua \
 	t-verify-unsigned t-verify-unsigned.conf t-verify-unsigned.lua \
 	t-verify-malformed t-verify-malformed.conf t-verify-malformed.lua \
@@ -63,6 +69,7 @@ EXTRA_DIST = \
 		t-verify-unsigned-silent.lua \
 	t-verify-unspec t-verify-unspec.conf t-verify-unspec.lua \
 	t-verify-ss t-verify-ss.conf t-verify-ss.lua \
+	t-verify-ss-header-fields t-verify-ss-header-fields.conf t-verify-ss-header-fields.lua \
 	t-verify-ss-bad t-verify-ss-bad.conf t-verify-ss-bad.lua \
 	t-verify-ss-ar-bad t-verify-ss-ar-bad.conf t-verify-ss-ar-bad.lua \
 	t-verify-ss-rep t-verify-ss-rep.conf t-verify-ss-rep.lua \

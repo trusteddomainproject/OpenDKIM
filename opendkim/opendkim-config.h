@@ -45,6 +45,9 @@ struct configdef dkimf_config[] =
 	{ "CaptureUnknownErrors",	CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "ChangeRootDirectory",	CONFIG_TYPE_STRING,	FALSE },
 	{ "ClockDrift",			CONFIG_TYPE_INTEGER,	FALSE },
+#ifdef _FFR_CONDITIONAL
+	{ "ConditionalSignatures",	CONFIG_TYPE_STRING,	FALSE },
+#endif /* _FFR_CONDITIONAL */
 #ifdef _FFR_DEFAULT_SENDER
 	{ "DefaultSender",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_DEFAULT_SENDER */
@@ -220,6 +223,7 @@ struct configdef dkimf_config[] =
 	{ "SubDomains",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "Syslog",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "SyslogFacility",		CONFIG_TYPE_STRING,	FALSE },
+	{ "SyslogName",			CONFIG_TYPE_STRING,	FALSE },
 	{ "SyslogSuccess",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "TemporaryDirectory",		CONFIG_TYPE_STRING,	FALSE },
 	{ "TestDNSData",		CONFIG_TYPE_STRING,	FALSE },

@@ -2,7 +2,8 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2013, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2009-2013, 2015, The Trusted Domain Project.
+**    All rights reserved.
 */
 
 #include "build-config.h"
@@ -924,4 +925,30 @@ dkim_clobber_array(char **in)
 		free(in[n]);
 
 	free(in);
+}
+
+/*
+**  DKIM_STRISPRINT -- return TRUE iff a string contains only isprint() characters
+**
+**  Parameters:
+**  	str -- string to evaluate
+**
+**  Return value:
+**  	TRUE unless a non-isprint was found
+*/
+
+_Bool
+dkim_strisprint(unsigned char *str)
+{
+	unsigned char *p;
+
+	assert(str != NULL);
+
+	for (p = str; *p != '\0'; p++)
+	{
+		if (!isprint(*p))
+			return FALSE;
+	}
+
+	return TRUE;
 }

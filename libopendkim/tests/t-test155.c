@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2011, 2012, The Trusted Domain Project.
+**  Copyright (c) 2009, 2011, 2012, 2015, The Trusted Domain Project.
 **    All rights reserved.
 */
 
@@ -24,7 +24,8 @@
 
 #define	MAXHEADER	4096
 
-#define SIG2 "v=1; a=rsa-sha1; c=relaxed/simple; d=example.com; s=test;\r\n\tt=1172620939; bh=ll/0h2aWgG+D3ewmE4Y3pY7Ukz8=; h=Received:Received:\r\n\t Received:From:To:Date:Subject:Message-ID; b=bj9kVUbnBYfe9sVzH9lT45\r\n\tTFKO3eQnDbXLfgmgu/b5QgxcnhT9ojnV2IAM4KUO8+hOo5sDEu5Co/0GASH0vHpSV4P\r\n\t377Iwew3FxvLpHsVbVKgXzoKD4QSbHRpWNxyL6LypaaqFa96YqjXuYXr0vpb88hticn\r\n\t6I16//WThMz8fMU="
+#define SIG "v=2; a=rsa-sha1; c=relaxed/relaxed; d=sendmail.com; s=test;\r\n\tt=1172620939; !cd=example.com; bh=2jmj7l5rSw0yVb/vlWAYkK/YBwk=; l=0;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=FEK+lJkwviA+DkORcv/clDh7NMmLyGzGHCzuOPsbaoTLqepslXlzc71a2FzEZJ4KF\r\n\t 1m209ORGDUozr9BZvaZeXD/HqoIiDBSbR30XgWG+IU1fGKCfVBzOYKTOzgmS0PaE3S\r\n\t Tvknxdxp63DBprMF5QAEJkiMvfr8ZCsCUKI0oyNY="
+#define SIG2 "v=1; a=rsa-sha1; c=relaxed/relaxed; d=example.com; s=test;\r\n\tt=1172620939; bh=Z9ONHHsBrKN0pbfrOu025VfbdR4=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=Jf+j2RDZRkpIF1KaL5ByhHFPWj5RMeX5764IVlwIc11equjQND51K9FfL5pyjXvwj\r\n\t FoFPW0PGJb3liej6iDDEHgYpXR4p5qqlGx/C1Q9gf/MQN/Xlkv6ZXgR38QnWAfZxh5\r\n\t N1f5xUg+SJb5yBDoXklG62IRdia1Hq9MuiGumrGM="
 
 /*
 **  MAIN -- program mainline
@@ -39,16 +40,17 @@
 int
 main(int argc, char **argv)
 {
+	int nsigs;
+	int c;
 #ifdef TEST_KEEP_FILES
 	u_int flags;
 #endif /* TEST_KEEP_FILES */
 	DKIM_STAT status;
 	DKIM *dkim;
 	DKIM_LIB *lib;
+	DKIM_SIGINFO **sigs;
 	dkim_query_t qtype = DKIM_QUERY_FILE;
 	unsigned char hdr[MAXHEADER + 1];
-
-	printf("*** relaxed/simple rsa-sha1 verifying with altered body\n");
 
 #ifdef USE_GNUTLS
 	(void) gnutls_global_init();
@@ -57,6 +59,15 @@ main(int argc, char **argv)
 	/* instantiate the library */
 	lib = dkim_init(NULL, NULL);
 	assert(lib != NULL);
+
+	if (!dkim_libfeature(lib, DKIM_FEATURE_CONDITIONAL))
+	{
+		printf("*** conditional signature verifying (good) SKIPPED\n");
+		dkim_close(lib);
+		return 0;
+	}
+
+	printf("*** conditional signature verifying (good)\n");
 
 #ifdef TEST_KEEP_FILES
 	/* set flags */
@@ -72,6 +83,10 @@ main(int argc, char **argv)
 
 	dkim = dkim_verify(lib, JOBID, NULL, &status);
 	assert(dkim != NULL);
+
+	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG);
+	status = dkim_header(dkim, hdr, strlen(hdr));
+	assert(status == DKIM_STAT_OK);
 
 	snprintf(hdr, sizeof hdr, "%s: %s", DKIM_SIGNHEADER, SIG2);
 	status = dkim_header(dkim, hdr, strlen(hdr));
@@ -148,11 +163,15 @@ main(int argc, char **argv)
 	status = dkim_body(dkim, BODY03, strlen(BODY03));
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_body(dkim, BODY06, strlen(BODY06));
+	status = dkim_eom(dkim, NULL);
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_eom(dkim, NULL);
-	assert(status == DKIM_STAT_BADSIG);
+	status = dkim_getsiglist(dkim, &sigs, &nsigs);
+	for (c = 0; c < nsigs; c++)
+	{
+		assert((dkim_sig_getflags(sigs[c]) & DKIM_SIGFLAG_PASSED) != 0);
+		assert(dkim_sig_getbh(sigs[c]) == DKIM_SIGBH_MATCH);
+	}
 
 	status = dkim_free(dkim);
 	assert(status == DKIM_STAT_OK);

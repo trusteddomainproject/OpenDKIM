@@ -1,7 +1,8 @@
 ##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
-## Copyright (c) 2010-2015, The Trusted Domain Project.  All rights reserved.
+## Copyright (c) 2010-2015, 2018, The Trusted Domain Project.
+##   All rights reserved.
 ##
 
 ##
@@ -108,7 +109,7 @@
 ##  operation.  Thus, cores will be dumped here and configuration files
 ##  are read relative to this location.
 
-# BaseDirectory		/var/run/opendkim
+# BaseDirectory		/run/opendkim
 
 ##  BodyLengthDB dataset
 ##  	default (none)
@@ -550,7 +551,7 @@ KeyFile			/var/db/dkim/example.private
 ##  ResolverConfiguration string
 ##
 ##  Passes arbitrary configuration data to the resolver.  For the stock UNIX
-##  resolver, this is ignored; for Unbound, it names a resolv.conf(5)-style
+##  resolver, this is ignored; for Unbound, it names an unbound.conf(5)-style
 ##  file that should be read for configuration information.
 
 # ResolverConfiguration	string
@@ -592,8 +593,8 @@ Selector		my-selector-name
 ##  SignatureAlgorithm signalg
 ##  	default "rsa-sha256"
 ##
-##  Signature algorithm to use when generating signatures.  Must be either
-##  "rsa-sha1" or "rsa-sha256".
+##  Signature algorithm to use when generating signatures.  Must be one of
+##  "rsa-sha1", "rsa-sha256", or "ed25519-sha256".
 
 # SignatureAlgorithm	rsa-sha256
 
@@ -646,7 +647,7 @@ Selector		my-selector-name
 ##  Specifies a URI (e.g., "smtp://localhost") to which mail should be sent
 ##  via SMTP when notifications are generated.
 
-# Socket smtp://localhost
+# SMTPURI smtp://localhost
 
 ##  Socket socketspec
 ##
@@ -711,6 +712,13 @@ Syslog			Yes
 
 # SyslogFacility	mail
 
+##  SyslogName          ident
+##      default "opendkim" (or the name of the executable)
+##
+##  Identifier to be prepended to all generated log entries.
+
+# SyslogName		opendkim
+
 ##  SyslogSuccess { yes | no }
 ##  	default "no"
 ##
@@ -751,8 +759,6 @@ Syslog			Yes
 ##  See the umask(2) man page for more information.
 
 # UMask			022
-
-# UnboundConfigFile	/var/named/unbound.conf
 
 ##  Userid userid
 ##  	default (none)

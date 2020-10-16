@@ -21,7 +21,6 @@ build-config.h.in
 compile
 config.guess
 config.sub
-configure
 configure.scan
 configure.lineno
 aclocal.m4
@@ -47,3 +46,4 @@ core
 *.core
 build-aux
 opendkim-[0-9].[0-9].[0-9]
+.vscode

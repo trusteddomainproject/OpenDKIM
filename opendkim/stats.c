@@ -56,11 +56,6 @@
 #include "opendkim.h"
 #include "opendkim-db.h"
 
-/* macros, defaults */
-#define	DEFCT			"text/plain"
-#define	DEFCTE			"7bit"
-#define	DKIMF_STATS_MAXCOST	10
-
 /* globals */
 static pthread_mutex_t stats_lock;
 

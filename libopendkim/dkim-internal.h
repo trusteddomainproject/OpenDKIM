@@ -1,5 +1,5 @@
 /*
-**  Copyright (c) 2009, 2012, 2014, The Trusted Domain Project.
+**  Copyright (c) 2009, 2012, 2014, 2015, 2018, The Trusted Domain Project.
 **  	All rights reserved.
 */
 
@@ -60,6 +60,7 @@
 
 #define	NPRINTABLE		95	/* number of printable characters */
 
+#define DKIM_MAXCDDEPTH		5	/* maximum !cd recursion */
 #define DKIM_MAXHEADER		4096	/* buffer for caching one header */
 #define	DKIM_MAXHOSTNAMELEN	256	/* max. FQDN we support */
 
@@ -70,6 +71,9 @@
 /* version */
 #define	DKIM_VERSION_KEY	"DKIM1"	/* current version token for keys */
 #define	DKIM_VERSION_SIG	"1"	/* current version token for sigs */
+#ifdef _FFR_CONDITIONAL
+# define DKIM_VERSION_SIG2	"2"	/* new version token for sigs */
+#endif /* _FFR_CONDITIONAL */
 #define	DKIM_VERSION_SIGOLD	"0.5"	/* old version token for sigs */
 
 /* headers */
@@ -118,6 +122,7 @@ typedef int dkim_set_t;
 
 #define	DKIM_KEYTYPE_UNKNOWN	(-1)
 #define	DKIM_KEYTYPE_RSA	0
+#define	DKIM_KEYTYPE_ED25519	1
 
 /*
 **  DKIM_SET -- a set of parameters and values

@@ -158,9 +158,6 @@ filter		Compile the opendkim filter.  Requires libmilter (see
 live-testing	Enables unit tests that require live access to the Internet
 		to succeed.
 
-poll		Compile to use poll() instead of select() for asynchronous
-		I/O.
-
 popauth		Enables support for POP-before-SMTP checks.
 
 query_cache	Compile the opendkim library to support local caching of

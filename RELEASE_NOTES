@@ -3,10 +3,57 @@
 This listing shows the versions of the OpenDKIM package, the date of
 release, and a summary of the changes in that release.
 
+2.11.0		2018/11/??
+	Add support for ED25519 keys.  GNUTLS support provided by
+		Dilyan Palauzov.
+	Add "header.s" and "header.a" in generated Authentication-Results
+		header fields.
+	Add _FFR_CONDITIONAL, experimental support for conditional DKIM
+		signatures.
+	Make odkim.internal_ip() available to all Lua hooks.  Problem noted
+		by Iosif Fettich.
+	Make bind code DNSSEC-aware.  Patch from Jack Bates.
+	Fix dkimf_db_nextpunct() so it doesn't incorrectly identify an encoded
+		hex digit as a value delimiter.
+	Fix issue #8: The password file critical section isn't big enough.
+		Patch from Dilyan Palauzov.
+	Fix issue #9: Plug a few failure mode memory leaks.  Patch from
+		Dilyan Palauzov.
+	Fix issue #15: Don't automatically skip the body when one mode (sign
+		or verify) doesn't need it, because the other one might.
+		Patch from Dilyan Palauzov.
+	Fix issue #28: RequiredHeaders should report and log the specific
+		error and reject the message, as documented.  Patch from
+		Dilyan Palauzov.
+	Fix bug #234: Make "NoHeaderB" do something.  Reported by Joseph
+		Coffland.
+	Fix bug #235: Quote "header.b" values in case they contain a slash
+		(which must be quoted).
+	Fix bug #237: Fix processing of "SoftStart".
+	CONFIG: Add compatibility with openssl-1.1.0.  Patch from
+		Scott Kitterman.
+	CONTRIB: Simplfy some logic in contrib/repute.  Patch from
+		Dilyan Palauzov.
+	LIBOPENDKIM: Feature request #190: Reject signature object requests
+		where the domain name or selector includes non-printable
+		characters.  Suggested by Franck Martin.
+	LIBOPENDKIM: Re-fix bug #226: Deal with header fields that are
+		wrapped before there's any content.  Somehow the wrong fix
+		was committed.  Originally reported by Alessandro Vesely;
+		re-reported by David Stevenson.
+	LIBOPENDKIM: Fix bug #233: In the weird case of duplicate signatures,
+		constrain the size of the resulting "header.b" value.  Problem
+		noted by Joseph Coffland.
+	LIBOPENDKIM: Fix bug #270: Don't set an upper bound on the size of
+		the canonicalization buffer, which interferes with processing
+		oversized input lines.  Reported by Mars Peng.
+	TOOLS: Feature requrest #187: Add option to match subdomains when
+		generating zone files.  Patch from Andreas Schulze.
+
 2.10.3		2015/05/12
-	LIBOPENDKIM: Make strict header checking non-destructive.  The last change
-		to this code resulted in failing signatures.  Reported by Pedro
-		Morales and Wez Furlong.
+	LIBOPENDKIM: Make strict header checking non-destructive.  The last
+		change to this code resulted in failing signatures.  Reported
+		by Pedro Morales and Wez Furlong.
 
 2.10.2		2015/05/10
 	Fix bug #221: Report a DKIM result of "policy" if MinimumKeyBits

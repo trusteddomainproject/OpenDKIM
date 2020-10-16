@@ -114,7 +114,7 @@ main(int argc, char **argv)
 	status = dkim_header(dkim, HEADER09, strlen(HEADER09));
 	assert(status == DKIM_STAT_OK);
 
-	status = dkim_header(dkim, HEADER10, strlen(HEADER09));
+	status = dkim_header(dkim, HEADER10, strlen(HEADER10));
 	assert(status == DKIM_STAT_OK);
 
 	status = dkim_eoh(dkim);

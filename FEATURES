@@ -33,6 +33,8 @@ allsymbols	By default, the build will attempt to create a libopendkim
 atps		Support for experimental Authorized Third-Party Signatures
 		mechanism.  (opendkim, libopendkim)
 
+conditional	Conditional signatures.  EXPERIMENTAL  (opendkim, libopendkim)
+
 db_handle_pools	Database handle pools.  EXPERIMENTAL  (opendkim)
 
 default_sender	Allow declaration of sender address to use when a message
@@ -109,4 +111,4 @@ COPYRIGHT
 Copyright (c) 2009, Sendmail, Inc. and its suppliers.
 	All rights reserved.
 
-Copyright (c) 2009-2014, The Trusted Domain Project.  All rights reserved.
+Copyright (c) 2009-2015, The Trusted Domain Project.  All rights reserved.

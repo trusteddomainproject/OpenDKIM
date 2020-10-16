@@ -129,9 +129,18 @@ database name is "odkim", and the data are in columns "host" (the keys)
 and "v1" and "v2" (the values) inside table "macros".  This example would
 thus return two values when a match is found.
 
+The key may also include a "filter" value which will be included in all generated
+SQL as an AND clause after the WHERE clause that declares the search criteria.
+For example, given the above DSN specification with an additional "filter" value
+of "ID > 1000", the generated SQL for a query for "foo" would look like so:
+
+SELECT v1,v2 FROM macros WHERE host = 'foo' AND ID > 1000
+
 No value within the DSN may contain any of the six punctuation characters
-(":", "/", "@", "+", "?" and "=") used to separate portions of the DSN from
-each other.
+(":", "/", "@", "+", "?" and "=") used to delimit portions of the DSN.
+To include such characters within a value, encode them in quoted-printable
+style (e.g., "=20" will be translated into a single space character).
+Encoding of spaces is also advised.
 .TP
 .I e)
 If the string begins with "ldap:", "ldaps:" or "ldapi:", it is presumed

@@ -1,7 +1,8 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 #
-# Copyright (c) 2009-2015, The Trusted Domain Project.  All rights reserved.
+# Copyright (c) 2009-2015, 2018, The Trusted Domain Project.
+#   All rights reserved.
 # 
 
 #
@@ -13,8 +14,8 @@ AC_PREREQ(2.61)
 # Package version
 #
 m4_define([VERSION_RELEASE], 2)
-m4_define([VERSION_MAJOR_REV], 10)
-m4_define([VERSION_MINOR_REV], 3)
+m4_define([VERSION_MAJOR_REV], 11)
+m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PATCH], 0)
 
 #
@@ -22,8 +23,8 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "current" and reset "revision" with API changes
 # 	- bump "revision" with internal source code changes
 #
-m4_define([LIBVERSION_CURRENT], 10)
-m4_define([LIBVERSION_REVISION], 3)
+m4_define([LIBVERSION_CURRENT], 11)
+m4_define([LIBVERSION_REVISION], 0)
 m4_define([LIBVERSION_AGE], 0)
 
 #
@@ -108,9 +109,22 @@ AC_SEARCH_LIBS(inet_ntop, resolv nsl,
 AC_SEARCH_LIBS(getaddrinfo, resolv,
                AC_DEFINE(HAVE_GETADDRINFO, 1,
                          [Define to 1 if you have the `getaddrinfo()' function.]))
+# You might find res_ninit() in system libraries or in libresolv or not
+# at all. The way AC_LANG_CALL finds out is it declares res_ninit() so
+# it can call it, then it sees if linking fails because of unresolved
+# symbols. Great, except glibc doesn't export res_ninit() -- it exports
+# __res_ninit() -- res_ninit() is a macro in resolv.h. So unless we
+# include resolv.h, we won't find res_ninit(), but when we do include
+# it, it conflicts with AC_LANG_CALL's redeclaration. Hmm. I guess the
+# only thing for it is to include resolv.h, don't redeclare res_ninit(),
+# and use the proper type signature when calling it.
+m4_rename([AC_LANG_CALL], [saved_AC_LANG_CALL])
+m4_define([AC_LANG_CALL], [AC_LANG_PROGRAM([#include <resolv.h>],
+                                           [return res_ninit(NULL);])])
 AC_SEARCH_LIBS(res_ninit, resolv,
                AC_DEFINE(HAVE_RES_NINIT, 1,
                          [Define to 1 if you have the `res_ninit()' function.]))
+m4_rename_force([saved_AC_LANG_CALL], [AC_LANG_CALL])
 AC_SEARCH_LIBS(res_setservers, resolv bind,
                AC_DEFINE(HAVE_RES_SETSERVERS, 1,
                          [Define to 1 if you have the `res_setservers()' function.]))
@@ -233,23 +247,23 @@ fi
 AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
 if test x"$strl_h_found" != x"yes"
 then
-	strldirs="/usr/local/include /usr/include"
+	strldirs="/usr/local/include/strl /usr/local/include /usr/include/strl"
 
 	for d in $strldirs
 	do
-		AC_MSG_CHECKING([for strl.h in $d/strl])
-		if test -f $d/strl/strl.h
+		AC_MSG_CHECKING([for strl.h in $d])
+		if test -f $d/strl.h
 		then
 			unset ac_cv_header_strl_h
 			saved_CPPFLAGS="$CPPFLAGS"
-			CPPFLAGS="$CPPFLAGS -I$d/strl"
+			CPPFLAGS="$CPPFLAGS -I$d"
 			AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
 			CPPFLAGS="$saved_CPPFLAGS"
 		fi
 
 		if test x"$strl_h_found" = x"yes"
 		then
-			CPPFLAGS="$CPPFLAGS -I$d/strl"
+			CPPFLAGS="$CPPFLAGS -I$d"
 			break
 		fi
 	done
@@ -353,11 +367,13 @@ AC_DEFUN([LIB_FFR_FEATURE],
 #
 FEATURE([popauth], [enable POP-before-SMTP support])
 
-FEATURE([poll], [use poll() instead of select()])
-
 FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
 LIB_FFR_FEATURE([atps], [experimental Authorized Third Party Signers checks])
 AM_CONDITIONAL([ATPS], [test x"$enable_atps" = x"yes"])
+
+FFR_FEATURE([conditional], [experimental conditional signatures])
+LIB_FFR_FEATURE([conditional], [experimental conditional signatures])
+AM_CONDITIONAL([CONDITIONAL], [test x"$enable_conditional" = x"yes"])
 
 FFR_FEATURE([db_handle_pools], [experimental database handle pools])
 
@@ -860,26 +876,35 @@ then
 	AC_SEARCH_LIBS([ERR_peek_error], [crypto], ,
 	               AC_MSG_ERROR([libcrypto not found]))
 
-	AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
-		[
-			if test x"$enable_shared" = x"yes"
-			then
-				AC_MSG_ERROR([Cannot build shared opendkim
-				              against static openssl libraries.
-				              Configure with --disable-shared
-				              to get this working or obtain a
-				              shared libssl library for
-				              opendkim to use.])
-			fi
 
-			# avoid caching issue - last result of SSL_library_init
-			# shouldn't be cached for this next check
-			unset ac_cv_search_SSL_library_init
-			LIBCRYPTO_LIBS="$LIBCRYPTO_LIBS -ldl"
-			AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
-			               AC_MSG_ERROR([libssl not found]), [-ldl])
-		]
-	)
+	AC_LINK_IFELSE(
+		       [AC_LANG_PROGRAM([[#include <openssl/ssl.h>]],
+					[[SSL_library_init();]])],
+					[od_have_ossl="yes";],
+					[od_have_ossl="no";])
+	if test x"$od_have_ossl" = x"no"
+	then
+		if test x"$enable_shared" = x"yes"
+		then
+			AC_MSG_ERROR([Cannot build shared opendkim
+			              against static openssl libraries.
+			              Configure with --disable-shared
+			              to get this working or obtain a
+			              shared libssl library for
+			              opendkim to use.])
+		fi
+
+		LIBCRYPTO_LIBS="$LIBCRYPTO_LIBS -ldl"
+		AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
+		               AC_MSG_ERROR([libssl not found]), [-ldl])
+	fi
+
+	AC_CHECK_DECL([EVP_PKEY_ED25519],
+                      AC_DEFINE([HAVE_ED25519], 1,
+ 	                        [Define to 1 if your crypto library has ED25519 support]), ,
+	              [
+#include <sys/types.h>
+#include <openssl/evp.h>])
 
 	AC_CHECK_DECL([SHA256_DIGEST_LENGTH],
                       AC_DEFINE([HAVE_SHA256], 1,
@@ -1492,12 +1517,20 @@ lua_found="no"
 
 if test \(  x"$luapath" = x"auto" -o x"$luapath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([LIBLUA], [lua5.1],
-	                  [
-				lua_found="yes"
-				LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
-	                  ],
-			  [AC_MSG_WARN([pkg-config for Lua not found, trying manual search...])])
+  PKG_CHECK_MODULES([LIBLUA], [lua5.1], [
+      LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
+      lua_found="yes"
+    ],
+    [
+      AC_MSG_WARN([pkg-config for lua5.1 not found, trying lua...])
+      PKG_CHECK_MODULES([LIBLUA], [lua], [
+          LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
+          lua_found="yes"
+        ],
+	[AC_MSG_WARN([pkg-config for lua not found, trying manual search...])]
+      )
+    ]
+  )
 fi
 
 if test \( x"$luapath" = x"yes" -o x"$luapath" = x"auto" \) -a x"$lua_found" = x"no"
@@ -1512,10 +1545,6 @@ then
 			LIBLUA_INCDIRS="-I$d/include/lua51"
 			LIBLUA_LIBDIRS="-L$d/lib/lua51"
 			LIBLUA_LIBS="-llua -lm"
-			AC_SEARCH_LIBS([dlopen], [dl])
-			AC_DEFINE([USE_LUA], 1,
-			          [support for Lua scripting])
-			AC_SUBST([LUA_MANNOTICE], "")
 			lua_found="yes"
 			break
 		elif test -f $d/include/lua52/lua.h
@@ -1524,10 +1553,6 @@ then
 			LIBLUA_INCDIRS="-I$d/include/lua52"
 			LIBLUA_LIBDIRS="-L$d/lib/lua52"
 			LIBLUA_LIBS="-llua -lm"
-			AC_SEARCH_LIBS([dlopen], [dl])
-			AC_DEFINE([USE_LUA], 1,
-			          [support for Lua scripting])
-			AC_SUBST([LUA_MANNOTICE], "")
 			lua_found="yes"
 			break
 		elif test -f $d/include/lua5.1/lua.h
@@ -1536,10 +1561,6 @@ then
 			LIBLUA_INCDIRS="-I$d/include/lua5.1"
 			LIBLUA_LIBDIRS="-L$d/lib"
 			LIBLUA_LIBS="-llua5.1 -lm"
-			AC_SEARCH_LIBS([dlopen], [dl])
-			AC_DEFINE([USE_LUA], 1,
-			          [support for Lua scripting])
-			AC_SUBST([LUA_MANNOTICE], "")
 			lua_found="yes"
 			break
 		elif test -f $d/include/lua5.2/lua.h
@@ -1548,10 +1569,6 @@ then
 			LIBLUA_INCDIRS="-I$d/include/lua5.2"
 			LIBLUA_LIBDIRS="-L$d/lib"
 			LIBLUA_LIBS="-llua5.2 -lm"
-			AC_SEARCH_LIBS([dlopen], [dl])
-			AC_DEFINE([USE_LUA], 1,
-			          [support for Lua scripting])
-			AC_SUBST([LUA_MANNOTICE], "")
 			lua_found="yes"
 			break
 		elif test -f $d/include/lua.h
@@ -1560,7 +1577,6 @@ then
 			LIBLUA_INCDIRS="-I$d/include"
 			LIBLUA_LIBDIRS="-L$d/lib"
 			LIBLUA_LIBS="-llua -lm"
-			AC_SEARCH_LIBS([dlopen], [dl])
 			lua_found="yes"
 			break
 		fi
@@ -1585,7 +1601,6 @@ then
 		LIBLUA_INCDIRS="-I$luapath/include/lua51"
 		LIBLUA_LIBDIRS="-L$luapath/lib/lua51"
 		LIBLUA_LIBS="-llua -lm"
-		AC_SEARCH_LIBS([dlopen], [dl])
 		lua_found="yes"
 	elif test -f $luapath/include/lua52/lua.h
 	then
@@ -1593,7 +1608,6 @@ then
 		LIBLUA_INCDIRS="-I$luapath/include/lua52"
 		LIBLUA_LIBDIRS="-L$luapath/lib/lua52"
 		LIBLUA_LIBS="-llua -lm"
-		AC_SEARCH_LIBS([dlopen], [dl])
 		lua_found="yes"
 	elif test -f $luapath/include/lua5.1/lua.h
 	then
@@ -1601,7 +1615,6 @@ then
 		LIBLUA_INCDIRS="-I$luapath/include/lua5.1"
 		LIBLUA_LIBDIRS="-L$luapath/lib"
 		LIBLUA_LIBS="-llua5.1 -lm"
-		AC_SEARCH_LIBS([dlopen], [dl])
 		lua_found="yes"
 	elif test -f $luapath/include/lua5.2/lua.h
 	then
@@ -1609,7 +1622,6 @@ then
 		LIBLUA_INCDIRS="-I$luapath/include/lua5.2"
 		LIBLUA_LIBDIRS="-L$luapath/lib"
 		LIBLUA_LIBS="-llua5.2 -lm"
-		AC_SEARCH_LIBS([dlopen], [dl])
 		lua_found="yes"
 	elif test -f $luapath/include/lua.h
 	then
@@ -1617,7 +1629,6 @@ then
 		LIBLUA_INCDIRS="-I$luapath/include"
 		LIBLUA_LIBDIRS="-L$luapath/lib"
 		LIBLUA_LIBS="-llua -lm"
-		AC_SEARCH_LIBS([dlopen], [dl])
 		lua_found="yes"
 	else
 		AC_MSG_ERROR(not found at $luapath)
@@ -1626,6 +1637,9 @@ fi
 
 if test x"$lua_found" = x"yes"
 then
+	AC_SUBST([LUA_MANNOTICE], "")
+	AC_DEFINE([USE_LUA], 1, [support for Lua scripting])
+	AC_SEARCH_LIBS([dlopen], [dl])
 	saved_CPPFLAGS="$CPPFLAGS"
 	CPPFLAGS="$outer_CPPFLAGS $LIBLUA_INCDIRS"
 	AC_MSG_CHECKING([Lua version])

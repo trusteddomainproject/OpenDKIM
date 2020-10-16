@@ -2,7 +2,8 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2015, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2009-2015, 2018, The Trusted Domain Project.
+**    All rights reserved.
 */
 
 #ifndef _DKIM_H_
@@ -33,7 +34,7 @@ extern "C" {
 **  	pp == patch number
 */
 
-#define	OPENDKIM_LIB_VERSION	0x01020000
+#define	OPENDKIM_LIB_VERSION	0x020B0000
 
 #ifdef __STDC__
 # ifndef __P
@@ -61,7 +62,7 @@ extern "C" {
 					/* reserved DNS sub-zone */
 
 /* macros */
-#define	DKIM_SIG_CHECK(x)	((dkim_sig_getflags((x)) & DKIM_SIGFLAG_PASSED != 0) && (dkim_sig_getbh((x)) == DKIM_SIGBH_MATCH))
+#define	DKIM_SIG_CHECK(x)	((dkim_sig_getflags((x)) & DKIM_SIGFLAG_PASSED) != 0 && dkim_sig_getbh((x)) == DKIM_SIGBH_MATCH)
 
 /*
 **  DKIM_STAT -- status code type
@@ -155,6 +156,8 @@ typedef int DKIM_SIGERROR;
 #define	DKIM_SIGERROR_MISSING_V		44	/* v= tag missing */
 #define	DKIM_SIGERROR_EMPTY_V		45	/* v= tag empty */
 #define	DKIM_SIGERROR_KEYTOOSMALL	46	/* too few key bits */
+#define DKIM_SIGERROR_CONDITIONAL	47	/* conditional sig error */
+#define DKIM_SIGERROR_CONDLOOP		48	/* conditional sig loop */
 
 /* generic DNS error codes */
 #define	DKIM_DNS_ERROR		(-1)		/* error in transit */
@@ -185,6 +188,7 @@ typedef int dkim_alg_t;
 #define DKIM_SIGN_DEFAULT	(-1)	/* use internal default */
 #define DKIM_SIGN_RSASHA1	0	/* an RSA-signed SHA1 digest */
 #define DKIM_SIGN_RSASHA256	1	/* an RSA-signed SHA256 digest */
+#define DKIM_SIGN_ED25519SHA256	2	/* an ED25519-signed SHA256 digest */
 
 /*
 **  DKIM_QUERY -- query method
@@ -909,6 +913,19 @@ extern unsigned char *dkim_sig_getselector __P((DKIM_SIGINFO *sig));
 extern unsigned char *dkim_sig_getdomain __P((DKIM_SIGINFO *sig));
 
 /*
+**  DKIM_SIG_GETALGORITHM -- retrieve algorithm from a DKIM_SIGINFO
+**
+**  Parameters:
+**  	siginfo -- pointer to a DKIM_SIGINFO from which to extract the
+**  	           algorithm
+**
+**  Return value:
+**  	Pointer to the algorithm associated with the DKIM_SIGINFO.
+*/
+
+extern unsigned char *dkim_sig_getalgorithm __P((DKIM_SIGINFO *sig));
+
+/*
 **  DKIM_SIG_GETCANONS -- retrieve canonicaliztions after verifying
 **
 **  Parameters:
@@ -1369,8 +1386,10 @@ extern unsigned long dkim_ssl_version __P((void));
 #define DKIM_FEATURE_RESIGN		7
 #define DKIM_FEATURE_ATPS		8
 #define DKIM_FEATURE_XTAGS		9
+#define DKIM_FEATURE_CONDITIONAL	10
+#define DKIM_FEATURE_ED25519		11
 
-#define	DKIM_FEATURE_MAX		9
+#define	DKIM_FEATURE_MAX		11
 
 extern _Bool dkim_libfeature __P((DKIM_LIB *lib, u_int fc));
 
@@ -1797,6 +1816,19 @@ extern DKIM_STAT dkim_privkey_load __P((DKIM *));
 
 extern DKIM_STAT dkim_atps_check __P((DKIM *, DKIM_SIGINFO *,
                                       struct timeval *, dkim_atps_t *res));
+
+/*
+**  DKIM_CONDITIONAL -- set conditional domain for a signature
+**
+**  Parameters:
+**  	dkim -- a DKIM signing handle
+**  	domain -- domain upon which this signature shall depend
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
+
+extern DKIM_STAT dkim_conditional __P((DKIM *, u_char *));
 
 /*
 **  DKIM_QI_GETNAME -- retrieve the DNS name from a DKIM_QUERYINFO object
