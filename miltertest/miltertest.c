@@ -3645,8 +3645,8 @@ mt_eom_check(lua_State *l)
 
 				snprintf(rbuf, sizeof rbuf, "%s%s%s%s%s",
 				         smtp,
-				         esc == NULL ? "" : " ", esc,
-				         text == NULL ? "" : " ", text);
+				         esc == NULL ? "" : " ", esc == NULL ? "" : esc,
+				         text == NULL ? "" : " ", text == NULL ? "" : text);
 
 				if (strcmp(rbuf, (char *) r->eom_rdata) == 0)
 				{
