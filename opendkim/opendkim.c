@@ -17092,8 +17092,13 @@ main(int argc, char **argv)
 
 	if (curconf->conf_dolog)
 	{
-		syslog(LOG_INFO, "%s v%s starting (%s)", DKIMF_PRODUCT,
-		       VERSION, argstr);
+		_Bool noargs = strlen(argstr) == 0;
+
+		syslog(LOG_INFO, "%s v%s starting%s%s%s", DKIMF_PRODUCT,
+		       VERSION,
+		       noargs ? "" : " (",
+		       argstr,
+		       noargs ? "" : ")");
 	}
 
 	/* spawn the SIGUSR1 handler */
