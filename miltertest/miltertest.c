@@ -2566,7 +2566,7 @@ mt_data(lua_State *l)
 	ctx = (struct mt_context *) lua_touserdata(l, 1);
 	lua_pop(l, 1);
 
-	if (!mt_assert_state(ctx, STATE_DATA))
+	if (!mt_assert_state(ctx, STATE_ENVRCPT))
 		lua_error(l);
 
 	if (CHECK_MPOPTS(ctx, SMFIP_NODATA))
@@ -2663,7 +2663,7 @@ mt_header(lua_State *l)
 #endif /* SMFIP_HDR_LEADSPC */
 	memcpy(bp, value, strlen(value) + 1);
 
-	if (!mt_assert_state(ctx, STATE_ENVRCPT))
+	if (!mt_assert_state(ctx, STATE_DATA))
 		lua_error(l);
 
 	if (CHECK_MPOPTS(ctx, SMFIP_NOHDRS))
@@ -3645,8 +3645,8 @@ mt_eom_check(lua_State *l)
 
 				snprintf(rbuf, sizeof rbuf, "%s%s%s%s%s",
 				         smtp,
-				         esc == NULL ? "" : " ", esc,
-				         text == NULL ? "" : " ", text);
+				         esc == NULL ? "" : " ", esc == NULL ? "" : esc,
+				         text == NULL ? "" : " ", text == NULL ? "" : text);
 
 				if (strcmp(rbuf, (char *) r->eom_rdata) == 0)
 				{
