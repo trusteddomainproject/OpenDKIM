@@ -1517,20 +1517,10 @@ lua_found="no"
 
 if test \(  x"$luapath" = x"auto" -o x"$luapath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-  PKG_CHECK_MODULES([LIBLUA], [lua5.1], [
+  PKG_CHECK_MODULES([LIBLUA], [lua], [
       LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
       lua_found="yes"
-    ],
-    [
-      AC_MSG_WARN([pkg-config for lua5.1 not found, trying lua...])
-      PKG_CHECK_MODULES([LIBLUA], [lua], [
-          LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
-          lua_found="yes"
-        ],
-	[AC_MSG_WARN([pkg-config for lua not found, trying manual search...])]
-      )
-    ]
-  )
+    ])
 fi
 
 if test \( x"$luapath" = x"yes" -o x"$luapath" = x"auto" \) -a x"$lua_found" = x"no"
