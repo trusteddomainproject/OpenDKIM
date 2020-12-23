@@ -1505,135 +1505,71 @@ AC_SUBST([LIBTRE_LIBS])
 #
 # liblua
 #
-AC_ARG_WITH([lua],
-            AS_HELP_STRING([--with-lua],
-                           [location of Lua includes and library]),
-            [luapath="$withval"], [luapath="no"])
+AC_ARG_ENABLE([lua],
+            AS_HELP_STRING([--enable-lua],
+                           [enable the Lua scripting language]),
+            [enable_lua="$enableval"], [enable_lua="no"])
 
-LIBLUA_INCDIRS=""
-LIBLUA_LIBDIRS=""
-LIBLUA_LIBS=""
+# We inherit these misnomers from pkg-config. The "CFLAGS" variable
+# contains preprocessor (CPP) flags; the "LIBS" variable contains
+# both -l and -L flags, suitable for foo_LDADD.
+LUA_CFLAGS=""
+LUA_LIBS=""
 lua_found="no"
 
-if test \(  x"$luapath" = x"auto" -o x"$luapath" = x"yes" \) -a x"$PKG_CONFIG" != x""
-then
-  PKG_CHECK_MODULES([LIBLUA], [lua], [
-      LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
-      lua_found="yes"
+AS_IF([test x"$enable_lua" = x"yes"], [
+  AS_IF([test x"$PKG_CONFIG" != x""], [
+    # If pkg-config is available, try to use that! This automatically
+    # defines LUA_CFLAGS and LUA_LIBS if it succeeds.
+    PKG_CHECK_MODULES([LUA], [lua >= 5.1], [lua_found="yes"],[
+      # Try debian-specific module names if the official one didn't work.
+      # This isn't strictly necessary, but is extremely convenient for
+      # debian users and doesn't cost us anything except two lines of code.
+      PKG_CHECK_MODULES([LUA], [lua5.2], [lua_found="yes"],[
+        PKG_CHECK_MODULES([LUA], [lua5.1], [lua_found="yes"])
+      ])
     ])
-fi
+  ])
 
-if test \( x"$luapath" = x"yes" -o x"$luapath" = x"auto" \) -a x"$lua_found" = x"no"
-then
-	AC_MSG_CHECKING([for Lua])
-	luadirs="/usr /usr/local"
-	for d in $luadirs
-	do
-		if test -f $d/include/lua51/lua.h
-		then
-			AC_MSG_RESULT($d)
-			LIBLUA_INCDIRS="-I$d/include/lua51"
-			LIBLUA_LIBDIRS="-L$d/lib/lua51"
-			LIBLUA_LIBS="-llua -lm"
-			lua_found="yes"
-			break
-		elif test -f $d/include/lua52/lua.h
-		then
-			AC_MSG_RESULT($d)
-			LIBLUA_INCDIRS="-I$d/include/lua52"
-			LIBLUA_LIBDIRS="-L$d/lib/lua52"
-			LIBLUA_LIBS="-llua -lm"
-			lua_found="yes"
-			break
-		elif test -f $d/include/lua5.1/lua.h
-		then
-			AC_MSG_RESULT($d)
-			LIBLUA_INCDIRS="-I$d/include/lua5.1"
-			LIBLUA_LIBDIRS="-L$d/lib"
-			LIBLUA_LIBS="-llua5.1 -lm"
-			lua_found="yes"
-			break
-		elif test -f $d/include/lua5.2/lua.h
-		then
-			AC_MSG_RESULT($d)
-			LIBLUA_INCDIRS="-I$d/include/lua5.2"
-			LIBLUA_LIBDIRS="-L$d/lib"
-			LIBLUA_LIBS="-llua5.2 -lm"
-			lua_found="yes"
-			break
-		elif test -f $d/include/lua.h
-		then
-			AC_MSG_RESULT($d)
-			LIBLUA_INCDIRS="-I$d/include"
-			LIBLUA_LIBDIRS="-L$d/lib"
-			LIBLUA_LIBS="-llua -lm"
-			lua_found="yes"
-			break
-		fi
-	done
-	if test x"$LIBLUA_LIBS" = x""
-	then
-		LIBLUA_INCDIRS=""
-		LIBLUA_LIBDIRS=""
-		LIBLUA_LIBS=""
-		AC_MSG_ERROR(not found)
-	else
-		lua_found="yes"
-	fi
-fi
+  AS_IF([test x"$lua_found" != x"yes"], [
+    # Ok, either we don't have pkg-config, or it didn't find Lua.
+    # Let's just try to link against it. The user should have
+    # passed the correct -I and -L flags to the build system if
+    # his headers/libraries are located in a non-standard path...
+    AC_MSG_CHECKING([for Lua manually])
+    AC_SEARCH_LIBS([lua_load], [lua], [lua_found="yes"])
+  ])
 
-if test x"$luapath" != x"yes" -a x"$luapath" != x"auto" -a x"$luapath" != x"no"
-then
-	AC_MSG_CHECKING([for Lua])
-	if test -f $luapath/include/lua51/lua.h
-	then
-		AC_MSG_RESULT($luapath)
-		LIBLUA_INCDIRS="-I$luapath/include/lua51"
-		LIBLUA_LIBDIRS="-L$luapath/lib/lua51"
-		LIBLUA_LIBS="-llua -lm"
-		lua_found="yes"
-	elif test -f $luapath/include/lua52/lua.h
-	then
-		AC_MSG_RESULT($luapath)
-		LIBLUA_INCDIRS="-I$luapath/include/lua52"
-		LIBLUA_LIBDIRS="-L$luapath/lib/lua52"
-		LIBLUA_LIBS="-llua -lm"
-		lua_found="yes"
-	elif test -f $luapath/include/lua5.1/lua.h
-	then
-		AC_MSG_RESULT($luapath)
-		LIBLUA_INCDIRS="-I$luapath/include/lua5.1"
-		LIBLUA_LIBDIRS="-L$luapath/lib"
-		LIBLUA_LIBS="-llua5.1 -lm"
-		lua_found="yes"
-	elif test -f $luapath/include/lua5.2/lua.h
-	then
-		AC_MSG_RESULT($luapath)
-		LIBLUA_INCDIRS="-I$luapath/include/lua5.2"
-		LIBLUA_LIBDIRS="-L$luapath/lib"
-		LIBLUA_LIBS="-llua5.2 -lm"
-		lua_found="yes"
-	elif test -f $luapath/include/lua.h
-	then
-		AC_MSG_RESULT($luapath)
-		LIBLUA_INCDIRS="-I$luapath/include"
-		LIBLUA_LIBDIRS="-L$luapath/lib"
-		LIBLUA_LIBS="-llua -lm"
-		lua_found="yes"
-	else
-		AC_MSG_ERROR(not found at $luapath)
-	fi
-fi
+  AS_IF([test x"$lua_found" != x"yes"], [
+    AC_MSG_ERROR([Lua enabled but not found])
+  ])
+])
 
-if test x"$lua_found" = x"yes"
-then
-	AC_SUBST([LUA_MANNOTICE], "")
-	AC_DEFINE([USE_LUA], 1, [support for Lua scripting])
-	AC_SEARCH_LIBS([dlopen], [dl])
-	saved_CPPFLAGS="$CPPFLAGS"
-	CPPFLAGS="$outer_CPPFLAGS $LIBLUA_INCDIRS"
-	AC_MSG_CHECKING([Lua version])
-	AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+AS_IF([test x"$lua_found" != x"yes"],[
+  # Lua not enabled or not found. Throw errors for all the invalid
+  # flag combinations that can arise from that.
+  AS_IF([test x"$enable_lua_only_signing" = x"yes"],[
+    AC_MSG_ERROR([--enable-lua_only_signing requires Lua support])
+  ])
+
+  AS_IF([test x"$enable_statsext" = x"yes"],[
+    AC_MSG_ERROR([--enable-statsext requires Lua support])
+  ])
+
+  AS_IF([test x"$enable_rbl" = x"yes"],[
+    AC_MSG_ERROR([--enable-rbl requires Lua support])
+  ])
+])
+
+
+AS_IF([test x"$lua_found" = x"yes"],[
+  AC_SUBST([LUA_MANNOTICE], "")
+  AC_DEFINE([USE_LUA], 1, [support for Lua scripting])
+  AC_SEARCH_LIBS([dlopen], [dl])
+  saved_CPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="$outer_CPPFLAGS $LUA_CFLAGS"
+  AC_MSG_CHECKING([Lua version])
+  AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <lua.h>
 
 #if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501
@@ -1645,35 +1581,24 @@ main()
 {
 	return 0;
 }
-				])],
-				AC_MSG_RESULT([ok]), 
-				AC_MSG_ERROR([Lua version 5.1 or later required]))
-	CPPFLAGS="$saved_CPPFLAGS"
-	AC_DEFINE([USE_LUA], 1, [support for Lua scripting])
-	AC_SUBST([LUA_MANNOTICE], "")
-else
-	AC_SUBST([LUA_MANNOTICE], "(Not enabled for this installation.)")
-fi
+  ])],
+    AC_MSG_RESULT([ok]),
+    AC_MSG_ERROR([Lua version 5.1 or later required]))
+  CPPFLAGS="$saved_CPPFLAGS"
+  AC_DEFINE([USE_LUA], 1, [support for Lua scripting])
+  AC_SUBST([LUA_MANNOTICE], "")], [
+  # Lua not found!
+  AC_SUBST([LUA_MANNOTICE], "(Not enabled for this installation.)")
+])
 
-AM_CONDITIONAL(LUA, test x"$lua_found" = x"yes")
-AC_SUBST(LIBLUA_INCDIRS)
-AC_SUBST(LIBLUA_LIBDIRS)
-AC_SUBST(LIBLUA_LIBS)
+# This has got to be redundant; we already define USE_LUA above.
+AM_CONDITIONAL([LUA], [test x"$lua_found" = x"yes"])
 
-if test x"$enable_lua_only_signing" = x"yes" -a x"$lua_found" != x"yes"
-then
-	AC_MSG_ERROR([--enable-lua_only_signing requires Lua support])
-fi
+# Probably not needed any more (pkg-config does it for a long time),
+# but harmless in any case.
+AC_SUBST(LUA_CFLAGS)
+AC_SUBST(LUA_LIBS)
 
-if test x"$enable_statsext" = x"yes" -a x"$lua_found" != x"yes"
-then
-	AC_MSG_ERROR([--enable-statsext requires Lua support])
-fi
-
-if test x"$enable_rbl" = x"yes" -a x"$lua_found" != x"yes"
-then
-	AC_MSG_ERROR([--enable-rbl requires Lua support])
-fi
 
 AC_ARG_WITH([sql-backend],
             AS_HELP_STRING([--with-sql-backend],
@@ -2600,7 +2525,7 @@ fi
 if test x"$lua_found" = x"yes"
 then
 	installbin="yes"
-	specconfig="$specconfig --with-lua=$luapath"
+	specconfig="$specconfig --enable-lua"
 	specrequries="$specrequires lua"
 	specbuildrequries="$specbuildrequires lua-devel"
 fi

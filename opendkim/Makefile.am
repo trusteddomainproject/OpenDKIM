@@ -46,9 +46,9 @@ opendkim_LDADD += $(LIBMEMCACHED_LIBS)
 endif
 if LUA
 SUBDIRS=tests
-opendkim_CPPFLAGS += $(LIBLUA_INCDIRS) -DDKIMF_LUA_CONTEXT_HOOKS
-opendkim_LDFLAGS += $(LIBLUA_LIBDIRS)
-opendkim_LDADD += $(LIBLUA_LIBS)
+opendkim_CPPFLAGS += $(LUA_INCDIRS) -DDKIMF_LUA_CONTEXT_HOOKS
+opendkim_LDFLAGS += $(LUA_LIBDIRS)
+opendkim_LDADD += $(LUA_LIBS)
 endif
 if USE_SASL
 opendkim_CPPFLAGS += $(SASL_CPPFLAGS)
@@ -108,9 +108,8 @@ opendkim_testkey_CFLAGS = $(LIBCRYPTO_CFLAGS) $(COV_CFLAGS) $(PTHREAD_CFLAGS)
 opendkim_testkey_LDFLAGS = $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS) $(PTHREAD_CFLAGS)
 opendkim_testkey_LDADD = ../libopendkim/libopendkim.la $(LIBCRYPTO_LIBS) $(LIBRESOLV) $(COV_LIBADD) $(PTHREAD_LIBS)
 if LUA
-opendkim_testkey_CPPFLAGS += $(LIBLUA_INCDIRS) $(LIBMILTER_INCDIRS)
-opendkim_testkey_LDFLAGS += $(LIBLUA_LIBDIRS)
-opendkim_testkey_LDADD += $(LIBLUA_LIBS)
+opendkim_testkey_CPPFLAGS += $(LUA_CFLAGS) $(LIBMILTER_INCDIRS)
+opendkim_testkey_LDADD += $(LUA_LIBS)
 endif
 if USE_DB_OPENDKIM
 opendkim_testkey_CPPFLAGS += $(LIBDB_INCDIRS)
@@ -200,9 +199,8 @@ opendkim_genzone_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
 opendkim_genzone_LDADD += $(OPENLDAP_LIBS)
 endif
 if LUA
-opendkim_genzone_CPPFLAGS += $(LIBLUA_INCDIRS) $(LIBMILTER_INCDIRS)
-opendkim_genzone_LDFLAGS += $(LIBLUA_LIBDIRS)
-opendkim_genzone_LDADD += $(LIBLUA_LIBS)
+opendkim_genzone_CPPFLAGS += $(LUA_CFLAGS) $(LIBMILTER_INCDIRS)
+opendkim_genzone_LDADD += $(LUA_LIBS)
 endif
 if REPUTE
 opendkim_genzone_CPPFLAGS += -I$(srcdir)/../reputation
@@ -250,9 +248,8 @@ opendkim_atpszone_CPPFLAGS += $(OPENLDAP_CPPFLAGS)
 opendkim_atpszone_LDADD += $(OPENLDAP_LIBS)
 endif
 if LUA
-opendkim_atpszone_CPPFLAGS += $(LIBLUA_INCDIRS) $(LIBMILTER_INCDIRS)
-opendkim_atpszone_LDFLAGS += $(LIBLUA_LIBDIRS)
-opendkim_atpszone_LDADD += $(LIBLUA_LIBS)
+opendkim_atpszone_CPPFLAGS += $(LUA_CFLAGS) $(LIBMILTER_INCDIRS)
+opendkim_atpszone_LDADD += $(LUA_LIBS)
 endif
 if REPUTE
 opendkim_atpszone_CPPFLAGS += -I$(srcdir)/../reputation
