@@ -525,7 +525,7 @@ dkim_mail_parse_multi(unsigned char *line, unsigned char ***users_out,
 			escaped = TRUE;
 			continue;
 
-		  case ':':
+		  case '"':
 			quoted = !quoted;
 			continue;
 
@@ -539,7 +539,7 @@ dkim_mail_parse_multi(unsigned char *line, unsigned char ***users_out,
 
 		  case ',':
 		  case '\0':
-			if (parens != 0)
+			if (parens != 0 || quoted)
 				continue;
 
 			if (*p == '\0')
@@ -608,8 +608,8 @@ dkim_mail_parse_multi(unsigned char *line, unsigned char ***users_out,
 			uout[n] = u;
 			dout[n++] = d;
 
-			uout[n] = '\0';
-			dout[n] = '\0';
+			uout[n] = (char *) NULL;
+			dout[n] = (char *) NULL;
 
 			addr = p + 1;
 

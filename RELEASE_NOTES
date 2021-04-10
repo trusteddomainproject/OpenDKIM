@@ -47,6 +47,8 @@ release, and a summary of the changes in that release.
 	LIBOPENDKIM: Fix bug #270: Don't set an upper bound on the size of
 		the canonicalization buffer, which interferes with processing
 		oversized input lines.  Reported by Mars Peng.
+	LIBOPENDKIM: Fix parsing bug in dkim_mail_parse_multi(), where quotes
+		were not being properly handled.
 	TOOLS: Feature requrest #187: Add option to match subdomains when
 		generating zone files.  Patch from Andreas Schulze.
 
