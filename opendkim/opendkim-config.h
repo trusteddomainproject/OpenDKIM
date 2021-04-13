@@ -147,6 +147,7 @@ struct configdef dkimf_config[] =
 	{ "RemoveARFrom",		CONFIG_TYPE_STRING,	FALSE },
 	{ "RemoveOldSignatures",	CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_REPLACE_RULES
+	{ "ReplaceHeaders",		CONFIG_TYPE_STRING,	FALSE },
 	{ "ReplaceRules",		CONFIG_TYPE_STRING,	FALSE },
 #endif /* _FFR_REPLACE_RULES */
 	{ "ReportAddress",		CONFIG_TYPE_STRING,	FALSE },
