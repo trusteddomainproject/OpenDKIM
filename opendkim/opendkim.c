@@ -12745,14 +12745,18 @@ mlfi_eoh(SMFICTX *ctx)
 		char *msg = NULL;
 
 		/* exactly one From: */
-		if (dkimf_findheader(dfc, "From", 0) == NULL ||
-		    dkimf_findheader(dfc, "From", 1) != NULL)
-			msg = "message does not have exactly one From field";
+		if (dkimf_findheader(dfc, "From", 0) == NULL)
+			msg = "message has no From field";
+
+		if (dkimf_findheader(dfc, "From", 1) != NULL)
+			msg = "message has multiple From fields";
 
 		/* exactly one Date: */
-		if (dkimf_findheader(dfc, "Date", 0) == NULL ||
-		    dkimf_findheader(dfc, "Date", 1) != NULL)
-			msg = "message does not have exactly one Date field";
+		if (dkimf_findheader(dfc, "Date", 0) == NULL)
+			msg = "message has no Date field";
+
+		if (dkimf_findheader(dfc, "Date", 1) != NULL)
+			msg = "message has multiple Date fields";
 
 		/* no more than one Reply-To: */
 		if (dkimf_findheader(dfc, "Reply-To", 1) != NULL)
