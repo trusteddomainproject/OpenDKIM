@@ -12,6 +12,7 @@ Type=simple
 EnvironmentFile=-@sysconfdir@/sysconfig/opendkim
 ExecStart=@sbindir@/opendkim -f $OPTIONS
 ExecReload=/bin/kill -USR1 $MAINPID
+Restart=on-abnormal
 User=opendkim
 Group=opendkim
 
