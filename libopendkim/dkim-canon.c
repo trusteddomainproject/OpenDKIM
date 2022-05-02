@@ -45,16 +45,6 @@
 #include "dkim-util.h"
 #include "util.h"
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 /* definitions */
 #define	CRLF	(u_char *) "\r\n"
 #define	SP	(u_char *) " "
@@ -379,7 +369,7 @@ dkim_canon_header_string(struct dkim_dstring *dstr, dkim_canon_t canon,
 
 				tmp = tmpbuf;
 			}
-			
+
 			if (*p == ':')
 			{
 				p++;
@@ -681,7 +671,7 @@ dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 				DKIM_FREE(dkim, sha);
 				return DKIM_STAT_INTERNAL;
 			}
-				
+
 			if (tmp)
 			{
 				status = dkim_tmpfile(dkim, &fd, keep);
@@ -1512,7 +1502,7 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 		tmphdr.hdr_next = NULL;
 		if (cur->canon_canon == DKIM_CANON_RELAXED)
 			dkim_lowerhdr(tmphdr.hdr_text);
-		
+
 		/* canonicalize the signature */
 		status = dkim_canon_header(dkim, cur, &tmphdr, FALSE);
 		if (status != DKIM_STAT_OK)

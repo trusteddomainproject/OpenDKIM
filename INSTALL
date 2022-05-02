@@ -50,7 +50,7 @@ doesn't find it, you will need to specify the location with
 --with-db-libdir
 --with-db-lib
 		These provide a finer control over the location of BerkeleyDB
-		include, library path and libary name where the default 
+		include, library path and libary name where the default
 		locations of --with-db are not enough.
 
 --with-domain	Specifies the local domain name in use.  Used only for
@@ -129,9 +129,9 @@ doesn't find it, you will need to specify the location with
 		/usr directories will be searched for the required includes
 		and libraries.
 
---with-unbound	Location of the Unbound DNSSEC capable asynchronous resolver 
+--with-unbound	Location of the Unbound DNSSEC capable asynchronous resolver
 		library and include file.
-                
+
 
 
 FEATURES
@@ -209,6 +209,10 @@ Steps to compiling the library and the milter:
 (4) Run the "configure" script to configure the package for your operating
     system.
 	./configure
+
+    Note: When creating a package, pass `--without-libbsd` to the configure
+    script. If it fails, the program depends on either of libbsd or libobsd
+    in your system.
 
 (5) Compile the package.
 	make

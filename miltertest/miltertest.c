@@ -37,16 +37,6 @@
 /* libopendkim includes */
 #include <dkim.h>
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 /* Lua includes */
 #include <lua.h>
 #include <lualib.h>
@@ -410,7 +400,7 @@ mt_eom_request(struct mt_context *ctx, char cmd, size_t len, char *data)
 **  	cmd -- milter command received (returned)
 ** 	buf -- where to write data
 **  	buflen -- bytes available at "buf" (updated)
-** 
+**
 **  Return value:
 **  	TRUE iff successful.
 */
@@ -618,7 +608,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 			if (verbose > 0)
 			{
 				fprintf(stdout,
-				        "%s: filter returned status %d to option negotiation on fd %d\n", 
+				        "%s: filter returned status %d to option negotiation on fd %d\n",
 				        progname, rcmd, ctx->ctx_fd);
 			}
 
@@ -679,7 +669,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 				if (verbose > 0)
 				{
 					fprintf(stdout,
-					        "%s: filter returned status %d to connection information on fd %d\n", 
+					        "%s: filter returned status %d to connection information on fd %d\n",
 					        progname, rcmd, ctx->ctx_fd);
 				}
 
@@ -722,7 +712,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 				if (verbose > 0)
 				{
 					fprintf(stdout,
-					        "%s: filter returned status %d to HELO on fd %d\n", 
+					        "%s: filter returned status %d to HELO on fd %d\n",
 					        progname, rcmd, ctx->ctx_fd);
 				}
 
@@ -765,7 +755,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 				if (verbose > 0)
 				{
 					fprintf(stdout,
-					        "%s: filter returned status %d to MAIL on fd %d\n", 
+					        "%s: filter returned status %d to MAIL on fd %d\n",
 					        progname, rcmd, ctx->ctx_fd);
 				}
 
@@ -808,7 +798,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 				if (verbose > 0)
 				{
 					fprintf(stdout,
-					        "%s: filter returned status %d to RCPT on fd %d\n", 
+					        "%s: filter returned status %d to RCPT on fd %d\n",
 					        progname, rcmd, ctx->ctx_fd);
 				}
 
@@ -848,7 +838,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 				if (verbose > 0)
 				{
 					fprintf(stdout,
-					        "%s: filter returned status %d to DATA on fd %d\n", 
+					        "%s: filter returned status %d to DATA on fd %d\n",
 					        progname, rcmd, ctx->ctx_fd);
 				}
 
@@ -894,7 +884,7 @@ mt_assert_state(struct mt_context *ctx, int state)
 				if (verbose > 0)
 				{
 					fprintf(stdout,
-					        "%s: filter returned status %d to header on fd %d\n", 
+					        "%s: filter returned status %d to header on fd %d\n",
 					        progname, rcmd, ctx->ctx_fd);
 				}
 
@@ -933,10 +923,10 @@ mt_assert_state(struct mt_context *ctx, int state)
 				if (verbose > 0)
 				{
 					fprintf(stdout,
-					        "%s: filter returned status %d to EOH on fd %d\n", 
+					        "%s: filter returned status %d to EOH on fd %d\n",
 					        progname, rcmd, ctx->ctx_fd);
 				}
-	
+
 				ctx->ctx_state = STATE_DEAD;
 			}
 		}
@@ -973,10 +963,10 @@ mt_assert_state(struct mt_context *ctx, int state)
 				if (verbose > 0)
 				{
 					fprintf(stdout,
-					        "%s: filter returned status %d to body on fd %d\n", 
+					        "%s: filter returned status %d to body on fd %d\n",
 					        progname, rcmd, ctx->ctx_fd);
 				}
-	
+
 				ctx->ctx_state = STATE_DEAD;
 			}
 		}
@@ -1623,7 +1613,7 @@ mt_disconnect(lua_State *l)
 {
 	_Bool polite = TRUE;
 	int top;
-	
+
 	struct mt_context *ctx;
 
 	assert(l != NULL);
@@ -1820,7 +1810,7 @@ mt_negotiate(lua_State *l)
 		if (verbose > 0)
 		{
 			fprintf(stdout,
-			        "%s: filter returned status %d to option negotiation on fd %d\n", 
+			        "%s: filter returned status %d to option negotiation on fd %d\n",
 			        progname, rcmd, ctx->ctx_fd);
 		}
 
@@ -3828,7 +3818,7 @@ mt_getheader(lua_State *l)
 
 /*
 **  USAGE -- print usage message
-** 
+**
 **  Parameters:
 **  	Not now.  Maybe later.
 **

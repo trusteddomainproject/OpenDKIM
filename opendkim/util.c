@@ -46,16 +46,6 @@
 # endif /* SOLARIS <= 20600 */
 #endif /* SOLARIS */
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 /* opendkim includes */
 #include "opendkim.h"
 #include "util.h"
@@ -217,7 +207,7 @@ static unsigned char alphabet[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq
 
 /*
 **  DKIMF_ISBLANK -- return TRUE iff a string contains only whitespace
-**  
+**
 **  Parameters:
 **  	str -- string to check
 **

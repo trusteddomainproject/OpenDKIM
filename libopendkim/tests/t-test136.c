@@ -22,16 +22,6 @@
 #include "../dkim.h"
 #include "t-testdata.h"
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 #define	MAXHEADER	4096
 
 #define SIG2 "v=1; a=rsa-sha1; c=relaxed/relaxed; d=example.com; s=test;\r\n\tt=1172620939; bh=Z9ONHHsBrKN0pbfrOu025VfbdR4=;\r\n\th=Received:Received:Received:From:To:Date:Subject:Message-ID;\r\n\tb=Jf+j2RDZRkpIF1KaL5ByhHFPWj5RMeX5764IVlwIc11equjQND51K9FfL5pyjXvwj\r\n\t FoFPW0PGJb3liej6iDDEHgYpXR4p5qqlGx/C1Q9gf/MQN/Xlkv6ZXgR38QnWAfZxh5\r\n\t N1f5xUg+SJb5yBDoXklG62IRdia1Hq9MuiGumrGM="

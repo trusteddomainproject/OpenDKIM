@@ -9,9 +9,9 @@ LDADD = ./libopendkim.la
 
 lib_LTLIBRARIES = libopendkim.la
 libopendkim_la_SOURCES = base32.c base64.c dkim-atps.c dkim-cache.c dkim-canon.c dkim-dns.c dkim-keys.c dkim-mailparse.c dkim-report.c dkim-tables.c dkim-test.c dkim-util.c dkim.c util.c base64.h dkim-cache.h dkim-canon.h dkim-dns.h dkim-internal.h dkim-keys.h dkim-mailparse.h dkim-report.h dkim-tables.h dkim-test.h dkim-types.h dkim-util.h dkim.h util.h
-libopendkim_la_CPPFLAGS = $(LIBCRYPTO_CPPFLAGS)
+libopendkim_la_CPPFLAGS = $(LIBCRYPTO_CPPFLAGS) $(LIBBSD_CFLAGS)
 libopendkim_la_CFLAGS = $(LIBCRYPTO_INCDIRS) $(LIBOPENDKIM_INC) $(COV_CFLAGS)
-libopendkim_la_LDFLAGS = -no-undefined  $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS) -version-info $(LIBOPENDKIM_VERSION_INFO)
+libopendkim_la_LDFLAGS = -no-undefined  $(LIBCRYPTO_LIBDIRS) $(COV_LDFLAGS) -version-info $(LIBOPENDKIM_VERSION_INFO) $(LIBBSD_LIBS)
 libopendkim_la_LIBADD = $(LIBOPENDKIM_LIBS) $(LIBCRYPTO_LDADD) $(COV_LIBADD)
 if !ALL_SYMBOLS
 libopendkim_la_DEPENDENCIES = symbols.map

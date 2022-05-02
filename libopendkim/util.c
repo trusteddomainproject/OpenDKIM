@@ -27,16 +27,6 @@
 #include "dkim-internal.h"
 #include "util.h"
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 #if defined(__RES) && (__RES >= 19940415)
 # define RES_UNC_T		char *
 #else /* __RES && __RES >= 19940415 */
@@ -198,7 +188,7 @@ dkim_lowerhdr(unsigned char *str)
 
 /*
 **  DKIM_HEXCHAR -- translate a hexadecimal character
-**  
+**
 **  Parameters:
 **  	c -- character to translate
 **

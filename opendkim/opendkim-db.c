@@ -36,16 +36,6 @@
 /* libopendkim includes */
 #include <dkim.h>
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 /* repute includes */
 #ifdef _FFR_REPUTATION
 # include <repute.h>
@@ -854,7 +844,7 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 **
 **  Notes:
 **  	Expands "$d" and "$D" as defined in opendkim.conf(5).
-** 
+**
 **  	Should report overflows.
 */
 
@@ -1002,7 +992,7 @@ dkimf_db_list_free(struct dkimf_db_list *list)
 		list = next;
 	}
 }
-		
+
 /*
 **  DKIMF_DB_RELIST_FREE -- destroy a linked regex list
 **
@@ -1312,7 +1302,7 @@ dkimf_db_open_sql(struct dkimf_db_dsn *dsn, odbx_t **odbx, char **err)
 **
 **  Parameters:
 **  	db -- DKIMF_DB handle
-** 
+**
 **  Return value:
 **  	A DKIMF_DB_TYPE_* constant.
 */
@@ -2174,7 +2164,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			}
 
 			assert(key != NULL);
-			
+
 			if (value != NULL &&
 			    (new->db_flags & DKIMF_DB_FLAG_VALLIST) != 0)
 			{
@@ -2230,7 +2220,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 						list = newl;
 					else
 						next->db_list_next = newl;
-	
+
 					next = newl;
 					n++;
 				}
@@ -2536,7 +2526,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		/*
 		**  General format of a DSN:
 		**  <backend>://[user[:pwd]@][port+]host/dbase[/key=val[?...]]
-		**  
+		**
 		**  "table", "keycol" and "datacol" will be set in one of the
 		**  key-value pairs.  "filter" is optional.
 		*/
@@ -2763,7 +2753,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 				free(new);
 				return -1;
 			}
-	
+
 			new->db_iflags |= DKIMF_DB_IFLAG_RECONNECT;
 			odbx = NULL;
 		}
@@ -2858,10 +2848,10 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		**  General format of an LDAP specification:
 		**  scheme://host[:port][/dn[?attrs[?scope[?filter[?exts]]]]]
 		**  (see RFC4516)
-		**  
+		**
 		**  "bindpass", "authmech" and "usetls" will be set in
 		**  other config values.
-		**  
+		**
 		**  Take the descriptive values (e.g. attributes) from the
 		**  first one.
 		*/
@@ -3063,7 +3053,7 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 		close(fd);
 
 		/* try to compile it */
-		if (dkimf_lua_db_hook(tmp, 0, NULL, &lres, 
+		if (dkimf_lua_db_hook(tmp, 0, NULL, &lres,
 		                      (void *) &lua->lua_script,
 		                      &lua->lua_scriptlen) != 0)
 		{
@@ -3707,12 +3697,12 @@ dkimf_db_delete(DKIMF_DB db, void *buf, size_t buflen)
 	assert(buf != NULL);
 
 	if (db->db_type == DKIMF_DB_TYPE_FILE ||
-	    db->db_type == DKIMF_DB_TYPE_CSL || 
-	    db->db_type == DKIMF_DB_TYPE_DSN || 
-	    db->db_type == DKIMF_DB_TYPE_LDAP || 
-	    db->db_type == DKIMF_DB_TYPE_LUA || 
-	    db->db_type == DKIMF_DB_TYPE_MEMCACHE || 
-	    db->db_type == DKIMF_DB_TYPE_REPUTE || 
+	    db->db_type == DKIMF_DB_TYPE_CSL ||
+	    db->db_type == DKIMF_DB_TYPE_DSN ||
+	    db->db_type == DKIMF_DB_TYPE_LDAP ||
+	    db->db_type == DKIMF_DB_TYPE_LUA ||
+	    db->db_type == DKIMF_DB_TYPE_MEMCACHE ||
+	    db->db_type == DKIMF_DB_TYPE_REPUTE ||
 	    db->db_type == DKIMF_DB_TYPE_REFILE ||
 	    db->db_type == DKIMF_DB_TYPE_ERLANG)
 		return EINVAL;
@@ -3865,11 +3855,11 @@ dkimf_db_put(DKIMF_DB db, void *buf, size_t buflen,
 	assert(outbuf != NULL);
 
 	if (db->db_type == DKIMF_DB_TYPE_FILE ||
-	    db->db_type == DKIMF_DB_TYPE_CSL || 
-	    db->db_type == DKIMF_DB_TYPE_DSN || 
-	    db->db_type == DKIMF_DB_TYPE_LDAP || 
-	    db->db_type == DKIMF_DB_TYPE_LUA || 
-	    db->db_type == DKIMF_DB_TYPE_REPUTE || 
+	    db->db_type == DKIMF_DB_TYPE_CSL ||
+	    db->db_type == DKIMF_DB_TYPE_DSN ||
+	    db->db_type == DKIMF_DB_TYPE_LDAP ||
+	    db->db_type == DKIMF_DB_TYPE_LUA ||
+	    db->db_type == DKIMF_DB_TYPE_REPUTE ||
 	    db->db_type == DKIMF_DB_TYPE_REFILE)
 		return EINVAL;
 
@@ -5114,7 +5104,7 @@ dkimf_db_get(DKIMF_DB db, void *buf, size_t buflen,
 		key = (char *) db->db_data;
 
 		snprintf(query, sizeof query, "%s:%s", key, (char *) buf);
-		
+
 		out = memcached_get(mcs, query, strlen(query), &vlen,
 		                    &flags, &ret);
 
@@ -5600,7 +5590,7 @@ dkimf_db_close(DKIMF_DB db)
 
 				first = FALSE;
 			}
-			
+
 			(void) dkimf_db_close(ldap->ldap_cache);
 		}
 #  endif /* USE_DB */
@@ -5983,7 +5973,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 			(void) odbx_result_finish(result);
 			result = NULL;
 		}
-		
+
 		/* run a query and start results cursor if needed */
 		if (result == NULL)
 		{
@@ -6234,7 +6224,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 			if (ldap->ldap_descr->lud_attrs[c] == NULL)
 				noattrs = TRUE;
 
-			if (noattrs) 
+			if (noattrs)
 			{
 				if ((req[c].dbdata_flags & DKIMF_DB_DATA_OPTIONAL) == 0)
 					status = -1;
@@ -6439,7 +6429,7 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 **  	db -- a DKIMF_DB handle
 **  	a -- array (returned)
 **  	base -- base array
-** 
+**
 **  Return value:
 **  	Length of the created array, or -1 on error/empty.
 */

@@ -36,16 +36,6 @@
 #include "dkim-util.h"
 #include "dkim-test.h"
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 /* definitions */
 #define	TESTTTL			300
 #define MAXPACKET		8192
@@ -443,7 +433,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			}
 			return -1;
 		}
-	
+
 		rsa->rsa_keysize = RSA_size(rsa->rsa_rsa);
 		rsa->rsa_pad = RSA_PKCS1_PADDING;
 
