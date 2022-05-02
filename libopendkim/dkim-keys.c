@@ -29,16 +29,6 @@
 #include "dkim-test.h"
 #include "util.h"
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 /* prototypes */
 extern void dkim_error __P((DKIM *, const char *, ...));
 
@@ -156,7 +146,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 			dkim_error(dkim, "'%s' query failed", qname);
 			return DKIM_STAT_KEYFAIL;
 		}
-	
+
 		if (lib->dkiml_dns_callback == NULL)
 		{
 			timeout.tv_sec = dkim->dkim_timeout;
@@ -240,7 +230,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		/* copy it first */
 		(void) dn_expand((unsigned char *) &ansbuf, eom, cp,
 		                 (char *) qname, sizeof qname);
- 
+
 		if ((n = dn_skipname(cp, eom)) < 0)
 		{
 			dkim_error(dkim, "'%s' reply corrupt", qname);
@@ -420,7 +410,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 **  	and must be set prior to use of this function.  Failing to do
 **  	so will cause this function to return DKIM_STAT_KEYFAIL every time.
 **  	The file should contain lines of the form:
-** 
+**
 **  		<selector>._domainkey.<domain> <space> key-data
 **
 **  	Case matching on the left is case-sensitive, but libopendkim already

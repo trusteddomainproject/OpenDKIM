@@ -27,16 +27,6 @@
 #include "../dkim.h"
 #include "t-testdata.h"
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 #define	BUFRSZ		1024
 #define	MAXADDRESS	256
 #define	MAXHEADER	4096
@@ -85,7 +75,7 @@ stub_dns_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 
 	memset(&newhdr, '\0', sizeof newhdr);
 	memset(&dnptrs, '\0', sizeof dnptrs);
-		
+
 	newhdr.qdcount = htons(1);
 	newhdr.ancount = htons(1);
 	newhdr.rcode = NOERROR;

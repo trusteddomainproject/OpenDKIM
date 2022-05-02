@@ -59,8 +59,8 @@ o sendmail v8.13.0 (or later), or Postfix 2.3, (or later) and libmilter.
 
 o Access to a working nameserver (required only for signature verification).
 
-o On Linux systems, either libbsd (BSD compatibility library) or some other
-  library that provides strlcat() and strlcpy().
+o If `./configure --without-libbsd` fails, either of libbsd or libobsd are
+  required. This happens on glibc, for instance.
 
 o If you wish to interface the filter with SQL databases, or store statistical
   information in a database, OpenDBX v1.3.7 or later is required.
@@ -229,7 +229,7 @@ Other OpenDKIM issues:
 
  Report any bugs to the email address opendkim-users@lists.opendkim.org or to
  the sourceforge issue trackers accessible at:
- 
+
  https://sourceforge.net/p/opendkim/_list/tickets
 
 

@@ -22,11 +22,6 @@
 /* libreprrd includes */
 #include "reprrd.h"
 
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 /* data types */
 struct reprrd_handle
 {
@@ -250,7 +245,7 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 		end = now;
 		start = last_update - 1;
 		step = REPRRD_STEP;
-	
+
 		reprrd_mkpath(path, sizeof path, r, domain,
 		              REPRRD_TYPE_MESSAGES);
 
@@ -287,7 +282,7 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 		end = now;
 		start = last_update - 1;
 		step = REPRRD_STEP;
-	
+
 		rrd_clear_error();
 		status = rrd_fetch_r(path, REPRRD_CF_AVERAGE, &start, &end,
 		                     &step, &ds_cnt, &ds_names, &data);
@@ -324,7 +319,7 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 		end = now;
 		start = last_update - 1;
 		step = REPRRD_STEP;
-	
+
 		reprrd_mkpath(path, sizeof path, r, domain, REPRRD_TYPE_SPAM);
 
 		rrd_clear_error();
@@ -407,7 +402,7 @@ reprrd_query(REPRRD r, const char *domain, int type, int *value,
 		end = now;
 		start = now - REPRRD_STEP * REPRRD_BACKSTEPS;
 		step = REPRRD_STEP;
-	
+
 		rrd_clear_error();
 		status = rrd_fetch_r(path, REPRRD_CF_FAILURES, &start, &end,
 		                     &step, &ds_cnt, &ds_names, &data);

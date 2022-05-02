@@ -21,16 +21,6 @@
 /* libopendkim includes */
 #include <dkim.h>
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 /* opendkim includes */
 #include "reputation.h"
 #include "opendkim.h"
@@ -223,7 +213,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 	if (rep->rep_lastflush + rep->rep_ttl < now)
 	{
 		f = TRUE;
-		
+
 		req[0].dbdata_buffer = (void *) &when;
 		req[0].dbdata_buflen = sizeof when;
 		req[0].dbdata_flags = DKIMF_DB_DATA_BINARY;
@@ -341,7 +331,7 @@ dkimf_rep_check(DKIMF_REP rep, DKIM_SIGINFO *sig, _Bool spam,
 			strlcpy(domain, DKIMF_REP_LOWTIME, sizeof domain);
 			dlen = strlen(domain);
 		}
-		
+
 		f = FALSE;
 
 		/* get the total message limit */

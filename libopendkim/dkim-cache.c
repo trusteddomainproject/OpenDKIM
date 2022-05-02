@@ -29,16 +29,6 @@
 #include "dkim-internal.h"
 #include "dkim-cache.h"
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 /* limits, macros, etc. */
 #define	BUFRSZ			1024
 #define DB_MODE			(S_IRUSR|S_IWUSR)

@@ -18,16 +18,6 @@
 # include <gnutls/gnutls.h>
 #endif /* USE_GNUTLS */
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 /* libopendkim includes */
 #include "../dkim.h"
 #include "t-testdata.h"

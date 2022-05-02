@@ -21,16 +21,6 @@
 #include "build-config.h"
 #include <dkim.h>
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 /* libmilter includes */
 #include <libmilter/mfapi.h>
 
@@ -712,7 +702,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, struct test_context *tctx,
 #ifdef USE_UNBOUND
 					char *dnssec;
 					int dnsseccode = DKIM_DNSSEC_UNKNOWN;
-				
+
 					dnsseccode = dkim_sig_getdnssec(sig);
 
 					switch (dnsseccode)

@@ -26,16 +26,6 @@
 #include "../dkim.h"
 #include "t-testdata.h"
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 #define	MAXHEADER	4096
 
 #define	SIG1 "v=1; a=rsa-sha256; c=relaxed/simple; d=sendmail.com; s=test; t=1172620939; i=@eng.sendmail.com; bh=yHBAX+3IwxTZIynBuB/5tlsBInJq9n8qz5fgAycHi80=; h=Received:Received:Received:From:To:Date:Subject:Message-ID; b=r5DyHh4oxZcCBcIzpKTnEk6yvWDI9g9DI+UUIwl2ZAcZ6P0BbsOQ8MEjmUdwlZitqoFLa25/Re8/rC5kHasOb3vs0T37vkasoTb1rGR7y/bcMnY4hRkPAyC7NoLoTjneJMTQ/WQYnZe3DJ8lVuDRYvY9BeV2EjH8kiGsa9QttiA="

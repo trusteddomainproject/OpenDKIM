@@ -21,16 +21,6 @@
 # include <sysexits.h>
 #endif /* ARTEST */
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 /* opendkim includes */
 #include "opendkim-ar.h"
 
@@ -377,7 +367,7 @@ ares_dedup(struct authres *ar, int n)
 **  	hdr -- NULL-terminated contents of an Authentication-Results:
 **  	       header field
 **  	ar -- a pointer to a (struct authres) loaded by values after parsing
-**  
+**
 **  Return value:
 **  	0 on success, -1 on failure.
 */

@@ -14,9 +14,9 @@ if USE_ODBX
 sbin_PROGRAMS = opendkim-importstats
 
 opendkim_importstats_SOURCES = opendkim-importstats.c
-opendkim_importstats_CPPFLAGS = $(LIBODBX_CPPFLAGS) -I$(srcdir)/../libopendkim -I$(srcdir)/../opendkim
+opendkim_importstats_CPPFLAGS = $(LIBODBX_CPPFLAGS) -I$(srcdir)/../libopendkim -I$(srcdir)/../opendkim $(LIBBSD_CFLAGS)
 opendkim_importstats_CFLAGS = $(LIBODBX_CFLAGS) $(COV_CFLAGS)
-opendkim_importstats_LDFLAGS = $(LIBODBX_LDFLAGS) $(COV_LDFLAGS)
+opendkim_importstats_LDFLAGS = $(LIBODBX_LDFLAGS) $(COV_LDFLAGS) $(LIBBSD_LIBS)
 opendkim_importstats_LDADD = $(LIBODBX_LIBS) $(LIBDL_LIBS) $(COV_LIBADD)
 
 man_MANS += opendkim-importstats.8

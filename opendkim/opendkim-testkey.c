@@ -36,16 +36,6 @@
 #include <dkim.h>
 #include <dkim-test.h>
 
-/* libbsd if found */
-#ifdef USE_BSD_H
-# include <bsd/string.h>
-#endif /* USE_BSD_H */
-
-/* libstrl if needed */
-#ifdef USE_STRL_H
-# include <strl.h>
-#endif /* USE_STRL_H */
-
 /* opendkim includes */
 #include "opendkim-db.h"
 #include "opendkim-dns.h"
