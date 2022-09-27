@@ -1128,7 +1128,7 @@ rbl_query_check(RBL *rbl, void *qh, struct timeval *timeout, uint32_t *res)
 			cp += n;
 			continue;
 		}
-		else if (type == T_RRSIG)
+		else if ((type == T_RRSIG) || (type == T_DNAME))
 		{
 			/* get payload length */
 			if (cp + INT16SZ > eom)
