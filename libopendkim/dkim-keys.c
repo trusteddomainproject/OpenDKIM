@@ -324,7 +324,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 			cp += n;
 			continue;
 		}
-		else if (type == T_RRSIG)
+		else if ((type == T_RRSIG) || (type == T_DNAME))
 		{
 			cp += n;
 			continue;
