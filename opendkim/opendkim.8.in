@@ -17,6 +17,7 @@
 [\-L min]
 [\-n]
 [\-o hdrlist]
+[\-O]
 [\-p socketspec]
 [\-P pidfile]
 [\-Q]
@@ -324,6 +325,9 @@ specification as "SHOULD NOT" be signed; the default list for this parameter
 contains those headers (Return-Path, Received, Comments, Keywords, Bcc,
 Resent-Bcc and DKIM-Signature).  To omit no headers, simply use the string
 "-" (or any string that will match no headers).
+.TP
+.I \-O
+Log any interesting activity to standard output.
 .TP
 .I \-p socketspec
 Specifies the socket that should be established by the filter to receive

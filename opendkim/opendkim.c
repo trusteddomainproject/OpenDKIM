@@ -38,6 +38,7 @@
 #endif /* HAVE_STDBOOL_H */
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 #include <syslog.h>
 #include <sysexits.h>
@@ -234,8 +235,10 @@ struct dkimf_config
 	_Bool		conf_remsigs;		/* remove current signatures? */
 	_Bool		conf_remarall;		/* remove all matching ARs? */
 	_Bool		conf_keepar;		/* keep our ARs? */
-	_Bool		conf_dolog;		/* syslog interesting stuff? */
-	_Bool		conf_dolog_success;	/* syslog successes too? */
+	_Bool		conf_dolog;		/* log interesting stuff? */
+	_Bool		conf_dolog_syslog;	/* log interesting stuff via syslog? */
+	_Bool		conf_dolog_stdout;	/* log interesting stuff to stdout? */
+	_Bool		conf_dolog_success;	/* log successes too? */
 	_Bool		conf_milterv2;		/* using milter v2? */
 	_Bool		conf_fixcrlf;		/* fix bare CRs and LFs? */
 	_Bool		conf_logwhy;		/* log mode decision logic */
@@ -738,6 +741,7 @@ void dkimf_sendprogress __P((const void *));
 sfsistat dkimf_setpriv __P((SMFICTX *, void *));
 sfsistat dkimf_setreply __P((SMFICTX *, char *, char *, char *));
 static void dkimf_sigreport __P((connctx, struct dkimf_config *, char *));
+static void dkimf_log(struct dkimf_config *conf, int priority, const char *format, ...);
 
 /* GLOBALS */
 _Bool dolog;					/* logging? (exported) */
@@ -1684,8 +1688,7 @@ dkimf_xs_log(lua_State *l)
 		struct connctx *cc;
 
 		cc = (struct connctx *) dkimf_getpriv(ctx);
-		if (cc->cctx_config->conf_dolog)
-			syslog(LOG_INFO, "%s", logstring);
+		dkimf_log(cc->cctx_config, LOG_INFO, "%s", logstring);
 	}
 
 	lua_pushnil(l);
@@ -2036,36 +2039,22 @@ dkimf_xs_requestsig(lua_State *l)
 		                              signlen))
 		{
 		  case 3:
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR,
-				       "key '%s' could not be applied",
-				       keyname);
-			}
+			dkimf_log(conf, LOG_ERR, "key '%s' could not be applied", keyname);
 			lua_pushnumber(l, 0);
 			return 1;
 
 		  case 2:
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "key '%s' could not be loaded",
-				       keyname);
-			}
+			dkimf_log(conf, LOG_ERR, "key '%s' could not be loaded", keyname);
 			lua_pushnumber(l, 0);
 			return 1;
 
 		  case 1:
-			if (conf->conf_dolog)
-				syslog(LOG_ERR, "key '%s' not found", keyname);
+			dkimf_log(conf, LOG_ERR, "key '%s' not found", keyname);
 			lua_pushnumber(l, 0);
 			return 1;
 
 		  case -1:
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "error requesting key '%s'",
-				       keyname);
-			}
+			dkimf_log(conf, LOG_ERR, "error requesting key '%s'", keyname);
 			lua_pushnumber(l, 0);
 			return 1;
 		}
@@ -2073,8 +2062,7 @@ dkimf_xs_requestsig(lua_State *l)
 	else if (dkimf_add_signrequest(dfc, NULL, NULL, (char *) ident,
 	                               (ssize_t) -1) != 0)
 	{
-		if (conf->conf_dolog)
-			syslog(LOG_ERR, "failed to load/apply default key");
+		dkimf_log(conf, LOG_ERR, "failed to load/apply default key");
 
 		lua_pushnumber(l, 0);
 
@@ -3836,11 +3824,7 @@ dkimf_xs_delrcpt(lua_State *l)
 	/* delete and replace with a header field */
 	if (dkimf_delrcpt(ctx, a->a_addr) != MI_SUCCESS)
 	{
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_ERR, "%s: smfi_delrcpt() failed",
-			       dfc->mctx_jobid);
-		}
+		dkimf_log(conf, LOG_ERR, "%s: smfi_delrcpt() failed", dfc->mctx_jobid);
 	}
 	else
 	{
@@ -3849,11 +3833,7 @@ dkimf_xs_delrcpt(lua_State *l)
 		snprintf(header, sizeof header, "rfc822;%s", a->a_addr);
 		if (dkimf_addheader(ctx, ORCPTHEADER, header) != MI_SUCCESS)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: smfi_addheader() failed",
-				       dfc->mctx_jobid);
-			}
+			dkimf_log(conf, LOG_ERR, "%s: smfi_addheader() failed", dfc->mctx_jobid);
 		}
 	}
 
@@ -4246,11 +4226,8 @@ dkimf_add_ar_fields(struct msgctx *dfc, struct dkimf_config *conf,
 	if (dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
 	                    (char *) dfc->mctx_dkimar) == MI_FAILURE)
 	{
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_ERR, "%s: %s header add failed",
-			       dfc->mctx_jobid, AUTHRESULTSHDR);
-		}
+		dkimf_log(conf, LOG_ERR, "%s: %s header add failed",
+			  dfc->mctx_jobid, AUTHRESULTSHDR);
 	}
 }
 
@@ -4275,8 +4252,8 @@ dkimf_db_error(DKIMF_DB db, const char *key)
 
 	(void) dkimf_db_strerror(db, errbuf, sizeof errbuf);
 
-	syslog(LOG_ERR, "error looking up \"%s\" in database: %s",
-	       key, errbuf);
+	dkimf_log(curconf, LOG_ERR, "error looking up \"%s\" in database: %s",
+	          key, errbuf);
 }
 
 
@@ -4980,15 +4957,15 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 			{
 				if (err[0] != '\0')
 				{
-					syslog(LOG_ERR,
-					       "key '%s': dkimf_db_get(): %s",
-					       keyname, err);
+					dkimf_log(curconf, LOG_ERR,
+					          "key '%s': dkimf_db_get(): %s",
+					          keyname, err);
 				}
 				else
 				{
-					syslog(LOG_ERR,
-					       "key '%s': dkimf_db_get() failed",
-					       keyname);
+					dkimf_log(curconf, conf, LOG_ERR,
+					          "key '%s': dkimf_db_get() failed",
+					          keyname);
 				}
 			}
 
@@ -5007,9 +4984,9 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 		{
 			if (dolog)
 			{
-				syslog(LOG_ERR,
-				       "KeyTable entry for '%s' corrupt",
-				       keyname);
+				dkimf_log(curconf, LOG_ERR,
+				          "KeyTable entry for '%s' corrupt",
+				          keyname);
 			}
 
 			return 2;
@@ -5020,9 +4997,9 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 		{
 			if (dolog)
 			{
-				syslog(LOG_ERR,
-				       "KeyTable entry for '%s' cannot be resolved",
-				       keyname);
+				dkimf_log(curconf, LOG_ERR,
+				          "KeyTable entry for '%s' cannot be resolved",
+				          keyname);
 			}
 
 			return 3;
@@ -5052,8 +5029,8 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 		{
 			if (dolog)
 			{
-				syslog(LOG_ERR, "can't load key from %s: %s",
-				       dbd[2].dbdata_buffer, err);
+				dkimf_log(curconf, LOG_ERR, "can't load key from %s: %s",
+				          dbd[2].dbdata_buffer, err);
 			}
 
 			return 2;
@@ -5068,8 +5045,8 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 				sev = (curconf->conf_safekeys ? LOG_ERR
 				                              : LOG_WARNING);
 
-				syslog(sev, "%s: key data is not secure: %s",
-				       keyname, err);
+				dkimf_log(curconf, sev, "%s: key data is not secure: %s",
+				          keyname, err);
 			}
 
  			if (curconf->conf_safekeys)
@@ -5388,10 +5365,10 @@ dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 			}
 		}
 
-		if (conf->conf_dolog && ni > 0)
+		if (ni > 0)
 		{
-			syslog(LOG_INFO, "%s: ignoring %u signature%s",
-			       dkim_getid(dkim), ni, ni == 1 ? "" : "s");
+			dkimf_log(conf, LOG_INFO, "%s: ignoring %u signature%s",
+			          dkim_getid(dkim), ni, ni == 1 ? "" : "s");
 		}
 
 		free(ig);
@@ -5425,11 +5402,8 @@ dkimf_prescreen(DKIM *dkim, DKIM_SIGINFO **sigs, int nsigs)
 		/* neither; arrange to ignore it */
 		dkim_sig_ignore(sigs[c]);
 
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_INFO, "%s: ignoring signature from %s",
-			       dfc->mctx_jobid, sdomain);
-		}
+		dkimf_log(conf, LOG_INFO, "%s: ignoring signature from %s",
+			  dfc->mctx_jobid, sdomain);
 	}
 
 	return DKIM_CBSTAT_CONTINUE;
@@ -5563,8 +5537,8 @@ dkimf_reportaddr(struct dkimf_config *conf)
 		{
 			if (dolog)
 			{
-				syslog(LOG_ERR,
-				       "error parsing ReportAddress; using default");
+				dkimf_log(curconf, LOG_ERR,
+				          "error parsing ReportAddress; using default");
 			}
 		}
 	}
@@ -5763,8 +5737,8 @@ dkimf_killchild(pid_t pid, int sig, _Bool dolog)
 {
 	if (kill(pid, sig) == -1 && dolog)
 	{
-		syslog(LOG_ERR, "kill(%d, %d): %s", pid, sig,
-		       strerror(errno));
+		dkimf_log(curconf, LOG_ERR, "kill(%d, %d): %s", pid, sig,
+		          strerror(errno));
 	}
 }
 
@@ -6447,11 +6421,20 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                  sizeof conf->conf_subdomains);
 		}
 
-		if (!conf->conf_dolog)
+		if (!conf->conf_dolog_syslog)
 		{
-			(void) config_get(data, "Syslog", &conf->conf_dolog,
-			                  sizeof conf->conf_dolog);
+			(void) config_get(data, "Syslog", &conf->conf_dolog_syslog,
+			                  sizeof conf->conf_dolog_syslog);
 		}
+
+		if (!conf->conf_dolog_stdout)
+		{
+			(void) config_get(data, "StdoutLog", &conf->conf_dolog_stdout,
+			                  sizeof conf->conf_dolog_stdout);
+		}
+
+		if (conf->conf_dolog_syslog || conf->conf_dolog_stdout)
+			conf->conf_dolog = 1;
 
 		if (!conf->conf_logwhy)
 		{
@@ -6496,11 +6479,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 			if (conf->conf_addswhdr)
 			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_WARNING,
-					       "\"X-Header\" deprecated; use \"SoftwareHeader\" instead");
-				}
+				dkimf_log(conf, LOG_WARNING,
+					  "\"X-Header\" deprecated; use \"SoftwareHeader\" instead");
 			}
 			else
 			{
@@ -8087,9 +8067,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 				saveerrno = errno;
 
-				syslog(LOG_ERR, "%s: open(): %s",
-				       conf->conf_keyfile,
-				       strerror(errno));
+				dkimf_log(conf, LOG_ERR, "%s: open(): %s",
+				          conf->conf_keyfile,
+				          strerror(errno));
 
 				errno = saveerrno;
 			}
@@ -8108,9 +8088,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 				saveerrno = errno;
 
-				syslog(LOG_ERR, "%s: stat(): %s",
-				       conf->conf_keyfile,
-				       strerror(errno));
+				dkimf_log(conf, LOG_ERR, "%s: stat(): %s",
+				          conf->conf_keyfile,
+				          strerror(errno));
 
 				errno = saveerrno;
 			}
@@ -8162,8 +8142,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				sev = (conf->conf_safekeys ? LOG_ERR
 				                           : LOG_WARNING);
 
-				syslog(sev, "%s: key data is not secure: %s",
-				       conf->conf_keyfile, err);
+				dkimf_log(conf, sev, "%s: key data is not secure: %s",
+				          conf->conf_keyfile, err);
 			}
 
 			if (conf->conf_safekeys)
@@ -8179,8 +8159,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 				saveerrno = errno;
 
-				syslog(LOG_ERR, "malloc(): %s", 
-				       strerror(errno));
+				dkimf_log(conf, LOG_ERR, "malloc(): %s", 
+				          strerror(errno));
 
 				errno = saveerrno;
 			}
@@ -8200,9 +8180,9 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 				saveerrno = errno;
 
-				syslog(LOG_ERR, "%s: read(): %s",
-				       conf->conf_keyfile,
-				       strerror(errno));
+				dkimf_log(conf, LOG_ERR, "%s: read(): %s",
+				          conf->conf_keyfile,
+				          strerror(errno));
 
 				errno = saveerrno;
 			}
@@ -8215,11 +8195,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 		else if (rlen != s.st_size)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: read() wrong size (%lu)",
-				       conf->conf_keyfile, (u_long) rlen);
-			}
+			dkimf_log(conf, LOG_ERR, "%s: read() wrong size (%lu)",
+				  conf->conf_keyfile, (u_long) rlen);
 
 			snprintf(err, errlen, "%s: read() wrong size (%lu)",
 			         conf->conf_keyfile, (u_long) rlen);
@@ -8347,8 +8324,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		}
 	}
 
-	/* activate logging if requested */
-	if (conf->conf_dolog)
+	/* activate syslogging if requested */
+	if (conf->conf_dolog_syslog)
 	{
 		char *log_facility = NULL;
 
@@ -8774,8 +8751,7 @@ dkimf_config_reload(void)
 
 	if (conffile == NULL)
 	{
-		if (curconf->conf_dolog)
-			syslog(LOG_ERR, "ignoring reload signal");
+		dkimf_log(curconf, LOG_ERR, "ignoring reload signal");
 
 		reload = FALSE;
 
@@ -8786,8 +8762,7 @@ dkimf_config_reload(void)
 	new = dkimf_config_new();
 	if (new == NULL)
 	{
-		if (curconf->conf_dolog)
-			syslog(LOG_ERR, "malloc(): %s", strerror(errno));
+		dkimf_log(curconf, LOG_ERR, "malloc(): %s", strerror(errno));
 	}
 	else
 	{
@@ -8806,12 +8781,9 @@ dkimf_config_reload(void)
 
 		if (cfg == NULL)
 		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_ERR,
-				       "%s: configuration error at line %u: %s",
-				        path, line, config_error());
-			}
+			dkimf_log(curconf, LOG_ERR,
+				  "%s: configuration error at line %u: %s",
+				  path, line, config_error());
 			dkimf_config_free(new);
 			err = TRUE;
 		}
@@ -8822,12 +8794,9 @@ dkimf_config_reload(void)
 			if (allowdeprecated)
 				action = "continuing";
 
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_WARNING,
-				       "%s: settings found for deprecated value(s): %s; %s",
-				        path, deprecated, action);
-			}
+			dkimf_log(curconf, LOG_WARNING,
+			       "%s: settings found for deprecated value(s): %s; %s",
+				path, deprecated, action);
 
 			if (!allowdeprecated)
 			{
@@ -8841,12 +8810,9 @@ dkimf_config_reload(void)
 			missing = config_check(cfg, dkimf_config);
 			if (missing != NULL)
 			{
-				if (curconf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					        "%s: required parameter \"%s\" missing",
-					        conffile, missing);
-				}
+				dkimf_log(curconf, LOG_ERR,
+					  "%s: required parameter \"%s\" missing",
+					  conffile, missing);
 				config_free(cfg);
 				dkimf_config_free(new);
 				err = TRUE;
@@ -8856,8 +8822,7 @@ dkimf_config_reload(void)
 		if (!err && dkimf_config_load(cfg, new, errbuf,
 		                              sizeof errbuf, NULL) != 0)
 		{
-			if (curconf->conf_dolog)
-				syslog(LOG_ERR, "%s: %s", conffile, errbuf);
+			dkimf_log(curconf, LOG_ERR, "%s: %s", conffile, errbuf);
 			config_free(cfg);
 			dkimf_config_free(new);
 			err = TRUE;
@@ -8865,12 +8830,9 @@ dkimf_config_reload(void)
 
 		if (!err && !dkimf_config_setlib(new, &errstr))
 		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_WARNING,
-				       "can't configure DKIM library: %s; continuing",
-				       errstr);
-			}
+			dkimf_log(curconf, LOG_WARNING,
+				  "can't configure DKIM library: %s; continuing",
+				  errstr);
 			config_free(cfg);
 			dkimf_config_free(new);
 			err = TRUE;
@@ -8885,12 +8847,9 @@ dkimf_config_reload(void)
 			curconf = new;
 			new->conf_data = cfg;
 
-			if (new->conf_dolog)
-			{
-				syslog(LOG_INFO,
-				       "configuration reloaded from %s",
-				       conffile);
-			}
+			dkimf_log(new, LOG_INFO,
+				  "configuration reloaded from %s",
+				  conffile);
 		}
 	}
 
@@ -8932,8 +8891,8 @@ dkimf_checkbldb(DKIMF_DB db, char *to, char *jobid)
 	{
 		if (dolog)
 		{
-			syslog(LOG_INFO, "%s: can't parse %s: header",
-			       jobid, to);
+			dkimf_log(curconf, LOG_INFO, "%s: can't parse %s: header",
+			          jobid, to);
 		}
 
 		return FALSE;
@@ -8954,9 +8913,9 @@ dkimf_checkbldb(DKIMF_DB db, char *to, char *jobid)
 			{
 				if (dolog)
 				{
-					syslog(LOG_ERR,
-					       "%s: overflow parsing \"%s\"",
-					       jobid, to);
+					dkimf_log(curconf, LOG_ERR,
+					          "%s: overflow parsing \"%s\"",
+					          jobid, to);
 				}
 
 				return FALSE;
@@ -9131,12 +9090,12 @@ dkimf_log_ssl_errors(DKIM *dkim, DKIM_SIGINFO *sig, char *jobid)
 	{
 		if (selector != NULL && domain != NULL)
 		{
-			syslog(LOG_INFO, "%s: s=%s d=%s SSL %s", jobid,
-			       selector, domain, errbuf);
+			dkimf_log(curconf, LOG_INFO, "%s: s=%s d=%s SSL %s", jobid,
+			          selector, domain, errbuf);
 		}
 		else
 		{
-			syslog(LOG_INFO, "%s: SSL %s", jobid, errbuf);
+			dkimf_log(curconf, LOG_INFO, "%s: SSL %s", jobid, errbuf);
 		}
 	}
 }
@@ -9381,13 +9340,13 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 				err = strerror(errno);
 			sslerr = dkim_getsslbuf(dkim);
 
-			syslog(LOG_ERR,
-			       "%s: %s%sinternal error from libopendkim: %s%s%s",
-			       JOBID(dfc->mctx_jobid),
-			       where == NULL ? "" : where,
-			       where == NULL ? "" : ": ", err,
-			       sslerr == NULL ? "" : " ",
-			       sslerr == NULL ? "" : sslerr);
+			dkimf_log(conf, LOG_ERR,
+			          "%s: %s%sinternal error from libopendkim: %s%s%s",
+			          JOBID(dfc->mctx_jobid),
+			          where == NULL ? "" : where,
+			          where == NULL ? "" : ": ", err,
+			          sslerr == NULL ? "" : " ",
+			          sslerr == NULL ? "" : sslerr);
 		}
 		replytxt = "internal DKIM error";
 		break;
@@ -9397,11 +9356,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		retcode = dkimf_miltercode(ctx,
 		                           conf->conf_handling.hndl_badsig,
 		                           NULL);
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_NOTICE, "%s: bad signature data",
-			       JOBID(dfc->mctx_jobid));
-		}
+		dkimf_log(conf, LOG_NOTICE, "%s: bad signature data",
+			  JOBID(dfc->mctx_jobid));
 		replytxt = "bad DKIM signature data";
 
 		memset(smtpprefix, '\0', sizeof smtpprefix);
@@ -9423,10 +9379,10 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 		{
 			if (conf->conf_logwhy || retcode != SMFIS_ACCEPT)
 			{
-				syslog(retcode == SMFIS_ACCEPT ? LOG_DEBUG
-				                               : LOG_NOTICE,
-				       "%s: no signature data",
-				       JOBID(dfc->mctx_jobid));
+				dkimf_log(conf, retcode == SMFIS_ACCEPT ? LOG_DEBUG
+				                                        : LOG_NOTICE,
+				          "%s: no signature data",
+				          JOBID(dfc->mctx_jobid));
 			}
 		}
 		replytxt = "no DKIM signature data";
@@ -9447,10 +9403,10 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 			if (err == NULL)
 				err = strerror(errno);
 
-			syslog(LOG_ERR, "%s: %s%sresource unavailable: %s",
-			       JOBID(dfc->mctx_jobid),
-			       where == NULL ? "" : where,
-			       where == NULL ? "" : ": ", err);
+			dkimf_log(conf, LOG_ERR, "%s: %s%sresource unavailable: %s",
+			          JOBID(dfc->mctx_jobid),
+			          where == NULL ? "" : where,
+			          where == NULL ? "" : ": ", err);
 		}
 		replytxt = "resource unavailable";
 		break;
@@ -9466,8 +9422,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 			if (err == NULL)
 				err = "unknown cause";
 
-			syslog(LOG_ERR, "%s: signature processing failed: %s",
-				JOBID(dfc->mctx_jobid), err);
+			dkimf_log(conf, LOG_ERR, "%s: signature processing failed: %s",
+				  JOBID(dfc->mctx_jobid), err);
 		}
 		replytxt = "DKIM signature processing failed";
 		break;
@@ -9491,10 +9447,10 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 
 			if (selector != NULL && domain != NULL)
 			{
-				syslog(LOG_NOTICE,
-				       "%s: key revoked (s=%s, d=%s)",
-				       JOBID(dfc->mctx_jobid), selector,
-				       domain);
+				dkimf_log(conf, LOG_NOTICE,
+				          "%s: key revoked (s=%s, d=%s)",
+				          JOBID(dfc->mctx_jobid), selector,
+				          domain);
 			}
 		}
 		break;
@@ -9532,19 +9488,19 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 
 			if (selector != NULL && domain != NULL)
 			{
-				syslog(LOG_ERR,
-				       "%s: key retrieval failed (s=%s, d=%s)%s%s",
-				       JOBID(dfc->mctx_jobid), selector,
-				       domain,
-				       err == NULL ? "" : ": ",
-				       err == NULL ? "" : err);
+				dkimf_log(conf, LOG_ERR,
+				          "%s: key retrieval failed (s=%s, d=%s)%s%s",
+				          JOBID(dfc->mctx_jobid), selector,
+				          domain,
+				          err == NULL ? "" : ": ",
+				          err == NULL ? "" : err);
 			}
 			else
 			{
-				syslog(LOG_ERR, "%s: key retrieval failed%s%s",
-				       JOBID(dfc->mctx_jobid),
-				       err == NULL ? "" : ": ",
-				       err == NULL ? "" : err);
+				dkimf_log(conf, LOG_ERR, "%s: key retrieval failed%s%s",
+				          JOBID(dfc->mctx_jobid),
+				          err == NULL ? "" : ": ",
+				          err == NULL ? "" : err);
 			}
 		}
 		replytxt = "DKIM key retrieval failed";
@@ -9563,8 +9519,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 			if (err == NULL)
 				err = "unspecified";
 
-			syslog(LOG_ERR, "%s: syntax error: %s",
-			       JOBID(dfc->mctx_jobid), err);
+			dkimf_log(conf, LOG_ERR, "%s: syntax error: %s",
+			          JOBID(dfc->mctx_jobid), err);
 		}
 		replytxt = "DKIM signature syntax error";
 		break;
@@ -9583,8 +9539,8 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 			if (err == NULL)
 				err = "unspecified";
 
-			syslog(LOG_ERR, "%s: signature generation error: %s",
-			       JOBID(dfc->mctx_jobid), err);
+			dkimf_log(conf, LOG_ERR, "%s: signature generation error: %s",
+			          JOBID(dfc->mctx_jobid), err);
 		}
 
 		replytxt = "DKIM signing error";
@@ -10242,11 +10198,8 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 		fd = mkstemp(path);
 		if (fd < 0)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: mkstemp(): %s",
-				       dfc->mctx_jobid, strerror(errno));
-			}
+			dkimf_log(conf, LOG_ERR, "%s: mkstemp(): %s",
+				  dfc->mctx_jobid, strerror(errno));
 
 			return;
 		}
@@ -10256,11 +10209,8 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 		out = fdopen(fd, "w");
 		if (out == NULL)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: fdopen(): %s",
-				       dfc->mctx_jobid, strerror(errno));
-			}
+			dkimf_log(conf, LOG_ERR, "%s: fdopen(): %s",
+				  dfc->mctx_jobid, strerror(errno));
 	
 			close(fd);
 			return;
@@ -10271,11 +10221,8 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 		out = popen(reportcmd, "w");
 		if (out == NULL)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: popen(): %s",
-				       dfc->mctx_jobid, strerror(errno));
-			}
+			dkimf_log(conf, LOG_ERR, "%s: popen(): %s",
+				  dfc->mctx_jobid, strerror(errno));
 	
 			return;
 		}
@@ -10284,11 +10231,8 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	out = popen(reportcmd, "w");
 	if (out == NULL)
 	{
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_ERR, "%s: popen(): %s",
-			       dfc->mctx_jobid, strerror(errno));
-		}
+		dkimf_log(conf, LOG_ERR, "%s: popen(): %s",
+			  dfc->mctx_jobid, strerror(errno));
 
 		return;
 	}
@@ -10468,11 +10412,8 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 		curl = curl_easy_init();
 		if (curl == NULL)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: curl_easy_init() failed",
-				       dfc->mctx_jobid);
-			}
+			dkimf_log(conf, LOG_ERR, "%s: curl_easy_init() failed",
+				  dfc->mctx_jobid);
 		}
 		else
 		{
@@ -10502,22 +10443,19 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 
 			if (cc != CURLE_OK)
 			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: curl_easy_setopt() failed",
-					       dfc->mctx_jobid);
-				}
+				dkimf_log(conf, LOG_ERR,
+					  "%s: curl_easy_setopt() failed",
+					  dfc->mctx_jobid);
 			}
 			else
 			{
 				cc = curl_easy_perform(curl);
-				if (cc != CURLE_OK && conf->conf_dolog)
+				if (cc != CURLE_OK)
 				{
-					syslog(LOG_ERR,
-					       "%s: curl_easy_perform() to %s failed: %s",
-					       dfc->mctx_jobid, dest,
-					       curl_easy_strerror(cc));
+					dkimf_log(conf, LOG_ERR,
+					          "%s: curl_easy_perform() to %s failed: %s",
+					          dfc->mctx_jobid, dest,
+					          curl_easy_strerror(cc));
 				}
 			}
 
@@ -10529,20 +10467,92 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	else
 	{
 		status = pclose(out);
-		if (status != 0 && conf->conf_dolog)
+		if (status != 0)
 		{
-			syslog(LOG_ERR, "%s: pclose(): returned status %d",
-			       dfc->mctx_jobid, status);
+			dkimf_log(conf, LOG_ERR, "%s: pclose(): returned status %d",
+			          dfc->mctx_jobid, status);
 		}
 	}
 #else /* HAVE_CURL_EASY_SETOPT */
 	status = pclose(out);
-	if (status != 0 && conf->conf_dolog)
+	if (status != 0)
 	{
-		syslog(LOG_ERR, "%s: pclose(): returned status %d",
-		       dfc->mctx_jobid, status);
+		dkimf_log(conf, LOG_ERR, "%s: pclose(): returned status %d",
+		          dfc->mctx_jobid, status);
 	}
 #endif /* HAVE_CURL_EASY_SETOPT */
+}
+
+/*
+**  DKIMF_LOG -- log messages via syslog(3) or to standard output (stdout)
+**
+**  Parameters:
+**  	conf -- configuration parameters
+**  	priority -- syslog priority
+**  	format -- printf-style format string
+**  	... -- arguments to satisfy the format string
+**
+**  Return value:
+**  	None.
+*/
+
+static void dkimf_log(struct dkimf_config *conf, int priority, const char *format, ...);
+{
+	va_list args;
+	va_start(args, format);
+
+	if (conf->do_log)
+	{
+		#define BUFSIZ 4096
+		static char buf[BUFSIZ];
+
+		vsnprintf(buf, BUFSIZ, format, args);
+
+		if (conf->do_log_syslog)
+			syslog(priority, "%s", buf);
+
+		if (conf->do_log_stdout)
+		{
+			switch (priority)
+			{
+			  case LOG_EMERG:
+				printf("emergency: ");
+				break;
+
+			  case LOG_ALERT:
+				printf("alert: ");
+				break;
+
+			  case LOG_CRIT:
+				printf("critical: ");
+				break;
+
+			  case LOG_ERR:
+				printf("error: ");
+				break;
+
+			  case LOG_WARNING:
+				printf("warning: ");
+				break;
+
+			  case LOG_NOTICE:
+				printf("notice: ");
+				break;
+
+			  case LOG_INFO:
+				printf("info: ");
+				break;
+
+			  case LOG_DEBUG:
+				printf("debug: ");
+				break;
+			}
+
+			printf("%s\n", buf);
+		}
+	}
+
+	va_end(args);
 }
 
 /*
@@ -10767,11 +10777,8 @@ mlfi_negotiate(SMFICTX *ctx,
 	cc = malloc(sizeof(struct connctx));
 	if (cc == NULL)
 	{
-		if (curconf->conf_dolog)
-		{
-			syslog(LOG_ERR, "mlfi_negotiate(): malloc(): %s",
-			       strerror(errno));
-		}
+		dkimf_log(curconf, LOG_ERR, "mlfi_negotiate(): malloc(): %s",
+			  strerror(errno));
 
 		return SMFIS_TEMPFAIL;
 	}
@@ -10811,12 +10818,9 @@ mlfi_negotiate(SMFICTX *ctx,
 
 	if ((f0 & reqactions) != reqactions)
 	{
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_ERR,
-			       "mlfi_negotiate(): required milter action(s) not available (got 0x%lx, need 0x%lx)",
-			       f0, reqactions);
-		}
+		dkimf_log(conf, LOG_ERR,
+			  "mlfi_negotiate(): required milter action(s) not available (got 0x%lx, need 0x%lx)",
+			  f0, reqactions);
 
 		pthread_mutex_lock(&conf_lock);
 		conf->conf_refcnt--;
@@ -10870,11 +10874,8 @@ mlfi_negotiate(SMFICTX *ctx,
 			if (strlcat(macrolist, conf->conf_macros[c],
 			            sizeof macrolist) >= sizeof macrolist)
 			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "mlfi_negotiate(): macro list overflow");
-				}
+				dkimf_log(conf, LOG_ERR,
+					  "mlfi_negotiate(): macro list overflow");
 
 				pthread_mutex_lock(&conf_lock);
 				conf->conf_refcnt--;
@@ -10888,8 +10889,7 @@ mlfi_negotiate(SMFICTX *ctx,
 
 		if (smfi_setsymlist(ctx, SMFIM_EOH, macrolist) != MI_SUCCESS)
 		{
-			if (conf->conf_dolog)
-				syslog(LOG_ERR, "smfi_setsymlist() failed");
+			dkimf_log(conf, LOG_ERR, "smfi_setsymlist() failed");
 
 			pthread_mutex_lock(&conf_lock);
 			conf->conf_refcnt--;
@@ -10935,8 +10935,7 @@ mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
 
 	if (!dkimf_dns_init(curconf->conf_libopendkim, curconf, &err))
 	{
-		if (curconf->conf_dolog)
-			syslog(LOG_ERR, "can't initialize resolver: %s", err);
+		dkimf_log(curconf, LOG_ERR, "can't initialize resolver: %s", err);
 
 		return SMFIS_TEMPFAIL;
 	}
@@ -10950,11 +10949,8 @@ mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
 		{
 			pthread_mutex_lock(&conf_lock);
 
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s malloc(): %s", host,
-				       strerror(errno));
-			}
+			dkimf_log(curconf, LOG_ERR, "%s malloc(): %s", host,
+				  strerror(errno));
 
 			pthread_mutex_unlock(&conf_lock);
 
@@ -11087,11 +11083,8 @@ mlfi_envfrom(SMFICTX *ctx, char **envfrom)
 	dfc = dkimf_initcontext(conf);
 	if (dfc == NULL)
 	{
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_INFO,
-			       "message requeueing (internal error)");
-		}
+		dkimf_log(conf, LOG_INFO,
+			  "message requeueing (internal error)");
 
 		dkimf_cleanup(ctx);
 		return SMFIS_TEMPFAIL;
@@ -11207,11 +11200,8 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 		copy = strdup(addr);
 		if (copy == NULL)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR,
-				       "message requeueing (internal error)");
-			}
+			dkimf_log(conf, LOG_ERR,
+				  "message requeueing (internal error)");
 
 			free(copy);
 			dkimf_cleanup(ctx);
@@ -11221,11 +11211,8 @@ mlfi_envrcpt(SMFICTX *ctx, char **envrcpt)
 		a = (struct addrlist *) malloc(sizeof(struct addrlist));
 		if (a == NULL)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR,
-				       "message requeueing (internal error)");
-			}
+			dkimf_log(conf, LOG_ERR,
+				  "message requeueing (internal error)");
 
 			free(copy);
 			dkimf_cleanup(ctx);
@@ -11280,8 +11267,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 	if (conf->conf_maxhdrsz > 0 &&
 	    dfc->mctx_hdrbytes + strlen(headerf) + strlen(headerv) + 2 > conf->conf_maxhdrsz)
 	{
-		if (conf->conf_dolog)
-			syslog(LOG_NOTICE, "too much header data");
+		dkimf_log(conf, LOG_NOTICE, "too much header data");
 
 		return dkimf_miltercode(ctx,
 		                        conf->conf_handling.hndl_security,
@@ -11295,11 +11281,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 
 	if (strchr(headerf, ';') != NULL)
 	{
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_NOTICE, "ignoring header field '%s'",
-			       headerf);
-		}
+		dkimf_log(conf, LOG_NOTICE, "ignoring header field '%s'", headerf);
 
 		return SMFIS_CONTINUE;
 	}
@@ -11307,8 +11289,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 	newhdr = (Header) malloc(sizeof(struct Header));
 	if (newhdr == NULL)
 	{
-		if (conf->conf_dolog)
-			syslog(LOG_ERR, "malloc(): %s", strerror(errno));
+		dkimf_log(conf, LOG_ERR, "malloc(): %s", strerror(errno));
 
 		dkimf_cleanup(ctx);
 		return SMFIS_TEMPFAIL;
@@ -11333,8 +11314,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 		dfc->mctx_tmpstr = dkimf_dstring_new(BUFRSZ, 0);
 		if (dfc->mctx_tmpstr == NULL)
 		{
-			if (conf->conf_dolog)
-				syslog(LOG_ERR, "dkimf_dstring_new() failed");
+			dkimf_log(conf, LOG_ERR, "dkimf_dstring_new() failed");
 
 			TRYFREE(newhdr->hdr_hdr);
 			free(newhdr);
@@ -11403,8 +11383,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 		                 (char *) headerf, 0, NULL, 0,
 		                 &found) != 0)
 		{
-			if (conf->conf_dolog)
-				syslog(LOG_ERR, "dkimf_db_get() failed");
+			dkimf_log(conf, LOG_ERR, "dkimf_db_get() failed");
 
 			return SMFIS_TEMPFAIL;
 		}
@@ -11423,8 +11402,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 		tmphdr = dkimf_dstring_new(BUFRSZ, 0);
 		if (tmphdr == NULL)
 		{
-			if (conf->conf_dolog)
-				syslog(LOG_ERR, "dkimf_dstring_new() failed");
+			dkimf_log(conf, LOG_ERR, "dkimf_dstring_new() failed");
 
 			TRYFREE(newhdr->hdr_hdr);
 			free(newhdr);
@@ -11451,11 +11429,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 				}
 				else if (status != 0)
 				{
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_ERR,
-						       "regexec() failed");
-					}
+					dkimf_log(conf, LOG_ERR, "regexec() failed");
 
 					TRYFREE(newhdr->hdr_hdr);
 					free(newhdr);
@@ -11489,8 +11463,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 
 	if (newhdr->hdr_hdr == NULL || newhdr->hdr_val == NULL)
 	{
-		if (conf->conf_dolog)
-			syslog(LOG_ERR, "malloc(): %s", strerror(errno));
+		dkimf_log(conf, LOG_ERR, "malloc(): %s", strerror(errno));
 
 		TRYFREE(newhdr->hdr_hdr);
 		TRYFREE(newhdr->hdr_val);
@@ -11635,12 +11608,9 @@ mlfi_eoh(SMFICTX *ctx)
 
 	if (dkimf_dstring_len(addr) == 0)
 	{
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_INFO,
-			       "%s: can't determine message sender; accepting",
-			       dfc->mctx_jobid);
-		}
+		dkimf_log(conf, LOG_INFO,
+			  "%s: can't determine message sender; accepting",
+			  dfc->mctx_jobid);
 
 		dfc->mctx_addheader = TRUE;
 		dfc->mctx_headeronly = TRUE;
@@ -11670,26 +11640,26 @@ mlfi_eoh(SMFICTX *ctx)
 #ifdef _FFR_SENDER_MACRO
 			if (macrosender != NULL)
 			{
-				syslog(LOG_INFO,
-				       "%s: can't parse macro %s header value '%s'",
-				       dfc->mctx_jobid, conf->conf_sendermacro,
-				       macrosender);
+				dkimf_log(conf, LOG_INFO,
+				          "%s: can't parse macro %s header value '%s'",
+				          dfc->mctx_jobid, conf->conf_sendermacro,
+				          macrosender);
 			}
 			else
 #endif /* _FFR_SENDER_MACRO */
 			if (from != NULL)
 			{
-				syslog(LOG_INFO,
-				       "%s: can't parse %s: header value '%s'",
-				       dfc->mctx_jobid, from->hdr_hdr,
-				       from->hdr_val);
+				dkimf_log(conf, LOG_INFO,
+				          "%s: can't parse %s: header value '%s'",
+				          dfc->mctx_jobid, from->hdr_hdr,
+				          from->hdr_val);
 			}
 #ifdef _FFR_DEFAULT_SENDER
 			else if (conf->conf_defsender != NULL)
 			{
-				syslog(LOG_INFO,
-				       "%s: can't parse default sender value '%s'",
-				       dfc->mctx_jobid, conf->conf_defsender);
+				dkimf_log(conf, LOG_INFO,
+				          "%s: can't parse default sender value '%s'",
+				          dfc->mctx_jobid, conf->conf_defsender);
 			}
 #endif /* _FFR_DEFAULT_SENDER */
 		}
@@ -11733,9 +11703,9 @@ mlfi_eoh(SMFICTX *ctx)
 		{
 			if (conf->conf_logwhy)
 			{
-				syslog(LOG_INFO,
-				       "%s: domain '%s' exempted, accepting",
-				       dfc->mctx_jobid, dfc->mctx_domain);
+				dkimf_log(conf, LOG_INFO,
+				          "%s: domain '%s' exempted, accepting",
+				          dfc->mctx_jobid, dfc->mctx_domain);
 			}
 
 			dkimf_cleanup(ctx);
@@ -11881,9 +11851,9 @@ mlfi_eoh(SMFICTX *ctx)
 				{
 					if (dolog)
 					{
-						syslog(LOG_ERR,
-						       "%s: failed to add signature for default key",
-						       dfc->mctx_jobid);
+						dkimf_log(curconf, LOG_ERR,
+						          "%s: failed to add signature for default key",
+						          dfc->mctx_jobid);
 					}
 
 					dkimf_dstring_free(addr);
@@ -11902,10 +11872,10 @@ mlfi_eoh(SMFICTX *ctx)
 				{
 					if (dolog)
 					{
-						syslog(LOG_ERR,
-						       "%s: failed to add signature for key '%s'",
-						       dfc->mctx_jobid,
-						       resignkey);
+						dkimf_log(curconf, LOG_ERR,
+						          "%s: failed to add signature for key '%s'",
+						          dfc->mctx_jobid,
+						          resignkey);
 					}
 
 					dkimf_dstring_free(addr);
@@ -11936,10 +11906,10 @@ mlfi_eoh(SMFICTX *ctx)
 
 		if (!originok && status == 0 && conf->conf_logwhy)
 		{
-			syslog(LOG_INFO,
-			       "%s: no MTA name match (host=%s, MTA=%s)",
-			       dfc->mctx_jobid, host,
-			       mtaname == NULL ? "?" : mtaname);
+			dkimf_log(conf, LOG_INFO,
+			          "%s: no MTA name match (host=%s, MTA=%s)",
+			          dfc->mctx_jobid, host,
+			          mtaname == NULL ? "?" : mtaname);
 		}
 	}
 
@@ -11957,12 +11927,9 @@ mlfi_eoh(SMFICTX *ctx)
 			dfc->mctx_tmpstr = dkimf_dstring_new(BUFRSZ, 0);
 			if (dfc->mctx_tmpstr == NULL)
 			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: dkimf_dstring_new() failed",
-					       dfc->mctx_jobid);
-				}
+				dkimf_log(conf, LOG_ERR,
+					  "%s: dkimf_dstring_new() failed",
+					  dfc->mctx_jobid);
 
 				dkimf_cleanup(ctx);
 				dkimf_dstring_free(addr);
@@ -11995,8 +11962,8 @@ mlfi_eoh(SMFICTX *ctx)
 
 		if (!originok && conf->conf_logwhy)
 		{
-			syslog(LOG_INFO, "%s: no macros match",
-			       dfc->mctx_jobid);
+			dkimf_log(conf, LOG_INFO, "%s: no macros match",
+			          dfc->mctx_jobid);
 		}
 	}
 
@@ -12036,22 +12003,22 @@ mlfi_eoh(SMFICTX *ctx)
 
 				dkimf_ipstring(ipbuf, sizeof ipbuf,
 				               &cc->cctx_ip);
-				syslog(LOG_INFO, "%s: %s [%s] not internal",
-				       dfc->mctx_jobid, cc->cctx_host,
-				       ipbuf);
+				dkimf_log(conf, LOG_INFO, "%s: %s [%s] not internal",
+				          dfc->mctx_jobid, cc->cctx_host,
+				          ipbuf);
 			}
 
 			if (authtype == NULL || authtype[0] == '\0')
 			{
-				syslog(LOG_INFO, "%s: not authenticated",
-				       dfc->mctx_jobid);
+				dkimf_log(conf, LOG_INFO, "%s: not authenticated",
+				          dfc->mctx_jobid);
 			}
 
 #ifdef POPAUTH
 			if (!popauth)
 			{
-				syslog(LOG_INFO, "%s: not POP authenticated",
-				       dfc->mctx_jobid);
+				dkimf_log(conf, LOG_INFO, "%s: not POP authenticated",
+				          dfc->mctx_jobid);
 			}
 #endif /* POPAUTH */
 		}
@@ -12074,9 +12041,9 @@ mlfi_eoh(SMFICTX *ctx)
 
 		if (!domainok && conf->conf_logwhy)
 		{
-			syslog(LOG_INFO,
-			       "%s: no signing domain match for '%s'",
-			       dfc->mctx_jobid, dfc->mctx_domain);
+			dkimf_log(conf, LOG_INFO,
+			          "%s: no signing domain match for '%s'",
+			          dfc->mctx_jobid, dfc->mctx_domain);
 		}
 
 		if (conf->conf_subdomains && !domainok)
@@ -12117,9 +12084,9 @@ mlfi_eoh(SMFICTX *ctx)
 
 		if (!domainok && conf->conf_logwhy)
 		{
-			syslog(LOG_INFO,
-			       "%s: no signing subdomain match for '%s'",
-			       dfc->mctx_jobid, dfc->mctx_domain);
+			dkimf_log(conf, LOG_INFO,
+			          "%s: no signing subdomain match for '%s'",
+			          dfc->mctx_jobid, dfc->mctx_domain);
 		}
 	}
 
@@ -12131,10 +12098,10 @@ mlfi_eoh(SMFICTX *ctx)
 		    !dkimf_checkip(conf->conf_exignore,
 		                   (struct sockaddr *) &cc->cctx_ip))
 		{
-			syslog(LOG_NOTICE,
-			       "%s: external host %s attempted to send as %s",
-			       dfc->mctx_jobid, cc->cctx_host,
-			       dfc->mctx_domain);
+			dkimf_log(conf, LOG_NOTICE,
+			          "%s: external host %s attempted to send as %s",
+			          dfc->mctx_jobid, cc->cctx_host,
+			          dfc->mctx_domain);
 		}
 	}
 
@@ -12163,21 +12130,21 @@ mlfi_eoh(SMFICTX *ctx)
 				switch (found)
 				{
 				  case -1:
-					syslog(LOG_ERR,
-					       "%s: error reading signing table",
-					       dfc->mctx_jobid);
+					dkimf_log(conf, LOG_ERR,
+					          "%s: error reading signing table",
+					          dfc->mctx_jobid);
 					break;
 
 				  case -2:
-					syslog(LOG_ERR,
-					       "%s: signing table references unknown key '%s'",
-					       dfc->mctx_jobid, errkey);
+					dkimf_log(conf, LOG_ERR,
+					          "%s: signing table references unknown key '%s'",
+					          dfc->mctx_jobid, errkey);
 					break;
 
 				  case -3:
-					syslog(LOG_ERR,
-					       "%s: error loading key '%s'",
-					       dfc->mctx_jobid, errkey);
+					dkimf_log(conf, LOG_ERR,
+					          "%s: error loading key '%s'",
+					          dfc->mctx_jobid, errkey);
 					break;
 
 				  default:
@@ -12195,9 +12162,9 @@ mlfi_eoh(SMFICTX *ctx)
 
 		if (!domainok && conf->conf_logwhy)
 		{
-			syslog(LOG_INFO,
-			       "%s: no signing table match for '%s@%s'",
-			       dfc->mctx_jobid, user, dfc->mctx_domain);
+			dkimf_log(conf, LOG_INFO,
+			          "%s: no signing table match for '%s@%s'",
+			          dfc->mctx_jobid, user, dfc->mctx_domain);
 		}
 	}
 
@@ -12258,9 +12225,9 @@ mlfi_eoh(SMFICTX *ctx)
 					}
 				}
 
-				syslog(LOG_ERR,
-				       "%s: dkimf_lua_setup_hook() failed: %s",
-				       dfc->mctx_jobid, lres.lrs_error);
+				dkimf_log(conf, LOG_ERR,
+				          "%s: dkimf_lua_setup_hook() failed: %s",
+				          dfc->mctx_jobid, lres.lrs_error);
 			}
 
 			if (dofree)
@@ -12284,9 +12251,9 @@ mlfi_eoh(SMFICTX *ctx)
 		{
 			if (dolog)
 			{
-				syslog(LOG_ERR,
-				       "%s: failed to add default signing request",
-				       dfc->mctx_jobid);
+				dkimf_log(curconf, LOG_ERR,
+				          "%s: failed to add default signing request",
+				          dfc->mctx_jobid);
 			}
 
 			return SMFIS_TEMPFAIL;
@@ -12329,24 +12296,18 @@ mlfi_eoh(SMFICTX *ctx)
 			                      &found);
 			if (found)
 			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_INFO,
-					       "%s: skipping signing of mail to '%s'",
-					       dfc->mctx_jobid,
-					       a->a_addr);
-				}
+				dkimf_log(conf, LOG_INFO,
+					  "%s: skipping signing of mail to '%s'",
+					  dfc->mctx_jobid,
+					  a->a_addr);
 
 				return SMFIS_ACCEPT;
 			}
 			else if (status != 0)
 			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: dkimf_db_get() failed",
-					       dfc->mctx_jobid);
-				}
+				dkimf_log(conf, LOG_ERR,
+					  "%s: dkimf_db_get() failed",
+					  dfc->mctx_jobid);
 
 				return SMFIS_TEMPFAIL;
 			}
@@ -12398,11 +12359,11 @@ mlfi_eoh(SMFICTX *ctx)
 		struct signreq *sr;
 		dkim_sigkey_t keydata;
 
-		if (conf->conf_dolog && dfc->mctx_laddr != NULL)
+		if (dfc->mctx_laddr != NULL)
 		{
-			syslog(LOG_INFO,
-				"%s: BodyLengthDB matched %s, signing with l= requested",
-				dfc->mctx_jobid, dfc->mctx_laddr);
+			dkimf_log(conf, LOG_INFO,
+				  "%s: BodyLengthDB matched %s, signing with l= requested",
+				  dfc->mctx_jobid, dfc->mctx_laddr);
 		}
 
 #ifdef _FFR_ATPS
@@ -12466,10 +12427,10 @@ mlfi_eoh(SMFICTX *ctx)
 
 				if (status != DKIM_STAT_OK && dolog)
 				{
-					syslog(LOG_ERR,
-					       "%s dkim_add_xtag() for \"%s\" failed",
-					       dfc->mctx_jobid,
-					       DKIM_REPORTTAG);
+					dkimf_log(curconf, LOG_ERR,
+					          "%s dkim_add_xtag() for \"%s\" failed",
+					          dfc->mctx_jobid,
+					          DKIM_REPORTTAG);
 				}
 			}
 
@@ -12481,9 +12442,9 @@ mlfi_eoh(SMFICTX *ctx)
 				                       dfc->mctx_domain);
 				if (status != DKIM_STAT_OK && dolog)
 				{
-					syslog(LOG_ERR,
-					       "%s dkim_add_xtag() for \"%s\" failed",
-					       dfc->mctx_jobid, DKIM_ATPSTAG);
+					dkimf_log(curconf, LOG_ERR,
+					          "%s dkim_add_xtag() for \"%s\" failed",
+					          dfc->mctx_jobid, DKIM_ATPSTAG);
 				}
 
 				status = dkim_add_xtag(sr->srq_dkim,
@@ -12491,9 +12452,9 @@ mlfi_eoh(SMFICTX *ctx)
 				                       conf->conf_atpshash);
 				if (status != DKIM_STAT_OK && dolog)
 				{
-					syslog(LOG_ERR,
-					       "%s dkim_add_xtag() for \"%s\" failed",
-					       dfc->mctx_jobid, DKIM_ATPSHTAG);
+					dkimf_log(curconf, LOG_ERR,
+					          "%s dkim_add_xtag() for \"%s\" failed",
+					          dfc->mctx_jobid, DKIM_ATPSHTAG);
 				}
 			}
 #endif /* _FFR_ATPS */
@@ -12572,12 +12533,9 @@ mlfi_eoh(SMFICTX *ctx)
 
 		if (!ok)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_INFO,
-				       "%s: RFC5322 header requirement error",
-				       dfc->mctx_jobid);
-			}
+			dkimf_log(conf, LOG_INFO,
+				  "%s: RFC5322 header requirement error",
+				  dfc->mctx_jobid);
 
 			dfc->mctx_addheader = TRUE;
 			dfc->mctx_headeronly = TRUE;
@@ -12620,12 +12578,12 @@ mlfi_eoh(SMFICTX *ctx)
 				}
 			}
 		
-			if (!idset && conf->conf_dolog)
+			if (!idset)
 			{
-				syslog(LOG_INFO,
-				       "%s: cannot find identity header %s",
-				       dfc->mctx_jobid,
-				       conf->conf_identityhdr);
+				dkimf_log(conf, LOG_INFO,
+				          "%s: cannot find identity header %s",
+				          dfc->mctx_jobid,
+				          conf->conf_identityhdr);
 			}
 		}
 #endif /* _FFR_IDENTITY_HEADER */
@@ -12668,11 +12626,8 @@ mlfi_eoh(SMFICTX *ctx)
 	dfc->mctx_vbr = vbr_init(NULL, NULL, NULL);
 	if (dfc->mctx_vbr == NULL)
 	{
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_ERR, "%s: can't create VBR context",
-			       dfc->mctx_jobid);
-		}
+		dkimf_log(conf, LOG_ERR, "%s: can't create VBR context",
+			  dfc->mctx_jobid);
 		dkimf_cleanup(ctx);
 		return SMFIS_TEMPFAIL;
 	}
@@ -12690,11 +12645,8 @@ mlfi_eoh(SMFICTX *ctx)
 
 	if (vbr_dns_init(dfc->mctx_vbr) != 0)
 	{
-		if (conf->conf_dolog)
-		{
-			syslog(LOG_ERR, "%s: can't initialize VBR resolver",
-			       dfc->mctx_jobid);
-		}
+		dkimf_log(conf, LOG_ERR, "%s: can't initialize VBR resolver",
+			  dfc->mctx_jobid);
 		dkimf_cleanup(ctx);
 		return SMFIS_TEMPFAIL;
 	}
@@ -12704,12 +12656,9 @@ mlfi_eoh(SMFICTX *ctx)
 		status = vbr_dns_nslist(dfc->mctx_vbr, conf->conf_nslist);
 		if (status != VBR_STAT_OK)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR,
-				       "%s: can't set VBR resolver list",
-				       dfc->mctx_jobid);
-			}
+			dkimf_log(conf, LOG_ERR,
+				  "%s: can't set VBR resolver list",
+				  dfc->mctx_jobid);
 			dkimf_cleanup(ctx);
 			return SMFIS_TEMPFAIL;
 		}
@@ -12719,14 +12668,11 @@ mlfi_eoh(SMFICTX *ctx)
 	{
 		if (access(conf->conf_trustanchorpath, R_OK) != 0)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR,
-				       "%s: %s: access(): %s",
-				       dfc->mctx_jobid,
-				       conf->conf_trustanchorpath,
-				       strerror(errno));
-			}
+			dkimf_log(conf, LOG_ERR,
+				  "%s: %s: access(): %s",
+				  dfc->mctx_jobid,
+				  conf->conf_trustanchorpath,
+				  strerror(errno));
 			dkimf_cleanup(ctx);
 			return SMFIS_TEMPFAIL;
 		}
@@ -12735,13 +12681,10 @@ mlfi_eoh(SMFICTX *ctx)
 		                             conf->conf_trustanchorpath);
 		if (status != DKIM_STAT_OK)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR,
-				       "%s: can't set VBR trust anchor from %s",
-				       dfc->mctx_jobid,
-				       conf->conf_trustanchorpath);
-			}
+			dkimf_log(conf, LOG_ERR,
+				  "%s: can't set VBR trust anchor from %s",
+				  dfc->mctx_jobid,
+				  conf->conf_trustanchorpath);
 			dkimf_cleanup(ctx);
 			return SMFIS_TEMPFAIL;
 		}
@@ -12753,12 +12696,9 @@ mlfi_eoh(SMFICTX *ctx)
 		                        conf->conf_resolverconfig);
 		if (status != DKIM_STAT_OK)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR,
-				       "%s: can't set VBR resolver configuration",
-				       dfc->mctx_jobid);
-			}
+			dkimf_log(conf, LOG_ERR,
+				  "%s: can't set VBR resolver configuration",
+				  dfc->mctx_jobid);
 			dkimf_cleanup(ctx);
 			return SMFIS_TEMPFAIL;
 		}
@@ -12815,11 +12755,11 @@ mlfi_eoh(SMFICTX *ctx)
 
 				err = vbr_geterror(dfc->mctx_vbr);
 
-				syslog(LOG_ERR,
-				       "%s: can't create VBR-Info header field%s%s",
-				       dfc->mctx_jobid,
-				       err == NULL ? "" : ": ",
-				       err == NULL ? "" : err);
+				dkimf_log(curconf, LOG_ERR,
+				          "%s: can't create VBR-Info header field%s%s",
+				          dfc->mctx_jobid,
+				          err == NULL ? "" : ": ",
+				          err == NULL ? "" : err);
 			}
 			else
 			{
@@ -12827,9 +12767,9 @@ mlfi_eoh(SMFICTX *ctx)
 				dfc->mctx_vbrinfo = strdup(header);
 				if (dfc->mctx_vbrinfo == NULL)
 				{
-					syslog(LOG_ERR, "%s: strdup(): %s",
-					       dfc->mctx_jobid,
-					       strerror(errno));
+					dkimf_log(curconf, LOG_ERR, "%s: strdup(): %s",
+					          dfc->mctx_jobid,
+					          strerror(errno));
 					dkimf_cleanup(ctx);
 					return SMFIS_TEMPFAIL;
 				}
@@ -12840,8 +12780,8 @@ mlfi_eoh(SMFICTX *ctx)
 				{
 					if (conf->conf_dolog)
 					{
-						syslog(LOG_ERR, "malloc(): %s",
-						       strerror(errno));
+						dkimf_log(conf, LOG_ERR, "malloc(): %s",
+						          strerror(errno));
 
 						dkimf_cleanup(ctx);
 						return SMFIS_TEMPFAIL;
@@ -12857,9 +12797,9 @@ mlfi_eoh(SMFICTX *ctx)
 				if (newhdr->hdr_hdr == NULL ||
 				    newhdr->hdr_val == NULL)
 				{
-					syslog(LOG_ERR, "%s: strdup(): %s",
-					       dfc->mctx_jobid,
-					       strerror(errno));
+					dkimf_log(curconf, LOG_ERR, "%s: strdup(): %s",
+					          dfc->mctx_jobid,
+					          strerror(errno));
 					TRYFREE(newhdr->hdr_hdr);
 					dkimf_cleanup(ctx);
 					return SMFIS_TEMPFAIL;
@@ -12888,12 +12828,9 @@ mlfi_eoh(SMFICTX *ctx)
 			dfc->mctx_tmpstr = dkimf_dstring_new(BUFRSZ, 0);
 			if (dfc->mctx_tmpstr == NULL)
 			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: dkimf_dstring_new() failed",
-					       dfc->mctx_jobid);
-				}
+				dkimf_log(conf, LOG_ERR,
+					  "%s: dkimf_dstring_new() failed",
+					  dfc->mctx_jobid);
 
 				return SMFIS_TEMPFAIL;
 			}
@@ -13038,9 +12975,9 @@ mlfi_eoh(SMFICTX *ctx)
 					}
 				}
 
-				syslog(LOG_ERR,
-				       "%s: dkimf_lua_screen_hook() failed: %s",
-				       dfc->mctx_jobid, lres.lrs_error);
+				dkimf_log(conf, LOG_ERR,
+				          "%s: dkimf_lua_screen_hook() failed: %s",
+				          dfc->mctx_jobid, lres.lrs_error);
 			}
 
 			if (dofree)
@@ -13239,8 +13176,8 @@ mlfi_eom(SMFICTX *ctx)
 		{
 			if (no_i_whine && conf->conf_dolog)
 			{
-				syslog(LOG_WARNING,
-				       "WARNING: symbol 'i' not available");
+				dkimf_log(conf, LOG_WARNING,
+				          "WARNING: symbol 'i' not available");
 				no_i_whine = FALSE;
 			}
 			dfc->mctx_jobid = (u_char *) JOBIDUNKNOWN;
@@ -13299,13 +13236,10 @@ mlfi_eom(SMFICTX *ctx)
 		if (dkimf_insheader(ctx, 1, AUTHRESULTSHDR,
 		                    (char *) header) == MI_FAILURE)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR,
-				       "%s: %s header add failed",
-				       dfc->mctx_jobid,
-				       AUTHRESULTSHDR);
-			}
+			dkimf_log(conf, LOG_ERR,
+				  "%s: %s header add failed",
+				  dfc->mctx_jobid,
+				  AUTHRESULTSHDR);
 
 			return SMFIS_TEMPFAIL;
 		}
@@ -13323,12 +13257,9 @@ mlfi_eom(SMFICTX *ctx)
 				if (dkimf_chgheader(ctx, hdr->hdr_hdr,
 				                    0, NULL) != MI_SUCCESS)
 				{
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_WARNING,
-						       "failed to remove %s: header",
-						       hdr->hdr_hdr);
-					}
+					dkimf_log(conf, LOG_WARNING,
+						  "failed to remove %s: header",
+						  hdr->hdr_hdr);
 				}
 			}
 		}
@@ -13347,12 +13278,9 @@ mlfi_eom(SMFICTX *ctx)
 			if (dkimf_chgheader(ctx, conf->conf_identityhdr,
 			                    0, NULL) != MI_SUCCESS)
 			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_WARNING,
-						"failed to remove %s: header",
-						conf->conf_identityhdr);
-				}
+				dkimf_log(conf, LOG_WARNING,
+					   "failed to remove %s: header",
+					   conf->conf_identityhdr);
 			}
 		}
 	}
@@ -13376,9 +13304,9 @@ mlfi_eom(SMFICTX *ctx)
 
 				if (dfc->mctx_tmpstr == NULL)
 				{
-					syslog(LOG_WARNING,
-					       "%s: dkimf_dstring_new() failed",
-					       dfc->mctx_jobid);
+					dkimf_log(conf, LOG_WARNING,
+					          "%s: dkimf_dstring_new() failed",
+					          dfc->mctx_jobid);
 
 					return SMFIS_TEMPFAIL;
 				}
@@ -13407,8 +13335,8 @@ mlfi_eom(SMFICTX *ctx)
 				dkimf_dstring_cat(dfc->mctx_tmpstr, d);
 			}
 
-			syslog(LOG_INFO, "%s",
-			       dkimf_dstring_get(dfc->mctx_tmpstr));
+			dkimf_log(conf, LOG_INFO, "%s",
+			          dkimf_dstring_get(dfc->mctx_tmpstr));
 		}
 	}
 
@@ -13424,9 +13352,9 @@ mlfi_eom(SMFICTX *ctx)
 		ares = (struct authres *) malloc(sizeof(struct authres));
 		if (ares == NULL)
 		{
-			syslog(LOG_WARNING,
-			       "%s: malloc(): %s", dfc->mctx_jobid,
-			       strerror(errno));
+			dkimf_log(conf, LOG_WARNING,
+			          "%s: malloc(): %s", dfc->mctx_jobid,
+			          strerror(errno));
 
 			return SMFIS_TEMPFAIL;
 		}
@@ -13451,13 +13379,10 @@ mlfi_eom(SMFICTX *ctx)
 				                    ares);
 				if (arstat == -1)
 				{
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_WARNING,
-						       "%s: failed to parse %s: header field",
-						       dfc->mctx_jobid,
-						       hdr->hdr_hdr);
-					}
+					dkimf_log(conf, LOG_WARNING,
+						  "%s: failed to parse %s: header field",
+						  dfc->mctx_jobid,
+						  hdr->hdr_hdr);
 
 					continue;
 				}
@@ -13509,12 +13434,9 @@ mlfi_eom(SMFICTX *ctx)
 					                    c,
 					                    NULL) != MI_SUCCESS)
 					{
-						if (conf->conf_dolog)
-						{
-							syslog(LOG_WARNING,
-							       "failed to remove %s: header",
-							       hdr->hdr_hdr);
-						}
+						dkimf_log(conf, LOG_WARNING,
+							  "failed to remove %s: header",
+							  hdr->hdr_hdr);
 					}
 				}
 			}
@@ -13547,9 +13469,9 @@ mlfi_eom(SMFICTX *ctx)
 
 				if (dfc->mctx_tmpstr == NULL)
 				{
-					syslog(LOG_WARNING,
-					       "%s: dkimf_dstring_new() failed",
-					       dfc->mctx_jobid);
+					dkimf_log(conf, LOG_WARNING,
+					          "%s: dkimf_dstring_new() failed",
+					          dfc->mctx_jobid);
 
 					return SMFIS_TEMPFAIL;
 				}
@@ -13609,9 +13531,9 @@ mlfi_eom(SMFICTX *ctx)
 
 				if (dkimf_dstring_len(dfc->mctx_tmpstr) > 0)
 				{
-					syslog(LOG_INFO, "%s: %s",
-					       dfc->mctx_jobid,
-					       dkimf_dstring_get(dfc->mctx_tmpstr));
+					dkimf_log(conf, LOG_INFO, "%s: %s",
+					          dfc->mctx_jobid,
+					          dkimf_dstring_get(dfc->mctx_tmpstr));
 				}
 			}
 		}
@@ -13623,9 +13545,9 @@ mlfi_eom(SMFICTX *ctx)
 			{
 				if (conf->conf_dolog_success)
 				{
-					syslog(LOG_INFO,
-					       "%s: DKIM verification successful",
-					       dfc->mctx_jobid);
+					dkimf_log(conf, LOG_INFO,
+					          "%s: DKIM verification successful",
+					          dfc->mctx_jobid);
 				}
 
 				dfc->mctx_addheader = TRUE;
@@ -13679,12 +13601,9 @@ mlfi_eom(SMFICTX *ctx)
 				if (dkimf_quarantine(ctx,
 				                     "capture requested") != MI_SUCCESS)
 				{
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_ERR,
-						       "%s: smfi_quarantine() failed",
-						       dfc->mctx_jobid);
-					}
+					dkimf_log(conf, LOG_ERR,
+						  "%s: smfi_quarantine() failed",
+						  dfc->mctx_jobid);
 				}
 
 				status = SMFIS_ACCEPT;
@@ -13722,13 +13641,10 @@ mlfi_eom(SMFICTX *ctx)
 				f = fopen(dpath, "w");
 				if (f == NULL)
 				{
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_ERR,
-						       "%s: %s: fopen(): %s",
-						       dfc->mctx_jobid,
-						       dpath, strerror(errno));
-					}
+					dkimf_log(conf, LOG_ERR,
+						  "%s: %s: fopen(): %s",
+						  dfc->mctx_jobid,
+						  dpath, strerror(errno));
 				}
 				else
 				{
@@ -13918,10 +13834,10 @@ mlfi_eom(SMFICTX *ctx)
 							}
 						}
 
-						syslog(LOG_ERR,
-						       "%s: dkimf_lua_stats_hook() failed: %s",
-						       dfc->mctx_jobid,
-						       lres.lrs_error);
+						dkimf_log(conf, LOG_ERR,
+						          "%s: dkimf_lua_stats_hook() failed: %s",
+						          dfc->mctx_jobid,
+						          lres.lrs_error);
 					}
 
 					if (dofree)
@@ -13956,8 +13872,8 @@ mlfi_eom(SMFICTX *ctx)
 			{
 				if (dolog)
 				{
-					syslog(LOG_WARNING,
-					       "statistics recording failed");
+					dkimf_log(curconf, LOG_WARNING,
+					          "statistics recording failed");
 				}
 			}
 		}
@@ -14021,21 +13937,18 @@ mlfi_eom(SMFICTX *ctx)
 						}
 						else if (conf->conf_dolog)
 						{
-							syslog(LOG_NOTICE,
-							       "%s: allowed by reputation of %s",
-							       dfc->mctx_jobid,
-							       cd);
+							dkimf_log(conf, LOG_NOTICE,
+							          "%s: allowed by reputation of %s",
+							          dfc->mctx_jobid,
+							          cd);
 						}
 					}
 					else if (status != REPRRD_STAT_NODATA)
 					{
-						if (conf->conf_dolog)
-						{
-							syslog(LOG_NOTICE,
-							       "%s: reputation query for \"%s\" failed (%d)",
-							       dfc->mctx_jobid,
-							       cd, status);
-						}
+						dkimf_log(conf, LOG_NOTICE,
+							  "%s: reputation query for \"%s\" failed (%d)",
+							  dfc->mctx_jobid,
+							  cd, status);
 
 						return dkimf_miltercode(ctx,
 						                        conf->conf_handling.hndl_reperr,
@@ -14043,9 +13956,9 @@ mlfi_eom(SMFICTX *ctx)
 					}
 					else if (conf->conf_dolog)
 					{
-						syslog(LOG_NOTICE,
-						       "%s: no reputation data available for \"%s\"",
-						       dfc->mctx_jobid, cd);
+						dkimf_log(conf, LOG_NOTICE,
+						          "%s: no reputation data available for \"%s\"",
+						          dfc->mctx_jobid, cd);
 					}
 				}
 
@@ -14081,13 +13994,10 @@ mlfi_eom(SMFICTX *ctx)
 					}
 					else if (status == -1)
 					{
-						if (conf->conf_dolog)
-						{
-							syslog(LOG_NOTICE,
-							       "%s: reputation query for NULL domain failed (%d)",
-							       dfc->mctx_jobid,
-							       status);
-						}
+						dkimf_log(conf, LOG_NOTICE,
+							  "%s: reputation query for NULL domain failed (%d)",
+							  dfc->mctx_jobid,
+							  status);
 
 						return dkimf_miltercode(ctx,
 						                        conf->conf_handling.hndl_reperr,
@@ -14099,11 +14009,11 @@ mlfi_eom(SMFICTX *ctx)
 				{
 					if (dolog)
 					{
-						syslog(LOG_NOTICE,
-						       "%s: %sblocked by reputation of %s",
-						       dfc->mctx_jobid,
-						       conf->conf_reptest ? "would be " : "",
-						       domain);
+						dkimf_log(curconf, LOG_NOTICE,
+						          "%s: %sblocked by reputation of %s",
+						          dfc->mctx_jobid,
+						          conf->conf_reptest ? "would be " : "",
+						          domain);
 					}
 
 					if (!conf->conf_reptest)
@@ -14111,12 +14021,11 @@ mlfi_eom(SMFICTX *ctx)
 						if (dkimf_setreply(ctx,
 						                   REPDENYSMTP,
 						                   REPDENYESC,
-						                   REPDENYTXT) != MI_SUCCESS &&
-						    conf->conf_dolog)
+						                   REPDENYTXT) != MI_SUCCESS)
 						{
-							syslog(LOG_NOTICE,
-							       "%s: smfi_setreply() failed",
-							       dfc->mctx_jobid);
+							dkimf_log(conf, LOG_NOTICE,
+							          "%s: smfi_setreply() failed",
+							          dfc->mctx_jobid);
 						}
 
 						dkimf_cleanup(ctx);
@@ -14189,34 +14098,33 @@ mlfi_eom(SMFICTX *ctx)
 						if (conf->conf_dolog)
 						{
 							cd = dkim_sig_getdomain(sigs[c]);
-							syslog(LOG_NOTICE,
-							       "%s: reputation query for \"%s\" failed: %s",
-							       dfc->mctx_jobid,
-							       cd, errbuf);
+							dkimf_log(conf, LOG_NOTICE,
+							          "%s: reputation query for \"%s\" failed: %s",
+							          dfc->mctx_jobid,
+							          cd, errbuf);
 						}
 
 						return dkimf_miltercode(ctx,
 						                        conf->conf_handling.hndl_reperr,
 						                        NULL);
 					}
-					else if (conf->conf_repverbose &&
-					         conf->conf_dolog)
+					else if (conf->conf_repverbose)
 					{
 						if (status == 2)
 						{
-							syslog(LOG_NOTICE,
-							       "%s: no reputation data available for \"%s\"",
-							       dfc->mctx_jobid,
-							       cd);
+							dkimf_log(conf, LOG_NOTICE,
+							          "%s: no reputation data available for \"%s\"",
+							          dfc->mctx_jobid,
+							          cd);
 						}
 						else
 						{
-							syslog(LOG_INFO,
-							       "%s: allowed by reputation of %s (%f, count %lu, spam %lu, limit %lu)",
-							       dfc->mctx_jobid,
-							       cd, ratio,
-							       count,
-						               spam, limit);
+							dkimf_log(conf, LOG_INFO,
+							          "%s: allowed by reputation of %s (%f, count %lu, spam %lu, limit %lu)",
+							          dfc->mctx_jobid,
+							          cd, ratio,
+							          count,
+						                  spam, limit);
 						}
 					}
 				}
@@ -14241,35 +14149,31 @@ mlfi_eom(SMFICTX *ctx)
 					}
 					else if (status == -1)
 					{
-						if (conf->conf_dolog)
-						{
-							syslog(LOG_NOTICE,
-							       "%s: reputation query for NULL domain failed: %s",
-							       dfc->mctx_jobid,
-							       errbuf);
-						}
+						dkimf_log(conf, LOG_NOTICE,
+							  "%s: reputation query for NULL domain failed: %s",
+							  dfc->mctx_jobid,
+							  errbuf);
 
 						return dkimf_miltercode(ctx,
 						                        conf->conf_handling.hndl_reperr,
 						                        NULL);
 					}
-					else if (conf->conf_repverbose &&
-					         conf->conf_dolog)
+					else if (conf->conf_repverbose)
 					{
 						if (status == 2)
 						{
-							syslog(LOG_NOTICE,
-							       "%s: no reputation data available for NULL domain",
-							       dfc->mctx_jobid);
+							dkimf_log(conf, LOG_NOTICE,
+							          "%s: no reputation data available for NULL domain",
+							          dfc->mctx_jobid);
 						}
 						else
 						{
-							syslog(LOG_INFO,
-							       "%s: allowed by reputation of NULL domain (%f, count %lu, spam %lu, limit %lu)",
-							       dfc->mctx_jobid,
-							       ratio,
-							       count,
-						               spam, limit);
+							dkimf_log(conf, LOG_INFO,
+							          "%s: allowed by reputation of NULL domain (%f, count %lu, spam %lu, limit %lu)",
+							          dfc->mctx_jobid,
+							          ratio,
+							          count,
+						                  spam, limit);
 						}
 					}
 				}
@@ -14278,12 +14182,12 @@ mlfi_eom(SMFICTX *ctx)
 				{
 					if (dolog)
 					{
-						syslog(LOG_NOTICE,
-						       "%s: %sblocked by reputation of %s (%f, count %lu, spam %lu, limit %lu)",
-						       dfc->mctx_jobid,
-						       conf->conf_reptest ? "would be " : "",
-						       domain, ratio, count,
-					               spam, limit);
+						dkimf_log(curconf, LOG_NOTICE,
+						          "%s: %sblocked by reputation of %s (%f, count %lu, spam %lu, limit %lu)",
+						          dfc->mctx_jobid,
+						          conf->conf_reptest ? "would be " : "",
+						          domain, ratio, count,
+					                  spam, limit);
 					}
 
 					if (!conf->conf_reptest)
@@ -14291,12 +14195,11 @@ mlfi_eom(SMFICTX *ctx)
 						if (dkimf_setreply(ctx,
 						                   REPDENYSMTP,
 						                   REPDENYESC,
-						                   REPDENYTXT) != MI_SUCCESS &&
-						    conf->conf_dolog)
+						                   REPDENYTXT) != MI_SUCCESS)
 						{
-							syslog(LOG_NOTICE,
-							       "%s: smfi_setreply() failed",
-							       dfc->mctx_jobid);
+							dkimf_log(conf, LOG_NOTICE,
+							          "%s: smfi_setreply() failed",
+							          dfc->mctx_jobid);
 						}
 
 						dkimf_cleanup(ctx);
@@ -14498,14 +14401,11 @@ mlfi_eom(SMFICTX *ctx)
 					{
 						exceeded++;
 
-						if (conf->conf_dolog)
-						{
-							syslog(LOG_ERR,
-							       "%s: rate limit for '%s' (%u) exceeded",
-							       dfc->mctx_jobid,
-							       dkim_sig_getdomain(sigs[c]),
-							       limit);
-						}
+						dkimf_log(conf, LOG_ERR,
+							  "%s: rate limit for '%s' (%u) exceeded",
+							  dfc->mctx_jobid,
+							  dkim_sig_getdomain(sigs[c]),
+							  limit);
 					}
 				}
 			}
@@ -14521,13 +14421,10 @@ mlfi_eom(SMFICTX *ctx)
 				{
 					exceeded++;
 
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_ERR,
-						       "%s: rate limit for unsigned mail (%u) exceeded",
-						       dfc->mctx_jobid,
-						       limit);
-					}
+					dkimf_log(conf, LOG_ERR,
+						  "%s: rate limit for unsigned mail (%u) exceeded",
+						  dfc->mctx_jobid,
+						  limit);
 				}
 			}
 
@@ -14672,11 +14569,11 @@ mlfi_eom(SMFICTX *ctx)
 
 						err = (const char *) vbr_geterror(dfc->mctx_vbr);
 
-						syslog(LOG_NOTICE,
-						       "%s: can't verify VBR information%s%s",
-						       dfc->mctx_jobid,
-						       err == NULL ? "" : ": ",
-						       err == NULL ? "" : err);
+						dkimf_log(conf, LOG_NOTICE,
+						          "%s: can't verify VBR information%s%s",
+						          dfc->mctx_jobid,
+						          err == NULL ? "" : ": ",
+						          err == NULL ? "" : err);
 					}
 
 					add_vbr_header = TRUE;
@@ -14692,11 +14589,11 @@ mlfi_eom(SMFICTX *ctx)
 
 						err = (const char *) vbr_geterror(dfc->mctx_vbr);
 
-						syslog(LOG_NOTICE,
-						       "%s: error handling VBR information%s%s",
-						       dfc->mctx_jobid,
-						       err == NULL ? "" : ": ",
-						       err == NULL ? "" : err);
+						dkimf_log(conf, LOG_NOTICE,
+						          "%s: error handling VBR information%s%s",
+						          dfc->mctx_jobid,
+						          err == NULL ? "" : ": ",
+						          err == NULL ? "" : err);
 					}
 
 					add_vbr_header = TRUE;
@@ -14744,13 +14641,10 @@ mlfi_eom(SMFICTX *ctx)
 					                    AUTHRESULTSHDR,
 					                    (char *) header) == MI_FAILURE)
 					{
-						if (conf->conf_dolog)
-						{
-							syslog(LOG_ERR,
-							       "%s: %s header add failed",
-							       dfc->mctx_jobid,
-							       AUTHRESULTSHDR);
-						}
+						dkimf_log(conf, LOG_ERR,
+							  "%s: %s header add failed",
+							  dfc->mctx_jobid,
+							  AUTHRESULTSHDR);
 					}
 
 					break;
@@ -14772,12 +14666,9 @@ mlfi_eom(SMFICTX *ctx)
 				if (dkimf_delrcpt(ctx,
 				                  a->a_addr) != MI_SUCCESS)
 				{
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_ERR,
-						       "%s: smfi_delrcpt() failed",
-						       dfc->mctx_jobid);
-					}
+					dkimf_log(conf, LOG_ERR,
+						  "%s: smfi_delrcpt() failed",
+						  dfc->mctx_jobid);
 
 					return SMFIS_TEMPFAIL;
 				}
@@ -14787,12 +14678,9 @@ mlfi_eom(SMFICTX *ctx)
 				if (dkimf_addheader(ctx, ORCPTHEADER,
 				                    header) != MI_SUCCESS)
 				{
-					if (conf->conf_dolog)
-					{
-						syslog(LOG_ERR,
-						       "%s: smfi_addheader() failed",
-						       dfc->mctx_jobid);
-					}
+					dkimf_log(conf, LOG_ERR,
+						  "%s: smfi_addheader() failed",
+						  dfc->mctx_jobid);
 
 					return SMFIS_TEMPFAIL;
 				}
@@ -14802,12 +14690,9 @@ mlfi_eom(SMFICTX *ctx)
 			if (dkimf_addrcpt(ctx,
 			                  conf->conf_redirect) != MI_SUCCESS)
 			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: smfi_addrcpt() failed",
-					       dfc->mctx_jobid);
-				}
+				dkimf_log(conf, LOG_ERR,
+					  "%s: smfi_addrcpt() failed",
+					  dfc->mctx_jobid);
 
 				return SMFIS_TEMPFAIL;
 			}
@@ -14857,9 +14742,9 @@ mlfi_eom(SMFICTX *ctx)
 					}
 				}
 
-				syslog(LOG_ERR,
-				       "%s: dkimf_lua_final_hook() failed: %s",
-				       dfc->mctx_jobid, lres.lrs_error);
+				dkimf_log(conf, LOG_ERR,
+				          "%s: dkimf_lua_final_hook() failed: %s",
+				          dfc->mctx_jobid, lres.lrs_error);
 			}
 
 			if (dofree)
@@ -14902,9 +14787,9 @@ mlfi_eom(SMFICTX *ctx)
 
 			if (dfc->mctx_tmpstr == NULL)
 			{
-				syslog(LOG_WARNING,
-				       "%s: dkimf_dstring_new() failed",
-				       dfc->mctx_jobid);
+				dkimf_log(curconf, LOG_WARNING,
+				          "%s: dkimf_dstring_new() failed",
+				          dfc->mctx_jobid);
 
 				return SMFIS_TEMPFAIL;
 			}
@@ -14928,12 +14813,9 @@ mlfi_eom(SMFICTX *ctx)
 		                                  &start, &len);
 			if (status != DKIM_STAT_OK)
 			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: dkim_getsighdr() failed",
-					       dfc->mctx_jobid);
-				}
+				dkimf_log(conf, LOG_ERR,
+					  "%s: dkim_getsighdr() failed",
+					  dfc->mctx_jobid);
 
 				return SMFIS_TEMPFAIL;
 			}
@@ -14946,13 +14828,10 @@ mlfi_eom(SMFICTX *ctx)
 			if (dkimf_insheader(ctx, 1, DKIM_SIGNHEADER,
 			                    (char *) dkimf_dstring_get(dfc->mctx_tmpstr)) == MI_FAILURE)
 			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: %s header add failed",
-					       dfc->mctx_jobid,
-					       DKIM_SIGNHEADER);
-				}
+				dkimf_log(conf, LOG_ERR,
+					  "%s: %s header add failed",
+					  dfc->mctx_jobid,
+					  DKIM_SIGNHEADER);
 			}
 			else if (conf->conf_dolog_success)
 			{
@@ -14969,9 +14848,9 @@ mlfi_eom(SMFICTX *ctx)
 				else
 					s = conf->conf_selector;
 
-				syslog(LOG_INFO,
-				       "%s: %s field added (s=%s, d=%s)",
-				       dfc->mctx_jobid, DKIM_SIGNHEADER, s, d);
+				dkimf_log(conf, LOG_INFO,
+				          "%s: %s field added (s=%s, d=%s)",
+				          dfc->mctx_jobid, DKIM_SIGNHEADER, s, d);
 			}
 		}
 
@@ -14982,32 +14861,27 @@ mlfi_eom(SMFICTX *ctx)
 			if (dkimf_insheader(ctx, 1, VBR_INFOHEADER,
 			                    dfc->mctx_vbrinfo) == MI_FAILURE)
 			{
-				if (conf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "%s: %s header add failed",
-					       dfc->mctx_jobid,
-					       VBR_INFOHEADER);
-				}
+				dkimf_log(conf, LOG_ERR,
+					  "%s: %s header add failed",
+					  dfc->mctx_jobid,
+					  VBR_INFOHEADER);
 			}
 		}
 
 		if (conf->conf_vbr_purge && dfc->mctx_vbrpurge)
 		{
 			if (dkimf_chgheader(ctx, VBRTYPEHEADER,
-			                    0, NULL) != MI_SUCCESS ||
-			     conf->conf_dolog)
+			                    0, NULL) != MI_SUCCESS)
 			{
-				syslog(LOG_ERR, "%s: %s header remove failed",
-				       dfc->mctx_jobid, VBRTYPEHEADER);
+				dkimf_log(conf, LOG_ERR, "%s: %s header remove failed",
+				          dfc->mctx_jobid, VBRTYPEHEADER);
 			}
 
 			if (dkimf_chgheader(ctx, VBRCERTHEADER,
-			                    0, NULL) != MI_SUCCESS ||
-			     conf->conf_dolog)
+			                    0, NULL) != MI_SUCCESS)
 			{
-				syslog(LOG_ERR, "%s: %s header remove failed",
-				       dfc->mctx_jobid, VBRCERTHEADER);
+				dkimf_log(conf, LOG_ERR, "%s: %s header remove failed",
+				          dfc->mctx_jobid, VBRCERTHEADER);
 			}
 		}
 #endif /* _FFR_VBR */
@@ -15031,11 +14905,8 @@ mlfi_eom(SMFICTX *ctx)
 
 		if (dkimf_insheader(ctx, 1, SWHEADERNAME, xfhdr) != MI_SUCCESS)
 		{
-			if (conf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: %s header add failed",
-				       dfc->mctx_jobid, SWHEADERNAME);
-			}
+			dkimf_log(conf, LOG_ERR, "%s: %s header add failed",
+				  dfc->mctx_jobid, SWHEADERNAME);
 
 			dkimf_cleanup(ctx);
 			return SMFIS_TEMPFAIL;
@@ -15177,12 +15048,12 @@ mlfi_close(SMFICTX *ctx)
 			else
 				c_pct = (c_hits * 100) / c_queries;
 
-			syslog(LOG_INFO,
-			       "cache: %u quer%s, %u hit%s (%d%%), %u expired, %u key%s",
-			       c_queries, c_queries == 1 ? "y" : "ies",
-			       c_hits, c_hits == 1 ? "" : "s",
-			       c_pct, c_expired,
-			       c_keys, c_keys == 1 ? "" : "s");
+			dkimf_log(curconf, LOG_INFO,
+			          "cache: %u quer%s, %u hit%s (%d%%), %u expired, %u key%s",
+			          c_queries, c_queries == 1 ? "y" : "ies",
+			          c_hits, c_hits == 1 ? "" : "s",
+			          c_pct, c_expired,
+			          c_keys, c_keys == 1 ? "" : "s");
 		}
 	}
 #endif /* QUERY_CACHE */
@@ -15428,6 +15299,7 @@ main(int argc, char **argv)
 			break;
 
 		  case 'l':
+			curconf->conf_dolog_syslog = TRUE;
 			curconf->conf_dolog = TRUE;
 			break;
 
@@ -15445,6 +15317,11 @@ main(int argc, char **argv)
 			if (optarg == NULL || *optarg == '\0')
 				return usage();
 			curconf->conf_omitlist = optarg;
+			break;
+
+		  case 'O':
+			curconf->conf_dolog_stdout = TRUE;
+			curconf->conf_dolog = TRUE;
 			break;
 
 		  case 'p':
@@ -16088,6 +15965,8 @@ main(int argc, char **argv)
 	if (testmode)
 	{
 		curconf->conf_dolog = FALSE;
+		curconf->conf_dolog_syslog = FALSE;
+		curconf->conf_dolog_stdout = FALSE;
 		curconf->conf_sendreports = FALSE;
 		autorestart = FALSE;
 		dofork = FALSE;
@@ -16120,12 +15999,9 @@ main(int argc, char **argv)
 
 				if (gr == NULL)
 				{
-					if (curconf->conf_dolog)
-					{
-						syslog(LOG_ERR,
-						       "no such group or gid '%s'",
-						       colon + 1);
-					}
+					dkimf_log(curconf, LOG_ERR,
+						  "no such group or gid '%s'",
+						  colon + 1);
 
 					fprintf(stderr,
 					        "%s: no such group '%s'\n",
@@ -16149,12 +16025,9 @@ main(int argc, char **argv)
 
 			if (pw == NULL)
 			{
-				if (curconf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "no such user or uid '%s'",
-					       become);
-				}
+				dkimf_log(curconf, LOG_ERR,
+					  "no such user or uid '%s'",
+					  become);
 
 				fprintf(stderr, "%s: no such user '%s'\n",
 				        progname, become);
@@ -16186,11 +16059,8 @@ main(int argc, char **argv)
 		/* warn if doing so as root without then giving up root */
 		if (become == NULL && getuid() == 0)
 		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_WARNING,
-				       "using ChangeRootDirectory without Userid not advised");
-			}
+			dkimf_log(curconf, LOG_WARNING,
+				  "using ChangeRootDirectory without Userid not advised");
 
 			fprintf(stderr,
 			        "%s: use of ChangeRootDirectory without Userid not advised\n",
@@ -16200,11 +16070,8 @@ main(int argc, char **argv)
 		/* change to the new root first */
 		if (chdir(chrootdir) != 0)
 		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: chdir(): %s",
-				       chrootdir, strerror(errno));
-			}
+			dkimf_log(curconf, LOG_ERR, "%s: chdir(): %s",
+				  chrootdir, strerror(errno));
 
 			fprintf(stderr, "%s: %s: chdir(): %s\n", progname,
 			        chrootdir, strerror(errno));
@@ -16214,11 +16081,8 @@ main(int argc, char **argv)
 		/* now change the root */
 		if (chroot(chrootdir) != 0)
 		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_ERR, "%s: chroot(): %s",
-				       chrootdir, strerror(errno));
-			}
+			dkimf_log(curconf, LOG_ERR, "%s: chroot(): %s",
+				  chrootdir, strerror(errno));
 
 			fprintf(stderr, "%s: %s: chroot(): %s\n", progname,
 			        chrootdir, strerror(errno));
@@ -16233,11 +16097,8 @@ main(int argc, char **argv)
 #ifdef __linux__
 		if (prctl(PR_SET_DUMPABLE, 1) == -1)
 		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_ERR, "prctl(): %s",
-				       strerror(errno));
-			}
+			dkimf_log(curconf, LOG_ERR, "prctl(): %s",
+				  strerror(errno));
 
 			fprintf(stderr, "%s: prctl(): %s\n",
 			        progname, strerror(errno));
@@ -16250,11 +16111,8 @@ main(int argc, char **argv)
 
 		if (!enabled)
 		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_WARNING,
-				       "can't enable coredumps; continuing");
-			}
+			dkimf_log(curconf, LOG_WARNING,
+				  "can't enable coredumps; continuing");
 
 			fprintf(stderr,
 			        "%s: can't enable coredumps; continuing\n",
@@ -16285,8 +16143,8 @@ main(int argc, char **argv)
 
 					saveerrno = errno;
 
-					syslog(LOG_ERR, "fork(): %s",
-					       strerror(errno));
+					dkimf_log(curconf, LOG_ERR, "fork(): %s",
+					          strerror(errno));
 
 					errno = saveerrno;
 				}
@@ -16317,12 +16175,9 @@ main(int argc, char **argv)
 			}
 			else
 			{
-				if (curconf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "can't write pid to %s: %s",
-					       pidfile, strerror(errno));
-				}
+				dkimf_log(curconf, LOG_ERR,
+					  "can't write pid to %s: %s",
+					  pidfile, strerror(errno));
 			}
 		}
 
@@ -16340,11 +16195,8 @@ main(int argc, char **argv)
 		    sigaction(SIGTERM, &sa, NULL) != 0 ||
 		    sigaction(SIGUSR1, &sa, NULL) != 0)
 		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_ERR, "[parent] sigaction(): %s",
-				       strerror(errno));
-			}
+			dkimf_log(curconf, LOG_ERR, "[parent] sigaction(): %s",
+				  strerror(errno));
 		}
 
 		/* now enact the user change */
@@ -16355,22 +16207,19 @@ main(int argc, char **argv)
 			{
 				if (initgroups(pw->pw_name, gid) != 0)
 				{
-					if (curconf->conf_dolog)
-						syslog(LOG_ERR, "initgroups(): %s", strerror(errno));
+					dkimf_log(curconf, LOG_ERR, "initgroups(): %s", strerror(errno));
 					fprintf(stderr, "%s: initgroups(): %s", progname, strerror(errno));
 					return EX_NOPERM;
 				}
 				else if (setgid(gid) != 0)
 				{
-					if (curconf->conf_dolog)
-						syslog(LOG_ERR, "setgid(): %s", strerror(errno));
+					dkimf_log(currconf, LOG_ERR, "setgid(): %s", strerror(errno));
 					fprintf(stderr, "%s: setgid(): %s", progname, strerror(errno));
 					return EX_NOPERM;
 				}
 				else if (setuid(pw->pw_uid) != 0)
 				{
-					if (curconf->conf_dolog)
-						syslog(LOG_ERR, "setuid(): %s", strerror(errno));
+					dkimf_log(curconf, LOG_ERR, "setuid(): %s", strerror(errno));
 					fprintf(stderr, "%s: setuid(): %s", progname, strerror(errno));
 					return EX_NOPERM;
 				}
@@ -16385,12 +16234,9 @@ main(int argc, char **argv)
 			status = dkimf_socket_cleanup(sock);
 			if (status != 0)
 			{
-				if (curconf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "[parent] socket cleanup failed: %s",
-					       strerror(status));
-				}
+				dkimf_log(curconf, LOG_ERR,
+					  "[parent] socket cleanup failed: %s",
+					  strerror(status));
 				return EX_UNAVAILABLE;
 			}
 
@@ -16398,11 +16244,8 @@ main(int argc, char **argv)
 			switch (pid)
 			{
 			  case -1:
-				if (curconf->conf_dolog)
-				{
-					syslog(LOG_ERR, "fork(): %s",
-					       strerror(errno));
-				}
+				dkimf_log(curconf, LOG_ERR, "fork(): %s",
+					  strerror(errno));
 
 				dkimf_zapkey(curconf);
 				return EX_OSERR;
@@ -16414,12 +16257,9 @@ main(int argc, char **argv)
 				    sigaction(SIGINT, &sa, NULL) != 0 ||
 				    sigaction(SIGTERM, &sa, NULL) != 0)
 				{
-					if (curconf->conf_dolog)
-					{
-						syslog(LOG_ERR,
-						       "[child] sigaction(): %s",
-						       strerror(errno));
-					}
+					dkimf_log(curconf, LOG_ERR,
+						  "[child] sigaction(): %s",
+						  strerror(errno));
 				}
 
 				quitloop = TRUE;
@@ -16466,25 +16306,25 @@ main(int argc, char **argv)
 					{
 						if (WIFSIGNALED(status))
 						{
-							syslog(LOG_NOTICE,
-							       "terminated with signal %d, restarting",
-							       WTERMSIG(status));
+							dkimf_log(curconf, LOG_NOTICE,
+							          "terminated with signal %d, restarting",
+							          WTERMSIG(status));
 						}
 						else if (WIFEXITED(status))
 						{
 							if (WEXITSTATUS(status) == EX_CONFIG ||
 							    WEXITSTATUS(status) == EX_SOFTWARE)
 							{
-								syslog(LOG_NOTICE,
-								       "exited with status %d",
-								       WEXITSTATUS(status));
+								dkimf_log(curconf, LOG_NOTICE,
+								          "exited with status %d",
+								          WEXITSTATUS(status));
 								quitloop = TRUE;
 							}
 							else
 							{
-								syslog(LOG_NOTICE,
-								       "exited with status %d, restarting",
-								       WEXITSTATUS(status));
+								dkimf_log(curconf, LOG_NOTICE,
+								          "exited with status %d, restarting",
+								          WEXITSTATUS(status));
 							}
 						}
 					}
@@ -16499,11 +16339,8 @@ main(int argc, char **argv)
 
 			if (maxrestarts > 0 && restarts >= maxrestarts)
 			{
-				if (curconf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "maximum restart count exceeded");
-				}
+				dkimf_log(curconf, LOG_ERR,
+					  "maximum restart count exceeded");
 
 				return EX_UNAVAILABLE;
 			}
@@ -16512,11 +16349,8 @@ main(int argc, char **argv)
 			    maxrestartrate_t > 0 &&
 			    !dkimf_restart_check(0, maxrestartrate_t))
 			{
-				if (curconf->conf_dolog)
-				{
-					syslog(LOG_ERR,
-					       "maximum restart rate exceeded");
-				}
+				dkimf_log(curconf, LOG_ERR,
+					  "maximum restart rate exceeded");
 
 				return EX_UNAVAILABLE;
 			}
@@ -16539,7 +16373,7 @@ main(int argc, char **argv)
 
 				saveerrno = errno;
 
-				syslog(LOG_ERR, "fork(): %s", strerror(errno));
+				dkimf_log(curconf, LOG_ERR, "fork(): %s", strerror(errno));
 
 				errno = saveerrno;
 			}
@@ -16572,11 +16406,8 @@ main(int argc, char **argv)
 		}
 		else
 		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_ERR, "can't write pid to %s: %s",
-				       pidfile, strerror(errno));
-			}
+			dkimf_log(curconf, LOG_ERR, "can't write pid to %s: %s",
+				  pidfile, strerror(errno));
 		}
 	}
 
@@ -16593,11 +16424,8 @@ main(int argc, char **argv)
 	status = pthread_sigmask(SIG_BLOCK, &sigset, NULL);
 	if (status != 0)
 	{
-		if (curconf->conf_dolog)
-		{
-			syslog(LOG_ERR, "pthread_sigprocmask(): %s",
-			       strerror(status));
-		}
+		dkimf_log(curconf, LOG_ERR, "pthread_sigprocmask(): %s",
+			  strerror(status));
 
 		fprintf(stderr, "%s: pthread_sigprocmask(): %s\n", progname,
 		        strerror(status));
@@ -16615,22 +16443,19 @@ main(int argc, char **argv)
 		{
 			if (initgroups(pw->pw_name, gid) != 0)
 			{
-				if (curconf->conf_dolog)
-					syslog(LOG_ERR, "initgroups(): %s", strerror(errno));
+				dkimf_log(curconf, LOG_ERR, "initgroups(): %s", strerror(errno));
 				fprintf(stderr, "%s: initgroups(): %s", progname, strerror(errno));
 				return EX_NOPERM;
 			}
 			else if (setgid(gid) != 0)
 			{
-				if (curconf->conf_dolog)
-					syslog(LOG_ERR, "setgid(): %s", strerror(errno));
+				dkimf_log(curconf, LOG_ERR, "setgid(): %s", strerror(errno));
 				fprintf(stderr, "%s: setgid(): %s", progname, strerror(errno));
 				return EX_NOPERM;
 			}
 			else if (setuid(pw->pw_uid) != 0)
 			{
-				if (curconf->conf_dolog)
-					syslog(LOG_ERR, "setuid(): %s", strerror(errno));
+				dkimf_log(curconf, LOG_ERR, "setuid(): %s", strerror(errno));
 				fprintf(stderr, "%s: setuid(): %s", progname, strerror(errno));
 				return EX_NOPERM;
 			}
@@ -16640,9 +16465,8 @@ main(int argc, char **argv)
 	/* initialize DKIM library */
 	if (!dkimf_config_setlib(curconf, &p))
 	{
-		if (curconf->conf_dolog)
-			syslog(LOG_ERR, "can't configure DKIM library: %s", p);
-			fprintf(stderr, "%s: can't configure DKIM library: %s", progname, p);
+		dkimf_log(curconf, LOG_ERR, "can't configure DKIM library: %s", p);
+		fprintf(stderr, "%s: can't configure DKIM library: %s", progname, p);
 		return EX_SOFTWARE;
 	}
 
@@ -16658,11 +16482,8 @@ main(int argc, char **argv)
 		status = dkimf_socket_cleanup(sock);
 		if (status != 0)
 		{
-			if (curconf->conf_dolog)
-			{
-				syslog(LOG_ERR, "socket cleanup failed: %s",
-				       strerror(status));
-			}
+			dkimf_log(curconf, LOG_ERR, "socket cleanup failed: %s",
+				  strerror(status));
 
 			fprintf(stderr, "%s: socket cleanup failed: %s\n",
 			        progname, strerror(status));
@@ -16705,8 +16526,7 @@ main(int argc, char **argv)
 		/* register with the milter interface */
 		if (smfi_register(smfilter) == MI_FAILURE)
 		{
-			if (curconf->conf_dolog)
-				syslog(LOG_ERR, "smfi_register() failed");
+			dkimf_log(curconf, LOG_ERR, "smfi_register() failed");
 
 			fprintf(stderr, "%s: smfi_register() failed\n",
 			        progname);
@@ -16723,8 +16543,7 @@ main(int argc, char **argv)
 		/* try to establish the milter socket */
 		if (smfi_opensocket(FALSE) == MI_FAILURE)
 		{
-			if (curconf->conf_dolog)
-				syslog(LOG_ERR, "smfi_opensocket() failed");
+			dkimf_log(curconf, LOG_ERR, "smfi_opensocket() failed");
 
 			fprintf(stderr, "%s: smfi_opensocket() failed\n",
 			        progname);
@@ -16755,16 +16574,16 @@ main(int argc, char **argv)
 		{
 			if (dolog)
 			{
-				syslog(LOG_WARNING,
-				       "WARNING: verifier mode operating without rsa-sha256 support");
+				dkimf_log(curconf, LOG_WARNING,
+				          "WARNING: verifier mode operating without rsa-sha256 support");
 			}
 		}
 		else
 		{
 			if (dolog)
 			{
-				syslog(LOG_ERR,
-				       "verifier mode operating without rsa-sha256 support; terminating");
+				dkimf_log(curconf, LOG_ERR,
+				          "verifier mode operating without rsa-sha256 support; terminating");
 			}
 
 			fprintf(stderr,
@@ -16836,8 +16655,8 @@ main(int argc, char **argv)
 			fprintf(stderr,
 			        "%s: can't initialize popauth mutex: %s\n",
 			        progname, strerror(status));
-			syslog(LOG_ERR, "can't initialize mutex: %s",
-			       popdbfile);
+			dkimf_log(curconf, LOG_ERR, "can't initialize mutex: %s",
+			          popdbfile);
 		}
 
 		status = dkimf_db_open(&popdb, popdbfile,
@@ -16849,8 +16668,8 @@ main(int argc, char **argv)
 
 			if (dolog)
 			{
-				syslog(LOG_ERR, "can't open database %s: %s",
-				       popdbfile, err);
+				dkimf_log(curconf, LOG_ERR, "can't open database %s: %s",
+				          popdbfile, err);
 			}
 
 			dkimf_zapkey(curconf);
@@ -16867,21 +16686,15 @@ main(int argc, char **argv)
 	dkimf_stats_init();
 #endif /* _FFR_STATS */
 
-	if (curconf->conf_dolog)
-	{
-		syslog(LOG_INFO, "%s v%s starting (%s)", DKIMF_PRODUCT,
-		       VERSION, argstr);
-	}
+	dkimf_log(curconf, LOG_INFO, "%s v%s starting (%s)", DKIMF_PRODUCT,
+		  VERSION, argstr);
 
 	/* spawn the SIGUSR1 handler */
 	status = pthread_create(&rt, NULL, dkimf_reloader, NULL);
 	if (status != 0)
 	{
-		if (curconf->conf_dolog)
-		{
-			syslog(LOG_ERR, "pthread_create(): %s",
-			       strerror(status));
-		}
+		dkimf_log(curconf, LOG_ERR, "pthread_create(): %s",
+			  strerror(status));
 
 		if (!autorestart && pidfile != NULL)
 			(void) unlink(pidfile);
@@ -16893,12 +16706,9 @@ main(int argc, char **argv)
 	errno = 0;
 	status = smfi_main();
 
-	if (curconf->conf_dolog)
-	{
-		syslog(LOG_INFO,
-		       "%s v%s terminating with status %d, errno = %d",
-		       DKIMF_PRODUCT, VERSION, status, errno);
-	}
+	dkimf_log(curconf, LOG_INFO,
+		  "%s v%s terminating with status %d, errno = %d",
+		  DKIMF_PRODUCT, VERSION, status, errno);
 
 #ifdef POPAUTH
 	if (popdb != NULL)

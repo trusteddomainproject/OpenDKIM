@@ -260,10 +260,10 @@ KeyFile			/var/db/dkim/example.private
 ##  LogWhy { yes | no }
 ##  	default "no"
 ##
-##  If logging is enabled (see Syslog below), issues very detailed logging
-##  about the logic behind the filter's decision to either sign a message
-##  or verify it.  The logic behind the decision is non-trivial and can be
-##  confusing to administrators not familiar with its operation.  A
+##  If logging is enabled (see Syslog and StdoutLog below), issues very
+##  detailed logging about the logic behind the filter's decision to either
+##  sign a message or verify it.  The logic behind the decision is non-trivial
+##  and can be confusing to administrators not familiar with its operation.  A
 ##  description of how the decision is made can be found in the OPERATIONS
 ##  section of the opendkim(8) man page.  This causes a large increase
 ##  in the amount of log data generated for each message, so it should be
@@ -723,6 +723,13 @@ Syslog			Yes
 ##
 ##  Specifies which directory will be used for creating temporary files
 ##  during message processing.
+
+##  StdoutLog { yes | no }
+##  	default "no"
+##
+##  Log informational and error activity to stdout?
+
+# StdoutLog		No
 
 # TemporaryDirectory	/tmp
 
