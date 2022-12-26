@@ -782,10 +782,16 @@ fi
 
 if test \( "$sslpath" = "auto" -o x"$sslpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-	PKG_CHECK_MODULES([LIBCRYPTO], [openssl >= 0.9.7],
-	                  [openssl_found="yes"],
+	PKG_CHECK_MODULES([LIBCRYPTO], [openssl >= 1.1.1],
+	                  [openssl_found="yes"
+	                   openssl_modern="yes"],
 	                  [openssl_found="no"
-	                   AC_MSG_WARN([pkg-config for openssl not found, trying manual search...])
+	                   PKG_CHECK_MODULES([LIBCRYPTO], [openssl >= 0.9.7],
+	                                     [openssl_found="yes"
+	                                      openssl_modern="no"],
+	                                     [openssl_found="no"
+	                                     AC_MSG_WARN([pkg-config for openssl not found, trying manual search...])
+	                                     ])
 	                  ])
 elif test "$sslpath" != "auto" -a x"$sslpath" != x"yes"
 then
@@ -860,7 +866,9 @@ then
 	AC_SEARCH_LIBS([ERR_peek_error], [crypto], ,
 	               AC_MSG_ERROR([libcrypto not found]))
 
-	AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
+	if test x"$openssl_modern" = x"no"
+	then
+		AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
 		[
 			if test x"$enable_shared" = x"yes"
 			then
@@ -879,7 +887,8 @@ then
 			AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
 			               AC_MSG_ERROR([libssl not found]), [-ldl])
 		]
-	)
+		)
+	fi
 
 	AC_CHECK_DECL([SHA256_DIGEST_LENGTH],
                       AC_DEFINE([HAVE_SHA256], 1,

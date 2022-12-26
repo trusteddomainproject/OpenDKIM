@@ -222,7 +222,9 @@ dkimf_crypto_free_id(void *ptr)
 	{
 		assert(pthread_setspecific(id_key, ptr) == 0);
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000
 		ERR_remove_state(0);
+#endif
 
 		free(ptr);
 
@@ -357,8 +359,10 @@ dkimf_crypto_init(void)
 	if (status != 0)
 		return status;
 
+#if OPENSSL_VERSION_NUMBER < 0x10101000
 	SSL_load_error_strings();
 	SSL_library_init();
+#endif
 	ERR_load_crypto_strings();
 
 	CRYPTO_set_id_callback(&dkimf_crypto_get_id);
@@ -395,8 +399,10 @@ dkimf_crypto_free(void)
 		CRYPTO_cleanup_all_ex_data();
 		CONF_modules_free();
 		EVP_cleanup();
+#if OPENSSL_VERSION_NUMBER < 0x10100000
 		ERR_free_strings();
 		ERR_remove_state(0);
+#endif
 
 		if (nmutexes > 0)
 		{
