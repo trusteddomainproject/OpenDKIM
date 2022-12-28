@@ -207,12 +207,10 @@ struct dkim_crypto
 	gnutls_datum_t 		crypto_rsaout;
 	gnutls_datum_t 		crypto_keydata;
 #else /* USE_GNUTLS */
-	u_char			crypto_pad;
 	int			crypto_keysize;
 	size_t			crypto_inlen;
 	size_t			crypto_outlen;
 	EVP_PKEY *		crypto_pkey;
-	void *			crypto_key;
 	BIO *			crypto_keydata;
 	u_char *		crypto_in;
 	u_char *		crypto_out;
