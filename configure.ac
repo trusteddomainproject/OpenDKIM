@@ -8,7 +8,7 @@
 #
 # Setup
 #
-AC_PREREQ(2.61)
+AC_PREREQ([2.71])
 
 #
 # Package version
@@ -30,17 +30,15 @@ m4_define([LIBVERSION_AGE], 0)
 #
 # Autotools setup
 #
-AC_INIT([OpenDKIM],
-        [VERSION_RELEASE.VERSION_MAJOR_REV.VERSION_MINOR_REV],
-        [bugs@opendkim.org])
+AC_INIT([OpenDKIM],[VERSION_RELEASE.VERSION_MAJOR_REV.VERSION_MINOR_REV],[bugs@opendkim.org])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE(
   1.11.1
   dnl Automake version before 1.13 (when the serial-tests option was
   dnl still the default) still defined the badly obsolete macro
-  dnl 'AM_PROG_INSTALL'.
-  m4_ifndef([AM_PROG_INSTALL], [serial-tests])
+  dnl 'AC_PROG_INSTALL'.
+  m4_ifndef([AC_PROG_INSTALL], [serial-tests])
 )
 AC_CONFIG_HEADERS([build-config.h])
 
@@ -62,9 +60,9 @@ AC_SUBST([LIBOPENDKIM_VERSION_INFO])
 # Checks for programs
 #
 AC_PROG_CC
-AC_PROG_CC_C99
+# AC_REQUIRE(AC_PROG_CC)
 AM_PROG_CC_C_O
-AC_PROG_LIBTOOL
+LT_INIT
 
 PKG_PROG_PKG_CONFIG
 
@@ -2645,7 +2643,7 @@ AC_SUBST(SPECBUILDREQUIRES)
 #
 # Finish up
 #
-AC_OUTPUT([	Makefile
+AC_CONFIG_FILES([	Makefile
 		docs/Makefile
 		autobuild/Makefile
 		contrib/Makefile
@@ -2703,3 +2701,4 @@ AC_OUTPUT([	Makefile
 			reputation/opendkim-rephistory.8
 			reputation/repute.pc
 ])
+AC_OUTPUT
