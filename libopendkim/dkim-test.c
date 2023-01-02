@@ -464,7 +464,7 @@ dkim_test_key2(DKIM_LIB *lib, char *selector, char *domain,
 		}
 		else
 		{
-			crypto->crypto_keysize = EVP_PKEY_get_size(crypto->crypto_pkey);
+			crypto->crypto_keysize = EVP_PKEY_size(crypto->crypto_pkey);
 
 			outkey = BIO_new(BIO_s_mem());
 			if (outkey == NULL)
