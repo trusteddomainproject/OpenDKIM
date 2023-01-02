@@ -835,7 +835,7 @@ main(int argc, char **argv)
 			}
 		}
 
-		if (EVP_PKEY_get_base_id(pkey) != EVP_PKEY_RSA)
+		if (EVP_PKEY_base_id(pkey) != EVP_PKEY_RSA)
 		{
 			fprintf(stderr, "%s: not an RSA key\n", progname);
 			(void) dkimf_db_close(db);

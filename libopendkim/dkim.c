@@ -1265,7 +1265,7 @@ dkim_privkey_load(DKIM *dkim)
 		}
 	}
 
-	crypto->crypto_outlen = EVP_PKEY_get_size(crypto->crypto_pkey);
+	crypto->crypto_outlen = EVP_PKEY_size(crypto->crypto_pkey);
 	crypto->crypto_keysize = crypto->crypto_outlen * 8;
 
 	crypto->crypto_out = DKIM_MALLOC(dkim, crypto->crypto_outlen);
@@ -5793,7 +5793,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		{
 			EVP_MD_CTX *md_ctx;
 
-			if (EVP_PKEY_get_id(crypto->crypto_pkey) != EVP_PKEY_ED25519)
+			if (EVP_PKEY_id(crypto->crypto_pkey) != EVP_PKEY_ED25519)
 			{
 				dkim_error(dkim,
 				           "s=%s d=%s: not an ED25519 key",
@@ -5847,12 +5847,12 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 
 			EVP_MD_CTX_free(md_ctx);
 
-			crypto->crypto_keysize = EVP_PKEY_get_size(crypto->crypto_pkey);
+			crypto->crypto_keysize = EVP_PKEY_size(crypto->crypto_pkey);
 		}
 		else
 # endif /* HAVE_ED25519 */
 		{
-			if (EVP_PKEY_get_base_id(crypto->crypto_pkey) != EVP_PKEY_RSA)
+			if (EVP_PKEY_base_id(crypto->crypto_pkey) != EVP_PKEY_RSA)
 			{
 				dkim_error(dkim,
 				           "s=%s d=%s: not an RSA key",
@@ -5866,7 +5866,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 				return DKIM_STAT_OK;
 			}
 
-			crypto->crypto_keysize = EVP_PKEY_get_size(crypto->crypto_pkey);
+			crypto->crypto_keysize = EVP_PKEY_size(crypto->crypto_pkey);
 
 			crypto->crypto_in = sig->sig_sig;
 			crypto->crypto_inlen = sig->sig_siglen;
