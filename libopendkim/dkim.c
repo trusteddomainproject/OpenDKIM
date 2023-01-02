@@ -75,6 +75,7 @@
 # include <openssl/bio.h>
 # include <openssl/err.h>
 # include <openssl/sha.h>
+# include <openssl/evp.h>
 #endif /* USE_GNUTLS */
 
 /* libopendkim includes */
@@ -200,12 +201,6 @@ void dkim_error __P((DKIM *, const char *, ...));
 # define BIO_CLOBBER(x)	if ((x) != NULL) \
 			{ \
 				BIO_free((x)); \
-				(x) = NULL; \
-			}
-
-# define RSA_CLOBBER(x)	if ((x) != NULL) \
-			{ \
-				RSA_free((x)); \
 				(x) = NULL; \
 			}
 
@@ -1270,32 +1265,14 @@ dkim_privkey_load(DKIM *dkim)
 		}
 	}
 
-	if (dkim->dkim_signalg == DKIM_SIGN_ED25519SHA256)
-	{
-		crypto->crypto_keysize = EVP_PKEY_size(crypto->crypto_pkey) * 8;
-	}
-	else
-	{
-		crypto->crypto_key = EVP_PKEY_get1_RSA(crypto->crypto_pkey);
-		if (crypto->crypto_key == NULL)
-		{
-			dkim_load_ssl_errors(dkim, 0);
-			dkim_error(dkim, "EVP_PKEY_get1_RSA() failed");
-			BIO_CLOBBER(crypto->crypto_keydata);
-			return DKIM_STAT_NORESOURCE;
-		}
+	crypto->crypto_outlen = EVP_PKEY_size(crypto->crypto_pkey);
+	crypto->crypto_keysize = crypto->crypto_outlen * 8;
 
-		crypto->crypto_keysize = RSA_size(crypto->crypto_key) * 8;
-		crypto->crypto_pad = RSA_PKCS1_PADDING;
-	}
-
-	crypto->crypto_outlen = crypto->crypto_keysize / 8;
 	crypto->crypto_out = DKIM_MALLOC(dkim, crypto->crypto_outlen);
 	if (crypto->crypto_out == NULL)
 	{
 		dkim_error(dkim, "unable to allocate %d byte(s)",
-		           crypto->crypto_keysize / 8);
-		RSA_free(crypto->crypto_key);
+		           crypto->crypto_outlen);
 		BIO_CLOBBER(crypto->crypto_keydata);
 		return DKIM_STAT_NORESOURCE;
 	}
@@ -3675,7 +3652,6 @@ static DKIM_STAT
 dkim_eom_sign(DKIM *dkim)
 {
 	int status;
-	size_t l = 0;
 	size_t diglen;
 	size_t siglen = 0;
 	size_t len;
@@ -3811,9 +3787,7 @@ dkim_eom_sign(DKIM *dkim)
 #ifdef USE_GNUTLS
 	if (crypto->crypto_privkey == NULL)
 #else /* USE_GNUTLS */
-	if (!(crypto->crypto_key != NULL ||
-	      (sig->sig_signalg == DKIM_SIGN_ED25519SHA256 &&
-	       crypto->crypto_pkey != NULL)))
+	if (crypto->crypto_pkey == NULL)
 #endif /* USE_GNUTLS */
 	{
 		dkim_error(dkim, "private key load failed");
@@ -3949,38 +3923,82 @@ dkim_eom_sign(DKIM *dkim)
 	  case DKIM_SIGN_RSASHA1:
 	  case DKIM_SIGN_RSASHA256:
 	  {
-		int nid;
 		struct dkim_crypto *crypto;
+		EVP_PKEY_CTX *pkey_ctx;
+		const EVP_MD *md;
 
 		crypto = (struct dkim_crypto *) sig->sig_signature;
 
-		nid = NID_sha1;
+		pkey_ctx = EVP_PKEY_CTX_new(crypto->crypto_pkey, NULL);
 
-		if (dkim_libfeature(dkim->dkim_libhandle,
-		                    DKIM_FEATURE_SHA256) &&
-		    sig->sig_hashtype == DKIM_HASHTYPE_SHA256)
-			nid = NID_sha256;
+		if (pkey_ctx == NULL)
+		{
+			dkim_error(dkim, "failed to allocate EVP_PKEY context");
+			BIO_CLOBBER(crypto->crypto_keydata);
+			return DKIM_STAT_NORESOURCE;
+		}
 
-		status = RSA_sign(nid, digest, diglen,
-	                          crypto->crypto_out, (int *) &l,
-		                  crypto->crypto_key);
-		if (status != 1 || l == 0)
+		if (EVP_PKEY_sign_init(pkey_ctx) <= 0)
 		{
 			dkim_load_ssl_errors(dkim, 0);
 			dkim_error(dkim,
-			           "signature generation failed (status %d, length %d)",
-			           status, l);
+			           "failed to initialize EVP_PKEY context");
 
-			RSA_free(crypto->crypto_key);
+			EVP_PKEY_CTX_free(pkey_ctx);
 			BIO_CLOBBER(crypto->crypto_keydata);
 
 			return DKIM_STAT_INTERNAL;
 		}
 
-		crypto->crypto_outlen = l;
+		if (EVP_PKEY_CTX_set_rsa_padding(pkey_ctx, RSA_PKCS1_PADDING) <= 0)
+		{
+			dkim_load_ssl_errors(dkim, 0);
+			dkim_error(dkim, "failed to set RSA padding mode");
+
+			EVP_PKEY_CTX_free(pkey_ctx);
+			BIO_CLOBBER(crypto->crypto_keydata);
+
+			return DKIM_STAT_INTERNAL;
+		}
+
+		md = EVP_sha1();
+
+		if (dkim_libfeature(dkim->dkim_libhandle,
+		                    DKIM_FEATURE_SHA256) &&
+		    sig->sig_hashtype == DKIM_HASHTYPE_SHA256)
+			md = EVP_sha256();
+
+		if (EVP_PKEY_CTX_set_signature_md(pkey_ctx, md) <= 0)
+		{
+			dkim_load_ssl_errors(dkim, 0);
+			dkim_error(dkim, "failed to set message digest type");
+
+			EVP_PKEY_CTX_free(pkey_ctx);
+			BIO_CLOBBER(crypto->crypto_keydata);
+
+			return DKIM_STAT_INTERNAL;
+		}
+
+		status = EVP_PKEY_sign(pkey_ctx, crypto->crypto_out,
+		                       &crypto->crypto_outlen, digest, diglen);
+
+		if (status != 1 || crypto->crypto_outlen == 0)
+		{
+			dkim_load_ssl_errors(dkim, 0);
+			dkim_error(dkim,
+			           "signature generation failed (status %d, length %d)",
+			           status, crypto->crypto_outlen);
+
+			EVP_PKEY_CTX_free(pkey_ctx);
+			BIO_CLOBBER(crypto->crypto_keydata);
+
+			return DKIM_STAT_INTERNAL;
+		}
 
 		signature = crypto->crypto_out;
 		siglen = crypto->crypto_outlen;
+
+		EVP_PKEY_CTX_free(pkey_ctx);
 
 		break;
 	  }
@@ -4000,7 +4018,6 @@ dkim_eom_sign(DKIM *dkim)
 			dkim_error(dkim,
 			           "failed to initialize digest context");
 
-			RSA_free(crypto->crypto_key);
 			BIO_CLOBBER(crypto->crypto_keydata);
 
 			return DKIM_STAT_INTERNAL;
@@ -4010,9 +4027,9 @@ dkim_eom_sign(DKIM *dkim)
 		                            NULL, NULL, crypto->crypto_pkey);
 		if (status == 1)
 		{
-			l = crypto->crypto_outlen;
-			status = EVP_DigestSign(md_ctx, crypto->crypto_out, &l,
-		                                digest, diglen);
+			status = EVP_DigestSign(md_ctx, crypto->crypto_out,
+			                        &crypto->crypto_outlen, digest,
+			                        diglen);
 		}
 
 		if (status != 1)
@@ -4020,15 +4037,13 @@ dkim_eom_sign(DKIM *dkim)
 			/* dkim_load_ssl_errors(dkim, 0); */
 			dkim_error(dkim,
 			           "signature generation failed (status %d, length %d, %s)",
-			           status, l, ERR_error_string(ERR_get_error(), NULL));
+			           status, crypto->crypto_outlen,
+			           ERR_error_string(ERR_get_error(), NULL));
 
-			RSA_free(crypto->crypto_key);
 			BIO_CLOBBER(crypto->crypto_keydata);
 
 			return DKIM_STAT_INTERNAL;
 		}
-
-		crypto->crypto_outlen = l;
 
 		signature = crypto->crypto_out;
 		siglen = crypto->crypto_outlen;
@@ -5146,7 +5161,6 @@ dkim_free(DKIM *dkim)
 #else /* USE_GNUTLS */
 					BIO_CLOBBER(crypto->crypto_keydata);
 					EVP_CLOBBER(crypto->crypto_pkey);
-					RSA_CLOBBER(crypto->crypto_key);
 					CLOBBER(crypto->crypto_out);
 #endif /* USE_GNUTLS */
 				}
@@ -5558,6 +5572,8 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 # endif /* GNUTLS_VERSION_MAJOR == 3 */
 #else /* USE_GNUTLS */
 	BIO *key;
+	EVP_PKEY_CTX *pkey_ctx;
+	const EVP_MD *md;
 #endif /* USE_GNUTLS */
 	u_char *digest = NULL;
 	struct dkim_crypto *crypto;
@@ -5836,12 +5852,10 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		else
 # endif /* HAVE_ED25519 */
 		{
-			crypto->crypto_key = EVP_PKEY_get1_RSA(crypto->crypto_pkey);
-			if (crypto->crypto_key == NULL)
+			if (EVP_PKEY_base_id(crypto->crypto_pkey) != EVP_PKEY_RSA)
 			{
-				dkim_sig_load_ssl_errors(dkim, sig, 0);
 				dkim_error(dkim,
-				           "s=%s d=%s: EVP_PKEY_get1_RSA() failed",
+				           "s=%s d=%s: not an RSA key",
 				           dkim_sig_getselector(sig),
 				           dkim_sig_getdomain(sig));
 
@@ -5852,23 +5866,69 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 				return DKIM_STAT_OK;
 			}
 
-			crypto->crypto_keysize = RSA_size(crypto->crypto_key);
-			crypto->crypto_pad = RSA_PKCS1_PADDING;
+			crypto->crypto_keysize = EVP_PKEY_size(crypto->crypto_pkey);
 
 			crypto->crypto_in = sig->sig_sig;
 			crypto->crypto_inlen = sig->sig_siglen;
 
-			nid = NID_sha1;
+			pkey_ctx = EVP_PKEY_CTX_new(crypto->crypto_pkey, NULL);
+
+			if (pkey_ctx == NULL)
+			{
+				dkim_error(dkim,
+				           "failed to allocate EVP_PKEY context");
+				BIO_CLOBBER(key);
+				return DKIM_STAT_NORESOURCE;
+			}
+
+			if (EVP_PKEY_verify_init(pkey_ctx) <= 0)
+			{
+				dkim_sig_load_ssl_errors(dkim, sig, 0);
+				dkim_error(dkim,
+				           "failed to initialize EVP_PKEY context");
+
+				EVP_PKEY_CTX_free(pkey_ctx);
+				BIO_CLOBBER(key);
+
+				return DKIM_STAT_INTERNAL;
+			}
+
+			if (EVP_PKEY_CTX_set_rsa_padding(pkey_ctx, RSA_PKCS1_PADDING) <= 0)
+			{
+				dkim_sig_load_ssl_errors(dkim, sig, 0);
+				dkim_error(dkim,
+				           "failed to set RSA padding mode");
+
+				EVP_PKEY_CTX_free(pkey_ctx);
+				BIO_CLOBBER(key);
+
+				return DKIM_STAT_INTERNAL;
+			}
+
+			md = EVP_sha1();
 
 			if (dkim_libfeature(dkim->dkim_libhandle,
 			                    DKIM_FEATURE_SHA256) &&
 			    sig->sig_hashtype == DKIM_HASHTYPE_SHA256)
-				nid = NID_sha256;
+				md = EVP_sha256();
 
-			vstat = RSA_verify(nid, digest, diglen,
-			                   crypto->crypto_in,
-			                   crypto->crypto_inlen,
-			                   crypto->crypto_key);
+			if (EVP_PKEY_CTX_set_signature_md(pkey_ctx, md) <= 0)
+			{
+				dkim_sig_load_ssl_errors(dkim, sig, 0);
+				dkim_error(dkim,
+				           "failed to set message digest type");
+
+				EVP_PKEY_CTX_free(pkey_ctx);
+				BIO_CLOBBER(key);
+
+				return DKIM_STAT_INTERNAL;
+			}
+
+			vstat = EVP_PKEY_verify(pkey_ctx, crypto->crypto_in,
+			                        crypto->crypto_inlen, digest,
+			                        diglen);
+
+			EVP_PKEY_CTX_free(pkey_ctx);
 		}
 
 		dkim_sig_load_ssl_errors(dkim, sig, 0);
@@ -5876,13 +5936,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		sig->sig_keybits = 8 * crypto->crypto_keysize;
 
 		BIO_CLOBBER(key);
-		EVP_PKEY_free(crypto->crypto_pkey);
-		crypto->crypto_pkey = NULL;
-		if (crypto->crypto_key != NULL)
-		{
-			RSA_free(crypto->crypto_key);
-			crypto->crypto_key = NULL;
-		}
+		EVP_CLOBBER(crypto->crypto_pkey);
 #endif /* USE_GNUTLS */
 
 		if (vstat == 1)
@@ -7598,40 +7652,22 @@ dkim_sig_getreportinfo(DKIM *dkim, DKIM_SIGINFO *sig,
 		  }
 #else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
-		  {
-			struct dkim_sha1 *sha1;
-
-			sha1 = (struct dkim_sha1 *) sig->sig_hdrcanon->canon_hash;
-			if (hfd != NULL)
-				*hfd = sha1->sha1_tmpfd;
-
-			if (bfd != NULL)
-			{
-				sha1 = (struct dkim_sha1 *) sig->sig_bodycanon->canon_hash;
-				*bfd = sha1->sha1_tmpfd;
-			}
-
-			break;
-		  }
-
-# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
-			struct dkim_sha256 *sha256;
+			struct dkim_sha *sha;
 
-			sha256 = (struct dkim_sha256 *) sig->sig_hdrcanon->canon_hash;
+			sha = (struct dkim_sha *) sig->sig_hdrcanon->canon_hash;
 			if (hfd != NULL)
-				*hfd = sha256->sha256_tmpfd;
+				*hfd = sha->sha_tmpfd;
 
 			if (bfd != NULL)
 			{
-				sha256 = (struct dkim_sha256 *) sig->sig_bodycanon->canon_hash;
-				*bfd = sha256->sha256_tmpfd;
+				sha = (struct dkim_sha *) sig->sig_bodycanon->canon_hash;
+				*bfd = sha->sha_tmpfd;
 			}
 
 			break;
 		  }
-# endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 
 		  default:
