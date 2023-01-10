@@ -430,6 +430,8 @@ contacting an LDAP server.  The default is "False".
 .I LogResults (boolean)
 If logging is enabled (see
 .I Syslog
+and
+.I StdoutLog
 below), requests that the results of evaluation of all signatures that were
 at least partly intact (i.e., the "d=", "s=", and "b=" tags could be
 extracted).
@@ -438,6 +440,8 @@ extracted).
 .I LogWhy (boolean)
 If logging is enabled (see
 .I Syslog
+and
+.I StdoutLog
 below), issues very detailed logging about the logic behind the filter's
 decision to either sign a message or verify it.  The logic behind the
 decision is non-trivial and can be confusing to administrators not familiar
@@ -1135,6 +1139,14 @@ Log via calls to
 .I syslog(3)
 additional entries indicating successful signing or verification of
 messages.
+
+.TP
+.I StdoutLog (Boolean)
+Log any interesting activity to standard output. The
+.I SyslogSuccess
+parameter has the same affect with this parameter as it has with the
+.I Syslog
+parameter.
 
 .TP
 .I TemporaryDirectory (string)
