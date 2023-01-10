@@ -10766,7 +10766,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, struct dkimf_dstring *tmpstr,
  				                     " (%u-bit key%s%s)",
  				                     keybits,
  				                     dnssec == NULL ? ""
- 				                                    : "; ",
+ 				                                    : ", ",
  				                     dnssec == NULL ? ""
  				                                    : dnssec);
  			}
