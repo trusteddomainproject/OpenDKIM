@@ -16,5 +16,48 @@ ExecReload=/bin/kill -USR1 $MAINPID
 User=opendkim
 Group=opendkim
 
+# As the file system is mounted read-only with ProtectSystem=strict, adding
+# /var/spool/postfix/opendkim by default makes it possible to use opendkim
+# with postfix without further configuration.
+ReadWritePaths=-/var/spool/postfix/opendkim
+RuntimeDirectory=opendkim
+
+# Hardening - see systemd.exec(5)
+CapabilityBoundingSet=
+LockPersonality=true
+MemoryDenyWriteExecute=true
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateMounts=true
+PrivateTmp=true
+PrivateUsers=true
+ProcSubset=pid
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+ProtectSystem=strict
+RemoveIPC=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~ @privileged @resources
+
+# This restricts this service from executing binaries other than opendkim
+# itself. This is really effective at e.g. making it impossible to an
+# attacker to spawn a shell on the system, but might be more restrictive
+# than desired. If you need to, you can permit the execution of extra
+# binaries by adding an extra ExecPaths= directive with the command
+# systemctl edit opendkim.service
+NoExecPaths=/
+ExecPaths=@sbindir@/opendkim /usr/lib
+
 [Install]
 WantedBy=multi-user.target
