@@ -164,12 +164,9 @@ static void vbr_error __P((VBR *, const char *, ...));
 */
 
 size_t
-vbr_strlcpy(dst, src, size)
-	register char *dst;
-	register const char *src;
-	ssize_t size;
+vbr_strlcpy(char *dst, const char *src, ssize_t size)
 {
-	register ssize_t i;
+	ssize_t i;
 
 	if (size-- <= 0)
 		return strlen(src);
