@@ -47,13 +47,13 @@ class DKIM(object):
                 "identity": "dkim",
             }
 
-            if res1[0] and len(res1[1]) > 0:
+            if res1[0] and res1[1]:
                 res1 = res1[1][0]
                 reputons["rating"] = res1[0]
                 reputons["sample-size"] = res1[2]
                 reputons["generated"] = res1[1]
 
-            if res2[0] and len(res2[1]) > 0:
+            if res2[0] and res2[1]:
                 res2 = res2[1][0]
                 reputons['rate'] = res2[0]
 
@@ -79,7 +79,7 @@ class DKIM(object):
             
             rows = yield self.cp.runQuery(query, {'domain': domain, 'reporter': reporter})
 
-            if len(rows) > 0:
+            if rows:
                 ret = dict(itertools.izip(fields, rows[0]))
             else:
                 ret = 0
@@ -103,7 +103,7 @@ class DKIM(object):
             fields = ['domain'] +  fields
 
             rows = yield self.cp.runQuery(query, { 'reporter' : reporter } )
-            if len(rows) > 0:
+            if rows:
                 ret = dict(itertools.izip(fields, rows[0]))
                 request.setHeader('Last-modified', rows[0][3].strftime("%A, %d, %B %Y %H:%M GMT"))
             else:

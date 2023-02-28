@@ -2,7 +2,8 @@
 **  Copyright (c) 2005, 2007, 2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2012, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2009-2012, 2015, The Trusted Domain Project.
+**    All rights reserved.
 */
 
 #ifndef _UTIL_H_
@@ -34,6 +35,7 @@ extern void dkim_min_timeval __P((struct timeval *, struct timeval *,
                                   struct timeval *, struct timeval **));
 extern int dkim_qp_decode __P((u_char *, u_char *, int));
 extern int dkim_qp_encode __P((u_char *, u_char *, int));
+extern _Bool dkim_strisprint __P((u_char *));
 
 #ifdef NEED_FAST_STRTOUL
 extern unsigned long dkim_strtoul __P((const char *str, char **endptr,

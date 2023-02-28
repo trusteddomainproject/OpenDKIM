@@ -13,6 +13,7 @@
 [\-o file]
 [\-r secs]
 [\-R secs]
+[\-s]
 [\-S]
 [\-t secs]
 [\-T secs]
@@ -57,8 +58,7 @@ hostname will be used; if the executing user can't be determined,
 "hostmaster" will be used.
 .TP
 .I \-d domain
-Restricts output to those records for which the domain field is the
-specified
+Restricts output to those records for which the domain field is the specified
 .I domain.
 .TP
 .I \-D
@@ -99,6 +99,9 @@ When generating an SOA record (see
 below), use
 .I secs
 as the zone retry time.  The default is 1800.
+.TP
+.I \-s
+Extends the logic of "-d" to include subdomains.
 .TP
 .I \-S
 Asks for an SOA record to be generated at the top of the output.  The
@@ -142,7 +145,7 @@ This man page covers the version of
 that shipped with version @VERSION@ of
 .I OpenDKIM.
 .SH COPYRIGHT
-Copyright (c) 2010, 2012, 2014, The Trusted Domain Project.
+Copyright (c) 2010, 2012, 2014, 2015, The Trusted Domain Project.
 All rights reserved.
 .SH SEE ALSO
 .I nsupdate(8),

@@ -200,7 +200,7 @@ are not generated.
 .TP
 .I DisableCryptoInit (Boolean)
 If set, skips initialization of the SSL library initialization steps, which
-are normaly required in multi-threaded environments.  This assumes some other
+are normally required in multi-threaded environments.  This assumes some other
 library opendkim is using will do the required initialization and shutdown.
 
 .TP
@@ -233,7 +233,6 @@ is defined.
 .I DomainKeysCompat (boolean)
 If set, backward compatibility with DomainKeys (RFC4870) key records is
 enabled.  When not set, such keys are considered to be syntactically invalid.
-The default is "false".
 
 .TP
 .I DontSignMailTo (dataset)
@@ -506,8 +505,8 @@ for all addresses.
 
 .TP
 .I MilterDebug (integer)
-Sets the debug level to be requested from the milter library.  The
-default is 0.
+Sets the debug level to be requested from the milter library.  Currently,
+the highest meaningful value is 6.
 
 .TP
 .I Minimum (string)
@@ -533,8 +532,7 @@ valid.
 .I MinimumKeyBits (integer)
 Establishes a minimum key size for acceptable signatures.  Signatures with
 smaller key sizes, even if they otherwise pass DKIM validation, will me marked
-as invalid.  The default is 1024, which accepts all signatures.  A value of
-0 causes the default to be used.
+as invalid.  The default is 1024.  A value of 0 accepts all keys.
 
 .TP
 .I Mode (string)
@@ -605,7 +603,7 @@ those tags will be applied.
 
 .TP
 .I OmitHeaders (dataset)
-Specifies a set of header fields that should be omitted when generating
+Specifies a comma-separated set of header fields that should be omitted when generating
 signatures.  If an entry in the list names any header field that is mandated
 by the DKIM specification, the entry is ignored.  A set of header fields is
 listed in the DKIM specification (RFC6376, Section 5.4) as "SHOULD NOT" be
@@ -613,6 +611,7 @@ signed; the default list for this parameter contains those fields
 (Return-Path, Received, Comments, Keywords, Bcc, Resent-Bcc and
 DKIM-Signature).  To omit no headers, simply use the string "." (or any
 string that will match no header field names).
+
 Specifying a list with this parameter replaces the default entirely, unless
 one entry is "*" in which case the list is interpreted as a delta to the
 default; for example, "*,+foobar" will use the entire default list plus
@@ -698,7 +697,7 @@ The default is
 
 .TP
 .I OversignHeaders (dataset)
-Specifies a set of header fields that should be included in all signature
+Specifies a comma-separated set of header fields that should be included in all signature
 header lists (the "h=" tag) once more than the number of times they were
 actually present in the signed message.  The set is empty by default.  The
 purpose of this, and especially of listing an absent header field, is to
@@ -716,16 +715,23 @@ Identifies a set of "peers" that identifies clients whose connections
 should be accepted without processing by this filter.  The set
 should contain on each line a hostname, domain name (e.g. ".example.com"),
 IP address, an IPv6 address (including an IPv4 mapped address), or a
-CIDR-style IP specification (e.g. "192.168.1.0/24").  An entry beginning
-with a bang ("!") character means "not", allowing exclusions of specific
-hosts that are otherwise members of larger sets.  Host and domain names are 
-matched first, then the IP or IPv6 address depending on the connection 
-type.  More precise entries are preferred over less precise ones, i.e. 
-"192.168.1.1" will match before "!192.168.1.0/24".  The text form of IPv6 
-addresses will be forced to lowercase when queried (RFC5952), so the contents
-of this data set should also use lowercase.  The IP address portion of an
-entry may optionally contain square brackets; both forms (with and without)
-will be checked.
+CIDR-style IP specification (e.g. "192.168.1.0/24").
+
+An entry beginning with a bang ("!") character means "not", allowing
+exclusions of specific hosts that are otherwise members of larger sets.  Host
+and domain names are matched first, then the IP or IPv6 address depending on
+the connection type.  More precise entries are preferred over less precise
+ones, i.e.  "192.168.1.1" will match before "!192.168.1.0/24".
+
+The text form of IPv6 addresses will be forced to lowercase when queried
+(RFC5952), so the contents of this data set should also use lowercase.  CIDR
+notation must use 0 for all unmasked bits (e.g. "10.0.0.1/8" will never
+match).  IPv6 addresses, whether single or in CIDR notation, must appear in
+the form produced by
+.I inet_ntop(3)
+which replaces consecutive zeros with "::" (e.g.  "0:0:0:0:0:0:0:1" will
+never match).  The IP address portion of an entry may optionally contain
+square brackets; both forms (with and without) will be checked.
 
 .TP
 .I PidFile (string)
@@ -789,7 +795,7 @@ setting.  By default, all header fields are included.
 Specifies a file containing a list of text replacement rules that are
 applied to the message header fields to replace certain content expected to be
 changed as the message passes through local MTAs.  This can be used to
-accommodate expected changes such as are made to From: fields by MTA
+accommodate expected changes such as those made to From: fields by MTA
 "masquerade" features.  Each entry in the file consists of a POSIX regular
 expression, followed by a tab (ASCII 9), followed by the text that should
 be used to replace the text matching the expression.  The '#' character
@@ -836,7 +842,6 @@ Where
 .I ResignMailTo
 triggers a re-signing action, this flag indicates whether or not all mail
 should be signed (if set) versus only verified mail being signed (if not set).
-The default is "false".
 @RESIGN_MANNOTICE@
 
 .TP
@@ -871,7 +876,7 @@ Gives the name of a Lua script that should be run after all of the header
 fields have been processed for a message; in particular, this is useful
 after all DKIM signatures have been detected and initial evaluation has
 been done.  The script has access to all of the header fields and connection
-information and can that certain signatures be ignored based on that
+information and can direct that certain signatures be ignored based on that
 information.  See
 .I opendkim-lua(3)
 for details. @LUA_MANNOTICE@
@@ -899,7 +904,7 @@ is defined.
 
 .TP
 .I SenderHeaders (dataset)
-Specifies an ordered list of header fields that should be searched to
+Specifies an ordered comma-separated list of header fields that should be searched to
 determine the sender of a message.  The first header field found is the
 one whose value is used.  This is mainly used when signing
 for deciding which signing request(s) to make.  By default, the "From"
@@ -947,14 +952,20 @@ If not set, no expiration time is added to signatures.
 
 .TP
 .I SignHeaders (dataset)
-Specifies the set of header fields that should be included when generating
-signatures.  If the list omits any header field that is mandated by the DKIM
-specification, those fields are implicitly added.  By default, those fields
-listed in the DKIM specification as "SHOULD" be signed (RFC6376, Section 5.4)
-will be signed by the filter.  See the
-.I OmitHeaders
-configuration option for more information about the format and interpretation
-of this field.
+Specifies the comma-separated set of header fields that should be included when
+generating signatures.  If the list omits any header field that is mandated by the
+DKIM specification, those fields are implicitly added.  A set of header fields is
+listed in the DKIM specification as "Common examples" to be signed (RFC6376,
+Section 5.4.1); the default list for this parameter contains those fields (From,
+Reply-To, Subject, Date, To, Cc, Resent-Date, Resent-From, Resent-To, Resent-Cc,
+In-Reply-To, References, List-Id, List-Help, List-Unsubscribe, List-Subscribe,
+List-Post, List-Owner, List-Archive, and in addition Resent-Sender).
+
+Specifying a list with this parameter replaces the default entirely, unless
+one entry is "*" in which case the list is interpreted as a delta to the
+default; for example, "*,+foobar" will use the entire default list plus
+the name "foobar", while "*,-Bcc" would use the entire default list except
+for the "Bcc" entry.
 
 .TP
 .I SigningTable (dataset)
@@ -1066,6 +1077,14 @@ is used.
 @STATS_MANNOTICE@
 
 .TP
+.I StatisticsPolicyScript (string)
+The statistics script is run after all of the DKIM verification and signing
+work has been completed but before any final message handling is done.  The
+main purpose of this script is to give the user an opportunity to examine the
+message or its signatures and make arbitrary additional statistical
+observations that should be recorded by the statistics module.
+
+.TP
 .I StatisticsPrefix (string)
 When
 .I AnonymousStatistics
@@ -1111,6 +1130,13 @@ allowed in
 The default is "mail".
 
 .TP
+.I SyslogName (string)
+Log via calls to
+.I syslog(3)
+using that name. That way one could distinguish multiple instances.
+The default is the name of the executable, normally "opendkim".
+
+.TP
 .I SyslogSuccess (Boolean)
 Log via calls to
 .I syslog(3)
@@ -1121,7 +1147,7 @@ messages.
 .I TemporaryDirectory (string)
 Specifies the directory in which temporary canonicalization files should
 be written.  The default is to use the
-.I libdkim
+.I libopendkim
 default location, currently
 .I /tmp.
 

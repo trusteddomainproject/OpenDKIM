@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009, 2010, 2012, 2014, The Trusted Domain Project.
+**  Copyright (c) 2009, 2010, 2012, 2014, 2015, The Trusted Domain Project.
 **    All rights reserved.
 */
 
@@ -38,6 +38,9 @@ extern struct nametable *results;
 extern struct nametable *settypes;
 extern struct nametable *sigerrors;
 extern struct nametable *sigparams;
+#ifdef _FFR_CONDITIONAL
+extern struct nametable *mandatory;
+#endif /* _FFR_CONDITIONAL */
 
 /* prototypes */
 extern const char *dkim_code_to_name __P((struct nametable *tbl,

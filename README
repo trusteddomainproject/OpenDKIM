@@ -2,17 +2,20 @@ OPENDKIM README
 ===============
 
 This directory has the latest open source DKIM filter software from The
-OpenDKIM Project.
+Trusted Domain Project.
 
-There is a web site at http://www.opendkim.org that is home for the latest
-updates.
+There is a web site at http://www.trusteddomain.org that is home for the
+latest updates.
 
 
 +--------------+
 | INTRODUCTION |
 +--------------+
 
-The Trusted Domain Project is a community effort to develop and maintain an open
+The Trusted Domain Project (TDP) is a non-profit corporation dedicated to
+research and development of techologies that promote trust in the use of
+domain names in on the Internet.  The OpenDKIM Project is an initiative of
+TDP, and is primarily community effort to develop and maintain an open
 source library for producing DKIM-aware applications, and a "milter"-based
 filter for providing DKIM service.
 
@@ -53,6 +56,7 @@ o OpenSSL (http://www.openssl.org, or ask your software vendor for a package).
   Any version will get you started, however v0.9.8 or later is required if
   you want to be able to sign or verify messages using the SHA256 message
   digest algorithm which is generally required for current DKIM applications.
+  OpenSSL 1.1.1 is required for ED25519 support.
 
 o sendmail v8.13.0 (or later), or Postfix 2.3, (or later) and libmilter.
   (These are only required if you are building the filter.)
@@ -277,5 +281,5 @@ re-generate your configuration and restart the filter:
 	FEATURE(`nocanonify')
 
 --
-Copyright (c) 2010-2012, 2014, The Trusted Domain Project.
+Copyright (c) 2010-2012, 2014, 2018, The Trusted Domain Project.
   All rights reserved.

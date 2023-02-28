@@ -2,7 +2,7 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009-2014, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2009-2015, The Trusted Domain Project.  All rights reserved.
 */
 
 #include "build-config.h"
@@ -80,10 +80,6 @@ static char *optlist[] =
 	"DEBUG",
 #endif /* DEBUG */
 
-#if POLL
-	"POLL",
-#endif /* POLL */
-
 #if POPAUTH
 	"POPAUTH",
 #endif /* POPAUTH */
@@ -131,6 +127,10 @@ static char *optlist[] =
 #ifdef _FFR_ATPS
 	"_FFR_ATPS",
 #endif /* _FFR_ATPS */
+
+#ifdef _FFR_CONDITIONAL
+	"_FFR_CONDITIONAL",
+#endif /* _FFR_CONDITIONAL */
 
 #ifdef _FFR_DEFAULT_SENDER
 	"_FFR_DEFAULT_SENDER",
@@ -813,7 +813,10 @@ dkimf_load_replist(FILE *in, struct replace **list)
 
 		p = strrchr(rule, '\t');
 		if (p == NULL)
+		{
+			free(newrep);
 			return FALSE;
+		}
 
 		*p = '\0';
 
@@ -821,6 +824,7 @@ dkimf_load_replist(FILE *in, struct replace **list)
 		if (status != 0)
 		{
 			fprintf(stderr, "%s: regcomp() failed\n", progname);
+			free(newrep);
 			return FALSE;
 		}
 
@@ -829,6 +833,7 @@ dkimf_load_replist(FILE *in, struct replace **list)
 		{
 			fprintf(stderr, "%s: strdup(): %s\n", progname,
 			        strerror(errno));
+			free(newrep);
 			return FALSE;
 		}
 

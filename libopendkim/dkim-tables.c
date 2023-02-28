@@ -2,9 +2,11 @@
 **  Copyright (c) 2005-2009 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2012, 2014, The Trusted Domain Project.
+**  Copyright (c) 2009-2012, 2014, 2015, 2018, The Trusted Domain Project.
 **  	All rights reserved.
 */
+
+#include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -58,8 +60,9 @@ struct nametable *sigparams = prv_sigparams;
 
 static struct nametable prv_algorithms[] =	/* signing algorithms */
 {
-	{ "rsa-sha1",	DKIM_SIGN_RSASHA1 },
-	{ "rsa-sha256",	DKIM_SIGN_RSASHA256 },
+	{ "rsa-sha1",		DKIM_SIGN_RSASHA1 },
+	{ "rsa-sha256",		DKIM_SIGN_RSASHA256 },
+	{ "ed25519-sha256",	DKIM_SIGN_ED25519SHA256 },
 	{ NULL,		-1 },
 };
 struct nametable *algorithms = prv_algorithms;
@@ -83,6 +86,7 @@ struct nametable *hashes = prv_hashes;
 static struct nametable prv_keytypes[] =	/* key types */
 {
 	{ "rsa",	DKIM_KEYTYPE_RSA },
+	{ "ed25519",	DKIM_KEYTYPE_ED25519 },
 	{ NULL,		-1 },
 };
 struct nametable *keytypes = prv_keytypes;
@@ -172,9 +176,22 @@ static struct nametable prv_sigerrors[] =	/* signature parsing errors */
 	{ "version missing",			DKIM_SIGERROR_MISSING_V },
 	{ "version empty",			DKIM_SIGERROR_EMPTY_V },
 	{ "signing key too small",		DKIM_SIGERROR_KEYTOOSMALL },
+#ifdef _FFR_CONDITIONAL
+	{ "conditional signature not satisfied", DKIM_SIGERROR_CONDITIONAL },
+	{ "too many signature indirections",	DKIM_SIGERROR_CONDLOOP },
+#endif /* _FFR_CONDITIONAL */
 	{ NULL,					-1 },
 };
 struct nametable *sigerrors = prv_sigerrors;
+
+#ifdef _FFR_CONDITIONAL
+static struct nametable prv_mandatory[] =	/* mandatory DKIM tags */
+{
+	{ "!cd",	0 },
+	{ NULL,		-1 },
+};
+struct nametable *mandatory = prv_mandatory;
+#endif /* _FFR_CONDITIONAL */
 
 /* ===================================================================== */
 

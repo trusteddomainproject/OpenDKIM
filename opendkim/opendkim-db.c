@@ -2,7 +2,8 @@
 **  Copyright (c) 2008 Sendmail, Inc. and its suppliers.
 **	All rights reserved.
 **
-**  Copyright (c) 2009-2014, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2009-2015, The Trusted Domain Project.
+**  	All rights reserved.
 */
 
 #include "build-config.h"
@@ -20,7 +21,6 @@
 #ifdef HAVE_STDBOOL_H
 # include <stdbool.h>
 #endif /* HAVE_STDBOOL_H */
-#include <syslog.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -966,8 +966,12 @@ dkimf_db_nextpunct(char *str)
 		    *p == '/' ||
 		    *p == '@' ||
 		    *p == '+' ||
-		    *p == '=' ||
 		    *p == '?')
+			return p;
+
+		if (*p == '=' &&
+		    (!isxdigit(*(p + 1)) ||
+		     !isxdigit(*(p + 2))))
 			return p;
 	}
 

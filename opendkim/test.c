@@ -374,6 +374,7 @@ dkimf_testfile(DKIM_LIB *libopendkim, struct test_context *tctx,
                FILE *f, char *file, _Bool strict, int tverbose)
 {
 	bool inheaders = TRUE;
+	bool newline = FALSE;
 	int len = 0;
 	int buflen = 0;
 	int lineno = 0;
@@ -420,10 +421,12 @@ dkimf_testfile(DKIM_LIB *libopendkim, struct test_context *tctx,
 		lineno++;
 
 		c = '\0';
+		newline = FALSE;
 		for (p = line; *p != '\0'; p++)
 		{
 			if (*p == '\n')
 			{
+				newline = TRUE;
 				*p = '\0';
 				break;
 			}
@@ -581,8 +584,11 @@ dkimf_testfile(DKIM_LIB *libopendkim, struct test_context *tctx,
 
 			memcpy(&buf[buflen], line, len);
 			buflen += len;
-			memcpy(&buf[buflen], CRLF, 2);
-			buflen += 2;
+			if (newline)
+			{
+				memcpy(&buf[buflen], CRLF, 2);
+				buflen += 2;
+			}
 		}
 	}
 
@@ -709,7 +715,6 @@ dkimf_testfile(DKIM_LIB *libopendkim, struct test_context *tctx,
 
 				if (selector != NULL || domain != NULL)
 				{
-#ifdef USE_UNBOUND
 					char *dnssec;
 					int dnsseccode = DKIM_DNSSEC_UNKNOWN;
 				
@@ -739,12 +744,6 @@ dkimf_testfile(DKIM_LIB *libopendkim, struct test_context *tctx,
 					        "%s: %s: verification (s=%s d=%s, %d-bit key, %s) failed: %s\n",
 					        progname, file, selector,
 					        domain, keysize, dnssec, err);
-#else /* USE_UNBOUND */
-					fprintf(stdout,
-					        "%s: %s: verification (s=%s d=%s, %d-bit key) failed: %s\n",
-					        progname, file, selector,
-					        domain, keysize, err);
-#endif /* USE_UNBOUND */
 				}
 				else
 				{

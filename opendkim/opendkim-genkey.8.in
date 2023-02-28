@@ -50,6 +50,10 @@ Instructs the tool to change to the named
 prior to creating files.  By default the current directory is used.
 
 .TP
+.I \-\-ed25519
+generate a ed25519 key.
+
+.TP
 .I \-h algorithms
 (\-\-hash-algorithms=name[:name[...]])
 Specifies a list of hash
@@ -69,7 +73,7 @@ text in the key record.  By default, no such text is included.
 
 .TP
 .I \-r
-(\-\-restricted)
+(\-\-restrict)
 Restricts the key for use in e-mail signing only.  The default is to allow
 the key to be used for any service.
 

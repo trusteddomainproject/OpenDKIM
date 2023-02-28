@@ -2,7 +2,8 @@
 **  Copyright (c) 2005-2008 Sendmail, Inc. and its suppliers.
 **    All rights reserved.
 **
-**  Copyright (c) 2009-2014, The Trusted Domain Project.  All rights reserved.
+**  Copyright (c) 2009-2015, 2018, The Trusted Domain Project.
+**    All rights reserved.
 */
 
 #ifndef _DKIM_TYPES_H_
@@ -106,6 +107,9 @@ struct dkim_plist
 struct dkim_set
 {
 	_Bool			set_bad;
+#ifdef _FFR_CONDITIONAL
+	u_int			set_minv;
+#endif /* _FFR_CONDITIONAL */
 	dkim_set_t		set_type;
 	u_char *		set_data;
 	const char *		set_name;
@@ -202,29 +206,29 @@ struct dkim_canon
 	struct dkim_canon *	canon_next;
 };
 
-/* struct dkim_rsa -- stuff needed to do RSA sign/verify */
-struct dkim_rsa
+/* struct dkim_crypto -- stuff needed to do RSA sign/verify */
+struct dkim_crypto
 {
 #ifdef USE_GNUTLS
-	size_t			rsa_rsaoutlen;
-	unsigned int		rsa_keysize;
-	gnutls_x509_privkey_t	rsa_key;
-	gnutls_privkey_t	rsa_privkey;
-	gnutls_pubkey_t		rsa_pubkey;
-	gnutls_datum_t		rsa_sig;
-	gnutls_datum_t		rsa_digest;
-	gnutls_datum_t 		rsa_rsaout;
-	gnutls_datum_t 		rsa_keydata;
+	size_t			crypto_rsaoutlen;
+	unsigned int		crypto_keysize;
+	gnutls_x509_privkey_t	crypto_key;
+	gnutls_privkey_t	crypto_privkey;
+	gnutls_pubkey_t		crypto_pubkey;
+	gnutls_datum_t		crypto_sig;
+	gnutls_datum_t		crypto_digest;
+	gnutls_datum_t 		crypto_rsaout;
+	gnutls_datum_t 		crypto_keydata;
 #else /* USE_GNUTLS */
-	u_char			rsa_pad;
-	int			rsa_keysize;
-	size_t			rsa_rsainlen;
-	size_t			rsa_rsaoutlen;
-	EVP_PKEY *		rsa_pkey;
-	RSA *			rsa_rsa;
-	BIO *			rsa_keydata;
-	u_char *		rsa_rsain;
-	u_char *		rsa_rsaout;
+	u_char			crypto_pad;
+	int			crypto_keysize;
+	size_t			crypto_inlen;
+	size_t			crypto_outlen;
+	EVP_PKEY *		crypto_pkey;
+	void *			crypto_key;
+	BIO *			crypto_keydata;
+	u_char *		crypto_in;
+	u_char *		crypto_out;
 #endif /* USE_GNUTLS */
 };
 
@@ -273,6 +277,9 @@ struct dkim
 	int			dkim_presult;
 	int			dkim_hdrcnt;
 	int			dkim_minsiglen;
+#ifdef _FFR_CONDITIONAL
+	int			dkim_cddepth;
+#endif /* _FFR_CONDITIONAL */
 #ifdef _FFR_RESIGN
 	u_int			dkim_refcnt;
 #endif /* _FFR_RESIGN */
@@ -306,6 +313,9 @@ struct dkim
 	u_char *		dkim_reportaddr;
 	u_char *		dkim_sender;
 	u_char *		dkim_signer;
+#ifdef _FFR_CONDITIONAL
+	u_char *		dkim_conditional;
+#endif /* _FFR_CONDITIONAL */
 	u_char *		dkim_error;
 	u_char *		dkim_hdrlist;
 	u_char *		dkim_zdecode;

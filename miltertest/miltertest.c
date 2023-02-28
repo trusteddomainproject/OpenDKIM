@@ -2566,7 +2566,7 @@ mt_data(lua_State *l)
 	ctx = (struct mt_context *) lua_touserdata(l, 1);
 	lua_pop(l, 1);
 
-	if (!mt_assert_state(ctx, STATE_DATA))
+	if (!mt_assert_state(ctx, STATE_ENVRCPT))
 		lua_error(l);
 
 	if (CHECK_MPOPTS(ctx, SMFIP_NODATA))
@@ -2663,7 +2663,7 @@ mt_header(lua_State *l)
 #endif /* SMFIP_HDR_LEADSPC */
 	memcpy(bp, value, strlen(value) + 1);
 
-	if (!mt_assert_state(ctx, STATE_ENVRCPT))
+	if (!mt_assert_state(ctx, STATE_DATA))
 		lua_error(l);
 
 	if (CHECK_MPOPTS(ctx, SMFIP_NOHDRS))
@@ -3645,8 +3645,8 @@ mt_eom_check(lua_State *l)
 
 				snprintf(rbuf, sizeof rbuf, "%s%s%s%s%s",
 				         smtp,
-				         esc == NULL ? "" : " ", esc,
-				         text == NULL ? "" : " ", text);
+				         esc == NULL ? "" : " ", esc == NULL ? "" : esc,
+				         text == NULL ? "" : " ", text == NULL ? "" : text);
 
 				if (strcmp(rbuf, (char *) r->eom_rdata) == 0)
 				{
@@ -4009,12 +4009,12 @@ main(int argc, char **argv)
 	}
 
 	/* register functions */
-#if LUA_VERSION_NUM == 502
-        luaL_newlib(l, mt_library);
+#if LUA_VERSION_NUM >= 502
+	luaL_newlib(l, mt_library);
 	lua_setglobal(l, "mt");
-#else /* LUA_VERSION_NUM == 502 */
+#else /* LUA_VERSION_NUM >= 502 */
 	luaL_register(l, "mt", mt_library);
-#endif /* LUA_VERSION_NUM == 502 */
+#endif /* LUA_VERSION_NUM >= 502 */
 	lua_pop(l, 1);
 
 	/* register constants */
@@ -4163,13 +4163,13 @@ main(int argc, char **argv)
 	lua_setglobal(l, "SMFIF_SETSYMLIST");
 #endif /* SMFIF_SETSYMLIST */
 
-#if LUA_VERSION_NUM == 502
+#if LUA_VERSION_NUM >= 502
 	switch (lua_load(l, mt_lua_reader, (void *) &io,
 	                 script == NULL ? "(stdin)" : script, NULL))
-#else /* LUA_VERSION_NUM == 502 */
+#else /* LUA_VERSION_NUM >= 502 */
 	switch (lua_load(l, mt_lua_reader, (void *) &io,
 	                 script == NULL ? "(stdin)" : script))
-#endif /* LUA_VERSION_NUM == 502 */
+#endif /* LUA_VERSION_NUM >= 502 */
 	{
 	  case 0:
 		break;

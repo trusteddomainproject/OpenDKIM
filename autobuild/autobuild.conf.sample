@@ -17,7 +17,6 @@
 		"--enable-diffheaders",
 		"--enable-vbr",
 		"--enable-atps",
-		"--enable-poll",
 		"--with-unbound",
 		"--enable-replace_rules",
 		"--with-libmemcached",

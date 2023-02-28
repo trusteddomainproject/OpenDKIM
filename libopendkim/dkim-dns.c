@@ -70,6 +70,9 @@ dkim_res_init(void **srv)
 		free(res);
 		return -1;
 	}
+#ifdef RES_USE_DNSSEC
+	res->options |= RES_USE_DNSSEC;
+#endif
 
 	*srv = res;
 
@@ -77,6 +80,9 @@ dkim_res_init(void **srv)
 #else /* HAVE_RES_NINIT */
 	if (res_init() == 0)
 	{
+#ifdef RES_USE_DNSSEC
+		_res.options |= RES_USE_DNSSEC;
+#endif
 		*srv = (void *) 0x01;
 		return 0;
 	}
@@ -163,29 +169,18 @@ int
 dkim_res_query(void *srv, int type, unsigned char *query, unsigned char *buf,
                size_t buflen, void **qh)
 {
-	int n;
 	int ret;
 	struct dkim_res_qh *rq;
-	unsigned char qbuf[HFIXEDSZ + MAXPACKET];
 #ifdef HAVE_RES_NINIT
 	struct __res_state *statp;
 #endif /* HAVE_RES_NINIT */
+	HEADER *hdr;
 
 #ifdef HAVE_RES_NINIT
 	statp = srv;
-	n = res_nmkquery(statp, QUERY, (char *) query, C_IN, type, NULL, 0,
-	                 NULL, qbuf, sizeof qbuf);
+	ret = res_nquery(statp, (char *) query, C_IN, type, buf, buflen);
 #else /* HAVE_RES_NINIT */
-	n = res_mkquery(QUERY, (char *) query, C_IN, type, NULL, 0, NULL, qbuf,
-	                sizeof qbuf);
-#endif /* HAVE_RES_NINIT */
-	if (n == (size_t) -1)
-		return DKIM_DNS_ERROR;
-
-#ifdef HAVE_RES_NINIT
-	ret = res_nsend(statp, qbuf, n, buf, buflen);
-#else /* HAVE_RES_NINIT */
-	ret = res_send(qbuf, n, buf, buflen);
+	ret = res_query((char *) query, C_IN, type, buf, buflen);
 #endif /* HAVE_RES_NINIT */
 	if (ret == -1)
 		return DKIM_DNS_ERROR;
@@ -194,7 +189,11 @@ dkim_res_query(void *srv, int type, unsigned char *query, unsigned char *buf,
 	if (rq == NULL)
 		return DKIM_DNS_ERROR;
 
-	rq->rq_dnssec = DKIM_DNSSEC_UNKNOWN;
+	hdr = (HEADER *) buf;
+	if (hdr->ad)
+		rq->rq_dnssec = DKIM_DNSSEC_SECURE;
+	else
+		rq->rq_dnssec = DKIM_DNSSEC_INSECURE;
 	if (ret == -1)
 	{
 		rq->rq_error = errno;
