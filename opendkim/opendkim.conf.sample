@@ -386,12 +386,14 @@ KeyFile			/var/db/dkim/example.private
 # NoHeaderB		no
 
 ##  OmitHeaders dataset
-##  	default (none)
+##  	default (Return-Path,Received,Comments,Keywords)
 ##
 ##  Specifies a list of headers that should always be omitted when signing.
 ##  Header names should be separated by commas.
 
+# OmitHeaders		Return-Path,Received,Comments,Keywords
 # OmitHeaders		header1,header2,...
+# OmitHeaders		*,+header1,-header2,...
 
 ##  On-...
 ##
@@ -412,10 +414,10 @@ KeyFile			/var/db/dkim/example.private
 ##
 ##  Specifies a set of header fields that should be included in all signature
 ##  header lists (the "h=" tag) once more than the number of times they were
-##  actually present in the signed message.  See opendkim.conf(5) for more
-##  information.
+##  actually present in the signed message.  Header names should be separated
+##  by commas.  See opendkim.conf(5) for more information.
 
-# OverSignHeaders	header1,header2,...
+# OversignHeaders	header1,header2,...
 
 ##  PeerList dataset
 ##  	default (none)
@@ -573,11 +575,12 @@ KeyFile			/var/db/dkim/example.private
 Selector		my-selector-name
 
 ##  SenderHeaders 	dataset
-##  	default (none)
+##  	default (From)
 ##
 ##  Overrides the default list of headers that will be used to determine
 ##  the sending domain when deciding whether to sign the message and with
-##  with which key(s).  See opendkim.conf(5) for details.
+##  with which key(s).  Header names should be separated by commas.
+##  See opendkim.conf(5) for details.
 
 # SenderHeaders		From
 
@@ -608,13 +611,15 @@ Selector		my-selector-name
 # SignatureTTL		0
 
 ##  SignHeaders dataset
-##  	default (none)
+##  	default (From,Reply-To,Subject,Date,To,Cc,Resent-Date,Resent-From,Resent-Sender,Resent-To,Resent-Cc,In-Reply-To,References,List-Id,List-Help,List-Unsubscribe,List-Subscribe,List-Post,List-Owner,List-Archive)
 ##
 ##  Specifies the list of headers which should be included when generating
 ##  signatures.  The string should be a comma-separated list of header names.
 ##  See the opendkim.conf(5) man page for more information.
 
-# SignHeaders		header1,header2,...
+# SignHeaders	From,Reply-To,Subject,Date,To,Cc,Resent-Date,Resent-From,Resent-Sender,Resent-To,Resent-Cc,In-Reply-To,References,List-Id,List-Help,List-Unsubscribe,List-Subscribe,List-Post,List-Owner,List-Archive
+# SignHeaders	header1,header2,...
+# SignHeaders	*,+header1,-header2
 
 ##  SigningTable dataset
 ##  	default (none)
