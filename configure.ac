@@ -64,6 +64,9 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 LT_INIT
 
+# Used by the OpenRC service script, at least.
+AC_PROG_GREP
+
 PKG_PROG_PKG_CONFIG
 
 #
@@ -2640,6 +2643,11 @@ AC_SUBST(SPECCONFIGURE)
 AC_SUBST(SPECREQUIRES)
 AC_SUBST(SPECBUILDREQUIRES)
 
+# Autoconf 2.70 will support this, and many distros patch it in,
+# but Autoconf 2.70 hasn't actually been released yet.
+AS_IF([test -z "${runstatedir}"], [runstatedir='${localstatedir}/run'])
+AC_SUBST([runstatedir])
+
 #
 # Finish up
 #
@@ -2651,6 +2659,7 @@ AC_CONFIG_FILES([	Makefile
 			contrib/docs/Makefile
 			contrib/init/Makefile
 			contrib/init/generic/Makefile
+			contrib/OpenRC/opendkim.openrc.in
 			contrib/init/redhat/Makefile
 			contrib/init/redhat/opendkim
 			contrib/init/redhat/opendkim-default-keygen
@@ -2662,8 +2671,6 @@ AC_CONFIG_FILES([	Makefile
 			contrib/spec/Makefile
 			contrib/spec/opendkim.spec
 			contrib/stats/Makefile
-			contrib/systemd/Makefile
-			contrib/systemd/opendkim.service
 		libopendkim/opendkim.pc libopendkim/Makefile
 		libopendkim/docs/Makefile
 		libopendkim/tests/Makefile
@@ -2676,8 +2683,6 @@ AC_CONFIG_FILES([	Makefile
 			opendkim/opendkim-lua.3 
 			opendkim/opendkim-testkey.8 opendkim/opendkim-stats.8
 			opendkim/opendkim-testmsg.8 opendkim/opendkim.conf.5
-			opendkim/opendkim.conf.simple
-			opendkim/opendkim.conf.simple-verify
 			opendkim/opendkim-atpszone.8 opendkim/opendkim-spam.1
 		opendkim/tests/Makefile
 		stats/Makefile stats/opendkim-importstats.8

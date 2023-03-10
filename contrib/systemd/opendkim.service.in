@@ -1,20 +1,28 @@
-# If you are using OpenDKIM with SQL datasets it might be necessary to start OpenDKIM after the database servers.
-# For example, if using both MariaDB and PostgreSQL, change "After=" in the "[Unit]" section to:
-# After=network.target nss-lookup.target syslog.target mariadb.service postgresql.service
+# If you are using OpenDKIM with SQL datasets, you should start
+# OpenDKIM after your database server. For example, when using
+# PostgreSQL, you should create a supplementary ".conf" file in the
+# appropriate directory containing,
+#
+# [Unit]
+# After=postgresql.service
+#
 
 [Unit]
 Description=DomainKeys Identified Mail (DKIM) Milter
-Documentation=man:opendkim(8) man:opendkim.conf(5) man:opendkim-genkey(8) man:opendkim-genzone(8) man:opendkim-testadsp(8) man:opendkim-testkey http://www.opendkim.org/docs.html
+Documentation=man:opendkim(8) \
+              man:opendkim.conf(5) \
+              man:opendkim-genkey(8) \
+              man:opendkim-genzone(8) \
+              man:opendkim-testkey(8) \
+              http://www.opendkim.org/docs.html
 After=network.target nss-lookup.target syslog.target
 
 [Service]
 Type=forking
-PIDFile=@localstatedir@/run/opendkim/opendkim.pid
-EnvironmentFile=-@sysconfdir@/sysconfig/opendkim
-ExecStart=@sbindir@/opendkim $OPTIONS
+ExecStart=@SBINDIR@/opendkim -P @RUNSTATEDIR@/opendkim.pid
+ExecStartPre=@SBINDIR@/opendkim -P @RUNSTATEDIR@/opendkim.pid -n -f
 ExecReload=/bin/kill -USR1 $MAINPID
-User=opendkim
-Group=opendkim
+PIDFile=@RUNSTATEDIR@/opendkim.pid
 
 [Install]
 WantedBy=multi-user.target

@@ -1,0 +1,54 @@
+#!/sbin/openrc-run
+# Copyright 1999-2019 Gentoo Authors
+# Distributed under the terms of the GNU General Public License v2
+
+CONFFILE="@SYSCONFDIR@/${RC_SVCNAME}.conf"
+required_files="${CONFFILE}"
+
+command="@SBINDIR@/opendkim"
+pidfile="@RUNSTATEDIR@/${RC_SVCNAME}.pid"
+command_args="-P ${pidfile} -x ${CONFFILE}"
+extra_commands="checkconfig"
+
+depend() {
+	use dns logger net
+	before mta
+}
+
+checkconfig() {
+	#
+	# The opendkim.conf man page says,
+	#
+	#   For parameters that are Boolean in nature, only the first byte
+	#   of the value is processed... For negative values, the following
+	#   are accepted: "F", "f", "N", "n", "0".'
+	#
+	if @GREP@ '^[[:space:]]*Background[[:space:]]\+[FfNn0]' "${CONFFILE}" \
+		>/dev/null 2>&1; then
+		eend 1 "${RC_SVCNAME} cannot run in the foreground!"
+	fi
+	if ! "${command}" -n "${command_args}"; then
+		eend 1 "${RC_SVCNAME} configuration check failed"
+	fi
+}
+
+start_pre() {
+	# If this isn't a restart, make sure that the user's config isn't
+	# busted before we try to start the daemon (this will produce
+	# better error messages than if we just try to start it blindly).
+	#
+	# If, on the other hand, this *is* a restart, then the stop_pre
+	# action will have ensured that the config is usable and we don't
+	# need to do that again.
+	if [ "${RC_CMD}" != "restart" ]; then
+		checkconfig || return $?
+	fi
+}
+
+stop_pre() {
+	# If this is a restart, check to make sure the user's config
+	# isn't busted before we stop the running daemon.
+	if [ "${RC_CMD}" = "restart" ]; then
+		checkconfig || return $?
+	fi
+}

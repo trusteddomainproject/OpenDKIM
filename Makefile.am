@@ -39,6 +39,52 @@ DISTCLEANFILES = opendkim-@VERSION@.tar.gz
 # though.
 DISTCHECK_CONFIGURE_FLAGS=--enable-vbr --with-lua --enable-stats --with-odbx --with-db --with-openssl=/usr/local --enable-atps --enable-replace_rules
 
+
+#
+# Handle some scripts and configuration files that need @VARIABLE@
+# replacements here, so that we can share the rules (which are
+# identical) between all of the targets.
+#
+
+# We want to *build and install* these on the target machine.
+nodist_doc_DATA = contrib/OpenRC/opendkim.openrc \
+                  contrib/systemd/opendkim.service \
+                  contrib/systemd/opendkim.tmpfiles \
+                  opendkim/opendkim.conf.simple \
+                  opendkim/opendkim.conf.simple-verify
+
+# Custom variable to keep the rule below as sane as possible.
+doc_DATA_intermediate = contrib/OpenRC/opendkim.openrc.in
+
+# We want to *ship* these.
+EXTRA_DIST = contrib/OpenRC/opendkim.openrc.in.in \
+             contrib/systemd/opendkim.service.in \
+             contrib/systemd/opendkim.tmpfiles.in \
+             opendkim/opendkim.conf.simple.in \
+             opendkim/opendkim.conf.simple-verify.in
+
+# The next rule allow us to replace bindir, libdir, etc.  within
+# files. The example is taken from the autoconf documentation and can
+# be found in the "Installation Directory Variables" section.
+edit = sed -e 's|@DOMAIN[@]|$(DOMAIN)|g' \
+           -e 's|@RUNSTATEDIR[@]|$(runstatedir)|g' \
+           -e 's|@SBINDIR[@]|$(sbindir)|g' \
+           -e 's|@SYSCONFDIR[@]|$(sysconfdir)|g'
+
+# This rule includes EVERY source/intermediate file as a dependency of
+# EVERY output file, which is clearly wrong, but it may be the best we
+# can do without duplication. At least it's the right kind of wrong,
+# and rebuilds too often rather than not often enough.
+$(nodist_doc_DATA): $(doc_DATA_intermediate) $(EXTRA_DIST) Makefile
+	rm -f $@ $@.tmp
+	srcdir=''; \
+	  test -f ./$@.in || srcdir=$(srcdir)/; \
+	  $(edit) $${srcdir}$@.in > $@.tmp
+	mv $@.tmp $@
+
+
+
+
 $(DIST_ARCHIVES): distcheck
 
 $(DIST_ARCHIVES).md5: $(DIST_ARCHIVES)
