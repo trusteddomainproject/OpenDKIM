@@ -620,6 +620,15 @@ the name "foobar", while "*,-Bcc" would use the entire default list except
 for the "Bcc" entry.
 
 .TP
+.I OmitHeadersDB (string)
+Specify a file containing a per-recipient list of headers to omit 
+when generating signatures. Return-Path, Received, Comments, and
+Keywoard are implicitely added to the list. The file should have
+two columns : a recipient as user@domain.tld or domain.tld, and 
+a comma-separated lis of headers to omit. For example 
+"list@example.net Subject,Bcc"
+
+.TP
 .I On-BadSignature (string)
 Selects the action to be taken when a signature fails to validate.
 Possible values (with abbreviated forms in parentheses):
