@@ -115,6 +115,7 @@ struct configdef dkimf_config[] =
 	{ "Nameservers",		CONFIG_TYPE_STRING,	FALSE },
 	{ "NoHeaderB",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "OmitHeaders",		CONFIG_TYPE_STRING,	FALSE },
+	{ "OmitHeadersDB",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-BadSignature",		CONFIG_TYPE_STRING,	FALSE },
 	{ "On-Default",			CONFIG_TYPE_STRING,	FALSE },
 	{ "On-DNSError",		CONFIG_TYPE_STRING,	FALSE },
