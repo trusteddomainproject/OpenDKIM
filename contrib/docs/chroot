@@ -5,7 +5,7 @@ Contributed by Andreas Schulze
 
 Running opendkim chroot adds an additional layer of complexity. It is disabled
 by default.  Only advanced users only should try to enable that special
-configuration.  To successfull setup a chroot jail you must configure opendkim
+configuration.  To successfully setup a chroot jail you must configure opendkim
 to run *without* that restriction first!
 
 enabling chroot jail
@@ -15,7 +15,7 @@ opendkim.conf.  Then you must restart opendkim.
 
 setting up syslog
 =================
-opendkim requieres a syslog socket inside the chroot.  You have to edit your
+opendkim requires a syslog socket inside the chroot.  You have to edit your
 syslog daemon configuration.
 
   for rsyslog:
@@ -42,7 +42,7 @@ be placed inside /path/to/chroot.
 
 setup entropie
 ==============
-opendkim needs access to /dev/random or a similiar random generator.
+opendkim needs access to /dev/random or a similar random generator.
 
   for linux:
   install -d /path/to/chroot/dev/
