@@ -6,7 +6,7 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: VBR (Vouch by reference library)
-Description: Library for assisting in Vouch By Refence functions
+Description: Library for assisting in Vouch By Reference functions
 URL: http://opendkim.org
 Version: @VERSION@
 Libs: -L${libdir} -lvbr

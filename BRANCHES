@@ -61,7 +61,7 @@ br-msk-lua	Experimenting with LUA for scriptable policy hooks
 br-msk-lua-dataset
 		Experimental addition of a new "lua:" dataset type.
 
-br-msk-lua-dbs	Support for abitrary data set operations from Lua scripts.
+br-msk-lua-dbs	Support for arbitrary data set operations from Lua scripts.
 
 br-msk-openldap	OpenLDAP integration work
 

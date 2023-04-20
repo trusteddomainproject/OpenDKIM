@@ -846,7 +846,7 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 **  Parameters:
 **  	buf -- parameter (the actual query)
 **  	query -- query string (a domain name?)
-**  	out -- outbut buffer
+**  	out -- output buffer
 **  	outlen -- size of "out"
 **
 **  Return value:
@@ -1809,7 +1809,7 @@ dkimf_db_erl_decode_response(ei_x_buff *resp, const char *notfound,
 **  	Currently defined types:
 **  	csl -- "name" contains a comma-separated list
 **  	file -- a flat file; may be simply a list of names if only a
-**  	        memership test is needed, or it can be "key value" lines
+**  	        membership test is needed, or it can be "key value" lines
 **  	        in which case dkimf_db_get() can be used to extract the
 **  	        value of a named key
 **  	refile -- a flat file containing patterns (i.e. strings with the
@@ -1818,7 +1818,7 @@ dkimf_db_erl_decode_response(ei_x_buff *resp, const char *notfound,
 **  	      for membership tests or key-value pairs
 **  	dsn -- a data store name, meaning SQL or ODBC in the backend,
 **  	       with interface provided by OpenDBX
-**  	ldap -- an LDAP server, interace provide by OpenLDAP
+**  	ldap -- an LDAP server, interface provided by OpenLDAP
 **  	lua -- a Lua script; the returned value is the result
 **  	erlang -- an erlang function to be called in a distributed erlang node
 */

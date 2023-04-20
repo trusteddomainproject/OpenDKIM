@@ -823,7 +823,7 @@ extern DKIM_STAT dkim_options __P((DKIM_LIB *dkimlib, int op, dkim_opts_t opt,
                                    void *ptr, size_t len));
 
 /*
-**  DKIM_SIG_GETFLAGS -- retreive signature handle flags
+**  DKIM_SIG_GETFLAGS -- retrieve signature handle flags
 **
 **  Parameters:
 **  	sig -- DKIM_SIGINFO handle
@@ -836,7 +836,7 @@ extern DKIM_STAT dkim_options __P((DKIM_LIB *dkimlib, int op, dkim_opts_t opt,
 extern unsigned int dkim_sig_getflags __P((DKIM_SIGINFO *sig));
 
 /*
-**  DKIM_SIG_GETBH -- retreive signature handle "bh" test state
+**  DKIM_SIG_GETBH -- retrieve signature handle "bh" test state
 **
 **  Parameters:
 **  	sig -- DKIM_SIGINFO handle
@@ -849,7 +849,7 @@ extern unsigned int dkim_sig_getflags __P((DKIM_SIGINFO *sig));
 extern int dkim_sig_getbh __P((DKIM_SIGINFO *sig));
 
 /*
-**  DKIM_SIG_GETKEYSIZE -- retreive key size after verifying
+**  DKIM_SIG_GETKEYSIZE -- retrieve key size after verifying
 **
 **  Parameters:
 **  	sig -- DKIM_SIGINFO handle
@@ -863,7 +863,7 @@ extern DKIM_STAT dkim_sig_getkeysize __P((DKIM_SIGINFO *sig,
                                           unsigned int *bits));
 
 /*
-**  DKIM_SIG_GETSIGNALG -- retreive signature algorithm after verifying
+**  DKIM_SIG_GETSIGNALG -- retrieve signature algorithm after verifying
 **
 **  Parameters:
 **  	sig -- DKIM_SIGINFO handle
@@ -876,7 +876,7 @@ extern DKIM_STAT dkim_sig_getkeysize __P((DKIM_SIGINFO *sig,
 extern DKIM_STAT dkim_sig_getsignalg __P((DKIM_SIGINFO *sig, dkim_alg_t *alg));
 
 /*
-**  DKIM_SIG_GETSIGNTIME -- retreive signature timestamp after verifying
+**  DKIM_SIG_GETSIGNTIME -- retrieve signature timestamp after verifying
 **
 **  Parameters:
 **  	sig -- DKIM_SIGINFO handle

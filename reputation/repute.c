@@ -128,7 +128,7 @@ repute_curl_writedata(char *ptr, size_t size, size_t nmemb, void *userdata)
 **  	rep -- returned reputation
 **  	conf -- confidence
 **  	sample -- sample size
-**  	limit -- recommented flow limit
+**  	limit -- recommended flow limit
 **  	when -- timestamp on the report
 **
 **  Return value:
@@ -614,7 +614,7 @@ repute_new(const char *server, unsigned int reporter)
 /*
 **  REPUTE_CLOSE -- tear down a REPUTE handle
 **
-**  Paramters:
+**  Parameters:
 **  	rep -- REPUTE handle to shut down
 **
 **  Return value:
