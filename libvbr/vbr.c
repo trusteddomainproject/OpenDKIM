@@ -551,7 +551,7 @@ vbr_res_waitreply(void *srv, void *qh, struct timeval *to, size_t *bytes,
 **  	buflen -- size of output buffer
 **
 **  Return value:
-**  	TRUE iff ansbuf contains an IN TXT reply that could be deocde.
+**  	TRUE iff ansbuf contains an IN TXT reply that could be decoded.
 */
 
 static _Bool

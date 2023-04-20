@@ -1,6 +1,6 @@
 -- Copyright (c) 2010-2013, The Trusted Domain Project.  All rights reserved.
 
--- Syntax error proccessing test
+-- Syntax error processing test
 -- 
 -- Confirms that an message with a syntax error TEMPFAILs
 

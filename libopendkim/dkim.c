@@ -1305,7 +1305,7 @@ dkim_privkey_load(DKIM *dkim)
 }
 
 /*
-**  DKIM_CHECK_REQUIREDHDRS -- see if all requried headers are present
+**  DKIM_CHECK_REQUIREDHDRS -- see if all required headers are present
 **
 **  Parameters:
 **  	dkim -- DKIM handle
@@ -6083,7 +6083,7 @@ dkim_ohdrs(DKIM *dkim, DKIM_SIGINFO *sig, u_char **ptrs, int *pcnt)
 		}
 	}
 
-	/* none useable; return error */
+	/* none usable; return error */
 	if (sig == NULL)
 		return DKIM_STAT_INVALID;
 
@@ -7369,7 +7369,7 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 **  	dkim -- libopendkim handle
 **  	buf -- buffer into which to write
 **  	buflen -- bytes available at "buf"
-**  	initial -- width aleady consumed for the first line
+**  	initial -- width already consumed for the first line
 **
 **  Return value:
 **  	A DKIM_STAT_* constant.
@@ -7856,7 +7856,7 @@ dkim_sig_getcanonlen(DKIM *dkim, DKIM_SIGINFO *sig, ssize_t *msglen,
 }
 
 /*
-**  DKIM_SIG_GETFLAGS -- retreive signature handle flags
+**  DKIM_SIG_GETFLAGS -- retrieve signature handle flags
 **
 **  Parameters:
 **  	sig -- DKIM_SIGINFO handle
@@ -7875,7 +7875,7 @@ dkim_sig_getflags(DKIM_SIGINFO *sig)
 }
 
 /*
-**  DKIM_SIG_GETBH -- retreive signature handle "bh" test state
+**  DKIM_SIG_GETBH -- retrieve signature handle "bh" test state
 **
 **  Parameters:
 **  	sig -- DKIM_SIGINFO handle

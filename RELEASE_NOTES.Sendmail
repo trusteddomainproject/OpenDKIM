@@ -738,12 +738,12 @@ were logged internally at Sendmail, Inc.
 		of messages bearing multiple signatures.  This included the
 		following changes:
 		o Extend draft-ietf-dkim-ssp-00 support to cover
-			multiply-signed messags.
+			multiply-signed messages.
 		o Introduce DKIM_SIGERROR type/constants for associating
 			an error code with each individual signature.
-		o New libary flag DKIM_LIBFLAG_DELAYSIGPROC delays all
+		o New library flag DKIM_LIBFLAG_DELAYSIGPROC delays all
 			signature processing until dkim_eom().
-		o New libary flag DKIM_LIBFLAG_EOHCHECK causes dkim_eoh()
+		o New library flag DKIM_LIBFLAG_EOHCHECK causes dkim_eoh()
 			to return an error if it was unable to find any
 			valid signatures when verifying.
 		o Add new DKIM_CANON data type, referring to a

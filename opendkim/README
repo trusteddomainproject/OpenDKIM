@@ -54,7 +54,7 @@ Consult your documentation for other packet filter and policy systems.
 CONFIGURING OPENDKIM
 ====================
 
-NOTE: If you will only be verfiying incoming mail and will not be signing,
+NOTE: If you will only be verifying incoming mail and will not be signing,
 start at step (5).
 
 (1) Choose a selector name.  A selector is simply a symbolic name given to
@@ -86,7 +86,7 @@ start at step (5).
     For a translation of the parameters and value pairs, see RFC6376.  Using 
     "t=y" is indicates you are in "test mode", advising verifiers that they
     should not take any real action based on success or failure of the use
-    of this key after verifing a message.  Remove the "t=y" once you have
+    of this key after verifying a message.  Remove the "t=y" once you have
     tested the DKIM signing of your messages to your satisfaction.
 
     You might want to set a short TTL on this record during testing so
@@ -108,7 +108,7 @@ start at step (5).
 
         dig -t ns DOMAIN
 
-    If the key can be retreived correctly then opendkim-testkey can be used to
+    If the key can be retrieved correctly then opendkim-testkey can be used to
     verify that the key matches the private key.
 
         opendkim-testkey -d DOMAIN -s SELECTOR -k rsa.private
@@ -126,7 +126,7 @@ start at step (5).
 (5) Take a look at the opendkim.conf.simple as an example configuration file 
     for your domain.  If you wish to sign mail that comes from sources other 
     than the localhost address (127.0.0.1), include these in CIDR notation in
-    the confiugration file for the InternalHosts configuration option.
+    the configuration file for the InternalHosts configuration option.
 
 (6) Start opendkim.  You will need at least the "-p" option.  The current
     recommended set of command line options is:
@@ -331,7 +331,7 @@ NOTES ON POSTFIX REWRITING OF MESSAGES
 Like other MIME-aware MTAs, Postfix downgrades 8bit body content to 7bit when
 a remote SMTP server does not announce 8BITMIME support.  If DKIM signatures
 must survive transmission to servers that don't announce 8BITMIME, it is
-recommented to downgrade before signing (for example, specify
+recommended to downgrade before signing (for example, specify
 "-o smtp_discard_ehlo_keywords=8bitmime,silent-discard" for an SMTP client
 that delivers to a null filter or to amavisd).
 

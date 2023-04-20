@@ -276,7 +276,7 @@ check-local: check-TESTS description.html
 		--description-file description.html
 
 # remove t- prefix and replace - with _ from testnames because lcov doesn't handle it
-# keep consistant with gcov-helper.sh
+# keep consistent with gcov-helper.sh
 
 description.txt: $(check_PROGRAMS) $(check_SCRIPTS)
 	rm -f $@

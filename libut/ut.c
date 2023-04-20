@@ -106,7 +106,7 @@ ut_hexdigit(int c)
 
 /*
 **  UT_PCT_ENCODED -- determine whether or not a pct-encoded byte has
-**                    been encoutered
+**                    been encountered
 **
 **  Parameters:
 **  	p -- string to scan

@@ -81,7 +81,7 @@ to disclose the full signer identity in signatures.
 
 
 Single signature
-In its simpliest form the query retrieves a single signing key. It will be the
+In its simplest form the query retrieves a single signing key. It will be the
 key from the identity that matches opendkims query strategy best.
 
 The following example uses the opendkim.schema to configure such a query in

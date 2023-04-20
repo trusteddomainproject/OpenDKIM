@@ -8,7 +8,7 @@
 #
 
 #
-# load local configuration for databae values
+# load local configuration for database values
 #
 require "repute-config.php";
 
