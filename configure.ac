@@ -147,7 +147,7 @@ dnscheck='
 #include <netinet/in.h>
 #include <arpa/nameser.h>
 #include <resolv.h> 
-int main() {
+int main(int argc, char** argv) {
 res_mkquery (0, 0, 0, 0, 0, 0, 0, 0, 0);
 dn_expand (0, 0, 0, 0, 0);
 dn_skipname (0, 0);
@@ -549,7 +549,7 @@ gprof_gmon_out="unknown"
 if test x"$hasgprof" = x"yes"
 then
 	gprofcheck='
-int main() {
+int main(int argc, char** argv) {
 	long x;
 
 	x = random();
@@ -747,7 +747,7 @@ then
 		#if GNUTLS_VERSION_NUMBER < 0x020b07
 		# error GnuTLS 2.11.7 or later required
 		#endif 
-		int main()
+		int main(int argc, char** argv)
 		{
 			return 0;
 		}'
@@ -759,7 +759,7 @@ then
 
 	sha256check='
 		#include <gnutls/gnutls.h>
-		int main()
+		int main(int argc, char** argv)
 		{
 			int x = GNUTLS_DIG_SHA256;
 		}'
@@ -1191,7 +1191,7 @@ then
 #include <libmemcached/memcached.h>
 
 int
-main()
+main(int argc, char** argv)
 {
 	memcached_return_t x;
 
@@ -1649,7 +1649,7 @@ then
 #endif
 
 int
-main()
+main(int argc, char** argv)
 {
 	return 0;
 }
@@ -1859,7 +1859,7 @@ then
 #endif
 
 int
-main()
+main(int argc, char** argv)
 {
 	return 0;
 }
