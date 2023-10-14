@@ -13653,8 +13653,15 @@ mlfi_eom(SMFICTX *ctx)
 			return SMFIS_TEMPFAIL;
 		}
 
-		c = 0;
+		c = 1;
+
 		for (hdr = dfc->mctx_hqhead; hdr != NULL; hdr = hdr->hdr_next)
+		{
+			if (strcasecmp(hdr->hdr_hdr, AUTHRESULTSHDR) == 0)
+				c++;
+		}
+
+		for (hdr = dfc->mctx_hqtail; hdr != NULL; hdr = hdr->hdr_prev)
 		{
 			memset(ares, '\0', sizeof(struct authres));
 
@@ -13666,7 +13673,7 @@ mlfi_eom(SMFICTX *ctx)
 				char *slash;
 
 				/* remember index */
-				c++;
+				c--;
 
 				/* parse the header */
 				arstat = ares_parse((u_char *) hdr->hdr_val,
