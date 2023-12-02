@@ -1800,7 +1800,7 @@ OPENLDAP_LIBS=""
 if test \( x"$ldappath" = x"auto" -o x"$ldappath" = x"yes" \) -a \
 	x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([OPENLDAP], [openldap >= 2.0.0],
+        PKG_CHECK_MODULES([OPENLDAP], [ldap >= 2.0.0],
 	[
 		ldap_found="yes"
 		OPENLDAP_CPPFLAGS="$OPENLDAP_CFLAGS"
