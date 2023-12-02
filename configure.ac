@@ -1890,7 +1890,7 @@ sasl_found="no"
 if test \( x"$saslpath" = x"auto" -o x"$saslpath" = x"yes" \) -a \
 	x"$PKG_CONFIG" != x""
 then
-        PKG_CHECK_MODULES([SASL], [cyrussasl >= 2.1.0],
+        PKG_CHECK_MODULES([SASL], [libsasl2 >= 2.1.0],
 	[
 		sasl_found="yes"
 		SASL_CPPFLAGS="$SASL_CFLAGS"
