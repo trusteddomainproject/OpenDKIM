@@ -130,10 +130,10 @@ umask(077);
 
 if ($ed25519)
 {
-	$status = system("openssl version 2>/dev/null | grep --silent --ignore-case '^openssl 1.1.1'");
+	$status = system("openssl genpkey -algorithm ed25519 > /dev/null 2>&1");
 	if ($status != 0)
 	{
-		print STDERR "$progname: OpenSSL 1.1.1 is required for ED25519 support\n";
+		print STDERR "$progname: OpenSSL 1.1.1 or higher is required for ED25519 support\n";
 		exit(1);
 	}
 }
