@@ -4014,8 +4014,8 @@ main(int argc, char **argv)
 	lua_setglobal(l, "mt");
 #else /* LUA_VERSION_NUM >= 502 */
 	luaL_register(l, "mt", mt_library);
-#endif /* LUA_VERSION_NUM >= 502 */
 	lua_pop(l, 1);
+#endif /* LUA_VERSION_NUM >= 502 */
 
 	/* register constants */
 	lua_pushnumber(l, MT_HDRINSERT);
