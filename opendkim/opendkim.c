@@ -5091,6 +5091,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 	new->srq_selector = NULL;
 	new->srq_keydata = NULL;
 	new->srq_signlen = signlen;
+	new->srq_signalg = DKIM_SIGN_DEFAULT;
 	if (signer != NULL && signer[0] != '\0')
 		new->srq_signer = (u_char *) strdup(signer);
 	else
@@ -12619,6 +12620,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 		for (sr = dfc->mctx_srhead; sr != NULL; sr = sr->srq_next)
 		{
+			dkim_alg_t signalg;
 #ifdef _FFR_CONDITIONAL
 			if (sr->srq_dkim != NULL)
 				continue;
@@ -12645,13 +12647,15 @@ mlfi_eoh(SMFICTX *ctx)
 				selector = conf->conf_selector;
 			}
 
+			signalg = (sr->srq_signalg == DKIM_SIGN_DEFAULT)?
+			          dfc->mctx_signalg:sr->srq_signalg;
 			sr->srq_dkim = dkim_sign(conf->conf_libopendkim,
 			                         dfc->mctx_jobid,
 			                         NULL, keydata, selector,
 			                         sdomain,
 			                         dfc->mctx_hdrcanon,
 			                         dfc->mctx_bodycanon,
-			                         dfc->mctx_signalg,
+			                         signalg,
 			                         signlen, &status);
 
 			if (sr->srq_dkim == NULL || status != DKIM_STAT_OK)
